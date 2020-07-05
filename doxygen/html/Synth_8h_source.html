@@ -339,7 +339,7 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l00247"></a>00247         <span class="comment">// Callbacks for reporting various errors and information</span>
 <a name="l00248"></a>00248         <span class="keyword">virtual</span> <span class="keywordtype">void</span> onErrorControlROM() {}
 <a name="l00249"></a>00249         <span class="keyword">virtual</span> <span class="keywordtype">void</span> onErrorPCMROM() {}
-<a name="l00250"></a>00250         <span class="keyword">virtual</span> <span class="keywordtype">void</span> showLCDMessage(<span class="keyword">const</span> <span class="keywordtype">char</span> *message);
+<a name="l00250"></a>00250         <span class="keyword">virtual</span> <span class="keywordtype">void</span> showLCDMessage(<span class="keyword">const</span> <span class="keywordtype">char</span> *data);
 <a name="l00251"></a>00251         <span class="keyword">virtual</span> <span class="keywordtype">void</span> onDeviceReset() {}
 <a name="l00252"></a>00252         <span class="keyword">virtual</span> <span class="keywordtype">void</span> onDeviceReconfig() {}
 <a name="l00253"></a>00253         <span class="keyword">virtual</span> <span class="keywordtype">void</span> onNewReverbMode(Bit8u <span class="comment">/* mode */</span>) {}
@@ -455,8 +455,8 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l00363"></a>00363         <span class="keywordtype">bool</span> loadPCMROM(<span class="keyword">const</span> <a class="code" href="classMT32Emu_1_1ROMImage.html">ROMImage</a> &amp;pcmROMImage);
 <a name="l00364"></a>00364 
 <a name="l00365"></a>00365         <span class="keywordtype">bool</span> initPCMList(Bit16u mapAddress, Bit16u count);
-<a name="l00366"></a>00366         <span class="keywordtype">bool</span> initTimbres(Bit16u mapAddress, Bit16u offset, <span class="keywordtype">int</span> timbreCount, <span class="keywordtype">int</span> startTimbre, <span class="keywordtype">bool</span> compressed);
-<a name="l00367"></a>00367         <span class="keywordtype">bool</span> initCompressedTimbre(<span class="keywordtype">int</span> drumNum, <span class="keyword">const</span> Bit8u *mem, <span class="keywordtype">unsigned</span> <span class="keywordtype">int</span> memLen);
+<a name="l00366"></a>00366         <span class="keywordtype">bool</span> initTimbres(Bit16u mapAddress, Bit16u offset, <span class="keywordtype">int</span> count, <span class="keywordtype">int</span> startTimbre, <span class="keywordtype">bool</span> compressed);
+<a name="l00367"></a>00367         <span class="keywordtype">bool</span> initCompressedTimbre(<span class="keywordtype">int</span> timbreNum, <span class="keyword">const</span> Bit8u *src, <span class="keywordtype">unsigned</span> <span class="keywordtype">int</span> srcLen);
 <a name="l00368"></a>00368 
 <a name="l00369"></a>00369         <span class="keywordtype">void</span> refreshSystemMasterTune();
 <a name="l00370"></a>00370         <span class="keywordtype">void</span> refreshSystemReverbParameters();
@@ -498,11 +498,11 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l00406"></a>00406         <span class="keywordtype">void</span> playSysex(<span class="keyword">const</span> Bit8u *sysex, Bit32u len);
 <a name="l00407"></a>00407         <span class="keywordtype">void</span> playSysexWithoutFraming(<span class="keyword">const</span> Bit8u *sysex, Bit32u len);
 <a name="l00408"></a>00408         <span class="keywordtype">void</span> playSysexWithoutHeader(<span class="keywordtype">unsigned</span> <span class="keywordtype">char</span> device, <span class="keywordtype">unsigned</span> <span class="keywordtype">char</span> command, <span class="keyword">const</span> Bit8u *sysex, Bit32u len);
-<a name="l00409"></a>00409         <span class="keywordtype">void</span> writeSysex(<span class="keywordtype">unsigned</span> <span class="keywordtype">char</span> channel, <span class="keyword">const</span> Bit8u *sysex, Bit32u len);
+<a name="l00409"></a>00409         <span class="keywordtype">void</span> writeSysex(<span class="keywordtype">unsigned</span> <span class="keywordtype">char</span> device, <span class="keyword">const</span> Bit8u *sysex, Bit32u len);
 <a name="l00410"></a>00410 
-<a name="l00411"></a>00411         <span class="keywordtype">void</span> setReverbEnabled(<span class="keywordtype">bool</span> reverbEnabled);
+<a name="l00411"></a>00411         <span class="keywordtype">void</span> setReverbEnabled(<span class="keywordtype">bool</span> newReverbEnabled);
 <a name="l00412"></a>00412         <span class="keywordtype">bool</span> isReverbEnabled() <span class="keyword">const</span>;
-<a name="l00413"></a>00413         <span class="keywordtype">void</span> setReverbOverridden(<span class="keywordtype">bool</span> reverbOverridden);
+<a name="l00413"></a>00413         <span class="keywordtype">void</span> setReverbOverridden(<span class="keywordtype">bool</span> newReverbOverridden);
 <a name="l00414"></a>00414         <span class="keywordtype">bool</span> isReverbOverridden() <span class="keyword">const</span>;
 <a name="l00415"></a>00415         <span class="keywordtype">void</span> setDACInputMode(DACInputMode mode);
 <a name="l00416"></a>00416 
@@ -528,7 +528,7 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l00436"></a>00436 
 <a name="l00437"></a>00437         <span class="keyword">const</span> <a class="code" href="classMT32Emu_1_1Partial.html">Partial</a> *getPartial(<span class="keywordtype">unsigned</span> <span class="keywordtype">int</span> partialNum) <span class="keyword">const</span>;
 <a name="l00438"></a>00438 
-<a name="l00439"></a>00439         <span class="keywordtype">void</span> setPartialLimit( <span class="keywordtype">unsigned</span> <span class="keywordtype">int</span> partialLimit );
+<a name="l00439"></a>00439         <span class="keywordtype">void</span> setPartialLimit( <span class="keywordtype">unsigned</span> <span class="keywordtype">int</span> _partialLimit );
 <a name="l00440"></a>00440         <span class="keywordtype">unsigned</span> <span class="keywordtype">int</span> getPartialLimit() <span class="keyword">const</span>;
 <a name="l00441"></a>00441         
 <a name="l00442"></a>00442         <span class="keywordtype">void</span> readMemory(Bit32u addr, Bit32u len, Bit8u *data);
@@ -572,7 +572,7 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 
 
 <hr class="footer"/><address class="footer"><small>
-Generated on Tue Oct 1 2019 18:06:29 for DOSBox-X by &#160;<a href="http://www.doxygen.org/index.html">
+Generated on Sun Jul 5 2020 13:11:39 for DOSBox-X by &#160;<a href="http://www.doxygen.org/index.html">
 <img class="footer" src="doxygen.png" alt="doxygen"/>
 </a> 1.8.0
 </small></address>

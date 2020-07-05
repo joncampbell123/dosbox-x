@@ -120,114 +120,109 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l00023"></a>00023 
 <a name="l00024"></a>00024 <span class="keyword">namespace </span>MT32Emu {
 <a name="l00025"></a>00025 
-<a name="l00026"></a>00026 FreeverbModel::FreeverbModel(<span class="keywordtype">float</span> useScaleTuning, <span class="keywordtype">float</span> useFiltVal, <span class="keywordtype">float</span> useWet, Bit8u useRoom, <span class="keywordtype">float</span> useDamp) {
-<a name="l00027"></a>00027         freeverb = NULL;
-<a name="l00028"></a>00028         scaleTuning = useScaleTuning;
-<a name="l00029"></a>00029         filtVal = useFiltVal;
-<a name="l00030"></a>00030         wet = useWet;
-<a name="l00031"></a>00031         room = useRoom;
-<a name="l00032"></a>00032         damp = useDamp;
-<a name="l00033"></a>00033 }
-<a name="l00034"></a>00034 
-<a name="l00035"></a>00035 FreeverbModel::~FreeverbModel() {
-<a name="l00036"></a>00036         <span class="keyword">delete</span> freeverb;
-<a name="l00037"></a>00037 }
-<a name="l00038"></a>00038 
-<a name="l00039"></a>00039 <span class="keywordtype">void</span> FreeverbModel::open() {
-<a name="l00040"></a>00040         <span class="keywordflow">if</span> (freeverb == NULL) {
-<a name="l00041"></a>00041                 freeverb = <span class="keyword">new</span> <a class="code" href="classrevmodel.html">revmodel</a>(scaleTuning);
-<a name="l00042"></a>00042         }
-<a name="l00043"></a>00043         freeverb-&gt;mute();
-<a name="l00044"></a>00044 
-<a name="l00045"></a>00045         <span class="comment">// entrance Lowpass filter factor</span>
-<a name="l00046"></a>00046         freeverb-&gt;setfiltval(filtVal);
-<a name="l00047"></a>00047 
-<a name="l00048"></a>00048         <span class="comment">// decay speed of high frequencies in the wet signal</span>
-<a name="l00049"></a>00049         freeverb-&gt;setdamp(damp);
+<a name="l00026"></a>00026 FreeverbModel::FreeverbModel(<span class="keywordtype">float</span> useScaleTuning, <span class="keywordtype">float</span> useFiltVal, <span class="keywordtype">float</span> useWet, Bit8u useRoom, <span class="keywordtype">float</span> useDamp)
+<a name="l00027"></a>00027     :freeverb(NULL), scaleTuning(useScaleTuning), filtVal(useFiltVal), wet(useWet), room(useRoom), damp(useDamp) {
+<a name="l00028"></a>00028 }
+<a name="l00029"></a>00029 
+<a name="l00030"></a>00030 FreeverbModel::~FreeverbModel() {
+<a name="l00031"></a>00031         <span class="keyword">delete</span> freeverb;
+<a name="l00032"></a>00032 }
+<a name="l00033"></a>00033 
+<a name="l00034"></a>00034 <span class="keywordtype">void</span> FreeverbModel::open() {
+<a name="l00035"></a>00035         <span class="keywordflow">if</span> (freeverb == NULL) {
+<a name="l00036"></a>00036                 freeverb = <span class="keyword">new</span> <a class="code" href="classrevmodel.html">revmodel</a>(scaleTuning);
+<a name="l00037"></a>00037         }
+<a name="l00038"></a>00038         freeverb-&gt;mute();
+<a name="l00039"></a>00039 
+<a name="l00040"></a>00040         <span class="comment">// entrance Lowpass filter factor</span>
+<a name="l00041"></a>00041         freeverb-&gt;setfiltval(filtVal);
+<a name="l00042"></a>00042 
+<a name="l00043"></a>00043         <span class="comment">// decay speed of high frequencies in the wet signal</span>
+<a name="l00044"></a>00044         freeverb-&gt;setdamp(damp);
+<a name="l00045"></a>00045 }
+<a name="l00046"></a>00046 
+<a name="l00047"></a>00047 <span class="keywordtype">void</span> FreeverbModel::close() {
+<a name="l00048"></a>00048         <span class="keyword">delete</span> freeverb;
+<a name="l00049"></a>00049         freeverb = NULL;
 <a name="l00050"></a>00050 }
 <a name="l00051"></a>00051 
-<a name="l00052"></a>00052 <span class="keywordtype">void</span> FreeverbModel::close() {
-<a name="l00053"></a>00053         <span class="keyword">delete</span> freeverb;
-<a name="l00054"></a>00054         freeverb = NULL;
-<a name="l00055"></a>00055 }
-<a name="l00056"></a>00056 
-<a name="l00057"></a>00057 <span class="keywordtype">void</span> FreeverbModel::process(<span class="keyword">const</span> <span class="keywordtype">float</span> *inLeft, <span class="keyword">const</span> <span class="keywordtype">float</span> *inRight, <span class="keywordtype">float</span> *outLeft, <span class="keywordtype">float</span> *outRight, <span class="keywordtype">unsigned</span> <span class="keywordtype">long</span> numSamples) {
-<a name="l00058"></a>00058         freeverb-&gt;process(inLeft, inRight, outLeft, outRight, numSamples);
-<a name="l00059"></a>00059 }
+<a name="l00052"></a>00052 <span class="keywordtype">void</span> FreeverbModel::process(<span class="keyword">const</span> <span class="keywordtype">float</span> *inLeft, <span class="keyword">const</span> <span class="keywordtype">float</span> *inRight, <span class="keywordtype">float</span> *outLeft, <span class="keywordtype">float</span> *outRight, <span class="keywordtype">unsigned</span> <span class="keywordtype">long</span> numSamples) {
+<a name="l00053"></a>00053         freeverb-&gt;process(inLeft, inRight, outLeft, outRight, numSamples);
+<a name="l00054"></a>00054 }
+<a name="l00055"></a>00055 
+<a name="l00056"></a>00056 <span class="keywordtype">void</span> FreeverbModel::setParameters(Bit8u time, Bit8u level) {
+<a name="l00057"></a>00057         <span class="comment">// wet signal level</span>
+<a name="l00058"></a>00058         <span class="comment">// FIXME: need to implement some sort of reverb level ramping</span>
+<a name="l00059"></a>00059         freeverb-&gt;setwet((<span class="keywordtype">float</span>)level / 7.0f * wet);
 <a name="l00060"></a>00060 
-<a name="l00061"></a>00061 <span class="keywordtype">void</span> FreeverbModel::setParameters(Bit8u time, Bit8u level) {
-<a name="l00062"></a>00062         <span class="comment">// wet signal level</span>
-<a name="l00063"></a>00063         <span class="comment">// FIXME: need to implement some sort of reverb level ramping</span>
-<a name="l00064"></a>00064         freeverb-&gt;setwet((<span class="keywordtype">float</span>)level / 7.0f * wet);
-<a name="l00065"></a>00065 
-<a name="l00066"></a>00066         <span class="comment">// wet signal decay speed</span>
-<a name="l00067"></a>00067         <span class="keyword">static</span> <span class="keywordtype">float</span> roomTable[] = {
-<a name="l00068"></a>00068                  0.25f,  0.37f, 0.54f, 0.71f, 0.78f, 0.86f, 0.93f, 1.00f,
-<a name="l00069"></a>00069                 -1.00f, -0.50f, 0.00f, 0.30f, 0.51f, 0.64f, 0.77f, 0.90f,
-<a name="l00070"></a>00070                  0.50f,  0.57f, 0.70f, 0.77f, 0.85f, 0.93f, 0.96f, 1.01f};
-<a name="l00071"></a>00071         freeverb-&gt;setroomsize(roomTable[8 * room + time]);
+<a name="l00061"></a>00061         <span class="comment">// wet signal decay speed</span>
+<a name="l00062"></a>00062         <span class="keyword">static</span> <span class="keywordtype">float</span> roomTable[] = {
+<a name="l00063"></a>00063                  0.25f,  0.37f, 0.54f, 0.71f, 0.78f, 0.86f, 0.93f, 1.00f,
+<a name="l00064"></a>00064                 -1.00f, -0.50f, 0.00f, 0.30f, 0.51f, 0.64f, 0.77f, 0.90f,
+<a name="l00065"></a>00065                  0.50f,  0.57f, 0.70f, 0.77f, 0.85f, 0.93f, 0.96f, 1.01f};
+<a name="l00066"></a>00066         freeverb-&gt;setroomsize(roomTable[8 * room + time]);
+<a name="l00067"></a>00067 }
+<a name="l00068"></a>00068 
+<a name="l00069"></a>00069 <span class="keywordtype">bool</span> FreeverbModel::isActive()<span class="keyword"> const </span>{
+<a name="l00070"></a>00070         <span class="comment">// FIXME: Not bothering to do this properly since we&#39;ll be replacing Freeverb soon...</span>
+<a name="l00071"></a>00071         <span class="keywordflow">return</span> <span class="keyword">false</span>;
 <a name="l00072"></a>00072 }
 <a name="l00073"></a>00073 
-<a name="l00074"></a>00074 <span class="keywordtype">bool</span> FreeverbModel::isActive()<span class="keyword"> const </span>{
-<a name="l00075"></a>00075         <span class="comment">// FIXME: Not bothering to do this properly since we&#39;ll be replacing Freeverb soon...</span>
-<a name="l00076"></a>00076         <span class="keywordflow">return</span> <span class="keyword">false</span>;
-<a name="l00077"></a>00077 }
+<a name="l00074"></a>00074 
+<a name="l00075"></a>00075 <span class="keywordtype">void</span> FreeverbModel::saveState( std::ostream &amp;stream ) {
+<a name="l00076"></a>00076         Bit8u ptr_valid;
+<a name="l00077"></a>00077 
 <a name="l00078"></a>00078 
-<a name="l00079"></a>00079 
-<a name="l00080"></a>00080 <span class="keywordtype">void</span> FreeverbModel::saveState( std::ostream &amp;stream ) {
-<a name="l00081"></a>00081         Bit8u ptr_valid;
-<a name="l00082"></a>00082 
-<a name="l00083"></a>00083 
-<a name="l00084"></a>00084         <span class="keywordflow">if</span>( freeverb == NULL ) {
-<a name="l00085"></a>00085                 ptr_valid = 0xff;
-<a name="l00086"></a>00086                 stream.write(reinterpret_cast&lt;const char*&gt;(&amp;ptr_valid), <span class="keyword">sizeof</span>(ptr_valid) );
-<a name="l00087"></a>00087         }
-<a name="l00088"></a>00088         <span class="keywordflow">else</span> {
-<a name="l00089"></a>00089                 ptr_valid = 0;
-<a name="l00090"></a>00090                 stream.write(reinterpret_cast&lt;const char*&gt;(&amp;ptr_valid), <span class="keyword">sizeof</span>(ptr_valid) );
-<a name="l00091"></a>00091 
-<a name="l00092"></a>00092                 freeverb-&gt;saveState( stream );
-<a name="l00093"></a>00093         }
-<a name="l00094"></a>00094 
-<a name="l00095"></a>00095 
-<a name="l00096"></a>00096         stream.write(reinterpret_cast&lt;const char*&gt;(&amp;scaleTuning), <span class="keyword">sizeof</span>(scaleTuning) );
-<a name="l00097"></a>00097         stream.write(reinterpret_cast&lt;const char*&gt;(&amp;filtVal), <span class="keyword">sizeof</span>(filtVal) );
-<a name="l00098"></a>00098         stream.write(reinterpret_cast&lt;const char*&gt;(&amp;wet), <span class="keyword">sizeof</span>(wet) );
-<a name="l00099"></a>00099         stream.write(reinterpret_cast&lt;const char*&gt;(&amp;room), <span class="keyword">sizeof</span>(room) );
-<a name="l00100"></a>00100         stream.write(reinterpret_cast&lt;const char*&gt;(&amp;damp), <span class="keyword">sizeof</span>(damp) );
-<a name="l00101"></a>00101 }
+<a name="l00079"></a>00079         <span class="keywordflow">if</span>( freeverb == NULL ) {
+<a name="l00080"></a>00080                 ptr_valid = 0xff;
+<a name="l00081"></a>00081                 stream.write(reinterpret_cast&lt;const char*&gt;(&amp;ptr_valid), <span class="keyword">sizeof</span>(ptr_valid) );
+<a name="l00082"></a>00082         }
+<a name="l00083"></a>00083         <span class="keywordflow">else</span> {
+<a name="l00084"></a>00084                 ptr_valid = 0;
+<a name="l00085"></a>00085                 stream.write(reinterpret_cast&lt;const char*&gt;(&amp;ptr_valid), <span class="keyword">sizeof</span>(ptr_valid) );
+<a name="l00086"></a>00086 
+<a name="l00087"></a>00087                 freeverb-&gt;saveState( stream );
+<a name="l00088"></a>00088         }
+<a name="l00089"></a>00089 
+<a name="l00090"></a>00090 
+<a name="l00091"></a>00091         stream.write(reinterpret_cast&lt;const char*&gt;(&amp;scaleTuning), <span class="keyword">sizeof</span>(scaleTuning) );
+<a name="l00092"></a>00092         stream.write(reinterpret_cast&lt;const char*&gt;(&amp;filtVal), <span class="keyword">sizeof</span>(filtVal) );
+<a name="l00093"></a>00093         stream.write(reinterpret_cast&lt;const char*&gt;(&amp;wet), <span class="keyword">sizeof</span>(wet) );
+<a name="l00094"></a>00094         stream.write(reinterpret_cast&lt;const char*&gt;(&amp;room), <span class="keyword">sizeof</span>(room) );
+<a name="l00095"></a>00095         stream.write(reinterpret_cast&lt;const char*&gt;(&amp;damp), <span class="keyword">sizeof</span>(damp) );
+<a name="l00096"></a>00096 }
+<a name="l00097"></a>00097 
+<a name="l00098"></a>00098 
+<a name="l00099"></a>00099 <span class="keywordtype">void</span> FreeverbModel::loadState( std::istream &amp;stream ) {
+<a name="l00100"></a>00100         Bit8u ptr_valid;
+<a name="l00101"></a>00101 
 <a name="l00102"></a>00102 
-<a name="l00103"></a>00103 
-<a name="l00104"></a>00104 <span class="keywordtype">void</span> FreeverbModel::loadState( std::istream &amp;stream ) {
-<a name="l00105"></a>00105         Bit8u ptr_valid;
-<a name="l00106"></a>00106 
-<a name="l00107"></a>00107 
-<a name="l00108"></a>00108         stream.read(reinterpret_cast&lt;char*&gt;(&amp;ptr_valid), <span class="keyword">sizeof</span>(ptr_valid) );
-<a name="l00109"></a>00109 
-<a name="l00110"></a>00110 
-<a name="l00111"></a>00111         <span class="keywordflow">if</span>( ptr_valid == 0xff ) {
-<a name="l00112"></a>00112                 <span class="keywordflow">if</span>( freeverb ) <span class="keyword">delete</span> freeverb;
-<a name="l00113"></a>00113                 freeverb = NULL;
-<a name="l00114"></a>00114         }
-<a name="l00115"></a>00115         <span class="keywordflow">else</span> {
-<a name="l00116"></a>00116                 <span class="keywordflow">if</span>( freeverb == NULL ) freeverb = <span class="keyword">new</span> <a class="code" href="classrevmodel.html">revmodel</a>(scaleTuning);
-<a name="l00117"></a>00117                 freeverb-&gt;loadState( stream );
-<a name="l00118"></a>00118         }
-<a name="l00119"></a>00119 
-<a name="l00120"></a>00120 
-<a name="l00121"></a>00121         stream.read(reinterpret_cast&lt;char*&gt;(&amp;scaleTuning), <span class="keyword">sizeof</span>(scaleTuning) );
-<a name="l00122"></a>00122         stream.read(reinterpret_cast&lt;char*&gt;(&amp;filtVal), <span class="keyword">sizeof</span>(filtVal) );
-<a name="l00123"></a>00123         stream.read(reinterpret_cast&lt;char*&gt;(&amp;wet), <span class="keyword">sizeof</span>(wet) );
-<a name="l00124"></a>00124         stream.read(reinterpret_cast&lt;char*&gt;(&amp;room), <span class="keyword">sizeof</span>(room) );
-<a name="l00125"></a>00125         stream.read(reinterpret_cast&lt;char*&gt;(&amp;damp), <span class="keyword">sizeof</span>(damp) );
-<a name="l00126"></a>00126 }
-<a name="l00127"></a>00127 
-<a name="l00128"></a>00128 }
+<a name="l00103"></a>00103         stream.read(reinterpret_cast&lt;char*&gt;(&amp;ptr_valid), <span class="keyword">sizeof</span>(ptr_valid) );
+<a name="l00104"></a>00104 
+<a name="l00105"></a>00105 
+<a name="l00106"></a>00106         <span class="keywordflow">if</span>( ptr_valid == 0xff ) {
+<a name="l00107"></a>00107                 <span class="keywordflow">if</span>( freeverb ) <span class="keyword">delete</span> freeverb;
+<a name="l00108"></a>00108                 freeverb = NULL;
+<a name="l00109"></a>00109         }
+<a name="l00110"></a>00110         <span class="keywordflow">else</span> {
+<a name="l00111"></a>00111                 <span class="keywordflow">if</span>( freeverb == NULL ) freeverb = <span class="keyword">new</span> <a class="code" href="classrevmodel.html">revmodel</a>(scaleTuning);
+<a name="l00112"></a>00112                 freeverb-&gt;loadState( stream );
+<a name="l00113"></a>00113         }
+<a name="l00114"></a>00114 
+<a name="l00115"></a>00115 
+<a name="l00116"></a>00116         stream.read(reinterpret_cast&lt;char*&gt;(&amp;scaleTuning), <span class="keyword">sizeof</span>(scaleTuning) );
+<a name="l00117"></a>00117         stream.read(reinterpret_cast&lt;char*&gt;(&amp;filtVal), <span class="keyword">sizeof</span>(filtVal) );
+<a name="l00118"></a>00118         stream.read(reinterpret_cast&lt;char*&gt;(&amp;wet), <span class="keyword">sizeof</span>(wet) );
+<a name="l00119"></a>00119         stream.read(reinterpret_cast&lt;char*&gt;(&amp;room), <span class="keyword">sizeof</span>(room) );
+<a name="l00120"></a>00120         stream.read(reinterpret_cast&lt;char*&gt;(&amp;damp), <span class="keyword">sizeof</span>(damp) );
+<a name="l00121"></a>00121 }
+<a name="l00122"></a>00122 
+<a name="l00123"></a>00123 }
 </pre></div></div><!-- contents -->
 
 
 <hr class="footer"/><address class="footer"><small>
-Generated on Tue Oct 1 2019 18:06:29 for DOSBox-X by &#160;<a href="http://www.doxygen.org/index.html">
+Generated on Sun Jul 5 2020 13:11:39 for DOSBox-X by &#160;<a href="http://www.doxygen.org/index.html">
 <img class="footer" src="doxygen.png" alt="doxygen"/>
 </a> 1.8.0
 </small></address>

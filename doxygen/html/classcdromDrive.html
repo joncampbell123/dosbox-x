@@ -114,8 +114,8 @@ Inheritance diagram for cdromDrive:</div>
 <table class="memberdecls">
 <tr><td colspan="2"><h2><a name="pub-methods"></a>
 Public Member Functions</h2></td></tr>
-<tr class="memitem:a9bc77d75fc8e02d73586ad909cc4fd86"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a9bc77d75fc8e02d73586ad909cc4fd86"></a>
-&#160;</td><td class="memItemRight" valign="bottom"><b>cdromDrive</b> (const char driveLetter, const char *startdir, Bit16u _bytes_sector, Bit8u _sectors_cluster, Bit16u _total_clusters, Bit16u _free_clusters, Bit8u _mediaid, int &amp;error)</td></tr>
+<tr class="memitem:a6322c0aa3674876948028ddceb3105b8"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a6322c0aa3674876948028ddceb3105b8"></a>
+&#160;</td><td class="memItemRight" valign="bottom"><b>cdromDrive</b> (const char driveLetter, const char *startdir, Bit16u _bytes_sector, Bit8u _sectors_cluster, Bit16u _total_clusters, Bit16u _free_clusters, Bit8u _mediaid, int &amp;error, std::vector&lt; std::string &gt; &amp;options)</td></tr>
 <tr class="memitem:aa5ff41c5c9c045550b6f1a0974aa8d1d"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="aa5ff41c5c9c045550b6f1a0974aa8d1d"></a>
 virtual bool&#160;</td><td class="memItemRight" valign="bottom"><b>FileOpen</b> (<a class="el" href="classDOS__File.html">DOS_File</a> **file, const char *name, Bit32u flags)</td></tr>
 <tr class="memitem:ac7c844b8ced8b687886f1fa5e6b9c5e4"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="ac7c844b8ced8b687886f1fa5e6b9c5e4"></a>
@@ -130,6 +130,10 @@ virtual bool&#160;</td><td class="memItemRight" valign="bottom"><b>MakeDir</b> (
 virtual bool&#160;</td><td class="memItemRight" valign="bottom"><b>Rename</b> (const char *oldname, const char *newname)</td></tr>
 <tr class="memitem:aba4f6b7a2df7be93c754232dff50c23c"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="aba4f6b7a2df7be93c754232dff50c23c"></a>
 virtual bool&#160;</td><td class="memItemRight" valign="bottom"><b>GetFileAttr</b> (const char *name, Bit16u *attr)</td></tr>
+<tr class="memitem:a901160b82788a416ffc8809c1a5e8140"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a901160b82788a416ffc8809c1a5e8140"></a>
+virtual bool&#160;</td><td class="memItemRight" valign="bottom"><b>GetFileAttrEx</b> (char *name, struct stat *status)</td></tr>
+<tr class="memitem:ae22f7aacee8025b67832ece7ef7cc250"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="ae22f7aacee8025b67832ece7ef7cc250"></a>
+virtual unsigned long&#160;</td><td class="memItemRight" valign="bottom"><b>GetCompressedSize</b> (char *name)</td></tr>
 <tr class="memitem:afd0347b272659c24f6f3cd9b7b05f89c"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="afd0347b272659c24f6f3cd9b7b05f89c"></a>
 virtual bool&#160;</td><td class="memItemRight" valign="bottom"><b>FindFirst</b> (const char *_dir, <a class="el" href="classDOS__DTA.html">DOS_DTA</a> &amp;dta, bool fcb_findfirst=false)</td></tr>
 <tr class="memitem:a3aeeb35dbd5100a4b973aa6341295521"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a3aeeb35dbd5100a4b973aa6341295521"></a>
@@ -143,7 +147,7 @@ virtual Bits&#160;</td><td class="memItemRight" valign="bottom"><b>UnMount</b> (
 </table>
 <hr/><a name="details" id="details"></a><h2>Detailed Description</h2>
 <div class="textblock">
-<p>Definition at line <a class="el" href="drives_8h_source.html#l00306">306</a> of file <a class="el" href="drives_8h_source.html">drives.h</a>.</p>
+<p>Definition at line <a class="el" href="drives_8h_source.html#l00502">502</a> of file <a class="el" href="drives_8h_source.html">drives.h</a>.</p>
 </div><hr/>The documentation for this class was generated from the following files:<ul>
 <li>src/dos/<a class="el" href="drives_8h_source.html">drives.h</a></li>
 <li>src/dos/<a class="el" href="drive__local_8cpp_source.html">drive_local.cpp</a></li>
@@ -152,7 +156,7 @@ virtual Bits&#160;</td><td class="memItemRight" valign="bottom"><b>UnMount</b> (
 
 
 <hr class="footer"/><address class="footer"><small>
-Generated on Tue Oct 1 2019 18:06:30 for DOSBox-X by &#160;<a href="http://www.doxygen.org/index.html">
+Generated on Sun Jul 5 2020 13:11:40 for DOSBox-X by &#160;<a href="http://www.doxygen.org/index.html">
 <img class="footer" src="doxygen.png" alt="doxygen"/>
 </a> 1.8.0
 </small></address>

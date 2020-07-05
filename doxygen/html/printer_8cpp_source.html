@@ -96,7 +96,7 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 </div><!--header-->
 <div class="contents">
 <div class="fragment"><pre class="fragment"><a name="l00001"></a>00001 <span class="comment">/*</span>
-<a name="l00002"></a>00002 <span class="comment"> *  Copyright (C) 2002-2019  The DOSBox Team</span>
+<a name="l00002"></a>00002 <span class="comment"> *  Copyright (C) 2002-2020  The DOSBox Team</span>
 <a name="l00003"></a>00003 <span class="comment"> *</span>
 <a name="l00004"></a>00004 <span class="comment"> *  This program is free software; you can redistribute it and/or modify</span>
 <a name="l00005"></a>00005 <span class="comment"> *  it under the terms of the GNU General Public License as published by</span>
@@ -108,9 +108,9 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l00011"></a>00011 <span class="comment"> *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the</span>
 <a name="l00012"></a>00012 <span class="comment"> *  GNU Library General Public License for more details.</span>
 <a name="l00013"></a>00013 <span class="comment"> *</span>
-<a name="l00014"></a>00014 <span class="comment"> *  You should have received a copy of the GNU General Public License</span>
-<a name="l00015"></a>00015 <span class="comment"> *  along with this program; if not, write to the Free Software</span>
-<a name="l00016"></a>00016 <span class="comment"> *  Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1335, USA.</span>
+<a name="l00014"></a>00014 <span class="comment"> *  You should have received a copy of the GNU General Public License along</span>
+<a name="l00015"></a>00015 <span class="comment"> *  with this program; if not, write to the Free Software Foundation, Inc.,</span>
+<a name="l00016"></a>00016 <span class="comment"> *  51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.</span>
 <a name="l00017"></a>00017 <span class="comment"> */</span>
 <a name="l00018"></a>00018 
 <a name="l00019"></a>00019 <span class="preprocessor">#include &quot;printer.h&quot;</span>
@@ -251,7 +251,7 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l00154"></a>00154 <span class="preprocessor"></span>                }
 <a name="l00155"></a>00155                 <a class="code" href="classLOG.html">LOG</a>(LOG_MISC,LOG_NORMAL)(<span class="stringliteral">&quot;PRINTER: Enabled&quot;</span>);
 <a name="l00156"></a>00156         }
-<a name="l00157"></a>00157 };
+<a name="l00157"></a>00157 }
 <a name="l00158"></a>00158 
 <a name="l00159"></a>00159 <span class="keywordtype">void</span> CPrinter::resetPrinterHard()
 <a name="l00160"></a>00160 {
@@ -318,7 +318,7 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l00221"></a>00221 <span class="preprocessor">#if defined (WIN32)</span>
 <a name="l00222"></a>00222 <span class="preprocessor"></span>        DeleteDC(printerDC);
 <a name="l00223"></a>00223 <span class="preprocessor">#endif</span>
-<a name="l00224"></a>00224 <span class="preprocessor"></span>};
+<a name="l00224"></a>00224 <span class="preprocessor"></span>}
 <a name="l00225"></a>00225 
 <a name="l00226"></a>00226 <span class="keywordtype">void</span> CPrinter::selectCodepage(Bit16u cp)
 <a name="l00227"></a>00227 {
@@ -1666,7 +1666,7 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l01569"></a>01569         finishMultipage();
 <a name="l01570"></a>01570 }
 <a name="l01571"></a>01571 
-<a name="l01572"></a>01572 <span class="keyword">static</span> <span class="keywordtype">void</span> findNextName(<span class="keywordtype">char</span>* front, <span class="keywordtype">char</span>* ext, <span class="keywordtype">char</span>* fname)
+<a name="l01572"></a>01572 <span class="keyword">static</span> <span class="keywordtype">void</span> findNextName(<span class="keyword">const</span> <span class="keywordtype">char</span>* front, <span class="keyword">const</span> <span class="keywordtype">char</span>* ext, <span class="keywordtype">char</span>* fname)
 <a name="l01573"></a>01573 {
 <a name="l01574"></a>01574         <span class="keywordtype">int</span> i = 1;
 <a name="l01575"></a>01575         Bitu slen = (Bitu)strlen(document_path);
@@ -2083,156 +2083,167 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l01986"></a>01986 
 <a name="l01987"></a>01987 Bitu PRINTER_readdata(Bitu port,Bitu iolen)
 <a name="l01988"></a>01988 {
-<a name="l01989"></a>01989         <span class="keywordflow">return</span> dataregister;
-<a name="l01990"></a>01990 }
-<a name="l01991"></a>01991 
-<a name="l01992"></a>01992 <span class="keywordtype">void</span> PRINTER_writedata(Bitu port,Bitu val,Bitu iolen)
-<a name="l01993"></a>01993 {
-<a name="l01994"></a>01994         dataregister = (Bit8u)val;
-<a name="l01995"></a>01995 }
-<a name="l01996"></a>01996 Bit8u controlreg = 0x04;
-<a name="l01997"></a>01997 
-<a name="l01998"></a>01998 Bitu PRINTER_readstatus(Bitu port,Bitu iolen)
-<a name="l01999"></a>01999 {
-<a name="l02000"></a>02000         <span class="comment">//LOG_MSG(&quot;PRINTER_readstatus CS:IP %8x:%8x&quot;,SegValue(cs),reg_eip);</span>
-<a name="l02001"></a>02001         <span class="comment">// Don&#39;t create a CPrinter unless the program really wants to print</span>
-<a name="l02002"></a>02002         <span class="comment">// Return standard: No error, printer online, no ack and not busy</span>
-<a name="l02003"></a>02003         <span class="keywordflow">if</span> (!defaultPrinter)
-<a name="l02004"></a>02004                 <span class="keywordflow">return</span> 0xdf;
-<a name="l02005"></a>02005 
-<a name="l02006"></a>02006         <span class="comment">// Printer is always online and never reports an error</span>
-<a name="l02007"></a>02007         Bit8u status = 0x1f;<span class="comment">// 0x18;</span>
-<a name="l02008"></a>02008 
-<a name="l02009"></a>02009 <span class="comment">//      if (controlreg&amp;0x08==0)</span>
-<a name="l02010"></a>02010 <span class="comment">//              status |= 0x10;</span>
+<a name="l01989"></a>01989     (void)port;
+<a name="l01990"></a>01990     (void)iolen;
+<a name="l01991"></a>01991         <span class="keywordflow">return</span> dataregister;
+<a name="l01992"></a>01992 }
+<a name="l01993"></a>01993 
+<a name="l01994"></a>01994 <span class="keywordtype">void</span> PRINTER_writedata(Bitu port,Bitu val,Bitu iolen)
+<a name="l01995"></a>01995 {
+<a name="l01996"></a>01996     (void)port;
+<a name="l01997"></a>01997     (void)iolen;
+<a name="l01998"></a>01998         dataregister = (Bit8u)val;
+<a name="l01999"></a>01999 }
+<a name="l02000"></a>02000 Bit8u controlreg = 0x04;
+<a name="l02001"></a>02001 
+<a name="l02002"></a>02002 Bitu PRINTER_readstatus(Bitu port,Bitu iolen)
+<a name="l02003"></a>02003 {
+<a name="l02004"></a>02004     (void)port;
+<a name="l02005"></a>02005     (void)iolen;
+<a name="l02006"></a>02006         <span class="comment">//LOG_MSG(&quot;PRINTER_readstatus CS:IP %8x:%8x&quot;,SegValue(cs),reg_eip);</span>
+<a name="l02007"></a>02007         <span class="comment">// Don&#39;t create a CPrinter unless the program really wants to print</span>
+<a name="l02008"></a>02008         <span class="comment">// Return standard: No error, printer online, no ack and not busy</span>
+<a name="l02009"></a>02009         <span class="keywordflow">if</span> (!defaultPrinter)
+<a name="l02010"></a>02010                 <span class="keywordflow">return</span> 0xdf;
 <a name="l02011"></a>02011 
-<a name="l02012"></a>02012         <span class="keywordflow">if</span> (!defaultPrinter-&gt;isBusy())
-<a name="l02013"></a>02013                 status |= 0x80;
+<a name="l02012"></a>02012         <span class="comment">// Printer is always online and never reports an error</span>
+<a name="l02013"></a>02013         Bit8u status = 0x1f;<span class="comment">// 0x18;</span>
 <a name="l02014"></a>02014 
-<a name="l02015"></a>02015         <span class="keywordflow">if</span> (!defaultPrinter-&gt;ack())
-<a name="l02016"></a>02016                 status |= 0x40;
+<a name="l02015"></a>02015 <span class="comment">//      if (controlreg&amp;0x08==0)</span>
+<a name="l02016"></a>02016 <span class="comment">//              status |= 0x10;</span>
 <a name="l02017"></a>02017 
-<a name="l02018"></a>02018         <span class="keywordflow">return</span> status;
-<a name="l02019"></a>02019 }
+<a name="l02018"></a>02018         <span class="keywordflow">if</span> (!defaultPrinter-&gt;isBusy())
+<a name="l02019"></a>02019                 status |= 0x80;
 <a name="l02020"></a>02020 
-<a name="l02021"></a>02021 <span class="keyword">static</span> <span class="keywordtype">void</span> FormFeed(<span class="keywordtype">bool</span> pressed)
-<a name="l02022"></a>02022 {
-<a name="l02023"></a>02023         <span class="keywordflow">if</span> (pressed)
-<a name="l02024"></a>02024                 <span class="keywordflow">if</span> (defaultPrinter)
-<a name="l02025"></a>02025         {
-<a name="l02026"></a>02026                         PIC_RemoveEvents(PRINTER_EventHandler);
-<a name="l02027"></a>02027                         <span class="keywordflow">if</span> (printer_timout) timeout_dirty = <span class="keyword">false</span>;
-<a name="l02028"></a>02028                         
-<a name="l02029"></a>02029                         defaultPrinter-&gt;formFeed();
-<a name="l02030"></a>02030                 }
-<a name="l02031"></a>02031 }
-<a name="l02032"></a>02032 
-<a name="l02033"></a>02033 
-<a name="l02034"></a>02034 <span class="keyword">static</span> <span class="keywordtype">void</span> PRINTER_EventHandler(Bitu param)
-<a name="l02035"></a>02035 {
-<a name="l02036"></a>02036         <span class="comment">//LOG_MSG(&quot;printerevent&quot;);</span>
-<a name="l02037"></a>02037         <span class="keywordflow">if</span> (timeout_dirty)
-<a name="l02038"></a>02038     {
-<a name="l02039"></a>02039         <span class="comment">// add another</span>
-<a name="l02040"></a>02040                 PIC_AddEvent(PRINTER_EventHandler, (<span class="keywordtype">float</span>)printer_timout, 0);
-<a name="l02041"></a>02041                 <span class="comment">//LOG_MSG(&quot;timeout renew&quot;);</span>
-<a name="l02042"></a>02042                 timeout_dirty = <span class="keyword">false</span>;
-<a name="l02043"></a>02043         }
-<a name="l02044"></a>02044     <span class="keywordflow">else</span>
+<a name="l02021"></a>02021         <span class="keywordflow">if</span> (!defaultPrinter-&gt;ack())
+<a name="l02022"></a>02022                 status |= 0x40;
+<a name="l02023"></a>02023 
+<a name="l02024"></a>02024         <span class="keywordflow">return</span> status;
+<a name="l02025"></a>02025 }
+<a name="l02026"></a>02026 
+<a name="l02027"></a>02027 <span class="keyword">static</span> <span class="keywordtype">void</span> FormFeed(<span class="keywordtype">bool</span> pressed)
+<a name="l02028"></a>02028 {
+<a name="l02029"></a>02029         <span class="keywordflow">if</span> (pressed)
+<a name="l02030"></a>02030                 <span class="keywordflow">if</span> (defaultPrinter)
+<a name="l02031"></a>02031         {
+<a name="l02032"></a>02032                         PIC_RemoveEvents(PRINTER_EventHandler);
+<a name="l02033"></a>02033                         <span class="keywordflow">if</span> (printer_timout) timeout_dirty = <span class="keyword">false</span>;
+<a name="l02034"></a>02034                         
+<a name="l02035"></a>02035                         defaultPrinter-&gt;formFeed();
+<a name="l02036"></a>02036                 }
+<a name="l02037"></a>02037 }
+<a name="l02038"></a>02038 
+<a name="l02039"></a>02039 
+<a name="l02040"></a>02040 <span class="keyword">static</span> <span class="keywordtype">void</span> PRINTER_EventHandler(Bitu param)
+<a name="l02041"></a>02041 {
+<a name="l02042"></a>02042     (void)param;
+<a name="l02043"></a>02043         <span class="comment">//LOG_MSG(&quot;printerevent&quot;);</span>
+<a name="l02044"></a>02044         <span class="keywordflow">if</span> (timeout_dirty)
 <a name="l02045"></a>02045     {
-<a name="l02046"></a>02046                 timeout_dirty = <span class="keyword">false</span>;
-<a name="l02047"></a>02047                 FormFeed(<span class="keyword">true</span>);
-<a name="l02048"></a>02048         }
-<a name="l02049"></a>02049 }
-<a name="l02050"></a>02050 
-<a name="l02051"></a>02051 <span class="keywordtype">void</span> PRINTER_writecontrol(Bitu port,Bitu val, Bitu iolen)
-<a name="l02052"></a>02052 {
-<a name="l02053"></a>02053         <span class="comment">//LOG_MSG(&quot;PRINTER_writecontrol CS:IP %8x:%8x&quot;,SegValue(cs),reg_eip);</span>
-<a name="l02054"></a>02054         <span class="comment">// init printer if bit 4 is switched on</span>
-<a name="l02055"></a>02055         <span class="keywordflow">if</span> ((val &amp; 0x04) &amp;&amp; defaultPrinter &amp;&amp; (!(controlreg &amp; 0x04)))
-<a name="l02056"></a>02056                 defaultPrinter-&gt;resetPrinterHard();
+<a name="l02046"></a>02046         <span class="comment">// add another</span>
+<a name="l02047"></a>02047                 PIC_AddEvent(PRINTER_EventHandler, (<span class="keywordtype">float</span>)printer_timout, 0);
+<a name="l02048"></a>02048                 <span class="comment">//LOG_MSG(&quot;timeout renew&quot;);</span>
+<a name="l02049"></a>02049                 timeout_dirty = <span class="keyword">false</span>;
+<a name="l02050"></a>02050         }
+<a name="l02051"></a>02051     <span class="keywordflow">else</span>
+<a name="l02052"></a>02052     {
+<a name="l02053"></a>02053                 timeout_dirty = <span class="keyword">false</span>;
+<a name="l02054"></a>02054                 FormFeed(<span class="keyword">true</span>);
+<a name="l02055"></a>02055         }
+<a name="l02056"></a>02056 }
 <a name="l02057"></a>02057 
-<a name="l02058"></a>02058         <span class="comment">// data is strobed to the parallel printer on the falling edge of strobe bit</span>
-<a name="l02059"></a>02059         <span class="keywordflow">if</span>(!(val &amp; 0x1) &amp;&amp; (controlreg &amp; 0x1)) {
-<a name="l02060"></a>02060                 <span class="keywordflow">if</span> (!defaultPrinter)
-<a name="l02061"></a>02061                     defaultPrinter = <span class="keyword">new</span> CPrinter(confdpi, confwidth, confheight, confoutputDevice, confmultipageOutput);
-<a name="l02062"></a>02062                 defaultPrinter-&gt;printChar(dataregister);
-<a name="l02063"></a>02063                 <span class="keywordflow">if</span> (!timeout_dirty)
-<a name="l02064"></a>02064         {
-<a name="l02065"></a>02065                         PIC_AddEvent(PRINTER_EventHandler, (<span class="keywordtype">float</span>)printer_timout, 0);
-<a name="l02066"></a>02066                         timeout_dirty = <span class="keyword">true</span>;
-<a name="l02067"></a>02067                 }
-<a name="l02068"></a>02068         }
-<a name="l02069"></a>02069 
-<a name="l02070"></a>02070         controlreg = (Bit8u)val;
-<a name="l02071"></a>02071         <span class="keywordflow">if</span> (defaultPrinter)
-<a name="l02072"></a>02072                 defaultPrinter-&gt;setAutofeed((val &amp; 0x02) &gt; 0);
-<a name="l02073"></a>02073 }
-<a name="l02074"></a>02074 
-<a name="l02075"></a>02075 Bitu PRINTER_readcontrol(Bitu port,Bitu iolen)
-<a name="l02076"></a>02076 {
-<a name="l02077"></a>02077         <span class="comment">//LOG_MSG(&quot;PRINTER_readcontrol CS:IP %8x:%8x&quot;,SegValue(cs),reg_eip);</span>
-<a name="l02078"></a>02078         <span class="comment">// Don&#39;t create a CPrinter unless the program really wants to print</span>
-<a name="l02079"></a>02079         <span class="keywordflow">if</span> (!defaultPrinter)
-<a name="l02080"></a>02080                 <span class="keywordflow">return</span> 0xe0 | controlreg; <span class="comment">//0xe8;</span>
-<a name="l02081"></a>02081 
-<a name="l02082"></a>02082         <span class="keywordflow">return</span> 0xe0 | (defaultPrinter-&gt;getAutofeed() ? 0x02 : 0x00) | (controlreg &amp; 0xfd);
-<a name="l02083"></a>02083 }
-<a name="l02084"></a>02084 
-<a name="l02085"></a>02085 <span class="keywordtype">void</span> PRINTER_Shutdown(<a class="code" href="classSection.html">Section</a>* sec)
-<a name="l02086"></a>02086 {
-<a name="l02087"></a>02087     (void)sec;<span class="comment">//UNUSED</span>
-<a name="l02088"></a>02088 
-<a name="l02089"></a>02089         <span class="keywordflow">if</span> (defaultPrinter)
-<a name="l02090"></a>02090         {
-<a name="l02091"></a>02091                 <span class="keyword">delete</span> defaultPrinter;
-<a name="l02092"></a>02092                 defaultPrinter = NULL;
-<a name="l02093"></a>02093         }
+<a name="l02058"></a>02058 <span class="keywordtype">void</span> PRINTER_writecontrol(Bitu port,Bitu val,Bitu iolen)
+<a name="l02059"></a>02059 {
+<a name="l02060"></a>02060     (void)port;
+<a name="l02061"></a>02061     (void)iolen;
+<a name="l02062"></a>02062         <span class="comment">//LOG_MSG(&quot;PRINTER_writecontrol CS:IP %8x:%8x&quot;,SegValue(cs),reg_eip);</span>
+<a name="l02063"></a>02063         <span class="comment">// init printer if bit 4 is switched on</span>
+<a name="l02064"></a>02064         <span class="keywordflow">if</span> ((val &amp; 0x04) &amp;&amp; defaultPrinter &amp;&amp; (!(controlreg &amp; 0x04)))
+<a name="l02065"></a>02065                 defaultPrinter-&gt;resetPrinterHard();
+<a name="l02066"></a>02066 
+<a name="l02067"></a>02067         <span class="comment">// data is strobed to the parallel printer on the falling edge of strobe bit</span>
+<a name="l02068"></a>02068         <span class="keywordflow">if</span>(!(val &amp; 0x1) &amp;&amp; (controlreg &amp; 0x1)) {
+<a name="l02069"></a>02069                 <span class="keywordflow">if</span> (!defaultPrinter)
+<a name="l02070"></a>02070                     defaultPrinter = <span class="keyword">new</span> CPrinter(confdpi, confwidth, confheight, confoutputDevice, confmultipageOutput);
+<a name="l02071"></a>02071                 defaultPrinter-&gt;printChar(dataregister);
+<a name="l02072"></a>02072                 <span class="keywordflow">if</span> (!timeout_dirty)
+<a name="l02073"></a>02073         {
+<a name="l02074"></a>02074                         PIC_AddEvent(PRINTER_EventHandler, (<span class="keywordtype">float</span>)printer_timout, 0);
+<a name="l02075"></a>02075                         timeout_dirty = <span class="keyword">true</span>;
+<a name="l02076"></a>02076                 }
+<a name="l02077"></a>02077         }
+<a name="l02078"></a>02078 
+<a name="l02079"></a>02079         controlreg = (Bit8u)val;
+<a name="l02080"></a>02080         <span class="keywordflow">if</span> (defaultPrinter)
+<a name="l02081"></a>02081                 defaultPrinter-&gt;setAutofeed((val &amp; 0x02) &gt; 0);
+<a name="l02082"></a>02082 }
+<a name="l02083"></a>02083 
+<a name="l02084"></a>02084 Bitu PRINTER_readcontrol(Bitu port,Bitu iolen)
+<a name="l02085"></a>02085 {
+<a name="l02086"></a>02086     (void)port;
+<a name="l02087"></a>02087     (void)iolen;
+<a name="l02088"></a>02088         <span class="comment">//LOG_MSG(&quot;PRINTER_readcontrol CS:IP %8x:%8x&quot;,SegValue(cs),reg_eip);</span>
+<a name="l02089"></a>02089         <span class="comment">// Don&#39;t create a CPrinter unless the program really wants to print</span>
+<a name="l02090"></a>02090         <span class="keywordflow">if</span> (!defaultPrinter)
+<a name="l02091"></a>02091                 <span class="keywordflow">return</span> 0xe0 | controlreg; <span class="comment">//0xe8;</span>
+<a name="l02092"></a>02092 
+<a name="l02093"></a>02093         <span class="keywordflow">return</span> 0xe0 | (defaultPrinter-&gt;getAutofeed() ? 0x02 : 0x00) | (controlreg &amp; 0xfd);
 <a name="l02094"></a>02094 }
 <a name="l02095"></a>02095 
-<a name="l02096"></a>02096 <span class="keywordtype">bool</span> inited = <span class="keyword">false</span>;
-<a name="l02097"></a>02097 <span class="keywordtype">bool</span> PRINTER_isInited()
-<a name="l02098"></a>02098 {
-<a name="l02099"></a>02099         <span class="keywordflow">return</span> inited;
-<a name="l02100"></a>02100 }
-<a name="l02101"></a>02101 
-<a name="l02102"></a>02102 <span class="keywordtype">void</span> PRINTER_Init() 
-<a name="l02103"></a>02103 {
-<a name="l02104"></a>02104         <a class="code" href="classSection__prop.html">Section_prop</a> * section = <span class="keyword">static_cast&lt;</span><a class="code" href="classSection__prop.html">Section_prop</a> *<span class="keyword">&gt;</span>(control-&gt;GetSection(<span class="stringliteral">&quot;printer&quot;</span>));
-<a name="l02105"></a>02105     AddExitFunction(AddExitFunctionFuncPair(PRINTER_Shutdown), <span class="keyword">true</span>);
+<a name="l02096"></a>02096 <span class="keywordtype">void</span> PRINTER_Shutdown(<a class="code" href="classSection.html">Section</a>* sec)
+<a name="l02097"></a>02097 {
+<a name="l02098"></a>02098     (void)sec;<span class="comment">//UNUSED</span>
+<a name="l02099"></a>02099 
+<a name="l02100"></a>02100         <span class="keywordflow">if</span> (defaultPrinter)
+<a name="l02101"></a>02101         {
+<a name="l02102"></a>02102                 <span class="keyword">delete</span> defaultPrinter;
+<a name="l02103"></a>02103                 defaultPrinter = NULL;
+<a name="l02104"></a>02104         }
+<a name="l02105"></a>02105 }
 <a name="l02106"></a>02106 
-<a name="l02107"></a>02107         <span class="comment">// Set base address of LPT1 in the BIOS variable segment</span>
-<a name="l02108"></a>02108         <span class="comment">//real_writew(0x0040, 0x0008, LPTPORT);</span>
-<a name="l02109"></a>02109 
-<a name="l02110"></a>02110         <span class="keywordflow">if</span> (!section-&gt;Get_bool(<span class="stringliteral">&quot;printer&quot;</span>)) <span class="keywordflow">return</span>;
-<a name="l02111"></a>02111         inited = <span class="keyword">true</span>;
-<a name="l02112"></a>02112         document_path = section-&gt;Get_string(<span class="stringliteral">&quot;docpath&quot;</span>);
-<a name="l02113"></a>02113         <span class="comment">//font_path = section-&gt;Get_string(&quot;fontpath&quot;);</span>
-<a name="l02114"></a>02114         confdpi = section-&gt;Get_int(<span class="stringliteral">&quot;dpi&quot;</span>);
-<a name="l02115"></a>02115         confwidth = section-&gt;Get_int(<span class="stringliteral">&quot;width&quot;</span>);
-<a name="l02116"></a>02116         confheight = section-&gt;Get_int(<span class="stringliteral">&quot;height&quot;</span>);
-<a name="l02117"></a>02117         printer_timout = section-&gt;Get_int(<span class="stringliteral">&quot;timeout&quot;</span>);
-<a name="l02118"></a>02118         <span class="keywordflow">if</span>(!printer_timout) timeout_dirty = <span class="keyword">true</span>; <span class="comment">// this will lock up the timeout</span>
-<a name="l02119"></a>02119         <span class="keywordflow">else</span> timeout_dirty = <span class="keyword">false</span>;
-<a name="l02120"></a>02120         strcpy(&amp;confoutputDevice[0], section-&gt;Get_string(<span class="stringliteral">&quot;printoutput&quot;</span>));
-<a name="l02121"></a>02121         confmultipageOutput = section-&gt;Get_bool(<span class="stringliteral">&quot;multipage&quot;</span>);
-<a name="l02122"></a>02122 
-<a name="l02123"></a>02123         <span class="comment">//IO_RegisterWriteHandler(LPTPORT,PRINTER_writedata,IO_MB);</span>
-<a name="l02124"></a>02124         <span class="comment">//IO_RegisterReadHandler(LPTPORT,PRINTER_readdata,IO_MB);</span>
-<a name="l02125"></a>02125         
-<a name="l02126"></a>02126         <span class="comment">//IO_RegisterReadHandler(LPTPORT+1,PRINTER_readstatus,IO_MB);</span>
-<a name="l02127"></a>02127         <span class="comment">//IO_RegisterWriteHandler(LPTPORT+2,PRINTER_writecontrol,IO_MB);</span>
-<a name="l02128"></a>02128         <span class="comment">//IO_RegisterReadHandler(LPTPORT+2,PRINTER_readcontrol,IO_MB);</span>
-<a name="l02129"></a>02129 
-<a name="l02130"></a>02130         MAPPER_AddHandler(FormFeed, MK_f2 , MMOD1, <span class="stringliteral">&quot;ejectpage&quot;</span>, <span class="stringliteral">&quot;formfeed&quot;</span>);
-<a name="l02131"></a>02131 }
-<a name="l02132"></a>02132 
-<a name="l02133"></a>02133 <span class="preprocessor">#endif</span>
+<a name="l02107"></a>02107 <span class="keywordtype">bool</span> inited = <span class="keyword">false</span>;
+<a name="l02108"></a>02108 <span class="keywordtype">bool</span> PRINTER_isInited()
+<a name="l02109"></a>02109 {
+<a name="l02110"></a>02110         <span class="keywordflow">return</span> inited;
+<a name="l02111"></a>02111 }
+<a name="l02112"></a>02112 
+<a name="l02113"></a>02113 <span class="keywordtype">void</span> PRINTER_Init() 
+<a name="l02114"></a>02114 {
+<a name="l02115"></a>02115         <a class="code" href="classSection__prop.html">Section_prop</a> * section = <span class="keyword">static_cast&lt;</span><a class="code" href="classSection__prop.html">Section_prop</a> *<span class="keyword">&gt;</span>(control-&gt;GetSection(<span class="stringliteral">&quot;printer&quot;</span>));
+<a name="l02116"></a>02116     AddExitFunction(AddExitFunctionFuncPair(PRINTER_Shutdown), <span class="keyword">true</span>);
+<a name="l02117"></a>02117 
+<a name="l02118"></a>02118         <span class="comment">// Set base address of LPT1 in the BIOS variable segment</span>
+<a name="l02119"></a>02119         <span class="comment">//real_writew(0x0040, 0x0008, LPTPORT);</span>
+<a name="l02120"></a>02120 
+<a name="l02121"></a>02121         <span class="keywordflow">if</span> (!section-&gt;Get_bool(<span class="stringliteral">&quot;printer&quot;</span>)) <span class="keywordflow">return</span>;
+<a name="l02122"></a>02122         inited = <span class="keyword">true</span>;
+<a name="l02123"></a>02123         document_path = section-&gt;Get_string(<span class="stringliteral">&quot;docpath&quot;</span>);
+<a name="l02124"></a>02124         <span class="comment">//font_path = section-&gt;Get_string(&quot;fontpath&quot;);</span>
+<a name="l02125"></a>02125         confdpi = section-&gt;Get_int(<span class="stringliteral">&quot;dpi&quot;</span>);
+<a name="l02126"></a>02126         confwidth = section-&gt;Get_int(<span class="stringliteral">&quot;width&quot;</span>);
+<a name="l02127"></a>02127         confheight = section-&gt;Get_int(<span class="stringliteral">&quot;height&quot;</span>);
+<a name="l02128"></a>02128         printer_timout = section-&gt;Get_int(<span class="stringliteral">&quot;timeout&quot;</span>);
+<a name="l02129"></a>02129         <span class="keywordflow">if</span>(!printer_timout) timeout_dirty = <span class="keyword">true</span>; <span class="comment">// this will lock up the timeout</span>
+<a name="l02130"></a>02130         <span class="keywordflow">else</span> timeout_dirty = <span class="keyword">false</span>;
+<a name="l02131"></a>02131         strcpy(&amp;confoutputDevice[0], section-&gt;Get_string(<span class="stringliteral">&quot;printoutput&quot;</span>));
+<a name="l02132"></a>02132         confmultipageOutput = section-&gt;Get_bool(<span class="stringliteral">&quot;multipage&quot;</span>);
+<a name="l02133"></a>02133 
+<a name="l02134"></a>02134         <span class="comment">//IO_RegisterWriteHandler(LPTPORT,PRINTER_writedata,IO_MB);</span>
+<a name="l02135"></a>02135         <span class="comment">//IO_RegisterReadHandler(LPTPORT,PRINTER_readdata,IO_MB);</span>
+<a name="l02136"></a>02136         
+<a name="l02137"></a>02137         <span class="comment">//IO_RegisterReadHandler(LPTPORT+1,PRINTER_readstatus,IO_MB);</span>
+<a name="l02138"></a>02138         <span class="comment">//IO_RegisterWriteHandler(LPTPORT+2,PRINTER_writecontrol,IO_MB);</span>
+<a name="l02139"></a>02139         <span class="comment">//IO_RegisterReadHandler(LPTPORT+2,PRINTER_readcontrol,IO_MB);</span>
+<a name="l02140"></a>02140 
+<a name="l02141"></a>02141         MAPPER_AddHandler(FormFeed, MK_f2 , MMOD1, <span class="stringliteral">&quot;ejectpage&quot;</span>, <span class="stringliteral">&quot;formfeed&quot;</span>);
+<a name="l02142"></a>02142 }
+<a name="l02143"></a>02143 
+<a name="l02144"></a>02144 <span class="preprocessor">#endif</span>
 </pre></div></div><!-- contents -->
 
 
 <hr class="footer"/><address class="footer"><small>
-Generated on Tue Oct 1 2019 18:06:27 for DOSBox-X by &#160;<a href="http://www.doxygen.org/index.html">
+Generated on Sun Jul 5 2020 13:11:36 for DOSBox-X by &#160;<a href="http://www.doxygen.org/index.html">
 <img class="footer" src="doxygen.png" alt="doxygen"/>
 </a> 1.8.0
 </small></address>

@@ -1,6 +1,9 @@
 var searchData=
 [
   ['_5f_5fcoefpair',['__COEFPAIR',['../struct____COEFPAIR.html',1,'']]],
+  ['_5f_5fsound_5fdecoderfunctions_5f_5f',['__SOUND_DECODERFUNCTIONS__',['../struct____SOUND__DECODERFUNCTIONS____.html',1,'']]],
+  ['_5f_5fsound_5ferrmsgtype_5f_5f',['__SOUND_ERRMSGTYPE__',['../struct____SOUND__ERRMSGTYPE____.html',1,'']]],
+  ['_5f_5fsound_5fsampleinternal_5f_5f',['__SOUND_SAMPLEINTERNAL__',['../struct____SOUND__SAMPLEINTERNAL____.html',1,'']]],
   ['_5fadpcm',['_ADPCM',['../struct__ADPCM.html',1,'']]],
   ['_5fattotime',['_attotime',['../struct__attotime.html',1,'']]],
   ['_5fdac_5fchannel',['_dac_channel',['../struct__dac__channel.html',1,'']]],
@@ -14,6 +17,10 @@ var searchData=
   ['_5flog',['_LOG',['../class__LOG.html',1,'']]],
   ['_5floggroup',['_LogGroup',['../struct__LogGroup.html',1,'']]],
   ['_5fncc_5ftable',['_ncc_table',['../struct__ncc__table.html',1,'']]],
+  ['_5fopl3_5fchannel',['_opl3_channel',['../struct__opl3__channel.html',1,'']]],
+  ['_5fopl3_5fchip',['_opl3_chip',['../struct__opl3__chip.html',1,'']]],
+  ['_5fopl3_5fslot',['_opl3_slot',['../struct__opl3__slot.html',1,'']]],
+  ['_5fopl3_5fwritebuf',['_opl3_writebuf',['../struct__opl3__writebuf.html',1,'']]],
   ['_5fopngen',['_OPNGEN',['../struct__OPNGEN.html',1,'']]],
   ['_5fpc98rawpartition',['_PC98RawPartition',['../struct__PC98RawPartition.html',1,'']]],
   ['_5fpci_5fstate',['_pci_state',['../struct__pci__state.html',1,'']]],

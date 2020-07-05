@@ -115,24 +115,28 @@ void&#160;</td><td class="memItemRight" valign="bottom"><b>SaveSelector</b> (voi
 void&#160;</td><td class="memItemRight" valign="bottom"><b>Get_SSx_ESPx</b> (Bitu level, Bit16u &amp;_ss, Bit32u &amp;_esp)</td></tr>
 <tr class="memitem:a1388c346bdd42dbe83aa62e510c80239"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a1388c346bdd42dbe83aa62e510c80239"></a>
 bool&#160;</td><td class="memItemRight" valign="bottom"><b>SetSelector</b> (Bitu new_sel)</td></tr>
+<tr class="memitem:a78a9cd7287ed676e972c120286d8873e"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a78a9cd7287ed676e972c120286d8873e"></a>
+void&#160;</td><td class="memItemRight" valign="bottom"><b>SaveState</b> (std::ostream &amp;stream)</td></tr>
+<tr class="memitem:a56f5dafd7c0509706bc989be48179d41"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a56f5dafd7c0509706bc989be48179d41"></a>
+void&#160;</td><td class="memItemRight" valign="bottom"><b>LoadState</b> (std::istream &amp;stream)</td></tr>
 <tr><td colspan="2"><h2><a name="pub-attribs"></a>
 Public Attributes</h2></td></tr>
 <tr class="memitem:a46267346746acbf867d029fd39f902e3"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a46267346746acbf867d029fd39f902e3"></a>
 <a class="el" href="classTSS__Descriptor.html">TSS_Descriptor</a>&#160;</td><td class="memItemRight" valign="bottom"><b>desc</b></td></tr>
 <tr class="memitem:a0875f365d4c5477c70ed057924991bd5"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a0875f365d4c5477c70ed057924991bd5"></a>
-Bitu&#160;</td><td class="memItemRight" valign="bottom"><b>selector</b></td></tr>
+Bitu&#160;</td><td class="memItemRight" valign="bottom"><b>selector</b> = 0</td></tr>
 <tr class="memitem:a95148a6c625f7821ad346627e7fe7829"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a95148a6c625f7821ad346627e7fe7829"></a>
-PhysPt&#160;</td><td class="memItemRight" valign="bottom"><b>base</b></td></tr>
+PhysPt&#160;</td><td class="memItemRight" valign="bottom"><b>base</b> = 0</td></tr>
 <tr class="memitem:a4dce1fe9bc4bd459bd908140219759f6"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a4dce1fe9bc4bd459bd908140219759f6"></a>
-Bitu&#160;</td><td class="memItemRight" valign="bottom"><b>limit</b></td></tr>
+Bitu&#160;</td><td class="memItemRight" valign="bottom"><b>limit</b> = 0</td></tr>
 <tr class="memitem:ab002072334f2f1b417358b87e03a01e7"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="ab002072334f2f1b417358b87e03a01e7"></a>
-Bitu&#160;</td><td class="memItemRight" valign="bottom"><b>is386</b></td></tr>
+Bitu&#160;</td><td class="memItemRight" valign="bottom"><b>is386</b> = 0</td></tr>
 <tr class="memitem:a952e7e2635dd1b3074779a0498d74775"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a952e7e2635dd1b3074779a0498d74775"></a>
-bool&#160;</td><td class="memItemRight" valign="bottom"><b>valid</b></td></tr>
+bool&#160;</td><td class="memItemRight" valign="bottom"><b>valid</b> = false</td></tr>
 </table>
 <hr/><a name="details" id="details"></a><h2>Detailed Description</h2>
 <div class="textblock">
-<p>Definition at line <a class="el" href="cpu_8cpp_source.html#l00652">652</a> of file <a class="el" href="cpu_8cpp_source.html">cpu.cpp</a>.</p>
+<p>Definition at line <a class="el" href="cpu_8cpp_source.html#l00653">653</a> of file <a class="el" href="cpu_8cpp_source.html">cpu.cpp</a>.</p>
 </div><hr/>The documentation for this class was generated from the following file:<ul>
 <li>src/cpu/<a class="el" href="cpu_8cpp_source.html">cpu.cpp</a></li>
 </ul>
@@ -140,7 +144,7 @@ bool&#160;</td><td class="memItemRight" valign="bottom"><b>valid</b></td></tr>
 
 
 <hr class="footer"/><address class="footer"><small>
-Generated on Tue Oct 1 2019 18:06:33 for DOSBox-X by &#160;<a href="http://www.doxygen.org/index.html">
+Generated on Sun Jul 5 2020 13:11:42 for DOSBox-X by &#160;<a href="http://www.doxygen.org/index.html">
 <img class="footer" src="doxygen.png" alt="doxygen"/>
 </a> 1.8.0
 </small></address>

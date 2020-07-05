@@ -128,14 +128,14 @@ void&#160;</td><td class="memItemRight" valign="bottom"><b>playSysex</b> (const 
 void&#160;</td><td class="memItemRight" valign="bottom"><b>playSysexWithoutFraming</b> (const Bit8u *sysex, Bit32u len)</td></tr>
 <tr class="memitem:a0051b2cae56632c6430aa94129a139dd"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a0051b2cae56632c6430aa94129a139dd"></a>
 void&#160;</td><td class="memItemRight" valign="bottom"><b>playSysexWithoutHeader</b> (unsigned char device, unsigned char command, const Bit8u *sysex, Bit32u len)</td></tr>
-<tr class="memitem:a47f910821894b65f296abac5f1adc29e"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a47f910821894b65f296abac5f1adc29e"></a>
-void&#160;</td><td class="memItemRight" valign="bottom"><b>writeSysex</b> (unsigned char channel, const Bit8u *sysex, Bit32u len)</td></tr>
-<tr class="memitem:a534e5fa45e6eabc353cdee7e1b4509fc"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a534e5fa45e6eabc353cdee7e1b4509fc"></a>
-void&#160;</td><td class="memItemRight" valign="bottom"><b>setReverbEnabled</b> (bool reverbEnabled)</td></tr>
+<tr class="memitem:a184603387595bf71d13e43ceb0b1807b"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a184603387595bf71d13e43ceb0b1807b"></a>
+void&#160;</td><td class="memItemRight" valign="bottom"><b>writeSysex</b> (unsigned char device, const Bit8u *sysex, Bit32u len)</td></tr>
+<tr class="memitem:a9c8e532c9b4341c22dc238b5a951bc5f"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a9c8e532c9b4341c22dc238b5a951bc5f"></a>
+void&#160;</td><td class="memItemRight" valign="bottom"><b>setReverbEnabled</b> (bool newReverbEnabled)</td></tr>
 <tr class="memitem:a08b156882071c660f292652ff59aa1d4"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a08b156882071c660f292652ff59aa1d4"></a>
 bool&#160;</td><td class="memItemRight" valign="bottom"><b>isReverbEnabled</b> () const </td></tr>
-<tr class="memitem:a330ccf63aa11f6a21977a2bba8ae5407"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a330ccf63aa11f6a21977a2bba8ae5407"></a>
-void&#160;</td><td class="memItemRight" valign="bottom"><b>setReverbOverridden</b> (bool reverbOverridden)</td></tr>
+<tr class="memitem:ae3b4b4fede54746d71baedad97787666"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="ae3b4b4fede54746d71baedad97787666"></a>
+void&#160;</td><td class="memItemRight" valign="bottom"><b>setReverbOverridden</b> (bool newReverbOverridden)</td></tr>
 <tr class="memitem:a9230bbed2e0993d813949bee11cf91e0"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a9230bbed2e0993d813949bee11cf91e0"></a>
 bool&#160;</td><td class="memItemRight" valign="bottom"><b>isReverbOverridden</b> () const </td></tr>
 <tr class="memitem:a9f65e4b6cae1fcb89c6285b110ffea9b"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a9f65e4b6cae1fcb89c6285b110ffea9b"></a>
@@ -154,8 +154,8 @@ bool&#160;</td><td class="memItemRight" valign="bottom"><b>hasActivePartials</b>
 bool&#160;</td><td class="memItemRight" valign="bottom"><b>isActive</b> () const </td></tr>
 <tr class="memitem:a3918ce533d2b22381daa3fce0e533e67"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a3918ce533d2b22381daa3fce0e533e67"></a>
 const <a class="el" href="classMT32Emu_1_1Partial.html">Partial</a> *&#160;</td><td class="memItemRight" valign="bottom"><b>getPartial</b> (unsigned int partialNum) const </td></tr>
-<tr class="memitem:a2f629ad08ed00fdc79f113142932152a"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a2f629ad08ed00fdc79f113142932152a"></a>
-void&#160;</td><td class="memItemRight" valign="bottom"><b>setPartialLimit</b> (unsigned int partialLimit)</td></tr>
+<tr class="memitem:acff4d037effff4ade991ddb5f7f9397c"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="acff4d037effff4ade991ddb5f7f9397c"></a>
+void&#160;</td><td class="memItemRight" valign="bottom"><b>setPartialLimit</b> (unsigned int _partialLimit)</td></tr>
 <tr class="memitem:a373baaf76666fb03ab35c80c45de9031"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a373baaf76666fb03ab35c80c45de9031"></a>
 unsigned int&#160;</td><td class="memItemRight" valign="bottom"><b>getPartialLimit</b> () const </td></tr>
 <tr class="memitem:a05967518ce744420fa83491a630007c8"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a05967518ce744420fa83491a630007c8"></a>
@@ -238,7 +238,7 @@ class&#160;</td><td class="memItemRight" valign="bottom"><b>TVP</b></td></tr>
 
 
 <hr class="footer"/><address class="footer"><small>
-Generated on Tue Oct 1 2019 18:06:35 for DOSBox-X by &#160;<a href="http://www.doxygen.org/index.html">
+Generated on Sun Jul 5 2020 13:11:43 for DOSBox-X by &#160;<a href="http://www.doxygen.org/index.html">
 <img class="footer" src="doxygen.png" alt="doxygen"/>
 </a> 1.8.0
 </small></address>

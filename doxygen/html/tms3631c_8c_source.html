@@ -136,43 +136,42 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l00039"></a>00039 
 <a name="l00040"></a>00040         UINT    i;
 <a name="l00041"></a>00041         UINT    j;
-<a name="l00042"></a>00042         SINT32  data;
-<a name="l00043"></a>00043 
-<a name="l00044"></a>00044         tms3631cfg.left = (vol[0] &amp; 15) &lt;&lt; 5;
-<a name="l00045"></a>00045         tms3631cfg.right = (vol[1] &amp; 15) &lt;&lt; 5;
-<a name="l00046"></a>00046         vol += 2;
-<a name="l00047"></a>00047         <span class="keywordflow">for</span> (i=0; i&lt;16; i++) {
-<a name="l00048"></a>00048                 data = 0;
-<a name="l00049"></a>00049                 <span class="keywordflow">for</span> (j=0; j&lt;4; j++) {
-<a name="l00050"></a>00050                         data += (vol[j] &amp; 15) * ((i &amp; (1 &lt;&lt; j))?1:-1);
-<a name="l00051"></a>00051                 }
-<a name="l00052"></a>00052                 tms3631cfg.feet[i] = data &lt;&lt; 5;
-<a name="l00053"></a>00053         }
-<a name="l00054"></a>00054 }
+<a name="l00042"></a>00042 
+<a name="l00043"></a>00043         tms3631cfg.left = (vol[0] &amp; 15) &lt;&lt; 5;
+<a name="l00044"></a>00044         tms3631cfg.right = (vol[1] &amp; 15) &lt;&lt; 5;
+<a name="l00045"></a>00045         vol += 2;
+<a name="l00046"></a>00046         <span class="keywordflow">for</span> (i=0; i&lt;16; i++) {
+<a name="l00047"></a>00047                 SINT32 data = 0;
+<a name="l00048"></a>00048                 <span class="keywordflow">for</span> (j=0; j&lt;4; j++) {
+<a name="l00049"></a>00049                         data += (vol[j] &amp; 15) * ((i &amp; (1 &lt;&lt; j))?1:-1);
+<a name="l00050"></a>00050                 }
+<a name="l00051"></a>00051                 tms3631cfg.feet[i] = data &lt;&lt; 5;
+<a name="l00052"></a>00052         }
+<a name="l00053"></a>00053 }
+<a name="l00054"></a>00054 
 <a name="l00055"></a>00055 
-<a name="l00056"></a>00056 
-<a name="l00057"></a>00057 <span class="comment">// ----</span>
-<a name="l00058"></a>00058 
-<a name="l00059"></a>00059 <span class="keywordtype">void</span> tms3631_reset(<a class="code" href="struct__TMS3631.html">TMS3631</a> tms) {
-<a name="l00060"></a>00060 
-<a name="l00061"></a>00061         ZeroMemory(tms, <span class="keyword">sizeof</span>(<a class="code" href="struct__TMS3631.html">_TMS3631</a>));
-<a name="l00062"></a>00062 }
-<a name="l00063"></a>00063 
-<a name="l00064"></a>00064 <span class="keywordtype">void</span> tms3631_setkey(<a class="code" href="struct__TMS3631.html">TMS3631</a> tms, REG8 ch, REG8 key) {
-<a name="l00065"></a>00065 
-<a name="l00066"></a>00066         tms-&gt;ch[ch &amp; 7].freq = tms3631_freqtbl[key &amp; 0x3f] &gt;&gt; tms3631cfg.ratesft;
-<a name="l00067"></a>00067 }
-<a name="l00068"></a>00068 
-<a name="l00069"></a>00069 <span class="keywordtype">void</span> tms3631_setenable(<a class="code" href="struct__TMS3631.html">TMS3631</a> tms, REG8 enable) {
-<a name="l00070"></a>00070 
-<a name="l00071"></a>00071         tms-&gt;enable = enable;
-<a name="l00072"></a>00072 }
-<a name="l00073"></a>00073 
+<a name="l00056"></a>00056 <span class="comment">// ----</span>
+<a name="l00057"></a>00057 
+<a name="l00058"></a>00058 <span class="keywordtype">void</span> tms3631_reset(<a class="code" href="struct__TMS3631.html">TMS3631</a> tms) {
+<a name="l00059"></a>00059 
+<a name="l00060"></a>00060         ZeroMemory(tms, <span class="keyword">sizeof</span>(<a class="code" href="struct__TMS3631.html">_TMS3631</a>));
+<a name="l00061"></a>00061 }
+<a name="l00062"></a>00062 
+<a name="l00063"></a>00063 <span class="keywordtype">void</span> tms3631_setkey(<a class="code" href="struct__TMS3631.html">TMS3631</a> tms, REG8 ch, REG8 key) {
+<a name="l00064"></a>00064 
+<a name="l00065"></a>00065         tms-&gt;ch[ch &amp; 7].freq = tms3631_freqtbl[key &amp; 0x3f] &gt;&gt; tms3631cfg.ratesft;
+<a name="l00066"></a>00066 }
+<a name="l00067"></a>00067 
+<a name="l00068"></a>00068 <span class="keywordtype">void</span> tms3631_setenable(<a class="code" href="struct__TMS3631.html">TMS3631</a> tms, REG8 enable) {
+<a name="l00069"></a>00069 
+<a name="l00070"></a>00070         tms-&gt;enable = enable;
+<a name="l00071"></a>00071 }
+<a name="l00072"></a>00072 
 </pre></div></div><!-- contents -->
 
 
 <hr class="footer"/><address class="footer"><small>
-Generated on Tue Oct 1 2019 18:06:27 for DOSBox-X by &#160;<a href="http://www.doxygen.org/index.html">
+Generated on Sun Jul 5 2020 13:11:37 for DOSBox-X by &#160;<a href="http://www.doxygen.org/index.html">
 <img class="footer" src="doxygen.png" alt="doxygen"/>
 </a> 1.8.0
 </small></address>

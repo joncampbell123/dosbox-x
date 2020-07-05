@@ -96,7 +96,7 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 </div><!--header-->
 <div class="contents">
 <div class="fragment"><pre class="fragment"><a name="l00001"></a>00001 <span class="comment">/*</span>
-<a name="l00002"></a>00002 <span class="comment"> *  Copyright (C) 2002-2019  The DOSBox Team</span>
+<a name="l00002"></a>00002 <span class="comment"> *  Copyright (C) 2002-2020  The DOSBox Team</span>
 <a name="l00003"></a>00003 <span class="comment"> *</span>
 <a name="l00004"></a>00004 <span class="comment"> *  This program is free software; you can redistribute it and/or modify</span>
 <a name="l00005"></a>00005 <span class="comment"> *  it under the terms of the GNU General Public License as published by</span>
@@ -108,9 +108,9 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l00011"></a>00011 <span class="comment"> *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the</span>
 <a name="l00012"></a>00012 <span class="comment"> *  GNU Library General Public License for more details.</span>
 <a name="l00013"></a>00013 <span class="comment"> *</span>
-<a name="l00014"></a>00014 <span class="comment"> *  You should have received a copy of the GNU General Public License</span>
-<a name="l00015"></a>00015 <span class="comment"> *  along with this program; if not, write to the Free Software</span>
-<a name="l00016"></a>00016 <span class="comment"> *  Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1335, USA.</span>
+<a name="l00014"></a>00014 <span class="comment"> *  You should have received a copy of the GNU General Public License along</span>
+<a name="l00015"></a>00015 <span class="comment"> *  with this program; if not, write to the Free Software Foundation, Inc.,</span>
+<a name="l00016"></a>00016 <span class="comment"> *  51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.</span>
 <a name="l00017"></a>00017 <span class="comment"> */</span>
 <a name="l00018"></a>00018 
 <a name="l00019"></a>00019 <span class="comment">//#include &lt;dosbox.h&gt;</span>
@@ -261,44 +261,44 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l00164"></a>00164         FT_Library FTlib;                                       <span class="comment">// FreeType2 library used to render the characters</span>
 <a name="l00165"></a>00165 
 <a name="l00166"></a>00166         SDL_Surface* page;                                      <span class="comment">// Surface representing the current page</span>
-<a name="l00167"></a>00167         FT_Face curFont;                                        <span class="comment">// The font currently used to render characters</span>
-<a name="l00168"></a>00168         Bit8u color;
+<a name="l00167"></a>00167         FT_Face curFont = NULL;                                 <span class="comment">// The font currently used to render characters</span>
+<a name="l00168"></a>00168         Bit8u color = 0;
 <a name="l00169"></a>00169 
-<a name="l00170"></a>00170         Real64 curX, curY;                                      <span class="comment">// Position of the print head (in inch)</span>
+<a name="l00170"></a>00170         Real64 curX = 0, curY = 0;                                      <span class="comment">// Position of the print head (in inch)</span>
 <a name="l00171"></a>00171 
-<a name="l00172"></a>00172         Bit16u dpi;                                                     <span class="comment">// dpi of the page</span>
-<a name="l00173"></a>00173         Bit16u ESCCmd;                                          <span class="comment">// ESC-command that is currently processed</span>
-<a name="l00174"></a>00174         <span class="keywordtype">bool</span> ESCSeen;                                           <span class="comment">// True if last read character was an ESC (0x1B)</span>
-<a name="l00175"></a>00175         <span class="keywordtype">bool</span> FSSeen;                                            <span class="comment">// True if last read character was an FS (0x1C) (IBM commands)</span>
+<a name="l00172"></a>00172         Bit16u dpi = 0;                                                 <span class="comment">// dpi of the page</span>
+<a name="l00173"></a>00173         Bit16u ESCCmd = 0;                                              <span class="comment">// ESC-command that is currently processed</span>
+<a name="l00174"></a>00174         <span class="keywordtype">bool</span> ESCSeen = <span class="keyword">false</span>;                                           <span class="comment">// True if last read character was an ESC (0x1B)</span>
+<a name="l00175"></a>00175         <span class="keywordtype">bool</span> FSSeen = <span class="keyword">false</span>;                                            <span class="comment">// True if last read character was an FS (0x1C) (IBM commands)</span>
 <a name="l00176"></a>00176 
-<a name="l00177"></a>00177         Bit8u numParam, neededParam;            <span class="comment">// Numbers of parameters already read/needed to process command</span>
+<a name="l00177"></a>00177         Bit8u numParam = 0, neededParam = 0;            <span class="comment">// Numbers of parameters already read/needed to process command</span>
 <a name="l00178"></a>00178 
-<a name="l00179"></a>00179         Bit8u params[20];                                       <span class="comment">// Buffer for the read params</span>
-<a name="l00180"></a>00180         Bit16u style;                                           <span class="comment">// Style of font (see STYLE_* constants)</span>
-<a name="l00181"></a>00181         Real64 cpi, actcpi;                                     <span class="comment">// CPI value set by program and the actual one (taking in account font types)</span>
-<a name="l00182"></a>00182         Bit8u score;                                            <span class="comment">// Score for lines (see SCORE_* constants)</span>
+<a name="l00179"></a>00179     Bit8u params[20] = {};                                      <span class="comment">// Buffer for the read params</span>
+<a name="l00180"></a>00180         Bit16u style = 0;                                               <span class="comment">// Style of font (see STYLE_* constants)</span>
+<a name="l00181"></a>00181         Real64 cpi = 0, actcpi = 0;                                     <span class="comment">// CPI value set by program and the actual one (taking in account font types)</span>
+<a name="l00182"></a>00182         Bit8u score = 0;                                                <span class="comment">// Score for lines (see SCORE_* constants)</span>
 <a name="l00183"></a>00183 
-<a name="l00184"></a>00184         Real64 topMargin, bottomMargin, rightMargin, leftMargin;        <span class="comment">// Margins of the page (in inch)</span>
-<a name="l00185"></a>00185         Real64 pageWidth, pageHeight;                                                           <span class="comment">// Size of page (in inch)</span>
-<a name="l00186"></a>00186         Real64 defaultPageWidth, defaultPageHeight;                                     <span class="comment">// Default size of page (in inch)</span>
-<a name="l00187"></a>00187         Real64 lineSpacing;                                                                                     <span class="comment">// Size of one line (in inch)</span>
+<a name="l00184"></a>00184         Real64 topMargin = 0, bottomMargin = 0, rightMargin = 0, leftMargin = 0;        <span class="comment">// Margins of the page (in inch)</span>
+<a name="l00185"></a>00185         Real64 pageWidth = 0, pageHeight = 0;                                                           <span class="comment">// Size of page (in inch)</span>
+<a name="l00186"></a>00186         Real64 defaultPageWidth = 0, defaultPageHeight = 0;                                     <span class="comment">// Default size of page (in inch)</span>
+<a name="l00187"></a>00187         Real64 lineSpacing = 0;                                                                                 <span class="comment">// Size of one line (in inch)</span>
 <a name="l00188"></a>00188 
-<a name="l00189"></a>00189         Real64 horiztabs[32];                           <span class="comment">// Stores the set horizontal tabs (in inch)</span>
-<a name="l00190"></a>00190         Bit8u numHorizTabs;                                     <span class="comment">// Number of configured tabs</span>
+<a name="l00189"></a>00189     Real64 horiztabs[32] = {};                          <span class="comment">// Stores the set horizontal tabs (in inch)</span>
+<a name="l00190"></a>00190         Bit8u numHorizTabs = 0;                                 <span class="comment">// Number of configured tabs</span>
 <a name="l00191"></a>00191 
-<a name="l00192"></a>00192         Real64 verttabs[16];                            <span class="comment">// Stores the set vertical tabs (in inch)</span>
-<a name="l00193"></a>00193         Bit8u numVertTabs;                                      <span class="comment">// Number of configured tabs</span>
+<a name="l00192"></a>00192     Real64 verttabs[16] = {};                           <span class="comment">// Stores the set vertical tabs (in inch)</span>
+<a name="l00193"></a>00193         Bit8u numVertTabs = 0;                                  <span class="comment">// Number of configured tabs</span>
 <a name="l00194"></a>00194 
-<a name="l00195"></a>00195         Bit8u curCharTable;                                     <span class="comment">// Currently used char table und charset</span>
-<a name="l00196"></a>00196         Bit8u printQuality;                                     <span class="comment">// Print quality (see QUALITY_* constants)</span>
+<a name="l00195"></a>00195         Bit8u curCharTable = 0;                                 <span class="comment">// Currently used char table und charset</span>
+<a name="l00196"></a>00196         Bit8u printQuality = 0;                                 <span class="comment">// Print quality (see QUALITY_* constants)</span>
 <a name="l00197"></a>00197 
-<a name="l00198"></a>00198         Typeface LQtypeFace;                            <span class="comment">// Typeface used in LQ printing mode</span>
+<a name="l00198"></a>00198         Typeface LQtypeFace = (Typeface)0;                              <span class="comment">// Typeface used in LQ printing mode</span>
 <a name="l00199"></a>00199 
-<a name="l00200"></a>00200         Real64 extraIntraSpace;                         <span class="comment">// Extra space between two characters (set by program, in inch)</span>
+<a name="l00200"></a>00200         Real64 extraIntraSpace = 0;                             <span class="comment">// Extra space between two characters (set by program, in inch)</span>
 <a name="l00201"></a>00201 
-<a name="l00202"></a>00202         <span class="keywordtype">bool</span> charRead;                                          <span class="comment">// True if a character was read since the printer was last initialized</span>
-<a name="l00203"></a>00203         <span class="keywordtype">bool</span> autoFeed;                                          <span class="comment">// True if a LF should automatically added after a CR</span>
-<a name="l00204"></a>00204         <span class="keywordtype">bool</span> printUpperContr;                           <span class="comment">// True if the upper command characters should be printed</span>
+<a name="l00202"></a>00202         <span class="keywordtype">bool</span> charRead = <span class="keyword">false</span>;                                          <span class="comment">// True if a character was read since the printer was last initialized</span>
+<a name="l00203"></a>00203         <span class="keywordtype">bool</span> autoFeed = <span class="keyword">false</span>;                                          <span class="comment">// True if a LF should automatically added after a CR</span>
+<a name="l00204"></a>00204         <span class="keywordtype">bool</span> printUpperContr = <span class="keyword">false</span>;                           <span class="comment">// True if the upper command characters should be printed</span>
 <a name="l00205"></a>00205 
 <a name="l00206"></a>00206         <span class="keyword">struct </span>bitGraphicParams                         <span class="comment">// Holds information about printing bit images</span>
 <a name="l00207"></a>00207         {
@@ -308,36 +308,36 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l00211"></a>00211                 Bit16u remBytes;                                <span class="comment">// Bytes left to read before image is done</span>
 <a name="l00212"></a>00212                 Bit8u column[6];                                <span class="comment">// Bytes of the current and last column</span>
 <a name="l00213"></a>00213                 Bit8u readBytesColumn;                  <span class="comment">// Bytes read so far for the current column</span>
-<a name="l00214"></a>00214         } bitGraph;
+<a name="l00214"></a>00214     } bitGraph = {};
 <a name="l00215"></a>00215 
-<a name="l00216"></a>00216         Bit8u densk, densl, densy, densz;       <span class="comment">// Image density modes used in ESC K/L/Y/Z commands</span>
+<a name="l00216"></a>00216         Bit8u densk = 0, densl = 0, densy = 0, densz = 0;       <span class="comment">// Image density modes used in ESC K/L/Y/Z commands</span>
 <a name="l00217"></a>00217 
-<a name="l00218"></a>00218         Bit16u curMap[256];                                     <span class="comment">// Currently used ASCII =&gt; Unicode mapping</span>
-<a name="l00219"></a>00219         Bit16u charTables[4];                           <span class="comment">// Charactertables</span>
+<a name="l00218"></a>00218     Bit16u curMap[256] = {};                                    <span class="comment">// Currently used ASCII =&gt; Unicode mapping</span>
+<a name="l00219"></a>00219     Bit16u charTables[4] = {};                          <span class="comment">// Charactertables</span>
 <a name="l00220"></a>00220 
-<a name="l00221"></a>00221         Real64 definedUnit;                                     <span class="comment">// Unit used by some ESC/P2 commands (negative =&gt; use default)</span>
+<a name="l00221"></a>00221         Real64 definedUnit = 0;                                 <span class="comment">// Unit used by some ESC/P2 commands (negative =&gt; use default)</span>
 <a name="l00222"></a>00222 
-<a name="l00223"></a>00223         <span class="keywordtype">bool</span> multipoint;                                        <span class="comment">// If multipoint mode is enabled</span>
-<a name="l00224"></a>00224         Real64 multiPointSize;                          <span class="comment">// Point size of font in multipoint mode</span>
-<a name="l00225"></a>00225         Real64 multicpi;                                        <span class="comment">// CPI used in multipoint mode</span>
+<a name="l00223"></a>00223         <span class="keywordtype">bool</span> multipoint = <span class="keyword">false</span>;                                        <span class="comment">// If multipoint mode is enabled</span>
+<a name="l00224"></a>00224         Real64 multiPointSize = 0;                              <span class="comment">// Point size of font in multipoint mode</span>
+<a name="l00225"></a>00225         Real64 multicpi = 0;                                    <span class="comment">// CPI used in multipoint mode</span>
 <a name="l00226"></a>00226 
-<a name="l00227"></a>00227         Real64 hmi;                                                     <span class="comment">// Horizontal motion index (in inch; overrides CPI settings)</span>
+<a name="l00227"></a>00227         Real64 hmi = 0;                                                 <span class="comment">// Horizontal motion index (in inch; overrides CPI settings)</span>
 <a name="l00228"></a>00228 
-<a name="l00229"></a>00229         Bit8u msb;                                                      <span class="comment">// MSB mode</span>
-<a name="l00230"></a>00230         Bit16u numPrintAsChar;                          <span class="comment">// Number of bytes to print as characters (even when normally control codes)</span>
+<a name="l00229"></a>00229         Bit8u msb = 0;                                                  <span class="comment">// MSB mode</span>
+<a name="l00230"></a>00230         Bit16u numPrintAsChar = 0;                              <span class="comment">// Number of bytes to print as characters (even when normally control codes)</span>
 <a name="l00231"></a>00231 
 <a name="l00232"></a>00232 <span class="preprocessor">#if defined (WIN32)</span>
-<a name="l00233"></a>00233 <span class="preprocessor"></span>        HDC printerDC;                                          <span class="comment">// Win32 printer device</span>
+<a name="l00233"></a>00233 <span class="preprocessor"></span>        HDC printerDC = NULL;                                           <span class="comment">// Win32 printer device</span>
 <a name="l00234"></a>00234 <span class="preprocessor">#endif</span>
 <a name="l00235"></a>00235 <span class="preprocessor"></span>
-<a name="l00236"></a>00236         <span class="keywordtype">char</span>* output;                                           <span class="comment">// Output method selected by user</span>
-<a name="l00237"></a>00237         <span class="keywordtype">void</span>* outputHandle;                                     <span class="comment">// If not null, additional pages will be appended to the given handle</span>
-<a name="l00238"></a>00238         <span class="keywordtype">bool</span> multipageOutput;                           <span class="comment">// If true, all pages are combined to one file/print job etc. until the &quot;eject page&quot; button is pressed</span>
-<a name="l00239"></a>00239         Bit16u multiPageCounter;                        <span class="comment">// Current page (when printing multipages)</span>
+<a name="l00236"></a>00236         <span class="keywordtype">char</span>* output = NULL;                                            <span class="comment">// Output method selected by user</span>
+<a name="l00237"></a>00237         <span class="keywordtype">void</span>* outputHandle = NULL;                                      <span class="comment">// If not null, additional pages will be appended to the given handle</span>
+<a name="l00238"></a>00238         <span class="keywordtype">bool</span> multipageOutput = <span class="keyword">false</span>;                           <span class="comment">// If true, all pages are combined to one file/print job etc. until the &quot;eject page&quot; button is pressed</span>
+<a name="l00239"></a>00239         Bit16u multiPageCounter = 0;                    <span class="comment">// Current page (when printing multipages)</span>
 <a name="l00240"></a>00240 
-<a name="l00241"></a>00241         Bit8u ASCII85Buffer[4];                         <span class="comment">// Buffer used in ASCII85 encoding</span>
-<a name="l00242"></a>00242         Bit8u ASCII85BufferPos;                         <span class="comment">// Position in ASCII85 encode buffer</span>
-<a name="l00243"></a>00243         Bit8u ASCII85CurCol;                            <span class="comment">// Columns printed so far in the current lines</span>
+<a name="l00241"></a>00241     Bit8u ASCII85Buffer[4] = {};                                <span class="comment">// Buffer used in ASCII85 encoding</span>
+<a name="l00242"></a>00242         Bit8u ASCII85BufferPos = 0;                             <span class="comment">// Position in ASCII85 encode buffer</span>
+<a name="l00243"></a>00243         Bit8u ASCII85CurCol = 0;                                <span class="comment">// Columns printed so far in the current lines</span>
 <a name="l00244"></a>00244 };
 <a name="l00245"></a>00245 
 <a name="l00246"></a>00246 <span class="preprocessor">#endif</span>
@@ -347,7 +347,7 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 
 
 <hr class="footer"/><address class="footer"><small>
-Generated on Tue Oct 1 2019 18:06:27 for DOSBox-X by &#160;<a href="http://www.doxygen.org/index.html">
+Generated on Sun Jul 5 2020 13:11:36 for DOSBox-X by &#160;<a href="http://www.doxygen.org/index.html">
 <img class="footer" src="doxygen.png" alt="doxygen"/>
 </a> 1.8.0
 </small></address>

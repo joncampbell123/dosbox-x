@@ -109,9 +109,9 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l00012"></a>00012 <span class="comment">//  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the</span>
 <a name="l00013"></a>00013 <span class="comment">//  GNU General Public License for more details.</span>
 <a name="l00014"></a>00014 <span class="comment">//</span>
-<a name="l00015"></a>00015 <span class="comment">//  You should have received a copy of the GNU General Public License</span>
-<a name="l00016"></a>00016 <span class="comment">//  along with this program; if not, write to the Free Software</span>
-<a name="l00017"></a>00017 <span class="comment">//  Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1335 USA  USA</span>
+<a name="l00015"></a>00015 <span class="comment">//  You should have received a copy of the GNU General Public License along</span>
+<a name="l00016"></a>00016 <span class="comment">//  with this program; if not, write to the Free Software Foundation, Inc.,</span>
+<a name="l00017"></a>00017 <span class="comment">//  51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.</span>
 <a name="l00018"></a>00018 <span class="comment">//  ---------------------------------------------------------------------------</span>
 <a name="l00019"></a>00019 
 <a name="l00020"></a>00020 <span class="preprocessor">#include &quot;sid.h&quot;</span>
@@ -492,14 +492,14 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l00395"></a>00395   <span class="comment">// Max error acceptable in I0.</span>
 <a name="l00396"></a>00396   <span class="keyword">const</span> <span class="keywordtype">double</span> I0e = 1e-6;
 <a name="l00397"></a>00397 
-<a name="l00398"></a>00398   <span class="keywordtype">double</span> sum, u, halfx, temp;
+<a name="l00398"></a>00398   <span class="keywordtype">double</span> sum, u, halfx;
 <a name="l00399"></a>00399   <span class="keywordtype">int</span> n;
 <a name="l00400"></a>00400 
 <a name="l00401"></a>00401   sum = u = n = 1;
 <a name="l00402"></a>00402   halfx = x/2.0;
 <a name="l00403"></a>00403 
 <a name="l00404"></a>00404   <span class="keywordflow">do</span> {
-<a name="l00405"></a>00405     temp = halfx/n++;
+<a name="l00405"></a>00405     <span class="keywordtype">double</span> temp = halfx/n++;
 <a name="l00406"></a>00406     u *= temp*temp;
 <a name="l00407"></a>00407     sum += u;
 <a name="l00408"></a>00408   } <span class="keywordflow">while</span> (u &gt;= I0e*sum);
@@ -776,7 +776,7 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l00679"></a>00679 
 <a name="l00680"></a>00680       <span class="comment">// Clock on MSB off if MSB is on, clock on MSB on if MSB is off.</span>
 <a name="l00681"></a>00681       reg24 delta_accumulator =
-<a name="l00682"></a>00682         (accumulator &amp; 0x800000 ? 0x1000000 : 0x800000) - accumulator;
+<a name="l00682"></a>00682         ((accumulator &amp; 0x800000) ? 0x1000000 : 0x800000) - accumulator;
 <a name="l00683"></a>00683 
 <a name="l00684"></a>00684       cycle_count delta_t_next = (cycle_count)((<span class="keywordtype">unsigned</span> <span class="keywordtype">int</span>)delta_accumulator / (<span class="keywordtype">unsigned</span> int)freq);
 <a name="l00685"></a>00685       <span class="keywordflow">if</span> (delta_accumulator%freq) {
@@ -1107,7 +1107,7 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 
 
 <hr class="footer"/><address class="footer"><small>
-Generated on Tue Oct 1 2019 18:06:27 for DOSBox-X by &#160;<a href="http://www.doxygen.org/index.html">
+Generated on Sun Jul 5 2020 13:11:36 for DOSBox-X by &#160;<a href="http://www.doxygen.org/index.html">
 <img class="footer" src="doxygen.png" alt="doxygen"/>
 </a> 1.8.0
 </small></address>

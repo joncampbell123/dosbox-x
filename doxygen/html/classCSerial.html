@@ -108,8 +108,9 @@ Inheritance diagram for CSerial:</div>
   <img src="classCSerial.png" usemap="#CSerial_map" alt=""/>
   <map id="CSerial_map" name="CSerial_map">
 <area href="classCSerialDummy.html" alt="CSerialDummy" shape="rect" coords="0,56,95,80"/>
-<area href="classCSerialLog.html" alt="CSerialLog" shape="rect" coords="105,56,200,80"/>
-<area href="classCSerialMouse.html" alt="CSerialMouse" shape="rect" coords="210,56,305,80"/>
+<area href="classCSerialFile.html" alt="CSerialFile" shape="rect" coords="105,56,200,80"/>
+<area href="classCSerialLog.html" alt="CSerialLog" shape="rect" coords="210,56,305,80"/>
+<area href="classCSerialMouse.html" alt="CSerialMouse" shape="rect" coords="315,56,410,80"/>
 </map>
  </div></div>
 
@@ -169,8 +170,8 @@ void&#160;</td><td class="memItemRight" valign="bottom"><b>Write_FCR</b> (Bit8u 
 void&#160;</td><td class="memItemRight" valign="bottom"><b>Write_LCR</b> (Bit8u data)</td></tr>
 <tr class="memitem:a4f95a3cccb9403edb4947e6de6101346"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a4f95a3cccb9403edb4947e6de6101346"></a>
 void&#160;</td><td class="memItemRight" valign="bottom"><b>Write_MCR</b> (Bit8u data)</td></tr>
-<tr class="memitem:a332d706f5979eb07dfb8e4ada29e7dfa"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a332d706f5979eb07dfb8e4ada29e7dfa"></a>
-void&#160;</td><td class="memItemRight" valign="bottom"><b>Write_MSR</b> (Bit8u data)</td></tr>
+<tr class="memitem:a3b1051945b94e795f2973f71c99b527e"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a3b1051945b94e795f2973f71c99b527e"></a>
+void&#160;</td><td class="memItemRight" valign="bottom"><b>Write_MSR</b> (Bit8u val)</td></tr>
 <tr class="memitem:ae27c570b7bcd4c5ac6e0f4c4a5ff2045"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="ae27c570b7bcd4c5ac6e0f4c4a5ff2045"></a>
 void&#160;</td><td class="memItemRight" valign="bottom"><b>Write_SPR</b> (Bit8u data)</td></tr>
 <tr class="memitem:a28e4f958e7b7edc46a295d2fe5c7dbc8"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a28e4f958e7b7edc46a295d2fe5c7dbc8"></a>
@@ -209,8 +210,8 @@ virtual void&#160;</td><td class="memItemRight" valign="bottom"><b>setBreak</b> 
 virtual void&#160;</td><td class="memItemRight" valign="bottom"><b>updatePortConfig</b> (Bit16u divider, Bit8u lcr)=0</td></tr>
 <tr class="memitem:af5cb5a4a7736486967d4c4ffa65aa4b9"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="af5cb5a4a7736486967d4c4ffa65aa4b9"></a>
 void&#160;</td><td class="memItemRight" valign="bottom"><b>Init_Registers</b> ()</td></tr>
-<tr class="memitem:a08815d6c2f3e806df2a9c33130451402"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a08815d6c2f3e806df2a9c33130451402"></a>
-bool&#160;</td><td class="memItemRight" valign="bottom"><b>Putchar</b> (Bit8u data, bool wait_dtr, bool wait_rts, Bitu timeout)</td></tr>
+<tr class="memitem:af18a7dc77429ef988d38f3d089ad5bdc"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="af18a7dc77429ef988d38f3d089ad5bdc"></a>
+bool&#160;</td><td class="memItemRight" valign="bottom"><b>Putchar</b> (Bit8u data, bool wait_dsr, bool wait_cts, Bitu timeout)</td></tr>
 <tr class="memitem:a6b5cb502f087dd0dfcc167850fd862e9"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a6b5cb502f087dd0dfcc167850fd862e9"></a>
 bool&#160;</td><td class="memItemRight" valign="bottom"><b>Getchar</b> (Bit8u *data, Bit8u *lsr, bool wait_dsr, Bitu timeout)</td></tr>
 <tr class="memitem:afe1ce6961b0ea41e443aa12b3cb2cf3e"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="afe1ce6961b0ea41e443aa12b3cb2cf3e"></a>
@@ -267,7 +268,7 @@ Bit8u&#160;</td><td class="memItemRight" valign="bottom"><b>LSR</b></td></tr>
 
 
 <hr class="footer"/><address class="footer"><small>
-Generated on Tue Oct 1 2019 18:06:30 for DOSBox-X by &#160;<a href="http://www.doxygen.org/index.html">
+Generated on Sun Jul 5 2020 13:11:40 for DOSBox-X by &#160;<a href="http://www.doxygen.org/index.html">
 <img class="footer" src="doxygen.png" alt="doxygen"/>
 </a> 1.8.0
 </small></address>

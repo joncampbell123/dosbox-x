@@ -96,7 +96,7 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 </div><!--header-->
 <div class="contents">
 <div class="fragment"><pre class="fragment"><a name="l00001"></a>00001 <span class="comment">/*</span>
-<a name="l00002"></a>00002 <span class="comment"> *  Copyright (C) 2002-2019  The DOSBox Team</span>
+<a name="l00002"></a>00002 <span class="comment"> *  Copyright (C) 2002-2020  The DOSBox Team</span>
 <a name="l00003"></a>00003 <span class="comment"> *</span>
 <a name="l00004"></a>00004 <span class="comment"> *  This program is free software; you can redistribute it and/or modify</span>
 <a name="l00005"></a>00005 <span class="comment"> *  it under the terms of the GNU General Public License as published by</span>
@@ -108,9 +108,9 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l00011"></a>00011 <span class="comment"> *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the</span>
 <a name="l00012"></a>00012 <span class="comment"> *  GNU General Public License for more details.</span>
 <a name="l00013"></a>00013 <span class="comment"> *</span>
-<a name="l00014"></a>00014 <span class="comment"> *  You should have received a copy of the GNU General Public License</span>
-<a name="l00015"></a>00015 <span class="comment"> *  along with this program; if not, write to the Free Software</span>
-<a name="l00016"></a>00016 <span class="comment"> *  Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1335, USA.</span>
+<a name="l00014"></a>00014 <span class="comment"> *  You should have received a copy of the GNU General Public License along</span>
+<a name="l00015"></a>00015 <span class="comment"> *  with this program; if not, write to the Free Software Foundation, Inc.,</span>
+<a name="l00016"></a>00016 <span class="comment"> *  51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.</span>
 <a name="l00017"></a>00017 <span class="comment"> */</span>
 <a name="l00018"></a>00018 
 <a name="l00019"></a>00019 
@@ -119,223 +119,769 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l00022"></a>00022 <span class="preprocessor">#include &quot;callback.h&quot;</span>
 <a name="l00023"></a>00023 <span class="preprocessor">#include &quot;mem.h&quot;</span>
 <a name="l00024"></a>00024 <span class="preprocessor">#include &quot;regs.h&quot;</span>
-<a name="l00025"></a>00025 <span class="preprocessor">#include &quot;dos_inc.h&quot;</span>
-<a name="l00026"></a>00026 
-<a name="l00027"></a>00027 <span class="keywordtype">bool</span> DOS_IOCTL(<span class="keywordtype">void</span>) {
-<a name="l00028"></a>00028         Bitu handle=0;Bit8u drive=0;
-<a name="l00029"></a>00029         <span class="comment">/* calls 0-4,6,7,10,12,16 use a file handle */</span>
-<a name="l00030"></a>00030         <span class="keywordflow">if</span> ((reg_al&lt;4) || (reg_al==0x06) || (reg_al==0x07) || (reg_al==0x0a) || (reg_al==0x0c) || (reg_al==0x10)) {
-<a name="l00031"></a>00031                 handle=RealHandle(reg_bx);
-<a name="l00032"></a>00032                 <span class="keywordflow">if</span> (handle&gt;=DOS_FILES) {
-<a name="l00033"></a>00033                         DOS_SetError(DOSERR_INVALID_HANDLE);
-<a name="l00034"></a>00034                         <span class="keywordflow">return</span> <span class="keyword">false</span>;
-<a name="l00035"></a>00035                 }
-<a name="l00036"></a>00036                 <span class="keywordflow">if</span> (!Files[handle]) {
-<a name="l00037"></a>00037                         DOS_SetError(DOSERR_INVALID_HANDLE);
-<a name="l00038"></a>00038                         <span class="keywordflow">return</span> <span class="keyword">false</span>;
-<a name="l00039"></a>00039                 }
-<a name="l00040"></a>00040         } <span class="keywordflow">else</span> <span class="keywordflow">if</span> (reg_al&lt;0x12) {                               <span class="comment">/* those use a diskdrive except 0x0b */</span>
-<a name="l00041"></a>00041                 <span class="keywordflow">if</span> (reg_al!=0x0b) {
-<a name="l00042"></a>00042                         drive=reg_bl;<span class="keywordflow">if</span> (!drive) drive = DOS_GetDefaultDrive();<span class="keywordflow">else</span> drive--;
-<a name="l00043"></a>00043                         <span class="keywordflow">if</span>( (drive &gt;= 2) &amp;&amp; !(( drive &lt; DOS_DRIVES ) &amp;&amp; Drives[drive]) ) {
-<a name="l00044"></a>00044                                 DOS_SetError(DOSERR_INVALID_DRIVE);
-<a name="l00045"></a>00045                                 <span class="keywordflow">return</span> <span class="keyword">false</span>;
-<a name="l00046"></a>00046                         }
-<a name="l00047"></a>00047                 }
-<a name="l00048"></a>00048         } <span class="keywordflow">else</span> {
-<a name="l00049"></a>00049                 <a class="code" href="classLOG.html">LOG</a>(LOG_DOSMISC,LOG_ERROR)(<span class="stringliteral">&quot;DOS:IOCTL Call %2X unhandled&quot;</span>,reg_al);
-<a name="l00050"></a>00050                 DOS_SetError(DOSERR_FUNCTION_NUMBER_INVALID);
-<a name="l00051"></a>00051                 <span class="keywordflow">return</span> <span class="keyword">false</span>;
-<a name="l00052"></a>00052         }
-<a name="l00053"></a>00053         <span class="keywordflow">switch</span>(reg_al) {
-<a name="l00054"></a>00054         <span class="keywordflow">case</span> 0x00:              <span class="comment">/* Get Device Information */</span>
-<a name="l00055"></a>00055                 <span class="keywordflow">if</span> (Files[handle]-&gt;GetInformation() &amp; 0x8000) { <span class="comment">//Check for device</span>
-<a name="l00056"></a>00056                         reg_dx=Files[handle]-&gt;GetInformation();
-<a name="l00057"></a>00057                 } <span class="keywordflow">else</span> {
-<a name="l00058"></a>00058                         Bit8u hdrive=Files[handle]-&gt;GetDrive();
-<a name="l00059"></a>00059                         <span class="keywordflow">if</span> (hdrive==0xff) {
-<a name="l00060"></a>00060                                 <a class="code" href="classLOG.html">LOG</a>(LOG_IOCTL,LOG_NORMAL)(<span class="stringliteral">&quot;00:No drive set&quot;</span>);
-<a name="l00061"></a>00061                                 hdrive=2;       <span class="comment">// defaulting to C:</span>
-<a name="l00062"></a>00062                         }
-<a name="l00063"></a>00063                         <span class="comment">/* return drive number in lower 5 bits for block devices */</span>
-<a name="l00064"></a>00064                         reg_dx=(Files[handle]-&gt;GetInformation()&amp;0xffe0)|hdrive;
-<a name="l00065"></a>00065                 }
-<a name="l00066"></a>00066                 reg_ax=reg_dx; <span class="comment">//Destroyed officially</span>
-<a name="l00067"></a>00067                 <span class="keywordflow">return</span> <span class="keyword">true</span>;
-<a name="l00068"></a>00068         <span class="keywordflow">case</span> 0x01:              <span class="comment">/* Set Device Information */</span>
-<a name="l00069"></a>00069                 <span class="keywordflow">if</span> (reg_dh != 0) {
-<a name="l00070"></a>00070                         DOS_SetError(DOSERR_DATA_INVALID);
-<a name="l00071"></a>00071                         <span class="keywordflow">return</span> <span class="keyword">false</span>;
-<a name="l00072"></a>00072                 } <span class="keywordflow">else</span> {
-<a name="l00073"></a>00073                         <span class="keywordflow">if</span> (Files[handle]-&gt;GetInformation() &amp; 0x8000) { <span class="comment">//Check for device</span>
-<a name="l00074"></a>00074                                 reg_al=(Bit8u)(Files[handle]-&gt;GetInformation() &amp; 0xff);
-<a name="l00075"></a>00075                         } <span class="keywordflow">else</span> {
-<a name="l00076"></a>00076                                 DOS_SetError(DOSERR_FUNCTION_NUMBER_INVALID);
-<a name="l00077"></a>00077                                 <span class="keywordflow">return</span> <span class="keyword">false</span>;
-<a name="l00078"></a>00078                         }
-<a name="l00079"></a>00079                 }
-<a name="l00080"></a>00080                 <span class="keywordflow">return</span> <span class="keyword">true</span>;
-<a name="l00081"></a>00081         <span class="keywordflow">case</span> 0x02:              <span class="comment">/* Read from Device Control Channel */</span>
-<a name="l00082"></a>00082                 <span class="keywordflow">if</span> (Files[handle]-&gt;GetInformation() &amp; 0xc000) {
-<a name="l00083"></a>00083                         <span class="comment">/* is character device with IOCTL support */</span>
-<a name="l00084"></a>00084                         PhysPt bufptr=PhysMake(SegValue(ds),reg_dx);
-<a name="l00085"></a>00085                         Bit16u retcode=0;
-<a name="l00086"></a>00086                         <span class="keywordflow">if</span> (((<a class="code" href="classDOS__Device.html">DOS_Device</a>*)(Files[handle]))-&gt;ReadFromControlChannel(bufptr,reg_cx,&amp;retcode)) {
-<a name="l00087"></a>00087                                 reg_ax=retcode;
-<a name="l00088"></a>00088                                 <span class="keywordflow">return</span> <span class="keyword">true</span>;
-<a name="l00089"></a>00089                         }
-<a name="l00090"></a>00090                 }
-<a name="l00091"></a>00091                 DOS_SetError(DOSERR_FUNCTION_NUMBER_INVALID);
-<a name="l00092"></a>00092                 <span class="keywordflow">return</span> <span class="keyword">false</span>;
-<a name="l00093"></a>00093         <span class="keywordflow">case</span> 0x03:              <span class="comment">/* Write to Device Control Channel */</span>
-<a name="l00094"></a>00094                 <span class="keywordflow">if</span> (Files[handle]-&gt;GetInformation() &amp; 0xc000) {
-<a name="l00095"></a>00095                         <span class="comment">/* is character device with IOCTL support */</span>
-<a name="l00096"></a>00096                         PhysPt bufptr=PhysMake(SegValue(ds),reg_dx);
-<a name="l00097"></a>00097                         Bit16u retcode=0;
-<a name="l00098"></a>00098                         <span class="keywordflow">if</span> (((<a class="code" href="classDOS__Device.html">DOS_Device</a>*)(Files[handle]))-&gt;WriteToControlChannel(bufptr,reg_cx,&amp;retcode)) {
-<a name="l00099"></a>00099                                 reg_ax=retcode;
-<a name="l00100"></a>00100                                 <span class="keywordflow">return</span> <span class="keyword">true</span>;
-<a name="l00101"></a>00101                         }
-<a name="l00102"></a>00102                 }
-<a name="l00103"></a>00103                 DOS_SetError(DOSERR_FUNCTION_NUMBER_INVALID);
-<a name="l00104"></a>00104                 <span class="keywordflow">return</span> <span class="keyword">false</span>;
-<a name="l00105"></a>00105         <span class="keywordflow">case</span> 0x06:      <span class="comment">/* Get Input Status */</span>
-<a name="l00106"></a>00106                 <span class="keywordflow">if</span> (Files[handle]-&gt;GetInformation() &amp; 0x8000) {         <span class="comment">//Check for device</span>
-<a name="l00107"></a>00107                         reg_al=(Files[handle]-&gt;GetInformation() &amp; 0x40) ? 0x0 : 0xff;
-<a name="l00108"></a>00108                 } <span class="keywordflow">else</span> { <span class="comment">// FILE</span>
-<a name="l00109"></a>00109                         Bit32u oldlocation=0;
-<a name="l00110"></a>00110                         Files[handle]-&gt;Seek(&amp;oldlocation, DOS_SEEK_CUR);
-<a name="l00111"></a>00111                         Bit32u endlocation=0;
-<a name="l00112"></a>00112                         Files[handle]-&gt;Seek(&amp;endlocation, DOS_SEEK_END);
-<a name="l00113"></a>00113                         <span class="keywordflow">if</span>(oldlocation &lt; endlocation){<span class="comment">//Still data available</span>
-<a name="l00114"></a>00114                                 reg_al=0xff;
-<a name="l00115"></a>00115                         } <span class="keywordflow">else</span> {
-<a name="l00116"></a>00116                                 reg_al=0x0; <span class="comment">//EOF or beyond</span>
-<a name="l00117"></a>00117                         }
-<a name="l00118"></a>00118                         Files[handle]-&gt;Seek(&amp;oldlocation, DOS_SEEK_SET); <span class="comment">//restore filelocation</span>
-<a name="l00119"></a>00119                         <a class="code" href="classLOG.html">LOG</a>(LOG_IOCTL,LOG_NORMAL)(<span class="stringliteral">&quot;06:Used Get Input Status on regular file with handle %d&quot;</span>,(int)handle);
-<a name="l00120"></a>00120                 }
-<a name="l00121"></a>00121                 <span class="keywordflow">return</span> <span class="keyword">true</span>;
-<a name="l00122"></a>00122         <span class="keywordflow">case</span> 0x07:              <span class="comment">/* Get Output Status */</span>
-<a name="l00123"></a>00123                 <a class="code" href="classLOG.html">LOG</a>(LOG_IOCTL,LOG_NORMAL)(<span class="stringliteral">&quot;07:Fakes output status is ready for handle %d&quot;</span>,(int)handle);
-<a name="l00124"></a>00124                 reg_al=0xff;
-<a name="l00125"></a>00125                 <span class="keywordflow">return</span> <span class="keyword">true</span>;
-<a name="l00126"></a>00126         <span class="keywordflow">case</span> 0x08:              <span class="comment">/* Check if block device removable */</span>
-<a name="l00127"></a>00127                 <span class="comment">/* cdrom drives and drive a&amp;b are removable */</span>
-<a name="l00128"></a>00128                 <span class="keywordflow">if</span> (drive &lt; 2) reg_ax=0;
-<a name="l00129"></a>00129                 <span class="keywordflow">else</span> <span class="keywordflow">if</span> (!Drives[drive]-&gt;isRemovable()) reg_ax=1;
-<a name="l00130"></a>00130                 <span class="keywordflow">else</span> {
-<a name="l00131"></a>00131                         DOS_SetError(DOSERR_FUNCTION_NUMBER_INVALID);
-<a name="l00132"></a>00132                         <span class="keywordflow">return</span> <span class="keyword">false</span>;
-<a name="l00133"></a>00133                 }
-<a name="l00134"></a>00134                 <span class="keywordflow">return</span> <span class="keyword">true</span>;
-<a name="l00135"></a>00135         <span class="keywordflow">case</span> 0x09:              <span class="comment">/* Check if block device remote */</span>
-<a name="l00136"></a>00136                 <span class="keywordflow">if</span> ((drive &gt;= 2) &amp;&amp; Drives[drive]-&gt;isRemote()) {
-<a name="l00137"></a>00137                         reg_dx=0x1000;  <span class="comment">// device is remote</span>
-<a name="l00138"></a>00138                         <span class="comment">// undocumented bits always clear</span>
-<a name="l00139"></a>00139                 } <span class="keywordflow">else</span> {
-<a name="l00140"></a>00140                         reg_dx=0x0802;  <span class="comment">// Open/Close supported; 32bit access supported (any use? fixes Fable installer)</span>
-<a name="l00141"></a>00141                         <span class="comment">// undocumented bits from device attribute word</span>
-<a name="l00142"></a>00142                         <span class="comment">// TODO Set bit 9 on drives that don&#39;t support direct I/O</span>
-<a name="l00143"></a>00143                 }
-<a name="l00144"></a>00144                 reg_ax=0x300;
-<a name="l00145"></a>00145                 <span class="keywordflow">return</span> <span class="keyword">true</span>;
-<a name="l00146"></a>00146         <span class="keywordflow">case</span> 0x0A:              <span class="comment">/* Is Device of Handle Remote? */</span>
-<a name="l00147"></a>00147                 reg_dx=0x8000;
-<a name="l00148"></a>00148                 <a class="code" href="classLOG.html">LOG</a>(LOG_IOCTL,LOG_NORMAL)(<span class="stringliteral">&quot;0A:Faked output: device of handle %d is remote&quot;</span>,(int)handle);
-<a name="l00149"></a>00149                 <span class="keywordflow">return</span> <span class="keyword">true</span>;
-<a name="l00150"></a>00150         <span class="keywordflow">case</span> 0x0B:              <span class="comment">/* Set sharing retry count */</span>
-<a name="l00151"></a>00151                 <span class="keywordflow">if</span> (reg_dx==0) {
-<a name="l00152"></a>00152                         DOS_SetError(DOSERR_FUNCTION_NUMBER_INVALID);
-<a name="l00153"></a>00153                         <span class="keywordflow">return</span> <span class="keyword">false</span>;
-<a name="l00154"></a>00154                 }
-<a name="l00155"></a>00155                 <span class="keywordflow">return</span> <span class="keyword">true</span>;
-<a name="l00156"></a>00156         <span class="keywordflow">case</span> 0x0D:              <span class="comment">/* Generic block device request */</span>
-<a name="l00157"></a>00157                 {
-<a name="l00158"></a>00158                         <span class="keywordflow">if</span> (drive &lt; 2 &amp;&amp; !Drives[drive]) {
-<a name="l00159"></a>00159                                 DOS_SetError(DOSERR_ACCESS_DENIED);
-<a name="l00160"></a>00160                                 <span class="keywordflow">return</span> <span class="keyword">false</span>;
-<a name="l00161"></a>00161                         }
-<a name="l00162"></a>00162                         <span class="keywordflow">if</span> (reg_ch != 0x08 || Drives[drive]-&gt;isRemovable()) {
-<a name="l00163"></a>00163                                 DOS_SetError(DOSERR_FUNCTION_NUMBER_INVALID);
-<a name="l00164"></a>00164                                 <span class="keywordflow">return</span> <span class="keyword">false</span>;
-<a name="l00165"></a>00165                         }
-<a name="l00166"></a>00166                         PhysPt ptr      = SegPhys(ds)+reg_dx;
-<a name="l00167"></a>00167                         <span class="keywordflow">switch</span> (reg_cl) {
-<a name="l00168"></a>00168                         <span class="keywordflow">case</span> 0x60:              <span class="comment">/* Get Device parameters */</span>
-<a name="l00169"></a>00169                                 <span class="comment">//mem_writeb(ptr+0,0);                                  // special functions (call value)</span>
-<a name="l00170"></a>00170                                 mem_writeb(ptr+1,(drive&gt;=2)?0x05:0x07); <span class="comment">// type: hard disk(5), 1.44 floppy(7)</span>
-<a name="l00171"></a>00171                                 mem_writew(ptr+2,(drive&gt;=2)?0x01:0x00); <span class="comment">// attributes: bit 0 set for nonremovable</span>
-<a name="l00172"></a>00172                                 mem_writew(ptr+4,0x0000);                               <span class="comment">// num of cylinders</span>
-<a name="l00173"></a>00173                                 mem_writeb(ptr+6,0x00);                                 <span class="comment">// media type (00=other type)</span>
-<a name="l00174"></a>00174                                 <span class="comment">// bios parameter block following</span>
-<a name="l00175"></a>00175                                 mem_writew(ptr+7,0x0200);                               <span class="comment">// bytes per sector (Win3 File Mgr. uses it)</span>
-<a name="l00176"></a>00176                                 <span class="keywordflow">break</span>;
-<a name="l00177"></a>00177                         <span class="keywordflow">case</span> 0x46:      <span class="comment">/* Set volume serial number */</span>
-<a name="l00178"></a>00178                                 <span class="keywordflow">break</span>;
-<a name="l00179"></a>00179                         <span class="keywordflow">case</span> 0x66:      <span class="comment">/* Get volume serial number */</span>
-<a name="l00180"></a>00180                                 {                       
-<a name="l00181"></a>00181                                         <span class="keywordtype">char</span> <span class="keyword">const</span>* bufin=Drives[drive]-&gt;GetLabel();
-<a name="l00182"></a>00182                                         <span class="keywordtype">char</span> buffer[11];memset(buffer,<span class="charliteral">&#39; &#39;</span>,11);
-<a name="l00183"></a>00183 
-<a name="l00184"></a>00184                                         <span class="keywordtype">char</span> <span class="keyword">const</span>* find_ext=strchr(bufin,<span class="charliteral">&#39;.&#39;</span>);
-<a name="l00185"></a>00185                                         <span class="keywordflow">if</span> (find_ext) {
-<a name="l00186"></a>00186                                                 Bitu size=(Bitu)(find_ext-bufin);
-<a name="l00187"></a>00187                                                 <span class="keywordflow">if</span> (size&gt;8) size=8;
-<a name="l00188"></a>00188                                                 memcpy(buffer,bufin,size);
-<a name="l00189"></a>00189                                                 find_ext++;
-<a name="l00190"></a>00190                                                 memcpy(buffer+8,find_ext,(strlen(find_ext)&gt;3) ? 3 : strlen(find_ext)); 
-<a name="l00191"></a>00191                                         } <span class="keywordflow">else</span> {
-<a name="l00192"></a>00192                                                 memcpy(buffer,bufin,(strlen(bufin) &gt; 8) ? 8 : strlen(bufin));
-<a name="l00193"></a>00193                                         }
-<a name="l00194"></a>00194                         
-<a name="l00195"></a>00195                                         <span class="keywordtype">char</span> buf2[8]={ <span class="charliteral">&#39;F&#39;</span>,<span class="charliteral">&#39;A&#39;</span>,<span class="charliteral">&#39;T&#39;</span>,<span class="charliteral">&#39;1&#39;</span>,<span class="charliteral">&#39;6&#39;</span>,<span class="charliteral">&#39; &#39;</span>,<span class="charliteral">&#39; &#39;</span>,<span class="charliteral">&#39; &#39;</span>};
-<a name="l00196"></a>00196                                         <span class="keywordflow">if</span>(drive&lt;2) buf2[4] = <span class="charliteral">&#39;2&#39;</span>; <span class="comment">//FAT12 for floppies</span>
-<a name="l00197"></a>00197 
-<a name="l00198"></a>00198                                         <span class="comment">//mem_writew(ptr+0,0);                  //Info level (call value)</span>
-<a name="l00199"></a>00199                                         mem_writed(ptr+2,0x1234);               <span class="comment">//Serial number</span>
-<a name="l00200"></a>00200                                         MEM_BlockWrite(ptr+6,buffer,11);<span class="comment">//volumename</span>
-<a name="l00201"></a>00201                                         MEM_BlockWrite(ptr+0x11,buf2,8);<span class="comment">//filesystem</span>
-<a name="l00202"></a>00202                                 }
-<a name="l00203"></a>00203                                 <span class="keywordflow">break</span>;
-<a name="l00204"></a>00204                         <span class="keywordflow">default</span> :       
-<a name="l00205"></a>00205                                 <a class="code" href="classLOG.html">LOG</a>(LOG_IOCTL,LOG_ERROR)(<span class="stringliteral">&quot;DOS:IOCTL Call 0D:%2X Drive %2X unhandled&quot;</span>,reg_cl,drive);
-<a name="l00206"></a>00206                                 DOS_SetError(DOSERR_FUNCTION_NUMBER_INVALID);
-<a name="l00207"></a>00207                                 <span class="keywordflow">return</span> <span class="keyword">false</span>;
-<a name="l00208"></a>00208                         }
-<a name="l00209"></a>00209                         reg_ax=0;
-<a name="l00210"></a>00210                         <span class="keywordflow">return</span> <span class="keyword">true</span>;
-<a name="l00211"></a>00211                 }
-<a name="l00212"></a>00212         <span class="keywordflow">case</span> 0x0E:                      <span class="comment">/* Get Logical Drive Map */</span>
-<a name="l00213"></a>00213                 <span class="keywordflow">if</span> (drive &lt; 2) {
-<a name="l00214"></a>00214                         <span class="keywordflow">if</span> (Drives[drive]) reg_al=drive+1;
-<a name="l00215"></a>00215                         <span class="keywordflow">else</span> reg_al=1;
-<a name="l00216"></a>00216                 } <span class="keywordflow">else</span> <span class="keywordflow">if</span> (Drives[drive]-&gt;isRemovable()) {
-<a name="l00217"></a>00217                         DOS_SetError(DOSERR_FUNCTION_NUMBER_INVALID);
-<a name="l00218"></a>00218                         <span class="keywordflow">return</span> <span class="keyword">false</span>;
-<a name="l00219"></a>00219                 } <span class="keywordflow">else</span> reg_al=0;        <span class="comment">/* Only 1 logical drive assigned */</span>
-<a name="l00220"></a>00220                 reg_ah=0x07;
-<a name="l00221"></a>00221                 <span class="keywordflow">return</span> <span class="keyword">true</span>;
-<a name="l00222"></a>00222         <span class="keywordflow">default</span>:
-<a name="l00223"></a>00223                 <a class="code" href="classLOG.html">LOG</a>(LOG_DOSMISC,LOG_ERROR)(<span class="stringliteral">&quot;DOS:IOCTL Call %2X unhandled&quot;</span>,reg_al);
-<a name="l00224"></a>00224                 DOS_SetError(DOSERR_FUNCTION_NUMBER_INVALID);
-<a name="l00225"></a>00225                 <span class="keywordflow">break</span>;
-<a name="l00226"></a>00226         }
-<a name="l00227"></a>00227         <span class="keywordflow">return</span> <span class="keyword">false</span>;
-<a name="l00228"></a>00228 }
-<a name="l00229"></a>00229 
-<a name="l00230"></a>00230 
-<a name="l00231"></a>00231 <span class="keywordtype">bool</span> DOS_GetSTDINStatus(<span class="keywordtype">void</span>) {
-<a name="l00232"></a>00232         Bit32u handle=RealHandle(STDIN);
-<a name="l00233"></a>00233         <span class="keywordflow">if</span> (handle==0xFF) <span class="keywordflow">return</span> <span class="keyword">false</span>;
-<a name="l00234"></a>00234         <span class="keywordflow">if</span> (Files[handle] &amp;&amp; (Files[handle]-&gt;GetInformation() &amp; 64)) <span class="keywordflow">return</span> <span class="keyword">false</span>;
-<a name="l00235"></a>00235         <span class="keywordflow">return</span> <span class="keyword">true</span>;
-<a name="l00236"></a>00236 }
+<a name="l00025"></a>00025 <span class="preprocessor">#include &quot;bios_disk.h&quot;</span>
+<a name="l00026"></a>00026 <span class="preprocessor">#include &quot;dos_inc.h&quot;</span>
+<a name="l00027"></a>00027 <span class="preprocessor">#include &quot;drives.h&quot;</span>
+<a name="l00028"></a>00028 
+<a name="l00029"></a>00029 <span class="keywordtype">bool</span> DOS_IOCTL_AX440D_CH08(Bit8u drive,<span class="keywordtype">bool</span> query) {
+<a name="l00030"></a>00030     PhysPt ptr  = SegPhys(ds)+reg_dx;
+<a name="l00031"></a>00031     <span class="keywordflow">switch</span> (reg_cl) {
+<a name="l00032"></a>00032         <span class="keywordflow">case</span> 0x40:              <span class="comment">/* Set device parameters */</span>
+<a name="l00033"></a>00033                         {
+<a name="l00034"></a>00034                                 <span class="keywordflow">if</span> (strncmp(Drives[drive]-&gt;GetInfo(),<span class="stringliteral">&quot;fatDrive &quot;</span>,9)) {
+<a name="l00035"></a>00035                                         DOS_SetError(DOSERR_ACCESS_DENIED);
+<a name="l00036"></a>00036                                         <span class="keywordflow">return</span> <span class="keyword">false</span>;
+<a name="l00037"></a>00037                                 }                               
+<a name="l00038"></a>00038                                 <a class="code" href="classfatDrive.html">fatDrive</a> *fdp = <span class="keyword">dynamic_cast&lt;</span><a class="code" href="classfatDrive.html">fatDrive</a>*<span class="keyword">&gt;</span>(Drives[drive]);
+<a name="l00039"></a>00039                                 <span class="keywordflow">if</span> (fdp == NULL || fdp-&gt;readonly) {
+<a name="l00040"></a>00040                                         DOS_SetError(DOSERR_ACCESS_DENIED);
+<a name="l00041"></a>00041                                         <span class="keywordflow">return</span> <span class="keyword">false</span>;
+<a name="l00042"></a>00042                                 }
+<a name="l00043"></a>00043 
+<a name="l00044"></a>00044                                 <span class="keywordflow">if</span> (query) <span class="keywordflow">break</span>;
+<a name="l00045"></a>00045                                 
+<a name="l00046"></a>00046                                 <a class="code" href="unionFAT__BootSector_1_1bpb__union__t.html">FAT_BootSector::bpb_union_t</a> bpb=fdp-&gt;GetBPB();
+<a name="l00047"></a>00047                                 <span class="keywordflow">if</span> (fdp-&gt;loadedDisk != NULL)
+<a name="l00048"></a>00048                                         fdp-&gt;loadedDisk-&gt;cylinders = mem_readw(ptr+4);                           <span class="comment">// number of cylinders</span>
+<a name="l00049"></a>00049 
+<a name="l00050"></a>00050                                 <span class="keywordflow">if</span> (mem_readw(ptr+0xd) == 0 &amp;&amp; mem_readw(ptr+0xf) == 0 &amp;&amp; mem_readw(ptr+0x12) == 0) { <span class="comment">// FAT32 BPB?</span>
+<a name="l00051"></a>00051                                         bpb.v32.BPB_BytsPerSec = mem_readw(ptr+7);                   <span class="comment">// bytes per sector (Win3 File Mgr. uses it)</span>
+<a name="l00052"></a>00052                                         bpb.v32.BPB_SecPerClus = mem_readb(ptr+9);                   <span class="comment">// sectors per cluster</span>
+<a name="l00053"></a>00053                                         bpb.v32.BPB_RsvdSecCnt = mem_readw(ptr+0xa);                 <span class="comment">// number of reserved sectors</span>
+<a name="l00054"></a>00054                                         bpb.v32.BPB_NumFATs = mem_readb(ptr+0xc);                    <span class="comment">// number of FATs</span>
+<a name="l00055"></a>00055                                         bpb.v32.BPB_RootEntCnt = mem_readw(ptr+0xd);                 <span class="comment">// number of root entries (Fake, the real BPB value is zero)</span>
+<a name="l00056"></a>00056                                         bpb.v32.BPB_TotSec16 = mem_readw(ptr+0xf);                   <span class="comment">// number of small sectors (always zero on BPB and returned by Win98)</span>
+<a name="l00057"></a>00057                                         bpb.v32.BPB_Media = mem_readb(ptr+0x11);                     <span class="comment">// media type</span>
+<a name="l00058"></a>00058                                         bpb.v32.BPB_FATSz32 = (uint16_t)mem_readw(ptr+0x12);         <span class="comment">// sectors per FAT (FIXME: What does Win98 do if this value &gt; 0xFFFF?)</span>
+<a name="l00059"></a>00059                                         bpb.v32.BPB_SecPerTrk = (uint16_t)mem_readw(ptr+0x14);       <span class="comment">// sectors per track</span>
+<a name="l00060"></a>00060                                         bpb.v32.BPB_NumHeads = (uint16_t)mem_readw(ptr+0x16);        <span class="comment">// number of heads</span>
+<a name="l00061"></a>00061                                         bpb.v32.BPB_HiddSec = (uint32_t)mem_readd(ptr+0x18);         <span class="comment">// number of hidden sectors</span>
+<a name="l00062"></a>00062                                         bpb.v32.BPB_TotSec32 = (uint32_t)mem_readd(ptr+0x1c);        <span class="comment">// number of big sectors</span>
+<a name="l00063"></a>00063                                 } <span class="keywordflow">else</span> {
+<a name="l00064"></a>00064                                         bpb.v.BPB_BytsPerSec = mem_readw(ptr+7);                     <span class="comment">// bytes per sector (Win3 File Mgr. uses it)</span>
+<a name="l00065"></a>00065                                         bpb.v.BPB_SecPerClus = mem_readb(ptr+9);                     <span class="comment">// sectors per cluster</span>
+<a name="l00066"></a>00066                                         bpb.v.BPB_RsvdSecCnt = mem_readw(ptr+0xa);                   <span class="comment">// number of reserved sectors</span>
+<a name="l00067"></a>00067                                         bpb.v.BPB_NumFATs = mem_readb(ptr+0xc);                      <span class="comment">// number of FATs</span>
+<a name="l00068"></a>00068                                         bpb.v.BPB_RootEntCnt = mem_readw(ptr+0xd);                               <span class="comment">// number of root entries</span>
+<a name="l00069"></a>00069                                         bpb.v.BPB_TotSec16 = mem_readw(ptr+0xf);                     <span class="comment">// number of small sectors</span>
+<a name="l00070"></a>00070                                         bpb.v.BPB_Media = mem_readb(ptr+0x11);                       <span class="comment">// media type</span>
+<a name="l00071"></a>00071                                         bpb.v.BPB_FATSz16 = (uint16_t)mem_readw(ptr+0x12);           <span class="comment">// sectors per FAT</span>
+<a name="l00072"></a>00072                                         bpb.v.BPB_SecPerTrk = (uint16_t)mem_readw(ptr+0x14);         <span class="comment">// sectors per track</span>
+<a name="l00073"></a>00073                                         bpb.v.BPB_NumHeads = (uint16_t)mem_readw(ptr+0x16);          <span class="comment">// number of heads</span>
+<a name="l00074"></a>00074                                         bpb.v.BPB_HiddSec = (uint32_t)mem_readd(ptr+0x18);           <span class="comment">// number of hidden sectors</span>
+<a name="l00075"></a>00075                                         bpb.v.BPB_TotSec32 = (uint32_t)mem_readd(ptr+0x1c);          <span class="comment">// number of big sectors</span>
+<a name="l00076"></a>00076                                 }
+<a name="l00077"></a>00077                                 fdp-&gt;SetBPB(bpb);
+<a name="l00078"></a>00078                                 <span class="keywordflow">break</span>;
+<a name="l00079"></a>00079                         }
+<a name="l00080"></a>00080         <span class="keywordflow">case</span> 0x60:              <span class="comment">/* Get device parameters */</span>
+<a name="l00081"></a>00081                         <span class="keywordflow">if</span> (query) <span class="keywordflow">break</span>;
+<a name="l00082"></a>00082                         {
+<a name="l00083"></a>00083                 <span class="comment">//mem_writeb(ptr+0,0);                                  // special functions (call value)</span>
+<a name="l00084"></a>00084                 mem_writeb(ptr+1,(drive&gt;=2)?0x05:0x07); <span class="comment">// type: hard disk(5), 1.44 floppy(7)</span>
+<a name="l00085"></a>00085                 mem_writew(ptr+2,(drive&gt;=2)?0x01:0x00); <span class="comment">// attributes: bit 0 set for nonremovable</span>
+<a name="l00086"></a>00086                 mem_writew(ptr+4,(drive&gt;=2)?0x3FF:0x50);<span class="comment">// number of cylinders</span>
+<a name="l00087"></a>00087                 mem_writeb(ptr+6,0x00);                                 <span class="comment">// media type (00=other type)</span>
+<a name="l00088"></a>00088                 <span class="comment">// bios parameter block following</span>
+<a name="l00089"></a>00089                 <a class="code" href="classfatDrive.html">fatDrive</a> *fdp;
+<a name="l00090"></a>00090                 <a class="code" href="unionFAT__BootSector_1_1bpb__union__t.html">FAT_BootSector::bpb_union_t</a> bpb;
+<a name="l00091"></a>00091                 <span class="keywordtype">bool</span> usereal=<span class="keyword">false</span>;
+<a name="l00092"></a>00092                 <span class="keywordflow">if</span> (!strncmp(Drives[drive]-&gt;GetInfo(),<span class="stringliteral">&quot;fatDrive &quot;</span>,9)) {
+<a name="l00093"></a>00093                     fdp = <span class="keyword">dynamic_cast&lt;</span><a class="code" href="classfatDrive.html">fatDrive</a>*<span class="keyword">&gt;</span>(Drives[drive]);
+<a name="l00094"></a>00094                     <span class="keywordflow">if</span> (fdp != NULL) {
+<a name="l00095"></a>00095                         bpb=fdp-&gt;GetBPB();
+<a name="l00096"></a>00096                         <span class="keywordflow">if</span> (bpb.v.BPB_BytsPerSec &amp;&amp; bpb.v.BPB_Media)
+<a name="l00097"></a>00097                             usereal=<span class="keyword">true</span>;
+<a name="l00098"></a>00098                     }
+<a name="l00099"></a>00099                 }
+<a name="l00100"></a>00100                 <span class="keywordflow">if</span> (usereal) {
+<a name="l00101"></a>00101                     <span class="keywordflow">if</span> (fdp-&gt;loadedDisk != NULL)
+<a name="l00102"></a>00102                         mem_writew(ptr+4,fdp-&gt;loadedDisk-&gt;cylinders);                           <span class="comment">// number of cylinders</span>
+<a name="l00103"></a>00103 
+<a name="l00104"></a>00104                     <span class="keywordflow">if</span> (bpb.is_fat32()) {
+<a name="l00105"></a>00105                         <span class="comment">/* Windows 98 behavior: Some of the FAT32 BPB fields are translated into FAT16 BPB fields even though those fields are zero in the actual BPB */</span>
+<a name="l00106"></a>00106                         mem_writew(ptr+7,bpb.v32.BPB_BytsPerSec);                   <span class="comment">// bytes per sector (Win3 File Mgr. uses it)</span>
+<a name="l00107"></a>00107                         mem_writeb(ptr+9,bpb.v32.BPB_SecPerClus);                   <span class="comment">// sectors per cluster</span>
+<a name="l00108"></a>00108                         mem_writew(ptr+0xa,bpb.v32.BPB_RsvdSecCnt);                 <span class="comment">// number of reserved sectors</span>
+<a name="l00109"></a>00109                         mem_writeb(ptr+0xc,bpb.v32.BPB_NumFATs);                    <span class="comment">// number of FATs</span>
+<a name="l00110"></a>00110                         mem_writew(ptr+0xd,0x200);                                  <span class="comment">// number of root entries (Fake, the real BPB value is zero)</span>
+<a name="l00111"></a>00111                         mem_writew(ptr+0xf,0);                                      <span class="comment">// number of small sectors (always zero on BPB and returned by Win98)</span>
+<a name="l00112"></a>00112                         mem_writeb(ptr+0x11,bpb.v32.BPB_Media);                     <span class="comment">// media type</span>
+<a name="l00113"></a>00113                         mem_writew(ptr+0x12,(uint16_t)bpb.v32.BPB_FATSz32);         <span class="comment">// sectors per FAT (FIXME: What does Win98 do if this value &gt; 0xFFFF?)</span>
+<a name="l00114"></a>00114                         mem_writew(ptr+0x14,(uint16_t)bpb.v32.BPB_SecPerTrk);       <span class="comment">// sectors per track</span>
+<a name="l00115"></a>00115                         mem_writew(ptr+0x16,(uint16_t)bpb.v32.BPB_NumHeads);        <span class="comment">// number of heads</span>
+<a name="l00116"></a>00116                         mem_writed(ptr+0x18,(uint32_t)bpb.v32.BPB_HiddSec);         <span class="comment">// number of hidden sectors</span>
+<a name="l00117"></a>00117                         mem_writed(ptr+0x1c,(uint32_t)bpb.v32.BPB_TotSec32);        <span class="comment">// number of big sectors</span>
+<a name="l00118"></a>00118                     }
+<a name="l00119"></a>00119                     <span class="keywordflow">else</span> {
+<a name="l00120"></a>00120                         mem_writew(ptr+7,bpb.v.BPB_BytsPerSec);                     <span class="comment">// bytes per sector (Win3 File Mgr. uses it)</span>
+<a name="l00121"></a>00121                         mem_writeb(ptr+9,bpb.v.BPB_SecPerClus);                     <span class="comment">// sectors per cluster</span>
+<a name="l00122"></a>00122                         mem_writew(ptr+0xa,bpb.v.BPB_RsvdSecCnt);                   <span class="comment">// number of reserved sectors</span>
+<a name="l00123"></a>00123                         mem_writeb(ptr+0xc,bpb.v.BPB_NumFATs);                      <span class="comment">// number of FATs</span>
+<a name="l00124"></a>00124                         mem_writew(ptr+0xd,bpb.v.BPB_RootEntCnt);                               <span class="comment">// number of root entries</span>
+<a name="l00125"></a>00125                         mem_writew(ptr+0xf,bpb.v.BPB_TotSec16);                     <span class="comment">// number of small sectors</span>
+<a name="l00126"></a>00126                         mem_writeb(ptr+0x11,bpb.v.BPB_Media);                       <span class="comment">// media type</span>
+<a name="l00127"></a>00127                         mem_writew(ptr+0x12,(uint16_t)bpb.v.BPB_FATSz16);           <span class="comment">// sectors per FAT</span>
+<a name="l00128"></a>00128                         mem_writew(ptr+0x14,(uint16_t)bpb.v.BPB_SecPerTrk);         <span class="comment">// sectors per track</span>
+<a name="l00129"></a>00129                         mem_writew(ptr+0x16,(uint16_t)bpb.v.BPB_NumHeads);          <span class="comment">// number of heads</span>
+<a name="l00130"></a>00130                         mem_writed(ptr+0x18,(uint32_t)bpb.v.BPB_HiddSec);           <span class="comment">// number of hidden sectors</span>
+<a name="l00131"></a>00131                         mem_writed(ptr+0x1c,(uint32_t)bpb.v.BPB_TotSec32);          <span class="comment">// number of big sectors</span>
+<a name="l00132"></a>00132                     }
+<a name="l00133"></a>00133                 } <span class="keywordflow">else</span> {
+<a name="l00134"></a>00134                     mem_writew(ptr+7,0x0200);                                                                   <span class="comment">// bytes per sector (Win3 File Mgr. uses it)</span>
+<a name="l00135"></a>00135                     mem_writew(ptr+9,(drive&gt;=2)?0x20:0x01);                                             <span class="comment">// sectors per cluster</span>
+<a name="l00136"></a>00136                     mem_writew(ptr+0xa,0x0001);                                                                 <span class="comment">// number of reserved sectors</span>
+<a name="l00137"></a>00137                     mem_writew(ptr+0xc,0x02);                                                                   <span class="comment">// number of FATs</span>
+<a name="l00138"></a>00138                     mem_writew(ptr+0xd,(drive&gt;=2)?0x0200:0x00E0);                               <span class="comment">// number of root entries</span>
+<a name="l00139"></a>00139                     mem_writew(ptr+0xf,(drive&gt;=2)?0x0000:0x0B40);                               <span class="comment">// number of small sectors</span>
+<a name="l00140"></a>00140                     mem_writew(ptr+0x11,(drive&gt;=2)?0xF8:0xF0);                                  <span class="comment">// media type</span>
+<a name="l00141"></a>00141                     mem_writew(ptr+0x12,(drive&gt;=2)?0x00C9:0x0009);                              <span class="comment">// sectors per FAT</span>
+<a name="l00142"></a>00142                     mem_writew(ptr+0x14,(drive&gt;=2)?0x003F:0x0012);                              <span class="comment">// sectors per track</span>
+<a name="l00143"></a>00143                     mem_writew(ptr+0x16,(drive&gt;=2)?0x10:0x02);                                  <span class="comment">// number of heads</span>
+<a name="l00144"></a>00144                     mem_writed(ptr+0x18,0);                                                                     <span class="comment">// number of hidden sectors</span>
+<a name="l00145"></a>00145                     mem_writed(ptr+0x1c,(drive&gt;=2)?0x31F11:0x00);                               <span class="comment">// number of big sectors</span>
+<a name="l00146"></a>00146                 }
+<a name="l00147"></a>00147                 <span class="keywordflow">for</span> (<span class="keywordtype">int</span> i=0x20; i&lt;0x22; i++)
+<a name="l00148"></a>00148                     mem_writeb(ptr+i,0);
+<a name="l00149"></a>00149                 <span class="keywordflow">break</span>;
+<a name="l00150"></a>00150             }
+<a name="l00151"></a>00151         <span class="keywordflow">case</span> 0x42:  <span class="comment">/* Format and verify logical device track (FORMAT.COM) */</span>
+<a name="l00152"></a>00152             {
+<a name="l00153"></a>00153                 <span class="comment">/* 01h    WORD    number of disk head</span>
+<a name="l00154"></a>00154 <span class="comment">                 * 03h    WORD    number of disk cylinder</span>
+<a name="l00155"></a>00155 <span class="comment">                 * ---BYTE 00h bit 1 set---</span>
+<a name="l00156"></a>00156 <span class="comment">                 * 05h    WORD    number of tracks to format */</span>
+<a name="l00157"></a>00157                 Bit8u flags = mem_readb(ptr+0);
+<a name="l00158"></a>00158                 Bit16u head = mem_readw(ptr+1);
+<a name="l00159"></a>00159                 Bit16u cyl = mem_readw(ptr+3);
+<a name="l00160"></a>00160                 Bit16u ntracks = (flags &amp; 0x1) ? mem_readw(ptr+5) : 1;
+<a name="l00161"></a>00161                 Bit16u sect = 0;
+<a name="l00162"></a>00162 
+<a name="l00163"></a>00163                 <a class="code" href="classfatDrive.html">fatDrive</a> *fdp = <span class="keyword">dynamic_cast&lt;</span><a class="code" href="classfatDrive.html">fatDrive</a>*<span class="keyword">&gt;</span>(Drives[drive]);
+<a name="l00164"></a>00164                 <span class="keywordflow">if</span> (fdp == NULL || fdp-&gt;readonly) {
+<a name="l00165"></a>00165                     DOS_SetError(DOSERR_ACCESS_DENIED);
+<a name="l00166"></a>00166                     <span class="keywordflow">return</span> <span class="keyword">false</span>;
+<a name="l00167"></a>00167                 }
+<a name="l00168"></a>00168 
+<a name="l00169"></a>00169                 <span class="keywordflow">if</span> (query) <span class="keywordflow">break</span>;
+<a name="l00170"></a>00170 
+<a name="l00171"></a>00171                 <span class="comment">/* BUT: These are C/H/S values relative to the partition!</span>
+<a name="l00172"></a>00172 <span class="comment">                 * FIXME: MS-DOS may not adjust sector value, or maybe it does...</span>
+<a name="l00173"></a>00173 <span class="comment">                 * perhaps there is a reason Linux fdisk warns about sector alignment to sect/track for MS-DOS partitions? */</span>
+<a name="l00174"></a>00174                 {
+<a name="l00175"></a>00175                     Bit32u adj = fdp-&gt;GetPartitionOffset();
+<a name="l00176"></a>00176                     sect += adj % fdp-&gt;loadedDisk-&gt;sectors;
+<a name="l00177"></a>00177                     adj /= fdp-&gt;loadedDisk-&gt;sectors;
+<a name="l00178"></a>00178                     head += adj % fdp-&gt;loadedDisk-&gt;heads;
+<a name="l00179"></a>00179                     adj /= fdp-&gt;loadedDisk-&gt;heads;
+<a name="l00180"></a>00180                     cyl += adj;
+<a name="l00181"></a>00181 
+<a name="l00182"></a>00182                     <span class="keywordflow">while</span> (sect &gt;= fdp-&gt;loadedDisk-&gt;sectors) {
+<a name="l00183"></a>00183                         sect -= fdp-&gt;loadedDisk-&gt;sectors;
+<a name="l00184"></a>00184                         head++;
+<a name="l00185"></a>00185                     }
+<a name="l00186"></a>00186                     <span class="keywordflow">while</span> (head &gt;= fdp-&gt;loadedDisk-&gt;heads) {
+<a name="l00187"></a>00187                         head -= fdp-&gt;loadedDisk-&gt;heads;
+<a name="l00188"></a>00188                         cyl++;
+<a name="l00189"></a>00189                     }
+<a name="l00190"></a>00190 
+<a name="l00191"></a>00191                     <span class="comment">/* finally, MS-DOS counts sectors from 0 and BIOS INT 13h counts from 1 */</span>
+<a name="l00192"></a>00192                     sect++;
+<a name="l00193"></a>00193                 }
+<a name="l00194"></a>00194 
+<a name="l00195"></a>00195                 <span class="comment">// STUB!</span>
+<a name="l00196"></a>00196                 <a class="code" href="classLOG.html">LOG</a>(LOG_IOCTL,LOG_DEBUG)(<span class="stringliteral">&quot;DOS:IOCTL Call 0D:42 Drive %2X pretending to format device track C/H/S=%u/%u/%u ntracks=%u&quot;</span>,drive,cyl,head,sect,ntracks);
+<a name="l00197"></a>00197             }
+<a name="l00198"></a>00198             <span class="keywordflow">break</span>;
+<a name="l00199"></a>00199         <span class="keywordflow">case</span> 0x62:      <span class="comment">/* Verify logical device track (FORMAT.COM) */</span>
+<a name="l00200"></a>00200             {
+<a name="l00201"></a>00201                 <span class="comment">/* 01h    WORD    number of disk head</span>
+<a name="l00202"></a>00202 <span class="comment">                 * 03h    WORD    number of disk cylinder</span>
+<a name="l00203"></a>00203 <span class="comment">                 * 05h    WORD    number of tracks to verify */</span>
+<a name="l00204"></a>00204                 Bit16u head = mem_readw(ptr+1);
+<a name="l00205"></a>00205                 Bit16u cyl = mem_readw(ptr+3);
+<a name="l00206"></a>00206                 Bit16u ntracks = mem_readw(ptr+5);
+<a name="l00207"></a>00207                 Bit16u sect = 0;
+<a name="l00208"></a>00208 
+<a name="l00209"></a>00209                 <a class="code" href="classfatDrive.html">fatDrive</a> *fdp = <span class="keyword">dynamic_cast&lt;</span><a class="code" href="classfatDrive.html">fatDrive</a>*<span class="keyword">&gt;</span>(Drives[drive]);
+<a name="l00210"></a>00210                 <span class="keywordflow">if</span> (fdp == NULL) {
+<a name="l00211"></a>00211                     DOS_SetError(DOSERR_ACCESS_DENIED);
+<a name="l00212"></a>00212                     <span class="keywordflow">return</span> <span class="keyword">false</span>;
+<a name="l00213"></a>00213                 }
+<a name="l00214"></a>00214 
+<a name="l00215"></a>00215                 <span class="keywordflow">if</span> (query) <span class="keywordflow">break</span>;
+<a name="l00216"></a>00216 
+<a name="l00217"></a>00217                 <span class="comment">/* BUT: These are C/H/S values relative to the partition!</span>
+<a name="l00218"></a>00218 <span class="comment">                 * FIXME: MS-DOS may not adjust sector value, or maybe it does...</span>
+<a name="l00219"></a>00219 <span class="comment">                 * perhaps there is a reason Linux fdisk warns about sector alignment to sect/track for MS-DOS partitions? */</span>
+<a name="l00220"></a>00220                 {
+<a name="l00221"></a>00221                     Bit32u adj = fdp-&gt;GetPartitionOffset();
+<a name="l00222"></a>00222                     sect += adj % fdp-&gt;loadedDisk-&gt;sectors;
+<a name="l00223"></a>00223                     adj /= fdp-&gt;loadedDisk-&gt;sectors;
+<a name="l00224"></a>00224                     head += adj % fdp-&gt;loadedDisk-&gt;heads;
+<a name="l00225"></a>00225                     adj /= fdp-&gt;loadedDisk-&gt;heads;
+<a name="l00226"></a>00226                     cyl += adj;
+<a name="l00227"></a>00227 
+<a name="l00228"></a>00228                     <span class="keywordflow">while</span> (sect &gt;= fdp-&gt;loadedDisk-&gt;sectors) {
+<a name="l00229"></a>00229                         sect -= fdp-&gt;loadedDisk-&gt;sectors;
+<a name="l00230"></a>00230                         head++;
+<a name="l00231"></a>00231                     }
+<a name="l00232"></a>00232                     <span class="keywordflow">while</span> (head &gt;= fdp-&gt;loadedDisk-&gt;heads) {
+<a name="l00233"></a>00233                         head -= fdp-&gt;loadedDisk-&gt;heads;
+<a name="l00234"></a>00234                         cyl++;
+<a name="l00235"></a>00235                     }
+<a name="l00236"></a>00236 
+<a name="l00237"></a>00237                     <span class="comment">/* finally, MS-DOS counts sectors from 0 and BIOS INT 13h counts from 1 */</span>
+<a name="l00238"></a>00238                     sect++;
+<a name="l00239"></a>00239                 }
+<a name="l00240"></a>00240 
+<a name="l00241"></a>00241                 <span class="comment">// STUB!</span>
+<a name="l00242"></a>00242                 <a class="code" href="classLOG.html">LOG</a>(LOG_IOCTL,LOG_DEBUG)(<span class="stringliteral">&quot;DOS:IOCTL Call 0D:62 Drive %2X pretending to verify device track C/H/S=%u/%u/%u ntracks=%u&quot;</span>,drive,cyl,head,sect,ntracks);
+<a name="l00243"></a>00243             }
+<a name="l00244"></a>00244             <span class="keywordflow">break</span>;
+<a name="l00245"></a>00245         <span class="keywordflow">case</span> 0x46:      <span class="comment">/* Set volume serial number */</span>
+<a name="l00246"></a>00246                         <span class="keywordflow">if</span> (query) <span class="keywordflow">break</span>;
+<a name="l00247"></a>00247                         {
+<a name="l00248"></a>00248                                 <a class="code" href="classfatDrive.html">fatDrive</a>* fdp = <span class="keyword">dynamic_cast&lt;</span><a class="code" href="classfatDrive.html">fatDrive</a>*<span class="keyword">&gt;</span>(Drives[drive]);
+<a name="l00249"></a>00249                                 <span class="keywordflow">if</span> (fdp == NULL || fdp-&gt;readonly) {
+<a name="l00250"></a>00250                                         DOS_SetError(DOSERR_ACCESS_DENIED);
+<a name="l00251"></a>00251                                         <span class="keywordflow">return</span> <span class="keyword">false</span>;
+<a name="l00252"></a>00252                                 }
+<a name="l00253"></a>00253 
+<a name="l00254"></a>00254                                 <a class="code" href="unionFAT__BootSector_1_1bpb__union__t.html">FAT_BootSector::bpb_union_t</a> bpb=fdp-&gt;GetBPB();
+<a name="l00255"></a>00255                                 <span class="keywordtype">unsigned</span> <span class="keywordtype">long</span> serial_number=mem_readd(ptr+2)?mem_readd(ptr+2):0x1234;
+<a name="l00256"></a>00256                                 <span class="keywordflow">if</span> (bpb.is_fat32())
+<a name="l00257"></a>00257                                         bpb.v32.BS_VolID=serial_number;
+<a name="l00258"></a>00258                                 <span class="keywordflow">else</span>
+<a name="l00259"></a>00259                                         bpb.v.BPB_VolID=serial_number;
+<a name="l00260"></a>00260                                 fdp-&gt;SetBPB(bpb);
+<a name="l00261"></a>00261                         }
+<a name="l00262"></a>00262             <span class="keywordflow">break</span>;
+<a name="l00263"></a>00263         <span class="keywordflow">case</span> 0x66:      <span class="comment">/* Get volume serial number */</span>
+<a name="l00264"></a>00264                         <span class="keywordflow">if</span> (query) <span class="keywordflow">break</span>;
+<a name="l00265"></a>00265                         {
+<a name="l00266"></a>00266                 <span class="keywordtype">char</span> <span class="keyword">const</span>* bufin=Drives[drive]-&gt;GetLabel();
+<a name="l00267"></a>00267                 <span class="keywordtype">char</span> buffer[11];memset(buffer,<span class="charliteral">&#39; &#39;</span>,11);
+<a name="l00268"></a>00268 
+<a name="l00269"></a>00269                 <span class="keywordtype">char</span> <span class="keyword">const</span>* find_ext=strchr(bufin,<span class="charliteral">&#39;.&#39;</span>);
+<a name="l00270"></a>00270                 <span class="keywordflow">if</span> (find_ext) {
+<a name="l00271"></a>00271                     Bitu size=(Bitu)(find_ext-bufin);
+<a name="l00272"></a>00272                     <span class="keywordflow">if</span> (size&gt;8) size=8;
+<a name="l00273"></a>00273                     memcpy(buffer,bufin,size);
+<a name="l00274"></a>00274                     find_ext++;
+<a name="l00275"></a>00275                     memcpy(buffer+8,find_ext,(strlen(find_ext)&gt;3) ? 3 : strlen(find_ext)); 
+<a name="l00276"></a>00276                 } <span class="keywordflow">else</span> {
+<a name="l00277"></a>00277                     memcpy(buffer,bufin,(strlen(bufin) &gt; 8) ? 8 : strlen(bufin));
+<a name="l00278"></a>00278                 }
+<a name="l00279"></a>00279 
+<a name="l00280"></a>00280                 <span class="keywordtype">char</span> buf2[8]={ <span class="charliteral">&#39;F&#39;</span>,<span class="charliteral">&#39;A&#39;</span>,<span class="charliteral">&#39;T&#39;</span>,<span class="charliteral">&#39;1&#39;</span>,<span class="charliteral">&#39;6&#39;</span>,<span class="charliteral">&#39; &#39;</span>,<span class="charliteral">&#39; &#39;</span>,<span class="charliteral">&#39; &#39;</span>};
+<a name="l00281"></a>00281                 <span class="keywordflow">if</span>(drive&lt;2) buf2[4] = <span class="charliteral">&#39;2&#39;</span>; <span class="comment">//FAT12 for floppies</span>
+<a name="l00282"></a>00282 
+<a name="l00283"></a>00283                 <span class="comment">//mem_writew(ptr+0,0);                  //Info level (call value)</span>
+<a name="l00284"></a>00284                                 <span class="keywordtype">unsigned</span> <span class="keywordtype">long</span> serial_number=0x1234;
+<a name="l00285"></a>00285                                 <span class="keywordflow">if</span> (!strncmp(Drives[drive]-&gt;GetInfo(),<span class="stringliteral">&quot;fatDrive &quot;</span>,9)) {
+<a name="l00286"></a>00286                                         <a class="code" href="classfatDrive.html">fatDrive</a>* fdp = <span class="keyword">dynamic_cast&lt;</span><a class="code" href="classfatDrive.html">fatDrive</a>*<span class="keyword">&gt;</span>(Drives[drive]);
+<a name="l00287"></a>00287                                         <span class="keywordflow">if</span> (fdp != NULL) serial_number=fdp-&gt;GetSerial();
+<a name="l00288"></a>00288                                 }
+<a name="l00289"></a>00289 <span class="preprocessor">#if defined (WIN32)</span>
+<a name="l00290"></a>00290 <span class="preprocessor"></span>                                <span class="keywordflow">if</span> (!strncmp(Drives[drive]-&gt;GetInfo(),<span class="stringliteral">&quot;local &quot;</span>,6) || !strncmp(Drives[drive]-&gt;GetInfo(),<span class="stringliteral">&quot;CDRom &quot;</span>,6)) {
+<a name="l00291"></a>00291                                         <a class="code" href="classlocalDrive.html">localDrive</a>* ldp = !strncmp(Drives[drive]-&gt;GetInfo(),<span class="stringliteral">&quot;local &quot;</span>,6)?<span class="keyword">dynamic_cast&lt;</span><a class="code" href="classlocalDrive.html">localDrive</a>*<span class="keyword">&gt;</span>(Drives[drive]):dynamic_cast&lt;cdromDrive*&gt;(Drives[drive]);
+<a name="l00292"></a>00292                                         <span class="keywordflow">if</span> (ldp != NULL) serial_number=ldp-&gt;GetSerial();
+<a name="l00293"></a>00293                                 }
+<a name="l00294"></a>00294 <span class="preprocessor">#endif</span>
+<a name="l00295"></a>00295 <span class="preprocessor"></span>                mem_writed(ptr+2,serial_number);<span class="comment">//Serial number</span>
+<a name="l00296"></a>00296                 MEM_BlockWrite(ptr+6,buffer,11);<span class="comment">//volumename</span>
+<a name="l00297"></a>00297                 MEM_BlockWrite(ptr+0x11,buf2,8);<span class="comment">//filesystem</span>
+<a name="l00298"></a>00298             }
+<a name="l00299"></a>00299             <span class="keywordflow">break</span>;
+<a name="l00300"></a>00300         <span class="keywordflow">case</span> 0x41:  <span class="comment">/* Write logical device track */</span>
+<a name="l00301"></a>00301                         {
+<a name="l00302"></a>00302                 <a class="code" href="classfatDrive.html">fatDrive</a> *fdp = <span class="keyword">dynamic_cast&lt;</span><a class="code" href="classfatDrive.html">fatDrive</a>*<span class="keyword">&gt;</span>(Drives[drive]);
+<a name="l00303"></a>00303                 <span class="keywordflow">if</span> (fdp == NULL || fdp-&gt;readonly) {
+<a name="l00304"></a>00304                     DOS_SetError(DOSERR_ACCESS_DENIED);
+<a name="l00305"></a>00305                     <span class="keywordflow">return</span> <span class="keyword">false</span>;
+<a name="l00306"></a>00306                 }
+<a name="l00307"></a>00307 
+<a name="l00308"></a>00308                 Bit8u sectbuf[SECTOR_SIZE_MAX];
+<a name="l00309"></a>00309 
+<a name="l00310"></a>00310                 <span class="keywordflow">if</span> (fdp-&gt;loadedDisk == NULL) {
+<a name="l00311"></a>00311                     DOS_SetError(DOSERR_ACCESS_DENIED);
+<a name="l00312"></a>00312                     <span class="keywordflow">return</span> <span class="keyword">false</span>;
+<a name="l00313"></a>00313                 }
+<a name="l00314"></a>00314 
+<a name="l00315"></a>00315                 <span class="keywordflow">if</span> (query) <span class="keywordflow">break</span>;
+<a name="l00316"></a>00316 
+<a name="l00317"></a>00317                 <span class="comment">/* (RBIL) [http://www.ctyme.com/intr/rb-2896.htm]</span>
+<a name="l00318"></a>00318 <span class="comment">                 * Offset  Size    Description     (Table 01562)</span>
+<a name="l00319"></a>00319 <span class="comment">                 * 00h    BYTE    special functions (reserved, must be zero)</span>
+<a name="l00320"></a>00320 <span class="comment">                 * 01h    WORD    number of disk head</span>
+<a name="l00321"></a>00321 <span class="comment">                 * 03h    WORD    number of disk cylinder</span>
+<a name="l00322"></a>00322 <span class="comment">                 * 05h    WORD    number of first sector to read/write</span>
+<a name="l00323"></a>00323 <span class="comment">                 * 07h    WORD    number of sectors</span>
+<a name="l00324"></a>00324 <span class="comment">                 * 09h    DWORD   transfer address */</span>
+<a name="l00325"></a>00325                 Bit16u head = mem_readw(ptr+1);
+<a name="l00326"></a>00326                 Bit16u cyl = mem_readw(ptr+3);
+<a name="l00327"></a>00327                 Bit16u sect = mem_readw(ptr+5);
+<a name="l00328"></a>00328                 Bit16u nsect = mem_readw(ptr+7);
+<a name="l00329"></a>00329                 Bit32u xfer_addr = mem_readd(ptr+9);
+<a name="l00330"></a>00330                 PhysPt xfer_ptr = ((xfer_addr&gt;&gt;16u)&lt;&lt;4u)+(xfer_addr&amp;0xFFFFu);
+<a name="l00331"></a>00331                 Bit16u sectsize = fdp-&gt;loadedDisk-&gt;getSectSize();
+<a name="l00332"></a>00332 
+<a name="l00333"></a>00333                 <span class="comment">/* BUT: These are C/H/S values relative to the partition!</span>
+<a name="l00334"></a>00334 <span class="comment">                 * FIXME: MS-DOS may not adjust sector value, or maybe it does...</span>
+<a name="l00335"></a>00335 <span class="comment">                 * perhaps there is a reason Linux fdisk warns about sector alignment to sect/track for MS-DOS partitions? */</span>
+<a name="l00336"></a>00336                 {
+<a name="l00337"></a>00337                     Bit32u adj = fdp-&gt;GetPartitionOffset();
+<a name="l00338"></a>00338                     sect += adj % fdp-&gt;loadedDisk-&gt;sectors;
+<a name="l00339"></a>00339                     adj /= fdp-&gt;loadedDisk-&gt;sectors;
+<a name="l00340"></a>00340                     head += adj % fdp-&gt;loadedDisk-&gt;heads;
+<a name="l00341"></a>00341                     adj /= fdp-&gt;loadedDisk-&gt;heads;
+<a name="l00342"></a>00342                     cyl += adj;
+<a name="l00343"></a>00343 
+<a name="l00344"></a>00344                     <span class="keywordflow">while</span> (sect &gt;= fdp-&gt;loadedDisk-&gt;sectors) {
+<a name="l00345"></a>00345                         sect -= fdp-&gt;loadedDisk-&gt;sectors;
+<a name="l00346"></a>00346                         head++;
+<a name="l00347"></a>00347                     }
+<a name="l00348"></a>00348                     <span class="keywordflow">while</span> (head &gt;= fdp-&gt;loadedDisk-&gt;heads) {
+<a name="l00349"></a>00349                         head -= fdp-&gt;loadedDisk-&gt;heads;
+<a name="l00350"></a>00350                         cyl++;
+<a name="l00351"></a>00351                     }
+<a name="l00352"></a>00352 
+<a name="l00353"></a>00353                     <span class="comment">/* finally, MS-DOS counts sectors from 0 and BIOS INT 13h counts from 1 */</span>
+<a name="l00354"></a>00354                     sect++;
+<a name="l00355"></a>00355                 }
+<a name="l00356"></a>00356 
+<a name="l00357"></a>00357                 <a class="code" href="classLOG.html">LOG</a>(LOG_IOCTL,LOG_DEBUG)(<span class="stringliteral">&quot;DOS:IOCTL Call 0D:41 Write Logical Device Track from Drive %2X C/H/S=%u/%u/%u num=%u from %04x:%04x sz=%u&quot;</span>,
+<a name="l00358"></a>00358                         drive,cyl,head,sect,nsect,xfer_addr &gt;&gt; 16,xfer_addr &amp; 0xFFFF,sectsize);
+<a name="l00359"></a>00359 
+<a name="l00360"></a>00360                 <span class="keywordflow">while</span> (nsect &gt; 0) {
+<a name="l00361"></a>00361                     MEM_BlockRead(xfer_ptr,sectbuf,sectsize);
+<a name="l00362"></a>00362 
+<a name="l00363"></a>00363                     Bit8u status = fdp-&gt;loadedDisk-&gt;Write_Sector(head,cyl,sect,sectbuf);
+<a name="l00364"></a>00364                     <span class="keywordflow">if</span> (status != 0) {
+<a name="l00365"></a>00365                         <a class="code" href="classLOG.html">LOG</a>(LOG_IOCTL,LOG_DEBUG)(<span class="stringliteral">&quot;IOCTL 0D:61 write error at C/H/S %u/%u/%u&quot;</span>,cyl,head,sect);
+<a name="l00366"></a>00366                         DOS_SetError(DOSERR_ACCESS_DENIED);<span class="comment">//FIXME</span>
+<a name="l00367"></a>00367                         <span class="keywordflow">return</span> <span class="keyword">false</span>;
+<a name="l00368"></a>00368                     }
+<a name="l00369"></a>00369 
+<a name="l00370"></a>00370                     xfer_ptr += sectsize;
+<a name="l00371"></a>00371                     nsect--;
+<a name="l00372"></a>00372                     sect++;
+<a name="l00373"></a>00373                 }
+<a name="l00374"></a>00374             }
+<a name="l00375"></a>00375             <span class="keywordflow">break</span>;
+<a name="l00376"></a>00376         <span class="keywordflow">case</span> 0x61:  <span class="comment">/* Read logical device track */</span>
+<a name="l00377"></a>00377             {
+<a name="l00378"></a>00378                 <a class="code" href="classfatDrive.html">fatDrive</a> *fdp = <span class="keyword">dynamic_cast&lt;</span><a class="code" href="classfatDrive.html">fatDrive</a>*<span class="keyword">&gt;</span>(Drives[drive]);
+<a name="l00379"></a>00379                 <span class="keywordflow">if</span> (fdp == NULL) {
+<a name="l00380"></a>00380                     DOS_SetError(DOSERR_ACCESS_DENIED);
+<a name="l00381"></a>00381                     <span class="keywordflow">return</span> <span class="keyword">false</span>;
+<a name="l00382"></a>00382                 }
+<a name="l00383"></a>00383 
+<a name="l00384"></a>00384                 Bit8u sectbuf[SECTOR_SIZE_MAX];
+<a name="l00385"></a>00385 
+<a name="l00386"></a>00386                 <span class="keywordflow">if</span> (fdp-&gt;loadedDisk == NULL) {
+<a name="l00387"></a>00387                     DOS_SetError(DOSERR_ACCESS_DENIED);
+<a name="l00388"></a>00388                     <span class="keywordflow">return</span> <span class="keyword">false</span>;
+<a name="l00389"></a>00389                 }
+<a name="l00390"></a>00390 
+<a name="l00391"></a>00391                 <span class="keywordflow">if</span> (query) <span class="keywordflow">break</span>;
+<a name="l00392"></a>00392 
+<a name="l00393"></a>00393                 <span class="comment">/* (RBIL) [http://www.ctyme.com/intr/rb-2896.htm]</span>
+<a name="l00394"></a>00394 <span class="comment">                 * Offset  Size    Description     (Table 01562)</span>
+<a name="l00395"></a>00395 <span class="comment">                 * 00h    BYTE    special functions (reserved, must be zero)</span>
+<a name="l00396"></a>00396 <span class="comment">                 * 01h    WORD    number of disk head</span>
+<a name="l00397"></a>00397 <span class="comment">                 * 03h    WORD    number of disk cylinder</span>
+<a name="l00398"></a>00398 <span class="comment">                 * 05h    WORD    number of first sector to read/write</span>
+<a name="l00399"></a>00399 <span class="comment">                 * 07h    WORD    number of sectors</span>
+<a name="l00400"></a>00400 <span class="comment">                 * 09h    DWORD   transfer address */</span>
+<a name="l00401"></a>00401                 Bit16u head = mem_readw(ptr+1);
+<a name="l00402"></a>00402                 Bit16u cyl = mem_readw(ptr+3);
+<a name="l00403"></a>00403                 Bit16u sect = mem_readw(ptr+5);
+<a name="l00404"></a>00404                 Bit16u nsect = mem_readw(ptr+7);
+<a name="l00405"></a>00405                 Bit32u xfer_addr = mem_readd(ptr+9);
+<a name="l00406"></a>00406                 PhysPt xfer_ptr = ((xfer_addr&gt;&gt;16u)&lt;&lt;4u)+(xfer_addr&amp;0xFFFFu);
+<a name="l00407"></a>00407                 Bit16u sectsize = fdp-&gt;loadedDisk-&gt;getSectSize();
+<a name="l00408"></a>00408 
+<a name="l00409"></a>00409                 <span class="comment">/* BUT: These are C/H/S values relative to the partition!</span>
+<a name="l00410"></a>00410 <span class="comment">                 * FIXME: MS-DOS may not adjust sector value, or maybe it does...</span>
+<a name="l00411"></a>00411 <span class="comment">                 * perhaps there is a reason Linux fdisk warns about sector alignment to sect/track for MS-DOS partitions? */</span>
+<a name="l00412"></a>00412                 {
+<a name="l00413"></a>00413                     Bit32u adj = fdp-&gt;GetPartitionOffset();;
+<a name="l00414"></a>00414                     sect += adj % fdp-&gt;loadedDisk-&gt;sectors;
+<a name="l00415"></a>00415                     adj /= fdp-&gt;loadedDisk-&gt;sectors;
+<a name="l00416"></a>00416                     head += adj % fdp-&gt;loadedDisk-&gt;heads;
+<a name="l00417"></a>00417                     adj /= fdp-&gt;loadedDisk-&gt;heads;
+<a name="l00418"></a>00418                     cyl += adj;
+<a name="l00419"></a>00419 
+<a name="l00420"></a>00420                     <span class="keywordflow">while</span> (sect &gt;= fdp-&gt;loadedDisk-&gt;sectors) {
+<a name="l00421"></a>00421                         sect -= fdp-&gt;loadedDisk-&gt;sectors;
+<a name="l00422"></a>00422                         head++;
+<a name="l00423"></a>00423                     }
+<a name="l00424"></a>00424                     <span class="keywordflow">while</span> (head &gt;= fdp-&gt;loadedDisk-&gt;heads) {
+<a name="l00425"></a>00425                         head -= fdp-&gt;loadedDisk-&gt;heads;
+<a name="l00426"></a>00426                         cyl++;
+<a name="l00427"></a>00427                     }
+<a name="l00428"></a>00428 
+<a name="l00429"></a>00429                     <span class="comment">/* finally, MS-DOS counts sectors from 0 and BIOS INT 13h counts from 1 */</span>
+<a name="l00430"></a>00430                     sect++;
+<a name="l00431"></a>00431                 }
+<a name="l00432"></a>00432 
+<a name="l00433"></a>00433                 <a class="code" href="classLOG.html">LOG</a>(LOG_IOCTL,LOG_DEBUG)(<span class="stringliteral">&quot;DOS:IOCTL Call 0D:61 Read Logical Device Track from Drive %2X C/H/S=%u/%u/%u num=%u to %04x:%04x sz=%u&quot;</span>,
+<a name="l00434"></a>00434                         drive,cyl,head,sect,nsect,xfer_addr &gt;&gt; 16,xfer_addr &amp; 0xFFFF,sectsize);
+<a name="l00435"></a>00435 
+<a name="l00436"></a>00436                 <span class="keywordflow">while</span> (nsect &gt; 0) {
+<a name="l00437"></a>00437                     Bit8u status = fdp-&gt;loadedDisk-&gt;Read_Sector(head,cyl,sect,sectbuf);
+<a name="l00438"></a>00438                     <span class="keywordflow">if</span> (status != 0) {
+<a name="l00439"></a>00439                         <a class="code" href="classLOG.html">LOG</a>(LOG_IOCTL,LOG_DEBUG)(<span class="stringliteral">&quot;IOCTL 0D:61 read error at C/H/S %u/%u/%u&quot;</span>,cyl,head,sect);
+<a name="l00440"></a>00440                         DOS_SetError(DOSERR_ACCESS_DENIED);<span class="comment">//FIXME</span>
+<a name="l00441"></a>00441                         <span class="keywordflow">return</span> <span class="keyword">false</span>;
+<a name="l00442"></a>00442                     }
+<a name="l00443"></a>00443 
+<a name="l00444"></a>00444                     MEM_BlockWrite(xfer_ptr,sectbuf,sectsize);
+<a name="l00445"></a>00445                     xfer_ptr += sectsize;
+<a name="l00446"></a>00446                     nsect--;
+<a name="l00447"></a>00447                     sect++;
+<a name="l00448"></a>00448                 }
+<a name="l00449"></a>00449             }
+<a name="l00450"></a>00450             <span class="keywordflow">break</span>;
+<a name="l00451"></a>00451         <span class="keywordflow">case</span> 0x4A:
+<a name="l00452"></a>00452         <span class="keywordflow">case</span> 0x4B:
+<a name="l00453"></a>00453         <span class="keywordflow">case</span> 0x6A:
+<a name="l00454"></a>00454         <span class="keywordflow">case</span> 0x6B:
+<a name="l00455"></a>00455                         <span class="keywordflow">if</span> (query) <span class="keywordflow">break</span>;
+<a name="l00456"></a>00456                         <a class="code" href="classLOG.html">LOG</a>(LOG_IOCTL,LOG_ERROR)(<span class="stringliteral">&quot;DOS:IOCTL Call 0D:%2X Drive %2X volume/drive locking IOCTL, faking it&quot;</span>,reg_cl,drive);
+<a name="l00457"></a>00457             <span class="keywordflow">break</span>;
+<a name="l00458"></a>00458                 <span class="keywordflow">case</span> 0x67: <span class="comment">/* Get access flag (whether allowed by driver) */</span>
+<a name="l00459"></a>00459                         <span class="keywordflow">if</span> (query) <span class="keywordflow">break</span>;
+<a name="l00460"></a>00460                         <span class="comment">/* In DOSBox-X, disk access is always allowed.</span>
+<a name="l00461"></a>00461 <span class="comment">                         * Real MS-DOS might be more restrictive, especially Windows 95 which requires volume locking before disk access is allowed */</span>
+<a name="l00462"></a>00462                         <span class="comment">/* FDISK.EXE needs this IOCTL to determine whether it can read the partition and therefore whether the &quot;system type&quot; is &quot;FAT16&quot;, &quot;FAT12&quot;, &quot;unknown&quot; etc. */</span>
+<a name="l00463"></a>00463                         <span class="comment">/* ptr+0 = special function (always zero)</span>
+<a name="l00464"></a>00464 <span class="comment">                         * ptr+1 = return whether access allowed */</span>
+<a name="l00465"></a>00465                         mem_writeb(ptr+1,0x01);
+<a name="l00466"></a>00466                         <span class="keywordflow">break</span>;
+<a name="l00467"></a>00467         <span class="keywordflow">default</span>:
+<a name="l00468"></a>00468             <a class="code" href="classLOG.html">LOG</a>(LOG_IOCTL,LOG_ERROR)(<span class="stringliteral">&quot;DOS:IOCTL %s %2X:%2X Drive %2X unhandled (CH=08h)&quot;</span>,query?<span class="stringliteral">&quot;Query&quot;</span>:<span class="stringliteral">&quot;Call&quot;</span>,reg_al,reg_cl,drive);
+<a name="l00469"></a>00469             DOS_SetError(DOSERR_FUNCTION_NUMBER_INVALID);
+<a name="l00470"></a>00470             <span class="keywordflow">return</span> <span class="keyword">false</span>;
+<a name="l00471"></a>00471     }
+<a name="l00472"></a>00472     reg_ax=0;
+<a name="l00473"></a>00473     <span class="keywordflow">return</span> <span class="keyword">true</span>;
+<a name="l00474"></a>00474 }
+<a name="l00475"></a>00475 
+<a name="l00476"></a>00476 <span class="keywordtype">bool</span> DOS_IOCTL_AX440D_CH48(Bit8u drive,<span class="keywordtype">bool</span> query) {
+<a name="l00477"></a>00477     PhysPt ptr  = SegPhys(ds)+reg_dx;
+<a name="l00478"></a>00478     <span class="keywordflow">switch</span> (reg_cl) {
+<a name="l00479"></a>00479         <span class="keywordflow">case</span> 0x40:              <span class="comment">/* Set device parameters */</span>
+<a name="l00480"></a>00480                         {
+<a name="l00481"></a>00481                                 <span class="keywordflow">if</span> (strncmp(Drives[drive]-&gt;GetInfo(),<span class="stringliteral">&quot;fatDrive &quot;</span>,9)) {
+<a name="l00482"></a>00482                                         DOS_SetError(DOSERR_ACCESS_DENIED);
+<a name="l00483"></a>00483                                         <span class="keywordflow">return</span> <span class="keyword">false</span>;
+<a name="l00484"></a>00484                                 }
+<a name="l00485"></a>00485                                 <a class="code" href="classfatDrive.html">fatDrive</a> *fdp = <span class="keyword">dynamic_cast&lt;</span><a class="code" href="classfatDrive.html">fatDrive</a>*<span class="keyword">&gt;</span>(Drives[drive]);
+<a name="l00486"></a>00486                                 <span class="keywordflow">if</span> (fdp == NULL || fdp-&gt;readonly) {
+<a name="l00487"></a>00487                                         DOS_SetError(DOSERR_ACCESS_DENIED);
+<a name="l00488"></a>00488                                         <span class="keywordflow">return</span> <span class="keyword">false</span>;
+<a name="l00489"></a>00489                                 }
+<a name="l00490"></a>00490 
+<a name="l00491"></a>00491                                 <span class="keywordflow">if</span> (query) <span class="keywordflow">break</span>;
+<a name="l00492"></a>00492                                 
+<a name="l00493"></a>00493                                 <a class="code" href="unionFAT__BootSector_1_1bpb__union__t.html">FAT_BootSector::bpb_union_t</a> bpb=fdp-&gt;GetBPB();                          
+<a name="l00494"></a>00494                                 <span class="keywordflow">if</span> (fdp-&gt;loadedDisk != NULL)
+<a name="l00495"></a>00495                                         fdp-&gt;loadedDisk-&gt;cylinders = mem_readw(ptr+4);               <span class="comment">// number of cylinders</span>
+<a name="l00496"></a>00496 
+<a name="l00497"></a>00497                                 <span class="keywordflow">if</span> (mem_readw(ptr+0xd) == 0 &amp;&amp; mem_readw(ptr+0xf) == 0 &amp;&amp; mem_readw(ptr+0x12) == 0) { <span class="comment">// FAT32 BPB?</span>
+<a name="l00498"></a>00498                                         bpb.v.BPB_BytsPerSec = mem_readw(ptr+7);                     <span class="comment">// bytes per sector (Win3 File Mgr. uses it)</span>
+<a name="l00499"></a>00499                                         bpb.v.BPB_SecPerClus = mem_readb(ptr+9);                     <span class="comment">// sectors per cluster</span>
+<a name="l00500"></a>00500                                         bpb.v.BPB_RsvdSecCnt = mem_readw(ptr+0xa);                   <span class="comment">// number of reserved sectors</span>
+<a name="l00501"></a>00501                                         bpb.v.BPB_NumFATs = mem_readb(ptr+0xc);                      <span class="comment">// number of FATs</span>
+<a name="l00502"></a>00502                                         bpb.v.BPB_RootEntCnt = mem_readw(ptr+0xd);                               <span class="comment">// number of root entries</span>
+<a name="l00503"></a>00503                                         bpb.v.BPB_TotSec16 = mem_readw(ptr+0xf);                     <span class="comment">// number of small sectors</span>
+<a name="l00504"></a>00504                                         bpb.v.BPB_Media = mem_readb(ptr+0x11);                       <span class="comment">// media type</span>
+<a name="l00505"></a>00505                                         bpb.v.BPB_FATSz16 = (uint16_t)mem_readw(ptr+0x12);           <span class="comment">// sectors per FAT</span>
+<a name="l00506"></a>00506                                         bpb.v.BPB_SecPerTrk = (uint16_t)mem_readw(ptr+0x14);         <span class="comment">// sectors per track</span>
+<a name="l00507"></a>00507                                         bpb.v.BPB_NumHeads = (uint16_t)mem_readw(ptr+0x16);          <span class="comment">// number of heads</span>
+<a name="l00508"></a>00508                                         bpb.v.BPB_HiddSec = (uint32_t)mem_readd(ptr+0x18);           <span class="comment">// number of hidden sectors</span>
+<a name="l00509"></a>00509                                         bpb.v.BPB_TotSec32 = (uint32_t)mem_readd(ptr+0x1c);          <span class="comment">// number of big sectors</span>
+<a name="l00510"></a>00510                                         bpb.v32.BPB_FATSz32 = (uint32_t)mem_readd(ptr+0x20);         <span class="comment">// sectors per FAT</span>
+<a name="l00511"></a>00511                                         bpb.v32.BPB_ExtFlags = (uint16_t)mem_readw(ptr+0x24);
+<a name="l00512"></a>00512                                         bpb.v32.BPB_FSVer = (uint16_t)mem_readw(ptr+0x26);
+<a name="l00513"></a>00513                                         bpb.v32.BPB_RootClus = (uint32_t)mem_readd(ptr+0x28);
+<a name="l00514"></a>00514                                         bpb.v32.BPB_FSInfo = (uint16_t)mem_readw(ptr+0x2C);
+<a name="l00515"></a>00515                                         bpb.v32.BPB_BkBootSec = (uint16_t)mem_readw(ptr+0x2E);
+<a name="l00516"></a>00516                                         fdp-&gt;SetBPB(bpb);
+<a name="l00517"></a>00517                                 } <span class="keywordflow">else</span> {
+<a name="l00518"></a>00518                                         DOS_SetError(DOSERR_ACCESS_DENIED);
+<a name="l00519"></a>00519                                         <span class="keywordflow">return</span> <span class="keyword">false</span>;
+<a name="l00520"></a>00520                                 }
+<a name="l00521"></a>00521                                 <span class="keywordflow">break</span>;
+<a name="l00522"></a>00522                         }
+<a name="l00523"></a>00523         <span class="keywordflow">case</span> 0x60:              <span class="comment">/* Get device parameters */</span>
+<a name="l00524"></a>00524                         <span class="keywordflow">if</span> (query) <span class="keywordflow">break</span>;
+<a name="l00525"></a>00525                         {
+<a name="l00526"></a>00526                 <span class="comment">//mem_writeb(ptr+0,0);                                  // special functions (call value)</span>
+<a name="l00527"></a>00527                 mem_writeb(ptr+1,(drive&gt;=2)?0x05:0x07); <span class="comment">// type: hard disk(5), 1.44 floppy(7)</span>
+<a name="l00528"></a>00528                 mem_writew(ptr+2,(drive&gt;=2)?0x01:0x00); <span class="comment">// attributes: bit 0 set for nonremovable</span>
+<a name="l00529"></a>00529                 mem_writew(ptr+4,(drive&gt;=2)?0x3FF:0x50);<span class="comment">// num of cylinders</span>
+<a name="l00530"></a>00530                 mem_writeb(ptr+6,0x00);                                 <span class="comment">// media type (00=other type)</span>
+<a name="l00531"></a>00531                 <span class="comment">// bios parameter block following</span>
+<a name="l00532"></a>00532                 <a class="code" href="classfatDrive.html">fatDrive</a> *fdp;
+<a name="l00533"></a>00533                 <a class="code" href="unionFAT__BootSector_1_1bpb__union__t.html">FAT_BootSector::bpb_union_t</a> bpb;
+<a name="l00534"></a>00534                 <span class="keywordtype">bool</span> usereal=<span class="keyword">false</span>;
+<a name="l00535"></a>00535                 <span class="keywordflow">if</span> (!strncmp(Drives[drive]-&gt;GetInfo(),<span class="stringliteral">&quot;fatDrive &quot;</span>,9)) {
+<a name="l00536"></a>00536                     fdp = <span class="keyword">dynamic_cast&lt;</span><a class="code" href="classfatDrive.html">fatDrive</a>*<span class="keyword">&gt;</span>(Drives[drive]);
+<a name="l00537"></a>00537                     <span class="keywordflow">if</span> (fdp != NULL) {
+<a name="l00538"></a>00538                         bpb=fdp-&gt;GetBPB();
+<a name="l00539"></a>00539                         <span class="keywordflow">if</span> (bpb.v.BPB_BytsPerSec &amp;&amp; bpb.v.BPB_Media)
+<a name="l00540"></a>00540                             usereal=<span class="keyword">true</span>;
+<a name="l00541"></a>00541                     }
+<a name="l00542"></a>00542                 }
+<a name="l00543"></a>00543                 <span class="keywordflow">if</span> (usereal) {
+<a name="l00544"></a>00544                     <span class="keywordflow">if</span> (fdp-&gt;loadedDisk != NULL)
+<a name="l00545"></a>00545                         mem_writew(ptr+4,fdp-&gt;loadedDisk-&gt;cylinders);           <span class="comment">// num of cylinders</span>
+<a name="l00546"></a>00546 
+<a name="l00547"></a>00547                     <span class="keywordflow">if</span> (bpb.is_fat32()) {
+<a name="l00548"></a>00548                         mem_writew(ptr+7,bpb.v.BPB_BytsPerSec);                     <span class="comment">// bytes per sector (Win3 File Mgr. uses it)</span>
+<a name="l00549"></a>00549                         mem_writeb(ptr+9,bpb.v.BPB_SecPerClus);                     <span class="comment">// sectors per cluster</span>
+<a name="l00550"></a>00550                         mem_writew(ptr+0xa,bpb.v.BPB_RsvdSecCnt);                   <span class="comment">// number of reserved sectors</span>
+<a name="l00551"></a>00551                         mem_writeb(ptr+0xc,bpb.v.BPB_NumFATs);                      <span class="comment">// number of FATs</span>
+<a name="l00552"></a>00552                         mem_writew(ptr+0xd,bpb.v.BPB_RootEntCnt);                               <span class="comment">// number of root entries</span>
+<a name="l00553"></a>00553                         mem_writew(ptr+0xf,bpb.v.BPB_TotSec16);                     <span class="comment">// number of small sectors</span>
+<a name="l00554"></a>00554                         mem_writeb(ptr+0x11,bpb.v.BPB_Media);                       <span class="comment">// media type</span>
+<a name="l00555"></a>00555                         mem_writew(ptr+0x12,(uint16_t)bpb.v.BPB_FATSz16);           <span class="comment">// sectors per FAT</span>
+<a name="l00556"></a>00556                         mem_writew(ptr+0x14,(uint16_t)bpb.v.BPB_SecPerTrk);         <span class="comment">// sectors per track</span>
+<a name="l00557"></a>00557                         mem_writew(ptr+0x16,(uint16_t)bpb.v.BPB_NumHeads);          <span class="comment">// number of heads</span>
+<a name="l00558"></a>00558                         mem_writed(ptr+0x18,(uint32_t)bpb.v.BPB_HiddSec);           <span class="comment">// number of hidden sectors</span>
+<a name="l00559"></a>00559                         mem_writed(ptr+0x1c,(uint32_t)bpb.v.BPB_TotSec32);          <span class="comment">// number of big sectors</span>
+<a name="l00560"></a>00560                         mem_writed(ptr+0x20,(uint32_t)bpb.v32.BPB_FATSz32);         <span class="comment">// sectors per FAT</span>
+<a name="l00561"></a>00561                         mem_writew(ptr+0x24,(uint16_t)bpb.v32.BPB_ExtFlags);
+<a name="l00562"></a>00562                         mem_writew(ptr+0x26,(uint16_t)bpb.v32.BPB_FSVer);
+<a name="l00563"></a>00563                         mem_writed(ptr+0x28,(uint32_t)bpb.v32.BPB_RootClus);
+<a name="l00564"></a>00564                         mem_writew(ptr+0x2C,(uint16_t)bpb.v32.BPB_FSInfo);
+<a name="l00565"></a>00565                         mem_writew(ptr+0x2E,(uint16_t)bpb.v32.BPB_BkBootSec);
+<a name="l00566"></a>00566                     }
+<a name="l00567"></a>00567                     <span class="keywordflow">else</span> {
+<a name="l00568"></a>00568                         DOS_SetError(DOSERR_ACCESS_DENIED);
+<a name="l00569"></a>00569                         <span class="keywordflow">return</span> <span class="keyword">false</span>;
+<a name="l00570"></a>00570                     }
+<a name="l00571"></a>00571                 } <span class="keywordflow">else</span> {
+<a name="l00572"></a>00572                     DOS_SetError(DOSERR_ACCESS_DENIED);
+<a name="l00573"></a>00573                     <span class="keywordflow">return</span> <span class="keyword">false</span>;
+<a name="l00574"></a>00574                 }
+<a name="l00575"></a>00575                 <span class="keywordflow">break</span>;
+<a name="l00576"></a>00576             }
+<a name="l00577"></a>00577         <span class="keywordflow">case</span> 0x42:
+<a name="l00578"></a>00578         <span class="keywordflow">case</span> 0x46:
+<a name="l00579"></a>00579         <span class="keywordflow">case</span> 0x4A:
+<a name="l00580"></a>00580         <span class="keywordflow">case</span> 0x4B:
+<a name="l00581"></a>00581         <span class="keywordflow">case</span> 0x61:
+<a name="l00582"></a>00582         <span class="keywordflow">case</span> 0x62:
+<a name="l00583"></a>00583         <span class="keywordflow">case</span> 0x66:
+<a name="l00584"></a>00584         <span class="keywordflow">case</span> 0x6A:
+<a name="l00585"></a>00585         <span class="keywordflow">case</span> 0x6B:
+<a name="l00586"></a>00586             <span class="keywordflow">return</span> DOS_IOCTL_AX440D_CH08(drive,query);
+<a name="l00587"></a>00587         <span class="keywordflow">default</span>:
+<a name="l00588"></a>00588             <a class="code" href="classLOG.html">LOG</a>(LOG_IOCTL,LOG_ERROR)(<span class="stringliteral">&quot;DOS:IOCTL Call %02X:%2X Drive %2X unhandled (CH=48h)&quot;</span>,reg_al,reg_cl,drive);
+<a name="l00589"></a>00589             DOS_SetError(DOSERR_FUNCTION_NUMBER_INVALID);
+<a name="l00590"></a>00590             <span class="keywordflow">return</span> <span class="keyword">false</span>;
+<a name="l00591"></a>00591     }
+<a name="l00592"></a>00592     reg_ax=0;
+<a name="l00593"></a>00593     <span class="keywordflow">return</span> <span class="keyword">true</span>;
+<a name="l00594"></a>00594 }
+<a name="l00595"></a>00595 
+<a name="l00596"></a>00596 <span class="keywordtype">bool</span> DOS_IOCTL(<span class="keywordtype">void</span>) {
+<a name="l00597"></a>00597         Bitu handle=0;Bit8u drive=0;
+<a name="l00598"></a>00598         <span class="comment">/* calls 0-4,6,7,10,12,16 use a file handle */</span>
+<a name="l00599"></a>00599         <span class="keywordflow">if</span> ((reg_al&lt;4) || (reg_al==0x06) || (reg_al==0x07) || (reg_al==0x0a) || (reg_al==0x0c) || (reg_al==0x10)) {
+<a name="l00600"></a>00600                 handle=RealHandle(reg_bx);
+<a name="l00601"></a>00601                 <span class="keywordflow">if</span> (handle&gt;=DOS_FILES) {
+<a name="l00602"></a>00602                         DOS_SetError(DOSERR_INVALID_HANDLE);
+<a name="l00603"></a>00603                         <span class="keywordflow">return</span> <span class="keyword">false</span>;
+<a name="l00604"></a>00604                 }
+<a name="l00605"></a>00605                 <span class="keywordflow">if</span> (!Files[handle]) {
+<a name="l00606"></a>00606                         DOS_SetError(DOSERR_INVALID_HANDLE);
+<a name="l00607"></a>00607                         <span class="keywordflow">return</span> <span class="keyword">false</span>;
+<a name="l00608"></a>00608                 }
+<a name="l00609"></a>00609         } <span class="keywordflow">else</span> <span class="keywordflow">if</span> (reg_al&lt;0x12) {                               <span class="comment">/* those use a diskdrive except 0x0b */</span>
+<a name="l00610"></a>00610                 <span class="keywordflow">if</span> (reg_al!=0x0b) {
+<a name="l00611"></a>00611                         drive=reg_bl;
+<a name="l00612"></a>00612                         <span class="keywordflow">if</span> ((reg_al==0x0D||reg_al==0x11) &amp;&amp; (reg_cl==0x4B||reg_cl==0x6B)) drive=reg_bh;
+<a name="l00613"></a>00613                         <span class="keywordflow">if</span> (!drive) drive = DOS_GetDefaultDrive();<span class="keywordflow">else</span> drive--;
+<a name="l00614"></a>00614                         <span class="keywordflow">if</span>( (drive &gt;= 2) &amp;&amp; !(( drive &lt; DOS_DRIVES ) &amp;&amp; Drives[drive]) ) {
+<a name="l00615"></a>00615                                 DOS_SetError(DOSERR_INVALID_DRIVE);
+<a name="l00616"></a>00616                                 <span class="keywordflow">return</span> <span class="keyword">false</span>;
+<a name="l00617"></a>00617                         }
+<a name="l00618"></a>00618                 }
+<a name="l00619"></a>00619         } <span class="keywordflow">else</span> {
+<a name="l00620"></a>00620                 <a class="code" href="classLOG.html">LOG</a>(LOG_DOSMISC,LOG_ERROR)(<span class="stringliteral">&quot;DOS:IOCTL Call %2X unhandled&quot;</span>,reg_al);
+<a name="l00621"></a>00621                 DOS_SetError(DOSERR_FUNCTION_NUMBER_INVALID);
+<a name="l00622"></a>00622                 <span class="keywordflow">return</span> <span class="keyword">false</span>;
+<a name="l00623"></a>00623         }
+<a name="l00624"></a>00624         <span class="keywordflow">switch</span>(reg_al) {
+<a name="l00625"></a>00625         <span class="keywordflow">case</span> 0x00:              <span class="comment">/* Get Device Information */</span>
+<a name="l00626"></a>00626                 <span class="keywordflow">if</span> (Files[handle]-&gt;GetInformation() &amp; 0x8000) { <span class="comment">//Check for device</span>
+<a name="l00627"></a>00627                         reg_dx=Files[handle]-&gt;GetInformation();
+<a name="l00628"></a>00628                 } <span class="keywordflow">else</span> {
+<a name="l00629"></a>00629                         Bit8u hdrive=Files[handle]-&gt;GetDrive();
+<a name="l00630"></a>00630                         <span class="keywordflow">if</span> (hdrive==0xff) {
+<a name="l00631"></a>00631                                 <a class="code" href="classLOG.html">LOG</a>(LOG_IOCTL,LOG_NORMAL)(<span class="stringliteral">&quot;00:No drive set&quot;</span>);
+<a name="l00632"></a>00632                                 hdrive=2;       <span class="comment">// defaulting to C:</span>
+<a name="l00633"></a>00633                         }
+<a name="l00634"></a>00634                         <span class="comment">/* return drive number in lower 5 bits for block devices */</span>
+<a name="l00635"></a>00635                         reg_dx=(Files[handle]-&gt;GetInformation()&amp;0xffe0)|hdrive;
+<a name="l00636"></a>00636                 }
+<a name="l00637"></a>00637                 reg_ax=reg_dx; <span class="comment">//Destroyed officially</span>
+<a name="l00638"></a>00638                 <span class="keywordflow">return</span> <span class="keyword">true</span>;
+<a name="l00639"></a>00639         <span class="keywordflow">case</span> 0x01:              <span class="comment">/* Set Device Information */</span>
+<a name="l00640"></a>00640                 <span class="keywordflow">if</span> (reg_dh != 0) {
+<a name="l00641"></a>00641                         DOS_SetError(DOSERR_DATA_INVALID);
+<a name="l00642"></a>00642                         <span class="keywordflow">return</span> <span class="keyword">false</span>;
+<a name="l00643"></a>00643                 } <span class="keywordflow">else</span> {
+<a name="l00644"></a>00644                         <span class="keywordflow">if</span> (Files[handle]-&gt;GetInformation() &amp; 0x8000) { <span class="comment">//Check for device</span>
+<a name="l00645"></a>00645                                 reg_al=(Bit8u)(Files[handle]-&gt;GetInformation() &amp; 0xff);
+<a name="l00646"></a>00646                         } <span class="keywordflow">else</span> {
+<a name="l00647"></a>00647                                 DOS_SetError(DOSERR_FUNCTION_NUMBER_INVALID);
+<a name="l00648"></a>00648                                 <span class="keywordflow">return</span> <span class="keyword">false</span>;
+<a name="l00649"></a>00649                         }
+<a name="l00650"></a>00650                 }
+<a name="l00651"></a>00651                 <span class="keywordflow">return</span> <span class="keyword">true</span>;
+<a name="l00652"></a>00652         <span class="keywordflow">case</span> 0x02:              <span class="comment">/* Read from Device Control Channel */</span>
+<a name="l00653"></a>00653                 <span class="keywordflow">if</span> (Files[handle]-&gt;GetInformation() &amp; 0xc000) {
+<a name="l00654"></a>00654                         <span class="comment">/* is character device with IOCTL support */</span>
+<a name="l00655"></a>00655                         PhysPt bufptr=PhysMake(SegValue(ds),reg_dx);
+<a name="l00656"></a>00656                         Bit16u retcode=0;
+<a name="l00657"></a>00657                         <span class="keywordflow">if</span> (((<a class="code" href="classDOS__Device.html">DOS_Device</a>*)(Files[handle]))-&gt;ReadFromControlChannel(bufptr,reg_cx,&amp;retcode)) {
+<a name="l00658"></a>00658                                 reg_ax=retcode;
+<a name="l00659"></a>00659                                 <span class="keywordflow">return</span> <span class="keyword">true</span>;
+<a name="l00660"></a>00660                         }
+<a name="l00661"></a>00661                 }
+<a name="l00662"></a>00662                 DOS_SetError(DOSERR_FUNCTION_NUMBER_INVALID);
+<a name="l00663"></a>00663                 <span class="keywordflow">return</span> <span class="keyword">false</span>;
+<a name="l00664"></a>00664         <span class="keywordflow">case</span> 0x03:              <span class="comment">/* Write to Device Control Channel */</span>
+<a name="l00665"></a>00665                 <span class="keywordflow">if</span> (Files[handle]-&gt;GetInformation() &amp; 0xc000) {
+<a name="l00666"></a>00666                         <span class="comment">/* is character device with IOCTL support */</span>
+<a name="l00667"></a>00667                         PhysPt bufptr=PhysMake(SegValue(ds),reg_dx);
+<a name="l00668"></a>00668                         Bit16u retcode=0;
+<a name="l00669"></a>00669                         <span class="keywordflow">if</span> (((<a class="code" href="classDOS__Device.html">DOS_Device</a>*)(Files[handle]))-&gt;WriteToControlChannel(bufptr,reg_cx,&amp;retcode)) {
+<a name="l00670"></a>00670                                 reg_ax=retcode;
+<a name="l00671"></a>00671                                 <span class="keywordflow">return</span> <span class="keyword">true</span>;
+<a name="l00672"></a>00672                         }
+<a name="l00673"></a>00673                 }
+<a name="l00674"></a>00674                 DOS_SetError(DOSERR_FUNCTION_NUMBER_INVALID);
+<a name="l00675"></a>00675                 <span class="keywordflow">return</span> <span class="keyword">false</span>;
+<a name="l00676"></a>00676         <span class="keywordflow">case</span> 0x06:      <span class="comment">/* Get Input Status */</span>
+<a name="l00677"></a>00677                 <span class="keywordflow">if</span> (Files[handle]-&gt;GetInformation() &amp; 0x8000) {         <span class="comment">//Check for device</span>
+<a name="l00678"></a>00678                         reg_al=(Files[handle]-&gt;GetInformation() &amp; 0x40) ? 0x0 : 0xff;
+<a name="l00679"></a>00679                 } <span class="keywordflow">else</span> { <span class="comment">// FILE</span>
+<a name="l00680"></a>00680                         Bit32u oldlocation=0;
+<a name="l00681"></a>00681                         Files[handle]-&gt;Seek(&amp;oldlocation, DOS_SEEK_CUR);
+<a name="l00682"></a>00682                         Bit32u endlocation=0;
+<a name="l00683"></a>00683                         Files[handle]-&gt;Seek(&amp;endlocation, DOS_SEEK_END);
+<a name="l00684"></a>00684                         <span class="keywordflow">if</span>(oldlocation &lt; endlocation){<span class="comment">//Still data available</span>
+<a name="l00685"></a>00685                                 reg_al=0xff;
+<a name="l00686"></a>00686                         } <span class="keywordflow">else</span> {
+<a name="l00687"></a>00687                                 reg_al=0x0; <span class="comment">//EOF or beyond</span>
+<a name="l00688"></a>00688                         }
+<a name="l00689"></a>00689                         Files[handle]-&gt;Seek(&amp;oldlocation, DOS_SEEK_SET); <span class="comment">//restore filelocation</span>
+<a name="l00690"></a>00690                         <a class="code" href="classLOG.html">LOG</a>(LOG_IOCTL,LOG_NORMAL)(<span class="stringliteral">&quot;06:Used Get Input Status on regular file with handle %d&quot;</span>,(int)handle);
+<a name="l00691"></a>00691                 }
+<a name="l00692"></a>00692                 <span class="keywordflow">return</span> <span class="keyword">true</span>;
+<a name="l00693"></a>00693         <span class="keywordflow">case</span> 0x07:              <span class="comment">/* Get Output Status */</span>
+<a name="l00694"></a>00694                 <a class="code" href="classLOG.html">LOG</a>(LOG_IOCTL,LOG_NORMAL)(<span class="stringliteral">&quot;07:Fakes output status is ready for handle %d&quot;</span>,(int)handle);
+<a name="l00695"></a>00695                 reg_al=0xff;
+<a name="l00696"></a>00696                 <span class="keywordflow">return</span> <span class="keyword">true</span>;
+<a name="l00697"></a>00697         <span class="keywordflow">case</span> 0x08:              <span class="comment">/* Check if block device removable */</span>
+<a name="l00698"></a>00698                 <span class="comment">/* cdrom drives and drive a&amp;b are removable */</span>
+<a name="l00699"></a>00699                 <span class="keywordflow">if</span> (drive &lt; 2) {
+<a name="l00700"></a>00700                         <span class="keywordflow">if</span> (Drives[drive])
+<a name="l00701"></a>00701                                 reg_ax=0;
+<a name="l00702"></a>00702                         <span class="keywordflow">else</span> {
+<a name="l00703"></a>00703                                 DOS_SetError(DOSERR_INVALID_DRIVE);
+<a name="l00704"></a>00704                                 <span class="keywordflow">return</span> <span class="keyword">false</span>;
+<a name="l00705"></a>00705                         }
+<a name="l00706"></a>00706                 } <span class="keywordflow">else</span> <span class="keywordflow">if</span> (!Drives[drive]-&gt;isRemovable()) reg_ax=1;
+<a name="l00707"></a>00707                 <span class="keywordflow">else</span> {
+<a name="l00708"></a>00708                         DOS_SetError(DOSERR_FUNCTION_NUMBER_INVALID);
+<a name="l00709"></a>00709                         <span class="keywordflow">return</span> <span class="keyword">false</span>;
+<a name="l00710"></a>00710                 }
+<a name="l00711"></a>00711                 <span class="keywordflow">return</span> <span class="keyword">true</span>;
+<a name="l00712"></a>00712         <span class="keywordflow">case</span> 0x09:              <span class="comment">/* Check if block device remote */</span>
+<a name="l00713"></a>00713                 <span class="keywordflow">if</span> ((drive &gt;= 2) &amp;&amp; Drives[drive]-&gt;isRemote()) {
+<a name="l00714"></a>00714                         reg_dx=0x1000;  <span class="comment">// device is remote</span>
+<a name="l00715"></a>00715                         <span class="comment">// undocumented bits always clear</span>
+<a name="l00716"></a>00716                 } <span class="keywordflow">else</span> {
+<a name="l00717"></a>00717                         reg_dx=0x0802;  <span class="comment">// Open/Close supported; 32bit access supported (any use? fixes Fable installer)</span>
+<a name="l00718"></a>00718                         <span class="comment">// undocumented bits from device attribute word</span>
+<a name="l00719"></a>00719                         <span class="comment">// TODO Set bit 9 on drives that don&#39;t support direct I/O</span>
+<a name="l00720"></a>00720                 }
+<a name="l00721"></a>00721                 reg_ax=0x300;
+<a name="l00722"></a>00722                 <span class="keywordflow">return</span> <span class="keyword">true</span>;
+<a name="l00723"></a>00723         <span class="keywordflow">case</span> 0x0A:              <span class="comment">/* Is Device of Handle Remote? */</span>
+<a name="l00724"></a>00724                 reg_dx=0x8000;
+<a name="l00725"></a>00725                 <a class="code" href="classLOG.html">LOG</a>(LOG_IOCTL,LOG_NORMAL)(<span class="stringliteral">&quot;0A:Faked output: device of handle %d is remote&quot;</span>,(int)handle);
+<a name="l00726"></a>00726                 <span class="keywordflow">return</span> <span class="keyword">true</span>;
+<a name="l00727"></a>00727         <span class="keywordflow">case</span> 0x0B:              <span class="comment">/* Set sharing retry count */</span>
+<a name="l00728"></a>00728                 <span class="keywordflow">if</span> (reg_dx==0) {
+<a name="l00729"></a>00729                         DOS_SetError(DOSERR_FUNCTION_NUMBER_INVALID);
+<a name="l00730"></a>00730                         <span class="keywordflow">return</span> <span class="keyword">false</span>;
+<a name="l00731"></a>00731                 }
+<a name="l00732"></a>00732                 <span class="keywordflow">return</span> <span class="keyword">true</span>;
+<a name="l00733"></a>00733         <span class="keywordflow">case</span> 0x0D:              <span class="comment">/* Generic block device request */</span>
+<a name="l00734"></a>00734         <span class="keywordflow">case</span> 0x11:              <span class="comment">/* query generic ioctl capability */</span>
+<a name="l00735"></a>00735                 {
+<a name="l00736"></a>00736                         <span class="keywordflow">if</span> (drive &lt; 2 &amp;&amp; !Drives[drive]) {
+<a name="l00737"></a>00737                                 DOS_SetError(DOSERR_ACCESS_DENIED);
+<a name="l00738"></a>00738                                 <span class="keywordflow">return</span> <span class="keyword">false</span>;
+<a name="l00739"></a>00739                         }
+<a name="l00740"></a>00740                         <span class="keywordflow">if</span> (Drives[drive]-&gt;isRemovable()) {
+<a name="l00741"></a>00741                                 <a class="code" href="classLOG.html">LOG</a>(LOG_IOCTL,LOG_DEBUG)(<span class="stringliteral">&quot;Attempt IOCTL AX=%04x CX=%04x on removable drive&quot;</span>,reg_ax,reg_cx);
+<a name="l00742"></a>00742                                 DOS_SetError(DOSERR_FUNCTION_NUMBER_INVALID);
+<a name="l00743"></a>00743                                 <span class="keywordflow">return</span> <span class="keyword">false</span>;
+<a name="l00744"></a>00744                         }
+<a name="l00745"></a>00745                         <span class="keywordflow">if</span> (reg_ch == 0x08) {
+<a name="l00746"></a>00746                                 <span class="keywordflow">return</span> DOS_IOCTL_AX440D_CH08(drive,reg_al==0x11);
+<a name="l00747"></a>00747                         }
+<a name="l00748"></a>00748                         <span class="keywordflow">else</span> <span class="keywordflow">if</span> (reg_ch == 0x48) {
+<a name="l00749"></a>00749                                 <span class="keywordflow">return</span> DOS_IOCTL_AX440D_CH48(drive,reg_al==0x11); <span class="comment">// Same functions as CH=08h but for FAT32 drives</span>
+<a name="l00750"></a>00750                         }
+<a name="l00751"></a>00751                         <span class="keywordflow">else</span> {
+<a name="l00752"></a>00752                                 <a class="code" href="classLOG.html">LOG</a>(LOG_IOCTL,LOG_DEBUG)(<span class="stringliteral">&quot;Attempt IOCTL AX=%04x CX=%04x&quot;</span>,reg_ax,reg_cx);
+<a name="l00753"></a>00753                                 DOS_SetError(DOSERR_FUNCTION_NUMBER_INVALID);
+<a name="l00754"></a>00754                                 <span class="keywordflow">return</span> <span class="keyword">false</span>;
+<a name="l00755"></a>00755                         }
+<a name="l00756"></a>00756                 }
+<a name="l00757"></a>00757                 <span class="keywordflow">break</span>;
+<a name="l00758"></a>00758         <span class="keywordflow">case</span> 0x0E:                      <span class="comment">/* Get Logical Drive Map */</span>
+<a name="l00759"></a>00759                 <span class="keywordflow">if</span> (drive &lt; 2) {
+<a name="l00760"></a>00760                         <span class="keywordflow">if</span> (Drives[drive]) reg_al=drive+1;
+<a name="l00761"></a>00761                         <span class="keywordflow">else</span> reg_al=1;
+<a name="l00762"></a>00762                 } <span class="keywordflow">else</span> <span class="keywordflow">if</span> (Drives[drive]-&gt;isRemovable()) {
+<a name="l00763"></a>00763                         DOS_SetError(DOSERR_FUNCTION_NUMBER_INVALID);
+<a name="l00764"></a>00764                         <span class="keywordflow">return</span> <span class="keyword">false</span>;
+<a name="l00765"></a>00765                 } <span class="keywordflow">else</span> reg_al=0;        <span class="comment">/* Only 1 logical drive assigned */</span>
+<a name="l00766"></a>00766                 reg_ah=0x07;
+<a name="l00767"></a>00767                 <span class="keywordflow">return</span> <span class="keyword">true</span>;
+<a name="l00768"></a>00768         <span class="keywordflow">default</span>:
+<a name="l00769"></a>00769                 <a class="code" href="classLOG.html">LOG</a>(LOG_DOSMISC,LOG_ERROR)(<span class="stringliteral">&quot;DOS:IOCTL Call %2X unhandled&quot;</span>,reg_al);
+<a name="l00770"></a>00770                 DOS_SetError(DOSERR_FUNCTION_NUMBER_INVALID);
+<a name="l00771"></a>00771                 <span class="keywordflow">break</span>;
+<a name="l00772"></a>00772         }
+<a name="l00773"></a>00773         <span class="keywordflow">return</span> <span class="keyword">false</span>;
+<a name="l00774"></a>00774 }
+<a name="l00775"></a>00775 
+<a name="l00776"></a>00776 
+<a name="l00777"></a>00777 <span class="keywordtype">bool</span> DOS_GetSTDINStatus(<span class="keywordtype">void</span>) {
+<a name="l00778"></a>00778         Bit32u handle=RealHandle(STDIN);
+<a name="l00779"></a>00779         <span class="keywordflow">if</span> (handle==0xFF) <span class="keywordflow">return</span> <span class="keyword">false</span>;
+<a name="l00780"></a>00780         <span class="keywordflow">if</span> (Files[handle] &amp;&amp; (Files[handle]-&gt;GetInformation() &amp; 64)) <span class="keywordflow">return</span> <span class="keyword">false</span>;
+<a name="l00781"></a>00781         <span class="keywordflow">return</span> <span class="keyword">true</span>;
+<a name="l00782"></a>00782 }
 </pre></div></div><!-- contents -->
 
 
 <hr class="footer"/><address class="footer"><small>
-Generated on Tue Oct 1 2019 18:06:25 for DOSBox-X by &#160;<a href="http://www.doxygen.org/index.html">
+Generated on Sun Jul 5 2020 13:11:35 for DOSBox-X by &#160;<a href="http://www.doxygen.org/index.html">
 <img class="footer" src="doxygen.png" alt="doxygen"/>
 </a> 1.8.0
 </small></address>

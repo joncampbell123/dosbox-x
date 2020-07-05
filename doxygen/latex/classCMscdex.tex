@@ -33,7 +33,7 @@ struct \hyperlink{structCMscdex_1_1SDriveInfo}{S\-Drive\-Info}
 \hypertarget{classCMscdex_a912da85172868635b5054b03504f24ce}{void {\bfseries Init\-New\-Media} (Bit8u sub\-Unit)}\label{classCMscdex_a912da85172868635b5054b03504f24ce}
 
 \item 
-\hypertarget{classCMscdex_ab6c3f7cbef5c49d50bcf3888aadd8406}{bool {\bfseries Play\-Audio\-Sector} (Bit8u sub\-Unit, Bit32u start, Bit32u length)}\label{classCMscdex_ab6c3f7cbef5c49d50bcf3888aadd8406}
+\hypertarget{classCMscdex_afb1e3cef49876914963b669987415ded}{bool {\bfseries Play\-Audio\-Sector} (Bit8u sub\-Unit, Bit32u sector, Bit32u length)}\label{classCMscdex_afb1e3cef49876914963b669987415ded}
 
 \item 
 \hypertarget{classCMscdex_ac38f29f8c5bad65c549b6e61e40a0f61}{bool {\bfseries Play\-Audio\-M\-S\-F} (Bit8u sub\-Unit, Bit32u start, Bit32u length)}\label{classCMscdex_ac38f29f8c5bad65c549b6e61e40a0f61}
@@ -66,7 +66,7 @@ struct \hyperlink{structCMscdex_1_1SDriveInfo}{S\-Drive\-Info}
 \hypertarget{classCMscdex_a330841e5a31e66bc7776306caedb6819}{void {\bfseries Get\-Driver\-Info} (Phys\-Pt data)}\label{classCMscdex_a330841e5a31e66bc7776306caedb6819}
 
 \item 
-\hypertarget{classCMscdex_a4ba6a6531f3ad487dd832d49c2de5f92}{bool {\bfseries Get\-Volume\-Name} (Bit8u sub\-Unit, char $\ast$name)}\label{classCMscdex_a4ba6a6531f3ad487dd832d49c2de5f92}
+\hypertarget{classCMscdex_a63eb50fe387c54c91ee7dac321836361}{bool {\bfseries Get\-Volume\-Name} (Bit8u sub\-Unit, char $\ast$data)}\label{classCMscdex_a63eb50fe387c54c91ee7dac321836361}
 
 \item 
 \hypertarget{classCMscdex_aa02670c6961dddbe44b9330d6422712b}{bool {\bfseries Get\-File\-Name} (Bit16u drive, Bit16u pos, Phys\-Pt data)}\label{classCMscdex_aa02670c6961dddbe44b9330d6422712b}
@@ -84,13 +84,13 @@ struct \hyperlink{structCMscdex_1_1SDriveInfo}{S\-Drive\-Info}
 \hypertarget{classCMscdex_a41e035bc2ef5add4d2d5e4b3cdb01178}{bool {\bfseries Read\-Sectors} (Bit8u sub\-Unit, bool raw, Bit32u sector, Bit16u num, Phys\-Pt data)}\label{classCMscdex_a41e035bc2ef5add4d2d5e4b3cdb01178}
 
 \item 
-\hypertarget{classCMscdex_a4968600c46a71d883d6709fe25ca903c}{bool {\bfseries Read\-Sectors\-M\-S\-F} (Bit8u sub\-Unit, bool raw, Bit32u sector, Bit16u num, Phys\-Pt data)}\label{classCMscdex_a4968600c46a71d883d6709fe25ca903c}
+\hypertarget{classCMscdex_a8952511925ddd8c658dce7fd0824f2f6}{bool {\bfseries Read\-Sectors\-M\-S\-F} (Bit8u sub\-Unit, bool raw, Bit32u start, Bit16u num, Phys\-Pt data)}\label{classCMscdex_a8952511925ddd8c658dce7fd0824f2f6}
 
 \item 
 \hypertarget{classCMscdex_a2ab48935a7a8fd4292f3028243ab2b66}{bool {\bfseries Send\-Driver\-Request} (Bit16u drive, Phys\-Pt data)}\label{classCMscdex_a2ab48935a7a8fd4292f3028243ab2b66}
 
 \item 
-\hypertarget{classCMscdex_ab2481121272d8f87ed90f64fdc398af4}{bool {\bfseries Is\-Valid\-Drive} (Bit16u drive)}\label{classCMscdex_ab2481121272d8f87ed90f64fdc398af4}
+\hypertarget{classCMscdex_ad2c618001752751ad46861969ac08b01}{bool {\bfseries Is\-Valid\-Drive} (Bit16u \-\_\-drive)}\label{classCMscdex_ad2c618001752751ad46861969ac08b01}
 
 \item 
 \hypertarget{classCMscdex_ade59cf8040558852abb1dfbcec7189ad}{bool {\bfseries Get\-C\-D\-Info} (Bit8u sub\-Unit, Bit8u \&tr1, Bit8u \&tr2, \hyperlink{structSMSF}{T\-M\-S\-F} \&lead\-Out)}\label{classCMscdex_ade59cf8040558852abb1dfbcec7189ad}
@@ -144,10 +144,10 @@ struct \hyperlink{structCMscdex_1_1SDriveInfo}{S\-Drive\-Info}
 \subsection*{Public Attributes}
 \begin{DoxyCompactItemize}
 \item 
-\hypertarget{classCMscdex_a5b4d6334bdd6f14e75354d225c865abe}{Bit16u {\bfseries num\-Drives}}\label{classCMscdex_a5b4d6334bdd6f14e75354d225c865abe}
+\hypertarget{classCMscdex_a5b4d6334bdd6f14e75354d225c865abe}{Bit16u {\bfseries num\-Drives} = 0}\label{classCMscdex_a5b4d6334bdd6f14e75354d225c865abe}
 
 \item 
-\hypertarget{classCMscdex_a74017c503ae2c44e5c78bfd3190005f8}{Bit16u {\bfseries default\-Buf\-Seg}}\label{classCMscdex_a74017c503ae2c44e5c78bfd3190005f8}
+\hypertarget{classCMscdex_a74017c503ae2c44e5c78bfd3190005f8}{Bit16u {\bfseries default\-Buf\-Seg} = 0}\label{classCMscdex_a74017c503ae2c44e5c78bfd3190005f8}
 
 \item 
 \hypertarget{classCMscdex_a1392c8b86d5976dafb60694eef28abfa}{\hyperlink{structCMscdex_1_1SDriveInfo}{T\-Drive\-Info} {\bfseries dinfo} \mbox{[}M\-S\-C\-D\-E\-X\-\_\-\-M\-A\-X\-\_\-\-D\-R\-I\-V\-E\-S\mbox{]}}\label{classCMscdex_a1392c8b86d5976dafb60694eef28abfa}
@@ -156,7 +156,7 @@ struct \hyperlink{structCMscdex_1_1SDriveInfo}{S\-Drive\-Info}
 \hypertarget{classCMscdex_aaadae67160be26c0a1bf0646a8030803}{\hyperlink{classCDROM__Interface}{C\-D\-R\-O\-M\-\_\-\-Interface} $\ast$ {\bfseries cdrom} \mbox{[}M\-S\-C\-D\-E\-X\-\_\-\-M\-A\-X\-\_\-\-D\-R\-I\-V\-E\-S\mbox{]}}\label{classCMscdex_aaadae67160be26c0a1bf0646a8030803}
 
 \item 
-\hypertarget{classCMscdex_a9dcc1cbe3482842e279f49d816fa3aaf}{Bit16u {\bfseries root\-Driver\-Header\-Seg}}\label{classCMscdex_a9dcc1cbe3482842e279f49d816fa3aaf}
+\hypertarget{classCMscdex_a9dcc1cbe3482842e279f49d816fa3aaf}{Bit16u {\bfseries root\-Driver\-Header\-Seg} = 0}\label{classCMscdex_a9dcc1cbe3482842e279f49d816fa3aaf}
 
 \end{DoxyCompactItemize}
 
@@ -164,7 +164,7 @@ struct \hyperlink{structCMscdex_1_1SDriveInfo}{S\-Drive\-Info}
 \subsection{Detailed Description}
 
 
-Definition at line 90 of file dos\-\_\-mscdex.\-cpp.
+Definition at line 89 of file dos\-\_\-mscdex.\-cpp.
 
 
 

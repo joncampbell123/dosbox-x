@@ -96,7 +96,7 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 </div><!--header-->
 <div class="contents">
 <div class="fragment"><pre class="fragment"><a name="l00001"></a>00001 <span class="comment">/*</span>
-<a name="l00002"></a>00002 <span class="comment"> *  Copyright (C) 2002-2019  The DOSBox Team</span>
+<a name="l00002"></a>00002 <span class="comment"> *  Copyright (C) 2002-2020  The DOSBox Team</span>
 <a name="l00003"></a>00003 <span class="comment"> *</span>
 <a name="l00004"></a>00004 <span class="comment"> *  This program is free software; you can redistribute it and/or modify</span>
 <a name="l00005"></a>00005 <span class="comment"> *  it under the terms of the GNU General Public License as published by</span>
@@ -108,9 +108,9 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l00011"></a>00011 <span class="comment"> *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the</span>
 <a name="l00012"></a>00012 <span class="comment"> *  GNU General Public License for more details.</span>
 <a name="l00013"></a>00013 <span class="comment"> *</span>
-<a name="l00014"></a>00014 <span class="comment"> *  You should have received a copy of the GNU General Public License</span>
-<a name="l00015"></a>00015 <span class="comment"> *  along with this program; if not, write to the Free Software</span>
-<a name="l00016"></a>00016 <span class="comment"> *  Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1335, USA.</span>
+<a name="l00014"></a>00014 <span class="comment"> *  You should have received a copy of the GNU General Public License along</span>
+<a name="l00015"></a>00015 <span class="comment"> *  with this program; if not, write to the Free Software Foundation, Inc.,</span>
+<a name="l00016"></a>00016 <span class="comment"> *  51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.</span>
 <a name="l00017"></a>00017 <span class="comment"> */</span>
 <a name="l00018"></a>00018 
 <a name="l00019"></a>00019 <span class="preprocessor">#include &lt;assert.h&gt;</span>
@@ -415,7 +415,7 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l00318"></a>00318 
 <a name="l00319"></a>00319                                                 <span class="comment">// GM 1.0 = 0-2</span>
 <a name="l00320"></a>00320                                                 <span class="keywordflow">if</span>( rpn &gt;= 3 ) <span class="keywordflow">break</span>;
-<a name="l00321"></a>00321                                                 <span class="keywordflow">if</span>( rpn == 0x7f7f ) <span class="keywordflow">break</span>;
+<a name="l00321"></a>00321                                                 <span class="comment">//if( rpn == 0x7f7f ) break;</span>
 <a name="l00322"></a>00322 
 <a name="l00323"></a>00323                                                 midi_state[channel].code_rpn_coarse[rpn] = arg2;
 <a name="l00324"></a>00324                                         }
@@ -432,7 +432,7 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l00335"></a>00335 
 <a name="l00336"></a>00336                                                 <span class="comment">// GM 1.0 = 0-2</span>
 <a name="l00337"></a>00337                                                 <span class="keywordflow">if</span>( rpn &gt;= 3 ) <span class="keywordflow">break</span>;
-<a name="l00338"></a>00338                                                 <span class="keywordflow">if</span>( rpn == 0x7f7f ) <span class="keywordflow">break</span>;
+<a name="l00338"></a>00338                                                 <span class="comment">//if( rpn == 0x7f7f ) break;</span>
 <a name="l00339"></a>00339 
 <a name="l00340"></a>00340                                                 midi_state[channel].code_rpn_fine[rpn] = arg2;
 <a name="l00341"></a>00341                                         }
@@ -711,9 +711,9 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l00614"></a>00614                                 }
 <a name="l00615"></a>00615                         }
 <a name="l00616"></a>00616                         <span class="keywordflow">if</span> (handler == NULL)
-<a name="l00617"></a>00617                                 <a class="code" href="classLOG.html">LOG</a>(LOG_MISC,LOG_DEBUG)(<span class="stringliteral">&quot;MIDI:Can&#39;t find device:%s, finding default handler.&quot;</span>,dev);
+<a name="l00617"></a>00617                                 LOG_MSG(<span class="stringliteral">&quot;MIDI:Cannot find device:%s. Finding default handler.&quot;</span>,dev);
 <a name="l00618"></a>00618                         <span class="keywordflow">else</span> <span class="keywordflow">if</span> (!opened)
-<a name="l00619"></a>00619                                 <a class="code" href="classLOG.html">LOG</a>(LOG_MISC,LOG_WARN)(<span class="stringliteral">&quot;MIDI:Can&#39;t open device:%s with config:%s.&quot;</span>,dev,conf);
+<a name="l00619"></a>00619                                 LOG_MSG(<span class="stringliteral">&quot;MIDI:Cannot open device:%s with config:%s. Finding default handler.&quot;</span>,dev,conf);
 <a name="l00620"></a>00620                 }
 <a name="l00621"></a>00621 
 <a name="l00622"></a>00622                 <span class="keywordflow">if</span> (!opened) {
@@ -725,13 +725,13 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l00628"></a>00628 
 <a name="l00629"></a>00629                 <span class="keywordflow">if</span> (!opened) {
 <a name="l00630"></a>00630                         <span class="comment">// This shouldn&#39;t be possible</span>
-<a name="l00631"></a>00631                         <a class="code" href="classLOG.html">LOG</a>(LOG_MISC,LOG_WARN)(<span class="stringliteral">&quot;MIDI:Couldn&#39;t open a handler&quot;</span>);
+<a name="l00631"></a>00631                         LOG_MSG(<span class="stringliteral">&quot;MIDI:Could not open a handler&quot;</span>);
 <a name="l00632"></a>00632                         <span class="keywordflow">return</span>;
 <a name="l00633"></a>00633                 }
 <a name="l00634"></a>00634 
 <a name="l00635"></a>00635                 midi.available=<span class="keyword">true</span>;
 <a name="l00636"></a>00636                 midi.handler=handler;
-<a name="l00637"></a>00637                 <a class="code" href="classLOG.html">LOG</a>(LOG_MISC,LOG_DEBUG)(<span class="stringliteral">&quot;MIDI:Opened device:%s&quot;</span>,handler-&gt;GetName());
+<a name="l00637"></a>00637                 LOG_MSG(<span class="stringliteral">&quot;MIDI:Opened device:%s&quot;</span>,handler-&gt;GetName());
 <a name="l00638"></a>00638 
 <a name="l00639"></a>00639                 <span class="comment">// force reset to prevent crashes (when not properly shutdown)</span>
 <a name="l00640"></a>00640                 <span class="comment">// ex. Roland VSC = unexpected hard system crash</span>
@@ -780,11 +780,117 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l00683"></a>00683         test = <span class="keyword">new</span> <a class="code" href="classMIDI.html">MIDI</a>(control-&gt;GetSection(<span class="stringliteral">&quot;midi&quot;</span>));
 <a name="l00684"></a>00684 }
 <a name="l00685"></a>00685 
+<a name="l00686"></a>00686 <span class="comment">//save state support</span>
+<a name="l00687"></a>00687 <span class="keyword">namespace </span>{
+<a name="l00688"></a>00688 <span class="keyword">class </span>SerializeMidi : <span class="keyword">public</span> SerializeGlobalPOD {
+<a name="l00689"></a>00689 <span class="keyword">public</span>:
+<a name="l00690"></a>00690     SerializeMidi() : SerializeGlobalPOD(<span class="stringliteral">&quot;Midi&quot;</span>)
+<a name="l00691"></a>00691     {}
+<a name="l00692"></a>00692 
+<a name="l00693"></a>00693 <span class="keyword">private</span>:
+<a name="l00694"></a>00694     <span class="keyword">virtual</span> <span class="keywordtype">void</span> getBytes(std::ostream&amp; stream)
+<a name="l00695"></a>00695     {
+<a name="l00696"></a>00696                                 <span class="keywordflow">if</span>( !test ) <span class="keywordflow">return</span>;
+<a name="l00697"></a>00697 
+<a name="l00698"></a>00698                                 <span class="comment">//******************************************</span>
+<a name="l00699"></a>00699                                 <span class="comment">//******************************************</span>
+<a name="l00700"></a>00700                                 <span class="comment">//******************************************</span>
+<a name="l00701"></a>00701 
+<a name="l00702"></a>00702                                 SerializeGlobalPOD::getBytes(stream);
+<a name="l00703"></a>00703 
+<a name="l00704"></a>00704 
+<a name="l00705"></a>00705                                 <span class="comment">// - pure data</span>
+<a name="l00706"></a>00706                                 WRITE_POD( &amp;midi.status, midi.status );
+<a name="l00707"></a>00707                                 WRITE_POD( &amp;midi.cmd_len, midi.cmd_len );
+<a name="l00708"></a>00708                                 WRITE_POD( &amp;midi.cmd_pos, midi.cmd_pos );
+<a name="l00709"></a>00709                                 WRITE_POD( &amp;midi.cmd_buf, midi.cmd_buf );
+<a name="l00710"></a>00710                                 WRITE_POD( &amp;midi.rt_buf, midi.rt_buf );
+<a name="l00711"></a>00711                                 WRITE_POD( &amp;midi.sysex, midi.sysex );
+<a name="l00712"></a>00712 
+<a name="l00713"></a>00713                                 <span class="comment">//*******************************************</span>
+<a name="l00714"></a>00714                                 <span class="comment">//*******************************************</span>
+<a name="l00715"></a>00715                                 <span class="comment">//*******************************************</span>
+<a name="l00716"></a>00716 
+<a name="l00717"></a>00717                                 <span class="comment">// Supports MT-32 MUNT only!!</span>
+<a name="l00718"></a>00718                                 <span class="keywordflow">if</span>(0) {
+<a name="l00719"></a>00719                                 }
+<a name="l00720"></a>00720 
+<a name="l00721"></a>00721                                 <span class="comment">// external MIDI </span>
+<a name="l00722"></a>00722                                 <span class="keywordflow">else</span> <span class="keywordflow">if</span>( midi.available ) {
+<a name="l00723"></a>00723                                         <span class="keyword">const</span> <span class="keywordtype">char</span> pod_name[32] = <span class="stringliteral">&quot;External&quot;</span>;
+<a name="l00724"></a>00724 
+<a name="l00725"></a>00725 
+<a name="l00726"></a>00726                                         WRITE_POD( &amp;pod_name, pod_name );
+<a name="l00727"></a>00727 
+<a name="l00728"></a>00728                                         <span class="comment">//*******************************************</span>
+<a name="l00729"></a>00729                                         <span class="comment">//*******************************************</span>
+<a name="l00730"></a>00730                                         <span class="comment">//*******************************************</span>
+<a name="l00731"></a>00731 
+<a name="l00732"></a>00732                                         <span class="comment">// - pure data</span>
+<a name="l00733"></a>00733                                         WRITE_POD( &amp;midi_state, midi_state );
+<a name="l00734"></a>00734                                 }
+<a name="l00735"></a>00735     }
+<a name="l00736"></a>00736 
+<a name="l00737"></a>00737     <span class="keyword">virtual</span> <span class="keywordtype">void</span> setBytes(std::istream&amp; stream)
+<a name="l00738"></a>00738     {
+<a name="l00739"></a>00739                                 <span class="keywordflow">if</span>( !test ) <span class="keywordflow">return</span>;
+<a name="l00740"></a>00740 
+<a name="l00741"></a>00741                                 <span class="comment">//******************************************</span>
+<a name="l00742"></a>00742                                 <span class="comment">//******************************************</span>
+<a name="l00743"></a>00743                                 <span class="comment">//******************************************</span>
+<a name="l00744"></a>00744 
+<a name="l00745"></a>00745         SerializeGlobalPOD::setBytes(stream);
+<a name="l00746"></a>00746 
+<a name="l00747"></a>00747 
+<a name="l00748"></a>00748                                 <span class="comment">// - pure data</span>
+<a name="l00749"></a>00749                                 READ_POD( &amp;midi.status, midi.status );
+<a name="l00750"></a>00750                                 READ_POD( &amp;midi.cmd_len, midi.cmd_len );
+<a name="l00751"></a>00751                                 READ_POD( &amp;midi.cmd_pos, midi.cmd_pos );
+<a name="l00752"></a>00752                                 READ_POD( &amp;midi.cmd_buf, midi.cmd_buf );
+<a name="l00753"></a>00753                                 READ_POD( &amp;midi.rt_buf, midi.rt_buf );
+<a name="l00754"></a>00754                                 READ_POD( &amp;midi.sysex, midi.sysex );
+<a name="l00755"></a>00755 
+<a name="l00756"></a>00756                                 <span class="comment">//*******************************************</span>
+<a name="l00757"></a>00757                                 <span class="comment">//*******************************************</span>
+<a name="l00758"></a>00758                                 <span class="comment">//*******************************************</span>
+<a name="l00759"></a>00759 
+<a name="l00760"></a>00760                                 <span class="comment">// Supports MT-32 MUNT only!!</span>
+<a name="l00761"></a>00761                                 <span class="keywordflow">if</span>(0) {
+<a name="l00762"></a>00762                                 }
+<a name="l00763"></a>00763 
+<a name="l00764"></a>00764                                 <span class="comment">// external MIDI</span>
+<a name="l00765"></a>00765                                 <span class="keywordflow">else</span> <span class="keywordflow">if</span>( midi.available ) {
+<a name="l00766"></a>00766                                         <span class="keywordtype">char</span> pod_name[32] = {0};
+<a name="l00767"></a>00767 
+<a name="l00768"></a>00768 
+<a name="l00769"></a>00769                                         <span class="comment">// error checking</span>
+<a name="l00770"></a>00770                                         READ_POD( &amp;pod_name, pod_name );
+<a name="l00771"></a>00771                                         <span class="keywordflow">if</span>( strcmp( pod_name, <span class="stringliteral">&quot;External&quot;</span> ) ) {
+<a name="l00772"></a>00772                                                 stream.clear( std::istream::failbit | std::istream::badbit );
+<a name="l00773"></a>00773                                                 <span class="keywordflow">return</span>;
+<a name="l00774"></a>00774                                         }
+<a name="l00775"></a>00775 
+<a name="l00776"></a>00776                                         <span class="comment">//************************************************</span>
+<a name="l00777"></a>00777                                         <span class="comment">//************************************************</span>
+<a name="l00778"></a>00778                                         <span class="comment">//************************************************</span>
+<a name="l00779"></a>00779 
+<a name="l00780"></a>00780                                 <span class="comment">// - pure data</span>
+<a name="l00781"></a>00781                                         READ_POD( &amp;midi_state, midi_state );
+<a name="l00782"></a>00782 
+<a name="l00783"></a>00783                                         <span class="comment">//************************************************</span>
+<a name="l00784"></a>00784                                         <span class="comment">//************************************************</span>
+<a name="l00785"></a>00785                                         <span class="comment">//************************************************</span>
+<a name="l00786"></a>00786 
+<a name="l00787"></a>00787                                         MIDI_State_LoadMessage();
+<a name="l00788"></a>00788                                 }
+<a name="l00789"></a>00789     }
+<a name="l00790"></a>00790 } dummy;
+<a name="l00791"></a>00791 }
 </pre></div></div><!-- contents -->
 
 
 <hr class="footer"/><address class="footer"><small>
-Generated on Tue Oct 1 2019 18:06:25 for DOSBox-X by &#160;<a href="http://www.doxygen.org/index.html">
+Generated on Sun Jul 5 2020 13:11:35 for DOSBox-X by &#160;<a href="http://www.doxygen.org/index.html">
 <img class="footer" src="doxygen.png" alt="doxygen"/>
 </a> 1.8.0
 </small></address>

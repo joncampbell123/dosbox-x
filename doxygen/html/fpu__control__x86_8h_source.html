@@ -110,97 +110,96 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l00013"></a>00013 <span class="comment">   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU</span>
 <a name="l00014"></a>00014 <span class="comment">   Lesser General Public License for more details.</span>
 <a name="l00015"></a>00015 <span class="comment"></span>
-<a name="l00016"></a>00016 <span class="comment">   You should have received a copy of the GNU Lesser General Public</span>
-<a name="l00017"></a>00017 <span class="comment">   License along with the GNU C Library; if not, write to the Free</span>
-<a name="l00018"></a>00018 <span class="comment">   Software Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA</span>
-<a name="l00019"></a>00019 <span class="comment">   02110-1335 USA.  */</span>
-<a name="l00020"></a>00020 
-<a name="l00021"></a>00021 <span class="preprocessor">#ifndef _FPU_CONTROL_H</span>
-<a name="l00022"></a>00022 <span class="preprocessor"></span><span class="preprocessor">#define _FPU_CONTROL_H  1</span>
-<a name="l00023"></a>00023 <span class="preprocessor"></span>
-<a name="l00024"></a>00024 <span class="comment">/* Note that this file sets on x86-64 only the x87 FPU, it does not</span>
-<a name="l00025"></a>00025 <span class="comment">   touch the SSE unit.  */</span>
-<a name="l00026"></a>00026 
-<a name="l00027"></a>00027 <span class="comment">/* Here is the dirty part. Set up your 387 through the control word</span>
-<a name="l00028"></a>00028 <span class="comment"> * (cw) register.</span>
-<a name="l00029"></a>00029 <span class="comment"> *</span>
-<a name="l00030"></a>00030 <span class="comment"> *     15-13    12  11-10  9-8     7-6     5    4    3    2    1    0</span>
-<a name="l00031"></a>00031 <span class="comment"> * | reserved | IC | RC  | PC | reserved | PM | UM | OM | ZM | DM | IM</span>
-<a name="l00032"></a>00032 <span class="comment"> *</span>
-<a name="l00033"></a>00033 <span class="comment"> * IM: Invalid operation mask</span>
-<a name="l00034"></a>00034 <span class="comment"> * DM: Denormalized operand mask</span>
-<a name="l00035"></a>00035 <span class="comment"> * ZM: Zero-divide mask</span>
-<a name="l00036"></a>00036 <span class="comment"> * OM: Overflow mask</span>
-<a name="l00037"></a>00037 <span class="comment"> * UM: Underflow mask</span>
-<a name="l00038"></a>00038 <span class="comment"> * PM: Precision (inexact result) mask</span>
-<a name="l00039"></a>00039 <span class="comment"> *</span>
-<a name="l00040"></a>00040 <span class="comment"> * Mask bit is 1 means no interrupt.</span>
-<a name="l00041"></a>00041 <span class="comment"> *</span>
-<a name="l00042"></a>00042 <span class="comment"> * PC: Precision control</span>
-<a name="l00043"></a>00043 <span class="comment"> * 11 - round to extended precision</span>
-<a name="l00044"></a>00044 <span class="comment"> * 10 - round to double precision</span>
-<a name="l00045"></a>00045 <span class="comment"> * 00 - round to single precision</span>
-<a name="l00046"></a>00046 <span class="comment"> *</span>
-<a name="l00047"></a>00047 <span class="comment"> * RC: Rounding control</span>
-<a name="l00048"></a>00048 <span class="comment"> * 00 - rounding to nearest</span>
-<a name="l00049"></a>00049 <span class="comment"> * 01 - rounding down (toward - infinity)</span>
-<a name="l00050"></a>00050 <span class="comment"> * 10 - rounding up (toward + infinity)</span>
-<a name="l00051"></a>00051 <span class="comment"> * 11 - rounding toward zero</span>
-<a name="l00052"></a>00052 <span class="comment"> *</span>
-<a name="l00053"></a>00053 <span class="comment"> * IC: Infinity control</span>
-<a name="l00054"></a>00054 <span class="comment"> * That is for 8087 and 80287 only.</span>
-<a name="l00055"></a>00055 <span class="comment"> *</span>
-<a name="l00056"></a>00056 <span class="comment"> * The hardware default is 0x037f which we use.</span>
-<a name="l00057"></a>00057 <span class="comment"> */</span>
-<a name="l00058"></a>00058 
-<a name="l00059"></a>00059 <span class="comment">//#include &lt;features.h&gt;</span>
-<a name="l00060"></a>00060 
-<a name="l00061"></a>00061 <span class="comment">/* masking of interrupts */</span>
-<a name="l00062"></a>00062 <span class="preprocessor">#define _FPU_MASK_IM  0x01</span>
-<a name="l00063"></a>00063 <span class="preprocessor"></span><span class="preprocessor">#define _FPU_MASK_DM  0x02</span>
-<a name="l00064"></a>00064 <span class="preprocessor"></span><span class="preprocessor">#define _FPU_MASK_ZM  0x04</span>
-<a name="l00065"></a>00065 <span class="preprocessor"></span><span class="preprocessor">#define _FPU_MASK_OM  0x08</span>
-<a name="l00066"></a>00066 <span class="preprocessor"></span><span class="preprocessor">#define _FPU_MASK_UM  0x10</span>
-<a name="l00067"></a>00067 <span class="preprocessor"></span><span class="preprocessor">#define _FPU_MASK_PM  0x20</span>
-<a name="l00068"></a>00068 <span class="preprocessor"></span>
-<a name="l00069"></a>00069 <span class="comment">/* precision control */</span>
-<a name="l00070"></a>00070 <span class="preprocessor">#define _FPU_EXTENDED 0x300     </span><span class="comment">/* libm requires double extended precision.  */</span>
-<a name="l00071"></a>00071 <span class="preprocessor">#define _FPU_DOUBLE   0x200</span>
-<a name="l00072"></a>00072 <span class="preprocessor"></span><span class="preprocessor">#define _FPU_SINGLE   0x0</span>
-<a name="l00073"></a>00073 <span class="preprocessor"></span>
-<a name="l00074"></a>00074 <span class="comment">/* rounding control */</span>
-<a name="l00075"></a>00075 <span class="preprocessor">#define _FPU_RC_NEAREST 0x0    </span><span class="comment">/* RECOMMENDED */</span>
-<a name="l00076"></a>00076 <span class="preprocessor">#define _FPU_RC_DOWN    0x400</span>
-<a name="l00077"></a>00077 <span class="preprocessor"></span><span class="preprocessor">#define _FPU_RC_UP      0x800</span>
-<a name="l00078"></a>00078 <span class="preprocessor"></span><span class="preprocessor">#define _FPU_RC_ZERO    0xC00</span>
-<a name="l00079"></a>00079 <span class="preprocessor"></span>
-<a name="l00080"></a>00080 <span class="preprocessor">#define _FPU_RESERVED 0xF0C0  </span><span class="comment">/* Reserved bits in cw */</span>
+<a name="l00016"></a>00016 <span class="comment">   You should have received a copy of the GNU General Public License along</span>
+<a name="l00017"></a>00017 <span class="comment">   with this program; if not, write to the Free Software Foundation, Inc.,</span>
+<a name="l00018"></a>00018 <span class="comment">   51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.</span>
+<a name="l00019"></a>00019 <span class="comment"></span>
+<a name="l00020"></a>00020 <span class="comment">#ifndef _FPU_CONTROL_H</span>
+<a name="l00021"></a>00021 <span class="comment">#define _FPU_CONTROL_H  1</span>
+<a name="l00022"></a>00022 <span class="comment"></span>
+<a name="l00023"></a>00023 <span class="comment">/* Note that this file sets on x86-64 only the x87 FPU, it does not</span>
+<a name="l00024"></a>00024 <span class="comment">   touch the SSE unit.  */</span>
+<a name="l00025"></a>00025 
+<a name="l00026"></a>00026 <span class="comment">/* Here is the dirty part. Set up your 387 through the control word</span>
+<a name="l00027"></a>00027 <span class="comment"> * (cw) register.</span>
+<a name="l00028"></a>00028 <span class="comment"> *</span>
+<a name="l00029"></a>00029 <span class="comment"> *     15-13    12  11-10  9-8     7-6     5    4    3    2    1    0</span>
+<a name="l00030"></a>00030 <span class="comment"> * | reserved | IC | RC  | PC | reserved | PM | UM | OM | ZM | DM | IM</span>
+<a name="l00031"></a>00031 <span class="comment"> *</span>
+<a name="l00032"></a>00032 <span class="comment"> * IM: Invalid operation mask</span>
+<a name="l00033"></a>00033 <span class="comment"> * DM: Denormalized operand mask</span>
+<a name="l00034"></a>00034 <span class="comment"> * ZM: Zero-divide mask</span>
+<a name="l00035"></a>00035 <span class="comment"> * OM: Overflow mask</span>
+<a name="l00036"></a>00036 <span class="comment"> * UM: Underflow mask</span>
+<a name="l00037"></a>00037 <span class="comment"> * PM: Precision (inexact result) mask</span>
+<a name="l00038"></a>00038 <span class="comment"> *</span>
+<a name="l00039"></a>00039 <span class="comment"> * Mask bit is 1 means no interrupt.</span>
+<a name="l00040"></a>00040 <span class="comment"> *</span>
+<a name="l00041"></a>00041 <span class="comment"> * PC: Precision control</span>
+<a name="l00042"></a>00042 <span class="comment"> * 11 - round to extended precision</span>
+<a name="l00043"></a>00043 <span class="comment"> * 10 - round to double precision</span>
+<a name="l00044"></a>00044 <span class="comment"> * 00 - round to single precision</span>
+<a name="l00045"></a>00045 <span class="comment"> *</span>
+<a name="l00046"></a>00046 <span class="comment"> * RC: Rounding control</span>
+<a name="l00047"></a>00047 <span class="comment"> * 00 - rounding to nearest</span>
+<a name="l00048"></a>00048 <span class="comment"> * 01 - rounding down (toward - infinity)</span>
+<a name="l00049"></a>00049 <span class="comment"> * 10 - rounding up (toward + infinity)</span>
+<a name="l00050"></a>00050 <span class="comment"> * 11 - rounding toward zero</span>
+<a name="l00051"></a>00051 <span class="comment"> *</span>
+<a name="l00052"></a>00052 <span class="comment"> * IC: Infinity control</span>
+<a name="l00053"></a>00053 <span class="comment"> * That is for 8087 and 80287 only.</span>
+<a name="l00054"></a>00054 <span class="comment"> *</span>
+<a name="l00055"></a>00055 <span class="comment"> * The hardware default is 0x037f which we use.</span>
+<a name="l00056"></a>00056 <span class="comment"> */</span>
+<a name="l00057"></a>00057 
+<a name="l00058"></a>00058 <span class="comment">//#include &lt;features.h&gt;</span>
+<a name="l00059"></a>00059 
+<a name="l00060"></a>00060 <span class="comment">/* masking of interrupts */</span>
+<a name="l00061"></a>00061 <span class="preprocessor">#define _FPU_MASK_IM  0x01</span>
+<a name="l00062"></a>00062 <span class="preprocessor"></span><span class="preprocessor">#define _FPU_MASK_DM  0x02</span>
+<a name="l00063"></a>00063 <span class="preprocessor"></span><span class="preprocessor">#define _FPU_MASK_ZM  0x04</span>
+<a name="l00064"></a>00064 <span class="preprocessor"></span><span class="preprocessor">#define _FPU_MASK_OM  0x08</span>
+<a name="l00065"></a>00065 <span class="preprocessor"></span><span class="preprocessor">#define _FPU_MASK_UM  0x10</span>
+<a name="l00066"></a>00066 <span class="preprocessor"></span><span class="preprocessor">#define _FPU_MASK_PM  0x20</span>
+<a name="l00067"></a>00067 <span class="preprocessor"></span>
+<a name="l00068"></a>00068 <span class="comment">/* precision control */</span>
+<a name="l00069"></a>00069 <span class="preprocessor">#define _FPU_EXTENDED 0x300     </span><span class="comment">/* libm requires double extended precision.  */</span>
+<a name="l00070"></a>00070 <span class="preprocessor">#define _FPU_DOUBLE   0x200</span>
+<a name="l00071"></a>00071 <span class="preprocessor"></span><span class="preprocessor">#define _FPU_SINGLE   0x0</span>
+<a name="l00072"></a>00072 <span class="preprocessor"></span>
+<a name="l00073"></a>00073 <span class="comment">/* rounding control */</span>
+<a name="l00074"></a>00074 <span class="preprocessor">#define _FPU_RC_NEAREST 0x0    </span><span class="comment">/* RECOMMENDED */</span>
+<a name="l00075"></a>00075 <span class="preprocessor">#define _FPU_RC_DOWN    0x400</span>
+<a name="l00076"></a>00076 <span class="preprocessor"></span><span class="preprocessor">#define _FPU_RC_UP      0x800</span>
+<a name="l00077"></a>00077 <span class="preprocessor"></span><span class="preprocessor">#define _FPU_RC_ZERO    0xC00</span>
+<a name="l00078"></a>00078 <span class="preprocessor"></span>
+<a name="l00079"></a>00079 <span class="preprocessor">#define _FPU_RESERVED 0xF0C0  </span><span class="comment">/* Reserved bits in cw */</span>
+<a name="l00080"></a>00080 
 <a name="l00081"></a>00081 
-<a name="l00082"></a>00082 
-<a name="l00083"></a>00083 <span class="comment">/* The fdlibm code requires strict IEEE double precision arithmetic,</span>
-<a name="l00084"></a>00084 <span class="comment">   and no interrupts for exceptions, rounding to nearest.  */</span>
-<a name="l00085"></a>00085 
-<a name="l00086"></a>00086 <span class="preprocessor">#define _FPU_DEFAULT  0x037f</span>
-<a name="l00087"></a>00087 <span class="preprocessor"></span>
-<a name="l00088"></a>00088 <span class="comment">/* IEEE:  same as above.  */</span>
-<a name="l00089"></a>00089 <span class="preprocessor">#define _FPU_IEEE     0x037f</span>
-<a name="l00090"></a>00090 <span class="preprocessor"></span>
-<a name="l00091"></a>00091 <span class="comment">/* Type of the control word.  */</span>
-<a name="l00092"></a>00092 <span class="keyword">typedef</span> <span class="keywordtype">unsigned</span> <span class="keywordtype">int</span> fpu_control_t __attribute__ ((__mode__ (__HI__)));
-<a name="l00093"></a>00093 
-<a name="l00094"></a>00094 <span class="comment">/* Macros for accessing the hardware control word.  */</span>
-<a name="l00095"></a>00095 <span class="preprocessor">#define _FPU_GETCW(cw) __asm__ (&quot;fnstcw %0&quot; : &quot;=m&quot; (*&amp;cw))</span>
-<a name="l00096"></a>00096 <span class="preprocessor"></span><span class="preprocessor">#define _FPU_SETCW(cw) __asm__ (&quot;fldcw %0&quot; : : &quot;m&quot; (*&amp;cw))</span>
-<a name="l00097"></a>00097 <span class="preprocessor"></span>
-<a name="l00098"></a>00098 <span class="comment">/* Default control word set at startup.  */</span>
-<a name="l00099"></a>00099 <span class="keyword">extern</span> fpu_control_t __fpu_control;
-<a name="l00100"></a>00100 
-<a name="l00101"></a>00101 <span class="preprocessor">#endif  </span><span class="comment">/* fpu_control.h */</span>
+<a name="l00082"></a>00082 <span class="comment">/* The fdlibm code requires strict IEEE double precision arithmetic,</span>
+<a name="l00083"></a>00083 <span class="comment">   and no interrupts for exceptions, rounding to nearest.  */</span>
+<a name="l00084"></a>00084 
+<a name="l00085"></a>00085 <span class="preprocessor">#define _FPU_DEFAULT  0x037f</span>
+<a name="l00086"></a>00086 <span class="preprocessor"></span>
+<a name="l00087"></a>00087 <span class="comment">/* IEEE:  same as above.  */</span>
+<a name="l00088"></a>00088 <span class="preprocessor">#define _FPU_IEEE     0x037f</span>
+<a name="l00089"></a>00089 <span class="preprocessor"></span>
+<a name="l00090"></a>00090 <span class="comment">/* Type of the control word.  */</span>
+<a name="l00091"></a>00091 <span class="keyword">typedef</span> <span class="keywordtype">unsigned</span> <span class="keywordtype">int</span> fpu_control_t __attribute__ ((__mode__ (__HI__)));
+<a name="l00092"></a>00092 
+<a name="l00093"></a>00093 <span class="comment">/* Macros for accessing the hardware control word.  */</span>
+<a name="l00094"></a>00094 <span class="preprocessor">#define _FPU_GETCW(cw) __asm__ (&quot;fnstcw %0&quot; : &quot;=m&quot; (*&amp;cw))</span>
+<a name="l00095"></a>00095 <span class="preprocessor"></span><span class="preprocessor">#define _FPU_SETCW(cw) __asm__ (&quot;fldcw %0&quot; : : &quot;m&quot; (*&amp;cw))</span>
+<a name="l00096"></a>00096 <span class="preprocessor"></span>
+<a name="l00097"></a>00097 <span class="comment">/* Default control word set at startup.  */</span>
+<a name="l00098"></a>00098 <span class="keyword">extern</span> fpu_control_t __fpu_control;
+<a name="l00099"></a>00099 
+<a name="l00100"></a>00100 <span class="preprocessor">#endif  </span><span class="comment">/* fpu_control.h */</span>
 </pre></div></div><!-- contents -->
 
 
 <hr class="footer"/><address class="footer"><small>
-Generated on Tue Oct 1 2019 18:06:23 for DOSBox-X by &#160;<a href="http://www.doxygen.org/index.html">
+Generated on Sun Jul 5 2020 13:11:33 for DOSBox-X by &#160;<a href="http://www.doxygen.org/index.html">
 <img class="footer" src="doxygen.png" alt="doxygen"/>
 </a> 1.8.0
 </small></address>

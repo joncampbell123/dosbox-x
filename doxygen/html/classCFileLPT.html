@@ -141,9 +141,9 @@ bool&#160;</td><td class="memItemRight" valign="bottom"><b>InstallationSuccessfu
 <tr class="memitem:ae1cefae0c35054232d464c238e7be32b"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="ae1cefae0c35054232d464c238e7be32b"></a>
 bool&#160;</td><td class="memItemRight" valign="bottom"><b>fileOpen</b></td></tr>
 <tr class="memitem:a9a234ae65d53bb0cd70965cf5b3311b3"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a9a234ae65d53bb0cd70965cf5b3311b3"></a>
-DFTYPE&#160;</td><td class="memItemRight" valign="bottom"><b>filetype</b></td></tr>
+DFTYPE&#160;</td><td class="memItemRight" valign="bottom"><b>filetype</b> = (DFTYPE)0</td></tr>
 <tr class="memitem:a913fb933edd793303b09f8cfda162d38"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a913fb933edd793303b09f8cfda162d38"></a>
-FILE *&#160;</td><td class="memItemRight" valign="bottom"><b>file</b></td></tr>
+FILE *&#160;</td><td class="memItemRight" valign="bottom"><b>file</b> = NULL</td></tr>
 <tr class="memitem:ac10aaeb39fbc19ee51bf06e62715478e"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="ac10aaeb39fbc19ee51bf06e62715478e"></a>
 std::string&#160;</td><td class="memItemRight" valign="bottom"><b>name</b></td></tr>
 <tr class="memitem:a5a56af7c4b4073500a5bc432c6ef9f6f"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a5a56af7c4b4073500a5bc432c6ef9f6f"></a>
@@ -151,23 +151,23 @@ bool&#160;</td><td class="memItemRight" valign="bottom"><b>addFF</b></td></tr>
 <tr class="memitem:ae5562e8c41afa08c27270a36ae619f9d"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="ae5562e8c41afa08c27270a36ae619f9d"></a>
 bool&#160;</td><td class="memItemRight" valign="bottom"><b>addLF</b></td></tr>
 <tr class="memitem:a2151f7022055264e4c2e05cc8ba01c31"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a2151f7022055264e4c2e05cc8ba01c31"></a>
-Bit8u&#160;</td><td class="memItemRight" valign="bottom"><b>lastChar</b></td></tr>
+Bit8u&#160;</td><td class="memItemRight" valign="bottom"><b>lastChar</b> = 0</td></tr>
 <tr class="memitem:a3f6974f3af052e2c549e721ebcd93b48"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a3f6974f3af052e2c549e721ebcd93b48"></a>
 const Bit16u *&#160;</td><td class="memItemRight" valign="bottom"><b>codepage_ptr</b></td></tr>
 <tr class="memitem:ab9f0f22206641224aa6178ff900543e0"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="ab9f0f22206641224aa6178ff900543e0"></a>
-bool&#160;</td><td class="memItemRight" valign="bottom"><b>ack_polarity</b></td></tr>
+bool&#160;</td><td class="memItemRight" valign="bottom"><b>ack_polarity</b> = false</td></tr>
 <tr class="memitem:ad59a42373cdb6ae50b983b744b79451e"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="ad59a42373cdb6ae50b983b744b79451e"></a>
-Bit8u&#160;</td><td class="memItemRight" valign="bottom"><b>datareg</b></td></tr>
+Bit8u&#160;</td><td class="memItemRight" valign="bottom"><b>datareg</b> = 0</td></tr>
 <tr class="memitem:a9ad1361fb9df3fe768573f46206c248d"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a9ad1361fb9df3fe768573f46206c248d"></a>
 Bit8u&#160;</td><td class="memItemRight" valign="bottom"><b>controlreg</b></td></tr>
 <tr class="memitem:ab146dfe78d718cee82c107ed8f1d68d1"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="ab146dfe78d718cee82c107ed8f1d68d1"></a>
-bool&#160;</td><td class="memItemRight" valign="bottom"><b>autofeed</b></td></tr>
+bool&#160;</td><td class="memItemRight" valign="bottom"><b>autofeed</b> = false</td></tr>
 <tr class="memitem:a2342d7014c2898698d2d78c4a4021fa5"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a2342d7014c2898698d2d78c4a4021fa5"></a>
 bool&#160;</td><td class="memItemRight" valign="bottom"><b>ack</b></td></tr>
 <tr class="memitem:a8575730cacb5d26414d99f944caa4f66"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a8575730cacb5d26414d99f944caa4f66"></a>
-unsigned int&#160;</td><td class="memItemRight" valign="bottom"><b>timeout</b></td></tr>
+unsigned int&#160;</td><td class="memItemRight" valign="bottom"><b>timeout</b> = 0</td></tr>
 <tr class="memitem:a96dce00b435b57411c44492ed04d129a"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a96dce00b435b57411c44492ed04d129a"></a>
-Bitu&#160;</td><td class="memItemRight" valign="bottom"><b>lastUsedTick</b></td></tr>
+Bitu&#160;</td><td class="memItemRight" valign="bottom"><b>lastUsedTick</b> = 0</td></tr>
 </table>
 <hr/><a name="details" id="details"></a><h2>Detailed Description</h2>
 <div class="textblock">
@@ -180,7 +180,7 @@ Bitu&#160;</td><td class="memItemRight" valign="bottom"><b>lastUsedTick</b></td>
 
 
 <hr class="footer"/><address class="footer"><small>
-Generated on Tue Oct 1 2019 18:06:30 for DOSBox-X by &#160;<a href="http://www.doxygen.org/index.html">
+Generated on Sun Jul 5 2020 13:11:40 for DOSBox-X by &#160;<a href="http://www.doxygen.org/index.html">
 <img class="footer" src="doxygen.png" alt="doxygen"/>
 </a> 1.8.0
 </small></address>

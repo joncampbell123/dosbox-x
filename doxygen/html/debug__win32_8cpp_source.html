@@ -96,7 +96,7 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 </div><!--header-->
 <div class="contents">
 <div class="fragment"><pre class="fragment"><a name="l00001"></a>00001 <span class="comment">/*</span>
-<a name="l00002"></a>00002 <span class="comment"> *  Copyright (C) 2002-2019  The DOSBox Team</span>
+<a name="l00002"></a>00002 <span class="comment"> *  Copyright (C) 2002-2020  The DOSBox Team</span>
 <a name="l00003"></a>00003 <span class="comment"> *</span>
 <a name="l00004"></a>00004 <span class="comment"> *  This program is free software; you can redistribute it and/or modify</span>
 <a name="l00005"></a>00005 <span class="comment"> *  it under the terms of the GNU General Public License as published by</span>
@@ -108,9 +108,9 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l00011"></a>00011 <span class="comment"> *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the</span>
 <a name="l00012"></a>00012 <span class="comment"> *  GNU General Public License for more details.</span>
 <a name="l00013"></a>00013 <span class="comment"> *</span>
-<a name="l00014"></a>00014 <span class="comment"> *  You should have received a copy of the GNU General Public License</span>
-<a name="l00015"></a>00015 <span class="comment"> *  along with this program; if not, write to the Free Software</span>
-<a name="l00016"></a>00016 <span class="comment"> *  Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1335, USA.</span>
+<a name="l00014"></a>00014 <span class="comment"> *  You should have received a copy of the GNU General Public License along</span>
+<a name="l00015"></a>00015 <span class="comment"> *  with this program; if not, write to the Free Software Foundation, Inc.,</span>
+<a name="l00016"></a>00016 <span class="comment"> *  51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.</span>
 <a name="l00017"></a>00017 <span class="comment"> */</span>
 <a name="l00018"></a>00018 
 <a name="l00019"></a>00019 <span class="preprocessor">#ifdef WIN32</span>
@@ -129,57 +129,55 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l00032"></a>00032 <span class="comment">*/</span>
 <a name="l00033"></a>00033 <span class="keyword">static</span> <span class="keywordtype">void</span> ResizeConsole( HANDLE hConsole, SHORT xSize, SHORT ySize ) {   
 <a name="l00034"></a>00034         CONSOLE_SCREEN_BUFFER_INFO csbi; <span class="comment">// Hold Current Console Buffer Info </span>
-<a name="l00035"></a>00035         BOOL bSuccess;   
-<a name="l00036"></a>00036         SMALL_RECT srWindowRect;         <span class="comment">// Hold the New Console Size </span>
-<a name="l00037"></a>00037         COORD coordScreen;    
-<a name="l00038"></a>00038         
-<a name="l00039"></a>00039         bSuccess = GetConsoleScreenBufferInfo( hConsole, &amp;csbi );
-<a name="l00040"></a>00040         
-<a name="l00041"></a>00041         <span class="comment">// Get the Largest Size we can size the Console Window to </span>
-<a name="l00042"></a>00042         coordScreen = GetLargestConsoleWindowSize( hConsole );
-<a name="l00043"></a>00043         
-<a name="l00044"></a>00044         <span class="comment">// Define the New Console Window Size and Scroll Position </span>
-<a name="l00045"></a>00045         srWindowRect.Right  = (SHORT)(min(xSize, coordScreen.X) - 1);
-<a name="l00046"></a>00046         srWindowRect.Bottom = (SHORT)(min(ySize, coordScreen.Y) - 1);
-<a name="l00047"></a>00047         srWindowRect.Left   = srWindowRect.Top = (SHORT)0;
-<a name="l00048"></a>00048         
-<a name="l00049"></a>00049         <span class="comment">// Define the New Console Buffer Size    </span>
-<a name="l00050"></a>00050         coordScreen.X = xSize;
-<a name="l00051"></a>00051         coordScreen.Y = ySize;
-<a name="l00052"></a>00052         
-<a name="l00053"></a>00053         <span class="comment">// If the Current Buffer is Larger than what we want, Resize the </span>
-<a name="l00054"></a>00054         <span class="comment">// Console Window First, then the Buffer </span>
-<a name="l00055"></a>00055         <span class="keywordflow">if</span>( (DWORD)csbi.dwSize.X * csbi.dwSize.Y &gt; (DWORD) xSize * ySize)
-<a name="l00056"></a>00056         {
-<a name="l00057"></a>00057                 bSuccess = SetConsoleWindowInfo( hConsole, TRUE, &amp;srWindowRect );
-<a name="l00058"></a>00058                 bSuccess = SetConsoleScreenBufferSize( hConsole, coordScreen );
-<a name="l00059"></a>00059         }
-<a name="l00060"></a>00060         
-<a name="l00061"></a>00061         <span class="comment">// If the Current Buffer is Smaller than what we want, Resize the </span>
-<a name="l00062"></a>00062         <span class="comment">// Buffer First, then the Console Window </span>
-<a name="l00063"></a>00063         <span class="keywordflow">if</span>( (DWORD)csbi.dwSize.X * csbi.dwSize.Y &lt; (DWORD) xSize * ySize )
-<a name="l00064"></a>00064         {
-<a name="l00065"></a>00065                 bSuccess = SetConsoleScreenBufferSize( hConsole, coordScreen );
-<a name="l00066"></a>00066                 bSuccess = SetConsoleWindowInfo( hConsole, TRUE, &amp;srWindowRect );
-<a name="l00067"></a>00067         }
-<a name="l00068"></a>00068         
-<a name="l00069"></a>00069         <span class="comment">// If the Current Buffer *is* the Size we want, Don&#39;t do anything! </span>
-<a name="l00070"></a>00070     (void)bSuccess;<span class="comment">//UNUSED</span>
-<a name="l00071"></a>00071         <span class="keywordflow">return</span>;
-<a name="l00072"></a>00072    }
-<a name="l00073"></a>00073 
-<a name="l00074"></a>00074 
-<a name="l00075"></a>00075 <span class="keywordtype">void</span> WIN32_Console() {
-<a name="l00076"></a>00076         AllocConsole();
-<a name="l00077"></a>00077         SetConsoleTitle(<span class="stringliteral">&quot;DOSBox Debugger&quot;</span>);
-<a name="l00078"></a>00078         ResizeConsole(GetStdHandle(STD_OUTPUT_HANDLE),80,50);
-<a name="l00079"></a>00079 }
-<a name="l00080"></a>00080 <span class="preprocessor">#endif</span>
+<a name="l00035"></a>00035         SMALL_RECT srWindowRect;         <span class="comment">// Hold the New Console Size </span>
+<a name="l00036"></a>00036         COORD coordScreen;    
+<a name="l00037"></a>00037         
+<a name="l00038"></a>00038         GetConsoleScreenBufferInfo( hConsole, &amp;csbi );
+<a name="l00039"></a>00039         
+<a name="l00040"></a>00040         <span class="comment">// Get the Largest Size we can size the Console Window to </span>
+<a name="l00041"></a>00041         coordScreen = GetLargestConsoleWindowSize( hConsole );
+<a name="l00042"></a>00042         
+<a name="l00043"></a>00043         <span class="comment">// Define the New Console Window Size and Scroll Position </span>
+<a name="l00044"></a>00044         srWindowRect.Right  = (SHORT)(min(xSize, coordScreen.X) - 1);
+<a name="l00045"></a>00045         srWindowRect.Bottom = (SHORT)(min(ySize, coordScreen.Y) - 1);
+<a name="l00046"></a>00046         srWindowRect.Left   = srWindowRect.Top = (SHORT)0;
+<a name="l00047"></a>00047         
+<a name="l00048"></a>00048         <span class="comment">// Define the New Console Buffer Size    </span>
+<a name="l00049"></a>00049         coordScreen.X = xSize;
+<a name="l00050"></a>00050         coordScreen.Y = ySize;
+<a name="l00051"></a>00051         
+<a name="l00052"></a>00052         <span class="comment">// If the Current Buffer is Larger than what we want, Resize the </span>
+<a name="l00053"></a>00053         <span class="comment">// Console Window First, then the Buffer </span>
+<a name="l00054"></a>00054         <span class="keywordflow">if</span>( (DWORD)csbi.dwSize.X * csbi.dwSize.Y &gt; (DWORD) xSize * ySize)
+<a name="l00055"></a>00055         {
+<a name="l00056"></a>00056                 SetConsoleWindowInfo( hConsole, TRUE, &amp;srWindowRect );
+<a name="l00057"></a>00057                 SetConsoleScreenBufferSize( hConsole, coordScreen );
+<a name="l00058"></a>00058         }
+<a name="l00059"></a>00059         
+<a name="l00060"></a>00060         <span class="comment">// If the Current Buffer is Smaller than what we want, Resize the </span>
+<a name="l00061"></a>00061         <span class="comment">// Buffer First, then the Console Window </span>
+<a name="l00062"></a>00062         <span class="keywordflow">if</span>( (DWORD)csbi.dwSize.X * csbi.dwSize.Y &lt; (DWORD) xSize * ySize )
+<a name="l00063"></a>00063         {
+<a name="l00064"></a>00064                 SetConsoleScreenBufferSize( hConsole, coordScreen );
+<a name="l00065"></a>00065                 SetConsoleWindowInfo( hConsole, TRUE, &amp;srWindowRect );
+<a name="l00066"></a>00066         }
+<a name="l00067"></a>00067         
+<a name="l00068"></a>00068         <span class="comment">// If the Current Buffer *is* the Size we want, Don&#39;t do anything!</span>
+<a name="l00069"></a>00069         <span class="keywordflow">return</span>;
+<a name="l00070"></a>00070    }
+<a name="l00071"></a>00071 
+<a name="l00072"></a>00072 
+<a name="l00073"></a>00073 <span class="keywordtype">void</span> WIN32_Console() {
+<a name="l00074"></a>00074         AllocConsole();
+<a name="l00075"></a>00075         SetConsoleTitle(<span class="stringliteral">&quot;DOSBox-X Debugger&quot;</span>);
+<a name="l00076"></a>00076         ResizeConsole(GetStdHandle(STD_OUTPUT_HANDLE),80,50);
+<a name="l00077"></a>00077 }
+<a name="l00078"></a>00078 <span class="preprocessor">#endif</span>
 </pre></div></div><!-- contents -->
 
 
 <hr class="footer"/><address class="footer"><small>
-Generated on Tue Oct 1 2019 18:06:24 for DOSBox-X by &#160;<a href="http://www.doxygen.org/index.html">
+Generated on Sun Jul 5 2020 13:11:34 for DOSBox-X by &#160;<a href="http://www.doxygen.org/index.html">
 <img class="footer" src="doxygen.png" alt="doxygen"/>
 </a> 1.8.0
 </small></address>

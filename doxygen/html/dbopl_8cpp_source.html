@@ -96,7 +96,7 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 </div><!--header-->
 <div class="contents">
 <div class="fragment"><pre class="fragment"><a name="l00001"></a>00001 <span class="comment">/*</span>
-<a name="l00002"></a>00002 <span class="comment"> *  Copyright (C) 2002-2019  The DOSBox Team</span>
+<a name="l00002"></a>00002 <span class="comment"> *  Copyright (C) 2002-2020  The DOSBox Team</span>
 <a name="l00003"></a>00003 <span class="comment"> *</span>
 <a name="l00004"></a>00004 <span class="comment"> *  This program is free software; you can redistribute it and/or modify</span>
 <a name="l00005"></a>00005 <span class="comment"> *  it under the terms of the GNU General Public License as published by</span>
@@ -108,9 +108,9 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l00011"></a>00011 <span class="comment"> *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the</span>
 <a name="l00012"></a>00012 <span class="comment"> *  GNU General Public License for more details.</span>
 <a name="l00013"></a>00013 <span class="comment"> *</span>
-<a name="l00014"></a>00014 <span class="comment"> *  You should have received a copy of the GNU General Public License</span>
-<a name="l00015"></a>00015 <span class="comment"> *  along with this program; if not, write to the Free Software</span>
-<a name="l00016"></a>00016 <span class="comment"> *  Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1335, USA.</span>
+<a name="l00014"></a>00014 <span class="comment"> *  You should have received a copy of the GNU General Public License along</span>
+<a name="l00015"></a>00015 <span class="comment"> *  with this program; if not, write to the Free Software Foundation, Inc.,</span>
+<a name="l00016"></a>00016 <span class="comment"> *  51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.</span>
 <a name="l00017"></a>00017 <span class="comment"> */</span>
 <a name="l00018"></a>00018 
 <a name="l00019"></a>00019 <span class="comment">/*</span>
@@ -709,920 +709,1080 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l00612"></a>00612         reg60 = 0;
 <a name="l00613"></a>00613         reg80 = 0;
 <a name="l00614"></a>00614         regE0 = 0;
-<a name="l00615"></a>00615         SetState( OFF );
-<a name="l00616"></a>00616         rateZero = (1 &lt;&lt; OFF);
-<a name="l00617"></a>00617         sustainLevel = ENV_MAX;
-<a name="l00618"></a>00618         currentLevel = ENV_MAX;
-<a name="l00619"></a>00619         totalLevel = ENV_MAX;
-<a name="l00620"></a>00620         volume = ENV_MAX;
-<a name="l00621"></a>00621         releaseAdd = 0;
-<a name="l00622"></a>00622 }
-<a name="l00623"></a>00623 
-<a name="l00624"></a>00624 <span class="comment">/*</span>
-<a name="l00625"></a>00625 <span class="comment">        Channel</span>
-<a name="l00626"></a>00626 <span class="comment">*/</span>
-<a name="l00627"></a>00627 
-<a name="l00628"></a>00628 Channel::Channel() {
-<a name="l00629"></a>00629         old[0] = old[1] = 0;
-<a name="l00630"></a>00630         chanData = 0;
-<a name="l00631"></a>00631         regB0 = 0;
-<a name="l00632"></a>00632         regC0 = 0;
-<a name="l00633"></a>00633         maskLeft = -1;
-<a name="l00634"></a>00634         maskRight = -1;
-<a name="l00635"></a>00635         feedback = 31;
-<a name="l00636"></a>00636         fourMask = 0;
-<a name="l00637"></a>00637         synthHandler = &amp;Channel::BlockTemplate&lt; sm2FM &gt;;
-<a name="l00638"></a>00638 }
-<a name="l00639"></a>00639 
-<a name="l00640"></a>00640 <span class="keywordtype">void</span> Channel::SetChanData( <span class="keyword">const</span> Chip* chip, Bit32u data ) {
-<a name="l00641"></a>00641         Bit32u change = chanData ^ data;
-<a name="l00642"></a>00642         chanData = data;
-<a name="l00643"></a>00643         Op( 0 )-&gt;chanData = data;
-<a name="l00644"></a>00644         Op( 1 )-&gt;chanData = data;
-<a name="l00645"></a>00645         <span class="comment">//Since a frequency update triggered this, always update frequency</span>
-<a name="l00646"></a>00646         Op( 0 )-&gt;UpdateFrequency();
-<a name="l00647"></a>00647         Op( 1 )-&gt;UpdateFrequency();
-<a name="l00648"></a>00648         <span class="keywordflow">if</span> ( change &amp; ( 0xffu &lt;&lt; SHIFT_KSLBASE ) ) {
-<a name="l00649"></a>00649                 Op( 0 )-&gt;UpdateAttenuation();
-<a name="l00650"></a>00650                 Op( 1 )-&gt;UpdateAttenuation();
-<a name="l00651"></a>00651         }
-<a name="l00652"></a>00652         <span class="keywordflow">if</span> ( change &amp; ( 0xffu &lt;&lt; SHIFT_KEYCODE ) ) {
-<a name="l00653"></a>00653                 Op( 0 )-&gt;UpdateRates( chip );
-<a name="l00654"></a>00654                 Op( 1 )-&gt;UpdateRates( chip );
-<a name="l00655"></a>00655         }
-<a name="l00656"></a>00656 }
-<a name="l00657"></a>00657 
-<a name="l00658"></a>00658 <span class="keywordtype">void</span> Channel::UpdateFrequency( <span class="keyword">const</span> Chip* chip, Bit8u fourOp ) {
-<a name="l00659"></a>00659         <span class="comment">//Extrace the frequency bits</span>
-<a name="l00660"></a>00660         Bit32u data = chanData &amp; 0xffff;
-<a name="l00661"></a>00661         Bit32u kslBase = KslTable[ data &gt;&gt; 6 ];
-<a name="l00662"></a>00662         Bit32u keyCode = ( data &amp; 0x1c00) &gt;&gt; 9;
-<a name="l00663"></a>00663         <span class="keywordflow">if</span> ( chip-&gt;reg08 &amp; 0x40 ) {
-<a name="l00664"></a>00664                 keyCode |= ( data &amp; 0x100)&gt;&gt;8;  <span class="comment">/* notesel == 1 */</span>
-<a name="l00665"></a>00665         } <span class="keywordflow">else</span> {
-<a name="l00666"></a>00666                 keyCode |= ( data &amp; 0x200)&gt;&gt;9;  <span class="comment">/* notesel == 0 */</span>
-<a name="l00667"></a>00667         }
-<a name="l00668"></a>00668         <span class="comment">//Add the keycode and ksl into the highest bits of chanData</span>
-<a name="l00669"></a>00669         data |= (keyCode &lt;&lt; SHIFT_KEYCODE) | ( kslBase &lt;&lt; SHIFT_KSLBASE );
-<a name="l00670"></a>00670         ( <span class="keyword">this</span> + 0 )-&gt;SetChanData( chip, data );
-<a name="l00671"></a>00671         <span class="keywordflow">if</span> ( fourOp &amp; 0x3f ) {
-<a name="l00672"></a>00672                 ( <span class="keyword">this</span> + 1 )-&gt;SetChanData( chip, data );
-<a name="l00673"></a>00673         }
-<a name="l00674"></a>00674 }
-<a name="l00675"></a>00675 
-<a name="l00676"></a>00676 <span class="keywordtype">void</span> Channel::WriteA0( <span class="keyword">const</span> Chip* chip, Bit8u val ) {
-<a name="l00677"></a>00677         Bit8u fourOp = chip-&gt;reg104 &amp; chip-&gt;opl3Active &amp; fourMask;
-<a name="l00678"></a>00678         <span class="comment">//Don&#39;t handle writes to silent fourop channels</span>
-<a name="l00679"></a>00679         <span class="keywordflow">if</span> ( fourOp &gt; 0x80 )
-<a name="l00680"></a>00680                 <span class="keywordflow">return</span>;
-<a name="l00681"></a>00681         Bit32u change = (chanData ^ val ) &amp; 0xff;
-<a name="l00682"></a>00682         <span class="keywordflow">if</span> ( change ) {
-<a name="l00683"></a>00683                 chanData ^= change;
-<a name="l00684"></a>00684                 UpdateFrequency( chip, fourOp );
-<a name="l00685"></a>00685         }
-<a name="l00686"></a>00686 }
-<a name="l00687"></a>00687 
-<a name="l00688"></a>00688 <span class="keywordtype">void</span> Channel::WriteB0( <span class="keyword">const</span> Chip* chip, Bit8u val ) {
-<a name="l00689"></a>00689         Bit8u fourOp = chip-&gt;reg104 &amp; chip-&gt;opl3Active &amp; fourMask;
-<a name="l00690"></a>00690         <span class="comment">//Don&#39;t handle writes to silent fourop channels</span>
-<a name="l00691"></a>00691         <span class="keywordflow">if</span> ( fourOp &gt; 0x80 )
-<a name="l00692"></a>00692                 <span class="keywordflow">return</span>;
-<a name="l00693"></a>00693         Bitu change = (chanData ^ ( (<span class="keywordtype">unsigned</span> int)val &lt;&lt; 8u ) ) &amp; 0x1f00u;
-<a name="l00694"></a>00694         <span class="keywordflow">if</span> ( change ) {
-<a name="l00695"></a>00695                 chanData ^= change;
-<a name="l00696"></a>00696                 UpdateFrequency( chip, fourOp );
-<a name="l00697"></a>00697         }
-<a name="l00698"></a>00698         <span class="comment">//Check for a change in the keyon/off state</span>
-<a name="l00699"></a>00699         <span class="keywordflow">if</span> ( !(( val ^ regB0) &amp; 0x20))
-<a name="l00700"></a>00700                 <span class="keywordflow">return</span>;
-<a name="l00701"></a>00701         regB0 = val;
-<a name="l00702"></a>00702         <span class="keywordflow">if</span> ( val &amp; 0x20 ) {
-<a name="l00703"></a>00703                 Op(0)-&gt;KeyOn( 0x1 );
-<a name="l00704"></a>00704                 Op(1)-&gt;KeyOn( 0x1 );
-<a name="l00705"></a>00705                 <span class="keywordflow">if</span> ( fourOp &amp; 0x3f ) {
-<a name="l00706"></a>00706                         ( <span class="keyword">this</span> + 1 )-&gt;Op(0)-&gt;KeyOn( 1 );
-<a name="l00707"></a>00707                         ( <span class="keyword">this</span> + 1 )-&gt;Op(1)-&gt;KeyOn( 1 );
-<a name="l00708"></a>00708                 }
-<a name="l00709"></a>00709         } <span class="keywordflow">else</span> {
-<a name="l00710"></a>00710                 Op(0)-&gt;KeyOff( 0x1 );
-<a name="l00711"></a>00711                 Op(1)-&gt;KeyOff( 0x1 );
-<a name="l00712"></a>00712                 <span class="keywordflow">if</span> ( fourOp &amp; 0x3f ) {
-<a name="l00713"></a>00713                         ( <span class="keyword">this</span> + 1 )-&gt;Op(0)-&gt;KeyOff( 1 );
-<a name="l00714"></a>00714                         ( <span class="keyword">this</span> + 1 )-&gt;Op(1)-&gt;KeyOff( 1 );
-<a name="l00715"></a>00715                 }
-<a name="l00716"></a>00716         }
-<a name="l00717"></a>00717 }
-<a name="l00718"></a>00718 
-<a name="l00719"></a>00719 <span class="keywordtype">void</span> Channel::WriteC0(<span class="keyword">const</span> Chip* chip, Bit8u val) {
-<a name="l00720"></a>00720         Bit8u change = val ^ regC0;
-<a name="l00721"></a>00721         <span class="keywordflow">if</span> (!change)
-<a name="l00722"></a>00722                 <span class="keywordflow">return</span>;
-<a name="l00723"></a>00723         regC0 = val;
-<a name="l00724"></a>00724         feedback = (regC0 &gt;&gt; 1) &amp; 7;
-<a name="l00725"></a>00725         <span class="keywordflow">if</span> (feedback) {
-<a name="l00726"></a>00726                 <span class="comment">//We shift the input to the right 10 bit wave index value</span>
-<a name="l00727"></a>00727                 feedback = 9 - feedback;
-<a name="l00728"></a>00728         }
-<a name="l00729"></a>00729         <span class="keywordflow">else</span> {
-<a name="l00730"></a>00730                 feedback = 31;
-<a name="l00731"></a>00731         }
-<a name="l00732"></a>00732         UpdateSynth(chip);
-<a name="l00733"></a>00733 }
-<a name="l00734"></a>00734 
-<a name="l00735"></a>00735 <span class="keywordtype">void</span> Channel::UpdateSynth( <span class="keyword">const</span> Chip* chip ) {
-<a name="l00736"></a>00736         <span class="comment">//Select the new synth mode</span>
-<a name="l00737"></a>00737         <span class="keywordflow">if</span> ( chip-&gt;opl3Active ) {
-<a name="l00738"></a>00738                 <span class="comment">//4-op mode enabled for this channel</span>
-<a name="l00739"></a>00739                 <span class="keywordflow">if</span> ( (chip-&gt;reg104 &amp; fourMask) &amp; 0x3f ) {
-<a name="l00740"></a>00740                         Channel* chan0, *chan1;
-<a name="l00741"></a>00741                         <span class="comment">//Check if it&#39;s the 2nd channel in a 4-op</span>
-<a name="l00742"></a>00742                         <span class="keywordflow">if</span> ( !(fourMask &amp; 0x80 ) ) {
-<a name="l00743"></a>00743                                 chan0 = <span class="keyword">this</span>;
-<a name="l00744"></a>00744                                 chan1 = <span class="keyword">this</span> + 1;
-<a name="l00745"></a>00745                         } <span class="keywordflow">else</span> {
-<a name="l00746"></a>00746                                 chan0 = <span class="keyword">this</span> - 1;
-<a name="l00747"></a>00747                                 chan1 = <span class="keyword">this</span>;
-<a name="l00748"></a>00748                         }
-<a name="l00749"></a>00749 
-<a name="l00750"></a>00750                         Bit8u synth = ( (chan0-&gt;regC0 &amp; 1) &lt;&lt; 0 )| (( chan1-&gt;regC0 &amp; 1) &lt;&lt; 1 );
-<a name="l00751"></a>00751                         <span class="keywordflow">switch</span> ( synth ) {
-<a name="l00752"></a>00752                         <span class="keywordflow">case</span> 0:
-<a name="l00753"></a>00753                                 chan0-&gt;synthHandler = &amp;Channel::BlockTemplate&lt; sm3FMFM &gt;;
-<a name="l00754"></a>00754                                 <span class="keywordflow">break</span>;
-<a name="l00755"></a>00755                         <span class="keywordflow">case</span> 1:
-<a name="l00756"></a>00756                                 chan0-&gt;synthHandler = &amp;Channel::BlockTemplate&lt; sm3AMFM &gt;;
-<a name="l00757"></a>00757                                 <span class="keywordflow">break</span>;
-<a name="l00758"></a>00758                         <span class="keywordflow">case</span> 2:
-<a name="l00759"></a>00759                                 chan0-&gt;synthHandler = &amp;Channel::BlockTemplate&lt; sm3FMAM &gt;;
-<a name="l00760"></a>00760                                 <span class="keywordflow">break</span>;
-<a name="l00761"></a>00761                         <span class="keywordflow">case</span> 3:
-<a name="l00762"></a>00762                                 chan0-&gt;synthHandler = &amp;Channel::BlockTemplate&lt; sm3AMAM &gt;;
+<a name="l00615"></a>00615     waveBase = 0;
+<a name="l00616"></a>00616     waveMask = 0;
+<a name="l00617"></a>00617     waveStart = 0;
+<a name="l00618"></a>00618     vibrato = 0;
+<a name="l00619"></a>00619     attackAdd = 0;
+<a name="l00620"></a>00620     decayAdd = 0;
+<a name="l00621"></a>00621     rateIndex = 0;
+<a name="l00622"></a>00622     tremoloMask = 0;
+<a name="l00623"></a>00623     vibStrength = 0;
+<a name="l00624"></a>00624         SetState( OFF );
+<a name="l00625"></a>00625         rateZero = (1 &lt;&lt; OFF);
+<a name="l00626"></a>00626         sustainLevel = ENV_MAX;
+<a name="l00627"></a>00627         currentLevel = ENV_MAX;
+<a name="l00628"></a>00628         totalLevel = ENV_MAX;
+<a name="l00629"></a>00629         volume = ENV_MAX;
+<a name="l00630"></a>00630         releaseAdd = 0;
+<a name="l00631"></a>00631 }
+<a name="l00632"></a>00632 
+<a name="l00633"></a>00633 <span class="comment">/*</span>
+<a name="l00634"></a>00634 <span class="comment">        Channel</span>
+<a name="l00635"></a>00635 <span class="comment">*/</span>
+<a name="l00636"></a>00636 
+<a name="l00637"></a>00637 Channel::Channel() {
+<a name="l00638"></a>00638         old[0] = old[1] = 0;
+<a name="l00639"></a>00639         chanData = 0;
+<a name="l00640"></a>00640         regB0 = 0;
+<a name="l00641"></a>00641         regC0 = 0;
+<a name="l00642"></a>00642         maskLeft = -1;
+<a name="l00643"></a>00643         maskRight = -1;
+<a name="l00644"></a>00644         feedback = 31;
+<a name="l00645"></a>00645         fourMask = 0;
+<a name="l00646"></a>00646         synthHandler = &amp;Channel::BlockTemplate&lt; sm2FM &gt;;
+<a name="l00647"></a>00647 }
+<a name="l00648"></a>00648 
+<a name="l00649"></a>00649 <span class="keywordtype">void</span> Channel::SetChanData( <span class="keyword">const</span> Chip* chip, Bit32u data ) {
+<a name="l00650"></a>00650         Bit32u change = chanData ^ data;
+<a name="l00651"></a>00651         chanData = data;
+<a name="l00652"></a>00652         Op( 0 )-&gt;chanData = data;
+<a name="l00653"></a>00653         Op( 1 )-&gt;chanData = data;
+<a name="l00654"></a>00654         <span class="comment">//Since a frequency update triggered this, always update frequency</span>
+<a name="l00655"></a>00655         Op( 0 )-&gt;UpdateFrequency();
+<a name="l00656"></a>00656         Op( 1 )-&gt;UpdateFrequency();
+<a name="l00657"></a>00657         <span class="keywordflow">if</span> ( change &amp; ( 0xffu &lt;&lt; SHIFT_KSLBASE ) ) {
+<a name="l00658"></a>00658                 Op( 0 )-&gt;UpdateAttenuation();
+<a name="l00659"></a>00659                 Op( 1 )-&gt;UpdateAttenuation();
+<a name="l00660"></a>00660         }
+<a name="l00661"></a>00661         <span class="keywordflow">if</span> ( change &amp; ( 0xffu &lt;&lt; SHIFT_KEYCODE ) ) {
+<a name="l00662"></a>00662                 Op( 0 )-&gt;UpdateRates( chip );
+<a name="l00663"></a>00663                 Op( 1 )-&gt;UpdateRates( chip );
+<a name="l00664"></a>00664         }
+<a name="l00665"></a>00665 }
+<a name="l00666"></a>00666 
+<a name="l00667"></a>00667 <span class="keywordtype">void</span> Channel::UpdateFrequency( <span class="keyword">const</span> Chip* chip, Bit8u fourOp ) {
+<a name="l00668"></a>00668         <span class="comment">//Extrace the frequency bits</span>
+<a name="l00669"></a>00669         Bit32u data = chanData &amp; 0xffff;
+<a name="l00670"></a>00670         Bit32u kslBase = KslTable[ data &gt;&gt; 6 ];
+<a name="l00671"></a>00671         Bit32u keyCode = ( data &amp; 0x1c00) &gt;&gt; 9;
+<a name="l00672"></a>00672         <span class="keywordflow">if</span> ( chip-&gt;reg08 &amp; 0x40 ) {
+<a name="l00673"></a>00673                 keyCode |= ( data &amp; 0x100)&gt;&gt;8;  <span class="comment">/* notesel == 1 */</span>
+<a name="l00674"></a>00674         } <span class="keywordflow">else</span> {
+<a name="l00675"></a>00675                 keyCode |= ( data &amp; 0x200)&gt;&gt;9;  <span class="comment">/* notesel == 0 */</span>
+<a name="l00676"></a>00676         }
+<a name="l00677"></a>00677         <span class="comment">//Add the keycode and ksl into the highest bits of chanData</span>
+<a name="l00678"></a>00678         data |= (keyCode &lt;&lt; SHIFT_KEYCODE) | ( kslBase &lt;&lt; SHIFT_KSLBASE );
+<a name="l00679"></a>00679         ( <span class="keyword">this</span> + 0 )-&gt;SetChanData( chip, data );
+<a name="l00680"></a>00680         <span class="keywordflow">if</span> ( fourOp &amp; 0x3f ) {
+<a name="l00681"></a>00681                 ( <span class="keyword">this</span> + 1 )-&gt;SetChanData( chip, data );
+<a name="l00682"></a>00682         }
+<a name="l00683"></a>00683 }
+<a name="l00684"></a>00684 
+<a name="l00685"></a>00685 <span class="keywordtype">void</span> Channel::WriteA0( <span class="keyword">const</span> Chip* chip, Bit8u val ) {
+<a name="l00686"></a>00686         Bit8u fourOp = chip-&gt;reg104 &amp; chip-&gt;opl3Active &amp; fourMask;
+<a name="l00687"></a>00687         <span class="comment">//Don&#39;t handle writes to silent fourop channels</span>
+<a name="l00688"></a>00688         <span class="keywordflow">if</span> ( fourOp &gt; 0x80 )
+<a name="l00689"></a>00689                 <span class="keywordflow">return</span>;
+<a name="l00690"></a>00690         Bit32u change = (chanData ^ val ) &amp; 0xff;
+<a name="l00691"></a>00691         <span class="keywordflow">if</span> ( change ) {
+<a name="l00692"></a>00692                 chanData ^= change;
+<a name="l00693"></a>00693                 UpdateFrequency( chip, fourOp );
+<a name="l00694"></a>00694         }
+<a name="l00695"></a>00695 }
+<a name="l00696"></a>00696 
+<a name="l00697"></a>00697 <span class="keywordtype">void</span> Channel::WriteB0( <span class="keyword">const</span> Chip* chip, Bit8u val ) {
+<a name="l00698"></a>00698         Bit8u fourOp = chip-&gt;reg104 &amp; chip-&gt;opl3Active &amp; fourMask;
+<a name="l00699"></a>00699         <span class="comment">//Don&#39;t handle writes to silent fourop channels</span>
+<a name="l00700"></a>00700         <span class="keywordflow">if</span> ( fourOp &gt; 0x80 )
+<a name="l00701"></a>00701                 <span class="keywordflow">return</span>;
+<a name="l00702"></a>00702         Bitu change = (chanData ^ ( (<span class="keywordtype">unsigned</span> int)val &lt;&lt; 8u ) ) &amp; 0x1f00u;
+<a name="l00703"></a>00703         <span class="keywordflow">if</span> ( change ) {
+<a name="l00704"></a>00704                 chanData ^= change;
+<a name="l00705"></a>00705                 UpdateFrequency( chip, fourOp );
+<a name="l00706"></a>00706         }
+<a name="l00707"></a>00707         <span class="comment">//Check for a change in the keyon/off state</span>
+<a name="l00708"></a>00708         <span class="keywordflow">if</span> ( !(( val ^ regB0) &amp; 0x20))
+<a name="l00709"></a>00709                 <span class="keywordflow">return</span>;
+<a name="l00710"></a>00710         regB0 = val;
+<a name="l00711"></a>00711         <span class="keywordflow">if</span> ( val &amp; 0x20 ) {
+<a name="l00712"></a>00712                 Op(0)-&gt;KeyOn( 0x1 );
+<a name="l00713"></a>00713                 Op(1)-&gt;KeyOn( 0x1 );
+<a name="l00714"></a>00714                 <span class="keywordflow">if</span> ( fourOp &amp; 0x3f ) {
+<a name="l00715"></a>00715                         ( <span class="keyword">this</span> + 1 )-&gt;Op(0)-&gt;KeyOn( 1 );
+<a name="l00716"></a>00716                         ( <span class="keyword">this</span> + 1 )-&gt;Op(1)-&gt;KeyOn( 1 );
+<a name="l00717"></a>00717                 }
+<a name="l00718"></a>00718         } <span class="keywordflow">else</span> {
+<a name="l00719"></a>00719                 Op(0)-&gt;KeyOff( 0x1 );
+<a name="l00720"></a>00720                 Op(1)-&gt;KeyOff( 0x1 );
+<a name="l00721"></a>00721                 <span class="keywordflow">if</span> ( fourOp &amp; 0x3f ) {
+<a name="l00722"></a>00722                         ( <span class="keyword">this</span> + 1 )-&gt;Op(0)-&gt;KeyOff( 1 );
+<a name="l00723"></a>00723                         ( <span class="keyword">this</span> + 1 )-&gt;Op(1)-&gt;KeyOff( 1 );
+<a name="l00724"></a>00724                 }
+<a name="l00725"></a>00725         }
+<a name="l00726"></a>00726 }
+<a name="l00727"></a>00727 
+<a name="l00728"></a>00728 <span class="keywordtype">void</span> Channel::WriteC0(<span class="keyword">const</span> Chip* chip, Bit8u val) {
+<a name="l00729"></a>00729         Bit8u change = val ^ regC0;
+<a name="l00730"></a>00730         <span class="keywordflow">if</span> (!change)
+<a name="l00731"></a>00731                 <span class="keywordflow">return</span>;
+<a name="l00732"></a>00732         regC0 = val;
+<a name="l00733"></a>00733         feedback = (regC0 &gt;&gt; 1) &amp; 7;
+<a name="l00734"></a>00734         <span class="keywordflow">if</span> (feedback) {
+<a name="l00735"></a>00735                 <span class="comment">//We shift the input to the right 10 bit wave index value</span>
+<a name="l00736"></a>00736                 feedback = 9 - feedback;
+<a name="l00737"></a>00737         }
+<a name="l00738"></a>00738         <span class="keywordflow">else</span> {
+<a name="l00739"></a>00739                 feedback = 31;
+<a name="l00740"></a>00740         }
+<a name="l00741"></a>00741         UpdateSynth(chip);
+<a name="l00742"></a>00742 }
+<a name="l00743"></a>00743 
+<a name="l00744"></a>00744 <span class="keywordtype">void</span> Channel::UpdateSynth( <span class="keyword">const</span> Chip* chip ) {
+<a name="l00745"></a>00745         <span class="comment">//Select the new synth mode</span>
+<a name="l00746"></a>00746         <span class="keywordflow">if</span> ( chip-&gt;opl3Active ) {
+<a name="l00747"></a>00747                 <span class="comment">//4-op mode enabled for this channel</span>
+<a name="l00748"></a>00748                 <span class="keywordflow">if</span> ( (chip-&gt;reg104 &amp; fourMask) &amp; 0x3f ) {
+<a name="l00749"></a>00749                         Channel* chan0, *chan1;
+<a name="l00750"></a>00750                         <span class="comment">//Check if it&#39;s the 2nd channel in a 4-op</span>
+<a name="l00751"></a>00751                         <span class="keywordflow">if</span> ( !(fourMask &amp; 0x80 ) ) {
+<a name="l00752"></a>00752                                 chan0 = <span class="keyword">this</span>;
+<a name="l00753"></a>00753                                 chan1 = <span class="keyword">this</span> + 1;
+<a name="l00754"></a>00754                         } <span class="keywordflow">else</span> {
+<a name="l00755"></a>00755                                 chan0 = <span class="keyword">this</span> - 1;
+<a name="l00756"></a>00756                                 chan1 = <span class="keyword">this</span>;
+<a name="l00757"></a>00757                         }
+<a name="l00758"></a>00758 
+<a name="l00759"></a>00759                         Bit8u synth = ( (chan0-&gt;regC0 &amp; 1) &lt;&lt; 0 )| (( chan1-&gt;regC0 &amp; 1) &lt;&lt; 1 );
+<a name="l00760"></a>00760                         <span class="keywordflow">switch</span> ( synth ) {
+<a name="l00761"></a>00761                         <span class="keywordflow">case</span> 0:
+<a name="l00762"></a>00762                                 chan0-&gt;synthHandler = &amp;Channel::BlockTemplate&lt; sm3FMFM &gt;;
 <a name="l00763"></a>00763                                 <span class="keywordflow">break</span>;
-<a name="l00764"></a>00764                         }
-<a name="l00765"></a>00765                 <span class="comment">//Disable updating percussion channels</span>
-<a name="l00766"></a>00766                 } <span class="keywordflow">else</span> <span class="keywordflow">if</span> ((fourMask &amp; 0x40) &amp;&amp; ( chip-&gt;regBD &amp; 0x20) ) {
-<a name="l00767"></a>00767 
-<a name="l00768"></a>00768                 <span class="comment">//Regular dual op, am or fm</span>
-<a name="l00769"></a>00769                 } <span class="keywordflow">else</span> <span class="keywordflow">if</span> (regC0 &amp; 1 ) {
-<a name="l00770"></a>00770                         synthHandler = &amp;Channel::BlockTemplate&lt; sm3AM &gt;;
-<a name="l00771"></a>00771                 } <span class="keywordflow">else</span> {
-<a name="l00772"></a>00772                         synthHandler = &amp;Channel::BlockTemplate&lt; sm3FM &gt;;
-<a name="l00773"></a>00773                 }
-<a name="l00774"></a>00774                 maskLeft = (regC0 &amp; 0x10 ) ? -1 : 0;
-<a name="l00775"></a>00775                 maskRight = (regC0 &amp; 0x20 ) ? -1 : 0;
-<a name="l00776"></a>00776         <span class="comment">//opl2 active</span>
-<a name="l00777"></a>00777         } <span class="keywordflow">else</span> { 
-<a name="l00778"></a>00778                 <span class="comment">//Disable updating percussion channels</span>
-<a name="l00779"></a>00779                 <span class="keywordflow">if</span> ( (fourMask &amp; 0x40) &amp;&amp; ( chip-&gt;regBD &amp; 0x20 ) ) {
-<a name="l00780"></a>00780 
-<a name="l00781"></a>00781                 <span class="comment">//Regular dual op, am or fm</span>
-<a name="l00782"></a>00782                 } <span class="keywordflow">else</span> <span class="keywordflow">if</span> (regC0 &amp; 1 ) {
-<a name="l00783"></a>00783                         synthHandler = &amp;Channel::BlockTemplate&lt; sm2AM &gt;;
-<a name="l00784"></a>00784                 } <span class="keywordflow">else</span> {
-<a name="l00785"></a>00785                         synthHandler = &amp;Channel::BlockTemplate&lt; sm2FM &gt;;
-<a name="l00786"></a>00786                 }
-<a name="l00787"></a>00787         }
-<a name="l00788"></a>00788 }
+<a name="l00764"></a>00764                         <span class="keywordflow">case</span> 1:
+<a name="l00765"></a>00765                                 chan0-&gt;synthHandler = &amp;Channel::BlockTemplate&lt; sm3AMFM &gt;;
+<a name="l00766"></a>00766                                 <span class="keywordflow">break</span>;
+<a name="l00767"></a>00767                         <span class="keywordflow">case</span> 2:
+<a name="l00768"></a>00768                                 chan0-&gt;synthHandler = &amp;Channel::BlockTemplate&lt; sm3FMAM &gt;;
+<a name="l00769"></a>00769                                 <span class="keywordflow">break</span>;
+<a name="l00770"></a>00770                         <span class="keywordflow">case</span> 3:
+<a name="l00771"></a>00771                                 chan0-&gt;synthHandler = &amp;Channel::BlockTemplate&lt; sm3AMAM &gt;;
+<a name="l00772"></a>00772                                 <span class="keywordflow">break</span>;
+<a name="l00773"></a>00773                         }
+<a name="l00774"></a>00774                 <span class="comment">//Disable updating percussion channels</span>
+<a name="l00775"></a>00775                 } <span class="keywordflow">else</span> <span class="keywordflow">if</span> ((fourMask &amp; 0x40) &amp;&amp; ( chip-&gt;regBD &amp; 0x20) ) {
+<a name="l00776"></a>00776 
+<a name="l00777"></a>00777                 <span class="comment">//Regular dual op, am or fm</span>
+<a name="l00778"></a>00778                 } <span class="keywordflow">else</span> <span class="keywordflow">if</span> (regC0 &amp; 1 ) {
+<a name="l00779"></a>00779                         synthHandler = &amp;Channel::BlockTemplate&lt; sm3AM &gt;;
+<a name="l00780"></a>00780                 } <span class="keywordflow">else</span> {
+<a name="l00781"></a>00781                         synthHandler = &amp;Channel::BlockTemplate&lt; sm3FM &gt;;
+<a name="l00782"></a>00782                 }
+<a name="l00783"></a>00783                 maskLeft = (regC0 &amp; 0x10 ) ? -1 : 0;
+<a name="l00784"></a>00784                 maskRight = (regC0 &amp; 0x20 ) ? -1 : 0;
+<a name="l00785"></a>00785         <span class="comment">//opl2 active</span>
+<a name="l00786"></a>00786         } <span class="keywordflow">else</span> { 
+<a name="l00787"></a>00787                 <span class="comment">//Disable updating percussion channels</span>
+<a name="l00788"></a>00788                 <span class="keywordflow">if</span> ( (fourMask &amp; 0x40) &amp;&amp; ( chip-&gt;regBD &amp; 0x20 ) ) {
 <a name="l00789"></a>00789 
-<a name="l00790"></a>00790 <span class="keyword">template</span>&lt; <span class="keywordtype">bool</span> opl3Mode&gt;
-<a name="l00791"></a>00791 <span class="comment">/*INLINE*/</span> <span class="keywordtype">void</span> Channel::GeneratePercussion( Chip* chip, Bit32s* output ) {
-<a name="l00792"></a>00792         Channel* chan = <span class="keyword">this</span>;
-<a name="l00793"></a>00793 
-<a name="l00794"></a>00794         <span class="comment">//BassDrum</span>
-<a name="l00795"></a>00795         Bit32s mod = (Bit32s)((Bit32u)(old[0] + old[1]) &gt;&gt; feedback);
-<a name="l00796"></a>00796         old[0] = old[1];
-<a name="l00797"></a>00797         old[1] = (Bit32s)Op(0)-&gt;GetSample( mod );
+<a name="l00790"></a>00790                 <span class="comment">//Regular dual op, am or fm</span>
+<a name="l00791"></a>00791                 } <span class="keywordflow">else</span> <span class="keywordflow">if</span> (regC0 &amp; 1 ) {
+<a name="l00792"></a>00792                         synthHandler = &amp;Channel::BlockTemplate&lt; sm2AM &gt;;
+<a name="l00793"></a>00793                 } <span class="keywordflow">else</span> {
+<a name="l00794"></a>00794                         synthHandler = &amp;Channel::BlockTemplate&lt; sm2FM &gt;;
+<a name="l00795"></a>00795                 }
+<a name="l00796"></a>00796         }
+<a name="l00797"></a>00797 }
 <a name="l00798"></a>00798 
-<a name="l00799"></a>00799         <span class="comment">//When bassdrum is in AM mode first operator is ignoed</span>
-<a name="l00800"></a>00800         <span class="keywordflow">if</span> ( chan-&gt;regC0 &amp; 1 ) {
-<a name="l00801"></a>00801                 mod = 0;
-<a name="l00802"></a>00802         } <span class="keywordflow">else</span> {
-<a name="l00803"></a>00803                 mod = old[0];
-<a name="l00804"></a>00804         }
-<a name="l00805"></a>00805         Bit32s sample = (Bit32s)Op(1)-&gt;GetSample( mod );
-<a name="l00806"></a>00806 
+<a name="l00799"></a>00799 <span class="keyword">template</span>&lt; <span class="keywordtype">bool</span> opl3Mode&gt;
+<a name="l00800"></a>00800 <span class="comment">/*INLINE*/</span> <span class="keywordtype">void</span> Channel::GeneratePercussion( Chip* chip, Bit32s* output ) {
+<a name="l00801"></a>00801         Channel* chan = <span class="keyword">this</span>;
+<a name="l00802"></a>00802 
+<a name="l00803"></a>00803         <span class="comment">//BassDrum</span>
+<a name="l00804"></a>00804         Bit32s mod = (Bit32s)((Bit32u)(old[0] + old[1]) &gt;&gt; feedback);
+<a name="l00805"></a>00805         old[0] = old[1];
+<a name="l00806"></a>00806         old[1] = (Bit32s)Op(0)-&gt;GetSample( mod );
 <a name="l00807"></a>00807 
-<a name="l00808"></a>00808         <span class="comment">//Precalculate stuff used by other outputs</span>
-<a name="l00809"></a>00809         Bit32u noiseBit = chip-&gt;ForwardNoise() &amp; 0x1;
-<a name="l00810"></a>00810         Bit32u c2 = (Bit32u)Op(2)-&gt;ForwardWave();
-<a name="l00811"></a>00811         Bit32u c5 = (Bit32u)Op(5)-&gt;ForwardWave();
-<a name="l00812"></a>00812         Bit32u phaseBit = (((c2 &amp; 0x88) ^ ((c2&lt;&lt;5) &amp; 0x80)) | ((c5 ^ (c5&lt;&lt;2)) &amp; 0x20)) ? 0x02 : 0x00;
-<a name="l00813"></a>00813 
-<a name="l00814"></a>00814         <span class="comment">//Hi-Hat</span>
-<a name="l00815"></a>00815         Bit32u hhVol = (Bit32u)Op(2)-&gt;ForwardVolume();
-<a name="l00816"></a>00816         <span class="keywordflow">if</span> ( !ENV_SILENT( hhVol ) ) {
-<a name="l00817"></a>00817                 Bit32u hhIndex = (phaseBit&lt;&lt;8) | (0x34 &lt;&lt; ( phaseBit ^ (noiseBit &lt;&lt; 1 )));
-<a name="l00818"></a>00818                 sample += (Bit32s)Op(2)-&gt;GetWave( hhIndex, hhVol );
-<a name="l00819"></a>00819         }
-<a name="l00820"></a>00820         <span class="comment">//Snare Drum</span>
-<a name="l00821"></a>00821         Bit32u sdVol = (Bit32u)Op(3)-&gt;ForwardVolume();
-<a name="l00822"></a>00822         <span class="keywordflow">if</span> ( !ENV_SILENT( sdVol ) ) {
-<a name="l00823"></a>00823                 Bit32u sdIndex = ( 0x100 + (c2 &amp; 0x100) ) ^ ( noiseBit &lt;&lt; 8 );
-<a name="l00824"></a>00824                 sample += (Bit32s)Op(3)-&gt;GetWave( sdIndex, sdVol );
-<a name="l00825"></a>00825         }
-<a name="l00826"></a>00826         <span class="comment">//Tom-tom</span>
-<a name="l00827"></a>00827         sample += (Bit32s)Op(4)-&gt;GetSample( 0 );
-<a name="l00828"></a>00828 
-<a name="l00829"></a>00829         <span class="comment">//Top-Cymbal</span>
-<a name="l00830"></a>00830         Bit32u tcVol = (Bit32u)Op(5)-&gt;ForwardVolume();
-<a name="l00831"></a>00831         <span class="keywordflow">if</span> ( !ENV_SILENT( tcVol ) ) {
-<a name="l00832"></a>00832                 Bit32u tcIndex = (1 + phaseBit) &lt;&lt; 8;
-<a name="l00833"></a>00833                 sample += (Bit32s)Op(5)-&gt;GetWave( tcIndex, tcVol );
+<a name="l00808"></a>00808         <span class="comment">//When bassdrum is in AM mode first operator is ignoed</span>
+<a name="l00809"></a>00809         <span class="keywordflow">if</span> ( chan-&gt;regC0 &amp; 1 ) {
+<a name="l00810"></a>00810                 mod = 0;
+<a name="l00811"></a>00811         } <span class="keywordflow">else</span> {
+<a name="l00812"></a>00812                 mod = old[0];
+<a name="l00813"></a>00813         }
+<a name="l00814"></a>00814         Bit32s sample = (Bit32s)Op(1)-&gt;GetSample( mod );
+<a name="l00815"></a>00815 
+<a name="l00816"></a>00816 
+<a name="l00817"></a>00817         <span class="comment">//Precalculate stuff used by other outputs</span>
+<a name="l00818"></a>00818         Bit32u noiseBit = chip-&gt;ForwardNoise() &amp; 0x1;
+<a name="l00819"></a>00819         Bit32u c2 = (Bit32u)Op(2)-&gt;ForwardWave();
+<a name="l00820"></a>00820         Bit32u c5 = (Bit32u)Op(5)-&gt;ForwardWave();
+<a name="l00821"></a>00821         Bit32u phaseBit = (((c2 &amp; 0x88) ^ ((c2&lt;&lt;5) &amp; 0x80)) | ((c5 ^ (c5&lt;&lt;2)) &amp; 0x20)) ? 0x02 : 0x00;
+<a name="l00822"></a>00822 
+<a name="l00823"></a>00823         <span class="comment">//Hi-Hat</span>
+<a name="l00824"></a>00824         Bit32u hhVol = (Bit32u)Op(2)-&gt;ForwardVolume();
+<a name="l00825"></a>00825         <span class="keywordflow">if</span> ( !ENV_SILENT( hhVol ) ) {
+<a name="l00826"></a>00826                 Bit32u hhIndex = (phaseBit&lt;&lt;8) | (0x34 &lt;&lt; ( phaseBit ^ (noiseBit &lt;&lt; 1 )));
+<a name="l00827"></a>00827                 sample += (Bit32s)Op(2)-&gt;GetWave( hhIndex, hhVol );
+<a name="l00828"></a>00828         }
+<a name="l00829"></a>00829         <span class="comment">//Snare Drum</span>
+<a name="l00830"></a>00830         Bit32u sdVol = (Bit32u)Op(3)-&gt;ForwardVolume();
+<a name="l00831"></a>00831         <span class="keywordflow">if</span> ( !ENV_SILENT( sdVol ) ) {
+<a name="l00832"></a>00832                 Bit32u sdIndex = ( 0x100 + (c2 &amp; 0x100) ) ^ ( noiseBit &lt;&lt; 8 );
+<a name="l00833"></a>00833                 sample += (Bit32s)Op(3)-&gt;GetWave( sdIndex, sdVol );
 <a name="l00834"></a>00834         }
-<a name="l00835"></a>00835         sample &lt;&lt;= 1;
-<a name="l00836"></a>00836         <span class="keywordflow">if</span> ( opl3Mode ) {
-<a name="l00837"></a>00837                 output[0] += sample;
-<a name="l00838"></a>00838                 output[1] += sample;
-<a name="l00839"></a>00839         } <span class="keywordflow">else</span> {
-<a name="l00840"></a>00840                 output[0] += sample;
-<a name="l00841"></a>00841         }
-<a name="l00842"></a>00842 }
-<a name="l00843"></a>00843 
-<a name="l00844"></a>00844 <span class="keyword">template</span>&lt;SynthMode mode&gt;
-<a name="l00845"></a>00845 Channel* Channel::BlockTemplate( Chip* chip, Bit32u samples, Bit32s* output ) {
-<a name="l00846"></a>00846         <span class="keywordflow">switch</span>( mode ) {
-<a name="l00847"></a>00847         <span class="keywordflow">case</span> sm2AM:
-<a name="l00848"></a>00848         <span class="keywordflow">case</span> sm3AM:
-<a name="l00849"></a>00849                 <span class="keywordflow">if</span> ( Op(0)-&gt;Silent() &amp;&amp; Op(1)-&gt;Silent() ) {
-<a name="l00850"></a>00850                         old[0] = old[1] = 0;
-<a name="l00851"></a>00851                         <span class="keywordflow">return</span> (<span class="keyword">this</span> + 1);
-<a name="l00852"></a>00852                 }
-<a name="l00853"></a>00853                 <span class="keywordflow">break</span>;
-<a name="l00854"></a>00854         <span class="keywordflow">case</span> sm2FM:
-<a name="l00855"></a>00855         <span class="keywordflow">case</span> sm3FM:
-<a name="l00856"></a>00856                 <span class="keywordflow">if</span> ( Op(1)-&gt;Silent() ) {
-<a name="l00857"></a>00857                         old[0] = old[1] = 0;
-<a name="l00858"></a>00858                         <span class="keywordflow">return</span> (<span class="keyword">this</span> + 1);
-<a name="l00859"></a>00859                 }
-<a name="l00860"></a>00860                 <span class="keywordflow">break</span>;
-<a name="l00861"></a>00861         <span class="keywordflow">case</span> sm3FMFM:
-<a name="l00862"></a>00862                 <span class="keywordflow">if</span> ( Op(3)-&gt;Silent() ) {
-<a name="l00863"></a>00863                         old[0] = old[1] = 0;
-<a name="l00864"></a>00864                         <span class="keywordflow">return</span> (<span class="keyword">this</span> + 2);
-<a name="l00865"></a>00865                 }
-<a name="l00866"></a>00866                 <span class="keywordflow">break</span>;
-<a name="l00867"></a>00867         <span class="keywordflow">case</span> sm3AMFM:
-<a name="l00868"></a>00868                 <span class="keywordflow">if</span> ( Op(0)-&gt;Silent() &amp;&amp; Op(3)-&gt;Silent() ) {
-<a name="l00869"></a>00869                         old[0] = old[1] = 0;
-<a name="l00870"></a>00870                         <span class="keywordflow">return</span> (<span class="keyword">this</span> + 2);
-<a name="l00871"></a>00871                 }
-<a name="l00872"></a>00872                 <span class="keywordflow">break</span>;
-<a name="l00873"></a>00873         <span class="keywordflow">case</span> sm3FMAM:
-<a name="l00874"></a>00874                 <span class="keywordflow">if</span> ( Op(1)-&gt;Silent() &amp;&amp; Op(3)-&gt;Silent() ) {
-<a name="l00875"></a>00875                         old[0] = old[1] = 0;
-<a name="l00876"></a>00876                         <span class="keywordflow">return</span> (<span class="keyword">this</span> + 2);
-<a name="l00877"></a>00877                 }
-<a name="l00878"></a>00878                 <span class="keywordflow">break</span>;
-<a name="l00879"></a>00879         <span class="keywordflow">case</span> sm3AMAM:
-<a name="l00880"></a>00880                 <span class="keywordflow">if</span> ( Op(0)-&gt;Silent() &amp;&amp; Op(2)-&gt;Silent() &amp;&amp; Op(3)-&gt;Silent() ) {
-<a name="l00881"></a>00881                         old[0] = old[1] = 0;
-<a name="l00882"></a>00882                         <span class="keywordflow">return</span> (<span class="keyword">this</span> + 2);
-<a name="l00883"></a>00883                 }
-<a name="l00884"></a>00884                 <span class="keywordflow">break</span>;
-<a name="l00885"></a>00885         <span class="keywordflow">default</span>:
-<a name="l00886"></a>00886                 <span class="keywordflow">break</span>;
-<a name="l00887"></a>00887         }
-<a name="l00888"></a>00888         <span class="comment">//Init the operators with the the current vibrato and tremolo values</span>
-<a name="l00889"></a>00889         Op( 0 )-&gt;Prepare( chip );
-<a name="l00890"></a>00890         Op( 1 )-&gt;Prepare( chip );
-<a name="l00891"></a>00891         <span class="keywordflow">if</span> ( mode &gt; sm4Start ) {
-<a name="l00892"></a>00892                 Op( 2 )-&gt;Prepare( chip );
-<a name="l00893"></a>00893                 Op( 3 )-&gt;Prepare( chip );
-<a name="l00894"></a>00894         }
-<a name="l00895"></a>00895         <span class="keywordflow">if</span> ( mode &gt; sm6Start ) {
-<a name="l00896"></a>00896                 Op( 4 )-&gt;Prepare( chip );
-<a name="l00897"></a>00897                 Op( 5 )-&gt;Prepare( chip );
-<a name="l00898"></a>00898         }
-<a name="l00899"></a>00899         <span class="keywordflow">for</span> ( Bitu i = 0; i &lt; samples; i++ ) {
-<a name="l00900"></a>00900                 <span class="comment">//Early out for percussion handlers</span>
-<a name="l00901"></a>00901                 <span class="keywordflow">if</span> ( mode == sm2Percussion ) {
-<a name="l00902"></a>00902                         GeneratePercussion&lt;false&gt;( chip, output + i );
-<a name="l00903"></a>00903                         <span class="keywordflow">continue</span>;       <span class="comment">//Prevent some unitialized value bitching</span>
-<a name="l00904"></a>00904                 } <span class="keywordflow">else</span> <span class="keywordflow">if</span> ( mode == sm3Percussion ) {
-<a name="l00905"></a>00905                         GeneratePercussion&lt;true&gt;( chip, output + i * 2 );
-<a name="l00906"></a>00906                         <span class="keywordflow">continue</span>;       <span class="comment">//Prevent some unitialized value bitching</span>
-<a name="l00907"></a>00907                 }
-<a name="l00908"></a>00908 
-<a name="l00909"></a>00909                 <span class="comment">//Do unsigned shift so we can shift out all bits but still stay in 10 bit range otherwise</span>
-<a name="l00910"></a>00910                 Bit32s mod = (Bit32s)((Bit32u)((old[0] + old[1])) &gt;&gt; feedback);
-<a name="l00911"></a>00911                 old[0] = old[1];
-<a name="l00912"></a>00912                 old[1] = (Bit32s)Op(0)-&gt;GetSample( mod );
-<a name="l00913"></a>00913                 Bit32s sample;
-<a name="l00914"></a>00914                 Bit32s out0 = old[0];
-<a name="l00915"></a>00915                 <span class="keywordflow">if</span> ( mode == sm2AM || mode == sm3AM ) {
-<a name="l00916"></a>00916                         sample = (Bit32s)(out0 + Op(1)-&gt;GetSample( 0 ));
-<a name="l00917"></a>00917                 } <span class="keywordflow">else</span> <span class="keywordflow">if</span> ( mode == sm2FM || mode == sm3FM ) {
-<a name="l00918"></a>00918                         sample = (Bit32s)Op(1)-&gt;GetSample( out0 );
-<a name="l00919"></a>00919                 } <span class="keywordflow">else</span> <span class="keywordflow">if</span> ( mode == sm3FMFM ) {
-<a name="l00920"></a>00920                         Bits next = Op(1)-&gt;GetSample( out0 ); 
-<a name="l00921"></a>00921                         next = Op(2)-&gt;GetSample( next );
-<a name="l00922"></a>00922                         sample = (Bit32s)Op(3)-&gt;GetSample( next );
-<a name="l00923"></a>00923                 } <span class="keywordflow">else</span> <span class="keywordflow">if</span> ( mode == sm3AMFM ) {
-<a name="l00924"></a>00924                         sample = out0;
-<a name="l00925"></a>00925                         Bits next = Op(1)-&gt;GetSample( 0 ); 
-<a name="l00926"></a>00926                         next = Op(2)-&gt;GetSample( next );
-<a name="l00927"></a>00927                         sample += (Bit32s)Op(3)-&gt;GetSample( next );
-<a name="l00928"></a>00928                 } <span class="keywordflow">else</span> <span class="keywordflow">if</span> ( mode == sm3FMAM ) {
-<a name="l00929"></a>00929                         sample = (Bit32s)Op(1)-&gt;GetSample( out0 );
-<a name="l00930"></a>00930                         Bits next = Op(2)-&gt;GetSample( 0 );
-<a name="l00931"></a>00931                         sample += (Bit32s)Op(3)-&gt;GetSample( next );
-<a name="l00932"></a>00932                 } <span class="keywordflow">else</span> <span class="keywordflow">if</span> ( mode == sm3AMAM ) {
+<a name="l00835"></a>00835         <span class="comment">//Tom-tom</span>
+<a name="l00836"></a>00836         sample += (Bit32s)Op(4)-&gt;GetSample( 0 );
+<a name="l00837"></a>00837 
+<a name="l00838"></a>00838         <span class="comment">//Top-Cymbal</span>
+<a name="l00839"></a>00839         Bit32u tcVol = (Bit32u)Op(5)-&gt;ForwardVolume();
+<a name="l00840"></a>00840         <span class="keywordflow">if</span> ( !ENV_SILENT( tcVol ) ) {
+<a name="l00841"></a>00841                 Bit32u tcIndex = (1 + phaseBit) &lt;&lt; 8;
+<a name="l00842"></a>00842                 sample += (Bit32s)Op(5)-&gt;GetWave( tcIndex, tcVol );
+<a name="l00843"></a>00843         }
+<a name="l00844"></a>00844         sample &lt;&lt;= 1;
+<a name="l00845"></a>00845         <span class="keywordflow">if</span> ( opl3Mode ) {
+<a name="l00846"></a>00846                 output[0] += sample;
+<a name="l00847"></a>00847                 output[1] += sample;
+<a name="l00848"></a>00848         } <span class="keywordflow">else</span> {
+<a name="l00849"></a>00849                 output[0] += sample;
+<a name="l00850"></a>00850         }
+<a name="l00851"></a>00851 }
+<a name="l00852"></a>00852 
+<a name="l00853"></a>00853 <span class="keyword">template</span>&lt;SynthMode mode&gt;
+<a name="l00854"></a>00854 Channel* Channel::BlockTemplate( Chip* chip, Bit32u samples, Bit32s* output ) {
+<a name="l00855"></a>00855         <span class="keywordflow">switch</span>( mode ) {
+<a name="l00856"></a>00856         <span class="keywordflow">case</span> sm2AM:
+<a name="l00857"></a>00857         <span class="keywordflow">case</span> sm3AM:
+<a name="l00858"></a>00858                 <span class="keywordflow">if</span> ( Op(0)-&gt;Silent() &amp;&amp; Op(1)-&gt;Silent() ) {
+<a name="l00859"></a>00859                         old[0] = old[1] = 0;
+<a name="l00860"></a>00860                         <span class="keywordflow">return</span> (<span class="keyword">this</span> + 1);
+<a name="l00861"></a>00861                 }
+<a name="l00862"></a>00862                 <span class="keywordflow">break</span>;
+<a name="l00863"></a>00863         <span class="keywordflow">case</span> sm2FM:
+<a name="l00864"></a>00864         <span class="keywordflow">case</span> sm3FM:
+<a name="l00865"></a>00865                 <span class="keywordflow">if</span> ( Op(1)-&gt;Silent() ) {
+<a name="l00866"></a>00866                         old[0] = old[1] = 0;
+<a name="l00867"></a>00867                         <span class="keywordflow">return</span> (<span class="keyword">this</span> + 1);
+<a name="l00868"></a>00868                 }
+<a name="l00869"></a>00869                 <span class="keywordflow">break</span>;
+<a name="l00870"></a>00870         <span class="keywordflow">case</span> sm3FMFM:
+<a name="l00871"></a>00871                 <span class="keywordflow">if</span> ( Op(3)-&gt;Silent() ) {
+<a name="l00872"></a>00872                         old[0] = old[1] = 0;
+<a name="l00873"></a>00873                         <span class="keywordflow">return</span> (<span class="keyword">this</span> + 2);
+<a name="l00874"></a>00874                 }
+<a name="l00875"></a>00875                 <span class="keywordflow">break</span>;
+<a name="l00876"></a>00876         <span class="keywordflow">case</span> sm3AMFM:
+<a name="l00877"></a>00877                 <span class="keywordflow">if</span> ( Op(0)-&gt;Silent() &amp;&amp; Op(3)-&gt;Silent() ) {
+<a name="l00878"></a>00878                         old[0] = old[1] = 0;
+<a name="l00879"></a>00879                         <span class="keywordflow">return</span> (<span class="keyword">this</span> + 2);
+<a name="l00880"></a>00880                 }
+<a name="l00881"></a>00881                 <span class="keywordflow">break</span>;
+<a name="l00882"></a>00882         <span class="keywordflow">case</span> sm3FMAM:
+<a name="l00883"></a>00883                 <span class="keywordflow">if</span> ( Op(1)-&gt;Silent() &amp;&amp; Op(3)-&gt;Silent() ) {
+<a name="l00884"></a>00884                         old[0] = old[1] = 0;
+<a name="l00885"></a>00885                         <span class="keywordflow">return</span> (<span class="keyword">this</span> + 2);
+<a name="l00886"></a>00886                 }
+<a name="l00887"></a>00887                 <span class="keywordflow">break</span>;
+<a name="l00888"></a>00888         <span class="keywordflow">case</span> sm3AMAM:
+<a name="l00889"></a>00889                 <span class="keywordflow">if</span> ( Op(0)-&gt;Silent() &amp;&amp; Op(2)-&gt;Silent() &amp;&amp; Op(3)-&gt;Silent() ) {
+<a name="l00890"></a>00890                         old[0] = old[1] = 0;
+<a name="l00891"></a>00891                         <span class="keywordflow">return</span> (<span class="keyword">this</span> + 2);
+<a name="l00892"></a>00892                 }
+<a name="l00893"></a>00893                 <span class="keywordflow">break</span>;
+<a name="l00894"></a>00894         <span class="keywordflow">default</span>:
+<a name="l00895"></a>00895                 <span class="keywordflow">break</span>;
+<a name="l00896"></a>00896         }
+<a name="l00897"></a>00897         <span class="comment">//Init the operators with the the current vibrato and tremolo values</span>
+<a name="l00898"></a>00898         Op( 0 )-&gt;Prepare( chip );
+<a name="l00899"></a>00899         Op( 1 )-&gt;Prepare( chip );
+<a name="l00900"></a>00900         <span class="keywordflow">if</span> ( mode &gt; sm4Start ) {
+<a name="l00901"></a>00901                 Op( 2 )-&gt;Prepare( chip );
+<a name="l00902"></a>00902                 Op( 3 )-&gt;Prepare( chip );
+<a name="l00903"></a>00903         }
+<a name="l00904"></a>00904         <span class="keywordflow">if</span> ( mode &gt; sm6Start ) {
+<a name="l00905"></a>00905                 Op( 4 )-&gt;Prepare( chip );
+<a name="l00906"></a>00906                 Op( 5 )-&gt;Prepare( chip );
+<a name="l00907"></a>00907         }
+<a name="l00908"></a>00908         <span class="keywordflow">for</span> ( Bitu i = 0; i &lt; samples; i++ ) {
+<a name="l00909"></a>00909                 <span class="comment">//Early out for percussion handlers</span>
+<a name="l00910"></a>00910                 <span class="keywordflow">if</span> ( mode == sm2Percussion ) {
+<a name="l00911"></a>00911                         GeneratePercussion&lt;false&gt;( chip, output + i );
+<a name="l00912"></a>00912                         <span class="keywordflow">continue</span>;       <span class="comment">//Prevent some unitialized value bitching</span>
+<a name="l00913"></a>00913                 } <span class="keywordflow">else</span> <span class="keywordflow">if</span> ( mode == sm3Percussion ) {
+<a name="l00914"></a>00914                         GeneratePercussion&lt;true&gt;( chip, output + i * 2 );
+<a name="l00915"></a>00915                         <span class="keywordflow">continue</span>;       <span class="comment">//Prevent some unitialized value bitching</span>
+<a name="l00916"></a>00916                 }
+<a name="l00917"></a>00917 
+<a name="l00918"></a>00918                 <span class="comment">//Do unsigned shift so we can shift out all bits but still stay in 10 bit range otherwise</span>
+<a name="l00919"></a>00919                 Bit32s mod = (Bit32s)((Bit32u)((old[0] + old[1])) &gt;&gt; feedback);
+<a name="l00920"></a>00920                 old[0] = old[1];
+<a name="l00921"></a>00921                 old[1] = (Bit32s)Op(0)-&gt;GetSample( mod );
+<a name="l00922"></a>00922                 Bit32s sample;
+<a name="l00923"></a>00923                 Bit32s out0 = old[0];
+<a name="l00924"></a>00924                 <span class="keywordflow">if</span> ( mode == sm2AM || mode == sm3AM ) {
+<a name="l00925"></a>00925                         sample = (Bit32s)(out0 + Op(1)-&gt;GetSample( 0 ));
+<a name="l00926"></a>00926                 } <span class="keywordflow">else</span> <span class="keywordflow">if</span> ( mode == sm2FM || mode == sm3FM ) {
+<a name="l00927"></a>00927                         sample = (Bit32s)Op(1)-&gt;GetSample( out0 );
+<a name="l00928"></a>00928                 } <span class="keywordflow">else</span> <span class="keywordflow">if</span> ( mode == sm3FMFM ) {
+<a name="l00929"></a>00929                         Bits next = Op(1)-&gt;GetSample( out0 ); 
+<a name="l00930"></a>00930                         next = Op(2)-&gt;GetSample( next );
+<a name="l00931"></a>00931                         sample = (Bit32s)Op(3)-&gt;GetSample( next );
+<a name="l00932"></a>00932                 } <span class="keywordflow">else</span> <span class="keywordflow">if</span> ( mode == sm3AMFM ) {
 <a name="l00933"></a>00933                         sample = out0;
 <a name="l00934"></a>00934                         Bits next = Op(1)-&gt;GetSample( 0 ); 
-<a name="l00935"></a>00935                         sample += (Bit32s)Op(2)-&gt;GetSample( next );
-<a name="l00936"></a>00936                         sample += (Bit32s)Op(3)-&gt;GetSample( 0 );
-<a name="l00937"></a>00937                 }
-<a name="l00938"></a>00938                 <span class="keywordflow">switch</span>( mode ) {
-<a name="l00939"></a>00939                 <span class="keywordflow">case</span> sm2AM:
-<a name="l00940"></a>00940                 <span class="keywordflow">case</span> sm2FM:
-<a name="l00941"></a>00941                         output[ i ] += sample;
-<a name="l00942"></a>00942                         <span class="keywordflow">break</span>;
-<a name="l00943"></a>00943                 <span class="keywordflow">case</span> sm3AM:
-<a name="l00944"></a>00944                 <span class="keywordflow">case</span> sm3FM:
-<a name="l00945"></a>00945                 <span class="keywordflow">case</span> sm3FMFM:
-<a name="l00946"></a>00946                 <span class="keywordflow">case</span> sm3AMFM:
-<a name="l00947"></a>00947                 <span class="keywordflow">case</span> sm3FMAM:
-<a name="l00948"></a>00948                 <span class="keywordflow">case</span> sm3AMAM:
-<a name="l00949"></a>00949                         output[ i * 2 + 0 ] += sample &amp; maskLeft;
-<a name="l00950"></a>00950                         output[ i * 2 + 1 ] += sample &amp; maskRight;
+<a name="l00935"></a>00935                         next = Op(2)-&gt;GetSample( next );
+<a name="l00936"></a>00936                         sample += (Bit32s)Op(3)-&gt;GetSample( next );
+<a name="l00937"></a>00937                 } <span class="keywordflow">else</span> <span class="keywordflow">if</span> ( mode == sm3FMAM ) {
+<a name="l00938"></a>00938                         sample = (Bit32s)Op(1)-&gt;GetSample( out0 );
+<a name="l00939"></a>00939                         Bits next = Op(2)-&gt;GetSample( 0 );
+<a name="l00940"></a>00940                         sample += (Bit32s)Op(3)-&gt;GetSample( next );
+<a name="l00941"></a>00941                 } <span class="keywordflow">else</span> <span class="keywordflow">if</span> ( mode == sm3AMAM ) {
+<a name="l00942"></a>00942                         sample = out0;
+<a name="l00943"></a>00943                         Bits next = Op(1)-&gt;GetSample( 0 ); 
+<a name="l00944"></a>00944                         sample += (Bit32s)Op(2)-&gt;GetSample( next );
+<a name="l00945"></a>00945                         sample += (Bit32s)Op(3)-&gt;GetSample( 0 );
+<a name="l00946"></a>00946                 }
+<a name="l00947"></a>00947                 <span class="keywordflow">switch</span>( mode ) {
+<a name="l00948"></a>00948                 <span class="keywordflow">case</span> sm2AM:
+<a name="l00949"></a>00949                 <span class="keywordflow">case</span> sm2FM:
+<a name="l00950"></a>00950                         output[ i ] += sample;
 <a name="l00951"></a>00951                         <span class="keywordflow">break</span>;
-<a name="l00952"></a>00952                 <span class="keywordflow">default</span>:
-<a name="l00953"></a>00953                         <span class="keywordflow">break</span>;
-<a name="l00954"></a>00954                 }
-<a name="l00955"></a>00955         }
-<a name="l00956"></a>00956         <span class="keywordflow">switch</span>( mode ) {
-<a name="l00957"></a>00957         <span class="keywordflow">case</span> sm2AM:
-<a name="l00958"></a>00958         <span class="keywordflow">case</span> sm2FM:
-<a name="l00959"></a>00959         <span class="keywordflow">case</span> sm3AM:
-<a name="l00960"></a>00960         <span class="keywordflow">case</span> sm3FM:
-<a name="l00961"></a>00961                 <span class="keywordflow">return</span> ( <span class="keyword">this</span> + 1 );
-<a name="l00962"></a>00962         <span class="keywordflow">case</span> sm3FMFM:
-<a name="l00963"></a>00963         <span class="keywordflow">case</span> sm3AMFM:
-<a name="l00964"></a>00964         <span class="keywordflow">case</span> sm3FMAM:
-<a name="l00965"></a>00965         <span class="keywordflow">case</span> sm3AMAM:
-<a name="l00966"></a>00966                 <span class="keywordflow">return</span>( <span class="keyword">this</span> + 2 );
-<a name="l00967"></a>00967         <span class="keywordflow">case</span> sm2Percussion:
-<a name="l00968"></a>00968         <span class="keywordflow">case</span> sm3Percussion:
-<a name="l00969"></a>00969                 <span class="keywordflow">return</span>( <span class="keyword">this</span> + 3 );
-<a name="l00970"></a>00970         }
-<a name="l00971"></a>00971         <span class="keywordflow">return</span> 0;
-<a name="l00972"></a>00972 }
-<a name="l00973"></a>00973 
-<a name="l00974"></a>00974 <span class="comment">/*</span>
-<a name="l00975"></a>00975 <span class="comment">        Chip</span>
-<a name="l00976"></a>00976 <span class="comment">*/</span>
-<a name="l00977"></a>00977 
-<a name="l00978"></a>00978 Chip::Chip() {
-<a name="l00979"></a>00979         reg08 = 0;
-<a name="l00980"></a>00980         reg04 = 0;
-<a name="l00981"></a>00981         regBD = 0;
-<a name="l00982"></a>00982         reg104 = 0;
-<a name="l00983"></a>00983         opl3Active = 0;
-<a name="l00984"></a>00984 }
-<a name="l00985"></a>00985 
-<a name="l00986"></a>00986 <span class="comment">/*INLINE*/</span> Bit32u Chip::ForwardNoise() {
-<a name="l00987"></a>00987         noiseCounter += noiseAdd;
-<a name="l00988"></a>00988         Bitu count = noiseCounter &gt;&gt; LFO_SH;
-<a name="l00989"></a>00989         noiseCounter &amp;= WAVE_MASK;
-<a name="l00990"></a>00990         <span class="keywordflow">for</span> ( ; count &gt; 0; --count ) {
-<a name="l00991"></a>00991                 <span class="comment">//Noise calculation from mame</span>
-<a name="l00992"></a>00992                 noiseValue ^= ( 0x800302 ) &amp; ( 0 - (noiseValue &amp; 1 ) );
-<a name="l00993"></a>00993                 noiseValue &gt;&gt;= 1;
-<a name="l00994"></a>00994         }
-<a name="l00995"></a>00995         <span class="keywordflow">return</span> noiseValue;
-<a name="l00996"></a>00996 }
-<a name="l00997"></a>00997 
-<a name="l00998"></a>00998 <span class="comment">/*INLINE*/</span> Bit32u Chip::ForwardLFO( Bit32u samples ) {
-<a name="l00999"></a>00999         <span class="comment">//Current vibrato value, runs 4x slower than tremolo</span>
-<a name="l01000"></a>01000         vibratoSign = ( VibratoTable[ vibratoIndex &gt;&gt; 2] ) &gt;&gt; 7;
-<a name="l01001"></a>01001         vibratoShift = ( VibratoTable[ vibratoIndex &gt;&gt; 2] &amp; 7) + vibratoStrength; 
-<a name="l01002"></a>01002         tremoloValue = TremoloTable[ tremoloIndex ] &gt;&gt; tremoloStrength;
-<a name="l01003"></a>01003 
-<a name="l01004"></a>01004         <span class="comment">//Check hom many samples there can be done before the value changes</span>
-<a name="l01005"></a>01005         Bit32u todo = LFO_MAX - lfoCounter;
-<a name="l01006"></a>01006         Bit32u count = (todo + lfoAdd - 1) / lfoAdd;
-<a name="l01007"></a>01007         <span class="keywordflow">if</span> ( count &gt; samples ) {
-<a name="l01008"></a>01008                 count = samples;
-<a name="l01009"></a>01009                 lfoCounter += count * lfoAdd;
-<a name="l01010"></a>01010         } <span class="keywordflow">else</span> {
-<a name="l01011"></a>01011                 lfoCounter += count * lfoAdd;
-<a name="l01012"></a>01012                 lfoCounter &amp;= (LFO_MAX - 1);
-<a name="l01013"></a>01013                 <span class="comment">//Maximum of 7 vibrato value * 4</span>
-<a name="l01014"></a>01014                 vibratoIndex = ( vibratoIndex + 1 ) &amp; 31;
-<a name="l01015"></a>01015                 <span class="comment">//Clip tremolo to the the table size</span>
-<a name="l01016"></a>01016                 <span class="keywordflow">if</span> ( tremoloIndex + 1 &lt; TREMOLO_TABLE  )
-<a name="l01017"></a>01017                         ++tremoloIndex;
-<a name="l01018"></a>01018                 <span class="keywordflow">else</span>
-<a name="l01019"></a>01019                         tremoloIndex = 0;
-<a name="l01020"></a>01020         }
-<a name="l01021"></a>01021         <span class="keywordflow">return</span> count;
-<a name="l01022"></a>01022 }
-<a name="l01023"></a>01023 
-<a name="l01024"></a>01024 
-<a name="l01025"></a>01025 <span class="keywordtype">void</span> Chip::WriteBD( Bit8u val ) {
-<a name="l01026"></a>01026         Bit8u change = regBD ^ val;
-<a name="l01027"></a>01027         <span class="keywordflow">if</span> ( !change )
-<a name="l01028"></a>01028                 <span class="keywordflow">return</span>;
-<a name="l01029"></a>01029         regBD = val;
-<a name="l01030"></a>01030         <span class="comment">//TODO could do this with shift and xor?</span>
-<a name="l01031"></a>01031         vibratoStrength = (val &amp; 0x40) ? 0x00 : 0x01;
-<a name="l01032"></a>01032         tremoloStrength = (val &amp; 0x80) ? 0x00 : 0x02;
-<a name="l01033"></a>01033         <span class="keywordflow">if</span> ( val &amp; 0x20 ) {
-<a name="l01034"></a>01034                 <span class="comment">//Drum was just enabled, make sure channel 6 has the right synth</span>
-<a name="l01035"></a>01035                 <span class="keywordflow">if</span> ( change &amp; 0x20 ) {
-<a name="l01036"></a>01036                         <span class="keywordflow">if</span> ( opl3Active ) {
-<a name="l01037"></a>01037                                 chan[6].synthHandler = &amp;Channel::BlockTemplate&lt; sm3Percussion &gt;; 
-<a name="l01038"></a>01038                         } <span class="keywordflow">else</span> {
-<a name="l01039"></a>01039                                 chan[6].synthHandler = &amp;Channel::BlockTemplate&lt; sm2Percussion &gt;; 
-<a name="l01040"></a>01040                         }
-<a name="l01041"></a>01041                 }
-<a name="l01042"></a>01042                 <span class="comment">//Bass Drum</span>
-<a name="l01043"></a>01043                 <span class="keywordflow">if</span> ( val &amp; 0x10 ) {
-<a name="l01044"></a>01044                         chan[6].op[0].KeyOn( 0x2 );
-<a name="l01045"></a>01045                         chan[6].op[1].KeyOn( 0x2 );
-<a name="l01046"></a>01046                 } <span class="keywordflow">else</span> {
-<a name="l01047"></a>01047                         chan[6].op[0].KeyOff( 0x2 );
-<a name="l01048"></a>01048                         chan[6].op[1].KeyOff( 0x2 );
-<a name="l01049"></a>01049                 }
-<a name="l01050"></a>01050                 <span class="comment">//Hi-Hat</span>
-<a name="l01051"></a>01051                 <span class="keywordflow">if</span> ( val &amp; 0x1 ) {
-<a name="l01052"></a>01052                         chan[7].op[0].KeyOn( 0x2 );
-<a name="l01053"></a>01053                 } <span class="keywordflow">else</span> {
-<a name="l01054"></a>01054                         chan[7].op[0].KeyOff( 0x2 );
-<a name="l01055"></a>01055                 }
-<a name="l01056"></a>01056                 <span class="comment">//Snare</span>
-<a name="l01057"></a>01057                 <span class="keywordflow">if</span> ( val &amp; 0x8 ) {
-<a name="l01058"></a>01058                         chan[7].op[1].KeyOn( 0x2 );
-<a name="l01059"></a>01059                 } <span class="keywordflow">else</span> {
-<a name="l01060"></a>01060                         chan[7].op[1].KeyOff( 0x2 );
-<a name="l01061"></a>01061                 }
-<a name="l01062"></a>01062                 <span class="comment">//Tom-Tom</span>
-<a name="l01063"></a>01063                 <span class="keywordflow">if</span> ( val &amp; 0x4 ) {
-<a name="l01064"></a>01064                         chan[8].op[0].KeyOn( 0x2 );
-<a name="l01065"></a>01065                 } <span class="keywordflow">else</span> {
-<a name="l01066"></a>01066                         chan[8].op[0].KeyOff( 0x2 );
-<a name="l01067"></a>01067                 }
-<a name="l01068"></a>01068                 <span class="comment">//Top Cymbal</span>
-<a name="l01069"></a>01069                 <span class="keywordflow">if</span> ( val &amp; 0x2 ) {
-<a name="l01070"></a>01070                         chan[8].op[1].KeyOn( 0x2 );
-<a name="l01071"></a>01071                 } <span class="keywordflow">else</span> {
-<a name="l01072"></a>01072                         chan[8].op[1].KeyOff( 0x2 );
-<a name="l01073"></a>01073                 }
-<a name="l01074"></a>01074         <span class="comment">//Toggle keyoffs when we turn off the percussion</span>
-<a name="l01075"></a>01075         } <span class="keywordflow">else</span> <span class="keywordflow">if</span> ( change &amp; 0x20 ) {
-<a name="l01076"></a>01076                 <span class="comment">//Trigger a reset to setup the original synth handler</span>
-<a name="l01077"></a>01077                 <span class="comment">//This makes it call</span>
-<a name="l01078"></a>01078                 chan[6].UpdateSynth( <span class="keyword">this</span> );
-<a name="l01079"></a>01079                 chan[6].op[0].KeyOff( 0x2 );
-<a name="l01080"></a>01080                 chan[6].op[1].KeyOff( 0x2 );
-<a name="l01081"></a>01081                 chan[7].op[0].KeyOff( 0x2 );
-<a name="l01082"></a>01082                 chan[7].op[1].KeyOff( 0x2 );
-<a name="l01083"></a>01083                 chan[8].op[0].KeyOff( 0x2 );
-<a name="l01084"></a>01084                 chan[8].op[1].KeyOff( 0x2 );
-<a name="l01085"></a>01085         }
-<a name="l01086"></a>01086 }
-<a name="l01087"></a>01087 
-<a name="l01088"></a>01088 
-<a name="l01089"></a>01089 <span class="preprocessor">#define REGOP( _FUNC_ )                                                                                                                 \</span>
-<a name="l01090"></a>01090 <span class="preprocessor">        index = ( ( reg &gt;&gt; 3) &amp; 0x20 ) | ( reg &amp; 0x1f );                                                                \</span>
-<a name="l01091"></a>01091 <span class="preprocessor">        if ( OpOffsetTable[ index ] ) {                                                                                                 \</span>
-<a name="l01092"></a>01092 <span class="preprocessor">                Operator* regOp = (Operator*)( ((char *)this ) + OpOffsetTable[ index ] );      \</span>
-<a name="l01093"></a>01093 <span class="preprocessor">                regOp-&gt;_FUNC_( this, val );                                                                                                     \</span>
-<a name="l01094"></a>01094 <span class="preprocessor">        }</span>
-<a name="l01095"></a>01095 <span class="preprocessor"></span>
-<a name="l01096"></a>01096 <span class="preprocessor">#define REGCHAN( _FUNC_ )                                                                                                                               \</span>
-<a name="l01097"></a>01097 <span class="preprocessor">        index = ( ( reg &gt;&gt; 4) &amp; 0x10 ) | ( reg &amp; 0xf );                                                                         \</span>
-<a name="l01098"></a>01098 <span class="preprocessor">        if ( ChanOffsetTable[ index ] ) {                                                                                                       \</span>
-<a name="l01099"></a>01099 <span class="preprocessor">                Channel* regChan = (Channel*)( ((char *)this ) + ChanOffsetTable[ index ] );    \</span>
-<a name="l01100"></a>01100 <span class="preprocessor">                regChan-&gt;_FUNC_( this, val );                                                                                                   \</span>
-<a name="l01101"></a>01101 <span class="preprocessor">        }</span>
-<a name="l01102"></a>01102 <span class="preprocessor"></span>
-<a name="l01103"></a>01103 <span class="comment">//Update the 0xc0 register for all channels to signal the switch to mono/stereo handlers</span>
-<a name="l01104"></a>01104 <span class="keywordtype">void</span> Chip::UpdateSynths() {
-<a name="l01105"></a>01105         <span class="keywordflow">for</span> (<span class="keywordtype">int</span> i = 0; i &lt; 18; i++) {
-<a name="l01106"></a>01106                 chan[i].UpdateSynth(<span class="keyword">this</span>);
-<a name="l01107"></a>01107         }
-<a name="l01108"></a>01108 }
-<a name="l01109"></a>01109 
-<a name="l01110"></a>01110 <span class="keywordtype">void</span> Chip::WriteReg( Bit32u reg, Bit8u val ) {
-<a name="l01111"></a>01111         Bitu index;
-<a name="l01112"></a>01112         <span class="keywordflow">switch</span> ( (reg &amp; 0xf0) &gt;&gt; 4 ) {
-<a name="l01113"></a>01113         <span class="keywordflow">case</span> 0x00 &gt;&gt; 4:
-<a name="l01114"></a>01114                 <span class="keywordflow">if</span> ( reg == 0x01 ) {
-<a name="l01115"></a>01115                         waveFormMask = ( val &amp; 0x20 ) ? 0x7 : 0x0; 
-<a name="l01116"></a>01116                 } <span class="keywordflow">else</span> <span class="keywordflow">if</span> ( reg == 0x104 ) {
-<a name="l01117"></a>01117                         <span class="comment">//Only detect changes in lowest 6 bits</span>
-<a name="l01118"></a>01118                         <span class="keywordflow">if</span> ( !((reg104 ^ val) &amp; 0x3f) )
-<a name="l01119"></a>01119                                 <span class="keywordflow">return</span>;
-<a name="l01120"></a>01120                         <span class="comment">//Always keep the highest bit enabled, for checking &gt; 0x80</span>
-<a name="l01121"></a>01121                         reg104 = 0x80 | ( val &amp; 0x3f );
-<a name="l01122"></a>01122                         <span class="comment">//Switch synths when changing the 4op combinations</span>
-<a name="l01123"></a>01123                         UpdateSynths();
-<a name="l01124"></a>01124                 } <span class="keywordflow">else</span> <span class="keywordflow">if</span> ( reg == 0x105 ) {
-<a name="l01125"></a>01125                         <span class="comment">//MAME says the real opl3 doesn&#39;t reset anything on opl3 disable/enable till the next write in another register</span>
-<a name="l01126"></a>01126                         <span class="keywordflow">if</span> ( !((opl3Active ^ val) &amp; 1 ) )
-<a name="l01127"></a>01127                                 <span class="keywordflow">return</span>;
-<a name="l01128"></a>01128                         opl3Active = ( val &amp; 1 ) ? 0xff : 0;
-<a name="l01129"></a>01129                         <span class="comment">//Just update the synths now that opl3 must have been enabled</span>
-<a name="l01130"></a>01130                         <span class="comment">//This isn&#39;t how the real card handles it but need to switch to stereo generating handlers</span>
-<a name="l01131"></a>01131                         UpdateSynths();
-<a name="l01132"></a>01132                 } <span class="keywordflow">else</span> <span class="keywordflow">if</span> ( reg == 0x08 ) {
-<a name="l01133"></a>01133                         reg08 = val;
-<a name="l01134"></a>01134                 }
-<a name="l01135"></a>01135         <span class="keywordflow">case</span> 0x10 &gt;&gt; 4:
-<a name="l01136"></a>01136                 <span class="keywordflow">break</span>;
-<a name="l01137"></a>01137         <span class="keywordflow">case</span> 0x20 &gt;&gt; 4:
-<a name="l01138"></a>01138         <span class="keywordflow">case</span> 0x30 &gt;&gt; 4:
-<a name="l01139"></a>01139                 REGOP( Write20 );
-<a name="l01140"></a>01140                 <span class="keywordflow">break</span>;
-<a name="l01141"></a>01141         <span class="keywordflow">case</span> 0x40 &gt;&gt; 4:
-<a name="l01142"></a>01142         <span class="keywordflow">case</span> 0x50 &gt;&gt; 4:
-<a name="l01143"></a>01143                 REGOP( Write40 );
-<a name="l01144"></a>01144                 <span class="keywordflow">break</span>;
-<a name="l01145"></a>01145         <span class="keywordflow">case</span> 0x60 &gt;&gt; 4:
-<a name="l01146"></a>01146         <span class="keywordflow">case</span> 0x70 &gt;&gt; 4:
-<a name="l01147"></a>01147                 REGOP( Write60 );
-<a name="l01148"></a>01148                 <span class="keywordflow">break</span>;
-<a name="l01149"></a>01149         <span class="keywordflow">case</span> 0x80 &gt;&gt; 4:
-<a name="l01150"></a>01150         <span class="keywordflow">case</span> 0x90 &gt;&gt; 4:
-<a name="l01151"></a>01151                 REGOP( Write80 );
-<a name="l01152"></a>01152                 <span class="keywordflow">break</span>;
-<a name="l01153"></a>01153         <span class="keywordflow">case</span> 0xa0 &gt;&gt; 4:
-<a name="l01154"></a>01154                 REGCHAN( WriteA0 );
-<a name="l01155"></a>01155                 <span class="keywordflow">break</span>;
-<a name="l01156"></a>01156         <span class="keywordflow">case</span> 0xb0 &gt;&gt; 4:
-<a name="l01157"></a>01157                 <span class="keywordflow">if</span> ( reg == 0xbd ) {
-<a name="l01158"></a>01158                         WriteBD( val );
-<a name="l01159"></a>01159                 } <span class="keywordflow">else</span> {
-<a name="l01160"></a>01160                         REGCHAN( WriteB0 );
-<a name="l01161"></a>01161                 }
-<a name="l01162"></a>01162                 <span class="keywordflow">break</span>;
-<a name="l01163"></a>01163         <span class="keywordflow">case</span> 0xc0 &gt;&gt; 4:
-<a name="l01164"></a>01164                 REGCHAN( WriteC0 );
-<a name="l01165"></a>01165         <span class="keywordflow">case</span> 0xd0 &gt;&gt; 4:
-<a name="l01166"></a>01166                 <span class="keywordflow">break</span>;
-<a name="l01167"></a>01167         <span class="keywordflow">case</span> 0xe0 &gt;&gt; 4:
-<a name="l01168"></a>01168         <span class="keywordflow">case</span> 0xf0 &gt;&gt; 4:
-<a name="l01169"></a>01169                 REGOP( WriteE0 );
-<a name="l01170"></a>01170                 <span class="keywordflow">break</span>;
-<a name="l01171"></a>01171         }
-<a name="l01172"></a>01172 }
-<a name="l01173"></a>01173 
-<a name="l01174"></a>01174 
-<a name="l01175"></a>01175 Bit32u Chip::WriteAddr( Bit32u port, Bit8u val ) {
-<a name="l01176"></a>01176         <span class="keywordflow">switch</span> ( port &amp; 3 ) {
-<a name="l01177"></a>01177         <span class="keywordflow">case</span> 0:
-<a name="l01178"></a>01178                 <span class="keywordflow">return</span> val;
-<a name="l01179"></a>01179         <span class="keywordflow">case</span> 2:
-<a name="l01180"></a>01180                 <span class="keywordflow">if</span> ( opl3Active || (val == 0x05u) )
-<a name="l01181"></a>01181                         <span class="keywordflow">return</span> 0x100u | val;
-<a name="l01182"></a>01182                 <span class="keywordflow">else</span> 
-<a name="l01183"></a>01183                         <span class="keywordflow">return</span> val;
-<a name="l01184"></a>01184         }
-<a name="l01185"></a>01185         <span class="keywordflow">return</span> 0u;
-<a name="l01186"></a>01186 }
-<a name="l01187"></a>01187 
-<a name="l01188"></a>01188 <span class="keywordtype">void</span> Chip::GenerateBlock2( Bitu total, Bit32s* output ) {
-<a name="l01189"></a>01189         <span class="keywordflow">while</span> ( total &gt; 0 ) {
-<a name="l01190"></a>01190                 Bit32u samples = ForwardLFO( (Bit32u)total );
-<a name="l01191"></a>01191                 memset(output, 0, <span class="keyword">sizeof</span>(Bit32s) * samples);
-<a name="l01192"></a>01192 <span class="comment">//              int count = 0;</span>
-<a name="l01193"></a>01193                 <span class="keywordflow">for</span>( Channel* ch = chan; ch &lt; chan + 9; ) {
-<a name="l01194"></a>01194 <span class="comment">//                      count++;</span>
-<a name="l01195"></a>01195                         ch = (ch-&gt;*(ch-&gt;synthHandler))( <span class="keyword">this</span>, samples, output );
-<a name="l01196"></a>01196                 }
-<a name="l01197"></a>01197                 total -= samples;
-<a name="l01198"></a>01198                 output += samples;
-<a name="l01199"></a>01199         }
-<a name="l01200"></a>01200 }
-<a name="l01201"></a>01201 
-<a name="l01202"></a>01202 <span class="keywordtype">void</span> Chip::GenerateBlock3( Bitu total, Bit32s* output  ) {
-<a name="l01203"></a>01203         <span class="keywordflow">while</span> ( total &gt; 0 ) {
-<a name="l01204"></a>01204                 Bit32u samples = ForwardLFO( (Bit32u)total );
-<a name="l01205"></a>01205                 memset(output, 0, <span class="keyword">sizeof</span>(Bit32s) * samples *2);
-<a name="l01206"></a>01206 <span class="comment">//              int count = 0;</span>
-<a name="l01207"></a>01207                 <span class="keywordflow">for</span>( Channel* ch = chan; ch &lt; chan + 18; ) {
-<a name="l01208"></a>01208 <span class="comment">//                      count++;</span>
-<a name="l01209"></a>01209                         ch = (ch-&gt;*(ch-&gt;synthHandler))( <span class="keyword">this</span>, samples, output );
-<a name="l01210"></a>01210                 }
-<a name="l01211"></a>01211                 total -= samples;
-<a name="l01212"></a>01212                 output += samples * 2;
-<a name="l01213"></a>01213         }
-<a name="l01214"></a>01214 }
-<a name="l01215"></a>01215 
-<a name="l01216"></a>01216 <span class="keywordtype">void</span> Chip::Setup( Bit32u rate ) {
-<a name="l01217"></a>01217         <span class="keywordtype">double</span> original = OPLRATE;
-<a name="l01218"></a>01218 <span class="comment">//      double original = rate;</span>
-<a name="l01219"></a>01219         <span class="keywordtype">double</span> scale = original / (double)rate;
-<a name="l01220"></a>01220 
-<a name="l01221"></a>01221         <span class="comment">//Noise counter is run at the same precision as general waves</span>
-<a name="l01222"></a>01222         noiseAdd = (Bit32u)( 0.5 + scale * ( 1 &lt;&lt; LFO_SH ) );
-<a name="l01223"></a>01223         noiseCounter = 0;
-<a name="l01224"></a>01224         noiseValue = 1; <span class="comment">//Make sure it triggers the noise xor the first time</span>
-<a name="l01225"></a>01225         <span class="comment">//The low frequency oscillation counter</span>
-<a name="l01226"></a>01226         <span class="comment">//Every time his overflows vibrato and tremoloindex are increased</span>
-<a name="l01227"></a>01227         lfoAdd = (Bit32u)( 0.5 + scale * ( 1 &lt;&lt; LFO_SH ) );
-<a name="l01228"></a>01228         lfoCounter = 0;
-<a name="l01229"></a>01229         vibratoIndex = 0;
-<a name="l01230"></a>01230         tremoloIndex = 0;
-<a name="l01231"></a>01231 
-<a name="l01232"></a>01232         <span class="comment">//With higher octave this gets shifted up</span>
-<a name="l01233"></a>01233         <span class="comment">//-1 since the freqCreateTable = *2</span>
-<a name="l01234"></a>01234 <span class="preprocessor">#ifdef WAVE_PRECISION</span>
-<a name="l01235"></a>01235 <span class="preprocessor"></span>        <span class="keywordtype">double</span> freqScale = ( 1 &lt;&lt; 7 ) * scale * ( 1 &lt;&lt; ( WAVE_SH - 1 - 10));
-<a name="l01236"></a>01236         <span class="keywordflow">for</span> ( <span class="keywordtype">int</span> i = 0; i &lt; 16; i++ ) {
-<a name="l01237"></a>01237                 freqMul[i] = (Bit32u)( 0.5 + freqScale * FreqCreateTable[ i ] );
-<a name="l01238"></a>01238         }
-<a name="l01239"></a>01239 <span class="preprocessor">#else</span>
-<a name="l01240"></a>01240 <span class="preprocessor"></span>        Bit32u freqScale = (Bit32u)( 0.5 + scale * ( 1 &lt;&lt; ( WAVE_SH - 1 - 10)));
-<a name="l01241"></a>01241         <span class="keywordflow">for</span> ( <span class="keywordtype">int</span> i = 0; i &lt; 16; i++ ) {
-<a name="l01242"></a>01242                 freqMul[i] = freqScale * FreqCreateTable[ i ];
-<a name="l01243"></a>01243         }
-<a name="l01244"></a>01244 <span class="preprocessor">#endif</span>
-<a name="l01245"></a>01245 <span class="preprocessor"></span>
-<a name="l01246"></a>01246         <span class="comment">//-3 since the real envelope takes 8 steps to reach the single value we supply</span>
-<a name="l01247"></a>01247         <span class="keywordflow">for</span> ( Bit8u i = 0; i &lt; 76; i++ ) {
-<a name="l01248"></a>01248                 Bit8u index, shift;
-<a name="l01249"></a>01249                 EnvelopeSelect( i, index, shift );
-<a name="l01250"></a>01250                 linearRates[i] = (Bit32u)( scale * (EnvelopeIncreaseTable[ index ] &lt;&lt; ( RATE_SH + ENV_EXTRA - shift - 3 )));
-<a name="l01251"></a>01251         }
-<a name="l01252"></a>01252 <span class="comment">//      Bit32s attackDiffs[62];</span>
-<a name="l01253"></a>01253         <span class="comment">//Generate the best matching attack rate</span>
-<a name="l01254"></a>01254         <span class="keywordflow">for</span> ( Bit8u i = 0; i &lt; 62; i++ ) {
-<a name="l01255"></a>01255                 Bit8u index, shift;
-<a name="l01256"></a>01256                 EnvelopeSelect( i, index, shift );
-<a name="l01257"></a>01257                 <span class="comment">//Original amount of samples the attack would take</span>
-<a name="l01258"></a>01258                 Bit32s original = (Bit32s)((Bit32u)( (AttackSamplesTable[ index ] &lt;&lt; shift) / scale));
-<a name="l01259"></a>01259                  
-<a name="l01260"></a>01260                 Bit32s guessAdd = (Bit32s)((Bit32u)( scale * (EnvelopeIncreaseTable[ index ] &lt;&lt; ( RATE_SH - shift - 3 ))));
-<a name="l01261"></a>01261                 Bit32s bestAdd = guessAdd;
-<a name="l01262"></a>01262                 Bit32u bestDiff = 1 &lt;&lt; 30;
-<a name="l01263"></a>01263                 <span class="keywordflow">for</span>( Bit32u passes = 0; passes &lt; 16; passes ++ ) {
-<a name="l01264"></a>01264                         Bit32s volume = ENV_MAX;
-<a name="l01265"></a>01265                         Bit32s samples = 0;
-<a name="l01266"></a>01266                         Bit32u count = 0;
-<a name="l01267"></a>01267                         <span class="keywordflow">while</span> ( volume &gt; 0 &amp;&amp; samples &lt; original * 2 ) {
-<a name="l01268"></a>01268                                 count += (Bit32u)guessAdd;
-<a name="l01269"></a>01269                                 Bit32s change = (Bit32s)(count &gt;&gt; RATE_SH);
-<a name="l01270"></a>01270                                 count &amp;= RATE_MASK;
-<a name="l01271"></a>01271                                 <span class="keywordflow">if</span> ( GCC_UNLIKELY(change) ) { <span class="comment">// less than 1 % </span>
-<a name="l01272"></a>01272                                         volume += ( ~volume * change ) &gt;&gt; 3;
-<a name="l01273"></a>01273                                 }
-<a name="l01274"></a>01274                                 samples++;
-<a name="l01275"></a>01275 
-<a name="l01276"></a>01276                         }
-<a name="l01277"></a>01277                         Bit32s diff = original - samples;
-<a name="l01278"></a>01278                         Bit32u lDiff = labs( diff );
-<a name="l01279"></a>01279                         <span class="comment">//Init last on first pass</span>
-<a name="l01280"></a>01280                         <span class="keywordflow">if</span> ( lDiff &lt; bestDiff ) {
-<a name="l01281"></a>01281                                 bestDiff = lDiff;
-<a name="l01282"></a>01282                                 bestAdd = guessAdd;
-<a name="l01283"></a>01283                                 <span class="comment">//We hit an exactly matching sample count</span>
-<a name="l01284"></a>01284                                 <span class="keywordflow">if</span> ( !bestDiff )
-<a name="l01285"></a>01285                                         <span class="keywordflow">break</span>;
-<a name="l01286"></a>01286                         }
-<a name="l01287"></a>01287                         <span class="comment">//Linear correction factor, not exactly perfect but seems to work</span>
-<a name="l01288"></a>01288                         <span class="keywordtype">double</span> correct = (original - diff) / (<span class="keywordtype">double</span>)original;
-<a name="l01289"></a>01289                         guessAdd = (Bit32s)(guessAdd * correct);
-<a name="l01290"></a>01290                         <span class="comment">//Below our target</span>
-<a name="l01291"></a>01291                         <span class="keywordflow">if</span> ( diff &lt; 0 ) {
-<a name="l01292"></a>01292                                 <span class="comment">//Always add one here for rounding, an overshoot will get corrected by another pass decreasing</span>
-<a name="l01293"></a>01293                                 guessAdd++;
-<a name="l01294"></a>01294                         }
-<a name="l01295"></a>01295                 }
-<a name="l01296"></a>01296                 attackRates[i] = (Bit32u)bestAdd;
-<a name="l01297"></a>01297                 <span class="comment">//Keep track of the diffs for some debugging</span>
-<a name="l01298"></a>01298 <span class="comment">//              attackDiffs[i] = bestDiff;</span>
-<a name="l01299"></a>01299         }
-<a name="l01300"></a>01300         <span class="keywordflow">for</span> ( Bit8u i = 62; i &lt; 76; i++ ) {
-<a name="l01301"></a>01301                 <span class="comment">//This should provide instant volume maximizing</span>
-<a name="l01302"></a>01302                 attackRates[i] = 8u &lt;&lt; RATE_SH;
-<a name="l01303"></a>01303         }
-<a name="l01304"></a>01304         <span class="comment">//Setup the channels with the correct four op flags</span>
-<a name="l01305"></a>01305         <span class="comment">//Channels are accessed through a table so they appear linear here</span>
-<a name="l01306"></a>01306         chan[ 0].fourMask = 0x00 | ( 1 &lt;&lt; 0 );
-<a name="l01307"></a>01307         chan[ 1].fourMask = 0x80 | ( 1 &lt;&lt; 0 );
-<a name="l01308"></a>01308         chan[ 2].fourMask = 0x00 | ( 1 &lt;&lt; 1 );
-<a name="l01309"></a>01309         chan[ 3].fourMask = 0x80 | ( 1 &lt;&lt; 1 );
-<a name="l01310"></a>01310         chan[ 4].fourMask = 0x00 | ( 1 &lt;&lt; 2 );
-<a name="l01311"></a>01311         chan[ 5].fourMask = 0x80 | ( 1 &lt;&lt; 2 );
-<a name="l01312"></a>01312 
-<a name="l01313"></a>01313         chan[ 9].fourMask = 0x00 | ( 1 &lt;&lt; 3 );
-<a name="l01314"></a>01314         chan[10].fourMask = 0x80 | ( 1 &lt;&lt; 3 );
-<a name="l01315"></a>01315         chan[11].fourMask = 0x00 | ( 1 &lt;&lt; 4 );
-<a name="l01316"></a>01316         chan[12].fourMask = 0x80 | ( 1 &lt;&lt; 4 );
-<a name="l01317"></a>01317         chan[13].fourMask = 0x00 | ( 1 &lt;&lt; 5 );
-<a name="l01318"></a>01318         chan[14].fourMask = 0x80 | ( 1 &lt;&lt; 5 );
-<a name="l01319"></a>01319 
-<a name="l01320"></a>01320         <span class="comment">//mark the percussion channels</span>
-<a name="l01321"></a>01321         chan[ 6].fourMask = 0x40;
-<a name="l01322"></a>01322         chan[ 7].fourMask = 0x40;
-<a name="l01323"></a>01323         chan[ 8].fourMask = 0x40;
-<a name="l01324"></a>01324 
-<a name="l01325"></a>01325         <span class="comment">//Clear Everything in opl3 mode</span>
-<a name="l01326"></a>01326         WriteReg( 0x105, 0x1 );
-<a name="l01327"></a>01327         <span class="keywordflow">for</span> ( <span class="keywordtype">unsigned</span> <span class="keywordtype">int</span> i = 0; i &lt; 512; i++ ) {
-<a name="l01328"></a>01328                 <span class="keywordflow">if</span> ( i == 0x105 )
-<a name="l01329"></a>01329                         <span class="keywordflow">continue</span>;
-<a name="l01330"></a>01330                 WriteReg( i, 0xff );
-<a name="l01331"></a>01331                 WriteReg( i, 0x0 );
-<a name="l01332"></a>01332         }
-<a name="l01333"></a>01333         WriteReg( 0x105, 0x0 );
-<a name="l01334"></a>01334         <span class="comment">//Clear everything in opl2 mode</span>
-<a name="l01335"></a>01335         <span class="keywordflow">for</span> ( <span class="keywordtype">unsigned</span> <span class="keywordtype">int</span> i = 0; i &lt; 255; i++ ) {
-<a name="l01336"></a>01336                 WriteReg( i, 0xff );
-<a name="l01337"></a>01337                 WriteReg( i, 0x0 );
-<a name="l01338"></a>01338         }
-<a name="l01339"></a>01339 }
-<a name="l01340"></a>01340 
-<a name="l01341"></a>01341 <span class="keyword">static</span> <span class="keywordtype">bool</span> doneTables = <span class="keyword">false</span>;
-<a name="l01342"></a>01342 <span class="keywordtype">void</span> InitTables( <span class="keywordtype">void</span> ) {
-<a name="l01343"></a>01343         <span class="keywordflow">if</span> ( doneTables )
-<a name="l01344"></a>01344                 <span class="keywordflow">return</span>;
-<a name="l01345"></a>01345         doneTables = <span class="keyword">true</span>;
-<a name="l01346"></a>01346 <span class="preprocessor">#if ( DBOPL_WAVE == WAVE_HANDLER ) || ( DBOPL_WAVE == WAVE_TABLELOG )</span>
-<a name="l01347"></a>01347 <span class="preprocessor"></span>        <span class="comment">//Exponential volume table, same as the real adlib</span>
-<a name="l01348"></a>01348         <span class="keywordflow">for</span> ( <span class="keywordtype">int</span> i = 0; i &lt; 256; i++ ) {
-<a name="l01349"></a>01349                 <span class="comment">//Save them in reverse</span>
-<a name="l01350"></a>01350                 ExpTable[i] = (int)( 0.5 + ( pow(2.0, ( 255 - i) * ( 1.0 /256 ) )-1) * 1024 );
-<a name="l01351"></a>01351                 ExpTable[i] += 1024; <span class="comment">//or remove the -1 oh well :)</span>
-<a name="l01352"></a>01352                 <span class="comment">//Preshift to the left once so the final volume can shift to the right</span>
-<a name="l01353"></a>01353                 ExpTable[i] *= 2;
-<a name="l01354"></a>01354         }
-<a name="l01355"></a>01355 <span class="preprocessor">#endif</span>
-<a name="l01356"></a>01356 <span class="preprocessor"></span><span class="preprocessor">#if ( DBOPL_WAVE == WAVE_HANDLER )</span>
-<a name="l01357"></a>01357 <span class="preprocessor"></span>        <span class="comment">//Add 0.5 for the trunc rounding of the integer cast</span>
-<a name="l01358"></a>01358         <span class="comment">//Do a PI sinetable instead of the original 0.5 PI</span>
-<a name="l01359"></a>01359         <span class="keywordflow">for</span> ( <span class="keywordtype">int</span> i = 0; i &lt; 512; i++ ) {
-<a name="l01360"></a>01360                 SinTable[i] = (Bit16s)( 0.5 - log10( sin( (i + 0.5) * (PI / 512.0) ) ) / log10(2.0)*256 );
-<a name="l01361"></a>01361         }
-<a name="l01362"></a>01362 <span class="preprocessor">#endif</span>
-<a name="l01363"></a>01363 <span class="preprocessor"></span><span class="preprocessor">#if ( DBOPL_WAVE == WAVE_TABLEMUL )</span>
-<a name="l01364"></a>01364 <span class="preprocessor"></span>        <span class="comment">//Multiplication based tables</span>
-<a name="l01365"></a>01365         <span class="keywordflow">for</span> ( <span class="keywordtype">int</span> i = 0; i &lt; 384; i++ ) {
-<a name="l01366"></a>01366                 <span class="keywordtype">int</span> s = i * 8;
-<a name="l01367"></a>01367                 <span class="comment">//TODO maybe keep some of the precision errors of the original table?</span>
-<a name="l01368"></a>01368                 <span class="keywordtype">double</span> val = ( 0.5 + ( pow(2.0, -1.0 + ( 255 - s) * ( 1.0 /256 ) )) * ( 1 &lt;&lt; MUL_SH ));
-<a name="l01369"></a>01369                 MulTable[i] = (Bit16u)(val);
+<a name="l00952"></a>00952                 <span class="keywordflow">case</span> sm3AM:
+<a name="l00953"></a>00953                 <span class="keywordflow">case</span> sm3FM:
+<a name="l00954"></a>00954                 <span class="keywordflow">case</span> sm3FMFM:
+<a name="l00955"></a>00955                 <span class="keywordflow">case</span> sm3AMFM:
+<a name="l00956"></a>00956                 <span class="keywordflow">case</span> sm3FMAM:
+<a name="l00957"></a>00957                 <span class="keywordflow">case</span> sm3AMAM:
+<a name="l00958"></a>00958                         output[ i * 2 + 0 ] += sample &amp; maskLeft;
+<a name="l00959"></a>00959                         output[ i * 2 + 1 ] += sample &amp; maskRight;
+<a name="l00960"></a>00960                         <span class="keywordflow">break</span>;
+<a name="l00961"></a>00961                 <span class="keywordflow">default</span>:
+<a name="l00962"></a>00962                         <span class="keywordflow">break</span>;
+<a name="l00963"></a>00963                 }
+<a name="l00964"></a>00964         }
+<a name="l00965"></a>00965         <span class="keywordflow">switch</span>( mode ) {
+<a name="l00966"></a>00966         <span class="keywordflow">case</span> sm2AM:
+<a name="l00967"></a>00967         <span class="keywordflow">case</span> sm2FM:
+<a name="l00968"></a>00968         <span class="keywordflow">case</span> sm3AM:
+<a name="l00969"></a>00969         <span class="keywordflow">case</span> sm3FM:
+<a name="l00970"></a>00970                 <span class="keywordflow">return</span> ( <span class="keyword">this</span> + 1 );
+<a name="l00971"></a>00971         <span class="keywordflow">case</span> sm3FMFM:
+<a name="l00972"></a>00972         <span class="keywordflow">case</span> sm3AMFM:
+<a name="l00973"></a>00973         <span class="keywordflow">case</span> sm3FMAM:
+<a name="l00974"></a>00974         <span class="keywordflow">case</span> sm3AMAM:
+<a name="l00975"></a>00975                 <span class="keywordflow">return</span>( <span class="keyword">this</span> + 2 );
+<a name="l00976"></a>00976         <span class="keywordflow">case</span> sm2Percussion:
+<a name="l00977"></a>00977         <span class="keywordflow">case</span> sm3Percussion:
+<a name="l00978"></a>00978                 <span class="keywordflow">return</span>( <span class="keyword">this</span> + 3 );
+<a name="l00979"></a>00979         }
+<a name="l00980"></a>00980         <span class="keywordflow">return</span> 0;
+<a name="l00981"></a>00981 }
+<a name="l00982"></a>00982 
+<a name="l00983"></a>00983 <span class="comment">/*</span>
+<a name="l00984"></a>00984 <span class="comment">        Chip</span>
+<a name="l00985"></a>00985 <span class="comment">*/</span>
+<a name="l00986"></a>00986 
+<a name="l00987"></a>00987 Chip::Chip() {
+<a name="l00988"></a>00988         reg08 = 0;
+<a name="l00989"></a>00989         reg04 = 0;
+<a name="l00990"></a>00990         regBD = 0;
+<a name="l00991"></a>00991         reg104 = 0;
+<a name="l00992"></a>00992         opl3Active = 0;
+<a name="l00993"></a>00993 }
+<a name="l00994"></a>00994 
+<a name="l00995"></a>00995 <span class="comment">/*INLINE*/</span> Bit32u Chip::ForwardNoise() {
+<a name="l00996"></a>00996         noiseCounter += noiseAdd;
+<a name="l00997"></a>00997         Bitu count = noiseCounter &gt;&gt; LFO_SH;
+<a name="l00998"></a>00998         noiseCounter &amp;= WAVE_MASK;
+<a name="l00999"></a>00999         <span class="keywordflow">for</span> ( ; count &gt; 0; --count ) {
+<a name="l01000"></a>01000                 <span class="comment">//Noise calculation from mame</span>
+<a name="l01001"></a>01001                 noiseValue ^= ( 0x800302 ) &amp; ( 0 - (noiseValue &amp; 1 ) );
+<a name="l01002"></a>01002                 noiseValue &gt;&gt;= 1;
+<a name="l01003"></a>01003         }
+<a name="l01004"></a>01004         <span class="keywordflow">return</span> noiseValue;
+<a name="l01005"></a>01005 }
+<a name="l01006"></a>01006 
+<a name="l01007"></a>01007 <span class="comment">/*INLINE*/</span> Bit32u Chip::ForwardLFO( Bit32u samples ) {
+<a name="l01008"></a>01008         <span class="comment">//Current vibrato value, runs 4x slower than tremolo</span>
+<a name="l01009"></a>01009         vibratoSign = ( VibratoTable[ vibratoIndex &gt;&gt; 2] ) &gt;&gt; 7;
+<a name="l01010"></a>01010         vibratoShift = ( VibratoTable[ vibratoIndex &gt;&gt; 2] &amp; 7) + vibratoStrength; 
+<a name="l01011"></a>01011         tremoloValue = TremoloTable[ tremoloIndex ] &gt;&gt; tremoloStrength;
+<a name="l01012"></a>01012 
+<a name="l01013"></a>01013         <span class="comment">//Check hom many samples there can be done before the value changes</span>
+<a name="l01014"></a>01014         Bit32u todo = LFO_MAX - lfoCounter;
+<a name="l01015"></a>01015         Bit32u count = (todo + lfoAdd - 1) / lfoAdd;
+<a name="l01016"></a>01016         <span class="keywordflow">if</span> ( count &gt; samples ) {
+<a name="l01017"></a>01017                 count = samples;
+<a name="l01018"></a>01018                 lfoCounter += count * lfoAdd;
+<a name="l01019"></a>01019         } <span class="keywordflow">else</span> {
+<a name="l01020"></a>01020                 lfoCounter += count * lfoAdd;
+<a name="l01021"></a>01021                 lfoCounter &amp;= (LFO_MAX - 1);
+<a name="l01022"></a>01022                 <span class="comment">//Maximum of 7 vibrato value * 4</span>
+<a name="l01023"></a>01023                 vibratoIndex = ( vibratoIndex + 1 ) &amp; 31;
+<a name="l01024"></a>01024                 <span class="comment">//Clip tremolo to the the table size</span>
+<a name="l01025"></a>01025                 <span class="keywordflow">if</span> ( tremoloIndex + 1 &lt; TREMOLO_TABLE  )
+<a name="l01026"></a>01026                         ++tremoloIndex;
+<a name="l01027"></a>01027                 <span class="keywordflow">else</span>
+<a name="l01028"></a>01028                         tremoloIndex = 0;
+<a name="l01029"></a>01029         }
+<a name="l01030"></a>01030         <span class="keywordflow">return</span> count;
+<a name="l01031"></a>01031 }
+<a name="l01032"></a>01032 
+<a name="l01033"></a>01033 
+<a name="l01034"></a>01034 <span class="keywordtype">void</span> Chip::WriteBD( Bit8u val ) {
+<a name="l01035"></a>01035         Bit8u change = regBD ^ val;
+<a name="l01036"></a>01036         <span class="keywordflow">if</span> ( !change )
+<a name="l01037"></a>01037                 <span class="keywordflow">return</span>;
+<a name="l01038"></a>01038         regBD = val;
+<a name="l01039"></a>01039         <span class="comment">//TODO could do this with shift and xor?</span>
+<a name="l01040"></a>01040         vibratoStrength = (val &amp; 0x40) ? 0x00 : 0x01;
+<a name="l01041"></a>01041         tremoloStrength = (val &amp; 0x80) ? 0x00 : 0x02;
+<a name="l01042"></a>01042         <span class="keywordflow">if</span> ( val &amp; 0x20 ) {
+<a name="l01043"></a>01043                 <span class="comment">//Drum was just enabled, make sure channel 6 has the right synth</span>
+<a name="l01044"></a>01044                 <span class="keywordflow">if</span> ( change &amp; 0x20 ) {
+<a name="l01045"></a>01045                         <span class="keywordflow">if</span> ( opl3Active ) {
+<a name="l01046"></a>01046                                 chan[6].synthHandler = &amp;Channel::BlockTemplate&lt; sm3Percussion &gt;; 
+<a name="l01047"></a>01047                         } <span class="keywordflow">else</span> {
+<a name="l01048"></a>01048                                 chan[6].synthHandler = &amp;Channel::BlockTemplate&lt; sm2Percussion &gt;; 
+<a name="l01049"></a>01049                         }
+<a name="l01050"></a>01050                 }
+<a name="l01051"></a>01051                 <span class="comment">//Bass Drum</span>
+<a name="l01052"></a>01052                 <span class="keywordflow">if</span> ( val &amp; 0x10 ) {
+<a name="l01053"></a>01053                         chan[6].op[0].KeyOn( 0x2 );
+<a name="l01054"></a>01054                         chan[6].op[1].KeyOn( 0x2 );
+<a name="l01055"></a>01055                 } <span class="keywordflow">else</span> {
+<a name="l01056"></a>01056                         chan[6].op[0].KeyOff( 0x2 );
+<a name="l01057"></a>01057                         chan[6].op[1].KeyOff( 0x2 );
+<a name="l01058"></a>01058                 }
+<a name="l01059"></a>01059                 <span class="comment">//Hi-Hat</span>
+<a name="l01060"></a>01060                 <span class="keywordflow">if</span> ( val &amp; 0x1 ) {
+<a name="l01061"></a>01061                         chan[7].op[0].KeyOn( 0x2 );
+<a name="l01062"></a>01062                 } <span class="keywordflow">else</span> {
+<a name="l01063"></a>01063                         chan[7].op[0].KeyOff( 0x2 );
+<a name="l01064"></a>01064                 }
+<a name="l01065"></a>01065                 <span class="comment">//Snare</span>
+<a name="l01066"></a>01066                 <span class="keywordflow">if</span> ( val &amp; 0x8 ) {
+<a name="l01067"></a>01067                         chan[7].op[1].KeyOn( 0x2 );
+<a name="l01068"></a>01068                 } <span class="keywordflow">else</span> {
+<a name="l01069"></a>01069                         chan[7].op[1].KeyOff( 0x2 );
+<a name="l01070"></a>01070                 }
+<a name="l01071"></a>01071                 <span class="comment">//Tom-Tom</span>
+<a name="l01072"></a>01072                 <span class="keywordflow">if</span> ( val &amp; 0x4 ) {
+<a name="l01073"></a>01073                         chan[8].op[0].KeyOn( 0x2 );
+<a name="l01074"></a>01074                 } <span class="keywordflow">else</span> {
+<a name="l01075"></a>01075                         chan[8].op[0].KeyOff( 0x2 );
+<a name="l01076"></a>01076                 }
+<a name="l01077"></a>01077                 <span class="comment">//Top Cymbal</span>
+<a name="l01078"></a>01078                 <span class="keywordflow">if</span> ( val &amp; 0x2 ) {
+<a name="l01079"></a>01079                         chan[8].op[1].KeyOn( 0x2 );
+<a name="l01080"></a>01080                 } <span class="keywordflow">else</span> {
+<a name="l01081"></a>01081                         chan[8].op[1].KeyOff( 0x2 );
+<a name="l01082"></a>01082                 }
+<a name="l01083"></a>01083         <span class="comment">//Toggle keyoffs when we turn off the percussion</span>
+<a name="l01084"></a>01084         } <span class="keywordflow">else</span> <span class="keywordflow">if</span> ( change &amp; 0x20 ) {
+<a name="l01085"></a>01085                 <span class="comment">//Trigger a reset to setup the original synth handler</span>
+<a name="l01086"></a>01086                 <span class="comment">//This makes it call</span>
+<a name="l01087"></a>01087                 chan[6].UpdateSynth( <span class="keyword">this</span> );
+<a name="l01088"></a>01088                 chan[6].op[0].KeyOff( 0x2 );
+<a name="l01089"></a>01089                 chan[6].op[1].KeyOff( 0x2 );
+<a name="l01090"></a>01090                 chan[7].op[0].KeyOff( 0x2 );
+<a name="l01091"></a>01091                 chan[7].op[1].KeyOff( 0x2 );
+<a name="l01092"></a>01092                 chan[8].op[0].KeyOff( 0x2 );
+<a name="l01093"></a>01093                 chan[8].op[1].KeyOff( 0x2 );
+<a name="l01094"></a>01094         }
+<a name="l01095"></a>01095 }
+<a name="l01096"></a>01096 
+<a name="l01097"></a>01097 
+<a name="l01098"></a>01098 <span class="preprocessor">#define REGOP( _FUNC_ )                                                                                                                 \</span>
+<a name="l01099"></a>01099 <span class="preprocessor">        index = ( ( reg &gt;&gt; 3) &amp; 0x20 ) | ( reg &amp; 0x1f );                                                                \</span>
+<a name="l01100"></a>01100 <span class="preprocessor">        if ( OpOffsetTable[ index ] ) {                                                                                                 \</span>
+<a name="l01101"></a>01101 <span class="preprocessor">                Operator* regOp = (Operator*)( ((char *)this ) + OpOffsetTable[ index ] );      \</span>
+<a name="l01102"></a>01102 <span class="preprocessor">                regOp-&gt;_FUNC_( this, val );                                                                                                     \</span>
+<a name="l01103"></a>01103 <span class="preprocessor">        }</span>
+<a name="l01104"></a>01104 <span class="preprocessor"></span>
+<a name="l01105"></a>01105 <span class="preprocessor">#define REGCHAN( _FUNC_ )                                                                                                                               \</span>
+<a name="l01106"></a>01106 <span class="preprocessor">        index = ( ( reg &gt;&gt; 4) &amp; 0x10 ) | ( reg &amp; 0xf );                                                                         \</span>
+<a name="l01107"></a>01107 <span class="preprocessor">        if ( ChanOffsetTable[ index ] ) {                                                                                                       \</span>
+<a name="l01108"></a>01108 <span class="preprocessor">                Channel* regChan = (Channel*)( ((char *)this ) + ChanOffsetTable[ index ] );    \</span>
+<a name="l01109"></a>01109 <span class="preprocessor">                regChan-&gt;_FUNC_( this, val );                                                                                                   \</span>
+<a name="l01110"></a>01110 <span class="preprocessor">        }</span>
+<a name="l01111"></a>01111 <span class="preprocessor"></span>
+<a name="l01112"></a>01112 <span class="comment">//Update the 0xc0 register for all channels to signal the switch to mono/stereo handlers</span>
+<a name="l01113"></a>01113 <span class="keywordtype">void</span> Chip::UpdateSynths() {
+<a name="l01114"></a>01114         <span class="keywordflow">for</span> (<span class="keywordtype">int</span> i = 0; i &lt; 18; i++) {
+<a name="l01115"></a>01115                 chan[i].UpdateSynth(<span class="keyword">this</span>);
+<a name="l01116"></a>01116         }
+<a name="l01117"></a>01117 }
+<a name="l01118"></a>01118 
+<a name="l01119"></a>01119 <span class="keywordtype">void</span> Chip::WriteReg( Bit32u reg, Bit8u val ) {
+<a name="l01120"></a>01120         Bitu index;
+<a name="l01121"></a>01121         <span class="keywordflow">switch</span> ( (reg &amp; 0xf0) &gt;&gt; 4 ) {
+<a name="l01122"></a>01122         <span class="keywordflow">case</span> 0x00 &gt;&gt; 4:
+<a name="l01123"></a>01123                 <span class="keywordflow">if</span> ( reg == 0x01 ) {
+<a name="l01124"></a>01124                         waveFormMask = ( val &amp; 0x20 ) ? 0x7 : 0x0; 
+<a name="l01125"></a>01125                 } <span class="keywordflow">else</span> <span class="keywordflow">if</span> ( reg == 0x104 ) {
+<a name="l01126"></a>01126                         <span class="comment">//Only detect changes in lowest 6 bits</span>
+<a name="l01127"></a>01127                         <span class="keywordflow">if</span> ( !((reg104 ^ val) &amp; 0x3f) )
+<a name="l01128"></a>01128                                 <span class="keywordflow">return</span>;
+<a name="l01129"></a>01129                         <span class="comment">//Always keep the highest bit enabled, for checking &gt; 0x80</span>
+<a name="l01130"></a>01130                         reg104 = 0x80 | ( val &amp; 0x3f );
+<a name="l01131"></a>01131                         <span class="comment">//Switch synths when changing the 4op combinations</span>
+<a name="l01132"></a>01132                         UpdateSynths();
+<a name="l01133"></a>01133                 } <span class="keywordflow">else</span> <span class="keywordflow">if</span> ( reg == 0x105 ) {
+<a name="l01134"></a>01134                         <span class="comment">//MAME says the real opl3 doesn&#39;t reset anything on opl3 disable/enable till the next write in another register</span>
+<a name="l01135"></a>01135                         <span class="keywordflow">if</span> ( !((opl3Active ^ val) &amp; 1 ) )
+<a name="l01136"></a>01136                                 <span class="keywordflow">return</span>;
+<a name="l01137"></a>01137                         opl3Active = ( val &amp; 1 ) ? 0xff : 0;
+<a name="l01138"></a>01138                         <span class="comment">//Just update the synths now that opl3 must have been enabled</span>
+<a name="l01139"></a>01139                         <span class="comment">//This isn&#39;t how the real card handles it but need to switch to stereo generating handlers</span>
+<a name="l01140"></a>01140                         UpdateSynths();
+<a name="l01141"></a>01141                 } <span class="keywordflow">else</span> <span class="keywordflow">if</span> ( reg == 0x08 ) {
+<a name="l01142"></a>01142                         reg08 = val;
+<a name="l01143"></a>01143                 }
+<a name="l01144"></a>01144         <span class="keywordflow">case</span> 0x10 &gt;&gt; 4:
+<a name="l01145"></a>01145                 <span class="keywordflow">break</span>;
+<a name="l01146"></a>01146         <span class="keywordflow">case</span> 0x20 &gt;&gt; 4:
+<a name="l01147"></a>01147         <span class="keywordflow">case</span> 0x30 &gt;&gt; 4:
+<a name="l01148"></a>01148                 REGOP( Write20 );
+<a name="l01149"></a>01149                 <span class="keywordflow">break</span>;
+<a name="l01150"></a>01150         <span class="keywordflow">case</span> 0x40 &gt;&gt; 4:
+<a name="l01151"></a>01151         <span class="keywordflow">case</span> 0x50 &gt;&gt; 4:
+<a name="l01152"></a>01152                 REGOP( Write40 );
+<a name="l01153"></a>01153                 <span class="keywordflow">break</span>;
+<a name="l01154"></a>01154         <span class="keywordflow">case</span> 0x60 &gt;&gt; 4:
+<a name="l01155"></a>01155         <span class="keywordflow">case</span> 0x70 &gt;&gt; 4:
+<a name="l01156"></a>01156                 REGOP( Write60 );
+<a name="l01157"></a>01157                 <span class="keywordflow">break</span>;
+<a name="l01158"></a>01158         <span class="keywordflow">case</span> 0x80 &gt;&gt; 4:
+<a name="l01159"></a>01159         <span class="keywordflow">case</span> 0x90 &gt;&gt; 4:
+<a name="l01160"></a>01160                 REGOP( Write80 );
+<a name="l01161"></a>01161                 <span class="keywordflow">break</span>;
+<a name="l01162"></a>01162         <span class="keywordflow">case</span> 0xa0 &gt;&gt; 4:
+<a name="l01163"></a>01163                 REGCHAN( WriteA0 );
+<a name="l01164"></a>01164                 <span class="keywordflow">break</span>;
+<a name="l01165"></a>01165         <span class="keywordflow">case</span> 0xb0 &gt;&gt; 4:
+<a name="l01166"></a>01166                 <span class="keywordflow">if</span> ( reg == 0xbd ) {
+<a name="l01167"></a>01167                         WriteBD( val );
+<a name="l01168"></a>01168                 } <span class="keywordflow">else</span> {
+<a name="l01169"></a>01169                         REGCHAN( WriteB0 );
+<a name="l01170"></a>01170                 }
+<a name="l01171"></a>01171                 <span class="keywordflow">break</span>;
+<a name="l01172"></a>01172         <span class="keywordflow">case</span> 0xc0 &gt;&gt; 4:
+<a name="l01173"></a>01173                 REGCHAN( WriteC0 );
+<a name="l01174"></a>01174         <span class="keywordflow">case</span> 0xd0 &gt;&gt; 4:
+<a name="l01175"></a>01175                 <span class="keywordflow">break</span>;
+<a name="l01176"></a>01176         <span class="keywordflow">case</span> 0xe0 &gt;&gt; 4:
+<a name="l01177"></a>01177         <span class="keywordflow">case</span> 0xf0 &gt;&gt; 4:
+<a name="l01178"></a>01178                 REGOP( WriteE0 );
+<a name="l01179"></a>01179                 <span class="keywordflow">break</span>;
+<a name="l01180"></a>01180         }
+<a name="l01181"></a>01181 }
+<a name="l01182"></a>01182 
+<a name="l01183"></a>01183 
+<a name="l01184"></a>01184 Bit32u Chip::WriteAddr( Bit32u port, Bit8u val ) {
+<a name="l01185"></a>01185         <span class="keywordflow">switch</span> ( port &amp; 3 ) {
+<a name="l01186"></a>01186         <span class="keywordflow">case</span> 0:
+<a name="l01187"></a>01187                 <span class="keywordflow">return</span> val;
+<a name="l01188"></a>01188         <span class="keywordflow">case</span> 2:
+<a name="l01189"></a>01189                 <span class="keywordflow">if</span> ( opl3Active || (val == 0x05u) )
+<a name="l01190"></a>01190                         <span class="keywordflow">return</span> 0x100u | val;
+<a name="l01191"></a>01191                 <span class="keywordflow">else</span> 
+<a name="l01192"></a>01192                         <span class="keywordflow">return</span> val;
+<a name="l01193"></a>01193         }
+<a name="l01194"></a>01194         <span class="keywordflow">return</span> 0u;
+<a name="l01195"></a>01195 }
+<a name="l01196"></a>01196 
+<a name="l01197"></a>01197 <span class="keywordtype">void</span> Chip::GenerateBlock2( Bitu total, Bit32s* output ) {
+<a name="l01198"></a>01198         <span class="keywordflow">while</span> ( total &gt; 0 ) {
+<a name="l01199"></a>01199                 Bit32u samples = ForwardLFO( (Bit32u)total );
+<a name="l01200"></a>01200                 memset(output, 0, <span class="keyword">sizeof</span>(Bit32s) * samples);
+<a name="l01201"></a>01201 <span class="comment">//              int count = 0;</span>
+<a name="l01202"></a>01202                 <span class="keywordflow">for</span>( Channel* ch = chan; ch &lt; chan + 9; ) {
+<a name="l01203"></a>01203 <span class="comment">//                      count++;</span>
+<a name="l01204"></a>01204                         ch = (ch-&gt;*(ch-&gt;synthHandler))( <span class="keyword">this</span>, samples, output );
+<a name="l01205"></a>01205                 }
+<a name="l01206"></a>01206                 total -= samples;
+<a name="l01207"></a>01207                 output += samples;
+<a name="l01208"></a>01208         }
+<a name="l01209"></a>01209 }
+<a name="l01210"></a>01210 
+<a name="l01211"></a>01211 <span class="keywordtype">void</span> Chip::GenerateBlock3( Bitu total, Bit32s* output  ) {
+<a name="l01212"></a>01212         <span class="keywordflow">while</span> ( total &gt; 0 ) {
+<a name="l01213"></a>01213                 Bit32u samples = ForwardLFO( (Bit32u)total );
+<a name="l01214"></a>01214                 memset(output, 0, <span class="keyword">sizeof</span>(Bit32s) * samples *2);
+<a name="l01215"></a>01215 <span class="comment">//              int count = 0;</span>
+<a name="l01216"></a>01216                 <span class="keywordflow">for</span>( Channel* ch = chan; ch &lt; chan + 18; ) {
+<a name="l01217"></a>01217 <span class="comment">//                      count++;</span>
+<a name="l01218"></a>01218                         ch = (ch-&gt;*(ch-&gt;synthHandler))( <span class="keyword">this</span>, samples, output );
+<a name="l01219"></a>01219                 }
+<a name="l01220"></a>01220                 total -= samples;
+<a name="l01221"></a>01221                 output += samples * 2;
+<a name="l01222"></a>01222         }
+<a name="l01223"></a>01223 }
+<a name="l01224"></a>01224 
+<a name="l01225"></a>01225 <span class="keywordtype">void</span> Chip::Setup( Bit32u rate ) {
+<a name="l01226"></a>01226         <span class="keywordtype">double</span> original = OPLRATE;
+<a name="l01227"></a>01227 <span class="comment">//      double original = rate;</span>
+<a name="l01228"></a>01228         <span class="keywordtype">double</span> scale = original / (double)rate;
+<a name="l01229"></a>01229 
+<a name="l01230"></a>01230         <span class="comment">//Noise counter is run at the same precision as general waves</span>
+<a name="l01231"></a>01231         noiseAdd = (Bit32u)( 0.5 + scale * ( 1 &lt;&lt; LFO_SH ) );
+<a name="l01232"></a>01232         noiseCounter = 0;
+<a name="l01233"></a>01233         noiseValue = 1; <span class="comment">//Make sure it triggers the noise xor the first time</span>
+<a name="l01234"></a>01234         <span class="comment">//The low frequency oscillation counter</span>
+<a name="l01235"></a>01235         <span class="comment">//Every time his overflows vibrato and tremoloindex are increased</span>
+<a name="l01236"></a>01236         lfoAdd = (Bit32u)( 0.5 + scale * ( 1 &lt;&lt; LFO_SH ) );
+<a name="l01237"></a>01237         lfoCounter = 0;
+<a name="l01238"></a>01238         vibratoIndex = 0;
+<a name="l01239"></a>01239         tremoloIndex = 0;
+<a name="l01240"></a>01240 
+<a name="l01241"></a>01241         <span class="comment">//With higher octave this gets shifted up</span>
+<a name="l01242"></a>01242         <span class="comment">//-1 since the freqCreateTable = *2</span>
+<a name="l01243"></a>01243 <span class="preprocessor">#ifdef WAVE_PRECISION</span>
+<a name="l01244"></a>01244 <span class="preprocessor"></span>        <span class="keywordtype">double</span> freqScale = ( 1 &lt;&lt; 7 ) * scale * ( 1 &lt;&lt; ( WAVE_SH - 1 - 10));
+<a name="l01245"></a>01245         <span class="keywordflow">for</span> ( <span class="keywordtype">int</span> i = 0; i &lt; 16; i++ ) {
+<a name="l01246"></a>01246                 freqMul[i] = (Bit32u)( 0.5 + freqScale * FreqCreateTable[ i ] );
+<a name="l01247"></a>01247         }
+<a name="l01248"></a>01248 <span class="preprocessor">#else</span>
+<a name="l01249"></a>01249 <span class="preprocessor"></span>        Bit32u freqScale = (Bit32u)( 0.5 + scale * ( 1 &lt;&lt; ( WAVE_SH - 1 - 10)));
+<a name="l01250"></a>01250         <span class="keywordflow">for</span> ( <span class="keywordtype">int</span> i = 0; i &lt; 16; i++ ) {
+<a name="l01251"></a>01251                 freqMul[i] = freqScale * FreqCreateTable[ i ];
+<a name="l01252"></a>01252         }
+<a name="l01253"></a>01253 <span class="preprocessor">#endif</span>
+<a name="l01254"></a>01254 <span class="preprocessor"></span>
+<a name="l01255"></a>01255         <span class="comment">//-3 since the real envelope takes 8 steps to reach the single value we supply</span>
+<a name="l01256"></a>01256         <span class="keywordflow">for</span> ( Bit8u i = 0; i &lt; 76; i++ ) {
+<a name="l01257"></a>01257                 Bit8u index, shift;
+<a name="l01258"></a>01258                 EnvelopeSelect( i, index, shift );
+<a name="l01259"></a>01259                 linearRates[i] = (Bit32u)( scale * (EnvelopeIncreaseTable[ index ] &lt;&lt; ( RATE_SH + ENV_EXTRA - shift - 3 )));
+<a name="l01260"></a>01260         }
+<a name="l01261"></a>01261 <span class="comment">//      Bit32s attackDiffs[62];</span>
+<a name="l01262"></a>01262         <span class="comment">//Generate the best matching attack rate</span>
+<a name="l01263"></a>01263         <span class="keywordflow">for</span> ( Bit8u i = 0; i &lt; 62; i++ ) {
+<a name="l01264"></a>01264                 Bit8u index, shift;
+<a name="l01265"></a>01265                 EnvelopeSelect( i, index, shift );
+<a name="l01266"></a>01266                 <span class="comment">//Original amount of samples the attack would take</span>
+<a name="l01267"></a>01267                 Bit32s originalAmount = (Bit32s)((Bit32u)( (AttackSamplesTable[ index ] &lt;&lt; shift) / scale));
+<a name="l01268"></a>01268                  
+<a name="l01269"></a>01269                 Bit32s guessAdd = (Bit32s)((Bit32u)( scale * (EnvelopeIncreaseTable[ index ] &lt;&lt; ( RATE_SH - shift - 3 ))));
+<a name="l01270"></a>01270                 Bit32s bestAdd = guessAdd;
+<a name="l01271"></a>01271                 Bit32u bestDiff = 1 &lt;&lt; 30;
+<a name="l01272"></a>01272                 <span class="keywordflow">for</span>( Bit32u passes = 0; passes &lt; 16; passes ++ ) {
+<a name="l01273"></a>01273                         Bit32s volume = ENV_MAX;
+<a name="l01274"></a>01274                         Bit32s samples = 0;
+<a name="l01275"></a>01275                         Bit32u count = 0;
+<a name="l01276"></a>01276                         <span class="keywordflow">while</span> ( volume &gt; 0 &amp;&amp; samples &lt; originalAmount * 2 ) {
+<a name="l01277"></a>01277                                 count += (Bit32u)guessAdd;
+<a name="l01278"></a>01278                                 Bit32s change = (Bit32s)(count &gt;&gt; RATE_SH);
+<a name="l01279"></a>01279                                 count &amp;= RATE_MASK;
+<a name="l01280"></a>01280                                 <span class="keywordflow">if</span> ( GCC_UNLIKELY(change) ) { <span class="comment">// less than 1 % </span>
+<a name="l01281"></a>01281                                         volume += ( ~volume * change ) &gt;&gt; 3;
+<a name="l01282"></a>01282                                 }
+<a name="l01283"></a>01283                                 samples++;
+<a name="l01284"></a>01284 
+<a name="l01285"></a>01285                         }
+<a name="l01286"></a>01286                         Bit32s diff = originalAmount - samples;
+<a name="l01287"></a>01287                         Bit32u lDiff = labs( diff );
+<a name="l01288"></a>01288                         <span class="comment">//Init last on first pass</span>
+<a name="l01289"></a>01289                         <span class="keywordflow">if</span> ( lDiff &lt; bestDiff ) {
+<a name="l01290"></a>01290                                 bestDiff = lDiff;
+<a name="l01291"></a>01291                                 bestAdd = guessAdd;
+<a name="l01292"></a>01292                                 <span class="comment">//We hit an exactly matching sample count</span>
+<a name="l01293"></a>01293                                 <span class="keywordflow">if</span> ( !bestDiff )
+<a name="l01294"></a>01294                                         <span class="keywordflow">break</span>;
+<a name="l01295"></a>01295                         }
+<a name="l01296"></a>01296                         <span class="comment">//Linear correction factor, not exactly perfect but seems to work</span>
+<a name="l01297"></a>01297                         <span class="keywordtype">double</span> correct = (originalAmount - diff) / (<span class="keywordtype">double</span>)originalAmount;
+<a name="l01298"></a>01298                         guessAdd = (Bit32s)(guessAdd * correct);
+<a name="l01299"></a>01299                         <span class="comment">//Below our target</span>
+<a name="l01300"></a>01300                         <span class="keywordflow">if</span> ( diff &lt; 0 ) {
+<a name="l01301"></a>01301                                 <span class="comment">//Always add one here for rounding, an overshoot will get corrected by another pass decreasing</span>
+<a name="l01302"></a>01302                                 guessAdd++;
+<a name="l01303"></a>01303                         }
+<a name="l01304"></a>01304                 }
+<a name="l01305"></a>01305                 attackRates[i] = (Bit32u)bestAdd;
+<a name="l01306"></a>01306                 <span class="comment">//Keep track of the diffs for some debugging</span>
+<a name="l01307"></a>01307 <span class="comment">//              attackDiffs[i] = bestDiff;</span>
+<a name="l01308"></a>01308         }
+<a name="l01309"></a>01309         <span class="keywordflow">for</span> ( Bit8u i = 62; i &lt; 76; i++ ) {
+<a name="l01310"></a>01310                 <span class="comment">//This should provide instant volume maximizing</span>
+<a name="l01311"></a>01311                 attackRates[i] = 8u &lt;&lt; RATE_SH;
+<a name="l01312"></a>01312         }
+<a name="l01313"></a>01313         <span class="comment">//Setup the channels with the correct four op flags</span>
+<a name="l01314"></a>01314         <span class="comment">//Channels are accessed through a table so they appear linear here</span>
+<a name="l01315"></a>01315         chan[ 0].fourMask = 0x00 | ( 1 &lt;&lt; 0 );
+<a name="l01316"></a>01316         chan[ 1].fourMask = 0x80 | ( 1 &lt;&lt; 0 );
+<a name="l01317"></a>01317         chan[ 2].fourMask = 0x00 | ( 1 &lt;&lt; 1 );
+<a name="l01318"></a>01318         chan[ 3].fourMask = 0x80 | ( 1 &lt;&lt; 1 );
+<a name="l01319"></a>01319         chan[ 4].fourMask = 0x00 | ( 1 &lt;&lt; 2 );
+<a name="l01320"></a>01320         chan[ 5].fourMask = 0x80 | ( 1 &lt;&lt; 2 );
+<a name="l01321"></a>01321 
+<a name="l01322"></a>01322         chan[ 9].fourMask = 0x00 | ( 1 &lt;&lt; 3 );
+<a name="l01323"></a>01323         chan[10].fourMask = 0x80 | ( 1 &lt;&lt; 3 );
+<a name="l01324"></a>01324         chan[11].fourMask = 0x00 | ( 1 &lt;&lt; 4 );
+<a name="l01325"></a>01325         chan[12].fourMask = 0x80 | ( 1 &lt;&lt; 4 );
+<a name="l01326"></a>01326         chan[13].fourMask = 0x00 | ( 1 &lt;&lt; 5 );
+<a name="l01327"></a>01327         chan[14].fourMask = 0x80 | ( 1 &lt;&lt; 5 );
+<a name="l01328"></a>01328 
+<a name="l01329"></a>01329         <span class="comment">//mark the percussion channels</span>
+<a name="l01330"></a>01330         chan[ 6].fourMask = 0x40;
+<a name="l01331"></a>01331         chan[ 7].fourMask = 0x40;
+<a name="l01332"></a>01332         chan[ 8].fourMask = 0x40;
+<a name="l01333"></a>01333 
+<a name="l01334"></a>01334         <span class="comment">//Clear Everything in opl3 mode</span>
+<a name="l01335"></a>01335         WriteReg( 0x105, 0x1 );
+<a name="l01336"></a>01336         <span class="keywordflow">for</span> ( <span class="keywordtype">unsigned</span> <span class="keywordtype">int</span> i = 0; i &lt; 512; i++ ) {
+<a name="l01337"></a>01337                 <span class="keywordflow">if</span> ( i == 0x105 )
+<a name="l01338"></a>01338                         <span class="keywordflow">continue</span>;
+<a name="l01339"></a>01339                 WriteReg( i, 0xff );
+<a name="l01340"></a>01340                 WriteReg( i, 0x0 );
+<a name="l01341"></a>01341         }
+<a name="l01342"></a>01342         WriteReg( 0x105, 0x0 );
+<a name="l01343"></a>01343         <span class="comment">//Clear everything in opl2 mode</span>
+<a name="l01344"></a>01344         <span class="keywordflow">for</span> ( <span class="keywordtype">unsigned</span> <span class="keywordtype">int</span> i = 0; i &lt; 255; i++ ) {
+<a name="l01345"></a>01345                 WriteReg( i, 0xff );
+<a name="l01346"></a>01346                 WriteReg( i, 0x0 );
+<a name="l01347"></a>01347         }
+<a name="l01348"></a>01348 }
+<a name="l01349"></a>01349 
+<a name="l01350"></a>01350 <span class="keyword">static</span> <span class="keywordtype">bool</span> doneTables = <span class="keyword">false</span>;
+<a name="l01351"></a>01351 <span class="keywordtype">void</span> InitTables( <span class="keywordtype">void</span> ) {
+<a name="l01352"></a>01352         <span class="keywordflow">if</span> ( doneTables )
+<a name="l01353"></a>01353                 <span class="keywordflow">return</span>;
+<a name="l01354"></a>01354         doneTables = <span class="keyword">true</span>;
+<a name="l01355"></a>01355 <span class="preprocessor">#if ( DBOPL_WAVE == WAVE_HANDLER ) || ( DBOPL_WAVE == WAVE_TABLELOG )</span>
+<a name="l01356"></a>01356 <span class="preprocessor"></span>        <span class="comment">//Exponential volume table, same as the real adlib</span>
+<a name="l01357"></a>01357         <span class="keywordflow">for</span> ( <span class="keywordtype">int</span> i = 0; i &lt; 256; i++ ) {
+<a name="l01358"></a>01358                 <span class="comment">//Save them in reverse</span>
+<a name="l01359"></a>01359                 ExpTable[i] = (int)( 0.5 + ( pow(2.0, ( 255 - i) * ( 1.0 /256 ) )-1) * 1024 );
+<a name="l01360"></a>01360                 ExpTable[i] += 1024; <span class="comment">//or remove the -1 oh well :)</span>
+<a name="l01361"></a>01361                 <span class="comment">//Preshift to the left once so the final volume can shift to the right</span>
+<a name="l01362"></a>01362                 ExpTable[i] *= 2;
+<a name="l01363"></a>01363         }
+<a name="l01364"></a>01364 <span class="preprocessor">#endif</span>
+<a name="l01365"></a>01365 <span class="preprocessor"></span><span class="preprocessor">#if ( DBOPL_WAVE == WAVE_HANDLER )</span>
+<a name="l01366"></a>01366 <span class="preprocessor"></span>        <span class="comment">//Add 0.5 for the trunc rounding of the integer cast</span>
+<a name="l01367"></a>01367         <span class="comment">//Do a PI sinetable instead of the original 0.5 PI</span>
+<a name="l01368"></a>01368         <span class="keywordflow">for</span> ( <span class="keywordtype">int</span> i = 0; i &lt; 512; i++ ) {
+<a name="l01369"></a>01369                 SinTable[i] = (Bit16s)( 0.5 - log10( sin( (i + 0.5) * (PI / 512.0) ) ) / log10(2.0)*256 );
 <a name="l01370"></a>01370         }
-<a name="l01371"></a>01371 
-<a name="l01372"></a>01372         <span class="comment">//Sine Wave Base</span>
-<a name="l01373"></a>01373         <span class="keywordflow">for</span> ( <span class="keywordtype">int</span> i = 0; i &lt; 512; i++ ) {
-<a name="l01374"></a>01374                 WaveTable[ 0x0200 + i ] = (Bit16s)(sin( (i + 0.5) * (PI / 512.0) ) * 4084);
-<a name="l01375"></a>01375                 WaveTable[ 0x0000 + i ] = -WaveTable[ 0x200 + i ];
-<a name="l01376"></a>01376         }
-<a name="l01377"></a>01377         <span class="comment">//Exponential wave</span>
-<a name="l01378"></a>01378         <span class="keywordflow">for</span> ( <span class="keywordtype">int</span> i = 0; i &lt; 256; i++ ) {
-<a name="l01379"></a>01379                 WaveTable[ 0x700 + i ] = (Bit16s)( 0.5 + ( pow(2.0, -1.0 + ( 255 - i * 8) * ( 1.0 /256 ) ) ) * 4085 );
-<a name="l01380"></a>01380                 WaveTable[ 0x6ff - i ] = -WaveTable[ 0x700 + i ];
-<a name="l01381"></a>01381         }
-<a name="l01382"></a>01382 <span class="preprocessor">#endif</span>
-<a name="l01383"></a>01383 <span class="preprocessor"></span><span class="preprocessor">#if ( DBOPL_WAVE == WAVE_TABLELOG )</span>
-<a name="l01384"></a>01384 <span class="preprocessor"></span>        <span class="comment">//Sine Wave Base</span>
-<a name="l01385"></a>01385         <span class="keywordflow">for</span> ( <span class="keywordtype">int</span> i = 0; i &lt; 512; i++ ) {
-<a name="l01386"></a>01386                 WaveTable[ 0x0200 + i ] = (Bit16s)( 0.5 - log10( sin( (i + 0.5) * (PI / 512.0) ) ) / log10(2.0)*256 );
-<a name="l01387"></a>01387                 WaveTable[ 0x0000 + i ] = ((Bit16s)0x8000) | WaveTable[ 0x200 + i];
-<a name="l01388"></a>01388         }
-<a name="l01389"></a>01389         <span class="comment">//Exponential wave</span>
-<a name="l01390"></a>01390         <span class="keywordflow">for</span> ( <span class="keywordtype">int</span> i = 0; i &lt; 256; i++ ) {
-<a name="l01391"></a>01391                 WaveTable[ 0x700 + i ] = i * 8;
-<a name="l01392"></a>01392                 WaveTable[ 0x6ff - i ] = ((Bit16s)0x8000) | i * 8;
-<a name="l01393"></a>01393         } 
-<a name="l01394"></a>01394 <span class="preprocessor">#endif</span>
-<a name="l01395"></a>01395 <span class="preprocessor"></span>
-<a name="l01396"></a>01396         <span class="comment">//      |    |//\\|____|WAV7|//__|/\  |____|/\/\|</span>
-<a name="l01397"></a>01397         <span class="comment">//      |\\//|    |    |WAV7|    |  \/|    |    |</span>
-<a name="l01398"></a>01398         <span class="comment">//      |06  |0126|27  |7   |3   |4   |4 5 |5   |</span>
-<a name="l01399"></a>01399 
-<a name="l01400"></a>01400 <span class="preprocessor">#if (( DBOPL_WAVE == WAVE_TABLELOG ) || ( DBOPL_WAVE == WAVE_TABLEMUL ))</span>
-<a name="l01401"></a>01401 <span class="preprocessor"></span>        <span class="keywordflow">for</span> ( <span class="keywordtype">int</span> i = 0; i &lt; 256; i++ ) {
-<a name="l01402"></a>01402                 <span class="comment">//Fill silence gaps</span>
-<a name="l01403"></a>01403                 WaveTable[ 0x400 + i ] = WaveTable[0];
-<a name="l01404"></a>01404                 WaveTable[ 0x500 + i ] = WaveTable[0];
-<a name="l01405"></a>01405                 WaveTable[ 0x900 + i ] = WaveTable[0];
-<a name="l01406"></a>01406                 WaveTable[ 0xc00 + i ] = WaveTable[0];
-<a name="l01407"></a>01407                 WaveTable[ 0xd00 + i ] = WaveTable[0];
-<a name="l01408"></a>01408                 <span class="comment">//Replicate sines in other pieces</span>
-<a name="l01409"></a>01409                 WaveTable[ 0x800 + i ] = WaveTable[ 0x200 + i ];
-<a name="l01410"></a>01410                 <span class="comment">//double speed sines</span>
-<a name="l01411"></a>01411                 WaveTable[ 0xa00 + i ] = WaveTable[ 0x200 + i * 2 ];
-<a name="l01412"></a>01412                 WaveTable[ 0xb00 + i ] = WaveTable[ 0x000 + i * 2 ];
-<a name="l01413"></a>01413                 WaveTable[ 0xe00 + i ] = WaveTable[ 0x200 + i * 2 ];
-<a name="l01414"></a>01414                 WaveTable[ 0xf00 + i ] = WaveTable[ 0x200 + i * 2 ];
-<a name="l01415"></a>01415         } 
-<a name="l01416"></a>01416 <span class="preprocessor">#endif</span>
-<a name="l01417"></a>01417 <span class="preprocessor"></span>
-<a name="l01418"></a>01418         <span class="comment">//Create the ksl table</span>
-<a name="l01419"></a>01419         <span class="keywordflow">for</span> ( <span class="keywordtype">int</span> oct = 0; oct &lt; 8; oct++ ) {
-<a name="l01420"></a>01420                 <span class="keywordtype">int</span> base = oct * 8;
-<a name="l01421"></a>01421                 <span class="keywordflow">for</span> ( <span class="keywordtype">int</span> i = 0; i &lt; 16; i++ ) {
-<a name="l01422"></a>01422                         <span class="keywordtype">int</span> val = base - KslCreateTable[i];
-<a name="l01423"></a>01423                         <span class="keywordflow">if</span> ( val &lt; 0 )
-<a name="l01424"></a>01424                                 val = 0;
-<a name="l01425"></a>01425                         <span class="comment">//*4 for the final range to match attenuation range</span>
-<a name="l01426"></a>01426                         KslTable[ oct * 16 + i ] = val * 4;
-<a name="l01427"></a>01427                 }
-<a name="l01428"></a>01428         }
-<a name="l01429"></a>01429         <span class="comment">//Create the Tremolo table, just increase and decrease a triangle wave</span>
-<a name="l01430"></a>01430         <span class="keywordflow">for</span> ( Bit8u i = 0; i &lt; TREMOLO_TABLE / 2; i++ ) {
-<a name="l01431"></a>01431                 Bit8u val = i &lt;&lt; ENV_EXTRA;
-<a name="l01432"></a>01432                 TremoloTable[i] = val;
-<a name="l01433"></a>01433                 TremoloTable[TREMOLO_TABLE - 1 - i] = val;
-<a name="l01434"></a>01434         }
-<a name="l01435"></a>01435         <span class="comment">//Create a table with offsets of the channels from the start of the chip</span>
-<a name="l01436"></a>01436         <a class="code" href="structDBOPL_1_1Chip.html">DBOPL::Chip</a>* chip = 0;
-<a name="l01437"></a>01437         <span class="keywordflow">for</span> ( Bitu i = 0; i &lt; 32; i++ ) {
-<a name="l01438"></a>01438                 Bitu index = i &amp; 0xf;
-<a name="l01439"></a>01439                 <span class="keywordflow">if</span> ( index &gt;= 9 ) {
-<a name="l01440"></a>01440                         ChanOffsetTable[i] = 0;
-<a name="l01441"></a>01441                         <span class="keywordflow">continue</span>;
-<a name="l01442"></a>01442                 }
-<a name="l01443"></a>01443                 <span class="comment">//Make sure the four op channels follow eachother</span>
-<a name="l01444"></a>01444                 <span class="keywordflow">if</span> ( index &lt; 6 ) {
-<a name="l01445"></a>01445                         index = (index % 3) * 2 + ( index / 3 );
-<a name="l01446"></a>01446                 }
-<a name="l01447"></a>01447                 <span class="comment">//Add back the bits for highest ones</span>
-<a name="l01448"></a>01448                 <span class="keywordflow">if</span> ( i &gt;= 16 )
-<a name="l01449"></a>01449                         index += 9;
-<a name="l01450"></a>01450                 Bitu blah = <span class="keyword">reinterpret_cast&lt;</span>Bitu<span class="keyword">&gt;</span>( &amp;(chip-&gt;chan[ index ]) );
-<a name="l01451"></a>01451                 ChanOffsetTable[i] = (Bit16u)blah;
-<a name="l01452"></a>01452         }
-<a name="l01453"></a>01453         <span class="comment">//Same for operators</span>
-<a name="l01454"></a>01454         <span class="keywordflow">for</span> ( Bitu i = 0; i &lt; 64; i++ ) {
-<a name="l01455"></a>01455                 <span class="keywordflow">if</span> ( i % 8 &gt;= 6 || ( (i / 8) % 4 == 3 ) ) {
-<a name="l01456"></a>01456                         OpOffsetTable[i] = 0;
-<a name="l01457"></a>01457                         <span class="keywordflow">continue</span>;
-<a name="l01458"></a>01458                 }
-<a name="l01459"></a>01459                 Bitu chNum = (i / 8) * 3 + (i % 8) % 3;
-<a name="l01460"></a>01460                 <span class="comment">//Make sure we use 16 and up for the 2nd range to match the chanoffset gap</span>
-<a name="l01461"></a>01461                 <span class="keywordflow">if</span> ( chNum &gt;= 12 )
-<a name="l01462"></a>01462                         chNum += 16 - 12;
-<a name="l01463"></a>01463                 Bitu opNum = ( i % 8 ) / 3;
-<a name="l01464"></a>01464                 <a class="code" href="structDBOPL_1_1Channel.html">DBOPL::Channel</a>* chan = 0;
-<a name="l01465"></a>01465                 Bitu blah = <span class="keyword">reinterpret_cast&lt;</span>Bitu<span class="keyword">&gt;</span>( &amp;(chan-&gt;op[opNum]) );
-<a name="l01466"></a>01466                 OpOffsetTable[i] = (Bit16u)(ChanOffsetTable[ chNum ] + blah);
-<a name="l01467"></a>01467         }
-<a name="l01468"></a>01468 <span class="preprocessor">#if 0</span>
-<a name="l01469"></a>01469 <span class="preprocessor"></span>        <span class="comment">//Stupid checks if table&#39;s are correct</span>
-<a name="l01470"></a>01470         <span class="keywordflow">for</span> ( Bitu i = 0; i &lt; 18; i++ ) {
-<a name="l01471"></a>01471                 Bit32u find = (Bit16u)( &amp;(chip-&gt;chan[ i ]) );
-<a name="l01472"></a>01472                 <span class="keywordflow">for</span> ( Bitu c = 0; c &lt; 32; c++ ) {
-<a name="l01473"></a>01473                         <span class="keywordflow">if</span> ( ChanOffsetTable[c] == find ) {
-<a name="l01474"></a>01474                                 find = 0;
-<a name="l01475"></a>01475                                 <span class="keywordflow">break</span>;
-<a name="l01476"></a>01476                         }
-<a name="l01477"></a>01477                 }
-<a name="l01478"></a>01478                 <span class="keywordflow">if</span> ( find ) {
-<a name="l01479"></a>01479                         find = find;
-<a name="l01480"></a>01480                 }
-<a name="l01481"></a>01481         }
-<a name="l01482"></a>01482         <span class="keywordflow">for</span> ( Bitu i = 0; i &lt; 36; i++ ) {
-<a name="l01483"></a>01483                 Bit32u find = (Bit16u)( &amp;(chip-&gt;chan[ i / 2 ].op[i % 2]) );
-<a name="l01484"></a>01484                 <span class="keywordflow">for</span> ( Bitu c = 0; c &lt; 64; c++ ) {
-<a name="l01485"></a>01485                         <span class="keywordflow">if</span> ( OpOffsetTable[c] == find ) {
-<a name="l01486"></a>01486                                 find = 0;
-<a name="l01487"></a>01487                                 <span class="keywordflow">break</span>;
-<a name="l01488"></a>01488                         }
+<a name="l01371"></a>01371 <span class="preprocessor">#endif</span>
+<a name="l01372"></a>01372 <span class="preprocessor"></span><span class="preprocessor">#if ( DBOPL_WAVE == WAVE_TABLEMUL )</span>
+<a name="l01373"></a>01373 <span class="preprocessor"></span>        <span class="comment">//Multiplication based tables</span>
+<a name="l01374"></a>01374         <span class="keywordflow">for</span> ( <span class="keywordtype">int</span> i = 0; i &lt; 384; i++ ) {
+<a name="l01375"></a>01375                 <span class="keywordtype">int</span> s = i * 8;
+<a name="l01376"></a>01376                 <span class="comment">//TODO maybe keep some of the precision errors of the original table?</span>
+<a name="l01377"></a>01377                 <span class="keywordtype">double</span> val = ( 0.5 + ( pow(2.0, -1.0 + ( 255 - s) * ( 1.0 /256 ) )) * ( 1 &lt;&lt; MUL_SH ));
+<a name="l01378"></a>01378                 MulTable[i] = (Bit16u)(val);
+<a name="l01379"></a>01379         }
+<a name="l01380"></a>01380 
+<a name="l01381"></a>01381         <span class="comment">//Sine Wave Base</span>
+<a name="l01382"></a>01382         <span class="keywordflow">for</span> ( <span class="keywordtype">int</span> i = 0; i &lt; 512; i++ ) {
+<a name="l01383"></a>01383                 WaveTable[ 0x0200 + i ] = (Bit16s)(sin( (i + 0.5) * (PI / 512.0) ) * 4084);
+<a name="l01384"></a>01384                 WaveTable[ 0x0000 + i ] = -WaveTable[ 0x200 + i ];
+<a name="l01385"></a>01385         }
+<a name="l01386"></a>01386         <span class="comment">//Exponential wave</span>
+<a name="l01387"></a>01387         <span class="keywordflow">for</span> ( <span class="keywordtype">int</span> i = 0; i &lt; 256; i++ ) {
+<a name="l01388"></a>01388                 WaveTable[ 0x700 + i ] = (Bit16s)( 0.5 + ( pow(2.0, -1.0 + ( 255 - i * 8) * ( 1.0 /256 ) ) ) * 4085 );
+<a name="l01389"></a>01389                 WaveTable[ 0x6ff - i ] = -WaveTable[ 0x700 + i ];
+<a name="l01390"></a>01390         }
+<a name="l01391"></a>01391 <span class="preprocessor">#endif</span>
+<a name="l01392"></a>01392 <span class="preprocessor"></span><span class="preprocessor">#if ( DBOPL_WAVE == WAVE_TABLELOG )</span>
+<a name="l01393"></a>01393 <span class="preprocessor"></span>        <span class="comment">//Sine Wave Base</span>
+<a name="l01394"></a>01394         <span class="keywordflow">for</span> ( <span class="keywordtype">int</span> i = 0; i &lt; 512; i++ ) {
+<a name="l01395"></a>01395                 WaveTable[ 0x0200 + i ] = (Bit16s)( 0.5 - log10( sin( (i + 0.5) * (PI / 512.0) ) ) / log10(2.0)*256 );
+<a name="l01396"></a>01396                 WaveTable[ 0x0000 + i ] = ((Bit16s)0x8000) | WaveTable[ 0x200 + i];
+<a name="l01397"></a>01397         }
+<a name="l01398"></a>01398         <span class="comment">//Exponential wave</span>
+<a name="l01399"></a>01399         <span class="keywordflow">for</span> ( <span class="keywordtype">int</span> i = 0; i &lt; 256; i++ ) {
+<a name="l01400"></a>01400                 WaveTable[ 0x700 + i ] = i * 8;
+<a name="l01401"></a>01401                 WaveTable[ 0x6ff - i ] = ((Bit16s)0x8000) | i * 8;
+<a name="l01402"></a>01402         } 
+<a name="l01403"></a>01403 <span class="preprocessor">#endif</span>
+<a name="l01404"></a>01404 <span class="preprocessor"></span>
+<a name="l01405"></a>01405         <span class="comment">//      |    |//\\|____|WAV7|//__|/\  |____|/\/\|</span>
+<a name="l01406"></a>01406         <span class="comment">//      |\\//|    |    |WAV7|    |  \/|    |    |</span>
+<a name="l01407"></a>01407         <span class="comment">//      |06  |0126|27  |7   |3   |4   |4 5 |5   |</span>
+<a name="l01408"></a>01408 
+<a name="l01409"></a>01409 <span class="preprocessor">#if (( DBOPL_WAVE == WAVE_TABLELOG ) || ( DBOPL_WAVE == WAVE_TABLEMUL ))</span>
+<a name="l01410"></a>01410 <span class="preprocessor"></span>        <span class="keywordflow">for</span> ( <span class="keywordtype">int</span> i = 0; i &lt; 256; i++ ) {
+<a name="l01411"></a>01411                 <span class="comment">//Fill silence gaps</span>
+<a name="l01412"></a>01412                 WaveTable[ 0x400 + i ] = WaveTable[0];
+<a name="l01413"></a>01413                 WaveTable[ 0x500 + i ] = WaveTable[0];
+<a name="l01414"></a>01414                 WaveTable[ 0x900 + i ] = WaveTable[0];
+<a name="l01415"></a>01415                 WaveTable[ 0xc00 + i ] = WaveTable[0];
+<a name="l01416"></a>01416                 WaveTable[ 0xd00 + i ] = WaveTable[0];
+<a name="l01417"></a>01417                 <span class="comment">//Replicate sines in other pieces</span>
+<a name="l01418"></a>01418                 WaveTable[ 0x800 + i ] = WaveTable[ 0x200 + i ];
+<a name="l01419"></a>01419                 <span class="comment">//double speed sines</span>
+<a name="l01420"></a>01420                 WaveTable[ 0xa00 + i ] = WaveTable[ 0x200 + i * 2 ];
+<a name="l01421"></a>01421                 WaveTable[ 0xb00 + i ] = WaveTable[ 0x000 + i * 2 ];
+<a name="l01422"></a>01422                 WaveTable[ 0xe00 + i ] = WaveTable[ 0x200 + i * 2 ];
+<a name="l01423"></a>01423                 WaveTable[ 0xf00 + i ] = WaveTable[ 0x200 + i * 2 ];
+<a name="l01424"></a>01424         } 
+<a name="l01425"></a>01425 <span class="preprocessor">#endif</span>
+<a name="l01426"></a>01426 <span class="preprocessor"></span>
+<a name="l01427"></a>01427         <span class="comment">//Create the ksl table</span>
+<a name="l01428"></a>01428         <span class="keywordflow">for</span> ( <span class="keywordtype">int</span> oct = 0; oct &lt; 8; oct++ ) {
+<a name="l01429"></a>01429                 <span class="keywordtype">int</span> base = oct * 8;
+<a name="l01430"></a>01430                 <span class="keywordflow">for</span> ( <span class="keywordtype">int</span> i = 0; i &lt; 16; i++ ) {
+<a name="l01431"></a>01431                         <span class="keywordtype">int</span> val = base - KslCreateTable[i];
+<a name="l01432"></a>01432                         <span class="keywordflow">if</span> ( val &lt; 0 )
+<a name="l01433"></a>01433                                 val = 0;
+<a name="l01434"></a>01434                         <span class="comment">//*4 for the final range to match attenuation range</span>
+<a name="l01435"></a>01435                         KslTable[ oct * 16 + i ] = val * 4;
+<a name="l01436"></a>01436                 }
+<a name="l01437"></a>01437         }
+<a name="l01438"></a>01438         <span class="comment">//Create the Tremolo table, just increase and decrease a triangle wave</span>
+<a name="l01439"></a>01439         <span class="keywordflow">for</span> ( Bit8u i = 0; i &lt; TREMOLO_TABLE / 2; i++ ) {
+<a name="l01440"></a>01440                 Bit8u val = i &lt;&lt; ENV_EXTRA;
+<a name="l01441"></a>01441                 TremoloTable[i] = val;
+<a name="l01442"></a>01442                 TremoloTable[TREMOLO_TABLE - 1 - i] = val;
+<a name="l01443"></a>01443         }
+<a name="l01444"></a>01444         <span class="comment">//Create a table with offsets of the channels from the start of the chip</span>
+<a name="l01445"></a>01445         <a class="code" href="structDBOPL_1_1Chip.html">DBOPL::Chip</a>* chip = 0;
+<a name="l01446"></a>01446         <span class="keywordflow">for</span> ( Bitu i = 0; i &lt; 32; i++ ) {
+<a name="l01447"></a>01447                 Bitu index = i &amp; 0xf;
+<a name="l01448"></a>01448                 <span class="keywordflow">if</span> ( index &gt;= 9 ) {
+<a name="l01449"></a>01449                         ChanOffsetTable[i] = 0;
+<a name="l01450"></a>01450                         <span class="keywordflow">continue</span>;
+<a name="l01451"></a>01451                 }
+<a name="l01452"></a>01452                 <span class="comment">//Make sure the four op channels follow eachother</span>
+<a name="l01453"></a>01453                 <span class="keywordflow">if</span> ( index &lt; 6 ) {
+<a name="l01454"></a>01454                         index = (index % 3) * 2 + ( index / 3 );
+<a name="l01455"></a>01455                 }
+<a name="l01456"></a>01456                 <span class="comment">//Add back the bits for highest ones</span>
+<a name="l01457"></a>01457                 <span class="keywordflow">if</span> ( i &gt;= 16 )
+<a name="l01458"></a>01458                         index += 9;
+<a name="l01459"></a>01459                 Bitu blah = <span class="keyword">reinterpret_cast&lt;</span>Bitu<span class="keyword">&gt;</span>( &amp;(chip-&gt;chan[ index ]) );
+<a name="l01460"></a>01460                 ChanOffsetTable[i] = (Bit16u)blah;
+<a name="l01461"></a>01461         }
+<a name="l01462"></a>01462         <span class="comment">//Same for operators</span>
+<a name="l01463"></a>01463         <span class="keywordflow">for</span> ( Bitu i = 0; i &lt; 64; i++ ) {
+<a name="l01464"></a>01464                 <span class="keywordflow">if</span> ( i % 8 &gt;= 6 || ( (i / 8) % 4 == 3 ) ) {
+<a name="l01465"></a>01465                         OpOffsetTable[i] = 0;
+<a name="l01466"></a>01466                         <span class="keywordflow">continue</span>;
+<a name="l01467"></a>01467                 }
+<a name="l01468"></a>01468                 Bitu chNum = (i / 8) * 3 + (i % 8) % 3;
+<a name="l01469"></a>01469                 <span class="comment">//Make sure we use 16 and up for the 2nd range to match the chanoffset gap</span>
+<a name="l01470"></a>01470                 <span class="keywordflow">if</span> ( chNum &gt;= 12 )
+<a name="l01471"></a>01471                         chNum += 16 - 12;
+<a name="l01472"></a>01472                 Bitu opNum = ( i % 8 ) / 3;
+<a name="l01473"></a>01473                 <a class="code" href="structDBOPL_1_1Channel.html">DBOPL::Channel</a>* chan = 0;
+<a name="l01474"></a>01474                 Bitu blah = <span class="keyword">reinterpret_cast&lt;</span>Bitu<span class="keyword">&gt;</span>( &amp;(chan-&gt;op[opNum]) );
+<a name="l01475"></a>01475                 OpOffsetTable[i] = (Bit16u)(ChanOffsetTable[ chNum ] + blah);
+<a name="l01476"></a>01476         }
+<a name="l01477"></a>01477 <span class="preprocessor">#if 0</span>
+<a name="l01478"></a>01478 <span class="preprocessor"></span>        <span class="comment">//Stupid checks if table&#39;s are correct</span>
+<a name="l01479"></a>01479         <span class="keywordflow">for</span> ( Bitu i = 0; i &lt; 18; i++ ) {
+<a name="l01480"></a>01480                 Bit32u find = (Bit16u)( &amp;(chip-&gt;chan[ i ]) );
+<a name="l01481"></a>01481                 <span class="keywordflow">for</span> ( Bitu c = 0; c &lt; 32; c++ ) {
+<a name="l01482"></a>01482                         <span class="keywordflow">if</span> ( ChanOffsetTable[c] == find ) {
+<a name="l01483"></a>01483                                 find = 0;
+<a name="l01484"></a>01484                                 <span class="keywordflow">break</span>;
+<a name="l01485"></a>01485                         }
+<a name="l01486"></a>01486                 }
+<a name="l01487"></a>01487                 <span class="keywordflow">if</span> ( find ) {
+<a name="l01488"></a>01488                         find = find;
 <a name="l01489"></a>01489                 }
-<a name="l01490"></a>01490                 <span class="keywordflow">if</span> ( find ) {
-<a name="l01491"></a>01491                         find = find;
-<a name="l01492"></a>01492                 }
-<a name="l01493"></a>01493         }
-<a name="l01494"></a>01494 <span class="preprocessor">#endif</span>
-<a name="l01495"></a>01495 <span class="preprocessor"></span>}
-<a name="l01496"></a>01496 
-<a name="l01497"></a>01497 Bit32u Handler::WriteAddr( Bit32u port, Bit8u val ) {
-<a name="l01498"></a>01498         <span class="keywordflow">return</span> chip.WriteAddr( port, val );
-<a name="l01499"></a>01499 
-<a name="l01500"></a>01500 }
-<a name="l01501"></a>01501 <span class="keywordtype">void</span> Handler::WriteReg( Bit32u addr, Bit8u val ) {
-<a name="l01502"></a>01502         chip.WriteReg( addr, val );
-<a name="l01503"></a>01503 }
-<a name="l01504"></a>01504 
-<a name="l01505"></a>01505 <span class="keywordtype">void</span> Handler::Generate( <a class="code" href="classMixerChannel.html">MixerChannel</a>* chan, Bitu samples ) {
-<a name="l01506"></a>01506         Bit32s buffer[ 512 * 2 ];
-<a name="l01507"></a>01507         <span class="keywordflow">if</span> ( GCC_UNLIKELY(samples &gt; 512) )
-<a name="l01508"></a>01508                 samples = 512;
-<a name="l01509"></a>01509         <span class="keywordflow">if</span> ( !chip.opl3Active ) {
-<a name="l01510"></a>01510                 chip.GenerateBlock2( samples, buffer );
-<a name="l01511"></a>01511                 chan-&gt;AddSamples_m32( samples, buffer );
-<a name="l01512"></a>01512         } <span class="keywordflow">else</span> {
-<a name="l01513"></a>01513                 chip.GenerateBlock3( samples, buffer );
-<a name="l01514"></a>01514                 chan-&gt;AddSamples_s32( samples, buffer );
-<a name="l01515"></a>01515         }
-<a name="l01516"></a>01516 }
-<a name="l01517"></a>01517 
-<a name="l01518"></a>01518 <span class="keywordtype">void</span> Handler::Init( Bitu rate ) {
-<a name="l01519"></a>01519         InitTables();
-<a name="l01520"></a>01520         chip.Setup( (Bit32u)rate );
-<a name="l01521"></a>01521 }
-<a name="l01522"></a>01522 }
-<a name="l01523"></a>01523 
+<a name="l01490"></a>01490         }
+<a name="l01491"></a>01491         <span class="keywordflow">for</span> ( Bitu i = 0; i &lt; 36; i++ ) {
+<a name="l01492"></a>01492                 Bit32u find = (Bit16u)( &amp;(chip-&gt;chan[ i / 2 ].op[i % 2]) );
+<a name="l01493"></a>01493                 <span class="keywordflow">for</span> ( Bitu c = 0; c &lt; 64; c++ ) {
+<a name="l01494"></a>01494                         <span class="keywordflow">if</span> ( OpOffsetTable[c] == find ) {
+<a name="l01495"></a>01495                                 find = 0;
+<a name="l01496"></a>01496                                 <span class="keywordflow">break</span>;
+<a name="l01497"></a>01497                         }
+<a name="l01498"></a>01498                 }
+<a name="l01499"></a>01499                 <span class="keywordflow">if</span> ( find ) {
+<a name="l01500"></a>01500                         find = find;
+<a name="l01501"></a>01501                 }
+<a name="l01502"></a>01502         }
+<a name="l01503"></a>01503 <span class="preprocessor">#endif</span>
+<a name="l01504"></a>01504 <span class="preprocessor"></span>}
+<a name="l01505"></a>01505 
+<a name="l01506"></a>01506 Bit32u Handler::WriteAddr( Bit32u port, Bit8u val ) {
+<a name="l01507"></a>01507         <span class="keywordflow">return</span> chip.WriteAddr( port, val );
+<a name="l01508"></a>01508 
+<a name="l01509"></a>01509 }
+<a name="l01510"></a>01510 <span class="keywordtype">void</span> Handler::WriteReg( Bit32u addr, Bit8u val ) {
+<a name="l01511"></a>01511         chip.WriteReg( addr, val );
+<a name="l01512"></a>01512 }
+<a name="l01513"></a>01513 
+<a name="l01514"></a>01514 <span class="keywordtype">void</span> Handler::Generate( <a class="code" href="classMixerChannel.html">MixerChannel</a>* chan, Bitu samples ) {
+<a name="l01515"></a>01515         Bit32s buffer[ 512 * 2 ];
+<a name="l01516"></a>01516         <span class="keywordflow">if</span> ( GCC_UNLIKELY(samples &gt; 512) )
+<a name="l01517"></a>01517                 samples = 512;
+<a name="l01518"></a>01518         <span class="keywordflow">if</span> ( !chip.opl3Active ) {
+<a name="l01519"></a>01519                 chip.GenerateBlock2( samples, buffer );
+<a name="l01520"></a>01520                 chan-&gt;AddSamples_m32( samples, buffer );
+<a name="l01521"></a>01521         } <span class="keywordflow">else</span> {
+<a name="l01522"></a>01522                 chip.GenerateBlock3( samples, buffer );
+<a name="l01523"></a>01523                 chan-&gt;AddSamples_s32( samples, buffer );
+<a name="l01524"></a>01524         }
+<a name="l01525"></a>01525 }
+<a name="l01526"></a>01526 
+<a name="l01527"></a>01527 <span class="keywordtype">void</span> Handler::Init( Bitu rate ) {
+<a name="l01528"></a>01528         InitTables();
+<a name="l01529"></a>01529         chip.Setup( (Bit32u)rate );
+<a name="l01530"></a>01530 }
+<a name="l01531"></a>01531 
+<a name="l01532"></a>01532 <span class="comment">// save state support</span>
+<a name="l01533"></a>01533 <span class="keywordtype">void</span> Handler::SaveState( std::ostream&amp; stream )
+<a name="l01534"></a>01534 {
+<a name="l01535"></a>01535         <span class="keyword">const</span> <span class="keywordtype">char</span> pod_name[32] = <span class="stringliteral">&quot;DBOPL&quot;</span>;
+<a name="l01536"></a>01536 
+<a name="l01537"></a>01537         <span class="keywordflow">if</span>( stream.fail() ) <span class="keywordflow">return</span>;
+<a name="l01538"></a>01538 
+<a name="l01539"></a>01539 
+<a name="l01540"></a>01540         WRITE_POD( &amp;pod_name, pod_name );
+<a name="l01541"></a>01541 
+<a name="l01542"></a>01542         <span class="comment">//************************************************</span>
+<a name="l01543"></a>01543         <span class="comment">//************************************************</span>
+<a name="l01544"></a>01544         <span class="comment">//************************************************</span>
+<a name="l01545"></a>01545 
+<a name="l01546"></a>01546         Bit8u volhandler_idx[18][2];
+<a name="l01547"></a>01547         Bit32u wavebase_idx[18][2];
+<a name="l01548"></a>01548         Bit8u synthhandler_idx[18];
+<a name="l01549"></a>01549 
+<a name="l01550"></a>01550 
+<a name="l01551"></a>01551         <span class="keywordflow">for</span>( <span class="keywordtype">int</span> lcv1=0; lcv1&lt;18; lcv1++ ) {
+<a name="l01552"></a>01552                 <span class="keywordflow">for</span>( <span class="keywordtype">int</span> lcv2=0; lcv2&lt;2; lcv2++ ) {
+<a name="l01553"></a>01553                         volhandler_idx[lcv1][lcv2] = 0xff;
+<a name="l01554"></a>01554 
+<a name="l01555"></a>01555                         <span class="keywordflow">for</span>( <span class="keywordtype">int</span> lcv3=0; lcv3&lt;5; lcv3++ ) {
+<a name="l01556"></a>01556                                 <span class="keywordflow">if</span>( chip.chan[lcv1].op[lcv2].volHandler == VolumeHandlerTable[lcv3] ) {
+<a name="l01557"></a>01557                                         volhandler_idx[lcv1][lcv2] = lcv3;
+<a name="l01558"></a>01558                                         <span class="keywordflow">break</span>;
+<a name="l01559"></a>01559                                 }
+<a name="l01560"></a>01560                         }
+<a name="l01561"></a>01561 
+<a name="l01562"></a>01562                         wavebase_idx[lcv1][lcv2] = (Bitu) chip.chan[lcv1].op[lcv2].waveBase - (Bitu) &amp;WaveTable;
+<a name="l01563"></a>01563                 }
+<a name="l01564"></a>01564 
+<a name="l01565"></a>01565 
+<a name="l01566"></a>01566                 synthhandler_idx[lcv1] = 0xff;
+<a name="l01567"></a>01567                 <span class="keywordflow">if</span>(0) {}
+<a name="l01568"></a>01568                 <span class="keywordflow">else</span> <span class="keywordflow">if</span>( chip.chan[lcv1].synthHandler == &amp;Channel::BlockTemplate&lt; sm3FMFM &gt; ) synthhandler_idx[lcv1] = 0x00;
+<a name="l01569"></a>01569                 <span class="keywordflow">else</span> <span class="keywordflow">if</span>( chip.chan[lcv1].synthHandler == &amp;Channel::BlockTemplate&lt; sm3AMFM &gt; ) synthhandler_idx[lcv1] = 0x01;
+<a name="l01570"></a>01570                 <span class="keywordflow">else</span> <span class="keywordflow">if</span>( chip.chan[lcv1].synthHandler == &amp;Channel::BlockTemplate&lt; sm3FMAM &gt; ) synthhandler_idx[lcv1] = 0x02;
+<a name="l01571"></a>01571                 <span class="keywordflow">else</span> <span class="keywordflow">if</span>( chip.chan[lcv1].synthHandler == &amp;Channel::BlockTemplate&lt; sm3AMAM &gt; ) synthhandler_idx[lcv1] = 0x03;
+<a name="l01572"></a>01572                 <span class="keywordflow">else</span> <span class="keywordflow">if</span>( chip.chan[lcv1].synthHandler == &amp;Channel::BlockTemplate&lt; sm3AM &gt; ) synthhandler_idx[lcv1] = 0x04;
+<a name="l01573"></a>01573                 <span class="keywordflow">else</span> <span class="keywordflow">if</span>( chip.chan[lcv1].synthHandler == &amp;Channel::BlockTemplate&lt; sm3FM &gt; ) synthhandler_idx[lcv1] = 0x05;
+<a name="l01574"></a>01574                 <span class="keywordflow">else</span> <span class="keywordflow">if</span>( chip.chan[lcv1].synthHandler == &amp;Channel::BlockTemplate&lt; sm2AM &gt; ) synthhandler_idx[lcv1] = 0x06;
+<a name="l01575"></a>01575                 <span class="keywordflow">else</span> <span class="keywordflow">if</span>( chip.chan[lcv1].synthHandler == &amp;Channel::BlockTemplate&lt; sm2FM &gt; ) synthhandler_idx[lcv1] = 0x07;
+<a name="l01576"></a>01576                 <span class="keywordflow">else</span> <span class="keywordflow">if</span>( chip.chan[lcv1].synthHandler == &amp;Channel::BlockTemplate&lt; sm3Percussion &gt; ) synthhandler_idx[lcv1] = 0x08;
+<a name="l01577"></a>01577                 <span class="keywordflow">else</span> <span class="keywordflow">if</span>( chip.chan[lcv1].synthHandler == &amp;Channel::BlockTemplate&lt; sm2Percussion &gt; ) synthhandler_idx[lcv1] = 0x09;
+<a name="l01578"></a>01578         }
+<a name="l01579"></a>01579 
+<a name="l01580"></a>01580         <span class="comment">//***************************************************</span>
+<a name="l01581"></a>01581         <span class="comment">//***************************************************</span>
+<a name="l01582"></a>01582         <span class="comment">//***************************************************</span>
+<a name="l01583"></a>01583 
+<a name="l01584"></a>01584         <span class="comment">// dbopl.cpp</span>
+<a name="l01585"></a>01585 
+<a name="l01586"></a>01586         <span class="comment">// - pure data</span>
+<a name="l01587"></a>01587         WRITE_POD( &amp;WaveTable, WaveTable );
+<a name="l01588"></a>01588         WRITE_POD( &amp;doneTables, doneTables );
+<a name="l01589"></a>01589 
+<a name="l01590"></a>01590         <span class="comment">//***************************************************</span>
+<a name="l01591"></a>01591         <span class="comment">//***************************************************</span>
+<a name="l01592"></a>01592         <span class="comment">//***************************************************</span>
+<a name="l01593"></a>01593 
+<a name="l01594"></a>01594         <span class="comment">// dbopl.h</span>
+<a name="l01595"></a>01595 
+<a name="l01596"></a>01596         <span class="comment">// - near-pure data</span>
+<a name="l01597"></a>01597         WRITE_POD( &amp;chip, chip );
+<a name="l01598"></a>01598 
+<a name="l01599"></a>01599 
+<a name="l01600"></a>01600 
+<a name="l01601"></a>01601 
+<a name="l01602"></a>01602         <span class="comment">// - reloc ptr (!!!)</span>
+<a name="l01603"></a>01603         WRITE_POD( &amp;volhandler_idx, volhandler_idx );
+<a name="l01604"></a>01604         WRITE_POD( &amp;wavebase_idx, wavebase_idx );
+<a name="l01605"></a>01605         WRITE_POD( &amp;synthhandler_idx, synthhandler_idx );
+<a name="l01606"></a>01606 }
+<a name="l01607"></a>01607 
+<a name="l01608"></a>01608 <span class="keywordtype">void</span> Handler::LoadState( std::istream&amp; stream )
+<a name="l01609"></a>01609 {
+<a name="l01610"></a>01610         <span class="keywordtype">char</span> pod_name[32] = {0};
+<a name="l01611"></a>01611 
+<a name="l01612"></a>01612         <span class="keywordflow">if</span>( stream.fail() ) <span class="keywordflow">return</span>;
+<a name="l01613"></a>01613 
+<a name="l01614"></a>01614 
+<a name="l01615"></a>01615         <span class="comment">// error checking</span>
+<a name="l01616"></a>01616         READ_POD( &amp;pod_name, pod_name );
+<a name="l01617"></a>01617         <span class="keywordflow">if</span>( strcmp( pod_name, <span class="stringliteral">&quot;DBOPL&quot;</span> ) ) {
+<a name="l01618"></a>01618                 stream.clear( std::istream::failbit | std::istream::badbit );
+<a name="l01619"></a>01619                 <span class="keywordflow">return</span>;
+<a name="l01620"></a>01620         }
+<a name="l01621"></a>01621 
+<a name="l01622"></a>01622         <span class="comment">//************************************************</span>
+<a name="l01623"></a>01623         <span class="comment">//************************************************</span>
+<a name="l01624"></a>01624         <span class="comment">//************************************************</span>
+<a name="l01625"></a>01625 
+<a name="l01626"></a>01626         Bit8u volhandler_idx[18][2];
+<a name="l01627"></a>01627         Bit32u wavebase_idx[18][2];
+<a name="l01628"></a>01628         Bit8u synthhandler_idx[18];
+<a name="l01629"></a>01629 
+<a name="l01630"></a>01630         <span class="comment">//***************************************************</span>
+<a name="l01631"></a>01631         <span class="comment">//***************************************************</span>
+<a name="l01632"></a>01632         <span class="comment">//***************************************************</span>
+<a name="l01633"></a>01633 
+<a name="l01634"></a>01634         <span class="comment">// dbopl.cpp</span>
+<a name="l01635"></a>01635 
+<a name="l01636"></a>01636         <span class="comment">// - pure data</span>
+<a name="l01637"></a>01637         READ_POD( &amp;WaveTable, WaveTable );
+<a name="l01638"></a>01638         READ_POD( &amp;doneTables, doneTables );
+<a name="l01639"></a>01639 
+<a name="l01640"></a>01640         <span class="comment">//***************************************************</span>
+<a name="l01641"></a>01641         <span class="comment">//***************************************************</span>
+<a name="l01642"></a>01642         <span class="comment">//***************************************************</span>
+<a name="l01643"></a>01643 
+<a name="l01644"></a>01644         <span class="comment">// dbopl.h</span>
+<a name="l01645"></a>01645 
+<a name="l01646"></a>01646         <span class="comment">// - near-pure data</span>
+<a name="l01647"></a>01647         READ_POD( &amp;chip, chip );
+<a name="l01648"></a>01648 
+<a name="l01649"></a>01649 
+<a name="l01650"></a>01650 
+<a name="l01651"></a>01651 
+<a name="l01652"></a>01652         <span class="comment">// - reloc ptr (!!!)</span>
+<a name="l01653"></a>01653         READ_POD( &amp;volhandler_idx, volhandler_idx );
+<a name="l01654"></a>01654         READ_POD( &amp;wavebase_idx, wavebase_idx );
+<a name="l01655"></a>01655         READ_POD( &amp;synthhandler_idx, synthhandler_idx );
+<a name="l01656"></a>01656 
+<a name="l01657"></a>01657         <span class="comment">//***************************************************</span>
+<a name="l01658"></a>01658         <span class="comment">//***************************************************</span>
+<a name="l01659"></a>01659         <span class="comment">//***************************************************</span>
+<a name="l01660"></a>01660 
+<a name="l01661"></a>01661         <span class="keywordflow">for</span>( <span class="keywordtype">int</span> lcv1=0; lcv1&lt;18; lcv1++ ) {
+<a name="l01662"></a>01662                 <span class="keywordflow">for</span>( <span class="keywordtype">int</span> lcv2=0; lcv2&lt;2; lcv2++ ) {
+<a name="l01663"></a>01663                         chip.chan[lcv1].op[lcv2].volHandler = VolumeHandlerTable[ volhandler_idx[lcv1][lcv2] ];
+<a name="l01664"></a>01664 
+<a name="l01665"></a>01665                         chip.chan[lcv1].op[lcv2].waveBase = (Bit16s *) ((Bitu) wavebase_idx[lcv1][lcv2] + (Bitu) &amp;WaveTable);
+<a name="l01666"></a>01666                 }
+<a name="l01667"></a>01667 
+<a name="l01668"></a>01668 
+<a name="l01669"></a>01669                 <span class="keywordflow">switch</span>( synthhandler_idx[lcv1] ) {
+<a name="l01670"></a>01670                         <span class="keywordflow">case</span> 0x00: chip.chan[lcv1].synthHandler = &amp;Channel::BlockTemplate&lt; sm3FMFM &gt;; <span class="keywordflow">break</span>;
+<a name="l01671"></a>01671                         <span class="keywordflow">case</span> 0x01: chip.chan[lcv1].synthHandler = &amp;Channel::BlockTemplate&lt; sm3AMFM &gt;; <span class="keywordflow">break</span>;
+<a name="l01672"></a>01672                         <span class="keywordflow">case</span> 0x02: chip.chan[lcv1].synthHandler = &amp;Channel::BlockTemplate&lt; sm3FMAM &gt;; <span class="keywordflow">break</span>;
+<a name="l01673"></a>01673                         <span class="keywordflow">case</span> 0x03: chip.chan[lcv1].synthHandler = &amp;Channel::BlockTemplate&lt; sm3AMAM &gt;; <span class="keywordflow">break</span>;
+<a name="l01674"></a>01674                         <span class="keywordflow">case</span> 0x04: chip.chan[lcv1].synthHandler = &amp;Channel::BlockTemplate&lt; sm3AM &gt;; <span class="keywordflow">break</span>;
+<a name="l01675"></a>01675                         <span class="keywordflow">case</span> 0x05: chip.chan[lcv1].synthHandler = &amp;Channel::BlockTemplate&lt; sm3FM &gt;; <span class="keywordflow">break</span>;
+<a name="l01676"></a>01676                         <span class="keywordflow">case</span> 0x06: chip.chan[lcv1].synthHandler = &amp;Channel::BlockTemplate&lt; sm2AM &gt;; <span class="keywordflow">break</span>;
+<a name="l01677"></a>01677                         <span class="keywordflow">case</span> 0x07: chip.chan[lcv1].synthHandler = &amp;Channel::BlockTemplate&lt; sm2FM &gt;; <span class="keywordflow">break</span>;
+<a name="l01678"></a>01678                         <span class="keywordflow">case</span> 0x08: chip.chan[lcv1].synthHandler = &amp;Channel::BlockTemplate&lt; sm3Percussion &gt;; <span class="keywordflow">break</span>;
+<a name="l01679"></a>01679                         <span class="keywordflow">case</span> 0x09: chip.chan[lcv1].synthHandler = &amp;Channel::BlockTemplate&lt; sm2Percussion &gt;; <span class="keywordflow">break</span>;
+<a name="l01680"></a>01680                 }
+<a name="l01681"></a>01681         }
+<a name="l01682"></a>01682 }
+<a name="l01683"></a>01683  }              <span class="comment">//Namespace DBOPL</span>
 </pre></div></div><!-- contents -->
 
 
 <hr class="footer"/><address class="footer"><small>
-Generated on Tue Oct 1 2019 18:06:26 for DOSBox-X by &#160;<a href="http://www.doxygen.org/index.html">
+Generated on Sun Jul 5 2020 13:11:36 for DOSBox-X by &#160;<a href="http://www.doxygen.org/index.html">
 <img class="footer" src="doxygen.png" alt="doxygen"/>
 </a> 1.8.0
 </small></address>

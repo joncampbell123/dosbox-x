@@ -138,16 +138,16 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l00041"></a>00041     PRIORITY_LEVEL_HIGHEST
 <a name="l00042"></a>00042 };
 <a name="l00043"></a>00043 
-<a name="l00044"></a>00044 <span class="comment">// Screen DPI and size info</span>
-<a name="l00045"></a><a class="code" href="classScreenSizeInfo.html">00045</a> <span class="keyword">class </span><a class="code" href="classScreenSizeInfo.html">ScreenSizeInfo</a> {
-<a name="l00046"></a>00046 <span class="keyword">public</span>:
-<a name="l00047"></a>00047     <span class="keyword">enum</span> method {
-<a name="l00048"></a>00048         METHOD_NONE=0,
-<a name="l00049"></a>00049         METHOD_X11,
-<a name="l00050"></a>00050         METHOD_XRANDR,
-<a name="l00051"></a>00051         METHOD_WIN98BASE,
-<a name="l00052"></a>00052         METHOD_COREGRAPHICS
-<a name="l00053"></a>00053     };
+<a name="l00044"></a>00044 <span class="keyword">enum</span> method {
+<a name="l00045"></a>00045     METHOD_NONE = 0,
+<a name="l00046"></a>00046     METHOD_X11,
+<a name="l00047"></a>00047     METHOD_XRANDR,
+<a name="l00048"></a>00048     METHOD_WIN98BASE,
+<a name="l00049"></a>00049     METHOD_COREGRAPHICS
+<a name="l00050"></a>00050 };
+<a name="l00051"></a>00051 
+<a name="l00052"></a>00052 <span class="comment">// Screen DPI and size info</span>
+<a name="l00053"></a><a class="code" href="classScreenSizeInfo.html">00053</a> <span class="keyword">class </span><a class="code" href="classScreenSizeInfo.html">ScreenSizeInfo</a> {
 <a name="l00054"></a>00054 <span class="keyword">public</span>:
 <a name="l00055"></a><a class="code" href="structScreenSizeInfo_1_1wxh.html">00055</a>     <span class="keyword">struct </span><a class="code" href="structScreenSizeInfo_1_1wxh.html">wxh</a> {
 <a name="l00056"></a>00056         <span class="keywordtype">double</span>      width = -1;
@@ -266,67 +266,66 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l00169"></a>00169     Bit32u focus_ticks = 0;
 <a name="l00170"></a>00170 <span class="preprocessor">#endif</span>
 <a name="l00171"></a>00171 <span class="preprocessor"></span>    <span class="comment">// state of alt-keys for certain special handlings</span>
-<a name="l00172"></a>00172     Bit16u laltstate = 0;
-<a name="l00173"></a>00173     Bit16u raltstate = 0;
-<a name="l00174"></a>00174     <span class="keywordtype">bool</span> must_redraw_all = <span class="keyword">false</span>;
-<a name="l00175"></a>00175     <span class="keywordtype">bool</span> deferred_resize = <span class="keyword">false</span>;
-<a name="l00176"></a>00176     <span class="keywordtype">bool</span> init_ignore = <span class="keyword">false</span>;
-<a name="l00177"></a>00177     <span class="keywordtype">unsigned</span> <span class="keywordtype">int</span> gfx_force_redraw_count = 0;
-<a name="l00178"></a>00178     <span class="keyword">struct </span>{
-<a name="l00179"></a>00179         <span class="keywordtype">int</span> x = 0;
-<a name="l00180"></a>00180         <span class="keywordtype">int</span> y = 0;
-<a name="l00181"></a>00181         <span class="keywordtype">double</span> xToY = 0;
-<a name="l00182"></a>00182         <span class="keywordtype">double</span> yToX = 0;
-<a name="l00183"></a>00183     } srcAspect;
-<a name="l00184"></a>00184 <span class="preprocessor">#if C_SURFACE_POSTRENDER_ASPECT</span>
-<a name="l00185"></a>00185 <span class="preprocessor"></span>    std::vector&lt;uint32_t&gt; aspectbuf = {};
-<a name="l00186"></a>00186 <span class="preprocessor">#endif</span>
-<a name="l00187"></a>00187 <span class="preprocessor"></span>};
-<a name="l00188"></a>00188 
-<a name="l00189"></a>00189 <span class="preprocessor">#if defined(WIN32) &amp;&amp; !defined(C_SDL2)</span>
-<a name="l00190"></a>00190 <span class="preprocessor"></span><span class="keyword">extern</span> <span class="stringliteral">&quot;C&quot;</span> <span class="keywordtype">unsigned</span> <span class="keywordtype">int</span> SDL1_hax_inhibit_WM_PAINT;
-<a name="l00191"></a>00191 <span class="preprocessor">#endif</span>
-<a name="l00192"></a>00192 <span class="preprocessor"></span>
-<a name="l00193"></a>00193 <span class="keyword">extern</span> Bitu frames;
-<a name="l00194"></a>00194 <span class="keyword">extern</span> <a class="code" href="structSDL__Block.html">SDL_Block</a> sdl;
-<a name="l00195"></a>00195 
-<a name="l00196"></a>00196 <span class="preprocessor">#include &lt;output/output_surface.h&gt;</span>
-<a name="l00197"></a>00197 <span class="preprocessor">#include &lt;output/output_direct3d.h&gt;</span>
-<a name="l00198"></a>00198 <span class="preprocessor">#include &lt;output/output_opengl.h&gt;</span>
-<a name="l00199"></a>00199 <span class="preprocessor">#include &lt;output/output_tools.h&gt;</span>
-<a name="l00200"></a>00200 <span class="preprocessor">#include &lt;output/output_tools_xbrz.h&gt;</span>
-<a name="l00201"></a>00201 
-<a name="l00202"></a>00202 <span class="preprocessor">#include &quot;zipfile.h&quot;</span>
-<a name="l00203"></a>00203 
-<a name="l00204"></a>00204 <span class="keyword">extern</span> Bitu userResizeWindowWidth;
-<a name="l00205"></a>00205 <span class="keyword">extern</span> Bitu userResizeWindowHeight;
-<a name="l00206"></a>00206 <span class="keyword">extern</span> Bitu currentWindowWidth;
-<a name="l00207"></a>00207 <span class="keyword">extern</span> Bitu currentWindowHeight;
-<a name="l00208"></a>00208 
-<a name="l00209"></a>00209 <span class="keyword">extern</span> <a class="code" href="classZIPFile.html">ZIPFile</a> savestate_zip;
-<a name="l00210"></a>00210 
-<a name="l00211"></a>00211 <span class="keywordtype">void</span> GFX_DrawSDLMenu(<a class="code" href="classDOSBoxMenu.html">DOSBoxMenu</a> &amp;menu, <a class="code" href="classDOSBoxMenu_1_1displaylist.html">DOSBoxMenu::displaylist</a> &amp;dl);
-<a name="l00212"></a>00212 <span class="keywordtype">void</span> GFX_LogSDLState(<span class="keywordtype">void</span>);
-<a name="l00213"></a>00213 <span class="keywordtype">void</span> GFX_SDL_Overscan(<span class="keywordtype">void</span>);
-<a name="l00214"></a>00214 <span class="keywordtype">void</span> GFX_SetIcon(<span class="keywordtype">void</span>);
-<a name="l00215"></a>00215 <span class="keywordtype">void</span> SDL_rect_cliptoscreen(SDL_Rect &amp;r);
-<a name="l00216"></a>00216 <span class="keywordtype">void</span> UpdateWindowDimensions(<span class="keywordtype">void</span>);
-<a name="l00217"></a>00217 <span class="keywordtype">void</span> UpdateWindowDimensions(Bitu width, Bitu height);
-<a name="l00218"></a>00218 
-<a name="l00219"></a>00219 <span class="preprocessor">#if defined(C_SDL2)</span>
-<a name="l00220"></a>00220 <span class="preprocessor"></span>SDL_Window* GFX_SetSDLWindowMode(Bit16u width, Bit16u height, SCREEN_TYPES screenType);
-<a name="l00221"></a>00221 <span class="preprocessor">#endif</span>
-<a name="l00222"></a>00222 <span class="preprocessor"></span>
-<a name="l00223"></a>00223 <span class="preprocessor">#if defined(C_SDL2) &amp;&amp; defined(C_OPENGL)</span><span class="comment">/*HACK*/</span>
-<a name="l00224"></a>00224 <span class="keywordtype">void</span> SDL_GL_SwapBuffers(<span class="keywordtype">void</span>);
-<a name="l00225"></a>00225 <span class="preprocessor">#endif</span>
-<a name="l00226"></a>00226 <span class="preprocessor"></span>
-<a name="l00227"></a>00227 <span class="preprocessor">#endif </span><span class="comment">/*DOSBOX_SDLMAIN_H*/</span>
+<a name="l00172"></a>00172     Bit16u laltstate = 0, raltstate = 0;
+<a name="l00173"></a>00173     Bit16u lctrlstate = 0, rctrlstate = 0;
+<a name="l00174"></a>00174     Bit16u lshiftstate = 0, rshiftstate = 0;
+<a name="l00175"></a>00175     <span class="keywordtype">bool</span> must_redraw_all = <span class="keyword">false</span>;
+<a name="l00176"></a>00176     <span class="keywordtype">bool</span> deferred_resize = <span class="keyword">false</span>;
+<a name="l00177"></a>00177     <span class="keywordtype">bool</span> init_ignore = <span class="keyword">false</span>;
+<a name="l00178"></a>00178     <span class="keywordtype">unsigned</span> <span class="keywordtype">int</span> gfx_force_redraw_count = 0;
+<a name="l00179"></a>00179     <span class="keyword">struct </span>{
+<a name="l00180"></a>00180         <span class="keywordtype">int</span> x = 0;
+<a name="l00181"></a>00181         <span class="keywordtype">int</span> y = 0;
+<a name="l00182"></a>00182         <span class="keywordtype">double</span> xToY = 0;
+<a name="l00183"></a>00183         <span class="keywordtype">double</span> yToX = 0;
+<a name="l00184"></a>00184     } srcAspect;
+<a name="l00185"></a>00185 <span class="preprocessor">#if C_SURFACE_POSTRENDER_ASPECT</span>
+<a name="l00186"></a>00186 <span class="preprocessor"></span>    std::vector&lt;uint32_t&gt; aspectbuf = {};
+<a name="l00187"></a>00187 <span class="preprocessor">#endif</span>
+<a name="l00188"></a>00188 <span class="preprocessor"></span>};
+<a name="l00189"></a>00189 
+<a name="l00190"></a>00190 <span class="preprocessor">#if defined(WIN32) &amp;&amp; !defined(C_SDL2)</span>
+<a name="l00191"></a>00191 <span class="preprocessor"></span><span class="keyword">extern</span> <span class="stringliteral">&quot;C&quot;</span> <span class="keywordtype">unsigned</span> <span class="keywordtype">int</span> SDL1_hax_inhibit_WM_PAINT;
+<a name="l00192"></a>00192 <span class="preprocessor">#endif</span>
+<a name="l00193"></a>00193 <span class="preprocessor"></span>
+<a name="l00194"></a>00194 <span class="keyword">extern</span> Bitu frames;
+<a name="l00195"></a>00195 <span class="keyword">extern</span> <a class="code" href="structSDL__Block.html">SDL_Block</a> sdl;
+<a name="l00196"></a>00196 
+<a name="l00197"></a>00197 <span class="preprocessor">#include &lt;output/output_surface.h&gt;</span>
+<a name="l00198"></a>00198 <span class="preprocessor">#include &lt;output/output_direct3d.h&gt;</span>
+<a name="l00199"></a>00199 <span class="preprocessor">#include &lt;output/output_opengl.h&gt;</span>
+<a name="l00200"></a>00200 <span class="preprocessor">#include &lt;output/output_tools.h&gt;</span>
+<a name="l00201"></a>00201 <span class="preprocessor">#include &lt;output/output_tools_xbrz.h&gt;</span>
+<a name="l00202"></a>00202 
+<a name="l00203"></a>00203 <span class="preprocessor">#include &quot;zipfile.h&quot;</span>
+<a name="l00204"></a>00204 
+<a name="l00205"></a>00205 <span class="keyword">extern</span> Bitu userResizeWindowWidth;
+<a name="l00206"></a>00206 <span class="keyword">extern</span> Bitu userResizeWindowHeight;
+<a name="l00207"></a>00207 <span class="keyword">extern</span> Bitu currentWindowWidth;
+<a name="l00208"></a>00208 <span class="keyword">extern</span> Bitu currentWindowHeight;
+<a name="l00209"></a>00209 
+<a name="l00210"></a>00210 <span class="keywordtype">void</span> GFX_DrawSDLMenu(<a class="code" href="classDOSBoxMenu.html">DOSBoxMenu</a> &amp;menu, <a class="code" href="classDOSBoxMenu_1_1displaylist.html">DOSBoxMenu::displaylist</a> &amp;dl);
+<a name="l00211"></a>00211 <span class="keywordtype">void</span> GFX_LogSDLState(<span class="keywordtype">void</span>);
+<a name="l00212"></a>00212 <span class="keywordtype">void</span> GFX_SDL_Overscan(<span class="keywordtype">void</span>);
+<a name="l00213"></a>00213 <span class="keywordtype">void</span> GFX_SetIcon(<span class="keywordtype">void</span>);
+<a name="l00214"></a>00214 <span class="keywordtype">void</span> SDL_rect_cliptoscreen(SDL_Rect &amp;r);
+<a name="l00215"></a>00215 <span class="keywordtype">void</span> UpdateWindowDimensions(<span class="keywordtype">void</span>);
+<a name="l00216"></a>00216 <span class="keywordtype">void</span> UpdateWindowDimensions(Bitu width, Bitu height);
+<a name="l00217"></a>00217 
+<a name="l00218"></a>00218 <span class="preprocessor">#if defined(C_SDL2)</span>
+<a name="l00219"></a>00219 <span class="preprocessor"></span>SDL_Window* GFX_SetSDLWindowMode(Bit16u width, Bit16u height, SCREEN_TYPES screenType);
+<a name="l00220"></a>00220 <span class="preprocessor">#endif</span>
+<a name="l00221"></a>00221 <span class="preprocessor"></span>
+<a name="l00222"></a>00222 <span class="preprocessor">#if defined(C_SDL2) &amp;&amp; defined(C_OPENGL)</span><span class="comment">/*HACK*/</span>
+<a name="l00223"></a>00223 <span class="keywordtype">void</span> SDL_GL_SwapBuffers(<span class="keywordtype">void</span>);
+<a name="l00224"></a>00224 <span class="preprocessor">#endif</span>
+<a name="l00225"></a>00225 <span class="preprocessor"></span>
+<a name="l00226"></a>00226 <span class="preprocessor">#endif </span><span class="comment">/*DOSBOX_SDLMAIN_H*/</span>
 </pre></div></div><!-- contents -->
 
 
 <hr class="footer"/><address class="footer"><small>
-Generated on Tue Oct 1 2019 18:06:23 for DOSBox-X by &#160;<a href="http://www.doxygen.org/index.html">
+Generated on Sun Jul 5 2020 13:11:33 for DOSBox-X by &#160;<a href="http://www.doxygen.org/index.html">
 <img class="footer" src="doxygen.png" alt="doxygen"/>
 </a> 1.8.0
 </small></address>

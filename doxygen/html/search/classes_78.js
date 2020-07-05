@@ -7,5 +7,7 @@ var searchData=
   ['xms',['XMS',['../classXMS.html',1,'']]],
   ['xms_5fblock',['XMS_Block',['../structXMS__Block.html',1,'']]],
   ['xms_5fmemmove',['XMS_MemMove',['../structXMS__MemMove.html',1,'']]],
-  ['xvy',['xvy',['../structScreenSizeInfo_1_1xvy.html',1,'ScreenSizeInfo']]]
+  ['xvy',['xvy',['../structScreenSizeInfo_1_1xvy.html',1,'ScreenSizeInfo']]],
+  ['xxh32_5fcanonical_5ft',['XXH32_canonical_t',['../structXXH32__canonical__t.html',1,'']]],
+  ['xxh64_5fcanonical_5ft',['XXH64_canonical_t',['../structXXH64__canonical__t.html',1,'']]]
 ];

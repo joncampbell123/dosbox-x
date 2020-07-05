@@ -96,7 +96,7 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 </div><!--header-->
 <div class="contents">
 <div class="fragment"><pre class="fragment"><a name="l00001"></a>00001 <span class="comment">/*</span>
-<a name="l00002"></a>00002 <span class="comment"> *  Copyright (C) 2002-2019  The DOSBox Team</span>
+<a name="l00002"></a>00002 <span class="comment"> *  Copyright (C) 2002-2020  The DOSBox Team</span>
 <a name="l00003"></a>00003 <span class="comment"> *</span>
 <a name="l00004"></a>00004 <span class="comment"> *  This program is free software; you can redistribute it and/or modify</span>
 <a name="l00005"></a>00005 <span class="comment"> *  it under the terms of the GNU General Public License as published by</span>
@@ -108,9 +108,9 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l00011"></a>00011 <span class="comment"> *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the</span>
 <a name="l00012"></a>00012 <span class="comment"> *  GNU General Public License for more details.</span>
 <a name="l00013"></a>00013 <span class="comment"> *</span>
-<a name="l00014"></a>00014 <span class="comment"> *  You should have received a copy of the GNU General Public License</span>
-<a name="l00015"></a>00015 <span class="comment"> *  along with this program; if not, write to the Free Software</span>
-<a name="l00016"></a>00016 <span class="comment"> *  Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1335, USA.</span>
+<a name="l00014"></a>00014 <span class="comment"> *  You should have received a copy of the GNU General Public License along</span>
+<a name="l00015"></a>00015 <span class="comment"> *  with this program; if not, write to the Free Software Foundation, Inc.,</span>
+<a name="l00016"></a>00016 <span class="comment"> *  51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.</span>
 <a name="l00017"></a>00017 <span class="comment"> */</span>
 <a name="l00018"></a>00018 
 <a name="l00019"></a>00019 
@@ -140,87 +140,88 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l00043"></a>00043                 dos=0,          <span class="comment">// MS-DOS style /switches</span>
 <a name="l00044"></a>00044                 gnu,            <span class="comment">// GNU style --switches or -switches, switch parsing stops at --</span>
 <a name="l00045"></a>00045                 gnu_getopt,     <span class="comment">// GNU style --long or -a -b -c -d or -abcd (short as single char), switch parsing stops at --</span>
-<a name="l00046"></a>00046                 either          <span class="comment">// both dos and gnu, switch parsing stops at --</span>
-<a name="l00047"></a>00047         };
-<a name="l00048"></a>00048 <span class="keyword">public</span>:
-<a name="l00049"></a>00049         <a class="code" href="classCommandLine.html">CommandLine</a>(<span class="keywordtype">int</span> argc,<span class="keywordtype">char</span> <span class="keyword">const</span> * <span class="keyword">const</span> argv[],<span class="keyword">enum</span> opt_style opt=CommandLine::either);
-<a name="l00050"></a>00050         <a class="code" href="classCommandLine.html">CommandLine</a>(<span class="keywordtype">char</span> <span class="keyword">const</span> * <span class="keyword">const</span> name,<span class="keywordtype">char</span> <span class="keyword">const</span> * <span class="keyword">const</span> cmdline,<span class="keyword">enum</span> opt_style opt=CommandLine::either);
-<a name="l00051"></a>00051         <span class="keyword">const</span> <span class="keywordtype">char</span> * GetFileName(){ <span class="keywordflow">return</span> file_name.c_str();}
-<a name="l00052"></a>00052 
-<a name="l00053"></a>00053         <span class="keywordtype">bool</span> FindExist(<span class="keywordtype">char</span> <span class="keyword">const</span> * <span class="keyword">const</span> name,<span class="keywordtype">bool</span> <span class="keyword">remove</span>=<span class="keyword">false</span>);
-<a name="l00054"></a>00054         <span class="keywordtype">bool</span> FindHex(<span class="keywordtype">char</span> <span class="keyword">const</span> * <span class="keyword">const</span> name,<span class="keywordtype">int</span> &amp; value,<span class="keywordtype">bool</span> <span class="keyword">remove</span>=<span class="keyword">false</span>);
-<a name="l00055"></a>00055         <span class="keywordtype">bool</span> FindInt(<span class="keywordtype">char</span> <span class="keyword">const</span> * <span class="keyword">const</span> name,<span class="keywordtype">int</span> &amp; value,<span class="keywordtype">bool</span> <span class="keyword">remove</span>=<span class="keyword">false</span>);
-<a name="l00056"></a>00056         <span class="keywordtype">bool</span> FindString(<span class="keywordtype">char</span> <span class="keyword">const</span> * <span class="keyword">const</span> name,std::string &amp; value,<span class="keywordtype">bool</span> <span class="keyword">remove</span>=<span class="keyword">false</span>);
-<a name="l00057"></a>00057         <span class="keywordtype">bool</span> FindCommand(<span class="keywordtype">unsigned</span> <span class="keywordtype">int</span> which,std::string &amp; value);
-<a name="l00058"></a>00058         <span class="keywordtype">bool</span> FindStringBegin(<span class="keywordtype">char</span> <span class="keyword">const</span> * <span class="keyword">const</span> begin,std::string &amp; value, <span class="keywordtype">bool</span> <span class="keyword">remove</span>=<span class="keyword">false</span>);
-<a name="l00059"></a>00059         <span class="keywordtype">bool</span> FindStringRemain(<span class="keywordtype">char</span> <span class="keyword">const</span> * <span class="keyword">const</span> name,std::string &amp; value);
-<a name="l00060"></a>00060         <span class="keywordtype">bool</span> FindStringRemainBegin(<span class="keywordtype">char</span> <span class="keyword">const</span> * <span class="keyword">const</span> name,std::string &amp; value);
-<a name="l00061"></a>00061         <span class="keywordtype">bool</span> GetStringRemain(std::string &amp; value);
-<a name="l00062"></a>00062         <span class="keywordtype">int</span> GetParameterFromList(<span class="keyword">const</span> <span class="keywordtype">char</span>* <span class="keyword">const</span> params[], std::vector&lt;std::string&gt; &amp; output);
-<a name="l00063"></a>00063         <span class="keywordtype">void</span> FillVector(std::vector&lt;std::string&gt; &amp; vector);
-<a name="l00064"></a>00064         <span class="keywordtype">unsigned</span> <span class="keywordtype">int</span> GetCount(<span class="keywordtype">void</span>);
-<a name="l00065"></a>00065         <span class="keywordtype">void</span> Shift(<span class="keywordtype">unsigned</span> <span class="keywordtype">int</span> amount=1);
-<a name="l00066"></a>00066         Bit16u Get_arglength();
-<a name="l00067"></a>00067 
-<a name="l00068"></a>00068         <span class="keywordtype">bool</span> BeginOpt(<span class="keywordtype">bool</span> eat_argv=<span class="keyword">true</span>);
-<a name="l00069"></a>00069         <span class="keywordtype">bool</span> GetOpt(std::string &amp;name);
-<a name="l00070"></a>00070         <span class="keywordtype">bool</span> NextOptArgv(std::string &amp;argv);
-<a name="l00071"></a>00071         <span class="keywordtype">bool</span> GetOptGNUSingleCharCheck(std::string &amp;name);
-<a name="l00072"></a>00072         <span class="keywordtype">void</span> ChangeOptStyle(<span class="keyword">enum</span> opt_style opt_style);
-<a name="l00073"></a>00073         <span class="keywordtype">void</span> EndOpt();
-<a name="l00074"></a>00074 
-<a name="l00075"></a>00075     <span class="keywordtype">bool</span> GetCurrentArgv(std::string &amp;argv);
-<a name="l00076"></a>00076     <span class="keywordtype">bool</span> CurrentArgvEnd(<span class="keywordtype">void</span>);
-<a name="l00077"></a>00077     <span class="keywordtype">void</span> EatCurrentArgv(<span class="keywordtype">void</span>);
-<a name="l00078"></a>00078     <span class="keywordtype">void</span> NextArgv(<span class="keywordtype">void</span>);
-<a name="l00079"></a>00079 
-<a name="l00080"></a>00080     <span class="keyword">const</span> std::string &amp;GetRawCmdline(<span class="keywordtype">void</span>);
-<a name="l00081"></a>00081 <span class="keyword">private</span>:
-<a name="l00082"></a>00082         <span class="keyword">typedef</span> std::list&lt;std::string&gt;::iterator cmd_it;
-<a name="l00083"></a>00083         std::string opt_gnu_getopt_singlechar;          <span class="comment">/* non-empty if we hit GNU options like -abcd =&gt; -a -b -c -d */</span>
-<a name="l00084"></a>00084         cmd_it opt_scan;
-<a name="l00085"></a>00085         <span class="keywordtype">bool</span> opt_eat_argv;
-<a name="l00086"></a>00086         std::list&lt;std::string&gt; cmds;
-<a name="l00087"></a>00087         std::string file_name;
-<a name="l00088"></a>00088     std::string raw_cmdline;
-<a name="l00089"></a>00089         <span class="keyword">enum</span> opt_style opt_style;
-<a name="l00090"></a>00090         <span class="keywordtype">bool</span> FindEntry(<span class="keywordtype">char</span> <span class="keyword">const</span> * <span class="keyword">const</span> name,cmd_it &amp; it,<span class="keywordtype">bool</span> neednext=<span class="keyword">false</span>);
-<a name="l00091"></a>00091 };
-<a name="l00092"></a>00092 
-<a name="l00098"></a><a class="code" href="classProgram.html">00098</a> <span class="keyword">class </span><a class="code" href="classProgram.html" title="Base Program class for built-in programs on drive Z:">Program</a> {
-<a name="l00099"></a>00099 <span class="keyword">public</span>:
-<a name="l00100"></a>00100         <a class="code" href="classProgram.html" title="Base Program class for built-in programs on drive Z:">Program</a>();                                          
-<a name="l00101"></a><a class="code" href="classProgram.html#a2df844d46504a414498c2140de94bfef">00101</a>         <span class="keyword">virtual</span> <a class="code" href="classProgram.html#a2df844d46504a414498c2140de94bfef" title="Constructor.">~Program</a>(){                                 
-<a name="l00102"></a>00102                 <span class="keywordflow">if</span> (<a class="code" href="classProgram.html#af637f18e9637b148fbecbd3f0bc748fc" title="Temporary string object for parsing.">cmd</a> != NULL) <span class="keyword">delete</span> <a class="code" href="classProgram.html#af637f18e9637b148fbecbd3f0bc748fc" title="Temporary string object for parsing.">cmd</a>;
-<a name="l00103"></a>00103                 <span class="keywordflow">if</span> (<a class="code" href="classProgram.html#af2f99e812360b3748ec790f4e4023fc4" title="Command line object.">psp</a> != NULL) <span class="keyword">delete</span> <a class="code" href="classProgram.html#af2f99e812360b3748ec790f4e4023fc4" title="Command line object.">psp</a>;
-<a name="l00104"></a>00104         }
-<a name="l00105"></a>00105 
-<a name="l00108"></a><a class="code" href="classProgram.html#a9e1bb1fc1b315bf697fb1872d6defe12">00108</a>         <span class="keywordtype">unsigned</span> <span class="keywordtype">char</span> <a class="code" href="classProgram.html#a9e1bb1fc1b315bf697fb1872d6defe12" title="Exit status of the program.">exit_status</a>;                          
-<a name="l00109"></a>00109 
-<a name="l00110"></a><a class="code" href="classProgram.html#ade1241ef2184833339588494094f7d4f">00110</a>         std::string <a class="code" href="classProgram.html#ade1241ef2184833339588494094f7d4f" title="Exit status, returned to the parent DOS process.">temp_line</a>;                              
-<a name="l00111"></a><a class="code" href="classProgram.html#af637f18e9637b148fbecbd3f0bc748fc">00111</a>         <a class="code" href="classCommandLine.html">CommandLine</a> * <a class="code" href="classProgram.html#af637f18e9637b148fbecbd3f0bc748fc" title="Temporary string object for parsing.">cmd</a>;                                  
-<a name="l00112"></a><a class="code" href="classProgram.html#af2f99e812360b3748ec790f4e4023fc4">00112</a>         <a class="code" href="classDOS__PSP.html">DOS_PSP</a> * <a class="code" href="classProgram.html#af2f99e812360b3748ec790f4e4023fc4" title="Command line object.">psp</a>;                                      
-<a name="l00113"></a>00113         <span class="keyword">virtual</span> <span class="keywordtype">void</span> <a class="code" href="classProgram.html#acd37c94c3c12a55650a05ee1449aa176" title="DOS kernel Program Segment Prefix associated with this program at runtime.">Run</a>(<span class="keywordtype">void</span>)=0;                           
-<a name="l00114"></a>00114         <span class="keywordtype">bool</span> <a class="code" href="classProgram.html#a0012adb877f24b04d836a37ab48f2c60" title="Run() method, called when the program is run. Subclass must override this.">GetEnvStr</a>(<span class="keyword">const</span> <span class="keywordtype">char</span> * entry,std::string &amp; result); 
-<a name="l00115"></a>00115         <span class="keywordtype">bool</span> <a class="code" href="classProgram.html#a58d316ec88ff44eff5188f46ef7eefd8" title="Return an environment variable by name.">GetEnvNum</a>(Bitu num,std::string &amp; result);      
-<a name="l00116"></a>00116         Bitu <a class="code" href="classProgram.html#a67b647d573493de3f7237fe075a8532d" title="Return an environment variable by index.">GetEnvCount</a>(<span class="keywordtype">void</span>);                             
-<a name="l00117"></a>00117         <span class="keywordtype">bool</span> <a class="code" href="classProgram.html#a8a7d72f5c08f644fb19e5f36dc1c3d46" title="Return the number of enviormental variables.">SetEnv</a>(<span class="keyword">const</span> <span class="keywordtype">char</span> * entry,<span class="keyword">const</span> <span class="keywordtype">char</span> * new_string); 
-<a name="l00118"></a>00118         <span class="keywordtype">void</span> <a class="code" href="classProgram.html#af3326c2431db683c8cbfcf1a4eb06f71" title="Set environment variable.">WriteOut</a>(<span class="keyword">const</span> <span class="keywordtype">char</span> * format,...);                         
-<a name="l00119"></a>00119         <span class="keywordtype">void</span> <a class="code" href="classProgram.html#aa45498c7e07ec784b72ed166ab69a847" title="Write to standard output.">WriteOut_NoParsing</a>(<span class="keyword">const</span> <span class="keywordtype">char</span> * format);           
-<a name="l00120"></a>00120         <span class="keywordtype">void</span> <a class="code" href="classProgram.html#a3b124865b50f681fa1d5ae05d71107f8" title="Write to standard output, no parsing.">ChangeToLongCmd</a>();                             
-<a name="l00121"></a>00121         <span class="keywordtype">void</span> <a class="code" href="classProgram.html#a7a253f9ce31472b4b5c38791524f3ba8" title="Get command line from shell instead of PSP.">DebugDumpEnv</a>();                                
-<a name="l00122"></a>00122         <span class="keywordtype">void</span> <a class="code" href="classProgram.html#ab1fa236943ef14b02c59bc4225d216a1" title="Dump environment block to log.">WriteExitStatus</a>();                             
-<a name="l00123"></a>00123 };
-<a name="l00124"></a>00124 
-<a name="l00125"></a>00125 <span class="keyword">typedef</span> void (PROGRAMS_Main)(<a class="code" href="classProgram.html" title="Base Program class for built-in programs on drive Z:">Program</a> * * make);
-<a name="l00126"></a>00126 <span class="keywordtype">void</span> PROGRAMS_MakeFile(<span class="keywordtype">char</span> <span class="keyword">const</span> * <span class="keyword">const</span> name,PROGRAMS_Main * main);
-<a name="l00127"></a>00127 
-<a name="l00128"></a>00128 <span class="preprocessor">#endif</span>
+<a name="l00046"></a>00046                 either,         <span class="comment">// Both DOS and GNU styles, switch parsing stops at --</span>
+<a name="l00047"></a>00047                 either_except   <span class="comment">// Both DOS and GNU styles, except for paths to executables</span>
+<a name="l00048"></a>00048         };
+<a name="l00049"></a>00049 <span class="keyword">public</span>:
+<a name="l00050"></a>00050         <a class="code" href="classCommandLine.html">CommandLine</a>(<span class="keywordtype">int</span> argc,<span class="keywordtype">char</span> <span class="keyword">const</span> * <span class="keyword">const</span> argv[],<span class="keyword">enum</span> opt_style opt=CommandLine::either);
+<a name="l00051"></a>00051         <a class="code" href="classCommandLine.html">CommandLine</a>(<span class="keywordtype">char</span> <span class="keyword">const</span> * <span class="keyword">const</span> name,<span class="keywordtype">char</span> <span class="keyword">const</span> * <span class="keyword">const</span> cmdline,<span class="keyword">enum</span> opt_style opt=CommandLine::either);
+<a name="l00052"></a>00052         <span class="keyword">const</span> <span class="keywordtype">char</span> * GetFileName(){ <span class="keywordflow">return</span> file_name.c_str();}
+<a name="l00053"></a>00053 
+<a name="l00054"></a>00054         <span class="keywordtype">bool</span> FindExist(<span class="keywordtype">char</span> <span class="keyword">const</span> * <span class="keyword">const</span> name,<span class="keywordtype">bool</span> <span class="keyword">remove</span>=<span class="keyword">false</span>);
+<a name="l00055"></a>00055         <span class="keywordtype">bool</span> FindHex(<span class="keywordtype">char</span> <span class="keyword">const</span> * <span class="keyword">const</span> name,<span class="keywordtype">int</span> &amp; value,<span class="keywordtype">bool</span> <span class="keyword">remove</span>=<span class="keyword">false</span>);
+<a name="l00056"></a>00056         <span class="keywordtype">bool</span> FindInt(<span class="keywordtype">char</span> <span class="keyword">const</span> * <span class="keyword">const</span> name,<span class="keywordtype">int</span> &amp; value,<span class="keywordtype">bool</span> <span class="keyword">remove</span>=<span class="keyword">false</span>);
+<a name="l00057"></a>00057         <span class="keywordtype">bool</span> FindString(<span class="keywordtype">char</span> <span class="keyword">const</span> * <span class="keyword">const</span> name,std::string &amp; value,<span class="keywordtype">bool</span> <span class="keyword">remove</span>=<span class="keyword">false</span>);
+<a name="l00058"></a>00058         <span class="keywordtype">bool</span> FindCommand(<span class="keywordtype">unsigned</span> <span class="keywordtype">int</span> which,std::string &amp; value);
+<a name="l00059"></a>00059         <span class="keywordtype">bool</span> FindStringBegin(<span class="keywordtype">char</span> <span class="keyword">const</span> * <span class="keyword">const</span> begin,std::string &amp; value, <span class="keywordtype">bool</span> <span class="keyword">remove</span>=<span class="keyword">false</span>);
+<a name="l00060"></a>00060         <span class="keywordtype">bool</span> FindStringRemain(<span class="keywordtype">char</span> <span class="keyword">const</span> * <span class="keyword">const</span> name,std::string &amp; value);
+<a name="l00061"></a>00061         <span class="keywordtype">bool</span> FindStringRemainBegin(<span class="keywordtype">char</span> <span class="keyword">const</span> * <span class="keyword">const</span> name,std::string &amp; value);
+<a name="l00062"></a>00062         <span class="keywordtype">bool</span> GetStringRemain(std::string &amp; value);
+<a name="l00063"></a>00063         <span class="keywordtype">int</span> GetParameterFromList(<span class="keyword">const</span> <span class="keywordtype">char</span>* <span class="keyword">const</span> params[], std::vector&lt;std::string&gt; &amp; output);
+<a name="l00064"></a>00064         <span class="keywordtype">void</span> FillVector(std::vector&lt;std::string&gt; &amp; vector);
+<a name="l00065"></a>00065         <span class="keywordtype">unsigned</span> <span class="keywordtype">int</span> GetCount(<span class="keywordtype">void</span>);
+<a name="l00066"></a>00066         <span class="keywordtype">void</span> Shift(<span class="keywordtype">unsigned</span> <span class="keywordtype">int</span> amount=1);
+<a name="l00067"></a>00067         Bit16u Get_arglength();
+<a name="l00068"></a>00068 
+<a name="l00069"></a>00069         <span class="keywordtype">bool</span> BeginOpt(<span class="keywordtype">bool</span> eat_argv=<span class="keyword">true</span>);
+<a name="l00070"></a>00070         <span class="keywordtype">bool</span> GetOpt(std::string &amp;name);
+<a name="l00071"></a>00071         <span class="keywordtype">bool</span> NextOptArgv(std::string &amp;argv);
+<a name="l00072"></a>00072         <span class="keywordtype">bool</span> GetOptGNUSingleCharCheck(std::string &amp;name);
+<a name="l00073"></a>00073         <span class="keywordtype">void</span> ChangeOptStyle(<span class="keyword">enum</span> opt_style opt_style);
+<a name="l00074"></a>00074         <span class="keywordtype">void</span> EndOpt();
+<a name="l00075"></a>00075 
+<a name="l00076"></a>00076     <span class="keywordtype">bool</span> GetCurrentArgv(std::string &amp;argv);
+<a name="l00077"></a>00077     <span class="keywordtype">bool</span> CurrentArgvEnd(<span class="keywordtype">void</span>);
+<a name="l00078"></a>00078     <span class="keywordtype">void</span> EatCurrentArgv(<span class="keywordtype">void</span>);
+<a name="l00079"></a>00079     <span class="keywordtype">void</span> NextArgv(<span class="keywordtype">void</span>);
+<a name="l00080"></a>00080 
+<a name="l00081"></a>00081     <span class="keyword">const</span> std::string &amp;GetRawCmdline(<span class="keywordtype">void</span>);
+<a name="l00082"></a>00082 <span class="keyword">private</span>:
+<a name="l00083"></a>00083         <span class="keyword">typedef</span> std::list&lt;std::string&gt;::iterator cmd_it;
+<a name="l00084"></a>00084         std::string opt_gnu_getopt_singlechar;          <span class="comment">/* non-empty if we hit GNU options like -abcd =&gt; -a -b -c -d */</span>
+<a name="l00085"></a>00085         cmd_it opt_scan;
+<a name="l00086"></a>00086         <span class="keywordtype">bool</span> opt_eat_argv = <span class="keyword">false</span>;
+<a name="l00087"></a>00087         std::list&lt;std::string&gt; cmds;
+<a name="l00088"></a>00088         std::string file_name;
+<a name="l00089"></a>00089     std::string raw_cmdline;
+<a name="l00090"></a>00090         <span class="keyword">enum</span> opt_style opt_style;
+<a name="l00091"></a>00091         <span class="keywordtype">bool</span> FindEntry(<span class="keywordtype">char</span> <span class="keyword">const</span> * <span class="keyword">const</span> name,cmd_it &amp; it,<span class="keywordtype">bool</span> neednext=<span class="keyword">false</span>);
+<a name="l00092"></a>00092 };
+<a name="l00093"></a>00093 
+<a name="l00099"></a><a class="code" href="classProgram.html">00099</a> <span class="keyword">class </span><a class="code" href="classProgram.html" title="Base Program class for built-in programs on drive Z:">Program</a> {
+<a name="l00100"></a>00100 <span class="keyword">public</span>:
+<a name="l00101"></a>00101         <a class="code" href="classProgram.html" title="Base Program class for built-in programs on drive Z:">Program</a>();                                          
+<a name="l00102"></a><a class="code" href="classProgram.html#a2df844d46504a414498c2140de94bfef">00102</a>         <span class="keyword">virtual</span> <a class="code" href="classProgram.html#a2df844d46504a414498c2140de94bfef" title="Constructor.">~Program</a>(){                                 
+<a name="l00103"></a>00103                 <span class="keywordflow">if</span> (<a class="code" href="classProgram.html#af637f18e9637b148fbecbd3f0bc748fc" title="Temporary string object for parsing.">cmd</a> != NULL) <span class="keyword">delete</span> <a class="code" href="classProgram.html#af637f18e9637b148fbecbd3f0bc748fc" title="Temporary string object for parsing.">cmd</a>;
+<a name="l00104"></a>00104                 <span class="keywordflow">if</span> (<a class="code" href="classProgram.html#af2f99e812360b3748ec790f4e4023fc4" title="Command line object.">psp</a> != NULL) <span class="keyword">delete</span> <a class="code" href="classProgram.html#af2f99e812360b3748ec790f4e4023fc4" title="Command line object.">psp</a>;
+<a name="l00105"></a>00105         }
+<a name="l00106"></a>00106 
+<a name="l00109"></a><a class="code" href="classProgram.html#a9e1bb1fc1b315bf697fb1872d6defe12">00109</a>         <span class="keywordtype">unsigned</span> <span class="keywordtype">char</span> <a class="code" href="classProgram.html#a9e1bb1fc1b315bf697fb1872d6defe12" title="Exit status of the program.">exit_status</a>;                          
+<a name="l00110"></a>00110 
+<a name="l00111"></a><a class="code" href="classProgram.html#ade1241ef2184833339588494094f7d4f">00111</a>         std::string <a class="code" href="classProgram.html#ade1241ef2184833339588494094f7d4f" title="Exit status, returned to the parent DOS process.">temp_line</a>;                              
+<a name="l00112"></a><a class="code" href="classProgram.html#af637f18e9637b148fbecbd3f0bc748fc">00112</a>         <a class="code" href="classCommandLine.html">CommandLine</a> * <a class="code" href="classProgram.html#af637f18e9637b148fbecbd3f0bc748fc" title="Temporary string object for parsing.">cmd</a>;                                  
+<a name="l00113"></a><a class="code" href="classProgram.html#af2f99e812360b3748ec790f4e4023fc4">00113</a>         <a class="code" href="classDOS__PSP.html">DOS_PSP</a> * <a class="code" href="classProgram.html#af2f99e812360b3748ec790f4e4023fc4" title="Command line object.">psp</a>;                                      
+<a name="l00114"></a>00114         <span class="keyword">virtual</span> <span class="keywordtype">void</span> <a class="code" href="classProgram.html#acd37c94c3c12a55650a05ee1449aa176" title="DOS kernel Program Segment Prefix associated with this program at runtime.">Run</a>(<span class="keywordtype">void</span>)=0;                           
+<a name="l00115"></a>00115         <span class="keywordtype">bool</span> <a class="code" href="classProgram.html#a0012adb877f24b04d836a37ab48f2c60" title="Run() method, called when the program is run. Subclass must override this.">GetEnvStr</a>(<span class="keyword">const</span> <span class="keywordtype">char</span> * entry,std::string &amp; result); 
+<a name="l00116"></a>00116         <span class="keywordtype">bool</span> <a class="code" href="classProgram.html#af0afe08af18d745d56642222a12034c9" title="Return an environment variable by name.">GetEnvNum</a>(Bitu want_num,std::string &amp; result);      
+<a name="l00117"></a>00117         Bitu <a class="code" href="classProgram.html#a67b647d573493de3f7237fe075a8532d" title="Return an environment variable by index.">GetEnvCount</a>(<span class="keywordtype">void</span>);                             
+<a name="l00118"></a>00118         <span class="keywordtype">bool</span> <a class="code" href="classProgram.html#a8a7d72f5c08f644fb19e5f36dc1c3d46" title="Return the number of enviormental variables.">SetEnv</a>(<span class="keyword">const</span> <span class="keywordtype">char</span> * entry,<span class="keyword">const</span> <span class="keywordtype">char</span> * new_string); 
+<a name="l00119"></a>00119         <span class="keywordtype">void</span> <a class="code" href="classProgram.html#af3326c2431db683c8cbfcf1a4eb06f71" title="Set environment variable.">WriteOut</a>(<span class="keyword">const</span> <span class="keywordtype">char</span> * format,...);                         
+<a name="l00120"></a>00120         <span class="keywordtype">void</span> <a class="code" href="classProgram.html#aa45498c7e07ec784b72ed166ab69a847" title="Write to standard output.">WriteOut_NoParsing</a>(<span class="keyword">const</span> <span class="keywordtype">char</span> * format);           
+<a name="l00121"></a>00121         <span class="keywordtype">void</span> <a class="code" href="classProgram.html#a3b124865b50f681fa1d5ae05d71107f8" title="Write to standard output, no parsing.">ChangeToLongCmd</a>();                             
+<a name="l00122"></a>00122         <span class="keywordtype">void</span> <a class="code" href="classProgram.html#a7a253f9ce31472b4b5c38791524f3ba8" title="Get command line from shell instead of PSP.">DebugDumpEnv</a>();                                
+<a name="l00123"></a>00123         <span class="keywordtype">void</span> <a class="code" href="classProgram.html#ab1fa236943ef14b02c59bc4225d216a1" title="Dump environment block to log.">WriteExitStatus</a>();                             
+<a name="l00124"></a>00124 };
+<a name="l00125"></a>00125 
+<a name="l00126"></a>00126 <span class="keyword">typedef</span> void (PROGRAMS_Main)(<a class="code" href="classProgram.html" title="Base Program class for built-in programs on drive Z:">Program</a> * * make);
+<a name="l00127"></a>00127 <span class="keywordtype">void</span> PROGRAMS_MakeFile(<span class="keywordtype">char</span> <span class="keyword">const</span> * <span class="keyword">const</span> name,PROGRAMS_Main * SDL_main);
+<a name="l00128"></a>00128 
+<a name="l00129"></a>00129 <span class="preprocessor">#endif</span>
 </pre></div></div><!-- contents -->
 
 
 <hr class="footer"/><address class="footer"><small>
-Generated on Tue Oct 1 2019 18:06:23 for DOSBox-X by &#160;<a href="http://www.doxygen.org/index.html">
+Generated on Sun Jul 5 2020 13:11:33 for DOSBox-X by &#160;<a href="http://www.doxygen.org/index.html">
 <img class="footer" src="doxygen.png" alt="doxygen"/>
 </a> 1.8.0
 </small></address>

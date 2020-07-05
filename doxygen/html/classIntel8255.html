@@ -259,16 +259,16 @@ uint8_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="c
 <tr class="memdesc:a9585630ec3ff22e97c26524931dab693"><td class="mdescLeft">&#160;</td><td class="mdescRight">PPI mode byte. <br/></td></tr>
 <tr class="memitem:aab8c8fd1a89d777816aecbcd3b27eea8"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="aab8c8fd1a89d777816aecbcd3b27eea8"></a>
 bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classIntel8255.html#aab8c8fd1a89d777816aecbcd3b27eea8">IBF_A</a> = false</td></tr>
-<tr class="memdesc:aab8c8fd1a89d777816aecbcd3b27eea8"><td class="mdescLeft">&#160;</td><td class="mdescRight">Input Buffer Full, port A contains information (port A, Mode 1) <br/></td></tr>
+<tr class="memdesc:aab8c8fd1a89d777816aecbcd3b27eea8"><td class="mdescLeft">&#160;</td><td class="mdescRight">Input Buffer Full, port A contains information (port A, <a class="el" href="structMode.html">Mode</a> 1) <br/></td></tr>
 <tr class="memitem:a5576bb32d1d14c809954c95b1e140b00"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a5576bb32d1d14c809954c95b1e140b00"></a>
 bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classIntel8255.html#a5576bb32d1d14c809954c95b1e140b00">IBF_B</a> = false</td></tr>
-<tr class="memdesc:a5576bb32d1d14c809954c95b1e140b00"><td class="mdescLeft">&#160;</td><td class="mdescRight">Input Buffer Full, port B contains information (port B, Mode 1) <br/></td></tr>
+<tr class="memdesc:a5576bb32d1d14c809954c95b1e140b00"><td class="mdescLeft">&#160;</td><td class="mdescRight">Input Buffer Full, port B contains information (port B, <a class="el" href="structMode.html">Mode</a> 1) <br/></td></tr>
 <tr class="memitem:ad6207273407dcfb3ed9785613838baf7"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="ad6207273407dcfb3ed9785613838baf7"></a>
 bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classIntel8255.html#ad6207273407dcfb3ed9785613838baf7">OBF_A</a> = false</td></tr>
-<tr class="memdesc:ad6207273407dcfb3ed9785613838baf7"><td class="mdescLeft">&#160;</td><td class="mdescRight">Output Buffer Full, port A contains information for the external device (port A, Mode 1) <br/></td></tr>
+<tr class="memdesc:ad6207273407dcfb3ed9785613838baf7"><td class="mdescLeft">&#160;</td><td class="mdescRight">Output Buffer Full, port A contains information for the external device (port A, <a class="el" href="structMode.html">Mode</a> 1) <br/></td></tr>
 <tr class="memitem:a5d84e8f433d4aeaf15d5f79cbadd878e"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a5d84e8f433d4aeaf15d5f79cbadd878e"></a>
 bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classIntel8255.html#a5d84e8f433d4aeaf15d5f79cbadd878e">OBF_B</a> = false</td></tr>
-<tr class="memdesc:a5d84e8f433d4aeaf15d5f79cbadd878e"><td class="mdescLeft">&#160;</td><td class="mdescRight">Output Buffer Full, port B contains information for the external device (port B, Mode 1) <br/></td></tr>
+<tr class="memdesc:a5d84e8f433d4aeaf15d5f79cbadd878e"><td class="mdescLeft">&#160;</td><td class="mdescRight">Output Buffer Full, port B contains information for the external device (port B, <a class="el" href="structMode.html">Mode</a> 1) <br/></td></tr>
 <tr class="memitem:a1b037b991428a40a2c4437723fc26b63"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a1b037b991428a40a2c4437723fc26b63"></a>
 bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classIntel8255.html#a1b037b991428a40a2c4437723fc26b63">INTR_A</a> = false</td></tr>
 <tr class="memdesc:a1b037b991428a40a2c4437723fc26b63"><td class="mdescLeft">&#160;</td><td class="mdescRight">Interrupt Request A (to the microprocessor) <br/></td></tr>
@@ -304,7 +304,7 @@ static const char *&#160;</td><td class="memItemRight" valign="bottom"><a class=
 <p>Intel 8255 Programmable Peripheral Interface emulation class. The base class handles the functions and register I/O to emulate the 8255, while the subclass implements behavior of hardware attached to the 8255.</p>
 <p>All emulation is written to follow Intel's datasheet as closely as possible.</p>
 <p><a href="http://hackipedia.org/browse/Hardware/By%20company/Intel/8255,%20Programmable%20Peripheral%20Interface/8255A,%208255A-5%20Programmable%20Peripheral%20Interface%20(1991-08).pdf" target="_blank">Intel 8255A datasheet</a></p>
-<p>NOTE: Mode 2 emulation has NOT been tested yet! </p>
+<p>NOTE: <a class="el" href="structMode.html">Mode</a> 2 emulation has NOT been tested yet! </p>
 
 <p>Definition at line <a class="el" href="8255_8h_source.html#l00018">18</a> of file <a class="el" href="8255_8h_source.html">8255.h</a>.</p>
 </div><hr/><h2>Member Enumeration Documentation</h2>
@@ -345,7 +345,7 @@ static const char *&#160;</td><td class="memItemRight" valign="bottom"><a class=
 
 
 <hr class="footer"/><address class="footer"><small>
-Generated on Tue Oct 1 2019 18:06:31 for DOSBox-X by &#160;<a href="http://www.doxygen.org/index.html">
+Generated on Sun Jul 5 2020 13:11:41 for DOSBox-X by &#160;<a href="http://www.doxygen.org/index.html">
 <img class="footer" src="doxygen.png" alt="doxygen"/>
 </a> 1.8.0
 </small></address>

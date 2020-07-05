@@ -99,13 +99,14 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <div class="contents">
 This is the complete list of members for <a class="el" href="classCContinuousEvent.html">CContinuousEvent</a>, including all inherited members.<table>
   <tr class="memlist"><td><a class="el" href="classCContinuousEvent.html#ac092b5d5258a8d2566acd222086743fb">ActivateEvent</a>(bool ev_trigger, bool skip_action)</td><td><a class="el" href="classCContinuousEvent.html">CContinuousEvent</a></td><td><code> [inline, virtual]</code></td></tr>
-  <tr class="memlist"><td><a class="el" href="classCEvent.html#a8643a8541e23ed77a63869dd11780c83">Active</a>(bool yesno)</td><td><a class="el" href="classCEvent.html">CEvent</a></td><td><code> [inline, virtual]</code></td></tr>
   <tr class="memlist"><td><a class="el" href="classCEvent.html#af1e4934eb75e5636f81918c13983e2e3">active</a></td><td><a class="el" href="classCEvent.html">CEvent</a></td><td></td></tr>
+  <tr class="memlist"><td><a class="el" href="classCEvent.html#a8643a8541e23ed77a63869dd11780c83">Active</a>(bool yesno)</td><td><a class="el" href="classCEvent.html">CEvent</a></td><td><code> [inline, virtual]</code></td></tr>
   <tr class="memlist"><td><a class="el" href="classCEvent.html#a487786e4e537594bf963e96aecae85cd">activity</a></td><td><a class="el" href="classCEvent.html">CEvent</a></td><td><code> [protected]</code></td></tr>
   <tr class="memlist"><td><a class="el" href="classCEvent.html#a2665ebd0551c2b437b02d521f1c7adda">AddBind</a>(CBind *bind)</td><td><a class="el" href="classCEvent.html">CEvent</a></td><td></td></tr>
   <tr class="memlist"><td><a class="el" href="classCEvent.html#a0c900c0aab7bf38d7ac8769d5e4f6a5a">bindlist</a></td><td><a class="el" href="classCEvent.html">CEvent</a></td><td></td></tr>
   <tr class="memlist"><td><a class="el" href="classCContinuousEvent.html#ac998a6e07ae19db1bd6000b26f3b2a56">CContinuousEvent</a>(char const *const _entry)</td><td><a class="el" href="classCContinuousEvent.html">CContinuousEvent</a></td><td><code> [inline]</code></td></tr>
   <tr class="memlist"><td><a class="el" href="classCEvent.html#a1dccd12980b4a85ca70ca6d77d631b45">CEvent</a>(char const *const _entry, const enum event_type _type=event_t)</td><td><a class="el" href="classCEvent.html">CEvent</a></td><td><code> [inline]</code></td></tr>
+  <tr bgcolor="#f0f0f0"><td><b>ClearBinds</b>() (defined in <a class="el" href="classCEvent.html">CEvent</a>)</td><td><a class="el" href="classCEvent.html">CEvent</a></td><td></td></tr>
   <tr class="memlist"><td><a class="el" href="classCEvent.html#a7bbacdb8e3c5ee41ce13af19dc21db2d">current_value</a></td><td><a class="el" href="classCEvent.html">CEvent</a></td><td><code> [protected]</code></td></tr>
   <tr class="memlist"><td><a class="el" href="classCEvent.html#a633d83fd6d210a7b6a517754548eee11">DeActivateAll</a>(void)</td><td><a class="el" href="classCEvent.html">CEvent</a></td><td></td></tr>
   <tr class="memlist"><td><a class="el" href="classCContinuousEvent.html#a4cea918393a7d37b2cbe8491c46f880c">DeActivateEvent</a>(bool ev_trigger)</td><td><a class="el" href="classCContinuousEvent.html">CContinuousEvent</a></td><td><code> [inline, virtual]</code></td></tr>
@@ -119,6 +120,7 @@ This is the complete list of members for <a class="el" href="classCContinuousEve
   <tr class="memlist"><td><a class="el" href="classCEvent.html#ad4e49c2aa32efecdc91c9439e858b940">GetValue</a>(void)</td><td><a class="el" href="classCEvent.html">CEvent</a></td><td><code> [inline]</code></td></tr>
   <tr bgcolor="#f0f0f0"><td><b>handler_event_t</b> enum value (defined in <a class="el" href="classCEvent.html">CEvent</a>)</td><td><a class="el" href="classCEvent.html">CEvent</a></td><td></td></tr>
   <tr class="memlist"><td><a class="el" href="classCContinuousEvent.html#a7d1e187b39ea746e8aabf70d7c176d4f">IsTrigger</a>(void)</td><td><a class="el" href="classCContinuousEvent.html">CContinuousEvent</a></td><td><code> [inline, virtual]</code></td></tr>
+  <tr class="memlist"><td><a class="el" href="classCEvent.html#a22e34d9fd3e252773c98d43ceecaf246">RebindRedraw</a>(void)</td><td><a class="el" href="classCEvent.html">CEvent</a></td><td><code> [inline, virtual]</code></td></tr>
   <tr class="memlist"><td><a class="el" href="classCContinuousEvent.html#a55ff5be014e082075eaeec0af43a51aa">RepostActivity</a>(void)</td><td><a class="el" href="classCContinuousEvent.html">CContinuousEvent</a></td><td><code> [inline, virtual]</code></td></tr>
   <tr class="memlist"><td><a class="el" href="classCEvent.html#aaa253031798af461119b830d079e8225">SetValue</a>(Bits value)</td><td><a class="el" href="classCEvent.html">CEvent</a></td><td><code> [inline]</code></td></tr>
   <tr class="memlist"><td><a class="el" href="classCEvent.html#a5612c4e4e1d0cfc08e1640fee8bacf85">type</a></td><td><a class="el" href="classCEvent.html">CEvent</a></td><td></td></tr>
@@ -129,7 +131,7 @@ This is the complete list of members for <a class="el" href="classCContinuousEve
 
 
 <hr class="footer"/><address class="footer"><small>
-Generated on Tue Oct 1 2019 18:06:30 for DOSBox-X by &#160;<a href="http://www.doxygen.org/index.html">
+Generated on Sun Jul 5 2020 13:11:40 for DOSBox-X by &#160;<a href="http://www.doxygen.org/index.html">
 <img class="footer" src="doxygen.png" alt="doxygen"/>
 </a> 1.8.0
 </small></address>

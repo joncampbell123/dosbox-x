@@ -135,6 +135,7 @@ This is the complete list of members for <a class="el" href="classMixerChannel.h
   <tr bgcolor="#f0f0f0"><td><b>last</b> (defined in <a class="el" href="classMixerChannel.html">MixerChannel</a>)</td><td><a class="el" href="classMixerChannel.html">MixerChannel</a></td><td></td></tr>
   <tr bgcolor="#f0f0f0"><td><b>last_sample_write</b> (defined in <a class="el" href="classMixerChannel.html">MixerChannel</a>)</td><td><a class="el" href="classMixerChannel.html">MixerChannel</a></td><td></td></tr>
   <tr bgcolor="#f0f0f0"><td><b>loadCurrentSample</b>(Bitu &amp;len, const Type *&amp;data) (defined in <a class="el" href="classMixerChannel.html">MixerChannel</a>)</td><td><a class="el" href="classMixerChannel.html">MixerChannel</a></td><td><code> [inline]</code></td></tr>
+  <tr bgcolor="#f0f0f0"><td><b>LoadState</b>(std::istream &amp;stream) (defined in <a class="el" href="classMixerChannel.html">MixerChannel</a>)</td><td><a class="el" href="classMixerChannel.html">MixerChannel</a></td><td></td></tr>
   <tr bgcolor="#f0f0f0"><td><b>lowpass</b> (defined in <a class="el" href="classMixerChannel.html">MixerChannel</a>)</td><td><a class="el" href="classMixerChannel.html">MixerChannel</a></td><td></td></tr>
   <tr bgcolor="#f0f0f0"><td><b>lowpass_alpha</b> (defined in <a class="el" href="classMixerChannel.html">MixerChannel</a>)</td><td><a class="el" href="classMixerChannel.html">MixerChannel</a></td><td></td></tr>
   <tr bgcolor="#f0f0f0"><td><b>lowpass_freq</b> (defined in <a class="el" href="classMixerChannel.html">MixerChannel</a>)</td><td><a class="el" href="classMixerChannel.html">MixerChannel</a></td><td></td></tr>
@@ -157,10 +158,12 @@ This is the complete list of members for <a class="el" href="classMixerChannel.h
   <tr bgcolor="#f0f0f0"><td><b>rendering_to_d</b> (defined in <a class="el" href="classMixerChannel.html">MixerChannel</a>)</td><td><a class="el" href="classMixerChannel.html">MixerChannel</a></td><td></td></tr>
   <tr bgcolor="#f0f0f0"><td><b>rendering_to_n</b> (defined in <a class="el" href="classMixerChannel.html">MixerChannel</a>)</td><td><a class="el" href="classMixerChannel.html">MixerChannel</a></td><td></td></tr>
   <tr bgcolor="#f0f0f0"><td><b>runSampleInterpolation</b>(const Bitu upto) (defined in <a class="el" href="classMixerChannel.html">MixerChannel</a>)</td><td><a class="el" href="classMixerChannel.html">MixerChannel</a></td><td><code> [inline]</code></td></tr>
+  <tr bgcolor="#f0f0f0"><td><b>SaveState</b>(std::ostream &amp;stream) (defined in <a class="el" href="classMixerChannel.html">MixerChannel</a>)</td><td><a class="el" href="classMixerChannel.html">MixerChannel</a></td><td></td></tr>
   <tr bgcolor="#f0f0f0"><td><b>scale</b> (defined in <a class="el" href="classMixerChannel.html">MixerChannel</a>)</td><td><a class="el" href="classMixerChannel.html">MixerChannel</a></td><td></td></tr>
   <tr bgcolor="#f0f0f0"><td><b>SetFreq</b>(Bitu _freq, Bitu _den=1U) (defined in <a class="el" href="classMixerChannel.html">MixerChannel</a>)</td><td><a class="el" href="classMixerChannel.html">MixerChannel</a></td><td></td></tr>
   <tr bgcolor="#f0f0f0"><td><b>SetLowpassFreq</b>(Bitu _freq, unsigned int order=2) (defined in <a class="el" href="classMixerChannel.html">MixerChannel</a>)</td><td><a class="el" href="classMixerChannel.html">MixerChannel</a></td><td></td></tr>
   <tr bgcolor="#f0f0f0"><td><b>SetScale</b>(float f) (defined in <a class="el" href="classMixerChannel.html">MixerChannel</a>)</td><td><a class="el" href="classMixerChannel.html">MixerChannel</a></td><td></td></tr>
+  <tr bgcolor="#f0f0f0"><td><b>SetScale</b>(float _left, float _right) (defined in <a class="el" href="classMixerChannel.html">MixerChannel</a>)</td><td><a class="el" href="classMixerChannel.html">MixerChannel</a></td><td></td></tr>
   <tr bgcolor="#f0f0f0"><td><b>SetSlewFreq</b>(Bitu _freq) (defined in <a class="el" href="classMixerChannel.html">MixerChannel</a>)</td><td><a class="el" href="classMixerChannel.html">MixerChannel</a></td><td></td></tr>
   <tr bgcolor="#f0f0f0"><td><b>SetVolume</b>(float _left, float _right) (defined in <a class="el" href="classMixerChannel.html">MixerChannel</a>)</td><td><a class="el" href="classMixerChannel.html">MixerChannel</a></td><td></td></tr>
   <tr bgcolor="#f0f0f0"><td><b>timeSinceLastSample</b>(void) (defined in <a class="el" href="classMixerChannel.html">MixerChannel</a>)</td><td><a class="el" href="classMixerChannel.html">MixerChannel</a></td><td></td></tr>
@@ -172,7 +175,7 @@ This is the complete list of members for <a class="el" href="classMixerChannel.h
 
 
 <hr class="footer"/><address class="footer"><small>
-Generated on Tue Oct 1 2019 18:06:31 for DOSBox-X by &#160;<a href="http://www.doxygen.org/index.html">
+Generated on Sun Jul 5 2020 13:11:41 for DOSBox-X by &#160;<a href="http://www.doxygen.org/index.html">
 <img class="footer" src="doxygen.png" alt="doxygen"/>
 </a> 1.8.0
 </small></address>

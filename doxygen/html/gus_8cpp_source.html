@@ -96,7 +96,7 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 </div><!--header-->
 <div class="contents">
 <div class="fragment"><pre class="fragment"><a name="l00001"></a>00001 <span class="comment">/*</span>
-<a name="l00002"></a>00002 <span class="comment"> *  Copyright (C) 2002-2019  The DOSBox Team</span>
+<a name="l00002"></a>00002 <span class="comment"> *  Copyright (C) 2002-2020  The DOSBox Team</span>
 <a name="l00003"></a>00003 <span class="comment"> *</span>
 <a name="l00004"></a>00004 <span class="comment"> *  This program is free software; you can redistribute it and/or modify</span>
 <a name="l00005"></a>00005 <span class="comment"> *  it under the terms of the GNU General Public License as published by</span>
@@ -108,9 +108,9 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l00011"></a>00011 <span class="comment"> *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the</span>
 <a name="l00012"></a>00012 <span class="comment"> *  GNU General Public License for more details.</span>
 <a name="l00013"></a>00013 <span class="comment"> *</span>
-<a name="l00014"></a>00014 <span class="comment"> *  You should have received a copy of the GNU General Public License</span>
-<a name="l00015"></a>00015 <span class="comment"> *  along with this program; if not, write to the Free Software</span>
-<a name="l00016"></a>00016 <span class="comment"> *  Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1335, USA.</span>
+<a name="l00014"></a>00014 <span class="comment"> *  You should have received a copy of the GNU General Public License along</span>
+<a name="l00015"></a>00015 <span class="comment"> *  with this program; if not, write to the Free Software Foundation, Inc.,</span>
+<a name="l00016"></a>00016 <span class="comment"> *  51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.</span>
 <a name="l00017"></a>00017 <span class="comment"> */</span>
 <a name="l00018"></a>00018 
 <a name="l00019"></a>00019 
@@ -423,17 +423,17 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l00326"></a>00326 <span class="preprocessor"></span>                }
 <a name="l00327"></a>00327         }
 <a name="l00328"></a>00328         INLINE <span class="keywordtype">void</span> WaveUpdate(<span class="keywordtype">void</span>) {
-<a name="l00329"></a>00329                 Bit32u WaveExtra = 0;
-<a name="l00330"></a>00330                 <span class="keywordtype">bool</span> endcondition;
-<a name="l00331"></a>00331 
-<a name="l00332"></a>00332                 <span class="keywordflow">if</span> ((WaveCtrl &amp; (WCTRL_STOP | WCTRL_STOPPED)) == 0<span class="comment">/*voice is running*/</span>) {
-<a name="l00333"></a>00333                         <span class="comment">/* NTS: WaveAddr and WaveAdd are unsigned.</span>
-<a name="l00334"></a>00334 <span class="comment">                         *      If WaveAddr &lt;= WaveAdd going backwards, WaveAddr becomes negative, which as an unsigned integer,</span>
-<a name="l00335"></a>00335 <span class="comment">                         *      means carrying down from the highest possible value of the integer type. Which means that if the</span>
-<a name="l00336"></a>00336 <span class="comment">                         *      start position is less than WaveAdd the WaveAddr will skip over the start pointer and continue</span>
-<a name="l00337"></a>00337 <span class="comment">                         *      playing downward from the top of the GUS memory, without stopping/looping as expected.</span>
-<a name="l00338"></a>00338 <span class="comment">                         *</span>
-<a name="l00339"></a>00339 <span class="comment">                         *      This &quot;bug&quot; was implemented on purpose because real Gravis Ultrasound hardware acts this way. */</span>
+<a name="l00329"></a>00329                 <span class="keywordtype">bool</span> endcondition;
+<a name="l00330"></a>00330 
+<a name="l00331"></a>00331                 <span class="keywordflow">if</span> ((WaveCtrl &amp; (WCTRL_STOP | WCTRL_STOPPED)) == 0<span class="comment">/*voice is running*/</span>) {
+<a name="l00332"></a>00332                         <span class="comment">/* NTS: WaveAddr and WaveAdd are unsigned.</span>
+<a name="l00333"></a>00333 <span class="comment">                         *      If WaveAddr &lt;= WaveAdd going backwards, WaveAddr becomes negative, which as an unsigned integer,</span>
+<a name="l00334"></a>00334 <span class="comment">                         *      means carrying down from the highest possible value of the integer type. Which means that if the</span>
+<a name="l00335"></a>00335 <span class="comment">                         *      start position is less than WaveAdd the WaveAddr will skip over the start pointer and continue</span>
+<a name="l00336"></a>00336 <span class="comment">                         *      playing downward from the top of the GUS memory, without stopping/looping as expected.</span>
+<a name="l00337"></a>00337 <span class="comment">                         *</span>
+<a name="l00338"></a>00338 <span class="comment">                         *      This &quot;bug&quot; was implemented on purpose because real Gravis Ultrasound hardware acts this way. */</span>
+<a name="l00339"></a>00339                         Bit32u WaveExtra = 0;
 <a name="l00340"></a>00340                         <span class="keywordflow">if</span> (WaveCtrl &amp; WCTRL_DECREASING<span class="comment">/*backwards (direction)*/</span>) {
 <a name="l00341"></a>00341                                 <span class="comment">/* unsigned int subtract, mask, compare. will miss start pointer if WaveStart &lt;= WaveAdd.</span>
 <a name="l00342"></a>00342 <span class="comment">                                 * This bug is deliberate, accurate to real GUS hardware, do not fix. */</span>
@@ -1287,13 +1287,13 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l01190"></a>01190                 }
 <a name="l01191"></a>01191 <span class="keyword">public</span>:
 <a name="l01192"></a>01192                 <span class="keywordtype">float</span>           AttenDb[2];
-<a name="l01193"></a>01193                 uint32_t        Fix1616Mult[2];         <span class="comment">// linear multiply to apply volume</span>
+<a name="l01193"></a>01193         uint32_t        Fix1616Mult[2] = {};            <span class="comment">// linear multiply to apply volume</span>
 <a name="l01194"></a>01194         };
 <a name="l01195"></a>01195 <span class="keyword">public</span>:
 <a name="l01196"></a>01196         <span class="keyword">struct </span><a class="code" href="structgus__ICS2101_1_1mixcontrol.html">mixcontrol</a>       mixpair[8];             <span class="comment">// pairs 1-5 and Master</span>
-<a name="l01197"></a>01197         <span class="keyword">struct </span><a class="code" href="structgus__ICS2101_1_1volpair.html">volpair</a>          <a class="code" href="structgus__ICS2101_1_1volpair.html">volpair</a>[5];             <span class="comment">// pairs 1-5 scaled by master</span>
-<a name="l01198"></a>01198         uint8_t                 addr_attenuator;        <span class="comment">// which attenuator is selected</span>
-<a name="l01199"></a>01199         uint8_t                 addr_control;           <span class="comment">// which control is selected</span>
+<a name="l01197"></a>01197     <span class="keyword">struct </span><a class="code" href="structgus__ICS2101_1_1volpair.html">volpair</a>              <a class="code" href="structgus__ICS2101_1_1volpair.html">volpair</a>[5] = {};        <span class="comment">// pairs 1-5 scaled by master</span>
+<a name="l01198"></a>01198         uint8_t                 addr_attenuator = 0;    <span class="comment">// which attenuator is selected</span>
+<a name="l01199"></a>01199         uint8_t                 addr_control = 0;               <span class="comment">// which control is selected</span>
 <a name="l01200"></a>01200 } GUS_ICS2101;
 <a name="l01201"></a>01201 
 <a name="l01202"></a>01202 <span class="keyword">static</span> <span class="keyword">inline</span> uint8_t read_GF1_mapping_control(<span class="keyword">const</span> <span class="keywordtype">unsigned</span> <span class="keywordtype">int</span> ch) {
@@ -1428,9 +1428,9 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l01331"></a>01331         <span class="keywordtype">bool</span>            mce;
 <a name="l01332"></a>01332         <span class="keywordtype">bool</span>            init;
 <a name="l01333"></a>01333 
-<a name="l01334"></a>01334         uint8_t         ADCInputControl[2];     <span class="comment">/* left (I0) and right (I1) ADC Input control. bits 7-6 select source. bit 5 is mic gain. bits 3-0 controls gain. */</span>
-<a name="l01335"></a>01335         uint8_t         Aux1InputControl[2];    <span class="comment">/* left (I2) and right (I3) aux. input control. bits 5-0 control gain in 1.5dB steps. bit 7 is mute */</span>
-<a name="l01336"></a>01336         uint8_t         DACOutputControl[2];    <span class="comment">/* left (I6) and right (I7) output control attenuation. bits 5-0 control in -1.5dB steps, bit 7 is mute */</span>
+<a name="l01334"></a>01334     uint8_t             ADCInputControl[2] = {};        <span class="comment">/* left (I0) and right (I1) ADC Input control. bits 7-6 select source. bit 5 is mic gain. bits 3-0 controls gain. */</span>
+<a name="l01335"></a>01335     uint8_t             Aux1InputControl[2] = {};       <span class="comment">/* left (I2) and right (I3) aux. input control. bits 5-0 control gain in 1.5dB steps. bit 7 is mute */</span>
+<a name="l01336"></a>01336     uint8_t             DACOutputControl[2] = {};       <span class="comment">/* left (I6) and right (I7) output control attenuation. bits 5-0 control in -1.5dB steps, bit 7 is mute */</span>
 <a name="l01337"></a>01337 } GUS_CS4231;
 <a name="l01338"></a>01338 
 <a name="l01339"></a>01339 <span class="keyword">static</span> Bitu read_gus_cs4231(Bitu port,Bitu iolen) {
@@ -1917,7 +1917,7 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l01820"></a>01820         }
 <a name="l01821"></a>01821 
 <a name="l01822"></a>01822         <a class="code" href="classLOG.html">LOG</a>(LOG_MISC,LOG_DEBUG)(<span class="stringliteral">&quot;GUS DMA transfer %lu bytes, GUS RAM address 0x%lx %u-bit DMA %u-bit PCM (ctrl=0x%02x) tcount=%u&quot;</span>,
-<a name="l01823"></a>01823                 (<span class="keywordtype">unsigned</span> long)step,(<span class="keywordtype">unsigned</span> <span class="keywordtype">long</span>)dmaaddr,myGUS.DMAControl &amp; 0x4 ? 16 : 8,myGUS.DMAControl &amp; 0x40 ? 16 : 8,myGUS.DMAControl,chan-&gt;tcount);
+<a name="l01823"></a>01823                 (<span class="keywordtype">unsigned</span> long)step,(<span class="keywordtype">unsigned</span> <span class="keywordtype">long</span>)dmaaddr,(myGUS.DMAControl &amp; 0x4) ? 16 : 8,(myGUS.DMAControl &amp; 0x40) ? 16 : 8,myGUS.DMAControl,chan-&gt;tcount);
 <a name="l01824"></a>01824 
 <a name="l01825"></a>01825         <span class="keywordflow">if</span> (step &gt; 0) {
 <a name="l01826"></a>01826                 dmaaddr += (<span class="keywordtype">unsigned</span> int)step;
@@ -2572,11 +2572,130 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l02475"></a>02475     AddVMEventFunction(VM_EVENT_DOS_INIT_SHELL_READY,AddVMEventFunctionFuncPair(GUS_DOS_Boot));
 <a name="l02476"></a>02476 }
 <a name="l02477"></a>02477 
+<a name="l02478"></a>02478 <span class="comment">// save state support</span>
+<a name="l02479"></a>02479 <span class="keywordtype">void</span> *GUS_TimerEvent_PIC_Event = (<span class="keywordtype">void</span>*)((uintptr_t)GUS_TimerEvent);
+<a name="l02480"></a>02480 <span class="keywordtype">void</span> *GUS_DMA_Callback_Func = (<span class="keywordtype">void</span>*)((uintptr_t)GUS_DMA_Callback);
+<a name="l02481"></a>02481 
+<a name="l02482"></a>02482 
+<a name="l02483"></a>02483 <span class="keywordtype">void</span> POD_Save_GUS( std::ostream&amp; stream )
+<a name="l02484"></a>02484 {
+<a name="l02485"></a>02485 <span class="keyword">const</span> <span class="keywordtype">char</span> pod_name[32] = <span class="stringliteral">&quot;GUS&quot;</span>;
+<a name="l02486"></a>02486 
+<a name="l02487"></a>02487         <span class="keywordflow">if</span>( stream.fail() ) <span class="keywordflow">return</span>;
+<a name="l02488"></a>02488         <span class="keywordflow">if</span>( !test ) <span class="keywordflow">return</span>;
+<a name="l02489"></a>02489         <span class="keywordflow">if</span>( !gus_chan ) <span class="keywordflow">return</span>;
+<a name="l02490"></a>02490 
+<a name="l02491"></a>02491 
+<a name="l02492"></a>02492         WRITE_POD( &amp;pod_name, pod_name );
+<a name="l02493"></a>02493 
+<a name="l02494"></a>02494         <span class="comment">//*******************************************</span>
+<a name="l02495"></a>02495         <span class="comment">//*******************************************</span>
+<a name="l02496"></a>02496         <span class="comment">//*******************************************</span>
+<a name="l02497"></a>02497 
+<a name="l02498"></a>02498         Bit8u curchan_idx;
+<a name="l02499"></a>02499 
+<a name="l02500"></a>02500         curchan_idx = 0xff;
+<a name="l02501"></a>02501         <span class="keywordflow">for</span>( <span class="keywordtype">int</span> lcv=0; lcv&lt;32; lcv++ ) {
+<a name="l02502"></a>02502                 <span class="keywordflow">if</span>( curchan == guschan[lcv] ) { curchan_idx = lcv; <span class="keywordflow">break</span>; }
+<a name="l02503"></a>02503         }
+<a name="l02504"></a>02504 
+<a name="l02505"></a>02505         <span class="comment">// *******************************************</span>
+<a name="l02506"></a>02506         <span class="comment">// *******************************************</span>
+<a name="l02507"></a>02507         <span class="comment">// *******************************************</span>
+<a name="l02508"></a>02508 
+<a name="l02509"></a>02509         <span class="comment">// - pure data</span>
+<a name="l02510"></a>02510         WRITE_POD( &amp;adlib_commandreg, adlib_commandreg );
+<a name="l02511"></a>02511         WRITE_POD( &amp;GUSRam, GUSRam );
+<a name="l02512"></a>02512         WRITE_POD( &amp;vol16bit, vol16bit );
+<a name="l02513"></a>02513         WRITE_POD( &amp;pantable, pantable );
+<a name="l02514"></a>02514 
+<a name="l02515"></a>02515         <span class="comment">// - pure struct data</span>
+<a name="l02516"></a>02516         WRITE_POD( &amp;myGUS, myGUS );
+<a name="l02517"></a>02517 
+<a name="l02518"></a>02518 
+<a name="l02519"></a>02519         <span class="comment">// - pure data</span>
+<a name="l02520"></a>02520         <span class="keywordflow">for</span>( <span class="keywordtype">int</span> lcv=0; lcv&lt;32; lcv++ ) {
+<a name="l02521"></a>02521                 WRITE_POD( guschan[lcv], *guschan[lcv] );
+<a name="l02522"></a>02522         }
+<a name="l02523"></a>02523 
+<a name="l02524"></a>02524         <span class="comment">// *******************************************</span>
+<a name="l02525"></a>02525         <span class="comment">// *******************************************</span>
+<a name="l02526"></a>02526         <span class="comment">// *******************************************</span>
+<a name="l02527"></a>02527 
+<a name="l02528"></a>02528         <span class="comment">// - reloc ptr</span>
+<a name="l02529"></a>02529         WRITE_POD( &amp;curchan_idx, curchan_idx );
+<a name="l02530"></a>02530 
+<a name="l02531"></a>02531         <span class="comment">// *******************************************</span>
+<a name="l02532"></a>02532         <span class="comment">// *******************************************</span>
+<a name="l02533"></a>02533         <span class="comment">// *******************************************</span>
+<a name="l02534"></a>02534 
+<a name="l02535"></a>02535         gus_chan-&gt;SaveState(stream);
+<a name="l02536"></a>02536 }
+<a name="l02537"></a>02537 
+<a name="l02538"></a>02538 
+<a name="l02539"></a>02539 <span class="keywordtype">void</span> POD_Load_GUS( std::istream&amp; stream )
+<a name="l02540"></a>02540 {
+<a name="l02541"></a>02541         <span class="keywordtype">char</span> pod_name[32] = {0};
+<a name="l02542"></a>02542 
+<a name="l02543"></a>02543         <span class="keywordflow">if</span>( stream.fail() ) <span class="keywordflow">return</span>;
+<a name="l02544"></a>02544         <span class="keywordflow">if</span>( !test ) <span class="keywordflow">return</span>;
+<a name="l02545"></a>02545         <span class="keywordflow">if</span>( !gus_chan ) <span class="keywordflow">return</span>;
+<a name="l02546"></a>02546 
+<a name="l02547"></a>02547 
+<a name="l02548"></a>02548         <span class="comment">// error checking</span>
+<a name="l02549"></a>02549         READ_POD( &amp;pod_name, pod_name );
+<a name="l02550"></a>02550         <span class="keywordflow">if</span>( strcmp( pod_name, <span class="stringliteral">&quot;GUS&quot;</span> ) ) {
+<a name="l02551"></a>02551                 stream.clear( std::istream::failbit | std::istream::badbit );
+<a name="l02552"></a>02552                 <span class="keywordflow">return</span>;
+<a name="l02553"></a>02553         }
+<a name="l02554"></a>02554 
+<a name="l02555"></a>02555         <span class="comment">//************************************************</span>
+<a name="l02556"></a>02556         <span class="comment">//************************************************</span>
+<a name="l02557"></a>02557         <span class="comment">//************************************************</span>
+<a name="l02558"></a>02558 
+<a name="l02559"></a>02559         Bit8u curchan_idx;
+<a name="l02560"></a>02560 
+<a name="l02561"></a>02561         <span class="comment">//*******************************************</span>
+<a name="l02562"></a>02562         <span class="comment">//*******************************************</span>
+<a name="l02563"></a>02563         <span class="comment">//*******************************************</span>
+<a name="l02564"></a>02564 
+<a name="l02565"></a>02565         <span class="comment">// - pure data</span>
+<a name="l02566"></a>02566         READ_POD( &amp;adlib_commandreg, adlib_commandreg );
+<a name="l02567"></a>02567         READ_POD( &amp;GUSRam, GUSRam );
+<a name="l02568"></a>02568         READ_POD( &amp;vol16bit, vol16bit );
+<a name="l02569"></a>02569         READ_POD( &amp;pantable, pantable );
+<a name="l02570"></a>02570 
+<a name="l02571"></a>02571         READ_POD( &amp;myGUS, myGUS );
+<a name="l02572"></a>02572 
+<a name="l02573"></a>02573         <span class="keywordflow">for</span>( <span class="keywordtype">int</span> lcv=0; lcv&lt;32; lcv++ ) {
+<a name="l02574"></a>02574                 <span class="keywordflow">if</span>( !guschan[lcv] ) <span class="keywordflow">continue</span>;
+<a name="l02575"></a>02575 
+<a name="l02576"></a>02576                 READ_POD( guschan[lcv], *guschan[lcv] );
+<a name="l02577"></a>02577         }
+<a name="l02578"></a>02578 
+<a name="l02579"></a>02579 
+<a name="l02580"></a>02580 
+<a name="l02581"></a>02581         <span class="comment">// - reloc ptr</span>
+<a name="l02582"></a>02582         READ_POD( &amp;curchan_idx, curchan_idx );
+<a name="l02583"></a>02583 
+<a name="l02584"></a>02584         <span class="comment">//*******************************************</span>
+<a name="l02585"></a>02585         <span class="comment">//*******************************************</span>
+<a name="l02586"></a>02586         <span class="comment">//*******************************************</span>
+<a name="l02587"></a>02587 
+<a name="l02588"></a>02588         curchan = NULL;
+<a name="l02589"></a>02589         <span class="keywordflow">if</span>( curchan_idx != 0xff ) curchan = guschan[curchan_idx];
+<a name="l02590"></a>02590 
+<a name="l02591"></a>02591         <span class="comment">//*******************************************</span>
+<a name="l02592"></a>02592         <span class="comment">//*******************************************</span>
+<a name="l02593"></a>02593         <span class="comment">//*******************************************</span>
+<a name="l02594"></a>02594 
+<a name="l02595"></a>02595         gus_chan-&gt;LoadState(stream);
+<a name="l02596"></a>02596 }
 </pre></div></div><!-- contents -->
 
 
 <hr class="footer"/><address class="footer"><small>
-Generated on Tue Oct 1 2019 18:06:26 for DOSBox-X by &#160;<a href="http://www.doxygen.org/index.html">
+Generated on Sun Jul 5 2020 13:11:36 for DOSBox-X by &#160;<a href="http://www.doxygen.org/index.html">
 <img class="footer" src="doxygen.png" alt="doxygen"/>
 </a> 1.8.0
 </small></address>

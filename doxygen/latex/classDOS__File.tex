@@ -4,7 +4,7 @@
 Inheritance diagram for D\-O\-S\-\_\-\-File\-:\begin{figure}[H]
 \begin{center}
 \leavevmode
-\includegraphics[height=1.764706cm]{classDOS__File}
+\includegraphics[height=8.470589cm]{classDOS__File}
 \end{center}
 \end{figure}
 \subsection*{Public Member Functions}
@@ -64,16 +64,22 @@ Inheritance diagram for D\-O\-S\-\_\-\-File\-:\begin{figure}[H]
 \hypertarget{classDOS__File_af4d98d880115f37ba0b3ff6e95bbaf55}{Bit8u {\bfseries Get\-Drive} (void)}\label{classDOS__File_af4d98d880115f37ba0b3ff6e95bbaf55}
 
 \item 
+\hypertarget{classDOS__File_ac2a385b26fd590639ffc9ebbbd62fdba}{virtual void {\bfseries Save\-State} (std\-::ostream \&stream)}\label{classDOS__File_ac2a385b26fd590639ffc9ebbbd62fdba}
+
+\item 
+\hypertarget{classDOS__File_ac8c307bd4f2ca8faa084fb66c70422cc}{virtual void {\bfseries Load\-State} (std\-::istream \&stream, bool pop)}\label{classDOS__File_ac8c307bd4f2ca8faa084fb66c70422cc}
+
+\item 
 \hypertarget{classDOS__File_a3a3d4b0eff671faf6e30b6af65b2054c}{virtual void {\bfseries Flush} (void)}\label{classDOS__File_a3a3d4b0eff671faf6e30b6af65b2054c}
 
 \end{DoxyCompactItemize}
 \subsection*{Public Attributes}
 \begin{DoxyCompactItemize}
 \item 
-\hypertarget{classDOS__File_a3e326c162b838b065ee83c27a112be65}{char $\ast$ {\bfseries name}}\label{classDOS__File_a3e326c162b838b065ee83c27a112be65}
+\hypertarget{classDOS__File_a3e326c162b838b065ee83c27a112be65}{char $\ast$ {\bfseries name} = N\-U\-L\-L}\label{classDOS__File_a3e326c162b838b065ee83c27a112be65}
 
 \item 
-\hypertarget{classDOS__File_a253253ed788a32410df6b9ecc638366f}{Bit8u {\bfseries drive}}\label{classDOS__File_a253253ed788a32410df6b9ecc638366f}
+\hypertarget{classDOS__File_a253253ed788a32410df6b9ecc638366f}{Bit8u {\bfseries drive} = 0}\label{classDOS__File_a253253ed788a32410df6b9ecc638366f}
 
 \item 
 \hypertarget{classDOS__File_a2b1d061b180a8953a2e8a8ebc4021965}{Bit32u {\bfseries flags}}\label{classDOS__File_a2b1d061b180a8953a2e8a8ebc4021965}
@@ -94,7 +100,7 @@ Inheritance diagram for D\-O\-S\-\_\-\-File\-:\begin{figure}[H]
 \hypertarget{classDOS__File_ab3d966fce7a4b7f3b5c691a6d8a3249b}{Bits {\bfseries ref\-Ctr}}\label{classDOS__File_ab3d966fce7a4b7f3b5c691a6d8a3249b}
 
 \item 
-\hypertarget{classDOS__File_a9a1cf63a07117706b255cc89a1183d23}{bool {\bfseries newtime}}\label{classDOS__File_a9a1cf63a07117706b255cc89a1183d23}
+\hypertarget{classDOS__File_a9a1cf63a07117706b255cc89a1183d23}{bool {\bfseries newtime} = false}\label{classDOS__File_a9a1cf63a07117706b255cc89a1183d23}
 
 \end{DoxyCompactItemize}
 
@@ -102,11 +108,12 @@ Inheritance diagram for D\-O\-S\-\_\-\-File\-:\begin{figure}[H]
 \subsection{Detailed Description}
 
 
-Definition at line 74 of file dos\-\_\-system.\-h.
+Definition at line 76 of file dos\-\_\-system.\-h.
 
 
 
 The documentation for this class was generated from the following files\-:\begin{DoxyCompactItemize}
 \item 
 include/dos\-\_\-system.\-h\item 
-src/dos/dos\-\_\-devices.\-cpp\end{DoxyCompactItemize}
+src/dos/dos\-\_\-devices.\-cpp\item 
+src/dos/dos\-\_\-files.\-cpp\end{DoxyCompactItemize}

@@ -96,7 +96,7 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 </div><!--header-->
 <div class="contents">
 <div class="fragment"><pre class="fragment"><a name="l00001"></a>00001 <span class="comment">/*</span>
-<a name="l00002"></a>00002 <span class="comment"> *  Copyright (C) 2002-2019  The DOSBox Team</span>
+<a name="l00002"></a>00002 <span class="comment"> *  Copyright (C) 2002-2020  The DOSBox Team</span>
 <a name="l00003"></a>00003 <span class="comment"> *</span>
 <a name="l00004"></a>00004 <span class="comment"> *  This program is free software; you can redistribute it and/or modify</span>
 <a name="l00005"></a>00005 <span class="comment"> *  it under the terms of the GNU General Public License as published by</span>
@@ -108,9 +108,9 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l00011"></a>00011 <span class="comment"> *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the</span>
 <a name="l00012"></a>00012 <span class="comment"> *  GNU General Public License for more details.</span>
 <a name="l00013"></a>00013 <span class="comment"> *</span>
-<a name="l00014"></a>00014 <span class="comment"> *  You should have received a copy of the GNU General Public License</span>
-<a name="l00015"></a>00015 <span class="comment"> *  along with this program; if not, write to the Free Software</span>
-<a name="l00016"></a>00016 <span class="comment"> *  Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1335, USA.</span>
+<a name="l00014"></a>00014 <span class="comment"> *  You should have received a copy of the GNU General Public License along</span>
+<a name="l00015"></a>00015 <span class="comment"> *  with this program; if not, write to the Free Software Foundation, Inc.,</span>
+<a name="l00016"></a>00016 <span class="comment"> *  51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.</span>
 <a name="l00017"></a>00017 <span class="comment"> */</span>
 <a name="l00018"></a>00018 
 <a name="l00019"></a>00019 
@@ -422,21 +422,21 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l00325"></a>00325                 Bitu used;
 <a name="l00326"></a>00326                 Bit32u length;
 <a name="l00327"></a>00327                 Bit32u freq;
-<a name="l00328"></a>00328         } wave;
+<a name="l00328"></a>00328     } wave = {};
 <a name="l00329"></a>00329     <span class="keyword">struct </span>{
 <a name="l00330"></a>00330         <a class="code" href="structavi__writer.html">avi_writer</a>  *writer;
 <a name="l00331"></a>00331                 Bitu            audiorate;
 <a name="l00332"></a>00332         std::map&lt;std::string,size_t&gt; name_to_stream_index;
-<a name="l00333"></a>00333     } multitrack_wave;
+<a name="l00333"></a>00333     } multitrack_wave = {};
 <a name="l00334"></a>00334         <span class="keyword">struct </span>{
 <a name="l00335"></a>00335                 FILE * handle;
 <a name="l00336"></a>00336                 Bit8u buffer[MIDI_BUF];
 <a name="l00337"></a>00337                 Bitu used,done;
 <a name="l00338"></a>00338                 Bit32u last;
-<a name="l00339"></a>00339         } midi;
+<a name="l00339"></a>00339     } midi = {};
 <a name="l00340"></a>00340         <span class="keyword">struct </span>{
 <a name="l00341"></a>00341                 Bitu rowlen;
-<a name="l00342"></a>00342         } image;
+<a name="l00342"></a>00342     } image = {};
 <a name="l00343"></a>00343 <span class="preprocessor">#if (C_SSHOT) || (C_AVCODEC)</span>
 <a name="l00344"></a>00344 <span class="preprocessor"></span>        <span class="keyword">struct </span>{
 <a name="l00345"></a>00345                 <a class="code" href="structavi__writer.html">avi_writer</a>      *writer;
@@ -451,7 +451,7 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l00354"></a>00354                 <span class="keywordtype">float</span>           fps;
 <a name="l00355"></a>00355                 <span class="keywordtype">int</span>             bufSize;
 <a name="l00356"></a>00356                 <span class="keywordtype">void</span>            *buf;
-<a name="l00357"></a>00357         } video;
+<a name="l00357"></a>00357     } video = {};
 <a name="l00358"></a>00358 <span class="preprocessor">#endif</span>
 <a name="l00359"></a>00359 <span class="preprocessor"></span>} capture;
 <a name="l00360"></a>00360 
@@ -611,9 +611,9 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l00514"></a>00514         lowcase(file_start);
 <a name="l00515"></a>00515         strcat(file_start,<span class="stringliteral">&quot;_&quot;</span>);
 <a name="l00516"></a>00516         <span class="keywordtype">bool</span> is_directory;
-<a name="l00517"></a>00517         <span class="keywordtype">char</span> tempname[CROSS_LEN];
-<a name="l00518"></a>00518         <span class="keywordtype">bool</span> testRead = read_directory_first(dir, tempname, is_directory );
-<a name="l00519"></a>00519         <span class="keywordflow">for</span> ( ; testRead; testRead = read_directory_next(dir, tempname, is_directory) ) {
+<a name="l00517"></a>00517     <span class="keywordtype">char</span> tempname[CROSS_LEN], sname[15];
+<a name="l00518"></a>00518     <span class="keywordtype">bool</span> testRead = read_directory_first(dir, tempname, sname, is_directory );
+<a name="l00519"></a>00519     <span class="keywordflow">for</span> ( ; testRead; testRead = read_directory_next(dir, tempname, sname, is_directory) ) {
 <a name="l00520"></a>00520                 <span class="keywordtype">char</span> * test=strstr(tempname,ext);
 <a name="l00521"></a>00521                 <span class="keywordflow">if</span> (!test || strlen(test)!=strlen(ext)) 
 <a name="l00522"></a>00522                         <span class="keywordflow">continue</span>;
@@ -652,9 +652,9 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l00555"></a>00555         lowcase(file_start);
 <a name="l00556"></a>00556         strcat(file_start,<span class="stringliteral">&quot;_&quot;</span>);
 <a name="l00557"></a>00557         <span class="keywordtype">bool</span> is_directory;
-<a name="l00558"></a>00558         <span class="keywordtype">char</span> tempname[CROSS_LEN];
-<a name="l00559"></a>00559         <span class="keywordtype">bool</span> testRead = read_directory_first(dir, tempname, is_directory );
-<a name="l00560"></a>00560         <span class="keywordflow">for</span> ( ; testRead; testRead = read_directory_next(dir, tempname, is_directory) ) {
+<a name="l00558"></a>00558     <span class="keywordtype">char</span> tempname[CROSS_LEN], sname[15];
+<a name="l00559"></a>00559     <span class="keywordtype">bool</span> testRead = read_directory_first(dir, tempname, sname, is_directory );
+<a name="l00560"></a>00560     <span class="keywordflow">for</span> ( ; testRead; testRead = read_directory_next(dir, tempname, sname, is_directory) ) {
 <a name="l00561"></a>00561                 <span class="keywordtype">char</span> * test=strstr(tempname,ext);
 <a name="l00562"></a>00562                 <span class="keywordflow">if</span> (!test || strlen(test)!=strlen(ext)) 
 <a name="l00563"></a>00563                         <span class="keywordflow">continue</span>;
@@ -2042,7 +2042,7 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 
 
 <hr class="footer"/><address class="footer"><small>
-Generated on Tue Oct 1 2019 18:06:26 for DOSBox-X by &#160;<a href="http://www.doxygen.org/index.html">
+Generated on Sun Jul 5 2020 13:11:36 for DOSBox-X by &#160;<a href="http://www.doxygen.org/index.html">
 <img class="footer" src="doxygen.png" alt="doxygen"/>
 </a> 1.8.0
 </small></address>

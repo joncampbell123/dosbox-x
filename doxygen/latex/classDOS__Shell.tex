@@ -16,6 +16,11 @@ Inheritance diagram for D\-O\-S\-\_\-\-Shell\-:\begin{figure}[H]
 \includegraphics[height=2.000000cm]{classDOS__Shell}
 \end{center}
 \end{figure}
+\subsection*{Classes}
+\begin{DoxyCompactItemize}
+\item 
+struct {\bfseries less\-\_\-ignore\-\_\-case}
+\end{DoxyCompactItemize}
 \subsection*{Public Member Functions}
 \begin{DoxyCompactItemize}
 \item 
@@ -28,7 +33,7 @@ Inheritance diagram for D\-O\-S\-\_\-\-Shell\-:\begin{figure}[H]
 \hypertarget{classDOS__Shell_ad4280cf9e2c07d534b7e32f9c58749d3}{void \hyperlink{classDOS__Shell_ad4280cf9e2c07d534b7e32f9c58749d3}{Parse\-Line} (char $\ast$line)}\label{classDOS__Shell_ad4280cf9e2c07d534b7e32f9c58749d3}
 
 \begin{DoxyCompactList}\small\item\em Line parsing function. \end{DoxyCompactList}\item 
-\hypertarget{classDOS__Shell_a0b5e187d0f5a8a0230ea9e741079018d}{Bitu \hyperlink{classDOS__Shell_a0b5e187d0f5a8a0230ea9e741079018d}{Get\-Redirection} (char $\ast$s, char $\ast$$\ast$ifn, char $\ast$$\ast$ofn, bool $\ast$append)}\label{classDOS__Shell_a0b5e187d0f5a8a0230ea9e741079018d}
+\hypertarget{classDOS__Shell_a9d973a166cc62e735edc3a8560913136}{Bitu \hyperlink{classDOS__Shell_a9d973a166cc62e735edc3a8560913136}{Get\-Redirection} (char $\ast$s, char $\ast$$\ast$ifn, char $\ast$$\ast$ofn, char $\ast$$\ast$toc, bool $\ast$append)}\label{classDOS__Shell_a9d973a166cc62e735edc3a8560913136}
 
 \begin{DoxyCompactList}\small\item\em Redirection handling. \end{DoxyCompactList}\item 
 \hypertarget{classDOS__Shell_a3e2a3258d53dc6309adc9f1d3c8cde49}{void \hyperlink{classDOS__Shell_a3e2a3258d53dc6309adc9f1d3c8cde49}{Input\-Command} (char $\ast$line)}\label{classDOS__Shell_a3e2a3258d53dc6309adc9f1d3c8cde49}
@@ -37,10 +42,10 @@ Inheritance diagram for D\-O\-S\-\_\-\-Shell\-:\begin{figure}[H]
 \hypertarget{classDOS__Shell_af64acad6a303bf9e0343dc5affb0642b}{void \hyperlink{classDOS__Shell_af64acad6a303bf9e0343dc5affb0642b}{Show\-Prompt} ()}\label{classDOS__Shell_af64acad6a303bf9e0343dc5affb0642b}
 
 \begin{DoxyCompactList}\small\item\em Render and output command prompt. \end{DoxyCompactList}\item 
-\hypertarget{classDOS__Shell_a35c1864ac6ee344e53e76dc2811653bc}{void \hyperlink{classDOS__Shell_a35c1864ac6ee344e53e76dc2811653bc}{Do\-Command} (char $\ast$\hyperlink{classProgram_af637f18e9637b148fbecbd3f0bc748fc}{cmd})}\label{classDOS__Shell_a35c1864ac6ee344e53e76dc2811653bc}
+\hypertarget{classDOS__Shell_a94bcfea718765364156090361715a6ce}{void \hyperlink{classDOS__Shell_a94bcfea718765364156090361715a6ce}{Do\-Command} (char $\ast$line)}\label{classDOS__Shell_a94bcfea718765364156090361715a6ce}
 
 \begin{DoxyCompactList}\small\item\em Process and execute command (internal or external) \end{DoxyCompactList}\item 
-\hypertarget{classDOS__Shell_afd2875b08f791d9100ef111800855f09}{bool \hyperlink{classDOS__Shell_afd2875b08f791d9100ef111800855f09}{Execute} (char $\ast$name, char $\ast$args)}\label{classDOS__Shell_afd2875b08f791d9100ef111800855f09}
+\hypertarget{classDOS__Shell_a1399431af1c078b66e5140240d1813d1}{bool \hyperlink{classDOS__Shell_a1399431af1c078b66e5140240d1813d1}{Execute} (char $\ast$name, const char $\ast$args)}\label{classDOS__Shell_a1399431af1c078b66e5140240d1813d1}
 
 \begin{DoxyCompactList}\small\item\em Execute a command. \end{DoxyCompactList}\item 
 \hypertarget{classDOS__Shell_a76295a24e50b9f37bff152be05c8ea93}{bool \hyperlink{classDOS__Shell_a76295a24e50b9f37bff152be05c8ea93}{Check\-Config} (char $\ast$cmd\-\_\-in, char $\ast$line)}\label{classDOS__Shell_a76295a24e50b9f37bff152be05c8ea93}
@@ -49,12 +54,12 @@ Inheritance diagram for D\-O\-S\-\_\-\-Shell\-:\begin{figure}[H]
 \hypertarget{classDOS__Shell_af11150e3f79f620378398abad5117222}{char $\ast$ \hyperlink{classDOS__Shell_af11150e3f79f620378398abad5117222}{Which} (char $\ast$name)}\label{classDOS__Shell_af11150e3f79f620378398abad5117222}
 
 \begin{DoxyCompactList}\small\item\em Given a command, look up the path using default paths and the P\-A\-T\-H variable. \end{DoxyCompactList}\item 
-\hypertarget{classDOS__Shell_afbae9c2b8f7002fe029296b381bb7903}{void \hyperlink{classDOS__Shell_afbae9c2b8f7002fe029296b381bb7903}{C\-M\-D\-\_\-\-I\-N\-T2\-F\-D\-B\-G} (char $\ast$args)}\label{classDOS__Shell_afbae9c2b8f7002fe029296b381bb7903}
-
-\begin{DoxyCompactList}\small\item\em I\-N\-T 2\-Fh debugging tool. \end{DoxyCompactList}\item 
 \hypertarget{classDOS__Shell_a5bd467ce4762cd07c612b39bf788968d}{void \hyperlink{classDOS__Shell_a5bd467ce4762cd07c612b39bf788968d}{C\-M\-D\-\_\-\-H\-E\-L\-P} (char $\ast$args)}\label{classDOS__Shell_a5bd467ce4762cd07c612b39bf788968d}
 
 \begin{DoxyCompactList}\small\item\em Online H\-E\-L\-P for the shell. \end{DoxyCompactList}\item 
+\hypertarget{classDOS__Shell_ad4c23aaf878337ed00c42a86289448e5}{void \hyperlink{classDOS__Shell_ad4c23aaf878337ed00c42a86289448e5}{C\-M\-D\-\_\-\-B\-R\-E\-A\-K} (char $\ast$args)}\label{classDOS__Shell_ad4c23aaf878337ed00c42a86289448e5}
+
+\begin{DoxyCompactList}\small\item\em Exteneded Ctrl+\-C switch. \end{DoxyCompactList}\item 
 \hypertarget{classDOS__Shell_a6564e9090602f43c480e818692ef233a}{void \hyperlink{classDOS__Shell_a6564e9090602f43c480e818692ef233a}{C\-M\-D\-\_\-\-C\-L\-S} (char $\ast$args)}\label{classDOS__Shell_a6564e9090602f43c480e818692ef233a}
 
 \begin{DoxyCompactList}\small\item\em Clear screen (C\-L\-S) \end{DoxyCompactList}\item 
@@ -133,6 +138,9 @@ Inheritance diagram for D\-O\-S\-\_\-\-Shell\-:\begin{figure}[H]
 \hypertarget{classDOS__Shell_a44cd9147b18559ae2377e0255c4784e9}{void \hyperlink{classDOS__Shell_a44cd9147b18559ae2377e0255c4784e9}{C\-M\-D\-\_\-\-S\-H\-I\-F\-T} (char $\ast$args)}\label{classDOS__Shell_a44cd9147b18559ae2377e0255c4784e9}
 
 \begin{DoxyCompactList}\small\item\em Consume one command line argument (S\-H\-I\-F\-T) \end{DoxyCompactList}\item 
+\hypertarget{classDOS__Shell_a244d00897032e0be79baa4c850358079}{void \hyperlink{classDOS__Shell_a244d00897032e0be79baa4c850358079}{C\-M\-D\-\_\-\-V\-E\-R\-I\-F\-Y} (char $\ast$args)}\label{classDOS__Shell_a244d00897032e0be79baa4c850358079}
+
+\begin{DoxyCompactList}\small\item\em File verification switch. \end{DoxyCompactList}\item 
 \hypertarget{classDOS__Shell_ac9dfaa8312e2a2df60ba39cb1c4bd46a}{void \hyperlink{classDOS__Shell_ac9dfaa8312e2a2df60ba39cb1c4bd46a}{C\-M\-D\-\_\-\-V\-E\-R} (char $\ast$args)}\label{classDOS__Shell_ac9dfaa8312e2a2df60ba39cb1c4bd46a}
 
 \begin{DoxyCompactList}\small\item\em Print \hyperlink{classDOS}{D\-O\-S} version (V\-E\-R) \end{DoxyCompactList}\item 
@@ -151,12 +159,27 @@ Inheritance diagram for D\-O\-S\-\_\-\-Shell\-:\begin{figure}[H]
 \hypertarget{classDOS__Shell_ab4e4f875c54408e1c040ee0aa65b5314}{void \hyperlink{classDOS__Shell_ab4e4f875c54408e1c040ee0aa65b5314}{C\-M\-D\-\_\-\-C\-T\-T\-Y} (char $\ast$args)}\label{classDOS__Shell_ab4e4f875c54408e1c040ee0aa65b5314}
 
 \begin{DoxyCompactList}\small\item\em Change T\-T\-Y (console) device (C\-T\-T\-Y) \end{DoxyCompactList}\item 
+\hypertarget{classDOS__Shell_ac340d6c4d6901c3b7c4f5417103d8722}{void \hyperlink{classDOS__Shell_ac340d6c4d6901c3b7c4f5417103d8722}{C\-M\-D\-\_\-\-C\-O\-U\-N\-T\-R\-Y} (char $\ast$args)}\label{classDOS__Shell_ac340d6c4d6901c3b7c4f5417103d8722}
+
+\begin{DoxyCompactList}\small\item\em Change country code. \end{DoxyCompactList}\item 
+\hypertarget{classDOS__Shell_ae29328b82e817beedd09c15d358b22cc}{void {\bfseries C\-M\-D\-\_\-\-T\-R\-U\-E\-N\-A\-M\-E} (char $\ast$args)}\label{classDOS__Shell_ae29328b82e817beedd09c15d358b22cc}
+
+\item 
 \hypertarget{classDOS__Shell_af83074f3b9cbccf5265a95ad780311e5}{void {\bfseries C\-M\-D\-\_\-\-D\-X\-C\-A\-P\-T\-U\-R\-E} (char $\ast$args)}\label{classDOS__Shell_af83074f3b9cbccf5265a95ad780311e5}
 
 \item 
 \hypertarget{classDOS__Shell_a0d8acfd37eae2734a4a2cf623eafa536}{void \hyperlink{classDOS__Shell_a0d8acfd37eae2734a4a2cf623eafa536}{C\-M\-D\-\_\-\-F\-O\-R} (char $\ast$args)}\label{classDOS__Shell_a0d8acfd37eae2734a4a2cf623eafa536}
 
-\begin{DoxyCompactList}\small\item\em Looping execution (F\-O\-R) \end{DoxyCompactList}\end{DoxyCompactItemize}
+\begin{DoxyCompactList}\small\item\em Looping execution (F\-O\-R) \end{DoxyCompactList}\item 
+\hypertarget{classDOS__Shell_ac3e02056a7d64e3b1630b85d9b052ac2}{void \hyperlink{classDOS__Shell_ac3e02056a7d64e3b1630b85d9b052ac2}{C\-M\-D\-\_\-\-L\-F\-N\-F\-O\-R} (char $\ast$args)}\label{classDOS__Shell_ac3e02056a7d64e3b1630b85d9b052ac2}
+
+\begin{DoxyCompactList}\small\item\em L\-F\-N switch for F\-O\-R. \end{DoxyCompactList}\item 
+\hypertarget{classDOS__Shell_abd92148be3bd428f99d0f101af74f874}{void \hyperlink{classDOS__Shell_abd92148be3bd428f99d0f101af74f874}{C\-M\-D\-\_\-\-A\-L\-I\-A\-S} (char $\ast$args)}\label{classDOS__Shell_abd92148be3bd428f99d0f101af74f874}
+
+\begin{DoxyCompactList}\small\item\em A\-L\-I\-A\-S. \end{DoxyCompactList}\item 
+\hypertarget{classDOS__Shell_a42e5e3db09f10181a291f613479d213b}{void \hyperlink{classDOS__Shell_a42e5e3db09f10181a291f613479d213b}{C\-M\-D\-\_\-\-L\-S} (char $\ast$args)}\label{classDOS__Shell_a42e5e3db09f10181a291f613479d213b}
+
+\begin{DoxyCompactList}\small\item\em L\-S. \end{DoxyCompactList}\end{DoxyCompactItemize}
 \subsection*{Public Attributes}
 \begin{DoxyCompactItemize}
 \item 
@@ -175,6 +198,9 @@ Inheritance diagram for D\-O\-S\-\_\-\-Shell\-:\begin{figure}[H]
 \hypertarget{classDOS__Shell_a97d3128aca26624607d9e3acd183cfae}{bool {\bfseries call}}\label{classDOS__Shell_a97d3128aca26624607d9e3acd183cfae}
 
 \item 
+\hypertarget{classDOS__Shell_a904866b60579d9209f227a1358dddb71}{bool {\bfseries lfnfor}}\label{classDOS__Shell_a904866b60579d9209f227a1358dddb71}
+
+\item 
 \hypertarget{classDOS__Shell_afe355c7cf53320fef3c696ee73d4de47}{bool {\bfseries input\-\_\-eof}}\label{classDOS__Shell_afe355c7cf53320fef3c696ee73d4de47}
 
 \end{DoxyCompactItemize}
@@ -191,7 +217,7 @@ Inheritance diagram for D\-O\-S\-\_\-\-Shell\-:\begin{figure}[H]
 
 This is the \hyperlink{classDOS}{D\-O\-S} shell, including built-\/in commands 
 
-Definition at line 74 of file shell.\-h.
+Definition at line 75 of file shell.\-h.
 
 
 

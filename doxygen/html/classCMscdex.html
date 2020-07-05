@@ -126,8 +126,8 @@ Bit8u&#160;</td><td class="memItemRight" valign="bottom"><b>GetSubUnit</b> (Bit1
 bool&#160;</td><td class="memItemRight" valign="bottom"><b>GetUPC</b> (Bit8u subUnit, Bit8u &amp;attr, char *upc)</td></tr>
 <tr class="memitem:a912da85172868635b5054b03504f24ce"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a912da85172868635b5054b03504f24ce"></a>
 void&#160;</td><td class="memItemRight" valign="bottom"><b>InitNewMedia</b> (Bit8u subUnit)</td></tr>
-<tr class="memitem:ab6c3f7cbef5c49d50bcf3888aadd8406"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="ab6c3f7cbef5c49d50bcf3888aadd8406"></a>
-bool&#160;</td><td class="memItemRight" valign="bottom"><b>PlayAudioSector</b> (Bit8u subUnit, Bit32u start, Bit32u length)</td></tr>
+<tr class="memitem:afb1e3cef49876914963b669987415ded"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="afb1e3cef49876914963b669987415ded"></a>
+bool&#160;</td><td class="memItemRight" valign="bottom"><b>PlayAudioSector</b> (Bit8u subUnit, Bit32u sector, Bit32u length)</td></tr>
 <tr class="memitem:ac38f29f8c5bad65c549b6e61e40a0f61"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="ac38f29f8c5bad65c549b6e61e40a0f61"></a>
 bool&#160;</td><td class="memItemRight" valign="bottom"><b>PlayAudioMSF</b> (Bit8u subUnit, Bit32u start, Bit32u length)</td></tr>
 <tr class="memitem:ad0afd07bd4b3f61fec5dd7ff51fb1b01"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="ad0afd07bd4b3f61fec5dd7ff51fb1b01"></a>
@@ -148,8 +148,8 @@ void&#160;</td><td class="memItemRight" valign="bottom"><b>ReplaceDrive</b> (<a 
 void&#160;</td><td class="memItemRight" valign="bottom"><b>GetDrives</b> (PhysPt data)</td></tr>
 <tr class="memitem:a330841e5a31e66bc7776306caedb6819"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a330841e5a31e66bc7776306caedb6819"></a>
 void&#160;</td><td class="memItemRight" valign="bottom"><b>GetDriverInfo</b> (PhysPt data)</td></tr>
-<tr class="memitem:a4ba6a6531f3ad487dd832d49c2de5f92"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a4ba6a6531f3ad487dd832d49c2de5f92"></a>
-bool&#160;</td><td class="memItemRight" valign="bottom"><b>GetVolumeName</b> (Bit8u subUnit, char *name)</td></tr>
+<tr class="memitem:a63eb50fe387c54c91ee7dac321836361"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a63eb50fe387c54c91ee7dac321836361"></a>
+bool&#160;</td><td class="memItemRight" valign="bottom"><b>GetVolumeName</b> (Bit8u subUnit, char *data)</td></tr>
 <tr class="memitem:aa02670c6961dddbe44b9330d6422712b"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="aa02670c6961dddbe44b9330d6422712b"></a>
 bool&#160;</td><td class="memItemRight" valign="bottom"><b>GetFileName</b> (Bit16u drive, Bit16u pos, PhysPt data)</td></tr>
 <tr class="memitem:a7af859df94d70eea08c953571a54ed36"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a7af859df94d70eea08c953571a54ed36"></a>
@@ -160,12 +160,12 @@ bool&#160;</td><td class="memItemRight" valign="bottom"><b>ReadVTOC</b> (Bit16u 
 bool&#160;</td><td class="memItemRight" valign="bottom"><b>ReadSectors</b> (Bit16u drive, Bit32u sector, Bit16u num, PhysPt data)</td></tr>
 <tr class="memitem:a41e035bc2ef5add4d2d5e4b3cdb01178"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a41e035bc2ef5add4d2d5e4b3cdb01178"></a>
 bool&#160;</td><td class="memItemRight" valign="bottom"><b>ReadSectors</b> (Bit8u subUnit, bool raw, Bit32u sector, Bit16u num, PhysPt data)</td></tr>
-<tr class="memitem:a4968600c46a71d883d6709fe25ca903c"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a4968600c46a71d883d6709fe25ca903c"></a>
-bool&#160;</td><td class="memItemRight" valign="bottom"><b>ReadSectorsMSF</b> (Bit8u subUnit, bool raw, Bit32u sector, Bit16u num, PhysPt data)</td></tr>
+<tr class="memitem:a8952511925ddd8c658dce7fd0824f2f6"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a8952511925ddd8c658dce7fd0824f2f6"></a>
+bool&#160;</td><td class="memItemRight" valign="bottom"><b>ReadSectorsMSF</b> (Bit8u subUnit, bool raw, Bit32u start, Bit16u num, PhysPt data)</td></tr>
 <tr class="memitem:a2ab48935a7a8fd4292f3028243ab2b66"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a2ab48935a7a8fd4292f3028243ab2b66"></a>
 bool&#160;</td><td class="memItemRight" valign="bottom"><b>SendDriverRequest</b> (Bit16u drive, PhysPt data)</td></tr>
-<tr class="memitem:ab2481121272d8f87ed90f64fdc398af4"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="ab2481121272d8f87ed90f64fdc398af4"></a>
-bool&#160;</td><td class="memItemRight" valign="bottom"><b>IsValidDrive</b> (Bit16u drive)</td></tr>
+<tr class="memitem:ad2c618001752751ad46861969ac08b01"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="ad2c618001752751ad46861969ac08b01"></a>
+bool&#160;</td><td class="memItemRight" valign="bottom"><b>IsValidDrive</b> (Bit16u _drive)</td></tr>
 <tr class="memitem:ade59cf8040558852abb1dfbcec7189ad"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="ade59cf8040558852abb1dfbcec7189ad"></a>
 bool&#160;</td><td class="memItemRight" valign="bottom"><b>GetCDInfo</b> (Bit8u subUnit, Bit8u &amp;tr1, Bit8u &amp;tr2, <a class="el" href="structSMSF.html">TMSF</a> &amp;leadOut)</td></tr>
 <tr class="memitem:a46265444d991ab7a43d8e1483b2fb600"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a46265444d991ab7a43d8e1483b2fb600"></a>
@@ -201,19 +201,19 @@ bool&#160;</td><td class="memItemRight" valign="bottom"><b>GetChannelControl</b>
 <tr><td colspan="2"><h2><a name="pub-attribs"></a>
 Public Attributes</h2></td></tr>
 <tr class="memitem:a5b4d6334bdd6f14e75354d225c865abe"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a5b4d6334bdd6f14e75354d225c865abe"></a>
-Bit16u&#160;</td><td class="memItemRight" valign="bottom"><b>numDrives</b></td></tr>
+Bit16u&#160;</td><td class="memItemRight" valign="bottom"><b>numDrives</b> = 0</td></tr>
 <tr class="memitem:a74017c503ae2c44e5c78bfd3190005f8"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a74017c503ae2c44e5c78bfd3190005f8"></a>
-Bit16u&#160;</td><td class="memItemRight" valign="bottom"><b>defaultBufSeg</b></td></tr>
+Bit16u&#160;</td><td class="memItemRight" valign="bottom"><b>defaultBufSeg</b> = 0</td></tr>
 <tr class="memitem:a1392c8b86d5976dafb60694eef28abfa"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a1392c8b86d5976dafb60694eef28abfa"></a>
 <a class="el" href="structCMscdex_1_1SDriveInfo.html">TDriveInfo</a>&#160;</td><td class="memItemRight" valign="bottom"><b>dinfo</b> [MSCDEX_MAX_DRIVES]</td></tr>
 <tr class="memitem:aaadae67160be26c0a1bf0646a8030803"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="aaadae67160be26c0a1bf0646a8030803"></a>
 <a class="el" href="classCDROM__Interface.html">CDROM_Interface</a> *&#160;</td><td class="memItemRight" valign="bottom"><b>cdrom</b> [MSCDEX_MAX_DRIVES]</td></tr>
 <tr class="memitem:a9dcc1cbe3482842e279f49d816fa3aaf"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a9dcc1cbe3482842e279f49d816fa3aaf"></a>
-Bit16u&#160;</td><td class="memItemRight" valign="bottom"><b>rootDriverHeaderSeg</b></td></tr>
+Bit16u&#160;</td><td class="memItemRight" valign="bottom"><b>rootDriverHeaderSeg</b> = 0</td></tr>
 </table>
 <hr/><a name="details" id="details"></a><h2>Detailed Description</h2>
 <div class="textblock">
-<p>Definition at line <a class="el" href="dos__mscdex_8cpp_source.html#l00090">90</a> of file <a class="el" href="dos__mscdex_8cpp_source.html">dos_mscdex.cpp</a>.</p>
+<p>Definition at line <a class="el" href="dos__mscdex_8cpp_source.html#l00089">89</a> of file <a class="el" href="dos__mscdex_8cpp_source.html">dos_mscdex.cpp</a>.</p>
 </div><hr/>The documentation for this class was generated from the following file:<ul>
 <li>src/dos/<a class="el" href="dos__mscdex_8cpp_source.html">dos_mscdex.cpp</a></li>
 </ul>
@@ -221,7 +221,7 @@ Bit16u&#160;</td><td class="memItemRight" valign="bottom"><b>rootDriverHeaderSeg
 
 
 <hr class="footer"/><address class="footer"><small>
-Generated on Tue Oct 1 2019 18:06:30 for DOSBox-X by &#160;<a href="http://www.doxygen.org/index.html">
+Generated on Sun Jul 5 2020 13:11:40 for DOSBox-X by &#160;<a href="http://www.doxygen.org/index.html">
 <img class="footer" src="doxygen.png" alt="doxygen"/>
 </a> 1.8.0
 </small></address>

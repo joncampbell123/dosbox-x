@@ -6,5 +6,6 @@ var searchData=
   ['entry',['entry',['../classCEvent.html#a20cca21cb3c606f3161a2757c1ba466d',1,'CEvent']]],
   ['event',['event',['../classCBind.html#a5a1677133911a7bc26357f56acc9f4dd',1,'CBind']]],
   ['eventname',['eventname',['../classCEvent.html#a9543179cd76d08369201e992ca41728c',1,'CEvent']]],
-  ['exit_5fstatus',['exit_status',['../classProgram.html#a9e1bb1fc1b315bf697fb1872d6defe12',1,'Program']]]
+  ['exit_5fstatus',['exit_status',['../classProgram.html#a9e1bb1fc1b315bf697fb1872d6defe12',1,'Program']]],
+  ['extensions',['extensions',['../structSound__DecoderInfo.html#a9f11db9acb555302fd84509198683e2a',1,'Sound_DecoderInfo']]]
 ];

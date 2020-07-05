@@ -131,7 +131,7 @@ This is the complete list of members for <a class="el" href="classMT32Emu_1_1Par
   <tr bgcolor="#f0f0f0"><td><b>noteOff</b>(unsigned int midiKey) (defined in <a class="el" href="classMT32Emu_1_1Part.html">MT32Emu::Part</a>)</td><td><a class="el" href="classMT32Emu_1_1Part.html">MT32Emu::Part</a></td><td><code> [virtual]</code></td></tr>
   <tr bgcolor="#f0f0f0"><td><b>noteOn</b>(unsigned int midiKey, unsigned int velocity) (defined in <a class="el" href="classMT32Emu_1_1Part.html">MT32Emu::Part</a>)</td><td><a class="el" href="classMT32Emu_1_1Part.html">MT32Emu::Part</a></td><td><code> [virtual]</code></td></tr>
   <tr bgcolor="#f0f0f0"><td><b>nrpn</b> (defined in <a class="el" href="classMT32Emu_1_1Part.html">MT32Emu::Part</a>)</td><td><a class="el" href="classMT32Emu_1_1Part.html">MT32Emu::Part</a></td><td><code> [protected]</code></td></tr>
-  <tr bgcolor="#f0f0f0"><td><b>Part</b>(Synth *synth, unsigned int usePartNum) (defined in <a class="el" href="classMT32Emu_1_1Part.html">MT32Emu::Part</a>)</td><td><a class="el" href="classMT32Emu_1_1Part.html">MT32Emu::Part</a></td><td></td></tr>
+  <tr bgcolor="#f0f0f0"><td><b>Part</b>(Synth *useSynth, unsigned int usePartNum) (defined in <a class="el" href="classMT32Emu_1_1Part.html">MT32Emu::Part</a>)</td><td><a class="el" href="classMT32Emu_1_1Part.html">MT32Emu::Part</a></td><td></td></tr>
   <tr bgcolor="#f0f0f0"><td><b>partialDeactivated</b>(Poly *poly) (defined in <a class="el" href="classMT32Emu_1_1Part.html">MT32Emu::Part</a>)</td><td><a class="el" href="classMT32Emu_1_1Part.html">MT32Emu::Part</a></td><td></td></tr>
   <tr bgcolor="#f0f0f0"><td><b>patchTemp</b> (defined in <a class="el" href="classMT32Emu_1_1Part.html">MT32Emu::Part</a>)</td><td><a class="el" href="classMT32Emu_1_1Part.html">MT32Emu::Part</a></td><td><code> [protected]</code></td></tr>
   <tr bgcolor="#f0f0f0"><td><b>pitchBend</b> (defined in <a class="el" href="classMT32Emu_1_1Part.html">MT32Emu::Part</a>)</td><td><a class="el" href="classMT32Emu_1_1Part.html">MT32Emu::Part</a></td><td><code> [protected]</code></td></tr>
@@ -145,11 +145,11 @@ This is the complete list of members for <a class="el" href="classMT32Emu_1_1Par
   <tr bgcolor="#f0f0f0"><td><b>setBend</b>(unsigned int midiBend) (defined in <a class="el" href="classMT32Emu_1_1Part.html">MT32Emu::Part</a>)</td><td><a class="el" href="classMT32Emu_1_1Part.html">MT32Emu::Part</a></td><td></td></tr>
   <tr bgcolor="#f0f0f0"><td><b>setDataEntryMSB</b>(unsigned char midiDataEntryMSB) (defined in <a class="el" href="classMT32Emu_1_1Part.html">MT32Emu::Part</a>)</td><td><a class="el" href="classMT32Emu_1_1Part.html">MT32Emu::Part</a></td><td></td></tr>
   <tr bgcolor="#f0f0f0"><td><b>setExpression</b>(unsigned int midiExpression) (defined in <a class="el" href="classMT32Emu_1_1Part.html">MT32Emu::Part</a>)</td><td><a class="el" href="classMT32Emu_1_1Part.html">MT32Emu::Part</a></td><td></td></tr>
-  <tr bgcolor="#f0f0f0"><td><b>setHoldPedal</b>(bool pedalval) (defined in <a class="el" href="classMT32Emu_1_1Part.html">MT32Emu::Part</a>)</td><td><a class="el" href="classMT32Emu_1_1Part.html">MT32Emu::Part</a></td><td></td></tr>
+  <tr bgcolor="#f0f0f0"><td><b>setHoldPedal</b>(bool pressed) (defined in <a class="el" href="classMT32Emu_1_1Part.html">MT32Emu::Part</a>)</td><td><a class="el" href="classMT32Emu_1_1Part.html">MT32Emu::Part</a></td><td></td></tr>
   <tr bgcolor="#f0f0f0"><td><b>setModulation</b>(unsigned int midiModulation) (defined in <a class="el" href="classMT32Emu_1_1Part.html">MT32Emu::Part</a>)</td><td><a class="el" href="classMT32Emu_1_1Part.html">MT32Emu::Part</a></td><td></td></tr>
   <tr bgcolor="#f0f0f0"><td><b>setNRPN</b>() (defined in <a class="el" href="classMT32Emu_1_1Part.html">MT32Emu::Part</a>)</td><td><a class="el" href="classMT32Emu_1_1Part.html">MT32Emu::Part</a></td><td></td></tr>
   <tr bgcolor="#f0f0f0"><td><b>setPan</b>(unsigned int midiPan) (defined in <a class="el" href="classMT32Emu_1_1Part.html">MT32Emu::Part</a>)</td><td><a class="el" href="classMT32Emu_1_1Part.html">MT32Emu::Part</a></td><td><code> [virtual]</code></td></tr>
-  <tr bgcolor="#f0f0f0"><td><b>setProgram</b>(unsigned int midiProgram) (defined in <a class="el" href="classMT32Emu_1_1Part.html">MT32Emu::Part</a>)</td><td><a class="el" href="classMT32Emu_1_1Part.html">MT32Emu::Part</a></td><td><code> [virtual]</code></td></tr>
+  <tr bgcolor="#f0f0f0"><td><b>setProgram</b>(unsigned int patchNum) (defined in <a class="el" href="classMT32Emu_1_1Part.html">MT32Emu::Part</a>)</td><td><a class="el" href="classMT32Emu_1_1Part.html">MT32Emu::Part</a></td><td><code> [virtual]</code></td></tr>
   <tr bgcolor="#f0f0f0"><td><b>setRPNLSB</b>(unsigned char midiRPNLSB) (defined in <a class="el" href="classMT32Emu_1_1Part.html">MT32Emu::Part</a>)</td><td><a class="el" href="classMT32Emu_1_1Part.html">MT32Emu::Part</a></td><td></td></tr>
   <tr bgcolor="#f0f0f0"><td><b>setRPNMSB</b>(unsigned char midiRPNMSB) (defined in <a class="el" href="classMT32Emu_1_1Part.html">MT32Emu::Part</a>)</td><td><a class="el" href="classMT32Emu_1_1Part.html">MT32Emu::Part</a></td><td></td></tr>
   <tr bgcolor="#f0f0f0"><td><b>setTimbre</b>(TimbreParam *timbre) (defined in <a class="el" href="classMT32Emu_1_1Part.html">MT32Emu::Part</a>)</td><td><a class="el" href="classMT32Emu_1_1Part.html">MT32Emu::Part</a></td><td><code> [virtual]</code></td></tr>
@@ -163,7 +163,7 @@ This is the complete list of members for <a class="el" href="classMT32Emu_1_1Par
 
 
 <hr class="footer"/><address class="footer"><small>
-Generated on Tue Oct 1 2019 18:06:34 for DOSBox-X by &#160;<a href="http://www.doxygen.org/index.html">
+Generated on Sun Jul 5 2020 13:11:43 for DOSBox-X by &#160;<a href="http://www.doxygen.org/index.html">
 <img class="footer" src="doxygen.png" alt="doxygen"/>
 </a> 1.8.0
 </small></address>

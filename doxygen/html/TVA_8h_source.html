@@ -161,13 +161,13 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l00064"></a>00064         <span class="keyword">const</span> <a class="code" href="structMT32Emu_1_1MemParams_1_1PatchTemp.html">MemParams::PatchTemp</a> *patchTemp;
 <a name="l00065"></a>00065         <span class="keyword">const</span> <a class="code" href="structMT32Emu_1_1MemParams_1_1RhythmTemp.html">MemParams::RhythmTemp</a> *rhythmTemp;
 <a name="l00066"></a>00066 
-<a name="l00067"></a>00067         <span class="keywordtype">bool</span> playing;
+<a name="l00067"></a>00067         <span class="keywordtype">bool</span> playing = <span class="keyword">false</span>;
 <a name="l00068"></a>00068 
-<a name="l00069"></a>00069         <span class="keywordtype">int</span> biasAmpSubtraction;
-<a name="l00070"></a>00070         <span class="keywordtype">int</span> veloAmpSubtraction;
-<a name="l00071"></a>00071         <span class="keywordtype">int</span> keyTimeSubtraction;
+<a name="l00069"></a>00069         <span class="keywordtype">int</span> biasAmpSubtraction = 0;
+<a name="l00070"></a>00070         <span class="keywordtype">int</span> veloAmpSubtraction = 0;
+<a name="l00071"></a>00071         <span class="keywordtype">int</span> keyTimeSubtraction = 0;
 <a name="l00072"></a>00072 
-<a name="l00073"></a>00073         Bit8u target;
+<a name="l00073"></a>00073         Bit8u target = 0;
 <a name="l00074"></a>00074         <span class="keywordtype">int</span> phase;
 <a name="l00075"></a>00075 
 <a name="l00076"></a>00076         <span class="keywordtype">void</span> startRamp(Bit8u newTarget, Bit8u newIncrement, <span class="keywordtype">int</span> newPhase);
@@ -175,8 +175,8 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l00078"></a>00078         <span class="keywordtype">void</span> nextPhase();
 <a name="l00079"></a>00079 
 <a name="l00080"></a>00080 <span class="keyword">public</span>:
-<a name="l00081"></a>00081         <a class="code" href="classMT32Emu_1_1TVA.html">TVA</a>(<span class="keyword">const</span> <a class="code" href="classMT32Emu_1_1Partial.html">Partial</a> *partial, <a class="code" href="classMT32Emu_1_1LA32Ramp.html">LA32Ramp</a> *ampRamp);
-<a name="l00082"></a>00082         <span class="keywordtype">void</span> reset(<span class="keyword">const</span> <a class="code" href="classMT32Emu_1_1Part.html">Part</a> *part, <span class="keyword">const</span> <a class="code" href="structMT32Emu_1_1TimbreParam_1_1PartialParam.html">TimbreParam::PartialParam</a> *partialParam, <span class="keyword">const</span> <a class="code" href="structMT32Emu_1_1MemParams_1_1RhythmTemp.html">MemParams::RhythmTemp</a> *rhythmTemp);
+<a name="l00081"></a>00081         <a class="code" href="classMT32Emu_1_1TVA.html">TVA</a>(<span class="keyword">const</span> <a class="code" href="classMT32Emu_1_1Partial.html">Partial</a> *usePartial, <a class="code" href="classMT32Emu_1_1LA32Ramp.html">LA32Ramp</a> *useAmpRamp);
+<a name="l00082"></a>00082         <span class="keywordtype">void</span> reset(<span class="keyword">const</span> <a class="code" href="classMT32Emu_1_1Part.html">Part</a> *newPart, <span class="keyword">const</span> <a class="code" href="structMT32Emu_1_1TimbreParam_1_1PartialParam.html">TimbreParam::PartialParam</a> *newPartialParam, <span class="keyword">const</span> <a class="code" href="structMT32Emu_1_1MemParams_1_1RhythmTemp.html">MemParams::RhythmTemp</a> *newRhythmTemp);
 <a name="l00083"></a>00083         <span class="keywordtype">void</span> handleInterrupt();
 <a name="l00084"></a>00084         <span class="keywordtype">void</span> recalcSustain();
 <a name="l00085"></a>00085         <span class="keywordtype">void</span> startDecay();
@@ -199,7 +199,7 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 
 
 <hr class="footer"/><address class="footer"><small>
-Generated on Tue Oct 1 2019 18:06:29 for DOSBox-X by &#160;<a href="http://www.doxygen.org/index.html">
+Generated on Sun Jul 5 2020 13:11:39 for DOSBox-X by &#160;<a href="http://www.doxygen.org/index.html">
 <img class="footer" src="doxygen.png" alt="doxygen"/>
 </a> 1.8.0
 </small></address>

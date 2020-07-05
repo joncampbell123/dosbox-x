@@ -121,34 +121,34 @@ void&#160;</td><td class="memItemRight" valign="bottom"><b>WriteBD</b> (Bit8u va
 void&#160;</td><td class="memItemRight" valign="bottom"><b>WriteReg</b> (Bit32u reg, Bit8u val)</td></tr>
 <tr class="memitem:ab7a01561768354f16b8851a0d21b7a2c"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="ab7a01561768354f16b8851a0d21b7a2c"></a>
 Bit32u&#160;</td><td class="memItemRight" valign="bottom"><b>WriteAddr</b> (Bit32u port, Bit8u val)</td></tr>
-<tr class="memitem:a306dc034dce06ffed5b08e6295100b70"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a306dc034dce06ffed5b08e6295100b70"></a>
-void&#160;</td><td class="memItemRight" valign="bottom"><b>GenerateBlock2</b> (Bitu samples, Bit32s *output)</td></tr>
-<tr class="memitem:aa2ce55695961a65cc79e86ff110cdb35"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="aa2ce55695961a65cc79e86ff110cdb35"></a>
-void&#160;</td><td class="memItemRight" valign="bottom"><b>GenerateBlock3</b> (Bitu samples, Bit32s *output)</td></tr>
+<tr class="memitem:a638ee66303a2716dcbe88b16152a9c4c"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a638ee66303a2716dcbe88b16152a9c4c"></a>
+void&#160;</td><td class="memItemRight" valign="bottom"><b>GenerateBlock2</b> (Bitu total, Bit32s *output)</td></tr>
+<tr class="memitem:a57226206980412fd2e0b8e56aa4df36a"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a57226206980412fd2e0b8e56aa4df36a"></a>
+void&#160;</td><td class="memItemRight" valign="bottom"><b>GenerateBlock3</b> (Bitu total, Bit32s *output)</td></tr>
 <tr class="memitem:a2de016e86cff2a981f5f6595bf5c159e"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a2de016e86cff2a981f5f6595bf5c159e"></a>
 void&#160;</td><td class="memItemRight" valign="bottom"><b>UpdateSynths</b> ()</td></tr>
 <tr class="memitem:aa5e8f70f9b01aba04e5f0c78e96414e8"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="aa5e8f70f9b01aba04e5f0c78e96414e8"></a>
 void&#160;</td><td class="memItemRight" valign="bottom"><b>Generate</b> (Bit32u samples)</td></tr>
-<tr class="memitem:a7ae0e48e86d15d09fb90deb101258eef"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a7ae0e48e86d15d09fb90deb101258eef"></a>
-void&#160;</td><td class="memItemRight" valign="bottom"><b>Setup</b> (Bit32u r)</td></tr>
+<tr class="memitem:a4f8f64b35ed6b37939048323796996c1"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a4f8f64b35ed6b37939048323796996c1"></a>
+void&#160;</td><td class="memItemRight" valign="bottom"><b>Setup</b> (Bit32u rate)</td></tr>
 <tr><td colspan="2"><h2><a name="pub-attribs"></a>
 Public Attributes</h2></td></tr>
 <tr class="memitem:a66b0973620b1f9a7cdf622779d94cfd8"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a66b0973620b1f9a7cdf622779d94cfd8"></a>
-Bit32u&#160;</td><td class="memItemRight" valign="bottom"><b>lfoCounter</b></td></tr>
+Bit32u&#160;</td><td class="memItemRight" valign="bottom"><b>lfoCounter</b> = 0</td></tr>
 <tr class="memitem:ad4da7136cb32739922ec7ab39db7bb17"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="ad4da7136cb32739922ec7ab39db7bb17"></a>
-Bit32u&#160;</td><td class="memItemRight" valign="bottom"><b>lfoAdd</b></td></tr>
+Bit32u&#160;</td><td class="memItemRight" valign="bottom"><b>lfoAdd</b> = 0</td></tr>
 <tr class="memitem:a404cab77d0078bc2d77c708fc40d6b59"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a404cab77d0078bc2d77c708fc40d6b59"></a>
-Bit32u&#160;</td><td class="memItemRight" valign="bottom"><b>noiseCounter</b></td></tr>
+Bit32u&#160;</td><td class="memItemRight" valign="bottom"><b>noiseCounter</b> = 0</td></tr>
 <tr class="memitem:ac79a160266752b013d0ca6656e28ef63"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="ac79a160266752b013d0ca6656e28ef63"></a>
-Bit32u&#160;</td><td class="memItemRight" valign="bottom"><b>noiseAdd</b></td></tr>
+Bit32u&#160;</td><td class="memItemRight" valign="bottom"><b>noiseAdd</b> = 0</td></tr>
 <tr class="memitem:af570acbdb634624278ff28cf4580b6b0"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="af570acbdb634624278ff28cf4580b6b0"></a>
-Bit32u&#160;</td><td class="memItemRight" valign="bottom"><b>noiseValue</b></td></tr>
+Bit32u&#160;</td><td class="memItemRight" valign="bottom"><b>noiseValue</b> = 0</td></tr>
 <tr class="memitem:a15109de386d644b49dc2864847a5eda9"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a15109de386d644b49dc2864847a5eda9"></a>
-Bit32u&#160;</td><td class="memItemRight" valign="bottom"><b>freqMul</b> [16]</td></tr>
+Bit32u&#160;</td><td class="memItemRight" valign="bottom"><b>freqMul</b> [16] = {}</td></tr>
 <tr class="memitem:aa8e0fd4b707ef682b66210a2820dda49"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="aa8e0fd4b707ef682b66210a2820dda49"></a>
-Bit32u&#160;</td><td class="memItemRight" valign="bottom"><b>linearRates</b> [76]</td></tr>
+Bit32u&#160;</td><td class="memItemRight" valign="bottom"><b>linearRates</b> [76] = {}</td></tr>
 <tr class="memitem:ab92c0daba93e8bfce6cc2e52b8db6ee1"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="ab92c0daba93e8bfce6cc2e52b8db6ee1"></a>
-Bit32u&#160;</td><td class="memItemRight" valign="bottom"><b>attackRates</b> [76]</td></tr>
+Bit32u&#160;</td><td class="memItemRight" valign="bottom"><b>attackRates</b> [76] = {}</td></tr>
 <tr class="memitem:ac85aae23657fde0285f563a134fabf03"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="ac85aae23657fde0285f563a134fabf03"></a>
 <a class="el" href="structDBOPL_1_1Channel.html">Channel</a>&#160;</td><td class="memItemRight" valign="bottom"><b>chan</b> [18]</td></tr>
 <tr class="memitem:a55fc1b0db358bfa20ffae84f2aaf99be"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a55fc1b0db358bfa20ffae84f2aaf99be"></a>
@@ -160,21 +160,21 @@ Bit8u&#160;</td><td class="memItemRight" valign="bottom"><b>reg04</b></td></tr>
 <tr class="memitem:aee1cb30f6e56bcb2a9cf55de291dbc3b"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="aee1cb30f6e56bcb2a9cf55de291dbc3b"></a>
 Bit8u&#160;</td><td class="memItemRight" valign="bottom"><b>regBD</b></td></tr>
 <tr class="memitem:ade088608ad9fc8eb5164db952ee0cfb0"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="ade088608ad9fc8eb5164db952ee0cfb0"></a>
-Bit8u&#160;</td><td class="memItemRight" valign="bottom"><b>vibratoIndex</b></td></tr>
+Bit8u&#160;</td><td class="memItemRight" valign="bottom"><b>vibratoIndex</b> = 0</td></tr>
 <tr class="memitem:a715127fbd970727b67170c4fd50920f7"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a715127fbd970727b67170c4fd50920f7"></a>
-Bit8u&#160;</td><td class="memItemRight" valign="bottom"><b>tremoloIndex</b></td></tr>
+Bit8u&#160;</td><td class="memItemRight" valign="bottom"><b>tremoloIndex</b> = 0</td></tr>
 <tr class="memitem:a95d0a1d0025b1526c545160143870261"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a95d0a1d0025b1526c545160143870261"></a>
-Bit8s&#160;</td><td class="memItemRight" valign="bottom"><b>vibratoSign</b></td></tr>
+Bit8s&#160;</td><td class="memItemRight" valign="bottom"><b>vibratoSign</b> = 0</td></tr>
 <tr class="memitem:a020a0f86a13f5c621324d27633a7e000"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a020a0f86a13f5c621324d27633a7e000"></a>
-Bit8u&#160;</td><td class="memItemRight" valign="bottom"><b>vibratoShift</b></td></tr>
+Bit8u&#160;</td><td class="memItemRight" valign="bottom"><b>vibratoShift</b> = 0</td></tr>
 <tr class="memitem:a7915f11c9dc071855a835a9d1955bc52"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a7915f11c9dc071855a835a9d1955bc52"></a>
-Bit8u&#160;</td><td class="memItemRight" valign="bottom"><b>tremoloValue</b></td></tr>
+Bit8u&#160;</td><td class="memItemRight" valign="bottom"><b>tremoloValue</b> = 0</td></tr>
 <tr class="memitem:a73605402418a92e9d405eb639d10309e"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a73605402418a92e9d405eb639d10309e"></a>
-Bit8u&#160;</td><td class="memItemRight" valign="bottom"><b>vibratoStrength</b></td></tr>
+Bit8u&#160;</td><td class="memItemRight" valign="bottom"><b>vibratoStrength</b> = 0</td></tr>
 <tr class="memitem:a1396767527e8811da6f18b5b2b3cab6e"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a1396767527e8811da6f18b5b2b3cab6e"></a>
-Bit8u&#160;</td><td class="memItemRight" valign="bottom"><b>tremoloStrength</b></td></tr>
+Bit8u&#160;</td><td class="memItemRight" valign="bottom"><b>tremoloStrength</b> = 0</td></tr>
 <tr class="memitem:a0aa21dbed40c6a7e01e014b841b8c6b0"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a0aa21dbed40c6a7e01e014b841b8c6b0"></a>
-Bit8u&#160;</td><td class="memItemRight" valign="bottom"><b>waveFormMask</b></td></tr>
+Bit8u&#160;</td><td class="memItemRight" valign="bottom"><b>waveFormMask</b> = 0</td></tr>
 <tr class="memitem:a0faef40e4f05cf2d8b789f6da637515d"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a0faef40e4f05cf2d8b789f6da637515d"></a>
 Bit8s&#160;</td><td class="memItemRight" valign="bottom"><b>opl3Active</b></td></tr>
 </table>
@@ -189,7 +189,7 @@ Bit8s&#160;</td><td class="memItemRight" valign="bottom"><b>opl3Active</b></td><
 
 
 <hr class="footer"/><address class="footer"><small>
-Generated on Tue Oct 1 2019 18:06:33 for DOSBox-X by &#160;<a href="http://www.doxygen.org/index.html">
+Generated on Sun Jul 5 2020 13:11:42 for DOSBox-X by &#160;<a href="http://www.doxygen.org/index.html">
 <img class="footer" src="doxygen.png" alt="doxygen"/>
 </a> 1.8.0
 </small></address>

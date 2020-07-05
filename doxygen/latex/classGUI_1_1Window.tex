@@ -107,7 +107,19 @@ virtual bool \hyperlink{classGUI_1_1Window_a90890951f6ce5f043657756b2691e754}{ra
 \begin{DoxyCompactList}\small\item\em Put this window below all of it's siblings. Does not preserve relative order. \end{DoxyCompactList}\item 
 \hypertarget{classGUI_1_1Window_a546dab2fb4ebde2b393465a0962eda8f}{\hyperlink{classGUI_1_1Window}{Window} $\ast$ \hyperlink{classGUI_1_1Window_a546dab2fb4ebde2b393465a0962eda8f}{get\-Child} (int n)}\label{classGUI_1_1Window_a546dab2fb4ebde2b393465a0962eda8f}
 
-\begin{DoxyCompactList}\small\item\em Return the {\ttfamily n} th child. \end{DoxyCompactList}\end{DoxyCompactItemize}
+\begin{DoxyCompactList}\small\item\em Return the {\ttfamily n} th child. \end{DoxyCompactList}\item 
+\hypertarget{classGUI_1_1Window_ab715a814dd0b6995cde40cf4c2b03355}{unsigned int {\bfseries get\-Child\-Count} (void)}\label{classGUI_1_1Window_ab715a814dd0b6995cde40cf4c2b03355}
+
+\end{DoxyCompactItemize}
+\subsection*{Public Attributes}
+\begin{DoxyCompactItemize}
+\item 
+\hypertarget{classGUI_1_1Window_a4494c4b58b06ae2f1722efaf6594b65b}{bool \hyperlink{classGUI_1_1Window_a4494c4b58b06ae2f1722efaf6594b65b}{first\-\_\-tabbable} = false}\label{classGUI_1_1Window_a4494c4b58b06ae2f1722efaf6594b65b}
+
+\begin{DoxyCompactList}\small\item\em {\ttfamily first} element of a tabbable list \end{DoxyCompactList}\item 
+\hypertarget{classGUI_1_1Window_a50ff0931502669ad5e788022fe1b62f8}{bool \hyperlink{classGUI_1_1Window_a50ff0931502669ad5e788022fe1b62f8}{last\-\_\-tabbable} = false}\label{classGUI_1_1Window_a50ff0931502669ad5e788022fe1b62f8}
+
+\begin{DoxyCompactList}\small\item\em {\ttfamily last} element of a tabbable list \end{DoxyCompactList}\end{DoxyCompactItemize}
 \subsection*{Protected Member Functions}
 \begin{DoxyCompactItemize}
 \item 
@@ -184,6 +196,9 @@ std\-::list$<$ \hyperlink{classGUI_1_1Window}{Window} $\ast$ $>$ \hyperlink{clas
 \hypertarget{classGUI_1_1Window_ac4d9da9cc48d502966fd1039d5ea85fa}{class {\bfseries Transient\-Window}}\label{classGUI_1_1Window_ac4d9da9cc48d502966fd1039d5ea85fa}
 
 \item 
+\hypertarget{classGUI_1_1Window_a577e02e0bc370cbb39229fc67b6ff829}{class {\bfseries Window\-In\-Window}}\label{classGUI_1_1Window_a577e02e0bc370cbb39229fc67b6ff829}
+
+\item 
 \hypertarget{classGUI_1_1Window_a834cec0fab7efabab3cd53540e4d466d}{class {\bfseries Menu}}\label{classGUI_1_1Window_a834cec0fab7efabab3cd53540e4d466d}
 
 \end{DoxyCompactItemize}
@@ -214,7 +229,7 @@ Return parent window.
 
 May return N\-U\-L\-L if this is the topmost window (the \hyperlink{classGUI_1_1Screen}{Screen}). 
 
-Definition at line 701 of file gui\-\_\-tk.\-h.
+Definition at line 708 of file gui\-\_\-tk.\-h.
 
 
 
@@ -243,7 +258,7 @@ Reimplemented in \hyperlink{classGUI_1_1Button_a88a1ed778b528d75a55351f2e3a00cf1
 
 
 
-Definition at line 818 of file gui\-\_\-tk.\-cpp.
+Definition at line 939 of file gui\-\_\-tk.\-cpp.
 
 
 
@@ -270,7 +285,7 @@ Reimplemented in \hyperlink{classGUI_1_1Menu_afccc45f348b1ff9cd2668f8e29731589}{
 
 
 
-Definition at line 761 of file gui\-\_\-tk.\-cpp.
+Definition at line 882 of file gui\-\_\-tk.\-cpp.
 
 
 
@@ -298,7 +313,7 @@ Reimplemented in \hyperlink{classGUI_1_1TransientWindow_aec97d27a3f4ece3138c58d9
 
 
 
-Definition at line 653 of file gui\-\_\-tk.\-cpp.
+Definition at line 655 of file gui\-\_\-tk.\-cpp.
 
 
 
@@ -325,7 +340,7 @@ Reimplemented in \hyperlink{classGUI_1_1TransientWindow_a970674e955de6a1d5a09669
 
 
 
-Definition at line 735 of file gui\-\_\-tk.\-h.
+Definition at line 742 of file gui\-\_\-tk.\-h.
 
 
 
@@ -353,7 +368,7 @@ Reimplemented in \hyperlink{classGUI_1_1Label_a0a19005bc37fac28c857036e8dc48b2e}
 
 
 
-Definition at line 668 of file gui\-\_\-tk.\-cpp.
+Definition at line 670 of file gui\-\_\-tk.\-cpp.
 
 
 
@@ -380,7 +395,7 @@ Reimplemented in \hyperlink{classGUI_1_1Menu_aa98bb7305b74088dd875ead6747cfa52}{
 
 
 
-Definition at line 694 of file gui\-\_\-tk.\-h.
+Definition at line 701 of file gui\-\_\-tk.\-h.
 
 
 
@@ -402,11 +417,11 @@ Child windows.
 
 Z ordering is done in list order. The first element is the lowermost window. This window's content is below all children. 
 
-Definition at line 622 of file gui\-\_\-tk.\-h.
+Definition at line 629 of file gui\-\_\-tk.\-h.
 
 
 
-Referenced by G\-U\-I\-::\-Frame\-::action\-Executed(), add\-Child(), focus\-Changed(), get\-Child(), has\-Focus(), key\-Down(), key\-Up(), lower(), mouse\-Down(), mouse\-Down\-Outside(), mouse\-Moved(), G\-U\-I\-::\-Toplevel\-Window\-::paint(), paint\-All(), G\-U\-I\-::\-Window\-In\-Window\-::paint\-All(), G\-U\-I\-::\-Bordered\-Window\-::paint\-All(), raise(), G\-U\-I\-::\-Toplevel\-Window\-::raise(), G\-U\-I\-::\-Transient\-Window\-::raise(), remove\-Child(), G\-U\-I\-::\-Window\-In\-Window\-::resize(), and $\sim$\-Window().
+Referenced by G\-U\-I\-::\-Frame\-::action\-Executed(), add\-Child(), focus\-Changed(), get\-Child(), has\-Focus(), key\-Down(), G\-U\-I\-::\-Window\-In\-Window\-::key\-Down(), key\-Up(), lower(), mouse\-Down(), mouse\-Down\-Outside(), mouse\-Moved(), G\-U\-I\-::\-Toplevel\-Window\-::paint(), paint\-All(), G\-U\-I\-::\-Window\-In\-Window\-::paint\-All(), G\-U\-I\-::\-Bordered\-Window\-::paint\-All(), raise(), G\-U\-I\-::\-Toplevel\-Window\-::raise(), G\-U\-I\-::\-Transient\-Window\-::raise(), remove\-Child(), G\-U\-I\-::\-Window\-In\-Window\-::resize(), and $\sim$\-Window().
 
 \hypertarget{classGUI_1_1Window_addd401dab430594e678366e7ff73ef2d}{\index{G\-U\-I\-::\-Window@{G\-U\-I\-::\-Window}!mouse\-Child@{mouse\-Child}}
 \index{mouse\-Child@{mouse\-Child}!GUI::Window@{G\-U\-I\-::\-Window}}
@@ -417,7 +432,7 @@ Child window of last button-\/down event.
 
 It receives all drag/up/click/doubleclick events until an up event is received 
 
-Definition at line 608 of file gui\-\_\-tk.\-h.
+Definition at line 609 of file gui\-\_\-tk.\-h.
 
 
 

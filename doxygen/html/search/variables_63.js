@@ -1,6 +1,7 @@
 var searchData=
 [
   ['ch',['ch',['../classGUI_1_1Drawable.html#a18e1efe0fc94c2a2a86d74d1121e9f72',1,'GUI::Drawable']]],
+  ['channels',['channels',['../structSound__AudioInfo.html#a2a7fe880d009e698eb0d52cde3ddfc80',1,'Sound_AudioInfo']]],
   ['char_5fposition',['char_position',['../classGUI_1_1BitmapFont.html#a95cd04a0232cd076fcb3021e85d0043b',1,'GUI::BitmapFont']]],
   ['character',['character',['../classGUI_1_1Key.html#a08e3432cc2bc3ceded36c3405fca4353',1,'GUI::Key']]],
   ['character_5fstep',['character_step',['../classGUI_1_1BitmapFont.html#a27146558fd76b2ac1c2dc7133b23f4ce',1,'GUI::BitmapFont']]],

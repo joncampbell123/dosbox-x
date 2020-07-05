@@ -96,7 +96,7 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 </div><!--header-->
 <div class="contents">
 <div class="fragment"><pre class="fragment"><a name="l00001"></a>00001 <span class="comment">/*</span>
-<a name="l00002"></a>00002 <span class="comment"> *  Copyright (C) 2002-2019  The DOSBox Team</span>
+<a name="l00002"></a>00002 <span class="comment"> *  Copyright (C) 2002-2020  The DOSBox Team</span>
 <a name="l00003"></a>00003 <span class="comment"> *</span>
 <a name="l00004"></a>00004 <span class="comment"> *  This program is free software; you can redistribute it and/or modify</span>
 <a name="l00005"></a>00005 <span class="comment"> *  it under the terms of the GNU General Public License as published by</span>
@@ -108,9 +108,9 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l00011"></a>00011 <span class="comment"> *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the</span>
 <a name="l00012"></a>00012 <span class="comment"> *  GNU General Public License for more details.</span>
 <a name="l00013"></a>00013 <span class="comment"> *</span>
-<a name="l00014"></a>00014 <span class="comment"> *  You should have received a copy of the GNU General Public License</span>
-<a name="l00015"></a>00015 <span class="comment"> *  along with this program; if not, write to the Free Software</span>
-<a name="l00016"></a>00016 <span class="comment"> *  Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1335, USA.</span>
+<a name="l00014"></a>00014 <span class="comment"> *  You should have received a copy of the GNU General Public License along</span>
+<a name="l00015"></a>00015 <span class="comment"> *  with this program; if not, write to the Free Software Foundation, Inc.,</span>
+<a name="l00016"></a>00016 <span class="comment"> *  51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.</span>
 <a name="l00017"></a>00017 <span class="comment"> */</span>
 <a name="l00018"></a>00018 
 <a name="l00019"></a>00019 
@@ -270,8 +270,8 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l00173"></a>00173         <span class="keywordflow">else</span> <span class="keywordflow">if</span> (port == 0x29) { <span class="comment">/* auto bank increment */</span>
 <a name="l00174"></a>00174             pc98_port_29h = (Bit8u)val;
 <a name="l00175"></a>00175             DmaControllers[0]-&gt;GetChannel(val &amp; 3)-&gt;page_bank_increment_wraparound =
-<a name="l00176"></a>00176                 (val &amp; 0x08 ? 0xF0 : 0x00) +
-<a name="l00177"></a>00177                 (val &amp; 0x04 ? 0x0F : 0x00);
+<a name="l00176"></a>00176                 ((val &amp; 0x08) ? 0xF0 : 0x00) +
+<a name="l00177"></a>00177                 ((val &amp; 0x04) ? 0x0F : 0x00);
 <a name="l00178"></a>00178 <span class="preprocessor">#if 0</span>
 <a name="l00179"></a>00179 <span class="preprocessor"></span>            LOG_MSG(<span class="stringliteral">&quot;DMA channel %u page auto increment mask %x&quot;</span>,
 <a name="l00180"></a>00180                 (<span class="keywordtype">unsigned</span> <span class="keywordtype">int</span>)(val&amp;3u),
@@ -487,324 +487,513 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l00390"></a>00390         callback = NULL;
 <a name="l00391"></a>00391         channum = num;
 <a name="l00392"></a>00392         DMA16 = dma16 ? 0x1 : 0x0;
-<a name="l00393"></a>00393 
-<a name="l00394"></a>00394     <span class="keywordflow">if</span> (isadma128k &gt;= 0)
-<a name="l00395"></a>00395         Set128KMode(isadma128k &gt; 0); <span class="comment">// user&#39;s choice</span>
-<a name="l00396"></a>00396     <span class="keywordflow">else</span>
-<a name="l00397"></a>00397         Set128KMode(<span class="keyword">true</span>); <span class="comment">// most hardware seems to implement the 128K case</span>
-<a name="l00398"></a>00398 
-<a name="l00399"></a>00399     <a class="code" href="classLOG.html">LOG</a>(LOG_DMACONTROL,LOG_DEBUG)(<span class="stringliteral">&quot;DMA channel %u. DMA16_PAGESHIFT=%u DMA16_ADDRMASK=0x%lx&quot;</span>,
-<a name="l00400"></a>00400         (<span class="keywordtype">unsigned</span> int)channum,(<span class="keywordtype">unsigned</span> <span class="keywordtype">int</span>)DMA16_PAGESHIFT,(<span class="keywordtype">unsigned</span> long)DMA16_ADDRMASK);
-<a name="l00401"></a>00401     pagenum = 0;
-<a name="l00402"></a>00402         pagebase = 0;
-<a name="l00403"></a>00403         baseaddr = 0;
-<a name="l00404"></a>00404         curraddr = 0;
-<a name="l00405"></a>00405         basecnt = 0;
-<a name="l00406"></a>00406         currcnt = 0;
-<a name="l00407"></a>00407         increment = <span class="keyword">true</span>;
-<a name="l00408"></a>00408         autoinit = <span class="keyword">false</span>;
-<a name="l00409"></a>00409         tcount = <span class="keyword">false</span>;
-<a name="l00410"></a>00410         request = <span class="keyword">false</span>;
-<a name="l00411"></a>00411 }
-<a name="l00412"></a>00412 
-<a name="l00413"></a>00413 Bitu DmaChannel::Read(Bitu want, Bit8u * buffer) {
-<a name="l00414"></a>00414         Bitu done=0;
-<a name="l00415"></a>00415         curraddr &amp;= dma_wrapping;
-<a name="l00416"></a>00416 
-<a name="l00417"></a>00417         <span class="comment">/* ISA devices cannot cycle DMA if the controller has masked the channel! Fix your code! */</span>
-<a name="l00418"></a>00418         <span class="keywordflow">if</span> (masked) {
-<a name="l00419"></a>00419                 <a class="code" href="classLOG.html">LOG</a>(LOG_DMACONTROL,LOG_WARN)(<span class="stringliteral">&quot;BUG: Attempted DMA channel read while channel masked&quot;</span>);
-<a name="l00420"></a>00420                 <span class="keywordflow">return</span> 0;
-<a name="l00421"></a>00421         }
-<a name="l00422"></a>00422     <span class="comment">/* You cannot read a DMA channel configured for writing (to memory) */</span>
-<a name="l00423"></a>00423     <span class="keywordflow">if</span> (transfer_mode != DMAT_READ) {
-<a name="l00424"></a>00424         <a class="code" href="classLOG.html">LOG</a>(LOG_DMACONTROL,LOG_WARN)(<span class="stringliteral">&quot;BUG: Attempted DMA channel write when DMA channel is configured by guest for reading (from memory)&quot;</span>);
-<a name="l00425"></a>00425         <span class="keywordflow">return</span> 0;
-<a name="l00426"></a>00426     }
-<a name="l00427"></a>00427 
-<a name="l00428"></a>00428     <span class="comment">/* WARNING: &quot;want&quot; is expressed in DMA transfer units.</span>
-<a name="l00429"></a>00429 <span class="comment">     *          For 8-bit DMA, want is in bytes.</span>
-<a name="l00430"></a>00430 <span class="comment">     *          For 16-bit DMA, want is in 16-bit WORDs.</span>
-<a name="l00431"></a>00431 <span class="comment">     *          Keep that in mind when writing code to call this function!</span>
-<a name="l00432"></a>00432 <span class="comment">     *          Perhaps a future modification could provide an alternate</span>
-<a name="l00433"></a>00433 <span class="comment">     *          Read function that expresses the count in bytes so the caller</span>
-<a name="l00434"></a>00434 <span class="comment">     *          cannot accidentally cause buffer overrun issues that cause</span>
-<a name="l00435"></a>00435 <span class="comment">     *          mystery crashes. */</span>
-<a name="l00436"></a>00436 
-<a name="l00437"></a>00437     <span class="keyword">const</span> Bit32u addrmask = 0xFFFu &gt;&gt; DMA16; <span class="comment">/* 16-bit ISA style DMA needs 0x7FFF, else 0xFFFF. Use 0x7FF/0xFFF (4KB) for simplicity reasons. */</span>
-<a name="l00438"></a>00438     <span class="keywordflow">while</span> (want &gt; 0) {
-<a name="l00439"></a>00439         <span class="keyword">const</span> Bit32u addr =
-<a name="l00440"></a>00440             curraddr &amp; addrmask;
-<a name="l00441"></a>00441         <span class="keyword">const</span> Bitu wrapdo =
-<a name="l00442"></a>00442             increment ?
-<a name="l00443"></a>00443                 <span class="comment">/*inc*/</span>((addrmask + 1u) - addr) :   <span class="comment">/* how many transfer units until (end of 4KB page) + 1 */</span>
-<a name="l00444"></a>00444                 <span class="comment">/*dec*/</span>(addr + 1u);                 <span class="comment">/* how many transfer units until (start of 4KB page) - 1 */</span>
-<a name="l00445"></a>00445         <span class="keyword">const</span> Bitu cando =
-<a name="l00446"></a>00446             MIN(MIN(want,Bitu(currcnt+1u)),wrapdo);
-<a name="l00447"></a>00447         assert(wrapdo != (Bitu)0);
-<a name="l00448"></a>00448         assert(cando != (Bitu)0);
-<a name="l00449"></a>00449         assert(cando &lt;= want);
-<a name="l00450"></a>00450         assert(cando &lt;= (addrmask + 1u));
-<a name="l00451"></a>00451 
-<a name="l00452"></a>00452         <span class="keywordflow">if</span> (increment) {
-<a name="l00453"></a>00453             assert((curraddr &amp; (~addrmask)) == ((curraddr + ((Bit32u)cando - 1u)) &amp; (~addrmask)));<span class="comment">//check our work, must not cross a 4KB boundary</span>
-<a name="l00454"></a>00454             DMA_BlockRead4KB&lt;DMA_INCREMENT&gt;(pagebase,curraddr,buffer,cando,DMA16,DMA16_ADDRMASK);
-<a name="l00455"></a>00455             curraddr += (Bit32u)cando;
-<a name="l00456"></a>00456         }
-<a name="l00457"></a>00457         <span class="keywordflow">else</span> {
-<a name="l00458"></a>00458             assert((curraddr &amp; (~addrmask)) == ((curraddr - ((Bit32u)cando - 1u)) &amp; (~addrmask)));<span class="comment">//check our work, must not cross a 4KB boundary</span>
-<a name="l00459"></a>00459             DMA_BlockRead4KB&lt;DMA_DECREMENT&gt;(pagebase,curraddr,buffer,cando,DMA16,DMA16_ADDRMASK);
-<a name="l00460"></a>00460             curraddr -= (Bit32u)cando;
-<a name="l00461"></a>00461         }
-<a name="l00462"></a>00462 
-<a name="l00463"></a>00463         curraddr &amp;= dma_wrapping;
-<a name="l00464"></a>00464         buffer += cando &lt;&lt; DMA16;
-<a name="l00465"></a>00465         currcnt -= (Bit16u)cando;
-<a name="l00466"></a>00466         want -= cando;
-<a name="l00467"></a>00467         done += cando;
-<a name="l00468"></a>00468 
-<a name="l00469"></a>00469         <span class="keywordflow">if</span> (IS_PC98_ARCH) {
-<a name="l00470"></a>00470             <span class="comment">/* check wraparound, to emulate auto bank increment.</span>
-<a name="l00471"></a>00471 <span class="comment">             * do not check DMA16 because PC-98 does not have 16-bit DMA channels.</span>
-<a name="l00472"></a>00472 <span class="comment">             *</span>
-<a name="l00473"></a>00473 <span class="comment">             * The PC-98 port of Sim City 2000 needs this to properly play digitized speech,</span>
-<a name="l00474"></a>00474 <span class="comment">             * especially &quot;reticulating splines&quot;. */</span>
-<a name="l00475"></a>00475             <span class="keywordflow">if</span> ((( increment) &amp;&amp; (curraddr &amp; 0xFFFFu) == 0u) ||
-<a name="l00476"></a>00476                 ((!increment) &amp;&amp; (curraddr &amp; 0xFFFFu) == 0xFFFFu)) {
-<a name="l00477"></a>00477                 page_bank_increment();
-<a name="l00478"></a>00478             }
-<a name="l00479"></a>00479         }
-<a name="l00480"></a>00480 
-<a name="l00481"></a>00481         <span class="keywordflow">if</span> (currcnt == 0xFFFF) {
-<a name="l00482"></a>00482             ReachedTC();
-<a name="l00483"></a>00483             <span class="keywordflow">if</span> (autoinit) {
-<a name="l00484"></a>00484                 currcnt = basecnt;
-<a name="l00485"></a>00485                 curraddr = baseaddr;
-<a name="l00486"></a>00486                 UpdateEMSMapping();
-<a name="l00487"></a>00487             } <span class="keywordflow">else</span> {
-<a name="l00488"></a>00488                 masked = <span class="keyword">true</span>;
-<a name="l00489"></a>00489                 UpdateEMSMapping();
-<a name="l00490"></a>00490                 DoCallBack(DMA_TRANSFEREND);
-<a name="l00491"></a>00491                 <span class="keywordflow">break</span>;
-<a name="l00492"></a>00492             }
-<a name="l00493"></a>00493         }
-<a name="l00494"></a>00494     }
-<a name="l00495"></a>00495 
-<a name="l00496"></a>00496         <span class="keywordflow">return</span> done;
-<a name="l00497"></a>00497 }
-<a name="l00498"></a>00498 
-<a name="l00499"></a>00499 Bitu DmaChannel::Write(Bitu want, Bit8u * buffer) {
-<a name="l00500"></a>00500         Bitu done=0;
-<a name="l00501"></a>00501         curraddr &amp;= dma_wrapping;
-<a name="l00502"></a>00502 
-<a name="l00503"></a>00503         <span class="comment">/* ISA devices cannot cycle DMA if the controller has masked the channel! Fix your code! */</span>
-<a name="l00504"></a>00504         <span class="keywordflow">if</span> (masked) {
-<a name="l00505"></a>00505                 <a class="code" href="classLOG.html">LOG</a>(LOG_DMACONTROL,LOG_WARN)(<span class="stringliteral">&quot;BUG: Attempted DMA channel write while channel masked&quot;</span>);
-<a name="l00506"></a>00506                 <span class="keywordflow">return</span> 0;
-<a name="l00507"></a>00507         }
-<a name="l00508"></a>00508     <span class="comment">/* You cannot write a DMA channel configured for reading (from memory) */</span>
-<a name="l00509"></a>00509     <span class="keywordflow">if</span> (transfer_mode != DMAT_WRITE) {
-<a name="l00510"></a>00510         <a class="code" href="classLOG.html">LOG</a>(LOG_DMACONTROL,LOG_WARN)(<span class="stringliteral">&quot;BUG: Attempted DMA channel read when DMA channel is configured by guest for writing (to memory)&quot;</span>);
-<a name="l00511"></a>00511         <span class="keywordflow">return</span> 0;
-<a name="l00512"></a>00512     }
-<a name="l00513"></a>00513 
-<a name="l00514"></a>00514     <span class="comment">/* WARNING: &quot;want&quot; is expressed in DMA transfer units.</span>
-<a name="l00515"></a>00515 <span class="comment">     *          For 8-bit DMA, want is in bytes.</span>
-<a name="l00516"></a>00516 <span class="comment">     *          For 16-bit DMA, want is in 16-bit WORDs.</span>
-<a name="l00517"></a>00517 <span class="comment">     *          Keep that in mind when writing code to call this function!</span>
-<a name="l00518"></a>00518 <span class="comment">     *          Perhaps a future modification could provide an alternate</span>
-<a name="l00519"></a>00519 <span class="comment">     *          Read function that expresses the count in bytes so the caller</span>
-<a name="l00520"></a>00520 <span class="comment">     *          cannot accidentally cause buffer overrun issues that cause</span>
-<a name="l00521"></a>00521 <span class="comment">     *          mystery crashes. */</span>
-<a name="l00522"></a>00522 
-<a name="l00523"></a>00523     <span class="keyword">const</span> Bit32u addrmask = 0xFFFu &gt;&gt; DMA16; <span class="comment">/* 16-bit ISA style DMA needs 0x7FFF, else 0xFFFF. Use 0x7FF/0xFFF (4KB) for simplicity reasons. */</span>
-<a name="l00524"></a>00524     <span class="keywordflow">while</span> (want &gt; 0) {
-<a name="l00525"></a>00525         <span class="keyword">const</span> Bit32u addr =
-<a name="l00526"></a>00526             curraddr &amp; addrmask;
-<a name="l00527"></a>00527         <span class="keyword">const</span> Bitu wrapdo =
-<a name="l00528"></a>00528             increment ?
-<a name="l00529"></a>00529                 <span class="comment">/*inc*/</span>((addrmask + 1u) - addr) :   <span class="comment">/* how many transfer units until (end of 4KB page) + 1 */</span>
-<a name="l00530"></a>00530                 <span class="comment">/*dec*/</span>(addr + 1u);                 <span class="comment">/* how many transfer units until (start of 4KB page) - 1 */</span>
-<a name="l00531"></a>00531         <span class="keyword">const</span> Bitu cando =
-<a name="l00532"></a>00532             MIN(MIN(want,Bitu(currcnt+1u)),wrapdo);
-<a name="l00533"></a>00533         assert(wrapdo != (Bitu)0);
-<a name="l00534"></a>00534         assert(cando != (Bitu)0);
-<a name="l00535"></a>00535         assert(cando &lt;= want);
-<a name="l00536"></a>00536         assert(cando &lt;= (addrmask + 1u));
-<a name="l00537"></a>00537 
-<a name="l00538"></a>00538         <span class="keywordflow">if</span> (increment) {
-<a name="l00539"></a>00539             assert((curraddr &amp; (~addrmask)) == ((curraddr + ((Bit32u)cando - 1u)) &amp; (~addrmask)));<span class="comment">//check our work, must not cross a 4KB boundary</span>
-<a name="l00540"></a>00540             DMA_BlockWrite4KB&lt;DMA_INCREMENT&gt;(pagebase,curraddr,buffer,cando,DMA16,DMA16_ADDRMASK);
-<a name="l00541"></a>00541             curraddr += (Bit32u)cando;
-<a name="l00542"></a>00542         }
-<a name="l00543"></a>00543         <span class="keywordflow">else</span> {
-<a name="l00544"></a>00544             assert((curraddr &amp; (~addrmask)) == ((curraddr - ((Bit32u)cando - 1u)) &amp; (~addrmask)));<span class="comment">//check our work, must not cross a 4KB boundary</span>
-<a name="l00545"></a>00545             DMA_BlockWrite4KB&lt;DMA_DECREMENT&gt;(pagebase,curraddr,buffer,cando,DMA16,DMA16_ADDRMASK);
-<a name="l00546"></a>00546             curraddr -= (Bit32u)cando;
-<a name="l00547"></a>00547         }
-<a name="l00548"></a>00548 
-<a name="l00549"></a>00549         curraddr &amp;= dma_wrapping;
-<a name="l00550"></a>00550         buffer += cando &lt;&lt; DMA16;
-<a name="l00551"></a>00551         currcnt -= (Bit16u)cando;
-<a name="l00552"></a>00552         want -= cando;
-<a name="l00553"></a>00553         done += cando;
-<a name="l00554"></a>00554 
-<a name="l00555"></a>00555         <span class="keywordflow">if</span> (IS_PC98_ARCH) {
-<a name="l00556"></a>00556             <span class="comment">/* check wraparound, to emulate auto bank increment.</span>
-<a name="l00557"></a>00557 <span class="comment">             * do not check DMA16 because PC-98 does not have 16-bit DMA channels.</span>
-<a name="l00558"></a>00558 <span class="comment">             *</span>
-<a name="l00559"></a>00559 <span class="comment">             * The PC-98 port of Sim City 2000 needs this to properly play digitized speech,</span>
-<a name="l00560"></a>00560 <span class="comment">             * especially &quot;reticulating splines&quot;. */</span>
-<a name="l00561"></a>00561             <span class="keywordflow">if</span> ((( increment) &amp;&amp; (curraddr &amp; 0xFFFFu) == 0u) ||
-<a name="l00562"></a>00562                 ((!increment) &amp;&amp; (curraddr &amp; 0xFFFFu) == 0xFFFFu)) {
-<a name="l00563"></a>00563                 page_bank_increment();
-<a name="l00564"></a>00564             }
-<a name="l00565"></a>00565         }
-<a name="l00566"></a>00566 
-<a name="l00567"></a>00567         <span class="keywordflow">if</span> (currcnt == 0xFFFF) {
-<a name="l00568"></a>00568             ReachedTC();
-<a name="l00569"></a>00569             <span class="keywordflow">if</span> (autoinit) {
-<a name="l00570"></a>00570                 currcnt = basecnt;
-<a name="l00571"></a>00571                 curraddr = baseaddr;
-<a name="l00572"></a>00572                 UpdateEMSMapping();
-<a name="l00573"></a>00573             } <span class="keywordflow">else</span> {
-<a name="l00574"></a>00574                 masked = <span class="keyword">true</span>;
-<a name="l00575"></a>00575                 UpdateEMSMapping();
-<a name="l00576"></a>00576                 DoCallBack(DMA_TRANSFEREND);
-<a name="l00577"></a>00577                 <span class="keywordflow">break</span>;
-<a name="l00578"></a>00578             }
-<a name="l00579"></a>00579         }
-<a name="l00580"></a>00580     }
-<a name="l00581"></a>00581 
-<a name="l00582"></a>00582         <span class="keywordflow">return</span> done;
-<a name="l00583"></a>00583 }
-<a name="l00584"></a>00584 
-<a name="l00585"></a>00585 <span class="keywordtype">void</span> DMA_SetWrapping(Bit32u wrap) {
-<a name="l00586"></a>00586         dma_wrapping = wrap;
-<a name="l00587"></a>00587 }
-<a name="l00588"></a>00588 
-<a name="l00589"></a>00589 <span class="keywordtype">void</span> DMA_FreeControllers() {
-<a name="l00590"></a>00590         <span class="keywordflow">if</span> (DmaControllers[0]) {
-<a name="l00591"></a>00591                 <span class="keyword">delete</span> DmaControllers[0];
-<a name="l00592"></a>00592                 DmaControllers[0]=NULL;
-<a name="l00593"></a>00593         }
-<a name="l00594"></a>00594         <span class="keywordflow">if</span> (DmaControllers[1]) {
-<a name="l00595"></a>00595                 <span class="keyword">delete</span> DmaControllers[1];
-<a name="l00596"></a>00596                 DmaControllers[1]=NULL;
-<a name="l00597"></a>00597         }
-<a name="l00598"></a>00598 }
-<a name="l00599"></a>00599 
-<a name="l00600"></a>00600 <span class="keywordtype">void</span> DMA_Destroy(<a class="code" href="classSection.html">Section</a>* <span class="comment">/*sec*/</span>) {
-<a name="l00601"></a>00601         DMA_FreeControllers();
-<a name="l00602"></a>00602 }
-<a name="l00603"></a>00603 
-<a name="l00604"></a>00604 <span class="keywordtype">void</span> DMA_Reset(<a class="code" href="classSection.html">Section</a>* <span class="comment">/*sec*/</span>) {
-<a name="l00605"></a>00605         Bit16u i;
-<a name="l00606"></a>00606 
-<a name="l00607"></a>00607         DMA_FreeControllers();
-<a name="l00608"></a>00608 
-<a name="l00609"></a>00609         <span class="comment">// LOG</span>
-<a name="l00610"></a>00610         <a class="code" href="classLOG.html">LOG</a>(LOG_MISC,LOG_DEBUG)(<span class="stringliteral">&quot;DMA_Reset(): reinitializing DMA controller(s)&quot;</span>);
-<a name="l00611"></a>00611 
-<a name="l00612"></a>00612         <a class="code" href="classSection__prop.html">Section_prop</a> * section=<span class="keyword">static_cast&lt;</span><a class="code" href="classSection__prop.html">Section_prop</a> *<span class="keyword">&gt;</span>(control-&gt;GetSection(<span class="stringliteral">&quot;dosbox&quot;</span>));
-<a name="l00613"></a>00613         assert(section != NULL);
-<a name="l00614"></a>00614 
-<a name="l00615"></a>00615         DMA_SetWrapping(0xffff);
-<a name="l00616"></a>00616 
-<a name="l00617"></a>00617         <span class="comment">/* NTS: parsing on reset means a reboot of the VM (and possibly other conditions) can permit</span>
-<a name="l00618"></a>00618 <span class="comment">         *      the user to change DMA emulation settings and have them take effect on VM reboot. */</span>
-<a name="l00619"></a>00619         enable_2nd_dma = section-&gt;Get_bool(<span class="stringliteral">&quot;enable 2nd dma controller&quot;</span>);
-<a name="l00620"></a>00620         enable_1st_dma = enable_2nd_dma || section-&gt;Get_bool(<span class="stringliteral">&quot;enable 1st dma controller&quot;</span>);
-<a name="l00621"></a>00621         enable_dma_extra_page_registers = section-&gt;Get_bool(<span class="stringliteral">&quot;enable dma extra page registers&quot;</span>);
-<a name="l00622"></a>00622         dma_page_register_writeonly = section-&gt;Get_bool(<span class="stringliteral">&quot;dma page registers write-only&quot;</span>);
-<a name="l00623"></a>00623         allow_decrement_mode = section-&gt;Get_bool(<span class="stringliteral">&quot;allow dma address decrement&quot;</span>);
-<a name="l00624"></a>00624 
-<a name="l00625"></a>00625     <span class="keywordflow">if</span> (IS_PC98_ARCH) <span class="comment">// DMA 4-7 do not exist on PC-98</span>
-<a name="l00626"></a>00626         enable_2nd_dma = <span class="keyword">false</span>;
-<a name="l00627"></a>00627 
-<a name="l00628"></a>00628     <span class="keywordflow">if</span> (machine == MCH_PCJR) {
-<a name="l00629"></a>00629         <a class="code" href="classLOG.html">LOG</a>(LOG_MISC,LOG_DEBUG)(<span class="stringliteral">&quot;DMA is disabled in PCjr mode&quot;</span>);
-<a name="l00630"></a>00630         enable_1st_dma = <span class="keyword">false</span>;
-<a name="l00631"></a>00631         enable_2nd_dma = <span class="keyword">false</span>;
-<a name="l00632"></a>00632         <span class="keywordflow">return</span>;
-<a name="l00633"></a>00633     }
-<a name="l00634"></a>00634 
-<a name="l00635"></a>00635     {
-<a name="l00636"></a>00636         std::string s = section-&gt;Get_string(<span class="stringliteral">&quot;enable 128k capable 16-bit dma&quot;</span>);
-<a name="l00637"></a>00637 
-<a name="l00638"></a>00638         <span class="keywordflow">if</span> (s == <span class="stringliteral">&quot;true&quot;</span> || s == <span class="stringliteral">&quot;1&quot;</span>)
-<a name="l00639"></a>00639             isadma128k = 1;
-<a name="l00640"></a>00640         <span class="keywordflow">else</span> <span class="keywordflow">if</span> (s == <span class="stringliteral">&quot;false&quot;</span> || s == <span class="stringliteral">&quot;0&quot;</span>)
-<a name="l00641"></a>00641             isadma128k = 0;
-<a name="l00642"></a>00642         <span class="keywordflow">else</span>
-<a name="l00643"></a>00643             isadma128k = -1;
-<a name="l00644"></a>00644     }
-<a name="l00645"></a>00645 
-<a name="l00646"></a>00646         <span class="keywordflow">if</span> (enable_1st_dma)
-<a name="l00647"></a>00647                 DmaControllers[0] = <span class="keyword">new</span> <a class="code" href="classDmaController.html">DmaController</a>(0);
-<a name="l00648"></a>00648         <span class="keywordflow">else</span>
-<a name="l00649"></a>00649                 DmaControllers[0] = NULL;
-<a name="l00650"></a>00650 
-<a name="l00651"></a>00651         <span class="keywordflow">if</span> (enable_2nd_dma)
-<a name="l00652"></a>00652                 DmaControllers[1] = <span class="keyword">new</span> <a class="code" href="classDmaController.html">DmaController</a>(1);
-<a name="l00653"></a>00653         <span class="keywordflow">else</span>
-<a name="l00654"></a>00654                 DmaControllers[1] = NULL;
-<a name="l00655"></a>00655 
-<a name="l00656"></a>00656         <span class="keywordflow">for</span> (i=0;i&lt;0x10;i++) {
-<a name="l00657"></a>00657                 Bitu mask = IO_MB;
-<a name="l00658"></a>00658                 <span class="keywordflow">if</span> (i &lt; 8) mask |= IO_MW;
-<a name="l00659"></a>00659 
-<a name="l00660"></a>00660                 <span class="keywordflow">if</span> (enable_1st_dma) {
-<a name="l00661"></a>00661                         <span class="comment">/* install handler for first DMA controller ports */</span>
-<a name="l00662"></a>00662                         DmaControllers[0]-&gt;DMA_WriteHandler[i].Install(IS_PC98_ARCH ? ((i * 2u) + 1u) : i,DMA_Write_Port,mask);
-<a name="l00663"></a>00663                         DmaControllers[0]-&gt;DMA_ReadHandler[i].Install(IS_PC98_ARCH ? ((i * 2u) + 1u) : i,DMA_Read_Port,mask);
-<a name="l00664"></a>00664                 }
-<a name="l00665"></a>00665                 <span class="keywordflow">if</span> (enable_2nd_dma) {
-<a name="l00666"></a>00666             assert(!IS_PC98_ARCH);
-<a name="l00667"></a>00667                         <span class="comment">/* install handler for second DMA controller ports */</span>
-<a name="l00668"></a>00668                         DmaControllers[1]-&gt;DMA_WriteHandler[i].Install(0xc0u+i*2u,DMA_Write_Port,mask);
-<a name="l00669"></a>00669                         DmaControllers[1]-&gt;DMA_ReadHandler[i].Install(0xc0u+i*2u,DMA_Read_Port,mask);
-<a name="l00670"></a>00670                 }
-<a name="l00671"></a>00671         }
-<a name="l00672"></a>00672 
-<a name="l00673"></a>00673         <span class="keywordflow">if</span> (enable_1st_dma) {
-<a name="l00674"></a>00674         <span class="keywordflow">if</span> (IS_PC98_ARCH) {
-<a name="l00675"></a>00675             <span class="comment">/* install handlers for ports 0x21-0x29 odd */</span>
-<a name="l00676"></a>00676             <span class="keywordflow">for</span> (<span class="keywordtype">unsigned</span> <span class="keywordtype">int</span> i=0;i &lt; 5;i++) {
-<a name="l00677"></a>00677                 DmaControllers[0]-&gt;DMA_WriteHandler[0x10+i].Install(0x21+(i*2u),DMA_Write_Port,IO_MB,1);
-<a name="l00678"></a>00678                 DmaControllers[0]-&gt;DMA_ReadHandler[0x10+i].Install(0x21+(i*2u),DMA_Read_Port,IO_MB,1);
-<a name="l00679"></a>00679             }
-<a name="l00680"></a>00680         }
-<a name="l00681"></a>00681         <span class="keywordflow">else</span> {
-<a name="l00682"></a>00682             <span class="comment">/* install handlers for ports 0x81-0x83 (on the first DMA controller) */</span>
-<a name="l00683"></a>00683             DmaControllers[0]-&gt;DMA_WriteHandler[0x10].Install(0x80,DMA_Write_Port,IO_MB,8);
-<a name="l00684"></a>00684             DmaControllers[0]-&gt;DMA_ReadHandler[0x10].Install(0x80,DMA_Read_Port,IO_MB,8);
-<a name="l00685"></a>00685         }
+<a name="l00393"></a>00393     transfer_mode = 0;
+<a name="l00394"></a>00394 
+<a name="l00395"></a>00395     <span class="keywordflow">if</span> (isadma128k &gt;= 0)
+<a name="l00396"></a>00396         Set128KMode(isadma128k &gt; 0); <span class="comment">// user&#39;s choice</span>
+<a name="l00397"></a>00397     <span class="keywordflow">else</span>
+<a name="l00398"></a>00398         Set128KMode(<span class="keyword">true</span>); <span class="comment">// most hardware seems to implement the 128K case</span>
+<a name="l00399"></a>00399 
+<a name="l00400"></a>00400     <a class="code" href="classLOG.html">LOG</a>(LOG_DMACONTROL,LOG_DEBUG)(<span class="stringliteral">&quot;DMA channel %u. DMA16_PAGESHIFT=%u DMA16_ADDRMASK=0x%lx&quot;</span>,
+<a name="l00401"></a>00401         (<span class="keywordtype">unsigned</span> int)channum,(<span class="keywordtype">unsigned</span> <span class="keywordtype">int</span>)DMA16_PAGESHIFT,(<span class="keywordtype">unsigned</span> long)DMA16_ADDRMASK);
+<a name="l00402"></a>00402     pagenum = 0;
+<a name="l00403"></a>00403         pagebase = 0;
+<a name="l00404"></a>00404         baseaddr = 0;
+<a name="l00405"></a>00405         curraddr = 0;
+<a name="l00406"></a>00406         basecnt = 0;
+<a name="l00407"></a>00407         currcnt = 0;
+<a name="l00408"></a>00408         increment = <span class="keyword">true</span>;
+<a name="l00409"></a>00409         autoinit = <span class="keyword">false</span>;
+<a name="l00410"></a>00410         tcount = <span class="keyword">false</span>;
+<a name="l00411"></a>00411         request = <span class="keyword">false</span>;
+<a name="l00412"></a>00412 }
+<a name="l00413"></a>00413 
+<a name="l00414"></a>00414 Bitu DmaChannel::Read(Bitu want, Bit8u * buffer) {
+<a name="l00415"></a>00415         Bitu done=0;
+<a name="l00416"></a>00416         curraddr &amp;= dma_wrapping;
+<a name="l00417"></a>00417 
+<a name="l00418"></a>00418         <span class="comment">/* ISA devices cannot cycle DMA if the controller has masked the channel! Fix your code! */</span>
+<a name="l00419"></a>00419         <span class="keywordflow">if</span> (masked) {
+<a name="l00420"></a>00420                 <a class="code" href="classLOG.html">LOG</a>(LOG_DMACONTROL,LOG_WARN)(<span class="stringliteral">&quot;BUG: Attempted DMA channel read while channel masked&quot;</span>);
+<a name="l00421"></a>00421                 <span class="keywordflow">return</span> 0;
+<a name="l00422"></a>00422         }
+<a name="l00423"></a>00423     <span class="comment">/* You cannot read a DMA channel configured for writing (to memory) */</span>
+<a name="l00424"></a>00424     <span class="keywordflow">if</span> (transfer_mode != DMAT_READ) {
+<a name="l00425"></a>00425         <a class="code" href="classLOG.html">LOG</a>(LOG_DMACONTROL,LOG_WARN)(<span class="stringliteral">&quot;BUG: Attempted DMA channel read when DMA channel is configured by guest for writing (to memory)&quot;</span>);
+<a name="l00426"></a>00426         <span class="keywordflow">return</span> 0;
+<a name="l00427"></a>00427     }
+<a name="l00428"></a>00428 
+<a name="l00429"></a>00429     <span class="comment">/* WARNING: &quot;want&quot; is expressed in DMA transfer units.</span>
+<a name="l00430"></a>00430 <span class="comment">     *          For 8-bit DMA, want is in bytes.</span>
+<a name="l00431"></a>00431 <span class="comment">     *          For 16-bit DMA, want is in 16-bit WORDs.</span>
+<a name="l00432"></a>00432 <span class="comment">     *          Keep that in mind when writing code to call this function!</span>
+<a name="l00433"></a>00433 <span class="comment">     *          Perhaps a future modification could provide an alternate</span>
+<a name="l00434"></a>00434 <span class="comment">     *          Read function that expresses the count in bytes so the caller</span>
+<a name="l00435"></a>00435 <span class="comment">     *          cannot accidentally cause buffer overrun issues that cause</span>
+<a name="l00436"></a>00436 <span class="comment">     *          mystery crashes. */</span>
+<a name="l00437"></a>00437 
+<a name="l00438"></a>00438     <span class="keyword">const</span> Bit32u addrmask = 0xFFFu &gt;&gt; DMA16; <span class="comment">/* 16-bit ISA style DMA needs 0x7FFF, else 0xFFFF. Use 0x7FF/0xFFF (4KB) for simplicity reasons. */</span>
+<a name="l00439"></a>00439     <span class="keywordflow">while</span> (want &gt; 0) {
+<a name="l00440"></a>00440         <span class="keyword">const</span> Bit32u addr =
+<a name="l00441"></a>00441             curraddr &amp; addrmask;
+<a name="l00442"></a>00442         <span class="keyword">const</span> Bitu wrapdo =
+<a name="l00443"></a>00443             increment ?
+<a name="l00444"></a>00444                 <span class="comment">/*inc*/</span>((addrmask + 1u) - addr) :   <span class="comment">/* how many transfer units until (end of 4KB page) + 1 */</span>
+<a name="l00445"></a>00445                 <span class="comment">/*dec*/</span>(addr + 1u);                 <span class="comment">/* how many transfer units until (start of 4KB page) - 1 */</span>
+<a name="l00446"></a>00446         <span class="keyword">const</span> Bitu cando =
+<a name="l00447"></a>00447             MIN(MIN(want,Bitu(currcnt+1u)),wrapdo);
+<a name="l00448"></a>00448         assert(wrapdo != (Bitu)0);
+<a name="l00449"></a>00449         assert(cando != (Bitu)0);
+<a name="l00450"></a>00450         assert(cando &lt;= want);
+<a name="l00451"></a>00451         assert(cando &lt;= (addrmask + 1u));
+<a name="l00452"></a>00452 
+<a name="l00453"></a>00453         <span class="keywordflow">if</span> (increment) {
+<a name="l00454"></a>00454             assert((curraddr &amp; (~addrmask)) == ((curraddr + ((Bit32u)cando - 1u)) &amp; (~addrmask)));<span class="comment">//check our work, must not cross a 4KB boundary</span>
+<a name="l00455"></a>00455             DMA_BlockRead4KB&lt;DMA_INCREMENT&gt;(pagebase,curraddr,buffer,cando,DMA16,DMA16_ADDRMASK);
+<a name="l00456"></a>00456             curraddr += (Bit32u)cando;
+<a name="l00457"></a>00457         }
+<a name="l00458"></a>00458         <span class="keywordflow">else</span> {
+<a name="l00459"></a>00459             assert((curraddr &amp; (~addrmask)) == ((curraddr - ((Bit32u)cando - 1u)) &amp; (~addrmask)));<span class="comment">//check our work, must not cross a 4KB boundary</span>
+<a name="l00460"></a>00460             DMA_BlockRead4KB&lt;DMA_DECREMENT&gt;(pagebase,curraddr,buffer,cando,DMA16,DMA16_ADDRMASK);
+<a name="l00461"></a>00461             curraddr -= (Bit32u)cando;
+<a name="l00462"></a>00462         }
+<a name="l00463"></a>00463 
+<a name="l00464"></a>00464         curraddr &amp;= dma_wrapping;
+<a name="l00465"></a>00465         buffer += cando &lt;&lt; DMA16;
+<a name="l00466"></a>00466         currcnt -= (Bit16u)cando;
+<a name="l00467"></a>00467         want -= cando;
+<a name="l00468"></a>00468         done += cando;
+<a name="l00469"></a>00469 
+<a name="l00470"></a>00470         <span class="keywordflow">if</span> (IS_PC98_ARCH) {
+<a name="l00471"></a>00471             <span class="comment">/* check wraparound, to emulate auto bank increment.</span>
+<a name="l00472"></a>00472 <span class="comment">             * do not check DMA16 because PC-98 does not have 16-bit DMA channels.</span>
+<a name="l00473"></a>00473 <span class="comment">             *</span>
+<a name="l00474"></a>00474 <span class="comment">             * The PC-98 port of Sim City 2000 needs this to properly play digitized speech,</span>
+<a name="l00475"></a>00475 <span class="comment">             * especially &quot;reticulating splines&quot;. */</span>
+<a name="l00476"></a>00476             <span class="keywordflow">if</span> ((( increment) &amp;&amp; (curraddr &amp; 0xFFFFu) == 0u) ||
+<a name="l00477"></a>00477                 ((!increment) &amp;&amp; (curraddr &amp; 0xFFFFu) == 0xFFFFu)) {
+<a name="l00478"></a>00478                 page_bank_increment();
+<a name="l00479"></a>00479             }
+<a name="l00480"></a>00480         }
+<a name="l00481"></a>00481 
+<a name="l00482"></a>00482         <span class="keywordflow">if</span> (currcnt == 0xFFFF) {
+<a name="l00483"></a>00483             ReachedTC();
+<a name="l00484"></a>00484             <span class="keywordflow">if</span> (autoinit) {
+<a name="l00485"></a>00485                 currcnt = basecnt;
+<a name="l00486"></a>00486                 curraddr = baseaddr;
+<a name="l00487"></a>00487                 UpdateEMSMapping();
+<a name="l00488"></a>00488             } <span class="keywordflow">else</span> {
+<a name="l00489"></a>00489                 masked = <span class="keyword">true</span>;
+<a name="l00490"></a>00490                 UpdateEMSMapping();
+<a name="l00491"></a>00491                 DoCallBack(DMA_TRANSFEREND);
+<a name="l00492"></a>00492                 <span class="keywordflow">break</span>;
+<a name="l00493"></a>00493             }
+<a name="l00494"></a>00494         }
+<a name="l00495"></a>00495     }
+<a name="l00496"></a>00496 
+<a name="l00497"></a>00497         <span class="keywordflow">return</span> done;
+<a name="l00498"></a>00498 }
+<a name="l00499"></a>00499 
+<a name="l00500"></a>00500 Bitu DmaChannel::Write(Bitu want, Bit8u * buffer) {
+<a name="l00501"></a>00501         Bitu done=0;
+<a name="l00502"></a>00502         curraddr &amp;= dma_wrapping;
+<a name="l00503"></a>00503 
+<a name="l00504"></a>00504         <span class="comment">/* ISA devices cannot cycle DMA if the controller has masked the channel! Fix your code! */</span>
+<a name="l00505"></a>00505         <span class="keywordflow">if</span> (masked) {
+<a name="l00506"></a>00506                 <a class="code" href="classLOG.html">LOG</a>(LOG_DMACONTROL,LOG_WARN)(<span class="stringliteral">&quot;BUG: Attempted DMA channel write while channel masked&quot;</span>);
+<a name="l00507"></a>00507                 <span class="keywordflow">return</span> 0;
+<a name="l00508"></a>00508         }
+<a name="l00509"></a>00509     <span class="comment">/* You cannot write a DMA channel configured for reading (from memory) */</span>
+<a name="l00510"></a>00510     <span class="keywordflow">if</span> (transfer_mode != DMAT_WRITE) {
+<a name="l00511"></a>00511         <a class="code" href="classLOG.html">LOG</a>(LOG_DMACONTROL,LOG_WARN)(<span class="stringliteral">&quot;BUG: Attempted DMA channel write when DMA channel is configured by guest for reading (from memory)&quot;</span>);
+<a name="l00512"></a>00512         <span class="keywordflow">return</span> 0;
+<a name="l00513"></a>00513     }
+<a name="l00514"></a>00514 
+<a name="l00515"></a>00515     <span class="comment">/* WARNING: &quot;want&quot; is expressed in DMA transfer units.</span>
+<a name="l00516"></a>00516 <span class="comment">     *          For 8-bit DMA, want is in bytes.</span>
+<a name="l00517"></a>00517 <span class="comment">     *          For 16-bit DMA, want is in 16-bit WORDs.</span>
+<a name="l00518"></a>00518 <span class="comment">     *          Keep that in mind when writing code to call this function!</span>
+<a name="l00519"></a>00519 <span class="comment">     *          Perhaps a future modification could provide an alternate</span>
+<a name="l00520"></a>00520 <span class="comment">     *          Read function that expresses the count in bytes so the caller</span>
+<a name="l00521"></a>00521 <span class="comment">     *          cannot accidentally cause buffer overrun issues that cause</span>
+<a name="l00522"></a>00522 <span class="comment">     *          mystery crashes. */</span>
+<a name="l00523"></a>00523 
+<a name="l00524"></a>00524     <span class="keyword">const</span> Bit32u addrmask = 0xFFFu &gt;&gt; DMA16; <span class="comment">/* 16-bit ISA style DMA needs 0x7FFF, else 0xFFFF. Use 0x7FF/0xFFF (4KB) for simplicity reasons. */</span>
+<a name="l00525"></a>00525     <span class="keywordflow">while</span> (want &gt; 0) {
+<a name="l00526"></a>00526         <span class="keyword">const</span> Bit32u addr =
+<a name="l00527"></a>00527             curraddr &amp; addrmask;
+<a name="l00528"></a>00528         <span class="keyword">const</span> Bitu wrapdo =
+<a name="l00529"></a>00529             increment ?
+<a name="l00530"></a>00530                 <span class="comment">/*inc*/</span>((addrmask + 1u) - addr) :   <span class="comment">/* how many transfer units until (end of 4KB page) + 1 */</span>
+<a name="l00531"></a>00531                 <span class="comment">/*dec*/</span>(addr + 1u);                 <span class="comment">/* how many transfer units until (start of 4KB page) - 1 */</span>
+<a name="l00532"></a>00532         <span class="keyword">const</span> Bitu cando =
+<a name="l00533"></a>00533             MIN(MIN(want,Bitu(currcnt+1u)),wrapdo);
+<a name="l00534"></a>00534         assert(wrapdo != (Bitu)0);
+<a name="l00535"></a>00535         assert(cando != (Bitu)0);
+<a name="l00536"></a>00536         assert(cando &lt;= want);
+<a name="l00537"></a>00537         assert(cando &lt;= (addrmask + 1u));
+<a name="l00538"></a>00538 
+<a name="l00539"></a>00539         <span class="keywordflow">if</span> (increment) {
+<a name="l00540"></a>00540             assert((curraddr &amp; (~addrmask)) == ((curraddr + ((Bit32u)cando - 1u)) &amp; (~addrmask)));<span class="comment">//check our work, must not cross a 4KB boundary</span>
+<a name="l00541"></a>00541             DMA_BlockWrite4KB&lt;DMA_INCREMENT&gt;(pagebase,curraddr,buffer,cando,DMA16,DMA16_ADDRMASK);
+<a name="l00542"></a>00542             curraddr += (Bit32u)cando;
+<a name="l00543"></a>00543         }
+<a name="l00544"></a>00544         <span class="keywordflow">else</span> {
+<a name="l00545"></a>00545             assert((curraddr &amp; (~addrmask)) == ((curraddr - ((Bit32u)cando - 1u)) &amp; (~addrmask)));<span class="comment">//check our work, must not cross a 4KB boundary</span>
+<a name="l00546"></a>00546             DMA_BlockWrite4KB&lt;DMA_DECREMENT&gt;(pagebase,curraddr,buffer,cando,DMA16,DMA16_ADDRMASK);
+<a name="l00547"></a>00547             curraddr -= (Bit32u)cando;
+<a name="l00548"></a>00548         }
+<a name="l00549"></a>00549 
+<a name="l00550"></a>00550         curraddr &amp;= dma_wrapping;
+<a name="l00551"></a>00551         buffer += cando &lt;&lt; DMA16;
+<a name="l00552"></a>00552         currcnt -= (Bit16u)cando;
+<a name="l00553"></a>00553         want -= cando;
+<a name="l00554"></a>00554         done += cando;
+<a name="l00555"></a>00555 
+<a name="l00556"></a>00556         <span class="keywordflow">if</span> (IS_PC98_ARCH) {
+<a name="l00557"></a>00557             <span class="comment">/* check wraparound, to emulate auto bank increment.</span>
+<a name="l00558"></a>00558 <span class="comment">             * do not check DMA16 because PC-98 does not have 16-bit DMA channels.</span>
+<a name="l00559"></a>00559 <span class="comment">             *</span>
+<a name="l00560"></a>00560 <span class="comment">             * The PC-98 port of Sim City 2000 needs this to properly play digitized speech,</span>
+<a name="l00561"></a>00561 <span class="comment">             * especially &quot;reticulating splines&quot;. */</span>
+<a name="l00562"></a>00562             <span class="keywordflow">if</span> ((( increment) &amp;&amp; (curraddr &amp; 0xFFFFu) == 0u) ||
+<a name="l00563"></a>00563                 ((!increment) &amp;&amp; (curraddr &amp; 0xFFFFu) == 0xFFFFu)) {
+<a name="l00564"></a>00564                 page_bank_increment();
+<a name="l00565"></a>00565             }
+<a name="l00566"></a>00566         }
+<a name="l00567"></a>00567 
+<a name="l00568"></a>00568         <span class="keywordflow">if</span> (currcnt == 0xFFFF) {
+<a name="l00569"></a>00569             ReachedTC();
+<a name="l00570"></a>00570             <span class="keywordflow">if</span> (autoinit) {
+<a name="l00571"></a>00571                 currcnt = basecnt;
+<a name="l00572"></a>00572                 curraddr = baseaddr;
+<a name="l00573"></a>00573                 UpdateEMSMapping();
+<a name="l00574"></a>00574             } <span class="keywordflow">else</span> {
+<a name="l00575"></a>00575                 masked = <span class="keyword">true</span>;
+<a name="l00576"></a>00576                 UpdateEMSMapping();
+<a name="l00577"></a>00577                 DoCallBack(DMA_TRANSFEREND);
+<a name="l00578"></a>00578                 <span class="keywordflow">break</span>;
+<a name="l00579"></a>00579             }
+<a name="l00580"></a>00580         }
+<a name="l00581"></a>00581     }
+<a name="l00582"></a>00582 
+<a name="l00583"></a>00583         <span class="keywordflow">return</span> done;
+<a name="l00584"></a>00584 }
+<a name="l00585"></a>00585 
+<a name="l00586"></a>00586 <span class="keywordtype">void</span> DMA_SetWrapping(Bit32u wrap) {
+<a name="l00587"></a>00587         dma_wrapping = wrap;
+<a name="l00588"></a>00588 }
+<a name="l00589"></a>00589 
+<a name="l00590"></a>00590 <span class="keywordtype">void</span> DMA_FreeControllers() {
+<a name="l00591"></a>00591         <span class="keywordflow">if</span> (DmaControllers[0]) {
+<a name="l00592"></a>00592                 <span class="keyword">delete</span> DmaControllers[0];
+<a name="l00593"></a>00593                 DmaControllers[0]=NULL;
+<a name="l00594"></a>00594         }
+<a name="l00595"></a>00595         <span class="keywordflow">if</span> (DmaControllers[1]) {
+<a name="l00596"></a>00596                 <span class="keyword">delete</span> DmaControllers[1];
+<a name="l00597"></a>00597                 DmaControllers[1]=NULL;
+<a name="l00598"></a>00598         }
+<a name="l00599"></a>00599 }
+<a name="l00600"></a>00600 
+<a name="l00601"></a>00601 <span class="keywordtype">void</span> DMA_Destroy(<a class="code" href="classSection.html">Section</a>* <span class="comment">/*sec*/</span>) {
+<a name="l00602"></a>00602         DMA_FreeControllers();
+<a name="l00603"></a>00603 }
+<a name="l00604"></a>00604 
+<a name="l00605"></a>00605 <span class="keywordtype">void</span> DMA_Reset(<a class="code" href="classSection.html">Section</a>* <span class="comment">/*sec*/</span>) {
+<a name="l00606"></a>00606         Bit16u i;
+<a name="l00607"></a>00607 
+<a name="l00608"></a>00608         DMA_FreeControllers();
+<a name="l00609"></a>00609 
+<a name="l00610"></a>00610         <span class="comment">// LOG</span>
+<a name="l00611"></a>00611         <a class="code" href="classLOG.html">LOG</a>(LOG_MISC,LOG_DEBUG)(<span class="stringliteral">&quot;DMA_Reset(): reinitializing DMA controller(s)&quot;</span>);
+<a name="l00612"></a>00612 
+<a name="l00613"></a>00613         <a class="code" href="classSection__prop.html">Section_prop</a> * section=<span class="keyword">static_cast&lt;</span><a class="code" href="classSection__prop.html">Section_prop</a> *<span class="keyword">&gt;</span>(control-&gt;GetSection(<span class="stringliteral">&quot;dosbox&quot;</span>));
+<a name="l00614"></a>00614         assert(section != NULL);
+<a name="l00615"></a>00615 
+<a name="l00616"></a>00616         DMA_SetWrapping(0xffff);
+<a name="l00617"></a>00617 
+<a name="l00618"></a>00618         <span class="comment">/* NTS: parsing on reset means a reboot of the VM (and possibly other conditions) can permit</span>
+<a name="l00619"></a>00619 <span class="comment">         *      the user to change DMA emulation settings and have them take effect on VM reboot. */</span>
+<a name="l00620"></a>00620         enable_2nd_dma = section-&gt;Get_bool(<span class="stringliteral">&quot;enable 2nd dma controller&quot;</span>);
+<a name="l00621"></a>00621         enable_1st_dma = enable_2nd_dma || section-&gt;Get_bool(<span class="stringliteral">&quot;enable 1st dma controller&quot;</span>);
+<a name="l00622"></a>00622         enable_dma_extra_page_registers = section-&gt;Get_bool(<span class="stringliteral">&quot;enable dma extra page registers&quot;</span>);
+<a name="l00623"></a>00623         dma_page_register_writeonly = section-&gt;Get_bool(<span class="stringliteral">&quot;dma page registers write-only&quot;</span>);
+<a name="l00624"></a>00624         allow_decrement_mode = section-&gt;Get_bool(<span class="stringliteral">&quot;allow dma address decrement&quot;</span>);
+<a name="l00625"></a>00625 
+<a name="l00626"></a>00626     <span class="keywordflow">if</span> (IS_PC98_ARCH) <span class="comment">// DMA 4-7 do not exist on PC-98</span>
+<a name="l00627"></a>00627         enable_2nd_dma = <span class="keyword">false</span>;
+<a name="l00628"></a>00628 
+<a name="l00629"></a>00629     <span class="keywordflow">if</span> (machine == MCH_PCJR) {
+<a name="l00630"></a>00630         <a class="code" href="classLOG.html">LOG</a>(LOG_MISC,LOG_DEBUG)(<span class="stringliteral">&quot;DMA is disabled in PCjr mode&quot;</span>);
+<a name="l00631"></a>00631         enable_1st_dma = <span class="keyword">false</span>;
+<a name="l00632"></a>00632         enable_2nd_dma = <span class="keyword">false</span>;
+<a name="l00633"></a>00633         <span class="keywordflow">return</span>;
+<a name="l00634"></a>00634     }
+<a name="l00635"></a>00635 
+<a name="l00636"></a>00636     {
+<a name="l00637"></a>00637         std::string s = section-&gt;Get_string(<span class="stringliteral">&quot;enable 128k capable 16-bit dma&quot;</span>);
+<a name="l00638"></a>00638 
+<a name="l00639"></a>00639         <span class="keywordflow">if</span> (s == <span class="stringliteral">&quot;true&quot;</span> || s == <span class="stringliteral">&quot;1&quot;</span>)
+<a name="l00640"></a>00640             isadma128k = 1;
+<a name="l00641"></a>00641         <span class="keywordflow">else</span> <span class="keywordflow">if</span> (s == <span class="stringliteral">&quot;false&quot;</span> || s == <span class="stringliteral">&quot;0&quot;</span>)
+<a name="l00642"></a>00642             isadma128k = 0;
+<a name="l00643"></a>00643         <span class="keywordflow">else</span>
+<a name="l00644"></a>00644             isadma128k = -1;
+<a name="l00645"></a>00645     }
+<a name="l00646"></a>00646 
+<a name="l00647"></a>00647         <span class="keywordflow">if</span> (enable_1st_dma)
+<a name="l00648"></a>00648                 DmaControllers[0] = <span class="keyword">new</span> <a class="code" href="classDmaController.html">DmaController</a>(0);
+<a name="l00649"></a>00649         <span class="keywordflow">else</span>
+<a name="l00650"></a>00650                 DmaControllers[0] = NULL;
+<a name="l00651"></a>00651 
+<a name="l00652"></a>00652         <span class="keywordflow">if</span> (enable_2nd_dma)
+<a name="l00653"></a>00653                 DmaControllers[1] = <span class="keyword">new</span> <a class="code" href="classDmaController.html">DmaController</a>(1);
+<a name="l00654"></a>00654         <span class="keywordflow">else</span>
+<a name="l00655"></a>00655                 DmaControllers[1] = NULL;
+<a name="l00656"></a>00656 
+<a name="l00657"></a>00657         <span class="keywordflow">for</span> (i=0;i&lt;0x10;i++) {
+<a name="l00658"></a>00658                 Bitu mask = IO_MB;
+<a name="l00659"></a>00659                 <span class="keywordflow">if</span> (i &lt; 8) mask |= IO_MW;
+<a name="l00660"></a>00660 
+<a name="l00661"></a>00661                 <span class="keywordflow">if</span> (enable_1st_dma) {
+<a name="l00662"></a>00662                         <span class="comment">/* install handler for first DMA controller ports */</span>
+<a name="l00663"></a>00663                         DmaControllers[0]-&gt;DMA_WriteHandler[i].Install(IS_PC98_ARCH ? ((i * 2u) + 1u) : i,DMA_Write_Port,mask);
+<a name="l00664"></a>00664                         DmaControllers[0]-&gt;DMA_ReadHandler[i].Install(IS_PC98_ARCH ? ((i * 2u) + 1u) : i,DMA_Read_Port,mask);
+<a name="l00665"></a>00665                 }
+<a name="l00666"></a>00666                 <span class="keywordflow">if</span> (enable_2nd_dma) {
+<a name="l00667"></a>00667             assert(!IS_PC98_ARCH);
+<a name="l00668"></a>00668                         <span class="comment">/* install handler for second DMA controller ports */</span>
+<a name="l00669"></a>00669                         DmaControllers[1]-&gt;DMA_WriteHandler[i].Install(0xc0u+i*2u,DMA_Write_Port,mask);
+<a name="l00670"></a>00670                         DmaControllers[1]-&gt;DMA_ReadHandler[i].Install(0xc0u+i*2u,DMA_Read_Port,mask);
+<a name="l00671"></a>00671                 }
+<a name="l00672"></a>00672         }
+<a name="l00673"></a>00673 
+<a name="l00674"></a>00674         <span class="keywordflow">if</span> (enable_1st_dma) {
+<a name="l00675"></a>00675         <span class="keywordflow">if</span> (IS_PC98_ARCH) {
+<a name="l00676"></a>00676             <span class="comment">/* install handlers for ports 0x21-0x29 odd */</span>
+<a name="l00677"></a>00677             <span class="keywordflow">for</span> (i=0;i &lt; 5;i++) {
+<a name="l00678"></a>00678                 DmaControllers[0]-&gt;DMA_WriteHandler[0x10+i].Install(0x21+(i*2u),DMA_Write_Port,IO_MB,1);
+<a name="l00679"></a>00679                 DmaControllers[0]-&gt;DMA_ReadHandler[0x10+i].Install(0x21+(i*2u),DMA_Read_Port,IO_MB,1);
+<a name="l00680"></a>00680             }
+<a name="l00681"></a>00681         }
+<a name="l00682"></a>00682         <span class="keywordflow">else</span> {
+<a name="l00683"></a>00683             <span class="comment">/* install handlers for ports 0x81-0x83 (on the first DMA controller) */</span>
+<a name="l00684"></a>00684             DmaControllers[0]-&gt;DMA_WriteHandler[0x10].Install(0x80,DMA_Write_Port,IO_MB,8);
+<a name="l00685"></a>00685             DmaControllers[0]-&gt;DMA_ReadHandler[0x10].Install(0x80,DMA_Read_Port,IO_MB,8);
 <a name="l00686"></a>00686         }
-<a name="l00687"></a>00687 
-<a name="l00688"></a>00688         <span class="keywordflow">if</span> (enable_2nd_dma) {
-<a name="l00689"></a>00689         assert(!IS_PC98_ARCH);
-<a name="l00690"></a>00690         <span class="comment">/* install handlers for ports 0x81-0x83 (on the second DMA controller) */</span>
-<a name="l00691"></a>00691                 DmaControllers[1]-&gt;DMA_WriteHandler[0x10].Install(0x88,DMA_Write_Port,IO_MB,8);
-<a name="l00692"></a>00692                 DmaControllers[1]-&gt;DMA_ReadHandler[0x10].Install(0x88,DMA_Read_Port,IO_MB,8);
-<a name="l00693"></a>00693         }
-<a name="l00694"></a>00694 
-<a name="l00695"></a>00695         <span class="comment">/* FIXME: This should be in a separate EMS board init */</span>
-<a name="l00696"></a>00696         <span class="keywordflow">for</span> (i=0;i &lt; LINK_START;i++) ems_board_mapping[i] = i;
-<a name="l00697"></a>00697 }
-<a name="l00698"></a>00698 
-<a name="l00699"></a>00699 <span class="keywordtype">void</span> Init_DMA() {
-<a name="l00700"></a>00700         <a class="code" href="classLOG.html">LOG</a>(LOG_MISC,LOG_DEBUG)(<span class="stringliteral">&quot;Initializing DMA controller emulation&quot;</span>);
-<a name="l00701"></a>00701 
-<a name="l00702"></a>00702         AddExitFunction(AddExitFunctionFuncPair(DMA_Destroy));
-<a name="l00703"></a>00703         AddVMEventFunction(VM_EVENT_RESET,AddVMEventFunctionFuncPair(DMA_Reset));
-<a name="l00704"></a>00704 }
-<a name="l00705"></a>00705 
+<a name="l00687"></a>00687         }
+<a name="l00688"></a>00688 
+<a name="l00689"></a>00689         <span class="keywordflow">if</span> (enable_2nd_dma) {
+<a name="l00690"></a>00690         assert(!IS_PC98_ARCH);
+<a name="l00691"></a>00691         <span class="comment">/* install handlers for ports 0x81-0x83 (on the second DMA controller) */</span>
+<a name="l00692"></a>00692                 DmaControllers[1]-&gt;DMA_WriteHandler[0x10].Install(0x88,DMA_Write_Port,IO_MB,8);
+<a name="l00693"></a>00693                 DmaControllers[1]-&gt;DMA_ReadHandler[0x10].Install(0x88,DMA_Read_Port,IO_MB,8);
+<a name="l00694"></a>00694         }
+<a name="l00695"></a>00695 
+<a name="l00696"></a>00696         <span class="comment">/* FIXME: This should be in a separate EMS board init */</span>
+<a name="l00697"></a>00697         <span class="keywordflow">for</span> (i=0;i &lt; LINK_START;i++) ems_board_mapping[i] = i;
+<a name="l00698"></a>00698 }
+<a name="l00699"></a>00699 
+<a name="l00700"></a>00700 <span class="keywordtype">void</span> Init_DMA() {
+<a name="l00701"></a>00701         <a class="code" href="classLOG.html">LOG</a>(LOG_MISC,LOG_DEBUG)(<span class="stringliteral">&quot;Initializing DMA controller emulation&quot;</span>);
+<a name="l00702"></a>00702 
+<a name="l00703"></a>00703         AddExitFunction(AddExitFunctionFuncPair(DMA_Destroy));
+<a name="l00704"></a>00704         AddVMEventFunction(VM_EVENT_RESET,AddVMEventFunctionFuncPair(DMA_Reset));
+<a name="l00705"></a>00705 }
+<a name="l00706"></a>00706 
+<a name="l00707"></a>00707 <span class="comment">//save state support</span>
+<a name="l00708"></a>00708 <span class="keyword">extern</span> <span class="keywordtype">void</span> *GUS_DMA_Callback_Func;
+<a name="l00709"></a>00709 <span class="keyword">extern</span> <span class="keywordtype">void</span> *SB_DSP_DMA_CallBack_Func;
+<a name="l00710"></a>00710 <span class="keyword">extern</span> <span class="keywordtype">void</span> *SB_DSP_ADC_CallBack_Func;
+<a name="l00711"></a>00711 <span class="keyword">extern</span> <span class="keywordtype">void</span> *SB_DSP_E2_DMA_CallBack_Func;
+<a name="l00712"></a>00712 <span class="keyword">extern</span> <span class="keywordtype">void</span> *TandyDAC_DMA_CallBack_Func;
+<a name="l00713"></a>00713 
+<a name="l00714"></a>00714 
+<a name="l00715"></a>00715 <span class="keyword">const</span> <span class="keywordtype">void</span> *dma_state_callback_table[] = {
+<a name="l00716"></a>00716         NULL,
+<a name="l00717"></a>00717         GUS_DMA_Callback_Func,
+<a name="l00718"></a>00718         SB_DSP_DMA_CallBack_Func,
+<a name="l00719"></a>00719         SB_DSP_ADC_CallBack_Func,
+<a name="l00720"></a>00720         SB_DSP_E2_DMA_CallBack_Func,
+<a name="l00721"></a>00721         TandyDAC_DMA_CallBack_Func
+<a name="l00722"></a>00722 };
+<a name="l00723"></a>00723 
+<a name="l00724"></a>00724 
+<a name="l00725"></a>00725 Bit8u POD_State_Find_DMA_Callback( Bitu addr )
+<a name="l00726"></a>00726 {
+<a name="l00727"></a>00727         Bit8u size;
+<a name="l00728"></a>00728 
+<a name="l00729"></a>00729         size = <span class="keyword">sizeof</span>(dma_state_callback_table) / <span class="keyword">sizeof</span>(<span class="keywordtype">void</span> *);
+<a name="l00730"></a>00730         <span class="keywordflow">for</span>( <span class="keywordtype">int</span> lcv=0; lcv&lt;size; lcv++ ) {
+<a name="l00731"></a>00731                 <span class="keywordflow">if</span>( (Bitu) dma_state_callback_table[lcv] == addr ) <span class="keywordflow">return</span> lcv;
+<a name="l00732"></a>00732         }
+<a name="l00733"></a>00733 
+<a name="l00734"></a>00734 
+<a name="l00735"></a>00735         <span class="comment">// ERROR! Set debug breakpoint</span>
+<a name="l00736"></a>00736         <span class="keywordflow">return</span> 0xff;
+<a name="l00737"></a>00737 }
+<a name="l00738"></a>00738 
+<a name="l00739"></a>00739 
+<a name="l00740"></a>00740 Bitu POD_State_Index_DMA_Callback( Bit8u index )
+<a name="l00741"></a>00741 {
+<a name="l00742"></a>00742         <span class="keywordflow">return</span> (Bitu) dma_state_callback_table[index];
+<a name="l00743"></a>00743 }
+<a name="l00744"></a>00744 
+<a name="l00745"></a>00745 <span class="keywordtype">void</span> DmaChannel::SaveState( std::ostream&amp; stream )
+<a name="l00746"></a>00746 {
+<a name="l00747"></a>00747         Bit8u dma_callback;
+<a name="l00748"></a>00748 
+<a name="l00749"></a>00749 
+<a name="l00750"></a>00750         dma_callback = POD_State_Find_DMA_Callback( (Bitu) (callback) );
+<a name="l00751"></a>00751 
+<a name="l00752"></a>00752         <span class="comment">//******************************************</span>
+<a name="l00753"></a>00753         <span class="comment">//******************************************</span>
+<a name="l00754"></a>00754         <span class="comment">//******************************************</span>
+<a name="l00755"></a>00755 
+<a name="l00756"></a>00756         <span class="comment">// - pure data</span>
+<a name="l00757"></a>00757         WRITE_POD( &amp;pagebase, pagebase );
+<a name="l00758"></a>00758         WRITE_POD( &amp;baseaddr, baseaddr );
+<a name="l00759"></a>00759         WRITE_POD( &amp;curraddr, curraddr );
+<a name="l00760"></a>00760         WRITE_POD( &amp;basecnt, basecnt );
+<a name="l00761"></a>00761         WRITE_POD( &amp;currcnt, currcnt );
+<a name="l00762"></a>00762         WRITE_POD( &amp;channum, channum );
+<a name="l00763"></a>00763         WRITE_POD( &amp;pagenum, pagenum );
+<a name="l00764"></a>00764         WRITE_POD( &amp;DMA16, DMA16 );
+<a name="l00765"></a>00765         WRITE_POD( &amp;increment, increment );
+<a name="l00766"></a>00766         WRITE_POD( &amp;autoinit, autoinit );
+<a name="l00767"></a>00767         <span class="comment">//WRITE_POD( &amp;trantype, trantype );</span>
+<a name="l00768"></a>00768         WRITE_POD( &amp;masked, masked );
+<a name="l00769"></a>00769         WRITE_POD( &amp;tcount, tcount );
+<a name="l00770"></a>00770         WRITE_POD( &amp;request, request );
+<a name="l00771"></a>00771 
+<a name="l00772"></a>00772         <span class="comment">//******************************************</span>
+<a name="l00773"></a>00773         <span class="comment">//******************************************</span>
+<a name="l00774"></a>00774         <span class="comment">//******************************************</span>
+<a name="l00775"></a>00775 
+<a name="l00776"></a>00776         <span class="comment">// - reloc ptr (!!!)</span>
+<a name="l00777"></a>00777         WRITE_POD( &amp;dma_callback, dma_callback );
+<a name="l00778"></a>00778 }
+<a name="l00779"></a>00779 
+<a name="l00780"></a>00780 <span class="keywordtype">void</span> DmaChannel::LoadState( std::istream&amp; stream )
+<a name="l00781"></a>00781 {
+<a name="l00782"></a>00782         Bit8u dma_callback;
+<a name="l00783"></a>00783 
+<a name="l00784"></a>00784 
+<a name="l00785"></a>00785         dma_callback = POD_State_Find_DMA_Callback( (Bitu) (callback) );
+<a name="l00786"></a>00786 
+<a name="l00787"></a>00787         <span class="comment">//******************************************</span>
+<a name="l00788"></a>00788         <span class="comment">//******************************************</span>
+<a name="l00789"></a>00789         <span class="comment">//******************************************</span>
+<a name="l00790"></a>00790 
+<a name="l00791"></a>00791         <span class="comment">// - pure data</span>
+<a name="l00792"></a>00792         READ_POD( &amp;pagebase, pagebase );
+<a name="l00793"></a>00793         READ_POD( &amp;baseaddr, baseaddr );
+<a name="l00794"></a>00794         READ_POD( &amp;curraddr, curraddr );
+<a name="l00795"></a>00795         READ_POD( &amp;basecnt, basecnt );
+<a name="l00796"></a>00796         READ_POD( &amp;currcnt, currcnt );
+<a name="l00797"></a>00797         READ_POD( &amp;channum, channum );
+<a name="l00798"></a>00798         READ_POD( &amp;pagenum, pagenum );
+<a name="l00799"></a>00799         READ_POD( &amp;DMA16, DMA16 );
+<a name="l00800"></a>00800         READ_POD( &amp;increment, increment );
+<a name="l00801"></a>00801         READ_POD( &amp;autoinit, autoinit );
+<a name="l00802"></a>00802         <span class="comment">//READ_POD( &amp;trantype, trantype );</span>
+<a name="l00803"></a>00803         READ_POD( &amp;masked, masked );
+<a name="l00804"></a>00804         READ_POD( &amp;tcount, tcount );
+<a name="l00805"></a>00805         READ_POD( &amp;request, request );
+<a name="l00806"></a>00806 
+<a name="l00807"></a>00807         <span class="comment">//********************************</span>
+<a name="l00808"></a>00808         <span class="comment">//********************************</span>
+<a name="l00809"></a>00809         <span class="comment">//********************************</span>
+<a name="l00810"></a>00810 
+<a name="l00811"></a>00811         <span class="comment">// - reloc func ptr</span>
+<a name="l00812"></a>00812         READ_POD( &amp;dma_callback, dma_callback );
+<a name="l00813"></a>00813 
+<a name="l00814"></a>00814 
+<a name="l00815"></a>00815         callback = (DMA_CallBack) POD_State_Index_DMA_Callback( dma_callback );
+<a name="l00816"></a>00816 }
+<a name="l00817"></a>00817 
+<a name="l00818"></a>00818 
+<a name="l00819"></a>00819 <span class="keywordtype">void</span> DmaController::SaveState( std::ostream&amp; stream )
+<a name="l00820"></a>00820 {
+<a name="l00821"></a>00821         <span class="comment">// - pure data</span>
+<a name="l00822"></a>00822         WRITE_POD( &amp;ctrlnum, ctrlnum );
+<a name="l00823"></a>00823         WRITE_POD( &amp;flipflop, flipflop );
+<a name="l00824"></a>00824 
+<a name="l00825"></a>00825         <span class="keywordflow">for</span>( <span class="keywordtype">int</span> lcv=0; lcv&lt;4; lcv++ ) {
+<a name="l00826"></a>00826                 DmaChannels[lcv]-&gt;SaveState(stream);
+<a name="l00827"></a>00827         }
+<a name="l00828"></a>00828 }
+<a name="l00829"></a>00829 
+<a name="l00830"></a>00830 
+<a name="l00831"></a>00831 <span class="keywordtype">void</span> DmaController::LoadState( std::istream&amp; stream )
+<a name="l00832"></a>00832 {
+<a name="l00833"></a>00833         <span class="comment">// - pure data</span>
+<a name="l00834"></a>00834         READ_POD( &amp;ctrlnum, ctrlnum );
+<a name="l00835"></a>00835         READ_POD( &amp;flipflop, flipflop );
+<a name="l00836"></a>00836 
+<a name="l00837"></a>00837         <span class="keywordflow">for</span>( <span class="keywordtype">int</span> lcv=0; lcv&lt;4; lcv++ ) {
+<a name="l00838"></a>00838                 DmaChannels[lcv]-&gt;LoadState(stream);
+<a name="l00839"></a>00839         }
+<a name="l00840"></a>00840 }
+<a name="l00841"></a>00841 
+<a name="l00842"></a>00842 
+<a name="l00843"></a>00843 <span class="keyword">namespace</span>
+<a name="l00844"></a>00844 {
+<a name="l00845"></a>00845         <span class="keyword">class </span>SerializeDMA : <span class="keyword">public</span> SerializeGlobalPOD
+<a name="l00846"></a>00846         {
+<a name="l00847"></a>00847         <span class="keyword">public</span>:
+<a name="l00848"></a>00848                 SerializeDMA() : SerializeGlobalPOD(<span class="stringliteral">&quot;DMA&quot;</span>)
+<a name="l00849"></a>00849                 {}
+<a name="l00850"></a>00850 
+<a name="l00851"></a>00851         <span class="keyword">private</span>:
+<a name="l00852"></a>00852                 <span class="keyword">virtual</span> <span class="keywordtype">void</span> getBytes(std::ostream&amp; stream)
+<a name="l00853"></a>00853                 {
+<a name="l00854"></a>00854                         SerializeGlobalPOD::getBytes(stream);
+<a name="l00855"></a>00855 
+<a name="l00856"></a>00856 
+<a name="l00857"></a>00857                         <span class="comment">// - pure data</span>
+<a name="l00858"></a>00858                         WRITE_POD( &amp;dma_wrapping, dma_wrapping );
+<a name="l00859"></a>00859 
+<a name="l00860"></a>00860 
+<a name="l00861"></a>00861                         <span class="keywordflow">for</span>( <span class="keywordtype">int</span> lcv=0; lcv&lt;2; lcv++ ) {
+<a name="l00862"></a>00862                                 <span class="comment">// cga, tandy, pcjr = no 2nd controller</span>
+<a name="l00863"></a>00863                                 <span class="keywordflow">if</span>( !DmaControllers[lcv] ) <span class="keywordflow">continue</span>;
+<a name="l00864"></a>00864 
+<a name="l00865"></a>00865                                 DmaControllers[lcv]-&gt;SaveState(stream);
+<a name="l00866"></a>00866                         }
+<a name="l00867"></a>00867 
+<a name="l00868"></a>00868 
+<a name="l00869"></a>00869                         <span class="comment">// - pure data</span>
+<a name="l00870"></a>00870                         WRITE_POD( &amp;ems_board_mapping, ems_board_mapping );
+<a name="l00871"></a>00871                 }
+<a name="l00872"></a>00872 
+<a name="l00873"></a>00873                 <span class="keyword">virtual</span> <span class="keywordtype">void</span> setBytes(std::istream&amp; stream)
+<a name="l00874"></a>00874                 {
+<a name="l00875"></a>00875                         SerializeGlobalPOD::setBytes(stream);
+<a name="l00876"></a>00876 
+<a name="l00877"></a>00877 
+<a name="l00878"></a>00878                         <span class="comment">// - pure data</span>
+<a name="l00879"></a>00879                         READ_POD( &amp;dma_wrapping, dma_wrapping );
+<a name="l00880"></a>00880 
+<a name="l00881"></a>00881 
+<a name="l00882"></a>00882                         <span class="keywordflow">for</span>( <span class="keywordtype">int</span> lcv=0; lcv&lt;2; lcv++ ) {
+<a name="l00883"></a>00883                                 <span class="comment">// cga, tandy, pcjr = no 2nd controller</span>
+<a name="l00884"></a>00884                                 <span class="keywordflow">if</span>( !DmaControllers[lcv] ) <span class="keywordflow">continue</span>;
+<a name="l00885"></a>00885 
+<a name="l00886"></a>00886                                 DmaControllers[lcv]-&gt;LoadState(stream);
+<a name="l00887"></a>00887                         }
+<a name="l00888"></a>00888 
+<a name="l00889"></a>00889 
+<a name="l00890"></a>00890                         <span class="comment">// - pure data</span>
+<a name="l00891"></a>00891                         READ_POD( &amp;ems_board_mapping, ems_board_mapping );
+<a name="l00892"></a>00892                 }
+<a name="l00893"></a>00893         } dummy;
+<a name="l00894"></a>00894 }
 </pre></div></div><!-- contents -->
 
 
 <hr class="footer"/><address class="footer"><small>
-Generated on Tue Oct 1 2019 18:06:26 for DOSBox-X by &#160;<a href="http://www.doxygen.org/index.html">
+Generated on Sun Jul 5 2020 13:11:36 for DOSBox-X by &#160;<a href="http://www.doxygen.org/index.html">
 <img class="footer" src="doxygen.png" alt="doxygen"/>
 </a> 1.8.0
 </small></address>

@@ -142,7 +142,7 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l00045"></a>00045         <span class="comment">// - PartialParam.tva.level</span>
 <a name="l00046"></a>00046         <span class="comment">// - expression</span>
 <a name="l00047"></a>00047         <span class="comment">// It&#39;s used to determine how much to subtract from the amp envelope&#39;s target value</span>
-<a name="l00048"></a>00048         Bit8u levelToAmpSubtraction[101];
+<a name="l00048"></a>00048     Bit8u levelToAmpSubtraction[101] = {};
 <a name="l00049"></a>00049 
 <a name="l00050"></a>00050         <span class="comment">// CONFIRMED: ...</span>
 <a name="l00051"></a>00051         Bit8u envLogarithmicTime[256];
@@ -151,9 +151,9 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l00054"></a>00054         Bit8u masterVolToAmpSubtraction[101];
 <a name="l00055"></a>00055 
 <a name="l00056"></a>00056         <span class="comment">// CONFIRMED:</span>
-<a name="l00057"></a>00057         Bit8u pulseWidth100To255[101];
+<a name="l00057"></a>00057     Bit8u pulseWidth100To255[101] = {};
 <a name="l00058"></a>00058 
-<a name="l00059"></a>00059         Bit16u exp9[512];
+<a name="l00059"></a>00059     Bit16u exp9[512] = {};
 <a name="l00060"></a>00060         Bit16u logsin9[512];
 <a name="l00061"></a>00061 
 <a name="l00062"></a>00062         <span class="keyword">const</span> Bit8u *resAmpDecayFactor;
@@ -166,7 +166,7 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 
 
 <hr class="footer"/><address class="footer"><small>
-Generated on Tue Oct 1 2019 18:06:29 for DOSBox-X by &#160;<a href="http://www.doxygen.org/index.html">
+Generated on Sun Jul 5 2020 13:11:39 for DOSBox-X by &#160;<a href="http://www.doxygen.org/index.html">
 <img class="footer" src="doxygen.png" alt="doxygen"/>
 </a> 1.8.0
 </small></address>

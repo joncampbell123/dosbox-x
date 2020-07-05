@@ -120,8 +120,8 @@ Classes</h2></td></tr>
 Public Member Functions</h2></td></tr>
 <tr class="memitem:a63819aa4ad95757c911450add9c3e8d2"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a63819aa4ad95757c911450add9c3e8d2"></a>
 &#160;</td><td class="memItemRight" valign="bottom"><b>DOS_PSP</b> (Bit16u segment)</td></tr>
-<tr class="memitem:a55b6d26ed8954f7ef6c45fb07d12ed87"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a55b6d26ed8954f7ef6c45fb07d12ed87"></a>
-void&#160;</td><td class="memItemRight" valign="bottom"><b>MakeNew</b> (Bit16u memSize)</td></tr>
+<tr class="memitem:affa0051f928a7722d8a3ed9428956125"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="affa0051f928a7722d8a3ed9428956125"></a>
+void&#160;</td><td class="memItemRight" valign="bottom"><b>MakeNew</b> (Bit16u mem_size)</td></tr>
 <tr class="memitem:ac9d915b8669d8ff2320f9f1761295c96"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="ac9d915b8669d8ff2320f9f1761295c96"></a>
 void&#160;</td><td class="memItemRight" valign="bottom"><b>CopyFileTable</b> (<a class="el" href="classDOS__PSP.html">DOS_PSP</a> *srcpsp, bool createchildpsp)</td></tr>
 <tr class="memitem:afdeb504910e039b3c8d11e06d4ec5ff4"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="afdeb504910e039b3c8d11e06d4ec5ff4"></a>
@@ -164,6 +164,10 @@ void&#160;</td><td class="memItemRight" valign="bottom"><b>SetFCB1</b> (RealPt s
 void&#160;</td><td class="memItemRight" valign="bottom"><b>SetFCB2</b> (RealPt src)</td></tr>
 <tr class="memitem:a513c55126b7b22f3fa587f005cbade46"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a513c55126b7b22f3fa587f005cbade46"></a>
 void&#160;</td><td class="memItemRight" valign="bottom"><b>SetCommandTail</b> (RealPt src)</td></tr>
+<tr class="memitem:a668f1449f7b9ca976e87d19f70f3e92d"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a668f1449f7b9ca976e87d19f70f3e92d"></a>
+void&#160;</td><td class="memItemRight" valign="bottom"><b>StoreCommandTail</b> (void)</td></tr>
+<tr class="memitem:a8fb6c2a0b1af5e5898356e759119722d"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a8fb6c2a0b1af5e5898356e759119722d"></a>
+void&#160;</td><td class="memItemRight" valign="bottom"><b>RestoreCommandTail</b> (void)</td></tr>
 <tr class="memitem:ac5a10428bbb82e178e67350935882c76"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="ac5a10428bbb82e178e67350935882c76"></a>
 bool&#160;</td><td class="memItemRight" valign="bottom"><b>SetNumFiles</b> (Bit16u fileNum)</td></tr>
 <tr class="memitem:a94aa51f3b9eef379d2fbcaf025206a86"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a94aa51f3b9eef379d2fbcaf025206a86"></a>
@@ -175,7 +179,7 @@ static Bit16u&#160;</td><td class="memItemRight" valign="bottom"><b>rootpsp</b> 
 </table>
 <hr/><a name="details" id="details"></a><h2>Detailed Description</h2>
 <div class="textblock">
-<p>Definition at line <a class="el" href="dos__inc_8h_source.html#l00359">359</a> of file <a class="el" href="dos__inc_8h_source.html">dos_inc.h</a>.</p>
+<p>Definition at line <a class="el" href="dos__inc_8h_source.html#l00367">367</a> of file <a class="el" href="dos__inc_8h_source.html">dos_inc.h</a>.</p>
 </div><hr/>The documentation for this class was generated from the following files:<ul>
 <li>include/<a class="el" href="dos__inc_8h_source.html">dos_inc.h</a></li>
 <li>src/dos/<a class="el" href="dos__classes_8cpp_source.html">dos_classes.cpp</a></li>
@@ -184,7 +188,7 @@ static Bit16u&#160;</td><td class="memItemRight" valign="bottom"><b>rootpsp</b> 
 
 
 <hr class="footer"/><address class="footer"><small>
-Generated on Tue Oct 1 2019 18:06:31 for DOSBox-X by &#160;<a href="http://www.doxygen.org/index.html">
+Generated on Sun Jul 5 2020 13:11:40 for DOSBox-X by &#160;<a href="http://www.doxygen.org/index.html">
 <img class="footer" src="doxygen.png" alt="doxygen"/>
 </a> 1.8.0
 </small></address>

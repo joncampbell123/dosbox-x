@@ -7,6 +7,11 @@ Inheritance diagram for fat\-Drive\-:\begin{figure}[H]
 \includegraphics[height=2.000000cm]{classfatDrive}
 \end{center}
 \end{figure}
+\subsection*{Classes}
+\begin{DoxyCompactItemize}
+\item 
+struct {\bfseries lfn\-Range\-\_\-t}
+\end{DoxyCompactItemize}
 \subsection*{Public Member Functions}
 \begin{DoxyCompactItemize}
 \item 
@@ -16,7 +21,7 @@ Inheritance diagram for fat\-Drive\-:\begin{figure}[H]
 \hypertarget{classfatDrive_acee540d8f7ed9571f8d905920ba04615}{{\bfseries fat\-Drive} (\hyperlink{classimageDisk}{image\-Disk} $\ast$source\-Loaded\-Disk, std\-::vector$<$ std\-::string $>$ \&options)}\label{classfatDrive_acee540d8f7ed9571f8d905920ba04615}
 
 \item 
-\hypertarget{classfatDrive_a7dafc7cbf5e782c11d6e51e058e276d0}{void {\bfseries fat\-Drive\-Init} (const char $\ast$sys\-Filename, Bit32u bytesector, Bit32u cylsector, Bit32u headscyl, Bit32u cylinders, Bit64u filesize, std\-::vector$<$ std\-::string $>$ \&options)}\label{classfatDrive_a7dafc7cbf5e782c11d6e51e058e276d0}
+\hypertarget{classfatDrive_a008ac73609cfbabcd2428ceaa1ee3a58}{void {\bfseries fat\-Drive\-Init} (const char $\ast$sys\-Filename, Bit32u bytesector, Bit32u cylsector, Bit32u headscyl, Bit32u cylinders, Bit64u filesize, const std\-::vector$<$ std\-::string $>$ \&options)}\label{classfatDrive_a008ac73609cfbabcd2428ceaa1ee3a58}
 
 \item 
 \hypertarget{classfatDrive_a2b7f5898cbfdf595b07b0c0c7da86c10}{virtual bool {\bfseries File\-Open} (\hyperlink{classDOS__File}{D\-O\-S\-\_\-\-File} $\ast$$\ast$file, const char $\ast$name, Bit32u flags)}\label{classfatDrive_a2b7f5898cbfdf595b07b0c0c7da86c10}
@@ -43,13 +48,28 @@ Inheritance diagram for fat\-Drive\-:\begin{figure}[H]
 \hypertarget{classfatDrive_aa42a5640691796f7d1fef063b92dc418}{virtual bool {\bfseries Find\-Next} (\hyperlink{classDOS__DTA}{D\-O\-S\-\_\-\-D\-T\-A} \&dta)}\label{classfatDrive_aa42a5640691796f7d1fef063b92dc418}
 
 \item 
+\hypertarget{classfatDrive_a1376620951f4411b32b604eeefd77d4c}{virtual bool {\bfseries Set\-File\-Attr} (const char $\ast$name, Bit16u attr)}\label{classfatDrive_a1376620951f4411b32b604eeefd77d4c}
+
+\item 
 \hypertarget{classfatDrive_a5849a5af82e7d7a273e6096aa08d220b}{virtual bool {\bfseries Get\-File\-Attr} (const char $\ast$name, Bit16u $\ast$attr)}\label{classfatDrive_a5849a5af82e7d7a273e6096aa08d220b}
+
+\item 
+\hypertarget{classfatDrive_abc413920b854f692ff21056d34f5a9e8}{virtual bool {\bfseries Get\-File\-Attr\-Ex} (char $\ast$name, struct stat $\ast$status)}\label{classfatDrive_abc413920b854f692ff21056d34f5a9e8}
+
+\item 
+\hypertarget{classfatDrive_a129d59e6d37174a27fe550233ac84d90}{virtual unsigned long {\bfseries Get\-Compressed\-Size} (char $\ast$name)}\label{classfatDrive_a129d59e6d37174a27fe550233ac84d90}
+
+\item 
+\hypertarget{classfatDrive_a0f9179e5fdfa11777226bc80ad33fddb}{virtual unsigned long {\bfseries Get\-Serial} ()}\label{classfatDrive_a0f9179e5fdfa11777226bc80ad33fddb}
 
 \item 
 \hypertarget{classfatDrive_a280a53447052bc89d35e281e3180c281}{virtual bool {\bfseries Rename} (const char $\ast$oldname, const char $\ast$newname)}\label{classfatDrive_a280a53447052bc89d35e281e3180c281}
 
 \item 
 \hypertarget{classfatDrive_a89089651094073f2d5257e187fe10403}{virtual bool {\bfseries Allocation\-Info} (Bit16u $\ast$\-\_\-bytes\-\_\-sector, Bit8u $\ast$\-\_\-sectors\-\_\-cluster, Bit16u $\ast$\-\_\-total\-\_\-clusters, Bit16u $\ast$\-\_\-free\-\_\-clusters)}\label{classfatDrive_a89089651094073f2d5257e187fe10403}
+
+\item 
+\hypertarget{classfatDrive_a778b4865bda95e0793488f22c59e119f}{virtual bool {\bfseries Allocation\-Info32} (Bit32u $\ast$\-\_\-bytes\-\_\-sector, Bit32u $\ast$\-\_\-sectors\-\_\-cluster, Bit32u $\ast$\-\_\-total\-\_\-clusters, Bit32u $\ast$\-\_\-free\-\_\-clusters)}\label{classfatDrive_a778b4865bda95e0793488f22c59e119f}
 
 \item 
 \hypertarget{classfatDrive_a87594730a6f5c10a579a9e236ada21e9}{virtual bool {\bfseries File\-Exists} (const char $\ast$name)}\label{classfatDrive_a87594730a6f5c10a579a9e236ada21e9}
@@ -103,7 +123,13 @@ Inheritance diagram for fat\-Drive\-:\begin{figure}[H]
 \hypertarget{classfatDrive_accabf68f45861dba60d9c93981c816c4}{bool {\bfseries directory\-Browse} (Bit32u dir\-Clust\-Number, \hyperlink{structdirentry}{direntry} $\ast$use\-Entry, Bit32s ent\-Num, Bit32s start=0)}\label{classfatDrive_accabf68f45861dba60d9c93981c816c4}
 
 \item 
-\hypertarget{classfatDrive_a33bfa188995f1f5bf813af5a5b8e24ba}{bool {\bfseries directory\-Change} (Bit32u dir\-Clust\-Number, \hyperlink{structdirentry}{direntry} $\ast$use\-Entry, Bit32s ent\-Num)}\label{classfatDrive_a33bfa188995f1f5bf813af5a5b8e24ba}
+\hypertarget{classfatDrive_a8758f6fd418e47feb0783a0282e09fea}{bool {\bfseries directory\-Change} (Bit32u dir\-Clust\-Number, const \hyperlink{structdirentry}{direntry} $\ast$use\-Entry, Bit32s ent\-Num)}\label{classfatDrive_a8758f6fd418e47feb0783a0282e09fea}
+
+\item 
+\hypertarget{classfatDrive_a7c574d832eeb7ded4abbeee87a40000f}{const \hyperlink{unionFAT__BootSector_1_1bpb__union__t}{F\-A\-T\-\_\-\-Boot\-Sector\-::bpb\-\_\-union\-\_\-t} \& {\bfseries Get\-B\-P\-B} (void)}\label{classfatDrive_a7c574d832eeb7ded4abbeee87a40000f}
+
+\item 
+\hypertarget{classfatDrive_a187e82ad526afe9d1267c2451fa8cbb4}{void {\bfseries Set\-B\-P\-B} (const \hyperlink{unionFAT__BootSector_1_1bpb__union__t}{F\-A\-T\-\_\-\-Boot\-Sector\-::bpb\-\_\-union\-\_\-t} \&bpb)}\label{classfatDrive_a187e82ad526afe9d1267c2451fa8cbb4}
 
 \item 
 \hypertarget{classfatDrive_a0347726faa951ece86554389c1582365}{virtual Bit8u {\bfseries Read\-\_\-\-Absolute\-Sector} (Bit32u sectnum, void $\ast$data)}\label{classfatDrive_a0347726faa951ece86554389c1582365}
@@ -138,17 +164,32 @@ Inheritance diagram for fat\-Drive\-:\begin{figure}[H]
 \item 
 \hypertarget{classfatDrive_ae44dc4ad74a126a3dee16c68a25dbb60}{virtual void {\bfseries Update\-Boot\-Volume\-Label} (const char $\ast$label)}\label{classfatDrive_ae44dc4ad74a126a3dee16c68a25dbb60}
 
+\item 
+\hypertarget{classfatDrive_a8abdc9360711c5b0b0b3a08b3378eb0b}{virtual Bit32u {\bfseries Get\-Partition\-Offset} (void)}\label{classfatDrive_a8abdc9360711c5b0b0b3a08b3378eb0b}
+
+\item 
+\hypertarget{classfatDrive_a9cb5e8576bdad72821ad924667e896ba}{virtual Bit32u {\bfseries Get\-First\-Cluster\-Offset} (void)}\label{classfatDrive_a9cb5e8576bdad72821ad924667e896ba}
+
+\item 
+\hypertarget{classfatDrive_acc19cc4c693b0c7e3bac06f78b058bed}{virtual Bit32u {\bfseries Get\-Highest\-Cluster\-Number} (void)}\label{classfatDrive_acc19cc4c693b0c7e3bac06f78b058bed}
+
 \end{DoxyCompactItemize}
 \subsection*{Public Attributes}
 \begin{DoxyCompactItemize}
 \item 
-\hypertarget{classfatDrive_a3a263d1b8a02f7aff910fe9ab2347b4f}{\hyperlink{classimageDisk}{image\-Disk} $\ast$ {\bfseries loaded\-Disk}}\label{classfatDrive_a3a263d1b8a02f7aff910fe9ab2347b4f}
+\hypertarget{classfatDrive_a3a263d1b8a02f7aff910fe9ab2347b4f}{\hyperlink{classimageDisk}{image\-Disk} $\ast$ {\bfseries loaded\-Disk} = N\-U\-L\-L}\label{classfatDrive_a3a263d1b8a02f7aff910fe9ab2347b4f}
 
 \item 
-\hypertarget{classfatDrive_ae3927936196f98009856fc9f46f1065a}{bool {\bfseries created\-\_\-successfully}}\label{classfatDrive_ae3927936196f98009856fc9f46f1065a}
+\hypertarget{classfatDrive_a4f049f1ebda6cfbab9eb2e8309ffeb26}{uint8\-\_\-t {\bfseries req\-\_\-ver\-\_\-major} = 0}\label{classfatDrive_a4f049f1ebda6cfbab9eb2e8309ffeb26}
 
 \item 
-\hypertarget{classfatDrive_ac8107e7154b762ea45805c3eec97b3dd}{Bit32u {\bfseries sector\-\_\-size}}\label{classfatDrive_ac8107e7154b762ea45805c3eec97b3dd}
+\hypertarget{classfatDrive_aaf7c4859194288917a8fc5ece0c23c87}{uint8\-\_\-t {\bfseries req\-\_\-ver\-\_\-minor} = 0}\label{classfatDrive_aaf7c4859194288917a8fc5ece0c23c87}
+
+\item 
+\hypertarget{classfatDrive_ae3927936196f98009856fc9f46f1065a}{bool {\bfseries created\-\_\-successfully} = true}\label{classfatDrive_ae3927936196f98009856fc9f46f1065a}
+
+\item 
+\hypertarget{classfatDrive_ac8107e7154b762ea45805c3eec97b3dd}{Bit32u {\bfseries sector\-\_\-size} = 0}\label{classfatDrive_ac8107e7154b762ea45805c3eec97b3dd}
 
 \item 
 \hypertarget{classfatDrive_a87c406b52e2ede2b0d6d19df26e66184}{char {\bfseries srch\-\_\-dir} \mbox{[}C\-R\-O\-S\-S\-\_\-\-L\-E\-N\mbox{]}}\label{classfatDrive_a87c406b52e2ede2b0d6d19df26e66184}
@@ -180,7 +221,7 @@ Inheritance diagram for fat\-Drive\-:\begin{figure}[H]
 \subsection{Detailed Description}
 
 
-Definition at line 206 of file drives.\-h.
+Definition at line 367 of file drives.\-h.
 
 
 

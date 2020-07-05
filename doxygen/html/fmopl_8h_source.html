@@ -148,71 +148,73 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l00051"></a>00051 <span class="keywordtype">void</span> ym3812_set_timer_handler(<span class="keywordtype">void</span> *chip, OPL_TIMERHANDLER TimerHandler, <a class="code" href="classdevice__t.html">device_t</a> *device);
 <a name="l00052"></a>00052 <span class="keywordtype">void</span> ym3812_set_irq_handler(<span class="keywordtype">void</span> *chip, OPL_IRQHANDLER IRQHandler, <a class="code" href="classdevice__t.html">device_t</a> *device);
 <a name="l00053"></a>00053 <span class="keywordtype">void</span> ym3812_set_update_handler(<span class="keywordtype">void</span> *chip, OPL_UPDATEHANDLER UpdateHandler, <a class="code" href="classdevice__t.html">device_t</a> *device);
-<a name="l00054"></a>00054 
-<a name="l00055"></a>00055 <span class="preprocessor">#endif </span><span class="comment">/* BUILD_YM3812 */</span>
+<a name="l00054"></a>00054 <span class="keywordtype">void</span> FMOPL_SaveState( <span class="keywordtype">void</span> *chip, std::ostream&amp; stream );
+<a name="l00055"></a>00055 <span class="keywordtype">void</span> FMOPL_LoadState( <span class="keywordtype">void</span> *chip, std::istream&amp; stream );
 <a name="l00056"></a>00056 
-<a name="l00057"></a>00057 
-<a name="l00058"></a>00058 <span class="preprocessor">#if BUILD_YM3526</span>
-<a name="l00059"></a>00059 <span class="preprocessor"></span>
-<a name="l00060"></a>00060 <span class="comment">/*</span>
-<a name="l00061"></a>00061 <span class="comment">** Initialize YM3526 emulator(s).</span>
-<a name="l00062"></a>00062 <span class="comment">**</span>
-<a name="l00063"></a>00063 <span class="comment">** &#39;num&#39; is the number of virtual YM3526&#39;s to allocate</span>
-<a name="l00064"></a>00064 <span class="comment">** &#39;clock&#39; is the chip clock in Hz</span>
-<a name="l00065"></a>00065 <span class="comment">** &#39;rate&#39; is sampling rate</span>
-<a name="l00066"></a>00066 <span class="comment">*/</span>
-<a name="l00067"></a>00067 <span class="keywordtype">void</span> *ym3526_init(<a class="code" href="classdevice__t.html">device_t</a> *device, uint32_t clock, uint32_t rate);
-<a name="l00068"></a>00068 <span class="keywordtype">void</span> ym3526_clock_changed(<span class="keywordtype">void</span> *chip, uint32_t clock, uint32_t rate);
-<a name="l00069"></a>00069 <span class="comment">/* shutdown the YM3526 emulators*/</span>
-<a name="l00070"></a>00070 <span class="keywordtype">void</span> ym3526_shutdown(<span class="keywordtype">void</span> *chip);
-<a name="l00071"></a>00071 <span class="keywordtype">void</span> ym3526_reset_chip(<span class="keywordtype">void</span> *chip);
-<a name="l00072"></a>00072 <span class="keywordtype">int</span>  ym3526_write(<span class="keywordtype">void</span> *chip, <span class="keywordtype">int</span> a, <span class="keywordtype">int</span> v);
-<a name="l00073"></a>00073 <span class="keywordtype">unsigned</span> <span class="keywordtype">char</span> ym3526_read(<span class="keywordtype">void</span> *chip, <span class="keywordtype">int</span> a);
-<a name="l00074"></a>00074 <span class="keywordtype">int</span>  ym3526_timer_over(<span class="keywordtype">void</span> *chip, <span class="keywordtype">int</span> c);
-<a name="l00075"></a>00075 <span class="comment">/*</span>
-<a name="l00076"></a>00076 <span class="comment">** Generate samples for one of the YM3526&#39;s</span>
-<a name="l00077"></a>00077 <span class="comment">**</span>
-<a name="l00078"></a>00078 <span class="comment">** &#39;which&#39; is the virtual YM3526 number</span>
-<a name="l00079"></a>00079 <span class="comment">** &#39;*buffer&#39; is the output buffer pointer</span>
-<a name="l00080"></a>00080 <span class="comment">** &#39;length&#39; is the number of samples that should be generated</span>
-<a name="l00081"></a>00081 <span class="comment">*/</span>
-<a name="l00082"></a>00082 <span class="keywordtype">void</span> ym3526_update_one(<span class="keywordtype">void</span> *chip, OPLSAMPLE *buffer, <span class="keywordtype">int</span> length);
-<a name="l00083"></a>00083 
-<a name="l00084"></a>00084 <span class="keywordtype">void</span> ym3526_set_timer_handler(<span class="keywordtype">void</span> *chip, OPL_TIMERHANDLER TimerHandler, <a class="code" href="classdevice__t.html">device_t</a> *device);
-<a name="l00085"></a>00085 <span class="keywordtype">void</span> ym3526_set_irq_handler(<span class="keywordtype">void</span> *chip, OPL_IRQHANDLER IRQHandler, <a class="code" href="classdevice__t.html">device_t</a> *device);
-<a name="l00086"></a>00086 <span class="keywordtype">void</span> ym3526_set_update_handler(<span class="keywordtype">void</span> *chip, OPL_UPDATEHANDLER UpdateHandler, <a class="code" href="classdevice__t.html">device_t</a> *device);
-<a name="l00087"></a>00087 
-<a name="l00088"></a>00088 <span class="preprocessor">#endif </span><span class="comment">/* BUILD_YM3526 */</span>
+<a name="l00057"></a>00057 <span class="preprocessor">#endif </span><span class="comment">/* BUILD_YM3812 */</span>
+<a name="l00058"></a>00058 
+<a name="l00059"></a>00059 
+<a name="l00060"></a>00060 <span class="preprocessor">#if BUILD_YM3526</span>
+<a name="l00061"></a>00061 <span class="preprocessor"></span>
+<a name="l00062"></a>00062 <span class="comment">/*</span>
+<a name="l00063"></a>00063 <span class="comment">** Initialize YM3526 emulator(s).</span>
+<a name="l00064"></a>00064 <span class="comment">**</span>
+<a name="l00065"></a>00065 <span class="comment">** &#39;num&#39; is the number of virtual YM3526&#39;s to allocate</span>
+<a name="l00066"></a>00066 <span class="comment">** &#39;clock&#39; is the chip clock in Hz</span>
+<a name="l00067"></a>00067 <span class="comment">** &#39;rate&#39; is sampling rate</span>
+<a name="l00068"></a>00068 <span class="comment">*/</span>
+<a name="l00069"></a>00069 <span class="keywordtype">void</span> *ym3526_init(<a class="code" href="classdevice__t.html">device_t</a> *device, uint32_t clock, uint32_t rate);
+<a name="l00070"></a>00070 <span class="keywordtype">void</span> ym3526_clock_changed(<span class="keywordtype">void</span> *chip, uint32_t clock, uint32_t rate);
+<a name="l00071"></a>00071 <span class="comment">/* shutdown the YM3526 emulators*/</span>
+<a name="l00072"></a>00072 <span class="keywordtype">void</span> ym3526_shutdown(<span class="keywordtype">void</span> *chip);
+<a name="l00073"></a>00073 <span class="keywordtype">void</span> ym3526_reset_chip(<span class="keywordtype">void</span> *chip);
+<a name="l00074"></a>00074 <span class="keywordtype">int</span>  ym3526_write(<span class="keywordtype">void</span> *chip, <span class="keywordtype">int</span> a, <span class="keywordtype">int</span> v);
+<a name="l00075"></a>00075 <span class="keywordtype">unsigned</span> <span class="keywordtype">char</span> ym3526_read(<span class="keywordtype">void</span> *chip, <span class="keywordtype">int</span> a);
+<a name="l00076"></a>00076 <span class="keywordtype">int</span>  ym3526_timer_over(<span class="keywordtype">void</span> *chip, <span class="keywordtype">int</span> c);
+<a name="l00077"></a>00077 <span class="comment">/*</span>
+<a name="l00078"></a>00078 <span class="comment">** Generate samples for one of the YM3526&#39;s</span>
+<a name="l00079"></a>00079 <span class="comment">**</span>
+<a name="l00080"></a>00080 <span class="comment">** &#39;which&#39; is the virtual YM3526 number</span>
+<a name="l00081"></a>00081 <span class="comment">** &#39;*buffer&#39; is the output buffer pointer</span>
+<a name="l00082"></a>00082 <span class="comment">** &#39;length&#39; is the number of samples that should be generated</span>
+<a name="l00083"></a>00083 <span class="comment">*/</span>
+<a name="l00084"></a>00084 <span class="keywordtype">void</span> ym3526_update_one(<span class="keywordtype">void</span> *chip, OPLSAMPLE *buffer, <span class="keywordtype">int</span> length);
+<a name="l00085"></a>00085 
+<a name="l00086"></a>00086 <span class="keywordtype">void</span> ym3526_set_timer_handler(<span class="keywordtype">void</span> *chip, OPL_TIMERHANDLER TimerHandler, <a class="code" href="classdevice__t.html">device_t</a> *device);
+<a name="l00087"></a>00087 <span class="keywordtype">void</span> ym3526_set_irq_handler(<span class="keywordtype">void</span> *chip, OPL_IRQHANDLER IRQHandler, <a class="code" href="classdevice__t.html">device_t</a> *device);
+<a name="l00088"></a>00088 <span class="keywordtype">void</span> ym3526_set_update_handler(<span class="keywordtype">void</span> *chip, OPL_UPDATEHANDLER UpdateHandler, <a class="code" href="classdevice__t.html">device_t</a> *device);
 <a name="l00089"></a>00089 
-<a name="l00090"></a>00090 
-<a name="l00091"></a>00091 <span class="preprocessor">#if BUILD_Y8950</span>
-<a name="l00092"></a>00092 <span class="preprocessor"></span>
-<a name="l00093"></a>00093 <span class="comment">/* Y8950 port handlers */</span>
-<a name="l00094"></a>00094 <span class="keywordtype">void</span> y8950_set_port_handler(<span class="keywordtype">void</span> *chip, OPL_PORTHANDLER_W PortHandler_w, OPL_PORTHANDLER_R PortHandler_r, <a class="code" href="classdevice__t.html">device_t</a> *device);
-<a name="l00095"></a>00095 <span class="keywordtype">void</span> y8950_set_keyboard_handler(<span class="keywordtype">void</span> *chip, OPL_PORTHANDLER_W KeyboardHandler_w, OPL_PORTHANDLER_R KeyboardHandler_r, <a class="code" href="classdevice__t.html">device_t</a> *device);
-<a name="l00096"></a>00096 <span class="keywordtype">void</span> y8950_set_delta_t_memory(<span class="keywordtype">void</span> *chip, <span class="keywordtype">void</span> * deltat_mem_ptr, <span class="keywordtype">int</span> deltat_mem_size );
-<a name="l00097"></a>00097 
-<a name="l00098"></a>00098 <span class="keywordtype">void</span> * y8950_init(<a class="code" href="classdevice__t.html">device_t</a> *device, uint32_t clock, uint32_t rate);
-<a name="l00099"></a>00099 <span class="keywordtype">void</span> y8950_shutdown(<span class="keywordtype">void</span> *chip);
-<a name="l00100"></a>00100 <span class="keywordtype">void</span> y8950_reset_chip(<span class="keywordtype">void</span> *chip);
-<a name="l00101"></a>00101 <span class="keywordtype">int</span>  y8950_write(<span class="keywordtype">void</span> *chip, <span class="keywordtype">int</span> a, <span class="keywordtype">int</span> v);
-<a name="l00102"></a>00102 <span class="keywordtype">unsigned</span> <span class="keywordtype">char</span> y8950_read (<span class="keywordtype">void</span> *chip, <span class="keywordtype">int</span> a);
-<a name="l00103"></a>00103 <span class="keywordtype">int</span>  y8950_timer_over(<span class="keywordtype">void</span> *chip, <span class="keywordtype">int</span> c);
-<a name="l00104"></a>00104 <span class="keywordtype">void</span> y8950_update_one(<span class="keywordtype">void</span> *chip, OPLSAMPLE *buffer, <span class="keywordtype">int</span> length);
-<a name="l00105"></a>00105 
-<a name="l00106"></a>00106 <span class="keywordtype">void</span> y8950_set_timer_handler(<span class="keywordtype">void</span> *chip, OPL_TIMERHANDLER TimerHandler, <a class="code" href="classdevice__t.html">device_t</a> *device);
-<a name="l00107"></a>00107 <span class="keywordtype">void</span> y8950_set_irq_handler(<span class="keywordtype">void</span> *chip, OPL_IRQHANDLER IRQHandler, <a class="code" href="classdevice__t.html">device_t</a> *device);
-<a name="l00108"></a>00108 <span class="keywordtype">void</span> y8950_set_update_handler(<span class="keywordtype">void</span> *chip, OPL_UPDATEHANDLER UpdateHandler, <a class="code" href="classdevice__t.html">device_t</a> *device);
-<a name="l00109"></a>00109 
-<a name="l00110"></a>00110 <span class="preprocessor">#endif </span><span class="comment">/* BUILD_Y8950 */</span>
+<a name="l00090"></a>00090 <span class="preprocessor">#endif </span><span class="comment">/* BUILD_YM3526 */</span>
+<a name="l00091"></a>00091 
+<a name="l00092"></a>00092 
+<a name="l00093"></a>00093 <span class="preprocessor">#if BUILD_Y8950</span>
+<a name="l00094"></a>00094 <span class="preprocessor"></span>
+<a name="l00095"></a>00095 <span class="comment">/* Y8950 port handlers */</span>
+<a name="l00096"></a>00096 <span class="keywordtype">void</span> y8950_set_port_handler(<span class="keywordtype">void</span> *chip, OPL_PORTHANDLER_W PortHandler_w, OPL_PORTHANDLER_R PortHandler_r, <a class="code" href="classdevice__t.html">device_t</a> *device);
+<a name="l00097"></a>00097 <span class="keywordtype">void</span> y8950_set_keyboard_handler(<span class="keywordtype">void</span> *chip, OPL_PORTHANDLER_W KeyboardHandler_w, OPL_PORTHANDLER_R KeyboardHandler_r, <a class="code" href="classdevice__t.html">device_t</a> *device);
+<a name="l00098"></a>00098 <span class="keywordtype">void</span> y8950_set_delta_t_memory(<span class="keywordtype">void</span> *chip, <span class="keywordtype">void</span> * deltat_mem_ptr, <span class="keywordtype">int</span> deltat_mem_size );
+<a name="l00099"></a>00099 
+<a name="l00100"></a>00100 <span class="keywordtype">void</span> * y8950_init(<a class="code" href="classdevice__t.html">device_t</a> *device, uint32_t clock, uint32_t rate);
+<a name="l00101"></a>00101 <span class="keywordtype">void</span> y8950_shutdown(<span class="keywordtype">void</span> *chip);
+<a name="l00102"></a>00102 <span class="keywordtype">void</span> y8950_reset_chip(<span class="keywordtype">void</span> *chip);
+<a name="l00103"></a>00103 <span class="keywordtype">int</span>  y8950_write(<span class="keywordtype">void</span> *chip, <span class="keywordtype">int</span> a, <span class="keywordtype">int</span> v);
+<a name="l00104"></a>00104 <span class="keywordtype">unsigned</span> <span class="keywordtype">char</span> y8950_read (<span class="keywordtype">void</span> *chip, <span class="keywordtype">int</span> a);
+<a name="l00105"></a>00105 <span class="keywordtype">int</span>  y8950_timer_over(<span class="keywordtype">void</span> *chip, <span class="keywordtype">int</span> c);
+<a name="l00106"></a>00106 <span class="keywordtype">void</span> y8950_update_one(<span class="keywordtype">void</span> *chip, OPLSAMPLE *buffer, <span class="keywordtype">int</span> length);
+<a name="l00107"></a>00107 
+<a name="l00108"></a>00108 <span class="keywordtype">void</span> y8950_set_timer_handler(<span class="keywordtype">void</span> *chip, OPL_TIMERHANDLER TimerHandler, <a class="code" href="classdevice__t.html">device_t</a> *device);
+<a name="l00109"></a>00109 <span class="keywordtype">void</span> y8950_set_irq_handler(<span class="keywordtype">void</span> *chip, OPL_IRQHANDLER IRQHandler, <a class="code" href="classdevice__t.html">device_t</a> *device);
+<a name="l00110"></a>00110 <span class="keywordtype">void</span> y8950_set_update_handler(<span class="keywordtype">void</span> *chip, OPL_UPDATEHANDLER UpdateHandler, <a class="code" href="classdevice__t.html">device_t</a> *device);
 <a name="l00111"></a>00111 
-<a name="l00112"></a>00112 
-<a name="l00113"></a>00113 <span class="preprocessor">#endif // MAME_SOUND_FMOPL_H</span>
+<a name="l00112"></a>00112 <span class="preprocessor">#endif </span><span class="comment">/* BUILD_Y8950 */</span>
+<a name="l00113"></a>00113 
+<a name="l00114"></a>00114 
+<a name="l00115"></a>00115 <span class="preprocessor">#endif // MAME_SOUND_FMOPL_H</span>
 </pre></div></div><!-- contents -->
 
 
 <hr class="footer"/><address class="footer"><small>
-Generated on Tue Oct 1 2019 18:06:26 for DOSBox-X by &#160;<a href="http://www.doxygen.org/index.html">
+Generated on Sun Jul 5 2020 13:11:36 for DOSBox-X by &#160;<a href="http://www.doxygen.org/index.html">
 <img class="footer" src="doxygen.png" alt="doxygen"/>
 </a> 1.8.0
 </small></address>

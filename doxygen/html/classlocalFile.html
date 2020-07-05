@@ -94,7 +94,8 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 </div>
 <div class="header">
   <div class="summary">
-<a href="#pub-methods">Public Member Functions</a>  </div>
+<a href="#pub-methods">Public Member Functions</a> &#124;
+<a href="#pub-attribs">Public Attributes</a>  </div>
   <div class="headertitle">
 <div class="title">localFile Class Reference</div>  </div>
 </div><!--header-->
@@ -105,7 +106,8 @@ Inheritance diagram for localFile:</div>
  <div class="center">
   <img src="classlocalFile.png" usemap="#localFile_map" alt=""/>
   <map id="localFile_map" name="localFile_map">
-<area href="classDOS__File.html" alt="DOS_File" shape="rect" coords="0,0,67,24"/>
+<area href="classDOS__File.html" alt="DOS_File" shape="rect" coords="0,0,79,24"/>
+<area href="classOverlayFile.html" alt="OverlayFile" shape="rect" coords="0,112,79,136"/>
 </map>
  </div></div>
 
@@ -113,8 +115,8 @@ Inheritance diagram for localFile:</div>
 <table class="memberdecls">
 <tr><td colspan="2"><h2><a name="pub-methods"></a>
 Public Member Functions</h2></td></tr>
-<tr class="memitem:ab28a6808847aceacff4d4405cb618bab"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="ab28a6808847aceacff4d4405cb618bab"></a>
-&#160;</td><td class="memItemRight" valign="bottom"><b>localFile</b> (const char *name, FILE *handle)</td></tr>
+<tr class="memitem:a9860da86cc7c2122c78ad8ea65fcec5d"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a9860da86cc7c2122c78ad8ea65fcec5d"></a>
+&#160;</td><td class="memItemRight" valign="bottom"><b>localFile</b> (const char *_name, FILE *handle)</td></tr>
 <tr class="memitem:a558f7d758b8818237b26722c466f0f49"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a558f7d758b8818237b26722c466f0f49"></a>
 bool&#160;</td><td class="memItemRight" valign="bottom"><b>Read</b> (Bit8u *data, Bit16u *size)</td></tr>
 <tr class="memitem:a692068e0eb68eaa11661f2246270af1c"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a692068e0eb68eaa11661f2246270af1c"></a>
@@ -133,10 +135,14 @@ void&#160;</td><td class="memItemRight" valign="bottom"><b>FlagReadOnlyMedium</b
 void&#160;</td><td class="memItemRight" valign="bottom"><b>Flush</b> (void)</td></tr>
 <tr class="memitem:ac0b74c929048947e12d164a0430d32e2"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="ac0b74c929048947e12d164a0430d32e2"></a>
 Bit32u&#160;</td><td class="memItemRight" valign="bottom"><b>GetSeekPos</b> (void)</td></tr>
+<tr><td colspan="2"><h2><a name="pub-attribs"></a>
+Public Attributes</h2></td></tr>
+<tr class="memitem:aef1f958f4d67ab5b261f7b8a3eff4ab4"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="aef1f958f4d67ab5b261f7b8a3eff4ab4"></a>
+FILE *&#160;</td><td class="memItemRight" valign="bottom"><b>fhandle</b></td></tr>
 </table>
 <hr/><a name="details" id="details"></a><h2>Detailed Description</h2>
 <div class="textblock">
-<p>Definition at line <a class="el" href="dos__system_8h_source.html#l00140">140</a> of file <a class="el" href="dos__system_8h_source.html">dos_system.h</a>.</p>
+<p>Definition at line <a class="el" href="dos__system_8h_source.html#l00144">144</a> of file <a class="el" href="dos__system_8h_source.html">dos_system.h</a>.</p>
 </div><hr/>The documentation for this class was generated from the following files:<ul>
 <li>include/<a class="el" href="dos__system_8h_source.html">dos_system.h</a></li>
 <li>src/dos/<a class="el" href="drive__local_8cpp_source.html">drive_local.cpp</a></li>
@@ -145,7 +151,7 @@ Bit32u&#160;</td><td class="memItemRight" valign="bottom"><b>GetSeekPos</b> (voi
 
 
 <hr class="footer"/><address class="footer"><small>
-Generated on Tue Oct 1 2019 18:06:31 for DOSBox-X by &#160;<a href="http://www.doxygen.org/index.html">
+Generated on Sun Jul 5 2020 13:11:41 for DOSBox-X by &#160;<a href="http://www.doxygen.org/index.html">
 <img class="footer" src="doxygen.png" alt="doxygen"/>
 </a> 1.8.0
 </small></address>

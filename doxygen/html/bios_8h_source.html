@@ -96,7 +96,7 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 </div><!--header-->
 <div class="contents">
 <div class="fragment"><pre class="fragment"><a name="l00001"></a>00001 <span class="comment">/*</span>
-<a name="l00002"></a>00002 <span class="comment"> *  Copyright (C) 2002-2019  The DOSBox Team</span>
+<a name="l00002"></a>00002 <span class="comment"> *  Copyright (C) 2002-2020  The DOSBox Team</span>
 <a name="l00003"></a>00003 <span class="comment"> *</span>
 <a name="l00004"></a>00004 <span class="comment"> *  This program is free software; you can redistribute it and/or modify</span>
 <a name="l00005"></a>00005 <span class="comment"> *  it under the terms of the GNU General Public License as published by</span>
@@ -108,9 +108,9 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l00011"></a>00011 <span class="comment"> *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the</span>
 <a name="l00012"></a>00012 <span class="comment"> *  GNU General Public License for more details.</span>
 <a name="l00013"></a>00013 <span class="comment"> *</span>
-<a name="l00014"></a>00014 <span class="comment"> *  You should have received a copy of the GNU General Public License</span>
-<a name="l00015"></a>00015 <span class="comment"> *  along with this program; if not, write to the Free Software</span>
-<a name="l00016"></a>00016 <span class="comment"> *  Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1335, USA.</span>
+<a name="l00014"></a>00014 <span class="comment"> *  You should have received a copy of the GNU General Public License along</span>
+<a name="l00015"></a>00015 <span class="comment"> *  with this program; if not, write to the Free Software Foundation, Inc.,</span>
+<a name="l00016"></a>00016 <span class="comment"> *  51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.</span>
 <a name="l00017"></a>00017 <span class="comment"> */</span>
 <a name="l00018"></a>00018 
 <a name="l00019"></a>00019 <span class="preprocessor">#include &lt;stdio.h&gt;</span>
@@ -412,18 +412,18 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l00315"></a>00315         <span class="keywordtype">void</span> write_IO_Port(<span class="keyword">const</span> uint16_t min_port,<span class="keyword">const</span> uint16_t max_port,<span class="keyword">const</span> uint8_t count,<span class="keyword">const</span> uint8_t alignment=1,<span class="keyword">const</span> <span class="keywordtype">bool</span> full16bitdecode=<span class="keyword">true</span>);
 <a name="l00316"></a>00316         <span class="keywordtype">void</span> write_End_Dependent_Functions();
 <a name="l00317"></a>00317 <span class="keyword">public</span>:
-<a name="l00318"></a>00318         <span class="keywordtype">unsigned</span> <span class="keywordtype">char</span>           CSN;
-<a name="l00319"></a>00319         <span class="keywordtype">unsigned</span> <span class="keywordtype">char</span>           logical_device;
+<a name="l00318"></a>00318     <span class="keywordtype">unsigned</span> <span class="keywordtype">char</span>       CSN = 0;
+<a name="l00319"></a>00319     <span class="keywordtype">unsigned</span> <span class="keywordtype">char</span>       logical_device = 0;
 <a name="l00320"></a>00320         <span class="keywordtype">unsigned</span> <span class="keywordtype">char</span>           ident[9];               <span class="comment">/* 72-bit vendor + serial + checksum identity */</span>
-<a name="l00321"></a>00321         <span class="keywordtype">unsigned</span> <span class="keywordtype">char</span>           ident_bp;               <span class="comment">/* bit position of identity read */</span>
-<a name="l00322"></a>00322         <span class="keywordtype">unsigned</span> <span class="keywordtype">char</span>           ident_2nd;
-<a name="l00323"></a>00323         <span class="keywordtype">unsigned</span> <span class="keywordtype">char</span>           resource_ident;
-<a name="l00324"></a>00324         <span class="keywordtype">unsigned</span> <span class="keywordtype">char</span>*          resource_data;
-<a name="l00325"></a>00325         <span class="keywordtype">size_t</span>                  resource_data_len;
-<a name="l00326"></a>00326         <span class="keywordtype">unsigned</span> <span class="keywordtype">int</span>            resource_data_pos;
-<a name="l00327"></a>00327         <span class="keywordtype">size_t</span>                  alloc_write;
-<a name="l00328"></a>00328         <span class="keywordtype">unsigned</span> <span class="keywordtype">char</span>*          alloc_res;
-<a name="l00329"></a>00329         <span class="keywordtype">size_t</span>                  alloc_sz;
+<a name="l00321"></a>00321     <span class="keywordtype">unsigned</span> <span class="keywordtype">char</span>       ident_bp = 0;   <span class="comment">/* bit position of identity read */</span>
+<a name="l00322"></a>00322     <span class="keywordtype">unsigned</span> <span class="keywordtype">char</span>       ident_2nd = 0;
+<a name="l00323"></a>00323     <span class="keywordtype">unsigned</span> <span class="keywordtype">char</span>       resource_ident = 0;
+<a name="l00324"></a>00324     <span class="keywordtype">unsigned</span> <span class="keywordtype">char</span>*      resource_data = NULL;
+<a name="l00325"></a>00325     <span class="keywordtype">size_t</span>              resource_data_len = 0;
+<a name="l00326"></a>00326     <span class="keywordtype">unsigned</span> <span class="keywordtype">int</span>        resource_data_pos = 0;
+<a name="l00327"></a>00327     <span class="keywordtype">size_t</span>              alloc_write = 0;
+<a name="l00328"></a>00328     <span class="keywordtype">unsigned</span> <span class="keywordtype">char</span>*      alloc_res = NULL;
+<a name="l00329"></a>00329     <span class="keywordtype">size_t</span>              alloc_sz = 0;
 <a name="l00330"></a>00330 };
 <a name="l00331"></a>00331 
 <a name="l00332"></a>00332 <span class="comment">/* abc = ASCII letters of the alphabet</span>
@@ -489,7 +489,7 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 
 
 <hr class="footer"/><address class="footer"><small>
-Generated on Tue Oct 1 2019 18:06:23 for DOSBox-X by &#160;<a href="http://www.doxygen.org/index.html">
+Generated on Sun Jul 5 2020 13:11:33 for DOSBox-X by &#160;<a href="http://www.doxygen.org/index.html">
 <img class="footer" src="doxygen.png" alt="doxygen"/>
 </a> 1.8.0
 </small></address>

@@ -94,6 +94,7 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 </div>
 <div class="header">
   <div class="summary">
+<a href="#nested-classes">Classes</a> &#124;
 <a href="#pub-methods">Public Member Functions</a> &#124;
 <a href="#pub-attribs">Public Attributes</a> &#124;
 <a href="#friends">Friends</a>  </div>
@@ -113,14 +114,17 @@ Inheritance diagram for fatDrive:</div>
 
 <p><a href="classfatDrive-members.html">List of all members.</a></p>
 <table class="memberdecls">
+<tr><td colspan="2"><h2><a name="nested-classes"></a>
+Classes</h2></td></tr>
+<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><b>lfnRange_t</b></td></tr>
 <tr><td colspan="2"><h2><a name="pub-methods"></a>
 Public Member Functions</h2></td></tr>
 <tr class="memitem:a7c013afd3b01a41b003be5d88229cbf9"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a7c013afd3b01a41b003be5d88229cbf9"></a>
 &#160;</td><td class="memItemRight" valign="bottom"><b>fatDrive</b> (const char *sysFilename, Bit32u bytesector, Bit32u cylsector, Bit32u headscyl, Bit32u cylinders, std::vector&lt; std::string &gt; &amp;options)</td></tr>
 <tr class="memitem:acee540d8f7ed9571f8d905920ba04615"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="acee540d8f7ed9571f8d905920ba04615"></a>
 &#160;</td><td class="memItemRight" valign="bottom"><b>fatDrive</b> (<a class="el" href="classimageDisk.html">imageDisk</a> *sourceLoadedDisk, std::vector&lt; std::string &gt; &amp;options)</td></tr>
-<tr class="memitem:a7dafc7cbf5e782c11d6e51e058e276d0"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a7dafc7cbf5e782c11d6e51e058e276d0"></a>
-void&#160;</td><td class="memItemRight" valign="bottom"><b>fatDriveInit</b> (const char *sysFilename, Bit32u bytesector, Bit32u cylsector, Bit32u headscyl, Bit32u cylinders, Bit64u filesize, std::vector&lt; std::string &gt; &amp;options)</td></tr>
+<tr class="memitem:a008ac73609cfbabcd2428ceaa1ee3a58"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a008ac73609cfbabcd2428ceaa1ee3a58"></a>
+void&#160;</td><td class="memItemRight" valign="bottom"><b>fatDriveInit</b> (const char *sysFilename, Bit32u bytesector, Bit32u cylsector, Bit32u headscyl, Bit32u cylinders, Bit64u filesize, const std::vector&lt; std::string &gt; &amp;options)</td></tr>
 <tr class="memitem:a2b7f5898cbfdf595b07b0c0c7da86c10"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a2b7f5898cbfdf595b07b0c0c7da86c10"></a>
 virtual bool&#160;</td><td class="memItemRight" valign="bottom"><b>FileOpen</b> (<a class="el" href="classDOS__File.html">DOS_File</a> **file, const char *name, Bit32u flags)</td></tr>
 <tr class="memitem:ac070fec3dd29d777417aae60bd7c6081"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="ac070fec3dd29d777417aae60bd7c6081"></a>
@@ -137,12 +141,22 @@ virtual bool&#160;</td><td class="memItemRight" valign="bottom"><b>TestDir</b> (
 virtual bool&#160;</td><td class="memItemRight" valign="bottom"><b>FindFirst</b> (const char *_dir, <a class="el" href="classDOS__DTA.html">DOS_DTA</a> &amp;dta, bool fcb_findfirst=false)</td></tr>
 <tr class="memitem:aa42a5640691796f7d1fef063b92dc418"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="aa42a5640691796f7d1fef063b92dc418"></a>
 virtual bool&#160;</td><td class="memItemRight" valign="bottom"><b>FindNext</b> (<a class="el" href="classDOS__DTA.html">DOS_DTA</a> &amp;dta)</td></tr>
+<tr class="memitem:a1376620951f4411b32b604eeefd77d4c"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a1376620951f4411b32b604eeefd77d4c"></a>
+virtual bool&#160;</td><td class="memItemRight" valign="bottom"><b>SetFileAttr</b> (const char *name, Bit16u attr)</td></tr>
 <tr class="memitem:a5849a5af82e7d7a273e6096aa08d220b"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a5849a5af82e7d7a273e6096aa08d220b"></a>
 virtual bool&#160;</td><td class="memItemRight" valign="bottom"><b>GetFileAttr</b> (const char *name, Bit16u *attr)</td></tr>
+<tr class="memitem:abc413920b854f692ff21056d34f5a9e8"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="abc413920b854f692ff21056d34f5a9e8"></a>
+virtual bool&#160;</td><td class="memItemRight" valign="bottom"><b>GetFileAttrEx</b> (char *name, struct stat *status)</td></tr>
+<tr class="memitem:a129d59e6d37174a27fe550233ac84d90"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a129d59e6d37174a27fe550233ac84d90"></a>
+virtual unsigned long&#160;</td><td class="memItemRight" valign="bottom"><b>GetCompressedSize</b> (char *name)</td></tr>
+<tr class="memitem:a0f9179e5fdfa11777226bc80ad33fddb"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a0f9179e5fdfa11777226bc80ad33fddb"></a>
+virtual unsigned long&#160;</td><td class="memItemRight" valign="bottom"><b>GetSerial</b> ()</td></tr>
 <tr class="memitem:a280a53447052bc89d35e281e3180c281"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a280a53447052bc89d35e281e3180c281"></a>
 virtual bool&#160;</td><td class="memItemRight" valign="bottom"><b>Rename</b> (const char *oldname, const char *newname)</td></tr>
 <tr class="memitem:a89089651094073f2d5257e187fe10403"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a89089651094073f2d5257e187fe10403"></a>
 virtual bool&#160;</td><td class="memItemRight" valign="bottom"><b>AllocationInfo</b> (Bit16u *_bytes_sector, Bit8u *_sectors_cluster, Bit16u *_total_clusters, Bit16u *_free_clusters)</td></tr>
+<tr class="memitem:a778b4865bda95e0793488f22c59e119f"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a778b4865bda95e0793488f22c59e119f"></a>
+virtual bool&#160;</td><td class="memItemRight" valign="bottom"><b>AllocationInfo32</b> (Bit32u *_bytes_sector, Bit32u *_sectors_cluster, Bit32u *_total_clusters, Bit32u *_free_clusters)</td></tr>
 <tr class="memitem:a87594730a6f5c10a579a9e236ada21e9"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a87594730a6f5c10a579a9e236ada21e9"></a>
 virtual bool&#160;</td><td class="memItemRight" valign="bottom"><b>FileExists</b> (const char *name)</td></tr>
 <tr class="memitem:a10053899bc9ca84a4c99ca5ee5c0716e"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a10053899bc9ca84a4c99ca5ee5c0716e"></a>
@@ -177,8 +191,12 @@ void&#160;</td><td class="memItemRight" valign="bottom"><b>deleteClustChain</b> 
 Bit32u&#160;</td><td class="memItemRight" valign="bottom"><b>getFirstFreeClust</b> (void)</td></tr>
 <tr class="memitem:accabf68f45861dba60d9c93981c816c4"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="accabf68f45861dba60d9c93981c816c4"></a>
 bool&#160;</td><td class="memItemRight" valign="bottom"><b>directoryBrowse</b> (Bit32u dirClustNumber, <a class="el" href="structdirentry.html">direntry</a> *useEntry, Bit32s entNum, Bit32s start=0)</td></tr>
-<tr class="memitem:a33bfa188995f1f5bf813af5a5b8e24ba"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a33bfa188995f1f5bf813af5a5b8e24ba"></a>
-bool&#160;</td><td class="memItemRight" valign="bottom"><b>directoryChange</b> (Bit32u dirClustNumber, <a class="el" href="structdirentry.html">direntry</a> *useEntry, Bit32s entNum)</td></tr>
+<tr class="memitem:a8758f6fd418e47feb0783a0282e09fea"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a8758f6fd418e47feb0783a0282e09fea"></a>
+bool&#160;</td><td class="memItemRight" valign="bottom"><b>directoryChange</b> (Bit32u dirClustNumber, const <a class="el" href="structdirentry.html">direntry</a> *useEntry, Bit32s entNum)</td></tr>
+<tr class="memitem:a7c574d832eeb7ded4abbeee87a40000f"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a7c574d832eeb7ded4abbeee87a40000f"></a>
+const <a class="el" href="unionFAT__BootSector_1_1bpb__union__t.html">FAT_BootSector::bpb_union_t</a> &amp;&#160;</td><td class="memItemRight" valign="bottom"><b>GetBPB</b> (void)</td></tr>
+<tr class="memitem:a187e82ad526afe9d1267c2451fa8cbb4"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a187e82ad526afe9d1267c2451fa8cbb4"></a>
+void&#160;</td><td class="memItemRight" valign="bottom"><b>SetBPB</b> (const <a class="el" href="unionFAT__BootSector_1_1bpb__union__t.html">FAT_BootSector::bpb_union_t</a> &amp;bpb)</td></tr>
 <tr class="memitem:a0347726faa951ece86554389c1582365"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a0347726faa951ece86554389c1582365"></a>
 virtual Bit8u&#160;</td><td class="memItemRight" valign="bottom"><b>Read_AbsoluteSector</b> (Bit32u sectnum, void *data)</td></tr>
 <tr class="memitem:a0a2171e173e8718bc73b2a4ce7493aa6"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a0a2171e173e8718bc73b2a4ce7493aa6"></a>
@@ -201,14 +219,24 @@ virtual char const *&#160;</td><td class="memItemRight" valign="bottom"><b>GetLa
 virtual void&#160;</td><td class="memItemRight" valign="bottom"><b>SetLabel</b> (const char *label, bool iscdrom, bool updatable)</td></tr>
 <tr class="memitem:ae44dc4ad74a126a3dee16c68a25dbb60"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="ae44dc4ad74a126a3dee16c68a25dbb60"></a>
 virtual void&#160;</td><td class="memItemRight" valign="bottom"><b>UpdateBootVolumeLabel</b> (const char *label)</td></tr>
+<tr class="memitem:a8abdc9360711c5b0b0b3a08b3378eb0b"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a8abdc9360711c5b0b0b3a08b3378eb0b"></a>
+virtual Bit32u&#160;</td><td class="memItemRight" valign="bottom"><b>GetPartitionOffset</b> (void)</td></tr>
+<tr class="memitem:a9cb5e8576bdad72821ad924667e896ba"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a9cb5e8576bdad72821ad924667e896ba"></a>
+virtual Bit32u&#160;</td><td class="memItemRight" valign="bottom"><b>GetFirstClusterOffset</b> (void)</td></tr>
+<tr class="memitem:acc19cc4c693b0c7e3bac06f78b058bed"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="acc19cc4c693b0c7e3bac06f78b058bed"></a>
+virtual Bit32u&#160;</td><td class="memItemRight" valign="bottom"><b>GetHighestClusterNumber</b> (void)</td></tr>
 <tr><td colspan="2"><h2><a name="pub-attribs"></a>
 Public Attributes</h2></td></tr>
 <tr class="memitem:a3a263d1b8a02f7aff910fe9ab2347b4f"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a3a263d1b8a02f7aff910fe9ab2347b4f"></a>
-<a class="el" href="classimageDisk.html">imageDisk</a> *&#160;</td><td class="memItemRight" valign="bottom"><b>loadedDisk</b></td></tr>
+<a class="el" href="classimageDisk.html">imageDisk</a> *&#160;</td><td class="memItemRight" valign="bottom"><b>loadedDisk</b> = NULL</td></tr>
+<tr class="memitem:a4f049f1ebda6cfbab9eb2e8309ffeb26"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a4f049f1ebda6cfbab9eb2e8309ffeb26"></a>
+uint8_t&#160;</td><td class="memItemRight" valign="bottom"><b>req_ver_major</b> = 0</td></tr>
+<tr class="memitem:aaf7c4859194288917a8fc5ece0c23c87"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="aaf7c4859194288917a8fc5ece0c23c87"></a>
+uint8_t&#160;</td><td class="memItemRight" valign="bottom"><b>req_ver_minor</b> = 0</td></tr>
 <tr class="memitem:ae3927936196f98009856fc9f46f1065a"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="ae3927936196f98009856fc9f46f1065a"></a>
-bool&#160;</td><td class="memItemRight" valign="bottom"><b>created_successfully</b></td></tr>
+bool&#160;</td><td class="memItemRight" valign="bottom"><b>created_successfully</b> = true</td></tr>
 <tr class="memitem:ac8107e7154b762ea45805c3eec97b3dd"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="ac8107e7154b762ea45805c3eec97b3dd"></a>
-Bit32u&#160;</td><td class="memItemRight" valign="bottom"><b>sector_size</b></td></tr>
+Bit32u&#160;</td><td class="memItemRight" valign="bottom"><b>sector_size</b> = 0</td></tr>
 <tr class="memitem:a87c406b52e2ede2b0d6d19df26e66184"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a87c406b52e2ede2b0d6d19df26e66184"></a>
 char&#160;</td><td class="memItemRight" valign="bottom"><b>srch_dir</b> [CROSS_LEN]</td></tr>
 <tr class="memitem:a342b82338d182099e1de415a2296ee53"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a342b82338d182099e1de415a2296ee53"></a>
@@ -228,7 +256,7 @@ void&#160;</td><td class="memItemRight" valign="bottom"><b>DOS_Shell::CMD_SUBST<
 </table>
 <hr/><a name="details" id="details"></a><h2>Detailed Description</h2>
 <div class="textblock">
-<p>Definition at line <a class="el" href="drives_8h_source.html#l00206">206</a> of file <a class="el" href="drives_8h_source.html">drives.h</a>.</p>
+<p>Definition at line <a class="el" href="drives_8h_source.html#l00367">367</a> of file <a class="el" href="drives_8h_source.html">drives.h</a>.</p>
 </div><hr/>The documentation for this class was generated from the following files:<ul>
 <li>src/dos/<a class="el" href="drives_8h_source.html">drives.h</a></li>
 <li>src/dos/<a class="el" href="drive__fat_8cpp_source.html">drive_fat.cpp</a></li>
@@ -237,7 +265,7 @@ void&#160;</td><td class="memItemRight" valign="bottom"><b>DOS_Shell::CMD_SUBST<
 
 
 <hr class="footer"/><address class="footer"><small>
-Generated on Tue Oct 1 2019 18:06:31 for DOSBox-X by &#160;<a href="http://www.doxygen.org/index.html">
+Generated on Sun Jul 5 2020 13:11:41 for DOSBox-X by &#160;<a href="http://www.doxygen.org/index.html">
 <img class="footer" src="doxygen.png" alt="doxygen"/>
 </a> 1.8.0
 </small></address>

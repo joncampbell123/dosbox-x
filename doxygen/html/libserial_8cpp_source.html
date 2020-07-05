@@ -96,7 +96,7 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 </div><!--header-->
 <div class="contents">
 <div class="fragment"><pre class="fragment"><a name="l00001"></a>00001 <span class="comment">/*</span>
-<a name="l00002"></a>00002 <span class="comment"> *  Copyright (C) 2002-2019  The DOSBox Team</span>
+<a name="l00002"></a>00002 <span class="comment"> *  Copyright (C) 2002-2020  The DOSBox Team</span>
 <a name="l00003"></a>00003 <span class="comment"> *</span>
 <a name="l00004"></a>00004 <span class="comment"> *  This program is free software; you can redistribute it and/or modify</span>
 <a name="l00005"></a>00005 <span class="comment"> *  it under the terms of the GNU General Public License as published by</span>
@@ -108,9 +108,9 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l00011"></a>00011 <span class="comment"> *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the</span>
 <a name="l00012"></a>00012 <span class="comment"> *  GNU General Public License for more details.</span>
 <a name="l00013"></a>00013 <span class="comment"> *</span>
-<a name="l00014"></a>00014 <span class="comment"> *  You should have received a copy of the GNU General Public License</span>
-<a name="l00015"></a>00015 <span class="comment"> *  along with this program; if not, write to the Free Software</span>
-<a name="l00016"></a>00016 <span class="comment"> *  Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1335, USA.</span>
+<a name="l00014"></a>00014 <span class="comment"> *  You should have received a copy of the GNU General Public License along</span>
+<a name="l00015"></a>00015 <span class="comment"> *  with this program; if not, write to the Free Software Foundation, Inc.,</span>
+<a name="l00016"></a>00016 <span class="comment"> *  51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.</span>
 <a name="l00017"></a>00017 <span class="comment"> */</span>
 <a name="l00018"></a>00018 
 <a name="l00019"></a>00019 
@@ -235,578 +235,577 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l00138"></a>00138                 (LPTSTR) &amp;sysmessagebuffer,
 <a name="l00139"></a>00139                 0,NULL);
 <a name="l00140"></a>00140 
-<a name="l00141"></a>00141         <span class="keyword">const</span> <span class="keywordtype">char</span>* err5text = <span class="stringliteral">&quot;The specified port is already in use.\n&quot;</span>;
-<a name="l00142"></a>00142         <span class="keyword">const</span> <span class="keywordtype">char</span>* err2text = <span class="stringliteral">&quot;The specified port does not exist.\n&quot;</span>;
-<a name="l00143"></a>00143 
-<a name="l00144"></a>00144     <span class="keywordtype">size_t</span> sysmsg_offset = 0;
-<a name="l00145"></a>00145 
-<a name="l00146"></a>00146         <span class="keywordflow">if</span>(error == 5) {
-<a name="l00147"></a>00147                 sysmsg_offset = (int)strlen(err5text);
-<a name="l00148"></a>00148                 memcpy(buffer,err5text,sysmsg_offset);
-<a name="l00149"></a>00149 
-<a name="l00150"></a>00150         } <span class="keywordflow">else</span> <span class="keywordflow">if</span>(error == 2) {
-<a name="l00151"></a>00151                 sysmsg_offset = (int)strlen(err2text);
-<a name="l00152"></a>00152                 memcpy(buffer,err2text,sysmsg_offset);
-<a name="l00153"></a>00153         }
-<a name="l00154"></a>00154 
-<a name="l00155"></a>00155         <span class="comment">// Go for length &gt; so there will be bytes left afterwards.</span>
-<a name="l00156"></a>00156         <span class="comment">// (which are 0 due to memset, thus the buffer is 0 terminated</span>
-<a name="l00157"></a>00157         <span class="keywordflow">if</span> ( length &gt; (sysmsg_offset + (<span class="keywordtype">int</span>)strlen((<span class="keyword">const</span> <span class="keywordtype">char</span>*)sysmessagebuffer)) ) {
-<a name="l00158"></a>00158                 memcpy(buffer + sysmsg_offset, sysmessagebuffer,
-<a name="l00159"></a>00159                 strlen((<span class="keyword">const</span> <span class="keywordtype">char</span>*)sysmessagebuffer));
-<a name="l00160"></a>00160         }
-<a name="l00161"></a>00161                 
-<a name="l00162"></a>00162         LocalFree(sysmessagebuffer);
-<a name="l00163"></a>00163 }
+<a name="l00141"></a>00141     <span class="keywordtype">size_t</span> sysmsg_offset = 0;
+<a name="l00142"></a>00142 
+<a name="l00143"></a>00143         <span class="keywordflow">if</span>(error == 5) {
+<a name="l00144"></a>00144                 <span class="keyword">const</span> <span class="keywordtype">char</span>* err5text = <span class="stringliteral">&quot;The specified port is already in use.\n&quot;</span>;
+<a name="l00145"></a>00145                 sysmsg_offset = (int)strlen(err5text);
+<a name="l00146"></a>00146                 memcpy(buffer,err5text,sysmsg_offset);
+<a name="l00147"></a>00147 
+<a name="l00148"></a>00148         } <span class="keywordflow">else</span> <span class="keywordflow">if</span>(error == 2) {
+<a name="l00149"></a>00149                 <span class="keyword">const</span> <span class="keywordtype">char</span>* err2text = <span class="stringliteral">&quot;The specified port does not exist.\n&quot;</span>;
+<a name="l00150"></a>00150                 sysmsg_offset = (int)strlen(err2text);
+<a name="l00151"></a>00151                 memcpy(buffer,err2text,sysmsg_offset);
+<a name="l00152"></a>00152         }
+<a name="l00153"></a>00153 
+<a name="l00154"></a>00154         <span class="comment">// Go for length &gt; so there will be bytes left afterwards.</span>
+<a name="l00155"></a>00155         <span class="comment">// (which are 0 due to memset, thus the buffer is 0 terminated</span>
+<a name="l00156"></a>00156         <span class="keywordflow">if</span> ( length &gt; (sysmsg_offset + (<span class="keywordtype">int</span>)strlen((<span class="keyword">const</span> <span class="keywordtype">char</span>*)sysmessagebuffer)) ) {
+<a name="l00157"></a>00157                 memcpy(buffer + sysmsg_offset, sysmessagebuffer,
+<a name="l00158"></a>00158                 strlen((<span class="keyword">const</span> <span class="keywordtype">char</span>*)sysmessagebuffer));
+<a name="l00159"></a>00159         }
+<a name="l00160"></a>00160                 
+<a name="l00161"></a>00161         LocalFree(sysmessagebuffer);
+<a name="l00162"></a>00162 }
+<a name="l00163"></a>00163 
 <a name="l00164"></a>00164 
-<a name="l00165"></a>00165 
-<a name="l00166"></a>00166 <span class="keywordtype">void</span> SERIAL_setDTR(COMPORT port, <span class="keywordtype">bool</span> value) {
-<a name="l00167"></a>00167         EscapeCommFunction(port-&gt;porthandle, value ? SETDTR:CLRDTR);
-<a name="l00168"></a>00168 }
-<a name="l00169"></a>00169 
-<a name="l00170"></a>00170 <span class="keywordtype">void</span> SERIAL_setRTS(COMPORT port, <span class="keywordtype">bool</span> value) {
-<a name="l00171"></a>00171         EscapeCommFunction(port-&gt;porthandle, value ? SETRTS:CLRRTS);
-<a name="l00172"></a>00172 }
-<a name="l00173"></a>00173 
-<a name="l00174"></a>00174 <span class="keywordtype">void</span> SERIAL_setBREAK(COMPORT port, <span class="keywordtype">bool</span> value) {
-<a name="l00175"></a>00175         EscapeCommFunction(port-&gt;porthandle, value ? SETBREAK:CLRBREAK);
-<a name="l00176"></a>00176         port-&gt;breakstatus = value;
-<a name="l00177"></a>00177 }
-<a name="l00178"></a>00178 
-<a name="l00179"></a>00179 <span class="keywordtype">int</span> SERIAL_getmodemstatus(COMPORT port) {
-<a name="l00180"></a>00180         DWORD retval = 0;
-<a name="l00181"></a>00181         GetCommModemStatus (port-&gt;porthandle, &amp;retval);
-<a name="l00182"></a>00182         <span class="keywordflow">return</span> (<span class="keywordtype">int</span>)retval;
-<a name="l00183"></a>00183 }
-<a name="l00184"></a>00184 
-<a name="l00185"></a>00185 <span class="keywordtype">bool</span> SERIAL_sendchar(COMPORT port, <span class="keywordtype">char</span> data) {
-<a name="l00186"></a>00186         DWORD bytesWritten;
-<a name="l00187"></a>00187 
-<a name="l00188"></a>00188         <span class="comment">// mean bug: with break = 1, WriteFile will never return.</span>
-<a name="l00189"></a>00189         <span class="keywordflow">if</span>(port-&gt;breakstatus) <span class="keywordflow">return</span> <span class="keyword">true</span>; <span class="comment">// true or false?!</span>
-<a name="l00190"></a>00190 
-<a name="l00191"></a>00191         WriteFile (port-&gt;porthandle, &amp;data, 1, &amp;bytesWritten, NULL);
-<a name="l00192"></a>00192         <span class="keywordflow">if</span>(bytesWritten==1) <span class="keywordflow">return</span> <span class="keyword">true</span>;
-<a name="l00193"></a>00193         <span class="keywordflow">else</span> <span class="keywordflow">return</span> <span class="keyword">false</span>;
-<a name="l00194"></a>00194 }
-<a name="l00195"></a>00195 
-<a name="l00196"></a>00196 <span class="comment">// 0-7 char data, higher=flags</span>
-<a name="l00197"></a>00197 <span class="keywordtype">int</span> SERIAL_getextchar(COMPORT port) {
-<a name="l00198"></a>00198         DWORD errors = 0;       <span class="comment">// errors from API</span>
-<a name="l00199"></a>00199         DWORD dwRead = 0;       <span class="comment">// Number of chars read</span>
-<a name="l00200"></a>00200         <span class="keywordtype">char</span> chRead;
-<a name="l00201"></a>00201 
-<a name="l00202"></a>00202         <span class="keywordtype">int</span> retval = 0;
-<a name="l00203"></a>00203         <span class="comment">// receive a byte; TODO communicate failure</span>
-<a name="l00204"></a>00204         <span class="keywordflow">if</span> (ReadFile (port-&gt;porthandle, &amp;chRead, 1, &amp;dwRead, NULL)) {
-<a name="l00205"></a>00205                 <span class="keywordflow">if</span> (dwRead) {
-<a name="l00206"></a>00206                         <span class="comment">// check for errors</span>
-<a name="l00207"></a>00207                         ClearCommError(port-&gt;porthandle, &amp;errors, NULL);
-<a name="l00208"></a>00208                         <span class="comment">// mask bits are identical</span>
-<a name="l00209"></a>00209                         errors &amp;= CE_BREAK|CE_FRAME|CE_RXPARITY|CE_OVERRUN;
-<a name="l00210"></a>00210                         retval |= (errors&lt;&lt;8);
-<a name="l00211"></a>00211                         retval |= (chRead &amp; 0xff);
-<a name="l00212"></a>00212                         retval |= 0x10000; 
-<a name="l00213"></a>00213                 }
-<a name="l00214"></a>00214         }
-<a name="l00215"></a>00215         <span class="keywordflow">return</span> retval;
-<a name="l00216"></a>00216 }
-<a name="l00217"></a>00217 
-<a name="l00218"></a>00218 <span class="keywordtype">bool</span> SERIAL_setCommParameters(COMPORT port,
-<a name="l00219"></a>00219                         <span class="keywordtype">int</span> baudrate, <span class="keywordtype">char</span> parity, <span class="keywordtype">int</span> stopbits, <span class="keywordtype">int</span> length) {
-<a name="l00220"></a>00220         
-<a name="l00221"></a>00221         DCB dcb;
-<a name="l00222"></a>00222         dcb.DCBlength=<span class="keyword">sizeof</span>(dcb);
-<a name="l00223"></a>00223         GetCommState(port-&gt;porthandle,&amp;dcb);
-<a name="l00224"></a>00224 
-<a name="l00225"></a>00225         <span class="comment">// parity</span>
-<a name="l00226"></a>00226         <span class="keywordflow">switch</span> (parity) {
-<a name="l00227"></a>00227         <span class="keywordflow">case</span> <span class="charliteral">&#39;n&#39;</span>: dcb.Parity = NOPARITY; <span class="keywordflow">break</span>;
-<a name="l00228"></a>00228         <span class="keywordflow">case</span> <span class="charliteral">&#39;o&#39;</span>: dcb.Parity = ODDPARITY; <span class="keywordflow">break</span>;
-<a name="l00229"></a>00229         <span class="keywordflow">case</span> <span class="charliteral">&#39;e&#39;</span>: dcb.Parity = EVENPARITY; <span class="keywordflow">break</span>;
-<a name="l00230"></a>00230         <span class="keywordflow">case</span> <span class="charliteral">&#39;m&#39;</span>: dcb.Parity = MARKPARITY; <span class="keywordflow">break</span>;
-<a name="l00231"></a>00231         <span class="keywordflow">case</span> <span class="charliteral">&#39;s&#39;</span>: dcb.Parity = SPACEPARITY;     <span class="keywordflow">break</span>;
-<a name="l00232"></a>00232         <span class="keywordflow">default</span>:
-<a name="l00233"></a>00233                 SetLastError(ERROR_INVALID_PARAMETER);
-<a name="l00234"></a>00234                 <span class="keywordflow">return</span> <span class="keyword">false</span>;
-<a name="l00235"></a>00235         }
-<a name="l00236"></a>00236 
-<a name="l00237"></a>00237         <span class="comment">// stopbits</span>
-<a name="l00238"></a>00238         <span class="keywordflow">switch</span>(stopbits) {
-<a name="l00239"></a>00239         <span class="keywordflow">case</span> SERIAL_1STOP: dcb.StopBits = ONESTOPBIT; <span class="keywordflow">break</span>;
-<a name="l00240"></a>00240         <span class="keywordflow">case</span> SERIAL_2STOP: dcb.StopBits = TWOSTOPBITS; <span class="keywordflow">break</span>;
-<a name="l00241"></a>00241         <span class="keywordflow">case</span> SERIAL_15STOP: dcb.StopBits = ONE5STOPBITS; <span class="keywordflow">break</span>;
-<a name="l00242"></a>00242         <span class="keywordflow">default</span>:
-<a name="l00243"></a>00243                 SetLastError(ERROR_INVALID_PARAMETER);
-<a name="l00244"></a>00244                 <span class="keywordflow">return</span> <span class="keyword">false</span>;
-<a name="l00245"></a>00245         }
-<a name="l00246"></a>00246 
-<a name="l00247"></a>00247         <span class="comment">// byte length</span>
-<a name="l00248"></a>00248         <span class="keywordflow">if</span>(length &gt; 8 || length &lt; 5) {
-<a name="l00249"></a>00249                 SetLastError(ERROR_INVALID_PARAMETER);
-<a name="l00250"></a>00250                 <span class="keywordflow">return</span> <span class="keyword">false</span>;
-<a name="l00251"></a>00251         }
-<a name="l00252"></a>00252         dcb.ByteSize = length;
-<a name="l00253"></a>00253         dcb.BaudRate = baudrate;
-<a name="l00254"></a>00254 
-<a name="l00255"></a>00255         <span class="keywordflow">if</span> (!SetCommState (port-&gt;porthandle, &amp;dcb)) <span class="keywordflow">return</span> <span class="keyword">false</span>;
-<a name="l00256"></a>00256         <span class="keywordflow">return</span> <span class="keyword">true</span>;
-<a name="l00257"></a>00257 }
-<a name="l00258"></a>00258 <span class="preprocessor">#endif</span>
-<a name="l00259"></a>00259 <span class="preprocessor"></span>
-<a name="l00260"></a>00260 <span class="preprocessor">#if defined (LINUX) || defined (MACOSX) || defined (BSD) || defined (HAIKU)</span>
-<a name="l00261"></a>00261 <span class="preprocessor"></span>
-<a name="l00262"></a>00262 <span class="preprocessor">#include &lt;string.h&gt;</span> <span class="comment">// strlen</span>
-<a name="l00263"></a>00263 <span class="preprocessor">#include &lt;stdlib.h&gt;</span>
-<a name="l00264"></a>00264 
-<a name="l00265"></a>00265 <span class="preprocessor">#include &lt;termios.h&gt;</span>
-<a name="l00266"></a>00266 <span class="preprocessor">#include &lt;unistd.h&gt;</span>
-<a name="l00267"></a>00267 
-<a name="l00268"></a>00268 <span class="preprocessor">#include &lt;sys/types.h&gt;</span>
-<a name="l00269"></a>00269 <span class="preprocessor">#include &lt;sys/stat.h&gt;</span>
-<a name="l00270"></a>00270 <span class="preprocessor">#include &lt;sys/ioctl.h&gt;</span>
-<a name="l00271"></a>00271 
-<a name="l00272"></a>00272 <span class="preprocessor">#include &lt;errno.h&gt;</span>
-<a name="l00273"></a>00273 <span class="preprocessor">#include &lt;fcntl.h&gt;</span>
-<a name="l00274"></a>00274 <span class="preprocessor">#include &lt;stdio.h&gt;</span> <span class="comment">// sprinf</span>
-<a name="l00275"></a>00275 
-<a name="l00276"></a>00276 <span class="keyword">struct </span>_COMPORT {
-<a name="l00277"></a>00277         <span class="keywordtype">int</span> porthandle;
-<a name="l00278"></a>00278         <span class="keywordtype">bool</span> breakstatus;
-<a name="l00279"></a>00279         termios backup;
-<a name="l00280"></a>00280 };
-<a name="l00281"></a>00281 
-<a name="l00282"></a>00282 <span class="keywordtype">bool</span> SERIAL_open(<span class="keyword">const</span> <span class="keywordtype">char</span>* portname, COMPORT* port) {
-<a name="l00283"></a>00283         <span class="keywordtype">int</span> result;
-<a name="l00284"></a>00284         <span class="comment">// allocate COMPORT structure</span>
-<a name="l00285"></a>00285         COMPORT cp = (_COMPORT*)malloc(<span class="keyword">sizeof</span>(_COMPORT));
-<a name="l00286"></a>00286         <span class="keywordflow">if</span>(cp == NULL) <span class="keywordflow">return</span> <span class="keyword">false</span>;
-<a name="l00287"></a>00287 
-<a name="l00288"></a>00288         cp-&gt;breakstatus=<span class="keyword">false</span>;
-<a name="l00289"></a>00289 
-<a name="l00290"></a>00290     <span class="keywordtype">size_t</span> len = strlen(portname);
-<a name="l00291"></a>00291         <span class="keywordflow">if</span>(len &gt; 240) {
-<a name="l00293"></a>00293                 <span class="keywordflow">return</span> <span class="keyword">false</span>;
-<a name="l00294"></a>00294         }
-<a name="l00295"></a>00295         <span class="keywordtype">char</span> extended_portname[256] = <span class="stringliteral">&quot;/dev/&quot;</span>;
-<a name="l00296"></a>00296         memcpy(extended_portname+5,portname,(<span class="keywordtype">size_t</span>)len);
-<a name="l00297"></a>00297 
-<a name="l00298"></a>00298         cp-&gt;porthandle = open (extended_portname, O_RDWR | O_NOCTTY | O_NONBLOCK);
-<a name="l00299"></a>00299         <span class="keywordflow">if</span> (cp-&gt;porthandle &lt; 0) <span class="keywordflow">goto</span> cleanup_error;
-<a name="l00300"></a>00300 
-<a name="l00301"></a>00301         result = tcgetattr(cp-&gt;porthandle,&amp;cp-&gt;backup);
-<a name="l00302"></a>00302         <span class="keywordflow">if</span> (result==-1) <span class="keywordflow">goto</span> cleanup_error;
-<a name="l00303"></a>00303 
-<a name="l00304"></a>00304         <span class="comment">// get port settings</span>
-<a name="l00305"></a>00305         termios termInfo;
-<a name="l00306"></a>00306         memcpy(&amp;termInfo,&amp;cp-&gt;backup,<span class="keyword">sizeof</span>(termios));
-<a name="l00307"></a>00307 
-<a name="l00308"></a>00308         <span class="comment">// initialize the port</span>
-<a name="l00309"></a>00309         termInfo.c_cflag = CS8 | CREAD | CLOCAL; <span class="comment">// noparity, 1 stopbit</span>
-<a name="l00310"></a>00310         termInfo.c_iflag = PARMRK | INPCK;
-<a name="l00311"></a>00311         termInfo.c_oflag = 0;
-<a name="l00312"></a>00312         termInfo.c_lflag = 0;
-<a name="l00313"></a>00313         termInfo.c_cc[VMIN] = 0;
-<a name="l00314"></a>00314         termInfo.c_cc[VTIME] = 0;
-<a name="l00315"></a>00315 
-<a name="l00316"></a>00316         tcflush (cp-&gt;porthandle, TCIFLUSH);
-<a name="l00317"></a>00317         tcsetattr (cp-&gt;porthandle, TCSANOW, &amp;termInfo);
-<a name="l00318"></a>00318 
-<a name="l00319"></a>00319         *port = cp;
-<a name="l00320"></a>00320         <span class="keywordflow">return</span> <span class="keyword">true</span>;
-<a name="l00321"></a>00321 
-<a name="l00322"></a>00322 cleanup_error:
-<a name="l00323"></a>00323         <span class="keywordflow">if</span> (cp-&gt;porthandle != 0) close(cp-&gt;porthandle);
-<a name="l00324"></a>00324         free(cp);
-<a name="l00325"></a>00325         <span class="keywordflow">return</span> <span class="keyword">false</span>;
-<a name="l00326"></a>00326 }
-<a name="l00327"></a>00327 
-<a name="l00328"></a>00328 <span class="keywordtype">void</span> SERIAL_close(COMPORT port) {
-<a name="l00329"></a>00329         <span class="comment">// restore original termios, close handle, free the COMPORT struct</span>
-<a name="l00330"></a>00330         <span class="keywordflow">if</span> (port-&gt;porthandle &gt;= 0) {
-<a name="l00331"></a>00331                 tcsetattr(port-&gt;porthandle, TCSANOW, &amp;port-&gt;backup);
-<a name="l00332"></a>00332                 close(port-&gt;porthandle);
-<a name="l00333"></a>00333         }
-<a name="l00334"></a>00334         free(port);
-<a name="l00335"></a>00335 }
-<a name="l00336"></a>00336 
-<a name="l00337"></a>00337 <span class="keywordtype">void</span> SERIAL_getErrorString(<span class="keywordtype">char</span>* buffer, <span class="keywordtype">size_t</span> length) {
-<a name="l00338"></a>00338         <span class="keywordtype">int</span> error = errno;
-<a name="l00339"></a>00339         <span class="keywordflow">if</span>(length &lt; 50) <span class="keywordflow">return</span>;
-<a name="l00340"></a>00340         memset(buffer,0,(<span class="keywordtype">size_t</span>)length);
-<a name="l00341"></a>00341         <span class="comment">// get the error message text from the operating system</span>
-<a name="l00342"></a>00342         <span class="comment">// TODO (or not)</span>
-<a name="l00343"></a>00343         
-<a name="l00344"></a>00344         <span class="keyword">const</span> <span class="keywordtype">char</span>* err5text = <span class="stringliteral">&quot;The specified port is already in use.\n&quot;</span>;
-<a name="l00345"></a>00345         <span class="keyword">const</span> <span class="keywordtype">char</span>* err2text = <span class="stringliteral">&quot;The specified port does not exist.\n&quot;</span>;
-<a name="l00346"></a>00346         
-<a name="l00347"></a>00347     <span class="keywordtype">size_t</span> sysmsg_offset = 0;
-<a name="l00348"></a>00348 
-<a name="l00349"></a>00349         <span class="keywordflow">if</span>(error == EBUSY) {
-<a name="l00350"></a>00350                 sysmsg_offset = strlen(err5text);
-<a name="l00351"></a>00351                 memcpy(buffer,err5text,(<span class="keywordtype">size_t</span>)sysmsg_offset);
-<a name="l00352"></a>00352 
-<a name="l00353"></a>00353         } <span class="keywordflow">else</span> <span class="keywordflow">if</span>(error == 2) {
-<a name="l00354"></a>00354                 sysmsg_offset = strlen(err2text);
-<a name="l00355"></a>00355                 memcpy(buffer,err2text,(<span class="keywordtype">size_t</span>)sysmsg_offset);
-<a name="l00356"></a>00356         }
-<a name="l00357"></a>00357         
-<a name="l00358"></a>00358         sprintf(buffer + sysmsg_offset, <span class="stringliteral">&quot;System error %d.&quot;</span>,error);
-<a name="l00359"></a>00359         
-<a name="l00360"></a>00360 }
-<a name="l00361"></a>00361 
-<a name="l00362"></a>00362 <span class="keywordtype">int</span> SERIAL_getmodemstatus(COMPORT port) {
-<a name="l00363"></a>00363         <span class="keywordtype">long</span> flags = 0;
-<a name="l00364"></a>00364         ioctl (port-&gt;porthandle, TIOCMGET, &amp;flags);
-<a name="l00365"></a>00365         <span class="keywordtype">int</span> retval = 0;
-<a name="l00366"></a>00366         <span class="keywordflow">if</span> (flags &amp; TIOCM_CTS) retval |= SERIAL_CTS;
-<a name="l00367"></a>00367         <span class="keywordflow">if</span> (flags &amp; TIOCM_DSR) retval |= SERIAL_DSR;
-<a name="l00368"></a>00368         <span class="keywordflow">if</span> (flags &amp; TIOCM_RI) retval |= SERIAL_RI;
-<a name="l00369"></a>00369         <span class="keywordflow">if</span> (flags &amp; TIOCM_CD) retval |= SERIAL_CD;
-<a name="l00370"></a>00370         <span class="keywordflow">return</span> retval;
-<a name="l00371"></a>00371 }
-<a name="l00372"></a>00372 
-<a name="l00373"></a>00373 <span class="keywordtype">bool</span> SERIAL_sendchar(COMPORT port, <span class="keywordtype">char</span> data) {
-<a name="l00374"></a>00374         <span class="keywordflow">if</span>(port-&gt;breakstatus) <span class="keywordflow">return</span> <span class="keyword">true</span>; <span class="comment">// true or false?!; Does POSIX need this check?</span>
-<a name="l00375"></a>00375         <span class="keywordtype">int</span> bytesWritten = write(port-&gt;porthandle, &amp;data, 1);
-<a name="l00376"></a>00376         <span class="keywordflow">if</span>(bytesWritten==1) <span class="keywordflow">return</span> <span class="keyword">true</span>;
-<a name="l00377"></a>00377         <span class="keywordflow">else</span> <span class="keywordflow">return</span> <span class="keyword">false</span>;
-<a name="l00378"></a>00378 }
-<a name="l00379"></a>00379 
-<a name="l00380"></a>00380 <span class="keywordtype">int</span> SERIAL_getextchar(COMPORT port) {
-<a name="l00381"></a>00381         <span class="keywordtype">unsigned</span> <span class="keywordtype">char</span> chRead = 0;
-<a name="l00382"></a>00382         <span class="keywordtype">int</span> dwRead = 0;
-<a name="l00383"></a>00383         <span class="keywordtype">unsigned</span> <span class="keywordtype">char</span> error = 0;
-<a name="l00384"></a>00384         <span class="keywordtype">int</span> retval = 0;
-<a name="l00385"></a>00385 
-<a name="l00386"></a>00386         dwRead=read(port-&gt;porthandle,&amp;chRead,1);
-<a name="l00387"></a>00387         <span class="keywordflow">if</span> (dwRead==1) {
-<a name="l00388"></a>00388                 <span class="keywordflow">if</span>(chRead==0xff) <span class="comment">// error escape</span>
-<a name="l00389"></a>00389                 {
-<a name="l00390"></a>00390                         dwRead=read(port-&gt;porthandle,&amp;chRead,1);
-<a name="l00391"></a>00391                         <span class="keywordflow">if</span>(chRead==0x00) <span class="comment">// an error </span>
-<a name="l00392"></a>00392                         {
-<a name="l00393"></a>00393                                 dwRead=read(port-&gt;porthandle,&amp;chRead,1);
-<a name="l00394"></a>00394                                 <span class="keywordflow">if</span>(chRead==0x0) error=SERIAL_BREAK_ERR;
-<a name="l00395"></a>00395                                 <span class="keywordflow">else</span> error=SERIAL_FRAMING_ERR;
-<a name="l00396"></a>00396                         }
-<a name="l00397"></a>00397                 }
-<a name="l00398"></a>00398                 retval |= (error&lt;&lt;8);
-<a name="l00399"></a>00399                 retval |= chRead;
-<a name="l00400"></a>00400                 retval |= 0x10000; 
-<a name="l00401"></a>00401         }
-<a name="l00402"></a>00402         <span class="keywordflow">return</span> retval;
-<a name="l00403"></a>00403 }
-<a name="l00404"></a>00404 
-<a name="l00405"></a>00405 <span class="keywordtype">bool</span> SERIAL_setCommParameters(COMPORT port,
-<a name="l00406"></a>00406                         <span class="keywordtype">int</span> baudrate, <span class="keywordtype">char</span> parity, <span class="keywordtype">int</span> stopbits, <span class="keywordtype">int</span> length) {
-<a name="l00407"></a>00407         
-<a name="l00408"></a>00408         termios termInfo;
-<a name="l00409"></a>00409         <span class="keywordtype">int</span> result = tcgetattr(port-&gt;porthandle, &amp;termInfo);
-<a name="l00410"></a>00410         <span class="keywordflow">if</span> (result==-1) <span class="keywordflow">return</span> <span class="keyword">false</span>;
-<a name="l00411"></a>00411         termInfo.c_cflag = CREAD | CLOCAL;
-<a name="l00412"></a>00412 
-<a name="l00413"></a>00413         <span class="comment">// parity</span>
-<a name="l00414"></a>00414         <span class="comment">// &quot;works on many systems&quot;</span>
-<a name="l00415"></a>00415 <span class="preprocessor">        #define CMSPAR 010000000000</span>
-<a name="l00416"></a>00416 <span class="preprocessor"></span>        <span class="keywordflow">switch</span> (parity) {
-<a name="l00417"></a>00417         <span class="keywordflow">case</span> <span class="charliteral">&#39;n&#39;</span>: <span class="keywordflow">break</span>;
-<a name="l00418"></a>00418         <span class="keywordflow">case</span> <span class="charliteral">&#39;o&#39;</span>: termInfo.c_cflag |= (PARODD | PARENB); <span class="keywordflow">break</span>;
-<a name="l00419"></a>00419         <span class="keywordflow">case</span> <span class="charliteral">&#39;e&#39;</span>: termInfo.c_cflag |= PARENB; <span class="keywordflow">break</span>;
-<a name="l00420"></a>00420         <span class="keywordflow">case</span> <span class="charliteral">&#39;m&#39;</span>: termInfo.c_cflag |= (PARENB | CMSPAR | PARODD); <span class="keywordflow">break</span>;
-<a name="l00421"></a>00421         <span class="keywordflow">case</span> <span class="charliteral">&#39;s&#39;</span>: termInfo.c_cflag |= (PARENB | CMSPAR); <span class="keywordflow">break</span>;
-<a name="l00422"></a>00422         <span class="keywordflow">default</span>:
-<a name="l00423"></a>00423                 <span class="keywordflow">return</span> <span class="keyword">false</span>;
-<a name="l00424"></a>00424         }
-<a name="l00425"></a>00425         <span class="comment">// stopbits</span>
-<a name="l00426"></a>00426         <span class="keywordflow">switch</span>(stopbits) {
-<a name="l00427"></a>00427         <span class="keywordflow">case</span> SERIAL_1STOP: <span class="keywordflow">break</span>;
-<a name="l00428"></a>00428         <span class="keywordflow">case</span> SERIAL_2STOP: 
-<a name="l00429"></a>00429         <span class="keywordflow">case</span> SERIAL_15STOP: termInfo.c_cflag |= CSTOPB; <span class="keywordflow">break</span>;
-<a name="l00430"></a>00430         <span class="keywordflow">default</span>:
-<a name="l00431"></a>00431                 <span class="keywordflow">return</span> <span class="keyword">false</span>;
-<a name="l00432"></a>00432         }
-<a name="l00433"></a>00433         <span class="comment">// byte length</span>
-<a name="l00434"></a>00434         <span class="keywordflow">if</span>(length &gt; 8 || length &lt; 5) <span class="keywordflow">return</span> <span class="keyword">false</span>;
-<a name="l00435"></a>00435         <span class="keywordflow">switch</span> (length) {
-<a name="l00436"></a>00436         <span class="keywordflow">case</span> 5: termInfo.c_cflag |= CS5; <span class="keywordflow">break</span>;
-<a name="l00437"></a>00437         <span class="keywordflow">case</span> 6: termInfo.c_cflag |= CS6; <span class="keywordflow">break</span>;
-<a name="l00438"></a>00438         <span class="keywordflow">case</span> 7: termInfo.c_cflag |= CS7; <span class="keywordflow">break</span>;
-<a name="l00439"></a>00439         <span class="keywordflow">case</span> 8: termInfo.c_cflag |= CS8; <span class="keywordflow">break</span>;
-<a name="l00440"></a>00440         }
-<a name="l00441"></a>00441         <span class="comment">// baudrate</span>
-<a name="l00442"></a>00442         <span class="keywordtype">int</span> posix_baudrate=0;
-<a name="l00443"></a>00443         <span class="keywordflow">switch</span>(baudrate) {
-<a name="l00444"></a>00444                 <span class="keywordflow">case</span> 115200: posix_baudrate = B115200; <span class="keywordflow">break</span>;
-<a name="l00445"></a>00445                 <span class="keywordflow">case</span>  57600: posix_baudrate = B57600; <span class="keywordflow">break</span>;
-<a name="l00446"></a>00446                 <span class="keywordflow">case</span>  38400: posix_baudrate = B38400; <span class="keywordflow">break</span>;
-<a name="l00447"></a>00447                 <span class="keywordflow">case</span>  19200: posix_baudrate = B19200; <span class="keywordflow">break</span>;
-<a name="l00448"></a>00448                 <span class="keywordflow">case</span>   9600: posix_baudrate = B9600; <span class="keywordflow">break</span>;
-<a name="l00449"></a>00449                 <span class="keywordflow">case</span>   4800: posix_baudrate = B4800; <span class="keywordflow">break</span>;
-<a name="l00450"></a>00450                 <span class="keywordflow">case</span>   2400: posix_baudrate = B2400; <span class="keywordflow">break</span>;
-<a name="l00451"></a>00451                 <span class="keywordflow">case</span>   1200: posix_baudrate = B1200; <span class="keywordflow">break</span>;
-<a name="l00452"></a>00452                 <span class="keywordflow">case</span>    600: posix_baudrate = B600; <span class="keywordflow">break</span>;
-<a name="l00453"></a>00453                 <span class="keywordflow">case</span>    300: posix_baudrate = B300; <span class="keywordflow">break</span>;
-<a name="l00454"></a>00454                 <span class="keywordflow">case</span>    110: posix_baudrate = B110; <span class="keywordflow">break</span>;
-<a name="l00455"></a>00455                 <span class="keywordflow">default</span>: <span class="keywordflow">return</span> <span class="keyword">false</span>;
-<a name="l00456"></a>00456         }
-<a name="l00457"></a>00457         cfsetospeed (&amp;termInfo, (<span class="keywordtype">unsigned</span> <span class="keywordtype">int</span>)posix_baudrate);
-<a name="l00458"></a>00458         cfsetispeed (&amp;termInfo, (<span class="keywordtype">unsigned</span> <span class="keywordtype">int</span>)posix_baudrate);
-<a name="l00459"></a>00459 
-<a name="l00460"></a>00460         <span class="keywordtype">int</span> retval = tcsetattr(port-&gt;porthandle, TCSANOW, &amp;termInfo);
-<a name="l00461"></a>00461         <span class="keywordflow">if</span>(retval==-1) <span class="keywordflow">return</span> <span class="keyword">false</span>;
-<a name="l00462"></a>00462         <span class="keywordflow">return</span> <span class="keyword">true</span>;
-<a name="l00463"></a>00463 }
-<a name="l00464"></a>00464 
-<a name="l00465"></a>00465 <span class="keywordtype">void</span> SERIAL_setBREAK(COMPORT port, <span class="keywordtype">bool</span> value) {
-<a name="l00466"></a>00466         ioctl(port-&gt;porthandle, value?TIOCSBRK:TIOCCBRK);
-<a name="l00467"></a>00467 }
-<a name="l00468"></a>00468 
-<a name="l00469"></a>00469 <span class="keywordtype">void</span> SERIAL_setDTR(COMPORT port, <span class="keywordtype">bool</span> value) {
-<a name="l00470"></a>00470         <span class="keywordtype">long</span> flag = TIOCM_DTR;
-<a name="l00471"></a>00471         ioctl(port-&gt;porthandle, value?TIOCMBIS:TIOCMBIC, &amp;flag);
-<a name="l00472"></a>00472 }
-<a name="l00473"></a>00473 
-<a name="l00474"></a>00474 <span class="keywordtype">void</span> SERIAL_setRTS(COMPORT port, <span class="keywordtype">bool</span> value) {
-<a name="l00475"></a>00475         <span class="keywordtype">long</span> flag = TIOCM_RTS;
-<a name="l00476"></a>00476         ioctl(port-&gt;porthandle, value?TIOCMBIS:TIOCMBIC, &amp;flag);
-<a name="l00477"></a>00477 }
-<a name="l00478"></a>00478 <span class="preprocessor">#endif</span>
-<a name="l00479"></a>00479 <span class="preprocessor"></span>
-<a name="l00480"></a>00480 <span class="preprocessor">#ifdef OS2</span>
-<a name="l00481"></a>00481 <span class="preprocessor"></span><span class="comment">// OS/2 related headers</span>
-<a name="l00482"></a>00482 <span class="preprocessor">#define INCL_DOSFILEMGR</span>
-<a name="l00483"></a>00483 <span class="preprocessor"></span><span class="preprocessor">#define INCL_DOSERRORS</span>
-<a name="l00484"></a>00484 <span class="preprocessor"></span><span class="preprocessor">#define INCL_DOSDEVICES</span>
-<a name="l00485"></a>00485 <span class="preprocessor"></span><span class="preprocessor">#define INCL_DOSDEVIOCTL</span>
-<a name="l00486"></a>00486 <span class="preprocessor"></span><span class="preprocessor">#define INCL_DOSPROCESS</span>
-<a name="l00487"></a>00487 <span class="preprocessor"></span><span class="preprocessor">#include &lt;os2.h&gt;</span>
-<a name="l00488"></a>00488 <span class="preprocessor">#include &lt;malloc.h&gt;</span>
-<a name="l00489"></a>00489 <span class="preprocessor">#include &lt;string.h&gt;</span>
-<a name="l00490"></a>00490 <span class="preprocessor">#include &lt;stdio.h&gt;</span>
-<a name="l00491"></a>00491 
-<a name="l00492"></a>00492 <span class="keyword">struct </span>_COMPORT {
-<a name="l00493"></a>00493         HFILE porthandle;
-<a name="l00494"></a>00494         DCBINFO orig_dcb;
-<a name="l00495"></a>00495 };
-<a name="l00496"></a>00496 <span class="comment">// TODO: THIS IS INCOMPLETE and UNTESTED.</span>
-<a name="l00497"></a>00497 
-<a name="l00498"></a>00498 <span class="keywordtype">bool</span> SERIAL_open(<span class="keyword">const</span> <span class="keywordtype">char</span>* portname, COMPORT* port) {
-<a name="l00499"></a>00499         <span class="comment">// allocate COMPORT structure</span>
-<a name="l00500"></a>00500         COMPORT cp = (_COMPORT*)malloc(<span class="keyword">sizeof</span>(_COMPORT));
-<a name="l00501"></a>00501         <span class="keywordflow">if</span>(cp == NULL) <span class="keywordflow">return</span> <span class="keyword">false</span>;
-<a name="l00502"></a>00502         cp-&gt;porthandle=0;
-<a name="l00503"></a>00503 
-<a name="l00504"></a>00504         USHORT errors = 0;
-<a name="l00505"></a>00505         ULONG ulAction = 0;
-<a name="l00506"></a>00506         ULONG ulParmLen = <span class="keyword">sizeof</span>(DCBINFO);
-<a name="l00507"></a>00507         APIRET rc = DosOpen((PSZ)portname, &amp;cp-&gt;porthandle,
-<a name="l00508"></a>00508                 &amp;ulAction, 0L, FILE_NORMAL, FILE_OPEN,
-<a name="l00509"></a>00509                 OPEN_ACCESS_READWRITE | OPEN_SHARE_DENYNONE | OPEN_FLAGS_SEQUENTIAL, 0L);
-<a name="l00510"></a>00510         <span class="keywordflow">if</span> (rc != NO_ERROR) {
-<a name="l00511"></a>00511                 <span class="keywordflow">goto</span> cleanup_error;
-<a name="l00512"></a>00512         }
-<a name="l00513"></a>00513 
-<a name="l00514"></a>00514         rc = DosDevIOCtl(cp-&gt;porthandle, IOCTL_ASYNC, ASYNC_GETDCBINFO,
-<a name="l00515"></a>00515                 0, 0, 0, &amp;cp-&gt;orig_dcb, ulParmLen, &amp;ulParmLen);
-<a name="l00516"></a>00516         <span class="keywordflow">if</span> ( rc != NO_ERROR) {
-<a name="l00517"></a>00517                 <span class="keywordflow">goto</span> cleanup_error;
-<a name="l00518"></a>00518         }
-<a name="l00519"></a>00519         <span class="comment">// configure the port for polling</span>
-<a name="l00520"></a>00520         DCBINFO newdcb;
-<a name="l00521"></a>00521         memcpy(&amp;newdcb,&amp;cp-&gt;orig_dcb,<span class="keyword">sizeof</span>(DCBINFO));
-<a name="l00522"></a>00522 
-<a name="l00523"></a>00523         newdcb.usWriteTimeout = 0;
-<a name="l00524"></a>00524         newdcb.usReadTimeout = 0; <span class="comment">//65535;</span>
-<a name="l00525"></a>00525         newdcb.fbCtlHndShake = cp-&gt;orig_dcb.fbFlowReplace = 0;
-<a name="l00526"></a>00526         newdcb.fbTimeout = 6;
-<a name="l00527"></a>00527 
-<a name="l00528"></a>00528         rc = DosDevIOCtl(cp-&gt;porthandle, IOCTL_ASYNC, ASYNC_SETDCBINFO,
-<a name="l00529"></a>00529                 &amp;newdcb, ulParmLen, &amp;ulParmLen, 0, 0, 0);
-<a name="l00530"></a>00530         <span class="keywordflow">if</span> ( rc != NO_ERROR) {
-<a name="l00531"></a>00531                 <span class="keywordflow">goto</span> cleanup_error;
-<a name="l00532"></a>00532         }
-<a name="l00533"></a>00533 
-<a name="l00534"></a>00534         ulParmLen = <span class="keyword">sizeof</span>(errors);
-<a name="l00535"></a>00535         rc = DosDevIOCtl(cp-&gt;porthandle, IOCTL_ASYNC, ASYNC_GETCOMMERROR,
-<a name="l00536"></a>00536                 0, 0, 0, &amp;errors, ulParmLen, &amp;ulParmLen);
-<a name="l00537"></a>00537         <span class="keywordflow">if</span> ( rc != NO_ERROR) {
-<a name="l00538"></a>00538                 <span class="keywordflow">goto</span> cleanup_error;
-<a name="l00539"></a>00539         }
-<a name="l00540"></a>00540 
-<a name="l00541"></a>00541         *port = cp;
-<a name="l00542"></a>00542         <span class="keywordflow">return</span> <span class="keyword">true</span>;
-<a name="l00543"></a>00543 
-<a name="l00544"></a>00544 cleanup_error:
-<a name="l00545"></a>00545         <span class="comment">// TODO error string - rc value</span>
-<a name="l00546"></a>00546         <span class="keywordflow">if</span> (cp-&gt;porthandle != 0) DosClose(cp-&gt;porthandle);
-<a name="l00547"></a>00547         free(cp);
-<a name="l00548"></a>00548         <span class="keywordflow">return</span> <span class="keyword">false</span>;
-<a name="l00549"></a>00549 }
-<a name="l00550"></a>00550 
-<a name="l00551"></a>00551 <span class="keywordtype">void</span> SERIAL_getErrorString(<span class="keywordtype">char</span>* buffer, <span class="keywordtype">size_t</span> length) {
-<a name="l00552"></a>00552         sprintf(buffer, <span class="stringliteral">&quot;TODO: error handling is not fun&quot;</span>);
-<a name="l00553"></a>00553 }
-<a name="l00554"></a>00554 <span class="keywordtype">void</span> SERIAL_close(COMPORT port) {
-<a name="l00555"></a>00555         ULONG ulParmLen = <span class="keyword">sizeof</span>(DCBINFO);
-<a name="l00556"></a>00556         <span class="comment">// restore original DCB, close handle, free the COMPORT struct</span>
-<a name="l00557"></a>00557         <span class="keywordflow">if</span> (port-&gt;porthandle != 0) {
-<a name="l00558"></a>00558                 DosDevIOCtl(port-&gt;porthandle, IOCTL_ASYNC, ASYNC_SETDCBINFO,
-<a name="l00559"></a>00559                         &amp;port-&gt;orig_dcb, ulParmLen, &amp;ulParmLen, 0, 0, 0);
-<a name="l00560"></a>00560                 DosClose (port-&gt;porthandle);
-<a name="l00561"></a>00561         }
-<a name="l00562"></a>00562         free(port);
-<a name="l00563"></a>00563 }
-<a name="l00564"></a>00564 <span class="keywordtype">bool</span> SERIAL_sendchar(COMPORT port, <span class="keywordtype">char</span> data) {
-<a name="l00565"></a>00565         ULONG bytesWritten = 0;
-<a name="l00566"></a>00566 
-<a name="l00567"></a>00567         APIRET rc = DosWrite(port-&gt;porthandle, &amp;data, 1, &amp;bytesWritten);
-<a name="l00568"></a>00568         <span class="keywordflow">if</span> (rc == NO_ERROR &amp;&amp; bytesWritten &gt; 0) <span class="keywordflow">return</span> <span class="keyword">true</span>;
-<a name="l00569"></a>00569         <span class="keywordflow">else</span> <span class="keywordflow">return</span> <span class="keyword">false</span>;
-<a name="l00570"></a>00570 }
-<a name="l00571"></a>00571 
-<a name="l00572"></a>00572 <span class="keywordtype">void</span> SERIAL_setBREAK(COMPORT port, <span class="keywordtype">bool</span> value) {
-<a name="l00573"></a>00573         USHORT error;
-<a name="l00574"></a>00574         ULONG ulParmLen = <span class="keyword">sizeof</span>(error);
-<a name="l00575"></a>00575         DosDevIOCtl(port-&gt;porthandle, IOCTL_ASYNC,
-<a name="l00576"></a>00576                 value ? ASYNC_SETBREAKON : ASYNC_SETBREAKOFF,
-<a name="l00577"></a>00577                 0,0,0, &amp;error, ulParmLen, &amp;ulParmLen);
-<a name="l00578"></a>00578 }
-<a name="l00579"></a>00579 
-<a name="l00580"></a>00580 <span class="keywordtype">int</span> SERIAL_getextchar(COMPORT port) {
-<a name="l00581"></a>00581         ULONG dwRead = 0;       <span class="comment">// Number of chars read</span>
-<a name="l00582"></a>00582         <span class="keywordtype">char</span> chRead;
-<a name="l00583"></a>00583 
-<a name="l00584"></a>00584         <span class="keywordtype">int</span> retval = 0;
-<a name="l00585"></a>00585         <span class="comment">// receive a byte; TODO communicate failure</span>
-<a name="l00586"></a>00586         <span class="keywordflow">if</span> (DosRead(port-&gt;porthandle, &amp;chRead, 1, &amp;dwRead) == NO_ERROR) {
-<a name="l00587"></a>00587                 <span class="keywordflow">if</span> (dwRead) {
-<a name="l00588"></a>00588                         <span class="comment">// check for errors; will OS/2 clear the error on reading its data?</span>
-<a name="l00589"></a>00589                         <span class="comment">// if yes then this is in wrong order</span>
-<a name="l00590"></a>00590                         USHORT errors = 0, <span class="keyword">event</span> = 0;
-<a name="l00591"></a>00591                         ULONG ulParmLen = <span class="keyword">sizeof</span>(errors);
-<a name="l00592"></a>00592                         DosDevIOCtl(port-&gt;porthandle, IOCTL_ASYNC, ASYNC_GETCOMMEVENT,
-<a name="l00593"></a>00593                                 0, 0, 0, &amp;event, ulParmLen, &amp;ulParmLen);
-<a name="l00594"></a>00594                         <span class="keywordflow">if</span> (event &amp; (64 + 128) ) { <span class="comment">// Break (Bit 6) or Frame or Parity (Bit 7) error</span>
-<a name="l00595"></a>00595                                 Bit8u errreg = 0;
-<a name="l00596"></a>00596                                 <span class="keywordflow">if</span> (event &amp; 64) retval |= SERIAL_BREAK_ERR;
-<a name="l00597"></a>00597                                 <span class="keywordflow">if</span> (event &amp; 128) {
-<a name="l00598"></a>00598                                         DosDevIOCtl(port-&gt;porthandle, IOCTL_ASYNC, ASYNC_GETCOMMERROR,
-<a name="l00599"></a>00599                                                 0, 0, 0, &amp;errors, ulParmLen, &amp;ulParmLen);
-<a name="l00600"></a>00600                                         <span class="keywordflow">if</span> (errors &amp; 8) retval |= SERIAL_FRAMING_ERR;
-<a name="l00601"></a>00601                                         <span class="keywordflow">if</span> (errors &amp; 4) retval |= SERIAL_PARITY_ERR;
-<a name="l00602"></a>00602                                 }
-<a name="l00603"></a>00603                         }
-<a name="l00604"></a>00604                         retval |= (chRead &amp; 0xff);
-<a name="l00605"></a>00605                         retval |= 0x10000; 
-<a name="l00606"></a>00606                 }
-<a name="l00607"></a>00607         }
-<a name="l00608"></a>00608         <span class="keywordflow">return</span> retval;
-<a name="l00609"></a>00609 }
+<a name="l00165"></a>00165 <span class="keywordtype">void</span> SERIAL_setDTR(COMPORT port, <span class="keywordtype">bool</span> value) {
+<a name="l00166"></a>00166         EscapeCommFunction(port-&gt;porthandle, value ? SETDTR:CLRDTR);
+<a name="l00167"></a>00167 }
+<a name="l00168"></a>00168 
+<a name="l00169"></a>00169 <span class="keywordtype">void</span> SERIAL_setRTS(COMPORT port, <span class="keywordtype">bool</span> value) {
+<a name="l00170"></a>00170         EscapeCommFunction(port-&gt;porthandle, value ? SETRTS:CLRRTS);
+<a name="l00171"></a>00171 }
+<a name="l00172"></a>00172 
+<a name="l00173"></a>00173 <span class="keywordtype">void</span> SERIAL_setBREAK(COMPORT port, <span class="keywordtype">bool</span> value) {
+<a name="l00174"></a>00174         EscapeCommFunction(port-&gt;porthandle, value ? SETBREAK:CLRBREAK);
+<a name="l00175"></a>00175         port-&gt;breakstatus = value;
+<a name="l00176"></a>00176 }
+<a name="l00177"></a>00177 
+<a name="l00178"></a>00178 <span class="keywordtype">int</span> SERIAL_getmodemstatus(COMPORT port) {
+<a name="l00179"></a>00179         DWORD retval = 0;
+<a name="l00180"></a>00180         GetCommModemStatus (port-&gt;porthandle, &amp;retval);
+<a name="l00181"></a>00181         <span class="keywordflow">return</span> (<span class="keywordtype">int</span>)retval;
+<a name="l00182"></a>00182 }
+<a name="l00183"></a>00183 
+<a name="l00184"></a>00184 <span class="keywordtype">bool</span> SERIAL_sendchar(COMPORT port, <span class="keywordtype">char</span> data) {
+<a name="l00185"></a>00185         DWORD bytesWritten;
+<a name="l00186"></a>00186 
+<a name="l00187"></a>00187         <span class="comment">// mean bug: with break = 1, WriteFile will never return.</span>
+<a name="l00188"></a>00188         <span class="keywordflow">if</span>(port-&gt;breakstatus) <span class="keywordflow">return</span> <span class="keyword">true</span>; <span class="comment">// true or false?!</span>
+<a name="l00189"></a>00189 
+<a name="l00190"></a>00190         WriteFile (port-&gt;porthandle, &amp;data, 1, &amp;bytesWritten, NULL);
+<a name="l00191"></a>00191         <span class="keywordflow">if</span>(bytesWritten==1) <span class="keywordflow">return</span> <span class="keyword">true</span>;
+<a name="l00192"></a>00192         <span class="keywordflow">else</span> <span class="keywordflow">return</span> <span class="keyword">false</span>;
+<a name="l00193"></a>00193 }
+<a name="l00194"></a>00194 
+<a name="l00195"></a>00195 <span class="comment">// 0-7 char data, higher=flags</span>
+<a name="l00196"></a>00196 <span class="keywordtype">int</span> SERIAL_getextchar(COMPORT port) {
+<a name="l00197"></a>00197         DWORD errors = 0;       <span class="comment">// errors from API</span>
+<a name="l00198"></a>00198         DWORD dwRead = 0;       <span class="comment">// Number of chars read</span>
+<a name="l00199"></a>00199         <span class="keywordtype">char</span> chRead;
+<a name="l00200"></a>00200 
+<a name="l00201"></a>00201         <span class="keywordtype">int</span> retval = 0;
+<a name="l00202"></a>00202         <span class="comment">// receive a byte; TODO communicate failure</span>
+<a name="l00203"></a>00203         <span class="keywordflow">if</span> (ReadFile (port-&gt;porthandle, &amp;chRead, 1, &amp;dwRead, NULL)) {
+<a name="l00204"></a>00204                 <span class="keywordflow">if</span> (dwRead) {
+<a name="l00205"></a>00205                         <span class="comment">// check for errors</span>
+<a name="l00206"></a>00206                         ClearCommError(port-&gt;porthandle, &amp;errors, NULL);
+<a name="l00207"></a>00207                         <span class="comment">// mask bits are identical</span>
+<a name="l00208"></a>00208                         errors &amp;= CE_BREAK|CE_FRAME|CE_RXPARITY|CE_OVERRUN;
+<a name="l00209"></a>00209                         retval |= (errors&lt;&lt;8);
+<a name="l00210"></a>00210                         retval |= (chRead &amp; 0xff);
+<a name="l00211"></a>00211                         retval |= 0x10000; 
+<a name="l00212"></a>00212                 }
+<a name="l00213"></a>00213         }
+<a name="l00214"></a>00214         <span class="keywordflow">return</span> retval;
+<a name="l00215"></a>00215 }
+<a name="l00216"></a>00216 
+<a name="l00217"></a>00217 <span class="keywordtype">bool</span> SERIAL_setCommParameters(COMPORT port,
+<a name="l00218"></a>00218                         <span class="keywordtype">int</span> baudrate, <span class="keywordtype">char</span> parity, <span class="keywordtype">int</span> stopbits, <span class="keywordtype">int</span> length) {
+<a name="l00219"></a>00219         
+<a name="l00220"></a>00220         DCB dcb;
+<a name="l00221"></a>00221         dcb.DCBlength=<span class="keyword">sizeof</span>(dcb);
+<a name="l00222"></a>00222         GetCommState(port-&gt;porthandle,&amp;dcb);
+<a name="l00223"></a>00223 
+<a name="l00224"></a>00224         <span class="comment">// parity</span>
+<a name="l00225"></a>00225         <span class="keywordflow">switch</span> (parity) {
+<a name="l00226"></a>00226         <span class="keywordflow">case</span> <span class="charliteral">&#39;n&#39;</span>: dcb.Parity = NOPARITY; <span class="keywordflow">break</span>;
+<a name="l00227"></a>00227         <span class="keywordflow">case</span> <span class="charliteral">&#39;o&#39;</span>: dcb.Parity = ODDPARITY; <span class="keywordflow">break</span>;
+<a name="l00228"></a>00228         <span class="keywordflow">case</span> <span class="charliteral">&#39;e&#39;</span>: dcb.Parity = EVENPARITY; <span class="keywordflow">break</span>;
+<a name="l00229"></a>00229         <span class="keywordflow">case</span> <span class="charliteral">&#39;m&#39;</span>: dcb.Parity = MARKPARITY; <span class="keywordflow">break</span>;
+<a name="l00230"></a>00230         <span class="keywordflow">case</span> <span class="charliteral">&#39;s&#39;</span>: dcb.Parity = SPACEPARITY;     <span class="keywordflow">break</span>;
+<a name="l00231"></a>00231         <span class="keywordflow">default</span>:
+<a name="l00232"></a>00232                 SetLastError(ERROR_INVALID_PARAMETER);
+<a name="l00233"></a>00233                 <span class="keywordflow">return</span> <span class="keyword">false</span>;
+<a name="l00234"></a>00234         }
+<a name="l00235"></a>00235 
+<a name="l00236"></a>00236         <span class="comment">// stopbits</span>
+<a name="l00237"></a>00237         <span class="keywordflow">switch</span>(stopbits) {
+<a name="l00238"></a>00238         <span class="keywordflow">case</span> SERIAL_1STOP: dcb.StopBits = ONESTOPBIT; <span class="keywordflow">break</span>;
+<a name="l00239"></a>00239         <span class="keywordflow">case</span> SERIAL_2STOP: dcb.StopBits = TWOSTOPBITS; <span class="keywordflow">break</span>;
+<a name="l00240"></a>00240         <span class="keywordflow">case</span> SERIAL_15STOP: dcb.StopBits = ONE5STOPBITS; <span class="keywordflow">break</span>;
+<a name="l00241"></a>00241         <span class="keywordflow">default</span>:
+<a name="l00242"></a>00242                 SetLastError(ERROR_INVALID_PARAMETER);
+<a name="l00243"></a>00243                 <span class="keywordflow">return</span> <span class="keyword">false</span>;
+<a name="l00244"></a>00244         }
+<a name="l00245"></a>00245 
+<a name="l00246"></a>00246         <span class="comment">// byte length</span>
+<a name="l00247"></a>00247         <span class="keywordflow">if</span>(length &gt; 8 || length &lt; 5) {
+<a name="l00248"></a>00248                 SetLastError(ERROR_INVALID_PARAMETER);
+<a name="l00249"></a>00249                 <span class="keywordflow">return</span> <span class="keyword">false</span>;
+<a name="l00250"></a>00250         }
+<a name="l00251"></a>00251         dcb.ByteSize = length;
+<a name="l00252"></a>00252         dcb.BaudRate = baudrate;
+<a name="l00253"></a>00253 
+<a name="l00254"></a>00254         <span class="keywordflow">if</span> (!SetCommState (port-&gt;porthandle, &amp;dcb)) <span class="keywordflow">return</span> <span class="keyword">false</span>;
+<a name="l00255"></a>00255         <span class="keywordflow">return</span> <span class="keyword">true</span>;
+<a name="l00256"></a>00256 }
+<a name="l00257"></a>00257 <span class="preprocessor">#endif</span>
+<a name="l00258"></a>00258 <span class="preprocessor"></span>
+<a name="l00259"></a>00259 <span class="preprocessor">#if defined (LINUX) || defined (MACOSX) || defined (BSD) || defined (HAIKU)</span>
+<a name="l00260"></a>00260 <span class="preprocessor"></span>
+<a name="l00261"></a>00261 <span class="preprocessor">#include &lt;string.h&gt;</span> <span class="comment">// strlen</span>
+<a name="l00262"></a>00262 <span class="preprocessor">#include &lt;stdlib.h&gt;</span>
+<a name="l00263"></a>00263 
+<a name="l00264"></a>00264 <span class="preprocessor">#include &lt;termios.h&gt;</span>
+<a name="l00265"></a>00265 <span class="preprocessor">#include &lt;unistd.h&gt;</span>
+<a name="l00266"></a>00266 
+<a name="l00267"></a>00267 <span class="preprocessor">#include &lt;sys/types.h&gt;</span>
+<a name="l00268"></a>00268 <span class="preprocessor">#include &lt;sys/stat.h&gt;</span>
+<a name="l00269"></a>00269 <span class="preprocessor">#include &lt;sys/ioctl.h&gt;</span>
+<a name="l00270"></a>00270 
+<a name="l00271"></a>00271 <span class="preprocessor">#include &lt;errno.h&gt;</span>
+<a name="l00272"></a>00272 <span class="preprocessor">#include &lt;fcntl.h&gt;</span>
+<a name="l00273"></a>00273 <span class="preprocessor">#include &lt;stdio.h&gt;</span> <span class="comment">// sprinf</span>
+<a name="l00274"></a>00274 
+<a name="l00275"></a>00275 <span class="keyword">struct </span>_COMPORT {
+<a name="l00276"></a>00276         <span class="keywordtype">int</span> porthandle;
+<a name="l00277"></a>00277         <span class="keywordtype">bool</span> breakstatus;
+<a name="l00278"></a>00278         termios backup;
+<a name="l00279"></a>00279 };
+<a name="l00280"></a>00280 
+<a name="l00281"></a>00281 <span class="keywordtype">bool</span> SERIAL_open(<span class="keyword">const</span> <span class="keywordtype">char</span>* portname, COMPORT* port) {
+<a name="l00282"></a>00282         <span class="keywordtype">int</span> result;
+<a name="l00283"></a>00283         <span class="comment">// allocate COMPORT structure</span>
+<a name="l00284"></a>00284         COMPORT cp = (_COMPORT*)malloc(<span class="keyword">sizeof</span>(_COMPORT));
+<a name="l00285"></a>00285         <span class="keywordflow">if</span>(cp == NULL) <span class="keywordflow">return</span> <span class="keyword">false</span>;
+<a name="l00286"></a>00286 
+<a name="l00287"></a>00287         cp-&gt;breakstatus=<span class="keyword">false</span>;
+<a name="l00288"></a>00288 
+<a name="l00289"></a>00289     <span class="keywordtype">size_t</span> len = strlen(portname);
+<a name="l00290"></a>00290         <span class="keywordflow">if</span>(len &gt; 240) {
+<a name="l00292"></a>00292                 <span class="keywordflow">return</span> <span class="keyword">false</span>;
+<a name="l00293"></a>00293         }
+<a name="l00294"></a>00294         <span class="keywordtype">char</span> extended_portname[256] = <span class="stringliteral">&quot;/dev/&quot;</span>;
+<a name="l00295"></a>00295         memcpy(extended_portname+5,portname,(<span class="keywordtype">size_t</span>)len);
+<a name="l00296"></a>00296 
+<a name="l00297"></a>00297         cp-&gt;porthandle = open (extended_portname, O_RDWR | O_NOCTTY | O_NONBLOCK);
+<a name="l00298"></a>00298         <span class="keywordflow">if</span> (cp-&gt;porthandle &lt; 0) <span class="keywordflow">goto</span> cleanup_error;
+<a name="l00299"></a>00299 
+<a name="l00300"></a>00300         result = tcgetattr(cp-&gt;porthandle,&amp;cp-&gt;backup);
+<a name="l00301"></a>00301         <span class="keywordflow">if</span> (result==-1) <span class="keywordflow">goto</span> cleanup_error;
+<a name="l00302"></a>00302 
+<a name="l00303"></a>00303         <span class="comment">// get port settings</span>
+<a name="l00304"></a>00304         termios termInfo;
+<a name="l00305"></a>00305         memcpy(&amp;termInfo,&amp;cp-&gt;backup,<span class="keyword">sizeof</span>(termios));
+<a name="l00306"></a>00306 
+<a name="l00307"></a>00307         <span class="comment">// initialize the port</span>
+<a name="l00308"></a>00308         termInfo.c_cflag = CS8 | CREAD | CLOCAL; <span class="comment">// noparity, 1 stopbit</span>
+<a name="l00309"></a>00309         termInfo.c_iflag = PARMRK | INPCK;
+<a name="l00310"></a>00310         termInfo.c_oflag = 0;
+<a name="l00311"></a>00311         termInfo.c_lflag = 0;
+<a name="l00312"></a>00312         termInfo.c_cc[VMIN] = 0;
+<a name="l00313"></a>00313         termInfo.c_cc[VTIME] = 0;
+<a name="l00314"></a>00314 
+<a name="l00315"></a>00315         tcflush (cp-&gt;porthandle, TCIFLUSH);
+<a name="l00316"></a>00316         tcsetattr (cp-&gt;porthandle, TCSANOW, &amp;termInfo);
+<a name="l00317"></a>00317 
+<a name="l00318"></a>00318         *port = cp;
+<a name="l00319"></a>00319         <span class="keywordflow">return</span> <span class="keyword">true</span>;
+<a name="l00320"></a>00320 
+<a name="l00321"></a>00321 cleanup_error:
+<a name="l00322"></a>00322         <span class="keywordflow">if</span> (cp-&gt;porthandle != 0) close(cp-&gt;porthandle);
+<a name="l00323"></a>00323         free(cp);
+<a name="l00324"></a>00324         <span class="keywordflow">return</span> <span class="keyword">false</span>;
+<a name="l00325"></a>00325 }
+<a name="l00326"></a>00326 
+<a name="l00327"></a>00327 <span class="keywordtype">void</span> SERIAL_close(COMPORT port) {
+<a name="l00328"></a>00328         <span class="comment">// restore original termios, close handle, free the COMPORT struct</span>
+<a name="l00329"></a>00329         <span class="keywordflow">if</span> (port-&gt;porthandle &gt;= 0) {
+<a name="l00330"></a>00330                 tcsetattr(port-&gt;porthandle, TCSANOW, &amp;port-&gt;backup);
+<a name="l00331"></a>00331                 close(port-&gt;porthandle);
+<a name="l00332"></a>00332         }
+<a name="l00333"></a>00333         free(port);
+<a name="l00334"></a>00334 }
+<a name="l00335"></a>00335 
+<a name="l00336"></a>00336 <span class="keywordtype">void</span> SERIAL_getErrorString(<span class="keywordtype">char</span>* buffer, <span class="keywordtype">size_t</span> length) {
+<a name="l00337"></a>00337         <span class="keywordtype">int</span> error = errno;
+<a name="l00338"></a>00338         <span class="keywordflow">if</span>(length &lt; 50) <span class="keywordflow">return</span>;
+<a name="l00339"></a>00339         memset(buffer,0,(<span class="keywordtype">size_t</span>)length);
+<a name="l00340"></a>00340         <span class="comment">// get the error message text from the operating system</span>
+<a name="l00341"></a>00341         <span class="comment">// TODO (or not)</span>
+<a name="l00342"></a>00342         
+<a name="l00343"></a>00343         <span class="keyword">const</span> <span class="keywordtype">char</span>* err5text = <span class="stringliteral">&quot;The specified port is already in use.\n&quot;</span>;
+<a name="l00344"></a>00344         <span class="keyword">const</span> <span class="keywordtype">char</span>* err2text = <span class="stringliteral">&quot;The specified port does not exist.\n&quot;</span>;
+<a name="l00345"></a>00345         
+<a name="l00346"></a>00346     <span class="keywordtype">size_t</span> sysmsg_offset = 0;
+<a name="l00347"></a>00347 
+<a name="l00348"></a>00348         <span class="keywordflow">if</span>(error == EBUSY) {
+<a name="l00349"></a>00349                 sysmsg_offset = strlen(err5text);
+<a name="l00350"></a>00350                 memcpy(buffer,err5text,(<span class="keywordtype">size_t</span>)sysmsg_offset);
+<a name="l00351"></a>00351 
+<a name="l00352"></a>00352         } <span class="keywordflow">else</span> <span class="keywordflow">if</span>(error == 2) {
+<a name="l00353"></a>00353                 sysmsg_offset = strlen(err2text);
+<a name="l00354"></a>00354                 memcpy(buffer,err2text,(<span class="keywordtype">size_t</span>)sysmsg_offset);
+<a name="l00355"></a>00355         }
+<a name="l00356"></a>00356         
+<a name="l00357"></a>00357         sprintf(buffer + sysmsg_offset, <span class="stringliteral">&quot;System error %d.&quot;</span>,error);
+<a name="l00358"></a>00358         
+<a name="l00359"></a>00359 }
+<a name="l00360"></a>00360 
+<a name="l00361"></a>00361 <span class="keywordtype">int</span> SERIAL_getmodemstatus(COMPORT port) {
+<a name="l00362"></a>00362         <span class="keywordtype">long</span> flags = 0;
+<a name="l00363"></a>00363         ioctl (port-&gt;porthandle, TIOCMGET, &amp;flags);
+<a name="l00364"></a>00364         <span class="keywordtype">int</span> retval = 0;
+<a name="l00365"></a>00365         <span class="keywordflow">if</span> (flags &amp; TIOCM_CTS) retval |= SERIAL_CTS;
+<a name="l00366"></a>00366         <span class="keywordflow">if</span> (flags &amp; TIOCM_DSR) retval |= SERIAL_DSR;
+<a name="l00367"></a>00367         <span class="keywordflow">if</span> (flags &amp; TIOCM_RI) retval |= SERIAL_RI;
+<a name="l00368"></a>00368         <span class="keywordflow">if</span> (flags &amp; TIOCM_CD) retval |= SERIAL_CD;
+<a name="l00369"></a>00369         <span class="keywordflow">return</span> retval;
+<a name="l00370"></a>00370 }
+<a name="l00371"></a>00371 
+<a name="l00372"></a>00372 <span class="keywordtype">bool</span> SERIAL_sendchar(COMPORT port, <span class="keywordtype">char</span> data) {
+<a name="l00373"></a>00373         <span class="keywordflow">if</span>(port-&gt;breakstatus) <span class="keywordflow">return</span> <span class="keyword">true</span>; <span class="comment">// true or false?!; Does POSIX need this check?</span>
+<a name="l00374"></a>00374         <span class="keywordtype">int</span> bytesWritten = write(port-&gt;porthandle, &amp;data, 1);
+<a name="l00375"></a>00375         <span class="keywordflow">if</span>(bytesWritten==1) <span class="keywordflow">return</span> <span class="keyword">true</span>;
+<a name="l00376"></a>00376         <span class="keywordflow">else</span> <span class="keywordflow">return</span> <span class="keyword">false</span>;
+<a name="l00377"></a>00377 }
+<a name="l00378"></a>00378 
+<a name="l00379"></a>00379 <span class="keywordtype">int</span> SERIAL_getextchar(COMPORT port) {
+<a name="l00380"></a>00380         <span class="keywordtype">unsigned</span> <span class="keywordtype">char</span> chRead = 0;
+<a name="l00381"></a>00381         <span class="keywordtype">int</span> dwRead = 0;
+<a name="l00382"></a>00382         <span class="keywordtype">unsigned</span> <span class="keywordtype">char</span> error = 0;
+<a name="l00383"></a>00383         <span class="keywordtype">int</span> retval = 0;
+<a name="l00384"></a>00384 
+<a name="l00385"></a>00385         dwRead=read(port-&gt;porthandle,&amp;chRead,1);
+<a name="l00386"></a>00386         <span class="keywordflow">if</span> (dwRead==1) {
+<a name="l00387"></a>00387                 <span class="keywordflow">if</span>(chRead==0xff) <span class="comment">// error escape</span>
+<a name="l00388"></a>00388                 {
+<a name="l00389"></a>00389                         dwRead=read(port-&gt;porthandle,&amp;chRead,1);
+<a name="l00390"></a>00390                         <span class="keywordflow">if</span>(chRead==0x00) <span class="comment">// an error </span>
+<a name="l00391"></a>00391                         {
+<a name="l00392"></a>00392                                 dwRead=read(port-&gt;porthandle,&amp;chRead,1);
+<a name="l00393"></a>00393                                 <span class="keywordflow">if</span>(chRead==0x0) error=SERIAL_BREAK_ERR;
+<a name="l00394"></a>00394                                 <span class="keywordflow">else</span> error=SERIAL_FRAMING_ERR;
+<a name="l00395"></a>00395                         }
+<a name="l00396"></a>00396                 }
+<a name="l00397"></a>00397                 retval |= (error&lt;&lt;8);
+<a name="l00398"></a>00398                 retval |= chRead;
+<a name="l00399"></a>00399                 retval |= 0x10000; 
+<a name="l00400"></a>00400         }
+<a name="l00401"></a>00401         <span class="keywordflow">return</span> retval;
+<a name="l00402"></a>00402 }
+<a name="l00403"></a>00403 
+<a name="l00404"></a>00404 <span class="keywordtype">bool</span> SERIAL_setCommParameters(COMPORT port,
+<a name="l00405"></a>00405                         <span class="keywordtype">int</span> baudrate, <span class="keywordtype">char</span> parity, <span class="keywordtype">int</span> stopbits, <span class="keywordtype">int</span> length) {
+<a name="l00406"></a>00406         
+<a name="l00407"></a>00407         termios termInfo;
+<a name="l00408"></a>00408         <span class="keywordtype">int</span> result = tcgetattr(port-&gt;porthandle, &amp;termInfo);
+<a name="l00409"></a>00409         <span class="keywordflow">if</span> (result==-1) <span class="keywordflow">return</span> <span class="keyword">false</span>;
+<a name="l00410"></a>00410         termInfo.c_cflag = CREAD | CLOCAL;
+<a name="l00411"></a>00411 
+<a name="l00412"></a>00412         <span class="comment">// parity</span>
+<a name="l00413"></a>00413         <span class="comment">// &quot;works on many systems&quot;</span>
+<a name="l00414"></a>00414 <span class="preprocessor">        #define CMSPAR 010000000000</span>
+<a name="l00415"></a>00415 <span class="preprocessor"></span>        <span class="keywordflow">switch</span> (parity) {
+<a name="l00416"></a>00416         <span class="keywordflow">case</span> <span class="charliteral">&#39;n&#39;</span>: <span class="keywordflow">break</span>;
+<a name="l00417"></a>00417         <span class="keywordflow">case</span> <span class="charliteral">&#39;o&#39;</span>: termInfo.c_cflag |= (PARODD | PARENB); <span class="keywordflow">break</span>;
+<a name="l00418"></a>00418         <span class="keywordflow">case</span> <span class="charliteral">&#39;e&#39;</span>: termInfo.c_cflag |= PARENB; <span class="keywordflow">break</span>;
+<a name="l00419"></a>00419         <span class="keywordflow">case</span> <span class="charliteral">&#39;m&#39;</span>: termInfo.c_cflag |= (PARENB | CMSPAR | PARODD); <span class="keywordflow">break</span>;
+<a name="l00420"></a>00420         <span class="keywordflow">case</span> <span class="charliteral">&#39;s&#39;</span>: termInfo.c_cflag |= (PARENB | CMSPAR); <span class="keywordflow">break</span>;
+<a name="l00421"></a>00421         <span class="keywordflow">default</span>:
+<a name="l00422"></a>00422                 <span class="keywordflow">return</span> <span class="keyword">false</span>;
+<a name="l00423"></a>00423         }
+<a name="l00424"></a>00424         <span class="comment">// stopbits</span>
+<a name="l00425"></a>00425         <span class="keywordflow">switch</span>(stopbits) {
+<a name="l00426"></a>00426         <span class="keywordflow">case</span> SERIAL_1STOP: <span class="keywordflow">break</span>;
+<a name="l00427"></a>00427         <span class="keywordflow">case</span> SERIAL_2STOP: 
+<a name="l00428"></a>00428         <span class="keywordflow">case</span> SERIAL_15STOP: termInfo.c_cflag |= CSTOPB; <span class="keywordflow">break</span>;
+<a name="l00429"></a>00429         <span class="keywordflow">default</span>:
+<a name="l00430"></a>00430                 <span class="keywordflow">return</span> <span class="keyword">false</span>;
+<a name="l00431"></a>00431         }
+<a name="l00432"></a>00432         <span class="comment">// byte length</span>
+<a name="l00433"></a>00433         <span class="keywordflow">if</span>(length &gt; 8 || length &lt; 5) <span class="keywordflow">return</span> <span class="keyword">false</span>;
+<a name="l00434"></a>00434         <span class="keywordflow">switch</span> (length) {
+<a name="l00435"></a>00435         <span class="keywordflow">case</span> 5: termInfo.c_cflag |= CS5; <span class="keywordflow">break</span>;
+<a name="l00436"></a>00436         <span class="keywordflow">case</span> 6: termInfo.c_cflag |= CS6; <span class="keywordflow">break</span>;
+<a name="l00437"></a>00437         <span class="keywordflow">case</span> 7: termInfo.c_cflag |= CS7; <span class="keywordflow">break</span>;
+<a name="l00438"></a>00438         <span class="keywordflow">case</span> 8: termInfo.c_cflag |= CS8; <span class="keywordflow">break</span>;
+<a name="l00439"></a>00439         }
+<a name="l00440"></a>00440         <span class="comment">// baudrate</span>
+<a name="l00441"></a>00441         <span class="keywordtype">int</span> posix_baudrate=0;
+<a name="l00442"></a>00442         <span class="keywordflow">switch</span>(baudrate) {
+<a name="l00443"></a>00443                 <span class="keywordflow">case</span> 115200: posix_baudrate = B115200; <span class="keywordflow">break</span>;
+<a name="l00444"></a>00444                 <span class="keywordflow">case</span>  57600: posix_baudrate = B57600; <span class="keywordflow">break</span>;
+<a name="l00445"></a>00445                 <span class="keywordflow">case</span>  38400: posix_baudrate = B38400; <span class="keywordflow">break</span>;
+<a name="l00446"></a>00446                 <span class="keywordflow">case</span>  19200: posix_baudrate = B19200; <span class="keywordflow">break</span>;
+<a name="l00447"></a>00447                 <span class="keywordflow">case</span>   9600: posix_baudrate = B9600; <span class="keywordflow">break</span>;
+<a name="l00448"></a>00448                 <span class="keywordflow">case</span>   4800: posix_baudrate = B4800; <span class="keywordflow">break</span>;
+<a name="l00449"></a>00449                 <span class="keywordflow">case</span>   2400: posix_baudrate = B2400; <span class="keywordflow">break</span>;
+<a name="l00450"></a>00450                 <span class="keywordflow">case</span>   1200: posix_baudrate = B1200; <span class="keywordflow">break</span>;
+<a name="l00451"></a>00451                 <span class="keywordflow">case</span>    600: posix_baudrate = B600; <span class="keywordflow">break</span>;
+<a name="l00452"></a>00452                 <span class="keywordflow">case</span>    300: posix_baudrate = B300; <span class="keywordflow">break</span>;
+<a name="l00453"></a>00453                 <span class="keywordflow">case</span>    110: posix_baudrate = B110; <span class="keywordflow">break</span>;
+<a name="l00454"></a>00454                 <span class="keywordflow">default</span>: <span class="keywordflow">return</span> <span class="keyword">false</span>;
+<a name="l00455"></a>00455         }
+<a name="l00456"></a>00456         cfsetospeed (&amp;termInfo, (<span class="keywordtype">unsigned</span> <span class="keywordtype">int</span>)posix_baudrate);
+<a name="l00457"></a>00457         cfsetispeed (&amp;termInfo, (<span class="keywordtype">unsigned</span> <span class="keywordtype">int</span>)posix_baudrate);
+<a name="l00458"></a>00458 
+<a name="l00459"></a>00459         <span class="keywordtype">int</span> retval = tcsetattr(port-&gt;porthandle, TCSANOW, &amp;termInfo);
+<a name="l00460"></a>00460         <span class="keywordflow">if</span>(retval==-1) <span class="keywordflow">return</span> <span class="keyword">false</span>;
+<a name="l00461"></a>00461         <span class="keywordflow">return</span> <span class="keyword">true</span>;
+<a name="l00462"></a>00462 }
+<a name="l00463"></a>00463 
+<a name="l00464"></a>00464 <span class="keywordtype">void</span> SERIAL_setBREAK(COMPORT port, <span class="keywordtype">bool</span> value) {
+<a name="l00465"></a>00465         ioctl(port-&gt;porthandle, value?TIOCSBRK:TIOCCBRK);
+<a name="l00466"></a>00466 }
+<a name="l00467"></a>00467 
+<a name="l00468"></a>00468 <span class="keywordtype">void</span> SERIAL_setDTR(COMPORT port, <span class="keywordtype">bool</span> value) {
+<a name="l00469"></a>00469         <span class="keywordtype">long</span> flag = TIOCM_DTR;
+<a name="l00470"></a>00470         ioctl(port-&gt;porthandle, value?TIOCMBIS:TIOCMBIC, &amp;flag);
+<a name="l00471"></a>00471 }
+<a name="l00472"></a>00472 
+<a name="l00473"></a>00473 <span class="keywordtype">void</span> SERIAL_setRTS(COMPORT port, <span class="keywordtype">bool</span> value) {
+<a name="l00474"></a>00474         <span class="keywordtype">long</span> flag = TIOCM_RTS;
+<a name="l00475"></a>00475         ioctl(port-&gt;porthandle, value?TIOCMBIS:TIOCMBIC, &amp;flag);
+<a name="l00476"></a>00476 }
+<a name="l00477"></a>00477 <span class="preprocessor">#endif</span>
+<a name="l00478"></a>00478 <span class="preprocessor"></span>
+<a name="l00479"></a>00479 <span class="preprocessor">#ifdef OS2</span>
+<a name="l00480"></a>00480 <span class="preprocessor"></span><span class="comment">// OS/2 related headers</span>
+<a name="l00481"></a>00481 <span class="preprocessor">#define INCL_DOSFILEMGR</span>
+<a name="l00482"></a>00482 <span class="preprocessor"></span><span class="preprocessor">#define INCL_DOSERRORS</span>
+<a name="l00483"></a>00483 <span class="preprocessor"></span><span class="preprocessor">#define INCL_DOSDEVICES</span>
+<a name="l00484"></a>00484 <span class="preprocessor"></span><span class="preprocessor">#define INCL_DOSDEVIOCTL</span>
+<a name="l00485"></a>00485 <span class="preprocessor"></span><span class="preprocessor">#define INCL_DOSPROCESS</span>
+<a name="l00486"></a>00486 <span class="preprocessor"></span><span class="preprocessor">#include &lt;os2.h&gt;</span>
+<a name="l00487"></a>00487 <span class="preprocessor">#include &lt;malloc.h&gt;</span>
+<a name="l00488"></a>00488 <span class="preprocessor">#include &lt;string.h&gt;</span>
+<a name="l00489"></a>00489 <span class="preprocessor">#include &lt;stdio.h&gt;</span>
+<a name="l00490"></a>00490 
+<a name="l00491"></a>00491 <span class="keyword">struct </span>_COMPORT {
+<a name="l00492"></a>00492         HFILE porthandle;
+<a name="l00493"></a>00493         DCBINFO orig_dcb;
+<a name="l00494"></a>00494 };
+<a name="l00495"></a>00495 <span class="comment">// TODO: THIS IS INCOMPLETE and UNTESTED.</span>
+<a name="l00496"></a>00496 
+<a name="l00497"></a>00497 <span class="keywordtype">bool</span> SERIAL_open(<span class="keyword">const</span> <span class="keywordtype">char</span>* portname, COMPORT* port) {
+<a name="l00498"></a>00498         <span class="comment">// allocate COMPORT structure</span>
+<a name="l00499"></a>00499         COMPORT cp = (_COMPORT*)malloc(<span class="keyword">sizeof</span>(_COMPORT));
+<a name="l00500"></a>00500         <span class="keywordflow">if</span>(cp == NULL) <span class="keywordflow">return</span> <span class="keyword">false</span>;
+<a name="l00501"></a>00501         cp-&gt;porthandle=0;
+<a name="l00502"></a>00502 
+<a name="l00503"></a>00503         USHORT errors = 0;
+<a name="l00504"></a>00504         ULONG ulAction = 0;
+<a name="l00505"></a>00505         ULONG ulParmLen = <span class="keyword">sizeof</span>(DCBINFO);
+<a name="l00506"></a>00506         APIRET rc = DosOpen((PSZ)portname, &amp;cp-&gt;porthandle,
+<a name="l00507"></a>00507                 &amp;ulAction, 0L, FILE_NORMAL, FILE_OPEN,
+<a name="l00508"></a>00508                 OPEN_ACCESS_READWRITE | OPEN_SHARE_DENYNONE | OPEN_FLAGS_SEQUENTIAL, 0L);
+<a name="l00509"></a>00509         <span class="keywordflow">if</span> (rc != NO_ERROR) {
+<a name="l00510"></a>00510                 <span class="keywordflow">goto</span> cleanup_error;
+<a name="l00511"></a>00511         }
+<a name="l00512"></a>00512 
+<a name="l00513"></a>00513         rc = DosDevIOCtl(cp-&gt;porthandle, IOCTL_ASYNC, ASYNC_GETDCBINFO,
+<a name="l00514"></a>00514                 0, 0, 0, &amp;cp-&gt;orig_dcb, ulParmLen, &amp;ulParmLen);
+<a name="l00515"></a>00515         <span class="keywordflow">if</span> ( rc != NO_ERROR) {
+<a name="l00516"></a>00516                 <span class="keywordflow">goto</span> cleanup_error;
+<a name="l00517"></a>00517         }
+<a name="l00518"></a>00518         <span class="comment">// configure the port for polling</span>
+<a name="l00519"></a>00519         DCBINFO newdcb;
+<a name="l00520"></a>00520         memcpy(&amp;newdcb,&amp;cp-&gt;orig_dcb,<span class="keyword">sizeof</span>(DCBINFO));
+<a name="l00521"></a>00521 
+<a name="l00522"></a>00522         newdcb.usWriteTimeout = 0;
+<a name="l00523"></a>00523         newdcb.usReadTimeout = 0; <span class="comment">//65535;</span>
+<a name="l00524"></a>00524         newdcb.fbCtlHndShake = cp-&gt;orig_dcb.fbFlowReplace = 0;
+<a name="l00525"></a>00525         newdcb.fbTimeout = 6;
+<a name="l00526"></a>00526 
+<a name="l00527"></a>00527         rc = DosDevIOCtl(cp-&gt;porthandle, IOCTL_ASYNC, ASYNC_SETDCBINFO,
+<a name="l00528"></a>00528                 &amp;newdcb, ulParmLen, &amp;ulParmLen, 0, 0, 0);
+<a name="l00529"></a>00529         <span class="keywordflow">if</span> ( rc != NO_ERROR) {
+<a name="l00530"></a>00530                 <span class="keywordflow">goto</span> cleanup_error;
+<a name="l00531"></a>00531         }
+<a name="l00532"></a>00532 
+<a name="l00533"></a>00533         ulParmLen = <span class="keyword">sizeof</span>(errors);
+<a name="l00534"></a>00534         rc = DosDevIOCtl(cp-&gt;porthandle, IOCTL_ASYNC, ASYNC_GETCOMMERROR,
+<a name="l00535"></a>00535                 0, 0, 0, &amp;errors, ulParmLen, &amp;ulParmLen);
+<a name="l00536"></a>00536         <span class="keywordflow">if</span> ( rc != NO_ERROR) {
+<a name="l00537"></a>00537                 <span class="keywordflow">goto</span> cleanup_error;
+<a name="l00538"></a>00538         }
+<a name="l00539"></a>00539 
+<a name="l00540"></a>00540         *port = cp;
+<a name="l00541"></a>00541         <span class="keywordflow">return</span> <span class="keyword">true</span>;
+<a name="l00542"></a>00542 
+<a name="l00543"></a>00543 cleanup_error:
+<a name="l00544"></a>00544         <span class="comment">// TODO error string - rc value</span>
+<a name="l00545"></a>00545         <span class="keywordflow">if</span> (cp-&gt;porthandle != 0) DosClose(cp-&gt;porthandle);
+<a name="l00546"></a>00546         free(cp);
+<a name="l00547"></a>00547         <span class="keywordflow">return</span> <span class="keyword">false</span>;
+<a name="l00548"></a>00548 }
+<a name="l00549"></a>00549 
+<a name="l00550"></a>00550 <span class="keywordtype">void</span> SERIAL_getErrorString(<span class="keywordtype">char</span>* buffer, <span class="keywordtype">size_t</span> length) {
+<a name="l00551"></a>00551         sprintf(buffer, <span class="stringliteral">&quot;TODO: error handling is not fun&quot;</span>);
+<a name="l00552"></a>00552 }
+<a name="l00553"></a>00553 <span class="keywordtype">void</span> SERIAL_close(COMPORT port) {
+<a name="l00554"></a>00554         ULONG ulParmLen = <span class="keyword">sizeof</span>(DCBINFO);
+<a name="l00555"></a>00555         <span class="comment">// restore original DCB, close handle, free the COMPORT struct</span>
+<a name="l00556"></a>00556         <span class="keywordflow">if</span> (port-&gt;porthandle != 0) {
+<a name="l00557"></a>00557                 DosDevIOCtl(port-&gt;porthandle, IOCTL_ASYNC, ASYNC_SETDCBINFO,
+<a name="l00558"></a>00558                         &amp;port-&gt;orig_dcb, ulParmLen, &amp;ulParmLen, 0, 0, 0);
+<a name="l00559"></a>00559                 DosClose (port-&gt;porthandle);
+<a name="l00560"></a>00560         }
+<a name="l00561"></a>00561         free(port);
+<a name="l00562"></a>00562 }
+<a name="l00563"></a>00563 <span class="keywordtype">bool</span> SERIAL_sendchar(COMPORT port, <span class="keywordtype">char</span> data) {
+<a name="l00564"></a>00564         ULONG bytesWritten = 0;
+<a name="l00565"></a>00565 
+<a name="l00566"></a>00566         APIRET rc = DosWrite(port-&gt;porthandle, &amp;data, 1, &amp;bytesWritten);
+<a name="l00567"></a>00567         <span class="keywordflow">if</span> (rc == NO_ERROR &amp;&amp; bytesWritten &gt; 0) <span class="keywordflow">return</span> <span class="keyword">true</span>;
+<a name="l00568"></a>00568         <span class="keywordflow">else</span> <span class="keywordflow">return</span> <span class="keyword">false</span>;
+<a name="l00569"></a>00569 }
+<a name="l00570"></a>00570 
+<a name="l00571"></a>00571 <span class="keywordtype">void</span> SERIAL_setBREAK(COMPORT port, <span class="keywordtype">bool</span> value) {
+<a name="l00572"></a>00572         USHORT error;
+<a name="l00573"></a>00573         ULONG ulParmLen = <span class="keyword">sizeof</span>(error);
+<a name="l00574"></a>00574         DosDevIOCtl(port-&gt;porthandle, IOCTL_ASYNC,
+<a name="l00575"></a>00575                 value ? ASYNC_SETBREAKON : ASYNC_SETBREAKOFF,
+<a name="l00576"></a>00576                 0,0,0, &amp;error, ulParmLen, &amp;ulParmLen);
+<a name="l00577"></a>00577 }
+<a name="l00578"></a>00578 
+<a name="l00579"></a>00579 <span class="keywordtype">int</span> SERIAL_getextchar(COMPORT port) {
+<a name="l00580"></a>00580         ULONG dwRead = 0;       <span class="comment">// Number of chars read</span>
+<a name="l00581"></a>00581         <span class="keywordtype">char</span> chRead;
+<a name="l00582"></a>00582 
+<a name="l00583"></a>00583         <span class="keywordtype">int</span> retval = 0;
+<a name="l00584"></a>00584         <span class="comment">// receive a byte; TODO communicate failure</span>
+<a name="l00585"></a>00585         <span class="keywordflow">if</span> (DosRead(port-&gt;porthandle, &amp;chRead, 1, &amp;dwRead) == NO_ERROR) {
+<a name="l00586"></a>00586                 <span class="keywordflow">if</span> (dwRead) {
+<a name="l00587"></a>00587                         <span class="comment">// check for errors; will OS/2 clear the error on reading its data?</span>
+<a name="l00588"></a>00588                         <span class="comment">// if yes then this is in wrong order</span>
+<a name="l00589"></a>00589                         USHORT errors = 0, <span class="keyword">event</span> = 0;
+<a name="l00590"></a>00590                         ULONG ulParmLen = <span class="keyword">sizeof</span>(errors);
+<a name="l00591"></a>00591                         DosDevIOCtl(port-&gt;porthandle, IOCTL_ASYNC, ASYNC_GETCOMMEVENT,
+<a name="l00592"></a>00592                                 0, 0, 0, &amp;event, ulParmLen, &amp;ulParmLen);
+<a name="l00593"></a>00593                         <span class="keywordflow">if</span> (event &amp; (64 + 128) ) { <span class="comment">// Break (Bit 6) or Frame or Parity (Bit 7) error</span>
+<a name="l00594"></a>00594                                 Bit8u errreg = 0;
+<a name="l00595"></a>00595                                 <span class="keywordflow">if</span> (event &amp; 64) retval |= SERIAL_BREAK_ERR;
+<a name="l00596"></a>00596                                 <span class="keywordflow">if</span> (event &amp; 128) {
+<a name="l00597"></a>00597                                         DosDevIOCtl(port-&gt;porthandle, IOCTL_ASYNC, ASYNC_GETCOMMERROR,
+<a name="l00598"></a>00598                                                 0, 0, 0, &amp;errors, ulParmLen, &amp;ulParmLen);
+<a name="l00599"></a>00599                                         <span class="keywordflow">if</span> (errors &amp; 8) retval |= SERIAL_FRAMING_ERR;
+<a name="l00600"></a>00600                                         <span class="keywordflow">if</span> (errors &amp; 4) retval |= SERIAL_PARITY_ERR;
+<a name="l00601"></a>00601                                 }
+<a name="l00602"></a>00602                         }
+<a name="l00603"></a>00603                         retval |= (chRead &amp; 0xff);
+<a name="l00604"></a>00604                         retval |= 0x10000; 
+<a name="l00605"></a>00605                 }
+<a name="l00606"></a>00606         }
+<a name="l00607"></a>00607         <span class="keywordflow">return</span> retval;
+<a name="l00608"></a>00608 }
+<a name="l00609"></a>00609 
 <a name="l00610"></a>00610 
-<a name="l00611"></a>00611 
-<a name="l00612"></a>00612 <span class="keywordtype">int</span> SERIAL_getmodemstatus(COMPORT port) {
-<a name="l00613"></a>00613         UCHAR dptr = 0;
-<a name="l00614"></a>00614         ULONG ulParmLen = <span class="keyword">sizeof</span>(dptr);
-<a name="l00615"></a>00615         DosDevIOCtl(port-&gt;porthandle, IOCTL_ASYNC, ASYNC_GETMODEMINPUT,
-<a name="l00616"></a>00616                 0, 0, 0, &amp;dptr, ulParmLen, &amp;ulParmLen);
-<a name="l00617"></a>00617         <span class="comment">// bits are the same as return value</span>
-<a name="l00618"></a>00618         <span class="keywordflow">return</span> (<span class="keywordtype">int</span>)dptr;
-<a name="l00619"></a>00619 }
-<a name="l00620"></a>00620 <span class="keywordtype">void</span> SERIAL_setDTR(COMPORT port, <span class="keywordtype">bool</span> value) {
-<a name="l00621"></a>00621         UCHAR masks[2];
-<a name="l00622"></a>00622         ULONG ulParmLen = <span class="keyword">sizeof</span>(masks);
-<a name="l00623"></a>00623         <span class="keywordflow">if</span>(value) {
-<a name="l00624"></a>00624                 masks[0]=0x01;
-<a name="l00625"></a>00625                 masks[1]=0xFF;
-<a name="l00626"></a>00626         } <span class="keywordflow">else</span> {
-<a name="l00627"></a>00627                 masks[0]=0x00;
-<a name="l00628"></a>00628                 masks[1]=0xFE;
-<a name="l00629"></a>00629         }
-<a name="l00630"></a>00630         DosDevIOCtl(port-&gt;porthandle, IOCTL_ASYNC, ASYNC_SETMODEMCTRL,
-<a name="l00631"></a>00631                 0,0,0, &amp;masks, ulParmLen, &amp;ulParmLen);
-<a name="l00632"></a>00632 }
-<a name="l00633"></a>00633 
-<a name="l00634"></a>00634 <span class="keywordtype">void</span> SERIAL_setRTS(COMPORT port, <span class="keywordtype">bool</span> value) {
-<a name="l00635"></a>00635         UCHAR masks[2];
-<a name="l00636"></a>00636         ULONG ulParmLen = <span class="keyword">sizeof</span>(masks);
-<a name="l00637"></a>00637         <span class="keywordflow">if</span>(value) {
-<a name="l00638"></a>00638                 masks[0]=0x02;
-<a name="l00639"></a>00639                 masks[1]=0xFF;
-<a name="l00640"></a>00640         } <span class="keywordflow">else</span> {
-<a name="l00641"></a>00641                 masks[0]=0x00;
-<a name="l00642"></a>00642                 masks[1]=0xFD;
-<a name="l00643"></a>00643         }
-<a name="l00644"></a>00644         DosDevIOCtl(port-&gt;porthandle, IOCTL_ASYNC, ASYNC_SETMODEMCTRL,
-<a name="l00645"></a>00645                 0,0,0, &amp;masks, ulParmLen, &amp;ulParmLen);
-<a name="l00646"></a>00646 }
+<a name="l00611"></a>00611 <span class="keywordtype">int</span> SERIAL_getmodemstatus(COMPORT port) {
+<a name="l00612"></a>00612         UCHAR dptr = 0;
+<a name="l00613"></a>00613         ULONG ulParmLen = <span class="keyword">sizeof</span>(dptr);
+<a name="l00614"></a>00614         DosDevIOCtl(port-&gt;porthandle, IOCTL_ASYNC, ASYNC_GETMODEMINPUT,
+<a name="l00615"></a>00615                 0, 0, 0, &amp;dptr, ulParmLen, &amp;ulParmLen);
+<a name="l00616"></a>00616         <span class="comment">// bits are the same as return value</span>
+<a name="l00617"></a>00617         <span class="keywordflow">return</span> (<span class="keywordtype">int</span>)dptr;
+<a name="l00618"></a>00618 }
+<a name="l00619"></a>00619 <span class="keywordtype">void</span> SERIAL_setDTR(COMPORT port, <span class="keywordtype">bool</span> value) {
+<a name="l00620"></a>00620         UCHAR masks[2];
+<a name="l00621"></a>00621         ULONG ulParmLen = <span class="keyword">sizeof</span>(masks);
+<a name="l00622"></a>00622         <span class="keywordflow">if</span>(value) {
+<a name="l00623"></a>00623                 masks[0]=0x01;
+<a name="l00624"></a>00624                 masks[1]=0xFF;
+<a name="l00625"></a>00625         } <span class="keywordflow">else</span> {
+<a name="l00626"></a>00626                 masks[0]=0x00;
+<a name="l00627"></a>00627                 masks[1]=0xFE;
+<a name="l00628"></a>00628         }
+<a name="l00629"></a>00629         DosDevIOCtl(port-&gt;porthandle, IOCTL_ASYNC, ASYNC_SETMODEMCTRL,
+<a name="l00630"></a>00630                 0,0,0, &amp;masks, ulParmLen, &amp;ulParmLen);
+<a name="l00631"></a>00631 }
+<a name="l00632"></a>00632 
+<a name="l00633"></a>00633 <span class="keywordtype">void</span> SERIAL_setRTS(COMPORT port, <span class="keywordtype">bool</span> value) {
+<a name="l00634"></a>00634         UCHAR masks[2];
+<a name="l00635"></a>00635         ULONG ulParmLen = <span class="keyword">sizeof</span>(masks);
+<a name="l00636"></a>00636         <span class="keywordflow">if</span>(value) {
+<a name="l00637"></a>00637                 masks[0]=0x02;
+<a name="l00638"></a>00638                 masks[1]=0xFF;
+<a name="l00639"></a>00639         } <span class="keywordflow">else</span> {
+<a name="l00640"></a>00640                 masks[0]=0x00;
+<a name="l00641"></a>00641                 masks[1]=0xFD;
+<a name="l00642"></a>00642         }
+<a name="l00643"></a>00643         DosDevIOCtl(port-&gt;porthandle, IOCTL_ASYNC, ASYNC_SETMODEMCTRL,
+<a name="l00644"></a>00644                 0,0,0, &amp;masks, ulParmLen, &amp;ulParmLen);
+<a name="l00645"></a>00645 }
+<a name="l00646"></a>00646 
 <a name="l00647"></a>00647 
 <a name="l00648"></a>00648 
-<a name="l00649"></a>00649 
-<a name="l00650"></a>00650 <span class="keywordtype">bool</span> SERIAL_setCommParameters(COMPORT port,
-<a name="l00651"></a>00651                         <span class="keywordtype">int</span> baudrate, <span class="keywordtype">char</span> parity, <span class="keywordtype">int</span> stopbits, <span class="keywordtype">int</span> length) {
-<a name="l00652"></a>00652         <span class="comment">// baud</span>
-<a name="l00653"></a>00653         <span class="keyword">struct </span>{
-<a name="l00654"></a>00654                 ULONG baud;
-<a name="l00655"></a>00655                 BYTE fraction;
-<a name="l00656"></a>00656         } setbaud;
-<a name="l00657"></a>00657 
-<a name="l00658"></a>00658         setbaud.baud = baudrate;
-<a name="l00659"></a>00659         setbaud.fraction = 0;
-<a name="l00660"></a>00660         ULONG ulParmLen = <span class="keyword">sizeof</span>(setbaud);
-<a name="l00661"></a>00661         APIRET rc = DosDevIOCtl(port-&gt;porthandle, IOCTL_ASYNC, ASYNC_EXTSETBAUDRATE,
-<a name="l00662"></a>00662                 &amp;setbaud, ulParmLen, &amp;ulParmLen, 0, 0, 0);
-<a name="l00663"></a>00663         <span class="keywordflow">if</span> (rc != NO_ERROR) {
-<a name="l00664"></a>00664                 <span class="keywordflow">return</span> <span class="keyword">false</span>;
-<a name="l00665"></a>00665         }
-<a name="l00666"></a>00666 
-<a name="l00667"></a>00667         <span class="keyword">struct </span>{
-<a name="l00668"></a>00668                 UCHAR data;
-<a name="l00669"></a>00669                 UCHAR parity;
-<a name="l00670"></a>00670                 UCHAR stop;
-<a name="l00671"></a>00671         } paramline;
-<a name="l00672"></a>00672 
-<a name="l00673"></a>00673         <span class="comment">// byte length</span>
-<a name="l00674"></a>00674         <span class="keywordflow">if</span>(length &gt; 8 || length &lt; 5) {
-<a name="l00675"></a>00675                 <span class="comment">// TODO SetLastError(ERROR_INVALID_PARAMETER);</span>
-<a name="l00676"></a>00676                 <span class="keywordflow">return</span> <span class="keyword">false</span>;
-<a name="l00677"></a>00677         }
-<a name="l00678"></a>00678         paramline.data = length;
-<a name="l00679"></a>00679 
-<a name="l00680"></a>00680         <span class="comment">// parity</span>
-<a name="l00681"></a>00681         <span class="keywordflow">switch</span> (parity) {
-<a name="l00682"></a>00682         <span class="keywordflow">case</span> <span class="charliteral">&#39;n&#39;</span>: paramline.parity = 0; <span class="keywordflow">break</span>;
-<a name="l00683"></a>00683         <span class="keywordflow">case</span> <span class="charliteral">&#39;o&#39;</span>: paramline.parity = 1; <span class="keywordflow">break</span>;
-<a name="l00684"></a>00684         <span class="keywordflow">case</span> <span class="charliteral">&#39;e&#39;</span>: paramline.parity = 2; <span class="keywordflow">break</span>;
-<a name="l00685"></a>00685         <span class="keywordflow">case</span> <span class="charliteral">&#39;m&#39;</span>: paramline.parity = 3; <span class="keywordflow">break</span>;
-<a name="l00686"></a>00686         <span class="keywordflow">case</span> <span class="charliteral">&#39;s&#39;</span>: paramline.parity = 4; <span class="keywordflow">break</span>;
-<a name="l00687"></a>00687         <span class="keywordflow">default</span>:
-<a name="l00688"></a>00688                 <span class="comment">// TODO SetLastError(ERROR_INVALID_PARAMETER);</span>
-<a name="l00689"></a>00689                 <span class="keywordflow">return</span> <span class="keyword">false</span>;
-<a name="l00690"></a>00690         }
-<a name="l00691"></a>00691         <span class="comment">// stopbits</span>
-<a name="l00692"></a>00692         <span class="keywordflow">switch</span>(stopbits) {
-<a name="l00693"></a>00693         <span class="keywordflow">case</span> SERIAL_1STOP: paramline.stop = 0; <span class="keywordflow">break</span>;
-<a name="l00694"></a>00694         <span class="keywordflow">case</span> SERIAL_2STOP: paramline.stop = 2; <span class="keywordflow">break</span>;
-<a name="l00695"></a>00695         <span class="keywordflow">case</span> SERIAL_15STOP: paramline.stop = 1; <span class="keywordflow">break</span>;
-<a name="l00696"></a>00696         <span class="keywordflow">default</span>:
-<a name="l00697"></a>00697                 <span class="comment">// TODO SetLastError(ERROR_INVALID_PARAMETER);</span>
-<a name="l00698"></a>00698                 <span class="keywordflow">return</span> <span class="keyword">false</span>;
-<a name="l00699"></a>00699         }
-<a name="l00700"></a>00700         <span class="comment">// set it</span>
-<a name="l00701"></a>00701         ulParmLen = <span class="keyword">sizeof</span>(paramline);
-<a name="l00702"></a>00702         rc = DosDevIOCtl(port-&gt;porthandle, IOCTL_ASYNC, ASYNC_SETLINECTRL,
-<a name="l00703"></a>00703                 &amp;paramline, ulParmLen, &amp;ulParmLen, 0, 0, 0);
-<a name="l00704"></a>00704         <span class="keywordflow">if</span> ( rc != NO_ERROR)
-<a name="l00705"></a>00705                 <span class="keywordflow">return</span> <span class="keyword">false</span>;
-<a name="l00706"></a>00706         <span class="keywordflow">return</span> <span class="keyword">true</span>;
-<a name="l00707"></a>00707 }
-<a name="l00708"></a>00708 <span class="preprocessor">#endif</span>
+<a name="l00649"></a>00649 <span class="keywordtype">bool</span> SERIAL_setCommParameters(COMPORT port,
+<a name="l00650"></a>00650                         <span class="keywordtype">int</span> baudrate, <span class="keywordtype">char</span> parity, <span class="keywordtype">int</span> stopbits, <span class="keywordtype">int</span> length) {
+<a name="l00651"></a>00651         <span class="comment">// baud</span>
+<a name="l00652"></a>00652         <span class="keyword">struct </span>{
+<a name="l00653"></a>00653                 ULONG baud;
+<a name="l00654"></a>00654                 BYTE fraction;
+<a name="l00655"></a>00655         } setbaud;
+<a name="l00656"></a>00656 
+<a name="l00657"></a>00657         setbaud.baud = baudrate;
+<a name="l00658"></a>00658         setbaud.fraction = 0;
+<a name="l00659"></a>00659         ULONG ulParmLen = <span class="keyword">sizeof</span>(setbaud);
+<a name="l00660"></a>00660         APIRET rc = DosDevIOCtl(port-&gt;porthandle, IOCTL_ASYNC, ASYNC_EXTSETBAUDRATE,
+<a name="l00661"></a>00661                 &amp;setbaud, ulParmLen, &amp;ulParmLen, 0, 0, 0);
+<a name="l00662"></a>00662         <span class="keywordflow">if</span> (rc != NO_ERROR) {
+<a name="l00663"></a>00663                 <span class="keywordflow">return</span> <span class="keyword">false</span>;
+<a name="l00664"></a>00664         }
+<a name="l00665"></a>00665 
+<a name="l00666"></a>00666         <span class="keyword">struct </span>{
+<a name="l00667"></a>00667                 UCHAR data;
+<a name="l00668"></a>00668                 UCHAR parity;
+<a name="l00669"></a>00669                 UCHAR stop;
+<a name="l00670"></a>00670         } paramline;
+<a name="l00671"></a>00671 
+<a name="l00672"></a>00672         <span class="comment">// byte length</span>
+<a name="l00673"></a>00673         <span class="keywordflow">if</span>(length &gt; 8 || length &lt; 5) {
+<a name="l00674"></a>00674                 <span class="comment">// TODO SetLastError(ERROR_INVALID_PARAMETER);</span>
+<a name="l00675"></a>00675                 <span class="keywordflow">return</span> <span class="keyword">false</span>;
+<a name="l00676"></a>00676         }
+<a name="l00677"></a>00677         paramline.data = length;
+<a name="l00678"></a>00678 
+<a name="l00679"></a>00679         <span class="comment">// parity</span>
+<a name="l00680"></a>00680         <span class="keywordflow">switch</span> (parity) {
+<a name="l00681"></a>00681         <span class="keywordflow">case</span> <span class="charliteral">&#39;n&#39;</span>: paramline.parity = 0; <span class="keywordflow">break</span>;
+<a name="l00682"></a>00682         <span class="keywordflow">case</span> <span class="charliteral">&#39;o&#39;</span>: paramline.parity = 1; <span class="keywordflow">break</span>;
+<a name="l00683"></a>00683         <span class="keywordflow">case</span> <span class="charliteral">&#39;e&#39;</span>: paramline.parity = 2; <span class="keywordflow">break</span>;
+<a name="l00684"></a>00684         <span class="keywordflow">case</span> <span class="charliteral">&#39;m&#39;</span>: paramline.parity = 3; <span class="keywordflow">break</span>;
+<a name="l00685"></a>00685         <span class="keywordflow">case</span> <span class="charliteral">&#39;s&#39;</span>: paramline.parity = 4; <span class="keywordflow">break</span>;
+<a name="l00686"></a>00686         <span class="keywordflow">default</span>:
+<a name="l00687"></a>00687                 <span class="comment">// TODO SetLastError(ERROR_INVALID_PARAMETER);</span>
+<a name="l00688"></a>00688                 <span class="keywordflow">return</span> <span class="keyword">false</span>;
+<a name="l00689"></a>00689         }
+<a name="l00690"></a>00690         <span class="comment">// stopbits</span>
+<a name="l00691"></a>00691         <span class="keywordflow">switch</span>(stopbits) {
+<a name="l00692"></a>00692         <span class="keywordflow">case</span> SERIAL_1STOP: paramline.stop = 0; <span class="keywordflow">break</span>;
+<a name="l00693"></a>00693         <span class="keywordflow">case</span> SERIAL_2STOP: paramline.stop = 2; <span class="keywordflow">break</span>;
+<a name="l00694"></a>00694         <span class="keywordflow">case</span> SERIAL_15STOP: paramline.stop = 1; <span class="keywordflow">break</span>;
+<a name="l00695"></a>00695         <span class="keywordflow">default</span>:
+<a name="l00696"></a>00696                 <span class="comment">// TODO SetLastError(ERROR_INVALID_PARAMETER);</span>
+<a name="l00697"></a>00697                 <span class="keywordflow">return</span> <span class="keyword">false</span>;
+<a name="l00698"></a>00698         }
+<a name="l00699"></a>00699         <span class="comment">// set it</span>
+<a name="l00700"></a>00700         ulParmLen = <span class="keyword">sizeof</span>(paramline);
+<a name="l00701"></a>00701         rc = DosDevIOCtl(port-&gt;porthandle, IOCTL_ASYNC, ASYNC_SETLINECTRL,
+<a name="l00702"></a>00702                 &amp;paramline, ulParmLen, &amp;ulParmLen, 0, 0, 0);
+<a name="l00703"></a>00703         <span class="keywordflow">if</span> ( rc != NO_ERROR)
+<a name="l00704"></a>00704                 <span class="keywordflow">return</span> <span class="keyword">false</span>;
+<a name="l00705"></a>00705         <span class="keywordflow">return</span> <span class="keyword">true</span>;
+<a name="l00706"></a>00706 }
+<a name="l00707"></a>00707 <span class="preprocessor">#endif</span>
 </pre></div></div><!-- contents -->
 
 
 <hr class="footer"/><address class="footer"><small>
-Generated on Tue Oct 1 2019 18:06:27 for DOSBox-X by &#160;<a href="http://www.doxygen.org/index.html">
+Generated on Sun Jul 5 2020 13:11:37 for DOSBox-X by &#160;<a href="http://www.doxygen.org/index.html">
 <img class="footer" src="doxygen.png" alt="doxygen"/>
 </a> 1.8.0
 </small></address>

@@ -96,7 +96,7 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 </div><!--header-->
 <div class="contents">
 <div class="fragment"><pre class="fragment"><a name="l00001"></a>00001 <span class="comment">/*</span>
-<a name="l00002"></a>00002 <span class="comment"> *  Copyright (C) 2002-2019  The DOSBox Team</span>
+<a name="l00002"></a>00002 <span class="comment"> *  Copyright (C) 2002-2020  The DOSBox Team</span>
 <a name="l00003"></a>00003 <span class="comment"> *</span>
 <a name="l00004"></a>00004 <span class="comment"> *  This program is free software; you can redistribute it and/or modify</span>
 <a name="l00005"></a>00005 <span class="comment"> *  it under the terms of the GNU General Public License as published by</span>
@@ -108,9 +108,9 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l00011"></a>00011 <span class="comment"> *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the</span>
 <a name="l00012"></a>00012 <span class="comment"> *  GNU General Public License for more details.</span>
 <a name="l00013"></a>00013 <span class="comment"> *</span>
-<a name="l00014"></a>00014 <span class="comment"> *  You should have received a copy of the GNU General Public License</span>
-<a name="l00015"></a>00015 <span class="comment"> *  along with this program; if not, write to the Free Software</span>
-<a name="l00016"></a>00016 <span class="comment"> *  Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1335, USA.</span>
+<a name="l00014"></a>00014 <span class="comment"> *  You should have received a copy of the GNU General Public License along</span>
+<a name="l00015"></a>00015 <span class="comment"> *  with this program; if not, write to the Free Software Foundation, Inc.,</span>
+<a name="l00016"></a>00016 <span class="comment"> *  51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.</span>
 <a name="l00017"></a>00017 <span class="comment"> */</span>
 <a name="l00018"></a>00018 
 <a name="l00019"></a>00019 <span class="preprocessor">#include &quot;dosbox.h&quot;</span>
@@ -397,142 +397,152 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l00300"></a>00300                 *page&amp;=0xc;
 <a name="l00301"></a>00301                 *page&gt;&gt;=2;
 <a name="l00302"></a>00302         }
-<a name="l00303"></a>00303 }
-<a name="l00304"></a>00304 
-<a name="l00305"></a>00305 <span class="keywordtype">void</span> INT10_SetPelMask(Bit8u mask) {
-<a name="l00306"></a>00306         IO_Write(VGAREG_PEL_MASK,mask);
-<a name="l00307"></a>00307 }       
-<a name="l00308"></a>00308 
-<a name="l00309"></a>00309 <span class="keywordtype">void</span> INT10_GetPelMask(Bit8u &amp; mask) {
-<a name="l00310"></a>00310         mask=IO_Read(VGAREG_PEL_MASK);
-<a name="l00311"></a>00311 }
-<a name="l00312"></a>00312 
-<a name="l00313"></a>00313 <span class="keywordtype">void</span> INT10_SetBackgroundBorder(Bit8u val) {
-<a name="l00314"></a>00314         Bit8u color_select=real_readb(BIOSMEM_SEG,BIOSMEM_CURRENT_PAL);
-<a name="l00315"></a>00315         color_select=(color_select &amp; 0xe0) | (val &amp; 0x1f);
-<a name="l00316"></a>00316         real_writeb(BIOSMEM_SEG,BIOSMEM_CURRENT_PAL,color_select);
-<a name="l00317"></a>00317         
-<a name="l00318"></a>00318         <span class="keywordflow">switch</span> (machine) {
-<a name="l00319"></a>00319         <span class="keywordflow">case</span> MCH_CGA:
-<a name="l00320"></a>00320         <span class="keywordflow">case</span> MCH_MCGA:
-<a name="l00321"></a>00321                 <span class="comment">// only write the color select register</span>
-<a name="l00322"></a>00322                 IO_Write(0x3d9,color_select);
-<a name="l00323"></a>00323                 <span class="keywordflow">break</span>;
-<a name="l00324"></a>00324         <span class="keywordflow">case</span> MCH_TANDY:
-<a name="l00325"></a>00325                 <span class="comment">// TODO handle val == 0x1x, wait for retrace</span>
-<a name="l00326"></a>00326                 <span class="keywordflow">switch</span>(CurMode-&gt;mode) {
-<a name="l00327"></a>00327                 <span class="keywordflow">default</span>: <span class="comment">// modes 0-5: write to color select and border</span>
-<a name="l00328"></a>00328                         INT10_SetOverscanBorderColor(val);
-<a name="l00329"></a>00329                         IO_Write(0x3d9, color_select);
-<a name="l00330"></a>00330                         <span class="keywordflow">break</span>;
-<a name="l00331"></a>00331                 <span class="keywordflow">case</span> 0x06: <span class="comment">// 2-color: only write the color select register</span>
-<a name="l00332"></a>00332                         IO_Write(0x3d9, color_select);
-<a name="l00333"></a>00333                         <span class="keywordflow">break</span>;
-<a name="l00334"></a>00334                 <span class="keywordflow">case</span> 0x07: <span class="comment">// Tandy monochrome not implemented</span>
-<a name="l00335"></a>00335                         <span class="keywordflow">break</span>; 
-<a name="l00336"></a>00336                 <span class="keywordflow">case</span> 0x08:
-<a name="l00337"></a>00337                 <span class="keywordflow">case</span> 0x09: <span class="comment">// 16-color: write to color select, border and pal. index 0</span>
+<a name="l00303"></a>00303 
+<a name="l00304"></a>00304     <span class="comment">/* the operations carried out here blanked the display because of the index (0x10/0x14) without bit 5,</span>
+<a name="l00305"></a>00305 <span class="comment">     * write a dummy index with bit 5 to reenable the display. Bugfix for &quot;Blue Force&quot; MS-DOS game.</span>
+<a name="l00306"></a>00306 <span class="comment">     *</span>
+<a name="l00307"></a>00307 <span class="comment">     * Note that DOSBox SVN has the same bug without this fix, but appears to work because the AC blanking</span>
+<a name="l00308"></a>00308 <span class="comment">     * doesn&#39;t work (2019/12/08). */</span>
+<a name="l00309"></a>00309     IO_Write(VGAREG_ACTL_ADDRESS,0x10<span class="comment">/*index*/</span> | 0x20<span class="comment">/*display enable*/</span>);
+<a name="l00310"></a>00310     <span class="comment">/* read both, to avoid having to read 0x3CC or BIOS data area regs */</span>
+<a name="l00311"></a>00311     IO_Read(0x3BA); <span class="comment">/* reset flip flop */</span>
+<a name="l00312"></a>00312     IO_Read(0x3DA); <span class="comment">/* reset flip flop */</span>
+<a name="l00313"></a>00313 }
+<a name="l00314"></a>00314 
+<a name="l00315"></a>00315 <span class="keywordtype">void</span> INT10_SetPelMask(Bit8u mask) {
+<a name="l00316"></a>00316         IO_Write(VGAREG_PEL_MASK,mask);
+<a name="l00317"></a>00317 }       
+<a name="l00318"></a>00318 
+<a name="l00319"></a>00319 <span class="keywordtype">void</span> INT10_GetPelMask(Bit8u &amp; mask) {
+<a name="l00320"></a>00320         mask=IO_Read(VGAREG_PEL_MASK);
+<a name="l00321"></a>00321 }
+<a name="l00322"></a>00322 
+<a name="l00323"></a>00323 <span class="keywordtype">void</span> INT10_SetBackgroundBorder(Bit8u val) {
+<a name="l00324"></a>00324         Bit8u color_select=real_readb(BIOSMEM_SEG,BIOSMEM_CURRENT_PAL);
+<a name="l00325"></a>00325         color_select=(color_select &amp; 0xe0) | (val &amp; 0x1f);
+<a name="l00326"></a>00326         real_writeb(BIOSMEM_SEG,BIOSMEM_CURRENT_PAL,color_select);
+<a name="l00327"></a>00327         
+<a name="l00328"></a>00328         <span class="keywordflow">switch</span> (machine) {
+<a name="l00329"></a>00329         <span class="keywordflow">case</span> MCH_CGA:
+<a name="l00330"></a>00330         <span class="keywordflow">case</span> MCH_MCGA:
+<a name="l00331"></a>00331                 <span class="comment">// only write the color select register</span>
+<a name="l00332"></a>00332                 IO_Write(0x3d9,color_select);
+<a name="l00333"></a>00333                 <span class="keywordflow">break</span>;
+<a name="l00334"></a>00334         <span class="keywordflow">case</span> MCH_TANDY:
+<a name="l00335"></a>00335                 <span class="comment">// TODO handle val == 0x1x, wait for retrace</span>
+<a name="l00336"></a>00336                 <span class="keywordflow">switch</span>(CurMode-&gt;mode) {
+<a name="l00337"></a>00337                 <span class="keywordflow">default</span>: <span class="comment">// modes 0-5: write to color select and border</span>
 <a name="l00338"></a>00338                         INT10_SetOverscanBorderColor(val);
-<a name="l00339"></a>00339                         INT10_SetSinglePaletteRegister(0, val);
-<a name="l00340"></a>00340                         IO_Write(0x3d9, color_select);
-<a name="l00341"></a>00341                         <span class="keywordflow">break</span>;
-<a name="l00342"></a>00342                 <span class="keywordflow">case</span> 0x0a: <span class="comment">// 4-color highres:</span>
-<a name="l00343"></a>00343                         <span class="comment">// write zero to color select, write palette to indexes 1-3</span>
-<a name="l00344"></a>00344                         <span class="comment">// TODO palette</span>
-<a name="l00345"></a>00345                         IO_Write(0x3d9, 0);
-<a name="l00346"></a>00346                         <span class="keywordflow">break</span>;
-<a name="l00347"></a>00347                 }
-<a name="l00348"></a>00348                 <span class="keywordflow">break</span>;
-<a name="l00349"></a>00349         <span class="keywordflow">case</span> MCH_PCJR:
-<a name="l00350"></a>00350                 IO_Read(VGAREG_TDY_RESET); <span class="comment">// reset the flipflop</span>
-<a name="l00351"></a>00351                 <span class="keywordflow">if</span> (vga.mode!=M_TANDY_TEXT) {
-<a name="l00352"></a>00352                         IO_Write(VGAREG_TDY_ADDRESS, 0x10);
-<a name="l00353"></a>00353                         IO_Write(VGAREG_PCJR_DATA, color_select&amp;0xf);
-<a name="l00354"></a>00354                 }
-<a name="l00355"></a>00355                 IO_Write(VGAREG_TDY_ADDRESS, 0x2); <span class="comment">// border color</span>
-<a name="l00356"></a>00356                 IO_Write(VGAREG_PCJR_DATA, color_select&amp;0xf);
-<a name="l00357"></a>00357                 <span class="keywordflow">break</span>;
-<a name="l00358"></a>00358         <span class="keywordflow">case</span> EGAVGA_ARCH_CASE:
-<a name="l00359"></a>00359                 val = ((val &lt;&lt; 1) &amp; 0x10) | (val &amp; 0x7);
-<a name="l00360"></a>00360                 <span class="comment">/* Always set the overscan color */</span>
-<a name="l00361"></a>00361                 INT10_SetSinglePaletteRegister( 0x11, val );
-<a name="l00362"></a>00362                 <span class="comment">/* Don&#39;t set any extra colors when in text mode */</span>
-<a name="l00363"></a>00363                 <span class="keywordflow">if</span> (CurMode-&gt;mode &lt;= 3)
-<a name="l00364"></a>00364                         <span class="keywordflow">return</span>;
-<a name="l00365"></a>00365                 INT10_SetSinglePaletteRegister( 0, val );
-<a name="l00366"></a>00366                 val = (color_select &amp; 0x10) | 2 | ((color_select &amp; 0x20) &gt;&gt; 5);
-<a name="l00367"></a>00367                 INT10_SetSinglePaletteRegister( 1, val );
-<a name="l00368"></a>00368                 val+=2;
-<a name="l00369"></a>00369                 INT10_SetSinglePaletteRegister( 2, val );
-<a name="l00370"></a>00370                 val+=2;
-<a name="l00371"></a>00371                 INT10_SetSinglePaletteRegister( 3, val );
-<a name="l00372"></a>00372                 <span class="keywordflow">break</span>;
-<a name="l00373"></a>00373         <span class="keywordflow">default</span>:
-<a name="l00374"></a>00374                 <span class="keywordflow">break</span>;
-<a name="l00375"></a>00375         }
-<a name="l00376"></a>00376 }
-<a name="l00377"></a>00377 
-<a name="l00378"></a>00378 <span class="keywordtype">void</span> INT10_SetColorSelect(Bit8u val) {
-<a name="l00379"></a>00379         Bit8u temp=real_readb(BIOSMEM_SEG,BIOSMEM_CURRENT_PAL);
-<a name="l00380"></a>00380         temp=(temp &amp; 0xdf) | ((val &amp; 1) ? 0x20 : 0x0);
-<a name="l00381"></a>00381         real_writeb(BIOSMEM_SEG,BIOSMEM_CURRENT_PAL,temp);
-<a name="l00382"></a>00382         <span class="keywordflow">if</span> (machine == MCH_CGA || machine == MCH_MCGA || machine == MCH_AMSTRAD || machine==MCH_TANDY)
-<a name="l00383"></a>00383                 IO_Write(0x3d9,temp);
-<a name="l00384"></a>00384         <span class="keywordflow">else</span> <span class="keywordflow">if</span> (machine == MCH_PCJR) {
-<a name="l00385"></a>00385                 IO_Read(VGAREG_TDY_RESET); <span class="comment">// reset the flipflop</span>
-<a name="l00386"></a>00386                 <span class="keywordflow">switch</span>(vga.mode) {
-<a name="l00387"></a>00387                 <span class="keywordflow">case</span> M_TANDY2:
-<a name="l00388"></a>00388                         IO_Write(VGAREG_TDY_ADDRESS, 0x11);
-<a name="l00389"></a>00389                         IO_Write(VGAREG_PCJR_DATA, val&amp;1? 0xf:0);
-<a name="l00390"></a>00390                         <span class="keywordflow">break</span>;
-<a name="l00391"></a>00391                 <span class="keywordflow">case</span> M_TANDY4:
-<a name="l00392"></a>00392                         <span class="keywordflow">for</span>(Bit8u i = 0x11; i &lt; 0x14; i++) {
-<a name="l00393"></a>00393                                 <span class="keyword">const</span> Bit8u t4_table[] = {0,2,4,6, 0,3,5,0xf};
-<a name="l00394"></a>00394                                 IO_Write(VGAREG_TDY_ADDRESS, i);
-<a name="l00395"></a>00395                                 IO_Write(VGAREG_PCJR_DATA, t4_table[(i-0x10)+(val&amp;1? 4:0)]);
-<a name="l00396"></a>00396                         }
-<a name="l00397"></a>00397                         <span class="keywordflow">break</span>;
-<a name="l00398"></a>00398                 <span class="keywordflow">default</span>:
-<a name="l00399"></a>00399                         <span class="comment">// 16-color modes: always write the same palette</span>
-<a name="l00400"></a>00400                         <span class="keywordflow">for</span>(Bit8u i = 0x11; i &lt; 0x20; i++) {
-<a name="l00401"></a>00401                                 IO_Write(VGAREG_TDY_ADDRESS, i);
-<a name="l00402"></a>00402                                 IO_Write(VGAREG_PCJR_DATA, i-0x10);
-<a name="l00403"></a>00403                         }
-<a name="l00404"></a>00404                         <span class="keywordflow">break</span>;
-<a name="l00405"></a>00405                 }
-<a name="l00406"></a>00406                 IO_Write(VGAREG_TDY_ADDRESS, 0); <span class="comment">// enable palette</span>
-<a name="l00407"></a>00407         }
-<a name="l00408"></a>00408         <span class="keywordflow">else</span> <span class="keywordflow">if</span> (IS_EGAVGA_ARCH) {
-<a name="l00409"></a>00409                 <span class="keywordflow">if</span> (CurMode-&gt;mode &lt;= 3) <span class="comment">//Maybe even skip the total function!</span>
-<a name="l00410"></a>00410                         <span class="keywordflow">return</span>;
-<a name="l00411"></a>00411                 val = (temp &amp; 0x10) | 2 | val;
-<a name="l00412"></a>00412                 INT10_SetSinglePaletteRegister( 1, val );
-<a name="l00413"></a>00413                 val+=2;
-<a name="l00414"></a>00414                 INT10_SetSinglePaletteRegister( 2, val );
-<a name="l00415"></a>00415                 val+=2;
-<a name="l00416"></a>00416                 INT10_SetSinglePaletteRegister( 3, val );
+<a name="l00339"></a>00339                         IO_Write(0x3d9, color_select);
+<a name="l00340"></a>00340                         <span class="keywordflow">break</span>;
+<a name="l00341"></a>00341                 <span class="keywordflow">case</span> 0x06: <span class="comment">// 2-color: only write the color select register</span>
+<a name="l00342"></a>00342                         IO_Write(0x3d9, color_select);
+<a name="l00343"></a>00343                         <span class="keywordflow">break</span>;
+<a name="l00344"></a>00344                 <span class="keywordflow">case</span> 0x07: <span class="comment">// Tandy monochrome not implemented</span>
+<a name="l00345"></a>00345                         <span class="keywordflow">break</span>; 
+<a name="l00346"></a>00346                 <span class="keywordflow">case</span> 0x08:
+<a name="l00347"></a>00347                 <span class="keywordflow">case</span> 0x09: <span class="comment">// 16-color: write to color select, border and pal. index 0</span>
+<a name="l00348"></a>00348                         INT10_SetOverscanBorderColor(val);
+<a name="l00349"></a>00349                         INT10_SetSinglePaletteRegister(0, val);
+<a name="l00350"></a>00350                         IO_Write(0x3d9, color_select);
+<a name="l00351"></a>00351                         <span class="keywordflow">break</span>;
+<a name="l00352"></a>00352                 <span class="keywordflow">case</span> 0x0a: <span class="comment">// 4-color highres:</span>
+<a name="l00353"></a>00353                         <span class="comment">// write zero to color select, write palette to indexes 1-3</span>
+<a name="l00354"></a>00354                         <span class="comment">// TODO palette</span>
+<a name="l00355"></a>00355                         IO_Write(0x3d9, 0);
+<a name="l00356"></a>00356                         <span class="keywordflow">break</span>;
+<a name="l00357"></a>00357                 }
+<a name="l00358"></a>00358                 <span class="keywordflow">break</span>;
+<a name="l00359"></a>00359         <span class="keywordflow">case</span> MCH_PCJR:
+<a name="l00360"></a>00360                 IO_Read(VGAREG_TDY_RESET); <span class="comment">// reset the flipflop</span>
+<a name="l00361"></a>00361                 <span class="keywordflow">if</span> (vga.mode!=M_TANDY_TEXT) {
+<a name="l00362"></a>00362                         IO_Write(VGAREG_TDY_ADDRESS, 0x10);
+<a name="l00363"></a>00363                         IO_Write(VGAREG_PCJR_DATA, color_select&amp;0xf);
+<a name="l00364"></a>00364                 }
+<a name="l00365"></a>00365                 IO_Write(VGAREG_TDY_ADDRESS, 0x2); <span class="comment">// border color</span>
+<a name="l00366"></a>00366                 IO_Write(VGAREG_PCJR_DATA, color_select&amp;0xf);
+<a name="l00367"></a>00367                 <span class="keywordflow">break</span>;
+<a name="l00368"></a>00368         <span class="keywordflow">case</span> EGAVGA_ARCH_CASE:
+<a name="l00369"></a>00369                 val = ((val &lt;&lt; 1) &amp; 0x10) | (val &amp; 0x7);
+<a name="l00370"></a>00370                 <span class="comment">/* Always set the overscan color */</span>
+<a name="l00371"></a>00371                 INT10_SetSinglePaletteRegister( 0x11, val );
+<a name="l00372"></a>00372                 <span class="comment">/* Don&#39;t set any extra colors when in text mode */</span>
+<a name="l00373"></a>00373                 <span class="keywordflow">if</span> (CurMode-&gt;mode &lt;= 3)
+<a name="l00374"></a>00374                         <span class="keywordflow">return</span>;
+<a name="l00375"></a>00375                 INT10_SetSinglePaletteRegister( 0, val );
+<a name="l00376"></a>00376                 val = (color_select &amp; 0x10) | 2 | ((color_select &amp; 0x20) &gt;&gt; 5);
+<a name="l00377"></a>00377                 INT10_SetSinglePaletteRegister( 1, val );
+<a name="l00378"></a>00378                 val+=2;
+<a name="l00379"></a>00379                 INT10_SetSinglePaletteRegister( 2, val );
+<a name="l00380"></a>00380                 val+=2;
+<a name="l00381"></a>00381                 INT10_SetSinglePaletteRegister( 3, val );
+<a name="l00382"></a>00382                 <span class="keywordflow">break</span>;
+<a name="l00383"></a>00383         <span class="keywordflow">default</span>:
+<a name="l00384"></a>00384                 <span class="keywordflow">break</span>;
+<a name="l00385"></a>00385         }
+<a name="l00386"></a>00386 }
+<a name="l00387"></a>00387 
+<a name="l00388"></a>00388 <span class="keywordtype">void</span> INT10_SetColorSelect(Bit8u val) {
+<a name="l00389"></a>00389         Bit8u temp=real_readb(BIOSMEM_SEG,BIOSMEM_CURRENT_PAL);
+<a name="l00390"></a>00390         temp=(temp &amp; 0xdf) | ((val &amp; 1) ? 0x20 : 0x0);
+<a name="l00391"></a>00391         real_writeb(BIOSMEM_SEG,BIOSMEM_CURRENT_PAL,temp);
+<a name="l00392"></a>00392         <span class="keywordflow">if</span> (machine == MCH_CGA || machine == MCH_MCGA || machine == MCH_AMSTRAD || machine==MCH_TANDY)
+<a name="l00393"></a>00393                 IO_Write(0x3d9,temp);
+<a name="l00394"></a>00394         <span class="keywordflow">else</span> <span class="keywordflow">if</span> (machine == MCH_PCJR) {
+<a name="l00395"></a>00395                 IO_Read(VGAREG_TDY_RESET); <span class="comment">// reset the flipflop</span>
+<a name="l00396"></a>00396                 <span class="keywordflow">switch</span>(vga.mode) {
+<a name="l00397"></a>00397                 <span class="keywordflow">case</span> M_TANDY2:
+<a name="l00398"></a>00398                         IO_Write(VGAREG_TDY_ADDRESS, 0x11);
+<a name="l00399"></a>00399                         IO_Write(VGAREG_PCJR_DATA, (val&amp;1)? 0xf:0);
+<a name="l00400"></a>00400                         <span class="keywordflow">break</span>;
+<a name="l00401"></a>00401                 <span class="keywordflow">case</span> M_TANDY4:
+<a name="l00402"></a>00402                         <span class="keywordflow">for</span>(Bit8u i = 0x11; i &lt; 0x14; i++) {
+<a name="l00403"></a>00403                                 <span class="keyword">const</span> Bit8u t4_table[] = {0,2,4,6, 0,3,5,0xf};
+<a name="l00404"></a>00404                                 IO_Write(VGAREG_TDY_ADDRESS, i);
+<a name="l00405"></a>00405                                 IO_Write(VGAREG_PCJR_DATA, t4_table[(i-0x10)+((val&amp;1)? 4:0)]);
+<a name="l00406"></a>00406                         }
+<a name="l00407"></a>00407                         <span class="keywordflow">break</span>;
+<a name="l00408"></a>00408                 <span class="keywordflow">default</span>:
+<a name="l00409"></a>00409                         <span class="comment">// 16-color modes: always write the same palette</span>
+<a name="l00410"></a>00410                         <span class="keywordflow">for</span>(Bit8u i = 0x11; i &lt; 0x20; i++) {
+<a name="l00411"></a>00411                                 IO_Write(VGAREG_TDY_ADDRESS, i);
+<a name="l00412"></a>00412                                 IO_Write(VGAREG_PCJR_DATA, i-0x10);
+<a name="l00413"></a>00413                         }
+<a name="l00414"></a>00414                         <span class="keywordflow">break</span>;
+<a name="l00415"></a>00415                 }
+<a name="l00416"></a>00416                 IO_Write(VGAREG_TDY_ADDRESS, 0); <span class="comment">// enable palette</span>
 <a name="l00417"></a>00417         }
-<a name="l00418"></a>00418 }
-<a name="l00419"></a>00419 
-<a name="l00420"></a>00420 <span class="keywordtype">void</span> INT10_PerformGrayScaleSumming(Bit16u start_reg,Bit16u count) {
-<a name="l00421"></a>00421         <span class="keywordflow">if</span> (count&gt;0x100) count=0x100;
-<a name="l00422"></a>00422         <span class="keywordflow">for</span> (Bitu ct=0; ct&lt;count; ct++) {
-<a name="l00423"></a>00423                 IO_Write(VGAREG_DAC_READ_ADDRESS,(Bit8u)(start_reg+ct));
-<a name="l00424"></a>00424                 Bit8u red=IO_Read(VGAREG_DAC_DATA);
-<a name="l00425"></a>00425                 Bit8u green=IO_Read(VGAREG_DAC_DATA);
-<a name="l00426"></a>00426                 Bit8u blue=IO_Read(VGAREG_DAC_DATA);
-<a name="l00427"></a>00427 
-<a name="l00428"></a>00428                 <span class="comment">/* calculate clamped intensity, taken from VGABIOS */</span>
-<a name="l00429"></a>00429                 Bit32u i=(( 77u*red + 151u*green + 28u*blue ) + 0x80u) &gt;&gt; 8u;
-<a name="l00430"></a>00430                 Bit8u ic=(i&gt;0x3f) ? 0x3f : ((Bit8u)(i &amp; 0xff));
-<a name="l00431"></a>00431                 INT10_SetSingleDACRegister((Bit8u)(start_reg+ct),ic,ic,ic);
-<a name="l00432"></a>00432         }
-<a name="l00433"></a>00433 }
+<a name="l00418"></a>00418         <span class="keywordflow">else</span> <span class="keywordflow">if</span> (IS_EGAVGA_ARCH) {
+<a name="l00419"></a>00419                 <span class="keywordflow">if</span> (CurMode-&gt;mode &lt;= 3) <span class="comment">//Maybe even skip the total function!</span>
+<a name="l00420"></a>00420                         <span class="keywordflow">return</span>;
+<a name="l00421"></a>00421                 val = (temp &amp; 0x10) | 2 | val;
+<a name="l00422"></a>00422                 INT10_SetSinglePaletteRegister( 1, val );
+<a name="l00423"></a>00423                 val+=2;
+<a name="l00424"></a>00424                 INT10_SetSinglePaletteRegister( 2, val );
+<a name="l00425"></a>00425                 val+=2;
+<a name="l00426"></a>00426                 INT10_SetSinglePaletteRegister( 3, val );
+<a name="l00427"></a>00427         }
+<a name="l00428"></a>00428 }
+<a name="l00429"></a>00429 
+<a name="l00430"></a>00430 <span class="keywordtype">void</span> INT10_PerformGrayScaleSumming(Bit16u start_reg,Bit16u count) {
+<a name="l00431"></a>00431         <span class="keywordflow">if</span> (count&gt;0x100) count=0x100;
+<a name="l00432"></a>00432         <span class="keywordflow">for</span> (Bitu ct=0; ct&lt;count; ct++) {
+<a name="l00433"></a>00433                 IO_Write(VGAREG_DAC_READ_ADDRESS,(Bit8u)(start_reg+ct));
+<a name="l00434"></a>00434                 Bit8u red=IO_Read(VGAREG_DAC_DATA);
+<a name="l00435"></a>00435                 Bit8u green=IO_Read(VGAREG_DAC_DATA);
+<a name="l00436"></a>00436                 Bit8u blue=IO_Read(VGAREG_DAC_DATA);
+<a name="l00437"></a>00437 
+<a name="l00438"></a>00438                 <span class="comment">/* calculate clamped intensity, taken from VGABIOS */</span>
+<a name="l00439"></a>00439                 Bit32u i=(( 77u*red + 151u*green + 28u*blue ) + 0x80u) &gt;&gt; 8u;
+<a name="l00440"></a>00440                 Bit8u ic=(i&gt;0x3f) ? 0x3f : ((Bit8u)(i &amp; 0xff));
+<a name="l00441"></a>00441                 INT10_SetSingleDACRegister((Bit8u)(start_reg+ct),ic,ic,ic);
+<a name="l00442"></a>00442         }
+<a name="l00443"></a>00443 }
 </pre></div></div><!-- contents -->
 
 
 <hr class="footer"/><address class="footer"><small>
-Generated on Tue Oct 1 2019 18:06:28 for DOSBox-X by &#160;<a href="http://www.doxygen.org/index.html">
+Generated on Sun Jul 5 2020 13:11:38 for DOSBox-X by &#160;<a href="http://www.doxygen.org/index.html">
 <img class="footer" src="doxygen.png" alt="doxygen"/>
 </a> 1.8.0
 </small></address>

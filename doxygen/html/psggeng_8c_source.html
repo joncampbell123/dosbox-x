@@ -108,138 +108,136 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l00011"></a>00011 <span class="keywordtype">void</span> SOUNDCALL psggen_getpcm(<a class="code" href="struct__PSGGEN.html">PSGGEN</a> psg, SINT32 *pcm, UINT count) {
 <a name="l00012"></a>00012 
 <a name="l00013"></a>00013 <span class="comment">//      SINT32  noisevol;</span>
-<a name="l00014"></a>00014         UINT8   mixer;
-<a name="l00015"></a>00015         UINT    noisetbl = 0;
-<a name="l00016"></a>00016         <a class="code" href="structPSGTONE.html">PSGTONE</a> *tone;
-<a name="l00017"></a>00017         <a class="code" href="structPSGTONE.html">PSGTONE</a> *toneterm;
-<a name="l00018"></a>00018         SINT32  samp;
-<a name="l00019"></a>00019 <span class="comment">//      UINT    psgvol;</span>
-<a name="l00020"></a>00020         SINT32  vol;
-<a name="l00021"></a>00021         UINT    i;
-<a name="l00022"></a>00022         UINT    noise;
-<a name="l00023"></a>00023 
-<a name="l00024"></a>00024         <span class="keywordflow">if</span> ((psg-&gt;mixer &amp; 0x3f) == 0) {
-<a name="l00025"></a>00025                 count = min(count, psg-&gt;puchicount);
-<a name="l00026"></a>00026                 psg-&gt;puchicount -= count;
-<a name="l00027"></a>00027         }
-<a name="l00028"></a>00028         <span class="keywordflow">if</span> (count == 0) {
-<a name="l00029"></a>00029                 <span class="keywordflow">return</span>;
-<a name="l00030"></a>00030         }
-<a name="l00031"></a>00031         <span class="keywordflow">do</span> {
-<a name="l00032"></a>00032 <span class="comment">//              noisevol = 0;</span>
-<a name="l00033"></a>00033                 <span class="keywordflow">if</span> (psg-&gt;envcnt) {
-<a name="l00034"></a>00034                         psg-&gt;envcnt--;
-<a name="l00035"></a>00035                         <span class="keywordflow">if</span> (psg-&gt;envcnt == 0) {
-<a name="l00036"></a>00036                                 psg-&gt;envvolcnt--;
-<a name="l00037"></a>00037                                 <span class="keywordflow">if</span> (psg-&gt;envvolcnt &lt; 0) {
-<a name="l00038"></a>00038                                         <span class="keywordflow">if</span> (psg-&gt;envmode &amp; PSGENV_ONESHOT) {
-<a name="l00039"></a>00039                                                 psg-&gt;envvol = (psg-&gt;envmode &amp; PSGENV_LASTON)?15:0;
-<a name="l00040"></a>00040                                         }
-<a name="l00041"></a>00041                                         <span class="keywordflow">else</span> {
-<a name="l00042"></a>00042                                                 psg-&gt;envvolcnt = 15;
-<a name="l00043"></a>00043                                                 <span class="keywordflow">if</span> (!(psg-&gt;envmode &amp; PSGENV_ONECYCLE)) {
-<a name="l00044"></a>00044                                                         psg-&gt;envmode ^= PSGENV_INC;
-<a name="l00045"></a>00045                                                 }
-<a name="l00046"></a>00046                                                 psg-&gt;envcnt = psg-&gt;envmax;
-<a name="l00047"></a>00047                                                 psg-&gt;envvol = (psg-&gt;envvolcnt ^ psg-&gt;envmode) &amp; 0x0f;
-<a name="l00048"></a>00048                                         }
-<a name="l00049"></a>00049                                 }
-<a name="l00050"></a>00050                                 <span class="keywordflow">else</span> {
-<a name="l00051"></a>00051                                         psg-&gt;envcnt = psg-&gt;envmax;
-<a name="l00052"></a>00052                                         psg-&gt;envvol = (psg-&gt;envvolcnt ^ psg-&gt;envmode) &amp; 0x0f;
-<a name="l00053"></a>00053                                 }
-<a name="l00054"></a>00054                                 psg-&gt;evol = psggencfg.volume[psg-&gt;envvol];
-<a name="l00055"></a>00055                         }
-<a name="l00056"></a>00056                 }
-<a name="l00057"></a>00057                 mixer = psg-&gt;mixer;
-<a name="l00058"></a>00058                 <span class="keywordflow">if</span> (mixer &amp; 0x38) {
-<a name="l00059"></a>00059             <span class="comment">/* NTS: This code relies on signed integer underflow to determine when to advance</span>
-<a name="l00060"></a>00060 <span class="comment">                    the pseudo-random noise generation sequence. It assumes that it can detect</span>
-<a name="l00061"></a>00061 <span class="comment">                    SINT32 carry by copying the value, subtracting the original, and then</span>
-<a name="l00062"></a>00062 <span class="comment">                    testing to see if the result is larger than the original.</span>
-<a name="l00063"></a>00063 <span class="comment"></span>
-<a name="l00064"></a>00064 <span class="comment">                    Unfortunately, Clang/LLVM break this code by promoting both to long (64-bit)</span>
-<a name="l00065"></a>00065 <span class="comment">                    before comparing, which turns the noise into DC bias popping noises.</span>
-<a name="l00066"></a>00066 <span class="comment"></span>
-<a name="l00067"></a>00067 <span class="comment">                    This hack, with long type masks, emulates the original behavior even if the</span>
-<a name="l00068"></a>00068 <span class="comment">                    compare is promoted to signed long (64-bit) and allows the noise generation</span>
-<a name="l00069"></a>00069 <span class="comment">                    to work even with Clang/LLVM --J.C */</span>
-<a name="l00070"></a>00070             <span class="keyword">const</span> <span class="keywordtype">long</span> sint32sign = 1L &lt;&lt; (((long)(CHAR_BIT * <span class="keyword">sizeof</span>(<span class="keywordtype">long</span>))) - 1L);
-<a name="l00071"></a>00071             <span class="keyword">const</span> <span class="keywordtype">long</span> sint32mask = sint32sign + 0x7FFFFFFFL;
-<a name="l00072"></a>00072 
-<a name="l00073"></a>00073                         <span class="keywordflow">for</span> (i=0; i&lt;(1 &lt;&lt; PSGADDEDBIT); i++) {
-<a name="l00074"></a>00074                                 SINT32 countbak;
-<a name="l00075"></a>00075                                 countbak = psg-&gt;noise.count;
-<a name="l00076"></a>00076                                 psg-&gt;noise.count -= psg-&gt;noise.freq;
-<a name="l00077"></a>00077                                 <span class="keywordflow">if</span> (((<span class="keywordtype">long</span>)psg-&gt;noise.count &amp; sint32mask) &gt; ((<span class="keywordtype">long</span>)countbak &amp; sint32mask)) {
-<a name="l00078"></a>00078 <span class="comment">//                                      psg-&gt;noise.base = GETRAND() &amp; (1 &lt;&lt; (1 &lt;&lt; PSGADDEDBIT));</span>
-<a name="l00079"></a>00079                                         psg-&gt;noise.base = rand_get() &amp; (1 &lt;&lt; (1 &lt;&lt; PSGADDEDBIT));
-<a name="l00080"></a>00080                                 }
-<a name="l00081"></a>00081                                 noisetbl += psg-&gt;noise.base;
-<a name="l00082"></a>00082                                 noisetbl &gt;&gt;= 1;
-<a name="l00083"></a>00083                         }
-<a name="l00084"></a>00084                 }
-<a name="l00085"></a>00085                 tone = psg-&gt;tone;
-<a name="l00086"></a>00086                 toneterm = tone + 3;
-<a name="l00087"></a>00087                 <span class="keywordflow">do</span> {
-<a name="l00088"></a>00088                         vol = *(tone-&gt;pvol);
-<a name="l00089"></a>00089                         <span class="keywordflow">if</span> (vol) {
-<a name="l00090"></a>00090                                 samp = 0;
-<a name="l00091"></a>00091                                 <span class="keywordflow">switch</span>(mixer &amp; 9) {
-<a name="l00092"></a>00092                                         <span class="keywordflow">case</span> 0:                                                 <span class="comment">// no mix</span>
-<a name="l00093"></a>00093                                                 <span class="keywordflow">if</span> (tone-&gt;puchi) {
-<a name="l00094"></a>00094                                                         tone-&gt;puchi--;
-<a name="l00095"></a>00095                                                         samp += vol &lt;&lt; PSGADDEDBIT;
-<a name="l00096"></a>00096                                                 }
-<a name="l00097"></a>00097                                                 <span class="keywordflow">break</span>;
-<a name="l00098"></a>00098 
-<a name="l00099"></a>00099                                         <span class="keywordflow">case</span> 1:                                                 <span class="comment">// tone only</span>
-<a name="l00100"></a>00100                                                 <span class="keywordflow">for</span> (i=0; i&lt;(1 &lt;&lt; PSGADDEDBIT); i++) {
-<a name="l00101"></a>00101                                                         tone-&gt;count += tone-&gt;freq;
-<a name="l00102"></a>00102                                                         samp += vol * ((tone-&gt;count&gt;=0)?1:-1);
-<a name="l00103"></a>00103                                                 }
-<a name="l00104"></a>00104                                                 <span class="keywordflow">break</span>;
-<a name="l00105"></a>00105 
-<a name="l00106"></a>00106                                         <span class="keywordflow">case</span> 8:                                                 <span class="comment">// noise only</span>
-<a name="l00107"></a>00107                                                 noise = noisetbl;
-<a name="l00108"></a>00108                                                 <span class="keywordflow">for</span> (i=0; i&lt;(1 &lt;&lt; PSGADDEDBIT); i++) {
-<a name="l00109"></a>00109                                                         samp += vol * ((noise &amp; 1)?1:-1);
-<a name="l00110"></a>00110                                                         noise &gt;&gt;= 1;
-<a name="l00111"></a>00111                                                 }
-<a name="l00112"></a>00112                                                 <span class="keywordflow">break</span>;
-<a name="l00113"></a>00113 
-<a name="l00114"></a>00114                                         <span class="keywordflow">case</span> 9:
-<a name="l00115"></a>00115                                                 noise = noisetbl;
-<a name="l00116"></a>00116                                                 <span class="keywordflow">for</span> (i=0; i&lt;(1 &lt;&lt; PSGADDEDBIT); i++) {
-<a name="l00117"></a>00117                                                         tone-&gt;count += tone-&gt;freq;
-<a name="l00118"></a>00118                                                         <span class="keywordflow">if</span> ((tone-&gt;count &gt;= 0) || (noise &amp; 1)) {
-<a name="l00119"></a>00119                                                                 samp += vol;
-<a name="l00120"></a>00120                                                         }
-<a name="l00121"></a>00121                                                         <span class="keywordflow">else</span> {
-<a name="l00122"></a>00122                                                                 samp -= vol;
-<a name="l00123"></a>00123                                                         }
-<a name="l00124"></a>00124                                                         noise &gt;&gt;= 1;
-<a name="l00125"></a>00125                                                 }
-<a name="l00126"></a>00126                                                 <span class="keywordflow">break</span>;
-<a name="l00127"></a>00127                                 }
-<a name="l00128"></a>00128                                 <span class="keywordflow">if</span> (!(tone-&gt;pan &amp; 1)) {
-<a name="l00129"></a>00129                                         pcm[0] += samp;
-<a name="l00130"></a>00130                                 }
-<a name="l00131"></a>00131                                 <span class="keywordflow">if</span> (!(tone-&gt;pan &amp; 2)) {
-<a name="l00132"></a>00132                                         pcm[1] += samp;
-<a name="l00133"></a>00133                                 }
-<a name="l00134"></a>00134                         }
-<a name="l00135"></a>00135                         mixer &gt;&gt;= 1;
-<a name="l00136"></a>00136                 } <span class="keywordflow">while</span>(++tone &lt; toneterm);
-<a name="l00137"></a>00137                 pcm += 2;
-<a name="l00138"></a>00138         } <span class="keywordflow">while</span>(--count);
-<a name="l00139"></a>00139 }
-<a name="l00140"></a>00140 
+<a name="l00014"></a>00014         UINT    noisetbl = 0;
+<a name="l00015"></a>00015         <a class="code" href="structPSGTONE.html">PSGTONE</a> *tone;
+<a name="l00016"></a>00016         SINT32  samp;
+<a name="l00017"></a>00017 <span class="comment">//      UINT    psgvol;</span>
+<a name="l00018"></a>00018         SINT32  vol;
+<a name="l00019"></a>00019         UINT    i;
+<a name="l00020"></a>00020         UINT    noise;
+<a name="l00021"></a>00021 
+<a name="l00022"></a>00022         <span class="keywordflow">if</span> ((psg-&gt;mixer &amp; 0x3f) == 0) {
+<a name="l00023"></a>00023                 count = min(count, psg-&gt;puchicount);
+<a name="l00024"></a>00024                 psg-&gt;puchicount -= count;
+<a name="l00025"></a>00025         }
+<a name="l00026"></a>00026         <span class="keywordflow">if</span> (count == 0) {
+<a name="l00027"></a>00027                 <span class="keywordflow">return</span>;
+<a name="l00028"></a>00028         }
+<a name="l00029"></a>00029         <span class="keywordflow">do</span> {
+<a name="l00030"></a>00030 <span class="comment">//              noisevol = 0;</span>
+<a name="l00031"></a>00031                 <span class="keywordflow">if</span> (psg-&gt;envcnt) {
+<a name="l00032"></a>00032                         psg-&gt;envcnt--;
+<a name="l00033"></a>00033                         <span class="keywordflow">if</span> (psg-&gt;envcnt == 0) {
+<a name="l00034"></a>00034                                 psg-&gt;envvolcnt--;
+<a name="l00035"></a>00035                                 <span class="keywordflow">if</span> (psg-&gt;envvolcnt &lt; 0) {
+<a name="l00036"></a>00036                                         <span class="keywordflow">if</span> (psg-&gt;envmode &amp; PSGENV_ONESHOT) {
+<a name="l00037"></a>00037                                                 psg-&gt;envvol = (psg-&gt;envmode &amp; PSGENV_LASTON)?15:0;
+<a name="l00038"></a>00038                                         }
+<a name="l00039"></a>00039                                         <span class="keywordflow">else</span> {
+<a name="l00040"></a>00040                                                 psg-&gt;envvolcnt = 15;
+<a name="l00041"></a>00041                                                 <span class="keywordflow">if</span> (!(psg-&gt;envmode &amp; PSGENV_ONECYCLE)) {
+<a name="l00042"></a>00042                                                         psg-&gt;envmode ^= PSGENV_INC;
+<a name="l00043"></a>00043                                                 }
+<a name="l00044"></a>00044                                                 psg-&gt;envcnt = psg-&gt;envmax;
+<a name="l00045"></a>00045                                                 psg-&gt;envvol = (psg-&gt;envvolcnt ^ psg-&gt;envmode) &amp; 0x0f;
+<a name="l00046"></a>00046                                         }
+<a name="l00047"></a>00047                                 }
+<a name="l00048"></a>00048                                 <span class="keywordflow">else</span> {
+<a name="l00049"></a>00049                                         psg-&gt;envcnt = psg-&gt;envmax;
+<a name="l00050"></a>00050                                         psg-&gt;envvol = (psg-&gt;envvolcnt ^ psg-&gt;envmode) &amp; 0x0f;
+<a name="l00051"></a>00051                                 }
+<a name="l00052"></a>00052                                 psg-&gt;evol = psggencfg.volume[psg-&gt;envvol];
+<a name="l00053"></a>00053                         }
+<a name="l00054"></a>00054                 }
+<a name="l00055"></a>00055                 UINT8 mixer = psg-&gt;mixer;
+<a name="l00056"></a>00056                 <span class="keywordflow">if</span> (mixer &amp; 0x38) {
+<a name="l00057"></a>00057             <span class="comment">/* NTS: This code relies on signed integer underflow to determine when to advance</span>
+<a name="l00058"></a>00058 <span class="comment">                    the pseudo-random noise generation sequence. It assumes that it can detect</span>
+<a name="l00059"></a>00059 <span class="comment">                    SINT32 carry by copying the value, subtracting the original, and then</span>
+<a name="l00060"></a>00060 <span class="comment">                    testing to see if the result is larger than the original.</span>
+<a name="l00061"></a>00061 <span class="comment"></span>
+<a name="l00062"></a>00062 <span class="comment">                    Unfortunately, Clang/LLVM break this code by promoting both to long (64-bit)</span>
+<a name="l00063"></a>00063 <span class="comment">                    before comparing, which turns the noise into DC bias popping noises.</span>
+<a name="l00064"></a>00064 <span class="comment"></span>
+<a name="l00065"></a>00065 <span class="comment">                    This hack, with long type masks, emulates the original behavior even if the</span>
+<a name="l00066"></a>00066 <span class="comment">                    compare is promoted to signed long (64-bit) and allows the noise generation</span>
+<a name="l00067"></a>00067 <span class="comment">                    to work even with Clang/LLVM --J.C */</span>
+<a name="l00068"></a>00068             <span class="keyword">const</span> <span class="keywordtype">long</span> sint32sign = 1L &lt;&lt; (((long)(CHAR_BIT * <span class="keyword">sizeof</span>(<span class="keywordtype">long</span>))) - 1L);
+<a name="l00069"></a>00069             <span class="keyword">const</span> <span class="keywordtype">long</span> sint32mask = sint32sign + 0x7FFFFFFFL;
+<a name="l00070"></a>00070 
+<a name="l00071"></a>00071                         <span class="keywordflow">for</span> (i=0; i&lt;(1 &lt;&lt; PSGADDEDBIT); i++) {
+<a name="l00072"></a>00072                                 SINT32 countbak;
+<a name="l00073"></a>00073                                 countbak = psg-&gt;noise.count;
+<a name="l00074"></a>00074                                 psg-&gt;noise.count -= psg-&gt;noise.freq;
+<a name="l00075"></a>00075                                 <span class="keywordflow">if</span> (((<span class="keywordtype">long</span>)psg-&gt;noise.count &amp; sint32mask) &gt; ((<span class="keywordtype">long</span>)countbak &amp; sint32mask)) {
+<a name="l00076"></a>00076 <span class="comment">//                                      psg-&gt;noise.base = GETRAND() &amp; (1 &lt;&lt; (1 &lt;&lt; PSGADDEDBIT));</span>
+<a name="l00077"></a>00077                                         psg-&gt;noise.base = rand_get() &amp; (1 &lt;&lt; (1 &lt;&lt; PSGADDEDBIT));
+<a name="l00078"></a>00078                                 }
+<a name="l00079"></a>00079                                 noisetbl += psg-&gt;noise.base;
+<a name="l00080"></a>00080                                 noisetbl &gt;&gt;= 1;
+<a name="l00081"></a>00081                         }
+<a name="l00082"></a>00082                 }
+<a name="l00083"></a>00083                 tone = psg-&gt;tone;
+<a name="l00084"></a>00084                 <a class="code" href="structPSGTONE.html">PSGTONE</a> *toneterm = tone + 3;
+<a name="l00085"></a>00085                 <span class="keywordflow">do</span> {
+<a name="l00086"></a>00086                         vol = *(tone-&gt;pvol);
+<a name="l00087"></a>00087                         <span class="keywordflow">if</span> (vol) {
+<a name="l00088"></a>00088                                 samp = 0;
+<a name="l00089"></a>00089                                 <span class="keywordflow">switch</span>(mixer &amp; 9) {
+<a name="l00090"></a>00090                                         <span class="keywordflow">case</span> 0:                                                 <span class="comment">// no mix</span>
+<a name="l00091"></a>00091                                                 <span class="keywordflow">if</span> (tone-&gt;puchi) {
+<a name="l00092"></a>00092                                                         tone-&gt;puchi--;
+<a name="l00093"></a>00093                                                         samp += vol &lt;&lt; PSGADDEDBIT;
+<a name="l00094"></a>00094                                                 }
+<a name="l00095"></a>00095                                                 <span class="keywordflow">break</span>;
+<a name="l00096"></a>00096 
+<a name="l00097"></a>00097                                         <span class="keywordflow">case</span> 1:                                                 <span class="comment">// tone only</span>
+<a name="l00098"></a>00098                                                 <span class="keywordflow">for</span> (i=0; i&lt;(1 &lt;&lt; PSGADDEDBIT); i++) {
+<a name="l00099"></a>00099                                                         tone-&gt;count += tone-&gt;freq;
+<a name="l00100"></a>00100                                                         samp += vol * ((tone-&gt;count&gt;=0)?1:-1);
+<a name="l00101"></a>00101                                                 }
+<a name="l00102"></a>00102                                                 <span class="keywordflow">break</span>;
+<a name="l00103"></a>00103 
+<a name="l00104"></a>00104                                         <span class="keywordflow">case</span> 8:                                                 <span class="comment">// noise only</span>
+<a name="l00105"></a>00105                                                 noise = noisetbl;
+<a name="l00106"></a>00106                                                 <span class="keywordflow">for</span> (i=0; i&lt;(1 &lt;&lt; PSGADDEDBIT); i++) {
+<a name="l00107"></a>00107                                                         samp += vol * ((noise &amp; 1)?1:-1);
+<a name="l00108"></a>00108                                                         noise &gt;&gt;= 1;
+<a name="l00109"></a>00109                                                 }
+<a name="l00110"></a>00110                                                 <span class="keywordflow">break</span>;
+<a name="l00111"></a>00111 
+<a name="l00112"></a>00112                                         <span class="keywordflow">case</span> 9:
+<a name="l00113"></a>00113                                                 noise = noisetbl;
+<a name="l00114"></a>00114                                                 <span class="keywordflow">for</span> (i=0; i&lt;(1 &lt;&lt; PSGADDEDBIT); i++) {
+<a name="l00115"></a>00115                                                         tone-&gt;count += tone-&gt;freq;
+<a name="l00116"></a>00116                                                         <span class="keywordflow">if</span> ((tone-&gt;count &gt;= 0) || (noise &amp; 1)) {
+<a name="l00117"></a>00117                                                                 samp += vol;
+<a name="l00118"></a>00118                                                         }
+<a name="l00119"></a>00119                                                         <span class="keywordflow">else</span> {
+<a name="l00120"></a>00120                                                                 samp -= vol;
+<a name="l00121"></a>00121                                                         }
+<a name="l00122"></a>00122                                                         noise &gt;&gt;= 1;
+<a name="l00123"></a>00123                                                 }
+<a name="l00124"></a>00124                                                 <span class="keywordflow">break</span>;
+<a name="l00125"></a>00125                                 }
+<a name="l00126"></a>00126                                 <span class="keywordflow">if</span> (!(tone-&gt;pan &amp; 1)) {
+<a name="l00127"></a>00127                                         pcm[0] += samp;
+<a name="l00128"></a>00128                                 }
+<a name="l00129"></a>00129                                 <span class="keywordflow">if</span> (!(tone-&gt;pan &amp; 2)) {
+<a name="l00130"></a>00130                                         pcm[1] += samp;
+<a name="l00131"></a>00131                                 }
+<a name="l00132"></a>00132                         }
+<a name="l00133"></a>00133                         mixer &gt;&gt;= 1;
+<a name="l00134"></a>00134                 } <span class="keywordflow">while</span>(++tone &lt; toneterm);
+<a name="l00135"></a>00135                 pcm += 2;
+<a name="l00136"></a>00136         } <span class="keywordflow">while</span>(--count);
+<a name="l00137"></a>00137 }
+<a name="l00138"></a>00138 
 </pre></div></div><!-- contents -->
 
 
 <hr class="footer"/><address class="footer"><small>
-Generated on Tue Oct 1 2019 18:06:27 for DOSBox-X by &#160;<a href="http://www.doxygen.org/index.html">
+Generated on Sun Jul 5 2020 13:11:37 for DOSBox-X by &#160;<a href="http://www.doxygen.org/index.html">
 <img class="footer" src="doxygen.png" alt="doxygen"/>
 </a> 1.8.0
 </small></address>

@@ -96,7 +96,7 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 </div><!--header-->
 <div class="contents">
 <div class="fragment"><pre class="fragment"><a name="l00001"></a>00001 <span class="comment">/*</span>
-<a name="l00002"></a>00002 <span class="comment"> *  Copyright (C) 2002-2019  The DOSBox Team</span>
+<a name="l00002"></a>00002 <span class="comment"> *  Copyright (C) 2002-2020  The DOSBox Team</span>
 <a name="l00003"></a>00003 <span class="comment"> *</span>
 <a name="l00004"></a>00004 <span class="comment"> *  This program is free software; you can redistribute it and/or modify</span>
 <a name="l00005"></a>00005 <span class="comment"> *  it under the terms of the GNU General Public License as published by</span>
@@ -108,87 +108,91 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l00011"></a>00011 <span class="comment"> *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the</span>
 <a name="l00012"></a>00012 <span class="comment"> *  GNU General Public License for more details.</span>
 <a name="l00013"></a>00013 <span class="comment"> *</span>
-<a name="l00014"></a>00014 <span class="comment"> *  You should have received a copy of the GNU General Public License</span>
-<a name="l00015"></a>00015 <span class="comment"> *  along with this program; if not, write to the Free Software</span>
-<a name="l00016"></a>00016 <span class="comment"> *  Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1335, USA.</span>
+<a name="l00014"></a>00014 <span class="comment"> *  You should have received a copy of the GNU General Public License along</span>
+<a name="l00015"></a>00015 <span class="comment"> *  with this program; if not, write to the Free Software Foundation, Inc.,</span>
+<a name="l00016"></a>00016 <span class="comment"> *  51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.</span>
 <a name="l00017"></a>00017 <span class="comment"> */</span>
 <a name="l00018"></a>00018 
 <a name="l00019"></a>00019 <span class="preprocessor">#ifndef DOSBOX_MMX_H</span>
 <a name="l00020"></a>00020 <span class="preprocessor"></span><span class="preprocessor">#define DOSBOX_MMX_H</span>
 <a name="l00021"></a>00021 <span class="preprocessor"></span>
-<a name="l00022"></a><a class="code" href="unionMMX__reg.html">00022</a> <span class="keyword">typedef</span> <span class="keyword">union </span>{
-<a name="l00023"></a>00023 
-<a name="l00024"></a>00024         Bit64u q;
+<a name="l00022"></a>00022 <span class="preprocessor">#if C_FPU</span>
+<a name="l00023"></a>00023 <span class="preprocessor"></span>
+<a name="l00024"></a>00024 <span class="keyword">typedef</span> <span class="keyword">union </span>{
 <a name="l00025"></a>00025 
-<a name="l00026"></a>00026 <span class="preprocessor">#ifndef WORDS_BIGENDIAN</span>
-<a name="l00027"></a>00027 <span class="preprocessor"></span>        <span class="keyword">struct </span>{
-<a name="l00028"></a>00028                 Bit32u d0,d1;
-<a name="l00029"></a>00029         } ud;
-<a name="l00030"></a>00030 
-<a name="l00031"></a>00031         <span class="keyword">struct </span>{
-<a name="l00032"></a>00032                 Bit32s d0,d1;
-<a name="l00033"></a>00033         } sd;
-<a name="l00034"></a>00034 
-<a name="l00035"></a>00035         <span class="keyword">struct </span>{
-<a name="l00036"></a>00036                 Bit16u w0,w1,w2,w3;
-<a name="l00037"></a>00037         } uw;
-<a name="l00038"></a>00038 
-<a name="l00039"></a>00039         <span class="keyword">struct </span>{
-<a name="l00040"></a>00040                 Bit16s w0,w1,w2,w3;
-<a name="l00041"></a>00041         } sw;
-<a name="l00042"></a>00042 
-<a name="l00043"></a>00043         <span class="keyword">struct </span>{
-<a name="l00044"></a>00044                 Bit8u b0,b1,b2,b3,b4,b5,b6,b7;
-<a name="l00045"></a>00045         } ub;
-<a name="l00046"></a>00046 
-<a name="l00047"></a>00047         <span class="keyword">struct </span>{
-<a name="l00048"></a>00048                 Bit8s b0,b1,b2,b3,b4,b5,b6,b7;
-<a name="l00049"></a>00049         } sb;
-<a name="l00050"></a>00050 <span class="preprocessor">#else</span>
-<a name="l00051"></a>00051 <span class="preprocessor"></span>        <span class="keyword">struct </span>{
-<a name="l00052"></a>00052                 Bit32u d1,d0;
-<a name="l00053"></a>00053         } ud;
-<a name="l00054"></a>00054 
-<a name="l00055"></a>00055         <span class="keyword">struct </span>{
-<a name="l00056"></a>00056                 Bit32s d1,d0;
-<a name="l00057"></a>00057         } sd;
-<a name="l00058"></a>00058 
-<a name="l00059"></a>00059         <span class="keyword">struct </span>{
-<a name="l00060"></a>00060                 Bit16u w3,w2,w1,w0;
-<a name="l00061"></a>00061         } uw;
-<a name="l00062"></a>00062 
-<a name="l00063"></a>00063         <span class="keyword">struct </span>{
-<a name="l00064"></a>00064                 Bit16u w3,w2,w1,w0;
-<a name="l00065"></a>00065         } sw;
-<a name="l00066"></a>00066 
-<a name="l00067"></a>00067         <span class="keyword">struct </span>{
-<a name="l00068"></a>00068                 Bit8u b7,b6,b5,b4,b3,b2,b1,b0;
-<a name="l00069"></a>00069         } ub;
-<a name="l00070"></a>00070 
-<a name="l00071"></a>00071         <span class="keyword">struct </span>{
-<a name="l00072"></a>00072                 Bit8u b7,b6,b5,b4,b3,b2,b1,b0;
-<a name="l00073"></a>00073         } sb;
-<a name="l00074"></a>00074 <span class="preprocessor">#endif</span>
-<a name="l00075"></a>00075 <span class="preprocessor"></span>
-<a name="l00076"></a>00076 } <a class="code" href="unionMMX__reg.html">MMX_reg</a>;
-<a name="l00077"></a>00077 
-<a name="l00078"></a>00078 <span class="keyword">extern</span> <a class="code" href="unionMMX__reg.html">MMX_reg</a> reg_mmx[8];
-<a name="l00079"></a>00079 <span class="keyword">extern</span> <a class="code" href="unionMMX__reg.html">MMX_reg</a> * lookupRMregMM[256];
-<a name="l00080"></a>00080 
-<a name="l00081"></a>00081 
-<a name="l00082"></a>00082 Bit8s  SaturateWordSToByteS(Bit16s value);
-<a name="l00083"></a>00083 Bit16s SaturateDwordSToWordS(Bit32s value);
-<a name="l00084"></a>00084 Bit8u  SaturateWordSToByteU(Bit16s value);
-<a name="l00085"></a>00085 Bit16u SaturateDwordSToWordU(Bit32s value);
-<a name="l00086"></a>00086 
-<a name="l00087"></a>00087 <span class="keywordtype">void</span>   setFPU(Bit16u tag);
+<a name="l00026"></a>00026         Bit64u q;
+<a name="l00027"></a>00027 
+<a name="l00028"></a>00028 <span class="preprocessor">#ifndef WORDS_BIGENDIAN</span>
+<a name="l00029"></a>00029 <span class="preprocessor"></span>        <span class="keyword">struct </span>{
+<a name="l00030"></a>00030                 Bit32u d0,d1;
+<a name="l00031"></a>00031         } ud;
+<a name="l00032"></a>00032 
+<a name="l00033"></a>00033         <span class="keyword">struct </span>{
+<a name="l00034"></a>00034                 Bit32s d0,d1;
+<a name="l00035"></a>00035         } sd;
+<a name="l00036"></a>00036 
+<a name="l00037"></a>00037         <span class="keyword">struct </span>{
+<a name="l00038"></a>00038                 Bit16u w0,w1,w2,w3;
+<a name="l00039"></a>00039         } uw;
+<a name="l00040"></a>00040 
+<a name="l00041"></a>00041         <span class="keyword">struct </span>{
+<a name="l00042"></a>00042                 Bit16s w0,w1,w2,w3;
+<a name="l00043"></a>00043         } sw;
+<a name="l00044"></a>00044 
+<a name="l00045"></a>00045         <span class="keyword">struct </span>{
+<a name="l00046"></a>00046                 Bit8u b0,b1,b2,b3,b4,b5,b6,b7;
+<a name="l00047"></a>00047         } ub;
+<a name="l00048"></a>00048 
+<a name="l00049"></a>00049         <span class="keyword">struct </span>{
+<a name="l00050"></a>00050                 Bit8s b0,b1,b2,b3,b4,b5,b6,b7;
+<a name="l00051"></a>00051         } sb;
+<a name="l00052"></a>00052 <span class="preprocessor">#else</span>
+<a name="l00053"></a>00053 <span class="preprocessor"></span>        <span class="keyword">struct </span>{
+<a name="l00054"></a>00054                 Bit32u d1,d0;
+<a name="l00055"></a>00055         } ud;
+<a name="l00056"></a>00056 
+<a name="l00057"></a>00057         <span class="keyword">struct </span>{
+<a name="l00058"></a>00058                 Bit32s d1,d0;
+<a name="l00059"></a>00059         } sd;
+<a name="l00060"></a>00060 
+<a name="l00061"></a>00061         <span class="keyword">struct </span>{
+<a name="l00062"></a>00062                 Bit16u w3,w2,w1,w0;
+<a name="l00063"></a>00063         } uw;
+<a name="l00064"></a>00064 
+<a name="l00065"></a>00065         <span class="keyword">struct </span>{
+<a name="l00066"></a>00066                 Bit16u w3,w2,w1,w0;
+<a name="l00067"></a>00067         } sw;
+<a name="l00068"></a>00068 
+<a name="l00069"></a>00069         <span class="keyword">struct </span>{
+<a name="l00070"></a>00070                 Bit8u b7,b6,b5,b4,b3,b2,b1,b0;
+<a name="l00071"></a>00071         } ub;
+<a name="l00072"></a>00072 
+<a name="l00073"></a>00073         <span class="keyword">struct </span>{
+<a name="l00074"></a>00074                 Bit8u b7,b6,b5,b4,b3,b2,b1,b0;
+<a name="l00075"></a>00075         } sb;
+<a name="l00076"></a>00076 <span class="preprocessor">#endif</span>
+<a name="l00077"></a>00077 <span class="preprocessor"></span>
+<a name="l00078"></a>00078 } MMX_reg;
+<a name="l00079"></a>00079 
+<a name="l00080"></a>00080 <span class="keyword">extern</span> MMX_reg * reg_mmx[8];
+<a name="l00081"></a>00081 <span class="keyword">extern</span> MMX_reg * lookupRMregMM[256];
+<a name="l00082"></a>00082 
+<a name="l00083"></a>00083 
+<a name="l00084"></a>00084 Bit8s  SaturateWordSToByteS(Bit16s value);
+<a name="l00085"></a>00085 Bit16s SaturateDwordSToWordS(Bit32s value);
+<a name="l00086"></a>00086 Bit8u  SaturateWordSToByteU(Bit16s value);
+<a name="l00087"></a>00087 Bit16u SaturateDwordSToWordU(Bit32s value);
 <a name="l00088"></a>00088 
-<a name="l00089"></a>00089 <span class="preprocessor">#endif</span>
+<a name="l00089"></a>00089 <span class="keywordtype">void</span>   setFPUTagEmpty();
+<a name="l00090"></a>00090 
+<a name="l00091"></a>00091 <span class="preprocessor">#endif</span>
+<a name="l00092"></a>00092 <span class="preprocessor"></span>
+<a name="l00093"></a>00093 <span class="preprocessor">#endif</span>
 </pre></div></div><!-- contents -->
 
 
 <hr class="footer"/><address class="footer"><small>
-Generated on Tue Oct 1 2019 18:06:23 for DOSBox-X by &#160;<a href="http://www.doxygen.org/index.html">
+Generated on Sun Jul 5 2020 13:11:33 for DOSBox-X by &#160;<a href="http://www.doxygen.org/index.html">
 <img class="footer" src="doxygen.png" alt="doxygen"/>
 </a> 1.8.0
 </small></address>

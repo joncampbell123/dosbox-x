@@ -96,7 +96,7 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 </div><!--header-->
 <div class="contents">
 <div class="fragment"><pre class="fragment"><a name="l00001"></a>00001 <span class="comment">/*</span>
-<a name="l00002"></a>00002 <span class="comment"> *  Copyright (C) 2002-2019  The DOSBox Team</span>
+<a name="l00002"></a>00002 <span class="comment"> *  Copyright (C) 2002-2020  The DOSBox Team</span>
 <a name="l00003"></a>00003 <span class="comment"> *</span>
 <a name="l00004"></a>00004 <span class="comment"> *  This program is free software; you can redistribute it and/or modify</span>
 <a name="l00005"></a>00005 <span class="comment"> *  it under the terms of the GNU General Public License as published by</span>
@@ -108,9 +108,9 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l00011"></a>00011 <span class="comment"> *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the</span>
 <a name="l00012"></a>00012 <span class="comment"> *  GNU General Public License for more details.</span>
 <a name="l00013"></a>00013 <span class="comment"> *</span>
-<a name="l00014"></a>00014 <span class="comment"> *  You should have received a copy of the GNU General Public License</span>
-<a name="l00015"></a>00015 <span class="comment"> *  along with this program; if not, write to the Free Software</span>
-<a name="l00016"></a>00016 <span class="comment"> *  Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1335, USA.</span>
+<a name="l00014"></a>00014 <span class="comment"> *  You should have received a copy of the GNU General Public License along</span>
+<a name="l00015"></a>00015 <span class="comment"> *  with this program; if not, write to the Free Software Foundation, Inc.,</span>
+<a name="l00016"></a>00016 <span class="comment"> *  51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.</span>
 <a name="l00017"></a>00017 <span class="comment"> */</span>
 <a name="l00018"></a>00018 <span class="comment">/* FIXME: This code... well... it could be done better.</span>
 <a name="l00019"></a>00019 <span class="comment"> *        It was written back when all mixer callbacks were potentially done from</span>
@@ -160,11 +160,11 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l00063"></a>00063 
 <a name="l00064"></a>00064 <span class="preprocessor">#endif</span>
 <a name="l00065"></a>00065 <span class="preprocessor"></span>
-<a name="l00066"></a>00066 <span class="preprocessor">#define SPKR_ENTRIES 1024</span>
+<a name="l00066"></a>00066 <span class="preprocessor">#define SPKR_ENTRIES 8192</span>
 <a name="l00067"></a>00067 <span class="preprocessor"></span><span class="preprocessor">#define SPKR_VOLUME 10000</span>
 <a name="l00068"></a>00068 <span class="preprocessor"></span><span class="comment">//#define SPKR_SHIFT 8</span>
-<a name="l00069"></a>00069 <span class="preprocessor">#define SPKR_SPEED (pic_tickindex_t)((SPKR_VOLUME*2)/0.050) // TODO: replace with runtime value</span>
-<a name="l00070"></a>00070 <span class="preprocessor"></span>
+<a name="l00069"></a>00069 pic_tickindex_t SPKR_SPEED = 1.0;
+<a name="l00070"></a>00070 
 <a name="l00071"></a><a class="code" href="structDelayEntry.html">00071</a> <span class="keyword">struct </span><a class="code" href="structDelayEntry.html">DelayEntry</a> {
 <a name="l00072"></a>00072         pic_tickindex_t index;
 <a name="l00073"></a>00073         <span class="keywordtype">bool</span> output_level;
@@ -622,53 +622,53 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l00525"></a>00525                         <span class="keywordflow">break</span>;
 <a name="l00526"></a>00526                 <span class="keywordflow">case</span> 3:
 <a name="l00527"></a>00527                         spkr.pit_mode3_counting = 1;
-<a name="l00528"></a>00528                         spkr.pit_new_max = spkr.pit_new_max;
-<a name="l00529"></a>00529                         spkr.pit_new_half=spkr.pit_new_max/2;
-<a name="l00530"></a>00530                         spkr.pit_index = 0;
-<a name="l00531"></a>00531                         spkr.pit_max = spkr.pit_new_max;
-<a name="l00532"></a>00532                         spkr.pit_half = spkr.pit_new_half;
-<a name="l00533"></a>00533                         spkr.pit_output_level = 1;
-<a name="l00534"></a>00534                         <span class="keywordflow">break</span>;
-<a name="l00535"></a>00535                 <span class="keywordflow">default</span>:
-<a name="l00536"></a>00536                         <span class="comment">// TODO: implement other modes</span>
-<a name="l00537"></a>00537                         <span class="keywordflow">break</span>;
-<a name="l00538"></a>00538                 }
-<a name="l00539"></a>00539         } <span class="keywordflow">else</span> <span class="keywordflow">if</span> (!spkr.pit_clock_gate_enabled) {
-<a name="l00540"></a>00540                 <span class="keywordflow">switch</span> (spkr.pit_mode) {
-<a name="l00541"></a>00541                 <span class="keywordflow">case</span> 1:
-<a name="l00542"></a>00542                         <span class="comment">// gate level does not affect mode1</span>
-<a name="l00543"></a>00543                         <span class="keywordflow">break</span>;
-<a name="l00544"></a>00544                 <span class="keywordflow">case</span> 3:
-<a name="l00545"></a>00545                         <span class="comment">// low gate forces pit output high</span>
-<a name="l00546"></a>00546                         spkr.pit_output_level   = 1;
-<a name="l00547"></a>00547                         spkr.pit_mode3_counting = 0;
-<a name="l00548"></a>00548                         <span class="keywordflow">break</span>;
-<a name="l00549"></a>00549                 <span class="keywordflow">default</span>:
-<a name="l00550"></a>00550                         <span class="comment">// TODO: implement other modes</span>
-<a name="l00551"></a>00551                         <span class="keywordflow">break</span>;
-<a name="l00552"></a>00552                 }
-<a name="l00553"></a>00553         }
-<a name="l00554"></a>00554         <span class="keywordflow">if</span> (pit_output_enabled) {
-<a name="l00555"></a>00555                 AddDelayEntry(newindex, spkr.pit_output_level);
-<a name="l00556"></a>00556         } <span class="keywordflow">else</span> {
-<a name="l00557"></a>00557                 AddDelayEntry(newindex, 0);
-<a name="l00558"></a>00558         }
-<a name="l00559"></a>00559 
-<a name="l00560"></a>00560     CheckPITSynchronization();
-<a name="l00561"></a>00561 }
-<a name="l00562"></a>00562 
-<a name="l00563"></a>00563 <span class="comment">/* NTS: This code stinks. Sort of. The way it handles the delay entry queue</span>
-<a name="l00564"></a>00564 <span class="comment"> *      could have been done better. The event queue idea isn&#39;t needed anymore because</span>
-<a name="l00565"></a>00565 <span class="comment"> *      DOSBox-X allows any code to render audio &quot;up to&quot; the current time.</span>
-<a name="l00566"></a>00566 <span class="comment"> *</span>
-<a name="l00567"></a>00567 <span class="comment"> *      Second, looking at this code tells me why it didn&#39;t work properly with the</span>
-<a name="l00568"></a>00568 <span class="comment"> *      &quot;sample accurate&quot; mixer mode. This code assumes that whatever length of</span>
-<a name="l00569"></a>00569 <span class="comment"> *      audio there is to render, that all events within the 1ms tick interval are</span>
-<a name="l00570"></a>00570 <span class="comment"> *      to be squashed and stretched to fill it. In the new DOSBox-X model mixer</span>
-<a name="l00571"></a>00571 <span class="comment"> *      callback code must not assume the call is for 1ms of audio, because any</span>
-<a name="l00572"></a>00572 <span class="comment"> *      code at any time can trigger a mixer render &quot;up to&quot; the current time with</span>
-<a name="l00573"></a>00573 <span class="comment"> *      the tick. */</span>
-<a name="l00574"></a>00574 <span class="keyword">static</span> <span class="keywordtype">void</span> PCSPEAKER_CallBack(Bitu len) {
+<a name="l00528"></a>00528                         spkr.pit_new_half=spkr.pit_new_max/2;
+<a name="l00529"></a>00529                         spkr.pit_index = 0;
+<a name="l00530"></a>00530                         spkr.pit_max = spkr.pit_new_max;
+<a name="l00531"></a>00531                         spkr.pit_half = spkr.pit_new_half;
+<a name="l00532"></a>00532                         spkr.pit_output_level = 1;
+<a name="l00533"></a>00533                         <span class="keywordflow">break</span>;
+<a name="l00534"></a>00534                 <span class="keywordflow">default</span>:
+<a name="l00535"></a>00535                         <span class="comment">// TODO: implement other modes</span>
+<a name="l00536"></a>00536                         <span class="keywordflow">break</span>;
+<a name="l00537"></a>00537                 }
+<a name="l00538"></a>00538         } <span class="keywordflow">else</span> <span class="keywordflow">if</span> (!spkr.pit_clock_gate_enabled) {
+<a name="l00539"></a>00539                 <span class="keywordflow">switch</span> (spkr.pit_mode) {
+<a name="l00540"></a>00540                 <span class="keywordflow">case</span> 1:
+<a name="l00541"></a>00541                         <span class="comment">// gate level does not affect mode1</span>
+<a name="l00542"></a>00542                         <span class="keywordflow">break</span>;
+<a name="l00543"></a>00543                 <span class="keywordflow">case</span> 3:
+<a name="l00544"></a>00544                         <span class="comment">// low gate forces pit output high</span>
+<a name="l00545"></a>00545                         spkr.pit_output_level   = 1;
+<a name="l00546"></a>00546                         spkr.pit_mode3_counting = 0;
+<a name="l00547"></a>00547                         <span class="keywordflow">break</span>;
+<a name="l00548"></a>00548                 <span class="keywordflow">default</span>:
+<a name="l00549"></a>00549                         <span class="comment">// TODO: implement other modes</span>
+<a name="l00550"></a>00550                         <span class="keywordflow">break</span>;
+<a name="l00551"></a>00551                 }
+<a name="l00552"></a>00552         }
+<a name="l00553"></a>00553         <span class="keywordflow">if</span> (pit_output_enabled) {
+<a name="l00554"></a>00554                 AddDelayEntry(newindex, spkr.pit_output_level);
+<a name="l00555"></a>00555         } <span class="keywordflow">else</span> {
+<a name="l00556"></a>00556                 AddDelayEntry(newindex, 0);
+<a name="l00557"></a>00557         }
+<a name="l00558"></a>00558 
+<a name="l00559"></a>00559     CheckPITSynchronization();
+<a name="l00560"></a>00560 }
+<a name="l00561"></a>00561 
+<a name="l00562"></a>00562 <span class="comment">/* NTS: This code stinks. Sort of. The way it handles the delay entry queue</span>
+<a name="l00563"></a>00563 <span class="comment"> *      could have been done better. The event queue idea isn&#39;t needed anymore because</span>
+<a name="l00564"></a>00564 <span class="comment"> *      DOSBox-X allows any code to render audio &quot;up to&quot; the current time.</span>
+<a name="l00565"></a>00565 <span class="comment"> *</span>
+<a name="l00566"></a>00566 <span class="comment"> *      Second, looking at this code tells me why it didn&#39;t work properly with the</span>
+<a name="l00567"></a>00567 <span class="comment"> *      &quot;sample accurate&quot; mixer mode. This code assumes that whatever length of</span>
+<a name="l00568"></a>00568 <span class="comment"> *      audio there is to render, that all events within the 1ms tick interval are</span>
+<a name="l00569"></a>00569 <span class="comment"> *      to be squashed and stretched to fill it. In the new DOSBox-X model mixer</span>
+<a name="l00570"></a>00570 <span class="comment"> *      callback code must not assume the call is for 1ms of audio, because any</span>
+<a name="l00571"></a>00571 <span class="comment"> *      code at any time can trigger a mixer render &quot;up to&quot; the current time with</span>
+<a name="l00572"></a>00572 <span class="comment"> *      the tick. */</span>
+<a name="l00573"></a>00573 <span class="keyword">static</span> <span class="keywordtype">void</span> PCSPEAKER_CallBack(Bitu len) {
+<a name="l00574"></a>00574         <span class="keywordtype">bool</span> ultrasonic = <span class="keyword">false</span>;
 <a name="l00575"></a>00575         Bit16s * stream=(Bit16s*)MixTemp;
 <a name="l00576"></a>00576         ForwardPIT(1.0 + PIC_TickIndex());
 <a name="l00577"></a>00577     CheckPITSynchronization();
@@ -686,177 +686,272 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l00589"></a>00589                         <span class="comment">/* Check if there is an upcoming event */</span>
 <a name="l00590"></a>00590                         <span class="keywordflow">if</span> (spkr.used &amp;&amp; spkr.entries[pos].index&lt;=index) {
 <a name="l00591"></a>00591                                 spkr.volwant=SPKR_VOLUME*(pic_tickindex_t)spkr.entries[pos].output_level;
-<a name="l00592"></a>00592 #ifdef SPKR_DEBUGGING
-<a name="l00593"></a>00593                                 fprintf(
-<a name="l00594"></a>00594                                                 PCSpeakerOutputLevelLog,
-<a name="l00595"></a>00595                                                 <span class="stringliteral">&quot;%f %u\n&quot;</span>,
-<a name="l00596"></a>00596                                                 PIC_Ticks + spkr.entries[pos].index,
-<a name="l00597"></a>00597                                                 spkr.entries[pos].output_level);
-<a name="l00598"></a>00598                                 <span class="keywordtype">double</span> tempIndex = PIC_Ticks + spkr.entries[pos].index;
-<a name="l00599"></a>00599                                 <span class="keywordtype">unsigned</span> <span class="keywordtype">char</span> tempOutputLevel = spkr.entries[pos].output_level;
-<a name="l00600"></a>00600                                 fwrite(&amp;tempIndex, <span class="keyword">sizeof</span>(<span class="keywordtype">double</span>), 1, PCSpeakerOutput);
-<a name="l00601"></a>00601                                 fwrite(&amp;tempOutputLevel, <span class="keyword">sizeof</span>(<span class="keywordtype">unsigned</span> <span class="keywordtype">char</span>), 1, PCSpeakerOutput);
-<a name="l00602"></a>00602 <span class="preprocessor">#endif</span>
-<a name="l00603"></a>00603 <span class="preprocessor"></span>                                pos++;spkr.used--;
-<a name="l00604"></a>00604                                 <span class="keywordflow">continue</span>;
-<a name="l00605"></a>00605                         }
-<a name="l00606"></a>00606                         pic_tickindex_t vol_end;
-<a name="l00607"></a>00607                         <span class="keywordflow">if</span> (spkr.used &amp;&amp; spkr.entries[pos].index&lt;end) {
-<a name="l00608"></a>00608                                 vol_end=spkr.entries[pos].index;
-<a name="l00609"></a>00609                         } <span class="keywordflow">else</span> vol_end=end;
-<a name="l00610"></a>00610                         pic_tickindex_t vol_len=vol_end-index;
-<a name="l00611"></a>00611             <span class="comment">/* Check if we have to slide the volume */</span>
-<a name="l00612"></a>00612                         pic_tickindex_t vol_diff=spkr.volwant-spkr.volcur;
-<a name="l00613"></a>00613                         <span class="keywordflow">if</span> (vol_diff == 0) {
-<a name="l00614"></a>00614                                 value+=spkr.volcur*vol_len;
-<a name="l00615"></a>00615                                 index+=vol_len;
-<a name="l00616"></a>00616                         } <span class="keywordflow">else</span> {
-<a name="l00617"></a>00617                                 <span class="comment">/* Check how long it will take to goto new level */</span>
-<a name="l00618"></a>00618                                 pic_tickindex_t vol_time=fabs(vol_diff)/SPKR_SPEED;
-<a name="l00619"></a>00619                                 <span class="keywordflow">if</span> (vol_time&lt;=vol_len) {
-<a name="l00620"></a>00620                                         <span class="comment">/* Volume reaches endpoint in this block, calc until that point */</span>
-<a name="l00621"></a>00621                                         value+=vol_time*spkr.volcur;
-<a name="l00622"></a>00622                                         value+=vol_time*vol_diff/2;
-<a name="l00623"></a>00623                                         index+=vol_time;
-<a name="l00624"></a>00624                                         spkr.volcur=spkr.volwant;
-<a name="l00625"></a>00625                                 } <span class="keywordflow">else</span> {
-<a name="l00626"></a>00626                                         <span class="comment">/* Volume still not reached in this block */</span>
-<a name="l00627"></a>00627                                         value+=spkr.volcur*vol_len;
-<a name="l00628"></a>00628                                         <span class="keywordflow">if</span> (vol_diff&lt;0) {
-<a name="l00629"></a>00629                                                 value-=(SPKR_SPEED*vol_len*vol_len)/2;
-<a name="l00630"></a>00630                                                 spkr.volcur-=SPKR_SPEED*vol_len;
-<a name="l00631"></a>00631                                         } <span class="keywordflow">else</span> {
-<a name="l00632"></a>00632                                                 value+=(SPKR_SPEED*vol_len*vol_len)/2;
-<a name="l00633"></a>00633                                                 spkr.volcur+=SPKR_SPEED*vol_len;
-<a name="l00634"></a>00634                                         }
-<a name="l00635"></a>00635                                         index+=vol_len;
-<a name="l00636"></a>00636                                 }
-<a name="l00637"></a>00637                         }
-<a name="l00638"></a>00638                 }
-<a name="l00639"></a>00639                 *stream++=(Bit16s)(value/sample_add);
-<a name="l00640"></a>00640         }
-<a name="l00641"></a>00641         <span class="keywordflow">if</span>(spkr.chan) spkr.chan-&gt;AddSamples_m16(len,(Bit16s*)MixTemp);
-<a name="l00642"></a>00642 
-<a name="l00643"></a>00643         <span class="comment">//Turn off speaker after 10 seconds of idle or one second idle when in off mode</span>
-<a name="l00644"></a>00644         <span class="keywordtype">bool</span> turnoff = <span class="keyword">false</span>;
-<a name="l00645"></a>00645         Bitu test_ticks = PIC_Ticks;
-<a name="l00646"></a>00646         <span class="keywordflow">if</span> ((spkr.last_ticks + 10000) &lt; test_ticks) turnoff = <span class="keyword">true</span>;
-<a name="l00647"></a>00647         <span class="keywordflow">if</span>((!spkr.pit_output_enabled) &amp;&amp; ((spkr.last_ticks + 1000) &lt; test_ticks)) turnoff = <span class="keyword">true</span>;
-<a name="l00648"></a>00648 
-<a name="l00649"></a>00649         <span class="keywordflow">if</span>(turnoff){
-<a name="l00650"></a>00650                 <span class="keywordflow">if</span>(spkr.volwant == 0) { 
-<a name="l00651"></a>00651                         spkr.last_ticks = 0;
-<a name="l00652"></a>00652                         <span class="keywordflow">if</span>(spkr.chan) spkr.chan-&gt;Enable(<span class="keyword">false</span>);
-<a name="l00653"></a>00653                 } <span class="keywordflow">else</span> {
-<a name="l00654"></a>00654                         <span class="keywordflow">if</span>(spkr.volwant &gt; 0) spkr.volwant--; <span class="keywordflow">else</span> spkr.volwant++;
-<a name="l00655"></a>00655                 
-<a name="l00656"></a>00656                 }
-<a name="l00657"></a>00657         }
-<a name="l00658"></a>00658         <span class="keywordflow">if</span> (spkr.used != 0) {
-<a name="l00659"></a>00659         <span class="keywordflow">if</span> (pos != 0) {
-<a name="l00660"></a>00660             <span class="comment">/* well then roll the queue back */</span>
-<a name="l00661"></a>00661             <span class="keywordflow">for</span> (Bitu i=0;i &lt; spkr.used;i++)
-<a name="l00662"></a>00662                 spkr.entries[i] = spkr.entries[pos+i];
-<a name="l00663"></a>00663         }
-<a name="l00664"></a>00664 
-<a name="l00665"></a>00665         <span class="comment">/* hack: some indexes come out at 1.001, fix that for the next round.</span>
-<a name="l00666"></a>00666 <span class="comment">         *       this is a consequence of DOSBox-X allowing the CPU cycles</span>
-<a name="l00667"></a>00667 <span class="comment">         *       count use to overrun slightly for accuracy. if we DONT fix</span>
-<a name="l00668"></a>00668 <span class="comment">         *       this the delay queue will get stuck and PC speaker output</span>
-<a name="l00669"></a>00669 <span class="comment">         *       will stop. */</span>
-<a name="l00670"></a>00670         <span class="keywordflow">for</span> (Bitu i=0;i &lt; spkr.used;i++) {
-<a name="l00671"></a>00671             <span class="keywordflow">if</span> (spkr.entries[i].index &gt;= 1.000)
-<a name="l00672"></a>00672                 spkr.entries[i].index -= 1.000;
-<a name="l00673"></a>00673             <span class="keywordflow">else</span>
-<a name="l00674"></a>00674                 <span class="keywordflow">break</span>;
-<a name="l00675"></a>00675         }
-<a name="l00676"></a>00676 
-<a name="l00677"></a>00677         <a class="code" href="classLOG.html">LOG</a>(LOG_MISC,LOG_DEBUG)(<span class="stringliteral">&quot;PC speaker queue render, %u entries left, %u rendered&quot;</span>,(<span class="keywordtype">unsigned</span> int)spkr.used,(<span class="keywordtype">unsigned</span> <span class="keywordtype">int</span>)pos);
-<a name="l00678"></a>00678         <a class="code" href="classLOG.html">LOG</a>(LOG_MISC,LOG_DEBUG)(<span class="stringliteral">&quot;Next entry waits for index %.3f, stopped at %.3f&quot;</span>,spkr.entries[0].index,sample_base);
-<a name="l00679"></a>00679         }
-<a name="l00680"></a>00680 }
-<a name="l00681"></a><a class="code" href="classPCSPEAKER.html">00681</a> <span class="keyword">class </span><a class="code" href="classPCSPEAKER.html">PCSPEAKER</a>:<span class="keyword">public</span> <a class="code" href="classModule__base.html">Module_base</a> {
-<a name="l00682"></a>00682 <span class="keyword">private</span>:
-<a name="l00683"></a>00683         <a class="code" href="classMixerObject.html">MixerObject</a> MixerChan;
-<a name="l00684"></a>00684 <span class="keyword">public</span>:
-<a name="l00685"></a>00685         <a class="code" href="classPCSPEAKER.html">PCSPEAKER</a>(<a class="code" href="classSection.html">Section</a>* configuration):<a class="code" href="classModule__base.html">Module_base</a>(configuration){
-<a name="l00686"></a>00686                 spkr.chan=0;
-<a name="l00687"></a>00687                 <a class="code" href="classSection__prop.html">Section_prop</a> * section=<span class="keyword">static_cast&lt;</span><a class="code" href="classSection__prop.html">Section_prop</a> *<span class="keyword">&gt;</span>(configuration);
-<a name="l00688"></a>00688                 <span class="keywordflow">if</span>(!section-&gt;Get_bool(<span class="stringliteral">&quot;pcspeaker&quot;</span>)) <span class="keywordflow">return</span>;
-<a name="l00689"></a>00689                 spkr.pit_output_enabled = 0;
-<a name="l00690"></a>00690                 spkr.pit_clock_gate_enabled = 0;
-<a name="l00691"></a>00691                 spkr.pit_mode1_waiting_for_trigger = 1;
-<a name="l00692"></a>00692                 spkr.last_ticks=0;
-<a name="l00693"></a>00693                 spkr.last_index=0;
-<a name="l00694"></a>00694                 spkr.rate=(<span class="keywordtype">unsigned</span> int)section-&gt;Get_int(<span class="stringliteral">&quot;pcrate&quot;</span>);
-<a name="l00695"></a>00695 
-<a name="l00696"></a>00696                 <span class="comment">// PIT initially in mode 3 at ~903 Hz</span>
-<a name="l00697"></a>00697                 spkr.pit_mode = 3;
-<a name="l00698"></a>00698                 spkr.pit_mode3_counting = 0;
-<a name="l00699"></a>00699                 spkr.pit_output_level = 1;
-<a name="l00700"></a>00700                 spkr.pit_max=(1000.0f/PIT_TICK_RATE)*1320;
-<a name="l00701"></a>00701                 spkr.pit_half=spkr.pit_max/2;
-<a name="l00702"></a>00702                 spkr.pit_new_max=spkr.pit_max;
-<a name="l00703"></a>00703                 spkr.pit_new_half=spkr.pit_half;
-<a name="l00704"></a>00704                 spkr.pit_index=0;
-<a name="l00705"></a>00705 
-<a name="l00706"></a>00706                 <span class="comment">//spkr.minimum_counter = (PIT_TICK_RATE + spkr.rate/2-1)/(spkr.rate/2);</span>
-<a name="l00707"></a>00707                 spkr.minimum_counter = 2*PIT_TICK_RATE/spkr.rate;
-<a name="l00708"></a>00708                 spkr.used=0;
-<a name="l00709"></a>00709                 <span class="comment">/* Register the sound channel */</span>
-<a name="l00710"></a>00710                 spkr.chan=MixerChan.Install(&amp;PCSPEAKER_CallBack,spkr.rate,<span class="stringliteral">&quot;SPKR&quot;</span>);
-<a name="l00711"></a>00711                 <span class="keywordflow">if</span> (!spkr.chan) {
-<a name="l00712"></a>00712                         E_Exit(__FILE__ <span class="stringliteral">&quot;: Unable to register channel with mixer.&quot;</span>);
-<a name="l00713"></a>00713                 }
-<a name="l00714"></a>00714                 spkr.chan-&gt;Enable(<span class="keyword">true</span>);
-<a name="l00715"></a>00715 <span class="preprocessor">#ifdef SPKR_DEBUGGING</span>
-<a name="l00716"></a>00716 <span class="preprocessor"></span>                PCSpeakerLog = fopen(<span class="stringliteral">&quot;PCSpeakerLog.txt&quot;</span>, <span class="stringliteral">&quot;w&quot;</span>);
-<a name="l00717"></a>00717                 <span class="keywordflow">if</span> (PCSpeakerLog == NULL) {
-<a name="l00718"></a>00718                         E_Exit(__FILE__ <span class="stringliteral">&quot;: Unable to create a PC speaker log for debugging.&quot;</span>);
-<a name="l00719"></a>00719                 }
-<a name="l00720"></a>00720                 PCSpeakerState = fopen(<span class="stringliteral">&quot;PCSpeakerState.dat&quot;</span>, <span class="stringliteral">&quot;wb&quot;</span>);
-<a name="l00721"></a>00721                 <span class="keywordflow">if</span> (PCSpeakerState == NULL) {
-<a name="l00722"></a>00722                         E_Exit(__FILE__ <span class="stringliteral">&quot;: Unable to create a PC speaker state file for debugging.&quot;</span>);
-<a name="l00723"></a>00723                 }
-<a name="l00724"></a>00724                 PCSpeakerOutput = fopen(<span class="stringliteral">&quot;PCSpeakerOutput.dat&quot;</span>, <span class="stringliteral">&quot;wb&quot;</span>);
-<a name="l00725"></a>00725                 <span class="keywordflow">if</span> (PCSpeakerOutput == NULL) {
-<a name="l00726"></a>00726                         E_Exit(__FILE__ <span class="stringliteral">&quot;: Unable to create a PC speaker output file for debugging.&quot;</span>);
-<a name="l00727"></a>00727                 }
-<a name="l00728"></a>00728                 PCSpeakerOutputLevelLog = fopen(<span class="stringliteral">&quot;PCSpeakerOutputLevelLog.txt&quot;</span>, <span class="stringliteral">&quot;w&quot;</span>);
-<a name="l00729"></a>00729                 <span class="keywordflow">if</span> (PCSpeakerOutputLevelLog == NULL) {
-<a name="l00730"></a>00730                         E_Exit(__FILE__ <span class="stringliteral">&quot;: Unable to create a PC speaker output level log for debugging.&quot;</span>);
-<a name="l00731"></a>00731                 }
-<a name="l00732"></a>00732 <span class="preprocessor">#endif</span>
-<a name="l00733"></a>00733 <span class="preprocessor"></span>        }
-<a name="l00734"></a>00734 };
-<a name="l00735"></a>00735 
-<a name="l00736"></a>00736 <span class="keyword">static</span> <a class="code" href="classPCSPEAKER.html">PCSPEAKER</a>* test;
-<a name="l00737"></a>00737 
-<a name="l00738"></a>00738 <span class="keywordtype">void</span> PCSPEAKER_ShutDown(<a class="code" href="classSection.html">Section</a>* sec){
-<a name="l00739"></a>00739     (void)sec;<span class="comment">//UNUSED</span>
-<a name="l00740"></a>00740         <span class="keyword">delete</span> test;
-<a name="l00741"></a>00741 }
-<a name="l00742"></a>00742 
-<a name="l00743"></a>00743 <span class="keywordtype">void</span> PCSPEAKER_OnReset(<a class="code" href="classSection.html">Section</a>* sec) {
-<a name="l00744"></a>00744     (void)sec;<span class="comment">//UNUSED</span>
-<a name="l00745"></a>00745         <span class="keywordflow">if</span> (test == NULL) {
-<a name="l00746"></a>00746                 <a class="code" href="classLOG.html">LOG</a>(LOG_MISC,LOG_DEBUG)(<span class="stringliteral">&quot;Allocating PC speaker emulation&quot;</span>);
-<a name="l00747"></a>00747                 test = <span class="keyword">new</span> <a class="code" href="classPCSPEAKER.html">PCSPEAKER</a>(control-&gt;GetSection(<span class="stringliteral">&quot;speaker&quot;</span>));
-<a name="l00748"></a>00748         }
-<a name="l00749"></a>00749 }
-<a name="l00750"></a>00750 
-<a name="l00751"></a>00751 <span class="keywordtype">void</span> PCSPEAKER_Init() {
-<a name="l00752"></a>00752         <a class="code" href="classLOG.html">LOG</a>(LOG_MISC,LOG_DEBUG)(<span class="stringliteral">&quot;Initializing PC speaker&quot;</span>);
-<a name="l00753"></a>00753 
-<a name="l00754"></a>00754         AddExitFunction(AddExitFunctionFuncPair(PCSPEAKER_ShutDown),<span class="keyword">true</span>);
-<a name="l00755"></a>00755         AddVMEventFunction(VM_EVENT_RESET,AddVMEventFunctionFuncPair(PCSPEAKER_OnReset));
-<a name="l00756"></a>00756 }
-<a name="l00757"></a>00757 
+<a name="l00592"></a>00592 
+<a name="l00593"></a>00593                                 <span class="comment">/* A change in PC speaker output means to keep rendering.</span>
+<a name="l00594"></a>00594 <span class="comment">                                 * Do not allow timeout to occur unless speaker is idle too long. */</span>
+<a name="l00595"></a>00595                                 if (spkr.pit_mode == 3 &amp;&amp; spkr.pit_max &lt; (1000.0/spkr.rate)) {
+<a name="l00596"></a>00596                                         <span class="comment">/* Unless the speaker is cycling at ultrasonic frequencies, meaning games</span>
+<a name="l00597"></a>00597 <span class="comment">                                         * that &quot;silence&quot; the output by setting the counter way above audible frequencies. */</span>
+<a name="l00598"></a>00598                                         ultrasonic = <span class="keyword">true</span>;
+<a name="l00599"></a>00599                                 }
+<a name="l00600"></a>00600                                 <span class="keywordflow">else</span> {
+<a name="l00601"></a>00601                                         spkr.last_ticks=PIC_Ticks;
+<a name="l00602"></a>00602                                 }
+<a name="l00603"></a>00603 
+<a name="l00604"></a>00604 <span class="preprocessor">#ifdef SPKR_DEBUGGING</span>
+<a name="l00605"></a>00605 <span class="preprocessor"></span>                                fprintf(
+<a name="l00606"></a>00606                                                 PCSpeakerOutputLevelLog,
+<a name="l00607"></a>00607                                                 <span class="stringliteral">&quot;%f %u\n&quot;</span>,
+<a name="l00608"></a>00608                                                 PIC_Ticks + spkr.entries[pos].index,
+<a name="l00609"></a>00609                                                 spkr.entries[pos].output_level);
+<a name="l00610"></a>00610                                 <span class="keywordtype">double</span> tempIndex = PIC_Ticks + spkr.entries[pos].index;
+<a name="l00611"></a>00611                                 <span class="keywordtype">unsigned</span> <span class="keywordtype">char</span> tempOutputLevel = spkr.entries[pos].output_level;
+<a name="l00612"></a>00612                                 fwrite(&amp;tempIndex, <span class="keyword">sizeof</span>(<span class="keywordtype">double</span>), 1, PCSpeakerOutput);
+<a name="l00613"></a>00613                                 fwrite(&amp;tempOutputLevel, <span class="keyword">sizeof</span>(<span class="keywordtype">unsigned</span> <span class="keywordtype">char</span>), 1, PCSpeakerOutput);
+<a name="l00614"></a>00614 <span class="preprocessor">#endif</span>
+<a name="l00615"></a>00615 <span class="preprocessor"></span>                                pos++;spkr.used--;
+<a name="l00616"></a>00616                                 <span class="keywordflow">continue</span>;
+<a name="l00617"></a>00617                         }
+<a name="l00618"></a>00618                         pic_tickindex_t vol_end;
+<a name="l00619"></a>00619                         <span class="keywordflow">if</span> (spkr.used &amp;&amp; spkr.entries[pos].index&lt;end) {
+<a name="l00620"></a>00620                                 vol_end=spkr.entries[pos].index;
+<a name="l00621"></a>00621                         } <span class="keywordflow">else</span> vol_end=end;
+<a name="l00622"></a>00622                         pic_tickindex_t vol_len=vol_end-index;
+<a name="l00623"></a>00623             <span class="comment">/* Check if we have to slide the volume */</span>
+<a name="l00624"></a>00624                         pic_tickindex_t vol_diff=spkr.volwant-spkr.volcur;
+<a name="l00625"></a>00625                         <span class="keywordflow">if</span> (vol_diff == 0) {
+<a name="l00626"></a>00626                                 value+=spkr.volcur*vol_len;
+<a name="l00627"></a>00627                                 index+=vol_len;
+<a name="l00628"></a>00628                         } <span class="keywordflow">else</span> {
+<a name="l00629"></a>00629                                 <span class="comment">/* Check how long it will take to goto new level */</span>
+<a name="l00630"></a>00630                                 pic_tickindex_t vol_time=fabs(vol_diff)/SPKR_SPEED;
+<a name="l00631"></a>00631                                 <span class="keywordflow">if</span> (vol_time&lt;=vol_len) {
+<a name="l00632"></a>00632                                         <span class="comment">/* Volume reaches endpoint in this block, calc until that point */</span>
+<a name="l00633"></a>00633                                         value+=vol_time*spkr.volcur;
+<a name="l00634"></a>00634                                         value+=vol_time*vol_diff/2;
+<a name="l00635"></a>00635                                         index+=vol_time;
+<a name="l00636"></a>00636                                         spkr.volcur=spkr.volwant;
+<a name="l00637"></a>00637                                 } <span class="keywordflow">else</span> {
+<a name="l00638"></a>00638                                         <span class="comment">/* Volume still not reached in this block */</span>
+<a name="l00639"></a>00639                                         value+=spkr.volcur*vol_len;
+<a name="l00640"></a>00640                                         <span class="keywordflow">if</span> (vol_diff&lt;0) {
+<a name="l00641"></a>00641                                                 value-=(SPKR_SPEED*vol_len*vol_len)/2;
+<a name="l00642"></a>00642                                                 spkr.volcur-=SPKR_SPEED*vol_len;
+<a name="l00643"></a>00643                                         } <span class="keywordflow">else</span> {
+<a name="l00644"></a>00644                                                 value+=(SPKR_SPEED*vol_len*vol_len)/2;
+<a name="l00645"></a>00645                                                 spkr.volcur+=SPKR_SPEED*vol_len;
+<a name="l00646"></a>00646                                         }
+<a name="l00647"></a>00647                                         index+=vol_len;
+<a name="l00648"></a>00648                                 }
+<a name="l00649"></a>00649                         }
+<a name="l00650"></a>00650                 }
+<a name="l00651"></a>00651                 *stream++=(Bit16s)(value/sample_add);
+<a name="l00652"></a>00652         }
+<a name="l00653"></a>00653         <span class="keywordflow">if</span>(spkr.chan) spkr.chan-&gt;AddSamples_m16(len,(Bit16s*)MixTemp);
+<a name="l00654"></a>00654 
+<a name="l00655"></a>00655         <span class="comment">//Turn off speaker after 10 seconds of idle or one second idle when in off mode</span>
+<a name="l00656"></a>00656         <span class="keywordtype">bool</span> turnoff = <span class="keyword">false</span>;
+<a name="l00657"></a>00657         Bitu test_ticks = PIC_Ticks;
+<a name="l00658"></a>00658         <span class="keywordflow">if</span> ((spkr.last_ticks + 10000) &lt; test_ticks) turnoff = <span class="keyword">true</span>;
+<a name="l00659"></a>00659         <span class="keywordflow">if</span>((!spkr.pit_output_enabled) &amp;&amp; ((spkr.last_ticks + 1000) &lt; test_ticks)) turnoff = <span class="keyword">true</span>;
+<a name="l00660"></a>00660 
+<a name="l00661"></a>00661         <span class="keywordflow">if</span>(turnoff){
+<a name="l00662"></a>00662                 <span class="keywordflow">if</span>(spkr.volwant == 0) { 
+<a name="l00663"></a>00663                         spkr.last_ticks = 0;
+<a name="l00664"></a>00664                         <span class="keywordflow">if</span>(spkr.chan) {
+<a name="l00665"></a>00665                                 <span class="keywordflow">if</span> (!spkr.pit_output_enabled)
+<a name="l00666"></a>00666                                         <a class="code" href="classLOG.html">LOG</a>(LOG_MISC,LOG_DEBUG)(<span class="stringliteral">&quot;Silencing PC speaker output (output disabled)&quot;</span>);
+<a name="l00667"></a>00667                                 <span class="keywordflow">else</span> <span class="keywordflow">if</span> (ultrasonic)
+<a name="l00668"></a>00668                                         <a class="code" href="classLOG.html">LOG</a>(LOG_MISC,LOG_DEBUG)(<span class="stringliteral">&quot;Silencing PC speaker output (timeout and ultrasonic frequency)&quot;</span>);
+<a name="l00669"></a>00669                                 <span class="keywordflow">else</span>
+<a name="l00670"></a>00670                                         <a class="code" href="classLOG.html">LOG</a>(LOG_MISC,LOG_DEBUG)(<span class="stringliteral">&quot;Silencing PC speaker output (timeout and non-changing output)&quot;</span>);
+<a name="l00671"></a>00671 
+<a name="l00672"></a>00672                                 spkr.chan-&gt;Enable(<span class="keyword">false</span>);
+<a name="l00673"></a>00673                         }
+<a name="l00674"></a>00674                 } <span class="keywordflow">else</span> {
+<a name="l00675"></a>00675                         <span class="keywordflow">if</span>(spkr.volwant &gt; 0) spkr.volwant--; <span class="keywordflow">else</span> spkr.volwant++;
+<a name="l00676"></a>00676                 
+<a name="l00677"></a>00677                 }
+<a name="l00678"></a>00678         }
+<a name="l00679"></a>00679         <span class="keywordflow">if</span> (spkr.used != 0) {
+<a name="l00680"></a>00680         <span class="keywordflow">if</span> (pos != 0) {
+<a name="l00681"></a>00681             <span class="comment">/* well then roll the queue back */</span>
+<a name="l00682"></a>00682             <span class="keywordflow">for</span> (Bitu i=0;i &lt; spkr.used;i++)
+<a name="l00683"></a>00683                 spkr.entries[i] = spkr.entries[pos+i];
+<a name="l00684"></a>00684         }
+<a name="l00685"></a>00685 
+<a name="l00686"></a>00686         <span class="comment">/* hack: some indexes come out at 1.001, fix that for the next round.</span>
+<a name="l00687"></a>00687 <span class="comment">         *       this is a consequence of DOSBox-X allowing the CPU cycles</span>
+<a name="l00688"></a>00688 <span class="comment">         *       count use to overrun slightly for accuracy. if we DONT fix</span>
+<a name="l00689"></a>00689 <span class="comment">         *       this the delay queue will get stuck and PC speaker output</span>
+<a name="l00690"></a>00690 <span class="comment">         *       will stop. */</span>
+<a name="l00691"></a>00691         <span class="keywordflow">for</span> (Bitu i=0;i &lt; spkr.used;i++) {
+<a name="l00692"></a>00692             <span class="keywordflow">if</span> (spkr.entries[i].index &gt;= 1.000)
+<a name="l00693"></a>00693                 spkr.entries[i].index -= 1.000;
+<a name="l00694"></a>00694             <span class="keywordflow">else</span>
+<a name="l00695"></a>00695                 <span class="keywordflow">break</span>;
+<a name="l00696"></a>00696         }
+<a name="l00697"></a>00697 
+<a name="l00698"></a>00698         <a class="code" href="classLOG.html">LOG</a>(LOG_MISC,LOG_DEBUG)(<span class="stringliteral">&quot;PC speaker queue render, %u entries left, %u rendered&quot;</span>,(<span class="keywordtype">unsigned</span> int)spkr.used,(<span class="keywordtype">unsigned</span> <span class="keywordtype">int</span>)pos);
+<a name="l00699"></a>00699         <a class="code" href="classLOG.html">LOG</a>(LOG_MISC,LOG_DEBUG)(<span class="stringliteral">&quot;Next entry waits for index %.3f, stopped at %.3f&quot;</span>,spkr.entries[0].index,sample_base);
+<a name="l00700"></a>00700         }
+<a name="l00701"></a>00701 }
+<a name="l00702"></a><a class="code" href="classPCSPEAKER.html">00702</a> <span class="keyword">class </span><a class="code" href="classPCSPEAKER.html">PCSPEAKER</a>:<span class="keyword">public</span> <a class="code" href="classModule__base.html">Module_base</a> {
+<a name="l00703"></a>00703 <span class="keyword">private</span>:
+<a name="l00704"></a>00704         <a class="code" href="classMixerObject.html">MixerObject</a> MixerChan;
+<a name="l00705"></a>00705 <span class="keyword">public</span>:
+<a name="l00706"></a>00706         <a class="code" href="classPCSPEAKER.html">PCSPEAKER</a>(<a class="code" href="classSection.html">Section</a>* configuration):<a class="code" href="classModule__base.html">Module_base</a>(configuration){
+<a name="l00707"></a>00707                 spkr.chan=0;
+<a name="l00708"></a>00708                 <a class="code" href="classSection__prop.html">Section_prop</a> * section=<span class="keyword">static_cast&lt;</span><a class="code" href="classSection__prop.html">Section_prop</a> *<span class="keyword">&gt;</span>(configuration);
+<a name="l00709"></a>00709                 <span class="keywordflow">if</span>(!section-&gt;Get_bool(<span class="stringliteral">&quot;pcspeaker&quot;</span>)) <span class="keywordflow">return</span>;
+<a name="l00710"></a>00710                 spkr.pit_output_enabled = 0;
+<a name="l00711"></a>00711                 spkr.pit_clock_gate_enabled = 0;
+<a name="l00712"></a>00712                 spkr.pit_mode1_waiting_for_trigger = 1;
+<a name="l00713"></a>00713                 spkr.last_ticks=0;
+<a name="l00714"></a>00714                 spkr.last_index=0;
+<a name="l00715"></a>00715                 spkr.rate=(<span class="keywordtype">unsigned</span> int)section-&gt;Get_int(<span class="stringliteral">&quot;pcrate&quot;</span>);
+<a name="l00716"></a>00716 
+<a name="l00717"></a>00717                 <span class="comment">// PIT initially in mode 3 at ~903 Hz</span>
+<a name="l00718"></a>00718                 spkr.pit_mode = 3;
+<a name="l00719"></a>00719                 spkr.pit_mode3_counting = 0;
+<a name="l00720"></a>00720                 spkr.pit_output_level = 1;
+<a name="l00721"></a>00721                 spkr.pit_max=(1000.0f/PIT_TICK_RATE)*1320;
+<a name="l00722"></a>00722                 spkr.pit_half=spkr.pit_max/2;
+<a name="l00723"></a>00723                 spkr.pit_new_max=spkr.pit_max;
+<a name="l00724"></a>00724                 spkr.pit_new_half=spkr.pit_half;
+<a name="l00725"></a>00725                 spkr.pit_index=0;
+<a name="l00726"></a>00726 
+<a name="l00727"></a>00727                 <span class="comment">/* set minimum counter value with some headroom so that when games &quot;silence&quot; the PC speaker</span>
+<a name="l00728"></a>00728 <span class="comment">                 * by setting the counter to an ultrasonic frequency, it averages out into a quiet hiss rather</span>
+<a name="l00729"></a>00729 <span class="comment">                 * than noisy aliasing noise. */</span>
+<a name="l00730"></a>00730                 spkr.minimum_counter = PIT_TICK_RATE/(spkr.rate*10);
+<a name="l00731"></a>00731                 SPKR_SPEED = (pic_tickindex_t)((SPKR_VOLUME*2*44100)/(0.050*spkr.rate)); <span class="comment">/* calibrated around DOSBox-X default rate 44100h */</span>
+<a name="l00732"></a>00732                 spkr.used=0;
+<a name="l00733"></a>00733                 <span class="comment">/* Register the sound channel */</span>
+<a name="l00734"></a>00734                 spkr.chan=MixerChan.Install(&amp;PCSPEAKER_CallBack,spkr.rate,<span class="stringliteral">&quot;SPKR&quot;</span>);
+<a name="l00735"></a>00735                 <span class="keywordflow">if</span> (!spkr.chan) {
+<a name="l00736"></a>00736                         E_Exit(__FILE__ <span class="stringliteral">&quot;: Unable to register channel with mixer.&quot;</span>);
+<a name="l00737"></a>00737                 }
+<a name="l00738"></a>00738                 spkr.chan-&gt;SetLowpassFreq(14000);
+<a name="l00739"></a>00739                 spkr.chan-&gt;Enable(<span class="keyword">true</span>);
+<a name="l00740"></a>00740 <span class="preprocessor">#ifdef SPKR_DEBUGGING</span>
+<a name="l00741"></a>00741 <span class="preprocessor"></span>                PCSpeakerLog = fopen(<span class="stringliteral">&quot;PCSpeakerLog.txt&quot;</span>, <span class="stringliteral">&quot;w&quot;</span>);
+<a name="l00742"></a>00742                 <span class="keywordflow">if</span> (PCSpeakerLog == NULL) {
+<a name="l00743"></a>00743                         E_Exit(__FILE__ <span class="stringliteral">&quot;: Unable to create a PC speaker log for debugging.&quot;</span>);
+<a name="l00744"></a>00744                 }
+<a name="l00745"></a>00745                 PCSpeakerState = fopen(<span class="stringliteral">&quot;PCSpeakerState.dat&quot;</span>, <span class="stringliteral">&quot;wb&quot;</span>);
+<a name="l00746"></a>00746                 <span class="keywordflow">if</span> (PCSpeakerState == NULL) {
+<a name="l00747"></a>00747                         E_Exit(__FILE__ <span class="stringliteral">&quot;: Unable to create a PC speaker state file for debugging.&quot;</span>);
+<a name="l00748"></a>00748                 }
+<a name="l00749"></a>00749                 PCSpeakerOutput = fopen(<span class="stringliteral">&quot;PCSpeakerOutput.dat&quot;</span>, <span class="stringliteral">&quot;wb&quot;</span>);
+<a name="l00750"></a>00750                 <span class="keywordflow">if</span> (PCSpeakerOutput == NULL) {
+<a name="l00751"></a>00751                         E_Exit(__FILE__ <span class="stringliteral">&quot;: Unable to create a PC speaker output file for debugging.&quot;</span>);
+<a name="l00752"></a>00752                 }
+<a name="l00753"></a>00753                 PCSpeakerOutputLevelLog = fopen(<span class="stringliteral">&quot;PCSpeakerOutputLevelLog.txt&quot;</span>, <span class="stringliteral">&quot;w&quot;</span>);
+<a name="l00754"></a>00754                 <span class="keywordflow">if</span> (PCSpeakerOutputLevelLog == NULL) {
+<a name="l00755"></a>00755                         E_Exit(__FILE__ <span class="stringliteral">&quot;: Unable to create a PC speaker output level log for debugging.&quot;</span>);
+<a name="l00756"></a>00756                 }
+<a name="l00757"></a>00757 <span class="preprocessor">#endif</span>
+<a name="l00758"></a>00758 <span class="preprocessor"></span>        }
+<a name="l00759"></a>00759 };
+<a name="l00760"></a>00760 
+<a name="l00761"></a>00761 <span class="keyword">static</span> <a class="code" href="classPCSPEAKER.html">PCSPEAKER</a>* test;
+<a name="l00762"></a>00762 
+<a name="l00763"></a>00763 <span class="keywordtype">void</span> PCSPEAKER_ShutDown(<a class="code" href="classSection.html">Section</a>* sec){
+<a name="l00764"></a>00764     (void)sec;<span class="comment">//UNUSED</span>
+<a name="l00765"></a>00765         <span class="keyword">delete</span> test;
+<a name="l00766"></a>00766 }
+<a name="l00767"></a>00767 
+<a name="l00768"></a>00768 <span class="keywordtype">void</span> PCSPEAKER_OnReset(<a class="code" href="classSection.html">Section</a>* sec) {
+<a name="l00769"></a>00769     (void)sec;<span class="comment">//UNUSED</span>
+<a name="l00770"></a>00770         <span class="keywordflow">if</span> (test == NULL) {
+<a name="l00771"></a>00771                 <a class="code" href="classLOG.html">LOG</a>(LOG_MISC,LOG_DEBUG)(<span class="stringliteral">&quot;Allocating PC speaker emulation&quot;</span>);
+<a name="l00772"></a>00772                 test = <span class="keyword">new</span> <a class="code" href="classPCSPEAKER.html">PCSPEAKER</a>(control-&gt;GetSection(<span class="stringliteral">&quot;speaker&quot;</span>));
+<a name="l00773"></a>00773         }
+<a name="l00774"></a>00774 }
+<a name="l00775"></a>00775 
+<a name="l00776"></a>00776 <span class="keywordtype">void</span> PCSPEAKER_Init() {
+<a name="l00777"></a>00777         <a class="code" href="classLOG.html">LOG</a>(LOG_MISC,LOG_DEBUG)(<span class="stringliteral">&quot;Initializing PC speaker&quot;</span>);
+<a name="l00778"></a>00778 
+<a name="l00779"></a>00779         AddExitFunction(AddExitFunctionFuncPair(PCSPEAKER_ShutDown),<span class="keyword">true</span>);
+<a name="l00780"></a>00780         AddVMEventFunction(VM_EVENT_RESET,AddVMEventFunctionFuncPair(PCSPEAKER_OnReset));
+<a name="l00781"></a>00781 }
+<a name="l00782"></a>00782 
+<a name="l00783"></a>00783 <span class="comment">// save state support</span>
+<a name="l00784"></a>00784 <span class="keywordtype">void</span> POD_Save_PCSpeaker( std::ostream&amp; stream )
+<a name="l00785"></a>00785 {
+<a name="l00786"></a>00786         <span class="keyword">const</span> <span class="keywordtype">char</span> pod_name[32] = <span class="stringliteral">&quot;PCSpeaker&quot;</span>;
+<a name="l00787"></a>00787 
+<a name="l00788"></a>00788         <span class="keywordflow">if</span>( stream.fail() ) <span class="keywordflow">return</span>;
+<a name="l00789"></a>00789         <span class="keywordflow">if</span>( !test ) <span class="keywordflow">return</span>;
+<a name="l00790"></a>00790         <span class="keywordflow">if</span>( !spkr.chan ) <span class="keywordflow">return</span>;
+<a name="l00791"></a>00791 
+<a name="l00792"></a>00792 
+<a name="l00793"></a>00793         WRITE_POD( &amp;pod_name, pod_name );
+<a name="l00794"></a>00794 
+<a name="l00795"></a>00795         <span class="comment">//*******************************************</span>
+<a name="l00796"></a>00796         <span class="comment">//*******************************************</span>
+<a name="l00797"></a>00797         <span class="comment">//*******************************************</span>
+<a name="l00798"></a>00798 
+<a name="l00799"></a>00799         <span class="comment">// - near-pure data</span>
+<a name="l00800"></a>00800         WRITE_POD( &amp;spkr, spkr );
+<a name="l00801"></a>00801 
+<a name="l00802"></a>00802         <span class="comment">//*******************************************</span>
+<a name="l00803"></a>00803         <span class="comment">//*******************************************</span>
+<a name="l00804"></a>00804         <span class="comment">//*******************************************</span>
+<a name="l00805"></a>00805 
+<a name="l00806"></a>00806         spkr.chan-&gt;SaveState(stream);
+<a name="l00807"></a>00807 }
+<a name="l00808"></a>00808 
+<a name="l00809"></a>00809 
+<a name="l00810"></a>00810 <span class="keywordtype">void</span> POD_Load_PCSpeaker( std::istream&amp; stream )
+<a name="l00811"></a>00811 {
+<a name="l00812"></a>00812         <span class="keywordtype">char</span> pod_name[32] = {0};
+<a name="l00813"></a>00813 
+<a name="l00814"></a>00814         <span class="keywordflow">if</span>( stream.fail() ) <span class="keywordflow">return</span>;
+<a name="l00815"></a>00815         <span class="keywordflow">if</span>( !test ) <span class="keywordflow">return</span>;
+<a name="l00816"></a>00816         <span class="keywordflow">if</span>( !spkr.chan ) <span class="keywordflow">return</span>;
+<a name="l00817"></a>00817 
+<a name="l00818"></a>00818 
+<a name="l00819"></a>00819         <span class="comment">// error checking</span>
+<a name="l00820"></a>00820         READ_POD( &amp;pod_name, pod_name );
+<a name="l00821"></a>00821         <span class="keywordflow">if</span>( strcmp( pod_name, <span class="stringliteral">&quot;PCSpeaker&quot;</span> ) ) {
+<a name="l00822"></a>00822                 stream.clear( std::istream::failbit | std::istream::badbit );
+<a name="l00823"></a>00823                 <span class="keywordflow">return</span>;
+<a name="l00824"></a>00824         }
+<a name="l00825"></a>00825 
+<a name="l00826"></a>00826         <span class="comment">//************************************************</span>
+<a name="l00827"></a>00827         <span class="comment">//************************************************</span>
+<a name="l00828"></a>00828         <span class="comment">//************************************************</span>
+<a name="l00829"></a>00829 
+<a name="l00830"></a>00830         <a class="code" href="classMixerChannel.html">MixerChannel</a> *chan_old;
+<a name="l00831"></a>00831 
+<a name="l00832"></a>00832 
+<a name="l00833"></a>00833         <span class="comment">// - save static ptrs</span>
+<a name="l00834"></a>00834         chan_old = spkr.chan;
+<a name="l00835"></a>00835 
+<a name="l00836"></a>00836         <span class="comment">//*******************************************</span>
+<a name="l00837"></a>00837         <span class="comment">//*******************************************</span>
+<a name="l00838"></a>00838         <span class="comment">//*******************************************</span>
+<a name="l00839"></a>00839 
+<a name="l00840"></a>00840         <span class="comment">// - near-pure data</span>
+<a name="l00841"></a>00841         READ_POD( &amp;spkr, spkr );
+<a name="l00842"></a>00842 
+<a name="l00843"></a>00843         <span class="comment">//*******************************************</span>
+<a name="l00844"></a>00844         <span class="comment">//*******************************************</span>
+<a name="l00845"></a>00845         <span class="comment">//*******************************************</span>
+<a name="l00846"></a>00846 
+<a name="l00847"></a>00847         <span class="comment">// - restore static ptrs</span>
+<a name="l00848"></a>00848         spkr.chan = chan_old;
+<a name="l00849"></a>00849 
+<a name="l00850"></a>00850 
+<a name="l00851"></a>00851         spkr.chan-&gt;LoadState(stream);
+<a name="l00852"></a>00852 }
 </pre></div></div><!-- contents -->
 
 
 <hr class="footer"/><address class="footer"><small>
-Generated on Tue Oct 1 2019 18:06:27 for DOSBox-X by &#160;<a href="http://www.doxygen.org/index.html">
+Generated on Sun Jul 5 2020 13:11:36 for DOSBox-X by &#160;<a href="http://www.doxygen.org/index.html">
 <img class="footer" src="doxygen.png" alt="doxygen"/>
 </a> 1.8.0
 </small></address>

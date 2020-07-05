@@ -129,8 +129,14 @@ bool&#160;</td><td class="memItemRight" valign="bottom"><b>TestDir</b> (const ch
 bool&#160;</td><td class="memItemRight" valign="bottom"><b>FindFirst</b> (const char *_dir, <a class="el" href="classDOS__DTA.html">DOS_DTA</a> &amp;dta, bool fcb_findfirst)</td></tr>
 <tr class="memitem:a75726c924866070227a14ab677cab954"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a75726c924866070227a14ab677cab954"></a>
 bool&#160;</td><td class="memItemRight" valign="bottom"><b>FindNext</b> (<a class="el" href="classDOS__DTA.html">DOS_DTA</a> &amp;dta)</td></tr>
+<tr class="memitem:a63c8c76dd34dcdfff947733c1bb86cbc"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a63c8c76dd34dcdfff947733c1bb86cbc"></a>
+bool&#160;</td><td class="memItemRight" valign="bottom"><b>SetFileAttr</b> (const char *name, Bit16u attr)</td></tr>
 <tr class="memitem:ac5a26ae326fe4ef86c3aeeab030640db"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="ac5a26ae326fe4ef86c3aeeab030640db"></a>
 bool&#160;</td><td class="memItemRight" valign="bottom"><b>GetFileAttr</b> (const char *name, Bit16u *attr)</td></tr>
+<tr class="memitem:a91e224f4fec14674c025306c827de9a7"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a91e224f4fec14674c025306c827de9a7"></a>
+bool&#160;</td><td class="memItemRight" valign="bottom"><b>GetFileAttrEx</b> (char *name, struct stat *status)</td></tr>
+<tr class="memitem:ae0ca733d5fbf25f8c6c9b616ff621924"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="ae0ca733d5fbf25f8c6c9b616ff621924"></a>
+unsigned long&#160;</td><td class="memItemRight" valign="bottom"><b>GetCompressedSize</b> (char *name)</td></tr>
 <tr class="memitem:a5bafd492b22e85790ab37c94a1dd3d6b"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a5bafd492b22e85790ab37c94a1dd3d6b"></a>
 bool&#160;</td><td class="memItemRight" valign="bottom"><b>Rename</b> (const char *oldname, const char *newname)</td></tr>
 <tr class="memitem:afc40a6c58322450b7926af869f8552b5"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="afc40a6c58322450b7926af869f8552b5"></a>
@@ -156,7 +162,7 @@ virtual char const *&#160;</td><td class="memItemRight" valign="bottom"><b>GetLa
 </table>
 <hr/><a name="details" id="details"></a><h2>Detailed Description</h2>
 <div class="textblock">
-<p>Definition at line <a class="el" href="drives_8h_source.html#l00489">489</a> of file <a class="el" href="drives_8h_source.html">drives.h</a>.</p>
+<p>Definition at line <a class="el" href="drives_8h_source.html#l00700">700</a> of file <a class="el" href="drives_8h_source.html">drives.h</a>.</p>
 </div><hr/>The documentation for this class was generated from the following files:<ul>
 <li>src/dos/<a class="el" href="drives_8h_source.html">drives.h</a></li>
 <li>src/dos/<a class="el" href="drive__virtual_8cpp_source.html">drive_virtual.cpp</a></li>
@@ -165,7 +171,7 @@ virtual char const *&#160;</td><td class="memItemRight" valign="bottom"><b>GetLa
 
 
 <hr class="footer"/><address class="footer"><small>
-Generated on Tue Oct 1 2019 18:06:33 for DOSBox-X by &#160;<a href="http://www.doxygen.org/index.html">
+Generated on Sun Jul 5 2020 13:11:42 for DOSBox-X by &#160;<a href="http://www.doxygen.org/index.html">
 <img class="footer" src="doxygen.png" alt="doxygen"/>
 </a> 1.8.0
 </small></address>

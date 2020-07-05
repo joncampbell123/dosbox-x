@@ -111,8 +111,9 @@ This is the complete list of members for <a class="el" href="classisoFile.html">
   <tr bgcolor="#f0f0f0"><td><b>GetName</b>(void) (defined in <a class="el" href="classDOS__File.html">DOS_File</a>)</td><td><a class="el" href="classDOS__File.html">DOS_File</a></td><td><code> [inline, virtual]</code></td></tr>
   <tr bgcolor="#f0f0f0"><td><b>GetSeekPos</b>(void) (defined in <a class="el" href="classisoFile.html">isoFile</a>)</td><td><a class="el" href="classisoFile.html">isoFile</a></td><td><code> [virtual]</code></td></tr>
   <tr bgcolor="#f0f0f0"><td><b>IsName</b>(const char *_name) (defined in <a class="el" href="classDOS__File.html">DOS_File</a>)</td><td><a class="el" href="classDOS__File.html">DOS_File</a></td><td><code> [inline, virtual]</code></td></tr>
-  <tr bgcolor="#f0f0f0"><td><b>isoFile</b>(isoDrive *drive, const char *name, FileStat_Block *stat, Bit32u offset) (defined in <a class="el" href="classisoFile.html">isoFile</a>)</td><td><a class="el" href="classisoFile.html">isoFile</a></td><td></td></tr>
+  <tr bgcolor="#f0f0f0"><td><b>isoFile</b>(isoDrive *drive, const char *name, const FileStat_Block *stat, Bit32u offset) (defined in <a class="el" href="classisoFile.html">isoFile</a>)</td><td><a class="el" href="classisoFile.html">isoFile</a></td><td></td></tr>
   <tr bgcolor="#f0f0f0"><td><b>IsOpen</b>() (defined in <a class="el" href="classDOS__File.html">DOS_File</a>)</td><td><a class="el" href="classDOS__File.html">DOS_File</a></td><td><code> [inline, virtual]</code></td></tr>
+  <tr bgcolor="#f0f0f0"><td><b>LoadState</b>(std::istream &amp;stream, bool pop) (defined in <a class="el" href="classDOS__File.html">DOS_File</a>)</td><td><a class="el" href="classDOS__File.html">DOS_File</a></td><td><code> [virtual]</code></td></tr>
   <tr bgcolor="#f0f0f0"><td><b>LockFile</b>(Bit8u mode, Bit32u pos, Bit16u size) (defined in <a class="el" href="classDOS__File.html">DOS_File</a>)</td><td><a class="el" href="classDOS__File.html">DOS_File</a></td><td><code> [inline, virtual]</code></td></tr>
   <tr bgcolor="#f0f0f0"><td><b>name</b> (defined in <a class="el" href="classDOS__File.html">DOS_File</a>)</td><td><a class="el" href="classDOS__File.html">DOS_File</a></td><td></td></tr>
   <tr bgcolor="#f0f0f0"><td><b>newtime</b> (defined in <a class="el" href="classDOS__File.html">DOS_File</a>)</td><td><a class="el" href="classDOS__File.html">DOS_File</a></td><td></td></tr>
@@ -121,6 +122,7 @@ This is the complete list of members for <a class="el" href="classisoFile.html">
   <tr bgcolor="#f0f0f0"><td><b>Read</b>(Bit8u *data, Bit16u *size) (defined in <a class="el" href="classisoFile.html">isoFile</a>)</td><td><a class="el" href="classisoFile.html">isoFile</a></td><td><code> [virtual]</code></td></tr>
   <tr bgcolor="#f0f0f0"><td><b>refCtr</b> (defined in <a class="el" href="classDOS__File.html">DOS_File</a>)</td><td><a class="el" href="classDOS__File.html">DOS_File</a></td><td></td></tr>
   <tr bgcolor="#f0f0f0"><td><b>RemoveRef</b>() (defined in <a class="el" href="classDOS__File.html">DOS_File</a>)</td><td><a class="el" href="classDOS__File.html">DOS_File</a></td><td><code> [inline, virtual]</code></td></tr>
+  <tr bgcolor="#f0f0f0"><td><b>SaveState</b>(std::ostream &amp;stream) (defined in <a class="el" href="classDOS__File.html">DOS_File</a>)</td><td><a class="el" href="classDOS__File.html">DOS_File</a></td><td><code> [virtual]</code></td></tr>
   <tr bgcolor="#f0f0f0"><td><b>Seek</b>(Bit32u *pos, Bit32u type) (defined in <a class="el" href="classisoFile.html">isoFile</a>)</td><td><a class="el" href="classisoFile.html">isoFile</a></td><td><code> [virtual]</code></td></tr>
   <tr bgcolor="#f0f0f0"><td><b>SetDrive</b>(Bit8u drv) (defined in <a class="el" href="classDOS__File.html">DOS_File</a>)</td><td><a class="el" href="classDOS__File.html">DOS_File</a></td><td><code> [inline]</code></td></tr>
   <tr bgcolor="#f0f0f0"><td><b>SetName</b>(const char *_name) (defined in <a class="el" href="classDOS__File.html">DOS_File</a>)</td><td><a class="el" href="classDOS__File.html">DOS_File</a></td><td><code> [inline, virtual]</code></td></tr>
@@ -132,7 +134,7 @@ This is the complete list of members for <a class="el" href="classisoFile.html">
 
 
 <hr class="footer"/><address class="footer"><small>
-Generated on Tue Oct 1 2019 18:06:31 for DOSBox-X by &#160;<a href="http://www.doxygen.org/index.html">
+Generated on Sun Jul 5 2020 13:11:41 for DOSBox-X by &#160;<a href="http://www.doxygen.org/index.html">
 <img class="footer" src="doxygen.png" alt="doxygen"/>
 </a> 1.8.0
 </small></address>

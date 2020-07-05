@@ -9,5 +9,6 @@ var searchData=
   ['envelopegenerator',['EnvelopeGenerator',['../classEnvelopeGenerator.html',1,'']]],
   ['exceptionpagehandler',['ExceptionPageHandler',['../classExceptionPageHandler.html',1,'']]],
   ['exe_5fheader',['EXE_Header',['../structEXE__Header.html',1,'']]],
+  ['ext_5fspace_5finfo_5ft',['ext_space_info_t',['../structext__space__info__t.html',1,'']]],
   ['externalfilter',['ExternalFilter',['../classExternalFilter.html',1,'']]]
 ];

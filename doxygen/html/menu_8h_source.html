@@ -96,7 +96,7 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 </div><!--header-->
 <div class="contents">
 <div class="fragment"><pre class="fragment"><a name="l00001"></a>00001 <span class="comment">/*</span>
-<a name="l00002"></a>00002 <span class="comment"> *  Copyright (C) 2002-2019  The DOSBox Team</span>
+<a name="l00002"></a>00002 <span class="comment"> *  Copyright (C) 2002-2020  The DOSBox Team</span>
 <a name="l00003"></a>00003 <span class="comment"> *</span>
 <a name="l00004"></a>00004 <span class="comment"> *  This program is free software; you can redistribute it and/or modify</span>
 <a name="l00005"></a>00005 <span class="comment"> *  it under the terms of the GNU General Public License as published by</span>
@@ -108,15 +108,15 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l00011"></a>00011 <span class="comment"> *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the</span>
 <a name="l00012"></a>00012 <span class="comment"> *  GNU General Public License for more details.</span>
 <a name="l00013"></a>00013 <span class="comment"> *</span>
-<a name="l00014"></a>00014 <span class="comment"> *  You should have received a copy of the GNU General Public License</span>
-<a name="l00015"></a>00015 <span class="comment"> *  along with this program; if not, write to the Free Software</span>
-<a name="l00016"></a>00016 <span class="comment"> *  Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1335, USA.</span>
+<a name="l00014"></a>00014 <span class="comment"> *  You should have received a copy of the GNU General Public License along</span>
+<a name="l00015"></a>00015 <span class="comment"> *  with this program; if not, write to the Free Software Foundation, Inc.,</span>
+<a name="l00016"></a>00016 <span class="comment"> *  51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.</span>
 <a name="l00017"></a>00017 <span class="comment"> */</span>
 <a name="l00018"></a>00018 
 <a name="l00019"></a>00019 <span class="preprocessor">#include &lt;string&gt;</span>
 <a name="l00020"></a>00020 <span class="preprocessor">#include &quot;config.h&quot;</span>
 <a name="l00021"></a>00021 <span class="preprocessor">#include &quot;menudef.h&quot;</span>
-<a name="l00022"></a>00022 <span class="keywordtype">void</span> SetVal(<span class="keyword">const</span> std::string secname, std::string preval, <span class="keyword">const</span> std::string val);
+<a name="l00022"></a>00022 <span class="keywordtype">void</span> SetVal(<span class="keyword">const</span> std::string&amp; secname, <span class="keyword">const</span> std::string&amp; preval, <span class="keyword">const</span> std::string&amp; val);
 <a name="l00023"></a>00023 
 <a name="l00024"></a>00024 <span class="preprocessor">#include &lt;SDL_video.h&gt;</span>
 <a name="l00025"></a>00025 
@@ -140,7 +140,7 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l00043"></a>00043 <span class="keywordtype">void</span> MENU_Check_Drive(HMENU handle, <span class="keywordtype">int</span> cdrom, <span class="keywordtype">int</span> floppy, <span class="keywordtype">int</span> local, <span class="keywordtype">int</span> image, <span class="keywordtype">int</span> automount, <span class="keywordtype">int</span> umount, <span class="keywordtype">char</span> drive);
 <a name="l00044"></a>00044 <span class="keywordtype">bool</span> MENU_SetBool(std::string secname, std::string value);
 <a name="l00045"></a>00045 <span class="keywordtype">void</span> MENU_swapstereo(<span class="keywordtype">bool</span> enabled);
-<a name="l00046"></a>00046 <span class="keywordtype">void</span>* GetSetSDLValue(<span class="keywordtype">int</span> isget, std::string target, <span class="keywordtype">void</span>* setval);
+<a name="l00046"></a>00046 <span class="keywordtype">void</span>* GetSetSDLValue(<span class="keywordtype">int</span> isget, std::string&amp; target, <span class="keywordtype">void</span>* setval);
 <a name="l00047"></a>00047 <span class="keywordtype">void</span> GFX_SetTitle(Bit32s cycles, Bits frameskip, Bits timing, <span class="keywordtype">bool</span> paused);
 <a name="l00048"></a>00048 <span class="keywordtype">void</span> change_output(<span class="keywordtype">int</span> output);
 <a name="l00049"></a>00049 <span class="keywordtype">void</span> res_input(<span class="keywordtype">bool</span> type, <span class="keyword">const</span> <span class="keywordtype">char</span> * res);
@@ -309,7 +309,7 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l00212"></a>00212                     <span class="keywordtype">unsigned</span> <span class="keywordtype">int</span>        enabled:1;
 <a name="l00213"></a>00213                     <span class="keywordtype">unsigned</span> <span class="keywordtype">int</span>        checked:1;
 <a name="l00214"></a>00214                     <span class="keywordtype">unsigned</span> <span class="keywordtype">int</span>        in_use:1;
-<a name="l00215"></a>00215                 } <a class="code" href="structDOSBoxMenu_1_1item_1_1status.html">status</a>;
+<a name="l00215"></a>00215                 } <a class="code" href="structDOSBoxMenu_1_1item_1_1status.html">status</a> = {};
 <a name="l00216"></a>00216             <span class="keyword">protected</span>:
 <a name="l00217"></a>00217                 callback_t              callback_func = unassigned_callback;
 <a name="l00218"></a>00218                 mapper_event_t          mapper_event = unassigned_mapper_event;
@@ -464,7 +464,7 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l00367"></a>00367                 <span class="keyword">inline</span> mapper_event_t get_mapper_event(<span class="keywordtype">void</span>)<span class="keyword"> const </span>{
 <a name="l00368"></a>00368                     <span class="keywordflow">return</span> mapper_event;
 <a name="l00369"></a>00369                 }
-<a name="l00370"></a>00370                 <span class="keyword">inline</span> item &amp;set_mapper_event(<span class="keyword">const</span> mapper_event_t e) {
+<a name="l00370"></a>00370                 <span class="keyword">inline</span> item&amp; set_mapper_event(<span class="keyword">const</span> mapper_event_t&amp; e) {
 <a name="l00371"></a>00371                     mapper_event = e;
 <a name="l00372"></a>00372                     <span class="keywordflow">return</span> *<span class="keyword">this</span>;
 <a name="l00373"></a>00373                 }
@@ -623,7 +623,7 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 
 
 <hr class="footer"/><address class="footer"><small>
-Generated on Tue Oct 1 2019 18:06:23 for DOSBox-X by &#160;<a href="http://www.doxygen.org/index.html">
+Generated on Sun Jul 5 2020 13:11:33 for DOSBox-X by &#160;<a href="http://www.doxygen.org/index.html">
 <img class="footer" src="doxygen.png" alt="doxygen"/>
 </a> 1.8.0
 </small></address>

@@ -30,6 +30,9 @@ virtual bool \hyperlink{classGUI_1_1WindowInWindow_a2ed086150348b1fcf9564997185b
 \hypertarget{classGUI_1_1WindowInWindow_ac2c184d3cad01f199019a72963db36c0}{virtual bool \hyperlink{classGUI_1_1WindowInWindow_ac2c184d3cad01f199019a72963db36c0}{mouse\-Double\-Clicked} (int \hyperlink{classGUI_1_1Window_a6ca6a80ca00c9e1d8ceea8d3d99a657d}{x}, int \hyperlink{classGUI_1_1Window_a0ee8e923aff2c3661fc2e17656d37adf}{y}, \hyperlink{namespaceGUI_ad06082a7b02aa73697f39eb8e0856de9}{Mouse\-Button} button)}\label{classGUI_1_1WindowInWindow_ac2c184d3cad01f199019a72963db36c0}
 
 \begin{DoxyCompactList}\small\item\em Mouse was double-\/clicked. Returns true if event was handled. \end{DoxyCompactList}\item 
+\hypertarget{classGUI_1_1WindowInWindow_a9c0dea9151658aa843187712c279458e}{virtual bool \hyperlink{classGUI_1_1WindowInWindow_a9c0dea9151658aa843187712c279458e}{key\-Down} (const \hyperlink{classGUI_1_1Key}{Key} \&key)}\label{classGUI_1_1WindowInWindow_a9c0dea9151658aa843187712c279458e}
+
+\begin{DoxyCompactList}\small\item\em \hyperlink{classGUI_1_1Key}{Key} was pressed. Returns true if event was handled. \end{DoxyCompactList}\item 
 \hypertarget{classGUI_1_1WindowInWindow_a997195eb95899394daa7c8806dfa6cf7}{virtual void \hyperlink{classGUI_1_1WindowInWindow_a997195eb95899394daa7c8806dfa6cf7}{paint\-All} (\hyperlink{classGUI_1_1Drawable}{Drawable} \&d) const }\label{classGUI_1_1WindowInWindow_a997195eb95899394daa7c8806dfa6cf7}
 
 \begin{DoxyCompactList}\small\item\em Draw this window's content including all children. \end{DoxyCompactList}\item 
@@ -53,10 +56,10 @@ virtual void \hyperlink{classGUI_1_1WindowInWindow_a6ee682fe17ece1500d4b150b627e
 \hypertarget{classGUI_1_1WindowInWindow_a1c945785e82712babccfbf188da62930}{bool {\bfseries dragging} = false}\label{classGUI_1_1WindowInWindow_a1c945785e82712babccfbf188da62930}
 
 \item 
-\hypertarget{classGUI_1_1WindowInWindow_a9ab1330fc8a4065919719bb968c25fdd}{int {\bfseries drag\-\_\-x}}\label{classGUI_1_1WindowInWindow_a9ab1330fc8a4065919719bb968c25fdd}
+\hypertarget{classGUI_1_1WindowInWindow_a9ab1330fc8a4065919719bb968c25fdd}{int {\bfseries drag\-\_\-x} = 0}\label{classGUI_1_1WindowInWindow_a9ab1330fc8a4065919719bb968c25fdd}
 
 \item 
-\hypertarget{classGUI_1_1WindowInWindow_abed1ad96cf7af3763a77ef424c114499}{int {\bfseries drag\-\_\-y}}\label{classGUI_1_1WindowInWindow_abed1ad96cf7af3763a77ef424c114499}
+\hypertarget{classGUI_1_1WindowInWindow_abed1ad96cf7af3763a77ef424c114499}{int {\bfseries drag\-\_\-y} = 0}\label{classGUI_1_1WindowInWindow_abed1ad96cf7af3763a77ef424c114499}
 
 \item 
 \hypertarget{classGUI_1_1WindowInWindow_ae74d558d43f42a2787b8a5471986e53b}{int {\bfseries scroll\-\_\-pos\-\_\-x} = 0}\label{classGUI_1_1WindowInWindow_ae74d558d43f42a2787b8a5471986e53b}
@@ -86,12 +89,18 @@ virtual void \hyperlink{classGUI_1_1WindowInWindow_a6ee682fe17ece1500d4b150b627e
 \hypertarget{classGUI_1_1WindowInWindow_a02ab75b97521afbbbe7e65c79f5ce47c}{bool {\bfseries border} = false}\label{classGUI_1_1WindowInWindow_a02ab75b97521afbbbe7e65c79f5ce47c}
 
 \end{DoxyCompactItemize}
+\subsection*{Protected Member Functions}
+\begin{DoxyCompactItemize}
+\item 
+\hypertarget{classGUI_1_1WindowInWindow_a2c90ec08717161a3cd62de3936bfa11a}{void {\bfseries scroll\-To\-Window} (\hyperlink{classGUI_1_1Window}{Window} $\ast$child)}\label{classGUI_1_1WindowInWindow_a2c90ec08717161a3cd62de3936bfa11a}
+
+\end{DoxyCompactItemize}
 
 
 \subsection{Detailed Description}
 
 
-Definition at line 771 of file gui\-\_\-tk.\-h.
+Definition at line 782 of file gui\-\_\-tk.\-h.
 
 
 
@@ -115,7 +124,7 @@ Reimplemented from \hyperlink{classGUI_1_1Window_a9519fe8a8f08b5b70524d2230d2091
 
 
 
-Definition at line 2143 of file gui\-\_\-tk.\-cpp.
+Definition at line 2296 of file gui\-\_\-tk.\-cpp.
 
 \hypertarget{classGUI_1_1WindowInWindow_a6ee682fe17ece1500d4b150b627efe48}{\index{G\-U\-I\-::\-Window\-In\-Window@{G\-U\-I\-::\-Window\-In\-Window}!resize@{resize}}
 \index{resize@{resize}!GUI::WindowInWindow@{G\-U\-I\-::\-Window\-In\-Window}}
@@ -135,7 +144,7 @@ Reimplemented from \hyperlink{classGUI_1_1Window_a274ad6d6e68c94b165aa58700759f4
 
 
 
-Definition at line 2171 of file gui\-\_\-tk.\-cpp.
+Definition at line 2324 of file gui\-\_\-tk.\-cpp.
 
 
 

@@ -101,6 +101,7 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <div class="header">
   <div class="summary">
 <a href="#pub-methods">Public Member Functions</a> &#124;
+<a href="#pub-attribs">Public Attributes</a> &#124;
 <a href="#pro-methods">Protected Member Functions</a> &#124;
 <a href="#pro-attribs">Protected Attributes</a> &#124;
 <a href="#friends">Friends</a>  </div>
@@ -224,6 +225,16 @@ virtual void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" hr
 <tr class="memitem:a546dab2fb4ebde2b393465a0962eda8f"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a546dab2fb4ebde2b393465a0962eda8f"></a>
 <a class="el" href="classGUI_1_1Window.html">Window</a> *&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classGUI_1_1Window.html#a546dab2fb4ebde2b393465a0962eda8f">getChild</a> (int n)</td></tr>
 <tr class="memdesc:a546dab2fb4ebde2b393465a0962eda8f"><td class="mdescLeft">&#160;</td><td class="mdescRight">Return the <code>n</code> th child. <br/></td></tr>
+<tr class="memitem:ab715a814dd0b6995cde40cf4c2b03355"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="ab715a814dd0b6995cde40cf4c2b03355"></a>
+unsigned int&#160;</td><td class="memItemRight" valign="bottom"><b>getChildCount</b> (void)</td></tr>
+<tr><td colspan="2"><h2><a name="pub-attribs"></a>
+Public Attributes</h2></td></tr>
+<tr class="memitem:a4494c4b58b06ae2f1722efaf6594b65b"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a4494c4b58b06ae2f1722efaf6594b65b"></a>
+bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classGUI_1_1Window.html#a4494c4b58b06ae2f1722efaf6594b65b">first_tabbable</a> = false</td></tr>
+<tr class="memdesc:a4494c4b58b06ae2f1722efaf6594b65b"><td class="mdescLeft">&#160;</td><td class="mdescRight"><code>first</code> element of a tabbable list <br/></td></tr>
+<tr class="memitem:a50ff0931502669ad5e788022fe1b62f8"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a50ff0931502669ad5e788022fe1b62f8"></a>
+bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classGUI_1_1Window.html#a50ff0931502669ad5e788022fe1b62f8">last_tabbable</a> = false</td></tr>
+<tr class="memdesc:a50ff0931502669ad5e788022fe1b62f8"><td class="mdescLeft">&#160;</td><td class="mdescRight"><code>last</code> element of a tabbable list <br/></td></tr>
 <tr><td colspan="2"><h2><a name="pro-methods"></a>
 Protected Member Functions</h2></td></tr>
 <tr class="memitem:a861322fa034eb21b9cf7f0ed59413ed5"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a861322fa034eb21b9cf7f0ed59413ed5"></a>
@@ -295,6 +306,8 @@ Friends</h2></td></tr>
 class&#160;</td><td class="memItemRight" valign="bottom"><b>ToplevelWindow</b></td></tr>
 <tr class="memitem:ac4d9da9cc48d502966fd1039d5ea85fa"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="ac4d9da9cc48d502966fd1039d5ea85fa"></a>
 class&#160;</td><td class="memItemRight" valign="bottom"><b>TransientWindow</b></td></tr>
+<tr class="memitem:a577e02e0bc370cbb39229fc67b6ff829"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a577e02e0bc370cbb39229fc67b6ff829"></a>
+class&#160;</td><td class="memItemRight" valign="bottom"><b>WindowInWindow</b></td></tr>
 <tr class="memitem:a834cec0fab7efabab3cd53540e4d466d"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a834cec0fab7efabab3cd53540e4d466d"></a>
 class&#160;</td><td class="memItemRight" valign="bottom"><b>Menu</b></td></tr>
 </table>
@@ -322,11 +335,11 @@ class&#160;</td><td class="memItemRight" valign="bottom"><b>Menu</b></td></tr>
 <p>Return parent window. </p>
 <p>May return NULL if this is the topmost window (the <a class="el" href="classGUI_1_1Screen.html" title="A Screen represents the framebuffer that is the final destination of the GUI.">Screen</a>). </p>
 
-<p>Definition at line <a class="el" href="gui__tk_8h_source.html#l00701">701</a> of file <a class="el" href="gui__tk_8h_source.html">gui_tk.h</a>.</p>
+<p>Definition at line <a class="el" href="gui__tk_8h_source.html#l00708">708</a> of file <a class="el" href="gui__tk_8h_source.html">gui_tk.h</a>.</p>
 
-<p>References <a class="el" href="gui__tk_8h_source.html#l00604">parent</a>.</p>
+<p>References <a class="el" href="gui__tk_8h_source.html#l00605">parent</a>.</p>
 
-<p>Referenced by <a class="el" href="gui__tk_8h_source.html#l01885">GUI::TransientWindow::TransientWindow()</a>.</p>
+<p>Referenced by <a class="el" href="gui__tk_8h_source.html#l01899">GUI::TransientWindow::TransientWindow()</a>.</p>
 
 </div>
 </div>
@@ -366,11 +379,11 @@ class&#160;</td><td class="memItemRight" valign="bottom"><b>Menu</b></td></tr>
 
 <p>Reimplemented in <a class="el" href="classGUI_1_1Button.html#a88a1ed778b528d75a55351f2e3a00cf1">GUI::Button</a>, and <a class="el" href="classGUI_1_1WindowInWindow.html#a2ed086150348b1fcf9564997185b76a4">GUI::WindowInWindow</a>.</p>
 
-<p>Definition at line <a class="el" href="gui__tk_8cpp_source.html#l00818">818</a> of file <a class="el" href="gui__tk_8cpp_source.html">gui_tk.cpp</a>.</p>
+<p>Definition at line <a class="el" href="gui__tk_8cpp_source.html#l00939">939</a> of file <a class="el" href="gui__tk_8cpp_source.html">gui_tk.cpp</a>.</p>
 
-<p>References <a class="el" href="gui__tk_8h_source.html#l00608">mouseChild</a>, <a class="el" href="gui__tk_8cpp_source.html#l00818">mouseClicked()</a>, <a class="el" href="gui__tk_8h_source.html#l00590">x</a>, and <a class="el" href="gui__tk_8h_source.html#l00592">y</a>.</p>
+<p>References <a class="el" href="gui__tk_8h_source.html#l00609">mouseChild</a>, <a class="el" href="gui__tk_8cpp_source.html#l00939">mouseClicked()</a>, <a class="el" href="gui__tk_8h_source.html#l00591">x</a>, and <a class="el" href="gui__tk_8h_source.html#l00593">y</a>.</p>
 
-<p>Referenced by <a class="el" href="gui__tk_8cpp_source.html#l01208">GUI::Checkbox::keyUp()</a>, <a class="el" href="gui__tk_8cpp_source.html#l01265">GUI::Radiobox::keyUp()</a>, <a class="el" href="gui__tk_8cpp_source.html#l00818">mouseClicked()</a>, and <a class="el" href="gui__tk_8cpp_source.html#l00069">GUI::ToplevelWindow::mouseDoubleClicked()</a>.</p>
+<p>Referenced by <a class="el" href="gui__tk_8cpp_source.html#l01331">GUI::Checkbox::keyUp()</a>, <a class="el" href="gui__tk_8cpp_source.html#l01393">GUI::Radiobox::keyUp()</a>, <a class="el" href="gui__tk_8cpp_source.html#l00939">mouseClicked()</a>, and <a class="el" href="gui__tk_8cpp_source.html#l00069">GUI::ToplevelWindow::mouseDoubleClicked()</a>.</p>
 
 </div>
 </div>
@@ -394,11 +407,11 @@ class&#160;</td><td class="memItemRight" valign="bottom"><b>Menu</b></td></tr>
 
 <p>Reimplemented in <a class="el" href="classGUI_1_1Menu.html#afccc45f348b1ff9cd2668f8e29731589">GUI::Menu</a>, and <a class="el" href="classGUI_1_1TransientWindow.html#aa66cecd7ddcd0f8cf7a63cc5cc897acf">GUI::TransientWindow</a>.</p>
 
-<p>Definition at line <a class="el" href="gui__tk_8cpp_source.html#l00761">761</a> of file <a class="el" href="gui__tk_8cpp_source.html">gui_tk.cpp</a>.</p>
+<p>Definition at line <a class="el" href="gui__tk_8cpp_source.html#l00882">882</a> of file <a class="el" href="gui__tk_8cpp_source.html">gui_tk.cpp</a>.</p>
 
-<p>References <a class="el" href="gui__tk_8h_source.html#l00622">children</a>, <a class="el" href="gui__tk_8h_source.html#l00707">hasFocus()</a>, and <a class="el" href="gui__tk_8cpp_source.html#l00761">mouseDownOutside()</a>.</p>
+<p>References <a class="el" href="gui__tk_8h_source.html#l00629">children</a>, <a class="el" href="gui__tk_8h_source.html#l00714">hasFocus()</a>, and <a class="el" href="gui__tk_8cpp_source.html#l00882">mouseDownOutside()</a>.</p>
 
-<p>Referenced by <a class="el" href="gui__tk_8cpp_source.html#l00779">mouseDown()</a>, and <a class="el" href="gui__tk_8cpp_source.html#l00761">mouseDownOutside()</a>.</p>
+<p>Referenced by <a class="el" href="gui__tk_8cpp_source.html#l00900">mouseDown()</a>, and <a class="el" href="gui__tk_8cpp_source.html#l00882">mouseDownOutside()</a>.</p>
 
 </div>
 </div>
@@ -432,11 +445,11 @@ class&#160;</td><td class="memItemRight" valign="bottom"><b>Menu</b></td></tr>
 
 <p>Reimplemented in <a class="el" href="classGUI_1_1TransientWindow.html#aec97d27a3f4ece3138c58d9fb40fbccc">GUI::TransientWindow</a>, and <a class="el" href="classGUI_1_1Screen.html#a48a3586ad675d415de2baa45a5cf382d">GUI::Screen</a>.</p>
 
-<p>Definition at line <a class="el" href="gui__tk_8cpp_source.html#l00653">653</a> of file <a class="el" href="gui__tk_8cpp_source.html">gui_tk.cpp</a>.</p>
+<p>Definition at line <a class="el" href="gui__tk_8cpp_source.html#l00655">655</a> of file <a class="el" href="gui__tk_8cpp_source.html">gui_tk.cpp</a>.</p>
 
-<p>References <a class="el" href="gui__tk_8h_source.html#l00625">movehandlers</a>, <a class="el" href="gui__tk_8h_source.html#l00604">parent</a>, <a class="el" href="gui__tk_8h_source.html#l00634">setDirty()</a>, <a class="el" href="structGUI_1_1Window__Callback.html#a65e7bae539620c03486613128701b96f">GUI::Window_Callback::windowMoved()</a>, <a class="el" href="gui__tk_8h_source.html#l00590">x</a>, and <a class="el" href="gui__tk_8h_source.html#l00592">y</a>.</p>
+<p>References <a class="el" href="gui__tk_8h_source.html#l00632">movehandlers</a>, <a class="el" href="gui__tk_8h_source.html#l00605">parent</a>, <a class="el" href="gui__tk_8h_source.html#l00641">setDirty()</a>, <a class="el" href="structGUI_1_1Window__Callback.html#a65e7bae539620c03486613128701b96f">GUI::Window_Callback::windowMoved()</a>, <a class="el" href="gui__tk_8h_source.html#l00591">x</a>, and <a class="el" href="gui__tk_8h_source.html#l00593">y</a>.</p>
 
-<p>Referenced by <a class="el" href="gui__tk_8h_source.html#l01795">GUI::ToplevelWindow::mouseDragged()</a>.</p>
+<p>Referenced by <a class="el" href="gui__tk_8h_source.html#l01809">GUI::ToplevelWindow::mouseDragged()</a>.</p>
 
 </div>
 </div>
@@ -459,11 +472,11 @@ class&#160;</td><td class="memItemRight" valign="bottom"><b>Menu</b></td></tr>
 
 <p>Reimplemented in <a class="el" href="classGUI_1_1TransientWindow.html#a970674e955de6a1d5a0966953e56c587">GUI::TransientWindow</a>, <a class="el" href="classGUI_1_1ToplevelWindow.html#a630814c3f68da3b8e10cc9f257fef8e2">GUI::ToplevelWindow</a>, and <a class="el" href="classGUI_1_1Label.html#ae974cb75928cf5fcb0574d59d3b41a43">GUI::Label</a>.</p>
 
-<p>Definition at line <a class="el" href="gui__tk_8h_source.html#l00735">735</a> of file <a class="el" href="gui__tk_8h_source.html">gui_tk.h</a>.</p>
+<p>Definition at line <a class="el" href="gui__tk_8h_source.html#l00742">742</a> of file <a class="el" href="gui__tk_8h_source.html">gui_tk.h</a>.</p>
 
-<p>References <a class="el" href="gui__tk_8h_source.html#l00622">children</a>, <a class="el" href="gui__tk_8h_source.html#l00646">focusChanged()</a>, <a class="el" href="gui__tk_8h_source.html#l00604">parent</a>, and <a class="el" href="gui__tk_8h_source.html#l00634">setDirty()</a>.</p>
+<p>References <a class="el" href="gui__tk_8h_source.html#l00629">children</a>, <a class="el" href="gui__tk_8h_source.html#l00653">focusChanged()</a>, <a class="el" href="gui__tk_8h_source.html#l00605">parent</a>, and <a class="el" href="gui__tk_8h_source.html#l00641">setDirty()</a>.</p>
 
-<p>Referenced by <a class="el" href="gui__tk_8cpp_source.html#l00779">mouseDown()</a>.</p>
+<p>Referenced by <a class="el" href="gui__tk_8cpp_source.html#l00900">mouseDown()</a>.</p>
 
 </div>
 </div>
@@ -497,11 +510,11 @@ class&#160;</td><td class="memItemRight" valign="bottom"><b>Menu</b></td></tr>
 
 <p>Reimplemented in <a class="el" href="classGUI_1_1Label.html#a0a19005bc37fac28c857036e8dc48b2e">GUI::Label</a>, <a class="el" href="classGUI_1_1Screen.html#a01265259b3322e72d9e6a1707eb0bb51">GUI::Screen</a>, and <a class="el" href="classGUI_1_1WindowInWindow.html#a6ee682fe17ece1500d4b150b627efe48">GUI::WindowInWindow</a>.</p>
 
-<p>Definition at line <a class="el" href="gui__tk_8cpp_source.html#l00668">668</a> of file <a class="el" href="gui__tk_8cpp_source.html">gui_tk.cpp</a>.</p>
+<p>Definition at line <a class="el" href="gui__tk_8cpp_source.html#l00670">670</a> of file <a class="el" href="gui__tk_8cpp_source.html">gui_tk.cpp</a>.</p>
 
-<p>References <a class="el" href="gui__tk_8h_source.html#l00588">height</a>, <a class="el" href="gui__tk_8h_source.html#l00634">setDirty()</a>, and <a class="el" href="gui__tk_8h_source.html#l00586">width</a>.</p>
+<p>References <a class="el" href="gui__tk_8h_source.html#l00589">height</a>, <a class="el" href="gui__tk_8h_source.html#l00641">setDirty()</a>, and <a class="el" href="gui__tk_8h_source.html#l00587">width</a>.</p>
 
-<p>Referenced by <a class="el" href="gui__tk_8h_source.html#l02121">GUI::Menu::addItem()</a>, <a class="el" href="gui__tk_8h_source.html#l02127">GUI::Menu::removeItem()</a>, and <a class="el" href="gui__tk_8h_source.html#l02493">GUI::MessageBox2::setText()</a>.</p>
+<p>Referenced by <a class="el" href="gui__tk_8h_source.html#l02197">GUI::Menu::addItem()</a>, <a class="el" href="gui__tk_8h_source.html#l02203">GUI::Menu::removeItem()</a>, and <a class="el" href="gui__tk_8h_source.html#l02569">GUI::MessageBox2::setText()</a>.</p>
 
 </div>
 </div>
@@ -525,11 +538,11 @@ class&#160;</td><td class="memItemRight" valign="bottom"><b>Menu</b></td></tr>
 
 <p>Reimplemented in <a class="el" href="classGUI_1_1Menu.html#aa98bb7305b74088dd875ead6747cfa52">GUI::Menu</a>, and <a class="el" href="classGUI_1_1TransientWindow.html#a5581ee490ae2ce490ca45e234f6712a2">GUI::TransientWindow</a>.</p>
 
-<p>Definition at line <a class="el" href="gui__tk_8h_source.html#l00694">694</a> of file <a class="el" href="gui__tk_8h_source.html">gui_tk.h</a>.</p>
+<p>Definition at line <a class="el" href="gui__tk_8h_source.html#l00701">701</a> of file <a class="el" href="gui__tk_8h_source.html">gui_tk.h</a>.</p>
 
-<p>References <a class="el" href="gui__tk_8h_source.html#l00617">mouse_in_window</a>, <a class="el" href="gui__tk_8h_source.html#l00604">parent</a>, <a class="el" href="gui__tk_8h_source.html#l00634">setDirty()</a>, and <a class="el" href="gui__tk_8h_source.html#l00598">visible</a>.</p>
+<p>References <a class="el" href="gui__tk_8h_source.html#l00618">mouse_in_window</a>, <a class="el" href="gui__tk_8h_source.html#l00605">parent</a>, <a class="el" href="gui__tk_8h_source.html#l00641">setDirty()</a>, and <a class="el" href="gui__tk_8h_source.html#l00599">visible</a>.</p>
 
-<p>Referenced by <a class="el" href="gui__tk_8h_source.html#l02282">GUI::Menubar::mouseDown()</a>.</p>
+<p>Referenced by <a class="el" href="gui__tk_8h_source.html#l02358">GUI::Menubar::mouseDown()</a>.</p>
 
 </div>
 </div>
@@ -548,9 +561,9 @@ class&#160;</td><td class="memItemRight" valign="bottom"><b>Menu</b></td></tr>
 <p>Child windows. </p>
 <p>Z ordering is done in list order. The first element is the lowermost window. This window's content is below all children. </p>
 
-<p>Definition at line <a class="el" href="gui__tk_8h_source.html#l00622">622</a> of file <a class="el" href="gui__tk_8h_source.html">gui_tk.h</a>.</p>
+<p>Definition at line <a class="el" href="gui__tk_8h_source.html#l00629">629</a> of file <a class="el" href="gui__tk_8h_source.html">gui_tk.h</a>.</p>
 
-<p>Referenced by <a class="el" href="gui__tk_8h_source.html#l02448">GUI::Frame::actionExecuted()</a>, <a class="el" href="gui__tk_8cpp_source.html#l00641">addChild()</a>, <a class="el" href="gui__tk_8h_source.html#l00646">focusChanged()</a>, <a class="el" href="gui__tk_8h_source.html#l00761">getChild()</a>, <a class="el" href="gui__tk_8h_source.html#l00707">hasFocus()</a>, <a class="el" href="gui__tk_8cpp_source.html#l00690">keyDown()</a>, <a class="el" href="gui__tk_8cpp_source.html#l00723">keyUp()</a>, <a class="el" href="gui__tk_8h_source.html#l00750">lower()</a>, <a class="el" href="gui__tk_8cpp_source.html#l00779">mouseDown()</a>, <a class="el" href="gui__tk_8cpp_source.html#l00761">mouseDownOutside()</a>, <a class="el" href="gui__tk_8cpp_source.html#l00732">mouseMoved()</a>, <a class="el" href="gui__tk_8cpp_source.html#l00862">GUI::ToplevelWindow::paint()</a>, <a class="el" href="gui__tk_8cpp_source.html#l00675">paintAll()</a>, <a class="el" href="gui__tk_8cpp_source.html#l01900">GUI::WindowInWindow::paintAll()</a>, <a class="el" href="gui__tk_8cpp_source.html#l01137">GUI::BorderedWindow::paintAll()</a>, <a class="el" href="gui__tk_8h_source.html#l00735">raise()</a>, <a class="el" href="gui__tk_8h_source.html#l01809">GUI::ToplevelWindow::raise()</a>, <a class="el" href="gui__tk_8h_source.html#l01928">GUI::TransientWindow::raise()</a>, <a class="el" href="gui__tk_8cpp_source.html#l00647">removeChild()</a>, <a class="el" href="gui__tk_8cpp_source.html#l02171">GUI::WindowInWindow::resize()</a>, and <a class="el" href="gui__tk_8cpp_source.html#l00623">~Window()</a>.</p>
+<p>Referenced by <a class="el" href="gui__tk_8h_source.html#l02524">GUI::Frame::actionExecuted()</a>, <a class="el" href="gui__tk_8cpp_source.html#l00643">addChild()</a>, <a class="el" href="gui__tk_8h_source.html#l00653">focusChanged()</a>, <a class="el" href="gui__tk_8h_source.html#l00768">getChild()</a>, <a class="el" href="gui__tk_8h_source.html#l00714">hasFocus()</a>, <a class="el" href="gui__tk_8cpp_source.html#l00692">keyDown()</a>, <a class="el" href="gui__tk_8cpp_source.html#l00765">GUI::WindowInWindow::keyDown()</a>, <a class="el" href="gui__tk_8cpp_source.html#l00844">keyUp()</a>, <a class="el" href="gui__tk_8h_source.html#l00757">lower()</a>, <a class="el" href="gui__tk_8cpp_source.html#l00900">mouseDown()</a>, <a class="el" href="gui__tk_8cpp_source.html#l00882">mouseDownOutside()</a>, <a class="el" href="gui__tk_8cpp_source.html#l00853">mouseMoved()</a>, <a class="el" href="gui__tk_8cpp_source.html#l00983">GUI::ToplevelWindow::paint()</a>, <a class="el" href="gui__tk_8cpp_source.html#l00677">paintAll()</a>, <a class="el" href="gui__tk_8cpp_source.html#l02053">GUI::WindowInWindow::paintAll()</a>, <a class="el" href="gui__tk_8cpp_source.html#l01260">GUI::BorderedWindow::paintAll()</a>, <a class="el" href="gui__tk_8h_source.html#l00742">raise()</a>, <a class="el" href="gui__tk_8h_source.html#l01823">GUI::ToplevelWindow::raise()</a>, <a class="el" href="gui__tk_8h_source.html#l01942">GUI::TransientWindow::raise()</a>, <a class="el" href="gui__tk_8cpp_source.html#l00649">removeChild()</a>, <a class="el" href="gui__tk_8cpp_source.html#l02324">GUI::WindowInWindow::resize()</a>, and <a class="el" href="gui__tk_8cpp_source.html#l00625">~Window()</a>.</p>
 
 </div>
 </div>
@@ -568,9 +581,9 @@ class&#160;</td><td class="memItemRight" valign="bottom"><b>Menu</b></td></tr>
 <p>Child window of last button-down event. </p>
 <p>It receives all drag/up/click/doubleclick events until an up event is received </p>
 
-<p>Definition at line <a class="el" href="gui__tk_8h_source.html#l00608">608</a> of file <a class="el" href="gui__tk_8h_source.html">gui_tk.h</a>.</p>
+<p>Definition at line <a class="el" href="gui__tk_8h_source.html#l00609">609</a> of file <a class="el" href="gui__tk_8h_source.html">gui_tk.h</a>.</p>
 
-<p>Referenced by <a class="el" href="gui__tk_8cpp_source.html#l00818">mouseClicked()</a>, <a class="el" href="gui__tk_8cpp_source.html#l00824">mouseDoubleClicked()</a>, <a class="el" href="gui__tk_8cpp_source.html#l00779">mouseDown()</a>, <a class="el" href="gui__tk_8cpp_source.html#l02032">GUI::WindowInWindow::mouseDown()</a>, <a class="el" href="gui__tk_8cpp_source.html#l00830">GUI::BorderedWindow::mouseDown()</a>, <a class="el" href="gui__tk_8cpp_source.html#l00189">GUI::ToplevelWindow::mouseDown()</a>, <a class="el" href="gui__tk_8cpp_source.html#l00755">mouseDragged()</a>, <a class="el" href="gui__tk_8cpp_source.html#l00854">GUI::BorderedWindow::mouseDragged()</a>, <a class="el" href="gui__tk_8cpp_source.html#l00812">mouseUp()</a>, <a class="el" href="gui__tk_8cpp_source.html#l02088">GUI::WindowInWindow::mouseUp()</a>, <a class="el" href="gui__tk_8cpp_source.html#l00839">GUI::BorderedWindow::mouseUp()</a>, <a class="el" href="gui__tk_8h_source.html#l02135">GUI::Menu::setVisible()</a>, and <a class="el" href="gui__tk_8cpp_source.html#l00623">~Window()</a>.</p>
+<p>Referenced by <a class="el" href="gui__tk_8cpp_source.html#l00939">mouseClicked()</a>, <a class="el" href="gui__tk_8cpp_source.html#l00945">mouseDoubleClicked()</a>, <a class="el" href="gui__tk_8cpp_source.html#l00900">mouseDown()</a>, <a class="el" href="gui__tk_8cpp_source.html#l02185">GUI::WindowInWindow::mouseDown()</a>, <a class="el" href="gui__tk_8cpp_source.html#l00951">GUI::BorderedWindow::mouseDown()</a>, <a class="el" href="gui__tk_8cpp_source.html#l00189">GUI::ToplevelWindow::mouseDown()</a>, <a class="el" href="gui__tk_8cpp_source.html#l00876">mouseDragged()</a>, <a class="el" href="gui__tk_8cpp_source.html#l00975">GUI::BorderedWindow::mouseDragged()</a>, <a class="el" href="gui__tk_8cpp_source.html#l00933">mouseUp()</a>, <a class="el" href="gui__tk_8cpp_source.html#l02241">GUI::WindowInWindow::mouseUp()</a>, <a class="el" href="gui__tk_8cpp_source.html#l00960">GUI::BorderedWindow::mouseUp()</a>, <a class="el" href="gui__tk_8h_source.html#l02211">GUI::Menu::setVisible()</a>, and <a class="el" href="gui__tk_8cpp_source.html#l00625">~Window()</a>.</p>
 
 </div>
 </div>
@@ -582,7 +595,7 @@ class&#160;</td><td class="memItemRight" valign="bottom"><b>Menu</b></td></tr>
 
 
 <hr class="footer"/><address class="footer"><small>
-Generated on Tue Oct 1 2019 18:06:33 for DOSBox-X by &#160;<a href="http://www.doxygen.org/index.html">
+Generated on Sun Jul 5 2020 13:11:43 for DOSBox-X by &#160;<a href="http://www.doxygen.org/index.html">
 <img class="footer" src="doxygen.png" alt="doxygen"/>
 </a> 1.8.0
 </small></address>

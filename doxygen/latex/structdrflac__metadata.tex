@@ -1,0 +1,73 @@
+\hypertarget{structdrflac__metadata}{\section{drflac\-\_\-metadata Struct Reference}
+\label{structdrflac__metadata}\index{drflac\-\_\-metadata@{drflac\-\_\-metadata}}
+}
+\subsection*{Public Attributes}
+\begin{DoxyCompactItemize}
+\item 
+\hypertarget{structdrflac__metadata_aa0eb90e626e17637ea5f8accae56a160}{drflac\-\_\-uint32 {\bfseries type}}\label{structdrflac__metadata_aa0eb90e626e17637ea5f8accae56a160}
+
+\item 
+\hypertarget{structdrflac__metadata_a418724938d0f9a4a904ebaf539b9a952}{const void $\ast$ {\bfseries p\-Raw\-Data}}\label{structdrflac__metadata_a418724938d0f9a4a904ebaf539b9a952}
+
+\item 
+\hypertarget{structdrflac__metadata_a19b1921b30f4330c3b4cabb355e9df81}{drflac\-\_\-uint32 {\bfseries raw\-Data\-Size}}\label{structdrflac__metadata_a19b1921b30f4330c3b4cabb355e9df81}
+
+\item 
+\hypertarget{structdrflac__metadata_a9c2f48191ed5e54c7044f5b87bda8834}{\begin{tabbing}
+xx\=xx\=xx\=xx\=xx\=xx\=xx\=xx\=xx\=\kill
+union \{\\
+\>\hyperlink{structdrflac__streaminfo}{drflac\_streaminfo} {\bfseries streaminfo}\\
+\>struct \{\\
+\>\>int {\bfseries unused}\\
+\>\} {\bfseries padding}\\
+\>struct \{\\
+\>\>drflac\_uint32 {\bfseries id}\\
+\>\>const void $\ast$ {\bfseries pData}\\
+\>\>drflac\_uint32 {\bfseries dataSize}\\
+\>\} {\bfseries application}\\
+\>struct \{\\
+\>\>drflac\_uint32 {\bfseries seekpointCount}\\
+\>\>const \hyperlink{structdrflac__seekpoint}{drflac\_seekpoint} $\ast$ {\bfseries pSeekpoints}\\
+\>\} {\bfseries seektable}\\
+\>struct \{\\
+\>\>drflac\_uint32 {\bfseries vendorLength}\\
+\>\>const char $\ast$ {\bfseries vendor}\\
+\>\>drflac\_uint32 {\bfseries commentCount}\\
+\>\>const void $\ast$ {\bfseries pComments}\\
+\>\} {\bfseries vorbis\_comment}\\
+\>struct \{\\
+\>\>char {\bfseries catalog} \mbox{[}128\mbox{]}\\
+\>\>drflac\_uint64 {\bfseries leadInSampleCount}\\
+\>\>drflac\_bool32 {\bfseries isCD}\\
+\>\>drflac\_uint8 {\bfseries trackCount}\\
+\>\>const void $\ast$ {\bfseries pTrackData}\\
+\>\} {\bfseries cuesheet}\\
+\>struct \{\\
+\>\>drflac\_uint32 {\bfseries type}\\
+\>\>drflac\_uint32 {\bfseries mimeLength}\\
+\>\>const char $\ast$ {\bfseries mime}\\
+\>\>drflac\_uint32 {\bfseries descriptionLength}\\
+\>\>const char $\ast$ {\bfseries description}\\
+\>\>drflac\_uint32 {\bfseries width}\\
+\>\>drflac\_uint32 {\bfseries height}\\
+\>\>drflac\_uint32 {\bfseries colorDepth}\\
+\>\>drflac\_uint32 {\bfseries indexColorCount}\\
+\>\>drflac\_uint32 {\bfseries pictureDataSize}\\
+\>\>const drflac\_uint8 $\ast$ {\bfseries pPictureData}\\
+\>\} {\bfseries picture}\\
+\} {\bfseries data}}\label{structdrflac__metadata_a9c2f48191ed5e54c7044f5b87bda8834}
+\\
+
+\end{tabbing}\end{DoxyCompactItemize}
+
+
+\subsection{Detailed Description}
+
+
+Definition at line 410 of file dr\-\_\-flac.\-h.
+
+
+
+The documentation for this struct was generated from the following file\-:\begin{DoxyCompactItemize}
+\item 
+src/libs/decoders/dr\-\_\-flac.\-h\end{DoxyCompactItemize}

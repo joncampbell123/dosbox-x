@@ -1019,13 +1019,13 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l00922"></a>00922 
 <a name="l00923"></a>00923         <span class="keywordtype">void</span> WriteReg(<span class="keywordtype">int</span> r, <span class="keywordtype">int</span> v);
 <a name="l00924"></a>00924         <span class="keywordtype">void</span> ResetChip();
-<a name="l00925"></a>00925 
+<a name="l00925"></a>00925         <span class="comment">//void postload();</span>
 <a name="l00926"></a>00926 
-<a name="l00927"></a>00927         <span class="comment">/* lock/unlock for common table */</span>
-<a name="l00928"></a>00928         <span class="keyword">static</span> <span class="keywordtype">int</span> LockTable(<a class="code" href="classdevice__t.html">device_t</a> *device)
-<a name="l00929"></a>00929         {
-<a name="l00930"></a>00930         (void)device;
-<a name="l00931"></a>00931 
+<a name="l00927"></a>00927 
+<a name="l00928"></a>00928         <span class="comment">/* lock/unlock for common table */</span>
+<a name="l00929"></a>00929         <span class="keyword">static</span> <span class="keywordtype">int</span> LockTable(<a class="code" href="classdevice__t.html">device_t</a> *device)
+<a name="l00930"></a>00930         {
+<a name="l00931"></a>00931         (void)device;
 <a name="l00932"></a>00932                 num_lock++;
 <a name="l00933"></a>00933                 <span class="keywordflow">if</span>(num_lock&gt;1) <span class="keywordflow">return</span> 0;
 <a name="l00934"></a>00934 
@@ -1572,7 +1572,7 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l01475"></a>01475         <span class="comment">/* Noise generator: a step takes 1 sample */</span>
 <a name="l01476"></a>01476         noise_f = (uint32_t)((1.0 / 1.0) * (1&lt;&lt;FREQ_SH) * freqbase);
 <a name="l01477"></a>01477 
-<a name="l01478"></a>01478         eg_timer_add  = (uint32_t)((1&lt;&lt;EG_SH)  * freqbase);
+<a name="l01478"></a>01478         eg_timer_add = (uint32_t)((1&lt;&lt;EG_SH) * freqbase);
 <a name="l01479"></a>01479         eg_timer_overflow = ( 1 ) * (1&lt;&lt;EG_SH);
 <a name="l01480"></a>01480         <span class="comment">/*logerror(&quot;OPLinit eg_timer_add=%8x eg_timer_overflow=%8x\n&quot;, eg_timer_add, eg_timer_overflow);*/</span>
 <a name="l01481"></a>01481 }
@@ -1583,7 +1583,7 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l01486"></a>01486 {
 <a name="l01487"></a>01487         OPL_CH *CH;
 <a name="l01488"></a>01488         <span class="keywordtype">int</span> slot;
-<a name="l01489"></a>01489         <span class="keywordtype">unsigned</span> <span class="keywordtype">int</span> block_fnum;
+<a name="l01489"></a>01489         <span class="keywordtype">int</span> block_fnum;
 <a name="l01490"></a>01490 
 <a name="l01491"></a>01491 
 <a name="l01492"></a>01492         <span class="comment">/* adjust bus to 8 bits */</span>
@@ -1795,7 +1795,7 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l01698"></a>01698                         }
 <a name="l01699"></a>01699                 }
 <a name="l01700"></a>01700                 <span class="comment">/* update */</span>
-<a name="l01701"></a>01701                 <span class="keywordflow">if</span>(CH-&gt;block_fnum != block_fnum)
+<a name="l01701"></a>01701                 <span class="keywordflow">if</span>(CH-&gt;block_fnum != (<span class="keywordtype">unsigned</span> <span class="keywordtype">int</span>)block_fnum)
 <a name="l01702"></a>01702                 {
 <a name="l01703"></a>01703                         uint8_t block  = block_fnum &gt;&gt; 10;
 <a name="l01704"></a>01704 
@@ -1861,7 +1861,7 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l01764"></a>01764         WriteReg(0x02,0); <span class="comment">/* Timer1 */</span>
 <a name="l01765"></a>01765         WriteReg(0x03,0); <span class="comment">/* Timer2 */</span>
 <a name="l01766"></a>01766         WriteReg(0x04,0); <span class="comment">/* IRQ mask clear */</span>
-<a name="l01767"></a>01767         <span class="keywordflow">for</span>(<span class="keywordtype">unsigned</span> <span class="keywordtype">int</span> i = 0xff ; i &gt;= 0x20 ; i-- ) WriteReg(i,0);
+<a name="l01767"></a>01767         <span class="keywordflow">for</span>(<span class="keywordtype">int</span> i = 0xff ; i &gt;= 0x20 ; i-- ) WriteReg(i,0);
 <a name="l01768"></a>01768 
 <a name="l01769"></a>01769         <span class="comment">/* reset operator parameters */</span>
 <a name="l01770"></a>01770 <span class="comment">//      for(OPL_CH &amp;CH : P_CH)</span>
@@ -1893,738 +1893,946 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l01796"></a>01796 <span class="preprocessor">#endif</span>
 <a name="l01797"></a>01797 <span class="preprocessor"></span>}
 <a name="l01798"></a>01798 
-<a name="l01799"></a>01799 } <span class="comment">// anonymous namespace</span>
-<a name="l01800"></a>01800 
-<a name="l01801"></a>01801 
-<a name="l01802"></a>01802 <span class="preprocessor">#if  0</span>
-<a name="l01803"></a>01803 <span class="preprocessor"></span><span class="keyword">static</span> <span class="keywordtype">void</span> OPLsave_state_channel(<a class="code" href="classdevice__t.html">device_t</a> *device, OPL_CH *CH)
-<a name="l01804"></a>01804 {
-<a name="l01805"></a>01805         <span class="keywordtype">int</span> slot, ch;
-<a name="l01806"></a>01806 
-<a name="l01807"></a>01807         <span class="keywordflow">for</span>( ch=0 ; ch &lt; 9 ; ch++, CH++ )
-<a name="l01808"></a>01808         {
-<a name="l01809"></a>01809                 <span class="comment">/* channel */</span>
-<a name="l01810"></a>01810                 device-&gt;save_item(NAME(CH-&gt;block_fnum), ch);
-<a name="l01811"></a>01811                 device-&gt;save_item(NAME(CH-&gt;kcode), ch);
-<a name="l01812"></a>01812                 <span class="comment">/* slots */</span>
-<a name="l01813"></a>01813                 <span class="keywordflow">for</span>( slot=0 ; slot &lt; 2 ; slot++ )
-<a name="l01814"></a>01814                 {
-<a name="l01815"></a>01815                         OPL_SLOT *SLOT = &amp;CH-&gt;SLOT[slot];
-<a name="l01816"></a>01816 
-<a name="l01817"></a>01817                         device-&gt;save_item(NAME(SLOT-&gt;ar), ch * 2 + slot);
-<a name="l01818"></a>01818                         device-&gt;save_item(NAME(SLOT-&gt;dr), ch * 2 + slot);
-<a name="l01819"></a>01819                         device-&gt;save_item(NAME(SLOT-&gt;rr), ch * 2 + slot);
-<a name="l01820"></a>01820                         device-&gt;save_item(NAME(SLOT-&gt;KSR), ch * 2 + slot);
-<a name="l01821"></a>01821                         device-&gt;save_item(NAME(SLOT-&gt;ksl), ch * 2 + slot);
-<a name="l01822"></a>01822                         device-&gt;save_item(NAME(SLOT-&gt;mul), ch * 2 + slot);
-<a name="l01823"></a>01823 
-<a name="l01824"></a>01824                         device-&gt;save_item(NAME(SLOT-&gt;Cnt), ch * 2 + slot);
-<a name="l01825"></a>01825                         device-&gt;save_item(NAME(SLOT-&gt;FB), ch * 2 + slot);
-<a name="l01826"></a>01826                         device-&gt;save_item(NAME(SLOT-&gt;op1_out), ch * 2 + slot);
-<a name="l01827"></a>01827                         device-&gt;save_item(NAME(SLOT-&gt;CON), ch * 2 + slot);
-<a name="l01828"></a>01828 
-<a name="l01829"></a>01829                         device-&gt;save_item(NAME(SLOT-&gt;eg_type), ch * 2 + slot);
-<a name="l01830"></a>01830                         device-&gt;save_item(NAME(SLOT-&gt;state), ch * 2 + slot);
-<a name="l01831"></a>01831                         device-&gt;save_item(NAME(SLOT-&gt;TL), ch * 2 + slot);
-<a name="l01832"></a>01832                         device-&gt;save_item(NAME(SLOT-&gt;volume), ch * 2 + slot);
-<a name="l01833"></a>01833                         device-&gt;save_item(NAME(SLOT-&gt;sl), ch * 2 + slot);
-<a name="l01834"></a>01834                         device-&gt;save_item(NAME(SLOT-&gt;key), ch * 2 + slot);
-<a name="l01835"></a>01835 
-<a name="l01836"></a>01836                         device-&gt;save_item(NAME(SLOT-&gt;AMmask), ch * 2 + slot);
-<a name="l01837"></a>01837                         device-&gt;save_item(NAME(SLOT-&gt;vib), ch * 2 + slot);
-<a name="l01838"></a>01838 
-<a name="l01839"></a>01839                         device-&gt;save_item(NAME(SLOT-&gt;wavetable), ch * 2 + slot);
+<a name="l01799"></a>01799 <span class="preprocessor">#if 0</span><span class="comment">/*not used*/</span>
+<a name="l01800"></a>01800 <span class="keywordtype">void</span> FM_OPL::postload()
+<a name="l01801"></a>01801 {
+<a name="l01802"></a>01802         <span class="keywordflow">for</span>(<span class="keywordtype">unsigned</span> <span class="keywordtype">int</span> ch = 0; ch &lt; <span class="keyword">sizeof</span>( P_CH )/ <span class="keyword">sizeof</span>(P_CH[0]); ch++)
+<a name="l01803"></a>01803         {
+<a name="l01804"></a>01804                 OPL_CH &amp;CH = P_CH[ch];
+<a name="l01805"></a>01805                 <span class="comment">/* Look up key scale level */</span>
+<a name="l01806"></a>01806                 uint32_t <span class="keyword">const</span> block_fnum = CH.block_fnum;
+<a name="l01807"></a>01807                 CH.ksl_base = <span class="keyword">static_cast&lt;</span>uint32_t<span class="keyword">&gt;</span>(ksl_tab[block_fnum &gt;&gt; 6]);
+<a name="l01808"></a>01808                 CH.fc       = fn_tab[block_fnum &amp; 0x03ff] &gt;&gt; (7 - (block_fnum &gt;&gt; 10));
+<a name="l01809"></a>01809 
+<a name="l01810"></a>01810                 <span class="keywordflow">for</span>(<span class="keywordtype">unsigned</span> <span class="keywordtype">int</span> slot = 0; slot &lt; <span class="keyword">sizeof</span>( CH.SLOT ) / <span class="keyword">sizeof</span>( CH.SLOT[0]); slot++)
+<a name="l01811"></a>01811                 {
+<a name="l01812"></a>01812                         OPL_SLOT &amp;SLOT = CH.SLOT[slot];
+<a name="l01813"></a>01813                         <span class="comment">/* Calculate key scale rate */</span>
+<a name="l01814"></a>01814                         SLOT.ksr = CH.kcode &gt;&gt; SLOT.KSR;
+<a name="l01815"></a>01815 
+<a name="l01816"></a>01816                         <span class="comment">/* Calculate attack, decay and release rates */</span>
+<a name="l01817"></a>01817                         <span class="keywordflow">if</span> ((SLOT.ar + SLOT.ksr) &lt; 16+62)
+<a name="l01818"></a>01818                         {
+<a name="l01819"></a>01819                                 SLOT.eg_sh_ar  = eg_rate_shift [SLOT.ar + SLOT.ksr ];
+<a name="l01820"></a>01820                                 SLOT.eg_sel_ar = eg_rate_select[SLOT.ar + SLOT.ksr ];
+<a name="l01821"></a>01821                         }
+<a name="l01822"></a>01822                         <span class="keywordflow">else</span>
+<a name="l01823"></a>01823                         {
+<a name="l01824"></a>01824                                 SLOT.eg_sh_ar  = 0;
+<a name="l01825"></a>01825                                 SLOT.eg_sel_ar = 13*RATE_STEPS;
+<a name="l01826"></a>01826                         }
+<a name="l01827"></a>01827                         SLOT.eg_sh_dr  = eg_rate_shift [SLOT.dr + SLOT.ksr ];
+<a name="l01828"></a>01828                         SLOT.eg_sel_dr = eg_rate_select[SLOT.dr + SLOT.ksr ];
+<a name="l01829"></a>01829                         SLOT.eg_sh_rr  = eg_rate_shift [SLOT.rr + SLOT.ksr ];
+<a name="l01830"></a>01830                         SLOT.eg_sel_rr = eg_rate_select[SLOT.rr + SLOT.ksr ];
+<a name="l01831"></a>01831 
+<a name="l01832"></a>01832                         <span class="comment">/* Calculate phase increment */</span>
+<a name="l01833"></a>01833                         SLOT.Incr = CH.fc * SLOT.mul;
+<a name="l01834"></a>01834 
+<a name="l01835"></a>01835                         <span class="comment">/* Total level */</span>
+<a name="l01836"></a>01836                         SLOT.TLL = SLOT.TL + (CH.ksl_base &gt;&gt; SLOT.ksl);
+<a name="l01837"></a>01837 
+<a name="l01838"></a>01838                         <span class="comment">/* Connect output */</span>
+<a name="l01839"></a>01839                         SLOT.connect1 = SLOT.CON ? &amp;output[0] : &amp;phase_modulation;
 <a name="l01840"></a>01840                 }
 <a name="l01841"></a>01841         }
-<a name="l01842"></a>01842 }
-<a name="l01843"></a>01843 
-<a name="l01844"></a>01844 <span class="comment">/* Register savestate for a virtual YM3812/YM3526Y8950 */</span>
-<a name="l01845"></a>01845 
-<a name="l01846"></a>01846 <span class="keyword">static</span> <span class="keywordtype">void</span> OPL_save_state(FM_OPL *OPL, <a class="code" href="classdevice__t.html">device_t</a> *device)
-<a name="l01847"></a>01847 {
-<a name="l01848"></a>01848         OPLsave_state_channel(device, OPL-&gt;P_CH);
-<a name="l01849"></a>01849 
-<a name="l01850"></a>01850         device-&gt;save_item(NAME(OPL-&gt;eg_cnt));
-<a name="l01851"></a>01851         device-&gt;save_item(NAME(OPL-&gt;eg_timer));
+<a name="l01842"></a>01842 <span class="preprocessor">#if BUILD_Y8950</span>
+<a name="l01843"></a>01843 <span class="preprocessor"></span>        <span class="keywordflow">if</span> ( (type &amp; OPL_TYPE_ADPCM) &amp;&amp; (deltat) )
+<a name="l01844"></a>01844         {
+<a name="l01845"></a>01845                 <span class="comment">// We really should call the postlod function for the YM_DELTAT, but it&#39;s hard without registers</span>
+<a name="l01846"></a>01846                 <span class="comment">// (see the way the YM2610 does it)</span>
+<a name="l01847"></a>01847                 <span class="comment">//deltat-&gt;postload(REGS);</span>
+<a name="l01848"></a>01848         }
+<a name="l01849"></a>01849 <span class="preprocessor">#endif</span>
+<a name="l01850"></a>01850 <span class="preprocessor"></span>}
+<a name="l01851"></a>01851 <span class="preprocessor">#endif </span><span class="comment">/* end not used */</span>
 <a name="l01852"></a>01852 
-<a name="l01853"></a>01853         device-&gt;save_item(NAME(OPL-&gt;rhythm));
+<a name="l01853"></a>01853 } <span class="comment">// anonymous namespace</span>
 <a name="l01854"></a>01854 
-<a name="l01855"></a>01855         device-&gt;save_item(NAME(OPL-&gt;lfo_am_depth));
-<a name="l01856"></a>01856         device-&gt;save_item(NAME(OPL-&gt;lfo_pm_depth_range));
-<a name="l01857"></a>01857         device-&gt;save_item(NAME(OPL-&gt;lfo_am_cnt));
-<a name="l01858"></a>01858         device-&gt;save_item(NAME(OPL-&gt;lfo_pm_cnt));
-<a name="l01859"></a>01859 
-<a name="l01860"></a>01860         device-&gt;save_item(NAME(OPL-&gt;noise_rng));
-<a name="l01861"></a>01861         device-&gt;save_item(NAME(OPL-&gt;noise_p));
-<a name="l01862"></a>01862 
-<a name="l01863"></a>01863         <span class="keywordflow">if</span>( OPL-&gt;type &amp; OPL_TYPE_WAVESEL )
-<a name="l01864"></a>01864         {
-<a name="l01865"></a>01865                 device-&gt;save_item(NAME(OPL-&gt;wavesel));
-<a name="l01866"></a>01866         }
-<a name="l01867"></a>01867 
-<a name="l01868"></a>01868         device-&gt;save_item(NAME(OPL-&gt;T));
-<a name="l01869"></a>01869         device-&gt;save_item(NAME(OPL-&gt;st));
+<a name="l01855"></a>01855 
+<a name="l01856"></a>01856 <span class="preprocessor">#if  0</span>
+<a name="l01857"></a>01857 <span class="preprocessor"></span><span class="keyword">static</span> <span class="keywordtype">void</span> OPLsave_state_channel(<a class="code" href="classdevice__t.html">device_t</a> *device, OPL_CH *CH)
+<a name="l01858"></a>01858 {
+<a name="l01859"></a>01859         <span class="keywordtype">int</span> slot, ch;
+<a name="l01860"></a>01860 
+<a name="l01861"></a>01861         <span class="keywordflow">for</span>( ch=0 ; ch &lt; 9 ; ch++, CH++ )
+<a name="l01862"></a>01862         {
+<a name="l01863"></a>01863                 <span class="comment">/* channel */</span>
+<a name="l01864"></a>01864                 device-&gt;save_item(NAME(CH-&gt;block_fnum), ch);
+<a name="l01865"></a>01865                 device-&gt;save_item(NAME(CH-&gt;kcode), ch);
+<a name="l01866"></a>01866                 <span class="comment">/* slots */</span>
+<a name="l01867"></a>01867                 <span class="keywordflow">for</span>( slot=0 ; slot &lt; 2 ; slot++ )
+<a name="l01868"></a>01868                 {
+<a name="l01869"></a>01869                         OPL_SLOT *SLOT = &amp;CH-&gt;SLOT[slot];
 <a name="l01870"></a>01870 
-<a name="l01871"></a>01871 <span class="preprocessor">#if BUILD_Y8950</span>
-<a name="l01872"></a>01872 <span class="preprocessor"></span>        <span class="keywordflow">if</span> ( (OPL-&gt;type &amp; OPL_TYPE_ADPCM) &amp;&amp; (OPL-&gt;deltat) )
-<a name="l01873"></a>01873         {
-<a name="l01874"></a>01874                 OPL-&gt;deltat-&gt;savestate(device);
-<a name="l01875"></a>01875         }
-<a name="l01876"></a>01876 
-<a name="l01877"></a>01877         <span class="keywordflow">if</span> ( OPL-&gt;type &amp; OPL_TYPE_IO )
-<a name="l01878"></a>01878         {
-<a name="l01879"></a>01879                 device-&gt;save_item(NAME(OPL-&gt;portDirection));
-<a name="l01880"></a>01880                 device-&gt;save_item(NAME(OPL-&gt;portLatch));
-<a name="l01881"></a>01881         }
-<a name="l01882"></a>01882 <span class="preprocessor">#endif</span>
-<a name="l01883"></a>01883 <span class="preprocessor"></span>
-<a name="l01884"></a>01884         device-&gt;save_item(NAME(OPL-&gt;address));
-<a name="l01885"></a>01885         device-&gt;save_item(NAME(OPL-&gt;status));
-<a name="l01886"></a>01886         device-&gt;save_item(NAME(OPL-&gt;statusmask));
-<a name="l01887"></a>01887         device-&gt;save_item(NAME(OPL-&gt;mode));
-<a name="l01888"></a>01888 
-<a name="l01889"></a>01889         device-&gt;machine().save().register_postload(save_prepost_delegate(FUNC(FM_OPL::postload), OPL));
-<a name="l01890"></a>01890 }
-<a name="l01891"></a>01891 
-<a name="l01892"></a>01892 <span class="preprocessor">#endif</span>
-<a name="l01893"></a>01893 <span class="preprocessor"></span>
-<a name="l01894"></a>01894 <span class="keyword">static</span> <span class="keywordtype">void</span> OPL_clock_changed(FM_OPL *OPL, uint32_t clock, uint32_t rate)
-<a name="l01895"></a>01895 {
-<a name="l01896"></a>01896         OPL-&gt;clock = clock;
-<a name="l01897"></a>01897         OPL-&gt;rate  = rate;
-<a name="l01898"></a>01898 
-<a name="l01899"></a>01899         <span class="comment">/* init global tables */</span>
-<a name="l01900"></a>01900         OPL-&gt;initialize();
-<a name="l01901"></a>01901 }
-<a name="l01902"></a>01902 
+<a name="l01871"></a>01871                         device-&gt;save_item(NAME(SLOT-&gt;ar), ch * 2 + slot);
+<a name="l01872"></a>01872                         device-&gt;save_item(NAME(SLOT-&gt;dr), ch * 2 + slot);
+<a name="l01873"></a>01873                         device-&gt;save_item(NAME(SLOT-&gt;rr), ch * 2 + slot);
+<a name="l01874"></a>01874                         device-&gt;save_item(NAME(SLOT-&gt;KSR), ch * 2 + slot);
+<a name="l01875"></a>01875                         device-&gt;save_item(NAME(SLOT-&gt;ksl), ch * 2 + slot);
+<a name="l01876"></a>01876                         device-&gt;save_item(NAME(SLOT-&gt;mul), ch * 2 + slot);
+<a name="l01877"></a>01877 
+<a name="l01878"></a>01878                         device-&gt;save_item(NAME(SLOT-&gt;Cnt), ch * 2 + slot);
+<a name="l01879"></a>01879                         device-&gt;save_item(NAME(SLOT-&gt;FB), ch * 2 + slot);
+<a name="l01880"></a>01880                         device-&gt;save_item(NAME(SLOT-&gt;op1_out), ch * 2 + slot);
+<a name="l01881"></a>01881                         device-&gt;save_item(NAME(SLOT-&gt;CON), ch * 2 + slot);
+<a name="l01882"></a>01882 
+<a name="l01883"></a>01883                         device-&gt;save_item(NAME(SLOT-&gt;eg_type), ch * 2 + slot);
+<a name="l01884"></a>01884                         device-&gt;save_item(NAME(SLOT-&gt;state), ch * 2 + slot);
+<a name="l01885"></a>01885                         device-&gt;save_item(NAME(SLOT-&gt;TL), ch * 2 + slot);
+<a name="l01886"></a>01886                         device-&gt;save_item(NAME(SLOT-&gt;volume), ch * 2 + slot);
+<a name="l01887"></a>01887                         device-&gt;save_item(NAME(SLOT-&gt;sl), ch * 2 + slot);
+<a name="l01888"></a>01888                         device-&gt;save_item(NAME(SLOT-&gt;key), ch * 2 + slot);
+<a name="l01889"></a>01889 
+<a name="l01890"></a>01890                         device-&gt;save_item(NAME(SLOT-&gt;AMmask), ch * 2 + slot);
+<a name="l01891"></a>01891                         device-&gt;save_item(NAME(SLOT-&gt;vib), ch * 2 + slot);
+<a name="l01892"></a>01892 
+<a name="l01893"></a>01893                         device-&gt;save_item(NAME(SLOT-&gt;wavetable), ch * 2 + slot);
+<a name="l01894"></a>01894                 }
+<a name="l01895"></a>01895         }
+<a name="l01896"></a>01896 }
+<a name="l01897"></a>01897 
+<a name="l01898"></a>01898 <span class="comment">/* Register savestate for a virtual YM3812/YM3526Y8950 */</span>
+<a name="l01899"></a>01899 
+<a name="l01900"></a>01900 <span class="keyword">static</span> <span class="keywordtype">void</span> OPL_save_state(FM_OPL *OPL, <a class="code" href="classdevice__t.html">device_t</a> *device)
+<a name="l01901"></a>01901 {
+<a name="l01902"></a>01902         OPLsave_state_channel(device, OPL-&gt;P_CH);
 <a name="l01903"></a>01903 
-<a name="l01904"></a>01904 <span class="comment">/* Create one of virtual YM3812/YM3526/Y8950 */</span>
-<a name="l01905"></a>01905 <span class="comment">/* &#39;clock&#39; is chip clock in Hz  */</span>
-<a name="l01906"></a>01906 <span class="comment">/* &#39;rate&#39;  is sampling rate  */</span>
-<a name="l01907"></a>01907 <span class="keyword">static</span> FM_OPL *OPLCreate(<a class="code" href="classdevice__t.html">device_t</a> *device, uint32_t clock, uint32_t rate, <span class="keywordtype">int</span> type)
-<a name="l01908"></a>01908 {
-<a name="l01909"></a>01909         <span class="keywordtype">char</span> *ptr;
-<a name="l01910"></a>01910         FM_OPL *OPL;
-<a name="l01911"></a>01911         <span class="keywordtype">int</span> state_size;
-<a name="l01912"></a>01912 
-<a name="l01913"></a>01913         <span class="keywordflow">if</span> (FM_OPL::LockTable(device) == -1) <span class="keywordflow">return</span> 0;
-<a name="l01914"></a>01914 
-<a name="l01915"></a>01915         <span class="comment">/* calculate OPL state size */</span>
-<a name="l01916"></a>01916         state_size  = <span class="keyword">sizeof</span>(FM_OPL);
-<a name="l01917"></a>01917 
-<a name="l01918"></a>01918 <span class="preprocessor">#if BUILD_Y8950</span>
-<a name="l01919"></a>01919 <span class="preprocessor"></span>        <span class="keywordflow">if</span> (type&amp;OPL_TYPE_ADPCM) state_size+= <span class="keyword">sizeof</span>(<a class="code" href="structYM__DELTAT.html">YM_DELTAT</a>);
-<a name="l01920"></a>01920 <span class="preprocessor">#endif</span>
-<a name="l01921"></a>01921 <span class="preprocessor"></span>
-<a name="l01922"></a>01922         <span class="comment">/* allocate memory block */</span>
-<a name="l01923"></a>01923         ptr = (<span class="keywordtype">char</span> *)auto_alloc_array_clear(device-&gt;machine(), uint8_t, state_size);
+<a name="l01904"></a>01904         device-&gt;save_item(NAME(OPL-&gt;eg_cnt));
+<a name="l01905"></a>01905         device-&gt;save_item(NAME(OPL-&gt;eg_timer));
+<a name="l01906"></a>01906 
+<a name="l01907"></a>01907         device-&gt;save_item(NAME(OPL-&gt;rhythm));
+<a name="l01908"></a>01908 
+<a name="l01909"></a>01909         device-&gt;save_item(NAME(OPL-&gt;lfo_am_depth));
+<a name="l01910"></a>01910         device-&gt;save_item(NAME(OPL-&gt;lfo_pm_depth_range));
+<a name="l01911"></a>01911         device-&gt;save_item(NAME(OPL-&gt;lfo_am_cnt));
+<a name="l01912"></a>01912         device-&gt;save_item(NAME(OPL-&gt;lfo_pm_cnt));
+<a name="l01913"></a>01913 
+<a name="l01914"></a>01914         device-&gt;save_item(NAME(OPL-&gt;noise_rng));
+<a name="l01915"></a>01915         device-&gt;save_item(NAME(OPL-&gt;noise_p));
+<a name="l01916"></a>01916 
+<a name="l01917"></a>01917         <span class="keywordflow">if</span>( OPL-&gt;type &amp; OPL_TYPE_WAVESEL )
+<a name="l01918"></a>01918         {
+<a name="l01919"></a>01919                 device-&gt;save_item(NAME(OPL-&gt;wavesel));
+<a name="l01920"></a>01920         }
+<a name="l01921"></a>01921 
+<a name="l01922"></a>01922         device-&gt;save_item(NAME(OPL-&gt;T));
+<a name="l01923"></a>01923         device-&gt;save_item(NAME(OPL-&gt;st));
 <a name="l01924"></a>01924 
-<a name="l01925"></a>01925         OPL  = (FM_OPL *)ptr;
-<a name="l01926"></a>01926 
-<a name="l01927"></a>01927         ptr += <span class="keyword">sizeof</span>(FM_OPL);
-<a name="l01928"></a>01928 
-<a name="l01929"></a>01929 <span class="preprocessor">#if BUILD_Y8950</span>
-<a name="l01930"></a>01930 <span class="preprocessor"></span>        <span class="keywordflow">if</span> (type&amp;OPL_TYPE_ADPCM)
-<a name="l01931"></a>01931         {
-<a name="l01932"></a>01932                 OPL-&gt;deltat = (<a class="code" href="structYM__DELTAT.html">YM_DELTAT</a> *)ptr;
-<a name="l01933"></a>01933         }
-<a name="l01934"></a>01934         ptr += <span class="keyword">sizeof</span>(<a class="code" href="structYM__DELTAT.html">YM_DELTAT</a>);
-<a name="l01935"></a>01935 <span class="preprocessor">#endif</span>
-<a name="l01936"></a>01936 <span class="preprocessor"></span>
-<a name="l01937"></a>01937         OPL-&gt;device = device;
-<a name="l01938"></a>01938         OPL-&gt;type  = type;
-<a name="l01939"></a>01939         OPL_clock_changed(OPL, clock, rate);
-<a name="l01940"></a>01940 
-<a name="l01941"></a>01941         <span class="keywordflow">return</span> OPL;
-<a name="l01942"></a>01942 }
-<a name="l01943"></a>01943 
-<a name="l01944"></a>01944 <span class="comment">/* Destroy one of virtual YM3812 */</span>
-<a name="l01945"></a>01945 <span class="keyword">static</span> <span class="keywordtype">void</span> OPLDestroy(FM_OPL *OPL)
-<a name="l01946"></a>01946 {
-<a name="l01947"></a>01947         FM_OPL::UnLockTable();
-<a name="l01948"></a>01948         auto_free(OPL-&gt;device-&gt;machine(), OPL);
-<a name="l01949"></a>01949 }
-<a name="l01950"></a>01950 
-<a name="l01951"></a>01951 <span class="comment">/* Optional handlers */</span>
+<a name="l01925"></a>01925 <span class="preprocessor">#if BUILD_Y8950</span>
+<a name="l01926"></a>01926 <span class="preprocessor"></span>        <span class="keywordflow">if</span> ( (OPL-&gt;type &amp; OPL_TYPE_ADPCM) &amp;&amp; (OPL-&gt;deltat) )
+<a name="l01927"></a>01927         {
+<a name="l01928"></a>01928                 OPL-&gt;deltat-&gt;savestate(device);
+<a name="l01929"></a>01929         }
+<a name="l01930"></a>01930 
+<a name="l01931"></a>01931         <span class="keywordflow">if</span> ( OPL-&gt;type &amp; OPL_TYPE_IO )
+<a name="l01932"></a>01932         {
+<a name="l01933"></a>01933                 device-&gt;save_item(NAME(OPL-&gt;portDirection));
+<a name="l01934"></a>01934                 device-&gt;save_item(NAME(OPL-&gt;portLatch));
+<a name="l01935"></a>01935         }
+<a name="l01936"></a>01936 <span class="preprocessor">#endif</span>
+<a name="l01937"></a>01937 <span class="preprocessor"></span>
+<a name="l01938"></a>01938         device-&gt;save_item(NAME(OPL-&gt;address));
+<a name="l01939"></a>01939         device-&gt;save_item(NAME(OPL-&gt;status));
+<a name="l01940"></a>01940         device-&gt;save_item(NAME(OPL-&gt;statusmask));
+<a name="l01941"></a>01941         device-&gt;save_item(NAME(OPL-&gt;mode));
+<a name="l01942"></a>01942 
+<a name="l01943"></a>01943         device-&gt;machine().save().register_postload(save_prepost_delegate(FUNC(FM_OPL::postload), OPL));
+<a name="l01944"></a>01944 }
+<a name="l01945"></a>01945 
+<a name="l01946"></a>01946 <span class="preprocessor">#endif</span>
+<a name="l01947"></a>01947 <span class="preprocessor"></span>
+<a name="l01948"></a>01948 <span class="keyword">static</span> <span class="keywordtype">void</span> OPL_clock_changed(FM_OPL *OPL, uint32_t clock, uint32_t rate)
+<a name="l01949"></a>01949 {
+<a name="l01950"></a>01950         OPL-&gt;clock = clock;
+<a name="l01951"></a>01951         OPL-&gt;rate  = rate;
 <a name="l01952"></a>01952 
-<a name="l01953"></a>01953 <span class="keyword">static</span> <span class="keywordtype">void</span> OPLSetTimerHandler(FM_OPL *OPL,OPL_TIMERHANDLER timer_handler,<a class="code" href="classdevice__t.html">device_t</a> *device)
-<a name="l01954"></a>01954 {
-<a name="l01955"></a>01955         OPL-&gt;timer_handler   = timer_handler;
-<a name="l01956"></a>01956         OPL-&gt;TimerParam = device;
-<a name="l01957"></a>01957 }
-<a name="l01958"></a>01958 <span class="keyword">static</span> <span class="keywordtype">void</span> OPLSetIRQHandler(FM_OPL *OPL,OPL_IRQHANDLER IRQHandler,<a class="code" href="classdevice__t.html">device_t</a> *device)
-<a name="l01959"></a>01959 {
-<a name="l01960"></a>01960         OPL-&gt;IRQHandler     = IRQHandler;
-<a name="l01961"></a>01961         OPL-&gt;IRQParam = device;
-<a name="l01962"></a>01962 }
-<a name="l01963"></a>01963 <span class="keyword">static</span> <span class="keywordtype">void</span> OPLSetUpdateHandler(FM_OPL *OPL,OPL_UPDATEHANDLER UpdateHandler,<a class="code" href="classdevice__t.html">device_t</a> *device)
-<a name="l01964"></a>01964 {
-<a name="l01965"></a>01965         OPL-&gt;UpdateHandler = UpdateHandler;
-<a name="l01966"></a>01966         OPL-&gt;UpdateParam = device;
-<a name="l01967"></a>01967 }
+<a name="l01953"></a>01953         <span class="comment">/* init global tables */</span>
+<a name="l01954"></a>01954         OPL-&gt;initialize();
+<a name="l01955"></a>01955 }
+<a name="l01956"></a>01956 
+<a name="l01957"></a>01957 
+<a name="l01958"></a>01958 <span class="comment">/* Create one of virtual YM3812/YM3526/Y8950 */</span>
+<a name="l01959"></a>01959 <span class="comment">/* &#39;clock&#39; is chip clock in Hz  */</span>
+<a name="l01960"></a>01960 <span class="comment">/* &#39;rate&#39;  is sampling rate  */</span>
+<a name="l01961"></a>01961 <span class="keyword">static</span> FM_OPL *OPLCreate(<a class="code" href="classdevice__t.html">device_t</a> *device, uint32_t clock, uint32_t rate, <span class="keywordtype">int</span> type)
+<a name="l01962"></a>01962 {
+<a name="l01963"></a>01963         <span class="keywordtype">char</span> *ptr;
+<a name="l01964"></a>01964         FM_OPL *OPL;
+<a name="l01965"></a>01965         <span class="keywordtype">int</span> state_size;
+<a name="l01966"></a>01966 
+<a name="l01967"></a>01967         <span class="keywordflow">if</span> (FM_OPL::LockTable(device) == -1) <span class="keywordflow">return</span> 0;
 <a name="l01968"></a>01968 
-<a name="l01969"></a>01969 <span class="keyword">static</span> <span class="keywordtype">int</span> OPLWrite(FM_OPL *OPL,<span class="keywordtype">int</span> a,<span class="keywordtype">int</span> v)
-<a name="l01970"></a>01970 {
-<a name="l01971"></a>01971         <span class="keywordflow">if</span>( !(a&amp;1) )
-<a name="l01972"></a>01972         {   <span class="comment">/* address port */</span>
-<a name="l01973"></a>01973                 OPL-&gt;address = v &amp; 0xff;
-<a name="l01974"></a>01974         }
-<a name="l01975"></a>01975         <span class="keywordflow">else</span>
-<a name="l01976"></a>01976         {   <span class="comment">/* data port */</span>
-<a name="l01977"></a>01977                 <span class="keywordflow">if</span>(OPL-&gt;UpdateHandler) OPL-&gt;UpdateHandler(OPL-&gt;UpdateParam,0);
-<a name="l01978"></a>01978                 OPL-&gt;WriteReg(OPL-&gt;address,v);
-<a name="l01979"></a>01979         }
-<a name="l01980"></a>01980         <span class="keywordflow">return</span> OPL-&gt;status&gt;&gt;7;
-<a name="l01981"></a>01981 }
+<a name="l01969"></a>01969         <span class="comment">/* calculate OPL state size */</span>
+<a name="l01970"></a>01970         state_size  = <span class="keyword">sizeof</span>(FM_OPL);
+<a name="l01971"></a>01971 
+<a name="l01972"></a>01972 <span class="preprocessor">#if BUILD_Y8950</span>
+<a name="l01973"></a>01973 <span class="preprocessor"></span>        <span class="keywordflow">if</span> (type&amp;OPL_TYPE_ADPCM) state_size+= <span class="keyword">sizeof</span>(<a class="code" href="structYM__DELTAT.html">YM_DELTAT</a>);
+<a name="l01974"></a>01974 <span class="preprocessor">#endif</span>
+<a name="l01975"></a>01975 <span class="preprocessor"></span>
+<a name="l01976"></a>01976         <span class="comment">/* allocate memory block */</span>
+<a name="l01977"></a>01977         ptr = (<span class="keywordtype">char</span> *)auto_alloc_array_clear(device-&gt;machine(), uint8_t, state_size);
+<a name="l01978"></a>01978 
+<a name="l01979"></a>01979         OPL  = (FM_OPL *)ptr;
+<a name="l01980"></a>01980 
+<a name="l01981"></a>01981         ptr += <span class="keyword">sizeof</span>(FM_OPL);
 <a name="l01982"></a>01982 
-<a name="l01983"></a>01983 <span class="keyword">static</span> <span class="keywordtype">unsigned</span> <span class="keywordtype">char</span> OPLRead(FM_OPL *OPL,<span class="keywordtype">int</span> a)
-<a name="l01984"></a>01984 {
-<a name="l01985"></a>01985         <span class="keywordflow">if</span>( !(a&amp;1) )
-<a name="l01986"></a>01986         {
-<a name="l01987"></a>01987                 <span class="comment">/* status port */</span>
-<a name="l01988"></a>01988 
-<a name="l01989"></a>01989 <span class="preprocessor">                #if BUILD_Y8950</span>
+<a name="l01983"></a>01983 <span class="preprocessor">#if BUILD_Y8950</span>
+<a name="l01984"></a>01984 <span class="preprocessor"></span>        <span class="keywordflow">if</span> (type&amp;OPL_TYPE_ADPCM)
+<a name="l01985"></a>01985         {
+<a name="l01986"></a>01986                 OPL-&gt;deltat = (<a class="code" href="structYM__DELTAT.html">YM_DELTAT</a> *)ptr;
+<a name="l01987"></a>01987         }
+<a name="l01988"></a>01988         ptr += <span class="keyword">sizeof</span>(<a class="code" href="structYM__DELTAT.html">YM_DELTAT</a>);
+<a name="l01989"></a>01989 <span class="preprocessor">#endif</span>
 <a name="l01990"></a>01990 <span class="preprocessor"></span>
-<a name="l01991"></a>01991                 <span class="keywordflow">if</span>(OPL-&gt;type&amp;OPL_TYPE_ADPCM)    <span class="comment">/* Y8950 */</span>
-<a name="l01992"></a>01992                 {
-<a name="l01993"></a>01993                         <span class="keywordflow">return</span> (OPL-&gt;status &amp; (OPL-&gt;statusmask|0x80)) | (OPL-&gt;deltat-&gt;PCM_BSY&amp;1);
-<a name="l01994"></a>01994                 }
-<a name="l01995"></a>01995 
-<a name="l01996"></a>01996 <span class="preprocessor">                #endif</span>
-<a name="l01997"></a>01997 <span class="preprocessor"></span>
-<a name="l01998"></a>01998                 <span class="comment">/* OPL and OPL2 */</span>
-<a name="l01999"></a>01999                 <span class="keywordflow">return</span> OPL-&gt;status &amp; (OPL-&gt;statusmask|0x80);
-<a name="l02000"></a>02000         }
-<a name="l02001"></a>02001 
-<a name="l02002"></a>02002 <span class="preprocessor">#if BUILD_Y8950</span>
-<a name="l02003"></a>02003 <span class="preprocessor"></span>        <span class="comment">/* data port */</span>
-<a name="l02004"></a>02004         <span class="keywordflow">switch</span>(OPL-&gt;address)
-<a name="l02005"></a>02005         {
-<a name="l02006"></a>02006         <span class="keywordflow">case</span> 0x05: <span class="comment">/* KeyBoard IN */</span>
-<a name="l02007"></a>02007                 <span class="keywordflow">if</span>(OPL-&gt;type&amp;OPL_TYPE_KEYBOARD)
-<a name="l02008"></a>02008                 {
-<a name="l02009"></a>02009                         <span class="keywordflow">if</span>(OPL-&gt;keyboardhandler_r)
-<a name="l02010"></a>02010                                 <span class="keywordflow">return</span> OPL-&gt;keyboardhandler_r(OPL-&gt;keyboard_param);
-<a name="l02011"></a>02011                         <span class="keywordflow">else</span>
-<a name="l02012"></a>02012                                 OPL-&gt;device-&gt;logerror(<span class="stringliteral">&quot;Y8950: read unmapped KEYBOARD port\n&quot;</span>);
-<a name="l02013"></a>02013                 }
-<a name="l02014"></a>02014                 <span class="keywordflow">return</span> 0;
-<a name="l02015"></a>02015 
-<a name="l02016"></a>02016         <span class="keywordflow">case</span> 0x0f: <span class="comment">/* ADPCM-DATA  */</span>
-<a name="l02017"></a>02017                 <span class="keywordflow">if</span>(OPL-&gt;type&amp;OPL_TYPE_ADPCM)
-<a name="l02018"></a>02018                 {
-<a name="l02019"></a>02019                         uint8_t val;
-<a name="l02020"></a>02020 
-<a name="l02021"></a>02021                         val = OPL-&gt;deltat-&gt;ADPCM_Read();
-<a name="l02022"></a>02022                         <span class="comment">/*logerror(&quot;Y8950: read ADPCM value read=%02x\n&quot;,val);*/</span>
-<a name="l02023"></a>02023                         <span class="keywordflow">return</span> val;
-<a name="l02024"></a>02024                 }
-<a name="l02025"></a>02025                 <span class="keywordflow">return</span> 0;
-<a name="l02026"></a>02026 
-<a name="l02027"></a>02027         <span class="keywordflow">case</span> 0x19: <span class="comment">/* I/O DATA    */</span>
-<a name="l02028"></a>02028                 <span class="keywordflow">if</span>(OPL-&gt;type&amp;OPL_TYPE_IO)
-<a name="l02029"></a>02029                 {
-<a name="l02030"></a>02030                         <span class="keywordflow">if</span>(OPL-&gt;porthandler_r)
-<a name="l02031"></a>02031                                 <span class="keywordflow">return</span> OPL-&gt;porthandler_r(OPL-&gt;port_param);
-<a name="l02032"></a>02032                         <span class="keywordflow">else</span>
-<a name="l02033"></a>02033                                 OPL-&gt;device-&gt;logerror(<span class="stringliteral">&quot;Y8950:read unmapped I/O port\n&quot;</span>);
-<a name="l02034"></a>02034                 }
-<a name="l02035"></a>02035                 <span class="keywordflow">return</span> 0;
-<a name="l02036"></a>02036         <span class="keywordflow">case</span> 0x1a: <span class="comment">/* PCM-DATA    */</span>
-<a name="l02037"></a>02037                 <span class="keywordflow">if</span>(OPL-&gt;type&amp;OPL_TYPE_ADPCM)
-<a name="l02038"></a>02038                 {
-<a name="l02039"></a>02039                         OPL-&gt;device-&gt;logerror(<span class="stringliteral">&quot;Y8950 A/D conversion is accessed but not implemented !\n&quot;</span>);
-<a name="l02040"></a>02040                         <span class="keywordflow">return</span> 0x80; <span class="comment">/* 2&#39;s complement PCM data - result from A/D conversion */</span>
-<a name="l02041"></a>02041                 }
-<a name="l02042"></a>02042                 <span class="keywordflow">return</span> 0;
-<a name="l02043"></a>02043         }
-<a name="l02044"></a>02044 <span class="preprocessor">#endif</span>
-<a name="l02045"></a>02045 <span class="preprocessor"></span>
-<a name="l02046"></a>02046         <span class="keywordflow">return</span> 0xff;
-<a name="l02047"></a>02047 }
-<a name="l02048"></a>02048 
-<a name="l02049"></a>02049 <span class="comment">/* CSM Key Controll */</span>
-<a name="l02050"></a>02050 <span class="keyword">static</span> <span class="keyword">inline</span> <span class="keywordtype">void</span> CSMKeyControll(OPL_CH *CH)
-<a name="l02051"></a>02051 {
-<a name="l02052"></a>02052         CH-&gt;SLOT[SLOT1].KEYON(4);
-<a name="l02053"></a>02053         CH-&gt;SLOT[SLOT2].KEYON(4);
-<a name="l02054"></a>02054 
-<a name="l02055"></a>02055         <span class="comment">/* The key off should happen exactly one sample later - not implemented correctly yet */</span>
-<a name="l02056"></a>02056 
-<a name="l02057"></a>02057         CH-&gt;SLOT[SLOT1].KEYOFF(~4);
-<a name="l02058"></a>02058         CH-&gt;SLOT[SLOT2].KEYOFF(~4);
-<a name="l02059"></a>02059 }
-<a name="l02060"></a>02060 
-<a name="l02061"></a>02061 <span class="keyword">static</span> <span class="keywordtype">int</span> OPLTimerOver(FM_OPL *OPL,<span class="keywordtype">int</span> c)
-<a name="l02062"></a>02062 {
-<a name="l02063"></a>02063         <span class="keywordflow">if</span>( c )
-<a name="l02064"></a>02064         {   <span class="comment">/* Timer B */</span>
-<a name="l02065"></a>02065                 OPL-&gt;STATUS_SET(0x20);
-<a name="l02066"></a>02066         }
-<a name="l02067"></a>02067         <span class="keywordflow">else</span>
-<a name="l02068"></a>02068         {   <span class="comment">/* Timer A */</span>
-<a name="l02069"></a>02069                 OPL-&gt;STATUS_SET(0x40);
-<a name="l02070"></a>02070                 <span class="comment">/* CSM mode key,TL controll */</span>
-<a name="l02071"></a>02071                 <span class="keywordflow">if</span>( OPL-&gt;mode &amp; 0x80 )
-<a name="l02072"></a>02072                 {   <span class="comment">/* CSM mode total level latch and auto key on */</span>
-<a name="l02073"></a>02073                         <span class="keywordtype">int</span> ch;
-<a name="l02074"></a>02074                         <span class="keywordflow">if</span>(OPL-&gt;UpdateHandler) OPL-&gt;UpdateHandler(OPL-&gt;UpdateParam,0);
-<a name="l02075"></a>02075                         <span class="keywordflow">for</span>(ch=0; ch&lt;9; ch++)
-<a name="l02076"></a>02076                                 CSMKeyControll( &amp;OPL-&gt;P_CH[ch] );
-<a name="l02077"></a>02077                 }
-<a name="l02078"></a>02078         }
-<a name="l02079"></a>02079         <span class="comment">/* reload timer */</span>
-<a name="l02080"></a>02080         <span class="comment">//if (OPL-&gt;timer_handler) (OPL-&gt;timer_handler)(OPL-&gt;TimerParam,c,OPL-&gt;TimerBase * OPL-&gt;T[c]);</span>
-<a name="l02081"></a>02081         <span class="keywordflow">return</span> OPL-&gt;status&gt;&gt;7;
-<a name="l02082"></a>02082 }
-<a name="l02083"></a>02083 
-<a name="l02084"></a>02084 <span class="preprocessor">#define MAX_OPL_CHIPS 2</span>
-<a name="l02085"></a>02085 <span class="preprocessor"></span>
-<a name="l02086"></a>02086 
-<a name="l02087"></a>02087 <span class="preprocessor">#if BUILD_YM3812</span>
-<a name="l02088"></a>02088 <span class="preprocessor"></span>
-<a name="l02089"></a>02089 <span class="keywordtype">void</span> ym3812_clock_changed(<span class="keywordtype">void</span> *chip, uint32_t clock, uint32_t rate)
-<a name="l02090"></a>02090 {
-<a name="l02091"></a>02091         OPL_clock_changed((FM_OPL *)chip, clock, rate);
-<a name="l02092"></a>02092 }
-<a name="l02093"></a>02093 
-<a name="l02094"></a>02094 <span class="keywordtype">void</span> * ym3812_init(<a class="code" href="classdevice__t.html">device_t</a> *device, uint32_t clock, uint32_t rate)
-<a name="l02095"></a>02095 {
-<a name="l02096"></a>02096         <span class="comment">/* emulator create */</span>
-<a name="l02097"></a>02097         FM_OPL *YM3812 = OPLCreate(device,clock,rate,OPL_TYPE_YM3812);
-<a name="l02098"></a>02098         <span class="keywordflow">if</span> (YM3812)
-<a name="l02099"></a>02099         {
-<a name="l02100"></a>02100                 <span class="comment">//OPL_save_state(YM3812, device);</span>
-<a name="l02101"></a>02101                 ym3812_reset_chip(YM3812);
-<a name="l02102"></a>02102         }
-<a name="l02103"></a>02103         <span class="keywordflow">return</span> YM3812;
-<a name="l02104"></a>02104 }
-<a name="l02105"></a>02105 
-<a name="l02106"></a>02106 <span class="keywordtype">void</span> ym3812_shutdown(<span class="keywordtype">void</span> *chip)
-<a name="l02107"></a>02107 {
-<a name="l02108"></a>02108         FM_OPL *YM3812 = (FM_OPL *)chip;
-<a name="l02109"></a>02109 
-<a name="l02110"></a>02110         <span class="comment">/* emulator shutdown */</span>
-<a name="l02111"></a>02111         OPLDestroy(YM3812);
-<a name="l02112"></a>02112 }
-<a name="l02113"></a>02113 <span class="keywordtype">void</span> ym3812_reset_chip(<span class="keywordtype">void</span> *chip)
-<a name="l02114"></a>02114 {
-<a name="l02115"></a>02115         FM_OPL *YM3812 = (FM_OPL *)chip;
-<a name="l02116"></a>02116         YM3812-&gt;ResetChip();
-<a name="l02117"></a>02117 }
-<a name="l02118"></a>02118 
-<a name="l02119"></a>02119 <span class="keywordtype">int</span> ym3812_write(<span class="keywordtype">void</span> *chip, <span class="keywordtype">int</span> a, <span class="keywordtype">int</span> v)
-<a name="l02120"></a>02120 {
-<a name="l02121"></a>02121         FM_OPL *YM3812 = (FM_OPL *)chip;
-<a name="l02122"></a>02122         <span class="keywordflow">return</span> OPLWrite(YM3812, a, v);
-<a name="l02123"></a>02123 }
-<a name="l02124"></a>02124 
-<a name="l02125"></a>02125 <span class="keywordtype">unsigned</span> <span class="keywordtype">char</span> ym3812_read(<span class="keywordtype">void</span> *chip, <span class="keywordtype">int</span> a)
-<a name="l02126"></a>02126 {
-<a name="l02127"></a>02127         FM_OPL *YM3812 = (FM_OPL *)chip;
-<a name="l02128"></a>02128         <span class="comment">/* YM3812 always returns bit2 and bit1 in HIGH state */</span>
-<a name="l02129"></a>02129         <span class="keywordflow">return</span> OPLRead(YM3812, a) | 0x06 ;
-<a name="l02130"></a>02130 }
-<a name="l02131"></a>02131 <span class="keywordtype">int</span> ym3812_timer_over(<span class="keywordtype">void</span> *chip, <span class="keywordtype">int</span> c)
-<a name="l02132"></a>02132 {
-<a name="l02133"></a>02133         FM_OPL *YM3812 = (FM_OPL *)chip;
-<a name="l02134"></a>02134         <span class="keywordflow">return</span> OPLTimerOver(YM3812, c);
-<a name="l02135"></a>02135 }
-<a name="l02136"></a>02136 
-<a name="l02137"></a>02137 <span class="keywordtype">void</span> ym3812_set_timer_handler(<span class="keywordtype">void</span> *chip, OPL_TIMERHANDLER timer_handler, <a class="code" href="classdevice__t.html">device_t</a> *device)
-<a name="l02138"></a>02138 {
-<a name="l02139"></a>02139         FM_OPL *YM3812 = (FM_OPL *)chip;
-<a name="l02140"></a>02140         OPLSetTimerHandler(YM3812, timer_handler, device);
-<a name="l02141"></a>02141 }
-<a name="l02142"></a>02142 <span class="keywordtype">void</span> ym3812_set_irq_handler(<span class="keywordtype">void</span> *chip,OPL_IRQHANDLER IRQHandler,<a class="code" href="classdevice__t.html">device_t</a> *device)
-<a name="l02143"></a>02143 {
-<a name="l02144"></a>02144         FM_OPL *YM3812 = (FM_OPL *)chip;
-<a name="l02145"></a>02145         OPLSetIRQHandler(YM3812, IRQHandler, device);
+<a name="l01991"></a>01991         OPL-&gt;device = device;
+<a name="l01992"></a>01992         OPL-&gt;type  = type;
+<a name="l01993"></a>01993         OPL_clock_changed(OPL, clock, rate);
+<a name="l01994"></a>01994 
+<a name="l01995"></a>01995         <span class="keywordflow">return</span> OPL;
+<a name="l01996"></a>01996 }
+<a name="l01997"></a>01997 
+<a name="l01998"></a>01998 <span class="comment">/* Destroy one of virtual YM3812 */</span>
+<a name="l01999"></a>01999 <span class="keyword">static</span> <span class="keywordtype">void</span> OPLDestroy(FM_OPL *OPL)
+<a name="l02000"></a>02000 {
+<a name="l02001"></a>02001         FM_OPL::UnLockTable();
+<a name="l02002"></a>02002     free(OPL);
+<a name="l02003"></a>02003 }
+<a name="l02004"></a>02004 
+<a name="l02005"></a>02005 <span class="comment">/* Optional handlers */</span>
+<a name="l02006"></a>02006 
+<a name="l02007"></a>02007 <span class="keyword">static</span> <span class="keywordtype">void</span> OPLSetTimerHandler(FM_OPL *OPL,OPL_TIMERHANDLER timer_handler,<a class="code" href="classdevice__t.html">device_t</a> *device)
+<a name="l02008"></a>02008 {
+<a name="l02009"></a>02009         OPL-&gt;timer_handler   = timer_handler;
+<a name="l02010"></a>02010         OPL-&gt;TimerParam = device;
+<a name="l02011"></a>02011 }
+<a name="l02012"></a>02012 <span class="keyword">static</span> <span class="keywordtype">void</span> OPLSetIRQHandler(FM_OPL *OPL,OPL_IRQHANDLER IRQHandler,<a class="code" href="classdevice__t.html">device_t</a> *device)
+<a name="l02013"></a>02013 {
+<a name="l02014"></a>02014         OPL-&gt;IRQHandler     = IRQHandler;
+<a name="l02015"></a>02015         OPL-&gt;IRQParam = device;
+<a name="l02016"></a>02016 }
+<a name="l02017"></a>02017 <span class="keyword">static</span> <span class="keywordtype">void</span> OPLSetUpdateHandler(FM_OPL *OPL,OPL_UPDATEHANDLER UpdateHandler,<a class="code" href="classdevice__t.html">device_t</a> *device)
+<a name="l02018"></a>02018 {
+<a name="l02019"></a>02019         OPL-&gt;UpdateHandler = UpdateHandler;
+<a name="l02020"></a>02020         OPL-&gt;UpdateParam = device;
+<a name="l02021"></a>02021 }
+<a name="l02022"></a>02022 
+<a name="l02023"></a>02023 <span class="keyword">static</span> <span class="keywordtype">int</span> OPLWrite(FM_OPL *OPL,<span class="keywordtype">int</span> a,<span class="keywordtype">int</span> v)
+<a name="l02024"></a>02024 {
+<a name="l02025"></a>02025         <span class="keywordflow">if</span>( !(a&amp;1) )
+<a name="l02026"></a>02026         {   <span class="comment">/* address port */</span>
+<a name="l02027"></a>02027                 OPL-&gt;address = v &amp; 0xff;
+<a name="l02028"></a>02028         }
+<a name="l02029"></a>02029         <span class="keywordflow">else</span>
+<a name="l02030"></a>02030         {   <span class="comment">/* data port */</span>
+<a name="l02031"></a>02031                 <span class="keywordflow">if</span>(OPL-&gt;UpdateHandler) OPL-&gt;UpdateHandler(OPL-&gt;UpdateParam,0);
+<a name="l02032"></a>02032                 OPL-&gt;WriteReg(OPL-&gt;address,v);
+<a name="l02033"></a>02033         }
+<a name="l02034"></a>02034         <span class="keywordflow">return</span> OPL-&gt;status&gt;&gt;7;
+<a name="l02035"></a>02035 }
+<a name="l02036"></a>02036 
+<a name="l02037"></a>02037 <span class="keyword">static</span> <span class="keywordtype">unsigned</span> <span class="keywordtype">char</span> OPLRead(FM_OPL *OPL,<span class="keywordtype">int</span> a)
+<a name="l02038"></a>02038 {
+<a name="l02039"></a>02039         <span class="keywordflow">if</span>( !(a&amp;1) )
+<a name="l02040"></a>02040         {
+<a name="l02041"></a>02041                 <span class="comment">/* status port */</span>
+<a name="l02042"></a>02042 
+<a name="l02043"></a>02043 <span class="preprocessor">                #if BUILD_Y8950</span>
+<a name="l02044"></a>02044 <span class="preprocessor"></span>
+<a name="l02045"></a>02045                 <span class="keywordflow">if</span>(OPL-&gt;type&amp;OPL_TYPE_ADPCM)    <span class="comment">/* Y8950 */</span>
+<a name="l02046"></a>02046                 {
+<a name="l02047"></a>02047                         <span class="keywordflow">return</span> (OPL-&gt;status &amp; (OPL-&gt;statusmask|0x80)) | (OPL-&gt;deltat-&gt;PCM_BSY&amp;1);
+<a name="l02048"></a>02048                 }
+<a name="l02049"></a>02049 
+<a name="l02050"></a>02050 <span class="preprocessor">                #endif</span>
+<a name="l02051"></a>02051 <span class="preprocessor"></span>
+<a name="l02052"></a>02052                 <span class="comment">/* OPL and OPL2 */</span>
+<a name="l02053"></a>02053                 <span class="keywordflow">return</span> OPL-&gt;status &amp; (OPL-&gt;statusmask|0x80);
+<a name="l02054"></a>02054         }
+<a name="l02055"></a>02055 
+<a name="l02056"></a>02056 <span class="preprocessor">#if BUILD_Y8950</span>
+<a name="l02057"></a>02057 <span class="preprocessor"></span>        <span class="comment">/* data port */</span>
+<a name="l02058"></a>02058         <span class="keywordflow">switch</span>(OPL-&gt;address)
+<a name="l02059"></a>02059         {
+<a name="l02060"></a>02060         <span class="keywordflow">case</span> 0x05: <span class="comment">/* KeyBoard IN */</span>
+<a name="l02061"></a>02061                 <span class="keywordflow">if</span>(OPL-&gt;type&amp;OPL_TYPE_KEYBOARD)
+<a name="l02062"></a>02062                 {
+<a name="l02063"></a>02063                         <span class="keywordflow">if</span>(OPL-&gt;keyboardhandler_r)
+<a name="l02064"></a>02064                                 <span class="keywordflow">return</span> OPL-&gt;keyboardhandler_r(OPL-&gt;keyboard_param);
+<a name="l02065"></a>02065                         <span class="keywordflow">else</span>
+<a name="l02066"></a>02066                                 OPL-&gt;device-&gt;logerror(<span class="stringliteral">&quot;Y8950: read unmapped KEYBOARD port\n&quot;</span>);
+<a name="l02067"></a>02067                 }
+<a name="l02068"></a>02068                 <span class="keywordflow">return</span> 0;
+<a name="l02069"></a>02069 
+<a name="l02070"></a>02070         <span class="keywordflow">case</span> 0x0f: <span class="comment">/* ADPCM-DATA  */</span>
+<a name="l02071"></a>02071                 <span class="keywordflow">if</span>(OPL-&gt;type&amp;OPL_TYPE_ADPCM)
+<a name="l02072"></a>02072                 {
+<a name="l02073"></a>02073                         uint8_t val;
+<a name="l02074"></a>02074 
+<a name="l02075"></a>02075                         val = OPL-&gt;deltat-&gt;ADPCM_Read();
+<a name="l02076"></a>02076                         <span class="comment">/*logerror(&quot;Y8950: read ADPCM value read=%02x\n&quot;,val);*/</span>
+<a name="l02077"></a>02077                         <span class="keywordflow">return</span> val;
+<a name="l02078"></a>02078                 }
+<a name="l02079"></a>02079                 <span class="keywordflow">return</span> 0;
+<a name="l02080"></a>02080 
+<a name="l02081"></a>02081         <span class="keywordflow">case</span> 0x19: <span class="comment">/* I/O DATA    */</span>
+<a name="l02082"></a>02082                 <span class="keywordflow">if</span>(OPL-&gt;type&amp;OPL_TYPE_IO)
+<a name="l02083"></a>02083                 {
+<a name="l02084"></a>02084                         <span class="keywordflow">if</span>(OPL-&gt;porthandler_r)
+<a name="l02085"></a>02085                                 <span class="keywordflow">return</span> OPL-&gt;porthandler_r(OPL-&gt;port_param);
+<a name="l02086"></a>02086                         <span class="keywordflow">else</span>
+<a name="l02087"></a>02087                                 OPL-&gt;device-&gt;logerror(<span class="stringliteral">&quot;Y8950:read unmapped I/O port\n&quot;</span>);
+<a name="l02088"></a>02088                 }
+<a name="l02089"></a>02089                 <span class="keywordflow">return</span> 0;
+<a name="l02090"></a>02090         <span class="keywordflow">case</span> 0x1a: <span class="comment">/* PCM-DATA    */</span>
+<a name="l02091"></a>02091                 <span class="keywordflow">if</span>(OPL-&gt;type&amp;OPL_TYPE_ADPCM)
+<a name="l02092"></a>02092                 {
+<a name="l02093"></a>02093                         OPL-&gt;device-&gt;logerror(<span class="stringliteral">&quot;Y8950 A/D conversion is accessed but not implemented !\n&quot;</span>);
+<a name="l02094"></a>02094                         <span class="keywordflow">return</span> 0x80; <span class="comment">/* 2&#39;s complement PCM data - result from A/D conversion */</span>
+<a name="l02095"></a>02095                 }
+<a name="l02096"></a>02096                 <span class="keywordflow">return</span> 0;
+<a name="l02097"></a>02097         }
+<a name="l02098"></a>02098 <span class="preprocessor">#endif</span>
+<a name="l02099"></a>02099 <span class="preprocessor"></span>
+<a name="l02100"></a>02100         <span class="keywordflow">return</span> 0xff;
+<a name="l02101"></a>02101 }
+<a name="l02102"></a>02102 
+<a name="l02103"></a>02103 <span class="comment">/* CSM Key Controll */</span>
+<a name="l02104"></a>02104 <span class="keyword">static</span> <span class="keyword">inline</span> <span class="keywordtype">void</span> CSMKeyControll(OPL_CH *CH)
+<a name="l02105"></a>02105 {
+<a name="l02106"></a>02106         CH-&gt;SLOT[SLOT1].KEYON(4);
+<a name="l02107"></a>02107         CH-&gt;SLOT[SLOT2].KEYON(4);
+<a name="l02108"></a>02108 
+<a name="l02109"></a>02109         <span class="comment">/* The key off should happen exactly one sample later - not implemented correctly yet */</span>
+<a name="l02110"></a>02110 
+<a name="l02111"></a>02111         CH-&gt;SLOT[SLOT1].KEYOFF(~4);
+<a name="l02112"></a>02112         CH-&gt;SLOT[SLOT2].KEYOFF(~4);
+<a name="l02113"></a>02113 }
+<a name="l02114"></a>02114 
+<a name="l02115"></a>02115 <span class="keyword">static</span> <span class="keywordtype">int</span> OPLTimerOver(FM_OPL *OPL,<span class="keywordtype">int</span> c)
+<a name="l02116"></a>02116 {
+<a name="l02117"></a>02117         <span class="keywordflow">if</span>( c )
+<a name="l02118"></a>02118         {   <span class="comment">/* Timer B */</span>
+<a name="l02119"></a>02119                 OPL-&gt;STATUS_SET(0x20);
+<a name="l02120"></a>02120         }
+<a name="l02121"></a>02121         <span class="keywordflow">else</span>
+<a name="l02122"></a>02122         {   <span class="comment">/* Timer A */</span>
+<a name="l02123"></a>02123                 OPL-&gt;STATUS_SET(0x40);
+<a name="l02124"></a>02124                 <span class="comment">/* CSM mode key,TL controll */</span>
+<a name="l02125"></a>02125                 <span class="keywordflow">if</span>( OPL-&gt;mode &amp; 0x80 )
+<a name="l02126"></a>02126                 {   <span class="comment">/* CSM mode total level latch and auto key on */</span>
+<a name="l02127"></a>02127                         <span class="keywordtype">int</span> ch;
+<a name="l02128"></a>02128                         <span class="keywordflow">if</span>(OPL-&gt;UpdateHandler) OPL-&gt;UpdateHandler(OPL-&gt;UpdateParam,0);
+<a name="l02129"></a>02129                         <span class="keywordflow">for</span>(ch=0; ch&lt;9; ch++)
+<a name="l02130"></a>02130                                 CSMKeyControll( &amp;OPL-&gt;P_CH[ch] );
+<a name="l02131"></a>02131                 }
+<a name="l02132"></a>02132         }
+<a name="l02133"></a>02133         <span class="comment">/* reload timer */</span>
+<a name="l02134"></a>02134         <span class="comment">//if (OPL-&gt;timer_handler) (OPL-&gt;timer_handler)(OPL-&gt;TimerParam,c,OPL-&gt;TimerBase * OPL-&gt;T[c]);</span>
+<a name="l02135"></a>02135         <span class="keywordflow">return</span> OPL-&gt;status&gt;&gt;7;
+<a name="l02136"></a>02136 }
+<a name="l02137"></a>02137 
+<a name="l02138"></a>02138 <span class="preprocessor">#define MAX_OPL_CHIPS 2</span>
+<a name="l02139"></a>02139 <span class="preprocessor"></span>
+<a name="l02140"></a>02140 
+<a name="l02141"></a>02141 <span class="preprocessor">#if BUILD_YM3812</span>
+<a name="l02142"></a>02142 <span class="preprocessor"></span>
+<a name="l02143"></a>02143 <span class="keywordtype">void</span> ym3812_clock_changed(<span class="keywordtype">void</span> *chip, uint32_t clock, uint32_t rate)
+<a name="l02144"></a>02144 {
+<a name="l02145"></a>02145         OPL_clock_changed((FM_OPL *)chip, clock, rate);
 <a name="l02146"></a>02146 }
-<a name="l02147"></a>02147 <span class="keywordtype">void</span> ym3812_set_update_handler(<span class="keywordtype">void</span> *chip,OPL_UPDATEHANDLER UpdateHandler,<a class="code" href="classdevice__t.html">device_t</a> *device)
-<a name="l02148"></a>02148 {
-<a name="l02149"></a>02149         FM_OPL *YM3812 = (FM_OPL *)chip;
-<a name="l02150"></a>02150         OPLSetUpdateHandler(YM3812, UpdateHandler, device);
-<a name="l02151"></a>02151 }
-<a name="l02152"></a>02152 
-<a name="l02153"></a>02153 <span class="comment">/*</span>
-<a name="l02154"></a>02154 <span class="comment">** Generate samples for one of the YM3812&#39;s</span>
-<a name="l02155"></a>02155 <span class="comment">**</span>
-<a name="l02156"></a>02156 <span class="comment">** &#39;which&#39; is the virtual YM3812 number</span>
-<a name="l02157"></a>02157 <span class="comment">** &#39;*buffer&#39; is the output buffer pointer</span>
-<a name="l02158"></a>02158 <span class="comment">** &#39;length&#39; is the number of samples that should be generated</span>
-<a name="l02159"></a>02159 <span class="comment">*/</span>
-<a name="l02160"></a>02160 <span class="keywordtype">void</span> ym3812_update_one(<span class="keywordtype">void</span> *chip, OPLSAMPLE *buffer, <span class="keywordtype">int</span> length)
+<a name="l02147"></a>02147 
+<a name="l02148"></a>02148 <span class="keywordtype">void</span> * ym3812_init(<a class="code" href="classdevice__t.html">device_t</a> *device, uint32_t clock, uint32_t rate)
+<a name="l02149"></a>02149 {
+<a name="l02150"></a>02150         <span class="comment">/* emulator create */</span>
+<a name="l02151"></a>02151         FM_OPL *YM3812 = OPLCreate(device,clock,rate,OPL_TYPE_YM3812);
+<a name="l02152"></a>02152         <span class="keywordflow">if</span> (YM3812)
+<a name="l02153"></a>02153         {
+<a name="l02154"></a>02154                 <span class="comment">//OPL_save_state(YM3812, device);</span>
+<a name="l02155"></a>02155                 ym3812_reset_chip(YM3812);
+<a name="l02156"></a>02156         }
+<a name="l02157"></a>02157         <span class="keywordflow">return</span> YM3812;
+<a name="l02158"></a>02158 }
+<a name="l02159"></a>02159 
+<a name="l02160"></a>02160 <span class="keywordtype">void</span> ym3812_shutdown(<span class="keywordtype">void</span> *chip)
 <a name="l02161"></a>02161 {
-<a name="l02162"></a>02162         FM_OPL      *OPL = (FM_OPL *)chip;
-<a name="l02163"></a>02163         uint8_t       rhythm = OPL-&gt;rhythm&amp;0x20;
-<a name="l02164"></a>02164         OPLSAMPLE   *buf = buffer;
-<a name="l02165"></a>02165         <span class="keywordtype">int</span> i;
-<a name="l02166"></a>02166 
-<a name="l02167"></a>02167         <span class="keywordflow">for</span>( i=0; i &lt; length ; i++ )
-<a name="l02168"></a>02168         {
-<a name="l02169"></a>02169                 <span class="keywordtype">int</span> lt;
-<a name="l02170"></a>02170 
-<a name="l02171"></a>02171                 OPL-&gt;output[0] = 0;
+<a name="l02162"></a>02162         FM_OPL *YM3812 = (FM_OPL *)chip;
+<a name="l02163"></a>02163 
+<a name="l02164"></a>02164         <span class="comment">/* emulator shutdown */</span>
+<a name="l02165"></a>02165         OPLDestroy(YM3812);
+<a name="l02166"></a>02166 }
+<a name="l02167"></a>02167 <span class="keywordtype">void</span> ym3812_reset_chip(<span class="keywordtype">void</span> *chip)
+<a name="l02168"></a>02168 {
+<a name="l02169"></a>02169         FM_OPL *YM3812 = (FM_OPL *)chip;
+<a name="l02170"></a>02170         YM3812-&gt;ResetChip();
+<a name="l02171"></a>02171 }
 <a name="l02172"></a>02172 
-<a name="l02173"></a>02173                 OPL-&gt;advance_lfo();
-<a name="l02174"></a>02174 
-<a name="l02175"></a>02175                 <span class="comment">/* FM part */</span>
-<a name="l02176"></a>02176                 OPL-&gt;CALC_CH(OPL-&gt;P_CH[0]);
-<a name="l02177"></a>02177                 OPL-&gt;CALC_CH(OPL-&gt;P_CH[1]);
-<a name="l02178"></a>02178                 OPL-&gt;CALC_CH(OPL-&gt;P_CH[2]);
-<a name="l02179"></a>02179                 OPL-&gt;CALC_CH(OPL-&gt;P_CH[3]);
-<a name="l02180"></a>02180                 OPL-&gt;CALC_CH(OPL-&gt;P_CH[4]);
-<a name="l02181"></a>02181                 OPL-&gt;CALC_CH(OPL-&gt;P_CH[5]);
-<a name="l02182"></a>02182 
-<a name="l02183"></a>02183                 <span class="keywordflow">if</span>(!rhythm)
-<a name="l02184"></a>02184                 {
-<a name="l02185"></a>02185                         OPL-&gt;CALC_CH(OPL-&gt;P_CH[6]);
-<a name="l02186"></a>02186                         OPL-&gt;CALC_CH(OPL-&gt;P_CH[7]);
-<a name="l02187"></a>02187                         OPL-&gt;CALC_CH(OPL-&gt;P_CH[8]);
-<a name="l02188"></a>02188                 }
-<a name="l02189"></a>02189                 <span class="keywordflow">else</span>        <span class="comment">/* Rhythm part */</span>
-<a name="l02190"></a>02190                 {
-<a name="l02191"></a>02191                         OPL-&gt;CALC_RH();
-<a name="l02192"></a>02192                 }
-<a name="l02193"></a>02193 
-<a name="l02194"></a>02194                 lt = OPL-&gt;output[0];
-<a name="l02195"></a>02195 
-<a name="l02196"></a>02196                 lt &gt;&gt;= FINAL_SH;
-<a name="l02197"></a>02197 
-<a name="l02198"></a>02198                 <span class="comment">/* limit check */</span>
-<a name="l02199"></a>02199                 lt = limit( lt , MAXOUT, MINOUT );
-<a name="l02200"></a>02200 
-<a name="l02201"></a>02201 <span class="preprocessor">                #ifdef SAVE_SAMPLE</span>
-<a name="l02202"></a>02202 <span class="preprocessor"></span>                <span class="keywordflow">if</span> (which==0)
-<a name="l02203"></a>02203                 {
-<a name="l02204"></a>02204                         SAVE_ALL_CHANNELS
-<a name="l02205"></a>02205                 }
-<a name="l02206"></a>02206 <span class="preprocessor">                #endif</span>
-<a name="l02207"></a>02207 <span class="preprocessor"></span>
-<a name="l02208"></a>02208                 <span class="comment">/* store to sound buffer */</span>
-<a name="l02209"></a>02209                 buf[i] = lt;
-<a name="l02210"></a>02210 
-<a name="l02211"></a>02211                 OPL-&gt;advance();
-<a name="l02212"></a>02212         }
-<a name="l02213"></a>02213 
-<a name="l02214"></a>02214 }
-<a name="l02215"></a>02215 <span class="preprocessor">#endif </span><span class="comment">/* BUILD_YM3812 */</span>
-<a name="l02216"></a>02216 
-<a name="l02217"></a>02217 
-<a name="l02218"></a>02218 
-<a name="l02219"></a>02219 <span class="preprocessor">#if (BUILD_YM3526)</span>
-<a name="l02220"></a>02220 <span class="preprocessor"></span>
-<a name="l02221"></a>02221 <span class="keywordtype">void</span> ym3526_clock_changed(<span class="keywordtype">void</span> *chip, uint32_t clock, uint32_t rate)
-<a name="l02222"></a>02222 {
-<a name="l02223"></a>02223         OPL_clock_changed((FM_OPL *)chip, clock, rate);
-<a name="l02224"></a>02224 }
-<a name="l02225"></a>02225 
-<a name="l02226"></a>02226 <span class="keywordtype">void</span> *ym3526_init(<a class="code" href="classdevice__t.html">device_t</a> *device, uint32_t clock, uint32_t rate)
-<a name="l02227"></a>02227 {
-<a name="l02228"></a>02228         <span class="comment">/* emulator create */</span>
-<a name="l02229"></a>02229         FM_OPL *YM3526 = OPLCreate(device,clock,rate,OPL_TYPE_YM3526);
-<a name="l02230"></a>02230         <span class="keywordflow">if</span> (YM3526)
-<a name="l02231"></a>02231         {
-<a name="l02232"></a>02232                 <span class="comment">//OPL_save_state(YM3526, device);</span>
-<a name="l02233"></a>02233                 ym3526_reset_chip(YM3526);
-<a name="l02234"></a>02234         }
-<a name="l02235"></a>02235         <span class="keywordflow">return</span> YM3526;
-<a name="l02236"></a>02236 }
-<a name="l02237"></a>02237 
-<a name="l02238"></a>02238 <span class="keywordtype">void</span> ym3526_shutdown(<span class="keywordtype">void</span> *chip)
-<a name="l02239"></a>02239 {
-<a name="l02240"></a>02240         FM_OPL *YM3526 = (FM_OPL *)chip;
-<a name="l02241"></a>02241         <span class="comment">/* emulator shutdown */</span>
-<a name="l02242"></a>02242         OPLDestroy(YM3526);
-<a name="l02243"></a>02243 }
-<a name="l02244"></a>02244 <span class="keywordtype">void</span> ym3526_reset_chip(<span class="keywordtype">void</span> *chip)
-<a name="l02245"></a>02245 {
-<a name="l02246"></a>02246         FM_OPL *YM3526 = (FM_OPL *)chip;
-<a name="l02247"></a>02247         YM3526-&gt;ResetChip();
-<a name="l02248"></a>02248 }
+<a name="l02173"></a>02173 <span class="keywordtype">int</span> ym3812_write(<span class="keywordtype">void</span> *chip, <span class="keywordtype">int</span> a, <span class="keywordtype">int</span> v)
+<a name="l02174"></a>02174 {
+<a name="l02175"></a>02175         FM_OPL *YM3812 = (FM_OPL *)chip;
+<a name="l02176"></a>02176         <span class="keywordflow">return</span> OPLWrite(YM3812, a, v);
+<a name="l02177"></a>02177 }
+<a name="l02178"></a>02178 
+<a name="l02179"></a>02179 <span class="keywordtype">unsigned</span> <span class="keywordtype">char</span> ym3812_read(<span class="keywordtype">void</span> *chip, <span class="keywordtype">int</span> a)
+<a name="l02180"></a>02180 {
+<a name="l02181"></a>02181         FM_OPL *YM3812 = (FM_OPL *)chip;
+<a name="l02182"></a>02182         <span class="comment">/* YM3812 always returns bit2 and bit1 in HIGH state */</span>
+<a name="l02183"></a>02183         <span class="keywordflow">return</span> OPLRead(YM3812, a) | 0x06 ;
+<a name="l02184"></a>02184 }
+<a name="l02185"></a>02185 <span class="keywordtype">int</span> ym3812_timer_over(<span class="keywordtype">void</span> *chip, <span class="keywordtype">int</span> c)
+<a name="l02186"></a>02186 {
+<a name="l02187"></a>02187         FM_OPL *YM3812 = (FM_OPL *)chip;
+<a name="l02188"></a>02188         <span class="keywordflow">return</span> OPLTimerOver(YM3812, c);
+<a name="l02189"></a>02189 }
+<a name="l02190"></a>02190 
+<a name="l02191"></a>02191 <span class="keywordtype">void</span> ym3812_set_timer_handler(<span class="keywordtype">void</span> *chip, OPL_TIMERHANDLER timer_handler, <a class="code" href="classdevice__t.html">device_t</a> *device)
+<a name="l02192"></a>02192 {
+<a name="l02193"></a>02193         FM_OPL *YM3812 = (FM_OPL *)chip;
+<a name="l02194"></a>02194         OPLSetTimerHandler(YM3812, timer_handler, device);
+<a name="l02195"></a>02195 }
+<a name="l02196"></a>02196 <span class="keywordtype">void</span> ym3812_set_irq_handler(<span class="keywordtype">void</span> *chip,OPL_IRQHANDLER IRQHandler,<a class="code" href="classdevice__t.html">device_t</a> *device)
+<a name="l02197"></a>02197 {
+<a name="l02198"></a>02198         FM_OPL *YM3812 = (FM_OPL *)chip;
+<a name="l02199"></a>02199         OPLSetIRQHandler(YM3812, IRQHandler, device);
+<a name="l02200"></a>02200 }
+<a name="l02201"></a>02201 <span class="keywordtype">void</span> ym3812_set_update_handler(<span class="keywordtype">void</span> *chip,OPL_UPDATEHANDLER UpdateHandler,<a class="code" href="classdevice__t.html">device_t</a> *device)
+<a name="l02202"></a>02202 {
+<a name="l02203"></a>02203         FM_OPL *YM3812 = (FM_OPL *)chip;
+<a name="l02204"></a>02204         OPLSetUpdateHandler(YM3812, UpdateHandler, device);
+<a name="l02205"></a>02205 }
+<a name="l02206"></a>02206 
+<a name="l02207"></a>02207 <span class="comment">/*</span>
+<a name="l02208"></a>02208 <span class="comment">** Generate samples for one of the YM3812&#39;s</span>
+<a name="l02209"></a>02209 <span class="comment">**</span>
+<a name="l02210"></a>02210 <span class="comment">** &#39;which&#39; is the virtual YM3812 number</span>
+<a name="l02211"></a>02211 <span class="comment">** &#39;*buffer&#39; is the output buffer pointer</span>
+<a name="l02212"></a>02212 <span class="comment">** &#39;length&#39; is the number of samples that should be generated</span>
+<a name="l02213"></a>02213 <span class="comment">*/</span>
+<a name="l02214"></a>02214 <span class="keywordtype">void</span> ym3812_update_one(<span class="keywordtype">void</span> *chip, OPLSAMPLE *buffer, <span class="keywordtype">int</span> length)
+<a name="l02215"></a>02215 {
+<a name="l02216"></a>02216         FM_OPL      *OPL = (FM_OPL *)chip;
+<a name="l02217"></a>02217         uint8_t       rhythm = OPL-&gt;rhythm&amp;0x20;
+<a name="l02218"></a>02218         OPLSAMPLE   *buf = buffer;
+<a name="l02219"></a>02219         <span class="keywordtype">int</span> i;
+<a name="l02220"></a>02220 
+<a name="l02221"></a>02221         <span class="keywordflow">for</span>( i=0; i &lt; length ; i++ )
+<a name="l02222"></a>02222         {
+<a name="l02223"></a>02223                 <span class="keywordtype">int</span> lt;
+<a name="l02224"></a>02224 
+<a name="l02225"></a>02225                 OPL-&gt;output[0] = 0;
+<a name="l02226"></a>02226 
+<a name="l02227"></a>02227                 OPL-&gt;advance_lfo();
+<a name="l02228"></a>02228 
+<a name="l02229"></a>02229                 <span class="comment">/* FM part */</span>
+<a name="l02230"></a>02230                 OPL-&gt;CALC_CH(OPL-&gt;P_CH[0]);
+<a name="l02231"></a>02231                 OPL-&gt;CALC_CH(OPL-&gt;P_CH[1]);
+<a name="l02232"></a>02232                 OPL-&gt;CALC_CH(OPL-&gt;P_CH[2]);
+<a name="l02233"></a>02233                 OPL-&gt;CALC_CH(OPL-&gt;P_CH[3]);
+<a name="l02234"></a>02234                 OPL-&gt;CALC_CH(OPL-&gt;P_CH[4]);
+<a name="l02235"></a>02235                 OPL-&gt;CALC_CH(OPL-&gt;P_CH[5]);
+<a name="l02236"></a>02236 
+<a name="l02237"></a>02237                 <span class="keywordflow">if</span>(!rhythm)
+<a name="l02238"></a>02238                 {
+<a name="l02239"></a>02239                         OPL-&gt;CALC_CH(OPL-&gt;P_CH[6]);
+<a name="l02240"></a>02240                         OPL-&gt;CALC_CH(OPL-&gt;P_CH[7]);
+<a name="l02241"></a>02241                         OPL-&gt;CALC_CH(OPL-&gt;P_CH[8]);
+<a name="l02242"></a>02242                 }
+<a name="l02243"></a>02243                 <span class="keywordflow">else</span>        <span class="comment">/* Rhythm part */</span>
+<a name="l02244"></a>02244                 {
+<a name="l02245"></a>02245                         OPL-&gt;CALC_RH();
+<a name="l02246"></a>02246                 }
+<a name="l02247"></a>02247 
+<a name="l02248"></a>02248                 lt = OPL-&gt;output[0];
 <a name="l02249"></a>02249 
-<a name="l02250"></a>02250 <span class="keywordtype">int</span> ym3526_write(<span class="keywordtype">void</span> *chip, <span class="keywordtype">int</span> a, <span class="keywordtype">int</span> v)
-<a name="l02251"></a>02251 {
-<a name="l02252"></a>02252         FM_OPL *YM3526 = (FM_OPL *)chip;
-<a name="l02253"></a>02253         <span class="keywordflow">return</span> OPLWrite(YM3526, a, v);
-<a name="l02254"></a>02254 }
-<a name="l02255"></a>02255 
-<a name="l02256"></a>02256 <span class="keywordtype">unsigned</span> <span class="keywordtype">char</span> ym3526_read(<span class="keywordtype">void</span> *chip, <span class="keywordtype">int</span> a)
-<a name="l02257"></a>02257 {
-<a name="l02258"></a>02258         FM_OPL *YM3526 = (FM_OPL *)chip;
-<a name="l02259"></a>02259         <span class="comment">/* YM3526 always returns bit2 and bit1 in HIGH state */</span>
-<a name="l02260"></a>02260         <span class="keywordflow">return</span> OPLRead(YM3526, a) | 0x06 ;
-<a name="l02261"></a>02261 }
-<a name="l02262"></a>02262 <span class="keywordtype">int</span> ym3526_timer_over(<span class="keywordtype">void</span> *chip, <span class="keywordtype">int</span> c)
-<a name="l02263"></a>02263 {
-<a name="l02264"></a>02264         FM_OPL *YM3526 = (FM_OPL *)chip;
-<a name="l02265"></a>02265         <span class="keywordflow">return</span> OPLTimerOver(YM3526, c);
-<a name="l02266"></a>02266 }
+<a name="l02250"></a>02250                 lt &gt;&gt;= FINAL_SH;
+<a name="l02251"></a>02251 
+<a name="l02252"></a>02252                 <span class="comment">/* limit check */</span>
+<a name="l02253"></a>02253                 lt = limit( lt , MAXOUT, MINOUT );
+<a name="l02254"></a>02254 
+<a name="l02255"></a>02255 <span class="preprocessor">                #ifdef SAVE_SAMPLE</span>
+<a name="l02256"></a>02256 <span class="preprocessor"></span>                <span class="keywordflow">if</span> (which==0)
+<a name="l02257"></a>02257                 {
+<a name="l02258"></a>02258                         SAVE_ALL_CHANNELS
+<a name="l02259"></a>02259                 }
+<a name="l02260"></a>02260 <span class="preprocessor">                #endif</span>
+<a name="l02261"></a>02261 <span class="preprocessor"></span>
+<a name="l02262"></a>02262                 <span class="comment">/* store to sound buffer */</span>
+<a name="l02263"></a>02263                 buf[i] = lt;
+<a name="l02264"></a>02264 
+<a name="l02265"></a>02265                 OPL-&gt;advance();
+<a name="l02266"></a>02266         }
 <a name="l02267"></a>02267 
-<a name="l02268"></a>02268 <span class="keywordtype">void</span> ym3526_set_timer_handler(<span class="keywordtype">void</span> *chip, OPL_TIMERHANDLER timer_handler, <a class="code" href="classdevice__t.html">device_t</a> *device)
-<a name="l02269"></a>02269 {
-<a name="l02270"></a>02270         FM_OPL *YM3526 = (FM_OPL *)chip;
-<a name="l02271"></a>02271         OPLSetTimerHandler(YM3526, timer_handler, device);
-<a name="l02272"></a>02272 }
-<a name="l02273"></a>02273 <span class="keywordtype">void</span> ym3526_set_irq_handler(<span class="keywordtype">void</span> *chip,OPL_IRQHANDLER IRQHandler,<a class="code" href="classdevice__t.html">device_t</a> *device)
-<a name="l02274"></a>02274 {
-<a name="l02275"></a>02275         FM_OPL *YM3526 = (FM_OPL *)chip;
-<a name="l02276"></a>02276         OPLSetIRQHandler(YM3526, IRQHandler, device);
-<a name="l02277"></a>02277 }
-<a name="l02278"></a>02278 <span class="keywordtype">void</span> ym3526_set_update_handler(<span class="keywordtype">void</span> *chip,OPL_UPDATEHANDLER UpdateHandler,<a class="code" href="classdevice__t.html">device_t</a> *device)
-<a name="l02279"></a>02279 {
-<a name="l02280"></a>02280         FM_OPL *YM3526 = (FM_OPL *)chip;
-<a name="l02281"></a>02281         OPLSetUpdateHandler(YM3526, UpdateHandler, device);
-<a name="l02282"></a>02282 }
-<a name="l02283"></a>02283 
-<a name="l02284"></a>02284 
-<a name="l02285"></a>02285 <span class="comment">/*</span>
-<a name="l02286"></a>02286 <span class="comment">** Generate samples for one of the YM3526&#39;s</span>
-<a name="l02287"></a>02287 <span class="comment">**</span>
-<a name="l02288"></a>02288 <span class="comment">** &#39;which&#39; is the virtual YM3526 number</span>
-<a name="l02289"></a>02289 <span class="comment">** &#39;*buffer&#39; is the output buffer pointer</span>
-<a name="l02290"></a>02290 <span class="comment">** &#39;length&#39; is the number of samples that should be generated</span>
-<a name="l02291"></a>02291 <span class="comment">*/</span>
-<a name="l02292"></a>02292 <span class="keywordtype">void</span> ym3526_update_one(<span class="keywordtype">void</span> *chip, OPLSAMPLE *buffer, <span class="keywordtype">int</span> length)
-<a name="l02293"></a>02293 {
-<a name="l02294"></a>02294         FM_OPL      *OPL = (FM_OPL *)chip;
-<a name="l02295"></a>02295         uint8_t       rhythm = OPL-&gt;rhythm&amp;0x20;
-<a name="l02296"></a>02296         OPLSAMPLE   *buf = buffer;
-<a name="l02297"></a>02297         <span class="keywordtype">int</span> i;
-<a name="l02298"></a>02298 
-<a name="l02299"></a>02299         <span class="keywordflow">for</span>( i=0; i &lt; length ; i++ )
-<a name="l02300"></a>02300         {
-<a name="l02301"></a>02301                 <span class="keywordtype">int</span> lt;
-<a name="l02302"></a>02302 
-<a name="l02303"></a>02303                 OPL-&gt;output[0] = 0;
-<a name="l02304"></a>02304 
-<a name="l02305"></a>02305                 OPL-&gt;advance_lfo();
-<a name="l02306"></a>02306 
-<a name="l02307"></a>02307                 <span class="comment">/* FM part */</span>
-<a name="l02308"></a>02308                 OPL-&gt;CALC_CH(OPL-&gt;P_CH[0]);
-<a name="l02309"></a>02309                 OPL-&gt;CALC_CH(OPL-&gt;P_CH[1]);
-<a name="l02310"></a>02310                 OPL-&gt;CALC_CH(OPL-&gt;P_CH[2]);
-<a name="l02311"></a>02311                 OPL-&gt;CALC_CH(OPL-&gt;P_CH[3]);
-<a name="l02312"></a>02312                 OPL-&gt;CALC_CH(OPL-&gt;P_CH[4]);
-<a name="l02313"></a>02313                 OPL-&gt;CALC_CH(OPL-&gt;P_CH[5]);
-<a name="l02314"></a>02314 
-<a name="l02315"></a>02315                 <span class="keywordflow">if</span>(!rhythm)
-<a name="l02316"></a>02316                 {
-<a name="l02317"></a>02317                         OPL-&gt;CALC_CH(OPL-&gt;P_CH[6]);
-<a name="l02318"></a>02318                         OPL-&gt;CALC_CH(OPL-&gt;P_CH[7]);
-<a name="l02319"></a>02319                         OPL-&gt;CALC_CH(OPL-&gt;P_CH[8]);
-<a name="l02320"></a>02320                 }
-<a name="l02321"></a>02321                 <span class="keywordflow">else</span>        <span class="comment">/* Rhythm part */</span>
-<a name="l02322"></a>02322                 {
-<a name="l02323"></a>02323                         OPL-&gt;CALC_RH();
-<a name="l02324"></a>02324                 }
-<a name="l02325"></a>02325 
-<a name="l02326"></a>02326                 lt = OPL-&gt;output[0];
-<a name="l02327"></a>02327 
-<a name="l02328"></a>02328                 lt &gt;&gt;= FINAL_SH;
-<a name="l02329"></a>02329 
-<a name="l02330"></a>02330                 <span class="comment">/* limit check */</span>
-<a name="l02331"></a>02331                 lt = limit( lt , MAXOUT, MINOUT );
-<a name="l02332"></a>02332 
-<a name="l02333"></a>02333 <span class="preprocessor">                #ifdef SAVE_SAMPLE</span>
-<a name="l02334"></a>02334 <span class="preprocessor"></span>                <span class="keywordflow">if</span> (which==0)
-<a name="l02335"></a>02335                 {
-<a name="l02336"></a>02336                         SAVE_ALL_CHANNELS
-<a name="l02337"></a>02337                 }
-<a name="l02338"></a>02338 <span class="preprocessor">                #endif</span>
-<a name="l02339"></a>02339 <span class="preprocessor"></span>
-<a name="l02340"></a>02340                 <span class="comment">/* store to sound buffer */</span>
-<a name="l02341"></a>02341                 buf[i] = lt;
-<a name="l02342"></a>02342 
-<a name="l02343"></a>02343                 OPL-&gt;advance();
+<a name="l02268"></a>02268 }
+<a name="l02269"></a>02269 
+<a name="l02270"></a>02270 <span class="comment">// save state support</span>
+<a name="l02271"></a>02271 <span class="keywordtype">void</span> SaveState_Channel(OPL_CH *CH, std::ostream&amp; stream) {
+<a name="l02272"></a>02272         <span class="keywordtype">int</span> slot, ch;
+<a name="l02273"></a>02273 
+<a name="l02274"></a>02274         <span class="keywordflow">for</span>( ch=0 ; ch &lt; 9 ; ch++, CH++ ) {
+<a name="l02275"></a>02275                 <span class="comment">/* channel */</span>
+<a name="l02276"></a>02276                 WRITE_POD( &amp;CH-&gt;block_fnum, CH-&gt;block_fnum );
+<a name="l02277"></a>02277             WRITE_POD( &amp;CH-&gt;kcode, CH-&gt;kcode );
+<a name="l02278"></a>02278             <span class="comment">/* slots */</span>
+<a name="l02279"></a>02279                 <span class="keywordflow">for</span>( slot=0 ; slot &lt; 2 ; slot++ ) {
+<a name="l02280"></a>02280                 OPL_SLOT *SLOT = &amp;CH-&gt;SLOT[slot];
+<a name="l02281"></a>02281 
+<a name="l02282"></a>02282                 WRITE_POD( &amp;SLOT-&gt;ar, SLOT-&gt;ar );
+<a name="l02283"></a>02283                 WRITE_POD( &amp;SLOT-&gt;dr, SLOT-&gt;dr );
+<a name="l02284"></a>02284                 WRITE_POD( &amp;SLOT-&gt;rr, SLOT-&gt;rr );
+<a name="l02285"></a>02285                 WRITE_POD( &amp;SLOT-&gt;KSR, SLOT-&gt;KSR );
+<a name="l02286"></a>02286             WRITE_POD( &amp;SLOT-&gt;ksl, SLOT-&gt;ksl );
+<a name="l02287"></a>02287                 WRITE_POD( &amp;SLOT-&gt;mul, SLOT-&gt;mul );
+<a name="l02288"></a>02288 
+<a name="l02289"></a>02289                 WRITE_POD( &amp;SLOT-&gt;Cnt, SLOT-&gt;Cnt );
+<a name="l02290"></a>02290                 WRITE_POD( &amp;SLOT-&gt;FB, SLOT-&gt;FB );
+<a name="l02291"></a>02291                 WRITE_POD( &amp;SLOT-&gt;op1_out, SLOT-&gt;op1_out );
+<a name="l02292"></a>02292                 WRITE_POD( &amp;SLOT-&gt;CON, SLOT-&gt;CON );
+<a name="l02293"></a>02293 
+<a name="l02294"></a>02294                 WRITE_POD( &amp;SLOT-&gt;eg_type, SLOT-&gt;eg_type );
+<a name="l02295"></a>02295             WRITE_POD( &amp;SLOT-&gt;state, SLOT-&gt;state );
+<a name="l02296"></a>02296             WRITE_POD( &amp;SLOT-&gt;TL, SLOT-&gt;TL );
+<a name="l02297"></a>02297             WRITE_POD( &amp;SLOT-&gt;volume, SLOT-&gt;volume );
+<a name="l02298"></a>02298             WRITE_POD( &amp;SLOT-&gt;sl, SLOT-&gt;sl );
+<a name="l02299"></a>02299             WRITE_POD( &amp;SLOT-&gt;key, SLOT-&gt;key );
+<a name="l02300"></a>02300 
+<a name="l02301"></a>02301             WRITE_POD( &amp;SLOT-&gt;AMmask, SLOT-&gt;AMmask );
+<a name="l02302"></a>02302             WRITE_POD( &amp;SLOT-&gt;vib, SLOT-&gt;vib );
+<a name="l02303"></a>02303 
+<a name="l02304"></a>02304             WRITE_POD( &amp;SLOT-&gt;wavetable, SLOT-&gt;wavetable );
+<a name="l02305"></a>02305         }
+<a name="l02306"></a>02306         }
+<a name="l02307"></a>02307 }
+<a name="l02308"></a>02308 
+<a name="l02309"></a>02309 <span class="keywordtype">void</span> LoadState_Channel(OPL_CH *CH, std::istream&amp; stream) {
+<a name="l02310"></a>02310         <span class="keywordtype">int</span> slot, ch;
+<a name="l02311"></a>02311 
+<a name="l02312"></a>02312         <span class="keywordflow">for</span>( ch=0 ; ch &lt; 9 ; ch++, CH++ ) {
+<a name="l02313"></a>02313                 <span class="comment">/* channel */</span>
+<a name="l02314"></a>02314             READ_POD( &amp;CH-&gt;block_fnum, CH-&gt;block_fnum );
+<a name="l02315"></a>02315             READ_POD( &amp;CH-&gt;kcode, CH-&gt;kcode );
+<a name="l02316"></a>02316             <span class="comment">/* slots */</span>
+<a name="l02317"></a>02317                 <span class="keywordflow">for</span>( slot=0 ; slot &lt; 2 ; slot++ ) {
+<a name="l02318"></a>02318                 OPL_SLOT *SLOT = &amp;CH-&gt;SLOT[slot];
+<a name="l02319"></a>02319 
+<a name="l02320"></a>02320                 READ_POD( &amp;SLOT-&gt;ar, SLOT-&gt;ar );
+<a name="l02321"></a>02321                 READ_POD( &amp;SLOT-&gt;dr, SLOT-&gt;dr );
+<a name="l02322"></a>02322                 READ_POD( &amp;SLOT-&gt;rr, SLOT-&gt;rr );
+<a name="l02323"></a>02323                 READ_POD( &amp;SLOT-&gt;KSR, SLOT-&gt;KSR );
+<a name="l02324"></a>02324                 READ_POD( &amp;SLOT-&gt;ksl, SLOT-&gt;ksl );
+<a name="l02325"></a>02325                 READ_POD( &amp;SLOT-&gt;mul, SLOT-&gt;mul );
+<a name="l02326"></a>02326 
+<a name="l02327"></a>02327                 READ_POD( &amp;SLOT-&gt;Cnt, SLOT-&gt;Cnt );
+<a name="l02328"></a>02328                 READ_POD( &amp;SLOT-&gt;FB, SLOT-&gt;FB );
+<a name="l02329"></a>02329                 READ_POD( &amp;SLOT-&gt;op1_out, SLOT-&gt;op1_out );
+<a name="l02330"></a>02330                 READ_POD( &amp;SLOT-&gt;CON, SLOT-&gt;CON );
+<a name="l02331"></a>02331 
+<a name="l02332"></a>02332                 READ_POD( &amp;SLOT-&gt;eg_type, SLOT-&gt;eg_type );
+<a name="l02333"></a>02333             READ_POD( &amp;SLOT-&gt;state, SLOT-&gt;state );
+<a name="l02334"></a>02334             READ_POD( &amp;SLOT-&gt;TL, SLOT-&gt;TL );
+<a name="l02335"></a>02335             READ_POD( &amp;SLOT-&gt;volume, SLOT-&gt;volume );
+<a name="l02336"></a>02336             READ_POD( &amp;SLOT-&gt;sl, SLOT-&gt;sl );
+<a name="l02337"></a>02337             READ_POD( &amp;SLOT-&gt;key, SLOT-&gt;key );
+<a name="l02338"></a>02338 
+<a name="l02339"></a>02339             READ_POD( &amp;SLOT-&gt;AMmask, SLOT-&gt;AMmask );
+<a name="l02340"></a>02340             READ_POD( &amp;SLOT-&gt;vib, SLOT-&gt;vib );
+<a name="l02341"></a>02341 
+<a name="l02342"></a>02342             READ_POD( &amp;SLOT-&gt;wavetable, SLOT-&gt;wavetable );
+<a name="l02343"></a>02343         }
 <a name="l02344"></a>02344         }
-<a name="l02345"></a>02345 
-<a name="l02346"></a>02346 }
-<a name="l02347"></a>02347 <span class="preprocessor">#endif </span><span class="comment">/* BUILD_YM3526 */</span>
-<a name="l02348"></a>02348 
+<a name="l02345"></a>02345 }
+<a name="l02346"></a>02346 
+<a name="l02347"></a>02347 <span class="keywordtype">void</span> FMOPL_SaveState(<span class="keywordtype">void</span> *chip, std::ostream&amp; stream ) {
+<a name="l02348"></a>02348     FM_OPL *OPL = (FM_OPL *)chip;
 <a name="l02349"></a>02349 
-<a name="l02350"></a>02350 
+<a name="l02350"></a>02350     SaveState_Channel(OPL-&gt;P_CH, stream);
 <a name="l02351"></a>02351 
-<a name="l02352"></a>02352 <span class="preprocessor">#if BUILD_Y8950</span>
-<a name="l02353"></a>02353 <span class="preprocessor"></span>
-<a name="l02354"></a>02354 <span class="keyword">static</span> <span class="keywordtype">void</span> Y8950_deltat_status_set(<span class="keywordtype">void</span> *chip, uint8_t changebits)
-<a name="l02355"></a>02355 {
-<a name="l02356"></a>02356         FM_OPL *Y8950 = (FM_OPL *)chip;
-<a name="l02357"></a>02357         Y8950-&gt;STATUS_SET(changebits);
-<a name="l02358"></a>02358 }
-<a name="l02359"></a>02359 <span class="keyword">static</span> <span class="keywordtype">void</span> Y8950_deltat_status_reset(<span class="keywordtype">void</span> *chip, uint8_t changebits)
-<a name="l02360"></a>02360 {
-<a name="l02361"></a>02361         FM_OPL *Y8950 = (FM_OPL *)chip;
-<a name="l02362"></a>02362         Y8950-&gt;STATUS_RESET(changebits);
-<a name="l02363"></a>02363 }
-<a name="l02364"></a>02364 
-<a name="l02365"></a>02365 <span class="keywordtype">void</span> *y8950_init(<a class="code" href="classdevice__t.html">device_t</a> *device, uint32_t clock, uint32_t rate)
-<a name="l02366"></a>02366 {
-<a name="l02367"></a>02367         <span class="comment">/* emulator create */</span>
-<a name="l02368"></a>02368         FM_OPL *Y8950 = OPLCreate(device,clock,rate,OPL_TYPE_Y8950);
-<a name="l02369"></a>02369         <span class="keywordflow">if</span> (Y8950)
-<a name="l02370"></a>02370         {
-<a name="l02371"></a>02371                 Y8950-&gt;deltat-&gt;status_set_handler = Y8950_deltat_status_set;
-<a name="l02372"></a>02372                 Y8950-&gt;deltat-&gt;status_reset_handler = Y8950_deltat_status_reset;
-<a name="l02373"></a>02373                 Y8950-&gt;deltat-&gt;status_change_which_chip = Y8950;
-<a name="l02374"></a>02374                 Y8950-&gt;deltat-&gt;status_change_EOS_bit = 0x10;        <span class="comment">/* status flag: set bit4 on End Of Sample */</span>
-<a name="l02375"></a>02375                 Y8950-&gt;deltat-&gt;status_change_BRDY_bit = 0x08;   <span class="comment">/* status flag: set bit3 on BRDY (End Of: ADPCM analysis/synthesis, memory reading/writing) */</span>
-<a name="l02376"></a>02376 
-<a name="l02377"></a>02377                 <span class="comment">/*Y8950-&gt;deltat-&gt;write_time = 10.0 / clock;*/</span>       <span class="comment">/* a single byte write takes 10 cycles of main clock */</span>
-<a name="l02378"></a>02378                 <span class="comment">/*Y8950-&gt;deltat-&gt;read_time  = 8.0 / clock;*/</span>        <span class="comment">/* a single byte read takes 8 cycles of main clock */</span>
-<a name="l02379"></a>02379                 <span class="comment">/* reset */</span>
-<a name="l02380"></a>02380                 <span class="comment">//OPL_save_state(Y8950, device);</span>
-<a name="l02381"></a>02381                 y8950_reset_chip(Y8950);
-<a name="l02382"></a>02382         }
-<a name="l02383"></a>02383 
-<a name="l02384"></a>02384         <span class="keywordflow">return</span> Y8950;
-<a name="l02385"></a>02385 }
-<a name="l02386"></a>02386 
-<a name="l02387"></a>02387 <span class="keywordtype">void</span> y8950_shutdown(<span class="keywordtype">void</span> *chip)
-<a name="l02388"></a>02388 {
-<a name="l02389"></a>02389         FM_OPL *Y8950 = (FM_OPL *)chip;
-<a name="l02390"></a>02390         <span class="comment">/* emulator shutdown */</span>
-<a name="l02391"></a>02391         OPLDestroy(Y8950);
-<a name="l02392"></a>02392 }
-<a name="l02393"></a>02393 <span class="keywordtype">void</span> y8950_reset_chip(<span class="keywordtype">void</span> *chip)
-<a name="l02394"></a>02394 {
-<a name="l02395"></a>02395         FM_OPL *Y8950 = (FM_OPL *)chip;
-<a name="l02396"></a>02396         Y8950-&gt;ResetChip();
-<a name="l02397"></a>02397 }
+<a name="l02352"></a>02352     WRITE_POD(&amp;OPL-&gt;eg_cnt, OPL-&gt;eg_cnt);
+<a name="l02353"></a>02353     WRITE_POD(&amp;OPL-&gt;eg_timer, OPL-&gt;eg_timer);
+<a name="l02354"></a>02354     WRITE_POD(&amp;OPL-&gt;rhythm, OPL-&gt;rhythm);
+<a name="l02355"></a>02355 
+<a name="l02356"></a>02356     WRITE_POD(&amp;OPL-&gt;lfo_am_depth, OPL-&gt;lfo_am_depth);
+<a name="l02357"></a>02357     WRITE_POD(&amp;OPL-&gt;lfo_pm_depth_range, OPL-&gt;lfo_pm_depth_range);
+<a name="l02358"></a>02358     WRITE_POD(&amp;OPL-&gt;lfo_am_cnt, OPL-&gt;lfo_am_cnt);
+<a name="l02359"></a>02359     WRITE_POD(&amp;OPL-&gt;lfo_pm_cnt, OPL-&gt;lfo_pm_cnt);
+<a name="l02360"></a>02360 
+<a name="l02361"></a>02361     WRITE_POD(&amp;OPL-&gt;noise_rng, OPL-&gt;noise_rng);
+<a name="l02362"></a>02362     WRITE_POD(&amp;OPL-&gt;noise_p, OPL-&gt;noise_p);
+<a name="l02363"></a>02363 
+<a name="l02364"></a>02364         <span class="keywordflow">if</span>( OPL-&gt;type &amp; OPL_TYPE_WAVESEL ) {
+<a name="l02365"></a>02365         WRITE_POD(&amp;OPL-&gt;wavesel, OPL-&gt;wavesel);
+<a name="l02366"></a>02366         }
+<a name="l02367"></a>02367 
+<a name="l02368"></a>02368     WRITE_POD(&amp;OPL-&gt;T, OPL-&gt;T);
+<a name="l02369"></a>02369     WRITE_POD(&amp;OPL-&gt;st, OPL-&gt;st);
+<a name="l02370"></a>02370 
+<a name="l02371"></a>02371 <span class="preprocessor">#if BUILD_Y8950</span>
+<a name="l02372"></a>02372 <span class="preprocessor"></span>    <span class="comment">//ToDo - Bruenor</span>
+<a name="l02373"></a>02373         <span class="comment">/*if ( (OPL-&gt;type &amp; OPL_TYPE_ADPCM) &amp;&amp; (OPL-&gt;deltat) ) {</span>
+<a name="l02374"></a>02374 <span class="comment">                // OPL-&gt;deltat-&gt;savestate(device);</span>
+<a name="l02375"></a>02375 <span class="comment">        }</span>
+<a name="l02376"></a>02376 <span class="comment"></span>
+<a name="l02377"></a>02377 <span class="comment">        if ( OPL-&gt;type &amp; OPL_TYPE_IO ) {</span>
+<a name="l02378"></a>02378 <span class="comment">                // device-&gt;save_item(NAME(OPL-&gt;portDirection));</span>
+<a name="l02379"></a>02379 <span class="comment">                // device-&gt;save_item(NAME(OPL-&gt;portLatch));</span>
+<a name="l02380"></a>02380 <span class="comment">        }*/</span>
+<a name="l02381"></a>02381 <span class="preprocessor">#endif</span>
+<a name="l02382"></a>02382 <span class="preprocessor"></span>
+<a name="l02383"></a>02383     WRITE_POD(&amp;OPL-&gt;address, OPL-&gt;address);
+<a name="l02384"></a>02384     WRITE_POD(&amp;OPL-&gt;status, OPL-&gt;status);
+<a name="l02385"></a>02385     WRITE_POD(&amp;OPL-&gt;statusmask, OPL-&gt;statusmask);
+<a name="l02386"></a>02386     WRITE_POD(&amp;OPL-&gt;mode, OPL-&gt;mode);
+<a name="l02387"></a>02387 }
+<a name="l02388"></a>02388 
+<a name="l02389"></a>02389 <span class="keywordtype">void</span> FMOPL_LoadState(<span class="keywordtype">void</span> *chip, std::istream&amp; stream ) {
+<a name="l02390"></a>02390     FM_OPL *OPL = (FM_OPL *)chip;
+<a name="l02391"></a>02391 
+<a name="l02392"></a>02392     LoadState_Channel(OPL-&gt;P_CH, stream);
+<a name="l02393"></a>02393 
+<a name="l02394"></a>02394     READ_POD(&amp;OPL-&gt;eg_cnt, OPL-&gt;eg_cnt);
+<a name="l02395"></a>02395     READ_POD(&amp;OPL-&gt;eg_timer, OPL-&gt;eg_timer);
+<a name="l02396"></a>02396 
+<a name="l02397"></a>02397     READ_POD(&amp;OPL-&gt;rhythm, OPL-&gt;rhythm);
 <a name="l02398"></a>02398 
-<a name="l02399"></a>02399 <span class="keywordtype">int</span> y8950_write(<span class="keywordtype">void</span> *chip, <span class="keywordtype">int</span> a, <span class="keywordtype">int</span> v)
-<a name="l02400"></a>02400 {
-<a name="l02401"></a>02401         FM_OPL *Y8950 = (FM_OPL *)chip;
-<a name="l02402"></a>02402         <span class="keywordflow">return</span> OPLWrite(Y8950, a, v);
-<a name="l02403"></a>02403 }
-<a name="l02404"></a>02404 
-<a name="l02405"></a>02405 <span class="keywordtype">unsigned</span> <span class="keywordtype">char</span> y8950_read(<span class="keywordtype">void</span> *chip, <span class="keywordtype">int</span> a)
-<a name="l02406"></a>02406 {
-<a name="l02407"></a>02407         FM_OPL *Y8950 = (FM_OPL *)chip;
-<a name="l02408"></a>02408         <span class="keywordflow">return</span> OPLRead(Y8950, a);
-<a name="l02409"></a>02409 }
-<a name="l02410"></a>02410 <span class="keywordtype">int</span> y8950_timer_over(<span class="keywordtype">void</span> *chip, <span class="keywordtype">int</span> c)
-<a name="l02411"></a>02411 {
-<a name="l02412"></a>02412         FM_OPL *Y8950 = (FM_OPL *)chip;
-<a name="l02413"></a>02413         <span class="keywordflow">return</span> OPLTimerOver(Y8950, c);
-<a name="l02414"></a>02414 }
-<a name="l02415"></a>02415 
-<a name="l02416"></a>02416 <span class="keywordtype">void</span> y8950_set_timer_handler(<span class="keywordtype">void</span> *chip, OPL_TIMERHANDLER timer_handler, <a class="code" href="classdevice__t.html">device_t</a> *device)
-<a name="l02417"></a>02417 {
-<a name="l02418"></a>02418         FM_OPL *Y8950 = (FM_OPL *)chip;
-<a name="l02419"></a>02419         OPLSetTimerHandler(Y8950, timer_handler, device);
-<a name="l02420"></a>02420 }
-<a name="l02421"></a>02421 <span class="keywordtype">void</span> y8950_set_irq_handler(<span class="keywordtype">void</span> *chip,OPL_IRQHANDLER IRQHandler,<a class="code" href="classdevice__t.html">device_t</a> *device)
-<a name="l02422"></a>02422 {
-<a name="l02423"></a>02423         FM_OPL *Y8950 = (FM_OPL *)chip;
-<a name="l02424"></a>02424         OPLSetIRQHandler(Y8950, IRQHandler, device);
-<a name="l02425"></a>02425 }
-<a name="l02426"></a>02426 <span class="keywordtype">void</span> y8950_set_update_handler(<span class="keywordtype">void</span> *chip,OPL_UPDATEHANDLER UpdateHandler,<a class="code" href="classdevice__t.html">device_t</a> *device)
-<a name="l02427"></a>02427 {
-<a name="l02428"></a>02428         FM_OPL *Y8950 = (FM_OPL *)chip;
-<a name="l02429"></a>02429         OPLSetUpdateHandler(Y8950, UpdateHandler, device);
-<a name="l02430"></a>02430 }
-<a name="l02431"></a>02431 
-<a name="l02432"></a>02432 <span class="keywordtype">void</span> y8950_set_delta_t_memory(<span class="keywordtype">void</span> *chip, <span class="keywordtype">void</span> * deltat_mem_ptr, <span class="keywordtype">int</span> deltat_mem_size )
-<a name="l02433"></a>02433 {
-<a name="l02434"></a>02434         FM_OPL      *OPL = (FM_OPL *)chip;
-<a name="l02435"></a>02435         OPL-&gt;deltat-&gt;memory = (uint8_t *)(deltat_mem_ptr);
-<a name="l02436"></a>02436         OPL-&gt;deltat-&gt;memory_size = deltat_mem_size;
-<a name="l02437"></a>02437 }
-<a name="l02438"></a>02438 
-<a name="l02439"></a>02439 <span class="comment">/*</span>
-<a name="l02440"></a>02440 <span class="comment">** Generate samples for one of the Y8950&#39;s</span>
-<a name="l02441"></a>02441 <span class="comment">**</span>
-<a name="l02442"></a>02442 <span class="comment">** &#39;which&#39; is the virtual Y8950 number</span>
-<a name="l02443"></a>02443 <span class="comment">** &#39;*buffer&#39; is the output buffer pointer</span>
-<a name="l02444"></a>02444 <span class="comment">** &#39;length&#39; is the number of samples that should be generated</span>
-<a name="l02445"></a>02445 <span class="comment">*/</span>
-<a name="l02446"></a>02446 <span class="keywordtype">void</span> y8950_update_one(<span class="keywordtype">void</span> *chip, OPLSAMPLE *buffer, <span class="keywordtype">int</span> length)
+<a name="l02399"></a>02399     READ_POD(&amp;OPL-&gt;lfo_am_depth, OPL-&gt;lfo_am_depth);
+<a name="l02400"></a>02400     READ_POD(&amp;OPL-&gt;lfo_pm_depth_range, OPL-&gt;lfo_pm_depth_range);
+<a name="l02401"></a>02401     READ_POD(&amp;OPL-&gt;lfo_am_cnt, OPL-&gt;lfo_am_cnt);
+<a name="l02402"></a>02402     READ_POD(&amp;OPL-&gt;lfo_pm_cnt, OPL-&gt;lfo_pm_cnt);
+<a name="l02403"></a>02403 
+<a name="l02404"></a>02404     READ_POD(&amp;OPL-&gt;noise_rng, OPL-&gt;noise_rng);
+<a name="l02405"></a>02405     READ_POD(&amp;OPL-&gt;noise_p, OPL-&gt;noise_p);
+<a name="l02406"></a>02406 
+<a name="l02407"></a>02407         <span class="keywordflow">if</span>( OPL-&gt;type &amp; OPL_TYPE_WAVESEL ) {
+<a name="l02408"></a>02408         READ_POD(&amp;OPL-&gt;wavesel, OPL-&gt;wavesel);
+<a name="l02409"></a>02409         }
+<a name="l02410"></a>02410 
+<a name="l02411"></a>02411     READ_POD(&amp;OPL-&gt;T, OPL-&gt;T);
+<a name="l02412"></a>02412     READ_POD(&amp;OPL-&gt;st, OPL-&gt;st);
+<a name="l02413"></a>02413 
+<a name="l02414"></a>02414 <span class="preprocessor">#if BUILD_Y8950</span>
+<a name="l02415"></a>02415 <span class="preprocessor"></span>    <span class="comment">//ToDo - Bruenor</span>
+<a name="l02416"></a>02416 <span class="preprocessor">#endif</span>
+<a name="l02417"></a>02417 <span class="preprocessor"></span>
+<a name="l02418"></a>02418     READ_POD(&amp;OPL-&gt;address, OPL-&gt;address);
+<a name="l02419"></a>02419     READ_POD(&amp;OPL-&gt;status, OPL-&gt;status);
+<a name="l02420"></a>02420     READ_POD(&amp;OPL-&gt;statusmask, OPL-&gt;statusmask);
+<a name="l02421"></a>02421     READ_POD(&amp;OPL-&gt;mode, OPL-&gt;mode);
+<a name="l02422"></a>02422 }
+<a name="l02423"></a>02423 <span class="preprocessor">#endif </span><span class="comment">/* BUILD_YM3812 */</span>
+<a name="l02424"></a>02424 
+<a name="l02425"></a>02425 
+<a name="l02426"></a>02426 
+<a name="l02427"></a>02427 <span class="preprocessor">#if (BUILD_YM3526)</span>
+<a name="l02428"></a>02428 <span class="preprocessor"></span>
+<a name="l02429"></a>02429 <span class="keywordtype">void</span> ym3526_clock_changed(<span class="keywordtype">void</span> *chip, uint32_t clock, uint32_t rate)
+<a name="l02430"></a>02430 {
+<a name="l02431"></a>02431         OPL_clock_changed((FM_OPL *)chip, clock, rate);
+<a name="l02432"></a>02432 }
+<a name="l02433"></a>02433 
+<a name="l02434"></a>02434 <span class="keywordtype">void</span> *ym3526_init(<a class="code" href="classdevice__t.html">device_t</a> *device, uint32_t clock, uint32_t rate)
+<a name="l02435"></a>02435 {
+<a name="l02436"></a>02436         <span class="comment">/* emulator create */</span>
+<a name="l02437"></a>02437         FM_OPL *YM3526 = OPLCreate(device,clock,rate,OPL_TYPE_YM3526);
+<a name="l02438"></a>02438         <span class="keywordflow">if</span> (YM3526)
+<a name="l02439"></a>02439         {
+<a name="l02440"></a>02440                 <span class="comment">//OPL_save_state(YM3526, device);</span>
+<a name="l02441"></a>02441                 ym3526_reset_chip(YM3526);
+<a name="l02442"></a>02442         }
+<a name="l02443"></a>02443         <span class="keywordflow">return</span> YM3526;
+<a name="l02444"></a>02444 }
+<a name="l02445"></a>02445 
+<a name="l02446"></a>02446 <span class="keywordtype">void</span> ym3526_shutdown(<span class="keywordtype">void</span> *chip)
 <a name="l02447"></a>02447 {
-<a name="l02448"></a>02448         <span class="keywordtype">int</span> i;
-<a name="l02449"></a>02449         FM_OPL      *OPL = (FM_OPL *)chip;
-<a name="l02450"></a>02450         uint8_t       rhythm  = OPL-&gt;rhythm&amp;0x20;
-<a name="l02451"></a>02451         <a class="code" href="structYM__DELTAT.html">YM_DELTAT</a>   *DELTAT = OPL-&gt;deltat;
-<a name="l02452"></a>02452         OPLSAMPLE   *buf    = buffer;
-<a name="l02453"></a>02453 
-<a name="l02454"></a>02454         <span class="keywordflow">for</span>( i=0; i &lt; length ; i++ )
-<a name="l02455"></a>02455         {
-<a name="l02456"></a>02456                 <span class="keywordtype">int</span> lt;
+<a name="l02448"></a>02448         FM_OPL *YM3526 = (FM_OPL *)chip;
+<a name="l02449"></a>02449         <span class="comment">/* emulator shutdown */</span>
+<a name="l02450"></a>02450         OPLDestroy(YM3526);
+<a name="l02451"></a>02451 }
+<a name="l02452"></a>02452 <span class="keywordtype">void</span> ym3526_reset_chip(<span class="keywordtype">void</span> *chip)
+<a name="l02453"></a>02453 {
+<a name="l02454"></a>02454         FM_OPL *YM3526 = (FM_OPL *)chip;
+<a name="l02455"></a>02455         YM3526-&gt;ResetChip();
+<a name="l02456"></a>02456 }
 <a name="l02457"></a>02457 
-<a name="l02458"></a>02458                 OPL-&gt;output[0] = 0;
-<a name="l02459"></a>02459                 OPL-&gt;output_deltat[0] = 0;
-<a name="l02460"></a>02460 
-<a name="l02461"></a>02461                 OPL-&gt;advance_lfo();
-<a name="l02462"></a>02462 
-<a name="l02463"></a>02463                 <span class="comment">/* deltaT ADPCM */</span>
-<a name="l02464"></a>02464                 <span class="keywordflow">if</span>( DELTAT-&gt;portstate&amp;0x80 )
-<a name="l02465"></a>02465                         DELTAT-&gt;ADPCM_CALC();
-<a name="l02466"></a>02466 
-<a name="l02467"></a>02467                 <span class="comment">/* FM part */</span>
-<a name="l02468"></a>02468                 OPL-&gt;CALC_CH(OPL-&gt;P_CH[0]);
-<a name="l02469"></a>02469                 OPL-&gt;CALC_CH(OPL-&gt;P_CH[1]);
-<a name="l02470"></a>02470                 OPL-&gt;CALC_CH(OPL-&gt;P_CH[2]);
-<a name="l02471"></a>02471                 OPL-&gt;CALC_CH(OPL-&gt;P_CH[3]);
-<a name="l02472"></a>02472                 OPL-&gt;CALC_CH(OPL-&gt;P_CH[4]);
-<a name="l02473"></a>02473                 OPL-&gt;CALC_CH(OPL-&gt;P_CH[5]);
-<a name="l02474"></a>02474 
-<a name="l02475"></a>02475                 <span class="keywordflow">if</span>(!rhythm)
-<a name="l02476"></a>02476                 {
-<a name="l02477"></a>02477                         OPL-&gt;CALC_CH(OPL-&gt;P_CH[6]);
-<a name="l02478"></a>02478                         OPL-&gt;CALC_CH(OPL-&gt;P_CH[7]);
-<a name="l02479"></a>02479                         OPL-&gt;CALC_CH(OPL-&gt;P_CH[8]);
-<a name="l02480"></a>02480                 }
-<a name="l02481"></a>02481                 <span class="keywordflow">else</span>        <span class="comment">/* Rhythm part */</span>
-<a name="l02482"></a>02482                 {
-<a name="l02483"></a>02483                         OPL-&gt;CALC_RH();
-<a name="l02484"></a>02484                 }
-<a name="l02485"></a>02485 
-<a name="l02486"></a>02486                 lt = OPL-&gt;output[0] + (OPL-&gt;output_deltat[0]&gt;&gt;11);
-<a name="l02487"></a>02487 
-<a name="l02488"></a>02488                 lt &gt;&gt;= FINAL_SH;
-<a name="l02489"></a>02489 
-<a name="l02490"></a>02490                 <span class="comment">/* limit check */</span>
-<a name="l02491"></a>02491                 lt = limit( lt , MAXOUT, MINOUT );
+<a name="l02458"></a>02458 <span class="keywordtype">int</span> ym3526_write(<span class="keywordtype">void</span> *chip, <span class="keywordtype">int</span> a, <span class="keywordtype">int</span> v)
+<a name="l02459"></a>02459 {
+<a name="l02460"></a>02460         FM_OPL *YM3526 = (FM_OPL *)chip;
+<a name="l02461"></a>02461         <span class="keywordflow">return</span> OPLWrite(YM3526, a, v);
+<a name="l02462"></a>02462 }
+<a name="l02463"></a>02463 
+<a name="l02464"></a>02464 <span class="keywordtype">unsigned</span> <span class="keywordtype">char</span> ym3526_read(<span class="keywordtype">void</span> *chip, <span class="keywordtype">int</span> a)
+<a name="l02465"></a>02465 {
+<a name="l02466"></a>02466         FM_OPL *YM3526 = (FM_OPL *)chip;
+<a name="l02467"></a>02467         <span class="comment">/* YM3526 always returns bit2 and bit1 in HIGH state */</span>
+<a name="l02468"></a>02468         <span class="keywordflow">return</span> OPLRead(YM3526, a) | 0x06 ;
+<a name="l02469"></a>02469 }
+<a name="l02470"></a>02470 <span class="keywordtype">int</span> ym3526_timer_over(<span class="keywordtype">void</span> *chip, <span class="keywordtype">int</span> c)
+<a name="l02471"></a>02471 {
+<a name="l02472"></a>02472         FM_OPL *YM3526 = (FM_OPL *)chip;
+<a name="l02473"></a>02473         <span class="keywordflow">return</span> OPLTimerOver(YM3526, c);
+<a name="l02474"></a>02474 }
+<a name="l02475"></a>02475 
+<a name="l02476"></a>02476 <span class="keywordtype">void</span> ym3526_set_timer_handler(<span class="keywordtype">void</span> *chip, OPL_TIMERHANDLER timer_handler, <a class="code" href="classdevice__t.html">device_t</a> *device)
+<a name="l02477"></a>02477 {
+<a name="l02478"></a>02478         FM_OPL *YM3526 = (FM_OPL *)chip;
+<a name="l02479"></a>02479         OPLSetTimerHandler(YM3526, timer_handler, device);
+<a name="l02480"></a>02480 }
+<a name="l02481"></a>02481 <span class="keywordtype">void</span> ym3526_set_irq_handler(<span class="keywordtype">void</span> *chip,OPL_IRQHANDLER IRQHandler,<a class="code" href="classdevice__t.html">device_t</a> *device)
+<a name="l02482"></a>02482 {
+<a name="l02483"></a>02483         FM_OPL *YM3526 = (FM_OPL *)chip;
+<a name="l02484"></a>02484         OPLSetIRQHandler(YM3526, IRQHandler, device);
+<a name="l02485"></a>02485 }
+<a name="l02486"></a>02486 <span class="keywordtype">void</span> ym3526_set_update_handler(<span class="keywordtype">void</span> *chip,OPL_UPDATEHANDLER UpdateHandler,<a class="code" href="classdevice__t.html">device_t</a> *device)
+<a name="l02487"></a>02487 {
+<a name="l02488"></a>02488         FM_OPL *YM3526 = (FM_OPL *)chip;
+<a name="l02489"></a>02489         OPLSetUpdateHandler(YM3526, UpdateHandler, device);
+<a name="l02490"></a>02490 }
+<a name="l02491"></a>02491 
 <a name="l02492"></a>02492 
-<a name="l02493"></a>02493 <span class="preprocessor">                #ifdef SAVE_SAMPLE</span>
-<a name="l02494"></a>02494 <span class="preprocessor"></span>                <span class="keywordflow">if</span> (which==0)
-<a name="l02495"></a>02495                 {
-<a name="l02496"></a>02496                         SAVE_ALL_CHANNELS
-<a name="l02497"></a>02497                 }
-<a name="l02498"></a>02498 <span class="preprocessor">                #endif</span>
-<a name="l02499"></a>02499 <span class="preprocessor"></span>
-<a name="l02500"></a>02500                 <span class="comment">/* store to sound buffer */</span>
-<a name="l02501"></a>02501                 buf[i] = lt;
-<a name="l02502"></a>02502 
-<a name="l02503"></a>02503                 OPL-&gt;advance();
-<a name="l02504"></a>02504         }
-<a name="l02505"></a>02505 
-<a name="l02506"></a>02506 }
-<a name="l02507"></a>02507 
-<a name="l02508"></a>02508 <span class="keywordtype">void</span> y8950_set_port_handler(<span class="keywordtype">void</span> *chip,OPL_PORTHANDLER_W PortHandler_w,OPL_PORTHANDLER_R PortHandler_r,<a class="code" href="classdevice__t.html">device_t</a> *device)
-<a name="l02509"></a>02509 {
-<a name="l02510"></a>02510         FM_OPL      *OPL = (FM_OPL *)chip;
-<a name="l02511"></a>02511         OPL-&gt;porthandler_w = PortHandler_w;
-<a name="l02512"></a>02512         OPL-&gt;porthandler_r = PortHandler_r;
-<a name="l02513"></a>02513         OPL-&gt;port_param = device;
-<a name="l02514"></a>02514 }
-<a name="l02515"></a>02515 
-<a name="l02516"></a>02516 <span class="keywordtype">void</span> y8950_set_keyboard_handler(<span class="keywordtype">void</span> *chip,OPL_PORTHANDLER_W KeyboardHandler_w,OPL_PORTHANDLER_R KeyboardHandler_r,<a class="code" href="classdevice__t.html">device_t</a> *device)
-<a name="l02517"></a>02517 {
-<a name="l02518"></a>02518         FM_OPL      *OPL = (FM_OPL *)chip;
-<a name="l02519"></a>02519         OPL-&gt;keyboardhandler_w = KeyboardHandler_w;
-<a name="l02520"></a>02520         OPL-&gt;keyboardhandler_r = KeyboardHandler_r;
-<a name="l02521"></a>02521         OPL-&gt;keyboard_param = device;
-<a name="l02522"></a>02522 }
-<a name="l02523"></a>02523 
-<a name="l02524"></a>02524 
-<a name="l02525"></a>02525 <span class="preprocessor">#endif</span>
+<a name="l02493"></a>02493 <span class="comment">/*</span>
+<a name="l02494"></a>02494 <span class="comment">** Generate samples for one of the YM3526&#39;s</span>
+<a name="l02495"></a>02495 <span class="comment">**</span>
+<a name="l02496"></a>02496 <span class="comment">** &#39;which&#39; is the virtual YM3526 number</span>
+<a name="l02497"></a>02497 <span class="comment">** &#39;*buffer&#39; is the output buffer pointer</span>
+<a name="l02498"></a>02498 <span class="comment">** &#39;length&#39; is the number of samples that should be generated</span>
+<a name="l02499"></a>02499 <span class="comment">*/</span>
+<a name="l02500"></a>02500 <span class="keywordtype">void</span> ym3526_update_one(<span class="keywordtype">void</span> *chip, OPLSAMPLE *buffer, <span class="keywordtype">int</span> length)
+<a name="l02501"></a>02501 {
+<a name="l02502"></a>02502         FM_OPL      *OPL = (FM_OPL *)chip;
+<a name="l02503"></a>02503         uint8_t       rhythm = OPL-&gt;rhythm&amp;0x20;
+<a name="l02504"></a>02504         OPLSAMPLE   *buf = buffer;
+<a name="l02505"></a>02505         <span class="keywordtype">int</span> i;
+<a name="l02506"></a>02506 
+<a name="l02507"></a>02507         <span class="keywordflow">for</span>( i=0; i &lt; length ; i++ )
+<a name="l02508"></a>02508         {
+<a name="l02509"></a>02509                 <span class="keywordtype">int</span> lt;
+<a name="l02510"></a>02510 
+<a name="l02511"></a>02511                 OPL-&gt;output[0] = 0;
+<a name="l02512"></a>02512 
+<a name="l02513"></a>02513                 OPL-&gt;advance_lfo();
+<a name="l02514"></a>02514 
+<a name="l02515"></a>02515                 <span class="comment">/* FM part */</span>
+<a name="l02516"></a>02516                 OPL-&gt;CALC_CH(OPL-&gt;P_CH[0]);
+<a name="l02517"></a>02517                 OPL-&gt;CALC_CH(OPL-&gt;P_CH[1]);
+<a name="l02518"></a>02518                 OPL-&gt;CALC_CH(OPL-&gt;P_CH[2]);
+<a name="l02519"></a>02519                 OPL-&gt;CALC_CH(OPL-&gt;P_CH[3]);
+<a name="l02520"></a>02520                 OPL-&gt;CALC_CH(OPL-&gt;P_CH[4]);
+<a name="l02521"></a>02521                 OPL-&gt;CALC_CH(OPL-&gt;P_CH[5]);
+<a name="l02522"></a>02522 
+<a name="l02523"></a>02523                 <span class="keywordflow">if</span>(!rhythm)
+<a name="l02524"></a>02524                 {
+<a name="l02525"></a>02525                         OPL-&gt;CALC_CH(OPL-&gt;P_CH[6]);
+<a name="l02526"></a>02526                         OPL-&gt;CALC_CH(OPL-&gt;P_CH[7]);
+<a name="l02527"></a>02527                         OPL-&gt;CALC_CH(OPL-&gt;P_CH[8]);
+<a name="l02528"></a>02528                 }
+<a name="l02529"></a>02529                 <span class="keywordflow">else</span>        <span class="comment">/* Rhythm part */</span>
+<a name="l02530"></a>02530                 {
+<a name="l02531"></a>02531                         OPL-&gt;CALC_RH();
+<a name="l02532"></a>02532                 }
+<a name="l02533"></a>02533 
+<a name="l02534"></a>02534                 lt = OPL-&gt;output[0];
+<a name="l02535"></a>02535 
+<a name="l02536"></a>02536                 lt &gt;&gt;= FINAL_SH;
+<a name="l02537"></a>02537 
+<a name="l02538"></a>02538                 <span class="comment">/* limit check */</span>
+<a name="l02539"></a>02539                 lt = limit( lt , MAXOUT, MINOUT );
+<a name="l02540"></a>02540 
+<a name="l02541"></a>02541 <span class="preprocessor">                #ifdef SAVE_SAMPLE</span>
+<a name="l02542"></a>02542 <span class="preprocessor"></span>                <span class="keywordflow">if</span> (which==0)
+<a name="l02543"></a>02543                 {
+<a name="l02544"></a>02544                         SAVE_ALL_CHANNELS
+<a name="l02545"></a>02545                 }
+<a name="l02546"></a>02546 <span class="preprocessor">                #endif</span>
+<a name="l02547"></a>02547 <span class="preprocessor"></span>
+<a name="l02548"></a>02548                 <span class="comment">/* store to sound buffer */</span>
+<a name="l02549"></a>02549                 buf[i] = lt;
+<a name="l02550"></a>02550 
+<a name="l02551"></a>02551                 OPL-&gt;advance();
+<a name="l02552"></a>02552         }
+<a name="l02553"></a>02553 
+<a name="l02554"></a>02554 }
+<a name="l02555"></a>02555 <span class="preprocessor">#endif </span><span class="comment">/* BUILD_YM3526 */</span>
+<a name="l02556"></a>02556 
+<a name="l02557"></a>02557 
+<a name="l02558"></a>02558 
+<a name="l02559"></a>02559 
+<a name="l02560"></a>02560 <span class="preprocessor">#if BUILD_Y8950</span>
+<a name="l02561"></a>02561 <span class="preprocessor"></span>
+<a name="l02562"></a>02562 <span class="keyword">static</span> <span class="keywordtype">void</span> Y8950_deltat_status_set(<span class="keywordtype">void</span> *chip, uint8_t changebits)
+<a name="l02563"></a>02563 {
+<a name="l02564"></a>02564         FM_OPL *Y8950 = (FM_OPL *)chip;
+<a name="l02565"></a>02565         Y8950-&gt;STATUS_SET(changebits);
+<a name="l02566"></a>02566 }
+<a name="l02567"></a>02567 <span class="keyword">static</span> <span class="keywordtype">void</span> Y8950_deltat_status_reset(<span class="keywordtype">void</span> *chip, uint8_t changebits)
+<a name="l02568"></a>02568 {
+<a name="l02569"></a>02569         FM_OPL *Y8950 = (FM_OPL *)chip;
+<a name="l02570"></a>02570         Y8950-&gt;STATUS_RESET(changebits);
+<a name="l02571"></a>02571 }
+<a name="l02572"></a>02572 
+<a name="l02573"></a>02573 <span class="keywordtype">void</span> *y8950_init(<a class="code" href="classdevice__t.html">device_t</a> *device, uint32_t clock, uint32_t rate)
+<a name="l02574"></a>02574 {
+<a name="l02575"></a>02575         <span class="comment">/* emulator create */</span>
+<a name="l02576"></a>02576         FM_OPL *Y8950 = OPLCreate(device,clock,rate,OPL_TYPE_Y8950);
+<a name="l02577"></a>02577         <span class="keywordflow">if</span> (Y8950)
+<a name="l02578"></a>02578         {
+<a name="l02579"></a>02579                 Y8950-&gt;deltat-&gt;status_set_handler = Y8950_deltat_status_set;
+<a name="l02580"></a>02580                 Y8950-&gt;deltat-&gt;status_reset_handler = Y8950_deltat_status_reset;
+<a name="l02581"></a>02581                 Y8950-&gt;deltat-&gt;status_change_which_chip = Y8950;
+<a name="l02582"></a>02582                 Y8950-&gt;deltat-&gt;status_change_EOS_bit = 0x10;        <span class="comment">/* status flag: set bit4 on End Of Sample */</span>
+<a name="l02583"></a>02583                 Y8950-&gt;deltat-&gt;status_change_BRDY_bit = 0x08;   <span class="comment">/* status flag: set bit3 on BRDY (End Of: ADPCM analysis/synthesis, memory reading/writing) */</span>
+<a name="l02584"></a>02584 
+<a name="l02585"></a>02585                 <span class="comment">/*Y8950-&gt;deltat-&gt;write_time = 10.0 / clock;*/</span>       <span class="comment">/* a single byte write takes 10 cycles of main clock */</span>
+<a name="l02586"></a>02586                 <span class="comment">/*Y8950-&gt;deltat-&gt;read_time  = 8.0 / clock;*/</span>        <span class="comment">/* a single byte read takes 8 cycles of main clock */</span>
+<a name="l02587"></a>02587                 <span class="comment">/* reset */</span>
+<a name="l02588"></a>02588                 <span class="comment">//OPL_save_state(Y8950, device);</span>
+<a name="l02589"></a>02589                 y8950_reset_chip(Y8950);
+<a name="l02590"></a>02590         }
+<a name="l02591"></a>02591 
+<a name="l02592"></a>02592         <span class="keywordflow">return</span> Y8950;
+<a name="l02593"></a>02593 }
+<a name="l02594"></a>02594 
+<a name="l02595"></a>02595 <span class="keywordtype">void</span> y8950_shutdown(<span class="keywordtype">void</span> *chip)
+<a name="l02596"></a>02596 {
+<a name="l02597"></a>02597         FM_OPL *Y8950 = (FM_OPL *)chip;
+<a name="l02598"></a>02598         <span class="comment">/* emulator shutdown */</span>
+<a name="l02599"></a>02599         OPLDestroy(Y8950);
+<a name="l02600"></a>02600 }
+<a name="l02601"></a>02601 <span class="keywordtype">void</span> y8950_reset_chip(<span class="keywordtype">void</span> *chip)
+<a name="l02602"></a>02602 {
+<a name="l02603"></a>02603         FM_OPL *Y8950 = (FM_OPL *)chip;
+<a name="l02604"></a>02604         Y8950-&gt;ResetChip();
+<a name="l02605"></a>02605 }
+<a name="l02606"></a>02606 
+<a name="l02607"></a>02607 <span class="keywordtype">int</span> y8950_write(<span class="keywordtype">void</span> *chip, <span class="keywordtype">int</span> a, <span class="keywordtype">int</span> v)
+<a name="l02608"></a>02608 {
+<a name="l02609"></a>02609         FM_OPL *Y8950 = (FM_OPL *)chip;
+<a name="l02610"></a>02610         <span class="keywordflow">return</span> OPLWrite(Y8950, a, v);
+<a name="l02611"></a>02611 }
+<a name="l02612"></a>02612 
+<a name="l02613"></a>02613 <span class="keywordtype">unsigned</span> <span class="keywordtype">char</span> y8950_read(<span class="keywordtype">void</span> *chip, <span class="keywordtype">int</span> a)
+<a name="l02614"></a>02614 {
+<a name="l02615"></a>02615         FM_OPL *Y8950 = (FM_OPL *)chip;
+<a name="l02616"></a>02616         <span class="keywordflow">return</span> OPLRead(Y8950, a);
+<a name="l02617"></a>02617 }
+<a name="l02618"></a>02618 <span class="keywordtype">int</span> y8950_timer_over(<span class="keywordtype">void</span> *chip, <span class="keywordtype">int</span> c)
+<a name="l02619"></a>02619 {
+<a name="l02620"></a>02620         FM_OPL *Y8950 = (FM_OPL *)chip;
+<a name="l02621"></a>02621         <span class="keywordflow">return</span> OPLTimerOver(Y8950, c);
+<a name="l02622"></a>02622 }
+<a name="l02623"></a>02623 
+<a name="l02624"></a>02624 <span class="keywordtype">void</span> y8950_set_timer_handler(<span class="keywordtype">void</span> *chip, OPL_TIMERHANDLER timer_handler, <a class="code" href="classdevice__t.html">device_t</a> *device)
+<a name="l02625"></a>02625 {
+<a name="l02626"></a>02626         FM_OPL *Y8950 = (FM_OPL *)chip;
+<a name="l02627"></a>02627         OPLSetTimerHandler(Y8950, timer_handler, device);
+<a name="l02628"></a>02628 }
+<a name="l02629"></a>02629 <span class="keywordtype">void</span> y8950_set_irq_handler(<span class="keywordtype">void</span> *chip,OPL_IRQHANDLER IRQHandler,<a class="code" href="classdevice__t.html">device_t</a> *device)
+<a name="l02630"></a>02630 {
+<a name="l02631"></a>02631         FM_OPL *Y8950 = (FM_OPL *)chip;
+<a name="l02632"></a>02632         OPLSetIRQHandler(Y8950, IRQHandler, device);
+<a name="l02633"></a>02633 }
+<a name="l02634"></a>02634 <span class="keywordtype">void</span> y8950_set_update_handler(<span class="keywordtype">void</span> *chip,OPL_UPDATEHANDLER UpdateHandler,<a class="code" href="classdevice__t.html">device_t</a> *device)
+<a name="l02635"></a>02635 {
+<a name="l02636"></a>02636         FM_OPL *Y8950 = (FM_OPL *)chip;
+<a name="l02637"></a>02637         OPLSetUpdateHandler(Y8950, UpdateHandler, device);
+<a name="l02638"></a>02638 }
+<a name="l02639"></a>02639 
+<a name="l02640"></a>02640 <span class="keywordtype">void</span> y8950_set_delta_t_memory(<span class="keywordtype">void</span> *chip, <span class="keywordtype">void</span> * deltat_mem_ptr, <span class="keywordtype">int</span> deltat_mem_size )
+<a name="l02641"></a>02641 {
+<a name="l02642"></a>02642         FM_OPL      *OPL = (FM_OPL *)chip;
+<a name="l02643"></a>02643         OPL-&gt;deltat-&gt;memory = (uint8_t *)(deltat_mem_ptr);
+<a name="l02644"></a>02644         OPL-&gt;deltat-&gt;memory_size = deltat_mem_size;
+<a name="l02645"></a>02645 }
+<a name="l02646"></a>02646 
+<a name="l02647"></a>02647 <span class="comment">/*</span>
+<a name="l02648"></a>02648 <span class="comment">** Generate samples for one of the Y8950&#39;s</span>
+<a name="l02649"></a>02649 <span class="comment">**</span>
+<a name="l02650"></a>02650 <span class="comment">** &#39;which&#39; is the virtual Y8950 number</span>
+<a name="l02651"></a>02651 <span class="comment">** &#39;*buffer&#39; is the output buffer pointer</span>
+<a name="l02652"></a>02652 <span class="comment">** &#39;length&#39; is the number of samples that should be generated</span>
+<a name="l02653"></a>02653 <span class="comment">*/</span>
+<a name="l02654"></a>02654 <span class="keywordtype">void</span> y8950_update_one(<span class="keywordtype">void</span> *chip, OPLSAMPLE *buffer, <span class="keywordtype">int</span> length)
+<a name="l02655"></a>02655 {
+<a name="l02656"></a>02656         <span class="keywordtype">int</span> i;
+<a name="l02657"></a>02657         FM_OPL      *OPL = (FM_OPL *)chip;
+<a name="l02658"></a>02658         uint8_t       rhythm  = OPL-&gt;rhythm&amp;0x20;
+<a name="l02659"></a>02659         <a class="code" href="structYM__DELTAT.html">YM_DELTAT</a>   *DELTAT = OPL-&gt;deltat;
+<a name="l02660"></a>02660         OPLSAMPLE   *buf    = buffer;
+<a name="l02661"></a>02661 
+<a name="l02662"></a>02662         <span class="keywordflow">for</span>( i=0; i &lt; length ; i++ )
+<a name="l02663"></a>02663         {
+<a name="l02664"></a>02664                 <span class="keywordtype">int</span> lt;
+<a name="l02665"></a>02665 
+<a name="l02666"></a>02666                 OPL-&gt;output[0] = 0;
+<a name="l02667"></a>02667                 OPL-&gt;output_deltat[0] = 0;
+<a name="l02668"></a>02668 
+<a name="l02669"></a>02669                 OPL-&gt;advance_lfo();
+<a name="l02670"></a>02670 
+<a name="l02671"></a>02671                 <span class="comment">/* deltaT ADPCM */</span>
+<a name="l02672"></a>02672                 <span class="keywordflow">if</span>( DELTAT-&gt;portstate&amp;0x80 )
+<a name="l02673"></a>02673                         DELTAT-&gt;ADPCM_CALC();
+<a name="l02674"></a>02674 
+<a name="l02675"></a>02675                 <span class="comment">/* FM part */</span>
+<a name="l02676"></a>02676                 OPL-&gt;CALC_CH(OPL-&gt;P_CH[0]);
+<a name="l02677"></a>02677                 OPL-&gt;CALC_CH(OPL-&gt;P_CH[1]);
+<a name="l02678"></a>02678                 OPL-&gt;CALC_CH(OPL-&gt;P_CH[2]);
+<a name="l02679"></a>02679                 OPL-&gt;CALC_CH(OPL-&gt;P_CH[3]);
+<a name="l02680"></a>02680                 OPL-&gt;CALC_CH(OPL-&gt;P_CH[4]);
+<a name="l02681"></a>02681                 OPL-&gt;CALC_CH(OPL-&gt;P_CH[5]);
+<a name="l02682"></a>02682 
+<a name="l02683"></a>02683                 <span class="keywordflow">if</span>(!rhythm)
+<a name="l02684"></a>02684                 {
+<a name="l02685"></a>02685                         OPL-&gt;CALC_CH(OPL-&gt;P_CH[6]);
+<a name="l02686"></a>02686                         OPL-&gt;CALC_CH(OPL-&gt;P_CH[7]);
+<a name="l02687"></a>02687                         OPL-&gt;CALC_CH(OPL-&gt;P_CH[8]);
+<a name="l02688"></a>02688                 }
+<a name="l02689"></a>02689                 <span class="keywordflow">else</span>        <span class="comment">/* Rhythm part */</span>
+<a name="l02690"></a>02690                 {
+<a name="l02691"></a>02691                         OPL-&gt;CALC_RH();
+<a name="l02692"></a>02692                 }
+<a name="l02693"></a>02693 
+<a name="l02694"></a>02694                 lt = OPL-&gt;output[0] + (OPL-&gt;output_deltat[0]&gt;&gt;11);
+<a name="l02695"></a>02695 
+<a name="l02696"></a>02696                 lt &gt;&gt;= FINAL_SH;
+<a name="l02697"></a>02697 
+<a name="l02698"></a>02698                 <span class="comment">/* limit check */</span>
+<a name="l02699"></a>02699                 lt = limit( lt , MAXOUT, MINOUT );
+<a name="l02700"></a>02700 
+<a name="l02701"></a>02701 <span class="preprocessor">                #ifdef SAVE_SAMPLE</span>
+<a name="l02702"></a>02702 <span class="preprocessor"></span>                <span class="keywordflow">if</span> (which==0)
+<a name="l02703"></a>02703                 {
+<a name="l02704"></a>02704                         SAVE_ALL_CHANNELS
+<a name="l02705"></a>02705                 }
+<a name="l02706"></a>02706 <span class="preprocessor">                #endif</span>
+<a name="l02707"></a>02707 <span class="preprocessor"></span>
+<a name="l02708"></a>02708                 <span class="comment">/* store to sound buffer */</span>
+<a name="l02709"></a>02709                 buf[i] = lt;
+<a name="l02710"></a>02710 
+<a name="l02711"></a>02711                 OPL-&gt;advance();
+<a name="l02712"></a>02712         }
+<a name="l02713"></a>02713 
+<a name="l02714"></a>02714 }
+<a name="l02715"></a>02715 
+<a name="l02716"></a>02716 <span class="keywordtype">void</span> y8950_set_port_handler(<span class="keywordtype">void</span> *chip,OPL_PORTHANDLER_W PortHandler_w,OPL_PORTHANDLER_R PortHandler_r,<a class="code" href="classdevice__t.html">device_t</a> *device)
+<a name="l02717"></a>02717 {
+<a name="l02718"></a>02718         FM_OPL      *OPL = (FM_OPL *)chip;
+<a name="l02719"></a>02719         OPL-&gt;porthandler_w = PortHandler_w;
+<a name="l02720"></a>02720         OPL-&gt;porthandler_r = PortHandler_r;
+<a name="l02721"></a>02721         OPL-&gt;port_param = device;
+<a name="l02722"></a>02722 }
+<a name="l02723"></a>02723 
+<a name="l02724"></a>02724 <span class="keywordtype">void</span> y8950_set_keyboard_handler(<span class="keywordtype">void</span> *chip,OPL_PORTHANDLER_W KeyboardHandler_w,OPL_PORTHANDLER_R KeyboardHandler_r,<a class="code" href="classdevice__t.html">device_t</a> *device)
+<a name="l02725"></a>02725 {
+<a name="l02726"></a>02726         FM_OPL      *OPL = (FM_OPL *)chip;
+<a name="l02727"></a>02727         OPL-&gt;keyboardhandler_w = KeyboardHandler_w;
+<a name="l02728"></a>02728         OPL-&gt;keyboardhandler_r = KeyboardHandler_r;
+<a name="l02729"></a>02729         OPL-&gt;keyboard_param = device;
+<a name="l02730"></a>02730 }
+<a name="l02731"></a>02731 
+<a name="l02732"></a>02732 
+<a name="l02733"></a>02733 <span class="preprocessor">#endif</span>
 </pre></div></div><!-- contents -->
 
 
 <hr class="footer"/><address class="footer"><small>
-Generated on Tue Oct 1 2019 18:06:26 for DOSBox-X by &#160;<a href="http://www.doxygen.org/index.html">
+Generated on Sun Jul 5 2020 13:11:36 for DOSBox-X by &#160;<a href="http://www.doxygen.org/index.html">
 <img class="footer" src="doxygen.png" alt="doxygen"/>
 </a> 1.8.0
 </small></address>

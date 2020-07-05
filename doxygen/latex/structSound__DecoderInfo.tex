@@ -1,0 +1,84 @@
+\hypertarget{structSound__DecoderInfo}{\section{Sound\-\_\-\-Decoder\-Info Struct Reference}
+\label{structSound__DecoderInfo}\index{Sound\-\_\-\-Decoder\-Info@{Sound\-\_\-\-Decoder\-Info}}
+}
+
+
+Information about available soudn decoders.  
+
+
+
+
+{\ttfamily \#include $<$S\-D\-L\-\_\-sound.\-h$>$}
+
+\subsection*{Public Attributes}
+\begin{DoxyCompactItemize}
+\item 
+const char $\ast$$\ast$ \hyperlink{structSound__DecoderInfo_a9f11db9acb555302fd84509198683e2a}{extensions}
+\item 
+const char $\ast$ \hyperlink{structSound__DecoderInfo_ac1241b30e4121aedd4286351b27f93d5}{description}
+\item 
+const char $\ast$ \hyperlink{structSound__DecoderInfo_a1d3c5d5d46b0f5e5026944002e1d6e36}{author}
+\item 
+const char $\ast$ \hyperlink{structSound__DecoderInfo_aa983be8195cd74f7dcaab2f4788309fb}{url}
+\end{DoxyCompactItemize}
+
+
+\subsection{Detailed Description}
+Information about available soudn decoders. 
+
+Each decoder sets up one of these structs, which can be retrieved via the Sound\-\_\-\-Available\-Decoders() function. E\-V\-E\-R\-Y F\-I\-E\-L\-D I\-N T\-H\-I\-S I\-S R\-E\-A\-D-\/\-O\-N\-L\-Y.
+
+The extensions field is a N\-U\-L\-L-\/terminated list of A\-S\-C\-I\-Z strings. You should read it like this\-:
+
+
+\begin{DoxyCode}
+ const char **ext;
+ for (ext = info->extensions; *ext != NULL; ext++) {
+     printf("   File extension \"%s\"\n", *ext);
+ }
+\end{DoxyCode}
+
+
+\begin{DoxySeeAlso}{See also}
+Sound\-\_\-\-Available\-Decoders 
+\end{DoxySeeAlso}
+
+
+Definition at line 140 of file S\-D\-L\-\_\-sound.\-h.
+
+
+
+\subsection{Member Data Documentation}
+\hypertarget{structSound__DecoderInfo_a1d3c5d5d46b0f5e5026944002e1d6e36}{\index{Sound\-\_\-\-Decoder\-Info@{Sound\-\_\-\-Decoder\-Info}!author@{author}}
+\index{author@{author}!Sound_DecoderInfo@{Sound\-\_\-\-Decoder\-Info}}
+\subsubsection[{author}]{\setlength{\rightskip}{0pt plus 5cm}const char$\ast$ {\bf Sound\-\_\-\-Decoder\-Info\-::author}}}\label{structSound__DecoderInfo_a1d3c5d5d46b0f5e5026944002e1d6e36}
+\char`\"{}\-Name Of Author $<$email@emailhost.\-dom$>$\char`\"{} 
+
+Definition at line 144 of file S\-D\-L\-\_\-sound.\-h.
+
+\hypertarget{structSound__DecoderInfo_ac1241b30e4121aedd4286351b27f93d5}{\index{Sound\-\_\-\-Decoder\-Info@{Sound\-\_\-\-Decoder\-Info}!description@{description}}
+\index{description@{description}!Sound_DecoderInfo@{Sound\-\_\-\-Decoder\-Info}}
+\subsubsection[{description}]{\setlength{\rightskip}{0pt plus 5cm}const char$\ast$ {\bf Sound\-\_\-\-Decoder\-Info\-::description}}}\label{structSound__DecoderInfo_ac1241b30e4121aedd4286351b27f93d5}
+Human readable description of decoder. 
+
+Definition at line 143 of file S\-D\-L\-\_\-sound.\-h.
+
+\hypertarget{structSound__DecoderInfo_a9f11db9acb555302fd84509198683e2a}{\index{Sound\-\_\-\-Decoder\-Info@{Sound\-\_\-\-Decoder\-Info}!extensions@{extensions}}
+\index{extensions@{extensions}!Sound_DecoderInfo@{Sound\-\_\-\-Decoder\-Info}}
+\subsubsection[{extensions}]{\setlength{\rightskip}{0pt plus 5cm}const char$\ast$$\ast$ {\bf Sound\-\_\-\-Decoder\-Info\-::extensions}}}\label{structSound__DecoderInfo_a9f11db9acb555302fd84509198683e2a}
+File extensions, list ends with N\-U\-L\-L. 
+
+Definition at line 142 of file S\-D\-L\-\_\-sound.\-h.
+
+\hypertarget{structSound__DecoderInfo_aa983be8195cd74f7dcaab2f4788309fb}{\index{Sound\-\_\-\-Decoder\-Info@{Sound\-\_\-\-Decoder\-Info}!url@{url}}
+\index{url@{url}!Sound_DecoderInfo@{Sound\-\_\-\-Decoder\-Info}}
+\subsubsection[{url}]{\setlength{\rightskip}{0pt plus 5cm}const char$\ast$ {\bf Sound\-\_\-\-Decoder\-Info\-::url}}}\label{structSound__DecoderInfo_aa983be8195cd74f7dcaab2f4788309fb}
+U\-R\-L specific to this decoder. 
+
+Definition at line 145 of file S\-D\-L\-\_\-sound.\-h.
+
+
+
+The documentation for this struct was generated from the following file\-:\begin{DoxyCompactItemize}
+\item 
+src/libs/decoders/S\-D\-L\-\_\-sound.\-h\end{DoxyCompactItemize}

@@ -1,0 +1,85 @@
+\hypertarget{classOverlay__Drive}{\section{Overlay\-\_\-\-Drive Class Reference}
+\label{classOverlay__Drive}\index{Overlay\-\_\-\-Drive@{Overlay\-\_\-\-Drive}}
+}
+Inheritance diagram for Overlay\-\_\-\-Drive\-:\begin{figure}[H]
+\begin{center}
+\leavevmode
+\includegraphics[height=3.000000cm]{classOverlay__Drive}
+\end{center}
+\end{figure}
+\subsection*{Public Member Functions}
+\begin{DoxyCompactItemize}
+\item 
+\hypertarget{classOverlay__Drive_aafc1901de31ece7c6904118e3755f9cc}{{\bfseries Overlay\-\_\-\-Drive} (const char $\ast$startdir, const char $\ast$overlay, Bit16u \-\_\-bytes\-\_\-sector, Bit8u \-\_\-sectors\-\_\-cluster, Bit16u \-\_\-total\-\_\-clusters, Bit16u \-\_\-free\-\_\-clusters, Bit8u \-\_\-mediaid, Bit8u \&error, std\-::vector$<$ std\-::string $>$ \&options)}\label{classOverlay__Drive_aafc1901de31ece7c6904118e3755f9cc}
+
+\item 
+\hypertarget{classOverlay__Drive_acfb0b879fb91b038f0f6b8a4277d4577}{virtual bool {\bfseries File\-Open} (\hyperlink{classDOS__File}{D\-O\-S\-\_\-\-File} $\ast$$\ast$file, const char $\ast$name, Bit32u flags)}\label{classOverlay__Drive_acfb0b879fb91b038f0f6b8a4277d4577}
+
+\item 
+\hypertarget{classOverlay__Drive_a59947fc191882f1ee412e7e1a7c3aed4}{virtual bool {\bfseries File\-Create} (\hyperlink{classDOS__File}{D\-O\-S\-\_\-\-File} $\ast$$\ast$file, const char $\ast$name, Bit16u)}\label{classOverlay__Drive_a59947fc191882f1ee412e7e1a7c3aed4}
+
+\item 
+\hypertarget{classOverlay__Drive_abed255e88ae6b16ce51e040adb5a21da}{virtual bool {\bfseries Find\-First} (const char $\ast$\-\_\-dir, \hyperlink{classDOS__DTA}{D\-O\-S\-\_\-\-D\-T\-A} \&dta, bool fcb\-\_\-findfirst)}\label{classOverlay__Drive_abed255e88ae6b16ce51e040adb5a21da}
+
+\item 
+\hypertarget{classOverlay__Drive_af0066c9366aa8eb554893f9b338ddb76}{virtual bool {\bfseries Find\-Next} (\hyperlink{classDOS__DTA}{D\-O\-S\-\_\-\-D\-T\-A} \&dta)}\label{classOverlay__Drive_af0066c9366aa8eb554893f9b338ddb76}
+
+\item 
+\hypertarget{classOverlay__Drive_a06211e8916760d5b88fcef625a7b3168}{virtual bool {\bfseries File\-Unlink} (const char $\ast$name)}\label{classOverlay__Drive_a06211e8916760d5b88fcef625a7b3168}
+
+\item 
+\hypertarget{classOverlay__Drive_a00e13abca30fc9aaecd7445cfd8a0beb}{virtual bool {\bfseries Set\-File\-Attr} (const char $\ast$name, Bit16u attr)}\label{classOverlay__Drive_a00e13abca30fc9aaecd7445cfd8a0beb}
+
+\item 
+\hypertarget{classOverlay__Drive_ae42eacb74c8dee6dfb26f43e0be5ee6e}{virtual bool {\bfseries Get\-File\-Attr} (const char $\ast$name, Bit16u $\ast$attr)}\label{classOverlay__Drive_ae42eacb74c8dee6dfb26f43e0be5ee6e}
+
+\item 
+\hypertarget{classOverlay__Drive_a2f2fb05ecf1b9c50bf8736ba0eb4b158}{virtual bool {\bfseries File\-Exists} (const char $\ast$name)}\label{classOverlay__Drive_a2f2fb05ecf1b9c50bf8736ba0eb4b158}
+
+\item 
+\hypertarget{classOverlay__Drive_ae31742fe5278699503638791c2b7651a}{virtual bool {\bfseries Rename} (const char $\ast$oldname, const char $\ast$newname)}\label{classOverlay__Drive_ae31742fe5278699503638791c2b7651a}
+
+\item 
+\hypertarget{classOverlay__Drive_a651dff8d35a9575b2d84bc353bd3300e}{virtual bool {\bfseries File\-Stat} (const char $\ast$name, \hyperlink{structFileStat__Block}{File\-Stat\-\_\-\-Block} $\ast$const stat\-\_\-block)}\label{classOverlay__Drive_a651dff8d35a9575b2d84bc353bd3300e}
+
+\item 
+\hypertarget{classOverlay__Drive_a9510e57e848823ec054fd7bf00e38400}{virtual void {\bfseries Empty\-Cache} (void)}\label{classOverlay__Drive_a9510e57e848823ec054fd7bf00e38400}
+
+\item 
+\hypertarget{classOverlay__Drive_a6df91b2b965a9d9b299cd7068f1b1d54}{F\-I\-L\-E $\ast$ {\bfseries create\-\_\-file\-\_\-in\-\_\-overlay} (const char $\ast$dos\-\_\-filename, char const $\ast$mode)}\label{classOverlay__Drive_a6df91b2b965a9d9b299cd7068f1b1d54}
+
+\item 
+\hypertarget{classOverlay__Drive_a9db390cb67209040cb12e87d8844d1fa}{virtual Bits {\bfseries Un\-Mount} (void)}\label{classOverlay__Drive_a9db390cb67209040cb12e87d8844d1fa}
+
+\item 
+\hypertarget{classOverlay__Drive_a2c2a5df98a34259f41a3c4c9fcf9e057}{virtual bool {\bfseries Test\-Dir} (const char $\ast$dir)}\label{classOverlay__Drive_a2c2a5df98a34259f41a3c4c9fcf9e057}
+
+\item 
+\hypertarget{classOverlay__Drive_ad19396326de3796881062aa96bed0f59}{virtual bool {\bfseries Remove\-Dir} (const char $\ast$dir)}\label{classOverlay__Drive_ad19396326de3796881062aa96bed0f59}
+
+\item 
+\hypertarget{classOverlay__Drive_a16647b260ccf760b506894c5b920a79d}{virtual bool {\bfseries Make\-Dir} (const char $\ast$dir)}\label{classOverlay__Drive_a16647b260ccf760b506894c5b920a79d}
+
+\end{DoxyCompactItemize}
+\subsection*{Public Attributes}
+\begin{DoxyCompactItemize}
+\item 
+\hypertarget{classOverlay__Drive_ad8072b518286a6558d894bfd3d7067fc}{bool {\bfseries ovlnocachedir} = false}\label{classOverlay__Drive_ad8072b518286a6558d894bfd3d7067fc}
+
+\item 
+\hypertarget{classOverlay__Drive_a6324e8cd8eb193bf70d1208dad2b884e}{bool {\bfseries ovlreadonly} = false}\label{classOverlay__Drive_a6324e8cd8eb193bf70d1208dad2b884e}
+
+\end{DoxyCompactItemize}
+
+
+\subsection{Detailed Description}
+
+
+Definition at line 733 of file drives.\-h.
+
+
+
+The documentation for this class was generated from the following files\-:\begin{DoxyCompactItemize}
+\item 
+src/dos/drives.\-h\item 
+src/dos/drive\-\_\-local.\-cpp\end{DoxyCompactItemize}

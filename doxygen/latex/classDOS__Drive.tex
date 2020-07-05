@@ -4,7 +4,7 @@
 Inheritance diagram for D\-O\-S\-\_\-\-Drive\-:\begin{figure}[H]
 \begin{center}
 \leavevmode
-\includegraphics[height=4.000000cm]{classDOS__Drive}
+\includegraphics[height=3.000000cm]{classDOS__Drive}
 \end{center}
 \end{figure}
 \subsection*{Public Member Functions}
@@ -34,13 +34,25 @@ Inheritance diagram for D\-O\-S\-\_\-\-Drive\-:\begin{figure}[H]
 \hypertarget{classDOS__Drive_aa2feef7be81869b683b6945159df5149}{virtual bool {\bfseries Find\-Next} (\hyperlink{classDOS__DTA}{D\-O\-S\-\_\-\-D\-T\-A} \&dta)=0}\label{classDOS__Drive_aa2feef7be81869b683b6945159df5149}
 
 \item 
+\hypertarget{classDOS__Drive_a9551484da430c2c151836568ce65a0ae}{virtual bool {\bfseries Set\-File\-Attr} (const char $\ast$name, Bit16u attr)=0}\label{classDOS__Drive_a9551484da430c2c151836568ce65a0ae}
+
+\item 
 \hypertarget{classDOS__Drive_aff8f34bd9601bceeeb587fd0e4cd51bf}{virtual bool {\bfseries Get\-File\-Attr} (const char $\ast$name, Bit16u $\ast$attr)=0}\label{classDOS__Drive_aff8f34bd9601bceeeb587fd0e4cd51bf}
+
+\item 
+\hypertarget{classDOS__Drive_a938a47bb4008e40e4c808b6c89bac56d}{virtual bool {\bfseries Get\-File\-Attr\-Ex} (char $\ast$name, struct stat $\ast$status)=0}\label{classDOS__Drive_a938a47bb4008e40e4c808b6c89bac56d}
+
+\item 
+\hypertarget{classDOS__Drive_adc4d2fc3fd13bef5fb78dfa3941b746a}{virtual unsigned long {\bfseries Get\-Compressed\-Size} (char $\ast$name)=0}\label{classDOS__Drive_adc4d2fc3fd13bef5fb78dfa3941b746a}
 
 \item 
 \hypertarget{classDOS__Drive_a1329723ca172ad17e932caeb052469e8}{virtual bool {\bfseries Rename} (const char $\ast$oldname, const char $\ast$newname)=0}\label{classDOS__Drive_a1329723ca172ad17e932caeb052469e8}
 
 \item 
 \hypertarget{classDOS__Drive_a5e15b725bcef2e78fd17fad8981b560d}{virtual bool {\bfseries Allocation\-Info} (Bit16u $\ast$\-\_\-bytes\-\_\-sector, Bit8u $\ast$\-\_\-sectors\-\_\-cluster, Bit16u $\ast$\-\_\-total\-\_\-clusters, Bit16u $\ast$\-\_\-free\-\_\-clusters)=0}\label{classDOS__Drive_a5e15b725bcef2e78fd17fad8981b560d}
+
+\item 
+\hypertarget{classDOS__Drive_aff3f7c4f24a63e0f832f1a9a2c8eab3e}{virtual bool {\bfseries Allocation\-Info32} (Bit32u $\ast$\-\_\-bytes\-\_\-sector, Bit32u $\ast$\-\_\-sectors\-\_\-cluster, Bit32u $\ast$\-\_\-total\-\_\-clusters, Bit32u $\ast$\-\_\-free\-\_\-clusters)}\label{classDOS__Drive_aff3f7c4f24a63e0f832f1a9a2c8eab3e}
 
 \item 
 \hypertarget{classDOS__Drive_ac40baf5634ab1e58e38d0dda0dff3afb}{virtual bool {\bfseries File\-Exists} (const char $\ast$name)=0}\label{classDOS__Drive_ac40baf5634ab1e58e38d0dda0dff3afb}
@@ -70,10 +82,10 @@ Inheritance diagram for D\-O\-S\-\_\-\-Drive\-:\begin{figure}[H]
 \hypertarget{classDOS__Drive_af52e4214f17f23c70751df925582ba12}{virtual void {\bfseries closedir} (void $\ast$handle)}\label{classDOS__Drive_af52e4214f17f23c70751df925582ba12}
 
 \item 
-\hypertarget{classDOS__Drive_ac595d4546118da9910b2f736b7af1c41}{virtual bool {\bfseries read\-\_\-directory\-\_\-first} (void $\ast$handle, char $\ast$entry\-\_\-name, bool \&is\-\_\-directory)}\label{classDOS__Drive_ac595d4546118da9910b2f736b7af1c41}
+\hypertarget{classDOS__Drive_ad55c8cdb5a525576f78e6908a3f60179}{virtual bool {\bfseries read\-\_\-directory\-\_\-first} (void $\ast$handle, char $\ast$entry\-\_\-name, char $\ast$entry\-\_\-sname, bool \&is\-\_\-directory)}\label{classDOS__Drive_ad55c8cdb5a525576f78e6908a3f60179}
 
 \item 
-\hypertarget{classDOS__Drive_aaf4039f2a7830fab1b0c8603542f9f31}{virtual bool {\bfseries read\-\_\-directory\-\_\-next} (void $\ast$handle, char $\ast$entry\-\_\-name, bool \&is\-\_\-directory)}\label{classDOS__Drive_aaf4039f2a7830fab1b0c8603542f9f31}
+\hypertarget{classDOS__Drive_a6e5f92849f612dfaa5c00ebfb2ecdf1c}{virtual bool {\bfseries read\-\_\-directory\-\_\-next} (void $\ast$handle, char $\ast$entry\-\_\-name, char $\ast$entry\-\_\-sname, bool \&is\-\_\-directory)}\label{classDOS__Drive_a6e5f92849f612dfaa5c00ebfb2ecdf1c}
 
 \item 
 \hypertarget{classDOS__Drive_a64bf9af6eca73f8071c109a2d4c25d02}{virtual const char $\ast$ {\bfseries Get\-Info} (void)}\label{classDOS__Drive_a64bf9af6eca73f8071c109a2d4c25d02}
@@ -95,6 +107,12 @@ Inheritance diagram for D\-O\-S\-\_\-\-Drive\-:\begin{figure}[H]
 
 \item 
 \hypertarget{classDOS__Drive_a1007125b58463bbffb07d890fd6f1c61}{virtual void {\bfseries Activate} (void)}\label{classDOS__Drive_a1007125b58463bbffb07d890fd6f1c61}
+
+\item 
+\hypertarget{classDOS__Drive_a6efcbd5da595c208c9b3e803bb3377a8}{virtual void {\bfseries Save\-State} (std\-::ostream \&stream)}\label{classDOS__Drive_a6efcbd5da595c208c9b3e803bb3377a8}
+
+\item 
+\hypertarget{classDOS__Drive_ad78feb414f10958faefe4e7cfb489012}{virtual void {\bfseries Load\-State} (std\-::istream \&stream)}\label{classDOS__Drive_ad78feb414f10958faefe4e7cfb489012}
 
 \item 
 \hypertarget{classDOS__Drive_a706c444bff1a6155b5bdc15e8635ce73}{virtual void {\bfseries Update\-D\-P\-B} (unsigned char dos\-\_\-drive)}\label{classDOS__Drive_a706c444bff1a6155b5bdc15e8635ce73}
@@ -132,7 +150,7 @@ Inheritance diagram for D\-O\-S\-\_\-\-Drive\-:\begin{figure}[H]
 \subsection{Detailed Description}
 
 
-Definition at line 260 of file dos\-\_\-system.\-h.
+Definition at line 267 of file dos\-\_\-system.\-h.
 
 
 

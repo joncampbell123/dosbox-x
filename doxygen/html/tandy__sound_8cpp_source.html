@@ -96,7 +96,7 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 </div><!--header-->
 <div class="contents">
 <div class="fragment"><pre class="fragment"><a name="l00001"></a>00001 <span class="comment">/*</span>
-<a name="l00002"></a>00002 <span class="comment"> *  Copyright (C) 2002-2019  The DOSBox Team</span>
+<a name="l00002"></a>00002 <span class="comment"> *  Copyright (C) 2002-2020  The DOSBox Team</span>
 <a name="l00003"></a>00003 <span class="comment"> *</span>
 <a name="l00004"></a>00004 <span class="comment"> *  This program is free software; you can redistribute it and/or modify</span>
 <a name="l00005"></a>00005 <span class="comment"> *  it under the terms of the GNU General Public License as published by</span>
@@ -108,9 +108,9 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l00011"></a>00011 <span class="comment"> *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the</span>
 <a name="l00012"></a>00012 <span class="comment"> *  GNU General Public License for more details.</span>
 <a name="l00013"></a>00013 <span class="comment"> *</span>
-<a name="l00014"></a>00014 <span class="comment"> *  You should have received a copy of the GNU General Public License</span>
-<a name="l00015"></a>00015 <span class="comment"> *  along with this program; if not, write to the Free Software</span>
-<a name="l00016"></a>00016 <span class="comment"> *  Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1335, USA.</span>
+<a name="l00014"></a>00014 <span class="comment"> *  You should have received a copy of the GNU General Public License along</span>
+<a name="l00015"></a>00015 <span class="comment"> *  with this program; if not, write to the Free Software Foundation, Inc.,</span>
+<a name="l00016"></a>00016 <span class="comment"> *  51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.</span>
 <a name="l00017"></a>00017 <span class="comment"> */</span>
 <a name="l00018"></a>00018 
 <a name="l00019"></a>00019 <span class="comment">/* </span>
@@ -124,523 +124,489 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l00027"></a>00027 <span class="preprocessor">#include &quot;setup.h&quot;</span>
 <a name="l00028"></a>00028 <span class="preprocessor">#include &quot;pic.h&quot;</span>
 <a name="l00029"></a>00029 <span class="preprocessor">#include &quot;dma.h&quot;</span>
-<a name="l00030"></a>00030 <span class="preprocessor">#include &quot;hardware.h&quot;</span>
-<a name="l00031"></a>00031 <span class="preprocessor">#include &quot;control.h&quot;</span>
-<a name="l00032"></a>00032 <span class="preprocessor">#include &quot;sn76496.h&quot;</span>
-<a name="l00033"></a>00033 <span class="preprocessor">#include &lt;cstring&gt;</span>
-<a name="l00034"></a>00034 <span class="preprocessor">#include &lt;math.h&gt;</span>
-<a name="l00035"></a>00035 
-<a name="l00036"></a>00036 <span class="preprocessor">#define MAX_OUTPUT 0x7fff</span>
-<a name="l00037"></a>00037 <span class="preprocessor"></span><span class="preprocessor">#define STEP 0x10000</span>
-<a name="l00038"></a>00038 <span class="preprocessor"></span>
-<a name="l00039"></a>00039 <span class="comment">/* Formulas for noise generator */</span>
-<a name="l00040"></a>00040 <span class="comment">/* bit0 = output */</span>
-<a name="l00041"></a>00041 
-<a name="l00042"></a>00042 <span class="comment">/* noise feedback for white noise mode (verified on real SN76489 by John Kortink) */</span>
-<a name="l00043"></a>00043 <span class="preprocessor">#define FB_WNOISE 0x14002       </span><span class="comment">/* (16bits) bit16 = bit0(out) ^ bit2 ^ bit15 */</span>
-<a name="l00044"></a>00044 
-<a name="l00045"></a>00045 <span class="comment">/* noise feedback for periodic noise mode */</span>
-<a name="l00046"></a>00046 <span class="comment">//#define FB_PNOISE 0x10000 /* 16bit rorate */</span>
-<a name="l00047"></a>00047 <span class="preprocessor">#define FB_PNOISE 0x08000   </span><span class="comment">/* JH 981127 - fixes Do Run Run */</span>
-<a name="l00048"></a>00048 
-<a name="l00049"></a>00049 <span class="comment">/*</span>
-<a name="l00050"></a>00050 <span class="comment">0x08000 is definitely wrong. The Master System conversion of Marble Madness</span>
-<a name="l00051"></a>00051 <span class="comment">uses periodic noise as a baseline. With a 15-bit rotate, the bassline is</span>
-<a name="l00052"></a>00052 <span class="comment">out of tune.</span>
-<a name="l00053"></a>00053 <span class="comment">The 16-bit rotate has been confirmed against a real PAL Sega Master System 2.</span>
-<a name="l00054"></a>00054 <span class="comment">Hope that helps the System E stuff, more news on the PSG as and when!</span>
-<a name="l00055"></a>00055 <span class="comment">*/</span>
-<a name="l00056"></a>00056 
-<a name="l00057"></a>00057 <span class="comment">/* noise generator start preset (for periodic noise) */</span>
-<a name="l00058"></a>00058 <span class="preprocessor">#define NG_PRESET 0x0f35</span>
-<a name="l00059"></a>00059 <span class="preprocessor"></span>
-<a name="l00060"></a>00060 <span class="keyword">static</span> <span class="keyword">struct </span><a class="code" href="structSN76496.html">SN76496</a> sn;
-<a name="l00061"></a>00061 
-<a name="l00062"></a>00062 <span class="preprocessor">#define TDAC_DMA_BUFSIZE 1024</span>
-<a name="l00063"></a>00063 <span class="preprocessor"></span>
-<a name="l00064"></a>00064 <span class="keyword">static</span> <span class="keyword">struct </span>{
-<a name="l00065"></a>00065         <a class="code" href="classMixerChannel.html">MixerChannel</a> * chan;
-<a name="l00066"></a>00066         <span class="keywordtype">bool</span> enabled;
-<a name="l00067"></a>00067         Bitu last_write;
-<a name="l00068"></a>00068         <span class="keyword">struct </span>{
-<a name="l00069"></a>00069                 <a class="code" href="classMixerChannel.html">MixerChannel</a> * chan;
-<a name="l00070"></a>00070                 <span class="keywordtype">bool</span> enabled;
-<a name="l00071"></a>00071                 <span class="keyword">struct </span>{
-<a name="l00072"></a>00072                         Bitu base;
-<a name="l00073"></a>00073                         Bit8u irq,dma;
-<a name="l00074"></a>00074                 } hw;
-<a name="l00075"></a>00075                 <span class="keyword">struct </span>{
-<a name="l00076"></a>00076                         Bitu rate;
-<a name="l00077"></a>00077                         Bit8u buf[TDAC_DMA_BUFSIZE];
-<a name="l00078"></a>00078                         Bit8u last_sample;
-<a name="l00079"></a>00079                         <a class="code" href="classDmaChannel.html">DmaChannel</a> * chan;
-<a name="l00080"></a>00080                         <span class="keywordtype">bool</span> transfer_done;
-<a name="l00081"></a>00081                 } dma;
-<a name="l00082"></a>00082                 Bit8u mode,control;
-<a name="l00083"></a>00083                 Bit16u frequency;
-<a name="l00084"></a>00084                 Bit8u amplitude;
-<a name="l00085"></a>00085                 <span class="keywordtype">bool</span> irq_activated;
-<a name="l00086"></a>00086         } dac;
-<a name="l00087"></a>00087 } tandy;
+<a name="l00030"></a>00030 <span class="preprocessor">#include &quot;control.h&quot;</span>
+<a name="l00031"></a>00031 <span class="preprocessor">#include &quot;hardware.h&quot;</span>
+<a name="l00032"></a>00032 <span class="preprocessor">#include &lt;cstring&gt;</span>
+<a name="l00033"></a>00033 <span class="preprocessor">#include &lt;math.h&gt;</span>
+<a name="l00034"></a>00034 <span class="preprocessor">#include &quot;mame/emu.h&quot;</span>
+<a name="l00035"></a>00035 <span class="preprocessor">#include &quot;mame/sn76496.h&quot;</span>
+<a name="l00036"></a>00036 
+<a name="l00037"></a>00037 
+<a name="l00038"></a>00038 <span class="preprocessor">#define SOUND_CLOCK (14318180 / 4)</span>
+<a name="l00039"></a>00039 <span class="preprocessor"></span>
+<a name="l00040"></a>00040 <span class="preprocessor">#define TDAC_DMA_BUFSIZE 1024</span>
+<a name="l00041"></a>00041 <span class="preprocessor"></span>
+<a name="l00042"></a>00042 <span class="keyword">static</span> <span class="keyword">struct </span>{
+<a name="l00043"></a>00043         <a class="code" href="classMixerChannel.html">MixerChannel</a> * chan;
+<a name="l00044"></a>00044         <span class="keywordtype">bool</span> enabled;
+<a name="l00045"></a>00045         Bitu last_write;
+<a name="l00046"></a>00046         <span class="keyword">struct </span>{
+<a name="l00047"></a>00047                 <a class="code" href="classMixerChannel.html">MixerChannel</a> * chan;
+<a name="l00048"></a>00048                 <span class="keywordtype">bool</span> enabled;
+<a name="l00049"></a>00049                 <span class="keyword">struct </span>{
+<a name="l00050"></a>00050                         Bitu base;
+<a name="l00051"></a>00051                         Bit8u irq,dma;
+<a name="l00052"></a>00052                 } hw;
+<a name="l00053"></a>00053                 <span class="keyword">struct </span>{
+<a name="l00054"></a>00054                         Bitu rate;
+<a name="l00055"></a>00055                         Bit8u buf[TDAC_DMA_BUFSIZE];
+<a name="l00056"></a>00056                         Bit8u last_sample;
+<a name="l00057"></a>00057                         <a class="code" href="classDmaChannel.html">DmaChannel</a> * chan;
+<a name="l00058"></a>00058                         <span class="keywordtype">bool</span> transfer_done;
+<a name="l00059"></a>00059                 } dma;
+<a name="l00060"></a>00060                 Bit8u mode,control;
+<a name="l00061"></a>00061                 Bit16u frequency;
+<a name="l00062"></a>00062                 Bit8u amplitude;
+<a name="l00063"></a>00063                 <span class="keywordtype">bool</span> irq_activated;
+<a name="l00064"></a>00064         } dac;
+<a name="l00065"></a>00065 } tandy;
+<a name="l00066"></a>00066 
+<a name="l00067"></a>00067 <span class="keyword">static</span> <a class="code" href="classsn76496__device.html">sn76496_device</a> device_sn76496(<a class="code" href="structmachine__config.html">machine_config</a>(), 0, 0, SOUND_CLOCK );
+<a name="l00068"></a>00068 <span class="keyword">static</span> <a class="code" href="classncr8496__device.html">ncr8496_device</a> device_ncr8496(<a class="code" href="structmachine__config.html">machine_config</a>(), 0, 0, SOUND_CLOCK);
+<a name="l00069"></a>00069 
+<a name="l00070"></a>00070 <span class="keyword">static</span> <a class="code" href="classsn76496__base__device.html">sn76496_base_device</a>* activeDevice = &amp;device_ncr8496;
+<a name="l00071"></a>00071 <span class="preprocessor">#define device (*activeDevice)</span>
+<a name="l00072"></a>00072 <span class="preprocessor"></span>
+<a name="l00073"></a>00073 <span class="keyword">static</span> <span class="keywordtype">void</span> SN76496Write(Bitu <span class="comment">/*port*/</span>,Bitu data,Bitu <span class="comment">/*iolen*/</span>) {
+<a name="l00074"></a>00074         tandy.last_write=PIC_Ticks;
+<a name="l00075"></a>00075         <span class="keywordflow">if</span> (!tandy.enabled) {
+<a name="l00076"></a>00076                 tandy.chan-&gt;Enable(<span class="keyword">true</span>);
+<a name="l00077"></a>00077                 tandy.enabled=<span class="keyword">true</span>;
+<a name="l00078"></a>00078         }
+<a name="l00079"></a>00079 
+<a name="l00080"></a>00080         <span class="comment">// assume state change, always.</span>
+<a name="l00081"></a>00081         <span class="comment">// this hack allows sample accurate rendering without enabling sample accurate mode in the mixer.</span>
+<a name="l00082"></a>00082         tandy.chan-&gt;FillUp();
+<a name="l00083"></a>00083 
+<a name="l00084"></a>00084         device.write((uint8_t)data);
+<a name="l00085"></a>00085 
+<a name="l00086"></a>00086 <span class="comment">//      LOG_MSG(&quot;3voice write %X at time %7.3f&quot;,data,PIC_FullIndex());</span>
+<a name="l00087"></a>00087 }
 <a name="l00088"></a>00088 
-<a name="l00089"></a>00089 <span class="keywordtype">void</span> SN76496Write(<span class="keyword">struct</span> <a class="code" href="structSN76496.html">SN76496</a> *R,Bitu port,Bitu data) {
-<a name="l00090"></a>00090     (void)port;<span class="comment">//UNUSED</span>
-<a name="l00091"></a>00091         <span class="comment">/* update the output buffer before changing the registers */</span>
-<a name="l00092"></a>00092 
-<a name="l00093"></a>00093         <span class="keywordflow">if</span> (data &amp; 0x80)
-<a name="l00094"></a>00094         {
-<a name="l00095"></a>00095                 <span class="keywordtype">int</span> r = int((data &amp; 0x70u) &gt;&gt; 4u);
-<a name="l00096"></a>00096                 <span class="keywordtype">int</span> c = r/2;
-<a name="l00097"></a>00097 
-<a name="l00098"></a>00098                 R-&gt;LastRegister = r;
-<a name="l00099"></a>00099                 R-&gt;Register[r] = int(((<span class="keywordtype">unsigned</span> <span class="keywordtype">int</span>)R-&gt;Register[r] &amp; 0x3f0u) | (data &amp; 0x0fu));
-<a name="l00100"></a>00100                 <span class="keywordflow">switch</span> (r)
-<a name="l00101"></a>00101                 {
-<a name="l00102"></a>00102                         <span class="keywordflow">case</span> 0: <span class="comment">/* tone 0 : frequency */</span>
-<a name="l00103"></a>00103                         <span class="keywordflow">case</span> 2: <span class="comment">/* tone 1 : frequency */</span>
-<a name="l00104"></a>00104                         <span class="keywordflow">case</span> 4: <span class="comment">/* tone 2 : frequency */</span>
-<a name="l00105"></a>00105                                 R-&gt;Period[c] = (int)R-&gt;UpdateStep * R-&gt;Register[r];
-<a name="l00106"></a>00106                                 if (R-&gt;Period[c] == 0) R-&gt;Period[c] = 0x3fe;
-<a name="l00107"></a>00107                                 <span class="keywordflow">if</span> (r == 4)
-<a name="l00108"></a>00108                                 {
-<a name="l00109"></a>00109                                         <span class="comment">/* update noise shift frequency */</span>
-<a name="l00110"></a>00110                                         <span class="keywordflow">if</span> ((R-&gt;Register[6] &amp; 0x03) == 0x03)
-<a name="l00111"></a>00111                                                 R-&gt;Period[3] = 2 * R-&gt;Period[2];
-<a name="l00112"></a>00112                                 }
-<a name="l00113"></a>00113                                 <span class="keywordflow">break</span>;
-<a name="l00114"></a>00114                         <span class="keywordflow">case</span> 1: <span class="comment">/* tone 0 : volume */</span>
-<a name="l00115"></a>00115                         <span class="keywordflow">case</span> 3: <span class="comment">/* tone 1 : volume */</span>
-<a name="l00116"></a>00116                         <span class="keywordflow">case</span> 5: <span class="comment">/* tone 2 : volume */</span>
-<a name="l00117"></a>00117                         <span class="keywordflow">case</span> 7: <span class="comment">/* noise  : volume */</span>
-<a name="l00118"></a>00118                                 R-&gt;Volume[c] = R-&gt;VolTable[data &amp; 0x0f];
-<a name="l00119"></a>00119                                 <span class="keywordflow">break</span>;
-<a name="l00120"></a>00120                         <span class="keywordflow">case</span> 6: <span class="comment">/* noise  : frequency, mode */</span>
-<a name="l00121"></a>00121                                 {
-<a name="l00122"></a>00122                                         <span class="keywordtype">int</span> n = R-&gt;Register[6];
-<a name="l00123"></a>00123                                         R-&gt;NoiseFB = (n &amp; 4) ? FB_WNOISE : FB_PNOISE;
-<a name="l00124"></a>00124                                         n &amp;= 3;
-<a name="l00125"></a>00125                                         <span class="comment">/* N/512,N/1024,N/2048,Tone #3 output */</span>
-<a name="l00126"></a>00126                                         R-&gt;Period[3] = (int)((n == 3) ? 2 * R-&gt;Period[2] : (int)(R-&gt;UpdateStep &lt;&lt; (5+n)));
+<a name="l00089"></a>00089 <span class="keyword">static</span> <span class="keywordtype">void</span> SN76496Update(Bitu length) {
+<a name="l00090"></a>00090         <span class="comment">//Disable the channel if it&#39;s been quiet for a while</span>
+<a name="l00091"></a>00091         <span class="keywordflow">if</span> ((tandy.last_write+5000)&lt;PIC_Ticks) {
+<a name="l00092"></a>00092                 tandy.enabled=<span class="keyword">false</span>;
+<a name="l00093"></a>00093                 tandy.chan-&gt;Enable(<span class="keyword">false</span>);
+<a name="l00094"></a>00094                 <span class="keywordflow">return</span>;
+<a name="l00095"></a>00095         }
+<a name="l00096"></a>00096         <span class="keyword">const</span> Bitu MAX_SAMPLES = 2048;
+<a name="l00097"></a>00097         <span class="keywordflow">if</span> (length &gt; MAX_SAMPLES)
+<a name="l00098"></a>00098                 <span class="keywordflow">return</span>;
+<a name="l00099"></a>00099         Bit16s buffer[MAX_SAMPLES];
+<a name="l00100"></a>00100         Bit16s* outputs = buffer;
+<a name="l00101"></a>00101 
+<a name="l00102"></a>00102         <a class="code" href="structdevice__sound__interface_1_1sound__stream.html">device_sound_interface::sound_stream</a> stream;
+<a name="l00103"></a>00103         <span class="keyword">static_cast&lt;</span><a class="code" href="classdevice__sound__interface.html">device_sound_interface</a>&amp;<span class="keyword">&gt;</span>(device).sound_stream_update(stream, 0, &amp;outputs, (<span class="keywordtype">int</span>)length);
+<a name="l00104"></a>00104         tandy.chan-&gt;AddSamples_m16(length, buffer);
+<a name="l00105"></a>00105 }
+<a name="l00106"></a>00106 
+<a name="l00107"></a>00107 <span class="keywordtype">bool</span> TS_Get_Address(Bitu&amp; tsaddr, Bitu&amp; tsirq, Bitu&amp; tsdma) {
+<a name="l00108"></a>00108         tsaddr=0;
+<a name="l00109"></a>00109         tsirq =0;
+<a name="l00110"></a>00110         tsdma =0;
+<a name="l00111"></a>00111         <span class="keywordflow">if</span> (tandy.dac.enabled) {
+<a name="l00112"></a>00112                 tsaddr=tandy.dac.hw.base;
+<a name="l00113"></a>00113                 tsirq =tandy.dac.hw.irq;
+<a name="l00114"></a>00114                 tsdma =tandy.dac.hw.dma;
+<a name="l00115"></a>00115                 <span class="keywordflow">return</span> <span class="keyword">true</span>;
+<a name="l00116"></a>00116         }
+<a name="l00117"></a>00117         <span class="keywordflow">return</span> <span class="keyword">false</span>;
+<a name="l00118"></a>00118 }
+<a name="l00119"></a>00119 
+<a name="l00120"></a>00120 
+<a name="l00121"></a>00121 <span class="keyword">static</span> <span class="keywordtype">void</span> TandyDAC_DMA_CallBack(<a class="code" href="classDmaChannel.html">DmaChannel</a> * <span class="comment">/*chan*/</span>, DMAEvent event) {
+<a name="l00122"></a>00122         <span class="keywordflow">if</span> (event == DMA_REACHED_TC) {
+<a name="l00123"></a>00123                 tandy.dac.dma.transfer_done=<span class="keyword">true</span>;
+<a name="l00124"></a>00124                 PIC_ActivateIRQ(tandy.dac.hw.irq);
+<a name="l00125"></a>00125         }
+<a name="l00126"></a>00126 }
 <a name="l00127"></a>00127 
-<a name="l00128"></a>00128                                         <span class="comment">/* reset noise shifter */</span>
-<a name="l00129"></a>00129 <span class="comment">//                                      R-&gt;RNG = NG_PRESET;</span>
-<a name="l00130"></a>00130 <span class="comment">//                                      R-&gt;Output[3] = R-&gt;RNG &amp; 1;</span>
-<a name="l00131"></a>00131                                 }
-<a name="l00132"></a>00132                                 <span class="keywordflow">break</span>;
-<a name="l00133"></a>00133                 }
-<a name="l00134"></a>00134         }
-<a name="l00135"></a>00135         <span class="keywordflow">else</span>
-<a name="l00136"></a>00136         {
-<a name="l00137"></a>00137                 <span class="keywordtype">int</span> r = R-&gt;LastRegister;
-<a name="l00138"></a>00138                 <span class="keywordtype">int</span> c = r/2;
-<a name="l00139"></a>00139 
-<a name="l00140"></a>00140                 <span class="keywordflow">switch</span> (r)
-<a name="l00141"></a>00141                 {
-<a name="l00142"></a>00142                         <span class="keywordflow">case</span> 0: <span class="comment">/* tone 0 : frequency */</span>
-<a name="l00143"></a>00143                         <span class="keywordflow">case</span> 2: <span class="comment">/* tone 1 : frequency */</span>
-<a name="l00144"></a>00144                         <span class="keywordflow">case</span> 4: <span class="comment">/* tone 2 : frequency */</span>
-<a name="l00145"></a>00145                                 R-&gt;Register[r] = int(((<span class="keywordtype">unsigned</span> <span class="keywordtype">int</span>)R-&gt;Register[r] &amp; 0x0fu) | ((data &amp; 0x3fu) &lt;&lt; 4u));
-<a name="l00146"></a>00146                                 R-&gt;Period[c] = (int)R-&gt;UpdateStep * R-&gt;Register[r];
-<a name="l00147"></a>00147                                 if (R-&gt;Period[c] == 0) R-&gt;Period[c] = 0x3fe;
-<a name="l00148"></a>00148                                 <span class="keywordflow">if</span> (r == 4)
-<a name="l00149"></a>00149                                 {
-<a name="l00150"></a>00150                                         <span class="comment">/* update noise shift frequency */</span>
-<a name="l00151"></a>00151                                         <span class="keywordflow">if</span> ((R-&gt;Register[6] &amp; 0x03) == 0x03)
-<a name="l00152"></a>00152                                                 R-&gt;Period[3] = 2 * R-&gt;Period[2];
+<a name="l00128"></a>00128 <span class="keyword">static</span> <span class="keywordtype">void</span> TandyDACModeChanged(<span class="keywordtype">void</span>) {
+<a name="l00129"></a>00129         <span class="keywordflow">switch</span> (tandy.dac.mode&amp;3) {
+<a name="l00130"></a>00130         <span class="keywordflow">case</span> 0:
+<a name="l00131"></a>00131                 <span class="comment">// joystick mode</span>
+<a name="l00132"></a>00132                 <span class="keywordflow">break</span>;
+<a name="l00133"></a>00133         <span class="keywordflow">case</span> 1:
+<a name="l00134"></a>00134                 <span class="keywordflow">break</span>;
+<a name="l00135"></a>00135         <span class="keywordflow">case</span> 2:
+<a name="l00136"></a>00136                 <span class="comment">// recording</span>
+<a name="l00137"></a>00137                 <span class="keywordflow">break</span>;
+<a name="l00138"></a>00138         <span class="keywordflow">case</span> 3:
+<a name="l00139"></a>00139                 <span class="comment">// playback</span>
+<a name="l00140"></a>00140                 tandy.dac.chan-&gt;FillUp();
+<a name="l00141"></a>00141                 <span class="keywordflow">if</span> (tandy.dac.frequency!=0) {
+<a name="l00142"></a>00142                         <span class="keywordtype">float</span> freq=3579545.0f/((float)tandy.dac.frequency);
+<a name="l00143"></a>00143                         tandy.dac.chan-&gt;SetFreq((Bitu)freq);
+<a name="l00144"></a>00144                         <span class="keywordtype">float</span> vol=((float)tandy.dac.amplitude)/7.0f;
+<a name="l00145"></a>00145                         tandy.dac.chan-&gt;SetVolume(vol,vol);
+<a name="l00146"></a>00146                         <span class="keywordflow">if</span> ((tandy.dac.mode&amp;0x0c)==0x0c) {
+<a name="l00147"></a>00147                                 tandy.dac.dma.transfer_done=<span class="keyword">false</span>;
+<a name="l00148"></a>00148                                 tandy.dac.dma.chan=GetDMAChannel(tandy.dac.hw.dma);
+<a name="l00149"></a>00149                                 <span class="keywordflow">if</span> (tandy.dac.dma.chan) {
+<a name="l00150"></a>00150                                         tandy.dac.dma.chan-&gt;Register_Callback(TandyDAC_DMA_CallBack);
+<a name="l00151"></a>00151                                         tandy.dac.chan-&gt;Enable(<span class="keyword">true</span>);
+<a name="l00152"></a>00152 <span class="comment">//                                      LOG_MSG(&quot;Tandy DAC: playback started with freqency %f, volume %f&quot;,freq,vol);</span>
 <a name="l00153"></a>00153                                 }
-<a name="l00154"></a>00154                                 <span class="keywordflow">break</span>;
+<a name="l00154"></a>00154                         }
 <a name="l00155"></a>00155                 }
-<a name="l00156"></a>00156         }
-<a name="l00157"></a>00157 }
-<a name="l00158"></a>00158 
-<a name="l00159"></a>00159 <span class="keywordtype">void</span> SN76496Update(<span class="keyword">struct</span> <a class="code" href="structSN76496.html">SN76496</a> *R, Bit16s *buffer, Bitu length) {
-<a name="l00160"></a>00160         <span class="keywordtype">int</span> i;
-<a name="l00161"></a>00161 
-<a name="l00162"></a>00162         <span class="comment">/* If the volume is 0, increase the counter */</span>
-<a name="l00163"></a>00163         <span class="keywordflow">for</span> (i = 0;i &lt; 4;i++)
-<a name="l00164"></a>00164         {
-<a name="l00165"></a>00165                 <span class="keywordflow">if</span> (R-&gt;Volume[i] == 0)
-<a name="l00166"></a>00166                 {
-<a name="l00167"></a>00167                         <span class="comment">/* note that I do count += length, NOT count = length + 1. You might think */</span>
-<a name="l00168"></a>00168                         <span class="comment">/* it&#39;s the same since the volume is 0, but doing the latter could cause */</span>
-<a name="l00169"></a>00169                         <span class="comment">/* interferencies when the program is rapidly modulating the volume. */</span>
-<a name="l00170"></a>00170                         <span class="keywordflow">if</span> (R-&gt;Count[i] &lt;= (<span class="keywordtype">int</span>)length*STEP) R-&gt;Count[i] += (int)length*STEP;
-<a name="l00171"></a>00171                 }
-<a name="l00172"></a>00172         }
-<a name="l00173"></a>00173 
-<a name="l00174"></a>00174         Bitu count=length;
-<a name="l00175"></a>00175         <span class="keywordflow">while</span> (count)
-<a name="l00176"></a>00176         {
-<a name="l00177"></a>00177                 <span class="keywordtype">int</span> vol[4];
-<a name="l00178"></a>00178                 <span class="keywordtype">unsigned</span> <span class="keywordtype">int</span> out;
-<a name="l00179"></a>00179                 <span class="keywordtype">int</span> left;
-<a name="l00180"></a>00180 
-<a name="l00181"></a>00181 
-<a name="l00182"></a>00182                 <span class="comment">/* vol[] keeps track of how long each square wave stays */</span>
-<a name="l00183"></a>00183                 <span class="comment">/* in the 1 position during the sample period. */</span>
-<a name="l00184"></a>00184                 vol[0] = vol[1] = vol[2] = vol[3] = 0;
-<a name="l00185"></a>00185 
-<a name="l00186"></a>00186                 <span class="keywordflow">for</span> (i = 0;i &lt; 3;i++)
-<a name="l00187"></a>00187                 {
-<a name="l00188"></a>00188                         <span class="keywordflow">if</span> (R-&gt;Output[i]) vol[i] += R-&gt;Count[i];
-<a name="l00189"></a>00189                         R-&gt;Count[i] -= STEP;
-<a name="l00190"></a>00190                         <span class="comment">/* Period[i] is the half period of the square wave. Here, in each */</span>
-<a name="l00191"></a>00191                         <span class="comment">/* loop I add Period[i] twice, so that at the end of the loop the */</span>
-<a name="l00192"></a>00192                         <span class="comment">/* square wave is in the same status (0 or 1) it was at the start. */</span>
-<a name="l00193"></a>00193                         <span class="comment">/* vol[i] is also incremented by Period[i], since the wave has been 1 */</span>
-<a name="l00194"></a>00194                         <span class="comment">/* exactly half of the time, regardless of the initial position. */</span>
-<a name="l00195"></a>00195                         <span class="comment">/* If we exit the loop in the middle, Output[i] has to be inverted */</span>
-<a name="l00196"></a>00196                         <span class="comment">/* and vol[i] incremented only if the exit status of the square */</span>
-<a name="l00197"></a>00197                         <span class="comment">/* wave is 1. */</span>
-<a name="l00198"></a>00198                         <span class="keywordflow">while</span> (R-&gt;Count[i] &lt;= 0)
-<a name="l00199"></a>00199                         {
-<a name="l00200"></a>00200                                 R-&gt;Count[i] += R-&gt;Period[i];
-<a name="l00201"></a>00201                                 <span class="keywordflow">if</span> (R-&gt;Count[i] &gt; 0)
-<a name="l00202"></a>00202                                 {
-<a name="l00203"></a>00203                                         R-&gt;Output[i] ^= 1;
-<a name="l00204"></a>00204                                         <span class="keywordflow">if</span> (R-&gt;Output[i]) vol[i] += R-&gt;Period[i];
-<a name="l00205"></a>00205                                         <span class="keywordflow">break</span>;
-<a name="l00206"></a>00206                                 }
-<a name="l00207"></a>00207                                 R-&gt;Count[i] += R-&gt;Period[i];
-<a name="l00208"></a>00208                                 vol[i] += R-&gt;Period[i];
-<a name="l00209"></a>00209                         }
-<a name="l00210"></a>00210                         <span class="keywordflow">if</span> (R-&gt;Output[i]) vol[i] -= R-&gt;Count[i];
-<a name="l00211"></a>00211                 }
-<a name="l00212"></a>00212 
-<a name="l00213"></a>00213                 left = STEP;
-<a name="l00214"></a>00214                 <span class="keywordflow">do</span>
-<a name="l00215"></a>00215                 {
-<a name="l00216"></a>00216                         <span class="keywordtype">int</span> nextevent;
-<a name="l00217"></a>00217 
-<a name="l00218"></a>00218 
-<a name="l00219"></a>00219                         <span class="keywordflow">if</span> (R-&gt;Count[3] &lt; left) nextevent = R-&gt;Count[3];
-<a name="l00220"></a>00220                         <span class="keywordflow">else</span> nextevent = left;
-<a name="l00221"></a>00221 
-<a name="l00222"></a>00222                         <span class="keywordflow">if</span> (R-&gt;Output[3]) vol[3] += R-&gt;Count[3];
-<a name="l00223"></a>00223                         R-&gt;Count[3] -= nextevent;
-<a name="l00224"></a>00224                         <span class="keywordflow">if</span> (R-&gt;Count[3] &lt;= 0)
-<a name="l00225"></a>00225                         {
-<a name="l00226"></a>00226                                 <span class="keywordflow">if</span> (R-&gt;RNG &amp; 1) R-&gt;RNG ^= (<span class="keywordtype">unsigned</span> int)R-&gt;NoiseFB;
-<a name="l00227"></a>00227                                 R-&gt;RNG &gt;&gt;= 1;
-<a name="l00228"></a>00228                                 R-&gt;Output[3] = R-&gt;RNG &amp; 1;
-<a name="l00229"></a>00229                                 R-&gt;Count[3] += R-&gt;Period[3];
-<a name="l00230"></a>00230                                 if (R-&gt;Output[3]) vol[3] += R-&gt;Period[3];
-<a name="l00231"></a>00231                         }
-<a name="l00232"></a>00232                         <span class="keywordflow">if</span> (R-&gt;Output[3]) vol[3] -= R-&gt;Count[3];
-<a name="l00233"></a>00233 
-<a name="l00234"></a>00234                         left -= nextevent;
-<a name="l00235"></a>00235                 } <span class="keywordflow">while</span> (left &gt; 0);
-<a name="l00236"></a>00236 
-<a name="l00237"></a>00237         out = (<span class="keywordtype">unsigned</span> int)
-<a name="l00238"></a>00238               (vol[0] * R-&gt;Volume[0] + vol[1] * R-&gt;Volume[1] +
-<a name="l00239"></a>00239                vol[2] * R-&gt;Volume[2] + vol[3] * R-&gt;Volume[3]);
-<a name="l00240"></a>00240 
-<a name="l00241"></a>00241                 <span class="keywordflow">if</span> (out &gt; MAX_OUTPUT * STEP) out = MAX_OUTPUT * STEP;
-<a name="l00242"></a>00242 
-<a name="l00243"></a>00243                 *(buffer++) = (Bit16s)(out / STEP);
-<a name="l00244"></a>00244 
-<a name="l00245"></a>00245                 count--;
-<a name="l00246"></a>00246         }
-<a name="l00247"></a>00247 }
-<a name="l00248"></a>00248 
-<a name="l00249"></a>00249 <span class="keyword">static</span> <span class="keywordtype">void</span> TandySN76496Write(Bitu port,Bitu data,Bitu iolen) {
-<a name="l00250"></a>00250     (void)iolen;<span class="comment">//UNUSED</span>
-<a name="l00251"></a>00251         <span class="keyword">struct </span><a class="code" href="structSN76496.html">SN76496</a> *R = &amp;sn;
-<a name="l00252"></a>00252  
-<a name="l00253"></a>00253         tandy.last_write=PIC_Ticks;
-<a name="l00254"></a>00254         <span class="keywordflow">if</span> (!tandy.enabled) {
-<a name="l00255"></a>00255                 tandy.chan-&gt;Enable(<span class="keyword">true</span>);
-<a name="l00256"></a>00256                 tandy.enabled=<span class="keyword">true</span>;
-<a name="l00257"></a>00257         }
-<a name="l00258"></a>00258 
-<a name="l00259"></a>00259         <span class="comment">// assume state change, always.</span>
-<a name="l00260"></a>00260         <span class="comment">// this hack allows sample accurate rendering without enabling sample accurate mode in the mixer.</span>
-<a name="l00261"></a>00261         tandy.chan-&gt;FillUp();
-<a name="l00262"></a>00262 
-<a name="l00263"></a>00263         SN76496Write(R,port,data);
-<a name="l00264"></a>00264 }
-<a name="l00265"></a>00265 
-<a name="l00266"></a>00266 <span class="keyword">static</span> <span class="keywordtype">void</span> TandySN76496Update(Bitu length) {
-<a name="l00267"></a>00267         <span class="keyword">struct </span><a class="code" href="structSN76496.html">SN76496</a> *R = &amp;sn;
-<a name="l00268"></a>00268 
-<a name="l00269"></a>00269         <span class="keywordflow">if</span> ((tandy.last_write+5000)&lt;PIC_Ticks) {
-<a name="l00270"></a>00270                 tandy.enabled=<span class="keyword">false</span>;
-<a name="l00271"></a>00271                 tandy.chan-&gt;Enable(<span class="keyword">false</span>);
-<a name="l00272"></a>00272         }
-<a name="l00273"></a>00273  
-<a name="l00274"></a>00274         Bit16s * buffer=(Bit16s *)MixTemp;
-<a name="l00275"></a>00275         SN76496Update(R,buffer,length);
-<a name="l00276"></a>00276         tandy.chan-&gt;AddSamples_m16(length,(Bit16s *)MixTemp);
-<a name="l00277"></a>00277 }
-<a name="l00278"></a>00278 
-<a name="l00279"></a>00279 <span class="keyword">static</span> <span class="keywordtype">void</span> TandyDACWrite(Bitu port,Bitu data,Bitu iolen) {
-<a name="l00280"></a>00280     (void)iolen;<span class="comment">//UNUSED</span>
-<a name="l00281"></a>00281         LOG_MSG(<span class="stringliteral">&quot;Write tandy dac %X val %X&quot;</span>,(<span class="keywordtype">int</span>)port,(<span class="keywordtype">int</span>)data);
-<a name="l00282"></a>00282 }
-<a name="l00283"></a>00283 
-<a name="l00284"></a>00284 <span class="keyword">static</span> <span class="keywordtype">void</span> SN76496_set_clock(<span class="keyword">struct</span> <a class="code" href="structSN76496.html">SN76496</a> *R, <span class="keywordtype">int</span> clock) {
-<a name="l00285"></a>00285         <span class="comment">/* the base clock for the tone generators is the chip clock divided by 16; */</span>
-<a name="l00286"></a>00286         <span class="comment">/* for the noise generator, it is clock / 256. */</span>
-<a name="l00287"></a>00287         <span class="comment">/* Here we calculate the number of steps which happen during one sample */</span>
-<a name="l00288"></a>00288         <span class="comment">/* at the given sample rate. No. of events = sample rate / (clock/16). */</span>
-<a name="l00289"></a>00289         <span class="comment">/* STEP is a multiplier used to turn the fraction into a fixed point */</span>
-<a name="l00290"></a>00290         <span class="comment">/* number. */</span>
-<a name="l00291"></a>00291         R-&gt;UpdateStep = (<span class="keywordtype">unsigned</span> int)(((<span class="keywordtype">double</span>)STEP * R-&gt;SampleRate * 16) / clock);
-<a name="l00292"></a>00292 }
-<a name="l00293"></a>00293 
-<a name="l00294"></a>00294 
-<a name="l00295"></a>00295 <span class="keyword">static</span> <span class="keywordtype">void</span> SN76496_set_gain(<span class="keyword">struct</span> <a class="code" href="structSN76496.html">SN76496</a> *R, <span class="keywordtype">int</span> gain) {
-<a name="l00296"></a>00296         <span class="keywordtype">int</span> i;
-<a name="l00297"></a>00297         <span class="keywordtype">double</span> out;
-<a name="l00298"></a>00298 
-<a name="l00299"></a>00299         gain &amp;= 0xff;
+<a name="l00156"></a>00156                 <span class="keywordflow">break</span>;
+<a name="l00157"></a>00157         }
+<a name="l00158"></a>00158 }
+<a name="l00159"></a>00159 
+<a name="l00160"></a>00160 <span class="keyword">static</span> <span class="keywordtype">void</span> TandyDACDMAEnabled(<span class="keywordtype">void</span>) {
+<a name="l00161"></a>00161         TandyDACModeChanged();
+<a name="l00162"></a>00162 }
+<a name="l00163"></a>00163 
+<a name="l00164"></a>00164 <span class="keyword">static</span> <span class="keywordtype">void</span> TandyDACDMADisabled(<span class="keywordtype">void</span>) {
+<a name="l00165"></a>00165 }
+<a name="l00166"></a>00166 
+<a name="l00167"></a>00167 <span class="keyword">static</span> <span class="keywordtype">void</span> TandyDACWrite(Bitu port,Bitu data,Bitu <span class="comment">/*iolen*/</span>) {
+<a name="l00168"></a>00168         <span class="keywordflow">switch</span> (port) {
+<a name="l00169"></a>00169         <span class="keywordflow">case</span> 0xc4: {
+<a name="l00170"></a>00170                 Bitu oldmode = tandy.dac.mode;
+<a name="l00171"></a>00171                 tandy.dac.mode = (Bit8u)(data&amp;0xff);
+<a name="l00172"></a>00172                 <span class="keywordflow">if</span> ((data&amp;3)!=(oldmode&amp;3)) {
+<a name="l00173"></a>00173                         TandyDACModeChanged();
+<a name="l00174"></a>00174                 }
+<a name="l00175"></a>00175                 <span class="keywordflow">if</span> (((data&amp;0x0c)==0x0c) &amp;&amp; ((oldmode&amp;0x0c)!=0x0c)) {
+<a name="l00176"></a>00176                         TandyDACDMAEnabled();
+<a name="l00177"></a>00177                 } <span class="keywordflow">else</span> <span class="keywordflow">if</span> (((data&amp;0x0c)!=0x0c) &amp;&amp; ((oldmode&amp;0x0c)==0x0c)) {
+<a name="l00178"></a>00178                         TandyDACDMADisabled();
+<a name="l00179"></a>00179                 }
+<a name="l00180"></a>00180                 }
+<a name="l00181"></a>00181                 <span class="keywordflow">break</span>;
+<a name="l00182"></a>00182         <span class="keywordflow">case</span> 0xc5:
+<a name="l00183"></a>00183                 <span class="keywordflow">switch</span> (tandy.dac.mode&amp;3) {
+<a name="l00184"></a>00184                 <span class="keywordflow">case</span> 0:
+<a name="l00185"></a>00185                         <span class="comment">// joystick mode</span>
+<a name="l00186"></a>00186                         <span class="keywordflow">break</span>;
+<a name="l00187"></a>00187                 <span class="keywordflow">case</span> 1:
+<a name="l00188"></a>00188                         tandy.dac.control = (Bit8u)(data&amp;0xff);
+<a name="l00189"></a>00189                         <span class="keywordflow">break</span>;
+<a name="l00190"></a>00190                 <span class="keywordflow">case</span> 2:
+<a name="l00191"></a>00191                         <span class="keywordflow">break</span>;
+<a name="l00192"></a>00192                 <span class="keywordflow">case</span> 3:
+<a name="l00193"></a>00193                         <span class="comment">// direct output</span>
+<a name="l00194"></a>00194                         <span class="keywordflow">break</span>;
+<a name="l00195"></a>00195                 }
+<a name="l00196"></a>00196                 <span class="keywordflow">break</span>;
+<a name="l00197"></a>00197         <span class="keywordflow">case</span> 0xc6:
+<a name="l00198"></a>00198                 tandy.dac.frequency = (tandy.dac.frequency &amp; 0xf00) | (Bit8u)(data &amp; 0xff);
+<a name="l00199"></a>00199                 <span class="keywordflow">switch</span> (tandy.dac.mode&amp;3) {
+<a name="l00200"></a>00200                 <span class="keywordflow">case</span> 0:
+<a name="l00201"></a>00201                         <span class="comment">// joystick mode</span>
+<a name="l00202"></a>00202                         <span class="keywordflow">break</span>;
+<a name="l00203"></a>00203                 <span class="keywordflow">case</span> 1:
+<a name="l00204"></a>00204                 <span class="keywordflow">case</span> 2:
+<a name="l00205"></a>00205                 <span class="keywordflow">case</span> 3:
+<a name="l00206"></a>00206                         TandyDACModeChanged();
+<a name="l00207"></a>00207                         <span class="keywordflow">break</span>;
+<a name="l00208"></a>00208                 }
+<a name="l00209"></a>00209                 <span class="keywordflow">break</span>;
+<a name="l00210"></a>00210         <span class="keywordflow">case</span> 0xc7:
+<a name="l00211"></a>00211                 tandy.dac.frequency = (tandy.dac.frequency &amp; 0x00ff) | (((Bit8u)(data &amp; 0xf)) &lt;&lt; 8);
+<a name="l00212"></a>00212                 tandy.dac.amplitude = (Bit8u)(data&gt;&gt;5);
+<a name="l00213"></a>00213                 <span class="keywordflow">switch</span> (tandy.dac.mode&amp;3) {
+<a name="l00214"></a>00214                 <span class="keywordflow">case</span> 0:
+<a name="l00215"></a>00215                         <span class="comment">// joystick mode</span>
+<a name="l00216"></a>00216                         <span class="keywordflow">break</span>;
+<a name="l00217"></a>00217                 <span class="keywordflow">case</span> 1:
+<a name="l00218"></a>00218                 <span class="keywordflow">case</span> 2:
+<a name="l00219"></a>00219                 <span class="keywordflow">case</span> 3:
+<a name="l00220"></a>00220                         TandyDACModeChanged();
+<a name="l00221"></a>00221                         <span class="keywordflow">break</span>;
+<a name="l00222"></a>00222                 }
+<a name="l00223"></a>00223                 <span class="keywordflow">break</span>;
+<a name="l00224"></a>00224         }
+<a name="l00225"></a>00225 }
+<a name="l00226"></a>00226 
+<a name="l00227"></a>00227 <span class="keyword">static</span> Bitu TandyDACRead(Bitu port,Bitu <span class="comment">/*iolen*/</span>) {
+<a name="l00228"></a>00228         <span class="keywordflow">switch</span> (port) {
+<a name="l00229"></a>00229         <span class="keywordflow">case</span> 0xc4:
+<a name="l00230"></a>00230                 <span class="keywordflow">return</span> (tandy.dac.mode&amp;0x77) | (tandy.dac.irq_activated ? 0x08 : 0x00);
+<a name="l00231"></a>00231         <span class="keywordflow">case</span> 0xc6:
+<a name="l00232"></a>00232                 <span class="keywordflow">return</span> (Bit8u)(tandy.dac.frequency&amp;0xff);
+<a name="l00233"></a>00233         <span class="keywordflow">case</span> 0xc7:
+<a name="l00234"></a>00234                 <span class="keywordflow">return</span> (Bit8u)(((tandy.dac.frequency&gt;&gt;8)&amp;0xf) | (tandy.dac.amplitude&lt;&lt;5));
+<a name="l00235"></a>00235         }
+<a name="l00236"></a>00236         LOG_MSG(<span class="stringliteral">&quot;Tandy DAC: Read from unknown %X&quot;</span>, (<span class="keywordtype">unsigned</span> <span class="keywordtype">int</span>)port);
+<a name="l00237"></a>00237         <span class="keywordflow">return</span> 0xff;
+<a name="l00238"></a>00238 }
+<a name="l00239"></a>00239 
+<a name="l00240"></a>00240 <span class="keyword">static</span> <span class="keywordtype">void</span> TandyDACGenerateDMASound(Bitu length) {
+<a name="l00241"></a>00241         <span class="keywordflow">if</span> (length) {
+<a name="l00242"></a>00242                 Bitu read = tandy.dac.dma.chan-&gt;Read(length,tandy.dac.dma.buf);
+<a name="l00243"></a>00243                 <span class="keywordflow">if</span> (read &gt; 0) {
+<a name="l00244"></a>00244                         tandy.dac.chan-&gt;AddSamples_m8(read,tandy.dac.dma.buf);
+<a name="l00245"></a>00245                         tandy.dac.dma.last_sample = tandy.dac.dma.buf[read - 1u];
+<a name="l00246"></a>00246                 }
+<a name="l00247"></a>00247 
+<a name="l00248"></a>00248                 <span class="comment">/* repeat the last sample to fill output if not enough */</span>
+<a name="l00249"></a>00249                 <span class="keywordflow">if</span> (read &lt; length) {
+<a name="l00250"></a>00250                         <span class="keywordflow">for</span> (Bitu ct=read; ct &lt; length; ct++) {
+<a name="l00251"></a>00251                                 tandy.dac.chan-&gt;AddSamples_m8(1,&amp;tandy.dac.dma.last_sample);
+<a name="l00252"></a>00252                         }
+<a name="l00253"></a>00253                 }
+<a name="l00254"></a>00254         }
+<a name="l00255"></a>00255 }
+<a name="l00256"></a>00256 
+<a name="l00257"></a>00257 <span class="keyword">static</span> <span class="keywordtype">void</span> TandyDACUpdate(Bitu length) {
+<a name="l00258"></a>00258         <span class="keywordflow">if</span> (tandy.dac.enabled &amp;&amp; ((tandy.dac.mode&amp;0x0c)==0x0c)) {
+<a name="l00259"></a>00259                 <span class="keywordflow">if</span> (!tandy.dac.dma.transfer_done) {
+<a name="l00260"></a>00260                         Bitu len = length;
+<a name="l00261"></a>00261                         TandyDACGenerateDMASound(len);
+<a name="l00262"></a>00262                 } <span class="keywordflow">else</span> {
+<a name="l00263"></a>00263                         <span class="keywordflow">for</span> (Bitu ct=0; ct &lt; length; ct++) {
+<a name="l00264"></a>00264                                 tandy.dac.chan-&gt;AddSamples_m8(1,&amp;tandy.dac.dma.last_sample);
+<a name="l00265"></a>00265                         }
+<a name="l00266"></a>00266                 }
+<a name="l00267"></a>00267                 <span class="comment">/* even if the DAC is disabled hold the last sample and SLOWLY restore DC.</span>
+<a name="l00268"></a>00268 <span class="comment">                 * jumping to silence quickly here causes loud annoying pops in Prince of Persia</span>
+<a name="l00269"></a>00269 <span class="comment">                 * when sound effects play. Prince of Persia seems to emit some very non-zero DC</span>
+<a name="l00270"></a>00270 <span class="comment">                 * value (like 0x08) when not playing sound effects, so this is needed to</span>
+<a name="l00271"></a>00271 <span class="comment">                 * recover from that without pops. This behavior also seems to match DAC behavior</span>
+<a name="l00272"></a>00272 <span class="comment">                 * with Prince of Persia according to real Tandy 1000 TL/3 hardware, complete</span>
+<a name="l00273"></a>00273 <span class="comment">                 * with the 8-bit DAC stepping noise on return to zero. In any case, this</span>
+<a name="l00274"></a>00274 <span class="comment">                 * modification makes the Tandy DAC sound effects in Prince of Persia much</span>
+<a name="l00275"></a>00275 <span class="comment">                 * more enjoyable to listen to and match the apparent sound of real hardware. */</span>
+<a name="l00276"></a>00276                 <span class="comment">/* NTS: This doesn&#39;t quite make the DAC step noise heard on real hardware, but</span>
+<a name="l00277"></a>00277 <span class="comment">                 *      it&#39;s good enough for now. */</span>
+<a name="l00278"></a>00278         } <span class="keywordflow">else</span> <span class="keywordflow">if</span> (tandy.dac.dma.last_sample != 128) {
+<a name="l00279"></a>00279                 <span class="keywordflow">for</span> (Bitu ct=0; ct &lt; length; ct++) {
+<a name="l00280"></a>00280                         tandy.dac.chan-&gt;AddSamples_m8(1,&amp;tandy.dac.dma.last_sample);
+<a name="l00281"></a>00281                         <span class="keywordflow">if</span> (tandy.dac.dma.last_sample != 128)
+<a name="l00282"></a>00282                                 tandy.dac.dma.last_sample = (Bit8u)(((((<span class="keywordtype">int</span>)tandy.dac.dma.last_sample - 128) * 63) / 64) + 128);
+<a name="l00283"></a>00283                 }
+<a name="l00284"></a>00284         } <span class="keywordflow">else</span> {
+<a name="l00285"></a>00285                 tandy.dac.chan-&gt;AddSilence();
+<a name="l00286"></a>00286         }
+<a name="l00287"></a>00287 }
+<a name="l00288"></a>00288 
+<a name="l00289"></a>00289 Bit8u BIOS_tandy_D4_flag = 0;
+<a name="l00290"></a>00290 
+<a name="l00291"></a><a class="code" href="classTANDYSOUND.html">00291</a> <span class="keyword">class </span><a class="code" href="classTANDYSOUND.html">TANDYSOUND</a>: <span class="keyword">public</span> <a class="code" href="classModule__base.html">Module_base</a> {
+<a name="l00292"></a>00292 <span class="keyword">private</span>:
+<a name="l00293"></a>00293         <a class="code" href="classIO__WriteHandleObject.html">IO_WriteHandleObject</a> WriteHandler[4];
+<a name="l00294"></a>00294         <a class="code" href="classIO__ReadHandleObject.html">IO_ReadHandleObject</a> ReadHandler[4];
+<a name="l00295"></a>00295         <a class="code" href="classMixerObject.html">MixerObject</a> MixerChan;
+<a name="l00296"></a>00296         <a class="code" href="classMixerObject.html">MixerObject</a> MixerChanDAC;
+<a name="l00297"></a>00297 <span class="keyword">public</span>:
+<a name="l00298"></a>00298         <a class="code" href="classTANDYSOUND.html">TANDYSOUND</a>(<a class="code" href="classSection.html">Section</a>* configuration):<a class="code" href="classModule__base.html">Module_base</a>(configuration){
+<a name="l00299"></a>00299                 <a class="code" href="classSection__prop.html">Section_prop</a> * section=<span class="keyword">static_cast&lt;</span><a class="code" href="classSection__prop.html">Section_prop</a> *<span class="keyword">&gt;</span>(configuration);
 <a name="l00300"></a>00300 
-<a name="l00301"></a>00301         <span class="comment">/* increase max output basing on gain (0.2 dB per step) */</span>
-<a name="l00302"></a>00302         out = MAX_OUTPUT / 3;
-<a name="l00303"></a>00303         <span class="keywordflow">while</span> (gain-- &gt; 0)
-<a name="l00304"></a>00304                 out *= 1.023292992;     <span class="comment">/* = (10 ^ (0.2/20)) */</span>
-<a name="l00305"></a>00305 
-<a name="l00306"></a>00306         <span class="comment">/* build volume table (2dB per step) */</span>
-<a name="l00307"></a>00307         <span class="keywordflow">for</span> (i = 0;i &lt; 15;i++)
-<a name="l00308"></a>00308         {
-<a name="l00309"></a>00309                 <span class="comment">/* limit volume to avoid clipping */</span>
-<a name="l00310"></a>00310                 <span class="keywordflow">if</span> (out &gt; MAX_OUTPUT / 3) R-&gt;VolTable[i] = MAX_OUTPUT / 3;
-<a name="l00311"></a>00311                 <span class="keywordflow">else</span> R-&gt;VolTable[i] = (int)out;
+<a name="l00301"></a>00301                 <span class="keywordtype">bool</span> enable_hw_tandy_dac=<span class="keyword">true</span>;
+<a name="l00302"></a>00302                 Bitu sbport, sbirq, sbdma;
+<a name="l00303"></a>00303                 <span class="keywordflow">if</span> (SB_Get_Address(sbport, sbirq, sbdma)) {
+<a name="l00304"></a>00304                         enable_hw_tandy_dac=<span class="keyword">false</span>;
+<a name="l00305"></a>00305                 }
+<a name="l00306"></a>00306 
+<a name="l00307"></a>00307                 BIOS_tandy_D4_flag = 0;
+<a name="l00308"></a>00308 
+<a name="l00309"></a>00309                 <span class="comment">//Select the correct tandy chip implementation</span>
+<a name="l00310"></a>00310                 <span class="keywordflow">if</span> (machine == MCH_PCJR) activeDevice = &amp;device_sn76496;
+<a name="l00311"></a>00311                 <span class="keywordflow">else</span> activeDevice = &amp;device_ncr8496;
 <a name="l00312"></a>00312 
-<a name="l00313"></a>00313                 out /= 1.258925412;     <span class="comment">/* = 10 ^ (2/20) = 2dB */</span>
-<a name="l00314"></a>00314         }
-<a name="l00315"></a>00315         R-&gt;VolTable[15] = 0;
-<a name="l00316"></a>00316 }
-<a name="l00317"></a>00317 
-<a name="l00318"></a>00318 <span class="keywordtype">void</span> SN76496Reset(<span class="keyword">struct</span> <a class="code" href="structSN76496.html">SN76496</a> *R, Bitu Clock, Bitu sample_rate) {
-<a name="l00319"></a>00319         Bitu i;
-<a name="l00320"></a>00320         R-&gt;SampleRate = (int)sample_rate;
-<a name="l00321"></a>00321         SN76496_set_clock(R,(<span class="keywordtype">int</span>)Clock);
-<a name="l00322"></a>00322         <span class="keywordflow">for</span> (i = 0;i &lt; 4;i++) R-&gt;Volume[i] = 0;
-<a name="l00323"></a>00323         R-&gt;LastRegister = 0;
-<a name="l00324"></a>00324         for (i = 0;i &lt; 8;i+=2)
-<a name="l00325"></a>00325         {
-<a name="l00326"></a>00326                 R-&gt;Register[i] = 0;
-<a name="l00327"></a>00327                 R-&gt;Register[i + 1] = 0x0f;      <span class="comment">/* volume = 0 */</span>
-<a name="l00328"></a>00328         }
-<a name="l00329"></a>00329         
-<a name="l00330"></a>00330         <span class="keywordflow">for</span> (i = 0;i &lt; 4;i++)
-<a name="l00331"></a>00331         {
-<a name="l00332"></a>00332                 R-&gt;Output[i] = 0;
-<a name="l00333"></a>00333                 R-&gt;Period[i] = R-&gt;Count[i] = (int)R-&gt;UpdateStep;
-<a name="l00334"></a>00334         }
-<a name="l00335"></a>00335         R-&gt;RNG = NG_PRESET;
-<a name="l00336"></a>00336         R-&gt;Output[3] = R-&gt;RNG &amp; 1;
-<a name="l00337"></a>00337         SN76496_set_gain(R,0x1);
-<a name="l00338"></a>00338 }
-<a name="l00339"></a>00339 
-<a name="l00340"></a>00340 <span class="keywordtype">bool</span> TS_Get_Address(Bitu&amp; tsaddr, Bitu&amp; tsirq, Bitu&amp; tsdma) {
-<a name="l00341"></a>00341         tsaddr=0;
-<a name="l00342"></a>00342         tsirq =0;
-<a name="l00343"></a>00343         tsdma =0;
-<a name="l00344"></a>00344         <span class="keywordflow">if</span> (tandy.dac.enabled) {
-<a name="l00345"></a>00345                 tsaddr=tandy.dac.hw.base;
-<a name="l00346"></a>00346                 tsirq =tandy.dac.hw.irq;
-<a name="l00347"></a>00347                 tsdma =tandy.dac.hw.dma;
-<a name="l00348"></a>00348                 <span class="keywordflow">return</span> <span class="keyword">true</span>;
-<a name="l00349"></a>00349         }
-<a name="l00350"></a>00350         <span class="keywordflow">return</span> <span class="keyword">false</span>;
-<a name="l00351"></a>00351 }
+<a name="l00313"></a>00313                 <span class="keywordflow">if</span> (IS_TANDY_ARCH) {
+<a name="l00314"></a>00314                         <span class="comment">/* enable tandy sound if tandy=true/auto */</span>
+<a name="l00315"></a>00315                         <span class="keywordflow">if</span> ((strcmp(section-&gt;Get_string(<span class="stringliteral">&quot;tandy&quot;</span>),<span class="stringliteral">&quot;true&quot;</span>)!=0) &amp;&amp;
+<a name="l00316"></a>00316                                 (strcmp(section-&gt;Get_string(<span class="stringliteral">&quot;tandy&quot;</span>),<span class="stringliteral">&quot;on&quot;</span>)!=0) &amp;&amp;
+<a name="l00317"></a>00317                                 (strcmp(section-&gt;Get_string(<span class="stringliteral">&quot;tandy&quot;</span>),<span class="stringliteral">&quot;auto&quot;</span>)!=0)) <span class="keywordflow">return</span>;
+<a name="l00318"></a>00318                 } <span class="keywordflow">else</span> {
+<a name="l00319"></a>00319                         <span class="comment">/* only enable tandy sound if tandy=true */</span>
+<a name="l00320"></a>00320                         <span class="keywordflow">if</span> ((strcmp(section-&gt;Get_string(<span class="stringliteral">&quot;tandy&quot;</span>),<span class="stringliteral">&quot;true&quot;</span>)!=0) &amp;&amp;
+<a name="l00321"></a>00321                                 (strcmp(section-&gt;Get_string(<span class="stringliteral">&quot;tandy&quot;</span>),<span class="stringliteral">&quot;on&quot;</span>)!=0)) <span class="keywordflow">return</span>;
+<a name="l00322"></a>00322 
+<a name="l00323"></a>00323                         <span class="keywordflow">if</span> (enable_hw_tandy_dac) {
+<a name="l00324"></a>00324                                 WriteHandler[2].Install(0x1e0,SN76496Write,IO_MB,2);
+<a name="l00325"></a>00325                                 WriteHandler[3].Install(0x1e4,TandyDACWrite,IO_MB,4);
+<a name="l00326"></a>00326 <span class="comment">//                              ReadHandler[3].Install(0x1e4,TandyDACRead,IO_MB,4);</span>
+<a name="l00327"></a>00327                         }
+<a name="l00328"></a>00328                 }
+<a name="l00329"></a>00329 
+<a name="l00330"></a>00330                 <span class="comment">/* ports from second DMA controller conflict with tandy ports at 0xC0.</span>
+<a name="l00331"></a>00331 <span class="comment">                 * Furthermore, the default I/O handlers after de-registration are needed</span>
+<a name="l00332"></a>00332 <span class="comment">                 * to ensure the SN76496 is writeable at port 0xC0 whether you&#39;re doing</span>
+<a name="l00333"></a>00333 <span class="comment">                 * normal 8-bit I/O or your a weirdo like Prince of Persia using 16-bit</span>
+<a name="l00334"></a>00334 <span class="comment">                 * I/O to write frequency values. (bugfix for Tandy mode of Prince of</span>
+<a name="l00335"></a>00335 <span class="comment">                 * Persia). */</span>
+<a name="l00336"></a>00336                 CloseSecondDMAController();
+<a name="l00337"></a>00337 
+<a name="l00338"></a>00338                 Bit32u sample_rate = section-&gt;Get_int(<span class="stringliteral">&quot;tandyrate&quot;</span>);
+<a name="l00339"></a>00339                 tandy.chan=MixerChan.Install(&amp;SN76496Update,sample_rate,<span class="stringliteral">&quot;TANDY&quot;</span>);
+<a name="l00340"></a>00340 
+<a name="l00341"></a>00341                 WriteHandler[0].Install(0xc0,SN76496Write,IO_MB,2);
+<a name="l00342"></a>00342 
+<a name="l00343"></a>00343                 <span class="keywordflow">if</span> (enable_hw_tandy_dac) {
+<a name="l00344"></a>00344                         <span class="comment">// enable low-level Tandy DAC emulation</span>
+<a name="l00345"></a>00345                         WriteHandler[1].Install(0xc4,TandyDACWrite,IO_MB,4);
+<a name="l00346"></a>00346                         ReadHandler[1].Install(0xc4,TandyDACRead,IO_MB,4);
+<a name="l00347"></a>00347 
+<a name="l00348"></a>00348                         tandy.dac.enabled=<span class="keyword">true</span>;
+<a name="l00349"></a>00349                         tandy.dac.chan=MixerChanDAC.Install(&amp;TandyDACUpdate,sample_rate,<span class="stringliteral">&quot;TANDYDAC&quot;</span>);
+<a name="l00350"></a>00350                         tandy.dac.chan-&gt;SetLowpassFreq(6000);
+<a name="l00351"></a>00351                         tandy.dac.chan-&gt;SetSlewFreq(22050);
 <a name="l00352"></a>00352 
-<a name="l00353"></a>00353 
-<a name="l00354"></a>00354 <span class="keyword">static</span> <span class="keywordtype">void</span> TandyDAC_DMA_CallBack(<a class="code" href="classDmaChannel.html">DmaChannel</a> * <span class="comment">/*chan*/</span>, DMAEvent event) {
-<a name="l00355"></a>00355         <span class="keywordflow">if</span> (event == DMA_REACHED_TC) {
-<a name="l00356"></a>00356                 tandy.dac.dma.transfer_done=<span class="keyword">true</span>;
-<a name="l00357"></a>00357                 PIC_ActivateIRQ(tandy.dac.hw.irq);
-<a name="l00358"></a>00358         }
-<a name="l00359"></a>00359 }
-<a name="l00360"></a>00360 
-<a name="l00361"></a>00361 <span class="comment">/* NTS: Formerly defined static, but nobody uses the function. But, this</span>
-<a name="l00362"></a>00362 <span class="comment"> * function contains too much technical documentation within that is worth</span>
-<a name="l00363"></a>00363 <span class="comment"> * keeping. --J.C. */</span>
-<a name="l00364"></a>00364 <span class="keywordtype">void</span> TandyDACModeChanged(<span class="keywordtype">void</span>) {
-<a name="l00365"></a>00365         <span class="keywordflow">switch</span> (tandy.dac.mode&amp;3) {
-<a name="l00366"></a>00366         <span class="keywordflow">case</span> 0:
-<a name="l00367"></a>00367                 <span class="comment">// joystick mode</span>
-<a name="l00368"></a>00368                 <span class="keywordflow">break</span>;
-<a name="l00369"></a>00369         <span class="keywordflow">case</span> 1:
-<a name="l00370"></a>00370                 <span class="keywordflow">break</span>;
-<a name="l00371"></a>00371         <span class="keywordflow">case</span> 2:
-<a name="l00372"></a>00372                 <span class="comment">// recording</span>
-<a name="l00373"></a>00373                 <span class="keywordflow">break</span>;
-<a name="l00374"></a>00374         <span class="keywordflow">case</span> 3:
-<a name="l00375"></a>00375                 <span class="comment">// playback</span>
-<a name="l00376"></a>00376                 tandy.dac.chan-&gt;FillUp();
-<a name="l00377"></a>00377                 <span class="keywordflow">if</span> (tandy.dac.frequency!=0) {
-<a name="l00378"></a>00378                         <span class="keywordtype">float</span> freq=3579545.0f/((float)tandy.dac.frequency);
-<a name="l00379"></a>00379                         tandy.dac.chan-&gt;SetFreq((Bitu)freq);
-<a name="l00380"></a>00380                         <span class="keywordtype">float</span> vol=((float)tandy.dac.amplitude)/7.0f;
-<a name="l00381"></a>00381                         tandy.dac.chan-&gt;SetVolume(vol,vol);
-<a name="l00382"></a>00382                         <span class="keywordflow">if</span> ((tandy.dac.mode&amp;0x0c)==0x0c) {
-<a name="l00383"></a>00383                                 tandy.dac.dma.transfer_done=<span class="keyword">false</span>;
-<a name="l00384"></a>00384                                 tandy.dac.dma.chan=GetDMAChannel(tandy.dac.hw.dma);
-<a name="l00385"></a>00385                                 <span class="keywordflow">if</span> (tandy.dac.dma.chan) {
-<a name="l00386"></a>00386                                         tandy.dac.dma.chan-&gt;Register_Callback(TandyDAC_DMA_CallBack);
-<a name="l00387"></a>00387                                         tandy.dac.chan-&gt;Enable(<span class="keyword">true</span>);
-<a name="l00388"></a>00388 <span class="comment">//                                      LOG_MSG(&quot;Tandy DAC: playback started with freqency %f, volume %f&quot;,freq,vol);</span>
-<a name="l00389"></a>00389                                 }
-<a name="l00390"></a>00390                         }
-<a name="l00391"></a>00391                 }
-<a name="l00392"></a>00392                 <span class="keywordflow">break</span>;
-<a name="l00393"></a>00393         }
-<a name="l00394"></a>00394 }
-<a name="l00395"></a>00395 
-<a name="l00396"></a>00396 <span class="keyword">static</span> Bitu TandyDACRead(Bitu port,Bitu <span class="comment">/*iolen*/</span>) {
-<a name="l00397"></a>00397         <span class="keywordflow">switch</span> (port) {
-<a name="l00398"></a>00398         <span class="keywordflow">case</span> 0xc4:
-<a name="l00399"></a>00399                 <span class="keywordflow">return</span> (tandy.dac.mode&amp;0x77u) | (tandy.dac.irq_activated ? 0x08u : 0x00u);
-<a name="l00400"></a>00400         <span class="keywordflow">case</span> 0xc6:
-<a name="l00401"></a>00401                 <span class="keywordflow">return</span> (Bit8u)(tandy.dac.frequency&amp;0xffu);
-<a name="l00402"></a>00402         <span class="keywordflow">case</span> 0xc7:
-<a name="l00403"></a>00403                 <span class="keywordflow">return</span> (Bit8u)((((Bitu)tandy.dac.frequency&gt;&gt;8u)&amp;0xfu) | (Bitu)(tandy.dac.amplitude&lt;&lt;5u));
-<a name="l00404"></a>00404         }
-<a name="l00405"></a>00405         LOG_MSG(<span class="stringliteral">&quot;Tandy DAC: Read from unknown %X&quot;</span>,(<span class="keywordtype">int</span>)port);
-<a name="l00406"></a>00406         <span class="keywordflow">return</span> 0xff;
-<a name="l00407"></a>00407 }
-<a name="l00408"></a>00408 
-<a name="l00409"></a>00409 <span class="keyword">static</span> <span class="keywordtype">void</span> TandyDACGenerateDMASound(Bitu length) {
-<a name="l00410"></a>00410         <span class="keywordflow">if</span> (length) {
-<a name="l00411"></a>00411                 Bitu read=tandy.dac.dma.chan-&gt;Read(length,tandy.dac.dma.buf);
-<a name="l00412"></a>00412                 tandy.dac.chan-&gt;AddSamples_m8(read,tandy.dac.dma.buf);
-<a name="l00413"></a>00413                 <span class="keywordflow">if</span> (read &lt; length) {
-<a name="l00414"></a>00414                         <span class="keywordflow">if</span> (read&gt;0) tandy.dac.dma.last_sample=tandy.dac.dma.buf[read-1];
-<a name="l00415"></a>00415                         <span class="keywordflow">for</span> (Bitu ct=read; ct &lt; length; ct++) {
-<a name="l00416"></a>00416                                 tandy.dac.chan-&gt;AddSamples_m8(1,&amp;tandy.dac.dma.last_sample);
-<a name="l00417"></a>00417                         }
-<a name="l00418"></a>00418                 }
-<a name="l00419"></a>00419         }
-<a name="l00420"></a>00420 }
-<a name="l00421"></a>00421 
-<a name="l00422"></a>00422 <span class="keyword">static</span> <span class="keywordtype">void</span> TandyDACUpdate(Bitu length) {
-<a name="l00423"></a>00423         <span class="keywordflow">if</span> (tandy.dac.enabled &amp;&amp; ((tandy.dac.mode&amp;0x0c)==0x0c)) {
-<a name="l00424"></a>00424                 <span class="keywordflow">if</span> (!tandy.dac.dma.transfer_done) {
-<a name="l00425"></a>00425                         Bitu len = length;
-<a name="l00426"></a>00426                         TandyDACGenerateDMASound(len);
-<a name="l00427"></a>00427                 } <span class="keywordflow">else</span> {
-<a name="l00428"></a>00428                         <span class="keywordflow">for</span> (Bitu ct=0; ct &lt; length; ct++) {
-<a name="l00429"></a>00429                                 tandy.dac.chan-&gt;AddSamples_m8(1,&amp;tandy.dac.dma.last_sample);
-<a name="l00430"></a>00430                         }
-<a name="l00431"></a>00431                 }
-<a name="l00432"></a>00432         } <span class="keywordflow">else</span> {
-<a name="l00433"></a>00433                 tandy.dac.chan-&gt;AddSilence();
-<a name="l00434"></a>00434         }
-<a name="l00435"></a>00435 }
+<a name="l00353"></a>00353                         tandy.dac.hw.base=0xc4;
+<a name="l00354"></a>00354                         tandy.dac.hw.irq =7;
+<a name="l00355"></a>00355                         tandy.dac.hw.dma =1;
+<a name="l00356"></a>00356                 } <span class="keywordflow">else</span> {
+<a name="l00357"></a>00357                         tandy.dac.enabled=<span class="keyword">false</span>;
+<a name="l00358"></a>00358                         tandy.dac.hw.base=0;
+<a name="l00359"></a>00359                         tandy.dac.hw.irq =0;
+<a name="l00360"></a>00360                         tandy.dac.hw.dma =0;
+<a name="l00361"></a>00361                 }
+<a name="l00362"></a>00362 
+<a name="l00363"></a>00363                 tandy.dac.control=0;
+<a name="l00364"></a>00364                 tandy.dac.mode   =0;
+<a name="l00365"></a>00365                 tandy.dac.irq_activated=<span class="keyword">false</span>;
+<a name="l00366"></a>00366                 tandy.dac.frequency=0;
+<a name="l00367"></a>00367                 tandy.dac.amplitude=0;
+<a name="l00368"></a>00368                 tandy.dac.dma.last_sample=128;
+<a name="l00369"></a>00369 
+<a name="l00370"></a>00370 
+<a name="l00371"></a>00371                 tandy.enabled=<span class="keyword">false</span>;
+<a name="l00372"></a>00372                 BIOS_tandy_D4_flag = 0xFF;
+<a name="l00373"></a>00373 
+<a name="l00374"></a>00374                 ((<a class="code" href="classdevice__t.html">device_t</a>&amp;)device).device_start();
+<a name="l00375"></a>00375                 device.convert_samplerate(sample_rate);
+<a name="l00376"></a>00376 
+<a name="l00377"></a>00377         }
+<a name="l00378"></a>00378         ~<a class="code" href="classTANDYSOUND.html">TANDYSOUND</a>(){ }
+<a name="l00379"></a>00379 };
+<a name="l00380"></a>00380 
+<a name="l00381"></a>00381 
+<a name="l00382"></a>00382 
+<a name="l00383"></a>00383 <span class="keyword">static</span> <a class="code" href="classTANDYSOUND.html">TANDYSOUND</a>* test = NULL;
+<a name="l00384"></a>00384 
+<a name="l00385"></a>00385 <span class="keywordtype">void</span> TANDYSOUND_ShutDown(<a class="code" href="classSection.html">Section</a>* <span class="comment">/*sec*/</span>) {
+<a name="l00386"></a>00386     <span class="keywordflow">if</span> (test) {
+<a name="l00387"></a>00387         <span class="keyword">delete</span> test;
+<a name="l00388"></a>00388         test = NULL;
+<a name="l00389"></a>00389     }
+<a name="l00390"></a>00390 }
+<a name="l00391"></a>00391 
+<a name="l00392"></a>00392 <span class="keywordtype">void</span> TANDYSOUND_OnReset(<a class="code" href="classSection.html">Section</a>* sec) {
+<a name="l00393"></a>00393     (void)sec;<span class="comment">//UNUSED</span>
+<a name="l00394"></a>00394         <span class="keywordflow">if</span> (test == NULL &amp;&amp; !IS_PC98_ARCH) {
+<a name="l00395"></a>00395                 <a class="code" href="classLOG.html">LOG</a>(LOG_MISC,LOG_DEBUG)(<span class="stringliteral">&quot;Allocating Tandy speaker emulation&quot;</span>);
+<a name="l00396"></a>00396                 test = <span class="keyword">new</span> <a class="code" href="classTANDYSOUND.html">TANDYSOUND</a>(control-&gt;GetSection(<span class="stringliteral">&quot;speaker&quot;</span>));
+<a name="l00397"></a>00397         }
+<a name="l00398"></a>00398 }
+<a name="l00399"></a>00399 
+<a name="l00400"></a>00400 <span class="keywordtype">void</span> TANDYSOUND_Init() {
+<a name="l00401"></a>00401         <a class="code" href="classLOG.html">LOG</a>(LOG_MISC,LOG_DEBUG)(<span class="stringliteral">&quot;Initializing Tandy voice emulation&quot;</span>);
+<a name="l00402"></a>00402 
+<a name="l00403"></a>00403         AddExitFunction(AddExitFunctionFuncPair(TANDYSOUND_ShutDown),<span class="keyword">true</span>);
+<a name="l00404"></a>00404         AddVMEventFunction(VM_EVENT_RESET,AddVMEventFunctionFuncPair(TANDYSOUND_OnReset));
+<a name="l00405"></a>00405 }
+<a name="l00406"></a>00406 
+<a name="l00407"></a>00407 <span class="comment">// save state support</span>
+<a name="l00408"></a>00408 <span class="keywordtype">void</span> *TandyDAC_DMA_CallBack_Func = (<span class="keywordtype">void</span>*)((uintptr_t)TandyDAC_DMA_CallBack);
+<a name="l00409"></a>00409 
+<a name="l00410"></a>00410 <span class="keywordtype">void</span> POD_Save_Tandy_Sound( std::ostream&amp; stream )
+<a name="l00411"></a>00411 {
+<a name="l00412"></a>00412         <span class="keyword">const</span> <span class="keywordtype">char</span> pod_name[32] = <span class="stringliteral">&quot;Tandy&quot;</span>;
+<a name="l00413"></a>00413 
+<a name="l00414"></a>00414         <span class="keywordflow">if</span>( stream.fail() ) <span class="keywordflow">return</span>;
+<a name="l00415"></a>00415         <span class="keywordflow">if</span>( !test ) <span class="keywordflow">return</span>;
+<a name="l00416"></a>00416         <span class="keywordflow">if</span>( !tandy.chan ) <span class="keywordflow">return</span>;
+<a name="l00417"></a>00417 
+<a name="l00418"></a>00418 
+<a name="l00419"></a>00419         WRITE_POD( &amp;pod_name, pod_name );
+<a name="l00420"></a>00420 
+<a name="l00421"></a>00421         <span class="comment">//*******************************************</span>
+<a name="l00422"></a>00422         <span class="comment">//*******************************************</span>
+<a name="l00423"></a>00423         <span class="comment">//*******************************************</span>
+<a name="l00424"></a>00424 
+<a name="l00425"></a>00425         Bit8u dma_idx;
+<a name="l00426"></a>00426 
+<a name="l00427"></a>00427 
+<a name="l00428"></a>00428         dma_idx = 0xff;
+<a name="l00429"></a>00429         <span class="keywordflow">for</span>( <span class="keywordtype">int</span> lcv=0; lcv&lt;8; lcv++ ) {
+<a name="l00430"></a>00430                 <span class="keywordflow">if</span>( tandy.dac.dma.chan == GetDMAChannel(lcv) ) { dma_idx = lcv; <span class="keywordflow">break</span>; }
+<a name="l00431"></a>00431         }
+<a name="l00432"></a>00432 
+<a name="l00433"></a>00433         <span class="comment">// *******************************************</span>
+<a name="l00434"></a>00434         <span class="comment">// *******************************************</span>
+<a name="l00435"></a>00435         <span class="comment">// *******************************************</span>
 <a name="l00436"></a>00436 
-<a name="l00437"></a>00437 Bit8u BIOS_tandy_D4_flag = 0;
-<a name="l00438"></a>00438 
-<a name="l00439"></a><a class="code" href="classTANDYSOUND.html">00439</a> <span class="keyword">class </span><a class="code" href="classTANDYSOUND.html">TANDYSOUND</a>: <span class="keyword">public</span> <a class="code" href="classModule__base.html">Module_base</a> {
-<a name="l00440"></a>00440 <span class="keyword">private</span>:
-<a name="l00441"></a>00441         <a class="code" href="classIO__WriteHandleObject.html">IO_WriteHandleObject</a> WriteHandler[4];
-<a name="l00442"></a>00442         <a class="code" href="classIO__ReadHandleObject.html">IO_ReadHandleObject</a> ReadHandler[4];
-<a name="l00443"></a>00443         <a class="code" href="classMixerObject.html">MixerObject</a> MixerChan;
-<a name="l00444"></a>00444         <a class="code" href="classMixerObject.html">MixerObject</a> MixerChanDAC;
-<a name="l00445"></a>00445 <span class="keyword">public</span>:
-<a name="l00446"></a>00446         <a class="code" href="classTANDYSOUND.html">TANDYSOUND</a>(<a class="code" href="classSection.html">Section</a>* configuration):<a class="code" href="classModule__base.html">Module_base</a>(configuration){
-<a name="l00447"></a>00447                 <a class="code" href="classSection__prop.html">Section_prop</a> * section=<span class="keyword">static_cast&lt;</span><a class="code" href="classSection__prop.html">Section_prop</a> *<span class="keyword">&gt;</span>(configuration);
+<a name="l00437"></a>00437         <span class="comment">// - near-pure data</span>
+<a name="l00438"></a>00438         WRITE_POD( &amp;tandy, tandy );
+<a name="l00439"></a>00439 
+<a name="l00440"></a>00440         <span class="comment">// - reloc ptr</span>
+<a name="l00441"></a>00441         WRITE_POD( &amp;dma_idx, dma_idx );
+<a name="l00442"></a>00442 
+<a name="l00443"></a>00443         <span class="comment">// *******************************************</span>
+<a name="l00444"></a>00444         <span class="comment">// *******************************************</span>
+<a name="l00445"></a>00445         <span class="comment">// *******************************************</span>
+<a name="l00446"></a>00446 
+<a name="l00447"></a>00447     activeDevice-&gt;SaveState(stream);
 <a name="l00448"></a>00448 
-<a name="l00449"></a>00449                 <span class="keywordtype">bool</span> enable_hw_tandy_dac=<span class="keyword">true</span>;
-<a name="l00450"></a>00450                 Bitu sbport, sbirq, sbdma;
-<a name="l00451"></a>00451                 <span class="keywordflow">if</span> (SB_Get_Address(sbport, sbirq, sbdma)) {
-<a name="l00452"></a>00452                         enable_hw_tandy_dac=<span class="keyword">false</span>;
-<a name="l00453"></a>00453                 }
-<a name="l00454"></a>00454 
-<a name="l00455"></a>00455                 BIOS_tandy_D4_flag = 0;
-<a name="l00456"></a>00456                 <span class="keywordflow">if</span> (IS_TANDY_ARCH) {
-<a name="l00457"></a>00457                         <span class="comment">/* enable tandy sound if tandy=true/auto */</span>
-<a name="l00458"></a>00458                         <span class="keywordflow">if</span> ((strcmp(section-&gt;Get_string(<span class="stringliteral">&quot;tandy&quot;</span>),<span class="stringliteral">&quot;true&quot;</span>)!=0) &amp;&amp;
-<a name="l00459"></a>00459                                 (strcmp(section-&gt;Get_string(<span class="stringliteral">&quot;tandy&quot;</span>),<span class="stringliteral">&quot;on&quot;</span>)!=0) &amp;&amp;
-<a name="l00460"></a>00460                                 (strcmp(section-&gt;Get_string(<span class="stringliteral">&quot;tandy&quot;</span>),<span class="stringliteral">&quot;auto&quot;</span>)!=0)) <span class="keywordflow">return</span>;
-<a name="l00461"></a>00461                 } <span class="keywordflow">else</span> {
-<a name="l00462"></a>00462                         <span class="comment">/* only enable tandy sound if tandy=true */</span>
-<a name="l00463"></a>00463                         <span class="keywordflow">if</span> ((strcmp(section-&gt;Get_string(<span class="stringliteral">&quot;tandy&quot;</span>),<span class="stringliteral">&quot;true&quot;</span>)!=0) &amp;&amp;
-<a name="l00464"></a>00464                                 (strcmp(section-&gt;Get_string(<span class="stringliteral">&quot;tandy&quot;</span>),<span class="stringliteral">&quot;on&quot;</span>)!=0)) <span class="keywordflow">return</span>;
-<a name="l00465"></a>00465 
-<a name="l00466"></a>00466                         <span class="comment">/* ports from second DMA controller conflict with tandy ports */</span>
-<a name="l00467"></a>00467                         CloseSecondDMAController();
+<a name="l00449"></a>00449         tandy.chan-&gt;SaveState(stream);
+<a name="l00450"></a>00450         tandy.dac.chan-&gt;SaveState(stream);
+<a name="l00451"></a>00451 }
+<a name="l00452"></a>00452 
+<a name="l00453"></a>00453 <span class="keywordtype">void</span> POD_Load_Tandy_Sound( std::istream&amp; stream )
+<a name="l00454"></a>00454 {
+<a name="l00455"></a>00455         <span class="keywordtype">char</span> pod_name[32] = {0};
+<a name="l00456"></a>00456 
+<a name="l00457"></a>00457         <span class="keywordflow">if</span>( stream.fail() ) <span class="keywordflow">return</span>;
+<a name="l00458"></a>00458         <span class="keywordflow">if</span>( !test ) <span class="keywordflow">return</span>;
+<a name="l00459"></a>00459         <span class="keywordflow">if</span>( !tandy.chan ) <span class="keywordflow">return</span>;
+<a name="l00460"></a>00460 
+<a name="l00461"></a>00461 
+<a name="l00462"></a>00462         <span class="comment">// error checking</span>
+<a name="l00463"></a>00463         READ_POD( &amp;pod_name, pod_name );
+<a name="l00464"></a>00464         <span class="keywordflow">if</span>( strcmp( pod_name, <span class="stringliteral">&quot;Tandy&quot;</span> ) ) {
+<a name="l00465"></a>00465                 stream.clear( std::istream::failbit | std::istream::badbit );
+<a name="l00466"></a>00466                 <span class="keywordflow">return</span>;
+<a name="l00467"></a>00467         }
 <a name="l00468"></a>00468 
-<a name="l00469"></a>00469                         <span class="keywordflow">if</span> (enable_hw_tandy_dac) {
-<a name="l00470"></a>00470                                 WriteHandler[2].Install(0x1e0,TandySN76496Write,IO_MB,2);
-<a name="l00471"></a>00471                                 WriteHandler[3].Install(0x1e4,TandyDACWrite,IO_MB,4);
-<a name="l00472"></a>00472 <span class="comment">//                              ReadHandler[3].Install(0x1e4,TandyDACRead,IO_MB,4);</span>
-<a name="l00473"></a>00473                         }
-<a name="l00474"></a>00474                 }
+<a name="l00469"></a>00469         <span class="comment">//************************************************</span>
+<a name="l00470"></a>00470         <span class="comment">//************************************************</span>
+<a name="l00471"></a>00471         <span class="comment">//************************************************</span>
+<a name="l00472"></a>00472 
+<a name="l00473"></a>00473         Bit8u dma_idx;
+<a name="l00474"></a>00474         <a class="code" href="classMixerChannel.html">MixerChannel</a> *chan_old, *dac_chan_old;
 <a name="l00475"></a>00475 
-<a name="l00476"></a>00476 
-<a name="l00477"></a>00477                 Bit32u sample_rate = (<span class="keywordtype">unsigned</span> int)section-&gt;Get_int(<span class="stringliteral">&quot;tandyrate&quot;</span>);
-<a name="l00478"></a>00478                 tandy.chan=MixerChan.Install(&amp;TandySN76496Update,sample_rate,<span class="stringliteral">&quot;TANDY&quot;</span>);
+<a name="l00476"></a>00476         <span class="comment">// - save static ptrs</span>
+<a name="l00477"></a>00477         chan_old = tandy.chan;
+<a name="l00478"></a>00478         dac_chan_old = tandy.dac.chan;
 <a name="l00479"></a>00479 
-<a name="l00480"></a>00480                 WriteHandler[0].Install(0xc0,TandySN76496Write,IO_MB,2);
-<a name="l00481"></a>00481 
-<a name="l00482"></a>00482                 <span class="keywordflow">if</span> (enable_hw_tandy_dac) {
-<a name="l00483"></a>00483                         <span class="comment">// enable low-level Tandy DAC emulation</span>
-<a name="l00484"></a>00484                         WriteHandler[1].Install(0xc4,TandyDACWrite,IO_MB,4);
-<a name="l00485"></a>00485                         ReadHandler[1].Install(0xc4,TandyDACRead,IO_MB,4);
+<a name="l00480"></a>00480         <span class="comment">// *******************************************</span>
+<a name="l00481"></a>00481         <span class="comment">// *******************************************</span>
+<a name="l00482"></a>00482         <span class="comment">// *******************************************</span>
+<a name="l00483"></a>00483 
+<a name="l00484"></a>00484         <span class="comment">// - near-pure data</span>
+<a name="l00485"></a>00485         READ_POD( &amp;tandy, tandy );
 <a name="l00486"></a>00486 
-<a name="l00487"></a>00487                         tandy.dac.enabled=<span class="keyword">true</span>;
-<a name="l00488"></a>00488                         tandy.dac.chan=MixerChanDAC.Install(&amp;TandyDACUpdate,sample_rate,<span class="stringliteral">&quot;TANDYDAC&quot;</span>);
+<a name="l00487"></a>00487         <span class="comment">// - reloc ptr</span>
+<a name="l00488"></a>00488         READ_POD( &amp;dma_idx, dma_idx );
 <a name="l00489"></a>00489 
-<a name="l00490"></a>00490                         tandy.dac.hw.base=0xc4;
-<a name="l00491"></a>00491                         tandy.dac.hw.irq =7;
-<a name="l00492"></a>00492                         tandy.dac.hw.dma =1;
-<a name="l00493"></a>00493                 } <span class="keywordflow">else</span> {
-<a name="l00494"></a>00494                         tandy.dac.enabled=<span class="keyword">false</span>;
-<a name="l00495"></a>00495                         tandy.dac.hw.base=0;
-<a name="l00496"></a>00496                         tandy.dac.hw.irq =0;
-<a name="l00497"></a>00497                         tandy.dac.hw.dma =0;
-<a name="l00498"></a>00498                 }
+<a name="l00490"></a>00490         <span class="comment">// *******************************************</span>
+<a name="l00491"></a>00491         <span class="comment">// *******************************************</span>
+<a name="l00492"></a>00492         <span class="comment">// *******************************************</span>
+<a name="l00493"></a>00493         tandy.dac.dma.chan = NULL;
+<a name="l00494"></a>00494         <span class="keywordflow">if</span>( dma_idx != 0xff ) tandy.dac.dma.chan = GetDMAChannel(dma_idx);
+<a name="l00495"></a>00495 
+<a name="l00496"></a>00496         <span class="comment">// *******************************************</span>
+<a name="l00497"></a>00497         <span class="comment">// *******************************************</span>
+<a name="l00498"></a>00498         <span class="comment">// *******************************************</span>
 <a name="l00499"></a>00499 
-<a name="l00500"></a>00500                 tandy.dac.control=0;
-<a name="l00501"></a>00501                 tandy.dac.mode   =0;
-<a name="l00502"></a>00502                 tandy.dac.irq_activated=<span class="keyword">false</span>;
-<a name="l00503"></a>00503                 tandy.dac.frequency=0;
-<a name="l00504"></a>00504                 tandy.dac.amplitude=0;
-<a name="l00505"></a>00505                 tandy.dac.dma.last_sample=0;
-<a name="l00506"></a>00506 
-<a name="l00507"></a>00507 
-<a name="l00508"></a>00508                 tandy.enabled=<span class="keyword">false</span>;
-<a name="l00509"></a>00509                 BIOS_tandy_D4_flag = 0xFF;
-<a name="l00510"></a>00510 
-<a name="l00511"></a>00511                 SN76496Reset( &amp;sn, 3579545, sample_rate );
-<a name="l00512"></a>00512         }
-<a name="l00513"></a>00513         ~<a class="code" href="classTANDYSOUND.html">TANDYSOUND</a>(){ }
-<a name="l00514"></a>00514 };
-<a name="l00515"></a>00515 
-<a name="l00516"></a>00516 
-<a name="l00517"></a>00517 
-<a name="l00518"></a>00518 <span class="keyword">static</span> <a class="code" href="classTANDYSOUND.html">TANDYSOUND</a>* test = NULL;
-<a name="l00519"></a>00519 
-<a name="l00520"></a>00520 <span class="keywordtype">void</span> TANDYSOUND_ShutDown(<a class="code" href="classSection.html">Section</a>* <span class="comment">/*sec*/</span>) {
-<a name="l00521"></a>00521     <span class="keywordflow">if</span> (test) {
-<a name="l00522"></a>00522         <span class="keyword">delete</span> test;
-<a name="l00523"></a>00523         test = NULL;
-<a name="l00524"></a>00524     }
-<a name="l00525"></a>00525 }
-<a name="l00526"></a>00526 
-<a name="l00527"></a>00527 <span class="keywordtype">void</span> TANDYSOUND_OnReset(<a class="code" href="classSection.html">Section</a>* sec) {
-<a name="l00528"></a>00528     (void)sec;<span class="comment">//UNUSED</span>
-<a name="l00529"></a>00529         <span class="keywordflow">if</span> (test == NULL &amp;&amp; !IS_PC98_ARCH) {
-<a name="l00530"></a>00530                 <a class="code" href="classLOG.html">LOG</a>(LOG_MISC,LOG_DEBUG)(<span class="stringliteral">&quot;Allocating Tandy speaker emulation&quot;</span>);
-<a name="l00531"></a>00531                 test = <span class="keyword">new</span> <a class="code" href="classTANDYSOUND.html">TANDYSOUND</a>(control-&gt;GetSection(<span class="stringliteral">&quot;speaker&quot;</span>));
-<a name="l00532"></a>00532         }
-<a name="l00533"></a>00533 }
-<a name="l00534"></a>00534 
-<a name="l00535"></a>00535 <span class="keywordtype">void</span> TANDYSOUND_Init() {
-<a name="l00536"></a>00536         <a class="code" href="classLOG.html">LOG</a>(LOG_MISC,LOG_DEBUG)(<span class="stringliteral">&quot;Initializing Tandy voice emulation&quot;</span>);
-<a name="l00537"></a>00537 
-<a name="l00538"></a>00538         AddExitFunction(AddExitFunctionFuncPair(TANDYSOUND_ShutDown),<span class="keyword">true</span>);
-<a name="l00539"></a>00539         AddVMEventFunction(VM_EVENT_RESET,AddVMEventFunctionFuncPair(TANDYSOUND_OnReset));
-<a name="l00540"></a>00540 }
-<a name="l00541"></a>00541 
+<a name="l00500"></a>00500         <span class="comment">// - restore static ptrs</span>
+<a name="l00501"></a>00501         tandy.chan = chan_old;
+<a name="l00502"></a>00502         tandy.dac.chan = dac_chan_old;
+<a name="l00503"></a>00503     activeDevice-&gt;LoadState(stream);
+<a name="l00504"></a>00504 
+<a name="l00505"></a>00505         tandy.chan-&gt;LoadState(stream);
+<a name="l00506"></a>00506         tandy.dac.chan-&gt;LoadState(stream);
+<a name="l00507"></a>00507 }
 </pre></div></div><!-- contents -->
 
 
 <hr class="footer"/><address class="footer"><small>
-Generated on Tue Oct 1 2019 18:06:27 for DOSBox-X by &#160;<a href="http://www.doxygen.org/index.html">
+Generated on Sun Jul 5 2020 13:11:37 for DOSBox-X by &#160;<a href="http://www.doxygen.org/index.html">
 <img class="footer" src="doxygen.png" alt="doxygen"/>
 </a> 1.8.0
 </small></address>

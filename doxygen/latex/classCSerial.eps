@@ -5,7 +5,7 @@
 %%For: 
 %Magnification: 1.00
 %%Orientation: Portrait
-%%BoundingBox: 0 0 500 129.449838
+%%BoundingBox: 0 0 500 97.087379
 %%Pages: 0
 %%BeginSetup
 %%EndSetup
@@ -19,13 +19,13 @@
 /marginwidth 10 def
 /distx 20 def
 /disty 40 def
-/boundaspect 3.862500 def  % aspect ratio of the BoundingBox (width/height)
+/boundaspect 5.150000 def  % aspect ratio of the BoundingBox (width/height)
 /boundx 500 def
 /boundy boundx boundaspect div def
 /xspacing 0 def
 /yspacing 0 def
 /rows 2 def
-/cols 3 def
+/cols 4 def
 /scalefactor 0 def
 /boxfont /Times-Roman findfont fontheight scalefont def
 
@@ -175,6 +175,7 @@ boxfont setfont
 1 boundaspect scale
 (CSerial) cw
 (CSerialDummy) cw
+(CSerialFile) cw
 (CSerialLog) cw
 (CSerialMouse) cw
 /boxwidth boxwidth marginwidth 2 mul add def
@@ -188,20 +189,23 @@ boundx scalefactor div boundy scalefactor div scale
 
 % ----- classes -----
 
- (CSerial) 1.000000 1.000000 box
+ (CSerial) 1.500000 1.000000 box
  (CSerialDummy) 0.000000 0.000000 box
- (CSerialLog) 1.000000 0.000000 box
- (CSerialMouse) 2.000000 0.000000 box
+ (CSerialFile) 1.000000 0.000000 box
+ (CSerialLog) 2.000000 0.000000 box
+ (CSerialMouse) 3.000000 0.000000 box
 
 % ----- relations -----
 
 solid
-1 1.000000 0.250000 out
+1 1.500000 0.250000 out
 solid
-0.000000 2.000000 1.000000 conn
+0.000000 3.000000 1.000000 conn
 solid
 0 0.000000 0.750000 in
 solid
 0 1.000000 0.750000 in
 solid
 0 2.000000 0.750000 in
+solid
+0 3.000000 0.750000 in

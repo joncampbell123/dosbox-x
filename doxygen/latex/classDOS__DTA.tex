@@ -18,31 +18,34 @@ struct {\bfseries s\-D\-T\-A}
 \hypertarget{classDOS__DTA_a26b5d5147e35f2b65dd6ef0cae1734e5}{{\bfseries D\-O\-S\-\_\-\-D\-T\-A} (Real\-Pt addr)}\label{classDOS__DTA_a26b5d5147e35f2b65dd6ef0cae1734e5}
 
 \item 
-\hypertarget{classDOS__DTA_ae15099c285096d3c32ef7b0f947a338d}{void {\bfseries Setup\-Search} (Bit8u \-\_\-sdrive, Bit8u \-\_\-sattr, char $\ast$\-\_\-pattern)}\label{classDOS__DTA_ae15099c285096d3c32ef7b0f947a338d}
+\hypertarget{classDOS__DTA_acf11b08c492385c159aa90e340be3dd8}{int {\bfseries Get\-Find\-Data} (int fmt, char $\ast$\hyperlink{structfinddata}{finddata}, int $\ast$c)}\label{classDOS__DTA_acf11b08c492385c159aa90e340be3dd8}
 
 \item 
-\hypertarget{classDOS__DTA_ae09318ca38b32bff0df8a0ee88ec2151}{void {\bfseries Set\-Result} (const char $\ast$\-\_\-name, Bit32u \-\_\-size, Bit16u \-\_\-date, Bit16u \-\_\-time, Bit8u \-\_\-attr)}\label{classDOS__DTA_ae09318ca38b32bff0df8a0ee88ec2151}
+\hypertarget{classDOS__DTA_afdc1b9e9dd1c54973249664febf61086}{void {\bfseries Setup\-Search} (Bit8u \-\_\-sdrive, Bit8u \-\_\-sattr, char $\ast$pattern)}\label{classDOS__DTA_afdc1b9e9dd1c54973249664febf61086}
+
+\item 
+\hypertarget{classDOS__DTA_a3fc2f99e5a52c26c1cb019c2c220f017}{void {\bfseries Set\-Result} (const char $\ast$\-\_\-name, const char $\ast$\-\_\-lname, Bit32u \-\_\-size, Bit16u \-\_\-date, Bit16u \-\_\-time, Bit8u \-\_\-attr)}\label{classDOS__DTA_a3fc2f99e5a52c26c1cb019c2c220f017}
 
 \item 
 \hypertarget{classDOS__DTA_a055cb2b2f1fcf3fd76ee76bbd608da30}{Bit8u {\bfseries Get\-Search\-Drive} (void)}\label{classDOS__DTA_a055cb2b2f1fcf3fd76ee76bbd608da30}
 
 \item 
-\hypertarget{classDOS__DTA_a770f5e91477a855386972cc2d530a346}{void {\bfseries Get\-Search\-Params} (Bit8u \&\-\_\-sattr, char $\ast$\-\_\-spattern)}\label{classDOS__DTA_a770f5e91477a855386972cc2d530a346}
+\hypertarget{classDOS__DTA_a6112ff7dd7637bdce72f72caed62e7ec}{void {\bfseries Get\-Search\-Params} (Bit8u \&\-\_\-sattr, char $\ast$\-\_\-spattern, bool lfn)}\label{classDOS__DTA_a6112ff7dd7637bdce72f72caed62e7ec}
 
 \item 
-\hypertarget{classDOS__DTA_a42642ddf3f4fceb24592262dd3221cac}{void {\bfseries Get\-Result} (char $\ast$\-\_\-name, Bit32u \&\-\_\-size, Bit16u \&\-\_\-date, Bit16u \&\-\_\-time, Bit8u \&\-\_\-attr)}\label{classDOS__DTA_a42642ddf3f4fceb24592262dd3221cac}
+\hypertarget{classDOS__DTA_a42bcadbc15a9a77ff82981bddeb24ca1}{void {\bfseries Get\-Result} (char $\ast$\-\_\-name, char $\ast$\-\_\-lname, Bit32u \&\-\_\-size, Bit16u \&\-\_\-date, Bit16u \&\-\_\-time, Bit8u \&\-\_\-attr)}\label{classDOS__DTA_a42bcadbc15a9a77ff82981bddeb24ca1}
 
 \item 
 \hypertarget{classDOS__DTA_ae695e3b2d7507351b4f68fd855f62942}{void {\bfseries Set\-Dir\-I\-D} (Bit16u entry)}\label{classDOS__DTA_ae695e3b2d7507351b4f68fd855f62942}
 
 \item 
-\hypertarget{classDOS__DTA_a9077446d68d8383d59a932d55ad4ddc4}{void {\bfseries Set\-Dir\-I\-D\-Cluster} (Bit16u entry)}\label{classDOS__DTA_a9077446d68d8383d59a932d55ad4ddc4}
+\hypertarget{classDOS__DTA_a6234b76041d9cf7514103fe72ce2bb67}{void {\bfseries Set\-Dir\-I\-D\-Cluster} (Bit32u entry)}\label{classDOS__DTA_a6234b76041d9cf7514103fe72ce2bb67}
 
 \item 
 \hypertarget{classDOS__DTA_ac6562d1dd41f1f2b0874647e82a62289}{Bit16u {\bfseries Get\-Dir\-I\-D} (void)}\label{classDOS__DTA_ac6562d1dd41f1f2b0874647e82a62289}
 
 \item 
-\hypertarget{classDOS__DTA_a1a098a058e4f8237ecc38ed147033f9b}{Bit16u {\bfseries Get\-Dir\-I\-D\-Cluster} (void)}\label{classDOS__DTA_a1a098a058e4f8237ecc38ed147033f9b}
+\hypertarget{classDOS__DTA_a54c6b82def7f8b77092dd05293448125}{Bit32u {\bfseries Get\-Dir\-I\-D\-Cluster} (void)}\label{classDOS__DTA_a54c6b82def7f8b77092dd05293448125}
 
 \item 
 \hypertarget{classDOS__DTA_a2a46e3772a422180a20895e706613ff5}{Bit8u {\bfseries Get\-Attr} (void)}\label{classDOS__DTA_a2a46e3772a422180a20895e706613ff5}
@@ -53,7 +56,7 @@ struct {\bfseries s\-D\-T\-A}
 \subsection{Detailed Description}
 
 
-Definition at line 535 of file dos\-\_\-inc.\-h.
+Definition at line 545 of file dos\-\_\-inc.\-h.
 
 
 

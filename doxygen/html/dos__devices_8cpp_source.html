@@ -96,7 +96,7 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 </div><!--header-->
 <div class="contents">
 <div class="fragment"><pre class="fragment"><a name="l00001"></a>00001 <span class="comment">/*</span>
-<a name="l00002"></a>00002 <span class="comment"> *  Copyright (C) 2002-2019  The DOSBox Team</span>
+<a name="l00002"></a>00002 <span class="comment"> *  Copyright (C) 2002-2020  The DOSBox Team</span>
 <a name="l00003"></a>00003 <span class="comment"> *</span>
 <a name="l00004"></a>00004 <span class="comment"> *  This program is free software; you can redistribute it and/or modify</span>
 <a name="l00005"></a>00005 <span class="comment"> *  it under the terms of the GNU General Public License as published by</span>
@@ -108,9 +108,9 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l00011"></a>00011 <span class="comment"> *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the</span>
 <a name="l00012"></a>00012 <span class="comment"> *  GNU General Public License for more details.</span>
 <a name="l00013"></a>00013 <span class="comment"> *</span>
-<a name="l00014"></a>00014 <span class="comment"> *  You should have received a copy of the GNU General Public License</span>
-<a name="l00015"></a>00015 <span class="comment"> *  along with this program; if not, write to the Free Software</span>
-<a name="l00016"></a>00016 <span class="comment"> *  Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1335, USA.</span>
+<a name="l00014"></a>00014 <span class="comment"> *  You should have received a copy of the GNU General Public License along</span>
+<a name="l00015"></a>00015 <span class="comment"> *  with this program; if not, write to the Free Software Foundation, Inc.,</span>
+<a name="l00016"></a>00016 <span class="comment"> *  51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.</span>
 <a name="l00017"></a>00017 <span class="comment"> */</span>
 <a name="l00018"></a>00018 
 <a name="l00019"></a>00019 
@@ -130,288 +130,586 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l00033"></a>00033 
 <a name="l00034"></a>00034 
 <a name="l00035"></a>00035 <a class="code" href="classDOS__Device.html">DOS_Device</a> * Devices[DOS_DEVICES] = {NULL};
-<a name="l00036"></a>00036 
-<a name="l00037"></a><a class="code" href="classdevice__NUL.html">00037</a> <span class="keyword">class </span><a class="code" href="classdevice__NUL.html">device_NUL</a> : <span class="keyword">public</span> <a class="code" href="classDOS__Device.html">DOS_Device</a> {
-<a name="l00038"></a>00038 <span class="keyword">public</span>:
-<a name="l00039"></a>00039         <a class="code" href="classdevice__NUL.html">device_NUL</a>() { SetName(<span class="stringliteral">&quot;NUL&quot;</span>); };
-<a name="l00040"></a>00040         <span class="keyword">virtual</span> <span class="keywordtype">bool</span> Read(Bit8u * data,Bit16u * size) {
-<a name="l00041"></a>00041         (void)data; <span class="comment">// UNUSED</span>
-<a name="l00042"></a>00042                 *size = 0; <span class="comment">//Return success and no data read. </span>
-<a name="l00043"></a>00043 <span class="comment">//              LOG(LOG_IOCTL,LOG_NORMAL)(&quot;%s:READ&quot;,GetName());</span>
-<a name="l00044"></a>00044                 <span class="keywordflow">return</span> <span class="keyword">true</span>;
-<a name="l00045"></a>00045         }
-<a name="l00046"></a>00046         <span class="keyword">virtual</span> <span class="keywordtype">bool</span> Write(<span class="keyword">const</span> Bit8u * data,Bit16u * size) {
-<a name="l00047"></a>00047         (void)data; <span class="comment">// UNUSED</span>
-<a name="l00048"></a>00048         (void)size; <span class="comment">// UNUSED</span>
-<a name="l00049"></a>00049 <span class="comment">//              LOG(LOG_IOCTL,LOG_NORMAL)(&quot;%s:WRITE&quot;,GetName());</span>
-<a name="l00050"></a>00050                 <span class="keywordflow">return</span> <span class="keyword">true</span>;
-<a name="l00051"></a>00051         }
-<a name="l00052"></a>00052         <span class="keyword">virtual</span> <span class="keywordtype">bool</span> Seek(Bit32u * pos,Bit32u type) {
-<a name="l00053"></a>00053         (void)type;
-<a name="l00054"></a>00054         (void)pos;
-<a name="l00055"></a>00055 <span class="comment">//              LOG(LOG_IOCTL,LOG_NORMAL)(&quot;%s:SEEK&quot;,GetName());</span>
-<a name="l00056"></a>00056                 <span class="keywordflow">return</span> <span class="keyword">true</span>;
-<a name="l00057"></a>00057         }
-<a name="l00058"></a>00058         <span class="keyword">virtual</span> <span class="keywordtype">bool</span> Close() { <span class="keywordflow">return</span> <span class="keyword">true</span>; }
-<a name="l00059"></a>00059         <span class="keyword">virtual</span> Bit16u GetInformation(<span class="keywordtype">void</span>) { <span class="keywordflow">return</span> 0x8084; }
-<a name="l00060"></a>00060         <span class="keyword">virtual</span> <span class="keywordtype">bool</span> ReadFromControlChannel(PhysPt bufptr,Bit16u size,Bit16u * retcode) { (void)bufptr; (void)size; (void)retcode; <span class="keywordflow">return</span> <span class="keyword">false</span>; }
-<a name="l00061"></a>00061         <span class="keyword">virtual</span> <span class="keywordtype">bool</span> WriteToControlChannel(PhysPt bufptr,Bit16u size,Bit16u * retcode) { (void)bufptr; (void)size; (void)retcode; <span class="keywordflow">return</span> <span class="keyword">false</span>; }
-<a name="l00062"></a>00062 };
-<a name="l00063"></a>00063 
-<a name="l00064"></a><a class="code" href="classdevice__PRN.html">00064</a> <span class="keyword">class </span><a class="code" href="classdevice__PRN.html">device_PRN</a> : <span class="keyword">public</span> <a class="code" href="classDOS__Device.html">DOS_Device</a> {
-<a name="l00065"></a>00065 <span class="keyword">public</span>:
-<a name="l00066"></a>00066         <a class="code" href="classdevice__PRN.html">device_PRN</a>() {
-<a name="l00067"></a>00067                 SetName(<span class="stringliteral">&quot;PRN&quot;</span>);
-<a name="l00068"></a>00068         }
-<a name="l00069"></a>00069         <span class="keywordtype">bool</span> Read(Bit8u * data,Bit16u * size) {
-<a name="l00070"></a>00070         (void)data; <span class="comment">// UNUSED</span>
-<a name="l00071"></a>00071         (void)size; <span class="comment">// UNUSED</span>
-<a name="l00072"></a>00072                 DOS_SetError(DOSERR_ACCESS_DENIED);
-<a name="l00073"></a>00073                 <span class="keywordflow">return</span> <span class="keyword">false</span>;
-<a name="l00074"></a>00074         }
-<a name="l00075"></a>00075         <span class="keywordtype">bool</span> Write(<span class="keyword">const</span> Bit8u * data,Bit16u * size) {
-<a name="l00076"></a>00076                 <span class="keywordflow">for</span>(<span class="keywordtype">int</span> i = 0; i &lt; 3; i++) {
-<a name="l00077"></a>00077                         <span class="comment">// look up a parallel port</span>
-<a name="l00078"></a>00078                         <span class="keywordflow">if</span>(parallelPortObjects[i] != NULL) {
-<a name="l00079"></a>00079                                 <span class="comment">// send the data</span>
-<a name="l00080"></a>00080                                 <span class="keywordflow">for</span> (Bit16u j=0; j&lt;*size; j++) {
-<a name="l00081"></a>00081                                         <span class="keywordflow">if</span>(!parallelPortObjects[i]-&gt;Putchar(data[j])) <span class="keywordflow">return</span> <span class="keyword">false</span>;
-<a name="l00082"></a>00082                                 }
-<a name="l00083"></a>00083                                 <span class="keywordflow">return</span> <span class="keyword">true</span>;
-<a name="l00084"></a>00084                         }
-<a name="l00085"></a>00085                 }
-<a name="l00086"></a>00086                 <span class="keywordflow">return</span> <span class="keyword">false</span>;
-<a name="l00087"></a>00087         }
-<a name="l00088"></a>00088         <span class="keywordtype">bool</span> Seek(Bit32u * pos,Bit32u type) {
-<a name="l00089"></a>00089         (void)type; <span class="comment">// UNUSED</span>
-<a name="l00090"></a>00090                 *pos = 0;
-<a name="l00091"></a>00091                 <span class="keywordflow">return</span> <span class="keyword">true</span>;
-<a name="l00092"></a>00092         }
-<a name="l00093"></a>00093         Bit16u GetInformation(<span class="keywordtype">void</span>) {
-<a name="l00094"></a>00094                 <span class="keywordflow">return</span> 0x80A0;
-<a name="l00095"></a>00095         }
-<a name="l00096"></a>00096         <span class="keywordtype">bool</span> Close() {
-<a name="l00097"></a>00097                 <span class="keywordflow">return</span> <span class="keyword">false</span>;
-<a name="l00098"></a>00098         }
-<a name="l00099"></a>00099 };
-<a name="l00100"></a>00100 
-<a name="l00101"></a>00101 <span class="keywordtype">bool</span> DOS_Device::Read(Bit8u * data,Bit16u * size) {
-<a name="l00102"></a>00102         <span class="keywordflow">return</span> Devices[devnum]-&gt;Read(data,size);
-<a name="l00103"></a>00103 }
-<a name="l00104"></a>00104 
-<a name="l00105"></a>00105 <span class="keywordtype">bool</span> DOS_Device::Write(<span class="keyword">const</span> Bit8u * data,Bit16u * size) {
-<a name="l00106"></a>00106         <span class="keywordflow">return</span> Devices[devnum]-&gt;Write(data,size);
-<a name="l00107"></a>00107 }
-<a name="l00108"></a>00108 
-<a name="l00109"></a>00109 <span class="keywordtype">bool</span> DOS_Device::Seek(Bit32u * pos,Bit32u type) {
-<a name="l00110"></a>00110         <span class="keywordflow">return</span> Devices[devnum]-&gt;Seek(pos,type);
-<a name="l00111"></a>00111 }
-<a name="l00112"></a>00112 
-<a name="l00113"></a>00113 <span class="keywordtype">bool</span> DOS_Device::Close() {
-<a name="l00114"></a>00114         <span class="keywordflow">return</span> Devices[devnum]-&gt;Close();
-<a name="l00115"></a>00115 }
-<a name="l00116"></a>00116 
-<a name="l00117"></a>00117 Bit16u DOS_Device::GetInformation(<span class="keywordtype">void</span>) { 
-<a name="l00118"></a>00118         <span class="keywordflow">return</span> Devices[devnum]-&gt;GetInformation();
-<a name="l00119"></a>00119 }
-<a name="l00120"></a>00120 
-<a name="l00121"></a>00121 <span class="keywordtype">bool</span> DOS_Device::ReadFromControlChannel(PhysPt bufptr,Bit16u size,Bit16u * retcode) { 
-<a name="l00122"></a>00122         <span class="keywordflow">return</span> Devices[devnum]-&gt;ReadFromControlChannel(bufptr,size,retcode);
-<a name="l00123"></a>00123 }
-<a name="l00124"></a>00124 
-<a name="l00125"></a>00125 <span class="keywordtype">bool</span> DOS_Device::WriteToControlChannel(PhysPt bufptr,Bit16u size,Bit16u * retcode) { 
-<a name="l00126"></a>00126         <span class="keywordflow">return</span> Devices[devnum]-&gt;WriteToControlChannel(bufptr,size,retcode);
-<a name="l00127"></a>00127 }
+<a name="l00036"></a>00036 <span class="keyword">extern</span> <span class="keywordtype">int</span> dos_clipboard_device_access;
+<a name="l00037"></a>00037 <span class="keyword">extern</span> <span class="keywordtype">char</span> * dos_clipboard_device_name;
+<a name="l00038"></a>00038 
+<a name="l00039"></a><a class="code" href="classdevice__NUL.html">00039</a> <span class="keyword">class </span><a class="code" href="classdevice__NUL.html">device_NUL</a> : <span class="keyword">public</span> <a class="code" href="classDOS__Device.html">DOS_Device</a> {
+<a name="l00040"></a>00040 <span class="keyword">public</span>:
+<a name="l00041"></a>00041         <a class="code" href="classdevice__NUL.html">device_NUL</a>() { SetName(<span class="stringliteral">&quot;NUL&quot;</span>); };
+<a name="l00042"></a>00042         <span class="keyword">virtual</span> <span class="keywordtype">bool</span> Read(Bit8u * data,Bit16u * size) {
+<a name="l00043"></a>00043         (void)data; <span class="comment">// UNUSED</span>
+<a name="l00044"></a>00044                 *size = 0; <span class="comment">//Return success and no data read. </span>
+<a name="l00045"></a>00045 <span class="comment">//              LOG(LOG_IOCTL,LOG_NORMAL)(&quot;%s:READ&quot;,GetName());</span>
+<a name="l00046"></a>00046                 <span class="keywordflow">return</span> <span class="keyword">true</span>;
+<a name="l00047"></a>00047         }
+<a name="l00048"></a>00048         <span class="keyword">virtual</span> <span class="keywordtype">bool</span> Write(<span class="keyword">const</span> Bit8u * data,Bit16u * size) {
+<a name="l00049"></a>00049         (void)data; <span class="comment">// UNUSED</span>
+<a name="l00050"></a>00050         (void)size; <span class="comment">// UNUSED</span>
+<a name="l00051"></a>00051 <span class="comment">//              LOG(LOG_IOCTL,LOG_NORMAL)(&quot;%s:WRITE&quot;,GetName());</span>
+<a name="l00052"></a>00052                 <span class="keywordflow">return</span> <span class="keyword">true</span>;
+<a name="l00053"></a>00053         }
+<a name="l00054"></a>00054         <span class="keyword">virtual</span> <span class="keywordtype">bool</span> Seek(Bit32u * pos,Bit32u type) {
+<a name="l00055"></a>00055         (void)type;
+<a name="l00056"></a>00056         (void)pos;
+<a name="l00057"></a>00057 <span class="comment">//              LOG(LOG_IOCTL,LOG_NORMAL)(&quot;%s:SEEK&quot;,GetName());</span>
+<a name="l00058"></a>00058                 <span class="keywordflow">return</span> <span class="keyword">true</span>;
+<a name="l00059"></a>00059         }
+<a name="l00060"></a>00060         <span class="keyword">virtual</span> <span class="keywordtype">bool</span> Close() { <span class="keywordflow">return</span> <span class="keyword">true</span>; }
+<a name="l00061"></a>00061         <span class="keyword">virtual</span> Bit16u GetInformation(<span class="keywordtype">void</span>) { <span class="keywordflow">return</span> 0x8084; }
+<a name="l00062"></a>00062         <span class="keyword">virtual</span> <span class="keywordtype">bool</span> ReadFromControlChannel(PhysPt bufptr,Bit16u size,Bit16u * retcode) { (void)bufptr; (void)size; (void)retcode; <span class="keywordflow">return</span> <span class="keyword">false</span>; }
+<a name="l00063"></a>00063         <span class="keyword">virtual</span> <span class="keywordtype">bool</span> WriteToControlChannel(PhysPt bufptr,Bit16u size,Bit16u * retcode) { (void)bufptr; (void)size; (void)retcode; <span class="keywordflow">return</span> <span class="keyword">false</span>; }
+<a name="l00064"></a>00064 };
+<a name="l00065"></a>00065 
+<a name="l00066"></a><a class="code" href="classdevice__PRN.html">00066</a> <span class="keyword">class </span><a class="code" href="classdevice__PRN.html">device_PRN</a> : <span class="keyword">public</span> <a class="code" href="classDOS__Device.html">DOS_Device</a> {
+<a name="l00067"></a>00067 <span class="keyword">public</span>:
+<a name="l00068"></a>00068         <a class="code" href="classdevice__PRN.html">device_PRN</a>() {
+<a name="l00069"></a>00069                 SetName(<span class="stringliteral">&quot;PRN&quot;</span>);
+<a name="l00070"></a>00070         }
+<a name="l00071"></a>00071         <span class="keywordtype">bool</span> Read(Bit8u * data,Bit16u * size) {
+<a name="l00072"></a>00072         (void)data; <span class="comment">// UNUSED</span>
+<a name="l00073"></a>00073         (void)size; <span class="comment">// UNUSED</span>
+<a name="l00074"></a>00074                 DOS_SetError(DOSERR_ACCESS_DENIED);
+<a name="l00075"></a>00075                 <span class="keywordflow">return</span> <span class="keyword">false</span>;
+<a name="l00076"></a>00076         }
+<a name="l00077"></a>00077         <span class="keywordtype">bool</span> Write(<span class="keyword">const</span> Bit8u * data,Bit16u * size) {
+<a name="l00078"></a>00078                 <span class="keywordflow">for</span>(<span class="keywordtype">int</span> i = 0; i &lt; 3; i++) {
+<a name="l00079"></a>00079                         <span class="comment">// look up a parallel port</span>
+<a name="l00080"></a>00080                         <span class="keywordflow">if</span>(parallelPortObjects[i] != NULL) {
+<a name="l00081"></a>00081                                 <span class="comment">// send the data</span>
+<a name="l00082"></a>00082                                 <span class="keywordflow">for</span> (Bit16u j=0; j&lt;*size; j++) {
+<a name="l00083"></a>00083                                         <span class="keywordflow">if</span>(!parallelPortObjects[i]-&gt;Putchar(data[j])) <span class="keywordflow">return</span> <span class="keyword">false</span>;
+<a name="l00084"></a>00084                                 }
+<a name="l00085"></a>00085                                 <span class="keywordflow">return</span> <span class="keyword">true</span>;
+<a name="l00086"></a>00086                         }
+<a name="l00087"></a>00087                 }
+<a name="l00088"></a>00088                 <span class="keywordflow">return</span> <span class="keyword">false</span>;
+<a name="l00089"></a>00089         }
+<a name="l00090"></a>00090         <span class="keywordtype">bool</span> Seek(Bit32u * pos,Bit32u type) {
+<a name="l00091"></a>00091         (void)type; <span class="comment">// UNUSED</span>
+<a name="l00092"></a>00092                 *pos = 0;
+<a name="l00093"></a>00093                 <span class="keywordflow">return</span> <span class="keyword">true</span>;
+<a name="l00094"></a>00094         }
+<a name="l00095"></a>00095         Bit16u GetInformation(<span class="keywordtype">void</span>) {
+<a name="l00096"></a>00096                 <span class="keywordflow">return</span> 0x80A0;
+<a name="l00097"></a>00097         }
+<a name="l00098"></a>00098         <span class="keywordtype">bool</span> Close() {
+<a name="l00099"></a>00099                 <span class="keywordflow">return</span> <span class="keyword">false</span>;
+<a name="l00100"></a>00100         }
+<a name="l00101"></a>00101 };
+<a name="l00102"></a>00102 
+<a name="l00103"></a>00103 <span class="preprocessor">#if defined(WIN32)</span>
+<a name="l00104"></a>00104 <span class="preprocessor"></span><span class="keywordtype">bool</span> lastwrite = <span class="keyword">false</span>;
+<a name="l00105"></a>00105 Bit8u *clipAscii = NULL;
+<a name="l00106"></a>00106 Bit32u clipSize = 0, cPointer = 0, fPointer;
+<a name="l00107"></a>00107 
+<a name="l00108"></a>00108 <span class="keywordtype">void</span> Unicode2Ascii(<span class="keyword">const</span> Bit16u* unicode)
+<a name="l00109"></a>00109         {
+<a name="l00110"></a>00110         <span class="keywordtype">int</span> memNeeded = WideCharToMultiByte(dos.loaded_codepage, WC_NO_BEST_FIT_CHARS, (LPCWSTR)unicode, -1, NULL, 0, <span class="stringliteral">&quot;\x07&quot;</span>, NULL);
+<a name="l00111"></a>00111         <span class="keywordflow">if</span> (memNeeded &lt;= 1)                                                                                                                             <span class="comment">// Includes trailing null</span>
+<a name="l00112"></a>00112                 <span class="keywordflow">return</span>;
+<a name="l00113"></a>00113         <span class="keywordflow">if</span> (!(clipAscii = (Bit8u *)malloc(memNeeded)))
+<a name="l00114"></a>00114                 <span class="keywordflow">return</span>;
+<a name="l00115"></a>00115         <span class="comment">// Untranslated characters will be set to 0x07 (BEL), and later stripped</span>
+<a name="l00116"></a>00116         <span class="keywordflow">if</span> (WideCharToMultiByte(dos.loaded_codepage, WC_NO_BEST_FIT_CHARS, (LPCWSTR)unicode, -1, (LPSTR)clipAscii, memNeeded, <span class="stringliteral">&quot;\x07&quot;</span>, NULL) != memNeeded)
+<a name="l00117"></a>00117                 {                                                                                                                                                       <span class="comment">// Can&#39;t actually happen of course</span>
+<a name="l00118"></a>00118                 free(clipAscii);
+<a name="l00119"></a>00119                 clipAscii = NULL;
+<a name="l00120"></a>00120                 <span class="keywordflow">return</span>;
+<a name="l00121"></a>00121                 }
+<a name="l00122"></a>00122         memNeeded--;                                                                                                                                    <span class="comment">// Don&#39;t include trailing null</span>
+<a name="l00123"></a>00123         <span class="keywordflow">for</span> (<span class="keywordtype">int</span> i = 0; i &lt; memNeeded; i++)
+<a name="l00124"></a>00124                 <span class="keywordflow">if</span> (clipAscii[i] &gt; 31 || clipAscii[i] == 9 || clipAscii[i] == 10 || clipAscii[i] == 13) <span class="comment">// Space and up, or TAB, CR/LF allowed (others make no sense when pasting)</span>
+<a name="l00125"></a>00125                         clipAscii[clipSize++] = clipAscii[i];
+<a name="l00126"></a>00126         <span class="keywordflow">return</span>;                                                                                                                                                 <span class="comment">// clipAscii dould be downsized, but of no real interest</span>
+<a name="l00127"></a>00127         }       
 <a name="l00128"></a>00128 
-<a name="l00129"></a>00129 DOS_File::DOS_File(<span class="keyword">const</span> <a class="code" href="classDOS__File.html">DOS_File</a>&amp; orig) {
-<a name="l00130"></a>00130         flags=orig.flags;
-<a name="l00131"></a>00131         time=orig.time;
-<a name="l00132"></a>00132         date=orig.date;
-<a name="l00133"></a>00133         attr=orig.attr;
-<a name="l00134"></a>00134         refCtr=orig.refCtr;
-<a name="l00135"></a>00135         open=orig.open;
-<a name="l00136"></a>00136         hdrive=orig.hdrive;
-<a name="l00137"></a>00137     drive = 0;
-<a name="l00138"></a>00138     newtime = <span class="keyword">false</span>;
-<a name="l00139"></a>00139         name=0;
-<a name="l00140"></a>00140         <span class="keywordflow">if</span>(orig.name) {
-<a name="l00141"></a>00141                 name=<span class="keyword">new</span> <span class="keywordtype">char</span> [strlen(orig.name) + 1];strcpy(name,orig.name);
-<a name="l00142"></a>00142         }
-<a name="l00143"></a>00143 }
-<a name="l00144"></a>00144 
-<a name="l00145"></a>00145 <a class="code" href="classDOS__File.html">DOS_File</a> &amp; DOS_File::operator= (<span class="keyword">const</span> <a class="code" href="classDOS__File.html">DOS_File</a> &amp; orig) {
-<a name="l00146"></a>00146         flags=orig.flags;
-<a name="l00147"></a>00147         time=orig.time;
-<a name="l00148"></a>00148         date=orig.date;
-<a name="l00149"></a>00149         attr=orig.attr;
-<a name="l00150"></a>00150         refCtr=orig.refCtr;
-<a name="l00151"></a>00151         open=orig.open;
-<a name="l00152"></a>00152         hdrive=orig.hdrive;
-<a name="l00153"></a>00153         <span class="keywordflow">if</span>(name) {
-<a name="l00154"></a>00154                 <span class="keyword">delete</span> [] name; name=0;
-<a name="l00155"></a>00155         }
-<a name="l00156"></a>00156         <span class="keywordflow">if</span>(orig.name) {
-<a name="l00157"></a>00157                 name=<span class="keyword">new</span> <span class="keywordtype">char</span> [strlen(orig.name) + 1];strcpy(name,orig.name);
-<a name="l00158"></a>00158         }
-<a name="l00159"></a>00159         <span class="keywordflow">return</span> *<span class="keyword">this</span>;
-<a name="l00160"></a>00160 }
-<a name="l00161"></a>00161 
-<a name="l00162"></a>00162 Bit8u DOS_FindDevice(<span class="keywordtype">char</span> <span class="keyword">const</span> * name) {
-<a name="l00163"></a>00163         <span class="comment">/* should only check for the names before the dot and spacepadded */</span>
-<a name="l00164"></a>00164         <span class="keywordtype">char</span> fullname[DOS_PATHLENGTH];Bit8u drive;
-<a name="l00165"></a>00165 <span class="comment">//      if(!name || !(*name)) return DOS_DEVICES; //important, but makename does it</span>
-<a name="l00166"></a>00166         <span class="keywordflow">if</span> (!DOS_MakeName(name,fullname,&amp;drive)) <span class="keywordflow">return</span> DOS_DEVICES;
-<a name="l00167"></a>00167 
-<a name="l00168"></a>00168         <span class="keywordtype">char</span>* name_part = strrchr(fullname,<span class="charliteral">&#39;\\&#39;</span>);
-<a name="l00169"></a>00169         <span class="keywordflow">if</span>(name_part) {
-<a name="l00170"></a>00170                 *name_part++ = 0;
-<a name="l00171"></a>00171                 <span class="comment">//Check validity of leading directory.</span>
-<a name="l00172"></a>00172                 <span class="keywordflow">if</span>(!Drives[drive]-&gt;TestDir(fullname)) <span class="keywordflow">return</span> DOS_DEVICES;
-<a name="l00173"></a>00173         } <span class="keywordflow">else</span> name_part = fullname;
-<a name="l00174"></a>00174    
-<a name="l00175"></a>00175         <span class="keywordtype">char</span>* dot = strrchr(name_part,<span class="charliteral">&#39;.&#39;</span>);
-<a name="l00176"></a>00176         <span class="keywordflow">if</span>(dot) *dot = 0; <span class="comment">//no ext checking</span>
-<a name="l00177"></a>00177 
-<a name="l00178"></a>00178         <span class="keyword">static</span> <span class="keywordtype">char</span> com[5] = { <span class="charliteral">&#39;C&#39;</span>,<span class="charliteral">&#39;O&#39;</span>,<span class="charliteral">&#39;M&#39;</span>,<span class="charliteral">&#39;1&#39;</span>,0 };
-<a name="l00179"></a>00179         <span class="keyword">static</span> <span class="keywordtype">char</span> lpt[5] = { <span class="charliteral">&#39;L&#39;</span>,<span class="charliteral">&#39;P&#39;</span>,<span class="charliteral">&#39;T&#39;</span>,<span class="charliteral">&#39;1&#39;</span>,0 };
-<a name="l00180"></a>00180         <span class="comment">// AUX is alias for COM1 and PRN for LPT1</span>
-<a name="l00181"></a>00181         <span class="comment">// A bit of a hack. (but less then before).</span>
-<a name="l00182"></a>00182         <span class="comment">// no need for casecmp as makename returns uppercase</span>
-<a name="l00183"></a>00183         <span class="keywordflow">if</span> (strcmp(name_part, <span class="stringliteral">&quot;AUX&quot;</span>) == 0) name_part = com;
-<a name="l00184"></a>00184         <span class="keywordflow">if</span> (strcmp(name_part, <span class="stringliteral">&quot;PRN&quot;</span>) == 0) name_part = lpt;
-<a name="l00185"></a>00185 
-<a name="l00186"></a>00186         <span class="comment">/* loop through devices */</span>
-<a name="l00187"></a>00187         <span class="keywordflow">for</span>(Bit8u index = 0;index &lt; DOS_DEVICES;index++) {
-<a name="l00188"></a>00188                 <span class="keywordflow">if</span> (Devices[index]) {
-<a name="l00189"></a>00189                         <span class="keywordflow">if</span> (WildFileCmp(name_part,Devices[index]-&gt;name)) <span class="keywordflow">return</span> index;
+<a name="l00129"></a>00129 <span class="keywordtype">bool</span> getClipboard()
+<a name="l00130"></a>00130         {
+<a name="l00131"></a>00131         <span class="keywordflow">if</span> (clipAscii)
+<a name="l00132"></a>00132                 {
+<a name="l00133"></a>00133                 free(clipAscii);
+<a name="l00134"></a>00134                 clipAscii = NULL;
+<a name="l00135"></a>00135                 }
+<a name="l00136"></a>00136         clipSize = 0;
+<a name="l00137"></a>00137         <span class="keywordflow">if</span> (OpenClipboard(NULL))
+<a name="l00138"></a>00138                 {
+<a name="l00139"></a>00139                 <span class="keywordflow">if</span> (HANDLE cbText = GetClipboardData(CF_UNICODETEXT))
+<a name="l00140"></a>00140                         {
+<a name="l00141"></a>00141                         Bit16u *unicode = (Bit16u *)GlobalLock(cbText);
+<a name="l00142"></a>00142                         Unicode2Ascii(unicode);
+<a name="l00143"></a>00143                         GlobalUnlock(cbText);
+<a name="l00144"></a>00144                         }
+<a name="l00145"></a>00145                 CloseClipboard();
+<a name="l00146"></a>00146                 }
+<a name="l00147"></a>00147         <span class="keywordflow">return</span> clipSize != 0;
+<a name="l00148"></a>00148         }
+<a name="l00149"></a>00149 
+<a name="l00150"></a>00150 Bit16u cpMap[256] = {
+<a name="l00151"></a>00151         0x0020, 0x263a, 0x263b, 0x2665, 0x2666, 0x2663, 0x2660, 0x2219, 0x25d8, 0x25cb, 0x25d9, 0x2642, 0x2640, 0x266a, 0x266b, 0x263c,
+<a name="l00152"></a>00152         0x25ba, 0x25c4, 0x2195, 0x203c, 0x00b6, 0x00a7, 0x25ac, 0x21a8, 0x2191, 0x2193, 0x2192, 0x2190, 0x221f, 0x2194, 0x25b2, 0x25bc,
+<a name="l00153"></a>00153         0x0020, 0x0021, 0x0022, 0x0023, 0x0024, 0x0025, 0x0026, 0x0027, 0x0028, 0x0029, 0x002a, 0x002b, 0x002c, 0x002d, 0x002e, 0x002f,
+<a name="l00154"></a>00154         0x0030, 0x0031, 0x0032, 0x0033, 0x0034, 0x0035, 0x0036, 0x0037, 0x0038, 0x0039, 0x003a, 0x003b, 0x003c, 0x003d, 0x003e, 0x003f,
+<a name="l00155"></a>00155         0x0040, 0x0041, 0x0042, 0x0043, 0x0044, 0x0045, 0x0046, 0x0047, 0x0048, 0x0049, 0x004a, 0x004b, 0x004c, 0x004d, 0x004e, 0x004f,
+<a name="l00156"></a>00156         0x0050, 0x0051, 0x0052, 0x0053, 0x0054, 0x0055, 0x0056, 0x0057, 0x0058, 0x0059, 0x005a, 0x005b, 0x005c, 0x005d, 0x005e, 0x005f,
+<a name="l00157"></a>00157         0x0060, 0x0061, 0x0062, 0x0063, 0x0064, 0x0065, 0x0066, 0x0067, 0x0068, 0x0069, 0x006a, 0x006b, 0x006c, 0x006d, 0x006e, 0x006f,
+<a name="l00158"></a>00158         0x0070, 0x0071, 0x0072, 0x0073, 0x0074, 0x0075, 0x0076, 0x0077, 0x0078, 0x0079, 0x007a, 0x007b, 0x007c, 0x007d, 0x007e, 0x2302,
+<a name="l00159"></a>00159         0x00c7, 0x00fc, 0x00e9, 0x00e2, 0x00e4, 0x00e0, 0x00e5, 0x00e7, 0x00ea, 0x00eb, 0x00e8, 0x00ef, 0x00ee, 0x00ec, 0x00c4, 0x00c5,
+<a name="l00160"></a>00160         0x00c9, 0x00e6, 0x00c6, 0x00f4, 0x00f6, 0x00f2, 0x00fb, 0x00f9, 0x00ff, 0x00d6, 0x00dc, 0x00a2, 0x00a3, 0x00a5, 0x20a7, 0x0192,
+<a name="l00161"></a>00161         0x00e1, 0x00ed, 0x00f3, 0x00fa, 0x00f1, 0x00d1, 0x00aa, 0x00ba, 0x00bf, 0x2310, 0x00ac, 0x00bd, 0x00bc, 0x00a1, 0x00ab, 0x00bb,
+<a name="l00162"></a>00162         0x2591, 0x2592, 0x2593, 0x2502, 0x2524, 0x2561, 0x2562, 0x2556, 0x2555, 0x2563, 0x2551, 0x2557, 0x255d, 0x255c, 0x255b, 0x2510,         <span class="comment">// 176 - 223 line/box drawing</span>
+<a name="l00163"></a>00163         0x2514, 0x2534, 0x252c, 0x251c, 0x2500, 0x253c, 0x255e, 0x255f, 0x255a, 0x2554, 0x2569, 0x2566, 0x2560, 0x2550, 0x256c, 0x2567,
+<a name="l00164"></a>00164         0x2568, 0x2564, 0x2565, 0x2559, 0x2558, 0x2552, 0x2553, 0x256b, 0x256a, 0x2518, 0x250c, 0x2588, 0x2584, 0x258c, 0x2590, 0x2580,
+<a name="l00165"></a>00165         0x03b1, 0x00df, 0x0393, 0x03c0, 0x03a3, 0x03c3, 0x00b5, 0x03c4, 0x03a6, 0x0398, 0x03a9, 0x03b4, 0x221e, 0x03c6, 0x03b5, 0x2229,
+<a name="l00166"></a>00166         0x2261, 0x00b1, 0x2265, 0x2264, 0x2320, 0x2321, 0x00f7, 0x2248, 0x00b0, 0x2219, 0x00b7, 0x221a, 0x207f, 0x00b2, 0x25a0, 0x0020
+<a name="l00167"></a>00167         };
+<a name="l00168"></a>00168 
+<a name="l00169"></a>00169 
+<a name="l00170"></a>00170 <span class="keyword">class </span>device_CLIP : <span class="keyword">public</span> <a class="code" href="classDOS__Device.html">DOS_Device</a> {
+<a name="l00171"></a>00171 <span class="keyword">private</span>:
+<a name="l00172"></a>00172         <span class="keywordtype">char</span>    tmpAscii[20];
+<a name="l00173"></a>00173         <span class="keywordtype">char</span>    tmpUnicode[20];
+<a name="l00174"></a>00174         std::string rawdata;                            <span class="comment">// the raw data sent to CLIP$...</span>
+<a name="l00175"></a>00175         <span class="keyword">virtual</span> <span class="keywordtype">void</span> CommitData() {
+<a name="l00176"></a>00176                 <span class="keywordflow">if</span> (cPointer&gt;0) {
+<a name="l00177"></a>00177                         <span class="keywordflow">if</span> (!clipSize)
+<a name="l00178"></a>00178                                 getClipboard();
+<a name="l00179"></a>00179                         <span class="keywordflow">if</span> (cPointer&gt;clipSize)
+<a name="l00180"></a>00180                                 cPointer=clipSize;
+<a name="l00181"></a>00181                         <span class="keywordflow">if</span> (clipSize) {
+<a name="l00182"></a>00182                                 <span class="keywordflow">if</span> (rawdata.capacity() &lt; 100000)
+<a name="l00183"></a>00183                                         rawdata.reserve(100000);
+<a name="l00184"></a>00184                                 std::string temp=std::string((<span class="keywordtype">char</span> *)clipAscii).substr(0, cPointer);
+<a name="l00185"></a>00185                                 <span class="keywordflow">if</span> (temp[temp.length()-1]!=<span class="charliteral">&#39;\n&#39;</span>) temp+=<span class="stringliteral">&quot;\n&quot;</span>;
+<a name="l00186"></a>00186                                 rawdata.insert(0, temp);
+<a name="l00187"></a>00187                                 clipSize=0;
+<a name="l00188"></a>00188                         }
+<a name="l00189"></a>00189                         cPointer=0;
 <a name="l00190"></a>00190                 }
-<a name="l00191"></a>00191         }
-<a name="l00192"></a>00192         <span class="keywordflow">return</span> DOS_DEVICES;
-<a name="l00193"></a>00193 }
-<a name="l00194"></a>00194 
-<a name="l00195"></a>00195 
-<a name="l00196"></a>00196 <span class="keywordtype">void</span> DOS_AddDevice(<a class="code" href="classDOS__Device.html">DOS_Device</a> * adddev) {
-<a name="l00197"></a>00197 <span class="comment">//Caller creates the device. We store a pointer to it</span>
-<a name="l00198"></a>00198 <span class="comment">//TODO Give the Device a real handler in low memory that responds to calls</span>
-<a name="l00199"></a>00199         <span class="keywordflow">if</span> (adddev == NULL) E_Exit(<span class="stringliteral">&quot;DOS_AddDevice with null ptr&quot;</span>);
-<a name="l00200"></a>00200         <span class="keywordflow">for</span>(Bitu i = 0; i &lt; DOS_DEVICES;i++) {
-<a name="l00201"></a>00201                 <span class="keywordflow">if</span> (Devices[i] == NULL){
-<a name="l00202"></a>00202 <span class="comment">//                      LOG_MSG(&quot;DOS_AddDevice %s (%p)\n&quot;,adddev-&gt;name,(void*)adddev);</span>
-<a name="l00203"></a>00203                         Devices[i] = adddev;
-<a name="l00204"></a>00204                         Devices[i]-&gt;SetDeviceNumber(i);
-<a name="l00205"></a>00205                         <span class="keywordflow">return</span>;
-<a name="l00206"></a>00206                 }
-<a name="l00207"></a>00207         }
-<a name="l00208"></a>00208         E_Exit(<span class="stringliteral">&quot;DOS:Too many devices added&quot;</span>);
-<a name="l00209"></a>00209 }
-<a name="l00210"></a>00210 
-<a name="l00211"></a>00211 <span class="keywordtype">void</span> DOS_DelDevice(<a class="code" href="classDOS__Device.html">DOS_Device</a> * dev) {
-<a name="l00212"></a>00212 <span class="comment">// We will destroy the device if we find it in our list.</span>
-<a name="l00213"></a>00213 <span class="comment">// TODO:The file table is not checked to see the device is opened somewhere!</span>
-<a name="l00214"></a>00214         <span class="keywordflow">if</span> (dev == NULL) <span class="keywordflow">return</span> E_Exit(<span class="stringliteral">&quot;DOS_DelDevice with null ptr&quot;</span>);
-<a name="l00215"></a>00215         <span class="keywordflow">for</span> (Bitu i = 0; i &lt;DOS_DEVICES;i++) {
-<a name="l00216"></a>00216                 <span class="keywordflow">if</span> (Devices[i] == dev) { <span class="comment">/* NTS: The mainline code deleted by matching names??? Why? */</span>
-<a name="l00217"></a>00217 <span class="comment">//                      LOG_MSG(&quot;DOS_DelDevice %s (%p)\n&quot;,dev-&gt;name,(void*)dev);</span>
-<a name="l00218"></a>00218                         <span class="keyword">delete</span> Devices[i];
-<a name="l00219"></a>00219                         Devices[i] = 0;
-<a name="l00220"></a>00220                         <span class="keywordflow">return</span>;
-<a name="l00221"></a>00221                 }
-<a name="l00222"></a>00222         }
-<a name="l00223"></a>00223 
-<a name="l00224"></a>00224         <span class="comment">/* hm. unfortunately, too much code in DOSBox assumes that we delete the object.</span>
-<a name="l00225"></a>00225 <span class="comment">         * prior to this fix, failure to delete caused a memory leak */</span>
-<a name="l00226"></a>00226         LOG_MSG(<span class="stringliteral">&quot;WARNING: DOS_DelDevice() failed to match device object &#39;%s&#39; (%p). Deleting anyway\n&quot;</span>,dev-&gt;name,(<span class="keywordtype">void</span>*)dev);
-<a name="l00227"></a>00227         <span class="keyword">delete</span> dev;
-<a name="l00228"></a>00228 }
-<a name="l00229"></a>00229 
-<a name="l00230"></a>00230 <span class="keywordtype">void</span> DOS_ShutdownDevices(<span class="keywordtype">void</span>) {
-<a name="l00231"></a>00231         <span class="keywordflow">for</span> (Bitu i=0;i &lt; DOS_DEVICES;i++) {
-<a name="l00232"></a>00232                 <span class="keywordflow">if</span> (Devices[i] != NULL) {
-<a name="l00233"></a>00233 <span class="comment">//                      LOG_MSG(&quot;DOS: Shutting down device %s (%p)\n&quot;,Devices[i]-&gt;name,(void*)Devices[i]);</span>
-<a name="l00234"></a>00234                         <span class="keyword">delete</span> Devices[i];
-<a name="l00235"></a>00235                         Devices[i] = NULL;
-<a name="l00236"></a>00236                 }
-<a name="l00237"></a>00237         }
-<a name="l00238"></a>00238 
-<a name="l00239"></a>00239     <span class="comment">/* NTS: CON counts as a device */</span>
-<a name="l00240"></a>00240     <span class="keywordflow">if</span> (IS_PC98_ARCH) update_pc98_function_row(0);
-<a name="l00241"></a>00241 }
-<a name="l00242"></a>00242 
-<a name="l00243"></a>00243 <span class="comment">// INT 29h emulation needs to keep track of CON</span>
-<a name="l00244"></a>00244 <a class="code" href="classdevice__CON.html">device_CON</a> *DOS_CON = NULL;
-<a name="l00245"></a>00245 
-<a name="l00246"></a>00246 <span class="keywordtype">void</span> DOS_SetupDevices(<span class="keywordtype">void</span>) {
-<a name="l00247"></a>00247         <a class="code" href="classDOS__Device.html">DOS_Device</a> * newdev;
-<a name="l00248"></a>00248         DOS_CON=<span class="keyword">new</span> <a class="code" href="classdevice__CON.html">device_CON</a>(); newdev=DOS_CON;
-<a name="l00249"></a>00249         DOS_AddDevice(newdev);
-<a name="l00250"></a>00250         <a class="code" href="classDOS__Device.html">DOS_Device</a> * newdev2;
-<a name="l00251"></a>00251         newdev2=<span class="keyword">new</span> <a class="code" href="classdevice__NUL.html">device_NUL</a>();
-<a name="l00252"></a>00252         DOS_AddDevice(newdev2);
-<a name="l00253"></a>00253         <a class="code" href="classDOS__Device.html">DOS_Device</a> * newdev3;
-<a name="l00254"></a>00254         newdev3=<span class="keyword">new</span> <a class="code" href="classdevice__PRN.html">device_PRN</a>();
-<a name="l00255"></a>00255         DOS_AddDevice(newdev3);
-<a name="l00256"></a>00256 }
-<a name="l00257"></a>00257 
-<a name="l00258"></a>00258 <span class="comment">/* PC-98 INT DC CL=0x10 AH=0x00 DL=cjar */</span>
-<a name="l00259"></a>00259 <span class="keywordtype">void</span> PC98_INTDC_WriteChar(<span class="keywordtype">unsigned</span> <span class="keywordtype">char</span> b) {
-<a name="l00260"></a>00260     <span class="keywordflow">if</span> (DOS_CON != NULL) {
-<a name="l00261"></a>00261         Bit16u sz = 1;
-<a name="l00262"></a>00262 
-<a name="l00263"></a>00263         DOS_CON-&gt;Write(&amp;b,&amp;sz);
-<a name="l00264"></a>00264     }
-<a name="l00265"></a>00265 }
-<a name="l00266"></a>00266 
-<a name="l00267"></a>00267 <span class="keywordtype">void</span> INTDC_CL10h_AH03h(Bit16u raw) {
-<a name="l00268"></a>00268     <span class="keywordflow">if</span> (DOS_CON != NULL)
-<a name="l00269"></a>00269         DOS_CON-&gt;INTDC_CL10h_AH03h(raw);
-<a name="l00270"></a>00270 }
-<a name="l00271"></a>00271 
-<a name="l00272"></a>00272 <span class="keywordtype">void</span> INTDC_CL10h_AH04h(<span class="keywordtype">void</span>) {
-<a name="l00273"></a>00273     <span class="keywordflow">if</span> (DOS_CON != NULL)
-<a name="l00274"></a>00274         DOS_CON-&gt;INTDC_CL10h_AH04h();
-<a name="l00275"></a>00275 }
-<a name="l00276"></a>00276 
-<a name="l00277"></a>00277 <span class="keywordtype">void</span> INTDC_CL10h_AH05h(<span class="keywordtype">void</span>) {
-<a name="l00278"></a>00278     <span class="keywordflow">if</span> (DOS_CON != NULL)
-<a name="l00279"></a>00279         DOS_CON-&gt;INTDC_CL10h_AH05h();
-<a name="l00280"></a>00280 }
-<a name="l00281"></a>00281 
-<a name="l00282"></a>00282 <span class="keywordtype">void</span> INTDC_CL10h_AH06h(Bit16u count) {
-<a name="l00283"></a>00283     <span class="keywordflow">if</span> (DOS_CON != NULL)
-<a name="l00284"></a>00284         DOS_CON-&gt;INTDC_CL10h_AH06h(count);
-<a name="l00285"></a>00285 }
-<a name="l00286"></a>00286 
-<a name="l00287"></a>00287 <span class="keywordtype">void</span> INTDC_CL10h_AH07h(Bit16u count) {
-<a name="l00288"></a>00288     <span class="keywordflow">if</span> (DOS_CON != NULL)
-<a name="l00289"></a>00289         DOS_CON-&gt;INTDC_CL10h_AH07h(count);
-<a name="l00290"></a>00290 }
-<a name="l00291"></a>00291 
-<a name="l00292"></a>00292 <span class="keywordtype">void</span> INTDC_CL10h_AH08h(Bit16u count) {
-<a name="l00293"></a>00293     <span class="keywordflow">if</span> (DOS_CON != NULL)
-<a name="l00294"></a>00294         DOS_CON-&gt;INTDC_CL10h_AH08h(count);
-<a name="l00295"></a>00295 }
-<a name="l00296"></a>00296 
-<a name="l00297"></a>00297 <span class="keywordtype">void</span> INTDC_CL10h_AH09h(Bit16u count) {
-<a name="l00298"></a>00298     <span class="keywordflow">if</span> (DOS_CON != NULL)
-<a name="l00299"></a>00299         DOS_CON-&gt;INTDC_CL10h_AH09h(count);
-<a name="l00300"></a>00300 }
-<a name="l00301"></a>00301 
-<a name="l00302"></a>00302 Bitu INT29_HANDLER(<span class="keywordtype">void</span>) {
-<a name="l00303"></a>00303     <span class="keywordflow">if</span> (DOS_CON != NULL) {
-<a name="l00304"></a>00304         <span class="keywordtype">unsigned</span> <span class="keywordtype">char</span> b = reg_al;
-<a name="l00305"></a>00305         Bit16u sz = 1;
-<a name="l00306"></a>00306 
-<a name="l00307"></a>00307         DOS_CON-&gt;Write(&amp;b,&amp;sz);
-<a name="l00308"></a>00308     }
-<a name="l00309"></a>00309 
-<a name="l00310"></a>00310     <span class="keywordflow">return</span> CBRET_NONE;
-<a name="l00311"></a>00311 }
-<a name="l00312"></a>00312 
+<a name="l00191"></a>00191                 FILE* fh = fopen(tmpAscii, <span class="stringliteral">&quot;wb&quot;</span>);                       <span class="comment">// Append or write to ASCII file</span>
+<a name="l00192"></a>00192                 <span class="keywordflow">if</span> (fh)
+<a name="l00193"></a>00193                         {
+<a name="l00194"></a>00194                         fwrite(rawdata.c_str(), rawdata.size(), 1, fh);
+<a name="l00195"></a>00195                         fclose(fh);
+<a name="l00196"></a>00196                         fh = fopen(tmpUnicode, <span class="stringliteral">&quot;w+b&quot;</span>);                  <span class="comment">// The same for Unicode file (it&#39;s eventually read)</span>
+<a name="l00197"></a>00197                         <span class="keywordflow">if</span> (fh)
+<a name="l00198"></a>00198                                 {
+<a name="l00199"></a>00199                                 fprintf(fh, <span class="stringliteral">&quot;\xff\xfe&quot;</span>);                                                                                        <span class="comment">// It&#39;s a Unicode text file</span>
+<a name="l00200"></a>00200                                 <span class="keywordflow">for</span> (Bit32u i = 0; i &lt; rawdata.size(); i++)
+<a name="l00201"></a>00201                                         {
+<a name="l00202"></a>00202                                         Bit16u textChar =  (Bit8u)rawdata[i];
+<a name="l00203"></a>00203                                         <span class="keywordflow">switch</span> (textChar)
+<a name="l00204"></a>00204                                                 {
+<a name="l00205"></a>00205                                         <span class="keywordflow">case</span> 9:                                                                                                                         <span class="comment">// Tab</span>
+<a name="l00206"></a>00206                                         <span class="keywordflow">case</span> 12:                                                                                                                        <span class="comment">// Formfeed</span>
+<a name="l00207"></a>00207                                                 fwrite(&amp;textChar, 1, 2, fh);
+<a name="l00208"></a>00208                                                 <span class="keywordflow">break</span>;
+<a name="l00209"></a>00209                                         <span class="keywordflow">case</span> 10:                                                                                                                        <span class="comment">// Linefeed (combination)</span>
+<a name="l00210"></a>00210                                         <span class="keywordflow">case</span> 13:
+<a name="l00211"></a>00211                                                 fwrite(<span class="stringliteral">&quot;\x0d\x00\x0a\x00&quot;</span>, 1, 4, fh);
+<a name="l00212"></a>00212                                                 <span class="keywordflow">if</span> (i &lt; rawdata.size() -1 &amp;&amp; textChar == 23-rawdata[i+1])
+<a name="l00213"></a>00213                                                         i++;
+<a name="l00214"></a>00214                                                 <span class="keywordflow">break</span>;
+<a name="l00215"></a>00215                                         <span class="keywordflow">default</span>:
+<a name="l00216"></a>00216                                                 <span class="keywordflow">if</span> (textChar &gt;= 32)                                                                                             <span class="comment">// Forget about further control characters?</span>
+<a name="l00217"></a>00217                                                         fwrite(cpMap+textChar, 1, 2, fh);
+<a name="l00218"></a>00218                                                 <span class="keywordflow">break</span>;
+<a name="l00219"></a>00219                                                 }
+<a name="l00220"></a>00220                                         }
+<a name="l00221"></a>00221                                 }
+<a name="l00222"></a>00222                         }
+<a name="l00223"></a>00223                 <span class="keywordflow">if</span> (!fh)
+<a name="l00224"></a>00224                         {
+<a name="l00225"></a>00225                         rawdata.clear();
+<a name="l00226"></a>00226                         <span class="keywordflow">return</span>;
+<a name="l00227"></a>00227                         }
+<a name="l00228"></a>00228                 <span class="keywordflow">if</span> (OpenClipboard(NULL))
+<a name="l00229"></a>00229                         {
+<a name="l00230"></a>00230                         <span class="keywordflow">if</span> (EmptyClipboard())
+<a name="l00231"></a>00231                                 {
+<a name="l00232"></a>00232                                 <span class="keywordtype">int</span> bytes = ftell(fh);
+<a name="l00233"></a>00233                                 HGLOBAL hCbData = GlobalAlloc(NULL, bytes);
+<a name="l00234"></a>00234                                 Bit8u* pChData = (Bit8u*)GlobalLock(hCbData);
+<a name="l00235"></a>00235                                 <span class="keywordflow">if</span> (pChData)
+<a name="l00236"></a>00236                                         {
+<a name="l00237"></a>00237                                         fseek(fh, 2, SEEK_SET);                                                                                 <span class="comment">// Skip Unicode signature</span>
+<a name="l00238"></a>00238                                         fread(pChData, 1, bytes-2, fh);
+<a name="l00239"></a>00239                                         pChData[bytes-2] = 0;
+<a name="l00240"></a>00240                                         pChData[bytes-1] = 0;
+<a name="l00241"></a>00241                                         SetClipboardData(CF_UNICODETEXT, hCbData);
+<a name="l00242"></a>00242                                         GlobalUnlock(hCbData);
+<a name="l00243"></a>00243                                         }
+<a name="l00244"></a>00244                                 }
+<a name="l00245"></a>00245                         CloseClipboard();
+<a name="l00246"></a>00246                         }
+<a name="l00247"></a>00247                 fclose(fh);
+<a name="l00248"></a>00248                 <span class="keyword">remove</span>(tmpAscii);
+<a name="l00249"></a>00249                 <span class="keyword">remove</span>(tmpUnicode);
+<a name="l00250"></a>00250                 rawdata.clear();
+<a name="l00251"></a>00251                 <span class="keywordflow">return</span>;
+<a name="l00252"></a>00252         }
+<a name="l00253"></a>00253 <span class="keyword">public</span>:
+<a name="l00254"></a>00254         device_CLIP() {
+<a name="l00255"></a>00255                 SetName(*dos_clipboard_device_name?dos_clipboard_device_name:<span class="stringliteral">&quot;CLIP$&quot;</span>);
+<a name="l00256"></a>00256                 strcpy(tmpAscii, <span class="stringliteral">&quot;#clip$.asc&quot;</span>);
+<a name="l00257"></a>00257                 strcpy(tmpUnicode, <span class="stringliteral">&quot;#clip$.txt&quot;</span>);
+<a name="l00258"></a>00258         }
+<a name="l00259"></a>00259         <span class="keyword">virtual</span> <span class="keywordtype">bool</span> Read(Bit8u * data,Bit16u * size) {
+<a name="l00260"></a>00260                 <span class="keywordflow">if</span>(control-&gt;SecureMode()||!(dos_clipboard_device_access==2||dos_clipboard_device_access==4)) {
+<a name="l00261"></a>00261                         *size = 0;
+<a name="l00262"></a>00262                         <span class="keywordflow">return</span> <span class="keyword">true</span>;
+<a name="l00263"></a>00263                 }
+<a name="l00264"></a>00264                 lastwrite=<span class="keyword">false</span>;
+<a name="l00265"></a>00265                 <span class="keywordflow">if</span> (!clipSize)                                                                                                                          <span class="comment">// If no data, we have to read the Windows CLipboard (clipSize gets reset on device close)</span>
+<a name="l00266"></a>00266                         {
+<a name="l00267"></a>00267                         getClipboard();
+<a name="l00268"></a>00268                         fPointer = 0;
+<a name="l00269"></a>00269                         }
+<a name="l00270"></a>00270                 <span class="keywordflow">if</span> (fPointer &gt;= clipSize)
+<a name="l00271"></a>00271                         *size = 0;
+<a name="l00272"></a>00272                 <span class="keywordflow">else</span> <span class="keywordflow">if</span> (fPointer+*size &gt; clipSize)
+<a name="l00273"></a>00273                         *size = (Bit16u)(clipSize-fPointer);
+<a name="l00274"></a>00274                 <span class="keywordflow">if</span> (*size &gt; 0) {
+<a name="l00275"></a>00275                         memmove(data, clipAscii+fPointer, *size);
+<a name="l00276"></a>00276                         fPointer += *size;
+<a name="l00277"></a>00277                 }
+<a name="l00278"></a>00278                 <span class="keywordflow">return</span> <span class="keyword">true</span>;
+<a name="l00279"></a>00279         }
+<a name="l00280"></a>00280         <span class="keyword">virtual</span> <span class="keywordtype">bool</span> Write(<span class="keyword">const</span> Bit8u * data,Bit16u * size) {
+<a name="l00281"></a>00281                 <span class="keywordflow">if</span>(control-&gt;SecureMode()||!(dos_clipboard_device_access==3||dos_clipboard_device_access==4)) {
+<a name="l00282"></a>00282                         DOS_SetError(DOSERR_ACCESS_DENIED);
+<a name="l00283"></a>00283                         <span class="keywordflow">return</span> <span class="keyword">false</span>;
+<a name="l00284"></a>00284                 }
+<a name="l00285"></a>00285                 lastwrite=<span class="keyword">true</span>;
+<a name="l00286"></a>00286         <span class="keyword">const</span> Bit8u* datasrc = (Bit8u*)data;
+<a name="l00287"></a>00287                 Bit8u * datadst = (Bit8u *) data;
+<a name="l00288"></a>00288 
+<a name="l00289"></a>00289                 <span class="keywordtype">int</span> numSpaces = 0;
+<a name="l00290"></a>00290                 <span class="keywordflow">for</span> (Bit16u idx = *size; idx; idx--)
+<a name="l00291"></a>00291                         {
+<a name="l00292"></a>00292                         <span class="keywordflow">if</span> (*datasrc == <span class="charliteral">&#39; &#39;</span>)                                                                                                            <span class="comment">// Put spaces on hold</span>
+<a name="l00293"></a>00293                                 numSpaces++;
+<a name="l00294"></a>00294                         <span class="keywordflow">else</span>
+<a name="l00295"></a>00295                                 {
+<a name="l00296"></a>00296                                 <span class="keywordflow">if</span> (numSpaces &amp;&amp; *datasrc != 0x0a &amp;&amp; *datasrc != 0x0d)                                  <span class="comment">// Spaces on hold and not end of line</span>
+<a name="l00297"></a>00297                                         <span class="keywordflow">while</span> (numSpaces--)
+<a name="l00298"></a>00298                                                 *(datadst++) = <span class="charliteral">&#39; &#39;</span>;
+<a name="l00299"></a>00299                                 numSpaces = 0;
+<a name="l00300"></a>00300                                 *(datadst++) = *datasrc;
+<a name="l00301"></a>00301                                 }
+<a name="l00302"></a>00302                         datasrc++;
+<a name="l00303"></a>00303                         }
+<a name="l00304"></a>00304                 <span class="keywordflow">while</span> (numSpaces--)
+<a name="l00305"></a>00305                         *(datadst++) = <span class="charliteral">&#39; &#39;</span>;
+<a name="l00306"></a>00306                 <span class="keywordflow">if</span> (Bit16u newsize = (Bit16u)(datadst - data))                                                                  <span class="comment">// If data</span>
+<a name="l00307"></a>00307                         {
+<a name="l00308"></a>00308                         <span class="keywordflow">if</span> (rawdata.capacity() &lt; 100000)                                                                                        <span class="comment">// Prevent repetive size allocations</span>
+<a name="l00309"></a>00309                                 rawdata.reserve(100000);
+<a name="l00310"></a>00310                         rawdata.append((<span class="keywordtype">char</span> *)data, newsize);
+<a name="l00311"></a>00311                         }
+<a name="l00312"></a>00312                 <span class="keywordflow">return</span> <span class="keyword">true</span>;
+<a name="l00313"></a>00313         }
+<a name="l00314"></a>00314         <span class="keyword">virtual</span> <span class="keywordtype">bool</span> Seek(Bit32u * pos,Bit32u type) {
+<a name="l00315"></a>00315                 <span class="keywordflow">if</span>(control-&gt;SecureMode()||!(dos_clipboard_device_access==2||dos_clipboard_device_access==4)) {
+<a name="l00316"></a>00316                         *pos = 0;
+<a name="l00317"></a>00317                         <span class="keywordflow">return</span> <span class="keyword">true</span>;
+<a name="l00318"></a>00318                 }
+<a name="l00319"></a>00319                 lastwrite=<span class="keyword">false</span>;
+<a name="l00320"></a>00320                 <span class="keywordflow">if</span> (clipSize == 0)                                                                                                                              <span class="comment">// No data yet</span>
+<a name="l00321"></a>00321                         {
+<a name="l00322"></a>00322                         getClipboard();
+<a name="l00323"></a>00323                         fPointer =0;
+<a name="l00324"></a>00324                         }
+<a name="l00325"></a>00325                 Bit32s newPos;
+<a name="l00326"></a>00326                 <span class="keywordflow">switch</span> (type)
+<a name="l00327"></a>00327                         {
+<a name="l00328"></a>00328                 <span class="keywordflow">case</span> 0:                                                                                                                                                 <span class="comment">// Start of file</span>
+<a name="l00329"></a>00329                         newPos = *pos;
+<a name="l00330"></a>00330                         <span class="keywordflow">break</span>;
+<a name="l00331"></a>00331                 <span class="keywordflow">case</span> 1:                                                                                                                                                 <span class="comment">// Current file position</span>
+<a name="l00332"></a>00332                         newPos = fPointer+*pos;
+<a name="l00333"></a>00333                         <span class="keywordflow">break</span>;
+<a name="l00334"></a>00334                 <span class="keywordflow">case</span> 2:                                                                                                                                                 <span class="comment">// End of file</span>
+<a name="l00335"></a>00335                         newPos = clipSize+*pos;
+<a name="l00336"></a>00336                         <span class="keywordflow">break</span>;
+<a name="l00337"></a>00337                 <span class="keywordflow">default</span>:
+<a name="l00338"></a>00338                         {
+<a name="l00339"></a>00339                         DOS_SetError(DOSERR_FUNCTION_NUMBER_INVALID);
+<a name="l00340"></a>00340                         <span class="keywordflow">return</span> <span class="keyword">false</span>;
+<a name="l00341"></a>00341                         }
+<a name="l00342"></a>00342                         }
+<a name="l00343"></a>00343                 <span class="keywordflow">if</span> (newPos &gt; (Bit32s)clipSize)                                                                                                  <span class="comment">// Different from &quot;real&quot; Files</span>
+<a name="l00344"></a>00344                         newPos = clipSize;
+<a name="l00345"></a>00345                 <span class="keywordflow">else</span> <span class="keywordflow">if</span> (newPos &lt; 0)
+<a name="l00346"></a>00346                         newPos = 0;
+<a name="l00347"></a>00347                 *pos = newPos;
+<a name="l00348"></a>00348                 cPointer = newPos;
+<a name="l00349"></a>00349                 fPointer = newPos;
+<a name="l00350"></a>00350                 <span class="keywordflow">return</span> <span class="keyword">true</span>;
+<a name="l00351"></a>00351         }
+<a name="l00352"></a>00352         <span class="keyword">virtual</span> <span class="keywordtype">bool</span> Close() {
+<a name="l00353"></a>00353                 <span class="keywordflow">if</span>(control-&gt;SecureMode()||dos_clipboard_device_access&lt;2)
+<a name="l00354"></a>00354                         <span class="keywordflow">return</span> <span class="keyword">false</span>;
+<a name="l00355"></a>00355                 clipSize = 0;                                                                                                                                   <span class="comment">// Reset clipboard read</span>
+<a name="l00356"></a>00356                 rawdata.erase(rawdata.find_last_not_of(<span class="stringliteral">&quot; \n\r\t&quot;</span>)+1);                                                   <span class="comment">// Remove trailing white space</span>
+<a name="l00357"></a>00357                 <span class="keywordflow">if</span> (!rawdata.size()&amp;&amp;!lastwrite)                                                                                                <span class="comment">// Nothing captured/to do</span>
+<a name="l00358"></a>00358                         <span class="keywordflow">return</span> <span class="keyword">false</span>;
+<a name="l00359"></a>00359                 lastwrite=<span class="keyword">false</span>;
+<a name="l00360"></a>00360                 <span class="keywordtype">int</span> len = (int)rawdata.size();
+<a name="l00361"></a>00361                 <span class="keywordflow">if</span> (len &gt; 2 &amp;&amp; rawdata[len-3] == 0x0c &amp;&amp; rawdata[len-2] == 27 &amp;&amp; rawdata[len-1] == 64)  <span class="comment">// &lt;ESC&gt;@ after last FF?</span>
+<a name="l00362"></a>00362                         rawdata.erase(len-2, 2);
+<a name="l00363"></a>00363                 CommitData();
+<a name="l00364"></a>00364                 <span class="keywordflow">return</span> <span class="keyword">true</span>;
+<a name="l00365"></a>00365         }
+<a name="l00366"></a>00366         Bit16u GetInformation(<span class="keywordtype">void</span>) {
+<a name="l00367"></a>00367                 <span class="keywordflow">return</span> 0x80E0;
+<a name="l00368"></a>00368         }
+<a name="l00369"></a>00369 };
+<a name="l00370"></a>00370 <span class="preprocessor">#endif</span>
+<a name="l00371"></a>00371 <span class="preprocessor"></span>
+<a name="l00372"></a>00372 <span class="keywordtype">bool</span> DOS_Device::Read(Bit8u * data,Bit16u * size) {
+<a name="l00373"></a>00373         <span class="keywordflow">return</span> Devices[devnum]-&gt;Read(data,size);
+<a name="l00374"></a>00374 }
+<a name="l00375"></a>00375 
+<a name="l00376"></a>00376 <span class="keywordtype">bool</span> DOS_Device::Write(<span class="keyword">const</span> Bit8u * data,Bit16u * size) {
+<a name="l00377"></a>00377         <span class="keywordflow">return</span> Devices[devnum]-&gt;Write(data,size);
+<a name="l00378"></a>00378 }
+<a name="l00379"></a>00379 
+<a name="l00380"></a>00380 <span class="keywordtype">bool</span> DOS_Device::Seek(Bit32u * pos,Bit32u type) {
+<a name="l00381"></a>00381         <span class="keywordflow">return</span> Devices[devnum]-&gt;Seek(pos,type);
+<a name="l00382"></a>00382 }
+<a name="l00383"></a>00383 
+<a name="l00384"></a>00384 <span class="keywordtype">bool</span> DOS_Device::Close() {
+<a name="l00385"></a>00385         <span class="keywordflow">return</span> Devices[devnum]-&gt;Close();
+<a name="l00386"></a>00386 }
+<a name="l00387"></a>00387 
+<a name="l00388"></a>00388 Bit16u DOS_Device::GetInformation(<span class="keywordtype">void</span>) { 
+<a name="l00389"></a>00389         <span class="keywordflow">return</span> Devices[devnum]-&gt;GetInformation();
+<a name="l00390"></a>00390 }
+<a name="l00391"></a>00391 
+<a name="l00392"></a>00392 <span class="keywordtype">bool</span> DOS_Device::ReadFromControlChannel(PhysPt bufptr,Bit16u size,Bit16u * retcode) { 
+<a name="l00393"></a>00393         <span class="keywordflow">return</span> Devices[devnum]-&gt;ReadFromControlChannel(bufptr,size,retcode);
+<a name="l00394"></a>00394 }
+<a name="l00395"></a>00395 
+<a name="l00396"></a>00396 <span class="keywordtype">bool</span> DOS_Device::WriteToControlChannel(PhysPt bufptr,Bit16u size,Bit16u * retcode) { 
+<a name="l00397"></a>00397         <span class="keywordflow">return</span> Devices[devnum]-&gt;WriteToControlChannel(bufptr,size,retcode);
+<a name="l00398"></a>00398 }
+<a name="l00399"></a>00399 
+<a name="l00400"></a>00400 DOS_File::DOS_File(<span class="keyword">const</span> <a class="code" href="classDOS__File.html">DOS_File</a>&amp; orig) : flags(orig.flags), open(orig.open), attr(orig.attr),
+<a name="l00401"></a>00401 time(orig.time), date(orig.date), refCtr(orig.refCtr), hdrive(orig.hdrive) {
+<a name="l00402"></a>00402         <span class="keywordflow">if</span>(orig.name) {
+<a name="l00403"></a>00403                 name=<span class="keyword">new</span> <span class="keywordtype">char</span> [strlen(orig.name) + 1];strcpy(name,orig.name);
+<a name="l00404"></a>00404         }
+<a name="l00405"></a>00405 }
+<a name="l00406"></a>00406 
+<a name="l00407"></a>00407 <a class="code" href="classDOS__File.html">DOS_File</a>&amp; DOS_File::operator= (<span class="keyword">const</span> <a class="code" href="classDOS__File.html">DOS_File</a>&amp; orig) {
+<a name="l00408"></a>00408     <span class="keywordflow">if</span> (<span class="keyword">this</span> != &amp;orig) {
+<a name="l00409"></a>00409         flags = orig.flags;
+<a name="l00410"></a>00410         time = orig.time;
+<a name="l00411"></a>00411         date = orig.date;
+<a name="l00412"></a>00412         attr = orig.attr;
+<a name="l00413"></a>00413         refCtr = orig.refCtr;
+<a name="l00414"></a>00414         open = orig.open;
+<a name="l00415"></a>00415         hdrive = orig.hdrive;
+<a name="l00416"></a>00416         drive = orig.drive;
+<a name="l00417"></a>00417         newtime = orig.newtime;
+<a name="l00418"></a>00418         <span class="keywordflow">if</span> (name) {
+<a name="l00419"></a>00419             <span class="keyword">delete</span>[] name; name = 0;
+<a name="l00420"></a>00420         }
+<a name="l00421"></a>00421         <span class="keywordflow">if</span> (orig.name) {
+<a name="l00422"></a>00422             name = <span class="keyword">new</span> <span class="keywordtype">char</span>[strlen(orig.name) + 1]; strcpy(name, orig.name);
+<a name="l00423"></a>00423         }
+<a name="l00424"></a>00424     }
+<a name="l00425"></a>00425     <span class="keywordflow">return</span> *<span class="keyword">this</span>;
+<a name="l00426"></a>00426 }
+<a name="l00427"></a>00427 
+<a name="l00428"></a>00428 Bit8u DOS_FindDevice(<span class="keywordtype">char</span> <span class="keyword">const</span> * name) {
+<a name="l00429"></a>00429         <span class="comment">/* should only check for the names before the dot and spacepadded */</span>
+<a name="l00430"></a>00430         <span class="keywordtype">char</span> fullname[DOS_PATHLENGTH];Bit8u drive;
+<a name="l00431"></a>00431 <span class="comment">//      if(!name || !(*name)) return DOS_DEVICES; //important, but makename does it</span>
+<a name="l00432"></a>00432         <span class="keywordflow">if</span> (!DOS_MakeName(name,fullname,&amp;drive)) <span class="keywordflow">return</span> DOS_DEVICES;
+<a name="l00433"></a>00433 
+<a name="l00434"></a>00434         <span class="keywordtype">char</span>* name_part = strrchr(fullname,<span class="charliteral">&#39;\\&#39;</span>);
+<a name="l00435"></a>00435         <span class="keywordflow">if</span>(name_part) {
+<a name="l00436"></a>00436                 *name_part++ = 0;
+<a name="l00437"></a>00437                 <span class="comment">//Check validity of leading directory.</span>
+<a name="l00438"></a>00438                 <span class="keywordflow">if</span>(!Drives[drive]-&gt;TestDir(fullname)) <span class="keywordflow">return</span> DOS_DEVICES;
+<a name="l00439"></a>00439         } <span class="keywordflow">else</span> name_part = fullname;
+<a name="l00440"></a>00440    
+<a name="l00441"></a>00441         <span class="keywordtype">char</span>* dot = strrchr(name_part,<span class="charliteral">&#39;.&#39;</span>);
+<a name="l00442"></a>00442         <span class="keywordflow">if</span>(dot) *dot = 0; <span class="comment">//no ext checking</span>
+<a name="l00443"></a>00443 
+<a name="l00444"></a>00444         <span class="keyword">static</span> <span class="keywordtype">char</span> com[5] = { <span class="charliteral">&#39;C&#39;</span>,<span class="charliteral">&#39;O&#39;</span>,<span class="charliteral">&#39;M&#39;</span>,<span class="charliteral">&#39;1&#39;</span>,0 };
+<a name="l00445"></a>00445         <span class="keyword">static</span> <span class="keywordtype">char</span> lpt[5] = { <span class="charliteral">&#39;L&#39;</span>,<span class="charliteral">&#39;P&#39;</span>,<span class="charliteral">&#39;T&#39;</span>,<span class="charliteral">&#39;1&#39;</span>,0 };
+<a name="l00446"></a>00446         <span class="comment">// AUX is alias for COM1 and PRN for LPT1</span>
+<a name="l00447"></a>00447         <span class="comment">// A bit of a hack. (but less then before).</span>
+<a name="l00448"></a>00448         <span class="comment">// no need for casecmp as makename returns uppercase</span>
+<a name="l00449"></a>00449         <span class="keywordflow">if</span> (strcmp(name_part, <span class="stringliteral">&quot;AUX&quot;</span>) == 0) name_part = com;
+<a name="l00450"></a>00450         <span class="keywordflow">if</span> (strcmp(name_part, <span class="stringliteral">&quot;PRN&quot;</span>) == 0) name_part = lpt;
+<a name="l00451"></a>00451 
+<a name="l00452"></a>00452         <span class="comment">/* loop through devices */</span>
+<a name="l00453"></a>00453         <span class="keywordflow">for</span>(Bit8u index = 0;index &lt; DOS_DEVICES;index++) {
+<a name="l00454"></a>00454                 <span class="keywordflow">if</span> (Devices[index]) {
+<a name="l00455"></a>00455                         <span class="keywordflow">if</span> (WildFileCmp(name_part,Devices[index]-&gt;name)) <span class="keywordflow">return</span> index;
+<a name="l00456"></a>00456                 }
+<a name="l00457"></a>00457         }
+<a name="l00458"></a>00458         <span class="keywordflow">return</span> DOS_DEVICES;
+<a name="l00459"></a>00459 }
+<a name="l00460"></a>00460 
+<a name="l00461"></a>00461 
+<a name="l00462"></a>00462 <span class="keywordtype">void</span> DOS_AddDevice(<a class="code" href="classDOS__Device.html">DOS_Device</a> * adddev) {
+<a name="l00463"></a>00463 <span class="comment">//Caller creates the device. We store a pointer to it</span>
+<a name="l00464"></a>00464 <span class="comment">//TODO Give the Device a real handler in low memory that responds to calls</span>
+<a name="l00465"></a>00465         <span class="keywordflow">if</span> (adddev == NULL) E_Exit(<span class="stringliteral">&quot;DOS_AddDevice with null ptr&quot;</span>);
+<a name="l00466"></a>00466         <span class="keywordflow">for</span>(Bitu i = 0; i &lt; DOS_DEVICES;i++) {
+<a name="l00467"></a>00467                 <span class="keywordflow">if</span> (Devices[i] == NULL){
+<a name="l00468"></a>00468 <span class="comment">//                      LOG_MSG(&quot;DOS_AddDevice %s (%p)\n&quot;,adddev-&gt;name,(void*)adddev);</span>
+<a name="l00469"></a>00469                         Devices[i] = adddev;
+<a name="l00470"></a>00470                         Devices[i]-&gt;SetDeviceNumber(i);
+<a name="l00471"></a>00471                         <span class="keywordflow">return</span>;
+<a name="l00472"></a>00472                 }
+<a name="l00473"></a>00473         }
+<a name="l00474"></a>00474         E_Exit(<span class="stringliteral">&quot;DOS:Too many devices added&quot;</span>);
+<a name="l00475"></a>00475 }
+<a name="l00476"></a>00476 
+<a name="l00477"></a>00477 <span class="keywordtype">void</span> DOS_DelDevice(<a class="code" href="classDOS__Device.html">DOS_Device</a> * dev) {
+<a name="l00478"></a>00478 <span class="comment">// We will destroy the device if we find it in our list.</span>
+<a name="l00479"></a>00479 <span class="comment">// TODO:The file table is not checked to see the device is opened somewhere!</span>
+<a name="l00480"></a>00480         <span class="keywordflow">if</span> (dev == NULL) <span class="keywordflow">return</span> E_Exit(<span class="stringliteral">&quot;DOS_DelDevice with null ptr&quot;</span>);
+<a name="l00481"></a>00481         <span class="keywordflow">for</span> (Bitu i = 0; i &lt;DOS_DEVICES;i++) {
+<a name="l00482"></a>00482                 <span class="keywordflow">if</span> (Devices[i] == dev) { <span class="comment">/* NTS: The mainline code deleted by matching names??? Why? */</span>
+<a name="l00483"></a>00483 <span class="comment">//                      LOG_MSG(&quot;DOS_DelDevice %s (%p)\n&quot;,dev-&gt;name,(void*)dev);</span>
+<a name="l00484"></a>00484                         <span class="keyword">delete</span> Devices[i];
+<a name="l00485"></a>00485                         Devices[i] = 0;
+<a name="l00486"></a>00486                         <span class="keywordflow">return</span>;
+<a name="l00487"></a>00487                 }
+<a name="l00488"></a>00488         }
+<a name="l00489"></a>00489 
+<a name="l00490"></a>00490         <span class="comment">/* hm. unfortunately, too much code in DOSBox assumes that we delete the object.</span>
+<a name="l00491"></a>00491 <span class="comment">         * prior to this fix, failure to delete caused a memory leak */</span>
+<a name="l00492"></a>00492         LOG_MSG(<span class="stringliteral">&quot;WARNING: DOS_DelDevice() failed to match device object &#39;%s&#39; (%p). Deleting anyway\n&quot;</span>,dev-&gt;name,(<span class="keywordtype">void</span>*)dev);
+<a name="l00493"></a>00493         <span class="keyword">delete</span> dev;
+<a name="l00494"></a>00494 }
+<a name="l00495"></a>00495 
+<a name="l00496"></a>00496 <span class="keywordtype">void</span> DOS_ShutdownDevices(<span class="keywordtype">void</span>) {
+<a name="l00497"></a>00497         <span class="keywordflow">for</span> (Bitu i=0;i &lt; DOS_DEVICES;i++) {
+<a name="l00498"></a>00498                 <span class="keywordflow">if</span> (Devices[i] != NULL) {
+<a name="l00499"></a>00499 <span class="comment">//                      LOG_MSG(&quot;DOS: Shutting down device %s (%p)\n&quot;,Devices[i]-&gt;name,(void*)Devices[i]);</span>
+<a name="l00500"></a>00500                         <span class="keyword">delete</span> Devices[i];
+<a name="l00501"></a>00501                         Devices[i] = NULL;
+<a name="l00502"></a>00502                 }
+<a name="l00503"></a>00503         }
+<a name="l00504"></a>00504 
+<a name="l00505"></a>00505     <span class="comment">/* NTS: CON counts as a device */</span>
+<a name="l00506"></a>00506     <span class="keywordflow">if</span> (IS_PC98_ARCH) update_pc98_function_row(0);
+<a name="l00507"></a>00507 }
+<a name="l00508"></a>00508 
+<a name="l00509"></a>00509 <span class="comment">// INT 29h emulation needs to keep track of CON</span>
+<a name="l00510"></a>00510 <a class="code" href="classdevice__CON.html">device_CON</a> *DOS_CON = NULL;
+<a name="l00511"></a>00511 
+<a name="l00512"></a>00512 <span class="keywordtype">bool</span> ANSI_SYS_installed() {
+<a name="l00513"></a>00513     <span class="keywordflow">if</span> (DOS_CON != NULL)
+<a name="l00514"></a>00514         <span class="keywordflow">return</span> DOS_CON-&gt;ANSI_SYS_installed();
+<a name="l00515"></a>00515 
+<a name="l00516"></a>00516     <span class="keywordflow">return</span> <span class="keyword">false</span>;
+<a name="l00517"></a>00517 }
+<a name="l00518"></a>00518 
+<a name="l00519"></a>00519 <span class="keywordtype">void</span> DOS_SetupDevices(<span class="keywordtype">void</span>) {
+<a name="l00520"></a>00520         <a class="code" href="classDOS__Device.html">DOS_Device</a> * newdev;
+<a name="l00521"></a>00521         DOS_CON=<span class="keyword">new</span> <a class="code" href="classdevice__CON.html">device_CON</a>(); newdev=DOS_CON;
+<a name="l00522"></a>00522         DOS_AddDevice(newdev);
+<a name="l00523"></a>00523         <a class="code" href="classDOS__Device.html">DOS_Device</a> * newdev2;
+<a name="l00524"></a>00524         newdev2=<span class="keyword">new</span> <a class="code" href="classdevice__NUL.html">device_NUL</a>();
+<a name="l00525"></a>00525         DOS_AddDevice(newdev2);
+<a name="l00526"></a>00526         <a class="code" href="classDOS__Device.html">DOS_Device</a> * newdev3;
+<a name="l00527"></a>00527         newdev3=<span class="keyword">new</span> <a class="code" href="classdevice__PRN.html">device_PRN</a>();
+<a name="l00528"></a>00528         DOS_AddDevice(newdev3);
+<a name="l00529"></a>00529 <span class="preprocessor">#if defined(WIN32)</span>
+<a name="l00530"></a>00530 <span class="preprocessor"></span>        <span class="keywordflow">if</span> (dos_clipboard_device_access) {
+<a name="l00531"></a>00531                 <a class="code" href="classDOS__Device.html">DOS_Device</a> * newdev4;
+<a name="l00532"></a>00532                 newdev4=<span class="keyword">new</span> device_CLIP();
+<a name="l00533"></a>00533                 DOS_AddDevice(newdev4);
+<a name="l00534"></a>00534         }
+<a name="l00535"></a>00535 <span class="preprocessor">#endif</span>
+<a name="l00536"></a>00536 <span class="preprocessor"></span>}
+<a name="l00537"></a>00537 
+<a name="l00538"></a>00538 <span class="comment">/* PC-98 INT DC CL=0x10 AH=0x00 DL=cjar */</span>
+<a name="l00539"></a>00539 <span class="keywordtype">void</span> PC98_INTDC_WriteChar(<span class="keywordtype">unsigned</span> <span class="keywordtype">char</span> b) {
+<a name="l00540"></a>00540     <span class="keywordflow">if</span> (DOS_CON != NULL) {
+<a name="l00541"></a>00541         Bit16u sz = 1;
+<a name="l00542"></a>00542 
+<a name="l00543"></a>00543         DOS_CON-&gt;Write(&amp;b,&amp;sz);
+<a name="l00544"></a>00544     }
+<a name="l00545"></a>00545 }
+<a name="l00546"></a>00546 
+<a name="l00547"></a>00547 <span class="keywordtype">void</span> INTDC_CL10h_AH03h(Bit16u raw) {
+<a name="l00548"></a>00548     <span class="keywordflow">if</span> (DOS_CON != NULL)
+<a name="l00549"></a>00549         DOS_CON-&gt;INTDC_CL10h_AH03h(raw);
+<a name="l00550"></a>00550 }
+<a name="l00551"></a>00551 
+<a name="l00552"></a>00552 <span class="keywordtype">void</span> INTDC_CL10h_AH04h(<span class="keywordtype">void</span>) {
+<a name="l00553"></a>00553     <span class="keywordflow">if</span> (DOS_CON != NULL)
+<a name="l00554"></a>00554         DOS_CON-&gt;INTDC_CL10h_AH04h();
+<a name="l00555"></a>00555 }
+<a name="l00556"></a>00556 
+<a name="l00557"></a>00557 <span class="keywordtype">void</span> INTDC_CL10h_AH05h(<span class="keywordtype">void</span>) {
+<a name="l00558"></a>00558     <span class="keywordflow">if</span> (DOS_CON != NULL)
+<a name="l00559"></a>00559         DOS_CON-&gt;INTDC_CL10h_AH05h();
+<a name="l00560"></a>00560 }
+<a name="l00561"></a>00561 
+<a name="l00562"></a>00562 <span class="keywordtype">void</span> INTDC_CL10h_AH06h(Bit16u count) {
+<a name="l00563"></a>00563     <span class="keywordflow">if</span> (DOS_CON != NULL)
+<a name="l00564"></a>00564         DOS_CON-&gt;INTDC_CL10h_AH06h(count);
+<a name="l00565"></a>00565 }
+<a name="l00566"></a>00566 
+<a name="l00567"></a>00567 <span class="keywordtype">void</span> INTDC_CL10h_AH07h(Bit16u count) {
+<a name="l00568"></a>00568     <span class="keywordflow">if</span> (DOS_CON != NULL)
+<a name="l00569"></a>00569         DOS_CON-&gt;INTDC_CL10h_AH07h(count);
+<a name="l00570"></a>00570 }
+<a name="l00571"></a>00571 
+<a name="l00572"></a>00572 <span class="keywordtype">void</span> INTDC_CL10h_AH08h(Bit16u count) {
+<a name="l00573"></a>00573     <span class="keywordflow">if</span> (DOS_CON != NULL)
+<a name="l00574"></a>00574         DOS_CON-&gt;INTDC_CL10h_AH08h(count);
+<a name="l00575"></a>00575 }
+<a name="l00576"></a>00576 
+<a name="l00577"></a>00577 <span class="keywordtype">void</span> INTDC_CL10h_AH09h(Bit16u count) {
+<a name="l00578"></a>00578     <span class="keywordflow">if</span> (DOS_CON != NULL)
+<a name="l00579"></a>00579         DOS_CON-&gt;INTDC_CL10h_AH09h(count);
+<a name="l00580"></a>00580 }
+<a name="l00581"></a>00581 
+<a name="l00582"></a>00582 Bitu INT29_HANDLER(<span class="keywordtype">void</span>) {
+<a name="l00583"></a>00583     <span class="keywordflow">if</span> (DOS_CON != NULL) {
+<a name="l00584"></a>00584         <span class="keywordtype">unsigned</span> <span class="keywordtype">char</span> b = reg_al;
+<a name="l00585"></a>00585         Bit16u sz = 1;
+<a name="l00586"></a>00586 
+<a name="l00587"></a>00587         DOS_CON-&gt;Write(&amp;b,&amp;sz);
+<a name="l00588"></a>00588     }
+<a name="l00589"></a>00589 
+<a name="l00590"></a>00590     <span class="keywordflow">return</span> CBRET_NONE;
+<a name="l00591"></a>00591 }
+<a name="l00592"></a>00592 
+<a name="l00593"></a>00593 <span class="keyword">extern</span> <span class="keywordtype">bool</span> dos_kernel_disabled;
+<a name="l00594"></a>00594 
+<a name="l00595"></a>00595 <span class="comment">// save state support</span>
+<a name="l00596"></a>00596 <span class="keywordtype">void</span> POD_Save_DOS_Devices( std::ostream&amp; stream )
+<a name="l00597"></a>00597 {
+<a name="l00598"></a>00598         <span class="keywordflow">if</span> (!dos_kernel_disabled) {
+<a name="l00599"></a>00599                 <span class="keywordflow">if</span>( strcmp( Devices[2]-&gt;GetName(), <span class="stringliteral">&quot;CON&quot;</span> ) == 0 )
+<a name="l00600"></a>00600                         Devices[2]-&gt;SaveState(stream);
+<a name="l00601"></a>00601         }
+<a name="l00602"></a>00602 }
+<a name="l00603"></a>00603 
+<a name="l00604"></a>00604 <span class="keywordtype">void</span> POD_Load_DOS_Devices( std::istream&amp; stream )
+<a name="l00605"></a>00605 {
+<a name="l00606"></a>00606         <span class="keywordflow">if</span> (!dos_kernel_disabled) {
+<a name="l00607"></a>00607                 <span class="keywordflow">if</span>( strcmp( Devices[2]-&gt;GetName(), <span class="stringliteral">&quot;CON&quot;</span> ) == 0 )
+<a name="l00608"></a>00608                         Devices[2]-&gt;LoadState(stream, <span class="keyword">false</span>);
+<a name="l00609"></a>00609         }
+<a name="l00610"></a>00610 }
 </pre></div></div><!-- contents -->
 
 
 <hr class="footer"/><address class="footer"><small>
-Generated on Tue Oct 1 2019 18:06:25 for DOSBox-X by &#160;<a href="http://www.doxygen.org/index.html">
+Generated on Sun Jul 5 2020 13:11:34 for DOSBox-X by &#160;<a href="http://www.doxygen.org/index.html">
 <img class="footer" src="doxygen.png" alt="doxygen"/>
 </a> 1.8.0
 </small></address>

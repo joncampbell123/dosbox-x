@@ -183,6 +183,13 @@ Protected Attributes</h2></td></tr>
 <tr class="memitem:a79489d4aad9217752d8ca11e5153071a"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a79489d4aad9217752d8ca11e5153071a"></a>
 std::vector&lt; <a class="el" href="classGUI_1_1String.html">String</a> &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classGUI_1_1Menu.html#a79489d4aad9217752d8ca11e5153071a">items</a></td></tr>
 <tr class="memdesc:a79489d4aad9217752d8ca11e5153071a"><td class="mdescLeft">&#160;</td><td class="mdescRight">List of menu items (displayed text) <br/></td></tr>
+<tr class="memitem:a9e4b784d77a44d2f28f7de3ef8501e48"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a9e4b784d77a44d2f28f7de3ef8501e48"></a>
+unsigned int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classGUI_1_1Menu.html#a9e4b784d77a44d2f28f7de3ef8501e48">rows</a> = 0</td></tr>
+<tr class="memdesc:a9e4b784d77a44d2f28f7de3ef8501e48"><td class="mdescLeft">&#160;</td><td class="mdescRight">column support <br/></td></tr>
+<tr class="memitem:a257973235955f73190d0f962087e124c"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a257973235955f73190d0f962087e124c"></a>
+unsigned int&#160;</td><td class="memItemRight" valign="bottom"><b>columns</b> = 0</td></tr>
+<tr class="memitem:ac2879a1e630c90f6bcc53b448bde419b"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="ac2879a1e630c90f6bcc53b448bde419b"></a>
+std::vector&lt; unsigned int &gt;&#160;</td><td class="memItemRight" valign="bottom"><b>colx</b></td></tr>
 <tr class="memitem:a6934c1ce59c87dc59630390e8fb37e1a"><td class="memItemLeft" align="right" valign="top">int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classGUI_1_1Menu.html#a6934c1ce59c87dc59630390e8fb37e1a">selected</a></td></tr>
 <tr class="memdesc:a6934c1ce59c87dc59630390e8fb37e1a"><td class="mdescLeft">&#160;</td><td class="mdescRight">Currently selected menu item.  <a href="#a6934c1ce59c87dc59630390e8fb37e1a"></a><br/></td></tr>
 <tr class="memitem:a9e895284ef822bb4ddc892a33055ec0f"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a9e895284ef822bb4ddc892a33055ec0f"></a>
@@ -198,7 +205,7 @@ bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="clas
 <p>Currently, menu entries are not interpreted in any way. This may change in the future. To ensure upwards compatibility, avoid the <code>'&amp;'</code> character in menu entries, since it may have a special meaning in future versions. Menus use the <a class="el" href="classGUI_1_1Font.html" title="A variable- or fixed-width fixed-size Font.">Font</a> named "menu".</p>
 <p>Please note the general remarks in <a class="el" href="classGUI_1_1TransientWindow.html" title="A floating temporary window that is not restricted by it&#39;s parent&#39;s area.">GUI::TransientWindow</a> </p>
 
-<p>Definition at line <a class="el" href="gui__tk_8h_source.html#l01951">1951</a> of file <a class="el" href="gui__tk_8h_source.html">gui_tk.h</a>.</p>
+<p>Definition at line <a class="el" href="gui__tk_8h_source.html#l01965">1965</a> of file <a class="el" href="gui__tk_8h_source.html">gui_tk.h</a>.</p>
 </div><hr/><h2>Constructor &amp; Destructor Documentation</h2>
 <a class="anchor" id="a3ad4f5a1fbc5aaf57a269a464a42c885"></a>
 <div class="memitem">
@@ -242,9 +249,9 @@ template&lt;typename STR &gt; </div>
 <p>Create a menu with given position. </p>
 <p>Size is determined dynamically. <em>parent</em> is the logical parent. The true parent object is always the screen the logical parent resides on. </p>
 
-<p>Definition at line <a class="el" href="gui__tk_8h_source.html#l02011">2011</a> of file <a class="el" href="gui__tk_8h_source.html">gui_tk.h</a>.</p>
+<p>Definition at line <a class="el" href="gui__tk_8h_source.html#l02087">2087</a> of file <a class="el" href="gui__tk_8h_source.html">gui_tk.h</a>.</p>
 
-<p>References <a class="el" href="gui__tk_8h_source.html#l02135">setVisible()</a>, and <a class="el" href="gui__tk_8h_source.html#l00601">GUI::Window::tabbable</a>.</p>
+<p>References <a class="el" href="gui__tk_8h_source.html#l02211">setVisible()</a>, and <a class="el" href="gui__tk_8h_source.html#l00602">GUI::Window::tabbable</a>.</p>
 
 </div>
 </div>
@@ -269,9 +276,9 @@ template&lt;typename STR &gt; </div>
 
 <p>Reimplemented from <a class="el" href="classGUI_1_1TransientWindow.html#aa66cecd7ddcd0f8cf7a63cc5cc897acf">GUI::TransientWindow</a>.</p>
 
-<p>Definition at line <a class="el" href="gui__tk_8h_source.html#l02067">2067</a> of file <a class="el" href="gui__tk_8h_source.html">gui_tk.h</a>.</p>
+<p>Definition at line <a class="el" href="gui__tk_8h_source.html#l02143">2143</a> of file <a class="el" href="gui__tk_8h_source.html">gui_tk.h</a>.</p>
 
-<p>References <a class="el" href="gui__tk_8h_source.html#l01958">selected</a>, <a class="el" href="gui__tk_8h_source.html#l02135">setVisible()</a>, and <a class="el" href="gui__tk_8h_source.html#l00598">GUI::Window::visible</a>.</p>
+<p>References <a class="el" href="gui__tk_8h_source.html#l01977">selected</a>, <a class="el" href="gui__tk_8h_source.html#l02211">setVisible()</a>, and <a class="el" href="gui__tk_8h_source.html#l00599">GUI::Window::visible</a>.</p>
 
 </div>
 </div>
@@ -303,11 +310,11 @@ template&lt;typename STR &gt; </div>
 <p>Selects menu item at position (x,y). </p>
 <p><em>selected</em> is set to -1 if there is no active item at that location. </p>
 
-<p>Definition at line <a class="el" href="gui__tk_8h_source.html#l01968">1968</a> of file <a class="el" href="gui__tk_8h_source.html">gui_tk.h</a>.</p>
+<p>Definition at line <a class="el" href="gui__tk_8h_source.html#l01987">1987</a> of file <a class="el" href="gui__tk_8h_source.html">gui_tk.h</a>.</p>
 
-<p>References <a class="el" href="gui__tk_8h_source.html#l01305">GUI::Font::getFont()</a>, <a class="el" href="classGUI_1_1Font.html#aec0adb678fe3f162c6e9070144744fd4">GUI::Font::getHeight()</a>, <a class="el" href="gui__tk_8h_source.html#l00588">GUI::Window::height</a>, <a class="el" href="gui__tk_8h_source.html#l01954">items</a>, <a class="el" href="gui__tk_8h_source.html#l01958">selected</a>, and <a class="el" href="gui__tk_8h_source.html#l00586">GUI::Window::width</a>.</p>
+<p>References <a class="el" href="gui__tk_8h_source.html#l01319">GUI::Font::getFont()</a>, <a class="el" href="classGUI_1_1Font.html#aec0adb678fe3f162c6e9070144744fd4">GUI::Font::getHeight()</a>, <a class="el" href="gui__tk_8h_source.html#l00589">GUI::Window::height</a>, <a class="el" href="gui__tk_8h_source.html#l01968">items</a>, <a class="el" href="gui__tk_8h_source.html#l01977">selected</a>, and <a class="el" href="gui__tk_8h_source.html#l00587">GUI::Window::width</a>.</p>
 
-<p>Referenced by <a class="el" href="gui__tk_8h_source.html#l02042">mouseDragged()</a>, <a class="el" href="gui__tk_8h_source.html#l02023">mouseMoved()</a>, and <a class="el" href="gui__tk_8h_source.html#l02080">mouseUp()</a>.</p>
+<p>Referenced by <a class="el" href="gui__tk_8h_source.html#l02118">mouseDragged()</a>, <a class="el" href="gui__tk_8h_source.html#l02099">mouseMoved()</a>, and <a class="el" href="gui__tk_8h_source.html#l02156">mouseUp()</a>.</p>
 
 </div>
 </div>
@@ -331,11 +338,11 @@ template&lt;typename STR &gt; </div>
 
 <p>Reimplemented from <a class="el" href="classGUI_1_1TransientWindow.html#a5581ee490ae2ce490ca45e234f6712a2">GUI::TransientWindow</a>.</p>
 
-<p>Definition at line <a class="el" href="gui__tk_8h_source.html#l02135">2135</a> of file <a class="el" href="gui__tk_8h_source.html">gui_tk.h</a>.</p>
+<p>Definition at line <a class="el" href="gui__tk_8h_source.html#l02211">2211</a> of file <a class="el" href="gui__tk_8h_source.html">gui_tk.h</a>.</p>
 
-<p>References <a class="el" href="gui__tk_8h_source.html#l01961">firstMouseUp</a>, <a class="el" href="gui__tk_8h_source.html#l00608">GUI::Window::mouseChild</a>, <a class="el" href="gui__tk_8h_source.html#l00604">GUI::Window::parent</a>, and <a class="el" href="gui__tk_8h_source.html#l00598">GUI::Window::visible</a>.</p>
+<p>References <a class="el" href="gui__tk_8h_source.html#l01980">firstMouseUp</a>, <a class="el" href="gui__tk_8h_source.html#l00609">GUI::Window::mouseChild</a>, <a class="el" href="gui__tk_8h_source.html#l00605">GUI::Window::parent</a>, and <a class="el" href="gui__tk_8h_source.html#l00599">GUI::Window::visible</a>.</p>
 
-<p>Referenced by <a class="el" href="gui__tk_8h_source.html#l02152">execute()</a>, <a class="el" href="gui__tk_8h_source.html#l02095">keyDown()</a>, <a class="el" href="gui__tk_8h_source.html#l02011">Menu()</a>, <a class="el" href="gui__tk_8cpp_source.html#l00189">GUI::ToplevelWindow::mouseDown()</a>, <a class="el" href="gui__tk_8h_source.html#l02067">mouseDownOutside()</a>, and <a class="el" href="gui__tk_8h_source.html#l02080">mouseUp()</a>.</p>
+<p>Referenced by <a class="el" href="gui__tk_8h_source.html#l02228">execute()</a>, <a class="el" href="gui__tk_8h_source.html#l02171">keyDown()</a>, <a class="el" href="gui__tk_8h_source.html#l02087">Menu()</a>, <a class="el" href="gui__tk_8cpp_source.html#l00189">GUI::ToplevelWindow::mouseDown()</a>, <a class="el" href="gui__tk_8h_source.html#l02143">mouseDownOutside()</a>, and <a class="el" href="gui__tk_8h_source.html#l02156">mouseUp()</a>.</p>
 
 </div>
 </div>
@@ -354,9 +361,9 @@ template&lt;typename STR &gt; </div>
 <p>Currently selected menu item. </p>
 <p>Can be -1 if no item is currently active. </p>
 
-<p>Definition at line <a class="el" href="gui__tk_8h_source.html#l01958">1958</a> of file <a class="el" href="gui__tk_8h_source.html">gui_tk.h</a>.</p>
+<p>Definition at line <a class="el" href="gui__tk_8h_source.html#l01977">1977</a> of file <a class="el" href="gui__tk_8h_source.html">gui_tk.h</a>.</p>
 
-<p>Referenced by <a class="el" href="gui__tk_8h_source.html#l02152">execute()</a>, <a class="el" href="gui__tk_8h_source.html#l02095">keyDown()</a>, <a class="el" href="gui__tk_8h_source.html#l02067">mouseDownOutside()</a>, <a class="el" href="gui__tk_8h_source.html#l02033">mouseMovedOutside()</a>, <a class="el" href="gui__tk_8cpp_source.html#l01311">paint()</a>, and <a class="el" href="gui__tk_8h_source.html#l01968">selectItem()</a>.</p>
+<p>Referenced by <a class="el" href="gui__tk_8h_source.html#l02228">execute()</a>, <a class="el" href="gui__tk_8h_source.html#l02171">keyDown()</a>, <a class="el" href="gui__tk_8h_source.html#l02143">mouseDownOutside()</a>, <a class="el" href="gui__tk_8h_source.html#l02109">mouseMovedOutside()</a>, <a class="el" href="gui__tk_8cpp_source.html#l01439">paint()</a>, and <a class="el" href="gui__tk_8h_source.html#l01987">selectItem()</a>.</p>
 
 </div>
 </div>
@@ -368,7 +375,7 @@ template&lt;typename STR &gt; </div>
 
 
 <hr class="footer"/><address class="footer"><small>
-Generated on Tue Oct 1 2019 18:06:34 for DOSBox-X by &#160;<a href="http://www.doxygen.org/index.html">
+Generated on Sun Jul 5 2020 13:11:43 for DOSBox-X by &#160;<a href="http://www.doxygen.org/index.html">
 <img class="footer" src="doxygen.png" alt="doxygen"/>
 </a> 1.8.0
 </small></address>

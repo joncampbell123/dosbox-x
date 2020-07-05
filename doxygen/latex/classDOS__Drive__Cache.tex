@@ -24,7 +24,7 @@ enum {\bfseries T\-Dir\-Sort} \{ \\*
 \hypertarget{classDOS__Drive__Cache_a1d2b613312882771a0849446eff0e5f5}{{\bfseries D\-O\-S\-\_\-\-Drive\-\_\-\-Cache} (const char $\ast$path, \hyperlink{classDOS__Drive}{D\-O\-S\-\_\-\-Drive} $\ast$drive)}\label{classDOS__Drive__Cache_a1d2b613312882771a0849446eff0e5f5}
 
 \item 
-\hypertarget{classDOS__Drive__Cache_a8ed60a9683170b1c7eb36e31c31fa2bd}{void {\bfseries Set\-Base\-Dir} (const char $\ast$path, \hyperlink{classDOS__Drive}{D\-O\-S\-\_\-\-Drive} $\ast$drive)}\label{classDOS__Drive__Cache_a8ed60a9683170b1c7eb36e31c31fa2bd}
+\hypertarget{classDOS__Drive__Cache_a7b4a442d713f76e2b26ca8d7859396d7}{void {\bfseries Set\-Base\-Dir} (const char $\ast$base\-Dir, \hyperlink{classDOS__Drive}{D\-O\-S\-\_\-\-Drive} $\ast$drive)}\label{classDOS__Drive__Cache_a7b4a442d713f76e2b26ca8d7859396d7}
 
 \item 
 \hypertarget{classDOS__Drive__Cache_ac49b22a5b034eb6a9e029f2dce0f4773}{void {\bfseries Set\-Dir\-Sort} (T\-Dir\-Sort sort)}\label{classDOS__Drive__Cache_ac49b22a5b034eb6a9e029f2dce0f4773}
@@ -33,7 +33,7 @@ enum {\bfseries T\-Dir\-Sort} \{ \\*
 \hypertarget{classDOS__Drive__Cache_a85aec9a4d7d87913806fa98c96dd2b68}{bool {\bfseries Open\-Dir} (const char $\ast$path, Bit16u \&id)}\label{classDOS__Drive__Cache_a85aec9a4d7d87913806fa98c96dd2b68}
 
 \item 
-\hypertarget{classDOS__Drive__Cache_aa3d88abf30778f5cd2f50c17b461a9dc}{bool {\bfseries Read\-Dir} (Bit16u id, char $\ast$\&result)}\label{classDOS__Drive__Cache_aa3d88abf30778f5cd2f50c17b461a9dc}
+\hypertarget{classDOS__Drive__Cache_a799a10e1a4ccef7b90d109222d0caedb}{bool {\bfseries Read\-Dir} (Bit16u id, char $\ast$\&result, char $\ast$\&lresult)}\label{classDOS__Drive__Cache_a799a10e1a4ccef7b90d109222d0caedb}
 
 \item 
 \hypertarget{classDOS__Drive__Cache_a21a3d68ddb91cf0c8ef5aaa4dc088271}{void {\bfseries Expand\-Name} (char $\ast$path)}\label{classDOS__Drive__Cache_a21a3d68ddb91cf0c8ef5aaa4dc088271}
@@ -48,13 +48,16 @@ enum {\bfseries T\-Dir\-Sort} \{ \\*
 \hypertarget{classDOS__Drive__Cache_ae19e2c7e6730d76b492bbc62d0edb38f}{bool {\bfseries Find\-First} (char $\ast$path, Bit16u \&id)}\label{classDOS__Drive__Cache_ae19e2c7e6730d76b492bbc62d0edb38f}
 
 \item 
-\hypertarget{classDOS__Drive__Cache_a8c3297b5ea4a5b10ccf1e9bfd6e4b2c6}{bool {\bfseries Find\-Next} (Bit16u id, char $\ast$\&result)}\label{classDOS__Drive__Cache_a8c3297b5ea4a5b10ccf1e9bfd6e4b2c6}
+\hypertarget{classDOS__Drive__Cache_a8195f6dab2ac6793fec5b4d015394f82}{bool {\bfseries Find\-Next} (Bit16u id, char $\ast$\&result, char $\ast$\&lresult)}\label{classDOS__Drive__Cache_a8195f6dab2ac6793fec5b4d015394f82}
 
 \item 
 \hypertarget{classDOS__Drive__Cache_ac1cf68069ab790fb1b3a35686b3625c6}{void {\bfseries Cache\-Out} (const char $\ast$path, bool ignore\-Last\-Dir=false)}\label{classDOS__Drive__Cache_ac1cf68069ab790fb1b3a35686b3625c6}
 
 \item 
-\hypertarget{classDOS__Drive__Cache_a88416281f2c92dbd802bf1cc77153bdb}{void {\bfseries Add\-Entry} (const char $\ast$path, bool check\-Exist=false)}\label{classDOS__Drive__Cache_a88416281f2c92dbd802bf1cc77153bdb}
+\hypertarget{classDOS__Drive__Cache_a28ee1c3b7a9d952b7b688d4179f25250}{void {\bfseries Add\-Entry} (const char $\ast$path, bool check\-Exists=false)}\label{classDOS__Drive__Cache_a28ee1c3b7a9d952b7b688d4179f25250}
+
+\item 
+\hypertarget{classDOS__Drive__Cache_a45a5c92f6a32812185aaec5116dc9b30}{void {\bfseries Add\-Entry\-Dir\-Overlay} (const char $\ast$path, char $\ast$sfile, bool check\-Exist=false)}\label{classDOS__Drive__Cache_a45a5c92f6a32812185aaec5116dc9b30}
 
 \item 
 \hypertarget{classDOS__Drive__Cache_a68d34280ef1d383e84f98f2df46de333}{void {\bfseries Delete\-Entry} (const char $\ast$path, bool ignore\-Last\-Dir=false)}\label{classDOS__Drive__Cache_a68d34280ef1d383e84f98f2df46de333}
@@ -66,7 +69,7 @@ enum {\bfseries T\-Dir\-Sort} \{ \\*
 \hypertarget{classDOS__Drive__Cache_a6015de7335a108069e32a1fdebfcd890}{void {\bfseries Media\-Change} (void)}\label{classDOS__Drive__Cache_a6015de7335a108069e32a1fdebfcd890}
 
 \item 
-\hypertarget{classDOS__Drive__Cache_af5f0e25edd0f18d6ccaeb7349ec412a3}{void {\bfseries Set\-Label} (const char $\ast$name, bool cdrom, bool allowupdate)}\label{classDOS__Drive__Cache_af5f0e25edd0f18d6ccaeb7349ec412a3}
+\hypertarget{classDOS__Drive__Cache_a505cfc29276623d017fe59cc5c815ec2}{void {\bfseries Set\-Label} (const char $\ast$vname, bool cdrom, bool allowupdate)}\label{classDOS__Drive__Cache_a505cfc29276623d017fe59cc5c815ec2}
 
 \item 
 \hypertarget{classDOS__Drive__Cache_a5226fd65de22dc1ed73103dce3b6d668}{char $\ast$ {\bfseries Get\-Label} (void)}\label{classDOS__Drive__Cache_a5226fd65de22dc1ed73103dce3b6d668}
@@ -77,7 +80,7 @@ enum {\bfseries T\-Dir\-Sort} \{ \\*
 \subsection{Detailed Description}
 
 
-Definition at line 168 of file dos\-\_\-system.\-h.
+Definition at line 173 of file dos\-\_\-system.\-h.
 
 
 

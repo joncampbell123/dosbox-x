@@ -16,7 +16,7 @@ var searchData=
   ['timbresmemoryregion',['TimbresMemoryRegion',['../classMT32Emu_1_1TimbresMemoryRegion.html',1,'MT32Emu']]],
   ['timbretempmemoryregion',['TimbreTempMemoryRegion',['../classMT32Emu_1_1TimbreTempMemoryRegion.html',1,'MT32Emu']]],
   ['timer',['Timer',['../classGUI_1_1Timer.html',1,'GUI']]],
-  ['timer',['Timer',['../structAdlib_1_1Timer.html',1,'Adlib']]],
+  ['timer',['Timer',['../classAdlib_1_1Timer.html',1,'Adlib']]],
   ['timer_5fcallback',['Timer_Callback',['../structGUI_1_1Timer__Callback.html',1,'GUI']]],
   ['timerexpired',['timerExpired',['../structGUI_1_1Timer__Callback.html#a4b5a610f3c4da4acd0bacda97b24e049',1,'GUI::Timer_Callback::timerExpired()'],['../classGUI_1_1Input.html#a71fe106bc0e16593414b5b94cfe2893c',1,'GUI::Input::timerExpired()']]],
   ['timers',['timers',['../classGUI_1_1Timer.html#a09c091f0975773995b0a62228d734c21',1,'GUI::Timer']]],
@@ -36,12 +36,13 @@ var searchData=
   ['toplevelwindow',['ToplevelWindow',['../classGUI_1_1ToplevelWindow.html#ab159db2520c5188bfd2fdde905d6fc84',1,'GUI::ToplevelWindow']]],
   ['toplevelwindow_5fcallback',['ToplevelWindow_Callback',['../structGUI_1_1ToplevelWindow__Callback.html',1,'GUI']]],
   ['tospecial',['toSpecial',['../classGUI_1_1Font.html#ab574797e06559b8c69b1cf02878eee80',1,'GUI::Font::toSpecial()'],['../classGUI_1_1BitmapFont.html#ac864500d84219f8818f0741d65194a61',1,'GUI::BitmapFont::toSpecial()']]],
+  ['track',['Track',['../structCDROM__Interface__Image_1_1Track.html',1,'CDROM_Interface_Image']]],
   ['transient',['transient',['../classGUI_1_1Window.html#a5bfe42b831d9d036ac85062e97eb99f0',1,'GUI::Window']]],
   ['transientwindow',['TransientWindow',['../classGUI_1_1TransientWindow.html',1,'GUI']]],
   ['transientwindow',['TransientWindow',['../classGUI_1_1TransientWindow.html#a9d3c071b550810d79451acb5959026fd',1,'GUI::TransientWindow']]],
   ['transparent',['Transparent',['../namespaceGUI_1_1Color.html#a7ec3cc2d0178f404a31dac73d2048a10',1,'GUI::Color']]],
-  ['transport',['transport',['../structtransport.html',1,'']]],
   ['transport',['transport',['../structIPXHeader_1_1transport.html',1,'IPXHeader']]],
+  ['transport',['transport',['../structtransport.html',1,'']]],
   ['truespeechwaveformat_5ftag',['truespeechwaveformat_tag',['../structtruespeechwaveformat__tag.html',1,'']]],
   ['tsr_5ft',['TSR_t',['../structbx__ne2k__t_1_1TSR__t.html',1,'bx_ne2k_t']]],
   ['tss_5f16',['TSS_16',['../structTSS__16.html',1,'']]],
@@ -54,5 +55,6 @@ var searchData=
   ['tvp',['TVP',['../classMT32Emu_1_1TVP.html',1,'MT32Emu']]],
   ['tx',['tx',['../classGUI_1_1Drawable.html#a3790664933274d9e31bbd0afc3f27331',1,'GUI::Drawable']]],
   ['ty',['ty',['../classGUI_1_1Drawable.html#a3c68b44e92447585bbb97afd356afdc2',1,'GUI::Drawable']]],
-  ['type',['type',['../classCEvent.html#a5612c4e4e1d0cfc08e1640fee8bacf85',1,'CEvent::type()'],['../classCBind.html#a9e5121ab697c2c56cb20a20bd151ac45',1,'CBind::type()']]]
+  ['type',['type',['../classCEvent.html#a5612c4e4e1d0cfc08e1640fee8bacf85',1,'CEvent::type()'],['../classCBind.html#a9e5121ab697c2c56cb20a20bd151ac45',1,'CBind::type()']]],
+  ['typer',['Typer',['../classTyper.html',1,'']]]
 ];

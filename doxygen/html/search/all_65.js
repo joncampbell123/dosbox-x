@@ -16,8 +16,10 @@ var searchData=
   ['eventname',['eventname',['../classCEvent.html#a9543179cd76d08369201e992ca41728c',1,'CEvent']]],
   ['exceptionpagehandler',['ExceptionPageHandler',['../classExceptionPageHandler.html',1,'']]],
   ['exe_5fheader',['EXE_Header',['../structEXE__Header.html',1,'']]],
-  ['execute',['Execute',['../classDOS__Shell.html#afd2875b08f791d9100ef111800855f09',1,'DOS_Shell::Execute()'],['../classGUI_1_1Menu.html#a667536e40b0f50577d6c2ed0c655f24d',1,'GUI::Menu::execute()'],['../classGUI_1_1Checkbox.html#a578d66f5d9006c6bbedbffbfd769caef',1,'GUI::Checkbox::execute()']]],
+  ['execute',['Execute',['../classDOS__Shell.html#a1399431af1c078b66e5140240d1813d1',1,'DOS_Shell::Execute()'],['../classGUI_1_1Menu.html#a667536e40b0f50577d6c2ed0c655f24d',1,'GUI::Menu::execute()'],['../classGUI_1_1Checkbox.html#a578d66f5d9006c6bbedbffbfd769caef',1,'GUI::Checkbox::execute()']]],
   ['executeaction',['executeAction',['../classGUI_1_1ActionEventSource.html#a13d6f184c4e7b52ba4081810f95ac92f',1,'GUI::ActionEventSource::executeAction(const String &amp;arg)'],['../classGUI_1_1ActionEventSource.html#af0750d285ae79d15436f6288705e42b4',1,'GUI::ActionEventSource::executeAction()']]],
   ['exit_5fstatus',['exit_status',['../classProgram.html#a9e1bb1fc1b315bf697fb1872d6defe12',1,'Program']]],
+  ['ext_5fspace_5finfo_5ft',['ext_space_info_t',['../structext__space__info__t.html',1,'']]],
+  ['extensions',['extensions',['../structSound__DecoderInfo.html#a9f11db9acb555302fd84509198683e2a',1,'Sound_DecoderInfo']]],
   ['externalfilter',['ExternalFilter',['../classExternalFilter.html',1,'']]]
 ];

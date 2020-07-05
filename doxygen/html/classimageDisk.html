@@ -167,23 +167,23 @@ int&#160;</td><td class="memItemRight" valign="bottom"><b>Release</b> ()</td></t
 <tr><td colspan="2"><h2><a name="pub-attribs"></a>
 Public Attributes</h2></td></tr>
 <tr class="memitem:a594ee035ea6bf97cf39808c128b02623"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a594ee035ea6bf97cf39808c128b02623"></a>
-IMAGE_TYPE&#160;</td><td class="memItemRight" valign="bottom"><b>class_id</b></td></tr>
+IMAGE_TYPE&#160;</td><td class="memItemRight" valign="bottom"><b>class_id</b> = ID_BASE</td></tr>
 <tr class="memitem:a05e629958277f26ed5a65cbf5e6fd193"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a05e629958277f26ed5a65cbf5e6fd193"></a>
 std::string&#160;</td><td class="memItemRight" valign="bottom"><b>diskname</b></td></tr>
 <tr class="memitem:a58c8bf6765666eee5924a0df9b02a8b8"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a58c8bf6765666eee5924a0df9b02a8b8"></a>
-bool&#160;</td><td class="memItemRight" valign="bottom"><b>active</b></td></tr>
+bool&#160;</td><td class="memItemRight" valign="bottom"><b>active</b> = false</td></tr>
 <tr class="memitem:a7550e00e3553d110ba1b0851178d8157"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a7550e00e3553d110ba1b0851178d8157"></a>
-Bit32u&#160;</td><td class="memItemRight" valign="bottom"><b>sector_size</b></td></tr>
+Bit32u&#160;</td><td class="memItemRight" valign="bottom"><b>sector_size</b> = 512</td></tr>
 <tr class="memitem:a725ce0c18709434c03d913f12418605f"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a725ce0c18709434c03d913f12418605f"></a>
-Bit32u&#160;</td><td class="memItemRight" valign="bottom"><b>heads</b></td></tr>
+Bit32u&#160;</td><td class="memItemRight" valign="bottom"><b>heads</b> = 0</td></tr>
 <tr class="memitem:a408e3710449fc535836dea5deb51342a"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a408e3710449fc535836dea5deb51342a"></a>
-Bit32u&#160;</td><td class="memItemRight" valign="bottom"><b>cylinders</b></td></tr>
+Bit32u&#160;</td><td class="memItemRight" valign="bottom"><b>cylinders</b> = 0</td></tr>
 <tr class="memitem:aa301426df1ed93f8804890500ae137ce"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="aa301426df1ed93f8804890500ae137ce"></a>
-Bit32u&#160;</td><td class="memItemRight" valign="bottom"><b>sectors</b></td></tr>
+Bit32u&#160;</td><td class="memItemRight" valign="bottom"><b>sectors</b> = 0</td></tr>
 <tr class="memitem:a24521e7464982eb8b0cf93c104981a78"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a24521e7464982eb8b0cf93c104981a78"></a>
-bool&#160;</td><td class="memItemRight" valign="bottom"><b>hardDrive</b></td></tr>
+bool&#160;</td><td class="memItemRight" valign="bottom"><b>hardDrive</b> = false</td></tr>
 <tr class="memitem:a5d19bf7107726cbe58f2d2d9b4b71a12"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a5d19bf7107726cbe58f2d2d9b4b71a12"></a>
-Bit64u&#160;</td><td class="memItemRight" valign="bottom"><b>diskSizeK</b></td></tr>
+Bit64u&#160;</td><td class="memItemRight" valign="bottom"><b>diskSizeK</b> = 0</td></tr>
 <tr><td colspan="2"><h2><a name="pro-methods"></a>
 Protected Member Functions</h2></td></tr>
 <tr class="memitem:ac50b5252fd284058a8fa500b905853d1"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="ac50b5252fd284058a8fa500b905853d1"></a>
@@ -191,15 +191,15 @@ Protected Member Functions</h2></td></tr>
 <tr><td colspan="2"><h2><a name="pro-attribs"></a>
 Protected Attributes</h2></td></tr>
 <tr class="memitem:a97c3a05f12f94a92cf6ddac3f2a5dc5b"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a97c3a05f12f94a92cf6ddac3f2a5dc5b"></a>
-FILE *&#160;</td><td class="memItemRight" valign="bottom"><b>diskimg</b></td></tr>
+FILE *&#160;</td><td class="memItemRight" valign="bottom"><b>diskimg</b> = NULL</td></tr>
 <tr class="memitem:a6e6e4381d5627cb1516a6ced5e1a0b67"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a6e6e4381d5627cb1516a6ced5e1a0b67"></a>
-Bit8u&#160;</td><td class="memItemRight" valign="bottom"><b>floppytype</b></td></tr>
+Bit8u&#160;</td><td class="memItemRight" valign="bottom"><b>floppytype</b> = 0</td></tr>
 <tr class="memitem:a6588490a427230feac862942f34e401b"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a6588490a427230feac862942f34e401b"></a>
-Bit32u&#160;</td><td class="memItemRight" valign="bottom"><b>reserved_cylinders</b></td></tr>
+Bit32u&#160;</td><td class="memItemRight" valign="bottom"><b>reserved_cylinders</b> = 0</td></tr>
 <tr class="memitem:aa12b7c8c8b8bc9745dd93a10d13d89b9"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="aa12b7c8c8b8bc9745dd93a10d13d89b9"></a>
-Bit64u&#160;</td><td class="memItemRight" valign="bottom"><b>image_base</b></td></tr>
+Bit64u&#160;</td><td class="memItemRight" valign="bottom"><b>image_base</b> = 0</td></tr>
 <tr class="memitem:a97b1733c20d7a8e9a7479b268f75f074"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a97b1733c20d7a8e9a7479b268f75f074"></a>
-Bit64u&#160;</td><td class="memItemRight" valign="bottom"><b>image_length</b></td></tr>
+Bit64u&#160;</td><td class="memItemRight" valign="bottom"><b>image_length</b> = 0</td></tr>
 </table>
 <hr/><a name="details" id="details"></a><h2>Detailed Description</h2>
 <div class="textblock">
@@ -212,7 +212,7 @@ Bit64u&#160;</td><td class="memItemRight" valign="bottom"><b>image_length</b></t
 
 
 <hr class="footer"/><address class="footer"><small>
-Generated on Tue Oct 1 2019 18:06:31 for DOSBox-X by &#160;<a href="http://www.doxygen.org/index.html">
+Generated on Sun Jul 5 2020 13:11:41 for DOSBox-X by &#160;<a href="http://www.doxygen.org/index.html">
 <img class="footer" src="doxygen.png" alt="doxygen"/>
 </a> 1.8.0
 </small></address>

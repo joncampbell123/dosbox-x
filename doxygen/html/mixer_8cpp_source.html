@@ -96,7 +96,7 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 </div><!--header-->
 <div class="contents">
 <div class="fragment"><pre class="fragment"><a name="l00001"></a>00001 <span class="comment">/*</span>
-<a name="l00002"></a>00002 <span class="comment"> *  Copyright (C) 2002-2019  The DOSBox Team</span>
+<a name="l00002"></a>00002 <span class="comment"> *  Copyright (C) 2002-2020  The DOSBox Team</span>
 <a name="l00003"></a>00003 <span class="comment"> *</span>
 <a name="l00004"></a>00004 <span class="comment"> *  This program is free software; you can redistribute it and/or modify</span>
 <a name="l00005"></a>00005 <span class="comment"> *  it under the terms of the GNU General Public License as published by</span>
@@ -108,9 +108,9 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l00011"></a>00011 <span class="comment"> *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the</span>
 <a name="l00012"></a>00012 <span class="comment"> *  GNU General Public License for more details.</span>
 <a name="l00013"></a>00013 <span class="comment"> *</span>
-<a name="l00014"></a>00014 <span class="comment"> *  You should have received a copy of the GNU General Public License</span>
-<a name="l00015"></a>00015 <span class="comment"> *  along with this program; if not, write to the Free Software</span>
-<a name="l00016"></a>00016 <span class="comment"> *  Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1335, USA.</span>
+<a name="l00014"></a>00014 <span class="comment"> *  You should have received a copy of the GNU General Public License along</span>
+<a name="l00015"></a>00015 <span class="comment"> *  with this program; if not, write to the Free Software Foundation, Inc.,</span>
+<a name="l00016"></a>00016 <span class="comment"> *  51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.</span>
 <a name="l00017"></a>00017 <span class="comment"> */</span>
 <a name="l00018"></a>00018 
 <a name="l00019"></a>00019 
@@ -322,31 +322,31 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l00225"></a>00225 
 <a name="l00226"></a>00226 <a class="code" href="classMixerChannel.html">MixerChannel</a> * MIXER_AddChannel(MIXER_Handler handler,Bitu freq,<span class="keyword">const</span> <span class="keywordtype">char</span> * name) {
 <a name="l00227"></a>00227     <a class="code" href="classMixerChannel.html">MixerChannel</a> * chan=<span class="keyword">new</span> <a class="code" href="classMixerChannel.html">MixerChannel</a>();
-<a name="l00228"></a>00228     chan-&gt;scale = 1.0;
-<a name="l00229"></a>00229     chan-&gt;freq_fslew = 0;
-<a name="l00230"></a>00230     chan-&gt;freq_nslew_want = 0;
-<a name="l00231"></a>00231     chan-&gt;freq_nslew = 0;
-<a name="l00232"></a>00232     chan-&gt;last_sample_write = 0;
-<a name="l00233"></a>00233     chan-&gt;current_loaded = <span class="keyword">false</span>;
-<a name="l00234"></a>00234     chan-&gt;handler=handler;
-<a name="l00235"></a>00235     chan-&gt;name=name;
-<a name="l00236"></a>00236     chan-&gt;msbuffer_i = 0;
-<a name="l00237"></a>00237     chan-&gt;msbuffer_o = 0;
-<a name="l00238"></a>00238     chan-&gt;freq_n = chan-&gt;freq_d = 1;
-<a name="l00239"></a>00239     chan-&gt;lowpass_freq = 0;
-<a name="l00240"></a>00240     chan-&gt;lowpass_alpha = 0;
-<a name="l00241"></a>00241 
-<a name="l00242"></a>00242     <span class="keywordflow">for</span> (<span class="keywordtype">unsigned</span> <span class="keywordtype">int</span> i=0;i &lt; LOWPASS_ORDER;i++) {
-<a name="l00243"></a>00243         <span class="keywordflow">for</span> (<span class="keywordtype">unsigned</span> <span class="keywordtype">int</span> j=0;j &lt; 2;j++)
-<a name="l00244"></a>00244             chan-&gt;lowpass[i][j] = 0;
-<a name="l00245"></a>00245     }
-<a name="l00246"></a>00246 
-<a name="l00247"></a>00247     chan-&gt;lowpass_on_load = <span class="keyword">false</span>;
-<a name="l00248"></a>00248     chan-&gt;lowpass_on_out = <span class="keyword">false</span>;
-<a name="l00249"></a>00249     chan-&gt;freq_d_orig = 1;
-<a name="l00250"></a>00250     chan-&gt;freq_f = 0;
-<a name="l00251"></a>00251     chan-&gt;SetFreq(freq);
-<a name="l00252"></a>00252     chan-&gt;next=mixer.channels;
+<a name="l00228"></a>00228     chan-&gt;freq_fslew = 0;
+<a name="l00229"></a>00229     chan-&gt;freq_nslew_want = 0;
+<a name="l00230"></a>00230     chan-&gt;freq_nslew = 0;
+<a name="l00231"></a>00231     chan-&gt;last_sample_write = 0;
+<a name="l00232"></a>00232     chan-&gt;current_loaded = <span class="keyword">false</span>;
+<a name="l00233"></a>00233     chan-&gt;handler=handler;
+<a name="l00234"></a>00234     chan-&gt;name=name;
+<a name="l00235"></a>00235     chan-&gt;msbuffer_i = 0;
+<a name="l00236"></a>00236     chan-&gt;msbuffer_o = 0;
+<a name="l00237"></a>00237     chan-&gt;freq_n = chan-&gt;freq_d = 1;
+<a name="l00238"></a>00238     chan-&gt;lowpass_freq = 0;
+<a name="l00239"></a>00239     chan-&gt;lowpass_alpha = 0;
+<a name="l00240"></a>00240 
+<a name="l00241"></a>00241     <span class="keywordflow">for</span> (<span class="keywordtype">unsigned</span> <span class="keywordtype">int</span> i=0;i &lt; LOWPASS_ORDER;i++) {
+<a name="l00242"></a>00242         <span class="keywordflow">for</span> (<span class="keywordtype">unsigned</span> <span class="keywordtype">int</span> j=0;j &lt; 2;j++)
+<a name="l00243"></a>00243             chan-&gt;lowpass[i][j] = 0;
+<a name="l00244"></a>00244     }
+<a name="l00245"></a>00245 
+<a name="l00246"></a>00246     chan-&gt;lowpass_on_load = <span class="keyword">false</span>;
+<a name="l00247"></a>00247     chan-&gt;lowpass_on_out = <span class="keyword">false</span>;
+<a name="l00248"></a>00248     chan-&gt;freq_d_orig = 1;
+<a name="l00249"></a>00249     chan-&gt;freq_f = 0;
+<a name="l00250"></a>00250     chan-&gt;SetFreq(freq);
+<a name="l00251"></a>00251     chan-&gt;next=mixer.channels;
+<a name="l00252"></a>00252     chan-&gt;SetScale(1.0);
 <a name="l00253"></a>00253     chan-&gt;SetVolume(1,1);
 <a name="l00254"></a>00254     chan-&gt;enabled=<span class="keyword">false</span>;
 <a name="l00255"></a>00255     chan-&gt;last[0] = chan-&gt;last[1] = 0;
@@ -385,8 +385,8 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l00288"></a>00288 }
 <a name="l00289"></a>00289 
 <a name="l00290"></a>00290 <span class="keywordtype">void</span> MixerChannel::UpdateVolume(<span class="keywordtype">void</span>) {
-<a name="l00291"></a>00291     volmul[0]=(Bits)((1 &lt;&lt; MIXER_VOLSHIFT)*scale*volmain[0]);
-<a name="l00292"></a>00292     volmul[1]=(Bits)((1 &lt;&lt; MIXER_VOLSHIFT)*scale*volmain[1]);
+<a name="l00291"></a>00291     volmul[0]=(Bits)((1 &lt;&lt; MIXER_VOLSHIFT)*scale[0]*volmain[0]);
+<a name="l00292"></a>00292     volmul[1]=(Bits)((1 &lt;&lt; MIXER_VOLSHIFT)*scale[1]*volmain[1]);
 <a name="l00293"></a>00293 }
 <a name="l00294"></a>00294 
 <a name="l00295"></a>00295 <span class="keywordtype">void</span> MixerChannel::SetVolume(<span class="keywordtype">float</span> _left,<span class="keywordtype">float</span> _right) {
@@ -396,929 +396,1049 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l00299"></a>00299 }
 <a name="l00300"></a>00300 
 <a name="l00301"></a>00301 <span class="keywordtype">void</span> MixerChannel::SetScale( <span class="keywordtype">float</span> f ) {
-<a name="l00302"></a>00302     scale = f;
-<a name="l00303"></a>00303     UpdateVolume();
-<a name="l00304"></a>00304 }
-<a name="l00305"></a>00305 
-<a name="l00306"></a>00306 <span class="keyword">static</span> <span class="keywordtype">void</span> MIXER_FillUp(<span class="keywordtype">void</span>);
-<a name="l00307"></a>00307 
-<a name="l00308"></a>00308 <span class="keywordtype">void</span> MixerChannel::Enable(<span class="keywordtype">bool</span> _yesno) {
-<a name="l00309"></a>00309     <span class="keywordflow">if</span> (_yesno==enabled) <span class="keywordflow">return</span>;
-<a name="l00310"></a>00310     enabled=_yesno;
-<a name="l00311"></a>00311     <span class="keywordflow">if</span> (!enabled) freq_f=0;
-<a name="l00312"></a>00312 }
-<a name="l00313"></a>00313 
-<a name="l00314"></a>00314 <span class="keywordtype">void</span> MixerChannel::lowpassUpdate() {
-<a name="l00315"></a>00315     <span class="keywordflow">if</span> (lowpass_freq != 0) {
-<a name="l00316"></a>00316         <span class="keywordtype">double</span> timeInterval;
-<a name="l00317"></a>00317         <span class="keywordtype">double</span> tau,talpha;
-<a name="l00318"></a>00318 
-<a name="l00319"></a>00319         <span class="keywordflow">if</span> (freq_n &gt; freq_d) { <span class="comment">// source -&gt; dest mixer rate ratio is &gt; 100%</span>
-<a name="l00320"></a>00320             timeInterval = (double)freq_d_orig / freq_n; <span class="comment">// will filter on sample load at source rate</span>
-<a name="l00321"></a>00321             lowpass_on_load = <span class="keyword">true</span>;
-<a name="l00322"></a>00322             lowpass_on_out = <span class="keyword">false</span>;
-<a name="l00323"></a>00323         }
-<a name="l00324"></a>00324         <span class="keywordflow">else</span> {
-<a name="l00325"></a>00325             timeInterval = (double)1.0 / mixer.freq; <span class="comment">// will filter mixer output at mixer rate</span>
-<a name="l00326"></a>00326             lowpass_on_load = <span class="keyword">false</span>;
-<a name="l00327"></a>00327             lowpass_on_out = <span class="keyword">true</span>;
-<a name="l00328"></a>00328         }
-<a name="l00329"></a>00329 
-<a name="l00330"></a>00330         tau = 1.0 / (lowpass_freq * 2 * M_PI);
-<a name="l00331"></a>00331         talpha = timeInterval / (tau + timeInterval);
-<a name="l00332"></a>00332         lowpass_alpha = (Bit32s)(talpha * 0x10000); <span class="comment">// double -&gt; 16.16 fixed point</span>
-<a name="l00333"></a>00333 
-<a name="l00334"></a>00334 <span class="comment">//      LOG_MSG(&quot;Lowpass freq_n=%u freq_d=%u timeInterval=%.12f tau=%.12f alpha=%.6f onload=%u onout=%u&quot;,</span>
-<a name="l00335"></a>00335 <span class="comment">//          freq_n,freq_d_orig,timeInterval,tau,talpha,lowpass_on_load,lowpass_on_out);</span>
-<a name="l00336"></a>00336     }
-<a name="l00337"></a>00337     <span class="keywordflow">else</span> {
-<a name="l00338"></a>00338         lowpass_on_load = <span class="keyword">false</span>;
-<a name="l00339"></a>00339         lowpass_on_out = <span class="keyword">false</span>;
-<a name="l00340"></a>00340     }
-<a name="l00341"></a>00341 }
-<a name="l00342"></a>00342 
-<a name="l00343"></a>00343 <span class="keyword">inline</span> Bit32s MixerChannel::lowpassStep(Bit32s in,<span class="keyword">const</span> <span class="keywordtype">unsigned</span> <span class="keywordtype">int</span> iteration,<span class="keyword">const</span> <span class="keywordtype">unsigned</span> <span class="keywordtype">int</span> channel) {
-<a name="l00344"></a>00344     <span class="keyword">const</span> Bit64s m1 = (Bit64s)in * (Bit64s)lowpass_alpha;
-<a name="l00345"></a>00345     <span class="keyword">const</span> Bit64s m2 = ((Bit64s)lowpass[iteration][channel] &lt;&lt; ((Bit64s)16)) - ((Bit64s)lowpass[iteration][channel] * (Bit64s)lowpass_alpha);
-<a name="l00346"></a>00346     <span class="keyword">const</span> Bit32s ns = (Bit32s)((m1 + m2) &gt;&gt; (Bit64s)16);
-<a name="l00347"></a>00347     lowpass[iteration][channel] = ns;
-<a name="l00348"></a>00348     <span class="keywordflow">return</span> ns;
-<a name="l00349"></a>00349 }
-<a name="l00350"></a>00350 
-<a name="l00351"></a>00351 <span class="keyword">inline</span> <span class="keywordtype">void</span> MixerChannel::lowpassProc(Bit32s ch[2]) {
-<a name="l00352"></a>00352     <span class="keywordflow">for</span> (<span class="keywordtype">unsigned</span> <span class="keywordtype">int</span> i=0;i &lt; lowpass_order;i++) {
-<a name="l00353"></a>00353         <span class="keywordflow">for</span> (<span class="keywordtype">unsigned</span> <span class="keywordtype">int</span> c=0;c &lt; 2;c++)
-<a name="l00354"></a>00354             ch[c] = lowpassStep(ch[c],i,c);
-<a name="l00355"></a>00355     }
-<a name="l00356"></a>00356 }
-<a name="l00357"></a>00357 
-<a name="l00358"></a>00358 <span class="keywordtype">void</span> MixerChannel::SetLowpassFreq(Bitu _freq,<span class="keywordtype">unsigned</span> <span class="keywordtype">int</span> order) {
-<a name="l00359"></a>00359     <span class="keywordflow">if</span> (order &gt; LOWPASS_ORDER) order = LOWPASS_ORDER;
-<a name="l00360"></a>00360     <span class="keywordflow">if</span> (_freq == lowpass_freq &amp;&amp; lowpass_order == order) <span class="keywordflow">return</span>;
-<a name="l00361"></a>00361     lowpass_order = order;
-<a name="l00362"></a>00362     lowpass_freq = _freq;
-<a name="l00363"></a>00363     lowpassUpdate();
-<a name="l00364"></a>00364 }
-<a name="l00365"></a>00365 
-<a name="l00366"></a>00366 <span class="keywordtype">void</span> MixerChannel::SetSlewFreq(Bitu _freq) {
-<a name="l00367"></a>00367     freq_nslew_want = _freq;
-<a name="l00368"></a>00368     updateSlew();
-<a name="l00369"></a>00369 }
-<a name="l00370"></a>00370 
-<a name="l00371"></a>00371 <span class="keywordtype">void</span> MixerChannel::SetFreq(Bitu _freq,Bitu _den) {
-<a name="l00372"></a>00372     <span class="keywordflow">if</span> (freq_n == _freq &amp;&amp; freq_d == freq_d_orig)
-<a name="l00373"></a>00373         <span class="keywordflow">return</span>;
-<a name="l00374"></a>00374 
-<a name="l00375"></a>00375     <span class="keywordflow">if</span> (freq_d_orig != _den) {
-<a name="l00376"></a>00376         Bit64u tmp = (Bit64u)freq_f * (Bit64u)_den * (Bit64u)mixer.freq;
-<a name="l00377"></a>00377         freq_f = freq_fslew = (<span class="keywordtype">unsigned</span> <span class="keywordtype">int</span>)(tmp / (Bit64u)freq_d_orig);
-<a name="l00378"></a>00378     }
-<a name="l00379"></a>00379 
-<a name="l00380"></a>00380     freq_n = _freq;
-<a name="l00381"></a>00381     freq_d = _den * mixer.freq;
-<a name="l00382"></a>00382     freq_d_orig = _den;
-<a name="l00383"></a>00383     updateSlew();
-<a name="l00384"></a>00384     lowpassUpdate();
-<a name="l00385"></a>00385 }
+<a name="l00302"></a>00302     SetScale(f, f);
+<a name="l00303"></a>00303 }
+<a name="l00304"></a>00304 
+<a name="l00305"></a>00305 <span class="keywordtype">void</span> MixerChannel::SetScale(<span class="keywordtype">float</span> _left, <span class="keywordtype">float</span> _right) {
+<a name="l00306"></a>00306         <span class="comment">// Constrain application-defined volume between 0% and 100%</span>
+<a name="l00307"></a>00307         <span class="keyword">const</span> <span class="keywordtype">float</span> min_volume(0.0);
+<a name="l00308"></a>00308         <span class="keyword">const</span> <span class="keywordtype">float</span> max_volume(1.0);
+<a name="l00309"></a>00309         _left  = clamp(_left,  min_volume, max_volume);
+<a name="l00310"></a>00310         _right = clamp(_right, min_volume, max_volume);
+<a name="l00311"></a>00311         <span class="keywordflow">if</span> (scale[0] != _left || scale[1] != _right) {
+<a name="l00312"></a>00312                 scale[0] = _left;
+<a name="l00313"></a>00313                 scale[1] = _right;
+<a name="l00314"></a>00314                 UpdateVolume();
+<a name="l00315"></a>00315         }
+<a name="l00316"></a>00316 }
+<a name="l00317"></a>00317 
+<a name="l00318"></a>00318 <span class="keyword">static</span> <span class="keywordtype">void</span> MIXER_FillUp(<span class="keywordtype">void</span>);
+<a name="l00319"></a>00319 
+<a name="l00320"></a>00320 <span class="keywordtype">void</span> MixerChannel::Enable(<span class="keywordtype">bool</span> _yesno) {
+<a name="l00321"></a>00321     <span class="keywordflow">if</span> (_yesno==enabled) <span class="keywordflow">return</span>;
+<a name="l00322"></a>00322     enabled=_yesno;
+<a name="l00323"></a>00323     <span class="keywordflow">if</span> (!enabled) freq_f=0;
+<a name="l00324"></a>00324 }
+<a name="l00325"></a>00325 
+<a name="l00326"></a>00326 <span class="keywordtype">void</span> MixerChannel::lowpassUpdate() {
+<a name="l00327"></a>00327     <span class="keywordflow">if</span> (lowpass_freq != 0) {
+<a name="l00328"></a>00328         <span class="keywordtype">double</span> timeInterval;
+<a name="l00329"></a>00329         <span class="keywordtype">double</span> tau,talpha;
+<a name="l00330"></a>00330 
+<a name="l00331"></a>00331         <span class="keywordflow">if</span> (freq_n &gt; freq_d) { <span class="comment">// source -&gt; dest mixer rate ratio is &gt; 100%</span>
+<a name="l00332"></a>00332             timeInterval = (double)freq_d_orig / freq_n; <span class="comment">// will filter on sample load at source rate</span>
+<a name="l00333"></a>00333             lowpass_on_load = <span class="keyword">true</span>;
+<a name="l00334"></a>00334             lowpass_on_out = <span class="keyword">false</span>;
+<a name="l00335"></a>00335         }
+<a name="l00336"></a>00336         <span class="keywordflow">else</span> {
+<a name="l00337"></a>00337             timeInterval = (double)1.0 / mixer.freq; <span class="comment">// will filter mixer output at mixer rate</span>
+<a name="l00338"></a>00338             lowpass_on_load = <span class="keyword">false</span>;
+<a name="l00339"></a>00339             lowpass_on_out = <span class="keyword">true</span>;
+<a name="l00340"></a>00340         }
+<a name="l00341"></a>00341 
+<a name="l00342"></a>00342         tau = 1.0 / (lowpass_freq * 2 * M_PI);
+<a name="l00343"></a>00343         talpha = timeInterval / (tau + timeInterval);
+<a name="l00344"></a>00344         lowpass_alpha = (Bit32s)(talpha * 0x10000); <span class="comment">// double -&gt; 16.16 fixed point</span>
+<a name="l00345"></a>00345 
+<a name="l00346"></a>00346 <span class="comment">//      LOG_MSG(&quot;Lowpass freq_n=%u freq_d=%u timeInterval=%.12f tau=%.12f alpha=%.6f onload=%u onout=%u&quot;,</span>
+<a name="l00347"></a>00347 <span class="comment">//          freq_n,freq_d_orig,timeInterval,tau,talpha,lowpass_on_load,lowpass_on_out);</span>
+<a name="l00348"></a>00348     }
+<a name="l00349"></a>00349     <span class="keywordflow">else</span> {
+<a name="l00350"></a>00350         lowpass_on_load = <span class="keyword">false</span>;
+<a name="l00351"></a>00351         lowpass_on_out = <span class="keyword">false</span>;
+<a name="l00352"></a>00352     }
+<a name="l00353"></a>00353 }
+<a name="l00354"></a>00354 
+<a name="l00355"></a>00355 <span class="keyword">inline</span> Bit32s MixerChannel::lowpassStep(Bit32s in,<span class="keyword">const</span> <span class="keywordtype">unsigned</span> <span class="keywordtype">int</span> iteration,<span class="keyword">const</span> <span class="keywordtype">unsigned</span> <span class="keywordtype">int</span> channel) {
+<a name="l00356"></a>00356     <span class="keyword">const</span> Bit64s m1 = (Bit64s)in * (Bit64s)lowpass_alpha;
+<a name="l00357"></a>00357     <span class="keyword">const</span> Bit64s m2 = ((Bit64s)lowpass[iteration][channel] &lt;&lt; ((Bit64s)16)) - ((Bit64s)lowpass[iteration][channel] * (Bit64s)lowpass_alpha);
+<a name="l00358"></a>00358     <span class="keyword">const</span> Bit32s ns = (Bit32s)((m1 + m2) &gt;&gt; (Bit64s)16);
+<a name="l00359"></a>00359     lowpass[iteration][channel] = ns;
+<a name="l00360"></a>00360     <span class="keywordflow">return</span> ns;
+<a name="l00361"></a>00361 }
+<a name="l00362"></a>00362 
+<a name="l00363"></a>00363 <span class="keyword">inline</span> <span class="keywordtype">void</span> MixerChannel::lowpassProc(Bit32s ch[2]) {
+<a name="l00364"></a>00364     <span class="keywordflow">for</span> (<span class="keywordtype">unsigned</span> <span class="keywordtype">int</span> i=0;i &lt; lowpass_order;i++) {
+<a name="l00365"></a>00365         <span class="keywordflow">for</span> (<span class="keywordtype">unsigned</span> <span class="keywordtype">int</span> c=0;c &lt; 2;c++)
+<a name="l00366"></a>00366             ch[c] = lowpassStep(ch[c],i,c);
+<a name="l00367"></a>00367     }
+<a name="l00368"></a>00368 }
+<a name="l00369"></a>00369 
+<a name="l00370"></a>00370 <span class="keywordtype">void</span> MixerChannel::SetLowpassFreq(Bitu _freq,<span class="keywordtype">unsigned</span> <span class="keywordtype">int</span> order) {
+<a name="l00371"></a>00371     <span class="keywordflow">if</span> (order &gt; LOWPASS_ORDER) order = LOWPASS_ORDER;
+<a name="l00372"></a>00372     <span class="keywordflow">if</span> (_freq == lowpass_freq &amp;&amp; lowpass_order == order) <span class="keywordflow">return</span>;
+<a name="l00373"></a>00373     lowpass_order = order;
+<a name="l00374"></a>00374     lowpass_freq = _freq;
+<a name="l00375"></a>00375     lowpassUpdate();
+<a name="l00376"></a>00376 }
+<a name="l00377"></a>00377 
+<a name="l00378"></a>00378 <span class="keywordtype">void</span> MixerChannel::SetSlewFreq(Bitu _freq) {
+<a name="l00379"></a>00379     freq_nslew_want = _freq;
+<a name="l00380"></a>00380     updateSlew();
+<a name="l00381"></a>00381 }
+<a name="l00382"></a>00382 
+<a name="l00383"></a>00383 <span class="keywordtype">void</span> MixerChannel::SetFreq(Bitu _freq,Bitu _den) {
+<a name="l00384"></a>00384     <span class="keywordflow">if</span> (freq_n == _freq &amp;&amp; freq_d == freq_d_orig)
+<a name="l00385"></a>00385         <span class="keywordflow">return</span>;
 <a name="l00386"></a>00386 
-<a name="l00387"></a>00387 <span class="keywordtype">void</span> CAPTURE_MultiTrackAddWave(Bit32u freq, Bit32u len, Bit16s * data,<span class="keyword">const</span> <span class="keywordtype">char</span> *name);
-<a name="l00388"></a>00388 
-<a name="l00389"></a>00389 <span class="keywordtype">void</span> MixerChannel::EndFrame(Bitu samples) {
-<a name="l00390"></a>00390     <span class="keywordflow">if</span> (CaptureState &amp; CAPTURE_MULTITRACK_WAVE) {<span class="comment">// TODO: should be a separate call!</span>
-<a name="l00391"></a>00391         Bit16s convert[1024][2];
-<a name="l00392"></a>00392         Bitu cnv = msbuffer_o;
-<a name="l00393"></a>00393         Bitu padding = 0;
-<a name="l00394"></a>00394 
-<a name="l00395"></a>00395         <span class="keywordflow">if</span> (cnv &gt; samples)
-<a name="l00396"></a>00396             cnv = samples;
-<a name="l00397"></a>00397         <span class="keywordflow">else</span>
-<a name="l00398"></a>00398             padding = samples - cnv;
-<a name="l00399"></a>00399 
-<a name="l00400"></a>00400         <span class="keywordflow">if</span> (cnv &gt; 0) {
-<a name="l00401"></a>00401             Bit32s volscale1 = (Bit32s)(mixer.recordvol[0] * (1 &lt;&lt; MIXER_VOLSHIFT));
-<a name="l00402"></a>00402             Bit32s volscale2 = (Bit32s)(mixer.recordvol[1] * (1 &lt;&lt; MIXER_VOLSHIFT));
-<a name="l00403"></a>00403 
-<a name="l00404"></a>00404             <span class="keywordflow">if</span> (cnv &gt; 1024) cnv = 1024;
-<a name="l00405"></a>00405             <span class="keywordflow">for</span> (Bitu i=0;i&lt;cnv;i++) {
-<a name="l00406"></a>00406                 convert[i][0]=MIXER_CLIP(((Bit64s)msbuffer[i][0] * (Bit64s)volscale1) &gt;&gt; (MIXER_VOLSHIFT + MIXER_VOLSHIFT));
-<a name="l00407"></a>00407                 convert[i][1]=MIXER_CLIP(((Bit64s)msbuffer[i][1] * (Bit64s)volscale2) &gt;&gt; (MIXER_VOLSHIFT + MIXER_VOLSHIFT));
-<a name="l00408"></a>00408             }
-<a name="l00409"></a>00409             CAPTURE_MultiTrackAddWave(mixer.freq,cnv,(Bit16s*)convert,name);
-<a name="l00410"></a>00410         }
+<a name="l00387"></a>00387     <span class="keywordflow">if</span> (freq_d_orig != _den) {
+<a name="l00388"></a>00388         Bit64u tmp = (Bit64u)freq_f * (Bit64u)_den * (Bit64u)mixer.freq;
+<a name="l00389"></a>00389         freq_f = freq_fslew = (<span class="keywordtype">unsigned</span> <span class="keywordtype">int</span>)(tmp / (Bit64u)freq_d_orig);
+<a name="l00390"></a>00390     }
+<a name="l00391"></a>00391 
+<a name="l00392"></a>00392     freq_n = _freq;
+<a name="l00393"></a>00393     freq_d = _den * mixer.freq;
+<a name="l00394"></a>00394     freq_d_orig = _den;
+<a name="l00395"></a>00395     updateSlew();
+<a name="l00396"></a>00396     lowpassUpdate();
+<a name="l00397"></a>00397 }
+<a name="l00398"></a>00398 
+<a name="l00399"></a>00399 <span class="keywordtype">void</span> CAPTURE_MultiTrackAddWave(Bit32u freq, Bit32u len, Bit16s * data,<span class="keyword">const</span> <span class="keywordtype">char</span> *name);
+<a name="l00400"></a>00400 
+<a name="l00401"></a>00401 <span class="keywordtype">void</span> MixerChannel::EndFrame(Bitu samples) {
+<a name="l00402"></a>00402     <span class="keywordflow">if</span> (CaptureState &amp; CAPTURE_MULTITRACK_WAVE) {<span class="comment">// TODO: should be a separate call!</span>
+<a name="l00403"></a>00403         Bit16s convert[1024][2];
+<a name="l00404"></a>00404         Bitu cnv = msbuffer_o;
+<a name="l00405"></a>00405         Bitu padding = 0;
+<a name="l00406"></a>00406 
+<a name="l00407"></a>00407         <span class="keywordflow">if</span> (cnv &gt; samples)
+<a name="l00408"></a>00408             cnv = samples;
+<a name="l00409"></a>00409         <span class="keywordflow">else</span>
+<a name="l00410"></a>00410             padding = samples - cnv;
 <a name="l00411"></a>00411 
-<a name="l00412"></a>00412         <span class="keywordflow">if</span> (padding &gt; 0) {
-<a name="l00413"></a>00413             <span class="keywordflow">if</span> (padding &gt; 1024) padding = 1024;
-<a name="l00414"></a>00414             memset(&amp;convert[0][0],0,padding*<span class="keyword">sizeof</span>(Bit16s)*2);
-<a name="l00415"></a>00415             CAPTURE_MultiTrackAddWave(mixer.freq,padding,(Bit16s*)convert,name);
-<a name="l00416"></a>00416         }
-<a name="l00417"></a>00417     }
-<a name="l00418"></a>00418 
-<a name="l00419"></a>00419     rend_n = rend_d = 0;
-<a name="l00420"></a>00420     <span class="keywordflow">if</span> (msbuffer_o &lt;= samples) {
-<a name="l00421"></a>00421         msbuffer_o = 0;
-<a name="l00422"></a>00422         msbuffer_i = 0;
-<a name="l00423"></a>00423     }
-<a name="l00424"></a>00424     <span class="keywordflow">else</span> {
-<a name="l00425"></a>00425         msbuffer_o -= samples;
-<a name="l00426"></a>00426         <span class="keywordflow">if</span> (msbuffer_i &gt;= samples) msbuffer_i -= samples;
-<a name="l00427"></a>00427         <span class="keywordflow">else</span> msbuffer_i = 0;
-<a name="l00428"></a>00428         memmove(&amp;msbuffer[0][0],&amp;msbuffer[samples][0],msbuffer_o*<span class="keyword">sizeof</span>(Bit32s)*2<span class="comment">/*stereo*/</span>);
+<a name="l00412"></a>00412         <span class="keywordflow">if</span> (cnv &gt; 0) {
+<a name="l00413"></a>00413             Bit32s volscale1 = (Bit32s)(mixer.recordvol[0] * (1 &lt;&lt; MIXER_VOLSHIFT));
+<a name="l00414"></a>00414             Bit32s volscale2 = (Bit32s)(mixer.recordvol[1] * (1 &lt;&lt; MIXER_VOLSHIFT));
+<a name="l00415"></a>00415 
+<a name="l00416"></a>00416             <span class="keywordflow">if</span> (cnv &gt; 1024) cnv = 1024;
+<a name="l00417"></a>00417             <span class="keywordflow">for</span> (Bitu i=0;i&lt;cnv;i++) {
+<a name="l00418"></a>00418                 convert[i][0]=MIXER_CLIP(((Bit64s)msbuffer[i][0] * (Bit64s)volscale1) &gt;&gt; (MIXER_VOLSHIFT + MIXER_VOLSHIFT));
+<a name="l00419"></a>00419                 convert[i][1]=MIXER_CLIP(((Bit64s)msbuffer[i][1] * (Bit64s)volscale2) &gt;&gt; (MIXER_VOLSHIFT + MIXER_VOLSHIFT));
+<a name="l00420"></a>00420             }
+<a name="l00421"></a>00421             CAPTURE_MultiTrackAddWave(mixer.freq,cnv,(Bit16s*)convert,name);
+<a name="l00422"></a>00422         }
+<a name="l00423"></a>00423 
+<a name="l00424"></a>00424         <span class="keywordflow">if</span> (padding &gt; 0) {
+<a name="l00425"></a>00425             <span class="keywordflow">if</span> (padding &gt; 1024) padding = 1024;
+<a name="l00426"></a>00426             memset(&amp;convert[0][0],0,padding*<span class="keyword">sizeof</span>(Bit16s)*2);
+<a name="l00427"></a>00427             CAPTURE_MultiTrackAddWave(mixer.freq,padding,(Bit16s*)convert,name);
+<a name="l00428"></a>00428         }
 <a name="l00429"></a>00429     }
 <a name="l00430"></a>00430 
-<a name="l00431"></a>00431     last_sample_write -= (int)samples;
-<a name="l00432"></a>00432 }
-<a name="l00433"></a>00433 
-<a name="l00434"></a>00434 <span class="keywordtype">void</span> MixerChannel::Mix(Bitu whole,Bitu frac) {
-<a name="l00435"></a>00435     <span class="keywordtype">unsigned</span> <span class="keywordtype">int</span> patience = 2;
-<a name="l00436"></a>00436     Bitu upto;
-<a name="l00437"></a>00437 
-<a name="l00438"></a>00438     <span class="keywordflow">if</span> (whole &lt;= rend_n) <span class="keywordflow">return</span>;
-<a name="l00439"></a>00439     assert(whole &lt;= mixer.samples_this_ms.w);
-<a name="l00440"></a>00440     assert(rend_n &lt; mixer.samples_this_ms.w);
-<a name="l00441"></a>00441     Bit32s *outptr = &amp;mixer.work[mixer.work_in+rend_n][0];
+<a name="l00431"></a>00431     rend_n = rend_d = 0;
+<a name="l00432"></a>00432     <span class="keywordflow">if</span> (msbuffer_o &lt;= samples) {
+<a name="l00433"></a>00433         msbuffer_o = 0;
+<a name="l00434"></a>00434         msbuffer_i = 0;
+<a name="l00435"></a>00435     }
+<a name="l00436"></a>00436     <span class="keywordflow">else</span> {
+<a name="l00437"></a>00437         msbuffer_o -= samples;
+<a name="l00438"></a>00438         <span class="keywordflow">if</span> (msbuffer_i &gt;= samples) msbuffer_i -= samples;
+<a name="l00439"></a>00439         <span class="keywordflow">else</span> msbuffer_i = 0;
+<a name="l00440"></a>00440         memmove(&amp;msbuffer[0][0],&amp;msbuffer[samples][0],msbuffer_o*<span class="keyword">sizeof</span>(Bit32s)*2<span class="comment">/*stereo*/</span>);
+<a name="l00441"></a>00441     }
 <a name="l00442"></a>00442 
-<a name="l00443"></a>00443     <span class="keywordflow">if</span> (!enabled) {
-<a name="l00444"></a>00444         rend_n = whole;
-<a name="l00445"></a>00445         rend_d = frac;
-<a name="l00446"></a>00446         <span class="keywordflow">return</span>;
-<a name="l00447"></a>00447     }
-<a name="l00448"></a>00448 
-<a name="l00449"></a>00449     <span class="comment">// HACK: We iterate twice only because of the Sound Blaster emulation. No other emulation seems to need this.</span>
-<a name="l00450"></a>00450     rendering_to_n = whole;
-<a name="l00451"></a>00451     rendering_to_d = frac;
-<a name="l00452"></a>00452     <span class="keywordflow">while</span> (msbuffer_o &lt; whole) {
-<a name="l00453"></a>00453         Bit64u todo = (Bit64u)(whole - msbuffer_o) * (Bit64u)freq_n;
-<a name="l00454"></a>00454         todo += (Bit64u)freq_f;
-<a name="l00455"></a>00455         todo += (Bit64u)freq_d - (Bit64u)1;
-<a name="l00456"></a>00456         todo /= (Bit64u)freq_d;
-<a name="l00457"></a>00457         <span class="keywordflow">if</span> (!current_loaded) todo++;
-<a name="l00458"></a>00458         handler(todo);
-<a name="l00459"></a>00459 
-<a name="l00460"></a>00460         <span class="keywordflow">if</span> (--patience == 0) <span class="keywordflow">break</span>;
-<a name="l00461"></a>00461     }
-<a name="l00462"></a>00462 
-<a name="l00463"></a>00463     <span class="keywordflow">if</span> (msbuffer_o &lt; whole)
-<a name="l00464"></a>00464         padFillSampleInterpolation(whole);
-<a name="l00465"></a>00465 
-<a name="l00466"></a>00466     upto = whole;
-<a name="l00467"></a>00467     <span class="keywordflow">if</span> (upto &gt; msbuffer_o) upto = msbuffer_o;
-<a name="l00468"></a>00468 
-<a name="l00469"></a>00469     <span class="keywordflow">if</span> (lowpass_on_out) { <span class="comment">/* before rendering out to mixer, process samples with lowpass filter */</span>
-<a name="l00470"></a>00470         Bitu t_rend_n = rend_n;
-<a name="l00471"></a>00471         Bitu t_msbuffer_i = msbuffer_i;
-<a name="l00472"></a>00472 
-<a name="l00473"></a>00473         <span class="keywordflow">while</span> (t_rend_n &lt; whole &amp;&amp; t_msbuffer_i &lt; upto) {
-<a name="l00474"></a>00474             lowpassProc(msbuffer[t_msbuffer_i]);
-<a name="l00475"></a>00475             t_msbuffer_i++;
-<a name="l00476"></a>00476             t_rend_n++;
-<a name="l00477"></a>00477         }
-<a name="l00478"></a>00478     }
-<a name="l00479"></a>00479 
-<a name="l00480"></a>00480     <span class="keywordflow">if</span> (mixer.swapstereo) {
-<a name="l00481"></a>00481         <span class="keywordflow">while</span> (rend_n &lt; whole &amp;&amp; msbuffer_i &lt; upto) {
-<a name="l00482"></a>00482             *outptr++ += msbuffer[msbuffer_i][1];
-<a name="l00483"></a>00483             *outptr++ += msbuffer[msbuffer_i][0];
-<a name="l00484"></a>00484             msbuffer_i++;
-<a name="l00485"></a>00485             rend_n++;
-<a name="l00486"></a>00486         }
-<a name="l00487"></a>00487     }
-<a name="l00488"></a>00488     <span class="keywordflow">else</span> {
-<a name="l00489"></a>00489         <span class="keywordflow">while</span> (rend_n &lt; whole &amp;&amp; msbuffer_i &lt; upto) {
-<a name="l00490"></a>00490             *outptr++ += msbuffer[msbuffer_i][0];
-<a name="l00491"></a>00491             *outptr++ += msbuffer[msbuffer_i][1];
-<a name="l00492"></a>00492             msbuffer_i++;
-<a name="l00493"></a>00493             rend_n++;
-<a name="l00494"></a>00494         }
-<a name="l00495"></a>00495     }
-<a name="l00496"></a>00496 
-<a name="l00497"></a>00497     rend_n = whole;
-<a name="l00498"></a>00498     rend_d = frac;
-<a name="l00499"></a>00499 }
-<a name="l00500"></a>00500 
-<a name="l00501"></a>00501 <span class="keywordtype">void</span> MixerChannel::AddSilence(<span class="keywordtype">void</span>) {
-<a name="l00502"></a>00502 }
-<a name="l00503"></a>00503 
-<a name="l00504"></a>00504 <span class="keyword">template</span>&lt;<span class="keyword">class</span> Type,<span class="keywordtype">bool</span> stereo,<span class="keywordtype">bool</span> <span class="keywordtype">signed</span>data,<span class="keywordtype">bool</span> nativeorder,<span class="keywordtype">bool</span> T_lowpass&gt;
-<a name="l00505"></a>00505 <span class="keyword">inline</span> <span class="keywordtype">void</span> MixerChannel::loadCurrentSample(Bitu &amp;len, <span class="keyword">const</span> Type* &amp;data) {
-<a name="l00506"></a>00506     last[0] = current[0];
-<a name="l00507"></a>00507     last[1] = current[1];
+<a name="l00443"></a>00443     last_sample_write -= (int)samples;
+<a name="l00444"></a>00444 }
+<a name="l00445"></a>00445 
+<a name="l00446"></a>00446 <span class="keywordtype">void</span> MixerChannel::Mix(Bitu whole,Bitu frac) {
+<a name="l00447"></a>00447     <span class="keywordtype">unsigned</span> <span class="keywordtype">int</span> patience = 2;
+<a name="l00448"></a>00448     Bitu upto;
+<a name="l00449"></a>00449 
+<a name="l00450"></a>00450     <span class="keywordflow">if</span> (whole &lt;= rend_n) <span class="keywordflow">return</span>;
+<a name="l00451"></a>00451     assert(whole &lt;= mixer.samples_this_ms.w);
+<a name="l00452"></a>00452     assert(rend_n &lt; mixer.samples_this_ms.w);
+<a name="l00453"></a>00453     Bit32s *outptr = &amp;mixer.work[mixer.work_in+rend_n][0];
+<a name="l00454"></a>00454 
+<a name="l00455"></a>00455     <span class="keywordflow">if</span> (!enabled) {
+<a name="l00456"></a>00456         rend_n = whole;
+<a name="l00457"></a>00457         rend_d = frac;
+<a name="l00458"></a>00458         <span class="keywordflow">return</span>;
+<a name="l00459"></a>00459     }
+<a name="l00460"></a>00460 
+<a name="l00461"></a>00461     <span class="comment">// HACK: We iterate twice only because of the Sound Blaster emulation. No other emulation seems to need this.</span>
+<a name="l00462"></a>00462     rendering_to_n = whole;
+<a name="l00463"></a>00463     rendering_to_d = frac;
+<a name="l00464"></a>00464     <span class="keywordflow">while</span> (msbuffer_o &lt; whole) {
+<a name="l00465"></a>00465         Bit64u todo = (Bit64u)(whole - msbuffer_o) * (Bit64u)freq_n;
+<a name="l00466"></a>00466         todo += (Bit64u)freq_f;
+<a name="l00467"></a>00467         todo += (Bit64u)freq_d - (Bit64u)1;
+<a name="l00468"></a>00468         todo /= (Bit64u)freq_d;
+<a name="l00469"></a>00469         <span class="keywordflow">if</span> (!current_loaded) todo++;
+<a name="l00470"></a>00470         handler(todo);
+<a name="l00471"></a>00471 
+<a name="l00472"></a>00472         <span class="keywordflow">if</span> (--patience == 0) <span class="keywordflow">break</span>;
+<a name="l00473"></a>00473     }
+<a name="l00474"></a>00474 
+<a name="l00475"></a>00475     <span class="keywordflow">if</span> (msbuffer_o &lt; whole)
+<a name="l00476"></a>00476         padFillSampleInterpolation(whole);
+<a name="l00477"></a>00477 
+<a name="l00478"></a>00478     upto = whole;
+<a name="l00479"></a>00479     <span class="keywordflow">if</span> (upto &gt; msbuffer_o) upto = msbuffer_o;
+<a name="l00480"></a>00480 
+<a name="l00481"></a>00481     <span class="keywordflow">if</span> (lowpass_on_out) { <span class="comment">/* before rendering out to mixer, process samples with lowpass filter */</span>
+<a name="l00482"></a>00482         Bitu t_rend_n = rend_n;
+<a name="l00483"></a>00483         Bitu t_msbuffer_i = msbuffer_i;
+<a name="l00484"></a>00484 
+<a name="l00485"></a>00485         <span class="keywordflow">while</span> (t_rend_n &lt; whole &amp;&amp; t_msbuffer_i &lt; upto) {
+<a name="l00486"></a>00486             lowpassProc(msbuffer[t_msbuffer_i]);
+<a name="l00487"></a>00487             t_msbuffer_i++;
+<a name="l00488"></a>00488             t_rend_n++;
+<a name="l00489"></a>00489         }
+<a name="l00490"></a>00490     }
+<a name="l00491"></a>00491 
+<a name="l00492"></a>00492     <span class="keywordflow">if</span> (mixer.swapstereo) {
+<a name="l00493"></a>00493         <span class="keywordflow">while</span> (rend_n &lt; whole &amp;&amp; msbuffer_i &lt; upto) {
+<a name="l00494"></a>00494             *outptr++ += msbuffer[msbuffer_i][1];
+<a name="l00495"></a>00495             *outptr++ += msbuffer[msbuffer_i][0];
+<a name="l00496"></a>00496             msbuffer_i++;
+<a name="l00497"></a>00497             rend_n++;
+<a name="l00498"></a>00498         }
+<a name="l00499"></a>00499     }
+<a name="l00500"></a>00500     <span class="keywordflow">else</span> {
+<a name="l00501"></a>00501         <span class="keywordflow">while</span> (rend_n &lt; whole &amp;&amp; msbuffer_i &lt; upto) {
+<a name="l00502"></a>00502             *outptr++ += msbuffer[msbuffer_i][0];
+<a name="l00503"></a>00503             *outptr++ += msbuffer[msbuffer_i][1];
+<a name="l00504"></a>00504             msbuffer_i++;
+<a name="l00505"></a>00505             rend_n++;
+<a name="l00506"></a>00506         }
+<a name="l00507"></a>00507     }
 <a name="l00508"></a>00508 
-<a name="l00509"></a>00509     <span class="keywordflow">if</span> (<span class="keyword">sizeof</span>(Type) == 1) {
-<a name="l00510"></a>00510         <span class="keyword">const</span> uint8_t xr = signeddata ? 0x00 : 0x80;
-<a name="l00511"></a>00511 
-<a name="l00512"></a>00512         len--;
-<a name="l00513"></a>00513         current[0] = ((Bit8s)((*data++) ^ xr)) &lt;&lt; 8;
-<a name="l00514"></a>00514         <span class="keywordflow">if</span> (stereo)
-<a name="l00515"></a>00515             current[1] = ((Bit8s)((*data++) ^ xr)) &lt;&lt; 8;
-<a name="l00516"></a>00516         <span class="keywordflow">else</span>
-<a name="l00517"></a>00517             current[1] = current[0];
-<a name="l00518"></a>00518     }
-<a name="l00519"></a>00519     <span class="keywordflow">else</span> <span class="keywordflow">if</span> (<span class="keyword">sizeof</span>(Type) == 2) {
-<a name="l00520"></a>00520         <span class="keyword">const</span> uint16_t xr = signeddata ? 0x0000 : 0x8000;
-<a name="l00521"></a>00521         uint16_t d;
-<a name="l00522"></a>00522 
-<a name="l00523"></a>00523         len--;
-<a name="l00524"></a>00524         <span class="keywordflow">if</span> (nativeorder) d = ((Bit16u)((*data++) ^ xr));
-<a name="l00525"></a>00525         <span class="keywordflow">else</span> d = host_readw((HostPt)(data++)) ^ xr;
-<a name="l00526"></a>00526         current[0] = (Bit16s)d;
-<a name="l00527"></a>00527         <span class="keywordflow">if</span> (stereo) {
-<a name="l00528"></a>00528             <span class="keywordflow">if</span> (nativeorder) d = ((Bit16u)((*data++) ^ xr));
-<a name="l00529"></a>00529             <span class="keywordflow">else</span> d = host_readw((HostPt)(data++)) ^ xr;
-<a name="l00530"></a>00530             current[1] = (Bit16s)d;
-<a name="l00531"></a>00531         }
-<a name="l00532"></a>00532         <span class="keywordflow">else</span> {
-<a name="l00533"></a>00533             current[1] = current[0];
-<a name="l00534"></a>00534         }
-<a name="l00535"></a>00535     }
-<a name="l00536"></a>00536     <span class="keywordflow">else</span> <span class="keywordflow">if</span> (<span class="keyword">sizeof</span>(Type) == 4) {
-<a name="l00537"></a>00537         <span class="keyword">const</span> uint32_t xr = signeddata ? 0x00000000UL : 0x80000000UL;
-<a name="l00538"></a>00538         uint32_t d;
-<a name="l00539"></a>00539 
-<a name="l00540"></a>00540         len--;
-<a name="l00541"></a>00541         <span class="keywordflow">if</span> (nativeorder) d = ((Bit32u)((*data++) ^ xr));
-<a name="l00542"></a>00542         <span class="keywordflow">else</span> d = host_readd((HostPt)(data++)) ^ xr;
-<a name="l00543"></a>00543         current[0] = (Bit32s)d;
-<a name="l00544"></a>00544         <span class="keywordflow">if</span> (stereo) {
-<a name="l00545"></a>00545             <span class="keywordflow">if</span> (nativeorder) d = ((Bit32u)((*data++) ^ xr));
-<a name="l00546"></a>00546             <span class="keywordflow">else</span> d = host_readd((HostPt)(data++)) ^ xr;
-<a name="l00547"></a>00547             current[1] = (Bit32s)d;
-<a name="l00548"></a>00548         }
-<a name="l00549"></a>00549         <span class="keywordflow">else</span> {
-<a name="l00550"></a>00550             current[1] = current[0];
-<a name="l00551"></a>00551         }
-<a name="l00552"></a>00552     }
-<a name="l00553"></a>00553     <span class="keywordflow">else</span> {
-<a name="l00554"></a>00554         current[0] = current[1] = 0;
-<a name="l00555"></a>00555         len = 0;
-<a name="l00556"></a>00556     }
-<a name="l00557"></a>00557 
-<a name="l00558"></a>00558     <span class="keywordflow">if</span> (T_lowpass &amp;&amp; lowpass_on_load)
-<a name="l00559"></a>00559         lowpassProc(current);
-<a name="l00560"></a>00560 
-<a name="l00561"></a>00561     <span class="keywordflow">if</span> (stereo) {
-<a name="l00562"></a>00562         delta[0] = current[0] - last[0];
-<a name="l00563"></a>00563         delta[1] = current[1] - last[1];
+<a name="l00509"></a>00509     rend_n = whole;
+<a name="l00510"></a>00510     rend_d = frac;
+<a name="l00511"></a>00511 }
+<a name="l00512"></a>00512 
+<a name="l00513"></a>00513 <span class="keywordtype">void</span> MixerChannel::AddSilence(<span class="keywordtype">void</span>) {
+<a name="l00514"></a>00514 }
+<a name="l00515"></a>00515 
+<a name="l00516"></a>00516 <span class="keyword">template</span>&lt;<span class="keyword">class</span> Type,<span class="keywordtype">bool</span> stereo,<span class="keywordtype">bool</span> <span class="keywordtype">signed</span>data,<span class="keywordtype">bool</span> nativeorder,<span class="keywordtype">bool</span> T_lowpass&gt;
+<a name="l00517"></a>00517 <span class="keyword">inline</span> <span class="keywordtype">void</span> MixerChannel::loadCurrentSample(Bitu &amp;len, <span class="keyword">const</span> Type* &amp;data) {
+<a name="l00518"></a>00518     last[0] = current[0];
+<a name="l00519"></a>00519     last[1] = current[1];
+<a name="l00520"></a>00520 
+<a name="l00521"></a>00521     <span class="keywordflow">if</span> (<span class="keyword">sizeof</span>(Type) == 1) {
+<a name="l00522"></a>00522         <span class="keyword">const</span> uint8_t xr = signeddata ? 0x00 : 0x80;
+<a name="l00523"></a>00523 
+<a name="l00524"></a>00524         len--;
+<a name="l00525"></a>00525         current[0] = ((Bit8s)((*data++) ^ xr)) &lt;&lt; 8;
+<a name="l00526"></a>00526         <span class="keywordflow">if</span> (stereo)
+<a name="l00527"></a>00527             current[1] = ((Bit8s)((*data++) ^ xr)) &lt;&lt; 8;
+<a name="l00528"></a>00528         <span class="keywordflow">else</span>
+<a name="l00529"></a>00529             current[1] = current[0];
+<a name="l00530"></a>00530     }
+<a name="l00531"></a>00531     <span class="keywordflow">else</span> <span class="keywordflow">if</span> (<span class="keyword">sizeof</span>(Type) == 2) {
+<a name="l00532"></a>00532         <span class="keyword">const</span> uint16_t xr = signeddata ? 0x0000 : 0x8000;
+<a name="l00533"></a>00533         uint16_t d;
+<a name="l00534"></a>00534 
+<a name="l00535"></a>00535         len--;
+<a name="l00536"></a>00536         <span class="keywordflow">if</span> (nativeorder) d = ((Bit16u)((*data++) ^ xr));
+<a name="l00537"></a>00537         <span class="keywordflow">else</span> d = host_readw((HostPt)(data++)) ^ xr;
+<a name="l00538"></a>00538         current[0] = (Bit16s)d;
+<a name="l00539"></a>00539         <span class="keywordflow">if</span> (stereo) {
+<a name="l00540"></a>00540             <span class="keywordflow">if</span> (nativeorder) d = ((Bit16u)((*data++) ^ xr));
+<a name="l00541"></a>00541             <span class="keywordflow">else</span> d = host_readw((HostPt)(data++)) ^ xr;
+<a name="l00542"></a>00542             current[1] = (Bit16s)d;
+<a name="l00543"></a>00543         }
+<a name="l00544"></a>00544         <span class="keywordflow">else</span> {
+<a name="l00545"></a>00545             current[1] = current[0];
+<a name="l00546"></a>00546         }
+<a name="l00547"></a>00547     }
+<a name="l00548"></a>00548     <span class="keywordflow">else</span> <span class="keywordflow">if</span> (<span class="keyword">sizeof</span>(Type) == 4) {
+<a name="l00549"></a>00549         <span class="keyword">const</span> uint32_t xr = signeddata ? 0x00000000UL : 0x80000000UL;
+<a name="l00550"></a>00550         uint32_t d;
+<a name="l00551"></a>00551 
+<a name="l00552"></a>00552         len--;
+<a name="l00553"></a>00553         <span class="keywordflow">if</span> (nativeorder) d = ((Bit32u)((*data++) ^ xr));
+<a name="l00554"></a>00554         <span class="keywordflow">else</span> d = host_readd((HostPt)(data++)) ^ xr;
+<a name="l00555"></a>00555         current[0] = (Bit32s)d;
+<a name="l00556"></a>00556         <span class="keywordflow">if</span> (stereo) {
+<a name="l00557"></a>00557             <span class="keywordflow">if</span> (nativeorder) d = ((Bit32u)((*data++) ^ xr));
+<a name="l00558"></a>00558             <span class="keywordflow">else</span> d = host_readd((HostPt)(data++)) ^ xr;
+<a name="l00559"></a>00559             current[1] = (Bit32s)d;
+<a name="l00560"></a>00560         }
+<a name="l00561"></a>00561         <span class="keywordflow">else</span> {
+<a name="l00562"></a>00562             current[1] = current[0];
+<a name="l00563"></a>00563         }
 <a name="l00564"></a>00564     }
 <a name="l00565"></a>00565     <span class="keywordflow">else</span> {
-<a name="l00566"></a>00566         delta[1] = delta[0] = current[0] - last[0];
-<a name="l00567"></a>00567     }
-<a name="l00568"></a>00568 
-<a name="l00569"></a>00569     <span class="keywordflow">if</span> (freq_nslew_want != 0) {
-<a name="l00570"></a>00570         <span class="keywordflow">if</span> (delta[0] &lt; -max_change) delta[0] = -max_change;
-<a name="l00571"></a>00571         <span class="keywordflow">else</span> <span class="keywordflow">if</span> (delta[0] &gt; max_change) delta[0] = max_change;
+<a name="l00566"></a>00566         current[0] = current[1] = 0;
+<a name="l00567"></a>00567         len = 0;
+<a name="l00568"></a>00568     }
+<a name="l00569"></a>00569 
+<a name="l00570"></a>00570     <span class="keywordflow">if</span> (T_lowpass &amp;&amp; lowpass_on_load)
+<a name="l00571"></a>00571         lowpassProc(current);
 <a name="l00572"></a>00572 
-<a name="l00573"></a>00573         <span class="keywordflow">if</span> (stereo) {
-<a name="l00574"></a>00574             <span class="keywordflow">if</span> (delta[1] &lt; -max_change) delta[1] = -max_change;
-<a name="l00575"></a>00575             <span class="keywordflow">else</span> <span class="keywordflow">if</span> (delta[1] &gt; max_change) delta[1] = max_change;
-<a name="l00576"></a>00576         }
-<a name="l00577"></a>00577         <span class="keywordflow">else</span> {
-<a name="l00578"></a>00578             delta[1] = delta[0];
-<a name="l00579"></a>00579         }
-<a name="l00580"></a>00580     }
-<a name="l00581"></a>00581 
-<a name="l00582"></a>00582     current_loaded = <span class="keyword">true</span>;
-<a name="l00583"></a>00583 }
+<a name="l00573"></a>00573     <span class="keywordflow">if</span> (stereo) {
+<a name="l00574"></a>00574         delta[0] = current[0] - last[0];
+<a name="l00575"></a>00575         delta[1] = current[1] - last[1];
+<a name="l00576"></a>00576     }
+<a name="l00577"></a>00577     <span class="keywordflow">else</span> {
+<a name="l00578"></a>00578         delta[1] = delta[0] = current[0] - last[0];
+<a name="l00579"></a>00579     }
+<a name="l00580"></a>00580 
+<a name="l00581"></a>00581     <span class="keywordflow">if</span> (freq_nslew_want != 0) {
+<a name="l00582"></a>00582         <span class="keywordflow">if</span> (delta[0] &lt; -max_change) delta[0] = -max_change;
+<a name="l00583"></a>00583         <span class="keywordflow">else</span> <span class="keywordflow">if</span> (delta[0] &gt; max_change) delta[0] = max_change;
 <a name="l00584"></a>00584 
-<a name="l00585"></a>00585 <span class="keyword">inline</span> <span class="keywordtype">void</span> MixerChannel::padFillSampleInterpolation(<span class="keyword">const</span> Bitu upto) {
-<a name="l00586"></a>00586     finishSampleInterpolation(upto);
-<a name="l00587"></a>00587     <span class="keywordflow">if</span> (msbuffer_o &lt; upto) {
-<a name="l00588"></a>00588         <span class="keywordflow">if</span> (freq_f &gt; freq_d) freq_f = freq_d; <span class="comment">// this is an abrupt stop, so interpolation must not carry over, to help avoid popping artifacts</span>
-<a name="l00589"></a>00589 
-<a name="l00590"></a>00590         <span class="keywordflow">while</span> (msbuffer_o &lt; upto) {
-<a name="l00591"></a>00591             msbuffer[msbuffer_o][0] = current[0];
-<a name="l00592"></a>00592             msbuffer[msbuffer_o][1] = current[1];
-<a name="l00593"></a>00593             msbuffer_o++;
-<a name="l00594"></a>00594         }
-<a name="l00595"></a>00595     }
-<a name="l00596"></a>00596 }
-<a name="l00597"></a>00597 
-<a name="l00598"></a>00598 <span class="keywordtype">void</span> MixerChannel::finishSampleInterpolation(<span class="keyword">const</span> Bitu upto) {
-<a name="l00599"></a>00599     <span class="keywordflow">if</span> (!current_loaded) <span class="keywordflow">return</span>;
-<a name="l00600"></a>00600     runSampleInterpolation(upto);
-<a name="l00601"></a>00601 }
-<a name="l00602"></a>00602 
-<a name="l00603"></a>00603 <span class="keywordtype">double</span> MixerChannel::timeSinceLastSample(<span class="keywordtype">void</span>) {
-<a name="l00604"></a>00604     Bits delta = (Bits)mixer.samples_rendered_ms.w - (Bits)last_sample_write;
-<a name="l00605"></a>00605     <span class="keywordflow">return</span> ((<span class="keywordtype">double</span>)delta) / mixer.freq;
-<a name="l00606"></a>00606 }
-<a name="l00607"></a>00607 
-<a name="l00608"></a>00608 <span class="keyword">inline</span> <span class="keywordtype">bool</span> MixerChannel::runSampleInterpolation(<span class="keyword">const</span> Bitu upto) {
-<a name="l00609"></a>00609     <span class="keywordtype">int</span> sample;
-<a name="l00610"></a>00610 
-<a name="l00611"></a>00611     <span class="keywordflow">if</span> (msbuffer_o &gt;= upto)
-<a name="l00612"></a>00612         <span class="keywordflow">return</span> <span class="keyword">false</span>;
-<a name="l00613"></a>00613 
-<a name="l00614"></a>00614     <span class="keywordflow">while</span> (freq_fslew &lt; freq_d) {
-<a name="l00615"></a>00615         sample = last[0] + (int)(((int64_t)delta[0] * (int64_t)freq_fslew) / (int64_t)freq_d);
-<a name="l00616"></a>00616         msbuffer[msbuffer_o][0] = sample * volmul[0];
-<a name="l00617"></a>00617         sample = last[1] + (int)(((int64_t)delta[1] * (int64_t)freq_fslew) / (int64_t)freq_d);
-<a name="l00618"></a>00618         msbuffer[msbuffer_o][1] = sample * volmul[1];
+<a name="l00585"></a>00585         <span class="keywordflow">if</span> (stereo) {
+<a name="l00586"></a>00586             <span class="keywordflow">if</span> (delta[1] &lt; -max_change) delta[1] = -max_change;
+<a name="l00587"></a>00587             <span class="keywordflow">else</span> <span class="keywordflow">if</span> (delta[1] &gt; max_change) delta[1] = max_change;
+<a name="l00588"></a>00588         }
+<a name="l00589"></a>00589         <span class="keywordflow">else</span> {
+<a name="l00590"></a>00590             delta[1] = delta[0];
+<a name="l00591"></a>00591         }
+<a name="l00592"></a>00592     }
+<a name="l00593"></a>00593 
+<a name="l00594"></a>00594     current_loaded = <span class="keyword">true</span>;
+<a name="l00595"></a>00595 }
+<a name="l00596"></a>00596 
+<a name="l00597"></a>00597 <span class="keyword">inline</span> <span class="keywordtype">void</span> MixerChannel::padFillSampleInterpolation(<span class="keyword">const</span> Bitu upto) {
+<a name="l00598"></a>00598     finishSampleInterpolation(upto);
+<a name="l00599"></a>00599     <span class="keywordflow">if</span> (msbuffer_o &lt; upto) {
+<a name="l00600"></a>00600         <span class="keywordflow">if</span> (freq_f &gt; freq_d) freq_f = freq_d; <span class="comment">// this is an abrupt stop, so interpolation must not carry over, to help avoid popping artifacts</span>
+<a name="l00601"></a>00601 
+<a name="l00602"></a>00602         <span class="keywordflow">while</span> (msbuffer_o &lt; upto) {
+<a name="l00603"></a>00603             msbuffer[msbuffer_o][0] = current[0];
+<a name="l00604"></a>00604             msbuffer[msbuffer_o][1] = current[1];
+<a name="l00605"></a>00605             msbuffer_o++;
+<a name="l00606"></a>00606         }
+<a name="l00607"></a>00607     }
+<a name="l00608"></a>00608 }
+<a name="l00609"></a>00609 
+<a name="l00610"></a>00610 <span class="keywordtype">void</span> MixerChannel::finishSampleInterpolation(<span class="keyword">const</span> Bitu upto) {
+<a name="l00611"></a>00611     <span class="keywordflow">if</span> (!current_loaded) <span class="keywordflow">return</span>;
+<a name="l00612"></a>00612     runSampleInterpolation(upto);
+<a name="l00613"></a>00613 }
+<a name="l00614"></a>00614 
+<a name="l00615"></a>00615 <span class="keywordtype">double</span> MixerChannel::timeSinceLastSample(<span class="keywordtype">void</span>) {
+<a name="l00616"></a>00616     Bits delta = (Bits)mixer.samples_rendered_ms.w - (Bits)last_sample_write;
+<a name="l00617"></a>00617     <span class="keywordflow">return</span> ((<span class="keywordtype">double</span>)delta) / mixer.freq;
+<a name="l00618"></a>00618 }
 <a name="l00619"></a>00619 
-<a name="l00620"></a>00620         freq_f += freq_n;
-<a name="l00621"></a>00621         freq_fslew += freq_nslew;
-<a name="l00622"></a>00622         <span class="keywordflow">if</span> ((++msbuffer_o) &gt;= upto)
-<a name="l00623"></a>00623             <span class="keywordflow">return</span> <span class="keyword">false</span>;
-<a name="l00624"></a>00624     }
-<a name="l00625"></a>00625 
-<a name="l00626"></a>00626     current[0] = last[0] + delta[0];
-<a name="l00627"></a>00627     current[1] = last[1] + delta[1];
-<a name="l00628"></a>00628     <span class="keywordflow">while</span> (freq_f &lt; freq_d) {
-<a name="l00629"></a>00629         msbuffer[msbuffer_o][0] = current[0] * volmul[0];
-<a name="l00630"></a>00630         msbuffer[msbuffer_o][1] = current[1] * volmul[1];
-<a name="l00631"></a>00631 
-<a name="l00632"></a>00632         freq_f += freq_n;
-<a name="l00633"></a>00633         <span class="keywordflow">if</span> ((++msbuffer_o) &gt;= upto)
-<a name="l00634"></a>00634             <span class="keywordflow">return</span> <span class="keyword">false</span>;
-<a name="l00635"></a>00635     }
-<a name="l00636"></a>00636 
-<a name="l00637"></a>00637     <span class="keywordflow">return</span> <span class="keyword">true</span>;
-<a name="l00638"></a>00638 }
-<a name="l00639"></a>00639 
-<a name="l00640"></a>00640 <span class="keyword">template</span>&lt;<span class="keyword">class</span> Type,<span class="keywordtype">bool</span> stereo,<span class="keywordtype">bool</span> <span class="keywordtype">signed</span>data,<span class="keywordtype">bool</span> nativeorder&gt;
-<a name="l00641"></a>00641 <span class="keyword">inline</span> <span class="keywordtype">void</span> MixerChannel::AddSamples(Bitu len, <span class="keyword">const</span> Type* data) {
-<a name="l00642"></a>00642     last_sample_write = (Bits)mixer.samples_rendered_ms.w;
-<a name="l00643"></a>00643 
-<a name="l00644"></a>00644     if (msbuffer_o &gt;= 2048) {
-<a name="l00645"></a>00645         fprintf(stderr,<span class="stringliteral">&quot;WARNING: addSample overrun (immediate)\n&quot;</span>);
-<a name="l00646"></a>00646         <span class="keywordflow">return</span>;
-<a name="l00647"></a>00647     }
-<a name="l00648"></a>00648 
-<a name="l00649"></a>00649     <span class="keywordflow">if</span> (!current_loaded) {
-<a name="l00650"></a>00650         <span class="keywordflow">if</span> (len == 0) <span class="keywordflow">return</span>;
-<a name="l00651"></a>00651 
-<a name="l00652"></a>00652         loadCurrentSample&lt;Type,stereo,signeddata,nativeorder,false&gt;(len,data);
-<a name="l00653"></a>00653         <span class="keywordflow">if</span> (len == 0) {
-<a name="l00654"></a>00654             freq_f = freq_fslew = freq_d; <span class="comment">/* encourage loading next round */</span>
-<a name="l00655"></a>00655             <span class="keywordflow">return</span>;
-<a name="l00656"></a>00656         }
-<a name="l00657"></a>00657 
-<a name="l00658"></a>00658         loadCurrentSample&lt;Type,stereo,signeddata,nativeorder,false&gt;(len,data);
-<a name="l00659"></a>00659         freq_f = freq_fslew = 0; <span class="comment">/* interpolate now from what we just loaded */</span>
-<a name="l00660"></a>00660     }
+<a name="l00620"></a>00620 <span class="keyword">inline</span> <span class="keywordtype">bool</span> MixerChannel::runSampleInterpolation(<span class="keyword">const</span> Bitu upto) {
+<a name="l00621"></a>00621     <span class="keywordflow">if</span> (msbuffer_o &gt;= upto)
+<a name="l00622"></a>00622         <span class="keywordflow">return</span> <span class="keyword">false</span>;
+<a name="l00623"></a>00623 
+<a name="l00624"></a>00624     <span class="keywordflow">while</span> (freq_fslew &lt; freq_d) {
+<a name="l00625"></a>00625         <span class="keywordtype">int</span> sample = last[0] + (int)(((int64_t)delta[0] * (int64_t)freq_fslew) / (int64_t)freq_d);
+<a name="l00626"></a>00626         msbuffer[msbuffer_o][0] = sample * volmul[0];
+<a name="l00627"></a>00627         sample = last[1] + (int)(((int64_t)delta[1] * (int64_t)freq_fslew) / (int64_t)freq_d);
+<a name="l00628"></a>00628         msbuffer[msbuffer_o][1] = sample * volmul[1];
+<a name="l00629"></a>00629 
+<a name="l00630"></a>00630         freq_f += freq_n;
+<a name="l00631"></a>00631         freq_fslew += freq_nslew;
+<a name="l00632"></a>00632         <span class="keywordflow">if</span> ((++msbuffer_o) &gt;= upto)
+<a name="l00633"></a>00633             <span class="keywordflow">return</span> <span class="keyword">false</span>;
+<a name="l00634"></a>00634     }
+<a name="l00635"></a>00635 
+<a name="l00636"></a>00636     current[0] = last[0] + delta[0];
+<a name="l00637"></a>00637     current[1] = last[1] + delta[1];
+<a name="l00638"></a>00638     <span class="keywordflow">while</span> (freq_f &lt; freq_d) {
+<a name="l00639"></a>00639         msbuffer[msbuffer_o][0] = current[0] * volmul[0];
+<a name="l00640"></a>00640         msbuffer[msbuffer_o][1] = current[1] * volmul[1];
+<a name="l00641"></a>00641 
+<a name="l00642"></a>00642         freq_f += freq_n;
+<a name="l00643"></a>00643         <span class="keywordflow">if</span> ((++msbuffer_o) &gt;= upto)
+<a name="l00644"></a>00644             <span class="keywordflow">return</span> <span class="keyword">false</span>;
+<a name="l00645"></a>00645     }
+<a name="l00646"></a>00646 
+<a name="l00647"></a>00647     <span class="keywordflow">return</span> <span class="keyword">true</span>;
+<a name="l00648"></a>00648 }
+<a name="l00649"></a>00649 
+<a name="l00650"></a>00650 <span class="keyword">template</span>&lt;<span class="keyword">class</span> Type,<span class="keywordtype">bool</span> stereo,<span class="keywordtype">bool</span> <span class="keywordtype">signed</span>data,<span class="keywordtype">bool</span> nativeorder&gt;
+<a name="l00651"></a>00651 <span class="keyword">inline</span> <span class="keywordtype">void</span> MixerChannel::AddSamples(Bitu len, <span class="keyword">const</span> Type* data) {
+<a name="l00652"></a>00652     last_sample_write = (Bits)mixer.samples_rendered_ms.w;
+<a name="l00653"></a>00653 
+<a name="l00654"></a>00654     if (msbuffer_o &gt;= 2048) {
+<a name="l00655"></a>00655         fprintf(stderr,<span class="stringliteral">&quot;WARNING: addSample overrun (immediate)\n&quot;</span>);
+<a name="l00656"></a>00656         <span class="keywordflow">return</span>;
+<a name="l00657"></a>00657     }
+<a name="l00658"></a>00658 
+<a name="l00659"></a>00659     <span class="keywordflow">if</span> (!current_loaded) {
+<a name="l00660"></a>00660         <span class="keywordflow">if</span> (len == 0) <span class="keywordflow">return</span>;
 <a name="l00661"></a>00661 
-<a name="l00662"></a>00662     <span class="keywordflow">if</span> (lowpass_on_load) {
-<a name="l00663"></a>00663         <span class="keywordflow">for</span> (;;) {
-<a name="l00664"></a>00664             <span class="keywordflow">if</span> (freq_f &gt;= freq_d) {
-<a name="l00665"></a>00665                 <span class="keywordflow">if</span> (len == 0) <span class="keywordflow">break</span>;
-<a name="l00666"></a>00666                 loadCurrentSample&lt;Type,stereo,signeddata,nativeorder,true&gt;(len,data);
-<a name="l00667"></a>00667                 freq_f -= freq_d;
-<a name="l00668"></a>00668                 freq_fslew = freq_f;
-<a name="l00669"></a>00669             }
-<a name="l00670"></a>00670             <span class="keywordflow">if</span> (!runSampleInterpolation(2048))
-<a name="l00671"></a>00671                 <span class="keywordflow">break</span>;
-<a name="l00672"></a>00672         }
-<a name="l00673"></a>00673     }
-<a name="l00674"></a>00674     <span class="keywordflow">else</span> {
-<a name="l00675"></a>00675         <span class="keywordflow">for</span> (;;) {
-<a name="l00676"></a>00676             <span class="keywordflow">if</span> (freq_f &gt;= freq_d) {
-<a name="l00677"></a>00677                 <span class="keywordflow">if</span> (len == 0) <span class="keywordflow">break</span>;
-<a name="l00678"></a>00678                 loadCurrentSample&lt;Type,stereo,signeddata,nativeorder,false&gt;(len,data);
-<a name="l00679"></a>00679                 freq_f -= freq_d;
-<a name="l00680"></a>00680                 freq_fslew = freq_f;
-<a name="l00681"></a>00681             }
-<a name="l00682"></a>00682             <span class="keywordflow">if</span> (!runSampleInterpolation(2048))
-<a name="l00683"></a>00683                 <span class="keywordflow">break</span>;
-<a name="l00684"></a>00684         }
-<a name="l00685"></a>00685     }
-<a name="l00686"></a>00686 }
-<a name="l00687"></a>00687 
-<a name="l00688"></a>00688 <span class="keywordtype">void</span> MixerChannel::AddSamples_m8(Bitu len, <span class="keyword">const</span> Bit8u * data) {
-<a name="l00689"></a>00689     AddSamples&lt;Bit8u,false,false,true&gt;(len,data);
-<a name="l00690"></a>00690 }
-<a name="l00691"></a>00691 <span class="keywordtype">void</span> MixerChannel::AddSamples_s8(Bitu len,<span class="keyword">const</span> Bit8u * data) {
-<a name="l00692"></a>00692     AddSamples&lt;Bit8u,true,false,true&gt;(len,data);
-<a name="l00693"></a>00693 }
-<a name="l00694"></a>00694 <span class="keywordtype">void</span> MixerChannel::AddSamples_m8s(Bitu len,<span class="keyword">const</span> Bit8s * data) {
-<a name="l00695"></a>00695     AddSamples&lt;Bit8s,false,true,true&gt;(len,data);
+<a name="l00662"></a>00662         loadCurrentSample&lt;Type,stereo,signeddata,nativeorder,false&gt;(len,data);
+<a name="l00663"></a>00663         <span class="keywordflow">if</span> (len == 0) {
+<a name="l00664"></a>00664             freq_f = freq_fslew = freq_d; <span class="comment">/* encourage loading next round */</span>
+<a name="l00665"></a>00665             <span class="keywordflow">return</span>;
+<a name="l00666"></a>00666         }
+<a name="l00667"></a>00667 
+<a name="l00668"></a>00668         loadCurrentSample&lt;Type,stereo,signeddata,nativeorder,false&gt;(len,data);
+<a name="l00669"></a>00669         freq_f = freq_fslew = 0; <span class="comment">/* interpolate now from what we just loaded */</span>
+<a name="l00670"></a>00670     }
+<a name="l00671"></a>00671 
+<a name="l00672"></a>00672     <span class="keywordflow">if</span> (lowpass_on_load) {
+<a name="l00673"></a>00673         <span class="keywordflow">for</span> (;;) {
+<a name="l00674"></a>00674             <span class="keywordflow">if</span> (freq_f &gt;= freq_d) {
+<a name="l00675"></a>00675                 <span class="keywordflow">if</span> (len == 0) <span class="keywordflow">break</span>;
+<a name="l00676"></a>00676                 loadCurrentSample&lt;Type,stereo,signeddata,nativeorder,true&gt;(len,data);
+<a name="l00677"></a>00677                 freq_f -= freq_d;
+<a name="l00678"></a>00678                 freq_fslew = freq_f;
+<a name="l00679"></a>00679             }
+<a name="l00680"></a>00680             <span class="keywordflow">if</span> (!runSampleInterpolation(2048))
+<a name="l00681"></a>00681                 <span class="keywordflow">break</span>;
+<a name="l00682"></a>00682         }
+<a name="l00683"></a>00683     }
+<a name="l00684"></a>00684     <span class="keywordflow">else</span> {
+<a name="l00685"></a>00685         <span class="keywordflow">for</span> (;;) {
+<a name="l00686"></a>00686             <span class="keywordflow">if</span> (freq_f &gt;= freq_d) {
+<a name="l00687"></a>00687                 <span class="keywordflow">if</span> (len == 0) <span class="keywordflow">break</span>;
+<a name="l00688"></a>00688                 loadCurrentSample&lt;Type,stereo,signeddata,nativeorder,false&gt;(len,data);
+<a name="l00689"></a>00689                 freq_f -= freq_d;
+<a name="l00690"></a>00690                 freq_fslew = freq_f;
+<a name="l00691"></a>00691             }
+<a name="l00692"></a>00692             <span class="keywordflow">if</span> (!runSampleInterpolation(2048))
+<a name="l00693"></a>00693                 <span class="keywordflow">break</span>;
+<a name="l00694"></a>00694         }
+<a name="l00695"></a>00695     }
 <a name="l00696"></a>00696 }
-<a name="l00697"></a>00697 <span class="keywordtype">void</span> MixerChannel::AddSamples_s8s(Bitu len,<span class="keyword">const</span> Bit8s * data) {
-<a name="l00698"></a>00698     AddSamples&lt;Bit8s,true,true,true&gt;(len,data);
-<a name="l00699"></a>00699 }
-<a name="l00700"></a>00700 <span class="keywordtype">void</span> MixerChannel::AddSamples_m16(Bitu len,<span class="keyword">const</span> Bit16s * data) {
-<a name="l00701"></a>00701     AddSamples&lt;Bit16s,false,true,true&gt;(len,data);
-<a name="l00702"></a>00702 }
-<a name="l00703"></a>00703 <span class="keywordtype">void</span> MixerChannel::AddSamples_s16(Bitu len,<span class="keyword">const</span> Bit16s * data) {
-<a name="l00704"></a>00704     AddSamples&lt;Bit16s,true,true,true&gt;(len,data);
-<a name="l00705"></a>00705 }
-<a name="l00706"></a>00706 <span class="keywordtype">void</span> MixerChannel::AddSamples_m16u(Bitu len,<span class="keyword">const</span> Bit16u * data) {
-<a name="l00707"></a>00707     AddSamples&lt;Bit16u,false,false,true&gt;(len,data);
-<a name="l00708"></a>00708 }
-<a name="l00709"></a>00709 <span class="keywordtype">void</span> MixerChannel::AddSamples_s16u(Bitu len,<span class="keyword">const</span> Bit16u * data) {
-<a name="l00710"></a>00710     AddSamples&lt;Bit16u,true,false,true&gt;(len,data);
-<a name="l00711"></a>00711 }
-<a name="l00712"></a>00712 <span class="keywordtype">void</span> MixerChannel::AddSamples_m32(Bitu len,<span class="keyword">const</span> Bit32s * data) {
-<a name="l00713"></a>00713     AddSamples&lt;Bit32s,false,true,true&gt;(len,data);
-<a name="l00714"></a>00714 }
-<a name="l00715"></a>00715 <span class="keywordtype">void</span> MixerChannel::AddSamples_s32(Bitu len,<span class="keyword">const</span> Bit32s * data) {
-<a name="l00716"></a>00716     AddSamples&lt;Bit32s,true,true,true&gt;(len,data);
-<a name="l00717"></a>00717 }
-<a name="l00718"></a>00718 <span class="keywordtype">void</span> MixerChannel::AddSamples_m16_nonnative(Bitu len,<span class="keyword">const</span> Bit16s * data) {
-<a name="l00719"></a>00719     AddSamples&lt;Bit16s,false,true,false&gt;(len,data);
-<a name="l00720"></a>00720 }
-<a name="l00721"></a>00721 <span class="keywordtype">void</span> MixerChannel::AddSamples_s16_nonnative(Bitu len,<span class="keyword">const</span> Bit16s * data) {
-<a name="l00722"></a>00722     AddSamples&lt;Bit16s,true,true,false&gt;(len,data);
-<a name="l00723"></a>00723 }
-<a name="l00724"></a>00724 <span class="keywordtype">void</span> MixerChannel::AddSamples_m16u_nonnative(Bitu len,<span class="keyword">const</span> Bit16u * data) {
-<a name="l00725"></a>00725     AddSamples&lt;Bit16u,false,false,false&gt;(len,data);
-<a name="l00726"></a>00726 }
-<a name="l00727"></a>00727 <span class="keywordtype">void</span> MixerChannel::AddSamples_s16u_nonnative(Bitu len,<span class="keyword">const</span> Bit16u * data) {
-<a name="l00728"></a>00728     AddSamples&lt;Bit16u,true,false,false&gt;(len,data);
-<a name="l00729"></a>00729 }
-<a name="l00730"></a>00730 <span class="keywordtype">void</span> MixerChannel::AddSamples_m32_nonnative(Bitu len,<span class="keyword">const</span> Bit32s * data) {
-<a name="l00731"></a>00731     AddSamples&lt;Bit32s,false,true,false&gt;(len,data);
-<a name="l00732"></a>00732 }
-<a name="l00733"></a>00733 <span class="keywordtype">void</span> MixerChannel::AddSamples_s32_nonnative(Bitu len,<span class="keyword">const</span> Bit32s * data) {
-<a name="l00734"></a>00734     AddSamples&lt;Bit32s,true,true,false&gt;(len,data);
-<a name="l00735"></a>00735 }
-<a name="l00736"></a>00736 
-<a name="l00737"></a>00737 <span class="keyword">extern</span> <span class="keywordtype">bool</span> ticksLocked;
-<a name="l00738"></a>00738 
-<a name="l00739"></a>00739 <span class="preprocessor">#if 0//unused</span>
-<a name="l00740"></a>00740 <span class="preprocessor"></span><span class="keyword">static</span> <span class="keyword">inline</span> <span class="keywordtype">bool</span> Mixer_irq_important(<span class="keywordtype">void</span>) {
-<a name="l00741"></a>00741     <span class="comment">/* In some states correct timing of the irqs is more important then </span>
-<a name="l00742"></a>00742 <span class="comment">     * non stuttering audo */</span>
-<a name="l00743"></a>00743     <span class="keywordflow">return</span> (ticksLocked || (CaptureState &amp; (CAPTURE_WAVE|CAPTURE_VIDEO|CAPTURE_MULTITRACK_WAVE)));
-<a name="l00744"></a>00744 }
-<a name="l00745"></a>00745 <span class="preprocessor">#endif</span>
-<a name="l00746"></a>00746 <span class="preprocessor"></span>
-<a name="l00747"></a>00747 <span class="keywordtype">unsigned</span> <span class="keywordtype">long</span> <span class="keywordtype">long</span> mixer_sample_counter = 0;
-<a name="l00748"></a>00748 <span class="keywordtype">double</span> mixer_start_pic_time = 0;
-<a name="l00749"></a>00749 
-<a name="l00750"></a>00750 <span class="comment">/* once a millisecond, render 1ms of audio, up to whole samples */</span>
-<a name="l00751"></a>00751 <span class="keyword">static</span> <span class="keywordtype">void</span> MIXER_MixData(Bitu fracs<span class="comment">/*render up to*/</span>) {
-<a name="l00752"></a>00752     <span class="keywordtype">unsigned</span> <span class="keywordtype">int</span> prev_rendered = mixer.samples_rendered_ms.w;
-<a name="l00753"></a>00753     <a class="code" href="classMixerChannel.html">MixerChannel</a> *chan = mixer.channels;
-<a name="l00754"></a>00754     <span class="keywordtype">unsigned</span> <span class="keywordtype">int</span> whole,frac;
-<a name="l00755"></a>00755     <span class="keywordtype">bool</span> endframe = <span class="keyword">false</span>;
-<a name="l00756"></a>00756 
-<a name="l00757"></a>00757     <span class="keywordflow">if</span> (fracs &gt;= ((Bitu)mixer.samples_this_ms.w * mixer.samples_this_ms.fd)) {
-<a name="l00758"></a>00758         fracs = ((Bitu)mixer.samples_this_ms.w * mixer.samples_this_ms.fd);
-<a name="l00759"></a>00759         endframe = <span class="keyword">true</span>;
-<a name="l00760"></a>00760     }
-<a name="l00761"></a>00761 
-<a name="l00762"></a>00762     whole = (<span class="keywordtype">unsigned</span> int)(fracs / mixer.samples_this_ms.fd);
-<a name="l00763"></a>00763     frac = (<span class="keywordtype">unsigned</span> int)(fracs % mixer.samples_this_ms.fd);
-<a name="l00764"></a>00764     <span class="keywordflow">if</span> (whole &lt;= mixer.samples_rendered_ms.w) <span class="keywordflow">return</span>;
-<a name="l00765"></a>00765 
-<a name="l00766"></a>00766     <span class="keywordflow">while</span> (chan) {
-<a name="l00767"></a>00767         chan-&gt;Mix(whole,fracs);
-<a name="l00768"></a>00768         <span class="keywordflow">if</span> (endframe) chan-&gt;EndFrame(mixer.samples_this_ms.w);
-<a name="l00769"></a>00769         chan=chan-&gt;next;
+<a name="l00697"></a>00697 
+<a name="l00698"></a>00698 <span class="keywordtype">void</span> MixerChannel::AddSamples_m8(Bitu len, <span class="keyword">const</span> Bit8u * data) {
+<a name="l00699"></a>00699     AddSamples&lt;Bit8u,false,false,true&gt;(len,data);
+<a name="l00700"></a>00700 }
+<a name="l00701"></a>00701 <span class="keywordtype">void</span> MixerChannel::AddSamples_s8(Bitu len,<span class="keyword">const</span> Bit8u * data) {
+<a name="l00702"></a>00702     AddSamples&lt;Bit8u,true,false,true&gt;(len,data);
+<a name="l00703"></a>00703 }
+<a name="l00704"></a>00704 <span class="keywordtype">void</span> MixerChannel::AddSamples_m8s(Bitu len,<span class="keyword">const</span> Bit8s * data) {
+<a name="l00705"></a>00705     AddSamples&lt;Bit8s,false,true,true&gt;(len,data);
+<a name="l00706"></a>00706 }
+<a name="l00707"></a>00707 <span class="keywordtype">void</span> MixerChannel::AddSamples_s8s(Bitu len,<span class="keyword">const</span> Bit8s * data) {
+<a name="l00708"></a>00708     AddSamples&lt;Bit8s,true,true,true&gt;(len,data);
+<a name="l00709"></a>00709 }
+<a name="l00710"></a>00710 <span class="keywordtype">void</span> MixerChannel::AddSamples_m16(Bitu len,<span class="keyword">const</span> Bit16s * data) {
+<a name="l00711"></a>00711     AddSamples&lt;Bit16s,false,true,true&gt;(len,data);
+<a name="l00712"></a>00712 }
+<a name="l00713"></a>00713 <span class="keywordtype">void</span> MixerChannel::AddSamples_s16(Bitu len,<span class="keyword">const</span> Bit16s * data) {
+<a name="l00714"></a>00714     AddSamples&lt;Bit16s,true,true,true&gt;(len,data);
+<a name="l00715"></a>00715 }
+<a name="l00716"></a>00716 <span class="keywordtype">void</span> MixerChannel::AddSamples_m16u(Bitu len,<span class="keyword">const</span> Bit16u * data) {
+<a name="l00717"></a>00717     AddSamples&lt;Bit16u,false,false,true&gt;(len,data);
+<a name="l00718"></a>00718 }
+<a name="l00719"></a>00719 <span class="keywordtype">void</span> MixerChannel::AddSamples_s16u(Bitu len,<span class="keyword">const</span> Bit16u * data) {
+<a name="l00720"></a>00720     AddSamples&lt;Bit16u,true,false,true&gt;(len,data);
+<a name="l00721"></a>00721 }
+<a name="l00722"></a>00722 <span class="keywordtype">void</span> MixerChannel::AddSamples_m32(Bitu len,<span class="keyword">const</span> Bit32s * data) {
+<a name="l00723"></a>00723     AddSamples&lt;Bit32s,false,true,true&gt;(len,data);
+<a name="l00724"></a>00724 }
+<a name="l00725"></a>00725 <span class="keywordtype">void</span> MixerChannel::AddSamples_s32(Bitu len,<span class="keyword">const</span> Bit32s * data) {
+<a name="l00726"></a>00726     AddSamples&lt;Bit32s,true,true,true&gt;(len,data);
+<a name="l00727"></a>00727 }
+<a name="l00728"></a>00728 <span class="keywordtype">void</span> MixerChannel::AddSamples_m16_nonnative(Bitu len,<span class="keyword">const</span> Bit16s * data) {
+<a name="l00729"></a>00729     AddSamples&lt;Bit16s,false,true,false&gt;(len,data);
+<a name="l00730"></a>00730 }
+<a name="l00731"></a>00731 <span class="keywordtype">void</span> MixerChannel::AddSamples_s16_nonnative(Bitu len,<span class="keyword">const</span> Bit16s * data) {
+<a name="l00732"></a>00732     AddSamples&lt;Bit16s,true,true,false&gt;(len,data);
+<a name="l00733"></a>00733 }
+<a name="l00734"></a>00734 <span class="keywordtype">void</span> MixerChannel::AddSamples_m16u_nonnative(Bitu len,<span class="keyword">const</span> Bit16u * data) {
+<a name="l00735"></a>00735     AddSamples&lt;Bit16u,false,false,false&gt;(len,data);
+<a name="l00736"></a>00736 }
+<a name="l00737"></a>00737 <span class="keywordtype">void</span> MixerChannel::AddSamples_s16u_nonnative(Bitu len,<span class="keyword">const</span> Bit16u * data) {
+<a name="l00738"></a>00738     AddSamples&lt;Bit16u,true,false,false&gt;(len,data);
+<a name="l00739"></a>00739 }
+<a name="l00740"></a>00740 <span class="keywordtype">void</span> MixerChannel::AddSamples_m32_nonnative(Bitu len,<span class="keyword">const</span> Bit32s * data) {
+<a name="l00741"></a>00741     AddSamples&lt;Bit32s,false,true,false&gt;(len,data);
+<a name="l00742"></a>00742 }
+<a name="l00743"></a>00743 <span class="keywordtype">void</span> MixerChannel::AddSamples_s32_nonnative(Bitu len,<span class="keyword">const</span> Bit32s * data) {
+<a name="l00744"></a>00744     AddSamples&lt;Bit32s,true,true,false&gt;(len,data);
+<a name="l00745"></a>00745 }
+<a name="l00746"></a>00746 
+<a name="l00747"></a>00747 <span class="keyword">extern</span> <span class="keywordtype">bool</span> ticksLocked;
+<a name="l00748"></a>00748 
+<a name="l00749"></a>00749 <span class="preprocessor">#if 0//unused</span>
+<a name="l00750"></a>00750 <span class="preprocessor"></span><span class="keyword">static</span> <span class="keyword">inline</span> <span class="keywordtype">bool</span> Mixer_irq_important(<span class="keywordtype">void</span>) {
+<a name="l00751"></a>00751     <span class="comment">/* In some states correct timing of the irqs is more important then </span>
+<a name="l00752"></a>00752 <span class="comment">     * non stuttering audo */</span>
+<a name="l00753"></a>00753     <span class="keywordflow">return</span> (ticksLocked || (CaptureState &amp; (CAPTURE_WAVE|CAPTURE_VIDEO|CAPTURE_MULTITRACK_WAVE)));
+<a name="l00754"></a>00754 }
+<a name="l00755"></a>00755 <span class="preprocessor">#endif</span>
+<a name="l00756"></a>00756 <span class="preprocessor"></span>
+<a name="l00757"></a>00757 <span class="keywordtype">unsigned</span> <span class="keywordtype">long</span> <span class="keywordtype">long</span> mixer_sample_counter = 0;
+<a name="l00758"></a>00758 <span class="keywordtype">double</span> mixer_start_pic_time = 0;
+<a name="l00759"></a>00759 
+<a name="l00760"></a>00760 <span class="comment">/* once a millisecond, render 1ms of audio, up to whole samples */</span>
+<a name="l00761"></a>00761 <span class="keyword">static</span> <span class="keywordtype">void</span> MIXER_MixData(Bitu fracs<span class="comment">/*render up to*/</span>) {
+<a name="l00762"></a>00762     <span class="keywordtype">unsigned</span> <span class="keywordtype">int</span> prev_rendered = mixer.samples_rendered_ms.w;
+<a name="l00763"></a>00763     <a class="code" href="classMixerChannel.html">MixerChannel</a> *chan = mixer.channels;
+<a name="l00764"></a>00764     <span class="keywordtype">unsigned</span> <span class="keywordtype">int</span> whole,frac;
+<a name="l00765"></a>00765     <span class="keywordtype">bool</span> endframe = <span class="keyword">false</span>;
+<a name="l00766"></a>00766 
+<a name="l00767"></a>00767     <span class="keywordflow">if</span> (fracs &gt;= ((Bitu)mixer.samples_this_ms.w * mixer.samples_this_ms.fd)) {
+<a name="l00768"></a>00768         fracs = ((Bitu)mixer.samples_this_ms.w * mixer.samples_this_ms.fd);
+<a name="l00769"></a>00769         endframe = <span class="keyword">true</span>;
 <a name="l00770"></a>00770     }
 <a name="l00771"></a>00771 
-<a name="l00772"></a>00772     <span class="keywordflow">if</span> (CaptureState &amp; (CAPTURE_WAVE|CAPTURE_VIDEO)) {
-<a name="l00773"></a>00773         Bit32s volscale1 = (Bit32s)(mixer.recordvol[0] * (1 &lt;&lt; MIXER_VOLSHIFT));
-<a name="l00774"></a>00774         Bit32s volscale2 = (Bit32s)(mixer.recordvol[1] * (1 &lt;&lt; MIXER_VOLSHIFT));
-<a name="l00775"></a>00775         Bit16s convert[1024][2];
-<a name="l00776"></a>00776         Bitu added = whole - prev_rendered;
-<a name="l00777"></a>00777         <span class="keywordflow">if</span> (added&gt;1024) added=1024;
-<a name="l00778"></a>00778         Bitu readpos = mixer.work_in + prev_rendered;
-<a name="l00779"></a>00779         <span class="keywordflow">for</span> (Bitu i=0;i&lt;added;i++) {
-<a name="l00780"></a>00780             convert[i][0]=MIXER_CLIP(((Bit64s)mixer.work[readpos][0] * (Bit64s)volscale1) &gt;&gt; (MIXER_VOLSHIFT + MIXER_VOLSHIFT));
-<a name="l00781"></a>00781             convert[i][1]=MIXER_CLIP(((Bit64s)mixer.work[readpos][1] * (Bit64s)volscale2) &gt;&gt; (MIXER_VOLSHIFT + MIXER_VOLSHIFT));
-<a name="l00782"></a>00782             readpos++;
-<a name="l00783"></a>00783         }
-<a name="l00784"></a>00784         assert(readpos &lt;= MIXER_BUFSIZE);
-<a name="l00785"></a>00785         CAPTURE_AddWave( mixer.freq, added, (Bit16s*)convert );
-<a name="l00786"></a>00786     }
-<a name="l00787"></a>00787 
-<a name="l00788"></a>00788     <span class="keywordflow">if</span> (Mixer_MIXC_Active() &amp;&amp; prev_rendered &lt; whole) {
-<a name="l00789"></a>00789         Bitu readpos = mixer.work_in + prev_rendered;
-<a name="l00790"></a>00790         Bitu added = whole - prev_rendered;
-<a name="l00791"></a>00791         Bitu cando = (mixer_capture_write_end - mixer_capture_write) / 2<span class="comment">/*bytes/sample*/</span> / 2<span class="comment">/*channels*/</span>;
-<a name="l00792"></a>00792         <span class="keywordflow">if</span> (cando &gt; added) cando = added;
-<a name="l00793"></a>00793 
-<a name="l00794"></a>00794         <span class="keywordflow">if</span> (cando == 0 &amp;&amp; !Mixer_MIXC_AtEnd()) {
-<a name="l00795"></a>00795             Mixer_MIXC_MarkError();
-<a name="l00796"></a>00796         }
-<a name="l00797"></a>00797         <span class="keywordflow">else</span> <span class="keywordflow">if</span> (cando != 0) {
-<a name="l00798"></a>00798             <span class="keywordflow">for</span> (Bitu i=0;i &lt; cando;i++) {
-<a name="l00799"></a>00799                 phys_writew(mixer_capture_write,(Bit16u)MIXER_CLIP(((Bit64s)mixer.work[readpos][0]) &gt;&gt; (MIXER_VOLSHIFT)));
-<a name="l00800"></a>00800                 mixer_capture_write += 2;
-<a name="l00801"></a>00801 
-<a name="l00802"></a>00802                 phys_writew(mixer_capture_write,(Bit16u)MIXER_CLIP(((Bit64s)mixer.work[readpos][1]) &gt;&gt; (MIXER_VOLSHIFT)));
-<a name="l00803"></a>00803                 mixer_capture_write += 2;
-<a name="l00804"></a>00804 
-<a name="l00805"></a>00805                 readpos++;
-<a name="l00806"></a>00806             }
-<a name="l00807"></a>00807 
-<a name="l00808"></a>00808             <span class="keywordflow">if</span> (Mixer_MIXC_AtEnd()) {
-<a name="l00809"></a>00809                 <span class="keywordflow">if</span> (Mixer_MIXC_ShouldLoop())
-<a name="l00810"></a>00810                     Mixer_MIXC_LoopAround();
-<a name="l00811"></a>00811                 <span class="keywordflow">else</span>
-<a name="l00812"></a>00812                     Mixer_MIXC_Stop();
-<a name="l00813"></a>00813             }
-<a name="l00814"></a>00814         }
-<a name="l00815"></a>00815     }
-<a name="l00816"></a>00816 
-<a name="l00817"></a>00817     mixer.samples_rendered_ms.w = whole;
-<a name="l00818"></a>00818     mixer.samples_rendered_ms.fd = frac;
-<a name="l00819"></a>00819     mixer_sample_counter += mixer.samples_rendered_ms.w - prev_rendered;
-<a name="l00820"></a>00820 }
-<a name="l00821"></a>00821 
-<a name="l00822"></a>00822 <span class="keyword">static</span> <span class="keywordtype">void</span> MIXER_FillUp(<span class="keywordtype">void</span>) {
-<a name="l00823"></a>00823     SDL_LockAudio();
-<a name="l00824"></a>00824     <span class="keywordtype">float</span> index = PIC_TickIndex();
-<a name="l00825"></a>00825     <span class="keywordflow">if</span> (index &lt; 0) index = 0;
-<a name="l00826"></a>00826     MIXER_MixData((Bitu)((<span class="keywordtype">double</span>)index * ((Bitu)mixer.samples_this_ms.w * mixer.samples_this_ms.fd)));
-<a name="l00827"></a>00827     SDL_UnlockAudio();
-<a name="l00828"></a>00828 }
-<a name="l00829"></a>00829 
-<a name="l00830"></a>00830 <span class="keywordtype">void</span> MixerChannel::FillUp(<span class="keywordtype">void</span>) {
-<a name="l00831"></a>00831     MIXER_FillUp();
-<a name="l00832"></a>00832 }
-<a name="l00833"></a>00833 
-<a name="l00834"></a>00834 <span class="keywordtype">void</span> MIXER_MixSingle(Bitu <span class="comment">/*val*/</span>) {
-<a name="l00835"></a>00835     MIXER_FillUp();
-<a name="l00836"></a>00836     PIC_AddEvent(MIXER_MixSingle,1000.0 / mixer.freq);
-<a name="l00837"></a>00837 }
-<a name="l00838"></a>00838 
-<a name="l00839"></a>00839 <span class="keyword">static</span> <span class="keywordtype">void</span> MIXER_Mix(<span class="keywordtype">void</span>) {
-<a name="l00840"></a>00840     Bitu thr;
-<a name="l00841"></a>00841 
-<a name="l00842"></a>00842     SDL_LockAudio();
+<a name="l00772"></a>00772     whole = (<span class="keywordtype">unsigned</span> int)(fracs / mixer.samples_this_ms.fd);
+<a name="l00773"></a>00773     frac = (<span class="keywordtype">unsigned</span> int)(fracs % mixer.samples_this_ms.fd);
+<a name="l00774"></a>00774     <span class="keywordflow">if</span> (whole &lt;= mixer.samples_rendered_ms.w) <span class="keywordflow">return</span>;
+<a name="l00775"></a>00775 
+<a name="l00776"></a>00776     <span class="keywordflow">while</span> (chan) {
+<a name="l00777"></a>00777         chan-&gt;Mix(whole,fracs);
+<a name="l00778"></a>00778         <span class="keywordflow">if</span> (endframe) chan-&gt;EndFrame(mixer.samples_this_ms.w);
+<a name="l00779"></a>00779         chan=chan-&gt;next;
+<a name="l00780"></a>00780     }
+<a name="l00781"></a>00781 
+<a name="l00782"></a>00782     <span class="keywordflow">if</span> (CaptureState &amp; (CAPTURE_WAVE|CAPTURE_VIDEO)) {
+<a name="l00783"></a>00783         Bit32s volscale1 = (Bit32s)(mixer.recordvol[0] * (1 &lt;&lt; MIXER_VOLSHIFT));
+<a name="l00784"></a>00784         Bit32s volscale2 = (Bit32s)(mixer.recordvol[1] * (1 &lt;&lt; MIXER_VOLSHIFT));
+<a name="l00785"></a>00785         Bit16s convert[1024][2];
+<a name="l00786"></a>00786         Bitu added = whole - prev_rendered;
+<a name="l00787"></a>00787         <span class="keywordflow">if</span> (added&gt;1024) added=1024;
+<a name="l00788"></a>00788         Bitu readpos = mixer.work_in + prev_rendered;
+<a name="l00789"></a>00789         <span class="keywordflow">for</span> (Bitu i=0;i&lt;added;i++) {
+<a name="l00790"></a>00790             convert[i][0]=MIXER_CLIP(((Bit64s)mixer.work[readpos][0] * (Bit64s)volscale1) &gt;&gt; (MIXER_VOLSHIFT + MIXER_VOLSHIFT));
+<a name="l00791"></a>00791             convert[i][1]=MIXER_CLIP(((Bit64s)mixer.work[readpos][1] * (Bit64s)volscale2) &gt;&gt; (MIXER_VOLSHIFT + MIXER_VOLSHIFT));
+<a name="l00792"></a>00792             readpos++;
+<a name="l00793"></a>00793         }
+<a name="l00794"></a>00794         assert(readpos &lt;= MIXER_BUFSIZE);
+<a name="l00795"></a>00795         CAPTURE_AddWave( mixer.freq, added, (Bit16s*)convert );
+<a name="l00796"></a>00796     }
+<a name="l00797"></a>00797 
+<a name="l00798"></a>00798     <span class="keywordflow">if</span> (Mixer_MIXC_Active() &amp;&amp; prev_rendered &lt; whole) {
+<a name="l00799"></a>00799         Bitu readpos = mixer.work_in + prev_rendered;
+<a name="l00800"></a>00800         Bitu added = whole - prev_rendered;
+<a name="l00801"></a>00801         Bitu cando = (mixer_capture_write_end - mixer_capture_write) / 2<span class="comment">/*bytes/sample*/</span> / 2<span class="comment">/*channels*/</span>;
+<a name="l00802"></a>00802         <span class="keywordflow">if</span> (cando &gt; added) cando = added;
+<a name="l00803"></a>00803 
+<a name="l00804"></a>00804         <span class="keywordflow">if</span> (cando == 0 &amp;&amp; !Mixer_MIXC_AtEnd()) {
+<a name="l00805"></a>00805             Mixer_MIXC_MarkError();
+<a name="l00806"></a>00806         }
+<a name="l00807"></a>00807         <span class="keywordflow">else</span> <span class="keywordflow">if</span> (cando != 0) {
+<a name="l00808"></a>00808             <span class="keywordflow">for</span> (Bitu i=0;i &lt; cando;i++) {
+<a name="l00809"></a>00809                 phys_writew(mixer_capture_write,(Bit16u)MIXER_CLIP(((Bit64s)mixer.work[readpos][0]) &gt;&gt; (MIXER_VOLSHIFT)));
+<a name="l00810"></a>00810                 mixer_capture_write += 2;
+<a name="l00811"></a>00811 
+<a name="l00812"></a>00812                 phys_writew(mixer_capture_write,(Bit16u)MIXER_CLIP(((Bit64s)mixer.work[readpos][1]) &gt;&gt; (MIXER_VOLSHIFT)));
+<a name="l00813"></a>00813                 mixer_capture_write += 2;
+<a name="l00814"></a>00814 
+<a name="l00815"></a>00815                 readpos++;
+<a name="l00816"></a>00816             }
+<a name="l00817"></a>00817 
+<a name="l00818"></a>00818             <span class="keywordflow">if</span> (Mixer_MIXC_AtEnd()) {
+<a name="l00819"></a>00819                 <span class="keywordflow">if</span> (Mixer_MIXC_ShouldLoop())
+<a name="l00820"></a>00820                     Mixer_MIXC_LoopAround();
+<a name="l00821"></a>00821                 <span class="keywordflow">else</span>
+<a name="l00822"></a>00822                     Mixer_MIXC_Stop();
+<a name="l00823"></a>00823             }
+<a name="l00824"></a>00824         }
+<a name="l00825"></a>00825     }
+<a name="l00826"></a>00826 
+<a name="l00827"></a>00827     mixer.samples_rendered_ms.w = whole;
+<a name="l00828"></a>00828     mixer.samples_rendered_ms.fd = frac;
+<a name="l00829"></a>00829     mixer_sample_counter += mixer.samples_rendered_ms.w - prev_rendered;
+<a name="l00830"></a>00830 }
+<a name="l00831"></a>00831 
+<a name="l00832"></a>00832 <span class="keyword">static</span> <span class="keywordtype">void</span> MIXER_FillUp(<span class="keywordtype">void</span>) {
+<a name="l00833"></a>00833     SDL_LockAudio();
+<a name="l00834"></a>00834     <span class="keywordtype">float</span> index = PIC_TickIndex();
+<a name="l00835"></a>00835     <span class="keywordflow">if</span> (index &lt; 0) index = 0;
+<a name="l00836"></a>00836     MIXER_MixData((Bitu)((<span class="keywordtype">double</span>)index * ((Bitu)mixer.samples_this_ms.w * mixer.samples_this_ms.fd)));
+<a name="l00837"></a>00837     SDL_UnlockAudio();
+<a name="l00838"></a>00838 }
+<a name="l00839"></a>00839 
+<a name="l00840"></a>00840 <span class="keywordtype">void</span> MixerChannel::FillUp(<span class="keywordtype">void</span>) {
+<a name="l00841"></a>00841     MIXER_FillUp();
+<a name="l00842"></a>00842 }
 <a name="l00843"></a>00843 
-<a name="l00844"></a>00844     <span class="comment">/* render */</span>
-<a name="l00845"></a>00845     assert((mixer.work_in+mixer.samples_per_ms.w) &lt;= MIXER_BUFSIZE);
-<a name="l00846"></a>00846     MIXER_MixData((Bitu)mixer.samples_this_ms.w * (Bitu)mixer.samples_this_ms.fd);
-<a name="l00847"></a>00847     mixer.work_in += mixer.samples_this_ms.w;
+<a name="l00844"></a>00844 <span class="keywordtype">void</span> MIXER_MixSingle(Bitu <span class="comment">/*val*/</span>) {
+<a name="l00845"></a>00845     MIXER_FillUp();
+<a name="l00846"></a>00846     PIC_AddEvent(MIXER_MixSingle,1000.0 / mixer.freq);
+<a name="l00847"></a>00847 }
 <a name="l00848"></a>00848 
-<a name="l00849"></a>00849     <span class="comment">/* how many samples for the next ms? */</span>
-<a name="l00850"></a>00850     mixer.samples_this_ms.w = mixer.samples_per_ms.w;
-<a name="l00851"></a>00851     mixer.samples_this_ms.fn += mixer.samples_per_ms.fn;
-<a name="l00852"></a>00852     <span class="keywordflow">if</span> (mixer.samples_this_ms.fn &gt;= mixer.samples_this_ms.fd) {
-<a name="l00853"></a>00853         mixer.samples_this_ms.fn -= mixer.samples_this_ms.fd;
-<a name="l00854"></a>00854         mixer.samples_this_ms.w++;
-<a name="l00855"></a>00855     }
-<a name="l00856"></a>00856 
-<a name="l00857"></a>00857     <span class="comment">/* advance. we use in/out &amp; wrap pointers to make sure the rendering code</span>
-<a name="l00858"></a>00858 <span class="comment">     * doesn&#39;t have to worry about circular buffer wraparound. */</span>
-<a name="l00859"></a>00859     thr = mixer.blocksize;
-<a name="l00860"></a>00860     <span class="keywordflow">if</span> (thr &lt; mixer.samples_this_ms.w) thr = mixer.samples_this_ms.w;
-<a name="l00861"></a>00861     <span class="keywordflow">if</span> ((mixer.work_in+thr) &gt; MIXER_BUFSIZE) {
-<a name="l00862"></a>00862         mixer.work_wrap = mixer.work_in;
-<a name="l00863"></a>00863         mixer.work_in = 0;
-<a name="l00864"></a>00864     }
-<a name="l00865"></a>00865     assert((mixer.work_in+thr) &lt;= MIXER_BUFSIZE);
-<a name="l00866"></a>00866     assert((mixer.work_in+mixer.samples_this_ms.w) &lt;= MIXER_BUFSIZE);
-<a name="l00867"></a>00867     memset(&amp;mixer.work[mixer.work_in][0],0,<span class="keyword">sizeof</span>(Bit32s)*2*mixer.samples_this_ms.w);
-<a name="l00868"></a>00868     mixer.samples_rendered_ms.fn = 0;
-<a name="l00869"></a>00869     mixer.samples_rendered_ms.w = 0;
-<a name="l00870"></a>00870     SDL_UnlockAudio();
-<a name="l00871"></a>00871     MIXER_FillUp();
-<a name="l00872"></a>00872 }
-<a name="l00873"></a>00873 
-<a name="l00874"></a>00874 <span class="keyword">static</span> <span class="keywordtype">void</span> SDLCALL MIXER_CallBack(<span class="keywordtype">void</span> * userdata, Uint8 *stream, <span class="keywordtype">int</span> len) {
-<a name="l00875"></a>00875     (void)userdata;<span class="comment">//UNUSED</span>
-<a name="l00876"></a>00876     Bit32s volscale1 = (Bit32s)(mixer.mastervol[0] * (1 &lt;&lt; MIXER_VOLSHIFT));
-<a name="l00877"></a>00877     Bit32s volscale2 = (Bit32s)(mixer.mastervol[1] * (1 &lt;&lt; MIXER_VOLSHIFT));
-<a name="l00878"></a>00878     Bitu need = (Bitu)len/MIXER_SSIZE;
-<a name="l00879"></a>00879     Bit16s *output = (Bit16s*)stream;
-<a name="l00880"></a>00880     <span class="keywordtype">int</span> remains;
-<a name="l00881"></a>00881     Bit32s *in;
-<a name="l00882"></a>00882 
-<a name="l00883"></a>00883     <span class="keywordflow">if</span> (mixer.mute) {
-<a name="l00884"></a>00884         <span class="keywordflow">if</span> ((CaptureState &amp; (CAPTURE_WAVE|CAPTURE_VIDEO|CAPTURE_MULTITRACK_WAVE)) != 0)
-<a name="l00885"></a>00885             mixer.work_out = mixer.work_in;
-<a name="l00886"></a>00886         <span class="keywordflow">else</span>
-<a name="l00887"></a>00887             mixer.work_out = mixer.work_in = 0;
-<a name="l00888"></a>00888     }
-<a name="l00889"></a>00889 
-<a name="l00890"></a>00890     <span class="keywordflow">if</span> (mixer.prebuffer_wait) {
-<a name="l00891"></a>00891         remains = (int)mixer.work_in - (<span class="keywordtype">int</span>)mixer.work_out;
-<a name="l00892"></a>00892         <span class="keywordflow">if</span> (remains &lt; 0) remains += (int)mixer.work_wrap;
-<a name="l00893"></a>00893         if (remains &lt; 0) remains = 0;
-<a name="l00894"></a>00894 
-<a name="l00895"></a>00895         <span class="keywordflow">if</span> ((<span class="keywordtype">unsigned</span> <span class="keywordtype">int</span>)remains &gt;= mixer.prebuffer_samples)
-<a name="l00896"></a>00896             mixer.prebuffer_wait = <span class="keyword">false</span>;
+<a name="l00849"></a>00849 <span class="keyword">static</span> <span class="keywordtype">void</span> MIXER_Mix(<span class="keywordtype">void</span>) {
+<a name="l00850"></a>00850     Bitu thr;
+<a name="l00851"></a>00851 
+<a name="l00852"></a>00852     SDL_LockAudio();
+<a name="l00853"></a>00853 
+<a name="l00854"></a>00854     <span class="comment">/* render */</span>
+<a name="l00855"></a>00855     assert((mixer.work_in+mixer.samples_per_ms.w) &lt;= MIXER_BUFSIZE);
+<a name="l00856"></a>00856     MIXER_MixData((Bitu)mixer.samples_this_ms.w * (Bitu)mixer.samples_this_ms.fd);
+<a name="l00857"></a>00857     mixer.work_in += mixer.samples_this_ms.w;
+<a name="l00858"></a>00858 
+<a name="l00859"></a>00859     <span class="comment">/* how many samples for the next ms? */</span>
+<a name="l00860"></a>00860     mixer.samples_this_ms.w = mixer.samples_per_ms.w;
+<a name="l00861"></a>00861     mixer.samples_this_ms.fn += mixer.samples_per_ms.fn;
+<a name="l00862"></a>00862     <span class="keywordflow">if</span> (mixer.samples_this_ms.fn &gt;= mixer.samples_this_ms.fd) {
+<a name="l00863"></a>00863         mixer.samples_this_ms.fn -= mixer.samples_this_ms.fd;
+<a name="l00864"></a>00864         mixer.samples_this_ms.w++;
+<a name="l00865"></a>00865     }
+<a name="l00866"></a>00866 
+<a name="l00867"></a>00867     <span class="comment">/* advance. we use in/out &amp; wrap pointers to make sure the rendering code</span>
+<a name="l00868"></a>00868 <span class="comment">     * doesn&#39;t have to worry about circular buffer wraparound. */</span>
+<a name="l00869"></a>00869     thr = mixer.blocksize;
+<a name="l00870"></a>00870     <span class="keywordflow">if</span> (thr &lt; mixer.samples_this_ms.w) thr = mixer.samples_this_ms.w;
+<a name="l00871"></a>00871     <span class="keywordflow">if</span> ((mixer.work_in+thr) &gt; MIXER_BUFSIZE) {
+<a name="l00872"></a>00872         mixer.work_wrap = mixer.work_in;
+<a name="l00873"></a>00873         mixer.work_in = 0;
+<a name="l00874"></a>00874     }
+<a name="l00875"></a>00875     assert((mixer.work_in+thr) &lt;= MIXER_BUFSIZE);
+<a name="l00876"></a>00876     assert((mixer.work_in+mixer.samples_this_ms.w) &lt;= MIXER_BUFSIZE);
+<a name="l00877"></a>00877     memset(&amp;mixer.work[mixer.work_in][0],0,<span class="keyword">sizeof</span>(Bit32s)*2*mixer.samples_this_ms.w);
+<a name="l00878"></a>00878     mixer.samples_rendered_ms.fn = 0;
+<a name="l00879"></a>00879     mixer.samples_rendered_ms.w = 0;
+<a name="l00880"></a>00880     SDL_UnlockAudio();
+<a name="l00881"></a>00881     MIXER_FillUp();
+<a name="l00882"></a>00882 }
+<a name="l00883"></a>00883 
+<a name="l00884"></a>00884 <span class="keyword">static</span> <span class="keywordtype">void</span> SDLCALL MIXER_CallBack(<span class="keywordtype">void</span> * userdata, Uint8 *stream, <span class="keywordtype">int</span> len) {
+<a name="l00885"></a>00885     (void)userdata;<span class="comment">//UNUSED</span>
+<a name="l00886"></a>00886     Bit32s volscale1 = (Bit32s)(mixer.mastervol[0] * (1 &lt;&lt; MIXER_VOLSHIFT));
+<a name="l00887"></a>00887     Bit32s volscale2 = (Bit32s)(mixer.mastervol[1] * (1 &lt;&lt; MIXER_VOLSHIFT));
+<a name="l00888"></a>00888     Bitu need = (Bitu)len/MIXER_SSIZE;
+<a name="l00889"></a>00889     Bit16s *output = (Bit16s*)stream;
+<a name="l00890"></a>00890     <span class="keywordtype">int</span> remains;
+<a name="l00891"></a>00891 
+<a name="l00892"></a>00892     <span class="keywordflow">if</span> (mixer.mute) {
+<a name="l00893"></a>00893         <span class="keywordflow">if</span> ((CaptureState &amp; (CAPTURE_WAVE|CAPTURE_VIDEO|CAPTURE_MULTITRACK_WAVE)) != 0)
+<a name="l00894"></a>00894             mixer.work_out = mixer.work_in;
+<a name="l00895"></a>00895         <span class="keywordflow">else</span>
+<a name="l00896"></a>00896             mixer.work_out = mixer.work_in = 0;
 <a name="l00897"></a>00897     }
 <a name="l00898"></a>00898 
-<a name="l00899"></a>00899     <span class="keywordflow">if</span> (!mixer.prebuffer_wait &amp;&amp; !mixer.mute) {
-<a name="l00900"></a>00900         in = &amp;mixer.work[mixer.work_out][0];
-<a name="l00901"></a>00901         <span class="keywordflow">while</span> (need &gt; 0) {
-<a name="l00902"></a>00902             <span class="keywordflow">if</span> (mixer.work_out == mixer.work_in) <span class="keywordflow">break</span>;
-<a name="l00903"></a>00903             *output++ = MIXER_CLIP((((Bit64s)(*in++)) * (Bit64s)volscale1) &gt;&gt; (MIXER_VOLSHIFT + MIXER_VOLSHIFT));
-<a name="l00904"></a>00904             *output++ = MIXER_CLIP((((Bit64s)(*in++)) * (Bit64s)volscale2) &gt;&gt; (MIXER_VOLSHIFT + MIXER_VOLSHIFT));
-<a name="l00905"></a>00905             mixer.work_out++;
-<a name="l00906"></a>00906             <span class="keywordflow">if</span> (mixer.work_out &gt;= mixer.work_wrap) {
-<a name="l00907"></a>00907                 mixer.work_out = 0;
-<a name="l00908"></a>00908                 in = &amp;mixer.work[mixer.work_out][0];
-<a name="l00909"></a>00909             }
-<a name="l00910"></a>00910             need--;
-<a name="l00911"></a>00911         }
-<a name="l00912"></a>00912     }
-<a name="l00913"></a>00913 
-<a name="l00914"></a>00914     <span class="keywordflow">if</span> (need &gt; 0)
-<a name="l00915"></a>00915         mixer.prebuffer_wait = <span class="keyword">true</span>;
-<a name="l00916"></a>00916 
-<a name="l00917"></a>00917     <span class="keywordflow">while</span> (need &gt; 0) {
-<a name="l00918"></a>00918         *output++ = 0;
-<a name="l00919"></a>00919         *output++ = 0;
-<a name="l00920"></a>00920         need--;
+<a name="l00899"></a>00899     <span class="keywordflow">if</span> (mixer.prebuffer_wait) {
+<a name="l00900"></a>00900         remains = (int)mixer.work_in - (<span class="keywordtype">int</span>)mixer.work_out;
+<a name="l00901"></a>00901         <span class="keywordflow">if</span> (remains &lt; 0) remains += (int)mixer.work_wrap;
+<a name="l00902"></a>00902         if (remains &lt; 0) remains = 0;
+<a name="l00903"></a>00903 
+<a name="l00904"></a>00904         <span class="keywordflow">if</span> ((<span class="keywordtype">unsigned</span> <span class="keywordtype">int</span>)remains &gt;= mixer.prebuffer_samples)
+<a name="l00905"></a>00905             mixer.prebuffer_wait = <span class="keyword">false</span>;
+<a name="l00906"></a>00906     }
+<a name="l00907"></a>00907 
+<a name="l00908"></a>00908     <span class="keywordflow">if</span> (!mixer.prebuffer_wait &amp;&amp; !mixer.mute) {
+<a name="l00909"></a>00909         Bit32s *in = &amp;mixer.work[mixer.work_out][0];
+<a name="l00910"></a>00910         <span class="keywordflow">while</span> (need &gt; 0) {
+<a name="l00911"></a>00911             <span class="keywordflow">if</span> (mixer.work_out == mixer.work_in) <span class="keywordflow">break</span>;
+<a name="l00912"></a>00912             *output++ = MIXER_CLIP((((Bit64s)(*in++)) * (Bit64s)volscale1) &gt;&gt; (MIXER_VOLSHIFT + MIXER_VOLSHIFT));
+<a name="l00913"></a>00913             *output++ = MIXER_CLIP((((Bit64s)(*in++)) * (Bit64s)volscale2) &gt;&gt; (MIXER_VOLSHIFT + MIXER_VOLSHIFT));
+<a name="l00914"></a>00914             mixer.work_out++;
+<a name="l00915"></a>00915             <span class="keywordflow">if</span> (mixer.work_out &gt;= mixer.work_wrap) {
+<a name="l00916"></a>00916                 mixer.work_out = 0;
+<a name="l00917"></a>00917                 in = &amp;mixer.work[mixer.work_out][0];
+<a name="l00918"></a>00918             }
+<a name="l00919"></a>00919             need--;
+<a name="l00920"></a>00920         }
 <a name="l00921"></a>00921     }
 <a name="l00922"></a>00922 
-<a name="l00923"></a>00923     remains = (int)mixer.work_in - (<span class="keywordtype">int</span>)mixer.work_out;
-<a name="l00924"></a>00924     <span class="keywordflow">if</span> (remains &lt; 0) remains += (int)mixer.work_wrap;
+<a name="l00923"></a>00923     <span class="keywordflow">if</span> (need &gt; 0)
+<a name="l00924"></a>00924         mixer.prebuffer_wait = <span class="keyword">true</span>;
 <a name="l00925"></a>00925 
-<a name="l00926"></a>00926     if ((<span class="keywordtype">unsigned</span> <span class="keywordtype">long</span>)remains &gt;= (mixer.blocksize*2UL)) {
-<a name="l00927"></a>00927         <span class="comment">/* drop some samples to keep time */</span>
-<a name="l00928"></a>00928         <span class="keywordtype">unsigned</span> <span class="keywordtype">int</span> drop;
-<a name="l00929"></a>00929 
-<a name="l00930"></a>00930         <span class="keywordflow">if</span> ((<span class="keywordtype">unsigned</span> <span class="keywordtype">long</span>)remains &gt;= (mixer.blocksize*3UL)) <span class="comment">// hard drop</span>
-<a name="l00931"></a>00931             drop = ((<span class="keywordtype">unsigned</span> int)remains - (<span class="keywordtype">unsigned</span> <span class="keywordtype">int</span>)(mixer.blocksize));
-<a name="l00932"></a>00932         <span class="keywordflow">else</span> <span class="comment">// subtle drop</span>
-<a name="l00933"></a>00933             drop = (((<span class="keywordtype">unsigned</span> int)remains - (<span class="keywordtype">unsigned</span> <span class="keywordtype">int</span>)(mixer.blocksize*2)) / 50U) + 1;
+<a name="l00926"></a>00926     <span class="keywordflow">while</span> (need &gt; 0) {
+<a name="l00927"></a>00927         *output++ = 0;
+<a name="l00928"></a>00928         *output++ = 0;
+<a name="l00929"></a>00929         need--;
+<a name="l00930"></a>00930     }
+<a name="l00931"></a>00931 
+<a name="l00932"></a>00932     remains = (int)mixer.work_in - (<span class="keywordtype">int</span>)mixer.work_out;
+<a name="l00933"></a>00933     <span class="keywordflow">if</span> (remains &lt; 0) remains += (int)mixer.work_wrap;
 <a name="l00934"></a>00934 
-<a name="l00935"></a>00935         <span class="keywordflow">while</span> (drop &gt; 0) {
-<a name="l00936"></a>00936             mixer.work_out++;
-<a name="l00937"></a>00937             <span class="keywordflow">if</span> (mixer.work_out &gt;= mixer.work_wrap) mixer.work_out = 0;
-<a name="l00938"></a>00938             drop--;
-<a name="l00939"></a>00939         }
-<a name="l00940"></a>00940     }
-<a name="l00941"></a>00941 }
-<a name="l00942"></a>00942 
-<a name="l00943"></a>00943 <span class="keyword">static</span> <span class="keywordtype">void</span> MIXER_Stop(<a class="code" href="classSection.html">Section</a>* sec) {
-<a name="l00944"></a>00944     (void)sec;<span class="comment">//UNUSED</span>
-<a name="l00945"></a>00945 }
-<a name="l00946"></a>00946 
-<a name="l00947"></a><a class="code" href="classMIXER.html">00947</a> <span class="keyword">class </span><a class="code" href="classMIXER.html">MIXER</a> : <span class="keyword">public</span> <a class="code" href="classProgram.html" title="Base Program class for built-in programs on drive Z:">Program</a> {
-<a name="l00948"></a>00948 <span class="keyword">public</span>:
-<a name="l00949"></a>00949     <span class="keywordtype">void</span> MakeVolume(<span class="keywordtype">char</span> * scan,<span class="keywordtype">float</span> &amp; vol0,<span class="keywordtype">float</span> &amp; vol1) {
-<a name="l00950"></a>00950         Bitu w=0;
-<a name="l00951"></a>00951         <span class="keywordtype">bool</span> db=(toupper(*scan)==<span class="charliteral">&#39;D&#39;</span>);
-<a name="l00952"></a>00952         <span class="keywordflow">if</span> (db) scan++;
-<a name="l00953"></a>00953         <span class="keywordflow">while</span> (*scan) {
-<a name="l00954"></a>00954             <span class="keywordflow">if</span> (*scan==<span class="charliteral">&#39;:&#39;</span>) {
-<a name="l00955"></a>00955                 ++scan;w=1;
-<a name="l00956"></a>00956             }
-<a name="l00957"></a>00957             <span class="keywordtype">char</span> * before=scan;
-<a name="l00958"></a>00958             <span class="keywordtype">float</span> val=(float)strtod(scan,&amp;scan);
-<a name="l00959"></a>00959             <span class="keywordflow">if</span> (before==scan) {
-<a name="l00960"></a>00960                 ++scan;<span class="keywordflow">continue</span>;
-<a name="l00961"></a>00961             }
-<a name="l00962"></a>00962             <span class="keywordflow">if</span> (!db) val/=100;
-<a name="l00963"></a>00963             <span class="keywordflow">else</span> val=powf(10.0f,(<span class="keywordtype">float</span>)val/20.0f);
-<a name="l00964"></a>00964             <span class="keywordflow">if</span> (val&lt;0) val=1.0f;
-<a name="l00965"></a>00965             <span class="keywordflow">if</span> (!w) {
-<a name="l00966"></a>00966                 vol0=val;
-<a name="l00967"></a>00967             } <span class="keywordflow">else</span> {
-<a name="l00968"></a>00968                 vol1=val;
-<a name="l00969"></a>00969             }
-<a name="l00970"></a>00970         }
-<a name="l00971"></a>00971         <span class="keywordflow">if</span> (!w) vol1=vol0;
-<a name="l00972"></a>00972     }
-<a name="l00973"></a>00973 
-<a name="l00974"></a><a class="code" href="classMIXER.html#a5043b553511d83536361a96111c17a31">00974</a>     <span class="keywordtype">void</span> <a class="code" href="classMIXER.html#a5043b553511d83536361a96111c17a31" title="DOS kernel Program Segment Prefix associated with this program at runtime.">Run</a>(<span class="keywordtype">void</span>) {
-<a name="l00975"></a>00975         <span class="keywordflow">if</span>(<a class="code" href="classProgram.html#af637f18e9637b148fbecbd3f0bc748fc" title="Temporary string object for parsing.">cmd</a>-&gt;FindExist(<span class="stringliteral">&quot;/LISTMIDI&quot;</span>)) {
-<a name="l00976"></a>00976             ListMidi();
-<a name="l00977"></a>00977             <span class="keywordflow">return</span>;
-<a name="l00978"></a>00978         }
-<a name="l00979"></a>00979         <span class="keywordflow">if</span> (<a class="code" href="classProgram.html#af637f18e9637b148fbecbd3f0bc748fc" title="Temporary string object for parsing.">cmd</a>-&gt;FindString(<span class="stringliteral">&quot;MASTER&quot;</span>,<a class="code" href="classProgram.html#ade1241ef2184833339588494094f7d4f" title="Exit status, returned to the parent DOS process.">temp_line</a>,<span class="keyword">false</span>)) {
-<a name="l00980"></a>00980             MakeVolume((<span class="keywordtype">char</span> *)<a class="code" href="classProgram.html#ade1241ef2184833339588494094f7d4f" title="Exit status, returned to the parent DOS process.">temp_line</a>.c_str(),mixer.mastervol[0],mixer.mastervol[1]);
-<a name="l00981"></a>00981         }
-<a name="l00982"></a>00982         <span class="keywordflow">if</span> (<a class="code" href="classProgram.html#af637f18e9637b148fbecbd3f0bc748fc" title="Temporary string object for parsing.">cmd</a>-&gt;FindString(<span class="stringliteral">&quot;RECORD&quot;</span>,<a class="code" href="classProgram.html#ade1241ef2184833339588494094f7d4f" title="Exit status, returned to the parent DOS process.">temp_line</a>,<span class="keyword">false</span>)) {
-<a name="l00983"></a>00983             MakeVolume((<span class="keywordtype">char</span> *)<a class="code" href="classProgram.html#ade1241ef2184833339588494094f7d4f" title="Exit status, returned to the parent DOS process.">temp_line</a>.c_str(),mixer.recordvol[0],mixer.recordvol[1]);
-<a name="l00984"></a>00984         }
-<a name="l00985"></a>00985         <a class="code" href="classMixerChannel.html">MixerChannel</a> * chan=mixer.channels;
-<a name="l00986"></a>00986         <span class="keywordflow">while</span> (chan) {
-<a name="l00987"></a>00987             <span class="keywordflow">if</span> (<a class="code" href="classProgram.html#af637f18e9637b148fbecbd3f0bc748fc" title="Temporary string object for parsing.">cmd</a>-&gt;FindString(chan-&gt;name,<a class="code" href="classProgram.html#ade1241ef2184833339588494094f7d4f" title="Exit status, returned to the parent DOS process.">temp_line</a>,<span class="keyword">false</span>)) {
-<a name="l00988"></a>00988                 MakeVolume((<span class="keywordtype">char</span> *)<a class="code" href="classProgram.html#ade1241ef2184833339588494094f7d4f" title="Exit status, returned to the parent DOS process.">temp_line</a>.c_str(),chan-&gt;volmain[0],chan-&gt;volmain[1]);
-<a name="l00989"></a>00989             }
-<a name="l00990"></a>00990             chan-&gt;UpdateVolume();
-<a name="l00991"></a>00991             chan=chan-&gt;next;
-<a name="l00992"></a>00992         }
-<a name="l00993"></a>00993         <span class="keywordflow">if</span> (<a class="code" href="classProgram.html#af637f18e9637b148fbecbd3f0bc748fc" title="Temporary string object for parsing.">cmd</a>-&gt;FindExist(<span class="stringliteral">&quot;/NOSHOW&quot;</span>)) <span class="keywordflow">return</span>;
-<a name="l00994"></a>00994         chan=mixer.channels;
-<a name="l00995"></a>00995         <a class="code" href="classProgram.html#af3326c2431db683c8cbfcf1a4eb06f71" title="Set environment variable.">WriteOut</a>(<span class="stringliteral">&quot;Channel  Main    Main(dB)\n&quot;</span>);
-<a name="l00996"></a>00996         ShowVolume(<span class="stringliteral">&quot;MASTER&quot;</span>,mixer.mastervol[0],mixer.mastervol[1]);
-<a name="l00997"></a>00997         ShowVolume(<span class="stringliteral">&quot;RECORD&quot;</span>,mixer.recordvol[0],mixer.recordvol[1]);
-<a name="l00998"></a>00998         <span class="keywordflow">for</span> (chan=mixer.channels;chan;chan=chan-&gt;next) 
-<a name="l00999"></a>00999             ShowVolume(chan-&gt;name,chan-&gt;volmain[0],chan-&gt;volmain[1]);
-<a name="l01000"></a>01000     }
-<a name="l01001"></a>01001 <span class="keyword">private</span>:
-<a name="l01002"></a>01002     <span class="keywordtype">void</span> ShowVolume(<span class="keyword">const</span> <span class="keywordtype">char</span> * name,<span class="keywordtype">float</span> vol0,<span class="keywordtype">float</span> vol1) {
-<a name="l01003"></a>01003         <a class="code" href="classProgram.html#af3326c2431db683c8cbfcf1a4eb06f71" title="Set environment variable.">WriteOut</a>(<span class="stringliteral">&quot;%-8s %3.0f:%-3.0f  %+3.2f:%-+3.2f \n&quot;</span>,name,
-<a name="l01004"></a>01004             (<span class="keywordtype">double</span>)vol0*100,(<span class="keywordtype">double</span>)vol1*100,
-<a name="l01005"></a>01005             20*log(vol0)/log(10.0f),20*log(vol1)/log(10.0f)
-<a name="l01006"></a>01006         );
-<a name="l01007"></a>01007     }
-<a name="l01008"></a>01008 
-<a name="l01009"></a>01009     <span class="keywordtype">void</span> ListMidi(){
-<a name="l01010"></a>01010         <span class="keywordflow">if</span>(midi.handler) midi.handler-&gt;ListAll(<span class="keyword">this</span>);
-<a name="l01011"></a>01011     };
-<a name="l01012"></a>01012 };
-<a name="l01013"></a>01013 
-<a name="l01014"></a>01014 <span class="keyword">static</span> <span class="keywordtype">void</span> MIXER_ProgramStart(<a class="code" href="classProgram.html" title="Base Program class for built-in programs on drive Z:">Program</a> * * make) {
-<a name="l01015"></a>01015     *make=<span class="keyword">new</span> <a class="code" href="classMIXER.html">MIXER</a>;
-<a name="l01016"></a>01016 }
-<a name="l01017"></a>01017 
-<a name="l01018"></a>01018 <a class="code" href="classMixerChannel.html">MixerChannel</a>* MixerObject::Install(MIXER_Handler handler,Bitu freq,<span class="keyword">const</span> <span class="keywordtype">char</span> * name){
-<a name="l01019"></a>01019     <span class="keywordflow">if</span>(!installed) {
-<a name="l01020"></a>01020         <span class="keywordflow">if</span>(strlen(name) &gt; 31) E_Exit(<span class="stringliteral">&quot;Too long mixer channel name&quot;</span>);
-<a name="l01021"></a>01021         safe_strncpy(m_name,name,32);
-<a name="l01022"></a>01022         installed = <span class="keyword">true</span>;
-<a name="l01023"></a>01023         <span class="keywordflow">return</span> MIXER_AddChannel(handler,freq,name);
-<a name="l01024"></a>01024     } <span class="keywordflow">else</span> {
-<a name="l01025"></a>01025         E_Exit(<span class="stringliteral">&quot;already added mixer channel.&quot;</span>);
-<a name="l01026"></a>01026         <span class="keywordflow">return</span> 0; <span class="comment">//Compiler happy</span>
-<a name="l01027"></a>01027     }
+<a name="l00935"></a>00935     if ((<span class="keywordtype">unsigned</span> <span class="keywordtype">long</span>)remains &gt;= (mixer.blocksize*2UL)) {
+<a name="l00936"></a>00936         <span class="comment">/* drop some samples to keep time */</span>
+<a name="l00937"></a>00937         <span class="keywordtype">unsigned</span> <span class="keywordtype">int</span> drop;
+<a name="l00938"></a>00938 
+<a name="l00939"></a>00939         <span class="keywordflow">if</span> ((<span class="keywordtype">unsigned</span> <span class="keywordtype">long</span>)remains &gt;= (mixer.blocksize*3UL)) <span class="comment">// hard drop</span>
+<a name="l00940"></a>00940             drop = ((<span class="keywordtype">unsigned</span> int)remains - (<span class="keywordtype">unsigned</span> <span class="keywordtype">int</span>)(mixer.blocksize));
+<a name="l00941"></a>00941         <span class="keywordflow">else</span> <span class="comment">// subtle drop</span>
+<a name="l00942"></a>00942             drop = (((<span class="keywordtype">unsigned</span> int)remains - (<span class="keywordtype">unsigned</span> <span class="keywordtype">int</span>)(mixer.blocksize*2)) / 50U) + 1;
+<a name="l00943"></a>00943 
+<a name="l00944"></a>00944         <span class="keywordflow">while</span> (drop &gt; 0) {
+<a name="l00945"></a>00945             mixer.work_out++;
+<a name="l00946"></a>00946             <span class="keywordflow">if</span> (mixer.work_out &gt;= mixer.work_wrap) mixer.work_out = 0;
+<a name="l00947"></a>00947             drop--;
+<a name="l00948"></a>00948         }
+<a name="l00949"></a>00949     }
+<a name="l00950"></a>00950 }
+<a name="l00951"></a>00951 
+<a name="l00952"></a>00952 <span class="keyword">static</span> <span class="keywordtype">void</span> MIXER_Stop(<a class="code" href="classSection.html">Section</a>* sec) {
+<a name="l00953"></a>00953     (void)sec;<span class="comment">//UNUSED</span>
+<a name="l00954"></a>00954 }
+<a name="l00955"></a>00955 
+<a name="l00956"></a><a class="code" href="classMIXER.html">00956</a> <span class="keyword">class </span><a class="code" href="classMIXER.html">MIXER</a> : <span class="keyword">public</span> <a class="code" href="classProgram.html" title="Base Program class for built-in programs on drive Z:">Program</a> {
+<a name="l00957"></a>00957 <span class="keyword">public</span>:
+<a name="l00958"></a>00958     <span class="keywordtype">void</span> MakeVolume(<span class="keywordtype">char</span> * scan,<span class="keywordtype">float</span> &amp; vol0,<span class="keywordtype">float</span> &amp; vol1) {
+<a name="l00959"></a>00959         Bitu w=0;
+<a name="l00960"></a>00960         <span class="keywordtype">bool</span> db=(toupper(*scan)==<span class="charliteral">&#39;D&#39;</span>);
+<a name="l00961"></a>00961         <span class="keywordflow">if</span> (db) scan++;
+<a name="l00962"></a>00962         <span class="keywordflow">while</span> (*scan) {
+<a name="l00963"></a>00963             <span class="keywordflow">if</span> (*scan==<span class="charliteral">&#39;:&#39;</span>) {
+<a name="l00964"></a>00964                 ++scan;w=1;
+<a name="l00965"></a>00965             }
+<a name="l00966"></a>00966             <span class="keywordtype">char</span> * before=scan;
+<a name="l00967"></a>00967             <span class="keywordtype">float</span> val=(float)strtod(scan,&amp;scan);
+<a name="l00968"></a>00968             <span class="keywordflow">if</span> (before==scan) {
+<a name="l00969"></a>00969                 ++scan;<span class="keywordflow">continue</span>;
+<a name="l00970"></a>00970             }
+<a name="l00971"></a>00971             <span class="keywordflow">if</span> (!db) val/=100;
+<a name="l00972"></a>00972             <span class="keywordflow">else</span> val=powf(10.0f,(<span class="keywordtype">float</span>)val/20.0f);
+<a name="l00973"></a>00973             <span class="keywordflow">if</span> (val&lt;0) val=1.0f;
+<a name="l00974"></a>00974             <span class="keywordflow">if</span> (!w) {
+<a name="l00975"></a>00975                 vol0=val;
+<a name="l00976"></a>00976             } <span class="keywordflow">else</span> {
+<a name="l00977"></a>00977                 vol1=val;
+<a name="l00978"></a>00978             }
+<a name="l00979"></a>00979         }
+<a name="l00980"></a>00980         <span class="keywordflow">if</span> (!w) vol1=vol0;
+<a name="l00981"></a>00981     }
+<a name="l00982"></a>00982 
+<a name="l00983"></a><a class="code" href="classMIXER.html#a5043b553511d83536361a96111c17a31">00983</a>     <span class="keywordtype">void</span> <a class="code" href="classMIXER.html#a5043b553511d83536361a96111c17a31" title="DOS kernel Program Segment Prefix associated with this program at runtime.">Run</a>(<span class="keywordtype">void</span>) {
+<a name="l00984"></a>00984         <span class="keywordflow">if</span> (<a class="code" href="classProgram.html#af637f18e9637b148fbecbd3f0bc748fc" title="Temporary string object for parsing.">cmd</a>-&gt;FindExist(<span class="stringliteral">&quot;-?&quot;</span>, <span class="keyword">false</span>) || <a class="code" href="classProgram.html#af637f18e9637b148fbecbd3f0bc748fc" title="Temporary string object for parsing.">cmd</a>-&gt;FindExist(<span class="stringliteral">&quot;/?&quot;</span>, <span class="keyword">false</span>)) {
+<a name="l00985"></a>00985                         <a class="code" href="classProgram.html#af3326c2431db683c8cbfcf1a4eb06f71" title="Set environment variable.">WriteOut</a>(<span class="stringliteral">&quot;Displays or changes the current sound levels.\n\nMIXER [option]\n&quot;</span>);
+<a name="l00986"></a>00986             <span class="keywordflow">return</span>;
+<a name="l00987"></a>00987                 }
+<a name="l00988"></a>00988         <span class="keywordflow">if</span>(<a class="code" href="classProgram.html#af637f18e9637b148fbecbd3f0bc748fc" title="Temporary string object for parsing.">cmd</a>-&gt;FindExist(<span class="stringliteral">&quot;/LISTMIDI&quot;</span>)) {
+<a name="l00989"></a>00989             ListMidi();
+<a name="l00990"></a>00990             <span class="keywordflow">return</span>;
+<a name="l00991"></a>00991         }
+<a name="l00992"></a>00992         <span class="keywordflow">if</span> (<a class="code" href="classProgram.html#af637f18e9637b148fbecbd3f0bc748fc" title="Temporary string object for parsing.">cmd</a>-&gt;FindString(<span class="stringliteral">&quot;MASTER&quot;</span>,<a class="code" href="classProgram.html#ade1241ef2184833339588494094f7d4f" title="Exit status, returned to the parent DOS process.">temp_line</a>,<span class="keyword">false</span>)) {
+<a name="l00993"></a>00993             MakeVolume((<span class="keywordtype">char</span> *)<a class="code" href="classProgram.html#ade1241ef2184833339588494094f7d4f" title="Exit status, returned to the parent DOS process.">temp_line</a>.c_str(),mixer.mastervol[0],mixer.mastervol[1]);
+<a name="l00994"></a>00994         }
+<a name="l00995"></a>00995         <span class="keywordflow">if</span> (<a class="code" href="classProgram.html#af637f18e9637b148fbecbd3f0bc748fc" title="Temporary string object for parsing.">cmd</a>-&gt;FindString(<span class="stringliteral">&quot;RECORD&quot;</span>,<a class="code" href="classProgram.html#ade1241ef2184833339588494094f7d4f" title="Exit status, returned to the parent DOS process.">temp_line</a>,<span class="keyword">false</span>)) {
+<a name="l00996"></a>00996             MakeVolume((<span class="keywordtype">char</span> *)<a class="code" href="classProgram.html#ade1241ef2184833339588494094f7d4f" title="Exit status, returned to the parent DOS process.">temp_line</a>.c_str(),mixer.recordvol[0],mixer.recordvol[1]);
+<a name="l00997"></a>00997         }
+<a name="l00998"></a>00998         <a class="code" href="classMixerChannel.html">MixerChannel</a> * chan=mixer.channels;
+<a name="l00999"></a>00999         <span class="keywordflow">while</span> (chan) {
+<a name="l01000"></a>01000             <span class="keywordflow">if</span> (<a class="code" href="classProgram.html#af637f18e9637b148fbecbd3f0bc748fc" title="Temporary string object for parsing.">cmd</a>-&gt;FindString(chan-&gt;name,<a class="code" href="classProgram.html#ade1241ef2184833339588494094f7d4f" title="Exit status, returned to the parent DOS process.">temp_line</a>,<span class="keyword">false</span>)) {
+<a name="l01001"></a>01001                 MakeVolume((<span class="keywordtype">char</span> *)<a class="code" href="classProgram.html#ade1241ef2184833339588494094f7d4f" title="Exit status, returned to the parent DOS process.">temp_line</a>.c_str(),chan-&gt;volmain[0],chan-&gt;volmain[1]);
+<a name="l01002"></a>01002             }
+<a name="l01003"></a>01003             chan-&gt;UpdateVolume();
+<a name="l01004"></a>01004             chan=chan-&gt;next;
+<a name="l01005"></a>01005         }
+<a name="l01006"></a>01006         <span class="keywordflow">if</span> (<a class="code" href="classProgram.html#af637f18e9637b148fbecbd3f0bc748fc" title="Temporary string object for parsing.">cmd</a>-&gt;FindExist(<span class="stringliteral">&quot;/NOSHOW&quot;</span>)) <span class="keywordflow">return</span>;
+<a name="l01007"></a>01007         <a class="code" href="classProgram.html#af3326c2431db683c8cbfcf1a4eb06f71" title="Set environment variable.">WriteOut</a>(<span class="stringliteral">&quot;Channel  Main    Main(dB)\n&quot;</span>);
+<a name="l01008"></a>01008         ShowVolume(<span class="stringliteral">&quot;MASTER&quot;</span>,mixer.mastervol[0],mixer.mastervol[1]);
+<a name="l01009"></a>01009         ShowVolume(<span class="stringliteral">&quot;RECORD&quot;</span>,mixer.recordvol[0],mixer.recordvol[1]);
+<a name="l01010"></a>01010         <span class="keywordflow">for</span> (chan=mixer.channels;chan;chan=chan-&gt;next) 
+<a name="l01011"></a>01011             ShowVolume(chan-&gt;name,chan-&gt;volmain[0],chan-&gt;volmain[1]);
+<a name="l01012"></a>01012     }
+<a name="l01013"></a>01013 <span class="keyword">private</span>:
+<a name="l01014"></a>01014     <span class="keywordtype">void</span> ShowVolume(<span class="keyword">const</span> <span class="keywordtype">char</span> * name,<span class="keywordtype">float</span> vol0,<span class="keywordtype">float</span> vol1) {
+<a name="l01015"></a>01015         <a class="code" href="classProgram.html#af3326c2431db683c8cbfcf1a4eb06f71" title="Set environment variable.">WriteOut</a>(<span class="stringliteral">&quot;%-8s %3.0f:%-3.0f  %+3.2f:%-+3.2f \n&quot;</span>,name,
+<a name="l01016"></a>01016             (<span class="keywordtype">double</span>)vol0*100,(<span class="keywordtype">double</span>)vol1*100,
+<a name="l01017"></a>01017             20*log(vol0)/log(10.0f),20*log(vol1)/log(10.0f)
+<a name="l01018"></a>01018         );
+<a name="l01019"></a>01019     }
+<a name="l01020"></a>01020 
+<a name="l01021"></a>01021     <span class="keywordtype">void</span> ListMidi(){
+<a name="l01022"></a>01022         <span class="keywordflow">if</span>(midi.handler) midi.handler-&gt;ListAll(<span class="keyword">this</span>);
+<a name="l01023"></a>01023     };
+<a name="l01024"></a>01024 };
+<a name="l01025"></a>01025 
+<a name="l01026"></a>01026 <span class="keyword">static</span> <span class="keywordtype">void</span> MIXER_ProgramStart(<a class="code" href="classProgram.html" title="Base Program class for built-in programs on drive Z:">Program</a> * * make) {
+<a name="l01027"></a>01027     *make=<span class="keyword">new</span> <a class="code" href="classMIXER.html">MIXER</a>;
 <a name="l01028"></a>01028 }
 <a name="l01029"></a>01029 
-<a name="l01030"></a>01030 MixerObject::~MixerObject(){
-<a name="l01031"></a>01031     <span class="keywordflow">if</span>(!installed) <span class="keywordflow">return</span>;
-<a name="l01032"></a>01032     MIXER_DelChannel(MIXER_FindChannel(m_name));
-<a name="l01033"></a>01033 }
-<a name="l01034"></a>01034 
-<a name="l01035"></a>01035 <span class="keywordtype">void</span> MENU_mute(<span class="keywordtype">bool</span> enabled) {
-<a name="l01036"></a>01036     mixer.mute=enabled;
-<a name="l01037"></a>01037     mainMenu.get_item(<span class="stringliteral">&quot;mixer_mute&quot;</span>).check(mixer.mute).refresh_item(mainMenu);
-<a name="l01038"></a>01038 }
-<a name="l01039"></a>01039 
-<a name="l01040"></a>01040 <span class="keywordtype">bool</span> MENU_get_mute(<span class="keywordtype">void</span>) {
-<a name="l01041"></a>01041     <span class="keywordflow">return</span> mixer.mute;
-<a name="l01042"></a>01042 }
-<a name="l01043"></a>01043 
-<a name="l01044"></a>01044 <span class="keywordtype">void</span> MENU_swapstereo(<span class="keywordtype">bool</span> enabled) {
-<a name="l01045"></a>01045     mixer.swapstereo=enabled;
-<a name="l01046"></a>01046     mainMenu.get_item(<span class="stringliteral">&quot;mixer_swapstereo&quot;</span>).check(mixer.swapstereo).refresh_item(mainMenu);
-<a name="l01047"></a>01047 }
-<a name="l01048"></a>01048 
-<a name="l01049"></a>01049 <span class="keywordtype">bool</span> MENU_get_swapstereo(<span class="keywordtype">void</span>) {
-<a name="l01050"></a>01050     <span class="keywordflow">return</span> mixer.swapstereo;
-<a name="l01051"></a>01051 }
-<a name="l01052"></a>01052 
-<a name="l01053"></a>01053 <span class="keywordtype">void</span> MAPPER_VolumeUp(<span class="keywordtype">bool</span> pressed) {
-<a name="l01054"></a>01054     <span class="keywordflow">if</span> (!pressed) <span class="keywordflow">return</span>;
+<a name="l01030"></a>01030 <a class="code" href="classMixerChannel.html">MixerChannel</a>* MixerObject::Install(MIXER_Handler handler,Bitu freq,<span class="keyword">const</span> <span class="keywordtype">char</span> * name){
+<a name="l01031"></a>01031     <span class="keywordflow">if</span>(!installed) {
+<a name="l01032"></a>01032         <span class="keywordflow">if</span>(strlen(name) &gt; 31) E_Exit(<span class="stringliteral">&quot;Too long mixer channel name&quot;</span>);
+<a name="l01033"></a>01033         safe_strncpy(m_name,name,32);
+<a name="l01034"></a>01034         installed = <span class="keyword">true</span>;
+<a name="l01035"></a>01035         <span class="keywordflow">return</span> MIXER_AddChannel(handler,freq,name);
+<a name="l01036"></a>01036     } <span class="keywordflow">else</span> {
+<a name="l01037"></a>01037         E_Exit(<span class="stringliteral">&quot;already added mixer channel.&quot;</span>);
+<a name="l01038"></a>01038         <span class="keywordflow">return</span> 0; <span class="comment">//Compiler happy</span>
+<a name="l01039"></a>01039     }
+<a name="l01040"></a>01040 }
+<a name="l01041"></a>01041 
+<a name="l01042"></a>01042 MixerObject::~MixerObject(){
+<a name="l01043"></a>01043     <span class="keywordflow">if</span>(!installed) <span class="keywordflow">return</span>;
+<a name="l01044"></a>01044     MIXER_DelChannel(MIXER_FindChannel(m_name));
+<a name="l01045"></a>01045 }
+<a name="l01046"></a>01046 
+<a name="l01047"></a>01047 <span class="keywordtype">void</span> MENU_mute(<span class="keywordtype">bool</span> enabled) {
+<a name="l01048"></a>01048     mixer.mute=enabled;
+<a name="l01049"></a>01049     mainMenu.get_item(<span class="stringliteral">&quot;mixer_mute&quot;</span>).check(mixer.mute).refresh_item(mainMenu);
+<a name="l01050"></a>01050 }
+<a name="l01051"></a>01051 
+<a name="l01052"></a>01052 <span class="keywordtype">bool</span> MENU_get_mute(<span class="keywordtype">void</span>) {
+<a name="l01053"></a>01053     <span class="keywordflow">return</span> mixer.mute;
+<a name="l01054"></a>01054 }
 <a name="l01055"></a>01055 
-<a name="l01056"></a>01056     <span class="keywordtype">double</span> newvol = (((double)mixer.mastervol[0] + mixer.mastervol[1]) / 0.7) * 0.5;
-<a name="l01057"></a>01057 
-<a name="l01058"></a>01058     <span class="keywordflow">if</span> (newvol &gt; 1) newvol = 1;
-<a name="l01059"></a>01059 
-<a name="l01060"></a>01060     mixer.mastervol[0] = mixer.mastervol[1] = newvol;
-<a name="l01061"></a>01061 
-<a name="l01062"></a>01062     <a class="code" href="classLOG.html">LOG</a>(LOG_MISC,LOG_NORMAL)(<span class="stringliteral">&quot;Master volume UP to %.3f%%&quot;</span>,newvol * 100);
+<a name="l01056"></a>01056 <span class="keywordtype">void</span> MENU_swapstereo(<span class="keywordtype">bool</span> enabled) {
+<a name="l01057"></a>01057     mixer.swapstereo=enabled;
+<a name="l01058"></a>01058     mainMenu.get_item(<span class="stringliteral">&quot;mixer_swapstereo&quot;</span>).check(mixer.swapstereo).refresh_item(mainMenu);
+<a name="l01059"></a>01059 }
+<a name="l01060"></a>01060 
+<a name="l01061"></a>01061 <span class="keywordtype">bool</span> MENU_get_swapstereo(<span class="keywordtype">void</span>) {
+<a name="l01062"></a>01062     <span class="keywordflow">return</span> mixer.swapstereo;
 <a name="l01063"></a>01063 }
 <a name="l01064"></a>01064 
-<a name="l01065"></a>01065 <span class="keywordtype">void</span> MAPPER_VolumeDown(<span class="keywordtype">bool</span> pressed) {
+<a name="l01065"></a>01065 <span class="keywordtype">void</span> MAPPER_VolumeUp(<span class="keywordtype">bool</span> pressed) {
 <a name="l01066"></a>01066     <span class="keywordflow">if</span> (!pressed) <span class="keywordflow">return</span>;
 <a name="l01067"></a>01067 
-<a name="l01068"></a>01068     <span class="keywordtype">double</span> newvol = ((double)mixer.mastervol[0] + mixer.mastervol[1]) * 0.7 * 0.5;
+<a name="l01068"></a>01068     <span class="keywordtype">double</span> newvol = (((double)mixer.mastervol[0] + mixer.mastervol[1]) / 0.7) * 0.5;
 <a name="l01069"></a>01069 
-<a name="l01070"></a>01070     <span class="keywordflow">if</span> (fabs(newvol - 1.0) &lt; 0.25)
-<a name="l01071"></a>01071         newvol = 1;
-<a name="l01072"></a>01072 
-<a name="l01073"></a>01073     mixer.mastervol[0] = mixer.mastervol[1] = newvol;
-<a name="l01074"></a>01074 
-<a name="l01075"></a>01075     <a class="code" href="classLOG.html">LOG</a>(LOG_MISC,LOG_NORMAL)(<span class="stringliteral">&quot;Master volume DOWN to %.3f%%&quot;</span>,newvol * 100);
-<a name="l01076"></a>01076 }
-<a name="l01077"></a>01077 
-<a name="l01078"></a>01078 <span class="keywordtype">void</span> MAPPER_RecVolumeUp(<span class="keywordtype">bool</span> pressed) {
-<a name="l01079"></a>01079     <span class="keywordflow">if</span> (!pressed) <span class="keywordflow">return</span>;
-<a name="l01080"></a>01080 
-<a name="l01081"></a>01081     <span class="keywordtype">double</span> newvol = (((double)mixer.recordvol[0] + mixer.recordvol[1]) / 0.7) * 0.5;
-<a name="l01082"></a>01082 
-<a name="l01083"></a>01083     <span class="keywordflow">if</span> (newvol &gt; 1) newvol = 1;
+<a name="l01070"></a>01070     <span class="keywordflow">if</span> (newvol &gt; 1) newvol = 1;
+<a name="l01071"></a>01071 
+<a name="l01072"></a>01072     mixer.mastervol[0] = mixer.mastervol[1] = newvol;
+<a name="l01073"></a>01073 
+<a name="l01074"></a>01074     <a class="code" href="classLOG.html">LOG</a>(LOG_MISC,LOG_NORMAL)(<span class="stringliteral">&quot;Master volume UP to %.3f%%&quot;</span>,newvol * 100);
+<a name="l01075"></a>01075 }
+<a name="l01076"></a>01076 
+<a name="l01077"></a>01077 <span class="keywordtype">void</span> MAPPER_VolumeDown(<span class="keywordtype">bool</span> pressed) {
+<a name="l01078"></a>01078     <span class="keywordflow">if</span> (!pressed) <span class="keywordflow">return</span>;
+<a name="l01079"></a>01079 
+<a name="l01080"></a>01080     <span class="keywordtype">double</span> newvol = ((double)mixer.mastervol[0] + mixer.mastervol[1]) * 0.7 * 0.5;
+<a name="l01081"></a>01081 
+<a name="l01082"></a>01082     <span class="keywordflow">if</span> (fabs(newvol - 1.0) &lt; 0.25)
+<a name="l01083"></a>01083         newvol = 1;
 <a name="l01084"></a>01084 
-<a name="l01085"></a>01085     mixer.recordvol[0] = mixer.recordvol[1] = newvol;
+<a name="l01085"></a>01085     mixer.mastervol[0] = mixer.mastervol[1] = newvol;
 <a name="l01086"></a>01086 
-<a name="l01087"></a>01087     <a class="code" href="classLOG.html">LOG</a>(LOG_MISC,LOG_NORMAL)(<span class="stringliteral">&quot;Recording volume UP to %.3f%%&quot;</span>,newvol * 100);
+<a name="l01087"></a>01087     <a class="code" href="classLOG.html">LOG</a>(LOG_MISC,LOG_NORMAL)(<span class="stringliteral">&quot;Master volume DOWN to %.3f%%&quot;</span>,newvol * 100);
 <a name="l01088"></a>01088 }
 <a name="l01089"></a>01089 
-<a name="l01090"></a>01090 <span class="keywordtype">void</span> MAPPER_RecVolumeDown(<span class="keywordtype">bool</span> pressed) {
+<a name="l01090"></a>01090 <span class="keywordtype">void</span> MAPPER_RecVolumeUp(<span class="keywordtype">bool</span> pressed) {
 <a name="l01091"></a>01091     <span class="keywordflow">if</span> (!pressed) <span class="keywordflow">return</span>;
 <a name="l01092"></a>01092 
-<a name="l01093"></a>01093     <span class="keywordtype">double</span> newvol = ((double)mixer.recordvol[0] + mixer.recordvol[1]) * 0.7 * 0.5;
+<a name="l01093"></a>01093     <span class="keywordtype">double</span> newvol = (((double)mixer.recordvol[0] + mixer.recordvol[1]) / 0.7) * 0.5;
 <a name="l01094"></a>01094 
-<a name="l01095"></a>01095     <span class="keywordflow">if</span> (fabs(newvol - 1.0) &lt; 0.25)
-<a name="l01096"></a>01096         newvol = 1;
-<a name="l01097"></a>01097 
-<a name="l01098"></a>01098     mixer.recordvol[0] = mixer.recordvol[1] = newvol;
-<a name="l01099"></a>01099 
-<a name="l01100"></a>01100     <a class="code" href="classLOG.html">LOG</a>(LOG_MISC,LOG_NORMAL)(<span class="stringliteral">&quot;Recording volume DOWN to %.3f%%&quot;</span>,newvol * 100);
-<a name="l01101"></a>01101 }
-<a name="l01102"></a>01102 
-<a name="l01103"></a>01103 <span class="keywordtype">void</span> MIXER_Controls_Init() {
-<a name="l01104"></a>01104     <a class="code" href="classDOSBoxMenu_1_1item.html">DOSBoxMenu::item</a> *item;
-<a name="l01105"></a>01105 
-<a name="l01106"></a>01106     MAPPER_AddHandler(MAPPER_VolumeUp  ,MK_kpplus, MMODHOST,<span class="stringliteral">&quot;volup&quot;</span>,<span class="stringliteral">&quot;VolUp&quot;</span>,&amp;item);
-<a name="l01107"></a>01107     item-&gt;set_text(<span class="stringliteral">&quot;Increase volume&quot;</span>);
-<a name="l01108"></a>01108     
-<a name="l01109"></a>01109     MAPPER_AddHandler(MAPPER_VolumeDown,MK_kpminus,MMODHOST,<span class="stringliteral">&quot;voldown&quot;</span>,<span class="stringliteral">&quot;VolDown&quot;</span>,&amp;item);
-<a name="l01110"></a>01110     item-&gt;set_text(<span class="stringliteral">&quot;Decrease volume&quot;</span>);
+<a name="l01095"></a>01095     <span class="keywordflow">if</span> (newvol &gt; 1) newvol = 1;
+<a name="l01096"></a>01096 
+<a name="l01097"></a>01097     mixer.recordvol[0] = mixer.recordvol[1] = newvol;
+<a name="l01098"></a>01098 
+<a name="l01099"></a>01099     <a class="code" href="classLOG.html">LOG</a>(LOG_MISC,LOG_NORMAL)(<span class="stringliteral">&quot;Recording volume UP to %.3f%%&quot;</span>,newvol * 100);
+<a name="l01100"></a>01100 }
+<a name="l01101"></a>01101 
+<a name="l01102"></a>01102 <span class="keywordtype">void</span> MAPPER_RecVolumeDown(<span class="keywordtype">bool</span> pressed) {
+<a name="l01103"></a>01103     <span class="keywordflow">if</span> (!pressed) <span class="keywordflow">return</span>;
+<a name="l01104"></a>01104 
+<a name="l01105"></a>01105     <span class="keywordtype">double</span> newvol = ((double)mixer.recordvol[0] + mixer.recordvol[1]) * 0.7 * 0.5;
+<a name="l01106"></a>01106 
+<a name="l01107"></a>01107     <span class="keywordflow">if</span> (fabs(newvol - 1.0) &lt; 0.25)
+<a name="l01108"></a>01108         newvol = 1;
+<a name="l01109"></a>01109 
+<a name="l01110"></a>01110     mixer.recordvol[0] = mixer.recordvol[1] = newvol;
 <a name="l01111"></a>01111 
-<a name="l01112"></a>01112     MAPPER_AddHandler(MAPPER_RecVolumeUp  ,MK_nothing, 0,<span class="stringliteral">&quot;recvolup&quot;</span>,<span class="stringliteral">&quot;RecVolUp&quot;</span>,&amp;item);
-<a name="l01113"></a>01113     item-&gt;set_text(<span class="stringliteral">&quot;Increase recording volume&quot;</span>);
+<a name="l01112"></a>01112     <a class="code" href="classLOG.html">LOG</a>(LOG_MISC,LOG_NORMAL)(<span class="stringliteral">&quot;Recording volume DOWN to %.3f%%&quot;</span>,newvol * 100);
+<a name="l01113"></a>01113 }
 <a name="l01114"></a>01114 
-<a name="l01115"></a>01115     MAPPER_AddHandler(MAPPER_RecVolumeDown,MK_nothing, 0,<span class="stringliteral">&quot;recvoldown&quot;</span>,<span class="stringliteral">&quot;RecVolDn&quot;</span>,&amp;item);
-<a name="l01116"></a>01116     item-&gt;set_text(<span class="stringliteral">&quot;Decrease recording volume&quot;</span>);
-<a name="l01117"></a>01117 }
-<a name="l01118"></a>01118 
-<a name="l01119"></a>01119 <span class="keywordtype">void</span> MIXER_Init() {
-<a name="l01120"></a>01120     AddExitFunction(AddExitFunctionFuncPair(MIXER_Stop));
-<a name="l01121"></a>01121 
-<a name="l01122"></a>01122     <a class="code" href="classLOG.html">LOG</a>(LOG_MISC,LOG_DEBUG)(<span class="stringliteral">&quot;Initializing DOSBox audio mixer&quot;</span>);
+<a name="l01115"></a>01115 <span class="keywordtype">void</span> MIXER_Controls_Init() {
+<a name="l01116"></a>01116     <a class="code" href="classDOSBoxMenu_1_1item.html">DOSBoxMenu::item</a> *item;
+<a name="l01117"></a>01117 
+<a name="l01118"></a>01118     MAPPER_AddHandler(MAPPER_VolumeUp  ,MK_kpplus, MMODHOST,<span class="stringliteral">&quot;volup&quot;</span>,<span class="stringliteral">&quot;VolUp&quot;</span>,&amp;item);
+<a name="l01119"></a>01119     item-&gt;set_text(<span class="stringliteral">&quot;Increase volume&quot;</span>);
+<a name="l01120"></a>01120     
+<a name="l01121"></a>01121     MAPPER_AddHandler(MAPPER_VolumeDown,MK_kpminus,MMODHOST,<span class="stringliteral">&quot;voldown&quot;</span>,<span class="stringliteral">&quot;VolDown&quot;</span>,&amp;item);
+<a name="l01122"></a>01122     item-&gt;set_text(<span class="stringliteral">&quot;Decrease volume&quot;</span>);
 <a name="l01123"></a>01123 
-<a name="l01124"></a>01124     <a class="code" href="classSection__prop.html">Section_prop</a> * section=<span class="keyword">static_cast&lt;</span><a class="code" href="classSection__prop.html">Section_prop</a> *<span class="keyword">&gt;</span>(control-&gt;GetSection(<span class="stringliteral">&quot;mixer&quot;</span>));
-<a name="l01125"></a>01125     <span class="comment">/* Read out config section */</span>
-<a name="l01126"></a>01126     mixer.freq=(<span class="keywordtype">unsigned</span> int)section-&gt;Get_int(<span class="stringliteral">&quot;rate&quot;</span>);
-<a name="l01127"></a>01127     mixer.nosound=section-&gt;Get_bool(<span class="stringliteral">&quot;nosound&quot;</span>);
-<a name="l01128"></a>01128     mixer.blocksize=(<span class="keywordtype">unsigned</span> int)section-&gt;Get_int(<span class="stringliteral">&quot;blocksize&quot;</span>);
-<a name="l01129"></a>01129     mixer.swapstereo=section-&gt;Get_bool(<span class="stringliteral">&quot;swapstereo&quot;</span>);
-<a name="l01130"></a>01130     mixer.sampleaccurate=section-&gt;Get_bool(<span class="stringliteral">&quot;sample accurate&quot;</span>);
-<a name="l01131"></a>01131     mixer.mute=<span class="keyword">false</span>;
-<a name="l01132"></a>01132 
-<a name="l01133"></a>01133     <span class="comment">/* Initialize the internal stuff */</span>
-<a name="l01134"></a>01134     mixer.prebuffer_samples=0;
-<a name="l01135"></a>01135     mixer.prebuffer_wait=<span class="keyword">true</span>;
-<a name="l01136"></a>01136     mixer.channels=0;
-<a name="l01137"></a>01137     mixer.pos=0;
-<a name="l01138"></a>01138     mixer.done=0;
-<a name="l01139"></a>01139     memset(mixer.work,0,<span class="keyword">sizeof</span>(mixer.work));
-<a name="l01140"></a>01140     mixer.mastervol[0]=1.0f;
-<a name="l01141"></a>01141     mixer.mastervol[1]=1.0f;
-<a name="l01142"></a>01142     mixer.recordvol[0]=1.0f;
-<a name="l01143"></a>01143     mixer.recordvol[1]=1.0f;
-<a name="l01144"></a>01144 
-<a name="l01145"></a>01145     <span class="comment">/* Start the Mixer using SDL Sound at 22 khz */</span>
-<a name="l01146"></a>01146     SDL_AudioSpec spec;
-<a name="l01147"></a>01147     SDL_AudioSpec obtained;
+<a name="l01124"></a>01124     MAPPER_AddHandler(MAPPER_RecVolumeUp  ,MK_nothing, 0,<span class="stringliteral">&quot;recvolup&quot;</span>,<span class="stringliteral">&quot;RecVolUp&quot;</span>,&amp;item);
+<a name="l01125"></a>01125     item-&gt;set_text(<span class="stringliteral">&quot;Increase recording volume&quot;</span>);
+<a name="l01126"></a>01126 
+<a name="l01127"></a>01127     MAPPER_AddHandler(MAPPER_RecVolumeDown,MK_nothing, 0,<span class="stringliteral">&quot;recvoldown&quot;</span>,<span class="stringliteral">&quot;RecVolDn&quot;</span>,&amp;item);
+<a name="l01128"></a>01128     item-&gt;set_text(<span class="stringliteral">&quot;Decrease recording volume&quot;</span>);
+<a name="l01129"></a>01129 }
+<a name="l01130"></a>01130 
+<a name="l01131"></a>01131 <span class="keywordtype">void</span> MIXER_DOS_Boot(<a class="code" href="classSection.html">Section</a> *) {
+<a name="l01132"></a>01132     PROGRAMS_MakeFile(<span class="stringliteral">&quot;MIXER.COM&quot;</span>,MIXER_ProgramStart);
+<a name="l01133"></a>01133 }
+<a name="l01134"></a>01134 
+<a name="l01135"></a>01135 <span class="keywordtype">void</span> MIXER_Init() {
+<a name="l01136"></a>01136     AddExitFunction(AddExitFunctionFuncPair(MIXER_Stop));
+<a name="l01137"></a>01137 
+<a name="l01138"></a>01138     <a class="code" href="classLOG.html">LOG</a>(LOG_MISC,LOG_DEBUG)(<span class="stringliteral">&quot;Initializing DOSBox audio mixer&quot;</span>);
+<a name="l01139"></a>01139 
+<a name="l01140"></a>01140     <a class="code" href="classSection__prop.html">Section_prop</a> * section=<span class="keyword">static_cast&lt;</span><a class="code" href="classSection__prop.html">Section_prop</a> *<span class="keyword">&gt;</span>(control-&gt;GetSection(<span class="stringliteral">&quot;mixer&quot;</span>));
+<a name="l01141"></a>01141     <span class="comment">/* Read out config section */</span>
+<a name="l01142"></a>01142     mixer.freq=(<span class="keywordtype">unsigned</span> int)section-&gt;Get_int(<span class="stringliteral">&quot;rate&quot;</span>);
+<a name="l01143"></a>01143     mixer.nosound=section-&gt;Get_bool(<span class="stringliteral">&quot;nosound&quot;</span>);
+<a name="l01144"></a>01144     mixer.blocksize=(<span class="keywordtype">unsigned</span> int)section-&gt;Get_int(<span class="stringliteral">&quot;blocksize&quot;</span>);
+<a name="l01145"></a>01145     mixer.swapstereo=section-&gt;Get_bool(<span class="stringliteral">&quot;swapstereo&quot;</span>);
+<a name="l01146"></a>01146     mixer.sampleaccurate=section-&gt;Get_bool(<span class="stringliteral">&quot;sample accurate&quot;</span>);
+<a name="l01147"></a>01147     mixer.mute=<span class="keyword">false</span>;
 <a name="l01148"></a>01148 
-<a name="l01149"></a>01149     spec.freq=(int)mixer.freq;
-<a name="l01150"></a>01150     spec.format=AUDIO_S16SYS;
-<a name="l01151"></a>01151     spec.channels=2;
-<a name="l01152"></a>01152     spec.callback=MIXER_CallBack;
-<a name="l01153"></a>01153     spec.userdata=NULL;
-<a name="l01154"></a>01154     spec.samples=(Uint16)mixer.blocksize;
-<a name="l01155"></a>01155 
-<a name="l01156"></a>01156     <span class="keywordflow">if</span> (mixer.nosound) {
-<a name="l01157"></a>01157         <a class="code" href="classLOG.html">LOG</a>(LOG_MISC,LOG_DEBUG)(<span class="stringliteral">&quot;MIXER:No Sound Mode Selected.&quot;</span>);
-<a name="l01158"></a>01158         TIMER_AddTickHandler(MIXER_Mix);
-<a name="l01159"></a>01159     } <span class="keywordflow">else</span> <span class="keywordflow">if</span> (SDL_OpenAudio(&amp;spec, &amp;obtained) &lt;0 ) {
-<a name="l01160"></a>01160         mixer.nosound = <span class="keyword">true</span>;
-<a name="l01161"></a>01161         <a class="code" href="classLOG.html">LOG</a>(LOG_MISC,LOG_DEBUG)(<span class="stringliteral">&quot;MIXER:Can&#39;t open audio: %s , running in nosound mode.&quot;</span>,SDL_GetError());
-<a name="l01162"></a>01162         TIMER_AddTickHandler(MIXER_Mix);
-<a name="l01163"></a>01163     } <span class="keywordflow">else</span> {
-<a name="l01164"></a>01164         <span class="keywordflow">if</span>(((Bitu)mixer.freq != (Bitu)obtained.freq) || ((Bitu)mixer.blocksize != (Bitu)obtained.samples))
-<a name="l01165"></a>01165             <a class="code" href="classLOG.html">LOG</a>(LOG_MISC,LOG_DEBUG)(<span class="stringliteral">&quot;MIXER:Got different values from SDL: freq %d, blocksize %d&quot;</span>,(int)obtained.freq,(<span class="keywordtype">int</span>)obtained.samples);
-<a name="l01166"></a>01166 
-<a name="l01167"></a>01167         mixer.freq=(<span class="keywordtype">unsigned</span> int)obtained.freq;
-<a name="l01168"></a>01168         mixer.blocksize=obtained.samples;
-<a name="l01169"></a>01169         TIMER_AddTickHandler(MIXER_Mix);
-<a name="l01170"></a>01170         <span class="keywordflow">if</span> (mixer.sampleaccurate) PIC_AddEvent(MIXER_MixSingle,1000.0 / mixer.freq);
-<a name="l01171"></a>01171         SDL_PauseAudio(0);
-<a name="l01172"></a>01172     }
-<a name="l01173"></a>01173     mixer_start_pic_time = PIC_FullIndex();
-<a name="l01174"></a>01174     mixer_sample_counter = 0;
-<a name="l01175"></a>01175     mixer.work_in = mixer.work_out = 0;
-<a name="l01176"></a>01176     mixer.work_wrap = MIXER_BUFSIZE;
-<a name="l01177"></a>01177     <span class="keywordflow">if</span> (mixer.work_wrap &lt;= mixer.blocksize) E_Exit(<span class="stringliteral">&quot;blocksize too large&quot;</span>);
-<a name="l01178"></a>01178 
-<a name="l01179"></a>01179     {
-<a name="l01180"></a>01180         <span class="keywordtype">int</span> ms = section-&gt;Get_int(<span class="stringliteral">&quot;prebuffer&quot;</span>);
-<a name="l01181"></a>01181 
-<a name="l01182"></a>01182         <span class="keywordflow">if</span> (ms &lt; 0) ms = 20;
-<a name="l01183"></a>01183 
-<a name="l01184"></a>01184         mixer.prebuffer_samples = ((<span class="keywordtype">unsigned</span> int)ms * (<span class="keywordtype">unsigned</span> <span class="keywordtype">int</span>)mixer.freq) / 1000u;
-<a name="l01185"></a>01185         <span class="keywordflow">if</span> (mixer.prebuffer_samples &gt; (mixer.work_wrap / 2))
-<a name="l01186"></a>01186             mixer.prebuffer_samples = (mixer.work_wrap / 2);
-<a name="l01187"></a>01187     }
-<a name="l01188"></a>01188 
-<a name="l01189"></a>01189     <span class="comment">// how many samples per millisecond? compute as improper fraction (sample rate / 1000)</span>
-<a name="l01190"></a>01190     mixer.samples_per_ms.w = mixer.freq / 1000U;
-<a name="l01191"></a>01191     mixer.samples_per_ms.fn = mixer.freq % 1000U;
-<a name="l01192"></a>01192     mixer.samples_per_ms.fd = 1000U;
-<a name="l01193"></a>01193     mixer.samples_this_ms.w = mixer.samples_per_ms.w;
-<a name="l01194"></a>01194     mixer.samples_this_ms.fn = 0;
-<a name="l01195"></a>01195     mixer.samples_this_ms.fd = mixer.samples_per_ms.fd;
-<a name="l01196"></a>01196     mixer.samples_rendered_ms.w = 0;
-<a name="l01197"></a>01197     mixer.samples_rendered_ms.fn = 0;
-<a name="l01198"></a>01198     mixer.samples_rendered_ms.fd = mixer.samples_per_ms.fd;
+<a name="l01149"></a>01149     <span class="comment">/* Initialize the internal stuff */</span>
+<a name="l01150"></a>01150     mixer.prebuffer_samples=0;
+<a name="l01151"></a>01151     mixer.prebuffer_wait=<span class="keyword">true</span>;
+<a name="l01152"></a>01152     mixer.channels=0;
+<a name="l01153"></a>01153     mixer.pos=0;
+<a name="l01154"></a>01154     mixer.done=0;
+<a name="l01155"></a>01155     memset(mixer.work,0,<span class="keyword">sizeof</span>(mixer.work));
+<a name="l01156"></a>01156     mixer.mastervol[0]=1.0f;
+<a name="l01157"></a>01157     mixer.mastervol[1]=1.0f;
+<a name="l01158"></a>01158     mixer.recordvol[0]=1.0f;
+<a name="l01159"></a>01159     mixer.recordvol[1]=1.0f;
+<a name="l01160"></a>01160 
+<a name="l01161"></a>01161     <span class="comment">/* Start the Mixer using SDL Sound at 22 khz */</span>
+<a name="l01162"></a>01162     SDL_AudioSpec spec;
+<a name="l01163"></a>01163     SDL_AudioSpec obtained;
+<a name="l01164"></a>01164 
+<a name="l01165"></a>01165     spec.freq=(int)mixer.freq;
+<a name="l01166"></a>01166     spec.format=AUDIO_S16SYS;
+<a name="l01167"></a>01167     spec.channels=2;
+<a name="l01168"></a>01168     spec.callback=MIXER_CallBack;
+<a name="l01169"></a>01169     spec.userdata=NULL;
+<a name="l01170"></a>01170     spec.samples=(Uint16)mixer.blocksize;
+<a name="l01171"></a>01171 
+<a name="l01172"></a>01172     <span class="keywordflow">if</span> (mixer.nosound) {
+<a name="l01173"></a>01173         <a class="code" href="classLOG.html">LOG</a>(LOG_MISC,LOG_DEBUG)(<span class="stringliteral">&quot;MIXER:No Sound Mode Selected.&quot;</span>);
+<a name="l01174"></a>01174         TIMER_AddTickHandler(MIXER_Mix);
+<a name="l01175"></a>01175     } <span class="keywordflow">else</span> <span class="keywordflow">if</span> (SDL_OpenAudio(&amp;spec, &amp;obtained) &lt;0 ) {
+<a name="l01176"></a>01176         mixer.nosound = <span class="keyword">true</span>;
+<a name="l01177"></a>01177         <a class="code" href="classLOG.html">LOG</a>(LOG_MISC,LOG_DEBUG)(<span class="stringliteral">&quot;MIXER:Can&#39;t open audio: %s , running in nosound mode.&quot;</span>,SDL_GetError());
+<a name="l01178"></a>01178         TIMER_AddTickHandler(MIXER_Mix);
+<a name="l01179"></a>01179     } <span class="keywordflow">else</span> {
+<a name="l01180"></a>01180         <span class="keywordflow">if</span>(((Bitu)mixer.freq != (Bitu)obtained.freq) || ((Bitu)mixer.blocksize != (Bitu)obtained.samples))
+<a name="l01181"></a>01181             <a class="code" href="classLOG.html">LOG</a>(LOG_MISC,LOG_DEBUG)(<span class="stringliteral">&quot;MIXER:Got different values from SDL: freq %d, blocksize %d&quot;</span>,(int)obtained.freq,(<span class="keywordtype">int</span>)obtained.samples);
+<a name="l01182"></a>01182 
+<a name="l01183"></a>01183         mixer.freq=(<span class="keywordtype">unsigned</span> int)obtained.freq;
+<a name="l01184"></a>01184         mixer.blocksize=obtained.samples;
+<a name="l01185"></a>01185         TIMER_AddTickHandler(MIXER_Mix);
+<a name="l01186"></a>01186         <span class="keywordflow">if</span> (mixer.sampleaccurate) PIC_AddEvent(MIXER_MixSingle,1000.0 / mixer.freq);
+<a name="l01187"></a>01187         SDL_PauseAudio(0);
+<a name="l01188"></a>01188     }
+<a name="l01189"></a>01189     mixer_start_pic_time = PIC_FullIndex();
+<a name="l01190"></a>01190     mixer_sample_counter = 0;
+<a name="l01191"></a>01191     mixer.work_in = mixer.work_out = 0;
+<a name="l01192"></a>01192     mixer.work_wrap = MIXER_BUFSIZE;
+<a name="l01193"></a>01193     <span class="keywordflow">if</span> (mixer.work_wrap &lt;= mixer.blocksize) E_Exit(<span class="stringliteral">&quot;blocksize too large&quot;</span>);
+<a name="l01194"></a>01194 
+<a name="l01195"></a>01195     {
+<a name="l01196"></a>01196         <span class="keywordtype">int</span> ms = section-&gt;Get_int(<span class="stringliteral">&quot;prebuffer&quot;</span>);
+<a name="l01197"></a>01197 
+<a name="l01198"></a>01198         <span class="keywordflow">if</span> (ms &lt; 0) ms = 20;
 <a name="l01199"></a>01199 
-<a name="l01200"></a>01200     <a class="code" href="classLOG.html">LOG</a>(LOG_MISC,LOG_DEBUG)(<span class="stringliteral">&quot;Mixer: sample_accurate=%u blocksize=%u sdl_rate=%uHz mixer_rate=%uHz channels=%u samples=%u min/max/need=%u/%u/%u per_ms=%u %u/%u samples prebuffer=%u&quot;</span>,
-<a name="l01201"></a>01201         (<span class="keywordtype">unsigned</span> int)mixer.sampleaccurate,
-<a name="l01202"></a>01202         (<span class="keywordtype">unsigned</span> <span class="keywordtype">int</span>)mixer.blocksize,
-<a name="l01203"></a>01203         (<span class="keywordtype">unsigned</span> int)obtained.freq,
-<a name="l01204"></a>01204         (<span class="keywordtype">unsigned</span> <span class="keywordtype">int</span>)mixer.freq,
-<a name="l01205"></a>01205         (<span class="keywordtype">unsigned</span> int)obtained.channels,
-<a name="l01206"></a>01206         (<span class="keywordtype">unsigned</span> <span class="keywordtype">int</span>)obtained.samples,
-<a name="l01207"></a>01207         (<span class="keywordtype">unsigned</span> int)0,
-<a name="l01208"></a>01208         (<span class="keywordtype">unsigned</span> <span class="keywordtype">int</span>)0,
-<a name="l01209"></a>01209         (<span class="keywordtype">unsigned</span> int)0,
-<a name="l01210"></a>01210         (<span class="keywordtype">unsigned</span> <span class="keywordtype">int</span>)mixer.samples_per_ms.w,
-<a name="l01211"></a>01211         (<span class="keywordtype">unsigned</span> int)mixer.samples_per_ms.fn,
-<a name="l01212"></a>01212         (<span class="keywordtype">unsigned</span> <span class="keywordtype">int</span>)mixer.samples_per_ms.fd,
-<a name="l01213"></a>01213         (<span class="keywordtype">unsigned</span> int)mixer.prebuffer_samples);
-<a name="l01214"></a>01214 
-<a name="l01215"></a>01215     PROGRAMS_MakeFile(<span class="stringliteral">&quot;MIXER.COM&quot;</span>,MIXER_ProgramStart);
-<a name="l01216"></a>01216 
-<a name="l01217"></a>01217     MIXER_Controls_Init();
-<a name="l01218"></a>01218 }
-<a name="l01219"></a>01219 
+<a name="l01200"></a>01200         mixer.prebuffer_samples = ((<span class="keywordtype">unsigned</span> int)ms * (<span class="keywordtype">unsigned</span> <span class="keywordtype">int</span>)mixer.freq) / 1000u;
+<a name="l01201"></a>01201         <span class="keywordflow">if</span> (mixer.prebuffer_samples &gt; (mixer.work_wrap / 2))
+<a name="l01202"></a>01202             mixer.prebuffer_samples = (mixer.work_wrap / 2);
+<a name="l01203"></a>01203     }
+<a name="l01204"></a>01204 
+<a name="l01205"></a>01205     <span class="comment">// how many samples per millisecond? compute as improper fraction (sample rate / 1000)</span>
+<a name="l01206"></a>01206     mixer.samples_per_ms.w = mixer.freq / 1000U;
+<a name="l01207"></a>01207     mixer.samples_per_ms.fn = mixer.freq % 1000U;
+<a name="l01208"></a>01208     mixer.samples_per_ms.fd = 1000U;
+<a name="l01209"></a>01209     mixer.samples_this_ms.w = mixer.samples_per_ms.w;
+<a name="l01210"></a>01210     mixer.samples_this_ms.fn = 0;
+<a name="l01211"></a>01211     mixer.samples_this_ms.fd = mixer.samples_per_ms.fd;
+<a name="l01212"></a>01212     mixer.samples_rendered_ms.w = 0;
+<a name="l01213"></a>01213     mixer.samples_rendered_ms.fn = 0;
+<a name="l01214"></a>01214     mixer.samples_rendered_ms.fd = mixer.samples_per_ms.fd;
+<a name="l01215"></a>01215 
+<a name="l01216"></a>01216     <a class="code" href="classLOG.html">LOG</a>(LOG_MISC,LOG_DEBUG)(<span class="stringliteral">&quot;Mixer: sample_accurate=%u blocksize=%u sdl_rate=%uHz mixer_rate=%uHz channels=%u samples=%u min/max/need=%u/%u/%u per_ms=%u %u/%u samples prebuffer=%u&quot;</span>,
+<a name="l01217"></a>01217         (<span class="keywordtype">unsigned</span> int)mixer.sampleaccurate,
+<a name="l01218"></a>01218         (<span class="keywordtype">unsigned</span> <span class="keywordtype">int</span>)mixer.blocksize,
+<a name="l01219"></a>01219         (<span class="keywordtype">unsigned</span> int)obtained.freq,
+<a name="l01220"></a>01220         (<span class="keywordtype">unsigned</span> <span class="keywordtype">int</span>)mixer.freq,
+<a name="l01221"></a>01221         (<span class="keywordtype">unsigned</span> int)obtained.channels,
+<a name="l01222"></a>01222         (<span class="keywordtype">unsigned</span> <span class="keywordtype">int</span>)obtained.samples,
+<a name="l01223"></a>01223         (<span class="keywordtype">unsigned</span> int)0,
+<a name="l01224"></a>01224         (<span class="keywordtype">unsigned</span> <span class="keywordtype">int</span>)0,
+<a name="l01225"></a>01225         (<span class="keywordtype">unsigned</span> int)0,
+<a name="l01226"></a>01226         (<span class="keywordtype">unsigned</span> <span class="keywordtype">int</span>)mixer.samples_per_ms.w,
+<a name="l01227"></a>01227         (<span class="keywordtype">unsigned</span> int)mixer.samples_per_ms.fn,
+<a name="l01228"></a>01228         (<span class="keywordtype">unsigned</span> <span class="keywordtype">int</span>)mixer.samples_per_ms.fd,
+<a name="l01229"></a>01229         (<span class="keywordtype">unsigned</span> int)mixer.prebuffer_samples);
+<a name="l01230"></a>01230 
+<a name="l01231"></a>01231     AddVMEventFunction(VM_EVENT_DOS_INIT_KERNEL_READY,AddVMEventFunctionFuncPair(MIXER_DOS_Boot));
+<a name="l01232"></a>01232 
+<a name="l01233"></a>01233     MIXER_Controls_Init();
+<a name="l01234"></a>01234 }
+<a name="l01235"></a>01235 
+<a name="l01236"></a>01236 <span class="comment">// save state support</span>
+<a name="l01237"></a>01237 <span class="comment">//void *MIXER_Mix_NoSound_PIC_Timer = (void*)MIXER_Mix_NoSound;</span>
+<a name="l01238"></a>01238 <span class="keywordtype">void</span> *MIXER_Mix_PIC_Timer = (<span class="keywordtype">void</span>*)((uintptr_t)MIXER_Mix);
+<a name="l01239"></a>01239 
+<a name="l01240"></a>01240 
+<a name="l01241"></a>01241 <span class="keywordtype">void</span> MixerChannel::SaveState( std::ostream&amp; stream )
+<a name="l01242"></a>01242 {
+<a name="l01243"></a>01243         <span class="comment">// - pure data</span>
+<a name="l01244"></a>01244         WRITE_POD( &amp;volmain, volmain );
+<a name="l01245"></a>01245         WRITE_POD( &amp;scale, scale );
+<a name="l01246"></a>01246         WRITE_POD( &amp;volmul, volmul );
+<a name="l01247"></a>01247         <span class="comment">//WRITE_POD( &amp;freq_add, freq_add );</span>
+<a name="l01248"></a>01248         WRITE_POD( &amp;enabled, enabled );
+<a name="l01249"></a>01249 }
+<a name="l01250"></a>01250 
+<a name="l01251"></a>01251 
+<a name="l01252"></a>01252 <span class="keywordtype">void</span> MixerChannel::LoadState( std::istream&amp; stream )
+<a name="l01253"></a>01253 {
+<a name="l01254"></a>01254         <span class="comment">// - pure data</span>
+<a name="l01255"></a>01255         READ_POD( &amp;volmain, volmain );
+<a name="l01256"></a>01256         READ_POD( &amp;scale, scale );
+<a name="l01257"></a>01257         READ_POD( &amp;volmul, volmul );
+<a name="l01258"></a>01258         <span class="comment">//READ_POD( &amp;freq_add, freq_add );</span>
+<a name="l01259"></a>01259         READ_POD( &amp;enabled, enabled );
+<a name="l01260"></a>01260 
+<a name="l01261"></a>01261         <span class="comment">//********************************************</span>
+<a name="l01262"></a>01262         <span class="comment">//********************************************</span>
+<a name="l01263"></a>01263         <span class="comment">//********************************************</span>
+<a name="l01264"></a>01264 
+<a name="l01265"></a>01265         <span class="comment">// reset mixer channel (system data)</span>
+<a name="l01266"></a>01266         mixer.pos = 0;
+<a name="l01267"></a>01267         mixer.done = 0;
+<a name="l01268"></a>01268 }
+<a name="l01269"></a>01269 
+<a name="l01270"></a>01270 <span class="keyword">extern</span> <span class="keywordtype">void</span> POD_Save_Adlib(std::ostream&amp; stream);
+<a name="l01271"></a>01271 <span class="keyword">extern</span> <span class="keywordtype">void</span> POD_Save_Disney(std::ostream&amp; stream);
+<a name="l01272"></a>01272 <span class="keyword">extern</span> <span class="keywordtype">void</span> POD_Save_Gameblaster(std::ostream&amp; stream);
+<a name="l01273"></a>01273 <span class="keyword">extern</span> <span class="keywordtype">void</span> POD_Save_GUS(std::ostream&amp; stream);
+<a name="l01274"></a>01274 <span class="keyword">extern</span> <span class="keywordtype">void</span> POD_Save_MPU401(std::ostream&amp; stream);
+<a name="l01275"></a>01275 <span class="keyword">extern</span> <span class="keywordtype">void</span> POD_Save_PCSpeaker(std::ostream&amp; stream);
+<a name="l01276"></a>01276 <span class="keyword">extern</span> <span class="keywordtype">void</span> POD_Save_Sblaster(std::ostream&amp; stream);
+<a name="l01277"></a>01277 <span class="keyword">extern</span> <span class="keywordtype">void</span> POD_Save_Tandy_Sound(std::ostream&amp; stream);
+<a name="l01278"></a>01278 <span class="keyword">extern</span> <span class="keywordtype">void</span> POD_Load_Adlib(std::istream&amp; stream);
+<a name="l01279"></a>01279 <span class="keyword">extern</span> <span class="keywordtype">void</span> POD_Load_Disney(std::istream&amp; stream);
+<a name="l01280"></a>01280 <span class="keyword">extern</span> <span class="keywordtype">void</span> POD_Load_Gameblaster(std::istream&amp; stream);
+<a name="l01281"></a>01281 <span class="keyword">extern</span> <span class="keywordtype">void</span> POD_Load_GUS(std::istream&amp; stream);
+<a name="l01282"></a>01282 <span class="keyword">extern</span> <span class="keywordtype">void</span> POD_Load_MPU401(std::istream&amp; stream);
+<a name="l01283"></a>01283 <span class="keyword">extern</span> <span class="keywordtype">void</span> POD_Load_PCSpeaker(std::istream&amp; stream);
+<a name="l01284"></a>01284 <span class="keyword">extern</span> <span class="keywordtype">void</span> POD_Load_Sblaster(std::istream&amp; stream);
+<a name="l01285"></a>01285 <span class="keyword">extern</span> <span class="keywordtype">void</span> POD_Load_Tandy_Sound(std::istream&amp; stream);
+<a name="l01286"></a>01286 
+<a name="l01287"></a>01287 <span class="keyword">namespace</span>
+<a name="l01288"></a>01288 {
+<a name="l01289"></a>01289 <span class="keyword">class </span>SerializeMixer : <span class="keyword">public</span> SerializeGlobalPOD
+<a name="l01290"></a>01290 {
+<a name="l01291"></a>01291 <span class="keyword">public</span>:
+<a name="l01292"></a>01292         SerializeMixer() : SerializeGlobalPOD(<span class="stringliteral">&quot;Mixer&quot;</span>)
+<a name="l01293"></a>01293         {}
+<a name="l01294"></a>01294 
+<a name="l01295"></a>01295 <span class="keyword">private</span>:
+<a name="l01296"></a>01296         <span class="keyword">virtual</span> <span class="keywordtype">void</span> getBytes(std::ostream&amp; stream)
+<a name="l01297"></a>01297         {
+<a name="l01298"></a>01298 
+<a name="l01299"></a>01299                 <span class="comment">//*************************************************</span>
+<a name="l01300"></a>01300                 <span class="comment">//*************************************************</span>
+<a name="l01301"></a>01301 
+<a name="l01302"></a>01302                 SerializeGlobalPOD::getBytes(stream);
+<a name="l01303"></a>01303 
+<a name="l01304"></a>01304 
+<a name="l01305"></a>01305                 POD_Save_Adlib(stream);
+<a name="l01306"></a>01306                 POD_Save_Disney(stream);
+<a name="l01307"></a>01307                 POD_Save_Gameblaster(stream);
+<a name="l01308"></a>01308                 POD_Save_GUS(stream);
+<a name="l01309"></a>01309                 POD_Save_MPU401(stream);
+<a name="l01310"></a>01310                 POD_Save_PCSpeaker(stream);
+<a name="l01311"></a>01311                 POD_Save_Sblaster(stream);
+<a name="l01312"></a>01312                 POD_Save_Tandy_Sound(stream);
+<a name="l01313"></a>01313         }
+<a name="l01314"></a>01314 
+<a name="l01315"></a>01315         <span class="keyword">virtual</span> <span class="keywordtype">void</span> setBytes(std::istream&amp; stream)
+<a name="l01316"></a>01316         {
+<a name="l01317"></a>01317 
+<a name="l01318"></a>01318                 <span class="comment">//*************************************************</span>
+<a name="l01319"></a>01319                 <span class="comment">//*************************************************</span>
+<a name="l01320"></a>01320 
+<a name="l01321"></a>01321                 SerializeGlobalPOD::setBytes(stream);
+<a name="l01322"></a>01322 
+<a name="l01323"></a>01323 
+<a name="l01324"></a>01324                 POD_Load_Adlib(stream);
+<a name="l01325"></a>01325                 POD_Load_Disney(stream);
+<a name="l01326"></a>01326                 POD_Load_Gameblaster(stream);
+<a name="l01327"></a>01327                 POD_Load_GUS(stream);
+<a name="l01328"></a>01328                 POD_Load_MPU401(stream);
+<a name="l01329"></a>01329                 POD_Load_PCSpeaker(stream);
+<a name="l01330"></a>01330                 POD_Load_Sblaster(stream);
+<a name="l01331"></a>01331                 POD_Load_Tandy_Sound(stream);
+<a name="l01332"></a>01332 
+<a name="l01333"></a>01333                 <span class="comment">// reset mixer channel (system data)</span>
+<a name="l01334"></a>01334                 mixer.pos = 0;
+<a name="l01335"></a>01335                 mixer.done = 0;
+<a name="l01336"></a>01336         }
+<a name="l01337"></a>01337 
+<a name="l01338"></a>01338 } dummy;
+<a name="l01339"></a>01339 }
 </pre></div></div><!-- contents -->
 
 
 <hr class="footer"/><address class="footer"><small>
-Generated on Tue Oct 1 2019 18:06:27 for DOSBox-X by &#160;<a href="http://www.doxygen.org/index.html">
+Generated on Sun Jul 5 2020 13:11:36 for DOSBox-X by &#160;<a href="http://www.doxygen.org/index.html">
 <img class="footer" src="doxygen.png" alt="doxygen"/>
 </a> 1.8.0
 </small></address>

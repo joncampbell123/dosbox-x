@@ -96,7 +96,7 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 </div><!--header-->
 <div class="contents">
 <div class="fragment"><pre class="fragment"><a name="l00001"></a>00001 <span class="comment">/*</span>
-<a name="l00002"></a>00002 <span class="comment"> *  Copyright (C) 2002-2019  The DOSBox Team</span>
+<a name="l00002"></a>00002 <span class="comment"> *  Copyright (C) 2002-2020  The DOSBox Team</span>
 <a name="l00003"></a>00003 <span class="comment"> *</span>
 <a name="l00004"></a>00004 <span class="comment"> *  This program is free software; you can redistribute it and/or modify</span>
 <a name="l00005"></a>00005 <span class="comment"> *  it under the terms of the GNU General Public License as published by</span>
@@ -108,9 +108,9 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l00011"></a>00011 <span class="comment"> *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the</span>
 <a name="l00012"></a>00012 <span class="comment"> *  GNU General Public License for more details.</span>
 <a name="l00013"></a>00013 <span class="comment"> *</span>
-<a name="l00014"></a>00014 <span class="comment"> *  You should have received a copy of the GNU General Public License</span>
-<a name="l00015"></a>00015 <span class="comment"> *  along with this program; if not, write to the Free Software</span>
-<a name="l00016"></a>00016 <span class="comment"> *  Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1335, USA.</span>
+<a name="l00014"></a>00014 <span class="comment"> *  You should have received a copy of the GNU General Public License along</span>
+<a name="l00015"></a>00015 <span class="comment"> *  with this program; if not, write to the Free Software Foundation, Inc.,</span>
+<a name="l00016"></a>00016 <span class="comment"> *  51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.</span>
 <a name="l00017"></a>00017 <span class="comment"> */</span>
 <a name="l00018"></a>00018 
 <a name="l00019"></a>00019 
@@ -213,7 +213,7 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l00116"></a>00116         <span class="keywordflow">if</span> (ret) 
 <a name="l00117"></a>00117                 <span class="keywordflow">return</span> ret;
 <a name="l00118"></a>00118         <span class="keywordflow">if</span> (!pf_queue.used) E_Exit(<span class="stringliteral">&quot;PF Core without PF&quot;</span>);
-<a name="l00119"></a>00119         <a class="code" href="structPF__Entry.html">PF_Entry</a> * entry=&amp;pf_queue.entries[pf_queue.used-1];
+<a name="l00119"></a>00119     <span class="keyword">const</span> <a class="code" href="structPF__Entry.html">PF_Entry</a>* entry = &amp;pf_queue.entries[pf_queue.used - 1];
 <a name="l00120"></a>00120         <a class="code" href="unionX86PageEntry.html">X86PageEntry</a> pentry;
 <a name="l00121"></a>00121         pentry.load=phys_readd((PhysPt)entry-&gt;page_addr);
 <a name="l00122"></a>00122         <span class="keywordflow">if</span> (pentry.block.p &amp;&amp; entry-&gt;cs == SegValue(cs) &amp;&amp; entry-&gt;eip==reg_eip) {
@@ -323,7 +323,7 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l00226"></a>00226 <span class="keyword">static</span> <span class="keyword">inline</span> PhysPt GetPageDirectoryEntryAddr(PhysPt lin_addr) {
 <a name="l00227"></a>00227         <span class="keywordflow">return</span> paging.base.addr | ((lin_addr &gt;&gt; 22u) &lt;&lt; 2u);
 <a name="l00228"></a>00228 }
-<a name="l00229"></a>00229 <span class="keyword">static</span> <span class="keyword">inline</span> PhysPt GetPageTableEntryAddr(PhysPt lin_addr, <a class="code" href="unionX86PageEntry.html">X86PageEntry</a>&amp; dir_entry) {
+<a name="l00229"></a>00229 <span class="keyword">static</span> <span class="keyword">inline</span> PhysPt GetPageTableEntryAddr(PhysPt lin_addr, <span class="keyword">const</span> <a class="code" href="unionX86PageEntry.html">X86PageEntry</a>&amp; dir_entry) {
 <a name="l00230"></a>00230         <span class="keywordflow">return</span> ((PhysPt)dir_entry.block.base &lt;&lt; (PhysPt)12U) | ((lin_addr &gt;&gt; 10U) &amp; 0xffcu);
 <a name="l00231"></a>00231 }
 <a name="l00232"></a>00232 <span class="comment">/*</span>
@@ -1294,11 +1294,66 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l01197"></a>01197         pf_queue.used=0;
 <a name="l01198"></a>01198 }
 <a name="l01199"></a>01199 
+<a name="l01200"></a>01200 <span class="comment">// save state support</span>
+<a name="l01201"></a>01201 <span class="keywordtype">void</span> POD_Save_CPU_Paging( std::ostream&amp; stream )
+<a name="l01202"></a>01202 {
+<a name="l01203"></a>01203         WRITE_POD( &amp;paging.cr3, paging.cr3 );
+<a name="l01204"></a>01204         WRITE_POD( &amp;paging.cr2, paging.cr2 );
+<a name="l01205"></a>01205 <span class="comment">//      WRITE_POD( &amp;paging.wp, paging.wp );</span>
+<a name="l01206"></a>01206         WRITE_POD( &amp;paging.base, paging.base );
+<a name="l01207"></a>01207 
+<a name="l01208"></a>01208         WRITE_POD( &amp;paging.tlb.read, paging.tlb.read );
+<a name="l01209"></a>01209         WRITE_POD( &amp;paging.tlb.write, paging.tlb.write );
+<a name="l01210"></a>01210         WRITE_POD( &amp;paging.tlb.phys_page, paging.tlb.phys_page );
+<a name="l01211"></a>01211 
+<a name="l01212"></a>01212         WRITE_POD( &amp;paging.links, paging.links );
+<a name="l01213"></a>01213 <span class="comment">//      WRITE_POD( &amp;paging.ur_links, paging.ur_links );</span>
+<a name="l01214"></a>01214 <span class="comment">//      WRITE_POD( &amp;paging.krw_links, paging.krw_links );</span>
+<a name="l01215"></a>01215 <span class="comment">//      WRITE_POD( &amp;paging.kr_links, paging.kr_links );</span>
+<a name="l01216"></a>01216 
+<a name="l01217"></a>01217         WRITE_POD( &amp;paging.firstmb, paging.firstmb );
+<a name="l01218"></a>01218         WRITE_POD( &amp;paging.enabled, paging.enabled );
+<a name="l01219"></a>01219 
+<a name="l01220"></a>01220         WRITE_POD( &amp;pf_queue, pf_queue );
+<a name="l01221"></a>01221 }
+<a name="l01222"></a>01222 
+<a name="l01223"></a>01223 <span class="keywordtype">void</span> POD_Load_CPU_Paging( std::istream&amp; stream )
+<a name="l01224"></a>01224 {
+<a name="l01225"></a>01225         READ_POD( &amp;paging.cr3, paging.cr3 );
+<a name="l01226"></a>01226         READ_POD( &amp;paging.cr2, paging.cr2 );
+<a name="l01227"></a>01227 <span class="comment">//      READ_POD( &amp;paging.wp, paging.wp );</span>
+<a name="l01228"></a>01228         READ_POD( &amp;paging.base, paging.base );
+<a name="l01229"></a>01229 
+<a name="l01230"></a>01230         READ_POD( &amp;paging.tlb.read, paging.tlb.read );
+<a name="l01231"></a>01231         READ_POD( &amp;paging.tlb.write, paging.tlb.write );
+<a name="l01232"></a>01232         READ_POD( &amp;paging.tlb.phys_page, paging.tlb.phys_page );
+<a name="l01233"></a>01233 
+<a name="l01234"></a>01234         READ_POD( &amp;paging.links, paging.links );
+<a name="l01235"></a>01235 <span class="comment">//      READ_POD( &amp;paging.ur_links, paging.ur_links );</span>
+<a name="l01236"></a>01236 <span class="comment">//      READ_POD( &amp;paging.krw_links, paging.krw_links );</span>
+<a name="l01237"></a>01237 <span class="comment">//      READ_POD( &amp;paging.kr_links, paging.kr_links );</span>
+<a name="l01238"></a>01238 
+<a name="l01239"></a>01239         READ_POD( &amp;paging.firstmb, paging.firstmb );
+<a name="l01240"></a>01240         READ_POD( &amp;paging.enabled, paging.enabled );
+<a name="l01241"></a>01241 
+<a name="l01242"></a>01242         READ_POD( &amp;pf_queue, pf_queue );
+<a name="l01243"></a>01243 
+<a name="l01244"></a>01244         <span class="comment">// reset all information</span>
+<a name="l01245"></a>01245         paging.links.used = PAGING_LINKS;
+<a name="l01246"></a>01246         PAGING_ClearTLB();
+<a name="l01247"></a>01247 
+<a name="l01248"></a>01248         <span class="keywordflow">for</span>( <span class="keywordtype">int</span> lcv=0; lcv&lt;TLB_SIZE; lcv++ ) {
+<a name="l01249"></a>01249                 paging.tlb.read[lcv] = 0;
+<a name="l01250"></a>01250                 paging.tlb.write[lcv] = 0;
+<a name="l01251"></a>01251                 paging.tlb.readhandler[lcv] = &amp;init_page_handler;
+<a name="l01252"></a>01252                 paging.tlb.writehandler[lcv] = &amp;init_page_handler;
+<a name="l01253"></a>01253         }
+<a name="l01254"></a>01254 }
 </pre></div></div><!-- contents -->
 
 
 <hr class="footer"/><address class="footer"><small>
-Generated on Tue Oct 1 2019 18:06:24 for DOSBox-X by &#160;<a href="http://www.doxygen.org/index.html">
+Generated on Sun Jul 5 2020 13:11:34 for DOSBox-X by &#160;<a href="http://www.doxygen.org/index.html">
 <img class="footer" src="doxygen.png" alt="doxygen"/>
 </a> 1.8.0
 </small></address>

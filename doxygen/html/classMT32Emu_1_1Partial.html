@@ -111,8 +111,8 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <table class="memberdecls">
 <tr><td colspan="2"><h2><a name="pub-methods"></a>
 Public Member Functions</h2></td></tr>
-<tr class="memitem:a12f1691c299ffb87c4020ce4ea0db4ee"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a12f1691c299ffb87c4020ce4ea0db4ee"></a>
-&#160;</td><td class="memItemRight" valign="bottom"><b>Partial</b> (<a class="el" href="classMT32Emu_1_1Synth.html">Synth</a> *synth, int debugPartialNum)</td></tr>
+<tr class="memitem:a59ea8f71def382202fd53c7a920788ac"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a59ea8f71def382202fd53c7a920788ac"></a>
+&#160;</td><td class="memItemRight" valign="bottom"><b>Partial</b> (<a class="el" href="classMT32Emu_1_1Synth.html">Synth</a> *useSynth, int useDebugPartialNum)</td></tr>
 <tr class="memitem:a7410808cbcf8c65a1268703189640460"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a7410808cbcf8c65a1268703189640460"></a>
 int&#160;</td><td class="memItemRight" valign="bottom"><b>debugGetPartialNum</b> () const </td></tr>
 <tr class="memitem:a2a454c4d62e1979be362162ae53a4da3"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a2a454c4d62e1979be362162ae53a4da3"></a>
@@ -127,8 +127,8 @@ bool&#160;</td><td class="memItemRight" valign="bottom"><b>isActive</b> () const
 void&#160;</td><td class="memItemRight" valign="bottom"><b>activate</b> (int part)</td></tr>
 <tr class="memitem:a3b24766d3398da3da9cec2d27df43b59"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a3b24766d3398da3da9cec2d27df43b59"></a>
 void&#160;</td><td class="memItemRight" valign="bottom"><b>deactivate</b> (void)</td></tr>
-<tr class="memitem:afa7687c2c6d1cbc91f351adc1f4348d9"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="afa7687c2c6d1cbc91f351adc1f4348d9"></a>
-void&#160;</td><td class="memItemRight" valign="bottom"><b>startPartial</b> (const <a class="el" href="classMT32Emu_1_1Part.html">Part</a> *part, <a class="el" href="classMT32Emu_1_1Poly.html">Poly</a> *usePoly, const <a class="el" href="structMT32Emu_1_1PatchCache.html">PatchCache</a> *useCache, const <a class="el" href="structMT32Emu_1_1MemParams_1_1RhythmTemp.html">MemParams::RhythmTemp</a> *rhythmTemp, <a class="el" href="classMT32Emu_1_1Partial.html">Partial</a> *pairPartial)</td></tr>
+<tr class="memitem:ad8e4f9db791ac1931ca0d79806e93bbc"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="ad8e4f9db791ac1931ca0d79806e93bbc"></a>
+void&#160;</td><td class="memItemRight" valign="bottom"><b>startPartial</b> (const <a class="el" href="classMT32Emu_1_1Part.html">Part</a> *part, <a class="el" href="classMT32Emu_1_1Poly.html">Poly</a> *usePoly, const <a class="el" href="structMT32Emu_1_1PatchCache.html">PatchCache</a> *usePatchCache, const <a class="el" href="structMT32Emu_1_1MemParams_1_1RhythmTemp.html">MemParams::RhythmTemp</a> *rhythmTemp, <a class="el" href="classMT32Emu_1_1Partial.html">Partial</a> *pairPartial)</td></tr>
 <tr class="memitem:afccccff50693629ef1f7cbb6c123a3ea"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="afccccff50693629ef1f7cbb6c123a3ea"></a>
 void&#160;</td><td class="memItemRight" valign="bottom"><b>startAbort</b> ()</td></tr>
 <tr class="memitem:a87f7fa76409f8119f6295514877d056a"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a87f7fa76409f8119f6295514877d056a"></a>
@@ -164,7 +164,7 @@ const <a class="el" href="structMT32Emu_1_1PatchCache.html">PatchCache</a> *&#16
 <tr class="memitem:aa784f5e14132bf8f9471c6e968db5f5e"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="aa784f5e14132bf8f9471c6e968db5f5e"></a>
 <a class="el" href="classMT32Emu_1_1Partial.html">Partial</a> *&#160;</td><td class="memItemRight" valign="bottom"><b>pair</b></td></tr>
 <tr class="memitem:a3c99c40c88aa9b33aa86a3752fc1977e"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a3c99c40c88aa9b33aa86a3752fc1977e"></a>
-bool&#160;</td><td class="memItemRight" valign="bottom"><b>alreadyOutputed</b></td></tr>
+bool&#160;</td><td class="memItemRight" valign="bottom"><b>alreadyOutputed</b> = false</td></tr>
 </table>
 <hr/><a name="details" id="details"></a><h2>Detailed Description</h2>
 <div class="textblock">
@@ -177,7 +177,7 @@ bool&#160;</td><td class="memItemRight" valign="bottom"><b>alreadyOutputed</b></
 
 
 <hr class="footer"/><address class="footer"><small>
-Generated on Tue Oct 1 2019 18:06:34 for DOSBox-X by &#160;<a href="http://www.doxygen.org/index.html">
+Generated on Sun Jul 5 2020 13:11:43 for DOSBox-X by &#160;<a href="http://www.doxygen.org/index.html">
 <img class="footer" src="doxygen.png" alt="doxygen"/>
 </a> 1.8.0
 </small></address>

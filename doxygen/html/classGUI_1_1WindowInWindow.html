@@ -101,7 +101,8 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <div class="header">
   <div class="summary">
 <a href="#pub-methods">Public Member Functions</a> &#124;
-<a href="#pub-attribs">Public Attributes</a>  </div>
+<a href="#pub-attribs">Public Attributes</a> &#124;
+<a href="#pro-methods">Protected Member Functions</a>  </div>
   <div class="headertitle">
 <div class="title">GUI::WindowInWindow Class Reference</div>  </div>
 </div><!--header-->
@@ -140,6 +141,9 @@ virtual bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" hr
 <tr class="memitem:ac2c184d3cad01f199019a72963db36c0"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="ac2c184d3cad01f199019a72963db36c0"></a>
 virtual bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classGUI_1_1WindowInWindow.html#ac2c184d3cad01f199019a72963db36c0">mouseDoubleClicked</a> (int <a class="el" href="classGUI_1_1Window.html#a6ca6a80ca00c9e1d8ceea8d3d99a657d">x</a>, int <a class="el" href="classGUI_1_1Window.html#a0ee8e923aff2c3661fc2e17656d37adf">y</a>, <a class="el" href="namespaceGUI.html#ad06082a7b02aa73697f39eb8e0856de9">MouseButton</a> button)</td></tr>
 <tr class="memdesc:ac2c184d3cad01f199019a72963db36c0"><td class="mdescLeft">&#160;</td><td class="mdescRight">Mouse was double-clicked. Returns true if event was handled. <br/></td></tr>
+<tr class="memitem:a9c0dea9151658aa843187712c279458e"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a9c0dea9151658aa843187712c279458e"></a>
+virtual bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classGUI_1_1WindowInWindow.html#a9c0dea9151658aa843187712c279458e">keyDown</a> (const <a class="el" href="classGUI_1_1Key.html">Key</a> &amp;key)</td></tr>
+<tr class="memdesc:a9c0dea9151658aa843187712c279458e"><td class="mdescLeft">&#160;</td><td class="mdescRight"><a class="el" href="classGUI_1_1Key.html" title="Identifies a keyboard key.">Key</a> was pressed. Returns true if event was handled. <br/></td></tr>
 <tr class="memitem:a997195eb95899394daa7c8806dfa6cf7"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a997195eb95899394daa7c8806dfa6cf7"></a>
 virtual void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classGUI_1_1WindowInWindow.html#a997195eb95899394daa7c8806dfa6cf7">paintAll</a> (<a class="el" href="classGUI_1_1Drawable.html">Drawable</a> &amp;d) const </td></tr>
 <tr class="memdesc:a997195eb95899394daa7c8806dfa6cf7"><td class="mdescLeft">&#160;</td><td class="mdescRight">Draw this window's content including all children. <br/></td></tr>
@@ -158,9 +162,9 @@ bool&#160;</td><td class="memItemRight" valign="bottom"><b>vscroll_dragging</b> 
 <tr class="memitem:a1c945785e82712babccfbf188da62930"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a1c945785e82712babccfbf188da62930"></a>
 bool&#160;</td><td class="memItemRight" valign="bottom"><b>dragging</b> = false</td></tr>
 <tr class="memitem:a9ab1330fc8a4065919719bb968c25fdd"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a9ab1330fc8a4065919719bb968c25fdd"></a>
-int&#160;</td><td class="memItemRight" valign="bottom"><b>drag_x</b></td></tr>
+int&#160;</td><td class="memItemRight" valign="bottom"><b>drag_x</b> = 0</td></tr>
 <tr class="memitem:abed1ad96cf7af3763a77ef424c114499"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="abed1ad96cf7af3763a77ef424c114499"></a>
-int&#160;</td><td class="memItemRight" valign="bottom"><b>drag_y</b></td></tr>
+int&#160;</td><td class="memItemRight" valign="bottom"><b>drag_y</b> = 0</td></tr>
 <tr class="memitem:ae74d558d43f42a2787b8a5471986e53b"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="ae74d558d43f42a2787b8a5471986e53b"></a>
 int&#160;</td><td class="memItemRight" valign="bottom"><b>scroll_pos_x</b> = 0</td></tr>
 <tr class="memitem:ae551f45095ba7c05d9e8bb020482619d"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="ae551f45095ba7c05d9e8bb020482619d"></a>
@@ -179,10 +183,14 @@ int&#160;</td><td class="memItemRight" valign="bottom"><b>hscroll_display_width<
 int&#160;</td><td class="memItemRight" valign="bottom"><b>vscroll_display_width</b> = 16</td></tr>
 <tr class="memitem:a02ab75b97521afbbbe7e65c79f5ce47c"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a02ab75b97521afbbbe7e65c79f5ce47c"></a>
 bool&#160;</td><td class="memItemRight" valign="bottom"><b>border</b> = false</td></tr>
+<tr><td colspan="2"><h2><a name="pro-methods"></a>
+Protected Member Functions</h2></td></tr>
+<tr class="memitem:a2c90ec08717161a3cd62de3936bfa11a"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a2c90ec08717161a3cd62de3936bfa11a"></a>
+void&#160;</td><td class="memItemRight" valign="bottom"><b>scrollToWindow</b> (<a class="el" href="classGUI_1_1Window.html">Window</a> *child)</td></tr>
 </table>
 <hr/><a name="details" id="details"></a><h2>Detailed Description</h2>
 <div class="textblock">
-<p>Definition at line <a class="el" href="gui__tk_8h_source.html#l00771">771</a> of file <a class="el" href="gui__tk_8h_source.html">gui_tk.h</a>.</p>
+<p>Definition at line <a class="el" href="gui__tk_8h_source.html#l00782">782</a> of file <a class="el" href="gui__tk_8h_source.html">gui_tk.h</a>.</p>
 </div><hr/><h2>Member Function Documentation</h2>
 <a class="anchor" id="a2ed086150348b1fcf9564997185b76a4"></a>
 <div class="memitem">
@@ -220,7 +228,7 @@ bool&#160;</td><td class="memItemRight" valign="bottom"><b>border</b> = false</t
 
 <p>Reimplemented from <a class="el" href="classGUI_1_1Window.html#a9519fe8a8f08b5b70524d2230d209107">GUI::Window</a>.</p>
 
-<p>Definition at line <a class="el" href="gui__tk_8cpp_source.html#l02143">2143</a> of file <a class="el" href="gui__tk_8cpp_source.html">gui_tk.cpp</a>.</p>
+<p>Definition at line <a class="el" href="gui__tk_8cpp_source.html#l02296">2296</a> of file <a class="el" href="gui__tk_8cpp_source.html">gui_tk.cpp</a>.</p>
 
 </div>
 </div>
@@ -254,11 +262,11 @@ bool&#160;</td><td class="memItemRight" valign="bottom"><b>border</b> = false</t
 
 <p>Reimplemented from <a class="el" href="classGUI_1_1Window.html#a274ad6d6e68c94b165aa58700759f418">GUI::Window</a>.</p>
 
-<p>Definition at line <a class="el" href="gui__tk_8cpp_source.html#l02171">2171</a> of file <a class="el" href="gui__tk_8cpp_source.html">gui_tk.cpp</a>.</p>
+<p>Definition at line <a class="el" href="gui__tk_8cpp_source.html#l02324">2324</a> of file <a class="el" href="gui__tk_8cpp_source.html">gui_tk.cpp</a>.</p>
 
-<p>References <a class="el" href="gui__tk_8h_source.html#l00622">GUI::Window::children</a>, <a class="el" href="gui__tk_8h_source.html#l00671">GUI::Window::getHeight()</a>, <a class="el" href="gui__tk_8h_source.html#l00669">GUI::Window::getWidth()</a>, <a class="el" href="gui__tk_8h_source.html#l00678">GUI::Window::getX()</a>, and <a class="el" href="gui__tk_8h_source.html#l00680">GUI::Window::getY()</a>.</p>
+<p>References <a class="el" href="gui__tk_8h_source.html#l00629">GUI::Window::children</a>, <a class="el" href="gui__tk_8h_source.html#l00678">GUI::Window::getHeight()</a>, <a class="el" href="gui__tk_8h_source.html#l00676">GUI::Window::getWidth()</a>, <a class="el" href="gui__tk_8h_source.html#l00685">GUI::Window::getX()</a>, and <a class="el" href="gui__tk_8h_source.html#l00687">GUI::Window::getY()</a>.</p>
 
-<p>Referenced by <a class="el" href="gui__tk_8h_source.html#l02493">GUI::MessageBox2::setText()</a>.</p>
+<p>Referenced by <a class="el" href="gui__tk_8h_source.html#l02569">GUI::MessageBox2::setText()</a>.</p>
 
 </div>
 </div>
@@ -270,7 +278,7 @@ bool&#160;</td><td class="memItemRight" valign="bottom"><b>border</b> = false</t
 
 
 <hr class="footer"/><address class="footer"><small>
-Generated on Tue Oct 1 2019 18:06:33 for DOSBox-X by &#160;<a href="http://www.doxygen.org/index.html">
+Generated on Sun Jul 5 2020 13:11:43 for DOSBox-X by &#160;<a href="http://www.doxygen.org/index.html">
 <img class="footer" src="doxygen.png" alt="doxygen"/>
 </a> 1.8.0
 </small></address>

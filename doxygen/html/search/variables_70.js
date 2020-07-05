@@ -1,6 +1,7 @@
 var searchData=
 [
   ['parent',['parent',['../classGUI_1_1Window.html#a2e593ff65e7702178d82fe9010a0b539',1,'GUI::Window']]],
+  ['patch',['patch',['../structSound__Version.html#a7ebc29f83c1a812ee24b556ad6dfc1f4',1,'Sound_Version']]],
   ['pinnames',['pinNames',['../classIntel8255.html#a9b4ea7714e1b9df34052e269e7f06dfa',1,'Intel8255']]],
   ['pintr_5fa',['pINTR_A',['../classIntel8255.html#a3f0b361bdd3b3e17f2e4155a562e97f6',1,'Intel8255']]],
   ['pintr_5fb',['pINTR_B',['../classIntel8255.html#a20fdff00b2ce0c6ff6853a812cb4bd9d',1,'Intel8255']]],

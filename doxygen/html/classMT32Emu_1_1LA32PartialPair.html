@@ -116,20 +116,20 @@ Public Types</h2></td></tr>
  }</td></tr>
 <tr><td colspan="2"><h2><a name="pub-methods"></a>
 Public Member Functions</h2></td></tr>
-<tr class="memitem:a7769592bcb38c677bf4d4937a1a7f292"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a7769592bcb38c677bf4d4937a1a7f292"></a>
-void&#160;</td><td class="memItemRight" valign="bottom"><b>init</b> (const bool ringModulated, const bool mixed)</td></tr>
-<tr class="memitem:ab8d3c264d62a5bbc69fd541e43b419ac"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="ab8d3c264d62a5bbc69fd541e43b419ac"></a>
-void&#160;</td><td class="memItemRight" valign="bottom"><b>initSynth</b> (const PairType master, const bool sawtoothWaveform, const Bit8u pulseWidth, const Bit8u resonance)</td></tr>
+<tr class="memitem:ab819928850e210a487c771c4de3846fc"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="ab819928850e210a487c771c4de3846fc"></a>
+void&#160;</td><td class="memItemRight" valign="bottom"><b>init</b> (const bool useRingModulated, const bool useMixed)</td></tr>
+<tr class="memitem:af7cf61267244636428e1a0fb5dd195c4"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="af7cf61267244636428e1a0fb5dd195c4"></a>
+void&#160;</td><td class="memItemRight" valign="bottom"><b>initSynth</b> (const PairType useMaster, const bool sawtoothWaveform, const Bit8u pulseWidth, const Bit8u resonance)</td></tr>
 <tr class="memitem:a7581724a39d513483567a19d27b68114"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a7581724a39d513483567a19d27b68114"></a>
 void&#160;</td><td class="memItemRight" valign="bottom"><b>initPCM</b> (const PairType master, const Bit16s *const pcmWaveAddress, const Bit32u pcmWaveLength, const bool pcmWaveLooped)</td></tr>
-<tr class="memitem:a7c86235cb33b7ab3faafbc82b524262e"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a7c86235cb33b7ab3faafbc82b524262e"></a>
-void&#160;</td><td class="memItemRight" valign="bottom"><b>generateNextSample</b> (const PairType master, const Bit32u amp, const Bit16u pitch, const Bit32u cutoff)</td></tr>
+<tr class="memitem:ab5c606b0397946c7af23c03de62f3ebd"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="ab5c606b0397946c7af23c03de62f3ebd"></a>
+void&#160;</td><td class="memItemRight" valign="bottom"><b>generateNextSample</b> (const PairType useMaster, const Bit32u amp, const Bit16u pitch, const Bit32u cutoff)</td></tr>
 <tr class="memitem:af8e6766879624354d1a298b1f5f76a1c"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="af8e6766879624354d1a298b1f5f76a1c"></a>
 Bit16s&#160;</td><td class="memItemRight" valign="bottom"><b>nextOutSample</b> ()</td></tr>
-<tr class="memitem:a19edb5d2267ef3bb2414cc781ba3dbc4"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a19edb5d2267ef3bb2414cc781ba3dbc4"></a>
-void&#160;</td><td class="memItemRight" valign="bottom"><b>deactivate</b> (const PairType master)</td></tr>
-<tr class="memitem:ac78203e863d405adffb4e05e4a249625"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="ac78203e863d405adffb4e05e4a249625"></a>
-bool&#160;</td><td class="memItemRight" valign="bottom"><b>isActive</b> (const PairType master) const </td></tr>
+<tr class="memitem:a97a0fb142d92c0812986c8b345cdc823"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a97a0fb142d92c0812986c8b345cdc823"></a>
+void&#160;</td><td class="memItemRight" valign="bottom"><b>deactivate</b> (const PairType useMaster)</td></tr>
+<tr class="memitem:aa4e228838df605a6cc694cd257393d9e"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="aa4e228838df605a6cc694cd257393d9e"></a>
+bool&#160;</td><td class="memItemRight" valign="bottom"><b>isActive</b> (const PairType useMaster) const </td></tr>
 </table>
 <hr/><a name="details" id="details"></a><h2>Detailed Description</h2>
 <div class="textblock">
@@ -142,7 +142,7 @@ bool&#160;</td><td class="memItemRight" valign="bottom"><b>isActive</b> (const P
 
 
 <hr class="footer"/><address class="footer"><small>
-Generated on Tue Oct 1 2019 18:06:34 for DOSBox-X by &#160;<a href="http://www.doxygen.org/index.html">
+Generated on Sun Jul 5 2020 13:11:43 for DOSBox-X by &#160;<a href="http://www.doxygen.org/index.html">
 <img class="footer" src="doxygen.png" alt="doxygen"/>
 </a> 1.8.0
 </small></address>

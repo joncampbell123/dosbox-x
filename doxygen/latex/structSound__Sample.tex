@@ -1,0 +1,77 @@
+\hypertarget{structSound__Sample}{\section{Sound\-\_\-\-Sample Struct Reference}
+\label{structSound__Sample}\index{Sound\-\_\-\-Sample@{Sound\-\_\-\-Sample}}
+}
+
+
+Represents sound data in the process of being decoded.  
+
+
+
+
+{\ttfamily \#include $<$S\-D\-L\-\_\-sound.\-h$>$}
+
+\subsection*{Public Attributes}
+\begin{DoxyCompactItemize}
+\item 
+void $\ast$ \hyperlink{structSound__Sample_af9b14d108498631919187832d74efa11}{opaque}
+\item 
+const \hyperlink{structSound__DecoderInfo}{Sound\-\_\-\-Decoder\-Info} $\ast$ \hyperlink{structSound__Sample_a03ef7710992520e65edacc9ad694b034}{decoder}
+\item 
+\hyperlink{structSound__AudioInfo}{Sound\-\_\-\-Audio\-Info} \hyperlink{structSound__Sample_aca3059080501599b2fef90032122108d}{desired}
+\item 
+\hyperlink{structSound__AudioInfo}{Sound\-\_\-\-Audio\-Info} \hyperlink{structSound__Sample_a4862ebaacdb0d4ec3aa3f7874ef2b903}{actual}
+\item 
+Uint32 \hyperlink{structSound__Sample_a0faf525fbd34bc2553be187c4fcee8d1}{flags}
+\end{DoxyCompactItemize}
+
+
+\subsection{Detailed Description}
+Represents sound data in the process of being decoded. 
+
+The \hyperlink{structSound__Sample}{Sound\-\_\-\-Sample} structure is the heart of S\-D\-L\-\_\-sound. This holds information about a source of sound data as it is being decoded. E\-V\-E\-R\-Y F\-I\-E\-L\-D I\-N T\-H\-I\-S I\-S R\-E\-A\-D-\/\-O\-N\-L\-Y. Please use the A\-P\-I functions to change them. 
+
+Definition at line 159 of file S\-D\-L\-\_\-sound.\-h.
+
+
+
+\subsection{Member Data Documentation}
+\hypertarget{structSound__Sample_a4862ebaacdb0d4ec3aa3f7874ef2b903}{\index{Sound\-\_\-\-Sample@{Sound\-\_\-\-Sample}!actual@{actual}}
+\index{actual@{actual}!Sound_Sample@{Sound\-\_\-\-Sample}}
+\subsubsection[{actual}]{\setlength{\rightskip}{0pt plus 5cm}{\bf Sound\-\_\-\-Audio\-Info} {\bf Sound\-\_\-\-Sample\-::actual}}}\label{structSound__Sample_a4862ebaacdb0d4ec3aa3f7874ef2b903}
+Actual audio format of sample. 
+
+Definition at line 164 of file S\-D\-L\-\_\-sound.\-h.
+
+\hypertarget{structSound__Sample_a03ef7710992520e65edacc9ad694b034}{\index{Sound\-\_\-\-Sample@{Sound\-\_\-\-Sample}!decoder@{decoder}}
+\index{decoder@{decoder}!Sound_Sample@{Sound\-\_\-\-Sample}}
+\subsubsection[{decoder}]{\setlength{\rightskip}{0pt plus 5cm}const {\bf Sound\-\_\-\-Decoder\-Info}$\ast$ {\bf Sound\-\_\-\-Sample\-::decoder}}}\label{structSound__Sample_a03ef7710992520e65edacc9ad694b034}
+Decoder used for this sample. 
+
+Definition at line 162 of file S\-D\-L\-\_\-sound.\-h.
+
+\hypertarget{structSound__Sample_aca3059080501599b2fef90032122108d}{\index{Sound\-\_\-\-Sample@{Sound\-\_\-\-Sample}!desired@{desired}}
+\index{desired@{desired}!Sound_Sample@{Sound\-\_\-\-Sample}}
+\subsubsection[{desired}]{\setlength{\rightskip}{0pt plus 5cm}{\bf Sound\-\_\-\-Audio\-Info} {\bf Sound\-\_\-\-Sample\-::desired}}}\label{structSound__Sample_aca3059080501599b2fef90032122108d}
+Desired audio format for conversion. 
+
+Definition at line 163 of file S\-D\-L\-\_\-sound.\-h.
+
+\hypertarget{structSound__Sample_a0faf525fbd34bc2553be187c4fcee8d1}{\index{Sound\-\_\-\-Sample@{Sound\-\_\-\-Sample}!flags@{flags}}
+\index{flags@{flags}!Sound_Sample@{Sound\-\_\-\-Sample}}
+\subsubsection[{flags}]{\setlength{\rightskip}{0pt plus 5cm}Uint32 {\bf Sound\-\_\-\-Sample\-::flags}}}\label{structSound__Sample_a0faf525fbd34bc2553be187c4fcee8d1}
+Flags relating to this sample. 
+
+Definition at line 165 of file S\-D\-L\-\_\-sound.\-h.
+
+\hypertarget{structSound__Sample_af9b14d108498631919187832d74efa11}{\index{Sound\-\_\-\-Sample@{Sound\-\_\-\-Sample}!opaque@{opaque}}
+\index{opaque@{opaque}!Sound_Sample@{Sound\-\_\-\-Sample}}
+\subsubsection[{opaque}]{\setlength{\rightskip}{0pt plus 5cm}void$\ast$ {\bf Sound\-\_\-\-Sample\-::opaque}}}\label{structSound__Sample_af9b14d108498631919187832d74efa11}
+Internal use only. Don't touch. 
+
+Definition at line 161 of file S\-D\-L\-\_\-sound.\-h.
+
+
+
+The documentation for this struct was generated from the following file\-:\begin{DoxyCompactItemize}
+\item 
+src/libs/decoders/S\-D\-L\-\_\-sound.\-h\end{DoxyCompactItemize}

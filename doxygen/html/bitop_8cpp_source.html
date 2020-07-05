@@ -95,311 +95,301 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <div class="title">src/gui/bitop.cpp</div>  </div>
 </div><!--header-->
 <div class="contents">
-<div class="fragment"><pre class="fragment"><a name="l00001"></a>00001 
-<a name="l00002"></a>00002 <span class="preprocessor">#include &lt;assert.h&gt;</span>
-<a name="l00003"></a>00003 
-<a name="l00004"></a>00004 <span class="preprocessor">#include &quot;bitop.h&quot;</span>
-<a name="l00005"></a>00005 
-<a name="l00006"></a>00006 <span class="comment">/* I don&#39;t know when this happened.... but suddenly Microsoft C++ doesn&#39;t like these constexpr tests or static_assert &gt;:( */</span>
-<a name="l00007"></a>00007 <span class="preprocessor">#if defined(_MSC_VER)</span>
-<a name="l00008"></a>00008 <span class="preprocessor"></span><span class="preprocessor"># define DISABLE_SELF_TEST</span>
-<a name="l00009"></a>00009 <span class="preprocessor"></span><span class="preprocessor">#endif</span>
-<a name="l00010"></a>00010 <span class="preprocessor"></span>
-<a name="l00011"></a>00011 <span class="keyword">namespace </span>bitop {
-<a name="l00012"></a>00012 
-<a name="l00013"></a>00013 <span class="keywordtype">void</span> self_test(<span class="keywordtype">void</span>) {
-<a name="l00014"></a>00014 <span class="preprocessor">#ifdef DISABLE_SELF_TEST</span>
-<a name="l00015"></a>00015 <span class="preprocessor"></span><span class="preprocessor"># pragma message (&quot;bitop self-test disabled for your compiler&quot;)</span>
-<a name="l00016"></a>00016 <span class="preprocessor"></span><span class="preprocessor">#else</span>
-<a name="l00017"></a>00017 <span class="preprocessor"></span>    <span class="comment">// DEBUG</span>
-<a name="l00018"></a>00018     static_assert(bitcount2masklsb&lt;0u&gt;() == 0u, <span class="stringliteral">&quot;whoops&quot;</span>);
-<a name="l00019"></a>00019     static_assert(bitcount2masklsb&lt;1u&gt;() == 1u, <span class="stringliteral">&quot;whoops&quot;</span>);
-<a name="l00020"></a>00020     static_assert(bitcount2masklsb&lt;2u&gt;() == 3u, <span class="stringliteral">&quot;whoops&quot;</span>);
-<a name="l00021"></a>00021     static_assert(bitcount2masklsb&lt;2u,1u&gt;() == 6u, <span class="stringliteral">&quot;whoops&quot;</span>);
-<a name="l00022"></a>00022     static_assert(bitcount2masklsb&lt;2u,uint8_t&gt;() == 3u, <span class="stringliteral">&quot;whoops&quot;</span>);
-<a name="l00023"></a>00023     static_assert(bitcount2masklsb&lt;2u,0u,uint8_t&gt;() == 3u, <span class="stringliteral">&quot;whoops&quot;</span>);
-<a name="l00024"></a>00024     static_assert(bitcount2masklsb&lt;2u,1u,uint8_t&gt;() == 6u, <span class="stringliteral">&quot;whoops&quot;</span>);
-<a name="l00025"></a>00025     static_assert(bitcount2masklsb&lt;type_bits()&gt;() == allones(), <span class="stringliteral">&quot;whoops&quot;</span>);
-<a name="l00026"></a>00026     static_assert(allones&lt;uint32_t&gt;() == (uint32_t)0xFFFFFFFFUL, <span class="stringliteral">&quot;whoops&quot;</span>);
-<a name="l00027"></a>00027     static_assert(allzero&lt;uint32_t&gt;() == (uint32_t)0, <span class="stringliteral">&quot;whoops&quot;</span>);
-<a name="l00028"></a>00028     static_assert(allones&lt;uint64_t&gt;() == (uint64_t)0xFFFFFFFFFFFFFFFFULL, <span class="stringliteral">&quot;whoops&quot;</span>);
-<a name="l00029"></a>00029     static_assert(allzero&lt;uint64_t&gt;() == (uint64_t)0, <span class="stringliteral">&quot;whoops&quot;</span>);
-<a name="l00030"></a>00030     static_assert((~allones&lt;uint32_t&gt;()) == allzero&lt;uint32_t&gt;(), <span class="stringliteral">&quot;whoops&quot;</span>);
-<a name="l00031"></a>00031     static_assert((~allzero&lt;uint32_t&gt;()) == allones&lt;uint32_t&gt;(), <span class="stringliteral">&quot;whoops&quot;</span>);
-<a name="l00032"></a>00032     static_assert((~allones&lt;uint64_t&gt;()) == allzero&lt;uint64_t&gt;(), <span class="stringliteral">&quot;whoops&quot;</span>);
-<a name="l00033"></a>00033     static_assert((~allzero&lt;uint64_t&gt;()) == allones&lt;uint64_t&gt;(), <span class="stringliteral">&quot;whoops&quot;</span>);
-<a name="l00034"></a>00034     assert(type_bits&lt;uint64_t&gt;() == 64u);
-<a name="l00035"></a>00035     assert(type_bits&lt;uint32_t&gt;() == 32u);
-<a name="l00036"></a>00036     assert(type_bits&lt;uint16_t&gt;() == 16u);
-<a name="l00037"></a>00037     assert(type_bits&lt;uint8_t&gt;() == 8u);
-<a name="l00038"></a>00038     assert(bit2mask(0u) == 1u);
-<a name="l00039"></a>00039     assert(bit2mask(8u) == 256u);
-<a name="l00040"></a>00040     assert(bit2mask&lt;8u&gt;() == 256u);
-<a name="l00041"></a>00041     static_assert(bit2mask&lt;9u&gt;() == 512u, <span class="stringliteral">&quot;whoops&quot;</span>);
-<a name="l00042"></a>00042     static_assert(bit2mask&lt;33u,uint64_t&gt;() == (1ull &lt;&lt; 33ull), <span class="stringliteral">&quot;whoops&quot;</span>);
-<a name="l00043"></a>00043     static_assert(bitlength&lt;0u&gt;() == 0u, <span class="stringliteral">&quot;whoops&quot;</span>);
-<a name="l00044"></a>00044     static_assert(bitlength&lt;1u&gt;() == 1u, <span class="stringliteral">&quot;whoops&quot;</span>);
-<a name="l00045"></a>00045     static_assert(bitlength&lt;2u&gt;() == 2u, <span class="stringliteral">&quot;whoops&quot;</span>);
-<a name="l00046"></a>00046     static_assert(bitlength&lt;3u&gt;() == 2u, <span class="stringliteral">&quot;whoops&quot;</span>);
-<a name="l00047"></a>00047     static_assert(bitlength&lt;4u&gt;() == 3u, <span class="stringliteral">&quot;whoops&quot;</span>);
-<a name="l00048"></a>00048     static_assert(bitlength&lt;7u&gt;() == 3u, <span class="stringliteral">&quot;whoops&quot;</span>);
-<a name="l00049"></a>00049     static_assert(bitlength&lt;8u&gt;() == 4u, <span class="stringliteral">&quot;whoops&quot;</span>);
-<a name="l00050"></a>00050     static_assert(bitlength&lt;~0u&gt;() == type_bits(), <span class="stringliteral">&quot;whoops&quot;</span>);
-<a name="l00051"></a>00051     static_assert(type_msb_mask&lt;uint8_t&gt;() == 0x80u, <span class="stringliteral">&quot;whoops&quot;</span>);
-<a name="l00052"></a>00052     static_assert(type_msb_mask&lt;uint16_t&gt;() == 0x8000u, <span class="stringliteral">&quot;whoops&quot;</span>);
-<a name="l00053"></a>00053     static_assert(type_msb_mask&lt;uint32_t&gt;() == 0x80000000ul, <span class="stringliteral">&quot;whoops&quot;</span>);
-<a name="l00054"></a>00054     static_assert(type_msb_mask&lt;uint64_t&gt;() == 0x8000000000000000ull, <span class="stringliteral">&quot;whoops&quot;</span>);
-<a name="l00055"></a>00055 
-<a name="l00056"></a>00056     static_assert(bitseqlengthlsb&lt;0u&gt;() == 0u, <span class="stringliteral">&quot;whoops&quot;</span>); <span class="comment">// 0</span>
-<a name="l00057"></a>00057     static_assert(bitseqlengthlsb&lt;1u&gt;() == 1u, <span class="stringliteral">&quot;whoops&quot;</span>); <span class="comment">// 1</span>
-<a name="l00058"></a>00058     static_assert(bitseqlengthlsb&lt;2u&gt;() == 0u, <span class="stringliteral">&quot;whoops&quot;</span>); <span class="comment">// 10</span>
-<a name="l00059"></a>00059     static_assert(bitseqlengthlsb&lt;3u&gt;() == 2u, <span class="stringliteral">&quot;whoops&quot;</span>); <span class="comment">// 11</span>
-<a name="l00060"></a>00060     static_assert(bitseqlengthlsb&lt;4u&gt;() == 0u, <span class="stringliteral">&quot;whoops&quot;</span>); <span class="comment">// 100</span>
-<a name="l00061"></a>00061     static_assert(bitseqlengthlsb&lt;5u&gt;() == 1u, <span class="stringliteral">&quot;whoops&quot;</span>); <span class="comment">// 101</span>
-<a name="l00062"></a>00062     static_assert(bitseqlengthlsb&lt;6u&gt;() == 0u, <span class="stringliteral">&quot;whoops&quot;</span>); <span class="comment">// 110</span>
-<a name="l00063"></a>00063     static_assert(bitseqlengthlsb&lt;7u&gt;() == 3u, <span class="stringliteral">&quot;whoops&quot;</span>); <span class="comment">// 111</span>
-<a name="l00064"></a>00064     static_assert(bitseqlengthlsb&lt;8u&gt;() == 0u, <span class="stringliteral">&quot;whoops&quot;</span>); <span class="comment">// 1000</span>
-<a name="l00065"></a>00065     static_assert(bitseqlengthlsb&lt;9u&gt;() == 1u, <span class="stringliteral">&quot;whoops&quot;</span>); <span class="comment">// 1001</span>
-<a name="l00066"></a>00066     static_assert(bitseqlengthlsb&lt;10u&gt;() == 0u, <span class="stringliteral">&quot;whoops&quot;</span>); <span class="comment">// 1010</span>
-<a name="l00067"></a>00067     static_assert(bitseqlengthlsb&lt;11u&gt;() == 2u, <span class="stringliteral">&quot;whoops&quot;</span>); <span class="comment">// 1011</span>
-<a name="l00068"></a>00068     static_assert(bitseqlengthlsb&lt;12u&gt;() == 0u, <span class="stringliteral">&quot;whoops&quot;</span>); <span class="comment">// 1100</span>
-<a name="l00069"></a>00069     static_assert(bitseqlengthlsb&lt;15u&gt;() == 4u, <span class="stringliteral">&quot;whoops&quot;</span>); <span class="comment">// 1111</span>
-<a name="l00070"></a>00070     static_assert(bitseqlengthlsb&lt;23u&gt;() == 3u, <span class="stringliteral">&quot;whoops&quot;</span>); <span class="comment">// 10111</span>
-<a name="l00071"></a>00071     static_assert(bitseqlengthlsb&lt;31u&gt;() == 5u, <span class="stringliteral">&quot;whoops&quot;</span>); <span class="comment">// 11111</span>
-<a name="l00072"></a>00072     static_assert(bitseqlengthlsb&lt;~0u&gt;() == type_bits(), <span class="stringliteral">&quot;whoops&quot;</span>);
-<a name="l00073"></a>00073 
-<a name="l00074"></a>00074     assert(bitlength(0u) == 0u);
-<a name="l00075"></a>00075     assert(bitlength(1u) == 1u);
-<a name="l00076"></a>00076     assert(bitlength(2u) == 2u);
-<a name="l00077"></a>00077     assert(bitlength(3u) == 2u);
-<a name="l00078"></a>00078     assert(bitlength(4u) == 3u);
-<a name="l00079"></a>00079     assert(bitlength(7u) == 3u);
-<a name="l00080"></a>00080     assert(bitlength(255u) == 8u);
-<a name="l00081"></a>00081     assert(bitlength(256u) == 9u);
-<a name="l00082"></a>00082     assert(bitlength(512u) == 10u);
-<a name="l00083"></a>00083     assert(bitlength(1024u) == 11u);
-<a name="l00084"></a>00084     assert(bitlength(32767u) == 15u);
-<a name="l00085"></a>00085     assert(bitlength(32768u) == 16u);
-<a name="l00086"></a>00086 
-<a name="l00087"></a>00087     assert(bitseqlengthlsb(0u) == 0u);
-<a name="l00088"></a>00088     assert(bitseqlengthlsb(1u) == 1u);
-<a name="l00089"></a>00089     assert(bitseqlengthlsb(2u) == 0u);
-<a name="l00090"></a>00090     assert(bitseqlengthlsb(3u) == 2u);
-<a name="l00091"></a>00091     assert(bitseqlengthlsb(4u) == 0u);
-<a name="l00092"></a>00092     assert(bitseqlengthlsb(5u) == 1u);
-<a name="l00093"></a>00093     assert(bitseqlengthlsb(6u) == 0u);
-<a name="l00094"></a>00094     assert(bitseqlengthlsb(7u) == 3u);
-<a name="l00095"></a>00095     assert(bitseqlengthlsb(255u) == 8u);
-<a name="l00096"></a>00096     assert(bitseqlengthlsb(256u) == 0u);
-<a name="l00097"></a>00097     assert(bitseqlengthlsb(512u) == 0u);
-<a name="l00098"></a>00098     assert(bitseqlengthlsb(1024u) == 0u);
-<a name="l00099"></a>00099     assert(bitseqlengthlsb(32767u) == 15u);
-<a name="l00100"></a>00100     assert(bitseqlengthlsb(32768u) == 0u);
+<div class="fragment"><pre class="fragment"><a name="l00001"></a>00001 <span class="preprocessor">#include &lt;assert.h&gt;</span>
+<a name="l00002"></a>00002 
+<a name="l00003"></a>00003 <span class="preprocessor">#include &quot;bitop.h&quot;</span>
+<a name="l00004"></a>00004 
+<a name="l00005"></a>00005 <span class="keyword">namespace </span>bitop {
+<a name="l00006"></a>00006 
+<a name="l00007"></a>00007 <span class="keywordtype">void</span> self_test(<span class="keywordtype">void</span>) {
+<a name="l00008"></a>00008     <span class="comment">// DEBUG</span>
+<a name="l00009"></a>00009     static_assert(bitcount2masklsb&lt;0u&gt;() == 0u, <span class="stringliteral">&quot;whoops&quot;</span>);
+<a name="l00010"></a>00010     static_assert(bitcount2masklsb&lt;1u&gt;() == 1u, <span class="stringliteral">&quot;whoops&quot;</span>);
+<a name="l00011"></a>00011     static_assert(bitcount2masklsb&lt;2u&gt;() == 3u, <span class="stringliteral">&quot;whoops&quot;</span>);
+<a name="l00012"></a>00012     static_assert(bitcount2masklsb&lt;2u,1u&gt;() == 6u, <span class="stringliteral">&quot;whoops&quot;</span>);
+<a name="l00013"></a>00013     static_assert(bitcount2masklsb&lt;2u,uint8_t&gt;() == 3u, <span class="stringliteral">&quot;whoops&quot;</span>);
+<a name="l00014"></a>00014     static_assert(bitcount2masklsb&lt;2u,0u,uint8_t&gt;() == 3u, <span class="stringliteral">&quot;whoops&quot;</span>);
+<a name="l00015"></a>00015     static_assert(bitcount2masklsb&lt;2u,1u,uint8_t&gt;() == 6u, <span class="stringliteral">&quot;whoops&quot;</span>);
+<a name="l00016"></a>00016     static_assert(bitcount2masklsb&lt;type_bits()&gt;() == allones(), <span class="stringliteral">&quot;whoops&quot;</span>);
+<a name="l00017"></a>00017     static_assert(allones&lt;uint32_t&gt;() == (uint32_t)0xFFFFFFFFUL, <span class="stringliteral">&quot;whoops&quot;</span>);
+<a name="l00018"></a>00018     static_assert(allzero&lt;uint32_t&gt;() == (uint32_t)0, <span class="stringliteral">&quot;whoops&quot;</span>);
+<a name="l00019"></a>00019     static_assert(allones&lt;uint64_t&gt;() == (uint64_t)0xFFFFFFFFFFFFFFFFULL, <span class="stringliteral">&quot;whoops&quot;</span>);
+<a name="l00020"></a>00020     static_assert(allzero&lt;uint64_t&gt;() == (uint64_t)0, <span class="stringliteral">&quot;whoops&quot;</span>);
+<a name="l00021"></a>00021     static_assert((~allones&lt;uint32_t&gt;()) == allzero&lt;uint32_t&gt;(), <span class="stringliteral">&quot;whoops&quot;</span>);
+<a name="l00022"></a>00022     static_assert((~allzero&lt;uint32_t&gt;()) == allones&lt;uint32_t&gt;(), <span class="stringliteral">&quot;whoops&quot;</span>);
+<a name="l00023"></a>00023     static_assert((~allones&lt;uint64_t&gt;()) == allzero&lt;uint64_t&gt;(), <span class="stringliteral">&quot;whoops&quot;</span>);
+<a name="l00024"></a>00024     static_assert((~allzero&lt;uint64_t&gt;()) == allones&lt;uint64_t&gt;(), <span class="stringliteral">&quot;whoops&quot;</span>);
+<a name="l00025"></a>00025     assert(type_bits&lt;uint64_t&gt;() == 64u);
+<a name="l00026"></a>00026     assert(type_bits&lt;uint32_t&gt;() == 32u);
+<a name="l00027"></a>00027     assert(type_bits&lt;uint16_t&gt;() == 16u);
+<a name="l00028"></a>00028     assert(type_bits&lt;uint8_t&gt;() == 8u);
+<a name="l00029"></a>00029     assert(bit2mask(0u) == 1u);
+<a name="l00030"></a>00030     assert(bit2mask(8u) == 256u);
+<a name="l00031"></a>00031     assert(bit2mask&lt;8u&gt;() == 256u);
+<a name="l00032"></a>00032     static_assert(bit2mask&lt;9u&gt;() == 512u, <span class="stringliteral">&quot;whoops&quot;</span>);
+<a name="l00033"></a>00033     static_assert(bit2mask&lt;33u,uint64_t&gt;() == (1ull &lt;&lt; 33ull), <span class="stringliteral">&quot;whoops&quot;</span>);
+<a name="l00034"></a>00034     static_assert(bitlength&lt;0u&gt;() == 0u, <span class="stringliteral">&quot;whoops&quot;</span>);
+<a name="l00035"></a>00035     static_assert(bitlength&lt;1u&gt;() == 1u, <span class="stringliteral">&quot;whoops&quot;</span>);
+<a name="l00036"></a>00036     static_assert(bitlength&lt;2u&gt;() == 2u, <span class="stringliteral">&quot;whoops&quot;</span>);
+<a name="l00037"></a>00037     static_assert(bitlength&lt;3u&gt;() == 2u, <span class="stringliteral">&quot;whoops&quot;</span>);
+<a name="l00038"></a>00038     static_assert(bitlength&lt;4u&gt;() == 3u, <span class="stringliteral">&quot;whoops&quot;</span>);
+<a name="l00039"></a>00039     static_assert(bitlength&lt;7u&gt;() == 3u, <span class="stringliteral">&quot;whoops&quot;</span>);
+<a name="l00040"></a>00040     static_assert(bitlength&lt;8u&gt;() == 4u, <span class="stringliteral">&quot;whoops&quot;</span>);
+<a name="l00041"></a>00041     static_assert(bitlength&lt;~0u&gt;() == type_bits(), <span class="stringliteral">&quot;whoops&quot;</span>);
+<a name="l00042"></a>00042     static_assert(type_msb_mask&lt;uint8_t&gt;() == 0x80u, <span class="stringliteral">&quot;whoops&quot;</span>);
+<a name="l00043"></a>00043     static_assert(type_msb_mask&lt;uint16_t&gt;() == 0x8000u, <span class="stringliteral">&quot;whoops&quot;</span>);
+<a name="l00044"></a>00044     static_assert(type_msb_mask&lt;uint32_t&gt;() == 0x80000000ul, <span class="stringliteral">&quot;whoops&quot;</span>);
+<a name="l00045"></a>00045     static_assert(type_msb_mask&lt;uint64_t&gt;() == 0x8000000000000000ull, <span class="stringliteral">&quot;whoops&quot;</span>);
+<a name="l00046"></a>00046 
+<a name="l00047"></a>00047     static_assert(bitseqlengthlsb&lt;0u&gt;() == 0u, <span class="stringliteral">&quot;whoops&quot;</span>); <span class="comment">// 0</span>
+<a name="l00048"></a>00048     static_assert(bitseqlengthlsb&lt;1u&gt;() == 1u, <span class="stringliteral">&quot;whoops&quot;</span>); <span class="comment">// 1</span>
+<a name="l00049"></a>00049     static_assert(bitseqlengthlsb&lt;2u&gt;() == 0u, <span class="stringliteral">&quot;whoops&quot;</span>); <span class="comment">// 10</span>
+<a name="l00050"></a>00050     static_assert(bitseqlengthlsb&lt;3u&gt;() == 2u, <span class="stringliteral">&quot;whoops&quot;</span>); <span class="comment">// 11</span>
+<a name="l00051"></a>00051     static_assert(bitseqlengthlsb&lt;4u&gt;() == 0u, <span class="stringliteral">&quot;whoops&quot;</span>); <span class="comment">// 100</span>
+<a name="l00052"></a>00052     static_assert(bitseqlengthlsb&lt;5u&gt;() == 1u, <span class="stringliteral">&quot;whoops&quot;</span>); <span class="comment">// 101</span>
+<a name="l00053"></a>00053     static_assert(bitseqlengthlsb&lt;6u&gt;() == 0u, <span class="stringliteral">&quot;whoops&quot;</span>); <span class="comment">// 110</span>
+<a name="l00054"></a>00054     static_assert(bitseqlengthlsb&lt;7u&gt;() == 3u, <span class="stringliteral">&quot;whoops&quot;</span>); <span class="comment">// 111</span>
+<a name="l00055"></a>00055     static_assert(bitseqlengthlsb&lt;8u&gt;() == 0u, <span class="stringliteral">&quot;whoops&quot;</span>); <span class="comment">// 1000</span>
+<a name="l00056"></a>00056     static_assert(bitseqlengthlsb&lt;9u&gt;() == 1u, <span class="stringliteral">&quot;whoops&quot;</span>); <span class="comment">// 1001</span>
+<a name="l00057"></a>00057     static_assert(bitseqlengthlsb&lt;10u&gt;() == 0u, <span class="stringliteral">&quot;whoops&quot;</span>); <span class="comment">// 1010</span>
+<a name="l00058"></a>00058     static_assert(bitseqlengthlsb&lt;11u&gt;() == 2u, <span class="stringliteral">&quot;whoops&quot;</span>); <span class="comment">// 1011</span>
+<a name="l00059"></a>00059     static_assert(bitseqlengthlsb&lt;12u&gt;() == 0u, <span class="stringliteral">&quot;whoops&quot;</span>); <span class="comment">// 1100</span>
+<a name="l00060"></a>00060     static_assert(bitseqlengthlsb&lt;15u&gt;() == 4u, <span class="stringliteral">&quot;whoops&quot;</span>); <span class="comment">// 1111</span>
+<a name="l00061"></a>00061     static_assert(bitseqlengthlsb&lt;23u&gt;() == 3u, <span class="stringliteral">&quot;whoops&quot;</span>); <span class="comment">// 10111</span>
+<a name="l00062"></a>00062     static_assert(bitseqlengthlsb&lt;31u&gt;() == 5u, <span class="stringliteral">&quot;whoops&quot;</span>); <span class="comment">// 11111</span>
+<a name="l00063"></a>00063     static_assert(bitseqlengthlsb&lt;~0u&gt;() == type_bits(), <span class="stringliteral">&quot;whoops&quot;</span>);
+<a name="l00064"></a>00064 
+<a name="l00065"></a>00065     assert(bitlength(0u) == 0u);
+<a name="l00066"></a>00066     assert(bitlength(1u) == 1u);
+<a name="l00067"></a>00067     assert(bitlength(2u) == 2u);
+<a name="l00068"></a>00068     assert(bitlength(3u) == 2u);
+<a name="l00069"></a>00069     assert(bitlength(4u) == 3u);
+<a name="l00070"></a>00070     assert(bitlength(7u) == 3u);
+<a name="l00071"></a>00071     assert(bitlength(255u) == 8u);
+<a name="l00072"></a>00072     assert(bitlength(256u) == 9u);
+<a name="l00073"></a>00073     assert(bitlength(512u) == 10u);
+<a name="l00074"></a>00074     assert(bitlength(1024u) == 11u);
+<a name="l00075"></a>00075     assert(bitlength(32767u) == 15u);
+<a name="l00076"></a>00076     assert(bitlength(32768u) == 16u);
+<a name="l00077"></a>00077 
+<a name="l00078"></a>00078     assert(bitseqlengthlsb(0u) == 0u);
+<a name="l00079"></a>00079     assert(bitseqlengthlsb(1u) == 1u);
+<a name="l00080"></a>00080     assert(bitseqlengthlsb(2u) == 0u);
+<a name="l00081"></a>00081     assert(bitseqlengthlsb(3u) == 2u);
+<a name="l00082"></a>00082     assert(bitseqlengthlsb(4u) == 0u);
+<a name="l00083"></a>00083     assert(bitseqlengthlsb(5u) == 1u);
+<a name="l00084"></a>00084     assert(bitseqlengthlsb(6u) == 0u);
+<a name="l00085"></a>00085     assert(bitseqlengthlsb(7u) == 3u);
+<a name="l00086"></a>00086     assert(bitseqlengthlsb(255u) == 8u);
+<a name="l00087"></a>00087     assert(bitseqlengthlsb(256u) == 0u);
+<a name="l00088"></a>00088     assert(bitseqlengthlsb(512u) == 0u);
+<a name="l00089"></a>00089     assert(bitseqlengthlsb(1024u) == 0u);
+<a name="l00090"></a>00090     assert(bitseqlengthlsb(32767u) == 15u);
+<a name="l00091"></a>00091     assert(bitseqlengthlsb(32768u) == 0u);
+<a name="l00092"></a>00092 
+<a name="l00093"></a>00093     static_assert(bitcount2maskmsb&lt;0u&gt;() == 0u, <span class="stringliteral">&quot;whoops&quot;</span>);
+<a name="l00094"></a>00094     static_assert(bitcount2maskmsb&lt;1u&gt;() == (1u &lt;&lt; (type_bits() - 1u)), <span class="stringliteral">&quot;whoops&quot;</span>);
+<a name="l00095"></a>00095     static_assert(bitcount2maskmsb&lt;2u&gt;() == (3u &lt;&lt; (type_bits() - 2u)), <span class="stringliteral">&quot;whoops&quot;</span>);
+<a name="l00096"></a>00096     static_assert(bitcount2maskmsb&lt;2u,1u&gt;() == (3u &lt;&lt; (type_bits() - 3u)), <span class="stringliteral">&quot;whoops&quot;</span>);
+<a name="l00097"></a>00097     static_assert(bitcount2maskmsb&lt;2u,uint8_t&gt;() == (3u &lt;&lt; 6u), <span class="stringliteral">&quot;whoops&quot;</span>);
+<a name="l00098"></a>00098     static_assert(bitcount2maskmsb&lt;2u,0u,uint8_t&gt;() == (3u &lt;&lt; 6u), <span class="stringliteral">&quot;whoops&quot;</span>);
+<a name="l00099"></a>00099     static_assert(bitcount2maskmsb&lt;2u,1u,uint8_t&gt;() == (3u &lt;&lt; 5u), <span class="stringliteral">&quot;whoops&quot;</span>);
+<a name="l00100"></a>00100     static_assert(bitcount2maskmsb&lt;type_bits()&gt;() == allones(), <span class="stringliteral">&quot;whoops&quot;</span>);
 <a name="l00101"></a>00101 
-<a name="l00102"></a>00102     static_assert(bitcount2maskmsb&lt;0u&gt;() == 0u, <span class="stringliteral">&quot;whoops&quot;</span>);
-<a name="l00103"></a>00103     static_assert(bitcount2maskmsb&lt;1u&gt;() == (1u &lt;&lt; (type_bits() - 1u)), <span class="stringliteral">&quot;whoops&quot;</span>);
-<a name="l00104"></a>00104     static_assert(bitcount2maskmsb&lt;2u&gt;() == (3u &lt;&lt; (type_bits() - 2u)), <span class="stringliteral">&quot;whoops&quot;</span>);
-<a name="l00105"></a>00105     static_assert(bitcount2maskmsb&lt;2u,1u&gt;() == (3u &lt;&lt; (type_bits() - 3u)), <span class="stringliteral">&quot;whoops&quot;</span>);
-<a name="l00106"></a>00106     static_assert(bitcount2maskmsb&lt;2u,uint8_t&gt;() == (3u &lt;&lt; 6u), <span class="stringliteral">&quot;whoops&quot;</span>);
-<a name="l00107"></a>00107     static_assert(bitcount2maskmsb&lt;2u,0u,uint8_t&gt;() == (3u &lt;&lt; 6u), <span class="stringliteral">&quot;whoops&quot;</span>);
-<a name="l00108"></a>00108     static_assert(bitcount2maskmsb&lt;2u,1u,uint8_t&gt;() == (3u &lt;&lt; 5u), <span class="stringliteral">&quot;whoops&quot;</span>);
-<a name="l00109"></a>00109     static_assert(bitcount2maskmsb&lt;type_bits()&gt;() == allones(), <span class="stringliteral">&quot;whoops&quot;</span>);
+<a name="l00102"></a>00102     assert(bitcount2masklsb(0u) == 0u);
+<a name="l00103"></a>00103     assert(bitcount2masklsb(1u) == 1u);
+<a name="l00104"></a>00104     assert(bitcount2masklsb(2u) == 3u);
+<a name="l00105"></a>00105     assert(bitcount2masklsb(2u,1u) == 6u);
+<a name="l00106"></a>00106     assert(bitcount2masklsb&lt;uint8_t&gt;(2u) == 3u);
+<a name="l00107"></a>00107     assert(bitcount2masklsb&lt;uint8_t&gt;(2u,0u) == 3u);
+<a name="l00108"></a>00108     assert(bitcount2masklsb&lt;uint8_t&gt;(2u,1u) == 6u);
+<a name="l00109"></a>00109     assert(bitcount2masklsb(type_bits()) == allones());
 <a name="l00110"></a>00110 
-<a name="l00111"></a>00111     assert(bitcount2masklsb(0u) == 0u);
-<a name="l00112"></a>00112     assert(bitcount2masklsb(1u) == 1u);
-<a name="l00113"></a>00113     assert(bitcount2masklsb(2u) == 3u);
-<a name="l00114"></a>00114     assert(bitcount2masklsb(2u,1u) == 6u);
-<a name="l00115"></a>00115     assert(bitcount2masklsb&lt;uint8_t&gt;(2u) == 3u);
-<a name="l00116"></a>00116     assert(bitcount2masklsb&lt;uint8_t&gt;(2u,0u) == 3u);
-<a name="l00117"></a>00117     assert(bitcount2masklsb&lt;uint8_t&gt;(2u,1u) == 6u);
-<a name="l00118"></a>00118     assert(bitcount2masklsb(type_bits()) == allones());
+<a name="l00111"></a>00111     assert(bitcount2maskmsb(0u) == 0u);
+<a name="l00112"></a>00112     assert(bitcount2maskmsb(1u) == (1u &lt;&lt; (type_bits() - 1u)));
+<a name="l00113"></a>00113     assert(bitcount2maskmsb(2u) == (3u &lt;&lt; (type_bits() - 2u)));
+<a name="l00114"></a>00114     assert(bitcount2maskmsb(2u,1u) == (3u &lt;&lt; (type_bits() - 3u)));
+<a name="l00115"></a>00115     assert(bitcount2maskmsb&lt;uint8_t&gt;(2u) == (3u &lt;&lt; 6u));
+<a name="l00116"></a>00116     assert(bitcount2maskmsb&lt;uint8_t&gt;(2u,0u) == (3u &lt;&lt; 6u));
+<a name="l00117"></a>00117     assert(bitcount2maskmsb&lt;uint8_t&gt;(2u,1u) == (3u &lt;&lt; 5u));
+<a name="l00118"></a>00118     assert(bitcount2maskmsb(type_bits()) == allones());
 <a name="l00119"></a>00119 
-<a name="l00120"></a>00120     assert(bitcount2maskmsb(0u) == 0u);
-<a name="l00121"></a>00121     assert(bitcount2maskmsb(1u) == (1u &lt;&lt; (type_bits() - 1u)));
-<a name="l00122"></a>00122     assert(bitcount2maskmsb(2u) == (3u &lt;&lt; (type_bits() - 2u)));
-<a name="l00123"></a>00123     assert(bitcount2maskmsb(2u,1u) == (3u &lt;&lt; (type_bits() - 3u)));
-<a name="l00124"></a>00124     assert(bitcount2maskmsb&lt;uint8_t&gt;(2u) == (3u &lt;&lt; 6u));
-<a name="l00125"></a>00125     assert(bitcount2maskmsb&lt;uint8_t&gt;(2u,0u) == (3u &lt;&lt; 6u));
-<a name="l00126"></a>00126     assert(bitcount2maskmsb&lt;uint8_t&gt;(2u,1u) == (3u &lt;&lt; 5u));
-<a name="l00127"></a>00127     assert(bitcount2maskmsb(type_bits()) == allones());
-<a name="l00128"></a>00128 
-<a name="l00129"></a>00129     static_assert(ispowerof2(1u) == <span class="keyword">true</span>, <span class="stringliteral">&quot;whoops&quot;</span>);
-<a name="l00130"></a>00130     static_assert(ispowerof2(2u) == <span class="keyword">true</span>, <span class="stringliteral">&quot;whoops&quot;</span>);
-<a name="l00131"></a>00131     static_assert(ispowerof2(3u) == <span class="keyword">false</span>, <span class="stringliteral">&quot;whoops&quot;</span>);
-<a name="l00132"></a>00132     static_assert(ispowerof2(4u) == <span class="keyword">true</span>, <span class="stringliteral">&quot;whoops&quot;</span>);
-<a name="l00133"></a>00133     static_assert(ispowerof2(5u) == <span class="keyword">false</span>, <span class="stringliteral">&quot;whoops&quot;</span>);
-<a name="l00134"></a>00134     static_assert(ispowerof2(6u) == <span class="keyword">false</span>, <span class="stringliteral">&quot;whoops&quot;</span>);
-<a name="l00135"></a>00135     static_assert(ispowerof2(7u) == <span class="keyword">false</span>, <span class="stringliteral">&quot;whoops&quot;</span>);
-<a name="l00136"></a>00136     static_assert(ispowerof2(8u) == <span class="keyword">true</span>, <span class="stringliteral">&quot;whoops&quot;</span>);
-<a name="l00137"></a>00137     static_assert(ispowerof2(9u) == <span class="keyword">false</span>, <span class="stringliteral">&quot;whoops&quot;</span>);
-<a name="l00138"></a>00138     static_assert(ispowerof2(10u) == <span class="keyword">false</span>, <span class="stringliteral">&quot;whoops&quot;</span>);
-<a name="l00139"></a>00139     static_assert(ispowerof2(11u) == <span class="keyword">false</span>, <span class="stringliteral">&quot;whoops&quot;</span>);
-<a name="l00140"></a>00140     static_assert(ispowerof2(255u) == <span class="keyword">false</span>, <span class="stringliteral">&quot;whoops&quot;</span>);
-<a name="l00141"></a>00141     static_assert(ispowerof2(256u) == <span class="keyword">true</span>, <span class="stringliteral">&quot;whoops&quot;</span>);
-<a name="l00142"></a>00142     static_assert(ispowerof2(257u) == <span class="keyword">false</span>, <span class="stringliteral">&quot;whoops&quot;</span>);
-<a name="l00143"></a>00143     static_assert(ispowerof2(32767u) == <span class="keyword">false</span>, <span class="stringliteral">&quot;whoops&quot;</span>);
-<a name="l00144"></a>00144     static_assert(ispowerof2(32768u) == <span class="keyword">true</span>, <span class="stringliteral">&quot;whoops&quot;</span>);
-<a name="l00145"></a>00145     static_assert(ispowerof2(32769u) == <span class="keyword">false</span>, <span class="stringliteral">&quot;whoops&quot;</span>);
-<a name="l00146"></a>00146 
-<a name="l00147"></a>00147     assert(ispowerof2(1u) == <span class="keyword">true</span>);
-<a name="l00148"></a>00148     assert(ispowerof2(2u) == <span class="keyword">true</span>);
-<a name="l00149"></a>00149     assert(ispowerof2(3u) == <span class="keyword">false</span>);
-<a name="l00150"></a>00150     assert(ispowerof2(4u) == <span class="keyword">true</span>);
-<a name="l00151"></a>00151     assert(ispowerof2(5u) == <span class="keyword">false</span>);
-<a name="l00152"></a>00152     assert(ispowerof2(6u) == <span class="keyword">false</span>);
-<a name="l00153"></a>00153     assert(ispowerof2(7u) == <span class="keyword">false</span>);
-<a name="l00154"></a>00154     assert(ispowerof2(8u) == <span class="keyword">true</span>);
-<a name="l00155"></a>00155     assert(ispowerof2(9u) == <span class="keyword">false</span>);
-<a name="l00156"></a>00156     assert(ispowerof2(10u) == <span class="keyword">false</span>);
-<a name="l00157"></a>00157     assert(ispowerof2(11u) == <span class="keyword">false</span>);
-<a name="l00158"></a>00158     assert(ispowerof2(255u) == <span class="keyword">false</span>);
-<a name="l00159"></a>00159     assert(ispowerof2(256u) == <span class="keyword">true</span>);
-<a name="l00160"></a>00160     assert(ispowerof2(257u) == <span class="keyword">false</span>);
-<a name="l00161"></a>00161     assert(ispowerof2(32767u) == <span class="keyword">false</span>);
-<a name="l00162"></a>00162     assert(ispowerof2(32768u) == <span class="keyword">true</span>);
-<a name="l00163"></a>00163     assert(ispowerof2(32769u) == <span class="keyword">false</span>);
-<a name="l00164"></a>00164 
-<a name="l00165"></a>00165     static_assert(log2&lt;1u &lt;&lt; 31&gt;() == 31, <span class="stringliteral">&quot;whoops&quot;</span>);
-<a name="l00166"></a>00166     static_assert(log2&lt;1u &lt;&lt; 16&gt;() == 16, <span class="stringliteral">&quot;whoops&quot;</span>);
-<a name="l00167"></a>00167     static_assert(log2&lt;1u &lt;&lt; 8&gt;() == 8, <span class="stringliteral">&quot;whoops&quot;</span>);
-<a name="l00168"></a>00168     static_assert(log2&lt;1u &lt;&lt; 4&gt;() == 4, <span class="stringliteral">&quot;whoops&quot;</span>);
-<a name="l00169"></a>00169     static_assert(log2&lt;1u &lt;&lt; 3&gt;() == 3, <span class="stringliteral">&quot;whoops&quot;</span>);
-<a name="l00170"></a>00170     static_assert(log2&lt;1u &lt;&lt; 2&gt;() == 2, <span class="stringliteral">&quot;whoops&quot;</span>);
-<a name="l00171"></a>00171     static_assert(log2&lt;1u &lt;&lt; 1&gt;() == 1, <span class="stringliteral">&quot;whoops&quot;</span>);
-<a name="l00172"></a>00172     static_assert(log2&lt;1u &lt;&lt; 0&gt;() == 0, <span class="stringliteral">&quot;whoops&quot;</span>);
-<a name="l00173"></a>00173     static_assert(log2&lt;256u&gt;() == 8, <span class="stringliteral">&quot;whoops&quot;</span>);
-<a name="l00174"></a>00174     static_assert(log2&lt;128u&gt;() == 7, <span class="stringliteral">&quot;whoops&quot;</span>);
-<a name="l00175"></a>00175     static_assert(log2&lt;16u&gt;() == 4, <span class="stringliteral">&quot;whoops&quot;</span>);
-<a name="l00176"></a>00176     static_assert(log2&lt;1u&gt;() == 0, <span class="stringliteral">&quot;whoops&quot;</span>);
-<a name="l00177"></a>00177     static_assert(log2&lt;0u&gt;() == ~0u, <span class="stringliteral">&quot;whoops&quot;</span>);
-<a name="l00178"></a>00178 
-<a name="l00179"></a>00179                                                     <span class="comment">/* 3210 bit position */</span>
-<a name="l00180"></a>00180                                                     <span class="comment">/* ---- */</span>
-<a name="l00181"></a>00181     static_assert(log2&lt;9u&gt;() == 3, <span class="stringliteral">&quot;whoops&quot;</span>);       <span class="comment">/* 1001 */</span>
-<a name="l00182"></a>00182     static_assert(log2&lt;7u&gt;() == 2, <span class="stringliteral">&quot;whoops&quot;</span>);       <span class="comment">/*  111 */</span>
-<a name="l00183"></a>00183     static_assert(log2&lt;5u&gt;() == 2, <span class="stringliteral">&quot;whoops&quot;</span>);       <span class="comment">/*  101 */</span>
-<a name="l00184"></a>00184     static_assert(log2&lt;3u&gt;() == 1, <span class="stringliteral">&quot;whoops&quot;</span>);       <span class="comment">/*   11 */</span>
-<a name="l00185"></a>00185     static_assert(log2&lt;2u&gt;() == 1, <span class="stringliteral">&quot;whoops&quot;</span>);       <span class="comment">/*   10 */</span>
-<a name="l00186"></a>00186 
-<a name="l00187"></a>00187     <span class="keywordflow">if</span> (<span class="keyword">sizeof</span>(<span class="keywordtype">unsigned</span> <span class="keywordtype">long</span> <span class="keywordtype">long</span>) &gt;= 8) { <span class="comment">/* we&#39;re assuming unsigned long long is at least 64 bits here */</span>
-<a name="l00188"></a>00188     static_assert(log2&lt;<span class="keywordtype">unsigned</span> <span class="keywordtype">long</span> <span class="keywordtype">long</span>,1ull &lt;&lt; 63ull&gt;() == 63, <span class="stringliteral">&quot;whoops&quot;</span>);
-<a name="l00189"></a>00189     static_assert(log2&lt;<span class="keywordtype">unsigned</span> <span class="keywordtype">long</span> <span class="keywordtype">long</span>,1ull &lt;&lt; 48ull&gt;() == 48, <span class="stringliteral">&quot;whoops&quot;</span>);
-<a name="l00190"></a>00190     }
-<a name="l00191"></a>00191     static_assert(log2&lt;<span class="keywordtype">unsigned</span> <span class="keywordtype">long</span> <span class="keywordtype">long</span>,1ull &lt;&lt; 31ull&gt;() == 31, <span class="stringliteral">&quot;whoops&quot;</span>);
-<a name="l00192"></a>00192     static_assert(log2&lt;<span class="keywordtype">unsigned</span> <span class="keywordtype">long</span> <span class="keywordtype">long</span>,1ull &lt;&lt; 16ull&gt;() == 16, <span class="stringliteral">&quot;whoops&quot;</span>);
-<a name="l00193"></a>00193     static_assert(log2&lt;<span class="keywordtype">unsigned</span> <span class="keywordtype">long</span> <span class="keywordtype">long</span>,1ull &lt;&lt; 8ull&gt;() == 8, <span class="stringliteral">&quot;whoops&quot;</span>);
-<a name="l00194"></a>00194     static_assert(log2&lt;<span class="keywordtype">unsigned</span> <span class="keywordtype">long</span> <span class="keywordtype">long</span>,1ull &lt;&lt; 4ull&gt;() == 4, <span class="stringliteral">&quot;whoops&quot;</span>);
-<a name="l00195"></a>00195     static_assert(log2&lt;<span class="keywordtype">unsigned</span> <span class="keywordtype">long</span> <span class="keywordtype">long</span>,1ull &lt;&lt; 3ull&gt;() == 3, <span class="stringliteral">&quot;whoops&quot;</span>);
-<a name="l00196"></a>00196     static_assert(log2&lt;<span class="keywordtype">unsigned</span> <span class="keywordtype">long</span> <span class="keywordtype">long</span>,1ull &lt;&lt; 2ull&gt;() == 2, <span class="stringliteral">&quot;whoops&quot;</span>);
-<a name="l00197"></a>00197     static_assert(log2&lt;<span class="keywordtype">unsigned</span> <span class="keywordtype">long</span> <span class="keywordtype">long</span>,1ull &lt;&lt; 1ull&gt;() == 1, <span class="stringliteral">&quot;whoops&quot;</span>);
-<a name="l00198"></a>00198     static_assert(log2&lt;<span class="keywordtype">unsigned</span> <span class="keywordtype">long</span> <span class="keywordtype">long</span>,1ull &lt;&lt; 0ull&gt;() == 0, <span class="stringliteral">&quot;whoops&quot;</span>);
-<a name="l00199"></a>00199     static_assert(log2&lt;unsigned long long,256ull&gt;() == 8, <span class="stringliteral">&quot;whoops&quot;</span>);
-<a name="l00200"></a>00200     static_assert(log2&lt;unsigned long long,128ull&gt;() == 7, <span class="stringliteral">&quot;whoops&quot;</span>);
-<a name="l00201"></a>00201     static_assert(log2&lt;unsigned long long,16ull&gt;() == 4, <span class="stringliteral">&quot;whoops&quot;</span>);
-<a name="l00202"></a>00202     static_assert(log2&lt;unsigned long long,1ull&gt;() == 0, <span class="stringliteral">&quot;whoops&quot;</span>);
-<a name="l00203"></a>00203     static_assert(log2&lt;unsigned long long,0ull&gt;() == ~0u, <span class="stringliteral">&quot;whoops&quot;</span>);
-<a name="l00204"></a>00204 
-<a name="l00205"></a>00205     assert(log2(1u &lt;&lt; 31) == 31);
-<a name="l00206"></a>00206     assert(log2(1u &lt;&lt; 16) == 16);
-<a name="l00207"></a>00207     assert(log2(1u &lt;&lt; 8) == 8);
-<a name="l00208"></a>00208     assert(log2(1u &lt;&lt; 4) == 4);
-<a name="l00209"></a>00209     assert(log2(1u &lt;&lt; 3) == 3);
-<a name="l00210"></a>00210     assert(log2(1u &lt;&lt; 2) == 2);
-<a name="l00211"></a>00211     assert(log2(1u &lt;&lt; 1) == 1);
-<a name="l00212"></a>00212     assert(log2(1u &lt;&lt; 0) == 0);
-<a name="l00213"></a>00213     assert(log2(256u) == 8);
-<a name="l00214"></a>00214     assert(log2(128u) == 7);
-<a name="l00215"></a>00215     assert(log2(16u) == 4);
-<a name="l00216"></a>00216     assert(log2(1u) == 0);
-<a name="l00217"></a>00217     assert(log2(0u) == ~0u);
-<a name="l00218"></a>00218 
-<a name="l00219"></a>00219                                     <span class="comment">/* 3210 bit position */</span>
-<a name="l00220"></a>00220                                     <span class="comment">/* ---- */</span>
-<a name="l00221"></a>00221     assert(log2(9u) == 3);          <span class="comment">/* 1001 */</span>
-<a name="l00222"></a>00222     assert(log2(7u) == 2);          <span class="comment">/*  111 */</span>
-<a name="l00223"></a>00223     assert(log2(5u) == 2);          <span class="comment">/*  101 */</span>
-<a name="l00224"></a>00224     assert(log2(3u) == 1);          <span class="comment">/*   11 */</span>
-<a name="l00225"></a>00225     assert(log2(2u) == 1);          <span class="comment">/*   10 */</span>
-<a name="l00226"></a>00226 
-<a name="l00227"></a>00227     <span class="keywordflow">if</span> (<span class="keyword">sizeof</span>(<span class="keywordtype">unsigned</span> <span class="keywordtype">long</span> <span class="keywordtype">long</span>) &gt;= 8) { <span class="comment">/* we&#39;re assuming unsigned long long is at least 64 bits here */</span>
-<a name="l00228"></a>00228     assert(log2&lt;unsigned long long&gt;(1ull &lt;&lt; 63ull) == 63);
-<a name="l00229"></a>00229     assert(log2&lt;unsigned long long&gt;(1ull &lt;&lt; 48ull) == 48);
-<a name="l00230"></a>00230     }
-<a name="l00231"></a>00231     assert(log2&lt;unsigned long long&gt;(1ull &lt;&lt; 31ull) == 31);
-<a name="l00232"></a>00232     assert(log2&lt;unsigned long long&gt;(1ull &lt;&lt; 16ull) == 16);
-<a name="l00233"></a>00233     assert(log2&lt;unsigned long long&gt;(1ull &lt;&lt; 8ull) == 8);
-<a name="l00234"></a>00234     assert(log2&lt;unsigned long long&gt;(1ull &lt;&lt; 4ull) == 4);
-<a name="l00235"></a>00235     assert(log2&lt;unsigned long long&gt;(1ull &lt;&lt; 3ull) == 3);
-<a name="l00236"></a>00236     assert(log2&lt;unsigned long long&gt;(1ull &lt;&lt; 2ull) == 2);
-<a name="l00237"></a>00237     assert(log2&lt;unsigned long long&gt;(1ull &lt;&lt; 1ull) == 1);
-<a name="l00238"></a>00238     assert(log2&lt;unsigned long long&gt;(1ull &lt;&lt; 0ull) == 0);
-<a name="l00239"></a>00239     assert(log2&lt;unsigned long long&gt;(256ull) == 8);
-<a name="l00240"></a>00240     assert(log2&lt;unsigned long long&gt;(128ull) == 7);
-<a name="l00241"></a>00241     assert(log2&lt;unsigned long long&gt;(16ull) == 4);
-<a name="l00242"></a>00242     assert(log2&lt;unsigned long long&gt;(1ull) == 0);
-<a name="l00243"></a>00243     assert(log2&lt;unsigned long long&gt;(0ull) == ~0u);
-<a name="l00244"></a>00244 
-<a name="l00245"></a>00245     static_assert(invert&lt;unsigned int&gt;(0) == ~0u, <span class="stringliteral">&quot;whoops&quot;</span>);
-<a name="l00246"></a>00246     static_assert(invert&lt;unsigned int&gt;(1) == ~1u, <span class="stringliteral">&quot;whoops&quot;</span>);
-<a name="l00247"></a>00247     static_assert(invert&lt;unsigned long&gt;(0) == ~0ul, <span class="stringliteral">&quot;whoops&quot;</span>);
-<a name="l00248"></a>00248     static_assert(invert&lt;unsigned long&gt;(1) == ~1ul, <span class="stringliteral">&quot;whoops&quot;</span>);
-<a name="l00249"></a>00249     static_assert(invert&lt;unsigned long long&gt;(0) == ~0ull, <span class="stringliteral">&quot;whoops&quot;</span>);
-<a name="l00250"></a>00250     static_assert(invert&lt;unsigned long long&gt;(1) == ~1ull, <span class="stringliteral">&quot;whoops&quot;</span>);
-<a name="l00251"></a>00251 
-<a name="l00252"></a>00252     assert(invert&lt;unsigned int&gt;(0) == ~0u);
-<a name="l00253"></a>00253     assert(invert&lt;unsigned int&gt;(1) == ~1u);
-<a name="l00254"></a>00254     assert(invert&lt;unsigned long&gt;(0) == ~0ul);
-<a name="l00255"></a>00255     assert(invert&lt;unsigned long&gt;(1) == ~1ul);
-<a name="l00256"></a>00256     assert(invert&lt;unsigned long long&gt;(0) == ~0ull);
-<a name="l00257"></a>00257     assert(invert&lt;unsigned long long&gt;(1) == ~1ull);
-<a name="l00258"></a>00258 
-<a name="l00259"></a>00259     assert(bitseqlengthandpos(0)   == bitseqlengthandpos_ret_t(0,0));
+<a name="l00120"></a>00120     static_assert(ispowerof2(1u) == <span class="keyword">true</span>, <span class="stringliteral">&quot;whoops&quot;</span>);
+<a name="l00121"></a>00121     static_assert(ispowerof2(2u) == <span class="keyword">true</span>, <span class="stringliteral">&quot;whoops&quot;</span>);
+<a name="l00122"></a>00122     static_assert(ispowerof2(3u) == <span class="keyword">false</span>, <span class="stringliteral">&quot;whoops&quot;</span>);
+<a name="l00123"></a>00123     static_assert(ispowerof2(4u) == <span class="keyword">true</span>, <span class="stringliteral">&quot;whoops&quot;</span>);
+<a name="l00124"></a>00124     static_assert(ispowerof2(5u) == <span class="keyword">false</span>, <span class="stringliteral">&quot;whoops&quot;</span>);
+<a name="l00125"></a>00125     static_assert(ispowerof2(6u) == <span class="keyword">false</span>, <span class="stringliteral">&quot;whoops&quot;</span>);
+<a name="l00126"></a>00126     static_assert(ispowerof2(7u) == <span class="keyword">false</span>, <span class="stringliteral">&quot;whoops&quot;</span>);
+<a name="l00127"></a>00127     static_assert(ispowerof2(8u) == <span class="keyword">true</span>, <span class="stringliteral">&quot;whoops&quot;</span>);
+<a name="l00128"></a>00128     static_assert(ispowerof2(9u) == <span class="keyword">false</span>, <span class="stringliteral">&quot;whoops&quot;</span>);
+<a name="l00129"></a>00129     static_assert(ispowerof2(10u) == <span class="keyword">false</span>, <span class="stringliteral">&quot;whoops&quot;</span>);
+<a name="l00130"></a>00130     static_assert(ispowerof2(11u) == <span class="keyword">false</span>, <span class="stringliteral">&quot;whoops&quot;</span>);
+<a name="l00131"></a>00131     static_assert(ispowerof2(255u) == <span class="keyword">false</span>, <span class="stringliteral">&quot;whoops&quot;</span>);
+<a name="l00132"></a>00132     static_assert(ispowerof2(256u) == <span class="keyword">true</span>, <span class="stringliteral">&quot;whoops&quot;</span>);
+<a name="l00133"></a>00133     static_assert(ispowerof2(257u) == <span class="keyword">false</span>, <span class="stringliteral">&quot;whoops&quot;</span>);
+<a name="l00134"></a>00134     static_assert(ispowerof2(32767u) == <span class="keyword">false</span>, <span class="stringliteral">&quot;whoops&quot;</span>);
+<a name="l00135"></a>00135     static_assert(ispowerof2(32768u) == <span class="keyword">true</span>, <span class="stringliteral">&quot;whoops&quot;</span>);
+<a name="l00136"></a>00136     static_assert(ispowerof2(32769u) == <span class="keyword">false</span>, <span class="stringliteral">&quot;whoops&quot;</span>);
+<a name="l00137"></a>00137 
+<a name="l00138"></a>00138     assert(ispowerof2(1u) == <span class="keyword">true</span>);
+<a name="l00139"></a>00139     assert(ispowerof2(2u) == <span class="keyword">true</span>);
+<a name="l00140"></a>00140     assert(ispowerof2(3u) == <span class="keyword">false</span>);
+<a name="l00141"></a>00141     assert(ispowerof2(4u) == <span class="keyword">true</span>);
+<a name="l00142"></a>00142     assert(ispowerof2(5u) == <span class="keyword">false</span>);
+<a name="l00143"></a>00143     assert(ispowerof2(6u) == <span class="keyword">false</span>);
+<a name="l00144"></a>00144     assert(ispowerof2(7u) == <span class="keyword">false</span>);
+<a name="l00145"></a>00145     assert(ispowerof2(8u) == <span class="keyword">true</span>);
+<a name="l00146"></a>00146     assert(ispowerof2(9u) == <span class="keyword">false</span>);
+<a name="l00147"></a>00147     assert(ispowerof2(10u) == <span class="keyword">false</span>);
+<a name="l00148"></a>00148     assert(ispowerof2(11u) == <span class="keyword">false</span>);
+<a name="l00149"></a>00149     assert(ispowerof2(255u) == <span class="keyword">false</span>);
+<a name="l00150"></a>00150     assert(ispowerof2(256u) == <span class="keyword">true</span>);
+<a name="l00151"></a>00151     assert(ispowerof2(257u) == <span class="keyword">false</span>);
+<a name="l00152"></a>00152     assert(ispowerof2(32767u) == <span class="keyword">false</span>);
+<a name="l00153"></a>00153     assert(ispowerof2(32768u) == <span class="keyword">true</span>);
+<a name="l00154"></a>00154     assert(ispowerof2(32769u) == <span class="keyword">false</span>);
+<a name="l00155"></a>00155 
+<a name="l00156"></a>00156     static_assert(log2&lt;1u &lt;&lt; 31&gt;() == 31, <span class="stringliteral">&quot;whoops&quot;</span>);
+<a name="l00157"></a>00157     static_assert(log2&lt;1u &lt;&lt; 16&gt;() == 16, <span class="stringliteral">&quot;whoops&quot;</span>);
+<a name="l00158"></a>00158     static_assert(log2&lt;1u &lt;&lt; 8&gt;() == 8, <span class="stringliteral">&quot;whoops&quot;</span>);
+<a name="l00159"></a>00159     static_assert(log2&lt;1u &lt;&lt; 4&gt;() == 4, <span class="stringliteral">&quot;whoops&quot;</span>);
+<a name="l00160"></a>00160     static_assert(log2&lt;1u &lt;&lt; 3&gt;() == 3, <span class="stringliteral">&quot;whoops&quot;</span>);
+<a name="l00161"></a>00161     static_assert(log2&lt;1u &lt;&lt; 2&gt;() == 2, <span class="stringliteral">&quot;whoops&quot;</span>);
+<a name="l00162"></a>00162     static_assert(log2&lt;1u &lt;&lt; 1&gt;() == 1, <span class="stringliteral">&quot;whoops&quot;</span>);
+<a name="l00163"></a>00163     static_assert(log2&lt;1u &lt;&lt; 0&gt;() == 0, <span class="stringliteral">&quot;whoops&quot;</span>);
+<a name="l00164"></a>00164     static_assert(log2&lt;256u&gt;() == 8, <span class="stringliteral">&quot;whoops&quot;</span>);
+<a name="l00165"></a>00165     static_assert(log2&lt;128u&gt;() == 7, <span class="stringliteral">&quot;whoops&quot;</span>);
+<a name="l00166"></a>00166     static_assert(log2&lt;16u&gt;() == 4, <span class="stringliteral">&quot;whoops&quot;</span>);
+<a name="l00167"></a>00167     static_assert(log2&lt;1u&gt;() == 0, <span class="stringliteral">&quot;whoops&quot;</span>);
+<a name="l00168"></a>00168     static_assert(log2&lt;0u&gt;() == ~0u, <span class="stringliteral">&quot;whoops&quot;</span>);
+<a name="l00169"></a>00169 
+<a name="l00170"></a>00170                                                     <span class="comment">/* 3210 bit position */</span>
+<a name="l00171"></a>00171                                                     <span class="comment">/* ---- */</span>
+<a name="l00172"></a>00172     static_assert(log2&lt;9u&gt;() == 3, <span class="stringliteral">&quot;whoops&quot;</span>);       <span class="comment">/* 1001 */</span>
+<a name="l00173"></a>00173     static_assert(log2&lt;7u&gt;() == 2, <span class="stringliteral">&quot;whoops&quot;</span>);       <span class="comment">/*  111 */</span>
+<a name="l00174"></a>00174     static_assert(log2&lt;5u&gt;() == 2, <span class="stringliteral">&quot;whoops&quot;</span>);       <span class="comment">/*  101 */</span>
+<a name="l00175"></a>00175     static_assert(log2&lt;3u&gt;() == 1, <span class="stringliteral">&quot;whoops&quot;</span>);       <span class="comment">/*   11 */</span>
+<a name="l00176"></a>00176     static_assert(log2&lt;2u&gt;() == 1, <span class="stringliteral">&quot;whoops&quot;</span>);       <span class="comment">/*   10 */</span>
+<a name="l00177"></a>00177 
+<a name="l00178"></a>00178     <span class="keywordflow">if</span> (<span class="keyword">sizeof</span>(<span class="keywordtype">unsigned</span> <span class="keywordtype">long</span> <span class="keywordtype">long</span>) &gt;= 8) { <span class="comment">/* we&#39;re assuming unsigned long long is at least 64 bits here */</span>
+<a name="l00179"></a>00179     static_assert(log2&lt;<span class="keywordtype">unsigned</span> <span class="keywordtype">long</span> <span class="keywordtype">long</span>,1ull &lt;&lt; 63ull&gt;() == 63, <span class="stringliteral">&quot;whoops&quot;</span>);
+<a name="l00180"></a>00180     static_assert(log2&lt;<span class="keywordtype">unsigned</span> <span class="keywordtype">long</span> <span class="keywordtype">long</span>,1ull &lt;&lt; 48ull&gt;() == 48, <span class="stringliteral">&quot;whoops&quot;</span>);
+<a name="l00181"></a>00181     }
+<a name="l00182"></a>00182     static_assert(log2&lt;<span class="keywordtype">unsigned</span> <span class="keywordtype">long</span> <span class="keywordtype">long</span>,1ull &lt;&lt; 31ull&gt;() == 31, <span class="stringliteral">&quot;whoops&quot;</span>);
+<a name="l00183"></a>00183     static_assert(log2&lt;<span class="keywordtype">unsigned</span> <span class="keywordtype">long</span> <span class="keywordtype">long</span>,1ull &lt;&lt; 16ull&gt;() == 16, <span class="stringliteral">&quot;whoops&quot;</span>);
+<a name="l00184"></a>00184     static_assert(log2&lt;<span class="keywordtype">unsigned</span> <span class="keywordtype">long</span> <span class="keywordtype">long</span>,1ull &lt;&lt; 8ull&gt;() == 8, <span class="stringliteral">&quot;whoops&quot;</span>);
+<a name="l00185"></a>00185     static_assert(log2&lt;<span class="keywordtype">unsigned</span> <span class="keywordtype">long</span> <span class="keywordtype">long</span>,1ull &lt;&lt; 4ull&gt;() == 4, <span class="stringliteral">&quot;whoops&quot;</span>);
+<a name="l00186"></a>00186     static_assert(log2&lt;<span class="keywordtype">unsigned</span> <span class="keywordtype">long</span> <span class="keywordtype">long</span>,1ull &lt;&lt; 3ull&gt;() == 3, <span class="stringliteral">&quot;whoops&quot;</span>);
+<a name="l00187"></a>00187     static_assert(log2&lt;<span class="keywordtype">unsigned</span> <span class="keywordtype">long</span> <span class="keywordtype">long</span>,1ull &lt;&lt; 2ull&gt;() == 2, <span class="stringliteral">&quot;whoops&quot;</span>);
+<a name="l00188"></a>00188     static_assert(log2&lt;<span class="keywordtype">unsigned</span> <span class="keywordtype">long</span> <span class="keywordtype">long</span>,1ull &lt;&lt; 1ull&gt;() == 1, <span class="stringliteral">&quot;whoops&quot;</span>);
+<a name="l00189"></a>00189     static_assert(log2&lt;<span class="keywordtype">unsigned</span> <span class="keywordtype">long</span> <span class="keywordtype">long</span>,1ull &lt;&lt; 0ull&gt;() == 0, <span class="stringliteral">&quot;whoops&quot;</span>);
+<a name="l00190"></a>00190     static_assert(log2&lt;unsigned long long,256ull&gt;() == 8, <span class="stringliteral">&quot;whoops&quot;</span>);
+<a name="l00191"></a>00191     static_assert(log2&lt;unsigned long long,128ull&gt;() == 7, <span class="stringliteral">&quot;whoops&quot;</span>);
+<a name="l00192"></a>00192     static_assert(log2&lt;unsigned long long,16ull&gt;() == 4, <span class="stringliteral">&quot;whoops&quot;</span>);
+<a name="l00193"></a>00193     static_assert(log2&lt;unsigned long long,1ull&gt;() == 0, <span class="stringliteral">&quot;whoops&quot;</span>);
+<a name="l00194"></a>00194     static_assert(log2&lt;unsigned long long,0ull&gt;() == ~0u, <span class="stringliteral">&quot;whoops&quot;</span>);
+<a name="l00195"></a>00195 
+<a name="l00196"></a>00196     assert(log2(1u &lt;&lt; 31) == 31);
+<a name="l00197"></a>00197     assert(log2(1u &lt;&lt; 16) == 16);
+<a name="l00198"></a>00198     assert(log2(1u &lt;&lt; 8) == 8);
+<a name="l00199"></a>00199     assert(log2(1u &lt;&lt; 4) == 4);
+<a name="l00200"></a>00200     assert(log2(1u &lt;&lt; 3) == 3);
+<a name="l00201"></a>00201     assert(log2(1u &lt;&lt; 2) == 2);
+<a name="l00202"></a>00202     assert(log2(1u &lt;&lt; 1) == 1);
+<a name="l00203"></a>00203     assert(log2(1u &lt;&lt; 0) == 0);
+<a name="l00204"></a>00204     assert(log2(256u) == 8);
+<a name="l00205"></a>00205     assert(log2(128u) == 7);
+<a name="l00206"></a>00206     assert(log2(16u) == 4);
+<a name="l00207"></a>00207     assert(log2(1u) == 0);
+<a name="l00208"></a>00208     assert(log2(0u) == ~0u);
+<a name="l00209"></a>00209 
+<a name="l00210"></a>00210                                     <span class="comment">/* 3210 bit position */</span>
+<a name="l00211"></a>00211                                     <span class="comment">/* ---- */</span>
+<a name="l00212"></a>00212     assert(log2(9u) == 3);          <span class="comment">/* 1001 */</span>
+<a name="l00213"></a>00213     assert(log2(7u) == 2);          <span class="comment">/*  111 */</span>
+<a name="l00214"></a>00214     assert(log2(5u) == 2);          <span class="comment">/*  101 */</span>
+<a name="l00215"></a>00215     assert(log2(3u) == 1);          <span class="comment">/*   11 */</span>
+<a name="l00216"></a>00216     assert(log2(2u) == 1);          <span class="comment">/*   10 */</span>
+<a name="l00217"></a>00217 
+<a name="l00218"></a>00218     <span class="keywordflow">if</span> (<span class="keyword">sizeof</span>(<span class="keywordtype">unsigned</span> <span class="keywordtype">long</span> <span class="keywordtype">long</span>) &gt;= 8) { <span class="comment">/* we&#39;re assuming unsigned long long is at least 64 bits here */</span>
+<a name="l00219"></a>00219     assert(log2&lt;unsigned long long&gt;(1ull &lt;&lt; 63ull) == 63);
+<a name="l00220"></a>00220     assert(log2&lt;unsigned long long&gt;(1ull &lt;&lt; 48ull) == 48);
+<a name="l00221"></a>00221     }
+<a name="l00222"></a>00222     assert(log2&lt;unsigned long long&gt;(1ull &lt;&lt; 31ull) == 31);
+<a name="l00223"></a>00223     assert(log2&lt;unsigned long long&gt;(1ull &lt;&lt; 16ull) == 16);
+<a name="l00224"></a>00224     assert(log2&lt;unsigned long long&gt;(1ull &lt;&lt; 8ull) == 8);
+<a name="l00225"></a>00225     assert(log2&lt;unsigned long long&gt;(1ull &lt;&lt; 4ull) == 4);
+<a name="l00226"></a>00226     assert(log2&lt;unsigned long long&gt;(1ull &lt;&lt; 3ull) == 3);
+<a name="l00227"></a>00227     assert(log2&lt;unsigned long long&gt;(1ull &lt;&lt; 2ull) == 2);
+<a name="l00228"></a>00228     assert(log2&lt;unsigned long long&gt;(1ull &lt;&lt; 1ull) == 1);
+<a name="l00229"></a>00229     assert(log2&lt;unsigned long long&gt;(1ull &lt;&lt; 0ull) == 0);
+<a name="l00230"></a>00230     assert(log2&lt;unsigned long long&gt;(256ull) == 8);
+<a name="l00231"></a>00231     assert(log2&lt;unsigned long long&gt;(128ull) == 7);
+<a name="l00232"></a>00232     assert(log2&lt;unsigned long long&gt;(16ull) == 4);
+<a name="l00233"></a>00233     assert(log2&lt;unsigned long long&gt;(1ull) == 0);
+<a name="l00234"></a>00234     assert(log2&lt;unsigned long long&gt;(0ull) == ~0u);
+<a name="l00235"></a>00235 
+<a name="l00236"></a>00236     static_assert(invert&lt;unsigned int&gt;(0) == ~0u, <span class="stringliteral">&quot;whoops&quot;</span>);
+<a name="l00237"></a>00237     static_assert(invert&lt;unsigned int&gt;(1) == ~1u, <span class="stringliteral">&quot;whoops&quot;</span>);
+<a name="l00238"></a>00238     static_assert(invert&lt;unsigned long&gt;(0) == ~0ul, <span class="stringliteral">&quot;whoops&quot;</span>);
+<a name="l00239"></a>00239     static_assert(invert&lt;unsigned long&gt;(1) == ~1ul, <span class="stringliteral">&quot;whoops&quot;</span>);
+<a name="l00240"></a>00240     static_assert(invert&lt;unsigned long long&gt;(0) == ~0ull, <span class="stringliteral">&quot;whoops&quot;</span>);
+<a name="l00241"></a>00241     static_assert(invert&lt;unsigned long long&gt;(1) == ~1ull, <span class="stringliteral">&quot;whoops&quot;</span>);
+<a name="l00242"></a>00242 
+<a name="l00243"></a>00243     assert(invert&lt;unsigned int&gt;(0) == ~0u);
+<a name="l00244"></a>00244     assert(invert&lt;unsigned int&gt;(1) == ~1u);
+<a name="l00245"></a>00245     assert(invert&lt;unsigned long&gt;(0) == ~0ul);
+<a name="l00246"></a>00246     assert(invert&lt;unsigned long&gt;(1) == ~1ul);
+<a name="l00247"></a>00247     assert(invert&lt;unsigned long long&gt;(0) == ~0ull);
+<a name="l00248"></a>00248     assert(invert&lt;unsigned long long&gt;(1) == ~1ull);
+<a name="l00249"></a>00249 
+<a name="l00250"></a>00250     assert(bitseqlengthandpos(0)   == bitseqlengthandpos_ret_t(0,0));
+<a name="l00251"></a>00251     assert(bitseqlengthandpos(1)   == bitseqlengthandpos_ret_t(0,1));
+<a name="l00252"></a>00252     assert(bitseqlengthandpos(3)   == bitseqlengthandpos_ret_t(0,2));
+<a name="l00253"></a>00253     assert(bitseqlengthandpos(7)   == bitseqlengthandpos_ret_t(0,3));
+<a name="l00254"></a>00254     assert(bitseqlengthandpos(15)  == bitseqlengthandpos_ret_t(0,4));
+<a name="l00255"></a>00255     assert(bitseqlengthandpos(31)  == bitseqlengthandpos_ret_t(0,5));
+<a name="l00256"></a>00256     assert(bitseqlengthandpos(63)  == bitseqlengthandpos_ret_t(0,6));
+<a name="l00257"></a>00257     assert(bitseqlengthandpos(127) == bitseqlengthandpos_ret_t(0,7));
+<a name="l00258"></a>00258     assert(bitseqlengthandpos(255) == bitseqlengthandpos_ret_t(0,8));
+<a name="l00259"></a>00259 
 <a name="l00260"></a>00260     assert(bitseqlengthandpos(1)   == bitseqlengthandpos_ret_t(0,1));
-<a name="l00261"></a>00261     assert(bitseqlengthandpos(3)   == bitseqlengthandpos_ret_t(0,2));
-<a name="l00262"></a>00262     assert(bitseqlengthandpos(7)   == bitseqlengthandpos_ret_t(0,3));
-<a name="l00263"></a>00263     assert(bitseqlengthandpos(15)  == bitseqlengthandpos_ret_t(0,4));
-<a name="l00264"></a>00264     assert(bitseqlengthandpos(31)  == bitseqlengthandpos_ret_t(0,5));
-<a name="l00265"></a>00265     assert(bitseqlengthandpos(63)  == bitseqlengthandpos_ret_t(0,6));
-<a name="l00266"></a>00266     assert(bitseqlengthandpos(127) == bitseqlengthandpos_ret_t(0,7));
-<a name="l00267"></a>00267     assert(bitseqlengthandpos(255) == bitseqlengthandpos_ret_t(0,8));
-<a name="l00268"></a>00268 
-<a name="l00269"></a>00269     assert(bitseqlengthandpos(1)   == bitseqlengthandpos_ret_t(0,1));
+<a name="l00261"></a>00261     assert(bitseqlengthandpos(2)   == bitseqlengthandpos_ret_t(1,1));
+<a name="l00262"></a>00262     assert(bitseqlengthandpos(4)   == bitseqlengthandpos_ret_t(2,1));
+<a name="l00263"></a>00263     assert(bitseqlengthandpos(8)   == bitseqlengthandpos_ret_t(3,1));
+<a name="l00264"></a>00264     assert(bitseqlengthandpos(16)  == bitseqlengthandpos_ret_t(4,1));
+<a name="l00265"></a>00265     assert(bitseqlengthandpos(32)  == bitseqlengthandpos_ret_t(5,1));
+<a name="l00266"></a>00266     assert(bitseqlengthandpos(64)  == bitseqlengthandpos_ret_t(6,1));
+<a name="l00267"></a>00267     assert(bitseqlengthandpos(128) == bitseqlengthandpos_ret_t(7,1));
+<a name="l00268"></a>00268     assert(bitseqlengthandpos(256) == bitseqlengthandpos_ret_t(8,1));
+<a name="l00269"></a>00269 
 <a name="l00270"></a>00270     assert(bitseqlengthandpos(2)   == bitseqlengthandpos_ret_t(1,1));
-<a name="l00271"></a>00271     assert(bitseqlengthandpos(4)   == bitseqlengthandpos_ret_t(2,1));
-<a name="l00272"></a>00272     assert(bitseqlengthandpos(8)   == bitseqlengthandpos_ret_t(3,1));
-<a name="l00273"></a>00273     assert(bitseqlengthandpos(16)  == bitseqlengthandpos_ret_t(4,1));
-<a name="l00274"></a>00274     assert(bitseqlengthandpos(32)  == bitseqlengthandpos_ret_t(5,1));
-<a name="l00275"></a>00275     assert(bitseqlengthandpos(64)  == bitseqlengthandpos_ret_t(6,1));
-<a name="l00276"></a>00276     assert(bitseqlengthandpos(128) == bitseqlengthandpos_ret_t(7,1));
-<a name="l00277"></a>00277     assert(bitseqlengthandpos(256) == bitseqlengthandpos_ret_t(8,1));
+<a name="l00271"></a>00271     assert(bitseqlengthandpos(6)   == bitseqlengthandpos_ret_t(1,2));
+<a name="l00272"></a>00272     assert(bitseqlengthandpos(14)  == bitseqlengthandpos_ret_t(1,3));
+<a name="l00273"></a>00273     assert(bitseqlengthandpos(30)  == bitseqlengthandpos_ret_t(1,4));
+<a name="l00274"></a>00274     assert(bitseqlengthandpos(62)  == bitseqlengthandpos_ret_t(1,5));
+<a name="l00275"></a>00275     assert(bitseqlengthandpos(126) == bitseqlengthandpos_ret_t(1,6));
+<a name="l00276"></a>00276     assert(bitseqlengthandpos(254) == bitseqlengthandpos_ret_t(1,7));
+<a name="l00277"></a>00277     assert(bitseqlengthandpos(510) == bitseqlengthandpos_ret_t(1,8));
 <a name="l00278"></a>00278 
-<a name="l00279"></a>00279     assert(bitseqlengthandpos(2)   == bitseqlengthandpos_ret_t(1,1));
-<a name="l00280"></a>00280     assert(bitseqlengthandpos(6)   == bitseqlengthandpos_ret_t(1,2));
-<a name="l00281"></a>00281     assert(bitseqlengthandpos(14)  == bitseqlengthandpos_ret_t(1,3));
-<a name="l00282"></a>00282     assert(bitseqlengthandpos(30)  == bitseqlengthandpos_ret_t(1,4));
-<a name="l00283"></a>00283     assert(bitseqlengthandpos(62)  == bitseqlengthandpos_ret_t(1,5));
-<a name="l00284"></a>00284     assert(bitseqlengthandpos(126) == bitseqlengthandpos_ret_t(1,6));
-<a name="l00285"></a>00285     assert(bitseqlengthandpos(254) == bitseqlengthandpos_ret_t(1,7));
-<a name="l00286"></a>00286     assert(bitseqlengthandpos(510) == bitseqlengthandpos_ret_t(1,8));
-<a name="l00287"></a>00287 
-<a name="l00288"></a>00288     assert(bitseqlengthandpos(4)   == bitseqlengthandpos_ret_t(2,1));
-<a name="l00289"></a>00289     assert(bitseqlengthandpos(12)  == bitseqlengthandpos_ret_t(2,2));
-<a name="l00290"></a>00290     assert(bitseqlengthandpos(28)  == bitseqlengthandpos_ret_t(2,3));
-<a name="l00291"></a>00291     assert(bitseqlengthandpos(60)  == bitseqlengthandpos_ret_t(2,4));
-<a name="l00292"></a>00292     assert(bitseqlengthandpos(124) == bitseqlengthandpos_ret_t(2,5));
-<a name="l00293"></a>00293     assert(bitseqlengthandpos(252) == bitseqlengthandpos_ret_t(2,6));
-<a name="l00294"></a>00294     assert(bitseqlengthandpos(508) == bitseqlengthandpos_ret_t(2,7));
-<a name="l00295"></a>00295     assert(bitseqlengthandpos(1020)== bitseqlengthandpos_ret_t(2,8));
-<a name="l00296"></a>00296 <span class="preprocessor">#endif</span>
-<a name="l00297"></a>00297 <span class="preprocessor"></span>}
-<a name="l00298"></a>00298 
-<a name="l00299"></a>00299 }
-<a name="l00300"></a>00300 
+<a name="l00279"></a>00279     assert(bitseqlengthandpos(4)   == bitseqlengthandpos_ret_t(2,1));
+<a name="l00280"></a>00280     assert(bitseqlengthandpos(12)  == bitseqlengthandpos_ret_t(2,2));
+<a name="l00281"></a>00281     assert(bitseqlengthandpos(28)  == bitseqlengthandpos_ret_t(2,3));
+<a name="l00282"></a>00282     assert(bitseqlengthandpos(60)  == bitseqlengthandpos_ret_t(2,4));
+<a name="l00283"></a>00283     assert(bitseqlengthandpos(124) == bitseqlengthandpos_ret_t(2,5));
+<a name="l00284"></a>00284     assert(bitseqlengthandpos(252) == bitseqlengthandpos_ret_t(2,6));
+<a name="l00285"></a>00285     assert(bitseqlengthandpos(508) == bitseqlengthandpos_ret_t(2,7));
+<a name="l00286"></a>00286     assert(bitseqlengthandpos(1020)== bitseqlengthandpos_ret_t(2,8));
+<a name="l00287"></a>00287 }
+<a name="l00288"></a>00288 
+<a name="l00289"></a>00289 }
+<a name="l00290"></a>00290 
 </pre></div></div><!-- contents -->
 
 
 <hr class="footer"/><address class="footer"><small>
-Generated on Tue Oct 1 2019 18:06:25 for DOSBox-X by &#160;<a href="http://www.doxygen.org/index.html">
+Generated on Sun Jul 5 2020 13:11:35 for DOSBox-X by &#160;<a href="http://www.doxygen.org/index.html">
 <img class="footer" src="doxygen.png" alt="doxygen"/>
 </a> 1.8.0
 </small></address>

@@ -96,7 +96,7 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 </div><!--header-->
 <div class="contents">
 <div class="fragment"><pre class="fragment"><a name="l00001"></a>00001 <span class="comment">/*</span>
-<a name="l00002"></a>00002 <span class="comment"> *  Copyright (C) 2018  Jon Campbell</span>
+<a name="l00002"></a>00002 <span class="comment"> *  Copyright (C) 2018-2020 Jon Campbell</span>
 <a name="l00003"></a>00003 <span class="comment"> *</span>
 <a name="l00004"></a>00004 <span class="comment"> *  This program is free software; you can redistribute it and/or modify</span>
 <a name="l00005"></a>00005 <span class="comment"> *  it under the terms of the GNU General Public License as published by</span>
@@ -108,9 +108,9 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l00011"></a>00011 <span class="comment"> *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the</span>
 <a name="l00012"></a>00012 <span class="comment"> *  GNU General Public License for more details.</span>
 <a name="l00013"></a>00013 <span class="comment"> *</span>
-<a name="l00014"></a>00014 <span class="comment"> *  You should have received a copy of the GNU General Public License</span>
-<a name="l00015"></a>00015 <span class="comment"> *  along with this program; if not, write to the Free Software</span>
-<a name="l00016"></a>00016 <span class="comment"> *  Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1335, USA.</span>
+<a name="l00014"></a>00014 <span class="comment"> *  You should have received a copy of the GNU General Public License along</span>
+<a name="l00015"></a>00015 <span class="comment"> *  with this program; if not, write to the Free Software Foundation, Inc.,</span>
+<a name="l00016"></a>00016 <span class="comment"> *  51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.</span>
 <a name="l00017"></a>00017 <span class="comment"> */</span>
 <a name="l00018"></a>00018 
 <a name="l00019"></a>00019 <span class="comment">/* Shut up! */</span>
@@ -491,7 +491,7 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l00394"></a>00394                 int64_t rem = c-&gt;data_length - c-&gt;read_offset;
 <a name="l00395"></a>00395                 <span class="keywordflow">if</span> (rem &gt; (int64_t)len) rem = (int64_t)len;
 <a name="l00396"></a>00396                 len = (size_t)rem;
-<a name="l00397"></a>00397                 <span class="keywordflow">if</span> (len &lt;= 0) <span class="keywordflow">return</span> 0;
+<a name="l00397"></a>00397                 <span class="keywordflow">if</span> (len == 0) <span class="keywordflow">return</span> 0;
 <a name="l00398"></a>00398                 <span class="keywordflow">if</span> (c-&gt;absolute_data_offset == ((int64_t)(-1))) <span class="keywordflow">return</span> 0;
 <a name="l00399"></a>00399                 <span class="keywordflow">if</span> (s-&gt;seek(s,c-&gt;absolute_data_offset+c-&gt;read_offset) != (c-&gt;absolute_data_offset+c-&gt;read_offset)) <span class="keywordflow">return</span> 0;
 <a name="l00400"></a>00400                 rd = s-&gt;read(s,buf,len);
@@ -663,7 +663,7 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l00566"></a>00566                 riff_stack_fourcc_to_str(chunk-&gt;fourcc,tmp);
 <a name="l00567"></a>00567                 fprintf(fp,<span class="stringliteral">&quot;&#39;%s&#39; &quot;</span>,tmp);
 <a name="l00568"></a>00568         }
-<a name="l00569"></a>00569         fprintf(fp,<span class="stringliteral">&quot;hdr=%lld data=%lld len=%lu data-end=%lld&quot;</span>,
+<a name="l00569"></a>00569         fprintf(fp,<span class="stringliteral">&quot;hdr=%llu data=%llu len=%lu data-end=%llu&quot;</span>,
 <a name="l00570"></a>00570                 (<span class="keywordtype">unsigned</span> <span class="keywordtype">long</span> <span class="keywordtype">long</span>)(chunk-&gt;absolute_header_offset),
 <a name="l00571"></a>00571                 (<span class="keywordtype">unsigned</span> <span class="keywordtype">long</span> <span class="keywordtype">long</span>)(chunk-&gt;absolute_data_offset),
 <a name="l00572"></a>00572                 (<span class="keywordtype">unsigned</span> <span class="keywordtype">long</span>)(chunk-&gt;data_length),
@@ -848,70 +848,69 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l00751"></a>00751 }
 <a name="l00752"></a>00752 
 <a name="l00753"></a>00753 <span class="keywordtype">void</span> riff_stack_writing_sync(<a class="code" href="structriff__stack.html">riff_stack</a> *s) {
-<a name="l00754"></a>00754         int64_t noffset = 0,x;
-<a name="l00755"></a>00755         <a class="code" href="structriff__chunk.html">riff_chunk</a> *t;
-<a name="l00756"></a>00756 
-<a name="l00757"></a>00757         <span class="keywordflow">while</span> (s-&gt;current &gt;= 0) {
-<a name="l00758"></a>00758                 <span class="comment">/* the caller uses this function when all chunks are to be completed,</span>
-<a name="l00759"></a>00759 <span class="comment">                 * and the writing process may or may not be done. the AVI writer</span>
-<a name="l00760"></a>00760 <span class="comment">                 * may uses this for instance when writing the next &#39;AVIX&#39; chunk</span>
-<a name="l00761"></a>00761 <span class="comment">                 * in an OpenDML file which requires all chunks to be completed.</span>
-<a name="l00762"></a>00762 <span class="comment">                 *</span>
-<a name="l00763"></a>00763 <span class="comment">                 * as part of the process we must clear all disable_sync and</span>
-<a name="l00764"></a>00764 <span class="comment">                 * placeholder markings so the true state can be written back */</span>
-<a name="l00765"></a>00765                 t = riff_stack_top(s);
-<a name="l00766"></a>00766                 t-&gt;disable_sync = 0;
-<a name="l00767"></a>00767                 t-&gt;placeholder = 0;
-<a name="l00768"></a>00768                 riff_stack_header_sync_all(s);
-<a name="l00769"></a>00769                 assert(s-&gt;top-&gt;absolute_data_offset &gt;= (int64_t)0);
-<a name="l00770"></a>00770                 x = s-&gt;top-&gt;absolute_data_offset + s-&gt;top-&gt;absolute_data_length;
-<a name="l00771"></a>00771                 <span class="keywordflow">if</span> (noffset &lt; x) noffset = x;
-<a name="l00772"></a>00772                 riff_stack_pop(s);
-<a name="l00773"></a>00773         }
-<a name="l00774"></a>00774 
-<a name="l00775"></a>00775         s-&gt;next_write = noffset;
-<a name="l00776"></a>00776 }
-<a name="l00777"></a>00777 
-<a name="l00778"></a>00778 <span class="comment">/* if I wrote &quot;len&quot; bytes, would I hit or cross the AVI 2GB chunk limit at any level? */</span>
-<a name="l00779"></a>00779 <span class="comment">/* if so, the caller must pop down all AVI chunks, emptying the stack, and then create</span>
-<a name="l00780"></a>00780 <span class="comment"> * new chunks to continue on */</span>
-<a name="l00781"></a>00781 <span class="keywordtype">int</span> riff_stack_chunk_limit(<a class="code" href="structriff__stack.html">riff_stack</a> *s,<span class="keywordtype">int</span> len) {
-<a name="l00782"></a>00782         <a class="code" href="structriff__chunk.html">riff_chunk</a> *lowest,*highest;
-<a name="l00783"></a>00783         <span class="keywordtype">unsigned</span> <span class="keywordtype">long</span> <span class="keywordtype">long</span> base;
-<a name="l00784"></a>00784 
-<a name="l00785"></a>00785         <span class="keywordflow">if</span> (s-&gt;current &lt; 0) <span class="keywordflow">return</span> 0;
-<a name="l00786"></a>00786 
-<a name="l00787"></a>00787         lowest = s-&gt;stack;
-<a name="l00788"></a>00788         assert(lowest-&gt;absolute_data_offset &gt;= (int64_t)0);
-<a name="l00789"></a>00789         highest = riff_stack_top(s);
-<a name="l00790"></a>00790         assert(highest != NULL);
-<a name="l00791"></a>00791         assert(highest-&gt;absolute_data_offset &gt;= (int64_t)0);
-<a name="l00792"></a>00792         base = (<span class="keywordtype">unsigned</span> <span class="keywordtype">long</span> long)lowest-&gt;absolute_data_offset;
-<a name="l00793"></a>00793 
-<a name="l00794"></a>00794         for (;highest &gt;= lowest;highest--) {
-<a name="l00795"></a>00795                 <span class="keywordtype">signed</span> <span class="keywordtype">long</span> <span class="keywordtype">long</span> rel = (<span class="keywordtype">signed</span> <span class="keywordtype">long</span> long)((<span class="keywordtype">unsigned</span> <span class="keywordtype">long</span> <span class="keywordtype">long</span>)highest-&gt;absolute_data_offset - base);
-<a name="l00796"></a>00796                 <span class="comment">/* subchunks should not be all over the place---sanity check! */</span>
-<a name="l00797"></a>00797                 assert(rel &gt;= 0);
-<a name="l00798"></a>00798 
-<a name="l00799"></a>00799                 <span class="keywordflow">if</span> ((rel + highest-&gt;write_offset + len) &gt;= 0x40000000LL) <span class="comment">/* 1GB mark */</span>
-<a name="l00800"></a>00800                         <span class="keywordflow">return</span> 1;
-<a name="l00801"></a>00801         }
-<a name="l00802"></a>00802 
-<a name="l00803"></a>00803         <span class="keywordflow">return</span> 0;
-<a name="l00804"></a>00804 }
-<a name="l00805"></a>00805 
-<a name="l00806"></a>00806 <span class="keywordtype">int</span> riff_stack_enable_placeholder(<a class="code" href="structriff__stack.html">riff_stack</a> *s,<a class="code" href="structriff__chunk.html">riff_chunk</a> *c) {
-<a name="l00807"></a>00807         <span class="keywordflow">if</span> (s == NULL) <span class="keywordflow">return</span> 0;
-<a name="l00808"></a>00808         <span class="keywordflow">if</span> (c == NULL) <span class="keywordflow">return</span> 0;
-<a name="l00809"></a>00809         c-&gt;placeholder = 1;
-<a name="l00810"></a>00810         <span class="keywordflow">return</span> 1;
-<a name="l00811"></a>00811 }
-<a name="l00812"></a>00812 
+<a name="l00754"></a>00754         int64_t noffset = 0;
+<a name="l00755"></a>00755 
+<a name="l00756"></a>00756         <span class="keywordflow">while</span> (s-&gt;current &gt;= 0) {
+<a name="l00757"></a>00757                 <span class="comment">/* the caller uses this function when all chunks are to be completed,</span>
+<a name="l00758"></a>00758 <span class="comment">                 * and the writing process may or may not be done. the AVI writer</span>
+<a name="l00759"></a>00759 <span class="comment">                 * may uses this for instance when writing the next &#39;AVIX&#39; chunk</span>
+<a name="l00760"></a>00760 <span class="comment">                 * in an OpenDML file which requires all chunks to be completed.</span>
+<a name="l00761"></a>00761 <span class="comment">                 *</span>
+<a name="l00762"></a>00762 <span class="comment">                 * as part of the process we must clear all disable_sync and</span>
+<a name="l00763"></a>00763 <span class="comment">                 * placeholder markings so the true state can be written back */</span>
+<a name="l00764"></a>00764                 <a class="code" href="structriff__chunk.html">riff_chunk</a> *t = riff_stack_top(s);
+<a name="l00765"></a>00765                 t-&gt;disable_sync = 0;
+<a name="l00766"></a>00766                 t-&gt;placeholder = 0;
+<a name="l00767"></a>00767                 riff_stack_header_sync_all(s);
+<a name="l00768"></a>00768                 assert(s-&gt;top-&gt;absolute_data_offset &gt;= (int64_t)0);
+<a name="l00769"></a>00769                 int64_t x = s-&gt;top-&gt;absolute_data_offset + s-&gt;top-&gt;absolute_data_length;
+<a name="l00770"></a>00770                 <span class="keywordflow">if</span> (noffset &lt; x) noffset = x;
+<a name="l00771"></a>00771                 riff_stack_pop(s);
+<a name="l00772"></a>00772         }
+<a name="l00773"></a>00773 
+<a name="l00774"></a>00774         s-&gt;next_write = noffset;
+<a name="l00775"></a>00775 }
+<a name="l00776"></a>00776 
+<a name="l00777"></a>00777 <span class="comment">/* if I wrote &quot;len&quot; bytes, would I hit or cross the AVI 2GB chunk limit at any level? */</span>
+<a name="l00778"></a>00778 <span class="comment">/* if so, the caller must pop down all AVI chunks, emptying the stack, and then create</span>
+<a name="l00779"></a>00779 <span class="comment"> * new chunks to continue on */</span>
+<a name="l00780"></a>00780 <span class="keywordtype">int</span> riff_stack_chunk_limit(<a class="code" href="structriff__stack.html">riff_stack</a> *s,<span class="keywordtype">int</span> len) {
+<a name="l00781"></a>00781         <a class="code" href="structriff__chunk.html">riff_chunk</a> *lowest,*highest;
+<a name="l00782"></a>00782         <span class="keywordtype">unsigned</span> <span class="keywordtype">long</span> <span class="keywordtype">long</span> base;
+<a name="l00783"></a>00783 
+<a name="l00784"></a>00784         <span class="keywordflow">if</span> (s-&gt;current &lt; 0) <span class="keywordflow">return</span> 0;
+<a name="l00785"></a>00785 
+<a name="l00786"></a>00786         lowest = s-&gt;stack;
+<a name="l00787"></a>00787         assert(lowest-&gt;absolute_data_offset &gt;= (int64_t)0);
+<a name="l00788"></a>00788         highest = riff_stack_top(s);
+<a name="l00789"></a>00789         assert(highest != NULL);
+<a name="l00790"></a>00790         assert(highest-&gt;absolute_data_offset &gt;= (int64_t)0);
+<a name="l00791"></a>00791         base = (<span class="keywordtype">unsigned</span> <span class="keywordtype">long</span> long)lowest-&gt;absolute_data_offset;
+<a name="l00792"></a>00792 
+<a name="l00793"></a>00793         for (;highest &gt;= lowest;highest--) {
+<a name="l00794"></a>00794                 <span class="keywordtype">signed</span> <span class="keywordtype">long</span> <span class="keywordtype">long</span> rel = (<span class="keywordtype">signed</span> <span class="keywordtype">long</span> long)((<span class="keywordtype">unsigned</span> <span class="keywordtype">long</span> <span class="keywordtype">long</span>)highest-&gt;absolute_data_offset - base);
+<a name="l00795"></a>00795                 <span class="comment">/* subchunks should not be all over the place---sanity check! */</span>
+<a name="l00796"></a>00796                 assert(rel &gt;= 0);
+<a name="l00797"></a>00797 
+<a name="l00798"></a>00798                 <span class="keywordflow">if</span> ((rel + highest-&gt;write_offset + len) &gt;= 0x40000000LL) <span class="comment">/* 1GB mark */</span>
+<a name="l00799"></a>00799                         <span class="keywordflow">return</span> 1;
+<a name="l00800"></a>00800         }
+<a name="l00801"></a>00801 
+<a name="l00802"></a>00802         <span class="keywordflow">return</span> 0;
+<a name="l00803"></a>00803 }
+<a name="l00804"></a>00804 
+<a name="l00805"></a>00805 <span class="keywordtype">int</span> riff_stack_enable_placeholder(<a class="code" href="structriff__stack.html">riff_stack</a> *s,<a class="code" href="structriff__chunk.html">riff_chunk</a> *c) {
+<a name="l00806"></a>00806         <span class="keywordflow">if</span> (s == NULL) <span class="keywordflow">return</span> 0;
+<a name="l00807"></a>00807         <span class="keywordflow">if</span> (c == NULL) <span class="keywordflow">return</span> 0;
+<a name="l00808"></a>00808         c-&gt;placeholder = 1;
+<a name="l00809"></a>00809         <span class="keywordflow">return</span> 1;
+<a name="l00810"></a>00810 }
+<a name="l00811"></a>00811 
 </pre></div></div><!-- contents -->
 
 
 <hr class="footer"/><address class="footer"><small>
-Generated on Tue Oct 1 2019 18:06:23 for DOSBox-X by &#160;<a href="http://www.doxygen.org/index.html">
+Generated on Sun Jul 5 2020 13:11:33 for DOSBox-X by &#160;<a href="http://www.doxygen.org/index.html">
 <img class="footer" src="doxygen.png" alt="doxygen"/>
 </a> 1.8.0
 </small></address>

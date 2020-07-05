@@ -96,7 +96,7 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 </div><!--header-->
 <div class="contents">
 <div class="fragment"><pre class="fragment"><a name="l00001"></a>00001 <span class="comment">/*</span>
-<a name="l00002"></a>00002 <span class="comment"> *  Copyright (C) 2002-2019  The DOSBox Team</span>
+<a name="l00002"></a>00002 <span class="comment"> *  Copyright (C) 2002-2020  The DOSBox Team</span>
 <a name="l00003"></a>00003 <span class="comment"> *</span>
 <a name="l00004"></a>00004 <span class="comment"> *  This program is free software; you can redistribute it and/or modify</span>
 <a name="l00005"></a>00005 <span class="comment"> *  it under the terms of the GNU General Public License as published by</span>
@@ -108,9 +108,9 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l00011"></a>00011 <span class="comment"> *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the</span>
 <a name="l00012"></a>00012 <span class="comment"> *  GNU General Public License for more details.</span>
 <a name="l00013"></a>00013 <span class="comment"> *</span>
-<a name="l00014"></a>00014 <span class="comment"> *  You should have received a copy of the GNU General Public License</span>
-<a name="l00015"></a>00015 <span class="comment"> *  along with this program; if not, write to the Free Software</span>
-<a name="l00016"></a>00016 <span class="comment"> *  Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1335, USA.</span>
+<a name="l00014"></a>00014 <span class="comment"> *  You should have received a copy of the GNU General Public License along</span>
+<a name="l00015"></a>00015 <span class="comment"> *  with this program; if not, write to the Free Software Foundation, Inc.,</span>
+<a name="l00016"></a>00016 <span class="comment"> *  51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.</span>
 <a name="l00017"></a>00017 <span class="comment"> */</span>
 <a name="l00018"></a>00018 
 <a name="l00019"></a>00019 
@@ -149,107 +149,115 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l00052"></a>00052 
 <a name="l00053"></a><a class="code" href="classConfig.html">00053</a> <span class="keyword">class </span><a class="code" href="classConfig.html">Config</a>{
 <a name="l00054"></a>00054 <span class="keyword">public</span>:
-<a name="l00055"></a>00055         <a class="code" href="classCommandLine.html">CommandLine</a> * cmdline;
+<a name="l00055"></a>00055     <a class="code" href="classCommandLine.html">CommandLine</a> * cmdline;
 <a name="l00056"></a>00056 <span class="keyword">private</span>:
-<a name="l00057"></a>00057         std::list&lt;Section*&gt; sectionlist;
-<a name="l00058"></a>00058         <span class="keyword">typedef</span> std::list&lt;Section*&gt;::iterator it;
-<a name="l00059"></a>00059         <span class="keyword">typedef</span> std::list&lt;Section*&gt;::reverse_iterator reverse_it;
-<a name="l00060"></a>00060         <span class="keyword">typedef</span> std::list&lt;Section*&gt;::const_iterator const_it;
-<a name="l00061"></a>00061         <span class="keyword">typedef</span> std::list&lt;Section*&gt;::const_reverse_iterator const_reverse_it;
-<a name="l00062"></a>00062 <span class="comment">//      void (* _start_function)(void);</span>
-<a name="l00063"></a>00063         <span class="keywordtype">bool</span> secure_mode; <span class="comment">//Sandbox mode</span>
+<a name="l00057"></a>00057     std::list&lt;Section*&gt; sectionlist;
+<a name="l00058"></a>00058     <span class="keyword">typedef</span> std::list&lt;Section*&gt;::iterator it;
+<a name="l00059"></a>00059     <span class="keyword">typedef</span> std::list&lt;Section*&gt;::reverse_iterator reverse_it;
+<a name="l00060"></a>00060     <span class="keyword">typedef</span> std::list&lt;Section*&gt;::const_iterator const_it;
+<a name="l00061"></a>00061     <span class="keyword">typedef</span> std::list&lt;Section*&gt;::const_reverse_iterator const_reverse_it;
+<a name="l00062"></a>00062 <span class="comment">//  void (* _start_function)(void);</span>
+<a name="l00063"></a>00063     <span class="keywordtype">bool</span> secure_mode; <span class="comment">//Sandbox mode</span>
 <a name="l00064"></a>00064 <span class="keyword">public</span>:
-<a name="l00065"></a>00065         <span class="keywordtype">bool</span> initialised;
+<a name="l00065"></a>00065     <span class="keywordtype">bool</span> initialised;
 <a name="l00066"></a>00066     std::vector&lt;std::string&gt; auto_bat_additional;
-<a name="l00067"></a>00067         std::vector&lt;std::string&gt; startup_params;
-<a name="l00068"></a>00068         std::vector&lt;std::string&gt; configfiles;
-<a name="l00069"></a>00069         <a class="code" href="classConfig.html">Config</a>(<a class="code" href="classCommandLine.html">CommandLine</a> * cmd):cmdline(cmd),secure_mode(<span class="keyword">false</span>) {
-<a name="l00070"></a>00070                 startup_params.push_back(cmdline-&gt;GetFileName());
-<a name="l00071"></a>00071                 cmdline-&gt;FillVector(startup_params);
-<a name="l00072"></a>00072                 opt_exit = <span class="keyword">false</span>;
-<a name="l00073"></a>00073                 opt_debug = <span class="keyword">false</span>;
-<a name="l00074"></a>00074                 opt_nogui = <span class="keyword">false</span>;
-<a name="l00075"></a>00075                 opt_nomenu = <span class="keyword">false</span>;
+<a name="l00067"></a>00067     std::vector&lt;std::string&gt; startup_params;
+<a name="l00068"></a>00068     std::vector&lt;std::string&gt; configfiles;
+<a name="l00069"></a>00069     <a class="code" href="classConfig.html">Config</a>(<a class="code" href="classCommandLine.html">CommandLine</a> * cmd):cmdline(cmd),secure_mode(<span class="keyword">false</span>) {
+<a name="l00070"></a>00070         startup_params.push_back(cmdline-&gt;GetFileName());
+<a name="l00071"></a>00071         cmdline-&gt;FillVector(startup_params);
+<a name="l00072"></a>00072         opt_exit = <span class="keyword">false</span>;
+<a name="l00073"></a>00073         opt_debug = <span class="keyword">false</span>;
+<a name="l00074"></a>00074         opt_nogui = <span class="keyword">false</span>;
+<a name="l00075"></a>00075         opt_nomenu = <span class="keyword">false</span>;
 <a name="l00076"></a>00076         opt_showrt = <span class="keyword">false</span>;
-<a name="l00077"></a>00077                 opt_startui = <span class="keyword">false</span>;
-<a name="l00078"></a>00078                 initialised = <span class="keyword">false</span>;
-<a name="l00079"></a>00079                 opt_console = <span class="keyword">false</span>;
-<a name="l00080"></a>00080                 opt_userconf = <span class="keyword">false</span>;
-<a name="l00081"></a>00081                 opt_noconsole = <span class="keyword">false</span>;
-<a name="l00082"></a>00082                 opt_eraseconf = <span class="keyword">false</span>;
-<a name="l00083"></a>00083                 opt_resetconf = <span class="keyword">false</span>;
-<a name="l00084"></a>00084                 opt_printconf = <span class="keyword">false</span>;
-<a name="l00085"></a>00085                 opt_noautoexec = <span class="keyword">false</span>;
-<a name="l00086"></a>00086                 opt_securemode = <span class="keyword">false</span>;
-<a name="l00087"></a>00087                 opt_fullscreen = <span class="keyword">false</span>;
-<a name="l00088"></a>00088                 opt_showcycles = <span class="keyword">false</span>;
-<a name="l00089"></a>00089                 opt_earlydebug = <span class="keyword">false</span>;
-<a name="l00090"></a>00090                 opt_break_start = <span class="keyword">false</span>;
-<a name="l00091"></a>00091                 opt_erasemapper = <span class="keyword">false</span>;
-<a name="l00092"></a>00092                 opt_resetmapper = <span class="keyword">false</span>;
-<a name="l00093"></a>00093                 opt_startmapper = <span class="keyword">false</span>;
-<a name="l00094"></a>00094         opt_fastbioslogo = <span class="keyword">false</span>;
-<a name="l00095"></a>00095         opt_alt_vga_render = <span class="keyword">false</span>;
-<a name="l00096"></a>00096         opt_date_host_forced = <span class="keyword">false</span>;
-<a name="l00097"></a>00097                 opt_disable_numlock_check = <span class="keyword">false</span>;
-<a name="l00098"></a>00098                 opt_disable_dpi_awareness = <span class="keyword">false</span>;
-<a name="l00099"></a>00099         opt_time_limit = -1;
-<a name="l00100"></a>00100         opt_log_con = <span class="keyword">false</span>;
-<a name="l00101"></a>00101     }
-<a name="l00102"></a>00102         ~<a class="code" href="classConfig.html">Config</a>();
-<a name="l00103"></a>00103 
-<a name="l00104"></a>00104         <a class="code" href="classSection__line.html">Section_line</a> * AddSection_line(<span class="keywordtype">char</span> <span class="keyword">const</span> * <span class="keyword">const</span> _name,<span class="keywordtype">void</span> (*_initfunction)(<a class="code" href="classSection.html">Section</a>*));
-<a name="l00105"></a>00105         <a class="code" href="classSection__prop.html">Section_prop</a> * AddSection_prop(<span class="keywordtype">char</span> <span class="keyword">const</span> * <span class="keyword">const</span> _name,<span class="keywordtype">void</span> (*_initfunction)(<a class="code" href="classSection.html">Section</a>*),<span class="keywordtype">bool</span> canchange=<span class="keyword">false</span>);
-<a name="l00106"></a>00106         
-<a name="l00107"></a>00107         <a class="code" href="classSection.html">Section</a>* GetSection(<span class="keywordtype">int</span> index);
-<a name="l00108"></a>00108         <a class="code" href="classSection.html">Section</a>* GetSection(std::string <span class="keyword">const</span>&amp;_sectionname) <span class="keyword">const</span>;
-<a name="l00109"></a>00109         <a class="code" href="classSection.html">Section</a>* GetSectionFromProperty(<span class="keywordtype">char</span> <span class="keyword">const</span> * <span class="keyword">const</span> prop) <span class="keyword">const</span>;
-<a name="l00110"></a>00110 
-<a name="l00111"></a>00111         <span class="keywordtype">bool</span> PrintConfig(<span class="keywordtype">char</span> <span class="keyword">const</span> * <span class="keyword">const</span> configfilename,<span class="keywordtype">bool</span> everything=<span class="keyword">false</span>) <span class="keyword">const</span>;
-<a name="l00112"></a>00112         <span class="keywordtype">bool</span> ParseConfigFile(<span class="keywordtype">char</span> <span class="keyword">const</span> * <span class="keyword">const</span> configfilename);
-<a name="l00113"></a>00113         <span class="keywordtype">void</span> ParseEnv(<span class="keywordtype">char</span> ** envp);
-<a name="l00114"></a>00114         <span class="keywordtype">bool</span> SecureMode()<span class="keyword"> const </span>{ <span class="keywordflow">return</span> secure_mode; }
-<a name="l00115"></a>00115         <span class="keywordtype">void</span> SwitchToSecureMode() { secure_mode = <span class="keyword">true</span>; }<span class="comment">//can&#39;t be undone</span>
-<a name="l00116"></a>00116 <span class="keyword">public</span>:
-<a name="l00117"></a>00117     <span class="keywordtype">bool</span> opt_log_con;
-<a name="l00118"></a>00118     <span class="keywordtype">double</span> opt_time_limit;
-<a name="l00119"></a>00119         std::string opt_editconf,opt_opensaves,opt_opencaptures,opt_lang;
-<a name="l00120"></a>00120         std::vector&lt;std::string&gt; config_file_list;
-<a name="l00121"></a>00121         std::vector&lt;std::string&gt; opt_c;
-<a name="l00122"></a>00122         <span class="keywordtype">bool</span> opt_disable_dpi_awareness;
-<a name="l00123"></a>00123         <span class="keywordtype">bool</span> opt_disable_numlock_check;
-<a name="l00124"></a>00124         <span class="keywordtype">bool</span> opt_date_host_forced;
-<a name="l00125"></a>00125     <span class="keywordtype">bool</span> opt_alt_vga_render;
-<a name="l00126"></a>00126     <span class="keywordtype">bool</span> opt_fastbioslogo;
-<a name="l00127"></a>00127         <span class="keywordtype">bool</span> opt_break_start;
-<a name="l00128"></a>00128         <span class="keywordtype">bool</span> opt_erasemapper;
-<a name="l00129"></a>00129         <span class="keywordtype">bool</span> opt_resetmapper;
-<a name="l00130"></a>00130         <span class="keywordtype">bool</span> opt_startmapper;
-<a name="l00131"></a>00131         <span class="keywordtype">bool</span> opt_noautoexec;
-<a name="l00132"></a>00132         <span class="keywordtype">bool</span> opt_securemode;
-<a name="l00133"></a>00133         <span class="keywordtype">bool</span> opt_fullscreen;
-<a name="l00134"></a>00134         <span class="keywordtype">bool</span> opt_showcycles;
-<a name="l00135"></a>00135         <span class="keywordtype">bool</span> opt_earlydebug;
-<a name="l00136"></a>00136         <span class="keywordtype">bool</span> opt_noconsole;
-<a name="l00137"></a>00137         <span class="keywordtype">bool</span> opt_eraseconf;
-<a name="l00138"></a>00138         <span class="keywordtype">bool</span> opt_resetconf;
-<a name="l00139"></a>00139         <span class="keywordtype">bool</span> opt_printconf;
-<a name="l00140"></a>00140         <span class="keywordtype">bool</span> opt_userconf;
-<a name="l00141"></a>00141         <span class="keywordtype">bool</span> opt_console;
-<a name="l00142"></a>00142         <span class="keywordtype">bool</span> opt_startui;
-<a name="l00143"></a>00143     <span class="keywordtype">bool</span> opt_showrt;
-<a name="l00144"></a>00144         <span class="keywordtype">bool</span> opt_nomenu;
-<a name="l00145"></a>00145         <span class="keywordtype">bool</span> opt_debug;
-<a name="l00146"></a>00146         <span class="keywordtype">bool</span> opt_nogui;
-<a name="l00147"></a>00147         <span class="keywordtype">bool</span> opt_exit;
-<a name="l00148"></a>00148 };
-<a name="l00149"></a>00149 
-<a name="l00150"></a>00150 <span class="preprocessor">#endif</span>
+<a name="l00077"></a>00077         opt_startui = <span class="keyword">false</span>;
+<a name="l00078"></a>00078         initialised = <span class="keyword">false</span>;
+<a name="l00079"></a>00079         opt_console = <span class="keyword">false</span>;
+<a name="l00080"></a>00080         opt_logint21 = <span class="keyword">false</span>;
+<a name="l00081"></a>00081         opt_userconf = <span class="keyword">false</span>;
+<a name="l00082"></a>00082         opt_noconfig = <span class="keyword">false</span>;
+<a name="l00083"></a>00083         opt_noconsole = <span class="keyword">false</span>;
+<a name="l00084"></a>00084         opt_logfileio = <span class="keyword">false</span>;
+<a name="l00085"></a>00085         opt_eraseconf = <span class="keyword">false</span>;
+<a name="l00086"></a>00086         opt_resetconf = <span class="keyword">false</span>;
+<a name="l00087"></a>00087         opt_printconf = <span class="keyword">false</span>;
+<a name="l00088"></a>00088         opt_noautoexec = <span class="keyword">false</span>;
+<a name="l00089"></a>00089         opt_securemode = <span class="keyword">false</span>;
+<a name="l00090"></a>00090         opt_fullscreen = <span class="keyword">false</span>;
+<a name="l00091"></a>00091         opt_showcycles = <span class="keyword">false</span>;
+<a name="l00092"></a>00092         opt_earlydebug = <span class="keyword">false</span>;
+<a name="l00093"></a>00093         opt_break_start = <span class="keyword">false</span>;
+<a name="l00094"></a>00094         opt_erasemapper = <span class="keyword">false</span>;
+<a name="l00095"></a>00095         opt_resetmapper = <span class="keyword">false</span>;
+<a name="l00096"></a>00096         opt_startmapper = <span class="keyword">false</span>;
+<a name="l00097"></a>00097         opt_fastbioslogo = <span class="keyword">false</span>;
+<a name="l00098"></a>00098         opt_alt_vga_render = <span class="keyword">false</span>;
+<a name="l00099"></a>00099         opt_date_host_forced = <span class="keyword">false</span>;
+<a name="l00100"></a>00100         opt_disable_numlock_check = <span class="keyword">false</span>;
+<a name="l00101"></a>00101         opt_disable_dpi_awareness = <span class="keyword">false</span>;
+<a name="l00102"></a>00102         opt_time_limit = -1;
+<a name="l00103"></a>00103         opt_log_con = <span class="keyword">false</span>;
+<a name="l00104"></a>00104     }
+<a name="l00105"></a>00105     ~<a class="code" href="classConfig.html">Config</a>();
+<a name="l00106"></a>00106 
+<a name="l00107"></a>00107     <a class="code" href="classSection__line.html">Section_line</a> * AddSection_line(<span class="keywordtype">char</span> <span class="keyword">const</span> * <span class="keyword">const</span> _name,<span class="keywordtype">void</span> (*_initfunction)(<a class="code" href="classSection.html">Section</a>*));
+<a name="l00108"></a>00108     <a class="code" href="classSection__prop.html">Section_prop</a> * AddSection_prop(<span class="keywordtype">char</span> <span class="keyword">const</span> * <span class="keyword">const</span> _name,<span class="keywordtype">void</span> (*_initfunction)(<a class="code" href="classSection.html">Section</a>*),<span class="keywordtype">bool</span> canchange=<span class="keyword">false</span>);
+<a name="l00109"></a>00109     
+<a name="l00110"></a>00110     <a class="code" href="classSection.html">Section</a>* GetSection(<span class="keywordtype">int</span> index);
+<a name="l00111"></a>00111     <a class="code" href="classSection.html">Section</a>* GetSection(std::string <span class="keyword">const</span>&amp;_sectionname) <span class="keyword">const</span>;
+<a name="l00112"></a>00112     <a class="code" href="classSection.html">Section</a>* GetSectionFromProperty(<span class="keywordtype">char</span> <span class="keyword">const</span> * <span class="keyword">const</span> prop) <span class="keyword">const</span>;
+<a name="l00113"></a>00113 
+<a name="l00114"></a>00114     <span class="keywordtype">bool</span> PrintConfig(<span class="keywordtype">char</span> <span class="keyword">const</span> * <span class="keyword">const</span> configfilename,<span class="keywordtype">bool</span> everything=<span class="keyword">false</span>) <span class="keyword">const</span>;
+<a name="l00115"></a>00115     <span class="keywordtype">bool</span> ParseConfigFile(<span class="keywordtype">char</span> <span class="keyword">const</span> * <span class="keyword">const</span> configfilename);
+<a name="l00116"></a>00116     <span class="keywordtype">void</span> ParseEnv(<span class="keywordtype">char</span> ** envp);
+<a name="l00117"></a>00117     <span class="keywordtype">bool</span> SecureMode()<span class="keyword"> const </span>{ <span class="keywordflow">return</span> secure_mode; }
+<a name="l00118"></a>00118     <span class="keywordtype">void</span> SwitchToSecureMode() { secure_mode = <span class="keyword">true</span>; }<span class="comment">//can&#39;t be undone</span>
+<a name="l00119"></a>00119 <span class="keyword">public</span>:
+<a name="l00120"></a>00120     <span class="keywordtype">bool</span> opt_log_con;
+<a name="l00121"></a>00121     <span class="keywordtype">double</span> opt_time_limit;
+<a name="l00122"></a>00122     std::string opt_editconf,opt_opensaves,opt_opencaptures,opt_lang;
+<a name="l00123"></a>00123     std::vector&lt;std::string&gt; config_file_list;
+<a name="l00124"></a>00124     std::vector&lt;std::string&gt; opt_c;
+<a name="l00125"></a>00125     std::vector&lt;std::string&gt; opt_set;
+<a name="l00126"></a>00126 
+<a name="l00127"></a>00127     <span class="keywordtype">bool</span> opt_disable_dpi_awareness;
+<a name="l00128"></a>00128     <span class="keywordtype">bool</span> opt_disable_numlock_check;
+<a name="l00129"></a>00129     <span class="keywordtype">bool</span> opt_date_host_forced;
+<a name="l00130"></a>00130     <span class="keywordtype">bool</span> opt_alt_vga_render;
+<a name="l00131"></a>00131     <span class="keywordtype">bool</span> opt_fastbioslogo;
+<a name="l00132"></a>00132     <span class="keywordtype">bool</span> opt_break_start;
+<a name="l00133"></a>00133     <span class="keywordtype">bool</span> opt_erasemapper;
+<a name="l00134"></a>00134     <span class="keywordtype">bool</span> opt_resetmapper;
+<a name="l00135"></a>00135     <span class="keywordtype">bool</span> opt_startmapper;
+<a name="l00136"></a>00136     <span class="keywordtype">bool</span> opt_noautoexec;
+<a name="l00137"></a>00137     <span class="keywordtype">bool</span> opt_securemode;
+<a name="l00138"></a>00138     <span class="keywordtype">bool</span> opt_fullscreen;
+<a name="l00139"></a>00139     <span class="keywordtype">bool</span> opt_showcycles;
+<a name="l00140"></a>00140     <span class="keywordtype">bool</span> opt_earlydebug;
+<a name="l00141"></a>00141     <span class="keywordtype">bool</span> opt_logfileio;
+<a name="l00142"></a>00142     <span class="keywordtype">bool</span> opt_noconsole;
+<a name="l00143"></a>00143     <span class="keywordtype">bool</span> opt_eraseconf;
+<a name="l00144"></a>00144     <span class="keywordtype">bool</span> opt_resetconf;
+<a name="l00145"></a>00145     <span class="keywordtype">bool</span> opt_printconf;
+<a name="l00146"></a>00146     <span class="keywordtype">bool</span> opt_logint21;
+<a name="l00147"></a>00147     <span class="keywordtype">bool</span> opt_userconf;
+<a name="l00148"></a>00148     <span class="keywordtype">bool</span> opt_noconfig;
+<a name="l00149"></a>00149     <span class="keywordtype">bool</span> opt_console;
+<a name="l00150"></a>00150     <span class="keywordtype">bool</span> opt_startui;
+<a name="l00151"></a>00151     <span class="keywordtype">bool</span> opt_showrt;
+<a name="l00152"></a>00152     <span class="keywordtype">bool</span> opt_nomenu;
+<a name="l00153"></a>00153     <span class="keywordtype">bool</span> opt_debug;
+<a name="l00154"></a>00154     <span class="keywordtype">bool</span> opt_nogui;
+<a name="l00155"></a>00155     <span class="keywordtype">bool</span> opt_exit;
+<a name="l00156"></a>00156 };
+<a name="l00157"></a>00157 
+<a name="l00158"></a>00158 <span class="preprocessor">#endif</span>
 </pre></div></div><!-- contents -->
 
 
 <hr class="footer"/><address class="footer"><small>
-Generated on Tue Oct 1 2019 18:06:23 for DOSBox-X by &#160;<a href="http://www.doxygen.org/index.html">
+Generated on Sun Jul 5 2020 13:11:33 for DOSBox-X by &#160;<a href="http://www.doxygen.org/index.html">
 <img class="footer" src="doxygen.png" alt="doxygen"/>
 </a> 1.8.0
 </small></address>

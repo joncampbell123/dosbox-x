@@ -26,7 +26,7 @@ struct \hyperlink{structGUI_1_1Timer_1_1ltuint}{ltuint}
 \item 
 static void \hyperlink{classGUI_1_1Timer_a98c2196c1df33283c26777acf9aeffee}{add} (\hyperlink{structGUI_1_1Timer__Callback}{Timer\-\_\-\-Callback} $\ast$cb, const \hyperlink{namespaceGUI_af396fee5d5c26b98218f5803f85e3b65}{Ticks} \hyperlink{classGUI_1_1Timer_a619f8c17a217a4524de5ba0e2562870e}{ticks})
 \begin{DoxyCompactList}\small\item\em Add a timed callback. {\ttfamily ticks} is a value relative to \hyperlink{classGUI_1_1Timer_aeaf90bbc6251a55bb4f8c839813592bf}{now()}. \end{DoxyCompactList}\item 
-\hypertarget{classGUI_1_1Timer_a6897be47e69947908ca681bcc04c949d}{static void {\bfseries remove} (const \hyperlink{structGUI_1_1Timer__Callback}{Timer\-\_\-\-Callback} $\ast$const cb)}\label{classGUI_1_1Timer_a6897be47e69947908ca681bcc04c949d}
+\hypertarget{classGUI_1_1Timer_a3d328496c043ab353b16990270c6adf8}{static void {\bfseries remove} (const \hyperlink{structGUI_1_1Timer__Callback}{Timer\-\_\-\-Callback} $\ast$const timer)}\label{classGUI_1_1Timer_a3d328496c043ab353b16990270c6adf8}
 
 \item 
 \hypertarget{classGUI_1_1Timer_aeaf90bbc6251a55bb4f8c839813592bf}{static \hyperlink{namespaceGUI_af396fee5d5c26b98218f5803f85e3b65}{Ticks} \hyperlink{classGUI_1_1Timer_aeaf90bbc6251a55bb4f8c839813592bf}{now} ()}\label{classGUI_1_1Timer_aeaf90bbc6251a55bb4f8c839813592bf}
@@ -52,7 +52,7 @@ Timing service. Time is measured in ticks. A tick is about 10 msec.
 
 Note that this is not suitable as a high-\/accuracy timing service. \hyperlink{classGUI_1_1Timer}{Timer} events can be off by many ticks, and a tick may be slightly more or slightly less than 10 msec. Because of that, Timers are only intended for simple animation effects, input timeouts and similar things. 
 
-Definition at line 914 of file gui\-\_\-tk.\-h.
+Definition at line 928 of file gui\-\_\-tk.\-h.
 
 
 
@@ -71,7 +71,7 @@ Add a timed callback. {\ttfamily ticks} is a value relative to \hyperlink{classG
 
 {\ttfamily cb} is not copied. 
 
-Definition at line 934 of file gui\-\_\-tk.\-h.
+Definition at line 948 of file gui\-\_\-tk.\-h.
 
 
 

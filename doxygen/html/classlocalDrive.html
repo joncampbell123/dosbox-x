@@ -95,6 +95,7 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <div class="header">
   <div class="summary">
 <a href="#pub-methods">Public Member Functions</a> &#124;
+<a href="#pub-attribs">Public Attributes</a> &#124;
 <a href="#pro-attribs">Protected Attributes</a> &#124;
 <a href="#friends">Friends</a>  </div>
   <div class="headertitle">
@@ -107,10 +108,9 @@ Inheritance diagram for localDrive:</div>
  <div class="center">
   <img src="classlocalDrive.png" usemap="#localDrive_map" alt=""/>
   <map id="localDrive_map" name="localDrive_map">
-<area href="classDOS__Drive.html" alt="DOS_Drive" shape="rect" coords="62,0,177,24"/>
-<area href="classcdromDrive.html" alt="cdromDrive" shape="rect" coords="0,112,115,136"/>
-<area href="classphysfsDrive.html" alt="physfsDrive" shape="rect" coords="125,112,240,136"/>
-<area href="classphysfscdromDrive.html" alt="physfscdromDrive" shape="rect" coords="125,168,240,192"/>
+<area href="classDOS__Drive.html" alt="DOS_Drive" shape="rect" coords="53,0,149,24"/>
+<area href="classcdromDrive.html" alt="cdromDrive" shape="rect" coords="0,112,96,136"/>
+<area href="classOverlay__Drive.html" alt="Overlay_Drive" shape="rect" coords="106,112,202,136"/>
 </map>
  </div></div>
 
@@ -118,8 +118,8 @@ Inheritance diagram for localDrive:</div>
 <table class="memberdecls">
 <tr><td colspan="2"><h2><a name="pub-methods"></a>
 Public Member Functions</h2></td></tr>
-<tr class="memitem:aa68b58d5b5f7783f979bc948c1acf5d6"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="aa68b58d5b5f7783f979bc948c1acf5d6"></a>
-&#160;</td><td class="memItemRight" valign="bottom"><b>localDrive</b> (const char *startdir, Bit16u _bytes_sector, Bit8u _sectors_cluster, Bit16u _total_clusters, Bit16u _free_clusters, Bit8u _mediaid)</td></tr>
+<tr class="memitem:aef6ba8f0095a362694e5b505836dd3a3"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="aef6ba8f0095a362694e5b505836dd3a3"></a>
+&#160;</td><td class="memItemRight" valign="bottom"><b>localDrive</b> (const char *startdir, Bit16u _bytes_sector, Bit8u _sectors_cluster, Bit16u _total_clusters, Bit16u _free_clusters, Bit8u _mediaid, std::vector&lt; std::string &gt; &amp;options)</td></tr>
 <tr class="memitem:ad995ca152b5317564349a83c1b71147c"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="ad995ca152b5317564349a83c1b71147c"></a>
 virtual bool&#160;</td><td class="memItemRight" valign="bottom"><b>FileOpen</b> (<a class="el" href="classDOS__File.html">DOS_File</a> **file, const char *name, Bit32u flags)</td></tr>
 <tr class="memitem:acc272d364d252ecb9823d4391487aa9a"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="acc272d364d252ecb9823d4391487aa9a"></a>
@@ -140,8 +140,14 @@ virtual bool&#160;</td><td class="memItemRight" valign="bottom"><b>TestDir</b> (
 virtual bool&#160;</td><td class="memItemRight" valign="bottom"><b>FindFirst</b> (const char *_dir, <a class="el" href="classDOS__DTA.html">DOS_DTA</a> &amp;dta, bool fcb_findfirst=false)</td></tr>
 <tr class="memitem:ad76629b03e06dd8f2fe5bde5458a81fb"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="ad76629b03e06dd8f2fe5bde5458a81fb"></a>
 virtual bool&#160;</td><td class="memItemRight" valign="bottom"><b>FindNext</b> (<a class="el" href="classDOS__DTA.html">DOS_DTA</a> &amp;dta)</td></tr>
+<tr class="memitem:a2417f4726ea0b1676393036389f6e9a7"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a2417f4726ea0b1676393036389f6e9a7"></a>
+virtual bool&#160;</td><td class="memItemRight" valign="bottom"><b>SetFileAttr</b> (const char *name, Bit16u attr)</td></tr>
 <tr class="memitem:a60a489b8d435065127281ed28f5d74cc"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a60a489b8d435065127281ed28f5d74cc"></a>
 virtual bool&#160;</td><td class="memItemRight" valign="bottom"><b>GetFileAttr</b> (const char *name, Bit16u *attr)</td></tr>
+<tr class="memitem:ad71edc74da1565310fc580d57637dc76"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="ad71edc74da1565310fc580d57637dc76"></a>
+virtual bool&#160;</td><td class="memItemRight" valign="bottom"><b>GetFileAttrEx</b> (char *name, struct stat *status)</td></tr>
+<tr class="memitem:a1f9d1bd556ad2ac0796db37908f89961"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a1f9d1bd556ad2ac0796db37908f89961"></a>
+virtual unsigned long&#160;</td><td class="memItemRight" valign="bottom"><b>GetCompressedSize</b> (char *name)</td></tr>
 <tr class="memitem:ac734204b365b747fc90a50a00c8540ae"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="ac734204b365b747fc90a50a00c8540ae"></a>
 virtual bool&#160;</td><td class="memItemRight" valign="bottom"><b>Rename</b> (const char *oldname, const char *newname)</td></tr>
 <tr class="memitem:abc95b6539cb6e9e1d59362af64fc0426"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="abc95b6539cb6e9e1d59362af64fc0426"></a>
@@ -162,36 +168,54 @@ virtual Bits&#160;</td><td class="memItemRight" valign="bottom"><b>UnMount</b> (
 virtual char const *&#160;</td><td class="memItemRight" valign="bottom"><b>GetLabel</b> ()</td></tr>
 <tr class="memitem:a1a133bdf134c07e73ae69798a6dc286a"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a1a133bdf134c07e73ae69798a6dc286a"></a>
 virtual void&#160;</td><td class="memItemRight" valign="bottom"><b>SetLabel</b> (const char *label, bool iscdrom, bool updatable)</td></tr>
-<tr class="memitem:a6ad02364f6c2be9452538e8882136f1b"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a6ad02364f6c2be9452538e8882136f1b"></a>
-virtual void *&#160;</td><td class="memItemRight" valign="bottom"><b>opendir</b> (const char *dir)</td></tr>
+<tr class="memitem:aa3f813f920411f56cf194d815c68be41"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="aa3f813f920411f56cf194d815c68be41"></a>
+virtual void *&#160;</td><td class="memItemRight" valign="bottom"><b>opendir</b> (const char *name)</td></tr>
 <tr class="memitem:a62a8cc9aaae8084654a192f597673938"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a62a8cc9aaae8084654a192f597673938"></a>
 virtual void&#160;</td><td class="memItemRight" valign="bottom"><b>closedir</b> (void *handle)</td></tr>
-<tr class="memitem:a0d7c55c38d73ae6720bef188036aae2c"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a0d7c55c38d73ae6720bef188036aae2c"></a>
-virtual bool&#160;</td><td class="memItemRight" valign="bottom"><b>read_directory_first</b> (void *handle, char *entry_name, bool &amp;is_directory)</td></tr>
-<tr class="memitem:a4346b5c16c777289484f5617d43a3083"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a4346b5c16c777289484f5617d43a3083"></a>
-virtual bool&#160;</td><td class="memItemRight" valign="bottom"><b>read_directory_next</b> (void *handle, char *entry_name, bool &amp;is_directory)</td></tr>
+<tr class="memitem:a76a1484aa6b09ad942f5ad9e96410120"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a76a1484aa6b09ad942f5ad9e96410120"></a>
+virtual bool&#160;</td><td class="memItemRight" valign="bottom"><b>read_directory_first</b> (void *handle, char *entry_name, char *entry_sname, bool &amp;is_directory)</td></tr>
+<tr class="memitem:ad4f2b5f3e42a18c15781bb8d26e3cfd1"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="ad4f2b5f3e42a18c15781bb8d26e3cfd1"></a>
+virtual bool&#160;</td><td class="memItemRight" valign="bottom"><b>read_directory_next</b> (void *handle, char *entry_name, char *entry_sname, bool &amp;is_directory)</td></tr>
 <tr class="memitem:a9fff98a140e946d23d9f8b2bbedb2649"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a9fff98a140e946d23d9f8b2bbedb2649"></a>
 virtual void&#160;</td><td class="memItemRight" valign="bottom"><b>EmptyCache</b> (void)</td></tr>
 <tr class="memitem:afaa833624d219a745861ab746e9cea77"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="afaa833624d219a745861ab746e9cea77"></a>
 virtual void&#160;</td><td class="memItemRight" valign="bottom"><b>MediaChange</b> ()</td></tr>
+<tr class="memitem:ad31747d53f04fb8538c6f9f5059df1d9"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="ad31747d53f04fb8538c6f9f5059df1d9"></a>
+const char *&#160;</td><td class="memItemRight" valign="bottom"><b>getBasedir</b> ()</td></tr>
+<tr><td colspan="2"><h2><a name="pub-attribs"></a>
+Public Attributes</h2></td></tr>
+<tr class="memitem:a65438d1fa3ba0c6624593cc784f23556"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a65438d1fa3ba0c6624593cc784f23556"></a>
+int&#160;</td><td class="memItemRight" valign="bottom"><b>remote</b> = -1</td></tr>
+<tr class="memitem:a517352e52c9d20f4be3abf4a60bad5dc"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a517352e52c9d20f4be3abf4a60bad5dc"></a>
+char&#160;</td><td class="memItemRight" valign="bottom"><b>srch_dir</b> [CROSS_LEN]</td></tr>
+<tr class="memitem:a11d8e3225531c3fcf59880a990d0d9fa"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a11d8e3225531c3fcf59880a990d0d9fa"></a>
+Bit16u&#160;</td><td class="memItemRight" valign="bottom"><b>bytes_sector</b></td></tr>
+<tr class="memitem:afc325a9e34acf1d269d9f841ff017f84"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="afc325a9e34acf1d269d9f841ff017f84"></a>
+Bit8u&#160;</td><td class="memItemRight" valign="bottom"><b>sectors_cluster</b></td></tr>
+<tr class="memitem:ab38642679a9c91b35c753f2c3bd68284"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="ab38642679a9c91b35c753f2c3bd68284"></a>
+Bit16u&#160;</td><td class="memItemRight" valign="bottom"><b>total_clusters</b></td></tr>
+<tr class="memitem:ae210f4140e095d15fad9fa6560b6fbe1"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="ae210f4140e095d15fad9fa6560b6fbe1"></a>
+Bit16u&#160;</td><td class="memItemRight" valign="bottom"><b>free_clusters</b></td></tr>
+<tr class="memitem:a42a4b2995f0bec45a22ff46cce98983d"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a42a4b2995f0bec45a22ff46cce98983d"></a>
+Bit8u&#160;</td><td class="memItemRight" valign="bottom"><b>mediaid</b></td></tr>
 <tr><td colspan="2"><h2><a name="pro-attribs"></a>
 Protected Attributes</h2></td></tr>
 <tr class="memitem:a20dc2a3273de243c469b9f804e14e29a"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a20dc2a3273de243c469b9f804e14e29a"></a>
 <a class="el" href="classDOS__Drive__Cache.html">DOS_Drive_Cache</a>&#160;</td><td class="memItemRight" valign="bottom"><b>dirCache</b></td></tr>
 <tr class="memitem:a33a547786dab6669db3440dc8e42283e"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a33a547786dab6669db3440dc8e42283e"></a>
 char&#160;</td><td class="memItemRight" valign="bottom"><b>basedir</b> [CROSS_LEN]</td></tr>
-<tr class="memitem:a81a24badd085cfd85e164da8cfe048d6"><td class="memItemLeft" ><a class="anchor" id="a81a24badd085cfd85e164da8cfe048d6"></a>
+<tr class="memitem:a34a4f8b59b2ada078ff1a4ca66bec477"><td class="memItemLeft" ><a class="anchor" id="a34a4f8b59b2ada078ff1a4ca66bec477"></a>
 struct {</td></tr>
-<tr class="memitem:a8fdf3230effdbbff6419c4abf4136403"><td class="memItemLeft" >&#160;&#160;&#160;char&#160;&#160;&#160;<b>srch_dir</b> [CROSS_LEN]</td></tr>
-<tr class="memitem:a81a24badd085cfd85e164da8cfe048d6"><td class="memItemLeft" valign="top">}&#160;</td><td class="memItemRight" valign="bottom"><b>srchInfo</b> [MAX_OPENDIRS]</td></tr>
-<tr class="memitem:a315dbfc15f1e3a47aa835cc3005bab19"><td class="memItemLeft" ><a class="anchor" id="a315dbfc15f1e3a47aa835cc3005bab19"></a>
+<tr class="memitem:a6152137c27c03876b406a6e3fd01d719"><td class="memItemLeft" >&#160;&#160;&#160;char&#160;&#160;&#160;<b>srch_dir</b> [CROSS_LEN]</td></tr>
+<tr class="memitem:a34a4f8b59b2ada078ff1a4ca66bec477"><td class="memItemLeft" valign="top">}&#160;</td><td class="memItemRight" valign="bottom"><b>srchInfo</b> [MAX_OPENDIRS]</td></tr>
+<tr class="memitem:a4692fa722e3ff9888ce779c8512951a8"><td class="memItemLeft" ><a class="anchor" id="a4692fa722e3ff9888ce779c8512951a8"></a>
 struct {</td></tr>
-<tr class="memitem:abe89da4fef48b18c2fd458f82c18cbe1"><td class="memItemLeft" >&#160;&#160;&#160;Bit16u&#160;&#160;&#160;<b>bytes_sector</b></td></tr>
-<tr class="memitem:a42af8a3558997545c6483c3028bc8b0d"><td class="memItemLeft" >&#160;&#160;&#160;Bit8u&#160;&#160;&#160;<b>sectors_cluster</b></td></tr>
-<tr class="memitem:a64499a1d7984c7b824292fa86f0b88d6"><td class="memItemLeft" >&#160;&#160;&#160;Bit16u&#160;&#160;&#160;<b>total_clusters</b></td></tr>
-<tr class="memitem:a2442d6bf46d5c166ca08a9855de05bc2"><td class="memItemLeft" >&#160;&#160;&#160;Bit16u&#160;&#160;&#160;<b>free_clusters</b></td></tr>
-<tr class="memitem:a16e4541d7b1acbd0ce74ea25fa1f58b1"><td class="memItemLeft" >&#160;&#160;&#160;Bit8u&#160;&#160;&#160;<b>mediaid</b></td></tr>
-<tr class="memitem:a315dbfc15f1e3a47aa835cc3005bab19"><td class="memItemLeft" valign="top">}&#160;</td><td class="memItemRight" valign="bottom"><b>allocation</b></td></tr>
+<tr class="memitem:af63e3d53490fb9d569218a016001d774"><td class="memItemLeft" >&#160;&#160;&#160;Bit16u&#160;&#160;&#160;<b>bytes_sector</b></td></tr>
+<tr class="memitem:a1a815742bd5164618c9a7af83762a159"><td class="memItemLeft" >&#160;&#160;&#160;Bit8u&#160;&#160;&#160;<b>sectors_cluster</b></td></tr>
+<tr class="memitem:a4401d701a7122cfc85246ea0af9f9624"><td class="memItemLeft" >&#160;&#160;&#160;Bit16u&#160;&#160;&#160;<b>total_clusters</b></td></tr>
+<tr class="memitem:a2efd6a34c7c26183e7dc642c19f08463"><td class="memItemLeft" >&#160;&#160;&#160;Bit16u&#160;&#160;&#160;<b>free_clusters</b></td></tr>
+<tr class="memitem:a7eb66b89291c74934eff4cb84bb01603"><td class="memItemLeft" >&#160;&#160;&#160;Bit8u&#160;&#160;&#160;<b>mediaid</b></td></tr>
+<tr class="memitem:a4692fa722e3ff9888ce779c8512951a8"><td class="memItemLeft" valign="top">}&#160;</td><td class="memItemRight" valign="bottom"><b>allocation</b></td></tr>
 <tr><td colspan="2"><h2><a name="friends"></a>
 Friends</h2></td></tr>
 <tr class="memitem:a0d22a35db1d3ebd10c7ef057a1f89fec"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a0d22a35db1d3ebd10c7ef057a1f89fec"></a>
@@ -199,7 +223,7 @@ void&#160;</td><td class="memItemRight" valign="bottom"><b>DOS_Shell::CMD_SUBST<
 </table>
 <hr/><a name="details" id="details"></a><h2>Detailed Description</h2>
 <div class="textblock">
-<p>Definition at line <a class="el" href="drives_8h_source.html#l00055">55</a> of file <a class="el" href="drives_8h_source.html">drives.h</a>.</p>
+<p>Definition at line <a class="el" href="drives_8h_source.html#l00060">60</a> of file <a class="el" href="drives_8h_source.html">drives.h</a>.</p>
 </div><hr/>The documentation for this class was generated from the following files:<ul>
 <li>src/dos/<a class="el" href="drives_8h_source.html">drives.h</a></li>
 <li>src/dos/<a class="el" href="drive__local_8cpp_source.html">drive_local.cpp</a></li>
@@ -208,7 +232,7 @@ void&#160;</td><td class="memItemRight" valign="bottom"><b>DOS_Shell::CMD_SUBST<
 
 
 <hr class="footer"/><address class="footer"><small>
-Generated on Tue Oct 1 2019 18:06:31 for DOSBox-X by &#160;<a href="http://www.doxygen.org/index.html">
+Generated on Sun Jul 5 2020 13:11:41 for DOSBox-X by &#160;<a href="http://www.doxygen.org/index.html">
 <img class="footer" src="doxygen.png" alt="doxygen"/>
 </a> 1.8.0
 </small></address>

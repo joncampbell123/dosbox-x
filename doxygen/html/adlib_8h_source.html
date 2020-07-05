@@ -96,7 +96,7 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 </div><!--header-->
 <div class="contents">
 <div class="fragment"><pre class="fragment"><a name="l00001"></a>00001 <span class="comment">/*</span>
-<a name="l00002"></a>00002 <span class="comment"> *  Copyright (C) 2002-2019  The DOSBox Team</span>
+<a name="l00002"></a>00002 <span class="comment"> *  Copyright (C) 2002-2020  The DOSBox Team</span>
 <a name="l00003"></a>00003 <span class="comment"> *</span>
 <a name="l00004"></a>00004 <span class="comment"> *  This program is free software; you can redistribute it and/or modify</span>
 <a name="l00005"></a>00005 <span class="comment"> *  it under the terms of the GNU General Public License as published by</span>
@@ -108,9 +108,9 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l00011"></a>00011 <span class="comment"> *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the</span>
 <a name="l00012"></a>00012 <span class="comment"> *  GNU General Public License for more details.</span>
 <a name="l00013"></a>00013 <span class="comment"> *</span>
-<a name="l00014"></a>00014 <span class="comment"> *  You should have received a copy of the GNU General Public License</span>
-<a name="l00015"></a>00015 <span class="comment"> *  along with this program; if not, write to the Free Software</span>
-<a name="l00016"></a>00016 <span class="comment"> *  Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1335, USA.</span>
+<a name="l00014"></a>00014 <span class="comment"> *  You should have received a copy of the GNU General Public License along</span>
+<a name="l00015"></a>00015 <span class="comment"> *  with this program; if not, write to the Free Software Foundation, Inc.,</span>
+<a name="l00016"></a>00016 <span class="comment"> *  51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.</span>
 <a name="l00017"></a>00017 <span class="comment"> */</span>
 <a name="l00018"></a>00018 
 <a name="l00019"></a>00019 
@@ -127,150 +127,179 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l00030"></a>00030 
 <a name="l00031"></a>00031 <span class="keyword">namespace </span>Adlib {
 <a name="l00032"></a>00032 
-<a name="l00033"></a><a class="code" href="structAdlib_1_1Timer.html">00033</a> <span class="keyword">struct </span><a class="code" href="structAdlib_1_1Timer.html">Timer</a> {
-<a name="l00034"></a>00034         <span class="keywordtype">double</span> start;
-<a name="l00035"></a>00035         <span class="keywordtype">double</span> delay;
-<a name="l00036"></a>00036         <span class="keywordtype">bool</span> enabled, overflow, masked;
-<a name="l00037"></a>00037         Bit8u counter;
-<a name="l00038"></a>00038         <a class="code" href="structAdlib_1_1Timer.html">Timer</a>() {
-<a name="l00039"></a>00039                 masked = <span class="keyword">false</span>;
-<a name="l00040"></a>00040                 overflow = <span class="keyword">false</span>;
-<a name="l00041"></a>00041                 enabled = <span class="keyword">false</span>;
-<a name="l00042"></a>00042                 counter = 0;
-<a name="l00043"></a>00043                 delay = 0;
-<a name="l00044"></a>00044         start = 0;
-<a name="l00045"></a>00045         }
-<a name="l00046"></a>00046         <span class="comment">//Call update before making any further changes</span>
-<a name="l00047"></a>00047         <span class="keywordtype">void</span> Update( <span class="keywordtype">double</span> time ) {
-<a name="l00048"></a>00048                 <span class="keywordflow">if</span> ( !enabled || !delay ) 
-<a name="l00049"></a>00049                         <span class="keywordflow">return</span>;
-<a name="l00050"></a>00050                 <span class="keywordtype">double</span> deltaStart = time - start;
-<a name="l00051"></a>00051                 <span class="comment">//Only set the overflow flag when not masked</span>
-<a name="l00052"></a>00052                 <span class="keywordflow">if</span> ( deltaStart &gt;= 0 &amp;&amp; !masked ) {
-<a name="l00053"></a>00053                         overflow = 1;
-<a name="l00054"></a>00054                 }
-<a name="l00055"></a>00055         }
-<a name="l00056"></a>00056         <span class="comment">//On a reset make sure the start is in sync with the next cycle</span>
-<a name="l00057"></a>00057         <span class="keywordtype">void</span> Reset(<span class="keyword">const</span> <span class="keywordtype">double</span>&amp; time ) {
-<a name="l00058"></a>00058                 overflow = <span class="keyword">false</span>;
-<a name="l00059"></a>00059                 <span class="keywordflow">if</span> ( !delay || !enabled )
-<a name="l00060"></a>00060                         <span class="keywordflow">return</span>;
-<a name="l00061"></a>00061                 <span class="keywordtype">double</span> delta = (time - start);
-<a name="l00062"></a>00062                 <span class="keywordtype">double</span> rem = fmod( delta, delay );
-<a name="l00063"></a>00063                 <span class="keywordtype">double</span> next = delay - rem;
-<a name="l00064"></a>00064                 start = time + next;            
-<a name="l00065"></a>00065         }
-<a name="l00066"></a>00066         <span class="keywordtype">void</span> Stop( ) {
-<a name="l00067"></a>00067                 enabled = <span class="keyword">false</span>;
-<a name="l00068"></a>00068         }
-<a name="l00069"></a>00069         <span class="keywordtype">void</span> Start( <span class="keyword">const</span> <span class="keywordtype">double</span>&amp; time, Bits scale ) {
-<a name="l00070"></a>00070                 <span class="comment">//Don&#39;t enable again</span>
-<a name="l00071"></a>00071                 <span class="keywordflow">if</span> ( enabled ) {
+<a name="l00033"></a><a class="code" href="classAdlib_1_1Timer.html">00033</a> <span class="keyword">class </span><a class="code" href="classAdlib_1_1Timer.html">Timer</a> {
+<a name="l00034"></a>00034         <span class="comment">//Rounded down start time</span>
+<a name="l00035"></a>00035         <span class="keywordtype">double</span> start;
+<a name="l00036"></a>00036         <span class="comment">//Clock interval</span>
+<a name="l00037"></a>00037         <span class="keywordtype">double</span> interval;
+<a name="l00038"></a>00038         <span class="comment">//Delay before you overflow</span>
+<a name="l00039"></a>00039         <span class="keywordtype">double</span> delay;
+<a name="l00040"></a>00040         Bit8u counter;
+<a name="l00041"></a>00041 <span class="keyword">public</span>:
+<a name="l00042"></a>00042         <span class="keywordtype">bool</span> enabled;
+<a name="l00043"></a>00043         <span class="keywordtype">bool</span> overflow;
+<a name="l00044"></a>00044 
+<a name="l00045"></a>00045         <a class="code" href="classAdlib_1_1Timer.html">Timer</a>( Bit16s micros ) {
+<a name="l00046"></a>00046                 overflow = <span class="keyword">false</span>;
+<a name="l00047"></a>00047                 enabled = <span class="keyword">false</span>;
+<a name="l00048"></a>00048                 counter = 0;
+<a name="l00049"></a>00049                 start = 0;
+<a name="l00050"></a>00050                 delay = 0;
+<a name="l00051"></a>00051                 <span class="comment">//Interval in milliseconds</span>
+<a name="l00052"></a>00052                 interval = micros * 0.001;
+<a name="l00053"></a>00053         }
+<a name="l00054"></a>00054 
+<a name="l00055"></a>00055         <span class="comment">//Update returns with true if overflow</span>
+<a name="l00056"></a>00056         <span class="keywordtype">bool</span> Update( <span class="keywordtype">double</span> time ) {
+<a name="l00057"></a>00057                 <span class="keywordflow">if</span> ( !enabled ) 
+<a name="l00058"></a>00058                         <span class="keywordflow">return</span> <span class="keyword">false</span>;
+<a name="l00059"></a>00059                 <span class="keyword">const</span> <span class="keywordtype">double</span> deltaTime = time - start;
+<a name="l00060"></a>00060                 <span class="comment">//Only set the overflow flag when not masked</span>
+<a name="l00061"></a>00061                 <span class="keywordflow">if</span> (deltaTime &gt;= delay  ) {
+<a name="l00062"></a>00062                         overflow = <span class="keyword">true</span>;
+<a name="l00063"></a>00063                         <span class="keywordflow">return</span> <span class="keyword">true</span>;
+<a name="l00064"></a>00064                 }
+<a name="l00065"></a>00065                 <span class="keywordflow">return</span> <span class="keyword">false</span>;
+<a name="l00066"></a>00066         }
+<a name="l00067"></a>00067         
+<a name="l00068"></a>00068         <span class="comment">//On a reset make sure the start is in sync with the next cycle</span>
+<a name="l00069"></a>00069         <span class="keywordtype">void</span> Reset(<span class="keyword">const</span> <span class="keywordtype">double</span> time ) {
+<a name="l00070"></a>00070                 overflow = <span class="keyword">false</span>;
+<a name="l00071"></a>00071                 <span class="keywordflow">if</span> ( !enabled )
 <a name="l00072"></a>00072                         <span class="keywordflow">return</span>;
-<a name="l00073"></a>00073                 }
-<a name="l00074"></a>00074                 enabled = <span class="keyword">true</span>;
-<a name="l00075"></a>00075                 delay = 0.001 * (256 - counter ) * scale;
-<a name="l00076"></a>00076                 start = time + delay;
+<a name="l00073"></a>00073                 <span class="comment">//Sync start to the last delay interval</span>
+<a name="l00074"></a>00074                 <span class="keyword">const</span> <span class="keywordtype">double</span> deltaTime = time - start;
+<a name="l00075"></a>00075                 <span class="keyword">const</span> <span class="keywordtype">double</span> rem = fmod(deltaTime, delay);
+<a name="l00076"></a>00076                 start = time - rem;
 <a name="l00077"></a>00077         }
 <a name="l00078"></a>00078 
-<a name="l00079"></a>00079 };
-<a name="l00080"></a>00080 
-<a name="l00081"></a><a class="code" href="structAdlib_1_1Chip.html">00081</a> <span class="keyword">struct </span><a class="code" href="structAdlib_1_1Chip.html">Chip</a> {
-<a name="l00082"></a>00082         <a class="code" href="structAdlib_1_1Chip.html">Chip</a>() {
-<a name="l00083"></a>00083                 last_poll = 0;
-<a name="l00084"></a>00084                 poll_counter = 0;
-<a name="l00085"></a>00085         }
-<a name="l00086"></a>00086         <span class="comment">//Last selected register</span>
-<a name="l00087"></a>00087         <a class="code" href="structAdlib_1_1Timer.html">Timer</a> timer[2];
-<a name="l00088"></a>00088         <span class="comment">//Check for it being a write to the timer</span>
-<a name="l00089"></a>00089         <span class="keywordtype">bool</span> Write( Bit32u addr, Bit8u val );
-<a name="l00090"></a>00090         <span class="comment">//Read the current timer state, will use current double</span>
-<a name="l00091"></a>00091         Bit8u Read( );
-<a name="l00092"></a>00092         <span class="comment">//poll counter</span>
-<a name="l00093"></a>00093         <span class="keywordtype">double</span> last_poll;
-<a name="l00094"></a>00094         <span class="keywordtype">unsigned</span> <span class="keywordtype">int</span> poll_counter;
-<a name="l00095"></a>00095 };
-<a name="l00096"></a>00096 
-<a name="l00097"></a>00097 <span class="comment">//The type of handler this is</span>
-<a name="l00098"></a>00098 <span class="keyword">typedef</span> <span class="keyword">enum</span> {
-<a name="l00099"></a>00099         MODE_OPL2,
-<a name="l00100"></a>00100         MODE_DUALOPL2,
-<a name="l00101"></a>00101         MODE_OPL3,
-<a name="l00102"></a>00102         MODE_OPL3GOLD
-<a name="l00103"></a>00103 } Mode;
-<a name="l00104"></a>00104 
-<a name="l00105"></a><a class="code" href="classAdlib_1_1Handler.html">00105</a> <span class="keyword">class </span><a class="code" href="classAdlib_1_1Handler.html">Handler</a> {
-<a name="l00106"></a>00106 <span class="keyword">public</span>:
-<a name="l00107"></a>00107         <span class="comment">//Write an address to a chip, returns the address the chip sets</span>
-<a name="l00108"></a>00108         <span class="keyword">virtual</span> Bit32u WriteAddr( Bit32u port, Bit8u val ) = 0;
-<a name="l00109"></a>00109         <span class="comment">//Write to a specific register in the chip</span>
-<a name="l00110"></a>00110         <span class="keyword">virtual</span> <span class="keywordtype">void</span> WriteReg( Bit32u addr, Bit8u val ) = 0;
-<a name="l00111"></a>00111         <span class="comment">//Generate a certain amount of samples</span>
-<a name="l00112"></a>00112         <span class="keyword">virtual</span> <span class="keywordtype">void</span> Generate( <a class="code" href="classMixerChannel.html">MixerChannel</a>* chan, Bitu samples ) = 0;
-<a name="l00113"></a>00113         <span class="comment">//Initialize at a specific sample rate and mode</span>
-<a name="l00114"></a>00114         <span class="keyword">virtual</span> <span class="keywordtype">void</span> Init( Bitu rate ) = 0;
-<a name="l00115"></a>00115 
-<a name="l00116"></a>00116         <span class="keyword">virtual</span> ~<a class="code" href="classAdlib_1_1Handler.html">Handler</a>() {
-<a name="l00117"></a>00117         }
+<a name="l00079"></a>00079         <span class="keywordtype">void</span> SetCounter(Bit8u val) {
+<a name="l00080"></a>00080                 counter = val;
+<a name="l00081"></a>00081         }
+<a name="l00082"></a>00082         
+<a name="l00083"></a>00083         <span class="comment">//Stopping always clears the overflow as well</span>
+<a name="l00084"></a>00084         <span class="keywordtype">void</span> Stop( ) {
+<a name="l00085"></a>00085                 enabled = <span class="keyword">false</span>;
+<a name="l00086"></a>00086                 overflow = <span class="keyword">false</span>;
+<a name="l00087"></a>00087         }
+<a name="l00088"></a>00088         
+<a name="l00089"></a>00089         <span class="comment">//Starting clears overflow</span>
+<a name="l00090"></a>00090         <span class="keywordtype">void</span> Start( <span class="keyword">const</span> <span class="keywordtype">double</span> time ) {
+<a name="l00091"></a>00091                 enabled = <span class="keyword">true</span>;
+<a name="l00092"></a>00092                 overflow = <span class="keyword">false</span>;
+<a name="l00093"></a>00093                 <span class="comment">//The counter is basically copied on start so calculate delay now</span>
+<a name="l00094"></a>00094                 delay = (256 - counter) * interval;
+<a name="l00095"></a>00095                 <span class="comment">//Sync start to the last clock interval</span>
+<a name="l00096"></a>00096                 <span class="keywordtype">double</span> rem = fmod(time, interval);
+<a name="l00097"></a>00097                 start = time - rem;
+<a name="l00098"></a>00098         }
+<a name="l00099"></a>00099         
+<a name="l00100"></a>00100         <span class="comment">//Does this clock need an update, you could save a pic_fullindex on read?</span>
+<a name="l00101"></a>00101         <span class="keywordtype">bool</span> NeedUpdate()<span class="keyword"> const </span>{
+<a name="l00102"></a>00102                 <span class="keywordflow">return</span> enabled &amp;&amp; !overflow;
+<a name="l00103"></a>00103         }
+<a name="l00104"></a>00104 };
+<a name="l00105"></a>00105 
+<a name="l00106"></a><a class="code" href="structAdlib_1_1Chip.html">00106</a> <span class="keyword">struct </span><a class="code" href="structAdlib_1_1Chip.html">Chip</a> {
+<a name="l00107"></a>00107         <span class="comment">//Last selected register</span>
+<a name="l00108"></a>00108         <a class="code" href="classAdlib_1_1Timer.html">Timer</a> timer0, timer1;
+<a name="l00109"></a>00109         <span class="comment">//Check for it being a write to the timer</span>
+<a name="l00110"></a>00110         <span class="keywordtype">bool</span> Write( Bit32u reg, Bit8u val );
+<a name="l00111"></a>00111         <span class="comment">//Read the current timer state, will use current double</span>
+<a name="l00112"></a>00112         Bit8u Read( );
+<a name="l00113"></a>00113         
+<a name="l00114"></a>00114         <a class="code" href="structAdlib_1_1Chip.html">Chip</a>();
+<a name="l00115"></a>00115         <span class="comment">//poll counter</span>
+<a name="l00116"></a>00116         <span class="keywordtype">double</span> last_poll = 0;
+<a name="l00117"></a>00117         <span class="keywordtype">unsigned</span> <span class="keywordtype">int</span> poll_counter = 0;
 <a name="l00118"></a>00118 };
 <a name="l00119"></a>00119 
-<a name="l00120"></a>00120 <span class="comment">//The cache for 2 chips or an opl3</span>
-<a name="l00121"></a>00121 <span class="keyword">typedef</span> Bit8u RegisterCache[512];
-<a name="l00122"></a>00122 
-<a name="l00123"></a>00123 <span class="comment">//Internal class used for dro capturing</span>
-<a name="l00124"></a>00124 <span class="keyword">class </span><a class="code" href="classAdlib_1_1Capture.html">Capture</a>;
-<a name="l00125"></a>00125 
-<a name="l00126"></a><a class="code" href="classAdlib_1_1Module.html">00126</a> <span class="keyword">class </span><a class="code" href="classAdlib_1_1Module.html">Module</a>: <span class="keyword">public</span> <a class="code" href="classModule__base.html">Module_base</a> {
-<a name="l00127"></a>00127         <a class="code" href="classIO__ReadHandleObject.html">IO_ReadHandleObject</a> ReadHandler[12];
-<a name="l00128"></a>00128         <a class="code" href="classIO__WriteHandleObject.html">IO_WriteHandleObject</a> WriteHandler[12];
-<a name="l00129"></a>00129         <a class="code" href="classMixerObject.html">MixerObject</a> mixerObject;
-<a name="l00130"></a>00130 
-<a name="l00131"></a>00131         <span class="comment">//Mode we&#39;re running in</span>
-<a name="l00132"></a>00132         Mode mode;
-<a name="l00133"></a>00133         <span class="comment">//Last selected address in the chip for the different modes</span>
-<a name="l00134"></a>00134         <span class="keyword">union </span>{
-<a name="l00135"></a>00135                 Bit32u normal;
-<a name="l00136"></a>00136                 Bit8u dual[2];
-<a name="l00137"></a>00137         } reg;
-<a name="l00138"></a>00138         <span class="keyword">struct </span>{
-<a name="l00139"></a>00139                 <span class="keywordtype">bool</span> active;
-<a name="l00140"></a>00140                 Bit8u index;
-<a name="l00141"></a>00141                 Bit8u lvol;
-<a name="l00142"></a>00142                 Bit8u rvol;
-<a name="l00143"></a>00143                 <span class="keywordtype">bool</span> mixer;
-<a name="l00144"></a>00144     } ctrl = {};
-<a name="l00145"></a>00145         <span class="keywordtype">void</span> CacheWrite( Bit32u reg, Bit8u val );
-<a name="l00146"></a>00146         <span class="keywordtype">void</span> DualWrite( Bit8u index, Bit8u reg, Bit8u val );
-<a name="l00147"></a>00147         <span class="keywordtype">void</span> CtrlWrite( Bit8u val );
-<a name="l00148"></a>00148         Bitu CtrlRead( <span class="keywordtype">void</span> );
-<a name="l00149"></a>00149 <span class="keyword">public</span>:
-<a name="l00150"></a>00150         <span class="keyword">static</span> OPL_Mode oplmode;
-<a name="l00151"></a>00151         <a class="code" href="classMixerChannel.html">MixerChannel</a>* mixerChan;
-<a name="l00152"></a>00152         Bit32u lastUsed;                                <span class="comment">//Ticks when adlib was last used to turn of mixing after a few second</span>
-<a name="l00153"></a>00153 
-<a name="l00154"></a>00154         <a class="code" href="classAdlib_1_1Handler.html">Handler</a>* handler;                               <span class="comment">//Handler that will generate the sound</span>
-<a name="l00155"></a>00155     RegisterCache cache = {};
-<a name="l00156"></a>00156         <a class="code" href="classAdlib_1_1Capture.html">Capture</a>* capture;
-<a name="l00157"></a>00157         <a class="code" href="structAdlib_1_1Chip.html">Chip</a>    chip[2];
-<a name="l00158"></a>00158 
-<a name="l00159"></a>00159         <span class="comment">//Handle port writes</span>
-<a name="l00160"></a>00160         <span class="keywordtype">void</span> PortWrite( Bitu port, Bitu val, Bitu iolen );
-<a name="l00161"></a>00161         Bitu PortRead( Bitu port, Bitu iolen );
-<a name="l00162"></a>00162         <span class="keywordtype">void</span> Init( Mode m );
-<a name="l00163"></a>00163 
-<a name="l00164"></a>00164         <a class="code" href="classAdlib_1_1Module.html">Module</a>( <a class="code" href="classSection.html">Section</a>* configuration); 
-<a name="l00165"></a>00165         ~<a class="code" href="classAdlib_1_1Module.html">Module</a>();
-<a name="l00166"></a>00166 };
-<a name="l00167"></a>00167 
-<a name="l00168"></a>00168 
-<a name="l00169"></a>00169 }               <span class="comment">//Adlib namespace</span>
-<a name="l00170"></a>00170 
-<a name="l00171"></a>00171 <span class="preprocessor">#endif</span>
+<a name="l00120"></a>00120 <span class="comment">//The type of handler this is</span>
+<a name="l00121"></a>00121 <span class="keyword">typedef</span> <span class="keyword">enum</span> {
+<a name="l00122"></a>00122         MODE_OPL2,
+<a name="l00123"></a>00123         MODE_DUALOPL2,
+<a name="l00124"></a>00124         MODE_OPL3,
+<a name="l00125"></a>00125         MODE_OPL3GOLD
+<a name="l00126"></a>00126 } <a class="code" href="structMode.html">Mode</a>;
+<a name="l00127"></a>00127 
+<a name="l00128"></a><a class="code" href="classAdlib_1_1Handler.html">00128</a> <span class="keyword">class </span><a class="code" href="classAdlib_1_1Handler.html">Handler</a> {
+<a name="l00129"></a>00129 <span class="keyword">public</span>:
+<a name="l00130"></a>00130         <span class="comment">//Write an address to a chip, returns the address the chip sets</span>
+<a name="l00131"></a>00131         <span class="keyword">virtual</span> Bit32u WriteAddr( Bit32u port, Bit8u val ) = 0;
+<a name="l00132"></a>00132         <span class="comment">//Write to a specific register in the chip</span>
+<a name="l00133"></a>00133         <span class="keyword">virtual</span> <span class="keywordtype">void</span> WriteReg( Bit32u addr, Bit8u val ) = 0;
+<a name="l00134"></a>00134         <span class="comment">//Generate a certain amount of samples</span>
+<a name="l00135"></a>00135         <span class="keyword">virtual</span> <span class="keywordtype">void</span> Generate( <a class="code" href="classMixerChannel.html">MixerChannel</a>* chan, Bitu samples ) = 0;
+<a name="l00136"></a>00136         <span class="comment">//Initialize at a specific sample rate and mode</span>
+<a name="l00137"></a>00137         <span class="keyword">virtual</span> <span class="keywordtype">void</span> Init( Bitu rate ) = 0;
+<a name="l00138"></a>00138         <span class="keyword">virtual</span> <span class="keywordtype">void</span> SaveState( std::ostream&amp; stream ) { (void)stream; }
+<a name="l00139"></a>00139         <span class="keyword">virtual</span> <span class="keywordtype">void</span> LoadState( std::istream&amp; stream ) { (void)stream; }
+<a name="l00140"></a>00140 
+<a name="l00141"></a>00141         <span class="keyword">virtual</span> ~<a class="code" href="classAdlib_1_1Handler.html">Handler</a>() {
+<a name="l00142"></a>00142         }
+<a name="l00143"></a>00143 };
+<a name="l00144"></a>00144 
+<a name="l00145"></a>00145 <span class="comment">//The cache for 2 chips or an opl3</span>
+<a name="l00146"></a>00146 <span class="keyword">typedef</span> Bit8u RegisterCache[512];
+<a name="l00147"></a>00147 
+<a name="l00148"></a>00148 <span class="comment">//Internal class used for dro capturing</span>
+<a name="l00149"></a>00149 <span class="keyword">class </span><a class="code" href="classAdlib_1_1Capture.html">Capture</a>;
+<a name="l00150"></a>00150 
+<a name="l00151"></a><a class="code" href="classAdlib_1_1Module.html">00151</a> <span class="keyword">class </span><a class="code" href="classAdlib_1_1Module.html">Module</a>: <span class="keyword">public</span> <a class="code" href="classModule__base.html">Module_base</a> {
+<a name="l00152"></a>00152         <a class="code" href="classIO__ReadHandleObject.html">IO_ReadHandleObject</a> ReadHandler[12];
+<a name="l00153"></a>00153         <a class="code" href="classIO__WriteHandleObject.html">IO_WriteHandleObject</a> WriteHandler[12];
+<a name="l00154"></a>00154         <a class="code" href="classMixerObject.html">MixerObject</a> mixerObject;
+<a name="l00155"></a>00155 
+<a name="l00156"></a>00156         <span class="comment">//Mode we&#39;re running in</span>
+<a name="l00157"></a>00157         Mode mode;
+<a name="l00158"></a>00158         <span class="comment">//Last selected address in the chip for the different modes</span>
+<a name="l00159"></a>00159         <span class="keyword">union </span>{
+<a name="l00160"></a>00160                 Bit32u normal;
+<a name="l00161"></a>00161                 Bit8u dual[2];
+<a name="l00162"></a>00162         } reg;
+<a name="l00163"></a>00163         <span class="keyword">struct </span>{
+<a name="l00164"></a>00164                 <span class="keywordtype">bool</span> active;
+<a name="l00165"></a>00165                 Bit8u index;
+<a name="l00166"></a>00166                 Bit8u lvol;
+<a name="l00167"></a>00167                 Bit8u rvol;
+<a name="l00168"></a>00168                 <span class="keywordtype">bool</span> mixer;
+<a name="l00169"></a>00169     } ctrl = {};
+<a name="l00170"></a>00170         <span class="keywordtype">void</span> CacheWrite( Bit32u reg, Bit8u val );
+<a name="l00171"></a>00171         <span class="keywordtype">void</span> DualWrite( Bit8u index, Bit8u reg, Bit8u val );
+<a name="l00172"></a>00172         <span class="keywordtype">void</span> CtrlWrite( Bit8u val );
+<a name="l00173"></a>00173         Bitu CtrlRead( <span class="keywordtype">void</span> );
+<a name="l00174"></a>00174 <span class="keyword">public</span>:
+<a name="l00175"></a>00175         <span class="keyword">static</span> OPL_Mode oplmode;
+<a name="l00176"></a>00176         <a class="code" href="classMixerChannel.html">MixerChannel</a>* mixerChan;
+<a name="l00177"></a>00177         Bit32u lastUsed;                                <span class="comment">//Ticks when adlib was last used to turn of mixing after a few second</span>
+<a name="l00178"></a>00178 
+<a name="l00179"></a>00179         <a class="code" href="classAdlib_1_1Handler.html">Handler</a>* handler;                               <span class="comment">//Handler that will generate the sound</span>
+<a name="l00180"></a>00180     RegisterCache cache = {};
+<a name="l00181"></a>00181         <a class="code" href="classAdlib_1_1Capture.html">Capture</a>* capture;
+<a name="l00182"></a>00182         <a class="code" href="structAdlib_1_1Chip.html">Chip</a>    chip[2];
+<a name="l00183"></a>00183 
+<a name="l00184"></a>00184         <span class="comment">//Handle port writes</span>
+<a name="l00185"></a>00185         <span class="keywordtype">void</span> PortWrite( Bitu port, Bitu val, Bitu iolen );
+<a name="l00186"></a>00186         Bitu PortRead( Bitu port, Bitu iolen );
+<a name="l00187"></a>00187         <span class="keywordtype">void</span> Init( Mode m );
+<a name="l00188"></a>00188 
+<a name="l00189"></a>00189         <span class="comment">// savestate support</span>
+<a name="l00190"></a>00190         <span class="keyword">virtual</span> <span class="keywordtype">void</span> SaveState( std::ostream&amp; stream );
+<a name="l00191"></a>00191         <span class="keyword">virtual</span> <span class="keywordtype">void</span> LoadState( std::istream&amp; stream );
+<a name="l00192"></a>00192 
+<a name="l00193"></a>00193         <a class="code" href="classAdlib_1_1Module.html">Module</a>( <a class="code" href="classSection.html">Section</a>* configuration); 
+<a name="l00194"></a>00194         ~<a class="code" href="classAdlib_1_1Module.html">Module</a>();
+<a name="l00195"></a>00195 };
+<a name="l00196"></a>00196 
+<a name="l00197"></a>00197 
+<a name="l00198"></a>00198 }               <span class="comment">//Adlib namespace</span>
+<a name="l00199"></a>00199 
+<a name="l00200"></a>00200 <span class="preprocessor">#endif</span>
 </pre></div></div><!-- contents -->
 
 
 <hr class="footer"/><address class="footer"><small>
-Generated on Tue Oct 1 2019 18:06:26 for DOSBox-X by &#160;<a href="http://www.doxygen.org/index.html">
+Generated on Sun Jul 5 2020 13:11:36 for DOSBox-X by &#160;<a href="http://www.doxygen.org/index.html">
 <img class="footer" src="doxygen.png" alt="doxygen"/>
 </a> 1.8.0
 </small></address>

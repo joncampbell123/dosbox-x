@@ -114,8 +114,8 @@ Inheritance diagram for IDEATADevice:</div>
 <table class="memberdecls">
 <tr><td colspan="2"><h2><a name="pub-methods"></a>
 Public Member Functions</h2></td></tr>
-<tr class="memitem:a25958c65c635e0ffe5829a6aef21263d"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a25958c65c635e0ffe5829a6aef21263d"></a>
-&#160;</td><td class="memItemRight" valign="bottom"><b>IDEATADevice</b> (<a class="el" href="classIDEController.html">IDEController</a> *c, unsigned char bios_disk_index)</td></tr>
+<tr class="memitem:acd23ae1d9f384f6d3ba5c5b6a9d14de3"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="acd23ae1d9f384f6d3ba5c5b6a9d14de3"></a>
+&#160;</td><td class="memItemRight" valign="bottom"><b>IDEATADevice</b> (<a class="el" href="classIDEController.html">IDEController</a> *c, unsigned char disk_index)</td></tr>
 <tr class="memitem:ae4122c663d2f3ccf138be4e3935f3958"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="ae4122c663d2f3ccf138be4e3935f3958"></a>
 virtual void&#160;</td><td class="memItemRight" valign="bottom"><b>writecommand</b> (uint8_t cmd)</td></tr>
 <tr class="memitem:a0156b7decf71ca4f5aff7bd71330bc89"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a0156b7decf71ca4f5aff7bd71330bc89"></a>
@@ -167,7 +167,7 @@ Bitu&#160;</td><td class="memItemRight" valign="bottom"><b>phys_sects</b></td></
 <tr class="memitem:a99762c7f195dfffc524e3078b4a1e2bc"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a99762c7f195dfffc524e3078b4a1e2bc"></a>
 Bitu&#160;</td><td class="memItemRight" valign="bottom"><b>phys_cyls</b></td></tr>
 <tr class="memitem:aaf448a547054c85529e233d5381267d0"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="aaf448a547054c85529e233d5381267d0"></a>
-unsigned char&#160;</td><td class="memItemRight" valign="bottom"><b>sector</b> [512 *128]</td></tr>
+unsigned char&#160;</td><td class="memItemRight" valign="bottom"><b>sector</b> [512 *128] = {}</td></tr>
 <tr class="memitem:a28e1aaa1f0f87336ee5fe12212bdfdf1"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a28e1aaa1f0f87336ee5fe12212bdfdf1"></a>
 Bitu&#160;</td><td class="memItemRight" valign="bottom"><b>sector_i</b></td></tr>
 <tr class="memitem:a1eda9b2179b67dca4f5c850bff4a2c4c"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a1eda9b2179b67dca4f5c850bff4a2c4c"></a>
@@ -185,7 +185,7 @@ bool&#160;</td><td class="memItemRight" valign="bottom"><b>geo_translate</b></td
 
 
 <hr class="footer"/><address class="footer"><small>
-Generated on Tue Oct 1 2019 18:06:31 for DOSBox-X by &#160;<a href="http://www.doxygen.org/index.html">
+Generated on Sun Jul 5 2020 13:11:41 for DOSBox-X by &#160;<a href="http://www.doxygen.org/index.html">
 <img class="footer" src="doxygen.png" alt="doxygen"/>
 </a> 1.8.0
 </small></address>

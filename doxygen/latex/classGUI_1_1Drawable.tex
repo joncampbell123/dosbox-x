@@ -201,7 +201,7 @@ Drawables have a current font, color and (x,y) position. Drawing takes place at 
 
 Some drawing primitives are overloaded to take full coordinates. These ignore the current position, but update it just like their regular brethren. 
 
-Definition at line 1056 of file gui\-\_\-tk.\-h.
+Definition at line 1070 of file gui\-\_\-tk.\-h.
 
 
 
@@ -284,7 +284,7 @@ Draw a circle centered at the given coordinates with diameter {\ttfamily d}.
 
 The current position is set to the center. 
 
-Definition at line 1178 of file gui\-\_\-tk.\-h.
+Definition at line 1192 of file gui\-\_\-tk.\-h.
 
 
 
@@ -316,7 +316,7 @@ References draw\-Dot\-Line(), goto\-X\-Y(), line\-Width, x, and y.
 
 
 
-Referenced by G\-U\-I\-::\-Label\-::paint(), and G\-U\-I\-::\-Window\-In\-Window\-::paint\-All().
+Referenced by G\-U\-I\-::\-Label\-::paint(), G\-U\-I\-::\-Checkbox\-::paint(), and G\-U\-I\-::\-Window\-In\-Window\-::paint\-All().
 
 \hypertarget{classGUI_1_1Drawable_a173860d00ff795adfd7eaca64bb06cda}{\index{G\-U\-I\-::\-Drawable@{G\-U\-I\-::\-Drawable}!draw\-Dot\-Rect@{draw\-Dot\-Rect}}
 \index{draw\-Dot\-Rect@{draw\-Dot\-Rect}!GUI::Drawable@{G\-U\-I\-::\-Drawable}}
@@ -334,7 +334,7 @@ Draw a rectangle with top left at the given coordinates and size {\ttfamily w}, 
 
 The current position is set to the top left corner. 
 
-Definition at line 1192 of file gui\-\_\-tk.\-h.
+Definition at line 1206 of file gui\-\_\-tk.\-h.
 
 
 
@@ -380,7 +380,7 @@ Copy the contents of another \hyperlink{classGUI_1_1Drawable}{Drawable} to this 
 
 see \hyperlink{classGUI_1_1Drawable_a1ccc487035a97ccfb067f663d96ad798}{draw\-Drawable(\-Drawable \&d, unsigned char alpha)}. The current position is moved to the given coordinates. 
 
-Definition at line 1245 of file gui\-\_\-tk.\-h.
+Definition at line 1259 of file gui\-\_\-tk.\-h.
 
 
 
@@ -430,7 +430,7 @@ Draw a rectangle with top left at the given coordinates and size {\ttfamily w}, 
 
 The current position is set to the top left corner. 
 
-Definition at line 1185 of file gui\-\_\-tk.\-h.
+Definition at line 1199 of file gui\-\_\-tk.\-h.
 
 
 
@@ -484,7 +484,7 @@ Draw a text string at a fixed position.
 
 see \hyperlink{classGUI_1_1Drawable_ac88bcd93aad76b004ea2404fa0a37a69}{draw\-Text(const String\& text, bool interpret, Size start, Size len)} 
 
-Definition at line 1227 of file gui\-\_\-tk.\-h.
+Definition at line 1241 of file gui\-\_\-tk.\-h.
 
 
 
@@ -530,7 +530,7 @@ Draw a single character at a fixed position.
 
 see \hyperlink{classGUI_1_1Drawable_a7d0a7e8d1563edc7abcb8d89e8518b6f}{draw\-Text(const Char c, bool interpret)}. 
 
-Definition at line 1234 of file gui\-\_\-tk.\-h.
+Definition at line 1248 of file gui\-\_\-tk.\-h.
 
 
 
@@ -573,7 +573,7 @@ Flood-\/fill an area at a given position.
 
 see \hyperlink{classGUI_1_1Drawable_acdff088e5bc17e7024353aac19c178c6}{fill()}, but moves current position to the given coordinates 
 
-Definition at line 1200 of file gui\-\_\-tk.\-h.
+Definition at line 1214 of file gui\-\_\-tk.\-h.
 
 
 
@@ -617,7 +617,7 @@ Draw a filled circle centered at the given coordinates with diameter {\ttfamily 
 
 The current position is set to the center. 
 
-Definition at line 1207 of file gui\-\_\-tk.\-h.
+Definition at line 1221 of file gui\-\_\-tk.\-h.
 
 
 
@@ -667,7 +667,7 @@ Draw a filled rectangle with top left at the given coordinates and size {\ttfami
 
 The current position is set to the top left corner. 
 
-Definition at line 1214 of file gui\-\_\-tk.\-h.
+Definition at line 1228 of file gui\-\_\-tk.\-h.
 
 
 
@@ -690,7 +690,7 @@ Change current drawing color.
 
 The alpha part is honoured in all drawing primitives like this\-: All drawing operations in this window will unconditionally overwrite earlier content of this window. Only when combining this window with it's parent, the alpha channel is fully honoured. 
 
-Definition at line 1123 of file gui\-\_\-tk.\-h.
+Definition at line 1137 of file gui\-\_\-tk.\-h.
 
 
 

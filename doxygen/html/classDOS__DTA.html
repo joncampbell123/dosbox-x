@@ -119,30 +119,32 @@ Classes</h2></td></tr>
 Public Member Functions</h2></td></tr>
 <tr class="memitem:a26b5d5147e35f2b65dd6ef0cae1734e5"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a26b5d5147e35f2b65dd6ef0cae1734e5"></a>
 &#160;</td><td class="memItemRight" valign="bottom"><b>DOS_DTA</b> (RealPt addr)</td></tr>
-<tr class="memitem:ae15099c285096d3c32ef7b0f947a338d"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="ae15099c285096d3c32ef7b0f947a338d"></a>
-void&#160;</td><td class="memItemRight" valign="bottom"><b>SetupSearch</b> (Bit8u _sdrive, Bit8u _sattr, char *_pattern)</td></tr>
-<tr class="memitem:ae09318ca38b32bff0df8a0ee88ec2151"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="ae09318ca38b32bff0df8a0ee88ec2151"></a>
-void&#160;</td><td class="memItemRight" valign="bottom"><b>SetResult</b> (const char *_name, Bit32u _size, Bit16u _date, Bit16u _time, Bit8u _attr)</td></tr>
+<tr class="memitem:acf11b08c492385c159aa90e340be3dd8"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="acf11b08c492385c159aa90e340be3dd8"></a>
+int&#160;</td><td class="memItemRight" valign="bottom"><b>GetFindData</b> (int fmt, char *<a class="el" href="structfinddata.html">finddata</a>, int *c)</td></tr>
+<tr class="memitem:afdc1b9e9dd1c54973249664febf61086"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="afdc1b9e9dd1c54973249664febf61086"></a>
+void&#160;</td><td class="memItemRight" valign="bottom"><b>SetupSearch</b> (Bit8u _sdrive, Bit8u _sattr, char *pattern)</td></tr>
+<tr class="memitem:a3fc2f99e5a52c26c1cb019c2c220f017"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a3fc2f99e5a52c26c1cb019c2c220f017"></a>
+void&#160;</td><td class="memItemRight" valign="bottom"><b>SetResult</b> (const char *_name, const char *_lname, Bit32u _size, Bit16u _date, Bit16u _time, Bit8u _attr)</td></tr>
 <tr class="memitem:a055cb2b2f1fcf3fd76ee76bbd608da30"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a055cb2b2f1fcf3fd76ee76bbd608da30"></a>
 Bit8u&#160;</td><td class="memItemRight" valign="bottom"><b>GetSearchDrive</b> (void)</td></tr>
-<tr class="memitem:a770f5e91477a855386972cc2d530a346"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a770f5e91477a855386972cc2d530a346"></a>
-void&#160;</td><td class="memItemRight" valign="bottom"><b>GetSearchParams</b> (Bit8u &amp;_sattr, char *_spattern)</td></tr>
-<tr class="memitem:a42642ddf3f4fceb24592262dd3221cac"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a42642ddf3f4fceb24592262dd3221cac"></a>
-void&#160;</td><td class="memItemRight" valign="bottom"><b>GetResult</b> (char *_name, Bit32u &amp;_size, Bit16u &amp;_date, Bit16u &amp;_time, Bit8u &amp;_attr)</td></tr>
+<tr class="memitem:a6112ff7dd7637bdce72f72caed62e7ec"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a6112ff7dd7637bdce72f72caed62e7ec"></a>
+void&#160;</td><td class="memItemRight" valign="bottom"><b>GetSearchParams</b> (Bit8u &amp;_sattr, char *_spattern, bool lfn)</td></tr>
+<tr class="memitem:a42bcadbc15a9a77ff82981bddeb24ca1"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a42bcadbc15a9a77ff82981bddeb24ca1"></a>
+void&#160;</td><td class="memItemRight" valign="bottom"><b>GetResult</b> (char *_name, char *_lname, Bit32u &amp;_size, Bit16u &amp;_date, Bit16u &amp;_time, Bit8u &amp;_attr)</td></tr>
 <tr class="memitem:ae695e3b2d7507351b4f68fd855f62942"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="ae695e3b2d7507351b4f68fd855f62942"></a>
 void&#160;</td><td class="memItemRight" valign="bottom"><b>SetDirID</b> (Bit16u entry)</td></tr>
-<tr class="memitem:a9077446d68d8383d59a932d55ad4ddc4"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a9077446d68d8383d59a932d55ad4ddc4"></a>
-void&#160;</td><td class="memItemRight" valign="bottom"><b>SetDirIDCluster</b> (Bit16u entry)</td></tr>
+<tr class="memitem:a6234b76041d9cf7514103fe72ce2bb67"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a6234b76041d9cf7514103fe72ce2bb67"></a>
+void&#160;</td><td class="memItemRight" valign="bottom"><b>SetDirIDCluster</b> (Bit32u entry)</td></tr>
 <tr class="memitem:ac6562d1dd41f1f2b0874647e82a62289"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="ac6562d1dd41f1f2b0874647e82a62289"></a>
 Bit16u&#160;</td><td class="memItemRight" valign="bottom"><b>GetDirID</b> (void)</td></tr>
-<tr class="memitem:a1a098a058e4f8237ecc38ed147033f9b"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a1a098a058e4f8237ecc38ed147033f9b"></a>
-Bit16u&#160;</td><td class="memItemRight" valign="bottom"><b>GetDirIDCluster</b> (void)</td></tr>
+<tr class="memitem:a54c6b82def7f8b77092dd05293448125"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a54c6b82def7f8b77092dd05293448125"></a>
+Bit32u&#160;</td><td class="memItemRight" valign="bottom"><b>GetDirIDCluster</b> (void)</td></tr>
 <tr class="memitem:a2a46e3772a422180a20895e706613ff5"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a2a46e3772a422180a20895e706613ff5"></a>
 Bit8u&#160;</td><td class="memItemRight" valign="bottom"><b>GetAttr</b> (void)</td></tr>
 </table>
 <hr/><a name="details" id="details"></a><h2>Detailed Description</h2>
 <div class="textblock">
-<p>Definition at line <a class="el" href="dos__inc_8h_source.html#l00535">535</a> of file <a class="el" href="dos__inc_8h_source.html">dos_inc.h</a>.</p>
+<p>Definition at line <a class="el" href="dos__inc_8h_source.html#l00545">545</a> of file <a class="el" href="dos__inc_8h_source.html">dos_inc.h</a>.</p>
 </div><hr/>The documentation for this class was generated from the following files:<ul>
 <li>include/<a class="el" href="dos__inc_8h_source.html">dos_inc.h</a></li>
 <li>src/dos/<a class="el" href="dos__classes_8cpp_source.html">dos_classes.cpp</a></li>
@@ -151,7 +153,7 @@ Bit8u&#160;</td><td class="memItemRight" valign="bottom"><b>GetAttr</b> (void)</
 
 
 <hr class="footer"/><address class="footer"><small>
-Generated on Tue Oct 1 2019 18:06:30 for DOSBox-X by &#160;<a href="http://www.doxygen.org/index.html">
+Generated on Sun Jul 5 2020 13:11:40 for DOSBox-X by &#160;<a href="http://www.doxygen.org/index.html">
 <img class="footer" src="doxygen.png" alt="doxygen"/>
 </a> 1.8.0
 </small></address>

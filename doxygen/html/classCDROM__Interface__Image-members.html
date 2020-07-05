@@ -109,11 +109,11 @@ This is the complete list of members for <a class="el" href="classCDROM__Interfa
   <tr class="memlist"><td><a class="el" href="classCDROM__Interface__Image.html#a7348536d197510d1442419f2aa172ccc">HasDataTrack</a>(void)</td><td><a class="el" href="classCDROM__Interface__Image.html">CDROM_Interface_Image</a></td><td></td></tr>
   <tr class="memlist"><td><a class="el" href="classCDROM__Interface__Image.html#a547a33f528bf5f50063af1def199a7a3">images</a></td><td><a class="el" href="classCDROM__Interface__Image.html">CDROM_Interface_Image</a></td><td><code> [static]</code></td></tr>
   <tr class="memlist"><td><a class="el" href="classCDROM__Interface__Image.html#a901be8d60520cf91bcabeb67a808c644">images_init</a></td><td><a class="el" href="classCDROM__Interface__Image.html">CDROM_Interface_Image</a></td><td><code> [static]</code></td></tr>
-  <tr class="memlist"><td><a class="el" href="classCDROM__Interface__Image.html#a8b1323ddfae9e59fae8fa5d8f862c8c4">InitNewMedia</a>(void)</td><td><a class="el" href="classCDROM__Interface__Image.html">CDROM_Interface_Image</a></td><td><code> [virtual]</code></td></tr>
+  <tr class="memlist"><td><a class="el" href="classCDROM__Interface__Image.html#a8b1323ddfae9e59fae8fa5d8f862c8c4">InitNewMedia</a>(void)</td><td><a class="el" href="classCDROM__Interface__Image.html">CDROM_Interface_Image</a></td><td><code> [inline, virtual]</code></td></tr>
   <tr class="memlist"><td><a class="el" href="classCDROM__Interface__Image.html#af5aa7f94de1d7c77ff6b484b380c5351">LoadUnloadMedia</a>(bool unload)</td><td><a class="el" href="classCDROM__Interface__Image.html">CDROM_Interface_Image</a></td><td><code> [virtual]</code></td></tr>
   <tr class="memlist"><td><a class="el" href="classCDROM__Interface__Image.html#ac74be8f64002ccf76b65c2fbd03077bd">PauseAudio</a>(bool resume)</td><td><a class="el" href="classCDROM__Interface__Image.html">CDROM_Interface_Image</a></td><td><code> [virtual]</code></td></tr>
   <tr class="memlist"><td><a class="el" href="classCDROM__Interface__Image.html#afbb8b5443be56ba92b5a1287ba95f913">PlayAudioSector</a>(unsigned long start, unsigned long len)</td><td><a class="el" href="classCDROM__Interface__Image.html">CDROM_Interface_Image</a></td><td><code> [virtual]</code></td></tr>
-  <tr class="memlist"><td><a class="el" href="classCDROM__Interface__Image.html#acbed60c6b06009b2a027d605190ee842">ReadSector</a>(Bit8u *buffer, bool raw, unsigned long sector)</td><td><a class="el" href="classCDROM__Interface__Image.html">CDROM_Interface_Image</a></td><td></td></tr>
+  <tr class="memlist"><td><a class="el" href="classCDROM__Interface__Image.html#aa30f347bb164b16e2939d467a57578d7">ReadSector</a>(uint8_t *buffer, const bool raw, const uint32_t sector)</td><td><a class="el" href="classCDROM__Interface__Image.html">CDROM_Interface_Image</a></td><td></td></tr>
   <tr class="memlist"><td><a class="el" href="classCDROM__Interface__Image.html#a5121d2e82267d529bc462cecdac36791">ReadSectors</a>(PhysPt buffer, bool raw, unsigned long sector, unsigned long num)</td><td><a class="el" href="classCDROM__Interface__Image.html">CDROM_Interface_Image</a></td><td><code> [virtual]</code></td></tr>
   <tr class="memlist"><td><a class="el" href="classCDROM__Interface__Image.html#ae686caa17e265089d6cd1a69ecc5b332">ReadSectorsHost</a>(void *buffer, bool raw, unsigned long sector, unsigned long num)</td><td><a class="el" href="classCDROM__Interface__Image.html">CDROM_Interface_Image</a></td><td><code> [virtual]</code></td></tr>
   <tr class="memlist"><td><a class="el" href="classCDROM__Interface__Image.html#ae803cb47966de3b637c55c40aaf89e78">SetDevice</a>(char *path, int forceCD)</td><td><a class="el" href="classCDROM__Interface__Image.html">CDROM_Interface_Image</a></td><td><code> [virtual]</code></td></tr>
@@ -124,7 +124,7 @@ This is the complete list of members for <a class="el" href="classCDROM__Interfa
 
 
 <hr class="footer"/><address class="footer"><small>
-Generated on Tue Oct 1 2019 18:06:30 for DOSBox-X by &#160;<a href="http://www.doxygen.org/index.html">
+Generated on Sun Jul 5 2020 13:11:40 for DOSBox-X by &#160;<a href="http://www.doxygen.org/index.html">
 <img class="footer" src="doxygen.png" alt="doxygen"/>
 </a> 1.8.0
 </small></address>

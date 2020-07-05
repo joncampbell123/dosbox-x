@@ -3,6 +3,7 @@ var searchData=
   ['obf_5fa',['OBF_A',['../classIntel8255.html#ad6207273407dcfb3ed9785613838baf7',1,'Intel8255']]],
   ['obf_5fb',['OBF_B',['../classIntel8255.html#a5d84e8f433d4aeaf15d5f79cbadd878e',1,'Intel8255']]],
   ['offset',['offset',['../classGUI_1_1Input.html#ad3725c78fcdbe131c8f209a41f520150',1,'GUI::Input']]],
+  ['opaque',['opaque',['../structSound__Sample.html#af9b14d108498631919187832d74efa11',1,'Sound_Sample']]],
   ['opcode',['OpCode',['../structOpCode.html',1,'']]],
   ['operator',['Operator',['../structDBOPL_1_1Operator.html',1,'DBOPL']]],
   ['operator_20t',['operator T',['../classGUI_1_1String.html#a779a14fba54f0c4c75353581ce6fe6fd',1,'GUI::String']]],
@@ -12,9 +13,6 @@ var searchData=
   ['operator_5fstruct',['operator_struct',['../structOPL2_1_1operator__struct.html',1,'OPL2']]],
   ['operator_5fstruct',['operator_struct',['../structOPL3_1_1operator__struct.html',1,'OPL3']]],
   ['operator_5fstruct',['operator_struct',['../structoperator__struct.html',1,'']]],
-  ['opl3_5fchannel',['opl3_channel',['../structopl3__channel.html',1,'']]],
-  ['opl3_5fchip',['opl3_chip',['../structopl3__chip.html',1,'']]],
-  ['opl3_5fslot',['opl3_slot',['../structopl3__slot.html',1,'']]],
   ['opn_5ft',['OPN_T',['../structOPN__T.html',1,'']]],
   ['opncfg',['OPNCFG',['../structOPNCFG.html',1,'']]],
   ['opnch',['OPNCH',['../structOPNCH.html',1,'']]],
@@ -24,5 +22,7 @@ var searchData=
   ['outporta',['outPortA',['../classIntel8255.html#a15b8c1a78f8f1ca7ac90b92cc329f7d0',1,'Intel8255']]],
   ['outportb',['outPortB',['../classIntel8255.html#a3004cbfc1a1eade447d2e312bc1faa29',1,'Intel8255']]],
   ['outportc',['outPortC',['../classIntel8255.html#afaff12790fc1b0cf538c7b1a4f27d804',1,'Intel8255::outPortC()'],['../classPC98__System__8255.html#a273039abe8a3f459c2fe5937cc145f39',1,'PC98_System_8255::outPortC()'],['../classPC98__Mouse__8255.html#af64ccdbfb0d8eff0711088b3de6b4949',1,'PC98_Mouse_8255::outPortC()']]],
+  ['overlay_5fdrive',['Overlay_Drive',['../classOverlay__Drive.html',1,'']]],
+  ['overlayfile',['OverlayFile',['../classOverlayFile.html',1,'']]],
   ['owner',['owner',['../classGUI_1_1Drawable.html#a2602c5a354a8aec3362a29272ff15367',1,'GUI::Drawable::owner()'],['../classGUI_1_1BitmapFont.html#ac50042f33fedf2c8516294780ed6f128',1,'GUI::BitmapFont::owner()']]]
 ];

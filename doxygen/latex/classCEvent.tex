@@ -9,7 +9,7 @@ Base \hyperlink{classCEvent}{C\-Event} class for mapper events.
 Inheritance diagram for C\-Event\-:\begin{figure}[H]
 \begin{center}
 \leavevmode
-\includegraphics[height=2.258065cm]{classCEvent}
+\includegraphics[height=1.791045cm]{classCEvent}
 \end{center}
 \end{figure}
 \subsection*{Public Types}
@@ -32,6 +32,9 @@ virtual std\-::string \hyperlink{classCEvent_adcc4bad114bb2f135e354d018cbe1d8c}{
 \hypertarget{classCEvent_a2665ebd0551c2b437b02d521f1c7adda}{void \hyperlink{classCEvent_a2665ebd0551c2b437b02d521f1c7adda}{Add\-Bind} (\hyperlink{classCBind}{C\-Bind} $\ast$bind)}\label{classCEvent_a2665ebd0551c2b437b02d521f1c7adda}
 
 \begin{DoxyCompactList}\small\item\em Add binding to the bindlist. \end{DoxyCompactList}\item 
+\hypertarget{classCEvent_a84db2128fbe6b51ddf1b3909adb4e3d2}{void {\bfseries Clear\-Binds} ()}\label{classCEvent_a84db2128fbe6b51ddf1b3909adb4e3d2}
+
+\item 
 \hypertarget{classCEvent_a8643a8541e23ed77a63869dd11780c83}{virtual void \hyperlink{classCEvent_a8643a8541e23ed77a63869dd11780c83}{Active} (bool yesno)}\label{classCEvent_a8643a8541e23ed77a63869dd11780c83}
 
 \begin{DoxyCompactList}\small\item\em Change whether the event is activated or not. \end{DoxyCompactList}\item 
@@ -55,7 +58,10 @@ virtual std\-::string \hyperlink{classCEvent_adcc4bad114bb2f135e354d018cbe1d8c}{
 \begin{DoxyCompactList}\small\item\em Retrieve the name of the event. \end{DoxyCompactList}\item 
 \hypertarget{classCEvent_affd064f43309b5fc4966edb36935723d}{virtual bool \hyperlink{classCEvent_affd064f43309b5fc4966edb36935723d}{Is\-Trigger} (void)=0}\label{classCEvent_affd064f43309b5fc4966edb36935723d}
 
-\begin{DoxyCompactList}\small\item\em Indicate whether the event is a trigger or continuous input. \end{DoxyCompactList}\end{DoxyCompactItemize}
+\begin{DoxyCompactList}\small\item\em Indicate whether the event is a trigger or continuous input. \end{DoxyCompactList}\item 
+\hypertarget{classCEvent_a22e34d9fd3e252773c98d43ceecaf246}{virtual void \hyperlink{classCEvent_a22e34d9fd3e252773c98d43ceecaf246}{Rebind\-Redraw} (void)}\label{classCEvent_a22e34d9fd3e252773c98d43ceecaf246}
+
+\begin{DoxyCompactList}\small\item\em T\-O\-D\-O. \end{DoxyCompactList}\end{DoxyCompactItemize}
 \subsection*{Public Attributes}
 \begin{DoxyCompactItemize}
 \item 
@@ -88,7 +94,7 @@ virtual std\-::string \hyperlink{classCEvent_adcc4bad114bb2f135e354d018cbe1d8c}{
 \subsection{Detailed Description}
 Base \hyperlink{classCEvent}{C\-Event} class for mapper events. 
 
-Definition at line 307 of file sdl\-\_\-mapper.\-cpp.
+Definition at line 289 of file sdl\-\_\-mapper.\-cpp.
 
 
 
@@ -102,7 +108,7 @@ Type of \hyperlink{classCEvent}{C\-Event} class, if the code needs to use the sp
 
 This is used by other parts of the mapper if it needs to retrieve additional information that is only provided by the handler event class 
 
-Definition at line 313 of file sdl\-\_\-mapper.\-cpp.
+Definition at line 295 of file sdl\-\_\-mapper.\-cpp.
 
 
 
@@ -121,7 +127,7 @@ Definition at line 313 of file sdl\-\_\-mapper.\-cpp.
 
 This constructor takes a mapper entry name and event type. Subclasses will call down to this constructor as well. The handler event class will fill in the \-\_\-type field to identify itself. 
 
-Definition at line 324 of file sdl\-\_\-mapper.\-cpp.
+Definition at line 306 of file sdl\-\_\-mapper.\-cpp.
 
 
 
@@ -143,11 +149,11 @@ Retrieve binding string for display in the menu.
 
 Retrieve text string to show as the assigned mapper binding in a menu item's displayable area so that the user knows what keyboard input will trigger the shortcut. 
 
-Definition at line 903 of file sdl\-\_\-mapper.\-cpp.
+Definition at line 1029 of file sdl\-\_\-mapper.\-cpp.
 
 
 
-References bindlist, C\-Key\-Bind\-::\-Get\-Bind\-Menu\-Text(), and C\-Bind\-::type.
+References C\-Key\-Bind\-::\-Get\-Bind\-Menu\-Text(), and C\-Bind\-::type.
 
 
 

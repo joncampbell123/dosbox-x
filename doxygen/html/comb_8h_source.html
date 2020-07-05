@@ -113,7 +113,7 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l00016"></a>00016                         <a class="code" href="classcomb.html">comb</a>();
 <a name="l00017"></a>00017                 <span class="keywordtype">void</span>    setbuffer(<span class="keywordtype">float</span> *buf, <span class="keywordtype">int</span> size);
 <a name="l00018"></a>00018                 <span class="keywordtype">void</span>    deletebuffer();
-<a name="l00019"></a>00019         <span class="keyword">inline</span>  <span class="keywordtype">float</span>   process(<span class="keywordtype">float</span> inp);
+<a name="l00019"></a>00019         <span class="keyword">inline</span>  <span class="keywordtype">float</span>   process(<span class="keywordtype">float</span> input);
 <a name="l00020"></a>00020                 <span class="keywordtype">void</span>    mute();
 <a name="l00021"></a>00021                 <span class="keywordtype">void</span>    setdamp(<span class="keywordtype">float</span> val);
 <a name="l00022"></a>00022                 <span class="keywordtype">float</span>   getdamp();
@@ -123,12 +123,12 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l00026"></a>00026                                         <span class="keywordtype">void</span> saveState( std::ostream &amp;stream );
 <a name="l00027"></a>00027                                         <span class="keywordtype">void</span> loadState( std::istream &amp;stream );
 <a name="l00028"></a>00028 <span class="keyword">private</span>:
-<a name="l00029"></a>00029         <span class="keywordtype">float</span>   feedback;
+<a name="l00029"></a>00029         <span class="keywordtype">float</span>   feedback = 0;
 <a name="l00030"></a>00030         <span class="keywordtype">float</span>   filterstore;
-<a name="l00031"></a>00031         <span class="keywordtype">float</span>   damp1;
-<a name="l00032"></a>00032         <span class="keywordtype">float</span>   damp2;
-<a name="l00033"></a>00033         <span class="keywordtype">float</span>   *buffer;
-<a name="l00034"></a>00034         <span class="keywordtype">int</span>     bufsize;
+<a name="l00031"></a>00031         <span class="keywordtype">float</span>   damp1 = 0;
+<a name="l00032"></a>00032         <span class="keywordtype">float</span>   damp2 = 0;
+<a name="l00033"></a>00033         <span class="keywordtype">float</span>   *buffer = NULL;
+<a name="l00034"></a>00034         <span class="keywordtype">int</span>     bufsize = 0;
 <a name="l00035"></a>00035         <span class="keywordtype">int</span>     bufidx;
 <a name="l00036"></a>00036 };
 <a name="l00037"></a>00037 
@@ -155,7 +155,7 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 
 
 <hr class="footer"/><address class="footer"><small>
-Generated on Tue Oct 1 2019 18:06:29 for DOSBox-X by &#160;<a href="http://www.doxygen.org/index.html">
+Generated on Sun Jul 5 2020 13:11:39 for DOSBox-X by &#160;<a href="http://www.doxygen.org/index.html">
 <img class="footer" src="doxygen.png" alt="doxygen"/>
 </a> 1.8.0
 </small></address>

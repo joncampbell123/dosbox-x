@@ -96,7 +96,7 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 </div><!--header-->
 <div class="contents">
 <div class="fragment"><pre class="fragment"><a name="l00001"></a>00001 <span class="comment">/*</span>
-<a name="l00002"></a>00002 <span class="comment"> *  Copyright (C) 2002-2019  The DOSBox Team</span>
+<a name="l00002"></a>00002 <span class="comment"> *  Copyright (C) 2002-2020  The DOSBox Team</span>
 <a name="l00003"></a>00003 <span class="comment"> *</span>
 <a name="l00004"></a>00004 <span class="comment"> *  This program is free software; you can redistribute it and/or modify</span>
 <a name="l00005"></a>00005 <span class="comment"> *  it under the terms of the GNU General Public License as published by</span>
@@ -108,9 +108,9 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l00011"></a>00011 <span class="comment"> *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the</span>
 <a name="l00012"></a>00012 <span class="comment"> *  GNU General Public License for more details.</span>
 <a name="l00013"></a>00013 <span class="comment"> *</span>
-<a name="l00014"></a>00014 <span class="comment"> *  You should have received a copy of the GNU General Public License</span>
-<a name="l00015"></a>00015 <span class="comment"> *  along with this program; if not, write to the Free Software</span>
-<a name="l00016"></a>00016 <span class="comment"> *  Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1335, USA.</span>
+<a name="l00014"></a>00014 <span class="comment"> *  You should have received a copy of the GNU General Public License along</span>
+<a name="l00015"></a>00015 <span class="comment"> *  with this program; if not, write to the Free Software Foundation, Inc.,</span>
+<a name="l00016"></a>00016 <span class="comment"> *  51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.</span>
 <a name="l00017"></a>00017 <span class="comment"> */</span>
 <a name="l00018"></a>00018 
 <a name="l00019"></a>00019 <span class="preprocessor">#include &quot;dosbox.h&quot;</span>
@@ -125,113 +125,134 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l00028"></a>00028 <span class="preprocessor">#include &quot;inout.h&quot;</span>
 <a name="l00029"></a>00029 <span class="preprocessor">#include &quot;callback.h&quot;</span>
 <a name="l00030"></a>00030 
-<a name="l00031"></a>00031 <span class="preprocessor">#define CPU_CORE CPU_ARCHTYPE_386</span>
-<a name="l00032"></a>00032 <span class="preprocessor"></span>
-<a name="l00033"></a>00033 <span class="keyword">typedef</span> PhysPt EAPoint;
-<a name="l00034"></a>00034 <span class="preprocessor">#define SegBase(c)      SegPhys(c)</span>
-<a name="l00035"></a>00035 <span class="preprocessor"></span>
-<a name="l00036"></a>00036 <span class="preprocessor">#define LoadMb(off) mem_readb_inline(off)</span>
-<a name="l00037"></a>00037 <span class="preprocessor"></span><span class="preprocessor">#define LoadMw(off) mem_readw_inline(off)</span>
-<a name="l00038"></a>00038 <span class="preprocessor"></span><span class="preprocessor">#define LoadMd(off) mem_readd_inline(off)</span>
-<a name="l00039"></a>00039 <span class="preprocessor"></span>
-<a name="l00040"></a>00040 <span class="preprocessor">#define LoadMbs(off) (Bit8s)(LoadMb(off))</span>
-<a name="l00041"></a>00041 <span class="preprocessor"></span><span class="preprocessor">#define LoadMws(off) (Bit16s)(LoadMw(off))</span>
-<a name="l00042"></a>00042 <span class="preprocessor"></span><span class="preprocessor">#define LoadMds(off) (Bit32s)(LoadMd(off))</span>
-<a name="l00043"></a>00043 <span class="preprocessor"></span>
-<a name="l00044"></a>00044 <span class="preprocessor">#define SaveMb(off,val) mem_writeb_inline(off,val)</span>
-<a name="l00045"></a>00045 <span class="preprocessor"></span><span class="preprocessor">#define SaveMw(off,val) mem_writew_inline(off,val)</span>
-<a name="l00046"></a>00046 <span class="preprocessor"></span><span class="preprocessor">#define SaveMd(off,val) mem_writed_inline(off,val)</span>
-<a name="l00047"></a>00047 <span class="preprocessor"></span>
-<a name="l00048"></a>00048 <span class="preprocessor">#define LoadD(reg) reg</span>
-<a name="l00049"></a>00049 <span class="preprocessor"></span><span class="preprocessor">#define SaveD(reg,val)  reg=val</span>
-<a name="l00050"></a>00050 <span class="preprocessor"></span>
-<a name="l00051"></a>00051 
-<a name="l00052"></a>00052 
-<a name="l00053"></a>00053 <span class="preprocessor">#include &quot;core_full/loadwrite.h&quot;</span>
-<a name="l00054"></a>00054 <span class="preprocessor">#include &quot;core_full/support.h&quot;</span>
-<a name="l00055"></a>00055 <span class="preprocessor">#include &quot;core_full/optable.h&quot;</span>
-<a name="l00056"></a>00056 <span class="preprocessor">#include &quot;instructions.h&quot;</span>
-<a name="l00057"></a>00057 
-<a name="l00058"></a>00058 <span class="preprocessor">#define EXCEPTION(blah)                                                                         \</span>
-<a name="l00059"></a>00059 <span class="preprocessor">        {                                                                                                               \</span>
-<a name="l00060"></a>00060 <span class="preprocessor">                Bit8u new_num=blah;                                                                     \</span>
-<a name="l00061"></a>00061 <span class="preprocessor">                CPU_Exception(new_num,0);                                                       \</span>
-<a name="l00062"></a>00062 <span class="preprocessor">                continue;                                                                                       \</span>
-<a name="l00063"></a>00063 <span class="preprocessor">        }</span>
-<a name="l00064"></a>00064 <span class="preprocessor"></span>
-<a name="l00065"></a>00065 Bits CPU_Core_Normal_Trap_Run(<span class="keywordtype">void</span>);
-<a name="l00066"></a>00066 
-<a name="l00067"></a>00067 Bits CPU_Core_Full_Run(<span class="keywordtype">void</span>) {
-<a name="l00068"></a>00068         <span class="keyword">static</span> <span class="keywordtype">bool</span> tf_warn=<span class="keyword">false</span>;
-<a name="l00069"></a>00069         <a class="code" href="structFullData.html">FullData</a> inst;
-<a name="l00070"></a>00070 
-<a name="l00071"></a>00071         <span class="keywordflow">while</span> (CPU_Cycles--&gt;0) {
-<a name="l00072"></a>00072                 cycle_count++;
-<a name="l00073"></a>00073 
-<a name="l00074"></a>00074                 <span class="comment">/* this core isn&#39;t written to emulate the Trap Flag. at least</span>
-<a name="l00075"></a>00075 <span class="comment">                 * let the user know. some demos (Second Reality, Future Crew)</span>
-<a name="l00076"></a>00076 <span class="comment">                 * use the Trap Flag to self-decrypt on execute, which is why</span>
-<a name="l00077"></a>00077 <span class="comment">                 * they normally crash when run under core=full */</span>
-<a name="l00078"></a>00078                 <span class="keywordflow">if</span> (GETFLAG(TF)) {
-<a name="l00079"></a>00079                         <span class="keywordflow">if</span> (!tf_warn) {
-<a name="l00080"></a>00080                                 tf_warn = <span class="keyword">true</span>;
-<a name="l00081"></a>00081                                 <a class="code" href="classLOG.html">LOG</a>(LOG_CPU,LOG_WARN)(<span class="stringliteral">&quot;Trap Flag single-stepping not supported by full core. Using normal core for TF emulation.&quot;</span>);
-<a name="l00082"></a>00082                         }
-<a name="l00083"></a>00083 
-<a name="l00084"></a>00084                         <span class="keywordflow">return</span> CPU_Core_Normal_Trap_Run();
-<a name="l00085"></a>00085                 }
-<a name="l00086"></a>00086                 <span class="keywordflow">else</span> {
-<a name="l00087"></a>00087                         tf_warn = <span class="keyword">false</span>;
-<a name="l00088"></a>00088                 }
-<a name="l00089"></a>00089 
-<a name="l00090"></a>00090 <span class="preprocessor">#if C_DEBUG             </span>
-<a name="l00091"></a>00091 <span class="preprocessor"></span><span class="preprocessor">#if C_HEAVY_DEBUG</span>
-<a name="l00092"></a>00092 <span class="preprocessor"></span>                <span class="keywordflow">if</span> (DEBUG_HeavyIsBreakpoint()) {
-<a name="l00093"></a>00093                         FillFlags();
-<a name="l00094"></a>00094                         <span class="keywordflow">return</span> (Bits)debugCallback;
-<a name="l00095"></a>00095                 }
-<a name="l00096"></a>00096 <span class="preprocessor">#endif</span>
-<a name="l00097"></a>00097 <span class="preprocessor"></span><span class="preprocessor">#endif</span>
-<a name="l00098"></a>00098 <span class="preprocessor"></span>
-<a name="l00099"></a>00099                 LoadIP();
-<a name="l00100"></a>00100                 inst.entry=cpu.code.big*(Bitu)0x200u;
-<a name="l00101"></a>00101                 inst.prefix=cpu.code.big;
-<a name="l00102"></a>00102 restartopcode:
-<a name="l00103"></a>00103                 inst.entry=(inst.entry &amp; 0xffffff00u) | Fetchb();
-<a name="l00104"></a>00104                 inst.code=OpCodeTable[inst.entry];
-<a name="l00105"></a>00105         Bitu old_flags = reg_flags;
-<a name="l00106"></a>00106                 Bit32u old_esp = reg_esp; <span class="comment">// always restore stack pointer on page fault</span>
-<a name="l00107"></a>00107                 <span class="keywordflow">try</span> {
-<a name="l00108"></a>00108 <span class="preprocessor">                        #include &quot;core_full/load.h&quot;</span>
-<a name="l00109"></a>00109 <span class="preprocessor">                        #include &quot;core_full/op.h&quot;</span>
-<a name="l00110"></a>00110 <span class="preprocessor">                        #include &quot;core_full/save.h&quot;</span>
-<a name="l00111"></a>00111                 }
-<a name="l00112"></a>00112                 <span class="keywordflow">catch</span> (<a class="code" href="classGuestPageFaultException.html">GuestPageFaultException</a> &amp;pf) {
-<a name="l00113"></a>00113                         (void)pf;
-<a name="l00114"></a>00114                         reg_flags = old_flags; <span class="comment">/* core_full/op.h may have modified flags */</span>
-<a name="l00115"></a>00115                         reg_esp = old_esp;
-<a name="l00116"></a>00116                         <span class="keywordflow">throw</span>;
-<a name="l00117"></a>00117                 }
-<a name="l00118"></a>00118 nextopcode:;
-<a name="l00119"></a>00119                 SaveIP();
-<a name="l00120"></a>00120                 <span class="keywordflow">continue</span>;
-<a name="l00121"></a>00121 illegalopcode:
-<a name="l00122"></a>00122                 <a class="code" href="classLOG.html">LOG</a>(LOG_CPU,LOG_NORMAL)(<span class="stringliteral">&quot;Illegal opcode&quot;</span>);
-<a name="l00123"></a>00123                 CPU_Exception(0x6,0);
-<a name="l00124"></a>00124         }
-<a name="l00125"></a>00125         FillFlags();
-<a name="l00126"></a>00126         <span class="keywordflow">return</span> CBRET_NONE;
-<a name="l00127"></a>00127 }
-<a name="l00128"></a>00128 
-<a name="l00129"></a>00129 
-<a name="l00130"></a>00130 <span class="keywordtype">void</span> CPU_Core_Full_Init(<span class="keywordtype">void</span>) {
-<a name="l00131"></a>00131 
-<a name="l00132"></a>00132 }
+<a name="l00031"></a>00031 <span class="keyword">extern</span> <span class="keywordtype">bool</span> ignore_opcode_63;
+<a name="l00032"></a>00032 
+<a name="l00033"></a>00033 <span class="preprocessor">#define CPU_CORE CPU_ARCHTYPE_386</span>
+<a name="l00034"></a>00034 <span class="preprocessor"></span>
+<a name="l00035"></a>00035 <span class="keyword">typedef</span> PhysPt EAPoint;
+<a name="l00036"></a>00036 <span class="preprocessor">#define SegBase(c)      SegPhys(c)</span>
+<a name="l00037"></a>00037 <span class="preprocessor"></span>
+<a name="l00038"></a>00038 <span class="preprocessor">#define LoadMb(off) mem_readb_inline(off)</span>
+<a name="l00039"></a>00039 <span class="preprocessor"></span><span class="preprocessor">#define LoadMw(off) mem_readw_inline(off)</span>
+<a name="l00040"></a>00040 <span class="preprocessor"></span><span class="preprocessor">#define LoadMd(off) mem_readd_inline(off)</span>
+<a name="l00041"></a>00041 <span class="preprocessor"></span>
+<a name="l00042"></a>00042 <span class="preprocessor">#define LoadMbs(off) (Bit8s)(LoadMb(off))</span>
+<a name="l00043"></a>00043 <span class="preprocessor"></span><span class="preprocessor">#define LoadMws(off) (Bit16s)(LoadMw(off))</span>
+<a name="l00044"></a>00044 <span class="preprocessor"></span><span class="preprocessor">#define LoadMds(off) (Bit32s)(LoadMd(off))</span>
+<a name="l00045"></a>00045 <span class="preprocessor"></span>
+<a name="l00046"></a>00046 <span class="preprocessor">#define SaveMb(off,val) mem_writeb_inline(off,val)</span>
+<a name="l00047"></a>00047 <span class="preprocessor"></span><span class="preprocessor">#define SaveMw(off,val) mem_writew_inline(off,val)</span>
+<a name="l00048"></a>00048 <span class="preprocessor"></span><span class="preprocessor">#define SaveMd(off,val) mem_writed_inline(off,val)</span>
+<a name="l00049"></a>00049 <span class="preprocessor"></span>
+<a name="l00050"></a>00050 <span class="preprocessor">#define LoadD(reg) reg</span>
+<a name="l00051"></a>00051 <span class="preprocessor"></span><span class="preprocessor">#define SaveD(reg,val)  reg=val</span>
+<a name="l00052"></a>00052 <span class="preprocessor"></span>
+<a name="l00053"></a>00053 
+<a name="l00054"></a>00054 
+<a name="l00055"></a>00055 <span class="preprocessor">#include &quot;core_full/loadwrite.h&quot;</span>
+<a name="l00056"></a>00056 <span class="preprocessor">#include &quot;core_full/support.h&quot;</span>
+<a name="l00057"></a>00057 <span class="preprocessor">#include &quot;core_full/optable.h&quot;</span>
+<a name="l00058"></a>00058 <span class="preprocessor">#include &quot;instructions.h&quot;</span>
+<a name="l00059"></a>00059 
+<a name="l00060"></a>00060 <span class="preprocessor">#define EXCEPTION(blah)                                                                         \</span>
+<a name="l00061"></a>00061 <span class="preprocessor">        {                                                                                                               \</span>
+<a name="l00062"></a>00062 <span class="preprocessor">                Bit8u new_num=blah;                                                                     \</span>
+<a name="l00063"></a>00063 <span class="preprocessor">                CPU_Exception(new_num,0);                                                       \</span>
+<a name="l00064"></a>00064 <span class="preprocessor">                continue;                                                                                       \</span>
+<a name="l00065"></a>00065 <span class="preprocessor">        }</span>
+<a name="l00066"></a>00066 <span class="preprocessor"></span>
+<a name="l00067"></a>00067 Bits CPU_Core_Normal_Trap_Run(<span class="keywordtype">void</span>);
+<a name="l00068"></a>00068 
+<a name="l00069"></a>00069 Bits CPU_Core_Full_Run(<span class="keywordtype">void</span>) {
+<a name="l00070"></a>00070         <span class="keyword">static</span> <span class="keywordtype">bool</span> tf_warn=<span class="keyword">false</span>;
+<a name="l00071"></a>00071         <a class="code" href="structFullData.html">FullData</a> inst;
+<a name="l00072"></a>00072 
+<a name="l00073"></a>00073         <span class="keywordflow">if</span> (CPU_Cycles &lt;= 0)
+<a name="l00074"></a>00074                 <span class="keywordflow">return</span> CBRET_NONE;
+<a name="l00075"></a>00075 
+<a name="l00076"></a>00076         <span class="keywordflow">while</span> (CPU_Cycles--&gt;0) {
+<a name="l00077"></a>00077                 cycle_count++;
+<a name="l00078"></a>00078 
+<a name="l00079"></a>00079                 <span class="comment">/* this core isn&#39;t written to emulate the Trap Flag. at least</span>
+<a name="l00080"></a>00080 <span class="comment">                 * let the user know. some demos (Second Reality, Future Crew)</span>
+<a name="l00081"></a>00081 <span class="comment">                 * use the Trap Flag to self-decrypt on execute, which is why</span>
+<a name="l00082"></a>00082 <span class="comment">                 * they normally crash when run under core=full */</span>
+<a name="l00083"></a>00083                 <span class="keywordflow">if</span> (GETFLAG(TF)) {
+<a name="l00084"></a>00084                         <span class="keywordflow">if</span> (!tf_warn) {
+<a name="l00085"></a>00085                                 tf_warn = <span class="keyword">true</span>;
+<a name="l00086"></a>00086                                 <a class="code" href="classLOG.html">LOG</a>(LOG_CPU,LOG_WARN)(<span class="stringliteral">&quot;Trap Flag single-stepping not supported by full core. Using normal core for TF emulation.&quot;</span>);
+<a name="l00087"></a>00087                         }
+<a name="l00088"></a>00088 
+<a name="l00089"></a>00089                         <span class="keywordflow">return</span> CPU_Core_Normal_Trap_Run();
+<a name="l00090"></a>00090                 }
+<a name="l00091"></a>00091                 <span class="keywordflow">else</span> {
+<a name="l00092"></a>00092                         tf_warn = <span class="keyword">false</span>;
+<a name="l00093"></a>00093                 }
+<a name="l00094"></a>00094 
+<a name="l00095"></a>00095 <span class="preprocessor">#if C_DEBUG             </span>
+<a name="l00096"></a>00096 <span class="preprocessor"></span><span class="preprocessor">#if C_HEAVY_DEBUG</span>
+<a name="l00097"></a>00097 <span class="preprocessor"></span>                <span class="keywordflow">if</span> (DEBUG_HeavyIsBreakpoint()) {
+<a name="l00098"></a>00098                         FillFlags();
+<a name="l00099"></a>00099                         <span class="keywordflow">return</span> (Bits)debugCallback;
+<a name="l00100"></a>00100                 }
+<a name="l00101"></a>00101 <span class="preprocessor">#endif</span>
+<a name="l00102"></a>00102 <span class="preprocessor"></span><span class="preprocessor">#endif</span>
+<a name="l00103"></a>00103 <span class="preprocessor"></span>
+<a name="l00104"></a>00104                 LoadIP();
+<a name="l00105"></a>00105                 inst.entry=cpu.code.big*(Bitu)0x200u;
+<a name="l00106"></a>00106                 inst.prefix=cpu.code.big;
+<a name="l00107"></a>00107 restartopcode:
+<a name="l00108"></a>00108                 inst.entry=(inst.entry &amp; 0xffffff00u) | Fetchb();
+<a name="l00109"></a>00109                 inst.code=OpCodeTable[inst.entry];
+<a name="l00110"></a>00110         Bitu old_flags = reg_flags;
+<a name="l00111"></a>00111                 Bit32u old_esp = reg_esp; <span class="comment">// always restore stack pointer on page fault</span>
+<a name="l00112"></a>00112                 <span class="keywordflow">try</span> {
+<a name="l00113"></a>00113 <span class="preprocessor">                        #include &quot;core_full/load.h&quot;</span>
+<a name="l00114"></a>00114 <span class="preprocessor">                        #include &quot;core_full/op.h&quot;</span>
+<a name="l00115"></a>00115 <span class="preprocessor">                        #include &quot;core_full/save.h&quot;</span>
+<a name="l00116"></a>00116                 }
+<a name="l00117"></a>00117                 <span class="keywordflow">catch</span> (<span class="keyword">const</span> <a class="code" href="classGuestPageFaultException.html">GuestPageFaultException</a> &amp;pf) {
+<a name="l00118"></a>00118                         (void)pf;
+<a name="l00119"></a>00119                         reg_flags = old_flags; <span class="comment">/* core_full/op.h may have modified flags */</span>
+<a name="l00120"></a>00120                         reg_esp = old_esp;
+<a name="l00121"></a>00121                         <span class="keywordflow">throw</span>;
+<a name="l00122"></a>00122                 }
+<a name="l00123"></a>00123 nextopcode:;
+<a name="l00124"></a>00124                 SaveIP();
+<a name="l00125"></a>00125                 <span class="keywordflow">continue</span>;
+<a name="l00126"></a>00126 illegalopcode:
+<a name="l00127"></a>00127 <span class="preprocessor">#if C_DEBUG     </span>
+<a name="l00128"></a>00128 <span class="preprocessor"></span>                {
+<a name="l00129"></a>00129                         <span class="keywordtype">bool</span> ignore=<span class="keyword">false</span>;
+<a name="l00130"></a>00130                         Bitu len=(GetIP()-reg_eip);
+<a name="l00131"></a>00131                         LoadIP();
+<a name="l00132"></a>00132                         <span class="keywordflow">if</span> (len&gt;16) len=16;
+<a name="l00133"></a>00133                         <span class="keywordtype">char</span> tempcode[16*2+1];<span class="keywordtype">char</span> * writecode=tempcode;
+<a name="l00134"></a>00134                         <span class="keywordflow">if</span> (ignore_opcode_63 &amp;&amp; mem_readb(inst.cseip) == 0x63)
+<a name="l00135"></a>00135                                 ignore = <span class="keyword">true</span>;
+<a name="l00136"></a>00136                         <span class="keywordflow">for</span> (;len&gt;0;len--) {
+<a name="l00137"></a>00137                                 sprintf(writecode,<span class="stringliteral">&quot;%02X&quot;</span>,mem_readb(inst.cseip++));
+<a name="l00138"></a>00138                                 writecode+=2;
+<a name="l00139"></a>00139                         }
+<a name="l00140"></a>00140                         <span class="keywordflow">if</span> (!ignore)
+<a name="l00141"></a>00141                                 <a class="code" href="classLOG.html">LOG</a>(LOG_CPU,LOG_NORMAL)(<span class="stringliteral">&quot;Illegal/Unhandled opcode %s&quot;</span>,tempcode);
+<a name="l00142"></a>00142                 }
+<a name="l00143"></a>00143 <span class="preprocessor">#endif</span>
+<a name="l00144"></a>00144 <span class="preprocessor"></span>                CPU_Exception(0x6,0);
+<a name="l00145"></a>00145         }
+<a name="l00146"></a>00146         FillFlags();
+<a name="l00147"></a>00147         <span class="keywordflow">return</span> CBRET_NONE;
+<a name="l00148"></a>00148 }
+<a name="l00149"></a>00149 
+<a name="l00150"></a>00150 
+<a name="l00151"></a>00151 <span class="keywordtype">void</span> CPU_Core_Full_Init(<span class="keywordtype">void</span>) {
+<a name="l00152"></a>00152 
+<a name="l00153"></a>00153 }
 </pre></div></div><!-- contents -->
 
 
 <hr class="footer"/><address class="footer"><small>
-Generated on Tue Oct 1 2019 18:06:24 for DOSBox-X by &#160;<a href="http://www.doxygen.org/index.html">
+Generated on Sun Jul 5 2020 13:11:34 for DOSBox-X by &#160;<a href="http://www.doxygen.org/index.html">
 <img class="footer" src="doxygen.png" alt="doxygen"/>
 </a> 1.8.0
 </small></address>

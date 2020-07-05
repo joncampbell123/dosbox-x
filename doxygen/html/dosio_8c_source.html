@@ -408,153 +408,152 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l00311"></a>00311 euckanji1st(<span class="keyword">const</span> OEMCHAR *str, <span class="keywordtype">int</span> pos)
 <a name="l00312"></a>00312 {
 <a name="l00313"></a>00313         <span class="keywordtype">int</span> ret;
-<a name="l00314"></a>00314         <span class="keywordtype">int</span> c;
-<a name="l00315"></a>00315 
-<a name="l00316"></a>00316         <span class="keywordflow">for</span> (ret = 0; pos &gt;= 0; ret ^= 1) {
-<a name="l00317"></a>00317                 c = (UINT8)str[pos--];
-<a name="l00318"></a>00318                 <span class="keywordflow">if</span> (!ISKANJI(c))
-<a name="l00319"></a>00319                         <span class="keywordflow">break</span>;
-<a name="l00320"></a>00320         }
-<a name="l00321"></a>00321         <span class="keywordflow">return</span> ret;
-<a name="l00322"></a>00322 }
-<a name="l00323"></a>00323 
-<a name="l00324"></a>00324 <span class="keywordtype">void</span>
-<a name="l00325"></a>00325 file_cpyname(OEMCHAR *dst, <span class="keyword">const</span> OEMCHAR *src, <span class="keywordtype">int</span> maxlen)
-<a name="l00326"></a>00326 {
-<a name="l00327"></a>00327         <span class="keywordtype">int</span> i;
-<a name="l00328"></a>00328 
-<a name="l00329"></a>00329         <span class="keywordflow">if</span> (maxlen-- &gt; 0) {
-<a name="l00330"></a>00330                 <span class="keywordflow">for</span> (i = 0; i &lt; maxlen &amp;&amp; src[i] != <span class="charliteral">&#39;\0&#39;</span>; i++) {
-<a name="l00331"></a>00331                         dst[i] = src[i];
-<a name="l00332"></a>00332                 }
-<a name="l00333"></a>00333                 <span class="keywordflow">if</span> (i &gt; 0) {
-<a name="l00334"></a>00334                         <span class="keywordflow">if</span> (euckanji1st(src, i-1)) {
-<a name="l00335"></a>00335                                 i--;
-<a name="l00336"></a>00336                         }
-<a name="l00337"></a>00337                 }
-<a name="l00338"></a>00338                 dst[i] = <span class="charliteral">&#39;\0&#39;</span>;
-<a name="l00339"></a>00339         }
-<a name="l00340"></a>00340 }
-<a name="l00341"></a>00341 
-<a name="l00342"></a>00342 <span class="keywordtype">void</span>
-<a name="l00343"></a>00343 file_catname(OEMCHAR *path, <span class="keyword">const</span> OEMCHAR *filename, <span class="keywordtype">int</span> maxlen)
-<a name="l00344"></a>00344 {
-<a name="l00345"></a>00345 
-<a name="l00346"></a>00346         <span class="keywordflow">for</span> (; maxlen &gt; 0; path++, maxlen--) {
-<a name="l00347"></a>00347                 <span class="keywordflow">if</span> (*path == <span class="charliteral">&#39;\0&#39;</span>) {
-<a name="l00348"></a>00348                         <span class="keywordflow">break</span>;
-<a name="l00349"></a>00349                 }
-<a name="l00350"></a>00350         }
-<a name="l00351"></a>00351         <span class="keywordflow">if</span> (maxlen &gt; 0) {
-<a name="l00352"></a>00352 <span class="comment">//              milstr_ncpy(path, filename, maxlen);</span>
-<a name="l00353"></a>00353         strncpy(path, filename, maxlen);
-<a name="l00354"></a>00354                 <span class="keywordflow">for</span> (; *path != <span class="charliteral">&#39;\0&#39;</span>; path++) {
-<a name="l00355"></a>00355                         <span class="keywordflow">if</span> (!ISKANJI(*path)) {
-<a name="l00356"></a>00356                                 path++;
-<a name="l00357"></a>00357                                 <span class="keywordflow">if</span> (*path == <span class="charliteral">&#39;\0&#39;</span>) {
-<a name="l00358"></a>00358                                         <span class="keywordflow">break</span>;
-<a name="l00359"></a>00359                                 }
-<a name="l00360"></a>00360                         } <span class="keywordflow">else</span> <span class="keywordflow">if</span> (((*path - 0x41) &amp; 0xff) &lt; 26) {
-<a name="l00361"></a>00361                                 *path |= 0x20;
-<a name="l00362"></a>00362                         } <span class="keywordflow">else</span> <span class="keywordflow">if</span> (*path == <span class="charliteral">&#39;\\&#39;</span>) {
-<a name="l00363"></a>00363                                 *path = _G_DIR_SEPARATOR;
-<a name="l00364"></a>00364                         }
-<a name="l00365"></a>00365                 }
-<a name="l00366"></a>00366         }
-<a name="l00367"></a>00367 }
-<a name="l00368"></a>00368 
-<a name="l00369"></a>00369 BOOL
-<a name="l00370"></a>00370 file_cmpname(<span class="keyword">const</span> OEMCHAR *path, <span class="keyword">const</span> OEMCHAR *path2)
-<a name="l00371"></a>00371 {
-<a name="l00372"></a>00372 
-<a name="l00373"></a>00373         <span class="keywordflow">return</span> strcasecmp(path, path2);
-<a name="l00374"></a>00374 }
-<a name="l00375"></a>00375 
-<a name="l00376"></a>00376 OEMCHAR *
-<a name="l00377"></a>00377 file_getname(<span class="keyword">const</span> OEMCHAR *path)
-<a name="l00378"></a>00378 {
-<a name="l00379"></a>00379         <span class="keyword">const</span> OEMCHAR *ret;
-<a name="l00380"></a>00380 
-<a name="l00381"></a>00381         <span class="keywordflow">for</span> (ret = path; *path != <span class="charliteral">&#39;\0&#39;</span>; path++) {
-<a name="l00382"></a>00382                 <span class="keywordflow">if</span> (ISKANJI(*path)) {
-<a name="l00383"></a>00383                         path++;
-<a name="l00384"></a>00384                         <span class="keywordflow">if</span> (*path == <span class="charliteral">&#39;\0&#39;</span>) {
-<a name="l00385"></a>00385                                 <span class="keywordflow">break</span>;
-<a name="l00386"></a>00386                         }
-<a name="l00387"></a>00387                 } <span class="keywordflow">else</span> <span class="keywordflow">if</span> (*path == _G_DIR_SEPARATOR) {
-<a name="l00388"></a>00388                         ret = path + 1;
-<a name="l00389"></a>00389                 }
-<a name="l00390"></a>00390         }
-<a name="l00391"></a>00391         <span class="keywordflow">return</span> (OEMCHAR *)ret;
-<a name="l00392"></a>00392 }
-<a name="l00393"></a>00393 
-<a name="l00394"></a>00394 <span class="keywordtype">void</span>
-<a name="l00395"></a>00395 file_cutname(OEMCHAR *path)
-<a name="l00396"></a>00396 {
-<a name="l00397"></a>00397         OEMCHAR *p;
-<a name="l00398"></a>00398 
-<a name="l00399"></a>00399         p = file_getname(path);
-<a name="l00400"></a>00400         *p = <span class="charliteral">&#39;\0&#39;</span>;
-<a name="l00401"></a>00401 }
-<a name="l00402"></a>00402 
-<a name="l00403"></a>00403 OEMCHAR *
-<a name="l00404"></a>00404 file_getext(<span class="keyword">const</span> OEMCHAR *path)
-<a name="l00405"></a>00405 {
-<a name="l00406"></a>00406         <span class="keyword">const</span> OEMCHAR *p, *q;
-<a name="l00407"></a>00407 
-<a name="l00408"></a>00408         <span class="keywordflow">for</span> (p = file_getname(path), q = NULL; *p != <span class="charliteral">&#39;\0&#39;</span>; p++) {
-<a name="l00409"></a>00409                 <span class="keywordflow">if</span> (*p == <span class="charliteral">&#39;.&#39;</span>) {
-<a name="l00410"></a>00410                         q = p + 1;
-<a name="l00411"></a>00411                 }
-<a name="l00412"></a>00412         }
-<a name="l00413"></a>00413         <span class="keywordflow">if</span> (q == NULL) {
-<a name="l00414"></a>00414                 q = p;
-<a name="l00415"></a>00415         }
-<a name="l00416"></a>00416         <span class="keywordflow">return</span> (OEMCHAR *)q;
-<a name="l00417"></a>00417 }
-<a name="l00418"></a>00418 
-<a name="l00419"></a>00419 <span class="keywordtype">void</span>
-<a name="l00420"></a>00420 file_cutext(OEMCHAR *path)
-<a name="l00421"></a>00421 {
-<a name="l00422"></a>00422         OEMCHAR *p, *q;
-<a name="l00423"></a>00423 
-<a name="l00424"></a>00424         <span class="keywordflow">for</span> (p = file_getname(path), q = NULL; *p != <span class="charliteral">&#39;\0&#39;</span>; p++) {
-<a name="l00425"></a>00425                 <span class="keywordflow">if</span> (*p == <span class="charliteral">&#39;.&#39;</span>) {
-<a name="l00426"></a>00426                         q = p;
-<a name="l00427"></a>00427                 }
-<a name="l00428"></a>00428         }
-<a name="l00429"></a>00429         <span class="keywordflow">if</span> (q != NULL) {
-<a name="l00430"></a>00430                 *q = <span class="charliteral">&#39;\0&#39;</span>;
-<a name="l00431"></a>00431         }
-<a name="l00432"></a>00432 }
-<a name="l00433"></a>00433 
-<a name="l00434"></a>00434 <span class="keywordtype">void</span>
-<a name="l00435"></a>00435 file_cutseparator(OEMCHAR *path)
-<a name="l00436"></a>00436 {
-<a name="l00437"></a>00437         <span class="keywordtype">int</span> pos;
-<a name="l00438"></a>00438 
-<a name="l00439"></a>00439         pos = (int)strlen(path) - 1;
-<a name="l00440"></a>00440         <span class="keywordflow">if</span> ((pos &gt; 0) &amp;&amp; (path[pos] == _G_DIR_SEPARATOR)) {
-<a name="l00441"></a>00441                 path[pos] = <span class="charliteral">&#39;\0&#39;</span>;
-<a name="l00442"></a>00442         }
-<a name="l00443"></a>00443 }
-<a name="l00444"></a>00444 
-<a name="l00445"></a>00445 <span class="keywordtype">void</span>
-<a name="l00446"></a>00446 file_setseparator(OEMCHAR *path, <span class="keywordtype">int</span> maxlen)
-<a name="l00447"></a>00447 {
-<a name="l00448"></a>00448         <span class="keywordtype">int</span> pos;
-<a name="l00449"></a>00449 
-<a name="l00450"></a>00450         pos = (int)strlen(path);
-<a name="l00451"></a>00451         <span class="keywordflow">if</span> ((pos) &amp;&amp; (path[pos-1] != _G_DIR_SEPARATOR) &amp;&amp; ((pos + 2) &lt; maxlen)) {
-<a name="l00452"></a>00452                 path[pos++] = _G_DIR_SEPARATOR;
-<a name="l00453"></a>00453                 path[pos] = <span class="charliteral">&#39;\0&#39;</span>;
-<a name="l00454"></a>00454         }
-<a name="l00455"></a>00455 }
+<a name="l00314"></a>00314 
+<a name="l00315"></a>00315         <span class="keywordflow">for</span> (ret = 0; pos &gt;= 0; ret ^= 1) {
+<a name="l00316"></a>00316                 <span class="keywordtype">int</span> c = (UINT8)str[pos--];
+<a name="l00317"></a>00317                 <span class="keywordflow">if</span> (!ISKANJI(c))
+<a name="l00318"></a>00318                         <span class="keywordflow">break</span>;
+<a name="l00319"></a>00319         }
+<a name="l00320"></a>00320         <span class="keywordflow">return</span> ret;
+<a name="l00321"></a>00321 }
+<a name="l00322"></a>00322 
+<a name="l00323"></a>00323 <span class="keywordtype">void</span>
+<a name="l00324"></a>00324 file_cpyname(OEMCHAR *dst, <span class="keyword">const</span> OEMCHAR *src, <span class="keywordtype">int</span> maxlen)
+<a name="l00325"></a>00325 {
+<a name="l00326"></a>00326 
+<a name="l00327"></a>00327         <span class="keywordflow">if</span> (maxlen-- &gt; 0) {
+<a name="l00328"></a>00328                 <span class="keywordtype">int</span> i;
+<a name="l00329"></a>00329                 <span class="keywordflow">for</span> (i = 0; i &lt; maxlen &amp;&amp; src[i] != <span class="charliteral">&#39;\0&#39;</span>; i++) {
+<a name="l00330"></a>00330                         dst[i] = src[i];
+<a name="l00331"></a>00331                 }
+<a name="l00332"></a>00332                 <span class="keywordflow">if</span> (i &gt; 0) {
+<a name="l00333"></a>00333                         <span class="keywordflow">if</span> (euckanji1st(src, i-1)) {
+<a name="l00334"></a>00334                                 i--;
+<a name="l00335"></a>00335                         }
+<a name="l00336"></a>00336                 }
+<a name="l00337"></a>00337                 dst[i] = <span class="charliteral">&#39;\0&#39;</span>;
+<a name="l00338"></a>00338         }
+<a name="l00339"></a>00339 }
+<a name="l00340"></a>00340 
+<a name="l00341"></a>00341 <span class="keywordtype">void</span>
+<a name="l00342"></a>00342 file_catname(OEMCHAR *path, <span class="keyword">const</span> OEMCHAR *filename, <span class="keywordtype">int</span> maxlen)
+<a name="l00343"></a>00343 {
+<a name="l00344"></a>00344 
+<a name="l00345"></a>00345         <span class="keywordflow">for</span> (; maxlen &gt; 0; path++, maxlen--) {
+<a name="l00346"></a>00346                 <span class="keywordflow">if</span> (*path == <span class="charliteral">&#39;\0&#39;</span>) {
+<a name="l00347"></a>00347                         <span class="keywordflow">break</span>;
+<a name="l00348"></a>00348                 }
+<a name="l00349"></a>00349         }
+<a name="l00350"></a>00350         <span class="keywordflow">if</span> (maxlen &gt; 0) {
+<a name="l00351"></a>00351 <span class="comment">//              milstr_ncpy(path, filename, maxlen);</span>
+<a name="l00352"></a>00352         strncpy(path, filename, maxlen);
+<a name="l00353"></a>00353                 <span class="keywordflow">for</span> (; *path != <span class="charliteral">&#39;\0&#39;</span>; path++) {
+<a name="l00354"></a>00354                         <span class="keywordflow">if</span> (!ISKANJI(*path)) {
+<a name="l00355"></a>00355                                 path++;
+<a name="l00356"></a>00356                                 <span class="keywordflow">if</span> (*path == <span class="charliteral">&#39;\0&#39;</span>) {
+<a name="l00357"></a>00357                                         <span class="keywordflow">break</span>;
+<a name="l00358"></a>00358                                 }
+<a name="l00359"></a>00359                         } <span class="keywordflow">else</span> <span class="keywordflow">if</span> (((*path - 0x41) &amp; 0xff) &lt; 26) {
+<a name="l00360"></a>00360                                 *path |= 0x20;
+<a name="l00361"></a>00361                         } <span class="keywordflow">else</span> <span class="keywordflow">if</span> (*path == <span class="charliteral">&#39;\\&#39;</span>) {
+<a name="l00362"></a>00362                                 *path = _G_DIR_SEPARATOR;
+<a name="l00363"></a>00363                         }
+<a name="l00364"></a>00364                 }
+<a name="l00365"></a>00365         }
+<a name="l00366"></a>00366 }
+<a name="l00367"></a>00367 
+<a name="l00368"></a>00368 BOOL
+<a name="l00369"></a>00369 file_cmpname(<span class="keyword">const</span> OEMCHAR *path, <span class="keyword">const</span> OEMCHAR *path2)
+<a name="l00370"></a>00370 {
+<a name="l00371"></a>00371 
+<a name="l00372"></a>00372         <span class="keywordflow">return</span> strcasecmp(path, path2);
+<a name="l00373"></a>00373 }
+<a name="l00374"></a>00374 
+<a name="l00375"></a>00375 OEMCHAR *
+<a name="l00376"></a>00376 file_getname(<span class="keyword">const</span> OEMCHAR *path)
+<a name="l00377"></a>00377 {
+<a name="l00378"></a>00378         <span class="keyword">const</span> OEMCHAR *ret;
+<a name="l00379"></a>00379 
+<a name="l00380"></a>00380         <span class="keywordflow">for</span> (ret = path; *path != <span class="charliteral">&#39;\0&#39;</span>; path++) {
+<a name="l00381"></a>00381                 <span class="keywordflow">if</span> (ISKANJI(*path)) {
+<a name="l00382"></a>00382                         path++;
+<a name="l00383"></a>00383                         <span class="keywordflow">if</span> (*path == <span class="charliteral">&#39;\0&#39;</span>) {
+<a name="l00384"></a>00384                                 <span class="keywordflow">break</span>;
+<a name="l00385"></a>00385                         }
+<a name="l00386"></a>00386                 } <span class="keywordflow">else</span> <span class="keywordflow">if</span> (*path == _G_DIR_SEPARATOR) {
+<a name="l00387"></a>00387                         ret = path + 1;
+<a name="l00388"></a>00388                 }
+<a name="l00389"></a>00389         }
+<a name="l00390"></a>00390         <span class="keywordflow">return</span> (OEMCHAR *)ret;
+<a name="l00391"></a>00391 }
+<a name="l00392"></a>00392 
+<a name="l00393"></a>00393 <span class="keywordtype">void</span>
+<a name="l00394"></a>00394 file_cutname(OEMCHAR *path)
+<a name="l00395"></a>00395 {
+<a name="l00396"></a>00396         OEMCHAR *p;
+<a name="l00397"></a>00397 
+<a name="l00398"></a>00398         p = file_getname(path);
+<a name="l00399"></a>00399         *p = <span class="charliteral">&#39;\0&#39;</span>;
+<a name="l00400"></a>00400 }
+<a name="l00401"></a>00401 
+<a name="l00402"></a>00402 OEMCHAR *
+<a name="l00403"></a>00403 file_getext(<span class="keyword">const</span> OEMCHAR *path)
+<a name="l00404"></a>00404 {
+<a name="l00405"></a>00405         <span class="keyword">const</span> OEMCHAR *p, *q;
+<a name="l00406"></a>00406 
+<a name="l00407"></a>00407         <span class="keywordflow">for</span> (p = file_getname(path), q = NULL; *p != <span class="charliteral">&#39;\0&#39;</span>; p++) {
+<a name="l00408"></a>00408                 <span class="keywordflow">if</span> (*p == <span class="charliteral">&#39;.&#39;</span>) {
+<a name="l00409"></a>00409                         q = p + 1;
+<a name="l00410"></a>00410                 }
+<a name="l00411"></a>00411         }
+<a name="l00412"></a>00412         <span class="keywordflow">if</span> (q == NULL) {
+<a name="l00413"></a>00413                 q = p;
+<a name="l00414"></a>00414         }
+<a name="l00415"></a>00415         <span class="keywordflow">return</span> (OEMCHAR *)q;
+<a name="l00416"></a>00416 }
+<a name="l00417"></a>00417 
+<a name="l00418"></a>00418 <span class="keywordtype">void</span>
+<a name="l00419"></a>00419 file_cutext(OEMCHAR *path)
+<a name="l00420"></a>00420 {
+<a name="l00421"></a>00421         OEMCHAR *p, *q;
+<a name="l00422"></a>00422 
+<a name="l00423"></a>00423         <span class="keywordflow">for</span> (p = file_getname(path), q = NULL; *p != <span class="charliteral">&#39;\0&#39;</span>; p++) {
+<a name="l00424"></a>00424                 <span class="keywordflow">if</span> (*p == <span class="charliteral">&#39;.&#39;</span>) {
+<a name="l00425"></a>00425                         q = p;
+<a name="l00426"></a>00426                 }
+<a name="l00427"></a>00427         }
+<a name="l00428"></a>00428         <span class="keywordflow">if</span> (q != NULL) {
+<a name="l00429"></a>00429                 *q = <span class="charliteral">&#39;\0&#39;</span>;
+<a name="l00430"></a>00430         }
+<a name="l00431"></a>00431 }
+<a name="l00432"></a>00432 
+<a name="l00433"></a>00433 <span class="keywordtype">void</span>
+<a name="l00434"></a>00434 file_cutseparator(OEMCHAR *path)
+<a name="l00435"></a>00435 {
+<a name="l00436"></a>00436         <span class="keywordtype">int</span> pos;
+<a name="l00437"></a>00437 
+<a name="l00438"></a>00438         pos = (int)strlen(path) - 1;
+<a name="l00439"></a>00439         <span class="keywordflow">if</span> ((pos &gt; 0) &amp;&amp; (path[pos] == _G_DIR_SEPARATOR)) {
+<a name="l00440"></a>00440                 path[pos] = <span class="charliteral">&#39;\0&#39;</span>;
+<a name="l00441"></a>00441         }
+<a name="l00442"></a>00442 }
+<a name="l00443"></a>00443 
+<a name="l00444"></a>00444 <span class="keywordtype">void</span>
+<a name="l00445"></a>00445 file_setseparator(OEMCHAR *path, <span class="keywordtype">int</span> maxlen)
+<a name="l00446"></a>00446 {
+<a name="l00447"></a>00447         <span class="keywordtype">int</span> pos;
+<a name="l00448"></a>00448 
+<a name="l00449"></a>00449         pos = (int)strlen(path);
+<a name="l00450"></a>00450         <span class="keywordflow">if</span> ((pos) &amp;&amp; (path[pos-1] != _G_DIR_SEPARATOR) &amp;&amp; ((pos + 2) &lt; maxlen)) {
+<a name="l00451"></a>00451                 path[pos++] = _G_DIR_SEPARATOR;
+<a name="l00452"></a>00452                 path[pos] = <span class="charliteral">&#39;\0&#39;</span>;
+<a name="l00453"></a>00453         }
+<a name="l00454"></a>00454 }
 </pre></div></div><!-- contents -->
 
 
 <hr class="footer"/><address class="footer"><small>
-Generated on Tue Oct 1 2019 18:06:27 for DOSBox-X by &#160;<a href="http://www.doxygen.org/index.html">
+Generated on Sun Jul 5 2020 13:11:37 for DOSBox-X by &#160;<a href="http://www.doxygen.org/index.html">
 <img class="footer" src="doxygen.png" alt="doxygen"/>
 </a> 1.8.0
 </small></address>

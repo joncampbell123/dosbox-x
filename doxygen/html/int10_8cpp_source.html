@@ -96,7 +96,7 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 </div><!--header-->
 <div class="contents">
 <div class="fragment"><pre class="fragment"><a name="l00001"></a>00001 <span class="comment">/*</span>
-<a name="l00002"></a>00002 <span class="comment"> *  Copyright (C) 2002-2019  The DOSBox Team</span>
+<a name="l00002"></a>00002 <span class="comment"> *  Copyright (C) 2002-2020  The DOSBox Team</span>
 <a name="l00003"></a>00003 <span class="comment"> *</span>
 <a name="l00004"></a>00004 <span class="comment"> *  This program is free software; you can redistribute it and/or modify</span>
 <a name="l00005"></a>00005 <span class="comment"> *  it under the terms of the GNU General Public License as published by</span>
@@ -108,9 +108,9 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l00011"></a>00011 <span class="comment"> *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the</span>
 <a name="l00012"></a>00012 <span class="comment"> *  GNU General Public License for more details.</span>
 <a name="l00013"></a>00013 <span class="comment"> *</span>
-<a name="l00014"></a>00014 <span class="comment"> *  You should have received a copy of the GNU General Public License</span>
-<a name="l00015"></a>00015 <span class="comment"> *  along with this program; if not, write to the Free Software</span>
-<a name="l00016"></a>00016 <span class="comment"> *  Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1335, USA.</span>
+<a name="l00014"></a>00014 <span class="comment"> *  You should have received a copy of the GNU General Public License along</span>
+<a name="l00015"></a>00015 <span class="comment"> *  with this program; if not, write to the Free Software Foundation, Inc.,</span>
+<a name="l00016"></a>00016 <span class="comment"> *  51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.</span>
 <a name="l00017"></a>00017 <span class="comment"> */</span>
 <a name="l00018"></a>00018 
 <a name="l00019"></a>00019 
@@ -765,535 +765,566 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l00668"></a>00668 
 <a name="l00669"></a>00669                         VGA_DAC_UpdateColorPalette();
 <a name="l00670"></a>00670                         reg_bh=(vga_8bit_dac ? 8 : 6);
-<a name="l00671"></a>00671                         reg_ah=0x0;
-<a name="l00672"></a>00672 
-<a name="l00673"></a>00673                         <a class="code" href="classLOG.html">LOG</a>(LOG_INT10,LOG_NORMAL)(<span class="stringliteral">&quot;VESA BIOS called to set VGA DAC width to %u bits&quot;</span>,reg_bh);
-<a name="l00674"></a>00674                     }
-<a name="l00675"></a>00675                     <span class="keywordflow">else</span> {
-<a name="l00676"></a>00676                         reg_ah=0x3;
-<a name="l00677"></a>00677                     }
-<a name="l00678"></a>00678                     <span class="keywordflow">break</span>;
-<a name="l00679"></a>00679                 <span class="keywordflow">case</span> 0x01:                  <span class="comment">/* Get DAC width */</span>
-<a name="l00680"></a>00680                     <span class="keywordflow">if</span> (CurMode-&gt;type == M_LIN8) {
-<a name="l00681"></a>00681                         reg_bh=(vga_8bit_dac ? 8 : 6);
-<a name="l00682"></a>00682                         reg_ah=0x0;
-<a name="l00683"></a>00683                     }
-<a name="l00684"></a>00684                     <span class="keywordflow">else</span> {
-<a name="l00685"></a>00685                         reg_ah=0x3;
+<a name="l00671"></a>00671                         reg_al=0x4f;
+<a name="l00672"></a>00672                         reg_ah=0x0;
+<a name="l00673"></a>00673 
+<a name="l00674"></a>00674                         <a class="code" href="classLOG.html">LOG</a>(LOG_INT10,LOG_NORMAL)(<span class="stringliteral">&quot;VESA BIOS called to set VGA DAC width to %u bits&quot;</span>,reg_bh);
+<a name="l00675"></a>00675                     }
+<a name="l00676"></a>00676                     <span class="keywordflow">else</span> {
+<a name="l00677"></a>00677                         reg_al=0x4f;
+<a name="l00678"></a>00678                         reg_ah=0x3;
+<a name="l00679"></a>00679                     }
+<a name="l00680"></a>00680                     <span class="keywordflow">break</span>;
+<a name="l00681"></a>00681                 <span class="keywordflow">case</span> 0x01:                  <span class="comment">/* Get DAC width */</span>
+<a name="l00682"></a>00682                     <span class="keywordflow">if</span> (CurMode-&gt;type == M_LIN8) {
+<a name="l00683"></a>00683                         reg_bh=(vga_8bit_dac ? 8 : 6);
+<a name="l00684"></a>00684                         reg_al=0x4f;
+<a name="l00685"></a>00685                         reg_ah=0x0;
 <a name="l00686"></a>00686                     }
-<a name="l00687"></a>00687                     <span class="keywordflow">break</span>;
-<a name="l00688"></a>00688                 <span class="keywordflow">default</span>:
-<a name="l00689"></a>00689                     <a class="code" href="classLOG.html">LOG</a>(LOG_INT10,LOG_ERROR)(<span class="stringliteral">&quot;Unhandled VESA Function %X Subfunction %X&quot;</span>,reg_al,reg_bl);
-<a name="l00690"></a>00690                     reg_ah=0x1;
+<a name="l00687"></a>00687                     <span class="keywordflow">else</span> {
+<a name="l00688"></a>00688                         reg_al=0x4f;
+<a name="l00689"></a>00689                         reg_ah=0x3;
+<a name="l00690"></a>00690                     }
 <a name="l00691"></a>00691                     <span class="keywordflow">break</span>;
-<a name="l00692"></a>00692             }
-<a name="l00693"></a>00693             <span class="keywordflow">break</span>;
-<a name="l00694"></a>00694                 <span class="keywordflow">case</span> 0x09:
-<a name="l00695"></a>00695                         <span class="keywordflow">switch</span> (reg_bl) {
-<a name="l00696"></a>00696                         <span class="keywordflow">case</span> 0x80:                                              <span class="comment">/* Set Palette during retrace */</span>
-<a name="l00697"></a>00697                         <span class="keywordflow">case</span> 0x00:                                              <span class="comment">/* Set Palette */</span>
-<a name="l00698"></a>00698                                 reg_ah=VESA_SetPalette(SegPhys(es)+reg_di,reg_dx,reg_cx,reg_bl==0x80);
-<a name="l00699"></a>00699                                 reg_al=0x4f;
-<a name="l00700"></a>00700                                 <span class="keywordflow">break</span>;
-<a name="l00701"></a>00701                         <span class="keywordflow">case</span> 0x01:                                              <span class="comment">/* Get Palette */</span>
-<a name="l00702"></a>00702                                 reg_ah=VESA_GetPalette(SegPhys(es)+reg_di,reg_dx,reg_cx);
+<a name="l00692"></a>00692                 <span class="keywordflow">default</span>:
+<a name="l00693"></a>00693                     <a class="code" href="classLOG.html">LOG</a>(LOG_INT10,LOG_ERROR)(<span class="stringliteral">&quot;Unhandled VESA Function %X Subfunction %X&quot;</span>,reg_al,reg_bl);
+<a name="l00694"></a>00694                     reg_ah=0x1;
+<a name="l00695"></a>00695                     <span class="keywordflow">break</span>;
+<a name="l00696"></a>00696             }
+<a name="l00697"></a>00697             <span class="keywordflow">break</span>;
+<a name="l00698"></a>00698                 <span class="keywordflow">case</span> 0x09:
+<a name="l00699"></a>00699                         <span class="keywordflow">switch</span> (reg_bl) {
+<a name="l00700"></a>00700                         <span class="keywordflow">case</span> 0x80:                                              <span class="comment">/* Set Palette during retrace */</span>
+<a name="l00701"></a>00701                         <span class="keywordflow">case</span> 0x00:                                              <span class="comment">/* Set Palette */</span>
+<a name="l00702"></a>00702                                 reg_ah=VESA_SetPalette(SegPhys(es)+reg_di,reg_dx,reg_cx,reg_bl==0x80);
 <a name="l00703"></a>00703                                 reg_al=0x4f;
 <a name="l00704"></a>00704                                 <span class="keywordflow">break</span>;
-<a name="l00705"></a>00705                         <span class="keywordflow">default</span>:
-<a name="l00706"></a>00706                                 <a class="code" href="classLOG.html">LOG</a>(LOG_INT10,LOG_ERROR)(<span class="stringliteral">&quot;Unhandled VESA Function %X Subfunction %X&quot;</span>,reg_al,reg_bl);
-<a name="l00707"></a>00707                                 reg_ah=0x01;
+<a name="l00705"></a>00705                         <span class="keywordflow">case</span> 0x01:                                              <span class="comment">/* Get Palette */</span>
+<a name="l00706"></a>00706                                 reg_ah=VESA_GetPalette(SegPhys(es)+reg_di,reg_dx,reg_cx);
+<a name="l00707"></a>00707                                 reg_al=0x4f;
 <a name="l00708"></a>00708                                 <span class="keywordflow">break</span>;
-<a name="l00709"></a>00709                         }
-<a name="l00710"></a>00710                         <span class="keywordflow">break</span>;
-<a name="l00711"></a>00711                 <span class="keywordflow">case</span> 0x0a:                                                      <span class="comment">/* Get Pmode Interface */</span>
-<a name="l00712"></a>00712                         <span class="keywordflow">if</span> (int10.vesa_oldvbe) {
-<a name="l00713"></a>00713                                 reg_ax=0x014f;
-<a name="l00714"></a>00714                                 <span class="keywordflow">break</span>;
-<a name="l00715"></a>00715                         }
-<a name="l00716"></a>00716                         <span class="keywordflow">switch</span> (reg_bl) {
-<a name="l00717"></a>00717                         <span class="keywordflow">case</span> 0x00:
-<a name="l00718"></a>00718                                 SegSet16(es,RealSeg(int10.rom.pmode_interface));
-<a name="l00719"></a>00719                                 reg_di=RealOff(int10.rom.pmode_interface);
-<a name="l00720"></a>00720                                 reg_cx=int10.rom.pmode_interface_size;
-<a name="l00721"></a>00721                                 reg_ax=0x004f;
-<a name="l00722"></a>00722                                 <span class="keywordflow">break</span>;
-<a name="l00723"></a>00723                         <span class="keywordflow">case</span> 0x01:                                              <span class="comment">/* Get code for &quot;set window&quot; */</span>
-<a name="l00724"></a>00724                                 SegSet16(es,RealSeg(int10.rom.pmode_interface));
-<a name="l00725"></a>00725                                 reg_di=RealOff(int10.rom.pmode_interface)+(Bit32u)int10.rom.pmode_interface_window;
-<a name="l00726"></a>00726                                 reg_cx=int10.rom.pmode_interface_start-int10.rom.pmode_interface_window;
-<a name="l00727"></a>00727                                 reg_ax=0x004f;
-<a name="l00728"></a>00728                                 <span class="keywordflow">break</span>;
-<a name="l00729"></a>00729                         <span class="keywordflow">case</span> 0x02:                                              <span class="comment">/* Get code for &quot;set display start&quot; */</span>
-<a name="l00730"></a>00730                                 SegSet16(es,RealSeg(int10.rom.pmode_interface));
-<a name="l00731"></a>00731                                 reg_di=RealOff(int10.rom.pmode_interface)+(Bit32u)int10.rom.pmode_interface_start;
-<a name="l00732"></a>00732                                 reg_cx=int10.rom.pmode_interface_palette-int10.rom.pmode_interface_start;
-<a name="l00733"></a>00733                                 reg_ax=0x004f;
-<a name="l00734"></a>00734                                 <span class="keywordflow">break</span>;
-<a name="l00735"></a>00735                         <span class="keywordflow">case</span> 0x03:                                              <span class="comment">/* Get code for &quot;set palette&quot; */</span>
-<a name="l00736"></a>00736                                 SegSet16(es,RealSeg(int10.rom.pmode_interface));
-<a name="l00737"></a>00737                                 reg_di=RealOff(int10.rom.pmode_interface)+(Bit32u)int10.rom.pmode_interface_palette;
-<a name="l00738"></a>00738                                 reg_cx=int10.rom.pmode_interface_size-int10.rom.pmode_interface_palette;
-<a name="l00739"></a>00739                                 reg_ax=0x004f;
-<a name="l00740"></a>00740                                 <span class="keywordflow">break</span>;
-<a name="l00741"></a>00741                         <span class="keywordflow">default</span>:
-<a name="l00742"></a>00742                                 reg_ax=0x014f;
-<a name="l00743"></a>00743                                 <span class="keywordflow">break</span>;
-<a name="l00744"></a>00744                         }
-<a name="l00745"></a>00745                         <span class="keywordflow">break</span>;
-<a name="l00746"></a>00746 
-<a name="l00747"></a>00747                 <span class="keywordflow">default</span>:
-<a name="l00748"></a>00748                         <a class="code" href="classLOG.html">LOG</a>(LOG_INT10,LOG_ERROR)(<span class="stringliteral">&quot;Unhandled VESA Function %X&quot;</span>,reg_al);
-<a name="l00749"></a>00749                         reg_al=0x0;
-<a name="l00750"></a>00750                         <span class="keywordflow">break</span>;
-<a name="l00751"></a>00751                 }
-<a name="l00752"></a>00752                 <span class="keywordflow">break</span>;
-<a name="l00753"></a>00753         <span class="keywordflow">case</span> 0xf0:
-<a name="l00754"></a>00754                 INT10_EGA_RIL_ReadRegister(reg_bl, reg_dx);
-<a name="l00755"></a>00755                 <span class="keywordflow">break</span>;
-<a name="l00756"></a>00756         <span class="keywordflow">case</span> 0xf1:
-<a name="l00757"></a>00757                 INT10_EGA_RIL_WriteRegister(reg_bl, reg_bh, reg_dx);
-<a name="l00758"></a>00758                 <span class="keywordflow">break</span>;
-<a name="l00759"></a>00759         <span class="keywordflow">case</span> 0xf2:
-<a name="l00760"></a>00760                 INT10_EGA_RIL_ReadRegisterRange(reg_ch, reg_cl, reg_dx, SegPhys(es)+reg_bx);
-<a name="l00761"></a>00761                 <span class="keywordflow">break</span>;
-<a name="l00762"></a>00762         <span class="keywordflow">case</span> 0xf3:
-<a name="l00763"></a>00763                 INT10_EGA_RIL_WriteRegisterRange(reg_ch, reg_cl, reg_dx, SegPhys(es)+reg_bx);
-<a name="l00764"></a>00764                 <span class="keywordflow">break</span>;
-<a name="l00765"></a>00765         <span class="keywordflow">case</span> 0xf4:
-<a name="l00766"></a>00766                 INT10_EGA_RIL_ReadRegisterSet(reg_cx, SegPhys(es)+reg_bx);
-<a name="l00767"></a>00767                 <span class="keywordflow">break</span>;
-<a name="l00768"></a>00768         <span class="keywordflow">case</span> 0xf5:
-<a name="l00769"></a>00769                 INT10_EGA_RIL_WriteRegisterSet(reg_cx, SegPhys(es)+reg_bx);
-<a name="l00770"></a>00770                 <span class="keywordflow">break</span>;
-<a name="l00771"></a>00771         <span class="keywordflow">case</span> 0xfa: {
-<a name="l00772"></a>00772                 RealPt pt=INT10_EGA_RIL_GetVersionPt();
-<a name="l00773"></a>00773                 SegSet16(es,RealSeg(pt));
-<a name="l00774"></a>00774                 reg_bx=RealOff(pt);
-<a name="l00775"></a>00775                 }
-<a name="l00776"></a>00776                 <span class="keywordflow">break</span>;
-<a name="l00777"></a>00777         <span class="keywordflow">case</span> 0xff:
-<a name="l00778"></a>00778                 <span class="keywordflow">if</span> (!warned_ff) <a class="code" href="classLOG.html">LOG</a>(LOG_INT10,LOG_NORMAL)(<span class="stringliteral">&quot;INT10:FF:Weird NC call&quot;</span>);
-<a name="l00779"></a>00779                 warned_ff=<span class="keyword">true</span>;
+<a name="l00709"></a>00709                         <span class="keywordflow">default</span>:
+<a name="l00710"></a>00710                                 <a class="code" href="classLOG.html">LOG</a>(LOG_INT10,LOG_ERROR)(<span class="stringliteral">&quot;Unhandled VESA Function %X Subfunction %X&quot;</span>,reg_al,reg_bl);
+<a name="l00711"></a>00711                                 reg_ah=0x01;
+<a name="l00712"></a>00712                                 <span class="keywordflow">break</span>;
+<a name="l00713"></a>00713                         }
+<a name="l00714"></a>00714                         <span class="keywordflow">break</span>;
+<a name="l00715"></a>00715                 <span class="keywordflow">case</span> 0x0a:                                                      <span class="comment">/* Get Pmode Interface */</span>
+<a name="l00716"></a>00716                         <span class="keywordflow">if</span> (int10.vesa_oldvbe) {
+<a name="l00717"></a>00717                                 reg_ax=0x014f;
+<a name="l00718"></a>00718                                 <span class="keywordflow">break</span>;
+<a name="l00719"></a>00719                         }
+<a name="l00720"></a>00720                         <span class="keywordflow">switch</span> (reg_bl) {
+<a name="l00721"></a>00721                         <span class="keywordflow">case</span> 0x00:
+<a name="l00722"></a>00722                                 SegSet16(es,RealSeg(int10.rom.pmode_interface));
+<a name="l00723"></a>00723                                 reg_di=RealOff(int10.rom.pmode_interface);
+<a name="l00724"></a>00724                                 reg_cx=int10.rom.pmode_interface_size;
+<a name="l00725"></a>00725                                 reg_ax=0x004f;
+<a name="l00726"></a>00726                                 <span class="keywordflow">break</span>;
+<a name="l00727"></a>00727                         <span class="keywordflow">case</span> 0x01:                                              <span class="comment">/* Get code for &quot;set window&quot; */</span>
+<a name="l00728"></a>00728                                 SegSet16(es,RealSeg(int10.rom.pmode_interface));
+<a name="l00729"></a>00729                                 reg_di=RealOff(int10.rom.pmode_interface)+(Bit32u)int10.rom.pmode_interface_window;
+<a name="l00730"></a>00730                                 reg_cx=int10.rom.pmode_interface_start-int10.rom.pmode_interface_window;
+<a name="l00731"></a>00731                                 reg_ax=0x004f;
+<a name="l00732"></a>00732                                 <span class="keywordflow">break</span>;
+<a name="l00733"></a>00733                         <span class="keywordflow">case</span> 0x02:                                              <span class="comment">/* Get code for &quot;set display start&quot; */</span>
+<a name="l00734"></a>00734                                 SegSet16(es,RealSeg(int10.rom.pmode_interface));
+<a name="l00735"></a>00735                                 reg_di=RealOff(int10.rom.pmode_interface)+(Bit32u)int10.rom.pmode_interface_start;
+<a name="l00736"></a>00736                                 reg_cx=int10.rom.pmode_interface_palette-int10.rom.pmode_interface_start;
+<a name="l00737"></a>00737                                 reg_ax=0x004f;
+<a name="l00738"></a>00738                                 <span class="keywordflow">break</span>;
+<a name="l00739"></a>00739                         <span class="keywordflow">case</span> 0x03:                                              <span class="comment">/* Get code for &quot;set palette&quot; */</span>
+<a name="l00740"></a>00740                                 SegSet16(es,RealSeg(int10.rom.pmode_interface));
+<a name="l00741"></a>00741                                 reg_di=RealOff(int10.rom.pmode_interface)+(Bit32u)int10.rom.pmode_interface_palette;
+<a name="l00742"></a>00742                                 reg_cx=int10.rom.pmode_interface_size-int10.rom.pmode_interface_palette;
+<a name="l00743"></a>00743                                 reg_ax=0x004f;
+<a name="l00744"></a>00744                                 <span class="keywordflow">break</span>;
+<a name="l00745"></a>00745                         <span class="keywordflow">default</span>:
+<a name="l00746"></a>00746                                 reg_ax=0x014f;
+<a name="l00747"></a>00747                                 <span class="keywordflow">break</span>;
+<a name="l00748"></a>00748                         }
+<a name="l00749"></a>00749                         <span class="keywordflow">break</span>;
+<a name="l00750"></a>00750 
+<a name="l00751"></a>00751                 <span class="keywordflow">default</span>:
+<a name="l00752"></a>00752                         <a class="code" href="classLOG.html">LOG</a>(LOG_INT10,LOG_ERROR)(<span class="stringliteral">&quot;Unhandled VESA Function %X&quot;</span>,reg_al);
+<a name="l00753"></a>00753                         reg_al=0x0;
+<a name="l00754"></a>00754                         <span class="keywordflow">break</span>;
+<a name="l00755"></a>00755                 }
+<a name="l00756"></a>00756                 <span class="keywordflow">break</span>;
+<a name="l00757"></a>00757         <span class="keywordflow">case</span> 0xf0:
+<a name="l00758"></a>00758                 INT10_EGA_RIL_ReadRegister(reg_bl, reg_dx);
+<a name="l00759"></a>00759                 <span class="keywordflow">break</span>;
+<a name="l00760"></a>00760         <span class="keywordflow">case</span> 0xf1:
+<a name="l00761"></a>00761                 INT10_EGA_RIL_WriteRegister(reg_bl, reg_bh, reg_dx);
+<a name="l00762"></a>00762                 <span class="keywordflow">break</span>;
+<a name="l00763"></a>00763         <span class="keywordflow">case</span> 0xf2:
+<a name="l00764"></a>00764                 INT10_EGA_RIL_ReadRegisterRange(reg_ch, reg_cl, reg_dx, SegPhys(es)+reg_bx);
+<a name="l00765"></a>00765                 <span class="keywordflow">break</span>;
+<a name="l00766"></a>00766         <span class="keywordflow">case</span> 0xf3:
+<a name="l00767"></a>00767                 INT10_EGA_RIL_WriteRegisterRange(reg_ch, reg_cl, reg_dx, SegPhys(es)+reg_bx);
+<a name="l00768"></a>00768                 <span class="keywordflow">break</span>;
+<a name="l00769"></a>00769         <span class="keywordflow">case</span> 0xf4:
+<a name="l00770"></a>00770                 INT10_EGA_RIL_ReadRegisterSet(reg_cx, SegPhys(es)+reg_bx);
+<a name="l00771"></a>00771                 <span class="keywordflow">break</span>;
+<a name="l00772"></a>00772         <span class="keywordflow">case</span> 0xf5:
+<a name="l00773"></a>00773                 INT10_EGA_RIL_WriteRegisterSet(reg_cx, SegPhys(es)+reg_bx);
+<a name="l00774"></a>00774                 <span class="keywordflow">break</span>;
+<a name="l00775"></a>00775         <span class="keywordflow">case</span> 0xfa: {
+<a name="l00776"></a>00776                 RealPt pt=INT10_EGA_RIL_GetVersionPt();
+<a name="l00777"></a>00777                 SegSet16(es,RealSeg(pt));
+<a name="l00778"></a>00778                 reg_bx=RealOff(pt);
+<a name="l00779"></a>00779                 }
 <a name="l00780"></a>00780                 <span class="keywordflow">break</span>;
-<a name="l00781"></a>00781         <span class="keywordflow">default</span>:
-<a name="l00782"></a>00782                 <a class="code" href="classLOG.html">LOG</a>(LOG_INT10,LOG_ERROR)(<span class="stringliteral">&quot;Function %4X not supported&quot;</span>,reg_ax);
-<a name="l00783"></a>00783 <span class="comment">//              reg_al=0x00;            //Successfull, breaks marriage</span>
+<a name="l00781"></a>00781         <span class="keywordflow">case</span> 0xff:
+<a name="l00782"></a>00782                 <span class="keywordflow">if</span> (!warned_ff) <a class="code" href="classLOG.html">LOG</a>(LOG_INT10,LOG_NORMAL)(<span class="stringliteral">&quot;INT10:FF:Weird NC call&quot;</span>);
+<a name="l00783"></a>00783                 warned_ff=<span class="keyword">true</span>;
 <a name="l00784"></a>00784                 <span class="keywordflow">break</span>;
-<a name="l00785"></a>00785         }
-<a name="l00786"></a>00786         <span class="keywordflow">return</span> CBRET_NONE;
-<a name="l00787"></a>00787 }
-<a name="l00788"></a>00788 
-<a name="l00789"></a>00789 <span class="keyword">static</span> <span class="keywordtype">void</span> INT10_Seg40Init(<span class="keywordtype">void</span>) {
-<a name="l00790"></a>00790         <span class="comment">// the default char height</span>
-<a name="l00791"></a>00791         real_writeb(BIOSMEM_SEG,BIOSMEM_CHAR_HEIGHT,16);
-<a name="l00792"></a>00792         <span class="comment">// Clear the screen </span>
-<a name="l00793"></a>00793         real_writeb(BIOSMEM_SEG,BIOSMEM_VIDEO_CTL,0x60);
-<a name="l00794"></a>00794         <span class="comment">// Set the basic screen we have</span>
-<a name="l00795"></a>00795         real_writeb(BIOSMEM_SEG,BIOSMEM_SWITCHES,0xF9);
-<a name="l00796"></a>00796         <span class="comment">// Set the basic modeset options</span>
-<a name="l00797"></a>00797         real_writeb(BIOSMEM_SEG,BIOSMEM_MODESET_CTL,0x51); <span class="comment">// why is display switching enabled (bit 6) ?</span>
-<a name="l00798"></a>00798         <span class="comment">// Set the  default MSR</span>
-<a name="l00799"></a>00799         real_writeb(BIOSMEM_SEG,BIOSMEM_CURRENT_MSR,0x09);
-<a name="l00800"></a>00800         <span class="comment">// Set the pointer to video save pointer table</span>
-<a name="l00801"></a>00801         real_writed(BIOSMEM_SEG, BIOSMEM_VS_POINTER, int10.rom.video_save_pointers);
-<a name="l00802"></a>00802 }
-<a name="l00803"></a>00803 
-<a name="l00804"></a>00804 <span class="keyword">static</span> <span class="keywordtype">void</span> INT10_InitVGA(<span class="keywordtype">void</span>) {
-<a name="l00805"></a>00805         <span class="keywordflow">if</span> (IS_EGAVGA_ARCH) {
-<a name="l00806"></a>00806                 <a class="code" href="classLOG.html">LOG</a>(LOG_MISC,LOG_DEBUG)(<span class="stringliteral">&quot;INT 10: initializing EGA/VGA state&quot;</span>);
+<a name="l00785"></a>00785         <span class="keywordflow">default</span>:
+<a name="l00786"></a>00786                 <a class="code" href="classLOG.html">LOG</a>(LOG_INT10,LOG_ERROR)(<span class="stringliteral">&quot;Function %4X not supported&quot;</span>,reg_ax);
+<a name="l00787"></a>00787 <span class="comment">//              reg_al=0x00;            //Successfull, breaks marriage</span>
+<a name="l00788"></a>00788                 <span class="keywordflow">break</span>;
+<a name="l00789"></a>00789         }
+<a name="l00790"></a>00790         <span class="keywordflow">return</span> CBRET_NONE;
+<a name="l00791"></a>00791 }
+<a name="l00792"></a>00792 
+<a name="l00793"></a>00793 <span class="keyword">static</span> <span class="keywordtype">void</span> INT10_Seg40Init(<span class="keywordtype">void</span>) {
+<a name="l00794"></a>00794         <span class="comment">// the default char height</span>
+<a name="l00795"></a>00795         real_writeb(BIOSMEM_SEG,BIOSMEM_CHAR_HEIGHT,16);
+<a name="l00796"></a>00796         <span class="comment">// Clear the screen </span>
+<a name="l00797"></a>00797         real_writeb(BIOSMEM_SEG,BIOSMEM_VIDEO_CTL,0x60);
+<a name="l00798"></a>00798         <span class="comment">// Set the basic screen we have</span>
+<a name="l00799"></a>00799         real_writeb(BIOSMEM_SEG,BIOSMEM_SWITCHES,0xF9);
+<a name="l00800"></a>00800         <span class="comment">// Set the basic modeset options</span>
+<a name="l00801"></a>00801         real_writeb(BIOSMEM_SEG,BIOSMEM_MODESET_CTL,0x51); <span class="comment">// why is display switching enabled (bit 6) ?</span>
+<a name="l00802"></a>00802         <span class="comment">// Set the  default MSR</span>
+<a name="l00803"></a>00803         real_writeb(BIOSMEM_SEG,BIOSMEM_CURRENT_MSR,0x09);
+<a name="l00804"></a>00804         <span class="comment">// Set the pointer to video save pointer table</span>
+<a name="l00805"></a>00805         real_writed(BIOSMEM_SEG, BIOSMEM_VS_POINTER, int10.rom.video_save_pointers);
+<a name="l00806"></a>00806 }
 <a name="l00807"></a>00807 
-<a name="l00808"></a>00808                 <span class="comment">/* switch to color mode and enable CPU access 480 lines */</span>
-<a name="l00809"></a>00809                 IO_Write(0x3c2,0xc3);
-<a name="l00810"></a>00810                 <span class="comment">/* More than 64k */</span>
-<a name="l00811"></a>00811                 IO_Write(0x3c4,0x04);
-<a name="l00812"></a>00812                 IO_Write(0x3c5,0x02);
-<a name="l00813"></a>00813                 <span class="keywordflow">if</span> (IS_VGA_ARCH) {
-<a name="l00814"></a>00814                         <span class="comment">/* Initialize DAC */</span>
-<a name="l00815"></a>00815                         IO_Write(0x3c8,0);
-<a name="l00816"></a>00816                         <span class="keywordflow">for</span> (Bitu i=0;i&lt;3*256;i++) IO_Write(0x3c9,0);
-<a name="l00817"></a>00817                 }
-<a name="l00818"></a>00818         }
-<a name="l00819"></a>00819 }
-<a name="l00820"></a>00820 
-<a name="l00821"></a>00821 <span class="keyword">static</span> <span class="keywordtype">void</span> SetupTandyBios(<span class="keywordtype">void</span>) {
-<a name="l00822"></a>00822         <span class="keyword">static</span> Bit8u TandyConfig[130]= {
-<a name="l00823"></a>00823                 0x21, 0x42, 0x49, 0x4f, 0x53, 0x20, 0x52, 0x4f, 0x4d, 0x20, 0x76, 0x65, 0x72,
-<a name="l00824"></a>00824                 0x73, 0x69, 0x6f, 0x6e, 0x20, 0x30, 0x32, 0x2e, 0x30, 0x30, 0x2e, 0x30, 0x30,
-<a name="l00825"></a>00825                 0x0d, 0x0a, 0x43, 0x6f, 0x6d, 0x70, 0x61, 0x74, 0x69, 0x62, 0x69, 0x6c, 0x69,
-<a name="l00826"></a>00826                 0x74, 0x79, 0x20, 0x53, 0x6f, 0x66, 0x74, 0x77, 0x61, 0x72, 0x65, 0x0d, 0x0a,
-<a name="l00827"></a>00827                 0x43, 0x6f, 0x70, 0x79, 0x72, 0x69, 0x67, 0x68, 0x74, 0x20, 0x28, 0x43, 0x29,
-<a name="l00828"></a>00828                 0x20, 0x31, 0x39, 0x38, 0x34, 0x2c, 0x31, 0x39, 0x38, 0x35, 0x2c, 0x31, 0x39,
-<a name="l00829"></a>00829                 0x38, 0x36, 0x2c, 0x31, 0x39, 0x38, 0x37, 0x0d, 0x0a, 0x50, 0x68, 0x6f, 0x65,
-<a name="l00830"></a>00830                 0x6e, 0x69, 0x78, 0x20, 0x53, 0x6f, 0x66, 0x74, 0x77, 0x61, 0x72, 0x65, 0x20,
-<a name="l00831"></a>00831                 0x41, 0x73, 0x73, 0x6f, 0x63, 0x69, 0x61, 0x74, 0x65, 0x73, 0x20, 0x4c, 0x74,
-<a name="l00832"></a>00832                 0x64, 0x2e, 0x0d, 0x0a, 0x61, 0x6e, 0x64, 0x20, 0x54, 0x61, 0x6e, 0x64, 0x79
-<a name="l00833"></a>00833         };
-<a name="l00834"></a>00834         <span class="keywordflow">if</span> (machine==MCH_TANDY) {
-<a name="l00835"></a>00835                 <span class="keywordtype">unsigned</span> <span class="keywordtype">int</span> i;
-<a name="l00836"></a>00836 
-<a name="l00837"></a>00837                 <a class="code" href="classLOG.html">LOG</a>(LOG_MISC,LOG_DEBUG)(<span class="stringliteral">&quot;Initializing Tandy video state (video BIOS init)&quot;</span>);
-<a name="l00838"></a>00838 
-<a name="l00839"></a>00839                 <span class="keywordflow">for</span>(i=0;i&lt;130;i++)
-<a name="l00840"></a>00840                         phys_writeb(0xf0000+i+0xc000, TandyConfig[i]);
-<a name="l00841"></a>00841         }
-<a name="l00842"></a>00842 }
-<a name="l00843"></a>00843 
-<a name="l00844"></a>00844 <span class="keywordtype">bool</span> MEM_map_ROM_physmem(Bitu start,Bitu end);
-<a name="l00845"></a>00845 
-<a name="l00846"></a>00846 <span class="keyword">extern</span> Bitu VGA_BIOS_Size;
-<a name="l00847"></a>00847 <span class="keyword">extern</span> Bitu VGA_BIOS_SEG;
-<a name="l00848"></a>00848 <span class="keyword">extern</span> Bitu VGA_BIOS_SEG_END;
-<a name="l00849"></a>00849 <span class="keyword">extern</span> <span class="keywordtype">bool</span> VIDEO_BIOS_disable;
-<a name="l00850"></a>00850 <span class="keyword">extern</span> Bitu BIOS_VIDEO_TABLE_LOCATION;
-<a name="l00851"></a>00851 <span class="keyword">extern</span> Bitu BIOS_VIDEO_TABLE_SIZE;
-<a name="l00852"></a>00852 
-<a name="l00853"></a>00853 <span class="keywordtype">bool</span> ROMBIOS_FreeMemory(Bitu phys);
-<a name="l00854"></a>00854 Bitu RealToPhys(Bitu x);
-<a name="l00855"></a>00855 
-<a name="l00856"></a>00856 <span class="keywordtype">void</span> BIOS_UnsetupDisks(<span class="keywordtype">void</span>);
-<a name="l00857"></a>00857 <span class="keywordtype">void</span> BIOS_UnsetupKeyboard(<span class="keywordtype">void</span>);
-<a name="l00858"></a>00858 <span class="keywordtype">bool</span> MEM_unmap_physmem(Bitu start,Bitu end);
-<a name="l00859"></a>00859 <span class="keywordtype">void</span> CALLBACK_DeAllocate(Bitu in);
-<a name="l00860"></a>00860 
-<a name="l00861"></a>00861 <span class="keywordtype">void</span> INT10_OnResetComplete() {
-<a name="l00862"></a>00862     <span class="keywordflow">if</span> (VGA_BIOS_Size &gt; 0)
-<a name="l00863"></a>00863         MEM_unmap_physmem(0xC0000,0xC0000+VGA_BIOS_Size-1);
+<a name="l00808"></a>00808 <span class="keyword">static</span> <span class="keywordtype">void</span> INT10_InitVGA(<span class="keywordtype">void</span>) {
+<a name="l00809"></a>00809         <span class="keywordflow">if</span> (IS_EGAVGA_ARCH) {
+<a name="l00810"></a>00810                 <a class="code" href="classLOG.html">LOG</a>(LOG_MISC,LOG_DEBUG)(<span class="stringliteral">&quot;INT 10: initializing EGA/VGA state&quot;</span>);
+<a name="l00811"></a>00811 
+<a name="l00812"></a>00812                 <span class="comment">/* switch to color mode and enable CPU access 480 lines */</span>
+<a name="l00813"></a>00813                 IO_Write(0x3c2,0xc3);
+<a name="l00814"></a>00814                 <span class="comment">/* More than 64k */</span>
+<a name="l00815"></a>00815                 IO_Write(0x3c4,0x04);
+<a name="l00816"></a>00816                 IO_Write(0x3c5,0x02);
+<a name="l00817"></a>00817                 <span class="keywordflow">if</span> (IS_VGA_ARCH) {
+<a name="l00818"></a>00818                         <span class="comment">/* Initialize DAC */</span>
+<a name="l00819"></a>00819                         IO_Write(0x3c8,0);
+<a name="l00820"></a>00820                         <span class="keywordflow">for</span> (Bitu i=0;i&lt;3*256;i++) IO_Write(0x3c9,0);
+<a name="l00821"></a>00821                 }
+<a name="l00822"></a>00822         }
+<a name="l00823"></a>00823 }
+<a name="l00824"></a>00824 
+<a name="l00825"></a>00825 <span class="keyword">static</span> <span class="keywordtype">void</span> SetupTandyBios(<span class="keywordtype">void</span>) {
+<a name="l00826"></a>00826         <span class="keywordflow">if</span> (machine==MCH_TANDY) {
+<a name="l00827"></a>00827                 <span class="keywordtype">unsigned</span> <span class="keywordtype">int</span> i;
+<a name="l00828"></a>00828                 <span class="keyword">static</span> Bit8u TandyConfig[130]= {
+<a name="l00829"></a>00829                 0x21, 0x42, 0x49, 0x4f, 0x53, 0x20, 0x52, 0x4f, 0x4d, 0x20, 0x76, 0x65, 0x72,
+<a name="l00830"></a>00830                 0x73, 0x69, 0x6f, 0x6e, 0x20, 0x30, 0x32, 0x2e, 0x30, 0x30, 0x2e, 0x30, 0x30,
+<a name="l00831"></a>00831                 0x0d, 0x0a, 0x43, 0x6f, 0x6d, 0x70, 0x61, 0x74, 0x69, 0x62, 0x69, 0x6c, 0x69,
+<a name="l00832"></a>00832                 0x74, 0x79, 0x20, 0x53, 0x6f, 0x66, 0x74, 0x77, 0x61, 0x72, 0x65, 0x0d, 0x0a,
+<a name="l00833"></a>00833                 0x43, 0x6f, 0x70, 0x79, 0x72, 0x69, 0x67, 0x68, 0x74, 0x20, 0x28, 0x43, 0x29,
+<a name="l00834"></a>00834                 0x20, 0x31, 0x39, 0x38, 0x34, 0x2c, 0x31, 0x39, 0x38, 0x35, 0x2c, 0x31, 0x39,
+<a name="l00835"></a>00835                 0x38, 0x36, 0x2c, 0x31, 0x39, 0x38, 0x37, 0x0d, 0x0a, 0x50, 0x68, 0x6f, 0x65,
+<a name="l00836"></a>00836                 0x6e, 0x69, 0x78, 0x20, 0x53, 0x6f, 0x66, 0x74, 0x77, 0x61, 0x72, 0x65, 0x20,
+<a name="l00837"></a>00837                 0x41, 0x73, 0x73, 0x6f, 0x63, 0x69, 0x61, 0x74, 0x65, 0x73, 0x20, 0x4c, 0x74,
+<a name="l00838"></a>00838                 0x64, 0x2e, 0x0d, 0x0a, 0x61, 0x6e, 0x64, 0x20, 0x54, 0x61, 0x6e, 0x64, 0x79
+<a name="l00839"></a>00839                 };
+<a name="l00840"></a>00840 
+<a name="l00841"></a>00841                 <a class="code" href="classLOG.html">LOG</a>(LOG_MISC,LOG_DEBUG)(<span class="stringliteral">&quot;Initializing Tandy video state (video BIOS init)&quot;</span>);
+<a name="l00842"></a>00842 
+<a name="l00843"></a>00843                 <span class="keywordflow">for</span>(i=0;i&lt;130;i++)
+<a name="l00844"></a>00844                         phys_writeb(0xf0000+i+0xc000, TandyConfig[i]);
+<a name="l00845"></a>00845         }
+<a name="l00846"></a>00846 }
+<a name="l00847"></a>00847 
+<a name="l00848"></a>00848 <span class="keywordtype">bool</span> MEM_map_ROM_physmem(Bitu start,Bitu end);
+<a name="l00849"></a>00849 
+<a name="l00850"></a>00850 <span class="keyword">extern</span> Bitu VGA_BIOS_Size;
+<a name="l00851"></a>00851 <span class="keyword">extern</span> Bitu VGA_BIOS_SEG;
+<a name="l00852"></a>00852 <span class="keyword">extern</span> Bitu VGA_BIOS_SEG_END;
+<a name="l00853"></a>00853 <span class="keyword">extern</span> <span class="keywordtype">bool</span> VIDEO_BIOS_disable;
+<a name="l00854"></a>00854 <span class="keyword">extern</span> Bitu BIOS_VIDEO_TABLE_LOCATION;
+<a name="l00855"></a>00855 <span class="keyword">extern</span> Bitu BIOS_VIDEO_TABLE_SIZE;
+<a name="l00856"></a>00856 
+<a name="l00857"></a>00857 <span class="keywordtype">bool</span> ROMBIOS_FreeMemory(Bitu phys);
+<a name="l00858"></a>00858 Bitu RealToPhys(Bitu x);
+<a name="l00859"></a>00859 
+<a name="l00860"></a>00860 <span class="keywordtype">void</span> BIOS_UnsetupDisks(<span class="keywordtype">void</span>);
+<a name="l00861"></a>00861 <span class="keywordtype">void</span> BIOS_UnsetupKeyboard(<span class="keywordtype">void</span>);
+<a name="l00862"></a>00862 <span class="keywordtype">bool</span> MEM_unmap_physmem(Bitu start,Bitu end);
+<a name="l00863"></a>00863 <span class="keywordtype">void</span> CALLBACK_DeAllocate(Bitu in);
 <a name="l00864"></a>00864 
-<a name="l00865"></a>00865     <span class="comment">/* free the table */</span>
-<a name="l00866"></a>00866     BIOS_VIDEO_TABLE_SIZE = 0;
-<a name="l00867"></a>00867     <span class="keywordflow">if</span> (BIOS_VIDEO_TABLE_LOCATION != (~0U) &amp;&amp; BIOS_VIDEO_TABLE_LOCATION != 0) {
-<a name="l00868"></a>00868         <a class="code" href="classLOG.html">LOG</a>(LOG_MISC,LOG_DEBUG)(<span class="stringliteral">&quot;INT 10h freeing BIOS VIDEO TABLE LOCATION&quot;</span>);
-<a name="l00869"></a>00869         ROMBIOS_FreeMemory(RealToPhys(BIOS_VIDEO_TABLE_LOCATION));
-<a name="l00870"></a>00870         BIOS_VIDEO_TABLE_LOCATION = ~0u;                <span class="comment">// RealMake(0xf000,0xf0a4)</span>
-<a name="l00871"></a>00871     }
-<a name="l00872"></a>00872 
-<a name="l00873"></a>00873     <span class="keywordtype">void</span> VESA_OnReset_Clear_Callbacks(<span class="keywordtype">void</span>);
-<a name="l00874"></a>00874     VESA_OnReset_Clear_Callbacks();
-<a name="l00875"></a>00875 
-<a name="l00876"></a>00876     <span class="keywordflow">if</span> (call_10 != 0) {
-<a name="l00877"></a>00877         CALLBACK_DeAllocate(call_10);
-<a name="l00878"></a>00878         call_10 = 0;
-<a name="l00879"></a>00879     }
-<a name="l00880"></a>00880 
-<a name="l00881"></a>00881     BIOS_UnsetupDisks();
-<a name="l00882"></a>00882     BIOS_UnsetupKeyboard();
-<a name="l00883"></a>00883 }
+<a name="l00865"></a>00865 <span class="keywordtype">void</span> INT10_OnResetComplete() {
+<a name="l00866"></a>00866     <span class="keywordflow">if</span> (VGA_BIOS_Size &gt; 0)
+<a name="l00867"></a>00867         MEM_unmap_physmem(0xC0000,0xC0000+VGA_BIOS_Size-1);
+<a name="l00868"></a>00868 
+<a name="l00869"></a>00869     <span class="comment">/* free the table */</span>
+<a name="l00870"></a>00870     BIOS_VIDEO_TABLE_SIZE = 0;
+<a name="l00871"></a>00871     <span class="keywordflow">if</span> (BIOS_VIDEO_TABLE_LOCATION != (~0U) &amp;&amp; BIOS_VIDEO_TABLE_LOCATION != 0) {
+<a name="l00872"></a>00872         <a class="code" href="classLOG.html">LOG</a>(LOG_MISC,LOG_DEBUG)(<span class="stringliteral">&quot;INT 10h freeing BIOS VIDEO TABLE LOCATION&quot;</span>);
+<a name="l00873"></a>00873         ROMBIOS_FreeMemory(RealToPhys(BIOS_VIDEO_TABLE_LOCATION));
+<a name="l00874"></a>00874         BIOS_VIDEO_TABLE_LOCATION = ~0u;                <span class="comment">// RealMake(0xf000,0xf0a4)</span>
+<a name="l00875"></a>00875     }
+<a name="l00876"></a>00876 
+<a name="l00877"></a>00877     <span class="keywordtype">void</span> VESA_OnReset_Clear_Callbacks(<span class="keywordtype">void</span>);
+<a name="l00878"></a>00878     VESA_OnReset_Clear_Callbacks();
+<a name="l00879"></a>00879 
+<a name="l00880"></a>00880     <span class="keywordflow">if</span> (call_10 != 0) {
+<a name="l00881"></a>00881         CALLBACK_DeAllocate(call_10);
+<a name="l00882"></a>00882         call_10 = 0;
+<a name="l00883"></a>00883     }
 <a name="l00884"></a>00884 
-<a name="l00885"></a>00885 <span class="keyword">extern</span> <span class="keywordtype">bool</span> vesa_zero_on_get_information;
-<a name="l00886"></a>00886 <span class="keyword">extern</span> <span class="keywordtype">bool</span> unmask_irq0_on_int10_setmode;
-<a name="l00887"></a>00887 <span class="keyword">extern</span> <span class="keywordtype">bool</span> int16_unmask_irq1_on_read;
-<a name="l00888"></a>00888 <span class="keyword">extern</span> <span class="keywordtype">bool</span> int16_ah_01_cf_undoc;
-<a name="l00889"></a>00889 
-<a name="l00890"></a>00890 <span class="preprocessor">#if 0 </span><span class="comment">/* reference */</span>
-<a name="l00891"></a>00891 <span class="keyword">typedef</span> <span class="keyword">struct </span>tagBITMAPFILEHEADER {
-<a name="l00892"></a>00892     WORD  bfType;
-<a name="l00893"></a>00893     DWORD bfSize;
-<a name="l00894"></a>00894     WORD  bfReserved1;
-<a name="l00895"></a>00895     WORD  bfReserved2;
-<a name="l00896"></a>00896     DWORD bfOffBits;
-<a name="l00897"></a>00897 } BITMAPFILEHEADER, *PBITMAPFILEHEADER;
-<a name="l00898"></a>00898 
-<a name="l00899"></a>00899 <span class="keyword">typedef</span> <span class="keyword">struct </span>tagBITMAPINFO {
-<a name="l00900"></a>00900     BITMAPINFOHEADER bmiHeader;
-<a name="l00901"></a>00901     RGBQUAD          bmiColors[1];
-<a name="l00902"></a>00902 } BITMAPINFO, *PBITMAPINFO;
+<a name="l00885"></a>00885     BIOS_UnsetupDisks();
+<a name="l00886"></a>00886     BIOS_UnsetupKeyboard();
+<a name="l00887"></a>00887 }
+<a name="l00888"></a>00888 
+<a name="l00889"></a>00889 <span class="keyword">extern</span> <span class="keywordtype">bool</span> vesa_zero_on_get_information;
+<a name="l00890"></a>00890 <span class="keyword">extern</span> <span class="keywordtype">bool</span> unmask_irq0_on_int10_setmode;
+<a name="l00891"></a>00891 <span class="keyword">extern</span> <span class="keywordtype">bool</span> int16_unmask_irq1_on_read;
+<a name="l00892"></a>00892 <span class="keyword">extern</span> <span class="keywordtype">bool</span> int10_vga_bios_vector;
+<a name="l00893"></a>00893 <span class="keyword">extern</span> <span class="keywordtype">bool</span> int16_ah_01_cf_undoc;
+<a name="l00894"></a>00894 
+<a name="l00895"></a>00895 <span class="preprocessor">#if 0 </span><span class="comment">/* reference */</span>
+<a name="l00896"></a>00896 <span class="keyword">typedef</span> <span class="keyword">struct </span>tagBITMAPFILEHEADER {
+<a name="l00897"></a>00897     WORD  bfType;
+<a name="l00898"></a>00898     DWORD bfSize;
+<a name="l00899"></a>00899     WORD  bfReserved1;
+<a name="l00900"></a>00900     WORD  bfReserved2;
+<a name="l00901"></a>00901     DWORD bfOffBits;
+<a name="l00902"></a>00902 } BITMAPFILEHEADER, *PBITMAPFILEHEADER;
 <a name="l00903"></a>00903 
-<a name="l00904"></a>00904 <span class="keyword">typedef</span> <span class="keyword">struct </span>tagBITMAPINFOHEADER {
-<a name="l00905"></a>00905     DWORD biSize;
-<a name="l00906"></a>00906     LONG  biWidth;
-<a name="l00907"></a>00907     LONG  biHeight;
-<a name="l00908"></a>00908     WORD  biPlanes;
-<a name="l00909"></a>00909     WORD  biBitCount;
-<a name="l00910"></a>00910     DWORD biCompression;
-<a name="l00911"></a>00911     DWORD biSizeImage;
-<a name="l00912"></a>00912     LONG  biXPelsPerMeter;
-<a name="l00913"></a>00913     LONG  biYPelsPerMeter;
-<a name="l00914"></a>00914     DWORD biClrUsed;
-<a name="l00915"></a>00915     DWORD biClrImportant;
-<a name="l00916"></a>00916 } BITMAPINFOHEADER, *PBITMAPINFOHEADER;
-<a name="l00917"></a>00917 <span class="preprocessor">#endif</span>
-<a name="l00918"></a>00918 <span class="preprocessor"></span>
-<a name="l00919"></a>00919 <span class="keywordtype">bool</span> Load_FONT_ROM(<span class="keywordtype">void</span>) {
-<a name="l00920"></a>00920     <span class="keywordtype">unsigned</span> <span class="keywordtype">int</span> hibyte,lowbyte,r;
-<a name="l00921"></a>00921     <span class="keywordtype">unsigned</span> <span class="keywordtype">char</span> tmp[256*16]; <span class="comment">// 8x16 256 cells</span>
-<a name="l00922"></a>00922     FILE *fp;
-<a name="l00923"></a>00923 
-<a name="l00924"></a>00924              fp = fopen(<span class="stringliteral">&quot;font.rom&quot;</span>,<span class="stringliteral">&quot;rb&quot;</span>);
-<a name="l00925"></a>00925     <span class="keywordflow">if</span> (!fp) fp = fopen(<span class="stringliteral">&quot;FONT.rom&quot;</span>,<span class="stringliteral">&quot;rb&quot;</span>);
-<a name="l00926"></a>00926     <span class="keywordflow">if</span> (!fp) fp = fopen(<span class="stringliteral">&quot;font.ROM&quot;</span>,<span class="stringliteral">&quot;rb&quot;</span>);
-<a name="l00927"></a>00927     <span class="keywordflow">if</span> (!fp) fp = fopen(<span class="stringliteral">&quot;FONT.ROM&quot;</span>,<span class="stringliteral">&quot;rb&quot;</span>);
-<a name="l00928"></a>00928     <span class="keywordflow">if</span> (!fp) {
-<a name="l00929"></a>00929         LOG_MSG(<span class="stringliteral">&quot;PC-98 font loading: FONT.ROM not found&quot;</span>);
-<a name="l00930"></a>00930         <span class="keywordflow">return</span> <span class="keyword">false</span>;
-<a name="l00931"></a>00931     }
-<a name="l00932"></a>00932 
-<a name="l00933"></a>00933     <span class="comment">// prepare</span>
-<a name="l00934"></a>00934     memset(vga.draw.font,0,<span class="keyword">sizeof</span>(vga.draw.font));
-<a name="l00935"></a>00935 
-<a name="l00936"></a>00936     <span class="comment">/* FONT.ROM is always 288768 bytes large and contains:</span>
-<a name="l00937"></a>00937 <span class="comment">     *</span>
-<a name="l00938"></a>00938 <span class="comment">     * 256      8x8     Single-wide character cells         at      0x00000</span>
-<a name="l00939"></a>00939 <span class="comment">     * 256      8x16    Single-wide character cells         at      0x00800</span>
-<a name="l00940"></a>00940 <span class="comment">     * 96 x 92  16x16   Double-wide character cells         at      0x01800 */</span>
-<a name="l00941"></a>00941     fseek(fp,0,SEEK_END);
-<a name="l00942"></a>00942     <span class="keywordflow">if</span> (ftell(fp) != 288768) {
-<a name="l00943"></a>00943         LOG_MSG(<span class="stringliteral">&quot;PC-98 FONT.ROM is not the correct size&quot;</span>);
-<a name="l00944"></a>00944         <span class="keywordflow">goto</span> fail;
-<a name="l00945"></a>00945     }
-<a name="l00946"></a>00946     fseek(fp,0,SEEK_SET);
-<a name="l00947"></a>00947 
-<a name="l00948"></a>00948     <span class="comment">/* NTS: We do not yet use the 8x8 character set */</span>
-<a name="l00949"></a>00949 
-<a name="l00950"></a>00950     <span class="comment">/* 8x16 single-wide */</span>
-<a name="l00951"></a>00951     fseek(fp,0x800,SEEK_SET);
-<a name="l00952"></a>00952     <span class="keywordflow">if</span> (fread(tmp,256*16,1,fp) != 1) <span class="keywordflow">goto</span> fail;
-<a name="l00953"></a>00953     <span class="keywordflow">for</span> (lowbyte=0;lowbyte &lt; 256;lowbyte++) {
-<a name="l00954"></a>00954         <span class="keywordflow">for</span> (r=0;r &lt; 16;r++) {
-<a name="l00955"></a>00955             vga.draw.font[(lowbyte*16)+r] = tmp[(lowbyte*16)+r];
-<a name="l00956"></a>00956         }
-<a name="l00957"></a>00957     }
-<a name="l00958"></a>00958 
-<a name="l00959"></a>00959     <span class="comment">/* 16x16 double-wide */</span>
-<a name="l00960"></a>00960     assert(<span class="keyword">sizeof</span>(tmp) &gt;= (96 * 16 * 2));
-<a name="l00961"></a>00961     <span class="keywordflow">for</span> (lowbyte=0x01;lowbyte &lt; 0x5D;lowbyte++) {
-<a name="l00962"></a>00962         fseek(fp,<span class="keywordtype">long</span>(0x1800u + ((lowbyte - 0x01u) * 96u * 16u * 2u<span class="comment">/*16 wide*/</span>)),SEEK_SET);
-<a name="l00963"></a>00963         <span class="keywordflow">if</span> (fread(tmp,96 * 16 * 2<span class="comment">/*16 wide*/</span>,1,fp) != 1) <span class="keywordflow">goto</span> fail;
-<a name="l00964"></a>00964 
-<a name="l00965"></a>00965         <span class="keywordflow">for</span> (hibyte=0;hibyte &lt; 96;hibyte++) {
-<a name="l00966"></a>00966             <span class="keywordtype">unsigned</span> <span class="keywordtype">int</span> i;
-<a name="l00967"></a>00967             <span class="keywordtype">unsigned</span> <span class="keywordtype">int</span> o;
-<a name="l00968"></a>00968 
-<a name="l00969"></a>00969             i = hibyte * 16 * 2;
-<a name="l00970"></a>00970             o = (((hibyte + 0x20) * 128) + lowbyte) * 16 * 2;
-<a name="l00971"></a>00971 
-<a name="l00972"></a>00972             <span class="keywordflow">for</span> (r=0;r &lt; 16;r++) {
-<a name="l00973"></a>00973                 vga.draw.font[o+(r*2)  ] = tmp[i+r+0];
-<a name="l00974"></a>00974                 vga.draw.font[o+(r*2)+1] = tmp[i+r+16];
-<a name="l00975"></a>00975             }
-<a name="l00976"></a>00976         }
-<a name="l00977"></a>00977     }
-<a name="l00978"></a>00978 
-<a name="l00979"></a>00979     LOG_MSG(<span class="stringliteral">&quot;FONT.ROM loaded&quot;</span>);
-<a name="l00980"></a>00980     fclose(fp);
-<a name="l00981"></a>00981     <span class="keywordflow">return</span> <span class="keyword">true</span>;
-<a name="l00982"></a>00982 fail:
-<a name="l00983"></a>00983     fclose(fp);
-<a name="l00984"></a>00984     <span class="keywordflow">return</span> <span class="keyword">false</span>;
-<a name="l00985"></a>00985 }
-<a name="l00986"></a>00986 
-<a name="l00987"></a>00987 <span class="comment">/* ANEX86.BMP from the Anex86 emulator.</span>
-<a name="l00988"></a>00988 <span class="comment"> * Holds the font as a giant 2048x2048 1-bit monochromatic bitmap. */</span>
-<a name="l00989"></a>00989 <span class="comment">/* We load it separately because I am uncertain whether it is legal or not to</span>
-<a name="l00990"></a>00990 <span class="comment"> * incorporate this directly into DOSBox-X. */</span>
-<a name="l00991"></a>00991 <span class="keywordtype">bool</span> Load_Anex86_Font(<span class="keywordtype">void</span>) {
-<a name="l00992"></a>00992     <span class="keywordtype">unsigned</span> <span class="keywordtype">char</span> tmp[(2048/8)*16]; <span class="comment">/* enough for one 2048x16 row and bitmap header */</span>
-<a name="l00993"></a>00993     <span class="keywordtype">unsigned</span> <span class="keywordtype">int</span> hibyte,lowbyte,r;
-<a name="l00994"></a>00994     <span class="keywordtype">unsigned</span> <span class="keywordtype">int</span> bmp_ofs;
-<a name="l00995"></a>00995     FILE *fp = NULL;
-<a name="l00996"></a>00996 
-<a name="l00997"></a>00997     <span class="comment">/* ANEX86.BMP accurate dump of actual font */</span>
-<a name="l00998"></a>00998     <span class="keywordflow">if</span> (!fp) fp = fopen(<span class="stringliteral">&quot;anex86.bmp&quot;</span>,<span class="stringliteral">&quot;rb&quot;</span>);
-<a name="l00999"></a>00999     <span class="keywordflow">if</span> (!fp) fp = fopen(<span class="stringliteral">&quot;ANEX86.bmp&quot;</span>,<span class="stringliteral">&quot;rb&quot;</span>);
-<a name="l01000"></a>01000     <span class="keywordflow">if</span> (!fp) fp = fopen(<span class="stringliteral">&quot;ANEX86.BMP&quot;</span>,<span class="stringliteral">&quot;rb&quot;</span>);
+<a name="l00904"></a>00904 <span class="keyword">typedef</span> <span class="keyword">struct </span>tagBITMAPINFO {
+<a name="l00905"></a>00905     BITMAPINFOHEADER bmiHeader;
+<a name="l00906"></a>00906     RGBQUAD          bmiColors[1];
+<a name="l00907"></a>00907 } BITMAPINFO, *PBITMAPINFO;
+<a name="l00908"></a>00908 
+<a name="l00909"></a>00909 <span class="keyword">typedef</span> <span class="keyword">struct </span>tagBITMAPINFOHEADER {
+<a name="l00910"></a>00910     DWORD biSize;
+<a name="l00911"></a>00911     LONG  biWidth;
+<a name="l00912"></a>00912     LONG  biHeight;
+<a name="l00913"></a>00913     WORD  biPlanes;
+<a name="l00914"></a>00914     WORD  biBitCount;
+<a name="l00915"></a>00915     DWORD biCompression;
+<a name="l00916"></a>00916     DWORD biSizeImage;
+<a name="l00917"></a>00917     LONG  biXPelsPerMeter;
+<a name="l00918"></a>00918     LONG  biYPelsPerMeter;
+<a name="l00919"></a>00919     DWORD biClrUsed;
+<a name="l00920"></a>00920     DWORD biClrImportant;
+<a name="l00921"></a>00921 } BITMAPINFOHEADER, *PBITMAPINFOHEADER;
+<a name="l00922"></a>00922 <span class="preprocessor">#endif</span>
+<a name="l00923"></a>00923 <span class="preprocessor"></span>
+<a name="l00924"></a>00924 <span class="keywordtype">bool</span> Load_FONT_ROM(<span class="keywordtype">void</span>) {
+<a name="l00925"></a>00925     <span class="keywordtype">unsigned</span> <span class="keywordtype">int</span> hibyte,lowbyte,r;
+<a name="l00926"></a>00926     <span class="keywordtype">unsigned</span> <span class="keywordtype">char</span> tmp[256*16]; <span class="comment">// 8x16 256 cells</span>
+<a name="l00927"></a>00927     FILE *fp;
+<a name="l00928"></a>00928 
+<a name="l00929"></a>00929              fp = fopen(<span class="stringliteral">&quot;font.rom&quot;</span>,<span class="stringliteral">&quot;rb&quot;</span>);
+<a name="l00930"></a>00930     <span class="keywordflow">if</span> (!fp) fp = fopen(<span class="stringliteral">&quot;FONT.rom&quot;</span>,<span class="stringliteral">&quot;rb&quot;</span>);
+<a name="l00931"></a>00931     <span class="keywordflow">if</span> (!fp) fp = fopen(<span class="stringliteral">&quot;font.ROM&quot;</span>,<span class="stringliteral">&quot;rb&quot;</span>);
+<a name="l00932"></a>00932     <span class="keywordflow">if</span> (!fp) fp = fopen(<span class="stringliteral">&quot;FONT.ROM&quot;</span>,<span class="stringliteral">&quot;rb&quot;</span>);
+<a name="l00933"></a>00933     <span class="keywordflow">if</span> (!fp) {
+<a name="l00934"></a>00934         LOG_MSG(<span class="stringliteral">&quot;PC-98 font loading: FONT.ROM not found&quot;</span>);
+<a name="l00935"></a>00935         <span class="keywordflow">return</span> <span class="keyword">false</span>;
+<a name="l00936"></a>00936     }
+<a name="l00937"></a>00937 
+<a name="l00938"></a>00938     <span class="comment">// prepare</span>
+<a name="l00939"></a>00939     memset(vga.draw.font,0,<span class="keyword">sizeof</span>(vga.draw.font));
+<a name="l00940"></a>00940 
+<a name="l00941"></a>00941     <span class="comment">/* FONT.ROM is always 288768 bytes large and contains:</span>
+<a name="l00942"></a>00942 <span class="comment">     *</span>
+<a name="l00943"></a>00943 <span class="comment">     * 256      8x8     Single-wide character cells         at      0x00000</span>
+<a name="l00944"></a>00944 <span class="comment">     * 256      8x16    Single-wide character cells         at      0x00800</span>
+<a name="l00945"></a>00945 <span class="comment">     * 96 x 92  16x16   Double-wide character cells         at      0x01800 */</span>
+<a name="l00946"></a>00946     fseek(fp,0,SEEK_END);
+<a name="l00947"></a>00947     <span class="keywordflow">if</span> (ftell(fp) != 288768) {
+<a name="l00948"></a>00948         LOG_MSG(<span class="stringliteral">&quot;PC-98 FONT.ROM is not the correct size&quot;</span>);
+<a name="l00949"></a>00949         <span class="keywordflow">goto</span> fail;
+<a name="l00950"></a>00950     }
+<a name="l00951"></a>00951     fseek(fp,0,SEEK_SET);
+<a name="l00952"></a>00952 
+<a name="l00953"></a>00953     <span class="comment">/* NTS: We do not yet use the 8x8 character set */</span>
+<a name="l00954"></a>00954 
+<a name="l00955"></a>00955     <span class="comment">/* 8x16 single-wide */</span>
+<a name="l00956"></a>00956     fseek(fp,0x800,SEEK_SET);
+<a name="l00957"></a>00957     <span class="keywordflow">if</span> (fread(tmp,256*16,1,fp) != 1) <span class="keywordflow">goto</span> fail;
+<a name="l00958"></a>00958     <span class="keywordflow">for</span> (lowbyte=0;lowbyte &lt; 256;lowbyte++) {
+<a name="l00959"></a>00959         <span class="keywordflow">for</span> (r=0;r &lt; 16;r++) {
+<a name="l00960"></a>00960             vga.draw.font[(lowbyte*16)+r] = tmp[(lowbyte*16)+r];
+<a name="l00961"></a>00961         }
+<a name="l00962"></a>00962     }
+<a name="l00963"></a>00963 
+<a name="l00964"></a>00964     <span class="comment">/* 16x16 double-wide */</span>
+<a name="l00965"></a>00965     assert(<span class="keyword">sizeof</span>(tmp) &gt;= (96 * 16 * 2));
+<a name="l00966"></a>00966     <span class="keywordflow">for</span> (lowbyte=0x01;lowbyte &lt; 0x5D;lowbyte++) {
+<a name="l00967"></a>00967         fseek(fp,<span class="keywordtype">long</span>(0x1800u + ((lowbyte - 0x01u) * 96u * 16u * 2u<span class="comment">/*16 wide*/</span>)),SEEK_SET);
+<a name="l00968"></a>00968         <span class="keywordflow">if</span> (fread(tmp,96 * 16 * 2<span class="comment">/*16 wide*/</span>,1,fp) != 1) <span class="keywordflow">goto</span> fail;
+<a name="l00969"></a>00969 
+<a name="l00970"></a>00970         <span class="keywordflow">for</span> (hibyte=0;hibyte &lt; 96;hibyte++) {
+<a name="l00971"></a>00971             <span class="keywordtype">unsigned</span> <span class="keywordtype">int</span> i;
+<a name="l00972"></a>00972             <span class="keywordtype">unsigned</span> <span class="keywordtype">int</span> o;
+<a name="l00973"></a>00973 
+<a name="l00974"></a>00974             i = hibyte * 16 * 2;
+<a name="l00975"></a>00975             o = (((hibyte + 0x20) * 128) + lowbyte) * 16 * 2;
+<a name="l00976"></a>00976 
+<a name="l00977"></a>00977             <span class="keywordflow">for</span> (r=0;r &lt; 16;r++) {
+<a name="l00978"></a>00978                 vga.draw.font[o+(r*2)  ] = tmp[i+r+0];
+<a name="l00979"></a>00979                 vga.draw.font[o+(r*2)+1] = tmp[i+r+16];
+<a name="l00980"></a>00980             }
+<a name="l00981"></a>00981         }
+<a name="l00982"></a>00982     }
+<a name="l00983"></a>00983 
+<a name="l00984"></a>00984     LOG_MSG(<span class="stringliteral">&quot;FONT.ROM loaded&quot;</span>);
+<a name="l00985"></a>00985     fclose(fp);
+<a name="l00986"></a>00986     <span class="keywordflow">return</span> <span class="keyword">true</span>;
+<a name="l00987"></a>00987 fail:
+<a name="l00988"></a>00988     fclose(fp);
+<a name="l00989"></a>00989     <span class="keywordflow">return</span> <span class="keyword">false</span>;
+<a name="l00990"></a>00990 }
+<a name="l00991"></a>00991 
+<a name="l00992"></a>00992 <span class="comment">/* ANEX86.BMP from the Anex86 emulator.</span>
+<a name="l00993"></a>00993 <span class="comment"> * Holds the font as a giant 2048x2048 1-bit monochromatic bitmap. */</span>
+<a name="l00994"></a>00994 <span class="comment">/* We load it separately because I am uncertain whether it is legal or not to</span>
+<a name="l00995"></a>00995 <span class="comment"> * incorporate this directly into DOSBox-X. */</span>
+<a name="l00996"></a>00996 <span class="keywordtype">bool</span> Load_Anex86_Font(<span class="keywordtype">void</span>) {
+<a name="l00997"></a>00997     <span class="keywordtype">unsigned</span> <span class="keywordtype">char</span> tmp[(2048/8)*16]; <span class="comment">/* enough for one 2048x16 row and bitmap header */</span>
+<a name="l00998"></a>00998     <span class="keywordtype">unsigned</span> <span class="keywordtype">int</span> hibyte,lowbyte,r;
+<a name="l00999"></a>00999     <span class="keywordtype">unsigned</span> <span class="keywordtype">int</span> bmp_ofs;
+<a name="l01000"></a>01000     FILE *fp = NULL;
 <a name="l01001"></a>01001 
-<a name="l01002"></a>01002     <span class="comment">/* FREECG98.BMP free open source generated copy from system fonts */</span>
-<a name="l01003"></a>01003     <span class="keywordflow">if</span> (!fp) fp = fopen(<span class="stringliteral">&quot;freecg98.bmp&quot;</span>,<span class="stringliteral">&quot;rb&quot;</span>);
-<a name="l01004"></a>01004     <span class="keywordflow">if</span> (!fp) fp = fopen(<span class="stringliteral">&quot;FREECG98.bmp&quot;</span>,<span class="stringliteral">&quot;rb&quot;</span>);
-<a name="l01005"></a>01005     <span class="keywordflow">if</span> (!fp) fp = fopen(<span class="stringliteral">&quot;FREECG98.BMP&quot;</span>,<span class="stringliteral">&quot;rb&quot;</span>);
+<a name="l01002"></a>01002     <span class="comment">/* ANEX86.BMP accurate dump of actual font */</span>
+<a name="l01003"></a>01003     fp = fopen(<span class="stringliteral">&quot;anex86.bmp&quot;</span>,<span class="stringliteral">&quot;rb&quot;</span>);
+<a name="l01004"></a>01004     <span class="keywordflow">if</span> (!fp) fp = fopen(<span class="stringliteral">&quot;ANEX86.bmp&quot;</span>,<span class="stringliteral">&quot;rb&quot;</span>);
+<a name="l01005"></a>01005     <span class="keywordflow">if</span> (!fp) fp = fopen(<span class="stringliteral">&quot;ANEX86.BMP&quot;</span>,<span class="stringliteral">&quot;rb&quot;</span>);
 <a name="l01006"></a>01006 
-<a name="l01007"></a>01007     <span class="comment">/* Linux builds allow FREECG98.BMP in /usr/share/dosbox-x */</span>
-<a name="l01008"></a>01008     <span class="comment">/* Mac OS X builds carry FREECG98.BMP in the Resources subdirectory of the .app bundle */</span>
-<a name="l01009"></a>01009     {
-<a name="l01010"></a>01010         std::string resdir,tmpdir;
+<a name="l01007"></a>01007     <span class="comment">/* FREECG98.BMP free open source generated copy from system fonts */</span>
+<a name="l01008"></a>01008     <span class="keywordflow">if</span> (!fp) fp = fopen(<span class="stringliteral">&quot;freecg98.bmp&quot;</span>,<span class="stringliteral">&quot;rb&quot;</span>);
+<a name="l01009"></a>01009     <span class="keywordflow">if</span> (!fp) fp = fopen(<span class="stringliteral">&quot;FREECG98.bmp&quot;</span>,<span class="stringliteral">&quot;rb&quot;</span>);
+<a name="l01010"></a>01010     <span class="keywordflow">if</span> (!fp) fp = fopen(<span class="stringliteral">&quot;FREECG98.BMP&quot;</span>,<span class="stringliteral">&quot;rb&quot;</span>);
 <a name="l01011"></a>01011 
-<a name="l01012"></a>01012         Cross::GetPlatformResDir(resdir);
-<a name="l01013"></a>01013         <span class="keywordflow">if</span> (!resdir.empty()) {
-<a name="l01014"></a>01014             <span class="comment">/* FREECG98.BMP free open source generated copy from system fonts */</span>
-<a name="l01015"></a>01015             <span class="keywordflow">if</span> (!fp) {
-<a name="l01016"></a>01016                 tmpdir = resdir + <span class="stringliteral">&quot;freecg98.bmp&quot;</span>;
-<a name="l01017"></a>01017                 fp = fopen(tmpdir.c_str(),<span class="stringliteral">&quot;rb&quot;</span>);
-<a name="l01018"></a>01018             }
-<a name="l01019"></a>01019             <span class="keywordflow">if</span> (!fp) {
-<a name="l01020"></a>01020                 tmpdir = resdir + <span class="stringliteral">&quot;FREECG98.BMP&quot;</span>;
-<a name="l01021"></a>01021                 fp = fopen(tmpdir.c_str(),<span class="stringliteral">&quot;rb&quot;</span>);
-<a name="l01022"></a>01022             }
-<a name="l01023"></a>01023         }
-<a name="l01024"></a>01024     }
-<a name="l01025"></a>01025 
-<a name="l01026"></a>01026     <span class="keywordflow">if</span> (!fp) {
-<a name="l01027"></a>01027         LOG_MSG(<span class="stringliteral">&quot;PC-98 font loading: neither ANEX86.BMP nor FREECG98.BMP found&quot;</span>);
-<a name="l01028"></a>01028         <span class="keywordflow">return</span> <span class="keyword">false</span>;
+<a name="l01012"></a>01012     <span class="comment">/* Linux builds allow FREECG98.BMP in /usr/share/dosbox-x */</span>
+<a name="l01013"></a>01013     <span class="comment">/* Mac OS X builds carry FREECG98.BMP in the Resources subdirectory of the .app bundle */</span>
+<a name="l01014"></a>01014     {
+<a name="l01015"></a>01015         std::string resdir,tmpdir;
+<a name="l01016"></a>01016 
+<a name="l01017"></a>01017         Cross::GetPlatformResDir(resdir);
+<a name="l01018"></a>01018         <span class="keywordflow">if</span> (!resdir.empty()) {
+<a name="l01019"></a>01019             <span class="comment">/* FREECG98.BMP free open source generated copy from system fonts */</span>
+<a name="l01020"></a>01020             <span class="keywordflow">if</span> (!fp) {
+<a name="l01021"></a>01021                 tmpdir = resdir + <span class="stringliteral">&quot;freecg98.bmp&quot;</span>;
+<a name="l01022"></a>01022                 fp = fopen(tmpdir.c_str(),<span class="stringliteral">&quot;rb&quot;</span>);
+<a name="l01023"></a>01023             }
+<a name="l01024"></a>01024             <span class="keywordflow">if</span> (!fp) {
+<a name="l01025"></a>01025                 tmpdir = resdir + <span class="stringliteral">&quot;FREECG98.BMP&quot;</span>;
+<a name="l01026"></a>01026                 fp = fopen(tmpdir.c_str(),<span class="stringliteral">&quot;rb&quot;</span>);
+<a name="l01027"></a>01027             }
+<a name="l01028"></a>01028         }
 <a name="l01029"></a>01029     }
 <a name="l01030"></a>01030 
-<a name="l01031"></a>01031     <span class="keywordflow">if</span> (fread(tmp,14,1,fp) != 1) <span class="keywordflow">goto</span> fail; <span class="comment">// BITMAPFILEHEADER</span>
-<a name="l01032"></a>01032     <span class="keywordflow">if</span> (memcmp(tmp,<span class="stringliteral">&quot;BM&quot;</span>,2) != 0) <span class="keywordflow">goto</span> fail; <span class="comment">// must be &quot;BM&quot;</span>
-<a name="l01033"></a>01033     bmp_ofs = host_readd((HostPt)(tmp+10)); <span class="comment">// bOffBits</span>
-<a name="l01034"></a>01034 
-<a name="l01035"></a>01035     <span class="keywordflow">if</span> (fread(tmp,40,1,fp) != 1) <span class="keywordflow">goto</span> fail; <span class="comment">// BITMAPINFOHEADER</span>
-<a name="l01036"></a>01036     <span class="keywordflow">if</span> (host_readd((HostPt)(tmp+0)) != 40) <span class="keywordflow">goto</span> fail; <span class="comment">// biSize == 40 or else</span>
-<a name="l01037"></a>01037     <span class="keywordflow">if</span> (host_readd((HostPt)(tmp+4)) != 2048) <span class="keywordflow">goto</span> fail; <span class="comment">// biWidth == 2048 or else</span>
-<a name="l01038"></a>01038     <span class="keywordflow">if</span> (host_readd((HostPt)(tmp+8)) != 2048) <span class="keywordflow">goto</span> fail; <span class="comment">// biHeight == 2048 or else</span>
-<a name="l01039"></a>01039     <span class="keywordflow">if</span> (host_readw((HostPt)(tmp+12)) != 1) <span class="keywordflow">goto</span> fail; <span class="comment">// biPlanes == 1 or else</span>
-<a name="l01040"></a>01040     <span class="keywordflow">if</span> (host_readw((HostPt)(tmp+14)) != 1) <span class="keywordflow">goto</span> fail; <span class="comment">// biBitCount == 1 or else</span>
-<a name="l01041"></a>01041     <span class="keywordflow">if</span> (host_readd((HostPt)(tmp+16)) != 0) <span class="keywordflow">goto</span> fail; <span class="comment">// biCompression == 0 or else</span>
-<a name="l01042"></a>01042 
-<a name="l01043"></a>01043     <span class="comment">/* first row is 8x16 single width */</span>
-<a name="l01044"></a>01044     fseek(fp,<span class="keywordtype">long</span>(bmp_ofs+((2048u-16u)*(2048u/8u))),SEEK_SET); <span class="comment">/* arrrgh bitmaps are upside-down */</span>
-<a name="l01045"></a>01045     <span class="keywordflow">if</span> (fread(tmp,(2048/8)*16,1,fp) != 1) <span class="keywordflow">goto</span> fail;
-<a name="l01046"></a>01046     <span class="keywordflow">for</span> (lowbyte=0;lowbyte &lt; 256;lowbyte++) {
-<a name="l01047"></a>01047         <span class="keywordflow">for</span> (r=0;r &lt; 16;r++) {
-<a name="l01048"></a>01048             vga.draw.font[(lowbyte*16)+r] = tmp[lowbyte+((15-r<span class="comment">/*upside-down!*/</span>)*(2048/8))] ^ 0xFF<span class="comment">/*ANEX86 has inverse color scheme*/</span>;
-<a name="l01049"></a>01049         }
-<a name="l01050"></a>01050     }
-<a name="l01051"></a>01051     <span class="comment">/* everything after is 16x16 fullwidth.</span>
-<a name="l01052"></a>01052 <span class="comment">     * note: 2048 / 16 = 128 */</span>
-<a name="l01053"></a>01053     <span class="keywordflow">for</span> (hibyte=1;hibyte &lt; 128;hibyte++) {
-<a name="l01054"></a>01054         fseek(fp,<span class="keywordtype">long</span>(bmp_ofs+((2048u-(16u*hibyte)-16u)*(2048u/8u))),SEEK_SET); <span class="comment">/* arrrgh bitmaps are upside-down */</span>
-<a name="l01055"></a>01055         <span class="keywordflow">if</span> (fread(tmp,(2048/8)*16,1,fp) != 1) <span class="keywordflow">goto</span> fail;
-<a name="l01056"></a>01056 
-<a name="l01057"></a>01057         <span class="keywordflow">for</span> (lowbyte=0;lowbyte &lt; 128;lowbyte++) {
-<a name="l01058"></a>01058             <span class="keywordflow">for</span> (r=0;r &lt; 16;r++) {
-<a name="l01059"></a>01059                 <span class="keywordtype">unsigned</span> <span class="keywordtype">int</span> i;
-<a name="l01060"></a>01060                 <span class="keywordtype">unsigned</span> <span class="keywordtype">int</span> o;
+<a name="l01031"></a>01031     <span class="keywordflow">if</span> (!fp) {
+<a name="l01032"></a>01032         LOG_MSG(<span class="stringliteral">&quot;PC-98 font loading: neither ANEX86.BMP nor FREECG98.BMP found&quot;</span>);
+<a name="l01033"></a>01033         <span class="keywordflow">return</span> <span class="keyword">false</span>;
+<a name="l01034"></a>01034     }
+<a name="l01035"></a>01035 
+<a name="l01036"></a>01036     <span class="keywordflow">if</span> (fread(tmp,14,1,fp) != 1) <span class="keywordflow">goto</span> fail; <span class="comment">// BITMAPFILEHEADER</span>
+<a name="l01037"></a>01037     <span class="keywordflow">if</span> (memcmp(tmp,<span class="stringliteral">&quot;BM&quot;</span>,2) != 0) <span class="keywordflow">goto</span> fail; <span class="comment">// must be &quot;BM&quot;</span>
+<a name="l01038"></a>01038     bmp_ofs = host_readd((HostPt)(tmp+10)); <span class="comment">// bOffBits</span>
+<a name="l01039"></a>01039 
+<a name="l01040"></a>01040     <span class="keywordflow">if</span> (fread(tmp,40,1,fp) != 1) <span class="keywordflow">goto</span> fail; <span class="comment">// BITMAPINFOHEADER</span>
+<a name="l01041"></a>01041     <span class="keywordflow">if</span> (host_readd((HostPt)(tmp+0)) != 40) <span class="keywordflow">goto</span> fail; <span class="comment">// biSize == 40 or else</span>
+<a name="l01042"></a>01042     <span class="keywordflow">if</span> (host_readd((HostPt)(tmp+4)) != 2048) <span class="keywordflow">goto</span> fail; <span class="comment">// biWidth == 2048 or else</span>
+<a name="l01043"></a>01043     <span class="keywordflow">if</span> (host_readd((HostPt)(tmp+8)) != 2048) <span class="keywordflow">goto</span> fail; <span class="comment">// biHeight == 2048 or else</span>
+<a name="l01044"></a>01044     <span class="keywordflow">if</span> (host_readw((HostPt)(tmp+12)) != 1) <span class="keywordflow">goto</span> fail; <span class="comment">// biPlanes == 1 or else</span>
+<a name="l01045"></a>01045     <span class="keywordflow">if</span> (host_readw((HostPt)(tmp+14)) != 1) <span class="keywordflow">goto</span> fail; <span class="comment">// biBitCount == 1 or else</span>
+<a name="l01046"></a>01046     <span class="keywordflow">if</span> (host_readd((HostPt)(tmp+16)) != 0) <span class="keywordflow">goto</span> fail; <span class="comment">// biCompression == 0 or else</span>
+<a name="l01047"></a>01047 
+<a name="l01048"></a>01048     <span class="comment">/* first row is 8x16 single width */</span>
+<a name="l01049"></a>01049     fseek(fp,<span class="keywordtype">long</span>(bmp_ofs+((2048u-16u)*(2048u/8u))),SEEK_SET); <span class="comment">/* arrrgh bitmaps are upside-down */</span>
+<a name="l01050"></a>01050     <span class="keywordflow">if</span> (fread(tmp,(2048/8)*16,1,fp) != 1) <span class="keywordflow">goto</span> fail;
+<a name="l01051"></a>01051     <span class="keywordflow">for</span> (lowbyte=0;lowbyte &lt; 256;lowbyte++) {
+<a name="l01052"></a>01052         <span class="keywordflow">for</span> (r=0;r &lt; 16;r++) {
+<a name="l01053"></a>01053             vga.draw.font[(lowbyte*16)+r] = tmp[lowbyte+((15-r<span class="comment">/*upside-down!*/</span>)*(2048/8))] ^ 0xFF<span class="comment">/*ANEX86 has inverse color scheme*/</span>;
+<a name="l01054"></a>01054         }
+<a name="l01055"></a>01055     }
+<a name="l01056"></a>01056     <span class="comment">/* everything after is 16x16 fullwidth.</span>
+<a name="l01057"></a>01057 <span class="comment">     * note: 2048 / 16 = 128 */</span>
+<a name="l01058"></a>01058     <span class="keywordflow">for</span> (hibyte=1;hibyte &lt; 128;hibyte++) {
+<a name="l01059"></a>01059         fseek(fp,<span class="keywordtype">long</span>(bmp_ofs+((2048u-(16u*hibyte)-16u)*(2048u/8u))),SEEK_SET); <span class="comment">/* arrrgh bitmaps are upside-down */</span>
+<a name="l01060"></a>01060         <span class="keywordflow">if</span> (fread(tmp,(2048/8)*16,1,fp) != 1) <span class="keywordflow">goto</span> fail;
 <a name="l01061"></a>01061 
-<a name="l01062"></a>01062                 <span class="comment">/* NTS: fullwidth is 16x16 128 chars across.</span>
-<a name="l01063"></a>01063 <span class="comment">                 * each row of the char bitmap is TWO bytes. */</span>
-<a name="l01064"></a>01064                 i = (lowbyte*2)+((15-r<span class="comment">/*upside-down!*/</span>)*(2048/8));
-<a name="l01065"></a>01065                 o = ((((hibyte*128)+lowbyte)*16)+r)*2;
+<a name="l01062"></a>01062         <span class="keywordflow">for</span> (lowbyte=0;lowbyte &lt; 128;lowbyte++) {
+<a name="l01063"></a>01063             <span class="keywordflow">for</span> (r=0;r &lt; 16;r++) {
+<a name="l01064"></a>01064                 <span class="keywordtype">unsigned</span> <span class="keywordtype">int</span> i;
+<a name="l01065"></a>01065                 <span class="keywordtype">unsigned</span> <span class="keywordtype">int</span> o;
 <a name="l01066"></a>01066 
-<a name="l01067"></a>01067                 assert((i+2) &lt;= <span class="keyword">sizeof</span>(tmp));
-<a name="l01068"></a>01068                 assert((o+2) &lt;= <span class="keyword">sizeof</span>(vga.draw.font));
-<a name="l01069"></a>01069 
-<a name="l01070"></a>01070                 vga.draw.font[o+0] = tmp[i+0] ^ 0xFF;
-<a name="l01071"></a>01071                 vga.draw.font[o+1] = tmp[i+1] ^ 0xFF;
-<a name="l01072"></a>01072             }
-<a name="l01073"></a>01073         }
-<a name="l01074"></a>01074     }
-<a name="l01075"></a>01075 
-<a name="l01076"></a>01076     LOG_MSG(<span class="stringliteral">&quot;ANEX86.BMP/FREECG98.BMP font loaded&quot;</span>);
-<a name="l01077"></a>01077     fclose(fp);
-<a name="l01078"></a>01078     <span class="keywordflow">return</span> <span class="keyword">true</span>;
-<a name="l01079"></a>01079 fail:
-<a name="l01080"></a>01080     LOG_MSG(<span class="stringliteral">&quot;ANEX86.BMP/FREECG98.BMP invalid, ignoring&quot;</span>);
-<a name="l01081"></a>01081     fclose(fp);
-<a name="l01082"></a>01082     <span class="keywordflow">return</span> <span class="keyword">false</span>;
-<a name="l01083"></a>01083 }
-<a name="l01084"></a>01084 
-<a name="l01085"></a>01085 <span class="keyword">extern</span> Bit8u int10_font_16[256 * 16];
-<a name="l01086"></a>01086 
-<a name="l01087"></a>01087 <span class="keyword">extern</span> <a class="code" href="structVideoModeBlock.html">VideoModeBlock</a> PC98_Mode;
-<a name="l01088"></a>01088 
-<a name="l01089"></a>01089 <span class="keywordtype">bool</span> Load_VGAFont_As_PC98(<span class="keywordtype">void</span>) {
-<a name="l01090"></a>01090     <span class="keywordtype">unsigned</span> <span class="keywordtype">int</span> i;
+<a name="l01067"></a>01067                 <span class="comment">/* NTS: fullwidth is 16x16 128 chars across.</span>
+<a name="l01068"></a>01068 <span class="comment">                 * each row of the char bitmap is TWO bytes. */</span>
+<a name="l01069"></a>01069                 i = (lowbyte*2)+((15-r<span class="comment">/*upside-down!*/</span>)*(2048/8));
+<a name="l01070"></a>01070                 o = ((((hibyte*128)+lowbyte)*16)+r)*2;
+<a name="l01071"></a>01071 
+<a name="l01072"></a>01072                 assert((i+2) &lt;= <span class="keyword">sizeof</span>(tmp));
+<a name="l01073"></a>01073                 assert((o+2) &lt;= <span class="keyword">sizeof</span>(vga.draw.font));
+<a name="l01074"></a>01074 
+<a name="l01075"></a>01075                 vga.draw.font[o+0] = tmp[i+0] ^ 0xFF;
+<a name="l01076"></a>01076                 vga.draw.font[o+1] = tmp[i+1] ^ 0xFF;
+<a name="l01077"></a>01077             }
+<a name="l01078"></a>01078         }
+<a name="l01079"></a>01079     }
+<a name="l01080"></a>01080 
+<a name="l01081"></a>01081     LOG_MSG(<span class="stringliteral">&quot;ANEX86.BMP/FREECG98.BMP font loaded&quot;</span>);
+<a name="l01082"></a>01082     fclose(fp);
+<a name="l01083"></a>01083     <span class="keywordflow">return</span> <span class="keyword">true</span>;
+<a name="l01084"></a>01084 fail:
+<a name="l01085"></a>01085     LOG_MSG(<span class="stringliteral">&quot;ANEX86.BMP/FREECG98.BMP invalid, ignoring&quot;</span>);
+<a name="l01086"></a>01086     fclose(fp);
+<a name="l01087"></a>01087     <span class="keywordflow">return</span> <span class="keyword">false</span>;
+<a name="l01088"></a>01088 }
+<a name="l01089"></a>01089 
+<a name="l01090"></a>01090 <span class="keyword">extern</span> Bit8u int10_font_16[256 * 16];
 <a name="l01091"></a>01091 
-<a name="l01092"></a>01092     <span class="keywordflow">for</span> (i=0;i &lt; (256 * 16);i++)
-<a name="l01093"></a>01093         vga.draw.font[i] = int10_font_16[i];
-<a name="l01094"></a>01094 
-<a name="l01095"></a>01095     <span class="keywordflow">return</span> <span class="keyword">true</span>;
-<a name="l01096"></a>01096 }
-<a name="l01097"></a>01097 
-<a name="l01098"></a>01098 <span class="keywordtype">void</span> INT10_EnterPC98(<a class="code" href="classSection.html">Section</a> *sec) {
-<a name="l01099"></a>01099     (void)sec;<span class="comment">//UNUSED</span>
-<a name="l01100"></a>01100     <span class="comment">/* deprecated */</span>
+<a name="l01092"></a>01092 <span class="keyword">extern</span> <a class="code" href="structVideoModeBlock.html">VideoModeBlock</a> PC98_Mode;
+<a name="l01093"></a>01093 
+<a name="l01094"></a>01094 <span class="keywordtype">bool</span> Load_VGAFont_As_PC98(<span class="keywordtype">void</span>) {
+<a name="l01095"></a>01095     <span class="keywordtype">unsigned</span> <span class="keywordtype">int</span> i;
+<a name="l01096"></a>01096 
+<a name="l01097"></a>01097     <span class="keywordflow">for</span> (i=0;i &lt; (256 * 16);i++)
+<a name="l01098"></a>01098         vga.draw.font[i] = int10_font_16[i];
+<a name="l01099"></a>01099 
+<a name="l01100"></a>01100     <span class="keywordflow">return</span> <span class="keyword">true</span>;
 <a name="l01101"></a>01101 }
 <a name="l01102"></a>01102 
-<a name="l01103"></a>01103 <span class="keywordtype">void</span> INT10_Startup(<a class="code" href="classSection.html">Section</a> *sec) {
+<a name="l01103"></a>01103 <span class="keywordtype">void</span> INT10_EnterPC98(<a class="code" href="classSection.html">Section</a> *sec) {
 <a name="l01104"></a>01104     (void)sec;<span class="comment">//UNUSED</span>
-<a name="l01105"></a>01105         <a class="code" href="classLOG.html">LOG</a>(LOG_MISC,LOG_DEBUG)(<span class="stringliteral">&quot;INT 10h reinitializing&quot;</span>);
-<a name="l01106"></a>01106 
-<a name="l01107"></a>01107     vesa_zero_on_get_information = <span class="keyword">static_cast&lt;</span><a class="code" href="classSection__prop.html">Section_prop</a> *<span class="keyword">&gt;</span>(control-&gt;GetSection(<span class="stringliteral">&quot;dosbox&quot;</span>))-&gt;Get_bool(<span class="stringliteral">&quot;vesa zero buffer on get information&quot;</span>);
-<a name="l01108"></a>01108     unmask_irq0_on_int10_setmode = <span class="keyword">static_cast&lt;</span><a class="code" href="classSection__prop.html">Section_prop</a> *<span class="keyword">&gt;</span>(control-&gt;GetSection(<span class="stringliteral">&quot;dosbox&quot;</span>))-&gt;Get_bool(<span class="stringliteral">&quot;unmask timer on int 10 setmode&quot;</span>);
-<a name="l01109"></a>01109         int16_unmask_irq1_on_read = <span class="keyword">static_cast&lt;</span><a class="code" href="classSection__prop.html">Section_prop</a> *<span class="keyword">&gt;</span>(control-&gt;GetSection(<span class="stringliteral">&quot;dosbox&quot;</span>))-&gt;Get_bool(<span class="stringliteral">&quot;unmask keyboard on int 16 read&quot;</span>);
-<a name="l01110"></a>01110     int16_ah_01_cf_undoc = <span class="keyword">static_cast&lt;</span><a class="code" href="classSection__prop.html">Section_prop</a> *<span class="keyword">&gt;</span>(control-&gt;GetSection(<span class="stringliteral">&quot;dosbox&quot;</span>))-&gt;Get_bool(<span class="stringliteral">&quot;int16 keyboard polling undocumented cf behavior&quot;</span>);
-<a name="l01111"></a>01111 
-<a name="l01112"></a>01112     <span class="keywordflow">if</span> (!IS_PC98_ARCH) {
-<a name="l01113"></a>01113         INT10_InitVGA();
-<a name="l01114"></a>01114         <span class="keywordflow">if</span> (IS_TANDY_ARCH) SetupTandyBios();
-<a name="l01115"></a>01115         <span class="comment">/* Setup the INT 10 vector */</span>
-<a name="l01116"></a>01116         call_10=CALLBACK_Allocate();    
-<a name="l01117"></a>01117         CALLBACK_Setup(call_10,&amp;INT10_Handler,CB_IRET,<span class="stringliteral">&quot;Int 10 video&quot;</span>);
-<a name="l01118"></a>01118         RealSetVec(0x10,CALLBACK_RealPointer(call_10));
-<a name="l01119"></a>01119         <span class="comment">//Init the 0x40 segment and init the datastructures in the the video rom area</span>
-<a name="l01120"></a>01120         INT10_SetupRomMemory();
-<a name="l01121"></a>01121         INT10_Seg40Init();
-<a name="l01122"></a>01122         INT10_SetupBasicVideoParameterTable();
-<a name="l01123"></a>01123 
-<a name="l01124"></a>01124         <a class="code" href="classLOG.html">LOG</a>(LOG_MISC,LOG_DEBUG)(<span class="stringliteral">&quot;INT 10: VGA bios used %d / %d memory&quot;</span>,(int)int10.rom.used,(<span class="keywordtype">int</span>)VGA_BIOS_Size);
-<a name="l01125"></a>01125         <span class="keywordflow">if</span> (int10.rom.used &gt; VGA_BIOS_Size) <span class="comment">/* &lt;- this is fatal, it means the Setup() functions scrozzled over the adjacent ROM or RAM area */</span>
-<a name="l01126"></a>01126             E_Exit(<span class="stringliteral">&quot;VGA BIOS size too small %u &gt; %u&quot;</span>,(<span class="keywordtype">unsigned</span> <span class="keywordtype">int</span>)int10.rom.used,(<span class="keywordtype">unsigned</span> <span class="keywordtype">int</span>)VGA_BIOS_Size);
-<a name="l01127"></a>01127 
-<a name="l01128"></a>01128         <span class="comment">/* NTS: Uh, this does seem bass-ackwards... INT 10h making the VGA BIOS appear. Can we refactor this a bit? */</span>
-<a name="l01129"></a>01129         <span class="keywordflow">if</span> (VGA_BIOS_Size &gt; 0) {
-<a name="l01130"></a>01130             <a class="code" href="classLOG.html">LOG</a>(LOG_MISC,LOG_DEBUG)(<span class="stringliteral">&quot;VGA BIOS occupies segment 0x%04x-0x%04x&quot;</span>,(int)VGA_BIOS_SEG,(<span class="keywordtype">int</span>)VGA_BIOS_SEG_END-1);
-<a name="l01131"></a>01131             <span class="keywordflow">if</span> (!MEM_map_ROM_physmem(0xC0000,0xC0000+VGA_BIOS_Size-1))
-<a name="l01132"></a>01132                 <a class="code" href="classLOG.html">LOG</a>(LOG_MISC,LOG_WARN)(<span class="stringliteral">&quot;INT 10 video: unable to map BIOS&quot;</span>);
-<a name="l01133"></a>01133         }
-<a name="l01134"></a>01134         <span class="keywordflow">else</span> {
-<a name="l01135"></a>01135             <a class="code" href="classLOG.html">LOG</a>(LOG_MISC,LOG_DEBUG)(<span class="stringliteral">&quot;Not mapping VGA BIOS&quot;</span>);
-<a name="l01136"></a>01136         }
-<a name="l01137"></a>01137 
-<a name="l01138"></a>01138         INT10_SetVideoMode(0x3);
-<a name="l01139"></a>01139     }
-<a name="l01140"></a>01140     <span class="keywordflow">else</span> {
-<a name="l01141"></a>01141         <span class="comment">/* load PC-98 character ROM data, if possible */</span>
-<a name="l01142"></a>01142         {
-<a name="l01143"></a>01143             <span class="keywordtype">bool</span> ok = <span class="keyword">false</span>;
-<a name="l01144"></a>01144 
-<a name="l01145"></a>01145             <span class="comment">/* We can use FONT.ROM as generated by T98Tools */</span>
-<a name="l01146"></a>01146             <span class="keywordflow">if</span> (!ok) ok = Load_FONT_ROM();
-<a name="l01147"></a>01147             <span class="comment">/* We can use ANEX86.BMP from the Anex86 emulator */</span>
-<a name="l01148"></a>01148             <span class="keywordflow">if</span> (!ok) ok = Load_Anex86_Font();
-<a name="l01149"></a>01149             <span class="comment">/* Failing all else we can just re-use the IBM VGA 8x16 font to show SOMETHING on the screen.</span>
-<a name="l01150"></a>01150 <span class="comment">             * Japanese text will not display properly though. */</span>
-<a name="l01151"></a>01151             <span class="keywordflow">if</span> (!ok) ok = Load_VGAFont_As_PC98();
-<a name="l01152"></a>01152         }
-<a name="l01153"></a>01153 
-<a name="l01154"></a>01154         CurMode = &amp;PC98_Mode;
-<a name="l01155"></a>01155 
-<a name="l01156"></a>01156         <span class="comment">/* FIXME: This belongs in MS-DOS kernel init, because these reside in the CON driver */</span>
-<a name="l01157"></a>01157         <span class="comment">/* Some PC-98 game behavior seems to suggest the BIOS data area stretches all the way from segment 0x40:0x00 to segment 0x7F:0x0F inclusive.</span>
-<a name="l01158"></a>01158 <span class="comment">         * Compare that to IBM PC platform, where segment fills only 0x40:0x00 to 0x50:0x00 inclusive and extra state is held in the &quot;Extended BIOS Data Area&quot;.</span>
-<a name="l01159"></a>01159 <span class="comment">         */</span>
-<a name="l01160"></a>01160 
-<a name="l01161"></a>01161         <span class="comment">/* number of text rows on the screen.</span>
-<a name="l01162"></a>01162 <span class="comment">         * Touhou Project will not clear/format the text layer properly without this variable. */</span>
-<a name="l01163"></a>01163         mem_writeb(0x710,0); <span class="comment">/* cursor position Y coordinate */</span>
-<a name="l01164"></a>01164         mem_writeb(0x711,1); <span class="comment">/* function definition display status flag */</span>
-<a name="l01165"></a>01165         mem_writeb(0x712,25 - 1 - 1); <span class="comment">/* scroll range lower limit (usually 23 when function key row is visible) */</span>
-<a name="l01166"></a>01166         mem_writeb(0x713,1); <span class="comment">/* normal 25 lines */</span>
-<a name="l01167"></a>01167         mem_writeb(0x714,0xE1); <span class="comment">/* content erase attribute */</span>
-<a name="l01168"></a>01168 
-<a name="l01169"></a>01169         mem_writeb(0x719,0x20); <span class="comment">/* content erase character */</span>
-<a name="l01170"></a>01170 
-<a name="l01171"></a>01171         mem_writeb(0x71B,0x01); <span class="comment">/* cursor displayed */</span>
-<a name="l01172"></a>01172         mem_writeb(0x71C,0x00); <span class="comment">/* cursor position X coordinate */</span>
-<a name="l01173"></a>01173         mem_writeb(0x71D,0xE1); <span class="comment">/* content display attribute */</span>
-<a name="l01174"></a>01174         mem_writeb(0x71E,0x00); <span class="comment">/* scroll range upper limit (usually 0) */</span>
-<a name="l01175"></a>01175         mem_writeb(0x71F,0x01); <span class="comment">/* scrolling speed is normal */</span>
-<a name="l01176"></a>01176 
-<a name="l01177"></a>01177         <span class="comment">/* init text RAM */</span>
-<a name="l01178"></a>01178         <span class="keywordflow">for</span> (<span class="keywordtype">unsigned</span> <span class="keywordtype">int</span> i=0;i &lt; 0x1FE0;i += 2) {
-<a name="l01179"></a>01179             mem_writew(0xA0000+i,0);
-<a name="l01180"></a>01180             mem_writeb(0xA2000+i,0xE1);
-<a name="l01181"></a>01181         }
-<a name="l01182"></a>01182         <span class="comment">/* clear graphics RAM */</span>
-<a name="l01183"></a>01183         <span class="keywordflow">for</span> (<span class="keywordtype">unsigned</span> <span class="keywordtype">int</span> i=0;i &lt; 0x8000;i += 2) {
-<a name="l01184"></a>01184             mem_writew(0xA8000+i,0);
-<a name="l01185"></a>01185             mem_writew(0xB0000+i,0);
-<a name="l01186"></a>01186             mem_writew(0xB8000+i,0);
-<a name="l01187"></a>01187             mem_writew(0xE0000+i,0);
-<a name="l01188"></a>01188         }
-<a name="l01189"></a>01189     }
-<a name="l01190"></a>01190 }
-<a name="l01191"></a>01191 
-<a name="l01192"></a>01192 <span class="keywordtype">void</span> INT10_Init() {
-<a name="l01193"></a>01193 }
-<a name="l01194"></a>01194 
+<a name="l01105"></a>01105     <span class="comment">/* deprecated */</span>
+<a name="l01106"></a>01106 }
+<a name="l01107"></a>01107 
+<a name="l01108"></a>01108 RealPt GetSystemBiosINT10Vector(<span class="keywordtype">void</span>) {
+<a name="l01109"></a>01109     <span class="keywordflow">if</span> (call_10 != 0)
+<a name="l01110"></a>01110         <span class="keywordflow">return</span> CALLBACK_RealPointer(call_10);
+<a name="l01111"></a>01111     <span class="keywordflow">else</span>
+<a name="l01112"></a>01112         <span class="keywordflow">return</span> 0;
+<a name="l01113"></a>01113 }
+<a name="l01114"></a>01114 
+<a name="l01115"></a>01115 <span class="keywordtype">void</span> INT10_Startup(<a class="code" href="classSection.html">Section</a> *sec) {
+<a name="l01116"></a>01116     (void)sec;<span class="comment">//UNUSED</span>
+<a name="l01117"></a>01117         <a class="code" href="classLOG.html">LOG</a>(LOG_MISC,LOG_DEBUG)(<span class="stringliteral">&quot;INT 10h reinitializing&quot;</span>);
+<a name="l01118"></a>01118 
+<a name="l01119"></a>01119     vesa_zero_on_get_information = <span class="keyword">static_cast&lt;</span><a class="code" href="classSection__prop.html">Section_prop</a> *<span class="keyword">&gt;</span>(control-&gt;GetSection(<span class="stringliteral">&quot;dosbox&quot;</span>))-&gt;Get_bool(<span class="stringliteral">&quot;vesa zero buffer on get information&quot;</span>);
+<a name="l01120"></a>01120     unmask_irq0_on_int10_setmode = <span class="keyword">static_cast&lt;</span><a class="code" href="classSection__prop.html">Section_prop</a> *<span class="keyword">&gt;</span>(control-&gt;GetSection(<span class="stringliteral">&quot;dosbox&quot;</span>))-&gt;Get_bool(<span class="stringliteral">&quot;unmask timer on int 10 setmode&quot;</span>);
+<a name="l01121"></a>01121         int16_unmask_irq1_on_read = <span class="keyword">static_cast&lt;</span><a class="code" href="classSection__prop.html">Section_prop</a> *<span class="keyword">&gt;</span>(control-&gt;GetSection(<span class="stringliteral">&quot;dosbox&quot;</span>))-&gt;Get_bool(<span class="stringliteral">&quot;unmask keyboard on int 16 read&quot;</span>);
+<a name="l01122"></a>01122     int16_ah_01_cf_undoc = <span class="keyword">static_cast&lt;</span><a class="code" href="classSection__prop.html">Section_prop</a> *<span class="keyword">&gt;</span>(control-&gt;GetSection(<span class="stringliteral">&quot;dosbox&quot;</span>))-&gt;Get_bool(<span class="stringliteral">&quot;int16 keyboard polling undocumented cf behavior&quot;</span>);
+<a name="l01123"></a>01123     int10_vga_bios_vector = <span class="keyword">static_cast&lt;</span><a class="code" href="classSection__prop.html">Section_prop</a> *<span class="keyword">&gt;</span>(control-&gt;GetSection(<span class="stringliteral">&quot;dosbox&quot;</span>))-&gt;Get_bool(<span class="stringliteral">&quot;int 10h points at vga bios&quot;</span>);
+<a name="l01124"></a>01124 
+<a name="l01125"></a>01125     <span class="keywordflow">if</span> (!IS_PC98_ARCH) {
+<a name="l01126"></a>01126         INT10_InitVGA();
+<a name="l01127"></a>01127         <span class="keywordflow">if</span> (IS_TANDY_ARCH) SetupTandyBios();
+<a name="l01128"></a>01128         <span class="comment">/* Setup the INT 10 vector */</span>
+<a name="l01129"></a>01129         call_10=CALLBACK_Allocate();    
+<a name="l01130"></a>01130         CALLBACK_Setup(call_10,&amp;INT10_Handler,CB_IRET,<span class="stringliteral">&quot;Int 10 video&quot;</span>);
+<a name="l01131"></a>01131         RealSetVec(0x10,CALLBACK_RealPointer(call_10));
+<a name="l01132"></a>01132         <span class="comment">//Init the 0x40 segment and init the datastructures in the the video rom area</span>
+<a name="l01133"></a>01133         INT10_SetupRomMemory();
+<a name="l01134"></a>01134         INT10_Seg40Init();
+<a name="l01135"></a>01135         INT10_SetupBasicVideoParameterTable();
+<a name="l01136"></a>01136 
+<a name="l01137"></a>01137         <a class="code" href="classLOG.html">LOG</a>(LOG_MISC,LOG_DEBUG)(<span class="stringliteral">&quot;INT 10: VGA bios used %d / %d memory&quot;</span>,(int)int10.rom.used,(<span class="keywordtype">int</span>)VGA_BIOS_Size);
+<a name="l01138"></a>01138         <span class="keywordflow">if</span> (int10.rom.used &gt; VGA_BIOS_Size) <span class="comment">/* &lt;- this is fatal, it means the Setup() functions scrozzled over the adjacent ROM or RAM area */</span>
+<a name="l01139"></a>01139             E_Exit(<span class="stringliteral">&quot;VGA BIOS size too small %u &gt; %u&quot;</span>,(<span class="keywordtype">unsigned</span> <span class="keywordtype">int</span>)int10.rom.used,(<span class="keywordtype">unsigned</span> <span class="keywordtype">int</span>)VGA_BIOS_Size);
+<a name="l01140"></a>01140 
+<a name="l01141"></a>01141         <span class="comment">/* NTS: Uh, this does seem bass-ackwards... INT 10h making the VGA BIOS appear. Can we refactor this a bit? */</span>
+<a name="l01142"></a>01142         <span class="keywordflow">if</span> (VGA_BIOS_Size &gt; 0) {
+<a name="l01143"></a>01143             <a class="code" href="classLOG.html">LOG</a>(LOG_MISC,LOG_DEBUG)(<span class="stringliteral">&quot;VGA BIOS occupies segment 0x%04x-0x%04x&quot;</span>,(int)VGA_BIOS_SEG,(<span class="keywordtype">int</span>)VGA_BIOS_SEG_END-1);
+<a name="l01144"></a>01144             <span class="keywordflow">if</span> (!MEM_map_ROM_physmem(0xC0000,0xC0000+VGA_BIOS_Size-1))
+<a name="l01145"></a>01145                 <a class="code" href="classLOG.html">LOG</a>(LOG_MISC,LOG_WARN)(<span class="stringliteral">&quot;INT 10 video: unable to map BIOS&quot;</span>);
+<a name="l01146"></a>01146         }
+<a name="l01147"></a>01147         <span class="keywordflow">else</span> {
+<a name="l01148"></a>01148             <a class="code" href="classLOG.html">LOG</a>(LOG_MISC,LOG_DEBUG)(<span class="stringliteral">&quot;Not mapping VGA BIOS&quot;</span>);
+<a name="l01149"></a>01149         }
+<a name="l01150"></a>01150 
+<a name="l01151"></a>01151         INT10_SetVideoMode(0x3);
+<a name="l01152"></a>01152     }
+<a name="l01153"></a>01153     <span class="keywordflow">else</span> {
+<a name="l01154"></a>01154         <span class="comment">/* load PC-98 character ROM data, if possible */</span>
+<a name="l01155"></a>01155         {
+<a name="l01156"></a>01156             <span class="comment">/* We can use FONT.ROM as generated by T98Tools */</span>
+<a name="l01157"></a>01157             <span class="keywordtype">bool</span> ok = Load_FONT_ROM();
+<a name="l01158"></a>01158             <span class="comment">/* We can use ANEX86.BMP from the Anex86 emulator */</span>
+<a name="l01159"></a>01159             <span class="keywordflow">if</span> (!ok) ok = Load_Anex86_Font();
+<a name="l01160"></a>01160             <span class="comment">/* Failing all else we can just re-use the IBM VGA 8x16 font to show SOMETHING on the screen.</span>
+<a name="l01161"></a>01161 <span class="comment">             * Japanese text will not display properly though. */</span>
+<a name="l01162"></a>01162             <span class="keywordflow">if</span> (!ok) ok = Load_VGAFont_As_PC98();
+<a name="l01163"></a>01163         }
+<a name="l01164"></a>01164 
+<a name="l01165"></a>01165         CurMode = &amp;PC98_Mode;
+<a name="l01166"></a>01166 
+<a name="l01167"></a>01167         <span class="comment">/* FIXME: This belongs in MS-DOS kernel init, because these reside in the CON driver */</span>
+<a name="l01168"></a>01168         <span class="comment">/* Some PC-98 game behavior seems to suggest the BIOS data area stretches all the way from segment 0x40:0x00 to segment 0x7F:0x0F inclusive.</span>
+<a name="l01169"></a>01169 <span class="comment">         * Compare that to IBM PC platform, where segment fills only 0x40:0x00 to 0x50:0x00 inclusive and extra state is held in the &quot;Extended BIOS Data Area&quot;.</span>
+<a name="l01170"></a>01170 <span class="comment">         */</span>
+<a name="l01171"></a>01171 
+<a name="l01172"></a>01172         <span class="comment">/* number of text rows on the screen.</span>
+<a name="l01173"></a>01173 <span class="comment">         * Touhou Project will not clear/format the text layer properly without this variable. */</span>
+<a name="l01174"></a>01174         mem_writeb(0x710,0); <span class="comment">/* cursor position Y coordinate */</span>
+<a name="l01175"></a>01175         mem_writeb(0x711,1); <span class="comment">/* function definition display status flag */</span>
+<a name="l01176"></a>01176         mem_writeb(0x712,25 - 1 - 1); <span class="comment">/* scroll range lower limit (usually 23 when function key row is visible) */</span>
+<a name="l01177"></a>01177         mem_writeb(0x713,1); <span class="comment">/* normal 25 lines */</span>
+<a name="l01178"></a>01178         mem_writeb(0x714,0xE1); <span class="comment">/* content erase attribute */</span>
+<a name="l01179"></a>01179 
+<a name="l01180"></a>01180         mem_writeb(0x719,0x20); <span class="comment">/* content erase character */</span>
+<a name="l01181"></a>01181 
+<a name="l01182"></a>01182         mem_writeb(0x71B,0x01); <span class="comment">/* cursor displayed */</span>
+<a name="l01183"></a>01183         mem_writeb(0x71C,0x00); <span class="comment">/* cursor position X coordinate */</span>
+<a name="l01184"></a>01184         mem_writeb(0x71D,0xE1); <span class="comment">/* content display attribute */</span>
+<a name="l01185"></a>01185         mem_writeb(0x71E,0x00); <span class="comment">/* scroll range upper limit (usually 0) */</span>
+<a name="l01186"></a>01186         mem_writeb(0x71F,0x01); <span class="comment">/* scrolling speed is normal */</span>
+<a name="l01187"></a>01187 
+<a name="l01188"></a>01188         <span class="comment">/* init text RAM */</span>
+<a name="l01189"></a>01189         <span class="keywordflow">for</span> (<span class="keywordtype">unsigned</span> <span class="keywordtype">int</span> i=0;i &lt; 0x1FE0;i += 2) {
+<a name="l01190"></a>01190             mem_writew(0xA0000+i,0);
+<a name="l01191"></a>01191             mem_writeb(0xA2000+i,0xE1);
+<a name="l01192"></a>01192         }
+<a name="l01193"></a>01193         <span class="comment">/* clear graphics RAM */</span>
+<a name="l01194"></a>01194         <span class="keywordflow">for</span> (<span class="keywordtype">unsigned</span> <span class="keywordtype">int</span> i=0;i &lt; 0x8000;i += 2) {
+<a name="l01195"></a>01195             mem_writew(0xA8000+i,0);
+<a name="l01196"></a>01196             mem_writew(0xB0000+i,0);
+<a name="l01197"></a>01197             mem_writew(0xB8000+i,0);
+<a name="l01198"></a>01198             mem_writew(0xE0000+i,0);
+<a name="l01199"></a>01199         }
+<a name="l01200"></a>01200     }
+<a name="l01201"></a>01201 }
+<a name="l01202"></a>01202 
+<a name="l01203"></a>01203 <span class="keywordtype">void</span> INT10_Init() {
+<a name="l01204"></a>01204 }
+<a name="l01205"></a>01205 
+<a name="l01206"></a>01206 <span class="comment">//save state support</span>
+<a name="l01207"></a>01207 <span class="keyword">namespace</span>
+<a name="l01208"></a>01208 {
+<a name="l01209"></a>01209 <span class="keyword">class </span>SerializeInt10 : <span class="keyword">public</span> SerializeGlobalPOD
+<a name="l01210"></a>01210 {
+<a name="l01211"></a>01211 <span class="keyword">public</span>:
+<a name="l01212"></a>01212     SerializeInt10() : SerializeGlobalPOD(<span class="stringliteral">&quot;Int10&quot;</span>)
+<a name="l01213"></a>01213     {
+<a name="l01214"></a>01214         registerPOD(int10);
+<a name="l01215"></a>01215         <span class="comment">//registerPOD(CurMode);</span>
+<a name="l01216"></a>01216         <span class="comment">//registerPOD(call_10);</span>
+<a name="l01217"></a>01217         <span class="comment">//registerPOD(warned_ff);</span>
+<a name="l01218"></a>01218     }
+<a name="l01219"></a>01219 
+<a name="l01220"></a>01220          <span class="comment">//   virtual void setBytes(std::istream&amp; stream)</span>
+<a name="l01221"></a>01221     <span class="comment">//{</span>
+<a name="l01222"></a>01222       <span class="comment">//  SerializeGlobalPOD::setBytes(stream);</span>
+<a name="l01223"></a>01223                 <span class="comment">//}</span>
+<a name="l01224"></a>01224 } dummy;
+<a name="l01225"></a>01225 }
 </pre></div></div><!-- contents -->
 
 
 <hr class="footer"/><address class="footer"><small>
-Generated on Tue Oct 1 2019 18:06:28 for DOSBox-X by &#160;<a href="http://www.doxygen.org/index.html">
+Generated on Sun Jul 5 2020 13:11:37 for DOSBox-X by &#160;<a href="http://www.doxygen.org/index.html">
 <img class="footer" src="doxygen.png" alt="doxygen"/>
 </a> 1.8.0
 </small></address>

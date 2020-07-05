@@ -1,0 +1,66 @@
+\hypertarget{structSound__AudioInfo}{\section{Sound\-\_\-\-Audio\-Info Struct Reference}
+\label{structSound__AudioInfo}\index{Sound\-\_\-\-Audio\-Info@{Sound\-\_\-\-Audio\-Info}}
+}
+
+
+Information about an existing sample's format.  
+
+
+
+
+{\ttfamily \#include $<$S\-D\-L\-\_\-sound.\-h$>$}
+
+\subsection*{Public Attributes}
+\begin{DoxyCompactItemize}
+\item 
+Uint16 \hyperlink{structSound__AudioInfo_afc1f02fd774a0e1d35109360496390eb}{format}
+\item 
+Uint8 \hyperlink{structSound__AudioInfo_a2a7fe880d009e698eb0d52cde3ddfc80}{channels}
+\item 
+Uint32 \hyperlink{structSound__AudioInfo_abc8310e37ae527e5d92e675655d944ee}{rate}
+\end{DoxyCompactItemize}
+
+
+\subsection{Detailed Description}
+Information about an existing sample's format. 
+
+These are the basics of a decoded sample's data structure\-: data format (see A\-U\-D\-I\-O\-\_\-\-U8 and friends in S\-D\-L\-\_\-audio.\-h), number of channels, and sample rate. If you need more explanation than that, you should stop developing sound code right now.
+
+\begin{DoxySeeAlso}{See also}
+Sound\-\_\-\-Sample\-New 
+
+Sound\-\_\-\-Sample\-New\-From\-File 
+\end{DoxySeeAlso}
+
+
+Definition at line 113 of file S\-D\-L\-\_\-sound.\-h.
+
+
+
+\subsection{Member Data Documentation}
+\hypertarget{structSound__AudioInfo_a2a7fe880d009e698eb0d52cde3ddfc80}{\index{Sound\-\_\-\-Audio\-Info@{Sound\-\_\-\-Audio\-Info}!channels@{channels}}
+\index{channels@{channels}!Sound_AudioInfo@{Sound\-\_\-\-Audio\-Info}}
+\subsubsection[{channels}]{\setlength{\rightskip}{0pt plus 5cm}Uint8 {\bf Sound\-\_\-\-Audio\-Info\-::channels}}}\label{structSound__AudioInfo_a2a7fe880d009e698eb0d52cde3ddfc80}
+Number of sound channels. 1 == mono, 2 == stereo. 
+
+Definition at line 116 of file S\-D\-L\-\_\-sound.\-h.
+
+\hypertarget{structSound__AudioInfo_afc1f02fd774a0e1d35109360496390eb}{\index{Sound\-\_\-\-Audio\-Info@{Sound\-\_\-\-Audio\-Info}!format@{format}}
+\index{format@{format}!Sound_AudioInfo@{Sound\-\_\-\-Audio\-Info}}
+\subsubsection[{format}]{\setlength{\rightskip}{0pt plus 5cm}Uint16 {\bf Sound\-\_\-\-Audio\-Info\-::format}}}\label{structSound__AudioInfo_afc1f02fd774a0e1d35109360496390eb}
+Equivalent of S\-D\-L\-\_\-\-Audio\-Spec.\-format. 
+
+Definition at line 115 of file S\-D\-L\-\_\-sound.\-h.
+
+\hypertarget{structSound__AudioInfo_abc8310e37ae527e5d92e675655d944ee}{\index{Sound\-\_\-\-Audio\-Info@{Sound\-\_\-\-Audio\-Info}!rate@{rate}}
+\index{rate@{rate}!Sound_AudioInfo@{Sound\-\_\-\-Audio\-Info}}
+\subsubsection[{rate}]{\setlength{\rightskip}{0pt plus 5cm}Uint32 {\bf Sound\-\_\-\-Audio\-Info\-::rate}}}\label{structSound__AudioInfo_abc8310e37ae527e5d92e675655d944ee}
+Sample rate; frequency of sample points per second. 
+
+Definition at line 117 of file S\-D\-L\-\_\-sound.\-h.
+
+
+
+The documentation for this struct was generated from the following file\-:\begin{DoxyCompactItemize}
+\item 
+src/libs/decoders/S\-D\-L\-\_\-sound.\-h\end{DoxyCompactItemize}

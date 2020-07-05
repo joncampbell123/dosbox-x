@@ -128,8 +128,8 @@ static void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" hre
 static void&#160;</td><td class="memItemRight" valign="bottom"><b>check_to</b> (<a class="el" href="namespaceGUI.html#af396fee5d5c26b98218f5803f85e3b65">Ticks</a> <a class="el" href="classGUI_1_1Timer.html#a619f8c17a217a4524de5ba0e2562870e">ticks</a>)</td></tr>
 <tr class="memitem:a98c2196c1df33283c26777acf9aeffee"><td class="memItemLeft" align="right" valign="top">static void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classGUI_1_1Timer.html#a98c2196c1df33283c26777acf9aeffee">add</a> (<a class="el" href="structGUI_1_1Timer__Callback.html">Timer_Callback</a> *cb, const <a class="el" href="namespaceGUI.html#af396fee5d5c26b98218f5803f85e3b65">Ticks</a> <a class="el" href="classGUI_1_1Timer.html#a619f8c17a217a4524de5ba0e2562870e">ticks</a>)</td></tr>
 <tr class="memdesc:a98c2196c1df33283c26777acf9aeffee"><td class="mdescLeft">&#160;</td><td class="mdescRight">Add a timed callback. <code>ticks</code> is a value relative to <a class="el" href="classGUI_1_1Timer.html#aeaf90bbc6251a55bb4f8c839813592bf" title="Return current time (ticks since application start)">now()</a>.  <a href="#a98c2196c1df33283c26777acf9aeffee"></a><br/></td></tr>
-<tr class="memitem:a6897be47e69947908ca681bcc04c949d"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a6897be47e69947908ca681bcc04c949d"></a>
-static void&#160;</td><td class="memItemRight" valign="bottom"><b>remove</b> (const <a class="el" href="structGUI_1_1Timer__Callback.html">Timer_Callback</a> *const cb)</td></tr>
+<tr class="memitem:a3d328496c043ab353b16990270c6adf8"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a3d328496c043ab353b16990270c6adf8"></a>
+static void&#160;</td><td class="memItemRight" valign="bottom"><b>remove</b> (const <a class="el" href="structGUI_1_1Timer__Callback.html">Timer_Callback</a> *const timer)</td></tr>
 <tr class="memitem:aeaf90bbc6251a55bb4f8c839813592bf"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="aeaf90bbc6251a55bb4f8c839813592bf"></a>
 static <a class="el" href="namespaceGUI.html#af396fee5d5c26b98218f5803f85e3b65">Ticks</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classGUI_1_1Timer.html#aeaf90bbc6251a55bb4f8c839813592bf">now</a> ()</td></tr>
 <tr class="memdesc:aeaf90bbc6251a55bb4f8c839813592bf"><td class="mdescLeft">&#160;</td><td class="mdescRight">Return current time (ticks since application start) <br/></td></tr>
@@ -150,7 +150,7 @@ static std::multimap&lt; <a class="el" href="namespaceGUI.html#af396fee5d5c26b98
 <div class="textblock"><p>Timing service. Time is measured in ticks. A tick is about 10 msec. </p>
 <p>Note that this is not suitable as a high-accuracy timing service. <a class="el" href="classGUI_1_1Timer.html" title="Timing service. Time is measured in ticks. A tick is about 10 msec.">Timer</a> events can be off by many ticks, and a tick may be slightly more or slightly less than 10 msec. Because of that, Timers are only intended for simple animation effects, input timeouts and similar things. </p>
 
-<p>Definition at line <a class="el" href="gui__tk_8h_source.html#l00914">914</a> of file <a class="el" href="gui__tk_8h_source.html">gui_tk.h</a>.</p>
+<p>Definition at line <a class="el" href="gui__tk_8h_source.html#l00928">928</a> of file <a class="el" href="gui__tk_8h_source.html">gui_tk.h</a>.</p>
 </div><hr/><h2>Member Function Documentation</h2>
 <a class="anchor" id="a98c2196c1df33283c26777acf9aeffee"></a>
 <div class="memitem">
@@ -180,11 +180,11 @@ static std::multimap&lt; <a class="el" href="namespaceGUI.html#af396fee5d5c26b98
 <p>Add a timed callback. <code>ticks</code> is a value relative to <a class="el" href="classGUI_1_1Timer.html#aeaf90bbc6251a55bb4f8c839813592bf" title="Return current time (ticks since application start)">now()</a>. </p>
 <p><code>cb</code> is not copied. </p>
 
-<p>Definition at line <a class="el" href="gui__tk_8h_source.html#l00934">934</a> of file <a class="el" href="gui__tk_8h_source.html">gui_tk.h</a>.</p>
+<p>Definition at line <a class="el" href="gui__tk_8h_source.html#l00948">948</a> of file <a class="el" href="gui__tk_8h_source.html">gui_tk.h</a>.</p>
 
-<p>References <a class="el" href="gui__tk_8h_source.html#l00917">ticks</a>, and <a class="el" href="gui__tk_8h_source.html#l00925">timers</a>.</p>
+<p>References <a class="el" href="gui__tk_8h_source.html#l00931">ticks</a>, and <a class="el" href="gui__tk_8h_source.html#l00939">timers</a>.</p>
 
-<p>Referenced by <a class="el" href="gui__tk_8cpp_source.html#l00519">check()</a>, and <a class="el" href="gui__tk_8h_source.html#l01660">GUI::Input::Input()</a>.</p>
+<p>Referenced by <a class="el" href="gui__tk_8cpp_source.html#l00519">check()</a>, and <a class="el" href="gui__tk_8h_source.html#l01674">GUI::Input::Input()</a>.</p>
 
 </div>
 </div>
@@ -196,7 +196,7 @@ static std::multimap&lt; <a class="el" href="namespaceGUI.html#af396fee5d5c26b98
 
 
 <hr class="footer"/><address class="footer"><small>
-Generated on Tue Oct 1 2019 18:06:33 for DOSBox-X by &#160;<a href="http://www.doxygen.org/index.html">
+Generated on Sun Jul 5 2020 13:11:43 for DOSBox-X by &#160;<a href="http://www.doxygen.org/index.html">
 <img class="footer" src="doxygen.png" alt="doxygen"/>
 </a> 1.8.0
 </small></address>

@@ -96,7 +96,7 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 </div><!--header-->
 <div class="contents">
 <div class="fragment"><pre class="fragment"><a name="l00001"></a>00001 <span class="comment">/*</span>
-<a name="l00002"></a>00002 <span class="comment"> *  Copyright (C) 2002-2019  The DOSBox Team</span>
+<a name="l00002"></a>00002 <span class="comment"> *  Copyright (C) 2002-2020  The DOSBox Team</span>
 <a name="l00003"></a>00003 <span class="comment"> *</span>
 <a name="l00004"></a>00004 <span class="comment"> *  This program is free software; you can redistribute it and/or modify</span>
 <a name="l00005"></a>00005 <span class="comment"> *  it under the terms of the GNU General Public License as published by</span>
@@ -108,9 +108,9 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l00011"></a>00011 <span class="comment"> *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the</span>
 <a name="l00012"></a>00012 <span class="comment"> *  GNU General Public License for more details.</span>
 <a name="l00013"></a>00013 <span class="comment"> *</span>
-<a name="l00014"></a>00014 <span class="comment"> *  You should have received a copy of the GNU General Public License</span>
-<a name="l00015"></a>00015 <span class="comment"> *  along with this program; if not, write to the Free Software</span>
-<a name="l00016"></a>00016 <span class="comment"> *  Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1335, USA.</span>
+<a name="l00014"></a>00014 <span class="comment"> *  You should have received a copy of the GNU General Public License along</span>
+<a name="l00015"></a>00015 <span class="comment"> *  with this program; if not, write to the Free Software Foundation, Inc.,</span>
+<a name="l00016"></a>00016 <span class="comment"> *  51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.</span>
 <a name="l00017"></a>00017 <span class="comment"> */</span>
 <a name="l00018"></a>00018 
 <a name="l00019"></a>00019 
@@ -247,524 +247,627 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l00150"></a>00150                         <span class="keywordflow">if</span> (!active_count) Release();   <span class="comment">// delay page releasing until active_count is zero</span>
 <a name="l00151"></a>00151                         <span class="keywordflow">return</span>;
 <a name="l00152"></a>00152                 } <span class="keywordflow">else</span> <span class="keywordflow">if</span> (!invalidation_map) {
-<a name="l00153"></a>00153                         invalidation_map=(Bit8u*)malloc(4096);
-<a name="l00154"></a>00154                         memset(invalidation_map,0,4096);
-<a name="l00155"></a>00155                 }
-<a name="l00156"></a>00156                 invalidation_map[addr]++;
-<a name="l00157"></a>00157                 InvalidateRange(addr,addr);
+<a name="l00153"></a>00153             invalidation_map = (Bit8u*)malloc(4096);
+<a name="l00154"></a>00154             <span class="keywordflow">if</span> (invalidation_map != NULL)
+<a name="l00155"></a>00155                 memset(invalidation_map, 0, 4096);
+<a name="l00156"></a>00156             <span class="keywordflow">else</span>
+<a name="l00157"></a>00157                 E_Exit(<span class="stringliteral">&quot;Memory allocation failed in writeb&quot;</span>);
 <a name="l00158"></a>00158         }
-<a name="l00159"></a>00159         <span class="keywordtype">void</span> writew(PhysPt addr,Bit16u val){
-<a name="l00160"></a>00160                 addr&amp;=4095;
-<a name="l00161"></a>00161                 <span class="keywordflow">if</span> (host_readw(hostmem+addr)==val) <span class="keywordflow">return</span>;
-<a name="l00162"></a>00162                 host_writew(hostmem+addr,val);
-<a name="l00163"></a>00163                 <span class="comment">// see if there&#39;s code where we are writing to</span>
-<a name="l00164"></a>00164                 <span class="keywordflow">if</span> (!host_readw(&amp;write_map[addr])) {
-<a name="l00165"></a>00165                         <span class="keywordflow">if</span> (active_blocks) <span class="keywordflow">return</span>;              <span class="comment">// still some blocks in this page</span>
-<a name="l00166"></a>00166                         active_count--;
-<a name="l00167"></a>00167                         <span class="keywordflow">if</span> (!active_count) Release();   <span class="comment">// delay page releasing until active_count is zero</span>
-<a name="l00168"></a>00168                         <span class="keywordflow">return</span>;
-<a name="l00169"></a>00169                 } <span class="keywordflow">else</span> <span class="keywordflow">if</span> (!invalidation_map) {
-<a name="l00170"></a>00170                         invalidation_map=(Bit8u*)malloc(4096);
-<a name="l00171"></a>00171                         memset(invalidation_map,0,4096);
-<a name="l00172"></a>00172                 }
-<a name="l00173"></a>00173 <span class="preprocessor">#if defined(WORDS_BIGENDIAN) || !defined(C_UNALIGNED_MEMORY)</span>
-<a name="l00174"></a>00174 <span class="preprocessor"></span>                host_writew(&amp;invalidation_map[addr],
-<a name="l00175"></a>00175                         host_readw(&amp;invalidation_map[addr])+0x101);
-<a name="l00176"></a>00176 <span class="preprocessor">#else</span>
-<a name="l00177"></a>00177 <span class="preprocessor"></span>                (*(Bit16u*)&amp;invalidation_map[addr])+=0x101;
-<a name="l00178"></a>00178 <span class="preprocessor">#endif</span>
-<a name="l00179"></a>00179 <span class="preprocessor"></span>                InvalidateRange(addr,addr+(Bitu)1);
-<a name="l00180"></a>00180         }
-<a name="l00181"></a>00181         <span class="keywordtype">void</span> writed(PhysPt addr,Bit32u val){
-<a name="l00182"></a>00182                 addr&amp;=4095;
-<a name="l00183"></a>00183                 <span class="keywordflow">if</span> (host_readd(hostmem+addr)==val) <span class="keywordflow">return</span>;
-<a name="l00184"></a>00184                 host_writed(hostmem+addr,val);
-<a name="l00185"></a>00185                 <span class="comment">// see if there&#39;s code where we are writing to</span>
-<a name="l00186"></a>00186                 <span class="keywordflow">if</span> (!host_readd(&amp;write_map[addr])) {
-<a name="l00187"></a>00187                         <span class="keywordflow">if</span> (active_blocks) <span class="keywordflow">return</span>;              <span class="comment">// still some blocks in this page</span>
-<a name="l00188"></a>00188                         active_count--;
-<a name="l00189"></a>00189                         <span class="keywordflow">if</span> (!active_count) Release();   <span class="comment">// delay page releasing until active_count is zero</span>
-<a name="l00190"></a>00190                         <span class="keywordflow">return</span>;
-<a name="l00191"></a>00191                 } <span class="keywordflow">else</span> <span class="keywordflow">if</span> (!invalidation_map) {
-<a name="l00192"></a>00192                         invalidation_map=(Bit8u*)malloc(4096);
-<a name="l00193"></a>00193                         memset(invalidation_map,0,4096);
-<a name="l00194"></a>00194                 }
-<a name="l00195"></a>00195 <span class="preprocessor">#if defined(WORDS_BIGENDIAN) || !defined(C_UNALIGNED_MEMORY)</span>
-<a name="l00196"></a>00196 <span class="preprocessor"></span>                host_writed(&amp;invalidation_map[addr],
-<a name="l00197"></a>00197                         host_readd(&amp;invalidation_map[addr])+0x1010101);
-<a name="l00198"></a>00198 <span class="preprocessor">#else</span>
-<a name="l00199"></a>00199 <span class="preprocessor"></span>                (*(Bit32u*)&amp;invalidation_map[addr])+=0x1010101;
-<a name="l00200"></a>00200 <span class="preprocessor">#endif</span>
-<a name="l00201"></a>00201 <span class="preprocessor"></span>                InvalidateRange(addr,addr+(Bitu)3);
-<a name="l00202"></a>00202         }
-<a name="l00203"></a>00203         <span class="keywordtype">bool</span> writeb_checked(PhysPt addr,Bit8u val) {
-<a name="l00204"></a>00204                 addr&amp;=4095;
-<a name="l00205"></a>00205                 <span class="keywordflow">if</span> (host_readb(hostmem+addr)==val) <span class="keywordflow">return</span> <span class="keyword">false</span>;
-<a name="l00206"></a>00206                 <span class="comment">// see if there&#39;s code where we are writing to</span>
-<a name="l00207"></a>00207                 <span class="keywordflow">if</span> (!host_readb(&amp;write_map[addr])) {
-<a name="l00208"></a>00208                         <span class="keywordflow">if</span> (!active_blocks) {
-<a name="l00209"></a>00209                                 <span class="comment">// no blocks left in this page, still delay the page releasing a bit</span>
-<a name="l00210"></a>00210                                 active_count--;
-<a name="l00211"></a>00211                                 <span class="keywordflow">if</span> (!active_count) Release();
-<a name="l00212"></a>00212                         }
-<a name="l00213"></a>00213                 } <span class="keywordflow">else</span> {
-<a name="l00214"></a>00214                         <span class="keywordflow">if</span> (!invalidation_map) {
-<a name="l00215"></a>00215                                 invalidation_map=(Bit8u*)malloc(4096);
-<a name="l00216"></a>00216                                 memset(invalidation_map,0,4096);
-<a name="l00217"></a>00217                         }
-<a name="l00218"></a>00218                         invalidation_map[addr]++;
-<a name="l00219"></a>00219                         <span class="keywordflow">if</span> (InvalidateRange(addr,addr)) {
-<a name="l00220"></a>00220                                 cpu.exception.which=SMC_CURRENT_BLOCK;
-<a name="l00221"></a>00221                                 <span class="keywordflow">return</span> <span class="keyword">true</span>;
-<a name="l00222"></a>00222                         }
-<a name="l00223"></a>00223                 }
-<a name="l00224"></a>00224                 host_writeb(hostmem+addr,val);
-<a name="l00225"></a>00225                 <span class="keywordflow">return</span> <span class="keyword">false</span>;
-<a name="l00226"></a>00226         }
-<a name="l00227"></a>00227         <span class="keywordtype">bool</span> writew_checked(PhysPt addr,Bit16u val) {
-<a name="l00228"></a>00228                 addr&amp;=4095;
-<a name="l00229"></a>00229                 <span class="keywordflow">if</span> (host_readw(hostmem+addr)==val) <span class="keywordflow">return</span> <span class="keyword">false</span>;
-<a name="l00230"></a>00230                 <span class="comment">// see if there&#39;s code where we are writing to</span>
-<a name="l00231"></a>00231                 <span class="keywordflow">if</span> (!host_readw(&amp;write_map[addr])) {
-<a name="l00232"></a>00232                         <span class="keywordflow">if</span> (!active_blocks) {
-<a name="l00233"></a>00233                                 <span class="comment">// no blocks left in this page, still delay the page releasing a bit</span>
-<a name="l00234"></a>00234                                 active_count--;
-<a name="l00235"></a>00235                                 <span class="keywordflow">if</span> (!active_count) Release();
-<a name="l00236"></a>00236                         }
-<a name="l00237"></a>00237                 } <span class="keywordflow">else</span> {
-<a name="l00238"></a>00238                         <span class="keywordflow">if</span> (!invalidation_map) {
-<a name="l00239"></a>00239                                 invalidation_map=(Bit8u*)malloc(4096);
-<a name="l00240"></a>00240                                 memset(invalidation_map,0,4096);
-<a name="l00241"></a>00241                         }
-<a name="l00242"></a>00242 <span class="preprocessor">#if defined(WORDS_BIGENDIAN) || !defined(C_UNALIGNED_MEMORY)</span>
-<a name="l00243"></a>00243 <span class="preprocessor"></span>                        host_writew(&amp;invalidation_map[addr],
-<a name="l00244"></a>00244                                 host_readw(&amp;invalidation_map[addr])+0x101);
-<a name="l00245"></a>00245 <span class="preprocessor">#else</span>
-<a name="l00246"></a>00246 <span class="preprocessor"></span>                        (*(Bit16u*)&amp;invalidation_map[addr])+=0x101;
-<a name="l00247"></a>00247 <span class="preprocessor">#endif</span>
-<a name="l00248"></a>00248 <span class="preprocessor"></span>                        <span class="keywordflow">if</span> (InvalidateRange(addr,addr+(Bitu)1)) {
-<a name="l00249"></a>00249                                 cpu.exception.which=SMC_CURRENT_BLOCK;
-<a name="l00250"></a>00250                                 <span class="keywordflow">return</span> <span class="keyword">true</span>;
-<a name="l00251"></a>00251                         }
-<a name="l00252"></a>00252                 }
-<a name="l00253"></a>00253                 host_writew(hostmem+addr,val);
-<a name="l00254"></a>00254                 <span class="keywordflow">return</span> <span class="keyword">false</span>;
-<a name="l00255"></a>00255         }
-<a name="l00256"></a>00256         <span class="keywordtype">bool</span> writed_checked(PhysPt addr,Bit32u val) {
-<a name="l00257"></a>00257                 addr&amp;=4095;
-<a name="l00258"></a>00258                 <span class="keywordflow">if</span> (host_readd(hostmem+addr)==val) <span class="keywordflow">return</span> <span class="keyword">false</span>;
-<a name="l00259"></a>00259                 <span class="comment">// see if there&#39;s code where we are writing to</span>
-<a name="l00260"></a>00260                 <span class="keywordflow">if</span> (!host_readd(&amp;write_map[addr])) {
-<a name="l00261"></a>00261                         <span class="keywordflow">if</span> (!active_blocks) {
-<a name="l00262"></a>00262                                 <span class="comment">// no blocks left in this page, still delay the page releasing a bit</span>
-<a name="l00263"></a>00263                                 active_count--;
-<a name="l00264"></a>00264                                 <span class="keywordflow">if</span> (!active_count) Release();
-<a name="l00265"></a>00265                         }
-<a name="l00266"></a>00266                 } <span class="keywordflow">else</span> {
-<a name="l00267"></a>00267                         <span class="keywordflow">if</span> (!invalidation_map) {
-<a name="l00268"></a>00268                                 invalidation_map=(Bit8u*)malloc(4096);
-<a name="l00269"></a>00269                                 memset(invalidation_map,0,4096);
-<a name="l00270"></a>00270                         }
-<a name="l00271"></a>00271 <span class="preprocessor">#if defined(WORDS_BIGENDIAN) || !defined(C_UNALIGNED_MEMORY)</span>
-<a name="l00272"></a>00272 <span class="preprocessor"></span>                        host_writed(&amp;invalidation_map[addr],
-<a name="l00273"></a>00273                                 host_readd(&amp;invalidation_map[addr])+0x1010101);
-<a name="l00274"></a>00274 <span class="preprocessor">#else</span>
-<a name="l00275"></a>00275 <span class="preprocessor"></span>                        (*(Bit32u*)&amp;invalidation_map[addr])+=0x1010101;
-<a name="l00276"></a>00276 <span class="preprocessor">#endif</span>
-<a name="l00277"></a>00277 <span class="preprocessor"></span>                        <span class="keywordflow">if</span> (InvalidateRange(addr,addr+(Bitu)3)) {
-<a name="l00278"></a>00278                                 cpu.exception.which=SMC_CURRENT_BLOCK;
-<a name="l00279"></a>00279                                 <span class="keywordflow">return</span> <span class="keyword">true</span>;
-<a name="l00280"></a>00280                         }
-<a name="l00281"></a>00281                 }
-<a name="l00282"></a>00282                 host_writed(hostmem+addr,val);
-<a name="l00283"></a>00283                 <span class="keywordflow">return</span> <span class="keyword">false</span>;
-<a name="l00284"></a>00284         }
-<a name="l00285"></a>00285 
-<a name="l00286"></a>00286     <span class="comment">// add a cache block to this page and note it in the hash map</span>
-<a name="l00287"></a>00287         <span class="keywordtype">void</span> AddCacheBlock(<a class="code" href="classCacheBlockDynRec.html">CacheBlockDynRec</a> * block) {
-<a name="l00288"></a>00288                 Bitu index=1u+(Bitu)(block-&gt;page.start&gt;&gt;(Bit16u)DYN_HASH_SHIFT);
-<a name="l00289"></a>00289                 block-&gt;hash.next=hash_map[index];       <span class="comment">// link to old block at index from the new block</span>
-<a name="l00290"></a>00290                 block-&gt;hash.index=index;
-<a name="l00291"></a>00291                 hash_map[index]=block;                          <span class="comment">// put new block at hash position</span>
-<a name="l00292"></a>00292                 block-&gt;page.handler=<span class="keyword">this</span>;
-<a name="l00293"></a>00293                 active_blocks++;
-<a name="l00294"></a>00294         }
-<a name="l00295"></a>00295         <span class="comment">// there&#39;s a block whose code started in a different page</span>
-<a name="l00296"></a>00296     <span class="keywordtype">void</span> AddCrossBlock(<a class="code" href="classCacheBlockDynRec.html">CacheBlockDynRec</a> * block) {
-<a name="l00297"></a>00297                 block-&gt;hash.next=hash_map[0];
-<a name="l00298"></a>00298                 block-&gt;hash.index=0;
-<a name="l00299"></a>00299                 hash_map[0]=block;
-<a name="l00300"></a>00300                 block-&gt;page.handler=<span class="keyword">this</span>;
-<a name="l00301"></a>00301                 active_blocks++;
-<a name="l00302"></a>00302         }
-<a name="l00303"></a>00303         <span class="comment">// remove a cache block</span>
-<a name="l00304"></a>00304         <span class="keywordtype">void</span> DelCacheBlock(<a class="code" href="classCacheBlockDynRec.html">CacheBlockDynRec</a> * block) {
-<a name="l00305"></a>00305                 active_blocks--;
-<a name="l00306"></a>00306                 active_count=16;
-<a name="l00307"></a>00307                 <a class="code" href="classCacheBlockDynRec.html">CacheBlockDynRec</a> * * bwhere=&amp;hash_map[block-&gt;hash.index];
-<a name="l00308"></a>00308                 <span class="keywordflow">while</span> (*bwhere!=block) {
-<a name="l00309"></a>00309                         bwhere=&amp;((*bwhere)-&gt;hash.next);
-<a name="l00310"></a>00310                         <span class="comment">//Will crash if a block isn&#39;t found, which should never happen.</span>
-<a name="l00311"></a>00311                 }
-<a name="l00312"></a>00312                 *bwhere=block-&gt;hash.next;
-<a name="l00313"></a>00313 
-<a name="l00314"></a>00314                 <span class="comment">// remove the cleared block from the write map</span>
-<a name="l00315"></a>00315                 <span class="keywordflow">if</span> (GCC_UNLIKELY(block-&gt;cache.wmapmask!=NULL)) {
-<a name="l00316"></a>00316                         <span class="comment">// first part is not influenced by the mask</span>
-<a name="l00317"></a>00317                         <span class="keywordflow">for</span> (Bitu i=block-&gt;page.start;i&lt;block-&gt;cache.maskstart;i++) {
-<a name="l00318"></a>00318                                 <span class="keywordflow">if</span> (write_map[i]) write_map[i]--;
-<a name="l00319"></a>00319                         }
-<a name="l00320"></a>00320                         Bitu maskct=0;
-<a name="l00321"></a>00321                         <span class="comment">// last part sticks to the writemap mask</span>
-<a name="l00322"></a>00322                         <span class="keywordflow">for</span> (Bitu i=block-&gt;cache.maskstart;i&lt;=block-&gt;page.end;i++,maskct++) {
-<a name="l00323"></a>00323                                 <span class="keywordflow">if</span> (write_map[i]) {
-<a name="l00324"></a>00324                                         <span class="comment">// only adjust writemap if it isn&#39;t masked</span>
-<a name="l00325"></a>00325                                         <span class="keywordflow">if</span> ((maskct&gt;=block-&gt;cache.masklen) || (!block-&gt;cache.wmapmask[maskct])) write_map[i]--;
-<a name="l00326"></a>00326                                 }
-<a name="l00327"></a>00327                         }
-<a name="l00328"></a>00328                         free(block-&gt;cache.wmapmask);
-<a name="l00329"></a>00329                         block-&gt;cache.wmapmask=NULL;
-<a name="l00330"></a>00330                 } <span class="keywordflow">else</span> {
-<a name="l00331"></a>00331                         <span class="keywordflow">for</span> (Bitu i=block-&gt;page.start;i&lt;=block-&gt;page.end;i++) {
-<a name="l00332"></a>00332                                 <span class="keywordflow">if</span> (write_map[i]) write_map[i]--;
-<a name="l00333"></a>00333                         }
-<a name="l00334"></a>00334                 }
-<a name="l00335"></a>00335         }
-<a name="l00336"></a>00336 
-<a name="l00337"></a>00337         <span class="keywordtype">void</span> Release(<span class="keywordtype">void</span>) {
-<a name="l00338"></a>00338                 MEM_SetPageHandler(phys_page,1,old_pagehandler);        <span class="comment">// revert to old handler</span>
-<a name="l00339"></a>00339                 PAGING_ClearTLB();
-<a name="l00340"></a>00340 
-<a name="l00341"></a>00341                 <span class="comment">// remove page from the lists</span>
-<a name="l00342"></a>00342                 <span class="keywordflow">if</span> (prev) prev-&gt;next=next;
-<a name="l00343"></a>00343                 <span class="keywordflow">else</span> cache.used_pages=next;
-<a name="l00344"></a>00344                 <span class="keywordflow">if</span> (next) next-&gt;prev=prev;
-<a name="l00345"></a>00345                 <span class="keywordflow">else</span> cache.last_page=prev;
-<a name="l00346"></a>00346                 next=cache.free_pages;
-<a name="l00347"></a>00347                 cache.free_pages=<span class="keyword">this</span>;
-<a name="l00348"></a>00348                 prev=0;
-<a name="l00349"></a>00349         }
-<a name="l00350"></a>00350         <span class="keywordtype">void</span> ClearRelease(<span class="keywordtype">void</span>) {
-<a name="l00351"></a>00351                 <span class="comment">// clear out all cache blocks in this page</span>
-<a name="l00352"></a>00352                 <span class="keywordflow">for</span> (Bitu index=0;index&lt;(1+DYN_PAGE_HASH);index++) {
-<a name="l00353"></a>00353                         <a class="code" href="classCacheBlockDynRec.html">CacheBlockDynRec</a> * block=hash_map[index];
-<a name="l00354"></a>00354                         <span class="keywordflow">while</span> (block) {
-<a name="l00355"></a>00355                                 <a class="code" href="classCacheBlockDynRec.html">CacheBlockDynRec</a> * nextblock=block-&gt;hash.next;
-<a name="l00356"></a>00356                                 block-&gt;page.handler=0;                  <span class="comment">// no need, full clear</span>
-<a name="l00357"></a>00357                                 block-&gt;Clear();
-<a name="l00358"></a>00358                                 block=nextblock;
-<a name="l00359"></a>00359                         }
-<a name="l00360"></a>00360                 }
-<a name="l00361"></a>00361                 Release();      <span class="comment">// now can release this page</span>
-<a name="l00362"></a>00362         }
-<a name="l00363"></a>00363 
-<a name="l00364"></a>00364         <a class="code" href="classCacheBlockDynRec.html">CacheBlockDynRec</a> * FindCacheBlock(Bitu start) {
-<a name="l00365"></a>00365                 <a class="code" href="classCacheBlockDynRec.html">CacheBlockDynRec</a> * block=hash_map[1+(start&gt;&gt;DYN_HASH_SHIFT)];
-<a name="l00366"></a>00366                 <span class="comment">// see if there&#39;s a cache block present at the start address</span>
-<a name="l00367"></a>00367                 <span class="keywordflow">while</span> (block) {
-<a name="l00368"></a>00368                         <span class="keywordflow">if</span> (block-&gt;page.start==start) <span class="keywordflow">return</span> block;     <span class="comment">// found</span>
-<a name="l00369"></a>00369                         block=block-&gt;hash.next;
-<a name="l00370"></a>00370                 }
-<a name="l00371"></a>00371                 <span class="keywordflow">return</span> 0;       <span class="comment">// none found</span>
-<a name="l00372"></a>00372         }
-<a name="l00373"></a>00373 
-<a name="l00374"></a>00374         HostPt GetHostReadPt(Bitu phys_page) { 
-<a name="l00375"></a>00375                 hostmem=old_pagehandler-&gt;GetHostReadPt(phys_page);
-<a name="l00376"></a>00376                 <span class="keywordflow">return</span> hostmem;
-<a name="l00377"></a>00377         }
-<a name="l00378"></a>00378         HostPt GetHostWritePt(Bitu phys_page) { 
-<a name="l00379"></a>00379                 <span class="keywordflow">return</span> GetHostReadPt( phys_page );
-<a name="l00380"></a>00380         }
-<a name="l00381"></a>00381 <span class="keyword">public</span>:
-<a name="l00382"></a>00382         <span class="comment">// the write map, there are write_map[i] cache blocks that cover the byte at address i</span>
-<a name="l00383"></a>00383     Bit8u write_map[4096] = {};
-<a name="l00384"></a>00384     Bit8u* invalidation_map = NULL;
-<a name="l00385"></a>00385     <a class="code" href="classCodePageHandlerDynRec.html">CodePageHandlerDynRec</a>* next = NULL; <span class="comment">// page linking</span>
-<a name="l00386"></a>00386     <a class="code" href="classCodePageHandlerDynRec.html">CodePageHandlerDynRec</a>* prev = NULL; <span class="comment">// page linking</span>
-<a name="l00387"></a>00387 <span class="keyword">private</span>:
-<a name="l00388"></a>00388     <a class="code" href="classPageHandler.html">PageHandler</a>* old_pagehandler = NULL;
-<a name="l00389"></a>00389 
-<a name="l00390"></a>00390         <span class="comment">// hash map to quickly find the cache blocks in this page</span>
-<a name="l00391"></a>00391     <a class="code" href="classCacheBlockDynRec.html">CacheBlockDynRec</a>* hash_map[1 + DYN_PAGE_HASH] = {};
-<a name="l00392"></a>00392 
-<a name="l00393"></a>00393     Bitu active_blocks = 0;     <span class="comment">// the number of cache blocks in this page</span>
-<a name="l00394"></a>00394     Bitu active_count = 0;      <span class="comment">// delaying parameter to not immediately release a page</span>
-<a name="l00395"></a>00395     HostPt hostmem = NULL;
-<a name="l00396"></a>00396     Bitu phys_page = 0;
-<a name="l00397"></a>00397 };
+<a name="l00159"></a>00159         <span class="keywordflow">if</span> (invalidation_map != NULL)
+<a name="l00160"></a>00160             invalidation_map[addr]++;
+<a name="l00161"></a>00161                 InvalidateRange(addr,addr);
+<a name="l00162"></a>00162         }
+<a name="l00163"></a>00163         <span class="keywordtype">void</span> writew(PhysPt addr,Bit16u val){
+<a name="l00164"></a>00164                 addr&amp;=4095;
+<a name="l00165"></a>00165                 <span class="keywordflow">if</span> (host_readw(hostmem+addr)==val) <span class="keywordflow">return</span>;
+<a name="l00166"></a>00166                 host_writew(hostmem+addr,val);
+<a name="l00167"></a>00167                 <span class="comment">// see if there&#39;s code where we are writing to</span>
+<a name="l00168"></a>00168                 <span class="keywordflow">if</span> (!host_readw(&amp;write_map[addr])) {
+<a name="l00169"></a>00169                         <span class="keywordflow">if</span> (active_blocks) <span class="keywordflow">return</span>;              <span class="comment">// still some blocks in this page</span>
+<a name="l00170"></a>00170                         active_count--;
+<a name="l00171"></a>00171                         <span class="keywordflow">if</span> (!active_count) Release();   <span class="comment">// delay page releasing until active_count is zero</span>
+<a name="l00172"></a>00172                         <span class="keywordflow">return</span>;
+<a name="l00173"></a>00173                 } <span class="keywordflow">else</span> <span class="keywordflow">if</span> (!invalidation_map) {
+<a name="l00174"></a>00174                         invalidation_map=(Bit8u*)malloc(4096);
+<a name="l00175"></a>00175             <span class="keywordflow">if</span> (invalidation_map != NULL)
+<a name="l00176"></a>00176                 memset(invalidation_map, 0, 4096);
+<a name="l00177"></a>00177             <span class="keywordflow">else</span>
+<a name="l00178"></a>00178                 E_Exit(<span class="stringliteral">&quot;Memory allocation failed in writew&quot;</span>);
+<a name="l00179"></a>00179                 }
+<a name="l00180"></a>00180 <span class="preprocessor">#if defined(WORDS_BIGENDIAN) || !defined(C_UNALIGNED_MEMORY)</span>
+<a name="l00181"></a>00181 <span class="preprocessor"></span>                host_writew(&amp;invalidation_map[addr],
+<a name="l00182"></a>00182                         host_readw(&amp;invalidation_map[addr])+0x101);
+<a name="l00183"></a>00183 <span class="preprocessor">#else</span>
+<a name="l00184"></a>00184 <span class="preprocessor"></span>        <span class="keywordflow">if</span> (invalidation_map != NULL)
+<a name="l00185"></a>00185             (*(Bit16u*)&amp; invalidation_map[addr]) += 0x101;
+<a name="l00186"></a>00186 <span class="preprocessor">#endif</span>
+<a name="l00187"></a>00187 <span class="preprocessor"></span>                InvalidateRange(addr,addr+(Bitu)1);
+<a name="l00188"></a>00188         }
+<a name="l00189"></a>00189         <span class="keywordtype">void</span> writed(PhysPt addr,Bit32u val){
+<a name="l00190"></a>00190                 addr&amp;=4095;
+<a name="l00191"></a>00191                 <span class="keywordflow">if</span> (host_readd(hostmem+addr)==val) <span class="keywordflow">return</span>;
+<a name="l00192"></a>00192                 host_writed(hostmem+addr,val);
+<a name="l00193"></a>00193                 <span class="comment">// see if there&#39;s code where we are writing to</span>
+<a name="l00194"></a>00194                 <span class="keywordflow">if</span> (!host_readd(&amp;write_map[addr])) {
+<a name="l00195"></a>00195                         <span class="keywordflow">if</span> (active_blocks) <span class="keywordflow">return</span>;              <span class="comment">// still some blocks in this page</span>
+<a name="l00196"></a>00196                         active_count--;
+<a name="l00197"></a>00197                         <span class="keywordflow">if</span> (!active_count) Release();   <span class="comment">// delay page releasing until active_count is zero</span>
+<a name="l00198"></a>00198                         <span class="keywordflow">return</span>;
+<a name="l00199"></a>00199                 } <span class="keywordflow">else</span> <span class="keywordflow">if</span> (!invalidation_map) {
+<a name="l00200"></a>00200                         invalidation_map=(Bit8u*)malloc(4096);
+<a name="l00201"></a>00201             <span class="keywordflow">if</span> (invalidation_map != NULL)
+<a name="l00202"></a>00202                 memset(invalidation_map, 0, 4096);
+<a name="l00203"></a>00203             <span class="keywordflow">else</span>
+<a name="l00204"></a>00204                 E_Exit(<span class="stringliteral">&quot;Memory allocation failed in writed&quot;</span>);
+<a name="l00205"></a>00205                 }
+<a name="l00206"></a>00206 <span class="preprocessor">#if defined(WORDS_BIGENDIAN) || !defined(C_UNALIGNED_MEMORY)</span>
+<a name="l00207"></a>00207 <span class="preprocessor"></span>                host_writed(&amp;invalidation_map[addr],
+<a name="l00208"></a>00208                         host_readd(&amp;invalidation_map[addr])+0x1010101);
+<a name="l00209"></a>00209 <span class="preprocessor">#else</span>
+<a name="l00210"></a>00210 <span class="preprocessor"></span>        <span class="keywordflow">if</span> (invalidation_map != NULL)
+<a name="l00211"></a>00211             (*(Bit32u*)&amp; invalidation_map[addr]) += 0x1010101;
+<a name="l00212"></a>00212 <span class="preprocessor">#endif</span>
+<a name="l00213"></a>00213 <span class="preprocessor"></span>                InvalidateRange(addr,addr+(Bitu)3);
+<a name="l00214"></a>00214         }
+<a name="l00215"></a>00215         <span class="keywordtype">bool</span> writeb_checked(PhysPt addr,Bit8u val) {
+<a name="l00216"></a>00216                 addr&amp;=4095;
+<a name="l00217"></a>00217                 <span class="keywordflow">if</span> (host_readb(hostmem+addr)==val) <span class="keywordflow">return</span> <span class="keyword">false</span>;
+<a name="l00218"></a>00218                 <span class="comment">// see if there&#39;s code where we are writing to</span>
+<a name="l00219"></a>00219                 <span class="keywordflow">if</span> (!host_readb(&amp;write_map[addr])) {
+<a name="l00220"></a>00220                         <span class="keywordflow">if</span> (!active_blocks) {
+<a name="l00221"></a>00221                                 <span class="comment">// no blocks left in this page, still delay the page releasing a bit</span>
+<a name="l00222"></a>00222                                 active_count--;
+<a name="l00223"></a>00223                                 <span class="keywordflow">if</span> (!active_count) Release();
+<a name="l00224"></a>00224                         }
+<a name="l00225"></a>00225                 } <span class="keywordflow">else</span> {
+<a name="l00226"></a>00226             <span class="keywordflow">if</span> (!invalidation_map) {
+<a name="l00227"></a>00227                 invalidation_map = (Bit8u*)malloc(4096);
+<a name="l00228"></a>00228                 <span class="keywordflow">if</span> (invalidation_map != NULL) {
+<a name="l00229"></a>00229                     memset(invalidation_map, 0, 4096);
+<a name="l00230"></a>00230                 }
+<a name="l00231"></a>00231                 <span class="keywordflow">else</span>
+<a name="l00232"></a>00232                     E_Exit(<span class="stringliteral">&quot;Memory allocation failed in writeb_checked&quot;</span>);
+<a name="l00233"></a>00233             }
+<a name="l00234"></a>00234             <span class="keywordflow">if</span> (invalidation_map != NULL)
+<a name="l00235"></a>00235                 invalidation_map[addr]++;
+<a name="l00236"></a>00236                         <span class="keywordflow">if</span> (InvalidateRange(addr,addr)) {
+<a name="l00237"></a>00237                                 cpu.exception.which=SMC_CURRENT_BLOCK;
+<a name="l00238"></a>00238                                 <span class="keywordflow">return</span> <span class="keyword">true</span>;
+<a name="l00239"></a>00239                         }
+<a name="l00240"></a>00240                 }
+<a name="l00241"></a>00241                 host_writeb(hostmem+addr,val);
+<a name="l00242"></a>00242                 <span class="keywordflow">return</span> <span class="keyword">false</span>;
+<a name="l00243"></a>00243         }
+<a name="l00244"></a>00244         <span class="keywordtype">bool</span> writew_checked(PhysPt addr,Bit16u val) {
+<a name="l00245"></a>00245                 addr&amp;=4095;
+<a name="l00246"></a>00246                 <span class="keywordflow">if</span> (host_readw(hostmem+addr)==val) <span class="keywordflow">return</span> <span class="keyword">false</span>;
+<a name="l00247"></a>00247                 <span class="comment">// see if there&#39;s code where we are writing to</span>
+<a name="l00248"></a>00248                 <span class="keywordflow">if</span> (!host_readw(&amp;write_map[addr])) {
+<a name="l00249"></a>00249                         <span class="keywordflow">if</span> (!active_blocks) {
+<a name="l00250"></a>00250                                 <span class="comment">// no blocks left in this page, still delay the page releasing a bit</span>
+<a name="l00251"></a>00251                                 active_count--;
+<a name="l00252"></a>00252                                 <span class="keywordflow">if</span> (!active_count) Release();
+<a name="l00253"></a>00253                         }
+<a name="l00254"></a>00254                 } <span class="keywordflow">else</span> {
+<a name="l00255"></a>00255                         <span class="keywordflow">if</span> (!invalidation_map) {
+<a name="l00256"></a>00256                                 invalidation_map=(Bit8u*)malloc(4096);
+<a name="l00257"></a>00257                 <span class="keywordflow">if</span> (invalidation_map != NULL)
+<a name="l00258"></a>00258                     memset(invalidation_map, 0, 4096);
+<a name="l00259"></a>00259                 <span class="keywordflow">else</span>
+<a name="l00260"></a>00260                     E_Exit(<span class="stringliteral">&quot;Memory allocation failed in writew_checked&quot;</span>);
+<a name="l00261"></a>00261                         }
+<a name="l00262"></a>00262 <span class="preprocessor">#if defined(WORDS_BIGENDIAN) || !defined(C_UNALIGNED_MEMORY)</span>
+<a name="l00263"></a>00263 <span class="preprocessor"></span>                        host_writew(&amp;invalidation_map[addr],
+<a name="l00264"></a>00264                                 host_readw(&amp;invalidation_map[addr])+0x101);
+<a name="l00265"></a>00265 <span class="preprocessor">#else</span>
+<a name="l00266"></a>00266 <span class="preprocessor"></span>            <span class="keywordflow">if</span> (invalidation_map != NULL)
+<a name="l00267"></a>00267                 (*(Bit16u*)&amp; invalidation_map[addr]) += 0x101;
+<a name="l00268"></a>00268 <span class="preprocessor">#endif</span>
+<a name="l00269"></a>00269 <span class="preprocessor"></span>                        <span class="keywordflow">if</span> (InvalidateRange(addr,addr+(Bitu)1)) {
+<a name="l00270"></a>00270                                 cpu.exception.which=SMC_CURRENT_BLOCK;
+<a name="l00271"></a>00271                                 <span class="keywordflow">return</span> <span class="keyword">true</span>;
+<a name="l00272"></a>00272                         }
+<a name="l00273"></a>00273                 }
+<a name="l00274"></a>00274                 host_writew(hostmem+addr,val);
+<a name="l00275"></a>00275                 <span class="keywordflow">return</span> <span class="keyword">false</span>;
+<a name="l00276"></a>00276         }
+<a name="l00277"></a>00277         <span class="keywordtype">bool</span> writed_checked(PhysPt addr,Bit32u val) {
+<a name="l00278"></a>00278                 addr&amp;=4095;
+<a name="l00279"></a>00279                 <span class="keywordflow">if</span> (host_readd(hostmem+addr)==val) <span class="keywordflow">return</span> <span class="keyword">false</span>;
+<a name="l00280"></a>00280                 <span class="comment">// see if there&#39;s code where we are writing to</span>
+<a name="l00281"></a>00281                 <span class="keywordflow">if</span> (!host_readd(&amp;write_map[addr])) {
+<a name="l00282"></a>00282                         <span class="keywordflow">if</span> (!active_blocks) {
+<a name="l00283"></a>00283                                 <span class="comment">// no blocks left in this page, still delay the page releasing a bit</span>
+<a name="l00284"></a>00284                                 active_count--;
+<a name="l00285"></a>00285                                 <span class="keywordflow">if</span> (!active_count) Release();
+<a name="l00286"></a>00286                         }
+<a name="l00287"></a>00287                 } <span class="keywordflow">else</span> {
+<a name="l00288"></a>00288                         <span class="keywordflow">if</span> (!invalidation_map) {
+<a name="l00289"></a>00289                                 invalidation_map=(Bit8u*)malloc(4096);
+<a name="l00290"></a>00290                 <span class="keywordflow">if</span> (invalidation_map != NULL)
+<a name="l00291"></a>00291                     memset(invalidation_map, 0, 4096);
+<a name="l00292"></a>00292                 <span class="keywordflow">else</span>
+<a name="l00293"></a>00293                     E_Exit(<span class="stringliteral">&quot;Memory allocation failed in writed_checked&quot;</span>);
+<a name="l00294"></a>00294                         }
+<a name="l00295"></a>00295 <span class="preprocessor">#if defined(WORDS_BIGENDIAN) || !defined(C_UNALIGNED_MEMORY)</span>
+<a name="l00296"></a>00296 <span class="preprocessor"></span>                        host_writed(&amp;invalidation_map[addr],
+<a name="l00297"></a>00297                                 host_readd(&amp;invalidation_map[addr])+0x1010101);
+<a name="l00298"></a>00298 <span class="preprocessor">#else</span>
+<a name="l00299"></a>00299 <span class="preprocessor"></span>            <span class="keywordflow">if</span> (invalidation_map != NULL)
+<a name="l00300"></a>00300                 (*(Bit32u*)&amp; invalidation_map[addr]) += 0x1010101;
+<a name="l00301"></a>00301 <span class="preprocessor">#endif</span>
+<a name="l00302"></a>00302 <span class="preprocessor"></span>                        <span class="keywordflow">if</span> (InvalidateRange(addr,addr+(Bitu)3)) {
+<a name="l00303"></a>00303                                 cpu.exception.which=SMC_CURRENT_BLOCK;
+<a name="l00304"></a>00304                                 <span class="keywordflow">return</span> <span class="keyword">true</span>;
+<a name="l00305"></a>00305                         }
+<a name="l00306"></a>00306                 }
+<a name="l00307"></a>00307                 host_writed(hostmem+addr,val);
+<a name="l00308"></a>00308                 <span class="keywordflow">return</span> <span class="keyword">false</span>;
+<a name="l00309"></a>00309         }
+<a name="l00310"></a>00310 
+<a name="l00311"></a>00311     <span class="comment">// add a cache block to this page and note it in the hash map</span>
+<a name="l00312"></a>00312         <span class="keywordtype">void</span> AddCacheBlock(<a class="code" href="classCacheBlockDynRec.html">CacheBlockDynRec</a> * block) {
+<a name="l00313"></a>00313                 Bitu index=1u+(Bitu)(block-&gt;page.start&gt;&gt;(Bit16u)DYN_HASH_SHIFT);
+<a name="l00314"></a>00314                 block-&gt;hash.next=hash_map[index];       <span class="comment">// link to old block at index from the new block</span>
+<a name="l00315"></a>00315                 block-&gt;hash.index=index;
+<a name="l00316"></a>00316                 hash_map[index]=block;                          <span class="comment">// put new block at hash position</span>
+<a name="l00317"></a>00317                 block-&gt;page.handler=<span class="keyword">this</span>;
+<a name="l00318"></a>00318                 active_blocks++;
+<a name="l00319"></a>00319         }
+<a name="l00320"></a>00320         <span class="comment">// there&#39;s a block whose code started in a different page</span>
+<a name="l00321"></a>00321     <span class="keywordtype">void</span> AddCrossBlock(<a class="code" href="classCacheBlockDynRec.html">CacheBlockDynRec</a> * block) {
+<a name="l00322"></a>00322                 block-&gt;hash.next=hash_map[0];
+<a name="l00323"></a>00323                 block-&gt;hash.index=0;
+<a name="l00324"></a>00324                 hash_map[0]=block;
+<a name="l00325"></a>00325                 block-&gt;page.handler=<span class="keyword">this</span>;
+<a name="l00326"></a>00326                 active_blocks++;
+<a name="l00327"></a>00327         }
+<a name="l00328"></a>00328         <span class="comment">// remove a cache block</span>
+<a name="l00329"></a>00329         <span class="keywordtype">void</span> DelCacheBlock(<a class="code" href="classCacheBlockDynRec.html">CacheBlockDynRec</a> * block) {
+<a name="l00330"></a>00330                 active_blocks--;
+<a name="l00331"></a>00331                 active_count=16;
+<a name="l00332"></a>00332                 <a class="code" href="classCacheBlockDynRec.html">CacheBlockDynRec</a> * * bwhere=&amp;hash_map[block-&gt;hash.index];
+<a name="l00333"></a>00333                 <span class="keywordflow">while</span> (*bwhere!=block) {
+<a name="l00334"></a>00334                         bwhere=&amp;((*bwhere)-&gt;hash.next);
+<a name="l00335"></a>00335                         <span class="comment">//Will crash if a block isn&#39;t found, which should never happen.</span>
+<a name="l00336"></a>00336                 }
+<a name="l00337"></a>00337                 *bwhere=block-&gt;hash.next;
+<a name="l00338"></a>00338 
+<a name="l00339"></a>00339                 <span class="comment">// remove the cleared block from the write map</span>
+<a name="l00340"></a>00340                 <span class="keywordflow">if</span> (GCC_UNLIKELY(block-&gt;cache.wmapmask!=NULL)) {
+<a name="l00341"></a>00341                         <span class="comment">// first part is not influenced by the mask</span>
+<a name="l00342"></a>00342                         <span class="keywordflow">for</span> (Bitu i=block-&gt;page.start;i&lt;block-&gt;cache.maskstart;i++) {
+<a name="l00343"></a>00343                                 <span class="keywordflow">if</span> (write_map[i]) write_map[i]--;
+<a name="l00344"></a>00344                         }
+<a name="l00345"></a>00345                         Bitu maskct=0;
+<a name="l00346"></a>00346                         <span class="comment">// last part sticks to the writemap mask</span>
+<a name="l00347"></a>00347                         <span class="keywordflow">for</span> (Bitu i=block-&gt;cache.maskstart;i&lt;=block-&gt;page.end;i++,maskct++) {
+<a name="l00348"></a>00348                                 <span class="keywordflow">if</span> (write_map[i]) {
+<a name="l00349"></a>00349                                         <span class="comment">// only adjust writemap if it isn&#39;t masked</span>
+<a name="l00350"></a>00350                                         <span class="keywordflow">if</span> ((maskct&gt;=block-&gt;cache.masklen) || (!block-&gt;cache.wmapmask[maskct])) write_map[i]--;
+<a name="l00351"></a>00351                                 }
+<a name="l00352"></a>00352                         }
+<a name="l00353"></a>00353                         free(block-&gt;cache.wmapmask);
+<a name="l00354"></a>00354                         block-&gt;cache.wmapmask=NULL;
+<a name="l00355"></a>00355                 } <span class="keywordflow">else</span> {
+<a name="l00356"></a>00356                         <span class="keywordflow">for</span> (Bitu i=block-&gt;page.start;i&lt;=block-&gt;page.end;i++) {
+<a name="l00357"></a>00357                                 <span class="keywordflow">if</span> (write_map[i]) write_map[i]--;
+<a name="l00358"></a>00358                         }
+<a name="l00359"></a>00359                 }
+<a name="l00360"></a>00360         }
+<a name="l00361"></a>00361 
+<a name="l00362"></a>00362         <span class="keywordtype">void</span> Release(<span class="keywordtype">void</span>) {
+<a name="l00363"></a>00363                 MEM_SetPageHandler(phys_page,1,old_pagehandler);        <span class="comment">// revert to old handler</span>
+<a name="l00364"></a>00364                 PAGING_ClearTLB();
+<a name="l00365"></a>00365 
+<a name="l00366"></a>00366                 <span class="comment">// remove page from the lists</span>
+<a name="l00367"></a>00367                 <span class="keywordflow">if</span> (prev) prev-&gt;next=next;
+<a name="l00368"></a>00368                 <span class="keywordflow">else</span> cache.used_pages=next;
+<a name="l00369"></a>00369                 <span class="keywordflow">if</span> (next) next-&gt;prev=prev;
+<a name="l00370"></a>00370                 <span class="keywordflow">else</span> cache.last_page=prev;
+<a name="l00371"></a>00371                 next=cache.free_pages;
+<a name="l00372"></a>00372                 cache.free_pages=<span class="keyword">this</span>;
+<a name="l00373"></a>00373                 prev=0;
+<a name="l00374"></a>00374         }
+<a name="l00375"></a>00375         <span class="keywordtype">void</span> ClearRelease(<span class="keywordtype">void</span>) {
+<a name="l00376"></a>00376                 <span class="comment">// clear out all cache blocks in this page</span>
+<a name="l00377"></a>00377                 <span class="keywordflow">for</span> (Bitu index=0;index&lt;(1+DYN_PAGE_HASH);index++) {
+<a name="l00378"></a>00378                         <a class="code" href="classCacheBlockDynRec.html">CacheBlockDynRec</a> * block=hash_map[index];
+<a name="l00379"></a>00379                         <span class="keywordflow">while</span> (block) {
+<a name="l00380"></a>00380                                 <a class="code" href="classCacheBlockDynRec.html">CacheBlockDynRec</a> * nextblock=block-&gt;hash.next;
+<a name="l00381"></a>00381                                 block-&gt;page.handler=0;                  <span class="comment">// no need, full clear</span>
+<a name="l00382"></a>00382                                 block-&gt;Clear();
+<a name="l00383"></a>00383                                 block=nextblock;
+<a name="l00384"></a>00384                         }
+<a name="l00385"></a>00385                 }
+<a name="l00386"></a>00386                 Release();      <span class="comment">// now can release this page</span>
+<a name="l00387"></a>00387         }
+<a name="l00388"></a>00388 
+<a name="l00389"></a>00389         <a class="code" href="classCacheBlockDynRec.html">CacheBlockDynRec</a> * FindCacheBlock(Bitu start) {
+<a name="l00390"></a>00390                 <a class="code" href="classCacheBlockDynRec.html">CacheBlockDynRec</a> * block=hash_map[1+(start&gt;&gt;DYN_HASH_SHIFT)];
+<a name="l00391"></a>00391                 <span class="comment">// see if there&#39;s a cache block present at the start address</span>
+<a name="l00392"></a>00392                 <span class="keywordflow">while</span> (block) {
+<a name="l00393"></a>00393                         <span class="keywordflow">if</span> (block-&gt;page.start==start) <span class="keywordflow">return</span> block;     <span class="comment">// found</span>
+<a name="l00394"></a>00394                         block=block-&gt;hash.next;
+<a name="l00395"></a>00395                 }
+<a name="l00396"></a>00396                 <span class="keywordflow">return</span> 0;       <span class="comment">// none found</span>
+<a name="l00397"></a>00397         }
 <a name="l00398"></a>00398 
-<a name="l00399"></a>00399 
-<a name="l00400"></a>00400 <span class="keyword">static</span> INLINE <span class="keywordtype">void</span> cache_addunusedblock(<a class="code" href="classCacheBlockDynRec.html">CacheBlockDynRec</a> * block) {
-<a name="l00401"></a>00401         <span class="comment">// block has become unused, add it to the freelist</span>
-<a name="l00402"></a>00402         block-&gt;cache.next=cache.block.free;
-<a name="l00403"></a>00403         cache.block.free=block;
-<a name="l00404"></a>00404 }
-<a name="l00405"></a>00405 
-<a name="l00406"></a>00406 <span class="keyword">static</span> <a class="code" href="classCacheBlockDynRec.html">CacheBlockDynRec</a> * cache_getblock(<span class="keywordtype">void</span>) {
-<a name="l00407"></a>00407         <span class="comment">// get a free cache block and advance the free pointer</span>
-<a name="l00408"></a>00408         <a class="code" href="classCacheBlockDynRec.html">CacheBlockDynRec</a> * ret=cache.block.free;
-<a name="l00409"></a>00409         <span class="keywordflow">if</span> (!ret) E_Exit(<span class="stringliteral">&quot;Ran out of CacheBlocks&quot;</span> );
-<a name="l00410"></a>00410         cache.block.free=ret-&gt;cache.next;
-<a name="l00411"></a>00411         ret-&gt;cache.next=0;
-<a name="l00412"></a>00412         <span class="keywordflow">return</span> ret;
-<a name="l00413"></a>00413 }
+<a name="l00399"></a>00399         HostPt GetHostReadPt(Bitu phys_page) { 
+<a name="l00400"></a>00400                 hostmem=old_pagehandler-&gt;GetHostReadPt(phys_page);
+<a name="l00401"></a>00401                 <span class="keywordflow">return</span> hostmem;
+<a name="l00402"></a>00402         }
+<a name="l00403"></a>00403         HostPt GetHostWritePt(Bitu phys_page) { 
+<a name="l00404"></a>00404                 <span class="keywordflow">return</span> GetHostReadPt( phys_page );
+<a name="l00405"></a>00405         }
+<a name="l00406"></a>00406 <span class="keyword">public</span>:
+<a name="l00407"></a>00407         <span class="comment">// the write map, there are write_map[i] cache blocks that cover the byte at address i</span>
+<a name="l00408"></a>00408     Bit8u write_map[4096] = {};
+<a name="l00409"></a>00409     Bit8u* invalidation_map = NULL;
+<a name="l00410"></a>00410     <a class="code" href="classCodePageHandlerDynRec.html">CodePageHandlerDynRec</a>* next = NULL; <span class="comment">// page linking</span>
+<a name="l00411"></a>00411     <a class="code" href="classCodePageHandlerDynRec.html">CodePageHandlerDynRec</a>* prev = NULL; <span class="comment">// page linking</span>
+<a name="l00412"></a>00412 <span class="keyword">private</span>:
+<a name="l00413"></a>00413     <a class="code" href="classPageHandler.html">PageHandler</a>* old_pagehandler = NULL;
 <a name="l00414"></a>00414 
-<a name="l00415"></a>00415 <span class="keywordtype">void</span> CacheBlockDynRec::Clear(<span class="keywordtype">void</span>) {
-<a name="l00416"></a>00416         Bitu ind;
-<a name="l00417"></a>00417         <span class="comment">// check if this is not a cross page block</span>
-<a name="l00418"></a>00418         <span class="keywordflow">if</span> (hash.index) <span class="keywordflow">for</span> (ind=0;ind&lt;2;ind++) {
-<a name="l00419"></a>00419                 <a class="code" href="classCacheBlockDynRec.html">CacheBlockDynRec</a> * fromlink=link[ind].from;
-<a name="l00420"></a>00420                 link[ind].from=0;
-<a name="l00421"></a>00421                 <span class="keywordflow">while</span> (fromlink) {
-<a name="l00422"></a>00422                         <a class="code" href="classCacheBlockDynRec.html">CacheBlockDynRec</a> * nextlink=fromlink-&gt;link[ind].next;
-<a name="l00423"></a>00423                         <span class="comment">// clear the next-link and let the block point to the standard linkcode</span>
-<a name="l00424"></a>00424                         fromlink-&gt;link[ind].next=0;
-<a name="l00425"></a>00425                         fromlink-&gt;link[ind].to=&amp;link_blocks[ind];
-<a name="l00426"></a>00426 
-<a name="l00427"></a>00427                         fromlink=nextlink;
-<a name="l00428"></a>00428                 }
-<a name="l00429"></a>00429                 <span class="keywordflow">if</span> (link[ind].to!=&amp;link_blocks[ind]) {
-<a name="l00430"></a>00430                         <span class="comment">// not linked to the standard linkcode, find the block that links to this block</span>
-<a name="l00431"></a>00431                         <a class="code" href="classCacheBlockDynRec.html">CacheBlockDynRec</a> * * wherelink=&amp;link[ind].to-&gt;link[ind].from;
-<a name="l00432"></a>00432                         <span class="keywordflow">while</span> (*wherelink != <span class="keyword">this</span> &amp;&amp; *wherelink) {
-<a name="l00433"></a>00433                                 wherelink = &amp;(*wherelink)-&gt;link[ind].next;
-<a name="l00434"></a>00434                         }
-<a name="l00435"></a>00435                         <span class="comment">// now remove the link</span>
-<a name="l00436"></a>00436                         <span class="keywordflow">if</span>(*wherelink) 
-<a name="l00437"></a>00437                                 *wherelink = (*wherelink)-&gt;link[ind].next;
-<a name="l00438"></a>00438                         <span class="keywordflow">else</span> {
-<a name="l00439"></a>00439                                 <a class="code" href="classLOG.html">LOG</a>(LOG_CPU,LOG_ERROR)(<span class="stringliteral">&quot;Cache anomaly. please investigate&quot;</span>);
-<a name="l00440"></a>00440                         }
-<a name="l00441"></a>00441                 }
-<a name="l00442"></a>00442         } <span class="keywordflow">else</span> 
-<a name="l00443"></a>00443                 cache_addunusedblock(<span class="keyword">this</span>);
-<a name="l00444"></a>00444         <span class="keywordflow">if</span> (crossblock) {
-<a name="l00445"></a>00445                 <span class="comment">// clear out the crossblock (in the page before) as well</span>
-<a name="l00446"></a>00446                 crossblock-&gt;crossblock=0;
-<a name="l00447"></a>00447                 crossblock-&gt;Clear();
-<a name="l00448"></a>00448                 crossblock=0;
-<a name="l00449"></a>00449         }
-<a name="l00450"></a>00450         <span class="keywordflow">if</span> (page.handler) {
-<a name="l00451"></a>00451                 <span class="comment">// clear out the code page handler</span>
-<a name="l00452"></a>00452                 page.handler-&gt;DelCacheBlock(<span class="keyword">this</span>);
-<a name="l00453"></a>00453                 page.handler=0;
-<a name="l00454"></a>00454         }
-<a name="l00455"></a>00455         <span class="keywordflow">if</span> (cache.wmapmask){
-<a name="l00456"></a>00456                 free(cache.wmapmask);
-<a name="l00457"></a>00457                 cache.wmapmask=NULL;
-<a name="l00458"></a>00458         }
-<a name="l00459"></a>00459 }
-<a name="l00460"></a>00460 
-<a name="l00461"></a>00461 
-<a name="l00462"></a>00462 <span class="keyword">static</span> <a class="code" href="classCacheBlockDynRec.html">CacheBlockDynRec</a> * cache_openblock(<span class="keywordtype">void</span>) {
-<a name="l00463"></a>00463         <a class="code" href="classCacheBlockDynRec.html">CacheBlockDynRec</a> * block=cache.block.active;
-<a name="l00464"></a>00464         <span class="comment">// check for enough space in this block</span>
-<a name="l00465"></a>00465         Bitu size=block-&gt;cache.size;
-<a name="l00466"></a>00466         <a class="code" href="classCacheBlockDynRec.html">CacheBlockDynRec</a> * nextblock=block-&gt;cache.next;
-<a name="l00467"></a>00467         <span class="keywordflow">if</span> (block-&gt;page.handler) 
-<a name="l00468"></a>00468                 block-&gt;Clear();
-<a name="l00469"></a>00469         <span class="comment">// block size must be at least CACHE_MAXSIZE</span>
-<a name="l00470"></a>00470         <span class="keywordflow">while</span> (size&lt;CACHE_MAXSIZE) {
-<a name="l00471"></a>00471                 <span class="keywordflow">if</span> (!nextblock)
-<a name="l00472"></a>00472                         <span class="keywordflow">goto</span> skipresize;
-<a name="l00473"></a>00473                 <span class="comment">// merge blocks</span>
-<a name="l00474"></a>00474                 size+=nextblock-&gt;cache.size;
-<a name="l00475"></a>00475                 <a class="code" href="classCacheBlockDynRec.html">CacheBlockDynRec</a> * tempblock=nextblock-&gt;cache.next;
-<a name="l00476"></a>00476                 <span class="keywordflow">if</span> (nextblock-&gt;page.handler) 
-<a name="l00477"></a>00477                         nextblock-&gt;Clear();
-<a name="l00478"></a>00478                 <span class="comment">// block is free now</span>
-<a name="l00479"></a>00479                 cache_addunusedblock(nextblock);
-<a name="l00480"></a>00480                 nextblock=tempblock;
+<a name="l00415"></a>00415         <span class="comment">// hash map to quickly find the cache blocks in this page</span>
+<a name="l00416"></a>00416     <a class="code" href="classCacheBlockDynRec.html">CacheBlockDynRec</a>* hash_map[1 + DYN_PAGE_HASH] = {};
+<a name="l00417"></a>00417 
+<a name="l00418"></a>00418     Bitu active_blocks = 0;     <span class="comment">// the number of cache blocks in this page</span>
+<a name="l00419"></a>00419     Bitu active_count = 0;      <span class="comment">// delaying parameter to not immediately release a page</span>
+<a name="l00420"></a>00420     HostPt hostmem = NULL;
+<a name="l00421"></a>00421     Bitu phys_page = 0;
+<a name="l00422"></a>00422 };
+<a name="l00423"></a>00423 
+<a name="l00424"></a>00424 
+<a name="l00425"></a>00425 <span class="keyword">static</span> INLINE <span class="keywordtype">void</span> cache_addunusedblock(<a class="code" href="classCacheBlockDynRec.html">CacheBlockDynRec</a> * block) {
+<a name="l00426"></a>00426         <span class="comment">// block has become unused, add it to the freelist</span>
+<a name="l00427"></a>00427         block-&gt;cache.next=cache.block.free;
+<a name="l00428"></a>00428         cache.block.free=block;
+<a name="l00429"></a>00429 }
+<a name="l00430"></a>00430 
+<a name="l00431"></a>00431 <span class="keyword">static</span> <a class="code" href="classCacheBlockDynRec.html">CacheBlockDynRec</a> * cache_getblock(<span class="keywordtype">void</span>) {
+<a name="l00432"></a>00432         <span class="comment">// get a free cache block and advance the free pointer</span>
+<a name="l00433"></a>00433         <a class="code" href="classCacheBlockDynRec.html">CacheBlockDynRec</a> * ret=cache.block.free;
+<a name="l00434"></a>00434     <span class="keywordflow">if</span> (!ret)
+<a name="l00435"></a>00435         E_Exit(<span class="stringliteral">&quot;Ran out of CacheBlocks&quot;</span>);
+<a name="l00436"></a>00436     <span class="keywordflow">else</span> {
+<a name="l00437"></a>00437         cache.block.free = ret-&gt;cache.next;
+<a name="l00438"></a>00438         ret-&gt;cache.next = 0;
+<a name="l00439"></a>00439     }
+<a name="l00440"></a>00440         <span class="keywordflow">return</span> ret;
+<a name="l00441"></a>00441 }
+<a name="l00442"></a>00442 
+<a name="l00443"></a>00443 <span class="keywordtype">void</span> CacheBlockDynRec::Clear(<span class="keywordtype">void</span>) {
+<a name="l00444"></a>00444         <span class="comment">// check if this is not a cross page block</span>
+<a name="l00445"></a>00445         <span class="keywordflow">if</span> (hash.index) <span class="keywordflow">for</span> (Bitu ind=0;ind&lt;2;ind++) {
+<a name="l00446"></a>00446                 <a class="code" href="classCacheBlockDynRec.html">CacheBlockDynRec</a> * fromlink=link[ind].from;
+<a name="l00447"></a>00447                 link[ind].from=0;
+<a name="l00448"></a>00448                 <span class="keywordflow">while</span> (fromlink) {
+<a name="l00449"></a>00449                         <a class="code" href="classCacheBlockDynRec.html">CacheBlockDynRec</a> * nextlink=fromlink-&gt;link[ind].next;
+<a name="l00450"></a>00450                         <span class="comment">// clear the next-link and let the block point to the standard linkcode</span>
+<a name="l00451"></a>00451                         fromlink-&gt;link[ind].next=0;
+<a name="l00452"></a>00452                         fromlink-&gt;link[ind].to=&amp;link_blocks[ind];
+<a name="l00453"></a>00453 
+<a name="l00454"></a>00454                         fromlink=nextlink;
+<a name="l00455"></a>00455                 }
+<a name="l00456"></a>00456                 <span class="keywordflow">if</span> (link[ind].to!=&amp;link_blocks[ind]) {
+<a name="l00457"></a>00457                         <span class="comment">// not linked to the standard linkcode, find the block that links to this block</span>
+<a name="l00458"></a>00458                         <a class="code" href="classCacheBlockDynRec.html">CacheBlockDynRec</a> * * wherelink=&amp;link[ind].to-&gt;link[ind].from;
+<a name="l00459"></a>00459                         <span class="keywordflow">while</span> (*wherelink != <span class="keyword">this</span> &amp;&amp; *wherelink) {
+<a name="l00460"></a>00460                                 wherelink = &amp;(*wherelink)-&gt;link[ind].next;
+<a name="l00461"></a>00461                         }
+<a name="l00462"></a>00462                         <span class="comment">// now remove the link</span>
+<a name="l00463"></a>00463                         <span class="keywordflow">if</span>(*wherelink) 
+<a name="l00464"></a>00464                                 *wherelink = (*wherelink)-&gt;link[ind].next;
+<a name="l00465"></a>00465                         <span class="keywordflow">else</span> {
+<a name="l00466"></a>00466                                 <a class="code" href="classLOG.html">LOG</a>(LOG_CPU,LOG_ERROR)(<span class="stringliteral">&quot;Cache anomaly. please investigate&quot;</span>);
+<a name="l00467"></a>00467                         }
+<a name="l00468"></a>00468                 }
+<a name="l00469"></a>00469         } <span class="keywordflow">else</span> 
+<a name="l00470"></a>00470                 cache_addunusedblock(<span class="keyword">this</span>);
+<a name="l00471"></a>00471         <span class="keywordflow">if</span> (crossblock) {
+<a name="l00472"></a>00472                 <span class="comment">// clear out the crossblock (in the page before) as well</span>
+<a name="l00473"></a>00473                 crossblock-&gt;crossblock=0;
+<a name="l00474"></a>00474                 crossblock-&gt;Clear();
+<a name="l00475"></a>00475                 crossblock=0;
+<a name="l00476"></a>00476         }
+<a name="l00477"></a>00477         <span class="keywordflow">if</span> (page.handler) {
+<a name="l00478"></a>00478                 <span class="comment">// clear out the code page handler</span>
+<a name="l00479"></a>00479                 page.handler-&gt;DelCacheBlock(<span class="keyword">this</span>);
+<a name="l00480"></a>00480                 page.handler=0;
 <a name="l00481"></a>00481         }
-<a name="l00482"></a>00482 skipresize:
-<a name="l00483"></a>00483         <span class="comment">// adjust parameters and open this block</span>
-<a name="l00484"></a>00484         block-&gt;cache.size=size;
-<a name="l00485"></a>00485         block-&gt;cache.next=nextblock;
-<a name="l00486"></a>00486         cache.pos=block-&gt;cache.start;
-<a name="l00487"></a>00487         <span class="keywordflow">return</span> block;
-<a name="l00488"></a>00488 }
-<a name="l00489"></a>00489 
-<a name="l00490"></a>00490 <span class="keyword">static</span> <span class="keywordtype">void</span> cache_closeblock(<span class="keywordtype">void</span>) {
-<a name="l00491"></a>00491         <a class="code" href="classCacheBlockDynRec.html">CacheBlockDynRec</a> * block=cache.block.active;
-<a name="l00492"></a>00492         <span class="comment">// links point to the default linking code</span>
-<a name="l00493"></a>00493         block-&gt;link[0].to=&amp;link_blocks[0];
-<a name="l00494"></a>00494         block-&gt;link[1].to=&amp;link_blocks[1];
-<a name="l00495"></a>00495         block-&gt;link[0].from=0;
-<a name="l00496"></a>00496         block-&gt;link[1].from=0;
-<a name="l00497"></a>00497         block-&gt;link[0].next=0;
-<a name="l00498"></a>00498         block-&gt;link[1].next=0;
-<a name="l00499"></a>00499         <span class="comment">// close the block with correct alignment</span>
-<a name="l00500"></a>00500         Bitu written=(Bitu)(cache.pos-block-&gt;cache.start);
-<a name="l00501"></a>00501         <span class="keywordflow">if</span> (written&gt;block-&gt;cache.size) {
-<a name="l00502"></a>00502                 <span class="keywordflow">if</span> (!block-&gt;cache.next) {
-<a name="l00503"></a>00503                         <span class="keywordflow">if</span> (written&gt;block-&gt;cache.size+CACHE_MAXSIZE) E_Exit(<span class="stringliteral">&quot;CacheBlock overrun 1 %lu&quot;</span>,(<span class="keywordtype">unsigned</span> <span class="keywordtype">long</span>)written-block-&gt;cache.size);
-<a name="l00504"></a>00504                 } <span class="keywordflow">else</span> E_Exit(<span class="stringliteral">&quot;CacheBlock overrun 2 written %lu size %lu&quot;</span>,(<span class="keywordtype">unsigned</span> <span class="keywordtype">long</span>)written,(<span class="keywordtype">unsigned</span> <span class="keywordtype">long</span>)block-&gt;cache.size);
-<a name="l00505"></a>00505         } <span class="keywordflow">else</span> {
-<a name="l00506"></a>00506                 Bitu new_size;
-<a name="l00507"></a>00507                 Bitu left=block-&gt;cache.size-written;
-<a name="l00508"></a>00508                 <span class="comment">// smaller than cache align then don&#39;t bother to resize</span>
-<a name="l00509"></a>00509                 <span class="keywordflow">if</span> (left&gt;CACHE_ALIGN) {
-<a name="l00510"></a>00510                         new_size=((written-1)|(CACHE_ALIGN-1))+1;
-<a name="l00511"></a>00511                         <a class="code" href="classCacheBlockDynRec.html">CacheBlockDynRec</a> * newblock=cache_getblock();
-<a name="l00512"></a>00512                         <span class="comment">// align block now to CACHE_ALIGN</span>
-<a name="l00513"></a>00513                         newblock-&gt;cache.start=block-&gt;cache.start+new_size;
-<a name="l00514"></a>00514                         newblock-&gt;cache.size=block-&gt;cache.size-new_size;
-<a name="l00515"></a>00515                         newblock-&gt;cache.next=block-&gt;cache.next;
-<a name="l00516"></a>00516                         block-&gt;cache.next=newblock;
-<a name="l00517"></a>00517                         block-&gt;cache.size=new_size;
-<a name="l00518"></a>00518                 }
-<a name="l00519"></a>00519         }
-<a name="l00520"></a>00520         <span class="comment">// advance the active block pointer</span>
-<a name="l00521"></a>00521         <span class="keywordflow">if</span> (!block-&gt;cache.next || (block-&gt;cache.next-&gt;cache.start&gt;(cache_code_start_ptr + CACHE_TOTAL - CACHE_MAXSIZE))) {
-<a name="l00522"></a>00522 <span class="comment">//              LOG_MSG(&quot;Cache full restarting&quot;);</span>
-<a name="l00523"></a>00523                 cache.block.active=cache.block.first;
-<a name="l00524"></a>00524         } <span class="keywordflow">else</span> {
-<a name="l00525"></a>00525                 cache.block.active=block-&gt;cache.next;
-<a name="l00526"></a>00526         }
-<a name="l00527"></a>00527 }
-<a name="l00528"></a>00528 
-<a name="l00529"></a>00529 
-<a name="l00530"></a>00530 <span class="comment">// place an 8bit value into the cache</span>
-<a name="l00531"></a>00531 <span class="keyword">static</span> INLINE <span class="keywordtype">void</span> cache_addb(Bit8u val) {
-<a name="l00532"></a>00532         *cache.pos++=val;
-<a name="l00533"></a>00533 }
-<a name="l00534"></a>00534 
-<a name="l00535"></a>00535 <span class="comment">// place a 16bit value into the cache</span>
-<a name="l00536"></a>00536 <span class="keyword">static</span> INLINE <span class="keywordtype">void</span> cache_addw(Bit16u val) {
-<a name="l00537"></a>00537         *(Bit16u*)cache.pos=val;
-<a name="l00538"></a>00538         cache.pos+=2;
-<a name="l00539"></a>00539 }
-<a name="l00540"></a>00540 
-<a name="l00541"></a>00541 <span class="comment">// place a 32bit value into the cache</span>
-<a name="l00542"></a>00542 <span class="keyword">static</span> INLINE <span class="keywordtype">void</span> cache_addd(Bit32u val) {
-<a name="l00543"></a>00543         *(Bit32u*)cache.pos=val;
-<a name="l00544"></a>00544         cache.pos+=4;
-<a name="l00545"></a>00545 }
-<a name="l00546"></a>00546 
-<a name="l00547"></a>00547 <span class="comment">// place a 64bit value into the cache</span>
-<a name="l00548"></a>00548 <span class="keyword">static</span> INLINE <span class="keywordtype">void</span> cache_addq(Bit64u val) {
-<a name="l00549"></a>00549         *(Bit64u*)cache.pos=val;
-<a name="l00550"></a>00550         cache.pos+=8;
-<a name="l00551"></a>00551 }
-<a name="l00552"></a>00552 
-<a name="l00553"></a>00553 
-<a name="l00554"></a>00554 <span class="keyword">static</span> <span class="keywordtype">void</span> dyn_return(BlockReturn retcode,<span class="keywordtype">bool</span> ret_exception);
-<a name="l00555"></a>00555 <span class="keyword">static</span> <span class="keywordtype">void</span> dyn_run_code(<span class="keywordtype">void</span>);
-<a name="l00556"></a>00556 
-<a name="l00557"></a>00557 
-<a name="l00558"></a>00558 <span class="comment">/* Define temporary pagesize so the MPROTECT case and the regular case share as much code as possible */</span>
-<a name="l00559"></a>00559 <span class="preprocessor">#if (C_HAVE_MPROTECT)</span>
-<a name="l00560"></a>00560 <span class="preprocessor"></span><span class="preprocessor">#define PAGESIZE_TEMP PAGESIZE</span>
-<a name="l00561"></a>00561 <span class="preprocessor"></span><span class="preprocessor">#else </span>
-<a name="l00562"></a>00562 <span class="preprocessor"></span><span class="preprocessor">#define PAGESIZE_TEMP 4096</span>
-<a name="l00563"></a>00563 <span class="preprocessor"></span><span class="preprocessor">#endif</span>
-<a name="l00564"></a>00564 <span class="preprocessor"></span>
-<a name="l00565"></a>00565 <span class="keyword">static</span> <span class="keywordtype">bool</span> cache_initialized = <span class="keyword">false</span>;
+<a name="l00482"></a>00482         <span class="keywordflow">if</span> (cache.wmapmask){
+<a name="l00483"></a>00483                 free(cache.wmapmask);
+<a name="l00484"></a>00484                 cache.wmapmask=NULL;
+<a name="l00485"></a>00485         }
+<a name="l00486"></a>00486 }
+<a name="l00487"></a>00487 
+<a name="l00488"></a>00488 
+<a name="l00489"></a>00489 <span class="keyword">static</span> <a class="code" href="classCacheBlockDynRec.html">CacheBlockDynRec</a> * cache_openblock(<span class="keywordtype">void</span>) {
+<a name="l00490"></a>00490         <a class="code" href="classCacheBlockDynRec.html">CacheBlockDynRec</a> * block=cache.block.active;
+<a name="l00491"></a>00491         <span class="comment">// check for enough space in this block</span>
+<a name="l00492"></a>00492         Bitu size=block-&gt;cache.size;
+<a name="l00493"></a>00493         <a class="code" href="classCacheBlockDynRec.html">CacheBlockDynRec</a> * nextblock=block-&gt;cache.next;
+<a name="l00494"></a>00494         <span class="keywordflow">if</span> (block-&gt;page.handler) 
+<a name="l00495"></a>00495                 block-&gt;Clear();
+<a name="l00496"></a>00496         <span class="comment">// block size must be at least CACHE_MAXSIZE</span>
+<a name="l00497"></a>00497         <span class="keywordflow">while</span> (size&lt;CACHE_MAXSIZE) {
+<a name="l00498"></a>00498                 <span class="keywordflow">if</span> (!nextblock)
+<a name="l00499"></a>00499                         <span class="keywordflow">goto</span> skipresize;
+<a name="l00500"></a>00500                 <span class="comment">// merge blocks</span>
+<a name="l00501"></a>00501                 size+=nextblock-&gt;cache.size;
+<a name="l00502"></a>00502                 <a class="code" href="classCacheBlockDynRec.html">CacheBlockDynRec</a> * tempblock=nextblock-&gt;cache.next;
+<a name="l00503"></a>00503                 <span class="keywordflow">if</span> (nextblock-&gt;page.handler) 
+<a name="l00504"></a>00504                         nextblock-&gt;Clear();
+<a name="l00505"></a>00505                 <span class="comment">// block is free now</span>
+<a name="l00506"></a>00506                 cache_addunusedblock(nextblock);
+<a name="l00507"></a>00507                 nextblock=tempblock;
+<a name="l00508"></a>00508         }
+<a name="l00509"></a>00509 skipresize:
+<a name="l00510"></a>00510         <span class="comment">// adjust parameters and open this block</span>
+<a name="l00511"></a>00511         block-&gt;cache.size=size;
+<a name="l00512"></a>00512         block-&gt;cache.next=nextblock;
+<a name="l00513"></a>00513         cache.pos=block-&gt;cache.start;
+<a name="l00514"></a>00514         <span class="keywordflow">return</span> block;
+<a name="l00515"></a>00515 }
+<a name="l00516"></a>00516 
+<a name="l00517"></a>00517 <span class="keyword">static</span> <span class="keywordtype">void</span> cache_closeblock(<span class="keywordtype">void</span>) {
+<a name="l00518"></a>00518         <a class="code" href="classCacheBlockDynRec.html">CacheBlockDynRec</a> * block=cache.block.active;
+<a name="l00519"></a>00519         <span class="comment">// links point to the default linking code</span>
+<a name="l00520"></a>00520         block-&gt;link[0].to=&amp;link_blocks[0];
+<a name="l00521"></a>00521         block-&gt;link[1].to=&amp;link_blocks[1];
+<a name="l00522"></a>00522         block-&gt;link[0].from=0;
+<a name="l00523"></a>00523         block-&gt;link[1].from=0;
+<a name="l00524"></a>00524         block-&gt;link[0].next=0;
+<a name="l00525"></a>00525         block-&gt;link[1].next=0;
+<a name="l00526"></a>00526         <span class="comment">// close the block with correct alignment</span>
+<a name="l00527"></a>00527         Bitu written=(Bitu)(cache.pos-block-&gt;cache.start);
+<a name="l00528"></a>00528         <span class="keywordflow">if</span> (written&gt;block-&gt;cache.size) {
+<a name="l00529"></a>00529                 <span class="keywordflow">if</span> (!block-&gt;cache.next) {
+<a name="l00530"></a>00530                         <span class="keywordflow">if</span> (written&gt;block-&gt;cache.size+CACHE_MAXSIZE) E_Exit(<span class="stringliteral">&quot;CacheBlock overrun 1 %lu&quot;</span>,(<span class="keywordtype">unsigned</span> <span class="keywordtype">long</span>)written-block-&gt;cache.size);
+<a name="l00531"></a>00531                 } <span class="keywordflow">else</span> E_Exit(<span class="stringliteral">&quot;CacheBlock overrun 2 written %lu size %lu&quot;</span>,(<span class="keywordtype">unsigned</span> <span class="keywordtype">long</span>)written,(<span class="keywordtype">unsigned</span> <span class="keywordtype">long</span>)block-&gt;cache.size);
+<a name="l00532"></a>00532         } <span class="keywordflow">else</span> {
+<a name="l00533"></a>00533                 Bitu left=block-&gt;cache.size-written;
+<a name="l00534"></a>00534                 <span class="comment">// smaller than cache align then don&#39;t bother to resize</span>
+<a name="l00535"></a>00535                 <span class="keywordflow">if</span> (left&gt;CACHE_ALIGN) {
+<a name="l00536"></a>00536                         Bitu new_size=((written-1)|(CACHE_ALIGN-1))+1;
+<a name="l00537"></a>00537                         <a class="code" href="classCacheBlockDynRec.html">CacheBlockDynRec</a> * newblock=cache_getblock();
+<a name="l00538"></a>00538                         <span class="comment">// align block now to CACHE_ALIGN</span>
+<a name="l00539"></a>00539                         newblock-&gt;cache.start=block-&gt;cache.start+new_size;
+<a name="l00540"></a>00540                         newblock-&gt;cache.size=block-&gt;cache.size-new_size;
+<a name="l00541"></a>00541                         newblock-&gt;cache.next=block-&gt;cache.next;
+<a name="l00542"></a>00542                         block-&gt;cache.next=newblock;
+<a name="l00543"></a>00543                         block-&gt;cache.size=new_size;
+<a name="l00544"></a>00544                 }
+<a name="l00545"></a>00545         }
+<a name="l00546"></a>00546         <span class="comment">// advance the active block pointer</span>
+<a name="l00547"></a>00547         <span class="keywordflow">if</span> (!block-&gt;cache.next || (block-&gt;cache.next-&gt;cache.start&gt;(cache_code_start_ptr + CACHE_TOTAL - CACHE_MAXSIZE))) {
+<a name="l00548"></a>00548 <span class="comment">//              LOG_MSG(&quot;Cache full restarting&quot;);</span>
+<a name="l00549"></a>00549                 cache.block.active=cache.block.first;
+<a name="l00550"></a>00550         } <span class="keywordflow">else</span> {
+<a name="l00551"></a>00551                 cache.block.active=block-&gt;cache.next;
+<a name="l00552"></a>00552         }
+<a name="l00553"></a>00553 }
+<a name="l00554"></a>00554 
+<a name="l00555"></a>00555 
+<a name="l00556"></a>00556 <span class="comment">// place an 8bit value into the cache</span>
+<a name="l00557"></a>00557 <span class="keyword">static</span> INLINE <span class="keywordtype">void</span> cache_addb(Bit8u val) {
+<a name="l00558"></a>00558         *cache.pos++=val;
+<a name="l00559"></a>00559 }
+<a name="l00560"></a>00560 
+<a name="l00561"></a>00561 <span class="comment">// place a 16bit value into the cache</span>
+<a name="l00562"></a>00562 <span class="keyword">static</span> INLINE <span class="keywordtype">void</span> cache_addw(Bit16u val) {
+<a name="l00563"></a>00563         *(Bit16u*)cache.pos=val;
+<a name="l00564"></a>00564         cache.pos+=2;
+<a name="l00565"></a>00565 }
 <a name="l00566"></a>00566 
-<a name="l00567"></a>00567 <span class="keyword">static</span> <span class="keywordtype">void</span> cache_init(<span class="keywordtype">bool</span> enable) {
-<a name="l00568"></a>00568         Bits i;
-<a name="l00569"></a>00569         <span class="keywordflow">if</span> (enable) {
-<a name="l00570"></a>00570                 <span class="comment">// see if cache is already initialized</span>
-<a name="l00571"></a>00571                 <span class="keywordflow">if</span> (cache_initialized) <span class="keywordflow">return</span>;
-<a name="l00572"></a>00572                 cache_initialized = <span class="keyword">true</span>;
-<a name="l00573"></a>00573                 <span class="keywordflow">if</span> (cache_blocks == NULL) {
-<a name="l00574"></a>00574                         <span class="comment">// allocate the cache blocks memory</span>
-<a name="l00575"></a>00575                         cache_blocks=(<a class="code" href="classCacheBlockDynRec.html">CacheBlockDynRec</a>*)malloc(CACHE_BLOCKS*<span class="keyword">sizeof</span>(<a class="code" href="classCacheBlockDynRec.html">CacheBlockDynRec</a>));
-<a name="l00576"></a>00576                         <span class="keywordflow">if</span>(!cache_blocks) E_Exit(<span class="stringliteral">&quot;Allocating cache_blocks has failed&quot;</span>);
-<a name="l00577"></a>00577                         memset(cache_blocks,0,<span class="keyword">sizeof</span>(<a class="code" href="classCacheBlockDynRec.html">CacheBlockDynRec</a>)*CACHE_BLOCKS);
-<a name="l00578"></a>00578                         cache.block.free=&amp;cache_blocks[0];
-<a name="l00579"></a>00579                         <span class="comment">// initialize the cache blocks</span>
-<a name="l00580"></a>00580                         <span class="keywordflow">for</span> (i=0;i&lt;CACHE_BLOCKS-1;i++) {
-<a name="l00581"></a>00581                                 cache_blocks[i].link[0].to=(<a class="code" href="classCacheBlockDynRec.html">CacheBlockDynRec</a> *)1;
-<a name="l00582"></a>00582                                 cache_blocks[i].link[1].to=(<a class="code" href="classCacheBlockDynRec.html">CacheBlockDynRec</a> *)1;
-<a name="l00583"></a>00583                                 cache_blocks[i].cache.next=&amp;cache_blocks[i+1];
-<a name="l00584"></a>00584                         }
-<a name="l00585"></a>00585                 }
-<a name="l00586"></a>00586                 <span class="keywordflow">if</span> (cache_code_start_ptr==NULL) {
-<a name="l00587"></a>00587                         <span class="comment">// allocate the code cache memory</span>
-<a name="l00588"></a>00588 <span class="preprocessor">#if defined (WIN32)</span>
-<a name="l00589"></a>00589 <span class="preprocessor"></span>                        cache_code_start_ptr=(Bit8u*)VirtualAlloc(0,CACHE_TOTAL+CACHE_MAXSIZE+PAGESIZE_TEMP-1+PAGESIZE_TEMP,
-<a name="l00590"></a>00590                                 MEM_COMMIT,PAGE_EXECUTE_READWRITE);
-<a name="l00591"></a>00591                         <span class="keywordflow">if</span> (!cache_code_start_ptr)
-<a name="l00592"></a>00592                                 cache_code_start_ptr=(Bit8u*)malloc(CACHE_TOTAL+CACHE_MAXSIZE+PAGESIZE_TEMP-1+PAGESIZE_TEMP);
-<a name="l00593"></a>00593 <span class="preprocessor">#else</span>
-<a name="l00594"></a>00594 <span class="preprocessor"></span>                        cache_code_start_ptr=(Bit8u*)malloc(CACHE_TOTAL+CACHE_MAXSIZE+PAGESIZE_TEMP-1+PAGESIZE_TEMP);
-<a name="l00595"></a>00595 <span class="preprocessor">#endif</span>
-<a name="l00596"></a>00596 <span class="preprocessor"></span>                        <span class="keywordflow">if</span>(!cache_code_start_ptr) E_Exit(<span class="stringliteral">&quot;Allocating dynamic cache failed&quot;</span>);
-<a name="l00597"></a>00597 
-<a name="l00598"></a>00598                         <span class="comment">// align the cache at a page boundary</span>
-<a name="l00599"></a>00599                         cache_code=(Bit8u*)(((Bitu)cache_code_start_ptr + (Bitu)(PAGESIZE_TEMP-1)) &amp; ~((Bitu)(PAGESIZE_TEMP-1)));<span class="comment">//Bitu is same size as a pointer.</span>
-<a name="l00600"></a>00600 
-<a name="l00601"></a>00601                         cache_code_link_blocks=cache_code;
-<a name="l00602"></a>00602                         cache_code=cache_code+PAGESIZE_TEMP;
-<a name="l00603"></a>00603 
-<a name="l00604"></a>00604 <span class="preprocessor">#if (C_HAVE_MPROTECT)</span>
-<a name="l00605"></a>00605 <span class="preprocessor"></span>                        <span class="keywordflow">if</span>(mprotect(cache_code_link_blocks,CACHE_TOTAL+CACHE_MAXSIZE+PAGESIZE_TEMP,PROT_WRITE|PROT_READ|PROT_EXEC))
-<a name="l00606"></a>00606                                 LOG_MSG(<span class="stringliteral">&quot;Setting execute permission on the code cache has failed&quot;</span>);
-<a name="l00607"></a>00607 <span class="preprocessor">#endif</span>
-<a name="l00608"></a>00608 <span class="preprocessor"></span>                        <a class="code" href="classCacheBlockDynRec.html">CacheBlockDynRec</a> * block=cache_getblock();
-<a name="l00609"></a>00609                         cache.block.first=block;
-<a name="l00610"></a>00610                         cache.block.active=block;
-<a name="l00611"></a>00611                         block-&gt;cache.start=&amp;cache_code[0];
-<a name="l00612"></a>00612                         block-&gt;cache.size=CACHE_TOTAL;
-<a name="l00613"></a>00613                         block-&gt;cache.next=0;                                            <span class="comment">// last block in the list</span>
-<a name="l00614"></a>00614                 }
-<a name="l00615"></a>00615                 <span class="comment">// setup the default blocks for block linkage returns</span>
-<a name="l00616"></a>00616                 cache.pos=&amp;cache_code_link_blocks[0];
-<a name="l00617"></a>00617                 link_blocks[0].cache.start=cache.pos;
-<a name="l00618"></a>00618                 <span class="comment">// link code that returns with a special return code</span>
-<a name="l00619"></a>00619                 dyn_return(BR_Link1,<span class="keyword">false</span>);
-<a name="l00620"></a>00620                 cache.pos=&amp;cache_code_link_blocks[32];
-<a name="l00621"></a>00621                 link_blocks[1].cache.start=cache.pos;
-<a name="l00622"></a>00622                 <span class="comment">// link code that returns with a special return code</span>
-<a name="l00623"></a>00623                 dyn_return(BR_Link2,<span class="keyword">false</span>);
-<a name="l00624"></a>00624 
-<a name="l00625"></a>00625                 cache.pos=&amp;cache_code_link_blocks[64];
-<a name="l00626"></a>00626                 *(<span class="keywordtype">void</span>**)(&amp;core_dynrec.runcode) = (<span class="keywordtype">void</span>*)cache.pos;
-<a name="l00627"></a>00627 <span class="comment">//              link_blocks[1].cache.start=cache.pos;</span>
-<a name="l00628"></a>00628                 dyn_run_code();
+<a name="l00567"></a>00567 <span class="comment">// place a 32bit value into the cache</span>
+<a name="l00568"></a>00568 <span class="keyword">static</span> INLINE <span class="keywordtype">void</span> cache_addd(Bit32u val) {
+<a name="l00569"></a>00569         *(Bit32u*)cache.pos=val;
+<a name="l00570"></a>00570         cache.pos+=4;
+<a name="l00571"></a>00571 }
+<a name="l00572"></a>00572 
+<a name="l00573"></a>00573 <span class="comment">// place a 64bit value into the cache</span>
+<a name="l00574"></a>00574 <span class="keyword">static</span> INLINE <span class="keywordtype">void</span> cache_addq(Bit64u val) {
+<a name="l00575"></a>00575         *(Bit64u*)cache.pos=val;
+<a name="l00576"></a>00576         cache.pos+=8;
+<a name="l00577"></a>00577 }
+<a name="l00578"></a>00578 
+<a name="l00579"></a>00579 
+<a name="l00580"></a>00580 <span class="keyword">static</span> <span class="keywordtype">void</span> dyn_return(BlockReturn retcode,<span class="keywordtype">bool</span> ret_exception);
+<a name="l00581"></a>00581 <span class="keyword">static</span> <span class="keywordtype">void</span> dyn_run_code(<span class="keywordtype">void</span>);
+<a name="l00582"></a>00582 
+<a name="l00583"></a>00583 
+<a name="l00584"></a>00584 <span class="comment">/* Define temporary pagesize so the MPROTECT case and the regular case share as much code as possible */</span>
+<a name="l00585"></a>00585 <span class="preprocessor">#if (C_HAVE_MPROTECT)</span>
+<a name="l00586"></a>00586 <span class="preprocessor"></span><span class="preprocessor">#define PAGESIZE_TEMP PAGESIZE</span>
+<a name="l00587"></a>00587 <span class="preprocessor"></span><span class="preprocessor">#else </span>
+<a name="l00588"></a>00588 <span class="preprocessor"></span><span class="preprocessor">#define PAGESIZE_TEMP 4096</span>
+<a name="l00589"></a>00589 <span class="preprocessor"></span><span class="preprocessor">#endif</span>
+<a name="l00590"></a>00590 <span class="preprocessor"></span>
+<a name="l00591"></a>00591 <span class="keyword">static</span> <span class="keywordtype">bool</span> cache_initialized = <span class="keyword">false</span>;
+<a name="l00592"></a>00592 
+<a name="l00593"></a>00593 <span class="keyword">static</span> <span class="keywordtype">void</span> cache_reset(<span class="keywordtype">void</span>) {
+<a name="l00594"></a>00594         <span class="keywordflow">if</span> (cache_initialized) {
+<a name="l00595"></a>00595                 <span class="keywordflow">for</span> (;;) {
+<a name="l00596"></a>00596                         <span class="keywordflow">if</span> (cache.used_pages) {
+<a name="l00597"></a>00597                                 <a class="code" href="classCodePageHandlerDynRec.html">CodePageHandlerDynRec</a> * cpage=cache.used_pages;
+<a name="l00598"></a>00598                                 <a class="code" href="classCodePageHandlerDynRec.html">CodePageHandlerDynRec</a> * npage=cache.used_pages-&gt;next;
+<a name="l00599"></a>00599                                 cpage-&gt;ClearRelease();
+<a name="l00600"></a>00600                                 <span class="keyword">delete</span> cpage;
+<a name="l00601"></a>00601                                 cache.used_pages=npage;
+<a name="l00602"></a>00602                         } <span class="keywordflow">else</span> <span class="keywordflow">break</span>;
+<a name="l00603"></a>00603                 }
+<a name="l00604"></a>00604 
+<a name="l00605"></a>00605                 <span class="keywordflow">if</span> (cache_blocks == NULL) {
+<a name="l00606"></a>00606                         cache_blocks=(<a class="code" href="classCacheBlockDynRec.html">CacheBlockDynRec</a>*)malloc(CACHE_BLOCKS*<span class="keyword">sizeof</span>(<a class="code" href="classCacheBlockDynRec.html">CacheBlockDynRec</a>));
+<a name="l00607"></a>00607                         <span class="keywordflow">if</span>(!cache_blocks) E_Exit(<span class="stringliteral">&quot;Allocating cache_blocks has failed&quot;</span>);
+<a name="l00608"></a>00608                 }
+<a name="l00609"></a>00609                 memset(cache_blocks,0,<span class="keyword">sizeof</span>(<a class="code" href="classCacheBlockDynRec.html">CacheBlockDynRec</a>)*CACHE_BLOCKS);
+<a name="l00610"></a>00610                 cache.block.free=&amp;cache_blocks[0];
+<a name="l00611"></a>00611                 <span class="keywordflow">for</span> (Bits i=0;i&lt;CACHE_BLOCKS-1;i++) {
+<a name="l00612"></a>00612                         cache_blocks[i].link[0].to=(<a class="code" href="classCacheBlockDynRec.html">CacheBlockDynRec</a> *)1;
+<a name="l00613"></a>00613                         cache_blocks[i].link[1].to=(<a class="code" href="classCacheBlockDynRec.html">CacheBlockDynRec</a> *)1;
+<a name="l00614"></a>00614                         cache_blocks[i].cache.next=&amp;cache_blocks[i+1];
+<a name="l00615"></a>00615                 }
+<a name="l00616"></a>00616 
+<a name="l00617"></a>00617                 <span class="keywordflow">if</span> (cache_code_start_ptr==NULL) {
+<a name="l00618"></a>00618 <span class="preprocessor">#if defined (WIN32)</span>
+<a name="l00619"></a>00619 <span class="preprocessor"></span>                        cache_code_start_ptr=(Bit8u*)VirtualAlloc(0,CACHE_TOTAL+CACHE_MAXSIZE+PAGESIZE_TEMP-1+PAGESIZE_TEMP,
+<a name="l00620"></a>00620                                 MEM_COMMIT,PAGE_EXECUTE_READWRITE);
+<a name="l00621"></a>00621                         <span class="keywordflow">if</span> (!cache_code_start_ptr)
+<a name="l00622"></a>00622                                 cache_code_start_ptr=(Bit8u*)malloc(CACHE_TOTAL+CACHE_MAXSIZE+PAGESIZE_TEMP-1+PAGESIZE_TEMP);
+<a name="l00623"></a>00623 <span class="preprocessor">#else</span>
+<a name="l00624"></a>00624 <span class="preprocessor"></span>                        cache_code_start_ptr=(Bit8u*)malloc(CACHE_TOTAL+CACHE_MAXSIZE+PAGESIZE_TEMP-1+PAGESIZE_TEMP);
+<a name="l00625"></a>00625 <span class="preprocessor">#endif</span>
+<a name="l00626"></a>00626 <span class="preprocessor"></span>                        <span class="keywordflow">if</span> (!cache_code_start_ptr) E_Exit(<span class="stringliteral">&quot;Allocating dynamic cache failed&quot;</span>);
+<a name="l00627"></a>00627 
+<a name="l00628"></a>00628                         cache_code=(Bit8u*)(((Bitu)cache_code_start_ptr + PAGESIZE_TEMP-1) &amp; ~(PAGESIZE_TEMP-1)); <span class="comment">//Bitu is same size as a pointer.</span>
 <a name="l00629"></a>00629 
-<a name="l00630"></a>00630                 cache.free_pages=0;
-<a name="l00631"></a>00631                 cache.last_page=0;
-<a name="l00632"></a>00632                 cache.used_pages=0;
-<a name="l00633"></a>00633                 <span class="comment">// setup the code pages</span>
-<a name="l00634"></a>00634                 <span class="keywordflow">for</span> (i=0;i&lt;CACHE_PAGES;i++) {
-<a name="l00635"></a>00635                         <a class="code" href="classCodePageHandlerDynRec.html">CodePageHandlerDynRec</a> * newpage=<span class="keyword">new</span> <a class="code" href="classCodePageHandlerDynRec.html">CodePageHandlerDynRec</a>();
-<a name="l00636"></a>00636                         newpage-&gt;next=cache.free_pages;
-<a name="l00637"></a>00637                         cache.free_pages=newpage;
-<a name="l00638"></a>00638                 }
-<a name="l00639"></a>00639         }
-<a name="l00640"></a>00640 }
-<a name="l00641"></a>00641 
-<a name="l00642"></a>00642 <span class="keyword">static</span> <span class="keywordtype">void</span> cache_close(<span class="keywordtype">void</span>) {
-<a name="l00643"></a>00643 <span class="comment">/*      for (;;) {</span>
-<a name="l00644"></a>00644 <span class="comment">                if (cache.used_pages) {</span>
-<a name="l00645"></a>00645 <span class="comment">                        CodePageHandler * cpage=cache.used_pages;</span>
-<a name="l00646"></a>00646 <span class="comment">                        CodePageHandler * npage=cache.used_pages-&gt;next;</span>
-<a name="l00647"></a>00647 <span class="comment">                        cpage-&gt;ClearRelease();</span>
-<a name="l00648"></a>00648 <span class="comment">                        delete cpage;</span>
-<a name="l00649"></a>00649 <span class="comment">                        cache.used_pages=npage;</span>
-<a name="l00650"></a>00650 <span class="comment">                } else break;</span>
-<a name="l00651"></a>00651 <span class="comment">        }</span>
-<a name="l00652"></a>00652 <span class="comment">        if (cache_blocks != NULL) {</span>
-<a name="l00653"></a>00653 <span class="comment">                free(cache_blocks);</span>
-<a name="l00654"></a>00654 <span class="comment">                cache_blocks = NULL;</span>
-<a name="l00655"></a>00655 <span class="comment">        }</span>
-<a name="l00656"></a>00656 <span class="comment">        if (cache_code_start_ptr != NULL) {</span>
-<a name="l00657"></a>00657 <span class="comment">                ### care: under windows VirtualFree() has to be used if</span>
-<a name="l00658"></a>00658 <span class="comment">                ###       VirtualAlloc was used for memory allocation</span>
-<a name="l00659"></a>00659 <span class="comment">                free(cache_code_start_ptr);</span>
-<a name="l00660"></a>00660 <span class="comment">                cache_code_start_ptr = NULL;</span>
-<a name="l00661"></a>00661 <span class="comment">        }</span>
-<a name="l00662"></a>00662 <span class="comment">        cache_code = NULL;</span>
-<a name="l00663"></a>00663 <span class="comment">        cache_code_link_blocks = NULL;</span>
-<a name="l00664"></a>00664 <span class="comment">        cache_initialized = false; */</span>
-<a name="l00665"></a>00665 }
+<a name="l00630"></a>00630                         cache_code_link_blocks=cache_code;
+<a name="l00631"></a>00631                         cache_code+=PAGESIZE_TEMP;
+<a name="l00632"></a>00632 
+<a name="l00633"></a>00633 <span class="preprocessor">#if (C_HAVE_MPROTECT)</span>
+<a name="l00634"></a>00634 <span class="preprocessor"></span>                        <span class="keywordflow">if</span>(mprotect(cache_code_link_blocks,CACHE_TOTAL+CACHE_MAXSIZE+PAGESIZE_TEMP,PROT_WRITE|PROT_READ|PROT_EXEC))
+<a name="l00635"></a>00635                                 LOG_MSG(<span class="stringliteral">&quot;Setting excute permission on the code cache has failed!&quot;</span>);
+<a name="l00636"></a>00636 <span class="preprocessor">#endif</span>
+<a name="l00637"></a>00637 <span class="preprocessor"></span>                }
+<a name="l00638"></a>00638 
+<a name="l00639"></a>00639                 <a class="code" href="classCacheBlockDynRec.html">CacheBlockDynRec</a> * block=cache_getblock();
+<a name="l00640"></a>00640                 cache.block.first=block;
+<a name="l00641"></a>00641                 cache.block.active=block;
+<a name="l00642"></a>00642                 block-&gt;cache.start=&amp;cache_code[0];
+<a name="l00643"></a>00643                 block-&gt;cache.size=CACHE_TOTAL;
+<a name="l00644"></a>00644                 block-&gt;cache.next=0;                                                            <span class="comment">//Last block in the list</span>
+<a name="l00645"></a>00645 
+<a name="l00646"></a>00646                 <span class="comment">/* Setup the default blocks for block linkage returns */</span>
+<a name="l00647"></a>00647                 cache.pos=&amp;cache_code_link_blocks[0];
+<a name="l00648"></a>00648                 link_blocks[0].cache.start=cache.pos;
+<a name="l00649"></a>00649                 dyn_return(BR_Link1,<span class="keyword">false</span>);
+<a name="l00650"></a>00650                 cache.pos=&amp;cache_code_link_blocks[32];
+<a name="l00651"></a>00651                 link_blocks[1].cache.start=cache.pos;
+<a name="l00652"></a>00652                 dyn_return(BR_Link2,<span class="keyword">false</span>);
+<a name="l00653"></a>00653                 cache.free_pages=0;
+<a name="l00654"></a>00654                 cache.last_page=0;
+<a name="l00655"></a>00655                 cache.used_pages=0;
+<a name="l00656"></a>00656                 <span class="comment">/* Setup the code pages */</span>
+<a name="l00657"></a>00657                 <span class="keywordflow">for</span> (Bitu i=0;i&lt;CACHE_PAGES;i++) {
+<a name="l00658"></a>00658                         <a class="code" href="classCodePageHandlerDynRec.html">CodePageHandlerDynRec</a> * newpage=<span class="keyword">new</span> <a class="code" href="classCodePageHandlerDynRec.html">CodePageHandlerDynRec</a>();
+<a name="l00659"></a>00659                         newpage-&gt;next=cache.free_pages;
+<a name="l00660"></a>00660                         cache.free_pages=newpage;
+<a name="l00661"></a>00661                 }
+<a name="l00662"></a>00662         }
+<a name="l00663"></a>00663 }
+<a name="l00664"></a>00664 
+<a name="l00665"></a>00665 
+<a name="l00666"></a>00666 <span class="keyword">static</span> <span class="keywordtype">void</span> cache_init(<span class="keywordtype">bool</span> enable) {
+<a name="l00667"></a>00667         <span class="keywordflow">if</span> (enable) {
+<a name="l00668"></a>00668                 Bits i;
+<a name="l00669"></a>00669                 <span class="comment">// see if cache is already initialized</span>
+<a name="l00670"></a>00670                 <span class="keywordflow">if</span> (cache_initialized) <span class="keywordflow">return</span>;
+<a name="l00671"></a>00671                 cache_initialized = <span class="keyword">true</span>;
+<a name="l00672"></a>00672                 <span class="keywordflow">if</span> (cache_blocks == NULL) {
+<a name="l00673"></a>00673                         <span class="comment">// allocate the cache blocks memory</span>
+<a name="l00674"></a>00674                         cache_blocks=(<a class="code" href="classCacheBlockDynRec.html">CacheBlockDynRec</a>*)malloc(CACHE_BLOCKS*<span class="keyword">sizeof</span>(<a class="code" href="classCacheBlockDynRec.html">CacheBlockDynRec</a>));
+<a name="l00675"></a>00675             <span class="keywordflow">if</span> (!cache_blocks)
+<a name="l00676"></a>00676                 E_Exit(<span class="stringliteral">&quot;Allocating cache_blocks has failed&quot;</span>);
+<a name="l00677"></a>00677             <span class="keywordflow">else</span>
+<a name="l00678"></a>00678                 memset(cache_blocks, 0, <span class="keyword">sizeof</span>(<a class="code" href="classCacheBlockDynRec.html">CacheBlockDynRec</a>) * CACHE_BLOCKS);
+<a name="l00679"></a>00679                         cache.block.free=&amp;cache_blocks[0];
+<a name="l00680"></a>00680                         <span class="comment">// initialize the cache blocks</span>
+<a name="l00681"></a>00681             <span class="keywordflow">if</span> (cache_blocks != NULL) {
+<a name="l00682"></a>00682                 <span class="keywordflow">for</span> (i = 0; i &lt; CACHE_BLOCKS - 1; i++) {
+<a name="l00683"></a>00683                     cache_blocks[i].link[0].to = (<a class="code" href="classCacheBlockDynRec.html">CacheBlockDynRec</a>*)1;
+<a name="l00684"></a>00684                     cache_blocks[i].link[1].to = (<a class="code" href="classCacheBlockDynRec.html">CacheBlockDynRec</a>*)1;
+<a name="l00685"></a>00685                     cache_blocks[i].cache.next = &amp;cache_blocks[i + 1];
+<a name="l00686"></a>00686                 }
+<a name="l00687"></a>00687             }
+<a name="l00688"></a>00688                 }
+<a name="l00689"></a>00689                 <span class="keywordflow">if</span> (cache_code_start_ptr==NULL) {
+<a name="l00690"></a>00690                         <span class="comment">// allocate the code cache memory</span>
+<a name="l00691"></a>00691 <span class="preprocessor">#if defined (WIN32)</span>
+<a name="l00692"></a>00692 <span class="preprocessor"></span>                        cache_code_start_ptr=(Bit8u*)VirtualAlloc(0,CACHE_TOTAL+CACHE_MAXSIZE+PAGESIZE_TEMP-1+PAGESIZE_TEMP,
+<a name="l00693"></a>00693                                 MEM_COMMIT,PAGE_EXECUTE_READWRITE);
+<a name="l00694"></a>00694                         <span class="keywordflow">if</span> (!cache_code_start_ptr)
+<a name="l00695"></a>00695                                 cache_code_start_ptr=(Bit8u*)malloc(CACHE_TOTAL+CACHE_MAXSIZE+PAGESIZE_TEMP-1+PAGESIZE_TEMP);
+<a name="l00696"></a>00696 <span class="preprocessor">#else</span>
+<a name="l00697"></a>00697 <span class="preprocessor"></span>                        cache_code_start_ptr=(Bit8u*)malloc(CACHE_TOTAL+CACHE_MAXSIZE+PAGESIZE_TEMP-1+PAGESIZE_TEMP);
+<a name="l00698"></a>00698 <span class="preprocessor">#endif</span>
+<a name="l00699"></a>00699 <span class="preprocessor"></span>                        <span class="keywordflow">if</span>(!cache_code_start_ptr) E_Exit(<span class="stringliteral">&quot;Allocating dynamic cache failed&quot;</span>);
+<a name="l00700"></a>00700 
+<a name="l00701"></a>00701                         <span class="comment">// align the cache at a page boundary</span>
+<a name="l00702"></a>00702                         cache_code=(Bit8u*)(((Bitu)cache_code_start_ptr + (Bitu)(PAGESIZE_TEMP-1)) &amp; ~((Bitu)(PAGESIZE_TEMP-1)));<span class="comment">//Bitu is same size as a pointer.</span>
+<a name="l00703"></a>00703 
+<a name="l00704"></a>00704                         cache_code_link_blocks=cache_code;
+<a name="l00705"></a>00705                         cache_code=cache_code+PAGESIZE_TEMP;
+<a name="l00706"></a>00706 
+<a name="l00707"></a>00707 <span class="preprocessor">#if (C_HAVE_MPROTECT)</span>
+<a name="l00708"></a>00708 <span class="preprocessor"></span>                        <span class="keywordflow">if</span>(mprotect(cache_code_link_blocks,CACHE_TOTAL+CACHE_MAXSIZE+PAGESIZE_TEMP,PROT_WRITE|PROT_READ|PROT_EXEC))
+<a name="l00709"></a>00709                                 LOG_MSG(<span class="stringliteral">&quot;Setting execute permission on the code cache has failed&quot;</span>);
+<a name="l00710"></a>00710 <span class="preprocessor">#endif</span>
+<a name="l00711"></a>00711 <span class="preprocessor"></span>                        <a class="code" href="classCacheBlockDynRec.html">CacheBlockDynRec</a> * block=cache_getblock();
+<a name="l00712"></a>00712                         cache.block.first=block;
+<a name="l00713"></a>00713                         cache.block.active=block;
+<a name="l00714"></a>00714                         block-&gt;cache.start=&amp;cache_code[0];
+<a name="l00715"></a>00715                         block-&gt;cache.size=CACHE_TOTAL;
+<a name="l00716"></a>00716                         block-&gt;cache.next=0;                                            <span class="comment">// last block in the list</span>
+<a name="l00717"></a>00717                 }
+<a name="l00718"></a>00718                 <span class="comment">// setup the default blocks for block linkage returns</span>
+<a name="l00719"></a>00719                 cache.pos=&amp;cache_code_link_blocks[0];
+<a name="l00720"></a>00720                 link_blocks[0].cache.start=cache.pos;
+<a name="l00721"></a>00721                 <span class="comment">// link code that returns with a special return code</span>
+<a name="l00722"></a>00722                 dyn_return(BR_Link1,<span class="keyword">false</span>);
+<a name="l00723"></a>00723                 cache.pos=&amp;cache_code_link_blocks[32];
+<a name="l00724"></a>00724                 link_blocks[1].cache.start=cache.pos;
+<a name="l00725"></a>00725                 <span class="comment">// link code that returns with a special return code</span>
+<a name="l00726"></a>00726                 dyn_return(BR_Link2,<span class="keyword">false</span>);
+<a name="l00727"></a>00727 
+<a name="l00728"></a>00728                 cache.pos=&amp;cache_code_link_blocks[64];
+<a name="l00729"></a>00729                 *(<span class="keywordtype">void</span>**)(&amp;core_dynrec.runcode) = (<span class="keywordtype">void</span>*)cache.pos;
+<a name="l00730"></a>00730 <span class="comment">//              link_blocks[1].cache.start=cache.pos;</span>
+<a name="l00731"></a>00731                 dyn_run_code();
+<a name="l00732"></a>00732 
+<a name="l00733"></a>00733                 cache.free_pages=0;
+<a name="l00734"></a>00734                 cache.last_page=0;
+<a name="l00735"></a>00735                 cache.used_pages=0;
+<a name="l00736"></a>00736                 <span class="comment">// setup the code pages</span>
+<a name="l00737"></a>00737                 <span class="keywordflow">for</span> (i=0;i&lt;CACHE_PAGES;i++) {
+<a name="l00738"></a>00738                         <a class="code" href="classCodePageHandlerDynRec.html">CodePageHandlerDynRec</a> * newpage=<span class="keyword">new</span> <a class="code" href="classCodePageHandlerDynRec.html">CodePageHandlerDynRec</a>();
+<a name="l00739"></a>00739                         newpage-&gt;next=cache.free_pages;
+<a name="l00740"></a>00740                         cache.free_pages=newpage;
+<a name="l00741"></a>00741                 }
+<a name="l00742"></a>00742         }
+<a name="l00743"></a>00743 }
+<a name="l00744"></a>00744 
+<a name="l00745"></a>00745 <span class="keyword">static</span> <span class="keywordtype">void</span> cache_close(<span class="keywordtype">void</span>) {
+<a name="l00746"></a>00746 <span class="comment">/*      for (;;) {</span>
+<a name="l00747"></a>00747 <span class="comment">                if (cache.used_pages) {</span>
+<a name="l00748"></a>00748 <span class="comment">                        CodePageHandler * cpage=cache.used_pages;</span>
+<a name="l00749"></a>00749 <span class="comment">                        CodePageHandler * npage=cache.used_pages-&gt;next;</span>
+<a name="l00750"></a>00750 <span class="comment">                        cpage-&gt;ClearRelease();</span>
+<a name="l00751"></a>00751 <span class="comment">                        delete cpage;</span>
+<a name="l00752"></a>00752 <span class="comment">                        cache.used_pages=npage;</span>
+<a name="l00753"></a>00753 <span class="comment">                } else break;</span>
+<a name="l00754"></a>00754 <span class="comment">        }</span>
+<a name="l00755"></a>00755 <span class="comment">        if (cache_blocks != NULL) {</span>
+<a name="l00756"></a>00756 <span class="comment">                free(cache_blocks);</span>
+<a name="l00757"></a>00757 <span class="comment">                cache_blocks = NULL;</span>
+<a name="l00758"></a>00758 <span class="comment">        }</span>
+<a name="l00759"></a>00759 <span class="comment">        if (cache_code_start_ptr != NULL) {</span>
+<a name="l00760"></a>00760 <span class="comment">                ### care: under windows VirtualFree() has to be used if</span>
+<a name="l00761"></a>00761 <span class="comment">                ###       VirtualAlloc was used for memory allocation</span>
+<a name="l00762"></a>00762 <span class="comment">                free(cache_code_start_ptr);</span>
+<a name="l00763"></a>00763 <span class="comment">                cache_code_start_ptr = NULL;</span>
+<a name="l00764"></a>00764 <span class="comment">        }</span>
+<a name="l00765"></a>00765 <span class="comment">        cache_code = NULL;</span>
+<a name="l00766"></a>00766 <span class="comment">        cache_code_link_blocks = NULL;</span>
+<a name="l00767"></a>00767 <span class="comment">        cache_initialized = false; */</span>
+<a name="l00768"></a>00768 }
 </pre></div></div><!-- contents -->
 
 
 <hr class="footer"/><address class="footer"><small>
-Generated on Tue Oct 1 2019 18:06:23 for DOSBox-X by &#160;<a href="http://www.doxygen.org/index.html">
+Generated on Sun Jul 5 2020 13:11:34 for DOSBox-X by &#160;<a href="http://www.doxygen.org/index.html">
 <img class="footer" src="doxygen.png" alt="doxygen"/>
 </a> 1.8.0
 </small></address>

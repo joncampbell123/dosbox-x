@@ -4,13 +4,13 @@
 Inheritance diagram for local\-Drive\-:\begin{figure}[H]
 \begin{center}
 \leavevmode
-\includegraphics[height=4.000000cm]{classlocalDrive}
+\includegraphics[height=3.000000cm]{classlocalDrive}
 \end{center}
 \end{figure}
 \subsection*{Public Member Functions}
 \begin{DoxyCompactItemize}
 \item 
-\hypertarget{classlocalDrive_aa68b58d5b5f7783f979bc948c1acf5d6}{{\bfseries local\-Drive} (const char $\ast$startdir, Bit16u \-\_\-bytes\-\_\-sector, Bit8u \-\_\-sectors\-\_\-cluster, Bit16u \-\_\-total\-\_\-clusters, Bit16u \-\_\-free\-\_\-clusters, Bit8u \-\_\-mediaid)}\label{classlocalDrive_aa68b58d5b5f7783f979bc948c1acf5d6}
+\hypertarget{classlocalDrive_aef6ba8f0095a362694e5b505836dd3a3}{{\bfseries local\-Drive} (const char $\ast$startdir, Bit16u \-\_\-bytes\-\_\-sector, Bit8u \-\_\-sectors\-\_\-cluster, Bit16u \-\_\-total\-\_\-clusters, Bit16u \-\_\-free\-\_\-clusters, Bit8u \-\_\-mediaid, std\-::vector$<$ std\-::string $>$ \&options)}\label{classlocalDrive_aef6ba8f0095a362694e5b505836dd3a3}
 
 \item 
 \hypertarget{classlocalDrive_ad995ca152b5317564349a83c1b71147c}{virtual bool {\bfseries File\-Open} (\hyperlink{classDOS__File}{D\-O\-S\-\_\-\-File} $\ast$$\ast$file, const char $\ast$name, Bit32u flags)}\label{classlocalDrive_ad995ca152b5317564349a83c1b71147c}
@@ -43,7 +43,16 @@ Inheritance diagram for local\-Drive\-:\begin{figure}[H]
 \hypertarget{classlocalDrive_ad76629b03e06dd8f2fe5bde5458a81fb}{virtual bool {\bfseries Find\-Next} (\hyperlink{classDOS__DTA}{D\-O\-S\-\_\-\-D\-T\-A} \&dta)}\label{classlocalDrive_ad76629b03e06dd8f2fe5bde5458a81fb}
 
 \item 
+\hypertarget{classlocalDrive_a2417f4726ea0b1676393036389f6e9a7}{virtual bool {\bfseries Set\-File\-Attr} (const char $\ast$name, Bit16u attr)}\label{classlocalDrive_a2417f4726ea0b1676393036389f6e9a7}
+
+\item 
 \hypertarget{classlocalDrive_a60a489b8d435065127281ed28f5d74cc}{virtual bool {\bfseries Get\-File\-Attr} (const char $\ast$name, Bit16u $\ast$attr)}\label{classlocalDrive_a60a489b8d435065127281ed28f5d74cc}
+
+\item 
+\hypertarget{classlocalDrive_ad71edc74da1565310fc580d57637dc76}{virtual bool {\bfseries Get\-File\-Attr\-Ex} (char $\ast$name, struct stat $\ast$status)}\label{classlocalDrive_ad71edc74da1565310fc580d57637dc76}
+
+\item 
+\hypertarget{classlocalDrive_a1f9d1bd556ad2ac0796db37908f89961}{virtual unsigned long {\bfseries Get\-Compressed\-Size} (char $\ast$name)}\label{classlocalDrive_a1f9d1bd556ad2ac0796db37908f89961}
 
 \item 
 \hypertarget{classlocalDrive_ac734204b365b747fc90a50a00c8540ae}{virtual bool {\bfseries Rename} (const char $\ast$oldname, const char $\ast$newname)}\label{classlocalDrive_ac734204b365b747fc90a50a00c8540ae}
@@ -76,22 +85,49 @@ Inheritance diagram for local\-Drive\-:\begin{figure}[H]
 \hypertarget{classlocalDrive_a1a133bdf134c07e73ae69798a6dc286a}{virtual void {\bfseries Set\-Label} (const char $\ast$label, bool iscdrom, bool updatable)}\label{classlocalDrive_a1a133bdf134c07e73ae69798a6dc286a}
 
 \item 
-\hypertarget{classlocalDrive_a6ad02364f6c2be9452538e8882136f1b}{virtual void $\ast$ {\bfseries opendir} (const char $\ast$dir)}\label{classlocalDrive_a6ad02364f6c2be9452538e8882136f1b}
+\hypertarget{classlocalDrive_aa3f813f920411f56cf194d815c68be41}{virtual void $\ast$ {\bfseries opendir} (const char $\ast$name)}\label{classlocalDrive_aa3f813f920411f56cf194d815c68be41}
 
 \item 
 \hypertarget{classlocalDrive_a62a8cc9aaae8084654a192f597673938}{virtual void {\bfseries closedir} (void $\ast$handle)}\label{classlocalDrive_a62a8cc9aaae8084654a192f597673938}
 
 \item 
-\hypertarget{classlocalDrive_a0d7c55c38d73ae6720bef188036aae2c}{virtual bool {\bfseries read\-\_\-directory\-\_\-first} (void $\ast$handle, char $\ast$entry\-\_\-name, bool \&is\-\_\-directory)}\label{classlocalDrive_a0d7c55c38d73ae6720bef188036aae2c}
+\hypertarget{classlocalDrive_a76a1484aa6b09ad942f5ad9e96410120}{virtual bool {\bfseries read\-\_\-directory\-\_\-first} (void $\ast$handle, char $\ast$entry\-\_\-name, char $\ast$entry\-\_\-sname, bool \&is\-\_\-directory)}\label{classlocalDrive_a76a1484aa6b09ad942f5ad9e96410120}
 
 \item 
-\hypertarget{classlocalDrive_a4346b5c16c777289484f5617d43a3083}{virtual bool {\bfseries read\-\_\-directory\-\_\-next} (void $\ast$handle, char $\ast$entry\-\_\-name, bool \&is\-\_\-directory)}\label{classlocalDrive_a4346b5c16c777289484f5617d43a3083}
+\hypertarget{classlocalDrive_ad4f2b5f3e42a18c15781bb8d26e3cfd1}{virtual bool {\bfseries read\-\_\-directory\-\_\-next} (void $\ast$handle, char $\ast$entry\-\_\-name, char $\ast$entry\-\_\-sname, bool \&is\-\_\-directory)}\label{classlocalDrive_ad4f2b5f3e42a18c15781bb8d26e3cfd1}
 
 \item 
 \hypertarget{classlocalDrive_a9fff98a140e946d23d9f8b2bbedb2649}{virtual void {\bfseries Empty\-Cache} (void)}\label{classlocalDrive_a9fff98a140e946d23d9f8b2bbedb2649}
 
 \item 
 \hypertarget{classlocalDrive_afaa833624d219a745861ab746e9cea77}{virtual void {\bfseries Media\-Change} ()}\label{classlocalDrive_afaa833624d219a745861ab746e9cea77}
+
+\item 
+\hypertarget{classlocalDrive_ad31747d53f04fb8538c6f9f5059df1d9}{const char $\ast$ {\bfseries get\-Basedir} ()}\label{classlocalDrive_ad31747d53f04fb8538c6f9f5059df1d9}
+
+\end{DoxyCompactItemize}
+\subsection*{Public Attributes}
+\begin{DoxyCompactItemize}
+\item 
+\hypertarget{classlocalDrive_a65438d1fa3ba0c6624593cc784f23556}{int {\bfseries remote} = -\/1}\label{classlocalDrive_a65438d1fa3ba0c6624593cc784f23556}
+
+\item 
+\hypertarget{classlocalDrive_a517352e52c9d20f4be3abf4a60bad5dc}{char {\bfseries srch\-\_\-dir} \mbox{[}C\-R\-O\-S\-S\-\_\-\-L\-E\-N\mbox{]}}\label{classlocalDrive_a517352e52c9d20f4be3abf4a60bad5dc}
+
+\item 
+\hypertarget{classlocalDrive_a11d8e3225531c3fcf59880a990d0d9fa}{Bit16u {\bfseries bytes\-\_\-sector}}\label{classlocalDrive_a11d8e3225531c3fcf59880a990d0d9fa}
+
+\item 
+\hypertarget{classlocalDrive_afc325a9e34acf1d269d9f841ff017f84}{Bit8u {\bfseries sectors\-\_\-cluster}}\label{classlocalDrive_afc325a9e34acf1d269d9f841ff017f84}
+
+\item 
+\hypertarget{classlocalDrive_ab38642679a9c91b35c753f2c3bd68284}{Bit16u {\bfseries total\-\_\-clusters}}\label{classlocalDrive_ab38642679a9c91b35c753f2c3bd68284}
+
+\item 
+\hypertarget{classlocalDrive_ae210f4140e095d15fad9fa6560b6fbe1}{Bit16u {\bfseries free\-\_\-clusters}}\label{classlocalDrive_ae210f4140e095d15fad9fa6560b6fbe1}
+
+\item 
+\hypertarget{classlocalDrive_a42a4b2995f0bec45a22ff46cce98983d}{Bit8u {\bfseries mediaid}}\label{classlocalDrive_a42a4b2995f0bec45a22ff46cce98983d}
 
 \end{DoxyCompactItemize}
 \subsection*{Protected Attributes}
@@ -103,15 +139,15 @@ Inheritance diagram for local\-Drive\-:\begin{figure}[H]
 \hypertarget{classlocalDrive_a33a547786dab6669db3440dc8e42283e}{char {\bfseries basedir} \mbox{[}C\-R\-O\-S\-S\-\_\-\-L\-E\-N\mbox{]}}\label{classlocalDrive_a33a547786dab6669db3440dc8e42283e}
 
 \item 
-\hypertarget{classlocalDrive_a81a24badd085cfd85e164da8cfe048d6}{\begin{tabbing}
+\hypertarget{classlocalDrive_a34a4f8b59b2ada078ff1a4ca66bec477}{\begin{tabbing}
 xx\=xx\=xx\=xx\=xx\=xx\=xx\=xx\=xx\=\kill
 struct \{\\
 \>char {\bfseries srch\_dir} \mbox{[}CROSS\_LEN\mbox{]}\\
-\} {\bfseries srchInfo} \mbox{[}MAX\_OPENDIRS\mbox{]}}\label{classlocalDrive_a81a24badd085cfd85e164da8cfe048d6}
+\} {\bfseries srchInfo} \mbox{[}MAX\_OPENDIRS\mbox{]}}\label{classlocalDrive_a34a4f8b59b2ada078ff1a4ca66bec477}
 \\
 
 \end{tabbing}\item 
-\hypertarget{classlocalDrive_a315dbfc15f1e3a47aa835cc3005bab19}{\begin{tabbing}
+\hypertarget{classlocalDrive_a4692fa722e3ff9888ce779c8512951a8}{\begin{tabbing}
 xx\=xx\=xx\=xx\=xx\=xx\=xx\=xx\=xx\=\kill
 struct \{\\
 \>Bit16u {\bfseries bytes\_sector}\\
@@ -119,7 +155,7 @@ struct \{\\
 \>Bit16u {\bfseries total\_clusters}\\
 \>Bit16u {\bfseries free\_clusters}\\
 \>Bit8u {\bfseries mediaid}\\
-\} {\bfseries allocation}}\label{classlocalDrive_a315dbfc15f1e3a47aa835cc3005bab19}
+\} {\bfseries allocation}}\label{classlocalDrive_a4692fa722e3ff9888ce779c8512951a8}
 \\
 
 \end{tabbing}\end{DoxyCompactItemize}
@@ -134,7 +170,7 @@ struct \{\\
 \subsection{Detailed Description}
 
 
-Definition at line 55 of file drives.\-h.
+Definition at line 60 of file drives.\-h.
 
 
 

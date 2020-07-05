@@ -14,6 +14,7 @@ var searchData=
   ['reporthandler',['ReportHandler',['../classMT32Emu_1_1ReportHandler.html',1,'MT32Emu']]],
   ['rescan',['RESCAN',['../classRESCAN.html',1,'']]],
   ['resetmemoryregion',['ResetMemoryRegion',['../classMT32Emu_1_1ResetMemoryRegion.html',1,'MT32Emu']]],
+  ['residue',['Residue',['../structResidue.html',1,'']]],
   ['reverbmodel',['ReverbModel',['../classMT32Emu_1_1ReverbModel.html',1,'MT32Emu']]],
   ['revmodel',['revmodel',['../classrevmodel.html',1,'']]],
   ['rgbentry',['RGBEntry',['../structRGBEntry.html',1,'']]],

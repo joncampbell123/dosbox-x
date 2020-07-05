@@ -111,7 +111,7 @@ Classes</h2></td></tr>
 <tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structgus__ICS2101_1_1volpair.html">volpair</a></td></tr>
 <tr><td colspan="2"><h2><a name="pub-types"></a>
 Public Types</h2></td></tr>
-<tr class="memitem:a33b1714abbc729f4a64fe11acac83528"><td class="memItemLeft" align="right" valign="top">enum &#160;</td><td class="memItemRight" valign="bottom">{ <br/>
+<tr class="memitem:a26f644ae98b2f0c0be3322b32a6dffc8"><td class="memItemLeft" align="right" valign="top">enum &#160;</td><td class="memItemRight" valign="bottom">{ <br/>
 &#160;&#160;<b>MIC_IN_PORT</b> = 0, 
 <b>LINE_IN_PORT</b> = 1, 
 <b>CD_IN_PORT</b> = 2, 
@@ -138,11 +138,11 @@ Public Attributes</h2></td></tr>
 <tr class="memitem:a7e5b7610442c6f3de38ae67487d9ccfa"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a7e5b7610442c6f3de38ae67487d9ccfa"></a>
 struct <a class="el" href="structgus__ICS2101_1_1mixcontrol.html">mixcontrol</a>&#160;</td><td class="memItemRight" valign="bottom"><b>mixpair</b> [8]</td></tr>
 <tr class="memitem:af99b01cfc9793b759b5c309fd605b563"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="af99b01cfc9793b759b5c309fd605b563"></a>
-struct <a class="el" href="structgus__ICS2101_1_1volpair.html">volpair</a>&#160;</td><td class="memItemRight" valign="bottom"><b>volpair</b> [5]</td></tr>
+struct <a class="el" href="structgus__ICS2101_1_1volpair.html">volpair</a>&#160;</td><td class="memItemRight" valign="bottom"><b>volpair</b> [5] = {}</td></tr>
 <tr class="memitem:a259bb6122df1b8689fdf2c5445f23623"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a259bb6122df1b8689fdf2c5445f23623"></a>
-uint8_t&#160;</td><td class="memItemRight" valign="bottom"><b>addr_attenuator</b></td></tr>
+uint8_t&#160;</td><td class="memItemRight" valign="bottom"><b>addr_attenuator</b> = 0</td></tr>
 <tr class="memitem:ab1b4294e06737b43bd2fba7eeaee46ee"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="ab1b4294e06737b43bd2fba7eeaee46ee"></a>
-uint8_t&#160;</td><td class="memItemRight" valign="bottom"><b>addr_control</b></td></tr>
+uint8_t&#160;</td><td class="memItemRight" valign="bottom"><b>addr_control</b> = 0</td></tr>
 </table>
 <hr/><a name="details" id="details"></a><h2>Detailed Description</h2>
 <div class="textblock">
@@ -154,7 +154,7 @@ uint8_t&#160;</td><td class="memItemRight" valign="bottom"><b>addr_control</b></
 
 
 <hr class="footer"/><address class="footer"><small>
-Generated on Tue Oct 1 2019 18:06:31 for DOSBox-X by &#160;<a href="http://www.doxygen.org/index.html">
+Generated on Sun Jul 5 2020 13:11:41 for DOSBox-X by &#160;<a href="http://www.doxygen.org/index.html">
 <img class="footer" src="doxygen.png" alt="doxygen"/>
 </a> 1.8.0
 </small></address>

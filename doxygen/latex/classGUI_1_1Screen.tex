@@ -72,7 +72,7 @@ Inheritance diagram for G\-U\-I\-:\-:Screen\-:\begin{figure}[H]
 \hypertarget{classGUI_1_1Screen_ae1bac72316cf4d07b19c2e4ae497e272}{\hyperlink{classGUI_1_1String}{String} \hyperlink{classGUI_1_1Screen_ae1bac72316cf4d07b19c2e4ae497e272}{clipboard}}\label{classGUI_1_1Screen_ae1bac72316cf4d07b19c2e4ae497e272}
 
 \begin{DoxyCompactList}\small\item\em Clipboard. \end{DoxyCompactList}\item 
-\hypertarget{classGUI_1_1Screen_a76597fbd366faf61d3a26f698e82e1f7}{\hyperlink{namespaceGUI_ad06082a7b02aa73697f39eb8e0856de9}{Mouse\-Button} \hyperlink{classGUI_1_1Screen_a76597fbd366faf61d3a26f698e82e1f7}{button}}\label{classGUI_1_1Screen_a76597fbd366faf61d3a26f698e82e1f7}
+\hypertarget{classGUI_1_1Screen_a76597fbd366faf61d3a26f698e82e1f7}{\hyperlink{namespaceGUI_ad06082a7b02aa73697f39eb8e0856de9}{Mouse\-Button} \hyperlink{classGUI_1_1Screen_a76597fbd366faf61d3a26f698e82e1f7}{button} = (\hyperlink{namespaceGUI_ad06082a7b02aa73697f39eb8e0856de9}{Mouse\-Button})0}\label{classGUI_1_1Screen_a76597fbd366faf61d3a26f698e82e1f7}
 
 \begin{DoxyCompactList}\small\item\em Currently pressed mouse button. \end{DoxyCompactList}\end{DoxyCompactItemize}
 
@@ -86,7 +86,7 @@ This is an abstract base class. You need to use a subclass which implements rgb\
 
 To make things work, \hyperlink{classGUI_1_1Screen}{Screen} needs events. Call the mouse and key event functions (see \hyperlink{classGUI_1_1Window}{Window}) whenever such an event occurs. Call update(void $\ast$surface, int ticks) regularly, if possible about every 40msec (25 fps). If nothing has changed, screen updates are quite fast. 
 
-Definition at line 833 of file gui\-\_\-tk.\-h.
+Definition at line 847 of file gui\-\_\-tk.\-h.
 
 
 
@@ -105,7 +105,7 @@ Update the given surface with this screen's content, fully honouring the alpha c
 
 {\ttfamily ticks} can be set to a different value depending on how much time has passed. Timing doesn't need to be perfect, but try to call this at least every 40 msec. Each tick amounts to about 10 msec. Returns the number of ticks until the next event is scheduled, or 0 if none. 
 
-Definition at line 1456 of file gui\-\_\-tk.\-cpp.
+Definition at line 1609 of file gui\-\_\-tk.\-cpp.
 
 
 

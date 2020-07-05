@@ -5,7 +5,7 @@
 %%For: 
 %Magnification: 1.00
 %%Orientation: Portrait
-%%BoundingBox: 0 0 500 533.333333
+%%BoundingBox: 0 0 500 689.655172
 %%Pages: 0
 %%BeginSetup
 %%EndSetup
@@ -19,12 +19,12 @@
 /marginwidth 10 def
 /distx 20 def
 /disty 40 def
-/boundaspect 0.937500 def  % aspect ratio of the BoundingBox (width/height)
+/boundaspect 0.725000 def  % aspect ratio of the BoundingBox (width/height)
 /boundx 500 def
 /boundy boundx boundaspect div def
 /xspacing 0 def
 /yspacing 0 def
-/rows 2 def
+/rows 3 def
 /cols 1 def
 /scalefactor 0 def
 /boxfont /Times-Roman findfont fontheight scalefont def
@@ -175,6 +175,7 @@ boxfont setfont
 1 boundaspect scale
 (localFile) cw
 (DOS_File) cw
+(OverlayFile) cw
 /boxwidth boxwidth marginwidth 2 mul add def
 /xspacing boxwidth distx add def
 /yspacing boxheight disty add def
@@ -186,12 +187,17 @@ boundx scalefactor div boundy scalefactor div scale
 
 % ----- classes -----
 
- (localFile) 0.000000 0.000000 box
- (DOS_File) 0.000000 1.000000 box
+ (localFile) 0.000000 1.000000 box
+ (DOS_File) 0.000000 2.000000 box
+ (OverlayFile) 0.000000 0.000000 box
 
 % ----- relations -----
 
 solid
-0 0.000000 0.000000 out
+0 0.000000 1.000000 out
 solid
-1 0.000000 1.000000 in
+1 0.000000 2.000000 in
+solid
+1 0.000000 0.250000 out
+solid
+0 0.000000 0.750000 in

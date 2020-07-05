@@ -122,14 +122,14 @@ Public Types</h2></td></tr>
 Public Member Functions</h2></td></tr>
 <tr class="memitem:a1d2b613312882771a0849446eff0e5f5"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a1d2b613312882771a0849446eff0e5f5"></a>
 &#160;</td><td class="memItemRight" valign="bottom"><b>DOS_Drive_Cache</b> (const char *path, <a class="el" href="classDOS__Drive.html">DOS_Drive</a> *drive)</td></tr>
-<tr class="memitem:a8ed60a9683170b1c7eb36e31c31fa2bd"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a8ed60a9683170b1c7eb36e31c31fa2bd"></a>
-void&#160;</td><td class="memItemRight" valign="bottom"><b>SetBaseDir</b> (const char *path, <a class="el" href="classDOS__Drive.html">DOS_Drive</a> *drive)</td></tr>
+<tr class="memitem:a7b4a442d713f76e2b26ca8d7859396d7"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a7b4a442d713f76e2b26ca8d7859396d7"></a>
+void&#160;</td><td class="memItemRight" valign="bottom"><b>SetBaseDir</b> (const char *baseDir, <a class="el" href="classDOS__Drive.html">DOS_Drive</a> *drive)</td></tr>
 <tr class="memitem:ac49b22a5b034eb6a9e029f2dce0f4773"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="ac49b22a5b034eb6a9e029f2dce0f4773"></a>
 void&#160;</td><td class="memItemRight" valign="bottom"><b>SetDirSort</b> (TDirSort sort)</td></tr>
 <tr class="memitem:a85aec9a4d7d87913806fa98c96dd2b68"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a85aec9a4d7d87913806fa98c96dd2b68"></a>
 bool&#160;</td><td class="memItemRight" valign="bottom"><b>OpenDir</b> (const char *path, Bit16u &amp;id)</td></tr>
-<tr class="memitem:aa3d88abf30778f5cd2f50c17b461a9dc"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="aa3d88abf30778f5cd2f50c17b461a9dc"></a>
-bool&#160;</td><td class="memItemRight" valign="bottom"><b>ReadDir</b> (Bit16u id, char *&amp;result)</td></tr>
+<tr class="memitem:a799a10e1a4ccef7b90d109222d0caedb"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a799a10e1a4ccef7b90d109222d0caedb"></a>
+bool&#160;</td><td class="memItemRight" valign="bottom"><b>ReadDir</b> (Bit16u id, char *&amp;result, char *&amp;lresult)</td></tr>
 <tr class="memitem:a21a3d68ddb91cf0c8ef5aaa4dc088271"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a21a3d68ddb91cf0c8ef5aaa4dc088271"></a>
 void&#160;</td><td class="memItemRight" valign="bottom"><b>ExpandName</b> (char *path)</td></tr>
 <tr class="memitem:a35592522c14ab04cb0b4de854fc3dd0e"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a35592522c14ab04cb0b4de854fc3dd0e"></a>
@@ -138,26 +138,28 @@ char *&#160;</td><td class="memItemRight" valign="bottom"><b>GetExpandName</b> (
 bool&#160;</td><td class="memItemRight" valign="bottom"><b>GetShortName</b> (const char *fullname, char *shortname)</td></tr>
 <tr class="memitem:ae19e2c7e6730d76b492bbc62d0edb38f"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="ae19e2c7e6730d76b492bbc62d0edb38f"></a>
 bool&#160;</td><td class="memItemRight" valign="bottom"><b>FindFirst</b> (char *path, Bit16u &amp;id)</td></tr>
-<tr class="memitem:a8c3297b5ea4a5b10ccf1e9bfd6e4b2c6"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a8c3297b5ea4a5b10ccf1e9bfd6e4b2c6"></a>
-bool&#160;</td><td class="memItemRight" valign="bottom"><b>FindNext</b> (Bit16u id, char *&amp;result)</td></tr>
+<tr class="memitem:a8195f6dab2ac6793fec5b4d015394f82"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a8195f6dab2ac6793fec5b4d015394f82"></a>
+bool&#160;</td><td class="memItemRight" valign="bottom"><b>FindNext</b> (Bit16u id, char *&amp;result, char *&amp;lresult)</td></tr>
 <tr class="memitem:ac1cf68069ab790fb1b3a35686b3625c6"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="ac1cf68069ab790fb1b3a35686b3625c6"></a>
 void&#160;</td><td class="memItemRight" valign="bottom"><b>CacheOut</b> (const char *path, bool ignoreLastDir=false)</td></tr>
-<tr class="memitem:a88416281f2c92dbd802bf1cc77153bdb"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a88416281f2c92dbd802bf1cc77153bdb"></a>
-void&#160;</td><td class="memItemRight" valign="bottom"><b>AddEntry</b> (const char *path, bool checkExist=false)</td></tr>
+<tr class="memitem:a28ee1c3b7a9d952b7b688d4179f25250"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a28ee1c3b7a9d952b7b688d4179f25250"></a>
+void&#160;</td><td class="memItemRight" valign="bottom"><b>AddEntry</b> (const char *path, bool checkExists=false)</td></tr>
+<tr class="memitem:a45a5c92f6a32812185aaec5116dc9b30"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a45a5c92f6a32812185aaec5116dc9b30"></a>
+void&#160;</td><td class="memItemRight" valign="bottom"><b>AddEntryDirOverlay</b> (const char *path, char *sfile, bool checkExist=false)</td></tr>
 <tr class="memitem:a68d34280ef1d383e84f98f2df46de333"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a68d34280ef1d383e84f98f2df46de333"></a>
 void&#160;</td><td class="memItemRight" valign="bottom"><b>DeleteEntry</b> (const char *path, bool ignoreLastDir=false)</td></tr>
 <tr class="memitem:a37fc4a803fa8ac753d3e084ee52e0daf"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a37fc4a803fa8ac753d3e084ee52e0daf"></a>
 void&#160;</td><td class="memItemRight" valign="bottom"><b>EmptyCache</b> (void)</td></tr>
 <tr class="memitem:a6015de7335a108069e32a1fdebfcd890"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a6015de7335a108069e32a1fdebfcd890"></a>
 void&#160;</td><td class="memItemRight" valign="bottom"><b>MediaChange</b> (void)</td></tr>
-<tr class="memitem:af5f0e25edd0f18d6ccaeb7349ec412a3"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="af5f0e25edd0f18d6ccaeb7349ec412a3"></a>
-void&#160;</td><td class="memItemRight" valign="bottom"><b>SetLabel</b> (const char *name, bool cdrom, bool allowupdate)</td></tr>
+<tr class="memitem:a505cfc29276623d017fe59cc5c815ec2"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a505cfc29276623d017fe59cc5c815ec2"></a>
+void&#160;</td><td class="memItemRight" valign="bottom"><b>SetLabel</b> (const char *vname, bool cdrom, bool allowupdate)</td></tr>
 <tr class="memitem:a5226fd65de22dc1ed73103dce3b6d668"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a5226fd65de22dc1ed73103dce3b6d668"></a>
 char *&#160;</td><td class="memItemRight" valign="bottom"><b>GetLabel</b> (void)</td></tr>
 </table>
 <hr/><a name="details" id="details"></a><h2>Detailed Description</h2>
 <div class="textblock">
-<p>Definition at line <a class="el" href="dos__system_8h_source.html#l00168">168</a> of file <a class="el" href="dos__system_8h_source.html">dos_system.h</a>.</p>
+<p>Definition at line <a class="el" href="dos__system_8h_source.html#l00173">173</a> of file <a class="el" href="dos__system_8h_source.html">dos_system.h</a>.</p>
 </div><hr/>The documentation for this class was generated from the following files:<ul>
 <li>include/<a class="el" href="dos__system_8h_source.html">dos_system.h</a></li>
 <li>src/dos/<a class="el" href="drive__cache_8cpp_source.html">drive_cache.cpp</a></li>
@@ -166,7 +168,7 @@ char *&#160;</td><td class="memItemRight" valign="bottom"><b>GetLabel</b> (void)
 
 
 <hr class="footer"/><address class="footer"><small>
-Generated on Tue Oct 1 2019 18:06:30 for DOSBox-X by &#160;<a href="http://www.doxygen.org/index.html">
+Generated on Sun Jul 5 2020 13:11:40 for DOSBox-X by &#160;<a href="http://www.doxygen.org/index.html">
 <img class="footer" src="doxygen.png" alt="doxygen"/>
 </a> 1.8.0
 </small></address>

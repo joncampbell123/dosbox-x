@@ -96,7 +96,7 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 </div><!--header-->
 <div class="contents">
 <div class="fragment"><pre class="fragment"><a name="l00001"></a>00001 <span class="comment">/*</span>
-<a name="l00002"></a>00002 <span class="comment"> *  Copyright (C) 2002-2019  The DOSBox Team</span>
+<a name="l00002"></a>00002 <span class="comment"> *  Copyright (C) 2002-2020  The DOSBox Team</span>
 <a name="l00003"></a>00003 <span class="comment"> *</span>
 <a name="l00004"></a>00004 <span class="comment"> *  This program is free software; you can redistribute it and/or modify</span>
 <a name="l00005"></a>00005 <span class="comment"> *  it under the terms of the GNU General Public License as published by</span>
@@ -108,9 +108,9 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l00011"></a>00011 <span class="comment"> *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the</span>
 <a name="l00012"></a>00012 <span class="comment"> *  GNU General Public License for more details.</span>
 <a name="l00013"></a>00013 <span class="comment"> *</span>
-<a name="l00014"></a>00014 <span class="comment"> *  You should have received a copy of the GNU General Public License</span>
-<a name="l00015"></a>00015 <span class="comment"> *  along with this program; if not, write to the Free Software</span>
-<a name="l00016"></a>00016 <span class="comment"> *  Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1335, USA.</span>
+<a name="l00014"></a>00014 <span class="comment"> *  You should have received a copy of the GNU General Public License along</span>
+<a name="l00015"></a>00015 <span class="comment"> *  with this program; if not, write to the Free Software Foundation, Inc.,</span>
+<a name="l00016"></a>00016 <span class="comment"> *  51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.</span>
 <a name="l00017"></a>00017 <span class="comment"> */</span>
 <a name="l00018"></a>00018 
 <a name="l00019"></a>00019 
@@ -120,876 +120,928 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l00023"></a>00023 <span class="preprocessor">#include &lt;stdio.h&gt;</span>
 <a name="l00024"></a>00024 <span class="preprocessor">#include &lt;errno.h&gt;</span>
 <a name="l00025"></a>00025 
-<a name="l00026"></a>00026 <span class="preprocessor">#include &quot;dosbox.h&quot;</span>
-<a name="l00027"></a>00027 <span class="preprocessor">#include &quot;logging.h&quot;</span>
-<a name="l00028"></a>00028 <span class="preprocessor">#include &quot;support.h&quot;</span>
-<a name="l00029"></a>00029 <span class="preprocessor">#include &quot;control.h&quot;</span>
-<a name="l00030"></a>00030 <span class="preprocessor">#include &quot;regs.h&quot;</span>
-<a name="l00031"></a>00031 <span class="preprocessor">#include &quot;menu.h&quot;</span>
-<a name="l00032"></a>00032 <span class="preprocessor">#include &quot;debug.h&quot;</span>
-<a name="l00033"></a>00033 <span class="preprocessor">#include &quot;debug_inc.h&quot;</span>
-<a name="l00034"></a>00034 
-<a name="l00035"></a>00035 <span class="preprocessor">#include &lt;stdexcept&gt;</span>
-<a name="l00036"></a>00036 <span class="preprocessor">#include &lt;exception&gt;</span>
-<a name="l00037"></a>00037 
-<a name="l00038"></a>00038 <span class="keyword">using namespace </span>std;
+<a name="l00026"></a>00026 <span class="preprocessor">#if defined(WIN32)</span>
+<a name="l00027"></a>00027 <span class="preprocessor"></span><span class="preprocessor">#include &lt;conio.h&gt;</span>
+<a name="l00028"></a>00028 <span class="preprocessor">#include &lt;SDL.h&gt;</span>
+<a name="l00029"></a>00029 <span class="preprocessor">#endif</span>
+<a name="l00030"></a>00030 <span class="preprocessor"></span>
+<a name="l00031"></a>00031 <span class="preprocessor">#include &quot;dosbox.h&quot;</span>
+<a name="l00032"></a>00032 <span class="preprocessor">#include &quot;logging.h&quot;</span>
+<a name="l00033"></a>00033 <span class="preprocessor">#include &quot;support.h&quot;</span>
+<a name="l00034"></a>00034 <span class="preprocessor">#include &quot;control.h&quot;</span>
+<a name="l00035"></a>00035 <span class="preprocessor">#include &quot;regs.h&quot;</span>
+<a name="l00036"></a>00036 <span class="preprocessor">#include &quot;menu.h&quot;</span>
+<a name="l00037"></a>00037 <span class="preprocessor">#include &quot;debug.h&quot;</span>
+<a name="l00038"></a>00038 <span class="preprocessor">#include &quot;debug_inc.h&quot;</span>
 <a name="l00039"></a>00039 
-<a name="l00040"></a>00040 <span class="keyword">static</span> <span class="keywordtype">bool</span> has_LOG_Init = <span class="keyword">false</span>;
-<a name="l00041"></a>00041 <span class="keyword">static</span> <span class="keywordtype">bool</span> has_LOG_EarlyInit = <span class="keyword">false</span>;
-<a name="l00042"></a>00042 <span class="keyword">static</span> <span class="keywordtype">bool</span> do_LOG_stderr = <span class="keyword">false</span>;
-<a name="l00043"></a>00043 
-<a name="l00044"></a>00044 <span class="keywordtype">bool</span> logBuffSuppressConsole = <span class="keyword">false</span>;
-<a name="l00045"></a>00045 <span class="keywordtype">bool</span> logBuffSuppressConsoleNeedUpdate = <span class="keyword">false</span>;
-<a name="l00046"></a>00046 
-<a name="l00047"></a>00047 <a class="code" href="struct__LogGroup.html">_LogGroup</a> loggrp[LOG_MAX]={{<span class="stringliteral">&quot;&quot;</span>,LOG_NORMAL},{0,LOG_NORMAL}};
-<a name="l00048"></a>00048 FILE* debuglog = NULL;
-<a name="l00049"></a>00049 
-<a name="l00050"></a>00050 <span class="preprocessor">#if C_DEBUG</span>
-<a name="l00051"></a>00051 <span class="preprocessor"></span><span class="keyword">static</span> <span class="keywordtype">bool</span> logBuffHasDiscarded = <span class="keyword">false</span>;
-<a name="l00052"></a>00052 
-<a name="l00053"></a>00053 <span class="preprocessor">#include &lt;curses.h&gt;</span>
+<a name="l00040"></a>00040 <span class="preprocessor">#include &lt;stdexcept&gt;</span>
+<a name="l00041"></a>00041 <span class="preprocessor">#include &lt;exception&gt;</span>
+<a name="l00042"></a>00042 
+<a name="l00043"></a>00043 <span class="keyword">using namespace </span>std;
+<a name="l00044"></a>00044 
+<a name="l00045"></a>00045 <span class="keywordtype">bool</span> log_int21 = <span class="keyword">false</span>;
+<a name="l00046"></a>00046 <span class="keywordtype">bool</span> log_fileio = <span class="keyword">false</span>;
+<a name="l00047"></a>00047 
+<a name="l00048"></a>00048 <span class="keyword">static</span> <span class="keywordtype">bool</span> has_LOG_Init = <span class="keyword">false</span>;
+<a name="l00049"></a>00049 <span class="keyword">static</span> <span class="keywordtype">bool</span> has_LOG_EarlyInit = <span class="keyword">false</span>;
+<a name="l00050"></a>00050 <span class="keyword">static</span> <span class="keywordtype">bool</span> do_LOG_stderr = <span class="keyword">false</span>;
+<a name="l00051"></a>00051 
+<a name="l00052"></a>00052 <span class="keywordtype">bool</span> logBuffSuppressConsole = <span class="keyword">false</span>;
+<a name="l00053"></a>00053 <span class="keywordtype">bool</span> logBuffSuppressConsoleNeedUpdate = <span class="keyword">false</span>;
 <a name="l00054"></a>00054 
-<a name="l00055"></a>00055 <span class="preprocessor">#include &lt;list&gt;</span>
-<a name="l00056"></a>00056 <span class="preprocessor">#include &lt;string&gt;</span>
-<a name="l00057"></a>00057 <span class="keyword">using namespace </span>std;
-<a name="l00058"></a>00058 
-<a name="l00059"></a>00059 std::string DBGBlock::windowlist_by_name(<span class="keywordtype">void</span>) {
-<a name="l00060"></a>00060     std::string comp;
-<a name="l00061"></a>00061     <span class="keywordtype">unsigned</span> <span class="keywordtype">int</span> i;
+<a name="l00055"></a>00055 <a class="code" href="struct__LogGroup.html">_LogGroup</a> loggrp[LOG_MAX]={{<span class="stringliteral">&quot;&quot;</span>,LOG_NORMAL},{0,LOG_NORMAL}};
+<a name="l00056"></a>00056 FILE* debuglog = NULL;
+<a name="l00057"></a>00057 
+<a name="l00058"></a>00058 <span class="preprocessor">#if C_DEBUG</span>
+<a name="l00059"></a>00059 <span class="preprocessor"></span><span class="keyword">static</span> <span class="keywordtype">bool</span> logBuffHasDiscarded = <span class="keyword">false</span>;
+<a name="l00060"></a>00060 
+<a name="l00061"></a>00061 <span class="preprocessor">#include &lt;curses.h&gt;</span>
 <a name="l00062"></a>00062 
-<a name="l00063"></a>00063     <span class="keywordflow">for</span> (i=0;i &lt; DBGBlock::WINI_MAX_INDEX;i++) {
-<a name="l00064"></a>00064         <span class="keywordflow">if</span> (i != 0) comp += <span class="stringliteral">&quot;,&quot;</span>;
-<a name="l00065"></a>00065         comp += dbg_win_names[i];
-<a name="l00066"></a>00066     }
-<a name="l00067"></a>00067 
-<a name="l00068"></a>00068     <span class="keywordflow">return</span> comp;
-<a name="l00069"></a>00069 }
+<a name="l00063"></a>00063 <span class="preprocessor">#include &lt;list&gt;</span>
+<a name="l00064"></a>00064 <span class="preprocessor">#include &lt;string&gt;</span>
+<a name="l00065"></a>00065 <span class="keyword">using namespace </span>std;
+<a name="l00066"></a>00066 
+<a name="l00067"></a>00067 std::string DBGBlock::windowlist_by_name(<span class="keywordtype">void</span>) {
+<a name="l00068"></a>00068     std::string comp;
+<a name="l00069"></a>00069     <span class="keywordtype">unsigned</span> <span class="keywordtype">int</span> i;
 <a name="l00070"></a>00070 
-<a name="l00071"></a>00071 <span class="keyword">const</span> <span class="keywordtype">unsigned</span> <span class="keywordtype">int</span> dbg_def_win_height[DBGBlock::WINI_MAX_INDEX] = {
-<a name="l00072"></a>00072     5,          <span class="comment">/* WINI_REG */</span>
-<a name="l00073"></a>00073     9,          <span class="comment">/* WINI_DATA */</span>
-<a name="l00074"></a>00074     12,         <span class="comment">/* WINI_CODE */</span>
-<a name="l00075"></a>00075     5,          <span class="comment">/* WINI_VAR */</span>
-<a name="l00076"></a>00076     6           <span class="comment">/* WINI_OUT */</span>
-<a name="l00077"></a>00077 };
+<a name="l00071"></a>00071     <span class="keywordflow">for</span> (i=0;i &lt; DBGBlock::WINI_MAX_INDEX;i++) {
+<a name="l00072"></a>00072         <span class="keywordflow">if</span> (i != 0) comp += <span class="stringliteral">&quot;,&quot;</span>;
+<a name="l00073"></a>00073         comp += dbg_win_names[i];
+<a name="l00074"></a>00074     }
+<a name="l00075"></a>00075 
+<a name="l00076"></a>00076     <span class="keywordflow">return</span> comp;
+<a name="l00077"></a>00077 }
 <a name="l00078"></a>00078 
-<a name="l00079"></a>00079 <span class="keyword">const</span> <span class="keywordtype">char</span> *dbg_def_win_titles[DBGBlock::WINI_MAX_INDEX] = {
-<a name="l00080"></a>00080     <span class="stringliteral">&quot;Register Overview&quot;</span>,        <span class="comment">/* WINI_REG */</span>
-<a name="l00081"></a>00081     <span class="stringliteral">&quot;Data Overview&quot;</span>,            <span class="comment">/* WINI_DATA */</span>
-<a name="l00082"></a>00082     <span class="stringliteral">&quot;Code Overview&quot;</span>,            <span class="comment">/* WINI_CODE */</span>
-<a name="l00083"></a>00083     <span class="stringliteral">&quot;Variable Overview&quot;</span>,        <span class="comment">/* WINI_VAR */</span>
-<a name="l00084"></a>00084     <span class="stringliteral">&quot;Output&quot;</span>                    <span class="comment">/* WINI_OUT */</span>
+<a name="l00079"></a>00079 <span class="keyword">const</span> <span class="keywordtype">unsigned</span> <span class="keywordtype">int</span> dbg_def_win_height[DBGBlock::WINI_MAX_INDEX] = {
+<a name="l00080"></a>00080     5,          <span class="comment">/* WINI_REG */</span>
+<a name="l00081"></a>00081     9,          <span class="comment">/* WINI_DATA */</span>
+<a name="l00082"></a>00082     12,         <span class="comment">/* WINI_CODE */</span>
+<a name="l00083"></a>00083     5,          <span class="comment">/* WINI_VAR */</span>
+<a name="l00084"></a>00084     6           <span class="comment">/* WINI_OUT */</span>
 <a name="l00085"></a>00085 };
 <a name="l00086"></a>00086 
-<a name="l00087"></a>00087 <span class="keyword">const</span> <span class="keywordtype">char</span> *dbg_win_names[DBGBlock::WINI_MAX_INDEX] = {
-<a name="l00088"></a>00088     <span class="stringliteral">&quot;REG&quot;</span>,
-<a name="l00089"></a>00089     <span class="stringliteral">&quot;DATA&quot;</span>,
-<a name="l00090"></a>00090     <span class="stringliteral">&quot;CODE&quot;</span>,
-<a name="l00091"></a>00091     <span class="stringliteral">&quot;VAR&quot;</span>,
-<a name="l00092"></a>00092     <span class="stringliteral">&quot;OUT&quot;</span>
+<a name="l00087"></a>00087 <span class="keyword">const</span> <span class="keywordtype">char</span> *dbg_def_win_titles[DBGBlock::WINI_MAX_INDEX] = {
+<a name="l00088"></a>00088     <span class="stringliteral">&quot;Register Overview&quot;</span>,        <span class="comment">/* WINI_REG */</span>
+<a name="l00089"></a>00089     <span class="stringliteral">&quot;Data Overview&quot;</span>,            <span class="comment">/* WINI_DATA */</span>
+<a name="l00090"></a>00090     <span class="stringliteral">&quot;Code Overview&quot;</span>,            <span class="comment">/* WINI_CODE */</span>
+<a name="l00091"></a>00091     <span class="stringliteral">&quot;Variable Overview&quot;</span>,        <span class="comment">/* WINI_VAR */</span>
+<a name="l00092"></a>00092     <span class="stringliteral">&quot;Output&quot;</span>                    <span class="comment">/* WINI_OUT */</span>
 <a name="l00093"></a>00093 };
 <a name="l00094"></a>00094 
-<a name="l00095"></a>00095 <span class="preprocessor">#define MAX_LOG_BUFFER 4000</span>
-<a name="l00096"></a>00096 <span class="preprocessor"></span><span class="keyword">static</span> list&lt;string&gt; logBuff;
-<a name="l00097"></a>00097 <span class="keyword">static</span> list&lt;string&gt;::iterator logBuffPos = logBuff.end();
-<a name="l00098"></a>00098 
-<a name="l00099"></a>00099 <span class="keyword">extern</span> <span class="keywordtype">int</span> old_cursor_state;
-<a name="l00100"></a>00100 
-<a name="l00101"></a>00101 <span class="keyword">const</span> <span class="keywordtype">char</span> *DBGBlock::get_winname(<span class="keywordtype">int</span> idx) {
-<a name="l00102"></a>00102     <span class="keywordflow">if</span> (idx &gt;= 0 &amp;&amp; idx &lt; DBGBlock::WINI_MAX_INDEX)
-<a name="l00103"></a>00103         <span class="keywordflow">return</span> dbg_win_names[idx];
-<a name="l00104"></a>00104 
-<a name="l00105"></a>00105     <span class="keywordflow">return</span> NULL;
-<a name="l00106"></a>00106 }
-<a name="l00107"></a>00107 
-<a name="l00108"></a>00108 <span class="keyword">const</span> <span class="keywordtype">char</span> *DBGBlock::get_wintitle(<span class="keywordtype">int</span> idx) {
-<a name="l00109"></a>00109     <span class="keywordflow">if</span> (idx &gt;= 0 &amp;&amp; idx &lt; DBGBlock::WINI_MAX_INDEX)
-<a name="l00110"></a>00110         <span class="keywordflow">return</span> dbg.win_title[idx].c_str();
-<a name="l00111"></a>00111 
-<a name="l00112"></a>00112     <span class="keywordflow">return</span> NULL;
-<a name="l00113"></a>00113 }
-<a name="l00114"></a>00114 
-<a name="l00115"></a>00115 <span class="keywordtype">int</span> DBGBlock::name_to_win(<span class="keyword">const</span> <span class="keywordtype">char</span> *name) {
-<a name="l00116"></a>00116     <span class="keywordflow">for</span> (<span class="keywordtype">unsigned</span> <span class="keywordtype">int</span> i=0;i &lt; DBGBlock::WINI_MAX_INDEX;i++) {
-<a name="l00117"></a>00117         <span class="keywordflow">if</span> (!strcasecmp(name,dbg_win_names[i]))
-<a name="l00118"></a>00118             <span class="keywordflow">return</span> (<span class="keywordtype">int</span>)i;
-<a name="l00119"></a>00119     }
-<a name="l00120"></a>00120 
-<a name="l00121"></a>00121     <span class="keywordflow">return</span> -1;
-<a name="l00122"></a>00122 }
-<a name="l00123"></a>00123 
-<a name="l00124"></a>00124 <span class="keywordtype">void</span> DBGBlock::next_window(<span class="keywordtype">void</span>) {
-<a name="l00125"></a>00125     <span class="keywordtype">int</span> order = win_find_order((<span class="keywordtype">int</span>)active_win);
-<a name="l00126"></a>00126 
-<a name="l00127"></a>00127     <span class="keywordflow">if</span> (order &lt; 0) order = 0;
+<a name="l00095"></a>00095 <span class="keyword">const</span> <span class="keywordtype">char</span> *dbg_win_names[DBGBlock::WINI_MAX_INDEX] = {
+<a name="l00096"></a>00096     <span class="stringliteral">&quot;REG&quot;</span>,
+<a name="l00097"></a>00097     <span class="stringliteral">&quot;DATA&quot;</span>,
+<a name="l00098"></a>00098     <span class="stringliteral">&quot;CODE&quot;</span>,
+<a name="l00099"></a>00099     <span class="stringliteral">&quot;VAR&quot;</span>,
+<a name="l00100"></a>00100     <span class="stringliteral">&quot;OUT&quot;</span>
+<a name="l00101"></a>00101 };
+<a name="l00102"></a>00102 
+<a name="l00103"></a>00103 <span class="preprocessor">#define MAX_LOG_BUFFER 4000</span>
+<a name="l00104"></a>00104 <span class="preprocessor"></span><span class="keyword">static</span> list&lt;string&gt; logBuff;
+<a name="l00105"></a>00105 <span class="keyword">static</span> list&lt;string&gt;::iterator logBuffPos = logBuff.end();
+<a name="l00106"></a>00106 
+<a name="l00107"></a>00107 <span class="keyword">extern</span> <span class="keywordtype">int</span> old_cursor_state;
+<a name="l00108"></a>00108 
+<a name="l00109"></a>00109 <span class="keyword">const</span> <span class="keywordtype">char</span> *DBGBlock::get_winname(<span class="keywordtype">int</span> idx) {
+<a name="l00110"></a>00110     <span class="keywordflow">if</span> (idx &gt;= 0 &amp;&amp; idx &lt; DBGBlock::WINI_MAX_INDEX)
+<a name="l00111"></a>00111         <span class="keywordflow">return</span> dbg_win_names[idx];
+<a name="l00112"></a>00112 
+<a name="l00113"></a>00113     <span class="keywordflow">return</span> NULL;
+<a name="l00114"></a>00114 }
+<a name="l00115"></a>00115 
+<a name="l00116"></a>00116 <span class="keyword">const</span> <span class="keywordtype">char</span> *DBGBlock::get_wintitle(<span class="keywordtype">int</span> idx) {
+<a name="l00117"></a>00117     <span class="keywordflow">if</span> (idx &gt;= 0 &amp;&amp; idx &lt; DBGBlock::WINI_MAX_INDEX)
+<a name="l00118"></a>00118         <span class="keywordflow">return</span> dbg.win_title[idx].c_str();
+<a name="l00119"></a>00119 
+<a name="l00120"></a>00120     <span class="keywordflow">return</span> NULL;
+<a name="l00121"></a>00121 }
+<a name="l00122"></a>00122 
+<a name="l00123"></a>00123 <span class="keywordtype">int</span> DBGBlock::name_to_win(<span class="keyword">const</span> <span class="keywordtype">char</span> *name) {
+<a name="l00124"></a>00124     <span class="keywordflow">for</span> (<span class="keywordtype">unsigned</span> <span class="keywordtype">int</span> i=0;i &lt; DBGBlock::WINI_MAX_INDEX;i++) {
+<a name="l00125"></a>00125         <span class="keywordflow">if</span> (!strcasecmp(name,dbg_win_names[i]))
+<a name="l00126"></a>00126             <span class="keywordflow">return</span> (<span class="keywordtype">int</span>)i;
+<a name="l00127"></a>00127     }
 <a name="l00128"></a>00128 
-<a name="l00129"></a>00129     order = win_next_by_order(order);
-<a name="l00130"></a>00130     <span class="keywordflow">if</span> (order &gt;= 0) active_win = win_order[order];
-<a name="l00131"></a>00131 }
-<a name="l00132"></a>00132 
-<a name="l00133"></a>00133 <span class="keywordtype">void</span> DBGBlock::swap_order(<span class="keywordtype">int</span> o1,<span class="keywordtype">int</span> o2) {
-<a name="l00134"></a>00134     <span class="keywordflow">if</span> (o1 != o2)
-<a name="l00135"></a>00135         std::swap(win_order[o1],win_order[o2]);
-<a name="l00136"></a>00136 }
-<a name="l00137"></a>00137 
-<a name="l00138"></a>00138 WINDOW* &amp;DBGBlock::get_win_ref(<span class="keywordtype">int</span> idx) {
-<a name="l00139"></a>00139     <span class="keywordflow">switch</span> (idx) {
-<a name="l00140"></a>00140         <span class="keywordflow">case</span> WINI_REG:  <span class="keywordflow">return</span> win_reg;
-<a name="l00141"></a>00141         <span class="keywordflow">case</span> WINI_DATA: <span class="keywordflow">return</span> win_data;
-<a name="l00142"></a>00142         <span class="keywordflow">case</span> WINI_CODE: <span class="keywordflow">return</span> win_code;
-<a name="l00143"></a>00143         <span class="keywordflow">case</span> WINI_VAR:  <span class="keywordflow">return</span> win_var;
-<a name="l00144"></a>00144         <span class="keywordflow">case</span> WINI_OUT:  <span class="keywordflow">return</span> win_out;
-<a name="l00145"></a>00145     }
-<a name="l00146"></a>00146 
-<a name="l00147"></a>00147     <span class="keywordflow">throw</span> domain_error(<span class="stringliteral">&quot;get_win_ref&quot;</span>);
-<a name="l00148"></a>00148 }
-<a name="l00149"></a>00149 
-<a name="l00150"></a>00150 WINDOW* DBGBlock::get_win(<span class="keywordtype">int</span> idx) {
-<a name="l00151"></a>00151     <span class="keywordflow">return</span> get_win_ref(idx);
-<a name="l00152"></a>00152 }
-<a name="l00153"></a>00153 
-<a name="l00154"></a>00154 WINDOW *DBGBlock::get_active_win(<span class="keywordtype">void</span>) {
-<a name="l00155"></a>00155     <span class="keywordflow">return</span> get_win((<span class="keywordtype">int</span>)active_win);
+<a name="l00129"></a>00129     <span class="keywordflow">return</span> -1;
+<a name="l00130"></a>00130 }
+<a name="l00131"></a>00131 
+<a name="l00132"></a>00132 <span class="keywordtype">void</span> DBGBlock::next_window(<span class="keywordtype">void</span>) {
+<a name="l00133"></a>00133     <span class="keywordtype">int</span> order = win_find_order((<span class="keywordtype">int</span>)active_win);
+<a name="l00134"></a>00134 
+<a name="l00135"></a>00135     <span class="keywordflow">if</span> (order &lt; 0) order = 0;
+<a name="l00136"></a>00136 
+<a name="l00137"></a>00137     order = win_next_by_order(order);
+<a name="l00138"></a>00138     <span class="keywordflow">if</span> (order &gt;= 0) active_win = win_order[order];
+<a name="l00139"></a>00139 }
+<a name="l00140"></a>00140 
+<a name="l00141"></a>00141 <span class="keywordtype">void</span> DBGBlock::swap_order(<span class="keywordtype">int</span> o1,<span class="keywordtype">int</span> o2) {
+<a name="l00142"></a>00142     <span class="keywordflow">if</span> (o1 != o2)
+<a name="l00143"></a>00143         std::swap(win_order[o1],win_order[o2]);
+<a name="l00144"></a>00144 }
+<a name="l00145"></a>00145 
+<a name="l00146"></a>00146 WINDOW* &amp;DBGBlock::get_win_ref(<span class="keywordtype">int</span> idx) {
+<a name="l00147"></a>00147     <span class="keywordflow">switch</span> (idx) {
+<a name="l00148"></a>00148         <span class="keywordflow">case</span> WINI_REG:  <span class="keywordflow">return</span> win_reg;
+<a name="l00149"></a>00149         <span class="keywordflow">case</span> WINI_DATA: <span class="keywordflow">return</span> win_data;
+<a name="l00150"></a>00150         <span class="keywordflow">case</span> WINI_CODE: <span class="keywordflow">return</span> win_code;
+<a name="l00151"></a>00151         <span class="keywordflow">case</span> WINI_VAR:  <span class="keywordflow">return</span> win_var;
+<a name="l00152"></a>00152         <span class="keywordflow">case</span> WINI_OUT:  <span class="keywordflow">return</span> win_out;
+<a name="l00153"></a>00153     }
+<a name="l00154"></a>00154 
+<a name="l00155"></a>00155     <span class="keywordflow">throw</span> domain_error(<span class="stringliteral">&quot;get_win_ref&quot;</span>);
 <a name="l00156"></a>00156 }
 <a name="l00157"></a>00157 
-<a name="l00158"></a>00158 <span class="keywordtype">int</span> DBGBlock::win_find_order(<span class="keywordtype">int</span> wnd) {
-<a name="l00159"></a>00159     <span class="keywordflow">for</span> (<span class="keywordtype">unsigned</span> <span class="keywordtype">int</span> i=0;i &lt; DBGBlock::WINI_MAX_INDEX;i++) {
-<a name="l00160"></a>00160         <span class="keywordflow">if</span> (dbg.win_order[i] == wnd)
-<a name="l00161"></a>00161             <span class="keywordflow">return</span> (<span class="keywordtype">int</span>)i;
-<a name="l00162"></a>00162     }
-<a name="l00163"></a>00163 
-<a name="l00164"></a>00164     <span class="keywordflow">return</span> -1;
-<a name="l00165"></a>00165 }
-<a name="l00166"></a>00166 
-<a name="l00167"></a>00167 <span class="keywordtype">int</span> DBGBlock::win_prev_by_order(<span class="keywordtype">int</span> order) {
-<a name="l00168"></a>00168     <span class="keywordtype">int</span> limit = DBGBlock::WINI_MAX_INDEX;
-<a name="l00169"></a>00169 
-<a name="l00170"></a>00170     <span class="keywordflow">do</span> {
-<a name="l00171"></a>00171         <span class="keywordflow">if</span> (--order &lt; 0)
-<a name="l00172"></a>00172             order = DBGBlock::WINI_MAX_INDEX - 1;
-<a name="l00173"></a>00173 
-<a name="l00174"></a>00174         <span class="keywordflow">if</span> (--limit &lt;= 0)
-<a name="l00175"></a>00175             <span class="keywordflow">break</span>;
-<a name="l00176"></a>00176     } <span class="keywordflow">while</span> (get_win(win_order[order]) == NULL);
+<a name="l00158"></a>00158 WINDOW* DBGBlock::get_win(<span class="keywordtype">int</span> idx) {
+<a name="l00159"></a>00159     <span class="keywordflow">return</span> get_win_ref(idx);
+<a name="l00160"></a>00160 }
+<a name="l00161"></a>00161 
+<a name="l00162"></a>00162 WINDOW *DBGBlock::get_active_win(<span class="keywordtype">void</span>) {
+<a name="l00163"></a>00163     <span class="keywordflow">return</span> get_win((<span class="keywordtype">int</span>)active_win);
+<a name="l00164"></a>00164 }
+<a name="l00165"></a>00165 
+<a name="l00166"></a>00166 <span class="keywordtype">int</span> DBGBlock::win_find_order(<span class="keywordtype">int</span> wnd) {
+<a name="l00167"></a>00167     <span class="keywordflow">for</span> (<span class="keywordtype">unsigned</span> <span class="keywordtype">int</span> i=0;i &lt; DBGBlock::WINI_MAX_INDEX;i++) {
+<a name="l00168"></a>00168         <span class="keywordflow">if</span> (dbg.win_order[i] == wnd)
+<a name="l00169"></a>00169             <span class="keywordflow">return</span> (<span class="keywordtype">int</span>)i;
+<a name="l00170"></a>00170     }
+<a name="l00171"></a>00171 
+<a name="l00172"></a>00172     <span class="keywordflow">return</span> -1;
+<a name="l00173"></a>00173 }
+<a name="l00174"></a>00174 
+<a name="l00175"></a>00175 <span class="keywordtype">int</span> DBGBlock::win_prev_by_order(<span class="keywordtype">int</span> order) {
+<a name="l00176"></a>00176     <span class="keywordtype">int</span> limit = DBGBlock::WINI_MAX_INDEX;
 <a name="l00177"></a>00177 
-<a name="l00178"></a>00178     <span class="keywordflow">return</span> order;
-<a name="l00179"></a>00179 }
-<a name="l00180"></a>00180 
-<a name="l00181"></a>00181 <span class="keywordtype">int</span> DBGBlock::win_next_by_order(<span class="keywordtype">int</span> order) {
-<a name="l00182"></a>00182     <span class="keywordtype">int</span> limit = DBGBlock::WINI_MAX_INDEX;
-<a name="l00183"></a>00183 
-<a name="l00184"></a>00184     <span class="keywordflow">do</span> {
-<a name="l00185"></a>00185         <span class="keywordflow">if</span> (++order &gt;= DBGBlock::WINI_MAX_INDEX)
-<a name="l00186"></a>00186             order = 0;
-<a name="l00187"></a>00187 
-<a name="l00188"></a>00188         <span class="keywordflow">if</span> (--limit &lt;= 0)
-<a name="l00189"></a>00189             <span class="keywordflow">break</span>;
-<a name="l00190"></a>00190     } <span class="keywordflow">while</span> (get_win(win_order[order]) == NULL);
+<a name="l00178"></a>00178     <span class="keywordflow">do</span> {
+<a name="l00179"></a>00179         <span class="keywordflow">if</span> (--order &lt; 0)
+<a name="l00180"></a>00180             order = DBGBlock::WINI_MAX_INDEX - 1;
+<a name="l00181"></a>00181 
+<a name="l00182"></a>00182         <span class="keywordflow">if</span> (--limit &lt;= 0)
+<a name="l00183"></a>00183             <span class="keywordflow">break</span>;
+<a name="l00184"></a>00184     } <span class="keywordflow">while</span> (get_win(win_order[order]) == NULL);
+<a name="l00185"></a>00185 
+<a name="l00186"></a>00186     <span class="keywordflow">return</span> order;
+<a name="l00187"></a>00187 }
+<a name="l00188"></a>00188 
+<a name="l00189"></a>00189 <span class="keywordtype">int</span> DBGBlock::win_next_by_order(<span class="keywordtype">int</span> order) {
+<a name="l00190"></a>00190     <span class="keywordtype">int</span> limit = DBGBlock::WINI_MAX_INDEX;
 <a name="l00191"></a>00191 
-<a name="l00192"></a>00192     <span class="keywordflow">return</span> order;
-<a name="l00193"></a>00193 }
-<a name="l00194"></a>00194 
-<a name="l00195"></a>00195 <span class="keywordtype">void</span> DBGUI_DrawBlankOutputLine(<span class="keywordtype">int</span> y) {
-<a name="l00196"></a>00196     <span class="keywordflow">if</span> (dbg.win_out == NULL) <span class="keywordflow">return</span>;
-<a name="l00197"></a>00197 
-<a name="l00198"></a>00198     wattrset(dbg.win_out,COLOR_PAIR(PAIR_GREEN_BLACK));
-<a name="l00199"></a>00199     <span class="keywordflow">if</span> (logBuffHasDiscarded)
-<a name="l00200"></a>00200         mvwprintw(dbg.win_out, y, 0, <span class="stringliteral">&quot;&lt;LOG BUFFER ENDS, OLDER CONTENT DISCARDED BEYOND THIS POINT&gt;&quot;</span>);
-<a name="l00201"></a>00201     <span class="keywordflow">else</span>
-<a name="l00202"></a>00202         mvwprintw(dbg.win_out, y, 0, <span class="stringliteral">&quot;&lt;END OF LOG&gt;&quot;</span>);
-<a name="l00203"></a>00203 <span class="comment">//    wclrtoeol(dbg.win_out);</span>
-<a name="l00204"></a>00204 }
+<a name="l00192"></a>00192     <span class="keywordflow">do</span> {
+<a name="l00193"></a>00193         <span class="keywordflow">if</span> (++order &gt;= DBGBlock::WINI_MAX_INDEX)
+<a name="l00194"></a>00194             order = 0;
+<a name="l00195"></a>00195 
+<a name="l00196"></a>00196         <span class="keywordflow">if</span> (--limit &lt;= 0)
+<a name="l00197"></a>00197             <span class="keywordflow">break</span>;
+<a name="l00198"></a>00198     } <span class="keywordflow">while</span> (get_win(win_order[order]) == NULL);
+<a name="l00199"></a>00199 
+<a name="l00200"></a>00200     <span class="keywordflow">return</span> order;
+<a name="l00201"></a>00201 }
+<a name="l00202"></a>00202 
+<a name="l00203"></a>00203 <span class="keywordtype">void</span> DBGUI_DrawBlankOutputLine(<span class="keywordtype">int</span> y) {
+<a name="l00204"></a>00204     <span class="keywordflow">if</span> (dbg.win_out == NULL) <span class="keywordflow">return</span>;
 <a name="l00205"></a>00205 
-<a name="l00206"></a>00206 <span class="keywordtype">void</span> DBGUI_DrawDebugOutputLine(<span class="keywordtype">int</span> y,std::string line) {
-<a name="l00207"></a>00207         <span class="keywordflow">if</span> (dbg.win_out == NULL) <span class="keywordflow">return</span>;
-<a name="l00208"></a>00208 
-<a name="l00209"></a>00209         <span class="keywordtype">int</span> maxy, maxx; getmaxyx(dbg.win_out,maxy,maxx);
-<a name="l00210"></a>00210     <span class="keywordtype">bool</span> ellipsisEnd = <span class="keyword">false</span>;
-<a name="l00211"></a>00211 
-<a name="l00212"></a>00212     (void)maxy;<span class="comment">//UNUSED</span>
+<a name="l00206"></a>00206     wattrset(dbg.win_out,COLOR_PAIR(PAIR_GREEN_BLACK));
+<a name="l00207"></a>00207     <span class="keywordflow">if</span> (logBuffHasDiscarded)
+<a name="l00208"></a>00208         mvwprintw(dbg.win_out, y, 0, <span class="stringliteral">&quot;&lt;LOG BUFFER ENDS, OLDER CONTENT DISCARDED BEYOND THIS POINT&gt;&quot;</span>);
+<a name="l00209"></a>00209     <span class="keywordflow">else</span>
+<a name="l00210"></a>00210         mvwprintw(dbg.win_out, y, 0, <span class="stringliteral">&quot;&lt;END OF LOG&gt;&quot;</span>);
+<a name="l00211"></a>00211 <span class="comment">//    wclrtoeol(dbg.win_out);</span>
+<a name="l00212"></a>00212 }
 <a name="l00213"></a>00213 
-<a name="l00214"></a>00214     <span class="comment">/* cut the line short if it&#39;s too long for the terminal window */</span>
-<a name="l00215"></a>00215     <span class="keywordflow">if</span> (line.length() &gt; (size_t)maxx) {
-<a name="l00216"></a>00216         line = line.substr(0,(<span class="keywordtype">size_t</span>)(maxx - 3));
-<a name="l00217"></a>00217         ellipsisEnd = <span class="keyword">true</span>;
-<a name="l00218"></a>00218     }
+<a name="l00214"></a>00214 <span class="keywordtype">void</span> DBGUI_DrawDebugOutputLine(<span class="keywordtype">int</span> y,std::string line) {
+<a name="l00215"></a>00215         <span class="keywordflow">if</span> (dbg.win_out == NULL) <span class="keywordflow">return</span>;
+<a name="l00216"></a>00216 
+<a name="l00217"></a>00217         <span class="keywordtype">int</span> maxy, maxx; getmaxyx(dbg.win_out,maxy,maxx);
+<a name="l00218"></a>00218     <span class="keywordtype">bool</span> ellipsisEnd = <span class="keyword">false</span>;
 <a name="l00219"></a>00219 
-<a name="l00220"></a>00220     <span class="comment">/* Const cast is needed for pdcurses which has no const char in mvwprintw (bug maybe) */</span>
-<a name="l00221"></a>00221     wattrset(dbg.win_out,0);
-<a name="l00222"></a>00222     mvwprintw(dbg.win_out, y, 0, const_cast&lt;char*&gt;(line.c_str()));
-<a name="l00223"></a>00223 
-<a name="l00224"></a>00224     <span class="keywordflow">if</span> (ellipsisEnd) {
-<a name="l00225"></a>00225         wattrset(dbg.win_out,COLOR_PAIR(PAIR_GREEN_BLACK));
-<a name="l00226"></a>00226         mvwprintw(dbg.win_out, y, maxx-3,  <span class="stringliteral">&quot;...&quot;</span>);
-<a name="l00227"></a>00227     }
-<a name="l00228"></a>00228 
-<a name="l00229"></a>00229 <span class="comment">//    wclrtoeol(dbg.win_out);</span>
-<a name="l00230"></a>00230 }
+<a name="l00220"></a>00220     (void)maxy;<span class="comment">//UNUSED</span>
+<a name="l00221"></a>00221 
+<a name="l00222"></a>00222     <span class="comment">/* cut the line short if it&#39;s too long for the terminal window */</span>
+<a name="l00223"></a>00223     <span class="keywordflow">if</span> (line.length() &gt; (size_t)maxx) {
+<a name="l00224"></a>00224         line = line.substr(0,(<span class="keywordtype">size_t</span>)(maxx - 3));
+<a name="l00225"></a>00225         ellipsisEnd = <span class="keyword">true</span>;
+<a name="l00226"></a>00226     }
+<a name="l00227"></a>00227 
+<a name="l00228"></a>00228     <span class="comment">/* Const cast is needed for pdcurses which has no const char in mvwprintw (bug maybe) */</span>
+<a name="l00229"></a>00229     wattrset(dbg.win_out,0);
+<a name="l00230"></a>00230     mvwprintw(dbg.win_out, y, 0, const_cast&lt;char*&gt;(line.c_str()));
 <a name="l00231"></a>00231 
-<a name="l00232"></a>00232 <span class="keywordtype">void</span> DEBUG_LimitTopPos(<span class="keywordtype">void</span>) {
-<a name="l00233"></a>00233         <span class="keywordflow">if</span> (dbg.win_out != NULL) {
-<a name="l00234"></a>00234         <span class="keywordtype">int</span> w,h;
-<a name="l00235"></a>00235 
-<a name="l00236"></a>00236         getmaxyx(dbg.win_out,h,w);
-<a name="l00237"></a>00237 
-<a name="l00238"></a>00238         <span class="keyword">auto</span> i = logBuff.begin();
-<a name="l00239"></a>00239         <span class="keywordflow">for</span> (<span class="keywordtype">int</span> y=0;i != logBuff.end() &amp;&amp; y &lt; (h-1);y++) {
-<a name="l00240"></a>00240             <span class="keywordflow">if</span> (i == logBuffPos) {
-<a name="l00241"></a>00241                 i++;
-<a name="l00242"></a>00242                 logBuffPos = i;
-<a name="l00243"></a>00243             }
-<a name="l00244"></a>00244             <span class="keywordflow">else</span> {
-<a name="l00245"></a>00245                 i++;
-<a name="l00246"></a>00246             }
-<a name="l00247"></a>00247         }
-<a name="l00248"></a>00248     }
-<a name="l00249"></a>00249 }
-<a name="l00250"></a>00250 
-<a name="l00251"></a>00251 <span class="keywordtype">void</span> DEBUG_RefreshPage(<span class="keywordtype">char</span> scroll) {
-<a name="l00252"></a>00252         <span class="keywordflow">if</span> (dbg.win_out == NULL) <span class="keywordflow">return</span>;
-<a name="l00253"></a>00253 
-<a name="l00254"></a>00254         <span class="keywordflow">while</span> (scroll &lt; 0 &amp;&amp; logBuffPos!=logBuff.begin()) {
-<a name="l00255"></a>00255         logBuffPos--;
-<a name="l00256"></a>00256         scroll++;
-<a name="l00257"></a>00257     }
-<a name="l00258"></a>00258         <span class="keywordflow">while</span> (scroll &gt; 0 &amp;&amp; logBuffPos!=logBuff.end()) {
-<a name="l00259"></a>00259         logBuffPos++;
-<a name="l00260"></a>00260         scroll--;
-<a name="l00261"></a>00261     }
-<a name="l00262"></a>00262 
-<a name="l00263"></a>00263     DEBUG_LimitTopPos();
-<a name="l00264"></a>00264 
-<a name="l00265"></a>00265         list&lt;string&gt;::iterator i = logBuffPos;
-<a name="l00266"></a>00266         <span class="keywordtype">int</span> maxy, maxx; getmaxyx(dbg.win_out,maxy,maxx);
-<a name="l00267"></a>00267         <span class="keywordtype">int</span> rem_lines = maxy;
-<a name="l00268"></a>00268         <span class="keywordflow">if</span>(rem_lines &lt;= 0) <span class="keywordflow">return</span>;
-<a name="l00269"></a>00269 
-<a name="l00270"></a>00270         wclear(dbg.win_out);
-<a name="l00271"></a>00271 
-<a name="l00272"></a>00272     <span class="comment">/* NTS: Often, i == logBuff.end() unless the user scrolled up in the interface.</span>
-<a name="l00273"></a>00273 <span class="comment">     *</span>
-<a name="l00274"></a>00274 <span class="comment">     *      So the original intent of this code is that the iterator is one entry PAST</span>
-<a name="l00275"></a>00275 <span class="comment">     *      the line to begin displaying at the bottom just as end() is a sentinel</span>
-<a name="l00276"></a>00276 <span class="comment">     *      value just past the last element of the list. So if i == logBuff.begin()</span>
-<a name="l00277"></a>00277 <span class="comment">     *      then there&#39;s nothing to display.</span>
-<a name="l00278"></a>00278 <span class="comment">     *</span>
-<a name="l00279"></a>00279 <span class="comment">     *      Note that the iterator defines what is drawn on the bottom-most line,</span>
-<a name="l00280"></a>00280 <span class="comment">     *      and iteration is done backwards until we&#39;ve drawn the line at i == logBuff.begin()</span>
-<a name="l00281"></a>00281 <span class="comment">     *      or until we&#39;ve drawn something at line 0 of the subwin.</span>
-<a name="l00282"></a>00282 <span class="comment">     *</span>
-<a name="l00283"></a>00283 <span class="comment">     *      rem_lines starts out as the number of lines in the subwin. */</span>
-<a name="l00284"></a>00284     <span class="keywordflow">if</span> (i != logBuff.begin()) {
-<a name="l00285"></a>00285         i--;
-<a name="l00286"></a>00286 
-<a name="l00287"></a>00287         wattrset(dbg.win_out,0);
-<a name="l00288"></a>00288         <span class="keywordflow">while</span> (rem_lines &gt; 0) {
-<a name="l00289"></a>00289             rem_lines--;
-<a name="l00290"></a>00290 
-<a name="l00291"></a>00291             DBGUI_DrawDebugOutputLine(rem_lines,*i);
-<a name="l00292"></a>00292 
-<a name="l00293"></a>00293             <span class="keywordflow">if</span> (i != logBuff.begin())
-<a name="l00294"></a>00294                 i--;
-<a name="l00295"></a>00295             <span class="keywordflow">else</span>
-<a name="l00296"></a>00296                 <span class="keywordflow">break</span>;
-<a name="l00297"></a>00297         }
+<a name="l00232"></a>00232     <span class="keywordflow">if</span> (ellipsisEnd) {
+<a name="l00233"></a>00233         wattrset(dbg.win_out,COLOR_PAIR(PAIR_GREEN_BLACK));
+<a name="l00234"></a>00234         mvwprintw(dbg.win_out, y, maxx-3,  <span class="stringliteral">&quot;...&quot;</span>);
+<a name="l00235"></a>00235     }
+<a name="l00236"></a>00236 
+<a name="l00237"></a>00237 <span class="comment">//    wclrtoeol(dbg.win_out);</span>
+<a name="l00238"></a>00238 }
+<a name="l00239"></a>00239 
+<a name="l00240"></a>00240 <span class="keywordtype">void</span> DEBUG_LimitTopPos(<span class="keywordtype">void</span>) {
+<a name="l00241"></a>00241         <span class="keywordflow">if</span> (dbg.win_out != NULL) {
+<a name="l00242"></a>00242         <span class="keywordtype">int</span> w,h;
+<a name="l00243"></a>00243 
+<a name="l00244"></a>00244         getmaxyx(dbg.win_out,h,w);
+<a name="l00245"></a>00245 
+<a name="l00246"></a>00246         <span class="keyword">auto</span> i = logBuff.begin();
+<a name="l00247"></a>00247         <span class="keywordflow">for</span> (<span class="keywordtype">int</span> y=0;i != logBuff.end() &amp;&amp; y &lt; (h-1);y++) {
+<a name="l00248"></a>00248             <span class="keywordflow">if</span> (i == logBuffPos) {
+<a name="l00249"></a>00249                 i++;
+<a name="l00250"></a>00250                 logBuffPos = i;
+<a name="l00251"></a>00251             }
+<a name="l00252"></a>00252             <span class="keywordflow">else</span> {
+<a name="l00253"></a>00253                 i++;
+<a name="l00254"></a>00254             }
+<a name="l00255"></a>00255         }
+<a name="l00256"></a>00256     }
+<a name="l00257"></a>00257 }
+<a name="l00258"></a>00258 
+<a name="l00259"></a>00259 <span class="keywordtype">void</span> DEBUG_RefreshPage(<span class="keywordtype">char</span> scroll) {
+<a name="l00260"></a>00260         <span class="keywordflow">if</span> (dbg.win_out == NULL) <span class="keywordflow">return</span>;
+<a name="l00261"></a>00261 
+<a name="l00262"></a>00262         <span class="keywordflow">while</span> (scroll &lt; 0 &amp;&amp; logBuffPos!=logBuff.begin()) {
+<a name="l00263"></a>00263         --logBuffPos;
+<a name="l00264"></a>00264         scroll++;
+<a name="l00265"></a>00265     }
+<a name="l00266"></a>00266         <span class="keywordflow">while</span> (scroll &gt; 0 &amp;&amp; logBuffPos!=logBuff.end()) {
+<a name="l00267"></a>00267         ++logBuffPos;
+<a name="l00268"></a>00268         scroll--;
+<a name="l00269"></a>00269     }
+<a name="l00270"></a>00270 
+<a name="l00271"></a>00271     DEBUG_LimitTopPos();
+<a name="l00272"></a>00272 
+<a name="l00273"></a>00273         list&lt;string&gt;::iterator i = logBuffPos;
+<a name="l00274"></a>00274         <span class="keywordtype">int</span> maxy, maxx; getmaxyx(dbg.win_out,maxy,maxx);
+<a name="l00275"></a>00275         <span class="keywordtype">int</span> rem_lines = maxy;
+<a name="l00276"></a>00276         <span class="keywordflow">if</span>(rem_lines &lt;= 0) <span class="keywordflow">return</span>;
+<a name="l00277"></a>00277 
+<a name="l00278"></a>00278         wclear(dbg.win_out);
+<a name="l00279"></a>00279 
+<a name="l00280"></a>00280     <span class="comment">/* NTS: Often, i == logBuff.end() unless the user scrolled up in the interface.</span>
+<a name="l00281"></a>00281 <span class="comment">     *</span>
+<a name="l00282"></a>00282 <span class="comment">     *      So the original intent of this code is that the iterator is one entry PAST</span>
+<a name="l00283"></a>00283 <span class="comment">     *      the line to begin displaying at the bottom just as end() is a sentinel</span>
+<a name="l00284"></a>00284 <span class="comment">     *      value just past the last element of the list. So if i == logBuff.begin()</span>
+<a name="l00285"></a>00285 <span class="comment">     *      then there&#39;s nothing to display.</span>
+<a name="l00286"></a>00286 <span class="comment">     *</span>
+<a name="l00287"></a>00287 <span class="comment">     *      Note that the iterator defines what is drawn on the bottom-most line,</span>
+<a name="l00288"></a>00288 <span class="comment">     *      and iteration is done backwards until we&#39;ve drawn the line at i == logBuff.begin()</span>
+<a name="l00289"></a>00289 <span class="comment">     *      or until we&#39;ve drawn something at line 0 of the subwin.</span>
+<a name="l00290"></a>00290 <span class="comment">     *</span>
+<a name="l00291"></a>00291 <span class="comment">     *      rem_lines starts out as the number of lines in the subwin. */</span>
+<a name="l00292"></a>00292     <span class="keywordflow">if</span> (i != logBuff.begin()) {
+<a name="l00293"></a>00293         --i;
+<a name="l00294"></a>00294 
+<a name="l00295"></a>00295         wattrset(dbg.win_out,0);
+<a name="l00296"></a>00296         <span class="keywordflow">while</span> (rem_lines &gt; 0) {
+<a name="l00297"></a>00297             rem_lines--;
 <a name="l00298"></a>00298 
-<a name="l00299"></a>00299         <span class="comment">/* show that the lines above are beyond the end of the log */</span>
-<a name="l00300"></a>00300         <span class="keywordflow">while</span> (rem_lines &gt; 0) {
-<a name="l00301"></a>00301             rem_lines--;
-<a name="l00302"></a>00302             DBGUI_DrawBlankOutputLine(rem_lines);
-<a name="l00303"></a>00303         }
-<a name="l00304"></a>00304     }
-<a name="l00305"></a>00305 
-<a name="l00306"></a>00306         wrefresh(dbg.win_out);
-<a name="l00307"></a>00307 }
-<a name="l00308"></a>00308 
-<a name="l00309"></a>00309 <span class="keywordtype">void</span> DEBUG_ScrollHomeOutput(<span class="keywordtype">void</span>) {
-<a name="l00310"></a>00310     logBuffPos = logBuff.begin();
-<a name="l00311"></a>00311     DEBUG_RefreshPage(0);
-<a name="l00312"></a>00312 }
+<a name="l00299"></a>00299             DBGUI_DrawDebugOutputLine(rem_lines,*i);
+<a name="l00300"></a>00300 
+<a name="l00301"></a>00301             <span class="keywordflow">if</span> (i != logBuff.begin())
+<a name="l00302"></a>00302                 --i;
+<a name="l00303"></a>00303             <span class="keywordflow">else</span>
+<a name="l00304"></a>00304                 <span class="keywordflow">break</span>;
+<a name="l00305"></a>00305         }
+<a name="l00306"></a>00306 
+<a name="l00307"></a>00307         <span class="comment">/* show that the lines above are beyond the end of the log */</span>
+<a name="l00308"></a>00308         <span class="keywordflow">while</span> (rem_lines &gt; 0) {
+<a name="l00309"></a>00309             rem_lines--;
+<a name="l00310"></a>00310             DBGUI_DrawBlankOutputLine(rem_lines);
+<a name="l00311"></a>00311         }
+<a name="l00312"></a>00312     }
 <a name="l00313"></a>00313 
-<a name="l00314"></a>00314 <span class="keywordtype">void</span> DEBUG_ScrollToEndOutput(<span class="keywordtype">void</span>) {
-<a name="l00315"></a>00315     logBuffPos = logBuff.end();
-<a name="l00316"></a>00316     DEBUG_RefreshPage(0);
-<a name="l00317"></a>00317 }
-<a name="l00318"></a>00318 
-<a name="l00319"></a>00319 <span class="keyword">static</span> <span class="keywordtype">void</span> Draw_RegisterLayout(<span class="keywordtype">void</span>) {
-<a name="l00320"></a>00320         <span class="keywordflow">if</span> (dbg.win_main == NULL)
-<a name="l00321"></a>00321                 <span class="keywordflow">return</span>;
-<a name="l00322"></a>00322 
-<a name="l00323"></a>00323         mvwaddstr(dbg.win_reg,0,0,<span class="stringliteral">&quot;EAX=&quot;</span>);
-<a name="l00324"></a>00324         mvwaddstr(dbg.win_reg,1,0,<span class="stringliteral">&quot;EBX=&quot;</span>);
-<a name="l00325"></a>00325         mvwaddstr(dbg.win_reg,2,0,<span class="stringliteral">&quot;ECX=&quot;</span>);
-<a name="l00326"></a>00326         mvwaddstr(dbg.win_reg,3,0,<span class="stringliteral">&quot;EDX=&quot;</span>);
-<a name="l00327"></a>00327 
-<a name="l00328"></a>00328         mvwaddstr(dbg.win_reg,0,14,<span class="stringliteral">&quot;ESI=&quot;</span>);
-<a name="l00329"></a>00329         mvwaddstr(dbg.win_reg,1,14,<span class="stringliteral">&quot;EDI=&quot;</span>);
-<a name="l00330"></a>00330         mvwaddstr(dbg.win_reg,2,14,<span class="stringliteral">&quot;EBP=&quot;</span>);
-<a name="l00331"></a>00331         mvwaddstr(dbg.win_reg,3,14,<span class="stringliteral">&quot;ESP=&quot;</span>);
-<a name="l00332"></a>00332 
-<a name="l00333"></a>00333         mvwaddstr(dbg.win_reg,0,28,<span class="stringliteral">&quot;DS=&quot;</span>);
-<a name="l00334"></a>00334         mvwaddstr(dbg.win_reg,0,38,<span class="stringliteral">&quot;ES=&quot;</span>);
-<a name="l00335"></a>00335         mvwaddstr(dbg.win_reg,0,48,<span class="stringliteral">&quot;FS=&quot;</span>);
-<a name="l00336"></a>00336         mvwaddstr(dbg.win_reg,0,58,<span class="stringliteral">&quot;GS=&quot;</span>);
-<a name="l00337"></a>00337         mvwaddstr(dbg.win_reg,0,68,<span class="stringliteral">&quot;SS=&quot;</span>);
-<a name="l00338"></a>00338 
-<a name="l00339"></a>00339         mvwaddstr(dbg.win_reg,1,28,<span class="stringliteral">&quot;CS=&quot;</span>);
-<a name="l00340"></a>00340         mvwaddstr(dbg.win_reg,1,38,<span class="stringliteral">&quot;EIP=&quot;</span>);
-<a name="l00341"></a>00341 
-<a name="l00342"></a>00342         mvwaddstr(dbg.win_reg,2,75,<span class="stringliteral">&quot;CPL&quot;</span>);
-<a name="l00343"></a>00343         mvwaddstr(dbg.win_reg,2,68,<span class="stringliteral">&quot;IOPL&quot;</span>);
-<a name="l00344"></a>00344 
-<a name="l00345"></a>00345         mvwaddstr(dbg.win_reg,1,52,<span class="stringliteral">&quot;C  Z  S  O  A  P  D  I  T &quot;</span>);
-<a name="l00346"></a>00346 }
-<a name="l00347"></a>00347 
-<a name="l00348"></a>00348 <span class="keyword">static</span> <span class="keywordtype">void</span> DrawSubWinBox(WINDOW *wnd,<span class="keyword">const</span> <span class="keywordtype">char</span> *title) {
-<a name="l00349"></a>00349     <span class="keywordtype">bool</span> active = <span class="keyword">false</span>;
-<a name="l00350"></a>00350     <span class="keywordtype">int</span> x,y;
-<a name="l00351"></a>00351     <span class="keywordtype">int</span> w,h;
+<a name="l00314"></a>00314         wrefresh(dbg.win_out);
+<a name="l00315"></a>00315 }
+<a name="l00316"></a>00316 
+<a name="l00317"></a>00317 <span class="keywordtype">void</span> DEBUG_ScrollHomeOutput(<span class="keywordtype">void</span>) {
+<a name="l00318"></a>00318     logBuffPos = logBuff.begin();
+<a name="l00319"></a>00319     DEBUG_RefreshPage(0);
+<a name="l00320"></a>00320 }
+<a name="l00321"></a>00321 
+<a name="l00322"></a>00322 <span class="keywordtype">void</span> DEBUG_ScrollToEndOutput(<span class="keywordtype">void</span>) {
+<a name="l00323"></a>00323     logBuffPos = logBuff.end();
+<a name="l00324"></a>00324     DEBUG_RefreshPage(0);
+<a name="l00325"></a>00325 }
+<a name="l00326"></a>00326 
+<a name="l00327"></a>00327 <span class="keyword">static</span> <span class="keywordtype">void</span> Draw_RegisterLayout(<span class="keywordtype">void</span>) {
+<a name="l00328"></a>00328         <span class="keywordflow">if</span> (dbg.win_main == NULL)
+<a name="l00329"></a>00329                 <span class="keywordflow">return</span>;
+<a name="l00330"></a>00330 
+<a name="l00331"></a>00331         mvwaddstr(dbg.win_reg,0,0,<span class="stringliteral">&quot;EAX=&quot;</span>);
+<a name="l00332"></a>00332         mvwaddstr(dbg.win_reg,1,0,<span class="stringliteral">&quot;EBX=&quot;</span>);
+<a name="l00333"></a>00333         mvwaddstr(dbg.win_reg,2,0,<span class="stringliteral">&quot;ECX=&quot;</span>);
+<a name="l00334"></a>00334         mvwaddstr(dbg.win_reg,3,0,<span class="stringliteral">&quot;EDX=&quot;</span>);
+<a name="l00335"></a>00335 
+<a name="l00336"></a>00336         mvwaddstr(dbg.win_reg,0,14,<span class="stringliteral">&quot;ESI=&quot;</span>);
+<a name="l00337"></a>00337         mvwaddstr(dbg.win_reg,1,14,<span class="stringliteral">&quot;EDI=&quot;</span>);
+<a name="l00338"></a>00338         mvwaddstr(dbg.win_reg,2,14,<span class="stringliteral">&quot;EBP=&quot;</span>);
+<a name="l00339"></a>00339         mvwaddstr(dbg.win_reg,3,14,<span class="stringliteral">&quot;ESP=&quot;</span>);
+<a name="l00340"></a>00340 
+<a name="l00341"></a>00341         mvwaddstr(dbg.win_reg,0,28,<span class="stringliteral">&quot;DS=&quot;</span>);
+<a name="l00342"></a>00342         mvwaddstr(dbg.win_reg,0,38,<span class="stringliteral">&quot;ES=&quot;</span>);
+<a name="l00343"></a>00343         mvwaddstr(dbg.win_reg,0,48,<span class="stringliteral">&quot;FS=&quot;</span>);
+<a name="l00344"></a>00344         mvwaddstr(dbg.win_reg,0,58,<span class="stringliteral">&quot;GS=&quot;</span>);
+<a name="l00345"></a>00345         mvwaddstr(dbg.win_reg,0,68,<span class="stringliteral">&quot;SS=&quot;</span>);
+<a name="l00346"></a>00346 
+<a name="l00347"></a>00347         mvwaddstr(dbg.win_reg,1,28,<span class="stringliteral">&quot;CS=&quot;</span>);
+<a name="l00348"></a>00348         mvwaddstr(dbg.win_reg,1,38,<span class="stringliteral">&quot;EIP=&quot;</span>);
+<a name="l00349"></a>00349 
+<a name="l00350"></a>00350         mvwaddstr(dbg.win_reg,2,75,<span class="stringliteral">&quot;CPL&quot;</span>);
+<a name="l00351"></a>00351         mvwaddstr(dbg.win_reg,2,68,<span class="stringliteral">&quot;IOPL&quot;</span>);
 <a name="l00352"></a>00352 
-<a name="l00353"></a>00353     <span class="keywordflow">if</span> (wnd == NULL) <span class="keywordflow">return</span>;
-<a name="l00354"></a>00354 
-<a name="l00355"></a>00355     WINDOW *active_win = dbg.get_active_win();
-<a name="l00356"></a>00356 
-<a name="l00357"></a>00357     <span class="keywordflow">if</span> (wnd == active_win)
-<a name="l00358"></a>00358         active = <span class="keyword">true</span>;
-<a name="l00359"></a>00359 
-<a name="l00360"></a>00360     getbegyx(wnd,y,x);
-<a name="l00361"></a>00361     getmaxyx(wnd,h,w);
+<a name="l00353"></a>00353         mvwaddstr(dbg.win_reg,1,52,<span class="stringliteral">&quot;C  Z  S  O  A  P  D  I  T &quot;</span>);
+<a name="l00354"></a>00354 }
+<a name="l00355"></a>00355 
+<a name="l00356"></a>00356 <span class="keyword">static</span> <span class="keywordtype">void</span> DrawSubWinBox(WINDOW *wnd,<span class="keyword">const</span> <span class="keywordtype">char</span> *title) {
+<a name="l00357"></a>00357     <span class="keywordtype">bool</span> active = <span class="keyword">false</span>;
+<a name="l00358"></a>00358     <span class="keywordtype">int</span> x,y;
+<a name="l00359"></a>00359     <span class="keywordtype">int</span> w,h;
+<a name="l00360"></a>00360 
+<a name="l00361"></a>00361     <span class="keywordflow">if</span> (wnd == NULL) <span class="keywordflow">return</span>;
 <a name="l00362"></a>00362 
-<a name="l00363"></a>00363     (void)h;<span class="comment">//UNUSED</span>
+<a name="l00363"></a>00363     <span class="keyword">const</span> WINDOW *active_win = dbg.get_active_win();
 <a name="l00364"></a>00364 
-<a name="l00365"></a>00365         <span class="keywordflow">if</span> (has_colors()) {
-<a name="l00366"></a>00366         <span class="keywordflow">if</span> (active)
-<a name="l00367"></a>00367                 attrset(COLOR_PAIR(PAIR_BLACK_BLUE));
-<a name="l00368"></a>00368         <span class="keywordflow">else</span>
-<a name="l00369"></a>00369                 attrset(COLOR_PAIR(PAIR_WHITE_BLUE));
-<a name="l00370"></a>00370     }
-<a name="l00371"></a>00371 
-<a name="l00372"></a>00372     mvhline(y-1,x,ACS_HLINE,w);
-<a name="l00373"></a>00373     <span class="keywordflow">if</span> (title != NULL) mvaddstr(y-1,x+4,title);
-<a name="l00374"></a>00374 }
-<a name="l00375"></a>00375 
-<a name="l00376"></a>00376 <span class="keywordtype">void</span> DrawBars(<span class="keywordtype">void</span>) {
-<a name="l00377"></a>00377         <span class="keywordflow">if</span> (dbg.win_main == NULL)
-<a name="l00378"></a>00378                 <span class="keywordflow">return</span>;
+<a name="l00365"></a>00365     <span class="keywordflow">if</span> (wnd == active_win)
+<a name="l00366"></a>00366         active = <span class="keyword">true</span>;
+<a name="l00367"></a>00367 
+<a name="l00368"></a>00368     getbegyx(wnd,y,x);
+<a name="l00369"></a>00369     getmaxyx(wnd,h,w);
+<a name="l00370"></a>00370 
+<a name="l00371"></a>00371     (void)h;<span class="comment">//UNUSED</span>
+<a name="l00372"></a>00372 
+<a name="l00373"></a>00373         <span class="keywordflow">if</span> (has_colors()) {
+<a name="l00374"></a>00374         <span class="keywordflow">if</span> (active)
+<a name="l00375"></a>00375                 attrset(COLOR_PAIR(PAIR_BLACK_BLUE));
+<a name="l00376"></a>00376         <span class="keywordflow">else</span>
+<a name="l00377"></a>00377                 attrset(COLOR_PAIR(PAIR_WHITE_BLUE));
+<a name="l00378"></a>00378     }
 <a name="l00379"></a>00379 
-<a name="l00380"></a>00380     <span class="keywordflow">for</span> (<span class="keywordtype">unsigned</span> <span class="keywordtype">int</span> wnd=0;wnd &lt; DBGBlock::WINI_MAX_INDEX;wnd++) {
-<a name="l00381"></a>00381         WINDOW* &amp;ref = dbg.get_win_ref((<span class="keywordtype">int</span>)wnd);
-<a name="l00382"></a>00382 
-<a name="l00383"></a>00383         <span class="keywordflow">if</span> (ref != NULL) DrawSubWinBox(ref,dbg.get_wintitle((<span class="keywordtype">int</span>)wnd));
-<a name="l00384"></a>00384     }
-<a name="l00385"></a>00385 
-<a name="l00386"></a>00386         attrset(0);
-<a name="l00387"></a>00387 }
-<a name="l00388"></a>00388 
-<a name="l00389"></a>00389 <span class="keyword">static</span> <span class="keywordtype">void</span> DestroySubWindows(<span class="keywordtype">void</span>) {
-<a name="l00390"></a>00390     <span class="keywordflow">for</span> (<span class="keywordtype">unsigned</span> <span class="keywordtype">int</span> wnd=0;wnd &lt; DBGBlock::WINI_MAX_INDEX;wnd++) {
-<a name="l00391"></a>00391         WINDOW* &amp;ref = dbg.get_win_ref((<span class="keywordtype">int</span>)wnd);
-<a name="l00392"></a>00392 
-<a name="l00393"></a>00393         <span class="keywordflow">if</span> (ref != NULL) {
-<a name="l00394"></a>00394             <span class="keywordflow">if</span> (ref) delwin(ref);
-<a name="l00395"></a>00395             ref = NULL;
-<a name="l00396"></a>00396         }
-<a name="l00397"></a>00397     }
-<a name="l00398"></a>00398 }
-<a name="l00399"></a>00399 
-<a name="l00400"></a>00400 <span class="keywordtype">void</span> DEBUG_GUI_DestroySubWindows(<span class="keywordtype">void</span>) {
-<a name="l00401"></a>00401     DestroySubWindows();
-<a name="l00402"></a>00402 }
-<a name="l00403"></a>00403 
-<a name="l00404"></a>00404 <span class="keyword">static</span> <span class="keywordtype">void</span> MakeSubWindows(<span class="keywordtype">void</span>) {
-<a name="l00405"></a>00405         <span class="comment">/* The Std output win should go at the bottom */</span>
-<a name="l00406"></a>00406         <span class="comment">/* Make all the subwindows */</span>
-<a name="l00407"></a>00407         <span class="keywordtype">int</span> win_main_maxy, win_main_maxx; getmaxyx(dbg.win_main,win_main_maxy,win_main_maxx);
-<a name="l00408"></a>00408     <span class="keywordtype">unsigned</span> <span class="keywordtype">int</span> yheight[DBGBlock::WINI_MAX_INDEX];
-<a name="l00409"></a>00409     <span class="keywordtype">unsigned</span> <span class="keywordtype">int</span> yofs[DBGBlock::WINI_MAX_INDEX];
-<a name="l00410"></a>00410     <span class="keywordtype">int</span> win_limit = win_main_maxy - 1;
-<a name="l00411"></a>00411     <span class="keywordtype">int</span> expand_wndi = -1;
-<a name="l00412"></a>00412         <span class="keywordtype">int</span> outy=0,height;
-<a name="l00413"></a>00413 
-<a name="l00414"></a>00414     <span class="comment">/* main window needs to clear itself */</span>
-<a name="l00415"></a>00415     werase(dbg.win_main);
-<a name="l00416"></a>00416 
-<a name="l00417"></a>00417     <span class="comment">/* arrange windows */</span>
-<a name="l00418"></a>00418     <span class="keywordflow">for</span> (<span class="keywordtype">unsigned</span> <span class="keywordtype">int</span> wndi=0;wndi &lt; DBGBlock::WINI_MAX_INDEX;wndi++) {
-<a name="l00419"></a>00419         <span class="keywordtype">unsigned</span> <span class="keywordtype">int</span> wnd = dbg.win_order[wndi];
-<a name="l00420"></a>00420 
-<a name="l00421"></a>00421         <span class="comment">/* window must have been freed, must have height greater than 1 (more than just titlebar)</span>
-<a name="l00422"></a>00422 <span class="comment">         * must be visible and there must be room for the window on the screen, where the last</span>
-<a name="l00423"></a>00423 <span class="comment">         * row is reserved for the input bar */</span>
-<a name="l00424"></a>00424         <span class="keywordflow">if</span> (dbg.win_height[wnd] &gt; 1 &amp;&amp;
-<a name="l00425"></a>00425             dbg.win_vis[wnd] &amp;&amp; (outy+1) &lt; win_limit) {
-<a name="l00426"></a>00426             outy++; <span class="comment">// header</span>
-<a name="l00427"></a>00427             height=(int)dbg.win_height[wnd] - 1;
-<a name="l00428"></a>00428             if ((outy+height) &gt; win_limit) height = win_limit - outy;
-<a name="l00429"></a>00429             assert(height &gt; 0);
-<a name="l00430"></a>00430             yofs[wndi]=(<span class="keywordtype">unsigned</span> int)outy;
-<a name="l00431"></a>00431             yheight[wndi]=(<span class="keywordtype">unsigned</span> int)height;
-<a name="l00432"></a>00432             outy+=height;
-<a name="l00433"></a>00433 
-<a name="l00434"></a>00434             <span class="keywordflow">if</span> (wnd == DBGBlock::WINI_OUT)
-<a name="l00435"></a>00435                 expand_wndi = (int)wndi;
-<a name="l00436"></a>00436         }
-<a name="l00437"></a>00437         <span class="keywordflow">else</span> {
-<a name="l00438"></a>00438             yofs[wndi]=0;
-<a name="l00439"></a>00439             yheight[wndi]=0;
-<a name="l00440"></a>00440         }
-<a name="l00441"></a>00441     }
-<a name="l00442"></a>00442 
-<a name="l00443"></a>00443     <span class="comment">/* last window expands if output not there */</span>
-<a name="l00444"></a>00444     <span class="keywordflow">if</span> (expand_wndi &lt; 0) {
-<a name="l00445"></a>00445         <span class="keywordflow">for</span> (<span class="keywordtype">int</span> wndi=DBGBlock::WINI_MAX_INDEX-1;wndi &gt;= 0;wndi--) {
-<a name="l00446"></a>00446             <span class="keywordflow">if</span> (yheight[wndi] != 0) {
-<a name="l00447"></a>00447                 expand_wndi = wndi;
-<a name="l00448"></a>00448                 <span class="keywordflow">break</span>;
-<a name="l00449"></a>00449             }
-<a name="l00450"></a>00450         }
-<a name="l00451"></a>00451     }
-<a name="l00452"></a>00452 
-<a name="l00453"></a>00453     <span class="comment">/* we give one window the power to expand to help fill the screen */</span>
-<a name="l00454"></a>00454     <span class="keywordflow">if</span> (outy &lt; win_limit) {
-<a name="l00455"></a>00455         <span class="keywordtype">int</span> expand_by = win_limit - outy;
-<a name="l00456"></a>00456 
-<a name="l00457"></a>00457         <span class="keywordflow">if</span> (expand_wndi &gt;= 0 &amp;&amp; expand_wndi &lt; DBGBlock::WINI_MAX_INDEX) {
-<a name="l00458"></a>00458             <span class="keywordtype">unsigned</span> <span class="keywordtype">int</span> wndi = (<span class="keywordtype">unsigned</span> int)expand_wndi;
-<a name="l00459"></a>00459 
-<a name="l00460"></a>00460             <span class="comment">/* add height to the window */</span>
-<a name="l00461"></a>00461             yheight[wndi] += (<span class="keywordtype">unsigned</span> int)expand_by;
-<a name="l00462"></a>00462             outy += (int)expand_by;
-<a name="l00463"></a>00463             wndi++;
+<a name="l00380"></a>00380     mvhline(y-1,x,ACS_HLINE,w);
+<a name="l00381"></a>00381     <span class="keywordflow">if</span> (title != NULL) mvaddstr(y-1,x+4,title);
+<a name="l00382"></a>00382 }
+<a name="l00383"></a>00383 
+<a name="l00384"></a>00384 <span class="keywordtype">void</span> DrawBars(<span class="keywordtype">void</span>) {
+<a name="l00385"></a>00385         <span class="keywordflow">if</span> (dbg.win_main == NULL)
+<a name="l00386"></a>00386                 <span class="keywordflow">return</span>;
+<a name="l00387"></a>00387 
+<a name="l00388"></a>00388     <span class="keywordflow">for</span> (<span class="keywordtype">unsigned</span> <span class="keywordtype">int</span> wnd=0;wnd &lt; DBGBlock::WINI_MAX_INDEX;wnd++) {
+<a name="l00389"></a>00389         WINDOW* &amp;ref = dbg.get_win_ref((<span class="keywordtype">int</span>)wnd);
+<a name="l00390"></a>00390 
+<a name="l00391"></a>00391         <span class="keywordflow">if</span> (ref != NULL) DrawSubWinBox(ref,dbg.get_wintitle((<span class="keywordtype">int</span>)wnd));
+<a name="l00392"></a>00392     }
+<a name="l00393"></a>00393 
+<a name="l00394"></a>00394         attrset(0);
+<a name="l00395"></a>00395 }
+<a name="l00396"></a>00396 
+<a name="l00397"></a>00397 <span class="keyword">static</span> <span class="keywordtype">void</span> DestroySubWindows(<span class="keywordtype">void</span>) {
+<a name="l00398"></a>00398     <span class="keywordflow">for</span> (<span class="keywordtype">unsigned</span> <span class="keywordtype">int</span> wnd=0;wnd &lt; DBGBlock::WINI_MAX_INDEX;wnd++) {
+<a name="l00399"></a>00399         WINDOW* &amp;ref = dbg.get_win_ref((<span class="keywordtype">int</span>)wnd);
+<a name="l00400"></a>00400 
+<a name="l00401"></a>00401         <span class="keywordflow">if</span> (ref != NULL) {
+<a name="l00402"></a>00402             <span class="keywordflow">if</span> (ref) delwin(ref);
+<a name="l00403"></a>00403             ref = NULL;
+<a name="l00404"></a>00404         }
+<a name="l00405"></a>00405     }
+<a name="l00406"></a>00406 }
+<a name="l00407"></a>00407 
+<a name="l00408"></a>00408 <span class="keywordtype">void</span> DEBUG_GUI_DestroySubWindows(<span class="keywordtype">void</span>) {
+<a name="l00409"></a>00409     DestroySubWindows();
+<a name="l00410"></a>00410 }
+<a name="l00411"></a>00411 
+<a name="l00412"></a>00412 <span class="keyword">static</span> <span class="keywordtype">void</span> MakeSubWindows(<span class="keywordtype">void</span>) {
+<a name="l00413"></a>00413         <span class="comment">/* The Std output win should go at the bottom */</span>
+<a name="l00414"></a>00414         <span class="comment">/* Make all the subwindows */</span>
+<a name="l00415"></a>00415         <span class="keywordtype">int</span> win_main_maxy, win_main_maxx; getmaxyx(dbg.win_main,win_main_maxy,win_main_maxx);
+<a name="l00416"></a>00416     <span class="keywordtype">unsigned</span> <span class="keywordtype">int</span> yheight[DBGBlock::WINI_MAX_INDEX];
+<a name="l00417"></a>00417     <span class="keywordtype">unsigned</span> <span class="keywordtype">int</span> yofs[DBGBlock::WINI_MAX_INDEX];
+<a name="l00418"></a>00418     <span class="keywordtype">int</span> win_limit = win_main_maxy - 1;
+<a name="l00419"></a>00419     <span class="keywordtype">int</span> expand_wndi = -1;
+<a name="l00420"></a>00420         <span class="keywordtype">int</span> outy=0,height;
+<a name="l00421"></a>00421 
+<a name="l00422"></a>00422     <span class="comment">/* main window needs to clear itself */</span>
+<a name="l00423"></a>00423     werase(dbg.win_main);
+<a name="l00424"></a>00424 
+<a name="l00425"></a>00425     <span class="comment">/* arrange windows */</span>
+<a name="l00426"></a>00426     <span class="keywordflow">for</span> (<span class="keywordtype">unsigned</span> <span class="keywordtype">int</span> wndi=0;wndi &lt; DBGBlock::WINI_MAX_INDEX;wndi++) {
+<a name="l00427"></a>00427         <span class="keywordtype">unsigned</span> <span class="keywordtype">int</span> wnd = dbg.win_order[wndi];
+<a name="l00428"></a>00428 
+<a name="l00429"></a>00429         <span class="comment">/* window must have been freed, must have height greater than 1 (more than just titlebar)</span>
+<a name="l00430"></a>00430 <span class="comment">         * must be visible and there must be room for the window on the screen, where the last</span>
+<a name="l00431"></a>00431 <span class="comment">         * row is reserved for the input bar */</span>
+<a name="l00432"></a>00432         <span class="keywordflow">if</span> (dbg.win_height[wnd] &gt; 1 &amp;&amp;
+<a name="l00433"></a>00433             dbg.win_vis[wnd] &amp;&amp; (outy+1) &lt; win_limit) {
+<a name="l00434"></a>00434             outy++; <span class="comment">// header</span>
+<a name="l00435"></a>00435             height=(int)dbg.win_height[wnd] - 1;
+<a name="l00436"></a>00436             if ((outy+height) &gt; win_limit) height = win_limit - outy;
+<a name="l00437"></a>00437             assert(height &gt; 0);
+<a name="l00438"></a>00438             yofs[wndi]=(<span class="keywordtype">unsigned</span> int)outy;
+<a name="l00439"></a>00439             yheight[wndi]=(<span class="keywordtype">unsigned</span> int)height;
+<a name="l00440"></a>00440             outy+=height;
+<a name="l00441"></a>00441 
+<a name="l00442"></a>00442             <span class="keywordflow">if</span> (wnd == DBGBlock::WINI_OUT)
+<a name="l00443"></a>00443                 expand_wndi = (int)wndi;
+<a name="l00444"></a>00444         }
+<a name="l00445"></a>00445         <span class="keywordflow">else</span> {
+<a name="l00446"></a>00446             yofs[wndi]=0;
+<a name="l00447"></a>00447             yheight[wndi]=0;
+<a name="l00448"></a>00448         }
+<a name="l00449"></a>00449     }
+<a name="l00450"></a>00450 
+<a name="l00451"></a>00451     <span class="comment">/* last window expands if output not there */</span>
+<a name="l00452"></a>00452     <span class="keywordflow">if</span> (expand_wndi &lt; 0) {
+<a name="l00453"></a>00453         <span class="keywordflow">for</span> (<span class="keywordtype">int</span> wndi=DBGBlock::WINI_MAX_INDEX-1;wndi &gt;= 0;wndi--) {
+<a name="l00454"></a>00454             <span class="keywordflow">if</span> (yheight[wndi] != 0) {
+<a name="l00455"></a>00455                 expand_wndi = wndi;
+<a name="l00456"></a>00456                 <span class="keywordflow">break</span>;
+<a name="l00457"></a>00457             }
+<a name="l00458"></a>00458         }
+<a name="l00459"></a>00459     }
+<a name="l00460"></a>00460 
+<a name="l00461"></a>00461     <span class="comment">/* we give one window the power to expand to help fill the screen */</span>
+<a name="l00462"></a>00462     <span class="keywordflow">if</span> (outy &lt; win_limit) {
+<a name="l00463"></a>00463         <span class="keywordtype">int</span> expand_by = win_limit - outy;
 <a name="l00464"></a>00464 
-<a name="l00465"></a>00465             <span class="comment">/* move the others down */</span>
-<a name="l00466"></a>00466             <span class="keywordflow">for</span> (;wndi &lt; DBGBlock::WINI_MAX_INDEX;wndi++)
-<a name="l00467"></a>00467                 yofs[wndi] += (<span class="keywordtype">unsigned</span> <span class="keywordtype">int</span>)expand_by;
-<a name="l00468"></a>00468         }
-<a name="l00469"></a>00469     }
-<a name="l00470"></a>00470 
-<a name="l00471"></a>00471     <span class="keywordflow">for</span> (<span class="keywordtype">unsigned</span> <span class="keywordtype">int</span> wndi=0;wndi &lt; DBGBlock::WINI_MAX_INDEX;wndi++) {
-<a name="l00472"></a>00472         <span class="keywordflow">if</span> (yheight[wndi] != 0) {
-<a name="l00473"></a>00473             <span class="keywordtype">unsigned</span> <span class="keywordtype">int</span> wnd = dbg.win_order[wndi];
-<a name="l00474"></a>00474             WINDOW* &amp;ref = dbg.get_win_ref((<span class="keywordtype">int</span>)wnd);
-<a name="l00475"></a>00475             assert(ref == NULL);
-<a name="l00476"></a>00476             ref = subwin(dbg.win_main,(<span class="keywordtype">int</span>)yheight[wndi],win_main_maxx,(<span class="keywordtype">int</span>)yofs[wndi],0);
-<a name="l00477"></a>00477         }
-<a name="l00478"></a>00478     }
-<a name="l00479"></a>00479 
-<a name="l00480"></a>00480     <span class="keywordflow">if</span> (outy &lt; win_main_maxy) {
-<a name="l00481"></a>00481         <span class="comment">// no header</span>
-<a name="l00482"></a>00482         height = 1;
-<a name="l00483"></a>00483         outy = win_main_maxy - height;
-<a name="l00484"></a>00484         dbg.win_inp=subwin(dbg.win_main,height,win_main_maxx,outy,0);
-<a name="l00485"></a>00485         outy += height;
+<a name="l00465"></a>00465         <span class="keywordflow">if</span> (expand_wndi &gt;= 0 &amp;&amp; expand_wndi &lt; DBGBlock::WINI_MAX_INDEX) {
+<a name="l00466"></a>00466             <span class="keywordtype">unsigned</span> <span class="keywordtype">int</span> wndi = (<span class="keywordtype">unsigned</span> int)expand_wndi;
+<a name="l00467"></a>00467 
+<a name="l00468"></a>00468             <span class="comment">/* add height to the window */</span>
+<a name="l00469"></a>00469             yheight[wndi] += (<span class="keywordtype">unsigned</span> int)expand_by;
+<a name="l00470"></a>00470             outy += (int)expand_by;
+<a name="l00471"></a>00471             wndi++;
+<a name="l00472"></a>00472 
+<a name="l00473"></a>00473             <span class="comment">/* move the others down */</span>
+<a name="l00474"></a>00474             <span class="keywordflow">for</span> (;wndi &lt; DBGBlock::WINI_MAX_INDEX;wndi++)
+<a name="l00475"></a>00475                 yofs[wndi] += (<span class="keywordtype">unsigned</span> <span class="keywordtype">int</span>)expand_by;
+<a name="l00476"></a>00476         }
+<a name="l00477"></a>00477     }
+<a name="l00478"></a>00478 
+<a name="l00479"></a>00479     <span class="keywordflow">for</span> (<span class="keywordtype">unsigned</span> <span class="keywordtype">int</span> wndi=0;wndi &lt; DBGBlock::WINI_MAX_INDEX;wndi++) {
+<a name="l00480"></a>00480         <span class="keywordflow">if</span> (yheight[wndi] != 0) {
+<a name="l00481"></a>00481             <span class="keywordtype">unsigned</span> <span class="keywordtype">int</span> wnd = dbg.win_order[wndi];
+<a name="l00482"></a>00482             WINDOW* &amp;ref = dbg.get_win_ref((<span class="keywordtype">int</span>)wnd);
+<a name="l00483"></a>00483             assert(ref == NULL);
+<a name="l00484"></a>00484             ref = subwin(dbg.win_main,(<span class="keywordtype">int</span>)yheight[wndi],win_main_maxx,(<span class="keywordtype">int</span>)yofs[wndi],0);
+<a name="l00485"></a>00485         }
 <a name="l00486"></a>00486     }
 <a name="l00487"></a>00487 
-<a name="l00488"></a>00488         DrawBars();
-<a name="l00489"></a>00489         Draw_RegisterLayout();
-<a name="l00490"></a>00490         refresh();
-<a name="l00491"></a>00491 }
-<a name="l00492"></a>00492 
-<a name="l00493"></a>00493 <span class="keywordtype">void</span> DEBUG_GUI_Rebuild(<span class="keywordtype">void</span>) {
-<a name="l00494"></a>00494     DestroySubWindows();
-<a name="l00495"></a>00495     MakeSubWindows();
-<a name="l00496"></a>00496     DEBUG_RefreshPage(0);
-<a name="l00497"></a>00497 }
-<a name="l00498"></a>00498 
-<a name="l00499"></a>00499 <span class="keywordtype">void</span> DEBUG_GUI_OnResize(<span class="keywordtype">void</span>) {
-<a name="l00500"></a>00500     DEBUG_GUI_Rebuild();
-<a name="l00501"></a>00501 }
-<a name="l00502"></a>00502 
-<a name="l00503"></a>00503 <span class="keyword">static</span> <span class="keywordtype">void</span> MakePairs(<span class="keywordtype">void</span>) {
-<a name="l00504"></a>00504         init_pair(PAIR_BLACK_BLUE, COLOR_BLACK, COLOR_CYAN);
-<a name="l00505"></a>00505         init_pair(PAIR_BYELLOW_BLACK, COLOR_YELLOW <span class="comment">/*| FOREGROUND_INTENSITY */</span>, COLOR_BLACK);
-<a name="l00506"></a>00506         init_pair(PAIR_GREEN_BLACK, COLOR_GREEN <span class="comment">/*| FOREGROUND_INTENSITY */</span>, COLOR_BLACK);
-<a name="l00507"></a>00507         init_pair(PAIR_BLACK_GREY, COLOR_BLACK <span class="comment">/*| FOREGROUND_INTENSITY */</span>, COLOR_WHITE);
-<a name="l00508"></a>00508         init_pair(PAIR_GREY_RED, COLOR_WHITE<span class="comment">/*| FOREGROUND_INTENSITY */</span>, COLOR_RED);
-<a name="l00509"></a>00509     init_pair(PAIR_BLACK_GREEN, COLOR_BLACK, COLOR_GREEN);
-<a name="l00510"></a>00510         init_pair(PAIR_WHITE_BLUE, COLOR_WHITE<span class="comment">/* | FOREGROUND_INTENSITY*/</span>, COLOR_BLUE);
-<a name="l00511"></a>00511 }
-<a name="l00512"></a>00512 
-<a name="l00513"></a>00513 <span class="keywordtype">void</span> DBGUI_NextWindow(<span class="keywordtype">void</span>) {
-<a name="l00514"></a>00514     dbg.next_window();
-<a name="l00515"></a>00515         DrawBars();
-<a name="l00516"></a>00516         DEBUG_DrawScreen();
-<a name="l00517"></a>00517 }
-<a name="l00518"></a>00518 
-<a name="l00519"></a>00519 <span class="keywordtype">void</span> DBGUI_NextWindowIfActiveHidden(<span class="keywordtype">void</span>) {
-<a name="l00520"></a>00520     <span class="keywordflow">if</span> (dbg.get_active_win() == NULL)
-<a name="l00521"></a>00521         DBGUI_NextWindow();
-<a name="l00522"></a>00522 }
-<a name="l00523"></a>00523 
-<a name="l00524"></a>00524 <span class="keywordtype">bool</span> DEBUG_IsDebuggerConsoleVisible(<span class="keywordtype">void</span>) {
-<a name="l00525"></a>00525         <span class="keywordflow">return</span> (dbg.win_main != NULL);
-<a name="l00526"></a>00526 }
-<a name="l00527"></a>00527 
-<a name="l00528"></a>00528 <span class="keywordtype">void</span> DEBUG_FlushInput(<span class="keywordtype">void</span>) {
-<a name="l00529"></a>00529     <span class="keywordflow">if</span> (dbg.win_main != NULL) {
-<a name="l00530"></a>00530         <span class="keywordflow">while</span> (getch() &gt;= 0); <span class="comment">/* remember nodelay() is called to make getch() non-blocking */</span>
-<a name="l00531"></a>00531     }
-<a name="l00532"></a>00532 }
-<a name="l00533"></a>00533 
-<a name="l00534"></a>00534 <span class="keywordtype">void</span> DBGUI_StartUp(<span class="keywordtype">void</span>) {
-<a name="l00535"></a>00535         mainMenu.get_item(<span class="stringliteral">&quot;show_console&quot;</span>).check(<span class="keyword">true</span>).refresh_item(mainMenu);
-<a name="l00536"></a>00536 
-<a name="l00537"></a>00537         <a class="code" href="classLOG.html">LOG</a>(LOG_MISC,LOG_DEBUG)(<span class="stringliteral">&quot;DEBUG GUI startup&quot;</span>);
-<a name="l00538"></a>00538         <span class="comment">/* Start the main window */</span>
-<a name="l00539"></a>00539         dbg.win_main=initscr();
-<a name="l00540"></a>00540         cbreak();       <span class="comment">/* take input chars one at a time, no wait for \n */</span>
-<a name="l00541"></a>00541         noecho();       <span class="comment">/* don&#39;t echo input */</span>
-<a name="l00542"></a>00542         scrollok(stdscr,<span class="keyword">false</span>);
-<a name="l00543"></a>00543         nodelay(dbg.win_main,<span class="keyword">true</span>);
-<a name="l00544"></a>00544         keypad(dbg.win_main,<span class="keyword">true</span>);
-<a name="l00545"></a>00545 <span class="preprocessor">        #ifndef WIN32</span>
-<a name="l00546"></a>00546 <span class="preprocessor"></span>        touchwin(dbg.win_main);
-<a name="l00547"></a>00547 <span class="preprocessor">        #endif</span>
-<a name="l00548"></a>00548 <span class="preprocessor"></span>        old_cursor_state = curs_set(0);
-<a name="l00549"></a>00549         start_color();
-<a name="l00550"></a>00550         cycle_count=0;
-<a name="l00551"></a>00551         MakePairs();
-<a name="l00552"></a>00552         MakeSubWindows();
-<a name="l00553"></a>00553 
-<a name="l00554"></a>00554     <span class="comment">/* make sure the output window is synced up */</span>
-<a name="l00555"></a>00555     logBuffPos = logBuff.end();
-<a name="l00556"></a>00556     DEBUG_RefreshPage(0);
-<a name="l00557"></a>00557 }
-<a name="l00558"></a>00558 
-<a name="l00559"></a>00559 <span class="preprocessor">#endif</span>
-<a name="l00560"></a>00560 <span class="preprocessor"></span>
-<a name="l00561"></a>00561 <span class="keywordtype">int</span> debugPageCounter = 0;
-<a name="l00562"></a>00562 <span class="keywordtype">int</span> debugPageStopAt = 0;
-<a name="l00563"></a>00563 
-<a name="l00564"></a>00564 <span class="keywordtype">bool</span> DEBUG_IsPagingOutput(<span class="keywordtype">void</span>) {
-<a name="l00565"></a>00565     <span class="keywordflow">return</span> debugPageStopAt &gt; 0;
-<a name="l00566"></a>00566 }
-<a name="l00567"></a>00567 
-<a name="l00568"></a>00568 <span class="keywordtype">void</span> DEBUG_DrawInput(<span class="keywordtype">void</span>);
-<a name="l00569"></a>00569 
-<a name="l00570"></a>00570 <span class="keywordtype">void</span> DEBUG_BeginPagedContent(<span class="keywordtype">void</span>) {
-<a name="l00571"></a>00571 <span class="preprocessor">#if C_DEBUG</span>
-<a name="l00572"></a>00572 <span class="preprocessor"></span>        <span class="keywordtype">int</span> maxy, maxx; getmaxyx(dbg.win_out,maxy,maxx);
-<a name="l00573"></a>00573 
-<a name="l00574"></a>00574     debugPageCounter = 0;
-<a name="l00575"></a>00575     debugPageStopAt = maxy;
-<a name="l00576"></a>00576 <span class="preprocessor">#endif</span>
-<a name="l00577"></a>00577 <span class="preprocessor"></span>}
-<a name="l00578"></a>00578 
-<a name="l00579"></a>00579 <span class="keywordtype">void</span> DEBUG_EndPagedContent(<span class="keywordtype">void</span>) {
-<a name="l00580"></a>00580 <span class="preprocessor">#if C_DEBUG</span>
-<a name="l00581"></a>00581 <span class="preprocessor"></span>    debugPageCounter = 0;
-<a name="l00582"></a>00582     debugPageStopAt = 0;
-<a name="l00583"></a>00583     DEBUG_DrawInput();
-<a name="l00584"></a>00584 <span class="preprocessor">#endif</span>
-<a name="l00585"></a>00585 <span class="preprocessor"></span>}
+<a name="l00488"></a>00488     <span class="keywordflow">if</span> (outy &lt; win_main_maxy) {
+<a name="l00489"></a>00489         <span class="comment">// no header</span>
+<a name="l00490"></a>00490         height = 1;
+<a name="l00491"></a>00491         outy = win_main_maxy - height;
+<a name="l00492"></a>00492         dbg.win_inp=subwin(dbg.win_main,height,win_main_maxx,outy,0);
+<a name="l00493"></a>00493         outy += height;
+<a name="l00494"></a>00494     }
+<a name="l00495"></a>00495 
+<a name="l00496"></a>00496         DrawBars();
+<a name="l00497"></a>00497         Draw_RegisterLayout();
+<a name="l00498"></a>00498         refresh();
+<a name="l00499"></a>00499 }
+<a name="l00500"></a>00500 
+<a name="l00501"></a>00501 <span class="keywordtype">void</span> DEBUG_GUI_Rebuild(<span class="keywordtype">void</span>) {
+<a name="l00502"></a>00502     DestroySubWindows();
+<a name="l00503"></a>00503     MakeSubWindows();
+<a name="l00504"></a>00504     DEBUG_RefreshPage(0);
+<a name="l00505"></a>00505 }
+<a name="l00506"></a>00506 
+<a name="l00507"></a>00507 <span class="keywordtype">void</span> DEBUG_GUI_OnResize(<span class="keywordtype">void</span>) {
+<a name="l00508"></a>00508     DEBUG_GUI_Rebuild();
+<a name="l00509"></a>00509 }
+<a name="l00510"></a>00510 
+<a name="l00511"></a>00511 <span class="keyword">static</span> <span class="keywordtype">void</span> MakePairs(<span class="keywordtype">void</span>) {
+<a name="l00512"></a>00512         init_pair(PAIR_BLACK_BLUE, COLOR_BLACK, COLOR_CYAN);
+<a name="l00513"></a>00513         init_pair(PAIR_BYELLOW_BLACK, COLOR_YELLOW <span class="comment">/*| FOREGROUND_INTENSITY */</span>, COLOR_BLACK);
+<a name="l00514"></a>00514         init_pair(PAIR_GREEN_BLACK, COLOR_GREEN <span class="comment">/*| FOREGROUND_INTENSITY */</span>, COLOR_BLACK);
+<a name="l00515"></a>00515         init_pair(PAIR_BLACK_GREY, COLOR_BLACK <span class="comment">/*| FOREGROUND_INTENSITY */</span>, COLOR_WHITE);
+<a name="l00516"></a>00516         init_pair(PAIR_GREY_RED, COLOR_WHITE<span class="comment">/*| FOREGROUND_INTENSITY */</span>, COLOR_RED);
+<a name="l00517"></a>00517     init_pair(PAIR_BLACK_GREEN, COLOR_BLACK, COLOR_GREEN);
+<a name="l00518"></a>00518         init_pair(PAIR_WHITE_BLUE, COLOR_WHITE<span class="comment">/* | FOREGROUND_INTENSITY*/</span>, COLOR_BLUE);
+<a name="l00519"></a>00519 }
+<a name="l00520"></a>00520 
+<a name="l00521"></a>00521 <span class="keywordtype">void</span> DBGUI_NextWindow(<span class="keywordtype">void</span>) {
+<a name="l00522"></a>00522     dbg.next_window();
+<a name="l00523"></a>00523         DrawBars();
+<a name="l00524"></a>00524         DEBUG_DrawScreen();
+<a name="l00525"></a>00525 }
+<a name="l00526"></a>00526 
+<a name="l00527"></a>00527 <span class="keywordtype">void</span> DBGUI_NextWindowIfActiveHidden(<span class="keywordtype">void</span>) {
+<a name="l00528"></a>00528     <span class="keywordflow">if</span> (dbg.get_active_win() == NULL)
+<a name="l00529"></a>00529         DBGUI_NextWindow();
+<a name="l00530"></a>00530 }
+<a name="l00531"></a>00531 
+<a name="l00532"></a>00532 <span class="keywordtype">bool</span> DEBUG_IsDebuggerConsoleVisible(<span class="keywordtype">void</span>) {
+<a name="l00533"></a>00533         <span class="keywordflow">return</span> (dbg.win_main != NULL);
+<a name="l00534"></a>00534 }
+<a name="l00535"></a>00535 
+<a name="l00536"></a>00536 <span class="keywordtype">void</span> DEBUG_FlushInput(<span class="keywordtype">void</span>) {
+<a name="l00537"></a>00537     <span class="keywordflow">if</span> (dbg.win_main != NULL) {
+<a name="l00538"></a>00538         <span class="keywordflow">while</span> (getch() &gt;= 0); <span class="comment">/* remember nodelay() is called to make getch() non-blocking */</span>
+<a name="l00539"></a>00539     }
+<a name="l00540"></a>00540 }
+<a name="l00541"></a>00541 
+<a name="l00542"></a>00542 <span class="keywordtype">void</span> DBGUI_StartUp(<span class="keywordtype">void</span>) {
+<a name="l00543"></a>00543         mainMenu.get_item(<span class="stringliteral">&quot;show_console&quot;</span>).check(<span class="keyword">true</span>).refresh_item(mainMenu);
+<a name="l00544"></a>00544 
+<a name="l00545"></a>00545         <a class="code" href="classLOG.html">LOG</a>(LOG_MISC,LOG_DEBUG)(<span class="stringliteral">&quot;DEBUG GUI startup&quot;</span>);
+<a name="l00546"></a>00546         <span class="comment">/* Start the main window */</span>
+<a name="l00547"></a>00547         dbg.win_main=initscr();
+<a name="l00548"></a>00548 
+<a name="l00549"></a>00549 <span class="preprocessor">#ifdef WIN32</span>
+<a name="l00550"></a>00550 <span class="preprocessor"></span>    <span class="comment">/* Tell Windows 10 we DONT want a thin tall console window that fills the screen top to bottom.</span>
+<a name="l00551"></a>00551 <span class="comment">       It&#39;s a nuisance especially when the user attempts to move the windwo up to the top to see</span>
+<a name="l00552"></a>00552 <span class="comment">       the status, only for Windows to auto-maximize. 30 lines is enough, thanks. */</span>
+<a name="l00553"></a>00553     {
+<a name="l00554"></a>00554         <span class="keywordflow">if</span> (dbg.win_main) {
+<a name="l00555"></a>00555             <span class="keywordtype">int</span> win_main_maxy, win_main_maxx; getmaxyx(dbg.win_main, win_main_maxy, win_main_maxx);
+<a name="l00556"></a>00556             <span class="keywordflow">if</span> (win_main_maxx &gt; 100) win_main_maxy = 100;
+<a name="l00557"></a>00557             <span class="keywordflow">if</span> (win_main_maxy &gt; 40) win_main_maxy = 40;
+<a name="l00558"></a>00558             resize_term(win_main_maxy, win_main_maxx);
+<a name="l00559"></a>00559         }
+<a name="l00560"></a>00560     }
+<a name="l00561"></a>00561 <span class="preprocessor">#endif</span>
+<a name="l00562"></a>00562 <span class="preprocessor"></span>
+<a name="l00563"></a>00563         cbreak();       <span class="comment">/* take input chars one at a time, no wait for \n */</span>
+<a name="l00564"></a>00564         noecho();       <span class="comment">/* don&#39;t echo input */</span>
+<a name="l00565"></a>00565         scrollok(stdscr,<span class="keyword">false</span>);
+<a name="l00566"></a>00566         nodelay(dbg.win_main,<span class="keyword">true</span>);
+<a name="l00567"></a>00567         keypad(dbg.win_main,<span class="keyword">true</span>);
+<a name="l00568"></a>00568 <span class="preprocessor">        #ifndef WIN32</span>
+<a name="l00569"></a>00569 <span class="preprocessor"></span>        touchwin(dbg.win_main);
+<a name="l00570"></a>00570 <span class="preprocessor">        #endif</span>
+<a name="l00571"></a>00571 <span class="preprocessor"></span>        old_cursor_state = curs_set(0);
+<a name="l00572"></a>00572         start_color();
+<a name="l00573"></a>00573         cycle_count=0;
+<a name="l00574"></a>00574         MakePairs();
+<a name="l00575"></a>00575         MakeSubWindows();
+<a name="l00576"></a>00576 
+<a name="l00577"></a>00577     <span class="comment">/* make sure the output window is synced up */</span>
+<a name="l00578"></a>00578     logBuffPos = logBuff.end();
+<a name="l00579"></a>00579     DEBUG_RefreshPage(0);
+<a name="l00580"></a>00580 }
+<a name="l00581"></a>00581 
+<a name="l00582"></a>00582 <span class="preprocessor">#endif</span>
+<a name="l00583"></a>00583 <span class="preprocessor"></span>
+<a name="l00584"></a>00584 <span class="keywordtype">int</span> debugPageCounter = 0;
+<a name="l00585"></a>00585 <span class="keywordtype">int</span> debugPageStopAt = 0;
 <a name="l00586"></a>00586 
-<a name="l00587"></a>00587 <span class="keyword">extern</span> <span class="keywordtype">bool</span> gfx_in_mapper;
-<a name="l00588"></a>00588 
-<a name="l00589"></a>00589 <span class="keywordtype">bool</span> in_debug_showmsg = <span class="keyword">false</span>;
+<a name="l00587"></a>00587 <span class="keywordtype">bool</span> DEBUG_IsPagingOutput(<span class="keywordtype">void</span>) {
+<a name="l00588"></a>00588     <span class="keywordflow">return</span> debugPageStopAt &gt; 0;
+<a name="l00589"></a>00589 }
 <a name="l00590"></a>00590 
-<a name="l00591"></a>00591 <span class="keywordtype">bool</span> IsDebuggerActive(<span class="keywordtype">void</span>);
+<a name="l00591"></a>00591 <span class="keywordtype">void</span> DEBUG_DrawInput(<span class="keywordtype">void</span>);
 <a name="l00592"></a>00592 
-<a name="l00593"></a>00593 <span class="keywordtype">void</span> DEBUG_ShowMsg(<span class="keywordtype">char</span> <span class="keyword">const</span>* format,...) {
-<a name="l00594"></a>00594         <span class="keywordtype">bool</span> stderrlog = <span class="keyword">false</span>;
-<a name="l00595"></a>00595         <span class="keywordtype">char</span> buf[512];
-<a name="l00596"></a>00596         va_list msg;
-<a name="l00597"></a>00597         <span class="keywordtype">size_t</span> len;
-<a name="l00598"></a>00598 
-<a name="l00599"></a>00599     in_debug_showmsg = <span class="keyword">true</span>;
-<a name="l00600"></a>00600 
-<a name="l00601"></a>00601     <span class="comment">// in case of runaway error from the CPU core, user responsiveness can be helpful</span>
-<a name="l00602"></a>00602     CPU_CycleLeft += CPU_Cycles;
-<a name="l00603"></a>00603     CPU_Cycles = 0;
-<a name="l00604"></a>00604 
-<a name="l00605"></a>00605     <span class="keywordflow">if</span> (!gfx_in_mapper &amp;&amp; !in_debug_showmsg) {
-<a name="l00606"></a>00606         <span class="keywordtype">void</span> GFX_Events();
-<a name="l00607"></a>00607         GFX_Events();
-<a name="l00608"></a>00608     }
+<a name="l00593"></a>00593 <span class="keywordtype">void</span> DEBUG_BeginPagedContent(<span class="keywordtype">void</span>) {
+<a name="l00594"></a>00594 <span class="preprocessor">#if C_DEBUG</span>
+<a name="l00595"></a>00595 <span class="preprocessor"></span>        <span class="keywordtype">int</span> maxy, maxx; getmaxyx(dbg.win_out,maxy,maxx);
+<a name="l00596"></a>00596 
+<a name="l00597"></a>00597     debugPageCounter = 0;
+<a name="l00598"></a>00598     debugPageStopAt = maxy;
+<a name="l00599"></a>00599 <span class="preprocessor">#endif</span>
+<a name="l00600"></a>00600 <span class="preprocessor"></span>}
+<a name="l00601"></a>00601 
+<a name="l00602"></a>00602 <span class="keywordtype">void</span> DEBUG_EndPagedContent(<span class="keywordtype">void</span>) {
+<a name="l00603"></a>00603 <span class="preprocessor">#if C_DEBUG</span>
+<a name="l00604"></a>00604 <span class="preprocessor"></span>    debugPageCounter = 0;
+<a name="l00605"></a>00605     debugPageStopAt = 0;
+<a name="l00606"></a>00606     DEBUG_DrawInput();
+<a name="l00607"></a>00607 <span class="preprocessor">#endif</span>
+<a name="l00608"></a>00608 <span class="preprocessor"></span>}
 <a name="l00609"></a>00609 
-<a name="l00610"></a>00610     va_start(msg,format);
-<a name="l00611"></a>00611         len = (size_t)vsnprintf(buf,<span class="keyword">sizeof</span>(buf)-2u,format,msg); <span class="comment">/* &lt;- NTS: Did you know sprintf/vsnprintf returns number of chars written? */</span>
-<a name="l00612"></a>00612         va_end(msg);
+<a name="l00610"></a>00610 <span class="keyword">extern</span> <span class="keywordtype">bool</span> gfx_in_mapper;
+<a name="l00611"></a>00611 
+<a name="l00612"></a>00612 <span class="keywordtype">bool</span> in_debug_showmsg = <span class="keyword">false</span>;
 <a name="l00613"></a>00613 
-<a name="l00614"></a>00614     <span class="comment">/* remove newlines if present */</span>
-<a name="l00615"></a>00615     <span class="keywordflow">while</span> (len &gt; 0 &amp;&amp; buf[len-1] == <span class="charliteral">&#39;\n&#39;</span>) buf[--len] = 0;
-<a name="l00616"></a>00616 
-<a name="l00617"></a>00617         <span class="keywordflow">if</span> (do_LOG_stderr || debuglog == NULL)
-<a name="l00618"></a>00618                 stderrlog = <span class="keyword">true</span>;
-<a name="l00619"></a>00619 
-<a name="l00620"></a>00620 <span class="preprocessor">#if C_DEBUG</span>
-<a name="l00621"></a>00621 <span class="preprocessor"></span>        <span class="keywordflow">if</span> (dbg.win_out != NULL)
-<a name="l00622"></a>00622                 stderrlog = <span class="keyword">false</span>;
-<a name="l00623"></a>00623     <span class="keywordflow">else</span>
-<a name="l00624"></a>00624         stderrlog = <span class="keyword">true</span>;
-<a name="l00625"></a>00625 <span class="preprocessor">#endif</span>
-<a name="l00626"></a>00626 <span class="preprocessor"></span>
-<a name="l00627"></a>00627         <span class="keywordflow">if</span> (debuglog != NULL) {
-<a name="l00628"></a>00628                 fprintf(debuglog,<span class="stringliteral">&quot;%s\n&quot;</span>,buf);
-<a name="l00629"></a>00629                 fflush(debuglog);
-<a name="l00630"></a>00630         }
-<a name="l00631"></a>00631         <span class="keywordflow">if</span> (stderrlog) {
-<a name="l00632"></a>00632 <span class="preprocessor">#if C_EMSCRIPTEN</span>
-<a name="l00633"></a>00633 <span class="preprocessor"></span>        <span class="comment">/* Emscripten routes stderr to the browser console.error() function, and</span>
-<a name="l00634"></a>00634 <span class="comment">         * stdout to a console window below ours on the browser page. We want the</span>
-<a name="l00635"></a>00635 <span class="comment">         * user to see our blather, so print to stdout */</span>
-<a name="l00636"></a>00636                 fprintf(stdout,<span class="stringliteral">&quot;LOG: %s\n&quot;</span>,buf);
-<a name="l00637"></a>00637                 fflush(stdout);
-<a name="l00638"></a>00638 <span class="preprocessor">#else</span>
-<a name="l00639"></a>00639 <span class="preprocessor"></span>                fprintf(stderr,<span class="stringliteral">&quot;LOG: %s\n&quot;</span>,buf);
-<a name="l00640"></a>00640                 fflush(stderr);
-<a name="l00641"></a>00641 <span class="preprocessor">#endif</span>
-<a name="l00642"></a>00642 <span class="preprocessor"></span>        }
-<a name="l00643"></a>00643 
-<a name="l00644"></a>00644 <span class="preprocessor">#if C_DEBUG</span>
-<a name="l00645"></a>00645 <span class="preprocessor"></span>        <span class="keywordflow">if</span> (logBuffPos!=logBuff.end()) {
-<a name="l00646"></a>00646                 logBuffPos=logBuff.end();
-<a name="l00647"></a>00647                 DEBUG_RefreshPage(0);
-<a name="l00648"></a>00648         }
-<a name="l00649"></a>00649         logBuff.push_back(buf);
-<a name="l00650"></a>00650         <span class="keywordflow">if</span> (logBuff.size() &gt; MAX_LOG_BUFFER) {
-<a name="l00651"></a>00651         logBuffHasDiscarded = <span class="keyword">true</span>;
-<a name="l00652"></a>00652         <span class="keywordflow">if</span> (logBuffPos == logBuff.begin()) logBuffPos++; <span class="comment">/* keep the iterator valid */</span>
-<a name="l00653"></a>00653                 logBuff.pop_front();
-<a name="l00654"></a>00654     }
-<a name="l00655"></a>00655 
-<a name="l00656"></a>00656         logBuffPos = logBuff.end();
-<a name="l00657"></a>00657 
-<a name="l00658"></a>00658         <span class="keywordflow">if</span> (dbg.win_out != NULL) {
-<a name="l00659"></a>00659         <span class="keywordflow">if</span> (logBuffSuppressConsole) {
-<a name="l00660"></a>00660             logBuffSuppressConsoleNeedUpdate = <span class="keyword">true</span>;
-<a name="l00661"></a>00661         }
-<a name="l00662"></a>00662         <span class="keywordflow">else</span> {
-<a name="l00663"></a>00663             <span class="keywordtype">int</span> maxy, maxx; getmaxyx(dbg.win_out,maxy,maxx);
-<a name="l00664"></a>00664 
-<a name="l00665"></a>00665             scrollok(dbg.win_out,TRUE);
-<a name="l00666"></a>00666             scroll(dbg.win_out);
-<a name="l00667"></a>00667             scrollok(dbg.win_out,FALSE);
-<a name="l00668"></a>00668 
-<a name="l00669"></a>00669             DBGUI_DrawDebugOutputLine(maxy-1,buf);
-<a name="l00670"></a>00670 
-<a name="l00671"></a>00671             wrefresh(dbg.win_out);
-<a name="l00672"></a>00672         }
-<a name="l00673"></a>00673         }
-<a name="l00674"></a>00674 
-<a name="l00675"></a>00675     <span class="keywordflow">if</span> (IsDebuggerActive() &amp;&amp; debugPageStopAt &gt; 0) {
-<a name="l00676"></a>00676         <span class="keywordflow">if</span> (++debugPageCounter &gt;= debugPageStopAt) {
-<a name="l00677"></a>00677             <span class="keywordtype">int</span> key;
+<a name="l00614"></a>00614 <span class="keywordtype">bool</span> IsDebuggerActive(<span class="keywordtype">void</span>);
+<a name="l00615"></a>00615 
+<a name="l00616"></a>00616 <span class="keywordtype">void</span> DEBUG_ShowMsg(<span class="keywordtype">char</span> <span class="keyword">const</span>* format,...) {
+<a name="l00617"></a>00617         <span class="keywordtype">bool</span> stderrlog = <span class="keyword">false</span>;
+<a name="l00618"></a>00618         <span class="keywordtype">char</span> buf[512];
+<a name="l00619"></a>00619         va_list msg;
+<a name="l00620"></a>00620         <span class="keywordtype">size_t</span> len;
+<a name="l00621"></a>00621 
+<a name="l00622"></a>00622     in_debug_showmsg = <span class="keyword">true</span>;
+<a name="l00623"></a>00623 
+<a name="l00624"></a>00624     <span class="comment">// in case of runaway error from the CPU core, user responsiveness can be helpful</span>
+<a name="l00625"></a>00625     CPU_CycleLeft += CPU_Cycles;
+<a name="l00626"></a>00626     CPU_Cycles = 0;
+<a name="l00627"></a>00627 
+<a name="l00628"></a>00628     <span class="keywordflow">if</span> (!gfx_in_mapper &amp;&amp; !in_debug_showmsg) {
+<a name="l00629"></a>00629         <span class="keywordtype">void</span> GFX_Events();
+<a name="l00630"></a>00630         GFX_Events();
+<a name="l00631"></a>00631     }
+<a name="l00632"></a>00632 
+<a name="l00633"></a>00633     va_start(msg,format);
+<a name="l00634"></a>00634         len = (size_t)vsnprintf(buf,<span class="keyword">sizeof</span>(buf)-2u,format,msg); <span class="comment">/* &lt;- NTS: Did you know sprintf/vsnprintf returns number of chars written? */</span>
+<a name="l00635"></a>00635         va_end(msg);
+<a name="l00636"></a>00636 
+<a name="l00637"></a>00637     <span class="comment">/* remove newlines if present */</span>
+<a name="l00638"></a>00638     <span class="keywordflow">while</span> (len &gt; 0 &amp;&amp; buf[len-1] == <span class="charliteral">&#39;\n&#39;</span>) buf[--len] = 0;
+<a name="l00639"></a>00639 
+<a name="l00640"></a>00640 <span class="preprocessor">#if C_DEBUG</span>
+<a name="l00641"></a>00641 <span class="preprocessor"></span>        <span class="keywordflow">if</span> (dbg.win_out != NULL)
+<a name="l00642"></a>00642                 stderrlog = <span class="keyword">false</span>;
+<a name="l00643"></a>00643     <span class="keywordflow">else</span>
+<a name="l00644"></a>00644         stderrlog = <span class="keyword">true</span>;
+<a name="l00645"></a>00645 <span class="preprocessor">#else</span>
+<a name="l00646"></a>00646 <span class="preprocessor"></span>        <span class="keywordflow">if</span> (do_LOG_stderr || debuglog == NULL)
+<a name="l00647"></a>00647                 stderrlog = <span class="keyword">true</span>;
+<a name="l00648"></a>00648 <span class="preprocessor">#endif</span>
+<a name="l00649"></a>00649 <span class="preprocessor"></span>
+<a name="l00650"></a>00650         <span class="keywordflow">if</span> (debuglog != NULL) {
+<a name="l00651"></a>00651                 fprintf(debuglog,<span class="stringliteral">&quot;%s\n&quot;</span>,buf);
+<a name="l00652"></a>00652                 fflush(debuglog);
+<a name="l00653"></a>00653         }
+<a name="l00654"></a>00654         <span class="keywordflow">if</span> (stderrlog) {
+<a name="l00655"></a>00655 <span class="preprocessor">#if C_EMSCRIPTEN</span>
+<a name="l00656"></a>00656 <span class="preprocessor"></span>        <span class="comment">/* Emscripten routes stderr to the browser console.error() function, and</span>
+<a name="l00657"></a>00657 <span class="comment">         * stdout to a console window below ours on the browser page. We want the</span>
+<a name="l00658"></a>00658 <span class="comment">         * user to see our blather, so print to stdout */</span>
+<a name="l00659"></a>00659                 fprintf(stdout,<span class="stringliteral">&quot;LOG: %s\n&quot;</span>,buf);
+<a name="l00660"></a>00660                 fflush(stdout);
+<a name="l00661"></a>00661 <span class="preprocessor">#else</span>
+<a name="l00662"></a>00662 <span class="preprocessor"></span>                fprintf(stderr,<span class="stringliteral">&quot;LOG: %s\n&quot;</span>,buf);
+<a name="l00663"></a>00663                 fflush(stderr);
+<a name="l00664"></a>00664 <span class="preprocessor">#endif</span>
+<a name="l00665"></a>00665 <span class="preprocessor"></span>        }
+<a name="l00666"></a>00666 
+<a name="l00667"></a>00667 <span class="preprocessor">#if C_DEBUG</span>
+<a name="l00668"></a>00668 <span class="preprocessor"></span>        <span class="keywordflow">if</span> (logBuffPos!=logBuff.end()) {
+<a name="l00669"></a>00669                 logBuffPos=logBuff.end();
+<a name="l00670"></a>00670                 DEBUG_RefreshPage(0);
+<a name="l00671"></a>00671         }
+<a name="l00672"></a>00672         logBuff.push_back(buf);
+<a name="l00673"></a>00673         <span class="keywordflow">if</span> (logBuff.size() &gt; MAX_LOG_BUFFER) {
+<a name="l00674"></a>00674         logBuffHasDiscarded = <span class="keyword">true</span>;
+<a name="l00675"></a>00675         <span class="keywordflow">if</span> (logBuffPos == logBuff.begin()) ++logBuffPos; <span class="comment">/* keep the iterator valid */</span>
+<a name="l00676"></a>00676                 logBuff.pop_front();
+<a name="l00677"></a>00677     }
 <a name="l00678"></a>00678 
-<a name="l00679"></a>00679             debugPageCounter = 0;
-<a name="l00680"></a>00680             DEBUG_RefreshPage(0);
-<a name="l00681"></a>00681             DEBUG_DrawInput();
-<a name="l00682"></a>00682 
-<a name="l00683"></a>00683             <span class="comment">/* pause, wait for input */</span>
-<a name="l00684"></a>00684             <span class="keywordflow">do</span> {
-<a name="l00685"></a>00685                 key = getch();
-<a name="l00686"></a>00686                 <span class="keywordflow">if</span> (key &gt; 0) {
-<a name="l00687"></a>00687                     <span class="keywordflow">if</span> (key == <span class="charliteral">&#39; &#39;</span> || key == 0x0A) {
-<a name="l00688"></a>00688                         <span class="comment">/* continue */</span>
-<a name="l00689"></a>00689                         <span class="keywordflow">break</span>;
-<a name="l00690"></a>00690                     }
-<a name="l00691"></a>00691                     <span class="keywordflow">else</span> <span class="keywordflow">if</span> (key == 0x27<span class="comment">/*ESC*/</span> || key == 0x7F<span class="comment">/*DEL*/</span> || key == 0x08<span class="comment">/*BKSP*/</span> ||
-<a name="l00692"></a>00692                              key == <span class="charliteral">&#39;q&#39;</span> || key == <span class="charliteral">&#39;Q&#39;</span>) {
-<a name="l00693"></a>00693                         <span class="comment">/* user wants to stop paging */</span>
-<a name="l00694"></a>00694                         debugPageStopAt = 0;
-<a name="l00695"></a>00695                         <span class="keywordflow">break</span>;
-<a name="l00696"></a>00696                     }
-<a name="l00697"></a>00697                 }
-<a name="l00698"></a>00698             } <span class="keywordflow">while</span> (1);
-<a name="l00699"></a>00699         }
-<a name="l00700"></a>00700     }
-<a name="l00701"></a>00701 <span class="preprocessor">#endif</span>
-<a name="l00702"></a>00702 <span class="preprocessor"></span>
-<a name="l00703"></a>00703     in_debug_showmsg = <span class="keyword">false</span>;
-<a name="l00704"></a>00704 }
-<a name="l00705"></a>00705 
-<a name="l00706"></a>00706 <span class="comment">/* callback function when DOSBox-X exits */</span>
-<a name="l00707"></a>00707 <span class="keywordtype">void</span> LOG::Exit() {
-<a name="l00708"></a>00708         <span class="keywordflow">if</span> (debuglog != NULL) {
-<a name="l00709"></a>00709                 fprintf(debuglog,<span class="stringliteral">&quot;--END OF LOG--\n&quot;</span>);
-<a name="l00710"></a>00710                 fclose(debuglog);
-<a name="l00711"></a>00711                 debuglog = NULL;
-<a name="l00712"></a>00712         }
-<a name="l00713"></a>00713 }
-<a name="l00714"></a>00714 
-<a name="l00715"></a>00715 <span class="keywordtype">void</span> Null_Init(<a class="code" href="classSection.html">Section</a> *sec);
-<a name="l00716"></a>00716 
-<a name="l00717"></a>00717 <span class="keywordtype">void</span> LOG::operator() (<span class="keywordtype">char</span> <span class="keyword">const</span>* format, ...){
-<a name="l00718"></a>00718         <span class="keyword">const</span> <span class="keywordtype">char</span> *s_severity = <span class="stringliteral">&quot;&quot;</span>;
-<a name="l00719"></a>00719         <span class="keywordtype">char</span> buf[512];
-<a name="l00720"></a>00720         va_list msg;
-<a name="l00721"></a>00721 
-<a name="l00722"></a>00722         <span class="keywordflow">switch</span> (d_severity) {
-<a name="l00723"></a>00723                 <span class="keywordflow">case</span> LOG_DEBUG: s_severity = <span class="stringliteral">&quot; DEBUG&quot;</span>; <span class="keywordflow">break</span>;
-<a name="l00724"></a>00724                 <span class="keywordflow">case</span> LOG_NORMAL:s_severity = <span class="stringliteral">&quot;      &quot;</span>; <span class="keywordflow">break</span>;
-<a name="l00725"></a>00725                 <span class="keywordflow">case</span> LOG_WARN:  s_severity = <span class="stringliteral">&quot; WARN &quot;</span>; <span class="keywordflow">break</span>;
-<a name="l00726"></a>00726                 <span class="keywordflow">case</span> LOG_ERROR: s_severity = <span class="stringliteral">&quot; ERROR&quot;</span>; <span class="keywordflow">break</span>;
-<a name="l00727"></a>00727                 <span class="keywordflow">case</span> LOG_FATAL: s_severity = <span class="stringliteral">&quot; FATAL&quot;</span>; <span class="keywordflow">break</span>;
-<a name="l00728"></a>00728                 <span class="keywordflow">default</span>: <span class="keywordflow">break</span>;
-<a name="l00729"></a>00729         }
-<a name="l00730"></a>00730 
-<a name="l00731"></a>00731         va_start(msg,format);
-<a name="l00732"></a>00732         vsnprintf(buf,<span class="keyword">sizeof</span>(buf)-1,format,msg);
-<a name="l00733"></a>00733         va_end(msg);
+<a name="l00679"></a>00679         logBuffPos = logBuff.end();
+<a name="l00680"></a>00680 
+<a name="l00681"></a>00681         <span class="keywordflow">if</span> (dbg.win_out != NULL) {
+<a name="l00682"></a>00682         <span class="keywordflow">if</span> (logBuffSuppressConsole) {
+<a name="l00683"></a>00683             logBuffSuppressConsoleNeedUpdate = <span class="keyword">true</span>;
+<a name="l00684"></a>00684         }
+<a name="l00685"></a>00685         <span class="keywordflow">else</span> {
+<a name="l00686"></a>00686             <span class="keywordtype">int</span> maxy, maxx; getmaxyx(dbg.win_out,maxy,maxx);
+<a name="l00687"></a>00687 
+<a name="l00688"></a>00688             scrollok(dbg.win_out,TRUE);
+<a name="l00689"></a>00689             scroll(dbg.win_out);
+<a name="l00690"></a>00690             scrollok(dbg.win_out,FALSE);
+<a name="l00691"></a>00691 
+<a name="l00692"></a>00692             DBGUI_DrawDebugOutputLine(maxy-1,buf);
+<a name="l00693"></a>00693 
+<a name="l00694"></a>00694             wrefresh(dbg.win_out);
+<a name="l00695"></a>00695         }
+<a name="l00696"></a>00696         }
+<a name="l00697"></a>00697 
+<a name="l00698"></a>00698     <span class="keywordflow">if</span> (IsDebuggerActive() &amp;&amp; debugPageStopAt &gt; 0) {
+<a name="l00699"></a>00699         <span class="keywordflow">if</span> (++debugPageCounter &gt;= debugPageStopAt) {
+<a name="l00700"></a>00700             debugPageCounter = 0;
+<a name="l00701"></a>00701             DEBUG_RefreshPage(0);
+<a name="l00702"></a>00702             DEBUG_DrawInput();
+<a name="l00703"></a>00703 
+<a name="l00704"></a>00704             <span class="comment">/* pause, wait for input */</span>
+<a name="l00705"></a>00705             <span class="keywordflow">do</span> {
+<a name="l00706"></a>00706 <span class="preprocessor">#if defined(WIN32)</span>
+<a name="l00707"></a>00707 <span class="preprocessor"></span>                <span class="keywordtype">int</span> key;
+<a name="l00708"></a>00708 
+<a name="l00709"></a>00709                 <span class="keywordflow">if</span> (kbhit())
+<a name="l00710"></a>00710                     key = getch();
+<a name="l00711"></a>00711                 <span class="keywordflow">else</span>
+<a name="l00712"></a>00712                     key = -1;
+<a name="l00713"></a>00713 <span class="preprocessor">#else</span>
+<a name="l00714"></a>00714 <span class="preprocessor"></span>                <span class="keywordtype">int</span> key = getch();
+<a name="l00715"></a>00715 <span class="preprocessor">#endif</span>
+<a name="l00716"></a>00716 <span class="preprocessor"></span>                <span class="keywordflow">if</span> (key &gt; 0) {
+<a name="l00717"></a>00717                     <span class="keywordflow">if</span> (key == <span class="charliteral">&#39; &#39;</span> || key == 0x0A) {
+<a name="l00718"></a>00718                         <span class="comment">/* continue */</span>
+<a name="l00719"></a>00719                         <span class="keywordflow">break</span>;
+<a name="l00720"></a>00720                     }
+<a name="l00721"></a>00721                     <span class="keywordflow">else</span> <span class="keywordflow">if</span> (key == 0x27<span class="comment">/*ESC*/</span> || key == 0x7F<span class="comment">/*DEL*/</span> || key == 0x08<span class="comment">/*BKSP*/</span> ||
+<a name="l00722"></a>00722                              key == <span class="charliteral">&#39;q&#39;</span> || key == <span class="charliteral">&#39;Q&#39;</span>) {
+<a name="l00723"></a>00723                         <span class="comment">/* user wants to stop paging */</span>
+<a name="l00724"></a>00724                         debugPageStopAt = 0;
+<a name="l00725"></a>00725                         <span class="keywordflow">break</span>;
+<a name="l00726"></a>00726                     }
+<a name="l00727"></a>00727                 }
+<a name="l00728"></a>00728 
+<a name="l00729"></a>00729 <span class="preprocessor">#if defined(WIN32)</span>
+<a name="l00730"></a>00730 <span class="preprocessor"></span>                <span class="comment">/* help inspire confidence in users and in Windows by keeping the event loop going.</span>
+<a name="l00731"></a>00731 <span class="comment">                   This is to prevent Windows from graying out the main window during this loop</span>
+<a name="l00732"></a>00732 <span class="comment">                   as &quot;application not responding&quot; */</span>
+<a name="l00733"></a>00733                 SDL_Event ev;
 <a name="l00734"></a>00734 
-<a name="l00735"></a>00735         <span class="keywordflow">if</span> (d_type&gt;=LOG_MAX) <span class="keywordflow">return</span>;
-<a name="l00736"></a>00736         <span class="keywordflow">if</span> (d_severity &lt; loggrp[d_type].min_severity) <span class="keywordflow">return</span>;
-<a name="l00737"></a>00737         DEBUG_ShowMsg(<span class="stringliteral">&quot;%10u%s %s:%s\n&quot;</span>,static_cast&lt;Bit32u&gt;(cycle_count),s_severity,loggrp[d_type].front,buf);
-<a name="l00738"></a>00738 }
-<a name="l00739"></a>00739 
-<a name="l00740"></a>00740 <span class="keywordtype">void</span> LOG::ParseEnableSetting(<a class="code" href="struct__LogGroup.html">_LogGroup</a> &amp;group,<span class="keyword">const</span> <span class="keywordtype">char</span> *setting) {
-<a name="l00741"></a>00741         <span class="keywordflow">if</span> (!strcmp(setting,<span class="stringliteral">&quot;true&quot;</span>) || !strcmp(setting,<span class="stringliteral">&quot;1&quot;</span>) || !strcmp(setting,<span class="stringliteral">&quot;normal&quot;</span>))
-<a name="l00742"></a>00742                 group.min_severity = LOG_NORMAL; <span class="comment">/* original code&#39;s handling is equivalent to our &quot;normal&quot; setting */</span>
-<a name="l00743"></a>00743         <span class="keywordflow">else</span> <span class="keywordflow">if</span> (!strcmp(setting,<span class="stringliteral">&quot;false&quot;</span>) || !strcmp(setting,<span class="stringliteral">&quot;0&quot;</span>) || !strcmp(setting,<span class="stringliteral">&quot;&quot;</span>))
-<a name="l00744"></a>00744                 group.min_severity = LOG_ERROR; <span class="comment">/* original code&#39;s handling is equivalent to our &quot;error&quot; setting */</span>
-<a name="l00745"></a>00745         <span class="keywordflow">else</span> <span class="keywordflow">if</span> (!strcmp(setting,<span class="stringliteral">&quot;debug&quot;</span>))
-<a name="l00746"></a>00746                 group.min_severity = LOG_DEBUG;
-<a name="l00747"></a>00747         <span class="keywordflow">else</span> <span class="keywordflow">if</span> (!strcmp(setting,<span class="stringliteral">&quot;warn&quot;</span>))
-<a name="l00748"></a>00748                 group.min_severity = LOG_WARN;
-<a name="l00749"></a>00749         <span class="keywordflow">else</span> <span class="keywordflow">if</span> (!strcmp(setting,<span class="stringliteral">&quot;error&quot;</span>))
-<a name="l00750"></a>00750                 group.min_severity = LOG_ERROR;
-<a name="l00751"></a>00751         <span class="keywordflow">else</span> <span class="keywordflow">if</span> (!strcmp(setting,<span class="stringliteral">&quot;fatal&quot;</span>))
-<a name="l00752"></a>00752                 group.min_severity = LOG_FATAL;
-<a name="l00753"></a>00753         <span class="keywordflow">else</span> <span class="keywordflow">if</span> (!strcmp(setting,<span class="stringliteral">&quot;never&quot;</span>))
-<a name="l00754"></a>00754                 group.min_severity = LOG_NEVER;
-<a name="l00755"></a>00755         <span class="keywordflow">else</span>
-<a name="l00756"></a>00756                 group.min_severity = LOG_NORMAL;
-<a name="l00757"></a>00757 }
-<a name="l00758"></a>00758 
-<a name="l00759"></a>00759 <span class="keywordtype">void</span> LOG::Init() {
-<a name="l00760"></a>00760         <span class="keywordtype">char</span> buf[64];
-<a name="l00761"></a>00761 
-<a name="l00762"></a>00762         assert(control != NULL);
-<a name="l00763"></a>00763 
-<a name="l00764"></a>00764         <span class="comment">/* do not init twice */</span>
-<a name="l00765"></a>00765         <span class="keywordflow">if</span> (has_LOG_Init) <span class="keywordflow">return</span>;
-<a name="l00766"></a>00766         has_LOG_Init = <span class="keyword">true</span>;
-<a name="l00767"></a>00767 
-<a name="l00768"></a>00768         <span class="comment">/* announce */</span>
-<a name="l00769"></a>00769         LOG_MSG(<span class="stringliteral">&quot;Logging init: beginning logging proper. This is the end of the early init logging&quot;</span>);
-<a name="l00770"></a>00770 
-<a name="l00771"></a>00771         <span class="comment">/* get the [log] section */</span>
-<a name="l00772"></a>00772         <a class="code" href="classSection__prop.html">Section_prop</a> *sect = <span class="keyword">static_cast&lt;</span><a class="code" href="classSection__prop.html">Section_prop</a> *<span class="keyword">&gt;</span>(control-&gt;GetSection(<span class="stringliteral">&quot;log&quot;</span>));
-<a name="l00773"></a>00773         assert(sect != NULL);
-<a name="l00774"></a>00774 
-<a name="l00775"></a>00775         <span class="comment">/* do we write to a logfile, or not? */</span>
-<a name="l00776"></a>00776         <span class="keyword">const</span> <span class="keywordtype">char</span> *blah = sect-&gt;Get_string(<span class="stringliteral">&quot;logfile&quot;</span>);
-<a name="l00777"></a>00777         <span class="keywordflow">if</span> (blah != NULL &amp;&amp; blah[0] != 0) {
-<a name="l00778"></a>00778                 <span class="keywordflow">if</span> ((debuglog=fopen(blah,<span class="stringliteral">&quot;wt+&quot;</span>)) != NULL) {
-<a name="l00779"></a>00779                         LOG_MSG(<span class="stringliteral">&quot;Logging: opened logfile &#39;%s&#39; successfully. All further logging will go to that file.&quot;</span>,blah);
-<a name="l00780"></a>00780                         setbuf(debuglog,NULL);
-<a name="l00781"></a>00781                 }
-<a name="l00782"></a>00782                 <span class="keywordflow">else</span> {
-<a name="l00783"></a>00783                         LOG_MSG(<span class="stringliteral">&quot;Logging: failed to open logfile &#39;%s&#39;. All further logging will be discarded. Error: %s&quot;</span>,blah,strerror(errno));
-<a name="l00784"></a>00784                 }
-<a name="l00785"></a>00785         }
-<a name="l00786"></a>00786         <span class="keywordflow">else</span> {
-<a name="l00787"></a>00787                 LOG_MSG(<span class="stringliteral">&quot;Logging: No logfile was given. All further logging will be discarded.&quot;</span>);
-<a name="l00788"></a>00788                 debuglog=0;
-<a name="l00789"></a>00789         }
-<a name="l00790"></a>00790 
-<a name="l00791"></a>00791         <span class="comment">/* end of early init logging */</span>
-<a name="l00792"></a>00792         do_LOG_stderr = <span class="keyword">false</span>;
-<a name="l00793"></a>00793 
-<a name="l00794"></a>00794         <span class="comment">/* read settings for each log category, unless the -debug option was given,</span>
-<a name="l00795"></a>00795 <span class="comment">         * in which case everything is set to debug level */</span>
-<a name="l00796"></a>00796         <span class="keywordflow">for</span> (Bitu i = LOG_ALL + 1;i &lt; LOG_MAX;i++) { <span class="comment">//Skip LOG_ALL, it is always enabled</span>
-<a name="l00797"></a>00797                 safe_strncpy(buf,loggrp[i].front,<span class="keyword">sizeof</span>(buf));
-<a name="l00798"></a>00798                 lowcase(buf);
+<a name="l00735"></a>00735                 <span class="keywordflow">if</span> (SDL_PollEvent(&amp;ev)) {
+<a name="l00736"></a>00736                     <span class="comment">/* TODO */</span>
+<a name="l00737"></a>00737                 }
+<a name="l00738"></a>00738 <span class="preprocessor">#endif</span>
+<a name="l00739"></a>00739 <span class="preprocessor"></span>            } <span class="keywordflow">while</span> (1);
+<a name="l00740"></a>00740         }
+<a name="l00741"></a>00741     }
+<a name="l00742"></a>00742 <span class="preprocessor">#endif</span>
+<a name="l00743"></a>00743 <span class="preprocessor"></span>
+<a name="l00744"></a>00744     in_debug_showmsg = <span class="keyword">false</span>;
+<a name="l00745"></a>00745 }
+<a name="l00746"></a>00746 
+<a name="l00747"></a>00747 <span class="comment">/* callback function when DOSBox-X exits */</span>
+<a name="l00748"></a>00748 <span class="keywordtype">void</span> LOG::Exit() {
+<a name="l00749"></a>00749         <span class="keywordflow">if</span> (debuglog != NULL) {
+<a name="l00750"></a>00750                 fprintf(debuglog,<span class="stringliteral">&quot;--END OF LOG--\n&quot;</span>);
+<a name="l00751"></a>00751                 fclose(debuglog);
+<a name="l00752"></a>00752                 debuglog = NULL;
+<a name="l00753"></a>00753         }
+<a name="l00754"></a>00754 }
+<a name="l00755"></a>00755 
+<a name="l00756"></a>00756 <span class="keywordtype">void</span> Null_Init(<a class="code" href="classSection.html">Section</a> *sec);
+<a name="l00757"></a>00757 
+<a name="l00758"></a>00758 <span class="keywordtype">void</span> LOG::operator() (<span class="keywordtype">char</span> <span class="keyword">const</span>* format, ...){
+<a name="l00759"></a>00759         <span class="keyword">const</span> <span class="keywordtype">char</span> *s_severity = <span class="stringliteral">&quot;&quot;</span>;
+<a name="l00760"></a>00760         <span class="keywordtype">char</span> buf[512];
+<a name="l00761"></a>00761         va_list msg;
+<a name="l00762"></a>00762 
+<a name="l00763"></a>00763         <span class="keywordflow">switch</span> (d_severity) {
+<a name="l00764"></a>00764                 <span class="keywordflow">case</span> LOG_DEBUG: s_severity = <span class="stringliteral">&quot; DEBUG&quot;</span>; <span class="keywordflow">break</span>;
+<a name="l00765"></a>00765                 <span class="keywordflow">case</span> LOG_NORMAL:s_severity = <span class="stringliteral">&quot;      &quot;</span>; <span class="keywordflow">break</span>;
+<a name="l00766"></a>00766                 <span class="keywordflow">case</span> LOG_WARN:  s_severity = <span class="stringliteral">&quot; WARN &quot;</span>; <span class="keywordflow">break</span>;
+<a name="l00767"></a>00767                 <span class="keywordflow">case</span> LOG_ERROR: s_severity = <span class="stringliteral">&quot; ERROR&quot;</span>; <span class="keywordflow">break</span>;
+<a name="l00768"></a>00768                 <span class="keywordflow">case</span> LOG_FATAL: s_severity = <span class="stringliteral">&quot; FATAL&quot;</span>; <span class="keywordflow">break</span>;
+<a name="l00769"></a>00769                 <span class="keywordflow">default</span>: <span class="keywordflow">break</span>;
+<a name="l00770"></a>00770         }
+<a name="l00771"></a>00771 
+<a name="l00772"></a>00772         va_start(msg,format);
+<a name="l00773"></a>00773         vsnprintf(buf,<span class="keyword">sizeof</span>(buf)-1,format,msg);
+<a name="l00774"></a>00774         va_end(msg);
+<a name="l00775"></a>00775 
+<a name="l00776"></a>00776         <span class="keywordflow">if</span> (d_type&gt;=LOG_MAX) <span class="keywordflow">return</span>;
+<a name="l00777"></a>00777         <span class="keywordflow">if</span> (d_severity &lt; loggrp[d_type].min_severity) <span class="keywordflow">return</span>;
+<a name="l00778"></a>00778         DEBUG_ShowMsg(<span class="stringliteral">&quot;%10u%s %s:%s\n&quot;</span>,static_cast&lt;Bit32u&gt;(cycle_count),s_severity,loggrp[d_type].front,buf);
+<a name="l00779"></a>00779 }
+<a name="l00780"></a>00780 
+<a name="l00781"></a>00781 <span class="keywordtype">void</span> LOG::ParseEnableSetting(<a class="code" href="struct__LogGroup.html">_LogGroup</a> &amp;group,<span class="keyword">const</span> <span class="keywordtype">char</span> *setting) {
+<a name="l00782"></a>00782         <span class="keywordflow">if</span> (!strcmp(setting,<span class="stringliteral">&quot;true&quot;</span>) || !strcmp(setting,<span class="stringliteral">&quot;1&quot;</span>) || !strcmp(setting,<span class="stringliteral">&quot;normal&quot;</span>))
+<a name="l00783"></a>00783                 group.min_severity = LOG_NORMAL; <span class="comment">/* original code&#39;s handling is equivalent to our &quot;normal&quot; setting */</span>
+<a name="l00784"></a>00784         <span class="keywordflow">else</span> <span class="keywordflow">if</span> (!strcmp(setting,<span class="stringliteral">&quot;false&quot;</span>) || !strcmp(setting,<span class="stringliteral">&quot;0&quot;</span>) || !strcmp(setting,<span class="stringliteral">&quot;&quot;</span>))
+<a name="l00785"></a>00785                 group.min_severity = LOG_ERROR; <span class="comment">/* original code&#39;s handling is equivalent to our &quot;error&quot; setting */</span>
+<a name="l00786"></a>00786         <span class="keywordflow">else</span> <span class="keywordflow">if</span> (!strcmp(setting,<span class="stringliteral">&quot;debug&quot;</span>))
+<a name="l00787"></a>00787                 group.min_severity = LOG_DEBUG;
+<a name="l00788"></a>00788         <span class="keywordflow">else</span> <span class="keywordflow">if</span> (!strcmp(setting,<span class="stringliteral">&quot;warn&quot;</span>))
+<a name="l00789"></a>00789                 group.min_severity = LOG_WARN;
+<a name="l00790"></a>00790         <span class="keywordflow">else</span> <span class="keywordflow">if</span> (!strcmp(setting,<span class="stringliteral">&quot;error&quot;</span>))
+<a name="l00791"></a>00791                 group.min_severity = LOG_ERROR;
+<a name="l00792"></a>00792         <span class="keywordflow">else</span> <span class="keywordflow">if</span> (!strcmp(setting,<span class="stringliteral">&quot;fatal&quot;</span>))
+<a name="l00793"></a>00793                 group.min_severity = LOG_FATAL;
+<a name="l00794"></a>00794         <span class="keywordflow">else</span> <span class="keywordflow">if</span> (!strcmp(setting,<span class="stringliteral">&quot;never&quot;</span>))
+<a name="l00795"></a>00795                 group.min_severity = LOG_NEVER;
+<a name="l00796"></a>00796         <span class="keywordflow">else</span>
+<a name="l00797"></a>00797                 group.min_severity = LOG_NORMAL;
+<a name="l00798"></a>00798 }
 <a name="l00799"></a>00799 
-<a name="l00800"></a>00800                 <span class="keywordflow">if</span> (control-&gt;opt_debug)
-<a name="l00801"></a>00801                         ParseEnableSetting(<span class="comment">/*&amp;*/</span>loggrp[i],<span class="stringliteral">&quot;debug&quot;</span>);
-<a name="l00802"></a>00802                 <span class="keywordflow">else</span>
-<a name="l00803"></a>00803                         ParseEnableSetting(<span class="comment">/*&amp;*/</span>loggrp[i],sect-&gt;Get_string(buf));
-<a name="l00804"></a>00804         }
-<a name="l00805"></a>00805 
-<a name="l00806"></a>00806         <a class="code" href="classLOG.html">LOG</a>(LOG_MISC,LOG_DEBUG)(<span class="stringliteral">&quot;Logging init complete&quot;</span>);
-<a name="l00807"></a>00807 }
+<a name="l00800"></a>00800 <span class="keywordtype">void</span> LOG::Init() {
+<a name="l00801"></a>00801         <span class="keywordtype">char</span> buf[64];
+<a name="l00802"></a>00802 
+<a name="l00803"></a>00803         assert(control != NULL);
+<a name="l00804"></a>00804 
+<a name="l00805"></a>00805         <span class="comment">/* do not init twice */</span>
+<a name="l00806"></a>00806         <span class="keywordflow">if</span> (has_LOG_Init) <span class="keywordflow">return</span>;
+<a name="l00807"></a>00807         has_LOG_Init = <span class="keyword">true</span>;
 <a name="l00808"></a>00808 
-<a name="l00809"></a>00809 <span class="keywordtype">void</span> LOG::EarlyInit(<span class="keywordtype">void</span>) {
-<a name="l00810"></a>00810         assert(control != NULL);
+<a name="l00809"></a>00809         <span class="comment">/* announce */</span>
+<a name="l00810"></a>00810         LOG_MSG(<span class="stringliteral">&quot;Logging init: beginning logging proper. This is the end of the early init logging&quot;</span>);
 <a name="l00811"></a>00811 
-<a name="l00812"></a>00812         <span class="comment">/* do not init twice */</span>
-<a name="l00813"></a>00813         <span class="keywordflow">if</span> (has_LOG_EarlyInit) <span class="keywordflow">return</span>;
-<a name="l00814"></a>00814         has_LOG_EarlyInit = <span class="keyword">true</span>;
+<a name="l00812"></a>00812         <span class="comment">/* get the [log] section */</span>
+<a name="l00813"></a>00813         <span class="keyword">const</span> <a class="code" href="classSection__prop.html">Section_prop</a> *sect = <span class="keyword">static_cast&lt;</span><a class="code" href="classSection__prop.html">Section_prop</a> *<span class="keyword">&gt;</span>(control-&gt;GetSection(<span class="stringliteral">&quot;log&quot;</span>));
+<a name="l00814"></a>00814         assert(sect != NULL);
 <a name="l00815"></a>00815 
-<a name="l00816"></a>00816         <span class="comment">/* Setup logging groups */</span>
-<a name="l00817"></a>00817         loggrp[LOG_ALL].front=<span class="stringliteral">&quot;ALL&quot;</span>;
-<a name="l00818"></a>00818         loggrp[LOG_VGA].front=<span class="stringliteral">&quot;VGA&quot;</span>;
-<a name="l00819"></a>00819         loggrp[LOG_VGAGFX].front=<span class="stringliteral">&quot;VGAGFX&quot;</span>;
-<a name="l00820"></a>00820         loggrp[LOG_VGAMISC].front=<span class="stringliteral">&quot;VGAMISC&quot;</span>;
-<a name="l00821"></a>00821         loggrp[LOG_INT10].front=<span class="stringliteral">&quot;INT10&quot;</span>;
-<a name="l00822"></a>00822         loggrp[LOG_SB].front=<span class="stringliteral">&quot;SBLASTER&quot;</span>;
-<a name="l00823"></a>00823         loggrp[LOG_DMACONTROL].front=<span class="stringliteral">&quot;DMA_CONTROL&quot;</span>;
-<a name="l00824"></a>00824         
-<a name="l00825"></a>00825         loggrp[LOG_FPU].front=<span class="stringliteral">&quot;FPU&quot;</span>;
-<a name="l00826"></a>00826         loggrp[LOG_CPU].front=<span class="stringliteral">&quot;CPU&quot;</span>;
-<a name="l00827"></a>00827         loggrp[LOG_PAGING].front=<span class="stringliteral">&quot;PAGING&quot;</span>;
-<a name="l00828"></a>00828 
-<a name="l00829"></a>00829         loggrp[LOG_FCB].front=<span class="stringliteral">&quot;FCB&quot;</span>;
-<a name="l00830"></a>00830         loggrp[LOG_FILES].front=<span class="stringliteral">&quot;FILES&quot;</span>;
-<a name="l00831"></a>00831         loggrp[LOG_IOCTL].front=<span class="stringliteral">&quot;IOCTL&quot;</span>;
-<a name="l00832"></a>00832         loggrp[LOG_EXEC].front=<span class="stringliteral">&quot;EXEC&quot;</span>;
-<a name="l00833"></a>00833         loggrp[LOG_DOSMISC].front=<span class="stringliteral">&quot;DOSMISC&quot;</span>;
+<a name="l00816"></a>00816         <span class="comment">/* do we write to a logfile, or not? */</span>
+<a name="l00817"></a>00817         <span class="keyword">const</span> <span class="keywordtype">char</span> *blah = sect-&gt;Get_string(<span class="stringliteral">&quot;logfile&quot;</span>);
+<a name="l00818"></a>00818         <span class="keywordflow">if</span> (blah != NULL &amp;&amp; blah[0] != 0) {
+<a name="l00819"></a>00819                 <span class="keywordflow">if</span> ((debuglog=fopen(blah,<span class="stringliteral">&quot;wt+&quot;</span>)) != NULL) {
+<a name="l00820"></a>00820                         LOG_MSG(<span class="stringliteral">&quot;Logging: opened logfile &#39;%s&#39; successfully. All further logging will go to that file.&quot;</span>,blah);
+<a name="l00821"></a>00821                         setbuf(debuglog,NULL);
+<a name="l00822"></a>00822                 }
+<a name="l00823"></a>00823                 <span class="keywordflow">else</span> {
+<a name="l00824"></a>00824                         LOG_MSG(<span class="stringliteral">&quot;Logging: failed to open logfile &#39;%s&#39;. All further logging will be discarded. Error: %s&quot;</span>,blah,strerror(errno));
+<a name="l00825"></a>00825                 }
+<a name="l00826"></a>00826         }
+<a name="l00827"></a>00827         <span class="keywordflow">else</span> {
+<a name="l00828"></a>00828                 LOG_MSG(<span class="stringliteral">&quot;Logging: No logfile was given. All further logging will be discarded.&quot;</span>);
+<a name="l00829"></a>00829                 debuglog=0;
+<a name="l00830"></a>00830         }
+<a name="l00831"></a>00831 
+<a name="l00832"></a>00832     log_int21 = sect-&gt;Get_bool(<span class="stringliteral">&quot;int21&quot;</span>) || control-&gt;opt_logint21;
+<a name="l00833"></a>00833     log_fileio = sect-&gt;Get_bool(<span class="stringliteral">&quot;fileio&quot;</span>) || control-&gt;opt_logfileio;
 <a name="l00834"></a>00834 
-<a name="l00835"></a>00835         loggrp[LOG_PIT].front=<span class="stringliteral">&quot;PIT&quot;</span>;
-<a name="l00836"></a>00836         loggrp[LOG_KEYBOARD].front=<span class="stringliteral">&quot;KEYBOARD&quot;</span>;
-<a name="l00837"></a>00837         loggrp[LOG_PIC].front=<span class="stringliteral">&quot;PIC&quot;</span>;
-<a name="l00838"></a>00838 
-<a name="l00839"></a>00839         loggrp[LOG_MOUSE].front=<span class="stringliteral">&quot;MOUSE&quot;</span>;
-<a name="l00840"></a>00840         loggrp[LOG_BIOS].front=<span class="stringliteral">&quot;BIOS&quot;</span>;
-<a name="l00841"></a>00841         loggrp[LOG_GUI].front=<span class="stringliteral">&quot;GUI&quot;</span>;
-<a name="l00842"></a>00842         loggrp[LOG_MISC].front=<span class="stringliteral">&quot;MISC&quot;</span>;
+<a name="l00835"></a>00835         <span class="comment">/* end of early init logging */</span>
+<a name="l00836"></a>00836         do_LOG_stderr = <span class="keyword">false</span>;
+<a name="l00837"></a>00837 
+<a name="l00838"></a>00838         <span class="comment">/* read settings for each log category, unless the -debug option was given,</span>
+<a name="l00839"></a>00839 <span class="comment">         * in which case everything is set to debug level */</span>
+<a name="l00840"></a>00840         <span class="keywordflow">for</span> (Bitu i = LOG_ALL + 1;i &lt; LOG_MAX;i++) { <span class="comment">//Skip LOG_ALL, it is always enabled</span>
+<a name="l00841"></a>00841                 safe_strncpy(buf,loggrp[i].front,<span class="keyword">sizeof</span>(buf));
+<a name="l00842"></a>00842                 lowcase(buf);
 <a name="l00843"></a>00843 
-<a name="l00844"></a>00844         loggrp[LOG_IO].front=<span class="stringliteral">&quot;IO&quot;</span>;
-<a name="l00845"></a>00845         loggrp[LOG_PCI].front=<span class="stringliteral">&quot;PCI&quot;</span>;
-<a name="l00846"></a>00846         
-<a name="l00847"></a>00847         loggrp[LOG_VOODOO].front=<span class="stringliteral">&quot;SST&quot;</span>;
-<a name="l00848"></a>00848 
-<a name="l00849"></a>00849         do_LOG_stderr = control-&gt;opt_earlydebug;
-<a name="l00850"></a>00850 
-<a name="l00851"></a>00851         <span class="keywordflow">for</span> (Bitu i=1;i&lt;LOG_MAX;i++) {
-<a name="l00852"></a>00852                 <span class="keywordflow">if</span> (control-&gt;opt_earlydebug)
-<a name="l00853"></a>00853                         ParseEnableSetting(<span class="comment">/*&amp;*/</span>loggrp[i],<span class="stringliteral">&quot;debug&quot;</span>);
-<a name="l00854"></a>00854                 <span class="keywordflow">else</span>
-<a name="l00855"></a>00855                         ParseEnableSetting(<span class="comment">/*&amp;*/</span>loggrp[i],<span class="stringliteral">&quot;warn&quot;</span>);
-<a name="l00856"></a>00856         }
-<a name="l00857"></a>00857 
-<a name="l00858"></a>00858         LOG_MSG(<span class="stringliteral">&quot;Early LOG Init complete&quot;</span>);
-<a name="l00859"></a>00859 }
-<a name="l00860"></a>00860 
-<a name="l00861"></a>00861 <span class="keywordtype">void</span> LOG::SetupConfigSection(<span class="keywordtype">void</span>) {
-<a name="l00862"></a>00862         <span class="keyword">const</span> <span class="keywordtype">char</span> *log_values[] = {
-<a name="l00863"></a>00863                 <span class="comment">/* compatibility with existing dosbox.conf files */</span>
-<a name="l00864"></a>00864                 <span class="stringliteral">&quot;true&quot;</span>, <span class="stringliteral">&quot;false&quot;</span>,
-<a name="l00865"></a>00865 
-<a name="l00866"></a>00866                 <span class="comment">/* log levels */</span>
-<a name="l00867"></a>00867                 <span class="stringliteral">&quot;debug&quot;</span>,
-<a name="l00868"></a>00868                 <span class="stringliteral">&quot;normal&quot;</span>,
-<a name="l00869"></a>00869                 <span class="stringliteral">&quot;warn&quot;</span>,
-<a name="l00870"></a>00870                 <span class="stringliteral">&quot;error&quot;</span>,
-<a name="l00871"></a>00871                 <span class="stringliteral">&quot;fatal&quot;</span>,
-<a name="l00872"></a>00872                 <span class="stringliteral">&quot;never&quot;</span>,                <span class="comment">/* &lt;- this means NEVER EVER log anything */</span>
-<a name="l00873"></a>00873 
-<a name="l00874"></a>00874                 0};
-<a name="l00875"></a>00875 
-<a name="l00876"></a>00876         <span class="comment">/* Register the log section */</span>
-<a name="l00877"></a>00877         <a class="code" href="classSection__prop.html">Section_prop</a> * sect=control-&gt;AddSection_prop(<span class="stringliteral">&quot;log&quot;</span>,Null_Init);
-<a name="l00878"></a>00878         <a class="code" href="classProp__string.html">Prop_string</a>* Pstring = sect-&gt;Add_string(<span class="stringliteral">&quot;logfile&quot;</span>,Property::Changeable::Always,<span class="stringliteral">&quot;&quot;</span>);
-<a name="l00879"></a>00879         Pstring-&gt;Set_help(<span class="stringliteral">&quot;file where the log messages will be saved to&quot;</span>);
-<a name="l00880"></a>00880         <span class="keywordtype">char</span> buf[64];
-<a name="l00881"></a>00881         <span class="keywordflow">for</span> (Bitu i = LOG_ALL + 1;i &lt; LOG_MAX;i++) {
-<a name="l00882"></a>00882                 safe_strncpy(buf,loggrp[i].front, <span class="keyword">sizeof</span>(buf));
-<a name="l00883"></a>00883                 lowcase(buf);
-<a name="l00884"></a>00884 
-<a name="l00885"></a>00885                 Pstring = sect-&gt;Add_string(buf,Property::Changeable::Always,<span class="stringliteral">&quot;false&quot;</span>);
-<a name="l00886"></a>00886                 Pstring-&gt;Set_values(log_values);
-<a name="l00887"></a>00887                 Pstring-&gt;Set_help(<span class="stringliteral">&quot;Enable/Disable logging of this type.&quot;</span>);
-<a name="l00888"></a>00888         }
-<a name="l00889"></a>00889 }
-<a name="l00890"></a>00890 
+<a name="l00844"></a>00844                 <span class="keywordflow">if</span> (control-&gt;opt_debug)
+<a name="l00845"></a>00845                         ParseEnableSetting(<span class="comment">/*&amp;*/</span>loggrp[i],<span class="stringliteral">&quot;debug&quot;</span>);
+<a name="l00846"></a>00846                 <span class="keywordflow">else</span>
+<a name="l00847"></a>00847                         ParseEnableSetting(<span class="comment">/*&amp;*/</span>loggrp[i],sect-&gt;Get_string(buf));
+<a name="l00848"></a>00848         }
+<a name="l00849"></a>00849 
+<a name="l00850"></a>00850         <a class="code" href="classLOG.html">LOG</a>(LOG_MISC,LOG_DEBUG)(<span class="stringliteral">&quot;Logging init complete&quot;</span>);
+<a name="l00851"></a>00851 }
+<a name="l00852"></a>00852 
+<a name="l00853"></a>00853 <span class="keywordtype">void</span> LOG::EarlyInit(<span class="keywordtype">void</span>) {
+<a name="l00854"></a>00854         assert(control != NULL);
+<a name="l00855"></a>00855 
+<a name="l00856"></a>00856         <span class="comment">/* do not init twice */</span>
+<a name="l00857"></a>00857         <span class="keywordflow">if</span> (has_LOG_EarlyInit) <span class="keywordflow">return</span>;
+<a name="l00858"></a>00858         has_LOG_EarlyInit = <span class="keyword">true</span>;
+<a name="l00859"></a>00859 
+<a name="l00860"></a>00860         <span class="comment">/* Setup logging groups */</span>
+<a name="l00861"></a>00861         loggrp[LOG_ALL].front=<span class="stringliteral">&quot;ALL&quot;</span>;
+<a name="l00862"></a>00862         loggrp[LOG_VGA].front=<span class="stringliteral">&quot;VGA&quot;</span>;
+<a name="l00863"></a>00863         loggrp[LOG_VGAGFX].front=<span class="stringliteral">&quot;VGAGFX&quot;</span>;
+<a name="l00864"></a>00864         loggrp[LOG_VGAMISC].front=<span class="stringliteral">&quot;VGAMISC&quot;</span>;
+<a name="l00865"></a>00865         loggrp[LOG_INT10].front=<span class="stringliteral">&quot;INT10&quot;</span>;
+<a name="l00866"></a>00866         loggrp[LOG_SB].front=<span class="stringliteral">&quot;SBLASTER&quot;</span>;
+<a name="l00867"></a>00867         loggrp[LOG_DMACONTROL].front=<span class="stringliteral">&quot;DMA_CONTROL&quot;</span>;
+<a name="l00868"></a>00868         
+<a name="l00869"></a>00869         loggrp[LOG_FPU].front=<span class="stringliteral">&quot;FPU&quot;</span>;
+<a name="l00870"></a>00870         loggrp[LOG_CPU].front=<span class="stringliteral">&quot;CPU&quot;</span>;
+<a name="l00871"></a>00871         loggrp[LOG_PAGING].front=<span class="stringliteral">&quot;PAGING&quot;</span>;
+<a name="l00872"></a>00872 
+<a name="l00873"></a>00873         loggrp[LOG_FCB].front=<span class="stringliteral">&quot;FCB&quot;</span>;
+<a name="l00874"></a>00874         loggrp[LOG_FILES].front=<span class="stringliteral">&quot;FILES&quot;</span>;
+<a name="l00875"></a>00875         loggrp[LOG_IOCTL].front=<span class="stringliteral">&quot;IOCTL&quot;</span>;
+<a name="l00876"></a>00876         loggrp[LOG_EXEC].front=<span class="stringliteral">&quot;EXEC&quot;</span>;
+<a name="l00877"></a>00877         loggrp[LOG_DOSMISC].front=<span class="stringliteral">&quot;DOSMISC&quot;</span>;
+<a name="l00878"></a>00878 
+<a name="l00879"></a>00879         loggrp[LOG_PIT].front=<span class="stringliteral">&quot;PIT&quot;</span>;
+<a name="l00880"></a>00880         loggrp[LOG_KEYBOARD].front=<span class="stringliteral">&quot;KEYBOARD&quot;</span>;
+<a name="l00881"></a>00881         loggrp[LOG_PIC].front=<span class="stringliteral">&quot;PIC&quot;</span>;
+<a name="l00882"></a>00882 
+<a name="l00883"></a>00883         loggrp[LOG_MOUSE].front=<span class="stringliteral">&quot;MOUSE&quot;</span>;
+<a name="l00884"></a>00884         loggrp[LOG_BIOS].front=<span class="stringliteral">&quot;BIOS&quot;</span>;
+<a name="l00885"></a>00885         loggrp[LOG_GUI].front=<span class="stringliteral">&quot;GUI&quot;</span>;
+<a name="l00886"></a>00886         loggrp[LOG_MISC].front=<span class="stringliteral">&quot;MISC&quot;</span>;
+<a name="l00887"></a>00887 
+<a name="l00888"></a>00888         loggrp[LOG_IO].front=<span class="stringliteral">&quot;IO&quot;</span>;
+<a name="l00889"></a>00889         loggrp[LOG_PCI].front=<span class="stringliteral">&quot;PCI&quot;</span>;
+<a name="l00890"></a>00890         
+<a name="l00891"></a>00891         loggrp[LOG_VOODOO].front=<span class="stringliteral">&quot;SST&quot;</span>;
+<a name="l00892"></a>00892 
+<a name="l00893"></a>00893         do_LOG_stderr = control-&gt;opt_earlydebug;
+<a name="l00894"></a>00894 
+<a name="l00895"></a>00895         <span class="keywordflow">for</span> (Bitu i=1;i&lt;LOG_MAX;i++) {
+<a name="l00896"></a>00896                 <span class="keywordflow">if</span> (control-&gt;opt_earlydebug)
+<a name="l00897"></a>00897                         ParseEnableSetting(<span class="comment">/*&amp;*/</span>loggrp[i],<span class="stringliteral">&quot;debug&quot;</span>);
+<a name="l00898"></a>00898                 <span class="keywordflow">else</span>
+<a name="l00899"></a>00899                         ParseEnableSetting(<span class="comment">/*&amp;*/</span>loggrp[i],<span class="stringliteral">&quot;warn&quot;</span>);
+<a name="l00900"></a>00900         }
+<a name="l00901"></a>00901 
+<a name="l00902"></a>00902         LOG_MSG(<span class="stringliteral">&quot;Early LOG Init complete&quot;</span>);
+<a name="l00903"></a>00903 }
+<a name="l00904"></a>00904 
+<a name="l00905"></a>00905 <span class="keywordtype">void</span> LOG::SetupConfigSection(<span class="keywordtype">void</span>) {
+<a name="l00906"></a>00906         <span class="keyword">const</span> <span class="keywordtype">char</span> *log_values[] = {
+<a name="l00907"></a>00907                 <span class="comment">/* compatibility with existing dosbox.conf files */</span>
+<a name="l00908"></a>00908                 <span class="stringliteral">&quot;true&quot;</span>, <span class="stringliteral">&quot;false&quot;</span>,
+<a name="l00909"></a>00909 
+<a name="l00910"></a>00910                 <span class="comment">/* log levels */</span>
+<a name="l00911"></a>00911                 <span class="stringliteral">&quot;debug&quot;</span>,
+<a name="l00912"></a>00912                 <span class="stringliteral">&quot;normal&quot;</span>,
+<a name="l00913"></a>00913                 <span class="stringliteral">&quot;warn&quot;</span>,
+<a name="l00914"></a>00914                 <span class="stringliteral">&quot;error&quot;</span>,
+<a name="l00915"></a>00915                 <span class="stringliteral">&quot;fatal&quot;</span>,
+<a name="l00916"></a>00916                 <span class="stringliteral">&quot;never&quot;</span>,                <span class="comment">/* &lt;- this means NEVER EVER log anything */</span>
+<a name="l00917"></a>00917 
+<a name="l00918"></a>00918                 0};
+<a name="l00919"></a>00919 
+<a name="l00920"></a>00920         <span class="comment">/* Register the log section */</span>
+<a name="l00921"></a>00921         <a class="code" href="classSection__prop.html">Section_prop</a> * sect=control-&gt;AddSection_prop(<span class="stringliteral">&quot;log&quot;</span>,Null_Init);
+<a name="l00922"></a>00922         <a class="code" href="classProp__string.html">Prop_string</a>* Pstring = sect-&gt;Add_string(<span class="stringliteral">&quot;logfile&quot;</span>,Property::Changeable::Always,<span class="stringliteral">&quot;&quot;</span>);
+<a name="l00923"></a>00923         Pstring-&gt;Set_help(<span class="stringliteral">&quot;file where the log messages will be saved to&quot;</span>);
+<a name="l00924"></a>00924         <span class="keywordtype">char</span> buf[64];
+<a name="l00925"></a>00925         <span class="keywordflow">for</span> (Bitu i = LOG_ALL + 1;i &lt; LOG_MAX;i++) {
+<a name="l00926"></a>00926                 safe_strncpy(buf,loggrp[i].front, <span class="keyword">sizeof</span>(buf));
+<a name="l00927"></a>00927                 lowcase(buf);
+<a name="l00928"></a>00928 
+<a name="l00929"></a>00929                 Pstring = sect-&gt;Add_string(buf,Property::Changeable::Always,<span class="stringliteral">&quot;false&quot;</span>);
+<a name="l00930"></a>00930                 Pstring-&gt;Set_values(log_values);
+<a name="l00931"></a>00931                 Pstring-&gt;Set_help(<span class="stringliteral">&quot;Enable/Disable logging of this type.&quot;</span>);
+<a name="l00932"></a>00932     }
+<a name="l00933"></a>00933 
+<a name="l00934"></a>00934     <a class="code" href="classProp__bool.html">Prop_bool</a>* Pbool;
+<a name="l00935"></a>00935 
+<a name="l00936"></a>00936     Pbool = sect-&gt;Add_bool(<span class="stringliteral">&quot;int21&quot;</span>,Property::Changeable::Always,<span class="keyword">false</span>);
+<a name="l00937"></a>00937     Pbool-&gt;Set_help(<span class="stringliteral">&quot;Log all INT 21h calls&quot;</span>);
+<a name="l00938"></a>00938 
+<a name="l00939"></a>00939     Pbool = sect-&gt;Add_bool(<span class="stringliteral">&quot;fileio&quot;</span>,Property::Changeable::Always,<span class="keyword">false</span>);
+<a name="l00940"></a>00940     Pbool-&gt;Set_help(<span class="stringliteral">&quot;Log file I/O through INT 21h&quot;</span>);
+<a name="l00941"></a>00941 }
+<a name="l00942"></a>00942 
 </pre></div></div><!-- contents -->
 
 
 <hr class="footer"/><address class="footer"><small>
-Generated on Tue Oct 1 2019 18:06:24 for DOSBox-X by &#160;<a href="http://www.doxygen.org/index.html">
+Generated on Sun Jul 5 2020 13:11:34 for DOSBox-X by &#160;<a href="http://www.doxygen.org/index.html">
 <img class="footer" src="doxygen.png" alt="doxygen"/>
 </a> 1.8.0
 </small></address>

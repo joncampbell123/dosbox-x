@@ -193,7 +193,7 @@ const <a class="el" href="namespaceGUI.html#af6b04b46d40197b4f00e553d7d1a3e4c">C
 <div class="textblock"><p>A bitmap font. This is a font which is defined by a binary bit map. Each bit in the bitmap defines one pixel. Bits may be arranged in various common patterns. </p>
 <p>Encoding free, character size depends on number of characters in the font. </p>
 
-<p>Definition at line <a class="el" href="gui__tk_8h_source.html#l01371">1371</a> of file <a class="el" href="gui__tk_8h_source.html">gui_tk.h</a>.</p>
+<p>Definition at line <a class="el" href="gui__tk_8h_source.html#l01385">1385</a> of file <a class="el" href="gui__tk_8h_source.html">gui_tk.h</a>.</p>
 </div><hr/><h2>Constructor &amp; Destructor Documentation</h2>
 <a class="anchor" id="a110d5562ff912779a85c909cc8d41a04"></a>
 <div class="memitem">
@@ -332,7 +332,7 @@ const <a class="el" href="namespaceGUI.html#af6b04b46d40197b4f00e553d7d1a3e4c">C
 
 <p>Definition at line <a class="el" href="gui__tk_8cpp_source.html#l00482">482</a> of file <a class="el" href="gui__tk_8cpp_source.html">gui_tk.cpp</a>.</p>
 
-<p>References <a class="el" href="gui__tk_8h_source.html#l01383">ascent</a>, <a class="el" href="gui__tk_8h_source.html#l01390">ascents</a>, <a class="el" href="gui__tk_8h_source.html#l01393">background_set</a>, <a class="el" href="gui__tk_8h_source.html#l01374">bitmap</a>, <a class="el" href="gui__tk_8h_source.html#l01406">char_position</a>, <a class="el" href="gui__tk_8h_source.html#l01403">character_step</a>, <a class="el" href="gui__tk_8h_source.html#l01396">col_step</a>, <a class="el" href="gui__tk_8h_source.html#l01140">GUI::Drawable::getX()</a>, <a class="el" href="gui__tk_8h_source.html#l01142">GUI::Drawable::getY()</a>, <a class="el" href="gui__tk_8h_source.html#l01138">GUI::Drawable::gotoXY()</a>, <a class="el" href="gui__tk_8h_source.html#l01380">height</a>, <a class="el" href="gui__tk_8h_source.html#l01416">last</a>, <a class="el" href="gui__tk_8h_source.html#l01399">row_step</a>, <a class="el" href="gui__tk_8h_source.html#l01377">width</a>, and <a class="el" href="gui__tk_8h_source.html#l01386">widths</a>.</p>
+<p>References <a class="el" href="gui__tk_8h_source.html#l01397">ascent</a>, <a class="el" href="gui__tk_8h_source.html#l01404">ascents</a>, <a class="el" href="gui__tk_8h_source.html#l01407">background_set</a>, <a class="el" href="gui__tk_8h_source.html#l01388">bitmap</a>, <a class="el" href="gui__tk_8h_source.html#l01420">char_position</a>, <a class="el" href="gui__tk_8h_source.html#l01417">character_step</a>, <a class="el" href="gui__tk_8h_source.html#l01410">col_step</a>, <a class="el" href="gui__tk_8h_source.html#l01154">GUI::Drawable::getX()</a>, <a class="el" href="gui__tk_8h_source.html#l01156">GUI::Drawable::getY()</a>, <a class="el" href="gui__tk_8h_source.html#l01152">GUI::Drawable::gotoXY()</a>, <a class="el" href="gui__tk_8h_source.html#l01394">height</a>, <a class="el" href="gui__tk_8h_source.html#l01430">last</a>, <a class="el" href="gui__tk_8h_source.html#l01413">row_step</a>, <a class="el" href="gui__tk_8h_source.html#l01391">width</a>, and <a class="el" href="gui__tk_8h_source.html#l01400">widths</a>.</p>
 
 </div>
 </div>
@@ -351,7 +351,7 @@ const <a class="el" href="namespaceGUI.html#af6b04b46d40197b4f00e553d7d1a3e4c">C
 <p>Array of character ascents. If this is NULL, <em>ascent</em> is used for all characters. </p>
 <p>This allows character data to be flush to the top or bottom of it's bitmap area. </p>
 
-<p>Definition at line <a class="el" href="gui__tk_8h_source.html#l01390">1390</a> of file <a class="el" href="gui__tk_8h_source.html">gui_tk.h</a>.</p>
+<p>Definition at line <a class="el" href="gui__tk_8h_source.html#l01404">1404</a> of file <a class="el" href="gui__tk_8h_source.html">gui_tk.h</a>.</p>
 
 <p>Referenced by <a class="el" href="gui__tk_8cpp_source.html#l00482">drawChar()</a>.</p>
 
@@ -371,7 +371,7 @@ const <a class="el" href="namespaceGUI.html#af6b04b46d40197b4f00e553d7d1a3e4c">C
 <p>Distance of two characters in the bitmap in bits. </p>
 <p>This is calculated as abs(row_step*height) unless explicitly specified. </p>
 
-<p>Definition at line <a class="el" href="gui__tk_8h_source.html#l01403">1403</a> of file <a class="el" href="gui__tk_8h_source.html">gui_tk.h</a>.</p>
+<p>Definition at line <a class="el" href="gui__tk_8h_source.html#l01417">1417</a> of file <a class="el" href="gui__tk_8h_source.html">gui_tk.h</a>.</p>
 
 <p>Referenced by <a class="el" href="gui__tk_8cpp_source.html#l00482">drawChar()</a>.</p>
 
@@ -391,9 +391,9 @@ const <a class="el" href="namespaceGUI.html#af6b04b46d40197b4f00e553d7d1a3e4c">C
 <p>Array of SpecialChar equivalents. </p>
 <p>If unset, encoding is assumed ASCII-like for the first 32 characters </p>
 
-<p>Definition at line <a class="el" href="gui__tk_8h_source.html#l01410">1410</a> of file <a class="el" href="gui__tk_8h_source.html">gui_tk.h</a>.</p>
+<p>Definition at line <a class="el" href="gui__tk_8h_source.html#l01424">1424</a> of file <a class="el" href="gui__tk_8h_source.html">gui_tk.h</a>.</p>
 
-<p>Referenced by <a class="el" href="gui__tk_8h_source.html#l01450">fromSpecial()</a>, and <a class="el" href="gui__tk_8h_source.html#l01447">toSpecial()</a>.</p>
+<p>Referenced by <a class="el" href="gui__tk_8h_source.html#l01464">fromSpecial()</a>, and <a class="el" href="gui__tk_8h_source.html#l01461">toSpecial()</a>.</p>
 
 </div>
 </div>
@@ -405,7 +405,7 @@ const <a class="el" href="namespaceGUI.html#af6b04b46d40197b4f00e553d7d1a3e4c">C
 
 
 <hr class="footer"/><address class="footer"><small>
-Generated on Tue Oct 1 2019 18:06:34 for DOSBox-X by &#160;<a href="http://www.doxygen.org/index.html">
+Generated on Sun Jul 5 2020 13:11:43 for DOSBox-X by &#160;<a href="http://www.doxygen.org/index.html">
 <img class="footer" src="doxygen.png" alt="doxygen"/>
 </a> 1.8.0
 </small></address>

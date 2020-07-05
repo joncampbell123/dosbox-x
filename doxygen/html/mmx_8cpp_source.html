@@ -96,7 +96,7 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 </div><!--header-->
 <div class="contents">
 <div class="fragment"><pre class="fragment"><a name="l00001"></a>00001 <span class="comment">/*</span>
-<a name="l00002"></a>00002 <span class="comment"> *  Copyright (C) 2002-2019  The DOSBox Team</span>
+<a name="l00002"></a>00002 <span class="comment"> *  Copyright (C) 2002-2020  The DOSBox Team</span>
 <a name="l00003"></a>00003 <span class="comment"> *</span>
 <a name="l00004"></a>00004 <span class="comment"> *  This program is free software; you can redistribute it and/or modify</span>
 <a name="l00005"></a>00005 <span class="comment"> *  it under the terms of the GNU General Public License as published by</span>
@@ -108,9 +108,9 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l00011"></a>00011 <span class="comment"> *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the</span>
 <a name="l00012"></a>00012 <span class="comment"> *  GNU General Public License for more details.</span>
 <a name="l00013"></a>00013 <span class="comment"> *</span>
-<a name="l00014"></a>00014 <span class="comment"> *  You should have received a copy of the GNU General Public License</span>
-<a name="l00015"></a>00015 <span class="comment"> *  along with this program; if not, write to the Free Software</span>
-<a name="l00016"></a>00016 <span class="comment"> *  Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1335, USA.</span>
+<a name="l00014"></a>00014 <span class="comment"> *  You should have received a copy of the GNU General Public License along</span>
+<a name="l00015"></a>00015 <span class="comment"> *  with this program; if not, write to the Free Software Foundation, Inc.,</span>
+<a name="l00016"></a>00016 <span class="comment"> *  51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.</span>
 <a name="l00017"></a>00017 <span class="comment"> */</span>
 <a name="l00018"></a>00018 
 <a name="l00019"></a>00019 
@@ -121,87 +121,119 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l00024"></a>00024 <span class="preprocessor">#include &quot;cpu.h&quot;</span>
 <a name="l00025"></a>00025 <span class="preprocessor">#include &quot;fpu.h&quot;</span>
 <a name="l00026"></a>00026 
-<a name="l00027"></a>00027 <a class="code" href="unionMMX__reg.html">MMX_reg</a> reg_mmx[8];
-<a name="l00028"></a>00028 
-<a name="l00029"></a>00029 
-<a name="l00030"></a>00030 <a class="code" href="unionMMX__reg.html">MMX_reg</a> * lookupRMregMM[256]={
-<a name="l00031"></a>00031         &amp;reg_mmx[0],&amp;reg_mmx[0],&amp;reg_mmx[0],&amp;reg_mmx[0],&amp;reg_mmx[0],&amp;reg_mmx[0],&amp;reg_mmx[0],&amp;reg_mmx[0],
-<a name="l00032"></a>00032         &amp;reg_mmx[1],&amp;reg_mmx[1],&amp;reg_mmx[1],&amp;reg_mmx[1],&amp;reg_mmx[1],&amp;reg_mmx[1],&amp;reg_mmx[1],&amp;reg_mmx[1],
-<a name="l00033"></a>00033         &amp;reg_mmx[2],&amp;reg_mmx[2],&amp;reg_mmx[2],&amp;reg_mmx[2],&amp;reg_mmx[2],&amp;reg_mmx[2],&amp;reg_mmx[2],&amp;reg_mmx[2],
-<a name="l00034"></a>00034         &amp;reg_mmx[3],&amp;reg_mmx[3],&amp;reg_mmx[3],&amp;reg_mmx[3],&amp;reg_mmx[3],&amp;reg_mmx[3],&amp;reg_mmx[3],&amp;reg_mmx[3],
-<a name="l00035"></a>00035         &amp;reg_mmx[4],&amp;reg_mmx[4],&amp;reg_mmx[4],&amp;reg_mmx[4],&amp;reg_mmx[4],&amp;reg_mmx[4],&amp;reg_mmx[4],&amp;reg_mmx[4],
-<a name="l00036"></a>00036         &amp;reg_mmx[5],&amp;reg_mmx[5],&amp;reg_mmx[5],&amp;reg_mmx[5],&amp;reg_mmx[5],&amp;reg_mmx[5],&amp;reg_mmx[5],&amp;reg_mmx[5],
-<a name="l00037"></a>00037         &amp;reg_mmx[6],&amp;reg_mmx[6],&amp;reg_mmx[6],&amp;reg_mmx[6],&amp;reg_mmx[6],&amp;reg_mmx[6],&amp;reg_mmx[6],&amp;reg_mmx[6],
-<a name="l00038"></a>00038         &amp;reg_mmx[7],&amp;reg_mmx[7],&amp;reg_mmx[7],&amp;reg_mmx[7],&amp;reg_mmx[7],&amp;reg_mmx[7],&amp;reg_mmx[7],&amp;reg_mmx[7],
-<a name="l00039"></a>00039 
-<a name="l00040"></a>00040         &amp;reg_mmx[0],&amp;reg_mmx[0],&amp;reg_mmx[0],&amp;reg_mmx[0],&amp;reg_mmx[0],&amp;reg_mmx[0],&amp;reg_mmx[0],&amp;reg_mmx[0],
-<a name="l00041"></a>00041         &amp;reg_mmx[1],&amp;reg_mmx[1],&amp;reg_mmx[1],&amp;reg_mmx[1],&amp;reg_mmx[1],&amp;reg_mmx[1],&amp;reg_mmx[1],&amp;reg_mmx[1],
-<a name="l00042"></a>00042         &amp;reg_mmx[2],&amp;reg_mmx[2],&amp;reg_mmx[2],&amp;reg_mmx[2],&amp;reg_mmx[2],&amp;reg_mmx[2],&amp;reg_mmx[2],&amp;reg_mmx[2],
-<a name="l00043"></a>00043         &amp;reg_mmx[3],&amp;reg_mmx[3],&amp;reg_mmx[3],&amp;reg_mmx[3],&amp;reg_mmx[3],&amp;reg_mmx[3],&amp;reg_mmx[3],&amp;reg_mmx[3],
-<a name="l00044"></a>00044         &amp;reg_mmx[4],&amp;reg_mmx[4],&amp;reg_mmx[4],&amp;reg_mmx[4],&amp;reg_mmx[4],&amp;reg_mmx[4],&amp;reg_mmx[4],&amp;reg_mmx[4],
-<a name="l00045"></a>00045         &amp;reg_mmx[5],&amp;reg_mmx[5],&amp;reg_mmx[5],&amp;reg_mmx[5],&amp;reg_mmx[5],&amp;reg_mmx[5],&amp;reg_mmx[5],&amp;reg_mmx[5],
-<a name="l00046"></a>00046         &amp;reg_mmx[6],&amp;reg_mmx[6],&amp;reg_mmx[6],&amp;reg_mmx[6],&amp;reg_mmx[6],&amp;reg_mmx[6],&amp;reg_mmx[6],&amp;reg_mmx[6],
-<a name="l00047"></a>00047         &amp;reg_mmx[7],&amp;reg_mmx[7],&amp;reg_mmx[7],&amp;reg_mmx[7],&amp;reg_mmx[7],&amp;reg_mmx[7],&amp;reg_mmx[7],&amp;reg_mmx[7],
-<a name="l00048"></a>00048 
-<a name="l00049"></a>00049         &amp;reg_mmx[0],&amp;reg_mmx[0],&amp;reg_mmx[0],&amp;reg_mmx[0],&amp;reg_mmx[0],&amp;reg_mmx[0],&amp;reg_mmx[0],&amp;reg_mmx[0],
-<a name="l00050"></a>00050         &amp;reg_mmx[1],&amp;reg_mmx[1],&amp;reg_mmx[1],&amp;reg_mmx[1],&amp;reg_mmx[1],&amp;reg_mmx[1],&amp;reg_mmx[1],&amp;reg_mmx[1],
-<a name="l00051"></a>00051         &amp;reg_mmx[2],&amp;reg_mmx[2],&amp;reg_mmx[2],&amp;reg_mmx[2],&amp;reg_mmx[2],&amp;reg_mmx[2],&amp;reg_mmx[2],&amp;reg_mmx[2],
-<a name="l00052"></a>00052         &amp;reg_mmx[3],&amp;reg_mmx[3],&amp;reg_mmx[3],&amp;reg_mmx[3],&amp;reg_mmx[3],&amp;reg_mmx[3],&amp;reg_mmx[3],&amp;reg_mmx[3],
-<a name="l00053"></a>00053         &amp;reg_mmx[4],&amp;reg_mmx[4],&amp;reg_mmx[4],&amp;reg_mmx[4],&amp;reg_mmx[4],&amp;reg_mmx[4],&amp;reg_mmx[4],&amp;reg_mmx[4],
-<a name="l00054"></a>00054         &amp;reg_mmx[5],&amp;reg_mmx[5],&amp;reg_mmx[5],&amp;reg_mmx[5],&amp;reg_mmx[5],&amp;reg_mmx[5],&amp;reg_mmx[5],&amp;reg_mmx[5],
-<a name="l00055"></a>00055         &amp;reg_mmx[6],&amp;reg_mmx[6],&amp;reg_mmx[6],&amp;reg_mmx[6],&amp;reg_mmx[6],&amp;reg_mmx[6],&amp;reg_mmx[6],&amp;reg_mmx[6],
-<a name="l00056"></a>00056         &amp;reg_mmx[7],&amp;reg_mmx[7],&amp;reg_mmx[7],&amp;reg_mmx[7],&amp;reg_mmx[7],&amp;reg_mmx[7],&amp;reg_mmx[7],&amp;reg_mmx[7],
-<a name="l00057"></a>00057 
-<a name="l00058"></a>00058         &amp;reg_mmx[0],&amp;reg_mmx[0],&amp;reg_mmx[0],&amp;reg_mmx[0],&amp;reg_mmx[0],&amp;reg_mmx[0],&amp;reg_mmx[0],&amp;reg_mmx[0],
-<a name="l00059"></a>00059         &amp;reg_mmx[1],&amp;reg_mmx[1],&amp;reg_mmx[1],&amp;reg_mmx[1],&amp;reg_mmx[1],&amp;reg_mmx[1],&amp;reg_mmx[1],&amp;reg_mmx[1],
-<a name="l00060"></a>00060         &amp;reg_mmx[2],&amp;reg_mmx[2],&amp;reg_mmx[2],&amp;reg_mmx[2],&amp;reg_mmx[2],&amp;reg_mmx[2],&amp;reg_mmx[2],&amp;reg_mmx[2],
-<a name="l00061"></a>00061         &amp;reg_mmx[3],&amp;reg_mmx[3],&amp;reg_mmx[3],&amp;reg_mmx[3],&amp;reg_mmx[3],&amp;reg_mmx[3],&amp;reg_mmx[3],&amp;reg_mmx[3],
-<a name="l00062"></a>00062         &amp;reg_mmx[4],&amp;reg_mmx[4],&amp;reg_mmx[4],&amp;reg_mmx[4],&amp;reg_mmx[4],&amp;reg_mmx[4],&amp;reg_mmx[4],&amp;reg_mmx[4],
-<a name="l00063"></a>00063         &amp;reg_mmx[5],&amp;reg_mmx[5],&amp;reg_mmx[5],&amp;reg_mmx[5],&amp;reg_mmx[5],&amp;reg_mmx[5],&amp;reg_mmx[5],&amp;reg_mmx[5],
-<a name="l00064"></a>00064         &amp;reg_mmx[6],&amp;reg_mmx[6],&amp;reg_mmx[6],&amp;reg_mmx[6],&amp;reg_mmx[6],&amp;reg_mmx[6],&amp;reg_mmx[6],&amp;reg_mmx[6],
-<a name="l00065"></a>00065         &amp;reg_mmx[7],&amp;reg_mmx[7],&amp;reg_mmx[7],&amp;reg_mmx[7],&amp;reg_mmx[7],&amp;reg_mmx[7],&amp;reg_mmx[7],&amp;reg_mmx[7],
-<a name="l00066"></a>00066 };
-<a name="l00067"></a>00067 
-<a name="l00068"></a>00068 
-<a name="l00069"></a>00069 Bit8s SaturateWordSToByteS(Bit16s value)
-<a name="l00070"></a>00070 {
-<a name="l00071"></a>00071   <span class="keywordflow">if</span>(value &lt; -128) <span class="keywordflow">return</span> -128;
-<a name="l00072"></a>00072   <span class="keywordflow">if</span>(value &gt;  127) <span class="keywordflow">return</span>  127;
-<a name="l00073"></a>00073   <span class="keywordflow">return</span> (Bit8s) value;
-<a name="l00074"></a>00074 }
-<a name="l00075"></a>00075 
-<a name="l00076"></a>00076 Bit16s SaturateDwordSToWordS(Bit32s value)
-<a name="l00077"></a>00077 {
-<a name="l00078"></a>00078   <span class="keywordflow">if</span>(value &lt; -32768) <span class="keywordflow">return</span> -32768;
-<a name="l00079"></a>00079   <span class="keywordflow">if</span>(value &gt;  32767) <span class="keywordflow">return</span>  32767;
-<a name="l00080"></a>00080   <span class="keywordflow">return</span> (Bit16s) value;
-<a name="l00081"></a>00081 }
-<a name="l00082"></a>00082 
-<a name="l00083"></a>00083 Bit8u SaturateWordSToByteU(Bit16s value)
-<a name="l00084"></a>00084 {
-<a name="l00085"></a>00085   <span class="keywordflow">if</span>(value &lt; 0) <span class="keywordflow">return</span> 0;
-<a name="l00086"></a>00086   <span class="keywordflow">if</span>(value &gt; 255) <span class="keywordflow">return</span> 255;
-<a name="l00087"></a>00087   <span class="keywordflow">return</span> (Bit8u) value;
-<a name="l00088"></a>00088 }
+<a name="l00027"></a>00027 <span class="preprocessor">#if C_FPU</span>
+<a name="l00028"></a>00028 <span class="preprocessor"></span>
+<a name="l00029"></a>00029 MMX_reg *reg_mmx[8] = {
+<a name="l00030"></a>00030 <span class="preprocessor">#if defined(HAS_LONG_DOUBLE)</span>
+<a name="l00031"></a>00031 <span class="preprocessor"></span>        &amp;fpu._do_not_use__regs[0].reg_mmx,
+<a name="l00032"></a>00032         &amp;fpu._do_not_use__regs[1].reg_mmx,
+<a name="l00033"></a>00033         &amp;fpu._do_not_use__regs[2].reg_mmx,
+<a name="l00034"></a>00034         &amp;fpu._do_not_use__regs[3].reg_mmx,
+<a name="l00035"></a>00035         &amp;fpu._do_not_use__regs[4].reg_mmx,
+<a name="l00036"></a>00036         &amp;fpu._do_not_use__regs[5].reg_mmx,
+<a name="l00037"></a>00037         &amp;fpu._do_not_use__regs[6].reg_mmx,
+<a name="l00038"></a>00038         &amp;fpu._do_not_use__regs[7].reg_mmx,
+<a name="l00039"></a>00039 <span class="preprocessor">#else</span>
+<a name="l00040"></a>00040 <span class="preprocessor"></span>        &amp;fpu.regs[0].reg_mmx,
+<a name="l00041"></a>00041         &amp;fpu.regs[1].reg_mmx,
+<a name="l00042"></a>00042         &amp;fpu.regs[2].reg_mmx,
+<a name="l00043"></a>00043         &amp;fpu.regs[3].reg_mmx,
+<a name="l00044"></a>00044         &amp;fpu.regs[4].reg_mmx,
+<a name="l00045"></a>00045         &amp;fpu.regs[5].reg_mmx,
+<a name="l00046"></a>00046         &amp;fpu.regs[6].reg_mmx,
+<a name="l00047"></a>00047         &amp;fpu.regs[7].reg_mmx,
+<a name="l00048"></a>00048 <span class="preprocessor">#endif</span>
+<a name="l00049"></a>00049 <span class="preprocessor"></span>};
+<a name="l00050"></a>00050 
+<a name="l00051"></a>00051 MMX_reg * lookupRMregMM[256]={
+<a name="l00052"></a>00052         reg_mmx[0],reg_mmx[0],reg_mmx[0],reg_mmx[0],reg_mmx[0],reg_mmx[0],reg_mmx[0],reg_mmx[0],
+<a name="l00053"></a>00053         reg_mmx[1],reg_mmx[1],reg_mmx[1],reg_mmx[1],reg_mmx[1],reg_mmx[1],reg_mmx[1],reg_mmx[1],
+<a name="l00054"></a>00054         reg_mmx[2],reg_mmx[2],reg_mmx[2],reg_mmx[2],reg_mmx[2],reg_mmx[2],reg_mmx[2],reg_mmx[2],
+<a name="l00055"></a>00055         reg_mmx[3],reg_mmx[3],reg_mmx[3],reg_mmx[3],reg_mmx[3],reg_mmx[3],reg_mmx[3],reg_mmx[3],
+<a name="l00056"></a>00056         reg_mmx[4],reg_mmx[4],reg_mmx[4],reg_mmx[4],reg_mmx[4],reg_mmx[4],reg_mmx[4],reg_mmx[4],
+<a name="l00057"></a>00057         reg_mmx[5],reg_mmx[5],reg_mmx[5],reg_mmx[5],reg_mmx[5],reg_mmx[5],reg_mmx[5],reg_mmx[5],
+<a name="l00058"></a>00058         reg_mmx[6],reg_mmx[6],reg_mmx[6],reg_mmx[6],reg_mmx[6],reg_mmx[6],reg_mmx[6],reg_mmx[6],
+<a name="l00059"></a>00059         reg_mmx[7],reg_mmx[7],reg_mmx[7],reg_mmx[7],reg_mmx[7],reg_mmx[7],reg_mmx[7],reg_mmx[7],
+<a name="l00060"></a>00060 
+<a name="l00061"></a>00061         reg_mmx[0],reg_mmx[0],reg_mmx[0],reg_mmx[0],reg_mmx[0],reg_mmx[0],reg_mmx[0],reg_mmx[0],
+<a name="l00062"></a>00062         reg_mmx[1],reg_mmx[1],reg_mmx[1],reg_mmx[1],reg_mmx[1],reg_mmx[1],reg_mmx[1],reg_mmx[1],
+<a name="l00063"></a>00063         reg_mmx[2],reg_mmx[2],reg_mmx[2],reg_mmx[2],reg_mmx[2],reg_mmx[2],reg_mmx[2],reg_mmx[2],
+<a name="l00064"></a>00064         reg_mmx[3],reg_mmx[3],reg_mmx[3],reg_mmx[3],reg_mmx[3],reg_mmx[3],reg_mmx[3],reg_mmx[3],
+<a name="l00065"></a>00065         reg_mmx[4],reg_mmx[4],reg_mmx[4],reg_mmx[4],reg_mmx[4],reg_mmx[4],reg_mmx[4],reg_mmx[4],
+<a name="l00066"></a>00066         reg_mmx[5],reg_mmx[5],reg_mmx[5],reg_mmx[5],reg_mmx[5],reg_mmx[5],reg_mmx[5],reg_mmx[5],
+<a name="l00067"></a>00067         reg_mmx[6],reg_mmx[6],reg_mmx[6],reg_mmx[6],reg_mmx[6],reg_mmx[6],reg_mmx[6],reg_mmx[6],
+<a name="l00068"></a>00068         reg_mmx[7],reg_mmx[7],reg_mmx[7],reg_mmx[7],reg_mmx[7],reg_mmx[7],reg_mmx[7],reg_mmx[7],
+<a name="l00069"></a>00069 
+<a name="l00070"></a>00070         reg_mmx[0],reg_mmx[0],reg_mmx[0],reg_mmx[0],reg_mmx[0],reg_mmx[0],reg_mmx[0],reg_mmx[0],
+<a name="l00071"></a>00071         reg_mmx[1],reg_mmx[1],reg_mmx[1],reg_mmx[1],reg_mmx[1],reg_mmx[1],reg_mmx[1],reg_mmx[1],
+<a name="l00072"></a>00072         reg_mmx[2],reg_mmx[2],reg_mmx[2],reg_mmx[2],reg_mmx[2],reg_mmx[2],reg_mmx[2],reg_mmx[2],
+<a name="l00073"></a>00073         reg_mmx[3],reg_mmx[3],reg_mmx[3],reg_mmx[3],reg_mmx[3],reg_mmx[3],reg_mmx[3],reg_mmx[3],
+<a name="l00074"></a>00074         reg_mmx[4],reg_mmx[4],reg_mmx[4],reg_mmx[4],reg_mmx[4],reg_mmx[4],reg_mmx[4],reg_mmx[4],
+<a name="l00075"></a>00075         reg_mmx[5],reg_mmx[5],reg_mmx[5],reg_mmx[5],reg_mmx[5],reg_mmx[5],reg_mmx[5],reg_mmx[5],
+<a name="l00076"></a>00076         reg_mmx[6],reg_mmx[6],reg_mmx[6],reg_mmx[6],reg_mmx[6],reg_mmx[6],reg_mmx[6],reg_mmx[6],
+<a name="l00077"></a>00077         reg_mmx[7],reg_mmx[7],reg_mmx[7],reg_mmx[7],reg_mmx[7],reg_mmx[7],reg_mmx[7],reg_mmx[7],
+<a name="l00078"></a>00078 
+<a name="l00079"></a>00079         reg_mmx[0],reg_mmx[0],reg_mmx[0],reg_mmx[0],reg_mmx[0],reg_mmx[0],reg_mmx[0],reg_mmx[0],
+<a name="l00080"></a>00080         reg_mmx[1],reg_mmx[1],reg_mmx[1],reg_mmx[1],reg_mmx[1],reg_mmx[1],reg_mmx[1],reg_mmx[1],
+<a name="l00081"></a>00081         reg_mmx[2],reg_mmx[2],reg_mmx[2],reg_mmx[2],reg_mmx[2],reg_mmx[2],reg_mmx[2],reg_mmx[2],
+<a name="l00082"></a>00082         reg_mmx[3],reg_mmx[3],reg_mmx[3],reg_mmx[3],reg_mmx[3],reg_mmx[3],reg_mmx[3],reg_mmx[3],
+<a name="l00083"></a>00083         reg_mmx[4],reg_mmx[4],reg_mmx[4],reg_mmx[4],reg_mmx[4],reg_mmx[4],reg_mmx[4],reg_mmx[4],
+<a name="l00084"></a>00084         reg_mmx[5],reg_mmx[5],reg_mmx[5],reg_mmx[5],reg_mmx[5],reg_mmx[5],reg_mmx[5],reg_mmx[5],
+<a name="l00085"></a>00085         reg_mmx[6],reg_mmx[6],reg_mmx[6],reg_mmx[6],reg_mmx[6],reg_mmx[6],reg_mmx[6],reg_mmx[6],
+<a name="l00086"></a>00086         reg_mmx[7],reg_mmx[7],reg_mmx[7],reg_mmx[7],reg_mmx[7],reg_mmx[7],reg_mmx[7],reg_mmx[7],
+<a name="l00087"></a>00087 };
+<a name="l00088"></a>00088 
 <a name="l00089"></a>00089 
-<a name="l00090"></a>00090 Bit16u SaturateDwordSToWordU(Bit32s value)
+<a name="l00090"></a>00090 Bit8s SaturateWordSToByteS(Bit16s value)
 <a name="l00091"></a>00091 {
-<a name="l00092"></a>00092   <span class="keywordflow">if</span>(value &lt; 0) <span class="keywordflow">return</span> 0;
-<a name="l00093"></a>00093   <span class="keywordflow">if</span>(value &gt; 65535) <span class="keywordflow">return</span> 65535;
-<a name="l00094"></a>00094   <span class="keywordflow">return</span> (Bit16u) value;
+<a name="l00092"></a>00092   <span class="keywordflow">if</span>(value &lt; -128) <span class="keywordflow">return</span> -128;
+<a name="l00093"></a>00093   <span class="keywordflow">if</span>(value &gt;  127) <span class="keywordflow">return</span>  127;
+<a name="l00094"></a>00094   <span class="keywordflow">return</span> (Bit8s) value;
 <a name="l00095"></a>00095 }
 <a name="l00096"></a>00096 
-<a name="l00097"></a>00097 <span class="keywordtype">void</span> setFPU(Bit16u tag) {
-<a name="l00098"></a>00098         FPU_SET_TOP(0);
-<a name="l00099"></a>00099         TOP=FPU_GET_TOP();
-<a name="l00100"></a>00100         FPU_SetTag(tag);
-<a name="l00101"></a>00101 }
-<a name="l00102"></a>00102 
+<a name="l00097"></a>00097 Bit16s SaturateDwordSToWordS(Bit32s value)
+<a name="l00098"></a>00098 {
+<a name="l00099"></a>00099   <span class="keywordflow">if</span>(value &lt; -32768) <span class="keywordflow">return</span> -32768;
+<a name="l00100"></a>00100   <span class="keywordflow">if</span>(value &gt;  32767) <span class="keywordflow">return</span>  32767;
+<a name="l00101"></a>00101   <span class="keywordflow">return</span> (Bit16s) value;
+<a name="l00102"></a>00102 }
+<a name="l00103"></a>00103 
+<a name="l00104"></a>00104 Bit8u SaturateWordSToByteU(Bit16s value)
+<a name="l00105"></a>00105 {
+<a name="l00106"></a>00106   <span class="keywordflow">if</span>(value &lt; 0) <span class="keywordflow">return</span> 0;
+<a name="l00107"></a>00107   <span class="keywordflow">if</span>(value &gt; 255) <span class="keywordflow">return</span> 255;
+<a name="l00108"></a>00108   <span class="keywordflow">return</span> (Bit8u) value;
+<a name="l00109"></a>00109 }
+<a name="l00110"></a>00110 
+<a name="l00111"></a>00111 Bit16u SaturateDwordSToWordU(Bit32s value)
+<a name="l00112"></a>00112 {
+<a name="l00113"></a>00113   <span class="keywordflow">if</span>(value &lt; 0) <span class="keywordflow">return</span> 0;
+<a name="l00114"></a>00114   <span class="keywordflow">if</span>(value &gt; 65535) <span class="keywordflow">return</span> 65535;
+<a name="l00115"></a>00115   <span class="keywordflow">return</span> (Bit16u) value;
+<a name="l00116"></a>00116 }
+<a name="l00117"></a>00117 
+<a name="l00118"></a>00118 <span class="keywordtype">void</span> setFPUTagEmpty() {
+<a name="l00119"></a>00119         FPU_SetCW(0x37F);
+<a name="l00120"></a>00120         fpu.sw = 0;
+<a name="l00121"></a>00121         TOP = FPU_GET_TOP();
+<a name="l00122"></a>00122         fpu.tags[0] = TAG_Empty;
+<a name="l00123"></a>00123         fpu.tags[1] = TAG_Empty;
+<a name="l00124"></a>00124         fpu.tags[2] = TAG_Empty;
+<a name="l00125"></a>00125         fpu.tags[3] = TAG_Empty;
+<a name="l00126"></a>00126         fpu.tags[4] = TAG_Empty;
+<a name="l00127"></a>00127         fpu.tags[5] = TAG_Empty;
+<a name="l00128"></a>00128         fpu.tags[6] = TAG_Empty;
+<a name="l00129"></a>00129         fpu.tags[7] = TAG_Empty;
+<a name="l00130"></a>00130         fpu.tags[8] = TAG_Valid; <span class="comment">// is only used by us</span>
+<a name="l00131"></a>00131 }
+<a name="l00132"></a>00132 
+<a name="l00133"></a>00133 <span class="preprocessor">#endif</span>
+<a name="l00134"></a>00134 <span class="preprocessor"></span>
 </pre></div></div><!-- contents -->
 
 
 <hr class="footer"/><address class="footer"><small>
-Generated on Tue Oct 1 2019 18:06:24 for DOSBox-X by &#160;<a href="http://www.doxygen.org/index.html">
+Generated on Sun Jul 5 2020 13:11:34 for DOSBox-X by &#160;<a href="http://www.doxygen.org/index.html">
 <img class="footer" src="doxygen.png" alt="doxygen"/>
 </a> 1.8.0
 </small></address>

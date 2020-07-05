@@ -96,7 +96,7 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 </div><!--header-->
 <div class="contents">
 <div class="fragment"><pre class="fragment"><a name="l00001"></a>00001 <span class="comment">/*</span>
-<a name="l00002"></a>00002 <span class="comment"> *  Copyright (C) 2002-2019  The DOSBox Team</span>
+<a name="l00002"></a>00002 <span class="comment"> *  Copyright (C) 2002-2020  The DOSBox Team</span>
 <a name="l00003"></a>00003 <span class="comment"> *</span>
 <a name="l00004"></a>00004 <span class="comment"> *  This program is free software; you can redistribute it and/or modify</span>
 <a name="l00005"></a>00005 <span class="comment"> *  it under the terms of the GNU General Public License as published by</span>
@@ -108,9 +108,9 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l00011"></a>00011 <span class="comment"> *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the</span>
 <a name="l00012"></a>00012 <span class="comment"> *  GNU General Public License for more details.</span>
 <a name="l00013"></a>00013 <span class="comment"> *</span>
-<a name="l00014"></a>00014 <span class="comment"> *  You should have received a copy of the GNU General Public License</span>
-<a name="l00015"></a>00015 <span class="comment"> *  along with this program; if not, write to the Free Software</span>
-<a name="l00016"></a>00016 <span class="comment"> *  Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1335, USA.</span>
+<a name="l00014"></a>00014 <span class="comment"> *  You should have received a copy of the GNU General Public License along</span>
+<a name="l00015"></a>00015 <span class="comment"> *  with this program; if not, write to the Free Software Foundation, Inc.,</span>
+<a name="l00016"></a>00016 <span class="comment"> *  51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.</span>
 <a name="l00017"></a>00017 <span class="comment"> */</span>
 <a name="l00018"></a>00018 
 <a name="l00019"></a>00019 
@@ -567,419 +567,416 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l00470"></a>00470 }
 <a name="l00471"></a>00471 
 <a name="l00472"></a>00472 <span class="keywordtype">void</span> INT10_SetCursorPos(Bit8u row,Bit8u col,Bit8u page) {
-<a name="l00473"></a>00473     Bit16u address;
-<a name="l00474"></a>00474 
-<a name="l00475"></a>00475     <span class="keywordflow">if</span> (page&gt;7) <a class="code" href="classLOG.html">LOG</a>(LOG_INT10,LOG_ERROR)(<span class="stringliteral">&quot;INT10_SetCursorPos page %d&quot;</span>,page);
-<a name="l00476"></a>00476     <span class="comment">// Bios cursor pos</span>
-<a name="l00477"></a>00477     <span class="keywordflow">if</span> (IS_PC98_ARCH) {
-<a name="l00478"></a>00478         real_writeb(0x60,0x11C,col);
-<a name="l00479"></a>00479         real_writeb(0x60,0x110,row);
-<a name="l00480"></a>00480         page = 0;
-<a name="l00481"></a>00481     }
-<a name="l00482"></a>00482     <span class="keywordflow">else</span> {
-<a name="l00483"></a>00483         real_writeb(BIOSMEM_SEG,BIOSMEM_CURSOR_POS+page*2u,col);
-<a name="l00484"></a>00484         real_writeb(BIOSMEM_SEG,BIOSMEM_CURSOR_POS+page*2u+1u,row);
-<a name="l00485"></a>00485     }
-<a name="l00486"></a>00486     <span class="comment">// Set the hardware cursor</span>
-<a name="l00487"></a>00487     Bit8u current=IS_PC98_ARCH ? 0 : real_readb(BIOSMEM_SEG,BIOSMEM_CURRENT_PAGE);
-<a name="l00488"></a>00488     <span class="keywordflow">if</span>(page==current) {
-<a name="l00489"></a>00489         <span class="comment">// Get the dimensions</span>
-<a name="l00490"></a>00490         BIOS_NCOLS;
-<a name="l00491"></a>00491         <span class="comment">// Calculate the address knowing nbcols nbrows and page num</span>
-<a name="l00492"></a>00492         <span class="comment">// NOTE: BIOSMEM_CURRENT_START counts in colour/flag pairs</span>
-<a name="l00493"></a>00493         address=(ncols*row)+col+(IS_PC98_ARCH ? 0 : (real_readw(BIOSMEM_SEG,BIOSMEM_CURRENT_START)/2));
-<a name="l00494"></a>00494         <span class="keywordflow">if</span> (IS_PC98_ARCH) {
-<a name="l00495"></a>00495             vga_pc98_direct_cursor_pos(address);
-<a name="l00496"></a>00496         }
-<a name="l00497"></a>00497         <span class="keywordflow">else</span> {
-<a name="l00498"></a>00498             <span class="comment">// CRTC regs 0x0e and 0x0f</span>
-<a name="l00499"></a>00499             Bit16u base=real_readw(BIOSMEM_SEG,BIOSMEM_CRTC_ADDRESS);
-<a name="l00500"></a>00500             IO_Write(base,0x0eu);
-<a name="l00501"></a>00501             IO_Write(base+1u,(Bit8u)(address&gt;&gt;8u));
-<a name="l00502"></a>00502             IO_Write(base,0x0fu);
-<a name="l00503"></a>00503             IO_Write(base+1u,(Bit8u)address);
-<a name="l00504"></a>00504         }
-<a name="l00505"></a>00505     }
-<a name="l00506"></a>00506 }
-<a name="l00507"></a>00507 
-<a name="l00508"></a>00508 <span class="keywordtype">void</span> ReadCharAttr(Bit16u col,Bit16u row,Bit8u page,Bit16u * result) {
-<a name="l00509"></a>00509     <span class="comment">/* Externally used by the mouse routine */</span>
-<a name="l00510"></a>00510     PhysPt fontdata;
-<a name="l00511"></a>00511     Bit16u cols = real_readw(BIOSMEM_SEG,BIOSMEM_NB_COLS);
-<a name="l00512"></a>00512     Bit8u cheight = real_readb(BIOSMEM_SEG,BIOSMEM_CHAR_HEIGHT);
-<a name="l00513"></a>00513     <span class="keywordtype">bool</span> split_chr = <span class="keyword">false</span>;
-<a name="l00514"></a>00514     <span class="keywordflow">switch</span> (CurMode-&gt;type) {
-<a name="l00515"></a>00515     <span class="keywordflow">case</span> M_TEXT:
-<a name="l00516"></a>00516         {   
-<a name="l00517"></a>00517             <span class="comment">// Compute the address  </span>
-<a name="l00518"></a>00518             Bit16u address=page*real_readw(BIOSMEM_SEG,BIOSMEM_PAGE_SIZE);
-<a name="l00519"></a>00519             address+=(row*cols+col)*2;
-<a name="l00520"></a>00520             <span class="comment">// read the char </span>
-<a name="l00521"></a>00521             PhysPt where = CurMode-&gt;pstart+address;
-<a name="l00522"></a>00522             *result=mem_readw(where);
-<a name="l00523"></a>00523         }
-<a name="l00524"></a>00524         <span class="keywordflow">return</span>;
-<a name="l00525"></a>00525     <span class="keywordflow">case</span> M_CGA4:
-<a name="l00526"></a>00526     <span class="keywordflow">case</span> M_CGA2:
-<a name="l00527"></a>00527     <span class="keywordflow">case</span> M_TANDY16:
-<a name="l00528"></a>00528         split_chr = <span class="keyword">true</span>;
-<a name="l00529"></a>00529         <span class="keywordflow">switch</span> (machine) {
-<a name="l00530"></a>00530         <span class="keywordflow">case</span> MCH_CGA:
-<a name="l00531"></a>00531         <span class="keywordflow">case</span> MCH_HERC:
-<a name="l00532"></a>00532             fontdata=PhysMake(0xf000,0xfa6e);
-<a name="l00533"></a>00533             <span class="keywordflow">break</span>;
-<a name="l00534"></a>00534         <span class="keywordflow">case</span> TANDY_ARCH_CASE:
-<a name="l00535"></a>00535             fontdata=Real2Phys(RealGetVec(0x44));
-<a name="l00536"></a>00536             <span class="keywordflow">break</span>;
-<a name="l00537"></a>00537         <span class="keywordflow">default</span>:
-<a name="l00538"></a>00538             fontdata=Real2Phys(RealGetVec(0x43));
-<a name="l00539"></a>00539             <span class="keywordflow">break</span>;
-<a name="l00540"></a>00540         }
-<a name="l00541"></a>00541         <span class="keywordflow">break</span>;
-<a name="l00542"></a>00542     <span class="keywordflow">default</span>:
-<a name="l00543"></a>00543         fontdata=Real2Phys(RealGetVec(0x43));
-<a name="l00544"></a>00544         <span class="keywordflow">break</span>;
-<a name="l00545"></a>00545     }
+<a name="l00473"></a>00473     <span class="keywordflow">if</span> (page&gt;7) <a class="code" href="classLOG.html">LOG</a>(LOG_INT10,LOG_ERROR)(<span class="stringliteral">&quot;INT10_SetCursorPos page %d&quot;</span>,page);
+<a name="l00474"></a>00474     <span class="comment">// Bios cursor pos</span>
+<a name="l00475"></a>00475     <span class="keywordflow">if</span> (IS_PC98_ARCH) {
+<a name="l00476"></a>00476         real_writeb(0x60,0x11C,col);
+<a name="l00477"></a>00477         real_writeb(0x60,0x110,row);
+<a name="l00478"></a>00478         page = 0;
+<a name="l00479"></a>00479     }
+<a name="l00480"></a>00480     <span class="keywordflow">else</span> {
+<a name="l00481"></a>00481         real_writeb(BIOSMEM_SEG,BIOSMEM_CURSOR_POS+page*2u,col);
+<a name="l00482"></a>00482         real_writeb(BIOSMEM_SEG,BIOSMEM_CURSOR_POS+page*2u+1u,row);
+<a name="l00483"></a>00483     }
+<a name="l00484"></a>00484     <span class="comment">// Set the hardware cursor</span>
+<a name="l00485"></a>00485     Bit8u current=IS_PC98_ARCH ? 0 : real_readb(BIOSMEM_SEG,BIOSMEM_CURRENT_PAGE);
+<a name="l00486"></a>00486     <span class="keywordflow">if</span>(page==current) {
+<a name="l00487"></a>00487         <span class="comment">// Get the dimensions</span>
+<a name="l00488"></a>00488         BIOS_NCOLS;
+<a name="l00489"></a>00489         <span class="comment">// Calculate the address knowing nbcols nbrows and page num</span>
+<a name="l00490"></a>00490         <span class="comment">// NOTE: BIOSMEM_CURRENT_START counts in colour/flag pairs</span>
+<a name="l00491"></a>00491         Bit16u address=(ncols*row)+col+(IS_PC98_ARCH ? 0 : (real_readw(BIOSMEM_SEG,BIOSMEM_CURRENT_START)/2));
+<a name="l00492"></a>00492         <span class="keywordflow">if</span> (IS_PC98_ARCH) {
+<a name="l00493"></a>00493             vga_pc98_direct_cursor_pos(address);
+<a name="l00494"></a>00494         }
+<a name="l00495"></a>00495         <span class="keywordflow">else</span> {
+<a name="l00496"></a>00496             <span class="comment">// CRTC regs 0x0e and 0x0f</span>
+<a name="l00497"></a>00497             Bit16u base=real_readw(BIOSMEM_SEG,BIOSMEM_CRTC_ADDRESS);
+<a name="l00498"></a>00498             IO_Write(base,0x0eu);
+<a name="l00499"></a>00499             IO_Write(base+1u,(Bit8u)(address&gt;&gt;8u));
+<a name="l00500"></a>00500             IO_Write(base,0x0fu);
+<a name="l00501"></a>00501             IO_Write(base+1u,(Bit8u)address);
+<a name="l00502"></a>00502         }
+<a name="l00503"></a>00503     }
+<a name="l00504"></a>00504 }
+<a name="l00505"></a>00505 
+<a name="l00506"></a>00506 <span class="keywordtype">void</span> ReadCharAttr(Bit16u col,Bit16u row,Bit8u page,Bit16u * result) {
+<a name="l00507"></a>00507     <span class="comment">/* Externally used by the mouse routine */</span>
+<a name="l00508"></a>00508     PhysPt fontdata;
+<a name="l00509"></a>00509     Bit16u cols = real_readw(BIOSMEM_SEG,BIOSMEM_NB_COLS);
+<a name="l00510"></a>00510     Bit8u cheight = real_readb(BIOSMEM_SEG,BIOSMEM_CHAR_HEIGHT);
+<a name="l00511"></a>00511     <span class="keywordtype">bool</span> split_chr = <span class="keyword">false</span>;
+<a name="l00512"></a>00512     <span class="keywordflow">switch</span> (CurMode-&gt;type) {
+<a name="l00513"></a>00513     <span class="keywordflow">case</span> M_TEXT:
+<a name="l00514"></a>00514         {   
+<a name="l00515"></a>00515             <span class="comment">// Compute the address  </span>
+<a name="l00516"></a>00516             Bit16u address=page*real_readw(BIOSMEM_SEG,BIOSMEM_PAGE_SIZE);
+<a name="l00517"></a>00517             address+=(row*cols+col)*2;
+<a name="l00518"></a>00518             <span class="comment">// read the char </span>
+<a name="l00519"></a>00519             PhysPt where = CurMode-&gt;pstart+address;
+<a name="l00520"></a>00520             *result=mem_readw(where);
+<a name="l00521"></a>00521         }
+<a name="l00522"></a>00522         <span class="keywordflow">return</span>;
+<a name="l00523"></a>00523     <span class="keywordflow">case</span> M_CGA4:
+<a name="l00524"></a>00524     <span class="keywordflow">case</span> M_CGA2:
+<a name="l00525"></a>00525     <span class="keywordflow">case</span> M_TANDY16:
+<a name="l00526"></a>00526         split_chr = <span class="keyword">true</span>;
+<a name="l00527"></a>00527         <span class="keywordflow">switch</span> (machine) {
+<a name="l00528"></a>00528         <span class="keywordflow">case</span> MCH_CGA:
+<a name="l00529"></a>00529         <span class="keywordflow">case</span> MCH_HERC:
+<a name="l00530"></a>00530             fontdata=PhysMake(0xf000,0xfa6e);
+<a name="l00531"></a>00531             <span class="keywordflow">break</span>;
+<a name="l00532"></a>00532         <span class="keywordflow">case</span> TANDY_ARCH_CASE:
+<a name="l00533"></a>00533             fontdata=Real2Phys(RealGetVec(0x44));
+<a name="l00534"></a>00534             <span class="keywordflow">break</span>;
+<a name="l00535"></a>00535         <span class="keywordflow">default</span>:
+<a name="l00536"></a>00536             fontdata=Real2Phys(RealGetVec(0x43));
+<a name="l00537"></a>00537             <span class="keywordflow">break</span>;
+<a name="l00538"></a>00538         }
+<a name="l00539"></a>00539         <span class="keywordflow">break</span>;
+<a name="l00540"></a>00540     <span class="keywordflow">default</span>:
+<a name="l00541"></a>00541         fontdata=Real2Phys(RealGetVec(0x43));
+<a name="l00542"></a>00542         <span class="keywordflow">break</span>;
+<a name="l00543"></a>00543     }
+<a name="l00544"></a>00544 
+<a name="l00545"></a>00545     Bitu x=col*8u,y=(<span class="keywordtype">unsigned</span> int)row*cheight*(cols/CurMode-&gt;twidth);
 <a name="l00546"></a>00546 
-<a name="l00547"></a>00547     Bitu x=col*8u,y=(<span class="keywordtype">unsigned</span> int)row*cheight*(cols/CurMode-&gt;twidth);
+<a name="l00547"></a>00547     <span class="keywordflow">for</span> (Bit16u chr=0;chr&lt;256;chr++) {
 <a name="l00548"></a>00548 
-<a name="l00549"></a>00549     <span class="keywordflow">for</span> (Bit16u chr=0;chr&lt;256;chr++) {
+<a name="l00549"></a>00549         <span class="keywordflow">if</span> (chr==128 &amp;&amp; split_chr) fontdata=Real2Phys(RealGetVec(0x1f));
 <a name="l00550"></a>00550 
-<a name="l00551"></a>00551         <span class="keywordflow">if</span> (chr==128 &amp;&amp; split_chr) fontdata=Real2Phys(RealGetVec(0x1f));
-<a name="l00552"></a>00552 
-<a name="l00553"></a>00553         <span class="keywordtype">bool</span> error=<span class="keyword">false</span>;
-<a name="l00554"></a>00554         Bit16u ty=(Bit16u)y;
-<a name="l00555"></a>00555         <span class="keywordflow">for</span> (Bit8u h=0;h&lt;cheight;h++) {
-<a name="l00556"></a>00556             Bit8u bitsel=128;
-<a name="l00557"></a>00557             Bit8u bitline=mem_readb(fontdata++);
-<a name="l00558"></a>00558             Bit8u res=0;
-<a name="l00559"></a>00559             Bit8u vidline=0;
-<a name="l00560"></a>00560             Bit16u tx=(Bit16u)x;
-<a name="l00561"></a>00561             <span class="keywordflow">while</span> (bitsel) {
-<a name="l00562"></a>00562                 <span class="comment">//Construct bitline in memory</span>
-<a name="l00563"></a>00563                 INT10_GetPixel(tx,ty,page,&amp;res);
-<a name="l00564"></a>00564                 <span class="keywordflow">if</span>(res) vidline|=bitsel;
-<a name="l00565"></a>00565                 tx++;
-<a name="l00566"></a>00566                 bitsel&gt;&gt;=1;
-<a name="l00567"></a>00567             }
-<a name="l00568"></a>00568             ty++;
-<a name="l00569"></a>00569             <span class="keywordflow">if</span>(bitline != vidline){
-<a name="l00570"></a>00570                 <span class="comment">/* It&#39;s not character &#39;chr&#39;, move on to the next */</span>
-<a name="l00571"></a>00571                 fontdata+=(<span class="keywordtype">unsigned</span> int)(cheight-(<span class="keywordtype">unsigned</span> <span class="keywordtype">int</span>)h-1u);
-<a name="l00572"></a>00572                 error = <span class="keyword">true</span>;
-<a name="l00573"></a>00573                 <span class="keywordflow">break</span>;
-<a name="l00574"></a>00574             }
-<a name="l00575"></a>00575         }
-<a name="l00576"></a>00576         <span class="keywordflow">if</span>(!error){
-<a name="l00577"></a>00577             <span class="comment">/* We found it */</span>
-<a name="l00578"></a>00578             *result = chr;
-<a name="l00579"></a>00579             <span class="keywordflow">return</span>;
-<a name="l00580"></a>00580         }
-<a name="l00581"></a>00581     }
-<a name="l00582"></a>00582     <a class="code" href="classLOG.html">LOG</a>(LOG_INT10,LOG_ERROR)(<span class="stringliteral">&quot;ReadChar didn&#39;t find character&quot;</span>);
-<a name="l00583"></a>00583     *result = 0;
-<a name="l00584"></a>00584 }
-<a name="l00585"></a>00585 <span class="keywordtype">void</span> INT10_ReadCharAttr(Bit16u * result,Bit8u page) {
-<a name="l00586"></a>00586     <span class="keywordflow">if</span>(page==0xFF) page=real_readb(BIOSMEM_SEG,BIOSMEM_CURRENT_PAGE);
-<a name="l00587"></a>00587     Bit8u cur_row=CURSOR_POS_ROW(page);
-<a name="l00588"></a>00588     Bit8u cur_col=CURSOR_POS_COL(page);
-<a name="l00589"></a>00589     ReadCharAttr(cur_col,cur_row,page,result);
-<a name="l00590"></a>00590 }
-<a name="l00591"></a>00591 
-<a name="l00592"></a>00592 <span class="keywordtype">void</span> INT10_PC98_CurMode_Relocate(<span class="keywordtype">void</span>) {
-<a name="l00593"></a>00593     <span class="comment">/* deprecated */</span>
-<a name="l00594"></a>00594 }
-<a name="l00595"></a>00595 
-<a name="l00596"></a>00596 <span class="keywordtype">void</span> WriteChar(Bit16u col,Bit16u row,Bit8u page,Bit16u chr,Bit8u attr,<span class="keywordtype">bool</span> useattr) {
-<a name="l00597"></a>00597     <span class="comment">/* Externally used by the mouse routine */</span>
-<a name="l00598"></a>00598     PhysPt fontdata;
-<a name="l00599"></a>00599     Bit16u cols = real_readw(BIOSMEM_SEG,BIOSMEM_NB_COLS);
-<a name="l00600"></a>00600     Bit8u back, cheight = IS_PC98_ARCH ? 16 : real_readb(BIOSMEM_SEG,BIOSMEM_CHAR_HEIGHT);
-<a name="l00601"></a>00601 
-<a name="l00602"></a>00602     <span class="keywordflow">if</span> (CurMode-&gt;type != M_PC98)
-<a name="l00603"></a>00603         chr &amp;= 0xFF;
-<a name="l00604"></a>00604 
-<a name="l00605"></a>00605     <span class="keywordflow">switch</span> (CurMode-&gt;type) {
-<a name="l00606"></a>00606     <span class="keywordflow">case</span> M_TEXT:
-<a name="l00607"></a>00607         {   
-<a name="l00608"></a>00608             <span class="comment">// Compute the address  </span>
-<a name="l00609"></a>00609             Bit16u address=page*real_readw(BIOSMEM_SEG,BIOSMEM_PAGE_SIZE);
-<a name="l00610"></a>00610             address+=(row*cols+col)*2;
-<a name="l00611"></a>00611             <span class="comment">// Write the char </span>
-<a name="l00612"></a>00612             PhysPt where = CurMode-&gt;pstart+address;
-<a name="l00613"></a>00613             mem_writeb(where,chr);
-<a name="l00614"></a>00614             <span class="keywordflow">if</span> (useattr) mem_writeb(where+1,attr);
-<a name="l00615"></a>00615         }
-<a name="l00616"></a>00616         <span class="keywordflow">return</span>;
-<a name="l00617"></a>00617     <span class="keywordflow">case</span> M_PC98:
-<a name="l00618"></a>00618         {
-<a name="l00619"></a>00619             <span class="comment">// Compute the address  </span>
-<a name="l00620"></a>00620             Bit16u address=((row*80)+col)*2;
-<a name="l00621"></a>00621             <span class="comment">// Write the char </span>
-<a name="l00622"></a>00622             PhysPt where = CurMode-&gt;pstart+address;
-<a name="l00623"></a>00623             mem_writew(where,chr);
-<a name="l00624"></a>00624             <span class="keywordflow">if</span> (useattr) {
-<a name="l00625"></a>00625                 mem_writeb(where+0x2000,attr);
-<a name="l00626"></a>00626             }
-<a name="l00627"></a>00627 
-<a name="l00628"></a>00628             <span class="comment">// some chars are double-wide and need to fill both cells.</span>
-<a name="l00629"></a>00629             <span class="comment">// however xx08h-xx0Bh are single-wide encodings such as the</span>
-<a name="l00630"></a>00630             <span class="comment">// single-wide box characters used by DOSBox-X&#39;s introductory</span>
-<a name="l00631"></a>00631             <span class="comment">// message.</span>
-<a name="l00632"></a>00632             <span class="keywordflow">if</span> ((chr &amp; 0xFF00u) != 0u &amp;&amp; (chr &amp; 0xFCu) != 0x08u) {
-<a name="l00633"></a>00633                 where += 2u;
-<a name="l00634"></a>00634                 mem_writew(where,chr);
-<a name="l00635"></a>00635                 <span class="keywordflow">if</span> (useattr) {
-<a name="l00636"></a>00636                     mem_writeb(where+0x2000,attr);
-<a name="l00637"></a>00637                 }
-<a name="l00638"></a>00638             }
-<a name="l00639"></a>00639         }
-<a name="l00640"></a>00640         <span class="keywordflow">return</span>;
-<a name="l00641"></a>00641     <span class="keywordflow">case</span> M_CGA4:
-<a name="l00642"></a>00642     <span class="keywordflow">case</span> M_CGA2:
-<a name="l00643"></a>00643     <span class="keywordflow">case</span> M_TANDY16:
-<a name="l00644"></a>00644         <span class="keywordflow">if</span> (chr&gt;=128) {
-<a name="l00645"></a>00645             chr-=128;
-<a name="l00646"></a>00646             fontdata=Real2Phys(RealGetVec(0x1f));
-<a name="l00647"></a>00647             <span class="keywordflow">break</span>;
-<a name="l00648"></a>00648         }
-<a name="l00649"></a>00649         <span class="keywordflow">switch</span> (machine) {
-<a name="l00650"></a>00650         <span class="keywordflow">case</span> MCH_CGA:
-<a name="l00651"></a>00651         <span class="keywordflow">case</span> MCH_HERC:
-<a name="l00652"></a>00652             fontdata=PhysMake(0xf000,0xfa6e);
-<a name="l00653"></a>00653             <span class="keywordflow">break</span>;
-<a name="l00654"></a>00654         <span class="keywordflow">case</span> TANDY_ARCH_CASE:
-<a name="l00655"></a>00655             fontdata=Real2Phys(RealGetVec(0x44));
-<a name="l00656"></a>00656             <span class="keywordflow">break</span>;
-<a name="l00657"></a>00657         <span class="keywordflow">default</span>:
-<a name="l00658"></a>00658             fontdata=Real2Phys(RealGetVec(0x43));
-<a name="l00659"></a>00659             <span class="keywordflow">break</span>;
-<a name="l00660"></a>00660         }
-<a name="l00661"></a>00661         <span class="keywordflow">break</span>;
-<a name="l00662"></a>00662     <span class="keywordflow">default</span>:
-<a name="l00663"></a>00663         fontdata=Real2Phys(RealGetVec(0x43));
-<a name="l00664"></a>00664         <span class="keywordflow">break</span>;
-<a name="l00665"></a>00665     }
-<a name="l00666"></a>00666     fontdata+=(<span class="keywordtype">unsigned</span> int)chr*(<span class="keywordtype">unsigned</span> <span class="keywordtype">int</span>)cheight;
-<a name="l00667"></a>00667 
-<a name="l00668"></a>00668     <span class="keywordflow">if</span>(GCC_UNLIKELY(!useattr)) { <span class="comment">//Set attribute(color) to a sensible value</span>
-<a name="l00669"></a>00669         <span class="keyword">static</span> <span class="keywordtype">bool</span> warned_use = <span class="keyword">false</span>;
-<a name="l00670"></a>00670         <span class="keywordflow">if</span>(GCC_UNLIKELY(!warned_use)){ 
-<a name="l00671"></a>00671             <a class="code" href="classLOG.html">LOG</a>(LOG_INT10,LOG_ERROR)(<span class="stringliteral">&quot;writechar used without attribute in non-textmode %c %X&quot;</span>,chr,chr);
-<a name="l00672"></a>00672             warned_use = <span class="keyword">true</span>;
-<a name="l00673"></a>00673         }
-<a name="l00674"></a>00674         <span class="keywordflow">switch</span>(CurMode-&gt;type) {
-<a name="l00675"></a>00675         <span class="keywordflow">case</span> M_CGA4:
-<a name="l00676"></a>00676             attr = 0x3;
-<a name="l00677"></a>00677             <span class="keywordflow">break</span>;
-<a name="l00678"></a>00678         <span class="keywordflow">case</span> M_CGA2:
-<a name="l00679"></a>00679             attr = 0x1;
-<a name="l00680"></a>00680             <span class="keywordflow">break</span>;
-<a name="l00681"></a>00681         <span class="keywordflow">case</span> M_TANDY16:
-<a name="l00682"></a>00682         <span class="keywordflow">case</span> M_EGA:
-<a name="l00683"></a>00683         <span class="keywordflow">default</span>:
-<a name="l00684"></a>00684             attr = 0x7;
-<a name="l00685"></a>00685             <span class="keywordflow">break</span>;
-<a name="l00686"></a>00686         }
-<a name="l00687"></a>00687     }
-<a name="l00688"></a>00688 
-<a name="l00689"></a>00689     <span class="comment">//Attribute behavior of mode 6; mode 11 does something similar but</span>
-<a name="l00690"></a>00690     <span class="comment">//it is in INT 10h handler because it only applies to function 09h</span>
-<a name="l00691"></a>00691     <span class="keywordflow">if</span> (CurMode-&gt;mode==0x06) attr=(attr&amp;0x80)|1;
-<a name="l00692"></a>00692 
-<a name="l00693"></a>00693     <span class="keywordflow">switch</span> (CurMode-&gt;type) {
-<a name="l00694"></a>00694     <span class="keywordflow">case</span> M_VGA:
-<a name="l00695"></a>00695     <span class="keywordflow">case</span> M_LIN8:
-<a name="l00696"></a>00696         <span class="comment">// 256-color modes have background color instead of page</span>
-<a name="l00697"></a>00697         back=page;
-<a name="l00698"></a>00698         page=0;
-<a name="l00699"></a>00699         <span class="keywordflow">break</span>;
-<a name="l00700"></a>00700     <span class="keywordflow">case</span> M_EGA:
-<a name="l00701"></a>00701         <span class="comment">/* enable all planes for EGA modes (Ultima 1 colour bug) */</span>
-<a name="l00702"></a>00702         <span class="comment">/* might be put into INT10_PutPixel but different vga bios</span>
-<a name="l00703"></a>00703 <span class="comment">           implementations have different opinions about this */</span>
-<a name="l00704"></a>00704         IO_Write(0x3c4,0x2);IO_Write(0x3c5,0xf);
-<a name="l00705"></a>00705         <span class="comment">/* fall through */</span>
-<a name="l00706"></a>00706     <span class="keywordflow">default</span>:
-<a name="l00707"></a>00707         back=attr&amp;0x80;
-<a name="l00708"></a>00708         <span class="keywordflow">break</span>;
-<a name="l00709"></a>00709     }
+<a name="l00551"></a>00551         <span class="keywordtype">bool</span> error=<span class="keyword">false</span>;
+<a name="l00552"></a>00552         Bit16u ty=(Bit16u)y;
+<a name="l00553"></a>00553         <span class="keywordflow">for</span> (Bit8u h=0;h&lt;cheight;h++) {
+<a name="l00554"></a>00554             Bit8u bitsel=128;
+<a name="l00555"></a>00555             Bit8u bitline=mem_readb(fontdata++);
+<a name="l00556"></a>00556             Bit8u res=0;
+<a name="l00557"></a>00557             Bit8u vidline=0;
+<a name="l00558"></a>00558             Bit16u tx=(Bit16u)x;
+<a name="l00559"></a>00559             <span class="keywordflow">while</span> (bitsel) {
+<a name="l00560"></a>00560                 <span class="comment">//Construct bitline in memory</span>
+<a name="l00561"></a>00561                 INT10_GetPixel(tx,ty,page,&amp;res);
+<a name="l00562"></a>00562                 <span class="keywordflow">if</span>(res) vidline|=bitsel;
+<a name="l00563"></a>00563                 tx++;
+<a name="l00564"></a>00564                 bitsel&gt;&gt;=1;
+<a name="l00565"></a>00565             }
+<a name="l00566"></a>00566             ty++;
+<a name="l00567"></a>00567             <span class="keywordflow">if</span>(bitline != vidline){
+<a name="l00568"></a>00568                 <span class="comment">/* It&#39;s not character &#39;chr&#39;, move on to the next */</span>
+<a name="l00569"></a>00569                 fontdata+=(<span class="keywordtype">unsigned</span> int)(cheight-(<span class="keywordtype">unsigned</span> <span class="keywordtype">int</span>)h-1u);
+<a name="l00570"></a>00570                 error = <span class="keyword">true</span>;
+<a name="l00571"></a>00571                 <span class="keywordflow">break</span>;
+<a name="l00572"></a>00572             }
+<a name="l00573"></a>00573         }
+<a name="l00574"></a>00574         <span class="keywordflow">if</span>(!error){
+<a name="l00575"></a>00575             <span class="comment">/* We found it */</span>
+<a name="l00576"></a>00576             *result = chr;
+<a name="l00577"></a>00577             <span class="keywordflow">return</span>;
+<a name="l00578"></a>00578         }
+<a name="l00579"></a>00579     }
+<a name="l00580"></a>00580     <a class="code" href="classLOG.html">LOG</a>(LOG_INT10,LOG_ERROR)(<span class="stringliteral">&quot;ReadChar didn&#39;t find character&quot;</span>);
+<a name="l00581"></a>00581     *result = 0;
+<a name="l00582"></a>00582 }
+<a name="l00583"></a>00583 <span class="keywordtype">void</span> INT10_ReadCharAttr(Bit16u * result,Bit8u page) {
+<a name="l00584"></a>00584     <span class="keywordflow">if</span>(page==0xFF) page=real_readb(BIOSMEM_SEG,BIOSMEM_CURRENT_PAGE);
+<a name="l00585"></a>00585     Bit8u cur_row=CURSOR_POS_ROW(page);
+<a name="l00586"></a>00586     Bit8u cur_col=CURSOR_POS_COL(page);
+<a name="l00587"></a>00587     ReadCharAttr(cur_col,cur_row,page,result);
+<a name="l00588"></a>00588 }
+<a name="l00589"></a>00589 
+<a name="l00590"></a>00590 <span class="keywordtype">void</span> INT10_PC98_CurMode_Relocate(<span class="keywordtype">void</span>) {
+<a name="l00591"></a>00591     <span class="comment">/* deprecated */</span>
+<a name="l00592"></a>00592 }
+<a name="l00593"></a>00593 
+<a name="l00594"></a>00594 <span class="keywordtype">void</span> WriteChar(Bit16u col,Bit16u row,Bit8u page,Bit16u chr,Bit8u attr,<span class="keywordtype">bool</span> useattr) {
+<a name="l00595"></a>00595     <span class="comment">/* Externally used by the mouse routine */</span>
+<a name="l00596"></a>00596     PhysPt fontdata;
+<a name="l00597"></a>00597     Bit16u cols = real_readw(BIOSMEM_SEG,BIOSMEM_NB_COLS);
+<a name="l00598"></a>00598     Bit8u back, cheight = IS_PC98_ARCH ? 16 : real_readb(BIOSMEM_SEG,BIOSMEM_CHAR_HEIGHT);
+<a name="l00599"></a>00599 
+<a name="l00600"></a>00600     <span class="keywordflow">if</span> (CurMode-&gt;type != M_PC98)
+<a name="l00601"></a>00601         chr &amp;= 0xFF;
+<a name="l00602"></a>00602 
+<a name="l00603"></a>00603     <span class="keywordflow">switch</span> (CurMode-&gt;type) {
+<a name="l00604"></a>00604     <span class="keywordflow">case</span> M_TEXT:
+<a name="l00605"></a>00605         {   
+<a name="l00606"></a>00606             <span class="comment">// Compute the address  </span>
+<a name="l00607"></a>00607             Bit16u address=page*real_readw(BIOSMEM_SEG,BIOSMEM_PAGE_SIZE);
+<a name="l00608"></a>00608             address+=(row*cols+col)*2;
+<a name="l00609"></a>00609             <span class="comment">// Write the char </span>
+<a name="l00610"></a>00610             PhysPt where = CurMode-&gt;pstart+address;
+<a name="l00611"></a>00611             mem_writeb(where,chr);
+<a name="l00612"></a>00612             <span class="keywordflow">if</span> (useattr) mem_writeb(where+1,attr);
+<a name="l00613"></a>00613         }
+<a name="l00614"></a>00614         <span class="keywordflow">return</span>;
+<a name="l00615"></a>00615     <span class="keywordflow">case</span> M_PC98:
+<a name="l00616"></a>00616         {
+<a name="l00617"></a>00617             <span class="comment">// Compute the address  </span>
+<a name="l00618"></a>00618             Bit16u address=((row*80)+col)*2;
+<a name="l00619"></a>00619             <span class="comment">// Write the char </span>
+<a name="l00620"></a>00620             PhysPt where = CurMode-&gt;pstart+address;
+<a name="l00621"></a>00621             mem_writew(where,chr);
+<a name="l00622"></a>00622             <span class="keywordflow">if</span> (useattr) {
+<a name="l00623"></a>00623                 mem_writeb(where+0x2000,attr);
+<a name="l00624"></a>00624             }
+<a name="l00625"></a>00625 
+<a name="l00626"></a>00626             <span class="comment">// some chars are double-wide and need to fill both cells.</span>
+<a name="l00627"></a>00627             <span class="comment">// however xx08h-xx0Bh are single-wide encodings such as the</span>
+<a name="l00628"></a>00628             <span class="comment">// single-wide box characters used by DOSBox-X&#39;s introductory</span>
+<a name="l00629"></a>00629             <span class="comment">// message.</span>
+<a name="l00630"></a>00630             <span class="keywordflow">if</span> ((chr &amp; 0xFF00u) != 0u &amp;&amp; (chr &amp; 0xFCu) != 0x08u) {
+<a name="l00631"></a>00631                 where += 2u;
+<a name="l00632"></a>00632                 mem_writew(where,chr);
+<a name="l00633"></a>00633                 <span class="keywordflow">if</span> (useattr) {
+<a name="l00634"></a>00634                     mem_writeb(where+0x2000,attr);
+<a name="l00635"></a>00635                 }
+<a name="l00636"></a>00636             }
+<a name="l00637"></a>00637         }
+<a name="l00638"></a>00638         <span class="keywordflow">return</span>;
+<a name="l00639"></a>00639     <span class="keywordflow">case</span> M_CGA4:
+<a name="l00640"></a>00640     <span class="keywordflow">case</span> M_CGA2:
+<a name="l00641"></a>00641     <span class="keywordflow">case</span> M_TANDY16:
+<a name="l00642"></a>00642         <span class="keywordflow">if</span> (chr&gt;=128) {
+<a name="l00643"></a>00643             chr-=128;
+<a name="l00644"></a>00644             fontdata=Real2Phys(RealGetVec(0x1f));
+<a name="l00645"></a>00645             <span class="keywordflow">break</span>;
+<a name="l00646"></a>00646         }
+<a name="l00647"></a>00647         <span class="keywordflow">switch</span> (machine) {
+<a name="l00648"></a>00648         <span class="keywordflow">case</span> MCH_CGA:
+<a name="l00649"></a>00649         <span class="keywordflow">case</span> MCH_HERC:
+<a name="l00650"></a>00650             fontdata=PhysMake(0xf000,0xfa6e);
+<a name="l00651"></a>00651             <span class="keywordflow">break</span>;
+<a name="l00652"></a>00652         <span class="keywordflow">case</span> TANDY_ARCH_CASE:
+<a name="l00653"></a>00653             fontdata=Real2Phys(RealGetVec(0x44));
+<a name="l00654"></a>00654             <span class="keywordflow">break</span>;
+<a name="l00655"></a>00655         <span class="keywordflow">default</span>:
+<a name="l00656"></a>00656             fontdata=Real2Phys(RealGetVec(0x43));
+<a name="l00657"></a>00657             <span class="keywordflow">break</span>;
+<a name="l00658"></a>00658         }
+<a name="l00659"></a>00659         <span class="keywordflow">break</span>;
+<a name="l00660"></a>00660     <span class="keywordflow">default</span>:
+<a name="l00661"></a>00661         fontdata=Real2Phys(RealGetVec(0x43));
+<a name="l00662"></a>00662         <span class="keywordflow">break</span>;
+<a name="l00663"></a>00663     }
+<a name="l00664"></a>00664     fontdata+=(<span class="keywordtype">unsigned</span> int)chr*(<span class="keywordtype">unsigned</span> <span class="keywordtype">int</span>)cheight;
+<a name="l00665"></a>00665 
+<a name="l00666"></a>00666     <span class="keywordflow">if</span>(GCC_UNLIKELY(!useattr)) { <span class="comment">//Set attribute(color) to a sensible value</span>
+<a name="l00667"></a>00667         <span class="keyword">static</span> <span class="keywordtype">bool</span> warned_use = <span class="keyword">false</span>;
+<a name="l00668"></a>00668         <span class="keywordflow">if</span>(GCC_UNLIKELY(!warned_use)){ 
+<a name="l00669"></a>00669             <a class="code" href="classLOG.html">LOG</a>(LOG_INT10,LOG_ERROR)(<span class="stringliteral">&quot;writechar used without attribute in non-textmode %c %X&quot;</span>,chr,chr);
+<a name="l00670"></a>00670             warned_use = <span class="keyword">true</span>;
+<a name="l00671"></a>00671         }
+<a name="l00672"></a>00672         <span class="keywordflow">switch</span>(CurMode-&gt;type) {
+<a name="l00673"></a>00673         <span class="keywordflow">case</span> M_CGA4:
+<a name="l00674"></a>00674             attr = 0x3;
+<a name="l00675"></a>00675             <span class="keywordflow">break</span>;
+<a name="l00676"></a>00676         <span class="keywordflow">case</span> M_CGA2:
+<a name="l00677"></a>00677             attr = 0x1;
+<a name="l00678"></a>00678             <span class="keywordflow">break</span>;
+<a name="l00679"></a>00679         <span class="keywordflow">case</span> M_TANDY16:
+<a name="l00680"></a>00680         <span class="keywordflow">case</span> M_EGA:
+<a name="l00681"></a>00681         <span class="keywordflow">default</span>:
+<a name="l00682"></a>00682             attr = 0x7;
+<a name="l00683"></a>00683             <span class="keywordflow">break</span>;
+<a name="l00684"></a>00684         }
+<a name="l00685"></a>00685     }
+<a name="l00686"></a>00686 
+<a name="l00687"></a>00687     <span class="comment">//Attribute behavior of mode 6; mode 11 does something similar but</span>
+<a name="l00688"></a>00688     <span class="comment">//it is in INT 10h handler because it only applies to function 09h</span>
+<a name="l00689"></a>00689     <span class="keywordflow">if</span> (CurMode-&gt;mode==0x06) attr=(attr&amp;0x80)|1;
+<a name="l00690"></a>00690 
+<a name="l00691"></a>00691     <span class="keywordflow">switch</span> (CurMode-&gt;type) {
+<a name="l00692"></a>00692     <span class="keywordflow">case</span> M_VGA:
+<a name="l00693"></a>00693     <span class="keywordflow">case</span> M_LIN8:
+<a name="l00694"></a>00694         <span class="comment">// 256-color modes have background color instead of page</span>
+<a name="l00695"></a>00695         back=page;
+<a name="l00696"></a>00696         page=0;
+<a name="l00697"></a>00697         <span class="keywordflow">break</span>;
+<a name="l00698"></a>00698     <span class="keywordflow">case</span> M_EGA:
+<a name="l00699"></a>00699         <span class="comment">/* enable all planes for EGA modes (Ultima 1 colour bug) */</span>
+<a name="l00700"></a>00700         <span class="comment">/* might be put into INT10_PutPixel but different vga bios</span>
+<a name="l00701"></a>00701 <span class="comment">           implementations have different opinions about this */</span>
+<a name="l00702"></a>00702         IO_Write(0x3c4,0x2);IO_Write(0x3c5,0xf);
+<a name="l00703"></a>00703         <span class="comment">/* fall through */</span>
+<a name="l00704"></a>00704     <span class="keywordflow">default</span>:
+<a name="l00705"></a>00705         back=attr&amp;0x80;
+<a name="l00706"></a>00706         <span class="keywordflow">break</span>;
+<a name="l00707"></a>00707     }
+<a name="l00708"></a>00708 
+<a name="l00709"></a>00709     Bitu x=col*8u,y=(<span class="keywordtype">unsigned</span> int)(row*(<span class="keywordtype">unsigned</span> <span class="keywordtype">int</span>)cheight*(cols/CurMode-&gt;twidth));
 <a name="l00710"></a>00710 
-<a name="l00711"></a>00711     Bitu x=col*8u,y=(<span class="keywordtype">unsigned</span> int)(row*(<span class="keywordtype">unsigned</span> <span class="keywordtype">int</span>)cheight*(cols/CurMode-&gt;twidth));
-<a name="l00712"></a>00712 
-<a name="l00713"></a>00713     Bit16u ty=(Bit16u)y;
-<a name="l00714"></a>00714     <span class="keywordflow">for</span> (Bit8u h=0;h&lt;cheight;h++) {
-<a name="l00715"></a>00715         Bit8u bitsel=128;
-<a name="l00716"></a>00716         Bit8u bitline=mem_readb(fontdata++);
-<a name="l00717"></a>00717         Bit16u tx=(Bit16u)x;
-<a name="l00718"></a>00718         <span class="keywordflow">while</span> (bitsel) {
-<a name="l00719"></a>00719             INT10_PutPixel(tx,ty,page,(bitline&amp;bitsel)?attr:back);
-<a name="l00720"></a>00720             tx++;
-<a name="l00721"></a>00721             bitsel&gt;&gt;=1;
-<a name="l00722"></a>00722         }
-<a name="l00723"></a>00723         ty++;
-<a name="l00724"></a>00724     }
-<a name="l00725"></a>00725 }
-<a name="l00726"></a>00726 
-<a name="l00727"></a>00727 <span class="keywordtype">void</span> INT10_WriteChar(Bit16u chr,Bit8u attr,Bit8u page,Bit16u count,<span class="keywordtype">bool</span> showattr) {
-<a name="l00728"></a>00728     Bit8u pospage=page;
-<a name="l00729"></a>00729     <span class="keywordflow">if</span> (CurMode-&gt;type!=M_TEXT) {
-<a name="l00730"></a>00730         showattr=<span class="keyword">true</span>; <span class="comment">//Use attr in graphics mode always</span>
-<a name="l00731"></a>00731         <span class="keywordflow">switch</span> (machine) {
-<a name="l00732"></a>00732             <span class="keywordflow">case</span> EGAVGA_ARCH_CASE:
-<a name="l00733"></a>00733                 <span class="keywordflow">switch</span> (CurMode-&gt;type) {
-<a name="l00734"></a>00734                 <span class="keywordflow">case</span> M_VGA:
-<a name="l00735"></a>00735                 <span class="keywordflow">case</span> M_LIN8:
-<a name="l00736"></a>00736                     pospage=0;
-<a name="l00737"></a>00737                     <span class="keywordflow">break</span>;
-<a name="l00738"></a>00738                 <span class="keywordflow">default</span>:
-<a name="l00739"></a>00739                     page%=CurMode-&gt;ptotal;
-<a name="l00740"></a>00740                     pospage=page;
-<a name="l00741"></a>00741                     <span class="keywordflow">break</span>;
-<a name="l00742"></a>00742                 }
-<a name="l00743"></a>00743                 <span class="keywordflow">break</span>;
-<a name="l00744"></a>00744             <span class="keywordflow">case</span> MCH_CGA:
-<a name="l00745"></a>00745             <span class="keywordflow">case</span> MCH_MCGA:
-<a name="l00746"></a>00746             <span class="keywordflow">case</span> MCH_PCJR:
-<a name="l00747"></a>00747                 page=0;
-<a name="l00748"></a>00748                 pospage=0;
+<a name="l00711"></a>00711     Bit16u ty=(Bit16u)y;
+<a name="l00712"></a>00712     <span class="keywordflow">for</span> (Bit8u h=0;h&lt;cheight;h++) {
+<a name="l00713"></a>00713         Bit8u bitsel=128;
+<a name="l00714"></a>00714         Bit8u bitline=mem_readb(fontdata++);
+<a name="l00715"></a>00715         Bit16u tx=(Bit16u)x;
+<a name="l00716"></a>00716         <span class="keywordflow">while</span> (bitsel) {
+<a name="l00717"></a>00717             INT10_PutPixel(tx,ty,page,(bitline&amp;bitsel)?attr:back);
+<a name="l00718"></a>00718             tx++;
+<a name="l00719"></a>00719             bitsel&gt;&gt;=1;
+<a name="l00720"></a>00720         }
+<a name="l00721"></a>00721         ty++;
+<a name="l00722"></a>00722     }
+<a name="l00723"></a>00723 }
+<a name="l00724"></a>00724 
+<a name="l00725"></a>00725 <span class="keywordtype">void</span> INT10_WriteChar(Bit16u chr,Bit8u attr,Bit8u page,Bit16u count,<span class="keywordtype">bool</span> showattr) {
+<a name="l00726"></a>00726     Bit8u pospage=page;
+<a name="l00727"></a>00727     <span class="keywordflow">if</span> (CurMode-&gt;type!=M_TEXT) {
+<a name="l00728"></a>00728         showattr=<span class="keyword">true</span>; <span class="comment">//Use attr in graphics mode always</span>
+<a name="l00729"></a>00729         <span class="keywordflow">switch</span> (machine) {
+<a name="l00730"></a>00730             <span class="keywordflow">case</span> EGAVGA_ARCH_CASE:
+<a name="l00731"></a>00731                 <span class="keywordflow">switch</span> (CurMode-&gt;type) {
+<a name="l00732"></a>00732                 <span class="keywordflow">case</span> M_VGA:
+<a name="l00733"></a>00733                 <span class="keywordflow">case</span> M_LIN8:
+<a name="l00734"></a>00734                     pospage=0;
+<a name="l00735"></a>00735                     <span class="keywordflow">break</span>;
+<a name="l00736"></a>00736                 <span class="keywordflow">default</span>:
+<a name="l00737"></a>00737                     page%=CurMode-&gt;ptotal;
+<a name="l00738"></a>00738                     pospage=page;
+<a name="l00739"></a>00739                     <span class="keywordflow">break</span>;
+<a name="l00740"></a>00740                 }
+<a name="l00741"></a>00741                 <span class="keywordflow">break</span>;
+<a name="l00742"></a>00742             <span class="keywordflow">case</span> MCH_CGA:
+<a name="l00743"></a>00743             <span class="keywordflow">case</span> MCH_MCGA:
+<a name="l00744"></a>00744             <span class="keywordflow">case</span> MCH_PCJR:
+<a name="l00745"></a>00745                 page=0;
+<a name="l00746"></a>00746                 pospage=0;
+<a name="l00747"></a>00747                 <span class="keywordflow">break</span>;
+<a name="l00748"></a>00748             <span class="keywordflow">default</span>:
 <a name="l00749"></a>00749                 <span class="keywordflow">break</span>;
-<a name="l00750"></a>00750             <span class="keywordflow">default</span>:
-<a name="l00751"></a>00751                 <span class="keywordflow">break</span>;
-<a name="l00752"></a>00752         }
-<a name="l00753"></a>00753     }
-<a name="l00754"></a>00754 
-<a name="l00755"></a>00755     Bit8u cur_row=CURSOR_POS_ROW(pospage);
-<a name="l00756"></a>00756     Bit8u cur_col=CURSOR_POS_COL(pospage);
-<a name="l00757"></a>00757     BIOS_NCOLS;
-<a name="l00758"></a>00758     <span class="keywordflow">while</span> (count&gt;0) {
-<a name="l00759"></a>00759         WriteChar(cur_col,cur_row,page,chr,attr,showattr);
-<a name="l00760"></a>00760         count--;
-<a name="l00761"></a>00761         cur_col++;
-<a name="l00762"></a>00762         <span class="keywordflow">if</span>(cur_col==ncols) {
-<a name="l00763"></a>00763             cur_col=0;
-<a name="l00764"></a>00764             cur_row++;
-<a name="l00765"></a>00765         }
-<a name="l00766"></a>00766     }
-<a name="l00767"></a>00767 
-<a name="l00768"></a>00768     <span class="keywordflow">if</span> (CurMode-&gt;type==M_EGA) {
-<a name="l00769"></a>00769         <span class="comment">// Reset write ops for EGA graphics modes</span>
-<a name="l00770"></a>00770         IO_Write(0x3ce,0x3);IO_Write(0x3cf,0x0);
-<a name="l00771"></a>00771     }
-<a name="l00772"></a>00772 }
-<a name="l00773"></a>00773 
-<a name="l00774"></a>00774 <span class="keyword">static</span> <span class="keywordtype">void</span> INT10_TeletypeOutputAttr(Bit8u chr,Bit8u attr,<span class="keywordtype">bool</span> useattr,Bit8u page) {
-<a name="l00775"></a>00775     BIOS_NCOLS;BIOS_NROWS;
-<a name="l00776"></a>00776     Bit8u cur_row=CURSOR_POS_ROW(page);
-<a name="l00777"></a>00777     Bit8u cur_col=CURSOR_POS_COL(page);
-<a name="l00778"></a>00778     <span class="keywordflow">switch</span> (chr) {
-<a name="l00779"></a>00779     <span class="keywordflow">case</span> 7: <span class="comment">/* Beep */</span>
-<a name="l00780"></a>00780         <span class="comment">// Prepare PIT counter 2 for ~900 Hz square wave</span>
-<a name="l00781"></a>00781         IO_Write(0x43, 0xb6);
-<a name="l00782"></a>00782         IO_Write(0x42, 0x28);
-<a name="l00783"></a>00783         IO_Write(0x42, 0x05);
-<a name="l00784"></a>00784         <span class="comment">// Speaker on</span>
-<a name="l00785"></a>00785         IO_Write(0x61, IO_Read(0x61) | 0x3);
-<a name="l00786"></a>00786         <span class="comment">// Idle for 1/3rd of a second</span>
-<a name="l00787"></a>00787         <span class="keywordtype">double</span> start;
-<a name="l00788"></a>00788         start = PIC_FullIndex();
-<a name="l00789"></a>00789         <span class="keywordflow">while</span> ((PIC_FullIndex() - start) &lt; 333.0) CALLBACK_Idle();
-<a name="l00790"></a>00790         <span class="comment">// Speaker off</span>
-<a name="l00791"></a>00791         IO_Write(0x61, IO_Read(0x61) &amp; ~0x3);
-<a name="l00792"></a>00792         <span class="comment">// No change in position</span>
-<a name="l00793"></a>00793         <span class="keywordflow">return</span>;
-<a name="l00794"></a>00794     <span class="keywordflow">case</span> 8:
-<a name="l00795"></a>00795         <span class="keywordflow">if</span>(cur_col&gt;0) cur_col--;
-<a name="l00796"></a>00796         <span class="keywordflow">break</span>;
-<a name="l00797"></a>00797     <span class="keywordflow">case</span> <span class="charliteral">&#39;\r&#39;</span>:
-<a name="l00798"></a>00798         cur_col=0;
-<a name="l00799"></a>00799         <span class="keywordflow">break</span>;
-<a name="l00800"></a>00800     <span class="keywordflow">case</span> <span class="charliteral">&#39;\n&#39;</span>:
-<a name="l00801"></a>00801 <span class="comment">//      cur_col=0; //Seems to break an old chess game</span>
-<a name="l00802"></a>00802         cur_row++;
-<a name="l00803"></a>00803         <span class="keywordflow">break</span>;
-<a name="l00804"></a>00804     <span class="keywordflow">default</span>:
-<a name="l00805"></a>00805         <span class="comment">/* Draw the actual Character */</span>
-<a name="l00806"></a>00806         WriteChar(cur_col,cur_row,page,chr,attr,useattr);
-<a name="l00807"></a>00807         cur_col++;
-<a name="l00808"></a>00808     }
-<a name="l00809"></a>00809     <span class="keywordflow">if</span>(cur_col==ncols) {
-<a name="l00810"></a>00810         cur_col=0;
-<a name="l00811"></a>00811         cur_row++;
-<a name="l00812"></a>00812     }
-<a name="l00813"></a>00813     <span class="comment">// Do we need to scroll ?</span>
-<a name="l00814"></a>00814     <span class="keywordflow">if</span>(cur_row==nrows) {
-<a name="l00815"></a>00815         <span class="comment">//Fill with black on non-text modes</span>
-<a name="l00816"></a>00816         Bit8u fill = 0;
-<a name="l00817"></a>00817         <span class="keywordflow">if</span> (IS_PC98_ARCH &amp;&amp; CurMode-&gt;type == M_TEXT) {
-<a name="l00818"></a>00818             <span class="comment">//Fill with the default ANSI attribute on textmode</span>
-<a name="l00819"></a>00819             fill = DefaultANSIAttr();
-<a name="l00820"></a>00820         }
-<a name="l00821"></a>00821         <span class="keywordflow">else</span> <span class="keywordflow">if</span> (CurMode-&gt;type==M_TEXT) {
-<a name="l00822"></a>00822             <span class="comment">//Fill with attribute at cursor on textmode</span>
-<a name="l00823"></a>00823             Bit16u chat;
-<a name="l00824"></a>00824             INT10_ReadCharAttr(&amp;chat,page);
-<a name="l00825"></a>00825             fill=(Bit8u)(chat&gt;&gt;8);
-<a name="l00826"></a>00826         }
-<a name="l00827"></a>00827         INT10_ScrollWindow(0,0,(Bit8u)(nrows-1),(Bit8u)(ncols-1),-1,fill,page);
-<a name="l00828"></a>00828         cur_row--;
-<a name="l00829"></a>00829     }
-<a name="l00830"></a>00830     <span class="comment">// Set the cursor for the page</span>
-<a name="l00831"></a>00831     INT10_SetCursorPos(cur_row,cur_col,page);
-<a name="l00832"></a>00832 }
-<a name="l00833"></a>00833 
-<a name="l00834"></a>00834 <span class="keywordtype">void</span> INT10_TeletypeOutputAttr(Bit8u chr,Bit8u attr,<span class="keywordtype">bool</span> useattr) {
-<a name="l00835"></a>00835     INT10_TeletypeOutputAttr(chr,attr,useattr,real_readb(BIOSMEM_SEG,BIOSMEM_CURRENT_PAGE));
-<a name="l00836"></a>00836 }
-<a name="l00837"></a>00837 
-<a name="l00838"></a>00838 <span class="keywordtype">void</span> INT10_TeletypeOutput(Bit8u chr,Bit8u attr) {
-<a name="l00839"></a>00839     INT10_TeletypeOutputAttr(chr,attr,CurMode-&gt;type!=M_TEXT);
-<a name="l00840"></a>00840 }
-<a name="l00841"></a>00841 
-<a name="l00842"></a>00842 <span class="keywordtype">void</span> INT10_WriteString(Bit8u row,Bit8u col,Bit8u flag,Bit8u attr,PhysPt <span class="keywordtype">string</span>,Bit16u count,Bit8u page) {
-<a name="l00843"></a>00843     Bit8u cur_row=CURSOR_POS_ROW(page);
-<a name="l00844"></a>00844     Bit8u cur_col=CURSOR_POS_COL(page);
-<a name="l00845"></a>00845     
-<a name="l00846"></a>00846     <span class="comment">// if row=0xff special case : use current cursor position</span>
-<a name="l00847"></a>00847     <span class="keywordflow">if</span> (row==0xff) {
-<a name="l00848"></a>00848         row=cur_row;
-<a name="l00849"></a>00849         col=cur_col;
-<a name="l00850"></a>00850     }
-<a name="l00851"></a>00851     INT10_SetCursorPos(row,col,page);
-<a name="l00852"></a>00852     <span class="keywordflow">while</span> (count&gt;0) {
-<a name="l00853"></a>00853         Bit8u chr=mem_readb(<span class="keywordtype">string</span>);
-<a name="l00854"></a>00854         <span class="keywordtype">string</span>++;
-<a name="l00855"></a>00855         <span class="keywordflow">if</span> (flag&amp;2) {
-<a name="l00856"></a>00856             attr=mem_readb(<span class="keywordtype">string</span>);
-<a name="l00857"></a>00857             <span class="keywordtype">string</span>++;
-<a name="l00858"></a>00858         }
-<a name="l00859"></a>00859         INT10_TeletypeOutputAttr(chr,attr,<span class="keyword">true</span>,page);
-<a name="l00860"></a>00860         count--;
+<a name="l00750"></a>00750         }
+<a name="l00751"></a>00751     }
+<a name="l00752"></a>00752 
+<a name="l00753"></a>00753     Bit8u cur_row=CURSOR_POS_ROW(pospage);
+<a name="l00754"></a>00754     Bit8u cur_col=CURSOR_POS_COL(pospage);
+<a name="l00755"></a>00755     BIOS_NCOLS;
+<a name="l00756"></a>00756     <span class="keywordflow">while</span> (count&gt;0) {
+<a name="l00757"></a>00757         WriteChar(cur_col,cur_row,page,chr,attr,showattr);
+<a name="l00758"></a>00758         count--;
+<a name="l00759"></a>00759         cur_col++;
+<a name="l00760"></a>00760         <span class="keywordflow">if</span>(cur_col==ncols) {
+<a name="l00761"></a>00761             cur_col=0;
+<a name="l00762"></a>00762             cur_row++;
+<a name="l00763"></a>00763         }
+<a name="l00764"></a>00764     }
+<a name="l00765"></a>00765 
+<a name="l00766"></a>00766     <span class="keywordflow">if</span> (CurMode-&gt;type==M_EGA) {
+<a name="l00767"></a>00767         <span class="comment">// Reset write ops for EGA graphics modes</span>
+<a name="l00768"></a>00768         IO_Write(0x3ce,0x3);IO_Write(0x3cf,0x0);
+<a name="l00769"></a>00769     }
+<a name="l00770"></a>00770 }
+<a name="l00771"></a>00771 
+<a name="l00772"></a>00772 <span class="keyword">static</span> <span class="keywordtype">void</span> INT10_TeletypeOutputAttr(Bit8u chr,Bit8u attr,<span class="keywordtype">bool</span> useattr,Bit8u page) {
+<a name="l00773"></a>00773     BIOS_NCOLS;BIOS_NROWS;
+<a name="l00774"></a>00774     Bit8u cur_row=CURSOR_POS_ROW(page);
+<a name="l00775"></a>00775     Bit8u cur_col=CURSOR_POS_COL(page);
+<a name="l00776"></a>00776     <span class="keywordflow">switch</span> (chr) {
+<a name="l00777"></a>00777     <span class="keywordflow">case</span> 8:
+<a name="l00778"></a>00778         <span class="keywordflow">if</span>(cur_col&gt;0) cur_col--;
+<a name="l00779"></a>00779         <span class="keywordflow">break</span>;
+<a name="l00780"></a>00780     <span class="keywordflow">case</span> <span class="charliteral">&#39;\r&#39;</span>:
+<a name="l00781"></a>00781         cur_col=0;
+<a name="l00782"></a>00782         <span class="keywordflow">break</span>;
+<a name="l00783"></a>00783     <span class="keywordflow">case</span> <span class="charliteral">&#39;\n&#39;</span>:
+<a name="l00784"></a>00784 <span class="comment">//      cur_col=0; //Seems to break an old chess game</span>
+<a name="l00785"></a>00785         cur_row++;
+<a name="l00786"></a>00786         <span class="keywordflow">break</span>;
+<a name="l00787"></a>00787     <span class="keywordflow">case</span> 7: <span class="comment">/* Beep */</span>
+<a name="l00788"></a>00788         <span class="comment">// Prepare PIT counter 2 for ~900 Hz square wave</span>
+<a name="l00789"></a>00789         IO_Write(0x43, 0xb6);
+<a name="l00790"></a>00790         IO_Write(0x42, 0x28);
+<a name="l00791"></a>00791         IO_Write(0x42, 0x05);
+<a name="l00792"></a>00792         <span class="comment">// Speaker on</span>
+<a name="l00793"></a>00793         IO_Write(0x61, IO_Read(0x61) | 0x3);
+<a name="l00794"></a>00794         <span class="comment">// Idle for 1/3rd of a second</span>
+<a name="l00795"></a>00795         <span class="keywordtype">double</span> start;
+<a name="l00796"></a>00796         start = PIC_FullIndex();
+<a name="l00797"></a>00797         <span class="keywordflow">while</span> ((PIC_FullIndex() - start) &lt; 333.0) CALLBACK_Idle();
+<a name="l00798"></a>00798         <span class="comment">// Speaker off</span>
+<a name="l00799"></a>00799         IO_Write(0x61, IO_Read(0x61) &amp; ~0x3);
+<a name="l00800"></a>00800         chr=<span class="charliteral">&#39; &#39;</span>;
+<a name="l00801"></a>00801     <span class="keywordflow">default</span>:
+<a name="l00802"></a>00802         <span class="comment">/* Draw the actual Character */</span>
+<a name="l00803"></a>00803         WriteChar(cur_col,cur_row,page,chr,attr,useattr);
+<a name="l00804"></a>00804         cur_col++;
+<a name="l00805"></a>00805     }
+<a name="l00806"></a>00806     <span class="keywordflow">if</span>(cur_col==ncols) {
+<a name="l00807"></a>00807         cur_col=0;
+<a name="l00808"></a>00808         cur_row++;
+<a name="l00809"></a>00809     }
+<a name="l00810"></a>00810     <span class="comment">// Do we need to scroll ?</span>
+<a name="l00811"></a>00811     <span class="keywordflow">if</span>(cur_row==nrows) {
+<a name="l00812"></a>00812         <span class="comment">//Fill with black on non-text modes</span>
+<a name="l00813"></a>00813         Bit8u fill = 0;
+<a name="l00814"></a>00814         <span class="keywordflow">if</span> (IS_PC98_ARCH &amp;&amp; CurMode-&gt;type == M_TEXT) {
+<a name="l00815"></a>00815             <span class="comment">//Fill with the default ANSI attribute on textmode</span>
+<a name="l00816"></a>00816             fill = DefaultANSIAttr();
+<a name="l00817"></a>00817         }
+<a name="l00818"></a>00818         <span class="keywordflow">else</span> <span class="keywordflow">if</span> (CurMode-&gt;type==M_TEXT) {
+<a name="l00819"></a>00819             <span class="comment">//Fill with attribute at cursor on textmode</span>
+<a name="l00820"></a>00820             Bit16u chat;
+<a name="l00821"></a>00821             INT10_ReadCharAttr(&amp;chat,page);
+<a name="l00822"></a>00822             fill=(Bit8u)(chat&gt;&gt;8);
+<a name="l00823"></a>00823         }
+<a name="l00824"></a>00824         INT10_ScrollWindow(0,0,(Bit8u)(nrows-1),(Bit8u)(ncols-1),-1,fill,page);
+<a name="l00825"></a>00825         cur_row--;
+<a name="l00826"></a>00826     }
+<a name="l00827"></a>00827     <span class="comment">// Set the cursor for the page</span>
+<a name="l00828"></a>00828     INT10_SetCursorPos(cur_row,cur_col,page);
+<a name="l00829"></a>00829 }
+<a name="l00830"></a>00830 
+<a name="l00831"></a>00831 <span class="keywordtype">void</span> INT10_TeletypeOutputAttr(Bit8u chr,Bit8u attr,<span class="keywordtype">bool</span> useattr) {
+<a name="l00832"></a>00832     INT10_TeletypeOutputAttr(chr,attr,useattr,real_readb(BIOSMEM_SEG,BIOSMEM_CURRENT_PAGE));
+<a name="l00833"></a>00833 }
+<a name="l00834"></a>00834 
+<a name="l00835"></a>00835 <span class="keywordtype">void</span> INT10_TeletypeOutput(Bit8u chr,Bit8u attr) {
+<a name="l00836"></a>00836     INT10_TeletypeOutputAttr(chr,attr,CurMode-&gt;type!=M_TEXT);
+<a name="l00837"></a>00837 }
+<a name="l00838"></a>00838 
+<a name="l00839"></a>00839 <span class="keywordtype">void</span> INT10_WriteString(Bit8u row,Bit8u col,Bit8u flag,Bit8u attr,PhysPt <span class="keywordtype">string</span>,Bit16u count,Bit8u page) {
+<a name="l00840"></a>00840     Bit8u cur_row=CURSOR_POS_ROW(page);
+<a name="l00841"></a>00841     Bit8u cur_col=CURSOR_POS_COL(page);
+<a name="l00842"></a>00842     
+<a name="l00843"></a>00843     <span class="comment">// if row=0xff special case : use current cursor position</span>
+<a name="l00844"></a>00844     <span class="keywordflow">if</span> (row==0xff) {
+<a name="l00845"></a>00845         row=cur_row;
+<a name="l00846"></a>00846         col=cur_col;
+<a name="l00847"></a>00847     }
+<a name="l00848"></a>00848     INT10_SetCursorPos(row,col,page);
+<a name="l00849"></a>00849     <span class="keywordflow">while</span> (count&gt;0) {
+<a name="l00850"></a>00850         Bit8u chr=mem_readb(<span class="keywordtype">string</span>);
+<a name="l00851"></a>00851         <span class="keywordtype">string</span>++;
+<a name="l00852"></a>00852         <span class="keywordflow">if</span> (flag&amp;2) {
+<a name="l00853"></a>00853             attr=mem_readb(<span class="keywordtype">string</span>);
+<a name="l00854"></a>00854             <span class="keywordtype">string</span>++;
+<a name="l00855"></a>00855         }
+<a name="l00856"></a>00856         INT10_TeletypeOutputAttr(chr,attr,<span class="keyword">true</span>,page);
+<a name="l00857"></a>00857         count--;
+<a name="l00858"></a>00858     }
+<a name="l00859"></a>00859     <span class="keywordflow">if</span> (!(flag&amp;1)) {
+<a name="l00860"></a>00860         INT10_SetCursorPos(cur_row,cur_col,page);
 <a name="l00861"></a>00861     }
-<a name="l00862"></a>00862     <span class="keywordflow">if</span> (!(flag&amp;1)) {
-<a name="l00863"></a>00863         INT10_SetCursorPos(cur_row,cur_col,page);
-<a name="l00864"></a>00864     }
-<a name="l00865"></a>00865 }
-<a name="l00866"></a>00866 
-<a name="l00867"></a>00867 <span class="keywordtype">bool</span> pc98_doskey_insertmode = <span class="keyword">false</span>;
-<a name="l00868"></a>00868 
-<a name="l00869"></a>00869 <span class="keywordtype">bool</span> INT10_GetInsertState()
-<a name="l00870"></a>00870 {
-<a name="l00871"></a>00871     <span class="keywordflow">if</span> (IS_PC98_ARCH) {
-<a name="l00872"></a>00872         <span class="comment">/* state is internal to DOSKEY */</span>
-<a name="l00873"></a>00873         <span class="keywordflow">return</span> pc98_doskey_insertmode;
-<a name="l00874"></a>00874     }
-<a name="l00875"></a>00875     <span class="keywordflow">else</span> {
-<a name="l00876"></a>00876         <span class="keyword">const</span> <span class="keyword">auto</span> flags = mem_readb(BIOS_KEYBOARD_FLAGS1);
-<a name="l00877"></a>00877         <span class="keyword">const</span> <span class="keyword">auto</span> state =<span class="keyword">static_cast&lt;</span><span class="keywordtype">bool</span><span class="keyword">&gt;</span>(flags &amp; BIOS_KEYBOARD_FLAGS1_INSERT_ACTIVE);
-<a name="l00878"></a>00878         <span class="keywordflow">return</span> state;
-<a name="l00879"></a>00879     }
-<a name="l00880"></a>00880 }
+<a name="l00862"></a>00862 }
+<a name="l00863"></a>00863 
+<a name="l00864"></a>00864 <span class="keywordtype">bool</span> pc98_doskey_insertmode = <span class="keyword">false</span>;
+<a name="l00865"></a>00865 
+<a name="l00866"></a>00866 <span class="keywordtype">bool</span> INT10_GetInsertState()
+<a name="l00867"></a>00867 {
+<a name="l00868"></a>00868     <span class="keywordflow">if</span> (IS_PC98_ARCH) {
+<a name="l00869"></a>00869         <span class="comment">/* state is internal to DOSKEY */</span>
+<a name="l00870"></a>00870         <span class="keywordflow">return</span> pc98_doskey_insertmode;
+<a name="l00871"></a>00871     }
+<a name="l00872"></a>00872     <span class="keywordflow">else</span> {
+<a name="l00873"></a>00873         <span class="keyword">const</span> <span class="keyword">auto</span> flags = mem_readb(BIOS_KEYBOARD_FLAGS1);
+<a name="l00874"></a>00874         <span class="keyword">const</span> <span class="keyword">auto</span> state =<span class="keyword">static_cast&lt;</span><span class="keywordtype">bool</span><span class="keyword">&gt;</span>(flags &amp; BIOS_KEYBOARD_FLAGS1_INSERT_ACTIVE);
+<a name="l00875"></a>00875         <span class="keywordflow">return</span> state;
+<a name="l00876"></a>00876     }
+<a name="l00877"></a>00877 }
 </pre></div></div><!-- contents -->
 
 
 <hr class="footer"/><address class="footer"><small>
-Generated on Tue Oct 1 2019 18:06:28 for DOSBox-X by &#160;<a href="http://www.doxygen.org/index.html">
+Generated on Sun Jul 5 2020 13:11:38 for DOSBox-X by &#160;<a href="http://www.doxygen.org/index.html">
 <img class="footer" src="doxygen.png" alt="doxygen"/>
 </a> 1.8.0
 </small></address>

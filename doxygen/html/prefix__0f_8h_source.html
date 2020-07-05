@@ -96,7 +96,7 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 </div><!--header-->
 <div class="contents">
 <div class="fragment"><pre class="fragment"><a name="l00001"></a>00001 <span class="comment">/*</span>
-<a name="l00002"></a>00002 <span class="comment"> *  Copyright (C) 2002-2019  The DOSBox Team</span>
+<a name="l00002"></a>00002 <span class="comment"> *  Copyright (C) 2002-2020  The DOSBox Team</span>
 <a name="l00003"></a>00003 <span class="comment"> *</span>
 <a name="l00004"></a>00004 <span class="comment"> *  This program is free software; you can redistribute it and/or modify</span>
 <a name="l00005"></a>00005 <span class="comment"> *  it under the terms of the GNU General Public License as published by</span>
@@ -108,9 +108,9 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l00011"></a>00011 <span class="comment"> *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the</span>
 <a name="l00012"></a>00012 <span class="comment"> *  GNU General Public License for more details.</span>
 <a name="l00013"></a>00013 <span class="comment"> *</span>
-<a name="l00014"></a>00014 <span class="comment"> *  You should have received a copy of the GNU General Public License</span>
-<a name="l00015"></a>00015 <span class="comment"> *  along with this program; if not, write to the Free Software</span>
-<a name="l00016"></a>00016 <span class="comment"> *  Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1335, USA.</span>
+<a name="l00014"></a>00014 <span class="comment"> *  You should have received a copy of the GNU General Public License along</span>
+<a name="l00015"></a>00015 <span class="comment"> *  with this program; if not, write to the Free Software Foundation, Inc.,</span>
+<a name="l00016"></a>00016 <span class="comment"> *  51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.</span>
 <a name="l00017"></a>00017 <span class="comment"> */</span>
 <a name="l00018"></a>00018 
 <a name="l00019"></a>00019         CASE_0F_W(0x00)                                                                                         <span class="comment">/* GRP 6 Exxx */</span>
@@ -732,13 +732,13 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l00635"></a>00635                 if (CPU_ArchitectureType&lt;CPU_ARCHTYPE_386) goto illegal_opcode;
 <a name="l00636"></a>00636                 {
 <a name="l00637"></a>00637                         GetRMrw;
-<a name="l00638"></a>00638                         Bit16u result,value;
+<a name="l00638"></a>00638                         Bit16u value;
 <a name="l00639"></a>00639                         <span class="keywordflow">if</span> (rm &gt;= 0xc0) { GetEArw; value=*earw; } 
 <a name="l00640"></a>00640                         <span class="keywordflow">else</span>                    { GetEAa; value=LoadMw(eaa); }
 <a name="l00641"></a>00641                         <span class="keywordflow">if</span> (value==0) {
 <a name="l00642"></a>00642                                 SETFLAGBIT(ZF,<span class="keyword">true</span>);
 <a name="l00643"></a>00643                         } <span class="keywordflow">else</span> {
-<a name="l00644"></a>00644                                 result = 0;
+<a name="l00644"></a>00644                                 Bit16u result = 0;
 <a name="l00645"></a>00645                                 <span class="keywordflow">while</span> ((value &amp; 0x01)==0) { result++; value&gt;&gt;=1; }
 <a name="l00646"></a>00646                                 SETFLAGBIT(ZF,<span class="keyword">false</span>);
 <a name="l00647"></a>00647                                 *rmrw = result;
@@ -750,13 +750,13 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l00653"></a>00653                 if (CPU_ArchitectureType&lt;CPU_ARCHTYPE_386) goto illegal_opcode;
 <a name="l00654"></a>00654                 {
 <a name="l00655"></a>00655                         GetRMrw;
-<a name="l00656"></a>00656                         Bit16u result,value;
+<a name="l00656"></a>00656                         Bit16u value;
 <a name="l00657"></a>00657                         <span class="keywordflow">if</span> (rm &gt;= 0xc0) { GetEArw; value=*earw; } 
 <a name="l00658"></a>00658                         <span class="keywordflow">else</span>                    { GetEAa; value=LoadMw(eaa); }
 <a name="l00659"></a>00659                         <span class="keywordflow">if</span> (value==0) {
 <a name="l00660"></a>00660                                 SETFLAGBIT(ZF,<span class="keyword">true</span>);
 <a name="l00661"></a>00661                         } <span class="keywordflow">else</span> {
-<a name="l00662"></a>00662                                 result = 15;    <span class="comment">// Operandsize-1</span>
+<a name="l00662"></a>00662                                 Bit16u result = 15;     <span class="comment">// Operandsize-1</span>
 <a name="l00663"></a>00663                                 <span class="keywordflow">while</span> ((value &amp; 0x8000)==0) { result--; value&lt;&lt;=1; }
 <a name="l00664"></a>00664                                 SETFLAGBIT(ZF,<span class="keyword">false</span>);
 <a name="l00665"></a>00665                                 *rmrw = result;
@@ -829,12 +829,16 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l00732"></a>00732         CASE_0F_W(0xcf)                                                                                         <span class="comment">/* BSWAP DI */</span>
 <a name="l00733"></a>00733                 if (CPU_ArchitectureType&lt;CPU_ARCHTYPE_486OLD) goto illegal_opcode;
 <a name="l00734"></a>00734                 BSWAPW(reg_di);break;
-<a name="l00735"></a>00735                 
+<a name="l00735"></a>00735 <span class="preprocessor">#if C_FPU</span>
+<a name="l00736"></a>00736 <span class="preprocessor"></span><span class="preprocessor">#define CASE_0F_MMX(x) CASE_0F_W(x)</span>
+<a name="l00737"></a>00737 <span class="preprocessor"></span><span class="preprocessor">#include &quot;prefix_0f_mmx.h&quot;</span>
+<a name="l00738"></a>00738 <span class="preprocessor">#undef CASE_0F_MMX</span>
+<a name="l00739"></a>00739 <span class="preprocessor"></span><span class="preprocessor">#endif</span>
 </pre></div></div><!-- contents -->
 
 
 <hr class="footer"/><address class="footer"><small>
-Generated on Tue Oct 1 2019 18:06:24 for DOSBox-X by &#160;<a href="http://www.doxygen.org/index.html">
+Generated on Sun Jul 5 2020 13:11:34 for DOSBox-X by &#160;<a href="http://www.doxygen.org/index.html">
 <img class="footer" src="doxygen.png" alt="doxygen"/>
 </a> 1.8.0
 </small></address>

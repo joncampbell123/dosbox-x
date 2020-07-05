@@ -98,7 +98,7 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <div class="fragment"><pre class="fragment"><a name="l00001"></a>00001 
 <a name="l00002"></a>00002 <span class="preprocessor">#include &quot;dos_inc.h&quot;</span>
 <a name="l00003"></a>00003 
-<a name="l00004"></a>00004 <span class="keyword">static</span> <span class="keyword">const</span> <span class="keywordtype">unsigned</span> <span class="keywordtype">char</span> bin_25_com[] = { 0xB8, 0x03, 0x00, 0xCD, 0x10, 0xC3 };
+<a name="l00004"></a>00004 <span class="keyword">static</span> <span class="keyword">const</span> <span class="keywordtype">unsigned</span> <span class="keywordtype">char</span> bin_25_com[] = { 0xB8, 0x14, 0x11, 0x30, 0xDB, 0xCD, 0x10, 0xC3 };
 <a name="l00005"></a>00005 
 <a name="l00006"></a>00006 <span class="keyword">struct </span><a class="code" href="structBuiltinFileBlob.html">BuiltinFileBlob</a> bfb_25_COM = {
 <a name="l00007"></a>00007         <span class="comment">/*recommended file name*/</span>       <span class="stringliteral">&quot;25.COM&quot;</span>,
@@ -106,11 +106,27 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l00009"></a>00009         <span class="comment">/*length*/</span>                      <span class="keyword">sizeof</span>(bin_25_com)
 <a name="l00010"></a>00010 };
 <a name="l00011"></a>00011 
+<a name="l00012"></a>00012 <span class="keyword">static</span> <span class="keyword">const</span> <span class="keywordtype">unsigned</span> <span class="keywordtype">char</span> bin_25_com_ega[] = { 0xB8, 0x11, 0x11, 0x30, 0xDB, 0xCD, 0x10, 0xC3 };
+<a name="l00013"></a>00013 
+<a name="l00014"></a>00014 <span class="keyword">struct </span><a class="code" href="structBuiltinFileBlob.html">BuiltinFileBlob</a> bfb_25_COM_ega = {
+<a name="l00015"></a>00015         <span class="comment">/*recommended file name*/</span>       <span class="stringliteral">&quot;25.COM&quot;</span>,
+<a name="l00016"></a>00016         <span class="comment">/*data*/</span>                        bin_25_com_ega,
+<a name="l00017"></a>00017         <span class="comment">/*length*/</span>                      <span class="keyword">sizeof</span>(bin_25_com_ega)
+<a name="l00018"></a>00018 };
+<a name="l00019"></a>00019 
+<a name="l00020"></a>00020 <span class="keyword">static</span> <span class="keyword">const</span> <span class="keywordtype">unsigned</span> <span class="keywordtype">char</span> bin_25_com_other[] = { 0xB8, 0x03, 0x00, 0xCD, 0x10, 0xC3 };
+<a name="l00021"></a>00021 
+<a name="l00022"></a>00022 <span class="keyword">struct </span><a class="code" href="structBuiltinFileBlob.html">BuiltinFileBlob</a> bfb_25_COM_other = {
+<a name="l00023"></a>00023         <span class="comment">/*recommended file name*/</span>       <span class="stringliteral">&quot;25.COM&quot;</span>,
+<a name="l00024"></a>00024         <span class="comment">/*data*/</span>                        bin_25_com_other,
+<a name="l00025"></a>00025         <span class="comment">/*length*/</span>                      <span class="keyword">sizeof</span>(bin_25_com_other)
+<a name="l00026"></a>00026 };
+<a name="l00027"></a>00027 
 </pre></div></div><!-- contents -->
 
 
 <hr class="footer"/><address class="footer"><small>
-Generated on Tue Oct 1 2019 18:06:23 for DOSBox-X by &#160;<a href="http://www.doxygen.org/index.html">
+Generated on Sun Jul 5 2020 13:11:33 for DOSBox-X by &#160;<a href="http://www.doxygen.org/index.html">
 <img class="footer" src="doxygen.png" alt="doxygen"/>
 </a> 1.8.0
 </small></address>

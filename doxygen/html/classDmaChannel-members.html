@@ -112,6 +112,7 @@ This is the complete list of members for <a class="el" href="classDmaChannel.htm
   <tr bgcolor="#f0f0f0"><td><b>DmaChannel</b>(Bit8u num, bool dma16) (defined in <a class="el" href="classDmaChannel.html">DmaChannel</a>)</td><td><a class="el" href="classDmaChannel.html">DmaChannel</a></td><td></td></tr>
   <tr bgcolor="#f0f0f0"><td><b>DoCallBack</b>(DMAEvent event) (defined in <a class="el" href="classDmaChannel.html">DmaChannel</a>)</td><td><a class="el" href="classDmaChannel.html">DmaChannel</a></td><td><code> [inline]</code></td></tr>
   <tr bgcolor="#f0f0f0"><td><b>increment</b> (defined in <a class="el" href="classDmaChannel.html">DmaChannel</a>)</td><td><a class="el" href="classDmaChannel.html">DmaChannel</a></td><td></td></tr>
+  <tr bgcolor="#f0f0f0"><td><b>LoadState</b>(std::istream &amp;stream) (defined in <a class="el" href="classDmaChannel.html">DmaChannel</a>)</td><td><a class="el" href="classDmaChannel.html">DmaChannel</a></td><td></td></tr>
   <tr bgcolor="#f0f0f0"><td><b>masked</b> (defined in <a class="el" href="classDmaChannel.html">DmaChannel</a>)</td><td><a class="el" href="classDmaChannel.html">DmaChannel</a></td><td></td></tr>
   <tr bgcolor="#f0f0f0"><td><b>page_bank_increment</b>(void) (defined in <a class="el" href="classDmaChannel.html">DmaChannel</a>)</td><td><a class="el" href="classDmaChannel.html">DmaChannel</a></td><td><code> [inline]</code></td></tr>
   <tr bgcolor="#f0f0f0"><td><b>page_bank_increment_wraparound</b> (defined in <a class="el" href="classDmaChannel.html">DmaChannel</a>)</td><td><a class="el" href="classDmaChannel.html">DmaChannel</a></td><td></td></tr>
@@ -119,20 +120,21 @@ This is the complete list of members for <a class="el" href="classDmaChannel.htm
   <tr bgcolor="#f0f0f0"><td><b>pagenum</b> (defined in <a class="el" href="classDmaChannel.html">DmaChannel</a>)</td><td><a class="el" href="classDmaChannel.html">DmaChannel</a></td><td></td></tr>
   <tr bgcolor="#f0f0f0"><td><b>Raise_Request</b>(void) (defined in <a class="el" href="classDmaChannel.html">DmaChannel</a>)</td><td><a class="el" href="classDmaChannel.html">DmaChannel</a></td><td><code> [inline]</code></td></tr>
   <tr bgcolor="#f0f0f0"><td><b>ReachedTC</b>(void) (defined in <a class="el" href="classDmaChannel.html">DmaChannel</a>)</td><td><a class="el" href="classDmaChannel.html">DmaChannel</a></td><td><code> [inline]</code></td></tr>
-  <tr bgcolor="#f0f0f0"><td><b>Read</b>(Bitu size, Bit8u *buffer) (defined in <a class="el" href="classDmaChannel.html">DmaChannel</a>)</td><td><a class="el" href="classDmaChannel.html">DmaChannel</a></td><td></td></tr>
+  <tr bgcolor="#f0f0f0"><td><b>Read</b>(Bitu want, Bit8u *buffer) (defined in <a class="el" href="classDmaChannel.html">DmaChannel</a>)</td><td><a class="el" href="classDmaChannel.html">DmaChannel</a></td><td></td></tr>
   <tr bgcolor="#f0f0f0"><td><b>Register_Callback</b>(DMA_CallBack _cb) (defined in <a class="el" href="classDmaChannel.html">DmaChannel</a>)</td><td><a class="el" href="classDmaChannel.html">DmaChannel</a></td><td><code> [inline]</code></td></tr>
   <tr bgcolor="#f0f0f0"><td><b>request</b> (defined in <a class="el" href="classDmaChannel.html">DmaChannel</a>)</td><td><a class="el" href="classDmaChannel.html">DmaChannel</a></td><td></td></tr>
+  <tr bgcolor="#f0f0f0"><td><b>SaveState</b>(std::ostream &amp;stream) (defined in <a class="el" href="classDmaChannel.html">DmaChannel</a>)</td><td><a class="el" href="classDmaChannel.html">DmaChannel</a></td><td></td></tr>
   <tr bgcolor="#f0f0f0"><td><b>Set128KMode</b>(bool en) (defined in <a class="el" href="classDmaChannel.html">DmaChannel</a>)</td><td><a class="el" href="classDmaChannel.html">DmaChannel</a></td><td><code> [inline]</code></td></tr>
   <tr bgcolor="#f0f0f0"><td><b>SetMask</b>(bool _mask) (defined in <a class="el" href="classDmaChannel.html">DmaChannel</a>)</td><td><a class="el" href="classDmaChannel.html">DmaChannel</a></td><td><code> [inline]</code></td></tr>
   <tr bgcolor="#f0f0f0"><td><b>SetPage</b>(Bit8u val) (defined in <a class="el" href="classDmaChannel.html">DmaChannel</a>)</td><td><a class="el" href="classDmaChannel.html">DmaChannel</a></td><td><code> [inline]</code></td></tr>
   <tr bgcolor="#f0f0f0"><td><b>tcount</b> (defined in <a class="el" href="classDmaChannel.html">DmaChannel</a>)</td><td><a class="el" href="classDmaChannel.html">DmaChannel</a></td><td></td></tr>
   <tr bgcolor="#f0f0f0"><td><b>transfer_mode</b> (defined in <a class="el" href="classDmaChannel.html">DmaChannel</a>)</td><td><a class="el" href="classDmaChannel.html">DmaChannel</a></td><td></td></tr>
-  <tr bgcolor="#f0f0f0"><td><b>Write</b>(Bitu size, Bit8u *buffer) (defined in <a class="el" href="classDmaChannel.html">DmaChannel</a>)</td><td><a class="el" href="classDmaChannel.html">DmaChannel</a></td><td></td></tr>
+  <tr bgcolor="#f0f0f0"><td><b>Write</b>(Bitu want, Bit8u *buffer) (defined in <a class="el" href="classDmaChannel.html">DmaChannel</a>)</td><td><a class="el" href="classDmaChannel.html">DmaChannel</a></td><td></td></tr>
 </table></div><!-- contents -->
 
 
 <hr class="footer"/><address class="footer"><small>
-Generated on Tue Oct 1 2019 18:06:30 for DOSBox-X by &#160;<a href="http://www.doxygen.org/index.html">
+Generated on Sun Jul 5 2020 13:11:40 for DOSBox-X by &#160;<a href="http://www.doxygen.org/index.html">
 <img class="footer" src="doxygen.png" alt="doxygen"/>
 </a> 1.8.0
 </small></address>

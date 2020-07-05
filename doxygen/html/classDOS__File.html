@@ -106,18 +106,19 @@ Inheritance diagram for DOS_File:</div>
  <div class="center">
   <img src="classDOS__File.png" usemap="#DOS_File_map" alt=""/>
   <map id="DOS_File_map" name="DOS_File_map">
-<area href="classDOS__Device.html" alt="DOS_Device" shape="rect" coords="363,56,474,80"/>
-<area href="classfatFile.html" alt="fatFile" shape="rect" coords="484,56,595,80"/>
-<area href="classisoFile.html" alt="isoFile" shape="rect" coords="605,56,716,80"/>
-<area href="classlocalFile.html" alt="localFile" shape="rect" coords="726,56,837,80"/>
-<area href="classVirtual__File.html" alt="Virtual_File" shape="rect" coords="847,56,958,80"/>
-<area href="classdevice__COM.html" alt="device_COM" shape="rect" coords="0,112,111,136"/>
-<area href="classdevice__CON.html" alt="device_CON" shape="rect" coords="121,112,232,136"/>
-<area href="classdevice__EMM.html" alt="device_EMM" shape="rect" coords="242,112,353,136"/>
-<area href="classdevice__LPT.html" alt="device_LPT" shape="rect" coords="363,112,474,136"/>
-<area href="classdevice__MSCDEX.html" alt="device_MSCDEX" shape="rect" coords="484,112,595,136"/>
-<area href="classdevice__NUL.html" alt="device_NUL" shape="rect" coords="605,112,716,136"/>
-<area href="classdevice__PRN.html" alt="device_PRN" shape="rect" coords="726,112,837,136"/>
+<area href="classDOS__Device.html" alt="DOS_Device" shape="rect" coords="0,56,111,80"/>
+<area href="classfatFile.html" alt="fatFile" shape="rect" coords="121,56,232,80"/>
+<area href="classisoFile.html" alt="isoFile" shape="rect" coords="242,56,353,80"/>
+<area href="classlocalFile.html" alt="localFile" shape="rect" coords="363,56,474,80"/>
+<area href="classVirtual__File.html" alt="Virtual_File" shape="rect" coords="484,56,595,80"/>
+<area href="classdevice__COM.html" alt="device_COM" shape="rect" coords="121,112,232,136"/>
+<area href="classdevice__CON.html" alt="device_CON" shape="rect" coords="121,168,232,192"/>
+<area href="classdevice__EMM.html" alt="device_EMM" shape="rect" coords="121,224,232,248"/>
+<area href="classdevice__LPT.html" alt="device_LPT" shape="rect" coords="121,280,232,304"/>
+<area href="classdevice__MSCDEX.html" alt="device_MSCDEX" shape="rect" coords="121,336,232,360"/>
+<area href="classdevice__NUL.html" alt="device_NUL" shape="rect" coords="121,392,232,416"/>
+<area href="classdevice__PRN.html" alt="device_PRN" shape="rect" coords="121,448,232,472"/>
+<area href="classOverlayFile.html" alt="OverlayFile" shape="rect" coords="363,112,474,136"/>
 </map>
  </div></div>
 
@@ -161,14 +162,18 @@ virtual Bit32u&#160;</td><td class="memItemRight" valign="bottom"><b>GetSeekPos<
 void&#160;</td><td class="memItemRight" valign="bottom"><b>SetDrive</b> (Bit8u drv)</td></tr>
 <tr class="memitem:af4d98d880115f37ba0b3ff6e95bbaf55"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="af4d98d880115f37ba0b3ff6e95bbaf55"></a>
 Bit8u&#160;</td><td class="memItemRight" valign="bottom"><b>GetDrive</b> (void)</td></tr>
+<tr class="memitem:ac2a385b26fd590639ffc9ebbbd62fdba"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="ac2a385b26fd590639ffc9ebbbd62fdba"></a>
+virtual void&#160;</td><td class="memItemRight" valign="bottom"><b>SaveState</b> (std::ostream &amp;stream)</td></tr>
+<tr class="memitem:ac8c307bd4f2ca8faa084fb66c70422cc"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="ac8c307bd4f2ca8faa084fb66c70422cc"></a>
+virtual void&#160;</td><td class="memItemRight" valign="bottom"><b>LoadState</b> (std::istream &amp;stream, bool pop)</td></tr>
 <tr class="memitem:a3a3d4b0eff671faf6e30b6af65b2054c"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a3a3d4b0eff671faf6e30b6af65b2054c"></a>
 virtual void&#160;</td><td class="memItemRight" valign="bottom"><b>Flush</b> (void)</td></tr>
 <tr><td colspan="2"><h2><a name="pub-attribs"></a>
 Public Attributes</h2></td></tr>
 <tr class="memitem:a3e326c162b838b065ee83c27a112be65"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a3e326c162b838b065ee83c27a112be65"></a>
-char *&#160;</td><td class="memItemRight" valign="bottom"><b>name</b></td></tr>
+char *&#160;</td><td class="memItemRight" valign="bottom"><b>name</b> = NULL</td></tr>
 <tr class="memitem:a253253ed788a32410df6b9ecc638366f"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a253253ed788a32410df6b9ecc638366f"></a>
-Bit8u&#160;</td><td class="memItemRight" valign="bottom"><b>drive</b></td></tr>
+Bit8u&#160;</td><td class="memItemRight" valign="bottom"><b>drive</b> = 0</td></tr>
 <tr class="memitem:a2b1d061b180a8953a2e8a8ebc4021965"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a2b1d061b180a8953a2e8a8ebc4021965"></a>
 Bit32u&#160;</td><td class="memItemRight" valign="bottom"><b>flags</b></td></tr>
 <tr class="memitem:a242898b780b6ca73db43631d1976caa6"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a242898b780b6ca73db43631d1976caa6"></a>
@@ -182,20 +187,21 @@ Bit16u&#160;</td><td class="memItemRight" valign="bottom"><b>date</b></td></tr>
 <tr class="memitem:ab3d966fce7a4b7f3b5c691a6d8a3249b"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="ab3d966fce7a4b7f3b5c691a6d8a3249b"></a>
 Bits&#160;</td><td class="memItemRight" valign="bottom"><b>refCtr</b></td></tr>
 <tr class="memitem:a9a1cf63a07117706b255cc89a1183d23"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a9a1cf63a07117706b255cc89a1183d23"></a>
-bool&#160;</td><td class="memItemRight" valign="bottom"><b>newtime</b></td></tr>
+bool&#160;</td><td class="memItemRight" valign="bottom"><b>newtime</b> = false</td></tr>
 </table>
 <hr/><a name="details" id="details"></a><h2>Detailed Description</h2>
 <div class="textblock">
-<p>Definition at line <a class="el" href="dos__system_8h_source.html#l00074">74</a> of file <a class="el" href="dos__system_8h_source.html">dos_system.h</a>.</p>
+<p>Definition at line <a class="el" href="dos__system_8h_source.html#l00076">76</a> of file <a class="el" href="dos__system_8h_source.html">dos_system.h</a>.</p>
 </div><hr/>The documentation for this class was generated from the following files:<ul>
 <li>include/<a class="el" href="dos__system_8h_source.html">dos_system.h</a></li>
 <li>src/dos/<a class="el" href="dos__devices_8cpp_source.html">dos_devices.cpp</a></li>
+<li>src/dos/<a class="el" href="dos__files_8cpp_source.html">dos_files.cpp</a></li>
 </ul>
 </div><!-- contents -->
 
 
 <hr class="footer"/><address class="footer"><small>
-Generated on Tue Oct 1 2019 18:06:31 for DOSBox-X by &#160;<a href="http://www.doxygen.org/index.html">
+Generated on Sun Jul 5 2020 13:11:40 for DOSBox-X by &#160;<a href="http://www.doxygen.org/index.html">
 <img class="footer" src="doxygen.png" alt="doxygen"/>
 </a> 1.8.0
 </small></address>

@@ -10,7 +10,7 @@ Inheritance diagram for cdrom\-Drive\-:\begin{figure}[H]
 \subsection*{Public Member Functions}
 \begin{DoxyCompactItemize}
 \item 
-\hypertarget{classcdromDrive_a9bc77d75fc8e02d73586ad909cc4fd86}{{\bfseries cdrom\-Drive} (const char drive\-Letter, const char $\ast$startdir, Bit16u \-\_\-bytes\-\_\-sector, Bit8u \-\_\-sectors\-\_\-cluster, Bit16u \-\_\-total\-\_\-clusters, Bit16u \-\_\-free\-\_\-clusters, Bit8u \-\_\-mediaid, int \&error)}\label{classcdromDrive_a9bc77d75fc8e02d73586ad909cc4fd86}
+\hypertarget{classcdromDrive_a6322c0aa3674876948028ddceb3105b8}{{\bfseries cdrom\-Drive} (const char drive\-Letter, const char $\ast$startdir, Bit16u \-\_\-bytes\-\_\-sector, Bit8u \-\_\-sectors\-\_\-cluster, Bit16u \-\_\-total\-\_\-clusters, Bit16u \-\_\-free\-\_\-clusters, Bit8u \-\_\-mediaid, int \&error, std\-::vector$<$ std\-::string $>$ \&options)}\label{classcdromDrive_a6322c0aa3674876948028ddceb3105b8}
 
 \item 
 \hypertarget{classcdromDrive_aa5ff41c5c9c045550b6f1a0974aa8d1d}{virtual bool {\bfseries File\-Open} (\hyperlink{classDOS__File}{D\-O\-S\-\_\-\-File} $\ast$$\ast$file, const char $\ast$name, Bit32u flags)}\label{classcdromDrive_aa5ff41c5c9c045550b6f1a0974aa8d1d}
@@ -34,6 +34,12 @@ Inheritance diagram for cdrom\-Drive\-:\begin{figure}[H]
 \hypertarget{classcdromDrive_aba4f6b7a2df7be93c754232dff50c23c}{virtual bool {\bfseries Get\-File\-Attr} (const char $\ast$name, Bit16u $\ast$attr)}\label{classcdromDrive_aba4f6b7a2df7be93c754232dff50c23c}
 
 \item 
+\hypertarget{classcdromDrive_a901160b82788a416ffc8809c1a5e8140}{virtual bool {\bfseries Get\-File\-Attr\-Ex} (char $\ast$name, struct stat $\ast$status)}\label{classcdromDrive_a901160b82788a416ffc8809c1a5e8140}
+
+\item 
+\hypertarget{classcdromDrive_ae22f7aacee8025b67832ece7ef7cc250}{virtual unsigned long {\bfseries Get\-Compressed\-Size} (char $\ast$name)}\label{classcdromDrive_ae22f7aacee8025b67832ece7ef7cc250}
+
+\item 
 \hypertarget{classcdromDrive_afd0347b272659c24f6f3cd9b7b05f89c}{virtual bool {\bfseries Find\-First} (const char $\ast$\-\_\-dir, \hyperlink{classDOS__DTA}{D\-O\-S\-\_\-\-D\-T\-A} \&dta, bool fcb\-\_\-findfirst=false)}\label{classcdromDrive_afd0347b272659c24f6f3cd9b7b05f89c}
 
 \item 
@@ -54,7 +60,7 @@ Inheritance diagram for cdrom\-Drive\-:\begin{figure}[H]
 \subsection{Detailed Description}
 
 
-Definition at line 306 of file drives.\-h.
+Definition at line 502 of file drives.\-h.
 
 
 

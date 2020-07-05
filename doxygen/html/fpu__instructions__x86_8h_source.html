@@ -96,7 +96,7 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 </div><!--header-->
 <div class="contents">
 <div class="fragment"><pre class="fragment"><a name="l00001"></a>00001 <span class="comment">/*</span>
-<a name="l00002"></a>00002 <span class="comment"> *  Copyright (C) 2002-2019  The DOSBox Team</span>
+<a name="l00002"></a>00002 <span class="comment"> *  Copyright (C) 2002-2020  The DOSBox Team</span>
 <a name="l00003"></a>00003 <span class="comment"> *</span>
 <a name="l00004"></a>00004 <span class="comment"> *  This program is free software; you can redistribute it and/or modify</span>
 <a name="l00005"></a>00005 <span class="comment"> *  it under the terms of the GNU General Public License as published by</span>
@@ -1369,96 +1369,95 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l01272"></a>01272 
 <a name="l01273"></a>01273 <span class="keyword">static</span> <span class="keywordtype">void</span> FPU_FLDENV(PhysPt addr){
 <a name="l01274"></a>01274         Bit16u tag;
-<a name="l01275"></a>01275         Bit32u tagbig;
-<a name="l01276"></a>01276         Bitu cw;
-<a name="l01277"></a>01277         <span class="keywordflow">if</span>(!cpu.code.big) {
-<a name="l01278"></a>01278                 cw     = mem_readw(addr+0);
-<a name="l01279"></a>01279                 fpu.sw = mem_readw(addr+2);
-<a name="l01280"></a>01280                 tag    = mem_readw(addr+4);
-<a name="l01281"></a>01281         } <span class="keywordflow">else</span> { 
-<a name="l01282"></a>01282                 cw     = mem_readd(addr+0);
-<a name="l01283"></a>01283                 fpu.sw = (Bit16u)mem_readd(addr+4);
-<a name="l01284"></a>01284                 tagbig = mem_readd(addr+8);
-<a name="l01285"></a>01285                 tag    = <span class="keyword">static_cast&lt;</span>Bit16u<span class="keyword">&gt;</span>(tagbig);
-<a name="l01286"></a>01286         }
-<a name="l01287"></a>01287         FPU_SetTag(tag);
-<a name="l01288"></a>01288         FPU_SetCW(cw);
-<a name="l01289"></a>01289         TOP=FPU_GET_TOP();
-<a name="l01290"></a>01290 }
-<a name="l01291"></a>01291 
-<a name="l01292"></a>01292 <span class="keyword">static</span> <span class="keywordtype">void</span> FPU_FSAVE(PhysPt addr){
-<a name="l01293"></a>01293         FPU_FSTENV(addr);
-<a name="l01294"></a>01294         Bitu start=(cpu.code.big?28:14);
-<a name="l01295"></a>01295         <span class="keywordflow">for</span>(Bitu i=0;i&lt;8;i++){
-<a name="l01296"></a>01296                 mem_writed(addr+start,fpu.p_regs[STV(i)].m1);
-<a name="l01297"></a>01297                 mem_writed(addr+start+4,fpu.p_regs[STV(i)].m2);
-<a name="l01298"></a>01298                 mem_writew(addr+start+8,fpu.p_regs[STV(i)].m3);
-<a name="l01299"></a>01299                 start+=10;
-<a name="l01300"></a>01300         }
-<a name="l01301"></a>01301         FPU_FINIT();
-<a name="l01302"></a>01302 }
-<a name="l01303"></a>01303 
-<a name="l01304"></a>01304 <span class="keyword">static</span> <span class="keywordtype">void</span> FPU_FRSTOR(PhysPt addr){
-<a name="l01305"></a>01305         FPU_FLDENV(addr);
-<a name="l01306"></a>01306         Bitu start=(cpu.code.big?28:14);
-<a name="l01307"></a>01307         <span class="keywordflow">for</span>(Bitu i=0;i&lt;8;i++){
-<a name="l01308"></a>01308                 fpu.p_regs[STV(i)].m1 = mem_readd(addr+start);
-<a name="l01309"></a>01309                 fpu.p_regs[STV(i)].m2 = mem_readd(addr+start+4);
-<a name="l01310"></a>01310                 fpu.p_regs[STV(i)].m3 = mem_readw(addr+start+8);
-<a name="l01311"></a>01311                 start+=10;
-<a name="l01312"></a>01312         }
-<a name="l01313"></a>01313 }
+<a name="l01275"></a>01275         Bitu cw;
+<a name="l01276"></a>01276         <span class="keywordflow">if</span>(!cpu.code.big) {
+<a name="l01277"></a>01277                 cw     = mem_readw(addr+0);
+<a name="l01278"></a>01278                 fpu.sw = mem_readw(addr+2);
+<a name="l01279"></a>01279                 tag    = mem_readw(addr+4);
+<a name="l01280"></a>01280         } <span class="keywordflow">else</span> { 
+<a name="l01281"></a>01281                 cw     = mem_readd(addr+0);
+<a name="l01282"></a>01282                 fpu.sw = (Bit16u)mem_readd(addr+4);
+<a name="l01283"></a>01283                 Bit32u tagbig = mem_readd(addr+8);
+<a name="l01284"></a>01284                 tag    = <span class="keyword">static_cast&lt;</span>Bit16u<span class="keyword">&gt;</span>(tagbig);
+<a name="l01285"></a>01285         }
+<a name="l01286"></a>01286         FPU_SetTag(tag);
+<a name="l01287"></a>01287         FPU_SetCW(cw);
+<a name="l01288"></a>01288         TOP=FPU_GET_TOP();
+<a name="l01289"></a>01289 }
+<a name="l01290"></a>01290 
+<a name="l01291"></a>01291 <span class="keyword">static</span> <span class="keywordtype">void</span> FPU_FSAVE(PhysPt addr){
+<a name="l01292"></a>01292         FPU_FSTENV(addr);
+<a name="l01293"></a>01293         Bitu start=(cpu.code.big?28:14);
+<a name="l01294"></a>01294         <span class="keywordflow">for</span>(Bitu i=0;i&lt;8;i++){
+<a name="l01295"></a>01295                 mem_writed(addr+start,fpu.p_regs[STV(i)].m1);
+<a name="l01296"></a>01296                 mem_writed(addr+start+4,fpu.p_regs[STV(i)].m2);
+<a name="l01297"></a>01297                 mem_writew(addr+start+8,fpu.p_regs[STV(i)].m3);
+<a name="l01298"></a>01298                 start+=10;
+<a name="l01299"></a>01299         }
+<a name="l01300"></a>01300         FPU_FINIT();
+<a name="l01301"></a>01301 }
+<a name="l01302"></a>01302 
+<a name="l01303"></a>01303 <span class="keyword">static</span> <span class="keywordtype">void</span> FPU_FRSTOR(PhysPt addr){
+<a name="l01304"></a>01304         FPU_FLDENV(addr);
+<a name="l01305"></a>01305         Bitu start=(cpu.code.big?28:14);
+<a name="l01306"></a>01306         <span class="keywordflow">for</span>(Bitu i=0;i&lt;8;i++){
+<a name="l01307"></a>01307                 fpu.p_regs[STV(i)].m1 = mem_readd(addr+start);
+<a name="l01308"></a>01308                 fpu.p_regs[STV(i)].m2 = mem_readd(addr+start+4);
+<a name="l01309"></a>01309                 fpu.p_regs[STV(i)].m3 = mem_readw(addr+start+8);
+<a name="l01310"></a>01310                 start+=10;
+<a name="l01311"></a>01311         }
+<a name="l01312"></a>01312 }
+<a name="l01313"></a>01313 
 <a name="l01314"></a>01314 
-<a name="l01315"></a>01315 
-<a name="l01316"></a>01316 <span class="keyword">static</span> <span class="keywordtype">void</span> FPU_FXTRACT(<span class="keywordtype">void</span>) {
-<a name="l01317"></a>01317         FPUD_XTRACT
-<a name="l01318"></a>01318 }
-<a name="l01319"></a>01319 
-<a name="l01320"></a>01320 <span class="keyword">static</span> <span class="keywordtype">void</span> FPU_FCHS(<span class="keywordtype">void</span>){
-<a name="l01321"></a>01321         FPUD_TRIG(fchs)
-<a name="l01322"></a>01322 }
-<a name="l01323"></a>01323 
-<a name="l01324"></a>01324 <span class="keyword">static</span> <span class="keywordtype">void</span> FPU_FABS(<span class="keywordtype">void</span>){
-<a name="l01325"></a>01325         FPUD_TRIG(fabs)
-<a name="l01326"></a>01326 }
-<a name="l01327"></a>01327 
-<a name="l01328"></a>01328 <span class="keyword">static</span> <span class="keywordtype">void</span> FPU_FTST(<span class="keywordtype">void</span>){
-<a name="l01329"></a>01329         FPUD_EXAMINE(ftst)
-<a name="l01330"></a>01330 }
-<a name="l01331"></a>01331 
-<a name="l01332"></a>01332 <span class="keyword">static</span> <span class="keywordtype">void</span> FPU_FLD1(<span class="keywordtype">void</span>){
-<a name="l01333"></a>01333         FPUD_LOAD_CONST(fld1)
-<a name="l01334"></a>01334 }
-<a name="l01335"></a>01335 
-<a name="l01336"></a>01336 <span class="keyword">static</span> <span class="keywordtype">void</span> FPU_FLDL2T(<span class="keywordtype">void</span>){
-<a name="l01337"></a>01337         FPUD_LOAD_CONST(fldl2t)
-<a name="l01338"></a>01338 }
-<a name="l01339"></a>01339 
-<a name="l01340"></a>01340 <span class="keyword">static</span> <span class="keywordtype">void</span> FPU_FLDL2E(<span class="keywordtype">void</span>){
-<a name="l01341"></a>01341         FPUD_LOAD_CONST(fldl2e)
-<a name="l01342"></a>01342 }
-<a name="l01343"></a>01343 
-<a name="l01344"></a>01344 <span class="keyword">static</span> <span class="keywordtype">void</span> FPU_FLDPI(<span class="keywordtype">void</span>){
-<a name="l01345"></a>01345         FPUD_LOAD_CONST(fldpi)
-<a name="l01346"></a>01346 }
-<a name="l01347"></a>01347 
-<a name="l01348"></a>01348 <span class="keyword">static</span> <span class="keywordtype">void</span> FPU_FLDLG2(<span class="keywordtype">void</span>){
-<a name="l01349"></a>01349         FPUD_LOAD_CONST(fldlg2)
-<a name="l01350"></a>01350 }
-<a name="l01351"></a>01351 
-<a name="l01352"></a>01352 <span class="keyword">static</span> <span class="keywordtype">void</span> FPU_FLDLN2(<span class="keywordtype">void</span>){
-<a name="l01353"></a>01353         FPUD_LOAD_CONST(fldln2)
-<a name="l01354"></a>01354 }
-<a name="l01355"></a>01355 
-<a name="l01356"></a>01356 <span class="keyword">static</span> <span class="keywordtype">void</span> FPU_FLDZ(<span class="keywordtype">void</span>){
-<a name="l01357"></a>01357         FPUD_LOAD_CONST(fldz)
-<a name="l01358"></a>01358         fpu.tags[TOP]=TAG_Zero;
-<a name="l01359"></a>01359 }
+<a name="l01315"></a>01315 <span class="keyword">static</span> <span class="keywordtype">void</span> FPU_FXTRACT(<span class="keywordtype">void</span>) {
+<a name="l01316"></a>01316         FPUD_XTRACT
+<a name="l01317"></a>01317 }
+<a name="l01318"></a>01318 
+<a name="l01319"></a>01319 <span class="keyword">static</span> <span class="keywordtype">void</span> FPU_FCHS(<span class="keywordtype">void</span>){
+<a name="l01320"></a>01320         FPUD_TRIG(fchs)
+<a name="l01321"></a>01321 }
+<a name="l01322"></a>01322 
+<a name="l01323"></a>01323 <span class="keyword">static</span> <span class="keywordtype">void</span> FPU_FABS(<span class="keywordtype">void</span>){
+<a name="l01324"></a>01324         FPUD_TRIG(fabs)
+<a name="l01325"></a>01325 }
+<a name="l01326"></a>01326 
+<a name="l01327"></a>01327 <span class="keyword">static</span> <span class="keywordtype">void</span> FPU_FTST(<span class="keywordtype">void</span>){
+<a name="l01328"></a>01328         FPUD_EXAMINE(ftst)
+<a name="l01329"></a>01329 }
+<a name="l01330"></a>01330 
+<a name="l01331"></a>01331 <span class="keyword">static</span> <span class="keywordtype">void</span> FPU_FLD1(<span class="keywordtype">void</span>){
+<a name="l01332"></a>01332         FPUD_LOAD_CONST(fld1)
+<a name="l01333"></a>01333 }
+<a name="l01334"></a>01334 
+<a name="l01335"></a>01335 <span class="keyword">static</span> <span class="keywordtype">void</span> FPU_FLDL2T(<span class="keywordtype">void</span>){
+<a name="l01336"></a>01336         FPUD_LOAD_CONST(fldl2t)
+<a name="l01337"></a>01337 }
+<a name="l01338"></a>01338 
+<a name="l01339"></a>01339 <span class="keyword">static</span> <span class="keywordtype">void</span> FPU_FLDL2E(<span class="keywordtype">void</span>){
+<a name="l01340"></a>01340         FPUD_LOAD_CONST(fldl2e)
+<a name="l01341"></a>01341 }
+<a name="l01342"></a>01342 
+<a name="l01343"></a>01343 <span class="keyword">static</span> <span class="keywordtype">void</span> FPU_FLDPI(<span class="keywordtype">void</span>){
+<a name="l01344"></a>01344         FPUD_LOAD_CONST(fldpi)
+<a name="l01345"></a>01345 }
+<a name="l01346"></a>01346 
+<a name="l01347"></a>01347 <span class="keyword">static</span> <span class="keywordtype">void</span> FPU_FLDLG2(<span class="keywordtype">void</span>){
+<a name="l01348"></a>01348         FPUD_LOAD_CONST(fldlg2)
+<a name="l01349"></a>01349 }
+<a name="l01350"></a>01350 
+<a name="l01351"></a>01351 <span class="keyword">static</span> <span class="keywordtype">void</span> FPU_FLDLN2(<span class="keywordtype">void</span>){
+<a name="l01352"></a>01352         FPUD_LOAD_CONST(fldln2)
+<a name="l01353"></a>01353 }
+<a name="l01354"></a>01354 
+<a name="l01355"></a>01355 <span class="keyword">static</span> <span class="keywordtype">void</span> FPU_FLDZ(<span class="keywordtype">void</span>){
+<a name="l01356"></a>01356         FPUD_LOAD_CONST(fldz)
+<a name="l01357"></a>01357         fpu.tags[TOP]=TAG_Zero;
+<a name="l01358"></a>01358 }
 </pre></div></div><!-- contents -->
 
 
 <hr class="footer"/><address class="footer"><small>
-Generated on Tue Oct 1 2019 18:06:25 for DOSBox-X by &#160;<a href="http://www.doxygen.org/index.html">
+Generated on Sun Jul 5 2020 13:11:35 for DOSBox-X by &#160;<a href="http://www.doxygen.org/index.html">
 <img class="footer" src="doxygen.png" alt="doxygen"/>
 </a> 1.8.0
 </small></address>

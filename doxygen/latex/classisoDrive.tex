@@ -17,7 +17,7 @@ struct {\bfseries Sector\-Hash\-Entry}
 \subsection*{Public Member Functions}
 \begin{DoxyCompactItemize}
 \item 
-\hypertarget{classisoDrive_a20439a5153dde920714e63d31d5d5cca}{{\bfseries iso\-Drive} (char drive\-Letter, const char $\ast$device\-\_\-name, Bit8u mediaid, int \&error)}\label{classisoDrive_a20439a5153dde920714e63d31d5d5cca}
+\hypertarget{classisoDrive_acef0969a0badc82beb041086ce3a6911}{{\bfseries iso\-Drive} (char drive\-Letter, const char $\ast$file\-Name, Bit8u mediaid, int \&error)}\label{classisoDrive_acef0969a0badc82beb041086ce3a6911}
 
 \item 
 \hypertarget{classisoDrive_adee4a9f8024d338c0edb2273e9847d15}{virtual bool {\bfseries File\-Open} (\hyperlink{classDOS__File}{D\-O\-S\-\_\-\-File} $\ast$$\ast$file, const char $\ast$name, Bit32u flags)}\label{classisoDrive_adee4a9f8024d338c0edb2273e9847d15}
@@ -38,13 +38,22 @@ struct {\bfseries Sector\-Hash\-Entry}
 \hypertarget{classisoDrive_a7eaff803896a019a60e3956ffdf4ccf7}{virtual bool {\bfseries Test\-Dir} (const char $\ast$dir)}\label{classisoDrive_a7eaff803896a019a60e3956ffdf4ccf7}
 
 \item 
-\hypertarget{classisoDrive_a3eafe6819c2584d87e9dcdc65ff436b7}{virtual bool {\bfseries Find\-First} (const char $\ast$\-\_\-dir, \hyperlink{classDOS__DTA}{D\-O\-S\-\_\-\-D\-T\-A} \&dta, bool fcb\-\_\-findfirst)}\label{classisoDrive_a3eafe6819c2584d87e9dcdc65ff436b7}
+\hypertarget{classisoDrive_a674f137dfdde43389226c217019017d6}{virtual bool {\bfseries Find\-First} (const char $\ast$dir, \hyperlink{classDOS__DTA}{D\-O\-S\-\_\-\-D\-T\-A} \&dta, bool fcb\-\_\-findfirst)}\label{classisoDrive_a674f137dfdde43389226c217019017d6}
 
 \item 
 \hypertarget{classisoDrive_ae425a68d6332c3f1fc1a463c42cc2d0d}{virtual bool {\bfseries Find\-Next} (\hyperlink{classDOS__DTA}{D\-O\-S\-\_\-\-D\-T\-A} \&dta)}\label{classisoDrive_ae425a68d6332c3f1fc1a463c42cc2d0d}
 
 \item 
+\hypertarget{classisoDrive_ac5123faeebedadd61fbc9ea338b816b4}{virtual bool {\bfseries Set\-File\-Attr} (const char $\ast$name, Bit16u attr)}\label{classisoDrive_ac5123faeebedadd61fbc9ea338b816b4}
+
+\item 
 \hypertarget{classisoDrive_ace6b70797ab4d3950d5587f5539d5691}{virtual bool {\bfseries Get\-File\-Attr} (const char $\ast$name, Bit16u $\ast$attr)}\label{classisoDrive_ace6b70797ab4d3950d5587f5539d5691}
+
+\item 
+\hypertarget{classisoDrive_a556534c3301e4b0a8f4a94265887faed}{virtual bool {\bfseries Get\-File\-Attr\-Ex} (char $\ast$name, struct stat $\ast$status)}\label{classisoDrive_a556534c3301e4b0a8f4a94265887faed}
+
+\item 
+\hypertarget{classisoDrive_a5e53b3491aa8f86eee61140d76818361}{virtual unsigned long {\bfseries Get\-Compressed\-Size} (char $\ast$name)}\label{classisoDrive_a5e53b3491aa8f86eee61140d76818361}
 
 \item 
 \hypertarget{classisoDrive_aa5f2e9221e3a3b6640c4473cf576121f}{virtual bool {\bfseries Rename} (const char $\ast$oldname, const char $\ast$newname)}\label{classisoDrive_aa5f2e9221e3a3b6640c4473cf576121f}
@@ -91,7 +100,7 @@ struct {\bfseries Sector\-Hash\-Entry}
 \subsection{Detailed Description}
 
 
-Definition at line 424 of file drives.\-h.
+Definition at line 628 of file drives.\-h.
 
 
 

@@ -96,7 +96,7 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 </div><!--header-->
 <div class="contents">
 <div class="fragment"><pre class="fragment"><a name="l00001"></a>00001 <span class="comment">/*</span>
-<a name="l00002"></a>00002 <span class="comment"> *  Copyright (C) 2002-2019  The DOSBox Team</span>
+<a name="l00002"></a>00002 <span class="comment"> *  Copyright (C) 2002-2020  The DOSBox Team</span>
 <a name="l00003"></a>00003 <span class="comment"> *</span>
 <a name="l00004"></a>00004 <span class="comment"> *  This program is free software; you can redistribute it and/or modify</span>
 <a name="l00005"></a>00005 <span class="comment"> *  it under the terms of the GNU General Public License as published by</span>
@@ -108,9 +108,9 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l00011"></a>00011 <span class="comment"> *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the</span>
 <a name="l00012"></a>00012 <span class="comment"> *  GNU General Public License for more details.</span>
 <a name="l00013"></a>00013 <span class="comment"> *</span>
-<a name="l00014"></a>00014 <span class="comment"> *  You should have received a copy of the GNU General Public License</span>
-<a name="l00015"></a>00015 <span class="comment"> *  along with this program; if not, write to the Free Software</span>
-<a name="l00016"></a>00016 <span class="comment"> *  Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1335, USA.</span>
+<a name="l00014"></a>00014 <span class="comment"> *  You should have received a copy of the GNU General Public License along</span>
+<a name="l00015"></a>00015 <span class="comment"> *  with this program; if not, write to the Free Software Foundation, Inc.,</span>
+<a name="l00016"></a>00016 <span class="comment"> *  51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.</span>
 <a name="l00017"></a>00017 <span class="comment"> */</span>
 <a name="l00018"></a>00018 
 <a name="l00019"></a>00019 
@@ -217,8 +217,8 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l00120"></a>00120 }
 <a name="l00121"></a>00121 
 <a name="l00122"></a>00122 <span class="comment">/*HACK*/</span>
-<a name="l00123"></a>00123 <span class="preprocessor">#if defined(__SSE__) &amp;&amp; defined(_M_AMD64)</span>
-<a name="l00124"></a>00124 <span class="preprocessor"></span><span class="preprocessor"># define sse2_available (1) </span><span class="comment">/* SSE2 is always available on x86_64 */</span>
+<a name="l00123"></a>00123 <span class="preprocessor">#if defined(__SSE__) &amp;&amp; (defined(_M_AMD64) || defined(__e2k__))</span>
+<a name="l00124"></a>00124 <span class="preprocessor"></span><span class="preprocessor"># define sse2_available (1) </span><span class="comment">/* SSE2 is always available on x86_64 and Elbrus */</span>
 <a name="l00125"></a>00125 <span class="preprocessor">#else</span>
 <a name="l00126"></a>00126 <span class="preprocessor"></span><span class="preprocessor"># ifdef __SSE__</span>
 <a name="l00127"></a>00127 <span class="preprocessor"></span><span class="keyword">extern</span> <span class="keywordtype">bool</span>             sse1_available;
@@ -421,453 +421,453 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l00324"></a>00324 <span class="keyword">extern</span> Bitu PIC_Ticks;
 <a name="l00325"></a>00325 <span class="keyword">extern</span> <span class="keywordtype">bool</span> pause_on_vsync;
 <a name="l00326"></a>00326 <span class="keywordtype">void</span> PauseDOSBox(<span class="keywordtype">bool</span> pressed);
-<a name="l00327"></a>00327 
-<a name="l00328"></a>00328 <span class="keywordtype">void</span> RENDER_EndUpdate( <span class="keywordtype">bool</span> abort ) {
-<a name="l00329"></a>00329     <span class="keywordflow">if</span> (GCC_UNLIKELY(!render.updating))
-<a name="l00330"></a>00330         <span class="keywordflow">return</span>;
-<a name="l00331"></a>00331 
-<a name="l00332"></a>00332     <span class="keywordflow">if</span> (!abort &amp;&amp; render.active &amp;&amp; RENDER_DrawLine == RENDER_ClearCacheHandler)
-<a name="l00333"></a>00333         render.scale.clearCache = <span class="keyword">false</span>;
-<a name="l00334"></a>00334 
-<a name="l00335"></a>00335     RENDER_DrawLine = RENDER_EmptyLineHandler;
-<a name="l00336"></a>00336     <span class="keywordflow">if</span> (GCC_UNLIKELY(CaptureState &amp; (CAPTURE_IMAGE|CAPTURE_VIDEO))) {
-<a name="l00337"></a>00337         Bitu pitch, flags;
-<a name="l00338"></a>00338         flags = 0;
-<a name="l00339"></a>00339         <span class="keywordflow">if</span> (render.src.dblw != render.src.dblh) {
-<a name="l00340"></a>00340             <span class="keywordflow">if</span> (render.src.dblw) flags|=CAPTURE_FLAG_DBLW;
-<a name="l00341"></a>00341             <span class="keywordflow">if</span> (render.src.dblh) flags|=CAPTURE_FLAG_DBLH;
-<a name="l00342"></a>00342         }
-<a name="l00343"></a>00343         <span class="keywordtype">float</span> fps = render.src.fps;
-<a name="l00344"></a>00344         pitch = render.scale.cachePitch;
-<a name="l00345"></a>00345         <span class="keywordflow">if</span> (render.frameskip.max)
-<a name="l00346"></a>00346             fps /= 1+render.frameskip.max;
-<a name="l00347"></a>00347 
-<a name="l00348"></a>00348         <span class="keywordflow">if</span> (Scaler_ChangedLineIndex == 0)
-<a name="l00349"></a>00349             flags |= CAPTURE_FLAG_NOCHANGE;
-<a name="l00350"></a>00350 
-<a name="l00351"></a>00351         CAPTURE_AddImage( render.src.width, render.src.height, render.src.bpp, pitch,
-<a name="l00352"></a>00352             flags, fps, (Bit8u *)&amp;scalerSourceCache, (Bit8u*)&amp;render.pal.rgb );
-<a name="l00353"></a>00353     }
-<a name="l00354"></a>00354     <span class="keywordflow">if</span> ( render.scale.outWrite ) {
-<a name="l00355"></a>00355         GFX_EndUpdate( abort? NULL : Scaler_ChangedLines );
-<a name="l00356"></a>00356         render.frameskip.hadSkip[render.frameskip.index] = 0;
-<a name="l00357"></a>00357     } <span class="keywordflow">else</span> {
-<a name="l00358"></a>00358 <span class="preprocessor">#if 0</span>
-<a name="l00359"></a>00359 <span class="preprocessor"></span>        Bitu total = 0, i;
-<a name="l00360"></a>00360         render.frameskip.hadSkip[render.frameskip.index] = 1;
-<a name="l00361"></a>00361         <span class="keywordflow">for</span> (i = 0;i&lt;RENDER_SKIP_CACHE;i++) 
-<a name="l00362"></a>00362             total += render.frameskip.hadSkip[i];
-<a name="l00363"></a>00363         LOG_MSG( <span class="stringliteral">&quot;Skipped frame %d %d&quot;</span>, PIC_Ticks, (total * 100) / RENDER_SKIP_CACHE );
-<a name="l00364"></a>00364 <span class="preprocessor">#endif</span>
-<a name="l00365"></a>00365 <span class="preprocessor"></span>        <span class="comment">// Force output to update the screen even if nothing changed...</span>
-<a name="l00366"></a>00366         <span class="comment">// works only with Direct3D output (GFX_StartUpdate() was probably not even called)</span>
-<a name="l00367"></a>00367         <span class="keywordflow">if</span> (render.forceUpdate) GFX_EndUpdate( 0 );
-<a name="l00368"></a>00368     }
-<a name="l00369"></a>00369     render.frameskip.index = (render.frameskip.index + 1) &amp; (RENDER_SKIP_CACHE - 1);
-<a name="l00370"></a>00370     render.updating=<span class="keyword">false</span>;
-<a name="l00371"></a>00371 
-<a name="l00372"></a>00372     <span class="keywordflow">if</span> (pause_on_vsync) {
-<a name="l00373"></a>00373         pause_on_vsync = <span class="keyword">false</span>;
-<a name="l00374"></a>00374         PauseDOSBox(<span class="keyword">true</span>);
-<a name="l00375"></a>00375     }
-<a name="l00376"></a>00376 }
-<a name="l00377"></a>00377 
-<a name="l00378"></a>00378 <span class="keyword">static</span> Bitu MakeAspectTable(Bitu skip,Bitu height,<span class="keywordtype">double</span> scaley,Bitu miny) {
-<a name="l00379"></a>00379     Bitu i;
-<a name="l00380"></a>00380     <span class="keywordtype">double</span> lines=0;
-<a name="l00381"></a>00381     Bitu linesadded=0;
-<a name="l00382"></a>00382     <span class="keywordflow">for</span> (i=0;i&lt;skip;i++)
-<a name="l00383"></a>00383         Scaler_Aspect[i] = 0;
-<a name="l00384"></a>00384 
-<a name="l00385"></a>00385     height += skip;
-<a name="l00386"></a>00386     <span class="keywordflow">for</span> (i=skip;i&lt;height;i++) {
-<a name="l00387"></a>00387         lines += scaley;
-<a name="l00388"></a>00388         <span class="keywordflow">if</span> (lines &gt;= miny) {
-<a name="l00389"></a>00389             Bitu templines = (Bitu)lines;
-<a name="l00390"></a>00390             lines -= templines;
-<a name="l00391"></a>00391             linesadded += templines;
-<a name="l00392"></a>00392             Scaler_Aspect[i] = (Bit8u)templines;
-<a name="l00393"></a>00393         } <span class="keywordflow">else</span> {
-<a name="l00394"></a>00394             Scaler_Aspect[i] = 0;
-<a name="l00395"></a>00395         }
-<a name="l00396"></a>00396     }
-<a name="l00397"></a>00397     <span class="keywordflow">return</span> linesadded;
-<a name="l00398"></a>00398 }
-<a name="l00399"></a>00399 
-<a name="l00400"></a>00400 <span class="keywordtype">void</span> RENDER_Reset( <span class="keywordtype">void</span> ) {
-<a name="l00401"></a>00401     Bitu width=render.src.width;
-<a name="l00402"></a>00402     Bitu height=render.src.height;
-<a name="l00403"></a>00403     <span class="keywordtype">bool</span> dblw=render.src.dblw;
-<a name="l00404"></a>00404     <span class="keywordtype">bool</span> dblh=render.src.dblh;
-<a name="l00405"></a>00405 
-<a name="l00406"></a>00406     <span class="keywordtype">double</span> gfx_scalew;
-<a name="l00407"></a>00407     <span class="keywordtype">double</span> gfx_scaleh;
-<a name="l00408"></a>00408 
-<a name="l00409"></a>00409     <span class="keywordflow">if</span> (width == 0 || height == 0)
-<a name="l00410"></a>00410         <span class="keywordflow">return</span>;
-<a name="l00411"></a>00411     
-<a name="l00412"></a>00412     Bitu gfx_flags, xscale, yscale;
-<a name="l00413"></a>00413     <a class="code" href="structScalerSimpleBlock__t.html">ScalerSimpleBlock_t</a>     *simpleBlock = &amp;ScaleNormal1x;
-<a name="l00414"></a>00414     <a class="code" href="structScalerComplexBlock__t.html">ScalerComplexBlock_t</a>    *complexBlock = 0;
-<a name="l00415"></a>00415     gfx_scalew = 1;
-<a name="l00416"></a>00416     gfx_scaleh = 1;
-<a name="l00417"></a>00417 
-<a name="l00418"></a>00418 <span class="preprocessor">#if !C_XBRZ</span>
-<a name="l00419"></a>00419 <span class="preprocessor"></span>    <span class="keywordflow">if</span> (render.aspect == ASPECT_TRUE &amp;&amp; !render.aspectOffload)
-<a name="l00420"></a>00420 <span class="preprocessor">#else</span>
-<a name="l00421"></a>00421 <span class="preprocessor"></span>    <span class="keywordflow">if</span> (render.aspect == ASPECT_TRUE &amp;&amp; !render.aspectOffload &amp;&amp; !(sdl_xbrz.enable &amp;&amp; sdl_xbrz.scale_on))
-<a name="l00422"></a>00422 <span class="preprocessor">#endif</span>
-<a name="l00423"></a>00423 <span class="preprocessor"></span>    {
-<a name="l00424"></a>00424         <span class="keywordflow">if</span> (render.src.ratio&gt;1.0) {
-<a name="l00425"></a>00425             gfx_scalew = 1;
-<a name="l00426"></a>00426             gfx_scaleh = render.src.ratio;
-<a name="l00427"></a>00427         } <span class="keywordflow">else</span> {
-<a name="l00428"></a>00428             gfx_scalew = (1.0/render.src.ratio);
-<a name="l00429"></a>00429             gfx_scaleh = 1;
-<a name="l00430"></a>00430         }
-<a name="l00431"></a>00431     }
-<a name="l00432"></a>00432 
-<a name="l00433"></a>00433     <span class="keywordflow">if</span> ((dblh &amp;&amp; dblw) || (render.scale.forced &amp;&amp; dblh == dblw<span class="comment">/*this branch works best with equal scaling in both directions*/</span>)) {
-<a name="l00434"></a>00434         <span class="comment">/* Initialize always working defaults */</span>
-<a name="l00435"></a>00435         <span class="keywordflow">if</span> (render.scale.size == 2)
-<a name="l00436"></a>00436             simpleBlock = &amp;ScaleNormal2x;
-<a name="l00437"></a>00437         <span class="keywordflow">else</span> <span class="keywordflow">if</span> (render.scale.size == 3)
-<a name="l00438"></a>00438             simpleBlock = &amp;ScaleNormal3x;
-<a name="l00439"></a>00439         <span class="keywordflow">else</span> <span class="keywordflow">if</span> (render.scale.size == 1 &amp;&amp; !(dblh || dblw) &amp;&amp; render.scale.hardware)
-<a name="l00440"></a>00440             simpleBlock = &amp;ScaleNormal1x;
-<a name="l00441"></a>00441         <span class="keywordflow">else</span> <span class="keywordflow">if</span> (render.scale.size == 4 &amp;&amp; !(dblh || dblw) &amp;&amp; render.scale.hardware)
-<a name="l00442"></a>00442             simpleBlock = &amp;ScaleNormal2x;
-<a name="l00443"></a>00443         <span class="keywordflow">else</span> <span class="keywordflow">if</span> (render.scale.size == 6 &amp;&amp; !(dblh || dblw) &amp;&amp; render.scale.hardware)
-<a name="l00444"></a>00444             simpleBlock = &amp;ScaleNormal3x;
-<a name="l00445"></a>00445         <span class="keywordflow">else</span> <span class="keywordflow">if</span> (render.scale.size == 4 &amp;&amp; !render.scale.hardware)
-<a name="l00446"></a>00446             simpleBlock = &amp;ScaleNormal4x;
-<a name="l00447"></a>00447         <span class="keywordflow">else</span> <span class="keywordflow">if</span> (render.scale.size == 5 &amp;&amp; !render.scale.hardware)
-<a name="l00448"></a>00448             simpleBlock = &amp;ScaleNormal5x;
-<a name="l00449"></a>00449         <span class="keywordflow">else</span> <span class="keywordflow">if</span> (render.scale.size == 8 &amp;&amp; !(dblh || dblw) &amp;&amp; render.scale.hardware)
-<a name="l00450"></a>00450             simpleBlock = &amp;ScaleNormal4x;
-<a name="l00451"></a>00451         <span class="keywordflow">else</span> <span class="keywordflow">if</span> (render.scale.size == 10 &amp;&amp; !(dblh || dblw) &amp;&amp; render.scale.hardware)
-<a name="l00452"></a>00452             simpleBlock = &amp;ScaleNormal5x;
-<a name="l00453"></a>00453         <span class="keywordflow">else</span>
-<a name="l00454"></a>00454             simpleBlock = &amp;ScaleNormal1x;
-<a name="l00455"></a>00455         <span class="comment">/* Maybe override them */</span>
-<a name="l00456"></a>00456 <span class="preprocessor">#if RENDER_USE_ADVANCED_SCALERS&gt;0</span>
-<a name="l00457"></a>00457 <span class="preprocessor"></span>        <span class="keywordflow">switch</span> (render.scale.op) {
-<a name="l00458"></a>00458 <span class="preprocessor">#if RENDER_USE_ADVANCED_SCALERS&gt;2</span>
-<a name="l00459"></a>00459 <span class="preprocessor"></span>        <span class="keywordflow">case</span> scalerOpAdvInterp:
-<a name="l00460"></a>00460             <span class="keywordflow">if</span> (render.scale.size == 2)
-<a name="l00461"></a>00461                 complexBlock = &amp;ScaleAdvInterp2x;
-<a name="l00462"></a>00462             <span class="keywordflow">else</span> <span class="keywordflow">if</span> (render.scale.size == 3)
-<a name="l00463"></a>00463                 complexBlock = &amp;ScaleAdvInterp3x;
-<a name="l00464"></a>00464             <span class="keywordflow">break</span>;
-<a name="l00465"></a>00465         <span class="keywordflow">case</span> scalerOpAdvMame:
-<a name="l00466"></a>00466             <span class="keywordflow">if</span> (render.scale.size == 2)
-<a name="l00467"></a>00467                 complexBlock = &amp;ScaleAdvMame2x;
-<a name="l00468"></a>00468             <span class="keywordflow">else</span> <span class="keywordflow">if</span> (render.scale.size == 3)
-<a name="l00469"></a>00469                 complexBlock = &amp;ScaleAdvMame3x;
-<a name="l00470"></a>00470             <span class="keywordflow">break</span>;
-<a name="l00471"></a>00471         <span class="keywordflow">case</span> scalerOpHQ:
-<a name="l00472"></a>00472             <span class="keywordflow">if</span> (render.scale.size == 2)
-<a name="l00473"></a>00473                 complexBlock = &amp;ScaleHQ2x;
-<a name="l00474"></a>00474             <span class="keywordflow">else</span> <span class="keywordflow">if</span> (render.scale.size == 3)
-<a name="l00475"></a>00475                 complexBlock = &amp;ScaleHQ3x;
-<a name="l00476"></a>00476             <span class="keywordflow">break</span>;
-<a name="l00477"></a>00477         <span class="keywordflow">case</span> scalerOpSuperSaI:
-<a name="l00478"></a>00478             <span class="keywordflow">if</span> (render.scale.size == 2)
-<a name="l00479"></a>00479                 complexBlock = &amp;ScaleSuper2xSaI;
-<a name="l00480"></a>00480             <span class="keywordflow">break</span>;
-<a name="l00481"></a>00481         <span class="keywordflow">case</span> scalerOpSuperEagle:
-<a name="l00482"></a>00482             <span class="keywordflow">if</span> (render.scale.size == 2)
-<a name="l00483"></a>00483                 complexBlock = &amp;ScaleSuperEagle;
-<a name="l00484"></a>00484             <span class="keywordflow">break</span>;
-<a name="l00485"></a>00485         <span class="keywordflow">case</span> scalerOpSaI:
-<a name="l00486"></a>00486             <span class="keywordflow">if</span> (render.scale.size == 2)
-<a name="l00487"></a>00487                 complexBlock = &amp;Scale2xSaI;
-<a name="l00488"></a>00488             <span class="keywordflow">break</span>;
-<a name="l00489"></a>00489 <span class="preprocessor">#endif</span>
-<a name="l00490"></a>00490 <span class="preprocessor"></span>        <span class="keywordflow">case</span> scalerOpTV:
-<a name="l00491"></a>00491             <span class="keywordflow">if</span> (render.scale.size == 2)
-<a name="l00492"></a>00492                 simpleBlock = &amp;ScaleTV2x;
-<a name="l00493"></a>00493             <span class="keywordflow">else</span> <span class="keywordflow">if</span> (render.scale.size == 3)
-<a name="l00494"></a>00494                 simpleBlock = &amp;ScaleTV3x;
-<a name="l00495"></a>00495             <span class="keywordflow">break</span>;
-<a name="l00496"></a>00496         <span class="keywordflow">case</span> scalerOpRGB:
-<a name="l00497"></a>00497             <span class="keywordflow">if</span> (render.scale.size == 2)
-<a name="l00498"></a>00498                 simpleBlock = &amp;ScaleRGB2x;
-<a name="l00499"></a>00499             <span class="keywordflow">else</span> <span class="keywordflow">if</span> (render.scale.size == 3)
-<a name="l00500"></a>00500                 simpleBlock = &amp;ScaleRGB3x;
-<a name="l00501"></a>00501             <span class="keywordflow">break</span>;
-<a name="l00502"></a>00502         <span class="keywordflow">case</span> scalerOpScan:
-<a name="l00503"></a>00503             <span class="keywordflow">if</span> (render.scale.size == 2)
-<a name="l00504"></a>00504                 simpleBlock = &amp;ScaleScan2x;
-<a name="l00505"></a>00505             <span class="keywordflow">else</span> <span class="keywordflow">if</span> (render.scale.size == 3)
-<a name="l00506"></a>00506                 simpleBlock = &amp;ScaleScan3x;
-<a name="l00507"></a>00507             <span class="keywordflow">break</span>;
-<a name="l00508"></a>00508         <span class="keywordflow">case</span> scalerOpGray:
-<a name="l00509"></a>00509             <span class="keywordflow">if</span> (render.scale.size == 1){
-<a name="l00510"></a>00510                                 simpleBlock = &amp;ScaleGrayNormal;
-<a name="l00511"></a>00511             }<span class="keywordflow">else</span> <span class="keywordflow">if</span> (render.scale.size == 2){
-<a name="l00512"></a>00512                                 simpleBlock = &amp;ScaleGray2x;
-<a name="l00513"></a>00513             }
-<a name="l00514"></a>00514         <span class="keywordflow">break</span>;
-<a name="l00515"></a>00515         <span class="keywordflow">default</span>:
-<a name="l00516"></a>00516             <span class="keywordflow">break</span>;
-<a name="l00517"></a>00517         }
-<a name="l00518"></a>00518 <span class="preprocessor">#endif</span>
-<a name="l00519"></a>00519 <span class="preprocessor"></span>    } <span class="keywordflow">else</span> <span class="keywordflow">if</span> (dblw &amp;&amp; !render.scale.hardware) {
-<a name="l00520"></a>00520       <span class="keywordflow">if</span>(scalerOpGray == render.scale.op){
-<a name="l00521"></a>00521         simpleBlock = &amp;ScaleGrayDw;
-<a name="l00522"></a>00522       }<span class="keywordflow">else</span>{
-<a name="l00523"></a>00523           <span class="keywordflow">if</span> (render.scale.forced &amp;&amp; render.scale.size &gt;= 2)
-<a name="l00524"></a>00524               simpleBlock = &amp;ScaleNormal2xDw;
-<a name="l00525"></a>00525           <span class="keywordflow">else</span>
-<a name="l00526"></a>00526               simpleBlock = &amp;ScaleNormalDw;
-<a name="l00527"></a>00527       }
-<a name="l00528"></a>00528     } <span class="keywordflow">else</span> <span class="keywordflow">if</span> (dblh &amp;&amp; !render.scale.hardware) {
-<a name="l00529"></a>00529                 <span class="comment">//Check whether tv2x and scan2x is selected</span>
-<a name="l00530"></a>00530                 <span class="keywordflow">if</span>(scalerOpGray == render.scale.op){
-<a name="l00531"></a>00531                         simpleBlock = &amp;ScaleGrayDh;
-<a name="l00532"></a>00532     }<span class="keywordflow">else</span> <span class="keywordflow">if</span>(scalerOpTV == render.scale.op){
-<a name="l00533"></a>00533                         simpleBlock = &amp;ScaleTVDh;
-<a name="l00534"></a>00534         }<span class="keywordflow">else</span> <span class="keywordflow">if</span>(scalerOpScan == render.scale.op){
-<a name="l00535"></a>00535                         simpleBlock = &amp;ScaleScanDh;
-<a name="l00536"></a>00536         }<span class="keywordflow">else</span>{
-<a name="l00537"></a>00537             <span class="keywordflow">if</span> (render.scale.forced &amp;&amp; render.scale.size &gt;= 2)
-<a name="l00538"></a>00538                 simpleBlock = &amp;ScaleNormal2xDh;
-<a name="l00539"></a>00539             <span class="keywordflow">else</span>
-<a name="l00540"></a>00540                 simpleBlock = &amp;ScaleNormalDh;
-<a name="l00541"></a>00541         }
-<a name="l00542"></a>00542     } <span class="keywordflow">else</span>  {
-<a name="l00543"></a>00543 forcenormal:
-<a name="l00544"></a>00544         complexBlock = 0;
-<a name="l00545"></a>00545         <span class="keywordflow">if</span>(scalerOpGray==render.scale.op){
-<a name="l00546"></a>00546           simpleBlock = &amp;ScaleGrayNormal;
-<a name="l00547"></a>00547         }<span class="keywordflow">else</span>{
-<a name="l00548"></a>00548           simpleBlock = &amp;ScaleNormal1x;
-<a name="l00549"></a>00549         }
-<a name="l00550"></a>00550     }
-<a name="l00551"></a>00551     <span class="keywordflow">if</span> (complexBlock) {
-<a name="l00552"></a>00552 <span class="preprocessor">#if RENDER_USE_ADVANCED_SCALERS&gt;1</span>
-<a name="l00553"></a>00553 <span class="preprocessor"></span>        <span class="keywordflow">if</span> ((width &gt;= SCALER_COMPLEXWIDTH - 16) || height &gt;= SCALER_COMPLEXHEIGHT - 16) {
-<a name="l00554"></a>00554             LOG_MSG(<span class="stringliteral">&quot;Scaler can&#39;t handle this resolution, going back to normal&quot;</span>);
-<a name="l00555"></a>00555             <span class="keywordflow">goto</span> forcenormal;
-<a name="l00556"></a>00556         }
-<a name="l00557"></a>00557 <span class="preprocessor">#else</span>
-<a name="l00558"></a>00558 <span class="preprocessor"></span>        <span class="keywordflow">goto</span> forcenormal;
-<a name="l00559"></a>00559 <span class="preprocessor">#endif</span>
-<a name="l00560"></a>00560 <span class="preprocessor"></span>        gfx_flags = complexBlock-&gt;gfxFlags;
-<a name="l00561"></a>00561         xscale = complexBlock-&gt;xscale;  
-<a name="l00562"></a>00562         yscale = complexBlock-&gt;yscale;
-<a name="l00563"></a>00563 <span class="comment">//      LOG_MSG(&quot;Scaler:%s&quot;,complexBlock-&gt;name);</span>
-<a name="l00564"></a>00564     } <span class="keywordflow">else</span> {
-<a name="l00565"></a>00565         gfx_flags = simpleBlock-&gt;gfxFlags;
-<a name="l00566"></a>00566         xscale = simpleBlock-&gt;xscale;   
-<a name="l00567"></a>00567         yscale = simpleBlock-&gt;yscale;
-<a name="l00568"></a>00568 <span class="comment">//      LOG_MSG(&quot;Scaler:%s&quot;,simpleBlock-&gt;name);</span>
-<a name="l00569"></a>00569     }
-<a name="l00570"></a>00570     <span class="keywordflow">switch</span> (render.src.bpp) {
-<a name="l00571"></a>00571     <span class="keywordflow">case</span> 8:
-<a name="l00572"></a>00572         render.src.start = ( render.src.width * 1) / <span class="keyword">sizeof</span>(Bitu);
-<a name="l00573"></a>00573         <span class="keywordflow">if</span> (gfx_flags &amp; GFX_CAN_8)
-<a name="l00574"></a>00574             gfx_flags |= GFX_LOVE_8;
-<a name="l00575"></a>00575         <span class="keywordflow">else</span>
-<a name="l00576"></a>00576             gfx_flags |= GFX_LOVE_32;
-<a name="l00577"></a>00577         <span class="keywordflow">break</span>;
-<a name="l00578"></a>00578     <span class="keywordflow">case</span> 15:
-<a name="l00579"></a>00579         render.src.start = ( render.src.width * 2) / <span class="keyword">sizeof</span>(Bitu);
-<a name="l00580"></a>00580         gfx_flags |= GFX_LOVE_15;
-<a name="l00581"></a>00581         gfx_flags = (gfx_flags &amp; ~GFX_CAN_8) | GFX_RGBONLY;
-<a name="l00582"></a>00582         <span class="keywordflow">break</span>;
-<a name="l00583"></a>00583     <span class="keywordflow">case</span> 16:
-<a name="l00584"></a>00584         render.src.start = ( render.src.width * 2) / <span class="keyword">sizeof</span>(Bitu);
-<a name="l00585"></a>00585         gfx_flags |= GFX_LOVE_16;
-<a name="l00586"></a>00586         gfx_flags = (gfx_flags &amp; ~GFX_CAN_8) | GFX_RGBONLY;
-<a name="l00587"></a>00587         <span class="keywordflow">break</span>;
-<a name="l00588"></a>00588     <span class="keywordflow">case</span> 32:
-<a name="l00589"></a>00589         render.src.start = ( render.src.width * 4) / <span class="keyword">sizeof</span>(Bitu);
-<a name="l00590"></a>00590         gfx_flags |= GFX_LOVE_32;
-<a name="l00591"></a>00591         gfx_flags = (gfx_flags &amp; ~GFX_CAN_8) | GFX_RGBONLY;
-<a name="l00592"></a>00592         <span class="keywordflow">break</span>;
-<a name="l00593"></a>00593     <span class="keywordflow">default</span>:
-<a name="l00594"></a>00594         render.src.start = ( render.src.width * 1) / <span class="keyword">sizeof</span>(Bitu);
-<a name="l00595"></a>00595         <span class="keywordflow">if</span> (gfx_flags &amp; GFX_CAN_8)
-<a name="l00596"></a>00596             gfx_flags |= GFX_LOVE_8;
-<a name="l00597"></a>00597         <span class="keywordflow">else</span>
-<a name="l00598"></a>00598             gfx_flags |= GFX_LOVE_32;
-<a name="l00599"></a>00599         <span class="keywordflow">break</span>;
-<a name="l00600"></a>00600     }
-<a name="l00601"></a>00601 <span class="preprocessor">#if !defined(C_SDL2)</span>
-<a name="l00602"></a>00602 <span class="preprocessor"></span>    gfx_flags=GFX_GetBestMode(gfx_flags);
-<a name="l00603"></a>00603 <span class="preprocessor">#else</span>
-<a name="l00604"></a>00604 <span class="preprocessor"></span>    gfx_flags &amp;= ~GFX_SCALING;
-<a name="l00605"></a>00605     gfx_flags |= GFX_RGBONLY | GFX_CAN_RANDOM;
-<a name="l00606"></a>00606 <span class="preprocessor">#endif</span>
-<a name="l00607"></a>00607 <span class="preprocessor"></span>    <span class="keywordflow">if</span> (!gfx_flags) {
-<a name="l00608"></a>00608         <span class="keywordflow">if</span> (!complexBlock &amp;&amp; simpleBlock == &amp;ScaleNormal1x) 
-<a name="l00609"></a>00609             E_Exit(<span class="stringliteral">&quot;Failed to create a rendering output&quot;</span>);
-<a name="l00610"></a>00610         <span class="keywordflow">else</span> 
-<a name="l00611"></a>00611             <span class="keywordflow">goto</span> forcenormal;
-<a name="l00612"></a>00612     }
-<a name="l00613"></a>00613     width *= xscale;
-<a name="l00614"></a>00614     Bitu skip = complexBlock ? 1 : 0;
-<a name="l00615"></a>00615     <span class="keywordflow">if</span> (gfx_flags &amp; GFX_SCALING) {
-<a name="l00616"></a>00616         <span class="keywordflow">if</span>(render.scale.size == 1 &amp;&amp; render.scale.hardware) { <span class="comment">//hardware_none</span>
-<a name="l00617"></a>00617             <span class="keywordflow">if</span>(dblh)
-<a name="l00618"></a>00618             gfx_scaleh *= 1;
-<a name="l00619"></a>00619             <span class="keywordflow">if</span>(dblw)
-<a name="l00620"></a>00620             gfx_scalew *= 1;
-<a name="l00621"></a>00621         } <span class="keywordflow">else</span> <span class="keywordflow">if</span>(render.scale.size == 4 &amp;&amp; render.scale.hardware) {
-<a name="l00622"></a>00622             <span class="keywordflow">if</span>(dblh)
-<a name="l00623"></a>00623             gfx_scaleh *= 2;
-<a name="l00624"></a>00624             <span class="keywordflow">if</span>(dblw)
-<a name="l00625"></a>00625             gfx_scalew *= 2;
-<a name="l00626"></a>00626         } <span class="keywordflow">else</span> <span class="keywordflow">if</span>(render.scale.size == 6 &amp;&amp; render.scale.hardware) {
-<a name="l00627"></a>00627             <span class="keywordflow">if</span>(dblh &amp;&amp; dblw) {
-<a name="l00628"></a>00628             gfx_scaleh *= 3; gfx_scalew *= 3;
-<a name="l00629"></a>00629             } <span class="keywordflow">else</span> <span class="keywordflow">if</span>(dblh) {
-<a name="l00630"></a>00630             gfx_scaleh *= 2;
-<a name="l00631"></a>00631             } <span class="keywordflow">else</span> <span class="keywordflow">if</span>(dblw)
-<a name="l00632"></a>00632             gfx_scalew *= 2;
-<a name="l00633"></a>00633         } <span class="keywordflow">else</span> <span class="keywordflow">if</span>(render.scale.size == 8 &amp;&amp; render.scale.hardware) { <span class="comment">//hardware4x</span>
-<a name="l00634"></a>00634             <span class="keywordflow">if</span>(dblh)
-<a name="l00635"></a>00635             gfx_scaleh *= 4;
-<a name="l00636"></a>00636             <span class="keywordflow">if</span>(dblw)
-<a name="l00637"></a>00637             gfx_scalew *= 4;
-<a name="l00638"></a>00638         } <span class="keywordflow">else</span> <span class="keywordflow">if</span>(render.scale.size == 10 &amp;&amp; render.scale.hardware) { <span class="comment">//hardware5x</span>
-<a name="l00639"></a>00639             <span class="keywordflow">if</span>(dblh &amp;&amp; dblw) {
-<a name="l00640"></a>00640             gfx_scaleh *= 5; gfx_scalew *= 5;
-<a name="l00641"></a>00641             } <span class="keywordflow">else</span> <span class="keywordflow">if</span>(dblh) {
-<a name="l00642"></a>00642             gfx_scaleh *= 4;
-<a name="l00643"></a>00643             } <span class="keywordflow">else</span> <span class="keywordflow">if</span>(dblw)
-<a name="l00644"></a>00644             gfx_scalew *= 4;
-<a name="l00645"></a>00645         }
-<a name="l00646"></a>00646         height = MakeAspectTable(skip, render.src.height, (<span class="keywordtype">double</span>)yscale, yscale );
-<a name="l00647"></a>00647     } <span class="keywordflow">else</span> {
-<a name="l00648"></a>00648         <span class="comment">// Print a warning when hardware scalers are selected, hopefully the first</span>
-<a name="l00649"></a>00649         <span class="comment">// video mode will not have dblh or dblw or AR will be wrong</span>
-<a name="l00650"></a>00650         <span class="keywordflow">if</span> (render.scale.hardware) {
-<a name="l00651"></a>00651             LOG_MSG(<span class="stringliteral">&quot;Output does not support hardware scaling, switching to normal scalers&quot;</span>);
-<a name="l00652"></a>00652             render.scale.hardware=<span class="keyword">false</span>;
-<a name="l00653"></a>00653         }
-<a name="l00654"></a>00654         <span class="keywordflow">if</span> ((gfx_flags &amp; GFX_CAN_RANDOM) &amp;&amp; gfx_scaleh &gt; 1) {
-<a name="l00655"></a>00655             gfx_scaleh *= yscale;
-<a name="l00656"></a>00656             height = MakeAspectTable( skip, render.src.height, gfx_scaleh, yscale );
-<a name="l00657"></a>00657         } <span class="keywordflow">else</span> {
-<a name="l00658"></a>00658             gfx_flags &amp;= ~GFX_CAN_RANDOM;       <span class="comment">//Hardware surface when possible</span>
-<a name="l00659"></a>00659             height = MakeAspectTable( skip, render.src.height, (<span class="keywordtype">double</span>)yscale, yscale);
-<a name="l00660"></a>00660         }
-<a name="l00661"></a>00661     }
-<a name="l00662"></a>00662 <span class="comment">/* update the aspect ratio */</span>
-<a name="l00663"></a>00663     sdl.srcAspect.x = (int)(render.src.width * (render.src.dblw ? 2 : 1));
-<a name="l00664"></a>00664     sdl.srcAspect.y = (int)floor((render.src.height * (render.src.dblh ? 2 : 1) * render.src.ratio) + 0.5);
-<a name="l00665"></a>00665     sdl.srcAspect.xToY = (double)sdl.srcAspect.x / sdl.srcAspect.y;
-<a name="l00666"></a>00666     sdl.srcAspect.yToX = (<span class="keywordtype">double</span>)sdl.srcAspect.y / sdl.srcAspect.x;
-<a name="l00667"></a>00667     LOG_MSG(<span class="stringliteral">&quot;Aspect ratio: %u x %u  xToY=%.3f yToX=%.3f&quot;</span>,sdl.srcAspect.x,sdl.srcAspect.y,sdl.srcAspect.xToY,sdl.srcAspect.yToX);
-<a name="l00668"></a>00668 <span class="comment">/* Setup the scaler variables */</span>
-<a name="l00669"></a>00669     gfx_flags=GFX_SetSize(width,height,gfx_flags,gfx_scalew,gfx_scaleh,&amp;RENDER_CallBack);
-<a name="l00670"></a>00670     <span class="keywordflow">if</span> (gfx_flags &amp; GFX_CAN_8)
-<a name="l00671"></a>00671         render.scale.outMode = scalerMode8;
-<a name="l00672"></a>00672     <span class="keywordflow">else</span> <span class="keywordflow">if</span> (gfx_flags &amp; GFX_CAN_15)
-<a name="l00673"></a>00673         render.scale.outMode = scalerMode15;
-<a name="l00674"></a>00674     <span class="keywordflow">else</span> <span class="keywordflow">if</span> (gfx_flags &amp; GFX_CAN_16)
-<a name="l00675"></a>00675         render.scale.outMode = scalerMode16;
-<a name="l00676"></a>00676     <span class="keywordflow">else</span> <span class="keywordflow">if</span> (gfx_flags &amp; GFX_CAN_32)
-<a name="l00677"></a>00677         render.scale.outMode = scalerMode32;
-<a name="l00678"></a>00678     <span class="keywordflow">else</span> 
-<a name="l00679"></a>00679         E_Exit(<span class="stringliteral">&quot;Failed to create a rendering output&quot;</span>);
-<a name="l00680"></a>00680     ScalerLineBlock_t *lineBlock;
-<a name="l00681"></a>00681     <span class="keywordflow">if</span> (gfx_flags &amp; GFX_HARDWARE) {
-<a name="l00682"></a>00682 <span class="preprocessor">#if RENDER_USE_ADVANCED_SCALERS&gt;1</span>
-<a name="l00683"></a>00683 <span class="preprocessor"></span>        <span class="keywordflow">if</span> (complexBlock) {
-<a name="l00684"></a>00684             lineBlock = &amp;ScalerCache;
-<a name="l00685"></a>00685             render.scale.complexHandler = complexBlock-&gt;Linear[ render.scale.outMode ];
-<a name="l00686"></a>00686         } <span class="keywordflow">else</span>
-<a name="l00687"></a>00687 <span class="preprocessor">#endif</span>
-<a name="l00688"></a>00688 <span class="preprocessor"></span>        {
-<a name="l00689"></a>00689             render.scale.complexHandler = 0;
-<a name="l00690"></a>00690             lineBlock = &amp;simpleBlock-&gt;Linear;
-<a name="l00691"></a>00691         }
-<a name="l00692"></a>00692     } <span class="keywordflow">else</span> {
-<a name="l00693"></a>00693 <span class="preprocessor">#if RENDER_USE_ADVANCED_SCALERS&gt;1</span>
-<a name="l00694"></a>00694 <span class="preprocessor"></span>        <span class="keywordflow">if</span> (complexBlock) {
-<a name="l00695"></a>00695             lineBlock = &amp;ScalerCache;
-<a name="l00696"></a>00696             render.scale.complexHandler = complexBlock-&gt;Random[ render.scale.outMode ];
-<a name="l00697"></a>00697         } <span class="keywordflow">else</span>
-<a name="l00698"></a>00698 <span class="preprocessor">#endif</span>
-<a name="l00699"></a>00699 <span class="preprocessor"></span>        {
-<a name="l00700"></a>00700             render.scale.complexHandler = 0;
-<a name="l00701"></a>00701             lineBlock = &amp;simpleBlock-&gt;Random;
-<a name="l00702"></a>00702         }
-<a name="l00703"></a>00703     }
-<a name="l00704"></a>00704     <span class="keywordflow">switch</span> (render.src.bpp) {
-<a name="l00705"></a>00705     <span class="keywordflow">case</span> 8:
-<a name="l00706"></a>00706         render.scale.lineHandler = (*lineBlock)[0][render.scale.outMode];
-<a name="l00707"></a>00707         render.scale.linePalHandler = (*lineBlock)[4][render.scale.outMode];
-<a name="l00708"></a>00708         render.scale.inMode = scalerMode8;
-<a name="l00709"></a>00709         render.scale.cachePitch = render.src.width * 1;
-<a name="l00710"></a>00710         <span class="keywordflow">break</span>;
-<a name="l00711"></a>00711     <span class="keywordflow">case</span> 15:
-<a name="l00712"></a>00712         render.scale.lineHandler = (*lineBlock)[1][render.scale.outMode];
-<a name="l00713"></a>00713         render.scale.linePalHandler = 0;
-<a name="l00714"></a>00714         render.scale.inMode = scalerMode15;
-<a name="l00715"></a>00715         render.scale.cachePitch = render.src.width * 2;
-<a name="l00716"></a>00716         <span class="keywordflow">break</span>;
-<a name="l00717"></a>00717     <span class="keywordflow">case</span> 16:
-<a name="l00718"></a>00718         render.scale.lineHandler = (*lineBlock)[2][render.scale.outMode];
-<a name="l00719"></a>00719         render.scale.linePalHandler = 0;
-<a name="l00720"></a>00720         render.scale.inMode = scalerMode16;
-<a name="l00721"></a>00721         render.scale.cachePitch = render.src.width * 2;
-<a name="l00722"></a>00722         <span class="keywordflow">break</span>;
-<a name="l00723"></a>00723     <span class="keywordflow">case</span> 32:
-<a name="l00724"></a>00724         render.scale.lineHandler = (*lineBlock)[3][render.scale.outMode];
-<a name="l00725"></a>00725         render.scale.linePalHandler = 0;
-<a name="l00726"></a>00726         render.scale.inMode = scalerMode32;
-<a name="l00727"></a>00727         render.scale.cachePitch = render.src.width * 4;
-<a name="l00728"></a>00728         <span class="keywordflow">break</span>;
-<a name="l00729"></a>00729     <span class="keywordflow">default</span>:
-<a name="l00730"></a>00730         <span class="comment">//render.src.bpp=8;</span>
-<a name="l00731"></a>00731         render.scale.lineHandler = (*lineBlock)[0][render.scale.outMode];
-<a name="l00732"></a>00732         render.scale.linePalHandler = (*lineBlock)[4][render.scale.outMode];
-<a name="l00733"></a>00733         render.scale.inMode = scalerMode8;
-<a name="l00734"></a>00734         render.scale.cachePitch = render.src.width * 1;
-<a name="l00735"></a>00735         <span class="keywordflow">break</span>;
-<a name="l00736"></a>00736         <span class="comment">//E_Exit(&quot;RENDER:Wrong source bpp %d&quot;, render.src.bpp );</span>
-<a name="l00737"></a>00737     }
-<a name="l00738"></a>00738     render.scale.blocks = render.src.width / SCALER_BLOCKSIZE;
-<a name="l00739"></a>00739     render.scale.lastBlock = render.src.width % SCALER_BLOCKSIZE;
-<a name="l00740"></a>00740     render.scale.inHeight = render.src.height;
-<a name="l00741"></a>00741     <span class="comment">/* Reset the palette change detection to it&#39;s initial value */</span>
-<a name="l00742"></a>00742     render.pal.first= 0;
-<a name="l00743"></a>00743     render.pal.last = 255;
-<a name="l00744"></a>00744     render.pal.changed = <span class="keyword">false</span>;
-<a name="l00745"></a>00745     memset(render.pal.modified, 0, <span class="keyword">sizeof</span>(render.pal.modified));
-<a name="l00746"></a>00746     <span class="comment">//Finish this frame using a copy only handler</span>
-<a name="l00747"></a>00747     RENDER_DrawLine = RENDER_FinishLineHandler;
-<a name="l00748"></a>00748     render.scale.outWrite = 0;
-<a name="l00749"></a>00749     <span class="comment">/* Signal the next frame to first reinit the cache */</span>
-<a name="l00750"></a>00750     render.scale.clearCache = <span class="keyword">true</span>;
-<a name="l00751"></a>00751     render.active=<span class="keyword">true</span>;
-<a name="l00752"></a>00752 
-<a name="l00753"></a>00753     last_gfx_flags = gfx_flags;
-<a name="l00754"></a>00754 }
-<a name="l00755"></a>00755 
-<a name="l00756"></a>00756 <span class="keywordtype">void</span> RENDER_CallBack( GFX_CallBackFunctions_t <span class="keyword">function</span> ) {
-<a name="l00757"></a>00757     <span class="keywordflow">if</span> (<span class="keyword">function</span> == GFX_CallBackStop) {
-<a name="l00758"></a>00758         RENDER_Halt( ); 
-<a name="l00759"></a>00759         <span class="keywordflow">return</span>;
-<a name="l00760"></a>00760     } <span class="keywordflow">else</span> <span class="keywordflow">if</span> (<span class="keyword">function</span> == GFX_CallBackRedraw) {
-<a name="l00761"></a>00761         render.scale.clearCache = <span class="keyword">true</span>;
-<a name="l00762"></a>00762         <span class="keywordflow">return</span>;
-<a name="l00763"></a>00763     } <span class="keywordflow">else</span> <span class="keywordflow">if</span> ( <span class="keyword">function</span> == GFX_CallBackReset) {
-<a name="l00764"></a>00764         GFX_EndUpdate( 0 ); 
-<a name="l00765"></a>00765         RENDER_Reset();
-<a name="l00766"></a>00766     } <span class="keywordflow">else</span> {
-<a name="l00767"></a>00767         E_Exit(<span class="stringliteral">&quot;Unhandled GFX_CallBackReset %d&quot;</span>, <span class="keyword">function</span> );
-<a name="l00768"></a>00768     }
-<a name="l00769"></a>00769 }
-<a name="l00770"></a>00770 
-<a name="l00771"></a>00771 <span class="keywordtype">void</span> RENDER_SetSize(Bitu width,Bitu height,Bitu bpp,<span class="keywordtype">float</span> fps,<span class="keywordtype">double</span> scrn_ratio) {
-<a name="l00772"></a>00772     RENDER_Halt( );
-<a name="l00773"></a>00773     <span class="keywordflow">if</span> (!width || !height || width &gt; SCALER_MAXWIDTH || height &gt; SCALER_MAXHEIGHT) { 
+<a name="l00327"></a>00327 <span class="keywordtype">void</span> AspectRatio_mapper_shortcut(<span class="keywordtype">bool</span> pressed);
+<a name="l00328"></a>00328 
+<a name="l00329"></a>00329 <span class="keywordtype">void</span> RENDER_EndUpdate( <span class="keywordtype">bool</span> abort ) {
+<a name="l00330"></a>00330     <span class="keywordflow">if</span> (GCC_UNLIKELY(!render.updating))
+<a name="l00331"></a>00331         <span class="keywordflow">return</span>;
+<a name="l00332"></a>00332 
+<a name="l00333"></a>00333     <span class="keywordflow">if</span> (!abort &amp;&amp; render.active &amp;&amp; RENDER_DrawLine == RENDER_ClearCacheHandler)
+<a name="l00334"></a>00334         render.scale.clearCache = <span class="keyword">false</span>;
+<a name="l00335"></a>00335 
+<a name="l00336"></a>00336     RENDER_DrawLine = RENDER_EmptyLineHandler;
+<a name="l00337"></a>00337     <span class="keywordflow">if</span> (GCC_UNLIKELY(CaptureState &amp; (CAPTURE_IMAGE|CAPTURE_VIDEO))) {
+<a name="l00338"></a>00338         Bitu pitch, flags;
+<a name="l00339"></a>00339         flags = 0;
+<a name="l00340"></a>00340         <span class="keywordflow">if</span> (render.src.dblw != render.src.dblh) {
+<a name="l00341"></a>00341             <span class="keywordflow">if</span> (render.src.dblw) flags|=CAPTURE_FLAG_DBLW;
+<a name="l00342"></a>00342             <span class="keywordflow">if</span> (render.src.dblh) flags|=CAPTURE_FLAG_DBLH;
+<a name="l00343"></a>00343         }
+<a name="l00344"></a>00344         <span class="keywordtype">float</span> fps = render.src.fps;
+<a name="l00345"></a>00345         pitch = render.scale.cachePitch;
+<a name="l00346"></a>00346         <span class="keywordflow">if</span> (render.frameskip.max)
+<a name="l00347"></a>00347             fps /= 1+render.frameskip.max;
+<a name="l00348"></a>00348 
+<a name="l00349"></a>00349         <span class="keywordflow">if</span> (Scaler_ChangedLineIndex == 0)
+<a name="l00350"></a>00350             flags |= CAPTURE_FLAG_NOCHANGE;
+<a name="l00351"></a>00351 
+<a name="l00352"></a>00352         CAPTURE_AddImage( render.src.width, render.src.height, render.src.bpp, pitch,
+<a name="l00353"></a>00353             flags, fps, (Bit8u *)&amp;scalerSourceCache, (Bit8u*)&amp;render.pal.rgb );
+<a name="l00354"></a>00354     }
+<a name="l00355"></a>00355     <span class="keywordflow">if</span> ( render.scale.outWrite ) {
+<a name="l00356"></a>00356         GFX_EndUpdate( abort? NULL : Scaler_ChangedLines );
+<a name="l00357"></a>00357         render.frameskip.hadSkip[render.frameskip.index] = 0;
+<a name="l00358"></a>00358     } <span class="keywordflow">else</span> {
+<a name="l00359"></a>00359 <span class="preprocessor">#if 0</span>
+<a name="l00360"></a>00360 <span class="preprocessor"></span>        Bitu total = 0, i;
+<a name="l00361"></a>00361         render.frameskip.hadSkip[render.frameskip.index] = 1;
+<a name="l00362"></a>00362         <span class="keywordflow">for</span> (i = 0;i&lt;RENDER_SKIP_CACHE;i++) 
+<a name="l00363"></a>00363             total += render.frameskip.hadSkip[i];
+<a name="l00364"></a>00364         LOG_MSG( <span class="stringliteral">&quot;Skipped frame %d %d&quot;</span>, PIC_Ticks, (total * 100) / RENDER_SKIP_CACHE );
+<a name="l00365"></a>00365 <span class="preprocessor">#endif</span>
+<a name="l00366"></a>00366 <span class="preprocessor"></span>        <span class="comment">// Force output to update the screen even if nothing changed...</span>
+<a name="l00367"></a>00367         <span class="comment">// works only with Direct3D output (GFX_StartUpdate() was probably not even called)</span>
+<a name="l00368"></a>00368         <span class="keywordflow">if</span> (render.forceUpdate) GFX_EndUpdate( 0 );
+<a name="l00369"></a>00369     }
+<a name="l00370"></a>00370     render.frameskip.index = (render.frameskip.index + 1) &amp; (RENDER_SKIP_CACHE - 1);
+<a name="l00371"></a>00371     render.updating=<span class="keyword">false</span>;
+<a name="l00372"></a>00372 
+<a name="l00373"></a>00373     <span class="keywordflow">if</span> (pause_on_vsync) {
+<a name="l00374"></a>00374         pause_on_vsync = <span class="keyword">false</span>;
+<a name="l00375"></a>00375         PauseDOSBox(<span class="keyword">true</span>);
+<a name="l00376"></a>00376     }
+<a name="l00377"></a>00377 }
+<a name="l00378"></a>00378 
+<a name="l00379"></a>00379 <span class="keyword">static</span> Bitu MakeAspectTable(Bitu skip,Bitu height,<span class="keywordtype">double</span> scaley,Bitu miny) {
+<a name="l00380"></a>00380     Bitu i;
+<a name="l00381"></a>00381     <span class="keywordtype">double</span> lines=0;
+<a name="l00382"></a>00382     Bitu linesadded=0;
+<a name="l00383"></a>00383     <span class="keywordflow">for</span> (i=0;i&lt;skip;i++)
+<a name="l00384"></a>00384         Scaler_Aspect[i] = 0;
+<a name="l00385"></a>00385 
+<a name="l00386"></a>00386     height += skip;
+<a name="l00387"></a>00387     <span class="keywordflow">for</span> (i=skip;i&lt;height;i++) {
+<a name="l00388"></a>00388         lines += scaley;
+<a name="l00389"></a>00389         <span class="keywordflow">if</span> (lines &gt;= miny) {
+<a name="l00390"></a>00390             Bitu templines = (Bitu)lines;
+<a name="l00391"></a>00391             lines -= templines;
+<a name="l00392"></a>00392             linesadded += templines;
+<a name="l00393"></a>00393             Scaler_Aspect[i] = (Bit8u)templines;
+<a name="l00394"></a>00394         } <span class="keywordflow">else</span> {
+<a name="l00395"></a>00395             Scaler_Aspect[i] = 0;
+<a name="l00396"></a>00396         }
+<a name="l00397"></a>00397     }
+<a name="l00398"></a>00398     <span class="keywordflow">return</span> linesadded;
+<a name="l00399"></a>00399 }
+<a name="l00400"></a>00400 
+<a name="l00401"></a>00401 <span class="keywordtype">void</span> RENDER_Reset( <span class="keywordtype">void</span> ) {
+<a name="l00402"></a>00402     Bitu width=render.src.width;
+<a name="l00403"></a>00403     Bitu height=render.src.height;
+<a name="l00404"></a>00404     <span class="keywordtype">bool</span> dblw=render.src.dblw;
+<a name="l00405"></a>00405     <span class="keywordtype">bool</span> dblh=render.src.dblh;
+<a name="l00406"></a>00406 
+<a name="l00407"></a>00407     <span class="keywordtype">double</span> gfx_scalew;
+<a name="l00408"></a>00408     <span class="keywordtype">double</span> gfx_scaleh;
+<a name="l00409"></a>00409 
+<a name="l00410"></a>00410     <span class="keywordflow">if</span> (width == 0 || height == 0)
+<a name="l00411"></a>00411         <span class="keywordflow">return</span>;
+<a name="l00412"></a>00412     
+<a name="l00413"></a>00413     Bitu gfx_flags, xscale, yscale;
+<a name="l00414"></a>00414     <a class="code" href="structScalerSimpleBlock__t.html">ScalerSimpleBlock_t</a>     *simpleBlock = &amp;ScaleNormal1x;
+<a name="l00415"></a>00415     <a class="code" href="structScalerComplexBlock__t.html">ScalerComplexBlock_t</a>    *complexBlock = 0;
+<a name="l00416"></a>00416     gfx_scalew = 1;
+<a name="l00417"></a>00417     gfx_scaleh = 1;
+<a name="l00418"></a>00418 
+<a name="l00419"></a>00419 <span class="preprocessor">#if !C_XBRZ</span>
+<a name="l00420"></a>00420 <span class="preprocessor"></span>    <span class="keywordflow">if</span> (render.aspect == ASPECT_TRUE &amp;&amp; !render.aspectOffload)
+<a name="l00421"></a>00421 <span class="preprocessor">#else</span>
+<a name="l00422"></a>00422 <span class="preprocessor"></span>    <span class="keywordflow">if</span> (render.aspect == ASPECT_TRUE &amp;&amp; !render.aspectOffload &amp;&amp; !(sdl_xbrz.enable &amp;&amp; sdl_xbrz.scale_on))
+<a name="l00423"></a>00423 <span class="preprocessor">#endif</span>
+<a name="l00424"></a>00424 <span class="preprocessor"></span>    {
+<a name="l00425"></a>00425         <span class="keywordflow">if</span> (render.src.ratio&gt;1.0) {
+<a name="l00426"></a>00426             gfx_scalew = 1;
+<a name="l00427"></a>00427             gfx_scaleh = render.src.ratio;
+<a name="l00428"></a>00428         } <span class="keywordflow">else</span> {
+<a name="l00429"></a>00429             gfx_scalew = (1.0/render.src.ratio);
+<a name="l00430"></a>00430             gfx_scaleh = 1;
+<a name="l00431"></a>00431         }
+<a name="l00432"></a>00432     }
+<a name="l00433"></a>00433 
+<a name="l00434"></a>00434     <span class="keywordflow">if</span> ((dblh &amp;&amp; dblw) || (render.scale.forced &amp;&amp; dblh == dblw<span class="comment">/*this branch works best with equal scaling in both directions*/</span>)) {
+<a name="l00435"></a>00435         <span class="comment">/* Initialize always working defaults */</span>
+<a name="l00436"></a>00436         <span class="keywordflow">if</span> (render.scale.size == 2)
+<a name="l00437"></a>00437             simpleBlock = &amp;ScaleNormal2x;
+<a name="l00438"></a>00438         <span class="keywordflow">else</span> <span class="keywordflow">if</span> (render.scale.size == 3)
+<a name="l00439"></a>00439             simpleBlock = &amp;ScaleNormal3x;
+<a name="l00440"></a>00440         <span class="keywordflow">else</span> <span class="keywordflow">if</span> (render.scale.size == 1 &amp;&amp; !(dblh || dblw) &amp;&amp; render.scale.hardware)
+<a name="l00441"></a>00441             simpleBlock = &amp;ScaleNormal1x;
+<a name="l00442"></a>00442         <span class="keywordflow">else</span> <span class="keywordflow">if</span> (render.scale.size == 4 &amp;&amp; !(dblh || dblw) &amp;&amp; render.scale.hardware)
+<a name="l00443"></a>00443             simpleBlock = &amp;ScaleNormal2x;
+<a name="l00444"></a>00444         <span class="keywordflow">else</span> <span class="keywordflow">if</span> (render.scale.size == 6 &amp;&amp; !(dblh || dblw) &amp;&amp; render.scale.hardware)
+<a name="l00445"></a>00445             simpleBlock = &amp;ScaleNormal3x;
+<a name="l00446"></a>00446         <span class="keywordflow">else</span> <span class="keywordflow">if</span> (render.scale.size == 4 &amp;&amp; !render.scale.hardware)
+<a name="l00447"></a>00447             simpleBlock = &amp;ScaleNormal4x;
+<a name="l00448"></a>00448         <span class="keywordflow">else</span> <span class="keywordflow">if</span> (render.scale.size == 5 &amp;&amp; !render.scale.hardware)
+<a name="l00449"></a>00449             simpleBlock = &amp;ScaleNormal5x;
+<a name="l00450"></a>00450         <span class="keywordflow">else</span> <span class="keywordflow">if</span> (render.scale.size == 8 &amp;&amp; !(dblh || dblw) &amp;&amp; render.scale.hardware)
+<a name="l00451"></a>00451             simpleBlock = &amp;ScaleNormal4x;
+<a name="l00452"></a>00452         <span class="keywordflow">else</span> <span class="keywordflow">if</span> (render.scale.size == 10 &amp;&amp; !(dblh || dblw) &amp;&amp; render.scale.hardware)
+<a name="l00453"></a>00453             simpleBlock = &amp;ScaleNormal5x;
+<a name="l00454"></a>00454         <span class="comment">/* Maybe override them */</span>
+<a name="l00455"></a>00455 <span class="preprocessor">#if RENDER_USE_ADVANCED_SCALERS&gt;0</span>
+<a name="l00456"></a>00456 <span class="preprocessor"></span>        <span class="keywordflow">switch</span> (render.scale.op) {
+<a name="l00457"></a>00457 <span class="preprocessor">#if RENDER_USE_ADVANCED_SCALERS&gt;2</span>
+<a name="l00458"></a>00458 <span class="preprocessor"></span>        <span class="keywordflow">case</span> scalerOpAdvInterp:
+<a name="l00459"></a>00459             <span class="keywordflow">if</span> (render.scale.size == 2)
+<a name="l00460"></a>00460                 complexBlock = &amp;ScaleAdvInterp2x;
+<a name="l00461"></a>00461             <span class="keywordflow">else</span> <span class="keywordflow">if</span> (render.scale.size == 3)
+<a name="l00462"></a>00462                 complexBlock = &amp;ScaleAdvInterp3x;
+<a name="l00463"></a>00463             <span class="keywordflow">break</span>;
+<a name="l00464"></a>00464         <span class="keywordflow">case</span> scalerOpAdvMame:
+<a name="l00465"></a>00465             <span class="keywordflow">if</span> (render.scale.size == 2)
+<a name="l00466"></a>00466                 complexBlock = &amp;ScaleAdvMame2x;
+<a name="l00467"></a>00467             <span class="keywordflow">else</span> <span class="keywordflow">if</span> (render.scale.size == 3)
+<a name="l00468"></a>00468                 complexBlock = &amp;ScaleAdvMame3x;
+<a name="l00469"></a>00469             <span class="keywordflow">break</span>;
+<a name="l00470"></a>00470         <span class="keywordflow">case</span> scalerOpHQ:
+<a name="l00471"></a>00471             <span class="keywordflow">if</span> (render.scale.size == 2)
+<a name="l00472"></a>00472                 complexBlock = &amp;ScaleHQ2x;
+<a name="l00473"></a>00473             <span class="keywordflow">else</span> <span class="keywordflow">if</span> (render.scale.size == 3)
+<a name="l00474"></a>00474                 complexBlock = &amp;ScaleHQ3x;
+<a name="l00475"></a>00475             <span class="keywordflow">break</span>;
+<a name="l00476"></a>00476         <span class="keywordflow">case</span> scalerOpSuperSaI:
+<a name="l00477"></a>00477             <span class="keywordflow">if</span> (render.scale.size == 2)
+<a name="l00478"></a>00478                 complexBlock = &amp;ScaleSuper2xSaI;
+<a name="l00479"></a>00479             <span class="keywordflow">break</span>;
+<a name="l00480"></a>00480         <span class="keywordflow">case</span> scalerOpSuperEagle:
+<a name="l00481"></a>00481             <span class="keywordflow">if</span> (render.scale.size == 2)
+<a name="l00482"></a>00482                 complexBlock = &amp;ScaleSuperEagle;
+<a name="l00483"></a>00483             <span class="keywordflow">break</span>;
+<a name="l00484"></a>00484         <span class="keywordflow">case</span> scalerOpSaI:
+<a name="l00485"></a>00485             <span class="keywordflow">if</span> (render.scale.size == 2)
+<a name="l00486"></a>00486                 complexBlock = &amp;Scale2xSaI;
+<a name="l00487"></a>00487             <span class="keywordflow">break</span>;
+<a name="l00488"></a>00488 <span class="preprocessor">#endif</span>
+<a name="l00489"></a>00489 <span class="preprocessor"></span>        <span class="keywordflow">case</span> scalerOpTV:
+<a name="l00490"></a>00490             <span class="keywordflow">if</span> (render.scale.size == 2)
+<a name="l00491"></a>00491                 simpleBlock = &amp;ScaleTV2x;
+<a name="l00492"></a>00492             <span class="keywordflow">else</span> <span class="keywordflow">if</span> (render.scale.size == 3)
+<a name="l00493"></a>00493                 simpleBlock = &amp;ScaleTV3x;
+<a name="l00494"></a>00494             <span class="keywordflow">break</span>;
+<a name="l00495"></a>00495         <span class="keywordflow">case</span> scalerOpRGB:
+<a name="l00496"></a>00496             <span class="keywordflow">if</span> (render.scale.size == 2)
+<a name="l00497"></a>00497                 simpleBlock = &amp;ScaleRGB2x;
+<a name="l00498"></a>00498             <span class="keywordflow">else</span> <span class="keywordflow">if</span> (render.scale.size == 3)
+<a name="l00499"></a>00499                 simpleBlock = &amp;ScaleRGB3x;
+<a name="l00500"></a>00500             <span class="keywordflow">break</span>;
+<a name="l00501"></a>00501         <span class="keywordflow">case</span> scalerOpScan:
+<a name="l00502"></a>00502             <span class="keywordflow">if</span> (render.scale.size == 2)
+<a name="l00503"></a>00503                 simpleBlock = &amp;ScaleScan2x;
+<a name="l00504"></a>00504             <span class="keywordflow">else</span> <span class="keywordflow">if</span> (render.scale.size == 3)
+<a name="l00505"></a>00505                 simpleBlock = &amp;ScaleScan3x;
+<a name="l00506"></a>00506             <span class="keywordflow">break</span>;
+<a name="l00507"></a>00507         <span class="keywordflow">case</span> scalerOpGray:
+<a name="l00508"></a>00508             <span class="keywordflow">if</span> (render.scale.size == 1){
+<a name="l00509"></a>00509                                 simpleBlock = &amp;ScaleGrayNormal;
+<a name="l00510"></a>00510             }<span class="keywordflow">else</span> <span class="keywordflow">if</span> (render.scale.size == 2){
+<a name="l00511"></a>00511                                 simpleBlock = &amp;ScaleGray2x;
+<a name="l00512"></a>00512             }
+<a name="l00513"></a>00513         <span class="keywordflow">break</span>;
+<a name="l00514"></a>00514         <span class="keywordflow">default</span>:
+<a name="l00515"></a>00515             <span class="keywordflow">break</span>;
+<a name="l00516"></a>00516         }
+<a name="l00517"></a>00517 <span class="preprocessor">#endif</span>
+<a name="l00518"></a>00518 <span class="preprocessor"></span>    } <span class="keywordflow">else</span> <span class="keywordflow">if</span> (dblw &amp;&amp; !render.scale.hardware) {
+<a name="l00519"></a>00519       <span class="keywordflow">if</span>(scalerOpGray == render.scale.op){
+<a name="l00520"></a>00520         simpleBlock = &amp;ScaleGrayDw;
+<a name="l00521"></a>00521       }<span class="keywordflow">else</span>{
+<a name="l00522"></a>00522           <span class="keywordflow">if</span> (render.scale.forced &amp;&amp; render.scale.size &gt;= 2)
+<a name="l00523"></a>00523               simpleBlock = &amp;ScaleNormal2xDw;
+<a name="l00524"></a>00524           <span class="keywordflow">else</span>
+<a name="l00525"></a>00525               simpleBlock = &amp;ScaleNormalDw;
+<a name="l00526"></a>00526       }
+<a name="l00527"></a>00527     } <span class="keywordflow">else</span> <span class="keywordflow">if</span> (dblh &amp;&amp; !render.scale.hardware) {
+<a name="l00528"></a>00528                 <span class="comment">//Check whether tv2x and scan2x is selected</span>
+<a name="l00529"></a>00529                 <span class="keywordflow">if</span>(scalerOpGray == render.scale.op){
+<a name="l00530"></a>00530                         simpleBlock = &amp;ScaleGrayDh;
+<a name="l00531"></a>00531     }<span class="keywordflow">else</span> <span class="keywordflow">if</span>(scalerOpTV == render.scale.op){
+<a name="l00532"></a>00532                         simpleBlock = &amp;ScaleTVDh;
+<a name="l00533"></a>00533         }<span class="keywordflow">else</span> <span class="keywordflow">if</span>(scalerOpScan == render.scale.op){
+<a name="l00534"></a>00534                         simpleBlock = &amp;ScaleScanDh;
+<a name="l00535"></a>00535         }<span class="keywordflow">else</span>{
+<a name="l00536"></a>00536             <span class="keywordflow">if</span> (render.scale.forced &amp;&amp; render.scale.size &gt;= 2)
+<a name="l00537"></a>00537                 simpleBlock = &amp;ScaleNormal2xDh;
+<a name="l00538"></a>00538             <span class="keywordflow">else</span>
+<a name="l00539"></a>00539                 simpleBlock = &amp;ScaleNormalDh;
+<a name="l00540"></a>00540         }
+<a name="l00541"></a>00541     } <span class="keywordflow">else</span>  {
+<a name="l00542"></a>00542 forcenormal:
+<a name="l00543"></a>00543         complexBlock = 0;
+<a name="l00544"></a>00544         <span class="keywordflow">if</span>(scalerOpGray==render.scale.op){
+<a name="l00545"></a>00545           simpleBlock = &amp;ScaleGrayNormal;
+<a name="l00546"></a>00546         }<span class="keywordflow">else</span>{
+<a name="l00547"></a>00547           simpleBlock = &amp;ScaleNormal1x;
+<a name="l00548"></a>00548         }
+<a name="l00549"></a>00549     }
+<a name="l00550"></a>00550     <span class="keywordflow">if</span> (complexBlock) {
+<a name="l00551"></a>00551 <span class="preprocessor">#if RENDER_USE_ADVANCED_SCALERS&gt;1</span>
+<a name="l00552"></a>00552 <span class="preprocessor"></span>        <span class="keywordflow">if</span> ((width &gt;= SCALER_COMPLEXWIDTH - 16) || height &gt;= SCALER_COMPLEXHEIGHT - 16) {
+<a name="l00553"></a>00553             LOG_MSG(<span class="stringliteral">&quot;Scaler can&#39;t handle this resolution, going back to normal&quot;</span>);
+<a name="l00554"></a>00554             <span class="keywordflow">goto</span> forcenormal;
+<a name="l00555"></a>00555         }
+<a name="l00556"></a>00556 <span class="preprocessor">#else</span>
+<a name="l00557"></a>00557 <span class="preprocessor"></span>        <span class="keywordflow">goto</span> forcenormal;
+<a name="l00558"></a>00558 <span class="preprocessor">#endif</span>
+<a name="l00559"></a>00559 <span class="preprocessor"></span>        gfx_flags = complexBlock-&gt;gfxFlags;
+<a name="l00560"></a>00560         xscale = complexBlock-&gt;xscale;  
+<a name="l00561"></a>00561         yscale = complexBlock-&gt;yscale;
+<a name="l00562"></a>00562 <span class="comment">//      LOG_MSG(&quot;Scaler:%s&quot;,complexBlock-&gt;name);</span>
+<a name="l00563"></a>00563     } <span class="keywordflow">else</span> {
+<a name="l00564"></a>00564         gfx_flags = simpleBlock-&gt;gfxFlags;
+<a name="l00565"></a>00565         xscale = simpleBlock-&gt;xscale;   
+<a name="l00566"></a>00566         yscale = simpleBlock-&gt;yscale;
+<a name="l00567"></a>00567 <span class="comment">//      LOG_MSG(&quot;Scaler:%s&quot;,simpleBlock-&gt;name);</span>
+<a name="l00568"></a>00568     }
+<a name="l00569"></a>00569     <span class="keywordflow">switch</span> (render.src.bpp) {
+<a name="l00570"></a>00570     <span class="keywordflow">case</span> 8:
+<a name="l00571"></a>00571         render.src.start = ( render.src.width * 1) / <span class="keyword">sizeof</span>(Bitu);
+<a name="l00572"></a>00572         <span class="keywordflow">if</span> (gfx_flags &amp; GFX_CAN_8)
+<a name="l00573"></a>00573             gfx_flags |= GFX_LOVE_8;
+<a name="l00574"></a>00574         <span class="keywordflow">else</span>
+<a name="l00575"></a>00575             gfx_flags |= GFX_LOVE_32;
+<a name="l00576"></a>00576         <span class="keywordflow">break</span>;
+<a name="l00577"></a>00577     <span class="keywordflow">case</span> 15:
+<a name="l00578"></a>00578         render.src.start = ( render.src.width * 2) / <span class="keyword">sizeof</span>(Bitu);
+<a name="l00579"></a>00579         gfx_flags |= GFX_LOVE_15;
+<a name="l00580"></a>00580         gfx_flags = (gfx_flags &amp; ~GFX_CAN_8) | GFX_RGBONLY;
+<a name="l00581"></a>00581         <span class="keywordflow">break</span>;
+<a name="l00582"></a>00582     <span class="keywordflow">case</span> 16:
+<a name="l00583"></a>00583         render.src.start = ( render.src.width * 2) / <span class="keyword">sizeof</span>(Bitu);
+<a name="l00584"></a>00584         gfx_flags |= GFX_LOVE_16;
+<a name="l00585"></a>00585         gfx_flags = (gfx_flags &amp; ~GFX_CAN_8) | GFX_RGBONLY;
+<a name="l00586"></a>00586         <span class="keywordflow">break</span>;
+<a name="l00587"></a>00587     <span class="keywordflow">case</span> 32:
+<a name="l00588"></a>00588         render.src.start = ( render.src.width * 4) / <span class="keyword">sizeof</span>(Bitu);
+<a name="l00589"></a>00589         gfx_flags |= GFX_LOVE_32;
+<a name="l00590"></a>00590         gfx_flags = (gfx_flags &amp; ~GFX_CAN_8) | GFX_RGBONLY;
+<a name="l00591"></a>00591         <span class="keywordflow">break</span>;
+<a name="l00592"></a>00592     <span class="keywordflow">default</span>:
+<a name="l00593"></a>00593         render.src.start = ( render.src.width * 1) / <span class="keyword">sizeof</span>(Bitu);
+<a name="l00594"></a>00594         <span class="keywordflow">if</span> (gfx_flags &amp; GFX_CAN_8)
+<a name="l00595"></a>00595             gfx_flags |= GFX_LOVE_8;
+<a name="l00596"></a>00596         <span class="keywordflow">else</span>
+<a name="l00597"></a>00597             gfx_flags |= GFX_LOVE_32;
+<a name="l00598"></a>00598         <span class="keywordflow">break</span>;
+<a name="l00599"></a>00599     }
+<a name="l00600"></a>00600 <span class="preprocessor">#if !defined(C_SDL2)</span>
+<a name="l00601"></a>00601 <span class="preprocessor"></span>    gfx_flags=GFX_GetBestMode(gfx_flags);
+<a name="l00602"></a>00602 <span class="preprocessor">#else</span>
+<a name="l00603"></a>00603 <span class="preprocessor"></span>    gfx_flags &amp;= ~GFX_SCALING;
+<a name="l00604"></a>00604     gfx_flags |= GFX_RGBONLY | GFX_CAN_RANDOM;
+<a name="l00605"></a>00605 <span class="preprocessor">#endif</span>
+<a name="l00606"></a>00606 <span class="preprocessor"></span>    <span class="keywordflow">if</span> (!gfx_flags) {
+<a name="l00607"></a>00607         <span class="keywordflow">if</span> (!complexBlock &amp;&amp; simpleBlock == &amp;ScaleNormal1x) 
+<a name="l00608"></a>00608             E_Exit(<span class="stringliteral">&quot;Failed to create a rendering output&quot;</span>);
+<a name="l00609"></a>00609         <span class="keywordflow">else</span> 
+<a name="l00610"></a>00610             <span class="keywordflow">goto</span> forcenormal;
+<a name="l00611"></a>00611     }
+<a name="l00612"></a>00612     width *= xscale;
+<a name="l00613"></a>00613     Bitu skip = complexBlock ? 1 : 0;
+<a name="l00614"></a>00614     <span class="keywordflow">if</span> (gfx_flags &amp; GFX_SCALING) {
+<a name="l00615"></a>00615         <span class="keywordflow">if</span>(render.scale.size == 1 &amp;&amp; render.scale.hardware) { <span class="comment">//hardware_none</span>
+<a name="l00616"></a>00616             <span class="keywordflow">if</span>(dblh)
+<a name="l00617"></a>00617             gfx_scaleh *= 1;
+<a name="l00618"></a>00618             <span class="keywordflow">if</span>(dblw)
+<a name="l00619"></a>00619             gfx_scalew *= 1;
+<a name="l00620"></a>00620         } <span class="keywordflow">else</span> <span class="keywordflow">if</span>(render.scale.size == 4 &amp;&amp; render.scale.hardware) {
+<a name="l00621"></a>00621             <span class="keywordflow">if</span>(dblh)
+<a name="l00622"></a>00622             gfx_scaleh *= 2;
+<a name="l00623"></a>00623             <span class="keywordflow">if</span>(dblw)
+<a name="l00624"></a>00624             gfx_scalew *= 2;
+<a name="l00625"></a>00625         } <span class="keywordflow">else</span> <span class="keywordflow">if</span>(render.scale.size == 6 &amp;&amp; render.scale.hardware) {
+<a name="l00626"></a>00626             <span class="keywordflow">if</span>(dblh &amp;&amp; dblw) {
+<a name="l00627"></a>00627             gfx_scaleh *= 3; gfx_scalew *= 3;
+<a name="l00628"></a>00628             } <span class="keywordflow">else</span> <span class="keywordflow">if</span>(dblh) {
+<a name="l00629"></a>00629             gfx_scaleh *= 2;
+<a name="l00630"></a>00630             } <span class="keywordflow">else</span> <span class="keywordflow">if</span>(dblw)
+<a name="l00631"></a>00631             gfx_scalew *= 2;
+<a name="l00632"></a>00632         } <span class="keywordflow">else</span> <span class="keywordflow">if</span>(render.scale.size == 8 &amp;&amp; render.scale.hardware) { <span class="comment">//hardware4x</span>
+<a name="l00633"></a>00633             <span class="keywordflow">if</span>(dblh)
+<a name="l00634"></a>00634             gfx_scaleh *= 4;
+<a name="l00635"></a>00635             <span class="keywordflow">if</span>(dblw)
+<a name="l00636"></a>00636             gfx_scalew *= 4;
+<a name="l00637"></a>00637         } <span class="keywordflow">else</span> <span class="keywordflow">if</span>(render.scale.size == 10 &amp;&amp; render.scale.hardware) { <span class="comment">//hardware5x</span>
+<a name="l00638"></a>00638             <span class="keywordflow">if</span>(dblh &amp;&amp; dblw) {
+<a name="l00639"></a>00639             gfx_scaleh *= 5; gfx_scalew *= 5;
+<a name="l00640"></a>00640             } <span class="keywordflow">else</span> <span class="keywordflow">if</span>(dblh) {
+<a name="l00641"></a>00641             gfx_scaleh *= 4;
+<a name="l00642"></a>00642             } <span class="keywordflow">else</span> <span class="keywordflow">if</span>(dblw)
+<a name="l00643"></a>00643             gfx_scalew *= 4;
+<a name="l00644"></a>00644         }
+<a name="l00645"></a>00645         height = MakeAspectTable(skip, render.src.height, (<span class="keywordtype">double</span>)yscale, yscale );
+<a name="l00646"></a>00646     } <span class="keywordflow">else</span> {
+<a name="l00647"></a>00647         <span class="comment">// Print a warning when hardware scalers are selected, hopefully the first</span>
+<a name="l00648"></a>00648         <span class="comment">// video mode will not have dblh or dblw or AR will be wrong</span>
+<a name="l00649"></a>00649         <span class="keywordflow">if</span> (render.scale.hardware) {
+<a name="l00650"></a>00650             LOG_MSG(<span class="stringliteral">&quot;Output does not support hardware scaling, switching to normal scalers&quot;</span>);
+<a name="l00651"></a>00651             render.scale.hardware=<span class="keyword">false</span>;
+<a name="l00652"></a>00652         }
+<a name="l00653"></a>00653         <span class="keywordflow">if</span> ((gfx_flags &amp; GFX_CAN_RANDOM) &amp;&amp; gfx_scaleh &gt; 1) {
+<a name="l00654"></a>00654             gfx_scaleh *= yscale;
+<a name="l00655"></a>00655             height = MakeAspectTable( skip, render.src.height, gfx_scaleh, yscale );
+<a name="l00656"></a>00656         } <span class="keywordflow">else</span> {
+<a name="l00657"></a>00657             gfx_flags &amp;= ~GFX_CAN_RANDOM;       <span class="comment">//Hardware surface when possible</span>
+<a name="l00658"></a>00658             height = MakeAspectTable( skip, render.src.height, (<span class="keywordtype">double</span>)yscale, yscale);
+<a name="l00659"></a>00659         }
+<a name="l00660"></a>00660     }
+<a name="l00661"></a>00661 <span class="comment">/* update the aspect ratio */</span>
+<a name="l00662"></a>00662     sdl.srcAspect.x = (int)(render.src.width * (render.src.dblw ? 2 : 1));
+<a name="l00663"></a>00663     sdl.srcAspect.y = (int)floor((render.src.height * (render.src.dblh ? 2 : 1) * render.src.ratio) + 0.5);
+<a name="l00664"></a>00664     sdl.srcAspect.xToY = (double)sdl.srcAspect.x / sdl.srcAspect.y;
+<a name="l00665"></a>00665     sdl.srcAspect.yToX = (<span class="keywordtype">double</span>)sdl.srcAspect.y / sdl.srcAspect.x;
+<a name="l00666"></a>00666     LOG_MSG(<span class="stringliteral">&quot;Aspect ratio: %u x %u  xToY=%.3f yToX=%.3f&quot;</span>,sdl.srcAspect.x,sdl.srcAspect.y,sdl.srcAspect.xToY,sdl.srcAspect.yToX);
+<a name="l00667"></a>00667 <span class="comment">/* Setup the scaler variables */</span>
+<a name="l00668"></a>00668     gfx_flags=GFX_SetSize(width,height,gfx_flags,gfx_scalew,gfx_scaleh,&amp;RENDER_CallBack);
+<a name="l00669"></a>00669     <span class="keywordflow">if</span> (gfx_flags &amp; GFX_CAN_8)
+<a name="l00670"></a>00670         render.scale.outMode = scalerMode8;
+<a name="l00671"></a>00671     <span class="keywordflow">else</span> <span class="keywordflow">if</span> (gfx_flags &amp; GFX_CAN_15)
+<a name="l00672"></a>00672         render.scale.outMode = scalerMode15;
+<a name="l00673"></a>00673     <span class="keywordflow">else</span> <span class="keywordflow">if</span> (gfx_flags &amp; GFX_CAN_16)
+<a name="l00674"></a>00674         render.scale.outMode = scalerMode16;
+<a name="l00675"></a>00675     <span class="keywordflow">else</span> <span class="keywordflow">if</span> (gfx_flags &amp; GFX_CAN_32)
+<a name="l00676"></a>00676         render.scale.outMode = scalerMode32;
+<a name="l00677"></a>00677     <span class="keywordflow">else</span> 
+<a name="l00678"></a>00678         E_Exit(<span class="stringliteral">&quot;Failed to create a rendering output&quot;</span>);
+<a name="l00679"></a>00679     ScalerLineBlock_t *lineBlock;
+<a name="l00680"></a>00680     <span class="keywordflow">if</span> (gfx_flags &amp; GFX_HARDWARE) {
+<a name="l00681"></a>00681 <span class="preprocessor">#if RENDER_USE_ADVANCED_SCALERS&gt;1</span>
+<a name="l00682"></a>00682 <span class="preprocessor"></span>        <span class="keywordflow">if</span> (complexBlock) {
+<a name="l00683"></a>00683             lineBlock = &amp;ScalerCache;
+<a name="l00684"></a>00684             render.scale.complexHandler = complexBlock-&gt;Linear[ render.scale.outMode ];
+<a name="l00685"></a>00685         } <span class="keywordflow">else</span>
+<a name="l00686"></a>00686 <span class="preprocessor">#endif</span>
+<a name="l00687"></a>00687 <span class="preprocessor"></span>        {
+<a name="l00688"></a>00688             render.scale.complexHandler = 0;
+<a name="l00689"></a>00689             lineBlock = &amp;simpleBlock-&gt;Linear;
+<a name="l00690"></a>00690         }
+<a name="l00691"></a>00691     } <span class="keywordflow">else</span> {
+<a name="l00692"></a>00692 <span class="preprocessor">#if RENDER_USE_ADVANCED_SCALERS&gt;1</span>
+<a name="l00693"></a>00693 <span class="preprocessor"></span>        <span class="keywordflow">if</span> (complexBlock) {
+<a name="l00694"></a>00694             lineBlock = &amp;ScalerCache;
+<a name="l00695"></a>00695             render.scale.complexHandler = complexBlock-&gt;Random[ render.scale.outMode ];
+<a name="l00696"></a>00696         } <span class="keywordflow">else</span>
+<a name="l00697"></a>00697 <span class="preprocessor">#endif</span>
+<a name="l00698"></a>00698 <span class="preprocessor"></span>        {
+<a name="l00699"></a>00699             render.scale.complexHandler = 0;
+<a name="l00700"></a>00700             lineBlock = &amp;simpleBlock-&gt;Random;
+<a name="l00701"></a>00701         }
+<a name="l00702"></a>00702     }
+<a name="l00703"></a>00703     <span class="keywordflow">switch</span> (render.src.bpp) {
+<a name="l00704"></a>00704     <span class="keywordflow">case</span> 8:
+<a name="l00705"></a>00705         render.scale.lineHandler = (*lineBlock)[0][render.scale.outMode];
+<a name="l00706"></a>00706         render.scale.linePalHandler = (*lineBlock)[4][render.scale.outMode];
+<a name="l00707"></a>00707         render.scale.inMode = scalerMode8;
+<a name="l00708"></a>00708         render.scale.cachePitch = render.src.width * 1;
+<a name="l00709"></a>00709         <span class="keywordflow">break</span>;
+<a name="l00710"></a>00710     <span class="keywordflow">case</span> 15:
+<a name="l00711"></a>00711         render.scale.lineHandler = (*lineBlock)[1][render.scale.outMode];
+<a name="l00712"></a>00712         render.scale.linePalHandler = 0;
+<a name="l00713"></a>00713         render.scale.inMode = scalerMode15;
+<a name="l00714"></a>00714         render.scale.cachePitch = render.src.width * 2;
+<a name="l00715"></a>00715         <span class="keywordflow">break</span>;
+<a name="l00716"></a>00716     <span class="keywordflow">case</span> 16:
+<a name="l00717"></a>00717         render.scale.lineHandler = (*lineBlock)[2][render.scale.outMode];
+<a name="l00718"></a>00718         render.scale.linePalHandler = 0;
+<a name="l00719"></a>00719         render.scale.inMode = scalerMode16;
+<a name="l00720"></a>00720         render.scale.cachePitch = render.src.width * 2;
+<a name="l00721"></a>00721         <span class="keywordflow">break</span>;
+<a name="l00722"></a>00722     <span class="keywordflow">case</span> 32:
+<a name="l00723"></a>00723         render.scale.lineHandler = (*lineBlock)[3][render.scale.outMode];
+<a name="l00724"></a>00724         render.scale.linePalHandler = 0;
+<a name="l00725"></a>00725         render.scale.inMode = scalerMode32;
+<a name="l00726"></a>00726         render.scale.cachePitch = render.src.width * 4;
+<a name="l00727"></a>00727         <span class="keywordflow">break</span>;
+<a name="l00728"></a>00728     <span class="keywordflow">default</span>:
+<a name="l00729"></a>00729         <span class="comment">//render.src.bpp=8;</span>
+<a name="l00730"></a>00730         render.scale.lineHandler = (*lineBlock)[0][render.scale.outMode];
+<a name="l00731"></a>00731         render.scale.linePalHandler = (*lineBlock)[4][render.scale.outMode];
+<a name="l00732"></a>00732         render.scale.inMode = scalerMode8;
+<a name="l00733"></a>00733         render.scale.cachePitch = render.src.width * 1;
+<a name="l00734"></a>00734         <span class="keywordflow">break</span>;
+<a name="l00735"></a>00735         <span class="comment">//E_Exit(&quot;RENDER:Wrong source bpp %d&quot;, render.src.bpp );</span>
+<a name="l00736"></a>00736     }
+<a name="l00737"></a>00737     render.scale.blocks = render.src.width / SCALER_BLOCKSIZE;
+<a name="l00738"></a>00738     render.scale.lastBlock = render.src.width % SCALER_BLOCKSIZE;
+<a name="l00739"></a>00739     render.scale.inHeight = render.src.height;
+<a name="l00740"></a>00740     <span class="comment">/* Reset the palette change detection to it&#39;s initial value */</span>
+<a name="l00741"></a>00741     render.pal.first= 0;
+<a name="l00742"></a>00742     render.pal.last = 255;
+<a name="l00743"></a>00743     render.pal.changed = <span class="keyword">false</span>;
+<a name="l00744"></a>00744     memset(render.pal.modified, 0, <span class="keyword">sizeof</span>(render.pal.modified));
+<a name="l00745"></a>00745     <span class="comment">//Finish this frame using a copy only handler</span>
+<a name="l00746"></a>00746     RENDER_DrawLine = RENDER_FinishLineHandler;
+<a name="l00747"></a>00747     render.scale.outWrite = 0;
+<a name="l00748"></a>00748     <span class="comment">/* Signal the next frame to first reinit the cache */</span>
+<a name="l00749"></a>00749     render.scale.clearCache = <span class="keyword">true</span>;
+<a name="l00750"></a>00750     render.active=<span class="keyword">true</span>;
+<a name="l00751"></a>00751 
+<a name="l00752"></a>00752     last_gfx_flags = gfx_flags;
+<a name="l00753"></a>00753 }
+<a name="l00754"></a>00754 
+<a name="l00755"></a>00755 <span class="keywordtype">void</span> RENDER_CallBack( GFX_CallBackFunctions_t <span class="keyword">function</span> ) {
+<a name="l00756"></a>00756     <span class="keywordflow">if</span> (<span class="keyword">function</span> == GFX_CallBackStop) {
+<a name="l00757"></a>00757         RENDER_Halt( ); 
+<a name="l00758"></a>00758         <span class="keywordflow">return</span>;
+<a name="l00759"></a>00759     } <span class="keywordflow">else</span> <span class="keywordflow">if</span> (<span class="keyword">function</span> == GFX_CallBackRedraw) {
+<a name="l00760"></a>00760         render.scale.clearCache = <span class="keyword">true</span>;
+<a name="l00761"></a>00761         <span class="keywordflow">return</span>;
+<a name="l00762"></a>00762     } <span class="keywordflow">else</span> <span class="keywordflow">if</span> ( <span class="keyword">function</span> == GFX_CallBackReset) {
+<a name="l00763"></a>00763         GFX_EndUpdate( 0 ); 
+<a name="l00764"></a>00764         RENDER_Reset();
+<a name="l00765"></a>00765     } <span class="keywordflow">else</span> {
+<a name="l00766"></a>00766         E_Exit(<span class="stringliteral">&quot;Unhandled GFX_CallBackReset %d&quot;</span>, <span class="keyword">function</span> );
+<a name="l00767"></a>00767     }
+<a name="l00768"></a>00768 }
+<a name="l00769"></a>00769 
+<a name="l00770"></a>00770 <span class="keywordtype">void</span> RENDER_SetSize(Bitu width,Bitu height,Bitu bpp,<span class="keywordtype">float</span> fps,<span class="keywordtype">double</span> scrn_ratio) {
+<a name="l00771"></a>00771     RENDER_Halt( );
+<a name="l00772"></a>00772     <span class="keywordflow">if</span> (!width || !height || width &gt; SCALER_MAXWIDTH || height &gt; SCALER_MAXHEIGHT) {
+<a name="l00773"></a>00773         <a class="code" href="classLOG.html">LOG</a>(LOG_MISC,LOG_WARN)(<span class="stringliteral">&quot;RENDER_SetSize() rejected video mode %u x %u&quot;</span>,(<span class="keywordtype">unsigned</span> int)width,(<span class="keywordtype">unsigned</span> <span class="keywordtype">int</span>)height);
 <a name="l00774"></a>00774         <span class="keywordflow">return</span>; 
 <a name="l00775"></a>00775     }
 <a name="l00776"></a>00776 
@@ -881,7 +881,7 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l00784"></a>00784     } <span class="keywordflow">else</span> <span class="keywordflow">if</span>(ratio &lt; 0.75) {
 <a name="l00785"></a>00785         dblw=<span class="keyword">true</span>;
 <a name="l00786"></a>00786         ratio *= 2.0;
-<a name="l00787"></a>00787     } <span class="keywordflow">else</span> <span class="keywordflow">if</span>(!dblw &amp;&amp; !dblh &amp;&amp; (width &lt; 370) &amp;&amp; (height &lt; 280)) {
+<a name="l00787"></a>00787     } <span class="keywordflow">else</span> <span class="keywordflow">if</span>(width &lt; 370 &amp;&amp; height &lt; 280) {
 <a name="l00788"></a>00788         dblw=<span class="keyword">true</span>; dblh=<span class="keyword">true</span>;
 <a name="l00789"></a>00789     }
 <a name="l00790"></a>00790     LOG_MSG(<span class="stringliteral">&quot;pixratio %1.3f, dw %s, dh %s&quot;</span>,ratio,dblw?<span class="stringliteral">&quot;true&quot;</span>:<span class="stringliteral">&quot;false&quot;</span>,dblh?<span class="stringliteral">&quot;true&quot;</span>:<span class="stringliteral">&quot;false&quot;</span>);
@@ -1143,60 +1143,118 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l01046"></a>01046 <span class="preprocessor"></span>
 <a name="l01047"></a>01047     render.frameskip.max=(Bitu)section-&gt;Get_int(<span class="stringliteral">&quot;frameskip&quot;</span>);
 <a name="l01048"></a>01048 
-<a name="l01049"></a>01049     mainMenu.get_item(<span class="stringliteral">&quot;vga_9widetext&quot;</span>).check(vga.draw.char9_set).refresh_item(mainMenu);
-<a name="l01050"></a>01050     mainMenu.get_item(<span class="stringliteral">&quot;doublescan&quot;</span>).check(vga.draw.doublescan_set).refresh_item(mainMenu);
-<a name="l01051"></a>01051     mainMenu.get_item(<span class="stringliteral">&quot;mapper_aspratio&quot;</span>).check(render.aspect).refresh_item(mainMenu);
-<a name="l01052"></a>01052 
-<a name="l01053"></a>01053     RENDER_UpdateFrameskipMenu();
-<a name="l01054"></a>01054 
-<a name="l01055"></a>01055     <span class="comment">/* BUG FIX: Some people&#39;s dosbox.conf files have frameskip=-1 WTF?? */</span>
-<a name="l01056"></a>01056     <span class="comment">/* without this fix, nothing displays, EVER */</span>
-<a name="l01057"></a>01057     <span class="keywordflow">if</span> ((<span class="keywordtype">int</span>)render.frameskip.max &lt; 0) render.frameskip.max = 0;
-<a name="l01058"></a>01058                                 
-<a name="l01059"></a>01059     render.frameskip.count=0;
-<a name="l01060"></a>01060     render.forceUpdate=<span class="keyword">false</span>;
-<a name="l01061"></a>01061     std::string cline;
-<a name="l01062"></a>01062     std::string scaler;
-<a name="l01063"></a>01063     <span class="comment">//Check for commandline paramters and parse them through the configclass so they get checked against allowed values</span>
-<a name="l01064"></a>01064     <span class="keywordflow">if</span> (control-&gt;cmdline-&gt;FindString(<span class="stringliteral">&quot;-scaler&quot;</span>,cline,<span class="keyword">true</span>)) {
-<a name="l01065"></a>01065         section-&gt;HandleInputline(std::string(<span class="stringliteral">&quot;scaler=&quot;</span>) + cline);
-<a name="l01066"></a>01066     } <span class="keywordflow">else</span> <span class="keywordflow">if</span> (control-&gt;cmdline-&gt;FindString(<span class="stringliteral">&quot;-forcescaler&quot;</span>,cline,<span class="keyword">true</span>)) {
-<a name="l01067"></a>01067         section-&gt;HandleInputline(std::string(<span class="stringliteral">&quot;scaler=&quot;</span>) + cline + <span class="stringliteral">&quot; forced&quot;</span>);
-<a name="l01068"></a>01068     }
-<a name="l01069"></a>01069 
-<a name="l01070"></a>01070     RENDER_UpdateFromScalerSetting();
-<a name="l01071"></a>01071 
-<a name="l01072"></a>01072     vga_alt_new_mode = control-&gt;opt_alt_vga_render || section-&gt;Get_bool(<span class="stringliteral">&quot;alt render&quot;</span>);
-<a name="l01073"></a>01073     <span class="keywordflow">if</span> (vga_alt_new_mode) LOG_MSG(<span class="stringliteral">&quot;Alternative VGA render engine not yet fully implemented!&quot;</span>);
-<a name="l01074"></a>01074 
-<a name="l01075"></a>01075     render.autofit=section-&gt;Get_bool(<span class="stringliteral">&quot;autofit&quot;</span>);
-<a name="l01076"></a>01076 
-<a name="l01077"></a>01077     <span class="comment">//If something changed that needs a ReInit</span>
-<a name="l01078"></a>01078     <span class="comment">// Only ReInit when there is a src.bpp (fixes crashes on startup and directly changing the scaler without a screen specified yet)</span>
-<a name="l01079"></a>01079     <span class="keywordflow">if</span>(running &amp;&amp; render.src.bpp &amp;&amp; ((render.aspect != aspect) || (render.scale.op != scaleOp) || 
-<a name="l01080"></a>01080                   (render.scale.size != scalersize) || (render.scale.forced != scalerforced) ||
-<a name="l01081"></a>01081                    render.scale.forced))
-<a name="l01082"></a>01082         RENDER_CallBack( GFX_CallBackReset );
-<a name="l01083"></a>01083 
-<a name="l01084"></a>01084     <span class="keywordflow">if</span>(!running) render.updating=<span class="keyword">true</span>;
-<a name="l01085"></a>01085     running = <span class="keyword">true</span>;
-<a name="l01086"></a>01086 
-<a name="l01087"></a>01087     MAPPER_AddHandler(DecreaseFrameSkip,MK_nothing,0,<span class="stringliteral">&quot;decfskip&quot;</span>,<span class="stringliteral">&quot;Dec Fskip&quot;</span>);
-<a name="l01088"></a>01088     MAPPER_AddHandler(IncreaseFrameSkip,MK_nothing,0,<span class="stringliteral">&quot;incfskip&quot;</span>,<span class="stringliteral">&quot;Inc Fskip&quot;</span>);
-<a name="l01089"></a>01089 
-<a name="l01090"></a>01090     <span class="comment">// DEBUG option</span>
-<a name="l01091"></a>01091     MAPPER_AddHandler(BlankTestRefresh,MK_nothing,0,<span class="stringliteral">&quot;blankrefreshtest&quot;</span>,<span class="stringliteral">&quot;RefrshTest&quot;</span>);
-<a name="l01092"></a>01092 
-<a name="l01093"></a>01093     GFX_SetTitle(-1,(Bits)render.frameskip.max,-1,<span class="keyword">false</span>);
+<a name="l01049"></a>01049     MAPPER_AddHandler(DecreaseFrameSkip,MK_nothing,0,<span class="stringliteral">&quot;decfskip&quot;</span>,<span class="stringliteral">&quot;Dec Fskip&quot;</span>);
+<a name="l01050"></a>01050     MAPPER_AddHandler(IncreaseFrameSkip,MK_nothing,0,<span class="stringliteral">&quot;incfskip&quot;</span>,<span class="stringliteral">&quot;Inc Fskip&quot;</span>);
+<a name="l01051"></a>01051 
+<a name="l01052"></a>01052         <a class="code" href="classDOSBoxMenu_1_1item.html">DOSBoxMenu::item</a> *item;
+<a name="l01053"></a>01053 
+<a name="l01054"></a>01054         MAPPER_AddHandler(&amp;AspectRatio_mapper_shortcut, MK_nothing, 0, <span class="stringliteral">&quot;aspratio&quot;</span>, <span class="stringliteral">&quot;AspRatio&quot;</span>, &amp;item);
+<a name="l01055"></a>01055         item-&gt;set_text(<span class="stringliteral">&quot;Fit to aspect ratio&quot;</span>);
+<a name="l01056"></a>01056 
+<a name="l01057"></a>01057     <span class="comment">// DEBUG option</span>
+<a name="l01058"></a>01058     MAPPER_AddHandler(BlankTestRefresh,MK_nothing,0,<span class="stringliteral">&quot;blankrefreshtest&quot;</span>,<span class="stringliteral">&quot;RefrshTest&quot;</span>);
+<a name="l01059"></a>01059 
+<a name="l01060"></a>01060     mainMenu.get_item(<span class="stringliteral">&quot;vga_9widetext&quot;</span>).check(vga.draw.char9_set).refresh_item(mainMenu);
+<a name="l01061"></a>01061     mainMenu.get_item(<span class="stringliteral">&quot;doublescan&quot;</span>).check(vga.draw.doublescan_set).refresh_item(mainMenu);
+<a name="l01062"></a>01062     mainMenu.get_item(<span class="stringliteral">&quot;mapper_aspratio&quot;</span>).check(render.aspect).refresh_item(mainMenu);
+<a name="l01063"></a>01063 
+<a name="l01064"></a>01064     RENDER_UpdateFrameskipMenu();
+<a name="l01065"></a>01065 
+<a name="l01066"></a>01066     <span class="comment">/* BUG FIX: Some people&#39;s dosbox.conf files have frameskip=-1 WTF?? */</span>
+<a name="l01067"></a>01067     <span class="comment">/* without this fix, nothing displays, EVER */</span>
+<a name="l01068"></a>01068     <span class="keywordflow">if</span> ((<span class="keywordtype">int</span>)render.frameskip.max &lt; 0) render.frameskip.max = 0;
+<a name="l01069"></a>01069                                 
+<a name="l01070"></a>01070     render.frameskip.count=0;
+<a name="l01071"></a>01071     render.forceUpdate=<span class="keyword">false</span>;
+<a name="l01072"></a>01072     std::string cline;
+<a name="l01073"></a>01073     std::string scaler;
+<a name="l01074"></a>01074     <span class="comment">//Check for commandline paramters and parse them through the configclass so they get checked against allowed values</span>
+<a name="l01075"></a>01075     <span class="keywordflow">if</span> (control-&gt;cmdline-&gt;FindString(<span class="stringliteral">&quot;-scaler&quot;</span>,cline,<span class="keyword">true</span>)) {
+<a name="l01076"></a>01076         section-&gt;HandleInputline(std::string(<span class="stringliteral">&quot;scaler=&quot;</span>) + cline);
+<a name="l01077"></a>01077     } <span class="keywordflow">else</span> <span class="keywordflow">if</span> (control-&gt;cmdline-&gt;FindString(<span class="stringliteral">&quot;-forcescaler&quot;</span>,cline,<span class="keyword">true</span>)) {
+<a name="l01078"></a>01078         section-&gt;HandleInputline(std::string(<span class="stringliteral">&quot;scaler=&quot;</span>) + cline + <span class="stringliteral">&quot; forced&quot;</span>);
+<a name="l01079"></a>01079     }
+<a name="l01080"></a>01080 
+<a name="l01081"></a>01081     RENDER_UpdateFromScalerSetting();
+<a name="l01082"></a>01082 
+<a name="l01083"></a>01083     vga_alt_new_mode = control-&gt;opt_alt_vga_render || section-&gt;Get_bool(<span class="stringliteral">&quot;alt render&quot;</span>);
+<a name="l01084"></a>01084     <span class="keywordflow">if</span> (vga_alt_new_mode) LOG_MSG(<span class="stringliteral">&quot;Alternative VGA render engine not yet fully implemented!&quot;</span>);
+<a name="l01085"></a>01085 
+<a name="l01086"></a>01086     render.autofit=section-&gt;Get_bool(<span class="stringliteral">&quot;autofit&quot;</span>);
+<a name="l01087"></a>01087 
+<a name="l01088"></a>01088     <span class="comment">//If something changed that needs a ReInit</span>
+<a name="l01089"></a>01089     <span class="comment">// Only ReInit when there is a src.bpp (fixes crashes on startup and directly changing the scaler without a screen specified yet)</span>
+<a name="l01090"></a>01090     <span class="keywordflow">if</span>(running &amp;&amp; render.src.bpp &amp;&amp; ((render.aspect != aspect) || (render.scale.op != scaleOp) || 
+<a name="l01091"></a>01091                   (render.scale.size != scalersize) || (render.scale.forced != scalerforced) ||
+<a name="l01092"></a>01092                    render.scale.forced))
+<a name="l01093"></a>01093         RENDER_CallBack( GFX_CallBackReset );
 <a name="l01094"></a>01094 
-<a name="l01095"></a>01095     RENDER_UpdateScalerMenu();
-<a name="l01096"></a>01096 }
+<a name="l01095"></a>01095     <span class="keywordflow">if</span>(!running) render.updating=<span class="keyword">true</span>;
+<a name="l01096"></a>01096     running = <span class="keyword">true</span>;
 <a name="l01097"></a>01097 
+<a name="l01098"></a>01098     GFX_SetTitle(-1,(Bits)render.frameskip.max,-1,<span class="keyword">false</span>);
+<a name="l01099"></a>01099 
+<a name="l01100"></a>01100     RENDER_UpdateScalerMenu();
+<a name="l01101"></a>01101 }
+<a name="l01102"></a>01102 
+<a name="l01103"></a>01103 <span class="comment">//save state support</span>
+<a name="l01104"></a>01104 <span class="keyword">namespace</span>
+<a name="l01105"></a>01105 {
+<a name="l01106"></a>01106 <span class="keyword">class </span>SerializeRender : <span class="keyword">public</span> SerializeGlobalPOD
+<a name="l01107"></a>01107 {
+<a name="l01108"></a>01108 <span class="keyword">public</span>:
+<a name="l01109"></a>01109         SerializeRender() : SerializeGlobalPOD(<span class="stringliteral">&quot;Render&quot;</span>)
+<a name="l01110"></a>01110         {}
+<a name="l01111"></a>01111 
+<a name="l01112"></a>01112 <span class="keyword">private</span>:
+<a name="l01113"></a>01113         <span class="keyword">virtual</span> <span class="keywordtype">void</span> getBytes(std::ostream&amp; stream)
+<a name="l01114"></a>01114         {
+<a name="l01115"></a>01115                 SerializeGlobalPOD::getBytes(stream);
+<a name="l01116"></a>01116 
+<a name="l01117"></a>01117 
+<a name="l01118"></a>01118                 <span class="comment">// - pure data</span>
+<a name="l01119"></a>01119                 WRITE_POD( &amp;render.src, render.src );
+<a name="l01120"></a>01120 
+<a name="l01121"></a>01121                 WRITE_POD( &amp;render.pal, render.pal );
+<a name="l01122"></a>01122                 WRITE_POD( &amp;render.updating, render.updating );
+<a name="l01123"></a>01123                 WRITE_POD( &amp;render.active, render.active );
+<a name="l01124"></a>01124                 WRITE_POD( &amp;render.fullFrame, render.fullFrame );
+<a name="l01125"></a>01125                 WRITE_POD( &amp;render.frameskip, render.frameskip );
+<a name="l01126"></a>01126         }
+<a name="l01127"></a>01127 
+<a name="l01128"></a>01128         <span class="keyword">virtual</span> <span class="keywordtype">void</span> setBytes(std::istream&amp; stream)
+<a name="l01129"></a>01129         {
+<a name="l01130"></a>01130                 SerializeGlobalPOD::setBytes(stream);
+<a name="l01131"></a>01131 
+<a name="l01132"></a>01132 
+<a name="l01133"></a>01133                 <span class="comment">// - pure data</span>
+<a name="l01134"></a>01134                 READ_POD( &amp;render.src, render.src );
+<a name="l01135"></a>01135 
+<a name="l01136"></a>01136                 READ_POD( &amp;render.pal, render.pal );
+<a name="l01137"></a>01137                 READ_POD( &amp;render.updating, render.updating );
+<a name="l01138"></a>01138                 READ_POD( &amp;render.active, render.active );
+<a name="l01139"></a>01139                 READ_POD( &amp;render.fullFrame, render.fullFrame );
+<a name="l01140"></a>01140                 READ_POD( &amp;render.frameskip, render.frameskip );
+<a name="l01141"></a>01141 
+<a name="l01142"></a>01142                 <span class="comment">//***************************************</span>
+<a name="l01143"></a>01143                 <span class="comment">//***************************************</span>
+<a name="l01144"></a>01144 
+<a name="l01145"></a>01145                 <span class="comment">// reset screen</span>
+<a name="l01146"></a>01146                 <span class="comment">//memset( &amp;render.frameskip, 0, sizeof(render.frameskip) );</span>
+<a name="l01147"></a>01147 
+<a name="l01148"></a>01148                 render.scale.clearCache = <span class="keyword">true</span>;
+<a name="l01149"></a>01149                 <span class="keywordflow">if</span>( render.scale.outWrite ) { GFX_EndUpdate(NULL); }
+<a name="l01150"></a>01150 
+<a name="l01151"></a>01151                 RENDER_SetSize( render.src.width, render.src.height, render.src.bpp, render.src.fps, render.src.ratio );
+<a name="l01152"></a>01152 
+<a name="l01153"></a>01153         }
+<a name="l01154"></a>01154 } dummy;
+<a name="l01155"></a>01155 }
 </pre></div></div><!-- contents -->
 
 
 <hr class="footer"/><address class="footer"><small>
-Generated on Tue Oct 1 2019 18:06:25 for DOSBox-X by &#160;<a href="http://www.doxygen.org/index.html">
+Generated on Sun Jul 5 2020 13:11:35 for DOSBox-X by &#160;<a href="http://www.doxygen.org/index.html">
 <img class="footer" src="doxygen.png" alt="doxygen"/>
 </a> 1.8.0
 </small></address>

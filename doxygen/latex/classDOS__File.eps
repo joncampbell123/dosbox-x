@@ -5,7 +5,7 @@
 %%For: 
 %Magnification: 1.00
 %%Orientation: Portrait
-%%BoundingBox: 0 0 500 63.025210
+%%BoundingBox: 0 0 500 302.521008
 %%Pages: 0
 %%BeginSetup
 %%EndSetup
@@ -19,13 +19,13 @@
 /marginwidth 10 def
 /distx 20 def
 /disty 40 def
-/boundaspect 7.933333 def  % aspect ratio of the BoundingBox (width/height)
+/boundaspect 1.652778 def  % aspect ratio of the BoundingBox (width/height)
 /boundx 500 def
 /boundy boundx boundaspect div def
 /xspacing 0 def
 /yspacing 0 def
-/rows 3 def
-/cols 8 def
+/rows 9 def
+/cols 5 def
 /scalefactor 0 def
 /boxfont /Times-Roman findfont fontheight scalefont def
 
@@ -186,6 +186,7 @@ boxfont setfont
 (device_MSCDEX) cw
 (device_NUL) cw
 (device_PRN) cw
+(OverlayFile) cw
 /boxwidth boxwidth marginwidth 2 mul add def
 /xspacing boxwidth distx add def
 /yspacing boxheight disty add def
@@ -197,51 +198,56 @@ boundx scalefactor div boundy scalefactor div scale
 
 % ----- classes -----
 
- (DOS_File) 5.000000 2.000000 box
- (DOS_Device) 3.000000 1.000000 box
- (fatFile) 4.000000 1.000000 box
- (isoFile) 5.000000 1.000000 box
- (localFile) 6.000000 1.000000 box
- (Virtual_File) 7.000000 1.000000 box
- (device_COM) 0.000000 0.000000 box
- (device_CON) 1.000000 0.000000 box
- (device_EMM) 2.000000 0.000000 box
- (device_LPT) 3.000000 0.000000 box
- (device_MSCDEX) 4.000000 0.000000 box
- (device_NUL) 5.000000 0.000000 box
- (device_PRN) 6.000000 0.000000 box
+ (DOS_File) 2.000000 8.000000 box
+ (DOS_Device) 0.000000 7.000000 box
+ (fatFile) 1.000000 7.000000 box
+ (isoFile) 2.000000 7.000000 box
+ (localFile) 3.000000 7.000000 box
+ (Virtual_File) 4.000000 7.000000 box
+ (device_COM) 1.000000 6.000000 box
+ (device_CON) 1.000000 5.000000 box
+ (device_EMM) 1.000000 4.000000 box
+ (device_LPT) 1.000000 3.000000 box
+ (device_MSCDEX) 1.000000 2.000000 box
+ (device_NUL) 1.000000 1.000000 box
+ (device_PRN) 1.000000 0.000000 box
+ (OverlayFile) 3.000000 6.000000 box
 
 % ----- relations -----
 
 solid
-1 5.000000 1.250000 out
+1 2.000000 7.250000 out
 solid
-3.000000 7.000000 2.000000 conn
+0.000000 4.000000 8.000000 conn
 solid
-0 3.000000 1.750000 in
+0 0.000000 7.750000 in
 solid
-1 3.000000 0.250000 out
+1 0.000000 6.250000 out
 solid
-0.000000 6.000000 1.000000 conn
+0 1.000000 7.750000 in
 solid
-0 4.000000 1.750000 in
+0 2.000000 7.750000 in
 solid
-0 5.000000 1.750000 in
+0 3.000000 7.750000 in
 solid
-0 6.000000 1.750000 in
+1 3.000000 6.250000 out
 solid
-0 7.000000 1.750000 in
+0 4.000000 7.750000 in
 solid
-0 0.000000 0.750000 in
+0 0.000000 6.500000 hedge
 solid
-0 1.000000 0.750000 in
+0 0.000000 5.500000 hedge
 solid
-0 2.000000 0.750000 in
+0 0.000000 4.500000 hedge
 solid
-0 3.000000 0.750000 in
+0 0.000000 3.500000 hedge
 solid
-0 4.000000 0.750000 in
+0 0.000000 2.500000 hedge
 solid
-0 5.000000 0.750000 in
+0 0.000000 1.500000 hedge
 solid
-0 6.000000 0.750000 in
+0 0.000000 0.500000 hedge
+solid
+0.000000 7.000000 0.500000 vedge
+solid
+0 3.000000 6.750000 in

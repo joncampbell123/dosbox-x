@@ -230,34 +230,33 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l00133"></a>00133         (void)type;
 <a name="l00134"></a>00134         (void)tag;
 <a name="l00135"></a>00135         (void)owner;
-<a name="l00136"></a>00136         (void)_clock;
-<a name="l00137"></a>00137         }
-<a name="l00138"></a>00138 
-<a name="l00139"></a>00139     <span class="keyword">virtual</span> ~<a class="code" href="classdevice__t.html">device_t</a>() {
-<a name="l00140"></a>00140         <span class="comment">// silence GCC warning about deleting polymorphic classes</span>
-<a name="l00141"></a>00141     }
-<a name="l00142"></a>00142 
-<a name="l00143"></a>00143 };
+<a name="l00136"></a>00136         }
+<a name="l00137"></a>00137 
+<a name="l00138"></a>00138         <span class="keywordtype">void</span> SaveState( std::ostream&amp; stream ) {
+<a name="l00139"></a>00139             WRITE_POD( &amp;clockRate, clockRate );
+<a name="l00140"></a>00140         }
+<a name="l00141"></a>00141         <span class="keywordtype">void</span> LoadState( std::istream&amp; stream ) {
+<a name="l00142"></a>00142             READ_POD( &amp;clockRate, clockRate );
+<a name="l00143"></a>00143         }
 <a name="l00144"></a>00144 
-<a name="l00145"></a>00145 
-<a name="l00146"></a>00146 
-<a name="l00147"></a>00147 <span class="keyword">inline</span> <span class="keyword">static</span> <span class="keywordtype">void</span> auto_free(<span class="keyword">const</span> <a class="code" href="structdevice__t_1_1machine__t.html">device_t::machine_t</a>&amp; machine, <span class="keywordtype">void</span> * buffer) {
-<a name="l00148"></a>00148     (void)machine;
-<a name="l00149"></a>00149         free(buffer);
-<a name="l00150"></a>00150 }
-<a name="l00151"></a>00151 
-<a name="l00152"></a>00152 <span class="preprocessor">#define auto_alloc_array_clear(m, t, c) calloc(c, sizeof(t) )</span>
-<a name="l00153"></a>00153 <span class="preprocessor"></span><span class="preprocessor">#define auto_alloc_clear(m, t) static_cast&lt;t*&gt;( calloc(1, sizeof(t) ) )</span>
-<a name="l00154"></a>00154 <span class="preprocessor"></span>
+<a name="l00145"></a>00145         <span class="keyword">virtual</span> ~<a class="code" href="classdevice__t.html">device_t</a>() {
+<a name="l00146"></a>00146         }
+<a name="l00147"></a>00147 };
+<a name="l00148"></a>00148 
+<a name="l00149"></a>00149 
+<a name="l00150"></a>00150 
+<a name="l00151"></a>00151 <span class="preprocessor">#define auto_alloc_array_clear(m, t, c) calloc(c, sizeof(t) )</span>
+<a name="l00152"></a>00152 <span class="preprocessor"></span><span class="preprocessor">#define auto_alloc_clear(m, t) static_cast&lt;t*&gt;( calloc(1, sizeof(t) ) )</span>
+<a name="l00153"></a>00153 <span class="preprocessor"></span>
+<a name="l00154"></a>00154 
 <a name="l00155"></a>00155 
 <a name="l00156"></a>00156 
-<a name="l00157"></a>00157 
-<a name="l00158"></a>00158 <span class="preprocessor">#endif</span>
+<a name="l00157"></a>00157 <span class="preprocessor">#endif</span>
 </pre></div></div><!-- contents -->
 
 
 <hr class="footer"/><address class="footer"><small>
-Generated on Tue Oct 1 2019 18:06:26 for DOSBox-X by &#160;<a href="http://www.doxygen.org/index.html">
+Generated on Sun Jul 5 2020 13:11:36 for DOSBox-X by &#160;<a href="http://www.doxygen.org/index.html">
 <img class="footer" src="doxygen.png" alt="doxygen"/>
 </a> 1.8.0
 </small></address>

@@ -630,605 +630,604 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l00533"></a>00533   <span class="keywordtype">int</span> n=0, s=0, i;
 <a name="l00534"></a>00534   INT32 delta = 0;
 <a name="l00535"></a>00535   <span class="keywordtype">unsigned</span> <span class="keywordtype">char</span> buff[6];
-<a name="l00536"></a>00536   <span class="keywordtype">char</span> *name;
-<a name="l00537"></a>00537   <span class="keywordtype">char</span>  signchar;
-<a name="l00538"></a>00538 
-<a name="l00539"></a>00539   <span class="keywordflow">switch</span> (subtype) {
-<a name="l00540"></a>00540   <span class="keywordflow">case</span> <span class="charliteral">&#39;q&#39;</span>:
-<a name="l00541"></a>00541        <span class="keywordflow">if</span> (wordop) {
-<a name="l00542"></a>00542          <span class="keywordflow">if</span> (opsize==16) {
-<a name="l00543"></a>00543            n = 2;
-<a name="l00544"></a>00544          } <span class="keywordflow">else</span> {
-<a name="l00545"></a>00545            n = 4;
-<a name="l00546"></a>00546          }
-<a name="l00547"></a>00547        } <span class="keywordflow">else</span> {
-<a name="l00548"></a>00548          n = 1;
-<a name="l00549"></a>00549        }
-<a name="l00550"></a>00550        <span class="keywordflow">break</span>;
-<a name="l00551"></a>00551 
-<a name="l00552"></a>00552   <span class="keywordflow">case</span> <span class="charliteral">&#39;a&#39;</span>:
-<a name="l00553"></a>00553        <span class="keywordflow">break</span>;
-<a name="l00554"></a>00554   <span class="keywordflow">case</span> <span class="charliteral">&#39;x&#39;</span>:
-<a name="l00555"></a>00555        extend = 2;
-<a name="l00556"></a>00556        n = 1;
-<a name="l00557"></a>00557        <span class="keywordflow">break</span>;
-<a name="l00558"></a>00558   <span class="keywordflow">case</span> <span class="charliteral">&#39;b&#39;</span>:
-<a name="l00559"></a>00559        n = 1;
-<a name="l00560"></a>00560        <span class="keywordflow">break</span>;
-<a name="l00561"></a>00561   <span class="keywordflow">case</span> <span class="charliteral">&#39;w&#39;</span>:
-<a name="l00562"></a>00562        n = 2;
-<a name="l00563"></a>00563        <span class="keywordflow">break</span>;
-<a name="l00564"></a>00564   <span class="keywordflow">case</span> <span class="charliteral">&#39;d&#39;</span>:
-<a name="l00565"></a>00565        n = 4;
-<a name="l00566"></a>00566        <span class="keywordflow">break</span>;
-<a name="l00567"></a>00567   <span class="keywordflow">case</span> <span class="charliteral">&#39;s&#39;</span>:
-<a name="l00568"></a>00568        n = 6;
-<a name="l00569"></a>00569        <span class="keywordflow">break</span>;
-<a name="l00570"></a>00570   <span class="keywordflow">case</span> <span class="charliteral">&#39;c&#39;</span>:
-<a name="l00571"></a>00571   <span class="keywordflow">case</span> <span class="charliteral">&#39;v&#39;</span>:
-<a name="l00572"></a>00572        <span class="keywordflow">if</span> (defsize == 32)
-<a name="l00573"></a>00573          n = 4;
-<a name="l00574"></a>00574        <span class="keywordflow">else</span>
-<a name="l00575"></a>00575          n = 2;
-<a name="l00576"></a>00576        <span class="keywordflow">break</span>;
-<a name="l00577"></a>00577   <span class="keywordflow">case</span> <span class="charliteral">&#39;p&#39;</span>:
-<a name="l00578"></a>00578        <span class="keywordflow">if</span> (defsize == 32)
-<a name="l00579"></a>00579          n = 6;
-<a name="l00580"></a>00580        <span class="keywordflow">else</span>
-<a name="l00581"></a>00581          n = 4;
-<a name="l00582"></a>00582        s = 1;
-<a name="l00583"></a>00583        <span class="keywordflow">break</span>;
-<a name="l00584"></a>00584   }
-<a name="l00585"></a>00585   <span class="keywordflow">for</span> (i=0; i&lt;n; i++)
-<a name="l00586"></a>00586     buff[i] = getbyte();
-<a name="l00587"></a>00587   <span class="keywordflow">for</span> (; i&lt;extend; i++)
-<a name="l00588"></a>00588     buff[i] = (buff[i-1] &amp; 0x80) ? 0xff : 0;
-<a name="l00589"></a>00589   <span class="keywordflow">if</span> (s) {
-<a name="l00590"></a>00590     uprintf(<span class="stringliteral">&quot;%02X%02X:&quot;</span>, (<span class="keywordtype">unsigned</span>)buff[n-1], (<span class="keywordtype">unsigned</span>)buff[n-2]);
-<a name="l00591"></a>00591     n -= 2;
-<a name="l00592"></a>00592   }
-<a name="l00593"></a>00593   <span class="keywordflow">switch</span> (n) {
-<a name="l00594"></a>00594   <span class="keywordflow">case</span> 1:
-<a name="l00595"></a>00595        delta = le_int8(buff);
-<a name="l00596"></a>00596        <span class="keywordflow">break</span>;
-<a name="l00597"></a>00597   <span class="keywordflow">case</span> 2:
-<a name="l00598"></a>00598        delta = le_int16(buff);
-<a name="l00599"></a>00599        <span class="keywordflow">break</span>;
-<a name="l00600"></a>00600   <span class="keywordflow">case</span> 4:
-<a name="l00601"></a>00601        delta = le_int32(buff);
-<a name="l00602"></a>00602        <span class="keywordflow">break</span>;
-<a name="l00603"></a>00603   }
-<a name="l00604"></a>00604   <span class="keywordflow">if</span> (extend &gt; n) {
-<a name="l00605"></a>00605     <span class="keywordflow">if</span> (subtype!=<span class="charliteral">&#39;x&#39;</span>) {
-<a name="l00606"></a>00606       <span class="keywordflow">if</span> (delta&lt;0) {
-<a name="l00607"></a>00607         delta = -delta;
-<a name="l00608"></a>00608         signchar = <span class="charliteral">&#39;-&#39;</span>;
-<a name="l00609"></a>00609       } <span class="keywordflow">else</span>
-<a name="l00610"></a>00610         signchar = <span class="charliteral">&#39;+&#39;</span>;
-<a name="l00611"></a>00611       <span class="keywordflow">if</span> (delta || !optional)
-<a name="l00612"></a>00612                 uprintf(<span class="stringliteral">&quot;%c%0*lX&quot;</span>, (<span class="keywordtype">char</span>)signchar, (<span class="keywordtype">int</span>)(extend), (<span class="keywordtype">long</span>)delta);
-<a name="l00613"></a>00613     } <span class="keywordflow">else</span> {
-<a name="l00614"></a>00614       <span class="keywordflow">if</span> (extend==2)
-<a name="l00615"></a>00615         delta = (UINT16)delta;
-<a name="l00616"></a>00616           uprintf(<span class="stringliteral">&quot;%0.*lX&quot;</span>, (<span class="keywordtype">int</span>)(2*extend), (<span class="keywordtype">long</span>)delta );
-<a name="l00617"></a>00617     }
-<a name="l00618"></a>00618     <span class="keywordflow">return</span>;
-<a name="l00619"></a>00619   }
-<a name="l00620"></a>00620   <span class="keywordflow">if</span> ((n == 4) &amp;&amp; !sign) {
-<a name="l00621"></a>00621     name = addr_to_hex((UINT32)delta, 0);
-<a name="l00622"></a>00622     uprintf(<span class="stringliteral">&quot;%s&quot;</span>, name);
-<a name="l00623"></a>00623     <span class="keywordflow">return</span>;
-<a name="l00624"></a>00624   }
-<a name="l00625"></a>00625   <span class="keywordflow">switch</span> (n) {
-<a name="l00626"></a>00626   <span class="keywordflow">case</span> 1:
-<a name="l00627"></a>00627        <span class="keywordflow">if</span> (sign &amp;&amp; (<span class="keywordtype">char</span>)delta&lt;0) {
-<a name="l00628"></a>00628          delta = -delta;
-<a name="l00629"></a>00629          signchar = <span class="charliteral">&#39;-&#39;</span>;
-<a name="l00630"></a>00630        } <span class="keywordflow">else</span>
-<a name="l00631"></a>00631          signchar = <span class="charliteral">&#39;+&#39;</span>;
-<a name="l00632"></a>00632        <span class="keywordflow">if</span> (sign)
-<a name="l00633"></a>00633                  uprintf(<span class="stringliteral">&quot;%c%02lX&quot;</span>, (<span class="keywordtype">char</span>)signchar, delta &amp; 0xFFL);
-<a name="l00634"></a>00634        <span class="keywordflow">else</span>
-<a name="l00635"></a>00635                  uprintf(<span class="stringliteral">&quot;%02lX&quot;</span>, delta &amp; 0xFFL);
-<a name="l00636"></a>00636        <span class="keywordflow">break</span>;
-<a name="l00637"></a>00637 
-<a name="l00638"></a>00638   <span class="keywordflow">case</span> 2:
-<a name="l00639"></a>00639        <span class="keywordflow">if</span> (sign &amp;&amp; delta&lt;0) {
-<a name="l00640"></a>00640          signchar = <span class="charliteral">&#39;-&#39;</span>;
-<a name="l00641"></a>00641          delta = -delta;
-<a name="l00642"></a>00642        } <span class="keywordflow">else</span>
-<a name="l00643"></a>00643          signchar = <span class="charliteral">&#39;+&#39;</span>;
-<a name="l00644"></a>00644        <span class="keywordflow">if</span> (sign)
-<a name="l00645"></a>00645                  uprintf(<span class="stringliteral">&quot;%c%04lX&quot;</span>, (<span class="keywordtype">char</span>)signchar, delta &amp; 0xFFFFL);
-<a name="l00646"></a>00646        <span class="keywordflow">else</span>
-<a name="l00647"></a>00647                  uprintf(<span class="stringliteral">&quot;%04lX&quot;</span>, delta &amp; 0xFFFFL);
-<a name="l00648"></a>00648        <span class="keywordflow">break</span>;
-<a name="l00649"></a>00649 
-<a name="l00650"></a>00650   <span class="keywordflow">case</span> 4:
-<a name="l00651"></a>00651        <span class="keywordflow">if</span> (sign &amp;&amp; delta&lt;0) {
-<a name="l00652"></a>00652          delta = -delta;
-<a name="l00653"></a>00653          signchar = <span class="charliteral">&#39;-&#39;</span>;
-<a name="l00654"></a>00654        } <span class="keywordflow">else</span>
-<a name="l00655"></a>00655          signchar = <span class="charliteral">&#39;+&#39;</span>;
-<a name="l00656"></a>00656        <span class="keywordflow">if</span> (sign)
-<a name="l00657"></a>00657                  uprintf(<span class="stringliteral">&quot;%c%08lX&quot;</span>, (<span class="keywordtype">char</span>)signchar, (<span class="keywordtype">unsigned</span> <span class="keywordtype">long</span>)delta &amp; 0xFFFFFFFFL);
-<a name="l00658"></a>00658        <span class="keywordflow">else</span>
-<a name="l00659"></a>00659                  uprintf(<span class="stringliteral">&quot;%08lX&quot;</span>, (<span class="keywordtype">unsigned</span> <span class="keywordtype">long</span>)delta &amp; 0xFFFFFFFFL);
-<a name="l00660"></a>00660        <span class="keywordflow">break</span>;
-<a name="l00661"></a>00661   }
-<a name="l00662"></a>00662 }
+<a name="l00536"></a>00536   <span class="keywordtype">char</span>  signchar;
+<a name="l00537"></a>00537 
+<a name="l00538"></a>00538   <span class="keywordflow">switch</span> (subtype) {
+<a name="l00539"></a>00539   <span class="keywordflow">case</span> <span class="charliteral">&#39;q&#39;</span>:
+<a name="l00540"></a>00540        <span class="keywordflow">if</span> (wordop) {
+<a name="l00541"></a>00541          <span class="keywordflow">if</span> (opsize==16) {
+<a name="l00542"></a>00542            n = 2;
+<a name="l00543"></a>00543          } <span class="keywordflow">else</span> {
+<a name="l00544"></a>00544            n = 4;
+<a name="l00545"></a>00545          }
+<a name="l00546"></a>00546        } <span class="keywordflow">else</span> {
+<a name="l00547"></a>00547          n = 1;
+<a name="l00548"></a>00548        }
+<a name="l00549"></a>00549        <span class="keywordflow">break</span>;
+<a name="l00550"></a>00550 
+<a name="l00551"></a>00551   <span class="keywordflow">case</span> <span class="charliteral">&#39;a&#39;</span>:
+<a name="l00552"></a>00552        <span class="keywordflow">break</span>;
+<a name="l00553"></a>00553   <span class="keywordflow">case</span> <span class="charliteral">&#39;x&#39;</span>:
+<a name="l00554"></a>00554        extend = 2;
+<a name="l00555"></a>00555        n = 1;
+<a name="l00556"></a>00556        <span class="keywordflow">break</span>;
+<a name="l00557"></a>00557   <span class="keywordflow">case</span> <span class="charliteral">&#39;b&#39;</span>:
+<a name="l00558"></a>00558        n = 1;
+<a name="l00559"></a>00559        <span class="keywordflow">break</span>;
+<a name="l00560"></a>00560   <span class="keywordflow">case</span> <span class="charliteral">&#39;w&#39;</span>:
+<a name="l00561"></a>00561        n = 2;
+<a name="l00562"></a>00562        <span class="keywordflow">break</span>;
+<a name="l00563"></a>00563   <span class="keywordflow">case</span> <span class="charliteral">&#39;d&#39;</span>:
+<a name="l00564"></a>00564        n = 4;
+<a name="l00565"></a>00565        <span class="keywordflow">break</span>;
+<a name="l00566"></a>00566   <span class="keywordflow">case</span> <span class="charliteral">&#39;s&#39;</span>:
+<a name="l00567"></a>00567        n = 6;
+<a name="l00568"></a>00568        <span class="keywordflow">break</span>;
+<a name="l00569"></a>00569   <span class="keywordflow">case</span> <span class="charliteral">&#39;c&#39;</span>:
+<a name="l00570"></a>00570   <span class="keywordflow">case</span> <span class="charliteral">&#39;v&#39;</span>:
+<a name="l00571"></a>00571        <span class="keywordflow">if</span> (defsize == 32)
+<a name="l00572"></a>00572          n = 4;
+<a name="l00573"></a>00573        <span class="keywordflow">else</span>
+<a name="l00574"></a>00574          n = 2;
+<a name="l00575"></a>00575        <span class="keywordflow">break</span>;
+<a name="l00576"></a>00576   <span class="keywordflow">case</span> <span class="charliteral">&#39;p&#39;</span>:
+<a name="l00577"></a>00577        <span class="keywordflow">if</span> (defsize == 32)
+<a name="l00578"></a>00578          n = 6;
+<a name="l00579"></a>00579        <span class="keywordflow">else</span>
+<a name="l00580"></a>00580          n = 4;
+<a name="l00581"></a>00581        s = 1;
+<a name="l00582"></a>00582        <span class="keywordflow">break</span>;
+<a name="l00583"></a>00583   }
+<a name="l00584"></a>00584   <span class="keywordflow">for</span> (i=0; i&lt;n; i++)
+<a name="l00585"></a>00585     buff[i] = getbyte();
+<a name="l00586"></a>00586   <span class="keywordflow">for</span> (; i&lt;extend; i++)
+<a name="l00587"></a>00587     buff[i] = (buff[i-1] &amp; 0x80) ? 0xff : 0;
+<a name="l00588"></a>00588   <span class="keywordflow">if</span> (s) {
+<a name="l00589"></a>00589     uprintf(<span class="stringliteral">&quot;%02X%02X:&quot;</span>, (<span class="keywordtype">unsigned</span>)buff[n-1], (<span class="keywordtype">unsigned</span>)buff[n-2]);
+<a name="l00590"></a>00590     n -= 2;
+<a name="l00591"></a>00591   }
+<a name="l00592"></a>00592   <span class="keywordflow">switch</span> (n) {
+<a name="l00593"></a>00593   <span class="keywordflow">case</span> 1:
+<a name="l00594"></a>00594        delta = le_int8(buff);
+<a name="l00595"></a>00595        <span class="keywordflow">break</span>;
+<a name="l00596"></a>00596   <span class="keywordflow">case</span> 2:
+<a name="l00597"></a>00597        delta = le_int16(buff);
+<a name="l00598"></a>00598        <span class="keywordflow">break</span>;
+<a name="l00599"></a>00599   <span class="keywordflow">case</span> 4:
+<a name="l00600"></a>00600        delta = le_int32(buff);
+<a name="l00601"></a>00601        <span class="keywordflow">break</span>;
+<a name="l00602"></a>00602   }
+<a name="l00603"></a>00603   <span class="keywordflow">if</span> (extend &gt; n) {
+<a name="l00604"></a>00604     <span class="keywordflow">if</span> (subtype!=<span class="charliteral">&#39;x&#39;</span>) {
+<a name="l00605"></a>00605       <span class="keywordflow">if</span> (delta&lt;0) {
+<a name="l00606"></a>00606         delta = -delta;
+<a name="l00607"></a>00607         signchar = <span class="charliteral">&#39;-&#39;</span>;
+<a name="l00608"></a>00608       } <span class="keywordflow">else</span>
+<a name="l00609"></a>00609         signchar = <span class="charliteral">&#39;+&#39;</span>;
+<a name="l00610"></a>00610       <span class="keywordflow">if</span> (delta || !optional)
+<a name="l00611"></a>00611                 uprintf(<span class="stringliteral">&quot;%c%0*lX&quot;</span>, (<span class="keywordtype">char</span>)signchar, (<span class="keywordtype">int</span>)(extend), (<span class="keywordtype">long</span>)delta);
+<a name="l00612"></a>00612     } <span class="keywordflow">else</span> {
+<a name="l00613"></a>00613       <span class="keywordflow">if</span> (extend==2)
+<a name="l00614"></a>00614         delta = (UINT16)delta;
+<a name="l00615"></a>00615           uprintf(<span class="stringliteral">&quot;%0.*lX&quot;</span>, (<span class="keywordtype">int</span>)(2*extend), (<span class="keywordtype">long</span>)delta );
+<a name="l00616"></a>00616     }
+<a name="l00617"></a>00617     <span class="keywordflow">return</span>;
+<a name="l00618"></a>00618   }
+<a name="l00619"></a>00619   <span class="keywordflow">if</span> ((n == 4) &amp;&amp; !sign) {
+<a name="l00620"></a>00620     <span class="keywordtype">char</span> *name = addr_to_hex((UINT32)delta, 0);
+<a name="l00621"></a>00621     uprintf(<span class="stringliteral">&quot;%s&quot;</span>, name);
+<a name="l00622"></a>00622     <span class="keywordflow">return</span>;
+<a name="l00623"></a>00623   }
+<a name="l00624"></a>00624   <span class="keywordflow">switch</span> (n) {
+<a name="l00625"></a>00625   <span class="keywordflow">case</span> 1:
+<a name="l00626"></a>00626        <span class="keywordflow">if</span> (sign &amp;&amp; (<span class="keywordtype">char</span>)delta&lt;0) {
+<a name="l00627"></a>00627          delta = -delta;
+<a name="l00628"></a>00628          signchar = <span class="charliteral">&#39;-&#39;</span>;
+<a name="l00629"></a>00629        } <span class="keywordflow">else</span>
+<a name="l00630"></a>00630          signchar = <span class="charliteral">&#39;+&#39;</span>;
+<a name="l00631"></a>00631        <span class="keywordflow">if</span> (sign)
+<a name="l00632"></a>00632                  uprintf(<span class="stringliteral">&quot;%c%02lX&quot;</span>, (<span class="keywordtype">char</span>)signchar, delta &amp; 0xFFL);
+<a name="l00633"></a>00633        <span class="keywordflow">else</span>
+<a name="l00634"></a>00634                  uprintf(<span class="stringliteral">&quot;%02lX&quot;</span>, delta &amp; 0xFFL);
+<a name="l00635"></a>00635        <span class="keywordflow">break</span>;
+<a name="l00636"></a>00636 
+<a name="l00637"></a>00637   <span class="keywordflow">case</span> 2:
+<a name="l00638"></a>00638        <span class="keywordflow">if</span> (sign &amp;&amp; delta&lt;0) {
+<a name="l00639"></a>00639          signchar = <span class="charliteral">&#39;-&#39;</span>;
+<a name="l00640"></a>00640          delta = -delta;
+<a name="l00641"></a>00641        } <span class="keywordflow">else</span>
+<a name="l00642"></a>00642          signchar = <span class="charliteral">&#39;+&#39;</span>;
+<a name="l00643"></a>00643        <span class="keywordflow">if</span> (sign)
+<a name="l00644"></a>00644                  uprintf(<span class="stringliteral">&quot;%c%04lX&quot;</span>, (<span class="keywordtype">char</span>)signchar, delta &amp; 0xFFFFL);
+<a name="l00645"></a>00645        <span class="keywordflow">else</span>
+<a name="l00646"></a>00646                  uprintf(<span class="stringliteral">&quot;%04lX&quot;</span>, delta &amp; 0xFFFFL);
+<a name="l00647"></a>00647        <span class="keywordflow">break</span>;
+<a name="l00648"></a>00648 
+<a name="l00649"></a>00649   <span class="keywordflow">case</span> 4:
+<a name="l00650"></a>00650        <span class="keywordflow">if</span> (sign &amp;&amp; delta&lt;0) {
+<a name="l00651"></a>00651          delta = -delta;
+<a name="l00652"></a>00652          signchar = <span class="charliteral">&#39;-&#39;</span>;
+<a name="l00653"></a>00653        } <span class="keywordflow">else</span>
+<a name="l00654"></a>00654          signchar = <span class="charliteral">&#39;+&#39;</span>;
+<a name="l00655"></a>00655        <span class="keywordflow">if</span> (sign)
+<a name="l00656"></a>00656                  uprintf(<span class="stringliteral">&quot;%c%08lX&quot;</span>, (<span class="keywordtype">char</span>)signchar, (<span class="keywordtype">unsigned</span> <span class="keywordtype">long</span>)delta &amp; 0xFFFFFFFFL);
+<a name="l00657"></a>00657        <span class="keywordflow">else</span>
+<a name="l00658"></a>00658                  uprintf(<span class="stringliteral">&quot;%08lX&quot;</span>, (<span class="keywordtype">unsigned</span> <span class="keywordtype">long</span>)delta &amp; 0xFFFFFFFFL);
+<a name="l00659"></a>00659        <span class="keywordflow">break</span>;
+<a name="l00660"></a>00660   }
+<a name="l00661"></a>00661 }
+<a name="l00662"></a>00662 
 <a name="l00663"></a>00663 
-<a name="l00664"></a>00664 
-<a name="l00665"></a>00665 <span class="comment">/*------------------------------------------------------------------------*/</span>
-<a name="l00666"></a>00666 
-<a name="l00667"></a>00667 <span class="keyword">static</span> <span class="keywordtype">void</span> reg_name(<span class="keywordtype">int</span> regnum, <span class="keywordtype">char</span> size)
-<a name="l00668"></a>00668 {
-<a name="l00669"></a>00669   <span class="keywordflow">if</span> (size == <span class="charliteral">&#39;F&#39;</span>) { <span class="comment">/* floating point register? */</span>
-<a name="l00670"></a>00670     uprintf(<span class="stringliteral">&quot;st(%d)&quot;</span>, regnum);
-<a name="l00671"></a>00671     <span class="keywordflow">return</span>;
-<a name="l00672"></a>00672   }
-<a name="l00673"></a>00673   <span class="keywordflow">if</span> ((((size == <span class="charliteral">&#39;c&#39;</span>) || (size == <span class="charliteral">&#39;v&#39;</span>)) &amp;&amp; (opsize == 32)) || (size == <span class="charliteral">&#39;d&#39;</span>))
-<a name="l00674"></a>00674     uputchar(<span class="charliteral">&#39;e&#39;</span>);
-<a name="l00675"></a>00675   <span class="keywordflow">if</span> ((size==<span class="charliteral">&#39;q&#39;</span> || size == <span class="charliteral">&#39;b&#39;</span> || size==<span class="charliteral">&#39;c&#39;</span>) &amp;&amp; !wordop) {
-<a name="l00676"></a>00676     uputchar(<span class="stringliteral">&quot;acdbacdb&quot;</span>[regnum]);
-<a name="l00677"></a>00677     uputchar(<span class="stringliteral">&quot;llllhhhh&quot;</span>[regnum]);
-<a name="l00678"></a>00678   } <span class="keywordflow">else</span> {
-<a name="l00679"></a>00679     uputchar(<span class="stringliteral">&quot;acdbsbsd&quot;</span>[regnum]);
-<a name="l00680"></a>00680     uputchar(<span class="stringliteral">&quot;xxxxppii&quot;</span>[regnum]);
-<a name="l00681"></a>00681   }
-<a name="l00682"></a>00682 }
+<a name="l00664"></a>00664 <span class="comment">/*------------------------------------------------------------------------*/</span>
+<a name="l00665"></a>00665 
+<a name="l00666"></a>00666 <span class="keyword">static</span> <span class="keywordtype">void</span> reg_name(<span class="keywordtype">int</span> regnum, <span class="keywordtype">char</span> size)
+<a name="l00667"></a>00667 {
+<a name="l00668"></a>00668   <span class="keywordflow">if</span> (size == <span class="charliteral">&#39;F&#39;</span>) { <span class="comment">/* floating point register? */</span>
+<a name="l00669"></a>00669     uprintf(<span class="stringliteral">&quot;st(%d)&quot;</span>, regnum);
+<a name="l00670"></a>00670     <span class="keywordflow">return</span>;
+<a name="l00671"></a>00671   }
+<a name="l00672"></a>00672   <span class="keywordflow">if</span> ((((size == <span class="charliteral">&#39;c&#39;</span>) || (size == <span class="charliteral">&#39;v&#39;</span>)) &amp;&amp; (opsize == 32)) || (size == <span class="charliteral">&#39;d&#39;</span>))
+<a name="l00673"></a>00673     uputchar(<span class="charliteral">&#39;e&#39;</span>);
+<a name="l00674"></a>00674   <span class="keywordflow">if</span> ((size==<span class="charliteral">&#39;q&#39;</span> || size == <span class="charliteral">&#39;b&#39;</span> || size==<span class="charliteral">&#39;c&#39;</span>) &amp;&amp; !wordop) {
+<a name="l00675"></a>00675     uputchar(<span class="stringliteral">&quot;acdbacdb&quot;</span>[regnum]);
+<a name="l00676"></a>00676     uputchar(<span class="stringliteral">&quot;llllhhhh&quot;</span>[regnum]);
+<a name="l00677"></a>00677   } <span class="keywordflow">else</span> {
+<a name="l00678"></a>00678     uputchar(<span class="stringliteral">&quot;acdbsbsd&quot;</span>[regnum]);
+<a name="l00679"></a>00679     uputchar(<span class="stringliteral">&quot;xxxxppii&quot;</span>[regnum]);
+<a name="l00680"></a>00680   }
+<a name="l00681"></a>00681 }
+<a name="l00682"></a>00682 
 <a name="l00683"></a>00683 
-<a name="l00684"></a>00684 
-<a name="l00685"></a>00685 <span class="comment">/*------------------------------------------------------------------------*/</span>
-<a name="l00686"></a>00686 
-<a name="l00687"></a>00687 <span class="keyword">static</span> <span class="keywordtype">void</span> ua_str(<span class="keywordtype">char</span> <span class="keyword">const</span> *str);
-<a name="l00688"></a>00688 
-<a name="l00689"></a>00689 <span class="keyword">static</span> <span class="keywordtype">void</span> do_sib(<span class="keywordtype">int</span> m)
-<a name="l00690"></a>00690 {
-<a name="l00691"></a>00691   <span class="keywordtype">int</span> s, i, b;
-<a name="l00692"></a>00692 
-<a name="l00693"></a>00693   s = SCALE(sib());
-<a name="l00694"></a>00694   i = INDEX(sib());
-<a name="l00695"></a>00695   b = BASE(sib());
-<a name="l00696"></a>00696   <span class="keywordflow">switch</span> (b) {     <span class="comment">/* pick base */</span>
-<a name="l00697"></a>00697   <span class="keywordflow">case</span> 0: ua_str(<span class="stringliteral">&quot;%p:[eax&quot;</span>); <span class="keywordflow">break</span>;
-<a name="l00698"></a>00698   <span class="keywordflow">case</span> 1: ua_str(<span class="stringliteral">&quot;%p:[ecx&quot;</span>); <span class="keywordflow">break</span>;
-<a name="l00699"></a>00699   <span class="keywordflow">case</span> 2: ua_str(<span class="stringliteral">&quot;%p:[edx&quot;</span>); <span class="keywordflow">break</span>;
-<a name="l00700"></a>00700   <span class="keywordflow">case</span> 3: ua_str(<span class="stringliteral">&quot;%p:[ebx&quot;</span>); <span class="keywordflow">break</span>;
-<a name="l00701"></a>00701   <span class="keywordflow">case</span> 4: ua_str(<span class="stringliteral">&quot;%p:[esp&quot;</span>); <span class="keywordflow">break</span>;
-<a name="l00702"></a>00702   <span class="keywordflow">case</span> 5:
-<a name="l00703"></a>00703        <span class="keywordflow">if</span> (m == 0) {
-<a name="l00704"></a>00704          ua_str(<span class="stringliteral">&quot;%p:[&quot;</span>);
-<a name="l00705"></a>00705          outhex(<span class="charliteral">&#39;d&#39;</span>, 4, 0, addrsize, 0);
-<a name="l00706"></a>00706        } <span class="keywordflow">else</span> {
-<a name="l00707"></a>00707          ua_str(<span class="stringliteral">&quot;%p:[ebp&quot;</span>);
-<a name="l00708"></a>00708        }
-<a name="l00709"></a>00709        <span class="keywordflow">break</span>;
-<a name="l00710"></a>00710   <span class="keywordflow">case</span> 6: ua_str(<span class="stringliteral">&quot;%p:[esi&quot;</span>); <span class="keywordflow">break</span>;
-<a name="l00711"></a>00711   <span class="keywordflow">case</span> 7: ua_str(<span class="stringliteral">&quot;%p:[edi&quot;</span>); <span class="keywordflow">break</span>;
-<a name="l00712"></a>00712   }
-<a name="l00713"></a>00713   <span class="keywordflow">switch</span> (i) {     <span class="comment">/* and index */</span>
-<a name="l00714"></a>00714   <span class="keywordflow">case</span> 0: uprintf(<span class="stringliteral">&quot;+eax&quot;</span>); <span class="keywordflow">break</span>;
-<a name="l00715"></a>00715   <span class="keywordflow">case</span> 1: uprintf(<span class="stringliteral">&quot;+ecx&quot;</span>); <span class="keywordflow">break</span>;
-<a name="l00716"></a>00716   <span class="keywordflow">case</span> 2: uprintf(<span class="stringliteral">&quot;+edx&quot;</span>); <span class="keywordflow">break</span>;
-<a name="l00717"></a>00717   <span class="keywordflow">case</span> 3: uprintf(<span class="stringliteral">&quot;+ebx&quot;</span>); <span class="keywordflow">break</span>;
-<a name="l00718"></a>00718   <span class="keywordflow">case</span> 4: <span class="keywordflow">break</span>;
-<a name="l00719"></a>00719   <span class="keywordflow">case</span> 5: uprintf(<span class="stringliteral">&quot;+ebp&quot;</span>); <span class="keywordflow">break</span>;
-<a name="l00720"></a>00720   <span class="keywordflow">case</span> 6: uprintf(<span class="stringliteral">&quot;+esi&quot;</span>); <span class="keywordflow">break</span>;
-<a name="l00721"></a>00721   <span class="keywordflow">case</span> 7: uprintf(<span class="stringliteral">&quot;+edi&quot;</span>); <span class="keywordflow">break</span>;
-<a name="l00722"></a>00722   }
-<a name="l00723"></a>00723   <span class="keywordflow">if</span> (i != 4) {
-<a name="l00724"></a>00724     <span class="keywordflow">switch</span> (s) {    <span class="comment">/* and scale */</span>
-<a name="l00725"></a>00725       <span class="keywordflow">case</span> 0: <span class="comment">/*uprintf(&quot;&quot;);*/</span> <span class="keywordflow">break</span>;
-<a name="l00726"></a>00726       <span class="keywordflow">case</span> 1: uprintf(<span class="stringliteral">&quot;*2&quot;</span>); <span class="keywordflow">break</span>;
-<a name="l00727"></a>00727       <span class="keywordflow">case</span> 2: uprintf(<span class="stringliteral">&quot;*4&quot;</span>); <span class="keywordflow">break</span>;
-<a name="l00728"></a>00728       <span class="keywordflow">case</span> 3: uprintf(<span class="stringliteral">&quot;*8&quot;</span>); <span class="keywordflow">break</span>;
-<a name="l00729"></a>00729     }
-<a name="l00730"></a>00730   }
-<a name="l00731"></a>00731 }
+<a name="l00684"></a>00684 <span class="comment">/*------------------------------------------------------------------------*/</span>
+<a name="l00685"></a>00685 
+<a name="l00686"></a>00686 <span class="keyword">static</span> <span class="keywordtype">void</span> ua_str(<span class="keywordtype">char</span> <span class="keyword">const</span> *str);
+<a name="l00687"></a>00687 
+<a name="l00688"></a>00688 <span class="keyword">static</span> <span class="keywordtype">void</span> do_sib(<span class="keywordtype">int</span> m)
+<a name="l00689"></a>00689 {
+<a name="l00690"></a>00690   <span class="keywordtype">int</span> s, i, b;
+<a name="l00691"></a>00691 
+<a name="l00692"></a>00692   s = SCALE(sib());
+<a name="l00693"></a>00693   i = INDEX(sib());
+<a name="l00694"></a>00694   b = BASE(sib());
+<a name="l00695"></a>00695   <span class="keywordflow">switch</span> (b) {     <span class="comment">/* pick base */</span>
+<a name="l00696"></a>00696   <span class="keywordflow">case</span> 0: ua_str(<span class="stringliteral">&quot;%p:[eax&quot;</span>); <span class="keywordflow">break</span>;
+<a name="l00697"></a>00697   <span class="keywordflow">case</span> 1: ua_str(<span class="stringliteral">&quot;%p:[ecx&quot;</span>); <span class="keywordflow">break</span>;
+<a name="l00698"></a>00698   <span class="keywordflow">case</span> 2: ua_str(<span class="stringliteral">&quot;%p:[edx&quot;</span>); <span class="keywordflow">break</span>;
+<a name="l00699"></a>00699   <span class="keywordflow">case</span> 3: ua_str(<span class="stringliteral">&quot;%p:[ebx&quot;</span>); <span class="keywordflow">break</span>;
+<a name="l00700"></a>00700   <span class="keywordflow">case</span> 4: ua_str(<span class="stringliteral">&quot;%p:[esp&quot;</span>); <span class="keywordflow">break</span>;
+<a name="l00701"></a>00701   <span class="keywordflow">case</span> 5:
+<a name="l00702"></a>00702        <span class="keywordflow">if</span> (m == 0) {
+<a name="l00703"></a>00703          ua_str(<span class="stringliteral">&quot;%p:[&quot;</span>);
+<a name="l00704"></a>00704          outhex(<span class="charliteral">&#39;d&#39;</span>, 4, 0, addrsize, 0);
+<a name="l00705"></a>00705        } <span class="keywordflow">else</span> {
+<a name="l00706"></a>00706          ua_str(<span class="stringliteral">&quot;%p:[ebp&quot;</span>);
+<a name="l00707"></a>00707        }
+<a name="l00708"></a>00708        <span class="keywordflow">break</span>;
+<a name="l00709"></a>00709   <span class="keywordflow">case</span> 6: ua_str(<span class="stringliteral">&quot;%p:[esi&quot;</span>); <span class="keywordflow">break</span>;
+<a name="l00710"></a>00710   <span class="keywordflow">case</span> 7: ua_str(<span class="stringliteral">&quot;%p:[edi&quot;</span>); <span class="keywordflow">break</span>;
+<a name="l00711"></a>00711   }
+<a name="l00712"></a>00712   <span class="keywordflow">switch</span> (i) {     <span class="comment">/* and index */</span>
+<a name="l00713"></a>00713   <span class="keywordflow">case</span> 0: uprintf(<span class="stringliteral">&quot;+eax&quot;</span>); <span class="keywordflow">break</span>;
+<a name="l00714"></a>00714   <span class="keywordflow">case</span> 1: uprintf(<span class="stringliteral">&quot;+ecx&quot;</span>); <span class="keywordflow">break</span>;
+<a name="l00715"></a>00715   <span class="keywordflow">case</span> 2: uprintf(<span class="stringliteral">&quot;+edx&quot;</span>); <span class="keywordflow">break</span>;
+<a name="l00716"></a>00716   <span class="keywordflow">case</span> 3: uprintf(<span class="stringliteral">&quot;+ebx&quot;</span>); <span class="keywordflow">break</span>;
+<a name="l00717"></a>00717   <span class="keywordflow">case</span> 4: <span class="keywordflow">break</span>;
+<a name="l00718"></a>00718   <span class="keywordflow">case</span> 5: uprintf(<span class="stringliteral">&quot;+ebp&quot;</span>); <span class="keywordflow">break</span>;
+<a name="l00719"></a>00719   <span class="keywordflow">case</span> 6: uprintf(<span class="stringliteral">&quot;+esi&quot;</span>); <span class="keywordflow">break</span>;
+<a name="l00720"></a>00720   <span class="keywordflow">case</span> 7: uprintf(<span class="stringliteral">&quot;+edi&quot;</span>); <span class="keywordflow">break</span>;
+<a name="l00721"></a>00721   }
+<a name="l00722"></a>00722   <span class="keywordflow">if</span> (i != 4) {
+<a name="l00723"></a>00723     <span class="keywordflow">switch</span> (s) {    <span class="comment">/* and scale */</span>
+<a name="l00724"></a>00724       <span class="keywordflow">case</span> 0: <span class="comment">/*uprintf(&quot;&quot;);*/</span> <span class="keywordflow">break</span>;
+<a name="l00725"></a>00725       <span class="keywordflow">case</span> 1: uprintf(<span class="stringliteral">&quot;*2&quot;</span>); <span class="keywordflow">break</span>;
+<a name="l00726"></a>00726       <span class="keywordflow">case</span> 2: uprintf(<span class="stringliteral">&quot;*4&quot;</span>); <span class="keywordflow">break</span>;
+<a name="l00727"></a>00727       <span class="keywordflow">case</span> 3: uprintf(<span class="stringliteral">&quot;*8&quot;</span>); <span class="keywordflow">break</span>;
+<a name="l00728"></a>00728     }
+<a name="l00729"></a>00729   }
+<a name="l00730"></a>00730 }
+<a name="l00731"></a>00731 
 <a name="l00732"></a>00732 
 <a name="l00733"></a>00733 
-<a name="l00734"></a>00734 
-<a name="l00735"></a>00735 <span class="comment">/*------------------------------------------------------------------------*/</span>
-<a name="l00736"></a>00736 <span class="keyword">static</span> <span class="keywordtype">void</span> do_modrm(<span class="keywordtype">char</span> subtype)
-<a name="l00737"></a>00737 {
-<a name="l00738"></a>00738   <span class="keywordtype">int</span> mod = MOD(modrm());
-<a name="l00739"></a>00739   <span class="keywordtype">int</span> rm = RM(modrm());
-<a name="l00740"></a>00740   <span class="keywordtype">int</span> extend = (addrsize == 32) ? 4 : 2;
-<a name="l00741"></a>00741 
-<a name="l00742"></a>00742   <span class="keywordflow">if</span> (mod == 3) { <span class="comment">/* specifies two registers */</span>
-<a name="l00743"></a>00743     reg_name(rm, subtype);
-<a name="l00744"></a>00744     <span class="keywordflow">return</span>;
-<a name="l00745"></a>00745   }
-<a name="l00746"></a>00746   <span class="keywordflow">if</span> (must_do_size) {
-<a name="l00747"></a>00747     <span class="keywordflow">if</span> (wordop) {
-<a name="l00748"></a>00748       <span class="keywordflow">if</span> (addrsize==32 || opsize==32) {       <span class="comment">/* then must specify size */</span>
-<a name="l00749"></a>00749                 ua_str(<span class="stringliteral">&quot;dword &quot;</span>);
-<a name="l00750"></a>00750       } <span class="keywordflow">else</span> {
-<a name="l00751"></a>00751                 ua_str(<span class="stringliteral">&quot;word &quot;</span>);
-<a name="l00752"></a>00752       }
-<a name="l00753"></a>00753     } <span class="keywordflow">else</span> {
-<a name="l00754"></a>00754           ua_str(<span class="stringliteral">&quot;byte &quot;</span>);
-<a name="l00755"></a>00755     }
-<a name="l00756"></a>00756   }
-<a name="l00757"></a>00757   <span class="keywordflow">if</span> ((mod == 0) &amp;&amp; (rm == 5) &amp;&amp; (addrsize == 32)) {<span class="comment">/* mem operand with 32 bit ofs */</span>
-<a name="l00758"></a>00758     ua_str(<span class="stringliteral">&quot;%p:[&quot;</span>);
-<a name="l00759"></a>00759     outhex(<span class="charliteral">&#39;d&#39;</span>, extend, 0, addrsize, 0);
-<a name="l00760"></a>00760     uputchar(<span class="charliteral">&#39;]&#39;</span>);
-<a name="l00761"></a>00761     <span class="keywordflow">return</span>;
-<a name="l00762"></a>00762   }
-<a name="l00763"></a>00763   <span class="keywordflow">if</span> ((mod == 0) &amp;&amp; (rm == 6) &amp;&amp; (addrsize == 16)) { <span class="comment">/* 16 bit dsplcmnt */</span>
-<a name="l00764"></a>00764     ua_str(<span class="stringliteral">&quot;%p:[&quot;</span>);
-<a name="l00765"></a>00765     outhex(<span class="charliteral">&#39;w&#39;</span>, extend, 0, addrsize, 0);
-<a name="l00766"></a>00766     uputchar(<span class="charliteral">&#39;]&#39;</span>);
-<a name="l00767"></a>00767     <span class="keywordflow">return</span>;
-<a name="l00768"></a>00768   }
-<a name="l00769"></a>00769   <span class="keywordflow">if</span> ((addrsize != 32) || (rm != 4))
-<a name="l00770"></a>00770     ua_str(<span class="stringliteral">&quot;%p:[&quot;</span>);
-<a name="l00771"></a>00771   <span class="keywordflow">if</span> (addrsize == 16) {
-<a name="l00772"></a>00772     <span class="keywordflow">switch</span> (rm) {
-<a name="l00773"></a>00773     <span class="keywordflow">case</span> 0: uprintf(<span class="stringliteral">&quot;bx+si&quot;</span>); <span class="keywordflow">break</span>;
-<a name="l00774"></a>00774     <span class="keywordflow">case</span> 1: uprintf(<span class="stringliteral">&quot;bx+di&quot;</span>); <span class="keywordflow">break</span>;
-<a name="l00775"></a>00775     <span class="keywordflow">case</span> 2: uprintf(<span class="stringliteral">&quot;bp+si&quot;</span>); <span class="keywordflow">break</span>;
-<a name="l00776"></a>00776     <span class="keywordflow">case</span> 3: uprintf(<span class="stringliteral">&quot;bp+di&quot;</span>); <span class="keywordflow">break</span>;
-<a name="l00777"></a>00777     <span class="keywordflow">case</span> 4: uprintf(<span class="stringliteral">&quot;si&quot;</span>); <span class="keywordflow">break</span>;
-<a name="l00778"></a>00778     <span class="keywordflow">case</span> 5: uprintf(<span class="stringliteral">&quot;di&quot;</span>); <span class="keywordflow">break</span>;
-<a name="l00779"></a>00779     <span class="keywordflow">case</span> 6: uprintf(<span class="stringliteral">&quot;bp&quot;</span>); <span class="keywordflow">break</span>;
-<a name="l00780"></a>00780     <span class="keywordflow">case</span> 7: uprintf(<span class="stringliteral">&quot;bx&quot;</span>); <span class="keywordflow">break</span>;
-<a name="l00781"></a>00781     }
-<a name="l00782"></a>00782   } <span class="keywordflow">else</span> {
-<a name="l00783"></a>00783     <span class="keywordflow">switch</span> (rm) {
-<a name="l00784"></a>00784     <span class="keywordflow">case</span> 0: uprintf(<span class="stringliteral">&quot;eax&quot;</span>); <span class="keywordflow">break</span>;
-<a name="l00785"></a>00785     <span class="keywordflow">case</span> 1: uprintf(<span class="stringliteral">&quot;ecx&quot;</span>); <span class="keywordflow">break</span>;
-<a name="l00786"></a>00786     <span class="keywordflow">case</span> 2: uprintf(<span class="stringliteral">&quot;edx&quot;</span>); <span class="keywordflow">break</span>;
-<a name="l00787"></a>00787     <span class="keywordflow">case</span> 3: uprintf(<span class="stringliteral">&quot;ebx&quot;</span>); <span class="keywordflow">break</span>;
-<a name="l00788"></a>00788     <span class="keywordflow">case</span> 4: do_sib(mod); <span class="keywordflow">break</span>;
-<a name="l00789"></a>00789     <span class="keywordflow">case</span> 5: uprintf(<span class="stringliteral">&quot;ebp&quot;</span>); <span class="keywordflow">break</span>;
-<a name="l00790"></a>00790     <span class="keywordflow">case</span> 6: uprintf(<span class="stringliteral">&quot;esi&quot;</span>); <span class="keywordflow">break</span>;
-<a name="l00791"></a>00791     <span class="keywordflow">case</span> 7: uprintf(<span class="stringliteral">&quot;edi&quot;</span>); <span class="keywordflow">break</span>;
-<a name="l00792"></a>00792     }
-<a name="l00793"></a>00793   }
-<a name="l00794"></a>00794   <span class="keywordflow">switch</span> (mod) {
-<a name="l00795"></a>00795   <span class="keywordflow">case</span> 1:
-<a name="l00796"></a>00796        outhex(<span class="charliteral">&#39;b&#39;</span>, extend, 1, addrsize, 0);
-<a name="l00797"></a>00797        <span class="keywordflow">break</span>;
-<a name="l00798"></a>00798   <span class="keywordflow">case</span> 2:
-<a name="l00799"></a>00799        outhex(<span class="charliteral">&#39;v&#39;</span>, extend, 1, addrsize, 1);
-<a name="l00800"></a>00800        <span class="keywordflow">break</span>;
-<a name="l00801"></a>00801   }
-<a name="l00802"></a>00802   uputchar(<span class="charliteral">&#39;]&#39;</span>);
-<a name="l00803"></a>00803 }
+<a name="l00734"></a>00734 <span class="comment">/*------------------------------------------------------------------------*/</span>
+<a name="l00735"></a>00735 <span class="keyword">static</span> <span class="keywordtype">void</span> do_modrm(<span class="keywordtype">char</span> subtype)
+<a name="l00736"></a>00736 {
+<a name="l00737"></a>00737   <span class="keywordtype">int</span> mod = MOD(modrm());
+<a name="l00738"></a>00738   <span class="keywordtype">int</span> rm = RM(modrm());
+<a name="l00739"></a>00739   <span class="keywordtype">int</span> extend = (addrsize == 32) ? 4 : 2;
+<a name="l00740"></a>00740 
+<a name="l00741"></a>00741   <span class="keywordflow">if</span> (mod == 3) { <span class="comment">/* specifies two registers */</span>
+<a name="l00742"></a>00742     reg_name(rm, subtype);
+<a name="l00743"></a>00743     <span class="keywordflow">return</span>;
+<a name="l00744"></a>00744   }
+<a name="l00745"></a>00745   <span class="keywordflow">if</span> (must_do_size) {
+<a name="l00746"></a>00746     <span class="keywordflow">if</span> (wordop) {
+<a name="l00747"></a>00747       <span class="keywordflow">if</span> (addrsize==32 || opsize==32) {       <span class="comment">/* then must specify size */</span>
+<a name="l00748"></a>00748                 ua_str(<span class="stringliteral">&quot;dword &quot;</span>);
+<a name="l00749"></a>00749       } <span class="keywordflow">else</span> {
+<a name="l00750"></a>00750                 ua_str(<span class="stringliteral">&quot;word &quot;</span>);
+<a name="l00751"></a>00751       }
+<a name="l00752"></a>00752     } <span class="keywordflow">else</span> {
+<a name="l00753"></a>00753           ua_str(<span class="stringliteral">&quot;byte &quot;</span>);
+<a name="l00754"></a>00754     }
+<a name="l00755"></a>00755   }
+<a name="l00756"></a>00756   <span class="keywordflow">if</span> ((mod == 0) &amp;&amp; (rm == 5) &amp;&amp; (addrsize == 32)) {<span class="comment">/* mem operand with 32 bit ofs */</span>
+<a name="l00757"></a>00757     ua_str(<span class="stringliteral">&quot;%p:[&quot;</span>);
+<a name="l00758"></a>00758     outhex(<span class="charliteral">&#39;d&#39;</span>, extend, 0, addrsize, 0);
+<a name="l00759"></a>00759     uputchar(<span class="charliteral">&#39;]&#39;</span>);
+<a name="l00760"></a>00760     <span class="keywordflow">return</span>;
+<a name="l00761"></a>00761   }
+<a name="l00762"></a>00762   <span class="keywordflow">if</span> ((mod == 0) &amp;&amp; (rm == 6) &amp;&amp; (addrsize == 16)) { <span class="comment">/* 16 bit dsplcmnt */</span>
+<a name="l00763"></a>00763     ua_str(<span class="stringliteral">&quot;%p:[&quot;</span>);
+<a name="l00764"></a>00764     outhex(<span class="charliteral">&#39;w&#39;</span>, extend, 0, addrsize, 0);
+<a name="l00765"></a>00765     uputchar(<span class="charliteral">&#39;]&#39;</span>);
+<a name="l00766"></a>00766     <span class="keywordflow">return</span>;
+<a name="l00767"></a>00767   }
+<a name="l00768"></a>00768   <span class="keywordflow">if</span> ((addrsize != 32) || (rm != 4))
+<a name="l00769"></a>00769     ua_str(<span class="stringliteral">&quot;%p:[&quot;</span>);
+<a name="l00770"></a>00770   <span class="keywordflow">if</span> (addrsize == 16) {
+<a name="l00771"></a>00771     <span class="keywordflow">switch</span> (rm) {
+<a name="l00772"></a>00772     <span class="keywordflow">case</span> 0: uprintf(<span class="stringliteral">&quot;bx+si&quot;</span>); <span class="keywordflow">break</span>;
+<a name="l00773"></a>00773     <span class="keywordflow">case</span> 1: uprintf(<span class="stringliteral">&quot;bx+di&quot;</span>); <span class="keywordflow">break</span>;
+<a name="l00774"></a>00774     <span class="keywordflow">case</span> 2: uprintf(<span class="stringliteral">&quot;bp+si&quot;</span>); <span class="keywordflow">break</span>;
+<a name="l00775"></a>00775     <span class="keywordflow">case</span> 3: uprintf(<span class="stringliteral">&quot;bp+di&quot;</span>); <span class="keywordflow">break</span>;
+<a name="l00776"></a>00776     <span class="keywordflow">case</span> 4: uprintf(<span class="stringliteral">&quot;si&quot;</span>); <span class="keywordflow">break</span>;
+<a name="l00777"></a>00777     <span class="keywordflow">case</span> 5: uprintf(<span class="stringliteral">&quot;di&quot;</span>); <span class="keywordflow">break</span>;
+<a name="l00778"></a>00778     <span class="keywordflow">case</span> 6: uprintf(<span class="stringliteral">&quot;bp&quot;</span>); <span class="keywordflow">break</span>;
+<a name="l00779"></a>00779     <span class="keywordflow">case</span> 7: uprintf(<span class="stringliteral">&quot;bx&quot;</span>); <span class="keywordflow">break</span>;
+<a name="l00780"></a>00780     }
+<a name="l00781"></a>00781   } <span class="keywordflow">else</span> {
+<a name="l00782"></a>00782     <span class="keywordflow">switch</span> (rm) {
+<a name="l00783"></a>00783     <span class="keywordflow">case</span> 0: uprintf(<span class="stringliteral">&quot;eax&quot;</span>); <span class="keywordflow">break</span>;
+<a name="l00784"></a>00784     <span class="keywordflow">case</span> 1: uprintf(<span class="stringliteral">&quot;ecx&quot;</span>); <span class="keywordflow">break</span>;
+<a name="l00785"></a>00785     <span class="keywordflow">case</span> 2: uprintf(<span class="stringliteral">&quot;edx&quot;</span>); <span class="keywordflow">break</span>;
+<a name="l00786"></a>00786     <span class="keywordflow">case</span> 3: uprintf(<span class="stringliteral">&quot;ebx&quot;</span>); <span class="keywordflow">break</span>;
+<a name="l00787"></a>00787     <span class="keywordflow">case</span> 4: do_sib(mod); <span class="keywordflow">break</span>;
+<a name="l00788"></a>00788     <span class="keywordflow">case</span> 5: uprintf(<span class="stringliteral">&quot;ebp&quot;</span>); <span class="keywordflow">break</span>;
+<a name="l00789"></a>00789     <span class="keywordflow">case</span> 6: uprintf(<span class="stringliteral">&quot;esi&quot;</span>); <span class="keywordflow">break</span>;
+<a name="l00790"></a>00790     <span class="keywordflow">case</span> 7: uprintf(<span class="stringliteral">&quot;edi&quot;</span>); <span class="keywordflow">break</span>;
+<a name="l00791"></a>00791     }
+<a name="l00792"></a>00792   }
+<a name="l00793"></a>00793   <span class="keywordflow">switch</span> (mod) {
+<a name="l00794"></a>00794   <span class="keywordflow">case</span> 1:
+<a name="l00795"></a>00795        outhex(<span class="charliteral">&#39;b&#39;</span>, extend, 1, addrsize, 0);
+<a name="l00796"></a>00796        <span class="keywordflow">break</span>;
+<a name="l00797"></a>00797   <span class="keywordflow">case</span> 2:
+<a name="l00798"></a>00798        outhex(<span class="charliteral">&#39;v&#39;</span>, extend, 1, addrsize, 1);
+<a name="l00799"></a>00799        <span class="keywordflow">break</span>;
+<a name="l00800"></a>00800   }
+<a name="l00801"></a>00801   uputchar(<span class="charliteral">&#39;]&#39;</span>);
+<a name="l00802"></a>00802 }
+<a name="l00803"></a>00803 
 <a name="l00804"></a>00804 
 <a name="l00805"></a>00805 
-<a name="l00806"></a>00806 
-<a name="l00807"></a>00807 <span class="comment">/*------------------------------------------------------------------------*/</span>
-<a name="l00808"></a>00808 <span class="keyword">static</span> <span class="keywordtype">void</span> floating_point(<span class="keywordtype">int</span> e1)
-<a name="l00809"></a>00809 {
-<a name="l00810"></a>00810   <span class="keywordtype">int</span> esc = e1*8 + REG(modrm());
-<a name="l00811"></a>00811 
-<a name="l00812"></a>00812   <span class="keywordflow">if</span> ((MOD(modrm()) == 3)&amp;&amp;fspecial[esc]) {
-<a name="l00813"></a>00813     <span class="keywordflow">if</span> (fspecial[esc][0]) {
-<a name="l00814"></a>00814       <span class="keywordflow">if</span> (fspecial[esc][0][0] == <span class="charliteral">&#39;*&#39;</span>) {
-<a name="l00815"></a>00815         ua_str(fspecial[esc][0]+1);
-<a name="l00816"></a>00816       } <span class="keywordflow">else</span> {
-<a name="l00817"></a>00817         ua_str(fspecial[esc][RM(modrm())]);
-<a name="l00818"></a>00818       }
-<a name="l00819"></a>00819     } <span class="keywordflow">else</span> {
-<a name="l00820"></a>00820       ua_str(floatops[esc]);
-<a name="l00821"></a>00821       ua_str(<span class="stringliteral">&quot; %EF&quot;</span>);
-<a name="l00822"></a>00822     }
-<a name="l00823"></a>00823   } <span class="keywordflow">else</span> {
-<a name="l00824"></a>00824     ua_str(floatops[esc]);
-<a name="l00825"></a>00825     ua_str(<span class="stringliteral">&quot; %EF&quot;</span>);
-<a name="l00826"></a>00826   }
-<a name="l00827"></a>00827 }
+<a name="l00806"></a>00806 <span class="comment">/*------------------------------------------------------------------------*/</span>
+<a name="l00807"></a>00807 <span class="keyword">static</span> <span class="keywordtype">void</span> floating_point(<span class="keywordtype">int</span> e1)
+<a name="l00808"></a>00808 {
+<a name="l00809"></a>00809   <span class="keywordtype">int</span> esc = e1*8 + REG(modrm());
+<a name="l00810"></a>00810 
+<a name="l00811"></a>00811   <span class="keywordflow">if</span> ((MOD(modrm()) == 3)&amp;&amp;fspecial[esc]) {
+<a name="l00812"></a>00812     <span class="keywordflow">if</span> (fspecial[esc][0]) {
+<a name="l00813"></a>00813       <span class="keywordflow">if</span> (fspecial[esc][0][0] == <span class="charliteral">&#39;*&#39;</span>) {
+<a name="l00814"></a>00814         ua_str(fspecial[esc][0]+1);
+<a name="l00815"></a>00815       } <span class="keywordflow">else</span> {
+<a name="l00816"></a>00816         ua_str(fspecial[esc][RM(modrm())]);
+<a name="l00817"></a>00817       }
+<a name="l00818"></a>00818     } <span class="keywordflow">else</span> {
+<a name="l00819"></a>00819       ua_str(floatops[esc]);
+<a name="l00820"></a>00820       ua_str(<span class="stringliteral">&quot; %EF&quot;</span>);
+<a name="l00821"></a>00821     }
+<a name="l00822"></a>00822   } <span class="keywordflow">else</span> {
+<a name="l00823"></a>00823     ua_str(floatops[esc]);
+<a name="l00824"></a>00824     ua_str(<span class="stringliteral">&quot; %EF&quot;</span>);
+<a name="l00825"></a>00825   }
+<a name="l00826"></a>00826 }
+<a name="l00827"></a>00827 
 <a name="l00828"></a>00828 
-<a name="l00829"></a>00829 
-<a name="l00830"></a>00830 <span class="comment">/*------------------------------------------------------------------------*/</span>
-<a name="l00831"></a>00831 <span class="comment">/* Main table driver                                                      */</span>
-<a name="l00832"></a>00832 
-<a name="l00833"></a>00833 <span class="preprocessor">#define INSTRUCTION_SIZE ( (int)getbyte_mac - (int)startPtr )</span>
-<a name="l00834"></a>00834 <span class="preprocessor"></span>
-<a name="l00835"></a>00835 <span class="keyword">static</span> <span class="keywordtype">void</span> percent(<span class="keywordtype">char</span> type, <span class="keywordtype">char</span> subtype)
-<a name="l00836"></a>00836 {
-<a name="l00837"></a>00837   INT32 vofs = 0;
-<a name="l00838"></a>00838   <span class="keywordtype">char</span> *name=NULL;
-<a name="l00839"></a>00839   <span class="keywordtype">int</span> extend = (addrsize == 32) ? 4 : 2;
-<a name="l00840"></a>00840   UINT8 c;
-<a name="l00841"></a>00841 
-<a name="l00842"></a>00842   <span class="keywordflow">switch</span> (type) {
-<a name="l00843"></a>00843   <span class="keywordflow">case</span> <span class="charliteral">&#39;A&#39;</span>:                          <span class="comment">/* direct address */</span>
-<a name="l00844"></a>00844        outhex(subtype, extend, 0, addrsize, 0);
-<a name="l00845"></a>00845        <span class="keywordflow">break</span>;
-<a name="l00846"></a>00846 
-<a name="l00847"></a>00847   <span class="keywordflow">case</span> <span class="charliteral">&#39;C&#39;</span>:                          <span class="comment">/* reg(r/m) picks control reg */</span>
-<a name="l00848"></a>00848        uprintf(<span class="stringliteral">&quot;CR%d&quot;</span>, REG(modrm()));
-<a name="l00849"></a>00849        must_do_size = 0;
-<a name="l00850"></a>00850        <span class="keywordflow">break</span>;
-<a name="l00851"></a>00851 
-<a name="l00852"></a>00852   <span class="keywordflow">case</span> <span class="charliteral">&#39;D&#39;</span>:                          <span class="comment">/* reg(r/m) picks debug reg */</span>
-<a name="l00853"></a>00853        uprintf(<span class="stringliteral">&quot;DR%d&quot;</span>, REG(modrm()));
-<a name="l00854"></a>00854        must_do_size = 0;
-<a name="l00855"></a>00855        <span class="keywordflow">break</span>;
-<a name="l00856"></a>00856 
-<a name="l00857"></a>00857   <span class="keywordflow">case</span> <span class="charliteral">&#39;E&#39;</span>:                          <span class="comment">/* r/m picks operand */</span>
-<a name="l00858"></a>00858        do_modrm(subtype);
-<a name="l00859"></a>00859        <span class="keywordflow">break</span>;
-<a name="l00860"></a>00860 
-<a name="l00861"></a>00861   <span class="keywordflow">case</span> <span class="charliteral">&#39;G&#39;</span>:                          <span class="comment">/* reg(r/m) picks register */</span>
-<a name="l00862"></a>00862        <span class="keywordflow">if</span> (subtype == <span class="charliteral">&#39;F&#39;</span>)                 <span class="comment">/* 80*87 operand?   */</span>
-<a name="l00863"></a>00863          reg_name(RM(modrm()), subtype);
-<a name="l00864"></a>00864        <span class="keywordflow">else</span>
-<a name="l00865"></a>00865          reg_name(REG(modrm()), subtype);
-<a name="l00866"></a>00866        must_do_size = 0;
-<a name="l00867"></a>00867        <span class="keywordflow">break</span>;
-<a name="l00868"></a>00868 
-<a name="l00869"></a>00869   <span class="keywordflow">case</span> <span class="charliteral">&#39;I&#39;</span>:                            <span class="comment">/* immed data */</span>
-<a name="l00870"></a>00870        outhex(subtype, 0, 0, opsize, 0);
-<a name="l00871"></a>00871        <span class="keywordflow">break</span>;
-<a name="l00872"></a>00872 
-<a name="l00873"></a>00873   <span class="keywordflow">case</span> <span class="charliteral">&#39;J&#39;</span>:                            <span class="comment">/* relative IP offset */</span>
-<a name="l00874"></a>00874        <span class="keywordflow">switch</span> (bytes(subtype)) {              <span class="comment">/* sizeof offset value */</span>
-<a name="l00875"></a>00875        <span class="keywordflow">case</span> 1:
-<a name="l00876"></a>00876             vofs = (INT8)getbyte();
-<a name="l00877"></a>00877                         name = addr_to_hex((UINT32)vofs+(UINT32)instruction_offset+(UINT32)INSTRUCTION_SIZE,0);
-<a name="l00878"></a>00878             <span class="keywordflow">break</span>;
-<a name="l00879"></a>00879        <span class="keywordflow">case</span> 2:
-<a name="l00880"></a>00880             vofs  = (INT32)((UINT32)getbyte());
-<a name="l00881"></a>00881             vofs |= (INT32)((UINT32)getbyte() &lt;&lt; 8);
-<a name="l00882"></a>00882             vofs  = (INT16)vofs;
-<a name="l00883"></a>00883                         name  = addr_to_hex((UINT32)vofs+(UINT32)instruction_offset+(UINT32)INSTRUCTION_SIZE,0);
-<a name="l00884"></a>00884             <span class="keywordflow">break</span>;
-<a name="l00885"></a>00885                         <span class="comment">/* i386 */</span>
-<a name="l00886"></a>00886        <span class="keywordflow">case</span> 4:
-<a name="l00887"></a>00887             vofs  = (INT32)((UINT32)getbyte());           <span class="comment">/* yuk! */</span>
-<a name="l00888"></a>00888             vofs |= (INT32)((UINT32)getbyte() &lt;&lt; 8);
-<a name="l00889"></a>00889             vofs |= (INT32)((UINT32)getbyte() &lt;&lt; 16);
-<a name="l00890"></a>00890             vofs |= (INT32)((UINT32)getbyte() &lt;&lt; 24);
-<a name="l00891"></a>00891                         name = addr_to_hex((UINT32)vofs+(UINT32)instruction_offset+(UINT32)INSTRUCTION_SIZE,(addrsize == 32)?0:1);
-<a name="l00892"></a>00892             <span class="keywordflow">break</span>;
-<a name="l00893"></a>00893        }
-<a name="l00894"></a>00894            <span class="keywordflow">if</span> (vofs&lt;0)
-<a name="l00895"></a>00895                    uprintf(<span class="stringliteral">&quot;%s ($-%x)&quot;</span>, name, -vofs);
-<a name="l00896"></a>00896            <span class="keywordflow">else</span>
-<a name="l00897"></a>00897                    uprintf(<span class="stringliteral">&quot;%s ($+%x)&quot;</span>, name, vofs);
-<a name="l00898"></a>00898        <span class="keywordflow">break</span>;
-<a name="l00899"></a>00899 
-<a name="l00900"></a>00900   <span class="keywordflow">case</span> <span class="charliteral">&#39;K&#39;</span>:
-<a name="l00901"></a>00901        <span class="keywordflow">switch</span> (subtype) {
-<a name="l00902"></a>00902        <span class="keywordflow">case</span> <span class="charliteral">&#39;f&#39;</span>:
-<a name="l00903"></a>00903             ua_str(<span class="stringliteral">&quot;far &quot;</span>);
-<a name="l00904"></a>00904             <span class="keywordflow">break</span>;
-<a name="l00905"></a>00905        <span class="keywordflow">case</span> <span class="charliteral">&#39;n&#39;</span>:
-<a name="l00906"></a>00906             ua_str(<span class="stringliteral">&quot;near &quot;</span>);
-<a name="l00907"></a>00907             <span class="keywordflow">break</span>;
-<a name="l00908"></a>00908        <span class="keywordflow">case</span> <span class="charliteral">&#39;s&#39;</span>:
-<a name="l00909"></a>00909             ua_str(<span class="stringliteral">&quot;short &quot;</span>);
-<a name="l00910"></a>00910             <span class="keywordflow">break</span>;
-<a name="l00911"></a>00911        }
-<a name="l00912"></a>00912        <span class="keywordflow">break</span>;
-<a name="l00913"></a>00913 
-<a name="l00914"></a>00914   <span class="keywordflow">case</span> <span class="charliteral">&#39;M&#39;</span>:                            <span class="comment">/* r/m picks memory */</span>
-<a name="l00915"></a>00915        do_modrm(subtype);
-<a name="l00916"></a>00916        <span class="keywordflow">break</span>;
-<a name="l00917"></a>00917 
-<a name="l00918"></a>00918   <span class="keywordflow">case</span> <span class="charliteral">&#39;O&#39;</span>:                            <span class="comment">/* offset only */</span>
-<a name="l00919"></a>00919        ua_str(<span class="stringliteral">&quot;%p:[&quot;</span>);
-<a name="l00920"></a>00920        outhex(subtype, extend, 0, addrsize, 0);
-<a name="l00921"></a>00921        uputchar(<span class="charliteral">&#39;]&#39;</span>);
-<a name="l00922"></a>00922        <span class="keywordflow">break</span>;
-<a name="l00923"></a>00923 
-<a name="l00924"></a>00924   <span class="keywordflow">case</span> <span class="charliteral">&#39;P&#39;</span>:                            <span class="comment">/* prefix byte (rh) */</span>
-<a name="l00925"></a>00925        ua_str(<span class="stringliteral">&quot;%p:&quot;</span>);
-<a name="l00926"></a>00926        <span class="keywordflow">break</span>;
-<a name="l00927"></a>00927 
-<a name="l00928"></a>00928   <span class="keywordflow">case</span> <span class="charliteral">&#39;R&#39;</span>:                            <span class="comment">/* mod(r/m) picks register */</span>
-<a name="l00929"></a>00929        reg_name(RM(modrm()), subtype);      <span class="comment">/* rh */</span>
-<a name="l00930"></a>00930        must_do_size = 0;
-<a name="l00931"></a>00931        <span class="keywordflow">break</span>;
-<a name="l00932"></a>00932 
-<a name="l00933"></a>00933   <span class="keywordflow">case</span> <span class="charliteral">&#39;S&#39;</span>:                            <span class="comment">/* reg(r/m) picks segment reg */</span>
-<a name="l00934"></a>00934        uputchar(<span class="stringliteral">&quot;ecsdfg&quot;</span>[REG(modrm())]);
-<a name="l00935"></a>00935        uputchar(<span class="charliteral">&#39;s&#39;</span>);
-<a name="l00936"></a>00936        must_do_size = 0;
-<a name="l00937"></a>00937        <span class="keywordflow">break</span>;
-<a name="l00938"></a>00938 
-<a name="l00939"></a>00939   <span class="keywordflow">case</span> <span class="charliteral">&#39;T&#39;</span>:                            <span class="comment">/* reg(r/m) picks T reg */</span>
-<a name="l00940"></a>00940        uprintf(<span class="stringliteral">&quot;tr%d&quot;</span>, REG(modrm()));
-<a name="l00941"></a>00941        must_do_size = 0;
-<a name="l00942"></a>00942        <span class="keywordflow">break</span>;
-<a name="l00943"></a>00943 
-<a name="l00944"></a>00944   <span class="keywordflow">case</span> <span class="charliteral">&#39;X&#39;</span>:                            <span class="comment">/* ds:si type operator */</span>
-<a name="l00945"></a>00945        uprintf(<span class="stringliteral">&quot;ds:[&quot;</span>);
-<a name="l00946"></a>00946        <span class="keywordflow">if</span> (addrsize == 32)
-<a name="l00947"></a>00947          uputchar(<span class="charliteral">&#39;e&#39;</span>);
-<a name="l00948"></a>00948        uprintf(<span class="stringliteral">&quot;si]&quot;</span>);
-<a name="l00949"></a>00949        <span class="keywordflow">break</span>;
-<a name="l00950"></a>00950 
-<a name="l00951"></a>00951   <span class="keywordflow">case</span> <span class="charliteral">&#39;Y&#39;</span>:                            <span class="comment">/* es:di type operator */</span>
-<a name="l00952"></a>00952        uprintf(<span class="stringliteral">&quot;es:[&quot;</span>);
-<a name="l00953"></a>00953        <span class="keywordflow">if</span> (addrsize == 32)
-<a name="l00954"></a>00954          uputchar(<span class="charliteral">&#39;e&#39;</span>);
-<a name="l00955"></a>00955        uprintf(<span class="stringliteral">&quot;di]&quot;</span>);
-<a name="l00956"></a>00956        <span class="keywordflow">break</span>;
-<a name="l00957"></a>00957 
-<a name="l00958"></a>00958   <span class="keywordflow">case</span> <span class="charliteral">&#39;2&#39;</span>:                            <span class="comment">/* old [pop cs]! now indexes */</span>
-<a name="l00959"></a>00959        c = getbyte();
-<a name="l00960"></a>00960        wordop = c &amp; 1;
-<a name="l00961"></a>00961        ua_str(second[c]);              <span class="comment">/* instructions in 386/486   */</span>
-<a name="l00962"></a>00962        <span class="keywordflow">break</span>;
-<a name="l00963"></a>00963 
-<a name="l00964"></a>00964   <span class="keywordflow">case</span> <span class="charliteral">&#39;g&#39;</span>:                            <span class="comment">/* modrm group `subtype&#39; (0--7) */</span>
-<a name="l00965"></a>00965        ua_str(groups[subtype-<span class="charliteral">&#39;0&#39;</span>][REG(modrm())]);
-<a name="l00966"></a>00966        <span class="keywordflow">break</span>;
-<a name="l00967"></a>00967 
-<a name="l00968"></a>00968   <span class="keywordflow">case</span> <span class="charliteral">&#39;d&#39;</span>:                             <span class="comment">/* sizeof operand==dword? */</span>
-<a name="l00969"></a>00969        <span class="keywordflow">if</span> (opsize == 32)
-<a name="l00970"></a>00970          uputchar(<span class="charliteral">&#39;d&#39;</span>);
-<a name="l00971"></a>00971        uputchar(subtype);
-<a name="l00972"></a>00972        <span class="keywordflow">break</span>;
-<a name="l00973"></a>00973 
-<a name="l00974"></a>00974   <span class="keywordflow">case</span> <span class="charliteral">&#39;w&#39;</span>:                             <span class="comment">/* insert explicit size specifier */</span>
-<a name="l00975"></a>00975        <span class="keywordflow">if</span> (opsize == 32)
-<a name="l00976"></a>00976          uputchar(<span class="charliteral">&#39;d&#39;</span>);
-<a name="l00977"></a>00977        <span class="keywordflow">else</span>
-<a name="l00978"></a>00978          uputchar(<span class="charliteral">&#39;w&#39;</span>);
-<a name="l00979"></a>00979        uputchar(subtype);
-<a name="l00980"></a>00980        <span class="keywordflow">break</span>;
-<a name="l00981"></a>00981 
-<a name="l00982"></a>00982   <span class="keywordflow">case</span> <span class="charliteral">&#39;e&#39;</span>:                         <span class="comment">/* extended reg name */</span>
-<a name="l00983"></a>00983        <span class="keywordflow">if</span> (opsize == 32) {
-<a name="l00984"></a>00984          <span class="keywordflow">if</span> (subtype == <span class="charliteral">&#39;w&#39;</span>)
-<a name="l00985"></a>00985            uputchar(<span class="charliteral">&#39;d&#39;</span>);
-<a name="l00986"></a>00986          <span class="keywordflow">else</span> {
-<a name="l00987"></a>00987            uputchar(<span class="charliteral">&#39;e&#39;</span>);
-<a name="l00988"></a>00988            uputchar(subtype);
-<a name="l00989"></a>00989          }
-<a name="l00990"></a>00990        } <span class="keywordflow">else</span>
-<a name="l00991"></a>00991          uputchar(subtype);
-<a name="l00992"></a>00992        <span class="keywordflow">break</span>;
-<a name="l00993"></a>00993 
-<a name="l00994"></a>00994   <span class="keywordflow">case</span> <span class="charliteral">&#39;f&#39;</span>:                    <span class="comment">/* &#39;87 opcode */</span>
-<a name="l00995"></a>00995        floating_point(subtype-<span class="charliteral">&#39;0&#39;</span>);
-<a name="l00996"></a>00996        <span class="keywordflow">break</span>;
-<a name="l00997"></a>00997 
-<a name="l00998"></a>00998   <span class="keywordflow">case</span> <span class="charliteral">&#39;j&#39;</span>:
-<a name="l00999"></a>00999        <span class="keywordflow">if</span> (addrsize==32 || opsize==32) <span class="comment">/* both of them?! */</span>
-<a name="l01000"></a>01000          uputchar(<span class="charliteral">&#39;e&#39;</span>);
-<a name="l01001"></a>01001        <span class="keywordflow">break</span>;
-<a name="l01002"></a>01002 
-<a name="l01003"></a>01003   <span class="keywordflow">case</span> <span class="charliteral">&#39;p&#39;</span>:                    <span class="comment">/* prefix byte */</span>
-<a name="l01004"></a>01004        <span class="keywordflow">switch</span> (subtype)  {
-<a name="l01005"></a>01005        <span class="keywordflow">case</span> <span class="charliteral">&#39;c&#39;</span>:
-<a name="l01006"></a>01006        <span class="keywordflow">case</span> <span class="charliteral">&#39;d&#39;</span>:
-<a name="l01007"></a>01007        <span class="keywordflow">case</span> <span class="charliteral">&#39;e&#39;</span>:
-<a name="l01008"></a>01008        <span class="keywordflow">case</span> <span class="charliteral">&#39;f&#39;</span>:
-<a name="l01009"></a>01009        <span class="keywordflow">case</span> <span class="charliteral">&#39;g&#39;</span>:
-<a name="l01010"></a>01010        <span class="keywordflow">case</span> <span class="charliteral">&#39;s&#39;</span>:
-<a name="l01011"></a>01011             prefix = subtype;
-<a name="l01012"></a>01012             c = getbyte();
-<a name="l01013"></a>01013             wordop = c &amp; 1;
-<a name="l01014"></a>01014             ua_str((*opmap1)[c]);
-<a name="l01015"></a>01015             <span class="keywordflow">break</span>;
-<a name="l01016"></a>01016        <span class="keywordflow">case</span> <span class="charliteral">&#39;:&#39;</span>:
-<a name="l01017"></a>01017             <span class="keywordflow">if</span> (prefix)
-<a name="l01018"></a>01018               uprintf(<span class="stringliteral">&quot;%cs:&quot;</span>, prefix);
-<a name="l01019"></a>01019             <span class="keywordflow">break</span>;
-<a name="l01020"></a>01020        <span class="keywordflow">case</span> <span class="charliteral">&#39; &#39;</span>:
-<a name="l01021"></a>01021             c = getbyte();
-<a name="l01022"></a>01022             wordop = c &amp; 1;
-<a name="l01023"></a>01023             ua_str((*opmap1)[c]);
-<a name="l01024"></a>01024             <span class="keywordflow">break</span>;
-<a name="l01025"></a>01025        }
-<a name="l01026"></a>01026        <span class="keywordflow">break</span>;
-<a name="l01027"></a>01027 
-<a name="l01028"></a>01028   <span class="keywordflow">case</span> <span class="charliteral">&#39;s&#39;</span>:                           <span class="comment">/* size override */</span>
-<a name="l01029"></a>01029        <span class="keywordflow">switch</span> (subtype) {
-<a name="l01030"></a>01030        <span class="keywordflow">case</span> <span class="charliteral">&#39;a&#39;</span>:
-<a name="l01031"></a>01031             addrsize = 48 - addrsize;
-<a name="l01032"></a>01032             c = getbyte();
-<a name="l01033"></a>01033             wordop = c &amp; 1;
-<a name="l01034"></a>01034             ua_str((*opmap1)[c]);
-<a name="l01035"></a>01035 <span class="comment">/*            ua_str(opmap1[getbyte()]); */</span>
-<a name="l01036"></a>01036             <span class="keywordflow">break</span>;
-<a name="l01037"></a>01037        <span class="keywordflow">case</span> <span class="charliteral">&#39;o&#39;</span>:
-<a name="l01038"></a>01038             opsize = 48 - opsize;
-<a name="l01039"></a>01039             c = getbyte();
-<a name="l01040"></a>01040             wordop = c &amp; 1;
-<a name="l01041"></a>01041             ua_str((*opmap1)[c]);
-<a name="l01042"></a>01042 <span class="comment">/*            ua_str(opmap1[getbyte()]); */</span>
-<a name="l01043"></a>01043             <span class="keywordflow">break</span>;
-<a name="l01044"></a>01044        }
-<a name="l01045"></a>01045        <span class="keywordflow">break</span>;
-<a name="l01046"></a>01046    }
-<a name="l01047"></a>01047 }
+<a name="l00829"></a>00829 <span class="comment">/*------------------------------------------------------------------------*/</span>
+<a name="l00830"></a>00830 <span class="comment">/* Main table driver                                                      */</span>
+<a name="l00831"></a>00831 
+<a name="l00832"></a>00832 <span class="preprocessor">#define INSTRUCTION_SIZE ( (int)getbyte_mac - (int)startPtr )</span>
+<a name="l00833"></a>00833 <span class="preprocessor"></span>
+<a name="l00834"></a>00834 <span class="keyword">static</span> <span class="keywordtype">void</span> percent(<span class="keywordtype">char</span> type, <span class="keywordtype">char</span> subtype)
+<a name="l00835"></a>00835 {
+<a name="l00836"></a>00836   INT32 vofs = 0;
+<a name="l00837"></a>00837   <span class="keywordtype">char</span> *name=NULL;
+<a name="l00838"></a>00838   <span class="keywordtype">int</span> extend = (addrsize == 32) ? 4 : 2;
+<a name="l00839"></a>00839   UINT8 c;
+<a name="l00840"></a>00840 
+<a name="l00841"></a>00841   <span class="keywordflow">switch</span> (type) {
+<a name="l00842"></a>00842   <span class="keywordflow">case</span> <span class="charliteral">&#39;A&#39;</span>:                          <span class="comment">/* direct address */</span>
+<a name="l00843"></a>00843        outhex(subtype, extend, 0, addrsize, 0);
+<a name="l00844"></a>00844        <span class="keywordflow">break</span>;
+<a name="l00845"></a>00845 
+<a name="l00846"></a>00846   <span class="keywordflow">case</span> <span class="charliteral">&#39;C&#39;</span>:                          <span class="comment">/* reg(r/m) picks control reg */</span>
+<a name="l00847"></a>00847        uprintf(<span class="stringliteral">&quot;CR%d&quot;</span>, REG(modrm()));
+<a name="l00848"></a>00848        must_do_size = 0;
+<a name="l00849"></a>00849        <span class="keywordflow">break</span>;
+<a name="l00850"></a>00850 
+<a name="l00851"></a>00851   <span class="keywordflow">case</span> <span class="charliteral">&#39;D&#39;</span>:                          <span class="comment">/* reg(r/m) picks debug reg */</span>
+<a name="l00852"></a>00852        uprintf(<span class="stringliteral">&quot;DR%d&quot;</span>, REG(modrm()));
+<a name="l00853"></a>00853        must_do_size = 0;
+<a name="l00854"></a>00854        <span class="keywordflow">break</span>;
+<a name="l00855"></a>00855 
+<a name="l00856"></a>00856   <span class="keywordflow">case</span> <span class="charliteral">&#39;E&#39;</span>:                          <span class="comment">/* r/m picks operand */</span>
+<a name="l00857"></a>00857        do_modrm(subtype);
+<a name="l00858"></a>00858        <span class="keywordflow">break</span>;
+<a name="l00859"></a>00859 
+<a name="l00860"></a>00860   <span class="keywordflow">case</span> <span class="charliteral">&#39;G&#39;</span>:                          <span class="comment">/* reg(r/m) picks register */</span>
+<a name="l00861"></a>00861        <span class="keywordflow">if</span> (subtype == <span class="charliteral">&#39;F&#39;</span>)                 <span class="comment">/* 80*87 operand?   */</span>
+<a name="l00862"></a>00862          reg_name(RM(modrm()), subtype);
+<a name="l00863"></a>00863        <span class="keywordflow">else</span>
+<a name="l00864"></a>00864          reg_name(REG(modrm()), subtype);
+<a name="l00865"></a>00865        must_do_size = 0;
+<a name="l00866"></a>00866        <span class="keywordflow">break</span>;
+<a name="l00867"></a>00867 
+<a name="l00868"></a>00868   <span class="keywordflow">case</span> <span class="charliteral">&#39;I&#39;</span>:                            <span class="comment">/* immed data */</span>
+<a name="l00869"></a>00869        outhex(subtype, 0, 0, opsize, 0);
+<a name="l00870"></a>00870        <span class="keywordflow">break</span>;
+<a name="l00871"></a>00871 
+<a name="l00872"></a>00872   <span class="keywordflow">case</span> <span class="charliteral">&#39;J&#39;</span>:                            <span class="comment">/* relative IP offset */</span>
+<a name="l00873"></a>00873        <span class="keywordflow">switch</span> (bytes(subtype)) {              <span class="comment">/* sizeof offset value */</span>
+<a name="l00874"></a>00874        <span class="keywordflow">case</span> 1:
+<a name="l00875"></a>00875             vofs = (INT8)getbyte();
+<a name="l00876"></a>00876                         name = addr_to_hex((UINT32)vofs+(UINT32)instruction_offset+(UINT32)INSTRUCTION_SIZE,0);
+<a name="l00877"></a>00877             <span class="keywordflow">break</span>;
+<a name="l00878"></a>00878        <span class="keywordflow">case</span> 2:
+<a name="l00879"></a>00879             vofs  = (INT32)((UINT32)getbyte());
+<a name="l00880"></a>00880             vofs |= (INT32)((UINT32)getbyte() &lt;&lt; 8);
+<a name="l00881"></a>00881             vofs  = (INT16)vofs;
+<a name="l00882"></a>00882                         name  = addr_to_hex((UINT32)vofs+(UINT32)instruction_offset+(UINT32)INSTRUCTION_SIZE,0);
+<a name="l00883"></a>00883             <span class="keywordflow">break</span>;
+<a name="l00884"></a>00884                         <span class="comment">/* i386 */</span>
+<a name="l00885"></a>00885        <span class="keywordflow">case</span> 4:
+<a name="l00886"></a>00886             vofs  = (INT32)((UINT32)getbyte());           <span class="comment">/* yuk! */</span>
+<a name="l00887"></a>00887             vofs |= (INT32)((UINT32)getbyte() &lt;&lt; 8);
+<a name="l00888"></a>00888             vofs |= (INT32)((UINT32)getbyte() &lt;&lt; 16);
+<a name="l00889"></a>00889             vofs |= (INT32)((UINT32)getbyte() &lt;&lt; 24);
+<a name="l00890"></a>00890                         name = addr_to_hex((UINT32)vofs+(UINT32)instruction_offset+(UINT32)INSTRUCTION_SIZE,(addrsize == 32)?0:1);
+<a name="l00891"></a>00891             <span class="keywordflow">break</span>;
+<a name="l00892"></a>00892        }
+<a name="l00893"></a>00893            <span class="keywordflow">if</span> (vofs&lt;0)
+<a name="l00894"></a>00894                    uprintf(<span class="stringliteral">&quot;%s ($-%x)&quot;</span>, name, -vofs);
+<a name="l00895"></a>00895            <span class="keywordflow">else</span>
+<a name="l00896"></a>00896                    uprintf(<span class="stringliteral">&quot;%s ($+%x)&quot;</span>, name, vofs);
+<a name="l00897"></a>00897        <span class="keywordflow">break</span>;
+<a name="l00898"></a>00898 
+<a name="l00899"></a>00899   <span class="keywordflow">case</span> <span class="charliteral">&#39;K&#39;</span>:
+<a name="l00900"></a>00900        <span class="keywordflow">switch</span> (subtype) {
+<a name="l00901"></a>00901        <span class="keywordflow">case</span> <span class="charliteral">&#39;f&#39;</span>:
+<a name="l00902"></a>00902             ua_str(<span class="stringliteral">&quot;far &quot;</span>);
+<a name="l00903"></a>00903             <span class="keywordflow">break</span>;
+<a name="l00904"></a>00904        <span class="keywordflow">case</span> <span class="charliteral">&#39;n&#39;</span>:
+<a name="l00905"></a>00905             ua_str(<span class="stringliteral">&quot;near &quot;</span>);
+<a name="l00906"></a>00906             <span class="keywordflow">break</span>;
+<a name="l00907"></a>00907        <span class="keywordflow">case</span> <span class="charliteral">&#39;s&#39;</span>:
+<a name="l00908"></a>00908             ua_str(<span class="stringliteral">&quot;short &quot;</span>);
+<a name="l00909"></a>00909             <span class="keywordflow">break</span>;
+<a name="l00910"></a>00910        }
+<a name="l00911"></a>00911        <span class="keywordflow">break</span>;
+<a name="l00912"></a>00912 
+<a name="l00913"></a>00913   <span class="keywordflow">case</span> <span class="charliteral">&#39;M&#39;</span>:                            <span class="comment">/* r/m picks memory */</span>
+<a name="l00914"></a>00914        do_modrm(subtype);
+<a name="l00915"></a>00915        <span class="keywordflow">break</span>;
+<a name="l00916"></a>00916 
+<a name="l00917"></a>00917   <span class="keywordflow">case</span> <span class="charliteral">&#39;O&#39;</span>:                            <span class="comment">/* offset only */</span>
+<a name="l00918"></a>00918        ua_str(<span class="stringliteral">&quot;%p:[&quot;</span>);
+<a name="l00919"></a>00919        outhex(subtype, extend, 0, addrsize, 0);
+<a name="l00920"></a>00920        uputchar(<span class="charliteral">&#39;]&#39;</span>);
+<a name="l00921"></a>00921        <span class="keywordflow">break</span>;
+<a name="l00922"></a>00922 
+<a name="l00923"></a>00923   <span class="keywordflow">case</span> <span class="charliteral">&#39;P&#39;</span>:                            <span class="comment">/* prefix byte (rh) */</span>
+<a name="l00924"></a>00924        ua_str(<span class="stringliteral">&quot;%p:&quot;</span>);
+<a name="l00925"></a>00925        <span class="keywordflow">break</span>;
+<a name="l00926"></a>00926 
+<a name="l00927"></a>00927   <span class="keywordflow">case</span> <span class="charliteral">&#39;R&#39;</span>:                            <span class="comment">/* mod(r/m) picks register */</span>
+<a name="l00928"></a>00928        reg_name(RM(modrm()), subtype);      <span class="comment">/* rh */</span>
+<a name="l00929"></a>00929        must_do_size = 0;
+<a name="l00930"></a>00930        <span class="keywordflow">break</span>;
+<a name="l00931"></a>00931 
+<a name="l00932"></a>00932   <span class="keywordflow">case</span> <span class="charliteral">&#39;S&#39;</span>:                            <span class="comment">/* reg(r/m) picks segment reg */</span>
+<a name="l00933"></a>00933        uputchar(<span class="stringliteral">&quot;ecsdfg&quot;</span>[REG(modrm())]);
+<a name="l00934"></a>00934        uputchar(<span class="charliteral">&#39;s&#39;</span>);
+<a name="l00935"></a>00935        must_do_size = 0;
+<a name="l00936"></a>00936        <span class="keywordflow">break</span>;
+<a name="l00937"></a>00937 
+<a name="l00938"></a>00938   <span class="keywordflow">case</span> <span class="charliteral">&#39;T&#39;</span>:                            <span class="comment">/* reg(r/m) picks T reg */</span>
+<a name="l00939"></a>00939        uprintf(<span class="stringliteral">&quot;tr%d&quot;</span>, REG(modrm()));
+<a name="l00940"></a>00940        must_do_size = 0;
+<a name="l00941"></a>00941        <span class="keywordflow">break</span>;
+<a name="l00942"></a>00942 
+<a name="l00943"></a>00943   <span class="keywordflow">case</span> <span class="charliteral">&#39;X&#39;</span>:                            <span class="comment">/* ds:si type operator */</span>
+<a name="l00944"></a>00944        uprintf(<span class="stringliteral">&quot;ds:[&quot;</span>);
+<a name="l00945"></a>00945        <span class="keywordflow">if</span> (addrsize == 32)
+<a name="l00946"></a>00946          uputchar(<span class="charliteral">&#39;e&#39;</span>);
+<a name="l00947"></a>00947        uprintf(<span class="stringliteral">&quot;si]&quot;</span>);
+<a name="l00948"></a>00948        <span class="keywordflow">break</span>;
+<a name="l00949"></a>00949 
+<a name="l00950"></a>00950   <span class="keywordflow">case</span> <span class="charliteral">&#39;Y&#39;</span>:                            <span class="comment">/* es:di type operator */</span>
+<a name="l00951"></a>00951        uprintf(<span class="stringliteral">&quot;es:[&quot;</span>);
+<a name="l00952"></a>00952        <span class="keywordflow">if</span> (addrsize == 32)
+<a name="l00953"></a>00953          uputchar(<span class="charliteral">&#39;e&#39;</span>);
+<a name="l00954"></a>00954        uprintf(<span class="stringliteral">&quot;di]&quot;</span>);
+<a name="l00955"></a>00955        <span class="keywordflow">break</span>;
+<a name="l00956"></a>00956 
+<a name="l00957"></a>00957   <span class="keywordflow">case</span> <span class="charliteral">&#39;2&#39;</span>:                            <span class="comment">/* old [pop cs]! now indexes */</span>
+<a name="l00958"></a>00958        c = getbyte();
+<a name="l00959"></a>00959        wordop = c &amp; 1;
+<a name="l00960"></a>00960        ua_str(second[c]);              <span class="comment">/* instructions in 386/486   */</span>
+<a name="l00961"></a>00961        <span class="keywordflow">break</span>;
+<a name="l00962"></a>00962 
+<a name="l00963"></a>00963   <span class="keywordflow">case</span> <span class="charliteral">&#39;g&#39;</span>:                            <span class="comment">/* modrm group `subtype&#39; (0--7) */</span>
+<a name="l00964"></a>00964        ua_str(groups[subtype-<span class="charliteral">&#39;0&#39;</span>][REG(modrm())]);
+<a name="l00965"></a>00965        <span class="keywordflow">break</span>;
+<a name="l00966"></a>00966 
+<a name="l00967"></a>00967   <span class="keywordflow">case</span> <span class="charliteral">&#39;d&#39;</span>:                             <span class="comment">/* sizeof operand==dword? */</span>
+<a name="l00968"></a>00968        <span class="keywordflow">if</span> (opsize == 32)
+<a name="l00969"></a>00969          uputchar(<span class="charliteral">&#39;d&#39;</span>);
+<a name="l00970"></a>00970        uputchar(subtype);
+<a name="l00971"></a>00971        <span class="keywordflow">break</span>;
+<a name="l00972"></a>00972 
+<a name="l00973"></a>00973   <span class="keywordflow">case</span> <span class="charliteral">&#39;w&#39;</span>:                             <span class="comment">/* insert explicit size specifier */</span>
+<a name="l00974"></a>00974        <span class="keywordflow">if</span> (opsize == 32)
+<a name="l00975"></a>00975          uputchar(<span class="charliteral">&#39;d&#39;</span>);
+<a name="l00976"></a>00976        <span class="keywordflow">else</span>
+<a name="l00977"></a>00977          uputchar(<span class="charliteral">&#39;w&#39;</span>);
+<a name="l00978"></a>00978        uputchar(subtype);
+<a name="l00979"></a>00979        <span class="keywordflow">break</span>;
+<a name="l00980"></a>00980 
+<a name="l00981"></a>00981   <span class="keywordflow">case</span> <span class="charliteral">&#39;e&#39;</span>:                         <span class="comment">/* extended reg name */</span>
+<a name="l00982"></a>00982        <span class="keywordflow">if</span> (opsize == 32) {
+<a name="l00983"></a>00983          <span class="keywordflow">if</span> (subtype == <span class="charliteral">&#39;w&#39;</span>)
+<a name="l00984"></a>00984            uputchar(<span class="charliteral">&#39;d&#39;</span>);
+<a name="l00985"></a>00985          <span class="keywordflow">else</span> {
+<a name="l00986"></a>00986            uputchar(<span class="charliteral">&#39;e&#39;</span>);
+<a name="l00987"></a>00987            uputchar(subtype);
+<a name="l00988"></a>00988          }
+<a name="l00989"></a>00989        } <span class="keywordflow">else</span>
+<a name="l00990"></a>00990          uputchar(subtype);
+<a name="l00991"></a>00991        <span class="keywordflow">break</span>;
+<a name="l00992"></a>00992 
+<a name="l00993"></a>00993   <span class="keywordflow">case</span> <span class="charliteral">&#39;f&#39;</span>:                    <span class="comment">/* &#39;87 opcode */</span>
+<a name="l00994"></a>00994        floating_point(subtype-<span class="charliteral">&#39;0&#39;</span>);
+<a name="l00995"></a>00995        <span class="keywordflow">break</span>;
+<a name="l00996"></a>00996 
+<a name="l00997"></a>00997   <span class="keywordflow">case</span> <span class="charliteral">&#39;j&#39;</span>:
+<a name="l00998"></a>00998        <span class="keywordflow">if</span> (addrsize==32 || opsize==32) <span class="comment">/* both of them?! */</span>
+<a name="l00999"></a>00999          uputchar(<span class="charliteral">&#39;e&#39;</span>);
+<a name="l01000"></a>01000        <span class="keywordflow">break</span>;
+<a name="l01001"></a>01001 
+<a name="l01002"></a>01002   <span class="keywordflow">case</span> <span class="charliteral">&#39;p&#39;</span>:                    <span class="comment">/* prefix byte */</span>
+<a name="l01003"></a>01003        <span class="keywordflow">switch</span> (subtype)  {
+<a name="l01004"></a>01004        <span class="keywordflow">case</span> <span class="charliteral">&#39;c&#39;</span>:
+<a name="l01005"></a>01005        <span class="keywordflow">case</span> <span class="charliteral">&#39;d&#39;</span>:
+<a name="l01006"></a>01006        <span class="keywordflow">case</span> <span class="charliteral">&#39;e&#39;</span>:
+<a name="l01007"></a>01007        <span class="keywordflow">case</span> <span class="charliteral">&#39;f&#39;</span>:
+<a name="l01008"></a>01008        <span class="keywordflow">case</span> <span class="charliteral">&#39;g&#39;</span>:
+<a name="l01009"></a>01009        <span class="keywordflow">case</span> <span class="charliteral">&#39;s&#39;</span>:
+<a name="l01010"></a>01010             prefix = subtype;
+<a name="l01011"></a>01011             c = getbyte();
+<a name="l01012"></a>01012             wordop = c &amp; 1;
+<a name="l01013"></a>01013             ua_str((*opmap1)[c]);
+<a name="l01014"></a>01014             <span class="keywordflow">break</span>;
+<a name="l01015"></a>01015        <span class="keywordflow">case</span> <span class="charliteral">&#39;:&#39;</span>:
+<a name="l01016"></a>01016             <span class="keywordflow">if</span> (prefix)
+<a name="l01017"></a>01017               uprintf(<span class="stringliteral">&quot;%cs:&quot;</span>, prefix);
+<a name="l01018"></a>01018             <span class="keywordflow">break</span>;
+<a name="l01019"></a>01019        <span class="keywordflow">case</span> <span class="charliteral">&#39; &#39;</span>:
+<a name="l01020"></a>01020             c = getbyte();
+<a name="l01021"></a>01021             wordop = c &amp; 1;
+<a name="l01022"></a>01022             ua_str((*opmap1)[c]);
+<a name="l01023"></a>01023             <span class="keywordflow">break</span>;
+<a name="l01024"></a>01024        }
+<a name="l01025"></a>01025        <span class="keywordflow">break</span>;
+<a name="l01026"></a>01026 
+<a name="l01027"></a>01027   <span class="keywordflow">case</span> <span class="charliteral">&#39;s&#39;</span>:                           <span class="comment">/* size override */</span>
+<a name="l01028"></a>01028        <span class="keywordflow">switch</span> (subtype) {
+<a name="l01029"></a>01029        <span class="keywordflow">case</span> <span class="charliteral">&#39;a&#39;</span>:
+<a name="l01030"></a>01030             addrsize = 48 - addrsize;
+<a name="l01031"></a>01031             c = getbyte();
+<a name="l01032"></a>01032             wordop = c &amp; 1;
+<a name="l01033"></a>01033             ua_str((*opmap1)[c]);
+<a name="l01034"></a>01034 <span class="comment">/*            ua_str(opmap1[getbyte()]); */</span>
+<a name="l01035"></a>01035             <span class="keywordflow">break</span>;
+<a name="l01036"></a>01036        <span class="keywordflow">case</span> <span class="charliteral">&#39;o&#39;</span>:
+<a name="l01037"></a>01037             opsize = 48 - opsize;
+<a name="l01038"></a>01038             c = getbyte();
+<a name="l01039"></a>01039             wordop = c &amp; 1;
+<a name="l01040"></a>01040             ua_str((*opmap1)[c]);
+<a name="l01041"></a>01041 <span class="comment">/*            ua_str(opmap1[getbyte()]); */</span>
+<a name="l01042"></a>01042             <span class="keywordflow">break</span>;
+<a name="l01043"></a>01043        }
+<a name="l01044"></a>01044        <span class="keywordflow">break</span>;
+<a name="l01045"></a>01045    }
+<a name="l01046"></a>01046 }
+<a name="l01047"></a>01047 
 <a name="l01048"></a>01048 
-<a name="l01049"></a>01049 
-<a name="l01050"></a>01050 <span class="keyword">static</span> <span class="keywordtype">void</span> ua_str(<span class="keywordtype">char</span> <span class="keyword">const</span> *str)
-<a name="l01051"></a>01051 {
-<a name="l01052"></a>01052   <span class="keywordtype">char</span> c;
-<a name="l01053"></a>01053 
-<a name="l01054"></a>01054   <span class="keywordflow">if</span> (str == 0) {
-<a name="l01055"></a>01055     invalid_opcode = 1;
-<a name="l01056"></a>01056     uprintf(<span class="stringliteral">&quot;?&quot;</span>);
-<a name="l01057"></a>01057     <span class="keywordflow">return</span>;
-<a name="l01058"></a>01058   }
-<a name="l01059"></a>01059 
-<a name="l01060"></a>01060   <span class="keywordflow">if</span> (strpbrk(str, <span class="stringliteral">&quot;CDFGRST&quot;</span>)) <span class="comment">/* specifiers for registers=&gt;no size 2b specified */</span>
-<a name="l01061"></a>01061     must_do_size = 0;
-<a name="l01062"></a>01062 
-<a name="l01063"></a>01063   <span class="keywordflow">while</span> ((c = *str++) != 0) {
-<a name="l01064"></a>01064         <span class="keywordflow">if</span> (c == <span class="charliteral">&#39; &#39;</span> &amp;&amp; first_space)
-<a name="l01065"></a>01065         {
-<a name="l01066"></a>01066                 first_space = 0;
-<a name="l01067"></a>01067                 <span class="keywordflow">do</span>
-<a name="l01068"></a>01068                 {
-<a name="l01069"></a>01069                         uputchar(<span class="charliteral">&#39; &#39;</span>);
-<a name="l01070"></a>01070                 } <span class="keywordflow">while</span> ( (<span class="keywordtype">int</span>)(ubufp - ubufs) &lt; 5 );
-<a name="l01071"></a>01071         }
-<a name="l01072"></a>01072         <span class="keywordflow">else</span>
-<a name="l01073"></a>01073     <span class="keywordflow">if</span> (c == <span class="charliteral">&#39;%&#39;</span>) {
-<a name="l01074"></a>01074       c = *str++;
-<a name="l01075"></a>01075       percent(c, *str++);
-<a name="l01076"></a>01076     } <span class="keywordflow">else</span> {
-<a name="l01077"></a>01077       uputchar(c);
-<a name="l01078"></a>01078     }
-<a name="l01079"></a>01079   }
-<a name="l01080"></a>01080 }
+<a name="l01049"></a>01049 <span class="keyword">static</span> <span class="keywordtype">void</span> ua_str(<span class="keywordtype">char</span> <span class="keyword">const</span> *str)
+<a name="l01050"></a>01050 {
+<a name="l01051"></a>01051   <span class="keywordtype">char</span> c;
+<a name="l01052"></a>01052 
+<a name="l01053"></a>01053   <span class="keywordflow">if</span> (str == 0) {
+<a name="l01054"></a>01054     invalid_opcode = 1;
+<a name="l01055"></a>01055     uprintf(<span class="stringliteral">&quot;?&quot;</span>);
+<a name="l01056"></a>01056     <span class="keywordflow">return</span>;
+<a name="l01057"></a>01057   }
+<a name="l01058"></a>01058 
+<a name="l01059"></a>01059   <span class="keywordflow">if</span> (strpbrk(str, <span class="stringliteral">&quot;CDFGRST&quot;</span>)) <span class="comment">/* specifiers for registers=&gt;no size 2b specified */</span>
+<a name="l01060"></a>01060     must_do_size = 0;
+<a name="l01061"></a>01061 
+<a name="l01062"></a>01062   <span class="keywordflow">while</span> ((c = *str++) != 0) {
+<a name="l01063"></a>01063         <span class="keywordflow">if</span> (c == <span class="charliteral">&#39; &#39;</span> &amp;&amp; first_space)
+<a name="l01064"></a>01064         {
+<a name="l01065"></a>01065                 first_space = 0;
+<a name="l01066"></a>01066                 <span class="keywordflow">do</span>
+<a name="l01067"></a>01067                 {
+<a name="l01068"></a>01068                         uputchar(<span class="charliteral">&#39; &#39;</span>);
+<a name="l01069"></a>01069                 } <span class="keywordflow">while</span> ( (<span class="keywordtype">int</span>)(ubufp - ubufs) &lt; 5 );
+<a name="l01070"></a>01070         }
+<a name="l01071"></a>01071         <span class="keywordflow">else</span>
+<a name="l01072"></a>01072     <span class="keywordflow">if</span> (c == <span class="charliteral">&#39;%&#39;</span>) {
+<a name="l01073"></a>01073       c = *str++;
+<a name="l01074"></a>01074       percent(c, *str++);
+<a name="l01075"></a>01075     } <span class="keywordflow">else</span> {
+<a name="l01076"></a>01076       uputchar(c);
+<a name="l01077"></a>01077     }
+<a name="l01078"></a>01078   }
+<a name="l01079"></a>01079 }
+<a name="l01080"></a>01080 
 <a name="l01081"></a>01081 
-<a name="l01082"></a>01082 
-<a name="l01083"></a>01083 Bitu DasmI386(<span class="keywordtype">char</span>* buffer, PhysPt pc, Bit32u cur_ip, <span class="keywordtype">bool</span> bit32)
-<a name="l01084"></a>01084 {
-<a name="l01085"></a>01085         Bitu c;
+<a name="l01082"></a>01082 Bitu DasmI386(<span class="keywordtype">char</span>* buffer, PhysPt pc, Bit32u cur_ip, <span class="keywordtype">bool</span> bit32)
+<a name="l01083"></a>01083 {
+<a name="l01084"></a>01084         Bitu c;
+<a name="l01085"></a>01085 
 <a name="l01086"></a>01086 
-<a name="l01087"></a>01087 
-<a name="l01088"></a>01088         instruction_offset = cur_ip;
-<a name="l01089"></a>01089         <span class="comment">/* input buffer */</span>
-<a name="l01090"></a>01090         startPtr        = pc;
-<a name="l01091"></a>01091         getbyte_mac = pc;
-<a name="l01092"></a>01092 
-<a name="l01093"></a>01093         <span class="comment">/* output buffer */</span>
-<a name="l01094"></a>01094         ubufs = buffer;
-<a name="l01095"></a>01095         ubufp = buffer;
-<a name="l01096"></a>01096         first_space = 1;
-<a name="l01097"></a>01097 
-<a name="l01098"></a>01098         addr32bit=1;
-<a name="l01099"></a>01099 
-<a name="l01100"></a>01100         prefix = 0;
-<a name="l01101"></a>01101         modrmv = sibv = -1;     <span class="comment">/* set modrm and sib flags */</span>
-<a name="l01102"></a>01102         <span class="keywordflow">if</span> (bit32) opsize = addrsize = 32;
-<a name="l01103"></a>01103         <span class="keywordflow">else</span> opsize = addrsize = 16;
-<a name="l01104"></a>01104         c = getbyte();
-<a name="l01105"></a>01105         wordop = c &amp; 1;
-<a name="l01106"></a>01106         must_do_size = 1;
-<a name="l01107"></a>01107         invalid_opcode = 0;
-<a name="l01108"></a>01108         opmap1=&amp;op386map1;
-<a name="l01109"></a>01109         ua_str(op386map1[c]);
-<a name="l01110"></a>01110 
-<a name="l01111"></a>01111         <span class="keywordflow">if</span> (invalid_opcode) {
-<a name="l01112"></a>01112                 <span class="comment">/* restart output buffer */</span>
-<a name="l01113"></a>01113                 ubufp = buffer;
-<a name="l01114"></a>01114                 <span class="comment">/* invalid instruction, use db xx */</span>
-<a name="l01115"></a>01115                 uprintf(<span class="stringliteral">&quot;db %02X&quot;</span>, (<span class="keywordtype">unsigned</span>)c);
-<a name="l01116"></a>01116                 <span class="keywordflow">return</span> 1;
-<a name="l01117"></a>01117         }
-<a name="l01118"></a>01118 
-<a name="l01119"></a>01119         <span class="keywordflow">return</span> getbyte_mac-pc;
-<a name="l01120"></a>01120 }
-<a name="l01121"></a>01121 
-<a name="l01122"></a>01122 <span class="keywordtype">int</span> DasmLastOperandSize()
-<a name="l01123"></a>01123 {
-<a name="l01124"></a>01124         <span class="keywordflow">return</span> opsize;
-<a name="l01125"></a>01125 }
+<a name="l01087"></a>01087         instruction_offset = cur_ip;
+<a name="l01088"></a>01088         <span class="comment">/* input buffer */</span>
+<a name="l01089"></a>01089         startPtr        = pc;
+<a name="l01090"></a>01090         getbyte_mac = pc;
+<a name="l01091"></a>01091 
+<a name="l01092"></a>01092         <span class="comment">/* output buffer */</span>
+<a name="l01093"></a>01093         ubufs = buffer;
+<a name="l01094"></a>01094         ubufp = buffer;
+<a name="l01095"></a>01095         first_space = 1;
+<a name="l01096"></a>01096 
+<a name="l01097"></a>01097         addr32bit=1;
+<a name="l01098"></a>01098 
+<a name="l01099"></a>01099         prefix = 0;
+<a name="l01100"></a>01100         modrmv = sibv = -1;     <span class="comment">/* set modrm and sib flags */</span>
+<a name="l01101"></a>01101         <span class="keywordflow">if</span> (bit32) opsize = addrsize = 32;
+<a name="l01102"></a>01102         <span class="keywordflow">else</span> opsize = addrsize = 16;
+<a name="l01103"></a>01103         c = getbyte();
+<a name="l01104"></a>01104         wordop = c &amp; 1;
+<a name="l01105"></a>01105         must_do_size = 1;
+<a name="l01106"></a>01106         invalid_opcode = 0;
+<a name="l01107"></a>01107         opmap1=&amp;op386map1;
+<a name="l01108"></a>01108         ua_str(op386map1[c]);
+<a name="l01109"></a>01109 
+<a name="l01110"></a>01110         <span class="keywordflow">if</span> (invalid_opcode) {
+<a name="l01111"></a>01111                 <span class="comment">/* restart output buffer */</span>
+<a name="l01112"></a>01112                 ubufp = buffer;
+<a name="l01113"></a>01113                 <span class="comment">/* invalid instruction, use db xx */</span>
+<a name="l01114"></a>01114                 uprintf(<span class="stringliteral">&quot;db %02X&quot;</span>, (<span class="keywordtype">unsigned</span>)c);
+<a name="l01115"></a>01115                 <span class="keywordflow">return</span> 1;
+<a name="l01116"></a>01116         }
+<a name="l01117"></a>01117 
+<a name="l01118"></a>01118         <span class="keywordflow">return</span> getbyte_mac-pc;
+<a name="l01119"></a>01119 }
+<a name="l01120"></a>01120 
+<a name="l01121"></a>01121 <span class="keywordtype">int</span> DasmLastOperandSize()
+<a name="l01122"></a>01122 {
+<a name="l01123"></a>01123         <span class="keywordflow">return</span> opsize;
+<a name="l01124"></a>01124 }
+<a name="l01125"></a>01125 
 <a name="l01126"></a>01126 
-<a name="l01127"></a>01127 
-<a name="l01128"></a>01128 <span class="preprocessor">#endif</span>
-<a name="l01129"></a>01129 <span class="preprocessor"></span>
+<a name="l01127"></a>01127 <span class="preprocessor">#endif</span>
+<a name="l01128"></a>01128 <span class="preprocessor"></span>
 </pre></div></div><!-- contents -->
 
 
 <hr class="footer"/><address class="footer"><small>
-Generated on Tue Oct 1 2019 18:06:24 for DOSBox-X by &#160;<a href="http://www.doxygen.org/index.html">
+Generated on Sun Jul 5 2020 13:11:34 for DOSBox-X by &#160;<a href="http://www.doxygen.org/index.html">
 <img class="footer" src="doxygen.png" alt="doxygen"/>
 </a> 1.8.0
 </small></address>

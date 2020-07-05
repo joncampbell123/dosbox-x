@@ -109,6 +109,8 @@ Public Member Functions</h2></td></tr>
 void&#160;</td><td class="memItemRight" valign="bottom"><b>SetVolume</b> (float _left, float _right)</td></tr>
 <tr class="memitem:ab36f75e5005f67da923efc8ba8b7f2e2"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="ab36f75e5005f67da923efc8ba8b7f2e2"></a>
 void&#160;</td><td class="memItemRight" valign="bottom"><b>SetScale</b> (float f)</td></tr>
+<tr class="memitem:ab339b50ad505d3e9ed7fd1a62ac93c33"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="ab339b50ad505d3e9ed7fd1a62ac93c33"></a>
+void&#160;</td><td class="memItemRight" valign="bottom"><b>SetScale</b> (float _left, float _right)</td></tr>
 <tr class="memitem:ac33a5acf44812b9ba4706960b2067552"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="ac33a5acf44812b9ba4706960b2067552"></a>
 void&#160;</td><td class="memItemRight" valign="bottom"><b>UpdateVolume</b> (void)</td></tr>
 <tr class="memitem:a7d752500c09917c50e87f30ce76f19ba"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a7d752500c09917c50e87f30ce76f19ba"></a>
@@ -181,14 +183,18 @@ void&#160;</td><td class="memItemRight" valign="bottom"><b>AddSamples_s32_nonnat
 void&#160;</td><td class="memItemRight" valign="bottom"><b>FillUp</b> (void)</td></tr>
 <tr class="memitem:a3c9dfb6c96a54fbcbd420a5e94071b00"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a3c9dfb6c96a54fbcbd420a5e94071b00"></a>
 void&#160;</td><td class="memItemRight" valign="bottom"><b>Enable</b> (bool _yesno)</td></tr>
+<tr class="memitem:abb599beb2f871559791e5cca33b4584f"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="abb599beb2f871559791e5cca33b4584f"></a>
+void&#160;</td><td class="memItemRight" valign="bottom"><b>SaveState</b> (std::ostream &amp;stream)</td></tr>
+<tr class="memitem:a50d622047c015fe4132ce210f83dbd6a"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a50d622047c015fe4132ce210f83dbd6a"></a>
+void&#160;</td><td class="memItemRight" valign="bottom"><b>LoadState</b> (std::istream &amp;stream)</td></tr>
 <tr><td colspan="2"><h2><a name="pub-attribs"></a>
 Public Attributes</h2></td></tr>
 <tr class="memitem:af892cf680b396c0e93a54e3da905ad04"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="af892cf680b396c0e93a54e3da905ad04"></a>
 MIXER_Handler&#160;</td><td class="memItemRight" valign="bottom"><b>handler</b></td></tr>
 <tr class="memitem:a5dd50a86b6a77a81a6e809ca0aa1e20b"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a5dd50a86b6a77a81a6e809ca0aa1e20b"></a>
 float&#160;</td><td class="memItemRight" valign="bottom"><b>volmain</b> [2]</td></tr>
-<tr class="memitem:aa8dad87dcc79454e5918b3a7eebaed6b"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="aa8dad87dcc79454e5918b3a7eebaed6b"></a>
-float&#160;</td><td class="memItemRight" valign="bottom"><b>scale</b></td></tr>
+<tr class="memitem:a1c1e909ee91c622de6647b22f98a2e72"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a1c1e909ee91c622de6647b22f98a2e72"></a>
+float&#160;</td><td class="memItemRight" valign="bottom"><b>scale</b> [2]</td></tr>
 <tr class="memitem:a00091530e71a29cbde320013e15390cd"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a00091530e71a29cbde320013e15390cd"></a>
 Bit32s&#160;</td><td class="memItemRight" valign="bottom"><b>volmul</b> [2]</td></tr>
 <tr class="memitem:a53983eb8a65bfb327a2a13608d506093"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a53983eb8a65bfb327a2a13608d506093"></a>
@@ -252,7 +258,7 @@ bool&#160;</td><td class="memItemRight" valign="bottom"><b>enabled</b></td></tr>
 </table>
 <hr/><a name="details" id="details"></a><h2>Detailed Description</h2>
 <div class="textblock">
-<p>Definition at line <a class="el" href="mixer_8h_source.html#l00041">41</a> of file <a class="el" href="mixer_8h_source.html">mixer.h</a>.</p>
+<p>Definition at line <a class="el" href="mixer_8h_source.html#l00045">45</a> of file <a class="el" href="mixer_8h_source.html">mixer.h</a>.</p>
 </div><hr/>The documentation for this class was generated from the following files:<ul>
 <li>include/<a class="el" href="mixer_8h_source.html">mixer.h</a></li>
 <li>src/hardware/<a class="el" href="mixer_8cpp_source.html">mixer.cpp</a></li>
@@ -261,7 +267,7 @@ bool&#160;</td><td class="memItemRight" valign="bottom"><b>enabled</b></td></tr>
 
 
 <hr class="footer"/><address class="footer"><small>
-Generated on Tue Oct 1 2019 18:06:31 for DOSBox-X by &#160;<a href="http://www.doxygen.org/index.html">
+Generated on Sun Jul 5 2020 13:11:41 for DOSBox-X by &#160;<a href="http://www.doxygen.org/index.html">
 <img class="footer" src="doxygen.png" alt="doxygen"/>
 </a> 1.8.0
 </small></address>

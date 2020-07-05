@@ -5,7 +5,7 @@
 %%For: 
 %Magnification: 1.00
 %%Orientation: Portrait
-%%BoundingBox: 0 0 500 80.645161
+%%BoundingBox: 0 0 500 63.965885
 %%Pages: 0
 %%BeginSetup
 %%EndSetup
@@ -19,13 +19,13 @@
 /marginwidth 10 def
 /distx 20 def
 /disty 40 def
-/boundaspect 6.200000 def  % aspect ratio of the BoundingBox (width/height)
+/boundaspect 7.816667 def  % aspect ratio of the BoundingBox (width/height)
 /boundx 500 def
 /boundy boundx boundaspect div def
 /xspacing 0 def
 /yspacing 0 def
 /rows 3 def
-/cols 6 def
+/cols 7 def
 /scalefactor 0 def
 /boxfont /Times-Roman findfont fontheight scalefont def
 
@@ -182,6 +182,7 @@ boxfont setfont
 (CJHatEvent) cw
 (CKeyEvent) cw
 (CModEvent) cw
+(CMouseButtonEvent) cw
 /boxwidth boxwidth marginwidth 2 mul add def
 /xspacing boxwidth distx add def
 /yspacing boxheight disty add def
@@ -193,32 +194,33 @@ boundx scalefactor div boundy scalefactor div scale
 
 % ----- classes -----
 
- (CEvent) 1.500000 2.000000 box
+ (CEvent) 1.750000 2.000000 box
  (CContinuousEvent) 0.000000 1.000000 box
- (CTriggeredEvent) 3.000000 1.000000 box
+ (CTriggeredEvent) 3.500000 1.000000 box
  (CJAxisEvent) 0.000000 0.000000 box
  (CHandlerEvent) 1.000000 0.000000 box
  (CJButtonEvent) 2.000000 0.000000 box
  (CJHatEvent) 3.000000 0.000000 box
  (CKeyEvent) 4.000000 0.000000 box
  (CModEvent) 5.000000 0.000000 box
+ (CMouseButtonEvent) 6.000000 0.000000 box
 
 % ----- relations -----
 
 solid
-1 1.500000 1.250000 out
+1 1.750000 1.250000 out
 solid
-0.000000 3.000000 2.000000 conn
+0.000000 3.500000 2.000000 conn
 solid
 0 0.000000 1.750000 in
 solid
 1 0.000000 0.250000 out
 solid
-0 3.000000 1.750000 in
+0 3.500000 1.750000 in
 solid
-1 3.000000 0.250000 out
+1 3.500000 0.250000 out
 solid
-1.000000 5.000000 1.000000 conn
+1.000000 6.000000 1.000000 conn
 solid
 0 0.000000 0.750000 in
 solid
@@ -231,3 +233,5 @@ solid
 0 4.000000 0.750000 in
 solid
 0 5.000000 0.750000 in
+solid
+0 6.000000 0.750000 in

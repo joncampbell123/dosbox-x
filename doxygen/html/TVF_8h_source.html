@@ -123,19 +123,19 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l00026"></a>00026         <a class="code" href="classMT32Emu_1_1LA32Ramp.html">LA32Ramp</a> *cutoffModifierRamp;
 <a name="l00027"></a>00027         <span class="keyword">const</span> <a class="code" href="structMT32Emu_1_1TimbreParam_1_1PartialParam.html">TimbreParam::PartialParam</a> *partialParam;
 <a name="l00028"></a>00028 
-<a name="l00029"></a>00029         Bit8u baseCutoff;
-<a name="l00030"></a>00030         <span class="keywordtype">int</span> keyTimeSubtraction;
-<a name="l00031"></a>00031         <span class="keywordtype">unsigned</span> <span class="keywordtype">int</span> levelMult;
+<a name="l00029"></a>00029         Bit8u baseCutoff = 0;
+<a name="l00030"></a>00030         <span class="keywordtype">int</span> keyTimeSubtraction = 0;
+<a name="l00031"></a>00031         <span class="keywordtype">unsigned</span> <span class="keywordtype">int</span> levelMult = 0;
 <a name="l00032"></a>00032 
-<a name="l00033"></a>00033         Bit8u target;
-<a name="l00034"></a>00034         <span class="keywordtype">unsigned</span> <span class="keywordtype">int</span> phase;
+<a name="l00033"></a>00033         Bit8u target = 0;
+<a name="l00034"></a>00034         <span class="keywordtype">unsigned</span> <span class="keywordtype">int</span> phase = 0;
 <a name="l00035"></a>00035 
 <a name="l00036"></a>00036         <span class="keywordtype">void</span> startRamp(Bit8u newTarget, Bit8u newIncrement, <span class="keywordtype">int</span> newPhase);
 <a name="l00037"></a>00037         <span class="keywordtype">void</span> nextPhase();
 <a name="l00038"></a>00038 
 <a name="l00039"></a>00039 <span class="keyword">public</span>:
-<a name="l00040"></a>00040         <a class="code" href="classMT32Emu_1_1TVF.html">TVF</a>(<span class="keyword">const</span> <a class="code" href="classMT32Emu_1_1Partial.html">Partial</a> *partial, <a class="code" href="classMT32Emu_1_1LA32Ramp.html">LA32Ramp</a> *cutoffModifierRamp);
-<a name="l00041"></a>00041         <span class="keywordtype">void</span> reset(<span class="keyword">const</span> <a class="code" href="structMT32Emu_1_1TimbreParam_1_1PartialParam.html">TimbreParam::PartialParam</a> *partialParam, Bit32u basePitch);
+<a name="l00040"></a>00040         <a class="code" href="classMT32Emu_1_1TVF.html">TVF</a>(<span class="keyword">const</span> <a class="code" href="classMT32Emu_1_1Partial.html">Partial</a> *usePartial, <a class="code" href="classMT32Emu_1_1LA32Ramp.html">LA32Ramp</a> *useCutoffModifierRamp);
+<a name="l00041"></a>00041         <span class="keywordtype">void</span> reset(<span class="keyword">const</span> <a class="code" href="structMT32Emu_1_1TimbreParam_1_1PartialParam.html">TimbreParam::PartialParam</a> *newPartialParam, Bit32u basePitch);
 <a name="l00042"></a>00042         <span class="comment">// Returns the base cutoff (without envelope modification).</span>
 <a name="l00043"></a>00043         <span class="comment">// The base cutoff is calculated when reset() is called and remains static</span>
 <a name="l00044"></a>00044         <span class="comment">// for the lifetime of the partial.</span>
@@ -159,7 +159,7 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 
 
 <hr class="footer"/><address class="footer"><small>
-Generated on Tue Oct 1 2019 18:06:29 for DOSBox-X by &#160;<a href="http://www.doxygen.org/index.html">
+Generated on Sun Jul 5 2020 13:11:39 for DOSBox-X by &#160;<a href="http://www.doxygen.org/index.html">
 <img class="footer" src="doxygen.png" alt="doxygen"/>
 </a> 1.8.0
 </small></address>

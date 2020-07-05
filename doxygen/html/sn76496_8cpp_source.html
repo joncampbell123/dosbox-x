@@ -270,7 +270,7 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l00173"></a>00173 
 <a name="l00174"></a>00174 
 <a name="l00175"></a>00175 sn76496_device::sn76496_device(<span class="keyword">const</span> <a class="code" href="structmachine__config.html">machine_config</a> &amp;mconfig, <span class="keyword">const</span> <span class="keywordtype">char</span> *tag, <a class="code" href="classdevice__t.html">device_t</a> *owner, uint32_t clock)
-<a name="l00176"></a>00176         : <a class="code" href="classsn76496__base__device.html">sn76496_base_device</a>(mconfig, <a class="code" href="structSN76496.html">SN76496</a>, tag, 0x10000, 0x04, 0x08, false, false, 8, false, true, owner, clock)
+<a name="l00176"></a>00176         : <a class="code" href="classsn76496__base__device.html">sn76496_base_device</a>(mconfig, SN76496, tag, 0x10000, 0x04, 0x08, false, false, 8, false, true, owner, clock)
 <a name="l00177"></a>00177 {
 <a name="l00178"></a>00178 }
 <a name="l00179"></a>00179 
@@ -531,7 +531,7 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l00434"></a>00434                                 <span class="comment">// if noisemode is 1, both taps are enabled</span>
 <a name="l00435"></a>00435                                 <span class="comment">// if noisemode is 0, the lower tap, whitenoisetap2, is held at 0</span>
 <a name="l00436"></a>00436                                 <span class="comment">// The != was a bit-XOR (^) before</span>
-<a name="l00437"></a>00437                                 <span class="keywordflow">if</span> (((m_RNG &amp; m_whitenoise_tap1)!=0) != (((m_RNG &amp; m_whitenoise_tap2)!=(m_ncr_style_psg?m_whitenoise_tap2:0u)) &amp;&amp; in_noise_mode()))
+<a name="l00437"></a>00437                                 <span class="keywordflow">if</span> (((m_RNG &amp; m_whitenoise_tap1)!=0) != (((m_RNG &amp; m_whitenoise_tap2)!=(m_ncr_style_psg?(uint32_t)m_whitenoise_tap2:0)) &amp;&amp; in_noise_mode()))
 <a name="l00438"></a>00438                                 {
 <a name="l00439"></a>00439                                         m_RNG &gt;&gt;= 1;
 <a name="l00440"></a>00440                                         m_RNG |= m_feedback_mask;
@@ -586,45 +586,86 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l00489"></a>00489         rate_counter = 0;
 <a name="l00490"></a>00490 }
 <a name="l00491"></a>00491 
-<a name="l00492"></a>00492 <span class="keywordtype">void</span> sn76496_base_device::register_for_save_states()
-<a name="l00493"></a>00493 {
-<a name="l00494"></a>00494         save_item(NAME(m_vol_table));
-<a name="l00495"></a>00495         save_item(NAME(m_register));
-<a name="l00496"></a>00496         save_item(NAME(m_last_register));
-<a name="l00497"></a>00497         save_item(NAME(m_volume));
-<a name="l00498"></a>00498         save_item(NAME(m_RNG));
-<a name="l00499"></a>00499 <span class="comment">//  save_item(NAME(m_clock_divider));</span>
-<a name="l00500"></a>00500         save_item(NAME(m_current_clock));
-<a name="l00501"></a>00501 <span class="comment">//  save_item(NAME(m_feedback_mask));</span>
-<a name="l00502"></a>00502 <span class="comment">//  save_item(NAME(m_whitenoise_tap1));</span>
-<a name="l00503"></a>00503 <span class="comment">//  save_item(NAME(m_whitenoise_tap2));</span>
-<a name="l00504"></a>00504 <span class="comment">//  save_item(NAME(m_negate));</span>
-<a name="l00505"></a>00505 <span class="comment">//  save_item(NAME(m_stereo));</span>
-<a name="l00506"></a>00506         save_item(NAME(m_stereo_mask));
-<a name="l00507"></a>00507         save_item(NAME(m_period));
-<a name="l00508"></a>00508         save_item(NAME(m_count));
-<a name="l00509"></a>00509         save_item(NAME(m_output));
-<a name="l00510"></a>00510         save_item(NAME(m_cycles_to_ready));
-<a name="l00511"></a>00511 <span class="comment">//  save_item(NAME(m_sega_style_psg));</span>
-<a name="l00512"></a>00512 }
-<a name="l00513"></a>00513 
-<a name="l00514"></a>00514 DEFINE_DEVICE_TYPE(<a class="code" href="structSN76496.html">SN76496</a>,  <a class="code" href="classsn76496__device.html">sn76496_device</a>,   <span class="stringliteral">&quot;sn76496&quot;</span>,      <span class="stringliteral">&quot;SN76496&quot;</span>)
-<a name="l00515"></a>00515 DEFINE_DEVICE_TYPE(U8106,    <a class="code" href="classu8106__device.html">u8106_device</a>,     &quot;u8106&quot;,        &quot;U8106&quot;)
-<a name="l00516"></a>00516 DEFINE_DEVICE_TYPE(Y2404,    <a class="code" href="classy2404__device.html">y2404_device</a>,     &quot;y2404&quot;,        &quot;Y2404&quot;)
-<a name="l00517"></a>00517 DEFINE_DEVICE_TYPE(SN76489,  <a class="code" href="classsn76489__device.html">sn76489_device</a>,   &quot;sn76489&quot;,      &quot;SN76489&quot;)
-<a name="l00518"></a>00518 DEFINE_DEVICE_TYPE(SN76489A, <a class="code" href="classsn76489a__device.html">sn76489a_device</a>,  &quot;sn76489a&quot;,     &quot;SN76489A&quot;)
-<a name="l00519"></a>00519 DEFINE_DEVICE_TYPE(SN76494,  <a class="code" href="classsn76494__device.html">sn76494_device</a>,   &quot;sn76494&quot;,      &quot;SN76494&quot;)
-<a name="l00520"></a>00520 DEFINE_DEVICE_TYPE(SN94624,  <a class="code" href="classsn94624__device.html">sn94624_device</a>,   &quot;sn94624&quot;,      &quot;SN94624&quot;)
-<a name="l00521"></a>00521 DEFINE_DEVICE_TYPE(NCR8496,  <a class="code" href="classncr8496__device.html">ncr8496_device</a>,   &quot;ncr8496&quot;,      &quot;NCR8496&quot;)
-<a name="l00522"></a>00522 DEFINE_DEVICE_TYPE(PSSJ3,    <a class="code" href="classpssj3__device.html">pssj3_device</a>,     &quot;pssj3&quot;,        &quot;PSSJ-3&quot;)
-<a name="l00523"></a>00523 DEFINE_DEVICE_TYPE(GAMEGEAR, <a class="code" href="classgamegear__device.html">gamegear_device</a>,  &quot;gamegear_psg&quot;, &quot;Game Gear PSG&quot;)
-<a name="l00524"></a>00524 DEFINE_DEVICE_TYPE(SEGAPSG,  <a class="code" href="classsegapsg__device.html">segapsg_device</a>,   &quot;segapsg&quot;,      &quot;Sega VDP PSG&quot;)
-<a name="l00525"></a>00525 
+<a name="l00492"></a>00492 <span class="keywordtype">void</span> sn76496_base_device::SaveState( std::ostream&amp; stream ) {
+<a name="l00493"></a>00493     WRITE_POD(&amp;m_vol_table, m_vol_table);
+<a name="l00494"></a>00494     WRITE_POD(&amp;m_register, m_register);
+<a name="l00495"></a>00495     WRITE_POD(&amp;m_last_register, m_last_register);
+<a name="l00496"></a>00496     WRITE_POD(&amp;m_volume, m_volume);
+<a name="l00497"></a>00497     WRITE_POD(&amp;m_RNG, m_RNG);
+<a name="l00498"></a>00498     <span class="comment">//WRITE_POD(&amp;m_clock_divider, m_clock_divider);</span>
+<a name="l00499"></a>00499     WRITE_POD(&amp;m_current_clock, m_current_clock);
+<a name="l00500"></a>00500     <span class="comment">//WRITE_POD(&amp;m_feedback_mask, m_feedback_mask);</span>
+<a name="l00501"></a>00501     <span class="comment">//WRITE_POD(&amp;m_whitenoise_tap1, m_whitenoise_tap1);</span>
+<a name="l00502"></a>00502     <span class="comment">//WRITE_POD(&amp;m_whitenoise_tap2, m_whitenoise_tap2);</span>
+<a name="l00503"></a>00503     <span class="comment">//WRITE_POD(&amp;m_negate, m_negate);</span>
+<a name="l00504"></a>00504     <span class="comment">//WRITE_POD(&amp;m_stereo, m_stereo);</span>
+<a name="l00505"></a>00505     WRITE_POD(&amp;m_stereo_mask, m_stereo_mask);
+<a name="l00506"></a>00506     WRITE_POD(&amp;m_period, m_period);
+<a name="l00507"></a>00507     WRITE_POD(&amp;m_count, m_count);
+<a name="l00508"></a>00508     WRITE_POD(&amp;m_output, m_output);
+<a name="l00509"></a>00509     WRITE_POD(&amp;m_cycles_to_ready, m_cycles_to_ready);
+<a name="l00510"></a>00510     <span class="comment">//WRITE_POD(&amp;m_sega_style_psg, m_sega_style_psg);</span>
+<a name="l00511"></a>00511 }
+<a name="l00512"></a>00512 <span class="keywordtype">void</span> sn76496_base_device::LoadState( std::istream&amp; stream ) {
+<a name="l00513"></a>00513     READ_POD(&amp;m_vol_table, m_vol_table);
+<a name="l00514"></a>00514     READ_POD(&amp;m_register, m_register);
+<a name="l00515"></a>00515     READ_POD(&amp;m_last_register, m_last_register);
+<a name="l00516"></a>00516     READ_POD(&amp;m_volume, m_volume);
+<a name="l00517"></a>00517     READ_POD(&amp;m_RNG, m_RNG);
+<a name="l00518"></a>00518     <span class="comment">//READ_POD(&amp;m_clock_divider, m_clock_divider);</span>
+<a name="l00519"></a>00519     READ_POD(&amp;m_current_clock, m_current_clock);
+<a name="l00520"></a>00520     <span class="comment">//READ_POD(&amp;m_feedback_mask, m_feedback_mask);</span>
+<a name="l00521"></a>00521     <span class="comment">//READ_POD(&amp;m_whitenoise_tap1, m_whitenoise_tap1);</span>
+<a name="l00522"></a>00522     <span class="comment">//READ_POD(&amp;m_whitenoise_tap2, m_whitenoise_tap2);</span>
+<a name="l00523"></a>00523     <span class="comment">//READ_POD(&amp;m_negate, m_negate);</span>
+<a name="l00524"></a>00524     <span class="comment">//READ_POD(&amp;m_stereo, m_stereo);</span>
+<a name="l00525"></a>00525     READ_POD(&amp;m_stereo_mask, m_stereo_mask);
+<a name="l00526"></a>00526     READ_POD(&amp;m_period, m_period);
+<a name="l00527"></a>00527     READ_POD(&amp;m_count, m_count);
+<a name="l00528"></a>00528     READ_POD(&amp;m_output, m_output);
+<a name="l00529"></a>00529     READ_POD(&amp;m_cycles_to_ready, m_cycles_to_ready);
+<a name="l00530"></a>00530     <span class="comment">//READ_POD(&amp;m_sega_style_psg, m_sega_style_psg);</span>
+<a name="l00531"></a>00531 }
+<a name="l00532"></a>00532 
+<a name="l00533"></a>00533 <span class="keywordtype">void</span> sn76496_base_device::register_for_save_states()
+<a name="l00534"></a>00534 {
+<a name="l00535"></a>00535         save_item(NAME(m_vol_table));
+<a name="l00536"></a>00536         save_item(NAME(m_register));
+<a name="l00537"></a>00537         save_item(NAME(m_last_register));
+<a name="l00538"></a>00538         save_item(NAME(m_volume));
+<a name="l00539"></a>00539         save_item(NAME(m_RNG));
+<a name="l00540"></a>00540 <span class="comment">//  save_item(NAME(m_clock_divider));</span>
+<a name="l00541"></a>00541         save_item(NAME(m_current_clock));
+<a name="l00542"></a>00542 <span class="comment">//  save_item(NAME(m_feedback_mask));</span>
+<a name="l00543"></a>00543 <span class="comment">//  save_item(NAME(m_whitenoise_tap1));</span>
+<a name="l00544"></a>00544 <span class="comment">//  save_item(NAME(m_whitenoise_tap2));</span>
+<a name="l00545"></a>00545 <span class="comment">//  save_item(NAME(m_negate));</span>
+<a name="l00546"></a>00546 <span class="comment">//  save_item(NAME(m_stereo));</span>
+<a name="l00547"></a>00547         save_item(NAME(m_stereo_mask));
+<a name="l00548"></a>00548         save_item(NAME(m_period));
+<a name="l00549"></a>00549         save_item(NAME(m_count));
+<a name="l00550"></a>00550         save_item(NAME(m_output));
+<a name="l00551"></a>00551         save_item(NAME(m_cycles_to_ready));
+<a name="l00552"></a>00552 <span class="comment">//  save_item(NAME(m_sega_style_psg));</span>
+<a name="l00553"></a>00553 }
+<a name="l00554"></a>00554 
+<a name="l00555"></a>00555 DEFINE_DEVICE_TYPE(SN76496,  <a class="code" href="classsn76496__device.html">sn76496_device</a>,   <span class="stringliteral">&quot;sn76496&quot;</span>,      <span class="stringliteral">&quot;SN76496&quot;</span>)
+<a name="l00556"></a>00556 DEFINE_DEVICE_TYPE(U8106,    <a class="code" href="classu8106__device.html">u8106_device</a>,     &quot;u8106&quot;,        &quot;U8106&quot;)
+<a name="l00557"></a>00557 DEFINE_DEVICE_TYPE(Y2404,    <a class="code" href="classy2404__device.html">y2404_device</a>,     &quot;y2404&quot;,        &quot;Y2404&quot;)
+<a name="l00558"></a>00558 DEFINE_DEVICE_TYPE(SN76489,  <a class="code" href="classsn76489__device.html">sn76489_device</a>,   &quot;sn76489&quot;,      &quot;SN76489&quot;)
+<a name="l00559"></a>00559 DEFINE_DEVICE_TYPE(SN76489A, <a class="code" href="classsn76489a__device.html">sn76489a_device</a>,  &quot;sn76489a&quot;,     &quot;SN76489A&quot;)
+<a name="l00560"></a>00560 DEFINE_DEVICE_TYPE(SN76494,  <a class="code" href="classsn76494__device.html">sn76494_device</a>,   &quot;sn76494&quot;,      &quot;SN76494&quot;)
+<a name="l00561"></a>00561 DEFINE_DEVICE_TYPE(SN94624,  <a class="code" href="classsn94624__device.html">sn94624_device</a>,   &quot;sn94624&quot;,      &quot;SN94624&quot;)
+<a name="l00562"></a>00562 DEFINE_DEVICE_TYPE(NCR8496,  <a class="code" href="classncr8496__device.html">ncr8496_device</a>,   &quot;ncr8496&quot;,      &quot;NCR8496&quot;)
+<a name="l00563"></a>00563 DEFINE_DEVICE_TYPE(PSSJ3,    <a class="code" href="classpssj3__device.html">pssj3_device</a>,     &quot;pssj3&quot;,        &quot;PSSJ-3&quot;)
+<a name="l00564"></a>00564 DEFINE_DEVICE_TYPE(GAMEGEAR, <a class="code" href="classgamegear__device.html">gamegear_device</a>,  &quot;gamegear_psg&quot;, &quot;Game Gear PSG&quot;)
+<a name="l00565"></a>00565 DEFINE_DEVICE_TYPE(SEGAPSG,  <a class="code" href="classsegapsg__device.html">segapsg_device</a>,   &quot;segapsg&quot;,      &quot;Sega VDP PSG&quot;)
+<a name="l00566"></a>00566 
 </pre></div></div><!-- contents -->
 
 
 <hr class="footer"/><address class="footer"><small>
-Generated on Tue Oct 1 2019 18:06:26 for DOSBox-X by &#160;<a href="http://www.doxygen.org/index.html">
+Generated on Sun Jul 5 2020 13:11:36 for DOSBox-X by &#160;<a href="http://www.doxygen.org/index.html">
 <img class="footer" src="doxygen.png" alt="doxygen"/>
 </a> 1.8.0
 </small></address>

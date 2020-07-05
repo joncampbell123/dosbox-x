@@ -120,14 +120,12 @@ Inheritance diagram for CDROM_Interface_Image:</div>
 <table class="memberdecls">
 <tr><td colspan="2"><h2><a name="nested-classes"></a>
 Classes</h2></td></tr>
+<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">class &#160;</td><td class="memItemRight" valign="bottom"><b>AudioFile</b></td></tr>
 <tr class="memitem:"><td class="memItemLeft" align="right" valign="top">class &#160;</td><td class="memItemRight" valign="bottom"><b>BinaryFile</b></td></tr>
 <tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">Binary file reader for the image. <br/></td></tr>
 <tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><b>imagePlayer</b></td></tr>
-<tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">Virtual CD audio "player". <br/></td></tr>
-<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><b>Track</b></td></tr>
-<tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">CD-ROM track definition. <br/></td></tr>
+<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structCDROM__Interface__Image_1_1Track.html">Track</a></td></tr>
 <tr class="memitem:"><td class="memItemLeft" align="right" valign="top">class &#160;</td><td class="memItemRight" valign="bottom"><b>TrackFile</b></td></tr>
-<tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">Base C++ class for reading the image. <br/></td></tr>
 <tr><td colspan="2"><h2><a name="pub-methods"></a>
 Public Member Functions</h2></td></tr>
 <tr class="memitem:acecb6b00f509aba4e203b7bb5c4653fb"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="acecb6b00f509aba4e203b7bb5c4653fb"></a>
@@ -142,9 +140,8 @@ bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="clas
 <tr class="memitem:a0f4704db65cd97e70da4ee7464e535b0"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a0f4704db65cd97e70da4ee7464e535b0"></a>
 bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classCDROM__Interface__Image.html#a0f4704db65cd97e70da4ee7464e535b0">GetUPC</a> (unsigned char &amp;attr, char *upc)</td></tr>
 <tr class="memdesc:a0f4704db65cd97e70da4ee7464e535b0"><td class="mdescLeft">&#160;</td><td class="mdescRight">Get UPC string from the CD-ROM. <br/></td></tr>
-<tr class="memitem:a4aae5ec2ba0011a4f2281bb312aa49c3"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a4aae5ec2ba0011a4f2281bb312aa49c3"></a>
-bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classCDROM__Interface__Image.html#a4aae5ec2ba0011a4f2281bb312aa49c3">GetAudioTracks</a> (int &amp;stTrack, int &amp;end, <a class="el" href="structSMSF.html">TMSF</a> &amp;leadOut)</td></tr>
-<tr class="memdesc:a4aae5ec2ba0011a4f2281bb312aa49c3"><td class="mdescLeft">&#160;</td><td class="mdescRight">Retrieve start and end tracks and lead out position. <br/></td></tr>
+<tr class="memitem:a4aae5ec2ba0011a4f2281bb312aa49c3"><td class="memItemLeft" align="right" valign="top">bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classCDROM__Interface__Image.html#a4aae5ec2ba0011a4f2281bb312aa49c3">GetAudioTracks</a> (int &amp;stTrack, int &amp;end, <a class="el" href="structSMSF.html">TMSF</a> &amp;leadOut)</td></tr>
+<tr class="memdesc:a4aae5ec2ba0011a4f2281bb312aa49c3"><td class="mdescLeft">&#160;</td><td class="mdescRight">Retrieve start and end tracks and lead out position.  <a href="#a4aae5ec2ba0011a4f2281bb312aa49c3"></a><br/></td></tr>
 <tr class="memitem:a1a1c42c11d483e82f41c6012f5f7d602"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a1a1c42c11d483e82f41c6012f5f7d602"></a>
 bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classCDROM__Interface__Image.html#a1a1c42c11d483e82f41c6012f5f7d602">GetAudioTrackInfo</a> (int track, <a class="el" href="structSMSF.html">TMSF</a> &amp;start, unsigned char &amp;attr)</td></tr>
 <tr class="memdesc:a1a1c42c11d483e82f41c6012f5f7d602"><td class="mdescLeft">&#160;</td><td class="mdescRight">Retrieve start and attributes for a specific track. <br/></td></tr>
@@ -157,9 +154,8 @@ bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="clas
 <tr class="memitem:a8c5afdabeea94743f487fae4623eacac"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a8c5afdabeea94743f487fae4623eacac"></a>
 bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classCDROM__Interface__Image.html#a8c5afdabeea94743f487fae4623eacac">GetMediaTrayStatus</a> (bool &amp;mediaPresent, bool &amp;mediaChanged, bool &amp;trayOpen)</td></tr>
 <tr class="memdesc:a8c5afdabeea94743f487fae4623eacac"><td class="mdescLeft">&#160;</td><td class="mdescRight">Get media tray status. <br/></td></tr>
-<tr class="memitem:afbb8b5443be56ba92b5a1287ba95f913"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="afbb8b5443be56ba92b5a1287ba95f913"></a>
-bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classCDROM__Interface__Image.html#afbb8b5443be56ba92b5a1287ba95f913">PlayAudioSector</a> (unsigned long start, unsigned long len)</td></tr>
-<tr class="memdesc:afbb8b5443be56ba92b5a1287ba95f913"><td class="mdescLeft">&#160;</td><td class="mdescRight">Initiate audio playback starting at sector and for how many. <br/></td></tr>
+<tr class="memitem:afbb8b5443be56ba92b5a1287ba95f913"><td class="memItemLeft" align="right" valign="top">bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classCDROM__Interface__Image.html#afbb8b5443be56ba92b5a1287ba95f913">PlayAudioSector</a> (unsigned long start, unsigned long len)</td></tr>
+<tr class="memdesc:afbb8b5443be56ba92b5a1287ba95f913"><td class="mdescLeft">&#160;</td><td class="mdescRight">Initiate audio playback starting at sector and for how many.  <a href="#afbb8b5443be56ba92b5a1287ba95f913"></a><br/></td></tr>
 <tr class="memitem:ac74be8f64002ccf76b65c2fbd03077bd"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="ac74be8f64002ccf76b65c2fbd03077bd"></a>
 bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classCDROM__Interface__Image.html#ac74be8f64002ccf76b65c2fbd03077bd">PauseAudio</a> (bool resume)</td></tr>
 <tr class="memdesc:ac74be8f64002ccf76b65c2fbd03077bd"><td class="mdescLeft">&#160;</td><td class="mdescRight">Pause audio playback. <br/></td></tr>
@@ -178,9 +174,9 @@ bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="clas
 <tr class="memitem:af5aa7f94de1d7c77ff6b484b380c5351"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="af5aa7f94de1d7c77ff6b484b380c5351"></a>
 bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classCDROM__Interface__Image.html#af5aa7f94de1d7c77ff6b484b380c5351">LoadUnloadMedia</a> (bool unload)</td></tr>
 <tr class="memdesc:af5aa7f94de1d7c77ff6b484b380c5351"><td class="mdescLeft">&#160;</td><td class="mdescRight">Load (close/spin up) or unload (eject/spin down) media. <br/></td></tr>
-<tr class="memitem:acbed60c6b06009b2a027d605190ee842"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="acbed60c6b06009b2a027d605190ee842"></a>
-bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classCDROM__Interface__Image.html#acbed60c6b06009b2a027d605190ee842">ReadSector</a> (Bit8u *buffer, bool raw, unsigned long sector)</td></tr>
-<tr class="memdesc:acbed60c6b06009b2a027d605190ee842"><td class="mdescLeft">&#160;</td><td class="mdescRight">Sector read (one sector), where the image decoding is done. <br/></td></tr>
+<tr class="memitem:aa30f347bb164b16e2939d467a57578d7"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="aa30f347bb164b16e2939d467a57578d7"></a>
+bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classCDROM__Interface__Image.html#aa30f347bb164b16e2939d467a57578d7">ReadSector</a> (uint8_t *buffer, const bool raw, const uint32_t sector)</td></tr>
+<tr class="memdesc:aa30f347bb164b16e2939d467a57578d7"><td class="mdescLeft">&#160;</td><td class="mdescRight">Indicate whether the image has a data track. <br/></td></tr>
 <tr class="memitem:a7348536d197510d1442419f2aa172ccc"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a7348536d197510d1442419f2aa172ccc"></a>
 bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classCDROM__Interface__Image.html#a7348536d197510d1442419f2aa172ccc">HasDataTrack</a> (void)</td></tr>
 <tr class="memdesc:a7348536d197510d1442419f2aa172ccc"><td class="mdescLeft">&#160;</td><td class="mdescRight">Indicate whether the image has a data track. <br/></td></tr>
@@ -188,21 +184,100 @@ bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="clas
 Static Public Attributes</h2></td></tr>
 <tr class="memitem:a901be8d60520cf91bcabeb67a808c644"><td class="memItemLeft" align="right" valign="top">static bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classCDROM__Interface__Image.html#a901be8d60520cf91bcabeb67a808c644">images_init</a> = false</td></tr>
 <tr class="memdesc:a901be8d60520cf91bcabeb67a808c644"><td class="mdescLeft">&#160;</td><td class="mdescRight">Flag to track if images have been initialized.  <a href="#a901be8d60520cf91bcabeb67a808c644"></a><br/></td></tr>
-<tr class="memitem:a547a33f528bf5f50063af1def199a7a3"><td class="memItemLeft" align="right" valign="top">static <a class="el" href="classCDROM__Interface__Image.html">CDROM_Interface_Image</a> *&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classCDROM__Interface__Image.html#a547a33f528bf5f50063af1def199a7a3">images</a> [26] = {NULL}</td></tr>
+<tr class="memitem:a547a33f528bf5f50063af1def199a7a3"><td class="memItemLeft" align="right" valign="top">static <a class="el" href="classCDROM__Interface__Image.html">CDROM_Interface_Image</a> *&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classCDROM__Interface__Image.html#a547a33f528bf5f50063af1def199a7a3">images</a> [26] = {}</td></tr>
 <tr class="memdesc:a547a33f528bf5f50063af1def199a7a3"><td class="mdescLeft">&#160;</td><td class="mdescRight">Array of CD-ROM images, one per drive letter.  <a href="#a547a33f528bf5f50063af1def199a7a3"></a><br/></td></tr>
 </table>
 <hr/><a name="details" id="details"></a><h2>Detailed Description</h2>
 <div class="textblock"><p>Image CD-ROM interface. </p>
 <p>This provides CD-ROM emulation from .ISO and .BIN/.CUE images on the host system </p>
 
-<p>Definition at line <a class="el" href="cdrom_8h_source.html#l00204">204</a> of file <a class="el" href="cdrom_8h_source.html">cdrom.h</a>.</p>
-</div><hr/><h2>Member Data Documentation</h2>
+<p>Definition at line <a class="el" href="cdrom_8h_source.html#l00248">248</a> of file <a class="el" href="cdrom_8h_source.html">cdrom.h</a>.</p>
+</div><hr/><h2>Member Function Documentation</h2>
+<a class="anchor" id="a4aae5ec2ba0011a4f2281bb312aa49c3"></a>
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">bool <a class="el" href="classCDROM__Interface__Image.html#a4aae5ec2ba0011a4f2281bb312aa49c3">CDROM_Interface_Image::GetAudioTracks</a> </td>
+          <td>(</td>
+          <td class="paramtype">int &amp;&#160;</td>
+          <td class="paramname"><em>stTrack</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">int &amp;&#160;</td>
+          <td class="paramname"><em>end</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype"><a class="el" href="structSMSF.html">TMSF</a> &amp;&#160;</td>
+          <td class="paramname"><em>leadOut</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td><code> [virtual]</code></td>
+        </tr>
+      </table>
+</div>
+<div class="memdoc">
+
+<p>Retrieve start and end tracks and lead out position. </p>
+<p>Guard: A valid CD has atleast two tracks: the first plus the lead-out, so bail out if we have fewer than 2 tracks</p>
+
+<p>Implements <a class="el" href="classCDROM__Interface.html#a3d9e5cf2a5812edc31badb6e4a79d51c">CDROM_Interface</a>.</p>
+
+<p>Definition at line <a class="el" href="cdrom__image_8cpp_source.html#l00491">491</a> of file <a class="el" href="cdrom__image_8cpp_source.html">cdrom_image.cpp</a>.</p>
+
+</div>
+</div>
+<a class="anchor" id="afbb8b5443be56ba92b5a1287ba95f913"></a>
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">bool <a class="el" href="classCDROM__Interface__Image.html#afbb8b5443be56ba92b5a1287ba95f913">CDROM_Interface_Image::PlayAudioSector</a> </td>
+          <td>(</td>
+          <td class="paramtype">unsigned long&#160;</td>
+          <td class="paramname"><em>start</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">unsigned long&#160;</td>
+          <td class="paramname"><em>len</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td><code> [virtual]</code></td>
+        </tr>
+      </table>
+</div>
+<div class="memdoc">
+
+<p>Initiate audio playback starting at sector and for how many. </p>
+<p>If the request falls in the pregap we deduct the difference from the playback duration, because we skip the pre-gap area and jump straight to the track start.</p>
+<p>Guard: Before we update our player object with new track details, we lock access to it to prevent the Callback (which runs in a separate thread) from getting inconsistent or partial values.</p>
+<p>Convert Redbook frames (len) to <a class="el" href="structCDROM__Interface__Image_1_1Track.html">Track</a> PCM frames, rounding up to whole integer frames. Note: the intermediate numerator in the calculation below can overflow uint32_t, so the variable types used must stay 64-bit.</p>
+
+<p>Implements <a class="el" href="classCDROM__Interface.html#a9a90d8036bb0fccc17b147dfab6ad26f">CDROM_Interface</a>.</p>
+
+<p>Definition at line <a class="el" href="cdrom__image_8cpp_source.html#l00592">592</a> of file <a class="el" href="cdrom__image_8cpp_source.html">cdrom_image.cpp</a>.</p>
+
+<p>References <a class="el" href="cdrom__image_8cpp_source.html#l00696">StopAudio()</a>.</p>
+
+</div>
+</div>
+<hr/><h2>Member Data Documentation</h2>
 <a class="anchor" id="a547a33f528bf5f50063af1def199a7a3"></a>
 <div class="memitem">
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname"><a class="el" href="classCDROM__Interface__Image.html">CDROM_Interface_Image</a> * <a class="el" href="classCDROM__Interface__Image.html#a547a33f528bf5f50063af1def199a7a3">CDROM_Interface_Image::images</a> = {NULL}<code> [static]</code></td>
+          <td class="memname"><a class="el" href="classCDROM__Interface__Image.html">CDROM_Interface_Image</a> * <a class="el" href="classCDROM__Interface__Image.html#a547a33f528bf5f50063af1def199a7a3">CDROM_Interface_Image::images</a> = {}<code> [static]</code></td>
         </tr>
       </table>
 </div>
@@ -211,7 +286,7 @@ Static Public Attributes</h2></td></tr>
 <p>Array of CD-ROM images, one per drive letter. </p>
 <p>images[] is static and not specific to any C++ class instance. </p>
 
-<p>Definition at line <a class="el" href="cdrom_8h_source.html#l00276">276</a> of file <a class="el" href="cdrom_8h_source.html">cdrom.h</a>.</p>
+<p>Definition at line <a class="el" href="cdrom_8h_source.html#l00365">365</a> of file <a class="el" href="cdrom_8h_source.html">cdrom.h</a>.</p>
 
 </div>
 </div>
@@ -229,7 +304,7 @@ Static Public Attributes</h2></td></tr>
 <p>Flag to track if images have been initialized. </p>
 <p>Whether images[] has been initialized. Note that images_init and images[] are static and they are not specific to any one C++ class instance. </p>
 
-<p>Definition at line <a class="el" href="cdrom_8h_source.html#l00272">272</a> of file <a class="el" href="cdrom_8h_source.html">cdrom.h</a>.</p>
+<p>Definition at line <a class="el" href="cdrom_8h_source.html#l00361">361</a> of file <a class="el" href="cdrom_8h_source.html">cdrom.h</a>.</p>
 
 </div>
 </div>
@@ -242,7 +317,7 @@ Static Public Attributes</h2></td></tr>
 
 
 <hr class="footer"/><address class="footer"><small>
-Generated on Tue Oct 1 2019 18:06:30 for DOSBox-X by &#160;<a href="http://www.doxygen.org/index.html">
+Generated on Sun Jul 5 2020 13:11:40 for DOSBox-X by &#160;<a href="http://www.doxygen.org/index.html">
 <img class="footer" src="doxygen.png" alt="doxygen"/>
 </a> 1.8.0
 </small></address>

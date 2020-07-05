@@ -96,7 +96,7 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 </div><!--header-->
 <div class="contents">
 <div class="fragment"><pre class="fragment"><a name="l00001"></a>00001 <span class="comment">/*</span>
-<a name="l00002"></a>00002 <span class="comment"> *  Copyright (C) 2002-2019  The DOSBox Team</span>
+<a name="l00002"></a>00002 <span class="comment"> *  Copyright (C) 2002-2020  The DOSBox Team</span>
 <a name="l00003"></a>00003 <span class="comment"> *</span>
 <a name="l00004"></a>00004 <span class="comment"> *  This program is free software; you can redistribute it and/or modify</span>
 <a name="l00005"></a>00005 <span class="comment"> *  it under the terms of the GNU General Public License as published by</span>
@@ -108,9 +108,9 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l00011"></a>00011 <span class="comment"> *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the</span>
 <a name="l00012"></a>00012 <span class="comment"> *  GNU General Public License for more details.</span>
 <a name="l00013"></a>00013 <span class="comment"> *</span>
-<a name="l00014"></a>00014 <span class="comment"> *  You should have received a copy of the GNU General Public License</span>
-<a name="l00015"></a>00015 <span class="comment"> *  along with this program; if not, write to the Free Software</span>
-<a name="l00016"></a>00016 <span class="comment"> *  Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1335, USA.</span>
+<a name="l00014"></a>00014 <span class="comment"> *  You should have received a copy of the GNU General Public License along</span>
+<a name="l00015"></a>00015 <span class="comment"> *  with this program; if not, write to the Free Software Foundation, Inc.,</span>
+<a name="l00016"></a>00016 <span class="comment"> *  51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.</span>
 <a name="l00017"></a>00017 <span class="comment"> */</span>
 <a name="l00018"></a>00018 
 <a name="l00019"></a>00019 
@@ -124,826 +124,878 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l00027"></a>00027 <span class="preprocessor">#include &quot;control.h&quot;</span>
 <a name="l00028"></a>00028 <span class="preprocessor">#include &quot;setup.h&quot;</span>
 <a name="l00029"></a>00029 
-<a name="l00030"></a>00030 <span class="keywordtype">void</span> MIDI_RawOutByte(Bit8u data);
-<a name="l00031"></a>00031 <span class="keywordtype">bool</span> MIDI_Available(<span class="keywordtype">void</span>);
-<a name="l00032"></a>00032 
-<a name="l00033"></a>00033 <span class="keyword">static</span> <span class="keywordtype">void</span> MPU401_Event(Bitu);
-<a name="l00034"></a>00034 <span class="keyword">static</span> <span class="keywordtype">void</span> MPU401_Reset(<span class="keywordtype">void</span>);
-<a name="l00035"></a>00035 <span class="keyword">static</span> <span class="keywordtype">void</span> MPU401_ResetDone(Bitu);
-<a name="l00036"></a>00036 <span class="keyword">static</span> <span class="keywordtype">void</span> MPU401_EOIHandler(Bitu val=0);
-<a name="l00037"></a>00037 <span class="keyword">static</span> <span class="keywordtype">void</span> MPU401_EOIHandlerDispatch(<span class="keywordtype">void</span>);
-<a name="l00038"></a>00038 
-<a name="l00039"></a>00039 <span class="preprocessor">#define MPU401_VERSION  0x15</span>
-<a name="l00040"></a>00040 <span class="preprocessor"></span><span class="preprocessor">#define MPU401_REVISION 0x01</span>
-<a name="l00041"></a>00041 <span class="preprocessor"></span><span class="preprocessor">#define MPU401_QUEUE 32</span>
-<a name="l00042"></a>00042 <span class="preprocessor"></span><span class="preprocessor">#define MPU401_TIMECONSTANT (60000000/1000.0f)</span>
-<a name="l00043"></a>00043 <span class="preprocessor"></span><span class="preprocessor">#define MPU401_RESETBUSY 14.0f</span>
-<a name="l00044"></a>00044 <span class="preprocessor"></span>
-<a name="l00045"></a>00045 <span class="keyword">enum</span> MpuMode { M_UART,M_INTELLIGENT };
-<a name="l00046"></a>00046 <span class="keyword">enum</span> MpuDataType {T_OVERFLOW,T_MARK,T_MIDI_SYS,T_MIDI_NORM,T_COMMAND};
-<a name="l00047"></a>00047 
-<a name="l00048"></a>00048 <span class="keyword">static</span> <span class="keywordtype">void</span> MPU401_WriteData(Bitu port,Bitu val,Bitu iolen);
+<a name="l00030"></a>00030 <span class="keyword">extern</span> <span class="keywordtype">bool</span> enable_slave_pic;
+<a name="l00031"></a>00031 
+<a name="l00032"></a>00032 <span class="keywordtype">void</span> MIDI_RawOutByte(Bit8u data);
+<a name="l00033"></a>00033 <span class="keywordtype">bool</span> MIDI_Available(<span class="keywordtype">void</span>);
+<a name="l00034"></a>00034 
+<a name="l00035"></a>00035 <span class="keyword">static</span> <span class="keywordtype">void</span> MPU401_Event(Bitu);
+<a name="l00036"></a>00036 <span class="keyword">static</span> <span class="keywordtype">void</span> MPU401_Reset(<span class="keywordtype">void</span>);
+<a name="l00037"></a>00037 <span class="keyword">static</span> <span class="keywordtype">void</span> MPU401_ResetDone(Bitu);
+<a name="l00038"></a>00038 <span class="keyword">static</span> <span class="keywordtype">void</span> MPU401_EOIHandler(Bitu val=0);
+<a name="l00039"></a>00039 <span class="keyword">static</span> <span class="keywordtype">void</span> MPU401_EOIHandlerDispatch(<span class="keywordtype">void</span>);
+<a name="l00040"></a>00040 
+<a name="l00041"></a>00041 <span class="preprocessor">#define MPU401_VERSION  0x15</span>
+<a name="l00042"></a>00042 <span class="preprocessor"></span><span class="preprocessor">#define MPU401_REVISION 0x01</span>
+<a name="l00043"></a>00043 <span class="preprocessor"></span><span class="preprocessor">#define MPU401_QUEUE 32</span>
+<a name="l00044"></a>00044 <span class="preprocessor"></span><span class="preprocessor">#define MPU401_TIMECONSTANT (60000000/1000.0f)</span>
+<a name="l00045"></a>00045 <span class="preprocessor"></span><span class="preprocessor">#define MPU401_RESETBUSY 14.0f</span>
+<a name="l00046"></a>00046 <span class="preprocessor"></span>
+<a name="l00047"></a>00047 <span class="keyword">enum</span> MpuMode { M_UART,M_INTELLIGENT };
+<a name="l00048"></a>00048 <span class="keyword">enum</span> MpuDataType {T_OVERFLOW,T_MARK,T_MIDI_SYS,T_MIDI_NORM,T_COMMAND};
 <a name="l00049"></a>00049 
-<a name="l00050"></a>00050 <span class="comment">/* Messages sent to MPU-401 from host */</span>
-<a name="l00051"></a>00051 <span class="preprocessor">#define MSG_EOX                         0xf7</span>
-<a name="l00052"></a>00052 <span class="preprocessor"></span><span class="preprocessor">#define MSG_OVERFLOW                    0xf8</span>
-<a name="l00053"></a>00053 <span class="preprocessor"></span><span class="preprocessor">#define MSG_MARK                        0xfc</span>
-<a name="l00054"></a>00054 <span class="preprocessor"></span>
-<a name="l00055"></a>00055 <span class="comment">/* Messages sent to host from MPU-401 */</span>
-<a name="l00056"></a>00056 <span class="preprocessor">#define MSG_MPU_OVERFLOW                0xf8</span>
-<a name="l00057"></a>00057 <span class="preprocessor"></span><span class="preprocessor">#define MSG_MPU_COMMAND_REQ             0xf9</span>
-<a name="l00058"></a>00058 <span class="preprocessor"></span><span class="preprocessor">#define MSG_MPU_END                     0xfc</span>
-<a name="l00059"></a>00059 <span class="preprocessor"></span><span class="preprocessor">#define MSG_MPU_CLOCK                   0xfd</span>
-<a name="l00060"></a>00060 <span class="preprocessor"></span><span class="preprocessor">#define MSG_MPU_ACK                     0xfe</span>
-<a name="l00061"></a>00061 <span class="preprocessor"></span>
-<a name="l00062"></a>00062 <span class="keyword">static</span> <span class="keyword">struct </span>{
-<a name="l00063"></a>00063         <span class="keywordtype">bool</span> intelligent;
-<a name="l00064"></a>00064         MpuMode mode;
-<a name="l00065"></a>00065         Bitu irq;
-<a name="l00066"></a>00066         Bit8u queue[MPU401_QUEUE];
-<a name="l00067"></a>00067         Bitu queue_pos,queue_used;
-<a name="l00068"></a>00068         <span class="keyword">struct </span>track {
-<a name="l00069"></a>00069                 Bits counter;
-<a name="l00070"></a>00070                 Bit8u value[8],sys_val;
-<a name="l00071"></a>00071                 Bit8u vlength,length;
-<a name="l00072"></a>00072                 MpuDataType type;
-<a name="l00073"></a>00073         } playbuf[8],condbuf;
-<a name="l00074"></a>00074         <span class="keyword">struct </span>{
-<a name="l00075"></a>00075                 <span class="keywordtype">bool</span> conductor,cond_req,cond_set, block_ack;
-<a name="l00076"></a>00076                 <span class="keywordtype">bool</span> playing,reset;
-<a name="l00077"></a>00077                 <span class="keywordtype">bool</span> wsd,wsm,wsd_start;
-<a name="l00078"></a>00078                 <span class="keywordtype">bool</span> run_irq,irq_pending;
-<a name="l00079"></a>00079                 <span class="keywordtype">bool</span> send_now;
-<a name="l00080"></a>00080                 <span class="keywordtype">bool</span> eoi_scheduled;
-<a name="l00081"></a>00081                 Bits data_onoff;
-<a name="l00082"></a>00082                 Bitu command_byte,cmd_pending;
-<a name="l00083"></a>00083                 Bit8u tmask,cmask,amask;
-<a name="l00084"></a>00084                 Bit16u midi_mask;
-<a name="l00085"></a>00085                 Bit16u req_mask;
-<a name="l00086"></a>00086                 Bit8u channel,old_chan;
-<a name="l00087"></a>00087         } state;
-<a name="l00088"></a>00088         <span class="keyword">struct </span>{
-<a name="l00089"></a>00089                 Bit8u timebase,old_timebase;
-<a name="l00090"></a>00090                 Bit8u tempo,old_tempo;
-<a name="l00091"></a>00091                 Bit8u tempo_rel,old_tempo_rel;
-<a name="l00092"></a>00092                 Bit8u tempo_grad;
-<a name="l00093"></a>00093                 Bit8u cth_rate,cth_counter;
-<a name="l00094"></a>00094                 <span class="keywordtype">bool</span> clock_to_host,cth_active;
-<a name="l00095"></a>00095         } clock;
-<a name="l00096"></a>00096 } mpu;
-<a name="l00097"></a>00097 
-<a name="l00098"></a>00098 <span class="keywordtype">int</span> MPU401_GetIRQ() {
-<a name="l00099"></a>00099         <span class="keywordflow">return</span> (<span class="keywordtype">int</span>)mpu.irq;
-<a name="l00100"></a>00100 }
-<a name="l00101"></a>00101 
-<a name="l00102"></a>00102 <span class="keyword">static</span> <span class="keywordtype">void</span> QueueByte(Bit8u data) {
-<a name="l00103"></a>00103         <span class="keywordflow">if</span> (mpu.state.block_ack) {mpu.state.block_ack=<span class="keyword">false</span>;<span class="keywordflow">return</span>;}
-<a name="l00104"></a>00104         <span class="keywordflow">if</span> (mpu.queue_used==0 &amp;&amp; mpu.intelligent) {
-<a name="l00105"></a>00105                 mpu.state.irq_pending=<span class="keyword">true</span>;
-<a name="l00106"></a>00106                 PIC_ActivateIRQ(mpu.irq);
-<a name="l00107"></a>00107         }
-<a name="l00108"></a>00108         <span class="keywordflow">if</span> (mpu.queue_used&lt;MPU401_QUEUE) {
-<a name="l00109"></a>00109                 Bitu pos=mpu.queue_used+mpu.queue_pos;
-<a name="l00110"></a>00110                 <span class="keywordflow">if</span> (mpu.queue_pos&gt;=MPU401_QUEUE) mpu.queue_pos-=MPU401_QUEUE;
-<a name="l00111"></a>00111                 <span class="keywordflow">if</span> (pos&gt;=MPU401_QUEUE) pos-=MPU401_QUEUE;
-<a name="l00112"></a>00112                 mpu.queue_used++;
-<a name="l00113"></a>00113                 mpu.queue[pos]=data;
-<a name="l00114"></a>00114         } <span class="keywordflow">else</span> <a class="code" href="classLOG.html">LOG</a>(LOG_MISC,LOG_NORMAL)(<span class="stringliteral">&quot;MPU401:Data queue full&quot;</span>);
-<a name="l00115"></a>00115 }
-<a name="l00116"></a>00116 
-<a name="l00117"></a>00117 <span class="keyword">static</span> <span class="keywordtype">void</span> ClrQueue(<span class="keywordtype">void</span>) {
-<a name="l00118"></a>00118         mpu.queue_used=0;
-<a name="l00119"></a>00119         mpu.queue_pos=0;
-<a name="l00120"></a>00120 }
-<a name="l00121"></a>00121 
-<a name="l00122"></a>00122 <span class="keyword">static</span> Bitu MPU401_ReadStatus(Bitu port,Bitu iolen) {
-<a name="l00123"></a>00123     (void)iolen;<span class="comment">//UNUSED</span>
-<a name="l00124"></a>00124     (void)port;<span class="comment">//UNUSED</span>
-<a name="l00125"></a>00125         Bit8u ret=0x3f; <span class="comment">/* Bits 6 and 7 clear */</span>
-<a name="l00126"></a>00126         <span class="keywordflow">if</span> (mpu.state.cmd_pending) ret|=0x40;
-<a name="l00127"></a>00127         <span class="keywordflow">if</span> (!mpu.queue_used) ret|=0x80;
-<a name="l00128"></a>00128         <span class="keywordflow">return</span> ret;
-<a name="l00129"></a>00129 }
-<a name="l00130"></a>00130 
-<a name="l00131"></a>00131 <span class="keyword">static</span> <span class="keywordtype">void</span> MPU401_WriteCommand(Bitu port,Bitu val,Bitu iolen) {
-<a name="l00132"></a>00132     (void)iolen;<span class="comment">//UNUSED</span>
-<a name="l00133"></a>00133     (void)port;<span class="comment">//UNUSED</span>
-<a name="l00134"></a>00134     <span class="keywordflow">if</span> (mpu.mode==M_UART &amp;&amp; val!=0xff) <span class="keywordflow">return</span>;
-<a name="l00135"></a>00135     <span class="keywordflow">if</span> (mpu.state.reset) {
-<a name="l00136"></a>00136         <span class="keywordflow">if</span> (mpu.state.cmd_pending || val!=0xff) {
-<a name="l00137"></a>00137             mpu.state.cmd_pending=val+1;
-<a name="l00138"></a>00138             <span class="keywordflow">return</span>;
-<a name="l00139"></a>00139         }
-<a name="l00140"></a>00140         PIC_RemoveEvents(MPU401_ResetDone);
-<a name="l00141"></a>00141         mpu.state.reset=<span class="keyword">false</span>;
-<a name="l00142"></a>00142     }
-<a name="l00143"></a>00143         <span class="keywordflow">if</span> (val&lt;=0x2f) {
-<a name="l00144"></a>00144                 <span class="keywordflow">switch</span> (val&amp;3) { <span class="comment">/* MIDI stop, start, continue */</span>
-<a name="l00145"></a>00145                         <span class="keywordflow">case</span> 1: {MIDI_RawOutByte(0xfc);<span class="keywordflow">break</span>;}
-<a name="l00146"></a>00146                         <span class="keywordflow">case</span> 2: {MIDI_RawOutByte(0xfa);<span class="keywordflow">break</span>;}
-<a name="l00147"></a>00147                         <span class="keywordflow">case</span> 3: {MIDI_RawOutByte(0xfb);<span class="keywordflow">break</span>;}
-<a name="l00148"></a>00148                 }
-<a name="l00149"></a>00149                 <span class="keywordflow">if</span> (val&amp;0x20) <a class="code" href="classLOG.html">LOG</a>(LOG_MISC,LOG_ERROR)(<span class="stringliteral">&quot;MPU-401:Unhandled Recording Command %x&quot;</span>,(int)val);
-<a name="l00150"></a>00150                 <span class="keywordflow">switch</span> (val&amp;0xc) {
-<a name="l00151"></a>00151                         <span class="keywordflow">case</span>  0x4:      <span class="comment">/* Stop */</span>
-<a name="l00152"></a>00152                                 PIC_RemoveEvents(MPU401_Event);
-<a name="l00153"></a>00153                                 mpu.state.playing=<span class="keyword">false</span>;
-<a name="l00154"></a>00154                                 <span class="keywordflow">for</span> (Bit8u i=0xb0;i&lt;0xbf;i++) { <span class="comment">/* All notes off */</span>
-<a name="l00155"></a>00155                                         MIDI_RawOutByte(i);
-<a name="l00156"></a>00156                                         MIDI_RawOutByte(0x7b);
-<a name="l00157"></a>00157                                         MIDI_RawOutByte(0);
-<a name="l00158"></a>00158                                 }
-<a name="l00159"></a>00159                                 <span class="keywordflow">break</span>;
-<a name="l00160"></a>00160                         <span class="keywordflow">case</span> 0x8:       <span class="comment">/* Play */</span>
-<a name="l00161"></a>00161                                 <a class="code" href="classLOG.html">LOG</a>(LOG_MISC,LOG_NORMAL)(<span class="stringliteral">&quot;MPU-401:Intelligent mode playback started&quot;</span>);
-<a name="l00162"></a>00162                                 mpu.state.playing=<span class="keyword">true</span>;
-<a name="l00163"></a>00163                                 PIC_RemoveEvents(MPU401_Event);
-<a name="l00164"></a>00164                                 PIC_AddEvent(MPU401_Event,MPU401_TIMECONSTANT/(mpu.clock.tempo*mpu.clock.timebase));
-<a name="l00165"></a>00165                                 ClrQueue();
-<a name="l00166"></a>00166                                 <span class="keywordflow">break</span>;
-<a name="l00167"></a>00167                 }
-<a name="l00168"></a>00168         }
-<a name="l00169"></a>00169         <span class="keywordflow">else</span> <span class="keywordflow">if</span> (val&gt;=0xa0 &amp;&amp; val&lt;=0xa7) {      <span class="comment">/* Request play counter */</span>
-<a name="l00170"></a>00170                 <span class="keywordflow">if</span> (mpu.state.cmask&amp;(1&lt;&lt;(val&amp;7))) QueueByte((Bit8u)mpu.playbuf[val&amp;7].counter);
+<a name="l00050"></a>00050 <span class="keyword">static</span> <span class="keywordtype">void</span> MPU401_WriteData(Bitu port,Bitu val,Bitu iolen);
+<a name="l00051"></a>00051 
+<a name="l00052"></a>00052 <span class="comment">/* Messages sent to MPU-401 from host */</span>
+<a name="l00053"></a>00053 <span class="preprocessor">#define MSG_EOX                         0xf7</span>
+<a name="l00054"></a>00054 <span class="preprocessor"></span><span class="preprocessor">#define MSG_OVERFLOW                    0xf8</span>
+<a name="l00055"></a>00055 <span class="preprocessor"></span><span class="preprocessor">#define MSG_MARK                        0xfc</span>
+<a name="l00056"></a>00056 <span class="preprocessor"></span>
+<a name="l00057"></a>00057 <span class="comment">/* Messages sent to host from MPU-401 */</span>
+<a name="l00058"></a>00058 <span class="preprocessor">#define MSG_MPU_OVERFLOW                0xf8</span>
+<a name="l00059"></a>00059 <span class="preprocessor"></span><span class="preprocessor">#define MSG_MPU_COMMAND_REQ             0xf9</span>
+<a name="l00060"></a>00060 <span class="preprocessor"></span><span class="preprocessor">#define MSG_MPU_END                     0xfc</span>
+<a name="l00061"></a>00061 <span class="preprocessor"></span><span class="preprocessor">#define MSG_MPU_CLOCK                   0xfd</span>
+<a name="l00062"></a>00062 <span class="preprocessor"></span><span class="preprocessor">#define MSG_MPU_ACK                     0xfe</span>
+<a name="l00063"></a>00063 <span class="preprocessor"></span>
+<a name="l00064"></a>00064 <span class="keyword">static</span> <span class="keyword">struct </span>{
+<a name="l00065"></a>00065         <span class="keywordtype">bool</span> intelligent;
+<a name="l00066"></a>00066         MpuMode mode;
+<a name="l00067"></a>00067         Bitu irq;
+<a name="l00068"></a>00068         Bit8u queue[MPU401_QUEUE];
+<a name="l00069"></a>00069         Bitu queue_pos,queue_used;
+<a name="l00070"></a>00070         <span class="keyword">struct </span>track {
+<a name="l00071"></a>00071                 Bits counter;
+<a name="l00072"></a>00072                 Bit8u value[8],sys_val;
+<a name="l00073"></a>00073                 Bit8u vlength,length;
+<a name="l00074"></a>00074                 MpuDataType type;
+<a name="l00075"></a>00075         } playbuf[8],condbuf;
+<a name="l00076"></a>00076         <span class="keyword">struct </span>{
+<a name="l00077"></a>00077                 <span class="keywordtype">bool</span> conductor,cond_req,cond_set, block_ack;
+<a name="l00078"></a>00078                 <span class="keywordtype">bool</span> playing,reset;
+<a name="l00079"></a>00079                 <span class="keywordtype">bool</span> wsd,wsm,wsd_start;
+<a name="l00080"></a>00080                 <span class="keywordtype">bool</span> run_irq,irq_pending;
+<a name="l00081"></a>00081                 <span class="keywordtype">bool</span> send_now;
+<a name="l00082"></a>00082                 <span class="keywordtype">bool</span> eoi_scheduled;
+<a name="l00083"></a>00083                 Bits data_onoff;
+<a name="l00084"></a>00084                 Bitu command_byte,cmd_pending;
+<a name="l00085"></a>00085                 Bit8u tmask,cmask,amask;
+<a name="l00086"></a>00086                 Bit16u midi_mask;
+<a name="l00087"></a>00087                 Bit16u req_mask;
+<a name="l00088"></a>00088                 Bit8u channel,old_chan;
+<a name="l00089"></a>00089         } state;
+<a name="l00090"></a>00090         <span class="keyword">struct </span>{
+<a name="l00091"></a>00091                 Bit8u timebase,old_timebase;
+<a name="l00092"></a>00092                 Bit8u tempo,old_tempo;
+<a name="l00093"></a>00093                 Bit8u tempo_rel,old_tempo_rel;
+<a name="l00094"></a>00094                 Bit8u tempo_grad;
+<a name="l00095"></a>00095                 Bit8u cth_rate,cth_counter;
+<a name="l00096"></a>00096                 <span class="keywordtype">bool</span> clock_to_host,cth_active;
+<a name="l00097"></a>00097         } clock;
+<a name="l00098"></a>00098 } mpu;
+<a name="l00099"></a>00099 
+<a name="l00100"></a>00100 <span class="keywordtype">int</span> MPU401_GetIRQ() {
+<a name="l00101"></a>00101         <span class="keywordflow">return</span> (<span class="keywordtype">int</span>)mpu.irq;
+<a name="l00102"></a>00102 }
+<a name="l00103"></a>00103 
+<a name="l00104"></a>00104 <span class="keyword">static</span> <span class="keywordtype">void</span> QueueByte(Bit8u data) {
+<a name="l00105"></a>00105         <span class="keywordflow">if</span> (mpu.state.block_ack) {mpu.state.block_ack=<span class="keyword">false</span>;<span class="keywordflow">return</span>;}
+<a name="l00106"></a>00106         <span class="keywordflow">if</span> (mpu.queue_used==0 &amp;&amp; mpu.intelligent) {
+<a name="l00107"></a>00107                 mpu.state.irq_pending=<span class="keyword">true</span>;
+<a name="l00108"></a>00108                 PIC_ActivateIRQ(mpu.irq);
+<a name="l00109"></a>00109         }
+<a name="l00110"></a>00110         <span class="keywordflow">if</span> (mpu.queue_used&lt;MPU401_QUEUE) {
+<a name="l00111"></a>00111                 Bitu pos=mpu.queue_used+mpu.queue_pos;
+<a name="l00112"></a>00112                 <span class="keywordflow">if</span> (mpu.queue_pos&gt;=MPU401_QUEUE) mpu.queue_pos-=MPU401_QUEUE;
+<a name="l00113"></a>00113                 <span class="keywordflow">if</span> (pos&gt;=MPU401_QUEUE) pos-=MPU401_QUEUE;
+<a name="l00114"></a>00114                 mpu.queue_used++;
+<a name="l00115"></a>00115                 mpu.queue[pos]=data;
+<a name="l00116"></a>00116         } <span class="keywordflow">else</span> <a class="code" href="classLOG.html">LOG</a>(LOG_MISC,LOG_NORMAL)(<span class="stringliteral">&quot;MPU401:Data queue full&quot;</span>);
+<a name="l00117"></a>00117 }
+<a name="l00118"></a>00118 
+<a name="l00119"></a>00119 <span class="keyword">static</span> <span class="keywordtype">void</span> ClrQueue(<span class="keywordtype">void</span>) {
+<a name="l00120"></a>00120         mpu.queue_used=0;
+<a name="l00121"></a>00121         mpu.queue_pos=0;
+<a name="l00122"></a>00122 }
+<a name="l00123"></a>00123 
+<a name="l00124"></a>00124 <span class="keyword">static</span> Bitu MPU401_ReadStatus(Bitu port,Bitu iolen) {
+<a name="l00125"></a>00125     (void)iolen;<span class="comment">//UNUSED</span>
+<a name="l00126"></a>00126     (void)port;<span class="comment">//UNUSED</span>
+<a name="l00127"></a>00127         Bit8u ret=0x3f; <span class="comment">/* Bits 6 and 7 clear */</span>
+<a name="l00128"></a>00128         <span class="keywordflow">if</span> (mpu.state.cmd_pending) ret|=0x40;
+<a name="l00129"></a>00129         <span class="keywordflow">if</span> (!mpu.queue_used) ret|=0x80;
+<a name="l00130"></a>00130         <span class="keywordflow">return</span> ret;
+<a name="l00131"></a>00131 }
+<a name="l00132"></a>00132 
+<a name="l00133"></a>00133 <span class="keyword">static</span> <span class="keywordtype">void</span> MPU401_WriteCommand(Bitu port,Bitu val,Bitu iolen) {
+<a name="l00134"></a>00134     (void)iolen;<span class="comment">//UNUSED</span>
+<a name="l00135"></a>00135     (void)port;<span class="comment">//UNUSED</span>
+<a name="l00136"></a>00136     <span class="keywordflow">if</span> (mpu.mode==M_UART &amp;&amp; val!=0xff) <span class="keywordflow">return</span>;
+<a name="l00137"></a>00137     <span class="keywordflow">if</span> (mpu.state.reset) {
+<a name="l00138"></a>00138         <span class="comment">/* THIS CODE IN DISPUTE [https://github.com/joncampbell123/dosbox-x/issues/917#issuecomment-538717798] */</span>
+<a name="l00139"></a>00139         <span class="keywordflow">if</span> (mpu.state.cmd_pending || val!=0xff) {
+<a name="l00140"></a>00140             mpu.state.cmd_pending=val+1;
+<a name="l00141"></a>00141             <span class="keywordflow">return</span>;
+<a name="l00142"></a>00142         }
+<a name="l00143"></a>00143         PIC_RemoveEvents(MPU401_ResetDone);
+<a name="l00144"></a>00144         mpu.state.reset=<span class="keyword">false</span>;
+<a name="l00145"></a>00145     }
+<a name="l00146"></a>00146         <span class="keywordflow">if</span> (val&lt;=0x2f) {
+<a name="l00147"></a>00147                 <span class="keywordflow">switch</span> (val&amp;3) { <span class="comment">/* MIDI stop, start, continue */</span>
+<a name="l00148"></a>00148                         <span class="keywordflow">case</span> 1: {MIDI_RawOutByte(0xfc);<span class="keywordflow">break</span>;}
+<a name="l00149"></a>00149                         <span class="keywordflow">case</span> 2: {MIDI_RawOutByte(0xfa);<span class="keywordflow">break</span>;}
+<a name="l00150"></a>00150                         <span class="keywordflow">case</span> 3: {MIDI_RawOutByte(0xfb);<span class="keywordflow">break</span>;}
+<a name="l00151"></a>00151                 }
+<a name="l00152"></a>00152                 <span class="keywordflow">if</span> (val&amp;0x20) <a class="code" href="classLOG.html">LOG</a>(LOG_MISC,LOG_ERROR)(<span class="stringliteral">&quot;MPU-401:Unhandled Recording Command %x&quot;</span>,(int)val);
+<a name="l00153"></a>00153                 <span class="keywordflow">switch</span> (val&amp;0xc) {
+<a name="l00154"></a>00154                         <span class="keywordflow">case</span>  0x4:      <span class="comment">/* Stop */</span>
+<a name="l00155"></a>00155                                 PIC_RemoveEvents(MPU401_Event);
+<a name="l00156"></a>00156                                 mpu.state.playing=<span class="keyword">false</span>;
+<a name="l00157"></a>00157                                 <span class="keywordflow">for</span> (Bit8u i=0xb0;i&lt;0xbf;i++) { <span class="comment">/* All notes off */</span>
+<a name="l00158"></a>00158                                         MIDI_RawOutByte(i);
+<a name="l00159"></a>00159                                         MIDI_RawOutByte(0x7b);
+<a name="l00160"></a>00160                                         MIDI_RawOutByte(0);
+<a name="l00161"></a>00161                                 }
+<a name="l00162"></a>00162                                 <span class="keywordflow">break</span>;
+<a name="l00163"></a>00163                         <span class="keywordflow">case</span> 0x8:       <span class="comment">/* Play */</span>
+<a name="l00164"></a>00164                                 <a class="code" href="classLOG.html">LOG</a>(LOG_MISC,LOG_NORMAL)(<span class="stringliteral">&quot;MPU-401:Intelligent mode playback started&quot;</span>);
+<a name="l00165"></a>00165                                 mpu.state.playing=<span class="keyword">true</span>;
+<a name="l00166"></a>00166                                 PIC_RemoveEvents(MPU401_Event);
+<a name="l00167"></a>00167                                 PIC_AddEvent(MPU401_Event,MPU401_TIMECONSTANT/(mpu.clock.tempo*mpu.clock.timebase));
+<a name="l00168"></a>00168                                 ClrQueue();
+<a name="l00169"></a>00169                                 <span class="keywordflow">break</span>;
+<a name="l00170"></a>00170                 }
 <a name="l00171"></a>00171         }
-<a name="l00172"></a>00172         <span class="keywordflow">else</span> <span class="keywordflow">if</span> (val&gt;=0xd0 &amp;&amp; val&lt;=0xd7) {      <span class="comment">/* Send data */</span>
-<a name="l00173"></a>00173                 mpu.state.old_chan=mpu.state.channel;
-<a name="l00174"></a>00174                 mpu.state.channel=val&amp;7;
-<a name="l00175"></a>00175                 mpu.state.wsd=<span class="keyword">true</span>;
-<a name="l00176"></a>00176                 mpu.state.wsm=<span class="keyword">false</span>;
-<a name="l00177"></a>00177                 mpu.state.wsd_start=<span class="keyword">true</span>;
-<a name="l00178"></a>00178         }
-<a name="l00179"></a>00179         <span class="keywordflow">else</span>
-<a name="l00180"></a>00180         <span class="keywordflow">switch</span> (val) {
-<a name="l00181"></a>00181                 <span class="keywordflow">case</span> 0xdf:      <span class="comment">/* Send system message */</span>
-<a name="l00182"></a>00182                         mpu.state.wsd=<span class="keyword">false</span>;
-<a name="l00183"></a>00183                         mpu.state.wsm=<span class="keyword">true</span>;
-<a name="l00184"></a>00184                         mpu.state.wsd_start=<span class="keyword">true</span>;
-<a name="l00185"></a>00185                         <span class="keywordflow">break</span>;
-<a name="l00186"></a>00186                 <span class="keywordflow">case</span> 0x8e:      <span class="comment">/* Conductor */</span>
-<a name="l00187"></a>00187                         mpu.state.cond_set=<span class="keyword">false</span>;
+<a name="l00172"></a>00172         <span class="keywordflow">else</span> <span class="keywordflow">if</span> (val&gt;=0xa0 &amp;&amp; val&lt;=0xa7) {      <span class="comment">/* Request play counter */</span>
+<a name="l00173"></a>00173                 <span class="keywordflow">if</span> (mpu.state.cmask&amp;(1&lt;&lt;(val&amp;7))) QueueByte((Bit8u)mpu.playbuf[val&amp;7].counter);
+<a name="l00174"></a>00174         }
+<a name="l00175"></a>00175         <span class="keywordflow">else</span> <span class="keywordflow">if</span> (val&gt;=0xd0 &amp;&amp; val&lt;=0xd7) {      <span class="comment">/* Send data */</span>
+<a name="l00176"></a>00176                 mpu.state.old_chan=mpu.state.channel;
+<a name="l00177"></a>00177                 mpu.state.channel=val&amp;7;
+<a name="l00178"></a>00178                 mpu.state.wsd=<span class="keyword">true</span>;
+<a name="l00179"></a>00179                 mpu.state.wsm=<span class="keyword">false</span>;
+<a name="l00180"></a>00180                 mpu.state.wsd_start=<span class="keyword">true</span>;
+<a name="l00181"></a>00181         }
+<a name="l00182"></a>00182         <span class="keywordflow">else</span>
+<a name="l00183"></a>00183         <span class="keywordflow">switch</span> (val) {
+<a name="l00184"></a>00184                 <span class="keywordflow">case</span> 0xdf:      <span class="comment">/* Send system message */</span>
+<a name="l00185"></a>00185                         mpu.state.wsd=<span class="keyword">false</span>;
+<a name="l00186"></a>00186                         mpu.state.wsm=<span class="keyword">true</span>;
+<a name="l00187"></a>00187                         mpu.state.wsd_start=<span class="keyword">true</span>;
 <a name="l00188"></a>00188                         <span class="keywordflow">break</span>;
-<a name="l00189"></a>00189                 <span class="keywordflow">case</span> 0x8f:
-<a name="l00190"></a>00190                         mpu.state.cond_set=<span class="keyword">true</span>;
+<a name="l00189"></a>00189                 <span class="keywordflow">case</span> 0x8e:      <span class="comment">/* Conductor */</span>
+<a name="l00190"></a>00190                         mpu.state.cond_set=<span class="keyword">false</span>;
 <a name="l00191"></a>00191                         <span class="keywordflow">break</span>;
-<a name="l00192"></a>00192                 <span class="keywordflow">case</span> 0x94: <span class="comment">/* Clock to host */</span>
-<a name="l00193"></a>00193                         mpu.clock.clock_to_host=<span class="keyword">false</span>;
+<a name="l00192"></a>00192                 <span class="keywordflow">case</span> 0x8f:
+<a name="l00193"></a>00193                         mpu.state.cond_set=<span class="keyword">true</span>;
 <a name="l00194"></a>00194                         <span class="keywordflow">break</span>;
-<a name="l00195"></a>00195                 <span class="keywordflow">case</span> 0x95:
-<a name="l00196"></a>00196                         mpu.clock.clock_to_host=<span class="keyword">true</span>;
+<a name="l00195"></a>00195                 <span class="keywordflow">case</span> 0x94: <span class="comment">/* Clock to host */</span>
+<a name="l00196"></a>00196                         mpu.clock.clock_to_host=<span class="keyword">false</span>;
 <a name="l00197"></a>00197                         <span class="keywordflow">break</span>;
-<a name="l00198"></a>00198                 <span class="keywordflow">case</span> 0xc2: <span class="comment">/* Internal timebase */</span>
-<a name="l00199"></a>00199                         mpu.clock.timebase=48;
+<a name="l00198"></a>00198                 <span class="keywordflow">case</span> 0x95:
+<a name="l00199"></a>00199                         mpu.clock.clock_to_host=<span class="keyword">true</span>;
 <a name="l00200"></a>00200                         <span class="keywordflow">break</span>;
-<a name="l00201"></a>00201                 <span class="keywordflow">case</span> 0xc3:
-<a name="l00202"></a>00202                         mpu.clock.timebase=72;
+<a name="l00201"></a>00201                 <span class="keywordflow">case</span> 0xc2: <span class="comment">/* Internal timebase */</span>
+<a name="l00202"></a>00202                         mpu.clock.timebase=48;
 <a name="l00203"></a>00203                         <span class="keywordflow">break</span>;
-<a name="l00204"></a>00204                 <span class="keywordflow">case</span> 0xc4:
-<a name="l00205"></a>00205                         mpu.clock.timebase=96;
+<a name="l00204"></a>00204                 <span class="keywordflow">case</span> 0xc3:
+<a name="l00205"></a>00205                         mpu.clock.timebase=72;
 <a name="l00206"></a>00206                         <span class="keywordflow">break</span>;
-<a name="l00207"></a>00207                 <span class="keywordflow">case</span> 0xc5:
-<a name="l00208"></a>00208                         mpu.clock.timebase=120;
+<a name="l00207"></a>00207                 <span class="keywordflow">case</span> 0xc4:
+<a name="l00208"></a>00208                         mpu.clock.timebase=96;
 <a name="l00209"></a>00209                         <span class="keywordflow">break</span>;
-<a name="l00210"></a>00210                 <span class="keywordflow">case</span> 0xc6:
-<a name="l00211"></a>00211                         mpu.clock.timebase=144;
+<a name="l00210"></a>00210                 <span class="keywordflow">case</span> 0xc5:
+<a name="l00211"></a>00211                         mpu.clock.timebase=120;
 <a name="l00212"></a>00212                         <span class="keywordflow">break</span>;
-<a name="l00213"></a>00213                 <span class="keywordflow">case</span> 0xc7:
-<a name="l00214"></a>00214                         mpu.clock.timebase=168;
+<a name="l00213"></a>00213                 <span class="keywordflow">case</span> 0xc6:
+<a name="l00214"></a>00214                         mpu.clock.timebase=144;
 <a name="l00215"></a>00215                         <span class="keywordflow">break</span>;
-<a name="l00216"></a>00216                 <span class="keywordflow">case</span> 0xc8:
-<a name="l00217"></a>00217                         mpu.clock.timebase=192;
+<a name="l00216"></a>00216                 <span class="keywordflow">case</span> 0xc7:
+<a name="l00217"></a>00217                         mpu.clock.timebase=168;
 <a name="l00218"></a>00218                         <span class="keywordflow">break</span>;
-<a name="l00219"></a>00219                 <span class="comment">/* Commands with data byte */</span>
-<a name="l00220"></a>00220                 <span class="keywordflow">case</span> 0xe0: <span class="keywordflow">case</span> 0xe1: <span class="keywordflow">case</span> 0xe2: <span class="keywordflow">case</span> 0xe4: <span class="keywordflow">case</span> 0xe6: 
-<a name="l00221"></a>00221                 <span class="keywordflow">case</span> 0xe7: <span class="keywordflow">case</span> 0xec: <span class="keywordflow">case</span> 0xed: <span class="keywordflow">case</span> 0xee: <span class="keywordflow">case</span> 0xef:
-<a name="l00222"></a>00222                         mpu.state.command_byte=val;
-<a name="l00223"></a>00223                         <span class="keywordflow">break</span>;
-<a name="l00224"></a>00224                 <span class="comment">/* Commands 0xa# returning data */</span>
-<a name="l00225"></a>00225                 <span class="keywordflow">case</span> 0xab:      <span class="comment">/* Request and clear recording counter */</span>
-<a name="l00226"></a>00226                         QueueByte(MSG_MPU_ACK);
-<a name="l00227"></a>00227                         QueueByte(0);
-<a name="l00228"></a>00228                         <span class="keywordflow">return</span>;
-<a name="l00229"></a>00229                 <span class="keywordflow">case</span> 0xac:      <span class="comment">/* Request version */</span>
-<a name="l00230"></a>00230                         QueueByte(MSG_MPU_ACK);
-<a name="l00231"></a>00231                         QueueByte(MPU401_VERSION);
-<a name="l00232"></a>00232                         <span class="keywordflow">return</span>;
-<a name="l00233"></a>00233                 <span class="keywordflow">case</span> 0xad:      <span class="comment">/* Request revision */</span>
-<a name="l00234"></a>00234                         QueueByte(MSG_MPU_ACK);
-<a name="l00235"></a>00235                         QueueByte(MPU401_REVISION);
-<a name="l00236"></a>00236                         <span class="keywordflow">return</span>;
-<a name="l00237"></a>00237                 <span class="keywordflow">case</span> 0xaf:      <span class="comment">/* Request tempo */</span>
-<a name="l00238"></a>00238                         QueueByte(MSG_MPU_ACK);
-<a name="l00239"></a>00239                         QueueByte(mpu.clock.tempo);
-<a name="l00240"></a>00240                         <span class="keywordflow">return</span>;
-<a name="l00241"></a>00241                 <span class="keywordflow">case</span> 0xb1:      <span class="comment">/* Reset relative tempo */</span>
-<a name="l00242"></a>00242             mpu.clock.old_tempo_rel=mpu.clock.tempo_rel;
-<a name="l00243"></a>00243             mpu.clock.tempo_rel=0x40;
-<a name="l00244"></a>00244                         <span class="keywordflow">break</span>;
-<a name="l00245"></a>00245                 <span class="keywordflow">case</span> 0xb9:      <span class="comment">/* Clear play map */</span>
-<a name="l00246"></a>00246                 <span class="keywordflow">case</span> 0xb8:      <span class="comment">/* Clear play counters */</span>
-<a name="l00247"></a>00247                         <span class="keywordflow">for</span> (Bit8u i=0xb0;i&lt;0xbf;i++) { <span class="comment">/* All notes off */</span>
-<a name="l00248"></a>00248                                 MIDI_RawOutByte(i);
-<a name="l00249"></a>00249                                 MIDI_RawOutByte(0x7b);
-<a name="l00250"></a>00250                                 MIDI_RawOutByte(0);
-<a name="l00251"></a>00251                         }
-<a name="l00252"></a>00252                         <span class="keywordflow">for</span> (Bitu i=0;i&lt;8;i++) {
-<a name="l00253"></a>00253                                 mpu.playbuf[i].counter=0;
-<a name="l00254"></a>00254                                 mpu.playbuf[i].type=T_OVERFLOW;
-<a name="l00255"></a>00255                         }
-<a name="l00256"></a>00256                         mpu.condbuf.counter=0;
-<a name="l00257"></a>00257                         mpu.condbuf.type=T_OVERFLOW;
-<a name="l00258"></a>00258                         <span class="keywordflow">if</span> (!(mpu.state.conductor=mpu.state.cond_set)) mpu.state.cond_req=0;
-<a name="l00259"></a>00259                         mpu.state.amask=mpu.state.tmask;
-<a name="l00260"></a>00260                         mpu.state.req_mask=0;
-<a name="l00261"></a>00261                         mpu.state.irq_pending=<span class="keyword">true</span>;
-<a name="l00262"></a>00262                         <span class="keywordflow">break</span>;
-<a name="l00263"></a>00263                 <span class="keywordflow">case</span> 0xff:      <span class="comment">/* Reset MPU-401 */</span>
-<a name="l00264"></a>00264                         <a class="code" href="classLOG.html">LOG</a>(LOG_MISC,LOG_NORMAL)(<span class="stringliteral">&quot;MPU-401:Reset %X&quot;</span>,(int)val);
-<a name="l00265"></a>00265                         PIC_AddEvent(MPU401_ResetDone,MPU401_RESETBUSY);
-<a name="l00266"></a>00266                         mpu.state.reset=<span class="keyword">true</span>;
-<a name="l00267"></a>00267                         <span class="keywordflow">if</span> (mpu.mode==M_UART) {
-<a name="l00268"></a>00268                                 MPU401_Reset();
-<a name="l00269"></a>00269                                 <span class="keywordflow">return</span>; <span class="comment">//do not send ack in UART mode</span>
-<a name="l00270"></a>00270                         }
-<a name="l00271"></a>00271                         MPU401_Reset();
-<a name="l00272"></a>00272                         <span class="keywordflow">break</span>;
-<a name="l00273"></a>00273                 <span class="keywordflow">case</span> 0x3f:      <span class="comment">/* UART mode */</span>
-<a name="l00274"></a>00274                         <a class="code" href="classLOG.html">LOG</a>(LOG_MISC,LOG_NORMAL)(<span class="stringliteral">&quot;MPU-401:Set UART mode %X&quot;</span>,(int)val);
-<a name="l00275"></a>00275                         mpu.mode=M_UART;
-<a name="l00276"></a>00276                         <span class="keywordflow">break</span>;
-<a name="l00277"></a>00277                 <span class="keywordflow">default</span>:;
-<a name="l00278"></a>00278                         <span class="comment">//LOG(LOG_MISC,LOG_NORMAL)(&quot;MPU-401:Unhandled command %X&quot;,val);</span>
-<a name="l00279"></a>00279         }
-<a name="l00280"></a>00280         QueueByte(MSG_MPU_ACK);
-<a name="l00281"></a>00281 }
-<a name="l00282"></a>00282 
-<a name="l00283"></a>00283 <span class="keyword">static</span> Bitu MPU401_ReadData(Bitu port,Bitu iolen) {
-<a name="l00284"></a>00284     (void)iolen;<span class="comment">//UNUSED</span>
-<a name="l00285"></a>00285     (void)port;<span class="comment">//UNUSED</span>
-<a name="l00286"></a>00286         Bit8u ret=MSG_MPU_ACK;
-<a name="l00287"></a>00287         <span class="keywordflow">if</span> (mpu.queue_used) {
-<a name="l00288"></a>00288                 <span class="keywordflow">if</span> (mpu.queue_pos&gt;=MPU401_QUEUE) mpu.queue_pos-=MPU401_QUEUE;
-<a name="l00289"></a>00289                 ret=mpu.queue[mpu.queue_pos];
-<a name="l00290"></a>00290                 mpu.queue_pos++;mpu.queue_used--;
-<a name="l00291"></a>00291         }
-<a name="l00292"></a>00292         <span class="keywordflow">if</span> (!mpu.intelligent) <span class="keywordflow">return</span> ret;
-<a name="l00293"></a>00293 
-<a name="l00294"></a>00294         <span class="keywordflow">if</span> (mpu.queue_used == 0) PIC_DeActivateIRQ(mpu.irq);
-<a name="l00295"></a>00295 
-<a name="l00296"></a>00296         <span class="keywordflow">if</span> (ret&gt;=0xf0 &amp;&amp; ret&lt;=0xf7) { <span class="comment">/* MIDI data request */</span>
-<a name="l00297"></a>00297                 mpu.state.channel=ret&amp;7;
-<a name="l00298"></a>00298                 mpu.state.data_onoff=0;
-<a name="l00299"></a>00299                 mpu.state.cond_req=<span class="keyword">false</span>;
-<a name="l00300"></a>00300         }
-<a name="l00301"></a>00301         <span class="keywordflow">if</span> (ret==MSG_MPU_COMMAND_REQ) {
-<a name="l00302"></a>00302                 mpu.state.data_onoff=0;
-<a name="l00303"></a>00303                 mpu.state.cond_req=<span class="keyword">true</span>;
-<a name="l00304"></a>00304                 <span class="keywordflow">if</span> (mpu.condbuf.type!=T_OVERFLOW) {
-<a name="l00305"></a>00305                         mpu.state.block_ack=<span class="keyword">true</span>;
-<a name="l00306"></a>00306                         MPU401_WriteCommand(0x331,mpu.condbuf.value[0],1);
-<a name="l00307"></a>00307                         <span class="keywordflow">if</span> (mpu.state.command_byte) MPU401_WriteData(0x330,mpu.condbuf.value[1],1);
-<a name="l00308"></a>00308                 }
-<a name="l00309"></a>00309         mpu.condbuf.type=T_OVERFLOW;
-<a name="l00310"></a>00310         }
-<a name="l00311"></a>00311         <span class="keywordflow">if</span> (ret==MSG_MPU_END || ret==MSG_MPU_CLOCK || ret==MSG_MPU_ACK) {
-<a name="l00312"></a>00312                 mpu.state.data_onoff=-1;
-<a name="l00313"></a>00313                 MPU401_EOIHandlerDispatch();
-<a name="l00314"></a>00314         }
-<a name="l00315"></a>00315         <span class="keywordflow">return</span> ret;
-<a name="l00316"></a>00316 }
-<a name="l00317"></a>00317 
-<a name="l00318"></a>00318 <span class="keyword">static</span> <span class="keywordtype">void</span> MPU401_WriteData(Bitu port,Bitu val,Bitu iolen) {
-<a name="l00319"></a>00319     (void)iolen;<span class="comment">//UNUSED</span>
-<a name="l00320"></a>00320     (void)port;<span class="comment">//UNUSED</span>
-<a name="l00321"></a>00321         <span class="keywordflow">if</span> (mpu.mode==M_UART) {MIDI_RawOutByte((Bit8u)val);<span class="keywordflow">return</span>;}
-<a name="l00322"></a>00322         <span class="keywordflow">switch</span> (mpu.state.command_byte) {       <span class="comment">/* 0xe# command data */</span>
-<a name="l00323"></a>00323                 <span class="keywordflow">case</span> 0x00:
-<a name="l00324"></a>00324                         <span class="keywordflow">break</span>;
-<a name="l00325"></a>00325                 <span class="keywordflow">case</span> 0xe0:      <span class="comment">/* Set tempo */</span>
-<a name="l00326"></a>00326                         mpu.state.command_byte=0;
-<a name="l00327"></a>00327                         mpu.clock.tempo=(Bit8u)val;
-<a name="l00328"></a>00328                         <span class="keywordflow">return</span>;
-<a name="l00329"></a>00329                 <span class="keywordflow">case</span> 0xe1:      <span class="comment">/* Set relative tempo */</span>
-<a name="l00330"></a>00330                         mpu.state.command_byte=0;
-<a name="l00331"></a>00331             mpu.clock.old_tempo_rel=mpu.clock.tempo_rel;
-<a name="l00332"></a>00332             mpu.clock.tempo_rel=(Bit8u)val;
-<a name="l00333"></a>00333             <span class="keywordflow">if</span> (val != 0x40) <a class="code" href="classLOG.html">LOG</a>(LOG_MISC,LOG_ERROR)(<span class="stringliteral">&quot;MPU-401:Relative tempo change value 0x%x (%.3f)&quot;</span>,(<span class="keywordtype">unsigned</span> int)val,(<span class="keywordtype">double</span>)val / 0x40);
-<a name="l00334"></a>00334                         <span class="keywordflow">return</span>;
-<a name="l00335"></a>00335                 <span class="keywordflow">case</span> 0xe7:      <span class="comment">/* Set internal clock to host interval */</span>
-<a name="l00336"></a>00336                         mpu.state.command_byte=0;
-<a name="l00337"></a>00337                         mpu.clock.cth_rate=(Bit8u)(val&gt;&gt;2);
-<a name="l00338"></a>00338                         <span class="keywordflow">return</span>;
-<a name="l00339"></a>00339                 <span class="keywordflow">case</span> 0xec:      <span class="comment">/* Set active track mask */</span>
-<a name="l00340"></a>00340                         mpu.state.command_byte=0;
-<a name="l00341"></a>00341                         mpu.state.tmask=(Bit8u)val;
-<a name="l00342"></a>00342                         <span class="keywordflow">return</span>;
-<a name="l00343"></a>00343                 <span class="keywordflow">case</span> 0xed: <span class="comment">/* Set play counter mask */</span>
-<a name="l00344"></a>00344                         mpu.state.command_byte=0;
-<a name="l00345"></a>00345                         mpu.state.cmask=(Bit8u)val;
-<a name="l00346"></a>00346                         <span class="keywordflow">return</span>;
-<a name="l00347"></a>00347                 <span class="keywordflow">case</span> 0xee: <span class="comment">/* Set 1-8 MIDI channel mask */</span>
-<a name="l00348"></a>00348                         mpu.state.command_byte=0;
-<a name="l00349"></a>00349                         mpu.state.midi_mask&amp;=0xff00;
-<a name="l00350"></a>00350                         mpu.state.midi_mask|=val;
-<a name="l00351"></a>00351                         <span class="keywordflow">return</span>;
-<a name="l00352"></a>00352                 <span class="keywordflow">case</span> 0xef: <span class="comment">/* Set 9-16 MIDI channel mask */</span>
-<a name="l00353"></a>00353                         mpu.state.command_byte=0;
-<a name="l00354"></a>00354                         mpu.state.midi_mask&amp;=0x00ff;
-<a name="l00355"></a>00355                         mpu.state.midi_mask|=((Bit16u)val)&lt;&lt;8;
-<a name="l00356"></a>00356                         <span class="keywordflow">return</span>;
-<a name="l00357"></a>00357                 <span class="comment">//case 0xe2:    /* Set graduation for relative tempo */</span>
-<a name="l00358"></a>00358                 <span class="comment">//case 0xe4:    /* Set metronome */</span>
-<a name="l00359"></a>00359                 <span class="comment">//case 0xe6:    /* Set metronome measure length */</span>
-<a name="l00360"></a>00360                 <span class="keywordflow">default</span>:
-<a name="l00361"></a>00361                         mpu.state.command_byte=0;
-<a name="l00362"></a>00362                         <span class="keywordflow">return</span>;
-<a name="l00363"></a>00363         }
-<a name="l00364"></a>00364         <span class="keyword">static</span> Bitu length,cnt,posd;
-<a name="l00365"></a>00365         <span class="keywordflow">if</span> (mpu.state.wsd) {    <span class="comment">/* Directly send MIDI message */</span>
-<a name="l00366"></a>00366                 <span class="keywordflow">if</span> (mpu.state.wsd_start) {
-<a name="l00367"></a>00367                         mpu.state.wsd_start=0;
-<a name="l00368"></a>00368                         cnt=0;
-<a name="l00369"></a>00369                                 <span class="keywordflow">switch</span> (val&amp;0xf0) {
-<a name="l00370"></a>00370                                         <span class="keywordflow">case</span> 0xc0:<span class="keywordflow">case</span> 0xd0:
-<a name="l00371"></a>00371                                                 mpu.playbuf[mpu.state.channel].value[0]=(Bit8u)val;
-<a name="l00372"></a>00372                                                 length=2;
-<a name="l00373"></a>00373                                                 <span class="keywordflow">break</span>;
-<a name="l00374"></a>00374                                         <span class="keywordflow">case</span> 0x80:<span class="keywordflow">case</span> 0x90:<span class="keywordflow">case</span> 0xa0:<span class="keywordflow">case</span> 0xb0:<span class="keywordflow">case</span> 0xe0:
-<a name="l00375"></a>00375                                                 mpu.playbuf[mpu.state.channel].value[0]=(Bit8u)val;
-<a name="l00376"></a>00376                                                 length=3;
-<a name="l00377"></a>00377                                                 <span class="keywordflow">break</span>;
-<a name="l00378"></a>00378                                         <span class="keywordflow">case</span> 0xf0:
-<a name="l00379"></a>00379                                                 <a class="code" href="classLOG.html">LOG</a>(LOG_MISC,LOG_ERROR)(<span class="stringliteral">&quot;MPU-401:Illegal WSD byte&quot;</span>);
-<a name="l00380"></a>00380                                                 mpu.state.wsd=0;
-<a name="l00381"></a>00381                                                 mpu.state.channel=mpu.state.old_chan;
-<a name="l00382"></a>00382                                                 <span class="keywordflow">return</span>;
-<a name="l00383"></a>00383                                         <span class="keywordflow">default</span>: <span class="comment">/* MIDI with running status */</span>
-<a name="l00384"></a>00384                                                 cnt++;
-<a name="l00385"></a>00385                                                 MIDI_RawOutByte(mpu.playbuf[mpu.state.channel].value[0]);
-<a name="l00386"></a>00386                                 }
-<a name="l00387"></a>00387                 }
-<a name="l00388"></a>00388                 <span class="keywordflow">if</span> (cnt&lt;length) {MIDI_RawOutByte((Bit8u)val);cnt++;}
-<a name="l00389"></a>00389                 <span class="keywordflow">if</span> (cnt==length) {
-<a name="l00390"></a>00390                         mpu.state.wsd=0;
-<a name="l00391"></a>00391                         mpu.state.channel=mpu.state.old_chan;
-<a name="l00392"></a>00392                 }
-<a name="l00393"></a>00393                 <span class="keywordflow">return</span>;
-<a name="l00394"></a>00394         }
-<a name="l00395"></a>00395         <span class="keywordflow">if</span> (mpu.state.wsm) {    <span class="comment">/* Directly send system message */</span>
-<a name="l00396"></a>00396                 <span class="keywordflow">if</span> (val==MSG_EOX) {MIDI_RawOutByte(MSG_EOX);mpu.state.wsm=0;<span class="keywordflow">return</span>;}
-<a name="l00397"></a>00397                 <span class="keywordflow">if</span> (mpu.state.wsd_start) {
-<a name="l00398"></a>00398                         mpu.state.wsd_start=0;
-<a name="l00399"></a>00399                         cnt=0;
-<a name="l00400"></a>00400                         <span class="keywordflow">switch</span> (val) {
-<a name="l00401"></a>00401                                 <span class="keywordflow">case</span> 0xf2:{ length=3; <span class="keywordflow">break</span>;}
-<a name="l00402"></a>00402                                 <span class="keywordflow">case</span> 0xf3:{ length=2; <span class="keywordflow">break</span>;}
-<a name="l00403"></a>00403                                 <span class="keywordflow">case</span> 0xf6:{ length=1; <span class="keywordflow">break</span>;}
-<a name="l00404"></a>00404                                 <span class="keywordflow">case</span> 0xf0:{ length=0; <span class="keywordflow">break</span>;}
-<a name="l00405"></a>00405                                 <span class="keywordflow">default</span>:
-<a name="l00406"></a>00406                                         length=0;
-<a name="l00407"></a>00407                         }
-<a name="l00408"></a>00408                 }
-<a name="l00409"></a>00409                 <span class="keywordflow">if</span> (!length || cnt&lt;length) {MIDI_RawOutByte((Bit8u)val);cnt++;}
-<a name="l00410"></a>00410                 <span class="keywordflow">if</span> (cnt==length) mpu.state.wsm=0;
-<a name="l00411"></a>00411                 <span class="keywordflow">return</span>;
-<a name="l00412"></a>00412         }
-<a name="l00413"></a>00413         <span class="keywordflow">if</span> (mpu.state.cond_req) { <span class="comment">/* Command */</span>
-<a name="l00414"></a>00414                 <span class="keywordflow">switch</span> (mpu.state.data_onoff) {
-<a name="l00415"></a>00415                         <span class="keywordflow">case</span> -1:
-<a name="l00416"></a>00416                                 <span class="keywordflow">return</span>;
-<a name="l00417"></a>00417                         <span class="keywordflow">case</span>  0: <span class="comment">/* Timing byte */</span>
-<a name="l00418"></a>00418                                 mpu.condbuf.vlength=0;
-<a name="l00419"></a>00419                                 <span class="keywordflow">if</span> (val&lt;0xf0) mpu.state.data_onoff++;
-<a name="l00420"></a>00420                                 <span class="keywordflow">else</span> {
-<a name="l00421"></a>00421                                         mpu.state.data_onoff=-1;
-<a name="l00422"></a>00422                                         MPU401_EOIHandlerDispatch();
-<a name="l00423"></a>00423                                         <span class="keywordflow">return</span>;
-<a name="l00424"></a>00424                                 }
-<a name="l00425"></a>00425                                 <span class="keywordflow">if</span> (val==0) mpu.state.send_now=<span class="keyword">true</span>;
-<a name="l00426"></a>00426                                 <span class="keywordflow">else</span> mpu.state.send_now=<span class="keyword">false</span>;
-<a name="l00427"></a>00427                                 mpu.condbuf.counter=(Bits)val;
-<a name="l00428"></a>00428                                 <span class="keywordflow">break</span>;
-<a name="l00429"></a>00429                         <span class="keywordflow">case</span>  1: <span class="comment">/* Command byte #1 */</span>
-<a name="l00430"></a>00430                                 mpu.condbuf.type=T_COMMAND;
-<a name="l00431"></a>00431                                 <span class="keywordflow">if</span> (val==0xf8 || val==0xf9) mpu.condbuf.type=T_OVERFLOW;
-<a name="l00432"></a>00432                                 mpu.condbuf.value[mpu.condbuf.vlength]=(Bit8u)val;
-<a name="l00433"></a>00433                                 mpu.condbuf.vlength++;
-<a name="l00434"></a>00434                                 <span class="keywordflow">if</span> ((val&amp;0xf0)!=0xe0) MPU401_EOIHandlerDispatch();
-<a name="l00435"></a>00435                                 <span class="keywordflow">else</span> mpu.state.data_onoff++;
-<a name="l00436"></a>00436                                 <span class="keywordflow">break</span>;
-<a name="l00437"></a>00437                         <span class="keywordflow">case</span>  2:<span class="comment">/* Command byte #2 */</span>
-<a name="l00438"></a>00438                                 mpu.condbuf.value[mpu.condbuf.vlength]=(Bit8u)val;
-<a name="l00439"></a>00439                                 mpu.condbuf.vlength++;
-<a name="l00440"></a>00440                                 MPU401_EOIHandlerDispatch();
-<a name="l00441"></a>00441                                 <span class="keywordflow">break</span>;
-<a name="l00442"></a>00442                 }
-<a name="l00443"></a>00443                 <span class="keywordflow">return</span>;
-<a name="l00444"></a>00444         }
-<a name="l00445"></a>00445         <span class="keywordflow">switch</span> (mpu.state.data_onoff) { <span class="comment">/* Data */</span>
-<a name="l00446"></a>00446                 <span class="keywordflow">case</span>   -1:
-<a name="l00447"></a>00447                         <span class="keywordflow">return</span>;
-<a name="l00448"></a>00448                 <span class="keywordflow">case</span>    0: <span class="comment">/* Timing byte */</span>
-<a name="l00449"></a>00449                         <span class="keywordflow">if</span> (val&lt;0xf0) mpu.state.data_onoff=1;
-<a name="l00450"></a>00450                         <span class="keywordflow">else</span> {
-<a name="l00451"></a>00451                                 mpu.state.data_onoff=-1;
-<a name="l00452"></a>00452                                 MPU401_EOIHandlerDispatch();
-<a name="l00453"></a>00453                                 <span class="keywordflow">return</span>;
-<a name="l00454"></a>00454                         }
-<a name="l00455"></a>00455                         <span class="keywordflow">if</span> (val==0) mpu.state.send_now=<span class="keyword">true</span>;
-<a name="l00456"></a>00456                         <span class="keywordflow">else</span> mpu.state.send_now=<span class="keyword">false</span>;
-<a name="l00457"></a>00457                         mpu.playbuf[mpu.state.channel].counter=(Bits)val;
-<a name="l00458"></a>00458                         <span class="keywordflow">break</span>;
-<a name="l00459"></a>00459                 <span class="keywordflow">case</span>    1: <span class="comment">/* MIDI */</span>
-<a name="l00460"></a>00460                         mpu.playbuf[mpu.state.channel].vlength++;
-<a name="l00461"></a>00461                         posd=mpu.playbuf[mpu.state.channel].vlength;
-<a name="l00462"></a>00462                         <span class="keywordflow">if</span> (posd==1) {
-<a name="l00463"></a>00463                                 <span class="keywordflow">switch</span> (val&amp;0xf0) {
-<a name="l00464"></a>00464                                         <span class="keywordflow">case</span> 0xf0: <span class="comment">/* System message or mark */</span>
-<a name="l00465"></a>00465                                                 <span class="keywordflow">if</span> (val&gt;0xf7) {
-<a name="l00466"></a>00466                                                         mpu.playbuf[mpu.state.channel].type=T_MARK;
-<a name="l00467"></a>00467                                                         mpu.playbuf[mpu.state.channel].sys_val=(Bit8u)val;
-<a name="l00468"></a>00468                                                         length=1;
-<a name="l00469"></a>00469                                                 } <span class="keywordflow">else</span> {
-<a name="l00470"></a>00470                                                         <a class="code" href="classLOG.html">LOG</a>(LOG_MISC,LOG_ERROR)(<span class="stringliteral">&quot;MPU-401:Illegal message&quot;</span>);
-<a name="l00471"></a>00471                                                         mpu.playbuf[mpu.state.channel].type=T_MIDI_SYS;
-<a name="l00472"></a>00472                                                         mpu.playbuf[mpu.state.channel].sys_val=(Bit8u)val;
-<a name="l00473"></a>00473                                                         length=1;
-<a name="l00474"></a>00474                                                 }
-<a name="l00475"></a>00475                                                 <span class="keywordflow">break</span>;
-<a name="l00476"></a>00476                                         <span class="keywordflow">case</span> 0xc0: <span class="keywordflow">case</span> 0xd0: <span class="comment">/* MIDI Message */</span>
-<a name="l00477"></a>00477                                                 mpu.playbuf[mpu.state.channel].type=T_MIDI_NORM;
-<a name="l00478"></a>00478                                                 length=mpu.playbuf[mpu.state.channel].length=2;
-<a name="l00479"></a>00479                                                 <span class="keywordflow">break</span>;
-<a name="l00480"></a>00480                                         <span class="keywordflow">case</span> 0x80: <span class="keywordflow">case</span> 0x90: <span class="keywordflow">case</span> 0xa0:  <span class="keywordflow">case</span> 0xb0: <span class="keywordflow">case</span> 0xe0: 
-<a name="l00481"></a>00481                                                 mpu.playbuf[mpu.state.channel].type=T_MIDI_NORM;
-<a name="l00482"></a>00482                                                 length=mpu.playbuf[mpu.state.channel].length=3;
-<a name="l00483"></a>00483                                                 <span class="keywordflow">break</span>;
-<a name="l00484"></a>00484                                         <span class="keywordflow">default</span>: <span class="comment">/* MIDI data with running status */</span>
-<a name="l00485"></a>00485                                                 posd++;
-<a name="l00486"></a>00486                                                 mpu.playbuf[mpu.state.channel].vlength++;
-<a name="l00487"></a>00487                                                 mpu.playbuf[mpu.state.channel].type=T_MIDI_NORM;
-<a name="l00488"></a>00488                                                 length=mpu.playbuf[mpu.state.channel].length;
-<a name="l00489"></a>00489                                                 <span class="keywordflow">break</span>;
-<a name="l00490"></a>00490                                 }
-<a name="l00491"></a>00491                         }
-<a name="l00492"></a>00492                         <span class="keywordflow">if</span> (!(posd==1 &amp;&amp; val&gt;=0xf0)) mpu.playbuf[mpu.state.channel].value[posd-1]=(Bit8u)val;
-<a name="l00493"></a>00493                         <span class="keywordflow">if</span> (posd==length) MPU401_EOIHandlerDispatch();
-<a name="l00494"></a>00494         }
-<a name="l00495"></a>00495 }
-<a name="l00496"></a>00496 
-<a name="l00497"></a>00497 <span class="keyword">static</span> <span class="keywordtype">void</span> MPU401_IntelligentOut(Bit8u chan) {
-<a name="l00498"></a>00498         Bitu val;
-<a name="l00499"></a>00499         <span class="keywordflow">switch</span> (mpu.playbuf[chan].type) {
-<a name="l00500"></a>00500                 <span class="keywordflow">case</span> T_OVERFLOW:
-<a name="l00501"></a>00501                         <span class="keywordflow">break</span>;
-<a name="l00502"></a>00502                 <span class="keywordflow">case</span> T_MARK:
-<a name="l00503"></a>00503                         val=mpu.playbuf[chan].sys_val;
-<a name="l00504"></a>00504                         <span class="keywordflow">if</span> (val==0xfc) {
-<a name="l00505"></a>00505                                 MIDI_RawOutByte((Bit8u)val);
-<a name="l00506"></a>00506                                 mpu.state.amask&amp;=~(1&lt;&lt;chan);
-<a name="l00507"></a>00507                                 mpu.state.req_mask&amp;=~(1&lt;&lt;chan);
-<a name="l00508"></a>00508                         }
-<a name="l00509"></a>00509                         <span class="keywordflow">break</span>;
-<a name="l00510"></a>00510                 <span class="keywordflow">case</span> T_MIDI_NORM:
-<a name="l00511"></a>00511                         <span class="keywordflow">for</span> (Bitu i=0;i&lt;mpu.playbuf[chan].vlength;i++)
-<a name="l00512"></a>00512                                 MIDI_RawOutByte(mpu.playbuf[chan].value[i]);
-<a name="l00513"></a>00513                         <span class="keywordflow">break</span>;
-<a name="l00514"></a>00514                 <span class="keywordflow">default</span>:
-<a name="l00515"></a>00515                         <span class="keywordflow">break</span>;
-<a name="l00516"></a>00516         }
-<a name="l00517"></a>00517 }
-<a name="l00518"></a>00518 
-<a name="l00519"></a>00519 <span class="keyword">static</span> <span class="keywordtype">void</span> UpdateTrack(Bit8u chan) {
-<a name="l00520"></a>00520         MPU401_IntelligentOut(chan);
-<a name="l00521"></a>00521         <span class="keywordflow">if</span> (mpu.state.amask&amp;(1&lt;&lt;chan)) {
-<a name="l00522"></a>00522                 mpu.playbuf[chan].vlength=0;
-<a name="l00523"></a>00523                 mpu.playbuf[chan].type=T_OVERFLOW;
-<a name="l00524"></a>00524                 mpu.playbuf[chan].counter=0xf0;
-<a name="l00525"></a>00525                 mpu.state.req_mask|=(1&lt;&lt;chan);
-<a name="l00526"></a>00526         } <span class="keywordflow">else</span> {
-<a name="l00527"></a>00527                 <span class="keywordflow">if</span> (mpu.state.amask==0 &amp;&amp; !mpu.state.conductor) mpu.state.req_mask|=(1&lt;&lt;12);
-<a name="l00528"></a>00528         }
-<a name="l00529"></a>00529 }
-<a name="l00530"></a>00530 
-<a name="l00531"></a>00531 <span class="keyword">static</span> <span class="keywordtype">void</span> UpdateConductor(<span class="keywordtype">void</span>) {
-<a name="l00532"></a>00532     <span class="keywordflow">for</span> (<span class="keywordtype">unsigned</span> <span class="keywordtype">int</span> i=0;i &lt; mpu.condbuf.vlength;i++) {
-<a name="l00533"></a>00533         <span class="keywordflow">if</span> (mpu.condbuf.value[i] == 0xfc) {
-<a name="l00534"></a>00534             mpu.condbuf.value[i] = 0;
-<a name="l00535"></a>00535             mpu.state.conductor=<span class="keyword">false</span>;
-<a name="l00536"></a>00536             mpu.state.req_mask&amp;=~(1&lt;&lt;9);
-<a name="l00537"></a>00537             <span class="keywordflow">if</span> (mpu.state.amask==0) mpu.state.req_mask|=(1&lt;&lt;12);
-<a name="l00538"></a>00538             <span class="keywordflow">return</span>;
-<a name="l00539"></a>00539         }
-<a name="l00540"></a>00540     }
-<a name="l00541"></a>00541 
-<a name="l00542"></a>00542         mpu.condbuf.vlength=0;
-<a name="l00543"></a>00543         mpu.condbuf.counter=0xf0;
-<a name="l00544"></a>00544         mpu.state.req_mask|=(1&lt;&lt;9);
-<a name="l00545"></a>00545 }
-<a name="l00546"></a>00546 
-<a name="l00547"></a>00547 <span class="keyword">static</span> <span class="keywordtype">void</span> MPU401_Event(Bitu val) {
-<a name="l00548"></a>00548     (void)val;<span class="comment">//UNUSED</span>
-<a name="l00549"></a>00549         <span class="keywordflow">if</span> (mpu.mode==M_UART) <span class="keywordflow">return</span>;
-<a name="l00550"></a>00550         <span class="keywordflow">if</span> (mpu.state.irq_pending) <span class="keywordflow">goto</span> next_event;
-<a name="l00551"></a>00551         <span class="keywordflow">for</span> (Bit8u i=0;i&lt;8;i++) { <span class="comment">/* Decrease counters */</span>
-<a name="l00552"></a>00552                 <span class="keywordflow">if</span> (mpu.state.amask&amp;(1&lt;&lt;i)) {
-<a name="l00553"></a>00553                         mpu.playbuf[i].counter--;
-<a name="l00554"></a>00554                         <span class="keywordflow">if</span> (mpu.playbuf[i].counter&lt;=0) UpdateTrack(i);
-<a name="l00555"></a>00555                 }
-<a name="l00556"></a>00556         }               
-<a name="l00557"></a>00557         <span class="keywordflow">if</span> (mpu.state.conductor) {
-<a name="l00558"></a>00558                 mpu.condbuf.counter--;
-<a name="l00559"></a>00559                 <span class="keywordflow">if</span> (mpu.condbuf.counter&lt;=0) UpdateConductor();
-<a name="l00560"></a>00560         }
-<a name="l00561"></a>00561         <span class="keywordflow">if</span> (mpu.clock.clock_to_host) {
-<a name="l00562"></a>00562                 mpu.clock.cth_counter++;
-<a name="l00563"></a>00563                 <span class="keywordflow">if</span> (mpu.clock.cth_counter &gt;= mpu.clock.cth_rate) {
-<a name="l00564"></a>00564                         mpu.clock.cth_counter=0;
-<a name="l00565"></a>00565                         mpu.state.req_mask|=(1&lt;&lt;13);
-<a name="l00566"></a>00566                 }
-<a name="l00567"></a>00567         }
-<a name="l00568"></a>00568         <span class="keywordflow">if</span> (!mpu.state.irq_pending &amp;&amp; mpu.state.req_mask) MPU401_EOIHandler();
-<a name="l00569"></a>00569 next_event:
-<a name="l00570"></a>00570         Bitu new_time;
-<a name="l00571"></a>00571         <span class="keywordflow">if</span> ((new_time=(Bitu)((mpu.clock.tempo*mpu.clock.timebase*mpu.clock.tempo_rel)/0x40))==0) <span class="keywordflow">return</span>;
-<a name="l00572"></a>00572         PIC_AddEvent(MPU401_Event,MPU401_TIMECONSTANT/new_time);
-<a name="l00573"></a>00573 }
-<a name="l00574"></a>00574 
-<a name="l00575"></a>00575 
-<a name="l00576"></a>00576 <span class="keyword">static</span> <span class="keywordtype">void</span> MPU401_EOIHandlerDispatch(<span class="keywordtype">void</span>) {
-<a name="l00577"></a>00577         <span class="keywordflow">if</span> (mpu.state.send_now) {
-<a name="l00578"></a>00578                 mpu.state.eoi_scheduled=<span class="keyword">true</span>;
-<a name="l00579"></a>00579                 PIC_AddEvent(MPU401_EOIHandler,0.06f); <span class="comment">//Possible a bit longer</span>
-<a name="l00580"></a>00580         }
-<a name="l00581"></a>00581         <span class="keywordflow">else</span> <span class="keywordflow">if</span> (!mpu.state.eoi_scheduled) MPU401_EOIHandler();
-<a name="l00582"></a>00582 }
-<a name="l00583"></a>00583 
-<a name="l00584"></a>00584 <span class="comment">//Updates counters and requests new data on &quot;End of Input&quot;</span>
-<a name="l00585"></a>00585 <span class="keyword">static</span> <span class="keywordtype">void</span> MPU401_EOIHandler(Bitu val) {
-<a name="l00586"></a>00586     (void)val;<span class="comment">//UNUSED</span>
-<a name="l00587"></a>00587         mpu.state.eoi_scheduled=<span class="keyword">false</span>;
-<a name="l00588"></a>00588         <span class="keywordflow">if</span> (mpu.state.send_now) {
-<a name="l00589"></a>00589                 mpu.state.send_now=<span class="keyword">false</span>;
-<a name="l00590"></a>00590                 <span class="keywordflow">if</span> (mpu.state.cond_req) UpdateConductor();
-<a name="l00591"></a>00591                 <span class="keywordflow">else</span> UpdateTrack(mpu.state.channel);
-<a name="l00592"></a>00592         }
-<a name="l00593"></a>00593         mpu.state.irq_pending=<span class="keyword">false</span>;
-<a name="l00594"></a>00594         <span class="keywordflow">if</span> (!mpu.state.playing || !mpu.state.req_mask) <span class="keywordflow">return</span>;
-<a name="l00595"></a>00595         Bit8u i=0;
-<a name="l00596"></a>00596         <span class="keywordflow">do</span> {
-<a name="l00597"></a>00597                 <span class="keywordflow">if</span> (mpu.state.req_mask&amp;(1&lt;&lt;i)) {
-<a name="l00598"></a>00598                         QueueByte(0xf0+i);
-<a name="l00599"></a>00599                         mpu.state.req_mask&amp;=~(1&lt;&lt;i);
-<a name="l00600"></a>00600                         <span class="keywordflow">break</span>;
-<a name="l00601"></a>00601                 }
-<a name="l00602"></a>00602         } <span class="keywordflow">while</span> ((i++)&lt;16);
-<a name="l00603"></a>00603 }
-<a name="l00604"></a>00604 
-<a name="l00605"></a>00605 <span class="keyword">static</span> <span class="keywordtype">void</span> MPU401_ResetDone(Bitu) {
-<a name="l00606"></a>00606         mpu.state.reset=<span class="keyword">false</span>;
-<a name="l00607"></a>00607         <span class="keywordflow">if</span> (mpu.state.cmd_pending) {
-<a name="l00608"></a>00608                 MPU401_WriteCommand(0x331,mpu.state.cmd_pending-1,1);
-<a name="l00609"></a>00609                 mpu.state.cmd_pending=0;
-<a name="l00610"></a>00610         }
-<a name="l00611"></a>00611 }
-<a name="l00612"></a>00612 <span class="keyword">static</span> <span class="keywordtype">void</span> MPU401_Reset(<span class="keywordtype">void</span>) {
-<a name="l00613"></a>00613         PIC_DeActivateIRQ(mpu.irq);
-<a name="l00614"></a>00614         mpu.mode=(mpu.intelligent ? M_INTELLIGENT : M_UART);
-<a name="l00615"></a>00615         PIC_RemoveEvents(MPU401_EOIHandler);
-<a name="l00616"></a>00616         mpu.state.eoi_scheduled=<span class="keyword">false</span>;
-<a name="l00617"></a>00617         mpu.state.wsd=<span class="keyword">false</span>;
-<a name="l00618"></a>00618         mpu.state.wsm=<span class="keyword">false</span>;
-<a name="l00619"></a>00619         mpu.state.conductor=<span class="keyword">false</span>;
-<a name="l00620"></a>00620         mpu.state.cond_req=<span class="keyword">false</span>;
-<a name="l00621"></a>00621         mpu.state.cond_set=<span class="keyword">false</span>;
-<a name="l00622"></a>00622         mpu.state.playing=<span class="keyword">false</span>;
-<a name="l00623"></a>00623         mpu.state.run_irq=<span class="keyword">false</span>;
-<a name="l00624"></a>00624         mpu.state.irq_pending=<span class="keyword">false</span>;
-<a name="l00625"></a>00625         mpu.state.cmask=0xff;
-<a name="l00626"></a>00626         mpu.state.amask=mpu.state.tmask=0;
-<a name="l00627"></a>00627         mpu.state.midi_mask=0xffff;
-<a name="l00628"></a>00628         mpu.state.data_onoff=-1;
-<a name="l00629"></a>00629         mpu.state.command_byte=0;
-<a name="l00630"></a>00630         mpu.state.block_ack=<span class="keyword">false</span>;
-<a name="l00631"></a>00631         mpu.clock.tempo=mpu.clock.old_tempo=100;
-<a name="l00632"></a>00632         mpu.clock.timebase=mpu.clock.old_timebase=120;
-<a name="l00633"></a>00633         mpu.clock.tempo_rel=mpu.clock.old_tempo_rel=0x40;
-<a name="l00634"></a>00634         mpu.clock.tempo_grad=0;
-<a name="l00635"></a>00635         mpu.clock.clock_to_host=<span class="keyword">false</span>;
-<a name="l00636"></a>00636         mpu.clock.cth_rate=60;
-<a name="l00637"></a>00637         mpu.clock.cth_counter=0;
-<a name="l00638"></a>00638         ClrQueue();
-<a name="l00639"></a>00639         mpu.state.req_mask=0;
-<a name="l00640"></a>00640         mpu.condbuf.counter=0;
-<a name="l00641"></a>00641         mpu.condbuf.type=T_OVERFLOW;
-<a name="l00642"></a>00642         <span class="keywordflow">for</span> (Bitu i=0;i&lt;8;i++) {mpu.playbuf[i].type=T_OVERFLOW;mpu.playbuf[i].counter=0;}
-<a name="l00643"></a>00643 }
-<a name="l00644"></a>00644 
-<a name="l00645"></a>00645 <span class="keyword">static</span> <span class="keywordtype">void</span> IMF_Write(Bitu port,Bitu val,Bitu iolen) {
-<a name="l00646"></a>00646     (void)iolen;<span class="comment">//UNUSED</span>
-<a name="l00647"></a>00647         <a class="code" href="classLOG.html">LOG</a>(LOG_MISC,LOG_NORMAL)(<span class="stringliteral">&quot;IMF:Wr %4X,%X&quot;</span>,(int)port,(<span class="keywordtype">int</span>)val);
-<a name="l00648"></a>00648 }
-<a name="l00649"></a>00649 
-<a name="l00650"></a><a class="code" href="classMPU401.html">00650</a> <span class="keyword">class </span><a class="code" href="classMPU401.html">MPU401</a>:<span class="keyword">public</span> <a class="code" href="classModule__base.html">Module_base</a>{
-<a name="l00651"></a>00651 <span class="keyword">private</span>:
-<a name="l00652"></a>00652         <a class="code" href="classIO__ReadHandleObject.html">IO_ReadHandleObject</a> ReadHandler[2];
-<a name="l00653"></a>00653         <a class="code" href="classIO__WriteHandleObject.html">IO_WriteHandleObject</a> WriteHandler[2];
-<a name="l00654"></a>00654         <span class="keywordtype">bool</span> installed; <span class="comment">/*as it can fail to install by 2 ways (config and no midi)*/</span>
-<a name="l00655"></a>00655 <span class="keyword">public</span>:
-<a name="l00656"></a>00656         <a class="code" href="classMPU401.html">MPU401</a>(<a class="code" href="classSection.html">Section</a>* configuration):<a class="code" href="classModule__base.html">Module_base</a>(configuration){
-<a name="l00657"></a>00657                 installed = <span class="keyword">false</span>;
-<a name="l00658"></a>00658                 <a class="code" href="classSection__prop.html">Section_prop</a> * section=<span class="keyword">static_cast&lt;</span><a class="code" href="classSection__prop.html">Section_prop</a> *<span class="keyword">&gt;</span>(configuration);
-<a name="l00659"></a>00659                 <span class="keyword">const</span> <span class="keywordtype">char</span>* s_mpu = section-&gt;Get_string(<span class="stringliteral">&quot;mpu401&quot;</span>);
-<a name="l00660"></a>00660                 <span class="keywordflow">if</span>(strcasecmp(s_mpu,<span class="stringliteral">&quot;none&quot;</span>) == 0) <span class="keywordflow">return</span>;
-<a name="l00661"></a>00661                 <span class="keywordflow">if</span>(strcasecmp(s_mpu,<span class="stringliteral">&quot;off&quot;</span>) == 0) <span class="keywordflow">return</span>;
-<a name="l00662"></a>00662                 <span class="keywordflow">if</span>(strcasecmp(s_mpu,<span class="stringliteral">&quot;false&quot;</span>) == 0) <span class="keywordflow">return</span>;
-<a name="l00663"></a>00663                 <span class="keywordflow">if</span> (!MIDI_Available()) <span class="keywordflow">return</span>;
-<a name="l00664"></a>00664                 <span class="comment">/*Enabled and there is a Midi */</span>
-<a name="l00665"></a>00665                 installed = <span class="keyword">true</span>;
-<a name="l00666"></a>00666 
-<a name="l00667"></a>00667         Bitu baseio = (Bitu)section-&gt;Get_hex(<span class="stringliteral">&quot;mpubase&quot;</span>);
-<a name="l00668"></a>00668         <span class="keywordflow">if</span> (baseio == 0) {
-<a name="l00669"></a>00669             <span class="keywordflow">if</span> (IS_PC98_ARCH)
-<a name="l00670"></a>00670                 baseio = 0xE0D0; <span class="comment">// NTS: This is based on MMD.COM I/O probing behavior</span>
-<a name="l00671"></a>00671             <span class="keywordflow">else</span>
-<a name="l00672"></a>00672                 baseio = 0x330;
-<a name="l00673"></a>00673         }
-<a name="l00674"></a>00674 
-<a name="l00675"></a>00675         <span class="keywordflow">if</span> (baseio &gt;= 0x80D2 &amp;&amp; baseio &lt;= 0x80DE) {
-<a name="l00676"></a>00676             <span class="comment">/* TODO: Replace low 8 bits with low 8 bits of Sound Blaster 16 I/O base */</span>
-<a name="l00677"></a>00677         }
-<a name="l00678"></a>00678 
-<a name="l00679"></a>00679         <span class="keywordflow">if</span> (IS_PC98_ARCH) {
-<a name="l00680"></a>00680             <span class="keywordflow">if</span> (baseio &gt;= 0x80D2 &amp;&amp; baseio &lt;= 0x80DE)
-<a name="l00681"></a>00681                 { <span class="comment">/* OK */</span> }
-<a name="l00682"></a>00682             <span class="keywordflow">else</span> <span class="keywordflow">if</span> (baseio &gt;= 0xC000u &amp;&amp; baseio &lt;= 0xF8D0u)
-<a name="l00683"></a>00683                 { <span class="comment">/* OK */</span> }
-<a name="l00684"></a>00684             <span class="keywordflow">else</span>
-<a name="l00685"></a>00685                 baseio = 0xE0D0u;
-<a name="l00686"></a>00686         }
-<a name="l00687"></a>00687         <span class="keywordflow">else</span> {
-<a name="l00688"></a>00688             <span class="keywordflow">if</span> (baseio &lt; 0x300 || baseio &gt; 0x360)
-<a name="l00689"></a>00689                 baseio = 0x330;
-<a name="l00690"></a>00690         }
-<a name="l00691"></a>00691 
-<a name="l00692"></a>00692         <span class="keywordflow">if</span> (baseio &gt;= 0x80D2 &amp;&amp; baseio &lt;= 0x80DE) {
-<a name="l00693"></a>00693             LOG_MSG(<span class="stringliteral">&quot;MPU-401 Registering I/O ports as if SB16 MPU-401 at base %xh&quot;</span>,(<span class="keywordtype">unsigned</span> <span class="keywordtype">int</span>)baseio);
-<a name="l00694"></a>00694             <span class="comment">/* SB16 mapping</span>
-<a name="l00695"></a>00695 <span class="comment">             * C8D2h, C9D2h (PC-98) */</span>
-<a name="l00696"></a>00696             assert(IS_PC98_ARCH);
-<a name="l00697"></a>00697             WriteHandler[0].Install(baseio       ,&amp;MPU401_WriteData,IO_MB);
-<a name="l00698"></a>00698             WriteHandler[1].Install(baseio+0x100u,&amp;MPU401_WriteCommand,IO_MB);
-<a name="l00699"></a>00699             ReadHandler[0].Install(baseio       ,&amp;MPU401_ReadData,IO_MB);
-<a name="l00700"></a>00700             ReadHandler[1].Install(baseio+0x100u,&amp;MPU401_ReadStatus,IO_MB);
-<a name="l00701"></a>00701         }
-<a name="l00702"></a>00702         <span class="keywordflow">else</span> {
-<a name="l00703"></a>00703             <span class="keywordflow">if</span> (IS_PC98_ARCH)
-<a name="l00704"></a>00704                 LOG_MSG(<span class="stringliteral">&quot;MPU-401 Registering I/O ports as if PC-98 MPU-401 at base %xh&quot;</span>,(<span class="keywordtype">unsigned</span> <span class="keywordtype">int</span>)baseio);
-<a name="l00705"></a>00705             <span class="keywordflow">else</span>
-<a name="l00706"></a>00706                 LOG_MSG(<span class="stringliteral">&quot;MPU-401 Registering I/O ports as if IBM PC MPU-401 at base %xh&quot;</span>,(<span class="keywordtype">unsigned</span> <span class="keywordtype">int</span>)baseio);
-<a name="l00707"></a>00707             <span class="comment">/* 330h, 331h (IBM PC)</span>
-<a name="l00708"></a>00708 <span class="comment">             * E0D0h, E0D2h (PC-98) */</span>
-<a name="l00709"></a>00709             WriteHandler[0].Install(baseio                     ,&amp;MPU401_WriteData,IO_MB);
-<a name="l00710"></a>00710             WriteHandler[1].Install(baseio+(IS_PC98_ARCH?2u:1u),&amp;MPU401_WriteCommand,IO_MB);
-<a name="l00711"></a>00711             ReadHandler[0].Install(baseio                     ,&amp;MPU401_ReadData,IO_MB);
-<a name="l00712"></a>00712             ReadHandler[1].Install(baseio+(IS_PC98_ARCH?2u:1u),&amp;MPU401_ReadStatus,IO_MB);
-<a name="l00713"></a>00713         }
-<a name="l00714"></a>00714 
-<a name="l00715"></a>00715         <span class="keywordflow">if</span> (IS_PC98_ARCH) {
+<a name="l00219"></a>00219                 <span class="keywordflow">case</span> 0xc8:
+<a name="l00220"></a>00220                         mpu.clock.timebase=192;
+<a name="l00221"></a>00221                         <span class="keywordflow">break</span>;
+<a name="l00222"></a>00222                 <span class="comment">/* Commands with data byte */</span>
+<a name="l00223"></a>00223                 <span class="keywordflow">case</span> 0xe0: <span class="keywordflow">case</span> 0xe1: <span class="keywordflow">case</span> 0xe2: <span class="keywordflow">case</span> 0xe4: <span class="keywordflow">case</span> 0xe6: 
+<a name="l00224"></a>00224                 <span class="keywordflow">case</span> 0xe7: <span class="keywordflow">case</span> 0xec: <span class="keywordflow">case</span> 0xed: <span class="keywordflow">case</span> 0xee: <span class="keywordflow">case</span> 0xef:
+<a name="l00225"></a>00225                         mpu.state.command_byte=val;
+<a name="l00226"></a>00226                         <span class="keywordflow">break</span>;
+<a name="l00227"></a>00227                 <span class="comment">/* Commands 0xa# returning data */</span>
+<a name="l00228"></a>00228                 <span class="keywordflow">case</span> 0xab:      <span class="comment">/* Request and clear recording counter */</span>
+<a name="l00229"></a>00229                         QueueByte(MSG_MPU_ACK);
+<a name="l00230"></a>00230                         QueueByte(0);
+<a name="l00231"></a>00231                         <span class="keywordflow">return</span>;
+<a name="l00232"></a>00232                 <span class="keywordflow">case</span> 0xac:      <span class="comment">/* Request version */</span>
+<a name="l00233"></a>00233                         QueueByte(MSG_MPU_ACK);
+<a name="l00234"></a>00234                         QueueByte(MPU401_VERSION);
+<a name="l00235"></a>00235                         <span class="keywordflow">return</span>;
+<a name="l00236"></a>00236                 <span class="keywordflow">case</span> 0xad:      <span class="comment">/* Request revision */</span>
+<a name="l00237"></a>00237                         QueueByte(MSG_MPU_ACK);
+<a name="l00238"></a>00238                         QueueByte(MPU401_REVISION);
+<a name="l00239"></a>00239                         <span class="keywordflow">return</span>;
+<a name="l00240"></a>00240                 <span class="keywordflow">case</span> 0xaf:      <span class="comment">/* Request tempo */</span>
+<a name="l00241"></a>00241                         QueueByte(MSG_MPU_ACK);
+<a name="l00242"></a>00242                         QueueByte(mpu.clock.tempo);
+<a name="l00243"></a>00243                         <span class="keywordflow">return</span>;
+<a name="l00244"></a>00244                 <span class="keywordflow">case</span> 0xb1:      <span class="comment">/* Reset relative tempo */</span>
+<a name="l00245"></a>00245             mpu.clock.old_tempo_rel=mpu.clock.tempo_rel;
+<a name="l00246"></a>00246             mpu.clock.tempo_rel=0x40;
+<a name="l00247"></a>00247                         <span class="keywordflow">break</span>;
+<a name="l00248"></a>00248                 <span class="keywordflow">case</span> 0xb9:      <span class="comment">/* Clear play map */</span>
+<a name="l00249"></a>00249                 <span class="keywordflow">case</span> 0xb8:      <span class="comment">/* Clear play counters */</span>
+<a name="l00250"></a>00250                         <span class="keywordflow">for</span> (Bit8u i=0xb0;i&lt;0xbf;i++) { <span class="comment">/* All notes off */</span>
+<a name="l00251"></a>00251                                 MIDI_RawOutByte(i);
+<a name="l00252"></a>00252                                 MIDI_RawOutByte(0x7b);
+<a name="l00253"></a>00253                                 MIDI_RawOutByte(0);
+<a name="l00254"></a>00254                         }
+<a name="l00255"></a>00255                         <span class="keywordflow">for</span> (Bitu i=0;i&lt;8;i++) {
+<a name="l00256"></a>00256                                 mpu.playbuf[i].counter=0;
+<a name="l00257"></a>00257                                 mpu.playbuf[i].type=T_OVERFLOW;
+<a name="l00258"></a>00258                         }
+<a name="l00259"></a>00259                         mpu.condbuf.counter=0;
+<a name="l00260"></a>00260                         mpu.condbuf.type=T_OVERFLOW;
+<a name="l00261"></a>00261                         <span class="keywordflow">if</span> (!(mpu.state.conductor=mpu.state.cond_set)) mpu.state.cond_req=0;
+<a name="l00262"></a>00262                         mpu.state.amask=mpu.state.tmask;
+<a name="l00263"></a>00263                         mpu.state.req_mask=0;
+<a name="l00264"></a>00264                         mpu.state.irq_pending=<span class="keyword">true</span>;
+<a name="l00265"></a>00265                         <span class="keywordflow">break</span>;
+<a name="l00266"></a>00266                 <span class="keywordflow">case</span> 0xff:      <span class="comment">/* Reset MPU-401 */</span>
+<a name="l00267"></a>00267                         <a class="code" href="classLOG.html">LOG</a>(LOG_MISC,LOG_NORMAL)(<span class="stringliteral">&quot;MPU-401:Reset %X&quot;</span>,(int)val);
+<a name="l00268"></a>00268                         PIC_AddEvent(MPU401_ResetDone,MPU401_RESETBUSY);
+<a name="l00269"></a>00269                         mpu.state.reset=<span class="keyword">true</span>;
+<a name="l00270"></a>00270                         <span class="keywordflow">if</span> (mpu.mode==M_UART) {
+<a name="l00271"></a>00271                                 MPU401_Reset();
+<a name="l00272"></a>00272                                 <span class="keywordflow">return</span>; <span class="comment">//do not send ack in UART mode</span>
+<a name="l00273"></a>00273                         }
+<a name="l00274"></a>00274                         MPU401_Reset();
+<a name="l00275"></a>00275                         <span class="keywordflow">break</span>;
+<a name="l00276"></a>00276                 <span class="keywordflow">case</span> 0x3f:      <span class="comment">/* UART mode */</span>
+<a name="l00277"></a>00277                         <a class="code" href="classLOG.html">LOG</a>(LOG_MISC,LOG_NORMAL)(<span class="stringliteral">&quot;MPU-401:Set UART mode %X&quot;</span>,(int)val);
+<a name="l00278"></a>00278                         mpu.mode=M_UART;
+<a name="l00279"></a>00279                         <span class="keywordflow">break</span>;
+<a name="l00280"></a>00280                 <span class="keywordflow">default</span>:;
+<a name="l00281"></a>00281                         <span class="comment">//LOG(LOG_MISC,LOG_NORMAL)(&quot;MPU-401:Unhandled command %X&quot;,val);</span>
+<a name="l00282"></a>00282         }
+<a name="l00283"></a>00283         QueueByte(MSG_MPU_ACK);
+<a name="l00284"></a>00284 }
+<a name="l00285"></a>00285 
+<a name="l00286"></a>00286 <span class="keyword">static</span> Bitu MPU401_ReadData(Bitu port,Bitu iolen) {
+<a name="l00287"></a>00287     (void)iolen;<span class="comment">//UNUSED</span>
+<a name="l00288"></a>00288     (void)port;<span class="comment">//UNUSED</span>
+<a name="l00289"></a>00289         Bit8u ret=MSG_MPU_ACK;
+<a name="l00290"></a>00290         <span class="keywordflow">if</span> (mpu.queue_used) {
+<a name="l00291"></a>00291                 <span class="keywordflow">if</span> (mpu.queue_pos&gt;=MPU401_QUEUE) mpu.queue_pos-=MPU401_QUEUE;
+<a name="l00292"></a>00292                 ret=mpu.queue[mpu.queue_pos];
+<a name="l00293"></a>00293                 mpu.queue_pos++;mpu.queue_used--;
+<a name="l00294"></a>00294         }
+<a name="l00295"></a>00295         <span class="keywordflow">if</span> (!mpu.intelligent) <span class="keywordflow">return</span> ret;
+<a name="l00296"></a>00296 
+<a name="l00297"></a>00297         <span class="keywordflow">if</span> (mpu.queue_used == 0) PIC_DeActivateIRQ(mpu.irq);
+<a name="l00298"></a>00298 
+<a name="l00299"></a>00299         <span class="keywordflow">if</span> (ret&gt;=0xf0 &amp;&amp; ret&lt;=0xf7) { <span class="comment">/* MIDI data request */</span>
+<a name="l00300"></a>00300                 mpu.state.channel=ret&amp;7;
+<a name="l00301"></a>00301                 mpu.state.data_onoff=0;
+<a name="l00302"></a>00302                 mpu.state.cond_req=<span class="keyword">false</span>;
+<a name="l00303"></a>00303         }
+<a name="l00304"></a>00304         <span class="keywordflow">if</span> (ret==MSG_MPU_COMMAND_REQ) {
+<a name="l00305"></a>00305                 mpu.state.data_onoff=0;
+<a name="l00306"></a>00306                 mpu.state.cond_req=<span class="keyword">true</span>;
+<a name="l00307"></a>00307                 <span class="keywordflow">if</span> (mpu.condbuf.type!=T_OVERFLOW) {
+<a name="l00308"></a>00308                         mpu.state.block_ack=<span class="keyword">true</span>;
+<a name="l00309"></a>00309                         MPU401_WriteCommand(0x331,mpu.condbuf.value[0],1);
+<a name="l00310"></a>00310                         <span class="keywordflow">if</span> (mpu.state.command_byte) MPU401_WriteData(0x330,mpu.condbuf.value[1],1);
+<a name="l00311"></a>00311                 }
+<a name="l00312"></a>00312         mpu.condbuf.type=T_OVERFLOW;
+<a name="l00313"></a>00313         }
+<a name="l00314"></a>00314         <span class="keywordflow">if</span> (ret==MSG_MPU_END || ret==MSG_MPU_CLOCK || ret==MSG_MPU_ACK) {
+<a name="l00315"></a>00315                 mpu.state.data_onoff=-1;
+<a name="l00316"></a>00316                 MPU401_EOIHandlerDispatch();
+<a name="l00317"></a>00317         }
+<a name="l00318"></a>00318         <span class="keywordflow">return</span> ret;
+<a name="l00319"></a>00319 }
+<a name="l00320"></a>00320 
+<a name="l00321"></a>00321 <span class="keyword">static</span> <span class="keywordtype">void</span> MPU401_WriteData(Bitu port,Bitu val,Bitu iolen) {
+<a name="l00322"></a>00322     (void)iolen;<span class="comment">//UNUSED</span>
+<a name="l00323"></a>00323     (void)port;<span class="comment">//UNUSED</span>
+<a name="l00324"></a>00324         <span class="keywordflow">if</span> (mpu.mode==M_UART) {MIDI_RawOutByte((Bit8u)val);<span class="keywordflow">return</span>;}
+<a name="l00325"></a>00325         <span class="keywordflow">switch</span> (mpu.state.command_byte) {       <span class="comment">/* 0xe# command data */</span>
+<a name="l00326"></a>00326                 <span class="keywordflow">case</span> 0x00:
+<a name="l00327"></a>00327                         <span class="keywordflow">break</span>;
+<a name="l00328"></a>00328                 <span class="keywordflow">case</span> 0xe0:      <span class="comment">/* Set tempo */</span>
+<a name="l00329"></a>00329                         mpu.state.command_byte=0;
+<a name="l00330"></a>00330                         mpu.clock.tempo=(Bit8u)val;
+<a name="l00331"></a>00331                         <span class="keywordflow">return</span>;
+<a name="l00332"></a>00332                 <span class="keywordflow">case</span> 0xe1:      <span class="comment">/* Set relative tempo */</span>
+<a name="l00333"></a>00333                         mpu.state.command_byte=0;
+<a name="l00334"></a>00334             mpu.clock.old_tempo_rel=mpu.clock.tempo_rel;
+<a name="l00335"></a>00335             mpu.clock.tempo_rel=(Bit8u)val;
+<a name="l00336"></a>00336             <span class="keywordflow">if</span> (val != 0x40) <a class="code" href="classLOG.html">LOG</a>(LOG_MISC,LOG_ERROR)(<span class="stringliteral">&quot;MPU-401:Relative tempo change value 0x%x (%.3f)&quot;</span>,(<span class="keywordtype">unsigned</span> int)val,(<span class="keywordtype">double</span>)val / 0x40);
+<a name="l00337"></a>00337                         <span class="keywordflow">return</span>;
+<a name="l00338"></a>00338                 <span class="keywordflow">case</span> 0xe7:      <span class="comment">/* Set internal clock to host interval */</span>
+<a name="l00339"></a>00339                         mpu.state.command_byte=0;
+<a name="l00340"></a>00340                         mpu.clock.cth_rate=(Bit8u)(val&gt;&gt;2);
+<a name="l00341"></a>00341                         <span class="keywordflow">return</span>;
+<a name="l00342"></a>00342                 <span class="keywordflow">case</span> 0xec:      <span class="comment">/* Set active track mask */</span>
+<a name="l00343"></a>00343                         mpu.state.command_byte=0;
+<a name="l00344"></a>00344                         mpu.state.tmask=(Bit8u)val;
+<a name="l00345"></a>00345                         <span class="keywordflow">return</span>;
+<a name="l00346"></a>00346                 <span class="keywordflow">case</span> 0xed: <span class="comment">/* Set play counter mask */</span>
+<a name="l00347"></a>00347                         mpu.state.command_byte=0;
+<a name="l00348"></a>00348                         mpu.state.cmask=(Bit8u)val;
+<a name="l00349"></a>00349                         <span class="keywordflow">return</span>;
+<a name="l00350"></a>00350                 <span class="keywordflow">case</span> 0xee: <span class="comment">/* Set 1-8 MIDI channel mask */</span>
+<a name="l00351"></a>00351                         mpu.state.command_byte=0;
+<a name="l00352"></a>00352                         mpu.state.midi_mask&amp;=0xff00;
+<a name="l00353"></a>00353                         mpu.state.midi_mask|=val;
+<a name="l00354"></a>00354                         <span class="keywordflow">return</span>;
+<a name="l00355"></a>00355                 <span class="keywordflow">case</span> 0xef: <span class="comment">/* Set 9-16 MIDI channel mask */</span>
+<a name="l00356"></a>00356                         mpu.state.command_byte=0;
+<a name="l00357"></a>00357                         mpu.state.midi_mask&amp;=0x00ff;
+<a name="l00358"></a>00358                         mpu.state.midi_mask|=((Bit16u)val)&lt;&lt;8;
+<a name="l00359"></a>00359                         <span class="keywordflow">return</span>;
+<a name="l00360"></a>00360                 <span class="comment">//case 0xe2:    /* Set graduation for relative tempo */</span>
+<a name="l00361"></a>00361                 <span class="comment">//case 0xe4:    /* Set metronome */</span>
+<a name="l00362"></a>00362                 <span class="comment">//case 0xe6:    /* Set metronome measure length */</span>
+<a name="l00363"></a>00363                 <span class="keywordflow">default</span>:
+<a name="l00364"></a>00364                         mpu.state.command_byte=0;
+<a name="l00365"></a>00365                         <span class="keywordflow">return</span>;
+<a name="l00366"></a>00366         }
+<a name="l00367"></a>00367         <span class="keyword">static</span> Bitu length,cnt,posd;
+<a name="l00368"></a>00368         <span class="keywordflow">if</span> (mpu.state.wsd) {    <span class="comment">/* Directly send MIDI message */</span>
+<a name="l00369"></a>00369                 <span class="keywordflow">if</span> (mpu.state.wsd_start) {
+<a name="l00370"></a>00370                         mpu.state.wsd_start=0;
+<a name="l00371"></a>00371                         cnt=0;
+<a name="l00372"></a>00372                                 <span class="keywordflow">switch</span> (val&amp;0xf0) {
+<a name="l00373"></a>00373                                         <span class="keywordflow">case</span> 0xc0:<span class="keywordflow">case</span> 0xd0:
+<a name="l00374"></a>00374                                                 mpu.playbuf[mpu.state.channel].value[0]=(Bit8u)val;
+<a name="l00375"></a>00375                                                 length=2;
+<a name="l00376"></a>00376                                                 <span class="keywordflow">break</span>;
+<a name="l00377"></a>00377                                         <span class="keywordflow">case</span> 0x80:<span class="keywordflow">case</span> 0x90:<span class="keywordflow">case</span> 0xa0:<span class="keywordflow">case</span> 0xb0:<span class="keywordflow">case</span> 0xe0:
+<a name="l00378"></a>00378                                                 mpu.playbuf[mpu.state.channel].value[0]=(Bit8u)val;
+<a name="l00379"></a>00379                                                 length=3;
+<a name="l00380"></a>00380                                                 <span class="keywordflow">break</span>;
+<a name="l00381"></a>00381                                         <span class="keywordflow">case</span> 0xf0:
+<a name="l00382"></a>00382                                                 <a class="code" href="classLOG.html">LOG</a>(LOG_MISC,LOG_ERROR)(<span class="stringliteral">&quot;MPU-401:Illegal WSD byte&quot;</span>);
+<a name="l00383"></a>00383                                                 mpu.state.wsd=0;
+<a name="l00384"></a>00384                                                 mpu.state.channel=mpu.state.old_chan;
+<a name="l00385"></a>00385                                                 <span class="keywordflow">return</span>;
+<a name="l00386"></a>00386                                         <span class="keywordflow">default</span>: <span class="comment">/* MIDI with running status */</span>
+<a name="l00387"></a>00387                                                 cnt++;
+<a name="l00388"></a>00388                                                 MIDI_RawOutByte(mpu.playbuf[mpu.state.channel].value[0]);
+<a name="l00389"></a>00389                                 }
+<a name="l00390"></a>00390                 }
+<a name="l00391"></a>00391                 <span class="keywordflow">if</span> (cnt&lt;length) {MIDI_RawOutByte((Bit8u)val);cnt++;}
+<a name="l00392"></a>00392                 <span class="keywordflow">if</span> (cnt==length) {
+<a name="l00393"></a>00393                         mpu.state.wsd=0;
+<a name="l00394"></a>00394                         mpu.state.channel=mpu.state.old_chan;
+<a name="l00395"></a>00395                 }
+<a name="l00396"></a>00396                 <span class="keywordflow">return</span>;
+<a name="l00397"></a>00397         }
+<a name="l00398"></a>00398         <span class="keywordflow">if</span> (mpu.state.wsm) {    <span class="comment">/* Directly send system message */</span>
+<a name="l00399"></a>00399                 <span class="keywordflow">if</span> (val==MSG_EOX) {MIDI_RawOutByte(MSG_EOX);mpu.state.wsm=0;<span class="keywordflow">return</span>;}
+<a name="l00400"></a>00400                 <span class="keywordflow">if</span> (mpu.state.wsd_start) {
+<a name="l00401"></a>00401                         mpu.state.wsd_start=0;
+<a name="l00402"></a>00402                         cnt=0;
+<a name="l00403"></a>00403                         <span class="keywordflow">switch</span> (val) {
+<a name="l00404"></a>00404                                 <span class="keywordflow">case</span> 0xf2:{ length=3; <span class="keywordflow">break</span>;}
+<a name="l00405"></a>00405                                 <span class="keywordflow">case</span> 0xf3:{ length=2; <span class="keywordflow">break</span>;}
+<a name="l00406"></a>00406                                 <span class="keywordflow">case</span> 0xf6:{ length=1; <span class="keywordflow">break</span>;}
+<a name="l00407"></a>00407                                 <span class="keywordflow">case</span> 0xf0:{ length=0; <span class="keywordflow">break</span>;}
+<a name="l00408"></a>00408                                 <span class="keywordflow">default</span>:
+<a name="l00409"></a>00409                                         length=0;
+<a name="l00410"></a>00410                         }
+<a name="l00411"></a>00411                 }
+<a name="l00412"></a>00412                 <span class="keywordflow">if</span> (!length || cnt&lt;length) {MIDI_RawOutByte((Bit8u)val);cnt++;}
+<a name="l00413"></a>00413                 <span class="keywordflow">if</span> (cnt==length) mpu.state.wsm=0;
+<a name="l00414"></a>00414                 <span class="keywordflow">return</span>;
+<a name="l00415"></a>00415         }
+<a name="l00416"></a>00416         <span class="keywordflow">if</span> (mpu.state.cond_req) { <span class="comment">/* Command */</span>
+<a name="l00417"></a>00417                 <span class="keywordflow">switch</span> (mpu.state.data_onoff) {
+<a name="l00418"></a>00418                         <span class="keywordflow">case</span> -1:
+<a name="l00419"></a>00419                                 <span class="keywordflow">return</span>;
+<a name="l00420"></a>00420                         <span class="keywordflow">case</span>  0: <span class="comment">/* Timing byte */</span>
+<a name="l00421"></a>00421                                 mpu.condbuf.vlength=0;
+<a name="l00422"></a>00422                                 <span class="keywordflow">if</span> (val&lt;0xf0) mpu.state.data_onoff++;
+<a name="l00423"></a>00423                                 <span class="keywordflow">else</span> {
+<a name="l00424"></a>00424                                         mpu.state.data_onoff=-1;
+<a name="l00425"></a>00425                                         MPU401_EOIHandlerDispatch();
+<a name="l00426"></a>00426                                         <span class="keywordflow">return</span>;
+<a name="l00427"></a>00427                                 }
+<a name="l00428"></a>00428                                 <span class="keywordflow">if</span> (val==0) mpu.state.send_now=<span class="keyword">true</span>;
+<a name="l00429"></a>00429                                 <span class="keywordflow">else</span> mpu.state.send_now=<span class="keyword">false</span>;
+<a name="l00430"></a>00430                                 mpu.condbuf.counter=(Bits)val;
+<a name="l00431"></a>00431                                 <span class="keywordflow">break</span>;
+<a name="l00432"></a>00432                         <span class="keywordflow">case</span>  1: <span class="comment">/* Command byte #1 */</span>
+<a name="l00433"></a>00433                                 mpu.condbuf.type=T_COMMAND;
+<a name="l00434"></a>00434                                 <span class="keywordflow">if</span> (val==0xf8 || val==0xf9) mpu.condbuf.type=T_OVERFLOW;
+<a name="l00435"></a>00435                                 mpu.condbuf.value[mpu.condbuf.vlength]=(Bit8u)val;
+<a name="l00436"></a>00436                                 mpu.condbuf.vlength++;
+<a name="l00437"></a>00437                                 <span class="keywordflow">if</span> ((val&amp;0xf0)!=0xe0) MPU401_EOIHandlerDispatch();
+<a name="l00438"></a>00438                                 <span class="keywordflow">else</span> mpu.state.data_onoff++;
+<a name="l00439"></a>00439                                 <span class="keywordflow">break</span>;
+<a name="l00440"></a>00440                         <span class="keywordflow">case</span>  2:<span class="comment">/* Command byte #2 */</span>
+<a name="l00441"></a>00441                                 mpu.condbuf.value[mpu.condbuf.vlength]=(Bit8u)val;
+<a name="l00442"></a>00442                                 mpu.condbuf.vlength++;
+<a name="l00443"></a>00443                                 MPU401_EOIHandlerDispatch();
+<a name="l00444"></a>00444                                 <span class="keywordflow">break</span>;
+<a name="l00445"></a>00445                 }
+<a name="l00446"></a>00446                 <span class="keywordflow">return</span>;
+<a name="l00447"></a>00447         }
+<a name="l00448"></a>00448         <span class="keywordflow">switch</span> (mpu.state.data_onoff) { <span class="comment">/* Data */</span>
+<a name="l00449"></a>00449                 <span class="keywordflow">case</span>   -1:
+<a name="l00450"></a>00450                         <span class="keywordflow">return</span>;
+<a name="l00451"></a>00451                 <span class="keywordflow">case</span>    0: <span class="comment">/* Timing byte */</span>
+<a name="l00452"></a>00452                         <span class="keywordflow">if</span> (val&lt;0xf0) mpu.state.data_onoff=1;
+<a name="l00453"></a>00453                         <span class="keywordflow">else</span> {
+<a name="l00454"></a>00454                                 mpu.state.data_onoff=-1;
+<a name="l00455"></a>00455                                 MPU401_EOIHandlerDispatch();
+<a name="l00456"></a>00456                                 <span class="keywordflow">return</span>;
+<a name="l00457"></a>00457                         }
+<a name="l00458"></a>00458                         <span class="keywordflow">if</span> (val==0) mpu.state.send_now=<span class="keyword">true</span>;
+<a name="l00459"></a>00459                         <span class="keywordflow">else</span> mpu.state.send_now=<span class="keyword">false</span>;
+<a name="l00460"></a>00460                         mpu.playbuf[mpu.state.channel].counter=(Bits)val;
+<a name="l00461"></a>00461                         <span class="keywordflow">break</span>;
+<a name="l00462"></a>00462                 <span class="keywordflow">case</span>    1: <span class="comment">/* MIDI */</span>
+<a name="l00463"></a>00463                         mpu.playbuf[mpu.state.channel].vlength++;
+<a name="l00464"></a>00464                         posd=mpu.playbuf[mpu.state.channel].vlength;
+<a name="l00465"></a>00465                         <span class="keywordflow">if</span> (posd==1) {
+<a name="l00466"></a>00466                                 <span class="keywordflow">switch</span> (val&amp;0xf0) {
+<a name="l00467"></a>00467                                         <span class="keywordflow">case</span> 0xf0: <span class="comment">/* System message or mark */</span>
+<a name="l00468"></a>00468                                                 <span class="keywordflow">if</span> (val&gt;0xf7) {
+<a name="l00469"></a>00469                                                         mpu.playbuf[mpu.state.channel].type=T_MARK;
+<a name="l00470"></a>00470                                                         mpu.playbuf[mpu.state.channel].sys_val=(Bit8u)val;
+<a name="l00471"></a>00471                                                         length=1;
+<a name="l00472"></a>00472                                                 } <span class="keywordflow">else</span> {
+<a name="l00473"></a>00473                                                         <a class="code" href="classLOG.html">LOG</a>(LOG_MISC,LOG_ERROR)(<span class="stringliteral">&quot;MPU-401:Illegal message&quot;</span>);
+<a name="l00474"></a>00474                                                         mpu.playbuf[mpu.state.channel].type=T_MIDI_SYS;
+<a name="l00475"></a>00475                                                         mpu.playbuf[mpu.state.channel].sys_val=(Bit8u)val;
+<a name="l00476"></a>00476                                                         length=1;
+<a name="l00477"></a>00477                                                 }
+<a name="l00478"></a>00478                                                 <span class="keywordflow">break</span>;
+<a name="l00479"></a>00479                                         <span class="keywordflow">case</span> 0xc0: <span class="keywordflow">case</span> 0xd0: <span class="comment">/* MIDI Message */</span>
+<a name="l00480"></a>00480                                                 mpu.playbuf[mpu.state.channel].type=T_MIDI_NORM;
+<a name="l00481"></a>00481                                                 length=mpu.playbuf[mpu.state.channel].length=2;
+<a name="l00482"></a>00482                                                 <span class="keywordflow">break</span>;
+<a name="l00483"></a>00483                                         <span class="keywordflow">case</span> 0x80: <span class="keywordflow">case</span> 0x90: <span class="keywordflow">case</span> 0xa0:  <span class="keywordflow">case</span> 0xb0: <span class="keywordflow">case</span> 0xe0: 
+<a name="l00484"></a>00484                                                 mpu.playbuf[mpu.state.channel].type=T_MIDI_NORM;
+<a name="l00485"></a>00485                                                 length=mpu.playbuf[mpu.state.channel].length=3;
+<a name="l00486"></a>00486                                                 <span class="keywordflow">break</span>;
+<a name="l00487"></a>00487                                         <span class="keywordflow">default</span>: <span class="comment">/* MIDI data with running status */</span>
+<a name="l00488"></a>00488                                                 posd++;
+<a name="l00489"></a>00489                                                 mpu.playbuf[mpu.state.channel].vlength++;
+<a name="l00490"></a>00490                                                 mpu.playbuf[mpu.state.channel].type=T_MIDI_NORM;
+<a name="l00491"></a>00491                                                 length=mpu.playbuf[mpu.state.channel].length;
+<a name="l00492"></a>00492                                                 <span class="keywordflow">break</span>;
+<a name="l00493"></a>00493                                 }
+<a name="l00494"></a>00494                         }
+<a name="l00495"></a>00495                         <span class="keywordflow">if</span> (!(posd==1 &amp;&amp; val&gt;=0xf0)) mpu.playbuf[mpu.state.channel].value[posd-1]=(Bit8u)val;
+<a name="l00496"></a>00496                         <span class="keywordflow">if</span> (posd==length) MPU401_EOIHandlerDispatch();
+<a name="l00497"></a>00497         }
+<a name="l00498"></a>00498 }
+<a name="l00499"></a>00499 
+<a name="l00500"></a>00500 <span class="keyword">static</span> <span class="keywordtype">void</span> MPU401_IntelligentOut(Bit8u chan) {
+<a name="l00501"></a>00501         Bitu val;
+<a name="l00502"></a>00502         <span class="keywordflow">switch</span> (mpu.playbuf[chan].type) {
+<a name="l00503"></a>00503                 <span class="keywordflow">case</span> T_OVERFLOW:
+<a name="l00504"></a>00504                         <span class="keywordflow">break</span>;
+<a name="l00505"></a>00505                 <span class="keywordflow">case</span> T_MARK:
+<a name="l00506"></a>00506                         val=mpu.playbuf[chan].sys_val;
+<a name="l00507"></a>00507                         <span class="keywordflow">if</span> (val==0xfc) {
+<a name="l00508"></a>00508                                 MIDI_RawOutByte((Bit8u)val);
+<a name="l00509"></a>00509                                 mpu.state.amask&amp;=~(1&lt;&lt;chan);
+<a name="l00510"></a>00510                                 mpu.state.req_mask&amp;=~(1&lt;&lt;chan);
+<a name="l00511"></a>00511                         }
+<a name="l00512"></a>00512                         <span class="keywordflow">break</span>;
+<a name="l00513"></a>00513                 <span class="keywordflow">case</span> T_MIDI_NORM:
+<a name="l00514"></a>00514                         <span class="keywordflow">for</span> (Bitu i=0;i&lt;mpu.playbuf[chan].vlength;i++)
+<a name="l00515"></a>00515                                 MIDI_RawOutByte(mpu.playbuf[chan].value[i]);
+<a name="l00516"></a>00516                         <span class="keywordflow">break</span>;
+<a name="l00517"></a>00517                 <span class="keywordflow">default</span>:
+<a name="l00518"></a>00518                         <span class="keywordflow">break</span>;
+<a name="l00519"></a>00519         }
+<a name="l00520"></a>00520 }
+<a name="l00521"></a>00521 
+<a name="l00522"></a>00522 <span class="keyword">static</span> <span class="keywordtype">void</span> UpdateTrack(Bit8u chan) {
+<a name="l00523"></a>00523         MPU401_IntelligentOut(chan);
+<a name="l00524"></a>00524         <span class="keywordflow">if</span> (mpu.state.amask&amp;(1&lt;&lt;chan)) {
+<a name="l00525"></a>00525                 mpu.playbuf[chan].vlength=0;
+<a name="l00526"></a>00526                 mpu.playbuf[chan].type=T_OVERFLOW;
+<a name="l00527"></a>00527                 mpu.playbuf[chan].counter=0xf0;
+<a name="l00528"></a>00528                 mpu.state.req_mask|=(1&lt;&lt;chan);
+<a name="l00529"></a>00529         } <span class="keywordflow">else</span> {
+<a name="l00530"></a>00530                 <span class="keywordflow">if</span> (mpu.state.amask==0 &amp;&amp; !mpu.state.conductor) mpu.state.req_mask|=(1&lt;&lt;12);
+<a name="l00531"></a>00531         }
+<a name="l00532"></a>00532 }
+<a name="l00533"></a>00533 
+<a name="l00534"></a>00534 <span class="keyword">static</span> <span class="keywordtype">void</span> UpdateConductor(<span class="keywordtype">void</span>) {
+<a name="l00535"></a>00535     <span class="keywordflow">for</span> (<span class="keywordtype">unsigned</span> <span class="keywordtype">int</span> i=0;i &lt; mpu.condbuf.vlength;i++) {
+<a name="l00536"></a>00536         <span class="keywordflow">if</span> (mpu.condbuf.value[i] == 0xfc) {
+<a name="l00537"></a>00537             mpu.condbuf.value[i] = 0;
+<a name="l00538"></a>00538             mpu.state.conductor=<span class="keyword">false</span>;
+<a name="l00539"></a>00539             mpu.state.req_mask&amp;=~(1&lt;&lt;9);
+<a name="l00540"></a>00540             <span class="keywordflow">if</span> (mpu.state.amask==0) mpu.state.req_mask|=(1&lt;&lt;12);
+<a name="l00541"></a>00541             <span class="keywordflow">return</span>;
+<a name="l00542"></a>00542         }
+<a name="l00543"></a>00543     }
+<a name="l00544"></a>00544 
+<a name="l00545"></a>00545         mpu.condbuf.vlength=0;
+<a name="l00546"></a>00546         mpu.condbuf.counter=0xf0;
+<a name="l00547"></a>00547         mpu.state.req_mask|=(1&lt;&lt;9);
+<a name="l00548"></a>00548 }
+<a name="l00549"></a>00549 
+<a name="l00550"></a>00550 <span class="keyword">static</span> <span class="keywordtype">void</span> MPU401_Event(Bitu val) {
+<a name="l00551"></a>00551     (void)val;<span class="comment">//UNUSED</span>
+<a name="l00552"></a>00552         <span class="keywordflow">if</span> (mpu.mode==M_UART) <span class="keywordflow">return</span>;
+<a name="l00553"></a>00553         <span class="keywordflow">if</span> (mpu.state.irq_pending) <span class="keywordflow">goto</span> next_event;
+<a name="l00554"></a>00554         <span class="keywordflow">for</span> (Bit8u i=0;i&lt;8;i++) { <span class="comment">/* Decrease counters */</span>
+<a name="l00555"></a>00555                 <span class="keywordflow">if</span> (mpu.state.amask&amp;(1&lt;&lt;i)) {
+<a name="l00556"></a>00556                         mpu.playbuf[i].counter--;
+<a name="l00557"></a>00557                         <span class="keywordflow">if</span> (mpu.playbuf[i].counter&lt;=0) UpdateTrack(i);
+<a name="l00558"></a>00558                 }
+<a name="l00559"></a>00559         }               
+<a name="l00560"></a>00560         <span class="keywordflow">if</span> (mpu.state.conductor) {
+<a name="l00561"></a>00561                 mpu.condbuf.counter--;
+<a name="l00562"></a>00562                 <span class="keywordflow">if</span> (mpu.condbuf.counter&lt;=0) UpdateConductor();
+<a name="l00563"></a>00563         }
+<a name="l00564"></a>00564         <span class="keywordflow">if</span> (mpu.clock.clock_to_host) {
+<a name="l00565"></a>00565                 mpu.clock.cth_counter++;
+<a name="l00566"></a>00566                 <span class="keywordflow">if</span> (mpu.clock.cth_counter &gt;= mpu.clock.cth_rate) {
+<a name="l00567"></a>00567                         mpu.clock.cth_counter=0;
+<a name="l00568"></a>00568                         mpu.state.req_mask|=(1&lt;&lt;13);
+<a name="l00569"></a>00569                 }
+<a name="l00570"></a>00570         }
+<a name="l00571"></a>00571         <span class="keywordflow">if</span> (!mpu.state.irq_pending &amp;&amp; mpu.state.req_mask) MPU401_EOIHandler();
+<a name="l00572"></a>00572 next_event:
+<a name="l00573"></a>00573         Bitu new_time;
+<a name="l00574"></a>00574         <span class="keywordflow">if</span> ((new_time=(Bitu)((mpu.clock.tempo*mpu.clock.timebase*mpu.clock.tempo_rel)/0x40))==0) <span class="keywordflow">return</span>;
+<a name="l00575"></a>00575         PIC_AddEvent(MPU401_Event,MPU401_TIMECONSTANT/new_time);
+<a name="l00576"></a>00576 }
+<a name="l00577"></a>00577 
+<a name="l00578"></a>00578 
+<a name="l00579"></a>00579 <span class="keyword">static</span> <span class="keywordtype">void</span> MPU401_EOIHandlerDispatch(<span class="keywordtype">void</span>) {
+<a name="l00580"></a>00580         <span class="keywordflow">if</span> (mpu.state.send_now) {
+<a name="l00581"></a>00581                 mpu.state.eoi_scheduled=<span class="keyword">true</span>;
+<a name="l00582"></a>00582                 PIC_AddEvent(MPU401_EOIHandler,0.06f); <span class="comment">//Possible a bit longer</span>
+<a name="l00583"></a>00583         }
+<a name="l00584"></a>00584         <span class="keywordflow">else</span> <span class="keywordflow">if</span> (!mpu.state.eoi_scheduled) MPU401_EOIHandler();
+<a name="l00585"></a>00585 }
+<a name="l00586"></a>00586 
+<a name="l00587"></a>00587 <span class="comment">//Updates counters and requests new data on &quot;End of Input&quot;</span>
+<a name="l00588"></a>00588 <span class="keyword">static</span> <span class="keywordtype">void</span> MPU401_EOIHandler(Bitu val) {
+<a name="l00589"></a>00589     (void)val;<span class="comment">//UNUSED</span>
+<a name="l00590"></a>00590         mpu.state.eoi_scheduled=<span class="keyword">false</span>;
+<a name="l00591"></a>00591         <span class="keywordflow">if</span> (mpu.state.send_now) {
+<a name="l00592"></a>00592                 mpu.state.send_now=<span class="keyword">false</span>;
+<a name="l00593"></a>00593                 <span class="keywordflow">if</span> (mpu.state.cond_req) UpdateConductor();
+<a name="l00594"></a>00594                 <span class="keywordflow">else</span> UpdateTrack(mpu.state.channel);
+<a name="l00595"></a>00595         }
+<a name="l00596"></a>00596         mpu.state.irq_pending=<span class="keyword">false</span>;
+<a name="l00597"></a>00597         <span class="keywordflow">if</span> (!mpu.state.playing || !mpu.state.req_mask) <span class="keywordflow">return</span>;
+<a name="l00598"></a>00598         Bit8u i=0;
+<a name="l00599"></a>00599         <span class="keywordflow">do</span> {
+<a name="l00600"></a>00600                 <span class="keywordflow">if</span> (mpu.state.req_mask&amp;(1&lt;&lt;i)) {
+<a name="l00601"></a>00601                         QueueByte(0xf0+i);
+<a name="l00602"></a>00602                         mpu.state.req_mask&amp;=~(1&lt;&lt;i);
+<a name="l00603"></a>00603                         <span class="keywordflow">break</span>;
+<a name="l00604"></a>00604                 }
+<a name="l00605"></a>00605         } <span class="keywordflow">while</span> ((i++)&lt;16);
+<a name="l00606"></a>00606 }
+<a name="l00607"></a>00607 
+<a name="l00608"></a>00608 <span class="keyword">static</span> <span class="keywordtype">void</span> MPU401_ResetDone(Bitu) {
+<a name="l00609"></a>00609         mpu.state.reset=<span class="keyword">false</span>;
+<a name="l00610"></a>00610         <span class="keywordflow">if</span> (mpu.state.cmd_pending) {
+<a name="l00611"></a>00611                 MPU401_WriteCommand(0x331,mpu.state.cmd_pending-1,1);
+<a name="l00612"></a>00612                 mpu.state.cmd_pending=0;
+<a name="l00613"></a>00613         }
+<a name="l00614"></a>00614 }
+<a name="l00615"></a>00615 <span class="keyword">static</span> <span class="keywordtype">void</span> MPU401_Reset(<span class="keywordtype">void</span>) {
+<a name="l00616"></a>00616         PIC_DeActivateIRQ(mpu.irq);
+<a name="l00617"></a>00617         mpu.mode=(mpu.intelligent ? M_INTELLIGENT : M_UART);
+<a name="l00618"></a>00618         PIC_RemoveEvents(MPU401_EOIHandler);
+<a name="l00619"></a>00619         mpu.state.eoi_scheduled=<span class="keyword">false</span>;
+<a name="l00620"></a>00620         mpu.state.wsd=<span class="keyword">false</span>;
+<a name="l00621"></a>00621         mpu.state.wsm=<span class="keyword">false</span>;
+<a name="l00622"></a>00622         mpu.state.conductor=<span class="keyword">false</span>;
+<a name="l00623"></a>00623         mpu.state.cond_req=<span class="keyword">false</span>;
+<a name="l00624"></a>00624         mpu.state.cond_set=<span class="keyword">false</span>;
+<a name="l00625"></a>00625         mpu.state.playing=<span class="keyword">false</span>;
+<a name="l00626"></a>00626         mpu.state.run_irq=<span class="keyword">false</span>;
+<a name="l00627"></a>00627         mpu.state.irq_pending=<span class="keyword">false</span>;
+<a name="l00628"></a>00628         mpu.state.cmask=0xff;
+<a name="l00629"></a>00629         mpu.state.amask=mpu.state.tmask=0;
+<a name="l00630"></a>00630         mpu.state.midi_mask=0xffff;
+<a name="l00631"></a>00631         mpu.state.data_onoff=-1;
+<a name="l00632"></a>00632         mpu.state.command_byte=0;
+<a name="l00633"></a>00633         mpu.state.block_ack=<span class="keyword">false</span>;
+<a name="l00634"></a>00634         mpu.clock.tempo=mpu.clock.old_tempo=100;
+<a name="l00635"></a>00635         mpu.clock.timebase=mpu.clock.old_timebase=120;
+<a name="l00636"></a>00636         mpu.clock.tempo_rel=mpu.clock.old_tempo_rel=0x40;
+<a name="l00637"></a>00637         mpu.clock.tempo_grad=0;
+<a name="l00638"></a>00638         mpu.clock.clock_to_host=<span class="keyword">false</span>;
+<a name="l00639"></a>00639         mpu.clock.cth_rate=60;
+<a name="l00640"></a>00640         mpu.clock.cth_counter=0;
+<a name="l00641"></a>00641         ClrQueue();
+<a name="l00642"></a>00642         mpu.state.req_mask=0;
+<a name="l00643"></a>00643         mpu.condbuf.counter=0;
+<a name="l00644"></a>00644         mpu.condbuf.type=T_OVERFLOW;
+<a name="l00645"></a>00645         <span class="keywordflow">for</span> (Bitu i=0;i&lt;8;i++) {mpu.playbuf[i].type=T_OVERFLOW;mpu.playbuf[i].counter=0;}
+<a name="l00646"></a>00646 }
+<a name="l00647"></a>00647 
+<a name="l00648"></a>00648 <span class="keyword">static</span> <span class="keywordtype">void</span> IMF_Write(Bitu port,Bitu val,Bitu iolen) {
+<a name="l00649"></a>00649     (void)iolen;<span class="comment">//UNUSED</span>
+<a name="l00650"></a>00650         <a class="code" href="classLOG.html">LOG</a>(LOG_MISC,LOG_NORMAL)(<span class="stringliteral">&quot;IMF:Wr %4X,%X&quot;</span>,(int)port,(<span class="keywordtype">int</span>)val);
+<a name="l00651"></a>00651 }
+<a name="l00652"></a>00652 
+<a name="l00653"></a><a class="code" href="classMPU401.html">00653</a> <span class="keyword">class </span><a class="code" href="classMPU401.html">MPU401</a>:<span class="keyword">public</span> <a class="code" href="classModule__base.html">Module_base</a>{
+<a name="l00654"></a>00654 <span class="keyword">private</span>:
+<a name="l00655"></a>00655         <a class="code" href="classIO__ReadHandleObject.html">IO_ReadHandleObject</a> ReadHandler[2];
+<a name="l00656"></a>00656         <a class="code" href="classIO__WriteHandleObject.html">IO_WriteHandleObject</a> WriteHandler[2];
+<a name="l00657"></a>00657         <span class="keywordtype">bool</span> installed; <span class="comment">/*as it can fail to install by 2 ways (config and no midi)*/</span>
+<a name="l00658"></a>00658 <span class="keyword">public</span>:
+<a name="l00659"></a>00659         <a class="code" href="classMPU401.html">MPU401</a>(<a class="code" href="classSection.html">Section</a>* configuration):<a class="code" href="classModule__base.html">Module_base</a>(configuration){
+<a name="l00660"></a>00660                 installed = <span class="keyword">false</span>;
+<a name="l00661"></a>00661                 <a class="code" href="classSection__prop.html">Section_prop</a> * section=<span class="keyword">static_cast&lt;</span><a class="code" href="classSection__prop.html">Section_prop</a> *<span class="keyword">&gt;</span>(configuration);
+<a name="l00662"></a>00662                 <span class="keyword">const</span> <span class="keywordtype">char</span>* s_mpu = section-&gt;Get_string(<span class="stringliteral">&quot;mpu401&quot;</span>);
+<a name="l00663"></a>00663                 <span class="keywordflow">if</span>(strcasecmp(s_mpu,<span class="stringliteral">&quot;none&quot;</span>) == 0) <span class="keywordflow">return</span>;
+<a name="l00664"></a>00664                 <span class="keywordflow">if</span>(strcasecmp(s_mpu,<span class="stringliteral">&quot;off&quot;</span>) == 0) <span class="keywordflow">return</span>;
+<a name="l00665"></a>00665                 <span class="keywordflow">if</span>(strcasecmp(s_mpu,<span class="stringliteral">&quot;false&quot;</span>) == 0) <span class="keywordflow">return</span>;
+<a name="l00666"></a>00666                 <span class="keywordflow">if</span> (!MIDI_Available()) <span class="keywordflow">return</span>;
+<a name="l00667"></a>00667                 <span class="comment">/*Enabled and there is a Midi */</span>
+<a name="l00668"></a>00668                 installed = <span class="keyword">true</span>;
+<a name="l00669"></a>00669 
+<a name="l00670"></a>00670         Bitu baseio = (Bitu)section-&gt;Get_hex(<span class="stringliteral">&quot;mpubase&quot;</span>);
+<a name="l00671"></a>00671         <span class="keywordflow">if</span> (baseio == 0) {
+<a name="l00672"></a>00672             <span class="keywordflow">if</span> (IS_PC98_ARCH)
+<a name="l00673"></a>00673                 baseio = 0xE0D0; <span class="comment">// NTS: This is based on MMD.COM I/O probing behavior</span>
+<a name="l00674"></a>00674             <span class="keywordflow">else</span>
+<a name="l00675"></a>00675                 baseio = 0x330;
+<a name="l00676"></a>00676         }
+<a name="l00677"></a>00677 
+<a name="l00678"></a>00678         <span class="keywordflow">if</span> (baseio &gt;= 0x80D2 &amp;&amp; baseio &lt;= 0x80DE) {
+<a name="l00679"></a>00679             <span class="comment">/* TODO: Replace low 8 bits with low 8 bits of Sound Blaster 16 I/O base */</span>
+<a name="l00680"></a>00680         }
+<a name="l00681"></a>00681 
+<a name="l00682"></a>00682         <span class="keywordflow">if</span> (IS_PC98_ARCH) {
+<a name="l00683"></a>00683             <span class="keywordflow">if</span> (baseio &gt;= 0x80D2 &amp;&amp; baseio &lt;= 0x80DE)
+<a name="l00684"></a>00684                 { <span class="comment">/* OK */</span> }
+<a name="l00685"></a>00685             <span class="keywordflow">else</span> <span class="keywordflow">if</span> (baseio &gt;= 0xC000u &amp;&amp; baseio &lt;= 0xF8D0u)
+<a name="l00686"></a>00686                 { <span class="comment">/* OK */</span> }
+<a name="l00687"></a>00687             <span class="keywordflow">else</span>
+<a name="l00688"></a>00688                 baseio = 0xE0D0u;
+<a name="l00689"></a>00689         }
+<a name="l00690"></a>00690         <span class="keywordflow">else</span> {
+<a name="l00691"></a>00691             <span class="keywordflow">if</span> (baseio &lt; 0x300 || baseio &gt; 0x360)
+<a name="l00692"></a>00692                 baseio = 0x330;
+<a name="l00693"></a>00693         }
+<a name="l00694"></a>00694 
+<a name="l00695"></a>00695         <span class="keywordflow">if</span> (baseio &gt;= 0x80D2 &amp;&amp; baseio &lt;= 0x80DE) {
+<a name="l00696"></a>00696             LOG_MSG(<span class="stringliteral">&quot;MPU-401 Registering I/O ports as if SB16 MPU-401 at base %xh&quot;</span>,(<span class="keywordtype">unsigned</span> <span class="keywordtype">int</span>)baseio);
+<a name="l00697"></a>00697             <span class="comment">/* SB16 mapping</span>
+<a name="l00698"></a>00698 <span class="comment">             * C8D2h, C9D2h (PC-98) */</span>
+<a name="l00699"></a>00699             assert(IS_PC98_ARCH);
+<a name="l00700"></a>00700             WriteHandler[0].Install(baseio       ,&amp;MPU401_WriteData,IO_MB);
+<a name="l00701"></a>00701             WriteHandler[1].Install(baseio+0x100u,&amp;MPU401_WriteCommand,IO_MB);
+<a name="l00702"></a>00702             ReadHandler[0].Install(baseio       ,&amp;MPU401_ReadData,IO_MB);
+<a name="l00703"></a>00703             ReadHandler[1].Install(baseio+0x100u,&amp;MPU401_ReadStatus,IO_MB);
+<a name="l00704"></a>00704         }
+<a name="l00705"></a>00705         <span class="keywordflow">else</span> {
+<a name="l00706"></a>00706             <span class="keywordflow">if</span> (IS_PC98_ARCH)
+<a name="l00707"></a>00707                 LOG_MSG(<span class="stringliteral">&quot;MPU-401 Registering I/O ports as if PC-98 MPU-401 at base %xh&quot;</span>,(<span class="keywordtype">unsigned</span> <span class="keywordtype">int</span>)baseio);
+<a name="l00708"></a>00708             <span class="keywordflow">else</span>
+<a name="l00709"></a>00709                 LOG_MSG(<span class="stringliteral">&quot;MPU-401 Registering I/O ports as if IBM PC MPU-401 at base %xh&quot;</span>,(<span class="keywordtype">unsigned</span> <span class="keywordtype">int</span>)baseio);
+<a name="l00710"></a>00710             <span class="comment">/* 330h, 331h (IBM PC)</span>
+<a name="l00711"></a>00711 <span class="comment">             * E0D0h, E0D2h (PC-98) */</span>
+<a name="l00712"></a>00712             WriteHandler[0].Install(baseio                     ,&amp;MPU401_WriteData,IO_MB);
+<a name="l00713"></a>00713             WriteHandler[1].Install(baseio+(IS_PC98_ARCH?2u:1u),&amp;MPU401_WriteCommand,IO_MB);
+<a name="l00714"></a>00714             ReadHandler[0].Install(baseio                     ,&amp;MPU401_ReadData,IO_MB);
+<a name="l00715"></a>00715             ReadHandler[1].Install(baseio+(IS_PC98_ARCH?2u:1u),&amp;MPU401_ReadStatus,IO_MB);
 <a name="l00716"></a>00716         }
-<a name="l00717"></a>00717         <span class="keywordflow">else</span> {
-<a name="l00718"></a>00718             <span class="comment">/*</span>
-<a name="l00719"></a>00719 <span class="comment">               IO_RegisterWriteHandler(0x280,&amp;IMF_Write,IO_MB);</span>
-<a name="l00720"></a>00720 <span class="comment">               IO_RegisterWriteHandler(0x281,&amp;IMF_Write,IO_MB);</span>
-<a name="l00721"></a>00721 <span class="comment">               IO_RegisterReadHandler(0x280,&amp;IMF_Read,IO_MB);</span>
-<a name="l00722"></a>00722 <span class="comment">               IO_RegisterReadHandler(0x281,&amp;IMF_Read,IO_MB);</span>
-<a name="l00723"></a>00723 <span class="comment">               */</span>
-<a name="l00724"></a>00724             <span class="comment">/*</span>
-<a name="l00725"></a>00725 <span class="comment">               IO_RegisterWriteHandler(0x200,&amp;IMF_Write,IO_MB);</span>
-<a name="l00726"></a>00726 <span class="comment">               IO_RegisterWriteHandler(0x201,&amp;IMF_Write,IO_MB);</span>
-<a name="l00727"></a>00727 <span class="comment">               IO_RegisterWriteHandler(0x202,&amp;IMF_Write,IO_MB);</span>
-<a name="l00728"></a>00728 <span class="comment">               IO_RegisterWriteHandler(0x203,&amp;IMF_Write,IO_MB);</span>
-<a name="l00729"></a>00729 <span class="comment">               IO_RegisterWriteHandler(0x204,&amp;IMF_Write,IO_MB);</span>
-<a name="l00730"></a>00730 <span class="comment"></span>
-<a name="l00731"></a>00731 <span class="comment">               IO_RegisterReadHandler(0x200,&amp;IMF_Read,IO_MB);</span>
-<a name="l00732"></a>00732 <span class="comment">               IO_RegisterReadHandler(0x201,&amp;IMF_Read,IO_MB);</span>
-<a name="l00733"></a>00733 <span class="comment">               IO_RegisterReadHandler(0x202,&amp;IMF_Read,IO_MB);</span>
-<a name="l00734"></a>00734 <span class="comment">               IO_RegisterReadHandler(0x203,&amp;IMF_Read,IO_MB);</span>
-<a name="l00735"></a>00735 <span class="comment">               IO_RegisterReadHandler(0x204,&amp;IMF_Read,IO_MB);</span>
-<a name="l00736"></a>00736 <span class="comment">               */</span>
-<a name="l00737"></a>00737             IO_RegisterWriteHandler(0x2A20,&amp;IMF_Write,IO_MB);
-<a name="l00738"></a>00738             IO_RegisterWriteHandler(0x2A21,&amp;IMF_Write,IO_MB);
-<a name="l00739"></a>00739             IO_RegisterWriteHandler(0x2A22,&amp;IMF_Write,IO_MB);
-<a name="l00740"></a>00740             IO_RegisterWriteHandler(0x2A23,&amp;IMF_Write,IO_MB);
-<a name="l00741"></a>00741             IO_RegisterWriteHandler(0x2A24,&amp;IMF_Write,IO_MB);
-<a name="l00742"></a>00742             IO_RegisterWriteHandler(0x2A25,&amp;IMF_Write,IO_MB);
-<a name="l00743"></a>00743             IO_RegisterWriteHandler(0x2A26,&amp;IMF_Write,IO_MB);
-<a name="l00744"></a>00744             IO_RegisterWriteHandler(0x2A27,&amp;IMF_Write,IO_MB);
-<a name="l00745"></a>00745             IO_RegisterWriteHandler(0x2A28,&amp;IMF_Write,IO_MB);
-<a name="l00746"></a>00746             IO_RegisterWriteHandler(0x2A29,&amp;IMF_Write,IO_MB);
-<a name="l00747"></a>00747             IO_RegisterWriteHandler(0x2A2A,&amp;IMF_Write,IO_MB);
-<a name="l00748"></a>00748             IO_RegisterWriteHandler(0x2A2B,&amp;IMF_Write,IO_MB);
-<a name="l00749"></a>00749             IO_RegisterWriteHandler(0x2A2C,&amp;IMF_Write,IO_MB);
-<a name="l00750"></a>00750             IO_RegisterWriteHandler(0x2A2D,&amp;IMF_Write,IO_MB);
-<a name="l00751"></a>00751             IO_RegisterWriteHandler(0x2A2E,&amp;IMF_Write,IO_MB);
-<a name="l00752"></a>00752             IO_RegisterWriteHandler(0x2A2F,&amp;IMF_Write,IO_MB);
-<a name="l00753"></a>00753         }
-<a name="l00754"></a>00754 
-<a name="l00755"></a>00755                 mpu.queue_used=0;
-<a name="l00756"></a>00756                 mpu.queue_pos=0;
-<a name="l00757"></a>00757                 mpu.mode=M_UART;
-<a name="l00758"></a>00758 
-<a name="l00759"></a>00759         <span class="keywordflow">if</span> (IS_PC98_ARCH)
-<a name="l00760"></a>00760             mpu.irq=6;  <span class="comment">/* This is said to be the MIDI card&#39;s factory default on PC-98 */</span>
-<a name="l00761"></a>00761         <span class="keywordflow">else</span>
-<a name="l00762"></a>00762                 mpu.irq=9;      <span class="comment">/* Princess Maker 2 wants it on irq 9 */</span>
-<a name="l00763"></a>00763 
-<a name="l00764"></a>00764         {
-<a name="l00765"></a>00765             <span class="keywordtype">int</span> x = section-&gt;Get_int(<span class="stringliteral">&quot;mpuirq&quot;</span>);
-<a name="l00766"></a>00766 
-<a name="l00767"></a>00767             <span class="keywordflow">if</span> (x &gt;= 2)
-<a name="l00768"></a>00768                 mpu.irq = (<span class="keywordtype">unsigned</span> int)x;
-<a name="l00769"></a>00769 
-<a name="l00770"></a>00770             <span class="keywordflow">if</span> (!IS_PC98_ARCH &amp;&amp; mpu.irq == 2) mpu.irq = 9;
-<a name="l00771"></a>00771         }
-<a name="l00772"></a>00772 
-<a name="l00773"></a>00773         <a class="code" href="classLOG.html">LOG</a>(LOG_MISC,LOG_NORMAL)(<span class="stringliteral">&quot;MPU IRQ %d&quot;</span>,(int)mpu.irq);
+<a name="l00717"></a>00717 
+<a name="l00718"></a>00718         <span class="keywordflow">if</span> (IS_PC98_ARCH) {
+<a name="l00719"></a>00719         }
+<a name="l00720"></a>00720         <span class="keywordflow">else</span> {
+<a name="l00721"></a>00721             <span class="comment">/*</span>
+<a name="l00722"></a>00722 <span class="comment">               IO_RegisterWriteHandler(0x280,&amp;IMF_Write,IO_MB);</span>
+<a name="l00723"></a>00723 <span class="comment">               IO_RegisterWriteHandler(0x281,&amp;IMF_Write,IO_MB);</span>
+<a name="l00724"></a>00724 <span class="comment">               IO_RegisterReadHandler(0x280,&amp;IMF_Read,IO_MB);</span>
+<a name="l00725"></a>00725 <span class="comment">               IO_RegisterReadHandler(0x281,&amp;IMF_Read,IO_MB);</span>
+<a name="l00726"></a>00726 <span class="comment">               */</span>
+<a name="l00727"></a>00727             <span class="comment">/*</span>
+<a name="l00728"></a>00728 <span class="comment">               IO_RegisterWriteHandler(0x200,&amp;IMF_Write,IO_MB);</span>
+<a name="l00729"></a>00729 <span class="comment">               IO_RegisterWriteHandler(0x201,&amp;IMF_Write,IO_MB);</span>
+<a name="l00730"></a>00730 <span class="comment">               IO_RegisterWriteHandler(0x202,&amp;IMF_Write,IO_MB);</span>
+<a name="l00731"></a>00731 <span class="comment">               IO_RegisterWriteHandler(0x203,&amp;IMF_Write,IO_MB);</span>
+<a name="l00732"></a>00732 <span class="comment">               IO_RegisterWriteHandler(0x204,&amp;IMF_Write,IO_MB);</span>
+<a name="l00733"></a>00733 <span class="comment"></span>
+<a name="l00734"></a>00734 <span class="comment">               IO_RegisterReadHandler(0x200,&amp;IMF_Read,IO_MB);</span>
+<a name="l00735"></a>00735 <span class="comment">               IO_RegisterReadHandler(0x201,&amp;IMF_Read,IO_MB);</span>
+<a name="l00736"></a>00736 <span class="comment">               IO_RegisterReadHandler(0x202,&amp;IMF_Read,IO_MB);</span>
+<a name="l00737"></a>00737 <span class="comment">               IO_RegisterReadHandler(0x203,&amp;IMF_Read,IO_MB);</span>
+<a name="l00738"></a>00738 <span class="comment">               IO_RegisterReadHandler(0x204,&amp;IMF_Read,IO_MB);</span>
+<a name="l00739"></a>00739 <span class="comment">               */</span>
+<a name="l00740"></a>00740             IO_RegisterWriteHandler(0x2A20,&amp;IMF_Write,IO_MB);
+<a name="l00741"></a>00741             IO_RegisterWriteHandler(0x2A21,&amp;IMF_Write,IO_MB);
+<a name="l00742"></a>00742             IO_RegisterWriteHandler(0x2A22,&amp;IMF_Write,IO_MB);
+<a name="l00743"></a>00743             IO_RegisterWriteHandler(0x2A23,&amp;IMF_Write,IO_MB);
+<a name="l00744"></a>00744             IO_RegisterWriteHandler(0x2A24,&amp;IMF_Write,IO_MB);
+<a name="l00745"></a>00745             IO_RegisterWriteHandler(0x2A25,&amp;IMF_Write,IO_MB);
+<a name="l00746"></a>00746             IO_RegisterWriteHandler(0x2A26,&amp;IMF_Write,IO_MB);
+<a name="l00747"></a>00747             IO_RegisterWriteHandler(0x2A27,&amp;IMF_Write,IO_MB);
+<a name="l00748"></a>00748             IO_RegisterWriteHandler(0x2A28,&amp;IMF_Write,IO_MB);
+<a name="l00749"></a>00749             IO_RegisterWriteHandler(0x2A29,&amp;IMF_Write,IO_MB);
+<a name="l00750"></a>00750             IO_RegisterWriteHandler(0x2A2A,&amp;IMF_Write,IO_MB);
+<a name="l00751"></a>00751             IO_RegisterWriteHandler(0x2A2B,&amp;IMF_Write,IO_MB);
+<a name="l00752"></a>00752             IO_RegisterWriteHandler(0x2A2C,&amp;IMF_Write,IO_MB);
+<a name="l00753"></a>00753             IO_RegisterWriteHandler(0x2A2D,&amp;IMF_Write,IO_MB);
+<a name="l00754"></a>00754             IO_RegisterWriteHandler(0x2A2E,&amp;IMF_Write,IO_MB);
+<a name="l00755"></a>00755             IO_RegisterWriteHandler(0x2A2F,&amp;IMF_Write,IO_MB);
+<a name="l00756"></a>00756         }
+<a name="l00757"></a>00757 
+<a name="l00758"></a>00758                 mpu.queue_used=0;
+<a name="l00759"></a>00759                 mpu.queue_pos=0;
+<a name="l00760"></a>00760                 mpu.mode=M_UART;
+<a name="l00761"></a>00761 
+<a name="l00762"></a>00762         <span class="keywordflow">if</span> (IS_PC98_ARCH)
+<a name="l00763"></a>00763             mpu.irq=6;  <span class="comment">/* This is said to be the MIDI card&#39;s factory default on PC-98 */</span>
+<a name="l00764"></a>00764         <span class="keywordflow">else</span> <span class="keywordflow">if</span> (!enable_slave_pic)
+<a name="l00765"></a>00765             mpu.irq=2;
+<a name="l00766"></a>00766         <span class="keywordflow">else</span>
+<a name="l00767"></a>00767                 mpu.irq=9;      <span class="comment">/* Princess Maker 2 wants it on irq 9 */</span>
+<a name="l00768"></a>00768 
+<a name="l00769"></a>00769         {
+<a name="l00770"></a>00770             <span class="keywordtype">int</span> x = section-&gt;Get_int(<span class="stringliteral">&quot;mpuirq&quot;</span>);
+<a name="l00771"></a>00771 
+<a name="l00772"></a>00772             <span class="keywordflow">if</span> (x &gt;= 2)
+<a name="l00773"></a>00773                 mpu.irq = (<span class="keywordtype">unsigned</span> int)x;
 <a name="l00774"></a>00774 
-<a name="l00775"></a>00775                 mpu.intelligent = <span class="keyword">true</span>; <span class="comment">//Default is on</span>
-<a name="l00776"></a>00776                 <span class="keywordflow">if</span>(strcasecmp(s_mpu,<span class="stringliteral">&quot;uart&quot;</span>) == 0) mpu.intelligent = <span class="keyword">false</span>;
-<a name="l00777"></a>00777                 if (!mpu.intelligent) <span class="keywordflow">return</span>;
-<a name="l00778"></a>00778 
-<a name="l00779"></a>00779         <span class="keywordflow">if</span> (IS_PC98_ARCH) {
-<a name="l00780"></a>00780             <span class="comment">/* Mask IRQ by default.</span>
-<a name="l00781"></a>00781 <span class="comment">             * </span>
-<a name="l00782"></a>00782 <span class="comment">             * MMD.COM, a common MIDI MPU-401 driver in the PC-98 world, seems to have</span>
-<a name="l00783"></a>00783 <span class="comment">             * IRQ detection problems unless the IRQ is masked during the detection phase.</span>
-<a name="l00784"></a>00784 <span class="comment">             * It will fail to detect any IRQ that is unmasked during it&#39;s detection phase.</span>
-<a name="l00785"></a>00785 <span class="comment">             * For some reason it&#39;s not totally consistent i.e. the MMD.COM driver included</span>
-<a name="l00786"></a>00786 <span class="comment">             * with Touhou Project 2 can detect MIDI on IRQ 5 when unmasked, but not 3, 12, or 6,</span>
-<a name="l00787"></a>00787 <span class="comment">             * or sometimes only on IRQ 6 if I/O delays are lengthened.</span>
-<a name="l00788"></a>00788 <span class="comment">             *</span>
-<a name="l00789"></a>00789 <span class="comment">             * Perhaps the driver assumes that if the IRQ is unmasked, that it&#39;s probably in</span>
-<a name="l00790"></a>00790 <span class="comment">             * use and not safe to probe.</span>
-<a name="l00791"></a>00791 <span class="comment">             *</span>
-<a name="l00792"></a>00792 <span class="comment">             * Also noted: MMD.COM cannot detect IRQs reliably if I/O delay is disabled in</span>
-<a name="l00793"></a>00793 <span class="comment">             *             the emulation (iodelay=0) */</span>
-<a name="l00794"></a>00794             PIC_SetIRQMask(mpu.irq,<span class="keyword">true</span>);
-<a name="l00795"></a>00795         }
-<a name="l00796"></a>00796         <span class="keywordflow">else</span> {
-<a name="l00797"></a>00797             <span class="comment">/*Set IRQ and unmask it(for timequest/princess maker 2) */</span>
-<a name="l00798"></a>00798             PIC_SetIRQMask(mpu.irq,<span class="keyword">false</span>);
-<a name="l00799"></a>00799         }
-<a name="l00800"></a>00800 
-<a name="l00801"></a>00801                 MPU401_Reset();
-<a name="l00802"></a>00802         }
-<a name="l00803"></a>00803 };
-<a name="l00804"></a>00804 
-<a name="l00805"></a>00805 <span class="keyword">static</span> <a class="code" href="classMPU401.html">MPU401</a>* test = NULL;
-<a name="l00806"></a>00806 
-<a name="l00807"></a>00807 <span class="keywordtype">void</span> MPU401_Destroy(<a class="code" href="classSection.html">Section</a>* sec){
-<a name="l00808"></a>00808     (void)sec;<span class="comment">//UNUSED</span>
-<a name="l00809"></a>00809         <span class="keywordflow">if</span> (test != NULL) {
-<a name="l00810"></a>00810                 <span class="keyword">delete</span> test;
-<a name="l00811"></a>00811                 test = NULL;
-<a name="l00812"></a>00812         }
-<a name="l00813"></a>00813 }
+<a name="l00775"></a>00775             <span class="keywordflow">if</span> (!IS_PC98_ARCH &amp;&amp; enable_slave_pic &amp;&amp; mpu.irq == 2)
+<a name="l00776"></a>00776                 mpu.irq = 9;
+<a name="l00777"></a>00777             <span class="keywordflow">else</span> <span class="keywordflow">if</span> (!enable_slave_pic &amp;&amp; mpu.irq == 9)
+<a name="l00778"></a>00778                 mpu.irq = 2;
+<a name="l00779"></a>00779         }
+<a name="l00780"></a>00780 
+<a name="l00781"></a>00781         <a class="code" href="classLOG.html">LOG</a>(LOG_MISC,LOG_NORMAL)(<span class="stringliteral">&quot;MPU IRQ %d&quot;</span>,(int)mpu.irq);
+<a name="l00782"></a>00782 
+<a name="l00783"></a>00783                 mpu.intelligent = <span class="keyword">true</span>; <span class="comment">//Default is on</span>
+<a name="l00784"></a>00784                 <span class="keywordflow">if</span>(strcasecmp(s_mpu,<span class="stringliteral">&quot;uart&quot;</span>) == 0) mpu.intelligent = <span class="keyword">false</span>;
+<a name="l00785"></a>00785                 if (!mpu.intelligent) <span class="keywordflow">return</span>;
+<a name="l00786"></a>00786 
+<a name="l00787"></a>00787         <span class="keywordflow">if</span> (IS_PC98_ARCH) {
+<a name="l00788"></a>00788             <span class="comment">/* Mask IRQ by default.</span>
+<a name="l00789"></a>00789 <span class="comment">             * </span>
+<a name="l00790"></a>00790 <span class="comment">             * MMD.COM, a common MIDI MPU-401 driver in the PC-98 world, seems to have</span>
+<a name="l00791"></a>00791 <span class="comment">             * IRQ detection problems unless the IRQ is masked during the detection phase.</span>
+<a name="l00792"></a>00792 <span class="comment">             * It will fail to detect any IRQ that is unmasked during it&#39;s detection phase.</span>
+<a name="l00793"></a>00793 <span class="comment">             * For some reason it&#39;s not totally consistent i.e. the MMD.COM driver included</span>
+<a name="l00794"></a>00794 <span class="comment">             * with Touhou Project 2 can detect MIDI on IRQ 5 when unmasked, but not 3, 12, or 6,</span>
+<a name="l00795"></a>00795 <span class="comment">             * or sometimes only on IRQ 6 if I/O delays are lengthened.</span>
+<a name="l00796"></a>00796 <span class="comment">             *</span>
+<a name="l00797"></a>00797 <span class="comment">             * Perhaps the driver assumes that if the IRQ is unmasked, that it&#39;s probably in</span>
+<a name="l00798"></a>00798 <span class="comment">             * use and not safe to probe.</span>
+<a name="l00799"></a>00799 <span class="comment">             *</span>
+<a name="l00800"></a>00800 <span class="comment">             * Also noted: MMD.COM cannot detect IRQs reliably if I/O delay is disabled in</span>
+<a name="l00801"></a>00801 <span class="comment">             *             the emulation (iodelay=0) */</span>
+<a name="l00802"></a>00802             PIC_SetIRQMask(mpu.irq,<span class="keyword">true</span>);
+<a name="l00803"></a>00803         }
+<a name="l00804"></a>00804         <span class="keywordflow">else</span> {
+<a name="l00805"></a>00805             <span class="comment">/*Set IRQ and unmask it(for timequest/princess maker 2) */</span>
+<a name="l00806"></a>00806             PIC_SetIRQMask(mpu.irq,<span class="keyword">false</span>);
+<a name="l00807"></a>00807         }
+<a name="l00808"></a>00808 
+<a name="l00809"></a>00809                 MPU401_Reset();
+<a name="l00810"></a>00810         }
+<a name="l00811"></a>00811 };
+<a name="l00812"></a>00812 
+<a name="l00813"></a>00813 <span class="keyword">static</span> <a class="code" href="classMPU401.html">MPU401</a>* test = NULL;
 <a name="l00814"></a>00814 
-<a name="l00815"></a>00815 <span class="keywordtype">void</span> MPU401_Reset(<a class="code" href="classSection.html">Section</a>* sec) {
+<a name="l00815"></a>00815 <span class="keywordtype">void</span> MPU401_Destroy(<a class="code" href="classSection.html">Section</a>* sec){
 <a name="l00816"></a>00816     (void)sec;<span class="comment">//UNUSED</span>
-<a name="l00817"></a>00817         <span class="keywordflow">if</span> (test == NULL) {
-<a name="l00818"></a>00818                 <a class="code" href="classLOG.html">LOG</a>(LOG_MISC,LOG_DEBUG)(<span class="stringliteral">&quot;Allocating MPU401 emulation&quot;</span>);
-<a name="l00819"></a>00819                 test = <span class="keyword">new</span> <a class="code" href="classMPU401.html">MPU401</a>(control-&gt;GetSection(<span class="stringliteral">&quot;midi&quot;</span>));
+<a name="l00817"></a>00817         <span class="keywordflow">if</span> (test != NULL) {
+<a name="l00818"></a>00818                 <span class="keyword">delete</span> test;
+<a name="l00819"></a>00819                 test = NULL;
 <a name="l00820"></a>00820         }
 <a name="l00821"></a>00821 }
 <a name="l00822"></a>00822 
-<a name="l00823"></a>00823 <span class="keywordtype">void</span> MIDI_GUI_OnSectionPropChange(<a class="code" href="classSection.html">Section</a> *x);
-<a name="l00824"></a>00824 
-<a name="l00825"></a>00825 <span class="keywordtype">void</span> MIDI_OnSectionPropChange(<a class="code" href="classSection.html">Section</a> *x) {
-<a name="l00826"></a>00826     <span class="keyword">delete</span> test;
-<a name="l00827"></a>00827     test = NULL;
-<a name="l00828"></a>00828 
-<a name="l00829"></a>00829     <a class="code" href="classLOG.html">LOG</a>(LOG_MISC,LOG_DEBUG)(<span class="stringliteral">&quot;Resetting MPU401, config change&quot;</span>);
+<a name="l00823"></a>00823 <span class="keywordtype">void</span> MPU401_Reset(<a class="code" href="classSection.html">Section</a>* sec) {
+<a name="l00824"></a>00824     (void)sec;<span class="comment">//UNUSED</span>
+<a name="l00825"></a>00825         <span class="keywordflow">if</span> (test == NULL) {
+<a name="l00826"></a>00826                 <a class="code" href="classLOG.html">LOG</a>(LOG_MISC,LOG_DEBUG)(<span class="stringliteral">&quot;Allocating MPU401 emulation&quot;</span>);
+<a name="l00827"></a>00827                 test = <span class="keyword">new</span> <a class="code" href="classMPU401.html">MPU401</a>(control-&gt;GetSection(<span class="stringliteral">&quot;midi&quot;</span>));
+<a name="l00828"></a>00828         }
+<a name="l00829"></a>00829 }
 <a name="l00830"></a>00830 
-<a name="l00831"></a>00831     MIDI_GUI_OnSectionPropChange(x);
+<a name="l00831"></a>00831 <span class="keywordtype">void</span> MIDI_GUI_OnSectionPropChange(<a class="code" href="classSection.html">Section</a> *x);
 <a name="l00832"></a>00832 
-<a name="l00833"></a>00833     test = <span class="keyword">new</span> <a class="code" href="classMPU401.html">MPU401</a>(control-&gt;GetSection(<span class="stringliteral">&quot;midi&quot;</span>));
-<a name="l00834"></a>00834 }
-<a name="l00835"></a>00835 
-<a name="l00836"></a>00836 <span class="keywordtype">void</span> MPU401_Init() {
-<a name="l00837"></a>00837         <a class="code" href="classLOG.html">LOG</a>(LOG_MISC,LOG_DEBUG)(<span class="stringliteral">&quot;Initializing MPU401 emulation&quot;</span>);
+<a name="l00833"></a>00833 <span class="keywordtype">void</span> MIDI_OnSectionPropChange(<a class="code" href="classSection.html">Section</a> *x) {
+<a name="l00834"></a>00834     <span class="keyword">delete</span> test;
+<a name="l00835"></a>00835     test = NULL;
+<a name="l00836"></a>00836 
+<a name="l00837"></a>00837     <a class="code" href="classLOG.html">LOG</a>(LOG_MISC,LOG_DEBUG)(<span class="stringliteral">&quot;Resetting MPU401, config change&quot;</span>);
 <a name="l00838"></a>00838 
-<a name="l00839"></a>00839         AddVMEventFunction(VM_EVENT_RESET,AddVMEventFunctionFuncPair(MPU401_Reset));
-<a name="l00840"></a>00840         AddExitFunction(AddExitFunctionFuncPair(MPU401_Destroy),<span class="keyword">true</span>);
-<a name="l00841"></a>00841 
-<a name="l00842"></a>00842         control-&gt;GetSection(<span class="stringliteral">&quot;midi&quot;</span>)-&gt;onpropchange.push_back(&amp;MIDI_OnSectionPropChange);
-<a name="l00843"></a>00843 }
-<a name="l00844"></a>00844 
+<a name="l00839"></a>00839     MIDI_GUI_OnSectionPropChange(x);
+<a name="l00840"></a>00840 
+<a name="l00841"></a>00841     test = <span class="keyword">new</span> <a class="code" href="classMPU401.html">MPU401</a>(control-&gt;GetSection(<span class="stringliteral">&quot;midi&quot;</span>));
+<a name="l00842"></a>00842 }
+<a name="l00843"></a>00843 
+<a name="l00844"></a>00844 <span class="keywordtype">void</span> MPU401_Init() {
+<a name="l00845"></a>00845         <a class="code" href="classLOG.html">LOG</a>(LOG_MISC,LOG_DEBUG)(<span class="stringliteral">&quot;Initializing MPU401 emulation&quot;</span>);
+<a name="l00846"></a>00846 
+<a name="l00847"></a>00847         AddVMEventFunction(VM_EVENT_RESET,AddVMEventFunctionFuncPair(MPU401_Reset));
+<a name="l00848"></a>00848         AddExitFunction(AddExitFunctionFuncPair(MPU401_Destroy),<span class="keyword">true</span>);
+<a name="l00849"></a>00849 
+<a name="l00850"></a>00850         control-&gt;GetSection(<span class="stringliteral">&quot;midi&quot;</span>)-&gt;onpropchange.push_back(&amp;MIDI_OnSectionPropChange);
+<a name="l00851"></a>00851 }
+<a name="l00852"></a>00852 
+<a name="l00853"></a>00853 <span class="comment">// save state support</span>
+<a name="l00854"></a>00854 <span class="keywordtype">void</span> *MPU401_Event_PIC_Event = (<span class="keywordtype">void</span>*)((uintptr_t)MPU401_Event);
+<a name="l00855"></a>00855 
+<a name="l00856"></a>00856 <span class="keywordtype">void</span> POD_Save_MPU401( std::ostream&amp; stream )
+<a name="l00857"></a>00857 {
+<a name="l00858"></a>00858         <span class="keyword">const</span> <span class="keywordtype">char</span> pod_name[32] = <span class="stringliteral">&quot;MPU401&quot;</span>;
+<a name="l00859"></a>00859 
+<a name="l00860"></a>00860         <span class="keywordflow">if</span>( stream.fail() ) <span class="keywordflow">return</span>;
+<a name="l00861"></a>00861         <span class="keywordflow">if</span>( !test ) <span class="keywordflow">return</span>;
+<a name="l00862"></a>00862 
+<a name="l00863"></a>00863 
+<a name="l00864"></a>00864         WRITE_POD( &amp;pod_name, pod_name );
+<a name="l00865"></a>00865 
+<a name="l00866"></a>00866         <span class="comment">//*******************************************</span>
+<a name="l00867"></a>00867         <span class="comment">//*******************************************</span>
+<a name="l00868"></a>00868         <span class="comment">//*******************************************</span>
+<a name="l00869"></a>00869 
+<a name="l00870"></a>00870         <span class="comment">// - pure data</span>
+<a name="l00871"></a>00871         WRITE_POD( &amp;mpu, mpu );
+<a name="l00872"></a>00872 }
+<a name="l00873"></a>00873 
+<a name="l00874"></a>00874 
+<a name="l00875"></a>00875 <span class="keywordtype">void</span> POD_Load_MPU401( std::istream&amp; stream )
+<a name="l00876"></a>00876 {
+<a name="l00877"></a>00877         <span class="keywordtype">char</span> pod_name[32] = {0};
+<a name="l00878"></a>00878 
+<a name="l00879"></a>00879         <span class="keywordflow">if</span>( stream.fail() ) <span class="keywordflow">return</span>;
+<a name="l00880"></a>00880         <span class="keywordflow">if</span>( !test ) <span class="keywordflow">return</span>;
+<a name="l00881"></a>00881 
+<a name="l00882"></a>00882 
+<a name="l00883"></a>00883         <span class="comment">// error checking</span>
+<a name="l00884"></a>00884         READ_POD( &amp;pod_name, pod_name );
+<a name="l00885"></a>00885         <span class="keywordflow">if</span>( strcmp( pod_name, <span class="stringliteral">&quot;MPU401&quot;</span> ) ) {
+<a name="l00886"></a>00886                 stream.clear( std::istream::failbit | std::istream::badbit );
+<a name="l00887"></a>00887                 <span class="keywordflow">return</span>;
+<a name="l00888"></a>00888         }
+<a name="l00889"></a>00889 
+<a name="l00890"></a>00890         <span class="comment">//************************************************</span>
+<a name="l00891"></a>00891         <span class="comment">//************************************************</span>
+<a name="l00892"></a>00892         <span class="comment">//************************************************</span>
+<a name="l00893"></a>00893 
+<a name="l00894"></a>00894         <span class="comment">// - pure data</span>
+<a name="l00895"></a>00895         READ_POD( &amp;mpu, mpu );
+<a name="l00896"></a>00896 }
 </pre></div></div><!-- contents -->
 
 
 <hr class="footer"/><address class="footer"><small>
-Generated on Tue Oct 1 2019 18:06:27 for DOSBox-X by &#160;<a href="http://www.doxygen.org/index.html">
+Generated on Sun Jul 5 2020 13:11:36 for DOSBox-X by &#160;<a href="http://www.doxygen.org/index.html">
 <img class="footer" src="doxygen.png" alt="doxygen"/>
 </a> 1.8.0
 </small></address>

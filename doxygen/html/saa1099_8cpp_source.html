@@ -271,8 +271,8 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l00174"></a>00174 <span class="keywordtype">void</span> saa1099_device::device_start()
 <a name="l00175"></a>00175 {
 <a name="l00176"></a>00176         <span class="comment">/* copy global parameters */</span>
-<a name="l00177"></a>00177         m_master_clock = (int)clock();
-<a name="l00178"></a>00178         m_sample_rate = (int)clock() / 256;
+<a name="l00177"></a>00177         m_master_clock = clock();
+<a name="l00178"></a>00178         m_sample_rate = clock() / 256;
 <a name="l00179"></a>00179 
 <a name="l00180"></a>00180         <span class="comment">/* for each chip allocate one stream */</span>
 <a name="l00181"></a>00181         m_stream = stream_alloc(0, 2, (<span class="keywordtype">int</span>)m_sample_rate);
@@ -323,8 +323,8 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l00226"></a>00226         <span class="keywordflow">if</span> (!m_all_ch_enable)
 <a name="l00227"></a>00227         {
 <a name="l00228"></a>00228                 <span class="comment">/* init output data */</span>
-<a name="l00229"></a>00229                 memset(outputs[LEFT],0,(<span class="keywordtype">unsigned</span> <span class="keywordtype">int</span>)samples*<span class="keyword">sizeof</span>(*outputs[LEFT]));
-<a name="l00230"></a>00230                 memset(outputs[RIGHT],0,(<span class="keywordtype">unsigned</span> <span class="keywordtype">int</span>)samples*<span class="keyword">sizeof</span>(*outputs[RIGHT]));
+<a name="l00229"></a>00229                 memset(outputs[LEFT],0,samples*<span class="keyword">sizeof</span>(*outputs[LEFT]));
+<a name="l00230"></a>00230                 memset(outputs[RIGHT],0,samples*<span class="keyword">sizeof</span>(*outputs[RIGHT]));
 <a name="l00231"></a>00231                 <span class="keywordflow">return</span>;
 <a name="l00232"></a>00232         }
 <a name="l00233"></a>00233 
@@ -461,124 +461,165 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l00364"></a>00364 {
 <a name="l00365"></a>00365     (void)offset;
 <a name="l00366"></a>00366     (void)space;
-<a name="l00367"></a>00367 
-<a name="l00368"></a>00368         <span class="keywordflow">if</span> ((data &amp; 0xff) &gt; 0x1c)
-<a name="l00369"></a>00369         {
-<a name="l00370"></a>00370                 <span class="comment">/* Error! */</span>
-<a name="l00371"></a>00371                 logerror(<span class="stringliteral">&quot;%s: (SAA1099 &#39;%s&#39;) Unknown register selected\n&quot;</span>, machine().describe_context(), tag());
-<a name="l00372"></a>00372         }
-<a name="l00373"></a>00373 
-<a name="l00374"></a>00374         m_selected_reg = data &amp; 0x1f;
-<a name="l00375"></a>00375         <span class="keywordflow">if</span> (m_selected_reg == 0x18 || m_selected_reg == 0x19)
-<a name="l00376"></a>00376         {
-<a name="l00377"></a>00377                 <span class="comment">/* clock the envelope channels */</span>
-<a name="l00378"></a>00378                 <span class="keywordflow">if</span> (m_env_clock[0])
-<a name="l00379"></a>00379                         envelope_w(0);
-<a name="l00380"></a>00380                 <span class="keywordflow">if</span> (m_env_clock[1])
-<a name="l00381"></a>00381                         envelope_w(1);
-<a name="l00382"></a>00382         }
-<a name="l00383"></a>00383 }
+<a name="l00367"></a>00367         <span class="keywordflow">if</span> ((data &amp; 0xff) &gt; 0x1c)
+<a name="l00368"></a>00368         {
+<a name="l00369"></a>00369                 <span class="comment">/* Error! */</span>
+<a name="l00370"></a>00370                 logerror(<span class="stringliteral">&quot;%s: (SAA1099 &#39;%s&#39;) Unknown register selected\n&quot;</span>, machine().describe_context(), tag());
+<a name="l00371"></a>00371         }
+<a name="l00372"></a>00372 
+<a name="l00373"></a>00373         m_selected_reg = data &amp; 0x1f;
+<a name="l00374"></a>00374         <span class="keywordflow">if</span> (m_selected_reg == 0x18 || m_selected_reg == 0x19)
+<a name="l00375"></a>00375         {
+<a name="l00376"></a>00376                 <span class="comment">/* clock the envelope channels */</span>
+<a name="l00377"></a>00377                 <span class="keywordflow">if</span> (m_env_clock[0])
+<a name="l00378"></a>00378                         envelope_w(0);
+<a name="l00379"></a>00379                 <span class="keywordflow">if</span> (m_env_clock[1])
+<a name="l00380"></a>00380                         envelope_w(1);
+<a name="l00381"></a>00381         }
+<a name="l00382"></a>00382 }
+<a name="l00383"></a>00383 
 <a name="l00384"></a>00384 
-<a name="l00385"></a>00385 
-<a name="l00386"></a>00386 WRITE8_MEMBER( saa1099_device::data_w )
-<a name="l00387"></a>00387 {
-<a name="l00388"></a>00388         <span class="keywordtype">int</span> reg = m_selected_reg;
-<a name="l00389"></a>00389         <span class="keywordtype">int</span> ch;
-<a name="l00390"></a>00390 
-<a name="l00391"></a>00391     (void)offset;
-<a name="l00392"></a>00392     (void)space;
-<a name="l00393"></a>00393 
-<a name="l00394"></a>00394         <span class="comment">/* first update the stream to this point in time */</span>
-<a name="l00395"></a>00395         m_stream-&gt;update();
-<a name="l00396"></a>00396 
-<a name="l00397"></a>00397         <span class="keywordflow">switch</span> (reg)
-<a name="l00398"></a>00398         {
-<a name="l00399"></a>00399         <span class="comment">/* channel i amplitude */</span>
-<a name="l00400"></a>00400         <span class="keywordflow">case</span> 0x00:  <span class="keywordflow">case</span> 0x01:  <span class="keywordflow">case</span> 0x02:  <span class="keywordflow">case</span> 0x03:  <span class="keywordflow">case</span> 0x04:  <span class="keywordflow">case</span> 0x05:
-<a name="l00401"></a>00401                 ch = reg &amp; 7;
-<a name="l00402"></a>00402                 m_channels[ch].amplitude[LEFT] = amplitude_lookup[data &amp; 0x0f];
-<a name="l00403"></a>00403                 m_channels[ch].amplitude[RIGHT] = amplitude_lookup[(data &gt;&gt; 4) &amp; 0x0f];
-<a name="l00404"></a>00404                 <span class="keywordflow">break</span>;
-<a name="l00405"></a>00405         <span class="comment">/* channel i frequency */</span>
-<a name="l00406"></a>00406         <span class="keywordflow">case</span> 0x08:  <span class="keywordflow">case</span> 0x09:  <span class="keywordflow">case</span> 0x0a:  <span class="keywordflow">case</span> 0x0b:  <span class="keywordflow">case</span> 0x0c:  <span class="keywordflow">case</span> 0x0d:
-<a name="l00407"></a>00407                 ch = reg &amp; 7;
-<a name="l00408"></a>00408                 m_channels[ch].frequency = data &amp; 0xff;
-<a name="l00409"></a>00409                 <span class="keywordflow">break</span>;
-<a name="l00410"></a>00410         <span class="comment">/* channel i octave */</span>
-<a name="l00411"></a>00411         <span class="keywordflow">case</span> 0x10:  <span class="keywordflow">case</span> 0x11:  <span class="keywordflow">case</span> 0x12:
-<a name="l00412"></a>00412                 ch = (reg - 0x10) &lt;&lt; 1;
-<a name="l00413"></a>00413                 m_channels[ch + 0].octave = data &amp; 0x07;
-<a name="l00414"></a>00414                 m_channels[ch + 1].octave = (data &gt;&gt; 4) &amp; 0x07;
-<a name="l00415"></a>00415                 <span class="keywordflow">break</span>;
-<a name="l00416"></a>00416         <span class="comment">/* channel i frequency enable */</span>
-<a name="l00417"></a>00417         <span class="keywordflow">case</span> 0x14:
-<a name="l00418"></a>00418                 m_channels[0].freq_enable = data &amp; 0x01;
-<a name="l00419"></a>00419                 m_channels[1].freq_enable = data &amp; 0x02;
-<a name="l00420"></a>00420                 m_channels[2].freq_enable = data &amp; 0x04;
-<a name="l00421"></a>00421                 m_channels[3].freq_enable = data &amp; 0x08;
-<a name="l00422"></a>00422                 m_channels[4].freq_enable = data &amp; 0x10;
-<a name="l00423"></a>00423                 m_channels[5].freq_enable = data &amp; 0x20;
-<a name="l00424"></a>00424                 <span class="keywordflow">break</span>;
-<a name="l00425"></a>00425         <span class="comment">/* channel i noise enable */</span>
-<a name="l00426"></a>00426         <span class="keywordflow">case</span> 0x15:
-<a name="l00427"></a>00427                 m_channels[0].noise_enable = data &amp; 0x01;
-<a name="l00428"></a>00428                 m_channels[1].noise_enable = data &amp; 0x02;
-<a name="l00429"></a>00429                 m_channels[2].noise_enable = data &amp; 0x04;
-<a name="l00430"></a>00430                 m_channels[3].noise_enable = data &amp; 0x08;
-<a name="l00431"></a>00431                 m_channels[4].noise_enable = data &amp; 0x10;
-<a name="l00432"></a>00432                 m_channels[5].noise_enable = data &amp; 0x20;
-<a name="l00433"></a>00433                 <span class="keywordflow">break</span>;
-<a name="l00434"></a>00434         <span class="comment">/* noise generators parameters */</span>
-<a name="l00435"></a>00435         <span class="keywordflow">case</span> 0x16:
-<a name="l00436"></a>00436                 m_noise_params[0] = data &amp; 0x03;
-<a name="l00437"></a>00437                 m_noise_params[1] = (data &gt;&gt; 4) &amp; 0x03;
-<a name="l00438"></a>00438                 <span class="keywordflow">break</span>;
-<a name="l00439"></a>00439         <span class="comment">/* envelope generators parameters */</span>
-<a name="l00440"></a>00440         <span class="keywordflow">case</span> 0x18:  <span class="keywordflow">case</span> 0x19:
-<a name="l00441"></a>00441                 ch = reg - 0x18;
-<a name="l00442"></a>00442                 m_env_reverse_right[ch] = data &amp; 0x01;
-<a name="l00443"></a>00443                 m_env_mode[ch] = (data &gt;&gt; 1) &amp; 0x07;
-<a name="l00444"></a>00444                 m_env_bits[ch] = data &amp; 0x10;
-<a name="l00445"></a>00445                 m_env_clock[ch] = data &amp; 0x20;
-<a name="l00446"></a>00446                 m_env_enable[ch] = data &amp; 0x80;
-<a name="l00447"></a>00447                 <span class="comment">/* reset the envelope */</span>
-<a name="l00448"></a>00448                 m_env_step[ch] = 0;
-<a name="l00449"></a>00449                 <span class="keywordflow">break</span>;
-<a name="l00450"></a>00450         <span class="comment">/* channels enable &amp; reset generators */</span>
-<a name="l00451"></a>00451         <span class="keywordflow">case</span> 0x1c:
-<a name="l00452"></a>00452                 m_all_ch_enable = data &amp; 0x01;
-<a name="l00453"></a>00453                 m_sync_state = data &amp; 0x02;
-<a name="l00454"></a>00454                 <span class="keywordflow">if</span> (data &amp; 0x02)
-<a name="l00455"></a>00455                 {
-<a name="l00456"></a>00456                         <span class="keywordtype">int</span> i;
-<a name="l00457"></a>00457 
-<a name="l00458"></a>00458                         <span class="comment">/* Synch &amp; Reset generators */</span>
-<a name="l00459"></a>00459                         logerror(<span class="stringliteral">&quot;%s: (SAA1099 &#39;%s&#39;) -reg 0x1c- Chip reset\n&quot;</span>, machine().describe_context(), tag());
-<a name="l00460"></a>00460                         <span class="keywordflow">for</span> (i = 0; i &lt; 6; i++)
-<a name="l00461"></a>00461                         {
-<a name="l00462"></a>00462                                 m_channels[i].level = 0;
-<a name="l00463"></a>00463                                 m_channels[i].counter = 0.0;
-<a name="l00464"></a>00464                         }
-<a name="l00465"></a>00465                 }
-<a name="l00466"></a>00466                 <span class="keywordflow">break</span>;
-<a name="l00467"></a>00467         <span class="keywordflow">default</span>:    <span class="comment">/* Error! */</span>
-<a name="l00468"></a>00468                 <span class="keywordflow">if</span> (data != 0)
-<a name="l00469"></a>00469                         logerror(<span class="stringliteral">&quot;%s: (SAA1099 &#39;%s&#39;) Unknown operation (reg:%02x, data:%02x)\n&quot;</span>, machine().describe_context(), tag(), reg, data);
-<a name="l00470"></a>00470         }
-<a name="l00471"></a>00471 }
-<a name="l00472"></a>00472 
-<a name="l00473"></a>00473 WRITE8_MEMBER(saa1099_device::write)
-<a name="l00474"></a>00474 {
-<a name="l00475"></a>00475         <span class="keywordflow">if</span> (offset &amp; 1)
-<a name="l00476"></a>00476                 control_w(space, 0, data);
-<a name="l00477"></a>00477         <span class="keywordflow">else</span>
-<a name="l00478"></a>00478                 data_w(space, 0, data);
-<a name="l00479"></a>00479 }
+<a name="l00385"></a>00385 WRITE8_MEMBER( saa1099_device::data_w )
+<a name="l00386"></a>00386 {
+<a name="l00387"></a>00387     (void)offset;
+<a name="l00388"></a>00388     (void)space;
+<a name="l00389"></a>00389         <span class="keywordtype">int</span> reg = m_selected_reg;
+<a name="l00390"></a>00390         <span class="keywordtype">int</span> ch;
+<a name="l00391"></a>00391 
+<a name="l00392"></a>00392         <span class="comment">/* first update the stream to this point in time */</span>
+<a name="l00393"></a>00393         m_stream-&gt;update();
+<a name="l00394"></a>00394 
+<a name="l00395"></a>00395         <span class="keywordflow">switch</span> (reg)
+<a name="l00396"></a>00396         {
+<a name="l00397"></a>00397         <span class="comment">/* channel i amplitude */</span>
+<a name="l00398"></a>00398         <span class="keywordflow">case</span> 0x00:  <span class="keywordflow">case</span> 0x01:  <span class="keywordflow">case</span> 0x02:  <span class="keywordflow">case</span> 0x03:  <span class="keywordflow">case</span> 0x04:  <span class="keywordflow">case</span> 0x05:
+<a name="l00399"></a>00399                 ch = reg &amp; 7;
+<a name="l00400"></a>00400                 m_channels[ch].amplitude[LEFT] = amplitude_lookup[data &amp; 0x0f];
+<a name="l00401"></a>00401                 m_channels[ch].amplitude[RIGHT] = amplitude_lookup[(data &gt;&gt; 4) &amp; 0x0f];
+<a name="l00402"></a>00402                 <span class="keywordflow">break</span>;
+<a name="l00403"></a>00403         <span class="comment">/* channel i frequency */</span>
+<a name="l00404"></a>00404         <span class="keywordflow">case</span> 0x08:  <span class="keywordflow">case</span> 0x09:  <span class="keywordflow">case</span> 0x0a:  <span class="keywordflow">case</span> 0x0b:  <span class="keywordflow">case</span> 0x0c:  <span class="keywordflow">case</span> 0x0d:
+<a name="l00405"></a>00405                 ch = reg &amp; 7;
+<a name="l00406"></a>00406                 m_channels[ch].frequency = data &amp; 0xff;
+<a name="l00407"></a>00407                 <span class="keywordflow">break</span>;
+<a name="l00408"></a>00408         <span class="comment">/* channel i octave */</span>
+<a name="l00409"></a>00409         <span class="keywordflow">case</span> 0x10:  <span class="keywordflow">case</span> 0x11:  <span class="keywordflow">case</span> 0x12:
+<a name="l00410"></a>00410                 ch = (reg - 0x10) &lt;&lt; 1;
+<a name="l00411"></a>00411                 m_channels[ch + 0].octave = data &amp; 0x07;
+<a name="l00412"></a>00412                 m_channels[ch + 1].octave = (data &gt;&gt; 4) &amp; 0x07;
+<a name="l00413"></a>00413                 <span class="keywordflow">break</span>;
+<a name="l00414"></a>00414         <span class="comment">/* channel i frequency enable */</span>
+<a name="l00415"></a>00415         <span class="keywordflow">case</span> 0x14:
+<a name="l00416"></a>00416                 m_channels[0].freq_enable = data &amp; 0x01;
+<a name="l00417"></a>00417                 m_channels[1].freq_enable = data &amp; 0x02;
+<a name="l00418"></a>00418                 m_channels[2].freq_enable = data &amp; 0x04;
+<a name="l00419"></a>00419                 m_channels[3].freq_enable = data &amp; 0x08;
+<a name="l00420"></a>00420                 m_channels[4].freq_enable = data &amp; 0x10;
+<a name="l00421"></a>00421                 m_channels[5].freq_enable = data &amp; 0x20;
+<a name="l00422"></a>00422                 <span class="keywordflow">break</span>;
+<a name="l00423"></a>00423         <span class="comment">/* channel i noise enable */</span>
+<a name="l00424"></a>00424         <span class="keywordflow">case</span> 0x15:
+<a name="l00425"></a>00425                 m_channels[0].noise_enable = data &amp; 0x01;
+<a name="l00426"></a>00426                 m_channels[1].noise_enable = data &amp; 0x02;
+<a name="l00427"></a>00427                 m_channels[2].noise_enable = data &amp; 0x04;
+<a name="l00428"></a>00428                 m_channels[3].noise_enable = data &amp; 0x08;
+<a name="l00429"></a>00429                 m_channels[4].noise_enable = data &amp; 0x10;
+<a name="l00430"></a>00430                 m_channels[5].noise_enable = data &amp; 0x20;
+<a name="l00431"></a>00431                 <span class="keywordflow">break</span>;
+<a name="l00432"></a>00432         <span class="comment">/* noise generators parameters */</span>
+<a name="l00433"></a>00433         <span class="keywordflow">case</span> 0x16:
+<a name="l00434"></a>00434                 m_noise_params[0] = data &amp; 0x03;
+<a name="l00435"></a>00435                 m_noise_params[1] = (data &gt;&gt; 4) &amp; 0x03;
+<a name="l00436"></a>00436                 <span class="keywordflow">break</span>;
+<a name="l00437"></a>00437         <span class="comment">/* envelope generators parameters */</span>
+<a name="l00438"></a>00438         <span class="keywordflow">case</span> 0x18:  <span class="keywordflow">case</span> 0x19:
+<a name="l00439"></a>00439                 ch = reg - 0x18;
+<a name="l00440"></a>00440                 m_env_reverse_right[ch] = data &amp; 0x01;
+<a name="l00441"></a>00441                 m_env_mode[ch] = (data &gt;&gt; 1) &amp; 0x07;
+<a name="l00442"></a>00442                 m_env_bits[ch] = data &amp; 0x10;
+<a name="l00443"></a>00443                 m_env_clock[ch] = data &amp; 0x20;
+<a name="l00444"></a>00444                 m_env_enable[ch] = data &amp; 0x80;
+<a name="l00445"></a>00445                 <span class="comment">/* reset the envelope */</span>
+<a name="l00446"></a>00446                 m_env_step[ch] = 0;
+<a name="l00447"></a>00447                 <span class="keywordflow">break</span>;
+<a name="l00448"></a>00448         <span class="comment">/* channels enable &amp; reset generators */</span>
+<a name="l00449"></a>00449         <span class="keywordflow">case</span> 0x1c:
+<a name="l00450"></a>00450                 m_all_ch_enable = data &amp; 0x01;
+<a name="l00451"></a>00451                 m_sync_state = data &amp; 0x02;
+<a name="l00452"></a>00452                 <span class="keywordflow">if</span> (data &amp; 0x02)
+<a name="l00453"></a>00453                 {
+<a name="l00454"></a>00454                         <span class="keywordtype">int</span> i;
+<a name="l00455"></a>00455 
+<a name="l00456"></a>00456                         <span class="comment">/* Synch &amp; Reset generators */</span>
+<a name="l00457"></a>00457                         logerror(<span class="stringliteral">&quot;%s: (SAA1099 &#39;%s&#39;) -reg 0x1c- Chip reset\n&quot;</span>, machine().describe_context(), tag());
+<a name="l00458"></a>00458                         <span class="keywordflow">for</span> (i = 0; i &lt; 6; i++)
+<a name="l00459"></a>00459                         {
+<a name="l00460"></a>00460                                 m_channels[i].level = 0;
+<a name="l00461"></a>00461                                 m_channels[i].counter = 0.0;
+<a name="l00462"></a>00462                         }
+<a name="l00463"></a>00463                 }
+<a name="l00464"></a>00464                 <span class="keywordflow">break</span>;
+<a name="l00465"></a>00465         <span class="keywordflow">default</span>:    <span class="comment">/* Error! */</span>
+<a name="l00466"></a>00466                 <span class="keywordflow">if</span> (data != 0)
+<a name="l00467"></a>00467                         logerror(<span class="stringliteral">&quot;%s: (SAA1099 &#39;%s&#39;) Unknown operation (reg:%02x, data:%02x)\n&quot;</span>, machine().describe_context(), tag(), reg, data);
+<a name="l00468"></a>00468         }
+<a name="l00469"></a>00469 }
+<a name="l00470"></a>00470 
+<a name="l00471"></a>00471 WRITE8_MEMBER(saa1099_device::write)
+<a name="l00472"></a>00472 {
+<a name="l00473"></a>00473         <span class="keywordflow">if</span> (offset &amp; 1)
+<a name="l00474"></a>00474                 control_w(space, 0, data);
+<a name="l00475"></a>00475         <span class="keywordflow">else</span>
+<a name="l00476"></a>00476                 data_w(space, 0, data);
+<a name="l00477"></a>00477 }
+<a name="l00478"></a>00478 
+<a name="l00479"></a>00479 <span class="keywordtype">void</span> saa1099_device::SaveState( std::ostream&amp; stream )
+<a name="l00480"></a>00480 {
+<a name="l00481"></a>00481         <span class="comment">// - pure data</span>
+<a name="l00482"></a>00482         device_t::SaveState(stream);
+<a name="l00483"></a>00483  
+<a name="l00484"></a>00484         WRITE_POD( &amp;m_noise_params, m_noise_params );
+<a name="l00485"></a>00485         WRITE_POD( &amp;m_env_enable, m_env_enable );
+<a name="l00486"></a>00486         WRITE_POD( &amp;m_env_reverse_right, m_env_reverse_right );
+<a name="l00487"></a>00487         WRITE_POD( &amp;m_env_mode, m_env_mode );
+<a name="l00488"></a>00488         WRITE_POD( &amp;m_env_bits, m_env_bits );
+<a name="l00489"></a>00489         WRITE_POD( &amp;m_env_clock, m_env_clock );
+<a name="l00490"></a>00490         WRITE_POD( &amp;m_env_step, m_env_step );
+<a name="l00491"></a>00491         WRITE_POD( &amp;m_all_ch_enable, m_all_ch_enable );
+<a name="l00492"></a>00492         WRITE_POD( &amp;m_sync_state, m_sync_state );
+<a name="l00493"></a>00493         WRITE_POD( &amp;m_selected_reg, m_selected_reg );
+<a name="l00494"></a>00494         WRITE_POD( &amp;m_channels, m_channels );
+<a name="l00495"></a>00495         WRITE_POD( &amp;m_noise, m_noise );
+<a name="l00496"></a>00496         WRITE_POD( &amp;m_sample_rate, m_sample_rate );
+<a name="l00497"></a>00497         WRITE_POD( &amp;m_master_clock, m_master_clock );
+<a name="l00498"></a>00498 }
+<a name="l00499"></a>00499 
+<a name="l00500"></a>00500 
+<a name="l00501"></a>00501 <span class="keywordtype">void</span> saa1099_device::LoadState( std::istream&amp; stream )
+<a name="l00502"></a>00502 {
+<a name="l00503"></a>00503         <span class="comment">// - pure data</span>
+<a name="l00504"></a>00504         device_t::LoadState(stream);
+<a name="l00505"></a>00505 
+<a name="l00506"></a>00506         READ_POD( &amp;m_noise_params, m_noise_params );
+<a name="l00507"></a>00507         READ_POD( &amp;m_env_enable, m_env_enable );
+<a name="l00508"></a>00508         READ_POD( &amp;m_env_reverse_right, m_env_reverse_right );
+<a name="l00509"></a>00509         READ_POD( &amp;m_env_mode, m_env_mode );
+<a name="l00510"></a>00510         READ_POD( &amp;m_env_bits, m_env_bits );
+<a name="l00511"></a>00511         READ_POD( &amp;m_env_clock, m_env_clock );
+<a name="l00512"></a>00512         READ_POD( &amp;m_env_step, m_env_step );
+<a name="l00513"></a>00513         READ_POD( &amp;m_all_ch_enable, m_all_ch_enable );
+<a name="l00514"></a>00514         READ_POD( &amp;m_sync_state, m_sync_state );
+<a name="l00515"></a>00515         READ_POD( &amp;m_selected_reg, m_selected_reg );
+<a name="l00516"></a>00516         READ_POD( &amp;m_channels, m_channels );
+<a name="l00517"></a>00517         READ_POD( &amp;m_noise, m_noise );
+<a name="l00518"></a>00518         READ_POD( &amp;m_sample_rate, m_sample_rate );
+<a name="l00519"></a>00519         READ_POD( &amp;m_master_clock, m_master_clock );
+<a name="l00520"></a>00520 }
 </pre></div></div><!-- contents -->
 
 
 <hr class="footer"/><address class="footer"><small>
-Generated on Tue Oct 1 2019 18:06:26 for DOSBox-X by &#160;<a href="http://www.doxygen.org/index.html">
+Generated on Sun Jul 5 2020 13:11:36 for DOSBox-X by &#160;<a href="http://www.doxygen.org/index.html">
 <img class="footer" src="doxygen.png" alt="doxygen"/>
 </a> 1.8.0
 </small></address>

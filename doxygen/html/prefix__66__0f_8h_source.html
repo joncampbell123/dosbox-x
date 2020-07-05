@@ -96,7 +96,7 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 </div><!--header-->
 <div class="contents">
 <div class="fragment"><pre class="fragment"><a name="l00001"></a>00001 <span class="comment">/*</span>
-<a name="l00002"></a>00002 <span class="comment"> *  Copyright (C) 2002-2019  The DOSBox Team</span>
+<a name="l00002"></a>00002 <span class="comment"> *  Copyright (C) 2002-2020  The DOSBox Team</span>
 <a name="l00003"></a>00003 <span class="comment"> *</span>
 <a name="l00004"></a>00004 <span class="comment"> *  This program is free software; you can redistribute it and/or modify</span>
 <a name="l00005"></a>00005 <span class="comment"> *  it under the terms of the GNU General Public License as published by</span>
@@ -108,9 +108,9 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l00011"></a>00011 <span class="comment"> *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the</span>
 <a name="l00012"></a>00012 <span class="comment"> *  GNU General Public License for more details.</span>
 <a name="l00013"></a>00013 <span class="comment"> *</span>
-<a name="l00014"></a>00014 <span class="comment"> *  You should have received a copy of the GNU General Public License</span>
-<a name="l00015"></a>00015 <span class="comment"> *  along with this program; if not, write to the Free Software</span>
-<a name="l00016"></a>00016 <span class="comment"> *  Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1335, USA.</span>
+<a name="l00014"></a>00014 <span class="comment"> *  You should have received a copy of the GNU General Public License along</span>
+<a name="l00015"></a>00015 <span class="comment"> *  with this program; if not, write to the Free Software Foundation, Inc.,</span>
+<a name="l00016"></a>00016 <span class="comment"> *  51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.</span>
 <a name="l00017"></a>00017 <span class="comment"> */</span>
 <a name="l00018"></a>00018 
 <a name="l00019"></a>00019         CASE_0F_D(0x00)                                                                                         <span class="comment">/* GRP 6 Exxx */</span>
@@ -534,13 +534,13 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l00437"></a>00437         CASE_0F_D(0xbc)                                                                                         <span class="comment">/* BSF Gd,Ed */</span>
 <a name="l00438"></a>00438                 {
 <a name="l00439"></a>00439                         GetRMrd;
-<a name="l00440"></a>00440                         Bit32u result,value;
+<a name="l00440"></a>00440                         Bit32u value;
 <a name="l00441"></a>00441                         <span class="keywordflow">if</span> (rm &gt;= 0xc0) { GetEArd; value=*eard; } 
 <a name="l00442"></a>00442                         <span class="keywordflow">else</span>                    { GetEAa; value=LoadMd(eaa); }
 <a name="l00443"></a>00443                         <span class="keywordflow">if</span> (value==0) {
 <a name="l00444"></a>00444                                 SETFLAGBIT(ZF,<span class="keyword">true</span>);
 <a name="l00445"></a>00445                         } <span class="keywordflow">else</span> {
-<a name="l00446"></a>00446                                 result = 0;
+<a name="l00446"></a>00446                                 Bit32u result = 0;
 <a name="l00447"></a>00447                                 <span class="keywordflow">while</span> ((value &amp; 0x01)==0) { result++; value&gt;&gt;=1; }
 <a name="l00448"></a>00448                                 SETFLAGBIT(ZF,<span class="keyword">false</span>);
 <a name="l00449"></a>00449                                 *rmrd = result;
@@ -551,13 +551,13 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l00454"></a>00454         CASE_0F_D(0xbd)                                                                                         <span class="comment">/*  BSR Gd,Ed */</span>
 <a name="l00455"></a>00455                 {
 <a name="l00456"></a>00456                         GetRMrd;
-<a name="l00457"></a>00457                         Bit32u result,value;
+<a name="l00457"></a>00457                         Bit32u value;
 <a name="l00458"></a>00458                         <span class="keywordflow">if</span> (rm &gt;= 0xc0) { GetEArd; value=*eard; } 
 <a name="l00459"></a>00459                         <span class="keywordflow">else</span>                    { GetEAa; value=LoadMd(eaa); }
 <a name="l00460"></a>00460                         <span class="keywordflow">if</span> (value==0) {
 <a name="l00461"></a>00461                                 SETFLAGBIT(ZF,<span class="keyword">true</span>);
 <a name="l00462"></a>00462                         } <span class="keywordflow">else</span> {
-<a name="l00463"></a>00463                                 result = 31;    <span class="comment">// Operandsize-1</span>
+<a name="l00463"></a>00463                                 Bit32u result = 31;     <span class="comment">// Operandsize-1</span>
 <a name="l00464"></a>00464                                 <span class="keywordflow">while</span> ((value &amp; 0x80000000)==0) { result--; value&lt;&lt;=1; }
 <a name="l00465"></a>00465                                 SETFLAGBIT(ZF,<span class="keyword">false</span>);
 <a name="l00466"></a>00466                                 *rmrd = result;
@@ -628,12 +628,16 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l00531"></a>00531         CASE_0F_D(0xcf)                                                                                         <span class="comment">/* BSWAP EDI */</span>
 <a name="l00532"></a>00532                 if (CPU_ArchitectureType&lt;CPU_ARCHTYPE_486OLD) goto illegal_opcode;
 <a name="l00533"></a>00533                 BSWAPD(reg_edi);break;
-<a name="l00534"></a>00534 <span class="preprocessor">#include &quot;prefix_0f_mmx.h&quot;</span>
+<a name="l00534"></a>00534 <span class="preprocessor">#if C_FPU</span>
+<a name="l00535"></a>00535 <span class="preprocessor"></span><span class="preprocessor">#define CASE_0F_MMX(x) CASE_0F_D(x)</span>
+<a name="l00536"></a>00536 <span class="preprocessor"></span><span class="preprocessor">#include &quot;prefix_0f_mmx.h&quot;</span>
+<a name="l00537"></a>00537 <span class="preprocessor">#undef CASE_0F_MMX</span>
+<a name="l00538"></a>00538 <span class="preprocessor"></span><span class="preprocessor">#endif</span>
 </pre></div></div><!-- contents -->
 
 
 <hr class="footer"/><address class="footer"><small>
-Generated on Tue Oct 1 2019 18:06:24 for DOSBox-X by &#160;<a href="http://www.doxygen.org/index.html">
+Generated on Sun Jul 5 2020 13:11:34 for DOSBox-X by &#160;<a href="http://www.doxygen.org/index.html">
 <img class="footer" src="doxygen.png" alt="doxygen"/>
 </a> 1.8.0
 </small></address>

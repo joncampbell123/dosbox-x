@@ -107,357 +107,359 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l00010"></a>00010 
 <a name="l00011"></a>00011 <span class="keyword">using namespace </span>std;
 <a name="l00012"></a>00012 
-<a name="l00013"></a>00013 <span class="preprocessor">#if !defined(C_SDL2)</span>
-<a name="l00014"></a>00014 <span class="preprocessor"></span>Bitu OUTPUT_SURFACE_GetBestMode(Bitu flags)
-<a name="l00015"></a>00015 {
-<a name="l00016"></a>00016     Bitu testbpp, gotbpp;
-<a name="l00017"></a>00017 
-<a name="l00018"></a>00018     flags &amp;= ~GFX_LOVE_8;       <span class="comment">//Disable love for 8bpp modes</span>
-<a name="l00019"></a>00019                                 <span class="comment">/* Check if we can satisfy the depth it loves */</span>
-<a name="l00020"></a>00020     <span class="keywordflow">if</span> (flags &amp; GFX_LOVE_8) testbpp = 8;
-<a name="l00021"></a>00021     <span class="keywordflow">else</span> <span class="keywordflow">if</span> (flags &amp; GFX_LOVE_15) testbpp = 15;
-<a name="l00022"></a>00022     <span class="keywordflow">else</span> <span class="keywordflow">if</span> (flags &amp; GFX_LOVE_16) testbpp = 16;
-<a name="l00023"></a>00023     <span class="keywordflow">else</span> <span class="keywordflow">if</span> (flags &amp; GFX_LOVE_32) testbpp = 32;
-<a name="l00024"></a>00024     <span class="keywordflow">else</span> testbpp = 0;
-<a name="l00025"></a>00025 
-<a name="l00026"></a>00026     <span class="keywordflow">if</span> (sdl.desktop.fullscreen)
-<a name="l00027"></a>00027         gotbpp = (<span class="keywordtype">unsigned</span> int)SDL_VideoModeOK(640, 480, (<span class="keywordtype">int</span>)testbpp,
-<a name="l00028"></a>00028         (<span class="keywordtype">unsigned</span> int)SDL_FULLSCREEN | (<span class="keywordtype">unsigned</span> <span class="keywordtype">int</span>)SDL_HWSURFACE | (<span class="keywordtype">unsigned</span> int)SDL_HWPALETTE);
-<a name="l00029"></a>00029     <span class="keywordflow">else</span>
-<a name="l00030"></a>00030         gotbpp = sdl.desktop.bpp;
-<a name="l00031"></a>00031 
-<a name="l00032"></a>00032     <span class="comment">/* SDL 1.x and sometimes SDL 2.x mistake 15-bit 5:5:5 RGB for 16-bit 5:6:5 RGB</span>
-<a name="l00033"></a>00033 <span class="comment">    * which causes colors to mis-display. This seems to be common with Windows and Linux.</span>
-<a name="l00034"></a>00034 <span class="comment">    * If SDL said 16-bit but the bit masks suggest 15-bit, then make the correction now. */</span>
-<a name="l00035"></a>00035     <span class="keywordflow">if</span> (gotbpp == 16) {
-<a name="l00036"></a>00036         <span class="keywordflow">if</span> (sdl.surface-&gt;format-&gt;Gshift == 5 &amp;&amp; sdl.surface-&gt;format-&gt;Gmask == (31U &lt;&lt; 5U)) {
-<a name="l00037"></a>00037             LOG_MSG(<span class="stringliteral">&quot;NOTE: SDL returned 16-bit/pixel mode (5:6:5) but failed to recognize your screen is 15-bit/pixel mode (5:5:5)&quot;</span>);
-<a name="l00038"></a>00038             gotbpp = 15;
-<a name="l00039"></a>00039         }
-<a name="l00040"></a>00040     }
-<a name="l00041"></a>00041 
-<a name="l00042"></a>00042     <span class="comment">/* If we can&#39;t get our favorite mode check for another working one */</span>
-<a name="l00043"></a>00043     <span class="keywordflow">switch</span> (gotbpp) {
-<a name="l00044"></a>00044     <span class="keywordflow">case</span> 8:
-<a name="l00045"></a>00045         <span class="keywordflow">if</span> (flags &amp; GFX_CAN_8) flags &amp;= ~(GFX_CAN_15 | GFX_CAN_16 | GFX_CAN_32);
-<a name="l00046"></a>00046         <span class="keywordflow">break</span>;
-<a name="l00047"></a>00047     <span class="keywordflow">case</span> 15:
-<a name="l00048"></a>00048         <span class="keywordflow">if</span> (flags &amp; GFX_CAN_15) flags &amp;= ~(GFX_CAN_8 | GFX_CAN_16 | GFX_CAN_32);
-<a name="l00049"></a>00049         <span class="keywordflow">break</span>;
-<a name="l00050"></a>00050     <span class="keywordflow">case</span> 16:
-<a name="l00051"></a>00051         <span class="keywordflow">if</span> (flags &amp; GFX_CAN_16) flags &amp;= ~(GFX_CAN_8 | GFX_CAN_15 | GFX_CAN_32);
-<a name="l00052"></a>00052         <span class="keywordflow">break</span>;
-<a name="l00053"></a>00053     <span class="keywordflow">case</span> 24:
-<a name="l00054"></a>00054     <span class="keywordflow">case</span> 32:
-<a name="l00055"></a>00055         <span class="keywordflow">if</span> (flags &amp; GFX_CAN_32) flags &amp;= ~(GFX_CAN_8 | GFX_CAN_15 | GFX_CAN_16);
-<a name="l00056"></a>00056         <span class="keywordflow">break</span>;
-<a name="l00057"></a>00057     }
-<a name="l00058"></a>00058     flags |= GFX_CAN_RANDOM;
-<a name="l00059"></a>00059     <span class="keywordflow">return</span> flags;
-<a name="l00060"></a>00060 }
-<a name="l00061"></a>00061 
-<a name="l00062"></a>00062 Bitu OUTPUT_SURFACE_SetSize()
-<a name="l00063"></a>00063 {
-<a name="l00064"></a>00064     Bitu bpp = 0, retFlags = 0;
-<a name="l00065"></a>00065 
-<a name="l00066"></a>00066     <span class="comment">// localize width and height variables because they can be locally adjusted by aspect ratio correction</span>
-<a name="l00067"></a>00067 retry:
-<a name="l00068"></a>00068     Bitu width = sdl.draw.width;
-<a name="l00069"></a>00069     Bitu height = sdl.draw.height;
-<a name="l00070"></a>00070 
-<a name="l00071"></a>00071     <span class="keywordflow">if</span> (sdl.draw.flags &amp; GFX_CAN_32)
-<a name="l00072"></a>00072         bpp = 32;
-<a name="l00073"></a>00073     <span class="keywordflow">else</span> <span class="keywordflow">if</span> (sdl.draw.flags &amp; GFX_CAN_16)
-<a name="l00074"></a>00074         bpp = 16;
-<a name="l00075"></a>00075     <span class="keywordflow">else</span> <span class="keywordflow">if</span> (sdl.draw.flags &amp; GFX_CAN_15)
-<a name="l00076"></a>00076         bpp = 15;
-<a name="l00077"></a>00077     <span class="keywordflow">else</span> <span class="keywordflow">if</span> (sdl.draw.flags &amp; GFX_CAN_8)
-<a name="l00078"></a>00078         bpp = 8;
-<a name="l00079"></a>00079 
-<a name="l00080"></a>00080 <span class="preprocessor">#if defined(WIN32) &amp;&amp; !defined(C_SDL2)</span>
-<a name="l00081"></a>00081 <span class="preprocessor"></span>    <span class="comment">/* SDL 1.x might mis-inform us on 16bpp for 15-bit color, which is bad enough.</span>
-<a name="l00082"></a>00082 <span class="comment">    But on Windows, we&#39;re still required to ask for 16bpp to get the 15bpp mode we want. */</span>
-<a name="l00083"></a>00083     <span class="keywordflow">if</span> (bpp == 15)
-<a name="l00084"></a>00084     {
-<a name="l00085"></a>00085         <span class="keywordflow">if</span> (sdl.surface-&gt;format-&gt;Gshift == 5 &amp;&amp; sdl.surface-&gt;format-&gt;Gmask == (31U &lt;&lt; 5U))
-<a name="l00086"></a>00086         {
-<a name="l00087"></a>00087             LOG_MSG(<span class="stringliteral">&quot;SDL hack: Asking for 16-bit color (5:6:5) to get SDL to give us 15-bit color (5:5:5) to match your screen.&quot;</span>);
-<a name="l00088"></a>00088             bpp = 16;
-<a name="l00089"></a>00089         }
-<a name="l00090"></a>00090     }
-<a name="l00091"></a>00091 <span class="preprocessor">#endif</span>
-<a name="l00092"></a>00092 <span class="preprocessor"></span>
-<a name="l00093"></a>00093 <span class="preprocessor">#if C_XBRZ || C_SURFACE_POSTRENDER_ASPECT</span>
-<a name="l00094"></a>00094 <span class="preprocessor"></span>    <span class="comment">// there is a small problem we need to solve here: aspect corrected windows can be smaller than needed due to source with non-4:3 pixel ratio</span>
-<a name="l00095"></a>00095     <span class="comment">// if we detect non-4:3 pixel ratio here with aspect correction on, we correct it so original fits into resized window properly</span>
-<a name="l00096"></a>00096     <span class="keywordflow">if</span> (render.aspect) aspectCorrectExtend(width, height);
-<a name="l00097"></a>00097 <span class="preprocessor">#endif</span>
-<a name="l00098"></a>00098 <span class="preprocessor"></span>
-<a name="l00099"></a>00099     sdl.clip.w = (Uint16)width; sdl.clip.h = (Uint16)height;
-<a name="l00100"></a>00100     <span class="keywordflow">if</span> (sdl.desktop.fullscreen)
-<a name="l00101"></a>00101     {
-<a name="l00102"></a>00102         Uint32 wflags = SDL_FULLSCREEN | SDL_HWPALETTE |
-<a name="l00103"></a>00103             ((sdl.draw.flags &amp; GFX_CAN_RANDOM) ? SDL_SWSURFACE : SDL_HWSURFACE) |
-<a name="l00104"></a>00104             (sdl.desktop.doublebuf ? SDL_DOUBLEBUF | SDL_ASYNCBLIT : 0);
-<a name="l00105"></a>00105 
-<a name="l00106"></a>00106         <span class="keywordflow">if</span> (sdl.desktop.full.fixed)
-<a name="l00107"></a>00107         {
-<a name="l00108"></a>00108             sdl.clip.x = (Sint16)((sdl.desktop.full.width - width) / 2);
-<a name="l00109"></a>00109             sdl.clip.y = (Sint16)((sdl.desktop.full.height - height) / 2);
-<a name="l00110"></a>00110             <span class="keywordflow">if</span> (sdl.clip.x &lt; 0) sdl.clip.x = 0;
-<a name="l00111"></a>00111             <span class="keywordflow">if</span> (sdl.clip.y &lt; 0) sdl.clip.y = 0;
-<a name="l00112"></a>00112 
-<a name="l00113"></a>00113             <span class="keywordtype">int</span> fw = (std::max)((<span class="keywordtype">int</span>)sdl.desktop.full.width,  (sdl.clip.x+sdl.clip.w));
-<a name="l00114"></a>00114             <span class="keywordtype">int</span> fh = (std::max)((<span class="keywordtype">int</span>)sdl.desktop.full.height, (sdl.clip.y+sdl.clip.h));
-<a name="l00115"></a>00115 
-<a name="l00116"></a>00116             sdl.surface = SDL_SetVideoMode(fw, fh, (<span class="keywordtype">int</span>)bpp, wflags);
-<a name="l00117"></a>00117             sdl.deferred_resize = <span class="keyword">false</span>;
-<a name="l00118"></a>00118             sdl.must_redraw_all = <span class="keyword">true</span>;
-<a name="l00119"></a>00119 
-<a name="l00120"></a>00120 <span class="preprocessor">#if C_XBRZ</span>
-<a name="l00121"></a>00121 <span class="preprocessor"></span>            <span class="comment">/* scale to fit the window.</span>
-<a name="l00122"></a>00122 <span class="comment">             * fit by aspect ratio if asked to do so. */</span>
-<a name="l00123"></a>00123             <span class="keywordflow">if</span> (sdl_xbrz.enable)
-<a name="l00124"></a>00124             {
-<a name="l00125"></a>00125                 sdl.clip.x = sdl.clip.y = 0;
-<a name="l00126"></a>00126                 sdl.clip.w = sdl.desktop.full.width;
-<a name="l00127"></a>00127                 sdl.clip.h = sdl.desktop.full.height;
-<a name="l00128"></a>00128                 <span class="keywordflow">if</span> (render.aspect) aspectCorrectFitClip(sdl.clip.w, sdl.clip.h, sdl.clip.x, sdl.clip.y, sdl.desktop.full.width, sdl.desktop.full.height);
-<a name="l00129"></a>00129             }
-<a name="l00130"></a>00130 <span class="preprocessor">#endif </span>
-<a name="l00131"></a>00131 <span class="preprocessor"></span>        }
-<a name="l00132"></a>00132         <span class="keywordflow">else</span>
-<a name="l00133"></a>00133         {
-<a name="l00134"></a>00134             sdl.clip.x = 0; sdl.clip.y = 0;
-<a name="l00135"></a>00135             sdl.surface = SDL_SetVideoMode((<span class="keywordtype">int</span>)width, (<span class="keywordtype">int</span>)height, (<span class="keywordtype">int</span>)bpp, wflags);
-<a name="l00136"></a>00136             sdl.deferred_resize = <span class="keyword">false</span>;
-<a name="l00137"></a>00137             sdl.must_redraw_all = <span class="keyword">true</span>;
-<a name="l00138"></a>00138         }
-<a name="l00139"></a>00139 
-<a name="l00140"></a>00140         <span class="keywordflow">if</span> (sdl.surface == NULL) {
-<a name="l00141"></a>00141             LOG_MSG(<span class="stringliteral">&quot;Fullscreen not supported: %s&quot;</span>, SDL_GetError());
-<a name="l00142"></a>00142             sdl.desktop.fullscreen = <span class="keyword">false</span>;
-<a name="l00143"></a>00143             GFX_CaptureMouse();
-<a name="l00144"></a>00144             <span class="keywordflow">goto</span> retry;
-<a name="l00145"></a>00145         }
-<a name="l00146"></a>00146     }
-<a name="l00147"></a>00147     <span class="keywordflow">else</span>
-<a name="l00148"></a>00148     {
-<a name="l00149"></a>00149         <span class="keywordtype">int</span> menuheight = 0;
-<a name="l00150"></a>00150 
-<a name="l00151"></a>00151         sdl.clip.x = 0; sdl.clip.y = 0;
+<a name="l00013"></a>00013 <span class="keywordtype">bool</span> setSizeButNotResize();
+<a name="l00014"></a>00014 
+<a name="l00015"></a>00015 <span class="preprocessor">#if !defined(C_SDL2)</span>
+<a name="l00016"></a>00016 <span class="preprocessor"></span>Bitu OUTPUT_SURFACE_GetBestMode(Bitu flags)
+<a name="l00017"></a>00017 {
+<a name="l00018"></a>00018     Bitu testbpp, gotbpp;
+<a name="l00019"></a>00019 
+<a name="l00020"></a>00020     flags &amp;= ~GFX_LOVE_8;       <span class="comment">//Disable love for 8bpp modes</span>
+<a name="l00021"></a>00021                                 <span class="comment">/* Check if we can satisfy the depth it loves */</span>
+<a name="l00022"></a>00022     <span class="keywordflow">if</span> (flags &amp; GFX_LOVE_8) testbpp = 8;
+<a name="l00023"></a>00023     <span class="keywordflow">else</span> <span class="keywordflow">if</span> (flags &amp; GFX_LOVE_15) testbpp = 15;
+<a name="l00024"></a>00024     <span class="keywordflow">else</span> <span class="keywordflow">if</span> (flags &amp; GFX_LOVE_16) testbpp = 16;
+<a name="l00025"></a>00025     <span class="keywordflow">else</span> <span class="keywordflow">if</span> (flags &amp; GFX_LOVE_32) testbpp = 32;
+<a name="l00026"></a>00026     <span class="keywordflow">else</span> testbpp = 0;
+<a name="l00027"></a>00027 
+<a name="l00028"></a>00028     <span class="keywordflow">if</span> (sdl.desktop.fullscreen)
+<a name="l00029"></a>00029         gotbpp = (<span class="keywordtype">unsigned</span> int)SDL_VideoModeOK(640, 480, (<span class="keywordtype">int</span>)testbpp,
+<a name="l00030"></a>00030         (<span class="keywordtype">unsigned</span> int)SDL_FULLSCREEN | (<span class="keywordtype">unsigned</span> <span class="keywordtype">int</span>)SDL_HWSURFACE | (<span class="keywordtype">unsigned</span> int)SDL_HWPALETTE);
+<a name="l00031"></a>00031     <span class="keywordflow">else</span>
+<a name="l00032"></a>00032         gotbpp = sdl.desktop.bpp;
+<a name="l00033"></a>00033 
+<a name="l00034"></a>00034     <span class="comment">/* SDL 1.x and sometimes SDL 2.x mistake 15-bit 5:5:5 RGB for 16-bit 5:6:5 RGB</span>
+<a name="l00035"></a>00035 <span class="comment">    * which causes colors to mis-display. This seems to be common with Windows and Linux.</span>
+<a name="l00036"></a>00036 <span class="comment">    * If SDL said 16-bit but the bit masks suggest 15-bit, then make the correction now. */</span>
+<a name="l00037"></a>00037     <span class="keywordflow">if</span> (gotbpp == 16) {
+<a name="l00038"></a>00038         <span class="keywordflow">if</span> (sdl.surface-&gt;format-&gt;Gshift == 5 &amp;&amp; sdl.surface-&gt;format-&gt;Gmask == (31U &lt;&lt; 5U)) {
+<a name="l00039"></a>00039             LOG_MSG(<span class="stringliteral">&quot;NOTE: SDL returned 16-bit/pixel mode (5:6:5) but failed to recognize your screen is 15-bit/pixel mode (5:5:5)&quot;</span>);
+<a name="l00040"></a>00040             gotbpp = 15;
+<a name="l00041"></a>00041         }
+<a name="l00042"></a>00042     }
+<a name="l00043"></a>00043 
+<a name="l00044"></a>00044     <span class="comment">/* If we can&#39;t get our favorite mode check for another working one */</span>
+<a name="l00045"></a>00045     <span class="keywordflow">switch</span> (gotbpp) {
+<a name="l00046"></a>00046     <span class="keywordflow">case</span> 8:
+<a name="l00047"></a>00047         <span class="keywordflow">if</span> (flags &amp; GFX_CAN_8) flags &amp;= ~(GFX_CAN_15 | GFX_CAN_16 | GFX_CAN_32);
+<a name="l00048"></a>00048         <span class="keywordflow">break</span>;
+<a name="l00049"></a>00049     <span class="keywordflow">case</span> 15:
+<a name="l00050"></a>00050         <span class="keywordflow">if</span> (flags &amp; GFX_CAN_15) flags &amp;= ~(GFX_CAN_8 | GFX_CAN_16 | GFX_CAN_32);
+<a name="l00051"></a>00051         <span class="keywordflow">break</span>;
+<a name="l00052"></a>00052     <span class="keywordflow">case</span> 16:
+<a name="l00053"></a>00053         <span class="keywordflow">if</span> (flags &amp; GFX_CAN_16) flags &amp;= ~(GFX_CAN_8 | GFX_CAN_15 | GFX_CAN_32);
+<a name="l00054"></a>00054         <span class="keywordflow">break</span>;
+<a name="l00055"></a>00055     <span class="keywordflow">case</span> 24:
+<a name="l00056"></a>00056     <span class="keywordflow">case</span> 32:
+<a name="l00057"></a>00057         <span class="keywordflow">if</span> (flags &amp; GFX_CAN_32) flags &amp;= ~(GFX_CAN_8 | GFX_CAN_15 | GFX_CAN_16);
+<a name="l00058"></a>00058         <span class="keywordflow">break</span>;
+<a name="l00059"></a>00059     }
+<a name="l00060"></a>00060     flags |= GFX_CAN_RANDOM;
+<a name="l00061"></a>00061     <span class="keywordflow">return</span> flags;
+<a name="l00062"></a>00062 }
+<a name="l00063"></a>00063 
+<a name="l00064"></a>00064 Bitu OUTPUT_SURFACE_SetSize()
+<a name="l00065"></a>00065 {
+<a name="l00066"></a>00066     Bitu bpp = 0, retFlags = 0;
+<a name="l00067"></a>00067 
+<a name="l00068"></a>00068     <span class="comment">// localize width and height variables because they can be locally adjusted by aspect ratio correction</span>
+<a name="l00069"></a>00069 retry:
+<a name="l00070"></a>00070     Bitu width = sdl.draw.width;
+<a name="l00071"></a>00071     Bitu height = sdl.draw.height;
+<a name="l00072"></a>00072 
+<a name="l00073"></a>00073     <span class="keywordflow">if</span> (sdl.draw.flags &amp; GFX_CAN_32)
+<a name="l00074"></a>00074         bpp = 32;
+<a name="l00075"></a>00075     <span class="keywordflow">else</span> <span class="keywordflow">if</span> (sdl.draw.flags &amp; GFX_CAN_16)
+<a name="l00076"></a>00076         bpp = 16;
+<a name="l00077"></a>00077     <span class="keywordflow">else</span> <span class="keywordflow">if</span> (sdl.draw.flags &amp; GFX_CAN_15)
+<a name="l00078"></a>00078         bpp = 15;
+<a name="l00079"></a>00079     <span class="keywordflow">else</span> <span class="keywordflow">if</span> (sdl.draw.flags &amp; GFX_CAN_8)
+<a name="l00080"></a>00080         bpp = 8;
+<a name="l00081"></a>00081 
+<a name="l00082"></a>00082 <span class="preprocessor">#if defined(WIN32) &amp;&amp; !defined(C_SDL2)</span>
+<a name="l00083"></a>00083 <span class="preprocessor"></span>    <span class="comment">/* SDL 1.x might mis-inform us on 16bpp for 15-bit color, which is bad enough.</span>
+<a name="l00084"></a>00084 <span class="comment">    But on Windows, we&#39;re still required to ask for 16bpp to get the 15bpp mode we want. */</span>
+<a name="l00085"></a>00085     <span class="keywordflow">if</span> (bpp == 15)
+<a name="l00086"></a>00086     {
+<a name="l00087"></a>00087         <span class="keywordflow">if</span> (sdl.surface-&gt;format-&gt;Gshift == 5 &amp;&amp; sdl.surface-&gt;format-&gt;Gmask == (31U &lt;&lt; 5U))
+<a name="l00088"></a>00088         {
+<a name="l00089"></a>00089             LOG_MSG(<span class="stringliteral">&quot;SDL hack: Asking for 16-bit color (5:6:5) to get SDL to give us 15-bit color (5:5:5) to match your screen.&quot;</span>);
+<a name="l00090"></a>00090             bpp = 16;
+<a name="l00091"></a>00091         }
+<a name="l00092"></a>00092     }
+<a name="l00093"></a>00093 <span class="preprocessor">#endif</span>
+<a name="l00094"></a>00094 <span class="preprocessor"></span>
+<a name="l00095"></a>00095 <span class="preprocessor">#if C_XBRZ || C_SURFACE_POSTRENDER_ASPECT</span>
+<a name="l00096"></a>00096 <span class="preprocessor"></span>    <span class="comment">// there is a small problem we need to solve here: aspect corrected windows can be smaller than needed due to source with non-4:3 pixel ratio</span>
+<a name="l00097"></a>00097     <span class="comment">// if we detect non-4:3 pixel ratio here with aspect correction on, we correct it so original fits into resized window properly</span>
+<a name="l00098"></a>00098     <span class="keywordflow">if</span> (render.aspect) aspectCorrectExtend(width, height);
+<a name="l00099"></a>00099 <span class="preprocessor">#endif</span>
+<a name="l00100"></a>00100 <span class="preprocessor"></span>
+<a name="l00101"></a>00101     sdl.clip.w = (Uint16)width; sdl.clip.h = (Uint16)height;
+<a name="l00102"></a>00102     <span class="keywordflow">if</span> (sdl.desktop.fullscreen)
+<a name="l00103"></a>00103     {
+<a name="l00104"></a>00104         Uint32 wflags = SDL_FULLSCREEN | SDL_HWPALETTE |
+<a name="l00105"></a>00105             ((sdl.draw.flags &amp; GFX_CAN_RANDOM) ? SDL_SWSURFACE : SDL_HWSURFACE) |
+<a name="l00106"></a>00106             (sdl.desktop.doublebuf ? SDL_DOUBLEBUF | SDL_ASYNCBLIT : 0);
+<a name="l00107"></a>00107 
+<a name="l00108"></a>00108         <span class="keywordflow">if</span> (sdl.desktop.full.fixed)
+<a name="l00109"></a>00109         {
+<a name="l00110"></a>00110             sdl.clip.x = (Sint16)((sdl.desktop.full.width - width) / 2);
+<a name="l00111"></a>00111             sdl.clip.y = (Sint16)((sdl.desktop.full.height - height) / 2);
+<a name="l00112"></a>00112             <span class="keywordflow">if</span> (sdl.clip.x &lt; 0) sdl.clip.x = 0;
+<a name="l00113"></a>00113             <span class="keywordflow">if</span> (sdl.clip.y &lt; 0) sdl.clip.y = 0;
+<a name="l00114"></a>00114 
+<a name="l00115"></a>00115             <span class="keywordtype">int</span> fw = (std::max)((<span class="keywordtype">int</span>)sdl.desktop.full.width,  (sdl.clip.x+sdl.clip.w));
+<a name="l00116"></a>00116             <span class="keywordtype">int</span> fh = (std::max)((<span class="keywordtype">int</span>)sdl.desktop.full.height, (sdl.clip.y+sdl.clip.h));
+<a name="l00117"></a>00117 
+<a name="l00118"></a>00118             sdl.surface = SDL_SetVideoMode(fw, fh, (<span class="keywordtype">int</span>)bpp, wflags);
+<a name="l00119"></a>00119             sdl.deferred_resize = <span class="keyword">false</span>;
+<a name="l00120"></a>00120             sdl.must_redraw_all = <span class="keyword">true</span>;
+<a name="l00121"></a>00121 
+<a name="l00122"></a>00122 <span class="preprocessor">#if C_XBRZ</span>
+<a name="l00123"></a>00123 <span class="preprocessor"></span>            <span class="comment">/* scale to fit the window.</span>
+<a name="l00124"></a>00124 <span class="comment">             * fit by aspect ratio if asked to do so. */</span>
+<a name="l00125"></a>00125             <span class="keywordflow">if</span> (sdl_xbrz.enable)
+<a name="l00126"></a>00126             {
+<a name="l00127"></a>00127                 sdl.clip.x = sdl.clip.y = 0;
+<a name="l00128"></a>00128                 sdl.clip.w = sdl.desktop.full.width;
+<a name="l00129"></a>00129                 sdl.clip.h = sdl.desktop.full.height;
+<a name="l00130"></a>00130                 <span class="keywordflow">if</span> (render.aspect) aspectCorrectFitClip(sdl.clip.w, sdl.clip.h, sdl.clip.x, sdl.clip.y, sdl.desktop.full.width, sdl.desktop.full.height);
+<a name="l00131"></a>00131             }
+<a name="l00132"></a>00132 <span class="preprocessor">#endif </span>
+<a name="l00133"></a>00133 <span class="preprocessor"></span>        }
+<a name="l00134"></a>00134         <span class="keywordflow">else</span>
+<a name="l00135"></a>00135         {
+<a name="l00136"></a>00136             sdl.clip.x = 0; sdl.clip.y = 0;
+<a name="l00137"></a>00137             sdl.surface = SDL_SetVideoMode((<span class="keywordtype">int</span>)width, (<span class="keywordtype">int</span>)height, (<span class="keywordtype">int</span>)bpp, wflags);
+<a name="l00138"></a>00138             sdl.deferred_resize = <span class="keyword">false</span>;
+<a name="l00139"></a>00139             sdl.must_redraw_all = <span class="keyword">true</span>;
+<a name="l00140"></a>00140         }
+<a name="l00141"></a>00141 
+<a name="l00142"></a>00142         <span class="keywordflow">if</span> (sdl.surface == NULL) {
+<a name="l00143"></a>00143             LOG_MSG(<span class="stringliteral">&quot;Fullscreen not supported: %s&quot;</span>, SDL_GetError());
+<a name="l00144"></a>00144             sdl.desktop.fullscreen = <span class="keyword">false</span>;
+<a name="l00145"></a>00145             GFX_CaptureMouse();
+<a name="l00146"></a>00146             <span class="keywordflow">goto</span> retry;
+<a name="l00147"></a>00147         }
+<a name="l00148"></a>00148     }
+<a name="l00149"></a>00149     <span class="keywordflow">else</span>
+<a name="l00150"></a>00150     {
+<a name="l00151"></a>00151         <span class="keywordtype">int</span> menuheight = 0;
 <a name="l00152"></a>00152 
-<a name="l00153"></a>00153 <span class="preprocessor">#if DOSBOXMENU_TYPE == DOSBOXMENU_SDLDRAW</span>
-<a name="l00154"></a>00154 <span class="preprocessor"></span>        <span class="comment">/* scale the menu bar if the window is large enough */</span>
-<a name="l00155"></a>00155         {
-<a name="l00156"></a>00156             Bitu consider_height = menu.maxwindow ? currentWindowHeight : height;
-<a name="l00157"></a>00157             Bitu consider_width = menu.maxwindow ? currentWindowWidth : width;
-<a name="l00158"></a>00158             Bitu final_height = max(max(consider_height, userResizeWindowHeight), (Bitu)(sdl.clip.y + sdl.clip.h));
-<a name="l00159"></a>00159             Bitu final_width = max(max(consider_width, userResizeWindowWidth), (Bitu)(sdl.clip.x + sdl.clip.w));
-<a name="l00160"></a>00160             Bitu scale = 1;
-<a name="l00161"></a>00161 
-<a name="l00162"></a>00162             <span class="keywordflow">while</span> ((final_width / scale) &gt;= (640 * 2) &amp;&amp; (final_height / scale) &gt;= (400 * 2))
-<a name="l00163"></a>00163                 scale++;
-<a name="l00164"></a>00164 
-<a name="l00165"></a>00165             LOG_MSG(<span class="stringliteral">&quot;menuScale=%lu&quot;</span>, (<span class="keywordtype">unsigned</span> <span class="keywordtype">long</span>)scale);
-<a name="l00166"></a>00166             mainMenu.setScale(scale);
-<a name="l00167"></a>00167         }
-<a name="l00168"></a>00168 
-<a name="l00169"></a>00169         <span class="keywordflow">if</span> (mainMenu.isVisible()) menuheight = mainMenu.menuBox.h;
-<a name="l00170"></a>00170 #endif
-<a name="l00171"></a>00171 
-<a name="l00172"></a>00172         <span class="comment">/* menu size and consideration of width and height */</span>
-<a name="l00173"></a>00173         Bitu consider_height = height + (<span class="keywordtype">unsigned</span> <span class="keywordtype">int</span>)menuheight + (sdl.overscan_width * 2);
-<a name="l00174"></a>00174         Bitu consider_width = width + (sdl.overscan_width * 2);
-<a name="l00175"></a>00175 
-<a name="l00176"></a>00176         <span class="keywordflow">if</span> (menu.maxwindow) {
-<a name="l00177"></a>00177             <span class="keywordflow">if</span> (consider_height &lt; currentWindowHeight)
-<a name="l00178"></a>00178                 consider_height = currentWindowHeight;
-<a name="l00179"></a>00179             <span class="keywordflow">if</span> (consider_width &lt; currentWindowWidth)
-<a name="l00180"></a>00180                 consider_width = currentWindowWidth;
-<a name="l00181"></a>00181         }
-<a name="l00182"></a>00182 
-<a name="l00183"></a>00183 <span class="preprocessor">#if DOSBOXMENU_TYPE == DOSBOXMENU_SDLDRAW</span>
-<a name="l00184"></a>00184 <span class="preprocessor"></span>        <span class="keywordflow">if</span> (mainMenu.isVisible())
-<a name="l00185"></a>00185         {
-<a name="l00186"></a>00186             <span class="keyword">extern</span> <span class="keywordtype">unsigned</span> <span class="keywordtype">int</span> min_sdldraw_menu_width;
-<a name="l00187"></a>00187             <span class="keyword">extern</span> <span class="keywordtype">unsigned</span> <span class="keywordtype">int</span> min_sdldraw_menu_height;
-<a name="l00188"></a>00188             <span class="comment">/* enforce a minimum 500x300 surface size.</span>
-<a name="l00189"></a>00189 <span class="comment">             * the menus are useless below 500x300 */</span>
-<a name="l00190"></a>00190             <span class="keywordflow">if</span> (consider_width &lt; (min_sdldraw_menu_width + (sdl.overscan_width * 2)))
-<a name="l00191"></a>00191                 consider_width = (min_sdldraw_menu_width + (sdl.overscan_width * 2));
-<a name="l00192"></a>00192             <span class="keywordflow">if</span> (consider_height &lt; (min_sdldraw_menu_height + (sdl.overscan_width * 2) + (<span class="keywordtype">unsigned</span> <span class="keywordtype">int</span>)menuheight))
-<a name="l00193"></a>00193                 consider_height = (min_sdldraw_menu_height + (sdl.overscan_width * 2) + (<span class="keywordtype">unsigned</span> int)menuheight);
-<a name="l00194"></a>00194         }
-<a name="l00195"></a>00195 <span class="preprocessor">#endif</span>
-<a name="l00196"></a>00196 <span class="preprocessor"></span>
-<a name="l00197"></a>00197         <span class="comment">/* decide where the rectangle on the screen goes */</span>
-<a name="l00198"></a>00198         <span class="keywordtype">int</span> final_width,final_height,ax,ay;
-<a name="l00199"></a>00199 
-<a name="l00200"></a>00200 <span class="preprocessor">#if C_XBRZ</span>
-<a name="l00201"></a>00201 <span class="preprocessor"></span>        <span class="comment">/* scale to fit the window.</span>
-<a name="l00202"></a>00202 <span class="comment">         * fit by aspect ratio if asked to do so. */</span>
-<a name="l00203"></a>00203         <span class="keywordflow">if</span> (sdl_xbrz.enable)
-<a name="l00204"></a>00204         {
-<a name="l00205"></a>00205             final_height = (int)max(consider_height, userResizeWindowHeight) - (int)menuheight - ((<span class="keywordtype">int</span>)sdl.overscan_width * 2);
-<a name="l00206"></a>00206             final_width = (int)max(consider_width, userResizeWindowWidth) - ((int)sdl.overscan_width * 2);
-<a name="l00207"></a>00207 
-<a name="l00208"></a>00208             sdl.clip.x = sdl.clip.y = 0;
-<a name="l00209"></a>00209             sdl.clip.w = final_width;
-<a name="l00210"></a>00210             sdl.clip.h = final_height;
-<a name="l00211"></a>00211             <span class="keywordflow">if</span> (render.aspect) aspectCorrectFitClip(sdl.clip.w, sdl.clip.h, sdl.clip.x, sdl.clip.y, final_width, final_height);
-<a name="l00212"></a>00212         }
-<a name="l00213"></a>00213         <span class="keywordflow">else</span>
-<a name="l00214"></a>00214 <span class="preprocessor">#endif </span>
-<a name="l00215"></a>00215 <span class="preprocessor"></span>        <span class="comment">/* center the screen in the window */</span>
-<a name="l00216"></a>00216         {
-<a name="l00217"></a>00217 
-<a name="l00218"></a>00218             final_height = (int)max(max(consider_height, userResizeWindowHeight), (Bitu)(sdl.clip.y + sdl.clip.h)) - (<span class="keywordtype">int</span>)menuheight - ((int)sdl.overscan_width * 2);
-<a name="l00219"></a>00219             final_width = (int)max(max(consider_width, userResizeWindowWidth), (Bitu)(sdl.clip.x + sdl.clip.w)) - ((<span class="keywordtype">int</span>)sdl.overscan_width * 2);
-<a name="l00220"></a>00220             ax = (final_width - (sdl.clip.x + sdl.clip.w)) / 2;
-<a name="l00221"></a>00221             ay = (final_height - (sdl.clip.y + sdl.clip.h)) / 2;
-<a name="l00222"></a>00222             <span class="keywordflow">if</span> (ax &lt; 0) ax = 0;
-<a name="l00223"></a>00223             <span class="keywordflow">if</span> (ay &lt; 0) ay = 0;
-<a name="l00224"></a>00224             sdl.clip.x += ax + (int)sdl.overscan_width;
-<a name="l00225"></a>00225             sdl.clip.y += ay + (<span class="keywordtype">int</span>)sdl.overscan_width;
-<a name="l00226"></a>00226             <span class="comment">// sdl.clip.w = currentWindowWidth - sdl.clip.x;</span>
-<a name="l00227"></a>00227             <span class="comment">// sdl.clip.h = currentWindowHeight - sdl.clip.y;</span>
-<a name="l00228"></a>00228         }
-<a name="l00229"></a>00229 
-<a name="l00230"></a>00230         {
-<a name="l00231"></a>00231             final_width += (int)sdl.overscan_width * 2;
-<a name="l00232"></a>00232             final_height += (<span class="keywordtype">int</span>)menuheight + (int)sdl.overscan_width * 2;
-<a name="l00233"></a>00233             sdl.clip.y += (<span class="keywordtype">int</span>)menuheight;
-<a name="l00234"></a>00234 
-<a name="l00235"></a>00235             LOG_MSG(<span class="stringliteral">&quot;surface consider=%ux%u final=%ux%u&quot;</span>,
-<a name="l00236"></a>00236                 (<span class="keywordtype">unsigned</span> <span class="keywordtype">int</span>)consider_width,
-<a name="l00237"></a>00237                 (<span class="keywordtype">unsigned</span> <span class="keywordtype">int</span>)consider_height,
-<a name="l00238"></a>00238                 (<span class="keywordtype">unsigned</span> <span class="keywordtype">int</span>)final_width,
-<a name="l00239"></a>00239                 (<span class="keywordtype">unsigned</span> <span class="keywordtype">int</span>)final_height);
-<a name="l00240"></a>00240 
-<a name="l00241"></a>00241             sdl.surface = SDL_SetVideoMode((<span class="keywordtype">int</span>)final_width, (<span class="keywordtype">int</span>)final_height, (<span class="keywordtype">int</span>)bpp,
-<a name="l00242"></a>00242                 (<span class="keywordtype">unsigned</span> <span class="keywordtype">int</span>)((sdl.draw.flags &amp; GFX_CAN_RANDOM) ? SDL_SWSURFACE : SDL_HWSURFACE) |
-<a name="l00243"></a>00243 #ifdef SDL_DOSBOX_X_SPECIAL
-<a name="l00244"></a>00244                 (<span class="keywordtype">unsigned</span> <span class="keywordtype">int</span>)SDL_HAX_NOREFRESH |
-<a name="l00245"></a>00245 #endif
-<a name="l00246"></a>00246                 (<span class="keywordtype">unsigned</span> <span class="keywordtype">int</span>)SDL_RESIZABLE);
-<a name="l00247"></a>00247 
-<a name="l00248"></a>00248             sdl.deferred_resize = <span class="keyword">false</span>;
-<a name="l00249"></a>00249             sdl.must_redraw_all = <span class="keyword">true</span>;
-<a name="l00250"></a>00250 
-<a name="l00251"></a>00251             <span class="keywordflow">if</span> (SDL_MUSTLOCK(sdl.surface))
-<a name="l00252"></a>00252                 SDL_LockSurface(sdl.surface);
-<a name="l00253"></a>00253 
-<a name="l00254"></a>00254             memset(sdl.surface-&gt;pixels, 0, (<span class="keywordtype">unsigned</span> <span class="keywordtype">int</span>)sdl.surface-&gt;pitch * (<span class="keywordtype">unsigned</span> <span class="keywordtype">int</span>)sdl.surface-&gt;h);
+<a name="l00153"></a>00153         sdl.clip.x = 0; sdl.clip.y = 0;
+<a name="l00154"></a>00154 
+<a name="l00155"></a>00155 <span class="preprocessor">#if DOSBOXMENU_TYPE == DOSBOXMENU_SDLDRAW</span>
+<a name="l00156"></a>00156 <span class="preprocessor"></span>        <span class="comment">/* scale the menu bar if the window is large enough */</span>
+<a name="l00157"></a>00157         {
+<a name="l00158"></a>00158             Bitu consider_height = menu.maxwindow ? currentWindowHeight : height;
+<a name="l00159"></a>00159             Bitu consider_width = menu.maxwindow ? currentWindowWidth : width;
+<a name="l00160"></a>00160             Bitu final_height = max(max(consider_height, userResizeWindowHeight), (Bitu)(sdl.clip.y + sdl.clip.h));
+<a name="l00161"></a>00161             Bitu final_width = max(max(consider_width, userResizeWindowWidth), (Bitu)(sdl.clip.x + sdl.clip.w));
+<a name="l00162"></a>00162             Bitu scale = 1;
+<a name="l00163"></a>00163 
+<a name="l00164"></a>00164             <span class="keywordflow">while</span> ((final_width / scale) &gt;= (640 * 2) &amp;&amp; (final_height / scale) &gt;= (400 * 2))
+<a name="l00165"></a>00165                 scale++;
+<a name="l00166"></a>00166 
+<a name="l00167"></a>00167             LOG_MSG(<span class="stringliteral">&quot;menuScale=%lu&quot;</span>, (<span class="keywordtype">unsigned</span> <span class="keywordtype">long</span>)scale);
+<a name="l00168"></a>00168             mainMenu.setScale(scale);
+<a name="l00169"></a>00169         }
+<a name="l00170"></a>00170 
+<a name="l00171"></a>00171         <span class="keywordflow">if</span> (mainMenu.isVisible()) menuheight = mainMenu.menuBox.h;
+<a name="l00172"></a>00172 #endif
+<a name="l00173"></a>00173 
+<a name="l00174"></a>00174         <span class="comment">/* menu size and consideration of width and height */</span>
+<a name="l00175"></a>00175         Bitu consider_height = height + (<span class="keywordtype">unsigned</span> <span class="keywordtype">int</span>)menuheight + (sdl.overscan_width * 2);
+<a name="l00176"></a>00176         Bitu consider_width = width + (sdl.overscan_width * 2);
+<a name="l00177"></a>00177 
+<a name="l00178"></a>00178         <span class="keywordflow">if</span> (menu.maxwindow) {
+<a name="l00179"></a>00179             <span class="keywordflow">if</span> (consider_height &lt; currentWindowHeight)
+<a name="l00180"></a>00180                 consider_height = currentWindowHeight;
+<a name="l00181"></a>00181             <span class="keywordflow">if</span> (consider_width &lt; currentWindowWidth)
+<a name="l00182"></a>00182                 consider_width = currentWindowWidth;
+<a name="l00183"></a>00183         }
+<a name="l00184"></a>00184 
+<a name="l00185"></a>00185 <span class="preprocessor">#if DOSBOXMENU_TYPE == DOSBOXMENU_SDLDRAW</span>
+<a name="l00186"></a>00186 <span class="preprocessor"></span>        <span class="keywordflow">if</span> (mainMenu.isVisible())
+<a name="l00187"></a>00187         {
+<a name="l00188"></a>00188             <span class="keyword">extern</span> <span class="keywordtype">unsigned</span> <span class="keywordtype">int</span> min_sdldraw_menu_width;
+<a name="l00189"></a>00189             <span class="keyword">extern</span> <span class="keywordtype">unsigned</span> <span class="keywordtype">int</span> min_sdldraw_menu_height;
+<a name="l00190"></a>00190             <span class="comment">/* enforce a minimum 500x300 surface size.</span>
+<a name="l00191"></a>00191 <span class="comment">             * the menus are useless below 500x300 */</span>
+<a name="l00192"></a>00192             <span class="keywordflow">if</span> (consider_width &lt; (min_sdldraw_menu_width + (sdl.overscan_width * 2)))
+<a name="l00193"></a>00193                 consider_width = (min_sdldraw_menu_width + (sdl.overscan_width * 2));
+<a name="l00194"></a>00194             <span class="keywordflow">if</span> (consider_height &lt; (min_sdldraw_menu_height + (sdl.overscan_width * 2) + (<span class="keywordtype">unsigned</span> <span class="keywordtype">int</span>)menuheight))
+<a name="l00195"></a>00195                 consider_height = (min_sdldraw_menu_height + (sdl.overscan_width * 2) + (<span class="keywordtype">unsigned</span> int)menuheight);
+<a name="l00196"></a>00196         }
+<a name="l00197"></a>00197 <span class="preprocessor">#endif</span>
+<a name="l00198"></a>00198 <span class="preprocessor"></span>
+<a name="l00199"></a>00199         <span class="comment">/* decide where the rectangle on the screen goes */</span>
+<a name="l00200"></a>00200         <span class="keywordtype">int</span> final_width,final_height,ax,ay;
+<a name="l00201"></a>00201 
+<a name="l00202"></a>00202 <span class="preprocessor">#if C_XBRZ</span>
+<a name="l00203"></a>00203 <span class="preprocessor"></span>        <span class="comment">/* scale to fit the window.</span>
+<a name="l00204"></a>00204 <span class="comment">         * fit by aspect ratio if asked to do so. */</span>
+<a name="l00205"></a>00205         <span class="keywordflow">if</span> (sdl_xbrz.enable)
+<a name="l00206"></a>00206         {
+<a name="l00207"></a>00207             final_height = (int)max(consider_height, userResizeWindowHeight) - (int)menuheight - ((<span class="keywordtype">int</span>)sdl.overscan_width * 2);
+<a name="l00208"></a>00208             final_width = (int)max(consider_width, userResizeWindowWidth) - ((int)sdl.overscan_width * 2);
+<a name="l00209"></a>00209 
+<a name="l00210"></a>00210             sdl.clip.x = sdl.clip.y = 0;
+<a name="l00211"></a>00211             sdl.clip.w = final_width;
+<a name="l00212"></a>00212             sdl.clip.h = final_height;
+<a name="l00213"></a>00213             <span class="keywordflow">if</span> (render.aspect) aspectCorrectFitClip(sdl.clip.w, sdl.clip.h, sdl.clip.x, sdl.clip.y, final_width, final_height);
+<a name="l00214"></a>00214         }
+<a name="l00215"></a>00215         <span class="keywordflow">else</span>
+<a name="l00216"></a>00216 <span class="preprocessor">#endif </span>
+<a name="l00217"></a>00217 <span class="preprocessor"></span>        <span class="comment">/* center the screen in the window */</span>
+<a name="l00218"></a>00218         {
+<a name="l00219"></a>00219 
+<a name="l00220"></a>00220             final_height = (int)max(max(consider_height, userResizeWindowHeight), (Bitu)(sdl.clip.y + sdl.clip.h)) - (<span class="keywordtype">int</span>)menuheight - ((int)sdl.overscan_width * 2);
+<a name="l00221"></a>00221             final_width = (int)max(max(consider_width, userResizeWindowWidth), (Bitu)(sdl.clip.x + sdl.clip.w)) - ((<span class="keywordtype">int</span>)sdl.overscan_width * 2);
+<a name="l00222"></a>00222             ax = (final_width - (sdl.clip.x + sdl.clip.w)) / 2;
+<a name="l00223"></a>00223             ay = (final_height - (sdl.clip.y + sdl.clip.h)) / 2;
+<a name="l00224"></a>00224             <span class="keywordflow">if</span> (ax &lt; 0) ax = 0;
+<a name="l00225"></a>00225             <span class="keywordflow">if</span> (ay &lt; 0) ay = 0;
+<a name="l00226"></a>00226             sdl.clip.x += ax + (int)sdl.overscan_width;
+<a name="l00227"></a>00227             sdl.clip.y += ay + (<span class="keywordtype">int</span>)sdl.overscan_width;
+<a name="l00228"></a>00228             <span class="comment">// sdl.clip.w = currentWindowWidth - sdl.clip.x;</span>
+<a name="l00229"></a>00229             <span class="comment">// sdl.clip.h = currentWindowHeight - sdl.clip.y;</span>
+<a name="l00230"></a>00230         }
+<a name="l00231"></a>00231 
+<a name="l00232"></a>00232         {
+<a name="l00233"></a>00233             final_width += (int)sdl.overscan_width * 2;
+<a name="l00234"></a>00234             final_height += (<span class="keywordtype">int</span>)menuheight + (int)sdl.overscan_width * 2;
+<a name="l00235"></a>00235             sdl.clip.y += (<span class="keywordtype">int</span>)menuheight;
+<a name="l00236"></a>00236 
+<a name="l00237"></a>00237             LOG_MSG(<span class="stringliteral">&quot;surface consider=%ux%u final=%ux%u&quot;</span>,
+<a name="l00238"></a>00238                 (<span class="keywordtype">unsigned</span> <span class="keywordtype">int</span>)consider_width,
+<a name="l00239"></a>00239                 (<span class="keywordtype">unsigned</span> <span class="keywordtype">int</span>)consider_height,
+<a name="l00240"></a>00240                 (<span class="keywordtype">unsigned</span> <span class="keywordtype">int</span>)final_width,
+<a name="l00241"></a>00241                 (<span class="keywordtype">unsigned</span> <span class="keywordtype">int</span>)final_height);
+<a name="l00242"></a>00242 
+<a name="l00243"></a>00243             sdl.surface = SDL_SetVideoMode((<span class="keywordtype">int</span>)final_width, (<span class="keywordtype">int</span>)final_height, (<span class="keywordtype">int</span>)bpp,
+<a name="l00244"></a>00244                 (<span class="keywordtype">unsigned</span> <span class="keywordtype">int</span>)((sdl.draw.flags &amp; GFX_CAN_RANDOM) ? SDL_SWSURFACE : SDL_HWSURFACE) |
+<a name="l00245"></a>00245 #ifdef SDL_DOSBOX_X_SPECIAL
+<a name="l00246"></a>00246                 (<span class="keywordtype">unsigned</span> <span class="keywordtype">int</span>)SDL_HAX_NOREFRESH | (<span class="keywordtype">unsigned</span> <span class="keywordtype">int</span>)(setSizeButNotResize() ? SDL_HAX_NORESIZEWINDOW : 0) |
+<a name="l00247"></a>00247 #endif
+<a name="l00248"></a>00248                 (<span class="keywordtype">unsigned</span> <span class="keywordtype">int</span>)SDL_RESIZABLE);
+<a name="l00249"></a>00249 
+<a name="l00250"></a>00250             sdl.deferred_resize = <span class="keyword">false</span>;
+<a name="l00251"></a>00251             sdl.must_redraw_all = <span class="keyword">true</span>;
+<a name="l00252"></a>00252 
+<a name="l00253"></a>00253             <span class="keywordflow">if</span> (SDL_MUSTLOCK(sdl.surface))
+<a name="l00254"></a>00254                 SDL_LockSurface(sdl.surface);
 <a name="l00255"></a>00255 
-<a name="l00256"></a>00256             <span class="keywordflow">if</span> (SDL_MUSTLOCK(sdl.surface))
-<a name="l00257"></a>00257                 SDL_UnlockSurface(sdl.surface);
-<a name="l00258"></a>00258         }
-<a name="l00259"></a>00259 
-<a name="l00260"></a>00260 <span class="preprocessor">#ifdef WIN32</span>
-<a name="l00261"></a>00261 <span class="preprocessor"></span>        <span class="keywordflow">if</span> (sdl.surface == NULL)
-<a name="l00262"></a>00262         {
-<a name="l00263"></a>00263             SDL_QuitSubSystem(SDL_INIT_VIDEO);
-<a name="l00264"></a>00264 
-<a name="l00265"></a>00265             <span class="keywordflow">if</span> (!sdl.using_windib)
-<a name="l00266"></a>00266             {
-<a name="l00267"></a>00267                 LOG_MSG(<span class="stringliteral">&quot;Failed to create hardware surface.\nRestarting video subsystem with windib enabled.&quot;</span>);
-<a name="l00268"></a>00268                 putenv(<span class="stringliteral">&quot;SDL_VIDEODRIVER=windib&quot;</span>);
-<a name="l00269"></a>00269                 sdl.using_windib = <span class="keyword">true</span>;
-<a name="l00270"></a>00270             }
-<a name="l00271"></a>00271             <span class="keywordflow">else</span>
-<a name="l00272"></a>00272             {
-<a name="l00273"></a>00273                 LOG_MSG(<span class="stringliteral">&quot;Failed to create hardware surface.\nRestarting video subsystem with directx enabled.&quot;</span>);
-<a name="l00274"></a>00274                 putenv(<span class="stringliteral">&quot;SDL_VIDEODRIVER=directx&quot;</span>);
-<a name="l00275"></a>00275                 sdl.using_windib = <span class="keyword">false</span>;
-<a name="l00276"></a>00276             }
-<a name="l00277"></a>00277 
-<a name="l00278"></a>00278             SDL_InitSubSystem(SDL_INIT_VIDEO);
-<a name="l00279"></a>00279             GFX_SetIcon(); <span class="comment">// set icon again</span>
-<a name="l00280"></a>00280 
-<a name="l00281"></a>00281             sdl.surface = SDL_SetVideoMode((<span class="keywordtype">int</span>)width, (<span class="keywordtype">int</span>)height, (<span class="keywordtype">int</span>)bpp, SDL_HWSURFACE);
-<a name="l00282"></a>00282             sdl.deferred_resize = <span class="keyword">false</span>;
-<a name="l00283"></a>00283             sdl.must_redraw_all = <span class="keyword">true</span>;
-<a name="l00284"></a>00284 
-<a name="l00285"></a>00285             <span class="keywordflow">if</span> (sdl.surface) GFX_SetTitle(-1, -1, -1, <span class="keyword">false</span>); <span class="comment">//refresh title</span>
-<a name="l00286"></a>00286         }
-<a name="l00287"></a>00287 <span class="preprocessor">#endif</span>
-<a name="l00288"></a>00288 <span class="preprocessor"></span>        <span class="keywordflow">if</span> (sdl.surface == NULL)
-<a name="l00289"></a>00289             E_Exit(<span class="stringliteral">&quot;Could not set windowed video mode %ix%i-%i: %s&quot;</span>, (<span class="keywordtype">int</span>)width, (<span class="keywordtype">int</span>)height, (<span class="keywordtype">int</span>)bpp, SDL_GetError());
-<a name="l00290"></a>00290     }
-<a name="l00291"></a>00291 
-<a name="l00292"></a>00292     <span class="keywordflow">if</span> (sdl.surface)
-<a name="l00293"></a>00293     {
-<a name="l00294"></a>00294         <span class="keywordflow">switch</span> (sdl.surface-&gt;format-&gt;BitsPerPixel)
-<a name="l00295"></a>00295         {
-<a name="l00296"></a>00296             <span class="keywordflow">case</span> 8:
-<a name="l00297"></a>00297                 retFlags = GFX_CAN_8;
-<a name="l00298"></a>00298                 <span class="keywordflow">break</span>;
-<a name="l00299"></a>00299             <span class="keywordflow">case</span> 15:
-<a name="l00300"></a>00300                 retFlags = GFX_CAN_15;
-<a name="l00301"></a>00301                 <span class="keywordflow">break</span>;
-<a name="l00302"></a>00302             <span class="keywordflow">case</span> 16:
-<a name="l00303"></a>00303                 <span class="keywordflow">if</span> (sdl.surface-&gt;format-&gt;Gshift == 5 &amp;&amp; sdl.surface-&gt;format-&gt;Gmask == (31U &lt;&lt; 5U))
-<a name="l00304"></a>00304                     retFlags = GFX_CAN_15;
-<a name="l00305"></a>00305                 <span class="keywordflow">else</span>
-<a name="l00306"></a>00306                     retFlags = GFX_CAN_16;
-<a name="l00307"></a>00307                 <span class="keywordflow">break</span>;
-<a name="l00308"></a>00308             <span class="keywordflow">case</span> 32:
-<a name="l00309"></a>00309                 retFlags = GFX_CAN_32;
-<a name="l00310"></a>00310                 <span class="keywordflow">break</span>;
-<a name="l00311"></a>00311         }
-<a name="l00312"></a>00312 
-<a name="l00313"></a>00313         <span class="keywordflow">if</span> (retFlags &amp;&amp; (sdl.surface-&gt;flags &amp; SDL_HWSURFACE))
-<a name="l00314"></a>00314             retFlags |= GFX_HARDWARE;
-<a name="l00315"></a>00315 
-<a name="l00316"></a>00316         <span class="keywordflow">if</span> (retFlags &amp;&amp; (sdl.surface-&gt;flags &amp; SDL_DOUBLEBUF))
-<a name="l00317"></a>00317         {
-<a name="l00318"></a>00318             sdl.blit.surface = SDL_CreateRGBSurface((Uint32)SDL_HWSURFACE,
-<a name="l00319"></a>00319                 (<span class="keywordtype">int</span>)sdl.draw.width, (<span class="keywordtype">int</span>)sdl.draw.height,
-<a name="l00320"></a>00320                 (<span class="keywordtype">int</span>)sdl.surface-&gt;format-&gt;BitsPerPixel,
-<a name="l00321"></a>00321                 (Uint32)sdl.surface-&gt;format-&gt;Rmask,
-<a name="l00322"></a>00322                 (Uint32)sdl.surface-&gt;format-&gt;Gmask,
-<a name="l00323"></a>00323                 (Uint32)sdl.surface-&gt;format-&gt;Bmask,
-<a name="l00324"></a>00324                 (Uint32)0u);
-<a name="l00325"></a>00325             <span class="comment">/* If this one fails be ready for some flickering... */</span>
-<a name="l00326"></a>00326         }
-<a name="l00327"></a>00327 
-<a name="l00328"></a>00328 <span class="preprocessor">#if C_XBRZ</span>
-<a name="l00329"></a>00329 <span class="preprocessor"></span>        <span class="keywordflow">if</span> (sdl_xbrz.enable)
-<a name="l00330"></a>00330         {
-<a name="l00331"></a>00331             <span class="keywordtype">bool</span> old_scale_on = sdl_xbrz.scale_on;
-<a name="l00332"></a>00332             xBRZ_SetScaleParameters((<span class="keywordtype">int</span>)sdl.draw.width, (<span class="keywordtype">int</span>)sdl.draw.height, sdl.clip.w, sdl.clip.h);
-<a name="l00333"></a>00333             <span class="keywordflow">if</span> (sdl_xbrz.scale_on != old_scale_on) {
-<a name="l00334"></a>00334                 <span class="comment">// when we are scaling, we ask render code not to do any aspect correction</span>
-<a name="l00335"></a>00335                 <span class="comment">// when we are not scaling, render code is allowed to do aspect correction at will</span>
-<a name="l00336"></a>00336                 <span class="comment">// due to this, at each scale mode change we need to schedule resize again because window size could change</span>
-<a name="l00337"></a>00337                 PIC_AddEvent(VGA_SetupDrawing, 50); <span class="comment">// schedule another resize here, render has already been initialized at this point and we have just changed its option</span>
-<a name="l00338"></a>00338             }
-<a name="l00339"></a>00339         }
-<a name="l00340"></a>00340 <span class="preprocessor">#endif</span>
-<a name="l00341"></a>00341 <span class="preprocessor"></span>    }
-<a name="l00342"></a>00342 
-<a name="l00343"></a>00343     <span class="comment">/* WARNING: If the user is resizing our window to smaller than what we want, SDL2 will give us a</span>
-<a name="l00344"></a>00344 <span class="comment">     *          window surface according to the smaller size, and then we crash! */</span>
-<a name="l00345"></a>00345     assert(sdl.surface-&gt;w &gt;= (sdl.clip.x+sdl.clip.w));
-<a name="l00346"></a>00346     assert(sdl.surface-&gt;h &gt;= (sdl.clip.y+sdl.clip.h));
-<a name="l00347"></a>00347 
-<a name="l00348"></a>00348 <span class="preprocessor">#if DOSBOXMENU_TYPE == DOSBOXMENU_SDLDRAW</span>
-<a name="l00349"></a>00349 <span class="preprocessor"></span>    mainMenu.screenWidth = (size_t)sdl.surface-&gt;w;
-<a name="l00350"></a>00350     mainMenu.screenHeight = (<span class="keywordtype">size_t</span>)sdl.surface-&gt;h;
-<a name="l00351"></a>00351     mainMenu.updateRect();
-<a name="l00352"></a>00352     mainMenu.setRedraw();
-<a name="l00353"></a>00353     GFX_DrawSDLMenu(mainMenu, mainMenu.display_list);
-<a name="l00354"></a>00354 <span class="preprocessor">#endif</span>
-<a name="l00355"></a>00355 <span class="preprocessor"></span>
-<a name="l00356"></a>00356     <span class="keywordflow">return</span> retFlags;
-<a name="l00357"></a>00357 }
-<a name="l00358"></a>00358 <span class="preprocessor">#endif </span>
+<a name="l00256"></a>00256             memset(sdl.surface-&gt;pixels, 0, (<span class="keywordtype">unsigned</span> <span class="keywordtype">int</span>)sdl.surface-&gt;pitch * (<span class="keywordtype">unsigned</span> <span class="keywordtype">int</span>)sdl.surface-&gt;h);
+<a name="l00257"></a>00257 
+<a name="l00258"></a>00258             <span class="keywordflow">if</span> (SDL_MUSTLOCK(sdl.surface))
+<a name="l00259"></a>00259                 SDL_UnlockSurface(sdl.surface);
+<a name="l00260"></a>00260         }
+<a name="l00261"></a>00261 
+<a name="l00262"></a>00262 <span class="preprocessor">#ifdef WIN32</span>
+<a name="l00263"></a>00263 <span class="preprocessor"></span>        <span class="keywordflow">if</span> (sdl.surface == NULL)
+<a name="l00264"></a>00264         {
+<a name="l00265"></a>00265             SDL_QuitSubSystem(SDL_INIT_VIDEO);
+<a name="l00266"></a>00266 
+<a name="l00267"></a>00267             <span class="keywordflow">if</span> (!sdl.using_windib)
+<a name="l00268"></a>00268             {
+<a name="l00269"></a>00269                 LOG_MSG(<span class="stringliteral">&quot;Failed to create hardware surface.\nRestarting video subsystem with windib enabled.&quot;</span>);
+<a name="l00270"></a>00270                 putenv(<span class="stringliteral">&quot;SDL_VIDEODRIVER=windib&quot;</span>);
+<a name="l00271"></a>00271                 sdl.using_windib = <span class="keyword">true</span>;
+<a name="l00272"></a>00272             }
+<a name="l00273"></a>00273             <span class="keywordflow">else</span>
+<a name="l00274"></a>00274             {
+<a name="l00275"></a>00275                 LOG_MSG(<span class="stringliteral">&quot;Failed to create hardware surface.\nRestarting video subsystem with directx enabled.&quot;</span>);
+<a name="l00276"></a>00276                 putenv(<span class="stringliteral">&quot;SDL_VIDEODRIVER=directx&quot;</span>);
+<a name="l00277"></a>00277                 sdl.using_windib = <span class="keyword">false</span>;
+<a name="l00278"></a>00278             }
+<a name="l00279"></a>00279 
+<a name="l00280"></a>00280             SDL_InitSubSystem(SDL_INIT_VIDEO);
+<a name="l00281"></a>00281             GFX_SetIcon(); <span class="comment">// set icon again</span>
+<a name="l00282"></a>00282 
+<a name="l00283"></a>00283             sdl.surface = SDL_SetVideoMode((<span class="keywordtype">int</span>)width, (<span class="keywordtype">int</span>)height, (<span class="keywordtype">int</span>)bpp, SDL_HWSURFACE);
+<a name="l00284"></a>00284             sdl.deferred_resize = <span class="keyword">false</span>;
+<a name="l00285"></a>00285             sdl.must_redraw_all = <span class="keyword">true</span>;
+<a name="l00286"></a>00286 
+<a name="l00287"></a>00287             <span class="keywordflow">if</span> (sdl.surface) GFX_SetTitle(-1, -1, -1, <span class="keyword">false</span>); <span class="comment">//refresh title</span>
+<a name="l00288"></a>00288         }
+<a name="l00289"></a>00289 <span class="preprocessor">#endif</span>
+<a name="l00290"></a>00290 <span class="preprocessor"></span>        <span class="keywordflow">if</span> (sdl.surface == NULL)
+<a name="l00291"></a>00291             E_Exit(<span class="stringliteral">&quot;Could not set windowed video mode %ix%i-%i: %s&quot;</span>, (<span class="keywordtype">int</span>)width, (<span class="keywordtype">int</span>)height, (<span class="keywordtype">int</span>)bpp, SDL_GetError());
+<a name="l00292"></a>00292     }
+<a name="l00293"></a>00293 
+<a name="l00294"></a>00294     <span class="keywordflow">if</span> (sdl.surface)
+<a name="l00295"></a>00295     {
+<a name="l00296"></a>00296         <span class="keywordflow">switch</span> (sdl.surface-&gt;format-&gt;BitsPerPixel)
+<a name="l00297"></a>00297         {
+<a name="l00298"></a>00298             <span class="keywordflow">case</span> 8:
+<a name="l00299"></a>00299                 retFlags = GFX_CAN_8;
+<a name="l00300"></a>00300                 <span class="keywordflow">break</span>;
+<a name="l00301"></a>00301             <span class="keywordflow">case</span> 15:
+<a name="l00302"></a>00302                 retFlags = GFX_CAN_15;
+<a name="l00303"></a>00303                 <span class="keywordflow">break</span>;
+<a name="l00304"></a>00304             <span class="keywordflow">case</span> 16:
+<a name="l00305"></a>00305                 <span class="keywordflow">if</span> (sdl.surface-&gt;format-&gt;Gshift == 5 &amp;&amp; sdl.surface-&gt;format-&gt;Gmask == (31U &lt;&lt; 5U))
+<a name="l00306"></a>00306                     retFlags = GFX_CAN_15;
+<a name="l00307"></a>00307                 <span class="keywordflow">else</span>
+<a name="l00308"></a>00308                     retFlags = GFX_CAN_16;
+<a name="l00309"></a>00309                 <span class="keywordflow">break</span>;
+<a name="l00310"></a>00310             <span class="keywordflow">case</span> 32:
+<a name="l00311"></a>00311                 retFlags = GFX_CAN_32;
+<a name="l00312"></a>00312                 <span class="keywordflow">break</span>;
+<a name="l00313"></a>00313         }
+<a name="l00314"></a>00314 
+<a name="l00315"></a>00315         <span class="keywordflow">if</span> (retFlags &amp;&amp; (sdl.surface-&gt;flags &amp; SDL_HWSURFACE))
+<a name="l00316"></a>00316             retFlags |= GFX_HARDWARE;
+<a name="l00317"></a>00317 
+<a name="l00318"></a>00318         <span class="keywordflow">if</span> (retFlags &amp;&amp; (sdl.surface-&gt;flags &amp; SDL_DOUBLEBUF))
+<a name="l00319"></a>00319         {
+<a name="l00320"></a>00320             sdl.blit.surface = SDL_CreateRGBSurface((Uint32)SDL_HWSURFACE,
+<a name="l00321"></a>00321                 (<span class="keywordtype">int</span>)sdl.draw.width, (<span class="keywordtype">int</span>)sdl.draw.height,
+<a name="l00322"></a>00322                 (<span class="keywordtype">int</span>)sdl.surface-&gt;format-&gt;BitsPerPixel,
+<a name="l00323"></a>00323                 (Uint32)sdl.surface-&gt;format-&gt;Rmask,
+<a name="l00324"></a>00324                 (Uint32)sdl.surface-&gt;format-&gt;Gmask,
+<a name="l00325"></a>00325                 (Uint32)sdl.surface-&gt;format-&gt;Bmask,
+<a name="l00326"></a>00326                 (Uint32)0u);
+<a name="l00327"></a>00327             <span class="comment">/* If this one fails be ready for some flickering... */</span>
+<a name="l00328"></a>00328         }
+<a name="l00329"></a>00329 
+<a name="l00330"></a>00330 <span class="preprocessor">#if C_XBRZ</span>
+<a name="l00331"></a>00331 <span class="preprocessor"></span>        <span class="keywordflow">if</span> (sdl_xbrz.enable)
+<a name="l00332"></a>00332         {
+<a name="l00333"></a>00333             <span class="keywordtype">bool</span> old_scale_on = sdl_xbrz.scale_on;
+<a name="l00334"></a>00334             xBRZ_SetScaleParameters((<span class="keywordtype">int</span>)sdl.draw.width, (<span class="keywordtype">int</span>)sdl.draw.height, sdl.clip.w, sdl.clip.h);
+<a name="l00335"></a>00335             <span class="keywordflow">if</span> (sdl_xbrz.scale_on != old_scale_on) {
+<a name="l00336"></a>00336                 <span class="comment">// when we are scaling, we ask render code not to do any aspect correction</span>
+<a name="l00337"></a>00337                 <span class="comment">// when we are not scaling, render code is allowed to do aspect correction at will</span>
+<a name="l00338"></a>00338                 <span class="comment">// due to this, at each scale mode change we need to schedule resize again because window size could change</span>
+<a name="l00339"></a>00339                 PIC_AddEvent(VGA_SetupDrawing, 50); <span class="comment">// schedule another resize here, render has already been initialized at this point and we have just changed its option</span>
+<a name="l00340"></a>00340             }
+<a name="l00341"></a>00341         }
+<a name="l00342"></a>00342 <span class="preprocessor">#endif</span>
+<a name="l00343"></a>00343 <span class="preprocessor"></span>    }
+<a name="l00344"></a>00344 
+<a name="l00345"></a>00345     <span class="comment">/* WARNING: If the user is resizing our window to smaller than what we want, SDL2 will give us a</span>
+<a name="l00346"></a>00346 <span class="comment">     *          window surface according to the smaller size, and then we crash! */</span>
+<a name="l00347"></a>00347     assert(sdl.surface-&gt;w &gt;= (sdl.clip.x+sdl.clip.w));
+<a name="l00348"></a>00348     assert(sdl.surface-&gt;h &gt;= (sdl.clip.y+sdl.clip.h));
+<a name="l00349"></a>00349 
+<a name="l00350"></a>00350 <span class="preprocessor">#if DOSBOXMENU_TYPE == DOSBOXMENU_SDLDRAW</span>
+<a name="l00351"></a>00351 <span class="preprocessor"></span>    mainMenu.screenWidth = (size_t)sdl.surface-&gt;w;
+<a name="l00352"></a>00352     mainMenu.screenHeight = (<span class="keywordtype">size_t</span>)sdl.surface-&gt;h;
+<a name="l00353"></a>00353     mainMenu.updateRect();
+<a name="l00354"></a>00354     mainMenu.setRedraw();
+<a name="l00355"></a>00355     GFX_DrawSDLMenu(mainMenu, mainMenu.display_list);
+<a name="l00356"></a>00356 <span class="preprocessor">#endif</span>
+<a name="l00357"></a>00357 <span class="preprocessor"></span>
+<a name="l00358"></a>00358     <span class="keywordflow">return</span> retFlags;
+<a name="l00359"></a>00359 }
+<a name="l00360"></a>00360 <span class="preprocessor">#endif </span>
 </pre></div></div><!-- contents -->
 
 
 <hr class="footer"/><address class="footer"><small>
-Generated on Tue Oct 1 2019 18:06:29 for DOSBox-X by &#160;<a href="http://www.doxygen.org/index.html">
+Generated on Sun Jul 5 2020 13:11:39 for DOSBox-X by &#160;<a href="http://www.doxygen.org/index.html">
 <img class="footer" src="doxygen.png" alt="doxygen"/>
 </a> 1.8.0
 </small></address>

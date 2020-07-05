@@ -98,7 +98,8 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 </div><!--header-->
 <div class="contents">
 This is the complete list of members for <a class="el" href="classDOS__Drive__Cache.html">DOS_Drive_Cache</a>, including all inherited members.<table>
-  <tr bgcolor="#f0f0f0"><td><b>AddEntry</b>(const char *path, bool checkExist=false) (defined in <a class="el" href="classDOS__Drive__Cache.html">DOS_Drive_Cache</a>)</td><td><a class="el" href="classDOS__Drive__Cache.html">DOS_Drive_Cache</a></td><td></td></tr>
+  <tr bgcolor="#f0f0f0"><td><b>AddEntry</b>(const char *path, bool checkExists=false) (defined in <a class="el" href="classDOS__Drive__Cache.html">DOS_Drive_Cache</a>)</td><td><a class="el" href="classDOS__Drive__Cache.html">DOS_Drive_Cache</a></td><td></td></tr>
+  <tr bgcolor="#f0f0f0"><td><b>AddEntryDirOverlay</b>(const char *path, char *sfile, bool checkExist=false) (defined in <a class="el" href="classDOS__Drive__Cache.html">DOS_Drive_Cache</a>)</td><td><a class="el" href="classDOS__Drive__Cache.html">DOS_Drive_Cache</a></td><td></td></tr>
   <tr bgcolor="#f0f0f0"><td><b>ALPHABETICAL</b> enum value (defined in <a class="el" href="classDOS__Drive__Cache.html">DOS_Drive_Cache</a>)</td><td><a class="el" href="classDOS__Drive__Cache.html">DOS_Drive_Cache</a></td><td></td></tr>
   <tr bgcolor="#f0f0f0"><td><b>ALPHABETICALREV</b> enum value (defined in <a class="el" href="classDOS__Drive__Cache.html">DOS_Drive_Cache</a>)</td><td><a class="el" href="classDOS__Drive__Cache.html">DOS_Drive_Cache</a></td><td></td></tr>
   <tr bgcolor="#f0f0f0"><td><b>CacheOut</b>(const char *path, bool ignoreLastDir=false) (defined in <a class="el" href="classDOS__Drive__Cache.html">DOS_Drive_Cache</a>)</td><td><a class="el" href="classDOS__Drive__Cache.html">DOS_Drive_Cache</a></td><td></td></tr>
@@ -110,24 +111,24 @@ This is the complete list of members for <a class="el" href="classDOS__Drive__Ca
   <tr bgcolor="#f0f0f0"><td><b>EmptyCache</b>(void) (defined in <a class="el" href="classDOS__Drive__Cache.html">DOS_Drive_Cache</a>)</td><td><a class="el" href="classDOS__Drive__Cache.html">DOS_Drive_Cache</a></td><td></td></tr>
   <tr bgcolor="#f0f0f0"><td><b>ExpandName</b>(char *path) (defined in <a class="el" href="classDOS__Drive__Cache.html">DOS_Drive_Cache</a>)</td><td><a class="el" href="classDOS__Drive__Cache.html">DOS_Drive_Cache</a></td><td></td></tr>
   <tr bgcolor="#f0f0f0"><td><b>FindFirst</b>(char *path, Bit16u &amp;id) (defined in <a class="el" href="classDOS__Drive__Cache.html">DOS_Drive_Cache</a>)</td><td><a class="el" href="classDOS__Drive__Cache.html">DOS_Drive_Cache</a></td><td></td></tr>
-  <tr bgcolor="#f0f0f0"><td><b>FindNext</b>(Bit16u id, char *&amp;result) (defined in <a class="el" href="classDOS__Drive__Cache.html">DOS_Drive_Cache</a>)</td><td><a class="el" href="classDOS__Drive__Cache.html">DOS_Drive_Cache</a></td><td></td></tr>
+  <tr bgcolor="#f0f0f0"><td><b>FindNext</b>(Bit16u id, char *&amp;result, char *&amp;lresult) (defined in <a class="el" href="classDOS__Drive__Cache.html">DOS_Drive_Cache</a>)</td><td><a class="el" href="classDOS__Drive__Cache.html">DOS_Drive_Cache</a></td><td></td></tr>
   <tr bgcolor="#f0f0f0"><td><b>GetExpandName</b>(const char *path) (defined in <a class="el" href="classDOS__Drive__Cache.html">DOS_Drive_Cache</a>)</td><td><a class="el" href="classDOS__Drive__Cache.html">DOS_Drive_Cache</a></td><td></td></tr>
   <tr bgcolor="#f0f0f0"><td><b>GetLabel</b>(void) (defined in <a class="el" href="classDOS__Drive__Cache.html">DOS_Drive_Cache</a>)</td><td><a class="el" href="classDOS__Drive__Cache.html">DOS_Drive_Cache</a></td><td><code> [inline]</code></td></tr>
   <tr bgcolor="#f0f0f0"><td><b>GetShortName</b>(const char *fullname, char *shortname) (defined in <a class="el" href="classDOS__Drive__Cache.html">DOS_Drive_Cache</a>)</td><td><a class="el" href="classDOS__Drive__Cache.html">DOS_Drive_Cache</a></td><td></td></tr>
   <tr bgcolor="#f0f0f0"><td><b>MediaChange</b>(void) (defined in <a class="el" href="classDOS__Drive__Cache.html">DOS_Drive_Cache</a>)</td><td><a class="el" href="classDOS__Drive__Cache.html">DOS_Drive_Cache</a></td><td></td></tr>
   <tr bgcolor="#f0f0f0"><td><b>NOSORT</b> enum value (defined in <a class="el" href="classDOS__Drive__Cache.html">DOS_Drive_Cache</a>)</td><td><a class="el" href="classDOS__Drive__Cache.html">DOS_Drive_Cache</a></td><td></td></tr>
   <tr bgcolor="#f0f0f0"><td><b>OpenDir</b>(const char *path, Bit16u &amp;id) (defined in <a class="el" href="classDOS__Drive__Cache.html">DOS_Drive_Cache</a>)</td><td><a class="el" href="classDOS__Drive__Cache.html">DOS_Drive_Cache</a></td><td></td></tr>
-  <tr bgcolor="#f0f0f0"><td><b>ReadDir</b>(Bit16u id, char *&amp;result) (defined in <a class="el" href="classDOS__Drive__Cache.html">DOS_Drive_Cache</a>)</td><td><a class="el" href="classDOS__Drive__Cache.html">DOS_Drive_Cache</a></td><td></td></tr>
-  <tr bgcolor="#f0f0f0"><td><b>SetBaseDir</b>(const char *path, DOS_Drive *drive) (defined in <a class="el" href="classDOS__Drive__Cache.html">DOS_Drive_Cache</a>)</td><td><a class="el" href="classDOS__Drive__Cache.html">DOS_Drive_Cache</a></td><td></td></tr>
+  <tr bgcolor="#f0f0f0"><td><b>ReadDir</b>(Bit16u id, char *&amp;result, char *&amp;lresult) (defined in <a class="el" href="classDOS__Drive__Cache.html">DOS_Drive_Cache</a>)</td><td><a class="el" href="classDOS__Drive__Cache.html">DOS_Drive_Cache</a></td><td></td></tr>
+  <tr bgcolor="#f0f0f0"><td><b>SetBaseDir</b>(const char *baseDir, DOS_Drive *drive) (defined in <a class="el" href="classDOS__Drive__Cache.html">DOS_Drive_Cache</a>)</td><td><a class="el" href="classDOS__Drive__Cache.html">DOS_Drive_Cache</a></td><td></td></tr>
   <tr bgcolor="#f0f0f0"><td><b>SetDirSort</b>(TDirSort sort) (defined in <a class="el" href="classDOS__Drive__Cache.html">DOS_Drive_Cache</a>)</td><td><a class="el" href="classDOS__Drive__Cache.html">DOS_Drive_Cache</a></td><td><code> [inline]</code></td></tr>
-  <tr bgcolor="#f0f0f0"><td><b>SetLabel</b>(const char *name, bool cdrom, bool allowupdate) (defined in <a class="el" href="classDOS__Drive__Cache.html">DOS_Drive_Cache</a>)</td><td><a class="el" href="classDOS__Drive__Cache.html">DOS_Drive_Cache</a></td><td></td></tr>
+  <tr bgcolor="#f0f0f0"><td><b>SetLabel</b>(const char *vname, bool cdrom, bool allowupdate) (defined in <a class="el" href="classDOS__Drive__Cache.html">DOS_Drive_Cache</a>)</td><td><a class="el" href="classDOS__Drive__Cache.html">DOS_Drive_Cache</a></td><td></td></tr>
   <tr bgcolor="#f0f0f0"><td><b>TDirSort</b> enum name (defined in <a class="el" href="classDOS__Drive__Cache.html">DOS_Drive_Cache</a>)</td><td><a class="el" href="classDOS__Drive__Cache.html">DOS_Drive_Cache</a></td><td></td></tr>
   <tr bgcolor="#f0f0f0"><td><b>~DOS_Drive_Cache</b>(void) (defined in <a class="el" href="classDOS__Drive__Cache.html">DOS_Drive_Cache</a>)</td><td><a class="el" href="classDOS__Drive__Cache.html">DOS_Drive_Cache</a></td><td></td></tr>
 </table></div><!-- contents -->
 
 
 <hr class="footer"/><address class="footer"><small>
-Generated on Tue Oct 1 2019 18:06:30 for DOSBox-X by &#160;<a href="http://www.doxygen.org/index.html">
+Generated on Sun Jul 5 2020 13:11:40 for DOSBox-X by &#160;<a href="http://www.doxygen.org/index.html">
 <img class="footer" src="doxygen.png" alt="doxygen"/>
 </a> 1.8.0
 </small></address>

@@ -96,7 +96,7 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 </div><!--header-->
 <div class="contents">
 <div class="fragment"><pre class="fragment"><a name="l00001"></a>00001 <span class="comment">/*</span>
-<a name="l00002"></a>00002 <span class="comment"> *  Copyright (C) 2002-2019  The DOSBox Team</span>
+<a name="l00002"></a>00002 <span class="comment"> *  Copyright (C) 2002-2020  The DOSBox Team</span>
 <a name="l00003"></a>00003 <span class="comment"> *</span>
 <a name="l00004"></a>00004 <span class="comment"> *  This program is free software; you can redistribute it and/or modify</span>
 <a name="l00005"></a>00005 <span class="comment"> *  it under the terms of the GNU General Public License as published by</span>
@@ -108,9 +108,9 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l00011"></a>00011 <span class="comment"> *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the</span>
 <a name="l00012"></a>00012 <span class="comment"> *  GNU General Public License for more details.</span>
 <a name="l00013"></a>00013 <span class="comment"> *</span>
-<a name="l00014"></a>00014 <span class="comment"> *  You should have received a copy of the GNU General Public License</span>
-<a name="l00015"></a>00015 <span class="comment"> *  along with this program; if not, write to the Free Software</span>
-<a name="l00016"></a>00016 <span class="comment"> *  Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1335, USA.</span>
+<a name="l00014"></a>00014 <span class="comment"> *  You should have received a copy of the GNU General Public License along</span>
+<a name="l00015"></a>00015 <span class="comment"> *  with this program; if not, write to the Free Software Foundation, Inc.,</span>
+<a name="l00016"></a>00016 <span class="comment"> *  51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.</span>
 <a name="l00017"></a>00017 <span class="comment"> */</span>
 <a name="l00018"></a>00018 
 <a name="l00019"></a>00019 <span class="preprocessor">#include &quot;dosbox.h&quot;</span>
@@ -800,373 +800,752 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l00703"></a>00703 <span class="keywordtype">bool</span> PIC_RunQueue(<span class="keywordtype">void</span>) {
 <a name="l00704"></a>00704 <span class="preprocessor">#if C_DEBUG</span>
 <a name="l00705"></a>00705 <span class="preprocessor"></span>    <span class="keywordtype">bool</span> IsDebuggerActive(<span class="keywordtype">void</span>);
-<a name="l00706"></a>00706     <span class="keywordflow">if</span> (IsDebuggerActive())
-<a name="l00707"></a>00707         <span class="keywordflow">return</span> <span class="keyword">false</span>;
-<a name="l00708"></a>00708 <span class="preprocessor">#endif</span>
-<a name="l00709"></a>00709 <span class="preprocessor"></span><span class="preprocessor">#ifdef DEBUG_CPU_CYCLE_OVERRUN</span>
-<a name="l00710"></a>00710 <span class="preprocessor"></span>    <span class="comment">/* I/O delay can cause negative CPU_Cycles and PIC event / audio rendering issues */</span>
-<a name="l00711"></a>00711     cpu_cycles_count_t overrun = -std::min(CPU_Cycles,(cpu_cycles_count_t)0);
-<a name="l00712"></a>00712 
-<a name="l00713"></a>00713     <span class="keywordflow">if</span> (overrun &gt; (CPU_CycleMax/100))
-<a name="l00714"></a>00714         LOG_MSG(<span class="stringliteral">&quot;PIC_RunQueue: CPU cycles count overrun by %ld (%.3fms)\n&quot;</span>,(<span class="keywordtype">signed</span> <span class="keywordtype">long</span>)overrun,(<span class="keywordtype">double</span>)overrun / CPU_CycleMax);
-<a name="l00715"></a>00715 <span class="preprocessor">#endif</span>
-<a name="l00716"></a>00716 <span class="preprocessor"></span>
-<a name="l00717"></a>00717     <span class="comment">/* Check to see if a new millisecond needs to be started */</span>
-<a name="l00718"></a>00718     CPU_CycleLeft += CPU_Cycles;
-<a name="l00719"></a>00719     CPU_Cycles = 0;
-<a name="l00720"></a>00720 
-<a name="l00721"></a>00721 <span class="preprocessor">#ifdef DEBUG_PIC_IRQCHECK_VS_IRR</span>
-<a name="l00722"></a>00722 <span class="preprocessor"></span>    <span class="comment">// WARNING: If the problem is the cascade interrupt un-acknowledged, this will give a false positive</span>
-<a name="l00723"></a>00723     <span class="keywordflow">if</span> (!PIC_IRQCheck &amp;&amp; !PIC_IRQCheckPending &amp;&amp; ((master.irr&amp;master.imrr) != 0 || (slave.irr&amp;slave.imrr) != 0))
-<a name="l00724"></a>00724         LOG_MSG(<span class="stringliteral">&quot;PIC_IRQCheck not set and interrupts pending&quot;</span>);
-<a name="l00725"></a>00725 <span class="preprocessor">#endif</span>
-<a name="l00726"></a>00726 <span class="preprocessor"></span>
-<a name="l00727"></a>00727     <span class="keywordflow">if</span> (CPU_CycleLeft &gt; 0) {
-<a name="l00728"></a>00728         <span class="keywordflow">if</span> (PIC_IRQCheck)
-<a name="l00729"></a>00729             PIC_runIRQs();
-<a name="l00730"></a>00730 
-<a name="l00731"></a>00731         <span class="comment">/* Check the queue for an entry */</span>
-<a name="l00732"></a>00732         Bits index_nd=PIC_TickIndexND();
-<a name="l00733"></a>00733         InEventService = <span class="keyword">true</span>;
-<a name="l00734"></a>00734         <span class="keywordflow">while</span> (pic_queue.next_entry &amp;&amp; (pic_queue.next_entry-&gt;index*CPU_CycleMax&lt;=index_nd)) {
-<a name="l00735"></a>00735             <a class="code" href="structPICEntry.html">PICEntry</a> * entry=pic_queue.next_entry;
-<a name="l00736"></a>00736             pic_queue.next_entry=entry-&gt;next;
-<a name="l00737"></a>00737 
+<a name="l00706"></a>00706     <span class="keywordtype">bool</span> IsDebuggerRunwatch(<span class="keywordtype">void</span>);
+<a name="l00707"></a>00707     <span class="keywordflow">if</span> (IsDebuggerActive() &amp;&amp; !IsDebuggerRunwatch())
+<a name="l00708"></a>00708         <span class="keywordflow">return</span> <span class="keyword">false</span>;
+<a name="l00709"></a>00709 <span class="preprocessor">#endif</span>
+<a name="l00710"></a>00710 <span class="preprocessor"></span><span class="preprocessor">#ifdef DEBUG_CPU_CYCLE_OVERRUN</span>
+<a name="l00711"></a>00711 <span class="preprocessor"></span>    <span class="comment">/* I/O delay can cause negative CPU_Cycles and PIC event / audio rendering issues */</span>
+<a name="l00712"></a>00712     cpu_cycles_count_t overrun = -std::min(CPU_Cycles,(cpu_cycles_count_t)0);
+<a name="l00713"></a>00713 
+<a name="l00714"></a>00714     <span class="keywordflow">if</span> (overrun &gt; (CPU_CycleMax/100))
+<a name="l00715"></a>00715         LOG_MSG(<span class="stringliteral">&quot;PIC_RunQueue: CPU cycles count overrun by %ld (%.3fms)\n&quot;</span>,(<span class="keywordtype">signed</span> <span class="keywordtype">long</span>)overrun,(<span class="keywordtype">double</span>)overrun / CPU_CycleMax);
+<a name="l00716"></a>00716 <span class="preprocessor">#endif</span>
+<a name="l00717"></a>00717 <span class="preprocessor"></span>
+<a name="l00718"></a>00718     <span class="comment">/* Check to see if a new millisecond needs to be started */</span>
+<a name="l00719"></a>00719     CPU_CycleLeft += CPU_Cycles;
+<a name="l00720"></a>00720     CPU_Cycles = 0;
+<a name="l00721"></a>00721 
+<a name="l00722"></a>00722 <span class="preprocessor">#ifdef DEBUG_PIC_IRQCHECK_VS_IRR</span>
+<a name="l00723"></a>00723 <span class="preprocessor"></span>    <span class="comment">// WARNING: If the problem is the cascade interrupt un-acknowledged, this will give a false positive</span>
+<a name="l00724"></a>00724     <span class="keywordflow">if</span> (!PIC_IRQCheck &amp;&amp; !PIC_IRQCheckPending &amp;&amp; ((master.irr&amp;master.imrr) != 0 || (slave.irr&amp;slave.imrr) != 0))
+<a name="l00725"></a>00725         LOG_MSG(<span class="stringliteral">&quot;PIC_IRQCheck not set and interrupts pending&quot;</span>);
+<a name="l00726"></a>00726 <span class="preprocessor">#endif</span>
+<a name="l00727"></a>00727 <span class="preprocessor"></span>
+<a name="l00728"></a>00728     <span class="keywordflow">if</span> (CPU_CycleLeft &gt; 0) {
+<a name="l00729"></a>00729         <span class="keywordflow">if</span> (PIC_IRQCheck)
+<a name="l00730"></a>00730             PIC_runIRQs();
+<a name="l00731"></a>00731 
+<a name="l00732"></a>00732         <span class="comment">/* Check the queue for an entry */</span>
+<a name="l00733"></a>00733         Bits index_nd=PIC_TickIndexND();
+<a name="l00734"></a>00734         InEventService = <span class="keyword">true</span>;
+<a name="l00735"></a>00735         <span class="keywordflow">while</span> (pic_queue.next_entry &amp;&amp; (pic_queue.next_entry-&gt;index*CPU_CycleMax&lt;=index_nd)) {
+<a name="l00736"></a>00736             <a class="code" href="structPICEntry.html">PICEntry</a> * entry=pic_queue.next_entry;
+<a name="l00737"></a>00737             pic_queue.next_entry=entry-&gt;next;
 <a name="l00738"></a>00738             srv_lag = entry-&gt;index;
-<a name="l00739"></a>00739             (entry-&gt;pic_event)(entry-&gt;value); <span class="comment">// call the event handler</span>
-<a name="l00740"></a>00740 
-<a name="l00741"></a>00741             <span class="comment">/* Put the entry in the free list */</span>
-<a name="l00742"></a>00742             entry-&gt;next=pic_queue.free_entry;
-<a name="l00743"></a>00743             pic_queue.free_entry=entry;
-<a name="l00744"></a>00744         }
-<a name="l00745"></a>00745         InEventService = <span class="keyword">false</span>;
-<a name="l00746"></a>00746 
-<a name="l00747"></a>00747         <span class="comment">/* Check when to set the new cycle end */</span>
-<a name="l00748"></a>00748         <span class="keywordflow">if</span> (pic_queue.next_entry) {
-<a name="l00749"></a>00749             Bits cycles=(Bits)(pic_queue.next_entry-&gt;index*CPU_CycleMax-index_nd);
-<a name="l00750"></a>00750             <span class="keywordflow">if</span> (GCC_UNLIKELY(!cycles)) cycles=1;
-<a name="l00751"></a>00751             <span class="keywordflow">if</span> (cycles&lt;CPU_CycleLeft) {
-<a name="l00752"></a>00752                 CPU_Cycles=cycles;
-<a name="l00753"></a>00753             } <span class="keywordflow">else</span> {
-<a name="l00754"></a>00754                 CPU_Cycles=CPU_CycleLeft;
-<a name="l00755"></a>00755             }
-<a name="l00756"></a>00756         } <span class="keywordflow">else</span> CPU_Cycles=CPU_CycleLeft;
-<a name="l00757"></a>00757         CPU_CycleLeft-=CPU_Cycles;
-<a name="l00758"></a>00758 
-<a name="l00759"></a>00759         <span class="keywordflow">if</span> (PIC_IRQCheck)
-<a name="l00760"></a>00760             PIC_runIRQs();
-<a name="l00761"></a>00761     }
+<a name="l00739"></a>00739 
+<a name="l00740"></a>00740             <span class="keywordflow">if</span> (entry-&gt;pic_event != NULL)
+<a name="l00741"></a>00741                 (entry-&gt;pic_event)(entry-&gt;value); <span class="comment">// call the event handler</span>
+<a name="l00742"></a>00742             <span class="keywordflow">else</span>
+<a name="l00743"></a>00743                 <a class="code" href="classLOG.html">LOG</a>(LOG_MISC,LOG_WARN)(<span class="stringliteral">&quot;PIC: Event in queue with NULL handler&quot;</span>); <span class="comment">// This can happen after save state / load state</span>
+<a name="l00744"></a>00744 
+<a name="l00745"></a>00745             <span class="comment">/* Put the entry in the free list */</span>
+<a name="l00746"></a>00746             entry-&gt;next=pic_queue.free_entry;
+<a name="l00747"></a>00747             pic_queue.free_entry=entry;
+<a name="l00748"></a>00748         }
+<a name="l00749"></a>00749         InEventService = <span class="keyword">false</span>;
+<a name="l00750"></a>00750 
+<a name="l00751"></a>00751         <span class="comment">/* Check when to set the new cycle end */</span>
+<a name="l00752"></a>00752         <span class="keywordflow">if</span> (pic_queue.next_entry) {
+<a name="l00753"></a>00753             Bits cycles=(Bits)(pic_queue.next_entry-&gt;index*CPU_CycleMax-index_nd);
+<a name="l00754"></a>00754             <span class="keywordflow">if</span> (GCC_UNLIKELY(!cycles)) cycles=1;
+<a name="l00755"></a>00755             <span class="keywordflow">if</span> (cycles&lt;CPU_CycleLeft) {
+<a name="l00756"></a>00756                 CPU_Cycles=cycles;
+<a name="l00757"></a>00757             } <span class="keywordflow">else</span> {
+<a name="l00758"></a>00758                 CPU_Cycles=CPU_CycleLeft;
+<a name="l00759"></a>00759             }
+<a name="l00760"></a>00760         } <span class="keywordflow">else</span> CPU_Cycles=CPU_CycleLeft;
+<a name="l00761"></a>00761         CPU_CycleLeft-=CPU_Cycles;
 <a name="l00762"></a>00762 
-<a name="l00763"></a>00763     <span class="comment">/* if we&#39;re out of cycles, then return false. don&#39;t execute any more instructions */</span>
-<a name="l00764"></a>00764     <span class="keywordflow">if</span> ((CPU_CycleLeft+CPU_Cycles) &lt;= 0)
-<a name="l00765"></a>00765         <span class="keywordflow">return</span> <span class="keyword">false</span>;
+<a name="l00763"></a>00763         <span class="keywordflow">if</span> (PIC_IRQCheck)
+<a name="l00764"></a>00764             PIC_runIRQs();
+<a name="l00765"></a>00765     }
 <a name="l00766"></a>00766 
-<a name="l00767"></a>00767     <span class="keywordflow">return</span> <span class="keyword">true</span>;
-<a name="l00768"></a>00768 }
-<a name="l00769"></a>00769 
-<a name="l00770"></a>00770 <span class="comment">/* The TIMER Part */</span>
-<a name="l00771"></a><a class="code" href="structTickerBlock.html">00771</a> <span class="keyword">struct </span><a class="code" href="structTickerBlock.html">TickerBlock</a> {
-<a name="l00772"></a>00772     <span class="comment">/* TODO: carry const char * field for name! */</span>
-<a name="l00773"></a>00773     TIMER_TickHandler handler;
-<a name="l00774"></a>00774     <a class="code" href="structTickerBlock.html">TickerBlock</a> * next;
-<a name="l00775"></a>00775 };
-<a name="l00776"></a>00776 
-<a name="l00777"></a>00777 <span class="keyword">static</span> <a class="code" href="structTickerBlock.html">TickerBlock</a> * firstticker=0;
-<a name="l00778"></a>00778 
-<a name="l00779"></a>00779 <span class="keywordtype">void</span> TIMER_ShutdownTickHandlers() {
-<a name="l00780"></a>00780     <span class="keywordtype">unsigned</span> <span class="keywordtype">int</span> leftovers = 0;
-<a name="l00781"></a>00781 
-<a name="l00782"></a>00782     <span class="comment">/* pull in the singly linked list from the front, hand over hand */</span>
-<a name="l00783"></a>00783     <span class="keywordflow">while</span> (firstticker != NULL) {
-<a name="l00784"></a>00784         <a class="code" href="structTickerBlock.html">TickerBlock</a> *n = firstticker-&gt;next;
-<a name="l00785"></a>00785         <span class="keyword">delete</span> firstticker;
-<a name="l00786"></a>00786         firstticker = n;
-<a name="l00787"></a>00787         leftovers++;
-<a name="l00788"></a>00788     }
-<a name="l00789"></a>00789 
-<a name="l00790"></a>00790     <span class="keywordflow">if</span> (leftovers != 0)
-<a name="l00791"></a>00791         <a class="code" href="classLOG.html">LOG</a>(LOG_MISC,LOG_DEBUG)(<span class="stringliteral">&quot;TIMER: %u leftover handlers (clean up!).&quot;</span>,leftovers);
-<a name="l00792"></a>00792 }
+<a name="l00767"></a>00767     <span class="comment">/* if we&#39;re out of cycles, then return false. don&#39;t execute any more instructions */</span>
+<a name="l00768"></a>00768     <span class="keywordflow">if</span> ((CPU_CycleLeft+CPU_Cycles) &lt;= 0)
+<a name="l00769"></a>00769         <span class="keywordflow">return</span> <span class="keyword">false</span>;
+<a name="l00770"></a>00770 
+<a name="l00771"></a>00771     <span class="keywordflow">return</span> <span class="keyword">true</span>;
+<a name="l00772"></a>00772 }
+<a name="l00773"></a>00773 
+<a name="l00774"></a>00774 <span class="comment">/* The TIMER Part */</span>
+<a name="l00775"></a><a class="code" href="structTickerBlock.html">00775</a> <span class="keyword">struct </span><a class="code" href="structTickerBlock.html">TickerBlock</a> {
+<a name="l00776"></a>00776     <span class="comment">/* TODO: carry const char * field for name! */</span>
+<a name="l00777"></a>00777     TIMER_TickHandler handler;
+<a name="l00778"></a>00778     <a class="code" href="structTickerBlock.html">TickerBlock</a> * next;
+<a name="l00779"></a>00779 };
+<a name="l00780"></a>00780 
+<a name="l00781"></a>00781 <span class="keyword">static</span> <a class="code" href="structTickerBlock.html">TickerBlock</a> * firstticker=0;
+<a name="l00782"></a>00782 
+<a name="l00783"></a>00783 <span class="keywordtype">void</span> TIMER_ShutdownTickHandlers() {
+<a name="l00784"></a>00784     <span class="keywordtype">unsigned</span> <span class="keywordtype">int</span> leftovers = 0;
+<a name="l00785"></a>00785 
+<a name="l00786"></a>00786     <span class="comment">/* pull in the singly linked list from the front, hand over hand */</span>
+<a name="l00787"></a>00787     <span class="keywordflow">while</span> (firstticker != NULL) {
+<a name="l00788"></a>00788         <a class="code" href="structTickerBlock.html">TickerBlock</a> *n = firstticker-&gt;next;
+<a name="l00789"></a>00789         <span class="keyword">delete</span> firstticker;
+<a name="l00790"></a>00790         firstticker = n;
+<a name="l00791"></a>00791         leftovers++;
+<a name="l00792"></a>00792     }
 <a name="l00793"></a>00793 
-<a name="l00794"></a>00794 <span class="keywordtype">void</span> TIMER_DelTickHandler(TIMER_TickHandler handler) {
-<a name="l00795"></a>00795     <a class="code" href="structTickerBlock.html">TickerBlock</a> * ticker=firstticker;
-<a name="l00796"></a>00796     <a class="code" href="structTickerBlock.html">TickerBlock</a> * * tick_where=&amp;firstticker;
-<a name="l00797"></a>00797     <span class="keywordflow">while</span> (ticker) {
-<a name="l00798"></a>00798         <span class="keywordflow">if</span> (ticker-&gt;handler==handler) {
-<a name="l00799"></a>00799             *tick_where=ticker-&gt;next;
-<a name="l00800"></a>00800             <span class="keyword">delete</span> ticker;
-<a name="l00801"></a>00801             <span class="keywordflow">return</span>;
-<a name="l00802"></a>00802         }
-<a name="l00803"></a>00803         tick_where=&amp;ticker-&gt;next;
-<a name="l00804"></a>00804         ticker=ticker-&gt;next;
-<a name="l00805"></a>00805     }
-<a name="l00806"></a>00806 }
-<a name="l00807"></a>00807 
-<a name="l00808"></a>00808 <span class="keywordtype">void</span> TIMER_AddTickHandler(TIMER_TickHandler handler) {
-<a name="l00809"></a>00809     <a class="code" href="structTickerBlock.html">TickerBlock</a> * newticker=<span class="keyword">new</span> <a class="code" href="structTickerBlock.html">TickerBlock</a>;
-<a name="l00810"></a>00810     newticker-&gt;next=firstticker;
-<a name="l00811"></a>00811     newticker-&gt;handler=handler;
-<a name="l00812"></a>00812     firstticker=newticker;
-<a name="l00813"></a>00813 }
-<a name="l00814"></a>00814 
-<a name="l00815"></a>00815 <span class="keyword">extern</span> Bitu time_limit_ms;
-<a name="l00816"></a>00816 
-<a name="l00817"></a>00817 <span class="keyword">static</span> <span class="keywordtype">unsigned</span> <span class="keywordtype">long</span> PIC_benchstart = 0;
-<a name="l00818"></a>00818 <span class="keyword">static</span> <span class="keywordtype">unsigned</span> <span class="keywordtype">long</span> PIC_tickstart = 0;
-<a name="l00819"></a>00819 
-<a name="l00820"></a>00820 <span class="keyword">extern</span> <span class="keywordtype">void</span> GFX_SetTitle(Bit32s cycles, Bits frameskip, Bits timing, <span class="keywordtype">bool</span> paused);
-<a name="l00821"></a>00821 <span class="keywordtype">void</span> TIMER_AddTick(<span class="keywordtype">void</span>) {
-<a name="l00822"></a>00822     <span class="comment">/* Setup new amount of cycles for PIC */</span>
-<a name="l00823"></a>00823     PIC_Ticks++;
-<a name="l00824"></a>00824     <span class="keywordflow">if</span> ((PIC_Ticks&amp;0x3fff) == 0) {
-<a name="l00825"></a>00825         <span class="keywordtype">unsigned</span> <span class="keywordtype">long</span> ticks = GetTicks();
-<a name="l00826"></a>00826         <span class="keywordtype">int</span> delta = int((PIC_Ticks-PIC_tickstart)*10000/(ticks-PIC_benchstart)+5);
-<a name="l00827"></a>00827         GFX_SetTitle(-1,-1,delta,<span class="keyword">false</span>);
-<a name="l00828"></a>00828         PIC_benchstart = ticks;
-<a name="l00829"></a>00829         PIC_tickstart = PIC_Ticks;
-<a name="l00830"></a>00830     }
-<a name="l00831"></a>00831     CPU_CycleLeft += CPU_CycleMax + CPU_Cycles;
-<a name="l00832"></a>00832     CPU_Cycles = 0;
-<a name="l00833"></a>00833 
-<a name="l00834"></a>00834     <span class="comment">/* timeout */</span>
-<a name="l00835"></a>00835     <span class="keywordflow">if</span> (time_limit_ms != 0 &amp;&amp; PIC_Ticks &gt;= time_limit_ms)
-<a name="l00836"></a>00836         <span class="keywordflow">throw</span> int(1);
+<a name="l00794"></a>00794     <span class="keywordflow">if</span> (leftovers != 0)
+<a name="l00795"></a>00795         <a class="code" href="classLOG.html">LOG</a>(LOG_MISC,LOG_DEBUG)(<span class="stringliteral">&quot;TIMER: %u leftover handlers (clean up!).&quot;</span>,leftovers);
+<a name="l00796"></a>00796 }
+<a name="l00797"></a>00797 
+<a name="l00798"></a>00798 <span class="keywordtype">void</span> TIMER_DelTickHandler(TIMER_TickHandler handler) {
+<a name="l00799"></a>00799     <a class="code" href="structTickerBlock.html">TickerBlock</a> * ticker=firstticker;
+<a name="l00800"></a>00800     <a class="code" href="structTickerBlock.html">TickerBlock</a> * * tick_where=&amp;firstticker;
+<a name="l00801"></a>00801     <span class="keywordflow">while</span> (ticker) {
+<a name="l00802"></a>00802         <span class="keywordflow">if</span> (ticker-&gt;handler==handler) {
+<a name="l00803"></a>00803             *tick_where=ticker-&gt;next;
+<a name="l00804"></a>00804             <span class="keyword">delete</span> ticker;
+<a name="l00805"></a>00805             <span class="keywordflow">return</span>;
+<a name="l00806"></a>00806         }
+<a name="l00807"></a>00807         tick_where=&amp;ticker-&gt;next;
+<a name="l00808"></a>00808         ticker=ticker-&gt;next;
+<a name="l00809"></a>00809     }
+<a name="l00810"></a>00810 }
+<a name="l00811"></a>00811 
+<a name="l00812"></a>00812 <span class="keywordtype">void</span> TIMER_AddTickHandler(TIMER_TickHandler handler) {
+<a name="l00813"></a>00813     <a class="code" href="structTickerBlock.html">TickerBlock</a> * newticker=<span class="keyword">new</span> <a class="code" href="structTickerBlock.html">TickerBlock</a>;
+<a name="l00814"></a>00814     newticker-&gt;next=firstticker;
+<a name="l00815"></a>00815     newticker-&gt;handler=handler;
+<a name="l00816"></a>00816     firstticker=newticker;
+<a name="l00817"></a>00817 }
+<a name="l00818"></a>00818 
+<a name="l00819"></a>00819 <span class="keyword">extern</span> Bitu time_limit_ms;
+<a name="l00820"></a>00820 
+<a name="l00821"></a>00821 <span class="keyword">static</span> <span class="keywordtype">unsigned</span> <span class="keywordtype">long</span> PIC_benchstart = 0;
+<a name="l00822"></a>00822 <span class="keyword">static</span> <span class="keywordtype">unsigned</span> <span class="keywordtype">long</span> PIC_tickstart = 0;
+<a name="l00823"></a>00823 
+<a name="l00824"></a>00824 <span class="keyword">extern</span> <span class="keywordtype">void</span> GFX_SetTitle(Bit32s cycles, Bits frameskip, Bits timing, <span class="keywordtype">bool</span> paused);
+<a name="l00825"></a>00825 <span class="keywordtype">void</span> TIMER_AddTick(<span class="keywordtype">void</span>) {
+<a name="l00826"></a>00826     <span class="comment">/* Setup new amount of cycles for PIC */</span>
+<a name="l00827"></a>00827     PIC_Ticks++;
+<a name="l00828"></a>00828     <span class="keywordflow">if</span> ((PIC_Ticks&amp;0x3fff) == 0) {
+<a name="l00829"></a>00829         <span class="keywordtype">unsigned</span> <span class="keywordtype">long</span> ticks = GetTicks();
+<a name="l00830"></a>00830         <span class="keywordtype">int</span> delta = int((PIC_Ticks-PIC_tickstart)*10000/(ticks-PIC_benchstart)+5);
+<a name="l00831"></a>00831         GFX_SetTitle(-1,-1,delta,<span class="keyword">false</span>);
+<a name="l00832"></a>00832         PIC_benchstart = ticks;
+<a name="l00833"></a>00833         PIC_tickstart = PIC_Ticks;
+<a name="l00834"></a>00834     }
+<a name="l00835"></a>00835     CPU_CycleLeft += CPU_CycleMax + CPU_Cycles;
+<a name="l00836"></a>00836     CPU_Cycles = 0;
 <a name="l00837"></a>00837 
-<a name="l00838"></a>00838     <span class="comment">/* Go through the list of scheduled events and lower their index with 1000 */</span>
-<a name="l00839"></a>00839     <a class="code" href="structPICEntry.html">PICEntry</a> * entry=pic_queue.next_entry;
-<a name="l00840"></a>00840     <span class="keywordflow">while</span> (entry) {
-<a name="l00841"></a>00841         entry-&gt;index -= 1.0;
-<a name="l00842"></a>00842         entry=entry-&gt;next;
-<a name="l00843"></a>00843     }
-<a name="l00844"></a>00844 
-<a name="l00845"></a>00845     <span class="comment">/* Call our list of ticker handlers */</span>
-<a name="l00846"></a>00846     <a class="code" href="structTickerBlock.html">TickerBlock</a> * ticker=firstticker;
-<a name="l00847"></a>00847     <span class="keywordflow">while</span> (ticker) {
-<a name="l00848"></a>00848         <a class="code" href="structTickerBlock.html">TickerBlock</a> * nextticker=ticker-&gt;next;
-<a name="l00849"></a>00849         ticker-&gt;handler();
-<a name="l00850"></a>00850         ticker=nextticker;
-<a name="l00851"></a>00851     }
-<a name="l00852"></a>00852 }
-<a name="l00853"></a>00853 
-<a name="l00854"></a>00854 <span class="keyword">static</span> <a class="code" href="classIO__WriteHandleObject.html">IO_WriteHandleObject</a> PCXT_NMI_WriteHandler;
-<a name="l00855"></a>00855 
-<a name="l00856"></a>00856 <span class="keyword">static</span> <a class="code" href="classIO__ReadHandleObject.html">IO_ReadHandleObject</a> ReadHandler[4];
-<a name="l00857"></a>00857 <span class="keyword">static</span> <a class="code" href="classIO__WriteHandleObject.html">IO_WriteHandleObject</a> WriteHandler[4];
-<a name="l00858"></a>00858 
-<a name="l00859"></a>00859 <span class="keywordtype">void</span> PIC_Reset(<a class="code" href="classSection.html">Section</a> *sec) {
-<a name="l00860"></a>00860     (void)sec;<span class="comment">//UNUSED</span>
-<a name="l00861"></a>00861     Bitu i;
+<a name="l00838"></a>00838     <span class="comment">/* timeout */</span>
+<a name="l00839"></a>00839     <span class="keywordflow">if</span> (time_limit_ms != 0 &amp;&amp; PIC_Ticks &gt;= time_limit_ms)
+<a name="l00840"></a>00840         <span class="keywordflow">throw</span> int(1);
+<a name="l00841"></a>00841 
+<a name="l00842"></a>00842     <span class="comment">/* Go through the list of scheduled events and lower their index with 1000 */</span>
+<a name="l00843"></a>00843     <a class="code" href="structPICEntry.html">PICEntry</a> * entry=pic_queue.next_entry;
+<a name="l00844"></a>00844     <span class="keywordflow">while</span> (entry) {
+<a name="l00845"></a>00845         entry-&gt;index -= 1.0;
+<a name="l00846"></a>00846         entry=entry-&gt;next;
+<a name="l00847"></a>00847     }
+<a name="l00848"></a>00848 
+<a name="l00849"></a>00849     <span class="comment">/* Call our list of ticker handlers */</span>
+<a name="l00850"></a>00850     <a class="code" href="structTickerBlock.html">TickerBlock</a> * ticker=firstticker;
+<a name="l00851"></a>00851     <span class="keywordflow">while</span> (ticker) {
+<a name="l00852"></a>00852         <a class="code" href="structTickerBlock.html">TickerBlock</a> * nextticker=ticker-&gt;next;
+<a name="l00853"></a>00853         ticker-&gt;handler();
+<a name="l00854"></a>00854         ticker=nextticker;
+<a name="l00855"></a>00855     }
+<a name="l00856"></a>00856 }
+<a name="l00857"></a>00857 
+<a name="l00858"></a>00858 <span class="keyword">static</span> <a class="code" href="classIO__WriteHandleObject.html">IO_WriteHandleObject</a> PCXT_NMI_WriteHandler;
+<a name="l00859"></a>00859 
+<a name="l00860"></a>00860 <span class="keyword">static</span> <a class="code" href="classIO__ReadHandleObject.html">IO_ReadHandleObject</a> ReadHandler[4];
+<a name="l00861"></a>00861 <span class="keyword">static</span> <a class="code" href="classIO__WriteHandleObject.html">IO_WriteHandleObject</a> WriteHandler[4];
 <a name="l00862"></a>00862 
-<a name="l00863"></a>00863     ReadHandler[0].Uninstall();
-<a name="l00864"></a>00864     ReadHandler[1].Uninstall();
-<a name="l00865"></a>00865     WriteHandler[0].Uninstall();
-<a name="l00866"></a>00866     WriteHandler[1].Uninstall();
-<a name="l00867"></a>00867     ReadHandler[2].Uninstall();
-<a name="l00868"></a>00868     ReadHandler[3].Uninstall();
-<a name="l00869"></a>00869     WriteHandler[2].Uninstall();
-<a name="l00870"></a>00870     WriteHandler[3].Uninstall();
-<a name="l00871"></a>00871     PCXT_NMI_WriteHandler.Uninstall();
-<a name="l00872"></a>00872 
-<a name="l00873"></a>00873     <span class="comment">/* NTS: Parsing this on reset allows PIC configuration changes on reboot instead of restarting the entire emulator */</span>
-<a name="l00874"></a>00874     <a class="code" href="classSection__prop.html">Section_prop</a> * section=<span class="keyword">static_cast&lt;</span><a class="code" href="classSection__prop.html">Section_prop</a> *<span class="keyword">&gt;</span>(control-&gt;GetSection(<span class="stringliteral">&quot;dosbox&quot;</span>));
-<a name="l00875"></a>00875     assert(section != NULL);
-<a name="l00876"></a>00876 
-<a name="l00877"></a>00877     enable_slave_pic = section-&gt;Get_bool(<span class="stringliteral">&quot;enable slave pic&quot;</span>);
-<a name="l00878"></a>00878     enable_pc_xt_nmi_mask = section-&gt;Get_bool(<span class="stringliteral">&quot;enable pc nmi mask&quot;</span>);
-<a name="l00879"></a>00879     never_mark_cascade_in_service = section-&gt;Get_bool(<span class="stringliteral">&quot;cascade interrupt never in service&quot;</span>);
-<a name="l00880"></a>00880 
-<a name="l00881"></a>00881     {
-<a name="l00882"></a>00882         std::string x = section-&gt;Get_string(<span class="stringliteral">&quot;cascade interrupt ignore in service&quot;</span>);
+<a name="l00863"></a>00863 <span class="keywordtype">void</span> PIC_Reset(<a class="code" href="classSection.html">Section</a> *sec) {
+<a name="l00864"></a>00864     (void)sec;<span class="comment">//UNUSED</span>
+<a name="l00865"></a>00865 
+<a name="l00866"></a>00866     ReadHandler[0].Uninstall();
+<a name="l00867"></a>00867     ReadHandler[1].Uninstall();
+<a name="l00868"></a>00868     WriteHandler[0].Uninstall();
+<a name="l00869"></a>00869     WriteHandler[1].Uninstall();
+<a name="l00870"></a>00870     ReadHandler[2].Uninstall();
+<a name="l00871"></a>00871     ReadHandler[3].Uninstall();
+<a name="l00872"></a>00872     WriteHandler[2].Uninstall();
+<a name="l00873"></a>00873     WriteHandler[3].Uninstall();
+<a name="l00874"></a>00874     PCXT_NMI_WriteHandler.Uninstall();
+<a name="l00875"></a>00875 
+<a name="l00876"></a>00876     <span class="comment">/* NTS: Parsing this on reset allows PIC configuration changes on reboot instead of restarting the entire emulator */</span>
+<a name="l00877"></a>00877     <a class="code" href="classSection__prop.html">Section_prop</a> * section=<span class="keyword">static_cast&lt;</span><a class="code" href="classSection__prop.html">Section_prop</a> *<span class="keyword">&gt;</span>(control-&gt;GetSection(<span class="stringliteral">&quot;dosbox&quot;</span>));
+<a name="l00878"></a>00878     assert(section != NULL);
+<a name="l00879"></a>00879 
+<a name="l00880"></a>00880     enable_slave_pic = section-&gt;Get_bool(<span class="stringliteral">&quot;enable slave pic&quot;</span>);
+<a name="l00881"></a>00881     enable_pc_xt_nmi_mask = section-&gt;Get_bool(<span class="stringliteral">&quot;enable pc nmi mask&quot;</span>);
+<a name="l00882"></a>00882     never_mark_cascade_in_service = section-&gt;Get_bool(<span class="stringliteral">&quot;cascade interrupt never in service&quot;</span>);
 <a name="l00883"></a>00883 
-<a name="l00884"></a>00884         <span class="keywordflow">if</span> (x == <span class="stringliteral">&quot;1&quot;</span> || x == <span class="stringliteral">&quot;true&quot;</span>)
-<a name="l00885"></a>00885             ignore_cascade_in_service = <span class="keyword">true</span>;
-<a name="l00886"></a>00886         <span class="keywordflow">else</span> <span class="keywordflow">if</span> (x == <span class="stringliteral">&quot;0&quot;</span> || x == <span class="stringliteral">&quot;false&quot;</span>)
-<a name="l00887"></a>00887             ignore_cascade_in_service = <span class="keyword">false</span>;
-<a name="l00888"></a>00888         <span class="keywordflow">else</span> {
-<a name="l00889"></a>00889             <span class="comment">// auto</span>
-<a name="l00890"></a>00890             <span class="keywordflow">if</span> (IS_PC98_ARCH)
-<a name="l00891"></a>00891                 ignore_cascade_in_service = <span class="keyword">true</span>;
-<a name="l00892"></a>00892             <span class="keywordflow">else</span>
-<a name="l00893"></a>00893                 ignore_cascade_in_service = <span class="keyword">false</span>;
-<a name="l00894"></a>00894         }
-<a name="l00895"></a>00895 
-<a name="l00896"></a>00896         <a class="code" href="classLOG.html">LOG</a>(LOG_MISC,LOG_DEBUG)(<span class="stringliteral">&quot;PIC: Ignore cascade in service=%u&quot;</span>,ignore_cascade_in_service);
-<a name="l00897"></a>00897     }
+<a name="l00884"></a>00884     {
+<a name="l00885"></a>00885         std::string x = section-&gt;Get_string(<span class="stringliteral">&quot;cascade interrupt ignore in service&quot;</span>);
+<a name="l00886"></a>00886 
+<a name="l00887"></a>00887         <span class="keywordflow">if</span> (x == <span class="stringliteral">&quot;1&quot;</span> || x == <span class="stringliteral">&quot;true&quot;</span>)
+<a name="l00888"></a>00888             ignore_cascade_in_service = <span class="keyword">true</span>;
+<a name="l00889"></a>00889         <span class="keywordflow">else</span> <span class="keywordflow">if</span> (x == <span class="stringliteral">&quot;0&quot;</span> || x == <span class="stringliteral">&quot;false&quot;</span>)
+<a name="l00890"></a>00890             ignore_cascade_in_service = <span class="keyword">false</span>;
+<a name="l00891"></a>00891         <span class="keywordflow">else</span> {
+<a name="l00892"></a>00892             <span class="comment">// auto</span>
+<a name="l00893"></a>00893             <span class="keywordflow">if</span> (IS_PC98_ARCH)
+<a name="l00894"></a>00894                 ignore_cascade_in_service = <span class="keyword">true</span>;
+<a name="l00895"></a>00895             <span class="keywordflow">else</span>
+<a name="l00896"></a>00896                 ignore_cascade_in_service = <span class="keyword">false</span>;
+<a name="l00897"></a>00897         }
 <a name="l00898"></a>00898 
-<a name="l00899"></a>00899     <span class="keywordflow">if</span> (enable_slave_pic &amp;&amp; machine == MCH_PCJR &amp;&amp; enable_pc_xt_nmi_mask) {
-<a name="l00900"></a>00900         <a class="code" href="classLOG.html">LOG</a>(LOG_MISC,LOG_DEBUG)(<span class="stringliteral">&quot;PIC_Reset(): PCjr emulation with NMI mask register requires disabling slave PIC (IRQ 8-15)&quot;</span>);
-<a name="l00901"></a>00901         enable_slave_pic = <span class="keyword">false</span>;
-<a name="l00902"></a>00902     }
-<a name="l00903"></a>00903 
-<a name="l00904"></a>00904     <span class="keywordflow">if</span> (!enable_slave_pic &amp;&amp; IS_PC98_ARCH)
-<a name="l00905"></a>00905         <a class="code" href="classLOG.html">LOG</a>(LOG_MISC,LOG_DEBUG)(<span class="stringliteral">&quot;PIC_Reset(): PC-98 emulation without slave PIC (IRQ 8-15) is unusual&quot;</span>);
+<a name="l00899"></a>00899         <a class="code" href="classLOG.html">LOG</a>(LOG_MISC,LOG_DEBUG)(<span class="stringliteral">&quot;PIC: Ignore cascade in service=%u&quot;</span>,ignore_cascade_in_service);
+<a name="l00900"></a>00900     }
+<a name="l00901"></a>00901 
+<a name="l00902"></a>00902     <span class="keywordflow">if</span> (enable_slave_pic &amp;&amp; machine == MCH_PCJR &amp;&amp; enable_pc_xt_nmi_mask) {
+<a name="l00903"></a>00903         <a class="code" href="classLOG.html">LOG</a>(LOG_MISC,LOG_DEBUG)(<span class="stringliteral">&quot;PIC_Reset(): PCjr emulation with NMI mask register requires disabling slave PIC (IRQ 8-15)&quot;</span>);
+<a name="l00904"></a>00904         enable_slave_pic = <span class="keyword">false</span>;
+<a name="l00905"></a>00905     }
 <a name="l00906"></a>00906 
-<a name="l00907"></a>00907     <span class="comment">/* NTS: This is a good guess. But the 8259 is static circuitry and not driven by a clock.</span>
-<a name="l00908"></a>00908 <span class="comment">     *      But the ability to respond to interrupts is limited by the CPU, too. */</span>
-<a name="l00909"></a>00909     PIC_irq_delay_ns = 1000000000UL / (<span class="keywordtype">unsigned</span> long)PIT_TICK_RATE;
-<a name="l00910"></a>00910     {
-<a name="l00911"></a>00911         <span class="keywordtype">int</span> x = section-&gt;Get_int(<span class="stringliteral">&quot;irq delay ns&quot;</span>);
-<a name="l00912"></a>00912         <span class="keywordflow">if</span> (x &gt;= 0) PIC_irq_delay_ns = (<span class="keywordtype">unsigned</span> int)x;
-<a name="l00913"></a>00913     }
-<a name="l00914"></a>00914 
-<a name="l00915"></a>00915     <span class="keywordflow">if</span> (enable_slave_pic)
-<a name="l00916"></a>00916         master_cascade_irq = IS_PC98_ARCH ? 7 : 2;
-<a name="l00917"></a>00917     <span class="keywordflow">else</span>
-<a name="l00918"></a>00918         master_cascade_irq = -1;
-<a name="l00919"></a>00919 
-<a name="l00920"></a>00920     <span class="comment">// LOG</span>
-<a name="l00921"></a>00921     <a class="code" href="classLOG.html">LOG</a>(LOG_MISC,LOG_DEBUG)(<span class="stringliteral">&quot;PIC_Reset(): reinitializing PIC controller (cascade=%d)&quot;</span>,master_cascade_irq);
+<a name="l00907"></a>00907     <span class="keywordflow">if</span> (!enable_slave_pic &amp;&amp; IS_PC98_ARCH)
+<a name="l00908"></a>00908         <a class="code" href="classLOG.html">LOG</a>(LOG_MISC,LOG_DEBUG)(<span class="stringliteral">&quot;PIC_Reset(): PC-98 emulation without slave PIC (IRQ 8-15) is unusual&quot;</span>);
+<a name="l00909"></a>00909 
+<a name="l00910"></a>00910     <span class="comment">/* NTS: This is a good guess. But the 8259 is static circuitry and not driven by a clock.</span>
+<a name="l00911"></a>00911 <span class="comment">     *      But the ability to respond to interrupts is limited by the CPU, too. */</span>
+<a name="l00912"></a>00912     PIC_irq_delay_ns = 1000000000UL / (<span class="keywordtype">unsigned</span> long)PIT_TICK_RATE;
+<a name="l00913"></a>00913     {
+<a name="l00914"></a>00914         <span class="keywordtype">int</span> x = section-&gt;Get_int(<span class="stringliteral">&quot;irq delay ns&quot;</span>);
+<a name="l00915"></a>00915         <span class="keywordflow">if</span> (x &gt;= 0) PIC_irq_delay_ns = (<span class="keywordtype">unsigned</span> int)x;
+<a name="l00916"></a>00916     }
+<a name="l00917"></a>00917 
+<a name="l00918"></a>00918     <span class="keywordflow">if</span> (enable_slave_pic)
+<a name="l00919"></a>00919         master_cascade_irq = IS_PC98_ARCH ? 7 : 2;
+<a name="l00920"></a>00920     <span class="keywordflow">else</span>
+<a name="l00921"></a>00921         master_cascade_irq = -1;
 <a name="l00922"></a>00922 
-<a name="l00923"></a>00923     <span class="comment">/* Setup pic0 and pic1 with initial values like DOS has normally */</span>
-<a name="l00924"></a>00924     PIC_Ticks=0;
-<a name="l00925"></a>00925     PIC_IRQCheck=0;
-<a name="l00926"></a>00926     <span class="keywordflow">for</span> (i=0;i&lt;2;i++) {
-<a name="l00927"></a>00927         pics[i].auto_eoi=<span class="keyword">false</span>;
-<a name="l00928"></a>00928         pics[i].rotate_on_auto_eoi=<span class="keyword">false</span>;
-<a name="l00929"></a>00929         pics[i].request_issr=<span class="keyword">false</span>;
-<a name="l00930"></a>00930         pics[i].special=<span class="keyword">false</span>;
-<a name="l00931"></a>00931         pics[i].single=<span class="keyword">false</span>;
-<a name="l00932"></a>00932         pics[i].icw_index=0;
-<a name="l00933"></a>00933         pics[i].icw_words=0;
-<a name="l00934"></a>00934         pics[i].irr = pics[i].isr = pics[i].imrr = 0;
-<a name="l00935"></a>00935         pics[i].isrr = pics[i].imr = 0xff;
-<a name="l00936"></a>00936         pics[i].isr_ignore = 0x00;
-<a name="l00937"></a>00937         pics[i].active_irq = 8;
-<a name="l00938"></a>00938     }
-<a name="l00939"></a>00939 
-<a name="l00940"></a>00940     <span class="comment">/* PC-98: By default (but an option otherwise)</span>
-<a name="l00941"></a>00941 <span class="comment">     *        initialize the PIC so that reading the command port</span>
-<a name="l00942"></a>00942 <span class="comment">     *        produces the ISR status not the IRR status.</span>
-<a name="l00943"></a>00943 <span class="comment">     *</span>
-<a name="l00944"></a>00944 <span class="comment">     *        The reason the option is on by default, is that there</span>
-<a name="l00945"></a>00945 <span class="comment">     *        is PC-98 programming literature that recommends reading</span>
-<a name="l00946"></a>00946 <span class="comment">     *        ISR status before acknowledging interrupts (to avoid</span>
-<a name="l00947"></a>00947 <span class="comment">     *        conflicts with other ISR handlers perhaps). So it&#39;s</span>
-<a name="l00948"></a>00948 <span class="comment">     *        probably a common convention.</span>
-<a name="l00949"></a>00949 <span class="comment">     *</span>
-<a name="l00950"></a>00950 <span class="comment">     * Notes: &quot;Blackbird&quot; by Vivian needs this in order for the FM interrupt</span>
-<a name="l00951"></a>00951 <span class="comment">     *        to continue working. A bug in the FM interrupt routine programs</span>
-<a name="l00952"></a>00952 <span class="comment">     *        only the master PIC into this mode but then reads from the slave</span>
-<a name="l00953"></a>00953 <span class="comment">     *        which is not necessarily initialized into this mode and may return</span>
-<a name="l00954"></a>00954 <span class="comment">     *        the IRR register instead, causing the game to misinterpret</span>
-<a name="l00955"></a>00955 <span class="comment">     *        incoming interrupts as in-service. */</span>
-<a name="l00956"></a>00956     <span class="keywordflow">if</span> (IS_PC98_ARCH &amp;&amp; section-&gt;Get_bool(<span class="stringliteral">&quot;pc-98 pic init to read isr&quot;</span>))
-<a name="l00957"></a>00957         pics[0].request_issr = pics[1].request_issr = <span class="keyword">true</span>;
-<a name="l00958"></a>00958 
-<a name="l00959"></a>00959     <span class="comment">/* IBM: IRQ 0-15 is INT 0x08-0x0F, 0x70-0x7F</span>
-<a name="l00960"></a>00960 <span class="comment">     * PC-98: IRQ 0-15 is INT 0x08-0x17 */</span>
-<a name="l00961"></a>00961     master.vector_base = 0x08;
-<a name="l00962"></a>00962     slave.vector_base = IS_PC98_ARCH ? 0x10 : 0x70;
-<a name="l00963"></a>00963 
-<a name="l00964"></a>00964     <span class="keywordflow">for</span> (Bitu i=0;i &lt; 16;i++)
-<a name="l00965"></a>00965         PIC_SetIRQMask(i,<span class="keyword">true</span>);
-<a name="l00966"></a>00966 
-<a name="l00967"></a>00967     PIC_SetIRQMask(0,<span class="keyword">false</span>);                    <span class="comment">/* Enable system timer */</span>
-<a name="l00968"></a>00968     PIC_SetIRQMask(1,<span class="keyword">false</span>);                    <span class="comment">/* Enable keyboard interrupt */</span>
-<a name="l00969"></a>00969     PIC_SetIRQMask(8,<span class="keyword">false</span>);                    <span class="comment">/* Enable RTC IRQ */</span>
-<a name="l00970"></a>00970 
-<a name="l00971"></a>00971     <span class="keywordflow">if</span> (master_cascade_irq &gt;= 0) {
-<a name="l00972"></a>00972         PIC_SetIRQMask((<span class="keywordtype">unsigned</span> <span class="keywordtype">int</span>)master_cascade_irq,<span class="keyword">false</span>);<span class="comment">/* Enable second pic */</span>
-<a name="l00973"></a>00973 
-<a name="l00974"></a>00974         <span class="keywordflow">if</span> (ignore_cascade_in_service)
-<a name="l00975"></a>00975             pics[0].isr_ignore |= 1u &lt;&lt; (<span class="keywordtype">unsigned</span> char)master_cascade_irq;
-<a name="l00976"></a>00976     }
-<a name="l00977"></a>00977 
-<a name="l00978"></a>00978     <span class="comment">/* I/O port map</span>
-<a name="l00979"></a>00979 <span class="comment">     *</span>
-<a name="l00980"></a>00980 <span class="comment">     * IBM PC/XT/AT     NEC PC-98        A0</span>
-<a name="l00981"></a>00981 <span class="comment">     * ---------------------------------------</span>
-<a name="l00982"></a>00982 <span class="comment">     * 0x20             0x00             0</span>
-<a name="l00983"></a>00983 <span class="comment">     * 0x21             0x02             1</span>
-<a name="l00984"></a>00984 <span class="comment">     * 0xA0             0x08             0</span>
-<a name="l00985"></a>00985 <span class="comment">     * 0xA1             0x0A             1</span>
-<a name="l00986"></a>00986 <span class="comment">     */</span>
-<a name="l00987"></a>00987 
-<a name="l00988"></a>00988     ReadHandler[0].Install(IS_PC98_ARCH ? 0x00 : 0x20,read_command,IO_MB);
-<a name="l00989"></a>00989     ReadHandler[1].Install(IS_PC98_ARCH ? 0x02 : 0x21,read_data,IO_MB);
-<a name="l00990"></a>00990     WriteHandler[0].Install(IS_PC98_ARCH ? 0x00 : 0x20,write_command,IO_MB);
-<a name="l00991"></a>00991     WriteHandler[1].Install(IS_PC98_ARCH ? 0x02 : 0x21,write_data,IO_MB);
-<a name="l00992"></a>00992 
-<a name="l00993"></a>00993     <span class="comment">/* the secondary slave PIC takes priority over PC/XT NMI mask emulation */</span>
-<a name="l00994"></a>00994     <span class="keywordflow">if</span> (enable_slave_pic) {
-<a name="l00995"></a>00995         ReadHandler[2].Install(IS_PC98_ARCH ? 0x08 : 0xa0,read_command,IO_MB);
-<a name="l00996"></a>00996         ReadHandler[3].Install(IS_PC98_ARCH ? 0x0A : 0xa1,read_data,IO_MB);
-<a name="l00997"></a>00997         WriteHandler[2].Install(IS_PC98_ARCH ? 0x08 : 0xa0,write_command,IO_MB);
-<a name="l00998"></a>00998         WriteHandler[3].Install(IS_PC98_ARCH ? 0x0A : 0xa1,write_data,IO_MB);
-<a name="l00999"></a>00999     }
-<a name="l01000"></a>01000     <span class="keywordflow">else</span> <span class="keywordflow">if</span> (!IS_PC98_ARCH &amp;&amp; enable_pc_xt_nmi_mask) {
-<a name="l01001"></a>01001         PCXT_NMI_WriteHandler.Install(0xa0,pc_xt_nmi_write,IO_MB);
-<a name="l01002"></a>01002     }
-<a name="l01003"></a>01003 }
-<a name="l01004"></a>01004 
-<a name="l01005"></a>01005 <span class="keywordtype">void</span> PIC_Destroy(<a class="code" href="classSection.html">Section</a>* sec) {
-<a name="l01006"></a>01006     (void)sec;<span class="comment">//UNUSED</span>
-<a name="l01007"></a>01007 }
-<a name="l01008"></a>01008 
-<a name="l01009"></a>01009 <span class="keywordtype">void</span> Init_PIC() {
-<a name="l01010"></a>01010     Bitu i;
-<a name="l01011"></a>01011 
-<a name="l01012"></a>01012     <a class="code" href="classLOG.html">LOG</a>(LOG_MISC,LOG_DEBUG)(<span class="stringliteral">&quot;Init_PIC()&quot;</span>);
-<a name="l01013"></a>01013 
-<a name="l01014"></a>01014     <span class="comment">/* Initialize the pic queue */</span>
-<a name="l01015"></a>01015     <span class="keywordflow">for</span> (i=0;i&lt;PIC_QUEUESIZE-1;i++) {
-<a name="l01016"></a>01016         pic_queue.entries[i].next=&amp;pic_queue.entries[i+1];
+<a name="l00923"></a>00923     <span class="comment">// LOG</span>
+<a name="l00924"></a>00924     <a class="code" href="classLOG.html">LOG</a>(LOG_MISC,LOG_DEBUG)(<span class="stringliteral">&quot;PIC_Reset(): reinitializing PIC controller (cascade=%d)&quot;</span>,master_cascade_irq);
+<a name="l00925"></a>00925 
+<a name="l00926"></a>00926     <span class="comment">/* Setup pic0 and pic1 with initial values like DOS has normally */</span>
+<a name="l00927"></a>00927     PIC_Ticks=0;
+<a name="l00928"></a>00928     PIC_IRQCheck=0;
+<a name="l00929"></a>00929     <span class="keywordflow">for</span> (Bitu i=0;i&lt;2;i++) {
+<a name="l00930"></a>00930         pics[i].auto_eoi=<span class="keyword">false</span>;
+<a name="l00931"></a>00931         pics[i].rotate_on_auto_eoi=<span class="keyword">false</span>;
+<a name="l00932"></a>00932         pics[i].request_issr=<span class="keyword">false</span>;
+<a name="l00933"></a>00933         pics[i].special=<span class="keyword">false</span>;
+<a name="l00934"></a>00934         pics[i].single=<span class="keyword">false</span>;
+<a name="l00935"></a>00935         pics[i].icw_index=0;
+<a name="l00936"></a>00936         pics[i].icw_words=0;
+<a name="l00937"></a>00937         pics[i].irr = pics[i].isr = pics[i].imrr = 0;
+<a name="l00938"></a>00938         pics[i].isrr = pics[i].imr = 0xff;
+<a name="l00939"></a>00939         pics[i].isr_ignore = 0x00;
+<a name="l00940"></a>00940         pics[i].active_irq = 8;
+<a name="l00941"></a>00941     }
+<a name="l00942"></a>00942 
+<a name="l00943"></a>00943     <span class="comment">/* PC-98: By default (but an option otherwise)</span>
+<a name="l00944"></a>00944 <span class="comment">     *        initialize the PIC so that reading the command port</span>
+<a name="l00945"></a>00945 <span class="comment">     *        produces the ISR status not the IRR status.</span>
+<a name="l00946"></a>00946 <span class="comment">     *</span>
+<a name="l00947"></a>00947 <span class="comment">     *        The reason the option is on by default, is that there</span>
+<a name="l00948"></a>00948 <span class="comment">     *        is PC-98 programming literature that recommends reading</span>
+<a name="l00949"></a>00949 <span class="comment">     *        ISR status before acknowledging interrupts (to avoid</span>
+<a name="l00950"></a>00950 <span class="comment">     *        conflicts with other ISR handlers perhaps). So it&#39;s</span>
+<a name="l00951"></a>00951 <span class="comment">     *        probably a common convention.</span>
+<a name="l00952"></a>00952 <span class="comment">     *</span>
+<a name="l00953"></a>00953 <span class="comment">     * Notes: &quot;Blackbird&quot; by Vivian needs this in order for the FM interrupt</span>
+<a name="l00954"></a>00954 <span class="comment">     *        to continue working. A bug in the FM interrupt routine programs</span>
+<a name="l00955"></a>00955 <span class="comment">     *        only the master PIC into this mode but then reads from the slave</span>
+<a name="l00956"></a>00956 <span class="comment">     *        which is not necessarily initialized into this mode and may return</span>
+<a name="l00957"></a>00957 <span class="comment">     *        the IRR register instead, causing the game to misinterpret</span>
+<a name="l00958"></a>00958 <span class="comment">     *        incoming interrupts as in-service. */</span>
+<a name="l00959"></a>00959     <span class="keywordflow">if</span> (IS_PC98_ARCH) {
+<a name="l00960"></a>00960                 <a class="code" href="classSection__prop.html">Section_prop</a> * pc98_section = <span class="keyword">static_cast&lt;</span><a class="code" href="classSection__prop.html">Section_prop</a> *<span class="keyword">&gt;</span>(control-&gt;GetSection(<span class="stringliteral">&quot;pc98&quot;</span>));
+<a name="l00961"></a>00961                 <span class="keywordflow">if</span> (pc98_section != NULL &amp;&amp; pc98_section-&gt;Get_bool(<span class="stringliteral">&quot;pc-98 pic init to read isr&quot;</span>))
+<a name="l00962"></a>00962                         pics[0].request_issr = pics[1].request_issr = <span class="keyword">true</span>;
+<a name="l00963"></a>00963         }
+<a name="l00964"></a>00964 
+<a name="l00965"></a>00965     <span class="comment">/* IBM: IRQ 0-15 is INT 0x08-0x0F, 0x70-0x7F</span>
+<a name="l00966"></a>00966 <span class="comment">     * PC-98: IRQ 0-15 is INT 0x08-0x17 */</span>
+<a name="l00967"></a>00967     master.vector_base = 0x08;
+<a name="l00968"></a>00968     slave.vector_base = IS_PC98_ARCH ? 0x10 : 0x70;
+<a name="l00969"></a>00969 
+<a name="l00970"></a>00970     <span class="keywordflow">for</span> (Bitu i=0;i &lt; 16;i++)
+<a name="l00971"></a>00971         PIC_SetIRQMask(i,<span class="keyword">true</span>);
+<a name="l00972"></a>00972 
+<a name="l00973"></a>00973     PIC_SetIRQMask(0,<span class="keyword">false</span>);                    <span class="comment">/* Enable system timer */</span>
+<a name="l00974"></a>00974     PIC_SetIRQMask(1,<span class="keyword">false</span>);                    <span class="comment">/* Enable keyboard interrupt */</span>
+<a name="l00975"></a>00975     PIC_SetIRQMask(8,<span class="keyword">false</span>);                    <span class="comment">/* Enable RTC IRQ */</span>
+<a name="l00976"></a>00976 
+<a name="l00977"></a>00977     <span class="keywordflow">if</span> (master_cascade_irq &gt;= 0) {
+<a name="l00978"></a>00978         PIC_SetIRQMask((<span class="keywordtype">unsigned</span> <span class="keywordtype">int</span>)master_cascade_irq,<span class="keyword">false</span>);<span class="comment">/* Enable second pic */</span>
+<a name="l00979"></a>00979 
+<a name="l00980"></a>00980         <span class="keywordflow">if</span> (ignore_cascade_in_service)
+<a name="l00981"></a>00981             pics[0].isr_ignore |= 1u &lt;&lt; (<span class="keywordtype">unsigned</span> char)master_cascade_irq;
+<a name="l00982"></a>00982     }
+<a name="l00983"></a>00983 
+<a name="l00984"></a>00984     <span class="comment">/* I/O port map</span>
+<a name="l00985"></a>00985 <span class="comment">     *</span>
+<a name="l00986"></a>00986 <span class="comment">     * IBM PC/XT/AT     NEC PC-98        A0</span>
+<a name="l00987"></a>00987 <span class="comment">     * ---------------------------------------</span>
+<a name="l00988"></a>00988 <span class="comment">     * 0x20             0x00             0</span>
+<a name="l00989"></a>00989 <span class="comment">     * 0x21             0x02             1</span>
+<a name="l00990"></a>00990 <span class="comment">     * 0xA0             0x08             0</span>
+<a name="l00991"></a>00991 <span class="comment">     * 0xA1             0x0A             1</span>
+<a name="l00992"></a>00992 <span class="comment">     */</span>
+<a name="l00993"></a>00993 
+<a name="l00994"></a>00994     ReadHandler[0].Install(IS_PC98_ARCH ? 0x00 : 0x20,read_command,IO_MB);
+<a name="l00995"></a>00995     ReadHandler[1].Install(IS_PC98_ARCH ? 0x02 : 0x21,read_data,IO_MB);
+<a name="l00996"></a>00996     WriteHandler[0].Install(IS_PC98_ARCH ? 0x00 : 0x20,write_command,IO_MB);
+<a name="l00997"></a>00997     WriteHandler[1].Install(IS_PC98_ARCH ? 0x02 : 0x21,write_data,IO_MB);
+<a name="l00998"></a>00998 
+<a name="l00999"></a>00999     <span class="comment">/* the secondary slave PIC takes priority over PC/XT NMI mask emulation */</span>
+<a name="l01000"></a>01000     <span class="keywordflow">if</span> (enable_slave_pic) {
+<a name="l01001"></a>01001         ReadHandler[2].Install(IS_PC98_ARCH ? 0x08 : 0xa0,read_command,IO_MB);
+<a name="l01002"></a>01002         ReadHandler[3].Install(IS_PC98_ARCH ? 0x0A : 0xa1,read_data,IO_MB);
+<a name="l01003"></a>01003         WriteHandler[2].Install(IS_PC98_ARCH ? 0x08 : 0xa0,write_command,IO_MB);
+<a name="l01004"></a>01004         WriteHandler[3].Install(IS_PC98_ARCH ? 0x0A : 0xa1,write_data,IO_MB);
+<a name="l01005"></a>01005     }
+<a name="l01006"></a>01006     <span class="keywordflow">else</span> <span class="keywordflow">if</span> (!IS_PC98_ARCH &amp;&amp; enable_pc_xt_nmi_mask) {
+<a name="l01007"></a>01007         PCXT_NMI_WriteHandler.Install(0xa0,pc_xt_nmi_write,IO_MB);
+<a name="l01008"></a>01008     }
+<a name="l01009"></a>01009 }
+<a name="l01010"></a>01010 
+<a name="l01011"></a>01011 <span class="keywordtype">void</span> PIC_Destroy(<a class="code" href="classSection.html">Section</a>* sec) {
+<a name="l01012"></a>01012     (void)sec;<span class="comment">//UNUSED</span>
+<a name="l01013"></a>01013 }
+<a name="l01014"></a>01014 
+<a name="l01015"></a>01015 <span class="keywordtype">void</span> Init_PIC() {
+<a name="l01016"></a>01016     Bitu i;
 <a name="l01017"></a>01017 
-<a name="l01018"></a>01018         <span class="comment">// savestate compatibility</span>
-<a name="l01019"></a>01019         pic_queue.entries[i].pic_event = 0;
-<a name="l01020"></a>01020     }
-<a name="l01021"></a>01021     pic_queue.entries[PIC_QUEUESIZE-1].next=0;
-<a name="l01022"></a>01022     pic_queue.free_entry=&amp;pic_queue.entries[0];
-<a name="l01023"></a>01023     pic_queue.next_entry=0;
-<a name="l01024"></a>01024 
-<a name="l01025"></a>01025     AddExitFunction(AddExitFunctionFuncPair(PIC_Destroy));
-<a name="l01026"></a>01026     AddVMEventFunction(VM_EVENT_RESET,AddVMEventFunctionFuncPair(PIC_Reset));
-<a name="l01027"></a>01027 }
-<a name="l01028"></a>01028 
-<a name="l01029"></a>01029 <span class="preprocessor">#if C_DEBUG</span>
-<a name="l01030"></a>01030 <span class="preprocessor"></span><span class="keywordtype">void</span> DEBUG_LogPIC_C(<a class="code" href="structPIC__Controller.html">PIC_Controller</a> &amp;pic) {
-<a name="l01031"></a>01031     LOG_MSG(<span class="stringliteral">&quot;%s interrupt controller state&quot;</span>,&amp;pic == &amp;master ? <span class="stringliteral">&quot;Master&quot;</span> : <span class="stringliteral">&quot;Slave&quot;</span>);
-<a name="l01032"></a>01032     LOG_MSG(<span class="stringliteral">&quot;ICW %u/%u special=%u auto-eoi=%u rotate-eoi=%u single=%u request_issr=%u vectorbase=0x%02x active_irq=%u isr=%02x isrr=%02x isrignore=%02x&quot;</span>,
-<a name="l01033"></a>01033         (<span class="keywordtype">unsigned</span> <span class="keywordtype">int</span>)pic.icw_index,
-<a name="l01034"></a>01034         (<span class="keywordtype">unsigned</span> <span class="keywordtype">int</span>)pic.icw_words,
-<a name="l01035"></a>01035         pic.special?1:0,
-<a name="l01036"></a>01036         pic.auto_eoi?1:0,
-<a name="l01037"></a>01037         pic.rotate_on_auto_eoi?1:0,
-<a name="l01038"></a>01038         pic.single?1:0,
-<a name="l01039"></a>01039         pic.request_issr?1:0,
-<a name="l01040"></a>01040         pic.vector_base,
-<a name="l01041"></a>01041         pic.active_irq,
-<a name="l01042"></a>01042         pic.isr,
-<a name="l01043"></a>01043         pic.isrr,
-<a name="l01044"></a>01044         pic.isr_ignore);
-<a name="l01045"></a>01045 
-<a name="l01046"></a>01046     LOG_MSG(<span class="stringliteral">&quot;IRQ INT#  Req /Mask/Serv&quot;</span>);
-<a name="l01047"></a>01047     <span class="keywordflow">for</span> (<span class="keywordtype">unsigned</span> <span class="keywordtype">int</span> si=0;si &lt; 8;si++) {
-<a name="l01048"></a>01048         <span class="keywordtype">unsigned</span> <span class="keywordtype">int</span> IRQ = si + (&amp;pic == &amp;slave ? 8 : 0);
-<a name="l01049"></a>01049         <span class="keywordtype">unsigned</span> <span class="keywordtype">int</span> CPUINT = pic.vector_base + si;
-<a name="l01050"></a>01050 
-<a name="l01051"></a>01051         LOG_MSG(<span class="stringliteral">&quot;%3u 0x%02X   %c    %c    %c   %s&quot;</span>,
-<a name="l01052"></a>01052             IRQ,
-<a name="l01053"></a>01053             CPUINT,
-<a name="l01054"></a>01054             (pic.irr &amp; (1U &lt;&lt; si))?<span class="charliteral">&#39;R&#39;</span>:<span class="charliteral">&#39; &#39;</span>,
-<a name="l01055"></a>01055             (pic.imr &amp; (1U &lt;&lt; si))?<span class="charliteral">&#39;M&#39;</span>:<span class="charliteral">&#39; &#39;</span>,
-<a name="l01056"></a>01056             (pic.isr &amp; (1U &lt;&lt; si))?<span class="charliteral">&#39;S&#39;</span>:<span class="charliteral">&#39; &#39;</span>,
-<a name="l01057"></a>01057             ((<span class="keywordtype">unsigned</span> <span class="keywordtype">int</span>)IRQ == (<span class="keywordtype">unsigned</span> <span class="keywordtype">int</span>)master_cascade_irq) ? <span class="stringliteral">&quot;CASCADE&quot;</span> : <span class="stringliteral">&quot;&quot;</span>);
-<a name="l01058"></a>01058     }
-<a name="l01059"></a>01059 }
-<a name="l01060"></a>01060 
-<a name="l01061"></a>01061 <span class="keywordtype">void</span> DEBUG_LogPIC(<span class="keywordtype">void</span>) {
-<a name="l01062"></a>01062     DEBUG_LogPIC_C(master);
-<a name="l01063"></a>01063     <span class="keywordflow">if</span> (enable_slave_pic) DEBUG_LogPIC_C(slave);
-<a name="l01064"></a>01064 }
-<a name="l01065"></a>01065 <span class="preprocessor">#endif</span>
-<a name="l01066"></a>01066 <span class="preprocessor"></span>
-<a name="l01067"></a>01067 
+<a name="l01018"></a>01018     <a class="code" href="classLOG.html">LOG</a>(LOG_MISC,LOG_DEBUG)(<span class="stringliteral">&quot;Init_PIC()&quot;</span>);
+<a name="l01019"></a>01019 
+<a name="l01020"></a>01020     <span class="comment">/* Initialize the pic queue */</span>
+<a name="l01021"></a>01021     <span class="keywordflow">for</span> (i=0;i&lt;PIC_QUEUESIZE-1;i++) {
+<a name="l01022"></a>01022         pic_queue.entries[i].next=&amp;pic_queue.entries[i+1];
+<a name="l01023"></a>01023 
+<a name="l01024"></a>01024         <span class="comment">// savestate compatibility</span>
+<a name="l01025"></a>01025         pic_queue.entries[i].pic_event = 0;
+<a name="l01026"></a>01026     }
+<a name="l01027"></a>01027     pic_queue.entries[PIC_QUEUESIZE-1].next=0;
+<a name="l01028"></a>01028     pic_queue.free_entry=&amp;pic_queue.entries[0];
+<a name="l01029"></a>01029     pic_queue.next_entry=0;
+<a name="l01030"></a>01030 
+<a name="l01031"></a>01031     AddExitFunction(AddExitFunctionFuncPair(PIC_Destroy));
+<a name="l01032"></a>01032     AddVMEventFunction(VM_EVENT_RESET,AddVMEventFunctionFuncPair(PIC_Reset));
+<a name="l01033"></a>01033 }
+<a name="l01034"></a>01034 
+<a name="l01035"></a>01035 <span class="preprocessor">#if C_DEBUG</span>
+<a name="l01036"></a>01036 <span class="preprocessor"></span><span class="keywordtype">void</span> DEBUG_LogPIC_C(<a class="code" href="structPIC__Controller.html">PIC_Controller</a> &amp;pic) {
+<a name="l01037"></a>01037     LOG_MSG(<span class="stringliteral">&quot;%s interrupt controller state&quot;</span>,&amp;pic == &amp;master ? <span class="stringliteral">&quot;Master&quot;</span> : <span class="stringliteral">&quot;Slave&quot;</span>);
+<a name="l01038"></a>01038     LOG_MSG(<span class="stringliteral">&quot;ICW %u/%u special=%u auto-eoi=%u rotate-eoi=%u single=%u request_issr=%u vectorbase=0x%02x active_irq=%u isr=%02x isrr=%02x isrignore=%02x&quot;</span>,
+<a name="l01039"></a>01039         (<span class="keywordtype">unsigned</span> <span class="keywordtype">int</span>)pic.icw_index,
+<a name="l01040"></a>01040         (<span class="keywordtype">unsigned</span> <span class="keywordtype">int</span>)pic.icw_words,
+<a name="l01041"></a>01041         pic.special?1:0,
+<a name="l01042"></a>01042         pic.auto_eoi?1:0,
+<a name="l01043"></a>01043         pic.rotate_on_auto_eoi?1:0,
+<a name="l01044"></a>01044         pic.single?1:0,
+<a name="l01045"></a>01045         pic.request_issr?1:0,
+<a name="l01046"></a>01046         pic.vector_base,
+<a name="l01047"></a>01047         pic.active_irq,
+<a name="l01048"></a>01048         pic.isr,
+<a name="l01049"></a>01049         pic.isrr,
+<a name="l01050"></a>01050         pic.isr_ignore);
+<a name="l01051"></a>01051 
+<a name="l01052"></a>01052     LOG_MSG(<span class="stringliteral">&quot;IRQ INT#  Req /Mask/Serv&quot;</span>);
+<a name="l01053"></a>01053     <span class="keywordflow">for</span> (<span class="keywordtype">unsigned</span> <span class="keywordtype">int</span> si=0;si &lt; 8;si++) {
+<a name="l01054"></a>01054         <span class="keywordtype">unsigned</span> <span class="keywordtype">int</span> IRQ = si + (&amp;pic == &amp;slave ? 8 : 0);
+<a name="l01055"></a>01055         <span class="keywordtype">unsigned</span> <span class="keywordtype">int</span> CPUINT = pic.vector_base + si;
+<a name="l01056"></a>01056 
+<a name="l01057"></a>01057         LOG_MSG(<span class="stringliteral">&quot;%3u 0x%02X   %c    %c    %c   %s&quot;</span>,
+<a name="l01058"></a>01058             IRQ,
+<a name="l01059"></a>01059             CPUINT,
+<a name="l01060"></a>01060             (pic.irr &amp; (1U &lt;&lt; si))?<span class="charliteral">&#39;R&#39;</span>:<span class="charliteral">&#39; &#39;</span>,
+<a name="l01061"></a>01061             (pic.imr &amp; (1U &lt;&lt; si))?<span class="charliteral">&#39;M&#39;</span>:<span class="charliteral">&#39; &#39;</span>,
+<a name="l01062"></a>01062             (pic.isr &amp; (1U &lt;&lt; si))?<span class="charliteral">&#39;S&#39;</span>:<span class="charliteral">&#39; &#39;</span>,
+<a name="l01063"></a>01063             ((<span class="keywordtype">unsigned</span> <span class="keywordtype">int</span>)IRQ == (<span class="keywordtype">unsigned</span> <span class="keywordtype">int</span>)master_cascade_irq) ? <span class="stringliteral">&quot;CASCADE&quot;</span> : <span class="stringliteral">&quot;&quot;</span>);
+<a name="l01064"></a>01064     }
+<a name="l01065"></a>01065 }
+<a name="l01066"></a>01066 
+<a name="l01067"></a>01067 <span class="keywordtype">void</span> DEBUG_LogPIC(<span class="keywordtype">void</span>) {
+<a name="l01068"></a>01068     DEBUG_LogPIC_C(master);
+<a name="l01069"></a>01069     <span class="keywordflow">if</span> (enable_slave_pic) DEBUG_LogPIC_C(slave);
+<a name="l01070"></a>01070 }
+<a name="l01071"></a>01071 <span class="preprocessor">#endif</span>
+<a name="l01072"></a>01072 <span class="preprocessor"></span>
+<a name="l01073"></a>01073 <span class="comment">// PIC_EventHandlers</span>
+<a name="l01074"></a>01074 <span class="keyword">extern</span> <span class="keywordtype">void</span> *cmos_timerevent_PIC_Event;                                         <span class="comment">// Cmos.cpp</span>
+<a name="l01075"></a>01075 <span class="keyword">extern</span> <span class="keywordtype">void</span> *DISNEY_disable_PIC_Event;                                          <span class="comment">// Disney.cpp</span>
+<a name="l01076"></a>01076 <span class="keyword">extern</span> <span class="keywordtype">void</span> *GUS_TimerEvent_PIC_Event;                                          <span class="comment">// Gus.cpp</span>
+<a name="l01077"></a>01077 <span class="preprocessor">#if C_IPX</span>
+<a name="l01078"></a>01078 <span class="preprocessor"></span><span class="comment">//extern void *IPX_AES_EventHandler_PIC_Event;                  // Ipx.cpp</span>
+<a name="l01079"></a>01079 <span class="preprocessor">#endif</span>
+<a name="l01080"></a>01080 <span class="preprocessor"></span><span class="keyword">extern</span> <span class="keywordtype">void</span> *KEYBOARD_TransferBuffer_PIC_Event;         <span class="comment">// Keyboard.cpp</span>
+<a name="l01081"></a>01081 <span class="keyword">extern</span> <span class="keywordtype">void</span> *MOUSE_Limit_Events_PIC_Event;                              <span class="comment">// Mouse.cpp</span>
+<a name="l01082"></a>01082 <span class="keyword">extern</span> <span class="keywordtype">void</span> *MPU401_Event_PIC_Event;                                                    <span class="comment">// Mpu401.cpp</span>
+<a name="l01083"></a>01083 <span class="keyword">extern</span> <span class="keywordtype">void</span> *DMA_Silent_Event_PIC_Event;                                        <span class="comment">// Sblaster.cpp</span>
+<a name="l01084"></a>01084 <span class="keyword">extern</span> <span class="keywordtype">void</span> *DMA_DAC_Event_PIC_Event;
+<a name="l01085"></a>01085 <span class="keyword">extern</span> <span class="keywordtype">void</span> *DSP_FinishReset_PIC_Event;
+<a name="l01086"></a>01086 <span class="keyword">extern</span> <span class="keywordtype">void</span> *DSP_RaiseIRQEvent_PIC_Event;
+<a name="l01087"></a>01087 <span class="keyword">extern</span> <span class="keywordtype">void</span> *END_DMA_Event_PIC_Event;
+<a name="l01088"></a>01088 <span class="keyword">extern</span> <span class="keywordtype">void</span> *Serial_EventHandler_PIC_Event;                             <span class="comment">// Serialport.cpp</span>
+<a name="l01089"></a>01089 <span class="keyword">extern</span> <span class="keywordtype">void</span> *PIT0_Event_PIC_Event;                                                              <span class="comment">// Timer.cpp</span>
+<a name="l01090"></a>01090 <span class="keyword">extern</span> <span class="keywordtype">void</span> *VGA_DisplayStartLatch_PIC_Event;                   <span class="comment">// Vga.cpp</span>
+<a name="l01091"></a>01091 <span class="keyword">extern</span> <span class="keywordtype">void</span> *VGA_DrawEGASingleLine_PIC_Event;
+<a name="l01092"></a>01092 <span class="comment">//extern void *VGA_DrawPart_PIC_Event;</span>
+<a name="l01093"></a>01093 <span class="keyword">extern</span> <span class="keywordtype">void</span> *VGA_DrawSingleLine_PIC_Event;
+<a name="l01094"></a>01094 <span class="keyword">extern</span> <span class="keywordtype">void</span> *VGA_Other_VertInterrupt_PIC_Event;
+<a name="l01095"></a>01095 <span class="keyword">extern</span> <span class="keywordtype">void</span> *VGA_PanningLatch_PIC_Event;
+<a name="l01096"></a>01096 <span class="keyword">extern</span> <span class="keywordtype">void</span> *VGA_SetupDrawing_PIC_Event;
+<a name="l01097"></a>01097 <span class="keyword">extern</span> <span class="keywordtype">void</span> *VGA_VertInterrupt_PIC_Event;
+<a name="l01098"></a>01098 <span class="keyword">extern</span> <span class="keywordtype">void</span> *VGA_VerticalTimer_PIC_Event;
+<a name="l01099"></a>01099 <span class="keyword">extern</span> <span class="keywordtype">void</span> *PIC_IRQCheckDelayed_PIC_Event;
+<a name="l01100"></a>01100 
+<a name="l01101"></a>01101 <span class="preprocessor">#if C_NE2000</span>
+<a name="l01102"></a>01102 <span class="preprocessor"></span><span class="comment">//extern void *NE2000_TX_Event_PIC_Event;                                               // Ne2000.cpp</span>
+<a name="l01103"></a>01103 <span class="preprocessor">#endif</span>
+<a name="l01104"></a>01104 <span class="preprocessor"></span>
+<a name="l01105"></a>01105 
+<a name="l01106"></a>01106 <span class="comment">// PIC_TimerHandlers</span>
+<a name="l01107"></a>01107 <span class="preprocessor">#if C_IPX</span>
+<a name="l01108"></a>01108 <span class="preprocessor"></span><span class="comment">//extern void *IPX_ClientLoop_PIC_Timer;                                                // Ipx.cpp</span>
+<a name="l01109"></a>01109 <span class="comment">//extern void *IPX_ServerLoop_PIC_Timer;                                                // Ipxserver.cpp</span>
+<a name="l01110"></a>01110 <span class="preprocessor">#endif</span>
+<a name="l01111"></a>01111 <span class="preprocessor"></span><span class="keyword">extern</span> <span class="keywordtype">void</span> *KEYBOARD_TickHandler_PIC_Timer;                    <span class="comment">// Keyboard.cpp</span>
+<a name="l01112"></a>01112 <span class="keyword">extern</span> <span class="keywordtype">void</span> *KEYBOARD_TickHandler_PIC_Timer;                    <span class="comment">// Keyboard.cpp</span>
+<a name="l01113"></a>01113 <span class="comment">//extern void *MIXER_Mix_NoSound_PIC_Timer;                                     // Mixer.cpp</span>
+<a name="l01114"></a>01114 <span class="keyword">extern</span> <span class="keywordtype">void</span> *MIXER_Mix_PIC_Timer;
+<a name="l01115"></a>01115 
+<a name="l01116"></a>01116 <span class="preprocessor">#if C_NE2000</span>
+<a name="l01117"></a>01117 <span class="preprocessor"></span><span class="comment">//extern void *NE2000_Poller_PIC_Event;                                                 // Ne2000.cpp</span>
+<a name="l01118"></a>01118 <span class="preprocessor">#endif</span>
+<a name="l01119"></a>01119 <span class="preprocessor"></span>
+<a name="l01120"></a>01120 <span class="keyword">extern</span> <span class="keywordtype">void</span> *fmport_a_pic_event_PIC_Event;
+<a name="l01121"></a>01121 <span class="keyword">extern</span> <span class="keywordtype">void</span> *fmport_b_pic_event_PIC_Event;
+<a name="l01122"></a>01122 
+<a name="l01123"></a>01123 <span class="keyword">const</span> <span class="keywordtype">void</span> *pic_state_event_table[] = {
+<a name="l01124"></a>01124         NULL,
+<a name="l01125"></a>01125         cmos_timerevent_PIC_Event,
+<a name="l01126"></a>01126         DISNEY_disable_PIC_Event,
+<a name="l01127"></a>01127         GUS_TimerEvent_PIC_Event,
+<a name="l01128"></a>01128 <span class="preprocessor">#if C_IPX       </span>
+<a name="l01129"></a>01129 <span class="preprocessor"></span><span class="comment">//      IPX_AES_EventHandler_PIC_Event,</span>
+<a name="l01130"></a>01130 <span class="preprocessor">#endif  </span>
+<a name="l01131"></a>01131 <span class="preprocessor"></span>        KEYBOARD_TransferBuffer_PIC_Event,
+<a name="l01132"></a>01132         MOUSE_Limit_Events_PIC_Event,
+<a name="l01133"></a>01133         MPU401_Event_PIC_Event,
+<a name="l01134"></a>01134         DMA_Silent_Event_PIC_Event,
+<a name="l01135"></a>01135         DSP_FinishReset_PIC_Event,
+<a name="l01136"></a>01136         DSP_RaiseIRQEvent_PIC_Event,
+<a name="l01137"></a>01137         DMA_DAC_Event_PIC_Event,
+<a name="l01138"></a>01138         END_DMA_Event_PIC_Event,
+<a name="l01139"></a>01139         END_DMA_Event_PIC_Event,
+<a name="l01140"></a>01140         Serial_EventHandler_PIC_Event,
+<a name="l01141"></a>01141         PIT0_Event_PIC_Event,
+<a name="l01142"></a>01142         VGA_DisplayStartLatch_PIC_Event,
+<a name="l01143"></a>01143         VGA_DrawEGASingleLine_PIC_Event,
+<a name="l01144"></a>01144         <span class="comment">//VGA_DrawPart_PIC_Event,</span>
+<a name="l01145"></a>01145         VGA_DrawSingleLine_PIC_Event,
+<a name="l01146"></a>01146         VGA_Other_VertInterrupt_PIC_Event,
+<a name="l01147"></a>01147         VGA_PanningLatch_PIC_Event,
+<a name="l01148"></a>01148         VGA_SetupDrawing_PIC_Event,
+<a name="l01149"></a>01149         VGA_VertInterrupt_PIC_Event,
+<a name="l01150"></a>01150         VGA_VerticalTimer_PIC_Event,
+<a name="l01151"></a>01151         fmport_a_pic_event_PIC_Event,
+<a name="l01152"></a>01152         fmport_b_pic_event_PIC_Event,
+<a name="l01153"></a>01153         PIC_IRQCheckDelayed_PIC_Event,
+<a name="l01154"></a>01154 
+<a name="l01155"></a>01155 <span class="preprocessor">#if C_NE2000</span>
+<a name="l01156"></a>01156 <span class="preprocessor"></span>        <span class="comment">//NE2000_TX_Event_PIC_Event,</span>
+<a name="l01157"></a>01157 <span class="preprocessor">#endif</span>
+<a name="l01158"></a>01158 <span class="preprocessor"></span>};
+<a name="l01159"></a>01159 
+<a name="l01160"></a>01160 
+<a name="l01161"></a>01161 <span class="keyword">const</span> <span class="keywordtype">void</span> *pic_state_timer_table[] = {
+<a name="l01162"></a>01162         NULL,
+<a name="l01163"></a>01163 <span class="preprocessor">#if C_IPX       </span>
+<a name="l01164"></a>01164 <span class="preprocessor"></span><span class="comment">//      IPX_ClientLoop_PIC_Timer,</span>
+<a name="l01165"></a>01165 <span class="comment">//      IPX_ServerLoop_PIC_Timer,</span>
+<a name="l01166"></a>01166 <span class="preprocessor">#endif  </span>
+<a name="l01167"></a>01167 <span class="preprocessor"></span>        KEYBOARD_TickHandler_PIC_Timer,
+<a name="l01168"></a>01168         KEYBOARD_TickHandler_PIC_Timer,
+<a name="l01169"></a>01169         <span class="comment">//MIXER_Mix_NoSound_PIC_Timer,</span>
+<a name="l01170"></a>01170         MIXER_Mix_PIC_Timer,
+<a name="l01171"></a>01171 
+<a name="l01172"></a>01172 <span class="preprocessor">#if C_NE2000</span>
+<a name="l01173"></a>01173 <span class="preprocessor"></span>        <span class="comment">//NE2000_Poller_PIC_Event,</span>
+<a name="l01174"></a>01174 <span class="preprocessor">#endif</span>
+<a name="l01175"></a>01175 <span class="preprocessor"></span>};
+<a name="l01176"></a>01176 
+<a name="l01177"></a>01177 
+<a name="l01178"></a>01178 
+<a name="l01179"></a>01179 <span class="comment">//#include &lt;windows.h&gt;</span>
+<a name="l01180"></a>01180 Bit16u PIC_State_FindEvent( Bitu addr ) {
+<a name="l01181"></a>01181         <span class="keywordtype">int</span> size;
+<a name="l01182"></a>01182 
+<a name="l01183"></a>01183         size = <span class="keyword">sizeof</span>(pic_state_event_table) / <span class="keyword">sizeof</span>(<span class="keywordtype">void</span> *);
+<a name="l01184"></a>01184         <span class="keywordflow">for</span>( <span class="keywordtype">int</span> lcv=0; lcv&lt;size; lcv++ ) {
+<a name="l01185"></a>01185                 <span class="keywordflow">if</span>( addr == (Bitu) (pic_state_event_table[lcv]) ) <span class="keywordflow">return</span> lcv;
+<a name="l01186"></a>01186         }
+<a name="l01187"></a>01187 
+<a name="l01188"></a>01188 
+<a name="l01189"></a>01189         <span class="comment">// ERROR!! (place debug breakpoint here)</span>
+<a name="l01190"></a>01190         <span class="comment">//MessageBox(0,&quot;PIC - State FindEvent&quot;,0,0);</span>
+<a name="l01191"></a>01191         <span class="keywordflow">return</span> 0xffff;
+<a name="l01192"></a>01192 }
+<a name="l01193"></a>01193 
+<a name="l01194"></a>01194 
+<a name="l01195"></a>01195 Bit16u PIC_State_FindTimer( Bitu addr ) {
+<a name="l01196"></a>01196         <span class="keywordtype">int</span> size;
+<a name="l01197"></a>01197 
+<a name="l01198"></a>01198         size = <span class="keyword">sizeof</span>(pic_state_timer_table) / <span class="keyword">sizeof</span>(<span class="keywordtype">void</span> *);
+<a name="l01199"></a>01199         <span class="keywordflow">for</span>( <span class="keywordtype">int</span> lcv=0; lcv&lt;size; lcv++ ) {
+<a name="l01200"></a>01200                 <span class="keywordflow">if</span>( addr == (Bitu) (pic_state_timer_table[lcv]) ) <span class="keywordflow">return</span> lcv;
+<a name="l01201"></a>01201         }
+<a name="l01202"></a>01202 
+<a name="l01203"></a>01203 
+<a name="l01204"></a>01204         <span class="comment">// ERROR!! (place debug breakpoint here)</span>
+<a name="l01205"></a>01205         <span class="comment">//MessageBox(0,&quot;PIC - State FindTimer&quot;,0,0);</span>
+<a name="l01206"></a>01206         <span class="keywordflow">return</span> 0xffff;
+<a name="l01207"></a>01207 }
+<a name="l01208"></a>01208 
+<a name="l01209"></a>01209 
+<a name="l01210"></a>01210 Bitu PIC_State_IndexEvent( Bit16u index ) {
+<a name="l01211"></a>01211         <span class="keywordflow">if</span>( index == 0xffff ) <span class="keywordflow">return</span> 0;
+<a name="l01212"></a>01212 
+<a name="l01213"></a>01213         <span class="keywordflow">return</span> (Bitu) (pic_state_event_table[index]);
+<a name="l01214"></a>01214 }
+<a name="l01215"></a>01215 
+<a name="l01216"></a>01216 
+<a name="l01217"></a>01217 Bitu PIC_State_IndexTimer( Bit16u index ) {
+<a name="l01218"></a>01218         <span class="keywordflow">if</span>( index == 0xffff ) <span class="keywordflow">return</span> 0;
+<a name="l01219"></a>01219 
+<a name="l01220"></a>01220         <span class="keywordflow">return</span> (Bitu) (pic_state_timer_table[index]);
+<a name="l01221"></a>01221 }
+<a name="l01222"></a>01222 
+<a name="l01223"></a>01223 <span class="comment">//save state support</span>
+<a name="l01224"></a>01224 <span class="keywordtype">void</span> *PIC_IRQCheckDelayed_PIC_Event = (<span class="keywordtype">void</span>*)((uintptr_t)PIC_IRQCheckDelayed);
+<a name="l01225"></a>01225 
+<a name="l01226"></a>01226 <span class="keyword">namespace</span>
+<a name="l01227"></a>01227 {
+<a name="l01228"></a>01228 <span class="keyword">class </span>SerializePic : <span class="keyword">public</span> SerializeGlobalPOD
+<a name="l01229"></a>01229 {
+<a name="l01230"></a>01230 <span class="keyword">public</span>:
+<a name="l01231"></a>01231                 SerializePic() : SerializeGlobalPOD(<span class="stringliteral">&quot;Pic&quot;</span>)
+<a name="l01232"></a>01232     {}
+<a name="l01233"></a>01233 
+<a name="l01234"></a>01234 <span class="keyword">private</span>:
+<a name="l01235"></a>01235     <span class="keyword">virtual</span> <span class="keywordtype">void</span> getBytes(std::ostream&amp; stream)
+<a name="l01236"></a>01236     {
+<a name="l01237"></a>01237                                 Bit16u pic_free_idx, pic_next_idx;
+<a name="l01238"></a>01238                                 Bit16u pic_next_ptr[PIC_QUEUESIZE];
+<a name="l01239"></a>01239 
+<a name="l01240"></a>01240                                 <a class="code" href="structTickerBlock.html">TickerBlock</a> *ticker_ptr;
+<a name="l01241"></a>01241                                 Bit16u ticker_size;
+<a name="l01242"></a>01242                                 Bit16u ticker_handler_idx;
+<a name="l01243"></a>01243 
+<a name="l01244"></a>01244 
+<a name="l01245"></a>01245                                 <span class="keywordflow">for</span>( <span class="keywordtype">int</span> lcv=0; lcv&lt;PIC_QUEUESIZE; lcv++ ) {
+<a name="l01246"></a>01246                                         Bitu pic_addr;
+<a name="l01247"></a>01247 
+<a name="l01248"></a>01248                                         pic_addr = (Bitu) pic_queue.entries[lcv].next;
+<a name="l01249"></a>01249                                         pic_next_ptr[lcv] = 0xffff;
+<a name="l01250"></a>01250 
+<a name="l01251"></a>01251                                         <span class="keywordflow">for</span>( <span class="keywordtype">int</span> lcv2=0; lcv2&lt;PIC_QUEUESIZE; lcv2++ ) {
+<a name="l01252"></a>01252                                                 <span class="keywordflow">if</span>( pic_addr == (Bitu) &amp;pic_queue.entries[lcv2] ) {
+<a name="l01253"></a>01253                                                         pic_next_ptr[lcv] = lcv2;
+<a name="l01254"></a>01254                                                         <span class="keywordflow">break</span>;
+<a name="l01255"></a>01255                                                 }
+<a name="l01256"></a>01256                                         }
+<a name="l01257"></a>01257                                 }
+<a name="l01258"></a>01258 
+<a name="l01259"></a>01259 
+<a name="l01260"></a>01260                                 ticker_size = 0;
+<a name="l01261"></a>01261                                 ticker_ptr = firstticker;
+<a name="l01262"></a>01262                                 <span class="keywordflow">while</span>( ticker_ptr != NULL ) {
+<a name="l01263"></a>01263                                         ticker_ptr = ticker_ptr-&gt;next;
+<a name="l01264"></a>01264                                         ticker_size++;
+<a name="l01265"></a>01265                                 }
+<a name="l01266"></a>01266 
+<a name="l01267"></a>01267                                 <span class="comment">// ***************************************************</span>
+<a name="l01268"></a>01268                                 <span class="comment">// ***************************************************</span>
+<a name="l01269"></a>01269                                 <span class="comment">// ***************************************************</span>
+<a name="l01270"></a>01270 
+<a name="l01271"></a>01271         SerializeGlobalPOD::getBytes(stream);
+<a name="l01272"></a>01272 
+<a name="l01273"></a>01273 
+<a name="l01274"></a>01274                                 <span class="comment">// - data</span>
+<a name="l01275"></a>01275         stream.write(reinterpret_cast&lt;const char*&gt;(&amp;PIC_Ticks), <span class="keyword">sizeof</span>(PIC_Ticks) );
+<a name="l01276"></a>01276         stream.write(reinterpret_cast&lt;const char*&gt;(&amp;PIC_IRQCheck), <span class="keyword">sizeof</span>(PIC_IRQCheck) );
+<a name="l01277"></a>01277         stream.write(reinterpret_cast&lt;const char*&gt;(&amp;PIC_IRQCheckPending), <span class="keyword">sizeof</span>(PIC_IRQCheckPending) );
+<a name="l01278"></a>01278 
+<a name="l01279"></a>01279                                 <span class="comment">// - data structs</span>
+<a name="l01280"></a>01280         stream.write(reinterpret_cast&lt;const char*&gt;(&amp;pics), <span class="keyword">sizeof</span>(pics) );
+<a name="l01281"></a>01281 
+<a name="l01282"></a>01282 
+<a name="l01283"></a>01283                                 pic_free_idx = 0xffff;
+<a name="l01284"></a>01284                                 pic_next_idx = 0xffff;
+<a name="l01285"></a>01285                                 <span class="keywordflow">for</span>( <span class="keywordtype">int</span> lcv=0; lcv&lt;PIC_QUEUESIZE; lcv++ ) {
+<a name="l01286"></a>01286                                         Bit16u event_idx;
+<a name="l01287"></a>01287 
+<a name="l01288"></a>01288                                         <span class="comment">// - data</span>
+<a name="l01289"></a>01289                                         stream.write(reinterpret_cast&lt;const char*&gt;(&amp;pic_queue.entries[lcv].index), <span class="keyword">sizeof</span>(pic_queue.entries[lcv].index) );
+<a name="l01290"></a>01290                                         stream.write(reinterpret_cast&lt;const char*&gt;(&amp;pic_queue.entries[lcv].value), <span class="keyword">sizeof</span>(pic_queue.entries[lcv].value) );
+<a name="l01291"></a>01291 
+<a name="l01292"></a>01292                                         <span class="comment">// - function ptr</span>
+<a name="l01293"></a>01293                                         event_idx = PIC_State_FindEvent( (Bitu) (pic_queue.entries[lcv].pic_event) );
+<a name="l01294"></a>01294                                         stream.write(reinterpret_cast&lt;const char*&gt;(&amp;event_idx), <span class="keyword">sizeof</span>(event_idx) );
+<a name="l01295"></a>01295 
+<a name="l01296"></a>01296                                         <span class="comment">// - reloc ptr</span>
+<a name="l01297"></a>01297                                         stream.write(reinterpret_cast&lt;const char*&gt;(&amp;pic_next_ptr[lcv]), <span class="keyword">sizeof</span>(pic_next_ptr[lcv]) );
+<a name="l01298"></a>01298 
+<a name="l01299"></a>01299 
+<a name="l01300"></a>01300                                         <span class="keywordflow">if</span>( &amp;pic_queue.entries[lcv] == pic_queue.free_entry ) pic_free_idx = lcv;
+<a name="l01301"></a>01301                                         <span class="keywordflow">if</span>( &amp;pic_queue.entries[lcv] == pic_queue.next_entry ) pic_next_idx = lcv;
+<a name="l01302"></a>01302                                 }
+<a name="l01303"></a>01303 
+<a name="l01304"></a>01304                                 <span class="comment">// - reloc ptrs</span>
+<a name="l01305"></a>01305         stream.write(reinterpret_cast&lt;const char*&gt;(&amp;pic_free_idx), <span class="keyword">sizeof</span>(pic_free_idx) );
+<a name="l01306"></a>01306         stream.write(reinterpret_cast&lt;const char*&gt;(&amp;pic_next_idx), <span class="keyword">sizeof</span>(pic_next_idx) );
+<a name="l01307"></a>01307 
+<a name="l01308"></a>01308 
+<a name="l01309"></a>01309                                 <span class="comment">// - data</span>
+<a name="l01310"></a>01310         stream.write(reinterpret_cast&lt;const char*&gt;(&amp;InEventService), <span class="keyword">sizeof</span>(InEventService) );
+<a name="l01311"></a>01311         stream.write(reinterpret_cast&lt;const char*&gt;(&amp;srv_lag), <span class="keyword">sizeof</span>(srv_lag) );
+<a name="l01312"></a>01312 
+<a name="l01313"></a>01313 
+<a name="l01314"></a>01314                                 <span class="comment">// - reloc ptr</span>
+<a name="l01315"></a>01315         stream.write(reinterpret_cast&lt;const char*&gt;(&amp;ticker_size), <span class="keyword">sizeof</span>(ticker_size) );
+<a name="l01316"></a>01316 
+<a name="l01317"></a>01317                                 ticker_ptr = firstticker;
+<a name="l01318"></a>01318                                 <span class="keywordflow">for</span>( <span class="keywordtype">int</span> lcv=0; lcv&lt;ticker_size; lcv++ ) {
+<a name="l01319"></a>01319                                         <span class="comment">// - function ptr</span>
+<a name="l01320"></a>01320                                         ticker_handler_idx = PIC_State_FindTimer( (Bitu) (ticker_ptr-&gt;handler) );
+<a name="l01321"></a>01321                                         stream.write(reinterpret_cast&lt;const char*&gt;(&amp;ticker_handler_idx), <span class="keyword">sizeof</span>(ticker_handler_idx) );
+<a name="l01322"></a>01322 
+<a name="l01323"></a>01323                                         <span class="comment">// - reloc new ptr (leave alone)</span>
+<a name="l01324"></a>01324                                         <span class="comment">//stream.write(reinterpret_cast&lt;const char*&gt;(&amp;ticker_ptr-&gt;next), sizeof(ticker_ptr-&gt;next) );</span>
+<a name="l01325"></a>01325 
+<a name="l01326"></a>01326                                         ticker_ptr = ticker_ptr-&gt;next;
+<a name="l01327"></a>01327                                 }
+<a name="l01328"></a>01328 
+<a name="l01329"></a>01329 
+<a name="l01330"></a>01330                                 <span class="comment">// - system (leave alone)</span>
+<a name="l01331"></a>01331         <span class="comment">//stream.write(reinterpret_cast&lt;const char*&gt;(&amp;PIC_benchstart), sizeof(PIC_benchstart) );</span>
+<a name="l01332"></a>01332         <span class="comment">//stream.write(reinterpret_cast&lt;const char*&gt;(&amp;PIC_tickstart), sizeof(PIC_tickstart) );</span>
+<a name="l01333"></a>01333 
+<a name="l01334"></a>01334                                 <span class="comment">// - static (leave alone)</span>
+<a name="l01335"></a>01335                                 <span class="comment">//test-&gt;saveState(stream);</span>
+<a name="l01336"></a>01336                 }
+<a name="l01337"></a>01337 
+<a name="l01338"></a>01338     <span class="keyword">virtual</span> <span class="keywordtype">void</span> setBytes(std::istream&amp; stream)
+<a name="l01339"></a>01339     {
+<a name="l01340"></a>01340                                 Bit16u free_idx, next_idx;
+<a name="l01341"></a>01341                                 Bit16u ticker_size;
+<a name="l01342"></a>01342 
+<a name="l01343"></a>01343 
+<a name="l01344"></a>01344         SerializeGlobalPOD::setBytes(stream);
+<a name="l01345"></a>01345 
+<a name="l01346"></a>01346 
+<a name="l01347"></a>01347                                 <span class="comment">// - data</span>
+<a name="l01348"></a>01348         stream.read(reinterpret_cast&lt;char*&gt;(&amp;PIC_Ticks), <span class="keyword">sizeof</span>(PIC_Ticks) );
+<a name="l01349"></a>01349         stream.read(reinterpret_cast&lt;char*&gt;(&amp;PIC_IRQCheck), <span class="keyword">sizeof</span>(PIC_IRQCheck) );
+<a name="l01350"></a>01350         stream.read(reinterpret_cast&lt;char*&gt;(&amp;PIC_IRQCheckPending), <span class="keyword">sizeof</span>(PIC_IRQCheckPending) );
+<a name="l01351"></a>01351 
+<a name="l01352"></a>01352                                 <span class="comment">// - data structs</span>
+<a name="l01353"></a>01353         stream.read(reinterpret_cast&lt;char*&gt;(&amp;pics), <span class="keyword">sizeof</span>(pics) );
+<a name="l01354"></a>01354 
+<a name="l01355"></a>01355 
+<a name="l01356"></a>01356                                 <span class="keywordflow">for</span>( <span class="keywordtype">int</span> lcv=0; lcv&lt;PIC_QUEUESIZE; lcv++ ) {
+<a name="l01357"></a>01357                                         Bit16u event_idx, next_idx;
+<a name="l01358"></a>01358 
+<a name="l01359"></a>01359                                         <span class="comment">// - data</span>
+<a name="l01360"></a>01360                                         stream.read(reinterpret_cast&lt;char*&gt;(&amp;pic_queue.entries[lcv].index), <span class="keyword">sizeof</span>(pic_queue.entries[lcv].index) );
+<a name="l01361"></a>01361                                         stream.read(reinterpret_cast&lt;char*&gt;(&amp;pic_queue.entries[lcv].value), <span class="keyword">sizeof</span>(pic_queue.entries[lcv].value) );
+<a name="l01362"></a>01362 
+<a name="l01363"></a>01363 
+<a name="l01364"></a>01364                                         <span class="comment">// - function ptr</span>
+<a name="l01365"></a>01365                                         stream.read(reinterpret_cast&lt;char*&gt;(&amp;event_idx), <span class="keyword">sizeof</span>(event_idx) );
+<a name="l01366"></a>01366                                         pic_queue.entries[lcv].pic_event = (PIC_EventHandler) PIC_State_IndexEvent( event_idx );
+<a name="l01367"></a>01367 
+<a name="l01368"></a>01368 
+<a name="l01369"></a>01369                                         <span class="comment">// - reloc ptr</span>
+<a name="l01370"></a>01370                                         stream.read(reinterpret_cast&lt;char*&gt;(&amp;next_idx), <span class="keyword">sizeof</span>(next_idx) );
+<a name="l01371"></a>01371 
+<a name="l01372"></a>01372                                         pic_queue.entries[lcv].next = NULL;
+<a name="l01373"></a>01373                                         <span class="keywordflow">if</span>( next_idx != 0xffff )
+<a name="l01374"></a>01374                                                 pic_queue.entries[lcv].next = &amp;pic_queue.entries[next_idx];
+<a name="l01375"></a>01375                                 }
+<a name="l01376"></a>01376 
+<a name="l01377"></a>01377                                 <span class="comment">// - reloc ptrs</span>
+<a name="l01378"></a>01378         stream.read(reinterpret_cast&lt;char*&gt;(&amp;free_idx), <span class="keyword">sizeof</span>(free_idx) );
+<a name="l01379"></a>01379         stream.read(reinterpret_cast&lt;char*&gt;(&amp;next_idx), <span class="keyword">sizeof</span>(next_idx) );
+<a name="l01380"></a>01380 
+<a name="l01381"></a>01381                                 pic_queue.free_entry = NULL;
+<a name="l01382"></a>01382                                 <span class="keywordflow">if</span>( free_idx != 0xffff )
+<a name="l01383"></a>01383                                         pic_queue.free_entry = &amp;pic_queue.entries[free_idx];
+<a name="l01384"></a>01384 
+<a name="l01385"></a>01385                                 pic_queue.next_entry = NULL;
+<a name="l01386"></a>01386                                 <span class="keywordflow">if</span>( next_idx != 0xffff )
+<a name="l01387"></a>01387                                         pic_queue.next_entry = &amp;pic_queue.entries[next_idx];
+<a name="l01388"></a>01388 
+<a name="l01389"></a>01389 
+<a name="l01390"></a>01390                                 <span class="comment">// - data</span>
+<a name="l01391"></a>01391         stream.read(reinterpret_cast&lt;char*&gt;(&amp;InEventService), <span class="keyword">sizeof</span>(InEventService) );
+<a name="l01392"></a>01392         stream.read(reinterpret_cast&lt;char*&gt;(&amp;srv_lag), <span class="keyword">sizeof</span>(srv_lag) );
+<a name="l01393"></a>01393 
+<a name="l01394"></a>01394 
+<a name="l01395"></a>01395                                 <span class="comment">// 1- wipe old data</span>
+<a name="l01396"></a>01396                                 <span class="comment">// 2- insert new data</span>
+<a name="l01397"></a>01397                                 <span class="keywordflow">while</span>( firstticker != NULL ) {
+<a name="l01398"></a>01398                                         <a class="code" href="structTickerBlock.html">TickerBlock</a> *ticker_ptr;
+<a name="l01399"></a>01399 
+<a name="l01400"></a>01400                                         ticker_ptr = firstticker;
+<a name="l01401"></a>01401                                         firstticker = firstticker-&gt;next;
+<a name="l01402"></a>01402 
+<a name="l01403"></a>01403                                         <span class="keyword">delete</span> ticker_ptr;
+<a name="l01404"></a>01404                                 }
+<a name="l01405"></a>01405 
+<a name="l01406"></a>01406 
+<a name="l01407"></a>01407                                 <span class="comment">// - reloc ptr</span>
+<a name="l01408"></a>01408         stream.read(reinterpret_cast&lt;char*&gt;(&amp;ticker_size), <span class="keyword">sizeof</span>(ticker_size) );
+<a name="l01409"></a>01409 
+<a name="l01410"></a>01410                                 firstticker = NULL;
+<a name="l01411"></a>01411                                 <span class="keywordflow">if</span>( ticker_size ) {
+<a name="l01412"></a>01412                                         <a class="code" href="structTickerBlock.html">TickerBlock</a> *ticker_ptr;
+<a name="l01413"></a>01413 
+<a name="l01414"></a>01414                                         <span class="keywordflow">for</span>( <span class="keywordtype">int</span> lcv = 0; lcv&lt;ticker_size; lcv++ ) {
+<a name="l01415"></a>01415                                                 Bit16u ticker_idx;
+<a name="l01416"></a>01416 
+<a name="l01417"></a>01417                                                 <span class="keywordflow">if</span>( lcv == 0 ) {
+<a name="l01418"></a>01418                                                         ticker_ptr = <span class="keyword">new</span> <a class="code" href="structTickerBlock.html">TickerBlock</a>;
+<a name="l01419"></a>01419                                                         firstticker = ticker_ptr;
+<a name="l01420"></a>01420                                                 }
+<a name="l01421"></a>01421                                                 <span class="keywordflow">else</span> {
+<a name="l01422"></a>01422                                                         ticker_ptr-&gt;next = <span class="keyword">new</span> <a class="code" href="structTickerBlock.html">TickerBlock</a>;
+<a name="l01423"></a>01423                                                         ticker_ptr = ticker_ptr-&gt;next;
+<a name="l01424"></a>01424                                                 }
+<a name="l01425"></a>01425 
+<a name="l01426"></a>01426 
+<a name="l01427"></a>01427                                                 <span class="comment">// - function ptr</span>
+<a name="l01428"></a>01428                                                 stream.read(reinterpret_cast&lt;char*&gt;(&amp;ticker_idx), <span class="keyword">sizeof</span>(ticker_idx) );
+<a name="l01429"></a>01429                                                 ticker_ptr-&gt;handler = (TIMER_TickHandler) PIC_State_IndexTimer( ticker_idx );
+<a name="l01430"></a>01430 
+<a name="l01431"></a>01431                                                 <span class="comment">// - reloc new ptr (linked list)</span>
+<a name="l01432"></a>01432                                                 ticker_ptr-&gt;next = NULL;
+<a name="l01433"></a>01433                                         }
+<a name="l01434"></a>01434                                 }
+<a name="l01435"></a>01435 
+<a name="l01436"></a>01436 
+<a name="l01437"></a>01437                                 <span class="comment">// - system (leave alone)</span>
+<a name="l01438"></a>01438         <span class="comment">//stream.read(reinterpret_cast&lt;char*&gt;(&amp;PIC_benchstart), sizeof(PIC_benchstart) );</span>
+<a name="l01439"></a>01439         <span class="comment">//stream.read(reinterpret_cast&lt;char*&gt;(&amp;PIC_tickstart), sizeof(PIC_tickstart) );</span>
+<a name="l01440"></a>01440 
+<a name="l01441"></a>01441                                 <span class="comment">// - static (leave alone)</span>
+<a name="l01442"></a>01442                                 <span class="comment">//test-&gt;loadState(stream);</span>
+<a name="l01443"></a>01443     }
+<a name="l01444"></a>01444 } dummy;
+<a name="l01445"></a>01445 }
+<a name="l01446"></a>01446 
 </pre></div></div><!-- contents -->
 
 
 <hr class="footer"/><address class="footer"><small>
-Generated on Tue Oct 1 2019 18:06:27 for DOSBox-X by &#160;<a href="http://www.doxygen.org/index.html">
+Generated on Sun Jul 5 2020 13:11:36 for DOSBox-X by &#160;<a href="http://www.doxygen.org/index.html">
 <img class="footer" src="doxygen.png" alt="doxygen"/>
 </a> 1.8.0
 </small></address>

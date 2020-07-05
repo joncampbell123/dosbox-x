@@ -5,7 +5,7 @@
 %%For: 
 %Magnification: 1.00
 %%Orientation: Portrait
-%%BoundingBox: 0 0 500 43.572985
+%%BoundingBox: 0 0 500 37.348273
 %%Pages: 0
 %%BeginSetup
 %%EndSetup
@@ -19,13 +19,13 @@
 /marginwidth 10 def
 /distx 20 def
 /disty 40 def
-/boundaspect 11.475000 def  % aspect ratio of the BoundingBox (width/height)
+/boundaspect 13.387500 def  % aspect ratio of the BoundingBox (width/height)
 /boundx 500 def
 /boundy boundx boundaspect div def
 /xspacing 0 def
 /yspacing 0 def
 /rows 2 def
-/cols 6 def
+/cols 7 def
 /scalefactor 0 def
 /boxfont /Times-Roman findfont fontheight scalefont def
 
@@ -177,6 +177,7 @@ boxfont setfont
 (MidiHandler_alsa) cw
 (MidiHandler_coreaudio) cw
 (MidiHandler_coremidi) cw
+(MidiHandler_fluidsynth) cw
 (MidiHandler_oss) cw
 (MidiHandler_synth) cw
 (MidiHandler_win32) cw
@@ -191,20 +192,21 @@ boundx scalefactor div boundy scalefactor div scale
 
 % ----- classes -----
 
- (MidiHandler) 2.500000 1.000000 box
+ (MidiHandler) 3.000000 1.000000 box
  (MidiHandler_alsa) 0.000000 0.000000 box
  (MidiHandler_coreaudio) 1.000000 0.000000 box
  (MidiHandler_coremidi) 2.000000 0.000000 box
- (MidiHandler_oss) 3.000000 0.000000 box
- (MidiHandler_synth) 4.000000 0.000000 box
- (MidiHandler_win32) 5.000000 0.000000 box
+ (MidiHandler_fluidsynth) 3.000000 0.000000 box
+ (MidiHandler_oss) 4.000000 0.000000 box
+ (MidiHandler_synth) 5.000000 0.000000 box
+ (MidiHandler_win32) 6.000000 0.000000 box
 
 % ----- relations -----
 
 solid
-1 2.500000 0.250000 out
+1 3.000000 0.250000 out
 solid
-0.000000 5.000000 1.000000 conn
+0.000000 6.000000 1.000000 conn
 solid
 0 0.000000 0.750000 in
 solid
@@ -217,3 +219,5 @@ solid
 0 4.000000 0.750000 in
 solid
 0 5.000000 0.750000 in
+solid
+0 6.000000 0.750000 in

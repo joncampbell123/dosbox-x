@@ -156,577 +156,573 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l00059"></a>00059         <span class="keywordtype">int</span>             j;
 <a name="l00060"></a>00060         <span class="keywordtype">double</span>  pom;
 <a name="l00061"></a>00061         <span class="keywordtype">long</span>    detune;
-<a name="l00062"></a>00062         <span class="keywordtype">double</span>  freq;
-<a name="l00063"></a>00063         UINT32  calcrate;
-<a name="l00064"></a>00064 
-<a name="l00065"></a>00065         <span class="keywordflow">if</span> (rate == 44100) {
-<a name="l00066"></a>00066                 ratebit = 0;
-<a name="l00067"></a>00067         }
-<a name="l00068"></a>00068         <span class="keywordflow">else</span> <span class="keywordflow">if</span> (rate == 22050) {
-<a name="l00069"></a>00069                 ratebit = 1;
-<a name="l00070"></a>00070         }
-<a name="l00071"></a>00071         <span class="keywordflow">else</span> {
-<a name="l00072"></a>00072                 ratebit = 2;
-<a name="l00073"></a>00073         }
-<a name="l00074"></a>00074         calcrate = (OPNA_CLOCK / 72) &gt;&gt; ratebit;
-<a name="l00075"></a>00075         opncfg.calc1024 = FMDIV_ENT * 44100 / (OPNA_CLOCK / 72);
-<a name="l00076"></a>00076 
-<a name="l00077"></a>00077         <span class="keywordflow">for</span> (i=0; i&lt;EVC_ENT; i++) {
-<a name="l00078"></a>00078 <span class="preprocessor">#ifdef OPNGENX86</span>
-<a name="l00079"></a>00079 <span class="preprocessor"></span>                sft = ENVTBL_BIT;
-<a name="l00080"></a>00080                 <span class="keywordflow">while</span>(sft &lt; (ENVTBL_BIT + 8)) {
-<a name="l00081"></a>00081                         pom = (double)(1 &lt;&lt; sft) / pow(10.0, EG_STEP*(EVC_ENT-i)/20.0);
-<a name="l00082"></a>00082                         opncfg.envtable[i] = (long)pom;
-<a name="l00083"></a>00083                         envshift[i] = sft - TL_BITS;
-<a name="l00084"></a>00084                         <span class="keywordflow">if</span> (opncfg.envtable[i] &gt;= (1 &lt;&lt; (ENVTBL_BIT - 1))) {
-<a name="l00085"></a>00085                                 <span class="keywordflow">break</span>;
-<a name="l00086"></a>00086                         }
-<a name="l00087"></a>00087                         sft++;
-<a name="l00088"></a>00088                 }
-<a name="l00089"></a>00089 <span class="preprocessor">#else</span>
-<a name="l00090"></a>00090 <span class="preprocessor"></span>                pom = (double)(1 &lt;&lt; ENVTBL_BIT) / pow(10.0, EG_STEP*(EVC_ENT-i)/20.0);
-<a name="l00091"></a>00091                 opncfg.envtable[i] = (long)pom;
-<a name="l00092"></a>00092 <span class="preprocessor">#endif</span>
-<a name="l00093"></a>00093 <span class="preprocessor"></span>        }
-<a name="l00094"></a>00094         <span class="keywordflow">for</span> (i=0; i&lt;SIN_ENT; i++) {
-<a name="l00095"></a>00095 <span class="preprocessor">#ifdef OPNGENX86</span>
-<a name="l00096"></a>00096 <span class="preprocessor"></span>                <span class="keywordtype">char</span> sft;
-<a name="l00097"></a>00097                 sft = SINTBL_BIT;
-<a name="l00098"></a>00098                 <span class="keywordflow">while</span>(sft &lt; (SINTBL_BIT + 8)) {
-<a name="l00099"></a>00099                         pom = (double)(1 &lt;&lt; sft) * sin(2*PI*i/SIN_ENT);
-<a name="l00100"></a>00100                         opncfg.sintable[i] = (long)pom;
-<a name="l00101"></a>00101                         sinshift[i] = sft;
-<a name="l00102"></a>00102                         <span class="keywordflow">if</span> (opncfg.sintable[i] &gt;= (1 &lt;&lt; (SINTBL_BIT - 1))) {
-<a name="l00103"></a>00103                                 <span class="keywordflow">break</span>;
-<a name="l00104"></a>00104                         }
-<a name="l00105"></a>00105                         <span class="keywordflow">if</span> (opncfg.sintable[i] &lt;= -1 * (1 &lt;&lt; (SINTBL_BIT - 1))) {
-<a name="l00106"></a>00106                                 <span class="keywordflow">break</span>;
-<a name="l00107"></a>00107                         }
-<a name="l00108"></a>00108                         sft++;
-<a name="l00109"></a>00109                 }
-<a name="l00110"></a>00110 <span class="preprocessor">#else</span>
-<a name="l00111"></a>00111 <span class="preprocessor"></span>                pom = (double)((1 &lt;&lt; SINTBL_BIT) - 1) * sin(2*PI*i/SIN_ENT);
-<a name="l00112"></a>00112                 opncfg.sintable[i] = (long)pom;
-<a name="l00113"></a>00113 <span class="preprocessor">#endif</span>
-<a name="l00114"></a>00114 <span class="preprocessor"></span>        }
-<a name="l00115"></a>00115         <span class="keywordflow">for</span> (i=0; i&lt;EVC_ENT; i++) {
-<a name="l00116"></a>00116                 pom = pow(((<span class="keywordtype">double</span>)(EVC_ENT-1-i)/EVC_ENT), 8) * EVC_ENT;
-<a name="l00117"></a>00117                 opncfg.envcurve[i] = (long)pom;
-<a name="l00118"></a>00118                 opncfg.envcurve[EVC_ENT + i] = i;
-<a name="l00119"></a>00119         }
-<a name="l00120"></a>00120         opncfg.envcurve[EVC_ENT*2] = EVC_ENT;
-<a name="l00121"></a>00121 
-<a name="l00122"></a>00122 <span class="comment">//      opmbaserate = (1L &lt;&lt; FREQ_BITS) / (rate * x / 44100) * 55466;</span>
-<a name="l00123"></a>00123 <span class="comment">//      Ç≈Ç‡ç°ÇÕ x == 55466ÇæÇ©ÇÁÅc</span>
-<a name="l00124"></a>00124 
-<a name="l00125"></a>00125 <span class="comment">//      Ç±Ç±Ç≈ FREQ_BITS &gt;= 16Ç™èåè</span>
-<a name="l00126"></a>00126         <span class="keywordflow">if</span> (rate == 44100) {
-<a name="l00127"></a>00127                 opncfg.ratebit = 0 + (FREQ_BITS - 16);
-<a name="l00128"></a>00128         }
-<a name="l00129"></a>00129         <span class="keywordflow">else</span> <span class="keywordflow">if</span> (rate == 22050) {
-<a name="l00130"></a>00130                 opncfg.ratebit = 1 + (FREQ_BITS - 16);
-<a name="l00131"></a>00131         }
-<a name="l00132"></a>00132         <span class="keywordflow">else</span> {
-<a name="l00133"></a>00133                 opncfg.ratebit = 2 + (FREQ_BITS - 16);
-<a name="l00134"></a>00134         }
-<a name="l00135"></a>00135 
-<a name="l00136"></a>00136         <span class="keywordflow">for</span> (i=0; i&lt;4; i++) {
-<a name="l00137"></a>00137                 <span class="keywordflow">for</span> (j=0; j&lt;32; j++) {
-<a name="l00138"></a>00138                         detune = dttable[i*32 + j];
-<a name="l00139"></a>00139                         sft = ratebit + (FREQ_BITS - 21);
-<a name="l00140"></a>00140                         <span class="keywordflow">if</span> (sft &gt;= 0) {
-<a name="l00141"></a>00141                                 detune &lt;&lt;= sft;
-<a name="l00142"></a>00142                         }
-<a name="l00143"></a>00143                         <span class="keywordflow">else</span> {
-<a name="l00144"></a>00144                                 detune &gt;&gt;= (0 - sft);
-<a name="l00145"></a>00145                         }
-<a name="l00146"></a>00146 
-<a name="l00147"></a>00147                         detunetable[i][j]   = detune;
-<a name="l00148"></a>00148                         detunetable[i+4][j] = -detune;
-<a name="l00149"></a>00149                 }
-<a name="l00150"></a>00150         }
-<a name="l00151"></a>00151         <span class="keywordflow">for</span> (i=0; i&lt;4; i++) {
-<a name="l00152"></a>00152                 attacktable[i] = decaytable[i] = 0;
-<a name="l00153"></a>00153         }
-<a name="l00154"></a>00154         <span class="keywordflow">for</span> (i=4; i&lt;64; i++) {
-<a name="l00155"></a>00155                 freq = (double)(EVC_ENT &lt;&lt; ENV_BITS) * FREQBASE4096;
-<a name="l00156"></a>00156                 <span class="keywordflow">if</span> (i &lt; 8) {                                                    <span class="comment">// ñYÇÍÇƒÇ‹Ç∑ÅB</span>
-<a name="l00157"></a>00157                         freq *= 1.0 + (i &amp; 2) * 0.25;
-<a name="l00158"></a>00158                 }
-<a name="l00159"></a>00159                 <span class="keywordflow">else</span> <span class="keywordflow">if</span> (i &lt; 60) {
-<a name="l00160"></a>00160                         freq *= 1.0 + (i &amp; 3) * 0.25;
-<a name="l00161"></a>00161                 }
-<a name="l00162"></a>00162                 freq *= (double)(1 &lt;&lt; ((i &gt;&gt; 2) - 1));
-<a name="l00163"></a>00163 <span class="preprocessor">#if 0</span>
-<a name="l00164"></a>00164 <span class="preprocessor"></span>                attacktable[i] = (long)((freq + OPM_ARRATE - 1) / OPM_ARRATE);
-<a name="l00165"></a>00165                 decaytable[i] = (long)((freq + OPM_DRRATE - 1) / OPM_DRRATE);
-<a name="l00166"></a>00166 <span class="preprocessor">#else</span>
-<a name="l00167"></a>00167 <span class="preprocessor"></span>                attacktable[i] = (long)(freq / OPM_ARRATE);
-<a name="l00168"></a>00168                 decaytable[i] = (long)(freq / OPM_DRRATE);
-<a name="l00169"></a>00169 <span class="preprocessor">#endif</span>
-<a name="l00170"></a>00170 <span class="preprocessor"></span>                <span class="keywordflow">if</span> (attacktable[i] &gt;= EC_DECAY) {
-<a name="l00171"></a>00171                         TRACEOUT((<span class="stringliteral">&quot;attacktable %d %d %ld&quot;</span>, i, attacktable[i], EC_DECAY));
-<a name="l00172"></a>00172                 }
-<a name="l00173"></a>00173                 <span class="keywordflow">if</span> (decaytable[i] &gt;= EC_DECAY) {
-<a name="l00174"></a>00174                         TRACEOUT((<span class="stringliteral">&quot;decaytable %d %d %ld&quot;</span>, i, decaytable[i], EC_DECAY));
-<a name="l00175"></a>00175                 }
-<a name="l00176"></a>00176         }
-<a name="l00177"></a>00177         attacktable[62] = EC_DECAY - 1;
-<a name="l00178"></a>00178         attacktable[63] = EC_DECAY - 1;
-<a name="l00179"></a>00179         <span class="keywordflow">for</span> (i=64; i&lt;94; i++) {
-<a name="l00180"></a>00180                 attacktable[i] = attacktable[63];
-<a name="l00181"></a>00181                 decaytable[i] = decaytable[63];
-<a name="l00182"></a>00182         }
-<a name="l00183"></a>00183 }
-<a name="l00184"></a>00184 
-<a name="l00185"></a>00185 <span class="keywordtype">void</span> opngen_setvol(UINT vol) {
-<a name="l00186"></a>00186 
-<a name="l00187"></a>00187         opncfg.fmvol = vol * 5 / 4;
-<a name="l00188"></a>00188 <span class="preprocessor">#if defined(OPNGENX86)</span>
-<a name="l00189"></a>00189 <span class="preprocessor"></span>        opncfg.fmvol &lt;&lt;= FMASMSHIFT;
-<a name="l00190"></a>00190 <span class="preprocessor">#endif</span>
-<a name="l00191"></a>00191 <span class="preprocessor"></span>}
-<a name="l00192"></a>00192 
-<a name="l00193"></a>00193 <span class="keywordtype">void</span> opngen_setVR(REG8 channel, REG8 value) {
-<a name="l00194"></a>00194 
-<a name="l00195"></a>00195         <span class="keywordflow">if</span> ((channel &amp; 3) &amp;&amp; (value)) {
-<a name="l00196"></a>00196                 opncfg.vr_en = TRUE;
-<a name="l00197"></a>00197                 opncfg.vr_l = (channel &amp; 1)?value:0;
-<a name="l00198"></a>00198                 opncfg.vr_r = (channel &amp; 2)?value:0;
-<a name="l00199"></a>00199         }
-<a name="l00200"></a>00200         <span class="keywordflow">else</span> {
-<a name="l00201"></a>00201                 opncfg.vr_en = FALSE;
-<a name="l00202"></a>00202         }
-<a name="l00203"></a>00203 }
+<a name="l00062"></a>00062         UINT32  calcrate;
+<a name="l00063"></a>00063 
+<a name="l00064"></a>00064         <span class="keywordflow">if</span> (rate == 44100) {
+<a name="l00065"></a>00065                 ratebit = 0;
+<a name="l00066"></a>00066         }
+<a name="l00067"></a>00067         <span class="keywordflow">else</span> <span class="keywordflow">if</span> (rate == 22050) {
+<a name="l00068"></a>00068                 ratebit = 1;
+<a name="l00069"></a>00069         }
+<a name="l00070"></a>00070         <span class="keywordflow">else</span> {
+<a name="l00071"></a>00071                 ratebit = 2;
+<a name="l00072"></a>00072         }
+<a name="l00073"></a>00073         calcrate = (OPNA_CLOCK / 72) &gt;&gt; ratebit;
+<a name="l00074"></a>00074         opncfg.calc1024 = FMDIV_ENT * 44100 / (OPNA_CLOCK / 72);
+<a name="l00075"></a>00075 
+<a name="l00076"></a>00076         <span class="keywordflow">for</span> (i=0; i&lt;EVC_ENT; i++) {
+<a name="l00077"></a>00077 <span class="preprocessor">#ifdef OPNGENX86</span>
+<a name="l00078"></a>00078 <span class="preprocessor"></span>                sft = ENVTBL_BIT;
+<a name="l00079"></a>00079                 <span class="keywordflow">while</span>(sft &lt; (ENVTBL_BIT + 8)) {
+<a name="l00080"></a>00080                         pom = (double)(1 &lt;&lt; sft) / pow(10.0, EG_STEP*(EVC_ENT-i)/20.0);
+<a name="l00081"></a>00081                         opncfg.envtable[i] = (long)pom;
+<a name="l00082"></a>00082                         envshift[i] = sft - TL_BITS;
+<a name="l00083"></a>00083                         <span class="keywordflow">if</span> (opncfg.envtable[i] &gt;= (1 &lt;&lt; (ENVTBL_BIT - 1))) {
+<a name="l00084"></a>00084                                 <span class="keywordflow">break</span>;
+<a name="l00085"></a>00085                         }
+<a name="l00086"></a>00086                         sft++;
+<a name="l00087"></a>00087                 }
+<a name="l00088"></a>00088 <span class="preprocessor">#else</span>
+<a name="l00089"></a>00089 <span class="preprocessor"></span>                pom = (double)(1 &lt;&lt; ENVTBL_BIT) / pow(10.0, EG_STEP*(EVC_ENT-i)/20.0);
+<a name="l00090"></a>00090                 opncfg.envtable[i] = (long)pom;
+<a name="l00091"></a>00091 <span class="preprocessor">#endif</span>
+<a name="l00092"></a>00092 <span class="preprocessor"></span>        }
+<a name="l00093"></a>00093         <span class="keywordflow">for</span> (i=0; i&lt;SIN_ENT; i++) {
+<a name="l00094"></a>00094 <span class="preprocessor">#ifdef OPNGENX86</span>
+<a name="l00095"></a>00095 <span class="preprocessor"></span>                <span class="keywordtype">char</span> sft;
+<a name="l00096"></a>00096                 sft = SINTBL_BIT;
+<a name="l00097"></a>00097                 <span class="keywordflow">while</span>(sft &lt; (SINTBL_BIT + 8)) {
+<a name="l00098"></a>00098                         pom = (double)(1 &lt;&lt; sft) * sin(2*PI*i/SIN_ENT);
+<a name="l00099"></a>00099                         opncfg.sintable[i] = (long)pom;
+<a name="l00100"></a>00100                         sinshift[i] = sft;
+<a name="l00101"></a>00101                         <span class="keywordflow">if</span> (opncfg.sintable[i] &gt;= (1 &lt;&lt; (SINTBL_BIT - 1))) {
+<a name="l00102"></a>00102                                 <span class="keywordflow">break</span>;
+<a name="l00103"></a>00103                         }
+<a name="l00104"></a>00104                         <span class="keywordflow">if</span> (opncfg.sintable[i] &lt;= -1 * (1 &lt;&lt; (SINTBL_BIT - 1))) {
+<a name="l00105"></a>00105                                 <span class="keywordflow">break</span>;
+<a name="l00106"></a>00106                         }
+<a name="l00107"></a>00107                         sft++;
+<a name="l00108"></a>00108                 }
+<a name="l00109"></a>00109 <span class="preprocessor">#else</span>
+<a name="l00110"></a>00110 <span class="preprocessor"></span>                pom = (double)((1 &lt;&lt; SINTBL_BIT) - 1) * sin(2*PI*i/SIN_ENT);
+<a name="l00111"></a>00111                 opncfg.sintable[i] = (long)pom;
+<a name="l00112"></a>00112 <span class="preprocessor">#endif</span>
+<a name="l00113"></a>00113 <span class="preprocessor"></span>        }
+<a name="l00114"></a>00114         <span class="keywordflow">for</span> (i=0; i&lt;EVC_ENT; i++) {
+<a name="l00115"></a>00115                 pom = pow(((<span class="keywordtype">double</span>)(EVC_ENT-1-i)/EVC_ENT), 8) * EVC_ENT;
+<a name="l00116"></a>00116                 opncfg.envcurve[i] = (long)pom;
+<a name="l00117"></a>00117                 opncfg.envcurve[EVC_ENT + i] = i;
+<a name="l00118"></a>00118         }
+<a name="l00119"></a>00119         opncfg.envcurve[EVC_ENT*2] = EVC_ENT;
+<a name="l00120"></a>00120 
+<a name="l00121"></a>00121 <span class="comment">//      opmbaserate = (1L &lt;&lt; FREQ_BITS) / (rate * x / 44100) * 55466;</span>
+<a name="l00122"></a>00122 <span class="comment">//      Ç≈Ç‡ç°ÇÕ x == 55466ÇæÇ©ÇÁÅc</span>
+<a name="l00123"></a>00123 
+<a name="l00124"></a>00124 <span class="comment">//      Ç±Ç±Ç≈ FREQ_BITS &gt;= 16Ç™èåè</span>
+<a name="l00125"></a>00125         <span class="keywordflow">if</span> (rate == 44100) {
+<a name="l00126"></a>00126                 opncfg.ratebit = 0 + (FREQ_BITS - 16);
+<a name="l00127"></a>00127         }
+<a name="l00128"></a>00128         <span class="keywordflow">else</span> <span class="keywordflow">if</span> (rate == 22050) {
+<a name="l00129"></a>00129                 opncfg.ratebit = 1 + (FREQ_BITS - 16);
+<a name="l00130"></a>00130         }
+<a name="l00131"></a>00131         <span class="keywordflow">else</span> {
+<a name="l00132"></a>00132                 opncfg.ratebit = 2 + (FREQ_BITS - 16);
+<a name="l00133"></a>00133         }
+<a name="l00134"></a>00134 
+<a name="l00135"></a>00135         <span class="keywordflow">for</span> (i=0; i&lt;4; i++) {
+<a name="l00136"></a>00136                 <span class="keywordflow">for</span> (j=0; j&lt;32; j++) {
+<a name="l00137"></a>00137                         detune = dttable[i*32 + j];
+<a name="l00138"></a>00138                         sft = ratebit + (FREQ_BITS - 21);
+<a name="l00139"></a>00139                         <span class="keywordflow">if</span> (sft &gt;= 0) {
+<a name="l00140"></a>00140                                 detune &lt;&lt;= sft;
+<a name="l00141"></a>00141                         }
+<a name="l00142"></a>00142                         <span class="keywordflow">else</span> {
+<a name="l00143"></a>00143                                 detune &gt;&gt;= (0 - sft);
+<a name="l00144"></a>00144                         }
+<a name="l00145"></a>00145 
+<a name="l00146"></a>00146                         detunetable[i][j]   = detune;
+<a name="l00147"></a>00147                         detunetable[i+4][j] = -detune;
+<a name="l00148"></a>00148                 }
+<a name="l00149"></a>00149         }
+<a name="l00150"></a>00150         <span class="keywordflow">for</span> (i=0; i&lt;4; i++) {
+<a name="l00151"></a>00151                 attacktable[i] = decaytable[i] = 0;
+<a name="l00152"></a>00152         }
+<a name="l00153"></a>00153         <span class="keywordflow">for</span> (i=4; i&lt;64; i++) {
+<a name="l00154"></a>00154                 <span class="keywordtype">double</span> freq = (double)(EVC_ENT &lt;&lt; ENV_BITS) * FREQBASE4096;
+<a name="l00155"></a>00155                 <span class="keywordflow">if</span> (i &lt; 8) {                                                    <span class="comment">// ñYÇÍÇƒÇ‹Ç∑ÅB</span>
+<a name="l00156"></a>00156                         freq *= 1.0 + (i &amp; 2) * 0.25;
+<a name="l00157"></a>00157                 }
+<a name="l00158"></a>00158                 <span class="keywordflow">else</span> <span class="keywordflow">if</span> (i &lt; 60) {
+<a name="l00159"></a>00159                         freq *= 1.0 + (i &amp; 3) * 0.25;
+<a name="l00160"></a>00160                 }
+<a name="l00161"></a>00161                 freq *= (double)(1 &lt;&lt; ((i &gt;&gt; 2) - 1));
+<a name="l00162"></a>00162 <span class="preprocessor">#if 0</span>
+<a name="l00163"></a>00163 <span class="preprocessor"></span>                attacktable[i] = (long)((freq + OPM_ARRATE - 1) / OPM_ARRATE);
+<a name="l00164"></a>00164                 decaytable[i] = (long)((freq + OPM_DRRATE - 1) / OPM_DRRATE);
+<a name="l00165"></a>00165 <span class="preprocessor">#else</span>
+<a name="l00166"></a>00166 <span class="preprocessor"></span>                attacktable[i] = (long)(freq / OPM_ARRATE);
+<a name="l00167"></a>00167                 decaytable[i] = (long)(freq / OPM_DRRATE);
+<a name="l00168"></a>00168 <span class="preprocessor">#endif</span>
+<a name="l00169"></a>00169 <span class="preprocessor"></span>                <span class="keywordflow">if</span> (attacktable[i] &gt;= EC_DECAY) {
+<a name="l00170"></a>00170                         TRACEOUT((<span class="stringliteral">&quot;attacktable %d %d %ld&quot;</span>, i, attacktable[i], EC_DECAY));
+<a name="l00171"></a>00171                 }
+<a name="l00172"></a>00172                 <span class="keywordflow">if</span> (decaytable[i] &gt;= EC_DECAY) {
+<a name="l00173"></a>00173                         TRACEOUT((<span class="stringliteral">&quot;decaytable %d %d %ld&quot;</span>, i, decaytable[i], EC_DECAY));
+<a name="l00174"></a>00174                 }
+<a name="l00175"></a>00175         }
+<a name="l00176"></a>00176         attacktable[62] = EC_DECAY - 1;
+<a name="l00177"></a>00177         attacktable[63] = EC_DECAY - 1;
+<a name="l00178"></a>00178         <span class="keywordflow">for</span> (i=64; i&lt;94; i++) {
+<a name="l00179"></a>00179                 attacktable[i] = attacktable[63];
+<a name="l00180"></a>00180                 decaytable[i] = decaytable[63];
+<a name="l00181"></a>00181         }
+<a name="l00182"></a>00182 }
+<a name="l00183"></a>00183 
+<a name="l00184"></a>00184 <span class="keywordtype">void</span> opngen_setvol(UINT vol) {
+<a name="l00185"></a>00185 
+<a name="l00186"></a>00186         opncfg.fmvol = vol * 5 / 4;
+<a name="l00187"></a>00187 <span class="preprocessor">#if defined(OPNGENX86)</span>
+<a name="l00188"></a>00188 <span class="preprocessor"></span>        opncfg.fmvol &lt;&lt;= FMASMSHIFT;
+<a name="l00189"></a>00189 <span class="preprocessor">#endif</span>
+<a name="l00190"></a>00190 <span class="preprocessor"></span>}
+<a name="l00191"></a>00191 
+<a name="l00192"></a>00192 <span class="keywordtype">void</span> opngen_setVR(REG8 channel, REG8 value) {
+<a name="l00193"></a>00193 
+<a name="l00194"></a>00194         <span class="keywordflow">if</span> ((channel &amp; 3) &amp;&amp; (value)) {
+<a name="l00195"></a>00195                 opncfg.vr_en = TRUE;
+<a name="l00196"></a>00196                 opncfg.vr_l = (channel &amp; 1)?value:0;
+<a name="l00197"></a>00197                 opncfg.vr_r = (channel &amp; 2)?value:0;
+<a name="l00198"></a>00198         }
+<a name="l00199"></a>00199         <span class="keywordflow">else</span> {
+<a name="l00200"></a>00200                 opncfg.vr_en = FALSE;
+<a name="l00201"></a>00201         }
+<a name="l00202"></a>00202 }
+<a name="l00203"></a>00203 
 <a name="l00204"></a>00204 
-<a name="l00205"></a>00205 
-<a name="l00206"></a>00206 <span class="comment">// ----</span>
-<a name="l00207"></a>00207 
-<a name="l00208"></a>00208 <span class="keyword">static</span> <span class="keywordtype">void</span> set_algorithm(<a class="code" href="structOPNCH.html">OPNCH</a> *ch) {
-<a name="l00209"></a>00209 
-<a name="l00210"></a>00210         SINT32  *outd;
-<a name="l00211"></a>00211         UINT8   outslot;
-<a name="l00212"></a>00212 
-<a name="l00213"></a>00213         outd = &amp;opngen.outdc;
-<a name="l00214"></a>00214         <span class="keywordflow">if</span> (ch-&gt;stereo) {
-<a name="l00215"></a>00215                 <span class="keywordflow">switch</span>(ch-&gt;pan &amp; 0xc0) {
-<a name="l00216"></a>00216                         <span class="keywordflow">case</span> 0x80:
-<a name="l00217"></a>00217                                 outd = &amp;opngen.outdl;
-<a name="l00218"></a>00218                                 <span class="keywordflow">break</span>;
-<a name="l00219"></a>00219 
-<a name="l00220"></a>00220                         <span class="keywordflow">case</span> 0x40:
-<a name="l00221"></a>00221                                 outd = &amp;opngen.outdr;
-<a name="l00222"></a>00222                                 <span class="keywordflow">break</span>;
-<a name="l00223"></a>00223                 }
-<a name="l00224"></a>00224         }
-<a name="l00225"></a>00225         <span class="keywordflow">switch</span>(ch-&gt;algorithm) {
-<a name="l00226"></a>00226                 <span class="keywordflow">case</span> 0:
-<a name="l00227"></a>00227                         ch-&gt;connect1 = &amp;opngen.feedback2;
-<a name="l00228"></a>00228                         ch-&gt;connect2 = &amp;opngen.feedback3;
-<a name="l00229"></a>00229                         ch-&gt;connect3 = &amp;opngen.feedback4;
-<a name="l00230"></a>00230                         outslot = 0x08;
-<a name="l00231"></a>00231                         <span class="keywordflow">break</span>;
-<a name="l00232"></a>00232 
-<a name="l00233"></a>00233                 <span class="keywordflow">case</span> 1:
-<a name="l00234"></a>00234                         ch-&gt;connect1 = &amp;opngen.feedback3;
-<a name="l00235"></a>00235                         ch-&gt;connect2 = &amp;opngen.feedback3;
-<a name="l00236"></a>00236                         ch-&gt;connect3 = &amp;opngen.feedback4;
-<a name="l00237"></a>00237                         outslot = 0x08;
-<a name="l00238"></a>00238                         <span class="keywordflow">break</span>;
-<a name="l00239"></a>00239 
-<a name="l00240"></a>00240                 <span class="keywordflow">case</span> 2:
-<a name="l00241"></a>00241                         ch-&gt;connect1 = &amp;opngen.feedback4;
-<a name="l00242"></a>00242                         ch-&gt;connect2 = &amp;opngen.feedback3;
-<a name="l00243"></a>00243                         ch-&gt;connect3 = &amp;opngen.feedback4;
-<a name="l00244"></a>00244                         outslot = 0x08;
-<a name="l00245"></a>00245                         <span class="keywordflow">break</span>;
-<a name="l00246"></a>00246 
-<a name="l00247"></a>00247                 <span class="keywordflow">case</span> 3:
-<a name="l00248"></a>00248                         ch-&gt;connect1 = &amp;opngen.feedback2;
-<a name="l00249"></a>00249                         ch-&gt;connect2 = &amp;opngen.feedback4;
-<a name="l00250"></a>00250                         ch-&gt;connect3 = &amp;opngen.feedback4;
-<a name="l00251"></a>00251                         outslot = 0x08;
-<a name="l00252"></a>00252                         <span class="keywordflow">break</span>;
-<a name="l00253"></a>00253 
-<a name="l00254"></a>00254                 <span class="keywordflow">case</span> 4:
-<a name="l00255"></a>00255                         ch-&gt;connect1 = &amp;opngen.feedback2;
-<a name="l00256"></a>00256                         ch-&gt;connect2 = outd;
-<a name="l00257"></a>00257                         ch-&gt;connect3 = &amp;opngen.feedback4;
-<a name="l00258"></a>00258                         outslot = 0x0a;
-<a name="l00259"></a>00259                         <span class="keywordflow">break</span>;
-<a name="l00260"></a>00260 
-<a name="l00261"></a>00261                 <span class="keywordflow">case</span> 5:
-<a name="l00262"></a>00262                         ch-&gt;connect1 = 0;
-<a name="l00263"></a>00263                         ch-&gt;connect2 = outd;
-<a name="l00264"></a>00264                         ch-&gt;connect3 = outd;
-<a name="l00265"></a>00265                         outslot = 0x0e;
-<a name="l00266"></a>00266                         <span class="keywordflow">break</span>;
-<a name="l00267"></a>00267 
-<a name="l00268"></a>00268                 <span class="keywordflow">case</span> 6:
-<a name="l00269"></a>00269                         ch-&gt;connect1 = &amp;opngen.feedback2;
-<a name="l00270"></a>00270                         ch-&gt;connect2 = outd;
-<a name="l00271"></a>00271                         ch-&gt;connect3 = outd;
-<a name="l00272"></a>00272                         outslot = 0x0e;
-<a name="l00273"></a>00273                         <span class="keywordflow">break</span>;
-<a name="l00274"></a>00274 
-<a name="l00275"></a>00275                 <span class="keywordflow">case</span> 7:
-<a name="l00276"></a>00276                 <span class="keywordflow">default</span>:
-<a name="l00277"></a>00277                         ch-&gt;connect1 = outd;
-<a name="l00278"></a>00278                         ch-&gt;connect2 = outd;
-<a name="l00279"></a>00279                         ch-&gt;connect3 = outd;
-<a name="l00280"></a>00280                         outslot = 0x0f;
-<a name="l00281"></a>00281         }
-<a name="l00282"></a>00282         ch-&gt;connect4 = outd;
-<a name="l00283"></a>00283         ch-&gt;outslot = outslot;
-<a name="l00284"></a>00284 }
-<a name="l00285"></a>00285 
-<a name="l00286"></a>00286 <span class="keyword">static</span> <span class="keywordtype">void</span> set_dt1_mul(<a class="code" href="structOPNSLOT.html">OPNSLOT</a> *slot, REG8 value) {
-<a name="l00287"></a>00287 
-<a name="l00288"></a>00288         slot-&gt;multiple = (SINT32)multipletable[value &amp; 0x0f];
-<a name="l00289"></a>00289         slot-&gt;detune1 = detunetable[(value &gt;&gt; 4) &amp; 7];
-<a name="l00290"></a>00290 }
-<a name="l00291"></a>00291 
-<a name="l00292"></a>00292 <span class="keyword">static</span> <span class="keywordtype">void</span> set_tl(<a class="code" href="structOPNSLOT.html">OPNSLOT</a> *slot, REG8 value) {
-<a name="l00293"></a>00293 
-<a name="l00294"></a>00294 <span class="preprocessor">#if (EVC_BITS &gt;= 7)</span>
-<a name="l00295"></a>00295 <span class="preprocessor"></span>        slot-&gt;totallevel = ((~value) &amp; 0x007f) &lt;&lt; (EVC_BITS - 7);
-<a name="l00296"></a>00296 <span class="preprocessor">#else</span>
-<a name="l00297"></a>00297 <span class="preprocessor"></span>        slot-&gt;totallevel = ((~value) &amp; 0x007f) &gt;&gt; (7 - EVC_BITS);
-<a name="l00298"></a>00298 <span class="preprocessor">#endif</span>
-<a name="l00299"></a>00299 <span class="preprocessor"></span>}
-<a name="l00300"></a>00300 
-<a name="l00301"></a>00301 <span class="keyword">static</span> <span class="keywordtype">void</span> set_ks_ar(<a class="code" href="structOPNSLOT.html">OPNSLOT</a> *slot, REG8 value) {
-<a name="l00302"></a>00302 
-<a name="l00303"></a>00303         slot-&gt;keyscale = ((~value) &gt;&gt; 6) &amp; 3;
-<a name="l00304"></a>00304         value &amp;= 0x1f;
-<a name="l00305"></a>00305         slot-&gt;attack = (value)?(attacktable + (value &lt;&lt; 1)):nulltable;
-<a name="l00306"></a>00306         slot-&gt;env_inc_attack = slot-&gt;attack[slot-&gt;envratio];
-<a name="l00307"></a>00307         <span class="keywordflow">if</span> (slot-&gt;env_mode == EM_ATTACK) {
-<a name="l00308"></a>00308                 slot-&gt;env_inc = slot-&gt;env_inc_attack;
-<a name="l00309"></a>00309         }
-<a name="l00310"></a>00310 }
-<a name="l00311"></a>00311 
-<a name="l00312"></a>00312 <span class="keyword">static</span> <span class="keywordtype">void</span> set_d1r(<a class="code" href="structOPNSLOT.html">OPNSLOT</a> *slot, REG8 value) {
-<a name="l00313"></a>00313 
-<a name="l00314"></a>00314         value &amp;= 0x1f;
-<a name="l00315"></a>00315         slot-&gt;decay1 = (value)?(decaytable + (value &lt;&lt; 1)):nulltable;
-<a name="l00316"></a>00316         slot-&gt;env_inc_decay1 = slot-&gt;decay1[slot-&gt;envratio];
-<a name="l00317"></a>00317         <span class="keywordflow">if</span> (slot-&gt;env_mode == EM_DECAY1) {
-<a name="l00318"></a>00318                 slot-&gt;env_inc = slot-&gt;env_inc_decay1;
-<a name="l00319"></a>00319         }
-<a name="l00320"></a>00320 }
-<a name="l00321"></a>00321 
-<a name="l00322"></a>00322 <span class="keyword">static</span> <span class="keywordtype">void</span> set_dt2_d2r(<a class="code" href="structOPNSLOT.html">OPNSLOT</a> *slot, REG8 value) {
-<a name="l00323"></a>00323 
-<a name="l00324"></a>00324         value &amp;= 0x1f;
-<a name="l00325"></a>00325         slot-&gt;decay2 = (value)?(decaytable + (value &lt;&lt; 1)):nulltable;
-<a name="l00326"></a>00326         <span class="keywordflow">if</span> (slot-&gt;ssgeg1) {
-<a name="l00327"></a>00327                 slot-&gt;env_inc_decay2 = 0;
-<a name="l00328"></a>00328         }
-<a name="l00329"></a>00329         <span class="keywordflow">else</span> {
-<a name="l00330"></a>00330                 slot-&gt;env_inc_decay2 = slot-&gt;decay2[slot-&gt;envratio];
-<a name="l00331"></a>00331         }
-<a name="l00332"></a>00332         <span class="keywordflow">if</span> (slot-&gt;env_mode == EM_DECAY2) {
-<a name="l00333"></a>00333                 slot-&gt;env_inc = slot-&gt;env_inc_decay2;
-<a name="l00334"></a>00334         }
-<a name="l00335"></a>00335 }
-<a name="l00336"></a>00336 
-<a name="l00337"></a>00337 <span class="keyword">static</span> <span class="keywordtype">void</span> set_d1l_rr(<a class="code" href="structOPNSLOT.html">OPNSLOT</a> *slot, REG8 value) {
-<a name="l00338"></a>00338 
-<a name="l00339"></a>00339         slot-&gt;decaylevel = decayleveltable[value &gt;&gt; 4];
-<a name="l00340"></a>00340         slot-&gt;release = decaytable + ((value &amp; 0x0f) &lt;&lt; 2) + 2;
-<a name="l00341"></a>00341         slot-&gt;env_inc_release = slot-&gt;release[slot-&gt;envratio];
-<a name="l00342"></a>00342         <span class="keywordflow">if</span> (slot-&gt;env_mode == EM_RELEASE) {
-<a name="l00343"></a>00343                 slot-&gt;env_inc = slot-&gt;env_inc_release;
-<a name="l00344"></a>00344                 <span class="keywordflow">if</span> (value == 0xff) {
-<a name="l00345"></a>00345                         slot-&gt;env_mode = EM_OFF;
-<a name="l00346"></a>00346                         slot-&gt;env_cnt = EC_OFF;
-<a name="l00347"></a>00347                         slot-&gt;env_end = EC_OFF + 1;
-<a name="l00348"></a>00348                         slot-&gt;env_inc = 0;
-<a name="l00349"></a>00349                 }
-<a name="l00350"></a>00350         }
-<a name="l00351"></a>00351 }
-<a name="l00352"></a>00352 
-<a name="l00353"></a>00353 <span class="keyword">static</span> <span class="keywordtype">void</span> set_ssgeg(<a class="code" href="structOPNSLOT.html">OPNSLOT</a> *slot, REG8 value) {
-<a name="l00354"></a>00354 
-<a name="l00355"></a>00355         value &amp;= 0xf;
-<a name="l00356"></a>00356         <span class="keywordflow">if</span> ((value == 0xb) || (value == 0xd)) {
-<a name="l00357"></a>00357                 slot-&gt;ssgeg1 = 1;
-<a name="l00358"></a>00358                 slot-&gt;env_inc_decay2 = 0;
-<a name="l00359"></a>00359         }
-<a name="l00360"></a>00360         <span class="keywordflow">else</span> {
-<a name="l00361"></a>00361                 slot-&gt;ssgeg1 = 0;
-<a name="l00362"></a>00362                 slot-&gt;env_inc_decay2 = slot-&gt;decay2[slot-&gt;envratio];
-<a name="l00363"></a>00363         }
-<a name="l00364"></a>00364         <span class="keywordflow">if</span> (slot-&gt;env_mode == EM_DECAY2) {
-<a name="l00365"></a>00365                 slot-&gt;env_inc = slot-&gt;env_inc_decay2;
-<a name="l00366"></a>00366         }
-<a name="l00367"></a>00367 }
-<a name="l00368"></a>00368 
-<a name="l00369"></a>00369 <span class="keyword">static</span> <span class="keywordtype">void</span> channleupdate(<a class="code" href="structOPNCH.html">OPNCH</a> *ch) {
-<a name="l00370"></a>00370 
-<a name="l00371"></a>00371         <span class="keywordtype">int</span>             i;
-<a name="l00372"></a>00372         UINT32  fc = ch-&gt;keynote[0];                                            <span class="comment">// ver0.27</span>
-<a name="l00373"></a>00373         UINT8   kc = ch-&gt;kcode[0];
-<a name="l00374"></a>00374         UINT    evr;
-<a name="l00375"></a>00375         <a class="code" href="structOPNSLOT.html">OPNSLOT</a> *slot;
-<a name="l00376"></a>00376         <span class="keywordtype">int</span>             s;
-<a name="l00377"></a>00377 
-<a name="l00378"></a>00378         slot = ch-&gt;slot;
-<a name="l00379"></a>00379         <span class="keywordflow">if</span> (!(ch-&gt;extop)) {
-<a name="l00380"></a>00380                 <span class="keywordflow">for</span> (i=0; i&lt;4; i++, slot++) {
-<a name="l00381"></a>00381                         slot-&gt;freq_inc = (fc + slot-&gt;detune1[kc]) * slot-&gt;multiple;
-<a name="l00382"></a>00382                         evr = kc &gt;&gt; slot-&gt;keyscale;
-<a name="l00383"></a>00383                         if (slot-&gt;envratio != evr) {
-<a name="l00384"></a>00384                                 slot-&gt;envratio = evr;
-<a name="l00385"></a>00385                                 slot-&gt;env_inc_attack = slot-&gt;attack[evr];
-<a name="l00386"></a>00386                                 slot-&gt;env_inc_decay1 = slot-&gt;decay1[evr];
-<a name="l00387"></a>00387                                 slot-&gt;env_inc_decay2 = slot-&gt;decay2[evr];
-<a name="l00388"></a>00388                                 slot-&gt;env_inc_release = slot-&gt;release[evr];
-<a name="l00389"></a>00389                         }
-<a name="l00390"></a>00390                 }
-<a name="l00391"></a>00391         }
-<a name="l00392"></a>00392         <span class="keywordflow">else</span> {
-<a name="l00393"></a>00393                 <span class="keywordflow">for</span> (i=0; i&lt;4; i++, slot++) {
-<a name="l00394"></a>00394                         s = extendslot[i];
-<a name="l00395"></a>00395                         slot-&gt;freq_inc = (ch-&gt;keynote[s] + slot-&gt;detune1[ch-&gt;kcode[s]])
-<a name="l00396"></a>00396                                                                                                                 * slot-&gt;multiple;
-<a name="l00397"></a>00397                         evr = ch-&gt;kcode[s] &gt;&gt; slot-&gt;keyscale;
-<a name="l00398"></a>00398                         if (slot-&gt;envratio != evr) {
-<a name="l00399"></a>00399                                 slot-&gt;envratio = evr;
-<a name="l00400"></a>00400                                 slot-&gt;env_inc_attack = slot-&gt;attack[evr];
-<a name="l00401"></a>00401                                 slot-&gt;env_inc_decay1 = slot-&gt;decay1[evr];
-<a name="l00402"></a>00402                                 slot-&gt;env_inc_decay2 = slot-&gt;decay2[evr];
-<a name="l00403"></a>00403                                 slot-&gt;env_inc_release = slot-&gt;release[evr];
-<a name="l00404"></a>00404                         }
-<a name="l00405"></a>00405                 }
-<a name="l00406"></a>00406         }
-<a name="l00407"></a>00407 }
-<a name="l00408"></a>00408 
+<a name="l00205"></a>00205 <span class="comment">// ----</span>
+<a name="l00206"></a>00206 
+<a name="l00207"></a>00207 <span class="keyword">static</span> <span class="keywordtype">void</span> set_algorithm(<a class="code" href="structOPNCH.html">OPNCH</a> *ch) {
+<a name="l00208"></a>00208 
+<a name="l00209"></a>00209         SINT32  *outd;
+<a name="l00210"></a>00210         UINT8   outslot;
+<a name="l00211"></a>00211 
+<a name="l00212"></a>00212         outd = &amp;opngen.outdc;
+<a name="l00213"></a>00213         <span class="keywordflow">if</span> (ch-&gt;stereo) {
+<a name="l00214"></a>00214                 <span class="keywordflow">switch</span>(ch-&gt;pan &amp; 0xc0) {
+<a name="l00215"></a>00215                         <span class="keywordflow">case</span> 0x80:
+<a name="l00216"></a>00216                                 outd = &amp;opngen.outdl;
+<a name="l00217"></a>00217                                 <span class="keywordflow">break</span>;
+<a name="l00218"></a>00218 
+<a name="l00219"></a>00219                         <span class="keywordflow">case</span> 0x40:
+<a name="l00220"></a>00220                                 outd = &amp;opngen.outdr;
+<a name="l00221"></a>00221                                 <span class="keywordflow">break</span>;
+<a name="l00222"></a>00222                 }
+<a name="l00223"></a>00223         }
+<a name="l00224"></a>00224         <span class="keywordflow">switch</span>(ch-&gt;algorithm) {
+<a name="l00225"></a>00225                 <span class="keywordflow">case</span> 0:
+<a name="l00226"></a>00226                         ch-&gt;connect1 = &amp;opngen.feedback2;
+<a name="l00227"></a>00227                         ch-&gt;connect2 = &amp;opngen.feedback3;
+<a name="l00228"></a>00228                         ch-&gt;connect3 = &amp;opngen.feedback4;
+<a name="l00229"></a>00229                         outslot = 0x08;
+<a name="l00230"></a>00230                         <span class="keywordflow">break</span>;
+<a name="l00231"></a>00231 
+<a name="l00232"></a>00232                 <span class="keywordflow">case</span> 1:
+<a name="l00233"></a>00233                         ch-&gt;connect1 = &amp;opngen.feedback3;
+<a name="l00234"></a>00234                         ch-&gt;connect2 = &amp;opngen.feedback3;
+<a name="l00235"></a>00235                         ch-&gt;connect3 = &amp;opngen.feedback4;
+<a name="l00236"></a>00236                         outslot = 0x08;
+<a name="l00237"></a>00237                         <span class="keywordflow">break</span>;
+<a name="l00238"></a>00238 
+<a name="l00239"></a>00239                 <span class="keywordflow">case</span> 2:
+<a name="l00240"></a>00240                         ch-&gt;connect1 = &amp;opngen.feedback4;
+<a name="l00241"></a>00241                         ch-&gt;connect2 = &amp;opngen.feedback3;
+<a name="l00242"></a>00242                         ch-&gt;connect3 = &amp;opngen.feedback4;
+<a name="l00243"></a>00243                         outslot = 0x08;
+<a name="l00244"></a>00244                         <span class="keywordflow">break</span>;
+<a name="l00245"></a>00245 
+<a name="l00246"></a>00246                 <span class="keywordflow">case</span> 3:
+<a name="l00247"></a>00247                         ch-&gt;connect1 = &amp;opngen.feedback2;
+<a name="l00248"></a>00248                         ch-&gt;connect2 = &amp;opngen.feedback4;
+<a name="l00249"></a>00249                         ch-&gt;connect3 = &amp;opngen.feedback4;
+<a name="l00250"></a>00250                         outslot = 0x08;
+<a name="l00251"></a>00251                         <span class="keywordflow">break</span>;
+<a name="l00252"></a>00252 
+<a name="l00253"></a>00253                 <span class="keywordflow">case</span> 4:
+<a name="l00254"></a>00254                         ch-&gt;connect1 = &amp;opngen.feedback2;
+<a name="l00255"></a>00255                         ch-&gt;connect2 = outd;
+<a name="l00256"></a>00256                         ch-&gt;connect3 = &amp;opngen.feedback4;
+<a name="l00257"></a>00257                         outslot = 0x0a;
+<a name="l00258"></a>00258                         <span class="keywordflow">break</span>;
+<a name="l00259"></a>00259 
+<a name="l00260"></a>00260                 <span class="keywordflow">case</span> 5:
+<a name="l00261"></a>00261                         ch-&gt;connect1 = 0;
+<a name="l00262"></a>00262                         ch-&gt;connect2 = outd;
+<a name="l00263"></a>00263                         ch-&gt;connect3 = outd;
+<a name="l00264"></a>00264                         outslot = 0x0e;
+<a name="l00265"></a>00265                         <span class="keywordflow">break</span>;
+<a name="l00266"></a>00266 
+<a name="l00267"></a>00267                 <span class="keywordflow">case</span> 6:
+<a name="l00268"></a>00268                         ch-&gt;connect1 = &amp;opngen.feedback2;
+<a name="l00269"></a>00269                         ch-&gt;connect2 = outd;
+<a name="l00270"></a>00270                         ch-&gt;connect3 = outd;
+<a name="l00271"></a>00271                         outslot = 0x0e;
+<a name="l00272"></a>00272                         <span class="keywordflow">break</span>;
+<a name="l00273"></a>00273 
+<a name="l00274"></a>00274                 <span class="keywordflow">case</span> 7:
+<a name="l00275"></a>00275                 <span class="keywordflow">default</span>:
+<a name="l00276"></a>00276                         ch-&gt;connect1 = outd;
+<a name="l00277"></a>00277                         ch-&gt;connect2 = outd;
+<a name="l00278"></a>00278                         ch-&gt;connect3 = outd;
+<a name="l00279"></a>00279                         outslot = 0x0f;
+<a name="l00280"></a>00280         }
+<a name="l00281"></a>00281         ch-&gt;connect4 = outd;
+<a name="l00282"></a>00282         ch-&gt;outslot = outslot;
+<a name="l00283"></a>00283 }
+<a name="l00284"></a>00284 
+<a name="l00285"></a>00285 <span class="keyword">static</span> <span class="keywordtype">void</span> set_dt1_mul(<a class="code" href="structOPNSLOT.html">OPNSLOT</a> *slot, REG8 value) {
+<a name="l00286"></a>00286 
+<a name="l00287"></a>00287         slot-&gt;multiple = (SINT32)multipletable[value &amp; 0x0f];
+<a name="l00288"></a>00288         slot-&gt;detune1 = detunetable[(value &gt;&gt; 4) &amp; 7];
+<a name="l00289"></a>00289 }
+<a name="l00290"></a>00290 
+<a name="l00291"></a>00291 <span class="keyword">static</span> <span class="keywordtype">void</span> set_tl(<a class="code" href="structOPNSLOT.html">OPNSLOT</a> *slot, REG8 value) {
+<a name="l00292"></a>00292 
+<a name="l00293"></a>00293 <span class="preprocessor">#if (EVC_BITS &gt;= 7)</span>
+<a name="l00294"></a>00294 <span class="preprocessor"></span>        slot-&gt;totallevel = ((~value) &amp; 0x007f) &lt;&lt; (EVC_BITS - 7);
+<a name="l00295"></a>00295 <span class="preprocessor">#else</span>
+<a name="l00296"></a>00296 <span class="preprocessor"></span>        slot-&gt;totallevel = ((~value) &amp; 0x007f) &gt;&gt; (7 - EVC_BITS);
+<a name="l00297"></a>00297 <span class="preprocessor">#endif</span>
+<a name="l00298"></a>00298 <span class="preprocessor"></span>}
+<a name="l00299"></a>00299 
+<a name="l00300"></a>00300 <span class="keyword">static</span> <span class="keywordtype">void</span> set_ks_ar(<a class="code" href="structOPNSLOT.html">OPNSLOT</a> *slot, REG8 value) {
+<a name="l00301"></a>00301 
+<a name="l00302"></a>00302         slot-&gt;keyscale = ((~value) &gt;&gt; 6) &amp; 3;
+<a name="l00303"></a>00303         value &amp;= 0x1f;
+<a name="l00304"></a>00304         slot-&gt;attack = (value)?(attacktable + (value &lt;&lt; 1)):nulltable;
+<a name="l00305"></a>00305         slot-&gt;env_inc_attack = slot-&gt;attack[slot-&gt;envratio];
+<a name="l00306"></a>00306         <span class="keywordflow">if</span> (slot-&gt;env_mode == EM_ATTACK) {
+<a name="l00307"></a>00307                 slot-&gt;env_inc = slot-&gt;env_inc_attack;
+<a name="l00308"></a>00308         }
+<a name="l00309"></a>00309 }
+<a name="l00310"></a>00310 
+<a name="l00311"></a>00311 <span class="keyword">static</span> <span class="keywordtype">void</span> set_d1r(<a class="code" href="structOPNSLOT.html">OPNSLOT</a> *slot, REG8 value) {
+<a name="l00312"></a>00312 
+<a name="l00313"></a>00313         value &amp;= 0x1f;
+<a name="l00314"></a>00314         slot-&gt;decay1 = (value)?(decaytable + (value &lt;&lt; 1)):nulltable;
+<a name="l00315"></a>00315         slot-&gt;env_inc_decay1 = slot-&gt;decay1[slot-&gt;envratio];
+<a name="l00316"></a>00316         <span class="keywordflow">if</span> (slot-&gt;env_mode == EM_DECAY1) {
+<a name="l00317"></a>00317                 slot-&gt;env_inc = slot-&gt;env_inc_decay1;
+<a name="l00318"></a>00318         }
+<a name="l00319"></a>00319 }
+<a name="l00320"></a>00320 
+<a name="l00321"></a>00321 <span class="keyword">static</span> <span class="keywordtype">void</span> set_dt2_d2r(<a class="code" href="structOPNSLOT.html">OPNSLOT</a> *slot, REG8 value) {
+<a name="l00322"></a>00322 
+<a name="l00323"></a>00323         value &amp;= 0x1f;
+<a name="l00324"></a>00324         slot-&gt;decay2 = (value)?(decaytable + (value &lt;&lt; 1)):nulltable;
+<a name="l00325"></a>00325         <span class="keywordflow">if</span> (slot-&gt;ssgeg1) {
+<a name="l00326"></a>00326                 slot-&gt;env_inc_decay2 = 0;
+<a name="l00327"></a>00327         }
+<a name="l00328"></a>00328         <span class="keywordflow">else</span> {
+<a name="l00329"></a>00329                 slot-&gt;env_inc_decay2 = slot-&gt;decay2[slot-&gt;envratio];
+<a name="l00330"></a>00330         }
+<a name="l00331"></a>00331         <span class="keywordflow">if</span> (slot-&gt;env_mode == EM_DECAY2) {
+<a name="l00332"></a>00332                 slot-&gt;env_inc = slot-&gt;env_inc_decay2;
+<a name="l00333"></a>00333         }
+<a name="l00334"></a>00334 }
+<a name="l00335"></a>00335 
+<a name="l00336"></a>00336 <span class="keyword">static</span> <span class="keywordtype">void</span> set_d1l_rr(<a class="code" href="structOPNSLOT.html">OPNSLOT</a> *slot, REG8 value) {
+<a name="l00337"></a>00337 
+<a name="l00338"></a>00338         slot-&gt;decaylevel = decayleveltable[value &gt;&gt; 4];
+<a name="l00339"></a>00339         slot-&gt;release = decaytable + ((value &amp; 0x0f) &lt;&lt; 2) + 2;
+<a name="l00340"></a>00340         slot-&gt;env_inc_release = slot-&gt;release[slot-&gt;envratio];
+<a name="l00341"></a>00341         <span class="keywordflow">if</span> (slot-&gt;env_mode == EM_RELEASE) {
+<a name="l00342"></a>00342                 slot-&gt;env_inc = slot-&gt;env_inc_release;
+<a name="l00343"></a>00343                 <span class="keywordflow">if</span> (value == 0xff) {
+<a name="l00344"></a>00344                         slot-&gt;env_mode = EM_OFF;
+<a name="l00345"></a>00345                         slot-&gt;env_cnt = EC_OFF;
+<a name="l00346"></a>00346                         slot-&gt;env_end = EC_OFF + 1;
+<a name="l00347"></a>00347                         slot-&gt;env_inc = 0;
+<a name="l00348"></a>00348                 }
+<a name="l00349"></a>00349         }
+<a name="l00350"></a>00350 }
+<a name="l00351"></a>00351 
+<a name="l00352"></a>00352 <span class="keyword">static</span> <span class="keywordtype">void</span> set_ssgeg(<a class="code" href="structOPNSLOT.html">OPNSLOT</a> *slot, REG8 value) {
+<a name="l00353"></a>00353 
+<a name="l00354"></a>00354         value &amp;= 0xf;
+<a name="l00355"></a>00355         <span class="keywordflow">if</span> ((value == 0xb) || (value == 0xd)) {
+<a name="l00356"></a>00356                 slot-&gt;ssgeg1 = 1;
+<a name="l00357"></a>00357                 slot-&gt;env_inc_decay2 = 0;
+<a name="l00358"></a>00358         }
+<a name="l00359"></a>00359         <span class="keywordflow">else</span> {
+<a name="l00360"></a>00360                 slot-&gt;ssgeg1 = 0;
+<a name="l00361"></a>00361                 slot-&gt;env_inc_decay2 = slot-&gt;decay2[slot-&gt;envratio];
+<a name="l00362"></a>00362         }
+<a name="l00363"></a>00363         <span class="keywordflow">if</span> (slot-&gt;env_mode == EM_DECAY2) {
+<a name="l00364"></a>00364                 slot-&gt;env_inc = slot-&gt;env_inc_decay2;
+<a name="l00365"></a>00365         }
+<a name="l00366"></a>00366 }
+<a name="l00367"></a>00367 
+<a name="l00368"></a>00368 <span class="keyword">static</span> <span class="keywordtype">void</span> channleupdate(<a class="code" href="structOPNCH.html">OPNCH</a> *ch) {
+<a name="l00369"></a>00369 
+<a name="l00370"></a>00370         <span class="keywordtype">int</span>             i;
+<a name="l00371"></a>00371         UINT32  fc = ch-&gt;keynote[0];                                            <span class="comment">// ver0.27</span>
+<a name="l00372"></a>00372         UINT8   kc = ch-&gt;kcode[0];
+<a name="l00373"></a>00373         UINT    evr;
+<a name="l00374"></a>00374         <a class="code" href="structOPNSLOT.html">OPNSLOT</a> *slot;
+<a name="l00375"></a>00375 
+<a name="l00376"></a>00376         slot = ch-&gt;slot;
+<a name="l00377"></a>00377         <span class="keywordflow">if</span> (!(ch-&gt;extop)) {
+<a name="l00378"></a>00378                 <span class="keywordflow">for</span> (i=0; i&lt;4; i++, slot++) {
+<a name="l00379"></a>00379                         slot-&gt;freq_inc = (fc + slot-&gt;detune1[kc]) * slot-&gt;multiple;
+<a name="l00380"></a>00380                         evr = kc &gt;&gt; slot-&gt;keyscale;
+<a name="l00381"></a>00381                         if (slot-&gt;envratio != evr) {
+<a name="l00382"></a>00382                                 slot-&gt;envratio = evr;
+<a name="l00383"></a>00383                                 slot-&gt;env_inc_attack = slot-&gt;attack[evr];
+<a name="l00384"></a>00384                                 slot-&gt;env_inc_decay1 = slot-&gt;decay1[evr];
+<a name="l00385"></a>00385                                 slot-&gt;env_inc_decay2 = slot-&gt;decay2[evr];
+<a name="l00386"></a>00386                                 slot-&gt;env_inc_release = slot-&gt;release[evr];
+<a name="l00387"></a>00387                         }
+<a name="l00388"></a>00388                 }
+<a name="l00389"></a>00389         }
+<a name="l00390"></a>00390         <span class="keywordflow">else</span> {
+<a name="l00391"></a>00391                 <span class="keywordflow">for</span> (i=0; i&lt;4; i++, slot++) {
+<a name="l00392"></a>00392                         <span class="keywordtype">int</span> s = extendslot[i];
+<a name="l00393"></a>00393                         slot-&gt;freq_inc = (ch-&gt;keynote[s] + slot-&gt;detune1[ch-&gt;kcode[s]])
+<a name="l00394"></a>00394                                                                                                                 * slot-&gt;multiple;
+<a name="l00395"></a>00395                         evr = ch-&gt;kcode[s] &gt;&gt; slot-&gt;keyscale;
+<a name="l00396"></a>00396                         if (slot-&gt;envratio != evr) {
+<a name="l00397"></a>00397                                 slot-&gt;envratio = evr;
+<a name="l00398"></a>00398                                 slot-&gt;env_inc_attack = slot-&gt;attack[evr];
+<a name="l00399"></a>00399                                 slot-&gt;env_inc_decay1 = slot-&gt;decay1[evr];
+<a name="l00400"></a>00400                                 slot-&gt;env_inc_decay2 = slot-&gt;decay2[evr];
+<a name="l00401"></a>00401                                 slot-&gt;env_inc_release = slot-&gt;release[evr];
+<a name="l00402"></a>00402                         }
+<a name="l00403"></a>00403                 }
+<a name="l00404"></a>00404         }
+<a name="l00405"></a>00405 }
+<a name="l00406"></a>00406 
+<a name="l00407"></a>00407 
+<a name="l00408"></a>00408 <span class="comment">// ----</span>
 <a name="l00409"></a>00409 
-<a name="l00410"></a>00410 <span class="comment">// ----</span>
+<a name="l00410"></a>00410 <span class="keywordtype">void</span> opngen_reset(<span class="keywordtype">void</span>) {
 <a name="l00411"></a>00411 
-<a name="l00412"></a>00412 <span class="keywordtype">void</span> opngen_reset(<span class="keywordtype">void</span>) {
-<a name="l00413"></a>00413 
-<a name="l00414"></a>00414         <a class="code" href="structOPNCH.html">OPNCH</a>   *ch;
-<a name="l00415"></a>00415         UINT    i;
-<a name="l00416"></a>00416         <a class="code" href="structOPNSLOT.html">OPNSLOT</a> *slot;
-<a name="l00417"></a>00417         UINT    j;
-<a name="l00418"></a>00418 
-<a name="l00419"></a>00419         ZeroMemory(&amp;opngen, <span class="keyword">sizeof</span>(opngen));
-<a name="l00420"></a>00420         ZeroMemory(opnch, <span class="keyword">sizeof</span>(opnch));
-<a name="l00421"></a>00421         opngen.playchannels = 3;
-<a name="l00422"></a>00422 
-<a name="l00423"></a>00423         ch = opnch;
-<a name="l00424"></a>00424         <span class="keywordflow">for</span> (i=0; i&lt;OPNCH_MAX; i++) {
-<a name="l00425"></a>00425                 ch-&gt;keynote[0] = 0;
-<a name="l00426"></a>00426                 slot = ch-&gt;slot;
-<a name="l00427"></a>00427                 <span class="keywordflow">for</span> (j=0; j&lt;4; j++) {
-<a name="l00428"></a>00428                         slot-&gt;env_mode = EM_OFF;
-<a name="l00429"></a>00429                         slot-&gt;env_cnt = EC_OFF;
-<a name="l00430"></a>00430                         slot-&gt;env_end = EC_OFF + 1;
-<a name="l00431"></a>00431                         slot-&gt;env_inc = 0;
-<a name="l00432"></a>00432                         slot-&gt;detune1 = detunetable[0];
-<a name="l00433"></a>00433                         slot-&gt;attack = nulltable;
-<a name="l00434"></a>00434                         slot-&gt;decay1 = nulltable;
-<a name="l00435"></a>00435                         slot-&gt;decay2 = nulltable;
-<a name="l00436"></a>00436                         slot-&gt;release = decaytable;
-<a name="l00437"></a>00437                         slot++;
-<a name="l00438"></a>00438                 }
-<a name="l00439"></a>00439                 ch++;
-<a name="l00440"></a>00440         }
-<a name="l00441"></a>00441         <span class="keywordflow">for</span> (i=0x30; i&lt;0xc0; i++) {
-<a name="l00442"></a>00442                 opngen_setreg(0, i, 0xff);
-<a name="l00443"></a>00443                 opngen_setreg(3, i, 0xff);
-<a name="l00444"></a>00444                 opngen_setreg(6, i, 0xff);
-<a name="l00445"></a>00445                 opngen_setreg(9, i, 0xff);
-<a name="l00446"></a>00446         }
-<a name="l00447"></a>00447 }
-<a name="l00448"></a>00448 
-<a name="l00449"></a>00449 <span class="keywordtype">void</span> opngen_setcfg(REG8 maxch, UINT32 flag) {
+<a name="l00412"></a>00412         <a class="code" href="structOPNCH.html">OPNCH</a>   *ch;
+<a name="l00413"></a>00413         UINT    i;
+<a name="l00414"></a>00414         UINT    j;
+<a name="l00415"></a>00415 
+<a name="l00416"></a>00416         ZeroMemory(&amp;opngen, <span class="keyword">sizeof</span>(opngen));
+<a name="l00417"></a>00417         ZeroMemory(opnch, <span class="keyword">sizeof</span>(opnch));
+<a name="l00418"></a>00418         opngen.playchannels = 3;
+<a name="l00419"></a>00419 
+<a name="l00420"></a>00420         ch = opnch;
+<a name="l00421"></a>00421         <span class="keywordflow">for</span> (i=0; i&lt;OPNCH_MAX; i++) {
+<a name="l00422"></a>00422                 ch-&gt;keynote[0] = 0;
+<a name="l00423"></a>00423                 <a class="code" href="structOPNSLOT.html">OPNSLOT</a> *slot = ch-&gt;slot;
+<a name="l00424"></a>00424                 <span class="keywordflow">for</span> (j=0; j&lt;4; j++) {
+<a name="l00425"></a>00425                         slot-&gt;env_mode = EM_OFF;
+<a name="l00426"></a>00426                         slot-&gt;env_cnt = EC_OFF;
+<a name="l00427"></a>00427                         slot-&gt;env_end = EC_OFF + 1;
+<a name="l00428"></a>00428                         slot-&gt;env_inc = 0;
+<a name="l00429"></a>00429                         slot-&gt;detune1 = detunetable[0];
+<a name="l00430"></a>00430                         slot-&gt;attack = nulltable;
+<a name="l00431"></a>00431                         slot-&gt;decay1 = nulltable;
+<a name="l00432"></a>00432                         slot-&gt;decay2 = nulltable;
+<a name="l00433"></a>00433                         slot-&gt;release = decaytable;
+<a name="l00434"></a>00434                         slot++;
+<a name="l00435"></a>00435                 }
+<a name="l00436"></a>00436                 ch++;
+<a name="l00437"></a>00437         }
+<a name="l00438"></a>00438         <span class="keywordflow">for</span> (i=0x30; i&lt;0xc0; i++) {
+<a name="l00439"></a>00439                 opngen_setreg(0, i, 0xff);
+<a name="l00440"></a>00440                 opngen_setreg(3, i, 0xff);
+<a name="l00441"></a>00441                 opngen_setreg(6, i, 0xff);
+<a name="l00442"></a>00442                 opngen_setreg(9, i, 0xff);
+<a name="l00443"></a>00443         }
+<a name="l00444"></a>00444 }
+<a name="l00445"></a>00445 
+<a name="l00446"></a>00446 <span class="keywordtype">void</span> opngen_setcfg(REG8 maxch, UINT32 flag) {
+<a name="l00447"></a>00447 
+<a name="l00448"></a>00448         <a class="code" href="structOPNCH.html">OPNCH</a>   *ch;
+<a name="l00449"></a>00449         UINT    i;
 <a name="l00450"></a>00450 
-<a name="l00451"></a>00451         <a class="code" href="structOPNCH.html">OPNCH</a>   *ch;
-<a name="l00452"></a>00452         UINT    i;
-<a name="l00453"></a>00453 
-<a name="l00454"></a>00454         opngen.playchannels = maxch;
-<a name="l00455"></a>00455         ch = opnch;
-<a name="l00456"></a>00456         <span class="keywordflow">if</span> ((flag &amp; OPN_CHMASK) == OPN_STEREO) {
-<a name="l00457"></a>00457                 <span class="keywordflow">for</span> (i=0; i&lt;OPNCH_MAX; i++) {
-<a name="l00458"></a>00458                         <span class="keywordflow">if</span> (flag &amp; (1 &lt;&lt; i)) {
-<a name="l00459"></a>00459                                 ch-&gt;stereo = TRUE;
-<a name="l00460"></a>00460                                 set_algorithm(ch);
-<a name="l00461"></a>00461                         }
-<a name="l00462"></a>00462                         ch++;
-<a name="l00463"></a>00463                 }
-<a name="l00464"></a>00464         }
-<a name="l00465"></a>00465         <span class="keywordflow">else</span> {
-<a name="l00466"></a>00466                 <span class="keywordflow">for</span> (i=0; i&lt;OPNCH_MAX; i++) {
-<a name="l00467"></a>00467                         <span class="keywordflow">if</span> (flag &amp; (1 &lt;&lt; i)) {
-<a name="l00468"></a>00468                                 ch-&gt;stereo = FALSE;
-<a name="l00469"></a>00469                                 set_algorithm(ch);
-<a name="l00470"></a>00470                         }
-<a name="l00471"></a>00471                         ch++;
-<a name="l00472"></a>00472                 }
-<a name="l00473"></a>00473         }
-<a name="l00474"></a>00474 }
-<a name="l00475"></a>00475 
-<a name="l00476"></a>00476 <span class="keywordtype">void</span> opngen_setextch(UINT chnum, REG8 data) {
-<a name="l00477"></a>00477 
-<a name="l00478"></a>00478         <a class="code" href="structOPNCH.html">OPNCH</a>   *ch;
-<a name="l00479"></a>00479 
-<a name="l00480"></a>00480         ch = opnch;
-<a name="l00481"></a>00481         ch[chnum].extop = data;
-<a name="l00482"></a>00482 }
-<a name="l00483"></a>00483 
-<a name="l00484"></a>00484 <span class="keywordtype">void</span> opngen_setreg(REG8 chbase, UINT reg, REG8 value) {
+<a name="l00451"></a>00451         opngen.playchannels = maxch;
+<a name="l00452"></a>00452         ch = opnch;
+<a name="l00453"></a>00453         <span class="keywordflow">if</span> ((flag &amp; OPN_CHMASK) == OPN_STEREO) {
+<a name="l00454"></a>00454                 <span class="keywordflow">for</span> (i=0; i&lt;OPNCH_MAX; i++) {
+<a name="l00455"></a>00455                         <span class="keywordflow">if</span> (flag &amp; (1 &lt;&lt; i)) {
+<a name="l00456"></a>00456                                 ch-&gt;stereo = TRUE;
+<a name="l00457"></a>00457                                 set_algorithm(ch);
+<a name="l00458"></a>00458                         }
+<a name="l00459"></a>00459                         ch++;
+<a name="l00460"></a>00460                 }
+<a name="l00461"></a>00461         }
+<a name="l00462"></a>00462         <span class="keywordflow">else</span> {
+<a name="l00463"></a>00463                 <span class="keywordflow">for</span> (i=0; i&lt;OPNCH_MAX; i++) {
+<a name="l00464"></a>00464                         <span class="keywordflow">if</span> (flag &amp; (1 &lt;&lt; i)) {
+<a name="l00465"></a>00465                                 ch-&gt;stereo = FALSE;
+<a name="l00466"></a>00466                                 set_algorithm(ch);
+<a name="l00467"></a>00467                         }
+<a name="l00468"></a>00468                         ch++;
+<a name="l00469"></a>00469                 }
+<a name="l00470"></a>00470         }
+<a name="l00471"></a>00471 }
+<a name="l00472"></a>00472 
+<a name="l00473"></a>00473 <span class="keywordtype">void</span> opngen_setextch(UINT chnum, REG8 data) {
+<a name="l00474"></a>00474 
+<a name="l00475"></a>00475         <a class="code" href="structOPNCH.html">OPNCH</a>   *ch;
+<a name="l00476"></a>00476 
+<a name="l00477"></a>00477         ch = opnch;
+<a name="l00478"></a>00478         ch[chnum].extop = data;
+<a name="l00479"></a>00479 }
+<a name="l00480"></a>00480 
+<a name="l00481"></a>00481 <span class="keywordtype">void</span> opngen_setreg(REG8 chbase, UINT reg, REG8 value) {
+<a name="l00482"></a>00482 
+<a name="l00483"></a>00483         UINT    chpos;
+<a name="l00484"></a>00484         <a class="code" href="structOPNCH.html">OPNCH</a>   *ch;
 <a name="l00485"></a>00485 
-<a name="l00486"></a>00486         UINT    chpos;
-<a name="l00487"></a>00487         <a class="code" href="structOPNCH.html">OPNCH</a>   *ch;
-<a name="l00488"></a>00488         <a class="code" href="structOPNSLOT.html">OPNSLOT</a> *slot;
-<a name="l00489"></a>00489         UINT    fn;
-<a name="l00490"></a>00490         UINT8   blk;
-<a name="l00491"></a>00491 
-<a name="l00492"></a>00492         chpos = reg &amp; 3;
-<a name="l00493"></a>00493         <span class="keywordflow">if</span> (chpos == 3) {
-<a name="l00494"></a>00494                 <span class="keywordflow">return</span>;
-<a name="l00495"></a>00495         }
-<a name="l00496"></a>00496         sound_sync();
-<a name="l00497"></a>00497         ch = opnch + chbase + chpos;
-<a name="l00498"></a>00498         <span class="keywordflow">if</span> (reg &lt; 0xa0) {
-<a name="l00499"></a>00499                 slot = ch-&gt;slot + fmslot[(reg &gt;&gt; 2) &amp; 3];
-<a name="l00500"></a>00500                 <span class="keywordflow">switch</span>(reg &amp; 0xf0) {
-<a name="l00501"></a>00501                         <span class="keywordflow">case</span> 0x30:                                      <span class="comment">// DT1 MUL</span>
-<a name="l00502"></a>00502                                 set_dt1_mul(slot, value);
-<a name="l00503"></a>00503                                 channleupdate(ch);
-<a name="l00504"></a>00504                                 <span class="keywordflow">break</span>;
-<a name="l00505"></a>00505 
-<a name="l00506"></a>00506                         <span class="keywordflow">case</span> 0x40:                                      <span class="comment">// TL</span>
-<a name="l00507"></a>00507                                 set_tl(slot, value);
-<a name="l00508"></a>00508                                 <span class="keywordflow">break</span>;
-<a name="l00509"></a>00509 
-<a name="l00510"></a>00510                         <span class="keywordflow">case</span> 0x50:                                      <span class="comment">// KS AR</span>
-<a name="l00511"></a>00511                                 set_ks_ar(slot, value);
-<a name="l00512"></a>00512                                 channleupdate(ch);
-<a name="l00513"></a>00513                                 <span class="keywordflow">break</span>;
-<a name="l00514"></a>00514 
-<a name="l00515"></a>00515                         <span class="keywordflow">case</span> 0x60:                                      <span class="comment">// D1R</span>
-<a name="l00516"></a>00516                                 set_d1r(slot, value);
-<a name="l00517"></a>00517                                 <span class="keywordflow">break</span>;
-<a name="l00518"></a>00518 
-<a name="l00519"></a>00519                         <span class="keywordflow">case</span> 0x70:                                      <span class="comment">// DT2 D2R</span>
-<a name="l00520"></a>00520                                 set_dt2_d2r(slot, value);
-<a name="l00521"></a>00521                                 channleupdate(ch);
-<a name="l00522"></a>00522                                 <span class="keywordflow">break</span>;
-<a name="l00523"></a>00523 
-<a name="l00524"></a>00524                         <span class="keywordflow">case</span> 0x80:                                      <span class="comment">// D1L RR</span>
-<a name="l00525"></a>00525                                 set_d1l_rr(slot, value);
-<a name="l00526"></a>00526                                 <span class="keywordflow">break</span>;
-<a name="l00527"></a>00527 
-<a name="l00528"></a>00528                         <span class="keywordflow">case</span> 0x90:
-<a name="l00529"></a>00529                                 set_ssgeg(slot, value);
-<a name="l00530"></a>00530                                 channleupdate(ch);
-<a name="l00531"></a>00531                                 <span class="keywordflow">break</span>;
-<a name="l00532"></a>00532                 }
-<a name="l00533"></a>00533         }
-<a name="l00534"></a>00534         <span class="keywordflow">else</span> {
-<a name="l00535"></a>00535                 <span class="keywordflow">switch</span>(reg &amp; 0xfc) {
-<a name="l00536"></a>00536                         <span class="keywordflow">case</span> 0xa0:
-<a name="l00537"></a>00537                                 blk = ch-&gt;keyfunc[0] &gt;&gt; 3;
-<a name="l00538"></a>00538                                 fn = ((ch-&gt;keyfunc[0] &amp; 7) &lt;&lt; 8) + value;
-<a name="l00539"></a>00539                                 ch-&gt;kcode[0] = (blk &lt;&lt; 2) | kftable[fn &gt;&gt; 7];
-<a name="l00540"></a>00540 <span class="comment">//                              ch-&gt;keynote[0] = fn * opmbaserate / (1L &lt;&lt; (22-blk));</span>
-<a name="l00541"></a>00541                                 ch-&gt;keynote[0] = (fn &lt;&lt; (opncfg.ratebit + blk)) &gt;&gt; 6;
-<a name="l00542"></a>00542                                 channleupdate(ch);
+<a name="l00486"></a>00486         chpos = reg &amp; 3;
+<a name="l00487"></a>00487         <span class="keywordflow">if</span> (chpos == 3) {
+<a name="l00488"></a>00488                 <span class="keywordflow">return</span>;
+<a name="l00489"></a>00489         }
+<a name="l00490"></a>00490         sound_sync();
+<a name="l00491"></a>00491         ch = opnch + chbase + chpos;
+<a name="l00492"></a>00492         <span class="keywordflow">if</span> (reg &lt; 0xa0) {
+<a name="l00493"></a>00493                 <a class="code" href="structOPNSLOT.html">OPNSLOT</a> *slot = ch-&gt;slot + fmslot[(reg &gt;&gt; 2) &amp; 3];
+<a name="l00494"></a>00494                 <span class="keywordflow">switch</span>(reg &amp; 0xf0) {
+<a name="l00495"></a>00495                         <span class="keywordflow">case</span> 0x30:                                      <span class="comment">// DT1 MUL</span>
+<a name="l00496"></a>00496                                 set_dt1_mul(slot, value);
+<a name="l00497"></a>00497                                 channleupdate(ch);
+<a name="l00498"></a>00498                                 <span class="keywordflow">break</span>;
+<a name="l00499"></a>00499 
+<a name="l00500"></a>00500                         <span class="keywordflow">case</span> 0x40:                                      <span class="comment">// TL</span>
+<a name="l00501"></a>00501                                 set_tl(slot, value);
+<a name="l00502"></a>00502                                 <span class="keywordflow">break</span>;
+<a name="l00503"></a>00503 
+<a name="l00504"></a>00504                         <span class="keywordflow">case</span> 0x50:                                      <span class="comment">// KS AR</span>
+<a name="l00505"></a>00505                                 set_ks_ar(slot, value);
+<a name="l00506"></a>00506                                 channleupdate(ch);
+<a name="l00507"></a>00507                                 <span class="keywordflow">break</span>;
+<a name="l00508"></a>00508 
+<a name="l00509"></a>00509                         <span class="keywordflow">case</span> 0x60:                                      <span class="comment">// D1R</span>
+<a name="l00510"></a>00510                                 set_d1r(slot, value);
+<a name="l00511"></a>00511                                 <span class="keywordflow">break</span>;
+<a name="l00512"></a>00512 
+<a name="l00513"></a>00513                         <span class="keywordflow">case</span> 0x70:                                      <span class="comment">// DT2 D2R</span>
+<a name="l00514"></a>00514                                 set_dt2_d2r(slot, value);
+<a name="l00515"></a>00515                                 channleupdate(ch);
+<a name="l00516"></a>00516                                 <span class="keywordflow">break</span>;
+<a name="l00517"></a>00517 
+<a name="l00518"></a>00518                         <span class="keywordflow">case</span> 0x80:                                      <span class="comment">// D1L RR</span>
+<a name="l00519"></a>00519                                 set_d1l_rr(slot, value);
+<a name="l00520"></a>00520                                 <span class="keywordflow">break</span>;
+<a name="l00521"></a>00521 
+<a name="l00522"></a>00522                         <span class="keywordflow">case</span> 0x90:
+<a name="l00523"></a>00523                                 set_ssgeg(slot, value);
+<a name="l00524"></a>00524                                 channleupdate(ch);
+<a name="l00525"></a>00525                                 <span class="keywordflow">break</span>;
+<a name="l00526"></a>00526                 }
+<a name="l00527"></a>00527         }
+<a name="l00528"></a>00528         <span class="keywordflow">else</span> {
+<a name="l00529"></a>00529                 UINT fn;
+<a name="l00530"></a>00530                 UINT8 blk;
+<a name="l00531"></a>00531                 <span class="keywordflow">switch</span>(reg &amp; 0xfc) {
+<a name="l00532"></a>00532                         <span class="keywordflow">case</span> 0xa0:
+<a name="l00533"></a>00533                                 blk = ch-&gt;keyfunc[0] &gt;&gt; 3;
+<a name="l00534"></a>00534                                 fn = ((ch-&gt;keyfunc[0] &amp; 7) &lt;&lt; 8) + value;
+<a name="l00535"></a>00535                                 ch-&gt;kcode[0] = (blk &lt;&lt; 2) | kftable[fn &gt;&gt; 7];
+<a name="l00536"></a>00536 <span class="comment">//                              ch-&gt;keynote[0] = fn * opmbaserate / (1L &lt;&lt; (22-blk));</span>
+<a name="l00537"></a>00537                                 ch-&gt;keynote[0] = (fn &lt;&lt; (opncfg.ratebit + blk)) &gt;&gt; 6;
+<a name="l00538"></a>00538                                 channleupdate(ch);
+<a name="l00539"></a>00539                                 <span class="keywordflow">break</span>;
+<a name="l00540"></a>00540 
+<a name="l00541"></a>00541                         <span class="keywordflow">case</span> 0xa4:
+<a name="l00542"></a>00542                                 ch-&gt;keyfunc[0] = value &amp; 0x3f;
 <a name="l00543"></a>00543                                 <span class="keywordflow">break</span>;
 <a name="l00544"></a>00544 
-<a name="l00545"></a>00545                         <span class="keywordflow">case</span> 0xa4:
-<a name="l00546"></a>00546                                 ch-&gt;keyfunc[0] = value &amp; 0x3f;
-<a name="l00547"></a>00547                                 <span class="keywordflow">break</span>;
-<a name="l00548"></a>00548 
-<a name="l00549"></a>00549                         <span class="keywordflow">case</span> 0xa8:
-<a name="l00550"></a>00550                                 ch = opnch + chbase + 2;
-<a name="l00551"></a>00551                                 blk = ch-&gt;keyfunc[chpos+1] &gt;&gt; 3;
-<a name="l00552"></a>00552                                 fn = ((ch-&gt;keyfunc[chpos+1] &amp; 7) &lt;&lt; 8) + value;
-<a name="l00553"></a>00553                                 ch-&gt;kcode[chpos+1] = (blk &lt;&lt; 2) | kftable[fn &gt;&gt; 7];
-<a name="l00554"></a>00554 <span class="comment">//                              ch-&gt;keynote[chpos+1] = fn * opmbaserate / (1L &lt;&lt; (22-blk));</span>
-<a name="l00555"></a>00555                                 ch-&gt;keynote[chpos+1] = (fn &lt;&lt; (opncfg.ratebit + blk)) &gt;&gt; 6;
-<a name="l00556"></a>00556                                 channleupdate(ch);
-<a name="l00557"></a>00557                                 <span class="keywordflow">break</span>;
-<a name="l00558"></a>00558 
-<a name="l00559"></a>00559                         <span class="keywordflow">case</span> 0xac:
-<a name="l00560"></a>00560                                 ch = opnch + chbase + 2;
-<a name="l00561"></a>00561                                 ch-&gt;keyfunc[chpos+1] = value &amp; 0x3f;
-<a name="l00562"></a>00562                                 <span class="keywordflow">break</span>;
-<a name="l00563"></a>00563 
-<a name="l00564"></a>00564                         <span class="keywordflow">case</span> 0xb0:
-<a name="l00565"></a>00565                                 ch-&gt;algorithm = (UINT8)(value &amp; 7);
-<a name="l00566"></a>00566                                 value = (value &gt;&gt; 3) &amp; 7;
-<a name="l00567"></a>00567                                 <span class="keywordflow">if</span> (value) {
-<a name="l00568"></a>00568                                         ch-&gt;feedback = 8 - value;
-<a name="l00569"></a>00569                                 }
-<a name="l00570"></a>00570                                 <span class="keywordflow">else</span> {
-<a name="l00571"></a>00571                                         ch-&gt;feedback = 0;
-<a name="l00572"></a>00572                                 }
-<a name="l00573"></a>00573                                 set_algorithm(ch);
-<a name="l00574"></a>00574                                 <span class="keywordflow">break</span>;
-<a name="l00575"></a>00575 
-<a name="l00576"></a>00576                         <span class="keywordflow">case</span> 0xb4:
-<a name="l00577"></a>00577                                 ch-&gt;pan = (UINT8)(value &amp; 0xc0);
-<a name="l00578"></a>00578                                 set_algorithm(ch);
-<a name="l00579"></a>00579                                 <span class="keywordflow">break</span>;
-<a name="l00580"></a>00580                 }
-<a name="l00581"></a>00581         }
-<a name="l00582"></a>00582 }
-<a name="l00583"></a>00583 
-<a name="l00584"></a>00584 <span class="keywordtype">void</span> opngen_keyon(UINT chnum, REG8 value) {
-<a name="l00585"></a>00585 
-<a name="l00586"></a>00586         <a class="code" href="structOPNCH.html">OPNCH</a>   *ch;
-<a name="l00587"></a>00587         <a class="code" href="structOPNSLOT.html">OPNSLOT</a> *slot;
-<a name="l00588"></a>00588         REG8    bit;
-<a name="l00589"></a>00589         UINT    i;
-<a name="l00590"></a>00590 
-<a name="l00591"></a>00591         sound_sync();
-<a name="l00592"></a>00592         opngen.keyreg[chnum] = value;
-<a name="l00593"></a>00593         opngen.playing++;
-<a name="l00594"></a>00594         ch = opnch + chnum;
-<a name="l00595"></a>00595         ch-&gt;playing |= value &gt;&gt; 4;
-<a name="l00596"></a>00596         slot = ch-&gt;slot;
-<a name="l00597"></a>00597         bit = 0x10;
-<a name="l00598"></a>00598         <span class="keywordflow">for</span> (i=0; i&lt;4; i++) {
-<a name="l00599"></a>00599                 <span class="keywordflow">if</span> (value &amp; bit) {                                                      <span class="comment">// keyon</span>
-<a name="l00600"></a>00600                         <span class="keywordflow">if</span> (slot-&gt;env_mode &lt;= EM_RELEASE) {
-<a name="l00601"></a>00601                                 slot-&gt;freq_cnt = 0;
-<a name="l00602"></a>00602                                 <span class="keywordflow">if</span> (i == OPNSLOT1) {
-<a name="l00603"></a>00603                                         ch-&gt;op1fb = 0;
-<a name="l00604"></a>00604                                 }
-<a name="l00605"></a>00605                                 slot-&gt;env_mode = EM_ATTACK;
-<a name="l00606"></a>00606                                 slot-&gt;env_inc = slot-&gt;env_inc_attack;
-<a name="l00607"></a>00607                                 slot-&gt;env_cnt = EC_ATTACK;
-<a name="l00608"></a>00608                                 slot-&gt;env_end = EC_DECAY;
-<a name="l00609"></a>00609                         }
-<a name="l00610"></a>00610                 }
-<a name="l00611"></a>00611                 <span class="keywordflow">else</span> {                                                                          <span class="comment">// keyoff</span>
-<a name="l00612"></a>00612                         <span class="keywordflow">if</span> (slot-&gt;env_mode &gt; EM_RELEASE) {
-<a name="l00613"></a>00613                                 slot-&gt;env_mode = EM_RELEASE;
-<a name="l00614"></a>00614                                 <span class="keywordflow">if</span> (!(slot-&gt;env_cnt &amp; EC_DECAY)) {
-<a name="l00615"></a>00615                                         slot-&gt;env_cnt = (opncfg.envcurve[slot-&gt;env_cnt
-<a name="l00616"></a>00616                                                                                 &gt;&gt; ENV_BITS] &lt;&lt; ENV_BITS) + EC_DECAY;
-<a name="l00617"></a>00617                                 }
-<a name="l00618"></a>00618                                 slot-&gt;env_end = EC_OFF;
-<a name="l00619"></a>00619                                 slot-&gt;env_inc = slot-&gt;env_inc_release;
-<a name="l00620"></a>00620                         }
-<a name="l00621"></a>00621                 }
-<a name="l00622"></a>00622                 slot++;
-<a name="l00623"></a>00623                 bit &lt;&lt;= 1;
-<a name="l00624"></a>00624         }
-<a name="l00625"></a>00625 <span class="comment">//      keydisp_fmkeyon((UINT8)chnum, value);</span>
-<a name="l00626"></a>00626 }
-<a name="l00627"></a>00627 
+<a name="l00545"></a>00545                         <span class="keywordflow">case</span> 0xa8:
+<a name="l00546"></a>00546                                 ch = opnch + chbase + 2;
+<a name="l00547"></a>00547                                 blk = ch-&gt;keyfunc[chpos+1] &gt;&gt; 3;
+<a name="l00548"></a>00548                                 fn = ((ch-&gt;keyfunc[chpos+1] &amp; 7) &lt;&lt; 8) + value;
+<a name="l00549"></a>00549                                 ch-&gt;kcode[chpos+1] = (blk &lt;&lt; 2) | kftable[fn &gt;&gt; 7];
+<a name="l00550"></a>00550 <span class="comment">//                              ch-&gt;keynote[chpos+1] = fn * opmbaserate / (1L &lt;&lt; (22-blk));</span>
+<a name="l00551"></a>00551                                 ch-&gt;keynote[chpos+1] = (fn &lt;&lt; (opncfg.ratebit + blk)) &gt;&gt; 6;
+<a name="l00552"></a>00552                                 channleupdate(ch);
+<a name="l00553"></a>00553                                 <span class="keywordflow">break</span>;
+<a name="l00554"></a>00554 
+<a name="l00555"></a>00555                         <span class="keywordflow">case</span> 0xac:
+<a name="l00556"></a>00556                                 ch = opnch + chbase + 2;
+<a name="l00557"></a>00557                                 ch-&gt;keyfunc[chpos+1] = value &amp; 0x3f;
+<a name="l00558"></a>00558                                 <span class="keywordflow">break</span>;
+<a name="l00559"></a>00559 
+<a name="l00560"></a>00560                         <span class="keywordflow">case</span> 0xb0:
+<a name="l00561"></a>00561                                 ch-&gt;algorithm = (UINT8)(value &amp; 7);
+<a name="l00562"></a>00562                                 value = (value &gt;&gt; 3) &amp; 7;
+<a name="l00563"></a>00563                                 <span class="keywordflow">if</span> (value) {
+<a name="l00564"></a>00564                                         ch-&gt;feedback = 8 - value;
+<a name="l00565"></a>00565                                 }
+<a name="l00566"></a>00566                                 <span class="keywordflow">else</span> {
+<a name="l00567"></a>00567                                         ch-&gt;feedback = 0;
+<a name="l00568"></a>00568                                 }
+<a name="l00569"></a>00569                                 set_algorithm(ch);
+<a name="l00570"></a>00570                                 <span class="keywordflow">break</span>;
+<a name="l00571"></a>00571 
+<a name="l00572"></a>00572                         <span class="keywordflow">case</span> 0xb4:
+<a name="l00573"></a>00573                                 ch-&gt;pan = (UINT8)(value &amp; 0xc0);
+<a name="l00574"></a>00574                                 set_algorithm(ch);
+<a name="l00575"></a>00575                                 <span class="keywordflow">break</span>;
+<a name="l00576"></a>00576                 }
+<a name="l00577"></a>00577         }
+<a name="l00578"></a>00578 }
+<a name="l00579"></a>00579 
+<a name="l00580"></a>00580 <span class="keywordtype">void</span> opngen_keyon(UINT chnum, REG8 value) {
+<a name="l00581"></a>00581 
+<a name="l00582"></a>00582         <a class="code" href="structOPNCH.html">OPNCH</a>   *ch;
+<a name="l00583"></a>00583         <a class="code" href="structOPNSLOT.html">OPNSLOT</a> *slot;
+<a name="l00584"></a>00584         REG8    bit;
+<a name="l00585"></a>00585         UINT    i;
+<a name="l00586"></a>00586 
+<a name="l00587"></a>00587         sound_sync();
+<a name="l00588"></a>00588         opngen.keyreg[chnum] = value;
+<a name="l00589"></a>00589         opngen.playing++;
+<a name="l00590"></a>00590         ch = opnch + chnum;
+<a name="l00591"></a>00591         ch-&gt;playing |= value &gt;&gt; 4;
+<a name="l00592"></a>00592         slot = ch-&gt;slot;
+<a name="l00593"></a>00593         bit = 0x10;
+<a name="l00594"></a>00594         <span class="keywordflow">for</span> (i=0; i&lt;4; i++) {
+<a name="l00595"></a>00595                 <span class="keywordflow">if</span> (value &amp; bit) {                                                      <span class="comment">// keyon</span>
+<a name="l00596"></a>00596                         <span class="keywordflow">if</span> (slot-&gt;env_mode &lt;= EM_RELEASE) {
+<a name="l00597"></a>00597                                 slot-&gt;freq_cnt = 0;
+<a name="l00598"></a>00598                                 <span class="keywordflow">if</span> (i == OPNSLOT1) {
+<a name="l00599"></a>00599                                         ch-&gt;op1fb = 0;
+<a name="l00600"></a>00600                                 }
+<a name="l00601"></a>00601                                 slot-&gt;env_mode = EM_ATTACK;
+<a name="l00602"></a>00602                                 slot-&gt;env_inc = slot-&gt;env_inc_attack;
+<a name="l00603"></a>00603                                 slot-&gt;env_cnt = EC_ATTACK;
+<a name="l00604"></a>00604                                 slot-&gt;env_end = EC_DECAY;
+<a name="l00605"></a>00605                         }
+<a name="l00606"></a>00606                 }
+<a name="l00607"></a>00607                 <span class="keywordflow">else</span> {                                                                          <span class="comment">// keyoff</span>
+<a name="l00608"></a>00608                         <span class="keywordflow">if</span> (slot-&gt;env_mode &gt; EM_RELEASE) {
+<a name="l00609"></a>00609                                 slot-&gt;env_mode = EM_RELEASE;
+<a name="l00610"></a>00610                                 <span class="keywordflow">if</span> (!(slot-&gt;env_cnt &amp; EC_DECAY)) {
+<a name="l00611"></a>00611                                         slot-&gt;env_cnt = (opncfg.envcurve[slot-&gt;env_cnt
+<a name="l00612"></a>00612                                                                                 &gt;&gt; ENV_BITS] &lt;&lt; ENV_BITS) + EC_DECAY;
+<a name="l00613"></a>00613                                 }
+<a name="l00614"></a>00614                                 slot-&gt;env_end = EC_OFF;
+<a name="l00615"></a>00615                                 slot-&gt;env_inc = slot-&gt;env_inc_release;
+<a name="l00616"></a>00616                         }
+<a name="l00617"></a>00617                 }
+<a name="l00618"></a>00618                 slot++;
+<a name="l00619"></a>00619                 bit &lt;&lt;= 1;
+<a name="l00620"></a>00620         }
+<a name="l00621"></a>00621 <span class="comment">//      keydisp_fmkeyon((UINT8)chnum, value);</span>
+<a name="l00622"></a>00622 }
+<a name="l00623"></a>00623 
 </pre></div></div><!-- contents -->
 
 
 <hr class="footer"/><address class="footer"><small>
-Generated on Tue Oct 1 2019 18:06:27 for DOSBox-X by &#160;<a href="http://www.doxygen.org/index.html">
+Generated on Sun Jul 5 2020 13:11:37 for DOSBox-X by &#160;<a href="http://www.doxygen.org/index.html">
 <img class="footer" src="doxygen.png" alt="doxygen"/>
 </a> 1.8.0
 </small></address>
