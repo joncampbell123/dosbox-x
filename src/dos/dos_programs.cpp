@@ -489,7 +489,9 @@ search:
 		temp_str[0]=drive;
 		temp_str[1]=' ';
 		strcat(mountstring,temp_str);
+		strcat(mountstring,"\"");
 		strcat(mountstring,path);
+		strcat(mountstring,"\"");
 		if (boot) strcat(mountstring," -U");
 		strcat(mountstring," >nul");
 		DOS_Shell temp;
@@ -2655,7 +2657,7 @@ restart_int:
             WriteOut(MSG_Get("PROGRAM_IMGMAKE_CANNOT_WRITE"),temp_line.c_str());
             return;
         }
-#if defined (_MSC_VER) and (_MSC_VER >= 1400)
+#if defined (_MSC_VER) && (_MSC_VER >= 1400)
         if(fseeko64(f,(__int64)(size - 1ull),SEEK_SET)) {
 #else
         if(fseeko64(f,static_cast<off_t>(size - 1ull),SEEK_SET)) {
