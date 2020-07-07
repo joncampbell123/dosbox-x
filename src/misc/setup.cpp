@@ -1320,7 +1320,7 @@ bool CommandLine::GetOpt(std::string &name) {
         std::string &argv = *opt_scan;
         const char *str = argv.c_str();
 
-        if (opt_style == CommandLine::either_except && *str == '/' && (strlen(str)<6 || (strlen(str)>5 && strcasecmp(str+strlen(str)-4, ".bat") && strcasecmp(str+strlen(str)-4, ".com") && strcasecmp(str+strlen(str)-4, ".exe")))) {
+        if (opt_style == CommandLine::either_except && *str == '/' && (strchr(str+1, '/')==NULL && strchr(str+1, '\\')==NULL && (strlen(str)<6 || (strlen(str)>5 && strcasecmp(str+strlen(str)-4, ".bat") && strcasecmp(str+strlen(str)-4, ".com") && strcasecmp(str+strlen(str)-4, ".exe"))))) {
             /* MS-DOS style /option, with the exception of ending with .BAT, .COM, .EXE */
             name = str+1; /* copy to caller minus leaking slash, then erase/skip */
             if (opt_eat_argv) opt_scan = cmds.erase(opt_scan);

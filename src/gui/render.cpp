@@ -1117,12 +1117,13 @@ private:
 
 		// - pure data
 		WRITE_POD( &render.src, render.src );
-
 		WRITE_POD( &render.pal, render.pal );
 		WRITE_POD( &render.updating, render.updating );
 		WRITE_POD( &render.active, render.active );
 		WRITE_POD( &render.fullFrame, render.fullFrame );
 		WRITE_POD( &render.frameskip, render.frameskip );
+		WRITE_POD( &render.aspect, render.aspect );
+		WRITE_POD( &render.scale, render.scale );
 	}
 
 	virtual void setBytes(std::istream& stream)
@@ -1132,12 +1133,13 @@ private:
 
 		// - pure data
 		READ_POD( &render.src, render.src );
-
 		READ_POD( &render.pal, render.pal );
 		READ_POD( &render.updating, render.updating );
 		READ_POD( &render.active, render.active );
 		READ_POD( &render.fullFrame, render.fullFrame );
 		READ_POD( &render.frameskip, render.frameskip );
+		READ_POD( &render.aspect, render.aspect );
+		READ_POD( &render.scale, render.scale );
 
 		//***************************************
 		//***************************************
@@ -1145,11 +1147,12 @@ private:
 		// reset screen
 		//memset( &render.frameskip, 0, sizeof(render.frameskip) );
 
-		render.scale.clearCache = true;
-		if( render.scale.outWrite ) { GFX_EndUpdate(NULL); }
-
-		RENDER_SetSize( render.src.width, render.src.height, render.src.bpp, render.src.fps, render.src.ratio );
-
+		if (render.aspect==ASPECT_FALSE) {
+			render.scale.clearCache = true;
+			if( render.scale.outWrite ) { GFX_EndUpdate(NULL); }
+			RENDER_SetSize( render.src.width, render.src.height, render.src.bpp, render.src.fps, render.src.ratio );
+		} else
+			GFX_ResetScreen();
 	}
 } dummy;
 }

@@ -1093,7 +1093,7 @@ void VGA_SetupOther(void) {
             MAPPER_AddHandler(Composite,MK_nothing,0,"cgacomp","CGA Comp");
         } else {
             MAPPER_AddHandler(CycleMonoCGAPal,MK_nothing,0,"monocgapal","Mono CGA Pal"); 
-            MAPPER_AddHandler(CycleMonoCGABright,MK_nothing,0,"monocgabright","Mono CGA Bright"); 
+            MAPPER_AddHandler(CycleMonoCGABright,MK_nothing,0,"monocgabri","Mono CGA Bright");
         }
 	}
 	if (machine==MCH_TANDY) {

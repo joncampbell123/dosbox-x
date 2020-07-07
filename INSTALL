@@ -1,14 +1,53 @@
-Things needed for compilation.
+Some Information for Installation and Compilation of DOSBox-X
+=============================================================
 
-SDL 
+For the latest releases of DOSBox-X please go to the Releases page:
+https://github.com/joncampbell123/dosbox-x/releases
+
+You will find pre-compiled Windows binaries (both 32-bit and 64-bit)
+and Linux RPM packages (64-bit) from the Releases page.
+
+For each DOSBox-X version there are generally three zip packages for
+the Windows platform, built with Visual Studio, MinGW 32-bit and
+MinGW 64-bit respectively. In the case of DOSBox-X version 0.83.2,
+they correspond to the following:
+
+dosbox-x-windows-20200531-220809-windows.zip
+dosbox-x-mingw-win32-20200531151931.zip
+dosbox-x-mingw-win64-20200531160500.zip
+
+Select one of the zip packages to download and unzip, then you will
+find various directories, which are some supported targets (e.g. Win32
+and x64). Go to a target folder and run dosbox-x.exe inside it, then
+DOSBox-X will be launched and ready to be used.
+
+On the other hand, the following RPM packages are for Linux platform:
+
+dosbox-x-0.83.2-0.el7.x86_64.rpm
+dosbox-x-0.83.2-0.el8.x86_64.rpm
+dosbox-x-debuginfo-0.83.2-0.el7.x86_64.rpm
+dosbox-x-debuginfo-0.83.2-0.el8.x86_64.rpm
+dosbox-x-debugsource-0.83.2-0.el8.x86_64.rpm
+
+Pick a RPM package for your Linux platform and install.
+
+You can also compile DOSBox-X from the source code by yourself. Below
+are some old information for compiling the DOSBox-X source code, which
+may be somewhat outdated. See also the README.source-code-description
+file for updated and more detailed information on building the
+DOSBox-X source code and other related information.
+
+Things needed for compilation of the source code.
+
+SDL 1.2.x or SDL 2.0.x
     The Simple DirectMedia Library available at http://www.libsdl.org
-    The dll distributed with the windows version of DOSBox is slightly
-    modified. You can find the changes in the sourcepackage of DOSBox
-    (src/platform/sdl-win32.diff). If you want the patched sourcetree
-    send us an email. (see README)
+    The DLL distributed with the Windows SDL1 version of DOSBox-X had
+    been modified from the original. You can find the changes in the
+    source package of DOSBox-X (src/platform/sdl-win32.diff). If you
+    want the patched source tree send us an email. (see README)
     Licensed under LGPL
-    Note that only version 1.2 and its subversions (1.2.8, 1.2.13 etc.)
-    are currently supported.
+    Note that only version 1.2.x (SDL1 version) and version 2.0.x
+    (SDL2 version) are currently supported.
 
 Curses (optional)
     If you want to enable the debugger you need a curses library.
@@ -55,7 +94,7 @@ If you are building from developer sources run ./autogen.sh first before doing t
 In step 1 you could add the following switches:
 --enable-debug 
         enables the internal debugger. --enable-debug=heavy enables even more 
-        debug options. DOSBox should then be run from a xterm and when the sdl-
+        debug options. DOSBox-X should then be run from a xterm and when the sdl-
         window is active press alt-pause to enter the debugger.
 
 --enable-core-inline
@@ -73,7 +112,7 @@ In step 1 you could add the following switches:
 
 --disable-dynamic-x86
         disables the dynamic x86 specific cpu core. Although it might be 
-        be a bit unstable, it can greatly improve the speed of dosbox on x86 
+        be a bit unstable, it can greatly improve the speed of dosbox-x on x86 
         hosts.
         Please note that this option on x86 will result in a different
         dynamic/recompiling cpu core being compiled then the default.
@@ -89,7 +128,7 @@ In step 1 you could add the following switches:
 
 --disable-opengl
         disables OpenGL-support (output mode that can be selected in the
-        DOSBox configuration file).
+        DOSBox-X configuration file).
 
 --disable-unaligned-memory
         disables unaligned memory access.

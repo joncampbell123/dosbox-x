@@ -1616,7 +1616,7 @@ void DOS_Shell::CMD_LS(char *args) {
 		if (total<tcols) break;
 	}
 	
-	w_count = 0, p_count = 0;
+	w_count = p_count = 0;
 
 	for (const auto &entry : results) {
 		std::string name = uselfn&&!optZ?entry.lname:entry.name;
@@ -1631,7 +1631,11 @@ void DOS_Shell::CMD_LS(char *args) {
 				WriteOut("\033[34;1m%-*s\033[0m", max[w_count % col], name.c_str());
 		} else {
 			if (!uselfn||optZ) lowcase(name);
-			const bool is_executable = name.length()>4 && (!strcasecmp(name.substr(name.length()-4).c_str(), ".exe") || !strcasecmp(name.substr(name.length()-4).c_str(), ".com") || !strcasecmp(name.substr(name.length()-4).c_str(), ".bat"));
+			bool is_executable=false;
+			if (name.length()>4) {
+				const char *p=name.substr(name.length()-4).c_str();
+				if (!strcasecmp(p, ".exe") || !strcasecmp(p, ".com") || !strcasecmp(p, ".bat")) is_executable=true;
+			}
 			if (col==1) {
 				WriteOut(is_executable?"\033[32;1m%s\033[0m\n":"%s\n", name.c_str());
 				p_count++;

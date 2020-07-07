@@ -1126,8 +1126,8 @@ Module::Module( Section* configuration ) : Module_base(configuration) {
         ReadHandler[2].Install(base+8,OPL_Read,IO_MB, 1);
     }
 
-	MAPPER_AddHandler(OPL_SaveRawEvent,MK_nothing,0,"caprawopl","Cap OPL",&item);
-	item->set_text("Record FM (OPL) output");
+	//MAPPER_AddHandler(OPL_SaveRawEvent,MK_nothing,0,"caprawopl","Cap OPL",&item);
+	//item->set_text("Record FM (OPL) output");
 }
 
 Module::~Module() {

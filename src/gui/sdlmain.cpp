@@ -41,6 +41,9 @@ extern bool dpi_aware_enable;
 extern bool log_int21;
 extern bool log_fileio;
 extern bool force_load_state;
+#if defined(WIN32)
+bool direct_mouse_clipboard=false;
+#endif
 
 bool OpenGL_using(void);
 void GFX_OpenGLRedrawScreen(void);
@@ -4812,7 +4815,7 @@ static void HandleMouseButton(SDL_MouseButtonEvent * button, SDL_MouseMotionEven
 			fx = -1;
 			fy = -1;
 		}
-		if (!sdl.mouse.locked && button->button == SDL_BUTTON_RIGHT && (!strcmp(modifier,"none")
+		if (!sdl.mouse.locked && button->button == SDL_BUTTON_RIGHT && (direct_mouse_clipboard || !strcmp(modifier,"none")
 			|| (!strcmp(modifier,"alt") || !strcmp(modifier,"lalt")) && sdl.laltstate==SDL_KEYDOWN || (!strcmp(modifier,"alt") || !strcmp(modifier,"ralt")) && sdl.raltstate==SDL_KEYDOWN
 			|| (!strcmp(modifier,"ctrl") || !strcmp(modifier,"lctrl")) && sdl.lctrlstate==SDL_KEYDOWN || (!strcmp(modifier,"ctrl") || !strcmp(modifier,"rctrl")) && sdl.rctrlstate==SDL_KEYDOWN
 			|| (!strcmp(modifier,"shift") || !strcmp(modifier,"lshift")) && sdl.lshiftstate==SDL_KEYDOWN || (!strcmp(modifier,"shift") || !strcmp(modifier,"rshift")) && sdl.rshiftstate==SDL_KEYDOWN
@@ -6789,14 +6792,16 @@ bool DOSBOX_parse_argv() {
 
         {
             struct stat st;
-            const char *ext = strrchr(tmp.c_str(),'.');
-            if (ext != NULL) { /* if it looks like a file... with an extension */
-                if (stat(tmp.c_str(), &st) == 0 && S_ISREG(st.st_mode)) {
-                    if (!strcasecmp(ext,".bat") || !strcasecmp(ext,".exe") || !strcasecmp(ext,".com")) { /* .BAT files given on the command line trigger automounting C: to run it */
-                        control->auto_bat_additional.push_back(tmp);
-                        control->cmdline->EatCurrentArgv();
-                        continue;
-                    }
+            const char *ext = strrchr(tmp.c_str(),'.'); /* if it looks like a file... with an extension */
+            if (stat(tmp.c_str(), &st) == 0) {
+                if (st.st_mode & S_IFDIR) {
+                    control->auto_bat_additional.push_back("@mount c: \""+tmp+"\"");
+                    control->cmdline->EatCurrentArgv();
+                    continue;
+                } else if (ext != NULL && S_ISREG(st.st_mode) && (!strcasecmp(ext,".bat") || !strcasecmp(ext,".exe") || !strcasecmp(ext,".com"))) { /* .BAT files given on the command line trigger automounting C: to run it */
+                    control->auto_bat_additional.push_back(tmp);
+                    control->cmdline->EatCurrentArgv();
+                    continue;
                 }
             }
         }
@@ -7692,6 +7697,16 @@ bool autolock_mouse_menu_callback(DOSBoxMenu * const menu, DOSBoxMenu::item * co
     mainMenu.get_item("auto_lock_mouse").check(sdl.mouse.autoenable).refresh_item(mainMenu);
     return true;
 }
+
+#if defined (WIN32)
+bool direct_mouse_clipboard_menu_callback(DOSBoxMenu * const menu, DOSBoxMenu::item * const menuitem) {
+    (void)menu;//UNUSED
+    (void)menuitem;//UNUSED
+    direct_mouse_clipboard = !direct_mouse_clipboard;
+    mainMenu.get_item("direct_mouse_clipboard").check(direct_mouse_clipboard).refresh_item(mainMenu);
+    return true;
+}
+#endif
 
 bool doublebuf_menu_callback(DOSBoxMenu * const menu, DOSBoxMenu::item * const menuitem) {
     (void)menu;//UNUSED
@@ -9058,6 +9073,9 @@ int main(int argc, char* argv[]) SDL_MAIN_NOEXCEPT {
 #endif
         mainMenu.alloc_item(DOSBoxMenu::item_type_id,"wait_on_error").set_text("Wait on error").set_callback_function(wait_on_error_menu_callback).check(sdl.wait_on_error);
         mainMenu.alloc_item(DOSBoxMenu::item_type_id,"auto_lock_mouse").set_text("Autolock mouse").set_callback_function(autolock_mouse_menu_callback).check(sdl.mouse.autoenable);
+#if defined (WIN32)
+        mainMenu.alloc_item(DOSBoxMenu::item_type_id,"direct_mouse_clipboard").set_text("Quick right mouse button copy/paste").set_callback_function(direct_mouse_clipboard_menu_callback).check(direct_mouse_clipboard);
+#endif
         mainMenu.alloc_item(DOSBoxMenu::item_type_id,"sendkey_ctrlesc").set_text("Ctrl+Esc").set_callback_function(sendkey_preset_menu_callback);
         mainMenu.alloc_item(DOSBoxMenu::item_type_id,"sendkey_alttab").set_text("Alt+Tab").set_callback_function(sendkey_preset_menu_callback);
         mainMenu.alloc_item(DOSBoxMenu::item_type_id,"sendkey_winlogo").set_text("Logo key").set_callback_function(sendkey_preset_menu_callback);
