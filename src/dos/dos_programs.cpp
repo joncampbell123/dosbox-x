@@ -2483,19 +2483,21 @@ restart_int:
                 return;
             }
 
-            // temp_line is the filename
-            if (!(cmd->FindCommand(1, temp_line))) {
-                printHelp();
-                return;
-            }
+            bool ForceOverwrite = false;
+            if (cmd->FindExist("-force",true))
+                ForceOverwrite = true;
+            /* temp_line is the given filename */
+            if (!(cmd->FindCommand(1, temp_line)))
+                temp_line = "IMGMAKE.IMG";
 
-            // don't trash user's files
             FILE* f = fopen(temp_line.c_str(),"r");
-            if(f) {
+            if (f && !ForceOverwrite){
                 fclose(f);
                 WriteOut(MSG_Get("PROGRAM_IMGMAKE_FILE_EXISTS"),temp_line.c_str());
                 return;
             }
+            if (ForceOverwrite)
+                fclose(f);
             f = fopen(temp_line.c_str(),"wb+");
             if (!f) {
                 WriteOut(MSG_Get("PROGRAM_IMGMAKE_CANNOT_WRITE"),temp_line.c_str());
@@ -2631,27 +2633,29 @@ restart_int:
         /* beyond this point clamp c */
         if (c > 1023) c = 1023;
 
-        // temp_line is the filename
-        if (!(cmd->FindCommand(1, temp_line))) {
-            printHelp();
-            return;
-        }
+        bool ForceOverwrite = false;
+        if (cmd->FindExist("-force",true))
+            ForceOverwrite = true;
+        /* temp_line is the given filename */
+        if (!(cmd->FindCommand(1, temp_line)))
+            temp_line = "IMGMAKE.IMG";
 
-        // don't trash user's files
         FILE* f = fopen(temp_line.c_str(),"r");
-        if(f) {
+        if (f && !ForceOverwrite){
             fclose(f);
             WriteOut(MSG_Get("PROGRAM_IMGMAKE_FILE_EXISTS"),temp_line.c_str());
             return;
         }
 
-        WriteOut(MSG_Get("PROGRAM_IMGMAKE_PRINT_CHS"),c,h,s);
-        LOG_MSG(MSG_Get("PROGRAM_IMGMAKE_PRINT_CHS"),c,h,s);
+        WriteOut(MSG_Get("PROGRAM_IMGMAKE_PRINT_CHS"),temp_line.c_str(),c,h,s);
+        LOG_MSG(MSG_Get("PROGRAM_IMGMAKE_PRINT_CHS"),temp_line.c_str(),c,h,s);
 
         // do it again for fixed chs values
         sectors = (unsigned int)(size / 512);
 
         // create the image file
+        if (ForceOverwrite)
+            fclose(f);
         f = fopen64(temp_line.c_str(),"wb+");
         if (!f) {
             WriteOut(MSG_Get("PROGRAM_IMGMAKE_CANNOT_WRITE"),temp_line.c_str());
@@ -5999,25 +6003,25 @@ void DOS_SetupPrograms(void) {
         " -u                  Unmount the drive"
     );
     MSG_Add("PROGRAM_IMGMAKE_SYNTAX",
-        "Creates floppy or harddisk images.\n"
-        "Syntax: IMGMAKE file [-t type] [[-size size] | [-chs geometry]] [-nofs]\n"
-        "  [-bat] [-fat] [-spc] [-fatcopies] [-rootdir]"
+        "Creates floppy or hard disk images.\n"
+        "Usage: IMGMAKE [file] [-t type] [[-size size] | [-chs geometry]] [-spc] [-nofs]\n"
+        "  [-bat] [-fat] [-fatcopies] [-rootdir] [-force]"
 #ifdef WIN32
         " [-source source] [-r retries]"
 #endif
-        "\n  file: The image file that is to be created - !path on the host!\n"
+        "\n  file: Image file to create (or IMGMAKE.IMG if not set) - \033[31;1mpath on the host\033[0m\n"
         "  -t: Type of image.\n"
-        "    Floppy templates (names resolve to floppy sizes in kilobytes):\n"
+        "    \033[33;1mFloppy disk templates\033[0m (names resolve to floppy sizes in kilobytes):\n"
         "     fd_160 fd_180 fd_200 fd_320 fd_360 fd_400 fd_720 fd_1200 fd_1440 fd_2880\n"
-        "    Harddisk templates:\n"
+        "    \033[33;1mHard disk templates:\033[0m\n"
         "     hd_250: 250MB image, hd_520: 520MB image, hd_2gig: 2GB image\n"
         "     hd_4gig:  4GB image, hd_8gig: 8GB image (maximum size)\n"
         "     hd_st251: 40MB image, hd_st225: 20MB image (geometry from old drives)\n"
-        "    Custom harddisk images:\n"
-        "     hd (requires -size or -chs)\n"
-        "  -size: Size of a custom harddisk image in MB.\n"
+        "    \033[33;1mCustom hard disk images:\033[0m hd (requires -size or -chs)\n"
+        "  -size: Size of a custom hard disk image in MB.\n"
         "  -chs: Disk geometry in cylinders(1-1023),heads(1-255),sectors(1-63).\n"
         "  -nofs: Add this parameter if a blank image should be created.\n"
+        "  -force: Force to overwrite the existing image file.\n"
         "  -bat: Create a .bat file with the IMGMOUNT command required for this image.\n"
         "  -fat: FAT filesystem type (12, 16, or 32)\n"
         "  -spc: Sectors per cluster override. Must be a power of 2.\n"
@@ -6031,14 +6035,15 @@ void DOS_SetupPrograms(void) {
         );
     MSG_Add("PROGRAM_IMGMAKE_EXAMPLE",
         "Some usage examples of IMGMAKE:\n\n"
-        "  imgmake c:\\image.img -t fd_1440          - create a 1.44MB floppy image\n"
-        "  imgmake c:\\image.img -t hd -size 100     - create a 100MB hdd image\n"
-        "  imgmake c:\\image.img -t hd_520 -nofs     - create a 520MB blank hdd image\n"
-        "  imgmake c:\\image.img -t hd_2gig -fat 32  - create a 2GB FAT32 hdd image\n"
-        "  imgmake c:\\image.img -t hd -chs 130,2,17 - create a special hdd image\n"
+        "  \033[34;1mimgmake c:\\image.img -t fd_1440\033[0m          - create a 1.44MB floppy image\n"
+        "  \033[34;1mimgmake c:\\image.img -t hd -size 100\033[0m     - create a 100MB hdd image\n"
+        "  \033[34;1mimgmake c:\\image.img -t hd_520 -nofs\033[0m     - create a 520MB blank hdd image\n"
+        "  \033[34;1mimgmake c:\\image.img -t hd_2gig -fat 32\033[0m  - create a 2GB FAT32 hdd image\n"
+        "  \033[34;1mimgmake c:\\image.img -t hd -chs 130,2,17\033[0m - create a special hdd image\n"
 #ifdef WIN32
-        "  imgmake c:\\image.img -source a           - read image from physical drive A\n"
+        "  \033[34;1mimgmake c:\\image.img -source a\033[0m           - read image from physical drive A\n"
 #endif
+        "  \033[34;1mimgmake -t fd_2880 -force\033[0m           - force to create a 2.88MB floppy image\n"
         );
 
 #ifdef WIN32
@@ -6047,10 +6052,10 @@ void DOS_SetupPrograms(void) {
     MSG_Add("PROGRAM_IMGMAKE_FLREAD2",
         "\xdb =good, \xb1 =good after retries, ! =CRC error, x =sector not found, ? =unknown\n\n");
 #endif
-    MSG_Add("PROGRAM_IMGMAKE_FILE_EXISTS","The file \"%s\" already exists.\n");
+    MSG_Add("PROGRAM_IMGMAKE_FILE_EXISTS","The file \"%s\" already exists. You can specify \"-force\" to overwrite.\n");
     MSG_Add("PROGRAM_IMGMAKE_CANNOT_WRITE","The file \"%s\" cannot be opened for writing.\n");
     MSG_Add("PROGRAM_IMGMAKE_NOT_ENOUGH_SPACE","Not enough space availible for the image file. Need %u bytes.\n");
-    MSG_Add("PROGRAM_IMGMAKE_PRINT_CHS","Creating an image file with %u cylinders, %u heads and %u sectors\n");
+    MSG_Add("PROGRAM_IMGMAKE_PRINT_CHS","Creating image file \"%s\" with %u cylinders, %u heads and %u sectors\n");
     MSG_Add("PROGRAM_IMGMAKE_CANT_READ_FLOPPY","\n\nUnable to read floppy.");
 
     MSG_Add("PROGRAM_KEYB_INFO","Codepage %i has been loaded\n");
