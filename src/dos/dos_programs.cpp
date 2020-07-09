@@ -2491,13 +2491,13 @@ restart_int:
                 temp_line = "IMGMAKE.IMG";
 
             FILE* f = fopen(temp_line.c_str(),"r");
-            if (f && !ForceOverwrite){
+            if (f){
                 fclose(f);
-                WriteOut(MSG_Get("PROGRAM_IMGMAKE_FILE_EXISTS"),temp_line.c_str());
-                return;
+                if (!ForceOverwrite) {
+                    WriteOut(MSG_Get("PROGRAM_IMGMAKE_FILE_EXISTS"),temp_line.c_str());
+                    return;
+                }
             }
-            if (ForceOverwrite)
-                fclose(f);
             f = fopen(temp_line.c_str(),"wb+");
             if (!f) {
                 WriteOut(MSG_Get("PROGRAM_IMGMAKE_CANNOT_WRITE"),temp_line.c_str());
@@ -2641,10 +2641,12 @@ restart_int:
             temp_line = "IMGMAKE.IMG";
 
         FILE* f = fopen(temp_line.c_str(),"r");
-        if (f && !ForceOverwrite){
+        if (f){
             fclose(f);
-            WriteOut(MSG_Get("PROGRAM_IMGMAKE_FILE_EXISTS"),temp_line.c_str());
-            return;
+            if (!ForceOverwrite) {
+                WriteOut(MSG_Get("PROGRAM_IMGMAKE_FILE_EXISTS"),temp_line.c_str());
+                return;
+            }
         }
 
         WriteOut(MSG_Get("PROGRAM_IMGMAKE_PRINT_CHS"),temp_line.c_str(),c,h,s);
@@ -2654,8 +2656,6 @@ restart_int:
         sectors = (unsigned int)(size / 512);
 
         // create the image file
-        if (ForceOverwrite)
-            fclose(f);
         f = fopen64(temp_line.c_str(),"wb+");
         if (!f) {
             WriteOut(MSG_Get("PROGRAM_IMGMAKE_CANNOT_WRITE"),temp_line.c_str());
