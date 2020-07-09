@@ -2467,7 +2467,10 @@ restart_int:
             path.c_str(),filename.c_str(),dpath.c_str());
         return;
 */
-            
+
+        bool ForceOverwrite = false;
+        if (cmd->FindExist("-force",true))
+            ForceOverwrite = true;
 #ifdef WIN32
         // read from real floppy?
         if(cmd->FindString("-source",src,true)) {
@@ -2483,9 +2486,6 @@ restart_int:
                 return;
             }
 
-            bool ForceOverwrite = false;
-            if (cmd->FindExist("-force",true))
-                ForceOverwrite = true;
             /* temp_line is the given filename */
             if (!(cmd->FindCommand(1, temp_line)))
                 temp_line = "IMGMAKE.IMG";
@@ -2633,9 +2633,6 @@ restart_int:
         /* beyond this point clamp c */
         if (c > 1023) c = 1023;
 
-        bool ForceOverwrite = false;
-        if (cmd->FindExist("-force",true))
-            ForceOverwrite = true;
         /* temp_line is the given filename */
         if (!(cmd->FindCommand(1, temp_line)))
             temp_line = "IMGMAKE.IMG";
