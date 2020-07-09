@@ -219,6 +219,15 @@ common opcode "CALL FAR" param(sv,ov) {
     syntax farptr(sv,ov); /* seg:off */
 }
 
+common opcode "RET" param(iw) {
+    modifies stackp; /* stackp += (word size + iw) */
+    modifies insp;
+
+    output insp;
+    input order(stackdataw);
+    input iw;
+}
+
 common opcode "RETF" param(iw) {
     modifies stackp; /* stackp += (word size + 16 bits + iw) */
     modifies CS,insp;
