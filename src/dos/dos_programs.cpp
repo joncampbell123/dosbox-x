@@ -561,7 +561,7 @@ public:
         WriteOut(MSG_Get("PROGRAM_MOUNT_STATUS_1"));
         WriteOut(MSG_Get("PROGRAM_MOUNT_STATUS_FORMAT"),"Drive","Type","Label");
         for(int p = 0;p < 8;p++) WriteOut("----------");
-
+        bool none=true;
         for (int d = 0;d < DOS_DRIVES;d++) {
             if (!Drives[d]) continue;
 
@@ -579,8 +579,10 @@ public:
             }
 
             root[1] = 0; //This way, the format string can be reused.
-            WriteOut(MSG_Get("PROGRAM_MOUNT_STATUS_FORMAT"),root, Drives[d]->GetInfo(),name);       
+            WriteOut(MSG_Get("PROGRAM_MOUNT_STATUS_FORMAT"),root, Drives[d]->GetInfo(),name);
+            none=false;
         }
+        if (none) WriteOut(MSG_Get("PROGRAM_IMGMOUNT_STATUS_NONE"));
         dos.dta(save_dta);
     }
 
@@ -3586,7 +3588,7 @@ public:
         WriteOut(MSG_Get("PROGRAM_IMGMOUNT_STATUS_1"));
         WriteOut(MSG_Get("PROGRAM_MOUNT_STATUS_FORMAT"),"Drive","Type","Label");
         for(int p = 0;p < 8;p++) WriteOut("----------");
-
+        bool none=true;
         for (int d = 0;d < DOS_DRIVES;d++) {
             if (!Drives[d] || (strncmp(Drives[d]->GetInfo(), "fatDrive ", 9) && strncmp(Drives[d]->GetInfo(), "isoDrive ", 9))) continue;
             char root[7] = {(char)('A'+d),':','\\','*','.','*',0};
@@ -3604,13 +3606,20 @@ public:
 
             root[1] = 0; //This way, the format string can be reused.
             WriteOut(MSG_Get("PROGRAM_MOUNT_STATUS_FORMAT"),root, Drives[d]->GetInfo(),name);       
+            none=false;
         }
+        if (none) WriteOut(MSG_Get("PROGRAM_IMGMOUNT_STATUS_NONE"));
 		WriteOut("\n");
 		WriteOut(MSG_Get("PROGRAM_IMGMOUNT_STATUS_2"));
 		WriteOut(MSG_Get("PROGRAM_MOUNT_STATUS_NUMBER_FORMAT"),"Drive number","Disk name");
         for(int p = 0;p < 8;p++) WriteOut("----------");
+        none=true;
 		for (int index = 0; index < MAX_DISK_IMAGES; index++)
-			if (imageDiskList[index]) WriteOut(MSG_Get("PROGRAM_MOUNT_STATUS_NUMBER_FORMAT"), std::to_string(index).c_str(), imageDiskList[index]->diskname.c_str());
+			if (imageDiskList[index]) {
+                WriteOut(MSG_Get("PROGRAM_MOUNT_STATUS_NUMBER_FORMAT"), std::to_string(index).c_str(), imageDiskList[index]->diskname.c_str());
+                none=false;
+            }
+        if (none) WriteOut(MSG_Get("PROGRAM_IMGMOUNT_STATUS_NONE"));
         dos.dta(save_dta);
     }
     void Run(void) {
@@ -5651,6 +5660,7 @@ void DOS_SetupPrograms(void) {
     MSG_Add("PROGRAM_MOUNT_STATUS_1","The currently mounted drives are:\n");
     MSG_Add("PROGRAM_IMGMOUNT_STATUS_2","The currently mounted drive numbers are:\n");
     MSG_Add("PROGRAM_IMGMOUNT_STATUS_1","The currently mounted FAT/ISO drives are:\n");
+    MSG_Add("PROGRAM_IMGMOUNT_STATUS_NONE","No drive available\n");
     MSG_Add("PROGRAM_MOUNT_ERROR_1","Directory %s doesn't exist.\n");
     MSG_Add("PROGRAM_MOUNT_ERROR_2","%s is not a directory\n");
     MSG_Add("PROGRAM_MOUNT_ILL_TYPE","Illegal type %s\n");
@@ -5661,12 +5671,12 @@ void DOS_SetupPrograms(void) {
         "For example: MOUNT c %s\n"
         "This makes the directory %s act as the C: drive inside DOSBox-X.\n"
         "The directory has to exist in the host system.\n\n"
-		"Options are accepted. For example:\n"
-		"MOUNT -nocachedir c %s mounts C: without caching the drive.\n"
-		"MOUNT -freesize 128 c %s mounts C: with the specified free disk space.\n"
-		"MOUNT -ro c %s mounts the C: drive in read-only mode.\n"
-		"MOUNT -t cdrom c %s mounts the C: drive as a CD-ROM drive.\n"
-		"MOUNT -u c unmounts the C: drive.\n\n"
+		"Options are accepted. For example:\n\n"
+		"\033[32;1mMOUNT -nocachedir c %s \033[0m  mounts C: without caching the drive.\n"
+		"\033[32;1mMOUNT -freesize 128 c %s \033[0mmounts C: with the specified free disk space.\n"
+		"\033[32;1mMOUNT -ro c %s \033[0m          mounts the C: drive in read-only mode.\n"
+		"\033[32;1mMOUNT -t cdrom c %s \033[0m     mounts the C: drive as a CD-ROM drive.\n"
+		"\033[32;1mMOUNT -u c \033[0m                       unmounts the C: drive.\n\n"
 		"Type MOUNT with no parameters to display a list of mounted drives.\n");
     MSG_Add("PROGRAM_MOUNT_UMOUNT_NOT_MOUNTED","Drive %c is not mounted.\n");
     MSG_Add("PROGRAM_MOUNT_UMOUNT_SUCCESS","Drive %c has successfully been removed.\n");
@@ -5693,10 +5703,10 @@ void DOS_SetupPrograms(void) {
         "  {program}   Runs the specified program\n"
         "  {options}   Program options (if any)\n\n"
         "Examples:\n"
-        "  LOADFIX game.exe     Allocates 64KB of conventional memory and runs game.exe\n"
-        "  LOADFIX -128         Allocates 128KB of conventional memory\n"
-        "  LOADFIX -xms         Allocates 1MB of XMS memory\n"
-        "  LOADFIX -f           Frees allocated conventional memory\n");
+        "  \033[32;1mLOADFIX game.exe\033[34;1m     Allocates 64KB of conventional memory and runs game.exe\n"
+        "  \033[32;1mLOADFIX -128\033[34;1m         Allocates 128KB of conventional memory\n"
+        "  \033[32;1mLOADFIX -xms\033[34;1m         Allocates 1MB of XMS memory\n"
+        "  \033[32;1mLOADFIX -f\033[34;1m           Frees allocated conventional memory\n");
 
     MSG_Add("MSCDEX_SUCCESS","MSCDEX installed.\n");
     MSG_Add("MSCDEX_ERROR_MULTIPLE_CDROMS","MSCDEX: Failure: Drive-letters of multiple CD-ROM drives have to be continuous.\n");
@@ -6032,15 +6042,15 @@ void DOS_SetupPrograms(void) {
         );
     MSG_Add("PROGRAM_IMGMAKE_EXAMPLE",
         "Some usage examples of IMGMAKE:\n\n"
-        "  \033[34;1mimgmake c:\\image.img -t fd_1440\033[0m          - create a 1.44MB floppy image\n"
-        "  \033[34;1mimgmake c:\\image.img -t hd -size 100\033[0m     - create a 100MB hdd image\n"
-        "  \033[34;1mimgmake c:\\image.img -t hd_520 -nofs\033[0m     - create a 520MB blank hdd image\n"
-        "  \033[34;1mimgmake c:\\image.img -t hd_2gig -fat 32\033[0m  - create a 2GB FAT32 hdd image\n"
-        "  \033[34;1mimgmake c:\\image.img -t hd -chs 130,2,17\033[0m - create a special hdd image\n"
+        "  \033[32;1mIMGMAKE c:\\image.img -t fd_1440\033[0m          - create a 1.44MB floppy image\n"
+        "  \033[32;1mIMGMAKE c:\\image.img -t hd -size 100\033[0m     - create a 100MB hdd image\n"
+        "  \033[32;1mIMGMAKE c:\\image.img -t hd_520 -nofs\033[0m     - create a 520MB blank hdd image\n"
+        "  \033[32;1mIMGMAKE c:\\image.img -t hd_2gig -fat 32\033[0m  - create a 2GB FAT32 hdd image\n"
+        "  \033[32;1mIMGMAKE c:\\image.img -t hd -chs 130,2,17\033[0m - create a special hdd image\n"
 #ifdef WIN32
-        "  \033[34;1mimgmake c:\\image.img -source a\033[0m           - read image from physical drive A\n"
+        "  \033[32;1mIMGMAKE c:\\image.img -source a\033[0m           - read image from physical drive A\n"
 #endif
-        "  \033[34;1mimgmake -t fd_2880 -force\033[0m           - force to create a 2.88MB floppy image\n"
+        "  \033[32;1mIMGMAKE -t fd_2880 -force\033[0m           - force to create a 2.88MB floppy image\n"
         );
 
 #ifdef WIN32
@@ -6058,12 +6068,12 @@ void DOS_SetupPrograms(void) {
     MSG_Add("PROGRAM_KEYB_INFO","Codepage %i has been loaded\n");
     MSG_Add("PROGRAM_KEYB_INFO_LAYOUT","Codepage %i has been loaded for layout %s\n");
     MSG_Add("PROGRAM_KEYB_SHOWHELP","Configures a keyboard for a specific language.\n\n"
-        "\033[32;1mKEYB\033[0m [keyboard layout ID[ codepage number[ codepage file]]]\n\n"
+        "KEYB [keyboard layout ID [codepage number [codepage file]]]\n\n"
         "Some examples:\n"
-        "  \033[32;1mKEYB\033[0m: Display currently loaded codepage.\n"
-        "  \033[32;1mKEYB\033[0m sp: Load the spanish (SP) layout, use an appropriate codepage.\n"
-        "  \033[32;1mKEYB\033[0m sp 850: Load the spanish (SP) layout, use codepage 850.\n"
-        "  \033[32;1mKEYB\033[0m sp 850 mycp.cpi: Same as above, but use file mycp.cpi.\n");
+        "  \033[32;1mKEYB\033[0m          Display currently loaded codepage.\n"
+        "  \033[32;1mKEYB sp\033[0m       Load the Spanish (SP) layout, use an appropriate codepage.\n"
+        "  \033[32;1mKEYB sp 850\033[0m   Load the Spanish (SP) layout, use codepage 850.\n"
+        "  \033[32;1mKEYB sp 850 mycp.cpi\033[0m Same as above, but use file mycp.cpi.\n");
     MSG_Add("PROGRAM_KEYB_NOERROR","Keyboard layout %s loaded for codepage %i\n");
     MSG_Add("PROGRAM_KEYB_FILENOTFOUND","Keyboard file %s not found\n\n");
     MSG_Add("PROGRAM_KEYB_INVALIDFILE","Keyboard file %s invalid\n");

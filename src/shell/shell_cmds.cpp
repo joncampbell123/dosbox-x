@@ -2563,7 +2563,7 @@ void DOS_Shell::CMD_SUBST(char * args) {
 			WriteOut(MSG_Get("SHELL_CMD_SUBST_DRIVE_LIST"));
 			WriteOut(MSG_Get("PROGRAM_MOUNT_STATUS_FORMAT"),"Drive","Type","Label");
 			for(int p = 0;p < 8;p++) WriteOut("----------");
-
+			bool none=true;
 			for (int d = 0;d < DOS_DRIVES;d++) {
 				if (!Drives[d]||strncmp(Drives[d]->GetInfo(),"local ",6)) continue;
 
@@ -2581,8 +2581,10 @@ void DOS_Shell::CMD_SUBST(char * args) {
 				}
 
 				root[1] = 0; //This way, the format string can be reused.
-				WriteOut(MSG_Get("PROGRAM_MOUNT_STATUS_FORMAT"),root, Drives[d]->GetInfo(),name);       
+				WriteOut(MSG_Get("PROGRAM_MOUNT_STATUS_FORMAT"),root, Drives[d]->GetInfo(),name);
+                none=false;
 			}
+            if (none) WriteOut(MSG_Get("PROGRAM_IMGMOUNT_STATUS_NONE"));
 			dos.dta(save_dta);
 			return;
 		}
