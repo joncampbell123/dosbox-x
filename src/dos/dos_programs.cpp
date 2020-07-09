@@ -5459,28 +5459,18 @@ void AUTOTYPE::PrintUsage()
 {
 	constexpr const char *msg =
 	        "Performs scripted keyboard entry into a running DOS program.\n\n"
-			"\033[32;1mAUTOTYPE\033[0m [-list] [-w WAIT] [-p PACE] "
-	        "button_1 [button_2 [...]] \n\n"
+	        "AUTOTYPE [-list] [-w WAIT] [-p PACE] button_1 [button_2 [...]]\n\n"
 	        "Where:\n"
 	        "  -list:   prints all available button names.\n"
-	        "  -w WAIT: seconds before typing begins. Two second default; "
-	        "max of 30.\n"
-	        "  -p PACE: seconds between each keystroke. Half-second "
-	        "default; max of 10.\n"
-	        "\n"
-	        "  The sequence is comprised of one or more space-separated "
-	        "buttons.\n"
-	        "  Autotyping begins after WAIT seconds, and each button is "
-	        "entered \n"
-	        "  every PACE seconds. The , character inserts an extra PACE "
-	        "delay.\n"
-	        "\n"
+	        "  -w WAIT: seconds before typing begins. Two second default; max of 30.\n"
+	        "  -p PACE: seconds between each keystroke. Half-second default; max of 10.\n\n"
+	        "  The sequence is comprised of one or more space-separated buttons.\n"
+	        "  Autotyping begins after WAIT seconds, and each button is entered\n"
+	        "  every PACE seconds. The , character inserts an extra PACE delay.\n\n"
 	        "Some examples:\n"
-	        "  \033[32;1mAUTOTYPE\033[0m -w 1 -p 0.3 up enter , right "
-	        "enter\n"
-	        "  \033[32;1mAUTOTYPE\033[0m -p 0.2 f1 kp_8 , , enter\n"
-	        "  \033[32;1mAUTOTYPE\033[0m -w 1.3 esc enter , p l a y e r "
-	        "enter\n";
+	        "  \033[32;1mAUTOTYPE -w 1 -p 0.3 up enter , right enter\033[0m\n"
+	        "  \033[32;1mAUTOTYPE -p 0.2 f1 kp_8 , , enter\033[0m\n"
+	        "  \033[32;1mAUTOTYPE -w 1.3 esc enter , p l a y e r enter\033[0m\n";
 	WriteOut_NoParsing(msg);
 }
 
@@ -5703,10 +5693,10 @@ void DOS_SetupPrograms(void) {
         "  {program}   Runs the specified program\n"
         "  {options}   Program options (if any)\n\n"
         "Examples:\n"
-        "  \033[32;1mLOADFIX game.exe\033[34;1m     Allocates 64KB of conventional memory and runs game.exe\n"
-        "  \033[32;1mLOADFIX -128\033[34;1m         Allocates 128KB of conventional memory\n"
-        "  \033[32;1mLOADFIX -xms\033[34;1m         Allocates 1MB of XMS memory\n"
-        "  \033[32;1mLOADFIX -f\033[34;1m           Frees allocated conventional memory\n");
+        "  \033[32;1mLOADFIX game.exe\033[0m     Allocates 64KB of conventional memory and runs game.exe\n"
+        "  \033[32;1mLOADFIX -128\033[0m         Allocates 128KB of conventional memory\n"
+        "  \033[32;1mLOADFIX -xms\033[0m         Allocates 1MB of XMS memory\n"
+        "  \033[32;1mLOADFIX -f\033[0m           Frees allocated conventional memory\n");
 
     MSG_Add("MSCDEX_SUCCESS","MSCDEX installed.\n");
     MSG_Add("MSCDEX_ERROR_MULTIPLE_CDROMS","MSCDEX: Failure: Drive-letters of multiple CD-ROM drives have to be continuous.\n");
