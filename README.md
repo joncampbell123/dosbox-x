@@ -176,8 +176,8 @@ If your Linux distribution has it enabled, consider using the auditing
 system to limit what the DOSBox-X executable is allowed to do.
 
 
-Features that DOSBox-X unlikely to support at this time
--------------------------------------------------------
+Features that DOSBox-X is unlikely to support at this time
+----------------------------------------------------------
 
 DOSBox-X aims to be a fully-featured DOS emulation package, but there are
 some things the design as implemented now cannot accomodate.
@@ -327,23 +327,37 @@ These significant changes require dropping some useful features (including the m
 URL: https://github.com/yksoft1/dosbox-x-vanilla-sdl/tree/emscripten (look for clone URL and use the emscripten branch)
 
 
-Foreign keyboard layouts
-------------------------
+International keyboard layouts
+------------------------------
 
-DOSBox-X was developed around the US keyboard layout,
-with support for a few additional layouts.
+DOSBox-X was developed around the US keyboard layout.
+This is primarily due to limitations around SDL1, which
+is responsible for input handling, and only supports US
+keyboards. If you have a non-US keyboard it is
+recommended to use the SDL2 build.
+Alternatively with the SDL1 build, in your dosbox-x.conf
+file in the [sdl] section you can set ```usescancodes=true```
+to prevent SDL1 from messing things up.
 
-You can change the keyboard layout in the [dos] section
-of the dosbox-x.conf file.
+You can set your keyboard layout in the [dos] section
+of the dosbox-x.conf file. For instance to set a German
+keyboard layout you can specify ```keyboardlayout=de```.
+It will also automatically set a suitable codepage.
 
 Alternatively, the KEYB command can be used from the 
 DOSBox-X command line to change the keyboard layout.
 For example:
 
-```KEYB UK 858```
+```KEYB UK```
 
 This command will switch the current keyboard layout to
-the UK keyboard layout (code page 858).
+the UK keyboard layout and set code page 858.
+
+Alternatively you can also specify a different codepage
+by adding the codepage number to the end. Most European
+countries would have used codepage 850 back in the day,
+but DOSBox-X instead uses codepage 858, which is the same
+as codepage 850 with the addition of the Euro symbol.
 
 The Japanese keyboard layout is also supported in NEC
 PC-98 mode. You can start DOSBox-X in PC-98 mode directly
