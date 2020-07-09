@@ -1003,7 +1003,7 @@ namespace Adlib {
 
 Module::Module( Section* configuration ) : Module_base(configuration) {
     Bitu sb_addr=0,sb_irq=0,sb_dma=0;
-	DOSBoxMenu::item *item;
+//	DOSBoxMenu::item *item;
     lastUsed = 0;
     mode = MODE_OPL2;
     capture = NULL;

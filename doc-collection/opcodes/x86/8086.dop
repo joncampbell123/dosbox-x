@@ -219,6 +219,33 @@ common opcode "CALL FAR" param(sv,ov) {
     syntax farptr(sv,ov); /* seg:off */
 }
 
+common opcode "RET" param(iw) {
+    modifies stackp; /* stackp += (word size + iw) */
+    modifies insp;
+
+    output insp;
+    input order(stackdataw);
+    input iw;
+}
+
+common opcode "RETF" param(iw) {
+    modifies stackp; /* stackp += (word size + 16 bits + iw) */
+    modifies CS,insp;
+
+    output CS,insp;
+    input order(stackdataw,stackdata16);
+    input iw;
+}
+
+common opcode "INT" param(iw) {
+    modifies stackp; /* stackp += (word size + 16 bits + iw) */
+    modifies CS,insp;
+
+    input iw;
+    output CS,insp;
+    output order(stackdataw,stackdata16,flags);
+}
+
 opcode sequence(0x00 mrm) name "ADD" { /* ADD r/m, reg */ common opcode "ADD" param(rmb,regb); }
 opcode sequence(0x01 mrm) name "ADD" { /* ADD r/m, reg */ common opcode "ADD" param(rmw,regw); }
 opcode sequence(0x02 mrm) name "ADD" { /* ADD reg, r/m */ common opcode "ADD" param(regb,rmb); }
@@ -551,10 +578,31 @@ opcode sequence(0xAF) name "SCASW" {
 }
 opcode sequence([0xB0,0xB7] immb) name "MOV" {
     reg index = opbyte(0) & 7;
-    common opcode "MOV"  param(regb,immb);
+    common opcode "MOV" param(regb,immb);
 }
 opcode sequence([0xB8,0xBF] immw) name "MOV" {
     reg index = opbyte(0) & 7;
-    common opcode "MOV"  param(regw,immw);
+    common opcode "MOV" param(regw,immw);
 }
-
+opcode sequence(0xC2 immw) name "RET" {
+    common opcode "RET" param(immw);
+}
+opcode sequence(0xC3) name "RET" {
+    common opcode "RET" param(0);
+}
+opcode sequence(0xCA immw) name "RETF" {
+    common opcode "RETF" param(immw);
+}
+opcode sequence(0xCB) name "RETF" {
+    common opcode "RETF" param(0);
+}
+opcode sequence(0xCC) name "INT" {
+    common opcode "INT" param(3);
+}
+opcode sequence(0xCD immb) name "INT" {
+    common opcode "INT" param(immb);
+}
+opcode sequence(0xCE) name "INTO" {
+    input flags;
+    common opcode "INT" param(4);
+}
