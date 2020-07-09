@@ -561,7 +561,7 @@ public:
         WriteOut(MSG_Get("PROGRAM_MOUNT_STATUS_1"));
         WriteOut(MSG_Get("PROGRAM_MOUNT_STATUS_FORMAT"),"Drive","Type","Label");
         for(int p = 0;p < 8;p++) WriteOut("----------");
-
+        bool none=true;
         for (int d = 0;d < DOS_DRIVES;d++) {
             if (!Drives[d]) continue;
 
@@ -579,8 +579,10 @@ public:
             }
 
             root[1] = 0; //This way, the format string can be reused.
-            WriteOut(MSG_Get("PROGRAM_MOUNT_STATUS_FORMAT"),root, Drives[d]->GetInfo(),name);       
+            WriteOut(MSG_Get("PROGRAM_MOUNT_STATUS_FORMAT"),root, Drives[d]->GetInfo(),name);
+            none=false;
         }
+        if (none) WriteOut(MSG_Get("PROGRAM_IMGMOUNT_STATUS_NONE"));
         dos.dta(save_dta);
     }
 
@@ -2467,7 +2469,10 @@ restart_int:
             path.c_str(),filename.c_str(),dpath.c_str());
         return;
 */
-            
+
+        bool ForceOverwrite = false;
+        if (cmd->FindExist("-force",true))
+            ForceOverwrite = true;
 #ifdef WIN32
         // read from real floppy?
         if(cmd->FindString("-source",src,true)) {
@@ -2483,18 +2488,17 @@ restart_int:
                 return;
             }
 
-            // temp_line is the filename
-            if (!(cmd->FindCommand(1, temp_line))) {
-                printHelp();
-                return;
-            }
+            /* temp_line is the given filename */
+            if (!(cmd->FindCommand(1, temp_line)))
+                temp_line = "IMGMAKE.IMG";
 
-            // don't trash user's files
             FILE* f = fopen(temp_line.c_str(),"r");
-            if(f) {
+            if (f){
                 fclose(f);
-                WriteOut(MSG_Get("PROGRAM_IMGMAKE_FILE_EXISTS"),temp_line.c_str());
-                return;
+                if (!ForceOverwrite) {
+                    WriteOut(MSG_Get("PROGRAM_IMGMAKE_FILE_EXISTS"),temp_line.c_str());
+                    return;
+                }
             }
             f = fopen(temp_line.c_str(),"wb+");
             if (!f) {
@@ -2631,22 +2635,21 @@ restart_int:
         /* beyond this point clamp c */
         if (c > 1023) c = 1023;
 
-        // temp_line is the filename
-        if (!(cmd->FindCommand(1, temp_line))) {
-            printHelp();
-            return;
-        }
+        /* temp_line is the given filename */
+        if (!(cmd->FindCommand(1, temp_line)))
+            temp_line = "IMGMAKE.IMG";
 
-        // don't trash user's files
         FILE* f = fopen(temp_line.c_str(),"r");
-        if(f) {
+        if (f){
             fclose(f);
-            WriteOut(MSG_Get("PROGRAM_IMGMAKE_FILE_EXISTS"),temp_line.c_str());
-            return;
+            if (!ForceOverwrite) {
+                WriteOut(MSG_Get("PROGRAM_IMGMAKE_FILE_EXISTS"),temp_line.c_str());
+                return;
+            }
         }
 
-        WriteOut(MSG_Get("PROGRAM_IMGMAKE_PRINT_CHS"),c,h,s);
-        LOG_MSG(MSG_Get("PROGRAM_IMGMAKE_PRINT_CHS"),c,h,s);
+        WriteOut(MSG_Get("PROGRAM_IMGMAKE_PRINT_CHS"),temp_line.c_str(),c,h,s);
+        LOG_MSG(MSG_Get("PROGRAM_IMGMAKE_PRINT_CHS"),temp_line.c_str(),c,h,s);
 
         // do it again for fixed chs values
         sectors = (unsigned int)(size / 512);
@@ -3585,7 +3588,7 @@ public:
         WriteOut(MSG_Get("PROGRAM_IMGMOUNT_STATUS_1"));
         WriteOut(MSG_Get("PROGRAM_MOUNT_STATUS_FORMAT"),"Drive","Type","Label");
         for(int p = 0;p < 8;p++) WriteOut("----------");
-
+        bool none=true;
         for (int d = 0;d < DOS_DRIVES;d++) {
             if (!Drives[d] || (strncmp(Drives[d]->GetInfo(), "fatDrive ", 9) && strncmp(Drives[d]->GetInfo(), "isoDrive ", 9))) continue;
             char root[7] = {(char)('A'+d),':','\\','*','.','*',0};
@@ -3603,13 +3606,20 @@ public:
 
             root[1] = 0; //This way, the format string can be reused.
             WriteOut(MSG_Get("PROGRAM_MOUNT_STATUS_FORMAT"),root, Drives[d]->GetInfo(),name);       
+            none=false;
         }
+        if (none) WriteOut(MSG_Get("PROGRAM_IMGMOUNT_STATUS_NONE"));
 		WriteOut("\n");
 		WriteOut(MSG_Get("PROGRAM_IMGMOUNT_STATUS_2"));
 		WriteOut(MSG_Get("PROGRAM_MOUNT_STATUS_NUMBER_FORMAT"),"Drive number","Disk name");
         for(int p = 0;p < 8;p++) WriteOut("----------");
+        none=true;
 		for (int index = 0; index < MAX_DISK_IMAGES; index++)
-			if (imageDiskList[index]) WriteOut(MSG_Get("PROGRAM_MOUNT_STATUS_NUMBER_FORMAT"), std::to_string(index).c_str(), imageDiskList[index]->diskname.c_str());
+			if (imageDiskList[index]) {
+                WriteOut(MSG_Get("PROGRAM_MOUNT_STATUS_NUMBER_FORMAT"), std::to_string(index).c_str(), imageDiskList[index]->diskname.c_str());
+                none=false;
+            }
+        if (none) WriteOut(MSG_Get("PROGRAM_IMGMOUNT_STATUS_NONE"));
         dos.dta(save_dta);
     }
     void Run(void) {
@@ -5449,28 +5459,18 @@ void AUTOTYPE::PrintUsage()
 {
 	constexpr const char *msg =
 	        "Performs scripted keyboard entry into a running DOS program.\n\n"
-			"\033[32;1mAUTOTYPE\033[0m [-list] [-w WAIT] [-p PACE] "
-	        "button_1 [button_2 [...]] \n\n"
+	        "AUTOTYPE [-list] [-w WAIT] [-p PACE] button_1 [button_2 [...]]\n\n"
 	        "Where:\n"
 	        "  -list:   prints all available button names.\n"
-	        "  -w WAIT: seconds before typing begins. Two second default; "
-	        "max of 30.\n"
-	        "  -p PACE: seconds between each keystroke. Half-second "
-	        "default; max of 10.\n"
-	        "\n"
-	        "  The sequence is comprised of one or more space-separated "
-	        "buttons.\n"
-	        "  Autotyping begins after WAIT seconds, and each button is "
-	        "entered \n"
-	        "  every PACE seconds. The , character inserts an extra PACE "
-	        "delay.\n"
-	        "\n"
+	        "  -w WAIT: seconds before typing begins. Two second default; max of 30.\n"
+	        "  -p PACE: seconds between each keystroke. Half-second default; max of 10.\n\n"
+	        "  The sequence is comprised of one or more space-separated buttons.\n"
+	        "  Autotyping begins after WAIT seconds, and each button is entered\n"
+	        "  every PACE seconds. The , character inserts an extra PACE delay.\n\n"
 	        "Some examples:\n"
-	        "  \033[32;1mAUTOTYPE\033[0m -w 1 -p 0.3 up enter , right "
-	        "enter\n"
-	        "  \033[32;1mAUTOTYPE\033[0m -p 0.2 f1 kp_8 , , enter\n"
-	        "  \033[32;1mAUTOTYPE\033[0m -w 1.3 esc enter , p l a y e r "
-	        "enter\n";
+	        "  \033[32;1mAUTOTYPE -w 1 -p 0.3 up enter , right enter\033[0m\n"
+	        "  \033[32;1mAUTOTYPE -p 0.2 f1 kp_8 , , enter\033[0m\n"
+	        "  \033[32;1mAUTOTYPE -w 1.3 esc enter , p l a y e r enter\033[0m\n";
 	WriteOut_NoParsing(msg);
 }
 
@@ -5650,6 +5650,7 @@ void DOS_SetupPrograms(void) {
     MSG_Add("PROGRAM_MOUNT_STATUS_1","The currently mounted drives are:\n");
     MSG_Add("PROGRAM_IMGMOUNT_STATUS_2","The currently mounted drive numbers are:\n");
     MSG_Add("PROGRAM_IMGMOUNT_STATUS_1","The currently mounted FAT/ISO drives are:\n");
+    MSG_Add("PROGRAM_IMGMOUNT_STATUS_NONE","No drive available\n");
     MSG_Add("PROGRAM_MOUNT_ERROR_1","Directory %s doesn't exist.\n");
     MSG_Add("PROGRAM_MOUNT_ERROR_2","%s is not a directory\n");
     MSG_Add("PROGRAM_MOUNT_ILL_TYPE","Illegal type %s\n");
@@ -5660,12 +5661,12 @@ void DOS_SetupPrograms(void) {
         "For example: MOUNT c %s\n"
         "This makes the directory %s act as the C: drive inside DOSBox-X.\n"
         "The directory has to exist in the host system.\n\n"
-		"Options are accepted. For example:\n"
-		"MOUNT -nocachedir c %s mounts C: without caching the drive.\n"
-		"MOUNT -freesize 128 c %s mounts C: with the specified free disk space.\n"
-		"MOUNT -ro c %s mounts the C: drive in read-only mode.\n"
-		"MOUNT -t cdrom c %s mounts the C: drive as a CD-ROM drive.\n"
-		"MOUNT -u c unmounts the C: drive.\n\n"
+		"Options are accepted. For example:\n\n"
+		"\033[32;1mMOUNT -nocachedir c %s \033[0m  mounts C: without caching the drive.\n"
+		"\033[32;1mMOUNT -freesize 128 c %s \033[0mmounts C: with the specified free disk space.\n"
+		"\033[32;1mMOUNT -ro c %s \033[0m          mounts the C: drive in read-only mode.\n"
+		"\033[32;1mMOUNT -t cdrom c %s \033[0m     mounts the C: drive as a CD-ROM drive.\n"
+		"\033[32;1mMOUNT -u c \033[0m                       unmounts the C: drive.\n\n"
 		"Type MOUNT with no parameters to display a list of mounted drives.\n");
     MSG_Add("PROGRAM_MOUNT_UMOUNT_NOT_MOUNTED","Drive %c is not mounted.\n");
     MSG_Add("PROGRAM_MOUNT_UMOUNT_SUCCESS","Drive %c has successfully been removed.\n");
@@ -5692,10 +5693,10 @@ void DOS_SetupPrograms(void) {
         "  {program}   Runs the specified program\n"
         "  {options}   Program options (if any)\n\n"
         "Examples:\n"
-        "  LOADFIX game.exe     Allocates 64KB of conventional memory and runs game.exe\n"
-        "  LOADFIX -128         Allocates 128KB of conventional memory\n"
-        "  LOADFIX -xms         Allocates 1MB of XMS memory\n"
-        "  LOADFIX -f           Frees allocated conventional memory\n");
+        "  \033[32;1mLOADFIX game.exe\033[0m     Allocates 64KB of conventional memory and runs game.exe\n"
+        "  \033[32;1mLOADFIX -128\033[0m         Allocates 128KB of conventional memory\n"
+        "  \033[32;1mLOADFIX -xms\033[0m         Allocates 1MB of XMS memory\n"
+        "  \033[32;1mLOADFIX -f\033[0m           Frees allocated conventional memory\n");
 
     MSG_Add("MSCDEX_SUCCESS","MSCDEX installed.\n");
     MSG_Add("MSCDEX_ERROR_MULTIPLE_CDROMS","MSCDEX: Failure: Drive-letters of multiple CD-ROM drives have to be continuous.\n");
@@ -5999,25 +6000,25 @@ void DOS_SetupPrograms(void) {
         " -u                  Unmount the drive"
     );
     MSG_Add("PROGRAM_IMGMAKE_SYNTAX",
-        "Creates floppy or harddisk images.\n"
-        "Syntax: IMGMAKE file [-t type] [[-size size] | [-chs geometry]] [-nofs]\n"
-        "  [-bat] [-fat] [-spc] [-fatcopies] [-rootdir]"
+        "Creates floppy or hard disk images.\n"
+        "Usage: IMGMAKE [file] [-t type] [[-size size] | [-chs geometry]] [-spc] [-nofs]\n"
+        "  [-bat] [-fat] [-fatcopies] [-rootdir] [-force]"
 #ifdef WIN32
         " [-source source] [-r retries]"
 #endif
-        "\n  file: The image file that is to be created - !path on the host!\n"
+        "\n  file: Image file to create (or IMGMAKE.IMG if not set) - \033[31;1mpath on the host\033[0m\n"
         "  -t: Type of image.\n"
-        "    Floppy templates (names resolve to floppy sizes in kilobytes):\n"
+        "    \033[33;1mFloppy disk templates\033[0m (names resolve to floppy sizes in kilobytes):\n"
         "     fd_160 fd_180 fd_200 fd_320 fd_360 fd_400 fd_720 fd_1200 fd_1440 fd_2880\n"
-        "    Harddisk templates:\n"
+        "    \033[33;1mHard disk templates:\033[0m\n"
         "     hd_250: 250MB image, hd_520: 520MB image, hd_2gig: 2GB image\n"
         "     hd_4gig:  4GB image, hd_8gig: 8GB image (maximum size)\n"
         "     hd_st251: 40MB image, hd_st225: 20MB image (geometry from old drives)\n"
-        "    Custom harddisk images:\n"
-        "     hd (requires -size or -chs)\n"
-        "  -size: Size of a custom harddisk image in MB.\n"
+        "    \033[33;1mCustom hard disk images:\033[0m hd (requires -size or -chs)\n"
+        "  -size: Size of a custom hard disk image in MB.\n"
         "  -chs: Disk geometry in cylinders(1-1023),heads(1-255),sectors(1-63).\n"
         "  -nofs: Add this parameter if a blank image should be created.\n"
+        "  -force: Force to overwrite the existing image file.\n"
         "  -bat: Create a .bat file with the IMGMOUNT command required for this image.\n"
         "  -fat: FAT filesystem type (12, 16, or 32)\n"
         "  -spc: Sectors per cluster override. Must be a power of 2.\n"
@@ -6031,14 +6032,15 @@ void DOS_SetupPrograms(void) {
         );
     MSG_Add("PROGRAM_IMGMAKE_EXAMPLE",
         "Some usage examples of IMGMAKE:\n\n"
-        "  imgmake c:\\image.img -t fd_1440          - create a 1.44MB floppy image\n"
-        "  imgmake c:\\image.img -t hd -size 100     - create a 100MB hdd image\n"
-        "  imgmake c:\\image.img -t hd_520 -nofs     - create a 520MB blank hdd image\n"
-        "  imgmake c:\\image.img -t hd_2gig -fat 32  - create a 2GB FAT32 hdd image\n"
-        "  imgmake c:\\image.img -t hd -chs 130,2,17 - create a special hdd image\n"
+        "  \033[32;1mIMGMAKE c:\\image.img -t fd_1440\033[0m          - create a 1.44MB floppy image\n"
+        "  \033[32;1mIMGMAKE c:\\image.img -t hd -size 100\033[0m     - create a 100MB hdd image\n"
+        "  \033[32;1mIMGMAKE c:\\image.img -t hd_520 -nofs\033[0m     - create a 520MB blank hdd image\n"
+        "  \033[32;1mIMGMAKE c:\\image.img -t hd_2gig -fat 32\033[0m  - create a 2GB FAT32 hdd image\n"
+        "  \033[32;1mIMGMAKE c:\\image.img -t hd -chs 130,2,17\033[0m - create a special hdd image\n"
 #ifdef WIN32
-        "  imgmake c:\\image.img -source a           - read image from physical drive A\n"
+        "  \033[32;1mIMGMAKE c:\\image.img -source a\033[0m           - read image from physical drive A\n"
 #endif
+        "  \033[32;1mIMGMAKE -t fd_2880 -force\033[0m           - force to create a 2.88MB floppy image\n"
         );
 
 #ifdef WIN32
@@ -6047,21 +6049,21 @@ void DOS_SetupPrograms(void) {
     MSG_Add("PROGRAM_IMGMAKE_FLREAD2",
         "\xdb =good, \xb1 =good after retries, ! =CRC error, x =sector not found, ? =unknown\n\n");
 #endif
-    MSG_Add("PROGRAM_IMGMAKE_FILE_EXISTS","The file \"%s\" already exists.\n");
+    MSG_Add("PROGRAM_IMGMAKE_FILE_EXISTS","The file \"%s\" already exists. You can specify \"-force\" to overwrite.\n");
     MSG_Add("PROGRAM_IMGMAKE_CANNOT_WRITE","The file \"%s\" cannot be opened for writing.\n");
     MSG_Add("PROGRAM_IMGMAKE_NOT_ENOUGH_SPACE","Not enough space availible for the image file. Need %u bytes.\n");
-    MSG_Add("PROGRAM_IMGMAKE_PRINT_CHS","Creating an image file with %u cylinders, %u heads and %u sectors\n");
+    MSG_Add("PROGRAM_IMGMAKE_PRINT_CHS","Creating image file \"%s\" with %u cylinders, %u heads and %u sectors\n");
     MSG_Add("PROGRAM_IMGMAKE_CANT_READ_FLOPPY","\n\nUnable to read floppy.");
 
     MSG_Add("PROGRAM_KEYB_INFO","Codepage %i has been loaded\n");
     MSG_Add("PROGRAM_KEYB_INFO_LAYOUT","Codepage %i has been loaded for layout %s\n");
     MSG_Add("PROGRAM_KEYB_SHOWHELP","Configures a keyboard for a specific language.\n\n"
-        "\033[32;1mKEYB\033[0m [keyboard layout ID[ codepage number[ codepage file]]]\n\n"
+        "KEYB [keyboard layout ID [codepage number [codepage file]]]\n\n"
         "Some examples:\n"
-        "  \033[32;1mKEYB\033[0m: Display currently loaded codepage.\n"
-        "  \033[32;1mKEYB\033[0m sp: Load the spanish (SP) layout, use an appropriate codepage.\n"
-        "  \033[32;1mKEYB\033[0m sp 850: Load the spanish (SP) layout, use codepage 850.\n"
-        "  \033[32;1mKEYB\033[0m sp 850 mycp.cpi: Same as above, but use file mycp.cpi.\n");
+        "  \033[32;1mKEYB\033[0m          Display currently loaded codepage.\n"
+        "  \033[32;1mKEYB sp\033[0m       Load the Spanish (SP) layout, use an appropriate codepage.\n"
+        "  \033[32;1mKEYB sp 850\033[0m   Load the Spanish (SP) layout, use codepage 850.\n"
+        "  \033[32;1mKEYB sp 850 mycp.cpi\033[0m Same as above, but use file mycp.cpi.\n");
     MSG_Add("PROGRAM_KEYB_NOERROR","Keyboard layout %s loaded for codepage %i\n");
     MSG_Add("PROGRAM_KEYB_FILENOTFOUND","Keyboard file %s not found\n\n");
     MSG_Add("PROGRAM_KEYB_INVALIDFILE","Keyboard file %s invalid\n");
