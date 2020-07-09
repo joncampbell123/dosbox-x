@@ -4,9 +4,16 @@
     and paste via the right mouse button without any
     key modifier that may have been specified by the
     config option "clip_key_modifier". (Wengier)
+  - Fixed mounting disk images with spaces via the
+    "Drive" menu. (Wengier)
   - IMGMAKE warning replaced to indicate a general
     incompatibility between MS-DOS/SCANDISK and
     cluster sizes 64KB or larger.
+  - IMGMAKE command will now use the image file name
+    "IMGMAKE.IMG" if no file name is specified. It now
+    also supports the -force option to force overwrite
+    the image file if it already exists. (Wengier)
+    
 0.83.3
   - IMGMAKE can now generate FAT12, FAT16, and FAT32
     filesystems. New option "-fat" is added to select
