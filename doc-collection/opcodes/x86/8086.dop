@@ -228,6 +228,15 @@ common opcode "RETF" param(iw) {
     input iw;
 }
 
+common opcode "INT" param(iw) {
+    modifies stackp; /* stackp += (word size + 16 bits + iw) */
+    modifies CS,insp;
+
+    input iw;
+    output CS,insp;
+    output order(stackdataw,stackdata16,flags);
+}
+
 opcode sequence(0x00 mrm) name "ADD" { /* ADD r/m, reg */ common opcode "ADD" param(rmb,regb); }
 opcode sequence(0x01 mrm) name "ADD" { /* ADD r/m, reg */ common opcode "ADD" param(rmw,regw); }
 opcode sequence(0x02 mrm) name "ADD" { /* ADD reg, r/m */ common opcode "ADD" param(regb,rmb); }
@@ -572,4 +581,9 @@ opcode sequence(0xC2 immw) name "RETF" {
 opcode sequence(0xC3) name "RETF" {
     common opcode "RETF" param(0);
 }
-
+opcode sequence(0xC4) name "INT" {
+    common opcode "INT" param(3);
+}
+opcode sequence(0xC5 immb) name "INT" {
+    common opcode "INT" param(immb);
+}
