@@ -1162,125 +1162,124 @@ public:
 			// try to match emulated keyboard layout with host-keyboardlayout
 			// codepage 437 (standard) is preferred
 			switch (cur_kb_layout) {
-/*				case 1026:
+/*				case 1026: // Bulgaria, CP 915, Alt CP 850
 					layoutname = "bg241";
 					break; */
-				case 1029:
+				case 1029: // Czech Republic, CP 852, Alt CP 850
 					layoutname = "cz243";
 					break;
-				case 1030:
+				case 1030: // Denmark, CP 850, Alt CP 865
 					layoutname = "dk";
 					break;
-				case 1031:
+				case 1031: // Germany, CP 850, Alt CP 437
 					layoutname = "gr";
 					wants_dos_codepage = (IS_PC98_ARCH ? 932 : 437);
 					break;
-				case 1033:
-					// US
+				case 1033: // US, CP 437
 					return;
-				case 1032:
+				case 1032: // Greece, CP 869, Alt CP 813
 					layoutname = "gk";
 					break;
-				case 1034:
+				case 1034: // Spain, CP 850, Alt CP 437
 					layoutname = "sp";
 					wants_dos_codepage = (IS_PC98_ARCH ? 932 : 437);
 					break;
-				case 1035:
+				case 1035: // Finland, CP 850, Alt CP 437
 					layoutname = "su";
 					wants_dos_codepage = (IS_PC98_ARCH ? 932 : 437);
 					break;
-				case 1036:
+				case 1036: // France, CP 850, Alt CP 437
 					layoutname = "fr";
 					wants_dos_codepage = (IS_PC98_ARCH ? 932 : 437);
 					break;
-				case 1038:
+				case 1038: // Hungary, CP 852, Alt CP 850
 					if (cur_kb_subID==1) layoutname = "hu";
 					else layoutname = "hu208";
 					break;
-				case 1039:
+				case 1039: // Iceland, CP 850, Alt CP 861
 					layoutname = "is161";
 					break;
-				case 1040:
+				case 1040: // Italy, CP 850, Alt CP 437
 					layoutname = "it";
 					wants_dos_codepage = (IS_PC98_ARCH ? 932 : 437);
 					break;
-				case 1043:
+				case 1043: // Netherlands, CP 850, Alt CP 437
 					layoutname = "nl";
 					wants_dos_codepage = (IS_PC98_ARCH ? 932 : 437);
 					break;
-				case 1044:
+				case 1044: // Norway, CP 850, Alt CP 865
 					layoutname = "no";
 					break;
-				case 1045:
+				case 1045: // Poland, CP 852, Alt CP 850
 					layoutname = "pl";
 					break;
-				case 1046:
+				case 1046: // Brazil, CP 850, Alt CP 437
 					layoutname = "br";
 					wants_dos_codepage = (IS_PC98_ARCH ? 932 : 437);
 					break;
-/*				case 1048:
+/*				case 1048: // Romania, CP  852, Alt CP 850
 					layoutname = "ro446";
 					break; */
-				case 1049:
+				case 1049: // Russia, CP  866, Alt CP 915
 					layoutname = "ru";
 					wants_dos_codepage = (IS_PC98_ARCH ? 932 : 437);
 					break;
-				case 1050:
+				case 1050: // Croatia, CP 852, Alt CP 850
 					layoutname = "hr";
 					break;
-				case 1051:
+				case 1051: // Slovakia, CP 852, Alt CP 850
 					layoutname = "sk";
 					break;
-/*				case 1052:
+/*				case 1052: // Albania, CP 850, Alt CP 437
 					layoutname = "sq448";
 					break; */
-				case 1053:
+				case 1053: // Sweden, CP 850, Alt CP 437
 					layoutname = "sv";
 					wants_dos_codepage = (IS_PC98_ARCH ? 932 : 437);
 					break;
-				case 1055:
+				case 1055: // Turkey, CP 857
 					layoutname = "tr";
 					break;
-				case 1058:
+				case 1058: // Ukraine, CP 848?
 					layoutname = "ur";
 					wants_dos_codepage = (IS_PC98_ARCH ? 932 : 437);
 					break;
-				case 1059:
+				case 1059: // Belarus, CP 849?
 					layoutname = "bl";
 					break;
-				case 1060:
+				case 1060: // Slovenia, CP 852, Alt CP 850
 					layoutname = "si";
 					break;
-				case 1061:
+				case 1061: // Estonia, CP 922, Alt CP 850
 					layoutname = "et";
 					break;
-/*				case 1062:
+/*				case 1062: // Latvia, CP 921, Alt CP 850
 					layoutname = "lv";
 					break; */
-/*				case 1063:
+/*				case 1063: // Lithuania, CP 921, Alt CP 850
 					layoutname = "lt221";
 					break; */
-/*				case 1064:
+/*				case 1064: // Tajik, CP 866?
 					layoutname = "tj";
 					break;
-				case 1066:
+				case 1066: // Vietnam, has no DOS CP
 					layoutname = "vi";
 					break;
-				case 1067:
+				case 1067: // Armenian, has no DOS CP
 					layoutname = "hy";
 					break; */
-				case 2055:
+				case 2055: // Swiss-German, CP 850, Alt CP 437
 					layoutname = "sg";
 					wants_dos_codepage = (IS_PC98_ARCH ? 932 : 437);
 					break;
-				case 2070:
+				case 2070: // Portugal, CP 850, Alt CP 860
 					layoutname = "po";
 					break;
-				case 4108:
+				case 4108: // Swiss-French, CP 850, Alt CP 437
 					layoutname = "sf";
 					wants_dos_codepage = (IS_PC98_ARCH ? 932 : 437);
 					break;
-				case 1041:
+				case 1041: // Japan, CP 943, Alt CP 942
 					layoutname = "jp";
 					break;
 				default:
