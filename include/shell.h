@@ -318,6 +318,7 @@ public:
 	bool echo;
 	bool exit;
 	bool call;
+    bool perm;
 	bool lfnfor;
     /* Status */
     bool input_eof;                     //! STDIN has hit EOF

@@ -69,6 +69,7 @@ static void SHELL_ProgramStart_First_shell(DOS_Shell * * make) {
 
 #define CONFIG_SIZE 4096
 #define AUTOEXEC_SIZE 4096
+static char i4dos_data[CONFIG_SIZE] = { 0 };
 static char config_data[CONFIG_SIZE] = { 0 };
 static char autoexec_data[AUTOEXEC_SIZE] = { 0 };
 static std::list<std::string> autoexec_strings;
@@ -189,6 +190,7 @@ DOS_Shell::DOS_Shell():Program(){
 	input_handle=STDIN;
 	echo=true;
 	exit=false;
+    perm = false;
 	bf=0;
 	call=false;
 	lfnfor = uselfn;
@@ -440,8 +442,9 @@ void DOS_Shell::RunInternal(void) {
 void DOS_Shell::Run(void) {
 	char input_line[CMD_MAXLINE] = {0};
 	std::string line;
-	bool optC=cmd->FindStringRemainBegin("/C",line), optK=false;
-	if (!optC) optK=cmd->FindStringRemainBegin("/K",line);	
+	bool optP=cmd->FindStringRemain("/P",line), optC=cmd->FindStringRemainBegin("/C",line), optK=false;
+	if (!optC) optK=cmd->FindStringRemainBegin("/K",line);
+	if (optP) perm=true;
 	if (optC||optK) {
 		input_line[CMD_MAXLINE-1u] = 0;
 		strncpy(input_line,line.c_str(),CMD_MAXLINE-1u);
@@ -451,7 +454,7 @@ void DOS_Shell::Run(void) {
 		temp.echo = echo;
 		temp.ParseLine(input_line);		//for *.exe *.com  |*.bat creates the bf needed by runinternal;
 		temp.RunInternal();				// exits when no bf is found.
-		if (!optK||temp.exit)
+		if (!optK||!perm&&temp.exit)
 			return;
 	} else if (cmd->FindStringRemain("/?",line)) {
 		WriteOut(MSG_Get("SHELL_CMD_COMMAND_HELP"));
@@ -574,7 +577,21 @@ void DOS_Shell::Run(void) {
 			}
 		}
 #endif
-
+		strcpy(i4dos_data, "");
+		section = static_cast<Section_prop *>(control->GetSection("4dos"));
+		if (section!=NULL) {
+			const char * extra = const_cast<char*>(section->data.c_str());
+			if (extra) {
+				std::istringstream in(extra);
+				if (in)	for (std::string line; std::getline(in, line); ) {
+					if (strncasecmp(line.c_str(), "rem=", 4)) {
+						strcat(i4dos_data, line.c_str());
+						strcat(i4dos_data, "\r\n");
+					}
+				}
+			}
+		}
+		VFILE_Register("4DOS.INI",(Bit8u *)i4dos_data,(Bit32u)strlen(i4dos_data));
     }
     else {
         WriteOut(optK?"\n":"DOSBox-X command shell [Version %s %s]\nCopyright DOSBox-X Team. All rights reserved\n\n",VERSION,SDL_STRING);
@@ -614,7 +631,7 @@ void DOS_Shell::Run(void) {
 			ParseLine(input_line);
 			if (echo && !bf) WriteOut_NoParsing("\n");
 		}
-	} while (!exit);
+	} while (perm||!exit);
 }
 
 void DOS_Shell::SyntaxError(void) {
@@ -1278,7 +1295,7 @@ void SHELL_Init() {
 	MSG_Add("SHELL_CMD_INT2FDBG_HELP","Hooks INT 2Fh for debugging purposes.\n");
 	MSG_Add("SHELL_CMD_INT2FDBG_HELP_LONG","INT2FDBG [option]\n  /I      Installs hook\n\nIt will hook INT 2Fh at the top of the call chain for debugging information.\n");
 #endif
-	MSG_Add("SHELL_CMD_COMMAND_HELP","Starts the DOSBox-X command shell.\n\nThe following options are accepted:\n\n  /C\tExecutes the specified command and returns.\n  /K\tExecutes the specified command and continues running.\n  /INIT\tInitializes the command shell.\n");
+	MSG_Add("SHELL_CMD_COMMAND_HELP","Starts the DOSBox-X command shell.\n\nThe following options are accepted:\n\n  /C\tExecutes the specified command and returns.\n  /K\tExecutes the specified command and continues running.\n  /P\tLoads a permanent copy of the command shell.\n  /INIT\tInitializes the command shell.\n");
 
 	/* Regular startup */
 	call_shellstop=CALLBACK_Allocate();
@@ -1410,6 +1427,9 @@ void SHELL_Init() {
 		VFILE_RegisterBuiltinFileBlob(bfb_DOS4GW_EXE);
 		VFILE_RegisterBuiltinFileBlob(bfb_EDIT_COM);
 		VFILE_RegisterBuiltinFileBlob(bfb_TREE_EXE);
+		VFILE_RegisterBuiltinFileBlob(bfb_4DOS_COM);
+		VFILE_RegisterBuiltinFileBlob(bfb_4DOS_HLP);
+		VFILE_RegisterBuiltinFileBlob(bfb_4HELP_EXE);
 
 		if (IS_VGA_ARCH)
 			VFILE_RegisterBuiltinFileBlob(bfb_25_COM);
@@ -1490,8 +1510,31 @@ void SHELL_Run() {
 	LOG(LOG_MISC,LOG_DEBUG)("Running DOS shell now");
 
 	if (first_shell != NULL) E_Exit("Attempt to start shell when shell already running");
+    Section_prop *section = static_cast<Section_prop *>(control->GetSection("config"));
+    bool altshell=false;
+    char namestr[CROSS_LEN], tmpstr[CROSS_LEN], *name=namestr, *tmp=tmpstr;
+    if (section!=NULL&&!control->opt_noconfig&&!control->opt_securemode&&!control->SecureMode()) {
+        char *shell = (char *)section->Get_string("shell");
+        if (strlen(shell)) {
+            tmp=trim(shell);
+            name=StripArg(tmp);
+            if (*name&&DOS_FileExists(name))
+                altshell=true;
+        }
+    }
 	SHELL_ProgramStart_First_shell(&first_shell);
 
+	if (altshell) {
+        first_shell->perm=false;
+        first_shell->exit=true;
+        first_shell->Run();
+        if (!strlen(tmp)) {
+            if (!stricmp(name, "COMMAND.COM") || !stricmp(name, "Z:\\COMMAND.COM")) {strcpy(tmpstr, init_line);tmp=tmpstr;}
+            else if (!stricmp(name, "4DOS.COM") || !stricmp(name, "Z:\\4DOS.COM")) {strcpy(tmpstr, "AUTOEXEC.BAT");tmp=tmpstr;}
+        }
+		first_shell->Execute(name, tmp);
+		return;
+	}
 	try {
 		first_shell->Run();
 		delete first_shell;
