@@ -4,8 +4,9 @@
     and paste via the right mouse button without any
     key modifier that may have been specified by the
     config option "clip_key_modifier". (Wengier)
-  - Fixed mounting disk images with spaces via the
-    "Drive" menu. (Wengier)
+  - Fixed mounting a directory with command-line like
+    "dosbox-x .", and fixed mounting disk images with
+    spaces via the "Drive" menu on Windows. (Wengier)
   - IMGMAKE warning replaced to indicate a general
     incompatibility between MS-DOS/SCANDISK and
     cluster sizes 64KB or larger.
