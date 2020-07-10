@@ -1519,6 +1519,7 @@ void SHELL_Run() {
         if (strlen(shell)) {
             tmp=trim(shell);
             name=StripArg(tmp);
+            upcase(name);
             if (*name&&DOS_FileExists(name))
                 altshell=true;
         }
@@ -1529,6 +1530,7 @@ void SHELL_Run() {
         first_shell->perm=false;
         first_shell->exit=true;
         first_shell->Run();
+        first_shell->SetEnv("COMSPEC",name);
         if (!strlen(tmp)) {
             char *p=strrchr(name, '\\');
             if (!strcasecmp(p==NULL?name:p+1, "COMMAND.COM") || !strcasecmp(name, "Z:COMMAND.COM")) {strcpy(tmpstr, init_line);tmp=tmpstr;}
