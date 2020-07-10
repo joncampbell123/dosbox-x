@@ -461,6 +461,7 @@ void DOS_Shell::Run(void) {
 		return;
 	}
 
+    bool optInit=cmd->FindString("/INIT",line,true);
     if (this == first_shell) {
         /* Start a normal shell and check for a first command init */
         WriteOut(MSG_Get("SHELL_STARTUP_BEGIN"),VERSION,SDL_STRING,UPDATED_STR);
@@ -593,11 +594,11 @@ void DOS_Shell::Run(void) {
 		}
 		VFILE_Register("4DOS.INI",(Bit8u *)i4dos_data,(Bit32u)strlen(i4dos_data));
     }
-    else {
+    else if (!optInit) {
         WriteOut(optK?"\n":"DOSBox-X command shell [Version %s %s]\nCopyright DOSBox-X Team. All rights reserved\n\n",VERSION,SDL_STRING);
     }
 
-	if (cmd->FindString("/INIT",line,true)) {
+	if (optInit) {
 		input_line[CMD_MAXLINE-1u] = 0;
 		strncpy(input_line,line.c_str(),CMD_MAXLINE-1u);
 		line.erase();
@@ -1529,8 +1530,9 @@ void SHELL_Run() {
         first_shell->exit=true;
         first_shell->Run();
         if (!strlen(tmp)) {
-            if (!stricmp(name, "COMMAND.COM") || !stricmp(name, "Z:\\COMMAND.COM")) {strcpy(tmpstr, init_line);tmp=tmpstr;}
-            else if (!stricmp(name, "4DOS.COM") || !stricmp(name, "Z:\\4DOS.COM")) {strcpy(tmpstr, "AUTOEXEC.BAT");tmp=tmpstr;}
+            char *p=strrchr(name, '\\');
+            if (!strcasecmp(p==NULL?name:p+1, "COMMAND.COM") || !strcasecmp(name, "Z:COMMAND.COM")) {strcpy(tmpstr, init_line);tmp=tmpstr;}
+            else if (!strcasecmp(p==NULL?name:p+1, "4DOS.COM") || !strcasecmp(name, "Z:4DOS.COM")) {strcpy(tmpstr, "AUTOEXEC.BAT");tmp=tmpstr;}
         }
 		first_shell->Execute(name, tmp);
 		return;
