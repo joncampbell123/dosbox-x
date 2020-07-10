@@ -3545,7 +3545,11 @@ void DOSBOX_SetupConfigSections(void) {
                 "Set to 0 to use controller or CD-ROM drive-specific default.");
     }
 
-    /* CONFIG.SYS options (stub) */
+    /* 4DOS.INI options */
+    secprop=control->AddSection_prop("4dos",&Null_Init,false);
+    Pstring = secprop->Add_string("rem",Property::Changeable::OnlyAtStart,"This section is the 4DOS.INI file, if you use 4DOS as the command shell");
+
+    /* CONFIG.SYS options */
     secprop=control->AddSection_prop("config",&Null_Init,false);
 
     Pstring = secprop->Add_string("rem",Property::Changeable::OnlyAtStart,"This section is DOS's CONFIG.SYS file, not all CONFIG.SYS options supported");
@@ -3556,6 +3560,8 @@ void DOSBOX_SetupConfigSections(void) {
     Pstring = secprop->Add_string("numlock",Property::Changeable::OnlyAtStart,"");
 	Pstring->Set_help("Sets the initial state of the NumLock key.");
     Pstring->Set_values(numopt);
+    Pstring = secprop->Add_string("shell",Property::Changeable::OnlyAtStart,"");
+	Pstring->Set_help("Specifies the command shell (COMMAND.COM or 4DOS.COM).");
     Pstring = secprop->Add_string("dos",Property::Changeable::OnlyAtStart,"high, umb");
 	Pstring->Set_help("Reports whether DOS occupies HMA and allocates UMB memory (if available).");
     Pint = secprop->Add_int("fcbs",Property::Changeable::OnlyAtStart,100);

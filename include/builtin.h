@@ -1,5 +1,6 @@
 
 #include "dos_inc.h"
+#include "../src/builtin/4DOS_img.h"
 
 extern struct BuiltinFileBlob bfb_DSXMENU_EXE_PC;		// DSXMENU.EXE
 extern struct BuiltinFileBlob bfb_DSXMENU_EXE_PC98;		// DSXMENU.EXE
@@ -29,4 +30,7 @@ extern struct BuiltinFileBlob bfb_50_COM;		// 50.COM
 extern struct BuiltinFileBlob bfb_25_COM;		// 25.COM
 extern struct BuiltinFileBlob bfb_25_COM_ega;	// 25.COM
 extern struct BuiltinFileBlob bfb_25_COM_other;	// 25.COM
+extern struct BuiltinFileBlob bfb_4DOS_COM;     // 4DOS.COM
+extern struct BuiltinFileBlob bfb_4DOS_HLP;     // 4DOS.HLP
+extern struct BuiltinFileBlob bfb_4HELP_EXE;     // 4HELP.EXE
 
