@@ -1,4 +1,11 @@
 0.83.4
+  - Added SHELL= option to the [config] section in
+    dosbox-x.conf to specifiy an alternative shell,
+    e.g. "SHELL=4DOS.COM". (Wengier)
+  - Added built-in 4DOS 8.00 shell for 4DOS features
+    and capabilities. There is now a [4dos] section
+    in the dosbox-x.conf file to act as the 4DOS.INI
+    config file if you use this shell. (Wengier)
   - Added "Quick right mouse button copy/paste" menu
     item toggle to allow quick Windows clipboard copy
     and paste via the right mouse button without any
