@@ -1272,11 +1272,59 @@ public:
 					layoutname = "sg";
 					wants_dos_codepage = (IS_PC98_ARCH ? 932 : 437);
 					break;
+				case 2057: // UK, CP 850, Alt CP 437
+					layoutname = "uk"; 
+					wants_dos_codepage = (IS_PC98_ARCH ? 932 : 437);
+					break;
+				case 2060: // Belgium-French, CP 850, Alt CP 437
+					layoutname = "be";
+					wants_dos_codepage = (IS_PC98_ARCH ? 932 : 437);
+					break;
+				case 2064: // Swiss-Italian, CP 850, Alt CP 437
+					layoutname = "sf"; // Uses Swiss-French
+					wants_dos_codepage = (IS_PC98_ARCH ? 932 : 437);
+					break;
+				case 2067: // Belgium-Dutch, CP 850, Alt CP 437
+					layoutname = "be";
+					wants_dos_codepage = (IS_PC98_ARCH ? 932 : 437);
+					break;
 				case 2070: // Portugal, CP 850, Alt CP 860
 					layoutname = "po";
 					break;
+				case 3081: // Australia, CP 850, Alt CP 437
+					layoutname = "us"; 
+					wants_dos_codepage = (IS_PC98_ARCH ? 932 : 437);
+					break;
+				case 3184: // Canada-French, CP 850, Alt CP 863
+					layoutname = "cf";
+					wants_dos_codepage = (IS_PC98_ARCH ? 932 : 437);
+					break;
+				case 4103: // Luxembourg-German, CP 850, Alt CP 437
+					layoutname = "sf"; // Official, but BE and DE are also common
+					wants_dos_codepage = (IS_PC98_ARCH ? 932 : 437);
+					break;
+				case 4105: // Canada-English, CP 850, Alt CP 437
+					layoutname = "ca";
+					wants_dos_codepage = (IS_PC98_ARCH ? 932 : 437);
+					break;
 				case 4108: // Swiss-French, CP 850, Alt CP 437
 					layoutname = "sf";
+					wants_dos_codepage = (IS_PC98_ARCH ? 932 : 437);
+					break;
+				case 4127: // Liechtenstein, CP 850, Alt CP 437
+					layoutname = "sg"; // Uses Swiss-German
+					wants_dos_codepage = (IS_PC98_ARCH ? 932 : 437);
+					break;
+				case 5129: // New-Zealand, CP 850, Alt CP 437
+					layoutname = "us"; 
+					wants_dos_codepage = (IS_PC98_ARCH ? 932 : 437);
+					break;
+				case 5132: // Luxembourg-French, CP 840, Alt CP 437
+					layoutname = "sf"; // Official, but BE and DE are also common
+					wants_dos_codepage = (IS_PC98_ARCH ? 932 : 437);
+					break;
+				case 6153: // Ireland, CP 850, Alt CP 437
+					layoutname = "uk"; 
 					wants_dos_codepage = (IS_PC98_ARCH ? 932 : 437);
 					break;
 				case 1041: // Japan, CP 943, Alt CP 942
