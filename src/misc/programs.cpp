@@ -38,7 +38,7 @@ Bitu call_program;
 
 extern int enablelfn, paste_speed, wheel_key;
 extern const char *modifier;
-extern bool dos_kernel_disabled, force_nocachedir, freesizecap, wpcolon;
+extern bool dos_kernel_disabled, force_nocachedir, freesizecap, wpcolon, startcmd;
 
 /* This registers a file on the virtual drive and creates the correct structure for it*/
 
@@ -843,7 +843,7 @@ void CONFIG::Run(void) {
 						WriteOut("%s=%s\n", p->propname.c_str(),
 							p->GetValue().ToString().c_str());
 					}
-					if (!strcasecmp(pvars[0].c_str(), "config")) {
+					if (!strcasecmp(pvars[0].c_str(), "config")||!strcasecmp(pvars[0].c_str(), "4dos")) {
 						const char * extra = const_cast<char*>(psec->data.c_str());
 						if (extra&&strlen(extra)) {
 							std::istringstream in(extra);
@@ -863,7 +863,7 @@ void CONFIG::Run(void) {
 									strcpy(val, p+1);
 									val=trim(val);
 									lowcase(cmd);
-									if (!strncmp(cmd, "set ", 4)||!strcmp(cmd, "install")||!strcmp(cmd, "installhigh")||!strcmp(cmd, "device")||!strcmp(cmd, "devicehigh"))
+									if (!strcasecmp(pvars[0].c_str(), "4dos")||!strncmp(cmd, "set ", 4)||!strcmp(cmd, "install")||!strcmp(cmd, "installhigh")||!strcmp(cmd, "device")||!strcmp(cmd, "devicehigh"))
 										WriteOut("%s=%s\n", cmd, val);
 								}
 							}
@@ -1059,6 +1059,7 @@ void CONFIG::Run(void) {
 							if (!strcasecmp(inputline.substr(0, 11).c_str(), "mapperfile=")) ReloadMapper(section,true);
 #endif
 						} else if (!strcasecmp(pvars[0].c_str(), "dos")) {
+							startcmd = section->Get_bool("startcmd");
 							if (!strcasecmp(inputline.substr(0, 4).c_str(), "lfn=")) {
 								if (!strcmp(section->Get_string("lfn"), "true")) enablelfn=1;
 								else if (!strcmp(section->Get_string("lfn"), "false")) enablelfn=0;

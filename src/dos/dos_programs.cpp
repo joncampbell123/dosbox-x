@@ -64,6 +64,7 @@ bool Mouse_Vertical = false;
 bool force_nocachedir = false;
 bool freesizecap = true;
 bool wpcolon = true;
+bool startcmd = false;
 
 void DOS_EnableDriveMenu(char drv);
 
@@ -5631,6 +5632,182 @@ void AUTOTYPE_ProgramStart(Program **make)
 	*make = new AUTOTYPE;
 }
 
+#if defined (WIN32)
+#include <sstream>
+#include <shellapi.h>
+extern bool ctrlbrk, winrun;
+extern std::string startincon;
+SHELLEXECUTEINFO lpExecInfo;
+
+void EndStartProcess() {
+    if(lpExecInfo.hProcess!=NULL) {
+        DWORD exitCode;
+        GetExitCodeProcess(lpExecInfo.hProcess, &exitCode);
+        if (exitCode==STILL_ACTIVE)
+            TerminateProcess(lpExecInfo.hProcess, 0);
+    }
+    ctrlbrk=false;
+}
+
+class START : public Program {
+public:
+    void Run() {
+        if(control->SecureMode()) {
+            WriteOut(MSG_Get("PROGRAM_CONFIG_SECURE_DISALLOW"));
+            return;
+        }
+        if (!startcmd) {
+            WriteOut("START command not enabled in this configuration.\n");
+            return;
+        }
+
+        // Hack To allow long commandlines
+        ChangeToLongCmd();
+
+        // Usage
+        if (!cmd->GetCount()||(cmd->GetCount()==1 && (cmd->FindExist("-?", false) || cmd->FindExist("/?", false)))) {
+            PrintUsage();
+            return;
+        }
+        char *args=(char *)cmd->GetRawCmdline().c_str();
+        args=trim(args);
+        char *cmd = strlen(args)?args:NULL;
+        if (cmd!=NULL&&strlen(cmd)>1&&cmd[0]=='"'&&cmd[1]==' ') {
+            cmd++;
+            while (cmd[0]==' ') cmd++;
+            cmd--;
+            cmd[0]='"';
+        }
+        char *cmdstr = cmd==NULL?NULL:(char *)strstr(cmd, cmd[0]=='"'?"\" ":" ");
+        char buf[CROSS_LEN], dir[CROSS_LEN+15], str[CROSS_LEN*2];
+        int k=0;
+        if (cmdstr!=NULL) {
+            if (*cmdstr=='\"') cmdstr++;
+            while (*cmdstr==' ') {k++;*cmdstr++=0;}
+        }
+        int state = cmd==NULL?0:!strcmp(cmd,"-")||!strcasecmp(cmd,"/min")||!strcasecmp(cmd,"-min")?1:!strcmp(cmd,"+")||!strcasecmp(cmd,"/max")||!strcasecmp(cmd,"-max")?2:!strcasecmp(cmd,"_")||!strcasecmp(cmd,"/hid")||!strcasecmp(cmd,"-hid")?3:0;
+        if (state > 0) {
+            k=0;
+            cmd = cmdstr;
+            if (cmd!=NULL&&strlen(cmd)>1&&cmd[0]=='"'&&cmd[1]==' ') {
+                cmd++;
+                while (cmd[0]==' ') cmd++;
+                cmd--;
+                cmd[0]='"';
+            }
+            if ((cmdstr = cmd==NULL?NULL:(char *)strstr(cmd, cmd[0]=='"'?"\" ":" "))!=NULL) {
+                if (*cmdstr=='\"') cmdstr++;
+                while (*cmdstr==' ') {k++;*cmdstr++=0;}
+            }
+        }
+        if (cmd!=NULL) {
+            char *ret, *ret0, *ret1, *ret2, *ret3, *ret4;
+            ret0 = strchr(cmd, '/');
+            ret1 = strchr(cmd, '|');
+            ret2 = strchr(cmd, '<');
+            ret3 = strchr(cmd, '>');
+            ret4 = strchr(cmd, ' ');
+            ret = ret0>cmd?ret0:NULL;
+            if (ret1!=NULL && (ret == NULL || ret1<ret0)) ret=ret1;
+            if (ret2!=NULL && (ret == NULL || ret2<ret0)) ret=ret2;
+            if (ret3!=NULL && (ret == NULL || ret3<ret0)) ret=ret3;
+            if (ret4!=NULL && ret!=NULL && ret4<ret) ret=ret4;
+            if (ret!=NULL&&!(ret==ret0&&ret>cmd&&*(ret-1)==':')) {
+                strcpy_s(buf, cmdstr==NULL?"":cmdstr);
+                strcpy_s(str, ret);
+                if (k<1) k=1;
+                for (int i=0; i<k; i++) strcat_s(str, " ");
+                strcat_s(str, buf);
+                cmdstr=str;
+                *ret='\0';
+                if (*cmd=='"'&&strlen(cmdstr)>0&&cmdstr[strlen(cmdstr)-2]=='"') {
+                    cmd++;
+                    cmdstr[strlen(cmdstr)-2]='\0';
+                }
+            }
+        }
+        if (cmd==NULL || !strlen(cmd) || !strcmp(cmd,"?") || !strcmp(cmd,"/") || !strcmp(cmd,"/?") || !strcmp(cmd,"-?")) {
+            PrintUsage();
+            DOS_SetError(0);
+            return;
+        }
+        int sw = state==0?SW_SHOW:state==1?SW_MINIMIZE:state==2?SW_MAXIMIZE:SW_HIDE;
+        bool match=false;
+        std::istringstream in(startincon);
+        if (in)	for (std::string command; in >> command; ) {
+            if (!strcasecmp(cmd,command.c_str())||!strcasecmp(cmd,("\""+command+"\"").c_str())) {
+                match=true;
+                break;
+            }
+        }
+        lpExecInfo.cbSize  = sizeof(SHELLEXECUTEINFO);
+        lpExecInfo.fMask=SEE_MASK_DOENVSUBST|SEE_MASK_NOCLOSEPROCESS;
+        lpExecInfo.hwnd = NULL;
+        lpExecInfo.lpVerb = "open";
+        lpExecInfo.lpDirectory = NULL;
+        lpExecInfo.nShow = sw;
+        lpExecInfo.hInstApp = (HINSTANCE) SE_ERR_DDEFAIL;
+        if (match) {
+            strcpy_s(dir, strcasecmp(cmd,"for")?"/C \"":"/C \"(");
+            strcat_s(dir, cmd);
+            strcat_s(dir, " ");
+            if (cmdstr!=NULL) strcat_s(dir, cmdstr);
+            if (!strcasecmp(cmd,"for")) strcat_s(dir, ")");
+            strcat_s(dir, " & echo( & echo The command execution is completed. & pause\"");
+            lpExecInfo.lpFile = "CMD.EXE";
+            lpExecInfo.lpParameters = dir;
+        } else {
+            lpExecInfo.lpFile = cmd;
+            lpExecInfo.lpParameters = cmdstr;
+            //ShellExecute(NULL, "open", cmd, cmdstr, NULL, sw);
+        }
+        WriteOut("Running %s..", cmd);
+        ShellExecuteEx(&lpExecInfo);
+        int ErrorCode = GetLastError();
+        if(lpExecInfo.hProcess!=NULL) {
+            DWORD exitCode;
+            BOOL ret;
+            ctrlbrk=false;
+            do {
+                ret=GetExitCodeProcess(lpExecInfo.hProcess, &exitCode);
+                CALLBACK_Idle();
+                if (ctrlbrk) {
+                    Bit8u c;Bit16u n=1;
+                    DOS_ReadFile (STDIN,&c,&n);
+                    if (c == 3) WriteOut("^C");
+                    EndStartProcess();
+                    break;
+                }
+            } while (ret!=0&&exitCode==STILL_ACTIVE);
+            ErrorCode = GetLastError();
+            CloseHandle(lpExecInfo.hProcess);
+        }
+        WriteOut("\n");
+        DOS_SetError(ErrorCode);
+    }
+
+private:
+    void PrintUsage() {
+        constexpr const char *msg =
+            "Starts a separate window to run a specified program or command.\n\n"
+            "START [+|-|_] command [arguments]\n\n"
+            "  [+|-|_]: To maximize/minimize/hide the program.\n"
+            "  The options /MAX, /MIN, /HID are also accepted.\n"
+            "  command: The command, program or file to start.\n"
+            "  arguments: Arguments to pass to the application.\n\n"
+            "START opens the Windows command prompt automatically to run these commands\n"
+            "and wait for a key press before exiting (specified by \"startincon\" option):\n"
+            "%s\n";
+        WriteOut(msg, startincon.c_str());
+    }
+};
+
+void START_ProgramStart(Program **make)
+{
+	*make = new START;
+}
+#endif
+
 void DOS_SetupPrograms(void) {
     /*Add Messages */
 
@@ -6109,5 +6286,8 @@ void DOS_SetupPrograms(void) {
 
     PROGRAMS_MakeFile("CAPMOUSE.COM", CAPMOUSE_ProgramStart);
     PROGRAMS_MakeFile("LABEL.COM", LABEL_ProgramStart);
+#if defined(WIN32)
+    PROGRAMS_MakeFile("START.COM", START_ProgramStart);
+#endif
     PROGRAMS_MakeFile("AUTOTYPE.COM", AUTOTYPE_ProgramStart);
 }

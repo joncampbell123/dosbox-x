@@ -859,7 +859,7 @@ bool Config::PrintConfig(char const * const configfilename,bool everything) cons
         }
 
         (*tel)->PrintData(outfile,everything);
-		if (!strcmp(temp, "config")) {
+		if (!strcmp(temp, "config")||!strcmp(temp, "4dos")) {
 			const char * extra = const_cast<char*>(sec->data.c_str());
 			bool used1=false, used2=false;
 			char linestr[CROSS_LEN+1], *lin=linestr;
@@ -880,9 +880,9 @@ bool Config::PrintConfig(char const * const configfilename,bool everything) cons
 						strcpy(val, p+1);
 						val=trim(val);
 						lowcase(cmd);
-						if (!strncmp(cmd, "set ", 4)||!strcmp(cmd, "install")||!strcmp(cmd, "installhigh")||!strcmp(cmd, "device")||!strcmp(cmd, "devicehigh")) {
+						if (!strcmp(temp, "4dos")||!strncmp(cmd, "set ", 4)||!strcmp(cmd, "install")||!strcmp(cmd, "installhigh")||!strcmp(cmd, "device")||!strcmp(cmd, "devicehigh")) {
 							(!strncmp(cmd, "set ", 4)?used1:used2)=true;
-							fprintf(outfile, "%-11s = %s\n", cmd, val);
+							fprintf(outfile, strcmp(temp, "4dos")?"%-11s = %s\n":"%-14s = %s\n", cmd, val);
 						}
 					}
 				}
