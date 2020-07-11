@@ -43,6 +43,7 @@ extern bool log_fileio;
 extern bool force_load_state;
 #if defined(WIN32)
 bool direct_mouse_clipboard=false;
+bool winrun=false;
 #endif
 
 bool OpenGL_using(void);
@@ -6611,6 +6612,9 @@ bool DOSBOX_parse_argv() {
             fprintf(stderr,"  -lang <message file>                    Use specific message file instead of language= setting\n");
             fprintf(stderr,"  -nodpiaware                             Ignore (don't signal) Windows DPI awareness\n");
             fprintf(stderr,"  -securemode                             Enable secure mode\n");
+#if defined(WIN32)
+            fprintf(stderr,"  -winrun                                 Enable START command and CLIP$ device (Windows version only)\n");
+#endif
             fprintf(stderr,"  -noconfig                               Don't execute CONFIG.SYS config section\n");
             fprintf(stderr,"  -noautoexec                             Don't execute AUTOEXEC.BAT config section\n");
             fprintf(stderr,"  -exit                                   Exit after executing AUTOEXEC.BAT\n");
@@ -6680,6 +6684,11 @@ bool DOSBOX_parse_argv() {
         else if (optname == "noautoexec") {
             control->opt_noautoexec = true;
         }
+#if defined(WIN32)
+        else if (optname == "winrun") {
+            winrun = true;
+        }
+#endif
         else if (optname == "securemode") {
             control->opt_securemode = true;
         }

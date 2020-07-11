@@ -101,9 +101,10 @@ int maxfcb=100;
 int maxdrive=1;
 int enablelfn=-1;
 bool uselfn;
-extern bool infix;
+extern bool infix, winrun, startcmd;
 extern bool int15_wait_force_unmask_irq;
 extern bool startup_state_numlock;
+std::string startincon;
 
 Bit32u dos_hma_allocator = 0; /* physical memory addr */
 
@@ -1392,7 +1393,7 @@ static Bitu DOS_21Handler(void) {
                     reg_ax=toread;
                     CALLBACK_SCF(false);
                 } else if (dos.errorcode==77) {
-					DOS_BreakFlag = true;
+					DOS_BreakAction();
 					if (!DOS_BreakTest()) {
 						dos.echo = false;
 						return CBRET_NONE;
@@ -2696,6 +2697,13 @@ public:
 		int15_wait_force_unmask_irq = section->Get_bool("int15 wait force unmask irq");
         disk_io_unmask_irq0 = section->Get_bool("unmask timer on disk io");
 #if defined (WIN32)
+        if (winrun) {
+            Section* tsec = control->GetSection("dos");
+            tsec->HandleInputline("startcmd=true");
+            tsec->HandleInputline("dos clipboard device enable=true");
+        }
+        startcmd = section->Get_bool("startcmd");
+        startincon = section->Get_string("startincon");
         char *dos_clipboard_device_enable = (char *)section->Get_string("dos clipboard device enable");
 		dos_clipboard_device_access = !strcasecmp(dos_clipboard_device_enable, "dummy")?1:(!strcasecmp(dos_clipboard_device_enable, "read")?2:(!strcasecmp(dos_clipboard_device_enable, "write")?3:(!strcasecmp(dos_clipboard_device_enable, "full")||!strcasecmp(dos_clipboard_device_enable, "true")?4:0)));
 		dos_clipboard_device_name = (char *)section->Get_string("dos clipboard device name");
@@ -3091,6 +3099,10 @@ public:
 	}
 	~DOS(){
 		infix=false;
+#if defined(WIN32)
+        void EndStartProcess();
+        EndStartProcess();
+#endif
 		/* NTS: We do NOT free the drives! The OS may use them later! */
 		void DOS_ShutdownFiles();
 		DOS_ShutdownFiles();

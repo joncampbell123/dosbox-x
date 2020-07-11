@@ -843,7 +843,7 @@ void CONFIG::Run(void) {
 						WriteOut("%s=%s\n", p->propname.c_str(),
 							p->GetValue().ToString().c_str());
 					}
-					if (!strcasecmp(pvars[0].c_str(), "config")) {
+					if (!strcasecmp(pvars[0].c_str(), "config")||!strcasecmp(pvars[0].c_str(), "4dos")) {
 						const char * extra = const_cast<char*>(psec->data.c_str());
 						if (extra&&strlen(extra)) {
 							std::istringstream in(extra);
@@ -863,7 +863,7 @@ void CONFIG::Run(void) {
 									strcpy(val, p+1);
 									val=trim(val);
 									lowcase(cmd);
-									if (!strncmp(cmd, "set ", 4)||!strcmp(cmd, "install")||!strcmp(cmd, "installhigh")||!strcmp(cmd, "device")||!strcmp(cmd, "devicehigh"))
+									if (!strcasecmp(pvars[0].c_str(), "4dos")||!strncmp(cmd, "set ", 4)||!strcmp(cmd, "install")||!strcmp(cmd, "installhigh")||!strcmp(cmd, "device")||!strcmp(cmd, "devicehigh"))
 										WriteOut("%s=%s\n", cmd, val);
 								}
 							}

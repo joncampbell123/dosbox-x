@@ -1,4 +1,17 @@
 0.83.4
+  - Added START command to run commands on Windows
+    host system. The /MAX, /MIN, /HID options can
+    be used to run the specified program maxmized,
+    minimized, or hidden (they can be shortened to
+    +, -, _ respectively). This command is disabled
+    by default, but can be enabled by either the
+    "startcmd" config option (in [dos] section) or
+    the -winrun command-line option (which will also
+    enable the CLIP$ device for Windows clipboard
+    support). START will run commands listed in the
+    "startincon" config option (separated by space)
+    in the Windows Command Prompt and wait for a key
+    press before exiting. (Wengier)
   - Added SHELL= option to the [config] section in
     dosbox-x.conf to specifiy an alternative shell,
     e.g. "SHELL=4DOS.COM". (Wengier)

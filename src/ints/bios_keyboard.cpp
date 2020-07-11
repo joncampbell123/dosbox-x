@@ -312,6 +312,7 @@ static void empty_keyboard_buffer() {
 
 
 void KEYBOARD_SetLEDs(Bit8u bits);
+bool ctrlbrk=false;
 
 /* the scancode is in reg_al */
 static Bitu IRQ1_Handler(void) {
@@ -444,6 +445,7 @@ static Bitu IRQ1_Handler(void) {
     case 0x46:                      /* Scroll Lock or Ctrl-Break */
         /* if it has E0 prefix, or is Ctrl-NumLock on non-enhanced keyboard => Break */
         if((flags3&0x02) || (!(flags3&0x10) && (flags1&0x04))) {                /* Ctrl-Break? */
+            ctrlbrk=true;
             /* remove 0xe0-prefix */
             flags3 &=~0x02;
             mem_writeb(BIOS_KEYBOARD_FLAGS3,flags3);
@@ -508,6 +510,8 @@ static Bitu IRQ1_Handler(void) {
         break;
 
     default: /* Normal Key */
+        if (scancode==0x2e && !(flags3 & 0x01) && (flags1&0x04))
+            ctrlbrk=true;
     normal_key:
         Bit16u asciiscan;
         /* Now Handle the releasing of keys and see if they match up for a code */

@@ -3272,6 +3272,12 @@ void DOSBOX_SetupConfigSections(void) {
     Pbool = secprop->Add_bool("automountall",Property::Changeable::OnlyAtStart,false);
     Pbool->Set_help("Automatically mount all available Windows drives at start.");
 
+    Pbool = secprop->Add_bool("startcmd",Property::Changeable::OnlyAtStart,false);
+    Pbool->Set_help("Allow START command to run commands on Windows host.");
+
+    Pstring = secprop->Add_string("startincon",Property::Changeable::OnlyAtStart,"assoc attrib chcp copy dir echo for ftype help if set type ver vol xcopy");
+    Pstring->Set_help("START command will start these commands (separated by space) in a console and wait for a key press before exiting.");
+
     Pbool = secprop->Add_bool("int33",Property::Changeable::WhenIdle,true);
     Pbool->Set_help("Enable INT 33H (mouse) support.");
 
