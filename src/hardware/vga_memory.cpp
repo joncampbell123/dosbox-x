@@ -1408,8 +1408,11 @@ public:
         return pc98_font_char_read(a1_font_load_addr,(addr >> 1) & 0xF,addr & 1);
     }
 	void writeb(PhysPt addr,Bit8u val) {
-        pc98_font_char_write(a1_font_load_addr,(addr >> 1) & 0xF,addr & 1,val);
-    }
+		if ((a1_font_load_addr & 0x007E) == 0x0056 && (a1_font_load_addr & 0xFF00) != 0x0000)
+			pc98_font_char_write(a1_font_load_addr,(addr >> 1) & 0xF,addr & 1,val);
+		else
+			LOG_MSG("A4xxx MMIO attempt to write FONT ROM char 0x%x",a1_font_load_addr);
+	}
 };
 
 /* 256-color control registers, memory mapped I/O */
