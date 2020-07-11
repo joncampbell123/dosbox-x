@@ -38,7 +38,7 @@ Bitu call_program;
 
 extern int enablelfn, paste_speed, wheel_key;
 extern const char *modifier;
-extern bool dos_kernel_disabled, force_nocachedir, freesizecap, wpcolon, startcmd;
+extern bool dos_kernel_disabled, force_nocachedir, freesizecap, wpcolon;
 
 /* This registers a file on the virtual drive and creates the correct structure for it*/
 
@@ -1059,7 +1059,6 @@ void CONFIG::Run(void) {
 							if (!strcasecmp(inputline.substr(0, 11).c_str(), "mapperfile=")) ReloadMapper(section,true);
 #endif
 						} else if (!strcasecmp(pvars[0].c_str(), "dos")) {
-							startcmd = section->Get_bool("startcmd");
 							if (!strcasecmp(inputline.substr(0, 4).c_str(), "lfn=")) {
 								if (!strcmp(section->Get_string("lfn"), "true")) enablelfn=1;
 								else if (!strcmp(section->Get_string("lfn"), "false")) enablelfn=0;

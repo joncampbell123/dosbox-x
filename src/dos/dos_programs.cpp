@@ -15,7 +15,7 @@
  *  with this program; if not, write to the Free Software Foundation, Inc.,
  *  51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  *
- *  Heavy improvements to various commands by the DOSBox-X Team
+ *  New commands & heavy improvements to existing commands by the DOSBox-X Team
  *  With major works from joncampbell123, Wengier, and rderooy
  *  AUTOTYPE command Copyright (C) 2020 the dosbox-staging team
  */
@@ -5635,7 +5635,7 @@ void AUTOTYPE_ProgramStart(Program **make)
 #if defined (WIN32)
 #include <sstream>
 #include <shellapi.h>
-extern bool ctrlbrk, winrun;
+extern bool ctrlbrk;
 extern std::string startincon;
 SHELLEXECUTEINFO lpExecInfo;
 
@@ -5654,10 +5654,6 @@ public:
     void Run() {
         if(control->SecureMode()) {
             WriteOut(MSG_Get("PROGRAM_CONFIG_SECURE_DISALLOW"));
-            return;
-        }
-        if (!startcmd) {
-            WriteOut("START command not enabled in this configuration.\n");
             return;
         }
 
@@ -6287,7 +6283,8 @@ void DOS_SetupPrograms(void) {
     PROGRAMS_MakeFile("CAPMOUSE.COM", CAPMOUSE_ProgramStart);
     PROGRAMS_MakeFile("LABEL.COM", LABEL_ProgramStart);
 #if defined(WIN32)
-    PROGRAMS_MakeFile("START.COM", START_ProgramStart);
+    if (startcmd)
+        PROGRAMS_MakeFile("START.COM", START_ProgramStart);
 #endif
     PROGRAMS_MakeFile("AUTOTYPE.COM", AUTOTYPE_ProgramStart);
 }
