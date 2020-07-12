@@ -5755,9 +5755,8 @@ public:
         } else {
             lpExecInfo.lpFile = cmd;
             lpExecInfo.lpParameters = cmdstr;
-            //ShellExecute(NULL, "open", cmd, cmdstr, NULL, sw);
         }
-        WriteOut("Running %s..", cmd);
+        WriteOut("Running %s..\n", cmd);
         ShellExecuteEx(&lpExecInfo);
         int ErrorCode = GetLastError();
         if(lpExecInfo.hProcess!=NULL) {
@@ -5770,7 +5769,7 @@ public:
                 if (ctrlbrk) {
                     Bit8u c;Bit16u n=1;
                     DOS_ReadFile (STDIN,&c,&n);
-                    if (c == 3) WriteOut("^C");
+                    if (c == 3) WriteOut("^C\n");
                     EndStartProcess();
                     break;
                 }
@@ -5778,7 +5777,6 @@ public:
             ErrorCode = GetLastError();
             CloseHandle(lpExecInfo.hProcess);
         }
-        WriteOut("\n");
         DOS_SetError(ErrorCode);
     }
 

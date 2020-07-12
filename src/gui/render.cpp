@@ -39,6 +39,7 @@
 #endif
 
 Render_t                                render;
+int                                     eurAscii = -1;
 Bitu                                    last_gfx_flags = 0;
 ScalerLineHandler_t                     RENDER_DrawLine;
 
@@ -1002,6 +1003,11 @@ void RENDER_Init() {
 
     vga.draw.doublescan_set=section->Get_bool("doublescan");
     vga.draw.char9_set=section->Get_bool("char9");
+	eurAscii = section->Get_int("euro");
+	if (eurAscii != -1 && (eurAscii < 33 || eurAscii > 255)) {
+		LOG_MSG("Euro ASCII value has to be between 33 and 255\n");
+		eurAscii = -1;
+	}
 
 	//Set monochrome mode color and brightness
 	vga.draw.monochrome_pal=0;
