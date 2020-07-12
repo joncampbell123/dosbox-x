@@ -871,6 +871,7 @@ std::string full_arguments = "";
 int hret=0;
 bool infix=false;
 extern bool packerr, reqwin, startcmd, ctrlbrk;
+#if defined (WIN32)
 void EndRunProcess() {
     if(hret) {
         DWORD exitCode;
@@ -880,6 +881,7 @@ void EndRunProcess() {
     }
     ctrlbrk=false;
 }
+#endif
 bool DOS_Shell::Execute(char* name, const char* args) {
 /* return true  => don't check for hardware changes in do_command 
  * return false =>       check for hardware changes in do_command */
@@ -1141,8 +1143,6 @@ continue_1:
 			}
 #if defined (WIN32)
 		} else if (startcmd&&reqwin) {
-            bool WinProgNowait;
-			//Execute(name, args);
             char comline[256], *p=comline;
             char winDirCur[512];										// Setting Windows directory to DOS drive+current directory
             char winDirNew[512];										// and calling the program
@@ -1162,35 +1162,30 @@ continue_1:
                 if (SetCurrentDirectory(winDirNew)) {
                     strcpy(comline, args);
                     strcpy(comline, trim(p));
-                    WinProgNowait = false;
                     char qwinName[258];
                     sprintf(qwinName,"\"%s\"",winName);
                     WriteOut("Now run it as Windows application..\r\n");
                     hret = _spawnl(P_NOWAIT, winName, qwinName, comline, NULL);
                     SetCurrentDirectory(winDirCur);
                     if (hret > 0) {
-                        if (WinProgNowait)
-                            hret = 0;
-                        else {
-                            bool first=true;
-                            ctrlbrk=false;
-                            DWORD exitCode = 0;
-                            while (GetExitCodeProcess((HANDLE)hret, &exitCode) && exitCode == STILL_ACTIVE) {
-                                CALLBACK_Idle();
-                                if (ctrlbrk) {
-                                    Bit8u c;Bit16u n=1;
-                                    DOS_ReadFile (STDIN,&c,&n);
-                                    if (c == 3) WriteOut("^C\n");
-                                    EndRunProcess();
-                                    exitCode=0;
-                                    break;
-                                }
-                                if (first) {WriteOut("(Press Ctrl+C to exit immediately)\n");first=false;}
+                        bool first=true;
+                        ctrlbrk=false;
+                        DWORD exitCode = 0;
+                        while (GetExitCodeProcess((HANDLE)hret, &exitCode) && exitCode == STILL_ACTIVE) {
+                            CALLBACK_Idle();
+                            if (ctrlbrk) {
+                                Bit8u c;Bit16u n=1;
+                                DOS_ReadFile (STDIN,&c,&n);
+                                if (c == 3) WriteOut("^C\n");
+                                EndRunProcess();
+                                exitCode=0;
+                                break;
                             }
-                            dos.return_code = exitCode&255;
-                            dos.return_mode = 0;
-                            hret = 0;
+                            if (first) {WriteOut("(Press Ctrl+C to exit immediately)\n");first=false;}
                         }
+                        dos.return_code = exitCode&255;
+                        dos.return_mode = 0;
+                        hret = 0;
                     } else
                         hret = errno;
                     DOS_SetError(hret);
