@@ -564,9 +564,7 @@ void DOS_Shell::Run(void) {
 						if (type!=DRIVE_NO_ROOT_DIR) {
 							WriteOut("Mounting %c: => %s..\n", name[0], name);
 							char mountstring[DOS_PATHLENGTH+CROSS_LEN+20];
-							sprintf(mountstring,"MOUNT %c ",name[0]);						
-							if(type==DRIVE_CDROM) strcat(mountstring,"-t cdrom ");
-							else if(type==DRIVE_REMOVABLE && (strcasecmp(name,"A:\\")==0||strcasecmp(name,"B:\\")==0)) strcat(mountstring,"-t floppy ");
+							sprintf(mountstring,"MOUNT %c ",name[0]);
 							strcat(mountstring,name);
 							strcat(mountstring," >nul");
 							ParseLine(mountstring);
