@@ -2063,6 +2063,10 @@ void DOSBOX_SetupConfigSections(void) {
     Pbool = secprop->Add_bool("char9",Property::Changeable::Always,true);
     Pbool->Set_help("Allow 9-pixel wide text mode fonts.");
 
+    Pint = secprop->Add_int("euro",Property::Changeable::Always,-1);
+    Pint->Set_help("Display Euro symbol instead of the specified ASCII character (33-255).\n"
+            "For example, setting it to 128 allows Euro symbol to be displayed instead of C-cedilla.");
+
     /* NTS: In the original code borrowed from yhkong, this was named "multiscan". All it really does is disable
      *      the doublescan down-rezzing DOSBox normally does with 320x240 graphics so that you get the full rendition of what a VGA output would emit. */
     Pbool = secprop->Add_bool("doublescan",Property::Changeable::Always,true);

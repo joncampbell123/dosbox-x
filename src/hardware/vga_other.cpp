@@ -1028,8 +1028,30 @@ Bitu read_herc_status(Bitu /*port*/,Bitu /*iolen*/) {
 	return retval;
 }
 
+extern int eurAscii;
+extern Bit8u int10_font_08[256 * 8], int10_font_14[256 * 14], int10_font_16[256 * 16];
+Bit8u euro_08[8] = {
+  0x3c, 0x66, 0xfc, 0x60,
+  0xf8, 0x66, 0x3c, 0x00,
+};
+Bit8u euro_14[14] = {
+  0x00, 0x00, 0x3c, 0x66, 0x60, 0xfc, 0x60,
+  0xf8, 0x60, 0x66, 0x3c, 0x00, 0x00, 0x00,
+};
+Bit8u euro_16[16] = {
+  0x00, 0x00, 0x00, 0x3c, 0x66, 0x60, 0xfc, 0x60,
+  0xf8, 0x60, 0x66, 0x3c, 0x00, 0x00, 0x00, 0x00,
+};
 
 void VGA_SetupOther(void) {
+    if (eurAscii>32 && eurAscii<256) {
+        for (unsigned int i=eurAscii*8;i<(eurAscii+1)*8;i++)
+            int10_font_08[i]=euro_08[i%8];
+        for (unsigned int i=eurAscii*14;i<(eurAscii+1)*14;i++)
+            int10_font_14[i]=euro_14[i%14];
+        for (unsigned int i=eurAscii*16;i<(eurAscii+1)*16;i++)
+            int10_font_16[i]=euro_16[i%16];
+    }
 	memset( &vga.tandy, 0, sizeof( vga.tandy ));
 	vga.attr.disabled = 0;
 	vga.config.bytes_skip=0;
@@ -1046,12 +1068,10 @@ void VGA_SetupOther(void) {
 	vga.tandy.line_shift = 13;
 
 	if (machine==MCH_CGA || machine==MCH_AMSTRAD || IS_TANDY_ARCH) {
-		extern Bit8u int10_font_08[256 * 8];
 		for (Bitu i=0;i<256;i++)	memcpy(&vga.draw.font[i*32],&int10_font_08[i*8],8);
 		vga.draw.font_tables[0]=vga.draw.font_tables[1]=vga.draw.font;
 	}
     if (machine==MCH_MCGA) { // MCGA uses a 8x16 font, through double-scanning as if 8x8 CGA text mode
-        extern Bit8u int10_font_16[256 * 16];
         for (Bitu i=0;i<256;i++)	memcpy(&vga.draw.font[i*32],&int10_font_16[i*16],16);
         vga.draw.font_tables[0]=vga.draw.font_tables[1]=vga.draw.font;
     }
@@ -1060,7 +1080,6 @@ void VGA_SetupOther(void) {
 		IO_RegisterWriteHandler(0x3dc,write_lightpen,IO_MB);
 	}
 	if (machine==MCH_HERC || machine==MCH_MDA) {
-		extern Bit8u int10_font_14[256 * 14];
 		for (Bitu i=0;i<256;i++)	memcpy(&vga.draw.font[i*32],&int10_font_14[i*14],14);
 		vga.draw.font_tables[0]=vga.draw.font_tables[1]=vga.draw.font;
 		MAPPER_AddHandler(HercBlend,MK_nothing,0,"hercblend","Herc Blend");

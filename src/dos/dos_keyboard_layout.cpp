@@ -707,6 +707,8 @@ Bit16u keyboard_layout::extract_codepage(const char* keyboard_file_name) {
 	return (IS_PC98_ARCH ? 932 : 437);
 }
 
+extern int eurAscii;
+extern Bit8u euro_08[8], euro_14[14], euro_16[16];
 Bitu keyboard_layout::read_codepage_file(const char* codepage_file_name, Bit32s codepage_id) {
 	char cp_filename[512];
 	strcpy(cp_filename, codepage_file_name);
@@ -938,7 +940,7 @@ Bitu keyboard_layout::read_codepage_file(const char* codepage_file_name, Bit32s 
                     if (int10.rom.font_16 != 0) {
                         PhysPt font16pt=Real2Phys(int10.rom.font_16);
                         for (Bit16u i=0;i<256*16;i++) {
-                            phys_writeb(font16pt+i,cpi_buf[font_data_start+i]);
+                            phys_writeb(font16pt+i,eurAscii>32&&i/16==eurAscii?euro_16[i%16]:cpi_buf[font_data_start+i]);
                         }
                         // terminate alternate list to prevent loading
                         phys_writeb(Real2Phys(int10.rom.font_16_alternate),0);
@@ -949,7 +951,7 @@ Bitu keyboard_layout::read_codepage_file(const char* codepage_file_name, Bit32s 
                     if (int10.rom.font_14 != 0) {
                         PhysPt font14pt=Real2Phys(int10.rom.font_14);
                         for (Bit16u i=0;i<256*14;i++) {
-                            phys_writeb(font14pt+i,cpi_buf[font_data_start+i]);
+                            phys_writeb(font14pt+i,eurAscii>32&&i/14==eurAscii?euro_14[i%14]:cpi_buf[font_data_start+i]);
                         }
                         // terminate alternate list to prevent loading
                         phys_writeb(Real2Phys(int10.rom.font_14_alternate),0);
@@ -960,14 +962,14 @@ Bitu keyboard_layout::read_codepage_file(const char* codepage_file_name, Bit32s 
                     if (int10.rom.font_8_first != 0) {
                         PhysPt font8pt=Real2Phys(int10.rom.font_8_first);
                         for (Bit16u i=0;i<128*8;i++) {
-                            phys_writeb(font8pt+i,cpi_buf[font_data_start+i]);
+                            phys_writeb(font8pt+i,eurAscii>32&&i/8==eurAscii?euro_08[i%8]:cpi_buf[font_data_start+i]);
                         }
                         font_changed=true;
                     }
                     if (int10.rom.font_8_second != 0) {
                         PhysPt font8pt=Real2Phys(int10.rom.font_8_second);
                         for (Bit16u i=0;i<128*8;i++) {
-                            phys_writeb(font8pt+i,cpi_buf[font_data_start+i+128*8]);
+                            phys_writeb(font8pt+i,eurAscii>127&&(i+128)/8==eurAscii?euro_08[i%8]:cpi_buf[font_data_start+i+128*8]);
                         }
                         font_changed=true;
                     }
