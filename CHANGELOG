@@ -1,4 +1,9 @@
 0.83.4
+  - PC-98 CG MMIO writes fixed to limit writes only
+    to the user-defined areas, same as the IO writes.
+    This fixes "Niko Niko" that appears to write a
+    few too many 0xE1 bytes when filling text
+    attribute RAM and into the CG MMIO region.
   - Added START command to run commands on Windows
     host system. The /MAX, /MIN, /HID options can
     be used to run the specified program maxmized,
