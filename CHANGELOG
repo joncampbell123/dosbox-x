@@ -7,6 +7,9 @@
     This fixes "Niko Niko" that appears to write a
     few too many 0xE1 bytes when filling text
     attribute RAM and into the CG MMIO region.
+  - With -winrun command-line option (Windows only),
+    you can now directly launch Windows programs on
+    local drives to run on the host. (Wengier)
   - Added START command to run commands on Windows
     host system. The /MAX, /MIN, /HID options can
     be used to run the specified program maxmized,
