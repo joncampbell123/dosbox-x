@@ -1133,7 +1133,7 @@ continue_1:
 			if (DOS_AllocateMemory(&segment,&blocks)) {
 				DOS_MCB mcb((Bit16u)(segment-1));
 				mcb.SetPSPSeg(0x40);
-				WriteOut("\r\nTrying to run with LOADFIX..\r\n");
+				WriteOut("\r\nNow run it with LOADFIX..\r\n");
 				infix=true;
 				Execute(name, args);
 				infix=false;
@@ -1165,7 +1165,7 @@ continue_1:
                     WinProgNowait = false;
                     char qwinName[258];
                     sprintf(qwinName,"\"%s\"",winName);
-                    WriteOut("Trying to run as Windows application..\r\n");
+                    WriteOut("Now run it as Windows application..\r\n");
                     hret = _spawnl(P_NOWAIT, winName, qwinName, comline, NULL);
                     SetCurrentDirectory(winDirCur);
                     if (hret > 0) {
