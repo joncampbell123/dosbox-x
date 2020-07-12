@@ -1150,13 +1150,25 @@ continue_1:
             Bit8u drive;
             DOS_MakeName(name, winDirNew, &drive);						// Mainly to get the drive and pathname w/o it
             if (GetCurrentDirectory(512, winDirCur)&&(!strncmp(Drives[drive]->GetInfo(),"local ",6)||!strncmp(Drives[drive]->GetInfo(),"CDRom ",6))) {
-                strcpy(winName, Drives[drive]->GetBaseDir());
-                strcat(winName, winDirNew);
+                bool useoverlay=false;
+                Overlay_Drive *odp = dynamic_cast<Overlay_Drive*>(Drives[drive]);
+                if (odp != NULL) {
+                    strcpy(winName, odp->getOverlaydir());
+                    strcat(winName, winDirNew);
+                    struct stat tempstat;
+                    if (stat(winName,&tempstat)==0 && (tempstat.st_mode & S_IFDIR)==0)
+                        useoverlay=true;
+                }
+                if (!useoverlay) {
+                    strcpy(winName, Drives[drive]->GetBaseDir());
+                    strcat(winName, winDirNew);
+                }
                 if (!strncmp(Drives[DOS_GetDefaultDrive()]->GetInfo(),"local ",6)||!strncmp(Drives[DOS_GetDefaultDrive()]->GetInfo(),"CDRom ",6)) {
-                    strcpy(winDirNew, Drives[DOS_GetDefaultDrive()]->GetBaseDir());
+                    Overlay_Drive *ddp = dynamic_cast<Overlay_Drive*>(Drives[DOS_GetDefaultDrive()]);
+                    strcpy(winDirNew, ddp!=NULL?ddp->getOverlaydir():Drives[DOS_GetDefaultDrive()]->GetBaseDir());
                     strcat(winDirNew, Drives[DOS_GetDefaultDrive()]->curdir);
                 } else {
-                    strcpy(winDirNew, Drives[drive]->GetBaseDir());
+                    strcpy(winDirNew, useoverlay?odp->getOverlaydir():Drives[drive]->GetBaseDir());
                     strcat(winDirNew, Drives[drive]->curdir);
                 }
                 if (SetCurrentDirectory(winDirNew)) {
