@@ -5775,7 +5775,7 @@ public:
                     exitCode=0;
                     break;
                 }
-                if (first&&exitCode==STILL_ACTIVE) {WriteOut("(Press Ctrl+C to exit immediately)\n");first=false;}
+                if (first&&ret&&exitCode==STILL_ACTIVE) {WriteOut("(Press Ctrl+C to exit immediately)\n");first=false;}
             } while (ret!=0&&exitCode==STILL_ACTIVE);
             ErrorCode = GetLastError();
             CloseHandle(lpExecInfo.hProcess);
@@ -5794,7 +5794,7 @@ private:
             "  arguments: Arguments to pass to the application.\n\n"
             "START opens the Windows command prompt automatically to run these commands\n"
             "and wait for a key press before exiting (specified by \"startincon\" option):\n"
-            "%s\n";
+            "%s\n\nNote: The path specified in this command is the path on the Windows host.\n";
         WriteOut(msg, startincon.c_str());
     }
 };
