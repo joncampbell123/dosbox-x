@@ -868,8 +868,18 @@ overflow:
 }
 
 std::string full_arguments = "";
+int hret=0;
 bool infix=false;
-extern bool packerr;
+extern bool packerr, reqwin, startcmd, ctrlbrk;
+void EndRunProcess() {
+    if(hret) {
+        DWORD exitCode;
+        GetExitCodeProcess((HANDLE)hret, &exitCode);
+        if (exitCode==STILL_ACTIVE)
+            TerminateProcess((HANDLE)hret, 0);
+    }
+    ctrlbrk=false;
+}
 bool DOS_Shell::Execute(char* name, const char* args) {
 /* return true  => don't check for hardware changes in do_command 
  * return false =>       check for hardware changes in do_command */
@@ -1100,6 +1110,7 @@ continue_1:
 		reg_ip=RealOff(newcsip);
 #endif
 		packerr=false;
+		reqwin=false;
 		/* Start up a dos execute interrupt */
 		reg_ax=0x4b00;
 		//Filename pointer
@@ -1128,13 +1139,71 @@ continue_1:
 				infix=false;
 				DOS_FreeMemory(segment);
 			}
-		}
+#if defined (WIN32)
+		} else if (startcmd&&reqwin) {
+            bool WinProgNowait;
+			//Execute(name, args);
+            char comline[256], *p=comline;
+            char winDirCur[512];										// Setting Windows directory to DOS drive+current directory
+            char winDirNew[512];										// and calling the program
+            char winName[256];
+            Bit8u drive;
+            DOS_MakeName(name, winDirNew, &drive);						// Mainly to get the drive and pathname w/o it
+            if (GetCurrentDirectory(512, winDirCur)&&(!strncmp(Drives[drive]->GetInfo(),"local ",6)||!strncmp(Drives[drive]->GetInfo(),"CDRom ",6))) {
+                strcpy(winName, Drives[drive]->GetBaseDir());
+                strcat(winName, winDirNew);
+                if (!strncmp(Drives[DOS_GetDefaultDrive()]->GetInfo(),"local ",6)||!strncmp(Drives[DOS_GetDefaultDrive()]->GetInfo(),"CDRom ",6)) {
+                    strcpy(winDirNew, Drives[DOS_GetDefaultDrive()]->GetBaseDir());
+                    strcat(winDirNew, Drives[DOS_GetDefaultDrive()]->curdir);
+                } else {
+                    strcpy(winDirNew, Drives[drive]->GetBaseDir());
+                    strcat(winDirNew, Drives[drive]->curdir);
+                }
+                if (SetCurrentDirectory(winDirNew)) {
+                    strcpy(comline, args);
+                    strcpy(comline, trim(p));
+                    WinProgNowait = false;
+                    char qwinName[258];
+                    sprintf(qwinName,"\"%s\"",winName);
+                    WriteOut("Trying to run as Windows application..\r\n");
+                    hret = _spawnl(P_NOWAIT, winName, qwinName, comline, NULL);
+                    SetCurrentDirectory(winDirCur);
+                    if (hret > 0) {
+                        if (WinProgNowait)
+                            hret = 0;
+                        else {
+                            bool first=true;
+                            ctrlbrk=false;
+                            DWORD exitCode = 0;
+                            while (GetExitCodeProcess((HANDLE)hret, &exitCode) && exitCode == STILL_ACTIVE) {
+                                CALLBACK_Idle();
+                                if (ctrlbrk) {
+                                    Bit8u c;Bit16u n=1;
+                                    DOS_ReadFile (STDIN,&c,&n);
+                                    if (c == 3) WriteOut("^C\n");
+                                    EndRunProcess();
+                                    exitCode=0;
+                                    break;
+                                }
+                                if (first) {WriteOut("(Press Ctrl+C to exit immediately)\n");first=false;}
+                            }
+                            dos.return_code = exitCode&255;
+                            dos.return_mode = 0;
+                            hret = 0;
+                        }
+                    } else
+                        hret = errno;
+                    DOS_SetError(hret);
+                    return hret == 0;
+                }
+            }
+#endif
+        }
 		packerr=false;
+		reqwin=false;
 	}
 	return true; //Executable started
 }
-
-
 
 
 static const char * bat_ext=".BAT";
