@@ -1144,11 +1144,9 @@ continue_1:
 #if defined (WIN32)
 		} else if (startcmd&&reqwin) {
             char comline[256], *p=comline;
-            char winDirCur[512];										// Setting Windows directory to DOS drive+current directory
-            char winDirNew[512];										// and calling the program
-            char winName[256];
+            char winDirCur[512], winDirNew[512], winName[256];
             Bit8u drive;
-            DOS_MakeName(name, winDirNew, &drive);						// Mainly to get the drive and pathname w/o it
+            if (!DOS_MakeName(name, winDirNew, &drive)) return false;
             if (GetCurrentDirectory(512, winDirCur)&&(!strncmp(Drives[drive]->GetInfo(),"local ",6)||!strncmp(Drives[drive]->GetInfo(),"CDRom ",6))) {
                 bool useoverlay=false;
                 Overlay_Drive *odp = dynamic_cast<Overlay_Drive*>(Drives[drive]);
@@ -1201,7 +1199,9 @@ continue_1:
                     } else
                         hret = errno;
                     DOS_SetError(hret);
-                    return hret == 0;
+                    bool ret=hret == 0;
+                    hret=0;
+                    return ret;
                 }
             }
 #endif
