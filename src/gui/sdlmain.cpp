@@ -6626,8 +6626,9 @@ bool DOSBOX_parse_argv() {
             fprintf(stderr,"  -time-limit <n>                         Kill the emulator after 'n' seconds\n");
             fprintf(stderr,"  -fastbioslogo                           Fast BIOS logo (skip 1-second pause)\n");
 #if C_DEBUG
-            fprintf(stderr,"  -helpdebug                              Show debug-related options\n\n");
+            fprintf(stderr,"  -helpdebug                              Show debug-related options\n");
 #endif
+            fprintf(stderr,"\n");
 
 #if defined(WIN32)
             DOSBox_ConsolePauseWait();

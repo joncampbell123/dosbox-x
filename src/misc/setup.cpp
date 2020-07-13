@@ -414,8 +414,8 @@ bool Prop_path::SetValue(std::string const& input) {
     
 bool Prop_bool::SetValue(std::string const& input) {
     Value val;
-    if (!val.SetValue(input,Value::V_BOOL)) return false;
-    return SetVal(val,false,/*warn*/true);
+    if (!val.SetValue(input.size()?input:default_value.ToString(),Value::V_BOOL)) return false;
+    return SetVal(val,false,/*warn*/true)&&input.size();
 }
 
 bool Prop_hex::SetValue(std::string const& input) {
