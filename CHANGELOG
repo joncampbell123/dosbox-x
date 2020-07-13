@@ -42,6 +42,8 @@
   - IMGMAKE warning replaced to indicate a general
     incompatibility between MS-DOS/SCANDISK and
     cluster sizes 64KB or larger.
+  - IMGMAKE will delete the generated image file if an
+    error occurs during the file creation. (Wengier)
   - IMGMAKE command will now use the image file name
     "IMGMAKE.IMG" if no file name is specified. It now
     also supports the -force option to force overwrite
