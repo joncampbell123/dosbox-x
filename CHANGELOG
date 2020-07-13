@@ -43,9 +43,14 @@
     incompatibility between MS-DOS/SCANDISK and
     cluster sizes 64KB or larger.
   - IMGMAKE command will now use the image file name
-    "IMGMAKE.IMG" if no file name is specified. It now
-    also supports the -force option to force overwrite
-    the image file if it already exists. (Wengier)
+    "IMGMAKE.IMG" if no file name is specified (either
+    in the mounted local directory or in the DOSBox-X
+    program directory if the current directory is not
+    a local directory). The command now also supports
+    a -force option to force overwrite the image file
+    if it already exists. Furthermore, IMGMAKE will
+    delete the generated image file if an error occurs
+    during the image file creation. (Wengier)
     
 0.83.3
   - IMGMAKE can now generate FAT12, FAT16, and FAT32
