@@ -90,6 +90,7 @@ bool enable_dbcs_tables = true;
 bool enable_filenamechar = true;
 bool enable_share_exe_fake = true;
 bool rsize = false;
+bool reqwin = false;
 bool packerr = false;
 int dos_initial_hma_free = 34*1024;
 int dos_sda_size = 0x560;
@@ -548,6 +549,7 @@ static Bitu DOS_21Handler(void) {
         LOG(LOG_CPU, LOG_DEBUG)("Executing interrupt 21, ah=%x, al=%x", reg_ah, reg_al);
     }
 
+
     /* Real MS-DOS behavior:
      *   If HIMEM.SYS is loaded and CONFIG.SYS says DOS=HIGH, DOS will load itself into the HMA area.
      *   To prevent crashes, the INT 21h handler down below will enable the A20 gate before executing
@@ -566,7 +568,7 @@ static Bitu DOS_21Handler(void) {
     char name2[DOSNAMEBUF+2+DOS_NAMELENGTH_ASCII];
     
     static Bitu time_start = 0; //For emulating temporary time changes.
-    if (reg_ah!=0x4c) packerr=false;
+    if (reg_ah!=0x4c) {packerr=false;reqwin=false;}
     switch (reg_ah) {
         case 0x00:      /* Terminate Program */
             /* HACK for demoscene prod parties/1995/wired95/surprisecode/w95spcod.zip/WINNERS/SURP-KLF
@@ -710,9 +712,12 @@ static Bitu DOS_21Handler(void) {
             {   
                 Bit8u c;Bit16u n=1;
                 PhysPt buf=SegPhys(ds)+reg_dx;
+                std::string str="";
                 while ((c=mem_readb(buf++))!='$') {
+                    str+=std::string(1, c);
                     DOS_WriteFile(STDOUT,&c,&n);
                 }
+                if (str.length()==42&&!strncmp(str.c_str(),"This program cannot be run in DOS mode.",39)||!strncmp(str.c_str(),"This program requires Microsoft Windows.",40)||str.length()==38&&!strncmp(str.c_str(),"This program must be run under Win32",36)) reqwin=true;
                 reg_al=c;
             }
             break;
@@ -3100,8 +3105,9 @@ public:
 	~DOS(){
 		infix=false;
 #if defined(WIN32)
-        void EndStartProcess();
+        void EndStartProcess(), EndRunProcess();
         EndStartProcess();
+        EndRunProcess();
 #endif
 		/* NTS: We do NOT free the drives! The OS may use them later! */
 		void DOS_ShutdownFiles();

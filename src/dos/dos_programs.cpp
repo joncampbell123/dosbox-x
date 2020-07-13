@@ -5709,11 +5709,11 @@ public:
             if (ret3!=NULL && (ret == NULL || ret3<ret0)) ret=ret3;
             if (ret4!=NULL && ret!=NULL && ret4<ret) ret=ret4;
             if (ret!=NULL&&!(ret==ret0&&ret>cmd&&*(ret-1)==':')) {
-                strcpy_s(buf, cmdstr==NULL?"":cmdstr);
-                strcpy_s(str, ret);
+                strcpy(buf, cmdstr==NULL?"":cmdstr);
+                strcpy(str, ret);
                 if (k<1) k=1;
-                for (int i=0; i<k; i++) strcat_s(str, " ");
-                strcat_s(str, buf);
+                for (int i=0; i<k; i++) strcat(str, " ");
+                strcat(str, buf);
                 cmdstr=str;
                 *ret='\0';
                 if (*cmd=='"'&&strlen(cmdstr)>0&&cmdstr[strlen(cmdstr)-2]=='"') {
@@ -5744,24 +5744,25 @@ public:
         lpExecInfo.nShow = sw;
         lpExecInfo.hInstApp = (HINSTANCE) SE_ERR_DDEFAIL;
         if (match) {
-            strcpy_s(dir, strcasecmp(cmd,"for")?"/C \"":"/C \"(");
-            strcat_s(dir, cmd);
-            strcat_s(dir, " ");
-            if (cmdstr!=NULL) strcat_s(dir, cmdstr);
-            if (!strcasecmp(cmd,"for")) strcat_s(dir, ")");
-            strcat_s(dir, " & echo( & echo The command execution is completed. & pause\"");
+            strcpy(dir, strcasecmp(cmd,"for")?"/C \"":"/C \"(");
+            strcat(dir, cmd);
+            strcat(dir, " ");
+            if (cmdstr!=NULL) strcat(dir, cmdstr);
+            if (!strcasecmp(cmd,"for")) strcat(dir, ")");
+            strcat(dir, " & echo( & echo The command execution is completed. & pause\"");
             lpExecInfo.lpFile = "CMD.EXE";
             lpExecInfo.lpParameters = dir;
         } else {
             lpExecInfo.lpFile = cmd;
             lpExecInfo.lpParameters = cmdstr;
         }
-        WriteOut("Running %s..\n", cmd);
+        WriteOut("Starting %s..\n", cmd);
         ShellExecuteEx(&lpExecInfo);
         int ErrorCode = GetLastError();
         if(lpExecInfo.hProcess!=NULL) {
             DWORD exitCode;
             BOOL ret;
+            bool first=true;
             ctrlbrk=false;
             do {
                 ret=GetExitCodeProcess(lpExecInfo.hProcess, &exitCode);
@@ -5771,8 +5772,10 @@ public:
                     DOS_ReadFile (STDIN,&c,&n);
                     if (c == 3) WriteOut("^C\n");
                     EndStartProcess();
+                    exitCode=0;
                     break;
                 }
+                if (first&&ret&&exitCode==STILL_ACTIVE) {WriteOut("(Press Ctrl+C to exit immediately)\n");first=false;}
             } while (ret!=0&&exitCode==STILL_ACTIVE);
             ErrorCode = GetLastError();
             CloseHandle(lpExecInfo.hProcess);
@@ -5791,7 +5794,7 @@ private:
             "  arguments: Arguments to pass to the application.\n\n"
             "START opens the Windows command prompt automatically to run these commands\n"
             "and wait for a key press before exiting (specified by \"startincon\" option):\n"
-            "%s\n";
+            "%s\n\nNote: The path specified in this command is the path on the Windows host.\n";
         WriteOut(msg, startincon.c_str());
     }
 };

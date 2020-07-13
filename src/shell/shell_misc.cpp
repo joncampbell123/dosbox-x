@@ -868,8 +868,20 @@ overflow:
 }
 
 std::string full_arguments = "";
+int hret=0;
 bool infix=false;
-extern bool packerr;
+extern bool packerr, reqwin, startcmd, ctrlbrk;
+#if defined (WIN32)
+void EndRunProcess() {
+    if(hret) {
+        DWORD exitCode;
+        GetExitCodeProcess((HANDLE)hret, &exitCode);
+        if (exitCode==STILL_ACTIVE)
+            TerminateProcess((HANDLE)hret, 0);
+    }
+    ctrlbrk=false;
+}
+#endif
 bool DOS_Shell::Execute(char* name, const char* args) {
 /* return true  => don't check for hardware changes in do_command 
  * return false =>       check for hardware changes in do_command */
@@ -1100,6 +1112,7 @@ continue_1:
 		reg_ip=RealOff(newcsip);
 #endif
 		packerr=false;
+		reqwin=false;
 		/* Start up a dos execute interrupt */
 		reg_ax=0x4b00;
 		//Filename pointer
@@ -1122,19 +1135,82 @@ continue_1:
 			if (DOS_AllocateMemory(&segment,&blocks)) {
 				DOS_MCB mcb((Bit16u)(segment-1));
 				mcb.SetPSPSeg(0x40);
-				WriteOut("\r\nTrying to run with LOADFIX..\r\n");
+				WriteOut("\r\nNow run it with LOADFIX..\r\n");
 				infix=true;
 				Execute(name, args);
 				infix=false;
 				DOS_FreeMemory(segment);
 			}
-		}
+#if defined (WIN32)
+		} else if (startcmd&&reqwin) {
+            char comline[256], *p=comline;
+            char winDirCur[512], winDirNew[512], winName[256];
+            Bit8u drive;
+            if (!DOS_MakeName(name, winDirNew, &drive)) return false;
+            if (GetCurrentDirectory(512, winDirCur)&&(!strncmp(Drives[drive]->GetInfo(),"local ",6)||!strncmp(Drives[drive]->GetInfo(),"CDRom ",6))) {
+                bool useoverlay=false;
+                Overlay_Drive *odp = dynamic_cast<Overlay_Drive*>(Drives[drive]);
+                if (odp != NULL) {
+                    strcpy(winName, odp->getOverlaydir());
+                    strcat(winName, winDirNew);
+                    struct stat tempstat;
+                    if (stat(winName,&tempstat)==0 && (tempstat.st_mode & S_IFDIR)==0)
+                        useoverlay=true;
+                }
+                if (!useoverlay) {
+                    strcpy(winName, Drives[drive]->GetBaseDir());
+                    strcat(winName, winDirNew);
+                }
+                if (!strncmp(Drives[DOS_GetDefaultDrive()]->GetInfo(),"local ",6)||!strncmp(Drives[DOS_GetDefaultDrive()]->GetInfo(),"CDRom ",6)) {
+                    Overlay_Drive *ddp = dynamic_cast<Overlay_Drive*>(Drives[DOS_GetDefaultDrive()]);
+                    strcpy(winDirNew, ddp!=NULL?ddp->getOverlaydir():Drives[DOS_GetDefaultDrive()]->GetBaseDir());
+                    strcat(winDirNew, Drives[DOS_GetDefaultDrive()]->curdir);
+                } else {
+                    strcpy(winDirNew, useoverlay?odp->getOverlaydir():Drives[drive]->GetBaseDir());
+                    strcat(winDirNew, Drives[drive]->curdir);
+                }
+                if (SetCurrentDirectory(winDirNew)) {
+                    strcpy(comline, args);
+                    strcpy(comline, trim(p));
+                    char qwinName[258];
+                    sprintf(qwinName,"\"%s\"",winName);
+                    WriteOut("Now run it as Windows application..\r\n");
+                    hret = _spawnl(P_NOWAIT, winName, qwinName, comline, NULL);
+                    SetCurrentDirectory(winDirCur);
+                    if (hret > 0) {
+                        bool first=true;
+                        ctrlbrk=false;
+                        DWORD exitCode = 0;
+                        while (GetExitCodeProcess((HANDLE)hret, &exitCode) && exitCode == STILL_ACTIVE) {
+                            CALLBACK_Idle();
+                            if (ctrlbrk) {
+                                Bit8u c;Bit16u n=1;
+                                DOS_ReadFile (STDIN,&c,&n);
+                                if (c == 3) WriteOut("^C\n");
+                                EndRunProcess();
+                                exitCode=0;
+                                break;
+                            }
+                            if (first) {WriteOut("(Press Ctrl+C to exit immediately)\n");first=false;}
+                        }
+                        dos.return_code = exitCode&255;
+                        dos.return_mode = 0;
+                        hret = 0;
+                    } else
+                        hret = errno;
+                    DOS_SetError(hret);
+                    bool ret=hret == 0;
+                    hret=0;
+                    return ret;
+                }
+            }
+#endif
+        }
 		packerr=false;
+		reqwin=false;
 	}
 	return true; //Executable started
 }
-
-
 
 
 static const char * bat_ext=".BAT";
