@@ -6612,8 +6612,9 @@ bool DOSBOX_parse_argv() {
             fprintf(stderr,"  -lang <message file>                    Use specific message file instead of language= setting\n");
             fprintf(stderr,"  -nodpiaware                             Ignore (don't signal) Windows DPI awareness\n");
             fprintf(stderr,"  -securemode                             Enable secure mode\n");
-#if defined(WIN32)
+#if defined(WIN32) && !defined(HX_DOS)
             fprintf(stderr,"  -winrun                                 Enable START command and CLIP$ device (Windows version only)\n");
+            fprintf(stderr,"                                          Windows programs can be launched directly to run on the host.\n");
 #endif
             fprintf(stderr,"  -noconfig                               Don't execute CONFIG.SYS config section\n");
             fprintf(stderr,"  -noautoexec                             Don't execute AUTOEXEC.BAT config section\n");

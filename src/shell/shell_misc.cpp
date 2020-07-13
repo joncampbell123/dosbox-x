@@ -874,7 +874,7 @@ std::string full_arguments = "";
 int hret=0;
 bool infix=false;
 extern bool packerr, reqwin, startcmd, ctrlbrk;
-#if defined (WIN32)
+#if defined (WIN32) && !defined(HX_DOS)
 void EndRunProcess() {
     if(hret) {
         DWORD exitCode;
