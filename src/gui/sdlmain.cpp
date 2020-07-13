@@ -6597,17 +6597,19 @@ bool DOSBOX_parse_argv() {
             fprintf(stderr,"  -printconf                              Print config file location\n");
             fprintf(stderr,"  -erasemapper                            Erase mapper file\n");
             fprintf(stderr,"  -resetmapper                            Erase mapper file\n");
-            fprintf(stderr,"  -nogui                                  Don't show GUI (Windows version only)\n");
-            fprintf(stderr,"  -nomenu                                 Don't show menu (Windows version only)\n");
+            fprintf(stderr,"  -nogui                                  Do not show GUI\n");
+            fprintf(stderr,"  -nomenu                                 Do not show menu\n");
             fprintf(stderr,"  -userconf                               Create user level config file\n");
             fprintf(stderr,"  -conf <param>                           Use config file <param>\n");
-            fprintf(stderr,"  -startui -startgui                      Start DOSBox-X with UI\n");
-            fprintf(stderr,"  -startmapper                            Start DOSBox-X with mapper\n");
+            fprintf(stderr,"  -startui -startgui                      Start DOSBox-X with Configuration UI\n");
+            fprintf(stderr,"  -startmapper                            Start DOSBox-X with mapper editor\n");
             fprintf(stderr,"  -showcycles                             Show cycles count\n");
             fprintf(stderr,"  -showrt                                 Show emulation speed relative to realtime\n");
             fprintf(stderr,"  -fullscreen                             Start in fullscreen\n");
             fprintf(stderr,"  -savedir <path>                         Set save path\n");
+#if defined(WIN32)
             fprintf(stderr,"  -disable-numlock-check                  Disable NumLock check (Windows version only)\n");
+#endif
             fprintf(stderr,"  -date-host-forced                       Force synchronization of date with host\n");
             fprintf(stderr,"  -lang <message file>                    Use specific message file instead of language= setting\n");
             fprintf(stderr,"  -nodpiaware                             Ignore (don't signal) Windows DPI awareness\n");
