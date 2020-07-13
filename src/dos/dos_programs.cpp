@@ -5683,7 +5683,7 @@ void AUTOTYPE_ProgramStart(Program **make)
 	*make = new AUTOTYPE;
 }
 
-#if defined (WIN32)
+#if defined (WIN32) && !defined(HX_DOS)
 #include <sstream>
 #include <shellapi.h>
 extern bool ctrlbrk;
@@ -6343,7 +6343,7 @@ void DOS_SetupPrograms(void) {
 
     PROGRAMS_MakeFile("CAPMOUSE.COM", CAPMOUSE_ProgramStart);
     PROGRAMS_MakeFile("LABEL.COM", LABEL_ProgramStart);
-#if defined(WIN32)
+#if defined(WIN32) && !defined(HX_DOS)
     if (startcmd)
         PROGRAMS_MakeFile("START.COM", START_ProgramStart);
 #endif

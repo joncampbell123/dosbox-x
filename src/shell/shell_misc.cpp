@@ -1144,7 +1144,7 @@ continue_1:
 				infix=false;
 				DOS_FreeMemory(segment);
 			}
-#if defined (WIN32)
+#if defined (WIN32) && !defined(HX_DOS)
 		} else if (startcmd&&reqwin) {
             char comline[256], *p=comline;
             char winDirCur[512], winDirNew[512], winName[256];
