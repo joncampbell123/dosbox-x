@@ -36,6 +36,9 @@
 #endif
 
 #ifdef _MSC_VER
+# if !defined(C_SDL2)
+#  include "process.h"
+# endif
 # define MIN(a,b) ((a) < (b) ? (a) : (b))
 # define MAX(a,b) ((a) > (b) ? (a) : (b))
 #else
