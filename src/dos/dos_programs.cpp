@@ -2493,23 +2493,36 @@ restart_int:
             if (!(cmd->FindCommand(1, temp_line)))
                 temp_line = "IMGMAKE.IMG";
 
+            bool setdir=false;
+            char dirCur[512], dirNew[512];
+            if (getcwd(dirCur, 512)!=NULL&&(!strncmp(Drives[DOS_GetDefaultDrive()]->GetInfo(),"local ",6)||!strncmp(Drives[DOS_GetDefaultDrive()]->GetInfo(),"CDRom ",6))) {
+                Overlay_Drive *ddp = dynamic_cast<Overlay_Drive*>(Drives[DOS_GetDefaultDrive()]);
+                strcpy(dirNew, ddp!=NULL?ddp->getOverlaydir():Drives[DOS_GetDefaultDrive()]->GetBaseDir());
+                strcat(dirNew, Drives[DOS_GetDefaultDrive()]->curdir);
+                if (chdir(dirNew)==0) setdir=true;
+            }
+
             FILE* f = fopen(temp_line.c_str(),"r");
             if (f){
                 fclose(f);
                 if (!ForceOverwrite) {
                     WriteOut(MSG_Get("PROGRAM_IMGMAKE_FILE_EXISTS"),temp_line.c_str());
+                    if (setdir) chdir(dirCur);
                     return;
                 }
             }
             f = fopen(temp_line.c_str(),"wb+");
             if (!f) {
                 WriteOut(MSG_Get("PROGRAM_IMGMAKE_CANNOT_WRITE"),temp_line.c_str());
+                if (setdir) chdir(dirCur);
                 return;
             }
+            if (setdir) chdir(dirCur);
             // maybe delete f if it failed?
             if(!ReadDisk(f, src.c_str()[0],retries))
                 WriteOut(MSG_Get("PROGRAM_IMGMAKE_CANT_READ_FLOPPY"));
             fclose(f);
+            if (setdir) Drives[DOS_GetDefaultDrive()]->EmptyCache();
             return;
         }
 #endif
@@ -2640,11 +2653,21 @@ restart_int:
         if (!(cmd->FindCommand(1, temp_line)))
             temp_line = "IMGMAKE.IMG";
 
+        bool setdir=false;
+        char dirCur[512], dirNew[512];
+        if (getcwd(dirCur, 512)!=NULL&&(!strncmp(Drives[DOS_GetDefaultDrive()]->GetInfo(),"local ",6)||!strncmp(Drives[DOS_GetDefaultDrive()]->GetInfo(),"CDRom ",6))) {
+            Overlay_Drive *ddp = dynamic_cast<Overlay_Drive*>(Drives[DOS_GetDefaultDrive()]);
+            strcpy(dirNew, ddp!=NULL?ddp->getOverlaydir():Drives[DOS_GetDefaultDrive()]->GetBaseDir());
+            strcat(dirNew, Drives[DOS_GetDefaultDrive()]->curdir);
+            if (chdir(dirNew)==0) setdir=true;
+        }
+
         FILE* f = fopen(temp_line.c_str(),"r");
         if (f){
             fclose(f);
             if (!ForceOverwrite) {
                 WriteOut(MSG_Get("PROGRAM_IMGMAKE_FILE_EXISTS"),temp_line.c_str());
+                if (setdir) chdir(dirCur);
                 return;
             }
         }
@@ -2659,8 +2682,10 @@ restart_int:
         f = fopen64(temp_line.c_str(),"wb+");
         if (!f) {
             WriteOut(MSG_Get("PROGRAM_IMGMAKE_CANNOT_WRITE"),temp_line.c_str());
+            if (setdir) chdir(dirCur);
             return;
         }
+
 #if defined (_MSC_VER) && (_MSC_VER >= 1400)
         if(fseeko64(f,(__int64)(size - 1ull),SEEK_SET)) {
 #else
@@ -2668,12 +2693,16 @@ restart_int:
 #endif
             WriteOut(MSG_Get("PROGRAM_IMGMAKE_NOT_ENOUGH_SPACE"),size);
             fclose(f);
+            unlink(temp_line.c_str());
+            if (setdir) chdir(dirCur);
             return;
         }
         Bit8u bufferbyte=0;
         if(fwrite(&bufferbyte,1,1,f)!=1) {
             WriteOut(MSG_Get("PROGRAM_IMGMAKE_NOT_ENOUGH_SPACE"),size);
             fclose(f);
+            unlink(temp_line.c_str());
+            if (setdir) chdir(dirCur);
             return;
         }
 
@@ -2693,6 +2722,8 @@ restart_int:
                 if (!(FAT == 12 || FAT == 16 || FAT == 32)) {
                     WriteOut("Invalid -fat option. Must be 12, 16, or 32\n");
                     fclose(f);
+                    unlink(temp_line.c_str());
+                    if (setdir) chdir(dirCur);
                     return;
                 }
             }
@@ -2703,6 +2734,8 @@ restart_int:
                 if (fat_copies < 1u || fat_copies > 4u) {
                     WriteOut("Invalid -fatcopies option\n");
                     fclose(f);
+                    unlink(temp_line.c_str());
+                    if (setdir) chdir(dirCur);
                     return;
                 }
             }
@@ -2713,11 +2746,15 @@ restart_int:
                 if (sectors_per_cluster < 1u || sectors_per_cluster > 128u) {
                     WriteOut("Invalid -spc option, out of range\n");
                     fclose(f);
+                    unlink(temp_line.c_str());
+                    if (setdir) chdir(dirCur);
                     return;
                 }
                 if ((sectors_per_cluster & (sectors_per_cluster - 1u)) != 0u) {
                     WriteOut("Invalid -spc option, must be a power of 2\n");
                     fclose(f);
+                    unlink(temp_line.c_str());
+                    if (setdir) chdir(dirCur);
                     return;
                 }
             }
@@ -2729,6 +2766,8 @@ restart_int:
                 if (root_ent < 1u || root_ent > 4096u) {
                     WriteOut("Invalid -rootdir option\n");
                     fclose(f);
+                    unlink(temp_line.c_str());
+                    if (setdir) chdir(dirCur);
                     return;
                 }
             }
@@ -2915,6 +2954,8 @@ restart_int:
             if (FAT < 32 && sect_per_fat >= 65536u) {
                 WriteOut("Error: Generated filesystem has more than 64KB sectors per FAT and is not FAT32\n");
                 fclose(f);
+                unlink(temp_line.c_str());
+                if (setdir) chdir(dirCur);
                 return;
             }
 
@@ -2927,6 +2968,8 @@ restart_int:
             if ((clusters+2u) < fatlimitmin) {
                 WriteOut("Error: Generated filesystem has too few clusters given the parameters\n");
                 fclose(f);
+                unlink(temp_line.c_str());
+                if (setdir) chdir(dirCur);
                 return;
             }
             if ((clusters+2u) > fatlimit) {
@@ -3094,10 +3137,18 @@ restart_int:
             f = fopen(t2.c_str(),"wb+");
             if (!f) {
                 WriteOut(MSG_Get("PROGRAM_IMGMAKE_CANNOT_WRITE"),t2.c_str());
+                if (setdir) {
+                    Drives[DOS_GetDefaultDrive()]->EmptyCache();
+                    chdir(dirCur);
+                }
                 return;
             }
             fprintf(f,"imgmount c %s -size 512,%u,%u,%u\r\n",temp_line.c_str(),s,h,c);
             fclose(f);
+        }
+        if (setdir) {
+            Drives[DOS_GetDefaultDrive()]->EmptyCache();
+            chdir(dirCur);
         }
         return;
     }
@@ -5632,7 +5683,7 @@ void AUTOTYPE_ProgramStart(Program **make)
 	*make = new AUTOTYPE;
 }
 
-#if defined (WIN32)
+#if defined (WIN32) && !defined(HX_DOS)
 #include <sstream>
 #include <shellapi.h>
 extern bool ctrlbrk;
@@ -5756,9 +5807,18 @@ public:
             lpExecInfo.lpFile = cmd;
             lpExecInfo.lpParameters = cmdstr;
         }
+        bool setdir=false;
+        char winDirCur[512], winDirNew[512];
+        if (GetCurrentDirectory(512, winDirCur)&&(!strncmp(Drives[DOS_GetDefaultDrive()]->GetInfo(),"local ",6)||!strncmp(Drives[DOS_GetDefaultDrive()]->GetInfo(),"CDRom ",6))) {
+            Overlay_Drive *ddp = dynamic_cast<Overlay_Drive*>(Drives[DOS_GetDefaultDrive()]);
+            strcpy(winDirNew, ddp!=NULL?ddp->getOverlaydir():Drives[DOS_GetDefaultDrive()]->GetBaseDir());
+            strcat(winDirNew, Drives[DOS_GetDefaultDrive()]->curdir);
+            if (SetCurrentDirectory(winDirNew)) setdir=true;
+        }
         WriteOut("Starting %s..\n", cmd);
         ShellExecuteEx(&lpExecInfo);
         int ErrorCode = GetLastError();
+        if (setdir) SetCurrentDirectory(winDirCur);
         if(lpExecInfo.hProcess!=NULL) {
             DWORD exitCode;
             BOOL ret;
@@ -6283,7 +6343,7 @@ void DOS_SetupPrograms(void) {
 
     PROGRAMS_MakeFile("CAPMOUSE.COM", CAPMOUSE_ProgramStart);
     PROGRAMS_MakeFile("LABEL.COM", LABEL_ProgramStart);
-#if defined(WIN32)
+#if defined(WIN32) && !defined(HX_DOS)
     if (startcmd)
         PROGRAMS_MakeFile("START.COM", START_ProgramStart);
 #endif

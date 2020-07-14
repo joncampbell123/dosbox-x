@@ -6592,31 +6592,32 @@ bool DOSBOX_parse_argv() {
             fprintf(stderr,"  -editconf                               Launch editor\n");
             fprintf(stderr,"  -opencaptures <param>                   Launch captures\n");
             fprintf(stderr,"  -opensaves <param>                      Launch saves\n");
-            fprintf(stderr,"  -eraseconf                              Erase config file\n");
-            fprintf(stderr,"  -resetconf                              Erase config file\n");
             fprintf(stderr,"  -printconf                              Print config file location\n");
-            fprintf(stderr,"  -erasemapper                            Erase mapper file\n");
-            fprintf(stderr,"  -resetmapper                            Erase mapper file\n");
-            fprintf(stderr,"  -nogui                                  Don't show GUI (Windows version only)\n");
-            fprintf(stderr,"  -nomenu                                 Don't show menu (Windows version only)\n");
+            fprintf(stderr,"  -eraseconf (or -resetconf)              Erase config file\n");
+            fprintf(stderr,"  -erasemapper (or -resetmapper)          Erase mapper file\n");
+            fprintf(stderr,"  -nogui                                  Do not show GUI\n");
+            fprintf(stderr,"  -nomenu                                 Do not show menu\n");
             fprintf(stderr,"  -userconf                               Create user level config file\n");
             fprintf(stderr,"  -conf <param>                           Use config file <param>\n");
-            fprintf(stderr,"  -startui -startgui                      Start DOSBox-X with UI\n");
-            fprintf(stderr,"  -startmapper                            Start DOSBox-X with mapper\n");
+            fprintf(stderr,"  -startui -startgui                      Start DOSBox-X with Configuration UI\n");
+            fprintf(stderr,"  -startmapper                            Start DOSBox-X with mapper editor\n");
             fprintf(stderr,"  -showcycles                             Show cycles count\n");
             fprintf(stderr,"  -showrt                                 Show emulation speed relative to realtime\n");
             fprintf(stderr,"  -fullscreen                             Start in fullscreen\n");
             fprintf(stderr,"  -savedir <path>                         Set save path\n");
+#if defined(WIN32)
             fprintf(stderr,"  -disable-numlock-check                  Disable NumLock check (Windows version only)\n");
+#endif
             fprintf(stderr,"  -date-host-forced                       Force synchronization of date with host\n");
             fprintf(stderr,"  -lang <message file>                    Use specific message file instead of language= setting\n");
-            fprintf(stderr,"  -nodpiaware                             Ignore (don't signal) Windows DPI awareness\n");
+            fprintf(stderr,"  -nodpiaware                             Ignore (do not signal) Windows DPI awareness\n");
             fprintf(stderr,"  -securemode                             Enable secure mode\n");
-#if defined(WIN32)
+#if defined(WIN32) && !defined(HX_DOS)
             fprintf(stderr,"  -winrun                                 Enable START command and CLIP$ device (Windows version only)\n");
+            fprintf(stderr,"                                          Windows programs can be launched directly to run on the host.\n");
 #endif
-            fprintf(stderr,"  -noconfig                               Don't execute CONFIG.SYS config section\n");
-            fprintf(stderr,"  -noautoexec                             Don't execute AUTOEXEC.BAT config section\n");
+            fprintf(stderr,"  -noconfig                               Do not execute CONFIG.SYS config section\n");
+            fprintf(stderr,"  -noautoexec                             Do not execute AUTOEXEC.BAT config section\n");
             fprintf(stderr,"  -exit                                   Exit after executing AUTOEXEC.BAT\n");
             fprintf(stderr,"  -c <command string>                     Execute this command in addition to AUTOEXEC.BAT.\n");
             fprintf(stderr,"                                          Make sure to surround the command in quotes to cover spaces.\n");
@@ -6624,7 +6625,10 @@ bool DOSBOX_parse_argv() {
             fprintf(stderr,"                                          Make sure to surround the string in quotes to cover spaces.\n");
             fprintf(stderr,"  -time-limit <n>                         Kill the emulator after 'n' seconds\n");
             fprintf(stderr,"  -fastbioslogo                           Fast BIOS logo (skip 1-second pause)\n");
-            fprintf(stderr,"  -helpdebug                              Show debug-related options\n\n");
+#if C_DEBUG
+            fprintf(stderr,"  -helpdebug                              Show debug-related options\n");
+#endif
+            fprintf(stderr,"\n");
 
 #if defined(WIN32)
             DOSBox_ConsolePauseWait();
@@ -6643,7 +6647,7 @@ bool DOSBOX_parse_argv() {
             fprintf(stderr,"  -keydbg                                 Log all SDL key events\n");
             fprintf(stderr,"  -break-start                            Break into debugger at startup\n");
             fprintf(stderr,"  -console                                Show console (Windows builds only)\n");
-            fprintf(stderr,"  -noconsole                              Don't show console (Windows debug builds only)\n");
+            fprintf(stderr,"  -noconsole                              Do not show console (Windows debug builds only)\n");
             fprintf(stderr,"  -log-con                                Log CON output to a log file\n");
             fprintf(stderr,"  -log-int21                              Log calls to INT 21h (debug level)\n");
             fprintf(stderr,"  -log-fileio                             Log file I/O through INT 21h (debug level)\n\n");

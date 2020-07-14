@@ -362,8 +362,10 @@ static const char *def_menu_video[] =
     "VideoOverscanMenu",
     "VideoCompatMenu",
     "VideoPC98Menu",
+#if C_DEBUG
     "--",
     "VideoDebugMenu",
+#endif
 #ifdef C_D3DSHADERS
     "--",
     "load_d3d_shader",
@@ -384,8 +386,10 @@ static const char *def_menu_dos[] =
     "mapper_swapcd",
     "--",
     "mapper_rescanall",
+#if C_DEBUG
     "--",
     "DOSDebugMenu",
+#endif
     NULL
 };
 

@@ -36,6 +36,9 @@
 #endif
 
 #ifdef _MSC_VER
+# if !defined(C_SDL2)
+#  include "process.h"
+# endif
 # define MIN(a,b) ((a) < (b) ? (a) : (b))
 # define MAX(a,b) ((a) > (b) ? (a) : (b))
 #else
@@ -871,7 +874,7 @@ std::string full_arguments = "";
 int hret=0;
 bool infix=false;
 extern bool packerr, reqwin, startcmd, ctrlbrk;
-#if defined (WIN32)
+#if defined (WIN32) && !defined(HX_DOS)
 void EndRunProcess() {
     if(hret) {
         DWORD exitCode;
@@ -1141,7 +1144,7 @@ continue_1:
 				infix=false;
 				DOS_FreeMemory(segment);
 			}
-#if defined (WIN32)
+#if defined (WIN32) && !defined(HX_DOS)
 		} else if (startcmd&&reqwin) {
             char comline[256], *p=comline;
             char winDirCur[512], winDirNew[512], winName[256];

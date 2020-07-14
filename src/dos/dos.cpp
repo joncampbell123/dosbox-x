@@ -3104,7 +3104,7 @@ public:
 	}
 	~DOS(){
 		infix=false;
-#if defined(WIN32)
+#if defined(WIN32) && !defined(HX_DOS)
         void EndStartProcess(), EndRunProcess();
         EndStartProcess();
         EndRunProcess();
