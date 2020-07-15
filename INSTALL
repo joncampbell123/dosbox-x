@@ -34,8 +34,9 @@ dosbox-x-debugsource-0.83.2-0.el8.x86_64.rpm
 
 Pick a RPM package for your Linux platform and install.
 
-In addition, the following two zip files are the macOS package and the
-special HX-DOS package respectively:
+In addition, there are also packages for the macOS and DOS platforms.
+The following two zip files are the macOS package and the special
+HX-DOS package respectively:
 
 dosbox-x-macosx-x64-20200531151047.zip
 dosbox-x-mingw-hx-dos-20200531220949.zip
