@@ -987,7 +987,7 @@ public:
         if ((this->y + this->getHeight()) > parent->getHeight())
             move(this->x,parent->getHeight() - this->getHeight());
 
-        new GUI::Label(this, 5, button_row_y-height, title=="Config"?"Other Content:":"Main Content:");
+        new GUI::Label(this, 5, button_row_y-height, title=="Config"?"Additional content:":"Content:");
         content = new GUI::Input(this, 5, button_row_y-height+20, 450 - 10 - border_left - border_right, height-25);
         content->setText(extra_data);
 
