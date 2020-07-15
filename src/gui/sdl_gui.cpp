@@ -1159,7 +1159,7 @@ public:
 
 class ConfigurationWindow : public GUI::ToplevelWindow {
 public:
-    GUI::Button *closeButton;
+    GUI::Button *saveButton, *closeButton;
     ConfigurationWindow(GUI::Screen *parent, GUI::Size x, GUI::Size y, GUI::String& title) :
         GUI::ToplevelWindow(parent, (int)x, (int)y, 30/*initial*/, 30/*initial*/, title) {
         cfg_windows_active.clear();
@@ -1210,7 +1210,8 @@ public:
         const auto finalgridpos = gridfunc(i - 1);
         int closerow_y = finalgridpos.second + 12 + gridbtnheight;
 
-        (closeButton = new GUI::Button(this, 240, closerow_y, "Close", 80))->addActionHandler(this);
+        (saveButton = new GUI::Button(this, 190, closerow_y, "Save...", 80))->addActionHandler(this);
+        (closeButton = new GUI::Button(this, 275, closerow_y, "Close", 80))->addActionHandler(this);
 
         resize(gridbtnx + (gridbtnwidth * btnperrow) + 12 + border_left + border_right,
                closerow_y + closeButton->getHeight() + 12 + border_top + border_bottom);
