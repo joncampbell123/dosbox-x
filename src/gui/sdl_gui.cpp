@@ -578,7 +578,7 @@ public:
         label = new GUI::Label(this, 0, 5, prop->propname);
         std::string title(section->GetName());
         if (title=="4dos"&&!strcmp(prop->propname.c_str(), "rem"))
-           input = new GUI::Input(this, 30, 0, 400);
+           input = new GUI::Input(this, 30, 0, 470);
         else
            input = new GUI::Input(this, 270, 0, 230);
         std::string temps = prop->GetValue().ToString();
@@ -910,7 +910,7 @@ public:
     std::vector<GUI::Char> cfg_sname;
 public:
     ConfigEditor(GUI::Screen *parent, int x, int y, Section_prop *section) :
-        ToplevelWindow(parent, x, y, 450, 260 + GUI::titlebar_y_stop, ""), section(section) {
+        ToplevelWindow(parent, x, y, 510, 260 + GUI::titlebar_y_stop, ""), section(section) {
         if (section == NULL) {
             LOG_MSG("BUG: ConfigEditor constructor called with section == NULL\n");
             return;
@@ -988,7 +988,7 @@ public:
             move(this->x,parent->getHeight() - this->getHeight());
 
         new GUI::Label(this, 5, button_row_y-height, title=="Config"?"Additional content:":"Content:");
-        content = new GUI::Input(this, 5, button_row_y-height+20, 450 - 10 - border_left - border_right, height-25);
+        content = new GUI::Input(this, 5, button_row_y-height+20, 510 - border_left - border_right, height-25);
         content->setText(extra_data);
 
         GUI::Button *b = new GUI::Button(this, button_row_cx, button_row_y, "Cancel", button_w);
