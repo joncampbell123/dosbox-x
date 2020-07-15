@@ -1,4 +1,6 @@
 0.83.4
+  - Added "Save..." button in the Configuration GUI
+    just before the "Close" button. (Wengier
   - Added "euro" config option (in [render] section)
     to display Euro symbol instead of the specified
     ASCII character in any codepage. (Wengier)
