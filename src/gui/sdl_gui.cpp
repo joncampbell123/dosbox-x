@@ -697,7 +697,8 @@ public:
             Property *p;
             int i = 0;
             while ((p = sec->Get_prop(i++))) {
-                msg += std::string("\033[31m")+p->propname+":\033[0m\n"+p->Get_help()+"\n\n";
+                std::string help=title=="4dos"&&p->propname=="rem"?"This is the 4DOS.INI file (if you use 4DOS as the command shell).":p->Get_help();
+                msg += std::string("\033[31m")+p->propname+":\033[0m\n"+help+"\n\n";
             }
             if (!msg.empty()) msg.replace(msg.end()-1,msg.end(),"");
             setText(msg);
@@ -896,6 +897,222 @@ public:
 
 };
 
+class ConfigEditor : public GUI::ToplevelWindow {
+    GUI::Button *closeButton = NULL;
+    Section_prop * section;
+    GUI::Input *content = NULL;
+    GUI::WindowInWindow * wiw = NULL;
+public:
+    std::vector<GUI::Char> cfg_sname;
+public:
+    ConfigEditor(GUI::Screen *parent, int x, int y, Section_prop *section) :
+        ToplevelWindow(parent, x, y, 450, 260 + GUI::titlebar_y_stop, ""), section(section) {
+        if (section == NULL) {
+            LOG_MSG("BUG: ConfigEditor constructor called with section == NULL\n");
+            return;
+        }
+
+        int first_row_y = 5;
+        int row_height = 25;
+        int column_width = 500;
+        int button_row_h = 26;
+        int button_row_padding_y = 5 + 5;
+
+        int num_prop = 0;
+        while (section->Get_prop(num_prop) != NULL) num_prop++;
+
+        int allowed_dialog_y = parent->getHeight() - 25 - (border_top + border_bottom) - 50;
+
+        int items_per_col = num_prop;
+        int columns = 1;
+
+        int scroll_h = items_per_col * row_height;
+        if (scroll_h > allowed_dialog_y)
+            scroll_h = allowed_dialog_y;
+
+        std::string title(section->GetName());
+        title[0] = std::toupper(title[0]);
+        setTitle("Configuration for "+title);
+
+		char extra_data[4096] = { 0 };
+		const char * extra = const_cast<char*>(section->data.c_str());
+		if (extra) {
+			std::istringstream in(extra);
+			char linestr[CROSS_LEN+1], cmdstr[CROSS_LEN], valstr[CROSS_LEN];
+			char *cmd=cmdstr, *val=valstr, *p;
+			if (in)	for (std::string line; std::getline(in, line); ) {
+				if (line.length()>CROSS_LEN) {
+					strncpy(linestr, line.c_str(), CROSS_LEN);
+					linestr[CROSS_LEN]=0;
+				} else
+					strcpy(linestr, line.c_str());
+				p=strchr(linestr, '=');
+				if (p!=NULL) {
+					*p=0;
+					strcpy(cmd, linestr);
+					strcpy(val, p+1);
+					cmd=trim(cmd);
+					val=trim(val);
+					if (strcasecmp(cmd, "rem")&&strlen(extra_data)+strlen(cmd)+strlen(val)+3<4096&&(title=="4dos"||!strncasecmp(cmd, "set ", 4)||!strcasecmp(cmd, "install")||!strcasecmp(cmd, "installhigh")||!strcasecmp(cmd, "device")||!strcasecmp(cmd, "devicehigh"))) {
+						strcat(extra_data, cmd);
+						strcat(extra_data, "=");
+						strcat(extra_data, val);
+						strcat(extra_data, "\r\n");
+					}
+				} else if (title=="Config"&&!strncasecmp(line.c_str(), "rem ", 4)) {
+					strcat(extra_data, line.c_str());
+					strcat(extra_data, "\r\n");
+				}
+			}
+		}
+
+        int height=title=="Config"?100:210;
+        scroll_h += height + 2; /* border */
+
+        wiw = new GUI::WindowInWindow(this, 5, 5, width-border_left-border_right-10, scroll_h);
+
+        int button_row_y = first_row_y + scroll_h + 5;
+        int button_w = 70;
+        int button_pad_w = 10;
+        int button_row_w = ((button_pad_w + button_w) * 3) - button_pad_w;
+        int button_row_cx = (((columns * column_width) - button_row_w) / 2) + 5;
+
+        resize((columns * column_width) + border_left + border_right + 2/*wiw border*/ + wiw->vscroll_display_width/*scrollbar*/ + 10,
+               button_row_y + button_row_h + button_row_padding_y + border_top + border_bottom);
+
+        if ((this->y + this->getHeight()) > parent->getHeight())
+            move(this->x,parent->getHeight() - this->getHeight());
+
+        new GUI::Label(this, 5, button_row_y-height, title=="Config"?"Other Content:":"Main Content:");
+        content = new GUI::Input(this, 5, button_row_y-height+20, 450 - 10 - border_left - border_right, height-25);
+        content->setText(extra_data);
+
+        GUI::Button *b = new GUI::Button(this, button_row_cx, button_row_y, "Cancel", button_w);
+        b->addActionHandler(this);
+        closeButton = b;
+
+        b = new GUI::Button(this, button_row_cx + (button_w + button_pad_w), button_row_y, "Help", button_w);
+        b->addActionHandler(this);
+
+        b = new GUI::Button(this, button_row_cx + (button_w + button_pad_w)*2, button_row_y, "OK", button_w);
+
+        int i = 0;
+        Property *prop;
+        while ((prop = section->Get_prop(i))) {
+            Prop_bool   *pbool   = dynamic_cast<Prop_bool*>(prop);
+            Prop_int    *pint    = dynamic_cast<Prop_int*>(prop);
+            Prop_double  *pdouble  = dynamic_cast<Prop_double*>(prop);
+            Prop_hex    *phex    = dynamic_cast<Prop_hex*>(prop);
+            Prop_string *pstring = dynamic_cast<Prop_string*>(prop);
+            Prop_multival* pmulti = dynamic_cast<Prop_multival*>(prop);
+            Prop_multival_remain* pmulti_remain = dynamic_cast<Prop_multival_remain*>(prop);
+
+            PropertyEditor *p;
+            if (pbool) p = new PropertyEditorBool(wiw, column_width*(i/items_per_col), (i%items_per_col)*row_height, section, prop);
+            else if (phex) p = new PropertyEditorHex(wiw, column_width*(i/items_per_col), (i%items_per_col)*row_height, section, prop);
+            else if (pint) p = new PropertyEditorInt(wiw, column_width*(i/items_per_col), (i%items_per_col)*row_height, section, prop);
+            else if (pdouble) p = new PropertyEditorFloat(wiw, column_width*(i/items_per_col), (i%items_per_col)*row_height, section, prop);
+            else if (pstring) p = new PropertyEditorString(wiw, column_width*(i/items_per_col), (i%items_per_col)*row_height, section, prop);
+            else if (pmulti) p = new PropertyEditorString(wiw, column_width*(i/items_per_col), (i%items_per_col)*row_height, section, prop);
+            else if (pmulti_remain) p = new PropertyEditorString(wiw, column_width*(i/items_per_col), (i%items_per_col)*row_height, section, prop);
+            else { i++; continue; }
+            b->addActionHandler(p);
+            i++;
+        }
+        b->addActionHandler(this);
+
+        /* first child is first tabbable */
+        {
+            Window *w = wiw->getChild(0);
+            if (w) w->first_tabbable = true;
+        }
+
+        /* last child is first tabbable */
+        {
+            Window *w = wiw->getChild(wiw->getChildCount()-1);
+            if (w) w->last_tabbable = true;
+        }
+
+        /* the FIRST field needs to come first when tabbed to */
+        {
+            Window *w = wiw->getChild(0);
+            if (w) w->raise(); /* NTS: This CHANGES the child element order, getChild(0) will return something else */
+        }
+
+        wiw->resize((columns * column_width) + 2/*border*/ + wiw->vscroll_display_width, scroll_h);
+
+        if (wiw->scroll_pos_h != 0) {
+            wiw->enableScrollBars(false/*h*/,true/*v*/);
+            wiw->enableBorder(true);
+        }
+        else {
+            wiw->enableScrollBars(false/*h*/,false/*v*/);
+            wiw->enableBorder(false);
+
+            resize((columns * column_width) + border_left + border_right + 2/*wiw border*/ + /*wiw->vscroll_display_width*//*scrollbar*/ + 10,
+                    button_row_y + button_row_h + button_row_padding_y + border_top + border_bottom);
+        }
+    }
+
+    ~ConfigEditor() {
+        if (!cfg_sname.empty()) {
+            auto i = cfg_windows_active.find(cfg_sname);
+            if (i != cfg_windows_active.end()) cfg_windows_active.erase(i);
+        }
+    }
+
+    void actionExecuted(GUI::ActionEventSource *b, const GUI::String &arg) {
+        if (arg == "OK") section->data = *(std::string*)content->getText();
+        if (arg == "OK" || arg == "Cancel" || arg == "Close") { close(); if(shortcut) running=false; }
+        else if (arg == "Help") {
+            std::vector<GUI::Char> new_cfg_sname;
+
+            if (!cfg_sname.empty()) {
+//              new_cfg_sname = "help_";
+                new_cfg_sname.resize(5);
+                new_cfg_sname[0] = 'h';
+                new_cfg_sname[1] = 'e';
+                new_cfg_sname[2] = 'l';
+                new_cfg_sname[3] = 'p';
+                new_cfg_sname[4] = '_';
+                new_cfg_sname.insert(new_cfg_sname.end(),cfg_sname.begin(),cfg_sname.end());
+            }
+
+            auto lookup = cfg_windows_active.find(new_cfg_sname);
+            if (lookup == cfg_windows_active.end()) {
+                int nx = getX() - 10;
+                int ny = getY() - 10;
+                if (nx < 0) nx = 0;
+                if (ny < 0) ny = 0;
+                auto *np = new HelpWindow(static_cast<GUI::Screen*>(parent), nx, ny, section);
+                cfg_windows_active[new_cfg_sname] = np;
+                np->cfg_sname = new_cfg_sname;
+                np->raise();
+            }
+            else {
+                lookup->second->raise();
+            }
+        } else ToplevelWindow::actionExecuted(b, arg);
+    }
+
+    virtual bool keyDown(const GUI::Key &key) {
+        if (GUI::ToplevelWindow::keyDown(key)) return true;
+        return false;
+    }
+
+    virtual bool keyUp(const GUI::Key &key) {
+        if (GUI::ToplevelWindow::keyUp(key)) return true;
+
+        if (key.special == GUI::Key::Escape) {
+            closeButton->executeAction();
+            return true;
+        }
+
+        return false;
+    }
+
+};
+
 class AutoexecEditor : public GUI::ToplevelWindow {
     GUI::Button *closeButton = NULL;
     Section_line * section;
@@ -991,7 +1208,7 @@ public:
         (void)b;//UNUSED
         // HACK: Attempting to cast a String to void causes "forming reference to void" errors when building with GCC 4.7
         (void)arg.size();//UNUSED
-        if (arg == "OK") control->PrintConfig(name->getText());
+        if (arg == "OK") control->PrintConfig(name->getText(), true);
         close();
         if(shortcut) running=false;
     }
@@ -1248,6 +1465,18 @@ public:
             if (lookup == cfg_windows_active.end()) {
                 Section_line *section = static_cast<Section_line *>(control->GetSection((const char *)sname));
                 auto *np = new AutoexecEditor(getScreen(), 50, 30, section);
+                cfg_windows_active[sname] = np;
+                np->cfg_sname = sname;
+                np->raise();
+            }
+            else {
+                lookup->second->raise();
+            }
+        } else if (sname == "config" || sname == "4dos") {
+            auto lookup = cfg_windows_active.find(sname);
+            if (lookup == cfg_windows_active.end()) {
+                Section_prop *section = static_cast<Section_prop *>(control->GetSection((const char *)sname));
+                auto *np = new ConfigEditor(getScreen(), 50, 30, section);
                 cfg_windows_active[sname] = np;
                 np->cfg_sname = sname;
                 np->raise();
