@@ -576,7 +576,11 @@ public:
     PropertyEditorString(Window *parent, int x, int y, Section_prop *section, Property *prop) :
         PropertyEditor(parent, x, y, section, prop) {
         label = new GUI::Label(this, 0, 5, prop->propname);
-        input = new GUI::Input(this, 270, 0, 230);
+        std::string title(section->GetName());
+        if (title=="4dos"&&!strcmp(prop->propname.c_str(), "rem"))
+           input = new GUI::Input(this, 30, 0, 400);
+        else
+           input = new GUI::Input(this, 270, 0, 230);
         std::string temps = prop->GetValue().ToString();
         input->setText(stringify(temps));
     }
