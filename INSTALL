@@ -4,13 +4,14 @@ Some Information for Installation and Compilation of DOSBox-X
 For the latest releases of DOSBox-X please go to the Releases page:
 https://github.com/joncampbell123/dosbox-x/releases
 
-You will find pre-compiled Windows binaries (both 32-bit and 64-bit)
-and Linux RPM packages (64-bit) from the Releases page.
+You will find pre-compiled Windows binaries (both 32-bit and 64-bit),
+Linux RPM packages (64-bit) and special HX-DOS packages (for real
+DOS environments) from the Releases page.
 
 For each DOSBox-X version there are generally three zip packages for
 the Windows platform, built with Visual Studio, MinGW 32-bit and
-MinGW 64-bit respectively. In the case of DOSBox-X version 0.83.2,
-they correspond to the following:
+MinGW 64-bit respectively. For example, in the case of DOSBox-X
+version 0.83.2, they correspond to the following:
 
 dosbox-x-windows-20200531-220809-windows.zip
 dosbox-x-mingw-win32-20200531151931.zip
@@ -21,6 +22,8 @@ find various directories, which are some supported targets (e.g. Win32
 and x64). Go to a target folder and run dosbox-x.exe inside it, then
 DOSBox-X will be launched and ready to be used.
 
+You may also find all-in-one Windows installation package elsewhere.
+
 On the other hand, the following RPM packages are for Linux platform:
 
 dosbox-x-0.83.2-0.el7.x86_64.rpm
@@ -30,6 +33,15 @@ dosbox-x-debuginfo-0.83.2-0.el8.x86_64.rpm
 dosbox-x-debugsource-0.83.2-0.el8.x86_64.rpm
 
 Pick a RPM package for your Linux platform and install.
+
+In addition, the following is the special HX-DOS package:
+
+dosbox-x-mingw-hx-dos-20200531220949.zip
+
+With this package DOSBox-X can be run in real DOS too, although not
+all features of DOSBox-X can be supported in this environment.
+
+Note: You may not see all such packages for some DOSBox-X versions.
 
 You can also compile DOSBox-X from the source code by yourself. Below
 are some old information for compiling the DOSBox-X source code, which
