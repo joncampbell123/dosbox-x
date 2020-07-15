@@ -73,11 +73,13 @@ DOSBox-X is a cross-platform DOS emulator, so all major host operating systems a
 
 4. MS-DOS or compatible (with the help of HX DOS Extender)
 
-Windows binaries (both 32-bit and 64-bit) and Linux RPM packages (64-bit) are officially released periodically, typically at the start of each month. 
+Windows binaries (both 32-bit and 64-bit), Linux RPM packages (64-bit), macOS packages (64-bit) and DOS versions are officially released periodically, typically in the last day of a month or the first day of the next month. You can usually find the zip packages for the supported platforms in the [Releases](https://github.com/joncampbell123/dosbox-x/releases) page. Note that the Visual Studio builds only support Windows Vista and later versions including Windows 7, 8, and 10. For Windows XP, the MinGW builds are required. 
+
+The latest version of DOSBox-X at this time is DOSBox-X 0.83.3, which was released on June 30, 2020. The all-in-one Windows installer for DOSBox-X 0.83.3 is also available. You can use this self-installable package if Windows is your platform, and you will be able to start DOSBox-X as soon as the installation ends. Download link: [DOSBox-X-0.83.3-setup.exe](https://github.com/Wengier/dosbox-x-wiki/raw/master/DOSBox-X-0.83.3-setup.exe)
+
+For running DOSBox-X in a real DOS system with the help of the freely-available [HX DOS Extender](https://github.com/Baron-von-Riedesel/HX), please use the special HX-DOS builds. The special HX-DOS builds may happen to also run on Windows, but they are made for the HX DOS Extender environment so it is strongly recommended to use the Visual Studio or MinGW builds for the Windows platform instead.
 
 The full source code is officially provided with each DOSBox-X release, which may be compiled to run on the above and other operating systems too. You can also get the latest development source code from the repository directly. See also the [DOSBox-X source code description](README.source-code-description) page for information on compiling the source code.
-
-Note that the Visual Studio builds only support Windows Vista and later versions including Windows 7, 8, and 10. For Windows XP, please use the MinGW builds instead. For running DOSBox-X in a real DOS system with the help of the freely-available [HX DOS Extender](https://github.com/Baron-von-Riedesel/HX), please use the special HX-DOS builds. The special HX-DOS builds may happen to also run on Windows, but they are made for the HX DOS Extender environment so it is strongly recommended to use the Visual Studio or MinGW builds for the Windows platform instead.
 
 
 Compatibility with DOS programs and games
