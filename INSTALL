@@ -5,8 +5,8 @@ For the latest releases of DOSBox-X please go to the Releases page:
 https://github.com/joncampbell123/dosbox-x/releases
 
 You will find pre-compiled Windows binaries (both 32-bit and 64-bit),
-Linux RPM packages (64-bit) and special HX-DOS packages (for real
-DOS environments) from the Releases page.
+Linux RPM packages (64-bit), macOS packages (64-bit) and the special
+HX-DOS packages (for real DOS environments) from the Releases page.
 
 For each DOSBox-X version there are generally three zip packages for
 the Windows platform, built with Visual Studio, MinGW 32-bit and
@@ -34,12 +34,14 @@ dosbox-x-debugsource-0.83.2-0.el8.x86_64.rpm
 
 Pick a RPM package for your Linux platform and install.
 
-In addition, the following is the special HX-DOS package:
+In addition, the following two zip files are the macOS package and the
+special HX-DOS package respectively:
 
+dosbox-x-macosx-x64-20200531151047.zip
 dosbox-x-mingw-hx-dos-20200531220949.zip
 
-With this package DOSBox-X can be run in real DOS too, although not
-all features of DOSBox-X can be supported in this environment.
+With the HX-DOS package DOSBox-X can be run in real DOS too, although
+not all features of DOSBox-X can be supported in this environment.
 
 Note: You may not see all such packages for some DOSBox-X versions.
 
