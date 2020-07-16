@@ -75,9 +75,9 @@ DOSBox-X is a cross-platform DOS emulator, so all major host operating systems a
 
 4. MS-DOS or compatible (special HX-DOS versions)
 
-Windows binaries (both 32-bit and 64-bit), Linux RPM packages (64-bit), macOS packages (64-bit) and DOS versions are officially released periodically, typically on the last day of a month or the first day of the next month. You can usually find zip packages for the supported platforms and recent changes in the [Releases](https://github.com/joncampbell123/dosbox-x/releases) page.
+Windows binaries (both 32-bit and 64-bit), Linux RPM packages (64-bit), macOS packages (64-bit) and DOS versions are officially released periodically, typically on the last day of a month or the first day of the next month. You can usually find zip (or Linux rpm) packages for the supported platforms and recent changes in the [Releases](https://github.com/joncampbell123/dosbox-x/releases) page. See also the [INSTALL](https://github.com/joncampbell123/dosbox-x/blob/master/INSTALL) file for some descriptions of these packages.
 
-The latest version of DOSBox-X at this time is DOSBox-X 0.83.3, which was released on June 30, 2020. Note that the Visual Studio builds only support Windows Vista and later (Windows 7, 8, and 10). For Windows XP, the MinGW builds are required. Self-installable Windows packages for DOSBox-X are also available to ease the installation process. If you use the installers you will be able to start DOSBox-X as soon as the installation ends. The all-in-one Windows installer for DOSBox-X 0.83.3 can be downloaded from: [DOSBox-X-0.83.3-setup.exe](https://github.com/Wengier/dosbox-x-wiki/raw/master/DOSBox-X-0.83.3-setup.exe)
+The current version of DOSBox-X at this time is DOSBox-X 0.83.3, which was released on June 30, 2020. Note that the Visual Studio builds only support Windows Vista and later (Windows 7, 8, and 10). For Windows XP, the MinGW builds are required. Self-installable Windows packages for DOSBox-X are also available to ease the installation process. If you use the installers you will be able to start DOSBox-X as soon as the installation ends. The all-in-one Windows installer for the latest official version of DOSBox-X can be downloaded from: [DOSBox-X-Setup-Windows-latest.exe](https://github.com/Wengier/dosbox-x-wiki/raw/master/DOSBox-X-Setup-Windows-latest.exe)
 
 For running DOSBox-X in a real DOS system (MS-DOS or compatible), please use the special HX-DOS builds. It is achieved with the help of the freely-available [HX DOS Extender](https://github.com/Baron-von-Riedesel/HX), which is already included in the recent HX-DOS release packages. The special HX-DOS builds may sometimes happen to also run on Windows, but they are made for the HX DOS Extender environment so it is strongly recommended to use the Visual Studio or MinGW builds (both included in the Windows installer) for the Windows platform instead.
 
@@ -138,7 +138,9 @@ DOSBox-X’s development/release pattern
 
 In order to make DOSBox-X's development process more smooth, we have implemented a general development/release pattern for DOSBox-X. The current release pattern for DOSBox-X is as follows:
 
-New DOSBox-X versions are made public at the start of each month, including the source code and binary releases. Then the DOSBox-X developments will be re-opened for new features, pull requests, etc. There will be no new features added 6 days before the end of the month, but only bug fixes. The last day of the month is DOSBox-X’s build day to compile for binary releases the first of the next month, so there will be no source code changes on this day including pull requests or bug fixes.
+New DOSBox-X versions are made public at the start (typically on the first day) of each month, including the source code and binary releases. Then the DOSBox-X developments will be re-opened for new features, pull requests, etc. There will be no new features added 6 days before the end of the month, but only bug fixes. The last day of the month is DOSBox-X’s build day to compile for binary releases the first of the next month, so there will be no source code changes on this day including pull requests or bug fixes.
+
+For example, suppose August is the current month - August 25th will be the day pull requests will be ignored unless only bug fixes. August 31st (the last day of August) will be DOSBox-X build day.
 
 This is DOSBox-X’s official release pattern, although it may change later.
 
