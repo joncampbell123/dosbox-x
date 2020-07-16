@@ -17,16 +17,22 @@ dosbox-x-windows-20200531-220809-windows.zip
 dosbox-x-mingw-win32-20200531151931.zip
 dosbox-x-mingw-win64-20200531160500.zip
 
-Select one of the zip packages to download and unzip, then you will
-find various directories, which are some supported targets (e.g. Win32
-and x64). Go to a target folder and run dosbox-x.exe inside it, then
-DOSBox-X will be launched and ready to be used.
+The Visual Studio builds are the default Windows builds to use, but
+they only run on Windows Vista and later (Windows 7, 8, and 10). You
+will need to use the MinGW builds if you are running Windows XP. So
+select one of the zip packages to download for your platform and unzip,
+then you will find various folders, which are some supported targets
+(e.g. Win32, x64, or ARM). Go to a target folder and run dosbox-x.exe
+inside it, then DOSBox-X will be launched and ready to be used.
 
-You may also find all-in-one Windows installer packages elsewhere. The
-installation process will be automated while allowing you to change
-the default build to run if you prefer, and you will be able to start
-DOSBox-X as soon as the installation ends. A quick start guide is also
-included in the package.
+You may also use the all-in-one Windows installer packages to ease the
+installation. The installation process will be automated while allowing
+you to change the default build to run if you prefer, and you will be
+able to start DOSBox-X as soon as the installation ends. A quick start
+guide is also included in the package. Windows installer for the latest
+official DOSBox-X version is available from:
+
+https://github.com/Wengier/dosbox-x-wiki/raw/master/DOSBox-X-Setup-Windows-latest.exe
 
 On the other hand, the following RPM packages are for Linux platform:
 
