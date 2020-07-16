@@ -71,11 +71,11 @@ DOSBox-X is a cross-platform DOS emulator, so all major host operating systems a
 
 3. macOS (Mac OS X) Sierra 10.12 or higher 64-bit
 
-4. MS-DOS or compatible (with the help of HX DOS Extender)
+4. MS-DOS or compatible (special HX-DOS versions)
 
-Windows binaries (both 32-bit and 64-bit), Linux RPM packages (64-bit), macOS packages (64-bit) and DOS versions are officially released periodically, typically in the last day of a month or the first day of the next month. You can usually find the zip packages for the supported platforms in the [Releases](https://github.com/joncampbell123/dosbox-x/releases) page. Note that the Visual Studio builds only support Windows Vista and later versions including Windows 7, 8, and 10. For Windows XP, the MinGW builds are required. 
+Windows binaries (both 32-bit and 64-bit), Linux RPM packages (64-bit), macOS packages (64-bit) and DOS versions are officially released periodically, typically in the last day of a month or the first day of the next month. You can usually find zip packages for the supported platforms in the [Releases](https://github.com/joncampbell123/dosbox-x/releases) page.
 
-The latest version of DOSBox-X at this time is DOSBox-X 0.83.3, which was released on June 30, 2020. All-in-one Windows installers for recent DOSBox-X versions are also available. You can use these self-installable packages if Windows is your platform, and you will be able to start DOSBox-X as soon as the installation ends. The Windows installer for DOSBox-X 0.83.3 can be downloaded from: [DOSBox-X-0.83.3-setup.exe](https://github.com/Wengier/dosbox-x-wiki/raw/master/DOSBox-X-0.83.3-setup.exe)
+The latest version of DOSBox-X at this time is DOSBox-X 0.83.3, which was released on June 30, 2020. Note that the Visual Studio builds only support Windows Vista and later (Windows 7, 8, and 10). For Windows XP, the MinGW builds are required. Self-installable Windows packages for DOSBox-X are also available. If you use the installers you will be able to start DOSBox-X as soon as the installation ends. The all-in-one Windows installer for DOSBox-X 0.83.3 can be downloaded from: [DOSBox-X-0.83.3-setup.exe](https://github.com/Wengier/dosbox-x-wiki/raw/master/DOSBox-X-0.83.3-setup.exe)
 
 For running DOSBox-X in a real DOS system (MS-DOS or compatible), please use the special HX-DOS builds. It is achieved with the help of the freely-available [HX DOS Extender](https://github.com/Baron-von-Riedesel/HX), which is already included in the release packages. The special HX-DOS builds may sometimes happen to also run on Windows, but they are made for the HX DOS Extender environment so it is strongly recommended to use the Visual Studio or MinGW builds for the Windows platform instead.
 
