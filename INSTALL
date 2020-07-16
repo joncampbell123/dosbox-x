@@ -22,7 +22,11 @@ find various directories, which are some supported targets (e.g. Win32
 and x64). Go to a target folder and run dosbox-x.exe inside it, then
 DOSBox-X will be launched and ready to be used.
 
-You may also find all-in-one Windows installation package elsewhere.
+You may also find all-in-one Windows installer packages elsewhere. The
+installation process will be automated while allowing you to change
+the default build to run if you prefer, and you will be able to start
+DOSBox-X as soon as the installation ends. A quick start guide is also
+included in the package.
 
 On the other hand, the following RPM packages are for Linux platform:
 
