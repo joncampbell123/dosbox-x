@@ -39,9 +39,11 @@ Although based on the DOSBox project, DOSBox-X is now a separate project because
 
 * Support for CPU types like Pentium Pro and MMX instructions
 
-* Support for printer output, either a real or virtual printer
+* Support for IDE interfaces and improved Windows 3.x/9x emulation
 
 * Support for long filenames and FAT32 disk images for DOS version 7+
+
+* Support for printer output, either a real or virtual printer
 
 * Support for 3dfx Glide and Voodoo chip emulation
 
@@ -55,13 +57,13 @@ Although based on the DOSBox project, DOSBox-X is now a separate project because
 
 * Plus many more..
 
-DOSBox-X also has several notable platform-dependent features, such as support for automatic drive mounting as well as clipboard copy and paste on the Windows platform. These features cannot be easily ported to other platforms.
+DOSBox-X also has several notable platform-dependent features, such as support for automatic drive mounting, clipboard copy and paste, and starting programs to run on the host (-winrun) on the Windows platform. These features cannot be easily ported to other platforms.
 
 DOSBox-X officially supports both SDL 1.2 and SDL 2.0; both 32-bit and 64-bit builds are also supported.
 
 
-DOSBox-X's supported platforms
-------------------------------
+DOSBox-X's supported platforms and releases
+-------------------------------------------
 
 DOSBox-X is a cross-platform DOS emulator, so all major host operating systems are officially supported, including:
 
@@ -73,9 +75,9 @@ DOSBox-X is a cross-platform DOS emulator, so all major host operating systems a
 
 4. MS-DOS or compatible (special HX-DOS versions)
 
-Windows binaries (both 32-bit and 64-bit), Linux RPM packages (64-bit), macOS packages (64-bit) and DOS versions are officially released periodically, typically in the last day of a month or the first day of the next month. You can usually find zip packages for the supported platforms in the [Releases](https://github.com/joncampbell123/dosbox-x/releases) page.
+Windows binaries (both 32-bit and 64-bit), Linux RPM packages (64-bit), macOS packages (64-bit) and DOS versions are officially released periodically, typically in the last day of a month or the first day of the next month. You can usually find zip packages for the supported platforms and recent changes in the [Releases](https://github.com/joncampbell123/dosbox-x/releases) page.
 
-The latest version of DOSBox-X at this time is DOSBox-X 0.83.3, which was released on June 30, 2020. Note that the Visual Studio builds only support Windows Vista and later (Windows 7, 8, and 10). For Windows XP, the MinGW builds are required. Self-installable Windows packages for DOSBox-X are also available. If you use the installers you will be able to start DOSBox-X as soon as the installation ends. The all-in-one Windows installer for DOSBox-X 0.83.3 can be downloaded from: [DOSBox-X-0.83.3-setup.exe](https://github.com/Wengier/dosbox-x-wiki/raw/master/DOSBox-X-0.83.3-setup.exe)
+The latest version of DOSBox-X at this time is DOSBox-X 0.83.3, which was released on June 30, 2020. Note that the Visual Studio builds only support Windows Vista and later (Windows 7, 8, and 10). For Windows XP, the MinGW builds are required. Self-installable Windows packages for DOSBox-X are also available to ease the installation process. If you use the installers you will be able to start DOSBox-X as soon as the installation ends. The all-in-one Windows installer for DOSBox-X 0.83.3 can be downloaded from: [DOSBox-X-0.83.3-setup.exe](https://github.com/Wengier/dosbox-x-wiki/raw/master/DOSBox-X-0.83.3-setup.exe)
 
 For running DOSBox-X in a real DOS system (MS-DOS or compatible), please use the special HX-DOS builds. It is achieved with the help of the freely-available [HX DOS Extender](https://github.com/Baron-von-Riedesel/HX), which is already included in the release packages. The special HX-DOS builds may sometimes happen to also run on Windows, but they are made for the HX DOS Extender environment so it is strongly recommended to use the Visual Studio or MinGW builds for the Windows platform instead.
 
@@ -131,8 +133,8 @@ Information about the debugger is also available in the
 See also the [CREDITS](CREDITS.md) page for crediting information.
 
 
-DOSBox-X’s release pattern
---------------------------
+DOSBox-X’s development/release pattern
+--------------------------------------
 
 In order to make DOSBox-X's development process more smooth, the current release pattern for DOSBox-X is as follows:
 
