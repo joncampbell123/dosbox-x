@@ -1,14 +1,14 @@
 DOSBox-X Installation and Released Packages 
 ===========================================
 
-DOSBox-X is a cross-platform DOS emulator based on DOSBox. New versions of DOSBox-X are released periodically, typically on the last day of a month or the first day of the next month. Since DOSBox-X is cross-platform, all major host operating systems are officially supported including Windows (XP or later), Linux (with X11), macOS (10.12 or later) and DOS operating systems.
+DOSBox-X is a cross-platform DOS emulator based on DOSBox, with the eventual goal of being a complete DOS emulation package. New versions of DOSBox-X are released periodically, typically on the last day of a month or the first day of the next month. Since DOSBox-X is cross-platform, all major host operating systems are officially supported including Windows (XP or later), Linux (with X11), macOS (10.12 or later) and DOS operating systems.
 
 The current version of DOSBox-X at this time is DOSBox-X 0.83.3, which was released on June 30, 2020. Pre-compiled Windows binaries (both 32-bit and 64-bit), Linux RPM packages (64-bit), macOS packages (64-bit) and the special HX-DOS packages (for real DOS environments) can be found in the [Releases](https://github.com/joncampbell123/dosbox-x/releases) page. You will find DOSBox-X versions that have been released so far (ZIP or RPM packages) and change logs for the releases. The Windows installer is also available (see below for details).
 
 Windows Packages
 ----------------
 
-For each DOSBox-X version there are generally three zip packages for the Windows platform, built with Visual Studio, MinGW 32-bit and MinGW 64-bit respectively. For example, in the case of DOSBox-X version 0.83.2, they correspond to the following:
+For each DOSBox-X version there are usually three zip packages for the Windows platform, built with Visual Studio, MinGW 32-bit and MinGW 64-bit respectively. For example, in the case of DOSBox-X version 0.83.2, they correspond to the following:
 
 * dosbox-x-windows-20200531-220809-windows.zip
 * dosbox-x-mingw-win32-20200531151931.zip
@@ -18,7 +18,7 @@ The Visual Studio builds are the default Windows builds to use, but they only ru
 
 You may want to use the all-in-one Windows installer packages instead in order to ease the installation. The Windows installers are especially recommended for new users. With the installer the installation process will be automated while allowing you to change the install path and the default build to run if you prefer (and the option to install all builds to subdirectories), so that you will be able to start DOSBox-X as soon as the installation ends. A quick start guide is also included in the package. Windows installer for the latest official DOSBox-X version is available from: [DOSBox-X-Setup-Windows-latest.exe](https://github.com/Wengier/dosbox-x-wiki/raw/master/DOSBox-X-Setup-Windows-latest.exe)
 
-If you prefer to use the zip packages mentioned above, please select one of the zip packages to download for your platform and unzip, then you will find various folders, which are some supported targets. For Visual Studio builds, these correspond to Win32, x64, ARM and ARM64 (either SDL1 or SDL2), which are the build platforms. For MinGW builds, the targets are plain MinGW (mingw), MinGW for lowend systems (mingw-lowend), MinGW SDL2 (mingw-sdl2) and MinGW with custom drawn menu (mingw-sdldraw). Go to a target folder for your platform and run dosbox-x.exe inside it, then DOSBox-X will be launched and ready to be used. Unlike the Windows installer version, there is no documentation included in these packages, and you may not see all such packages for some DOSBox-X versions.
+If you prefer to use the zip packages as previously mentioned, please select one of the zip packages to download for your platform and unzip, then you will find various folders or subdirectories, which are some supported targets. For Visual Studio builds, these correspond to Win32, x64, ARM and ARM64 (either SDL1 or SDL2), which are the build platforms. For MinGW builds, the targets are plain MinGW (mingw), MinGW for lowend systems (mingw-lowend), MinGW SDL2 (mingw-sdl2) and MinGW with custom drawn menu (mingw-sdldraw). Go to a target folder for your platform and run dosbox-x.exe inside it, then DOSBox-X will be launched and ready to be used. Unlike the Windows installer version, there is no documentation included in these packages, and you may not see all such packages for some DOSBox-X versions.
 
 Linux Packages
 --------------
