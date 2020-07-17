@@ -239,16 +239,16 @@ The DOSBox-X configure script accepts the following switches, which you can use 
         window is active press alt-pause to enter the debugger.
 
 --disable-FEATURE
-        do not include FEATURE (same as --enable-FEATURE=no)
+        Do not include FEATURE (same as --enable-FEATURE=no)
 
 --disable-silent-rules
-        verbose build output (undo: "make V=0")
+        Verbose build output (undo: "make V=0")
 
 --disable-dependency-tracking
-        speeds up one-time build
+        Speeds up one-time build
 
 --disable-largefile
-        omit support for large files
+        Omits support for large files
 
 --disable-x11
         Do not enable X11 integration
@@ -257,16 +257,16 @@ The DOSBox-X configure script accepts the following switches, which you can use 
         Do not enable compiler optimizations
 
 --disable-sdl2test
-        Do not try to compile and run a test SDL program
+        Do not try to compile and run a test SDL 2.x program
 
 --disable-sdltest
-        Do not try to compile and run a test SDL program
+        Do not try to compile and run a test SDL 1.x program
 
 --disable-alsatest
-        Do not try to compile and run a test Alsa program
+        Do not try to compile and run a test ALSA program
 
 --disable-freetype
-        Disable freetype support
+        Disables FreeType support
 
 --disable-printer
         Disables printer emulation
@@ -320,9 +320,9 @@ General description of source code
 ----------------------------------
 
 src/shell/shell.cpp         SHELL init, SHELL run, fake COMMAND.COM setup,
-                                startup messages and ANSI art, AUTOEXEC.BAT
-                                emulation and setup, shell interface,
-                                input, parsing, and execution
+                            startup messages and ANSI art, CONFIG.SYS and
+                            AUTOEXEC.BAT emulation and setup, shell interface,
+                            input, parsing, and execution.
 
 src/shell/shell_batch.cpp   Batch file (*.BAT) handling
 
