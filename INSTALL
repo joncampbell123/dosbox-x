@@ -1,9 +1,11 @@
 Some Information for the DOSBox-X Installation
 ==============================================
 
-New versions of DOSBox-X are officially released periodically.
-Released packages and recent changes of DOSBox-X can be found in the
-Releases page: https://github.com/joncampbell123/dosbox-x/releases
+New versions of DOSBox-X are released periodically, typically on the
+last day of a month or the first day of the next month. DOSBox-X
+versions that have been released so far and the change logs can be
+usually found in the Releases page:
+https://github.com/joncampbell123/dosbox-x/releases
 
 You will find pre-compiled Windows binaries (both 32-bit and 64-bit),
 Linux RPM packages (64-bit), macOS packages (64-bit) and the special
