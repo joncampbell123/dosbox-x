@@ -1,9 +1,9 @@
 Released Packages and Installation of DOSBox-X
 ==============================================
 
-New versions of DOSBox-X are released periodically, typically on the last day of a month or the first day of the next month. Pre-compiled Windows binaries (both 32-bit and 64-bit), Linux RPM packages (64-bit), macOS packages (64-bit) and the special HX-DOS packages (for real DOS environments) can be found in the [Releases](https://github.com/joncampbell123/dosbox-x/releases) page.
+DOSBox-X is a cross-platform DOS emulator based on DOSBox. New versions of DOSBox-X are released periodically, typically on the last day of a month or the first day of the next month. Since DOSBox-X is cross-platform, all major host operating systems are officially supported including Windows (XP or later), Linux (with X11), macOS (10.12 or later) and DOS operating systems.
 
-You will find DOSBox-X versions that have been released so far (ZIP or RPM packages) and the related change logs. The current version of DOSBox-X at this time is DOSBox-X 0.83.3, which was released on June 30, 2020.
+The current version of DOSBox-X at this time is DOSBox-X 0.83.3, which was released on June 30, 2020. Pre-compiled Windows binaries (both 32-bit and 64-bit), Linux RPM packages (64-bit), macOS packages (64-bit) and the special HX-DOS packages (for real DOS environments) can be found in the [Releases](https://github.com/joncampbell123/dosbox-x/releases) page. You will find DOSBox-X versions that have been released so far (ZIP or RPM packages) and change logs for the releases. The Windows installer is also available (see below for details).
 
 Windows Packages
 ----------------
@@ -16,14 +16,14 @@ For each DOSBox-X version there are generally three zip packages for the Windows
 
 The Visual Studio builds are the default Windows builds to use, but they only run on Windows Vista and later (Windows 7, 8, and 10). You will need to use the MinGW builds if you are running Windows XP. You may also want to use one of the MinGW builds if you encounter specific problem(s) with the Visual Studio builds.
 
-You may want to use the all-in-one Windows installer packages to ease the installation. The Windows installers are especially recommended for new users. With the installer the installation process will be automated while allowing you to change the install path and the default build to run if you prefer, and you will be able to start DOSBox-X as soon as the installation ends. A quick start guide is also included in the package. Windows installer for the latest official DOSBox-X version is available from: [DOSBox-X-Setup-Windows-latest.exe](https://github.com/Wengier/dosbox-x-wiki/raw/master/DOSBox-X-Setup-Windows-latest.exe)
+You may want to use the all-in-one Windows installer packages instead in order to ease the installation. The Windows installers are especially recommended for new users. With the installer the installation process will be automated while allowing you to change the install path and the default build to run if you prefer (and the option to install all builds to subdirectories), so that you will be able to start DOSBox-X as soon as the installation ends. A quick start guide is also included in the package. Windows installer for the latest official DOSBox-X version is available from: [DOSBox-X-Setup-Windows-latest.exe](https://github.com/Wengier/dosbox-x-wiki/raw/master/DOSBox-X-Setup-Windows-latest.exe)
 
-If you want to use the zip packages instead, please select one of the zip packages to download for your platform and unzip, then you will find various folders, which are some supported targets (Win32, x64, ARM and ARM64 for Visual Studio builds). Go to a target folder and run dosbox-x.exe inside it, then DOSBox-X will be launched and ready to be used. You may not see all such packages for some DOSBox-X versions.
+If you prefer to use the zip packages mentioned above, please select one of the zip packages to download for your platform and unzip, then you will find various folders, which are some supported targets (Win32, x64, ARM and ARM64 for Visual Studio builds). Go to a target folder and run dosbox-x.exe inside it, then DOSBox-X will be launched and ready to be used. Note however you may not see all such packages for some DOSBox-X versions.
 
 Linux Packages
 --------------
 
-RPM packages are released for the Linux operating system (64-bit, with X11), specifically for Centos 7 (el7) and Centos 8 (el8) platforms. In the case of DOSBox-X version 0.83.2, they correspond to the following:
+RPM packages are released for the Linux operating system (64-bit, with X11), specifically for Centos 7 ("el7") and Centos 8 ("el8") platforms. In the case of DOSBox-X version 0.83.2, they correspond to the following:
 
 * dosbox-x-0.83.2-0.el7.x86_64.rpm
 * dosbox-x-0.83.2-0.el8.x86_64.rpm
@@ -57,4 +57,4 @@ Full source code packages of DOSBox-X are also available in both zip and tar.gz 
 * dosbox-x-v0.83.2.zip
 * dosbox-x-v0.83.2.tar.gz
 
-If you prefer you can compile DOSBox-X from the source code by yourself. Please see the [DOSBox-X source code description](README.source-code-description) file for detailed information on building the DOSBox-X source code and further details of the source code.
+If you prefer you can compile DOSBox-X from the source code by yourself. The source code may be compiled to run on the above-mentioned platforms and possibly other operating systems too. Please see the [DOSBox-X source code description](README.source-code-description) file for detailed information on building the DOSBox-X source code and further details of the source code.
