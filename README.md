@@ -9,9 +9,7 @@ Like DOSBox, it emulates a PC necessary for running many MS-DOS games and applic
 
 Our goal is to eventually make DOSBox-X a complete DOS emulation package, both fully-featured and easy to use. We implement new features with each official release, and also try our best to deliver a consistent cross-platform experience for users instead of focusing on a particular platform. While we have made effort to maintain and improve the emulation accuracy, we also strike a balance between emulation quality, speed, and usability. Furthermore, we hope to improve the out-of-the-box experience for new users.
 
-For more information about DOSBox-X, such as setting up and running DOSBox-X including its usage tips, please read the user guide in the [DOSBox-X Wiki](https://github.com/joncampbell123/dosbox-x/wiki).
-
-(Please always use the latest version of DOSBox-X from the [Releases](https://github.com/joncampbell123/dosbox-x/releases) page)
+Please see the [INSTALL](INSTALL.md) page for DOSBox-X installation instructions and [Releases](https://github.com/joncampbell123/dosbox-x/releases) page for released DOSBox-X versions. For more information about DOSBox-X, such as setting up and running DOSBox-X including its usage tips, please read the user guide in the [DOSBox-X Wiki](https://github.com/joncampbell123/dosbox-x/wiki).
 
 DOSBox-X is completely open-source and free of charge to use and distribute. It is released under the [GNU General Public License, version 2](COPYING).
 
@@ -89,7 +87,7 @@ Compatibility with DOS programs and games
 
 With the eventual goal of being a complete emulation package that covers all pre-2000 DOS and Windows 3.x/9x based hardware scenarios, we are making efforts to ensure that the vast majority of DOS games and applications will run in DOSBox-X, and these include both text-mode and graphical-mode DOS programs. Microsoft Windows versions that are largely DOS-based (such as Windows 3.x and 9x) are officially supported by DOSBox-X as well. Note that certain config settings may need to be changed from the default ones for some of these programs to work smoothly.
 
-DOSBox-X used to focus on the demoscene (especially anything prior to 1996) because that era of the MS-DOS scene tends to have all manner of weird hardware tricks, bugs, and speed-sensitive issues that make them the perfect kind of stuff to test emulation accuracy against, even more so than old DOS games. But without a doubt we are also making a lot of efforts to test DOSBox-X against other DOS games and applications, as well as PC-98 programs (most of them are games).
+Efforts are also made to aid retro DOS developments by attempting to accurately emulate the hardware, which is why DOSBox-X used to focus on the demoscene (especially anything prior to 1996) because that era of the MS-DOS scene tends to have all manner of weird hardware tricks, bugs, and speed-sensitive issues that make them the perfect kind of stuff to test emulation accuracy against, even more so than old DOS games. But without a doubt we are also making a lot of efforts to test DOSBox-X against other DOS games and applications, as well as PC-98 programs (most of them are games).
 
 We add new features and make other improvements in every new DOSBox-X version, so its compatibility with DOS programs and games are also improving over time. If you have some issue with a specific DOS program or game, please feel free to post it in the [issue tracker](https://github.com/joncampbell123/dosbox-x/issues).
 
@@ -309,7 +307,7 @@ Meanwhile, some of the changes themselves incorporated code from
 other projects.
 
 Some features and improvments in DOSBox-X also came from another
-branch of DOSBox known as [DOSBox Daum](http://ykhwong.x-y.net)
+branch of DOSBox known as [DOSBox SVN Daum](http://ykhwong.x-y.net)
 which itself incorporated features from the original DOSBox
 project, DOSBox-X, and many experimental patches. Although the
 Daum branch seems to be dead, the features borrowed from it still
