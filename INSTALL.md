@@ -5,6 +5,8 @@ DOSBox-X is a cross-platform DOS emulator based on DOSBox, with the eventual goa
 
 The current version of DOSBox-X at this time is DOSBox-X 0.83.3, which was released on June 30, 2020. Pre-compiled Windows binaries (both 32-bit and 64-bit), Linux RPM packages (64-bit), macOS packages (64-bit) and the special HX-DOS packages (for real DOS environments) can be found in the [Releases](https://github.com/joncampbell123/dosbox-x/releases) page. You will find DOSBox-X versions that have been released so far (ZIP or RPM packages) and change logs for the releases. The Windows installer is also available (see below for details).
 
+Once you get DOSBox-X installed and running, you probably want to look at the DOSBox-X user guide in the [DOSBox-X Wiki](https://github.com/joncampbell123/dosbox-x/wiki) for usage information.
+
 Windows Packages (Portable or Installer)
 ----------------------------------------
 
@@ -23,7 +25,7 @@ If you prefer to use the zip packages as previously mentioned, please select one
 Linux Packages (RPM)
 --------------------
 
-RPM packages are officially released for the Linux operating system (64-bit, with X11), specifically for Centos 7 ("el7") and Centos 8 ("el8") platforms. In the case of DOSBox-X version 0.83.2, they correspond to the following:
+RPM packages are officially released for the Linux operating system (64-bit, with X11), specifically for CentOS 7 ("el7") and CentOS 8 ("el8") platforms. In the case of DOSBox-X version 0.83.2, they correspond to the following:
 
 * dosbox-x-0.83.2-0.el7.x86_64.rpm
 * dosbox-x-0.83.2-0.el8.x86_64.rpm
@@ -33,7 +35,7 @@ RPM packages are officially released for the Linux operating system (64-bit, wit
 
 Pick a RPM package for your Linux platform and install. You may want to use the debug builds (the last three packages mentioned above) if you desire to do some debugging work.
 
-Note: You may not see all such packages for some DOSBox-X versions. For example, there are no Centos 8 builds for DOSBox-X 0.83.3 because libcap-devel and fluidsynth are not available.
+Note: You may not see all such packages for some DOSBox-X versions. For example, there are no CentOS 8 builds for DOSBox-X 0.83.3 because libcap-devel and FluidSynth are not available.
 
 macOS and DOS Packages (Portable)
 ---------------------------------
