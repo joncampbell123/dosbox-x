@@ -1,4 +1,4 @@
-Some Information for the DOSBox-X Installation
+Released Packages and Installation of DOSBox-X
 ==============================================
 
 New versions of DOSBox-X are released periodically, typically on the
@@ -22,11 +22,13 @@ dosbox-x-mingw-win64-20200531160500.zip
 
 The Visual Studio builds are the default Windows builds to use, but
 they only run on Windows Vista and later (Windows 7, 8, and 10). You
-will need to use the MinGW builds if you are running Windows XP. So
-select one of the zip packages to download for your platform and unzip,
-then you will find various folders, which are some supported targets
-(e.g. Win32, x64, or ARM). Go to a target folder and run dosbox-x.exe
-inside it, then DOSBox-X will be launched and ready to be used.
+will need to use the MinGW builds if you are running Windows XP. You
+may also want to use one of the MinGW builds if you encounter specific
+problem(s) with the Visual Studio builds. So please select one of the
+zip packages to download for your platform and unzip, then you will
+find various folders, which are some supported targets (e.g. Win32,
+x64, or ARM). Go to a target folder and run dosbox-x.exe inside it,
+then DOSBox-X will be launched and ready to be used.
 
 You may also use the all-in-one Windows installer packages to ease the
 installation. The installation process will be automated while allowing
