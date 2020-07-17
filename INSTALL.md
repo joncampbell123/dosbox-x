@@ -1,5 +1,5 @@
-Released Packages and Installation of DOSBox-X
-==============================================
+DOSBox-X Installation and Released Packages 
+===========================================
 
 DOSBox-X is a cross-platform DOS emulator based on DOSBox. New versions of DOSBox-X are released periodically, typically on the last day of a month or the first day of the next month. Since DOSBox-X is cross-platform, all major host operating systems are officially supported including Windows (XP or later), Linux (with X11), macOS (10.12 or later) and DOS operating systems.
 
@@ -45,7 +45,7 @@ Besides Windows and Linux packages, there are also packages for the macOS (64-bi
 
 The macOS package requires macOS Sierra 10.12 or higher.
 
-The HX-DOS package allows you to run DOSBox-X in a real DOS system (MS-DOS or compatible) too with the help of the freely-available [HX DOS Extender](https://github.com/Baron-von-Riedesel/HX), which is already included in the recent HX-DOS release packages. Note however that not all features of DOSBox-X can be supported in this environment. See the README.TXT file inside the package for more information.
+The HX-DOS package allows you to run DOSBox-X in a real DOS system (MS-DOS or compatible) too with the help of the freely-available [HX DOS Extender](https://github.com/Baron-von-Riedesel/HX), which is already included in the recent HX-DOS release packages. Note however that not all features of DOSBox-X can be supported in this environment. See the README.TXT file inside the HX-DOS package for more information.
 
 Note: You may not see such packages for some DOSBox-X versions. For example, these two packages are not available for DOSBox-X version 0.83.1.
 
@@ -57,4 +57,4 @@ Full source code packages of DOSBox-X are also available in both zip and tar.gz 
 * dosbox-x-v0.83.2.zip
 * dosbox-x-v0.83.2.tar.gz
 
-If you prefer you can compile DOSBox-X from the source code by yourself. The source code may be compiled to run on the above-mentioned platforms and possibly other operating systems too. Please see the [DOSBox-X source code description](README.source-code-description) file for detailed information on building the DOSBox-X source code and further details of the source code.
+If you prefer you can compile DOSBox-X from the source code by yourself. The source code may be compiled to run on the above-mentioned platforms (Windows, Linux, macOS and DOS) and possibly other operating systems too. Please see the [DOSBox-X source code description](README.source-code-description) file for detailed information on building the DOSBox-X source code and further details of the source code.
