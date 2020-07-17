@@ -16,7 +16,7 @@ For each DOSBox-X version there are usually three zip packages for the Windows p
 
 The Visual Studio builds are the default Windows builds to use, but they only run on Windows Vista and later (Windows 7, 8, and 10). You will need to use the MinGW builds if you are running Windows XP. You may also want to use one of the MinGW builds if you encounter specific problem(s) with the Visual Studio builds. In addition, while the SDL1 version is the default version, the SDL2 version may be prefered over the SDL1 version for certain features such as touchscreen input support.
 
-You may want to use the all-in-one Windows installer packages instead in order to ease the installation. The Windows installers are especially recommended for new users. With the installer the installation process will be automated while allowing you to change the install path and the default build to run if you prefer (and the option to install all builds to subdirectories), so that you will be able to start DOSBox-X as soon as the installation ends. A quick start guide is also included in the package. The **Windows installer** for the latest official DOSBox-X version is available from: [DOSBox-X-Setup-Windows-latest.exe](https://github.com/Wengier/dosbox-x-wiki/raw/master/DOSBox-X-Setup-Windows-latest.exe)
+You may want to use the all-in-one Windows installer packages instead in order to ease the installation. The Windows installers are especially recommended for new users. With the installer the installation process will be automated while allowing you to change the install path and the default build to run if you prefer (and the option to install all builds to subdirectories), so that you will be able to start DOSBox-X as soon as the installation ends. A quick start guide is also included in the package. The Windows installer for the latest official DOSBox-X version is available from: [DOSBox-X-Setup-Windows-latest.exe](https://github.com/Wengier/dosbox-x-wiki/raw/master/DOSBox-X-Setup-Windows-latest.exe)
 
 If you prefer to use the zip packages as previously mentioned, please select one of the zip packages to download for your platform and unzip, then you will find various folders or subdirectories, which are some supported targets. For Visual Studio builds, these correspond to Win32, x64, ARM and ARM64 (either SDL1 or SDL2 version), which are the build platforms. For MinGW builds, the targets are plain MinGW SDL1 build (mingw), MinGW build for lower-end systems (mingw-lowend), MinGW SDL2 build (mingw-sdl2) and MinGW build with custom drawn menu (mingw-sdldraw). Go to a target folder for your platform and run dosbox-x.exe inside it, then DOSBox-X will be launched and ready to be used. Unlike the Windows installer version however, there is no documentation included in these packages, and you may not see all such packages for some DOSBox-X versions.
 
@@ -49,12 +49,12 @@ The HX-DOS package allows you to run DOSBox-X in a real DOS system (MS-DOS or co
 
 Note: You may not see such packages for some DOSBox-X versions. For example, these two packages are not available for DOSBox-X version 0.83.1.
 
-Source Code Packages (zip/tar.gz)
----------------------------------
+Source Code Packages (zip or tar.gz)
+------------------------------------
 
-Full source code packages of DOSBox-X are also available in both zip and tar.gz formats. They correspond the following files in the case of DOSBox-X version 0.83.2:
+Full source code packages of DOSBox-X are also available in both zip and tar.gz formats. They correspond the following files in the case of DOSBox-X version 0.83.3:
 
-* dosbox-x-v0.83.2.zip
-* dosbox-x-v0.83.2.tar.gz
+* dosbox-x-v0.83.3.zip
+* dosbox-x-v0.83.3.tar.gz
 
-If you prefer you can compile DOSBox-X from the source code by yourself. The source code may be compiled to run on the above-mentioned platforms (Windows, Linux, macOS and DOS) and possibly other operating systems too. Please see the [DOSBox-X source code description](README.source-code-description) file for detailed instructions on building the DOSBox-X source code and further information of the source code.
+If you prefer you can compile DOSBox-X from the source code by yourself. The source code packages as listed in the Releases page contain the source code for that released version, so if you are looking for the latest source code of DOSBox-X you may want to use the source code in the repository instead. The source code may be compiled to run on the above-mentioned platforms (Windows, Linux, macOS and DOS) and possibly other operating systems too. Please see the [DOSBox-X source code description](README.source-code-description) file for detailed instructions on building the DOSBox-X source code and further information of the source code.
