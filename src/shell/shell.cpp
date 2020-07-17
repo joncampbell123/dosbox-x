@@ -583,7 +583,7 @@ void DOS_Shell::Run(void) {
 			if (extra) {
 				std::istringstream in(extra);
 				if (in)	for (std::string line; std::getline(in, line); ) {
-					if (strncasecmp(line.c_str(), "rem=", 4)) {
+					if (strncasecmp(line.c_str(), "rem=", 4)&&strncasecmp(line.c_str(), "rem ", 4)) {
 						strcat(i4dos_data, line.c_str());
 						strcat(i4dos_data, "\r\n");
 					}

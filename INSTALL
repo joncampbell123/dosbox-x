@@ -1,12 +1,15 @@
-Some Information for Installation and Compilation of DOSBox-X
-=============================================================
+Released Packages and Installation of DOSBox-X
+==============================================
 
-For the latest releases of DOSBox-X please go to the Releases page:
+New versions of DOSBox-X are released periodically, typically on the
+last day of a month or the first day of the next month. DOSBox-X
+versions that have been released so far and the change logs can be
+usually found in the Releases page:
 https://github.com/joncampbell123/dosbox-x/releases
 
 You will find pre-compiled Windows binaries (both 32-bit and 64-bit),
-Linux RPM packages (64-bit) and special HX-DOS packages (for real
-DOS environments) from the Releases page.
+Linux RPM packages (64-bit), macOS packages (64-bit) and the special
+HX-DOS packages (for real DOS environments) from the Releases page.
 
 For each DOSBox-X version there are generally three zip packages for
 the Windows platform, built with Visual Studio, MinGW 32-bit and
@@ -17,12 +20,24 @@ dosbox-x-windows-20200531-220809-windows.zip
 dosbox-x-mingw-win32-20200531151931.zip
 dosbox-x-mingw-win64-20200531160500.zip
 
-Select one of the zip packages to download and unzip, then you will
-find various directories, which are some supported targets (e.g. Win32
-and x64). Go to a target folder and run dosbox-x.exe inside it, then
-DOSBox-X will be launched and ready to be used.
+The Visual Studio builds are the default Windows builds to use, but
+they only run on Windows Vista and later (Windows 7, 8, and 10). You
+will need to use the MinGW builds if you are running Windows XP. You
+may also want to use one of the MinGW builds if you encounter specific
+problem(s) with the Visual Studio builds. So please select one of the
+zip packages to download for your platform and unzip, then you will
+find various folders, which are some supported targets (e.g. Win32,
+x64, or ARM). Go to a target folder and run dosbox-x.exe inside it,
+then DOSBox-X will be launched and ready to be used.
 
-You may also find all-in-one Windows installation package elsewhere.
+You may also use the all-in-one Windows installer packages to ease the
+installation. The installation process will be automated while allowing
+you to change the default build to run if you prefer, and you will be
+able to start DOSBox-X as soon as the installation ends. A quick start
+guide is also included in the package. Windows installer for the latest
+official DOSBox-X version is available from:
+
+https://github.com/Wengier/dosbox-x-wiki/raw/master/DOSBox-X-Setup-Windows-latest.exe
 
 On the other hand, the following RPM packages are for Linux platform:
 
@@ -34,123 +49,20 @@ dosbox-x-debugsource-0.83.2-0.el8.x86_64.rpm
 
 Pick a RPM package for your Linux platform and install.
 
-In addition, the following is the special HX-DOS package:
+In addition, there are also packages for the macOS and DOS platforms.
+The following two zip files are the macOS package and the special
+HX-DOS package respectively:
 
+dosbox-x-macosx-x64-20200531151047.zip
 dosbox-x-mingw-hx-dos-20200531220949.zip
 
-With this package DOSBox-X can be run in real DOS too, although not
-all features of DOSBox-X can be supported in this environment.
+With the HX-DOS package DOSBox-X can be run in real DOS too, although
+not all features of DOSBox-X can be supported in this environment.
 
 Note: You may not see all such packages for some DOSBox-X versions.
 
-You can also compile DOSBox-X from the source code by yourself. Below
-are some old information for compiling the DOSBox-X source code, which
-may be somewhat outdated. See also the README.source-code-description
-file for updated and more detailed information on building the
-DOSBox-X source code and other related information.
-
-Things needed for compilation of the source code.
-
-SDL 1.2.x or SDL 2.0.x
-    The Simple DirectMedia Library available at http://www.libsdl.org
-    The DLL distributed with the Windows SDL1 version of DOSBox-X had
-    been modified from the original. You can find the changes in the
-    source package of DOSBox-X (src/platform/sdl-win32.diff). If you
-    want the patched source tree send us an email. (see README)
-    Licensed under LGPL
-    Note that only version 1.2.x (SDL1 version) and version 2.0.x
-    (SDL2 version) are currently supported.
-
-Curses (optional)
-    If you want to enable the debugger you need a curses library.
-    ncurses should be installed on just about every unix distro.
-    For win32 get pdcurses at http://pdcurses.sourceforge.net
-    License: Open source
-
-Libpng (optional)
-    Needed for the screenshots.
-    For win32 get libpng from http://gnuwin32.sourceforge.net/packages.html
-    See http://www.libpng.org/pub/png/ for more details.
-    License: Open Source
-
-Zlib (optional)
-    Needed by libpng.
-    For win32 get libz (rename to zlib) from http://gnuwin32.sourceforge.net/packages.html
-    See http://www.zlib.net for more details.
-    License: Open Source
-
-SDL_Net (optional)
-    For modem/ipx support. Get it from http://www.libsdl.org/projects/SDL_net/
-    Licensed under LGPL
-
-SDL_Sound 
-    For compressed audio on diskimages. (optional)
-    This is for cue/bin cdrom images with compressed (mp3/ogg) audio tracks.
-    Get it from http://icculus.org/SDL_sound
-    Licenced under LGPL
-
-ALSA_Headers
-    (optional)
-    for Alsa support under linux. Part of the linux kernel sources
-    Licensed under LGPL
-
-If you want compile from developer sources (SVN) under a unix system, you'll also need 
-automake (>=1.6), autoconf(>=2.50). Should be available at http://www.gnu.org
-
-For building on unix systems.
-If you are building from developer sources run ./autogen.sh first before doing the following.
-
-1. ./configure
-2. make
-
-In step 1 you could add the following switches:
---enable-debug 
-        enables the internal debugger. --enable-debug=heavy enables even more 
-        debug options. DOSBox-X should then be run from a xterm and when the sdl-
-        window is active press alt-pause to enter the debugger.
-
---enable-core-inline
-        enables some memory increasing inlines. This greatly increases 
-        compiletime for maybe a increase in speed.
-
---disable-fpu
-        disables the emulated fpu. Although the fpu emulation code isn't 
-        finished and isn't entirely accurate it's advised to leave it on. 
-
---disable-fpu-x86
---disable-fpu-x64
-        disables the assembly fpu core. Although relatively new, the x86/x64 fpu  
-        core has more accuracy then the regular fpu core. 
-
---disable-dynamic-x86
-        disables the dynamic x86 specific cpu core. Although it might be 
-        be a bit unstable, it can greatly improve the speed of dosbox-x on x86 
-        hosts.
-        Please note that this option on x86 will result in a different
-        dynamic/recompiling cpu core being compiled then the default.
-        For more information see the option --disable-dynrec
-
---disable-dynrec
-        disables the recompiling cpu core. Currently x86 and x86_64 only.
-        You can activate this core on x86 by disabling the dynamic-x86 core.
-
---disable-dynamic-core
-        disables all dynamic cores. (same effect as 
-        --disable-dynamic-x86 --disable-dynrec)
-
---disable-opengl
-        disables OpenGL-support (output mode that can be selected in the
-        DOSBox-X configuration file).
-
---disable-unaligned-memory
-        disables unaligned memory access.
-
-Check the src subdir for the binary.
-
-NOTE: If capslock and numlock appear to be broken. open
-src/ints/bios_keyboard.cpp and go to line 30 and read there how to fix it.
-
-
-Build instructions for VC++6 
-Don't use VC++ 6: it creates faulty code in core_normal.cpp
-Later Visual Studio versions work fine (vs2003/.net up to vs2010)
+Full source code packages of DOSBox-X are also available in both zip
+and tar.gz formats. If you prefer you can compile DOSBox-X from the
+source code by yourself. Please see the README.source-code-description
+file for detailed information on building the DOSBox-X source code and
+other related information.

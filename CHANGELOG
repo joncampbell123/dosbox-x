@@ -1,4 +1,7 @@
 0.83.4
+  - Improved Configuration GUI's handling of "4dos"
+    and "config" sections. Also added the "Save..."
+    button just before the "Close" button. (Wengier)
   - Added "euro" config option (in [render] section)
     to display Euro symbol instead of the specified
     ASCII character in any codepage. (Wengier)

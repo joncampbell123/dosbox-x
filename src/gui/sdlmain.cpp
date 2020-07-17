@@ -6599,7 +6599,7 @@ bool DOSBOX_parse_argv() {
             fprintf(stderr,"  -nomenu                                 Do not show menu\n");
             fprintf(stderr,"  -userconf                               Create user level config file\n");
             fprintf(stderr,"  -conf <param>                           Use config file <param>\n");
-            fprintf(stderr,"  -startui -startgui                      Start DOSBox-X with Configuration UI\n");
+            fprintf(stderr,"  -startui (or -startgui)                 Start DOSBox-X with Configuration UI\n");
             fprintf(stderr,"  -startmapper                            Start DOSBox-X with mapper editor\n");
             fprintf(stderr,"  -showcycles                             Show cycles count\n");
             fprintf(stderr,"  -showrt                                 Show emulation speed relative to realtime\n");

@@ -140,6 +140,100 @@ Visual Studio Code is supported, too.
 
 Check the README.Windows file for more information about this platform.
 
+Libraries used by DOSBox-X
+--------------------------
+
+The following libraries are used by DOSBox-X:
+
+SDL 1.2.x or SDL 2.0.x
+    The Simple DirectMedia Library available at http://www.libsdl.org
+    The DLL distributed with the Windows SDL1 version of DOSBox-X had
+    been modified from the original. You can find the changes in the
+    source package of DOSBox-X (src/platform/sdl-win32.diff). If you
+    want the patched source tree send us an email. (see README)
+    Licensed under LGPL
+    Note that only version 1.2.x (SDL1 version) and version 2.0.x
+    (SDL2 version) are currently supported.
+
+Curses (optional)
+    If you want to enable the debugger you need a curses library.
+    ncurses should be installed on just about every unix distro.
+    For win32 get pdcurses at http://pdcurses.sourceforge.net
+    License: Open source
+
+Libpng (optional)
+    Needed for the screenshots.
+    For win32 get libpng from http://gnuwin32.sourceforge.net/packages.html
+    See http://www.libpng.org/pub/png/ for more details.
+    License: Open Source
+
+Zlib (optional)
+    Needed by libpng.
+    For win32 get libz (rename to zlib) from http://gnuwin32.sourceforge.net/packages.html
+    See http://www.zlib.net for more details.
+    License: Open Source
+
+SDL_Net (optional)
+    For modem/ipx support. Get it from http://www.libsdl.org/projects/SDL_net/
+    Licensed under LGPL
+
+SDL_Sound 
+    For compressed audio on diskimages. (optional)
+    This is for cue/bin cdrom images with compressed (mp3/ogg) audio tracks.
+    Get it from http://icculus.org/SDL_sound
+    Licenced under LGPL
+
+ALSA_Headers
+    (optional)
+    for Alsa support under linux. Part of the linux kernel sources
+    Licensed under LGPL
+
+Configure script options
+------------------------
+
+The configure script accepts the following switches, which you can use to customize the code compilation:
+
+--enable-debug 
+        enables the internal debugger. --enable-debug=heavy enables even more 
+        debug options. DOSBox-X should then be run from a xterm and when the sdl-
+        window is active press alt-pause to enter the debugger.
+
+--enable-core-inline
+        enables some memory increasing inlines. This greatly increases 
+        compiletime for maybe a increase in speed.
+
+--disable-fpu
+        disables the emulated fpu. Although the fpu emulation code isn't 
+        finished and isn't entirely accurate it's advised to leave it on. 
+
+--disable-fpu-x86
+--disable-fpu-x64
+        disables the assembly fpu core. Although relatively new, the x86/x64 fpu  
+        core has more accuracy then the regular fpu core. 
+
+--disable-dynamic-x86
+        disables the dynamic x86 specific cpu core. Although it might be 
+        be a bit unstable, it can greatly improve the speed of dosbox-x on x86 
+        hosts.
+        Please note that this option on x86 will result in a different
+        dynamic/recompiling cpu core being compiled then the default.
+        For more information see the option --disable-dynrec
+
+--disable-dynrec
+        disables the recompiling cpu core. Currently x86 and x86_64 only.
+        You can activate this core on x86 by disabling the dynamic-x86 core.
+
+--disable-dynamic-core
+        disables all dynamic cores. (same effect as 
+        --disable-dynamic-x86 --disable-dynrec)
+
+--disable-opengl
+        disables OpenGL-support (output mode that can be selected in the
+        DOSBox-X configuration file).
+
+--disable-unaligned-memory
+        disables unaligned memory access.
+
 General description of source code
 ----------------------------------
 

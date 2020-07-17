@@ -2655,7 +2655,7 @@ restart_int:
 
         bool setdir=false;
         char dirCur[512], dirNew[512];
-        if (getcwd(dirCur, 512)!=NULL&&(!strncmp(Drives[DOS_GetDefaultDrive()]->GetInfo(),"local ",6)||!strncmp(Drives[DOS_GetDefaultDrive()]->GetInfo(),"CDRom ",6))) {
+        if (getcwd(dirCur, 512)!=NULL&&!strncmp(Drives[DOS_GetDefaultDrive()]->GetInfo(),"local directory", 15)) {
             Overlay_Drive *ddp = dynamic_cast<Overlay_Drive*>(Drives[DOS_GetDefaultDrive()]);
             strcpy(dirNew, ddp!=NULL?ddp->getOverlaydir():Drives[DOS_GetDefaultDrive()]->GetBaseDir());
             strcat(dirNew, Drives[DOS_GetDefaultDrive()]->curdir);
