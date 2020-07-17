@@ -8,11 +8,11 @@ The current version of DOSBox-X at this time is DOSBox-X 0.83.3, which was relea
 Windows Packages (Portable or Installer)
 ----------------------------------------
 
-For each DOSBox-X version there are usually three zip packages for the Windows platform, built with Visual Studio, MinGW 32-bit and MinGW 64-bit respectively. For example, in the case of DOSBox-X version 0.83.2, they correspond to the following:
+For each DOSBox-X version there are usually three zip packages for the Windows platform, built with Visual Studio, MinGW 32-bit and MinGW 64-bit. For example, in the case of DOSBox-X version 0.83.3, they correspond to the following respectively:
 
-* dosbox-x-windows-20200531-220809-windows.zip
-* dosbox-x-mingw-win32-20200531151931.zip
-* dosbox-x-mingw-win64-20200531160500.zip
+* dosbox-x-windows-20200630-163819-windows.zip
+* dosbox-x-mingw-win32-20200630164800.zip
+* dosbox-x-mingw-win64-20200630174234.zip
 
 The Visual Studio builds are the default Windows builds to use, but they only run on Windows Vista and later (Windows 7, 8, and 10). You will need to use the MinGW builds if you are running Windows XP. You may also want to use one of the MinGW builds if you encounter specific problem(s) with the Visual Studio builds. In addition, while the SDL1 version is the default version, the SDL2 version may be prefered over the SDL1 version for certain features such as touchscreen input support.
 
@@ -38,10 +38,10 @@ Note: You may not see all such packages for some DOSBox-X versions. For example,
 macOS and DOS Packages (Portable)
 ---------------------------------
 
-Besides Windows and Linux packages, there are also packages for the macOS (64-bit) and DOS platforms. In the case of DOSBox-X version 0.83.2, the macOS package and the special HX-DOS package correspond to the following zip packages respectively:
+Besides Windows and Linux packages, there are also packages for the macOS (64-bit) and DOS platforms. In the case of DOSBox-X version 0.83.3, the macOS package and the special HX-DOS package correspond to the following zip packages respectively:
 
-* dosbox-x-macosx-x64-20200531151047.zip
-* dosbox-x-mingw-hx-dos-20200531220949.zip
+* dosbox-x-macosx-x64-20200630161244.zip
+* dosbox-x-mingw-hx-dos-20200701193641.zip
 
 The macOS package requires macOS Sierra 10.12 or higher. Both SDL1 and SDL2 binaries are provided.
 
