@@ -104,6 +104,7 @@ Type: files; Name: "{app}\stderr.txt"
 var
   msg: string;
   build64: Boolean;    
+  HelpButton: TNewButton;
   PageBuild, PageVer: TInputOptionWizardPage;
 function IsWindowsVersionOrNewer(Major, Minor: Integer): Boolean;
 var
@@ -114,6 +115,21 @@ begin
     (Version.Major > Major) or
     ((Version.Major = Major) and (Version.Minor >= Minor));
 end;
+procedure HelpButtonOnClick(Sender: TObject);
+begin
+  MsgBox('The Setup pre-selects a Windows build for you according to your platform automatically, but you can change the default build to run if you encounter specific problem(s) with the pre-selected one.' #13#13 'For example, while the SDL1 version is the default version to run, the SDL2 version may be prefered over the SDL1 version for certain features such as touchscreen input support. Also, MinGW builds may be used for lower-end systems.', mbConfirmation, MB_OK);
+end;
+procedure CreateHelpButton(X: integer; Y: integer; W: integer; H: integer);
+begin
+  HelpButton         := TNewButton.Create(WizardForm);
+  HelpButton.Left    := X;
+  HelpButton.Top     := Y;
+  HelpButton.Width   := W;
+  HelpButton.Height  := H;
+  HelpButton.Caption := '&Help';
+  HelpButton.OnClick := @HelpButtonOnClick;
+  HelpButton.Parent  := WizardForm;
+end;
 procedure InitializeWizard();
 begin
     msg:='The selected build will be the default build when you run DOSBox-X from the Windows Start Menu or the desktop. ';
@@ -123,7 +139,7 @@ begin
     PageBuild.Add('Windows ARM SDL1 (ARM platform only)');
     PageBuild.Add('Windows ARM SDL2 (ARM platform only)');
     PageBuild.Add('MinGW build SDL1');
-    PageBuild.Add('MinGW build for lowend systems');
+    PageBuild.Add('MinGW build for lower-end systems');
     PageBuild.Add('MinGW build SDL2');
     PageBuild.Add('MinGW build with custom drawn menu');
     if IsX86 or IsX64 then
@@ -141,6 +157,7 @@ begin
       end
     else
       PageBuild.Values[4] := True;
+    CreateHelpButton(ScaleX(20), WizardForm.CancelButton.Top, WizardForm.CancelButton.Width, WizardForm.CancelButton.Height);
     msg:='You can specify a default DOS version for DOSBox-X to report to itself and DOS programs. This can sometimes change the feature sets of DOSBox-X. For example, specifying the reported DOS version as 7.10 will enable long filename (LFN) and FAT32 disk image support by default.' #13#13 'If you leave this unselected, a preset DOS version will be reported (usually 5.00).' #13#13 'This setting can be later modified in the DOSBox-X''s configuration file (dosbox-x.conf).';
     PageVer:=CreateInputOptionPage(100, 'Reported DOS version', 'Specify the default DOS version to report', msg, True, False);
     PageVer.Add('DOS version 3.30');
@@ -167,6 +184,7 @@ begin
 end;
 procedure CurPageChanged(CurPageID: Integer);
 begin
+  HelpButton.Visible:=CurPageID=100;
   if (CurPageID=wpSelectDir) then
   begin
     if (IsAdminLoggedOn or IsPowerUserLoggedOn) and (WizardDirValue=ExpandConstant('{localappdata}\{#MyAppName}')) then
@@ -202,7 +220,7 @@ begin
     if (PageBuild.Values[4]) then
       msg:=msg+'MinGW build SDL1';
     if (PageBuild.Values[5]) then
-      msg:=msg+'MinGW for lowend systems';
+      msg:=msg+'MinGW for lower-end systems';
     if (PageBuild.Values[6]) then
       msg:=msg+'MinGW build SDL2';
     if (PageBuild.Values[7]) then
