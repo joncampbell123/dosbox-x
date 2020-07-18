@@ -74,7 +74,7 @@ static SHELL_Cmd cmd_list[]={
 {	"LFNFOR",		1,		&DOS_Shell::CMD_LFNFOR,		"SHELL_CMD_LFNFOR_HELP"},
 {	"LH",			1,		&DOS_Shell::CMD_LOADHIGH,	"SHELL_CMD_LOADHIGH_HELP"},
 {	"LOADHIGH",		1,		&DOS_Shell::CMD_LOADHIGH, 	"SHELL_CMD_LOADHIGH_HELP"},
-{   "LS",			1,		&DOS_Shell::CMD_LS,			"SHELL_CMD_LS_HELP"},
+//{   "LS",			1,		&DOS_Shell::CMD_LS,			"SHELL_CMD_LS_HELP"}, // LS as a program (Z:\LS.COM) instead of shell command
 {	"MD",			0,		&DOS_Shell::CMD_MKDIR,		"SHELL_CMD_MKDIR_HELP"},
 {	"MKDIR",		1,		&DOS_Shell::CMD_MKDIR,		"SHELL_CMD_MKDIR_HELP"},
 {	"MORE",			1,		&DOS_Shell::CMD_MORE,		"SHELL_CMD_MORE_HELP"},

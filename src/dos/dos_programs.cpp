@@ -5687,6 +5687,42 @@ void AUTOTYPE_ProgramStart(Program **make)
 	*make = new AUTOTYPE;
 }
 
+class LS : public Program {
+public:
+    void Run(void);
+private:
+	void PrintUsage() {
+        constexpr const char *msg =
+            "Lists directory contents.\n\nLS [drive:][path][filename] [/A] [/L] [/P] [/Z]\n\n"
+            "  /A\tLists hidden and system files also.\n"
+            "  /L\tLists names one per line.\n"
+            "  /P\tPauses after each screenful of information.\n"
+            "  /Z\tDisplays short names even if LFN support is available.\n";
+        WriteOut(msg);
+	}
+};
+
+void LS::Run()
+{
+	// Hack To allow long commandlines
+	ChangeToLongCmd();
+
+	// Usage
+	if (cmd->FindExist("-?", false) || cmd->FindExist("/?", false)) {
+		PrintUsage();
+		return;
+	}
+	char *args=(char *)cmd->GetRawCmdline().c_str();
+	args=trim(args);
+	DOS_Shell temp;
+	temp.CMD_LS(args);
+}
+
+static void LS_ProgramStart(Program * * make) {
+    *make=new LS;
+}
+
+
 #if defined (WIN32) && !defined(HX_DOS)
 #include <sstream>
 #include <shellapi.h>
@@ -6330,6 +6366,7 @@ void DOS_SetupPrograms(void) {
         PROGRAMS_MakeFile("MOUSE.COM", MOUSE_ProgramStart);
 	}
 
+    PROGRAMS_MakeFile("LS.COM",LS_ProgramStart);
     PROGRAMS_MakeFile("LOADFIX.COM",LOADFIX_ProgramStart);
     PROGRAMS_MakeFile("A20GATE.COM",A20GATE_ProgramStart);
     PROGRAMS_MakeFile("SHOWGUI.COM",SHOWGUI_ProgramStart);
