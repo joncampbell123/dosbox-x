@@ -1634,8 +1634,9 @@ void DOS_Shell::CMD_LS(char *args) {
 			if (!uselfn||optZ) lowcase(name);
 			bool is_executable=false;
 			if (name.length()>4) {
-				const char *p=name.substr(name.length()-4).c_str();
-				if (!strcasecmp(p, ".exe") || !strcasecmp(p, ".com") || !strcasecmp(p, ".bat")) is_executable=true;
+				std::string ext=name.substr(name.length()-4);
+				std::transform(ext.begin(), ext.end(), ext.begin(), ::tolower);
+				if (ext==".exe"||ext==".com"||ext==".bat") is_executable=true;
 			}
 			if (col==1) {
 				WriteOut(is_executable?"\033[32;1m%s\033[0m\n":"%s\n", name.c_str());
