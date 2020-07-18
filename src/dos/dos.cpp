@@ -1406,6 +1406,9 @@ static Bitu DOS_21Handler(void) {
 						reg_ax=dos.errorcode;
 						CALLBACK_SCF(true);
 					}
+                } else {
+                    reg_ax=dos.errorcode;
+                    CALLBACK_SCF(true);
                 }
                 diskio_delay(reg_ax);
                 dos.echo=false;

@@ -771,7 +771,7 @@ void DOS_Shell::CMD_RENAME(char * args){
 						}
 					}
 					if (star) {
-						if (star-arg2<(unsigned int)strlen(name))
+						if ((unsigned int)(star-arg2)<strlen(name))
 							strcpy(star, name+(star-arg2));
 						else
 							*star=0;
@@ -795,7 +795,7 @@ void DOS_Shell::CMD_RENAME(char * args){
 						}
 					}
 					if (star) {
-						if (star-tname2<(unsigned int)strlen(tname1))
+						if ((unsigned int)(star-tname2)<strlen(tname1))
 							strcpy(star, tname1+(star-tname2));
 						else
 							*star=0;
@@ -812,7 +812,7 @@ void DOS_Shell::CMD_RENAME(char * args){
 							}
 						}
 						if (star) {
-							if (star-text2<(unsigned int)strlen(text1))
+							if ((unsigned int)(star-text2)<strlen(text1))
 								strcpy(star, text1+(star-text2));
 							else
 								*star=0;
@@ -1596,11 +1596,12 @@ void DOS_Shell::CMD_LS(char *args) {
 	lfn_filefind_handle=fbak;
 
 	size_t w_count, p_count, col;
-	unsigned int max[10], total, tcols=real_readw(BIOSMEM_SEG,BIOSMEM_NB_COLS);
+	unsigned int max[15], total, tcols=real_readw(BIOSMEM_SEG,BIOSMEM_NB_COLS);
 	if (!tcols) tcols=80;
+	int mrow=tcols>80?15:10;
 
-	for (col=10; col>0; col--) {
-		for (int i=0; i<10; i++) max[i]=2;
+	for (col=mrow; col>0; col--) {
+		for (int i=0; i<mrow; i++) max[i]=2;
 		if (optL) col=1;
 		if (col==1) break;
 		w_count=0;
