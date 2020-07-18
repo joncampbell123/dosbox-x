@@ -561,7 +561,9 @@ public:
 
         WriteOut(MSG_Get("PROGRAM_MOUNT_STATUS_1"));
         WriteOut(MSG_Get("PROGRAM_MOUNT_STATUS_FORMAT"),"Drive","Type","Label");
-        for(int p = 0;p < 8;p++) WriteOut("----------");
+        int cols=IS_PC98_ARCH?80:real_readw(BIOSMEM_SEG,BIOSMEM_NB_COLS);
+        if (!cols) cols=80;
+        for(int p = 0;p < cols;p++) WriteOut("-");
         bool none=true;
         for (int d = 0;d < DOS_DRIVES;d++) {
             if (!Drives[d]) continue;
@@ -3639,7 +3641,9 @@ public:
 
         WriteOut(MSG_Get("PROGRAM_IMGMOUNT_STATUS_1"));
         WriteOut(MSG_Get("PROGRAM_MOUNT_STATUS_FORMAT"),"Drive","Type","Label");
-        for(int p = 0;p < 8;p++) WriteOut("----------");
+        int cols=IS_PC98_ARCH?80:real_readw(BIOSMEM_SEG,BIOSMEM_NB_COLS);
+        if (!cols) cols=80;
+        for(int p = 0;p < cols;p++) WriteOut("-");
         bool none=true;
         for (int d = 0;d < DOS_DRIVES;d++) {
             if (!Drives[d] || (strncmp(Drives[d]->GetInfo(), "fatDrive ", 9) && strncmp(Drives[d]->GetInfo(), "isoDrive ", 9))) continue;
@@ -3664,7 +3668,7 @@ public:
 		WriteOut("\n");
 		WriteOut(MSG_Get("PROGRAM_IMGMOUNT_STATUS_2"));
 		WriteOut(MSG_Get("PROGRAM_MOUNT_STATUS_NUMBER_FORMAT"),"Drive number","Disk name");
-        for(int p = 0;p < 8;p++) WriteOut("----------");
+        for(int p = 0;p < cols;p++) WriteOut("-");
         none=true;
 		for (int index = 0; index < MAX_DISK_IMAGES; index++)
 			if (imageDiskList[index]) {

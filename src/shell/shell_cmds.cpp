@@ -1596,7 +1596,7 @@ void DOS_Shell::CMD_LS(char *args) {
 	lfn_filefind_handle=fbak;
 
 	size_t w_count, p_count, col;
-	unsigned int max[15], total, tcols=real_readw(BIOSMEM_SEG,BIOSMEM_NB_COLS);
+	unsigned int max[15], total, tcols=IS_PC98_ARCH?80:real_readw(BIOSMEM_SEG,BIOSMEM_NB_COLS);
 	if (!tcols) tcols=80;
 	int mrow=tcols>80?15:10;
 
@@ -2563,7 +2563,9 @@ void DOS_Shell::CMD_SUBST(char * args) {
 
 			WriteOut(MSG_Get("SHELL_CMD_SUBST_DRIVE_LIST"));
 			WriteOut(MSG_Get("PROGRAM_MOUNT_STATUS_FORMAT"),"Drive","Type","Label");
-			for(int p = 0;p < 8;p++) WriteOut("----------");
+			int cols=IS_PC98_ARCH?80:real_readw(BIOSMEM_SEG,BIOSMEM_NB_COLS);
+			if (!cols) cols=80;
+			for(int p = 0;p < cols;p++) WriteOut("-");
 			bool none=true;
 			for (int d = 0;d < DOS_DRIVES;d++) {
 				if (!Drives[d]||strncmp(Drives[d]->GetInfo(),"local ",6)) continue;
