@@ -1,8 +1,9 @@
 0.83.4
-  - LS is now an external command appearing on Z:
-    drive as LS.COM instad of a shell command. This
-    avoids name clash with Links LS 97 which has
-    the main executable called LS.EXE. (Wengier)
+  - LS is now an external command appearing on drive
+    Z: as LS.COM instead of a builtin shell command.
+    This avoids name clash with Links LS 97 which
+    has the main executable called LS.EXE. There are
+    also minor cleanups in this command.(Wengier)
   - Fixed the game "Disney's Duck Tales: the Quest
     for Gold" not able to run. (Wengier)
   - Improved Configuration GUI's handling of "4dos"
