@@ -1,4 +1,6 @@
 0.83.4
+  - Fixed the game "Disney's Duck Tales: the Quest
+    for Gold" not able to run. (Wengier)
   - Improved Configuration GUI's handling of "4dos"
     and "config" sections. Also added the "Save..."
     button just before the "Close" button. (Wengier)
