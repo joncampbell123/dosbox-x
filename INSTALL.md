@@ -45,7 +45,7 @@ Besides Windows and Linux packages, there are also packages for the macOS (64-bi
 * dosbox-x-macosx-x64-20200630161244.zip
 * dosbox-x-mingw-hx-dos-20200701193641.zip
 
-The macOS package requires macOS Sierra 10.12 or higher. Both SDL1 and SDL2 binaries are provided.
+The macOS package requires macOS Sierra 10.12 or higher. Both SDL1 and SDL2 binaries are provided in .app formats.
 
 The HX-DOS package allows you to run DOSBox-X in a real DOS system (MS-DOS or compatible) too with the help of the freely-available [HX DOS Extender](https://github.com/Baron-von-Riedesel/HX), which is already included in the recent HX-DOS release packages. Note however that not all features of DOSBox-X can be supported in this environment. See the README.TXT file inside the HX-DOS package for more information.
 
@@ -59,4 +59,4 @@ Full source code packages of DOSBox-X are also available in both zip and tar.gz 
 * dosbox-x-v0.83.3.zip
 * dosbox-x-v0.83.3.tar.gz
 
-If you prefer you can compile DOSBox-X from the source code by yourself. The source code packages as listed in the Releases page contain the source code for that released version, so if you are looking for the latest source code of DOSBox-X you may want to use the source code in the repository instead. The source code may be compiled to run on the above-mentioned platforms (Windows, Linux, macOS and DOS) and possibly other operating systems too. Please see the [DOSBox-X source code description](README.source-code-description) file for detailed instructions on building the DOSBox-X source code and further information of the source code.
+If you prefer you can compile DOSBox-X from the source code by yourself. The source code packages as listed in the Releases page contain the source code for that released version, so if you are looking for the latest source code of DOSBox-X (including the most recent development changes to the source code) you may want to use the source code in the repository instead. You can use either of them according to your needs, and the source code may be compiled to run on the above-mentioned platforms (Windows, Linux, macOS and DOS) and possibly other operating systems too. Please see the [DOSBox-X source code description](README.source-code-description) file for detailed instructions on building the DOSBox-X source code and further information of the source code.
