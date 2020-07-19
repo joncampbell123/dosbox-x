@@ -55,7 +55,7 @@ Although based on the DOSBox project, DOSBox-X is now a separate project because
 
 * Plus many more..
 
-DOSBox-X also has several notable platform-dependent features, such as support for automatic drive mounting, clipboard copy and paste, and starting programs to run on the host (-winrun) on the Windows platform. These features cannot be easily ported to other platforms. More information about these features can be found in the DOSBox-X Wiki.
+While the vast majority of features in DOSBox-X are cross-platform, DOSBox-X does also have several notable platform-dependent features, such as support for automatic drive mounting, clipboard copy and paste, and starting programs to run on the host (-winrun) on the Windows platform. These features cannot be easily ported to other platforms. More information about these features can be found in the [DOSBox-X Wiki](https://github.com/joncampbell123/dosbox-x/wiki).
 
 DOSBox-X officially supports both SDL 1.2 and SDL 2.0; both 32-bit and 64-bit builds are also supported.
 
@@ -120,7 +120,7 @@ greatly appreciated:
   - Notes regarding games, applications, hacks, weird MS-DOS tricks, etc.
 
 If you want to tweak or write some code and you don't know what to work
-on, feel free to visit the issue tracker to get some ideas.
+on, feel free to visit the [issue tracker](https://github.com/joncampbell123/dosbox-x/issues) to get some ideas.
 
 For more information about the source code, please take a look at the
 [DOSBox-X source code description](README.source-code-description) page.
