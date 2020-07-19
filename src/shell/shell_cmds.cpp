@@ -1517,7 +1517,7 @@ void DOS_Shell::CMD_DIR(char * args) {
 }
 
 void DOS_Shell::CMD_LS(char *args) {
-	HELP("LS");
+	//HELP("LS");
 	bool optA=ScanCMDBool(args,"A");
 	bool optL=ScanCMDBool(args,"L");
 	bool optP=ScanCMDBool(args,"P");
@@ -1575,7 +1575,7 @@ void DOS_Shell::CMD_LS(char *args) {
 	bool ret = DOS_FindFirst((char *)((uselfn?"\"":"")+std::string(spattern)+(uselfn?"\"":"")).c_str(), 0xffff & ~DOS_ATTR_VOLUME);
 	if (!ret) {
 		lfn_filefind_handle=fbak;
-		if (trim(args))
+		if (strlen(trim(args)))
 			WriteOut(MSG_Get("SHELL_CMD_FILE_NOT_FOUND"), trim(args));
 		else
 			WriteOut(MSG_Get("SHELL_ILLEGAL_PATH"));
