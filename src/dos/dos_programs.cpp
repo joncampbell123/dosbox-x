@@ -142,7 +142,6 @@ static void MOUSE_ProgramStart(Program * * make) {
 void MSCDEX_SetCDInterface(int intNr, int forceCD);
 bool bootguest=false;
 int bootdrive=-1;
-std::string bootimgs="";
 Bit8u ZDRIVE_NUM = 25;
 
 static const char* UnmountHelper(char umount) {
@@ -1559,14 +1558,11 @@ public:
             i++;
         }
 
-        bootimgs="";
         if (!bootbyDrive) {
             if (i == 0) {
                 WriteOut("No images specified");
                 return;
             }
-            bootimgs = cmd->GetRawCmdline();
-			trim(bootimgs);
 
             if (i > 1) {
                 /* if more than one image is given, then this drive becomes the focus of the swaplist */
@@ -2150,7 +2146,7 @@ void runBoot() {
 	BOOT boot;
 	char drive[] = "A:";
 	drive[0]='A'+bootdrive;
-	boot.cmd=new CommandLine("BOOT", bootimgs.size()?bootimgs.c_str():drive);
+	boot.cmd=new CommandLine("BOOT", drive);
 	boot.Run();
 }
 

@@ -8567,9 +8567,11 @@ private:
 
         for (Bitu i=0;i < 0x400;i++) mem_writeb(0x7C00+i,0);
 
-		if (bootguest&&bootdrive>=0&&Drives[bootdrive]) runBoot();
-        // Begin booting the DOSBox shell. NOTE: VM_Boot_DOSBox_Kernel will change CS:IP instruction pointer!
-        if (!VM_Boot_DOSBox_Kernel()) E_Exit("BIOS error: BOOT function failed to boot DOSBox kernel");
+		if (bootguest&&bootdrive>=0&&imageDiskList[bootdrive]) runBoot();
+		bootguest=false;
+		bootdrive=-1;
+        // Begin booting the DOSBox-X shell. NOTE: VM_Boot_DOSBox_Kernel will change CS:IP instruction pointer!
+        if (!VM_Boot_DOSBox_Kernel()) E_Exit("BIOS error: BOOT function failed to boot DOSBox-X kernel");
         return CBRET_NONE;
     }
 public:

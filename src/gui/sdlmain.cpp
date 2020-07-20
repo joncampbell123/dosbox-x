@@ -185,7 +185,6 @@ ScreenSizeInfo          screen_size_info;
 extern bool dos_kernel_disabled;
 extern bool bootguest;
 extern int bootdrive;
-extern std::string bootimgs;
 
 void runBoot(void);
 void MenuBootDrive(char drive);
@@ -7007,10 +7006,6 @@ bool VM_Boot_DOSBox_Kernel() {
         dos_kernel_disabled = false; // FIXME: DOS_Init should install VM callback handler to set this
         void DOS_Startup(Section* sec);
         DOS_Startup(NULL);
-		if (bootguest&&bootimgs.size()) runBoot();
-		bootguest=false;
-		bootdrive=-1;
-		bootimgs="";
 
 #if defined(WIN32) && !defined(C_SDL2)
         int Reflect_Menu(void);
