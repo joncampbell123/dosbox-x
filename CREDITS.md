@@ -7,13 +7,13 @@ The purpose of this document is to try and build a comprehensive list of source 
 
 The base code is from the [DOSBox](https://www.dosbox.com) project in which some of the SVN commits made since 2011 were incorporated into DOSBox-X. This code had since been heavily modified by the DOSBox-X project.
 
-Some of the source code also came from similar projects such as [DOSBox Daum](http://ykhwong.x-y.net), [DOSBox ECE](https://dosboxece.yesterplay.net/), [DOSBox-staging](https://dosbox-staging.github.io/) and [vDosPlus](http://www.vdosplus.org/), with major works from contributors like Wengier, Allofich, and rderooy.
+Some of the source code also came from similar projects such as [DOSBox SVN Daum](http://ykhwong.x-y.net), [DOSBox ECE](https://dosboxece.yesterplay.net/), [DOSBox-staging](https://dosbox-staging.github.io/) and [vDosPlus](http://www.vdosplus.org/), with major works from contributors like Wengier, Allofich, and rderooy.
 
 A list of features ported from DOSBox Daum:
 
 * GUI menu bar (heavily improved since then)
 * Some commands (PROMPT, MOUSE, VOL, DEVICE, etc)
-* Basic support for automatic drive mount (Windows)
+* Basic support for automatic drive mounting (Windows)
 * Printer output
 * NE2000 Ethernet
 * MT-32 emulation (MUNT)
@@ -42,7 +42,7 @@ A list of features ported from DOSBox-staging:
 A list of features ported from vDosPlus by Wengier:
 
 * Long filename support (improved for FAT drives since then by Wengier and joncampbell123)
-* Improved support for automatic drive mount (Windows)
+* Improved support for automatic drive mounting (Windows)
 * Support for clipboard copy and paste (Windows)
 * Several shell improvements
 

@@ -274,11 +274,13 @@ bool dosbox_int_discard_save_state(void) {
 extern bool user_cursor_locked;
 extern int user_cursor_x,user_cursor_y;
 extern int user_cursor_sw,user_cursor_sh;
-extern int master_cascade_irq;
+extern int master_cascade_irq,bootdrive;
+extern bool bootguest;
 extern bool enable_slave_pic;
 
 static std::string dosbox_int_debug_out;
 
+void runBoot();
 void VGA_SetCaptureStride(uint32_t v);
 void VGA_SetCaptureAddress(uint32_t v);
 void VGA_SetCaptureState(uint32_t v);
@@ -8443,7 +8445,7 @@ private:
             emscripten_sleep_with_yield(100);
         }
 #else
-        if (!control->opt_fastbioslogo) {
+        if (!control->opt_fastbioslogo&&!bootguest) {
             bool wait_for_user = false;
             Bit32u lasttick=GetTicks();
             while ((GetTicks()-lasttick)<1000) {
@@ -8565,8 +8567,11 @@ private:
 
         for (Bitu i=0;i < 0x400;i++) mem_writeb(0x7C00+i,0);
 
-        // Begin booting the DOSBox shell. NOTE: VM_Boot_DOSBox_Kernel will change CS:IP instruction pointer!
-        if (!VM_Boot_DOSBox_Kernel()) E_Exit("BIOS error: BOOT function failed to boot DOSBox kernel");
+		if (bootguest&&bootdrive>=0&&imageDiskList[bootdrive]) runBoot();
+		bootguest=false;
+		bootdrive=-1;
+        // Begin booting the DOSBox-X shell. NOTE: VM_Boot_DOSBox_Kernel will change CS:IP instruction pointer!
+        if (!VM_Boot_DOSBox_Kernel()) E_Exit("BIOS error: BOOT function failed to boot DOSBox-X kernel");
         return CBRET_NONE;
     }
 public:

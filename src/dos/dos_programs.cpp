@@ -140,6 +140,8 @@ static void MOUSE_ProgramStart(Program * * make) {
 }
 
 void MSCDEX_SetCDInterface(int intNr, int forceCD);
+bool bootguest=false;
+int bootdrive=-1;
 Bit8u ZDRIVE_NUM = 25;
 
 static const char* UnmountHelper(char umount) {
@@ -561,7 +563,9 @@ public:
 
         WriteOut(MSG_Get("PROGRAM_MOUNT_STATUS_1"));
         WriteOut(MSG_Get("PROGRAM_MOUNT_STATUS_FORMAT"),"Drive","Type","Label");
-        for(int p = 0;p < 8;p++) WriteOut("----------");
+        int cols=IS_PC98_ARCH?80:real_readw(BIOSMEM_SEG,BIOSMEM_NB_COLS);
+        if (!cols) cols=80;
+        for(int p = 0;p < cols;p++) WriteOut("-");
         bool none=true;
         for (int d = 0;d < DOS_DRIVES;d++) {
             if (!Drives[d]) continue;
@@ -1062,7 +1066,6 @@ static void SHOWGUI_ProgramStart(Program * * make) {
 
 extern bool custom_bios;
 extern Bit32u floppytype;
-extern bool dos_kernel_disabled;
 extern bool boot_debug_break;
 extern Bitu BIOS_bootfail_code_offset;
 
@@ -1917,16 +1920,16 @@ public:
                 return;
             }
 
-			char msg[30];
-			const Bit8u page=real_readb(BIOSMEM_SEG,BIOSMEM_CURRENT_PAGE);;
-			BIOS_NCOLS;
-            (void)ncols;
-			strcpy(msg, CURSOR_POS_COL(page)>0?"\r\n":""); 
-			strcat(msg, "Booting from drive ");
-			strcat(msg, std::string(1, drive).c_str());
-			strcat(msg, "...\r\n");
-            Bit16u s = (Bit16u)strlen(msg);
-			DOS_WriteFile(STDERR,(Bit8u*)msg,&s);
+			if (!bootguest) {
+				char msg[30];
+				const Bit8u page=real_readb(BIOSMEM_SEG,BIOSMEM_CURRENT_PAGE);
+				strcpy(msg, CURSOR_POS_COL(page)>0?"\r\n":"");
+				strcat(msg, "Booting from drive ");
+				strcat(msg, std::string(1, drive).c_str());
+				strcat(msg, "...\r\n");
+				Bit16u s = (Bit16u)strlen(msg);
+				DOS_WriteFile(STDERR,(Bit8u*)msg,&s);
+			}
 
             if (IS_PC98_ARCH) {
                 for(i=0;i<bootsize;i++) real_writeb((Bit16u)load_seg, (Bit16u)i, bootarea.rawdata[i]);
@@ -2126,6 +2129,8 @@ public:
             // let menu know it boots
             menu.boot=true;
 #endif
+            bootguest=false;
+            bootdrive=drive-65;
 
             /* forcibly exit the shell, the DOS kernel, and anything else by throwing an exception */
             throw int(2);
@@ -2135,6 +2140,14 @@ public:
 
 static void BOOT_ProgramStart(Program * * make) {
     *make=new BOOT;
+}
+
+void runBoot() {
+	BOOT boot;
+	char drive[] = "A:";
+	drive[0]='A'+bootdrive;
+	boot.cmd=new CommandLine("BOOT", drive);
+	boot.Run();
 }
 
 class LOADROM : public Program {
@@ -3639,7 +3652,9 @@ public:
 
         WriteOut(MSG_Get("PROGRAM_IMGMOUNT_STATUS_1"));
         WriteOut(MSG_Get("PROGRAM_MOUNT_STATUS_FORMAT"),"Drive","Type","Label");
-        for(int p = 0;p < 8;p++) WriteOut("----------");
+        int cols=IS_PC98_ARCH?80:real_readw(BIOSMEM_SEG,BIOSMEM_NB_COLS);
+        if (!cols) cols=80;
+        for(int p = 0;p < cols;p++) WriteOut("-");
         bool none=true;
         for (int d = 0;d < DOS_DRIVES;d++) {
             if (!Drives[d] || (strncmp(Drives[d]->GetInfo(), "fatDrive ", 9) && strncmp(Drives[d]->GetInfo(), "isoDrive ", 9))) continue;
@@ -3664,7 +3679,7 @@ public:
 		WriteOut("\n");
 		WriteOut(MSG_Get("PROGRAM_IMGMOUNT_STATUS_2"));
 		WriteOut(MSG_Get("PROGRAM_MOUNT_STATUS_NUMBER_FORMAT"),"Drive number","Disk name");
-        for(int p = 0;p < 8;p++) WriteOut("----------");
+        for(int p = 0;p < cols;p++) WriteOut("-");
         none=true;
 		for (int index = 0; index < MAX_DISK_IMAGES; index++)
 			if (imageDiskList[index]) {
@@ -5683,6 +5698,42 @@ void AUTOTYPE_ProgramStart(Program **make)
 	*make = new AUTOTYPE;
 }
 
+class LS : public Program {
+public:
+    void Run(void);
+private:
+	void PrintUsage() {
+        constexpr const char *msg =
+            "Lists directory contents.\n\nLS [drive:][path][filename] [/A] [/L] [/P] [/Z]\n\n"
+            "  /A\tLists hidden and system files also.\n"
+            "  /L\tLists names one per line.\n"
+            "  /P\tPauses after each screenful of information.\n"
+            "  /Z\tDisplays short names even if LFN support is available.\n";
+        WriteOut(msg);
+	}
+};
+
+void LS::Run()
+{
+	// Hack To allow long commandlines
+	ChangeToLongCmd();
+
+	// Usage
+	if (cmd->FindExist("-?", false) || cmd->FindExist("/?", false)) {
+		PrintUsage();
+		return;
+	}
+	char *args=(char *)cmd->GetRawCmdline().c_str();
+	args=trim(args);
+	DOS_Shell temp;
+	temp.CMD_LS(args);
+}
+
+static void LS_ProgramStart(Program * * make) {
+    *make=new LS;
+}
+
+
 #if defined (WIN32) && !defined(HX_DOS)
 #include <sstream>
 #include <shellapi.h>
@@ -6326,6 +6377,7 @@ void DOS_SetupPrograms(void) {
         PROGRAMS_MakeFile("MOUSE.COM", MOUSE_ProgramStart);
 	}
 
+    PROGRAMS_MakeFile("LS.COM",LS_ProgramStart);
     PROGRAMS_MakeFile("LOADFIX.COM",LOADFIX_ProgramStart);
     PROGRAMS_MakeFile("A20GATE.COM",A20GATE_ProgramStart);
     PROGRAMS_MakeFile("SHOWGUI.COM",SHOWGUI_ProgramStart);

@@ -717,7 +717,7 @@ static Bitu DOS_21Handler(void) {
                     str+=std::string(1, c);
                     DOS_WriteFile(STDOUT,&c,&n);
                 }
-                if (str.length()==42&&!strncmp(str.c_str(),"This program cannot be run in DOS mode.",39)||!strncmp(str.c_str(),"This program requires Microsoft Windows.",40)||str.length()==38&&!strncmp(str.c_str(),"This program must be run under Win32",36)) reqwin=true;
+                if ((str.length()==42&&!strncmp(str.c_str(),"This program cannot be run in DOS mode.",39))||(!strncmp(str.c_str(),"This program requires Microsoft Windows.",40))||(str.length()==38&&!strncmp(str.c_str(),"This program must be run under Win32",36))) reqwin=true;
                 reg_al=c;
             }
             break;
@@ -1406,6 +1406,9 @@ static Bitu DOS_21Handler(void) {
 						reg_ax=dos.errorcode;
 						CALLBACK_SCF(true);
 					}
+                } else {
+                    reg_ax=dos.errorcode;
+                    CALLBACK_SCF(true);
                 }
                 diskio_delay(reg_ax);
                 dos.echo=false;
@@ -2730,8 +2733,6 @@ public:
         dos_clipboard_device_access = 0;
 		dos_clipboard_device_name=(char *)dos_clipboard_device_default;
 #endif
-		for (int i=0; i < DOS_DRIVES; i++)
-			if (Drives[i]) DriveManager::UnmountDrive(i);
 
         if (dos_initial_hma_free > 0x10000)
             dos_initial_hma_free = 0x10000;

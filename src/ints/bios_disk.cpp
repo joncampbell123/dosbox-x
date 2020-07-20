@@ -31,7 +31,7 @@
 # pragma warning(disable:4244) /* const fmath::local::uint64_t to double possible loss of data */
 #endif
 
-extern bool int13_extensions_enable;
+extern bool int13_extensions_enable, bootguest;
 
 diskGeo DiskGeometryList[] = {
     { 160,  8, 1, 40, 0, 512,  64, 1, 0xFE},      // IBM PC double density 5.25" single-sided 160KB
@@ -1200,7 +1200,7 @@ void BIOS_SetupDisks(void) {
     RealSetVec(0x13,CALLBACK_RealPointer(call_int13));
 
     //release the drives after a soft reset
-    FreeBIOSDiskList();
+    if (!bootguest) FreeBIOSDiskList();
 
     /* FIXME: Um... these aren't callbacks. Why are they allocated as callbacks? We have ROM general allocation now. */
     diskparm0 = CALLBACK_Allocate();

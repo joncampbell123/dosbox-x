@@ -37,6 +37,7 @@
 # define INCL_WIN
 #endif
 
+extern int enablelfn;
 extern bool dpi_aware_enable;
 extern bool log_int21;
 extern bool log_fileio;
@@ -91,6 +92,7 @@ void GFX_OpenGLRedrawScreen(void);
 #include "sdlmain.h"
 #include "zipfile.h"
 #include "shell.h"
+#include "../ints/int10.h"
 
 #if defined(LINUX) && defined(HAVE_ALSA)
 # include <alsa/asoundlib.h>
@@ -181,7 +183,10 @@ Bitu frames = 0;
 ScreenSizeInfo          screen_size_info;
 
 extern bool dos_kernel_disabled;
+extern bool bootguest;
+extern int bootdrive;
 
+void runBoot(void);
 void MenuBootDrive(char drive);
 void MenuUnmountDrive(char drive);
 void SetGameState_Run(int value);
@@ -3390,6 +3395,33 @@ void ResetSystem(bool pressed) {
     throw int(3);
 }
 
+void RebootGuest(bool pressed) {
+    if (!pressed) return;
+
+	if (is_paused) {
+		is_paused = false;
+		mainMenu.get_item("mapper_pause").check(false).refresh_item(mainMenu);
+	}
+	if (pausewithinterrupts_enable) {
+        pausewithinterrupts_enable = false;
+		mainMenu.get_item("mapper_pauseints").check(false).refresh_item(mainMenu);
+	}
+
+	if (!dos_kernel_disabled) {
+	    if (CurMode->type==M_TEXT || IS_PC98_ARCH) {
+			char msg[]="[2J";
+			Bit16u s = (Bit16u)strlen(msg);
+			DOS_WriteFile(STDERR,(Bit8u*)msg,&s);
+	    } else {
+		    reg_ax=(Bit16u)CurMode->mode;
+		    CALLBACK_RunRealInt(0x10);
+	    }
+		throw int(6);
+	}
+	bootguest=true;
+	throw int(3);
+}
+
 bool has_GUI_StartUp = false;
 
 static void GUI_StartUp() {
@@ -3711,8 +3743,11 @@ static void GUI_StartUp() {
     //ShowSplashScreen();   /* I will keep the splash screen alive. But now, the BIOS will do it --J.C. */
 
     /* Get some Event handlers */
-    MAPPER_AddHandler(ResetSystem, MK_r, MMODHOST, "reset", "Reset", &item); /* Host+R (Host+CTRL+R acts funny on my Linux system) */
-    item->set_text("Reset guest system");
+    MAPPER_AddHandler(ResetSystem, MK_r, MMODHOST, "reset", "Reset VM", &item); /* Host+R (Host+CTRL+R acts funny on my Linux system) */
+    item->set_text("Reset virtual machine");
+
+    MAPPER_AddHandler(RebootGuest, MK_s, MMODHOST, "reboot", "Reboot DOS", &item); /* Reboot guest system or integrated DOS */
+    item->set_text("Reboot guest system");
 
 #if !defined(C_EMSCRIPTEN)//FIXME: Shutdown causes problems with Emscripten
     MAPPER_AddHandler(KillSwitch,MK_f9,MMOD1,"shutdown","ShutDown", &item); /* KEEP: Most DOSBox-X users may have muscle memory for this */
@@ -7161,7 +7196,6 @@ bool dos_mouse_sensitivity_menu_callback(DOSBoxMenu * const menu,DOSBoxMenu::ite
     return true;
 }
 
-extern int enablelfn;
 bool dos_lfn_auto_menu_callback(DOSBoxMenu * const menu,DOSBoxMenu::item * const menuitem) {
     (void)menu;//UNUSED
     (void)menuitem;//UNUSED
@@ -9408,6 +9442,7 @@ fresh_boot:
 #endif
 
         if (run_machine) {
+            bootguest = false;
             bool disable_a20 = static_cast<Section_prop *>(control->GetSection("dosbox"))->Get_bool("turn off a20 gate on boot");
 
             /* if instructed, turn off A20 at boot */

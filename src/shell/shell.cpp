@@ -454,7 +454,7 @@ void DOS_Shell::Run(void) {
 		temp.echo = echo;
 		temp.ParseLine(input_line);		//for *.exe *.com  |*.bat creates the bf needed by runinternal;
 		temp.RunInternal();				// exits when no bf is found.
-		if (!optK||!perm&&temp.exit)
+		if (!optK||(!perm&&temp.exit))
 			return;
 	} else if (cmd->FindStringRemain("/?",line)) {
 		WriteOut(MSG_Get("SHELL_CMD_COMMAND_HELP"));
@@ -1122,7 +1122,7 @@ void SHELL_Init() {
 		   "               S  System files               -  Prefix meaning not\n"
 		   "  /O          List by files in sorted order.\n"
 		   "  sortorder    N  By name (alphabetic)       S  By size (smallest first)\n"
-		   "               E  By extension (alphabetic)  D  By date & time (earlist first)\n"
+		   "               E  By extension (alphabetic)  D  By date & time (earliest first)\n"
 		   "               G  Group directories first    -  Prefix to reverse order\n\n"
 		   "Switches may be preset in the DIRCMD environment variable.  Override\n"
 		   "preset switches by prefixing any switch with - (hyphen)--for example, /-W.\n"
@@ -1214,12 +1214,6 @@ void SHELL_Init() {
 		   "Type SUBST with no parameters to display a list of mounted local drives.\n");
 	MSG_Add("SHELL_CMD_LOADHIGH_HELP","Loads a program into upper memory (requires XMS and UMB memory).\n");
 	MSG_Add("SHELL_CMD_LOADHIGH_HELP_LONG","LH\t\t[drive1:][path]filename [parameters]\nLOADHIGH\t[drive1:][path]filename [parameters]\n");
-	MSG_Add("SHELL_CMD_LS_HELP", "Lists directory contents.\n");
-	MSG_Add("SHELL_CMD_LS_HELP_LONG", "LS [drive:][path][filename] [/A] [/L] [/P] [/Z]\n\n"
-	        "  /A\tLists hidden and system files also.\n"
-	        "  /L\tLists names one per line.\n"
-		    "  /P\tPauses after each screenful of information.\n"
-			"  /Z\tDisplays short names even if LFN support is available.\n");
 	MSG_Add("SHELL_CMD_CHOICE_HELP","Waits for a keypress and sets ERRORLEVEL.\n");
 	MSG_Add("SHELL_CMD_CHOICE_HELP_LONG","CHOICE [/C:choices] [/N] [/S] text\n"
 	        "  /C[:]choices  -  Specifies allowable keys.  Default is: yn.\n"

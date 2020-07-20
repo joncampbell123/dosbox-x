@@ -74,7 +74,7 @@ static SHELL_Cmd cmd_list[]={
 {	"LFNFOR",		1,		&DOS_Shell::CMD_LFNFOR,		"SHELL_CMD_LFNFOR_HELP"},
 {	"LH",			1,		&DOS_Shell::CMD_LOADHIGH,	"SHELL_CMD_LOADHIGH_HELP"},
 {	"LOADHIGH",		1,		&DOS_Shell::CMD_LOADHIGH, 	"SHELL_CMD_LOADHIGH_HELP"},
-{   "LS",			1,		&DOS_Shell::CMD_LS,			"SHELL_CMD_LS_HELP"},
+//{   "LS",			1,		&DOS_Shell::CMD_LS,			"SHELL_CMD_LS_HELP"}, // LS as a program (Z:\LS.COM) instead of shell command
 {	"MD",			0,		&DOS_Shell::CMD_MKDIR,		"SHELL_CMD_MKDIR_HELP"},
 {	"MKDIR",		1,		&DOS_Shell::CMD_MKDIR,		"SHELL_CMD_MKDIR_HELP"},
 {	"MORE",			1,		&DOS_Shell::CMD_MORE,		"SHELL_CMD_MORE_HELP"},
@@ -771,7 +771,7 @@ void DOS_Shell::CMD_RENAME(char * args){
 						}
 					}
 					if (star) {
-						if (star-arg2<(unsigned int)strlen(name))
+						if ((unsigned int)(star-arg2)<strlen(name))
 							strcpy(star, name+(star-arg2));
 						else
 							*star=0;
@@ -795,7 +795,7 @@ void DOS_Shell::CMD_RENAME(char * args){
 						}
 					}
 					if (star) {
-						if (star-tname2<(unsigned int)strlen(tname1))
+						if ((unsigned int)(star-tname2)<strlen(tname1))
 							strcpy(star, tname1+(star-tname2));
 						else
 							*star=0;
@@ -812,7 +812,7 @@ void DOS_Shell::CMD_RENAME(char * args){
 							}
 						}
 						if (star) {
-							if (star-text2<(unsigned int)strlen(text1))
+							if ((unsigned int)(star-text2)<strlen(text1))
 								strcpy(star, text1+(star-text2));
 							else
 								*star=0;
@@ -1517,7 +1517,7 @@ void DOS_Shell::CMD_DIR(char * args) {
 }
 
 void DOS_Shell::CMD_LS(char *args) {
-	HELP("LS");
+	//HELP("LS");
 	bool optA=ScanCMDBool(args,"A");
 	bool optL=ScanCMDBool(args,"L");
 	bool optP=ScanCMDBool(args,"P");
@@ -1575,7 +1575,7 @@ void DOS_Shell::CMD_LS(char *args) {
 	bool ret = DOS_FindFirst((char *)((uselfn?"\"":"")+std::string(spattern)+(uselfn?"\"":"")).c_str(), 0xffff & ~DOS_ATTR_VOLUME);
 	if (!ret) {
 		lfn_filefind_handle=fbak;
-		if (trim(args))
+		if (strlen(trim(args)))
 			WriteOut(MSG_Get("SHELL_CMD_FILE_NOT_FOUND"), trim(args));
 		else
 			WriteOut(MSG_Get("SHELL_ILLEGAL_PATH"));
@@ -1596,11 +1596,12 @@ void DOS_Shell::CMD_LS(char *args) {
 	lfn_filefind_handle=fbak;
 
 	size_t w_count, p_count, col;
-	unsigned int max[10], total, tcols=real_readw(BIOSMEM_SEG,BIOSMEM_NB_COLS);
+	unsigned int max[15], total, tcols=IS_PC98_ARCH?80:real_readw(BIOSMEM_SEG,BIOSMEM_NB_COLS);
 	if (!tcols) tcols=80;
+	int mrow=tcols>80?15:10;
 
-	for (col=10; col>0; col--) {
-		for (int i=0; i<10; i++) max[i]=2;
+	for (col=mrow; col>0; col--) {
+		for (int i=0; i<mrow; i++) max[i]=2;
 		if (optL) col=1;
 		if (col==1) break;
 		w_count=0;
@@ -1633,8 +1634,9 @@ void DOS_Shell::CMD_LS(char *args) {
 			if (!uselfn||optZ) lowcase(name);
 			bool is_executable=false;
 			if (name.length()>4) {
-				const char *p=name.substr(name.length()-4).c_str();
-				if (!strcasecmp(p, ".exe") || !strcasecmp(p, ".com") || !strcasecmp(p, ".bat")) is_executable=true;
+				std::string ext=name.substr(name.length()-4);
+				std::transform(ext.begin(), ext.end(), ext.begin(), ::tolower);
+				if (ext==".exe"||ext==".com"||ext==".bat") is_executable=true;
 			}
 			if (col==1) {
 				WriteOut(is_executable?"\033[32;1m%s\033[0m\n":"%s\n", name.c_str());
@@ -2562,7 +2564,9 @@ void DOS_Shell::CMD_SUBST(char * args) {
 
 			WriteOut(MSG_Get("SHELL_CMD_SUBST_DRIVE_LIST"));
 			WriteOut(MSG_Get("PROGRAM_MOUNT_STATUS_FORMAT"),"Drive","Type","Label");
-			for(int p = 0;p < 8;p++) WriteOut("----------");
+			int cols=IS_PC98_ARCH?80:real_readw(BIOSMEM_SEG,BIOSMEM_NB_COLS);
+			if (!cols) cols=80;
+			for(int p = 0;p < cols;p++) WriteOut("-");
 			bool none=true;
 			for (int d = 0;d < DOS_DRIVES;d++) {
 				if (!Drives[d]||strncmp(Drives[d]->GetInfo(),"local ",6)) continue;

@@ -1,9 +1,14 @@
 DOSBox-X Source Code Description
 ================================
 
-This page tries to explain the source code of DOSBox-X, including compiling information and some technical details.
+This page tries to explain the source code of DOSBox-X, including compiling
+information and some technical details.
 
-Such information is primarily targeted at developers and anyone who wants to contribute to the DOSBox-X project.
+Such information is primarily targeted at developers and anyone who wants to
+contribute to the DOSBox-X project.
+
+Users who are primarily looking for instructions on installing and running
+DOSBox-X may want to look at the INSTALL.md file and the DOSBox-X Wiki instead.
 
 There is also a section for crediting the source code in the end of this page.
 
@@ -179,7 +184,7 @@ SDL_Net (optional)
 
 SDL_Sound 
     For compressed audio on diskimages. (optional)
-    This is for cue/bin cdrom images with compressed (mp3/ogg) audio tracks.
+    This is for cue/bin CD-ROM images with compressed (MP3/OGG/FLAC) audio tracks.
     Get it from http://icculus.org/SDL_sound
     Licenced under LGPL
 
@@ -191,56 +196,138 @@ ALSA_Headers
 Configure script options
 ------------------------
 
-The configure script accepts the following switches, which you can use to customize the code compilation:
+The DOSBox-X configure script accepts the following switches, which you can use to customize the code compilation:
+
+--enable-FEATURE[=ARG]
+        Includes FEATURE [ARG=yes]
+
+--enable-silent-rules
+        Less verbose build output (undo: "make V=1")
+
+--enable-dependency-tracking
+        Do not reject slow dependency extractors
+
+--enable-force-menu-sdldraw
+        Forces SDL drawn menus
+
+--enable-hx-dos
+        Enables HX-DOS target
+
+--enable-emscripten
+        Enables Emscripten target
+
+--enable-sdl
+        Enables SDL 1.x
+
+--enable-sdl2
+        Enables SDL 2.x
+
+--enable-xbrz
+        Compiles with xBRZ scaler (default yes)
+
+--enable-scaler-full-line
+        Scaler render full line instead of detecting
+        changes, for slower systems
+
+--enable-alsa-midi
+        Compiles with ALSA MIDI support (default yes)
+
+--enable-d3d9
+        Enables Direct3D 9 support
+
+--enable-d3d-shaders
+        Enables Direct3D shaders
 
 --enable-debug 
-        enables the internal debugger. --enable-debug=heavy enables even more 
+        Enables the internal debugger. --enable-debug=heavy enables even more 
         debug options. DOSBox-X should then be run from a xterm and when the sdl-
         window is active press alt-pause to enter the debugger.
 
---enable-core-inline
-        enables some memory increasing inlines. This greatly increases 
-        compiletime for maybe a increase in speed.
+--disable-FEATURE
+        Do not include FEATURE (same as --enable-FEATURE=no)
+
+--disable-silent-rules
+        Verbose build output (undo: "make V=0")
+
+--disable-dependency-tracking
+        Speeds up one-time build
+
+--disable-largefile
+        Omits support for large files
+
+--disable-x11
+        Do not enable X11 integration
+
+--disable-optimize
+        Do not enable compiler optimizations
+
+--disable-sdl2test
+        Do not try to compile and run a test SDL 2.x program
+
+--disable-sdltest
+        Do not try to compile and run a test SDL 1.x program
+
+--disable-alsatest
+        Do not try to compile and run a test ALSA program
+
+--disable-freetype
+        Disables FreeType support
+
+--disable-printer
+        Disables printer emulation
+
+--disable-mt32
+        Disables MT32 emulation
+
+--disable-screenshots
+        Disables screenshots and movie recording
+
+--disable-avcodec
+        Disables FFMPEG avcodec support
+
+--disable-core-inline
+        Disables some memory increasing inlines. This will reduces compiletime 
+        for a possible speed decrease.
 
 --disable-fpu
-        disables the emulated fpu. Although the fpu emulation code isn't 
+        Disables the emulated FPU. Although the fpu emulation code isn't 
         finished and isn't entirely accurate it's advised to leave it on. 
 
 --disable-fpu-x86
 --disable-fpu-x64
-        disables the assembly fpu core. Although relatively new, the x86/x64 fpu  
+        Disables the assembly FPU core. Although relatively new, the x86/x64 fpu  
         core has more accuracy then the regular fpu core. 
 
 --disable-dynamic-x86
-        disables the dynamic x86 specific cpu core. Although it might be 
+        Disables the dynamic x86 specific CPU core. Although it might be 
         be a bit unstable, it can greatly improve the speed of dosbox-x on x86 
         hosts.
         Please note that this option on x86 will result in a different
-        dynamic/recompiling cpu core being compiled then the default.
+        dynamic/recompiling CPU core being compiled then the default.
         For more information see the option --disable-dynrec
 
 --disable-dynrec
-        disables the recompiling cpu core. Currently x86 and x86_64 only.
+        Disables the recompiling CPU core. Currently x86 and x86_64 only.
         You can activate this core on x86 by disabling the dynamic-x86 core.
 
 --disable-dynamic-core
-        disables all dynamic cores. (same effect as 
+        Disables all dynamic cores. (same effect as 
         --disable-dynamic-x86 --disable-dynrec)
 
 --disable-opengl
-        disables OpenGL-support (output mode that can be selected in the
+        Disables OpenGL support (output mode that can be selected in the
         DOSBox-X configuration file).
 
 --disable-unaligned-memory
-        disables unaligned memory access.
+        Disables unaligned memory access.
 
 General description of source code
 ----------------------------------
 
 src/shell/shell.cpp         SHELL init, SHELL run, fake COMMAND.COM setup,
-                                startup messages and ANSI art, AUTOEXEC.BAT
-                                emulation and setup, shell interface,
-                                input, parsing, and execution
+                            startup messages and ANSI art, CONFIG.SYS and
+                            AUTOEXEC.BAT emulation and setup, shell interface,
+                            input, parsing, and execution.
 
 src/shell/shell_batch.cpp   Batch file (*.BAT) handling
 
@@ -1494,8 +1581,8 @@ code as it existed since mid 2011.
 Some of the code is DOSBox SVN code in which some of the SVN
 commits made since 2011 were incorporated into DOSBox-X.
 
-Some of the code in this source tree also came from other forks of
-DOSBox such as DOSBox Daum, DOSBox ECE, DOSBox-staging and vDosPlus,
+Some of the code in this source tree also came from other DOSBox
+forks like DOSBox SVN Daum, DOSBox ECE, DOSBox-staging and vDosPlus,
 with major works from contributors like Wengier, Allofich, rderooy.
 
 For details please look at the CREDITS.md file, which tries to build
