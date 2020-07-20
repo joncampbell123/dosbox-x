@@ -3743,10 +3743,10 @@ static void GUI_StartUp() {
     //ShowSplashScreen();   /* I will keep the splash screen alive. But now, the BIOS will do it --J.C. */
 
     /* Get some Event handlers */
-    MAPPER_AddHandler(ResetSystem, MK_r, MMODHOST, "reset", "Reset", &item); /* Host+R (Host+CTRL+R acts funny on my Linux system) */
+    MAPPER_AddHandler(ResetSystem, MK_r, MMODHOST, "reset", "Reset VM", &item); /* Host+R (Host+CTRL+R acts funny on my Linux system) */
     item->set_text("Reset virtual machine");
 
-    MAPPER_AddHandler(RebootGuest, MK_s, MMODHOST, "reboot", "Reboot", &item); /* Reboot guest system or integrated DOS */
+    MAPPER_AddHandler(RebootGuest, MK_s, MMODHOST, "reboot", "Reboot DOS", &item); /* Reboot guest system or integrated DOS */
     item->set_text("Reboot guest system");
 
 #if !defined(C_EMSCRIPTEN)//FIXME: Shutdown causes problems with Emscripten
