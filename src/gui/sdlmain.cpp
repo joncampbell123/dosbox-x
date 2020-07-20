@@ -83,6 +83,7 @@ void GFX_OpenGLRedrawScreen(void);
 #include "timer.h"
 #include "setup.h"
 #include "bios.h"
+#include "callback.h"
 #include "support.h"
 #include "debug.h"
 #include "ide.h"
