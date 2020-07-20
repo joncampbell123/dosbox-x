@@ -1,4 +1,10 @@
 0.83.4
+  - Added new "Reboot guest system" menu item (under
+    "Main") to reboot the kernel of the integrated
+    DOS or the guest DOS directly. The previous menu
+    item "Reset guest system" has been renamed to
+    "Reset virtual machine" which will restart the
+    virtual machine in DOSBox-X instead. (Wengier)
   - LS is now an external command appearing on drive
     Z: as LS.COM instead of a builtin shell command.
     This avoids name clash with game "Links LS 97"
