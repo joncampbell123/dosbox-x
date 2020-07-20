@@ -1886,6 +1886,7 @@ void DOS_SetupFiles (void) {
 	}
 	/* Setup the Virtual Disk System */
 	for (i=0;i<DOS_DRIVES;i++) {
+		if (Drives[i]) DriveManager::UnmountDrive(i);
 		Drives[i]=0;
 	}
 	Drives[25]=new Virtual_Drive();

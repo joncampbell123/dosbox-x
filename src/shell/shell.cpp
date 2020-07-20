@@ -454,7 +454,7 @@ void DOS_Shell::Run(void) {
 		temp.echo = echo;
 		temp.ParseLine(input_line);		//for *.exe *.com  |*.bat creates the bf needed by runinternal;
 		temp.RunInternal();				// exits when no bf is found.
-		if (!optK||!perm&&temp.exit)
+		if (!optK||(!perm&&temp.exit))
 			return;
 	} else if (cmd->FindStringRemain("/?",line)) {
 		WriteOut(MSG_Get("SHELL_CMD_COMMAND_HELP"));
@@ -1122,7 +1122,7 @@ void SHELL_Init() {
 		   "               S  System files               -  Prefix meaning not\n"
 		   "  /O          List by files in sorted order.\n"
 		   "  sortorder    N  By name (alphabetic)       S  By size (smallest first)\n"
-		   "               E  By extension (alphabetic)  D  By date & time (earlist first)\n"
+		   "               E  By extension (alphabetic)  D  By date & time (earliest first)\n"
 		   "               G  Group directories first    -  Prefix to reverse order\n\n"
 		   "Switches may be preset in the DIRCMD environment variable.  Override\n"
 		   "preset switches by prefixing any switch with - (hyphen)--for example, /-W.\n"

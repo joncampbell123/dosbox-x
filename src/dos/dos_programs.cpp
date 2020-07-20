@@ -140,6 +140,9 @@ static void MOUSE_ProgramStart(Program * * make) {
 }
 
 void MSCDEX_SetCDInterface(int intNr, int forceCD);
+bool bootguest=false;
+int bootdrive=-1;
+std::string bootimgs="";
 Bit8u ZDRIVE_NUM = 25;
 
 static const char* UnmountHelper(char umount) {
@@ -1064,7 +1067,6 @@ static void SHOWGUI_ProgramStart(Program * * make) {
 
 extern bool custom_bios;
 extern Bit32u floppytype;
-extern bool dos_kernel_disabled;
 extern bool boot_debug_break;
 extern Bitu BIOS_bootfail_code_offset;
 
@@ -1557,11 +1559,14 @@ public:
             i++;
         }
 
+        bootimgs="";
         if (!bootbyDrive) {
             if (i == 0) {
                 WriteOut("No images specified");
                 return;
             }
+            bootimgs = cmd->GetRawCmdline();
+			trim(bootimgs);
 
             if (i > 1) {
                 /* if more than one image is given, then this drive becomes the focus of the swaplist */
@@ -1919,16 +1924,16 @@ public:
                 return;
             }
 
-			char msg[30];
-			const Bit8u page=real_readb(BIOSMEM_SEG,BIOSMEM_CURRENT_PAGE);;
-			BIOS_NCOLS;
-            (void)ncols;
-			strcpy(msg, CURSOR_POS_COL(page)>0?"\r\n":""); 
-			strcat(msg, "Booting from drive ");
-			strcat(msg, std::string(1, drive).c_str());
-			strcat(msg, "...\r\n");
-            Bit16u s = (Bit16u)strlen(msg);
-			DOS_WriteFile(STDERR,(Bit8u*)msg,&s);
+			if (!bootguest) {
+				char msg[30];
+				const Bit8u page=real_readb(BIOSMEM_SEG,BIOSMEM_CURRENT_PAGE);
+				strcpy(msg, CURSOR_POS_COL(page)>0?"\r\n":"");
+				strcat(msg, "Booting from drive ");
+				strcat(msg, std::string(1, drive).c_str());
+				strcat(msg, "...\r\n");
+				Bit16u s = (Bit16u)strlen(msg);
+				DOS_WriteFile(STDERR,(Bit8u*)msg,&s);
+			}
 
             if (IS_PC98_ARCH) {
                 for(i=0;i<bootsize;i++) real_writeb((Bit16u)load_seg, (Bit16u)i, bootarea.rawdata[i]);
@@ -2128,6 +2133,8 @@ public:
             // let menu know it boots
             menu.boot=true;
 #endif
+            bootguest=false;
+            bootdrive=drive-65;
 
             /* forcibly exit the shell, the DOS kernel, and anything else by throwing an exception */
             throw int(2);
@@ -2137,6 +2144,14 @@ public:
 
 static void BOOT_ProgramStart(Program * * make) {
     *make=new BOOT;
+}
+
+void runBoot() {
+	BOOT boot;
+	char drive[] = "A:";
+	drive[0]='A'+bootdrive;
+	boot.cmd=new CommandLine("BOOT", bootimgs.size()?bootimgs.c_str():drive);
+	boot.Run();
 }
 
 class LOADROM : public Program {

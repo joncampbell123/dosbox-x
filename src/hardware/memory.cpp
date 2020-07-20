@@ -1589,7 +1589,7 @@ public:
     /*! \brief      Program entry point, when the command is run */
     void Run(void) {
 		if (cmd->FindExist("/?", false) || cmd->FindExist("-?", false)) {
-			WriteOut("Restarts the kernel of DOSBox-X's emulated DOS.\n\nRE-DOS\n");
+			WriteOut("Reboots the kernel of DOSBox-X's emulated DOS.\n\nRE-DOS\n");
 			return;
 		}
         throw int(6);
