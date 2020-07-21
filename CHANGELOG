@@ -58,6 +58,10 @@
   - IMGMAKE warning replaced to indicate a general
     incompatibility between MS-DOS/SCANDISK and
     cluster sizes 64KB or larger.
+  - IMGMOUNT now assumes "-fs none" automatically if
+    a drive number is specified instead of a drive
+    letter. Also improved listing for El Torito floppy
+    drives for this command. (Wengier)
   - IMGMAKE command will now use the image file name
     "IMGMAKE.IMG" if no file name is specified (either
     in the mounted local directory or in the DOSBox-X
