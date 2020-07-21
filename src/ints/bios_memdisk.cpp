@@ -202,7 +202,7 @@ void imageDiskMemory::init(diskGeo diskParams, bool isHardDrive, imageDisk* unde
 	memset((void*)ChunkMap, 0, total_chunks * sizeof(Bit8u*));
 
 	//set internal variables
-	this->diskname = "ram drive";
+	this->diskname = "RAM drive";
 	this->heads = diskParams.headscyl;
 	this->cylinders = diskParams.cylcount;
 	this->sectors = diskParams.secttrack;

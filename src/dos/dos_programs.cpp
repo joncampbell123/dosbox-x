@@ -3683,7 +3683,7 @@ public:
         none=true;
 		for (int index = 0; index < MAX_DISK_IMAGES; index++)
 			if (imageDiskList[index]) {
-                WriteOut(MSG_Get("PROGRAM_MOUNT_STATUS_NUMBER_FORMAT"), std::to_string(index).c_str(), imageDiskList[index]->diskname.c_str());
+                WriteOut(MSG_Get("PROGRAM_MOUNT_STATUS_NUMBER_FORMAT"), std::to_string(index).c_str(), dynamic_cast<imageDiskElToritoFloppy *>(imageDiskList[index])!=NULL?"El Torito floppy drive":imageDiskList[index]->diskname.c_str());
                 none=false;
             }
         if (none) WriteOut(MSG_Get("PROGRAM_IMGMOUNT_STATUS_NONE"));
@@ -3738,6 +3738,12 @@ public:
             if(tdr=='A'||tdr=='B'||tdr=='0'||tdr=='1') type="floppy";
         }
 
+		if (temp_line.size() == 1 && isdigit(temp_line[0]) && temp_line[0]>='0' && temp_line[0]<MAX_DISK_IMAGES+'0' && cmd->FindExist("-u",true)) {
+			Unmount(temp_line[0]);
+			std::string templine;
+			if (!cmd->FindCommand(2,templine)||!templine.size()) return;
+		}
+
         //get the type
         bool rtype=cmd->FindString("-t", type, true);
 		std::transform(type.begin(), type.end(), type.begin(), ::tolower);
@@ -3765,11 +3771,6 @@ public:
             //  find the el_torito_floppy_base and el_torito_floppy_type values
             if (!PrepElTorito(type, el_torito_cd_drive, el_torito_floppy_base, el_torito_floppy_type)) return;
         }
-
-		if (temp_line.size() == 1 && isdigit(temp_line[0]) && temp_line[0]>='0' && temp_line[0]<MAX_DISK_IMAGES+'0' && cmd->FindExist("-u",true)) {
-			Unmount(temp_line[0]);
-			if (!cmd->FindCommand(2,temp_line)||!temp_line.size()) return;
-		}
 
         //default fstype is fat
         std::string fstype="fat";
@@ -3820,7 +3821,9 @@ public:
         cmd->FindString("-size", str_size, true);
         cmd->FindString("-chs", str_chs, true);
         if (!ReadSizeParameter(str_size, str_chs, type, sizes)) return;
-        
+
+        if (!rfstype&&isdigit(temp_line[0])) fstype="none";
+
         //for floppies, hard drives, and cdroms, require a drive letter
         //for -fs none, require a number indicating where to mount at
         if(fstype=="fat" || fstype=="iso") {
@@ -3846,6 +3849,11 @@ public:
                 WriteOut_NoParsing(MSG_Get("PROGRAM_IMGMOUNT_SPECIFY2"));
                 return;
             }
+			int index = drive - '0';
+			if (imageDiskList[index]) {
+				WriteOut(MSG_Get("PROGRAM_IMGMOUNT_ALREADY_MOUNTED_NUMBER"),index);
+                return;
+			}
         } else {
             WriteOut(MSG_Get("PROGRAM_IMGMOUNT_FORMAT_UNSUPPORTED"),fstype.c_str());
             return;
@@ -6252,6 +6260,7 @@ void DOS_SetupPrograms(void) {
     MSG_Add("PROGRAM_IMGMOUNT_FILE_NOT_FOUND","Image file not found.\n");
     MSG_Add("PROGRAM_IMGMOUNT_MOUNT","To mount directories, use the \033[34;1mMOUNT\033[0m command, not the \033[34;1mIMGMOUNT\033[0m command.\n");
     MSG_Add("PROGRAM_IMGMOUNT_ALREADY_MOUNTED","Drive already mounted at that letter.\n");
+    MSG_Add("PROGRAM_IMGMOUNT_ALREADY_MOUNTED_NUMBER","Drive number %d already mounted.\n");
     MSG_Add("PROGRAM_IMGMOUNT_CANT_CREATE","Cannot create drive from file.\n");
     MSG_Add("PROGRAM_IMGMOUNT_CANT_CREATE_PHYSFS","Cannot create PhysFS drive.\n");
     MSG_Add("PROGRAM_IMGMOUNT_MOUNT_NUMBER","Drive number %d mounted as %s\n");
