@@ -237,6 +237,14 @@ common opcode "RETF" param(iw) {
     input iw;
 }
 
+common opcode "IRET" param() {
+    modifies stackp; /* stackp += (word size + 16 bits + iw + flags) */
+    modifies CS,insp,flags;
+
+    output CS,insp,flags;
+    input order(stackdataw,stackdata16,stackdataw);
+}
+
 common opcode "INT" param(iw) {
     modifies stackp; /* stackp += (word size + 16 bits + iw) */
     modifies CS,insp;
@@ -605,4 +613,7 @@ opcode sequence(0xCD immb) name "INT" {
 opcode sequence(0xCE) name "INTO" {
     input flags;
     common opcode "INT" param(4);
+}
+opcode sequence(0xCF) name "IRET" {
+    common opcode "IRET" param();
 }
