@@ -3940,10 +3940,10 @@ public:
             if (newImage == NULL) return;
             newImage->Addref();
             if (newImage->hardDrive && (driveIndex < 2)) {
-                WriteOut("Cannot mount hard drive in floppy position");
+                WriteOut("Cannot mount hard drive in floppy position.\n");
             }
             else if (!newImage->hardDrive && (driveIndex >= 2)) {
-                WriteOut("Cannot mount floppy in hard drive position");
+                WriteOut("Cannot mount floppy in hard drive position.\n");
             }
             else {
                 if (AttachToBiosAndIdeByIndex(newImage, (unsigned char)driveIndex, (unsigned char)ide_index, ide_slave)) {
@@ -4190,11 +4190,11 @@ private:
 				WriteOut(MSG_Get("PROGRAM_MOUNT_UMOUNT_NUMBER_SUCCESS"), letter);
                 return true;
             }
-            WriteOut("No drive loaded at specified point\n");
+            WriteOut("Drive number %d is not mounted.\n", index);
             return false;
         }
         else {
-            WriteOut("Incorrect IMGMOUNT unmount usage\n");
+            WriteOut("Incorrect IMGMOUNT unmount usage.\n");
             return false;
         }
     }
