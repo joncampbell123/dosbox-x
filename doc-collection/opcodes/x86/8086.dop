@@ -604,10 +604,10 @@ opcode sequence(0xC4 mrm) name "LES" {
 opcode sequence(0xC5 mrm) name "LDS" {
     common opcode "LSEG" param(ds,regw,rmw);
 }
-opcode sequence(0xC6 mrm immb) name "MOV" {
+opcode sequence(0xC6 mrm immb) where reg == 0 name "MOV" {
     common opcode "MOV" param(rmb,immb);
 }
-opcode sequence(0xC7 mrm immw) name "MOV" {
+opcode sequence(0xC7 mrm immw) where reg == 0 name "MOV" {
     common opcode "MOV" param(rmw,immw);
 }
 opcode sequence(0xCA immw) name "RETF" {
