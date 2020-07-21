@@ -1468,11 +1468,11 @@ void adlib_getsample(Bit16s* sndptr, Bits numsamples) {
 // save state support
 void adlib_savestate( std::ostream& stream )
 {
-	Bit32u cur_wform_idx[MAXOPERATORS];
+	Bitu cur_wform_idx[MAXOPERATORS];
 
 
 	for( int lcv=0; lcv<MAXOPERATORS; lcv++ ) {
-		cur_wform_idx[lcv] = ((Bitu) (op[lcv].cur_wform)) - ((Bitu) &wavtable);
+		cur_wform_idx[lcv] = (Bitu)op[lcv].cur_wform - (Bitu)&wavtable;
 	}
 
 	//****************************************************

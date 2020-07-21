@@ -194,7 +194,7 @@ struct Handler : public Adlib::Handler {
 	void Generate(MixerChannel *chan, Bitu samples) override {
 		int16_t buf[1024 * 2];
 		while (samples > 0) {
-			uint32_t todo = samples > 1024 ? 1024 : samples;
+			uint32_t todo = samples > 1024 ? 1024 : (uint32_t)samples;
 			OPL3_GenerateStream(&chip, buf, todo);
 			chan->AddSamples_s16(todo, buf);
 			samples -= todo;
@@ -203,7 +203,7 @@ struct Handler : public Adlib::Handler {
 
 	void Init(Bitu rate) override {
 		newm = 0;
-		OPL3_Reset(&chip, rate);
+		OPL3_Reset(&chip, (Bit32u)rate);
 	}
 
 	~Handler() {

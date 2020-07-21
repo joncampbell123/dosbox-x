@@ -8930,7 +8930,7 @@ int main(int argc, char* argv[]) SDL_MAIN_NOEXCEPT {
 				}
             }
 			char name[6]="slot0";
-			name[4]='0'+GetGameState_Run();
+			name[4]='0'+(char)GetGameState_Run();
 			mainMenu.get_item(name).check(true).refresh_item(mainMenu);
 		}
 #endif
