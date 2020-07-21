@@ -55,6 +55,10 @@
   - Fixed mounting a directory with command-line like
     "dosbox-x .", and fixed mounting disk images with
     spaces via the "Drive" menu on Windows. (Wengier)
+  - IMGMOUNT now assumes "-fs none" automatically if
+    a drive number is specified instead of a drive
+    letter. Also improved this command's handling of
+    El Torito floppy drives. (Wengier)
   - IMGMAKE warning replaced to indicate a general
     incompatibility between MS-DOS/SCANDISK and
     cluster sizes 64KB or larger.
