@@ -2993,14 +2993,14 @@ bool Overlay_Drive::SetFileAttr(const char * name,Bit16u attr) {
 			int numr,numw;
 			char buffer[1000];
 			while(feof(hand)==0) {
-				if((numr=fread(buffer,1,1000,hand))!=1000){
+				if((numr=(int)fread(buffer,1,1000,hand))!=1000){
 					if(ferror(hand)!=0){
 						fclose(hand);
 						fclose(layfile);
 						return false;
 					} else if(feof(hand)!=0) { }
 				}
-				if((numw=fwrite(buffer,1,numr,layfile))!=numr){
+				if((numw=(int)fwrite(buffer,1,numr,layfile))!=numr){
 						fclose(hand);
 						fclose(layfile);
 						return false;

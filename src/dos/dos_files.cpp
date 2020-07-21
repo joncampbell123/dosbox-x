@@ -1898,7 +1898,7 @@ void DOS_File::SaveState( std::ostream& stream )
 	Bit32u file_namelen, seek_pos;
 
 
-	file_namelen = strlen( name );
+	file_namelen = (Bit32u)strlen( name );
 	seek_pos = GetSeekPos();
 
 	//******************************************
@@ -2018,7 +2018,7 @@ void POD_Save_DOS_Files( std::ostream& stream )
 			//**********************************************
 			//**********************************************
 
-			file_namelen = strlen( Files[lcv]->name );
+			file_namelen = (Bit8u)strlen( Files[lcv]->name );
 			file_name = (char *) alloca( file_namelen );
 			strcpy( file_name, Files[lcv]->name );
 

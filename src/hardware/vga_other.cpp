@@ -1044,11 +1044,11 @@ Bit8u euro_16[16] = {
 
 void VGA_SetupOther(void) {
     if (eurAscii>32 && eurAscii<256) {
-        for (unsigned int i=eurAscii*8;i<(eurAscii+1)*8;i++)
+        for (int i=eurAscii*8;i<(eurAscii+1)*8;i++)
             int10_font_08[i]=euro_08[i%8];
-        for (unsigned int i=eurAscii*14;i<(eurAscii+1)*14;i++)
+        for (int i=eurAscii*14;i<(eurAscii+1)*14;i++)
             int10_font_14[i]=euro_14[i%14];
-        for (unsigned int i=eurAscii*16;i<(eurAscii+1)*16;i++)
+        for (int i=eurAscii*16;i<(eurAscii+1)*16;i++)
             int10_font_16[i]=euro_16[i%16];
     }
 	memset( &vga.tandy, 0, sizeof( vga.tandy ));
