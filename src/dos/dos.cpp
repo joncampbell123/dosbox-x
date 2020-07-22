@@ -39,7 +39,7 @@
 #include "serialport.h"
 #include "dos_network.h"
 
-extern bool log_int21, log_fileio;
+extern bool log_int21, log_fileio, use_quick_reboot;
 extern int lfn_filefind_handle;
 unsigned long totalc, freec;
 Bit16u countryNo = 0;
@@ -3058,6 +3058,9 @@ public:
 		dos.version.minor=0;
 		dos.direct_output=false;
 		dos.internal_output=false;
+
+		use_quick_reboot = section->Get_bool("quick reboot");
+		mainMenu.get_item("quick_reboot").check(use_quick_reboot).refresh_item(mainMenu);
 
 		std::string lfn = section->Get_string("lfn");
 		if (lfn=="true") enablelfn=1;

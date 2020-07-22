@@ -140,7 +140,7 @@ static void MOUSE_ProgramStart(Program * * make) {
 }
 
 void MSCDEX_SetCDInterface(int intNr, int forceCD);
-bool bootguest=false;
+bool bootguest=false, use_quick_reboot=false;
 int bootdrive=-1;
 Bit8u ZDRIVE_NUM = 25;
 
@@ -1288,6 +1288,7 @@ public:
         bool bios_boot = false;
         bool swaponedrive = false;
         bool force = false;
+        bool quiet = false;
 
         //Hack To allow long commandlines
         ChangeToLongCmd();
@@ -1306,6 +1307,9 @@ public:
             pc98_640x200 = false;
         if (cmd->FindExist("-pc98-graphics",true))
             pc98_show_graphics = true;
+
+        if (cmd->FindExist("-q",true))
+            quiet = true;
 
         if (cmd->FindExist("-force",true))
             force = true;
@@ -1920,7 +1924,7 @@ public:
                 return;
             }
 
-			if (!bootguest) {
+			if (!quiet) {
 				char msg[30];
 				const Bit8u page=real_readb(BIOSMEM_SEG,BIOSMEM_CURRENT_PAGE);
 				strcpy(msg, CURSOR_POS_COL(page)>0?"\r\n":"");
@@ -2144,8 +2148,8 @@ static void BOOT_ProgramStart(Program * * make) {
 
 void runBoot() {
 	BOOT boot;
-	char drive[] = "A:";
-	drive[0]='A'+bootdrive;
+	char drive[] = "-Q A:";
+	drive[3]='A'+bootdrive;
 	boot.cmd=new CommandLine("BOOT", drive);
 	boot.Run();
 }
@@ -3764,6 +3768,7 @@ public:
 
         //look for -el-torito parameter and remove it from the command line
         cmd->FindString("-el-torito",el_torito,true);
+		if (el_torito == "") cmd->FindString("-bootcd",el_torito,true);
         if (el_torito != "") {
             //get el-torito floppy from cdrom mounted at drive letter el_torito_cd_drive
             el_torito_cd_drive = toupper(el_torito[0]);
@@ -6273,7 +6278,7 @@ void DOS_SetupPrograms(void) {
         "IMGMOUNT drive filename [-t hdd] [-fs fat] [-size ss,s,h,c] [-ide 1m|1s|2m|2s]\n"
         "IMGMOUNT driveLoc filename -fs none [-size ss,s,h,c] [-reservecyl #]\n"
         "IMGMOUNT drive filename [-t iso] [-fs iso]\n"
-        "IMGMOUNT drive -t floppy -el-torito cdDrive\n"
+        "IMGMOUNT drive [-t floppy] -bootcd cdDrive (or -el-torito cdDrive)\n"
         "IMGMOUNT drive -t ram -size driveSize\n"
         "IMGMOUNT -u drive|driveLocation (or drive|driveLocation filename [options] -u)\n"
         " drive               Drive letter to mount the image at\n"
@@ -6290,7 +6295,7 @@ void DOS_SetupPrograms(void) {
         " -ide 1m|1s|2m|2s    Specifies the controller to mount drive\n"
         " -size ss,s,h,c      Specify the geometry: Sector size,Sectors,Heads,Cylinders\n"
         " -size driveSize     Specify the drive size in KB\n"
-        " -el-torito cdDrive  Specify the CD drive to load the bootable floppy from\n"
+        " -bootcd cdDrive     Specify the CD drive to load the bootable floppy from\n"
         " -u                  Unmount the drive"
     );
     MSG_Add("PROGRAM_IMGMAKE_SYNTAX",

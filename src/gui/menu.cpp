@@ -383,6 +383,8 @@ static const char *def_menu_dos[] =
     "--",
     "DOSPC98Menu",
     "--",
+    "quick_reboot",
+    "--",
     "mapper_swapimg",
     "mapper_swapcd",
     "--",

@@ -44,6 +44,7 @@
 extern bool PS1AudioCard;
 #include "parport.h"
 #include "dma.h"
+#include "shell.h"
 #include <time.h>
 
 #if defined(DB_HAVE_CLOCK_GETTIME) && ! defined(WIN32)
@@ -275,9 +276,9 @@ extern bool user_cursor_locked;
 extern int user_cursor_x,user_cursor_y;
 extern int user_cursor_sw,user_cursor_sh;
 extern int master_cascade_irq,bootdrive;
-extern bool bootguest;
 extern bool enable_slave_pic;
-
+extern bool bootguest, use_quick_reboot;
+bool bootvm = false;
 static std::string dosbox_int_debug_out;
 
 void runBoot();
@@ -8445,7 +8446,7 @@ private:
             emscripten_sleep_with_yield(100);
         }
 #else
-        if (!control->opt_fastbioslogo&&!bootguest) {
+        if (!control->opt_fastbioslogo&&!bootguest&&(bootvm||!use_quick_reboot)) {
             bool wait_for_user = false;
             Bit32u lasttick=GetTicks();
             while ((GetTicks()-lasttick)<1000) {
@@ -8567,7 +8568,9 @@ private:
 
         for (Bitu i=0;i < 0x400;i++) mem_writeb(0x7C00+i,0);
 
-		if (bootguest&&bootdrive>=0&&imageDiskList[bootdrive]) runBoot();
+		if ((bootguest||!bootvm&&use_quick_reboot)&&bootdrive>=0&&imageDiskList[bootdrive]) runBoot();
+		if (use_quick_reboot&&!bootvm&&bootdrive<0&&first_shell != NULL) throw int(6);
+		bootvm=false;
 		bootguest=false;
 		bootdrive=-1;
         // Begin booting the DOSBox-X shell. NOTE: VM_Boot_DOSBox_Kernel will change CS:IP instruction pointer!
