@@ -237,6 +237,14 @@ common opcode "RETF" param(iw) {
     input iw;
 }
 
+common opcode "IRET" param() {
+    modifies stackp; /* stackp += (word size + 16 bits + iw + flags) */
+    modifies CS,insp,flags;
+
+    output CS,insp,flags;
+    input order(stackdataw,stackdata16,stackdataw);
+}
+
 common opcode "INT" param(iw) {
     modifies stackp; /* stackp += (word size + 16 bits + iw) */
     modifies CS,insp;
@@ -590,6 +598,18 @@ opcode sequence(0xC2 immw) name "RET" {
 opcode sequence(0xC3) name "RET" {
     common opcode "RET" param(0);
 }
+opcode sequence(0xC4 mrm) name "LES" {
+    common opcode "LSEG" param(es,regw,rmw);
+}
+opcode sequence(0xC5 mrm) name "LDS" {
+    common opcode "LSEG" param(ds,regw,rmw);
+}
+opcode sequence(0xC6 mrm immb) where reg == 0 name "MOV" {
+    common opcode "MOV" param(rmb,immb);
+}
+opcode sequence(0xC7 mrm immw) where reg == 0 name "MOV" {
+    common opcode "MOV" param(rmw,immw);
+}
 opcode sequence(0xCA immw) name "RETF" {
     common opcode "RETF" param(immw);
 }
@@ -605,4 +625,7 @@ opcode sequence(0xCD immb) name "INT" {
 opcode sequence(0xCE) name "INTO" {
     input flags;
     common opcode "INT" param(4);
+}
+opcode sequence(0xCF) name "IRET" {
+    common opcode "IRET" param();
 }

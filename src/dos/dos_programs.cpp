@@ -2870,7 +2870,7 @@ restart_int:
                 // end cylinder (0-based) bits 0-7
                 sbuf[0x1c5]=(c-1)&0xFF;
                 // sectors preceding partition1 (one head)
-                host_writed(&sbuf[0x1c6],bootsect_pos);
+                host_writed(&sbuf[0x1c6],(Bit32u)bootsect_pos);
                 // length of partition1, align to chs value
                 host_writed(&sbuf[0x1ca],vol_sectors);
 
@@ -2991,8 +2991,8 @@ restart_int:
                 WriteOut("         smaller sector count.\n");
                 /* Well, if the user wants an oversized partition, hack the total sectors fields to make it work */
                 unsigned int adj_vol_sectors =
-                    reserved_sectors + (sect_per_fat * fat_copies) +
-                    (((root_ent * 32u) + 511u) / 512u) + (clusters * sectors_per_cluster);
+                    (unsigned int)(reserved_sectors + (sect_per_fat * fat_copies) +
+                    (((root_ent * 32u) + 511u) / 512u) + (clusters * sectors_per_cluster));
 
                 // sectors (under 32MB) if not FAT32 and less than 65536
                 if (adj_vol_sectors < 65536ul) host_writew(&sbuf[0x13],adj_vol_sectors);
@@ -3063,7 +3063,7 @@ restart_int:
                 memset(sbuf,0,512);
                 host_writed(&sbuf[0x000],0x41615252); /* "RRaA" */
                 host_writed(&sbuf[0x1e4],0x61417272); /* "rrAa" */
-                host_writed(&sbuf[0x1e8],clusters-1); /* Last known free cluster count */
+                host_writed(&sbuf[0x1e8],(Bit32u)(clusters-1)); /* Last known free cluster count */
                 host_writed(&sbuf[0x1ec],3);          /* Next free cluster. We used 2 for the root dir, so 3 is next */
                 host_writed(&sbuf[0x1fc],0xAA550000); /* signature */
                 fseeko64(f,(bootsect_pos+1u)*512,SEEK_SET);

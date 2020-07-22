@@ -49,7 +49,7 @@ static size_t mp3_read(void* const pUserData, void* const pBufferOut, const size
 
     while (bytes_read < bytesToRead)
     {
-        const size_t rc = SDL_RWread(rwops, ptr, 1, bytesToRead - bytes_read);
+        const size_t rc = SDL_RWread(rwops, ptr, 1, (int)(bytesToRead - bytes_read));
         if (rc == 0) {
             sample->flags |= SOUND_SAMPLEFLAG_EOF;
             break;

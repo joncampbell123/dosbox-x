@@ -51,7 +51,7 @@ static size_t flac_read(void* pUserData, void* pBufferOut, size_t bytesToRead)
 
     while (bytes_read < bytesToRead)
     {
-        const size_t rc = SDL_RWread(rwops, ptr, 1, bytesToRead - bytes_read);
+        const size_t rc = SDL_RWread(rwops, ptr, 1, (int)(bytesToRead - bytes_read));
         if (rc == 0) {
             sample->flags |= SOUND_SAMPLEFLAG_EOF;
             break;

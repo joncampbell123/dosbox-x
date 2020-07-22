@@ -740,10 +740,10 @@ size_t GetGameState(void) {
 
 void SetGameState(int value) {
 	char name[6]="slot0";
-	name[4]='0'+currentSlot;
+	name[4]='0'+(char)currentSlot;
 	mainMenu.get_item(name).check(false).refresh_item(mainMenu);
     currentSlot.set(value);
-	name[4]='0'+currentSlot;
+	name[4]='0'+(char)currentSlot;
 	mainMenu.get_item(name).check(true).refresh_item(mainMenu);
 	
 	const bool emptySlot = SaveState::instance().isEmpty(currentSlot);
@@ -758,9 +758,9 @@ void SaveGameState(bool pressed) {
         SaveState::instance().save(currentSlot);
         LOG_MSG("[%s]: State %d saved!", getTime().c_str(), (int)currentSlot + 1);
 		char name[6]="slot0";
-		name[4]='0'+currentSlot;
+		name[4]='0'+(char)currentSlot;
 		std::string command=SaveState::instance().getName(currentSlot);
-		std::string str="Slot "+(currentSlot>=9?"10":std::string(1, '1'+currentSlot))+(command=="[Empty]"?" [Empty slot]":(command==""?"":" (Program: "+command+")"));
+		std::string str="Slot "+(currentSlot>=9?"10":std::string(1, '1'+(char)currentSlot))+(command=="[Empty]"?" [Empty slot]":(command==""?"":" (Program: "+command+")"));
 		mainMenu.get_item(name).set_text(str.c_str()).refresh_item(mainMenu);
     }
     catch (const SaveState::Error& err)
@@ -792,10 +792,10 @@ void NextSaveSlot(bool pressed) {
     if (!pressed) return;
 
 	char name[6]="slot0";
-	name[4]='0'+currentSlot;
+	name[4]='0'+(char)currentSlot;
 	mainMenu.get_item(name).check(false).refresh_item(mainMenu);
     currentSlot.next();
-	name[4]='0'+currentSlot;
+	name[4]='0'+(char)currentSlot;
 	mainMenu.get_item(name).check(true).refresh_item(mainMenu);
 
     const bool emptySlot = SaveState::instance().isEmpty(currentSlot);
@@ -807,10 +807,10 @@ void PreviousSaveSlot(bool pressed) {
     if (!pressed) return;
 
 	char name[6]="slot0";
-	name[4]='0'+currentSlot;
+	name[4]='0'+(char)currentSlot;
 	mainMenu.get_item(name).check(false).refresh_item(mainMenu);
     currentSlot.previous();
-	name[4]='0'+currentSlot;
+	name[4]='0'+(char)currentSlot;
 	mainMenu.get_item(name).check(true).refresh_item(mainMenu);
 
     const bool emptySlot = SaveState::instance().isEmpty(currentSlot);
@@ -3901,14 +3901,14 @@ std::string compress(const std::string& input) { //throw (SaveState::Error)
 	if (input.empty())
 		return input;
 
-	const uLong bufferSize = ::compressBound(input.size());
+	const uLong bufferSize = ::compressBound((uLong)input.size());
 
 	std::string output;
 	output.resize(bufferSize);
 
 	uLongf actualSize = bufferSize;
 	if (::compress2(reinterpret_cast<Bytef*>(&output[0]), &actualSize,
-					reinterpret_cast<const Bytef*>(input.c_str()), input.size(), Z_BEST_SPEED) != Z_OK)
+					reinterpret_cast<const Bytef*>(input.c_str()), (uLong)input.size(), Z_BEST_SPEED) != Z_OK)
 		throw SaveState::Error("Compression failed!");
 
 	output.resize(actualSize);
@@ -3932,9 +3932,9 @@ std::string decompress(const std::string& input) { //throw (SaveState::Error)
 	std::string output;
 	output.resize(uncompressedSize);
 
-	uLongf actualSize = uncompressedSize;
+	uLongf actualSize = (uLongf)uncompressedSize;
 	if (::uncompress(reinterpret_cast<Bytef*>(&output[0]), &actualSize,
-					 reinterpret_cast<const Bytef*>(input.c_str()), input.size() - sizeof(uncompressedSize)) != Z_OK)
+					 reinterpret_cast<const Bytef*>(input.c_str()), (uLong)(input.size() - sizeof(uncompressedSize))) != Z_OK)
 		throw SaveState::Error("Decompression failed!");
 
 	output.resize(actualSize); //should be superfluous!
@@ -4849,7 +4849,7 @@ void SaveState::load(size_t slot) const { //throw (Error)
 				goto delete_all;
 			}
 			check_version.seekg (0, std::ios::end);
-			length = check_version.tellg();
+			length = (int)check_version.tellg();
 			check_version.seekg (0, std::ios::beg);
 
 			char * const buffer = (char*)alloca( (length+1) * sizeof(char)); // char buffer[length];
@@ -4889,7 +4889,7 @@ void SaveState::load(size_t slot) const { //throw (Error)
 				goto delete_all;
 			}
 			check_title.seekg (0, std::ios::end);
-			length = check_title.tellg();
+			length = (int)check_title.tellg();
 			check_title.seekg (0, std::ios::beg);
 
 			char * const buffer = (char*)alloca( (length+1) * sizeof(char)); // char buffer[length];
@@ -4933,14 +4933,14 @@ void SaveState::load(size_t slot) const { //throw (Error)
 				goto delete_all;
 			}
 			check_memorysize.seekg (0, std::ios::end);
-			length = check_memorysize.tellg();
+			length = (int)check_memorysize.tellg();
 			check_memorysize.seekg (0, std::ios::beg);
 
 			char * const buffer = (char*)alloca( (length+1) * sizeof(char)); // char buffer[length];
 			check_memorysize.read (buffer, length);
 			check_memorysize.close();
 			char str[10];
-			itoa(MEM_TotalPages(), str, 10);
+			itoa((int)MEM_TotalPages(), str, 10);
 			if(strncmp(buffer,str,length)) {
 #if defined(WIN32)
 				if(!force_load_state&&MessageBox(GetHWND(),"Memory size mismatch. Load the state anyway?","Warning",MB_YESNO|MB_DEFBUTTON2)==IDNO) {
@@ -5067,7 +5067,7 @@ std::string SaveState::getName(size_t slot) const {
 		return "";
 	}
 	check_title.seekg (0, std::ios::end);
-	length = check_title.tellg();
+	length = (int)check_title.tellg();
 	check_title.seekg (0, std::ios::beg);
 	char * const buffer = (char*)alloca( (length+1) * sizeof(char));
 	check_title.read (buffer, length);

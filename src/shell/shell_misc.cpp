@@ -871,7 +871,7 @@ overflow:
 }
 
 std::string full_arguments = "";
-int hret=0;
+intptr_t hret=0;
 bool infix=false;
 extern bool packerr, reqwin, startcmd, ctrlbrk;
 #if defined (WIN32) && !defined(HX_DOS)
@@ -1201,7 +1201,7 @@ continue_1:
                         hret = 0;
                     } else
                         hret = errno;
-                    DOS_SetError(hret);
+                    DOS_SetError((Bit16u)hret);
                     bool ret=hret == 0;
                     hret=0;
                     return ret;
