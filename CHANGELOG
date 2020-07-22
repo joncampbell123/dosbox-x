@@ -1,4 +1,9 @@
 0.83.4
+  - Add "quick reboot" config option and "use quick
+    reboot" toggle menu (under "DOS") so that when
+    set or selected the DOS restart call reboots the
+    emulated DOS (integrated or guest DOS) instead
+    of the virtual machine in DOSBox-X. (Wengier)
   - Added new "Reboot guest system" menu item (under
     "Main") to reboot the kernel of the integrated
     DOS or the guest DOS directly. The previous menu
@@ -29,7 +34,7 @@
     or overlay drives to run on the host. (Wengier)
   - Added START command to run commands on Windows
     host system. The /MAX, /MIN, /HID options can
-    be used to run the specified program maxmized,
+    be used to run the specified program maximized,
     minimized, or hidden (they can be shortened to
     +, -, _ respectively). This command is disabled
     by default, but can be enabled by either the
@@ -41,7 +46,7 @@
     in the Windows Command Prompt and wait for a key
     press before exiting. (Wengier)
   - Added SHELL= option to the [config] section in
-    dosbox-x.conf to specifiy an alternative shell,
+    dosbox-x.conf to specify an alternative shell,
     e.g. "SHELL=4DOS.COM". (Wengier)
   - Added built-in 4DOS 8.00 shell for 4DOS features
     and capabilities. There is now a [4dos] section
