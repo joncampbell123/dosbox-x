@@ -2595,6 +2595,7 @@ Bit16u DOS_IHSEG = 0;
 //
 // Ick...
 
+void dos_ver_menu();
 void DOS_GetMemory_reset();
 void DOS_GetMemory_Choose();
 Bitu MEM_PageMask(void);
@@ -2680,7 +2681,7 @@ public:
 				dos.breakcheck=false;
 #ifdef WIN32
 			char *numlock = (char *)config_section->Get_string("numlock");
-			if (!strcasecmp(numlock, "off")&&startup_state_numlock || !strcasecmp(numlock, "on")&&!startup_state_numlock)
+			if ((!strcasecmp(numlock, "off")&&startup_state_numlock) || (!strcasecmp(numlock, "on")&&!startup_state_numlock))
 				SetNumLock();
 #endif
 		}
@@ -2720,7 +2721,7 @@ public:
 			char ch[]="*? .|<>/\\\"";
 			if (!*dos_clipboard_device_name||strlen(dos_clipboard_device_name)>8||!strcasecmp(dos_clipboard_device_name, "con")||!strcasecmp(dos_clipboard_device_name, "nul")||!strcasecmp(dos_clipboard_device_name, "prn"))
 				valid=false;
-			else for (int i=0; i<strlen(ch); i++) {
+			else for (unsigned int i=0; i<strlen(ch); i++) {
 				if (strchr(dos_clipboard_device_name, *(ch+i))!=NULL) {
 					valid=false;
 					break;
@@ -3068,9 +3069,9 @@ public:
 		else if (lfn=="autostart") enablelfn=-2;
 		else enablelfn=-1;
 
-        mainMenu.get_item("dos_lfn_auto").check(enablelfn==-1).refresh_item(mainMenu);
-        mainMenu.get_item("dos_lfn_enable").check(enablelfn==1).refresh_item(mainMenu);
-        mainMenu.get_item("dos_lfn_disable").check(enablelfn==0).refresh_item(mainMenu);
+        mainMenu.get_item("dos_lfn_auto").check(enablelfn==-1).enable(true).refresh_item(mainMenu);
+        mainMenu.get_item("dos_lfn_enable").check(enablelfn==1).enable(true).refresh_item(mainMenu);
+        mainMenu.get_item("dos_lfn_disable").check(enablelfn==0).enable(true).refresh_item(mainMenu);
 
 		std::string ver = section->Get_string("ver");
 		if (!ver.empty()) {
@@ -3097,7 +3098,7 @@ public:
 						dos.version.major, dos.version.minor);
 			}
 		}
-		uselfn = enablelfn==1 || ((enablelfn == -1 || enablelfn == -2) && dos.version.major>6);
+		dos_ver_menu();
 
         if (IS_PC98_ARCH) {
             void PC98_InitDefFuncRow(void);
@@ -3113,6 +3114,13 @@ public:
         EndStartProcess();
         EndRunProcess();
 #endif
+		mainMenu.get_item("dos_lfn_auto").enable(false).refresh_item(mainMenu);
+		mainMenu.get_item("dos_lfn_enable").enable(false).refresh_item(mainMenu);
+		mainMenu.get_item("dos_lfn_disable").enable(false).refresh_item(mainMenu);
+		mainMenu.get_item("dos_ver_330").enable(false).refresh_item(mainMenu);
+		mainMenu.get_item("dos_ver_500").enable(false).refresh_item(mainMenu);
+		mainMenu.get_item("dos_ver_622").enable(false).refresh_item(mainMenu);
+		mainMenu.get_item("dos_ver_710").enable(false).refresh_item(mainMenu);
 		/* NTS: We do NOT free the drives! The OS may use them later! */
 		void DOS_ShutdownFiles();
 		DOS_ShutdownFiles();

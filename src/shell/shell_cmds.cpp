@@ -2908,6 +2908,7 @@ void DOS_Shell::CMD_VERIFY(char * args) {
 		WriteOut("Must specify ON or OFF\n");
 }
 
+void dos_ver_menu();
 void DOS_Shell::CMD_VER(char *args) {
 	HELP("VER");
 	bool optR=ScanCMDBool(args,"R");
@@ -2930,7 +2931,7 @@ void DOS_Shell::CMD_VER(char *args) {
 			dos.version.major = (Bit8u)(atoi(word));
 			dos.version.minor = (Bit8u)(atoi(args));
 		}
-		if (enablelfn != -2) uselfn = enablelfn==1 || (enablelfn == -1 && dos.version.major>6);
+		dos_ver_menu();
 	} else {
 		WriteOut(MSG_Get("SHELL_CMD_VER_VER"),VERSION,SDL_STRING,dos.version.major,dos.version.minor);
 		if (optR) WriteOut("DOSBox-X's build date and time: %s\n",UPDATED_STR);

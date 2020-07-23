@@ -550,7 +550,7 @@ private:
 	}
 };
 
-void ReloadMapper(Section_prop *sec, bool init);
+void dos_ver_menu(), ReloadMapper(Section_prop *sec, bool init);
 void CONFIG::Run(void) {
 	static const char* const params[] = {
 		"-r", "-wcp", "-wcd", "-wc", "-writeconf", "-l", "-rmconf",
@@ -1080,7 +1080,7 @@ void CONFIG::Run(void) {
 											if (isdigit(*s))
 												dos.version.minor=(*(s-1)=='.'&&strlen(s)==1?10:1)*(int)strtoul(s,(char**)(&s),10);
 										}
-										uselfn = enablelfn==1 || ((enablelfn == -1 || enablelfn == -2) && dos.version.major>6);
+										dos_ver_menu();
 									}
 								}
 							}
