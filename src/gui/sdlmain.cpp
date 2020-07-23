@@ -8932,9 +8932,9 @@ int main(int argc, char* argv[]) SDL_MAIN_NOEXCEPT {
                 {
                     mainMenu.alloc_item(DOSBoxMenu::item_type_id,"dos_lfn_auto").set_text("Auto per reported DOS version").
                         set_callback_function(dos_lfn_auto_menu_callback);
-                    mainMenu.alloc_item(DOSBoxMenu::item_type_id,"dos_lfn_enable").set_text("Enable long filename support").
+                    mainMenu.alloc_item(DOSBoxMenu::item_type_id,"dos_lfn_enable").set_text("Enable long filename emulation").
                         set_callback_function(dos_lfn_enable_menu_callback);
-                    mainMenu.alloc_item(DOSBoxMenu::item_type_id,"dos_lfn_disable").set_text("Disable long filename support").
+                    mainMenu.alloc_item(DOSBoxMenu::item_type_id,"dos_lfn_disable").set_text("Disable long filename emulation").
                         set_callback_function(dos_lfn_disable_menu_callback);
                 }
             }

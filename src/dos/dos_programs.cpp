@@ -4077,7 +4077,15 @@ private:
     }
     void ParseFiles(std::string &commandLine, std::vector<std::string> &paths) {
 		char drive=commandLine[0];
-        while (cmd->FindCommand((unsigned int)(paths.size() + 2), commandLine) && commandLine.size()) {
+        while (cmd->FindCommand((unsigned int)(paths.size() + 1), commandLine)) {
+			bool usedef=false;
+			if (!cmd->FindCommand((unsigned int)(paths.size() + 2), commandLine) || !commandLine.size()) {
+				if (!paths.size()) {
+					commandLine="IMGMAKE.IMG";
+					usedef=true;
+				}
+				else break;
+			}
 #if defined (WIN32) || defined(OS2)
             /* nothing */
 #else
@@ -4110,13 +4118,13 @@ private:
                     // convert dosbox filename to system filename
                     Bit8u dummy;
                     if (!DOS_MakeName(tmp, fullname, &dummy) || strncmp(Drives[dummy]->GetInfo(), "local directory", 15)) {
-                        WriteOut(MSG_Get("PROGRAM_IMGMOUNT_NON_LOCAL_DRIVE"));
+                        if (!usedef) WriteOut(MSG_Get("PROGRAM_IMGMOUNT_NON_LOCAL_DRIVE"));
                         return;
                     }
 
                     localDrive *ldp = dynamic_cast<localDrive*>(Drives[dummy]);
                     if (ldp == NULL) {
-                        WriteOut(MSG_Get("PROGRAM_IMGMOUNT_FILE_NOT_FOUND"));
+                        if (!usedef) WriteOut(MSG_Get("PROGRAM_IMGMOUNT_FILE_NOT_FOUND"));
                         return;
                     }
 					bool readonly=wpcolon&&commandLine.length()>1&&commandLine[0]==':';
@@ -4125,12 +4133,12 @@ private:
                     commandLine = tmp;
 
                     if (pref_stat(readonly?tmp+1:tmp, &test)) {
-                        WriteOut(MSG_Get("PROGRAM_IMGMOUNT_FILE_NOT_FOUND"));
+                        if (!usedef) WriteOut(MSG_Get("PROGRAM_IMGMOUNT_FILE_NOT_FOUND"));
                         return;
                     }
                 }
             }
-            if (S_ISDIR(test.st_mode)) {
+            if (S_ISDIR(test.st_mode)&&!usedef) {
                 WriteOut(MSG_Get("PROGRAM_IMGMOUNT_MOUNT"));
                 return;
             }
@@ -4215,13 +4223,13 @@ private:
 
         /* must be valid drive letter, C to Z */
         if (!isalpha(el_torito_cd_drive) || el_torito_cd_drive < 'C') {
-            WriteOut("-el-torito requires a proper drive letter corresponding to your CD-ROM drive\n");
+            WriteOut("El Torito emulation requires a proper drive letter corresponding to your CD-ROM drive\n");
             return false;
         }
 
         /* drive must not exist (as a hard drive) */
         if (imageDiskList[el_torito_cd_drive - 'A'] != NULL) {
-            WriteOut("-el-torito CD-ROM drive specified already exists as a non-CD-ROM device\n");
+            WriteOut("El Torito CD-ROM drive specified already exists as a non-CD-ROM device\n");
             return false;
         }
 
@@ -4230,14 +4238,14 @@ private:
         /* get the CD-ROM drive */
         CDROM_Interface *src_drive = NULL;
         if (!GetMSCDEXDrive(el_torito_cd_drive - 'A', &src_drive)) {
-            WriteOut("-el-torito CD-ROM drive specified is not actually a CD-ROM drive\n");
+            WriteOut("El Torito CD-ROM drive specified is not actually a CD-ROM drive\n");
             return false;
         }
 
         /* FIXME: We only support the floppy emulation mode at this time.
         *        "Superfloppy" or hard disk emulation modes are not yet implemented */
         if (type != "floppy") {
-            WriteOut("-el-torito must be used with -t floppy at this time\n");
+            WriteOut("El Torito emulation must be used with -t floppy at this time\n");
             return false;
         }
 
@@ -6283,7 +6291,7 @@ void DOS_SetupPrograms(void) {
         "IMGMOUNT -u drive|driveLocation (or drive|driveLocation filename [options] -u)\n"
         " drive               Drive letter to mount the image at\n"
         " driveLoc            Location to mount drive, where 0-1 are FDDs, 2-5 are HDDs\n"
-        " filename            Filename of the image to mount (leading ':' for read-only)\n"
+        " filename            Image filename or IMGMAKE.IMG (leading ':' for read-only)\n"
         " -t iso              Image type is optical disc iso or cue / bin image\n"
         " -t floppy           Image type is floppy\n"
         " -t hdd              Image type is hard disk; VHD and HDI files are supported\n"
