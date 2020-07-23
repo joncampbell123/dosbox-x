@@ -1,9 +1,11 @@
 0.83.4
-  - Add "quick reboot" config option and "use quick
-    reboot" toggle menu (under "DOS") so that when
-    set or selected the DOS restart call reboots the
-    emulated DOS (integrated or guest DOS) instead
-    of the virtual machine in DOSBox-X. (Wengier)
+  - Added "use quick reboot" toggle menu (under
+    "DOS") so that when enabled, DOS restart calls
+    will reboot the emulated DOS (integrated or
+    guest DOS) instead of the virtual machine in
+    DOSBox-X. Also, you could change the default
+    setting for this by setting the new "quick
+    reboot" config option in "dos" section (Wengier)
   - Added new "Reboot guest system" menu item (under
     "Main") to reboot the kernel of the integrated
     DOS or the guest DOS directly. The previous menu
@@ -63,7 +65,8 @@
   - IMGMOUNT now assumes "-fs none" automatically if
     a drive number is specified instead of a drive
     letter. Also improved this command's handling of
-    El Torito floppy drives. (Wengier)
+    El Torito floppy drives, e.g. you can use option
+    "-bootcd d" instead of "-el-torito d". (Wengier)
   - IMGMAKE warning replaced to indicate a general
     incompatibility between MS-DOS/SCANDISK and
     cluster sizes 64KB or larger.
