@@ -3865,12 +3865,12 @@ public:
         }
             
         // find all file parameters, assuming that all option parameters have been removed
-        ParseFiles(temp_line, paths);
+        ParseFiles(temp_line, paths, el_torito != "" || type == "ram");
 
         // some generic checks
         if (el_torito != "") {
             if (paths.size() != 0) {
-                WriteOut("Do not specify files when mounting virtual floppy disk images from El Torito bootable CDs\n");
+                WriteOut("Do not specify files when mounting floppy drives from El Torito bootable CDs\n");
                 return;
             }
         }
@@ -4075,12 +4075,12 @@ private:
         }
         return true;
     }
-    void ParseFiles(std::string &commandLine, std::vector<std::string> &paths) {
+    void ParseFiles(std::string &commandLine, std::vector<std::string> &paths, bool nodef) {
 		char drive=commandLine[0];
         while (cmd->FindCommand((unsigned int)(paths.size() + 1), commandLine)) {
 			bool usedef=false;
 			if (!cmd->FindCommand((unsigned int)(paths.size() + 2), commandLine) || !commandLine.size()) {
-				if (!paths.size()) {
+				if (!nodef && !paths.size()) {
 					commandLine="IMGMAKE.IMG";
 					usedef=true;
 				}
@@ -4223,7 +4223,7 @@ private:
 
         /* must be valid drive letter, C to Z */
         if (!isalpha(el_torito_cd_drive) || el_torito_cd_drive < 'C') {
-            WriteOut("El Torito emulation requires a proper drive letter corresponding to your CD-ROM drive\n");
+            WriteOut("El Torito emulation requires a proper CD-ROM drive letter\n");
             return false;
         }
 
@@ -4252,7 +4252,7 @@ private:
         /* Okay. Step #1: Scan the volume descriptors for the Boot Record. */
         unsigned long el_torito_base = 0, boot_record_sector = 0;
         if (!ElTorito_ScanForBootRecord(src_drive, boot_record_sector, el_torito_base)) {
-            WriteOut("El Torito boot record not found\n");
+            WriteOut("El Torito CD-ROM boot record not found\n");
             return false;
         }
 
