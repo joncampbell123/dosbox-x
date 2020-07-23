@@ -1,4 +1,9 @@
 0.83.4
+  - Added "Reported DOS version" sub-menu (under
+    "DOS") to dynamically change the reported DOS
+    version (including 3.3, 5.0, 6.22, 7.1). This
+    may enable/disable long filename (LFN) support
+    with the default "lfn=auto" setting. (Wengier)
   - Added "use quick reboot" toggle menu (under
     "DOS") so that when enabled, DOS restart calls
     will reboot the emulated DOS (integrated or
