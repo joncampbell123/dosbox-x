@@ -7197,12 +7197,12 @@ bool dos_mouse_sensitivity_menu_callback(DOSBoxMenu * const menu,DOSBoxMenu::ite
     return true;
 }
 
-void dos_ver_menu() {
+void dos_ver_menu(bool start) {
     mainMenu.get_item("dos_ver_330").check(dos.version.major==3&&dos.version.minor==30).enable(true).refresh_item(mainMenu);
     mainMenu.get_item("dos_ver_500").check(dos.version.major==5&&dos.version.minor==00).enable(true).refresh_item(mainMenu);
     mainMenu.get_item("dos_ver_622").check(dos.version.major==6&&dos.version.minor==22).enable(true).refresh_item(mainMenu);
     mainMenu.get_item("dos_ver_710").check(dos.version.major==7&&dos.version.minor==10).enable(true).refresh_item(mainMenu);
-    uselfn = enablelfn==1 || ((enablelfn == -1 || enablelfn == -2) && dos.version.major>6);
+    if (start || enablelfn != -2) uselfn = enablelfn==1 || ((enablelfn == -1 || enablelfn == -2) && dos.version.major>6);
 }
 
 bool dos_ver_330_menu_callback(DOSBoxMenu * const menu,DOSBoxMenu::item * const menuitem) {
@@ -7210,7 +7210,7 @@ bool dos_ver_330_menu_callback(DOSBoxMenu * const menu,DOSBoxMenu::item * const 
     (void)menuitem;//UNUSED
     dos.version.major = 3;
     dos.version.minor = 30;
-    dos_ver_menu();
+    dos_ver_menu(false);
     return true;
 }
 
@@ -7219,7 +7219,7 @@ bool dos_ver_500_menu_callback(DOSBoxMenu * const menu,DOSBoxMenu::item * const 
     (void)menuitem;//UNUSED
     dos.version.major = 5;
     dos.version.minor = 0;
-    dos_ver_menu();
+    dos_ver_menu(false);
     return true;
 }
 
@@ -7228,7 +7228,7 @@ bool dos_ver_622_menu_callback(DOSBoxMenu * const menu,DOSBoxMenu::item * const 
     (void)menuitem;//UNUSED
     dos.version.major = 6;
     dos.version.minor = 22;
-    dos_ver_menu();
+    dos_ver_menu(false);
     return true;
 }
 
@@ -7237,7 +7237,7 @@ bool dos_ver_710_menu_callback(DOSBoxMenu * const menu,DOSBoxMenu::item * const 
     (void)menuitem;//UNUSED
     dos.version.major = 7;
     dos.version.minor = 10;
-    dos_ver_menu();
+    dos_ver_menu(false);
     return true;
 }
 

@@ -2908,7 +2908,7 @@ void DOS_Shell::CMD_VERIFY(char * args) {
 		WriteOut("Must specify ON or OFF\n");
 }
 
-void dos_ver_menu();
+void dos_ver_menu(bool start);
 void DOS_Shell::CMD_VER(char *args) {
 	HELP("VER");
 	bool optR=ScanCMDBool(args,"R");
@@ -2931,7 +2931,7 @@ void DOS_Shell::CMD_VER(char *args) {
 			dos.version.major = (Bit8u)(atoi(word));
 			dos.version.minor = (Bit8u)(atoi(args));
 		}
-		dos_ver_menu();
+		dos_ver_menu(false);
 	} else {
 		WriteOut(MSG_Get("SHELL_CMD_VER_VER"),VERSION,SDL_STRING,dos.version.major,dos.version.minor);
 		if (optR) WriteOut("DOSBox-X's build date and time: %s\n",UPDATED_STR);

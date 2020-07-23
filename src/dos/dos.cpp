@@ -2595,7 +2595,7 @@ Bit16u DOS_IHSEG = 0;
 //
 // Ick...
 
-void dos_ver_menu();
+void dos_ver_menu(bool start);
 void DOS_GetMemory_reset();
 void DOS_GetMemory_Choose();
 Bitu MEM_PageMask(void);
@@ -3098,7 +3098,7 @@ public:
 						dos.version.major, dos.version.minor);
 			}
 		}
-		dos_ver_menu();
+		dos_ver_menu(true);
 
         if (IS_PC98_ARCH) {
             void PC98_InitDefFuncRow(void);
