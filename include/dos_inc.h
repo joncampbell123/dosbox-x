@@ -301,6 +301,11 @@ static INLINE Bit16u DOS_PackDate(Bit16u year,Bit16u mon,Bit16u day) {
   #define fseeko64 fseek
   #define fseek_ofs_t long
  #endif
+#elif defined (__MINGW64_VERSION_MAJOR)
+ #define fopen64 fopen
+ #define ftello64 _ftelli64
+ #define fseeko64 _fseeki64
+ #define fseek_ofs_t __int64
 #else
  #define fopen64 fopen
  #define ftello64 ftell

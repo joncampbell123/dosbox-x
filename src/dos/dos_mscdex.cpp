@@ -50,7 +50,8 @@
 // Use cdrom Interface
 int useCdromInterface	= CDROM_USE_SDL;
 int forceCD				= -1;
-extern bool dos_kernel_disabled, bootguest;
+extern int bootdrive;
+extern bool dos_kernel_disabled, bootguest, bootvm, use_quick_reboot;
 
 static Bitu MSCDEX_Strategy_Handler(void); 
 static Bitu MSCDEX_Interrupt_Handler(void);
@@ -168,7 +169,7 @@ CMscdex::CMscdex(void) {
 }
 
 CMscdex::~CMscdex(void) {
-	if (bootguest) return;
+	if ((bootguest||(use_quick_reboot&&!bootvm))&&bootdrive>=0) return;
 	defaultBufSeg = 0;
 	for (Bit16u i=0; i<GetNumDrives(); i++) {
 		delete cdrom[i];
@@ -1348,7 +1349,7 @@ void MSCDEX_SetCDInterface(int intNr, int numCD) {
 }
 
 void MSCDEX_ShutDown(Section* /*sec*/) {
-	if (bootguest) return;
+	if ((bootguest||(use_quick_reboot&&!bootvm))&&bootdrive>=0) return;
 	if (mscdex != NULL) {
 		delete mscdex;
 		mscdex = NULL;

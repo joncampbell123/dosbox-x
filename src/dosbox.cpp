@@ -3254,6 +3254,9 @@ void DOSBOX_SetupConfigSections(void) {
     Pbool->Set_help("If set, keep private DOS segment in upper memory block, usually segment 0xC800 (Mainline DOSBox behavior)\n"
             "If clear, place private DOS segment at the base of system memory (just below the MCB)");
 
+    Pbool = secprop->Add_bool("quick reboot",Property::Changeable::WhenIdle,false);
+    Pbool->Set_help("If set, the DOS restart call will reboot the emulated DOS (integrated DOS or guest DOS) instead of the virtual machine\n");
+
     Pstring = secprop->Add_string("ver",Property::Changeable::WhenIdle,"");
     Pstring->Set_help("Set DOS version. Specify as major.minor format. A single number is treated as the major version (compatible with LFN support). Common settings are:\n"
             "auto (or unset)                  Pick a DOS kernel version automatically\n"

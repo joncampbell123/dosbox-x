@@ -1,4 +1,11 @@
 0.83.4
+  - Added "use quick reboot" toggle menu (under
+    "DOS") so that when enabled, DOS restart calls
+    will reboot the emulated DOS (integrated or
+    guest DOS) instead of the virtual machine in
+    DOSBox-X. Also, you could change the default
+    setting for this by setting the new "quick
+    reboot" config option in "dos" section (Wengier)
   - Added new "Reboot guest system" menu item (under
     "Main") to reboot the kernel of the integrated
     DOS or the guest DOS directly. The previous menu
@@ -29,7 +36,7 @@
     or overlay drives to run on the host. (Wengier)
   - Added START command to run commands on Windows
     host system. The /MAX, /MIN, /HID options can
-    be used to run the specified program maxmized,
+    be used to run the specified program maximized,
     minimized, or hidden (they can be shortened to
     +, -, _ respectively). This command is disabled
     by default, but can be enabled by either the
@@ -41,7 +48,7 @@
     in the Windows Command Prompt and wait for a key
     press before exiting. (Wengier)
   - Added SHELL= option to the [config] section in
-    dosbox-x.conf to specifiy an alternative shell,
+    dosbox-x.conf to specify an alternative shell,
     e.g. "SHELL=4DOS.COM". (Wengier)
   - Added built-in 4DOS 8.00 shell for 4DOS features
     and capabilities. There is now a [4dos] section
@@ -58,7 +65,8 @@
   - IMGMOUNT now assumes "-fs none" automatically if
     a drive number is specified instead of a drive
     letter. Also improved this command's handling of
-    El Torito floppy drives. (Wengier)
+    El Torito floppy drives, e.g. you can use option
+    "-bootcd d" instead of "-el-torito d". (Wengier)
   - IMGMAKE warning replaced to indicate a general
     incompatibility between MS-DOS/SCANDISK and
     cluster sizes 64KB or larger.
