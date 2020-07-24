@@ -25,7 +25,7 @@ If you prefer to use the zip packages as previously mentioned, please select one
 Linux Packages (RPM)
 --------------------
 
-RPM packages are officially released for the Linux operating system (64-bit, with X11), specifically for CentOS 7 ("el7") and CentOS 8 ("el8") platforms. In the case of DOSBox-X version 0.83.2, they correspond to the following:
+RPM packages are officially released for the Linux operating system (64-bit, with X11), specifically for CentOS 7 / RHEL 7 ("el7") and CentOS 8 / RHEL 8 ("el8") platforms. In the case of DOSBox-X version 0.83.2, they correspond to the following:
 
 * dosbox-x-0.83.2-0.el7.x86_64.rpm
 * dosbox-x-0.83.2-0.el8.x86_64.rpm
@@ -35,7 +35,7 @@ RPM packages are officially released for the Linux operating system (64-bit, wit
 
 Pick a RPM package for your Linux platform and install. You may want to use the debug builds (the last three packages mentioned above) if you desire to do some debugging work when running DOSBox-X.
 
-Note: You may not see all such packages for some DOSBox-X versions. For example, there are no CentOS 8 builds for DOSBox-X 0.83.3 because libcap-devel and FluidSynth are not available.
+Note: You may not see all such packages for some DOSBox-X versions. For example, there are no CentOS 8 builds for DOSBox-X 0.83.3 because libpcap-devel and FluidSynth are not available.
 
 macOS and DOS Packages (Portable)
 ---------------------------------
@@ -45,7 +45,7 @@ Besides Windows and Linux packages, there are also packages for the macOS (64-bi
 * dosbox-x-macosx-x64-20200630161244.zip
 * dosbox-x-mingw-hx-dos-20200701193641.zip
 
-The macOS package requires macOS Sierra 10.12 or higher. Both SDL1 and SDL2 binaries (in .app formats) are provided in the macOS package.
+The macOS package requires macOS Sierra 10.12 or higher. Both SDL1 and SDL2 binaries (in .app format) are provided in the macOS package.
 
 The HX-DOS package allows you to run DOSBox-X in a real DOS system (MS-DOS or compatible) too with the help of the freely-available [HX DOS Extender](https://github.com/Baron-von-Riedesel/HX), which is already included in the recent HX-DOS release packages. Note however that not all features of DOSBox-X can be supported in this environment. See the README.TXT file inside the HX-DOS package for more information.
 
