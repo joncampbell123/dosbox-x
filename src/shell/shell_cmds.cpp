@@ -2909,6 +2909,7 @@ void DOS_Shell::CMD_VERIFY(char * args) {
 }
 
 void dos_ver_menu(bool start);
+bool set_ver(char *s);
 void DOS_Shell::CMD_VER(char *args) {
 	HELP("VER");
 	bool optR=ScanCMDBool(args,"R");
@@ -2919,20 +2920,12 @@ void DOS_Shell::CMD_VER(char *args) {
 	if(!optR && args && *args) {
 		char* word = StripWord(args);
 		if(strcasecmp(word,"set")) return;
-		word = StripWord(args);
-		if (!*args && !*word) { //Reset
+		if (!*args) {
 			dos.version.major = 5;
 			dos.version.minor = 0;
-		} else if (atoi(word)<0||atoi(word)>99) {
+		} else if (!set_ver(args)) {
 			WriteOut("Invalid version specification\n");
 			return;
-		} else if (*args == 0 && *word && (strchr(word,'.') != 0)) { //Allow: ver set 5.1
-			const char * p = strchr(word,'.');
-			dos.version.major = (Bit8u)(atoi(word));
-			dos.version.minor = (Bit8u)(strlen(p+1)==1&&*(p+1)>'0'&&*(p+1)<='9'?atoi(p+1)*10:atoi(p+1));
-		} else { //Official syntax: ver set 5 2
-			dos.version.major = (Bit8u)(atoi(word));
-			dos.version.minor = (Bit8u)(atoi(args));
 		}
 		dos_ver_menu(false);
 	} else {

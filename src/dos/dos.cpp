@@ -2606,6 +2606,29 @@ extern bool dos_con_use_int16_to_detect_input;
 extern bool dbg_zero_on_dos_allocmem;
 extern bool log_dev_con;
 
+bool set_ver(char *s) {
+	s=trim(s);
+	int major=isdigit(*s)?strtoul(s,(char**)(&s),10):-1;
+	if (major>=0&&major<100) {
+		if (*s == '.' || *s == ' ') {
+			s++;
+			if (isdigit(*s)&&*(s-1)=='.'&&strlen(s)>2) *(s+2)=0;
+			int minor=isdigit(*s)?(*(s-1)=='.'&&strlen(s)==1?10:1)*strtoul(s,(char**)(&s),10):-1;
+			while (minor>99) minor/=10;
+			if (minor>=0&&minor<100) {
+				dos.version.minor=minor;
+				dos.version.major=major;
+				return true;
+			}
+		} else if (!*s) {
+			dos.version.minor=0;
+			dos.version.major=major;
+			return true;
+		}
+	}
+	return false;
+}
+
 class DOS:public Module_base{
 private:
 	CALLBACK_HandlerObject callback[9];
@@ -3073,20 +3096,9 @@ public:
         mainMenu.get_item("dos_lfn_enable").check(enablelfn==1).enable(true).refresh_item(mainMenu);
         mainMenu.get_item("dos_lfn_disable").check(enablelfn==0).enable(true).refresh_item(mainMenu);
 
-		std::string ver = section->Get_string("ver");
-		if (!ver.empty()) {
-			const char *s = ver.c_str();
-
-			int major=isdigit(*s)?strtoul(s,(char**)(&s),10):-1;
-			if (major>=0&&major<100) {
-				dos.version.minor=0;
-				dos.version.major=major;
-				if (*s == '.' || *s == ' ') {
-					s++;
-					if (isdigit(*s))
-						dos.version.minor=(*(s-1)=='.'&&strlen(s)==1?10:1)*(int)strtoul(s,(char**)(&s),10);
-				}
-
+		char *ver = (char *)section->Get_string("ver");
+		if (*ver) {
+			if (set_ver(ver)) {
 				/* warn about unusual version numbers */
 				if (dos.version.major >= 10 && dos.version.major <= 30) {
 					LOG_MSG("WARNING, DOS version %u.%u: the major version is set to a "
