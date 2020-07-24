@@ -2923,6 +2923,9 @@ void DOS_Shell::CMD_VER(char *args) {
 		if (!*args && !*word) { //Reset
 			dos.version.major = 5;
 			dos.version.minor = 0;
+		} else if (atoi(word)<0||atoi(word)>99) {
+			WriteOut("Invalid version specification\n");
+			return;
 		} else if (*args == 0 && *word && (strchr(word,'.') != 0)) { //Allow: ver set 5.1
 			const char * p = strchr(word,'.');
 			dos.version.major = (Bit8u)(atoi(word));

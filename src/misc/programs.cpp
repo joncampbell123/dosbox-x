@@ -1070,11 +1070,16 @@ void CONFIG::Run(void) {
 								uselfn = enablelfn==1 || ((enablelfn == -1 || enablelfn == -2) && dos.version.major>6);
 							} else if (!strcasecmp(inputline.substr(0, 4).c_str(), "ver=")) {
 								std::string ver = section->Get_string("ver");
-								if (!ver.empty()) {
+								if (ver.empty()) {
+									dos.version.minor=0;
+									dos.version.major=5;
+									dos_ver_menu(false);
+								} else {
 									const char *s = ver.c_str();
-									if (isdigit(*s)) {
+									int major=isdigit(*s)?strtoul(s,(char**)(&s),10):-1;
+									if (major>=0&&major<100) {
 										dos.version.minor=0;
-										dos.version.major=(int)strtoul(s,(char**)(&s),10);
+										dos.version.major=major;
 										if (*s == '.' || *s == ' ') {
 											s++;
 											if (isdigit(*s))

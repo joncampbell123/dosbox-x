@@ -3077,9 +3077,10 @@ public:
 		if (!ver.empty()) {
 			const char *s = ver.c_str();
 
-			if (isdigit(*s)) {
+			int major=isdigit(*s)?strtoul(s,(char**)(&s),10):-1;
+			if (major>=0&&major<100) {
 				dos.version.minor=0;
-				dos.version.major=(int)strtoul(s,(char**)(&s),10);
+				dos.version.major=major;
 				if (*s == '.' || *s == ' ') {
 					s++;
 					if (isdigit(*s))
