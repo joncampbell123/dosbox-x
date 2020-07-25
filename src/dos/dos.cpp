@@ -2615,12 +2615,12 @@ bool set_ver(char *s) {
 			if (isdigit(*s)&&*(s-1)=='.'&&strlen(s)>2) *(s+2)=0;
 			int minor=isdigit(*s)?(*(s-1)=='.'&&strlen(s)==1?10:1)*strtoul(s,(char**)(&s),10):-1;
 			while (minor>99) minor/=10;
-			if (minor>=0&&minor<100) {
+			if (minor>=0&&minor<100&&(major||minor)) {
 				dos.version.minor=minor;
 				dos.version.major=major;
 				return true;
 			}
-		} else if (!*s) {
+		} else if (!*s&&major) {
 			dos.version.minor=0;
 			dos.version.major=major;
 			return true;

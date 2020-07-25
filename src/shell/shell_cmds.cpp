@@ -2919,7 +2919,20 @@ void DOS_Shell::CMD_VER(char *args) {
 	}
 	if(!optR && args && *args) {
 		char* word = StripWord(args);
-		if(strcasecmp(word,"set")) return;
+		if(strcasecmp(word,"set")) {
+			if (isdigit(*word)) {
+				if (*args) {
+					WriteOut("Invalid parameter - %s\n", args);
+					return;
+				}
+				if (set_ver(word)) {
+					dos_ver_menu(false);
+					return;
+				}
+			}
+			WriteOut("Invalid parameter - %s\n", word);
+			return;
+		}
 		if (!*args) {
 			dos.version.major = 5;
 			dos.version.minor = 0;
