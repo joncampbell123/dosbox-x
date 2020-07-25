@@ -1245,6 +1245,7 @@ void SHELL_Init() {
 		   "  The command \"VER SET 7 1\" however sets the reported DOS version as 7.01.\n\n" 
 		   "Type VER without parameters to display DOSBox-X and the reported DOS version.\n");
 	MSG_Add("SHELL_CMD_VER_VER","DOSBox-X version %s (%s). Reported DOS version %d.%02d.\n");
+	MSG_Add("SHELL_CMD_VER_INVALID","The specified DOS version is not correct.\n");
 	MSG_Add("SHELL_CMD_ADDKEY_HELP","Generates artificial keypresses.\n");
 	MSG_Add("SHELL_CMD_ADDKEY_HELP_LONG","ADDKEY [key]\n");
 	MSG_Add("SHELL_CMD_VOL_HELP","Displays the disk volume label and serial number, if they exist.\n");

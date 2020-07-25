@@ -2914,7 +2914,7 @@ void DOS_Shell::CMD_VER(char *args) {
 	HELP("VER");
 	bool optR=ScanCMDBool(args,"R");
 	if (char* rem = ScanCMDRemain(args)) {
-		WriteOut("Invalid switch - %s\n", rem);
+		WriteOut(MSG_Get("SHELL_ILLEGAL_SWITCH"), rem);
 		return;
 	}
 	if(!optR && args && *args) {
@@ -2924,7 +2924,7 @@ void DOS_Shell::CMD_VER(char *args) {
 			dos.version.major = 5;
 			dos.version.minor = 0;
 		} else if (!set_ver(args)) {
-			WriteOut("Invalid version specification\n");
+			WriteOut(MSG_Get("SHELL_CMD_VER_INVALID"));
 			return;
 		}
 		dos_ver_menu(false);
@@ -2989,7 +2989,7 @@ void DOS_Shell::CMD_TRUENAME(char * args) {
 		return;
 	}
 	if (char* rem = ScanCMDRemain(args)) {
-		WriteOut("Invalid switch - %s\n", rem);
+		WriteOut(MSG_Get("SHELL_ILLEGAL_SWITCH"), rem);
 		return;
 	}
 	char *name = StripArg(args), fullname[DOS_PATHLENGTH];
@@ -3532,7 +3532,7 @@ void DOS_Shell::CMD_COUNTRY(char * args) {
 	HELP("COUNTRY");
 	if (char* rem = ScanCMDRemain(args))
 		{
-		WriteOut("Invalid switch - %s\r\n", rem);
+		WriteOut(MSG_Get("SHELL_ILLEGAL_SWITCH"), rem);
 		return;
 		}
 	args = trim(args);
