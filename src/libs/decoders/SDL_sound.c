@@ -9,7 +9,7 @@
  *    - Elimination of intermediate buffers, allowing direct decoding
  *    - Moved from sample-based logic to frame-based (channel-agnostic)
  *
- *  Copyright (C) 2020       The DOSBox Team
+ *  Copyright (C) 2020       The dosbox-staging team
  *  Copyright (C) 2018-2019  Kevin R. Croft <krcroft@gmail.com>
  *  Copyright (C) 2001-2017  Ryan C. Gordon <icculus@icculus.org>
  *

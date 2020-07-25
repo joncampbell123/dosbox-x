@@ -22,7 +22,7 @@
  *   - .OPUS (Ogg Opus support via the Opusfile and SpeexDSP libraries)
  *   - .FLAC (Free Lossless Audio Codec support via the dr_flac single-header decoder)
  *
- *  Copyright (C) 2020       The DOSBox Team
+ *  Copyright (C) 2020       The dosbox-staging team
  *  Copyright (C) 2018-2019  Kevin R. Croft <krcroft@gmail.com>
  *  Copyright (C) 2001-2017  Ryan C. Gordon <icculus@icculus.org>
  *
