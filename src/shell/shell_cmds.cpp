@@ -146,6 +146,12 @@ static char* ExpandDot(char*args, char* buffer , size_t bufsize) {
 
 
 bool DOS_Shell::CheckConfig(char* cmd_in,char*line) {
+	bool quote=false;
+	if (strlen(cmd_in)>2&&cmd_in[0]=='"'&&cmd_in[strlen(cmd_in)-1]=='"') {
+		cmd_in[strlen(cmd_in)-1]=0;
+		cmd_in++;
+		quote=true;
+	}
 	Section* test = control->GetSectionFromProperty(cmd_in);
 	if(!test) return false;
 	if(line && !line[0]) {
@@ -154,11 +160,13 @@ bool DOS_Shell::CheckConfig(char* cmd_in,char*line) {
 		return true;
 	}
 	char newcom[1024]; newcom[0] = 0; strcpy(newcom,"z:\\config -set ");
+	if (quote) strcat(newcom,"\"");
 	strcat(newcom,test->GetName());	strcat(newcom," ");
 	strcat(newcom,cmd_in);
-	if (line != NULL)
+	if (line != NULL) {
 		strcat(newcom, line);
-	else
+		if (quote) strcat(newcom,"\"");
+	} else
 		E_Exit("'line' in CheckConfig is NULL");
 	DoCommand(newcom);
 	return true;
