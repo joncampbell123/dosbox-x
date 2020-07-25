@@ -1276,7 +1276,7 @@ protected:
 public:
     SetCycles(GUI::Screen *parent, int x, int y, const char *title) :
         ToplevelWindow(parent, x, y, 400, 100 + GUI::titlebar_y_stop, title) {
-        new GUI::Label(this, 5, 10, "Enter CPU cycles:");
+        new GUI::Label(this, 5, 10, "Enter CPU cycles (or 'max'):");
 //      name = new GUI::Input(this, 5, 30, 350);
         name = new InputWithEnterKey(this, 5, 30, width - 10 - border_left - border_right);
         name->set_trigger_target(this);

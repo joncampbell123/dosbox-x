@@ -207,7 +207,7 @@ const Sound_DecoderFunctions __Sound_DecoderFunctions_VORBIS =
     {
         extensions_vorbis,
         "Ogg Vorbis audio",
-        "The DOSBox Team"
+        "The DOSBox-X project"
     },
 
     VORBIS_init,       /*   init() method */
