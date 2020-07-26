@@ -81,7 +81,7 @@ static Bitu INT2F_Handler(void) {
 	for(Multiplex_it it = Multiplex.begin();it != Multiplex.end();++it)
 		if( (*it)() ) return CBRET_NONE;
    
-	LOG(LOG_DOSMISC,LOG_ERROR)("DOS:INT 2F Unhandled call AX=%4X",reg_ax);
+	LOG(LOG_DOSMISC,LOG_DEBUG)("DOS:INT 2F Unhandled call AX=%4X",reg_ax);
 	return CBRET_NONE;
 }
 
