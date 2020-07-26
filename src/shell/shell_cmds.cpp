@@ -143,8 +143,6 @@ static char* ExpandDot(char*args, char* buffer , size_t bufsize) {
 	return buffer;
 }
 
-
-
 bool DOS_Shell::CheckConfig(char* cmd_in,char*line) {
 	bool quote=false;
 	if (strlen(cmd_in)>2&&cmd_in[0]=='"'&&cmd_in[strlen(cmd_in)-1]=='"') {
@@ -160,10 +158,18 @@ bool DOS_Shell::CheckConfig(char* cmd_in,char*line) {
 		return true;
 	}
 	char newcom[1024]; newcom[0] = 0; strcpy(newcom,"z:\\config -set ");
-	if (quote) strcat(newcom,"\"");
-	strcat(newcom,test->GetName());	strcat(newcom," ");
-	strcat(newcom,cmd_in);
 	if (line != NULL) {
+		line=trim(line);
+		if (*line=='=') line=trim(++line);
+		if (line[0]=='"'&&line[strlen(line)-1]=='"') {
+			line[strlen(line)-1]=0;
+			line++;
+			quote=true;
+		}
+		if (quote) strcat(newcom,"\"");
+		strcat(newcom,test->GetName());	strcat(newcom," ");
+		strcat(newcom,cmd_in);
+		strcat(newcom, "=");
 		strcat(newcom, line);
 		if (quote) strcat(newcom,"\"");
 	} else
