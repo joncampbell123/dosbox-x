@@ -1,4 +1,8 @@
 0.83.4
+  - Unknown INT 2Fh calls are now debug output, not
+    an error.
+  - Added VESA BIOS mode 68h alias as indicated on
+    the Vogons forum.
   - Added "Reported DOS version" sub-menu (under
     "DOS") to dynamically change the reported DOS
     version (including 3.3, 5.0, 6.22, 7.1). This
