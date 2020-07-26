@@ -8568,7 +8568,7 @@ private:
 
         for (Bitu i=0;i < 0x400;i++) mem_writeb(0x7C00+i,0);
 
-		if ((bootguest||!bootvm&&use_quick_reboot)&&bootdrive>=0&&imageDiskList[bootdrive]) runBoot();
+		if ((bootguest||(!bootvm&&use_quick_reboot))&&bootdrive>=0&&imageDiskList[bootdrive]) runBoot();
 		if (use_quick_reboot&&!bootvm&&bootdrive<0&&first_shell != NULL) throw int(6);
 		bootvm=false;
 		bootguest=false;

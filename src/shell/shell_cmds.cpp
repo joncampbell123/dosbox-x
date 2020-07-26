@@ -2940,10 +2940,11 @@ void DOS_Shell::CMD_VER(char *args) {
 					WriteOut("Invalid parameter - %s\n", args);
 					return;
 				}
-				if (set_ver(word)) {
+				if (set_ver(word))
 					dos_ver_menu(false);
-					return;
-				}
+				else
+					WriteOut(MSG_Get("SHELL_CMD_VER_INVALID"));
+				return;
 			}
 			if (*word) {
 				WriteOut("Invalid parameter - %s\n", word);
