@@ -1,10 +1,19 @@
 0.83.4
-  - Added "Reported DOS version" sub-menu (under
-    "DOS") to dynamically change the reported DOS
-    version (including 3.3, 5.0, 6.22, 7.1). This
-    may enable/disable long filename (LFN) support
-    with the default "lfn=auto" setting. (Wengier)
-  - Added "use quick reboot" toggle menu (under
+  - Fixed possible DPMI error when running Windows
+    98 installation from the DOSBox-X shell without
+    using a batch file. (Wengier)
+  - Unknown INT 2Fh calls are now debug output, not
+    an error.
+  - Added VESA BIOS mode 68h alias as indicated on
+    the Vogons forum.
+  - Fixed handling of config commands with spaces
+    when the "shell configuration as commands"
+    setting is enabled (quotes are needed in such
+    cases). Also added "Config options as commands"
+    toggle menu (under "DOS") to enable/disable the
+    feature from menu. It is disabled by default to
+    avoid name clash with other programs. (Wengier)
+  - Added "Enable quick reboot" toggle menu (under
     "DOS") so that when enabled, DOS restart calls
     will reboot the emulated DOS (integrated or
     guest DOS) instead of the virtual machine in
@@ -17,6 +26,11 @@
     item "Reset guest system" has been renamed to
     "Reset virtual machine" which will restart the
     virtual machine in DOSBox-X instead. (Wengier)
+  - Added "Reported DOS version" sub-menu (under
+    "DOS") to dynamically change the reported DOS
+    version (including 3.3, 5.0, 6.22, 7.1). This
+    may enable/disable long filename (LFN) support
+    with the default "lfn=auto" setting. (Wengier)
   - LS is now an external command appearing on drive
     Z: as LS.COM instead of a builtin shell command.
     This avoids name clash with game "Links LS 97"
