@@ -1060,7 +1060,6 @@ void CONFIG::Run(void) {
 							if (!strcasecmp(inputline.substr(0, 11).c_str(), "mapperfile=")) ReloadMapper(section,true);
 #endif
 						} else if (!strcasecmp(pvars[0].c_str(), "dos")) {
-							enable_config_as_shell_commands = section->Get_bool("shell configuration as commands");
 							if (!strcasecmp(inputline.substr(0, 4).c_str(), "lfn=")) {
 								if (!strcmp(section->Get_string("lfn"), "true")) enablelfn=1;
 								else if (!strcmp(section->Get_string("lfn"), "false")) enablelfn=0;
@@ -1078,6 +1077,9 @@ void CONFIG::Run(void) {
 									dos_ver_menu(false);
 								} else if (set_ver(ver))
 									dos_ver_menu(false);
+							} else if (!strcasecmp(inputline.substr(0, 32).c_str(), "shell configuration as commands=")) {
+								enable_config_as_shell_commands = section->Get_bool("shell configuration as commands");
+								mainMenu.get_item("shell_config_commands").check(enable_config_as_shell_commands).enable(true).refresh_item(mainMenu);
 							}
 						}
 					}

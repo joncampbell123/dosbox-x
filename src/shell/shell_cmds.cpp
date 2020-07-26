@@ -2934,6 +2934,7 @@ void DOS_Shell::CMD_VER(char *args) {
 	if(!optR && args && *args) {
 		char* word = StripWord(args);
 		if(strcasecmp(word,"set")) {
+			if (*word=='=') word=trim(word+1);
 			if (isdigit(*word)) {
 				if (*args) {
 					WriteOut("Invalid parameter - %s\n", args);
@@ -2944,8 +2945,10 @@ void DOS_Shell::CMD_VER(char *args) {
 					return;
 				}
 			}
-			WriteOut("Invalid parameter - %s\n", word);
-			return;
+			if (*word) {
+				WriteOut("Invalid parameter - %s\n", word);
+				return;
+			}
 		}
 		if (!*args) {
 			dos.version.major = 5;
