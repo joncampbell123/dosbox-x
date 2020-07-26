@@ -9,7 +9,7 @@ The base code is from the [DOSBox](https://www.dosbox.com) project in which some
 
 Some of the source code also came from similar projects such as [DOSBox SVN Daum](http://ykhwong.x-y.net), [DOSBox ECE](https://dosboxece.yesterplay.net/), [DOSBox-staging](https://dosbox-staging.github.io/) and [vDosPlus](http://www.vdosplus.org/), with major works from contributors like Wengier, Allofich, and rderooy.
 
-A list of features ported from DOSBox Daum:
+A list of features ported from DOSBox SVN Daum:
 
 * GUI menu bar (heavily improved since then)
 * Some commands (PROMPT, MOUSE, VOL, DEVICE, etc)
@@ -48,7 +48,7 @@ A list of features ported from vDosPlus by Wengier:
 
 Features such as save & load states and Pentium MMX instructions were also ported from community contributions and have since been improved by the DOSBox-X project.
 
-The DOSBox-X Wiki pages were created and updated by Wengier and rderooy. 
+The [DOSBox-X Wiki](https://github.com/joncampbell123/dosbox-x/wiki) pages were created and updated by Wengier and rderooy. 
 
 This is an attempt to properly credit the other code and its sources below. It is **not** a complete list yet, and please feel free to revise and correct this list if there are errors.
 
@@ -59,6 +59,8 @@ MT32 synthesizer (MUNT; LGPLv2.1+) src/mt32/.cpp src/mt32/.h
 Framework-agnostic GUI toolkit (Jorg Walter; GPLv3+) src/libs/gui_tk/.cpp src/libs/gui_tk/.h
 
 Porttalk library, to read/write I/O ports directly (Unknown source) src/libs/porttalk/.cpp src/libs/porttalk/.h
+
+FLAC, Opus, Vorbis, and MP3 libraries (David Reid, Kevin Croft, et al; GPLv2+) src/libs/decoders/.cpp src/libs/decoders/.c src/libs/decoders/.h
 
 FreeDOS utilities as binary blobs (FreeDOS; no license) src/builtin/*.cpp
 

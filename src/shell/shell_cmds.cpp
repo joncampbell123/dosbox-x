@@ -146,6 +146,12 @@ static char* ExpandDot(char*args, char* buffer , size_t bufsize) {
 
 
 bool DOS_Shell::CheckConfig(char* cmd_in,char*line) {
+	bool quote=false;
+	if (strlen(cmd_in)>2&&cmd_in[0]=='"'&&cmd_in[strlen(cmd_in)-1]=='"') {
+		cmd_in[strlen(cmd_in)-1]=0;
+		cmd_in++;
+		quote=true;
+	}
 	Section* test = control->GetSectionFromProperty(cmd_in);
 	if(!test) return false;
 	if(line && !line[0]) {
@@ -154,11 +160,13 @@ bool DOS_Shell::CheckConfig(char* cmd_in,char*line) {
 		return true;
 	}
 	char newcom[1024]; newcom[0] = 0; strcpy(newcom,"z:\\config -set ");
+	if (quote) strcat(newcom,"\"");
 	strcat(newcom,test->GetName());	strcat(newcom," ");
 	strcat(newcom,cmd_in);
-	if (line != NULL)
+	if (line != NULL) {
 		strcat(newcom, line);
-	else
+		if (quote) strcat(newcom,"\"");
+	} else
 		E_Exit("'line' in CheckConfig is NULL");
 	DoCommand(newcom);
 	return true;
@@ -2908,29 +2916,39 @@ void DOS_Shell::CMD_VERIFY(char * args) {
 		WriteOut("Must specify ON or OFF\n");
 }
 
+void dos_ver_menu(bool start);
+bool set_ver(char *s);
 void DOS_Shell::CMD_VER(char *args) {
 	HELP("VER");
 	bool optR=ScanCMDBool(args,"R");
 	if (char* rem = ScanCMDRemain(args)) {
-		WriteOut("Invalid switch - %s\n", rem);
+		WriteOut(MSG_Get("SHELL_ILLEGAL_SWITCH"), rem);
 		return;
 	}
 	if(!optR && args && *args) {
 		char* word = StripWord(args);
-		if(strcasecmp(word,"set")) return;
-		word = StripWord(args);
-		if (!*args && !*word) { //Reset
+		if(strcasecmp(word,"set")) {
+			if (isdigit(*word)) {
+				if (*args) {
+					WriteOut("Invalid parameter - %s\n", args);
+					return;
+				}
+				if (set_ver(word)) {
+					dos_ver_menu(false);
+					return;
+				}
+			}
+			WriteOut("Invalid parameter - %s\n", word);
+			return;
+		}
+		if (!*args) {
 			dos.version.major = 5;
 			dos.version.minor = 0;
-		} else if (*args == 0 && *word && (strchr(word,'.') != 0)) { //Allow: ver set 5.1
-			const char * p = strchr(word,'.');
-			dos.version.major = (Bit8u)(atoi(word));
-			dos.version.minor = (Bit8u)(strlen(p+1)==1&&*(p+1)>'0'&&*(p+1)<='9'?atoi(p+1)*10:atoi(p+1));
-		} else { //Official syntax: ver set 5 2
-			dos.version.major = (Bit8u)(atoi(word));
-			dos.version.minor = (Bit8u)(atoi(args));
+		} else if (!set_ver(args)) {
+			WriteOut(MSG_Get("SHELL_CMD_VER_INVALID"));
+			return;
 		}
-		if (enablelfn != -2) uselfn = enablelfn==1 || (enablelfn == -1 && dos.version.major>6);
+		dos_ver_menu(false);
 	} else {
 		WriteOut(MSG_Get("SHELL_CMD_VER_VER"),VERSION,SDL_STRING,dos.version.major,dos.version.minor);
 		if (optR) WriteOut("DOSBox-X's build date and time: %s\n",UPDATED_STR);
@@ -2992,7 +3010,7 @@ void DOS_Shell::CMD_TRUENAME(char * args) {
 		return;
 	}
 	if (char* rem = ScanCMDRemain(args)) {
-		WriteOut("Invalid switch - %s\n", rem);
+		WriteOut(MSG_Get("SHELL_ILLEGAL_SWITCH"), rem);
 		return;
 	}
 	char *name = StripArg(args), fullname[DOS_PATHLENGTH];
@@ -3535,7 +3553,7 @@ void DOS_Shell::CMD_COUNTRY(char * args) {
 	HELP("COUNTRY");
 	if (char* rem = ScanCMDRemain(args))
 		{
-		WriteOut("Invalid switch - %s\r\n", rem);
+		WriteOut(MSG_Get("SHELL_ILLEGAL_SWITCH"), rem);
 		return;
 		}
 	args = trim(args);

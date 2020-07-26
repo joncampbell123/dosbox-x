@@ -550,7 +550,8 @@ private:
 	}
 };
 
-void ReloadMapper(Section_prop *sec, bool init);
+void dos_ver_menu(bool start), ReloadMapper(Section_prop *sec, bool init);
+bool set_ver(char *s);
 void CONFIG::Run(void) {
 	static const char* const params[] = {
 		"-r", "-wcp", "-wcd", "-wc", "-writeconf", "-l", "-rmconf",
@@ -1069,20 +1070,13 @@ void CONFIG::Run(void) {
 								mainMenu.get_item("dos_lfn_disable").check(enablelfn==0).refresh_item(mainMenu);
 								uselfn = enablelfn==1 || ((enablelfn == -1 || enablelfn == -2) && dos.version.major>6);
 							} else if (!strcasecmp(inputline.substr(0, 4).c_str(), "ver=")) {
-								std::string ver = section->Get_string("ver");
-								if (!ver.empty()) {
-									const char *s = ver.c_str();
-									if (isdigit(*s)) {
-										dos.version.minor=0;
-										dos.version.major=(int)strtoul(s,(char**)(&s),10);
-										if (*s == '.' || *s == ' ') {
-											s++;
-											if (isdigit(*s))
-												dos.version.minor=(*(s-1)=='.'&&strlen(s)==1?10:1)*(int)strtoul(s,(char**)(&s),10);
-										}
-										uselfn = enablelfn==1 || ((enablelfn == -1 || enablelfn == -2) && dos.version.major>6);
-									}
-								}
+								char *ver = (char *)section->Get_string("ver");
+								if (!*ver) {
+									dos.version.minor=0;
+									dos.version.major=5;
+									dos_ver_menu(false);
+								} else if (set_ver(ver))
+									dos_ver_menu(false);
 							}
 						}
 					}

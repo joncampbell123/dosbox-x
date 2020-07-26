@@ -1,4 +1,9 @@
 0.83.4
+  - Added "Reported DOS version" sub-menu (under
+    "DOS") to dynamically change the reported DOS
+    version (including 3.3, 5.0, 6.22, 7.1). This
+    may enable/disable long filename (LFN) support
+    with the default "lfn=auto" setting. (Wengier)
   - Added "use quick reboot" toggle menu (under
     "DOS") so that when enabled, DOS restart calls
     will reboot the emulated DOS (integrated or
@@ -64,7 +69,9 @@
     spaces via the "Drive" menu on Windows. (Wengier)
   - IMGMOUNT now assumes "-fs none" automatically if
     a drive number is specified instead of a drive
-    letter. Also improved this command's handling of
+    letter. Moreover, it will assume the image file
+    name "IMGMAKE.IMG" if no filename is specified by
+    the user. Also improved the command's handling of
     El Torito floppy drives, e.g. you can use option
     "-bootcd d" instead of "-el-torito d". (Wengier)
   - IMGMAKE warning replaced to indicate a general

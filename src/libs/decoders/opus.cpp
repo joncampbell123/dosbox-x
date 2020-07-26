@@ -12,7 +12,7 @@
  *    - Ogg Opus:  https://www.opus-codec.org/docs
  *    - OpusFile:  https://mf4.xiph.org/jenkins/view/opus/job/opusfile-unix/ws/doc/html/index.html
  *
- *  Copyright (C) 2020       The DOSBox Team
+ *  Copyright (C) 2020       The dosbox-staging team
  *  Copyright (C) 2018-2019  Kevin R. Croft <krcroft@gmail.com>
  *
  *  This program is free software; you can redistribute it and/or modify

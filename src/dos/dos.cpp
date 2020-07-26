@@ -2595,6 +2595,7 @@ Bit16u DOS_IHSEG = 0;
 //
 // Ick...
 
+void dos_ver_menu(bool start);
 void DOS_GetMemory_reset();
 void DOS_GetMemory_Choose();
 Bitu MEM_PageMask(void);
@@ -2604,6 +2605,29 @@ Bitu MEM_PageMask(void);
 extern bool dos_con_use_int16_to_detect_input;
 extern bool dbg_zero_on_dos_allocmem;
 extern bool log_dev_con;
+
+bool set_ver(char *s) {
+	s=trim(s);
+	int major=isdigit(*s)?strtoul(s,(char**)(&s),10):-1;
+	if (major>=0&&major<100) {
+		if (*s == '.' || *s == ' ') {
+			s++;
+			if (isdigit(*s)&&*(s-1)=='.'&&strlen(s)>2) *(s+2)=0;
+			int minor=isdigit(*s)?(*(s-1)=='.'&&strlen(s)==1?10:1)*strtoul(s,(char**)(&s),10):-1;
+			while (minor>99) minor/=10;
+			if (minor>=0&&minor<100&&(major||minor)) {
+				dos.version.minor=minor;
+				dos.version.major=major;
+				return true;
+			}
+		} else if (!*s&&major) {
+			dos.version.minor=0;
+			dos.version.major=major;
+			return true;
+		}
+	}
+	return false;
+}
 
 class DOS:public Module_base{
 private:
@@ -2680,7 +2704,7 @@ public:
 				dos.breakcheck=false;
 #ifdef WIN32
 			char *numlock = (char *)config_section->Get_string("numlock");
-			if (!strcasecmp(numlock, "off")&&startup_state_numlock || !strcasecmp(numlock, "on")&&!startup_state_numlock)
+			if ((!strcasecmp(numlock, "off")&&startup_state_numlock) || (!strcasecmp(numlock, "on")&&!startup_state_numlock))
 				SetNumLock();
 #endif
 		}
@@ -2720,7 +2744,7 @@ public:
 			char ch[]="*? .|<>/\\\"";
 			if (!*dos_clipboard_device_name||strlen(dos_clipboard_device_name)>8||!strcasecmp(dos_clipboard_device_name, "con")||!strcasecmp(dos_clipboard_device_name, "nul")||!strcasecmp(dos_clipboard_device_name, "prn"))
 				valid=false;
-			else for (int i=0; i<strlen(ch); i++) {
+			else for (unsigned int i=0; i<strlen(ch); i++) {
 				if (strchr(dos_clipboard_device_name, *(ch+i))!=NULL) {
 					valid=false;
 					break;
@@ -3068,23 +3092,13 @@ public:
 		else if (lfn=="autostart") enablelfn=-2;
 		else enablelfn=-1;
 
-        mainMenu.get_item("dos_lfn_auto").check(enablelfn==-1).refresh_item(mainMenu);
-        mainMenu.get_item("dos_lfn_enable").check(enablelfn==1).refresh_item(mainMenu);
-        mainMenu.get_item("dos_lfn_disable").check(enablelfn==0).refresh_item(mainMenu);
+        mainMenu.get_item("dos_lfn_auto").check(enablelfn==-1).enable(true).refresh_item(mainMenu);
+        mainMenu.get_item("dos_lfn_enable").check(enablelfn==1).enable(true).refresh_item(mainMenu);
+        mainMenu.get_item("dos_lfn_disable").check(enablelfn==0).enable(true).refresh_item(mainMenu);
 
-		std::string ver = section->Get_string("ver");
-		if (!ver.empty()) {
-			const char *s = ver.c_str();
-
-			if (isdigit(*s)) {
-				dos.version.minor=0;
-				dos.version.major=(int)strtoul(s,(char**)(&s),10);
-				if (*s == '.' || *s == ' ') {
-					s++;
-					if (isdigit(*s))
-						dos.version.minor=(*(s-1)=='.'&&strlen(s)==1?10:1)*(int)strtoul(s,(char**)(&s),10);
-				}
-
+		char *ver = (char *)section->Get_string("ver");
+		if (*ver) {
+			if (set_ver(ver)) {
 				/* warn about unusual version numbers */
 				if (dos.version.major >= 10 && dos.version.major <= 30) {
 					LOG_MSG("WARNING, DOS version %u.%u: the major version is set to a "
@@ -3097,7 +3111,7 @@ public:
 						dos.version.major, dos.version.minor);
 			}
 		}
-		uselfn = enablelfn==1 || ((enablelfn == -1 || enablelfn == -2) && dos.version.major>6);
+		dos_ver_menu(true);
 
         if (IS_PC98_ARCH) {
             void PC98_InitDefFuncRow(void);
@@ -3113,6 +3127,13 @@ public:
         EndStartProcess();
         EndRunProcess();
 #endif
+		mainMenu.get_item("dos_lfn_auto").enable(false).refresh_item(mainMenu);
+		mainMenu.get_item("dos_lfn_enable").enable(false).refresh_item(mainMenu);
+		mainMenu.get_item("dos_lfn_disable").enable(false).refresh_item(mainMenu);
+		mainMenu.get_item("dos_ver_330").enable(false).refresh_item(mainMenu);
+		mainMenu.get_item("dos_ver_500").enable(false).refresh_item(mainMenu);
+		mainMenu.get_item("dos_ver_622").enable(false).refresh_item(mainMenu);
+		mainMenu.get_item("dos_ver_710").enable(false).refresh_item(mainMenu);
 		/* NTS: We do NOT free the drives! The OS may use them later! */
 		void DOS_ShutdownFiles();
 		DOS_ShutdownFiles();

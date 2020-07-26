@@ -379,7 +379,8 @@ static const char *def_menu_dos[] =
 {
     "DOSMouseMenu",
     "--",
-	"DOSLFNMenu",
+    "DOSVerMenu",
+    "DOSLFNMenu",
     "--",
     "DOSPC98Menu",
     "--",
@@ -403,6 +404,16 @@ static const char *def_menu_dos_mouse[] =
     "dos_mouse_y_axis_reverse",
     "--",
     "dos_mouse_sensitivity",
+    NULL
+};
+
+/* DOS version menu ("DOSVerMenu") */
+static const char *def_menu_dos_ver[] =
+{
+    "dos_ver_330",
+    "dos_ver_500",
+    "dos_ver_622",
+    "dos_ver_710",
     NULL
 };
 
@@ -1242,6 +1253,9 @@ void ConstructMenu(void) {
 
     /* DOS mouse menu */
     ConstructSubMenu(mainMenu.get_item("DOSMouseMenu").get_master_id(), def_menu_dos_mouse);
+
+    /* DOS version menu */
+    ConstructSubMenu(mainMenu.get_item("DOSVerMenu").get_master_id(), def_menu_dos_ver);
 
     /* DOS LFN menu */
     ConstructSubMenu(mainMenu.get_item("DOSLFNMenu").get_master_id(), def_menu_dos_lfn);

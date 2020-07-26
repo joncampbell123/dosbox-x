@@ -1,6 +1,6 @@
 /*
- *  DOSBox MP3 Seek Table Handler
- *  -----------------------------
+ *  DOSBox-X MP3 Seek Table Handler
+ *  -------------------------------
  *
  * Problem:
  *          Seeking within an MP3 file to an exact time-offset, such as is expected
@@ -55,7 +55,7 @@
  *   - archive:  https://github.com/voidah/archive, by Arthur Ouellet
  *   - xxHash:   http://cyan4973.github.io/xxHash, by Yann Collet
  *
- *  Copyright (C) 2020       The DOSBox Team
+ *  Copyright (C) 2020       The dosbox-staging team
  *  Copyright (C) 2018-2019  Kevin R. Croft <krcroft@gmail.com>
  *
  *  This program is free software; you can redistribute it and/or modify

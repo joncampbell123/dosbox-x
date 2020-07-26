@@ -7197,6 +7197,50 @@ bool dos_mouse_sensitivity_menu_callback(DOSBoxMenu * const menu,DOSBoxMenu::ite
     return true;
 }
 
+void dos_ver_menu(bool start) {
+    mainMenu.get_item("dos_ver_330").check(dos.version.major==3&&dos.version.minor==30).enable(true).refresh_item(mainMenu);
+    mainMenu.get_item("dos_ver_500").check(dos.version.major==5&&dos.version.minor==00).enable(true).refresh_item(mainMenu);
+    mainMenu.get_item("dos_ver_622").check(dos.version.major==6&&dos.version.minor==22).enable(true).refresh_item(mainMenu);
+    mainMenu.get_item("dos_ver_710").check(dos.version.major==7&&dos.version.minor==10).enable(true).refresh_item(mainMenu);
+    if (start || enablelfn != -2) uselfn = enablelfn==1 || ((enablelfn == -1 || enablelfn == -2) && dos.version.major>6);
+}
+
+bool dos_ver_330_menu_callback(DOSBoxMenu * const menu,DOSBoxMenu::item * const menuitem) {
+    (void)menu;//UNUSED
+    (void)menuitem;//UNUSED
+    dos.version.major = 3;
+    dos.version.minor = 30;
+    dos_ver_menu(false);
+    return true;
+}
+
+bool dos_ver_500_menu_callback(DOSBoxMenu * const menu,DOSBoxMenu::item * const menuitem) {
+    (void)menu;//UNUSED
+    (void)menuitem;//UNUSED
+    dos.version.major = 5;
+    dos.version.minor = 0;
+    dos_ver_menu(false);
+    return true;
+}
+
+bool dos_ver_622_menu_callback(DOSBoxMenu * const menu,DOSBoxMenu::item * const menuitem) {
+    (void)menu;//UNUSED
+    (void)menuitem;//UNUSED
+    dos.version.major = 6;
+    dos.version.minor = 22;
+    dos_ver_menu(false);
+    return true;
+}
+
+bool dos_ver_710_menu_callback(DOSBoxMenu * const menu,DOSBoxMenu::item * const menuitem) {
+    (void)menu;//UNUSED
+    (void)menuitem;//UNUSED
+    dos.version.major = 7;
+    dos.version.minor = 10;
+    dos_ver_menu(false);
+    return true;
+}
+
 bool dos_lfn_auto_menu_callback(DOSBoxMenu * const menu,DOSBoxMenu::item * const menuitem) {
     (void)menu;//UNUSED
     (void)menuitem;//UNUSED
@@ -8866,15 +8910,31 @@ int main(int argc, char* argv[]) SDL_MAIN_NOEXCEPT {
             }
 
             {
+                DOSBoxMenu::item &item = mainMenu.alloc_item(DOSBoxMenu::submenu_type_id,"DOSVerMenu");
+                item.set_text("Reported DOS version");
+
+                {
+                    mainMenu.alloc_item(DOSBoxMenu::item_type_id,"dos_ver_330").set_text("3.30").
+                        set_callback_function(dos_ver_330_menu_callback);
+                    mainMenu.alloc_item(DOSBoxMenu::item_type_id,"dos_ver_500").set_text("5.00").
+                        set_callback_function(dos_ver_500_menu_callback);
+                    mainMenu.alloc_item(DOSBoxMenu::item_type_id,"dos_ver_622").set_text("6.22").
+                        set_callback_function(dos_ver_622_menu_callback);
+                    mainMenu.alloc_item(DOSBoxMenu::item_type_id,"dos_ver_710").set_text("7.10").
+                        set_callback_function(dos_ver_710_menu_callback);
+                }
+            }
+
+            {
                 DOSBoxMenu::item &item = mainMenu.alloc_item(DOSBoxMenu::submenu_type_id,"DOSLFNMenu");
                 item.set_text("Long filename support");
 
                 {
-                    mainMenu.alloc_item(DOSBoxMenu::item_type_id,"dos_lfn_auto").set_text("Auto").
+                    mainMenu.alloc_item(DOSBoxMenu::item_type_id,"dos_lfn_auto").set_text("Auto per reported DOS version").
                         set_callback_function(dos_lfn_auto_menu_callback);
-                    mainMenu.alloc_item(DOSBoxMenu::item_type_id,"dos_lfn_enable").set_text("Enable").
+                    mainMenu.alloc_item(DOSBoxMenu::item_type_id,"dos_lfn_enable").set_text("Enable long filename emulation").
                         set_callback_function(dos_lfn_enable_menu_callback);
-                    mainMenu.alloc_item(DOSBoxMenu::item_type_id,"dos_lfn_disable").set_text("Disable").
+                    mainMenu.alloc_item(DOSBoxMenu::item_type_id,"dos_lfn_disable").set_text("Disable long filename emulation").
                         set_callback_function(dos_lfn_disable_menu_callback);
                 }
             }
