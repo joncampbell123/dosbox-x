@@ -651,7 +651,9 @@ void DOS_Shell::CMD_HELP(char * args){
 		}
 		cmd_index++;
 	}
-	if (*args&&!show) {
+	if (optall&&show)
+		WriteOut("External commands such as \033[33;1mMOUNT\033[0m and \033[33;1mIMGMOUNT\033[0m can be found on the Z: drive.\n");
+	else if (*args&&!show) {
 		std::string argc=std::string(StripArg(args));
 		if (argc!=""&&argc!="CWSDPMI") DoCommand((char *)(argc+(argc=="DOS4GW"||argc=="DOS32A"?"":" /?")).c_str());
 	}
