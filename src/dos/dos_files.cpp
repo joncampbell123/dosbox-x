@@ -486,6 +486,14 @@ bool DOS_FindFirst(char * search,Bit16u attr,bool fcb_findfirst) {
 		strcpy(dir,fullsearch);
 	}
 
+	// Silence CHKDSK "Invalid sub-directory entry"
+	if (fcb_findfirst && !strcmp(search+1, ":????????.???") && attr==30) {
+		char psp_name[9];
+		DOS_MCB psp_mcb(dos.psp()-1);
+		psp_mcb.GetFileName(psp_name);
+		if (!strcmp(psp_name, "CHKDSK")) attr&=~DOS_ATTR_DIRECTORY;
+	}
+
 	sdrive=drive;
 	dta.SetupSearch(drive,(Bit8u)attr,pattern);
 
