@@ -505,7 +505,7 @@ search:
 			return;
 		} else if (boot) {
 			char bootstring[DOS_PATHLENGTH+CROSS_LEN+20];
-			strcpy(bootstring,"BOOT -L ");
+			strcpy(bootstring,"Z:\\BOOT -L ");
 			strcat(bootstring,str.c_str());
 			strcat(bootstring," >nul");
 			DOS_Shell temp;
@@ -539,7 +539,7 @@ void MenuBootDrive(char drive) {
 	}
 	std::string str(1, drive);
 	char bootstring[DOS_PATHLENGTH+CROSS_LEN+20];
-	strcpy(bootstring,"BOOT -L ");
+	strcpy(bootstring,"Z:\\BOOT -L ");
 	strcat(bootstring,str.c_str());
 	strcat(bootstring," >nul");
 	DOS_Shell temp;

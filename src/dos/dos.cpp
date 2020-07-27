@@ -39,7 +39,7 @@
 #include "serialport.h"
 #include "dos_network.h"
 
-extern bool log_int21, log_fileio, use_quick_reboot;
+extern bool log_int21, log_fileio;
 extern int lfn_filefind_handle;
 unsigned long totalc, freec;
 Bit16u countryNo = 0;
@@ -3083,9 +3083,6 @@ public:
 		dos.direct_output=false;
 		dos.internal_output=false;
 
-		use_quick_reboot = section->Get_bool("quick reboot");
-		mainMenu.get_item("quick_reboot").check(use_quick_reboot).refresh_item(mainMenu);
-
 		std::string lfn = section->Get_string("lfn");
 		if (lfn=="true") enablelfn=1;
 		else if (lfn=="false") enablelfn=0;
@@ -3134,6 +3131,7 @@ public:
 		mainMenu.get_item("dos_ver_500").enable(false).refresh_item(mainMenu);
 		mainMenu.get_item("dos_ver_622").enable(false).refresh_item(mainMenu);
 		mainMenu.get_item("dos_ver_710").enable(false).refresh_item(mainMenu);
+		mainMenu.get_item("shell_config_commands").enable(false).refresh_item(mainMenu);
 		/* NTS: We do NOT free the drives! The OS may use them later! */
 		void DOS_ShutdownFiles();
 		DOS_ShutdownFiles();

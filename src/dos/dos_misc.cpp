@@ -90,6 +90,7 @@ static Bitu INT2A_Handler(void) {
 	return CBRET_NONE;
 }
 
+extern bool i4dos;
 extern RealPt DOS_DriveDataListHead;       // INT 2Fh AX=0803h DRIVER.SYS drive data table list
 
 // INT 2F
@@ -218,11 +219,11 @@ static bool DOS_MultiplexFunctions(void) {
 			char psp_name[9];
 			DOS_MCB psp_mcb(dos.psp()-1);
 			psp_mcb.GetFileName(psp_name);
-			if (strcmp(psp_name, "DOSSETUP") == 0) {
+			if (!strcmp(psp_name, "DOSSETUP") || !strcmp(psp_name, "KRNL386")) {
 				/* Hack for Windows 98 SETUP.EXE (Wengier) */
 				return false;
 			}
-			strcpy(name,"COMMAND.COM");
+			strcpy(name,i4dos?"4DOS.COM":"COMMAND.COM");
 			MEM_BlockWrite(SegPhys(ds)+reg_dx,name,(Bitu)(strlen(name)+1));
 			strcpy(name+1,"/P /D /K AUTOEXEC");
 			name[0]=(char)strlen(name+1);

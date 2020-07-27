@@ -37,6 +37,8 @@
 #include <sstream>
 #include "build_timestamp.h"
 
+static bool first_run=true;
+extern bool use_quick_reboot;
 extern bool enable_config_as_shell_commands;
 extern bool dos_shell_running_program;
 extern Bit16u countryNo;
@@ -69,6 +71,7 @@ static void SHELL_ProgramStart_First_shell(DOS_Shell * * make) {
 
 #define CONFIG_SIZE 4096
 #define AUTOEXEC_SIZE 4096
+bool i4dos=false;
 static char i4dos_data[CONFIG_SIZE] = { 0 };
 static char config_data[CONFIG_SIZE] = { 0 };
 static char autoexec_data[AUTOEXEC_SIZE] = { 0 };
@@ -899,7 +902,7 @@ void SHELL_Init() {
 	MSG_Add("SHELL_CMD_VOL_SERIAL_NOLABEL","has no label\n");
 	MSG_Add("SHELL_CMD_VOL_SERIAL_LABEL","is %s\n");
 	MSG_Add("SHELL_ILLEGAL_PATH","Illegal Path.\n");
-	MSG_Add("SHELL_CMD_HELP","If you want a list of all supported commands type \033[33;1mHELP /ALL\033[0m.\nA short list of the most often used commands:\n");
+	MSG_Add("SHELL_CMD_HELP","If you want a list of all supported internal commands type \033[33;1mHELP /ALL\033[0m.\nYou can also find external commands on the Z: drive as programs.\nA short list of the most often used commands:\n");
 	MSG_Add("SHELL_CMD_ECHO_ON","ECHO is on.\n");
 	MSG_Add("SHELL_CMD_ECHO_OFF","ECHO is off.\n");
 	MSG_Add("SHELL_ILLEGAL_CONTROL_CHARACTER","Unexpected control character: Dec %03u and Hex %#04x.\n");
@@ -1134,7 +1137,8 @@ void SHELL_Init() {
 	MSG_Add("SHELL_CMD_HELP_HELP","Shows DOSBox-X command help.\n");
 	MSG_Add("SHELL_CMD_HELP_HELP_LONG","HELP [/A or /ALL]\nHELP [command]\n\n"
 		    "   /A or /ALL\tLists all supported internal commands.\n\n"
-			"Note: HELP will not list external commands such as MOUNT and IMGMOUNT.\n");
+			"Note: HELP will not list external commands such as MOUNT and IMGMOUNT.\n"
+			"      External commands can be found on the Z: drive as programs.\n");
 	MSG_Add("SHELL_CMD_MKDIR_HELP","Creates a directory.\n");
 	MSG_Add("SHELL_CMD_MKDIR_HELP_LONG","MKDIR [drive:][path]\n"
 	        "MD [drive:][path]\n");
@@ -1238,10 +1242,11 @@ void SHELL_Init() {
 	MSG_Add("SHELL_CMD_VERIFY_HELP","Controls whether to verify files are written correctly to a disk.\n");
 	MSG_Add("SHELL_CMD_VERIFY_HELP_LONG","VERIFY [ON | OFF]\n\nType VERIFY without a parameter to display the current VERIFY setting.\n");
 	MSG_Add("SHELL_CMD_VER_HELP","Displays or sets DOSBox-X's reported DOS version.\n");
-	MSG_Add("SHELL_CMD_VER_HELP_LONG","VER [/R]\n" 
-		   "VER SET [major.minor] or VER SET [major minor]\n\n" 
-		   "  [major.minor] or [major minor]  Set the reported DOS version.\n\n"
-		   "  Example: \"VER SET 6.0\" or \"VER SET 7.1\" for DOS 6.0 or 7.1 respectively.\n"
+	MSG_Add("SHELL_CMD_VER_HELP_LONG","VER [/R]\n"
+		   "VER [SET] number or VER SET [major minor]\n\n"
+		   "  [SET] number       Set the specified number as the reported DOS version.\n"
+		   "  SET [major minor]  Set the reported DOS version in major and minor format.\n\n"
+		   "  Example: \"VER 6.0\" or \"VER 7.1\" for DOS version 6.0 or 7.1 respectively.\n"
 		   "  The command \"VER SET 7 1\" however sets the reported DOS version as 7.01.\n\n" 
 		   "Type VER without parameters to display DOSBox-X and the reported DOS version.\n");
 	MSG_Add("SHELL_CMD_VER_VER","DOSBox-X version %s (%s). Reported DOS version %d.%02d.\n");
@@ -1486,10 +1491,14 @@ void SHELL_Init() {
 	dos.psp(psp_seg);
 
     /* settings */
-    {
+    if (first_run) {
         const Section_prop * section=static_cast<Section_prop *>(control->GetSection("dos"));
-        enable_config_as_shell_commands = section->Get_bool("shell configuration as commands");
+		use_quick_reboot = section->Get_bool("quick reboot");
+		enable_config_as_shell_commands = section->Get_bool("shell configuration as commands");
+		first_run=false;
     }
+	mainMenu.get_item("quick_reboot").check(use_quick_reboot).refresh_item(mainMenu);
+	mainMenu.get_item("shell_config_commands").check(enable_config_as_shell_commands).enable(true).refresh_item(mainMenu);
 }
 
 /* Pfff... starting and running the shell from a configuration section INIT
@@ -1513,13 +1522,17 @@ void SHELL_Run() {
             tmp=trim(shell);
             name=StripArg(tmp);
             upcase(name);
-            if (*name&&DOS_FileExists(name))
+            if (*name&&DOS_FileExists(name)) {
+                strreplace(name,'/','\\');
                 altshell=true;
+            }
         }
     }
 	SHELL_ProgramStart_First_shell(&first_shell);
 
+	i4dos=false;
 	if (altshell) {
+        if (strstr(name, "4DOS.COM")) i4dos=true;
         first_shell->perm=false;
         first_shell->exit=true;
         first_shell->Run();

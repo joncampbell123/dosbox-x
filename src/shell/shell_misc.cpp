@@ -906,7 +906,7 @@ bool DOS_Shell::Execute(char* name, const char* args) {
 	}
 
 	/* check for a drive change */
-	if (((strcmp(name + 1, ":") == 0) || (strcmp(name + 1, ":\\") == 0)) && isalpha(*name))
+	if (((strcmp(name + 1, ":") == 0) || (strcmp(name + 1, ":\\") == 0)) && isalpha(*name) && !control->SecureMode())
 	{
 		if (strrchr(name,'\\')) { WriteOut(MSG_Get("SHELL_EXECUTE_ILLEGAL_COMMAND"),name); return true; }
 		if (!DOS_SetDrive(toupper(name[0])-'A')) {

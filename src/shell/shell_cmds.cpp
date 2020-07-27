@@ -143,8 +143,6 @@ static char* ExpandDot(char*args, char* buffer , size_t bufsize) {
 	return buffer;
 }
 
-
-
 bool DOS_Shell::CheckConfig(char* cmd_in,char*line) {
 	bool quote=false;
 	if (strlen(cmd_in)>2&&cmd_in[0]=='"'&&cmd_in[strlen(cmd_in)-1]=='"') {
@@ -160,10 +158,18 @@ bool DOS_Shell::CheckConfig(char* cmd_in,char*line) {
 		return true;
 	}
 	char newcom[1024]; newcom[0] = 0; strcpy(newcom,"z:\\config -set ");
-	if (quote) strcat(newcom,"\"");
-	strcat(newcom,test->GetName());	strcat(newcom," ");
-	strcat(newcom,cmd_in);
 	if (line != NULL) {
+		line=trim(line);
+		if (*line=='=') line=trim(++line);
+		if (line[0]=='"'&&line[strlen(line)-1]=='"') {
+			line[strlen(line)-1]=0;
+			line++;
+			quote=true;
+		}
+		if (quote) strcat(newcom,"\"");
+		strcat(newcom,test->GetName());	strcat(newcom," ");
+		strcat(newcom,cmd_in);
+		strcat(newcom, "=");
 		strcat(newcom, line);
 		if (quote) strcat(newcom,"\"");
 	} else
@@ -645,7 +651,9 @@ void DOS_Shell::CMD_HELP(char * args){
 		}
 		cmd_index++;
 	}
-	if (*args&&!show) {
+	if (optall&&show)
+		WriteOut("External commands such as \033[33;1mMOUNT\033[0m and \033[33;1mIMGMOUNT\033[0m can be found on the Z: drive.\n");
+	else if (*args&&!show) {
 		std::string argc=std::string(StripArg(args));
 		if (argc!=""&&argc!="CWSDPMI") DoCommand((char *)(argc+(argc=="DOS4GW"||argc=="DOS32A"?"":" /?")).c_str());
 	}
@@ -2928,18 +2936,22 @@ void DOS_Shell::CMD_VER(char *args) {
 	if(!optR && args && *args) {
 		char* word = StripWord(args);
 		if(strcasecmp(word,"set")) {
+			if (*word=='=') word=trim(word+1);
 			if (isdigit(*word)) {
 				if (*args) {
 					WriteOut("Invalid parameter - %s\n", args);
 					return;
 				}
-				if (set_ver(word)) {
+				if (set_ver(word))
 					dos_ver_menu(false);
-					return;
-				}
+				else
+					WriteOut(MSG_Get("SHELL_CMD_VER_INVALID"));
+				return;
 			}
-			WriteOut("Invalid parameter - %s\n", word);
-			return;
+			if (*word) {
+				WriteOut("Invalid parameter - %s\n", word);
+				return;
+			}
 		}
 		if (!*args) {
 			dos.version.major = 5;

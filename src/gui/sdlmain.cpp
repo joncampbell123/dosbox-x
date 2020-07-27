@@ -43,6 +43,7 @@ extern bool log_int21;
 extern bool log_fileio;
 extern bool force_load_state;
 extern bool use_quick_reboot;
+extern bool enable_config_as_shell_commands;
 #if defined(WIN32)
 bool direct_mouse_clipboard=false;
 bool winrun=false;
@@ -7809,19 +7810,27 @@ bool doublebuf_menu_callback(DOSBoxMenu * const menu, DOSBoxMenu::item * const m
     return true;
 }
 
-bool force_loadstate_menu_callback(DOSBoxMenu * const menu, DOSBoxMenu::item * const menuitem) {
-    (void)menu;//UNUSED
-    (void)menuitem;//UNUSED
-    force_load_state = !force_load_state;
-    mainMenu.get_item("force_loadstate").check(force_load_state).refresh_item(mainMenu);
-    return true;
-}
-
 bool quick_reboot_menu_callback(DOSBoxMenu * const menu, DOSBoxMenu::item * const menuitem) {
     (void)menu;//UNUSED
     (void)menuitem;//UNUSED
     use_quick_reboot = !use_quick_reboot;
     mainMenu.get_item("quick_reboot").check(use_quick_reboot).refresh_item(mainMenu);
+    return true;
+}
+
+bool shell_config_commands_menu_callback(DOSBoxMenu * const menu, DOSBoxMenu::item * const menuitem) {
+    (void)menu;//UNUSED
+    (void)menuitem;//UNUSED
+    enable_config_as_shell_commands = !enable_config_as_shell_commands;
+    mainMenu.get_item("shell_config_commands").check(enable_config_as_shell_commands).refresh_item(mainMenu);
+    return true;
+}
+
+bool force_loadstate_menu_callback(DOSBoxMenu * const menu, DOSBoxMenu::item * const menuitem) {
+    (void)menu;//UNUSED
+    (void)menuitem;//UNUSED
+    force_load_state = !force_load_state;
+    mainMenu.get_item("force_loadstate").check(force_load_state).refresh_item(mainMenu);
     return true;
 }
 
@@ -9201,7 +9210,8 @@ int main(int argc, char* argv[]) SDL_MAIN_NOEXCEPT {
         mainMenu.alloc_item(DOSBoxMenu::item_type_id,"alwaysontop").set_text("Always on top").set_callback_function(alwaysontop_menu_callback).check(is_always_on_top());
         mainMenu.alloc_item(DOSBoxMenu::item_type_id,"showdetails").set_text("Show details").set_callback_function(showdetails_menu_callback).check(!menu.hidecycles && !menu.showrt);
         mainMenu.alloc_item(DOSBoxMenu::item_type_id,"highdpienable").set_text("High DPI enable").set_callback_function(highdpienable_menu_callback).check(dpi_aware_enable);
-        mainMenu.alloc_item(DOSBoxMenu::item_type_id,"quick_reboot").set_text("Use quick reboot").set_callback_function(quick_reboot_menu_callback).check(use_quick_reboot);
+        mainMenu.alloc_item(DOSBoxMenu::item_type_id,"shell_config_commands").set_text("Config options as commands").set_callback_function(shell_config_commands_menu_callback).check(enable_config_as_shell_commands);
+        mainMenu.alloc_item(DOSBoxMenu::item_type_id,"quick_reboot").set_text("Enable quick reboot").set_callback_function(quick_reboot_menu_callback).check(use_quick_reboot);
         mainMenu.alloc_item(DOSBoxMenu::item_type_id,"force_loadstate").set_text("Force load state").set_callback_function(force_loadstate_menu_callback).check(force_load_state);
         mainMenu.alloc_item(DOSBoxMenu::item_type_id,"refreshslot").set_text("Refresh status").set_callback_function(refresh_slots_menu_callback);
 
