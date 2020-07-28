@@ -349,8 +349,8 @@ bool Virtual_Drive::isRemote(void) {
 	char psp_name[9];
 	DOS_MCB psp_mcb(dos.psp()-1);
 	psp_mcb.GetFileName(psp_name);
-	if (strcmp(psp_name, "SCANDISK") == 0) {
-		/* Check for SCANDISK.EXE and return true (Wengier) */
+	if (!strcmp(psp_name, "SCANDISK") || !strcmp(psp_name, "CHKDSK")) {
+		/* Check for SCANDISK.EXE (or CHKDSK.EXE) and return true (Wengier) */
 		return true;
 	}
 	/* Automatically detect if called by SCANDISK.EXE even if it is renamed (tested with the program from MS-DOS 6.20 to Windows ME) */

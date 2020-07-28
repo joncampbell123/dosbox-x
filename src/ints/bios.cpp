@@ -93,8 +93,10 @@ void pc98_update_cpu_page_ptr(void);
 bool KEYBOARD_Report_BIOS_PS2Mouse();
 bool gdc_5mhz_according_to_bios(void);
 void pc98_update_display_page_ptr(void);
-bool MEM_map_ROM_alias_physmem(Bitu start,Bitu end);
 void pc98_update_palette(void);
+bool MEM_map_ROM_alias_physmem(Bitu start,Bitu end);
+void MOUSE_Startup(Section *sec);
+void runBoot();
 
 bool bochs_port_e9 = false;
 bool isa_memory_hole_512kb = false;
@@ -281,7 +283,6 @@ extern bool bootguest, use_quick_reboot;
 bool bootvm = false;
 static std::string dosbox_int_debug_out;
 
-void runBoot();
 void VGA_SetCaptureStride(uint32_t v);
 void VGA_SetCaptureAddress(uint32_t v);
 void VGA_SetCaptureState(uint32_t v);
@@ -8568,7 +8569,10 @@ private:
 
         for (Bitu i=0;i < 0x400;i++) mem_writeb(0x7C00+i,0);
 
-		if ((bootguest||(!bootvm&&use_quick_reboot))&&bootdrive>=0&&imageDiskList[bootdrive]) runBoot();
+		if ((bootguest||(!bootvm&&use_quick_reboot))&&bootdrive>=0&&imageDiskList[bootdrive]) {
+			MOUSE_Startup(NULL);
+			runBoot();
+		}
 		if (use_quick_reboot&&!bootvm&&bootdrive<0&&first_shell != NULL) throw int(6);
 		bootvm=false;
 		bootguest=false;

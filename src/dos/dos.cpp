@@ -549,7 +549,6 @@ static Bitu DOS_21Handler(void) {
         LOG(LOG_CPU, LOG_DEBUG)("Executing interrupt 21, ah=%x, al=%x", reg_ah, reg_al);
     }
 
-
     /* Real MS-DOS behavior:
      *   If HIMEM.SYS is loaded and CONFIG.SYS says DOS=HIGH, DOS will load itself into the HMA area.
      *   To prevent crashes, the INT 21h handler down below will enable the A20 gate before executing
@@ -1194,6 +1193,11 @@ static Bitu DOS_21Handler(void) {
                     reg_al = 0x00;
                     SegSet16(ds,dos.tables.dpb);
                     reg_bx = drive*dos.tables.dpb_size;
+                    if (mem_readw(SegPhys(ds)+reg_bx+0x1F)==0xFFFF) {
+                        Bit32u bytes_per_sector,sectors_per_cluster,total_clusters,free_clusters;
+                        if (DOS_GetFreeDiskSpace32(reg_dl,&bytes_per_sector,&sectors_per_cluster,&total_clusters,&free_clusters))
+                            mem_writew(SegPhys(ds)+reg_bx+0x1F,free_clusters);
+                    }
                     LOG(LOG_DOSMISC,LOG_NORMAL)("Get drive parameter block.");
                 } else {
                     reg_al=0xff;
