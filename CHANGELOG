@@ -2,8 +2,8 @@
   - Add and enable the setting "usescancodes=auto"
     by default to fix issues with non-US keyboards
     on SDL1 builds. (Wengier)
-  - Added codepage 850, 852, 855 and 858 to support
-    host to guest code page mapping. (Wengier)
+  - Added codepage 850, 852, 855, 857, 858, 863, 869
+    for host to guest code page mapping. (Wengier)
   - Fixed possible DPMI error when running Windows
     98 installation from the DOSBox-X shell without
     using a batch file. (Wengier)
