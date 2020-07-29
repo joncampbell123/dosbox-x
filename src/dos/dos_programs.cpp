@@ -5238,6 +5238,7 @@ void KEYB::Run(void) {
             switch (keyb_error) {
                 case KEYB_NOERROR:
                     WriteOut(MSG_Get("PROGRAM_KEYB_NOERROR"),temp_line.c_str(),dos.loaded_codepage);
+                    Drives[DOS_GetDefaultDrive()]->EmptyCache();
                     break;
                 case KEYB_FILENOTFOUND:
                     if (temp_line!="/?"&&temp_line!="-?") WriteOut(MSG_Get("PROGRAM_KEYB_FILENOTFOUND"),temp_line.c_str());

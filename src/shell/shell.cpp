@@ -1279,7 +1279,7 @@ void SHELL_Init() {
     MSG_Add("SHELL_CMD_ALIAS_HELP", "Defines or displays aliases.\n");
     MSG_Add("SHELL_CMD_ALIAS_HELP_LONG", "ALIAS [name[=value] ... ]\n\nType ALIAS without parameters to display the list of aliases in the form:\n`ALIAS NAME = VALUE'\n");
 	MSG_Add("SHELL_CMD_COUNTRY_HELP", "Displays or changes the current country.\n");
-	MSG_Add("SHELL_CMD_COUNTRY_HELP_LONG", "COUNTRY [nnn] \n\n  nnn\tSpecifies a country code.\n");
+	MSG_Add("SHELL_CMD_COUNTRY_HELP_LONG", "COUNTRY [nnn] \n\n  nnn\tSpecifies a country code.\n\nDate and time formats will be affacted by the specified country code.\n");
     MSG_Add("SHELL_CMD_CTTY_HELP","Changes the terminal device used to control the system.\n");
 	MSG_Add("SHELL_CMD_CTTY_HELP_LONG","CTTY device\n  device\tThe terminal device to use, such as CON.\n");
 	MSG_Add("SHELL_CMD_MORE_HELP","Displays output one screen at a time.\n");
