@@ -1,7 +1,12 @@
 0.83.4
+  - Add and enable the setting "usescancodes=auto"
+    by default to fix issues with non-US keyboards
+    on SDL1 builds. (Wengier)
   - Fixed possible DPMI error when running Windows
     98 installation from the DOSBox-X shell without
     using a batch file. (Wengier)
+  - Fixed possible corruption with program group
+    files when running Windows for Workgroups 3.11.
   - Unknown INT 2Fh calls are now debug output, not
     an error.
   - Added VESA BIOS mode 68h alias as indicated on
