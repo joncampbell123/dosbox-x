@@ -1289,13 +1289,13 @@
     <ClInclude Include="..\include\cp858_uni.h">
       <Filter>Includes</Filter>
     </ClInclude>
-    <ClInclude Include="..\include\cp863_uni.h">
-      <Filter>Includes</Filter>
-    </ClInclude>
     <ClInclude Include="..\include\cp866_uni.h">
       <Filter>Includes</Filter>
     </ClInclude>
     <ClInclude Include="..\include\cp869_uni.h">
+      <Filter>Includes</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\cp872_uni.h">
       <Filter>Includes</Filter>
     </ClInclude>
     <ClInclude Include="..\include\cp932_uni.h">
