@@ -787,7 +787,7 @@ typedef SDL_Scancode SDLKey;
 
 #define MAX_SDLKEYS 323
 
-static bool usescancodes;
+static int usescancodes=-1;
 static Bit8u scancode_map[MAX_SDLKEYS];
 
 #define Z SDLK_UNKNOWN
@@ -895,10 +895,41 @@ static SDLKey sdlkey_map[MAX_SCANCODES]={SDLK_UNKNOWN,SDLK_ESCAPE,
 
 #undef Z
 
+#if !defined(C_SDL2)
+void loadScanCode();
+const char* DOS_GetLoadedLayout(void);
+bool load=false;
+bool prev_ret;
+#endif
+
+bool useScanCode() {
+#if defined(C_SDL2)
+	return false;
+#else
+	if (usescancodes==1)
+		return true;
+	else if (!usescancodes)
+		return false;
+	else {
+		const char* layout_name = DOS_GetLoadedLayout();
+		bool ret = layout_name != NULL;
+		if (!load)
+			prev_ret=ret;
+		else if (ret != prev_ret) {
+			prev_ret=ret;
+			loadScanCode();
+			GFX_LosingFocus();
+			MAPPER_Init();
+			load=true;
+		}
+		return ret;
+	}
+#endif
+}
 
 SDLKey MapSDLCode(Bitu skey) {
 //  LOG_MSG("MapSDLCode %d %X",skey,skey);
-    if (usescancodes) {
+    if (useScanCode()) {
         if (skey<MAX_SCANCODES) return sdlkey_map[skey];
         else return SDLK_UNKNOWN;
     } else return (SDLKey)skey;
@@ -906,7 +937,7 @@ SDLKey MapSDLCode(Bitu skey) {
 
 Bitu GetKeyCode(SDL_keysym keysym) {
 //  LOG_MSG("GetKeyCode %X %X %X",keysym.scancode,keysym.sym,keysym.mod);
-    if (usescancodes) {
+    if (useScanCode()) {
         Bitu key=(Bitu)keysym.scancode;
 
 #if defined (MACOSX)
@@ -1063,7 +1094,7 @@ public:
 #if defined(C_SDL2)
         CBind * bind=CreateKeyBind((SDL_Scancode)code);
 #else
-        if (usescancodes) {
+        if (useScanCode()) {
             if (code<MAX_SDLKEYS) code=scancode_map[code];
             else code=0;
         }
@@ -1155,7 +1186,7 @@ public:
     }
     CBind * CreateKeyBind(SDLKey _key) {
 #if !defined(C_SDL2)
-        if (!usescancodes) assert((Bitu)_key<keys);
+        if (!useScanCode()) assert((Bitu)_key<keys);
 #endif
         return new CKeyBind(&lists[(Bitu)_key],_key);
     }
@@ -4424,66 +4455,18 @@ void ReloadMapper(Section_prop *section, bool init) {
 #include "SDL_syswm.h"
 #include <X11/XKBlib.h>
 #endif
-void MAPPER_StartUp() {
-    Section_prop * section=static_cast<Section_prop *>(control->GetSection("sdl"));
-    mapper.sticks.num=0;
-    mapper.sticks.num_groups=0;
-
-#ifdef DOSBOXMENU_EXTERNALLY_MANAGED
-    {
-        mapperMenu.alloc_item(DOSBoxMenu::separator_type_id,"_separator_");
-    }
-
-    {
-        DOSBoxMenu::item &item = mapperMenu.alloc_item(DOSBoxMenu::submenu_type_id,"MapperMenu");
-        item.set_text("Mapper");
-    }
-
-    {
-        DOSBoxMenu::item &item = mapperMenu.alloc_item(DOSBoxMenu::item_type_id,"ExitMapper");
-        item.set_callback_function(mapper_menu_exit);
-        item.set_text("Exit mapper");
-    }
-
-    {
-        DOSBoxMenu::item &item = mapperMenu.alloc_item(DOSBoxMenu::item_type_id,"SaveMapper");
-        item.set_callback_function(mapper_menu_save);
-        item.set_text("Save mapper file");
-    }
-
-    mapperMenu.displaylist_clear(mapperMenu.display_list);
-
-    mapperMenu.displaylist_append(
-        mapperMenu.display_list,
-        mapperMenu.get_item_id_by_name("MapperMenu"));
-
-    {
-        mapperMenu.displaylist_append(
-            mapperMenu.get_item("MapperMenu").display_list, mapperMenu.get_item_id_by_name("ExitMapper"));
-
-        mapperMenu.displaylist_append(
-            mapperMenu.get_item("MapperMenu").display_list, mapperMenu.get_item_id_by_name("_separator_"));
-
-        mapperMenu.displaylist_append(
-            mapperMenu.get_item("MapperMenu").display_list, mapperMenu.get_item_id_by_name("SaveMapper"));
-    }
-#endif
-
-    LOG(LOG_MISC,LOG_DEBUG)("MAPPER starting up");
-
-    memset(&virtual_joysticks,0,sizeof(virtual_joysticks));
 
 #if !defined(C_SDL2)
-    usescancodes = false;
+void loadScanCode() {
 
-    if (section->Get_bool("usescancodes")) {
-        usescancodes=true;
+	load=false;
+	if (useScanCode()) {
 
         /* Note: table has to be tested/updated for various OSs */
 #if defined (MACOSX)
         /* nothing */
 #elif defined(HAIKU) || defined(RISCOS)
-        usescancodes = false;
+        usescancodes = 0;
 #elif defined(OS2)
         sdlkey_map[0x61]=SDLK_UP;
         sdlkey_map[0x66]=SDLK_DOWN;
@@ -4599,8 +4582,72 @@ void MAPPER_StartUp() {
             if (key<MAX_SDLKEYS) scancode_map[key]=(Bit8u)i;
         }
     }
+}
 #endif
+
+void MAPPER_StartUp() {
+    Section_prop * section=static_cast<Section_prop *>(control->GetSection("sdl"));
+    mapper.sticks.num=0;
+    mapper.sticks.num_groups=0;
+
+#ifdef DOSBOXMENU_EXTERNALLY_MANAGED
+    {
+        mapperMenu.alloc_item(DOSBoxMenu::separator_type_id,"_separator_");
+    }
+
+    {
+        DOSBoxMenu::item &item = mapperMenu.alloc_item(DOSBoxMenu::submenu_type_id,"MapperMenu");
+        item.set_text("Mapper");
+    }
+
+    {
+        DOSBoxMenu::item &item = mapperMenu.alloc_item(DOSBoxMenu::item_type_id,"ExitMapper");
+        item.set_callback_function(mapper_menu_exit);
+        item.set_text("Exit mapper");
+    }
+
+    {
+        DOSBoxMenu::item &item = mapperMenu.alloc_item(DOSBoxMenu::item_type_id,"SaveMapper");
+        item.set_callback_function(mapper_menu_save);
+        item.set_text("Save mapper file");
+    }
+
+    mapperMenu.displaylist_clear(mapperMenu.display_list);
+
+    mapperMenu.displaylist_append(
+        mapperMenu.display_list,
+        mapperMenu.get_item_id_by_name("MapperMenu"));
+
+    {
+        mapperMenu.displaylist_append(
+            mapperMenu.get_item("MapperMenu").display_list, mapperMenu.get_item_id_by_name("ExitMapper"));
+
+        mapperMenu.displaylist_append(
+            mapperMenu.get_item("MapperMenu").display_list, mapperMenu.get_item_id_by_name("_separator_"));
+
+        mapperMenu.displaylist_append(
+            mapperMenu.get_item("MapperMenu").display_list, mapperMenu.get_item_id_by_name("SaveMapper"));
+    }
+#endif
+
+    LOG(LOG_MISC,LOG_DEBUG)("MAPPER starting up");
+
+    memset(&virtual_joysticks,0,sizeof(virtual_joysticks));
+
+#if !defined(C_SDL2)
+	usescancodes = -1;
+	const char *usesc = section->Get_string("usescancodes");
+	if (!strcasecmp(usesc, "true"))
+		usescancodes = 1;
+	else if (!strcasecmp(usesc, "false"))
+		usescancodes = 0;
+	loadScanCode();
+#endif
+
 	ReloadMapper(section, false);
+#if !defined(C_SDL2)
+	load=true;
+#endif
 
     {
         DOSBoxMenu::item *itemp = NULL;
