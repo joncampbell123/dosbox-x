@@ -2,8 +2,8 @@
   - Add and enable the setting "usescancodes=auto"
     by default to fix issues with non-US keyboards
     on SDL1 builds. (Wengier)
-  - Added code pages 850 and 858 to support host to
-    guest code page mapping. (Wengier)
+  - Added codepage 850, 852, 855 and 858 to support
+    host to guest code page mapping. (Wengier)
   - Fixed possible DPMI error when running Windows
     98 installation from the DOSBox-X shell without
     using a batch file. (Wengier)
@@ -11,7 +11,8 @@
     a byte to get lost if writing up to the end of
     a cluster, which seems to be behind the
     corruption with program group files when running
-    Windows for Workgroups 3.11. [https://github.com/joncampbell123/dosbox-x/issues/1758#issuecomment-665193066]
+    Windows for Workgroups 3.11 from DOSBox-X shell.
+    [https://github.com/joncampbell123/dosbox-x/issues/1758#issuecomment-665193066]
   - Unknown INT 2Fh calls are now debug output, not
     an error.
   - Added VESA BIOS mode 68h alias as indicated on
