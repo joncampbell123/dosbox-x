@@ -3762,7 +3762,7 @@ static void GUI_StartUp() {
     MAPPER_AddHandler(SwitchFullScreen,MK_f,MMODHOST,"fullscr","Fullscreen", &item);
     item->set_text("Toggle fullscreen");
 
-    MAPPER_AddHandler(PasteClipboard, MK_nothing, 0, "paste", "Paste Clipboard"); //end emendelson
+    MAPPER_AddHandler(PasteClipboard, MK_nothing, 0, "paste", "ClipPaste"); //end emendelson
 #if C_DEBUG
     /* Pause binds with activate-debugger */
     MAPPER_AddHandler(&PauseDOSBox, MK_pause, MMOD1, "pause", "Pause");
@@ -6279,8 +6279,11 @@ void SDL_SetupConfigSection() {
     Pstring = Pmulti->GetSection()->Add_string("force",Property::Changeable::Always,"");
 #endif
 
-    Pbool = sdl_sec->Add_bool("usescancodes",Property::Changeable::Always,false);
-    Pbool->Set_help("Avoid usage of symkeys, might not work on all operating systems.");
+	const char* truefalseautoopt[] = { "true", "false", "auto", 0};
+    Pstring = sdl_sec->Add_string("usescancodes",Property::Changeable::OnlyAtStart,"auto");
+    Pstring->Set_values(truefalseautoopt);
+    Pstring->Set_help("Avoid usage of symkeys, might not work on all operating systems.\n"
+        "If set to \"auto\" (default), it is enabled for SDL1 and non-US keyboards.");
 
     Pint = sdl_sec->Add_int("overscan",Property::Changeable::Always, 0);
     Pint->SetMinMax(0,10);

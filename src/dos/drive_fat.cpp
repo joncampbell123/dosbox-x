@@ -415,7 +415,7 @@ bool fatFile::Write(const Bit8u * data, Bit16u *size) {
 			if(loadedSector) myDrive->writeSector(currentSector, sectorBuffer);
 			loadedSector = false;
 
-			if (sizedec == 0) goto finalizeWrite;
+			if (sizedec == 0) { curSectOff = 0; goto finalizeWrite; }
 
 			currentSector = myDrive->getAbsoluteSectFromBytePos(firstCluster, seekpos);
 			if(currentSector == 0) {
