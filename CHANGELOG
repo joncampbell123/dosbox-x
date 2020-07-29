@@ -5,8 +5,11 @@
   - Fixed possible DPMI error when running Windows
     98 installation from the DOSBox-X shell without
     using a batch file. (Wengier)
-  - Fixed possible corruption with program group
-    files when running Windows for Workgroups 3.11.
+  - Fixed a bug in the FAT driver that can cause
+    a byte to get lost if writing up to the end of
+    a cluster, which seems to be behind the
+    corruption with program group files when running
+    Windows for Workgroups 3.11. [https://github.com/joncampbell123/dosbox-x/issues/1758#issuecomment-665193066]
   - Unknown INT 2Fh calls are now debug output, not
     an error.
   - Added VESA BIOS mode 68h alias as indicated on
