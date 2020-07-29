@@ -873,7 +873,7 @@ overflow:
 std::string full_arguments = "";
 intptr_t hret=0;
 bool infix=false;
-extern bool packerr, reqwin, startcmd, ctrlbrk;
+extern bool packerr, reqwin, startcmd, startwait, ctrlbrk;
 #if defined (WIN32) && !defined(HX_DOS)
 void EndRunProcess() {
     if(hret) {
@@ -1180,7 +1180,7 @@ continue_1:
                     WriteOut("Now run it as Windows application..\r\n");
                     hret = _spawnl(P_NOWAIT, winName, qwinName, comline, NULL);
                     SetCurrentDirectory(winDirCur);
-                    if (hret > 0) {
+                    if (startwait && hret > 0) {
                         bool first=true;
                         ctrlbrk=false;
                         DWORD exitCode = 0;
@@ -1199,7 +1199,9 @@ continue_1:
                         dos.return_code = exitCode&255;
                         dos.return_mode = 0;
                         hret = 0;
-                    } else
+                    } else if (hret > 0)
+                        hret = 0;
+                    else
                         hret = errno;
                     DOS_SetError((Bit16u)hret);
                     bool ret=hret == 0;

@@ -896,6 +896,14 @@ static SDLKey sdlkey_map[MAX_SCANCODES]={SDLK_UNKNOWN,SDLK_ESCAPE,
 #undef Z
 
 #if !defined(C_SDL2)
+void setScanCode(Section_prop * section) {
+	usescancodes = -1;
+	const char *usesc = section->Get_string("usescancodes");
+	if (!strcasecmp(usesc, "true"))
+		usescancodes = 1;
+	else if (!strcasecmp(usesc, "false"))
+		usescancodes = 0;
+}
 void loadScanCode();
 const char* DOS_GetLoadedLayout(void);
 bool load=false;
@@ -4635,12 +4643,7 @@ void MAPPER_StartUp() {
     memset(&virtual_joysticks,0,sizeof(virtual_joysticks));
 
 #if !defined(C_SDL2)
-	usescancodes = -1;
-	const char *usesc = section->Get_string("usescancodes");
-	if (!strcasecmp(usesc, "true"))
-		usescancodes = 1;
-	else if (!strcasecmp(usesc, "false"))
-		usescancodes = 0;
+	setScanCode(section);
 	loadScanCode();
 #endif
 

@@ -1140,6 +1140,8 @@ copy "$(SolutionDir)\..\shaders\*.*" "$(OutputPath)\shaders\"</Command>
     <ClInclude Include="..\include\clockdomain.h" />
     <ClInclude Include="..\include\control.h" />
     <ClInclude Include="..\include\cp437_uni.h" />
+    <ClInclude Include="..\include\cp850_uni.h" />
+    <ClInclude Include="..\include\cp858_uni.h" />
     <ClInclude Include="..\include\cp866_uni.h" />
     <ClInclude Include="..\include\cp932_uni.h" />
     <ClInclude Include="..\include\cpu.h" />
