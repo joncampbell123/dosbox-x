@@ -1875,7 +1875,7 @@ static Bitu DOS_21Handler(void) {
                         mem_writeb(data + 0x00,reg_al);
                         mem_writew(data + 0x01,0x26);
 						if (!countryNo) {
-#ifdef WIN32
+#if defined(WIN32)
 							char buffer[128];
 							if (GetLocaleInfo(LOCALE_USER_DEFAULT, LOCALE_ICOUNTRY, buffer, 128))
 								{
@@ -2706,7 +2706,7 @@ public:
 				dos.breakcheck=true;
 			else if (!strcasecmp(dosbreak, "off"))
 				dos.breakcheck=false;
-#ifdef WIN32
+#if defined(WIN32)
 			char *numlock = (char *)config_section->Get_string("numlock");
 			if ((!strcasecmp(numlock, "off")&&startup_state_numlock) || (!strcasecmp(numlock, "on")&&!startup_state_numlock))
 				SetNumLock();

@@ -478,7 +478,7 @@ void DOS_Shell::Run(void) {
         if (machine == MCH_HERC || machine == MCH_MDA) WriteOut(MSG_Get("SHELL_STARTUP_HERC"));
         WriteOut(MSG_Get("SHELL_STARTUP_END"));
 		if (!countryNo) {
-#if defined(WIN32)	
+#if defined(WIN32)
 			char buffer[128];
 			if (GetLocaleInfo(LOCALE_USER_DEFAULT, LOCALE_ICOUNTRY, buffer, 128)) {
 				countryNo = Bit16u(atoi(buffer));
