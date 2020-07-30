@@ -604,7 +604,10 @@ bool keyboard_layout::map_key(Bitu key, Bit16u layouted_key, bool is_command, bo
 				for (Bit16u i=0; i<diacritics_length; i++) {
 					if (diacritics[diacritics_start+i*2]==(layouted_key&0xff)) {
 						// add diacritics to keybuf
-						BIOS_AddKeyToBuffer((Bit16u)(key<<8) | diacritics[diacritics_start+i*2+1]);
+						if (diacritics[diacritics_start+i*2+1] == 0xe0)
+							BIOS_AddKeyToBuffer(diacritics[diacritics_start+i*2+1]);
+						else
+							BIOS_AddKeyToBuffer((Bit16u)(key<<8) | diacritics[diacritics_start+i*2+1]);
 						return true;
 					}
 				}

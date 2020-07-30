@@ -6069,7 +6069,7 @@ void PasteClipboard(bool bPressed) {
 
 bool PasteClipboardNext() {
     if (strPasteBuffer.length() == 0) return false;
-	BIOS_AddKeyToBuffer(strPasteBuffer[0]);
+	BIOS_AddKeyToBuffer(strPasteBuffer[0]<0?strPasteBuffer[0]+0x100:strPasteBuffer[0]);
     strPasteBuffer = strPasteBuffer.substr(1, strPasteBuffer.length());
 	return true;
 }
