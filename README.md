@@ -331,21 +331,32 @@ These significant changes require dropping some useful features (including the m
 URL: https://github.com/yksoft1/dosbox-x-vanilla-sdl/tree/emscripten (look for clone URL and use the emscripten branch)
 
 
-International keyboard layouts
-------------------------------
+International keyboard layouts and codepages
+--------------------------------------------
 
-DOSBox-X was developed around the US keyboard layout.
-This is primarily due to limitations around SDL1, which
-is responsible for input handling, and only supports US
-keyboards. If you have a non-US keyboard it is
-recommended to use the SDL2 build.
-Alternatively with the SDL1 build, in your dosbox-x.conf
-file in the [sdl] section you can set ```usescancodes=true```
-to prevent SDL1 from messing things up.
+DOSBox, and by extension, DOSBox-X was developed around
+the US keyboard layout.
+This is primarily due to limitations around SDL1. SDL is
+responsible for input handling, and SDL1 in particular
+only supports US keyboards. As such when using the SDL1
+version and a non-US keyboard, DOSBox-X will automatically
+use scancodes with the default ```usescancodes=auto```
+config setting to work around keyboard layout problems.
 
-You can set your keyboard layout in the [dos] section
-of the dosbox-x.conf file. For instance to set a German
-keyboard layout you can specify ```keyboardlayout=de```.
+When using the SDL2 binary, scancodes are not needed when
+using non-US keyboard layouts.
+
+When starting DOSBox-X on a Windows system with the default
+```keyboardlayout=auto``` config setting, it will try to
+set the keyboard layout automatically, depending on the
+host OS region, for a wide range of regions. This may not
+necessarily match your actual keyboard, or your region may
+not currently be supported. In addition, the ```auto```
+setting has no effect on Linux and MacOS.
+
+You can set your keyboard layout manually in the [dos]
+section of the dosbox-x.conf file. For instance to set a
+German keyboard layout you can specify ```keyboardlayout=de```.
 It will also automatically set a suitable codepage.
 
 Alternatively, the KEYB command can be used from the 
@@ -358,10 +369,11 @@ This command will switch the current keyboard layout to
 the UK keyboard layout and set code page 858.
 
 Alternatively you can also specify a different codepage
-by adding the codepage number to the end. Most European
-countries would have used codepage 850 back in the day,
-but DOSBox-X instead uses codepage 858, which is the same
-as codepage 850 with the addition of the Euro symbol.
+by adding the codepage number to the end. e.g.
+```KEYB UK 850```. Most Western-European countries would
+have used codepage 850 back in the day, but DOSBox-X by
+default instead uses codepage 858, which is the same as
+codepage 850 with the addition of the Euro symbol.
 
 The Japanese keyboard layout is also supported in NEC
 PC-98 mode. You can start DOSBox-X in PC-98 mode directly
