@@ -1,4 +1,10 @@
 0.83.4
+  - Added dosbox.conf setting to ignore the EGA/VGA
+    "extended memory" bit. It was originally defined
+    back when stock EGA/VGA cards could ship with 64KB
+    of memory. The option is needed for DOS games that
+    accidentally clear the bit when using unchained
+    256-color modes (Mr. Blobby).
   - Add and enable the setting "usescancodes=auto"
     by default to fix issues with non-US keyboards
     on SDL1 builds. (Wengier)

@@ -236,6 +236,7 @@ bool vga_ignore_hdispend_change_if_smaller = false;
 bool ignore_vblank_wraparound = false;
 bool non_cga_ignore_oddeven = false;
 bool non_cga_ignore_oddeven_engage = false;
+bool vga_ignore_extended_memory_bit = false;
 bool vga_palette_update_on_full_load = true;
 bool vga_double_buffered_line_compare = false;
 bool pc98_allow_scanline_effect = true;
@@ -813,6 +814,7 @@ void VGA_Reset(Section*) {
     enable_page_flip_debugging_marker = section->Get_bool("page flip debug line");
     vga_palette_update_on_full_load = section->Get_bool("vga palette update on full load");
     non_cga_ignore_oddeven = section->Get_bool("ignore odd-even mode in non-cga modes");
+    vga_ignore_extended_memory_bit = section->Get_bool("ignore extended memory bit");
     enable_vretrace_poll_debugging_marker = section->Get_bool("vertical retrace poll debug line");
     vga_double_buffered_line_compare = section->Get_bool("double-buffered line compare");
     hack_lfb_yadjust = section->Get_int("vesa lfb base scanline adjust");

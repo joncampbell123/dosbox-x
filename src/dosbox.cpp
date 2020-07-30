@@ -1893,7 +1893,12 @@ void DOSBOX_SetupConfigSections(void) {
     Pbool->Set_help("Some demoscene productions use VGA Mode X but accidentally enable odd/even mode.\n"
                     "Setting this option can correct for that and render the demo properly.\n"
                     "This option forces VGA emulation to ignore odd/even mode except in text and CGA modes.");
-					
+
+    Pbool = secprop->Add_bool("ignore extended memory bit",Property::Changeable::Always,false);
+    Pbool->Set_help("Some DOS applications use VGA 256-color mode but accidentally clear the extended memory\n"
+                    "bit originally defined to indicate whether EGA hardware has more than 64KB of RAM.\n"
+                    "Setting this option can correct for that. Needed for Mr. Blobby.");
+
     secprop=control->AddSection_prop("pc98",&Null_Init);
 	Pbool = secprop->Add_bool("pc-98 BIOS copyright string",Property::Changeable::WhenIdle,false);
     Pbool->Set_help("If set, the PC-98 BIOS copyright string is placed at E800:0000. Enable this for software that detects PC-98 vs Epson.");

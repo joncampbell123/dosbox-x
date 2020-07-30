@@ -38,6 +38,7 @@ uint32_t pc98_pegc_banks[2] = {0x0000,0x0000}; /* bank switching offsets */
 
 extern bool non_cga_ignore_oddeven;
 extern bool non_cga_ignore_oddeven_engage;
+extern bool vga_ignore_extended_memory_bit;
 extern bool enable_pc98_256color_planar;
 extern bool enable_pc98_256color;
 
@@ -236,7 +237,7 @@ static struct {
 } vgapages;
 
 static inline Bitu VGA_Generic_Read_Handler(PhysPt planeaddr,PhysPt rawaddr,unsigned char plane) {
-    const unsigned char hobit_n = (vga.seq.memory_mode&2/*Extended Memory*/) ? 16u : 14u;
+    const unsigned char hobit_n = ((vga.seq.memory_mode&2/*Extended Memory*/) || (vga_ignore_extended_memory_bit && IS_VGA_ARCH)) ? 16u : 14u;
 
     /* Sequencer Memory Mode Register (04h)
      * bits[3:3] = Chain 4 enable
@@ -285,7 +286,7 @@ static inline Bitu VGA_Generic_Read_Handler(PhysPt planeaddr,PhysPt rawaddr,unsi
 }
 
 template <const bool chained> static inline void VGA_Generic_Write_Handler(PhysPt planeaddr,PhysPt rawaddr,Bit8u val) {
-    const unsigned char hobit_n = (vga.seq.memory_mode&2/*Extended Memory*/) ? 16u : 14u;
+    const unsigned char hobit_n = ((vga.seq.memory_mode&2/*Extended Memory*/) || (vga_ignore_extended_memory_bit && IS_VGA_ARCH)) ? 16u : 14u;
     Bit32u mask = vga.config.full_map_mask;
 
     /* Sequencer Memory Mode Register (04h)
