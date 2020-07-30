@@ -363,6 +363,10 @@ Alternatively you can also specify a different codepage by adding the codepage n
 Most Western-European countries would have used codepage 850 back in the day, but DOSBox-X by
 default uses codepage 858, which is the same as codepage 850 with the addition of the Euro symbol.
 
+Note that software that uses certain box drawing characters may not look 100% accurate unless codepage 437
+(default US codepage) is used. But this codepage lacks many diacritic glyphs that may be needed for regional
+support. As such a choice may have to be made between support for those box drawing characters or diacritic glyphs.
+
 The Japanese keyboard layout is also supported in NEC PC-98 mode. You can start DOSBox-X in PC-98 mode directly
 by setting "machine=pc98" in the [dosbox] section of the dosbox-x.conf file.
 
