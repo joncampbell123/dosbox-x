@@ -4,8 +4,8 @@
     on SDL1 builds. (Wengier)
   - Added codepage 850, 852, 855, 857, 858, 869, 872
     for host to guest code page mapping. (Wengier)
-  - Fixed pasting ASCII character 224 in Windows
-    SDL2 or MinGW builds. (Wengier)
+  - Fixed inputting of ASCII character 224 and 240
+    in Windows SDL2 or MinGW builds. (Wengier)
   - Fixed possible DPMI error when running Windows
     98 installation from the DOSBox-X shell without
     using a batch file. (Wengier)
