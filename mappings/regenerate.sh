@@ -1,5 +1,6 @@
 #!/bin/bash
 ./sb2u.pl cp437_to_unicode <CP437.TXT >../include/cp437_uni.h || exit 1
+./sb2u.pl cp808_to_unicode <CP808.TXT >../include/cp808_uni.h || exit 1
 ./sb2u.pl cp850_to_unicode <CP850.TXT >../include/cp850_uni.h || exit 1
 ./sb2u.pl cp852_to_unicode <CP852.TXT >../include/cp852_uni.h || exit 1
 ./sb2u.pl cp855_to_unicode <CP855.TXT >../include/cp855_uni.h || exit 1
