@@ -2,8 +2,9 @@
   - Add and enable the setting "usescancodes=auto"
     by default to fix issues with non-US keyboards
     on SDL1 builds. (Wengier)
-  - Added codepage 850, 852, 855, 857, 858, 869, 872
-    for host to guest code page mapping. (Wengier)
+  - Added code pages 808, 850, 852, 855, 857, 858,
+    869 and 872 for host to guest code page mapping
+    on mounted local or overlay drives. (Wengier)
   - Fixed inputting of ASCII character 224 and 240
     in Windows SDL2 or MinGW builds. (Wengier)
   - Fixed possible DPMI error when running Windows
