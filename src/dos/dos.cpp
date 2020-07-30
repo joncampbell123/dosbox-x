@@ -102,7 +102,7 @@ int maxfcb=100;
 int maxdrive=1;
 int enablelfn=-1;
 bool uselfn;
-extern bool infix, winrun, startcmd;
+extern bool infix, winrun, startcmd, startwait;
 extern bool int15_wait_force_unmask_irq;
 extern bool startup_state_numlock;
 std::string startincon;
@@ -1875,7 +1875,7 @@ static Bitu DOS_21Handler(void) {
                         mem_writeb(data + 0x00,reg_al);
                         mem_writew(data + 0x01,0x26);
 						if (!countryNo) {
-#ifdef WIN32
+#if defined(WIN32)
 							char buffer[128];
 							if (GetLocaleInfo(LOCALE_USER_DEFAULT, LOCALE_ICOUNTRY, buffer, 128))
 								{
@@ -2706,7 +2706,7 @@ public:
 				dos.breakcheck=true;
 			else if (!strcasecmp(dosbreak, "off"))
 				dos.breakcheck=false;
-#ifdef WIN32
+#if defined(WIN32)
 			char *numlock = (char *)config_section->Get_string("numlock");
 			if ((!strcasecmp(numlock, "off")&&startup_state_numlock) || (!strcasecmp(numlock, "on")&&!startup_state_numlock))
 				SetNumLock();
@@ -2739,6 +2739,7 @@ public:
             tsec->HandleInputline("dos clipboard device enable=true");
         }
         startcmd = section->Get_bool("startcmd");
+        startwait = section->Get_bool("startwait");
         startincon = section->Get_string("startincon");
         char *dos_clipboard_device_enable = (char *)section->Get_string("dos clipboard device enable");
 		dos_clipboard_device_access = !strcasecmp(dos_clipboard_device_enable, "dummy")?1:(!strcasecmp(dos_clipboard_device_enable, "read")?2:(!strcasecmp(dos_clipboard_device_enable, "write")?3:(!strcasecmp(dos_clipboard_device_enable, "full")||!strcasecmp(dos_clipboard_device_enable, "true")?4:0)));
@@ -3124,9 +3125,11 @@ public:
 	~DOS(){
 		infix=false;
 #if defined(WIN32) && !defined(HX_DOS)
-        void EndStartProcess(), EndRunProcess();
-        EndStartProcess();
-        EndRunProcess();
+		if (startwait) {
+			void EndStartProcess(), EndRunProcess();
+			EndStartProcess();
+			EndRunProcess();
+		}
 #endif
 		mainMenu.get_item("dos_lfn_auto").enable(false).refresh_item(mainMenu);
 		mainMenu.get_item("dos_lfn_enable").enable(false).refresh_item(mainMenu);

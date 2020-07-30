@@ -2,6 +2,11 @@
   - Add and enable the setting "usescancodes=auto"
     by default to fix issues with non-US keyboards
     on SDL1 builds. (Wengier)
+  - Added code pages 808, 850, 852, 853, 855, 857,
+    858, 869, 872 for host to guest codepage mapping
+    on mounted local or overlay drives. (Wengier)
+  - Fixed inputting of ASCII character 224 and 240
+    in Windows SDL2 or MinGW builds. (Wengier)
   - Fixed possible DPMI error when running Windows
     98 installation from the DOSBox-X shell without
     using a batch file. (Wengier)
@@ -9,7 +14,8 @@
     a byte to get lost if writing up to the end of
     a cluster, which seems to be behind the
     corruption with program group files when running
-    Windows for Workgroups 3.11. [https://github.com/joncampbell123/dosbox-x/issues/1758#issuecomment-665193066]
+    Windows for Workgroups 3.11 from DOSBox-X shell.
+    [https://github.com/joncampbell123/dosbox-x/issues/1758#issuecomment-665193066]
   - Unknown INT 2Fh calls are now debug output, not
     an error.
   - Added VESA BIOS mode 68h alias as indicated on
@@ -60,7 +66,9 @@
   - With -winrun command-line option or the setting
     "startcmd=true" (Windows only), you can now
     directly launch Windows programs on mounted local
-    or overlay drives to run on the host. (Wengier)
+    or overlay drives to run on the host. The option
+    "startwait=false" can be used to disable waiting
+    for Windows programs after started. (Wengier)
   - Added START command to run commands on Windows
     host system. The /MAX, /MIN, /HID options can
     be used to run the specified program maximized,

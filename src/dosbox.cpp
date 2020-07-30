@@ -3282,6 +3282,9 @@ void DOSBOX_SetupConfigSections(void) {
     Pbool = secprop->Add_bool("startcmd",Property::Changeable::OnlyAtStart,false);
     Pbool->Set_help("Allow starting commands to run on the Windows host including the use of START command.");
 
+    Pbool = secprop->Add_bool("startwait",Property::Changeable::OnlyAtStart,true);
+    Pbool->Set_help("Specify whether DOSBox-X should wait for the Windows programs after they are started.");
+
     Pstring = secprop->Add_string("startincon",Property::Changeable::OnlyAtStart,"assoc attrib chcp copy dir echo for ftype help if set type ver vol xcopy");
     Pstring->Set_help("START command will start these commands (separated by space) in a console and wait for a key press before exiting.");
 

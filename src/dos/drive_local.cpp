@@ -43,7 +43,16 @@
 #endif
 
 #include "cp437_uni.h"
+#include "cp808_uni.h"
+#include "cp850_uni.h"
+#include "cp852_uni.h"
+#include "cp853_uni.h"
+#include "cp855_uni.h"
+#include "cp857_uni.h"
+#include "cp858_uni.h"
 #include "cp866_uni.h"
+#include "cp869_uni.h"
+#include "cp872_uni.h"
 #include "cp932_uni.h"
 
 #if defined(PATH_MAX) && !defined(MAX_PATH)
@@ -287,8 +296,26 @@ bool CodePageHostToGuest(char *d/*CROSS_LEN*/,const host_cnv_char_t *s/*CROSS_LE
     switch (dos.loaded_codepage) {
         case 437:
             return String_HOST_TO_SBCS<uint16_t>(d,s,cp437_to_unicode,sizeof(cp437_to_unicode)/sizeof(cp437_to_unicode[0]));
+        case 808:
+            return String_HOST_TO_SBCS<uint16_t>(d,s,cp808_to_unicode,sizeof(cp808_to_unicode)/sizeof(cp808_to_unicode[0]));
+        case 850:
+            return String_HOST_TO_SBCS<uint16_t>(d,s,cp850_to_unicode,sizeof(cp850_to_unicode)/sizeof(cp850_to_unicode[0]));
+        case 852:
+            return String_HOST_TO_SBCS<uint16_t>(d,s,cp852_to_unicode,sizeof(cp852_to_unicode)/sizeof(cp852_to_unicode[0]));
+        case 853:
+            return String_HOST_TO_SBCS<uint16_t>(d,s,cp853_to_unicode,sizeof(cp853_to_unicode)/sizeof(cp853_to_unicode[0]));
+        case 855:
+            return String_HOST_TO_SBCS<uint16_t>(d,s,cp855_to_unicode,sizeof(cp855_to_unicode)/sizeof(cp855_to_unicode[0]));
+        case 857:
+            return String_HOST_TO_SBCS<uint16_t>(d,s,cp857_to_unicode,sizeof(cp857_to_unicode)/sizeof(cp857_to_unicode[0]));
+        case 858:
+            return String_HOST_TO_SBCS<uint16_t>(d,s,cp858_to_unicode,sizeof(cp858_to_unicode)/sizeof(cp858_to_unicode[0]));
         case 866:
             return String_HOST_TO_SBCS<uint16_t>(d,s,cp866_to_unicode,sizeof(cp866_to_unicode)/sizeof(cp866_to_unicode[0]));
+        case 869:
+            return String_HOST_TO_SBCS<uint16_t>(d,s,cp869_to_unicode,sizeof(cp869_to_unicode)/sizeof(cp869_to_unicode[0]));
+        case 872:
+            return String_HOST_TO_SBCS<uint16_t>(d,s,cp872_to_unicode,sizeof(cp872_to_unicode)/sizeof(cp872_to_unicode[0]));
         case 932:
             return String_HOST_TO_DBCS_SHIFTJIS<uint16_t>(d,s,cp932_to_unicode_hitbl,cp932_to_unicode_raw,sizeof(cp932_to_unicode_raw)/sizeof(cp932_to_unicode_raw[0]));
         default:
@@ -308,8 +335,26 @@ bool CodePageGuestToHost(host_cnv_char_t *d/*CROSS_LEN*/,const char *s/*CROSS_LE
     switch (dos.loaded_codepage) {
         case 437:
             return String_SBCS_TO_HOST<uint16_t>(d,s,cp437_to_unicode,sizeof(cp437_to_unicode)/sizeof(cp437_to_unicode[0]));
+        case 808:
+            return String_SBCS_TO_HOST<uint16_t>(d,s,cp808_to_unicode,sizeof(cp808_to_unicode)/sizeof(cp808_to_unicode[0]));
+        case 850:
+            return String_SBCS_TO_HOST<uint16_t>(d,s,cp850_to_unicode,sizeof(cp850_to_unicode)/sizeof(cp850_to_unicode[0]));
+        case 852:
+            return String_SBCS_TO_HOST<uint16_t>(d,s,cp852_to_unicode,sizeof(cp852_to_unicode)/sizeof(cp852_to_unicode[0]));
+        case 853:
+            return String_SBCS_TO_HOST<uint16_t>(d,s,cp853_to_unicode,sizeof(cp853_to_unicode)/sizeof(cp853_to_unicode[0]));
+        case 855:
+            return String_SBCS_TO_HOST<uint16_t>(d,s,cp855_to_unicode,sizeof(cp855_to_unicode)/sizeof(cp855_to_unicode[0]));
+        case 857:
+            return String_SBCS_TO_HOST<uint16_t>(d,s,cp857_to_unicode,sizeof(cp857_to_unicode)/sizeof(cp857_to_unicode[0]));
+        case 858:
+            return String_SBCS_TO_HOST<uint16_t>(d,s,cp858_to_unicode,sizeof(cp858_to_unicode)/sizeof(cp858_to_unicode[0]));
         case 866:
             return String_SBCS_TO_HOST<uint16_t>(d,s,cp866_to_unicode,sizeof(cp866_to_unicode)/sizeof(cp866_to_unicode[0]));
+        case 869:
+            return String_SBCS_TO_HOST<uint16_t>(d,s,cp869_to_unicode,sizeof(cp869_to_unicode)/sizeof(cp869_to_unicode[0]));
+        case 872:
+            return String_SBCS_TO_HOST<uint16_t>(d,s,cp872_to_unicode,sizeof(cp872_to_unicode)/sizeof(cp872_to_unicode[0]));
         case 932:
             return String_DBCS_TO_HOST_SHIFTJIS<uint16_t>(d,s,cp932_to_unicode_hitbl,cp932_to_unicode_raw,sizeof(cp932_to_unicode_raw)/sizeof(cp932_to_unicode_raw[0]));
         default:

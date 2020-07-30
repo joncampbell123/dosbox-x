@@ -65,6 +65,7 @@ bool force_nocachedir = false;
 bool freesizecap = true;
 bool wpcolon = true;
 bool startcmd = false;
+bool startwait = true;
 
 void DOS_EnableDriveMenu(char drv);
 
@@ -5237,6 +5238,7 @@ void KEYB::Run(void) {
             switch (keyb_error) {
                 case KEYB_NOERROR:
                     WriteOut(MSG_Get("PROGRAM_KEYB_NOERROR"),temp_line.c_str(),dos.loaded_codepage);
+                    Drives[DOS_GetDefaultDrive()]->EmptyCache();
                     break;
                 case KEYB_FILENOTFOUND:
                     if (temp_line!="/?"&&temp_line!="-?") WriteOut(MSG_Get("PROGRAM_KEYB_FILENOTFOUND"),temp_line.c_str());
@@ -5761,7 +5763,7 @@ static void LS_ProgramStart(Program * * make) {
 #if defined (WIN32) && !defined(HX_DOS)
 #include <sstream>
 #include <shellapi.h>
-extern bool ctrlbrk;
+extern bool ctrlbrk, startwait;
 extern std::string startincon;
 SHELLEXECUTEINFO lpExecInfo;
 
@@ -5894,7 +5896,7 @@ public:
         ShellExecuteEx(&lpExecInfo);
         int ErrorCode = GetLastError();
         if (setdir) SetCurrentDirectory(winDirCur);
-        if(lpExecInfo.hProcess!=NULL) {
+        if (startwait && lpExecInfo.hProcess!=NULL) {
             DWORD exitCode;
             BOOL ret;
             bool first=true;
