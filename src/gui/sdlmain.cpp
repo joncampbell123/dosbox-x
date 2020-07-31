@@ -7278,6 +7278,50 @@ bool dos_lfn_disable_menu_callback(DOSBoxMenu * const menu,DOSBoxMenu::item * co
     return true;
 }
 
+bool wheel_updown_menu_callback(DOSBoxMenu * const menu,DOSBoxMenu::item * const menuitem) {
+    (void)menu;//UNUSED
+    (void)menuitem;//UNUSED
+    wheel_key = 1;
+    mainMenu.get_item("wheel_updown").check(true).refresh_item(mainMenu);
+    mainMenu.get_item("wheel_leftright").check(false).refresh_item(mainMenu);
+    mainMenu.get_item("wheel_pageupdown").check(false).refresh_item(mainMenu);
+    mainMenu.get_item("wheel_none").check(false).refresh_item(mainMenu);
+    return true;
+}
+
+bool wheel_leftright_menu_callback(DOSBoxMenu * const menu,DOSBoxMenu::item * const menuitem) {
+    (void)menu;//UNUSED
+    (void)menuitem;//UNUSED
+    wheel_key = 2;
+    mainMenu.get_item("wheel_updown").check(false).refresh_item(mainMenu);
+    mainMenu.get_item("wheel_leftright").check(true).refresh_item(mainMenu);
+    mainMenu.get_item("wheel_pageupdown").check(false).refresh_item(mainMenu);
+    mainMenu.get_item("wheel_none").check(false).refresh_item(mainMenu);
+    return true;
+}
+
+bool wheel_pageupdown_menu_callback(DOSBoxMenu * const menu,DOSBoxMenu::item * const menuitem) {
+    (void)menu;//UNUSED
+    (void)menuitem;//UNUSED
+    wheel_key = 3;
+    mainMenu.get_item("wheel_updown").check(false).refresh_item(mainMenu);
+    mainMenu.get_item("wheel_leftright").check(false).refresh_item(mainMenu);
+    mainMenu.get_item("wheel_pageupdown").check(true).refresh_item(mainMenu);
+    mainMenu.get_item("wheel_none").check(false).refresh_item(mainMenu);
+    return true;
+}
+
+bool wheel_none_menu_callback(DOSBoxMenu * const menu,DOSBoxMenu::item * const menuitem) {
+    (void)menu;//UNUSED
+    (void)menuitem;//UNUSED
+    wheel_key = 0;
+    mainMenu.get_item("wheel_updown").check(false).refresh_item(mainMenu);
+    mainMenu.get_item("wheel_leftright").check(false).refresh_item(mainMenu);
+    mainMenu.get_item("wheel_pageupdown").check(false).refresh_item(mainMenu);
+    mainMenu.get_item("wheel_none").check(true).refresh_item(mainMenu);
+    return true;
+}
+
 extern bool                         gdc_5mhz_mode_initial;
 
 bool vid_pc98_5mhz_gdc_menu_callback(DOSBoxMenu * const menu,DOSBoxMenu::item * const menuitem) {
@@ -8756,6 +8800,10 @@ int main(int argc, char* argv[]) SDL_MAIN_NOEXCEPT {
                 DOSBoxMenu::item &item = mainMenu.alloc_item(DOSBoxMenu::submenu_type_id,"MainSendKey");
                 item.set_text("Send special key");
             }
+            {
+                DOSBoxMenu::item &item = mainMenu.alloc_item(DOSBoxMenu::submenu_type_id,"WheelToArrow");
+                item.set_text("Mouse wheel movements");
+            }
         }
         {
             DOSBoxMenu::item &item = mainMenu.alloc_item(DOSBoxMenu::submenu_type_id,"CpuMenu");
@@ -9209,6 +9257,10 @@ int main(int argc, char* argv[]) SDL_MAIN_NOEXCEPT {
         mainMenu.alloc_item(DOSBoxMenu::item_type_id,"sendkey_winlogo").set_text("Logo key").set_callback_function(sendkey_preset_menu_callback);
         mainMenu.alloc_item(DOSBoxMenu::item_type_id,"sendkey_winmenu").set_text("Menu key").set_callback_function(sendkey_preset_menu_callback);
         mainMenu.alloc_item(DOSBoxMenu::item_type_id,"sendkey_cad").set_text("Ctrl+Alt+Del").set_callback_function(sendkey_preset_menu_callback);
+        mainMenu.alloc_item(DOSBoxMenu::item_type_id,"wheel_updown").set_text("Convert to up/down arrows").set_callback_function(wheel_updown_menu_callback);
+        mainMenu.alloc_item(DOSBoxMenu::item_type_id,"wheel_leftright").set_text("Convert to left/right arrows").set_callback_function(wheel_leftright_menu_callback);
+        mainMenu.alloc_item(DOSBoxMenu::item_type_id,"wheel_pageupdown").set_text("Convert to PgUp/PgDn keys").set_callback_function(wheel_pageupdown_menu_callback);
+        mainMenu.alloc_item(DOSBoxMenu::item_type_id,"wheel_none").set_text("Do not convert to arrows").set_callback_function(wheel_none_menu_callback);
         mainMenu.alloc_item(DOSBoxMenu::item_type_id,"doublebuf").set_text("Double Buffering (Fullscreen)").set_callback_function(doublebuf_menu_callback).check(!!GetSetSDLValue(1, doubleBufString, 0));
         mainMenu.alloc_item(DOSBoxMenu::item_type_id,"alwaysontop").set_text("Always on top").set_callback_function(alwaysontop_menu_callback).check(is_always_on_top());
         mainMenu.alloc_item(DOSBoxMenu::item_type_id,"showdetails").set_text("Show details").set_callback_function(showdetails_menu_callback).check(!menu.hidecycles && !menu.showrt);
@@ -9219,6 +9271,11 @@ int main(int argc, char* argv[]) SDL_MAIN_NOEXCEPT {
         mainMenu.alloc_item(DOSBoxMenu::item_type_id,"refreshslot").set_text("Refresh status").set_callback_function(refresh_slots_menu_callback);
 
         mainMenu.get_item("mapper_blankrefreshtest").set_text("Refresh test (blank display)").set_callback_function(refreshtest_menu_callback).refresh_item(mainMenu);
+
+        mainMenu.get_item("wheel_updown").check(wheel_key==1).refresh_item(mainMenu);
+        mainMenu.get_item("wheel_leftright").check(wheel_key==2).refresh_item(mainMenu);
+        mainMenu.get_item("wheel_pageupdown").check(wheel_key==3).refresh_item(mainMenu);
+        mainMenu.get_item("wheel_none").check(wheel_key==0).refresh_item(mainMenu);
 
         bool MENU_get_swapstereo(void);
         mainMenu.get_item("mixer_swapstereo").check(MENU_get_swapstereo()).refresh_item(mainMenu);

@@ -127,6 +127,7 @@ static const char *def_menu_main[] =
     "--",
     "mapper_capmouse",
     "auto_lock_mouse",
+    "WheelToArrow",
 #if defined(WIN32)
     "direct_mouse_clipboard",
 #endif
@@ -158,6 +159,17 @@ static const char *def_menu_main_sendkey[] =
     "sendkey_winmenu",
     "--",
     "sendkey_cad",
+    NULL
+};
+
+/* main -> mouse wheel menu ("WheelToArrows") */
+static const char *def_menu_main_wheelarrow[] =
+{
+    "wheel_updown",
+    "wheel_leftright",
+    "wheel_pageupdown",
+    "--",
+    "wheel_none",
     NULL
 };
 
@@ -1187,6 +1199,9 @@ void ConstructMenu(void) {
 
     /* main sendkey menu */
     ConstructSubMenu(mainMenu.get_item("MainSendKey").get_master_id(), def_menu_main_sendkey);
+
+    /* main mouse wheel movements menu */
+    ConstructSubMenu(mainMenu.get_item("WheelToArrow").get_master_id(), def_menu_main_wheelarrow);
 
     /* cpu menu */
     ConstructSubMenu(mainMenu.get_item("CpuMenu").get_master_id(), def_menu_cpu);

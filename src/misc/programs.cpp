@@ -1053,7 +1053,13 @@ void CONFIG::Run(void) {
 						} else if (!strcasecmp(pvars[0].c_str(), "sdl")) {
 							modifier = section->Get_string("clip_key_modifier");
 							paste_speed = section->Get_int("clip_paste_speed");
-							wheel_key = section->Get_int("mouse_wheel_key");
+							if (!strcasecmp(inputline.substr(0, 16).c_str(), "mouse_wheel_key=")) {
+								wheel_key = section->Get_int("mouse_wheel_key");
+								mainMenu.get_item("wheel_updown").check(wheel_key==1).refresh_item(mainMenu);
+								mainMenu.get_item("wheel_leftright").check(wheel_key==2).refresh_item(mainMenu);
+								mainMenu.get_item("wheel_pageupdown").check(wheel_key==3).refresh_item(mainMenu);
+								mainMenu.get_item("wheel_none").check(wheel_key==0).refresh_item(mainMenu);
+							}
 #if defined(C_SDL2)
 							if (!strcasecmp(inputline.substr(0, 16).c_str(), "mapperfile_sdl2=")) ReloadMapper(section,true);
 #else
