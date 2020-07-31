@@ -281,13 +281,13 @@ in mid-2011. It was started out of a desire to improve the emulator
 without having to fight with or worry about submitting patches
 upstream.
 
-As the forums make it clear, DOSBox's main focus is on DOS games.
-This is evident by the fact that much of the code is somewhat
-accurate code with kludges to make DOS games run, instead of
-focusing on what hardware actually does.
+As its developers have made it clear, DOSBox's main focus is on
+DOS games. This is evident by the fact that much of the code is
+somewhat accurate code with kludges to make DOS games run,
+instead of focusing on what hardware actually does.
 
 Many of the changes I wanted to make were non-game related, and
-therefore were unlikely to be accepted by the developers.
+therefore were unlikely to be accepted by the DOSBox developers.
 
 Since then, I have been modifying the source code over time to
 improve emulation, fix bugs, and resolve incompatibilities with
@@ -316,7 +316,7 @@ exists in DOSBox-X.
 Later on, DOSBox-X also incorporated several features and improvements
 from other projects such as [DOSBox ECE](https://dosboxece.yesterplay.net/), [DOSBox-staging](https://dosbox-staging.github.io/) and
 [vDosPlus](http://www.vdosplus.org/), with major improvements and works from its contributors
-such as Wengier and rderooy.
+such as Wengier, Allofich, and rderooy.
 
 See also the [CREDITS](CREDITS.md) page for crediting of the source code.
 
@@ -338,12 +338,12 @@ DOSBox, and by extension, DOSBox-X was developed around the US keyboard layout.
 This is primarily due to limitations around SDL1. SDL is responsible for input handling, and SDL1 in particular
 only supports US keyboards. As such when using the SDL1 version and a non-US keyboard, DOSBox-X will automatically
 use scancodes with the default ```usescancodes=auto``` config setting to work around keyboard layout problems.
-
-When using the SDL2 binary, scancodes are not needed when using non-US keyboard layouts.
+Scancodes are not needed when using non-US keyboard layouts when using the SDL2 binary. 
 
 If you find that a keyboard layout is not yet supported by DOSBox-X, in order to add additional layouts for use
 with DOSBox-X, please see file [README.keyboard-layout-handling](README.keyboard-layout-handling)
 on how to do so as a developer.
 
-For further information on regional settings of DOSBox-X, including country-specific date/time formats, please look
-at the user guide in the [DOSBox-X Wiki](https://github.com/joncampbell123/dosbox-x/wiki).
+For further information on regional settings of DOSBox-X, such as support for the Euro symbol and country-specific
+date and time formats as well as using language files for customized display messages and a list of supported
+keyboard layouts in DOSBox-X, please look at the user guide in the [DOSBox-X Wiki](https://github.com/joncampbell123/dosbox-x/wiki).
