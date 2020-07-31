@@ -3762,7 +3762,7 @@ static void GUI_StartUp() {
     MAPPER_AddHandler(SwitchFullScreen,MK_f,MMODHOST,"fullscr","Fullscreen", &item);
     item->set_text("Toggle fullscreen");
 
-    MAPPER_AddHandler(PasteClipboard, MK_nothing, 0, "paste", "ClipPaste"); //end emendelson
+    MAPPER_AddHandler(PasteClipboard, MK_nothing, 0, "paste", "Paste Clip"); //end emendelson
 #if C_DEBUG
     /* Pause binds with activate-debugger */
     MAPPER_AddHandler(&PauseDOSBox, MK_pause, MMOD1, "pause", "Pause");

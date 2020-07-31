@@ -2138,7 +2138,7 @@ void PRINTER_Init()
 	//IO_RegisterWriteHandler(LPTPORT+2,PRINTER_writecontrol,IO_MB);
 	//IO_RegisterReadHandler(LPTPORT+2,PRINTER_readcontrol,IO_MB);
 
-	MAPPER_AddHandler(FormFeed, MK_f2 , MMOD1, "ejectpage", "formfeed");
+	MAPPER_AddHandler(FormFeed, MK_f2 , MMOD1, "ejectpage", "Formfeed");
 }
 
 #endif

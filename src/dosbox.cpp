@@ -1013,7 +1013,7 @@ void DOSBOX_RealInit() {
         item->set_text("Speed up");
     }
     {
-        MAPPER_AddHandler(DOSBOX_SlowDown, MK_lbracket, MMODHOST,"slowdown","SlowDn", &item);
+        MAPPER_AddHandler(DOSBOX_SlowDown, MK_lbracket, MMODHOST,"slowdown","SlowDown", &item);
         item->set_text("Slow down");
     }
 	{
