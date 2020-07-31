@@ -1,4 +1,6 @@
 0.83.4
+  - Fixed loading saved states in fullscreen mode with
+    the "aspect=true" setting. (Wengier)
   - Added dosbox-x.conf setting to ignore the EGA/VGA
     "extended memory" bit. It was originally defined
     back when stock EGA/VGA cards could ship with 64KB
@@ -6,8 +8,9 @@
     accidentally clear the bit when using unchained
     256-color modes (Mr. Blobby).
   - Added new default value "auto" for the setting
-    "usescancodesauto" (in [sdl] section) to fix issue
-    with non-US keyboards on SDL1 builds. (Wengier)
+    "usescancodesauto" (in [sdl] section of the config
+    file) to work around issues with non-US keyboard
+    layouts on SDL1 builds. (Wengier)
   - Added code pages 808, 850, 852, 853, 855, 857,
     858, 869, 872 for host to guest codepage mapping
     on mounted local or overlay drives. (Wengier)

@@ -6146,7 +6146,7 @@ void SDL_SetupConfigSection() {
     Prop_multival* Pmulti;
 
     Pbool = sdl_sec->Add_bool("fullscreen",Property::Changeable::Always,false);
-    Pbool->Set_help("Start DOSBox-X directly in fullscreen. (Press ALT-Enter to go back)");
+    Pbool->Set_help("Start DOSBox-X directly in fullscreen. (Press Host+F to go back)");
      
     Pbool = sdl_sec->Add_bool("fulldouble",Property::Changeable::Always,false);
     Pbool->Set_help("Use double buffering in fullscreen. It can reduce screen flickering, but it can also result in a slow DOSBox-X.");
