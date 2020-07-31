@@ -6146,7 +6146,7 @@ void SDL_SetupConfigSection() {
     Prop_multival* Pmulti;
 
     Pbool = sdl_sec->Add_bool("fullscreen",Property::Changeable::Always,false);
-    Pbool->Set_help("Start DOSBox-X directly in fullscreen. (Press Host+F to go back)");
+    Pbool->Set_help("Start DOSBox-X directly in fullscreen. (Press [F11/F12]+F to go back)");
      
     Pbool = sdl_sec->Add_bool("fulldouble",Property::Changeable::Always,false);
     Pbool->Set_help("Use double buffering in fullscreen. It can reduce screen flickering, but it can also result in a slow DOSBox-X.");
@@ -7990,6 +7990,17 @@ bool highdpienable_menu_callback(DOSBoxMenu * const menu, DOSBoxMenu::item * con
     return true;
 }
 
+void SendCAD(bool pressed) {
+    if (!pressed) return;
+
+	KEYBOARD_AddKey(KBD_leftctrl, true);
+	KEYBOARD_AddKey(KBD_leftalt, true);
+	KEYBOARD_AddKey(KBD_delete, true);
+	KEYBOARD_AddKey(KBD_leftctrl, false);
+	KEYBOARD_AddKey(KBD_leftalt, false);
+	KEYBOARD_AddKey(KBD_delete, false);
+}
+
 bool sendkey_preset_menu_callback(DOSBoxMenu * const menu, DOSBoxMenu::item * const menuitem) {
     (void)menu;//UNUSED
     if (menuitem->get_name() == "sendkey_ctrlesc") {
@@ -8012,14 +8023,8 @@ bool sendkey_preset_menu_callback(DOSBoxMenu * const menu, DOSBoxMenu::item * co
         KEYBOARD_AddKey(KBD_rwinmenu, true);
         KEYBOARD_AddKey(KBD_rwinmenu, false);
     }
-    else if (menuitem->get_name() == "sendkey_cad") {
-        KEYBOARD_AddKey(KBD_leftctrl, true);
-        KEYBOARD_AddKey(KBD_leftalt, true);
-        KEYBOARD_AddKey(KBD_delete, true);
-        KEYBOARD_AddKey(KBD_leftctrl, false);
-        KEYBOARD_AddKey(KBD_leftalt, false);
-        KEYBOARD_AddKey(KBD_delete, false);
-    }
+    else if (menuitem->get_name() == "sendkey_cad")
+        SendCAD(true);
 
     return true;
 }
@@ -9172,6 +9177,12 @@ int main(int argc, char* argv[]) SDL_MAIN_NOEXCEPT {
         PCSPEAKER_Init();
         TANDYSOUND_Init();
         MPU401_Init();
+        {
+            DOSBoxMenu::item *item;
+
+            MAPPER_AddHandler(SendCAD, MK_delete, MMODHOST, "sendkey_cad", "CtrlAltDel", &item);
+            item->set_text("Ctrl+Alt+Del");
+        }
         MIXER_Init();
         MIDI_Init();
         CPU_Init();
@@ -9267,7 +9278,7 @@ int main(int argc, char* argv[]) SDL_MAIN_NOEXCEPT {
         mainMenu.alloc_item(DOSBoxMenu::item_type_id,"highdpienable").set_text("High DPI enable").set_callback_function(highdpienable_menu_callback).check(dpi_aware_enable);
         mainMenu.alloc_item(DOSBoxMenu::item_type_id,"shell_config_commands").set_text("Config options as commands").set_callback_function(shell_config_commands_menu_callback).check(enable_config_as_shell_commands);
         mainMenu.alloc_item(DOSBoxMenu::item_type_id,"quick_reboot").set_text("Enable quick reboot").set_callback_function(quick_reboot_menu_callback).check(use_quick_reboot);
-        mainMenu.alloc_item(DOSBoxMenu::item_type_id,"force_loadstate").set_text("Force load state").set_callback_function(force_loadstate_menu_callback).check(force_load_state);
+        mainMenu.alloc_item(DOSBoxMenu::item_type_id,"force_loadstate").set_text("Force load state mode").set_callback_function(force_loadstate_menu_callback).check(force_load_state);
         mainMenu.alloc_item(DOSBoxMenu::item_type_id,"refreshslot").set_text("Refresh status").set_callback_function(refresh_slots_menu_callback);
 
         mainMenu.get_item("mapper_blankrefreshtest").set_text("Refresh test (blank display)").set_callback_function(refreshtest_menu_callback).refresh_item(mainMenu);

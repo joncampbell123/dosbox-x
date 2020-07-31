@@ -291,7 +291,7 @@ void menu_update_core(void) {
                (cpudecoder != &CPU_Core286_Normal_Run) &&
                (cpudecoder != &CPU_Core8086_Normal_Run)).
         refresh_item(mainMenu);
-    mainMenu.get_item("mapper_full").
+    mainMenu.get_item("menu_full").
         check(cpudecoder == &CPU_Core_Full_Run).
         enable((cpudecoder != &CPU_Core_Prefetch_Run) &&
                (cpudecoder != &CPU_Core286_Prefetch_Run) &&
@@ -2966,14 +2966,13 @@ static void CPU_ToggleAutoCycles(bool pressed) {
 }
 
 #if !defined(C_EMSCRIPTEN)
-static void CPU_ToggleFullCore(bool pressed) {
-    if (!pressed)
-	return;
+bool CPU_ToggleFullCore(DOSBoxMenu * const menu, DOSBoxMenu::item * const menuitem) {
     Section* sec=control->GetSection("cpu");
     if(sec) {
 	std::string tmp="core=full";
 	sec->HandleInputline(tmp);
     }
+	return true;
 }
 #endif
 
@@ -3188,9 +3187,9 @@ public:
 		MAPPER_AddHandler(CPU_ToggleNormalCore,MK_nothing,0,"normal"  ,"NormalCore", &item);
 		item->set_text("Normal core");
 
-#if !defined(C_EMSCRIPTEN)
-		MAPPER_AddHandler(CPU_ToggleFullCore,MK_nothing,0,"full","Full Core", &item);
-		item->set_text("Full core");
+#if !defined(C_EMSCRIPTEN) // Full core is not recommended in most cases and out of space for mapper
+        mainMenu.alloc_item(DOSBoxMenu::item_type_id,"menu_full").
+            set_text("Full core").set_callback_function(CPU_ToggleFullCore);
 #endif
 #if !defined(C_EMSCRIPTEN)
 		MAPPER_AddHandler(CPU_ToggleSimpleCore,MK_nothing,0,"simple","SimpleCore", &item);
