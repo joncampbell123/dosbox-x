@@ -331,19 +331,23 @@ These significant changes require dropping some useful features (including the m
 URL: https://github.com/yksoft1/dosbox-x-vanilla-sdl/tree/emscripten (look for clone URL and use the emscripten branch)
 
 
-International keyboard layouts and codepages
---------------------------------------------
+Support for international language translations and keyboard layouts
+--------------------------------------------------------------------
 
-DOSBox, and by extension, DOSBox-X was developed around the US keyboard layout.
-This is primarily due to limitations around SDL1. SDL is responsible for input handling, and SDL1 in particular
-only supports US keyboards. As such when using the SDL1 version and a non-US keyboard, DOSBox-X will automatically
-use scancodes with the default ```usescancodes=auto``` config setting to work around keyboard layout problems.
-Scancodes are not needed when using non-US keyboard layouts when using the SDL2 binary. 
+DOSBox-X displays English as the default language, and uses the U.S. code page (437) by default, just like DOSBox.
+
+All messages displayed by DOSBox-X are in English with the default setting. If you are a speaker of a non-English
+language, you can create additional language files for use with DOSBox-X by translating messages in DOSBox-X to your
+language. Other DOSBox-X users may also use these language files if they prefer.
+
+The fact that DOSBox-X was developed around the U.S. keyboard layout is primarily due to limitations around the SDL1
+library. SDL is responsible for input handling, and SDL1 in particular only supports US keyboards. As such when using
+the SDL1 version and a non-US keyboard, DOSBox-X will automatically use scancodes with the default ```usescancodes=auto```
+setting to work around keyboard layout issues. Scancodes are not needed when using non-US keyboard layouts in the SDL2 version.
 
 If you find that a keyboard layout is not yet supported by DOSBox-X, in order to add additional layouts for use
 with DOSBox-X, please see file [README.keyboard-layout-handling](README.keyboard-layout-handling)
 on how to do so as a developer.
 
-For further information on regional settings of DOSBox-X, such as support for the Euro symbol and country-specific
-date and time formats as well as using language files for customized display messages and a list of supported
-keyboard layouts in DOSBox-X, please look at the user guide in the [DOSBox-X Wiki](https://github.com/joncampbell123/dosbox-x/wiki).
+For further information on international support and regional settings of DOSBox-X, such as steps to create DOSBox-X
+language files or use external keyboard files in DOSBox-X, as well as support for the Euro symbol and country-specific date and time formats, please look at the user guide in the [DOSBox-X Wiki](https://github.com/joncampbell123/dosbox-x/wiki).
