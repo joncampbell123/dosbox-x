@@ -254,7 +254,6 @@ void DOS_SetCountry(Bit16u countryNo) {
 		case 81:  // Japan
 		case 82:  // South Korea
 		case 86:  // China
-		case 88:  // ???
 		case 354: // Iceland
 		case 886: // Taiwan
 			*dos.tables.country=2; // YYYY-MM-DD
@@ -273,7 +272,6 @@ void DOS_SetCountry(Bit16u countryNo) {
 		case 39:  // Italy
 		case 44:  // United Kingdom
 		case 55:  // Brazil
-		case 88:  // ???
 		case 90:  // Turkey
 		case 785: // Arabic countries
 		case 886: // Taiwan
