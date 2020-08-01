@@ -184,7 +184,7 @@ static const char *def_menu_cpu_core[] =
 #endif
 #if !defined(C_EMSCRIPTEN)//FIXME: Shutdown causes problems with Emscripten
     "mapper_simple",
-    "menu_full",
+    "mapper_full",
 #endif
     NULL
 };
@@ -328,7 +328,7 @@ static const char *def_menu_video_pc98[] =
 /* video output debug ("VideoDebugMenu") */
 static const char *def_menu_video_debug[] =
 {
-    "mapper_blankrefreshtest",
+    "debug_blankrefreshtest",
     "--",
     "debug_pageflip",
     "debug_retracepoll",

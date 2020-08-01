@@ -807,11 +807,11 @@ void RENDER_SetSize(Bitu width,Bitu height,Bitu bpp,float fps,double scrn_ratio)
     RENDER_Reset( );
 }
 
-void BlankDisplay(void);
+/*void BlankDisplay(void);
 static void BlankTestRefresh(bool pressed) {
     (void)pressed;
     BlankDisplay();
-}
+}*/
 
 //extern void GFX_SetTitle(Bit32s cycles, Bits frameskip, Bits timing, bool paused);
 static void IncreaseFrameSkip(bool pressed) {
@@ -1061,7 +1061,7 @@ void RENDER_Init() {
 	item->set_text("Fit to aspect ratio");
 
     // DEBUG option
-    MAPPER_AddHandler(BlankTestRefresh,MK_nothing,0,"blankrefreshtest","RefrshTest");
+    mainMenu.alloc_item(DOSBoxMenu::item_type_id,"debug_blankrefreshtest");
 
     mainMenu.get_item("vga_9widetext").check(vga.draw.char9_set).refresh_item(mainMenu);
     mainMenu.get_item("doublescan").check(vga.draw.doublescan_set).refresh_item(mainMenu);
