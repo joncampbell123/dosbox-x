@@ -42,6 +42,7 @@ extern bool use_quick_reboot;
 extern bool startcmd, startwait, winautorun;
 extern bool enable_config_as_shell_commands;
 extern bool dos_shell_running_program;
+extern const char* RunningProgram;
 extern Bit16u countryNo;
 bool usecon = true;
 
@@ -606,6 +607,10 @@ void DOS_Shell::Run(void) {
 		line.erase();
 		ParseLine(input_line);
 	}
+    if (!exit) {
+        RunningProgram = "COMMAND";
+        GFX_SetTitle(-1,-1,-1,false);
+    }
 	do {
 		/* Get command once a line */
 		if (bf) {

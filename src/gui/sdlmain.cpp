@@ -9075,9 +9075,9 @@ int main(int argc, char* argv[]) SDL_MAIN_NOEXCEPT {
                 item.set_text("Windows host applications");
 
                 {
-                    mainMenu.alloc_item(DOSBoxMenu::item_type_id,"dos_win_autorun").set_text("Auto-run on the host").
+                    mainMenu.alloc_item(DOSBoxMenu::item_type_id,"dos_win_autorun").set_text("Launch to run on the host").
                         set_callback_function(dos_win_autorun_menu_callback);
-                    mainMenu.alloc_item(DOSBoxMenu::item_type_id,"dos_win_wait").set_text("Wait for application").
+                    mainMenu.alloc_item(DOSBoxMenu::item_type_id,"dos_win_wait").set_text("Wait for the application").
                         set_callback_function(dos_win_wait_menu_callback);
                 }
             }
