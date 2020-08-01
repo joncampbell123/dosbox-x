@@ -17,8 +17,9 @@
     858, 869, 872 for host to guest codepage mapping
     on mounted local or overlay drives. (Wengier)
   - The mapper options "Increase recording volume" and
-    "Decrease recording volume" now show as menu items
-    (under "Sound") too. (Wengier)
+    "Decrease recording volume" as well as the "Show
+    sound levels" (MIXER) command now appear as menu
+    items (under "Sound") too. (Wengier)
   - Fixed inputting of ASCII character 224 and 240
     in Windows SDL2 or MinGW builds. (Wengier)
   - Fixed possible DPMI error when running Windows

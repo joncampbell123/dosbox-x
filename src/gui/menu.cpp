@@ -431,6 +431,8 @@ static const char *def_menu_dos_ver[] =
     "dos_ver_500",
     "dos_ver_622",
     "dos_ver_710",
+    "--",
+    "dos_ver_edit",
     NULL
 };
 
@@ -478,6 +480,8 @@ static const char *def_menu_sound[] =
     "--",
     "mapper_recvolup",
     "mapper_recvoldown",
+    "--",
+    "mixer_info",
     "--",
     "mixer_mute",
     "mixer_swapstereo",

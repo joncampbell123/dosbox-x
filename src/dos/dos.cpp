@@ -3112,7 +3112,8 @@ public:
 						dos.version.major, dos.version.minor);
 			}
 		}
-		dos_ver_menu(true);
+        dos_ver_menu(true);
+        mainMenu.get_item("dos_ver_edit").enable(true).refresh_item(mainMenu);
 
         if (IS_PC98_ARCH) {
             void PC98_InitDefFuncRow(void);
@@ -3139,6 +3140,7 @@ public:
 		mainMenu.get_item("dos_ver_500").enable(false).refresh_item(mainMenu);
 		mainMenu.get_item("dos_ver_622").enable(false).refresh_item(mainMenu);
 		mainMenu.get_item("dos_ver_710").enable(false).refresh_item(mainMenu);
+		mainMenu.get_item("dos_ver_edit").enable(false).refresh_item(mainMenu);
 		mainMenu.get_item("shell_config_commands").enable(false).refresh_item(mainMenu);
 		/* NTS: We do NOT free the drives! The OS may use them later! */
 		void DOS_ShutdownFiles();
