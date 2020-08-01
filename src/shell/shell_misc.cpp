@@ -872,8 +872,8 @@ overflow:
 
 std::string full_arguments = "";
 intptr_t hret=0;
-bool infix=false;
-extern bool packerr, reqwin, startcmd, startwait, ctrlbrk;
+bool infix=false, winautorun=false;
+extern bool packerr, reqwin, startwait, ctrlbrk;
 #if defined (WIN32) && !defined(HX_DOS)
 void EndRunProcess() {
     if(hret) {
@@ -1145,7 +1145,7 @@ continue_1:
 				DOS_FreeMemory(segment);
 			}
 #if defined (WIN32) && !defined(HX_DOS)
-		} else if (startcmd&&reqwin) {
+		} else if (winautorun&&reqwin&&!control->SecureMode()) {
             char comline[256], *p=comline;
             char winDirCur[512], winDirNew[512], winName[256];
             Bit8u drive;

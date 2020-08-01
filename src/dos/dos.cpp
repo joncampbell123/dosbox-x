@@ -2739,7 +2739,6 @@ public:
             tsec->HandleInputline("dos clipboard device enable=true");
         }
         startcmd = section->Get_bool("startcmd");
-        startwait = section->Get_bool("startwait");
         startincon = section->Get_string("startincon");
         char *dos_clipboard_device_enable = (char *)section->Get_string("dos clipboard device enable");
 		dos_clipboard_device_access = !strcasecmp(dos_clipboard_device_enable, "dummy")?1:(!strcasecmp(dos_clipboard_device_enable, "read")?2:(!strcasecmp(dos_clipboard_device_enable, "write")?3:(!strcasecmp(dos_clipboard_device_enable, "full")||!strcasecmp(dos_clipboard_device_enable, "true")?4:0)));
@@ -3130,6 +3129,8 @@ public:
 			EndStartProcess();
 			EndRunProcess();
 		}
+        mainMenu.get_item("dos_win_autorun").enable(false).refresh_item(mainMenu);
+        mainMenu.get_item("dos_win_wait").enable(false).refresh_item(mainMenu);
 #endif
 		mainMenu.get_item("dos_lfn_auto").enable(false).refresh_item(mainMenu);
 		mainMenu.get_item("dos_lfn_enable").enable(false).refresh_item(mainMenu);
