@@ -179,12 +179,12 @@ static const char *def_menu_cpu_core[] =
     "mapper_cycauto",
     "--",
     "mapper_normal",
-#if !defined(C_EMSCRIPTEN)//FIXME: Shutdown causes problems with Emscripten
-    "menu_full",
-    "mapper_simple",
-#endif
 #if defined(C_DYNAMIC_X86) || defined(C_DYNREC)
     "mapper_dynamic",
+#endif
+#if !defined(C_EMSCRIPTEN)//FIXME: Shutdown causes problems with Emscripten
+    "mapper_simple",
+    "menu_full",
 #endif
     NULL
 };
@@ -462,6 +462,9 @@ static const char *def_menu_sound[] =
 {
     "mapper_volup",
     "mapper_voldown",
+    "--",
+    "mapper_recvolup",
+    "mapper_recvoldown",
     "--",
     "mixer_mute",
     "mixer_swapstereo",
