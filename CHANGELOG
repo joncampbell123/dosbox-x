@@ -16,6 +16,9 @@
   - Added code pages 808, 850, 852, 853, 855, 857,
     858, 869, 872 for host to guest codepage mapping
     on mounted local or overlay drives. (Wengier)
+  - The mapper options "Increase recording volume" and
+    "Decrease recording volume" now show as menu items
+    (under "Sound") too. (Wengier)
   - Fixed inputting of ASCII character 224 and 240
     in Windows SDL2 or MinGW builds. (Wengier)
   - Fixed possible DPMI error when running Windows
