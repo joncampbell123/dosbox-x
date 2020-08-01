@@ -396,6 +396,9 @@ static const char *def_menu_dos[] =
     "--",
     "DOSPC98Menu",
     "--",
+#if defined(WIN32) && !defined(HX_DOS)
+    "DOSWinMenu",
+#endif
     "shell_config_commands",
     "--",
     "quick_reboot",
@@ -448,6 +451,16 @@ static const char *def_menu_dos_pc98[] =
     "dos_pc98_pit_5mhz",
     NULL
 };
+
+#if defined(WIN32) && !defined(HX_DOS)
+/* DOS WIN menu ("DOSWinMenu") */
+static const char *def_menu_dos_win[] =
+{
+    "dos_win_autorun",
+    "dos_win_wait",
+    NULL
+};
+#endif
 
 /* DOS debug ("DOSDebugMenu") */
 static const char *def_menu_dos_debug[] =
@@ -1282,6 +1295,11 @@ void ConstructMenu(void) {
 
     /* DOS PC-98 menu */
     ConstructSubMenu(mainMenu.get_item("DOSPC98Menu").get_master_id(), def_menu_dos_pc98);
+
+#if defined(WIN32) && !defined(HX_DOS)
+    /* DOS WIN menu */
+    ConstructSubMenu(mainMenu.get_item("DOSWinMenu").get_master_id(), def_menu_dos_win);
+#endif
 
     /* DOS debug menu */
     ConstructSubMenu(mainMenu.get_item("DOSDebugMenu").get_master_id(), def_menu_dos_debug);

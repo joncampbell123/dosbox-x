@@ -7273,6 +7273,26 @@ bool dos_lfn_disable_menu_callback(DOSBoxMenu * const menu,DOSBoxMenu::item * co
     return true;
 }
 
+#if defined(WIN32) && !defined(HX_DOS)
+bool dos_win_autorun_menu_callback(DOSBoxMenu * const menu,DOSBoxMenu::item * const menuitem) {
+    (void)menu;//UNUSED
+    (void)menuitem;//UNUSED
+    extern bool winautorun;
+    winautorun = !winautorun;
+    mainMenu.get_item("dos_win_autorun").check(winautorun).refresh_item(mainMenu);
+    return true;
+}
+
+bool dos_win_wait_menu_callback(DOSBoxMenu * const menu,DOSBoxMenu::item * const menuitem) {
+    (void)menu;//UNUSED
+    (void)menuitem;//UNUSED
+    extern bool startwait;
+    startwait = !startwait;
+    mainMenu.get_item("dos_win_wait").check(startwait).refresh_item(mainMenu);
+    return true;
+}
+#endif
+
 bool wheel_updown_menu_callback(DOSBoxMenu * const menu,DOSBoxMenu::item * const menuitem) {
     (void)menu;//UNUSED
     (void)menuitem;//UNUSED
@@ -9010,6 +9030,20 @@ int main(int argc, char* argv[]) SDL_MAIN_NOEXCEPT {
                         set_callback_function(dos_pc98_clock_menu_callback);
                 }
             }
+
+#if defined(WIN32) && !defined(HX_DOS)
+            {
+                DOSBoxMenu::item &item = mainMenu.alloc_item(DOSBoxMenu::submenu_type_id,"DOSWinMenu");
+                item.set_text("Windows host applications");
+
+                {
+                    mainMenu.alloc_item(DOSBoxMenu::item_type_id,"dos_win_autorun").set_text("Auto-run on the host").
+                        set_callback_function(dos_win_autorun_menu_callback);
+                    mainMenu.alloc_item(DOSBoxMenu::item_type_id,"dos_win_wait").set_text("Wait for application").
+                        set_callback_function(dos_win_wait_menu_callback);
+                }
+            }
+#endif
 
             {
                 DOSBoxMenu::item &item = mainMenu.alloc_item(DOSBoxMenu::submenu_type_id,"DOSDebugMenu");

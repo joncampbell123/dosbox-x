@@ -1096,8 +1096,12 @@ void CONFIG::Run(void) {
 							} else if (!strcasecmp(inputline.substr(0, 32).c_str(), "shell configuration as commands=")) {
 								enable_config_as_shell_commands = section->Get_bool("shell configuration as commands");
 								mainMenu.get_item("shell_config_commands").check(enable_config_as_shell_commands).enable(true).refresh_item(mainMenu);
-							} else if (!strcasecmp(inputline.substr(0, 10).c_str(), "startwait="))
+#if defined(WIN32) && !defined(HX_DOS)
+							} else if (!strcasecmp(inputline.substr(0, 10).c_str(), "startwait=")) {
 								startwait = section->Get_bool("startwait");
+								mainMenu.get_item("dos_win_wait").check(startwait).enable(true).refresh_item(mainMenu);
+#endif
+                            }
 						}
 					}
 				}

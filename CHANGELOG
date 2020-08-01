@@ -82,7 +82,8 @@
     directly launch Windows programs on mounted local
     or overlay drives to run on the host. The option
     "startwait=false" can be used to disable waiting
-    for Windows programs after started. (Wengier)
+    for Windows programs after started. This can also
+    be toggled from the "DOS" menu. (Wengier)
   - Added START command to run commands on Windows
     host system. The /MAX, /MIN, /HID options can
     be used to run the specified program maximized,
