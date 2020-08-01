@@ -178,7 +178,6 @@ void osx_init_touchbar(void);
 #endif
 
 void ShutDownMemHandles(Section * sec);
-void MAPPER_AutoType(std::vector<std::string> &sequence, const uint32_t wait_ms, const uint32_t pacing_ms);
 
 SDL_Block sdl;
 Bitu frames = 0;
@@ -4897,9 +4896,8 @@ static void HandleMouseButton(SDL_MouseButtonEvent * button, SDL_MouseMotionEven
 				ip.ki.dwFlags = KEYEVENTF_SCANCODE | KEYEVENTF_KEYUP | KEYEVENTF_EXTENDEDKEY;
 				SendInput(1, &ip, sizeof(INPUT));
 #else
-				std::vector<std::string> sequence;
-				sequence.push_back(std::string(wheel_key==2?"left":(wheel_key==3?"pageup":"up")));
-				MAPPER_AutoType(sequence, 1/*ms*/, 0);
+                KEYBOARD_AddKey(wheel_key==2?KBD_left:(wheel_key==3?KBD_pageup:KBD_up), true);
+                KEYBOARD_AddKey(wheel_key==2?KBD_left:(wheel_key==3?KBD_pageup:KBD_up), false);
 #endif
 			} else
 				Mouse_ButtonPressed(100-1);
@@ -4917,9 +4915,8 @@ static void HandleMouseButton(SDL_MouseButtonEvent * button, SDL_MouseMotionEven
 				ip.ki.dwFlags = KEYEVENTF_SCANCODE | KEYEVENTF_KEYUP | KEYEVENTF_EXTENDEDKEY;
 				SendInput(1, &ip, sizeof(INPUT));
 #else
-				std::vector<std::string> sequence;
-				sequence.push_back(std::string(wheel_key==2?"right":(wheel_key==3?"pagedown":"down")));
-				MAPPER_AutoType(sequence, 1/*ms*/, 0);
+                KEYBOARD_AddKey(wheel_key==2?KBD_right:(wheel_key==3?KBD_pagedown:KBD_down), true);
+                KEYBOARD_AddKey(wheel_key==2?KBD_right:(wheel_key==3?KBD_pagedown:KBD_down), false);
 #endif
 			} else
 				Mouse_ButtonPressed(100+1);
@@ -5418,9 +5415,8 @@ void GFX_Events() {
 					ip.ki.dwFlags = KEYEVENTF_SCANCODE | KEYEVENTF_KEYUP | KEYEVENTF_EXTENDEDKEY;
 					SendInput(1, &ip, sizeof(INPUT));
 #else
-					std::vector<std::string> sequence;
-					sequence.push_back(std::string(wheel_key==2?"left":(wheel_key==3?"pageup":"up")));
-					MAPPER_AutoType(sequence, 1/*ms*/, 0);
+                    KEYBOARD_AddKey(wheel_key==2?KBD_left:(wheel_key==3?KBD_pageup:KBD_up), true);
+                    KEYBOARD_AddKey(wheel_key==2?KBD_left:(wheel_key==3?KBD_pageup:KBD_up), false);
 #endif
 				} else if(event.wheel.y < 0) {
 #if defined (WIN32) && !defined(HX_DOS)
@@ -5434,9 +5430,8 @@ void GFX_Events() {
 					ip.ki.dwFlags = KEYEVENTF_SCANCODE | KEYEVENTF_KEYUP | KEYEVENTF_EXTENDEDKEY;
 					SendInput(1, &ip, sizeof(INPUT));
 #else
-					std::vector<std::string> sequence;
-					sequence.push_back(std::string(wheel_key==2?"right":(wheel_key==3?"pagedown":"down")));
-					MAPPER_AutoType(sequence, 1/*ms*/, 0);
+                    KEYBOARD_AddKey(wheel_key==2?KBD_right:(wheel_key==3?KBD_pagedown:KBD_down), true);
+                    KEYBOARD_AddKey(wheel_key==2?KBD_right:(wheel_key==3?KBD_pagedown:KBD_down), false);
 #endif
 				}
 			}
@@ -9177,14 +9172,14 @@ int main(int argc, char* argv[]) SDL_MAIN_NOEXCEPT {
         PCSPEAKER_Init();
         TANDYSOUND_Init();
         MPU401_Init();
+        MIXER_Init();
+        MIDI_Init();
         {
             DOSBoxMenu::item *item;
 
             MAPPER_AddHandler(SendCAD, MK_delete, MMODHOST, "sendkey_cad", "CtrlAltDel", &item);
             item->set_text("Ctrl+Alt+Del");
         }
-        MIXER_Init();
-        MIDI_Init();
         CPU_Init();
 #if C_FPU
         FPU_Init();
@@ -9271,7 +9266,7 @@ int main(int argc, char* argv[]) SDL_MAIN_NOEXCEPT {
         mainMenu.alloc_item(DOSBoxMenu::item_type_id,"wheel_updown").set_text("Convert to up/down arrows").set_callback_function(wheel_updown_menu_callback);
         mainMenu.alloc_item(DOSBoxMenu::item_type_id,"wheel_leftright").set_text("Convert to left/right arrows").set_callback_function(wheel_leftright_menu_callback);
         mainMenu.alloc_item(DOSBoxMenu::item_type_id,"wheel_pageupdown").set_text("Convert to PgUp/PgDn keys").set_callback_function(wheel_pageupdown_menu_callback);
-        mainMenu.alloc_item(DOSBoxMenu::item_type_id,"wheel_none").set_text("Do not convert to arrows").set_callback_function(wheel_none_menu_callback);
+        mainMenu.alloc_item(DOSBoxMenu::item_type_id,"wheel_none").set_text("Do not convert to arrow keys").set_callback_function(wheel_none_menu_callback);
         mainMenu.alloc_item(DOSBoxMenu::item_type_id,"doublebuf").set_text("Double Buffering (Fullscreen)").set_callback_function(doublebuf_menu_callback).check(!!GetSetSDLValue(1, doubleBufString, 0));
         mainMenu.alloc_item(DOSBoxMenu::item_type_id,"alwaysontop").set_text("Always on top").set_callback_function(alwaysontop_menu_callback).check(is_always_on_top());
         mainMenu.alloc_item(DOSBoxMenu::item_type_id,"showdetails").set_text("Show details").set_callback_function(showdetails_menu_callback).check(!menu.hidecycles && !menu.showrt);
