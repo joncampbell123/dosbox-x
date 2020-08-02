@@ -52,6 +52,7 @@ Bitu call_int2e = 0;
 void MSG_Replace(const char * _name, const char* _val);
 void DOS_SetCountry(Bit16u countryNo);
 void CALLBACK_DeAllocate(Bitu in);
+void GFX_SetTitle(Bit32s cycles, Bits frameskip, Bits timing, bool paused);
 
 Bitu call_shellstop = 0;
 /* Larger scope so shell_del autoexec can use it to
