@@ -1588,7 +1588,7 @@ static void UI_Execute(GUI::ScreenSDL *screen) {
     GUI::String configString = GUI::String("DOSBox-X Configuration");
 
     sdlscreen = screen->getSurface();
-    auto *cfg_wnd = new ConfigurationWindow(screen, 30, 30, configString);
+    auto *cfg_wnd = new ConfigurationWindow(screen, 40, 10, configString);
     cfg_wnd->raise();
 
     // event loop
@@ -1695,7 +1695,7 @@ static void UI_Select(GUI::ScreenSDL *screen, int select) {
             new SaveLangDialog(screen, 90, 100, "Save Language File...");
             break;
         case 10: {
-            auto *np = new ConfigurationWindow(screen, 30, 30, configString);
+            auto *np = new ConfigurationWindow(screen, 40, 10, configString);
             np->raise();
             } break;
         case 11:

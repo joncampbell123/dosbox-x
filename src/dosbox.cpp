@@ -686,13 +686,16 @@ void DOSBOX_SlowDown( bool pressed ) {
 
 namespace
 {
-std::string getTime()
+std::string getTime(bool date=false)
 {
     const time_t current = time(NULL);
     tm* timeinfo;
     timeinfo = localtime(&current); //convert to local time
-    char buffer[50];
-    ::strftime(buffer, 50, "%H:%M:%S", timeinfo);
+    char buffer[80];
+    if (date)
+        ::strftime(buffer, 80, "%Y-%m-%d %H:%M", timeinfo);
+    else
+        ::strftime(buffer, 50, "%H:%M:%S", timeinfo);
     return buffer;
 }
 
@@ -755,8 +758,8 @@ void SaveGameState(bool pressed) {
 
     try
     {
+        LOG_MSG("Saving state to slot: %d", (int)currentSlot + 1);
         SaveState::instance().save(currentSlot);
-        LOG_MSG("[%s]: State %d saved!", getTime().c_str(), (int)currentSlot + 1);
 		char name[6]="slot0";
 		name[4]='0'+(char)currentSlot;
 		std::string command=SaveState::instance().getName(currentSlot);
@@ -779,8 +782,8 @@ void LoadGameState(bool pressed) {
 //    }
     try
     {
+        LOG_MSG("Loading state from slot: %d", (int)currentSlot + 1);
         SaveState::instance().load(currentSlot);
-        LOG_MSG("[%s]: State %d loaded!", getTime().c_str(), (int)currentSlot + 1);
     }
     catch (const SaveState::Error& err)
     {
@@ -4740,14 +4743,7 @@ void SaveState::save(size_t slot) { //throw (Error)
 			if(!create_timestamp) {
 				std::string tempname = temp+"Time_Stamp";
 				std::ofstream timestamp (tempname.c_str(), std::ofstream::binary);
-                time_t rawtime;
-                struct tm * timeinfo;
-                char buffer[80];
-                time (&rawtime);
-                timeinfo = localtime(&rawtime);
-                strftime(buffer,sizeof(buffer),"%Y-%m-%d %H:%M",timeinfo);
-                std::string str(buffer);
-				timestamp << str;
+				timestamp << getTime(true);
 				create_timestamp=true;
 				timestamp.close();
 			}
@@ -4808,7 +4804,7 @@ delete_all:
 		MessageBox(GetHWND(),"Failed to save the current state.","Error",MB_OK);
 #endif
 	} else
-		LOG_MSG("Saved. (Slot %d)",(int)slot+1);
+		LOG_MSG("[%s]: Saved. (Slot %d)", getTime().c_str(), (int)slot+1);
 }
 
 void SaveState::load(size_t slot) const { //throw (Error)
@@ -5035,7 +5031,7 @@ delete_all:
 	remove(save2.c_str());
 	save2=temp+"Memory_Size";
 	remove(save2.c_str());
-	if (!load_err) LOG_MSG("Loaded. (Slot %d)",(int)slot+1);
+	if (!load_err) LOG_MSG("[%s]: Loaded. (Slot %d)", getTime().c_str(), (int)slot+1);
 }
 
 bool SaveState::isEmpty(size_t slot) const {
