@@ -1177,7 +1177,7 @@ continue_1:
                     strcpy(comline, trim(p));
                     char qwinName[258];
                     sprintf(qwinName,"\"%s\"",winName);
-                    WriteOut("Now run it as Windows application..\r\n");
+                    WriteOut("Now run it as a Windows application...\r\n");
                     hret = _spawnl(P_NOWAIT, winName, qwinName, comline, NULL);
                     SetCurrentDirectory(winDirCur);
                     if (startwait && hret > 0) {

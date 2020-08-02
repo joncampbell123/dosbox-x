@@ -116,7 +116,7 @@
   - Fixed mounting a directory with command-line like
     "dosbox-x .", and fixed mounting disk images with
     spaces via the "Drive" menu on Windows. (Wengier)
-  - Added "mountwarning" option so that you could
+  - Added "mountwarning" config setting so you could
     optionally disable the warning when attempting to
     mount C:\ in Windows or / otherwise. (Wengier)
   - IMGMOUNT now assumes "-fs none" automatically if

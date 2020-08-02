@@ -5895,7 +5895,7 @@ public:
             strcat(winDirNew, Drives[DOS_GetDefaultDrive()]->curdir);
             if (SetCurrentDirectory(winDirNew)) setdir=true;
         }
-        WriteOut("Starting %s..\n", cmd);
+        WriteOut("Starting %s...\n", cmd);
         ShellExecuteEx(&lpExecInfo);
         int ErrorCode = GetLastError();
         if (setdir) SetCurrentDirectory(winDirCur);
