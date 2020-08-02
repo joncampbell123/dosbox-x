@@ -1,4 +1,3 @@
-
 Information about the keyboard layouts for developers
 =====================================================
 
@@ -12,7 +11,10 @@ This document serves as a guide to begin modifying the source code in
 this project to add support for your keyboard layout.
 
 You can also find a list of supported keyboard layouts and further details
-about DOSBox-X's regional settings in the DOSBox-X Wiki.
+about keyboard layouts and other regional information in the DOSBox-X Wiki:
+https://github.com/joncampbell123/dosbox-x/wiki
+
+Below is the source code that handles the keyboard layouts.
 
 VK_* mapping in SDL1 (Windows):
 - vs2015/sdl/src/video/windib/SDL_dibevents.c: DIB_InitOSKeymapPriv()
