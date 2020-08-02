@@ -760,7 +760,7 @@ void SaveGameState(bool pressed) {
 		char name[6]="slot0";
 		name[4]='0'+(char)currentSlot;
 		std::string command=SaveState::instance().getName(currentSlot);
-		std::string str="Slot "+(currentSlot>=9?"10":std::string(1, '1'+(char)currentSlot))+(command=="[Empty]"?" [Empty slot]":(command==""?"":" "+command));
+		std::string str="Slot "+(currentSlot>=9?"10":std::string(1, '1'+(char)currentSlot))+(command==""?"":" "+command);
 		mainMenu.get_item(name).set_text(str.c_str()).refresh_item(mainMenu);
     }
     catch (const SaveState::Error& err)
@@ -4730,7 +4730,7 @@ void SaveState::save(size_t slot) { //throw (Error)
 			}
 
 			if(!create_memorysize) {
-                std::string tempname = temp+"Memory_Size";
+				std::string tempname = temp+"Memory_Size";
 				std::ofstream memorysize (tempname.c_str(), std::ofstream::binary);
 				memorysize << MEM_TotalPages();
 				create_memorysize=true;
@@ -4747,8 +4747,8 @@ void SaveState::save(size_t slot) { //throw (Error)
                 timeinfo = localtime(&rawtime);
                 strftime(buffer,sizeof(buffer),"%Y-%m-%d %H:%M",timeinfo);
                 std::string str(buffer);
-                timestamp << str;
-                create_timestamp=true;
+				timestamp << str;
+				create_timestamp=true;
 				timestamp.close();
 			}
 
@@ -5067,7 +5067,7 @@ bool SaveState::isEmpty(size_t slot) const {
 }
 
 std::string SaveState::getName(size_t slot) const {
-	if (slot >= SLOT_COUNT) return "[Empty]";
+	if (slot >= SLOT_COUNT) return "[Empty slot]";
 	std::string path;
 	bool Get_Custom_SaveDir(std::string& savedir);
 	if(Get_Custom_SaveDir(path)) {
@@ -5091,7 +5091,7 @@ std::string SaveState::getName(size_t slot) const {
 	std::string save=temp+slotname.str()+".sav";
 	std::ifstream check_slot;
 	check_slot.open(save.c_str(), std::ifstream::in);
-	if (check_slot.fail()) return "[Empty]";
+	if (check_slot.fail()) return "[Empty slot]";
 	my_miniunz((char **)save.c_str(),"Program_Name",temp.c_str());
 	std::ifstream check_title;
 	int length = 8;
