@@ -127,6 +127,7 @@ static const char *def_menu_main[] =
     "--",
     "mapper_capmouse",
     "auto_lock_mouse",
+    "WheelToArrow",
 #if defined(WIN32)
     "direct_mouse_clipboard",
 #endif
@@ -161,18 +162,29 @@ static const char *def_menu_main_sendkey[] =
     NULL
 };
 
+/* main -> mouse wheel menu ("WheelToArrows") */
+static const char *def_menu_main_wheelarrow[] =
+{
+    "wheel_updown",
+    "wheel_leftright",
+    "wheel_pageupdown",
+    "--",
+    "wheel_none",
+    NULL
+};
+
 /* cpu -> core menu ("CpuCoreMenu") */
 static const char *def_menu_cpu_core[] =
 {
     "mapper_cycauto",
     "--",
     "mapper_normal",
-#if !defined(C_EMSCRIPTEN)//FIXME: Shutdown causes problems with Emscripten
-    "mapper_full",
-    "mapper_simple",
-#endif
 #if defined(C_DYNAMIC_X86) || defined(C_DYNREC)
     "mapper_dynamic",
+#endif
+#if !defined(C_EMSCRIPTEN)//FIXME: Shutdown causes problems with Emscripten
+    "mapper_simple",
+    "mapper_full",
 #endif
     NULL
 };
@@ -316,7 +328,7 @@ static const char *def_menu_video_pc98[] =
 /* video output debug ("VideoDebugMenu") */
 static const char *def_menu_video_debug[] =
 {
-    "mapper_blankrefreshtest",
+    "debug_blankrefreshtest",
     "--",
     "debug_pageflip",
     "debug_retracepoll",
@@ -384,6 +396,9 @@ static const char *def_menu_dos[] =
     "--",
     "DOSPC98Menu",
     "--",
+#if defined(WIN32) && !defined(HX_DOS)
+    "DOSWinMenu",
+#endif
     "shell_config_commands",
     "--",
     "quick_reboot",
@@ -416,6 +431,8 @@ static const char *def_menu_dos_ver[] =
     "dos_ver_500",
     "dos_ver_622",
     "dos_ver_710",
+    "--",
+    "dos_ver_edit",
     NULL
 };
 
@@ -437,6 +454,16 @@ static const char *def_menu_dos_pc98[] =
     NULL
 };
 
+#if defined(WIN32) && !defined(HX_DOS)
+/* DOS WIN menu ("DOSWinMenu") */
+static const char *def_menu_dos_win[] =
+{
+    "dos_win_autorun",
+    "dos_win_wait",
+    NULL
+};
+#endif
+
 /* DOS debug ("DOSDebugMenu") */
 static const char *def_menu_dos_debug[] =
 {
@@ -450,6 +477,11 @@ static const char *def_menu_sound[] =
 {
     "mapper_volup",
     "mapper_voldown",
+    "--",
+    "mapper_recvolup",
+    "mapper_recvoldown",
+    "--",
+    "mixer_info",
     "--",
     "mixer_mute",
     "mixer_swapstereo",
@@ -1188,6 +1220,9 @@ void ConstructMenu(void) {
     /* main sendkey menu */
     ConstructSubMenu(mainMenu.get_item("MainSendKey").get_master_id(), def_menu_main_sendkey);
 
+    /* main mouse wheel movements menu */
+    ConstructSubMenu(mainMenu.get_item("WheelToArrow").get_master_id(), def_menu_main_wheelarrow);
+
     /* cpu menu */
     ConstructSubMenu(mainMenu.get_item("CpuMenu").get_master_id(), def_menu_cpu);
 
@@ -1264,6 +1299,11 @@ void ConstructMenu(void) {
 
     /* DOS PC-98 menu */
     ConstructSubMenu(mainMenu.get_item("DOSPC98Menu").get_master_id(), def_menu_dos_pc98);
+
+#if defined(WIN32) && !defined(HX_DOS)
+    /* DOS WIN menu */
+    ConstructSubMenu(mainMenu.get_item("DOSWinMenu").get_master_id(), def_menu_dos_win);
+#endif
 
     /* DOS debug menu */
     ConstructSubMenu(mainMenu.get_item("DOSDebugMenu").get_master_id(), def_menu_dos_debug);

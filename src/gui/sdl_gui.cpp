@@ -1378,6 +1378,58 @@ public:
     }
 };
 
+bool set_ver(char *s);
+void dos_ver_menu(bool start);
+class SetDOSVersion : public GUI::ToplevelWindow {
+protected:
+    GUI::Input *name;
+public:
+    SetDOSVersion(GUI::Screen *parent, int x, int y, const char *title) :
+        ToplevelWindow(parent, x, y, 450, 150, title) {
+            new GUI::Label(this, 5, 10, "Enter reported DOS version:");
+            name = new GUI::Input(this, 5, 30, 400);
+            char buffer[8];
+            sprintf(buffer, "%d.%02d", dos.version.major,dos.version.minor);
+            name->setText(buffer);
+            (new GUI::Button(this, 120, 70, "Cancel", 70))->addActionHandler(this);
+            (new GUI::Button(this, 210, 70, "OK", 70))->addActionHandler(this);
+    }
+
+    void actionExecuted(GUI::ActionEventSource *b, const GUI::String &arg) {
+        (void)b;//UNUSED
+        if (arg == "OK") {
+            if (set_ver(name->getText()))
+                dos_ver_menu(false);
+        }
+        close();
+        if (shortcut) running = false;
+    }
+};
+
+class ShowMixerInfo : public GUI::ToplevelWindow {
+protected:
+    GUI::Input *name;
+public:
+    ShowMixerInfo(GUI::Screen *parent, int x, int y, const char *title) :
+        ToplevelWindow(parent, x, y, 350, 270, title) {
+            std::string mixerinfo();
+            std::istringstream in(mixerinfo().c_str());
+            int r=0;
+            if (in)	for (std::string line; std::getline(in, line); ) {
+                r+=25;
+                new GUI::Label(this, 40, r, line.c_str());
+            }
+            (new GUI::Button(this, 140, r+30, "Close", 70))->addActionHandler(this);
+    }
+
+    void actionExecuted(GUI::ActionEventSource *b, const GUI::String &arg) {
+        (void)b;//UNUSED
+        if (arg == "Close")
+            close();
+        if (shortcut) running = false;
+    }
+};
+
 class ConfigurationWindow : public GUI::ToplevelWindow {
 public:
     GUI::Button *saveButton, *closeButton;
@@ -1682,6 +1734,14 @@ static void UI_Select(GUI::ScreenSDL *screen, int select) {
         case 18: {
             auto *np3 = new SetLocalSize(screen, 90, 100, "Set Default Local Freesize...");
             np3->raise();
+            } break;
+        case 19: {
+            auto *np4 = new SetDOSVersion(screen, 90, 100, "Edit reported DOS version");
+            np4->raise();
+            } break;
+        case 20: {
+            auto *np5 = new ShowMixerInfo(screen, 90, 70, "Current sound levels in DOSBox-X");
+            np5->raise();
             } break;
         default:
             break;

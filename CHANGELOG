@@ -1,16 +1,25 @@
 0.83.4
-  - Added dosbox.conf setting to ignore the EGA/VGA
+  - Fixed loading saved states in fullscreen mode with
+    the "aspect=true" setting. (Wengier)
+  - Added key mapper for sending the Ctrl+Alt+Del key,
+    with HOST(F11/F12)+Del by default. (Wengier)
+  - Added dosbox-x.conf setting to ignore the EGA/VGA
     "extended memory" bit. It was originally defined
     back when stock EGA/VGA cards could ship with 64KB
     of memory. The option is needed for DOS games that
     accidentally clear the bit when using unchained
     256-color modes (Mr. Blobby).
-  - Add and enable the setting "usescancodes=auto"
-    by default to fix issues with non-US keyboards
-    on SDL1 builds. (Wengier)
+  - Added new default value "auto" for the setting
+    "usescancodesauto" (in [sdl] section of the config
+    file) to work around issues with non-US keyboard
+    layouts on SDL1 builds. (Wengier)
   - Added code pages 808, 850, 852, 853, 855, 857,
     858, 869, 872 for host to guest codepage mapping
     on mounted local or overlay drives. (Wengier)
+  - The mapper options "Increase recording volume" and
+    "Decrease recording volume" as well as function
+    "Show sound levels" (from MIXER command) appear
+    now as menu items (under "Sound") too. (Wengier)
   - Fixed inputting of ASCII character 224 and 240
     in Windows SDL2 or MinGW builds. (Wengier)
   - Fixed possible DPMI error when running Windows
@@ -48,7 +57,7 @@
     virtual machine in DOSBox-X instead. (Wengier)
   - Added "Reported DOS version" sub-menu (under
     "DOS") to dynamically change the reported DOS
-    version (including 3.3, 5.0, 6.22, 7.1). This
+    version (3.3, 5.0, 6.22, 7.1, or custom). This
     may enable/disable long filename (LFN) support
     with the default "lfn=auto" setting. (Wengier)
   - LS is now an external command appearing on drive
@@ -63,7 +72,7 @@
     button just before the "Close" button. (Wengier)
   - Added "euro" config option (in [render] section)
     to display Euro symbol instead of the specified
-    ASCII character in any codepage. (Wengier)
+    ASCII character in any code page. (Wengier)
   - PC-98 CG MMIO writes fixed to limit writes only
     to the user-defined areas, same as the IO writes.
     This fixes "Niko Niko" that appears to write a
@@ -74,7 +83,8 @@
     directly launch Windows programs on mounted local
     or overlay drives to run on the host. The option
     "startwait=false" can be used to disable waiting
-    for Windows programs after started. (Wengier)
+    for Windows programs after started. This can also
+    be toggled from the "DOS" menu. (Wengier)
   - Added START command to run commands on Windows
     host system. The /MAX, /MIN, /HID options can
     be used to run the specified program maximized,
@@ -95,6 +105,9 @@
     and capabilities. There is now a [4dos] section
     in the dosbox-x.conf file to act as the 4DOS.INI
     config file if you use this shell. (Wengier)
+  - Added "Mouse wheel movements" menu (under "Main")
+    to enable or disable the mouse wheel movements
+    to arrow (up/down etc) feature. (Wengier)
   - Added "Quick right mouse button copy/paste" menu
     item toggle to allow quick Windows clipboard copy
     and paste via the right mouse button without any
@@ -103,6 +116,9 @@
   - Fixed mounting a directory with command-line like
     "dosbox-x .", and fixed mounting disk images with
     spaces via the "Drive" menu on Windows. (Wengier)
+  - Added "mountwarning" config setting so you could
+    optionally disable the warning when attempting to
+    mount C:\ in Windows or / otherwise. (Wengier)
   - IMGMOUNT now assumes "-fs none" automatically if
     a drive number is specified instead of a drive
     letter. Moreover, it will assume the image file

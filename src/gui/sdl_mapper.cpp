@@ -2741,6 +2741,9 @@ public:
         case MK_escape:
             key=SDL_SCANCODE_ESCAPE;
             break;
+        case MK_delete:
+            key=SDL_SCANCODE_DELETE;
+            break;
         case MK_lbracket:
             key=SDL_SCANCODE_LEFTBRACKET;
             break;
@@ -2848,6 +2851,9 @@ public:
             break;
         case MK_escape:
             key=SDLK_ESCAPE;
+            break;
+        case MK_delete:
+            key=SDLK_DELETE;
             break;
         case MK_lbracket:
             key=SDLK_LEFTBRACKET;

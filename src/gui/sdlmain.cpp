@@ -178,7 +178,6 @@ void osx_init_touchbar(void);
 #endif
 
 void ShutDownMemHandles(Section * sec);
-void MAPPER_AutoType(std::vector<std::string> &sequence, const uint32_t wait_ms, const uint32_t pacing_ms);
 
 SDL_Block sdl;
 Bitu frames = 0;
@@ -3762,7 +3761,7 @@ static void GUI_StartUp() {
     MAPPER_AddHandler(SwitchFullScreen,MK_f,MMODHOST,"fullscr","Fullscreen", &item);
     item->set_text("Toggle fullscreen");
 
-    MAPPER_AddHandler(PasteClipboard, MK_nothing, 0, "paste", "ClipPaste"); //end emendelson
+    MAPPER_AddHandler(PasteClipboard, MK_nothing, 0, "paste", "Paste Clip"); //end emendelson
 #if C_DEBUG
     /* Pause binds with activate-debugger */
     MAPPER_AddHandler(&PauseDOSBox, MK_pause, MMOD1, "pause", "Pause");
@@ -4897,9 +4896,8 @@ static void HandleMouseButton(SDL_MouseButtonEvent * button, SDL_MouseMotionEven
 				ip.ki.dwFlags = KEYEVENTF_SCANCODE | KEYEVENTF_KEYUP | KEYEVENTF_EXTENDEDKEY;
 				SendInput(1, &ip, sizeof(INPUT));
 #else
-				std::vector<std::string> sequence;
-				sequence.push_back(std::string(wheel_key==2?"left":(wheel_key==3?"pageup":"up")));
-				MAPPER_AutoType(sequence, 1/*ms*/, 0);
+                KEYBOARD_AddKey(wheel_key==2?KBD_left:(wheel_key==3?KBD_pageup:KBD_up), true);
+                KEYBOARD_AddKey(wheel_key==2?KBD_left:(wheel_key==3?KBD_pageup:KBD_up), false);
 #endif
 			} else
 				Mouse_ButtonPressed(100-1);
@@ -4917,9 +4915,8 @@ static void HandleMouseButton(SDL_MouseButtonEvent * button, SDL_MouseMotionEven
 				ip.ki.dwFlags = KEYEVENTF_SCANCODE | KEYEVENTF_KEYUP | KEYEVENTF_EXTENDEDKEY;
 				SendInput(1, &ip, sizeof(INPUT));
 #else
-				std::vector<std::string> sequence;
-				sequence.push_back(std::string(wheel_key==2?"right":(wheel_key==3?"pagedown":"down")));
-				MAPPER_AutoType(sequence, 1/*ms*/, 0);
+                KEYBOARD_AddKey(wheel_key==2?KBD_right:(wheel_key==3?KBD_pagedown:KBD_down), true);
+                KEYBOARD_AddKey(wheel_key==2?KBD_right:(wheel_key==3?KBD_pagedown:KBD_down), false);
 #endif
 			} else
 				Mouse_ButtonPressed(100+1);
@@ -5418,9 +5415,8 @@ void GFX_Events() {
 					ip.ki.dwFlags = KEYEVENTF_SCANCODE | KEYEVENTF_KEYUP | KEYEVENTF_EXTENDEDKEY;
 					SendInput(1, &ip, sizeof(INPUT));
 #else
-					std::vector<std::string> sequence;
-					sequence.push_back(std::string(wheel_key==2?"left":(wheel_key==3?"pageup":"up")));
-					MAPPER_AutoType(sequence, 1/*ms*/, 0);
+                    KEYBOARD_AddKey(wheel_key==2?KBD_left:(wheel_key==3?KBD_pageup:KBD_up), true);
+                    KEYBOARD_AddKey(wheel_key==2?KBD_left:(wheel_key==3?KBD_pageup:KBD_up), false);
 #endif
 				} else if(event.wheel.y < 0) {
 #if defined (WIN32) && !defined(HX_DOS)
@@ -5434,9 +5430,8 @@ void GFX_Events() {
 					ip.ki.dwFlags = KEYEVENTF_SCANCODE | KEYEVENTF_KEYUP | KEYEVENTF_EXTENDEDKEY;
 					SendInput(1, &ip, sizeof(INPUT));
 #else
-					std::vector<std::string> sequence;
-					sequence.push_back(std::string(wheel_key==2?"right":(wheel_key==3?"pagedown":"down")));
-					MAPPER_AutoType(sequence, 1/*ms*/, 0);
+                    KEYBOARD_AddKey(wheel_key==2?KBD_right:(wheel_key==3?KBD_pagedown:KBD_down), true);
+                    KEYBOARD_AddKey(wheel_key==2?KBD_right:(wheel_key==3?KBD_pagedown:KBD_down), false);
 #endif
 				}
 			}
@@ -6146,7 +6141,7 @@ void SDL_SetupConfigSection() {
     Prop_multival* Pmulti;
 
     Pbool = sdl_sec->Add_bool("fullscreen",Property::Changeable::Always,false);
-    Pbool->Set_help("Start DOSBox-X directly in fullscreen. (Press ALT-Enter to go back)");
+    Pbool->Set_help("Start DOSBox-X directly in fullscreen. (Press [F11/F12]+F to go back)");
      
     Pbool = sdl_sec->Add_bool("fulldouble",Property::Changeable::Always,false);
     Pbool->Set_help("Use double buffering in fullscreen. It can reduce screen flickering, but it can also result in a slow DOSBox-X.");
@@ -7176,6 +7171,23 @@ bool mixer_mute_menu_callback(DOSBoxMenu * const menu,DOSBoxMenu::item * const m
     return true;
 }
 
+bool mixer_info_menu_callback(DOSBoxMenu * const menu,DOSBoxMenu::item * const menuitem) {
+    (void)menu;//UNUSED
+    (void)menuitem;//UNUSED
+    void MAPPER_ReleaseAllKeys(void);
+    MAPPER_ReleaseAllKeys();
+
+    GFX_LosingFocus();
+
+    GUI_Shortcut(20);
+
+    void MAPPER_ReleaseAllKeys(void);
+    MAPPER_ReleaseAllKeys();
+
+    GFX_LosingFocus();
+    return true;
+}
+
 bool dos_mouse_enable_int33_menu_callback(DOSBoxMenu * const menu,DOSBoxMenu::item * const menuitem) {
     (void)menu;//UNUSED
     (void)menuitem;//UNUSED
@@ -7245,6 +7257,23 @@ bool dos_ver_710_menu_callback(DOSBoxMenu * const menu,DOSBoxMenu::item * const 
     return true;
 }
 
+bool dos_ver_edit_menu_callback(DOSBoxMenu * const menu,DOSBoxMenu::item * const menuitem) {
+    (void)menu;//UNUSED
+    (void)menuitem;//UNUSED
+    void MAPPER_ReleaseAllKeys(void);
+    MAPPER_ReleaseAllKeys();
+
+    GFX_LosingFocus();
+
+    GUI_Shortcut(19);
+
+    void MAPPER_ReleaseAllKeys(void);
+    MAPPER_ReleaseAllKeys();
+
+    GFX_LosingFocus();
+    return true;
+}
+
 bool dos_lfn_auto_menu_callback(DOSBoxMenu * const menu,DOSBoxMenu::item * const menuitem) {
     (void)menu;//UNUSED
     (void)menuitem;//UNUSED
@@ -7275,6 +7304,70 @@ bool dos_lfn_disable_menu_callback(DOSBoxMenu * const menu,DOSBoxMenu::item * co
     mainMenu.get_item("dos_lfn_auto").check(false).refresh_item(mainMenu);
     mainMenu.get_item("dos_lfn_enable").check(false).refresh_item(mainMenu);
     mainMenu.get_item("dos_lfn_disable").check(true).refresh_item(mainMenu);
+    return true;
+}
+
+#if defined(WIN32) && !defined(HX_DOS)
+bool dos_win_autorun_menu_callback(DOSBoxMenu * const menu,DOSBoxMenu::item * const menuitem) {
+    (void)menu;//UNUSED
+    (void)menuitem;//UNUSED
+    extern bool winautorun;
+    winautorun = !winautorun;
+    mainMenu.get_item("dos_win_autorun").check(winautorun).refresh_item(mainMenu);
+    return true;
+}
+
+bool dos_win_wait_menu_callback(DOSBoxMenu * const menu,DOSBoxMenu::item * const menuitem) {
+    (void)menu;//UNUSED
+    (void)menuitem;//UNUSED
+    extern bool startwait;
+    startwait = !startwait;
+    mainMenu.get_item("dos_win_wait").check(startwait).refresh_item(mainMenu);
+    return true;
+}
+#endif
+
+bool wheel_updown_menu_callback(DOSBoxMenu * const menu,DOSBoxMenu::item * const menuitem) {
+    (void)menu;//UNUSED
+    (void)menuitem;//UNUSED
+    wheel_key = 1;
+    mainMenu.get_item("wheel_updown").check(true).refresh_item(mainMenu);
+    mainMenu.get_item("wheel_leftright").check(false).refresh_item(mainMenu);
+    mainMenu.get_item("wheel_pageupdown").check(false).refresh_item(mainMenu);
+    mainMenu.get_item("wheel_none").check(false).refresh_item(mainMenu);
+    return true;
+}
+
+bool wheel_leftright_menu_callback(DOSBoxMenu * const menu,DOSBoxMenu::item * const menuitem) {
+    (void)menu;//UNUSED
+    (void)menuitem;//UNUSED
+    wheel_key = 2;
+    mainMenu.get_item("wheel_updown").check(false).refresh_item(mainMenu);
+    mainMenu.get_item("wheel_leftright").check(true).refresh_item(mainMenu);
+    mainMenu.get_item("wheel_pageupdown").check(false).refresh_item(mainMenu);
+    mainMenu.get_item("wheel_none").check(false).refresh_item(mainMenu);
+    return true;
+}
+
+bool wheel_pageupdown_menu_callback(DOSBoxMenu * const menu,DOSBoxMenu::item * const menuitem) {
+    (void)menu;//UNUSED
+    (void)menuitem;//UNUSED
+    wheel_key = 3;
+    mainMenu.get_item("wheel_updown").check(false).refresh_item(mainMenu);
+    mainMenu.get_item("wheel_leftright").check(false).refresh_item(mainMenu);
+    mainMenu.get_item("wheel_pageupdown").check(true).refresh_item(mainMenu);
+    mainMenu.get_item("wheel_none").check(false).refresh_item(mainMenu);
+    return true;
+}
+
+bool wheel_none_menu_callback(DOSBoxMenu * const menu,DOSBoxMenu::item * const menuitem) {
+    (void)menu;//UNUSED
+    (void)menuitem;//UNUSED
+    wheel_key = 0;
+    mainMenu.get_item("wheel_updown").check(false).refresh_item(mainMenu);
+    mainMenu.get_item("wheel_leftright").check(false).refresh_item(mainMenu);
+    mainMenu.get_item("wheel_pageupdown").check(false).refresh_item(mainMenu);
+    mainMenu.get_item("wheel_none").check(true).refresh_item(mainMenu);
     return true;
 }
 
@@ -7946,6 +8039,17 @@ bool highdpienable_menu_callback(DOSBoxMenu * const menu, DOSBoxMenu::item * con
     return true;
 }
 
+void SendCAD(bool pressed) {
+    if (!pressed) return;
+
+	KEYBOARD_AddKey(KBD_leftctrl, true);
+	KEYBOARD_AddKey(KBD_leftalt, true);
+	KEYBOARD_AddKey(KBD_delete, true);
+	KEYBOARD_AddKey(KBD_leftctrl, false);
+	KEYBOARD_AddKey(KBD_leftalt, false);
+	KEYBOARD_AddKey(KBD_delete, false);
+}
+
 bool sendkey_preset_menu_callback(DOSBoxMenu * const menu, DOSBoxMenu::item * const menuitem) {
     (void)menu;//UNUSED
     if (menuitem->get_name() == "sendkey_ctrlesc") {
@@ -7968,14 +8072,8 @@ bool sendkey_preset_menu_callback(DOSBoxMenu * const menu, DOSBoxMenu::item * co
         KEYBOARD_AddKey(KBD_rwinmenu, true);
         KEYBOARD_AddKey(KBD_rwinmenu, false);
     }
-    else if (menuitem->get_name() == "sendkey_cad") {
-        KEYBOARD_AddKey(KBD_leftctrl, true);
-        KEYBOARD_AddKey(KBD_leftalt, true);
-        KEYBOARD_AddKey(KBD_delete, true);
-        KEYBOARD_AddKey(KBD_leftctrl, false);
-        KEYBOARD_AddKey(KBD_leftalt, false);
-        KEYBOARD_AddKey(KBD_delete, false);
-    }
+    else if (menuitem->get_name() == "sendkey_cad")
+        SendCAD(true);
 
     return true;
 }
@@ -8756,6 +8854,10 @@ int main(int argc, char* argv[]) SDL_MAIN_NOEXCEPT {
                 DOSBoxMenu::item &item = mainMenu.alloc_item(DOSBoxMenu::submenu_type_id,"MainSendKey");
                 item.set_text("Send special key");
             }
+            {
+                DOSBoxMenu::item &item = mainMenu.alloc_item(DOSBoxMenu::submenu_type_id,"WheelToArrow");
+                item.set_text("Mouse wheel movements");
+            }
         }
         {
             DOSBoxMenu::item &item = mainMenu.alloc_item(DOSBoxMenu::submenu_type_id,"CpuMenu");
@@ -8901,6 +9003,8 @@ int main(int argc, char* argv[]) SDL_MAIN_NOEXCEPT {
                     set_callback_function(mixer_swapstereo_menu_callback);
                 mainMenu.alloc_item(DOSBoxMenu::item_type_id,"mixer_mute").set_text("Mute").
                     set_callback_function(mixer_mute_menu_callback);
+                mainMenu.alloc_item(DOSBoxMenu::item_type_id,"mixer_info").set_text("Show sound levels").
+                    set_callback_function(mixer_info_menu_callback);
             }
         }
         {
@@ -8934,6 +9038,8 @@ int main(int argc, char* argv[]) SDL_MAIN_NOEXCEPT {
                         set_callback_function(dos_ver_622_menu_callback);
                     mainMenu.alloc_item(DOSBoxMenu::item_type_id,"dos_ver_710").set_text("7.10").
                         set_callback_function(dos_ver_710_menu_callback);
+                    mainMenu.alloc_item(DOSBoxMenu::item_type_id,"dos_ver_edit").set_text("Edit").
+                        set_callback_function(dos_ver_edit_menu_callback);
                 }
             }
 
@@ -8962,6 +9068,20 @@ int main(int argc, char* argv[]) SDL_MAIN_NOEXCEPT {
                         set_callback_function(dos_pc98_clock_menu_callback);
                 }
             }
+
+#if defined(WIN32) && !defined(HX_DOS)
+            {
+                DOSBoxMenu::item &item = mainMenu.alloc_item(DOSBoxMenu::submenu_type_id,"DOSWinMenu");
+                item.set_text("Windows host applications");
+
+                {
+                    mainMenu.alloc_item(DOSBoxMenu::item_type_id,"dos_win_autorun").set_text("Launch to run on the host").
+                        set_callback_function(dos_win_autorun_menu_callback);
+                    mainMenu.alloc_item(DOSBoxMenu::item_type_id,"dos_win_wait").set_text("Wait for the application").
+                        set_callback_function(dos_win_wait_menu_callback);
+                }
+            }
+#endif
 
             {
                 DOSBoxMenu::item &item = mainMenu.alloc_item(DOSBoxMenu::submenu_type_id,"DOSDebugMenu");
@@ -9126,6 +9246,12 @@ int main(int argc, char* argv[]) SDL_MAIN_NOEXCEPT {
         MPU401_Init();
         MIXER_Init();
         MIDI_Init();
+        {
+            DOSBoxMenu::item *item;
+
+            MAPPER_AddHandler(SendCAD, MK_delete, MMODHOST, "sendkey_cad", "CtrlAltDel", &item);
+            item->set_text("Ctrl+Alt+Del");
+        }
         CPU_Init();
 #if C_FPU
         FPU_Init();
@@ -9209,16 +9335,25 @@ int main(int argc, char* argv[]) SDL_MAIN_NOEXCEPT {
         mainMenu.alloc_item(DOSBoxMenu::item_type_id,"sendkey_winlogo").set_text("Logo key").set_callback_function(sendkey_preset_menu_callback);
         mainMenu.alloc_item(DOSBoxMenu::item_type_id,"sendkey_winmenu").set_text("Menu key").set_callback_function(sendkey_preset_menu_callback);
         mainMenu.alloc_item(DOSBoxMenu::item_type_id,"sendkey_cad").set_text("Ctrl+Alt+Del").set_callback_function(sendkey_preset_menu_callback);
+        mainMenu.alloc_item(DOSBoxMenu::item_type_id,"wheel_updown").set_text("Convert to up/down arrows").set_callback_function(wheel_updown_menu_callback);
+        mainMenu.alloc_item(DOSBoxMenu::item_type_id,"wheel_leftright").set_text("Convert to left/right arrows").set_callback_function(wheel_leftright_menu_callback);
+        mainMenu.alloc_item(DOSBoxMenu::item_type_id,"wheel_pageupdown").set_text("Convert to PgUp/PgDn keys").set_callback_function(wheel_pageupdown_menu_callback);
+        mainMenu.alloc_item(DOSBoxMenu::item_type_id,"wheel_none").set_text("Do not convert to arrow keys").set_callback_function(wheel_none_menu_callback);
         mainMenu.alloc_item(DOSBoxMenu::item_type_id,"doublebuf").set_text("Double Buffering (Fullscreen)").set_callback_function(doublebuf_menu_callback).check(!!GetSetSDLValue(1, doubleBufString, 0));
         mainMenu.alloc_item(DOSBoxMenu::item_type_id,"alwaysontop").set_text("Always on top").set_callback_function(alwaysontop_menu_callback).check(is_always_on_top());
         mainMenu.alloc_item(DOSBoxMenu::item_type_id,"showdetails").set_text("Show details").set_callback_function(showdetails_menu_callback).check(!menu.hidecycles && !menu.showrt);
         mainMenu.alloc_item(DOSBoxMenu::item_type_id,"highdpienable").set_text("High DPI enable").set_callback_function(highdpienable_menu_callback).check(dpi_aware_enable);
         mainMenu.alloc_item(DOSBoxMenu::item_type_id,"shell_config_commands").set_text("Config options as commands").set_callback_function(shell_config_commands_menu_callback).check(enable_config_as_shell_commands);
         mainMenu.alloc_item(DOSBoxMenu::item_type_id,"quick_reboot").set_text("Enable quick reboot").set_callback_function(quick_reboot_menu_callback).check(use_quick_reboot);
-        mainMenu.alloc_item(DOSBoxMenu::item_type_id,"force_loadstate").set_text("Force load state").set_callback_function(force_loadstate_menu_callback).check(force_load_state);
+        mainMenu.alloc_item(DOSBoxMenu::item_type_id,"force_loadstate").set_text("Force load state mode").set_callback_function(force_loadstate_menu_callback).check(force_load_state);
         mainMenu.alloc_item(DOSBoxMenu::item_type_id,"refreshslot").set_text("Refresh status").set_callback_function(refresh_slots_menu_callback);
 
-        mainMenu.get_item("mapper_blankrefreshtest").set_text("Refresh test (blank display)").set_callback_function(refreshtest_menu_callback).refresh_item(mainMenu);
+        mainMenu.get_item("debug_blankrefreshtest").set_text("Refresh test (blank display)").set_callback_function(refreshtest_menu_callback).refresh_item(mainMenu);
+
+        mainMenu.get_item("wheel_updown").check(wheel_key==1).refresh_item(mainMenu);
+        mainMenu.get_item("wheel_leftright").check(wheel_key==2).refresh_item(mainMenu);
+        mainMenu.get_item("wheel_pageupdown").check(wheel_key==3).refresh_item(mainMenu);
+        mainMenu.get_item("wheel_none").check(wheel_key==0).refresh_item(mainMenu);
 
         bool MENU_get_swapstereo(void);
         mainMenu.get_item("mixer_swapstereo").check(MENU_get_swapstereo()).refresh_item(mainMenu);

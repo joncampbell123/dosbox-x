@@ -872,8 +872,8 @@ overflow:
 
 std::string full_arguments = "";
 intptr_t hret=0;
-bool infix=false;
-extern bool packerr, reqwin, startcmd, startwait, ctrlbrk;
+bool infix=false, winautorun=false;
+extern bool packerr, reqwin, startwait, ctrlbrk, mountwarning;
 #if defined (WIN32) && !defined(HX_DOS)
 void EndRunProcess() {
     if(hret) {
@@ -915,13 +915,13 @@ bool DOS_Shell::Execute(char* name, const char* args) {
 			if(!sec->Get_bool("automount")) { WriteOut(MSG_Get("SHELL_EXECUTE_DRIVE_NOT_FOUND"),toupper(name[0])); return true; }
 			// automount: attempt direct letter to drive map.
 			int type=GetDriveType(name);
-			if(type==DRIVE_FIXED && (strcasecmp(name,"C:")==0)) WriteOut(MSG_Get("SHELL_EXECUTE_DRIVE_ACCESS_WARNING_WIN"));
+			if(mountwarning && type==DRIVE_FIXED && (strcasecmp(name,"C:")==0)) WriteOut(MSG_Get("SHELL_EXECUTE_DRIVE_ACCESS_WARNING_WIN"));
 first_1:
 			if(type==DRIVE_CDROM) WriteOut(MSG_Get("SHELL_EXECUTE_DRIVE_ACCESS_CDROM"),toupper(name[0]));
 			else if(type==DRIVE_REMOVABLE && (strcasecmp(name,"A:")==0||strcasecmp(name,"B:")==0)) WriteOut(MSG_Get("SHELL_EXECUTE_DRIVE_ACCESS_FLOPPY"),toupper(name[0]));
 			else if(type==DRIVE_REMOVABLE) WriteOut(MSG_Get("SHELL_EXECUTE_DRIVE_ACCESS_REMOVABLE"),toupper(name[0]));
 			else if(type==DRIVE_REMOTE) WriteOut(MSG_Get("SHELL_EXECUTE_DRIVE_ACCESS_NETWORK"),toupper(name[0]));
-			else if((type==DRIVE_FIXED)||(type==DRIVE_RAMDISK)) WriteOut(MSG_Get("SHELL_EXECUTE_DRIVE_ACCESS_FIXED"),toupper(name[0]));
+			else if((type==DRIVE_FIXED)||(type==DRIVE_RAMDISK)) WriteOut(MSG_Get(mountwarning?"SHELL_EXECUTE_DRIVE_ACCESS_FIXED":"SHELL_EXECUTE_DRIVE_ACCESS_FIXED_LESS"),toupper(name[0]));
 			else { WriteOut(MSG_Get("SHELL_EXECUTE_DRIVE_NOT_FOUND"),toupper(name[0])); return true; }
 
 first_2:
@@ -1145,7 +1145,7 @@ continue_1:
 				DOS_FreeMemory(segment);
 			}
 #if defined (WIN32) && !defined(HX_DOS)
-		} else if (startcmd&&reqwin) {
+		} else if (winautorun&&reqwin&&!control->SecureMode()) {
             char comline[256], *p=comline;
             char winDirCur[512], winDirNew[512], winName[256];
             Bit8u drive;
@@ -1177,7 +1177,7 @@ continue_1:
                     strcpy(comline, trim(p));
                     char qwinName[258];
                     sprintf(qwinName,"\"%s\"",winName);
-                    WriteOut("Now run it as Windows application..\r\n");
+                    WriteOut("Now run it as a Windows application...\r\n");
                     hret = _spawnl(P_NOWAIT, winName, qwinName, comline, NULL);
                     SetCurrentDirectory(winDirCur);
                     if (startwait && hret > 0) {

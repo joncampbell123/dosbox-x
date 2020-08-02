@@ -104,7 +104,7 @@ int enablelfn=-1;
 bool uselfn;
 extern bool infix, winrun, startcmd, startwait;
 extern bool int15_wait_force_unmask_irq;
-extern bool startup_state_numlock;
+extern bool startup_state_numlock, mountwarning;
 std::string startincon;
 
 Bit32u dos_hma_allocator = 0; /* physical memory addr */
@@ -2732,6 +2732,7 @@ public:
 		enable_dummy_device_mcb = section->Get_bool("enable dummy device mcb");
 		int15_wait_force_unmask_irq = section->Get_bool("int15 wait force unmask irq");
         disk_io_unmask_irq0 = section->Get_bool("unmask timer on disk io");
+        mountwarning = section->Get_bool("mountwarning");
 #if defined (WIN32)
         if (winrun) {
             Section* tsec = control->GetSection("dos");
@@ -2739,7 +2740,6 @@ public:
             tsec->HandleInputline("dos clipboard device enable=true");
         }
         startcmd = section->Get_bool("startcmd");
-        startwait = section->Get_bool("startwait");
         startincon = section->Get_string("startincon");
         char *dos_clipboard_device_enable = (char *)section->Get_string("dos clipboard device enable");
 		dos_clipboard_device_access = !strcasecmp(dos_clipboard_device_enable, "dummy")?1:(!strcasecmp(dos_clipboard_device_enable, "read")?2:(!strcasecmp(dos_clipboard_device_enable, "write")?3:(!strcasecmp(dos_clipboard_device_enable, "full")||!strcasecmp(dos_clipboard_device_enable, "true")?4:0)));
@@ -3113,7 +3113,8 @@ public:
 						dos.version.major, dos.version.minor);
 			}
 		}
-		dos_ver_menu(true);
+        dos_ver_menu(true);
+        mainMenu.get_item("dos_ver_edit").enable(true).refresh_item(mainMenu);
 
         if (IS_PC98_ARCH) {
             void PC98_InitDefFuncRow(void);
@@ -3130,6 +3131,8 @@ public:
 			EndStartProcess();
 			EndRunProcess();
 		}
+        mainMenu.get_item("dos_win_autorun").enable(false).refresh_item(mainMenu);
+        mainMenu.get_item("dos_win_wait").enable(false).refresh_item(mainMenu);
 #endif
 		mainMenu.get_item("dos_lfn_auto").enable(false).refresh_item(mainMenu);
 		mainMenu.get_item("dos_lfn_enable").enable(false).refresh_item(mainMenu);
@@ -3138,6 +3141,7 @@ public:
 		mainMenu.get_item("dos_ver_500").enable(false).refresh_item(mainMenu);
 		mainMenu.get_item("dos_ver_622").enable(false).refresh_item(mainMenu);
 		mainMenu.get_item("dos_ver_710").enable(false).refresh_item(mainMenu);
+		mainMenu.get_item("dos_ver_edit").enable(false).refresh_item(mainMenu);
 		mainMenu.get_item("shell_config_commands").enable(false).refresh_item(mainMenu);
 		/* NTS: We do NOT free the drives! The OS may use them later! */
 		void DOS_ShutdownFiles();

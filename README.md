@@ -281,13 +281,13 @@ in mid-2011. It was started out of a desire to improve the emulator
 without having to fight with or worry about submitting patches
 upstream.
 
-As the forums make it clear, DOSBox's main focus is on DOS games.
-This is evident by the fact that much of the code is somewhat
-accurate code with kludges to make DOS games run, instead of
-focusing on what hardware actually does.
+As its developers have made it clear, DOSBox's main focus is on
+DOS games. This is evident by the fact that much of the code is
+somewhat accurate code with kludges to make DOS games run,
+instead of focusing on what hardware actually does.
 
 Many of the changes I wanted to make were non-game related, and
-therefore were unlikely to be accepted by the developers.
+therefore were unlikely to be accepted by the DOSBox developers.
 
 Since then, I have been modifying the source code over time to
 improve emulation, fix bugs, and resolve incompatibilities with
@@ -316,7 +316,7 @@ exists in DOSBox-X.
 Later on, DOSBox-X also incorporated several features and improvements
 from other projects such as [DOSBox ECE](https://dosboxece.yesterplay.net/), [DOSBox-staging](https://dosbox-staging.github.io/) and
 [vDosPlus](http://www.vdosplus.org/), with major improvements and works from its contributors
-such as Wengier and rderooy.
+such as Wengier, Allofich, and rderooy.
 
 See also the [CREDITS](CREDITS.md) page for crediting of the source code.
 
@@ -331,56 +331,23 @@ These significant changes require dropping some useful features (including the m
 URL: https://github.com/yksoft1/dosbox-x-vanilla-sdl/tree/emscripten (look for clone URL and use the emscripten branch)
 
 
-International keyboard layouts and codepages
---------------------------------------------
+Support for international language translations and keyboard layouts
+--------------------------------------------------------------------
 
-DOSBox, and by extension, DOSBox-X was developed around the US keyboard layout.
-This is primarily due to limitations around SDL1. SDL is responsible for input handling, and SDL1 in particular
-only supports US keyboards. As such when using the SDL1 version and a non-US keyboard, DOSBox-X will automatically
-use scancodes with the default ```usescancodes=auto``` config setting to work around keyboard layout problems.
+DOSBox-X displays English as the default language, and uses the U.S. code page (437) by default, just like DOSBox.
 
-When using the SDL2 binary, scancodes are not needed when using non-US keyboard layouts.
+All messages displayed by DOSBox-X are in English with the default setting. If you are a speaker of a non-English
+language, you can create additional language files for use with DOSBox-X by translating messages in DOSBox-X to your
+language. Other DOSBox-X users may also use these language files if they prefer.
 
-When starting DOSBox-X on a Windows system with the default ```keyboardlayout=auto``` config setting, it will try to
-set the keyboard layout automatically, depending on the host OS region, for a wide range of regions. This may not
-necessarily match your actual keyboard, or your region may not currently be supported. In addition, the ```auto```
-setting has no effect on Linux and MacOS.
-
-You can set your keyboard layout manually in the [dos] section of the dosbox-x.conf file. For instance to set a
-German keyboard layout you can specify ```keyboardlayout=de```.
-It will also automatically set a suitable codepage. 
-Alternatively, the KEYB command can be used from the DOSBox-X command line to change the keyboard layout.
-For example:
-
-```KEYB UK```
-
-This command will switch the current keyboard layout to the UK keyboard layout and set code page 858.
-
-Alternatively you can also specify a different codepage by adding the codepage number to the end.
-
-```KEYB UK 850```
-
-Most Western-European countries would have used codepage 850 back in the day, but DOSBox-X by
-default uses codepage 858, which is the same as codepage 850 with the addition of the Euro symbol.
-
-Note that software that uses certain box drawing characters may not look 100% accurate unless codepage 437
-(default US codepage) is used. But this codepage lacks many diacritic glyphs that may be needed for regional
-support. As such a choice may have to be made between support for those box drawing characters or diacritic glyphs.
-
-The Japanese keyboard layout is also supported in NEC PC-98 mode. You can start DOSBox-X in PC-98 mode directly
-by setting "machine=pc98" in the [dosbox] section of the dosbox-x.conf file.
+The fact that DOSBox-X was developed around the U.S. keyboard layout is primarily due to limitations around the SDL1
+library. SDL is responsible for input handling, and SDL1 in particular only supports US keyboards. As such when using
+the SDL1 version and a non-US keyboard, DOSBox-X will automatically use scancodes with the default ```usescancodes=auto```
+setting to work around keyboard layout issues. Scancodes are not needed when using non-US keyboard layouts in the SDL2 version.
 
 If you find that a keyboard layout is not yet supported by DOSBox-X, in order to add additional layouts for use
 with DOSBox-X, please see file [README.keyboard-layout-handling](README.keyboard-layout-handling)
 on how to do so as a developer.
 
-Regional settings
------------------
-
-Regional settings can be set in the [config] section of the DOSBox-x config file by use of the ```COUNTRY=```
-setting. This defaults to 1, which is the US. This setting influences date and time format as used by DOSBox-X,
-for instance by the ```DIR``` command. It may also influence regional settings in other applications.
-
-```COUNTRY=044```
-
-Will cause DOSBox-X to use the UK date and time format. A list of country codes can be found on the [FreeDOS wiki](http://wiki.freedos.org/wiki/index.php/Country_codes).
+For further information on international support and regional settings of DOSBox-X, such as steps to create DOSBox-X
+language files or use external keyboard files in DOSBox-X, as well as support for the Euro symbol and country-specific date and time formats, please look at the user guide in the [DOSBox-X Wiki](https://github.com/joncampbell123/dosbox-x/wiki).
