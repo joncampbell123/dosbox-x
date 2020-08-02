@@ -38,10 +38,11 @@
 #include "build_timestamp.h"
 
 static bool first_run=true;
-extern bool use_quick_reboot;
+extern bool use_quick_reboot, mountwarning;
 extern bool startcmd, startwait, winautorun;
 extern bool enable_config_as_shell_commands;
 extern bool dos_shell_running_program;
+extern const char* RunningProgram;
 extern Bit16u countryNo;
 bool usecon = true;
 
@@ -573,7 +574,7 @@ void DOS_Shell::Run(void) {
 							strcat(mountstring," >nul");
 							ParseLine(mountstring);
 							if (!Drives[i]) WriteOut("Drive %c: failed to mount.\n",name[0]);
-							else if(type==DRIVE_FIXED && (strcasecmp(name,"C:\\")==0)) WriteOut("Warning: %s", MSG_Get("SHELL_EXECUTE_DRIVE_ACCESS_WARNING_WIN"));
+							else if(mountwarning && type==DRIVE_FIXED && (strcasecmp(name,"C:\\")==0)) WriteOut("Warning: %s", MSG_Get("SHELL_EXECUTE_DRIVE_ACCESS_WARNING_WIN"));
 						}
 					}
 				}
@@ -606,6 +607,10 @@ void DOS_Shell::Run(void) {
 		line.erase();
 		ParseLine(input_line);
 	}
+    if (!exit) {
+        RunningProgram = "COMMAND";
+        GFX_SetTitle(-1,-1,-1,false);
+    }
 	do {
 		/* Get command once a line */
 		if (bf) {
@@ -958,7 +963,8 @@ void SHELL_Init() {
 	MSG_Add("SHELL_EXECUTE_DRIVE_ACCESS_FLOPPY","Do you want to give DOSBox-X access to your real floppy drive %c [Y/N]?");
 	MSG_Add("SHELL_EXECUTE_DRIVE_ACCESS_REMOVABLE","Do you want to give DOSBox-X access to your real removable drive %c [Y/N]?");
 	MSG_Add("SHELL_EXECUTE_DRIVE_ACCESS_NETWORK","Do you want to give DOSBox-X access to your real network drive %c [Y/N]?");
-	MSG_Add("SHELL_EXECUTE_DRIVE_ACCESS_FIXED","Do you really want to give DOSBox-X access to everything\non your real drive %c [Y/N]?");
+	MSG_Add("SHELL_EXECUTE_DRIVE_ACCESS_FIXED","Do you really want to give DOSBox-X access to everything\non your real hard drive %c [Y/N]?");
+	MSG_Add("SHELL_EXECUTE_DRIVE_ACCESS_FIXED_LESS","Do you want to give DOSBox-X access to your real hard drive %c [Y/N]?");
 	MSG_Add("SHELL_EXECUTE_DRIVE_ACCESS_WARNING_WIN","Mounting C:\\ is NOT recommended.\n");
 	MSG_Add("SHELL_EXECUTE_ILLEGAL_COMMAND","Illegal command: %s.\n");
 	MSG_Add("SHELL_CMD_PAUSE","Press any key to continue.\n");

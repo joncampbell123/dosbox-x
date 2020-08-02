@@ -1,7 +1,7 @@
 0.83.4
   - Fixed loading saved states in fullscreen mode with
     the "aspect=true" setting. (Wengier)
-  - Add key mapper for sending the Ctrl-Alt-Del key,
+  - Added key mapper for sending the Ctrl+Alt+Del key,
     with HOST(F11/F12)+Del by default. (Wengier)
   - Added dosbox-x.conf setting to ignore the EGA/VGA
     "extended memory" bit. It was originally defined
@@ -17,8 +17,9 @@
     858, 869, 872 for host to guest codepage mapping
     on mounted local or overlay drives. (Wengier)
   - The mapper options "Increase recording volume" and
-    "Decrease recording volume" now show as menu items
-    (under "Sound") too. (Wengier)
+    "Decrease recording volume" as well as function
+    "Show sound levels" (from MIXER command) appear
+    now as menu items (under "Sound") too. (Wengier)
   - Fixed inputting of ASCII character 224 and 240
     in Windows SDL2 or MinGW builds. (Wengier)
   - Fixed possible DPMI error when running Windows
@@ -56,7 +57,7 @@
     virtual machine in DOSBox-X instead. (Wengier)
   - Added "Reported DOS version" sub-menu (under
     "DOS") to dynamically change the reported DOS
-    version (including 3.3, 5.0, 6.22, 7.1). This
+    version (3.3, 5.0, 6.22, 7.1, or custom). This
     may enable/disable long filename (LFN) support
     with the default "lfn=auto" setting. (Wengier)
   - LS is now an external command appearing on drive
@@ -71,7 +72,7 @@
     button just before the "Close" button. (Wengier)
   - Added "euro" config option (in [render] section)
     to display Euro symbol instead of the specified
-    ASCII character in any codepage. (Wengier)
+    ASCII character in any code page. (Wengier)
   - PC-98 CG MMIO writes fixed to limit writes only
     to the user-defined areas, same as the IO writes.
     This fixes "Niko Niko" that appears to write a

@@ -38,7 +38,7 @@ Bitu call_program;
 
 extern int enablelfn, paste_speed, wheel_key;
 extern const char *modifier;
-extern bool dos_kernel_disabled, force_nocachedir, freesizecap, wpcolon, enable_config_as_shell_commands, load, startwait;
+extern bool dos_kernel_disabled, force_nocachedir, freesizecap, wpcolon, enable_config_as_shell_commands, load, startwait, mountwarning;
 
 /* This registers a file on the virtual drive and creates the correct structure for it*/
 
@@ -1076,6 +1076,7 @@ void CONFIG::Run(void) {
 #endif
 #endif
 						} else if (!strcasecmp(pvars[0].c_str(), "dos")) {
+							mountwarning = section->Get_bool("mountwarning");
 							if (!strcasecmp(inputline.substr(0, 4).c_str(), "lfn=")) {
 								if (!strcmp(section->Get_string("lfn"), "true")) enablelfn=1;
 								else if (!strcmp(section->Get_string("lfn"), "false")) enablelfn=0;

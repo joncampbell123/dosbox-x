@@ -949,6 +949,30 @@ static void SDLCALL MIXER_CallBack(void * userdata, Uint8 *stream, int len) {
     }
 }
 
+std::string mixerinfo() {
+    std::string info="Channel  Main    Main(dB)\n";
+    char str[100];
+    sprintf(str, "%-8s %3.0f:%-3.0f  %+3.2f:%-+3.2f\n","MASTER",
+        (double)mixer.mastervol[0]*100,(double)mixer.mastervol[1]*100,
+        20*log(mixer.mastervol[0])/log(10.0f),20*log(mixer.mastervol[1])/log(10.0f)
+    );
+    info+=std::string(str);
+    sprintf(str, "%-8s %3.0f:%-3.0f  %+3.2f:%-+3.2f\n","RECORD",
+        (double)mixer.recordvol[0]*100,(double)mixer.recordvol[1]*100,
+        20*log(mixer.recordvol[0])/log(10.0f),20*log(mixer.recordvol[1])/log(10.0f)
+    );
+    info+=std::string(str);
+    MixerChannel * chan=mixer.channels;
+    for (chan=mixer.channels;chan;chan=chan->next) {
+        sprintf(str, "%-8s %3.0f:%-3.0f  %+3.2f:%-+3.2f\n",chan->name,
+            (double)chan->volmain[0]*100,(double)chan->volmain[1]*100,
+            20*log(chan->volmain[0])/log(10.0f),20*log(chan->volmain[1])/log(10.0f)
+        );
+        info+=std::string(str);
+    }
+    return info;
+}
+
 static void MIXER_Stop(Section* sec) {
     (void)sec;//UNUSED
 }
@@ -1004,20 +1028,9 @@ public:
             chan=chan->next;
         }
         if (cmd->FindExist("/NOSHOW")) return;
-        WriteOut("Channel  Main    Main(dB)\n");
-        ShowVolume("MASTER",mixer.mastervol[0],mixer.mastervol[1]);
-        ShowVolume("RECORD",mixer.recordvol[0],mixer.recordvol[1]);
-        for (chan=mixer.channels;chan;chan=chan->next) 
-            ShowVolume(chan->name,chan->volmain[0],chan->volmain[1]);
+        WriteOut(mixerinfo().c_str());
     }
 private:
-    void ShowVolume(const char * name,float vol0,float vol1) {
-        WriteOut("%-8s %3.0f:%-3.0f  %+3.2f:%-+3.2f \n",name,
-            (double)vol0*100,(double)vol1*100,
-            20*log(vol0)/log(10.0f),20*log(vol1)/log(10.0f)
-        );
-    }
-
     void ListMidi(){
         if(midi.handler) midi.handler->ListAll(this);
     };
