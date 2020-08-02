@@ -7937,7 +7937,7 @@ bool refresh_slots_menu_callback(DOSBoxMenu * const menu, DOSBoxMenu::item * con
 		char name[6]="slot0";
 		name[4]='0'+i;
 		std::string command=SaveState::instance().getName(i);
-		std::string str="Slot "+(i>=9?"10":std::string(1, '1'+i))+(command=="[Empty]"?" [Empty slot]":(command==""?"":" (Program: "+command+")"));
+		std::string str="Slot "+(i>=9?"10":std::string(1, '1'+i))+(command=="[Empty]"?" [Empty slot]":(command==""?"":" "+command));
 		mainMenu.get_item(name).set_text(str.c_str()).refresh_item(mainMenu);
 	}
     return true;
@@ -9125,7 +9125,7 @@ int main(int argc, char* argv[]) SDL_MAIN_NOEXCEPT {
 				for (unsigned int i=0; i<SaveState::SLOT_COUNT; i++) {
 					name[4]='0'+i;
 					std::string command=SaveState::instance().getName(i);
-					std::string str="Slot "+(i>=9?"10":std::string(1, '1'+i))+(command=="[Empty]"?" [Empty slot]":(command==""?"":" (Program: "+command+")"));
+					std::string str="Slot "+(i>=9?"10":std::string(1, '1'+i))+(command=="[Empty]"?" [Empty slot]":(command==""?"":" "+command));
 					mainMenu.alloc_item(DOSBoxMenu::item_type_id,name).set_text(str.c_str()).set_callback_function(callbacks[i]);
 				}
             }
