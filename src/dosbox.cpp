@@ -1370,6 +1370,10 @@ void DOSBOX_SetupConfigSections(void) {
     Pstring = secprop->Add_path("captures",Property::Changeable::Always,"capture");
     Pstring->Set_help("Directory where things like wave, midi, screenshot get captured.");
 
+    Pint = secprop->Add_int("saveslot", Property::Changeable::WhenIdle,1);
+    Pint->SetMinMax(1,10);
+    Pint->Set_help("Select the default save slot (1-10) to save/load states.");
+
     /* will change to default true unless this causes compatibility issues with other users or their editing software */
     Pbool = secprop->Add_bool("skip encoding unchanged frames",Property::Changeable::WhenIdle,false);
     Pbool->Set_help("Unchanged frames will not be sent to the video codec as a possible performance and bandwidth optimization.");
@@ -4930,7 +4934,7 @@ void SaveState::load(size_t slot) const { //throw (Error)
 			char * const buffer = (char*)alloca( (length+1) * sizeof(char)); // char buffer[length];
 			check_title.read (buffer, length);
 			check_title.close();
-			if (strncmp(buffer,RunningProgram,length)||!length) {
+			if (!length||length!=strlen(RunningProgram)||strncmp(buffer,RunningProgram,length)) {
 #if defined(WIN32)
 				if(!force_load_state&&MessageBox(GetHWND(),"Program name mismatch. Load the state anyway?","Warning",MB_YESNO|MB_DEFBUTTON2)==IDNO) {
 #else

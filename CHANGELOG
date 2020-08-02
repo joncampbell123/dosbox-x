@@ -1,7 +1,9 @@
 0.83.4
   - Fixed loading saved states in fullscreen mode with
-    the "aspect=true" setting. The timestamp for the
-    saved states will be shown in the menu. (Wengier)
+    the "aspect=true" setting. (Wengier)
+  - Added config option "saveslot" to select default
+    save slot (1-10). The timestamps for the saved
+    states will also be shown in the menu. (Wengier)
   - Added key mapper for sending the Ctrl+Alt+Del key,
     with HOST(F11/F12)+Del by default. (Wengier)
   - Added dosbox-x.conf setting to ignore the EGA/VGA

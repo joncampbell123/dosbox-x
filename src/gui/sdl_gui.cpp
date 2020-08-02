@@ -1435,9 +1435,9 @@ protected:
     GUI::Input *name;
 public:
     ShowStateCorrupt(GUI::Screen *parent, int x, int y, const char *title) :
-        ToplevelWindow(parent, x, y, 270, 120, "Error") {
-            new GUI::Label(this, 50, 20, title);
-            (new GUI::Button(this, 100, 50, "Close", 70))->addActionHandler(this);
+        ToplevelWindow(parent, x, y, 420, 120, "Error") {
+            new GUI::Label(this, 30, 20, title);
+            (new GUI::Button(this, 180, 50, "Close", 70))->addActionHandler(this);
     }
 
     void actionExecuted(GUI::ActionEventSource *b, const GUI::String &arg) {
@@ -1762,7 +1762,7 @@ static void UI_Select(GUI::ScreenSDL *screen, int select) {
             np5->raise();
             } break;
         case 21: {
-            auto *np6 = new ShowStateCorrupt(screen, 150, 120, "Save state corrupted!");
+            auto *np6 = new ShowStateCorrupt(screen, 150, 120, "Save state corrupted! Program may not work.");
             np6->raise();
             } break;
         default:
