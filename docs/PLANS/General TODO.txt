@@ -1,6 +1,9 @@
+Some plans for future DOSBox-X developments
+===========================================
+
 * Clock domains
 
-  - Current DOSBox emulation is CPU-centric, which is OK, I guess,
+  - Current DOSBox-X emulation is CPU-centric, which is OK, I guess,
     but not ideal for much of the emulation.
   - Many delays and timing are based on floating point values in milliseconds.
     If clock domains were implemented, devices could count very accurately
@@ -124,7 +127,7 @@
     add code to receive them.
   - Add code to store scroll wheel deltas in mouse event queue.
   - Add code to take overall scrollwheel delta and transmit as 4th byte
-    in Intellimouse mouse on AUX
+    in Intellimouse mouse on AUX.
   - And toughest of them all: Figure out how the hell Windows 98 is able
     to use scrollwheel data when it is still reliant on the INT 15h
     device callback that's documented only to carry the X, Y, and button
@@ -142,9 +145,9 @@
     a particular brand and version is emulated. For example, if you say that
     you want DOSBox-X to emulate MS-DOS 3.3, then it will return values and act
     like MS-DOS 3.3 (including the shorter form of the disk parameter table
-    prior to MS-DOS 4.0). On the ther hand, if you say that you want DOSBox-X
-    to emulate MS-DOS 7.1, then it will return values and act like MS-DOS 7.1
-    (including support for FAT32 drives and long filenames).
+    prior to MS-DOS 4.0). With the current code, if you say that you want
+    DOSBox-X to emulate MS-DOS 7.1, then it tries to return values and act
+    like MS-DOS 7.1 (including support for FAT32 drives and long filenames).
 
 * Misc
 
