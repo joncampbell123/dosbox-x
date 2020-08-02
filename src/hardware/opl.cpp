@@ -1523,7 +1523,7 @@ void adlib_savestate( std::ostream& stream )
 
 void adlib_loadstate( std::istream& stream )
 {
-	Bit32u cur_wform_idx[MAXOPERATORS];
+	Bitu cur_wform_idx[MAXOPERATORS];
 
 	//****************************************************
 	//****************************************************
