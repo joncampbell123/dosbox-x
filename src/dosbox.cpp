@@ -760,7 +760,7 @@ void SaveGameState(bool pressed) {
 		char name[6]="slot0";
 		name[4]='0'+(char)currentSlot;
 		std::string command=SaveState::instance().getName(currentSlot);
-		std::string str="Slot "+(currentSlot>=9?"10":std::string(1, '1'+(char)currentSlot))+(command=="[Empty]"?" [Empty slot]":(command==""?"":" (Program: "+command+")"));
+		std::string str="Slot "+(currentSlot>=9?"10":std::string(1, '1'+(char)currentSlot))+(command==""?"":" "+command);
 		mainMenu.get_item(name).set_text(str.c_str()).refresh_item(mainMenu);
     }
     catch (const SaveState::Error& err)
@@ -4676,6 +4676,7 @@ void SaveState::save(size_t slot) { //throw (Error)
 	bool create_version=false;
 	bool create_title=false;
 	bool create_memorysize=false;
+	bool create_timestamp=false;
 	extern const char* RunningProgram;
 	std::string path;
 	bool Get_Custom_SaveDir(std::string& savedir);
@@ -4729,12 +4730,28 @@ void SaveState::save(size_t slot) { //throw (Error)
 			}
 
 			if(!create_memorysize) {
-                 std::string tempname = temp+"Memory_Size";
-				  std::ofstream memorysize (tempname.c_str(), std::ofstream::binary);
-				  memorysize << MEM_TotalPages();
-				  create_memorysize=true;
-				  memorysize.close();
+				std::string tempname = temp+"Memory_Size";
+				std::ofstream memorysize (tempname.c_str(), std::ofstream::binary);
+				memorysize << MEM_TotalPages();
+				create_memorysize=true;
+				memorysize.close();
 			}
+
+			if(!create_timestamp) {
+				std::string tempname = temp+"Time_Stamp";
+				std::ofstream timestamp (tempname.c_str(), std::ofstream::binary);
+                time_t rawtime;
+                struct tm * timeinfo;
+                char buffer[80];
+                time (&rawtime);
+                timeinfo = localtime(&rawtime);
+                strftime(buffer,sizeof(buffer),"%Y-%m-%d %H:%M",timeinfo);
+                std::string str(buffer);
+				timestamp << str;
+				create_timestamp=true;
+				timestamp.close();
+			}
+
 			std::string realtemp;
 			realtemp = temp + i->first;
 			std::ofstream outfile (realtemp.c_str(), std::ofstream::binary);
@@ -4770,6 +4787,8 @@ void SaveState::save(size_t slot) { //throw (Error)
 	my_minizip((char **)save.c_str(), (char **)save2.c_str());
 	save2=temp+"Memory_Size";
 	my_minizip((char **)save.c_str(), (char **)save2.c_str());
+	save2=temp+"Time_Stamp";
+	my_minizip((char **)save.c_str(), (char **)save2.c_str());
 
 delete_all:
 	for (CompEntry::iterator i = components.begin(); i != components.end(); ++i) {
@@ -4781,6 +4800,8 @@ delete_all:
 	save2=temp+"Program_Name";
 	remove(save2.c_str());
 	save2=temp+"Memory_Size";
+	remove(save2.c_str());
+	save2=temp+"Time_Stamp";
 	remove(save2.c_str());
 	if (save_err) {
 #if defined(WIN32)
@@ -5046,7 +5067,7 @@ bool SaveState::isEmpty(size_t slot) const {
 }
 
 std::string SaveState::getName(size_t slot) const {
-	if (slot >= SLOT_COUNT) return "[Empty]";
+	if (slot >= SLOT_COUNT) return "[Empty slot]";
 	std::string path;
 	bool Get_Custom_SaveDir(std::string& savedir);
 	if(Get_Custom_SaveDir(path)) {
@@ -5070,7 +5091,7 @@ std::string SaveState::getName(size_t slot) const {
 	std::string save=temp+slotname.str()+".sav";
 	std::ifstream check_slot;
 	check_slot.open(save.c_str(), std::ifstream::in);
-	if (check_slot.fail()) return "[Empty]";
+	if (check_slot.fail()) return "[Empty slot]";
 	my_miniunz((char **)save.c_str(),"Program_Name",temp.c_str());
 	std::ifstream check_title;
 	int length = 8;
@@ -5083,10 +5104,28 @@ std::string SaveState::getName(size_t slot) const {
 	check_title.seekg (0, std::ios::end);
 	length = (int)check_title.tellg();
 	check_title.seekg (0, std::ios::beg);
-	char * const buffer = (char*)alloca( (length+1) * sizeof(char));
-	check_title.read (buffer, length);
+	char * const buffer1 = (char*)alloca( (length+1) * sizeof(char));
+	check_title.read (buffer1, length);
 	check_title.close();
 	remove(tempname.c_str());
-	buffer[length]='\0';
-	return std::string(buffer);
+	buffer1[length]='\0';
+    std::string ret="[Program: "+std::string(buffer1)+"]";
+	my_miniunz((char **)save.c_str(),"Time_Stamp",temp.c_str());
+    length=18;
+	tempname = temp+"Time_Stamp";
+	check_title.open(tempname.c_str(), std::ifstream::in);
+	if (check_title.fail()) {
+		remove(tempname.c_str());
+		return ret;
+	}
+	check_title.seekg (0, std::ios::end);
+	length = (int)check_title.tellg();
+	check_title.seekg (0, std::ios::beg);
+	char * const buffer2 = (char*)alloca( (length+1) * sizeof(char));
+	check_title.read (buffer2, length);
+	check_title.close();
+	remove(tempname.c_str());
+	buffer2[length]='\0';
+    if (strlen(buffer2)) ret+=" ("+std::string(buffer2)+")";
+	return ret;
 }
