@@ -4807,6 +4807,16 @@ delete_all:
 		LOG_MSG("[%s]: Saved. (Slot %d)", getTime().c_str(), (int)slot+1);
 }
 
+void savestatecorrupt(const char* part) {
+    LOG_MSG("Save state corrupted! Program in inconsistent state! - %s", part);
+    void MAPPER_ReleaseAllKeys(void);
+    MAPPER_ReleaseAllKeys();
+    GFX_LosingFocus();
+    GUI_Shortcut(21);
+    MAPPER_ReleaseAllKeys();
+    GFX_LosingFocus();
+}
+
 void SaveState::load(size_t slot) const { //throw (Error)
 //	if (isEmpty(slot)) return;
 	bool load_err=false;
@@ -4872,10 +4882,7 @@ void SaveState::load(size_t slot) const { //throw (Error)
 			std::string tempname = temp+"DOSBox-X_Version";
 			check_version.open(tempname.c_str(), std::ifstream::in);
 			if(check_version.fail()) {
-				LOG_MSG("Save state corrupted! Program in inconsistent state! - DOSBox-X_Version");
-#if defined(WIN32)
-				MessageBox(GetHWND(),"Save state corrupted!","Error",MB_OK);
-#endif
+				savestatecorrupt("DOSBox-X_Version");
 				load_err=true;
 				goto delete_all;
 			}
@@ -4912,10 +4919,7 @@ void SaveState::load(size_t slot) const { //throw (Error)
 			std::string tempname = temp+"Program_Name";
 			check_title.open(tempname.c_str(), std::ifstream::in);
 			if(check_title.fail()) {
-				LOG_MSG("Save state corrupted! Program in inconsistent state! - Program_Name");
-#if defined(WIN32)
-				MessageBox(GetHWND(),"Save state corrupted!","Error",MB_OK);
-#endif
+				savestatecorrupt("Program_Name");
 				load_err=true;
 				goto delete_all;
 			}
@@ -4959,7 +4963,7 @@ void SaveState::load(size_t slot) const { //throw (Error)
 			std::string tempname = temp+"Memory_Size";
 			check_memorysize.open(tempname.c_str(), std::ifstream::in);
 			if(check_memorysize.fail()) {
-				LOG_MSG("Save state corrupted! Program in inconsistent state! - Memory_Size");
+				savestatecorrupt("Memory_Size");
 				load_err=true;
 				goto delete_all;
 			}
@@ -4991,10 +4995,7 @@ void SaveState::load(size_t slot) const { //throw (Error)
 		check_file.open(realtemp.c_str(), std::ifstream::in);
 		check_file.close();
 		if(check_file.fail()) {
-			LOG_MSG("Save state corrupted! Program in inconsistent state! - %s",i->first.c_str());
-#if defined(WIN32)
-			MessageBox(GetHWND(),"Save state corrupted!","Error",MB_OK);
-#endif
+			savestatecorrupt(i->first.c_str());
 			load_err=true;
 			goto delete_all;
 		}
@@ -5005,10 +5006,7 @@ void SaveState::load(size_t slot) const { //throw (Error)
 		mystream << (Util::decompress(str));
 		i->second.comp.setBytes(mystream);
 		if (mystream.rdbuf()->in_avail() != 0 || mystream.eof()) { //basic consistency check
-			LOG_MSG("Save state corrupted! Program in inconsistent state! - %s",i->first.c_str());
-#if defined(WIN32)
-			MessageBox(GetHWND(),"Save state corrupted!","Error",MB_OK);
-#endif
+			savestatecorrupt(i->first.c_str());
 			load_err=true;
 			goto delete_all;
 		}
