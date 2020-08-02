@@ -104,7 +104,7 @@ int enablelfn=-1;
 bool uselfn;
 extern bool infix, winrun, startcmd, startwait;
 extern bool int15_wait_force_unmask_irq;
-extern bool startup_state_numlock;
+extern bool startup_state_numlock, mountwarning;
 std::string startincon;
 
 Bit32u dos_hma_allocator = 0; /* physical memory addr */
@@ -2732,6 +2732,7 @@ public:
 		enable_dummy_device_mcb = section->Get_bool("enable dummy device mcb");
 		int15_wait_force_unmask_irq = section->Get_bool("int15 wait force unmask irq");
         disk_io_unmask_irq0 = section->Get_bool("unmask timer on disk io");
+        mountwarning = section->Get_bool("mountwarning");
 #if defined (WIN32)
         if (winrun) {
             Section* tsec = control->GetSection("dos");

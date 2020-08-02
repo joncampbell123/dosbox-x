@@ -66,6 +66,7 @@ bool freesizecap = true;
 bool wpcolon = true;
 bool startcmd = false;
 bool startwait = true;
+bool mountwarning = true;
 
 void DOS_EnableDriveMenu(char drv);
 
@@ -305,7 +306,7 @@ void MenuMountDrive(char drive, const char drive2[DOS_PATHLENGTH]) {
 	else
 		drive_warn += " everything on your real drive ";
 
-	if (MessageBox(GetHWND(),(drive_warn+str+"?").c_str(),"Warning",MB_YESNO)==IDNO) return;
+	if (mountwarning && MessageBox(GetHWND(),(drive_warn+str+"?").c_str(),"Warning",MB_YESNO)==IDNO) return;
 
 	if(type==DRIVE_CDROM) {
 		mediaid=0xF8;		/* Hard Disk */
@@ -937,13 +938,15 @@ public:
                 }
             } else {
                 /* Give a warning when mount c:\ or the / */
+                if (mountwarning) {
 #if defined (WIN32) || defined(OS2)
-                if( (temp_line == "c:\\") || (temp_line == "C:\\") || 
-                    (temp_line == "c:/") || (temp_line == "C:/")    )   
-                    WriteOut(MSG_Get("PROGRAM_MOUNT_WARNING_WIN"));
+                    if( (temp_line == "c:\\") || (temp_line == "C:\\") ||
+                        (temp_line == "c:/") || (temp_line == "C:/")    )
+                        WriteOut(MSG_Get("PROGRAM_MOUNT_WARNING_WIN"));
 #else
-                if(temp_line == "/") WriteOut(MSG_Get("PROGRAM_MOUNT_WARNING_OTHER"));
+                    if(temp_line == "/") WriteOut(MSG_Get("PROGRAM_MOUNT_WARNING_OTHER"));
 #endif
+                }
                 if (is_physfs) {
 					WriteOut(MSG_Get("PROGRAM_IMGMOUNT_CANT_CREATE_PHYSFS"));
                     LOG_MSG("ERROR:This build does not support physfs");
