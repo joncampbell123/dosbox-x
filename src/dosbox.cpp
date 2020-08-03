@@ -686,13 +686,16 @@ void DOSBOX_SlowDown( bool pressed ) {
 
 namespace
 {
-std::string getTime()
+std::string getTime(bool date=false)
 {
     const time_t current = time(NULL);
     tm* timeinfo;
     timeinfo = localtime(&current); //convert to local time
-    char buffer[50];
-    ::strftime(buffer, 50, "%H:%M:%S", timeinfo);
+    char buffer[80];
+    if (date)
+        ::strftime(buffer, 80, "%Y-%m-%d %H:%M", timeinfo);
+    else
+        ::strftime(buffer, 50, "%H:%M:%S", timeinfo);
     return buffer;
 }
 
@@ -755,12 +758,12 @@ void SaveGameState(bool pressed) {
 
     try
     {
+        LOG_MSG("Saving state to slot: %d", (int)currentSlot + 1);
         SaveState::instance().save(currentSlot);
-        LOG_MSG("[%s]: State %d saved!", getTime().c_str(), (int)currentSlot + 1);
 		char name[6]="slot0";
 		name[4]='0'+(char)currentSlot;
 		std::string command=SaveState::instance().getName(currentSlot);
-		std::string str="Slot "+(currentSlot>=9?"10":std::string(1, '1'+(char)currentSlot))+(command=="[Empty]"?" [Empty slot]":(command==""?"":" (Program: "+command+")"));
+		std::string str="Slot "+(currentSlot>=9?"10":std::string(1, '1'+(char)currentSlot))+(command==""?"":" "+command);
 		mainMenu.get_item(name).set_text(str.c_str()).refresh_item(mainMenu);
     }
     catch (const SaveState::Error& err)
@@ -779,8 +782,8 @@ void LoadGameState(bool pressed) {
 //    }
     try
     {
+        LOG_MSG("Loading state from slot: %d", (int)currentSlot + 1);
         SaveState::instance().load(currentSlot);
-        LOG_MSG("[%s]: State %d loaded!", getTime().c_str(), (int)currentSlot + 1);
     }
     catch (const SaveState::Error& err)
     {
@@ -1366,6 +1369,10 @@ void DOSBOX_SetupConfigSections(void) {
 
     Pstring = secprop->Add_path("captures",Property::Changeable::Always,"capture");
     Pstring->Set_help("Directory where things like wave, midi, screenshot get captured.");
+
+    Pint = secprop->Add_int("saveslot", Property::Changeable::WhenIdle,1);
+    Pint->SetMinMax(1,10);
+    Pint->Set_help("Select the default save slot (1-10) to save/load states.");
 
     /* will change to default true unless this causes compatibility issues with other users or their editing software */
     Pbool = secprop->Add_bool("skip encoding unchanged frames",Property::Changeable::WhenIdle,false);
@@ -4676,6 +4683,7 @@ void SaveState::save(size_t slot) { //throw (Error)
 	bool create_version=false;
 	bool create_title=false;
 	bool create_memorysize=false;
+	bool create_timestamp=false;
 	extern const char* RunningProgram;
 	std::string path;
 	bool Get_Custom_SaveDir(std::string& savedir);
@@ -4729,12 +4737,21 @@ void SaveState::save(size_t slot) { //throw (Error)
 			}
 
 			if(!create_memorysize) {
-                 std::string tempname = temp+"Memory_Size";
-				  std::ofstream memorysize (tempname.c_str(), std::ofstream::binary);
-				  memorysize << MEM_TotalPages();
-				  create_memorysize=true;
-				  memorysize.close();
+				std::string tempname = temp+"Memory_Size";
+				std::ofstream memorysize (tempname.c_str(), std::ofstream::binary);
+				memorysize << MEM_TotalPages();
+				create_memorysize=true;
+				memorysize.close();
 			}
+
+			if(!create_timestamp) {
+				std::string tempname = temp+"Time_Stamp";
+				std::ofstream timestamp (tempname.c_str(), std::ofstream::binary);
+				timestamp << getTime(true);
+				create_timestamp=true;
+				timestamp.close();
+			}
+
 			std::string realtemp;
 			realtemp = temp + i->first;
 			std::ofstream outfile (realtemp.c_str(), std::ofstream::binary);
@@ -4770,6 +4787,8 @@ void SaveState::save(size_t slot) { //throw (Error)
 	my_minizip((char **)save.c_str(), (char **)save2.c_str());
 	save2=temp+"Memory_Size";
 	my_minizip((char **)save.c_str(), (char **)save2.c_str());
+	save2=temp+"Time_Stamp";
+	my_minizip((char **)save.c_str(), (char **)save2.c_str());
 
 delete_all:
 	for (CompEntry::iterator i = components.begin(); i != components.end(); ++i) {
@@ -4782,12 +4801,24 @@ delete_all:
 	remove(save2.c_str());
 	save2=temp+"Memory_Size";
 	remove(save2.c_str());
+	save2=temp+"Time_Stamp";
+	remove(save2.c_str());
 	if (save_err) {
 #if defined(WIN32)
 		MessageBox(GetHWND(),"Failed to save the current state.","Error",MB_OK);
 #endif
 	} else
-		LOG_MSG("Saved. (Slot %d)",(int)slot+1);
+		LOG_MSG("[%s]: Saved. (Slot %d)", getTime().c_str(), (int)slot+1);
+}
+
+void savestatecorrupt(const char* part) {
+    LOG_MSG("Save state corrupted! Program in inconsistent state! - %s", part);
+    void MAPPER_ReleaseAllKeys(void);
+    MAPPER_ReleaseAllKeys();
+    GFX_LosingFocus();
+    GUI_Shortcut(21);
+    MAPPER_ReleaseAllKeys();
+    GFX_LosingFocus();
 }
 
 void SaveState::load(size_t slot) const { //throw (Error)
@@ -4855,10 +4886,7 @@ void SaveState::load(size_t slot) const { //throw (Error)
 			std::string tempname = temp+"DOSBox-X_Version";
 			check_version.open(tempname.c_str(), std::ifstream::in);
 			if(check_version.fail()) {
-				LOG_MSG("Save state corrupted! Program in inconsistent state! - DOSBox-X_Version");
-#if defined(WIN32)
-				MessageBox(GetHWND(),"Save state corrupted!","Error",MB_OK);
-#endif
+				savestatecorrupt("DOSBox-X_Version");
 				load_err=true;
 				goto delete_all;
 			}
@@ -4895,10 +4923,7 @@ void SaveState::load(size_t slot) const { //throw (Error)
 			std::string tempname = temp+"Program_Name";
 			check_title.open(tempname.c_str(), std::ifstream::in);
 			if(check_title.fail()) {
-				LOG_MSG("Save state corrupted! Program in inconsistent state! - Program_Name");
-#if defined(WIN32)
-				MessageBox(GetHWND(),"Save state corrupted!","Error",MB_OK);
-#endif
+				savestatecorrupt("Program_Name");
 				load_err=true;
 				goto delete_all;
 			}
@@ -4909,7 +4934,7 @@ void SaveState::load(size_t slot) const { //throw (Error)
 			char * const buffer = (char*)alloca( (length+1) * sizeof(char)); // char buffer[length];
 			check_title.read (buffer, length);
 			check_title.close();
-			if (strncmp(buffer,RunningProgram,length)||!length) {
+			if (!length||length!=strlen(RunningProgram)||strncmp(buffer,RunningProgram,length)) {
 #if defined(WIN32)
 				if(!force_load_state&&MessageBox(GetHWND(),"Program name mismatch. Load the state anyway?","Warning",MB_YESNO|MB_DEFBUTTON2)==IDNO) {
 #else
@@ -4942,7 +4967,7 @@ void SaveState::load(size_t slot) const { //throw (Error)
 			std::string tempname = temp+"Memory_Size";
 			check_memorysize.open(tempname.c_str(), std::ifstream::in);
 			if(check_memorysize.fail()) {
-				LOG_MSG("Save state corrupted! Program in inconsistent state! - Memory_Size");
+				savestatecorrupt("Memory_Size");
 				load_err=true;
 				goto delete_all;
 			}
@@ -4974,10 +4999,7 @@ void SaveState::load(size_t slot) const { //throw (Error)
 		check_file.open(realtemp.c_str(), std::ifstream::in);
 		check_file.close();
 		if(check_file.fail()) {
-			LOG_MSG("Save state corrupted! Program in inconsistent state! - %s",i->first.c_str());
-#if defined(WIN32)
-			MessageBox(GetHWND(),"Save state corrupted!","Error",MB_OK);
-#endif
+			savestatecorrupt(i->first.c_str());
 			load_err=true;
 			goto delete_all;
 		}
@@ -4988,10 +5010,7 @@ void SaveState::load(size_t slot) const { //throw (Error)
 		mystream << (Util::decompress(str));
 		i->second.comp.setBytes(mystream);
 		if (mystream.rdbuf()->in_avail() != 0 || mystream.eof()) { //basic consistency check
-			LOG_MSG("Save state corrupted! Program in inconsistent state! - %s",i->first.c_str());
-#if defined(WIN32)
-			MessageBox(GetHWND(),"Save state corrupted!","Error",MB_OK);
-#endif
+			savestatecorrupt(i->first.c_str());
 			load_err=true;
 			goto delete_all;
 		}
@@ -5014,7 +5033,7 @@ delete_all:
 	remove(save2.c_str());
 	save2=temp+"Memory_Size";
 	remove(save2.c_str());
-	if (!load_err) LOG_MSG("Loaded. (Slot %d)",(int)slot+1);
+	if (!load_err) LOG_MSG("[%s]: Loaded. (Slot %d)", getTime().c_str(), (int)slot+1);
 }
 
 bool SaveState::isEmpty(size_t slot) const {
@@ -5046,7 +5065,7 @@ bool SaveState::isEmpty(size_t slot) const {
 }
 
 std::string SaveState::getName(size_t slot) const {
-	if (slot >= SLOT_COUNT) return "[Empty]";
+	if (slot >= SLOT_COUNT) return "[Empty slot]";
 	std::string path;
 	bool Get_Custom_SaveDir(std::string& savedir);
 	if(Get_Custom_SaveDir(path)) {
@@ -5070,7 +5089,7 @@ std::string SaveState::getName(size_t slot) const {
 	std::string save=temp+slotname.str()+".sav";
 	std::ifstream check_slot;
 	check_slot.open(save.c_str(), std::ifstream::in);
-	if (check_slot.fail()) return "[Empty]";
+	if (check_slot.fail()) return "[Empty slot]";
 	my_miniunz((char **)save.c_str(),"Program_Name",temp.c_str());
 	std::ifstream check_title;
 	int length = 8;
@@ -5083,10 +5102,28 @@ std::string SaveState::getName(size_t slot) const {
 	check_title.seekg (0, std::ios::end);
 	length = (int)check_title.tellg();
 	check_title.seekg (0, std::ios::beg);
-	char * const buffer = (char*)alloca( (length+1) * sizeof(char));
-	check_title.read (buffer, length);
+	char * const buffer1 = (char*)alloca( (length+1) * sizeof(char));
+	check_title.read (buffer1, length);
 	check_title.close();
 	remove(tempname.c_str());
-	buffer[length]='\0';
-	return std::string(buffer);
+	buffer1[length]='\0';
+    std::string ret="[Program: "+std::string(buffer1)+"]";
+	my_miniunz((char **)save.c_str(),"Time_Stamp",temp.c_str());
+    length=18;
+	tempname = temp+"Time_Stamp";
+	check_title.open(tempname.c_str(), std::ifstream::in);
+	if (check_title.fail()) {
+		remove(tempname.c_str());
+		return ret;
+	}
+	check_title.seekg (0, std::ios::end);
+	length = (int)check_title.tellg();
+	check_title.seekg (0, std::ios::beg);
+	char * const buffer2 = (char*)alloca( (length+1) * sizeof(char));
+	check_title.read (buffer2, length);
+	check_title.close();
+	remove(tempname.c_str());
+	buffer2[length]='\0';
+    if (strlen(buffer2)) ret+=" ("+std::string(buffer2)+")";
+	return ret;
 }

@@ -1,5 +1,11 @@
+Information on keyboard layouts for developers
+==============================================
 
 DOSBox-X is not compatible with keyboard layouts it's not prepared for.
+
+DOSBox-X was developed around the US keyboard layout like DOSBox, mainly
+due to limitations around the SDL1 library. SDL is responsible for input
+handling, and SDL1 in particular only supports US keyboards.
 
 The SDL1 library used in this source tree, unlike the official library,
 does not attempt to hack around the issue by forcing Windows to load
@@ -7,6 +13,12 @@ the US keyboard layout for itself.
 
 This document serves as a guide to begin modifying the source code in
 this project to add support for your keyboard layout.
+
+You can also find a list of supported keyboard layouts and further details
+about keyboard layouts and other regional information in the DOSBox-X Wiki:
+https://github.com/joncampbell123/dosbox-x/wiki
+
+Below is the source code that handles the keyboard layouts.
 
 VK_* mapping in SDL1 (Windows):
 - vs2015/sdl/src/video/windib/SDL_dibevents.c: DIB_InitOSKeymapPriv()

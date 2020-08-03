@@ -81,10 +81,10 @@ MinGW compile (on Windows, using MinGW64) for 32-bit Windows XP
 MinGW compile (on Windows, using MinGW64) for 32-bit Windows XP, lower-end systems that lack MMX/SSE
 ./build-mingw-lowend
 
-MinGW compile (on Windows, using MinGW, not MinGW64) to target MS-DOS and the HX DOS Extender
+MinGW compile (on Windows, using MinGW, not MinGW64) to target the DOS platform (MS-DOS or compatible with HX DOS Extender)
 ./build-mingw-hx-dos
 
-NOTICE: Use the 32-bit toolchain from the main MinGW project, not the MinGW64 project.
+NOTICE: Use the 32-bit toolchain from the original MinGW project for this build, not the MinGW64 project.
         Binaries compiled with MinGW64 have extra dependencies not provided by the HX DOS Extender.
 
 macOS (Mac OS X): If you want to make an .app bundle you can run from the Finder, compile the
@@ -143,7 +143,7 @@ a processor that supports the SSE instruction set.
 
 Visual Studio Code is supported, too.
 
-Check the README.Windows file for more information about this platform.
+Check the README.development-in-Windows file for more information about this platform.
 
 Libraries used by DOSBox-X
 --------------------------

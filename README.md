@@ -338,12 +338,12 @@ DOSBox-X displays English as the default language, and uses the U.S. code page (
 
 All messages displayed by DOSBox-X are in English with the default setting. If you are a speaker of a non-English
 language, you can create additional language files for use with DOSBox-X by translating messages in DOSBox-X to your
-language. Other DOSBox-X users may also use these language files if they prefer.
+language. Other DOSBox-X users may also use these language files if they wish.
 
 The fact that DOSBox-X was developed around the U.S. keyboard layout is primarily due to limitations around the SDL1
-library. SDL is responsible for input handling, and SDL1 in particular only supports US keyboards. As such when using
-the SDL1 version and a non-US keyboard, DOSBox-X will automatically use scancodes with the default ```usescancodes=auto```
-setting to work around keyboard layout issues. Scancodes are not needed when using non-US keyboard layouts in the SDL2 version.
+library which provides input handling. As such when using the SDL1 version and a non-US keyboard, DOSBox-X automatically
+uses scancodes with the default setting to work around keyboard layout issues. Scancodes are not needed when using
+non-US keyboard layouts in the SDL2 version.
 
 If you find that a keyboard layout is not yet supported by DOSBox-X, in order to add additional layouts for use
 with DOSBox-X, please see file [README.keyboard-layout-handling](README.keyboard-layout-handling)

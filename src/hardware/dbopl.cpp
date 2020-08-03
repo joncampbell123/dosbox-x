@@ -1624,7 +1624,7 @@ void Handler::LoadState( std::istream& stream )
 	//************************************************
 
 	Bit8u volhandler_idx[18][2];
-	Bit32u wavebase_idx[18][2];
+	Bitu wavebase_idx[18][2];
 	Bit8u synthhandler_idx[18];
 
 	//***************************************************
