@@ -25,11 +25,11 @@ Notable features in DOSBox-X
 
 Although based on the DOSBox project, DOSBox-X is now a separate project because both have their own separate schedules and development priorities. For example, the main focus of DOSBox is for running DOS games whereas DOSBox-X goes way beyond this. At this time DOSBox-X already has a great number of features that do not exist in DOSBox. Examples of such features include:
 
-* GUI menu bar and configuration tool
+* GUI menu bar and graphical configuration tool
 
-* Save and load state support
+* Save and load state support (with save slots)
 
-* Japanese NEC PC-98 mode support
+* Japanese NEC PC-98 mode emulation
 
 * Better compatibility with DOS applications
 
@@ -39,7 +39,7 @@ Although based on the DOSBox project, DOSBox-X is now a separate project because
 
 * Support for IDE interfaces and improved Windows 3.x/9x emulation
 
-* Support for long filenames and FAT32 disk images for DOS version 7+
+* Support for long filenames and FAT32 disk images (DOS 7+ features)
 
 * Support for printer output, either a real or virtual printer
 
