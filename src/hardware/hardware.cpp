@@ -1801,7 +1801,7 @@ void CAPTURE_Destroy(Section *sec) {
 	if (capture.midi.handle) CAPTURE_MidiEvent(true);
 }
 
-void OPL_SaveRawEvent(bool pressed);
+void OPL_SaveRawEvent(bool pressed), SetGameState_Run(int value);
 void CAPTURE_Init() {
 	DOSBoxMenu::item *item;
 
@@ -1814,6 +1814,7 @@ void CAPTURE_Init() {
 	Prop_path *proppath = section->Get_path("captures");
 	assert(proppath != NULL);
 	capturedir = proppath->realpath;
+    SetGameState_Run(section->Get_int("saveslot")-1);
 
     skip_encoding_unchanged_frames = section->Get_bool("skip encoding unchanged frames");
 

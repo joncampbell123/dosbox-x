@@ -550,7 +550,7 @@ private:
 	}
 };
 
-void dos_ver_menu(bool start), ReloadMapper(Section_prop *sec, bool init);
+void dos_ver_menu(bool start), ReloadMapper(Section_prop *sec, bool init), SetGameState_Run(int value);
 bool set_ver(char *s);
 void CONFIG::Run(void) {
 	static const char* const params[] = {
@@ -1050,6 +1050,7 @@ void CONFIG::Run(void) {
 							force_nocachedir = section->Get_bool("nocachedir");
 							freesizecap = section->Get_bool("freesizecap");
 							wpcolon = section->Get_bool("leading colon write protect image");
+							if (!strcasecmp(inputline.substr(0, 9).c_str(), "saveslot=")) SetGameState_Run(section->Get_int("saveslot")-1);
 						} else if (!strcasecmp(pvars[0].c_str(), "sdl")) {
 							modifier = section->Get_string("clip_key_modifier");
 							paste_speed = section->Get_int("clip_paste_speed");

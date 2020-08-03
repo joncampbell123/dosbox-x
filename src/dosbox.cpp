@@ -1370,6 +1370,10 @@ void DOSBOX_SetupConfigSections(void) {
     Pstring = secprop->Add_path("captures",Property::Changeable::Always,"capture");
     Pstring->Set_help("Directory where things like wave, midi, screenshot get captured.");
 
+    Pint = secprop->Add_int("saveslot", Property::Changeable::WhenIdle,1);
+    Pint->SetMinMax(1,10);
+    Pint->Set_help("Select the default save slot (1-10) to save/load states.");
+
     /* will change to default true unless this causes compatibility issues with other users or their editing software */
     Pbool = secprop->Add_bool("skip encoding unchanged frames",Property::Changeable::WhenIdle,false);
     Pbool->Set_help("Unchanged frames will not be sent to the video codec as a possible performance and bandwidth optimization.");
@@ -4807,6 +4811,16 @@ delete_all:
 		LOG_MSG("[%s]: Saved. (Slot %d)", getTime().c_str(), (int)slot+1);
 }
 
+void savestatecorrupt(const char* part) {
+    LOG_MSG("Save state corrupted! Program in inconsistent state! - %s", part);
+    void MAPPER_ReleaseAllKeys(void);
+    MAPPER_ReleaseAllKeys();
+    GFX_LosingFocus();
+    GUI_Shortcut(21);
+    MAPPER_ReleaseAllKeys();
+    GFX_LosingFocus();
+}
+
 void SaveState::load(size_t slot) const { //throw (Error)
 //	if (isEmpty(slot)) return;
 	bool load_err=false;
@@ -4872,10 +4886,7 @@ void SaveState::load(size_t slot) const { //throw (Error)
 			std::string tempname = temp+"DOSBox-X_Version";
 			check_version.open(tempname.c_str(), std::ifstream::in);
 			if(check_version.fail()) {
-				LOG_MSG("Save state corrupted! Program in inconsistent state! - DOSBox-X_Version");
-#if defined(WIN32)
-				MessageBox(GetHWND(),"Save state corrupted!","Error",MB_OK);
-#endif
+				savestatecorrupt("DOSBox-X_Version");
 				load_err=true;
 				goto delete_all;
 			}
@@ -4912,10 +4923,7 @@ void SaveState::load(size_t slot) const { //throw (Error)
 			std::string tempname = temp+"Program_Name";
 			check_title.open(tempname.c_str(), std::ifstream::in);
 			if(check_title.fail()) {
-				LOG_MSG("Save state corrupted! Program in inconsistent state! - Program_Name");
-#if defined(WIN32)
-				MessageBox(GetHWND(),"Save state corrupted!","Error",MB_OK);
-#endif
+				savestatecorrupt("Program_Name");
 				load_err=true;
 				goto delete_all;
 			}
@@ -4926,7 +4934,7 @@ void SaveState::load(size_t slot) const { //throw (Error)
 			char * const buffer = (char*)alloca( (length+1) * sizeof(char)); // char buffer[length];
 			check_title.read (buffer, length);
 			check_title.close();
-			if (strncmp(buffer,RunningProgram,length)||!length) {
+			if (!length||length!=strlen(RunningProgram)||strncmp(buffer,RunningProgram,length)) {
 #if defined(WIN32)
 				if(!force_load_state&&MessageBox(GetHWND(),"Program name mismatch. Load the state anyway?","Warning",MB_YESNO|MB_DEFBUTTON2)==IDNO) {
 #else
@@ -4959,7 +4967,7 @@ void SaveState::load(size_t slot) const { //throw (Error)
 			std::string tempname = temp+"Memory_Size";
 			check_memorysize.open(tempname.c_str(), std::ifstream::in);
 			if(check_memorysize.fail()) {
-				LOG_MSG("Save state corrupted! Program in inconsistent state! - Memory_Size");
+				savestatecorrupt("Memory_Size");
 				load_err=true;
 				goto delete_all;
 			}
@@ -4991,10 +4999,7 @@ void SaveState::load(size_t slot) const { //throw (Error)
 		check_file.open(realtemp.c_str(), std::ifstream::in);
 		check_file.close();
 		if(check_file.fail()) {
-			LOG_MSG("Save state corrupted! Program in inconsistent state! - %s",i->first.c_str());
-#if defined(WIN32)
-			MessageBox(GetHWND(),"Save state corrupted!","Error",MB_OK);
-#endif
+			savestatecorrupt(i->first.c_str());
 			load_err=true;
 			goto delete_all;
 		}
@@ -5005,10 +5010,7 @@ void SaveState::load(size_t slot) const { //throw (Error)
 		mystream << (Util::decompress(str));
 		i->second.comp.setBytes(mystream);
 		if (mystream.rdbuf()->in_avail() != 0 || mystream.eof()) { //basic consistency check
-			LOG_MSG("Save state corrupted! Program in inconsistent state! - %s",i->first.c_str());
-#if defined(WIN32)
-			MessageBox(GetHWND(),"Save state corrupted!","Error",MB_OK);
-#endif
+			savestatecorrupt(i->first.c_str());
 			load_err=true;
 			goto delete_all;
 		}

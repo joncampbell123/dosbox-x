@@ -1430,6 +1430,24 @@ public:
     }
 };
 
+class ShowStateCorrupt : public GUI::ToplevelWindow {
+protected:
+    GUI::Input *name;
+public:
+    ShowStateCorrupt(GUI::Screen *parent, int x, int y, const char *title) :
+        ToplevelWindow(parent, x, y, 420, 120, "Error") {
+            new GUI::Label(this, 30, 20, title);
+            (new GUI::Button(this, 180, 50, "Close", 70))->addActionHandler(this);
+    }
+
+    void actionExecuted(GUI::ActionEventSource *b, const GUI::String &arg) {
+        (void)b;//UNUSED
+        if (arg == "Close")
+            close();
+        if (shortcut) running = false;
+    }
+};
+
 class ConfigurationWindow : public GUI::ToplevelWindow {
 public:
     GUI::Button *saveButton, *closeButton;
@@ -1742,6 +1760,10 @@ static void UI_Select(GUI::ScreenSDL *screen, int select) {
         case 20: {
             auto *np5 = new ShowMixerInfo(screen, 90, 70, "Current sound levels in DOSBox-X");
             np5->raise();
+            } break;
+        case 21: {
+            auto *np6 = new ShowStateCorrupt(screen, 150, 120, "Save state corrupted! Program may not work.");
+            np6->raise();
             } break;
         default:
             break;
