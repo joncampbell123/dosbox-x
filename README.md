@@ -75,9 +75,9 @@ DOSBox-X is a cross-platform DOS emulator, so all major host operating systems a
 
 Windows binaries (both 32-bit and 64-bit), Linux RPM packages (64-bit), macOS packages (64-bit) and DOS versions are officially released periodically, typically on the last day of a month or the first day of the next month. You can usually find ZIP (or Linux RPM) packages for the supported platforms and recent changes in the [Releases](https://github.com/joncampbell123/dosbox-x/releases) page. Please also see the [INSTALL](INSTALL.md) page for more details about these packages and further installation instructions of DOSBox-X.
 
-The current version of DOSBox-X at this time is DOSBox-X 0.83.4, which was released on August 2, 2020. If you are using Windows, please note that the default Windows releases built with Visual Studio only support Windows Vista and later (Windows 7, 8, and 10); for Windows XP, the MinGW builds are required. Auto-installable Windows packages for DOSBox-X are also available to ease the installation process, which are especially recommended for new or novice users. If you use the installers you will be able to start DOSBox-X as soon as the installation ends. The all-in-one Windows installer for the latest official version of DOSBox-X can be downloaded from: [DOSBox-X-Setup-Windows-latest.exe](https://github.com/Wengier/dosbox-x-wiki/raw/master/DOSBox-X-Setup-Windows-latest.exe)
+The latest version of DOSBox-X was released on August 2, 2020. If you are using Windows, please note that the default Windows releases built with Visual Studio only support Windows Vista and later (Windows 7, 8, and 10); for Windows XP, the MinGW builds are required. Auto-installable Windows packages for DOSBox-X are also available to ease the installation process, which are especially recommended for new or novice users. If you use the installers you will be able to start DOSBox-X as soon as the installation ends. The all-in-one Windows installer for the latest official version of DOSBox-X can be downloaded from: [DOSBox-X-Setup-Windows-latest.exe](https://github.com/Wengier/dosbox-x-wiki/raw/master/DOSBox-X-Setup-Windows-latest.exe)
 
-For running DOSBox-X in a real DOS system (MS-DOS or compatible), please use the special HX-DOS builds. It is achieved with the help of the freely-available [HX DOS Extender](https://github.com/Baron-von-Riedesel/HX), which is already included in the recent HX-DOS release packages. The special HX-DOS builds may sometimes happen to also run on Windows, but they are made for the HX DOS Extender environment so it is strongly recommended to use the Visual Studio or MinGW builds (both included in the Windows installer) for the Windows platform instead.
+For running DOSBox-X in a real DOS system (MS-DOS or compatible), please use the special HX-DOS builds. It is achieved with the help of the freely-available [HX DOS Extender](https://github.com/Baron-von-Riedesel/HX), which is already included in the recent HX-DOS release packages. However, not all features of DOSBox-X can be supported in this environment. Moreover, while the HX-DOS builds may sometimes happen to also run on Windows, they are made for the HX DOS Extender environment so it is strongly recommended to use the Visual Studio or MinGW builds (both included in the Windows installer) for the Windows platform instead.
 
 The full source code is officially provided with each DOSBox-X release, which may be compiled to run on the above and other operating systems too. You can also get the latest development source code from the repository directly. See also the [DOSBox-X source code description](README.source-code-description) page for information on compiling the source code.
 
@@ -336,17 +336,18 @@ Support for international language translations and keyboard layouts
 
 DOSBox-X displays English as the default language, and uses the U.S. code page (437) by default, just like DOSBox.
 
-All messages displayed by DOSBox-X are in English with the default setting. If you are a speaker of a non-English
-language, you can create additional language files for use with DOSBox-X by translating messages in DOSBox-X to your
-language. Other DOSBox-X users may also use these language files if they wish.
+All messages displayed by DOSBox-X are in English with the default setting. DOSBox-X does support the feature to
+change the display messages with the use of language files. If you are a speaker of a non-English
+language,
+you can create additional language files for use with DOSBox-X by translating messages in DOSBox-X to your
+language.
+Other DOSBox-X users may also use these language files for DOSBox-X to display messages in such languages if they wish.
 
 The fact that DOSBox-X was developed around the U.S. keyboard layout is primarily due to limitations around the SDL1
 library which provides input handling. As such when using the SDL1 version and a non-US keyboard, DOSBox-X automatically
 uses scancodes with the default setting to work around keyboard layout issues. Scancodes are not needed when using
-non-US keyboard layouts in the SDL2 version.
-
-If you find that a keyboard layout is not yet supported by DOSBox-X, in order to add additional layouts for use
-with DOSBox-X, please see file [README.keyboard-layout-handling](README.keyboard-layout-handling)
+non-US keyboard layouts in the SDL2 version. If you find that a keyboard layout is not yet supported by DOSBox-X,
+in order to add additional layouts for use with DOSBox-X, please see file [README.keyboard-layout-handling](README.keyboard-layout-handling)
 on how to do so as a developer.
 
 For further information on international support and regional settings of DOSBox-X, such as steps to create DOSBox-X
