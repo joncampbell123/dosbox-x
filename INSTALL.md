@@ -35,11 +35,11 @@ RPM packages are officially released for the Linux operating system (64-bit, wit
 * dosbox-x-debuginfo-0.83.2-0.el8.x86_64.rpm
 * dosbox-x-debugsource-0.83.2-0.el8.x86_64.rpm
 
-Pick a RPM package for your Linux platform and install. On CentOS or RHEL platforms, you can install a RPM package with a command line like this:
+Pick a RPM package for your Linux platform and install. On CentOS, RHEL or Fedora platforms, you can install a RPM package with a command line like this:
 
 ``sudo rpm -i <filename>.rpm``
 
-While ``<filename>`` is the main file name of the RPM package you wish to install. You may want to use the debug builds (the last three packages mentioned above) if you desire to do some debugging work when running DOSBox-X.
+While ``<filename>`` is the main file name of the RPM package you wish to install. You may want to use the debug builds (the last three packages mentioned above) if you desire to do some debugging work when running DOSBox-X. If there are missing dependencies for the rpm command, such as libpng and fluid-soundfont, then you will need to install them first.
 
 Note: You may not see all such packages for some DOSBox-X versions. For example, there are no CentOS 8 builds for DOSBox-X version 0.83.4. Only CentOS 7 builds are available for this version, namely the following:
 
