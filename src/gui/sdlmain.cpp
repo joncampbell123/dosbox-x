@@ -95,6 +95,7 @@ void GFX_OpenGLRedrawScreen(void);
 #include "sdlmain.h"
 #include "zipfile.h"
 #include "shell.h"
+#include "glidedef.h"
 #include "../ints/int10.h"
 
 #if defined(LINUX) && defined(HAVE_ALSA)
@@ -1642,6 +1643,10 @@ void GFX_ForceRedrawScreen(void) {
 
 void GFX_ResetScreen(void) {
     fullscreen_switch=false; 
+	if(glide.enabled) {
+		GLIDE_ResetScreen(true);
+		return;
+	}
     GFX_Stop();
     if (sdl.draw.callback)
         (sdl.draw.callback)( GFX_CallBackReset );
@@ -3003,7 +3008,10 @@ void GFX_SwitchFullScreen(void)
     sticky_keys(!full);
 #endif
 
-    GFX_ResetScreen();
+	if (glide.enabled)
+		GLIDE_ResetScreen();
+	else
+        GFX_ResetScreen();
 
     // set vsync to host
     // NOTE why forcing ???
@@ -5691,7 +5699,7 @@ void GFX_Events() {
             throw(0);
             break;
         case SDL_VIDEOEXPOSE:
-            if (sdl.draw.callback) sdl.draw.callback( GFX_CallBackRedraw );
+            if (sdl.draw.callback && !glide.enabled) sdl.draw.callback( GFX_CallBackRedraw );
             break;
 #ifdef WIN32
         case SDL_KEYDOWN:
@@ -6894,6 +6902,7 @@ void FPU_Init();
 #endif
 void KEYBOARD_Init();
 void VOODOO_Init();
+void GLIDE_Init();
 void MIXER_Init();
 void MIDI_Init();
 
@@ -8767,6 +8776,7 @@ int main(int argc, char* argv[]) SDL_MAIN_NOEXCEPT {
 
         /* -- -- Initialise Joystick and CD-ROM seperately. This way we can warn when it fails instead of exiting the application */
         LOG(LOG_MISC,LOG_DEBUG)("Initializing SDL joystick subsystem...");
+        glide.fullscreen = &sdl.desktop.fullscreen;
         if (SDL_InitSubSystem(SDL_INIT_JOYSTICK) >= 0) {
             sdl.num_joysticks = (Bitu)SDL_NumJoysticks();
             LOG(LOG_MISC,LOG_DEBUG)("SDL reports %u joysticks",(unsigned int)sdl.num_joysticks);
@@ -9240,6 +9250,7 @@ int main(int argc, char* argv[]) SDL_MAIN_NOEXCEPT {
 #endif
         Init_VGABIOS();
         VOODOO_Init();
+        GLIDE_Init();
         PROGRAMS_Init(); /* <- NTS: Does not init programs, it inits the callback used later when creating the .COM programs on drive Z: */
         PCSPEAKER_Init();
         TANDYSOUND_Init();

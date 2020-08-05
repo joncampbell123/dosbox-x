@@ -2305,6 +2305,16 @@ void DOSBOX_SetupConfigSections(void) {
     Pstring = secprop->Add_string("voodoo",Property::Changeable::WhenIdle,"auto");
     Pstring->Set_values(voodoo_settings);
     Pstring->Set_help("Enable VOODOO support.");
+	Pbool = secprop->Add_bool("glide",Property::Changeable::WhenIdle,false);
+	Pbool->Set_help("Enable Glide emulation (requires glide2x.dll/libglide2x.so/libglide2x.dylib).");
+	//Phex = secprop->Add_hex("grport",Property::Changeable::WhenIdle,0x600);
+	//Phex->Set_help("I/O port to use for host communication.");
+    const char *lfb[] = {"full","full_noaux","read","read_noaux","write","write_noaux","none",0};
+	Pstring = secprop->Add_string("lfb",Property::Changeable::WhenIdle,"full_noaux");
+	Pstring->Set_values(lfb);
+	Pstring->Set_help("Enable LFB access for Glide. OpenGlide does not support locking aux buffer, please use _noaux modes.");
+	Pbool = secprop->Add_bool("splash",Property::Changeable::WhenIdle,true);
+	Pbool->Set_help("Show 3dfx splash screen (requires 3dfxSpl2.dll).");
 
     secprop=control->AddSection_prop("mixer",&Null_Init);
     Pbool = secprop->Add_bool("nosound",Property::Changeable::OnlyAtStart,false);

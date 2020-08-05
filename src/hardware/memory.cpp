@@ -35,6 +35,7 @@
 #endif
 
 #include "voodoo.h"
+#include "glidedef.h"
 
 #include <string.h>
 
@@ -655,8 +656,9 @@ PageHandler * MEM_GetPageHandler(Bitu phys_page) {
             return memory.phandlers[phys_page];
 
         return MEM_SlowPath(phys_page); /* will also fill in phandlers[] if zero or one matches, so the next access is very fast */
+    } else if (glide.enabled && (phys_page>=(GLIDE_LFB>>12)) && (phys_page<(GLIDE_LFB>>12)+GLIDE_PAGES)) {
+        return (PageHandler*)glide.lfb_pagehandler;
     }
-
     return &illegal_page_handler;
 }
 
