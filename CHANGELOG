@@ -1,7 +1,9 @@
 0.83.5
   - Added support for Glide wrapper. The library file
     glide2x.dll/libglide2x.so/libglide2x.dylib will be
-    required for Glide to work. (Wengier)
+    required for Glide to work. Be sure to use 32-bit
+    dll for 32-bit DOSBox-X binary, and 64-bit dll for
+    64-bit DOSBox-X binary. (Wengier)
 0.83.4
   - Fixed loading saved states in fullscreen mode with
     the "aspect=true" setting. (Wengier)

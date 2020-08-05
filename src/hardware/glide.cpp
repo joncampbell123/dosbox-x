@@ -28,6 +28,7 @@
 #include "control.h"
 #include "sdlmain.h"
 #include "../dos/drives.h"
+#include "../src/builtin/glide2x.h"
 
 #include <iomanip>
 #include <sstream>
@@ -57,6 +58,7 @@ extern void GFX_Stop(void);
 extern void GFX_ResetScreen(void);
 extern const char* RunningProgram;
 extern bool dpi_aware_enable;
+extern bool dos_kernel_disabled;
 
 static float int_to_float(const Bit32u i)
 {
@@ -138,7 +140,7 @@ static void write_gl(Bitu port,Bitu val,Bitu iolen)
 
     // Allocate shared memory (80 bytes)
     if(val > GLIDE_MAX) {
-	if(glsegment==0) {
+	if(glsegment==0 && !dos_kernel_disabled) {
 	    glsegment=DOS_GetMemory(5);
 #if LOG_GLIDE
 	    LOG_MSG("Glide:Memory allocated at 0x%x (segment: %hu)", glsegment<<4, glsegment);
@@ -313,9 +315,8 @@ private:
     AutoexecObject autoexecline;
     // Glide port
     Bitu glide_base;
-    Bit8u *ovl_data;
 public:
-    GLIDE(Section* configuration):Module_base(configuration),glide_base(0),ovl_data(NULL) {
+    GLIDE(Section* configuration):Module_base(configuration),glide_base(0) {
 	Section_prop * section=static_cast<Section_prop *>(configuration);
 
 	if(!section->Get_bool("glide")) return;
@@ -372,62 +373,6 @@ public:
 	    return;
 	}
 
-	// Load glide2x.ovl if possible, so it is available on the Z: drive
-	const char ovl_name[] = "glide2x.ovl";
-
-#if defined (WIN32)
-#include <shlwapi.h>
-	// Windows is simple, the search is case insensitive
-	FILE * ovl = fopen(ovl_name, "rb");
-
-	// if not successful try to specifically search dosbox directory
-	if (ovl == NULL) {
-	    char * path = (char*)texmem;
-	    GetModuleFileName(NULL, path, 32768);
-	    // strip "\dosbox-x.exe" from path
-        char *p=strrchr(path, '\\');
-        if (p==NULL) *path=0;
-        else *(p+1)=0;
-        strcat(path, ovl_name);
-	    ovl = fopen(path, "rb");
-	}
-
-#else
-	// Try a bit harder in *nix, perform case insensitive search and check /usr/share/dosbox as well
-	DIR * pdir; struct dirent * pfile;
-	char * path = (char*)texmem;
-	FILE * ovl = NULL;
-
-	const char * const dirname[] = { "./", "/usr/share/dosbox/", NULL };
-
-	for (int i = 0; dirname[i]; i++) {
-	    if((pdir = opendir(dirname[i]))) {
-		while(pfile = readdir(pdir)) {
-		    if(!strcasecmp(pfile->d_name, ovl_name)) {
-			strcpy(path, dirname[i]); strcat(path, pfile->d_name);
-			ovl = fopen(path, "rb");
-			if(ovl) break;
-		    }
-		}
-		closedir(pdir);
-		if(ovl) break;
-	    }
-	}
-#endif
-
-	long ovl_size = 0;
-
-	if(ovl == NULL) {
-	    LOG_MSG("Glide:GLIDE2X.OVL could not be found, make sure correct (compatible) version is in the game directory!");
-	} else {
-	    fseek(ovl, 0, SEEK_END);
-	    ovl_size=ftell(ovl);
-	    ovl_data=(Bit8u*)malloc(ovl_size);
-	    fseek(ovl, 0, SEEK_SET);
-	    fread(ovl_data, sizeof(char), ovl_size, ovl);
-	    fclose(ovl);
-	}
-
 #if LOG_GLIDE
 	SDL_memset(GLIDE_count, 0, sizeof(GLIDE_count));
 #endif
@@ -437,7 +382,6 @@ public:
 	if(fn_pt == NULL) {
 	    LOG_MSG("Glide:Unable to allocate memory, glide disabled");
 	    free(texmem); texmem = NULL;
-	    if(ovl_data) free(ovl_data); ovl_data = NULL;
 	    return;
 	}
 
@@ -469,9 +413,7 @@ public:
 	autoexecline.Install(temp.str());
 	glide.splash = section->Get_bool("splash");
 
-	if(ovl_data) {
-	    VFILE_Register("GLIDE2X.OVL", ovl_data, ovl_size);
-	}
+	VFILE_RegisterBuiltinFileBlob(bfb_GLIDE2X_OVL);
     }
 
     ~GLIDE() {
@@ -503,7 +445,6 @@ public:
 	}
 
 	VFILE_Remove("GLIDE2X.OVL");
-	if(ovl_data) free(ovl_data);
     }
 };
 
