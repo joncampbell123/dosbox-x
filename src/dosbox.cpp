@@ -749,7 +749,7 @@ SlotPos currentSlot;
 
 /* HACK: Wengier authored this code a bit weird in a way GCC is not happy with. It does not consider currentSlot defined within the body of the class. --J.C. */
 size_t GetCurrentSlot() {
-    return currentSlot;
+    return currentSlot; /* <- NTS: Returning as size_t calls operator size_t() const. It does not return a reference to the C++ class */
 }
 
 void notifyError(const std::string& message)
