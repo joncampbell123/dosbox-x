@@ -3139,6 +3139,7 @@ public:
 		}
         mainMenu.get_item("dos_win_autorun").enable(false).refresh_item(mainMenu);
         mainMenu.get_item("dos_win_wait").enable(false).refresh_item(mainMenu);
+		mainMenu.get_item("quick_launch").enable(false).refresh_item(mainMenu);
 #endif
 		mainMenu.get_item("dos_lfn_auto").enable(false).refresh_item(mainMenu);
 		mainMenu.get_item("dos_lfn_enable").enable(false).refresh_item(mainMenu);

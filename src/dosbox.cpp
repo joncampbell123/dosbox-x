@@ -146,6 +146,7 @@ extern bool         VIDEO_BIOS_always_carry_14_high_font;
 extern bool         VIDEO_BIOS_always_carry_16_high_font;
 extern bool         VIDEO_BIOS_enable_CGA_8x8_second_half;
 extern bool         allow_more_than_640kb;
+extern unsigned int page;
 
 Bit32u              guest_msdos_LoL = 0;
 Bit16u              guest_msdos_mcb_chain = 0;
@@ -191,7 +192,7 @@ Bit32u              ticksScheduled;
 bool                ticksLocked;
 bool                mono_cga=false;
 bool                ignore_opcode_63 = true;
-int             dynamic_core_cache_block_size = 32;
+int                 dynamic_core_cache_block_size = 32;
 Bitu                VGA_BIOS_Size_override = 0;
 Bitu                VGA_BIOS_SEG = 0xC000;
 Bitu                VGA_BIOS_SEG_END = 0xC800;
@@ -684,6 +685,7 @@ void DOSBOX_SlowDown( bool pressed ) {
     }
 }
 
+void refresh_slots(void);
 namespace
 {
 std::string getTime(bool date=false)
@@ -699,6 +701,8 @@ std::string getTime(bool date=false)
     return buffer;
 }
 
+size_t GetGameState();
+
 class SlotPos
 {
 public:
@@ -707,13 +711,21 @@ public:
     void next()
     {
         ++slot;
-        slot %= SaveState::SLOT_COUNT;
+        slot %= SaveState::SLOT_COUNT*SaveState::MAX_PAGE;
+        if (page!=GetGameState()/SaveState::SLOT_COUNT) {
+            page=GetGameState()/SaveState::SLOT_COUNT;
+            refresh_slots();
+        }
     }
 
     void previous()
     {
-        slot += SaveState::SLOT_COUNT - 1;
-        slot %= SaveState::SLOT_COUNT;
+        slot += SaveState::SLOT_COUNT*SaveState::MAX_PAGE - 1;
+        slot %= SaveState::SLOT_COUNT*SaveState::MAX_PAGE;
+        if (page!=GetGameState()/SaveState::SLOT_COUNT) {
+            page=GetGameState()/SaveState::SLOT_COUNT;
+            refresh_slots();
+        }
     }
 
     void set(int value)
@@ -727,7 +739,9 @@ public:
     }
 private:
     size_t slot;
-} currentSlot;
+};
+
+SlotPos currentSlot;
 
 void notifyError(const std::string& message)
 {
@@ -743,12 +757,15 @@ size_t GetGameState(void) {
 
 void SetGameState(int value) {
 	char name[6]="slot0";
-	name[4]='0'+(char)currentSlot;
+	name[4]='0'+(char)(currentSlot%SaveState::SLOT_COUNT);
 	mainMenu.get_item(name).check(false).refresh_item(mainMenu);
     currentSlot.set(value);
-	name[4]='0'+(char)currentSlot;
-	mainMenu.get_item(name).check(true).refresh_item(mainMenu);
-	
+    if (page!=currentSlot/SaveState::SLOT_COUNT) {
+        page=currentSlot/SaveState::SLOT_COUNT;
+        refresh_slots();
+    }
+    name[4]='0'+(char)(currentSlot%SaveState::SLOT_COUNT);
+    mainMenu.get_item(name).check(true).refresh_item(mainMenu);
 	const bool emptySlot = SaveState::instance().isEmpty(currentSlot);
     LOG_MSG("Active save slot: %d %s", (int)currentSlot + 1,  emptySlot ? "[Empty]" : "");
 }
@@ -761,9 +778,9 @@ void SaveGameState(bool pressed) {
         LOG_MSG("Saving state to slot: %d", (int)currentSlot + 1);
         SaveState::instance().save(currentSlot);
 		char name[6]="slot0";
-		name[4]='0'+(char)currentSlot;
+		name[4]='0'+(char)(currentSlot%SaveState::SaveState::SLOT_COUNT);
 		std::string command=SaveState::instance().getName(currentSlot);
-		std::string str="Slot "+(currentSlot>=9?"10":std::string(1, '1'+(char)currentSlot))+(command==""?"":" "+command);
+		std::string str="Slot "+std::to_string(currentSlot+1)+(command==""?"":" "+command);
 		mainMenu.get_item(name).set_text(str.c_str()).refresh_item(mainMenu);
     }
     catch (const SaveState::Error& err)
@@ -795,11 +812,13 @@ void NextSaveSlot(bool pressed) {
     if (!pressed) return;
 
 	char name[6]="slot0";
-	name[4]='0'+(char)currentSlot;
+	name[4]='0'+(char)(currentSlot%SaveState::SLOT_COUNT);
 	mainMenu.get_item(name).check(false).refresh_item(mainMenu);
     currentSlot.next();
-	name[4]='0'+(char)currentSlot;
-	mainMenu.get_item(name).check(true).refresh_item(mainMenu);
+    if (currentSlot/SaveState::SLOT_COUNT==page) {
+        name[4]='0'+(char)(currentSlot%SaveState::SLOT_COUNT);
+        mainMenu.get_item(name).check(true).refresh_item(mainMenu);
+    }
 
     const bool emptySlot = SaveState::instance().isEmpty(currentSlot);
     LOG_MSG("Active save slot: %d %s", (int)currentSlot + 1, emptySlot ? "[Empty]" : "");
@@ -810,11 +829,13 @@ void PreviousSaveSlot(bool pressed) {
     if (!pressed) return;
 
 	char name[6]="slot0";
-	name[4]='0'+(char)currentSlot;
+	name[4]='0'+(char)(currentSlot%SaveState::SLOT_COUNT);
 	mainMenu.get_item(name).check(false).refresh_item(mainMenu);
     currentSlot.previous();
-	name[4]='0'+(char)currentSlot;
-	mainMenu.get_item(name).check(true).refresh_item(mainMenu);
+    if (currentSlot/SaveState::SLOT_COUNT==page) {
+        name[4]='0'+(char)(currentSlot%SaveState::SLOT_COUNT);
+        mainMenu.get_item(name).check(true).refresh_item(mainMenu);
+    }
 
     const bool emptySlot = SaveState::instance().isEmpty(currentSlot);
     LOG_MSG("Active save slot: %d %s", (int)currentSlot + 1, emptySlot ? "[Empty]" : "");
@@ -1030,9 +1051,9 @@ void DOSBOX_RealInit() {
 	MAPPER_AddHandler(LoadGameState, MK_f10, MMOD1|MMOD2,"loadstate","LoadState", &item);
         item->set_text("Load state");
 	MAPPER_AddHandler(PreviousSaveSlot, MK_f7, MMOD1|MMOD2,"prevslot","PrevSlot", &item);
-        item->set_text("Previous slot");
+        item->set_text("Use previous slot");
 	MAPPER_AddHandler(NextSaveSlot, MK_f8, MMOD1|MMOD2,"nextslot","NextSlot", &item);
-        item->set_text("Next slot");
+        item->set_text("Use next slot");
 
     Section_prop *section = static_cast<Section_prop *>(control->GetSection("dosbox"));
     assert(section != NULL);
@@ -1371,8 +1392,8 @@ void DOSBOX_SetupConfigSections(void) {
     Pstring->Set_help("Directory where things like wave, midi, screenshot get captured.");
 
     Pint = secprop->Add_int("saveslot", Property::Changeable::WhenIdle,1);
-    Pint->SetMinMax(1,10);
-    Pint->Set_help("Select the default save slot (1-10) to save/load states.");
+    Pint->SetMinMax(1,100);
+    Pint->Set_help("Select the default save slot (1-100) to save/load states.");
 
     /* will change to default true unless this causes compatibility issues with other users or their editing software */
     Pbool = secprop->Add_bool("skip encoding unchanged frames",Property::Changeable::WhenIdle,false);
@@ -2305,6 +2326,16 @@ void DOSBOX_SetupConfigSections(void) {
     Pstring = secprop->Add_string("voodoo",Property::Changeable::WhenIdle,"auto");
     Pstring->Set_values(voodoo_settings);
     Pstring->Set_help("Enable VOODOO support.");
+	Pbool = secprop->Add_bool("glide",Property::Changeable::WhenIdle,false);
+	Pbool->Set_help("Enable Glide emulation (requires glide2x.dll/libglide2x.so/libglide2x.dylib).");
+	//Phex = secprop->Add_hex("grport",Property::Changeable::WhenIdle,0x600);
+	//Phex->Set_help("I/O port to use for host communication.");
+    const char *lfb[] = {"full","full_noaux","read","read_noaux","write","write_noaux","none",0};
+	Pstring = secprop->Add_string("lfb",Property::Changeable::WhenIdle,"full_noaux");
+	Pstring->Set_values(lfb);
+	Pstring->Set_help("Enable LFB access for Glide. OpenGlide does not support locking aux buffer, please use _noaux modes.");
+	Pbool = secprop->Add_bool("splash",Property::Changeable::WhenIdle,true);
+	Pbool->Set_help("Show 3dfx splash screen (Windows; requires 3dfxSpl2.dll).");
 
     secprop=control->AddSection_prop("mixer",&Null_Init);
     Pbool = secprop->Add_bool("nosound",Property::Changeable::OnlyAtStart,false);
@@ -4670,7 +4701,7 @@ int my_minizip(char ** savefile, char ** savefile2) {
 }
 
 void SaveState::save(size_t slot) { //throw (Error)
-	if (slot >= SLOT_COUNT)  return;
+	if (slot >= SLOT_COUNT*MAX_PAGE)  return;
 	SDL_PauseAudio(0);
 	bool save_err=false;
 	if((MEM_TotalPages()*4096/1024/1024)>1024) {
@@ -4934,7 +4965,7 @@ void SaveState::load(size_t slot) const { //throw (Error)
 			char * const buffer = (char*)alloca( (length+1) * sizeof(char)); // char buffer[length];
 			check_title.read (buffer, length);
 			check_title.close();
-			if (!length||length!=strlen(RunningProgram)||strncmp(buffer,RunningProgram,length)) {
+			if (!length||(size_t)length!=strlen(RunningProgram)||strncmp(buffer,RunningProgram,length)) {
 #if defined(WIN32)
 				if(!force_load_state&&MessageBox(GetHWND(),"Program name mismatch. Load the state anyway?","Warning",MB_YESNO|MB_DEFBUTTON2)==IDNO) {
 #else
@@ -5037,7 +5068,7 @@ delete_all:
 }
 
 bool SaveState::isEmpty(size_t slot) const {
-	if (slot >= SLOT_COUNT) return true;
+	if (slot >= SLOT_COUNT*MAX_PAGE) return true;
 	std::string path;
 	bool Get_Custom_SaveDir(std::string& savedir);
 	if(Get_Custom_SaveDir(path)) {
@@ -5065,7 +5096,7 @@ bool SaveState::isEmpty(size_t slot) const {
 }
 
 std::string SaveState::getName(size_t slot) const {
-	if (slot >= SLOT_COUNT) return "[Empty slot]";
+	if (slot >= SLOT_COUNT*MAX_PAGE) return "[Empty slot]";
 	std::string path;
 	bool Get_Custom_SaveDir(std::string& savedir);
 	if(Get_Custom_SaveDir(path)) {

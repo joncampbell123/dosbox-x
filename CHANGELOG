@@ -1,3 +1,15 @@
+0.83.5
+  - Added "Quick launch program" (under "DOS") to run
+    the specified program on Windows host. (Wengier)
+  - Increased save slots from 10 to 100. Each page in
+    the save slot menu (under "Capture") still shows
+    10 slots, but you can now go to previous or next
+    page (up to 10) for more save slots. (Wengier).
+  - Added support for Glide wrapper. The library file
+    glide2x.dll/libglide2x.so/libglide2x.dylib will be
+    required for Glide to work. Be sure to use 32-bit
+    dll for 32-bit DOSBox-X binary, and 64-bit dll for
+    64-bit DOSBox-X binary. (Wengier)
 0.83.4
   - Fixed loading saved states in fullscreen mode with
     the "aspect=true" setting. (Wengier)

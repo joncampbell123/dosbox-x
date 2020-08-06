@@ -4,8 +4,8 @@ DOSBox-X Source Code Description
 This page tries to explain the source code of DOSBox-X, including compiling
 information and some technical details.
 
-Such information is primarily targeted at developers and anyone who wants to
-contribute to the DOSBox-X project.
+Such information is primarily targeted at advanced users or developers, and
+anyone who wants to contribute to the DOSBox-X project.
 
 Users who are primarily looking for instructions on installing and running
 DOSBox-X may want to look at the INSTALL.md file and the DOSBox-X Wiki instead.
@@ -332,16 +332,16 @@ src/shell/shell.cpp         SHELL init, SHELL run, fake COMMAND.COM setup,
 src/shell/shell_batch.cpp   Batch file (*.BAT) handling
 
 src/shell/shell_cmds.cpp    Shell internal command handling, shell commands:
-                                DIR         CD/CHDIR   ADDKEY     ALIAS
-                                ATTRIB      BREAK      CALL       CHOICE
-                                CLS         COPY       CTTY       DATE
-                                DEL/ERASE   ECHO       EXIT       FOR
-                                GOTO        HELP       IF         LFNFOR
-                                LH/LOADHIGH LS         MD/MKDIR   MORE
-                                PATH        PAUSE      PROMPT     RD/RMDIR
-                                REM         REN/RENAME SET        SHIFT
-                                SUBST       TIME       TYPE       VER
-                                VERIFY      VOL        TRUENAME   DX-CAPTURE
+                                DIR         CD/CHDIR    ADDKEY      ALIAS
+                                ATTRIB      BREAK       CALL        CHOICE
+                                CLS         COPY        COUNTRY     CTTY
+                                DATE        DEL/ERASE   ECHO        EXIT
+                                FOR         GOTO        HELP        IF
+                                LFNFOR      LH/LOADHIGH MD/MKDIR    MORE
+                                PATH        PAUSE       PROMPT      RD/RMDIR
+                                REM         REN/RENAME  SET         SHIFT
+                                SUBST       TIME        TYPE        VER
+                                VERIFY      VOL         TRUENAME    DX-CAPTURE
                                 DEBUGBOX    INT2FDBG
 
 src/shell/shell_misc.cpp    PROMPT generator, command line input interface,

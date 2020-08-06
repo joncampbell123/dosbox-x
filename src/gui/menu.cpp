@@ -400,6 +400,9 @@ static const char *def_menu_dos[] =
     "DOSWinMenu",
 #endif
     "shell_config_commands",
+#if defined(WIN32) && !defined(HX_DOS)
+    "quick_launch",
+#endif
     "--",
     "quick_reboot",
     "--",
@@ -510,7 +513,7 @@ static const char *def_menu_capture[] =
     "force_loadstate",
     "mapper_savestate",
     "mapper_loadstate",
-	"saveslotmenu",
+    "saveslotmenu",
     NULL
 };
 
@@ -531,9 +534,12 @@ static const char *def_menu_capture_format[] =
 /* Save slots */
 static const char *def_save_slots[] =
 {
-	"mapper_prevslot",
-	"mapper_nextslot",
-	"--",
+    "prev_page",
+    "next_page",
+    "--",
+    "first_page",
+    "last_page",
+    "--",
     "slot0",
     "slot1",
     "slot2",
@@ -544,9 +550,12 @@ static const char *def_save_slots[] =
     "slot7",
     "slot8",
     "slot9",
-	"--",
+    "--",
+    "mapper_prevslot",
+    "mapper_nextslot",
+    "--",
     "refreshslot",
-	NULL
+    NULL
 };
 
 /* Drive menu ("DriveMenu") */

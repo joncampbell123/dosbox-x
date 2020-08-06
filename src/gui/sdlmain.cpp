@@ -95,6 +95,7 @@ void GFX_OpenGLRedrawScreen(void);
 #include "sdlmain.h"
 #include "zipfile.h"
 #include "shell.h"
+#include "glidedef.h"
 #include "../ints/int10.h"
 
 #if defined(LINUX) && defined(HAVE_ALSA)
@@ -181,6 +182,7 @@ void ShutDownMemHandles(Section * sec);
 
 SDL_Block sdl;
 Bitu frames = 0;
+unsigned int page=0;
 
 ScreenSizeInfo          screen_size_info;
 
@@ -194,80 +196,32 @@ void MenuUnmountDrive(char drive);
 void SetGameState_Run(int value);
 size_t GetGameState_Run(void);
 
-bool save_slot_0_callback(DOSBoxMenu * const menu,DOSBoxMenu::item * const menuitem) {
+bool save_slot_callback(DOSBoxMenu * const menu,DOSBoxMenu::item * const menuitem) {
     (void)menu;//UNUSED
     (void)menuitem;//UNUSED
-	SetGameState_Run(0);
-	return true;
-}
 
-bool save_slot_1_callback(DOSBoxMenu * const menu,DOSBoxMenu::item * const menuitem) {
-    (void)menu;//UNUSED
-    (void)menuitem;//UNUSED
-	SetGameState_Run(1);
-	return true;
-}
-
-bool save_slot_2_callback(DOSBoxMenu * const menu,DOSBoxMenu::item * const menuitem) {
-    (void)menu;//UNUSED
-    (void)menuitem;//UNUSED
-	SetGameState_Run(2);
-	return true;
-}
-
-bool save_slot_3_callback(DOSBoxMenu * const menu,DOSBoxMenu::item * const menuitem) {
-    (void)menu;//UNUSED
-    (void)menuitem;//UNUSED
-	SetGameState_Run(3);
-	return true;
-}
-
-bool save_slot_4_callback(DOSBoxMenu * const menu,DOSBoxMenu::item * const menuitem) {
-    (void)menu;//UNUSED
-    (void)menuitem;//UNUSED
-	SetGameState_Run(4);
-	return true;
-}
-
-bool save_slot_5_callback(DOSBoxMenu * const menu,DOSBoxMenu::item * const menuitem) {
-    (void)menu;//UNUSED
-    (void)menuitem;//UNUSED
-	SetGameState_Run(5);
-	return true;
-}
-
-bool save_slot_6_callback(DOSBoxMenu * const menu,DOSBoxMenu::item * const menuitem) {
-    (void)menu;//UNUSED
-    (void)menuitem;//UNUSED
-	SetGameState_Run(6);
-	return true;
-}
-
-bool save_slot_7_callback(DOSBoxMenu * const menu,DOSBoxMenu::item * const menuitem) {
-    (void)menu;//UNUSED
-    (void)menuitem;//UNUSED
-	SetGameState_Run(7);
-	return true;
-}
-
-bool save_slot_8_callback(DOSBoxMenu * const menu,DOSBoxMenu::item * const menuitem) {
-    (void)menu;//UNUSED
-    (void)menuitem;//UNUSED
-	SetGameState_Run(8);
-	return true;
-}
-
-bool save_slot_9_callback(DOSBoxMenu * const menu,DOSBoxMenu::item * const menuitem) {
-    (void)menu;//UNUSED
-    (void)menuitem;//UNUSED
-	SetGameState_Run(9);
-	return true;
+    const char *mname = menuitem->get_name().c_str();
+    if (!strncmp(mname,"slot",4)&&isdigit(*(mname+4)))
+        SetGameState_Run(page*10+std::stoi(mname+4));
+    return true;
 }
 
 #if defined(WIN32)
 void MenuMountDrive(char drive, const char drive2[DOS_PATHLENGTH]);
 void MenuBrowseFolder(char drive, std::string drive_type);
 void MenuBrowseImageFile(char drive, bool boot);
+void MenuBrowseProgramFile(void);
+
+bool quick_launch_menu_callback(DOSBoxMenu * const menu,DOSBoxMenu::item * const menuitem) {
+    (void)menu;//UNUSED
+    (void)menuitem;//UNUSED
+
+    if (dos_kernel_disabled) return true;
+
+    MenuBrowseProgramFile();
+
+    return true;
+}
 
 bool drive_mountauto_menu_callback(DOSBoxMenu * const menu,DOSBoxMenu::item * const menuitem) {
     (void)menu;//UNUSED
@@ -1642,6 +1596,10 @@ void GFX_ForceRedrawScreen(void) {
 
 void GFX_ResetScreen(void) {
     fullscreen_switch=false; 
+	if(glide.enabled) {
+		GLIDE_ResetScreen(true);
+		return;
+	}
     GFX_Stop();
     if (sdl.draw.callback)
         (sdl.draw.callback)( GFX_CallBackReset );
@@ -3003,7 +2961,10 @@ void GFX_SwitchFullScreen(void)
     sticky_keys(!full);
 #endif
 
-    GFX_ResetScreen();
+	if (glide.enabled)
+		GLIDE_ResetScreen();
+	else
+        GFX_ResetScreen();
 
     // set vsync to host
     // NOTE why forcing ???
@@ -5691,7 +5652,7 @@ void GFX_Events() {
             throw(0);
             break;
         case SDL_VIDEOEXPOSE:
-            if (sdl.draw.callback) sdl.draw.callback( GFX_CallBackRedraw );
+            if (sdl.draw.callback && !glide.enabled) sdl.draw.callback( GFX_CallBackRedraw );
             break;
 #ifdef WIN32
         case SDL_KEYDOWN:
@@ -6894,6 +6855,7 @@ void FPU_Init();
 #endif
 void KEYBOARD_Init();
 void VOODOO_Init();
+void GLIDE_Init();
 void MIXER_Init();
 void MIDI_Init();
 
@@ -7930,16 +7892,76 @@ bool force_loadstate_menu_callback(DOSBoxMenu * const menu, DOSBoxMenu::item * c
     return true;
 }
 
-bool refresh_slots_menu_callback(DOSBoxMenu * const menu, DOSBoxMenu::item * const menuitem) {
-    (void)menu;//UNUSED
-    (void)menuitem;//UNUSED
+void refresh_slots() {
 	for (unsigned int i=0; i<SaveState::SLOT_COUNT; i++) {
 		char name[6]="slot0";
 		name[4]='0'+i;
-		std::string command=SaveState::instance().getName(i);
-		std::string str="Slot "+(i>=9?"10":std::string(1, '1'+i))+(command==""?"":" "+command);
+		std::string command=SaveState::instance().getName(page*SaveState::SLOT_COUNT+i);
+		std::string str="Slot "+to_string(page*SaveState::SLOT_COUNT+i+1)+(command==""?"":" "+command);
 		mainMenu.get_item(name).set_text(str.c_str()).refresh_item(mainMenu);
 	}
+}
+
+bool refresh_slots_menu_callback(DOSBoxMenu * const menu, DOSBoxMenu::item * const menuitem) {
+    (void)menu;//UNUSED
+    (void)menuitem;//UNUSED
+    refresh_slots();
+    return true;
+}
+
+bool first_page_menu_callback(DOSBoxMenu * const menu, DOSBoxMenu::item * const menuitem) {
+    if (page>0) {
+        char name[6]="slot0";
+        name[4]='0'+(char)(GetGameState_Run()%SaveState::SLOT_COUNT);
+        mainMenu.get_item(name).check(false).refresh_item(mainMenu);
+        page=0;
+        if (GetGameState_Run()/SaveState::SLOT_COUNT==page) {
+            name[4]='0'+(char)(GetGameState_Run()%SaveState::SLOT_COUNT);
+            mainMenu.get_item(name).check(true).refresh_item(mainMenu);
+        }
+        refresh_slots_menu_callback(menu, menuitem);
+    }
+    return true;
+}
+
+bool last_page_menu_callback(DOSBoxMenu * const menu, DOSBoxMenu::item * const menuitem) {
+    if (page<SaveState::MAX_PAGE-1) {
+        char name[6]="slot0";
+        name[4]='0'+(char)(GetGameState_Run()%SaveState::SLOT_COUNT);
+        mainMenu.get_item(name).check(false).refresh_item(mainMenu);
+        page=SaveState::MAX_PAGE-1;
+        if (GetGameState_Run()/SaveState::SLOT_COUNT==page) {
+            name[4]='0'+(char)(GetGameState_Run()%SaveState::SLOT_COUNT);
+            mainMenu.get_item(name).check(true).refresh_item(mainMenu);
+        }
+        refresh_slots_menu_callback(menu, menuitem);
+    }
+    return true;
+}
+
+bool prev_page_menu_callback(DOSBoxMenu * const menu, DOSBoxMenu::item * const menuitem) {
+	char name[6]="slot0";
+	name[4]='0'+(char)(GetGameState_Run()%SaveState::SLOT_COUNT);
+	mainMenu.get_item(name).check(false).refresh_item(mainMenu);
+    page=(page+SaveState::MAX_PAGE-1)%SaveState::MAX_PAGE;
+    if (GetGameState_Run()/SaveState::SLOT_COUNT==page) {
+        name[4]='0'+(char)(GetGameState_Run()%SaveState::SLOT_COUNT);
+        mainMenu.get_item(name).check(true).refresh_item(mainMenu);
+    }
+    refresh_slots_menu_callback(menu, menuitem);
+    return true;
+}
+
+bool next_page_menu_callback(DOSBoxMenu * const menu, DOSBoxMenu::item * const menuitem) {
+	char name[6]="slot0";
+	name[4]='0'+(char)(GetGameState_Run()%SaveState::SLOT_COUNT);
+	mainMenu.get_item(name).check(false).refresh_item(mainMenu);
+    page=(page+1)%SaveState::MAX_PAGE;
+    if (GetGameState_Run()/SaveState::SLOT_COUNT==page) {
+        name[4]='0'+(char)(GetGameState_Run()%SaveState::SLOT_COUNT);
+        mainMenu.get_item(name).check(true).refresh_item(mainMenu);
+    }
+    refresh_slots_menu_callback(menu, menuitem);
     return true;
 }
 
@@ -8767,6 +8789,7 @@ int main(int argc, char* argv[]) SDL_MAIN_NOEXCEPT {
 
         /* -- -- Initialise Joystick and CD-ROM seperately. This way we can warn when it fails instead of exiting the application */
         LOG(LOG_MISC,LOG_DEBUG)("Initializing SDL joystick subsystem...");
+        glide.fullscreen = &sdl.desktop.fullscreen;
         if (SDL_InitSubSystem(SDL_INIT_JOYSTICK) >= 0) {
             sdl.num_joysticks = (Bitu)SDL_NumJoysticks();
             LOG(LOG_MISC,LOG_DEBUG)("SDL reports %u joysticks",(unsigned int)sdl.num_joysticks);
@@ -9080,6 +9103,8 @@ int main(int argc, char* argv[]) SDL_MAIN_NOEXCEPT {
                     mainMenu.alloc_item(DOSBoxMenu::item_type_id,"dos_win_wait").set_text("Wait for the application").
                         set_callback_function(dos_win_wait_menu_callback);
                 }
+                mainMenu.alloc_item(DOSBoxMenu::item_type_id,"quick_launch").set_text("Quick launch program...").
+                    set_callback_function(quick_launch_menu_callback);
             }
 #endif
 
@@ -9120,17 +9145,24 @@ int main(int argc, char* argv[]) SDL_MAIN_NOEXCEPT {
             item.set_text("Select save slot");
 
             {
-				DOSBoxMenu::callback_t callbacks[SaveState::SLOT_COUNT] = {save_slot_0_callback, save_slot_1_callback, save_slot_2_callback, save_slot_3_callback, save_slot_4_callback, save_slot_5_callback, save_slot_6_callback, save_slot_7_callback, save_slot_8_callback, save_slot_9_callback};
+				mainMenu.alloc_item(DOSBoxMenu::item_type_id,"prev_page").set_text("Previous page").set_callback_function(prev_page_menu_callback);
+				mainMenu.alloc_item(DOSBoxMenu::item_type_id,"next_page").set_text("Next page").set_callback_function(next_page_menu_callback);
+				mainMenu.alloc_item(DOSBoxMenu::item_type_id,"first_page").set_text("Go to first page").set_callback_function(first_page_menu_callback);
+				mainMenu.alloc_item(DOSBoxMenu::item_type_id,"last_page").set_text("Go to last page").set_callback_function(last_page_menu_callback);
 				char name[6]="slot0";
 				for (unsigned int i=0; i<SaveState::SLOT_COUNT; i++) {
 					name[4]='0'+i;
-					std::string command=SaveState::instance().getName(i);
-					std::string str="Slot "+(i>=9?"10":std::string(1, '1'+i))+(command==""?"":" "+command);
-					mainMenu.alloc_item(DOSBoxMenu::item_type_id,name).set_text(str.c_str()).set_callback_function(callbacks[i]);
+					std::string command=SaveState::instance().getName(page*SaveState::SLOT_COUNT+i);
+					std::string str="Slot "+to_string(page*SaveState::SLOT_COUNT+i+1)+(command==""?"":" "+command);
+					mainMenu.alloc_item(DOSBoxMenu::item_type_id,name).set_text(str.c_str()).set_callback_function(save_slot_callback);
 				}
             }
+            if (page!=GetGameState_Run()/SaveState::SLOT_COUNT) {
+                page=GetGameState_Run()/SaveState::SLOT_COUNT;
+                refresh_slots();
+            }
 			char name[6]="slot0";
-			name[4]='0'+(char)GetGameState_Run();
+			name[4]='0'+(char)(GetGameState_Run()%SaveState::SLOT_COUNT);
 			mainMenu.get_item(name).check(true).refresh_item(mainMenu);
 		}
 #endif
@@ -9240,6 +9272,7 @@ int main(int argc, char* argv[]) SDL_MAIN_NOEXCEPT {
 #endif
         Init_VGABIOS();
         VOODOO_Init();
+        GLIDE_Init();
         PROGRAMS_Init(); /* <- NTS: Does not init programs, it inits the callback used later when creating the .COM programs on drive Z: */
         PCSPEAKER_Init();
         TANDYSOUND_Init();
