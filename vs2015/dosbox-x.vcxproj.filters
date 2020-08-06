@@ -495,6 +495,9 @@
     <ClCompile Include="..\src\hardware\voodoo_vogl.cpp">
       <Filter>Sources\hardware</Filter>
     </ClCompile>
+    <ClCompile Include="..\src\hardware\glide.cpp">
+      <Filter>Sources\hardware</Filter>
+    </ClCompile>
     <ClCompile Include="..\src\hardware\parport\directlpt_win32.cpp">
       <Filter>Sources\hardware\parport</Filter>
     </ClCompile>

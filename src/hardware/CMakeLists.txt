@@ -11,6 +11,7 @@ set(SRC_HARDWARE
 	"${CMAKE_CURRENT_LIST_DIR}/dongle.cpp"
 	"${CMAKE_CURRENT_LIST_DIR}/floppy.cpp"
 	"${CMAKE_CURRENT_LIST_DIR}/gameblaster.cpp"
+	"${CMAKE_CURRENT_LIST_DIR}/glide.cpp"
 	"${CMAKE_CURRENT_LIST_DIR}/gus.cpp"
 	"${CMAKE_CURRENT_LIST_DIR}/hardopl.cpp"
 	"${CMAKE_CURRENT_LIST_DIR}/hardware.cpp"
