@@ -701,17 +701,23 @@ std::string getTime(bool date=false)
     return buffer;
 }
 
+/* HACK: Wengier authored this code a bit weird in a way GCC is not happy with. --J.C. */
+size_t GetCurrentSlot();
+
 class SlotPos
 {
 public:
     SlotPos() : slot(0) {}
 
+    /* NTS: with currentSlot tacked onto the end of the class, GCC did not consider it defined in the body of the class,
+     *      thus currentSlot has been replaced with GetCurrentSlot() here --J.C. */
+
     void next()
     {
         ++slot;
         slot %= SaveState::SLOT_COUNT*SaveState::MAX_PAGE;
-        if (page!=currentSlot/SaveState::SLOT_COUNT) {
-            page=currentSlot/SaveState::SLOT_COUNT;
+        if (page!=GetCurrentSlot()/SaveState::SLOT_COUNT) {
+            page=GetCurrentSlot()/SaveState::SLOT_COUNT;
             refresh_slots();
         }
     }
@@ -720,8 +726,8 @@ public:
     {
         slot += SaveState::SLOT_COUNT*SaveState::MAX_PAGE - 1;
         slot %= SaveState::SLOT_COUNT*SaveState::MAX_PAGE;
-        if (page!=currentSlot/SaveState::SLOT_COUNT) {
-            page=currentSlot/SaveState::SLOT_COUNT;
+        if (page!=GetCurrentSlot()/SaveState::SLOT_COUNT) {
+            page=GetCurrentSlot()/SaveState::SLOT_COUNT;
             refresh_slots();
         }
     }
@@ -737,7 +743,14 @@ public:
     }
 private:
     size_t slot;
-} currentSlot;
+};
+
+SlotPos currentSlot;
+
+/* HACK: Wengier authored this code a bit weird in a way GCC is not happy with. It does not consider currentSlot defined within the body of the class. --J.C. */
+size_t GetCurrentSlot() {
+    return currentSlot; /* <- NTS: Returning as size_t calls operator size_t() const. It does not return a reference to the C++ class instance */
+}
 
 void notifyError(const std::string& message)
 {
