@@ -400,6 +400,9 @@ static const char *def_menu_dos[] =
     "DOSWinMenu",
 #endif
     "shell_config_commands",
+#if defined(WIN32) && !defined(HX_DOS)
+    "quick_launch",
+#endif
     "--",
     "quick_reboot",
     "--",
@@ -531,9 +534,11 @@ static const char *def_menu_capture_format[] =
 /* Save slots */
 static const char *def_save_slots[] =
 {
-    "mapper_prevslot",
-    "mapper_nextslot",
-    "refreshslot",
+    "prev_page",
+    "next_page",
+    "--",
+    "first_page",
+    "last_page",
     "--",
     "slot0",
     "slot1",
@@ -546,11 +551,10 @@ static const char *def_save_slots[] =
     "slot8",
     "slot9",
     "--",
-    "prev_page",
-    "next_page",
+    "mapper_prevslot",
+    "mapper_nextslot",
     "--",
-    "first_page",
-    "last_page",
+    "refreshslot",
     NULL
 };
 

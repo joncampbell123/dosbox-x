@@ -210,6 +210,18 @@ bool save_slot_callback(DOSBoxMenu * const menu,DOSBoxMenu::item * const menuite
 void MenuMountDrive(char drive, const char drive2[DOS_PATHLENGTH]);
 void MenuBrowseFolder(char drive, std::string drive_type);
 void MenuBrowseImageFile(char drive, bool boot);
+void MenuBrowseProgramFile(void);
+
+bool quick_launch_menu_callback(DOSBoxMenu * const menu,DOSBoxMenu::item * const menuitem) {
+    (void)menu;//UNUSED
+    (void)menuitem;//UNUSED
+
+    if (dos_kernel_disabled) return true;
+
+    MenuBrowseProgramFile();
+
+    return true;
+}
 
 bool drive_mountauto_menu_callback(DOSBoxMenu * const menu,DOSBoxMenu::item * const menuitem) {
     (void)menu;//UNUSED
@@ -7931,7 +7943,7 @@ bool prev_page_menu_callback(DOSBoxMenu * const menu, DOSBoxMenu::item * const m
 	char name[6]="slot0";
 	name[4]='0'+(char)(GetGameState_Run()%SaveState::SLOT_COUNT);
 	mainMenu.get_item(name).check(false).refresh_item(mainMenu);
-    if (page>0) page--;
+    page=(page+SaveState::MAX_PAGE-1)%SaveState::MAX_PAGE;
     if (GetGameState_Run()/SaveState::SLOT_COUNT==page) {
         name[4]='0'+(char)(GetGameState_Run()%SaveState::SLOT_COUNT);
         mainMenu.get_item(name).check(true).refresh_item(mainMenu);
@@ -7944,7 +7956,7 @@ bool next_page_menu_callback(DOSBoxMenu * const menu, DOSBoxMenu::item * const m
 	char name[6]="slot0";
 	name[4]='0'+(char)(GetGameState_Run()%SaveState::SLOT_COUNT);
 	mainMenu.get_item(name).check(false).refresh_item(mainMenu);
-    if (page<SaveState::MAX_PAGE-1) page++;
+    page=(page+1)%SaveState::MAX_PAGE;
     if (GetGameState_Run()/SaveState::SLOT_COUNT==page) {
         name[4]='0'+(char)(GetGameState_Run()%SaveState::SLOT_COUNT);
         mainMenu.get_item(name).check(true).refresh_item(mainMenu);
@@ -9091,6 +9103,8 @@ int main(int argc, char* argv[]) SDL_MAIN_NOEXCEPT {
                     mainMenu.alloc_item(DOSBoxMenu::item_type_id,"dos_win_wait").set_text("Wait for the application").
                         set_callback_function(dos_win_wait_menu_callback);
                 }
+                mainMenu.alloc_item(DOSBoxMenu::item_type_id,"quick_launch").set_text("Quick launch program...").
+                    set_callback_function(quick_launch_menu_callback);
             }
 #endif
 
