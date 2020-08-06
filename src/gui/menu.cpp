@@ -510,7 +510,7 @@ static const char *def_menu_capture[] =
     "force_loadstate",
     "mapper_savestate",
     "mapper_loadstate",
-	"saveslotmenu",
+    "saveslotmenu",
     NULL
 };
 
@@ -531,9 +531,10 @@ static const char *def_menu_capture_format[] =
 /* Save slots */
 static const char *def_save_slots[] =
 {
-	"mapper_prevslot",
-	"mapper_nextslot",
-	"--",
+    "mapper_prevslot",
+    "mapper_nextslot",
+    "refreshslot",
+    "--",
     "slot0",
     "slot1",
     "slot2",
@@ -544,9 +545,13 @@ static const char *def_save_slots[] =
     "slot7",
     "slot8",
     "slot9",
-	"--",
-    "refreshslot",
-	NULL
+    "--",
+    "prev_page",
+    "next_page",
+    "--",
+    "first_page",
+    "last_page",
+    NULL
 };
 
 /* Drive menu ("DriveMenu") */

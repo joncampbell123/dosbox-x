@@ -293,7 +293,7 @@ public:
     static SaveState& instance();
 
    typedef std::string Error;
-    static const size_t SLOT_COUNT = 10; //slot: [0,...,SLOT_COUNT - 1]
+    static const size_t MAX_PAGE = 10, SLOT_COUNT = 10; //slot: [0,...,SLOT_COUNT - 1]
 
     void save   (size_t slot);       //throw (Error)
     void load   (size_t slot) const; //throw (Error)
@@ -330,7 +330,7 @@ private:
 
     struct CompData
     {
-        CompData(Component& cmp) : comp(cmp), rawBytes(SLOT_COUNT) {}
+        CompData(Component& cmp) : comp(cmp), rawBytes(MAX_PAGE*SLOT_COUNT) {}
         Component& comp;
         std::vector<RawBytes> rawBytes;
     };
