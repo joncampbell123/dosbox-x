@@ -977,7 +977,10 @@ public:
 #endif
 
 #if defined (WIN32) || defined(OS2)
-            /* nothing */
+            if (is_physfs && temp_line.size()>4 && temp_line[0]=='\'' && toupper(temp_line[1])>='A' && toupper(temp_line[1])<='Z' && temp_line[2]==':' && (temp_line[3]=='/' || temp_line[3]=='\\') && temp_line.back()=='\'') {
+                temp_line = temp_line.substr(1, temp_line.size()-2);
+                is_physfs = temp_line.find(':',((temp_line[0]|0x20) >= 'a' && (temp_line[0]|0x20) <= 'z')?2:0) != std::string::npos;
+            }
 #else
             // Linux: Convert backslash to forward slash
             if (!is_physfs && temp_line.size() > 0) {
