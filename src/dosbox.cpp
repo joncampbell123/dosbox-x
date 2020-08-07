@@ -701,23 +701,19 @@ std::string getTime(bool date=false)
     return buffer;
 }
 
-/* HACK: Wengier authored this code a bit weird in a way GCC is not happy with. --J.C. */
-size_t GetCurrentSlot();
+size_t GetGameState();
 
 class SlotPos
 {
 public:
     SlotPos() : slot(0) {}
 
-    /* NTS: with currentSlot tacked onto the end of the class, GCC did not consider it defined in the body of the class,
-     *      thus currentSlot has been replaced with GetCurrentSlot() here --J.C. */
-
     void next()
     {
         ++slot;
         slot %= SaveState::SLOT_COUNT*SaveState::MAX_PAGE;
-        if (page!=GetCurrentSlot()/SaveState::SLOT_COUNT) {
-            page=GetCurrentSlot()/SaveState::SLOT_COUNT;
+        if (page!=GetGameState()/SaveState::SLOT_COUNT) {
+            page=GetGameState()/SaveState::SLOT_COUNT;
             refresh_slots();
         }
     }
@@ -726,8 +722,8 @@ public:
     {
         slot += SaveState::SLOT_COUNT*SaveState::MAX_PAGE - 1;
         slot %= SaveState::SLOT_COUNT*SaveState::MAX_PAGE;
-        if (page!=GetCurrentSlot()/SaveState::SLOT_COUNT) {
-            page=GetCurrentSlot()/SaveState::SLOT_COUNT;
+        if (page!=GetGameState()/SaveState::SLOT_COUNT) {
+            page=GetGameState()/SaveState::SLOT_COUNT;
             refresh_slots();
         }
     }
@@ -746,11 +742,6 @@ private:
 };
 
 SlotPos currentSlot;
-
-/* HACK: Wengier authored this code a bit weird in a way GCC is not happy with. It does not consider currentSlot defined within the body of the class. --J.C. */
-size_t GetCurrentSlot() {
-    return currentSlot; /* <- NTS: Returning as size_t calls operator size_t() const. It does not return a reference to the C++ class instance */
-}
 
 void notifyError(const std::string& message)
 {
@@ -1060,9 +1051,9 @@ void DOSBOX_RealInit() {
 	MAPPER_AddHandler(LoadGameState, MK_f10, MMOD1|MMOD2,"loadstate","LoadState", &item);
         item->set_text("Load state");
 	MAPPER_AddHandler(PreviousSaveSlot, MK_f7, MMOD1|MMOD2,"prevslot","PrevSlot", &item);
-        item->set_text("Previous slot");
+        item->set_text("Select previous slot");
 	MAPPER_AddHandler(NextSaveSlot, MK_f8, MMOD1|MMOD2,"nextslot","NextSlot", &item);
-        item->set_text("Next slot");
+        item->set_text("Select next slot");
 
     Section_prop *section = static_cast<Section_prop *>(control->GetSection("dosbox"));
     assert(section != NULL);
@@ -2344,7 +2335,7 @@ void DOSBOX_SetupConfigSections(void) {
 	Pstring->Set_values(lfb);
 	Pstring->Set_help("Enable LFB access for Glide. OpenGlide does not support locking aux buffer, please use _noaux modes.");
 	Pbool = secprop->Add_bool("splash",Property::Changeable::WhenIdle,true);
-	Pbool->Set_help("Show 3dfx splash screen (requires 3dfxSpl2.dll).");
+	Pbool->Set_help("Show 3dfx splash screen (Windows; requires 3dfxSpl2.dll).");
 
     secprop=control->AddSection_prop("mixer",&Null_Init);
     Pbool = secprop->Add_bool("nosound",Property::Changeable::OnlyAtStart,false);

@@ -18,7 +18,6 @@ libdecoders_a_SOURCES = \
 	stb_vorbis.h         \
 	vorbis.c             \
 	wav.c                \
-	xxh3.h               \
 	xxhash.h
 
 libdecoders_a_CXXFLAGS = \
