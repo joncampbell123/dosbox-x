@@ -1051,9 +1051,9 @@ void DOSBOX_RealInit() {
 	MAPPER_AddHandler(LoadGameState, MK_f10, MMOD1|MMOD2,"loadstate","LoadState", &item);
         item->set_text("Load state");
 	MAPPER_AddHandler(PreviousSaveSlot, MK_f7, MMOD1|MMOD2,"prevslot","PrevSlot", &item);
-        item->set_text("Use previous slot");
+        item->set_text("Select previous slot");
 	MAPPER_AddHandler(NextSaveSlot, MK_f8, MMOD1|MMOD2,"nextslot","NextSlot", &item);
-        item->set_text("Use next slot");
+        item->set_text("Select next slot");
 
     Section_prop *section = static_cast<Section_prop *>(control->GetSection("dosbox"));
     assert(section != NULL);

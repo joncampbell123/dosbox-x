@@ -7183,38 +7183,22 @@ void dos_ver_menu(bool start) {
     if (start || enablelfn != -2) uselfn = enablelfn==1 || ((enablelfn == -1 || enablelfn == -2) && dos.version.major>6);
 }
 
-bool dos_ver_330_menu_callback(DOSBoxMenu * const menu,DOSBoxMenu::item * const menuitem) {
+bool dos_ver_set_menu_callback(DOSBoxMenu * const menu,DOSBoxMenu::item * const menuitem) {
     (void)menu;//UNUSED
-    (void)menuitem;//UNUSED
-    dos.version.major = 3;
-    dos.version.minor = 30;
-    dos_ver_menu(false);
-    return true;
-}
-
-bool dos_ver_500_menu_callback(DOSBoxMenu * const menu,DOSBoxMenu::item * const menuitem) {
-    (void)menu;//UNUSED
-    (void)menuitem;//UNUSED
-    dos.version.major = 5;
-    dos.version.minor = 0;
-    dos_ver_menu(false);
-    return true;
-}
-
-bool dos_ver_622_menu_callback(DOSBoxMenu * const menu,DOSBoxMenu::item * const menuitem) {
-    (void)menu;//UNUSED
-    (void)menuitem;//UNUSED
-    dos.version.major = 6;
-    dos.version.minor = 22;
-    dos_ver_menu(false);
-    return true;
-}
-
-bool dos_ver_710_menu_callback(DOSBoxMenu * const menu,DOSBoxMenu::item * const menuitem) {
-    (void)menu;//UNUSED
-    (void)menuitem;//UNUSED
-    dos.version.major = 7;
-    dos.version.minor = 10;
+    const char *mname = menuitem->get_name().c_str();
+    if (!strcmp(mname, "dos_ver_330")) {
+        dos.version.major = 3;
+        dos.version.minor = 30;
+    } else if (!strcmp(mname, "dos_ver_500")) {
+        dos.version.major = 5;
+        dos.version.minor = 0;
+    } else if (!strcmp(mname, "dos_ver_622")) {
+        dos.version.major = 6;
+        dos.version.minor = 22;
+    } else if (!strcmp(mname, "dos_ver_710")) {
+        dos.version.major = 7;
+        dos.version.minor = 10;
+    }
     dos_ver_menu(false);
     return true;
 }
@@ -9054,13 +9038,13 @@ int main(int argc, char* argv[]) SDL_MAIN_NOEXCEPT {
 
                 {
                     mainMenu.alloc_item(DOSBoxMenu::item_type_id,"dos_ver_330").set_text("3.30").
-                        set_callback_function(dos_ver_330_menu_callback);
+                        set_callback_function(dos_ver_set_menu_callback);
                     mainMenu.alloc_item(DOSBoxMenu::item_type_id,"dos_ver_500").set_text("5.00").
-                        set_callback_function(dos_ver_500_menu_callback);
+                        set_callback_function(dos_ver_set_menu_callback);
                     mainMenu.alloc_item(DOSBoxMenu::item_type_id,"dos_ver_622").set_text("6.22").
-                        set_callback_function(dos_ver_622_menu_callback);
+                        set_callback_function(dos_ver_set_menu_callback);
                     mainMenu.alloc_item(DOSBoxMenu::item_type_id,"dos_ver_710").set_text("7.10").
-                        set_callback_function(dos_ver_710_menu_callback);
+                        set_callback_function(dos_ver_set_menu_callback);
                     mainMenu.alloc_item(DOSBoxMenu::item_type_id,"dos_ver_edit").set_text("Edit").
                         set_callback_function(dos_ver_edit_menu_callback);
                 }
