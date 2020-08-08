@@ -8145,6 +8145,7 @@ bool custom_bios = false;
 #endif
 
 //extern void UI_Init(void);
+void grGlideShutdown(void);
 int main(int argc, char* argv[]) SDL_MAIN_NOEXCEPT {
     CommandLine com_line(argc,argv);
     Config myconf(&com_line);
@@ -9634,6 +9635,7 @@ fresh_boot:
                 real_writed(0,0x03*4,(Bit32u)BIOS_DEFAULT_HANDLER_LOCATION);
             }
 
+            grGlideShutdown();
             /* shutdown DOSBox-X's virtual drive Z */
             VFILE_Shutdown();
 

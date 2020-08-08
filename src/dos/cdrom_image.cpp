@@ -440,7 +440,7 @@ CDROM_Interface_Image::CDROM_Interface_Image(Bit8u subUnit)
 			player.mutex = SDL_CreateMutex();
 
 		if (!player.channel) {
-			player.channel = player.mixerChannel.Install(&CDAudioCallBack, 0, "CDAUDIO");
+			player.channel = MIXER_AddChannel(&CDAudioCallBack, 0, "CDAUDIO");
 			player.channel->Enable(false); // only enabled during playback periods
 		}
 	}

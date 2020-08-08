@@ -41,7 +41,7 @@ static bool first_run=true;
 extern bool use_quick_reboot, mountwarning;
 extern bool startcmd, startwait, winautorun;
 extern bool enable_config_as_shell_commands;
-extern bool dos_shell_running_program;
+extern bool dos_shell_running_program, addovl;
 extern const char* RunningProgram;
 extern Bit16u countryNo;
 bool usecon = true;
@@ -1423,6 +1423,7 @@ void SHELL_Init() {
 	VFILE_RegisterBuiltinFileBlob(bfb_APPEND_EXE);
 	VFILE_RegisterBuiltinFileBlob(bfb_DEVICE_COM);
 	VFILE_RegisterBuiltinFileBlob(bfb_BUFFERS_COM);
+    if (addovl) VFILE_RegisterBuiltinFileBlob(bfb_GLIDE2X_OVL);
 
 	/* These are IBM PC/XT/AT ONLY. They will not work in PC-98 mode. */
 	if (!IS_PC98_ARCH) {
