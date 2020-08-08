@@ -28,7 +28,6 @@
 #include "control.h"
 #include "sdlmain.h"
 #include "../dos/drives.h"
-#include "../src/builtin/glide2x.h"
 
 #include <iomanip>
 #include <sstream>
@@ -310,6 +309,7 @@ public:
     #undef LFB_getAddr
 };
 
+bool addovl = false;
 class GLIDE: public Module_base {
 private:
     AutoexecObject autoexecline;
@@ -317,6 +317,7 @@ private:
     Bitu glide_base;
 public:
     GLIDE(Section* configuration):Module_base(configuration),glide_base(0) {
+    addovl = false;
 	Section_prop * section=static_cast<Section_prop *>(configuration);
 
 	if(!section->Get_bool("glide")) return;
@@ -408,12 +409,12 @@ public:
 	IO_RegisterWriteHandler(glide_base,write_gl,IO_MB);
 
 	ostringstream temp;
-	temp << "SET GLIDE=" << hex << glide_base << ends;
+	temp << "@SET GLIDE=" << hex << glide_base << ends;
 
 	autoexecline.Install(temp.str());
 	glide.splash = section->Get_bool("splash");
 
-	VFILE_RegisterBuiltinFileBlob(bfb_GLIDE2X_OVL);
+    addovl = true;
     }
 
     ~GLIDE() {
@@ -444,7 +445,7 @@ public:
 	    hdll = NULL;
 	}
 
-	VFILE_Remove("GLIDE2X.OVL");
+	if (addovl) VFILE_Remove("GLIDE2X.OVL");
     }
 };
 
@@ -476,14 +477,14 @@ void GLIDE_ResetScreen(bool update)
 	// and resize when mapper and/or GUI finish
 	  update)) {
 #if defined(C_SDL2)
-        sdl.window = SDL_CreateWindow("",
-                                SDL_WINDOWPOS_UNDEFINED_DISPLAY(sdl.displayNumber),
-                                SDL_WINDOWPOS_UNDEFINED_DISPLAY(sdl.displayNumber),
-                                glide.width, glide.height,
-                                (glide.fullscreen[0]?SDL_WINDOW_FULLSCREEN:0) | (OpenGL_using() ? SDL_WINDOW_OPENGL : 0) | SDL_WINDOW_SHOWN | (dpi_aware_enable ? SDL_WINDOW_ALLOW_HIGHDPI : 0));
+        void GFX_SetResizeable(bool enable);
+        GFX_SetResizeable(true);
+        SDL_Window* GFX_SetSDLWindowMode(Bit16u width, Bit16u height, SCREEN_TYPES screenType);
+        sdl.window = GFX_SetSDLWindowMode(glide.width,glide.height, sdl.desktop.want_type == SCREEN_OPENGL ? SCREEN_OPENGL : SCREEN_SURFACE);
+        if (sdl.window != NULL) sdl.surface = SDL_GetWindowSurface(sdl.window);
 #else
         SDL_Surface* SDL_SetVideoMode(int width,int height,int bpp,Bit32u flags);
-	    SDL_SetVideoMode(glide.width,glide.height,0,(glide.fullscreen[0]?SDL_FULLSCREEN:0)|SDL_ANYFORMAT);
+        sdl.surface = SDL_SetVideoMode(glide.width,glide.height,0,(glide.fullscreen[0]?SDL_FULLSCREEN:0)|SDL_ANYFORMAT);
 #endif      
 	}
 }
@@ -493,6 +494,14 @@ void GLIDE_DisableScreen(void)
 	glide.enabled = false;	/* if not disabled, GFX_ResetScreen() will call GLIDE_ResetScreen() */
 	VGA_SetOverride(false);
 	GFX_ResetScreen();
+}
+
+void grGlideShutdown(void) {
+	if(glide.enabled) {
+	    FP.grFunction0 = (pfunc0)fn_pt[_grSstWinClose0];
+	    FP.grFunction0();
+	    GLIDE_DisableScreen();
+	}
 }
 
 static bool GetFileName(char * filename)

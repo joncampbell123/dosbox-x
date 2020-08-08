@@ -84,7 +84,7 @@ static struct {
     Bitu            pos,done;
     float           mastervol[2];
     float           recordvol[2];
-    MixerChannel*       channels;
+    MixerChannel*   channels;
     Bit32u          freq;
     Bit32u          blocksize;
     struct mixedFraction samples_per_ms;

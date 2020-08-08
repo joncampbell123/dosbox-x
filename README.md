@@ -116,7 +116,7 @@ greatly appreciated:
   - Bug fixes, patches, improvements, refinements
   - Suggestions, ideas, general conversation
   - Platform support (primarily Linux and Windows, but others are welcome)
-  - Documentation, language file transition
+  - Documentation, language file translation
   - Notes regarding games, applications, hacks, weird MS-DOS tricks, etc.
 
 If you want to tweak or write some code and you don't know what to work

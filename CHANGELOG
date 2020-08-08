@@ -1,6 +1,11 @@
 0.83.5
-  - Added "Quick launch program" (under "DOS") to run
-    the specified program on Windows host. (Wengier)
+  - Worked around the mounting issue with LaunchBox,
+    allowing MOUNT C 'C:\DOS' for Windows. (Wengier)
+  - Updated xxHash library by Yann Collet from 0.7.4
+    to the stable version 0.8.0. (Wengier)
+  - Added "Quick launch program..." menu (under "DOS")
+    to quickly run the specified program as selected
+    by the Windows file browser in DOSBox-X. (Wengier)
   - Increased save slots from 10 to 100. Each page in
     the save slot menu (under "Capture") still shows
     10 slots, but you can now go to previous or next
