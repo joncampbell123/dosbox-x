@@ -1,4 +1,9 @@
 0.83.5
+  - Fixed that joystick may not work with the setting
+    "usescancodes=auto" when a non-US keyboard layout
+    is activated on the SDL1 build. (Wengier)
+  - MOUNT command's -Q (quiet) option now silences
+    virtually all output of this command. (Wengier)
   - Worked around the mounting issue with LaunchBox,
     by allowing a mounting command-line with single
     quotes like MOUNT C 'X:\DOS' on Windows. (Wengier)
@@ -8,9 +13,10 @@
     to quickly run the specified program as selected
     by the Windows file browser in DOSBox-X. (Wengier)
   - The save state feature now saves and restores the
-    mounted paths for mounted local or overlay drives.
-    This fixes the error when trying to load states
-    but the local drives aren't yet mounted. (Wengier)
+    mounted paths for most mounted drives (if the path
+    still exist on the host system). This fixes the
+    error while trying to load saved states but the
+    drives are not yet mounted in DOSBox-X. (Wengier)
   - Increased save slots from 10 to 100. Each page in
     the save slot menu (under "Capture") still shows
     10 slots, but you can now go to previous or next

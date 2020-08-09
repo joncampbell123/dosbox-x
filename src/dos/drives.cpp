@@ -424,6 +424,8 @@ char * DOS_Drive::GetBaseDir(void) {
 void DOS_Drive::SaveState( std::ostream& stream )
 {
 	// - pure data
+	WRITE_POD( &nocachedir, nocachedir );
+	WRITE_POD( &readonly, readonly );
 	WRITE_POD( &curdir, curdir );
 	WRITE_POD( &info, info );
 }
@@ -431,6 +433,8 @@ void DOS_Drive::SaveState( std::ostream& stream )
 void DOS_Drive::LoadState( std::istream& stream )
 {
 	// - pure data
+	READ_POD( &nocachedir, nocachedir );
+	READ_POD( &readonly, readonly );
 	READ_POD( &curdir, curdir );
 	READ_POD( &info, info );
 }

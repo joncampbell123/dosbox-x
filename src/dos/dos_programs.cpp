@@ -67,6 +67,7 @@ bool wpcolon = true;
 bool startcmd = false;
 bool startwait = true;
 bool mountwarning = true;
+bool qmount = false;
 
 void DOS_EnableDriveMenu(char drv);
 
@@ -427,6 +428,7 @@ void MenuBrowseFolder(char drive, std::string drive_type) {
 }
 
 extern bool dos_kernel_disabled, clearline;
+void runBoot(const char *str), runMount(const char *str), runImgmount(const char *str);
 void MenuBrowseImageFile(char drive, bool boot) {
 	std::string str(1, drive);
 	std::string drive_warn;
@@ -491,8 +493,7 @@ search:
 		else
 			strcpy(type,"");
 		char mountstring[DOS_PATHLENGTH+CROSS_LEN+20];
-		strcpy(mountstring,"IMGMOUNT ");
-		strcat(mountstring,type);
+		strcpy(mountstring,type);
 		char temp_str[3] = { 0,0,0 };
 		temp_str[0]=drive;
 		temp_str[1]=' ';
@@ -501,21 +502,18 @@ search:
 		strcat(mountstring,path);
 		strcat(mountstring,"\"");
 		if (boot) strcat(mountstring," -U");
-		strcat(mountstring," >nul");
-		DOS_Shell temp;
-		temp.ParseLine(mountstring);
+		qmount=true;
+		runImgmount(mountstring);
+		qmount=false;
 		if (!Drives[drive-'A']) {
 			drive_warn="Drive "+str+": failed to mount.";
 			MessageBox(GetHWND(),drive_warn.c_str(),"Error",MB_OK);
 			return;
 		} else if (boot) {
-			char bootstring[DOS_PATHLENGTH+CROSS_LEN+20];
-			strcpy(bootstring,"Z:\\BOOT -L ");
-			strcat(bootstring,str.c_str());
-			strcat(bootstring," >nul");
-			DOS_Shell temp;
-			temp.ParseLine(bootstring);
-			std::string drive_warn="Drive "+str+": failed to boot.";
+			char str[] = "A:";
+			str[0]=drive;
+			runBoot(str);
+			std::string drive_warn="Drive "+std::string(1, drive)+": failed to boot.";
 			MessageBox(GetHWND(),drive_warn.c_str(),"Error",MB_OK);
 		}
 	}
@@ -627,17 +625,15 @@ search:
 		char pathname[DOS_PATHLENGTH];
 		sprintf(pathname,"%s%s",drive,dir);
 		char mountstring[DOS_PATHLENGTH+CROSS_LEN+20];
-		strcpy(mountstring,"MOUNT ");
 		char temp_str[3] = { 0,0,0 };
 		temp_str[0]=drv;
 		temp_str[1]=' ';
-		strcat(mountstring,temp_str);
+		strcpy(mountstring,temp_str);
 		strcat(mountstring,"\"");
 		strcat(mountstring,pathname);
 		strcat(mountstring,"\"");
-		strcat(mountstring," -u >nul");
-		DOS_Shell shell;
-		shell.ParseLine(mountstring);
+		strcat(mountstring," -Q -U");
+		runMount(mountstring);
 		if (!Drives[drv-'A']) {
 			drive_warn="Drive "+std::string(1, drv)+": failed to mount.";
 			MessageBox(GetHWND(),drive_warn.c_str(),"Error",MB_OK);
@@ -667,6 +663,7 @@ search:
         DOS_WriteFile(STDERR,(Bit8u*)msg.c_str(),&n);
 
 		SetCurrentDirectory( Temp_CurrentDir );
+        DOS_Shell shell;
         shell.Execute(name1," ");
         if (!strcasecmp(ext,".bat")) {
             bool echo=shell.echo;
@@ -679,13 +676,12 @@ search:
             drive_warn="Program has finished execution. Do you want to unmount Drive "+std::string(1, drv)+" now?";
             if (MessageBox(GetHWND(),drive_warn.c_str(),"Warning",MB_YESNO|MB_DEFBUTTON1)==IDYES) {
                 if (Drives[olddrv]) DOS_SetDefaultDrive(olddrv);
-                strcpy(mountstring,"MOUNT ");
                 char temp_str[3] = { 0,0,0 };
                 temp_str[0]=drv;
                 temp_str[1]=' ';
-                strcat(mountstring,temp_str);
-                strcat(mountstring," -u >nul");
-                shell.ParseLine(mountstring);
+                strcpy(mountstring,temp_str);
+                strcat(mountstring," -Q -U");
+                runMount(mountstring);
             }
         }
         if (strcasecmp(ext,".bat")) {
@@ -802,12 +798,13 @@ public:
         bool path_relative_to_last_config = false;
         if (cmd->FindExist("-pr",true)) path_relative_to_last_config = true;
 
-        if (cmd->FindExist("-q",false))
+        if (cmd->FindExist("-q",true))
             quiet = true;
 
         /* Check for unmounting */
         if (cmd->FindString("-u",umount,false)) {
-            WriteOut(UnmountHelper(umount[0]), toupper(umount[0]));
+            const char *msg=UnmountHelper(umount[0]);
+            if (!quiet) WriteOut(msg, toupper(umount[0]));
             return;
         }
 
@@ -863,9 +860,9 @@ public:
         if (cmd->FindExist("-cd",false)) {
 #if !defined(C_SDL2)
             int num = SDL_CDNumDrives();
-            WriteOut(MSG_Get("PROGRAM_MOUNT_CDROMS_FOUND"),num);
+            if (!quiet) WriteOut(MSG_Get("PROGRAM_MOUNT_CDROMS_FOUND"),num);
             for (int i=0; i<num; i++) {
-                WriteOut("%2d. %s\n",i,SDL_CDName(i));
+                if (!quiet) WriteOut("%2d. %s\n",i,SDL_CDName(i));
             }
 #endif
             return;
@@ -905,7 +902,7 @@ public:
                 str_size="2048,1,65535,0";
                 mediaid=0xF8;       /* Hard Disk */
             } else {
-                WriteOut(MSG_Get("PROGAM_MOUNT_ILL_TYPE"),type.c_str());
+                if (!quiet) WriteOut(MSG_Get("PROGAM_MOUNT_ILL_TYPE"),type.c_str());
                 return;
             }
             /* Parse the free space in mb's (kb's for floppies) */
@@ -959,7 +956,8 @@ public:
             if (!cmd->FindCommand(2,temp_line)) goto showusage;
             if (!temp_line.size()) goto showusage;
 			if (cmd->FindExist("-u",true)) {
-				WriteOut(UnmountHelper(i_drive), toupper(i_drive));
+                const char *msg=UnmountHelper(i_drive);
+				if (!quiet) WriteOut(msg, toupper(i_drive));
 				if (!cmd->FindCommand(2,temp_line)||!temp_line.size()) return;
 			}
             if(path_relative_to_last_config && control->configfiles.size() && !Cross::IsPathAbsolute(temp_line)) {
@@ -1040,7 +1038,7 @@ public:
             }
             if(failed) {
 #endif
-                WriteOut(MSG_Get("PROGRAM_MOUNT_ERROR_1"),temp_line.c_str());
+                if (!quiet) WriteOut(MSG_Get("PROGRAM_MOUNT_ERROR_1"),temp_line.c_str());
                 return;
             }
             /* Not a switch so a normal directory/file */
@@ -1053,11 +1051,11 @@ public:
                     OPEN_FLAGS_DASD | OPEN_SHARE_DENYNONE | OPEN_ACCESS_READONLY, 0L);
                 DosClose(cdrom_fd);
                 if (rc != NO_ERROR && rc != ERROR_NOT_READY) {
-                WriteOut(MSG_Get("PROGRAM_MOUNT_ERROR_2"),temp_line.c_str());
+                if (!quiet) WriteOut(MSG_Get("PROGRAM_MOUNT_ERROR_2"),temp_line.c_str());
                 return;
             }
 #else
-                WriteOut(MSG_Get("PROGRAM_MOUNT_ERROR_2"),temp_line.c_str());
+                if (!quiet) WriteOut(MSG_Get("PROGRAM_MOUNT_ERROR_2"),temp_line.c_str());
                 return;
 #endif
 
@@ -1098,17 +1096,18 @@ public:
 #endif
                 }
                 if (is_physfs) {
-					WriteOut(MSG_Get("PROGRAM_IMGMOUNT_CANT_CREATE_PHYSFS"));
+					if (!quiet) WriteOut(MSG_Get("PROGRAM_IMGMOUNT_CANT_CREATE_PHYSFS"));
                     LOG_MSG("ERROR:This build does not support physfs");
 					return;
                 } else {
 					if (Drives[drive-'A']) {
-						WriteOut(MSG_Get("PROGRAM_MOUNT_ALREADY_MOUNTED"),drive,Drives[drive-'A']->GetInfo());
+						if (!quiet) WriteOut(MSG_Get("PROGRAM_MOUNT_ALREADY_MOUNTED"),drive,Drives[drive-'A']->GetInfo());
 						return;
 					}
                     newdrive  = new cdromDrive(drive,temp_line.c_str(),sizes[0],bit8size,sizes[2],sizes[3],mediaid,error,options);
                 }
                 // Check Mscdex, if it worked out...
+                if (!quiet)
                 switch (error) {
                     case 0  :   WriteOut(MSG_Get("MSCDEX_SUCCESS"));                break;
                     case 1  :   WriteOut(MSG_Get("MSCDEX_ERROR_MULTIPLE_CDROMS"));  break;
@@ -1124,7 +1123,7 @@ public:
                 }
             } else {
                 /* Give a warning when mount c:\ or the / */
-                if (mountwarning) {
+                if (mountwarning && !quiet) {
 #if defined (WIN32) || defined(OS2)
                     if( (temp_line == "c:\\") || (temp_line == "C:\\") ||
                         (temp_line == "c:/") || (temp_line == "C:/")    )
@@ -1134,19 +1133,19 @@ public:
 #endif
                 }
                 if (is_physfs) {
-					WriteOut(MSG_Get("PROGRAM_IMGMOUNT_CANT_CREATE_PHYSFS"));
+					if (!quiet) WriteOut(MSG_Get("PROGRAM_IMGMOUNT_CANT_CREATE_PHYSFS"));
                     LOG_MSG("ERROR:This build does not support physfs");
 					return;
                 } else if(type == "overlay") {
                   //Ensure that the base drive exists:
                   if (!Drives[drive-'A']) { 
-                      WriteOut(MSG_Get("PROGRAM_MOUNT_OVERLAY_NO_BASE"));
+                      if (!quiet) WriteOut(MSG_Get("PROGRAM_MOUNT_OVERLAY_NO_BASE"));
                       return;
                   }
                   localDrive* ldp = dynamic_cast<localDrive*>(Drives[drive-'A']);
                   cdromDrive* cdp = dynamic_cast<cdromDrive*>(Drives[drive-'A']);
                   if (!ldp || cdp) {
-					  WriteOut(MSG_Get("PROGRAM_MOUNT_OVERLAY_INCOMPAT_BASE"));
+					  if (!quiet) WriteOut(MSG_Get("PROGRAM_MOUNT_OVERLAY_INCOMPAT_BASE"));
                       return;
                   }
                   std::string base = ldp->getBasedir();
@@ -1154,7 +1153,8 @@ public:
                   newdrive = new Overlay_Drive(base.c_str(),temp_line.c_str(),sizes[0],bit8size,sizes[2],sizes[3],mediaid,o_error,options);
                   //Erase old drive on succes
                   if (newdrive) {
-                      if (o_error) { 
+                      if (o_error) {
+                          if (quiet) {delete newdrive;return;}
                           if (o_error == 1) WriteOut("No mixing of relative and absolute paths. Overlay failed.\n");
                           else if (o_error == 2) WriteOut("Overlay directory cannot be the same as underlying filesystem.\n");
                           else WriteOut("An error occurred when trying to create an overlay drive.\n");
@@ -1170,7 +1170,7 @@ public:
                       delete Drives[drive-'A'];
                       Drives[drive-'A'] = 0;
                   } else { 
-                      WriteOut("Overlay drive construction failed.\n");
+                      if (!quiet) WriteOut("Overlay drive construction failed.\n");
                       return;
                   }
               } else {
@@ -1180,11 +1180,11 @@ public:
                 }
             }
         } else {
-            WriteOut(MSG_Get("PROGRAM_MOUNT_ILL_TYPE"),type.c_str());
+            if (!quiet) WriteOut(MSG_Get("PROGRAM_MOUNT_ILL_TYPE"),type.c_str());
             return;
         }
         if (Drives[drive-'A']) {
-            WriteOut(MSG_Get("PROGRAM_MOUNT_ALREADY_MOUNTED"),drive,Drives[drive-'A']->GetInfo());
+            if (!quiet) WriteOut(MSG_Get("PROGRAM_MOUNT_ALREADY_MOUNTED"),drive,Drives[drive-'A']->GetInfo());
             if (newdrive) delete newdrive;
             return;
         }
@@ -1235,6 +1235,12 @@ showusage:
 
 static void MOUNT_ProgramStart(Program * * make) {
     *make=new MOUNT;
+}
+
+void runMount(const char *str) {
+	MOUNT mount;
+	mount.cmd=new CommandLine("MOUNT", str);
+	mount.Run();
 }
 
 void GUI_Run(bool pressed);
@@ -2336,11 +2342,9 @@ static void BOOT_ProgramStart(Program * * make) {
     *make=new BOOT;
 }
 
-void runBoot() {
+void runBoot(const char *str) {
 	BOOT boot;
-	char drive[] = "-Q A:";
-	drive[3]='A'+bootdrive;
-	boot.cmd=new CommandLine("BOOT", drive);
+	boot.cmd=new CommandLine("BOOT", str);
 	boot.Run();
 }
 
@@ -4366,21 +4370,21 @@ private:
                     DOS_EnableDriveMenu(i_drive+'A');
                     if (i_drive == DOS_GetDefaultDrive())
                         DOS_SetDrive(toupper('Z') - 'A');
-                    WriteOut(MSG_Get("PROGRAM_MOUNT_UMOUNT_SUCCESS"), letter);
+                    if (!qmount) WriteOut(MSG_Get("PROGRAM_MOUNT_UMOUNT_SUCCESS"), letter);
                     return true;
                 }
                 case 1:
-                    WriteOut(MSG_Get("PROGRAM_MOUNT_UMOUNT_NO_VIRTUAL"));
+                    if (!qmount) WriteOut(MSG_Get("PROGRAM_MOUNT_UMOUNT_NO_VIRTUAL"));
                     return false;
                 case 2:
-                    WriteOut(MSG_Get("MSCDEX_ERROR_MULTIPLE_CDROMS"));
+                    if (!qmount) WriteOut(MSG_Get("MSCDEX_ERROR_MULTIPLE_CDROMS"));
                     return false;
                 default:
                     return false;
                 }
             }
             else {
-                WriteOut(MSG_Get("PROGRAM_MOUNT_UMOUNT_NOT_MOUNTED"), letter);
+                if (!qmount) WriteOut(MSG_Get("PROGRAM_MOUNT_UMOUNT_NOT_MOUNTED"), letter);
                 return false;
             }
         }
@@ -4700,7 +4704,7 @@ private:
                 }
             }
             if (errorMessage) {
-                WriteOut(errorMessage);
+                if (!qmount) WriteOut(errorMessage);
                 for (ct = 0; ct < imgDisks.size(); ct++) {
                     delete imgDisks[ct];
                 }
@@ -4715,7 +4719,7 @@ private:
         for (i = 1; i < paths.size(); i++) {
             tmp += "; " + (wpcolon&&paths[i].length()>1&&paths[i].c_str()[0]==':'?paths[i].substr(1):paths[i]);
         }
-        WriteOut(MSG_Get("PROGRAM_MOUNT_STATUS_2"), drive, tmp.c_str());
+        if (!qmount) WriteOut(MSG_Get("PROGRAM_MOUNT_STATUS_2"), drive, tmp.c_str());
 
         if (imgDisks.size() == 1) {
             imageDisk* image = ((fatDrive*)imgDisks[0])->loadedDisk;
@@ -5078,11 +5082,11 @@ private:
 	if (yet_detected) {
             //"Image geometry auto detection: -size %u,%u,%u,%u\r\n",
             //sizes[0],sizes[1],sizes[2],sizes[3]);
-            WriteOut(MSG_Get("PROGRAM_IMGMOUNT_AUTODET_VALUES"), sizes[0], sizes[1], sizes[2], sizes[3]);
+            if (!qmount) WriteOut(MSG_Get("PROGRAM_IMGMOUNT_AUTODET_VALUES"), sizes[0], sizes[1], sizes[2], sizes[3]);
             return true;
         }
         else {
-            WriteOut(MSG_Get("PROGRAM_IMGMOUNT_INVALID_GEOMETRY"));
+            if (!qmount) WriteOut(MSG_Get("PROGRAM_IMGMOUNT_INVALID_GEOMETRY"));
             return false;
         }
     }
@@ -5378,6 +5382,12 @@ private:
 
 void IMGMOUNT_ProgramStart(Program * * make) {
     *make=new IMGMOUNT;
+}
+
+void runImgmount(const char *str) {
+	IMGMOUNT imgmount;
+	imgmount.cmd=new CommandLine("IMGMOUNT", str);
+	imgmount.Run();
 }
 
 Bitu DOS_SwitchKeyboardLayout(const char* new_layout, Bit32s& tried_cp);
