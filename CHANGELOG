@@ -1,4 +1,8 @@
 0.83.5
+  - The save state feature now saves and restore the
+    mounted path for mounted local or overlay drives.
+    This fixes error while loading states when the
+    local drives are not yet mounted. (Wengier)
   - Worked around the mounting issue with LaunchBox,
     by allowing a mounting command-line with single
     quotes like MOUNT C 'X:\DOS' on Windows. (Wengier)
