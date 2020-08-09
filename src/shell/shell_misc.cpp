@@ -46,6 +46,7 @@
 # define MAX(a,b) std::max(a,b)
 #endif
 
+bool clearline=false;
 extern int lfn_filefind_handle;
 
 void DOS_Shell::ShowPrompt(void) {
@@ -157,6 +158,13 @@ void DOS_Shell::InputCommand(char * line) {
 			size=0;			//Kill the while loop
 			continue;
 		}
+        if (clearline) {
+            clearline = false;
+            *line=0;
+            if (l_completion.size()) l_completion.clear(); //reset the completion list.
+            str_index = 0;
+            str_len = 0;
+        }
 
         if (input_handle != STDIN) { /* FIXME: Need DOS_IsATTY() or somesuch */
             cr = (Bit16u)c; /* we're not reading from the console */

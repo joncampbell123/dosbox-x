@@ -367,7 +367,6 @@ public:
 private:
 	static struct imagePlayer {
 		// Objects, pointers, and then scalars; in descending size-order.
-		MixerObject              mixerChannel       = {};
 		std::weak_ptr<TrackFile> trackFile          = {};
 		SDL_mutex                *mutex             = nullptr;
 		MixerChannel             *channel           = nullptr;
