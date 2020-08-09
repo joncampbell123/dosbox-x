@@ -96,7 +96,13 @@ public:
 	virtual void EmptyCache(void) { dirCache.EmptyCache(); };
 	virtual void MediaChange() {};
 	const char* getBasedir() {return basedir;};
-
+	struct {
+		Bit16u bytes_sector;
+		Bit8u sectors_cluster;
+		Bit16u total_clusters;
+		Bit16u free_clusters;
+		Bit8u mediaid;
+	} allocation;
 	int remote = -1;
 
 protected:
@@ -106,14 +112,6 @@ protected:
 	struct {
 		char srch_dir[CROSS_LEN];
     } srchInfo[MAX_OPENDIRS] = {};
-
-	struct {
-		Bit16u bytes_sector;
-		Bit8u sectors_cluster;
-		Bit16u total_clusters;
-		Bit16u free_clusters;
-		Bit8u mediaid;
-	} allocation;
 };
 
 #if 0 // nothing uses this

@@ -34,6 +34,8 @@
 #include "cross.h"
 #include "control.h"
 #include "dos_network2.h"
+#include "menu.h"
+#include "cdrom.h"
 
 #define DOS_FILESTART 4
 
@@ -1973,7 +1975,16 @@ void DOS_File::LoadState( std::istream& stream, bool pop )
 }
 
 extern bool dos_kernel_disabled;
-
+struct Alloc {
+    Bit16u bytes_sector;
+    Bit8u sectors_cluster;
+    Bit16u total_clusters;
+    Bit16u free_clusters;
+    Bit8u mediaid;
+};
+Alloc lalloc, oalloc;
+char overlaydir[CROSS_LEN];
+void MSCDEX_SetCDInterface(int intNr, int forceCD);
 void POD_Save_DOS_Files( std::ostream& stream )
 {
 	if (!dos_kernel_disabled) {
@@ -1992,8 +2003,35 @@ void POD_Save_DOS_Files( std::ostream& stream )
 
 			// - reloc ptr
 			WRITE_POD( &drive_valid, drive_valid );
-
 			if( drive_valid == 0xff ) continue;
+
+            char dinfo[0x100];
+            strcpy(dinfo, Drives[lcv]->GetInfo());
+            WRITE_POD( &dinfo, dinfo);
+            *overlaydir=0;
+            if (!strncmp(dinfo,"local directory",15) || !strncmp(dinfo,"CDRom ",6)) {
+                localDrive *ldp = dynamic_cast<localDrive*>(Drives[lcv]);
+                if (!ldp) cdromDrive *ldp = dynamic_cast<cdromDrive*>(Drives[lcv]);
+                if (ldp) {
+                    lalloc.bytes_sector=ldp->allocation.bytes_sector;
+                    lalloc.sectors_cluster=ldp->allocation.bytes_sector;
+                    lalloc.total_clusters=ldp->allocation.total_clusters;
+                    lalloc.free_clusters=ldp->allocation.free_clusters;
+                    lalloc.mediaid=ldp->allocation.mediaid;
+                }
+                Overlay_Drive *odp = dynamic_cast<Overlay_Drive*>(Drives[lcv]);
+                if (odp) {
+                    strcpy(overlaydir,odp->getOverlaydir());
+                    oalloc.bytes_sector=odp->allocation.bytes_sector;
+                    oalloc.sectors_cluster=odp->allocation.bytes_sector;
+                    oalloc.total_clusters=odp->allocation.total_clusters;
+                    oalloc.free_clusters=odp->allocation.free_clusters;
+                    oalloc.mediaid=odp->allocation.mediaid;
+                }
+            }
+            WRITE_POD( &overlaydir, overlaydir);
+            WRITE_POD( &lalloc, lalloc);
+            WRITE_POD( &oalloc, oalloc);
 			Drives[lcv]->SaveState(stream);
 		}
 
@@ -2060,6 +2098,39 @@ void POD_Load_DOS_Files( std::istream& stream )
 			READ_POD( &drive_valid, drive_valid );
 			if( drive_valid == 0xff ) continue;
 
+            char dinfo[0x100];
+            READ_POD( &dinfo, dinfo);
+            READ_POD( &overlaydir, overlaydir);
+            READ_POD( &lalloc, lalloc);
+            READ_POD( &oalloc, oalloc);
+            if( Drives[lcv] && strcmp(Drives[lcv]->info, dinfo) && (!strncmp(dinfo,"local directory",15) || !strncmp(dinfo,"CDRom ",6))) {
+                DriveManager::UnmountDrive(lcv);
+                Drives[lcv]=0;
+            }
+            if( !Drives[lcv] ) {
+                std::vector<std::string> options;
+                if (!strncmp(dinfo,"local directory",15)) {
+                    Drives[lcv]=new localDrive(dinfo+16,lalloc.bytes_sector,lalloc.bytes_sector,lalloc.total_clusters,lalloc.free_clusters,lalloc.mediaid,options);
+                    if (Drives[lcv] && strlen(overlaydir)) {
+                        Bit8u o_error = 0;
+                        Drives[lcv]=new Overlay_Drive(dynamic_cast<localDrive*>(Drives[lcv])->getBasedir(),overlaydir,oalloc.bytes_sector,oalloc.bytes_sector,oalloc.total_clusters,oalloc.free_clusters,oalloc.mediaid,o_error,options);
+                    }
+                }
+                if (!strncmp(dinfo,"CDRom ",6)) {
+                    int num = -1;
+                    int error;
+                    int id, major, minor;
+                    DOSBox_CheckOS(id, major, minor);
+                    if ((id==VER_PLATFORM_WIN32_NT) && (major>5))
+                        MSCDEX_SetCDInterface(CDROM_USE_IOCTL_DX, num);
+                    else
+                        MSCDEX_SetCDInterface(CDROM_USE_IOCTL_DIO, num);
+                    Drives[lcv] = new cdromDrive('A'+lcv,dinfo+6,lalloc.bytes_sector,lalloc.bytes_sector,lalloc.total_clusters,lalloc.free_clusters,lalloc.mediaid,error,options);
+                }
+                if (!strncmp(dinfo,"fatDrive ",9) || !strncmp(dinfo,"isoDrive ",9)) {
+                    // Todo
+                }
+            }
 			if( Drives[lcv] ) Drives[lcv]->LoadState(stream);
 		}
 
