@@ -485,7 +485,7 @@ void GLIDE_ResetScreen(bool update)
 #else
         SDL_Surface* SDL_SetVideoMode(int width,int height,int bpp,Bit32u flags);
         sdl.surface = SDL_SetVideoMode(glide.width,glide.height,0,(glide.fullscreen[0]?SDL_FULLSCREEN:0)|SDL_ANYFORMAT);
-#endif      
+#endif
 	}
 }
 
