@@ -453,7 +453,7 @@ void MenuBrowseImageFile(char drive, bool boot) {
 	GetCurrentDirectory( MAX_PATH, CurrentDir );
 	OpenFileName.lStructSize = sizeof( OPENFILENAME );
 	OpenFileName.hwndOwner = NULL;
-	OpenFileName.lpstrFilter = "Image/Zip files(*.ima, *.img, *.iso, *.cue, *.bin, *.mdf, *.zip, *.7z)\0*.ima;*.img;*.iso;*.mdf;*.zip;*.cue;*.bin;*.7z\0All files(*.*)\0*.*\0";
+	OpenFileName.lpstrFilter = "Image/Zip files(*.ima, *.img, *.vhd, *.hdi, *.iso, *.cue, *.bin, *.mdf, *.zip, *.7z)\0*.ima;*.img;*.vhd;*.hdi;*.iso;*.cue;*.bin;*.mdf;*.zip;*.7z\0All files(*.*)\0*.*\0";
 	OpenFileName.lpstrCustomFilter = NULL;
 	OpenFileName.nMaxCustFilter = 0;
 	OpenFileName.nFilterIndex = 0;
@@ -1060,14 +1060,31 @@ public:
                     OPEN_FLAGS_DASD | OPEN_SHARE_DENYNONE | OPEN_ACCESS_READONLY, 0L);
                 DosClose(cdrom_fd);
                 if (rc != NO_ERROR && rc != ERROR_NOT_READY) {
-                if (!quiet) WriteOut(MSG_Get("PROGRAM_MOUNT_ERROR_2"),temp_line.c_str());
-                return;
-            }
+                    if (!quiet) {
+                        WriteOut(MSG_Get("PROGRAM_MOUNT_ERROR_2"),temp_line.c_str());
+                        if (temp_line.length()>4) {
+                            char ext[5];
+                            strncpy(ext, temp_line.substr(temp_line.length()-4).c_str(), 4);
+                            ext[4]=0;
+                            if (!strcasecmp(ext, ".iso")||!strcasecmp(ext, ".cue")||!strcasecmp(ext, ".bin")||!strcasecmp(ext, ".mdf")||!strcasecmp(ext, ".ima")||!strcasecmp(ext, ".img")||!strcasecmp(ext, ".vhd")||!strcasecmp(ext, ".hdi"))
+                                WriteOut(MSG_Get("PROGRAM_MOUNT_IMGMOUNT"),temp_line.c_str());
+                        }
+                    }
+                    return;
+                }
 #else
-                if (!quiet) WriteOut(MSG_Get("PROGRAM_MOUNT_ERROR_2"),temp_line.c_str());
+                if (!quiet) {
+                    WriteOut(MSG_Get("PROGRAM_MOUNT_ERROR_2"),temp_line.c_str());
+                    if (temp_line.length()>4) {
+                        char ext[5];
+                        strncpy(ext, temp_line.substr(temp_line.length()-4).c_str(), 4);
+                        ext[4]=0;
+                        if (!strcasecmp(ext, ".iso")||!strcasecmp(ext, ".cue")||!strcasecmp(ext, ".bin")||!strcasecmp(ext, ".mdf")||!strcasecmp(ext, ".ima")||!strcasecmp(ext, ".img")||!strcasecmp(ext, ".vhd")||!strcasecmp(ext, ".hdi"))
+                            WriteOut(MSG_Get("PROGRAM_MOUNT_IMGMOUNT"),temp_line.c_str());
+                    }
+                }
                 return;
 #endif
-
             }
 
             if (temp_line[temp_line.size()-1]!=CROSS_FILESPLIT) temp_line+=CROSS_FILESPLIT;
@@ -4038,12 +4055,12 @@ public:
         } else if (fstype=="none") {
             cmd->FindCommand(1,temp_line);
             if ((temp_line.size() > 1) || (!isdigit(temp_line[0]))) {
-                WriteOut_NoParsing(MSG_Get("PROGRAM_IMGMOUNT_SPECIFY2"));
+                WriteOut(MSG_Get("PROGRAM_IMGMOUNT_SPECIFY2"), MAX_DISK_IMAGES-1);
                 return;
             }
             drive=temp_line[0];
             if ((drive<'0') || (drive>=MAX_DISK_IMAGES+'0')) {
-                WriteOut_NoParsing(MSG_Get("PROGRAM_IMGMOUNT_SPECIFY2"));
+                WriteOut(MSG_Get("PROGRAM_IMGMOUNT_SPECIFY2"), MAX_DISK_IMAGES-1);
                 return;
             }
 			int index = drive - '0';
@@ -6101,6 +6118,7 @@ void DOS_SetupPrograms(void) {
     MSG_Add("PROGRAM_IMGMOUNT_STATUS_NONE","No drive available\n");
     MSG_Add("PROGRAM_MOUNT_ERROR_1","Directory %s doesn't exist.\n");
     MSG_Add("PROGRAM_MOUNT_ERROR_2","%s is not a directory\n");
+    MSG_Add("PROGRAM_MOUNT_IMGMOUNT","To mount image files, use the \033[34;1mIMGMOUNT\033[0m command, not the \033[34;1mMOUNT\033[0m command.\n");
     MSG_Add("PROGRAM_MOUNT_ILL_TYPE","Illegal type %s\n");
     MSG_Add("PROGRAM_MOUNT_ALREADY_MOUNTED","Drive %c already mounted with %s\n");
     MSG_Add("PROGRAM_MOUNT_USAGE",
@@ -6396,7 +6414,7 @@ void DOS_SetupPrograms(void) {
     MSG_Add("VHD_PARENT_INVALID_DATE", "The parent of the specified VHD file has been changed and cannot be loaded.\n");
 
     MSG_Add("PROGRAM_IMGMOUNT_SPECIFY_DRIVE","Must specify drive letter to mount image at.\n");
-    MSG_Add("PROGRAM_IMGMOUNT_SPECIFY2","Must specify drive number (0 or 3) to mount image at (0,1=fda,fdb;2,3=hda,hdb).\n");
+    MSG_Add("PROGRAM_IMGMOUNT_SPECIFY2","Must specify drive number (0 to %d) to mount image at (0,1=fda,fdb;2,3=hda,hdb).\n");
     MSG_Add("PROGRAM_IMGMOUNT_SPECIFY_GEOMETRY",
         "For \033[33mCD-ROM\033[0m images:   \033[34;1mIMGMOUNT drive-letter location-of-image -t iso\033[0m\n"
         "\n"

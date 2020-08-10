@@ -2,6 +2,9 @@
   - Fixed that joystick may not work with the setting
     "usescancodes=auto" when a non-US keyboard layout
     is activated on the SDL1 build. (Wengier)
+  - Fixed possible failure when mounting .VHD images,
+    and the issue that leading : (read-only marker)
+    may not work for such images. (Wengier)
   - MOUNT command's -Q (quiet) option now silences
     virtually all output of this command. (Wengier)
   - Worked around the mounting issue with LaunchBox,
