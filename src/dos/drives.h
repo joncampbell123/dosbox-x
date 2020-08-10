@@ -416,8 +416,13 @@ public:
         Bit32u cylsector;
         Bit32u headscyl;
         Bit32u cylinders;
-        bool regmount;
-    } opts = {0, 0, 0, 0, false};
+        int mounttype;
+    } opts = {0, 0, 0, 0, -1};
+    struct {
+        unsigned char CDROM_drive;
+        unsigned long cdrom_sector_offset;
+        unsigned char floppy_emu_type;
+    } el = {0, 0, 0};
 
 private:
 	char* Generate_SFN(const char *path, const char *name);

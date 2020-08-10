@@ -3767,84 +3767,73 @@ bool ElTorito_ScanForBootRecord(CDROM_Interface *drv,unsigned long &boot_record,
 }
 
 
-/* C++ class implementing El Torito floppy emulation */
-class imageDiskElToritoFloppy : public imageDisk {
-public:
-    /* Read_Sector and Write_Sector take care of geometry translation for us,
-     * then call the absolute versions. So, we override the absolute versions only */
-    virtual Bit8u Read_AbsoluteSector(Bit32u sectnum, void * data) {
-        unsigned char buffer[2048];
-
-        bool GetMSCDEXDrive(unsigned char drive_letter,CDROM_Interface **_cdrom);
-
-        CDROM_Interface *src_drive=NULL;
-        if (!GetMSCDEXDrive(CDROM_drive-'A',&src_drive)) return 0x05;
-
-        if (!src_drive->ReadSectorsHost(buffer,false,cdrom_sector_offset+(sectnum>>2)/*512 byte/sector to 2048 byte/sector conversion*/,1))
-            return 0x05;
-
-        memcpy(data,buffer+((sectnum&3)*512),512);
-        return 0x00;
-    }
-    virtual Bit8u Write_AbsoluteSector(Bit32u sectnum,const void * data) {
-        (void)sectnum;//UNUSED
-        (void)data;//UNUSED
-        return 0x05; /* fail, read only */
-    }
-    imageDiskElToritoFloppy(unsigned char new_CDROM_drive,unsigned long new_cdrom_sector_offset,unsigned char floppy_emu_type) : imageDisk(NULL,NULL,0,false) {
-        diskimg = NULL;
-        sector_size = 512;
-        CDROM_drive = new_CDROM_drive;
-        cdrom_sector_offset = new_cdrom_sector_offset;
-        class_id = ID_EL_TORITO_FLOPPY;
-
-        if (floppy_emu_type == 1) { /* 1.2MB */
-            heads = 2;
-            cylinders = 80;
-            sectors = 15;
-        }
-        else if (floppy_emu_type == 2) { /* 1.44MB */
-            heads = 2;
-            cylinders = 80;
-            sectors = 18;
-        }
-        else if (floppy_emu_type == 3) { /* 2.88MB */
-            heads = 2;
-            cylinders = 80;
-            sectors = 36; /* FIXME: right? */
-        }
-        else {
-            heads = 2;
-            cylinders = 69;
-            sectors = 14;
-            LOG_MSG("BUG! unsupported floppy_emu_type in El Torito floppy object\n");
-        }
-
-        diskSizeK = ((Bit64u)heads * cylinders * sectors * sector_size) / 1024;
-        active = true;
-    }
-    virtual ~imageDiskElToritoFloppy() {
-    }
-
-    unsigned long cdrom_sector_offset;
-    unsigned char CDROM_drive;
-/*
-    int class_id;
-
-    bool hardDrive;
-    bool active;
-    FILE *diskimg;
-    std::string diskname;
-    Bit8u floppytype;
-
-    Bit32u sector_size;
-    Bit32u heads,cylinders,sectors;
-    Bit32u reserved_cylinders;
-    Bit64u current_fpos; */
-};
-
 bool FDC_AssignINT13Disk(unsigned char drv);
 bool FDC_UnassignINT13Disk(unsigned char drv);
+
+imageDiskMemory* CreateRamDrive(Bitu sizes[], const int reserved_cylinders, const bool forceFloppy, Program* obj) {
+    imageDiskMemory* dsk = NULL;
+    //if chs not specified
+    if (sizes[1] == 0) {
+        Bit32u imgSizeK = (Bit32u)sizes[0];
+        //default to 1.44mb floppy
+        if (forceFloppy && imgSizeK == 0) imgSizeK = 1440;
+        //search for floppy geometry that matches specified size in KB
+        int index = 0;
+        while (DiskGeometryList[index].cylcount != 0) {
+            if (DiskGeometryList[index].ksize == imgSizeK) {
+                //create floppy
+                dsk = new imageDiskMemory(DiskGeometryList[index]);
+                break;
+            }
+            index++;
+        }
+        if (dsk == NULL) {
+            //create hard drive
+            if (forceFloppy) {
+                if (obj!=NULL) obj->WriteOut("Floppy size not recognized\n");
+                return NULL;
+            }
+
+            // The fatDrive class is hard-coded to assume that disks 2880KB or smaller are floppies,
+            //   whether or not they are attached to a floppy controller.  So, let's enforce a minimum
+            //   size of 4096kb for hard drives.  Use the other constructor for floppy drives.
+            // Note that a size of 0 means to auto-select a size
+            if (imgSizeK < 4096) imgSizeK = 4096;
+
+            dsk = new imageDiskMemory(imgSizeK);
+        }
+    }
+    else {
+        //search for floppy geometry that matches specified geometry
+        int index = 0;
+        while (DiskGeometryList[index].cylcount != 0) {
+            if (DiskGeometryList[index].cylcount == sizes[3] &&
+                DiskGeometryList[index].headscyl == sizes[2] &&
+                DiskGeometryList[index].secttrack == sizes[1] &&
+                DiskGeometryList[index].bytespersect == sizes[0]) {
+                //create floppy
+                dsk = new imageDiskMemory(DiskGeometryList[index]);
+                break;
+            }
+            index++;
+        }
+        if (dsk == NULL) {
+            //create hard drive
+            if (forceFloppy) {
+                if (obj!=NULL) obj->WriteOut("Floppy size not recognized\n");
+                return NULL;
+            }
+            dsk = new imageDiskMemory((Bit16u)sizes[3], (Bit16u)sizes[2], (Bit16u)sizes[1], (Bit16u)sizes[0]);
+        }
+    }
+    if (!dsk->active) {
+        if (obj!=NULL) obj->WriteOut(MSG_Get("PROGRAM_IMGMOUNT_CANT_CREATE"));
+        delete dsk;
+        return NULL;
+    }
+    dsk->Set_Reserved_Cylinders((Bitu)reserved_cylinders);
+    return dsk;
+}
 
 class IMGMOUNT : public Program {
 public:
@@ -4628,6 +4617,7 @@ private:
         for (i = 0; i < paths.size(); i++) {
             const char* errorMessage = NULL;
             imageDisk* vhdImage = NULL;
+            bool ro=false;
 
             //detect hard drive geometry
             if (imgsizedetect) {
@@ -4652,8 +4642,9 @@ private:
                         }
                         //for all vhd files where the system will autodetect the chs values,
                         if (!strcasecmp(ext, ".vhd")) {
+                            ro=wpcolon&&paths[i].length()>1&&paths[i].c_str()[0]==':';
                             //load the file with imageDiskVHD, which supports fixed/dynamic/differential disks
-                            imageDiskVHD::ErrorCodes ret = imageDiskVHD::Open(paths[i].c_str(), false, &vhdImage);
+                            imageDiskVHD::ErrorCodes ret = imageDiskVHD::Open(ro?paths[i].c_str()+1:paths[i].c_str(), false, &vhdImage);
                             switch (ret) {
                             case imageDiskVHD::OPEN_SUCCESS: {
                                 //upon successful, go back to old code if using a fixed disk, which patches chs values for incorrectly identified disks
@@ -4696,6 +4687,9 @@ private:
                 DOS_Drive* newDrive = NULL;
                 if (vhdImage) {
                     newDrive = new fatDrive(vhdImage, options);
+                    strcpy(newDrive->info, "fatDrive ");
+                    strcat(newDrive->info, ro?paths[i].c_str()+1:paths[i].c_str());
+                    if (ro) newDrive->readonly=true;
                     vhdImage = NULL;
                 }
                 else {
@@ -4737,73 +4731,8 @@ private:
         return true;
     }
 
-    imageDiskMemory* CreateRamDrive(Bitu sizes[], const int reserved_cylinders, const bool forceFloppy) {
-        imageDiskMemory* dsk = NULL;
-        //if chs not specified
-        if (sizes[1] == 0) {
-            Bit32u imgSizeK = (Bit32u)sizes[0];
-            //default to 1.44mb floppy
-            if (forceFloppy && imgSizeK == 0) imgSizeK = 1440;
-            //search for floppy geometry that matches specified size in KB
-            int index = 0;
-            while (DiskGeometryList[index].cylcount != 0) {
-                if (DiskGeometryList[index].ksize == imgSizeK) {
-                    //create floppy
-                    dsk = new imageDiskMemory(DiskGeometryList[index]);
-                    break;
-                }
-                index++;
-            }
-            if (dsk == NULL) {
-                //create hard drive
-                if (forceFloppy) {
-                    WriteOut("Floppy size not recognized\n");
-                    return NULL;
-                }
-
-                // The fatDrive class is hard-coded to assume that disks 2880KB or smaller are floppies,
-                //   whether or not they are attached to a floppy controller.  So, let's enforce a minimum
-                //   size of 4096kb for hard drives.  Use the other constructor for floppy drives.
-                // Note that a size of 0 means to auto-select a size
-                if (imgSizeK < 4096) imgSizeK = 4096;
-
-                dsk = new imageDiskMemory(imgSizeK);
-            }
-        }
-        else {
-            //search for floppy geometry that matches specified geometry
-            int index = 0;
-            while (DiskGeometryList[index].cylcount != 0) {
-                if (DiskGeometryList[index].cylcount == sizes[3] &&
-                    DiskGeometryList[index].headscyl == sizes[2] &&
-                    DiskGeometryList[index].secttrack == sizes[1] &&
-                    DiskGeometryList[index].bytespersect == sizes[0]) {
-                    //create floppy
-                    dsk = new imageDiskMemory(DiskGeometryList[index]);
-                    break;
-                }
-                index++;
-            }
-            if (dsk == NULL) {
-                //create hard drive
-                if (forceFloppy) {
-                    WriteOut("Floppy size not recognized\n");
-                    return NULL;
-                }
-                dsk = new imageDiskMemory((Bit16u)sizes[3], (Bit16u)sizes[2], (Bit16u)sizes[1], (Bit16u)sizes[0]);
-            }
-        }
-        if (!dsk->active) {
-            WriteOut(MSG_Get("PROGRAM_IMGMOUNT_CANT_CREATE"));
-            delete dsk;
-            return NULL;
-        }
-        dsk->Set_Reserved_Cylinders((Bitu)reserved_cylinders);
-        return dsk;
-    }
-
     imageDisk* MountImageNoneRam(Bitu sizes[], const int reserved_cylinders, const bool forceFloppy) {
-        imageDiskMemory* dsk = CreateRamDrive(sizes, reserved_cylinders, forceFloppy);
+        imageDiskMemory* dsk = CreateRamDrive(sizes, reserved_cylinders, forceFloppy, this);
         if (dsk == NULL) return NULL;
         //formatting might fail; just log the failure and continue
         Bit8u ret = dsk->Format();
@@ -4820,7 +4749,7 @@ private:
         }
 
         //by default, make a floppy disk if A: or B: is specified (still makes a hard drive if not a recognized size)
-        imageDiskMemory* dsk = CreateRamDrive(sizes, 0, (drive - 'A') < 2 && sizes[0] == 0);
+        imageDiskMemory* dsk = CreateRamDrive(sizes, 0, (drive - 'A') < 2 && sizes[0] == 0, this);
         if (dsk == NULL) return false;
         if (dsk->Format() != 0x00) {
             WriteOut(MSG_Get("PROGRAM_IMGMOUNT_CANT_CREATE"));

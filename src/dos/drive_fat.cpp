@@ -1206,7 +1206,7 @@ fatDrive::fatDrive(const char* sysFilename, Bit32u bytesector, Bit32u cylsector,
     opts.cylsector = cylsector;
     opts.headscyl = headscyl;
     opts.cylinders = cylinders;
-    opts.regmount = true;
+    opts.mounttype = 0;
 
     // all disk I/O is in sector-sized blocks.
     // modern OSes have good caching.
@@ -1278,7 +1278,20 @@ fatDrive::fatDrive(imageDisk *sourceLoadedDisk, std::vector<std::string> &option
 		imgDTAPtr = RealMake(imgDTASeg, 0);
 		imgDTA    = new DOS_DTA(imgDTAPtr);
 	}
-    opts = {0,0,0,0, false};
+    opts = {0,0,0,0,-1};
+    imageDiskElToritoFloppy *idelt=dynamic_cast<imageDiskElToritoFloppy *>(sourceLoadedDisk);
+    imageDiskMemory* idmem=dynamic_cast<imageDiskMemory *>(sourceLoadedDisk);
+    imageDiskVHD* idvhd=dynamic_cast<imageDiskVHD *>(sourceLoadedDisk);
+    if (idelt!=NULL) {
+        opts.mounttype = 1;
+        el.CDROM_drive = idelt->CDROM_drive;
+        el.cdrom_sector_offset = idelt->cdrom_sector_offset;
+        el.floppy_emu_type = idelt->floppy_type;
+    } else if (idmem!=NULL) {
+        opts.mounttype=2;
+    } else if (idvhd!=NULL) {
+        opts.mounttype=3;
+    }
 
     loadedDisk = sourceLoadedDisk;
 
@@ -1742,7 +1755,7 @@ void fatDrive::fatDriveInit(const char *sysFilename, Bit32u bytesector, Bit32u c
 	if ((BPB.v.BPB_SecPerClus == 0) ||
 		(BPB.v.BPB_NumFATs == 0) ||
 		(BPB.v.BPB_NumHeads == 0 && !IS_PC98_ARCH) ||
-		(BPB.v.BPB_NumHeads > headscyl && !IS_PC98_ARCH) ||
+		//(BPB.v.BPB_NumHeads > headscyl && !IS_PC98_ARCH) ||
 		(BPB.v.BPB_SecPerTrk == 0 && !IS_PC98_ARCH) ||
 		(BPB.v.BPB_SecPerTrk > cylsector && !IS_PC98_ARCH)) {
 		LOG_MSG("Sanity checks failed");
