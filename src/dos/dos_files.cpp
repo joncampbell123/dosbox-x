@@ -2117,7 +2117,15 @@ void POD_Load_DOS_Files( std::istream& stream )
 
 			// - reloc ptr
 			READ_POD( &drive_valid, drive_valid );
-			if( drive_valid == 0xff ) continue;
+			if( drive_valid == 0xff ) {
+                if (Drives[lcv] && lcv<DOS_DRIVES-1) {
+                    DriveManager::UnmountDrive(lcv);
+                    Drives[lcv]=0;
+                    DOS_EnableDriveMenu('A'+lcv);
+                    mem_writeb(Real2Phys(dos.tables.mediaid)+(unsigned int)'A'+lcv*dos.tables.dpb_size,0);
+                }
+                continue;
+            }
 
             char dinfo[256];
             READ_POD( &dinfo, dinfo);

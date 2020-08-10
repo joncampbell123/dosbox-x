@@ -505,6 +505,7 @@ search:
 		qmount=true;
 		runImgmount(mountstring);
 		qmount=false;
+		SetCurrentDirectory( Temp_CurrentDir );
 		if (!Drives[drive-'A']) {
 			drive_warn="Drive "+str+": failed to mount.";
 			MessageBox(GetHWND(),drive_warn.c_str(),"Error",MB_OK);
@@ -548,6 +549,14 @@ void MenuBrowseProgramFile() {
         if (!Drives[i]) {
             drv='A'+i;
             break;
+        }
+    }
+    if (drv==' ') {
+        for (int i=0; i<2; i++) {
+            if (!Drives[i]) {
+                drv='A'+i;
+                break;
+            }
         }
     }
     if (drv==' ') { // Fallback to C: if no free drive found
