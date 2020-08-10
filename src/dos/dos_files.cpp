@@ -2000,6 +2000,7 @@ char overlaydir[CROSS_LEN];
 void MSCDEX_SetCDInterface(int intNr, int forceCD);
 void POD_Save_DOS_Files( std::ostream& stream )
 {
+	WRITE_POD( &dos_kernel_disabled, dos_kernel_disabled );
 	if (!dos_kernel_disabled) {
 		// 1. Do drives first (directories -> files)
 		// 2. Then files next
@@ -2117,6 +2118,7 @@ void DOS_EnableDriveMenu(char drv);
 imageDiskMemory* CreateRamDrive(Bitu sizes[], const int reserved_cylinders, const bool forceFloppy, Program* obj);
 void POD_Load_DOS_Files( std::istream& stream )
 {
+	READ_POD( &dos_kernel_disabled, dos_kernel_disabled );
 	if (!dos_kernel_disabled) {
 		// 1. Do drives first (directories -> files)
 		// 2. Then files next
