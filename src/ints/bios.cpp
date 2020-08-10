@@ -96,7 +96,7 @@ void pc98_update_display_page_ptr(void);
 void pc98_update_palette(void);
 bool MEM_map_ROM_alias_physmem(Bitu start,Bitu end);
 void MOUSE_Startup(Section *sec);
-void runBoot();
+void runBoot(const char *str);
 
 bool bochs_port_e9 = false;
 bool isa_memory_hole_512kb = false;
@@ -8571,7 +8571,9 @@ private:
 
 		if ((bootguest||(!bootvm&&use_quick_reboot))&&bootdrive>=0&&imageDiskList[bootdrive]) {
 			MOUSE_Startup(NULL);
-			runBoot();
+			char drive[] = "-Q A:";
+			drive[3]='A'+bootdrive;
+			runBoot(drive);
 		}
 		if (use_quick_reboot&&!bootvm&&bootdrive<0&&first_shell != NULL) throw int(6);
 		bootvm=false;

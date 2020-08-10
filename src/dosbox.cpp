@@ -135,6 +135,7 @@ extern void         GFX_SetTitle(Bit32s cycles,Bits frameskip,Bits timing,bool p
 extern bool         force_nocachedir;
 extern bool         freesizecap;
 extern bool         wpcolon;
+extern bool         clearline;
 
 extern Bitu         frames;
 extern Bitu         cycle_count;
@@ -4863,6 +4864,7 @@ void SaveState::load(size_t slot) const { //throw (Error)
 		return;
 	}
 	SDL_PauseAudio(0);
+    clearline=true;
 	extern const char* RunningProgram;
 	bool read_version=false;
 	bool read_title=false;

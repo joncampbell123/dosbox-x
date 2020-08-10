@@ -36,6 +36,7 @@
 #include "dos_network2.h"
 #include "menu.h"
 #include "cdrom.h"
+#include "bios_disk.h"
 
 #define DOS_FILESTART 4
 
@@ -1983,6 +1984,18 @@ struct Alloc {
     Bit8u mediaid;
 };
 Alloc lalloc, oalloc;
+struct Opts {
+    Bit32u bytesector;
+    Bit32u cylsector;
+    Bit32u headscyl;
+    Bit32u cylinders;
+    int mounttype;
+    Bit8u mediaid;
+    unsigned char CDROM_drive;
+    unsigned long cdrom_sector_offset;
+    unsigned char floppy_emu_type;
+};
+Opts opts;
 char overlaydir[CROSS_LEN];
 void MSCDEX_SetCDInterface(int intNr, int forceCD);
 void POD_Save_DOS_Files( std::ostream& stream )
@@ -1991,7 +2004,8 @@ void POD_Save_DOS_Files( std::ostream& stream )
 		// 1. Do drives first (directories -> files)
 		// 2. Then files next
 
-		for( int lcv=0; lcv<DOS_DRIVES; lcv++ ) {
+		for( int i=2; i<DOS_DRIVES+2; i++ ) {
+            int lcv=i<DOS_DRIVES?i:i-DOS_DRIVES;
 			Bit8u drive_valid;
 
 			drive_valid = 0;
@@ -2005,7 +2019,7 @@ void POD_Save_DOS_Files( std::ostream& stream )
 			WRITE_POD( &drive_valid, drive_valid );
 			if( drive_valid == 0xff ) continue;
 
-            char dinfo[0x100];
+            char dinfo[256];
             strcpy(dinfo, Drives[lcv]->GetInfo());
             WRITE_POD( &dinfo, dinfo);
             *overlaydir=0;
@@ -2028,10 +2042,25 @@ void POD_Save_DOS_Files( std::ostream& stream )
                     oalloc.free_clusters=odp->allocation.free_clusters;
                     oalloc.mediaid=odp->allocation.mediaid;
                 }
+            } else if (!strncmp(dinfo,"fatDrive ",9)) {
+                fatDrive *fdp = dynamic_cast<fatDrive*>(Drives[lcv]);
+                if (fdp) {
+                    opts.bytesector=fdp->opts.bytesector;
+                    opts.cylsector=fdp->opts.cylsector;
+                    opts.headscyl=fdp->opts.headscyl;
+                    opts.cylinders=fdp->opts.cylinders;
+                    opts.mounttype=fdp->opts.mounttype;
+                    opts.mediaid=fdp->GetMediaByte();
+                    opts.CDROM_drive=fdp->el.CDROM_drive;
+                    opts.cdrom_sector_offset=fdp->el.cdrom_sector_offset;
+                    opts.floppy_emu_type=fdp->el.floppy_emu_type;
+                }
             }
+
             WRITE_POD( &overlaydir, overlaydir);
             WRITE_POD( &lalloc, lalloc);
             WRITE_POD( &oalloc, oalloc);
+            WRITE_POD( &opts, opts);
 			Drives[lcv]->SaveState(stream);
 		}
 
@@ -2084,39 +2113,55 @@ void POD_Save_DOS_Files( std::ostream& stream )
 	}
 }
 
-
+void DOS_EnableDriveMenu(char drv);
+imageDiskMemory* CreateRamDrive(Bitu sizes[], const int reserved_cylinders, const bool forceFloppy, Program* obj);
 void POD_Load_DOS_Files( std::istream& stream )
 {
 	if (!dos_kernel_disabled) {
 		// 1. Do drives first (directories -> files)
 		// 2. Then files next
 
-		for( int lcv=0; lcv<DOS_DRIVES; lcv++ ) {
+		for( int i=2; i<DOS_DRIVES+2; i++ ) {
+            int lcv=i<DOS_DRIVES?i:i-DOS_DRIVES;
 			Bit8u drive_valid;
 
 			// - reloc ptr
 			READ_POD( &drive_valid, drive_valid );
-			if( drive_valid == 0xff ) continue;
+			if( drive_valid == 0xff ) {
+                if (Drives[lcv] && lcv<DOS_DRIVES-1) {
+                    DriveManager::UnmountDrive(lcv);
+                    Drives[lcv]=0;
+                    DOS_EnableDriveMenu('A'+lcv);
+                    mem_writeb(Real2Phys(dos.tables.mediaid)+(unsigned int)'A'+lcv*dos.tables.dpb_size,0);
+                }
+                continue;
+            }
 
-            char dinfo[0x100];
+            char dinfo[256];
             READ_POD( &dinfo, dinfo);
             READ_POD( &overlaydir, overlaydir);
             READ_POD( &lalloc, lalloc);
             READ_POD( &oalloc, oalloc);
-            if( Drives[lcv] && strcmp(Drives[lcv]->info, dinfo) && (!strncmp(dinfo,"local directory",15) || !strncmp(dinfo,"CDRom ",6))) {
+            READ_POD( &opts, opts);
+            if( Drives[lcv] && strcmp(Drives[lcv]->info, dinfo) && (!strncmp(dinfo,"local directory",15) || !strncmp(dinfo,"CDRom ",6) || (!strncmp(dinfo,"isoDrive ",9) || !strncmp(dinfo,"fatDrive ",9)))) {
                 DriveManager::UnmountDrive(lcv);
                 Drives[lcv]=0;
+                DOS_EnableDriveMenu('A'+lcv);
+                mem_writeb(Real2Phys(dos.tables.mediaid)+(unsigned int)'A'+lcv*dos.tables.dpb_size,0);
             }
             if( !Drives[lcv] ) {
                 std::vector<std::string> options;
                 if (!strncmp(dinfo,"local directory",15)) {
                     Drives[lcv]=new localDrive(dinfo+16,lalloc.bytes_sector,lalloc.bytes_sector,lalloc.total_clusters,lalloc.free_clusters,lalloc.mediaid,options);
-                    if (Drives[lcv] && strlen(overlaydir)) {
-                        Bit8u o_error = 0;
-                        Drives[lcv]=new Overlay_Drive(dynamic_cast<localDrive*>(Drives[lcv])->getBasedir(),overlaydir,oalloc.bytes_sector,oalloc.bytes_sector,oalloc.total_clusters,oalloc.free_clusters,oalloc.mediaid,o_error,options);
+                    if (Drives[lcv]) {
+                        DOS_EnableDriveMenu('A'+lcv);
+                        mem_writeb(Real2Phys(dos.tables.mediaid)+lcv*dos.tables.dpb_size,lalloc.mediaid);
+                        if (strlen(overlaydir)) {
+                            Bit8u o_error = 0;
+                            Drives[lcv]=new Overlay_Drive(dynamic_cast<localDrive*>(Drives[lcv])->getBasedir(),overlaydir,oalloc.bytes_sector,oalloc.bytes_sector,oalloc.total_clusters,oalloc.free_clusters,oalloc.mediaid,o_error,options);
+                        }
                     }
-                }
-                if (!strncmp(dinfo,"CDRom ",6)) {
+                } else if (!strncmp(dinfo,"CDRom ",6)) {
                     int num = -1;
                     int error;
                     int id, major, minor;
@@ -2126,9 +2171,53 @@ void POD_Load_DOS_Files( std::istream& stream )
                     else
                         MSCDEX_SetCDInterface(CDROM_USE_IOCTL_DIO, num);
                     Drives[lcv] = new cdromDrive('A'+lcv,dinfo+6,lalloc.bytes_sector,lalloc.bytes_sector,lalloc.total_clusters,lalloc.free_clusters,lalloc.mediaid,error,options);
-                }
-                if (!strncmp(dinfo,"fatDrive ",9) || !strncmp(dinfo,"isoDrive ",9)) {
-                    // Todo
+                    if (Drives[lcv]) {
+                        DOS_EnableDriveMenu('A'+lcv);
+                        mem_writeb(Real2Phys(dos.tables.mediaid)+lcv*dos.tables.dpb_size,lalloc.mediaid);
+                    }
+                } else if (!strncmp(dinfo,"isoDrive ",9) && *(dinfo+9)) {
+                    MSCDEX_SetCDInterface(CDROM_USE_SDL, -1);
+                    Bit8u mediaid = 0xF8;
+                    int error = -1;
+                    isoDrive* newDrive = new isoDrive('A'+lcv, dinfo+9, mediaid, error);
+                    if (!error) {
+                        Drives[lcv] = newDrive;
+                        DriveManager::AppendDisk(lcv, newDrive);
+                        DriveManager::InitializeDrive(lcv);
+                        DOS_EnableDriveMenu('A'+lcv);
+                        mem_writeb(Real2Phys(dos.tables.mediaid) + lcv*dos.tables.dpb_size, mediaid);
+                    }
+                } else if (!strncmp(dinfo,"fatDrive ",9)) {
+                    fatDrive* newDrive = NULL;
+                    Bitu sizes[4] = { 0,0,0,0 };
+                    if (opts.mounttype==1) {
+                        imageDisk * newImage = new imageDiskElToritoFloppy((unsigned char)opts.CDROM_drive, opts.cdrom_sector_offset, opts.floppy_emu_type);
+                        if (newImage != NULL) {
+                            newImage->Addref();
+                            newDrive = new fatDrive(newImage, options);
+                            newImage->Release();
+                        }
+                    } else if (opts.mounttype==2) {
+                        imageDiskMemory* dsk = CreateRamDrive(sizes, 0, lcv < 2 && sizes[0] == 0, NULL);
+                        if (dsk != NULL && dsk->Format() == 0x00) {
+                            dsk->Addref();
+                            newDrive = new fatDrive(dsk, options);
+                            dsk->Release();
+                        }
+                    } else if (opts.mounttype==3 && *(dinfo+9)) {
+                        imageDisk* vhdImage = NULL;
+                        if (imageDiskVHD::Open(dinfo+9, false, &vhdImage)==imageDiskVHD::OPEN_SUCCESS)
+                            newDrive = new fatDrive(vhdImage, options);
+                        vhdImage = NULL;
+                    } else if (!opts.mounttype && *(dinfo+9))
+                        newDrive = new fatDrive(dinfo+9, opts.bytesector, opts.cylsector, opts.headscyl, opts.cylinders, options);
+                    if (newDrive && newDrive->created_successfully) {
+                        Drives[lcv] = newDrive;
+                        DriveManager::AppendDisk(lcv, newDrive);
+                        DriveManager::InitializeDrive(lcv);
+                        DOS_EnableDriveMenu('A'+lcv);
+                        mem_writeb(Real2Phys(dos.tables.mediaid) + lcv*dos.tables.dpb_size, opts.mediaid);
+                    }
                 }
             }
 			if( Drives[lcv] ) Drives[lcv]->LoadState(stream);

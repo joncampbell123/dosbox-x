@@ -411,6 +411,19 @@ public:
 	imageDisk *loadedDisk = NULL;
 	uint8_t req_ver_major = 0,req_ver_minor = 0;
 	bool created_successfully = true;
+    struct {
+        Bit32u bytesector;
+        Bit32u cylsector;
+        Bit32u headscyl;
+        Bit32u cylinders;
+        int mounttype;
+    } opts = {0, 0, 0, 0, -1};
+    struct {
+        unsigned char CDROM_drive;
+        unsigned long cdrom_sector_offset;
+        unsigned char floppy_emu_type;
+    } el = {0, 0, 0};
+
 private:
 	char* Generate_SFN(const char *path, const char *name);
 	Bit32u getClusterValue(Bit32u clustNum);
