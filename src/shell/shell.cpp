@@ -49,6 +49,7 @@ bool usecon = true;
 Bit16u shell_psp = 0;
 Bitu call_int2e = 0;
 
+void runMount(const char *str);
 void MSG_Replace(const char * _name, const char* _val);
 void DOS_SetCountry(Bit16u countryNo);
 void CALLBACK_DeAllocate(Bitu in);
@@ -570,10 +571,12 @@ void DOS_Shell::Run(void) {
 						if (type!=DRIVE_NO_ROOT_DIR) {
 							WriteOut("Mounting %c: => %s..\n", name[0], name);
 							char mountstring[DOS_PATHLENGTH+CROSS_LEN+20];
-							sprintf(mountstring,"MOUNT %c ",name[0]);
+							name[2]=' ';
+							strcpy(mountstring,name);
+							name[2]='\\';
 							strcat(mountstring,name);
-							strcat(mountstring," >nul");
-							ParseLine(mountstring);
+							strcat(mountstring," -Q");
+							runMount(mountstring);
 							if (!Drives[i]) WriteOut("Drive %c: failed to mount.\n",name[0]);
 							else if(mountwarning && type==DRIVE_FIXED && (strcasecmp(name,"C:\\")==0)) WriteOut("Warning: %s", MSG_Get("SHELL_EXECUTE_DRIVE_ACCESS_WARNING_WIN"));
 						}

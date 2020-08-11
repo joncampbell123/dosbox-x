@@ -4184,7 +4184,7 @@ public:
                 if (strcasecmp(temp_line.c_str(), "-u")) WriteOut(MSG_Get("PROGRAM_IMGMOUNT_SPECIFY_FILE"));
                 return; 
             }
-			if (!rtype&&!rfstype&&paths[0].length()>4) {
+			if (!rtype&&!rfstype&&fstype!="none"&&paths[0].length()>4) {
 				char ext[5];
 				strncpy(ext, paths[0].substr(paths[0].length()-4).c_str(), 4);
 				ext[4]=0;
