@@ -3852,6 +3852,96 @@ imageDiskMemory* CreateRamDrive(Bitu sizes[], const int reserved_cylinders, cons
     return dsk;
 }
 
+bool AttachToBiosByIndex(imageDisk* image, const unsigned char bios_drive_index) {
+    if (bios_drive_index >= MAX_DISK_IMAGES) return false;
+    if (imageDiskList[bios_drive_index] != NULL) {
+        /* Notify IDE ATA emulation if a drive is already there */
+        if (bios_drive_index >= 2) IDE_Hard_Disk_Detach(bios_drive_index);
+        imageDiskList[bios_drive_index]->Release();
+    }
+    imageDiskList[bios_drive_index] = image;
+    imageDiskChange[bios_drive_index] = true;
+    image->Addref();
+
+    // let FDC know if we mounted a floppy
+    if (bios_drive_index <= 1) {
+        FDC_AssignINT13Disk(bios_drive_index);
+        incrementFDD();
+    }
+
+    return true;
+}
+
+bool AttachToBiosAndIdeByIndex(imageDisk* image, const unsigned char bios_drive_index, const unsigned char ide_index, const bool ide_slave) {
+    if (!AttachToBiosByIndex(image, bios_drive_index)) return false;
+    //if hard drive image, and if ide controller is specified
+    if (bios_drive_index >= 2 && bios_drive_index < MAX_DISK_IMAGES) {
+        IDE_Hard_Disk_Attach((signed char)ide_index, ide_slave, bios_drive_index);
+        updateDPT();
+    }
+    return true;
+}
+
+bool AttachToBiosByLetter(imageDisk* image, const char drive) {
+    if (image->hardDrive) {
+        //for hard drives, mount hard drives at first available index
+        for (int index = 2; index < MAX_DISK_IMAGES; index++) {
+            if (imageDiskList[index] == NULL) {
+                return AttachToBiosByIndex(image, index);
+            }
+        }
+    }
+    else if (IS_PC98_ARCH) {
+        //for pc-98 machines, mount floppies at first available index
+        for (int index = 0; index < 2; index++) {
+            if (imageDiskList[index] == NULL) {
+                return AttachToBiosByIndex(image, index);
+            }
+        }
+    }
+    else if ((drive - 'A') < 2) {
+        //for PCs, mount floppies only if A: or B: is specified, and then if so, at specified index
+        return AttachToBiosByIndex(image, drive - 'A');
+    }
+    return false;
+}
+
+bool AttachToBiosAndIdeByLetter(imageDisk* image, const char drive, const unsigned char ide_index, const bool ide_slave) {
+    if (image->hardDrive) {
+        //for hard drives, mount hard drives at first available index
+        for (int index = 2; index < MAX_DISK_IMAGES; index++) {
+            if (imageDiskList[index] == NULL) {
+                return AttachToBiosAndIdeByIndex(image, index, ide_index, ide_slave);
+            }
+        }
+    }
+    else if (IS_PC98_ARCH) {
+        //for pc-98 machines, mount floppies at first available index
+        for (int index = 0; index < 2; index++) {
+            if (imageDiskList[index] == NULL) {
+                return AttachToBiosByIndex(image, index);
+            }
+        }
+    } else if ((drive - 'A') < 2) {
+        //for PCs, mount floppies only if A: or B: is specified, and then if so, at specified index
+        return AttachToBiosByIndex(image, drive - 'A');
+    }
+    return false;
+}
+
+void DetachFromBios(imageDisk* image) {
+    if (image) {
+        for (int index = 0; index < MAX_DISK_IMAGES; index++) {
+            if (imageDiskList[index] == image) {
+                if (index > 1) IDE_Hard_Disk_Detach(index);
+                imageDiskList[index]->Release();
+                imageDiskChange[index] = true;
+                imageDiskList[index] = NULL;
+            }
+        }
+    }
+}
+
 class IMGMOUNT : public Program {
 public:
     std::vector<std::string> options;
@@ -4790,96 +4880,6 @@ private:
         AttachToBiosAndIdeByLetter(dsk, drive, (unsigned char)ide_index, ide_slave);
 
         return true;
-    }
-
-    bool AttachToBiosByIndex(imageDisk* image, const unsigned char bios_drive_index) {
-        if (bios_drive_index >= MAX_DISK_IMAGES) return false;
-        if (imageDiskList[bios_drive_index] != NULL) {
-            /* Notify IDE ATA emulation if a drive is already there */
-            if (bios_drive_index >= 2) IDE_Hard_Disk_Detach(bios_drive_index);
-            imageDiskList[bios_drive_index]->Release();
-        }
-        imageDiskList[bios_drive_index] = image;
-        imageDiskChange[bios_drive_index] = true;
-        image->Addref();
-
-        // let FDC know if we mounted a floppy
-        if (bios_drive_index <= 1) {
-            FDC_AssignINT13Disk(bios_drive_index);
-            incrementFDD();
-        }
-        
-        return true;
-    }
-
-    bool AttachToBiosAndIdeByIndex(imageDisk* image, const unsigned char bios_drive_index, const unsigned char ide_index, const bool ide_slave) {
-        if (!AttachToBiosByIndex(image, bios_drive_index)) return false;
-        //if hard drive image, and if ide controller is specified
-        if (bios_drive_index >= 2 && bios_drive_index < MAX_DISK_IMAGES) {
-            IDE_Hard_Disk_Attach((signed char)ide_index, ide_slave, bios_drive_index);
-            updateDPT();
-        }
-        return true;
-    }
-
-    bool AttachToBiosByLetter(imageDisk* image, const char drive) {
-        if (image->hardDrive) {
-            //for hard drives, mount hard drives at first available index
-            for (int index = 2; index < MAX_DISK_IMAGES; index++) {
-                if (imageDiskList[index] == NULL) {
-                    return AttachToBiosByIndex(image, index);
-                }
-            }
-        }
-        else if (IS_PC98_ARCH) {
-            //for pc-98 machines, mount floppies at first available index
-            for (int index = 0; index < 2; index++) {
-                if (imageDiskList[index] == NULL) {
-                    return AttachToBiosByIndex(image, index);
-                }
-            }
-        }
-        else if ((drive - 'A') < 2) {
-            //for PCs, mount floppies only if A: or B: is specified, and then if so, at specified index
-            return AttachToBiosByIndex(image, drive - 'A');
-        }
-        return false;
-    }
-
-    bool AttachToBiosAndIdeByLetter(imageDisk* image, const char drive, const unsigned char ide_index, const bool ide_slave) {
-        if (image->hardDrive) {
-            //for hard drives, mount hard drives at first available index
-            for (int index = 2; index < MAX_DISK_IMAGES; index++) {
-                if (imageDiskList[index] == NULL) {
-                    return AttachToBiosAndIdeByIndex(image, index, ide_index, ide_slave);
-                }
-            }
-        }
-        else if (IS_PC98_ARCH) {
-            //for pc-98 machines, mount floppies at first available index
-            for (int index = 0; index < 2; index++) {
-                if (imageDiskList[index] == NULL) {
-                    return AttachToBiosByIndex(image, index);
-                }
-            }
-        } else if ((drive - 'A') < 2) {
-            //for PCs, mount floppies only if A: or B: is specified, and then if so, at specified index
-            return AttachToBiosByIndex(image, drive - 'A');
-        }
-        return false;
-    }
-
-    void DetachFromBios(imageDisk* image) {
-        if (image) {
-            for (int index = 0; index < MAX_DISK_IMAGES; index++) {
-                if (imageDiskList[index] == image) {
-                    if (index > 1) IDE_Hard_Disk_Detach(index);
-                    imageDiskList[index]->Release();
-                    imageDiskChange[index] = true;
-                    imageDiskList[index] = NULL;
-                }
-            }
-        }
     }
 
     void AddToDriveManager(const char drive, DOS_Drive* imgDisk, const Bit8u mediaid) {
