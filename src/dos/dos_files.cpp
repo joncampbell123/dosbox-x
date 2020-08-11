@@ -2109,7 +2109,6 @@ void POD_Save_DOS_Files( std::ostream& stream )
 			WRITE_POD( &file_drive, file_drive );
 			WRITE_POD( &file_flags, file_flags );
 
-
 			Files[lcv]->SaveState(stream);
 		}
 	}
@@ -2237,11 +2236,11 @@ void POD_Load_DOS_Files( std::istream& stream )
                             newImage->Release();
                         }
                     } else if (opts.mounttype==2) {
-                        imageDiskMemory* dsk = CreateRamDrive(sizes, 0, lcv < 2 && sizes[0] == 0, NULL);
-                        if (dsk != NULL && dsk->Format() == 0x00) {
-                            dsk->Addref();
-                            newDrive = new fatDrive(dsk, options);
-                            dsk->Release();
+                        imageDiskMemory* image = CreateRamDrive(sizes, 0, lcv < 2 && sizes[0] == 0, NULL);
+                        if (image != NULL && image->Format() == 0x00) {
+                            image->Addref();
+                            newDrive = new fatDrive(image, options);
+                            image->Release();
                         }
                     } else if (opts.mounttype==3 && *(dinfo+9)) {
                         imageDisk* vhdImage = NULL;
@@ -2356,7 +2355,7 @@ void POD_Load_DOS_Files( std::istream& stream )
         bool ide_slave = false;
         signed char ide_index = -1;
         IDE_Auto(ide_index,ide_slave);
-        if( imageDiskList[i] && (opts.mounttype==1 && dynamic_cast<imageDiskElToritoFloppy *>(imageDiskList[i])==NULL || opts.mounttype!=1 && strcmp(imageDiskList[i]->diskname.c_str(), diskname ))) {
+        if( imageDiskList[i] && ((opts.mounttype==1 && dynamic_cast<imageDiskElToritoFloppy *>(imageDiskList[i])==NULL) || (opts.mounttype!=1 && strcmp(imageDiskList[i]->diskname.c_str(), diskname )))) {
             if (i > 1) IDE_Hard_Disk_Detach(i);
             imageDiskList[i]->Release();
             imageDiskList[i] = NULL;
@@ -2372,12 +2371,18 @@ void POD_Load_DOS_Files( std::istream& stream )
             imageDisk* image = NULL;
             if (imageDiskVHD::Open(diskname, false, &image)==imageDiskVHD::OPEN_SUCCESS)
                 AttachToBiosAndIdeByLetter(image, 'A'+i, (unsigned char)ide_index, ide_slave);
+            else
+                LOG_MSG("Error: Cannot restore drive number from image file %s\n", diskname);
             image = NULL;
         } else if (!opts.mounttype && *diskname) {
             std::vector<std::string> options;
             fatDrive* newDrive = new fatDrive(diskname, opts.bytesector, opts.cylsector, opts.headscyl, opts.cylinders, options);
-            imageDisk* image = newDrive->loadedDisk;
-            AttachToBiosAndIdeByLetter(image, 'A'+i, (unsigned char)ide_index, ide_slave);
+            if (newDrive->created_successfully) {
+                imageDisk* image = newDrive->loadedDisk;
+                AttachToBiosAndIdeByLetter(image, 'A'+i, (unsigned char)ide_index, ide_slave);
+            } else
+                LOG_MSG("Error: Cannot restore drive number from image file %s\n", diskname);
+            if (newDrive) delete newDrive;
         }
     }
 }
