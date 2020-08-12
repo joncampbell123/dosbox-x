@@ -397,6 +397,7 @@ void DOS_Int21_71a7(const char *name1, const char *name2);
 void DOS_Int21_71a8(char* name1, const char* name2);
 void DOS_Int21_71aa(char* name1, const char* name2);
 Bitu DEBUG_EnableDebugger(void);
+void runMount(const char *str);
 void CALLBACK_RunRealInt_retcsip(Bit8u intnum,Bitu &cs,Bitu &ip);
 
 bool DOS_BreakINT23InProgress = false;
@@ -3864,15 +3865,13 @@ void DOS_Int21_71aa(char* name1, const char* name2) {
 			} else {
 				MEM_StrCopy(SegPhys(ds)+reg_dx,name1,DOSNAMEBUF);
 				char mountstring[DOS_PATHLENGTH+CROSS_LEN+20];
-				strcpy(mountstring,"MOUNT ");
 				char temp_str[3] = { 0,0,0 };
 				temp_str[0]=(char)('A'+reg_bl-1);
 				temp_str[1]=' ';
-				strcat(mountstring,temp_str);
+				strcpy(mountstring,temp_str);
 				strcat(mountstring,name1);
-				strcat(mountstring," >nul");
-				DOS_Shell temp;
-				temp.ParseLine(mountstring);
+				strcat(mountstring," -Q");
+				runMount(mountstring);
 				if (Drives[drive]) {
 					reg_ax=0;
 					CALLBACK_SCF(false);
@@ -3891,13 +3890,11 @@ void DOS_Int21_71aa(char* name1, const char* name2) {
 				CALLBACK_SCF(true);
 			} else {
 				char mountstring[DOS_PATHLENGTH+CROSS_LEN+20];
-				strcpy(mountstring,"MOUNT -u ");
 				char temp_str[2] = { 0,0 };
 				temp_str[0]=(char)('A'+reg_bl-1);
-				strcat(mountstring,temp_str);
-				strcat(mountstring," >nul");
-				DOS_Shell temp;
-				temp.ParseLine(mountstring);
+				strcpy(mountstring,temp_str);
+				strcat(mountstring," -Q -U");
+				runMount(mountstring);
 				if (!Drives[drive]) {
 					reg_ax =0;
 					CALLBACK_SCF(false);

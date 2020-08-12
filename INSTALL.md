@@ -12,47 +12,49 @@ Windows Packages (Portable or Installer)
 
 **Note:** For users who wish to use the automatic installation package, the all-in-one Windows installer for the latest official DOSBox-X version is always available from: [DOSBox-X-Setup-Windows-latest.exe](https://github.com/Wengier/dosbox-x-wiki/raw/master/DOSBox-X-Setup-Windows-latest.exe)
 
-You can usually find three zip packages for each DOSBox-X version for the Windows platform in the Releases page. These are portable packages containing binaries built with Visual Studio 2019, MinGW 32-bit and MinGW 64-bit (or mingw-w64). In the case of DOSBox-X version 0.83.4, they correspond to the following respectively:
+You can usually find three zip packages for each DOSBox-X version for the Windows platform in the Releases page, apart from all-in-one Windows installer packages mentioned in this section. These zip files are portable packages containing binaries built with Visual Studio 2019, MinGW 32-bit and MinGW 64-bit (or mingw-w64). For the current DOSBox-X version 0.83.4, they are the following respectively:
 
-* dosbox-x-windows-20200803-055400-windows.zip
-* dosbox-x-mingw-win32-20200803060752.zip
-* dosbox-x-mingw-win64-20200803073328.zip
+* [dosbox-x-windows-20200803-055400-windows.zip](https://github.com/joncampbell123/dosbox-x/releases/download/dosbox-x-v0.83.4/dosbox-x-windows-20200803-055400-windows.zip)
+* [dosbox-x-mingw-win32-20200803060752.zip](https://github.com/joncampbell123/dosbox-x/releases/download/dosbox-x-v0.83.4/dosbox-x-mingw-win32-20200803060752.zip)
+* [dosbox-x-mingw-win64-20200803073328.zip](https://github.com/joncampbell123/dosbox-x/releases/download/dosbox-x-v0.83.4/dosbox-x-mingw-win64-20200803073328.zip)
 
 The Visual Studio builds are the default Windows builds to use, but they only run on Windows Vista and later (Windows 7, 8, and 10). The MinGW builds will be required if you are running Windows XP. You may also want to use one of the MinGW builds (plain, lowend, etc) if you encounter specific problem(s) with the Visual Studio builds. In addition, while the SDL1 version is the default version, the SDL2 version may be prefered over the SDL1 version for certain features (particularly related to input handling) such as touchscreen input support.
 
-You may want to use the all-in-one Windows installation packages instead to ease the installation. The Windows installers are especially recommended for new or non-expert users. With the installer the installation process will be automated while allowing you to change the install folder and the default build to run if you prefer (and the option to install all builds to subdirectories), so that you will be able to start DOSBox-X as soon as the installation ends. A quick start guide is also included in the package. The Windows installer for DOSBox-X version 0.83.4 is available from: [DOSBox-X-Setup-Windows-latest.exe](https://github.com/Wengier/dosbox-x-wiki/raw/master/DOSBox-X-Setup-Windows-latest.exe)
+You may want to use the all-in-one Windows installation packages instead to ease the installation. The Windows installers are especially recommended for new or non-expert users. With the installer the installation process will be automated while allowing you to change the install folder and the default build to run if you prefer (and the option to install all builds to subdirectories), so that you will be able to start DOSBox-X as soon as the installation ends. A quick start guide is also included in the package. The Windows installer for DOSBox-X version 0.83.4 is available from:
+
+* [DOSBox-X-Setup-Windows-latest.exe](https://github.com/Wengier/dosbox-x-wiki/raw/master/DOSBox-X-Setup-Windows-latest.exe)
 
 If you prefer to use the zip packages as previously mentioned, please select one of the zip packages to download for your platform and unzip, then you will find various folders or subdirectories, which are some supported targets. For Visual Studio builds, these correspond to Win32, x64, ARM and ARM64 (either SDL1 or SDL2 version), which are the build platforms. For MinGW builds, the targets are plain MinGW SDL1 build (mingw), MinGW build for lower-end systems (mingw-lowend), MinGW SDL2 build (mingw-sdl2) and MinGW build with custom drawn menu (mingw-sdldraw). Go to a target folder for your platform and run dosbox-x.exe inside it, then DOSBox-X will be launched and ready to be used. Unlike the Windows installer version however, there is no documentation included in these packages, and you may not see all such packages for some DOSBox-X versions.
 
 Linux Packages (RPM)
 --------------------
 
-RPM packages are officially released for the Linux operating system (64-bit, with X11), specifically for CentOS 7 / RHEL 7 ("el7") and CentOS 8 / RHEL 8 ("el8") platforms. In the case of DOSBox-X version 0.83.2 for example, they correspond to the following:
+RPM packages are officially released for the Linux operating system (64-bit, with X11), specifically for CentOS 7 / RHEL 7 ("el7") and CentOS 8 / RHEL 8 ("el8") platforms. There are usually packages for both CentOS 7 and CentOS 8 platforms, but for the current DOSBox-X version 0.83.4 only CentOS 7 RPM packages are available (no CentOS 8 RPM packages), namely the following files:
 
-* dosbox-x-0.83.2-0.el7.x86_64.rpm
-* dosbox-x-0.83.2-0.el8.x86_64.rpm
-* dosbox-x-debuginfo-0.83.2-0.el7.x86_64.rpm
-* dosbox-x-debuginfo-0.83.2-0.el8.x86_64.rpm
-* dosbox-x-debugsource-0.83.2-0.el8.x86_64.rpm
+* [dosbox-x-0.83.4-0.el7.x86_64.rpm](https://github.com/joncampbell123/dosbox-x/releases/download/dosbox-x-v0.83.4/dosbox-x-0.83.4-0.el7.x86_64.rpm)
+* [dosbox-x-debuginfo-0.83.4-0.el7.x86_64.rpm](https://github.com/joncampbell123/dosbox-x/releases/download/dosbox-x-v0.83.4/dosbox-x-debuginfo-0.83.4-0.el7.x86_64.rpm)
 
-Pick a RPM package for your Linux platform and install. On CentOS, RHEL or Fedora platforms, you can install a RPM package with a command line like this:
+The previous DOSBox-X version that provided official packages for both CentOS 7 and CentOS 8 platforms was version 0.83.2, which included the following Linux RPM packages:
+
+* [dosbox-x-0.83.2-0.el7.x86_64.rpm](https://github.com/joncampbell123/dosbox-x/releases/download/dosbox-x-v0.83.2/dosbox-x-0.83.2-0.el7.x86_64.rpm)
+* [dosbox-x-0.83.2-0.el8.x86_64.rpm](https://github.com/joncampbell123/dosbox-x/releases/download/dosbox-x-v0.83.2/dosbox-x-0.83.2-0.el8.x86_64.rpm)
+* [dosbox-x-debuginfo-0.83.2-0.el7.x86_64.rpm](https://github.com/joncampbell123/dosbox-x/releases/download/dosbox-x-v0.83.2/dosbox-x-debuginfo-0.83.2-0.el7.x86_64.rpm)
+* [dosbox-x-debuginfo-0.83.2-0.el8.x86_64.rpm](https://github.com/joncampbell123/dosbox-x/releases/download/dosbox-x-v0.83.2/dosbox-x-debuginfo-0.83.2-0.el8.x86_64.rpm)
+* [dosbox-x-debugsource-0.83.2-0.el8.x86_64.rpm](https://github.com/joncampbell123/dosbox-x/releases/download/dosbox-x-v0.83.2/dosbox-x-debugsource-0.83.2-0.el8.x86_64.rpm)
+
+Pick a RPM package of the version you want to use for your Linux platform and install. On CentOS, RHEL or Fedora platforms, you can install a RPM package with a command line like this:
 
 ``sudo rpm -i <filename>.rpm``
 
 Where ``<filename>`` is the main file name of the RPM package you wish to install. You may want to use the debug builds (the last three packages in the above example) if you desire to do some debugging work when running DOSBox-X. If there are missing dependencies for the rpm command, such as libpng and fluid-soundfont, then you will need to install them first.
 
-Note: You may not see all such packages for some DOSBox-X versions. For example, there are no CentOS 8 builds for DOSBox-X version 0.83.4. Only CentOS 7 builds are available for this version, namely the following:
-
-* dosbox-x-0.83.4-0.el7.x86_64.rpm
-* dosbox-x-debuginfo-0.83.4-0.el7.x86_64.rpm
-
 macOS and DOS Packages (Portable)
 ---------------------------------
 
-Besides Windows and Linux packages, there are also packages for the macOS (64-bit) and DOS platforms. In the case of DOSBox-X version 0.83.4, the macOS package and the special HX-DOS package correspond to the following zip packages respectively:
+Besides Windows and Linux packages, there are also packages for the macOS (64-bit) and DOS platforms. For the current DOSBox-X version 0.83.4, the macOS package and the special HX-DOS package are the following zip packages respectively:
 
-* dosbox-x-macosx-x64-20200802220401.zip
-* dosbox-x-mingw-hx-dos-20200803055533.zip
+* [dosbox-x-macosx-x64-20200802220401.zip](https://github.com/joncampbell123/dosbox-x/releases/download/dosbox-x-v0.83.4/dosbox-x-macosx-x64-20200802220401.zip)
+* [dosbox-x-mingw-hx-dos-20200803055533.zip](https://github.com/joncampbell123/dosbox-x/releases/download/dosbox-x-v0.83.4/dosbox-x-mingw-hx-dos-20200803055533.zip)
 
 The macOS package requires macOS Sierra 10.12 or higher. Both SDL1 and SDL2 binaries (in .app format) are provided in the macOS package, in the directories named "dosbox-x" and "dosbox-x-sdl2" inside the zip file.
 
@@ -63,9 +65,9 @@ Note: You may not see such packages for some DOSBox-X versions. For example, the
 Source Code Packages (zip or tar.gz)
 ------------------------------------
 
-Full source code packages of DOSBox-X are also available in both zip and tar.gz formats. Both contain the full source code, but you probably want to download the source code in zip format if you are using Windows, and the source code in tar.gz format if you are using Linux. They correspond the following files in the case of DOSBox-X version 0.83.4:
+Full source code packages of DOSBox-X are also available in both zip and tar.gz formats. Both contain the full source code, but you probably want to download the source code in zip format if you are using Windows, and the source code in tar.gz format if you are using Linux. For the current DOSBox-X version 0.83.4, the source code packages are:
 
-* dosbox-x-v0.83.4.zip
-* dosbox-x-v0.83.4.tar.gz
+* [dosbox-x-v0.83.4.zip](https://github.com/joncampbell123/dosbox-x/archive/dosbox-x-v0.83.4.zip)
+* [dosbox-x-v0.83.4.tar.gz](https://github.com/joncampbell123/dosbox-x/archive/dosbox-x-v0.83.4.tar.gz)
 
 If you prefer you can compile DOSBox-X from the source code by yourself. The source code packages as listed in the Releases page contain the source code for that released version, and in this example the DOSBox-X 0.83.4 version. On the other hand, if you are looking for the latest source code of DOSBox-X (including the most recent development changes in the source code), you may want to use the source code in the repository instead. You can use either of them according to your needs, and the source code may be compiled to run on the above-mentioned platforms (Windows, Linux, macOS and DOS) and possibly other operating systems too. Please see the [DOSBox-X source code description](README.source-code-description) file for detailed instructions on building the DOSBox-X source code and further information of the source code.

@@ -1,4 +1,12 @@
 0.83.5
+  - Fixed that joystick may not work with the setting
+    "usescancodes=auto" when a non-US keyboard layout
+    is activated on the SDL1 build. (Wengier)
+  - Fixed possible failure when mounting .VHD images,
+    and the issue that leading : (read-only marker)
+    may not work for such images. (Wengier)
+  - MOUNT command's -Q (quiet) option now silences
+    virtually all output of this command. (Wengier)
   - Worked around the mounting issue with LaunchBox,
     by allowing a mounting command-line with single
     quotes like MOUNT C 'X:\DOS' on Windows. (Wengier)
@@ -7,14 +15,20 @@
   - Added "Quick launch program..." menu (under "DOS")
     to quickly run the specified program as selected
     by the Windows file browser in DOSBox-X. (Wengier)
-  - The save state feature now saves and restores the
-    mounted paths for mounted local or overlay drives.
-    This fixes the error when trying to load states
-    but the local drives aren't yet mounted. (Wengier)
-  - Increased save slots from 10 to 100. Each page in
-    the save slot menu (under "Capture") still shows
-    10 slots, but you can now go to previous or next
-    page (up to 10) for more save slots. (Wengier).
+  - The save state feature now tries to save and then
+    restore the mounted drives of all types (if the
+    paths or image files still exist on host system).
+    This fixes the "save state corrupted" error while
+    trying to load saved states but the drives are not
+    yet mounted in DOSBox-X. (Wengier)
+  - All confirm and error dialog boxes for saving or
+    loading states appear in a cross-platform manner
+    now, instead of only on Windows systems. (Wengier) 
+  - Increased the number of save slots from 10 to 100.
+    Each page in the save slot menu (under "Capture")
+    still shows 10 slots as before, but you can now go
+    to the previous or next page (up to 10 pages) for
+    more save slots (100 in total). (Wengier).
   - Added support for Glide wrapper. The library file
     glide2x.dll/libglide2x.so/libglide2x.dylib will be
     required for Glide to work. Be sure to use 32-bit

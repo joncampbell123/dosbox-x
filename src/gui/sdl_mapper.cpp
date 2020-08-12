@@ -268,6 +268,8 @@ static KeyBlock combo_4[11] =
     {".>","period",KBD_period},                     {"/?","slash",KBD_slash},
 };
 
+static bool initjoy=true;
+
 static void                                     SetActiveEvent(CEvent * event);
 static void                                     SetActiveBind(CBind * _bind);
 static void                                     change_action_text(const char* text,Bit8u col);
@@ -4103,6 +4105,7 @@ static void InitializeJoysticks(void) {
                 joytype=JOY_NONE;
             }
         }
+        initjoy=false;
     }
     else {
         LOG(LOG_MISC,LOG_DEBUG)("Joystick type none, not initializing");
@@ -4414,7 +4417,7 @@ void MAPPER_Init(void) {
     mapper.exit=true;
 
     MAPPER_CheckKeyboardLayout();
-    InitializeJoysticks();
+    if (initjoy) InitializeJoysticks();
     if (buttons.empty()) CreateLayout();
     if (bindgroups.empty()) CreateBindGroups();
     if (!MAPPER_LoadBinds()) CreateDefaultBinds();
@@ -4703,6 +4706,7 @@ void MAPPER_Shutdown() {
         }
     }
     handlergroup.clear();
+    initjoy=true;
 }
 
 void ext_signal_host_key(bool enable) {

@@ -96,7 +96,7 @@ void pc98_update_display_page_ptr(void);
 void pc98_update_palette(void);
 bool MEM_map_ROM_alias_physmem(Bitu start,Bitu end);
 void MOUSE_Startup(Section *sec);
-void runBoot();
+void runBoot(const char *str);
 
 bool bochs_port_e9 = false;
 bool isa_memory_hole_512kb = false;
@@ -280,7 +280,7 @@ extern int user_cursor_sw,user_cursor_sh;
 extern int master_cascade_irq,bootdrive;
 extern bool enable_slave_pic;
 extern bool bootguest, use_quick_reboot;
-bool bootvm = false;
+bool bootvm = false, bootfast = false;
 static std::string dosbox_int_debug_out;
 
 void VGA_SetCaptureStride(uint32_t v);
@@ -8447,7 +8447,7 @@ private:
             emscripten_sleep_with_yield(100);
         }
 #else
-        if (!control->opt_fastbioslogo&&!bootguest&&(bootvm||!use_quick_reboot)) {
+        if (!control->opt_fastbioslogo&&!bootguest&&!bootfast&&(bootvm||!use_quick_reboot)) {
             bool wait_for_user = false;
             Bit32u lasttick=GetTicks();
             while ((GetTicks()-lasttick)<1000) {
@@ -8569,12 +8569,15 @@ private:
 
         for (Bitu i=0;i < 0x400;i++) mem_writeb(0x7C00+i,0);
 
-		if ((bootguest||(!bootvm&&use_quick_reboot))&&bootdrive>=0&&imageDiskList[bootdrive]) {
+		if ((bootguest||(!bootvm&&use_quick_reboot))&&!bootfast&&bootdrive>=0&&imageDiskList[bootdrive]) {
 			MOUSE_Startup(NULL);
-			runBoot();
+			char drive[] = "-Q A:";
+			drive[3]='A'+bootdrive;
+			runBoot(drive);
 		}
-		if (use_quick_reboot&&!bootvm&&bootdrive<0&&first_shell != NULL) throw int(6);
+		if (use_quick_reboot&&!bootvm&&!bootfast&&bootdrive<0&&first_shell != NULL) throw int(6);
 		bootvm=false;
+		bootfast=false;
 		bootguest=false;
 		bootdrive=-1;
         // Begin booting the DOSBox-X shell. NOTE: VM_Boot_DOSBox_Kernel will change CS:IP instruction pointer!

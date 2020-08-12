@@ -30,6 +30,7 @@
 #ifndef DOSBOX_BIOS_H
 #include "bios.h"
 #endif
+#include "../src/dos/cdrom.h"
 
 /* The Section handling Bios Disk Access */
 #define BIOS_MAX_DISK 10
@@ -359,6 +360,85 @@ private:
     bool currentBlockAllocated = false;
 	Bit32u currentBlockSectorOffset = 0;
 	Bit8u* currentBlockDirtyMap = 0;
+};
+
+/* C++ class implementing El Torito floppy emulation */
+class imageDiskElToritoFloppy : public imageDisk {
+public:
+    /* Read_Sector and Write_Sector take care of geometry translation for us,
+     * then call the absolute versions. So, we override the absolute versions only */
+    virtual Bit8u Read_AbsoluteSector(Bit32u sectnum, void * data) {
+        unsigned char buffer[2048];
+
+        bool GetMSCDEXDrive(unsigned char drive_letter,CDROM_Interface **_cdrom);
+
+        CDROM_Interface *src_drive=NULL;
+        if (!GetMSCDEXDrive(CDROM_drive-'A',&src_drive)) return 0x05;
+
+        if (!src_drive->ReadSectorsHost(buffer,false,cdrom_sector_offset+(sectnum>>2)/*512 byte/sector to 2048 byte/sector conversion*/,1))
+            return 0x05;
+
+        memcpy(data,buffer+((sectnum&3)*512),512);
+        return 0x00;
+    }
+    virtual Bit8u Write_AbsoluteSector(Bit32u sectnum,const void * data) {
+        (void)sectnum;//UNUSED
+        (void)data;//UNUSED
+        return 0x05; /* fail, read only */
+    }
+    imageDiskElToritoFloppy(unsigned char new_CDROM_drive,unsigned long new_cdrom_sector_offset,unsigned char floppy_emu_type) : imageDisk(NULL,NULL,0,false) {
+        diskimg = NULL;
+        sector_size = 512;
+        CDROM_drive = new_CDROM_drive;
+        cdrom_sector_offset = new_cdrom_sector_offset;
+        floppy_type = floppy_emu_type;
+
+        class_id = ID_EL_TORITO_FLOPPY;
+
+        if (floppy_emu_type == 1) { /* 1.2MB */
+            heads = 2;
+            cylinders = 80;
+            sectors = 15;
+        }
+        else if (floppy_emu_type == 2) { /* 1.44MB */
+            heads = 2;
+            cylinders = 80;
+            sectors = 18;
+        }
+        else if (floppy_emu_type == 3) { /* 2.88MB */
+            heads = 2;
+            cylinders = 80;
+            sectors = 36; /* FIXME: right? */
+        }
+        else {
+            heads = 2;
+            cylinders = 69;
+            sectors = 14;
+            LOG_MSG("BUG! unsupported floppy_emu_type in El Torito floppy object\n");
+        }
+
+        diskSizeK = ((Bit64u)heads * cylinders * sectors * sector_size) / 1024;
+        active = true;
+    }
+    virtual ~imageDiskElToritoFloppy() {
+    }
+
+    unsigned char CDROM_drive;
+    unsigned long cdrom_sector_offset;
+    unsigned char floppy_type;
+/*
+    int class_id;
+
+    bool hardDrive;
+    bool active;
+    FILE *diskimg;
+    std::string diskname;
+    Bit8u floppytype;
+
+    Bit32u sector_size;
+    Bit32u heads,cylinders,sectors;
+    Bit32u reserved_cylinders;
+    Bit64u current_fpos; */
 };
 
 void updateDPT(void);
