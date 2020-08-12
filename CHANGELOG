@@ -21,10 +21,13 @@
     This fixes the "save state corrupted" error while
     trying to load saved states but the drives are not
     yet mounted in DOSBox-X. (Wengier)
-  - Increased save slots from 10 to 100. Each page in
-    the save slot menu (under "Capture") still shows
-    10 slots, but you can now go to previous or next
-    page (up to 10) for more save slots. (Wengier).
+  - The confirm dialogs for loading saved states now
+    appear on non-Windows platforms as well. (Wengier) 
+  - Increased the number of save slots from 10 to 100.
+    Each page in the save slot menu (under "Capture")
+    still shows 10 slots as before, but you can now go
+    to the previous or next page (up to 10 pages) for
+    more save slots (100 in total). (Wengier).
   - Added support for Glide wrapper. The library file
     glide2x.dll/libglide2x.so/libglide2x.dylib will be
     required for Glide to work. Be sure to use 32-bit
