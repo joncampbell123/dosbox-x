@@ -4853,6 +4853,21 @@ void savestatecorrupt(const char* part) {
     GFX_LosingFocus();
 }
 
+bool confres=false;
+bool loadstateconfirm(int ind) {
+    if (ind<0||ind>2) return false;
+    confres=false;
+    void MAPPER_ReleaseAllKeys(void);
+    MAPPER_ReleaseAllKeys();
+    GFX_LosingFocus();
+    GUI_Shortcut(22+ind);
+    MAPPER_ReleaseAllKeys();
+    GFX_LosingFocus();
+    bool ret=confres;
+    confres=false;
+    return ret;
+}
+
 void SaveState::load(size_t slot) const { //throw (Error)
 //	if (isEmpty(slot)) return;
 	bool load_err=false;
@@ -4935,11 +4950,7 @@ void SaveState::load(size_t slot) const { //throw (Error)
 			if (p!=NULL) *p=0;
 			std::string emulatorversion = std::string("DOSBox-X ") + VERSION + std::string(" (") + SDL_STRING + std::string(")\n") + GetPlatform();
 			if (p==NULL||strcasecmp(buffer,emulatorversion.c_str())) {
-#if defined(WIN32)
-				if(!force_load_state&&MessageBox(GetHWND(),"DOSBox-X version mismatch. Load the state anyway?","Warning",MB_YESNO|MB_DEFBUTTON2)==IDNO) {
-#else
-				if(!force_load_state) {
-#endif
+				if(!force_load_state&&!loadstateconfirm(0)) {
 					LOG_MSG("Aborted. Check your DOSBox-X version: %s",buffer);
 					load_err=true;
 					goto delete_all;
@@ -4968,11 +4979,7 @@ void SaveState::load(size_t slot) const { //throw (Error)
 			check_title.read (buffer, length);
 			check_title.close();
 			if (!length||(size_t)length!=strlen(RunningProgram)||strncmp(buffer,RunningProgram,length)) {
-#if defined(WIN32)
-				if(!force_load_state&&MessageBox(GetHWND(),"Program name mismatch. Load the state anyway?","Warning",MB_YESNO|MB_DEFBUTTON2)==IDNO) {
-#else
-				if(!force_load_state) {
-#endif
+				if(!force_load_state&&!loadstateconfirm(1)) {
 					buffer[length]='\0';
 					LOG_MSG("Aborted. Check your program name: %s",buffer);
 					load_err=true;
@@ -5014,11 +5021,7 @@ void SaveState::load(size_t slot) const { //throw (Error)
 			char str[10];
 			itoa((int)MEM_TotalPages(), str, 10);
 			if(strncmp(buffer,str,length)) {
-#if defined(WIN32)
-				if(!force_load_state&&MessageBox(GetHWND(),"Memory size mismatch. Load the state anyway?","Warning",MB_YESNO|MB_DEFBUTTON2)==IDNO) {
-#else
-				if(!force_load_state) {
-#endif
+				if(!force_load_state&&!loadstateconfirm(2)) {
 					buffer[length]='\0';
 					LOG_MSG("Aborted. Check your memory size.");
 					load_err=true;

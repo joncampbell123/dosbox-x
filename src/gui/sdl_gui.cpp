@@ -68,7 +68,7 @@ extern unsigned char        GFX_Gshift;
 extern uint32_t             GFX_Bmask;
 extern unsigned char        GFX_Bshift;
 
-extern bool                 dos_kernel_disabled;
+extern bool                 dos_kernel_disabled, confres;
 extern Bitu                 currentWindowWidth, currentWindowHeight;
 
 extern bool                 MSG_Write(const char *);
@@ -1448,6 +1448,28 @@ public:
     }
 };
 
+class ShowLoadWarning : public GUI::ToplevelWindow {
+protected:
+    GUI::Input *name;
+public:
+    ShowLoadWarning(GUI::Screen *parent, int x, int y, const char *title) :
+        ToplevelWindow(parent, x, y, 430, 120, "Warning") {
+            new GUI::Label(this, strncmp(title, "DOSBox-X ", 9)?30:10, 20, title);
+            (new GUI::Button(this, 140, 50, "Yes", 70))->addActionHandler(this);
+            (new GUI::Button(this, 230, 50, "No", 70))->addActionHandler(this);
+    }
+
+    void actionExecuted(GUI::ActionEventSource *b, const GUI::String &arg) {
+        (void)b;//UNUSED
+        if (arg == "Yes")
+            confres=true;
+        if (arg == "No")
+            confres=false;
+        close();
+        if (shortcut) running = false;
+    }
+};
+
 class ConfigurationWindow : public GUI::ToplevelWindow {
 public:
     GUI::Button *saveButton, *closeButton;
@@ -1764,6 +1786,18 @@ static void UI_Select(GUI::ScreenSDL *screen, int select) {
         case 21: {
             auto *np6 = new ShowStateCorrupt(screen, 150, 120, "Save state corrupted! Program may not work.");
             np6->raise();
+            } break;
+        case 22: {
+            auto *np7 = new ShowLoadWarning(screen, 150, 120, "DOSBox-X version mismatch. Load the state anyway?");
+            np7->raise();
+            } break;
+        case 23: {
+            auto *np7 = new ShowLoadWarning(screen, 150, 120, "Program name mismatch. Load the state anyway?");
+            np7->raise();
+            } break;
+        case 24: {
+            auto *np7 = new ShowLoadWarning(screen, 150, 120, "Memory size mismatch. Load the state anyway?");
+            np7->raise();
             } break;
         default:
             break;
