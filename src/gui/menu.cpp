@@ -554,6 +554,8 @@ static const char *def_save_slots[] =
     "mapper_prevslot",
     "mapper_nextslot",
     "--",
+    "removestate",
+    "--",
     "refreshslot",
     NULL
 };
