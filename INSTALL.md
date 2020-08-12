@@ -48,7 +48,7 @@ Pick a RPM package of the version you want to use for your Linux platform and in
 
 Where ``<filename>`` is the main file name of the RPM package you wish to install. You may want to use the debug builds (the last three packages in the above example) if you desire to do some debugging work when running DOSBox-X. If there are missing dependencies for the rpm command, such as libpng and fluid-soundfont, then you will need to install them first.
 
-If you use a Linux platform that only supports DEB packages, such as Linux Mint and Debian, then you need to convert the RPM package you want to install to DEB format first, by using the ```alien``` command-line tool, e.g. ```sudo alien <filename>.rpm```). You will also need to install this tool if it is not yet installed on your Linux system.
+If you use a Linux platform that only supports DEB packages, such as Debian, Ubuntu, or Linux Mint, then you need to convert the RPM package you want to install to DEB format first, by using the ```alien``` command-line tool, e.g. ```sudo alien <filename>.rpm```. You will also need to install this tool if it is not yet installed on your Linux system.
 
 macOS and DOS Packages (Portable)
 ---------------------------------

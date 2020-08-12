@@ -784,11 +784,13 @@ void SaveGameState(bool pressed) {
     {
         LOG_MSG("Saving state to slot: %d", (int)currentSlot + 1);
         SaveState::instance().save(currentSlot);
-		char name[6]="slot0";
-		name[4]='0'+(char)(currentSlot%SaveState::SaveState::SLOT_COUNT);
-		std::string command=SaveState::instance().getName(currentSlot);
-		std::string str="Slot "+std::to_string(currentSlot+1)+(command==""?"":" "+command);
-		mainMenu.get_item(name).set_text(str.c_str()).refresh_item(mainMenu);
+        if (page==currentSlot/SaveState::SLOT_COUNT) {
+            char name[6]="slot0";
+            name[4]='0'+(char)(currentSlot%SaveState::SaveState::SLOT_COUNT);
+            std::string command=SaveState::instance().getName(currentSlot);
+            std::string str="Slot "+std::to_string(currentSlot+1)+(command==""?"":" "+command);
+            mainMenu.get_item(name).set_text(str.c_str()).refresh_item(mainMenu);
+        }
     }
     catch (const SaveState::Error& err)
     {
