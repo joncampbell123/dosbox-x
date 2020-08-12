@@ -68,6 +68,7 @@ extern unsigned char        GFX_Gshift;
 extern uint32_t             GFX_Bmask;
 extern unsigned char        GFX_Bshift;
 
+extern std::string          saveloaderr;
 extern bool                 dos_kernel_disabled, confres;
 extern Bitu                 currentWindowWidth, currentWindowHeight;
 
@@ -1798,6 +1799,10 @@ static void UI_Select(GUI::ScreenSDL *screen, int select) {
         case 24: {
             auto *np7 = new ShowLoadWarning(screen, 150, 120, "Memory size mismatch. Load the state anyway?");
             np7->raise();
+            } break;
+        case 25: if (saveloaderr.size()) {
+            auto *np8 = new ShowStateCorrupt(screen, 150, 120, saveloaderr.c_str());
+            np8->raise();
             } break;
         default:
             break;

@@ -686,7 +686,9 @@ void DOSBOX_SlowDown( bool pressed ) {
     }
 }
 
+std::string saveloaderr="";
 void refresh_slots(void);
+void MAPPER_ReleaseAllKeys(void);
 namespace
 {
 std::string getTime(bool date=false)
@@ -744,12 +746,16 @@ private:
 
 SlotPos currentSlot;
 
-void notifyError(const std::string& message)
+void notifyError(const std::string& message, bool log=true)
 {
-#ifdef WIN32
-    ::MessageBox(0, message.c_str(), "Error", 0);
-#endif
-    LOG_MSG("%s",message.c_str());
+    if (log) LOG_MSG("%s",message.c_str());
+    MAPPER_ReleaseAllKeys();
+    GFX_LosingFocus();
+    saveloaderr=message;
+    GUI_Shortcut(25);
+    saveloaderr="";
+    MAPPER_ReleaseAllKeys();
+    GFX_LosingFocus();
 }
 
 size_t GetGameState(void) {
@@ -4707,9 +4713,7 @@ void SaveState::save(size_t slot) { //throw (Error)
 	bool save_err=false;
 	if((MEM_TotalPages()*4096/1024/1024)>1024) {
 		LOG_MSG("Stopped. 1 GB is the maximum memory size for saving/loading states.");
-#if defined(WIN32)
-		MessageBox(GetHWND(),"Unsupported memory size.","Error",MB_OK);
-#endif
+		notifyError("Unsupported memory size for saving states.", false);
 		return;
 	}
 	bool create_version=false;
@@ -4835,17 +4839,14 @@ delete_all:
 	remove(save2.c_str());
 	save2=temp+"Time_Stamp";
 	remove(save2.c_str());
-	if (save_err) {
-#if defined(WIN32)
-		MessageBox(GetHWND(),"Failed to save the current state.","Error",MB_OK);
-#endif
-	} else
+	if (save_err)
+		notifyError("Failed to save the current state.");
+	else
 		LOG_MSG("[%s]: Saved. (Slot %d)", getTime().c_str(), (int)slot+1);
 }
 
 void savestatecorrupt(const char* part) {
     LOG_MSG("Save state corrupted! Program in inconsistent state! - %s", part);
-    void MAPPER_ReleaseAllKeys(void);
     MAPPER_ReleaseAllKeys();
     GFX_LosingFocus();
     GUI_Shortcut(21);
@@ -4857,7 +4858,6 @@ bool confres=false;
 bool loadstateconfirm(int ind) {
     if (ind<0||ind>2) return false;
     confres=false;
-    void MAPPER_ReleaseAllKeys(void);
     MAPPER_ReleaseAllKeys();
     GFX_LosingFocus();
     GUI_Shortcut(22+ind);
@@ -4873,9 +4873,7 @@ void SaveState::load(size_t slot) const { //throw (Error)
 	bool load_err=false;
 	if((MEM_TotalPages()*4096/1024/1024)>1024) {
 		LOG_MSG("Stopped. 1 GB is the maximum memory size for saving/loading states.");
-#if defined(WIN32)
-		MessageBox(GetHWND(),"Unsupported memory size.","Error",MB_OK);
-#endif
+		notifyError("Unsupported memory size for loading states.", false);
 		return;
 	}
 	SDL_PauseAudio(0);
@@ -4909,9 +4907,7 @@ void SaveState::load(size_t slot) const { //throw (Error)
 	check_slot.open(save.c_str(), std::ifstream::in);
 	if(check_slot.fail()) {
 		LOG_MSG("No saved slot - %d (%s)",(int)slot+1,save.c_str());
-#if defined(WIN32)
-		MessageBox(GetHWND(),"The selected save slot is empty.","Error",MB_OK);
-#endif
+		notifyError("The selected save slot is an empty slot.", false);
 		load_err=true;
 		return;
 	}
