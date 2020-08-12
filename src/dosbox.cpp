@@ -752,7 +752,7 @@ void notifyError(const std::string& message, bool log=true)
     MAPPER_ReleaseAllKeys();
     GFX_LosingFocus();
     saveloaderr=message;
-    GUI_Shortcut(25);
+    GUI_Shortcut(22);
     saveloaderr="";
     MAPPER_ReleaseAllKeys();
     GFX_LosingFocus();
@@ -4856,11 +4856,11 @@ void savestatecorrupt(const char* part) {
 
 bool confres=false;
 bool loadstateconfirm(int ind) {
-    if (ind<0||ind>2) return false;
+    if (ind<0||ind>3) return false;
     confres=false;
     MAPPER_ReleaseAllKeys();
     GFX_LosingFocus();
-    GUI_Shortcut(22+ind);
+    GUI_Shortcut(23+ind);
     MAPPER_ReleaseAllKeys();
     GFX_LosingFocus();
     bool ret=confres;
@@ -5094,6 +5094,45 @@ bool SaveState::isEmpty(size_t slot) const {
 	std::ifstream check_slot;
 	check_slot.open(save.c_str(), std::ifstream::in);
 	return check_slot.fail();
+}
+
+void SaveState::removeState(size_t slot) const {
+	if (slot >= SLOT_COUNT*MAX_PAGE) return;
+	std::string path;
+	bool Get_Custom_SaveDir(std::string& savedir);
+	if(Get_Custom_SaveDir(path)) {
+		path+=CROSS_FILESPLIT;
+	} else {
+		extern std::string capturedir;
+		const size_t last_slash_idx = capturedir.find_last_of("\\/");
+		if (std::string::npos != last_slash_idx) {
+			path = capturedir.substr(0, last_slash_idx);
+		} else {
+			path = ".";
+		}
+		path += CROSS_FILESPLIT;
+		path +="save";
+		path += CROSS_FILESPLIT;
+	}
+	std::string temp;
+	temp = path;
+	std::stringstream slotname;
+	slotname << slot+1;
+	std::string save=temp+slotname.str()+".sav";
+	std::ifstream check_slot;
+	check_slot.open(save.c_str(), std::ifstream::in);
+	if(check_slot.fail()) {
+		LOG_MSG("No saved slot - %d (%s)",(int)slot+1,save.c_str());
+		notifyError("The selected save slot is an empty slot.", false);
+		return;
+	}
+    if (loadstateconfirm(3)) {
+        check_slot.close();
+        remove(save.c_str());
+        check_slot.open(save.c_str(), std::ifstream::in);
+        if (!check_slot.fail()) notifyError("Failed to remove the state in the save slot.");
+        refresh_slots();
+    }
 }
 
 std::string SaveState::getName(size_t slot) const {

@@ -21,8 +21,9 @@
     This fixes the "save state corrupted" error while
     trying to load saved states but the drives are not
     yet mounted in DOSBox-X. (Wengier)
-  - The confirm dialogs for loading saved states now
-    appear on non-Windows platforms as well. (Wengier) 
+  - All confirm and error dialog boxes for saving or
+    loading states appear in a cross-platform manner
+    now, instead of only on Windows systems. (Wengier)
   - Increased the number of save slots from 10 to 100.
     Each page in the save slot menu (under "Capture")
     still shows 10 slots as before, but you can now go

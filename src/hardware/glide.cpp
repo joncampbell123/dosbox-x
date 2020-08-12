@@ -114,6 +114,8 @@ static int GLIDE_count[GLIDE_MAX+2];
 
 static Bitu read_gl(Bitu port,Bitu iolen)
 {
+    (void)port;
+    (void)iolen;
     Bitu r=ret_value;
 #if LOG_GLIDE
     if(ret_value == G_OK)
@@ -131,6 +133,8 @@ static Bitu read_gl(Bitu port,Bitu iolen)
 
 static void write_gl(Bitu port,Bitu val,Bitu iolen)
 {
+    (void)port;
+    (void)iolen;
     static Bit16u glsegment = 0;
 
     ret = 0;
@@ -426,11 +430,12 @@ public:
 	}
 
 	SAFE_DELETE(glide.lfb_pagehandler);
-	if(fn_pt)
+	if(fn_pt) {
 	    free(fn_pt); fn_pt = NULL;
-	if(texmem)
+	}
+	if(texmem) {
 	    free(texmem); texmem = NULL;
-
+	}
 	if(glide_base) {
 	    IO_FreeReadHandler(glide_base,IO_MB);
 	    IO_FreeWriteHandler(glide_base,IO_MB);
@@ -451,6 +456,7 @@ public:
 
 static GLIDE* test;
 void GLIDE_ShutDown(Section* sec) {
+    (void)sec;//UNUSED
     delete test;
 }
 
@@ -632,7 +638,7 @@ static void process_msg(Bitu value)
 	// Find the number of vertices (?)
 	k = 0;
 	for(j = 0; j < param[1]; j++) {
-	    if(ilist[j] > k)
+	    if((FxU32)ilist[j] > k)
 		k = ilist[j];
 	}
 	k++;
@@ -808,7 +814,7 @@ static void process_msg(Bitu value)
 	// Find the number of vertices (?)
 	k = 0;
 	for(j = 0; j < param[1]; j++) {
-	    if(ilist[j] > k)
+	    if((FxU32)ilist[j] > k)
 		k = ilist[j];
 	}
 	k++;
@@ -837,7 +843,7 @@ static void process_msg(Bitu value)
 	// Find the number of vertices (?)
 	k = 0;
 	for(j = 0; j < param[1]; j++) {
-	    if(ilist[j] > k)
+	    if((FxU32)ilist[j] > k)
 		k = ilist[j];
 	}
 	k++;
@@ -986,7 +992,7 @@ static void process_msg(Bitu value)
 
 	buffer = (Bitu)param[2];
 	if (buffer >= GLIDE_BUFFERS) {
-	    LOG_MSG("Glide:Invalid buffer passed in grLfbLock (%d)", buffer);
+	    LOG_MSG("Glide:Invalid buffer passed in grLfbLock (%llu)", buffer);
 	    return;
 	}
 

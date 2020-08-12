@@ -2047,10 +2047,10 @@ void POD_Save_DOS_Files( std::ostream& stream )
             } else if (!strncmp(dinfo,"fatDrive ",9)) {
                 fatDrive *fdp = dynamic_cast<fatDrive*>(Drives[lcv]);
                 if (fdp) {
-                    opts.bytesector=fdp->opts.bytesector;
-                    opts.cylsector=fdp->opts.cylsector;
-                    opts.headscyl=fdp->opts.headscyl;
-                    opts.cylinders=fdp->opts.cylinders;
+                    opts.bytesector=fdp->loadedDisk?fdp->loadedDisk->sector_size:fdp->opts.bytesector;
+                    opts.cylsector=fdp->loadedDisk?fdp->loadedDisk->sectors:fdp->opts.cylsector;
+                    opts.headscyl=fdp->loadedDisk?fdp->loadedDisk->heads:fdp->opts.headscyl;
+                    opts.cylinders=fdp->loadedDisk?fdp->loadedDisk->cylinders:fdp->opts.cylinders;
                     opts.mounttype=fdp->opts.mounttype;
                     opts.mediaid=fdp->GetMediaByte();
                     opts.CDROM_drive=fdp->el.CDROM_drive;
