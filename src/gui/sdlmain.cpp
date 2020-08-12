@@ -187,7 +187,7 @@ unsigned int page=0;
 ScreenSizeInfo          screen_size_info;
 
 extern bool dos_kernel_disabled;
-extern bool bootguest, bootvm;
+extern bool bootguest, bootfast, bootvm;
 extern int bootdrive;
 
 void runBoot(void);
@@ -3374,11 +3374,11 @@ void RebootGuest(bool pressed) {
 			char msg[]="[2J";
 			Bit16u s = (Bit16u)strlen(msg);
 			DOS_WriteFile(STDERR,(Bit8u*)msg,&s);
+            throw int(6);
 	    } else {
-		    reg_ax=(Bit16u)CurMode->mode;
-		    CALLBACK_RunRealInt(0x10);
+            bootfast=true;
+            throw int(3);
 	    }
-		throw int(6);
 	}
 	bootguest=true;
 	throw int(3);

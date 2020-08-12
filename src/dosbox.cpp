@@ -686,7 +686,9 @@ void DOSBOX_SlowDown( bool pressed ) {
     }
 }
 
+std::string saveloaderr="";
 void refresh_slots(void);
+void MAPPER_ReleaseAllKeys(void);
 namespace
 {
 std::string getTime(bool date=false)
@@ -744,12 +746,16 @@ private:
 
 SlotPos currentSlot;
 
-void notifyError(const std::string& message)
+void notifyError(const std::string& message, bool log=true)
 {
-#ifdef WIN32
-    ::MessageBox(0, message.c_str(), "Error", 0);
-#endif
-    LOG_MSG("%s",message.c_str());
+    if (log) LOG_MSG("%s",message.c_str());
+    MAPPER_ReleaseAllKeys();
+    GFX_LosingFocus();
+    saveloaderr=message;
+    GUI_Shortcut(22);
+    saveloaderr="";
+    MAPPER_ReleaseAllKeys();
+    GFX_LosingFocus();
 }
 
 size_t GetGameState(void) {
@@ -4707,9 +4713,7 @@ void SaveState::save(size_t slot) { //throw (Error)
 	bool save_err=false;
 	if((MEM_TotalPages()*4096/1024/1024)>1024) {
 		LOG_MSG("Stopped. 1 GB is the maximum memory size for saving/loading states.");
-#if defined(WIN32)
-		MessageBox(GetHWND(),"Unsupported memory size.","Error",MB_OK);
-#endif
+		notifyError("Unsupported memory size for saving states.", false);
 		return;
 	}
 	bool create_version=false;
@@ -4835,17 +4839,14 @@ delete_all:
 	remove(save2.c_str());
 	save2=temp+"Time_Stamp";
 	remove(save2.c_str());
-	if (save_err) {
-#if defined(WIN32)
-		MessageBox(GetHWND(),"Failed to save the current state.","Error",MB_OK);
-#endif
-	} else
+	if (save_err)
+		notifyError("Failed to save the current state.");
+	else
 		LOG_MSG("[%s]: Saved. (Slot %d)", getTime().c_str(), (int)slot+1);
 }
 
 void savestatecorrupt(const char* part) {
     LOG_MSG("Save state corrupted! Program in inconsistent state! - %s", part);
-    void MAPPER_ReleaseAllKeys(void);
     MAPPER_ReleaseAllKeys();
     GFX_LosingFocus();
     GUI_Shortcut(21);
@@ -4853,14 +4854,26 @@ void savestatecorrupt(const char* part) {
     GFX_LosingFocus();
 }
 
+bool confres=false;
+bool loadstateconfirm(int ind) {
+    if (ind<0||ind>3) return false;
+    confres=false;
+    MAPPER_ReleaseAllKeys();
+    GFX_LosingFocus();
+    GUI_Shortcut(23+ind);
+    MAPPER_ReleaseAllKeys();
+    GFX_LosingFocus();
+    bool ret=confres;
+    confres=false;
+    return ret;
+}
+
 void SaveState::load(size_t slot) const { //throw (Error)
 //	if (isEmpty(slot)) return;
 	bool load_err=false;
 	if((MEM_TotalPages()*4096/1024/1024)>1024) {
 		LOG_MSG("Stopped. 1 GB is the maximum memory size for saving/loading states.");
-#if defined(WIN32)
-		MessageBox(GetHWND(),"Unsupported memory size.","Error",MB_OK);
-#endif
+		notifyError("Unsupported memory size for loading states.", false);
 		return;
 	}
 	SDL_PauseAudio(0);
@@ -4894,9 +4907,7 @@ void SaveState::load(size_t slot) const { //throw (Error)
 	check_slot.open(save.c_str(), std::ifstream::in);
 	if(check_slot.fail()) {
 		LOG_MSG("No saved slot - %d (%s)",(int)slot+1,save.c_str());
-#if defined(WIN32)
-		MessageBox(GetHWND(),"The selected save slot is empty.","Error",MB_OK);
-#endif
+		notifyError("The selected save slot is an empty slot.", false);
 		load_err=true;
 		return;
 	}
@@ -4935,11 +4946,7 @@ void SaveState::load(size_t slot) const { //throw (Error)
 			if (p!=NULL) *p=0;
 			std::string emulatorversion = std::string("DOSBox-X ") + VERSION + std::string(" (") + SDL_STRING + std::string(")\n") + GetPlatform();
 			if (p==NULL||strcasecmp(buffer,emulatorversion.c_str())) {
-#if defined(WIN32)
-				if(!force_load_state&&MessageBox(GetHWND(),"DOSBox-X version mismatch. Load the state anyway?","Warning",MB_YESNO|MB_DEFBUTTON2)==IDNO) {
-#else
-				if(!force_load_state) {
-#endif
+				if(!force_load_state&&!loadstateconfirm(0)) {
 					LOG_MSG("Aborted. Check your DOSBox-X version: %s",buffer);
 					load_err=true;
 					goto delete_all;
@@ -4968,11 +4975,7 @@ void SaveState::load(size_t slot) const { //throw (Error)
 			check_title.read (buffer, length);
 			check_title.close();
 			if (!length||(size_t)length!=strlen(RunningProgram)||strncmp(buffer,RunningProgram,length)) {
-#if defined(WIN32)
-				if(!force_load_state&&MessageBox(GetHWND(),"Program name mismatch. Load the state anyway?","Warning",MB_YESNO|MB_DEFBUTTON2)==IDNO) {
-#else
-				if(!force_load_state) {
-#endif
+				if(!force_load_state&&!loadstateconfirm(1)) {
 					buffer[length]='\0';
 					LOG_MSG("Aborted. Check your program name: %s",buffer);
 					load_err=true;
@@ -5014,11 +5017,7 @@ void SaveState::load(size_t slot) const { //throw (Error)
 			char str[10];
 			itoa((int)MEM_TotalPages(), str, 10);
 			if(strncmp(buffer,str,length)) {
-#if defined(WIN32)
-				if(!force_load_state&&MessageBox(GetHWND(),"Memory size mismatch. Load the state anyway?","Warning",MB_YESNO|MB_DEFBUTTON2)==IDNO) {
-#else
-				if(!force_load_state) {
-#endif
+				if(!force_load_state&&!loadstateconfirm(2)) {
 					buffer[length]='\0';
 					LOG_MSG("Aborted. Check your memory size.");
 					load_err=true;
@@ -5095,6 +5094,45 @@ bool SaveState::isEmpty(size_t slot) const {
 	std::ifstream check_slot;
 	check_slot.open(save.c_str(), std::ifstream::in);
 	return check_slot.fail();
+}
+
+void SaveState::removeState(size_t slot) const {
+	if (slot >= SLOT_COUNT*MAX_PAGE) return;
+	std::string path;
+	bool Get_Custom_SaveDir(std::string& savedir);
+	if(Get_Custom_SaveDir(path)) {
+		path+=CROSS_FILESPLIT;
+	} else {
+		extern std::string capturedir;
+		const size_t last_slash_idx = capturedir.find_last_of("\\/");
+		if (std::string::npos != last_slash_idx) {
+			path = capturedir.substr(0, last_slash_idx);
+		} else {
+			path = ".";
+		}
+		path += CROSS_FILESPLIT;
+		path +="save";
+		path += CROSS_FILESPLIT;
+	}
+	std::string temp;
+	temp = path;
+	std::stringstream slotname;
+	slotname << slot+1;
+	std::string save=temp+slotname.str()+".sav";
+	std::ifstream check_slot;
+	check_slot.open(save.c_str(), std::ifstream::in);
+	if(check_slot.fail()) {
+		LOG_MSG("No saved slot - %d (%s)",(int)slot+1,save.c_str());
+		notifyError("The selected save slot is an empty slot.", false);
+		return;
+	}
+    if (loadstateconfirm(3)) {
+        check_slot.close();
+        remove(save.c_str());
+        check_slot.open(save.c_str(), std::ifstream::in);
+        if (!check_slot.fail()) notifyError("Failed to remove the state in the save slot.");
+        refresh_slots();
+    }
 }
 
 std::string SaveState::getName(size_t slot) const {
