@@ -1789,8 +1789,8 @@ static void UI_Select(GUI::ScreenSDL *screen, int select) {
             np6->raise();
             } break;
         case 22: if (saveloaderr.size()) {
-            auto *np8 = new ShowStateCorrupt(screen, 150, 120, saveloaderr.c_str());
-            np8->raise();
+            auto *np6 = new ShowStateCorrupt(screen, 150, 120, saveloaderr.c_str());
+            np6->raise();
             } break;
         case 23: {
             auto *np7 = new ShowLoadWarning(screen, 150, 120, "DOSBox-X version mismatch. Load the state anyway?");
