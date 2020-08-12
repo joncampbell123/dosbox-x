@@ -24,6 +24,8 @@
   - All confirm and error dialog boxes for saving or
     loading states appear in a cross-platform manner
     now, instead of only on Windows systems. (Wengier)
+  - Add the option to remove the saved state in the
+    selected save slot. (Wengier)
   - Increased the number of save slots from 10 to 100.
     Each page in the save slot menu (under "Capture")
     still shows 10 slots as before, but you can now go
