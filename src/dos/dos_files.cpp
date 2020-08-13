@@ -2153,6 +2153,8 @@ imageDiskMemory* CreateRamDrive(Bitu sizes[], const int reserved_cylinders, cons
 void POD_Load_DOS_Files( std::istream& stream )
 {
 	READ_POD( &dos_kernel_disabled, dos_kernel_disabled );
+    std::vector<int> clist;
+    clist.clear();
 	if (!dos_kernel_disabled) {
 		// 1. Do drives first (directories -> files)
 		// 2. Then files next
@@ -2224,6 +2226,7 @@ void POD_Load_DOS_Files( std::istream& stream )
                         DriveManager::InitializeDrive(lcv);
                         DOS_EnableDriveMenu('A'+lcv);
                         mem_writeb(Real2Phys(dos.tables.mediaid) + lcv*dos.tables.dpb_size, mediaid);
+                        clist.push_back(lcv);
                     }
                 } else if (!strncmp(dinfo,"fatDrive ",9)) {
                     fatDrive* newDrive = NULL;
@@ -2389,5 +2392,11 @@ void POD_Load_DOS_Files( std::istream& stream )
                 LOG_MSG("Warning: Cannot restore drive number from image file %s\n", diskname);
             if (newDrive) delete newDrive;
         }
+    }
+    for (auto &it : clist) {
+        bool ide_slave = false;
+        signed char ide_index = -1;
+        IDE_Auto(ide_index,ide_slave);
+        if (ide_index >= 0) IDE_CDROM_Attach(ide_index, ide_slave, it);
     }
 }
