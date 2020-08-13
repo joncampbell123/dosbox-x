@@ -3,7 +3,7 @@ DOSBox-X Installation and Released Packages
 
 DOSBox-X is a cross-platform DOS emulator based on DOSBox, with the eventual goal of being a complete DOS emulation package. New versions of DOSBox-X are released periodically, typically on the last day of a month or the first day of the next month. Since DOSBox-X is cross-platform, all major host operating systems are officially supported including Windows (XP or later), Linux (with X11), macOS (10.12 or later) and DOS operating systems.
 
-The current version of DOSBox-X at this time is DOSBox-X 0.83.4, which was released on August 2, 2020. Pre-compiled Windows binaries (both 32-bit and 64-bit), Linux RPM packages (64-bit), macOS packages (64-bit) and the special HX-DOS packages (for real DOS environments) can be found in the [Releases](https://github.com/joncampbell123/dosbox-x/releases) page. You will find DOSBox-X versions that have been released so far (ZIP or RPM packages) and change logs for the releases. The Windows installer can also be found below (see the next section for details).
+The current version of DOSBox-X at this time is DOSBox-X 0.83.4, which was released on August 2, 2020. Pre-compiled Windows binaries (both 32-bit and 64-bit), Linux RPM packages (64-bit), macOS packages (64-bit) and the special HX-DOS packages (for real DOS environments) are officially available, as well as the source code packages. You will find DOSBox-X versions that have been released so far (ZIP or RPM packages) and change logs for these versions in the [Releases](https://github.com/joncampbell123/dosbox-x/releases) page. The Windows installer can also be found below (see the next section for details).
 
 Once you get DOSBox-X installed and running, you probably want to look at the DOSBox-X user guide in the [DOSBox-X Wiki](https://github.com/joncampbell123/dosbox-x/wiki) for usage information.
 
@@ -48,7 +48,7 @@ Pick a RPM package of the version you want to use for your Linux platform and in
 
 Where ``<filename>`` is the main file name of the RPM package you wish to install. You may want to use the debug builds (the last three packages in the above example) if you desire to do some debugging work when running DOSBox-X. If there are missing dependencies for the rpm command, such as libpng and fluid-soundfont, then you will need to install them first.
 
-If you use a Linux platform that only supports DEB packages, such as Debian, Ubuntu, or Linux Mint, then you need to convert the RPM package you want to install to DEB format first, by using the ```alien``` command-line tool, e.g. ```sudo alien <filename>.rpm```. You will also need to install this tool if it is not yet installed on your Linux system.
+If you use a Linux platform that only supports DEB packages, such as Debian, Ubuntu, or Linux Mint, then you can convert the RPM package you want to install to DEB format by using the ```alien``` command-line tool, e.g. ```sudo alien <filename>.rpm```, which will generate the DEB package for use with your Linux platform from the RPM package. You will need to install the ```alien``` tool first if it is not yet installed on your Linux system.
 
 macOS and DOS Packages (Portable)
 ---------------------------------
