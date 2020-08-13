@@ -2001,7 +2001,7 @@ char overlaydir[CROSS_LEN];
 void MSCDEX_SetCDInterface(int intNr, int forceCD);
 void POD_Save_DOS_Files( std::ostream& stream )
 {
-	WRITE_POD( &dos_kernel_disabled, dos_kernel_disabled );
+    char dinfo[256];
 	if (!dos_kernel_disabled) {
 		// 1. Do drives first (directories -> files)
 		// 2. Then files next
@@ -2021,7 +2021,6 @@ void POD_Save_DOS_Files( std::ostream& stream )
 			WRITE_POD( &drive_valid, drive_valid );
 			if( drive_valid == 0xff ) continue;
 
-            char dinfo[256];
             strcpy(dinfo, Drives[lcv]->GetInfo());
             WRITE_POD( &dinfo, dinfo);
             *overlaydir=0;
@@ -2111,15 +2110,27 @@ void POD_Save_DOS_Files( std::ostream& stream )
 
 			Files[lcv]->SaveState(stream);
 		}
-	}
+	} else {
+        for( int i=2; i<DOS_DRIVES+2; i++ ) {
+            int lcv=i<DOS_DRIVES?i:i-DOS_DRIVES;
+			Bit8u drive_valid;
+			drive_valid = 0;
+			if( Drives[lcv] == 0 ) drive_valid = 0xff;
+			WRITE_POD( &drive_valid, drive_valid );
+			if( drive_valid == 0xff ) continue;
+            strcpy(dinfo, Drives[lcv]->GetInfo());
+            WRITE_POD( &dinfo, dinfo);
+        }
+    }
 
-    for (int i=0; i<MAX_DISK_IMAGES; i++) {
-        bool valid=imageDiskList[i]!=NULL;
+    for (int i=2; i<MAX_DISK_IMAGES+2; i++) {
+        int d=i<MAX_DISK_IMAGES?i:i-MAX_DISK_IMAGES;
+        bool valid=imageDiskList[d]!=NULL;
         WRITE_POD( &valid, valid );
         if (!valid) continue;
         char diskname[256];
-        imageDiskElToritoFloppy *image = dynamic_cast<imageDiskElToritoFloppy *>(imageDiskList[i]);
-        strcpy(diskname, image!=NULL?"El Torito floppy drive":imageDiskList[i]->diskname.c_str());
+        imageDiskElToritoFloppy *image = dynamic_cast<imageDiskElToritoFloppy *>(imageDiskList[d]);
+        strcpy(diskname, image!=NULL?"El Torito floppy drive":imageDiskList[d]->diskname.c_str());
         WRITE_POD( &diskname, diskname );
         if (image!=NULL) {
             opts.CDROM_drive=image->CDROM_drive;
@@ -2127,17 +2138,17 @@ void POD_Save_DOS_Files( std::ostream& stream )
             opts.floppy_emu_type=image->floppy_type;
             opts.mounttype=1;
         } else {
-            imageDiskMemory* idmem = dynamic_cast<imageDiskMemory *>(imageDiskList[i]);
-            imageDiskVHD* idvhd = dynamic_cast<imageDiskVHD *>(imageDiskList[i]);
+            imageDiskMemory* idmem = dynamic_cast<imageDiskMemory *>(imageDiskList[d]);
+            imageDiskVHD* idvhd = dynamic_cast<imageDiskVHD *>(imageDiskList[d]);
             if (idmem!=NULL)
                 opts.mounttype=2;
             else if (idvhd!=NULL)
                 opts.mounttype=3;
             else {
-                opts.bytesector=imageDiskList[i]->sector_size;
-                opts.cylsector=imageDiskList[i]->sectors;
-                opts.headscyl=imageDiskList[i]->heads;
-                opts.cylinders=imageDiskList[i]->cylinders;
+                opts.bytesector=imageDiskList[d]->sector_size;
+                opts.cylsector=imageDiskList[d]->sectors;
+                opts.headscyl=imageDiskList[d]->heads;
+                opts.cylinders=imageDiskList[d]->cylinders;
                 opts.mounttype=0;
             }
         }
@@ -2150,9 +2161,20 @@ void IDE_Auto(signed char &index,bool &slave);
 bool AttachToBiosByLetter(imageDisk* image, const char drive);
 bool AttachToBiosAndIdeByLetter(imageDisk* image, const char drive, const unsigned char ide_index, const bool ide_slave);
 imageDiskMemory* CreateRamDrive(Bitu sizes[], const int reserved_cylinders, const bool forceFloppy, Program* obj);
+
+void unmount(int lcv) {
+    const isoDrive* cdrom = dynamic_cast<isoDrive*>(Drives[lcv]);
+    if (Drives[lcv] && lcv<DOS_DRIVES-1 && DriveManager::UnmountDrive(lcv) == 0) {
+        Drives[lcv]=0;
+        DOS_EnableDriveMenu('A'+lcv);
+        mem_writeb(Real2Phys(dos.tables.mediaid)+(unsigned int)'A'+lcv*dos.tables.dpb_size,0);
+        if (cdrom) IDE_CDROM_Detach(lcv);
+    }
+}
+
 void POD_Load_DOS_Files( std::istream& stream )
 {
-	READ_POD( &dos_kernel_disabled, dos_kernel_disabled );
+    char dinfo[256];
     std::vector<int> clist;
     clist.clear();
 	if (!dos_kernel_disabled) {
@@ -2166,27 +2188,17 @@ void POD_Load_DOS_Files( std::istream& stream )
 			// - reloc ptr
 			READ_POD( &drive_valid, drive_valid );
 			if( drive_valid == 0xff ) {
-                if (Drives[lcv] && lcv<DOS_DRIVES-1) {
-                    DriveManager::UnmountDrive(lcv);
-                    Drives[lcv]=0;
-                    DOS_EnableDriveMenu('A'+lcv);
-                    mem_writeb(Real2Phys(dos.tables.mediaid)+(unsigned int)'A'+lcv*dos.tables.dpb_size,0);
-                }
+                if (Drives[lcv] && lcv<DOS_DRIVES-1) unmount(lcv);
                 continue;
             }
 
-            char dinfo[256];
             READ_POD( &dinfo, dinfo);
             READ_POD( &overlaydir, overlaydir);
             READ_POD( &lalloc, lalloc);
             READ_POD( &oalloc, oalloc);
             READ_POD( &opts, opts);
-            if( Drives[lcv] && strcasecmp(Drives[lcv]->info, dinfo) && (!strncmp(dinfo,"local directory",15) || !strncmp(dinfo,"CDRom ",6) || (!strncmp(dinfo,"isoDrive ",9) || !strncmp(dinfo,"fatDrive ",9)))) {
-                DriveManager::UnmountDrive(lcv);
-                Drives[lcv]=0;
-                DOS_EnableDriveMenu('A'+lcv);
-                mem_writeb(Real2Phys(dos.tables.mediaid)+(unsigned int)'A'+lcv*dos.tables.dpb_size,0);
-            }
+            if( Drives[lcv] && strcasecmp(Drives[lcv]->info, dinfo) && (!strncmp(dinfo,"local directory",15) || !strncmp(dinfo,"CDRom ",6) || (!strncmp(dinfo,"isoDrive ",9) || !strncmp(dinfo,"fatDrive ",9))))
+                unmount(lcv);
             if( !Drives[lcv] ) {
                 std::vector<std::string> options;
                 if (!strncmp(dinfo,"local directory",15)) {
@@ -2339,46 +2351,83 @@ void POD_Load_DOS_Files( std::istream& stream )
 		if (dummy != NULL) {
 			delete dummy;
 		}
-	}
+	} else {
+        for( int i=2; i<DOS_DRIVES+2; i++ ) {
+            int lcv=i<DOS_DRIVES?i:i-DOS_DRIVES;
+			Bit8u drive_valid;
 
-    for (int i=0; i<MAX_DISK_IMAGES; i++) {
+			READ_POD( &drive_valid, drive_valid );
+			if( drive_valid == 0xff ) {
+                if (Drives[lcv]) unmount(lcv);
+                continue;
+            }
+            READ_POD( &dinfo, dinfo);
+            if( Drives[lcv] && strcasecmp(Drives[lcv]->info, dinfo))
+                unmount(lcv);
+            if (!Drives[lcv] && !strncmp(dinfo,"isoDrive ",9)) {
+                MSCDEX_SetCDInterface(CDROM_USE_SDL, -1);
+                Bit8u mediaid = 0xF8;
+                int error = -1;
+                isoDrive* newDrive = new isoDrive('A'+lcv, dinfo+9, mediaid, error);
+                if (!error) {
+                    Drives[lcv] = newDrive;
+                    DriveManager::AppendDisk(lcv, newDrive);
+                    DriveManager::InitializeDrive(lcv);
+                    mem_writeb(Real2Phys(dos.tables.mediaid) + lcv*dos.tables.dpb_size, mediaid);
+                    clist.push_back(lcv);
+                }
+            }
+        }
+    }
+
+    for (int i=2; i<MAX_DISK_IMAGES+2; i++) {
+        int d=i<MAX_DISK_IMAGES?i:i-MAX_DISK_IMAGES;
+        bool ide_slave = false;
+        signed char ide_index = -1;
         bool valid=false;
         READ_POD( &valid, valid );
         if (!valid) {
-            if (imageDiskList[i]) {
-                if (i > 1) IDE_Hard_Disk_Detach(i);
-                imageDiskList[i]->Release();
-                imageDiskList[i] = NULL;
-                imageDiskChange[i] = true;
+            if (imageDiskList[d]) {
+                if (d > 1) IDE_Hard_Disk_Detach(d);
+                imageDiskList[d]->Release();
+                imageDiskList[d] = NULL;
+                imageDiskChange[d] = true;
             }
+            if (i==MAX_DISK_IMAGES-1)
+                for (auto &it : clist) {
+                    ide_slave = false;
+                    ide_index = -1;
+                    IDE_Auto(ide_index,ide_slave);
+                    if (ide_index >= 0) IDE_CDROM_Attach(ide_index, ide_slave, it);
+                }
             continue;
         }
         char diskname[256];
         READ_POD( &diskname, diskname );
         READ_POD( &opts, opts);
         Bitu sizes[4] = { 0,0,0,0 };
-        bool ide_slave = false;
-        signed char ide_index = -1;
+        ide_slave = false;
+        ide_index = -1;
         IDE_Auto(ide_index,ide_slave);
-        if( imageDiskList[i] && ((opts.mounttype==1 && dynamic_cast<imageDiskElToritoFloppy *>(imageDiskList[i])==NULL) || (opts.mounttype!=1 && strcasecmp(imageDiskList[i]->diskname.c_str(), diskname )))) {
-            if (i > 1) IDE_Hard_Disk_Detach(i);
-            imageDiskList[i]->Release();
-            imageDiskList[i] = NULL;
-            imageDiskChange[i] = true;
+        if( imageDiskList[d] && ((opts.mounttype==1 && dynamic_cast<imageDiskElToritoFloppy *>(imageDiskList[d])==NULL) || (opts.mounttype!=1 && strcasecmp(imageDiskList[d]->diskname.c_str(), diskname )))) {
+            if (d > 1) IDE_Hard_Disk_Detach(d);
+            imageDiskList[d]->Release();
+            imageDiskList[d] = NULL;
+            imageDiskChange[d] = true;
         }
-        if (imageDiskList[i])
+        if (imageDiskList[d])
             ;
         else if (opts.mounttype==1) {
             imageDisk * image = new imageDiskElToritoFloppy((unsigned char)opts.CDROM_drive, opts.cdrom_sector_offset, opts.floppy_emu_type);
-            if (image) AttachToBiosByLetter(image, 'A'+i);
+            if (image) AttachToBiosByLetter(image, 'A'+d);
             else LOG_MSG("Warning: Cannot restore drive number from El Torito floppy image.\n");
         } else if (opts.mounttype==2) {
-            imageDiskMemory* image = CreateRamDrive(sizes, 0, i < 2 && sizes[0] == 0, NULL);
-            if (image != NULL && image->Format() == 0x00) AttachToBiosAndIdeByLetter(image, i, (unsigned char)ide_index, ide_slave);
+            imageDiskMemory* image = CreateRamDrive(sizes, 0, d < 2 && sizes[0] == 0, NULL);
+            if (image != NULL && image->Format() == 0x00) AttachToBiosAndIdeByLetter(image, d, (unsigned char)ide_index, ide_slave);
         } else if (opts.mounttype==3 && *diskname) {
             imageDisk* image = NULL;
             if (imageDiskVHD::Open(diskname, false, &image)==imageDiskVHD::OPEN_SUCCESS)
-                AttachToBiosAndIdeByLetter(image, 'A'+i, (unsigned char)ide_index, ide_slave);
+                AttachToBiosAndIdeByLetter(image, 'A'+d, (unsigned char)ide_index, ide_slave);
             else
                 LOG_MSG("Warning: Cannot restore drive number from image file %s\n", diskname);
             image = NULL;
@@ -2387,16 +2436,17 @@ void POD_Load_DOS_Files( std::istream& stream )
             fatDrive* newDrive = new fatDrive(diskname, opts.bytesector, opts.cylsector, opts.headscyl, opts.cylinders, options);
             if (newDrive->created_successfully) {
                 imageDisk* image = newDrive->loadedDisk;
-                AttachToBiosAndIdeByLetter(image, 'A'+i, (unsigned char)ide_index, ide_slave);
+                AttachToBiosAndIdeByLetter(image, 'A'+d, (unsigned char)ide_index, ide_slave);
             } else
                 LOG_MSG("Warning: Cannot restore drive number from image file %s\n", diskname);
             if (newDrive) delete newDrive;
         }
-    }
-    for (auto &it : clist) {
-        bool ide_slave = false;
-        signed char ide_index = -1;
-        IDE_Auto(ide_index,ide_slave);
-        if (ide_index >= 0) IDE_CDROM_Attach(ide_index, ide_slave, it);
+        if (i==MAX_DISK_IMAGES-1)
+            for (auto &it : clist) {
+                ide_slave = false;
+                ide_index = -1;
+                IDE_Auto(ide_index,ide_slave);
+                if (ide_index >= 0) IDE_CDROM_Attach(ide_index, ide_slave, it);
+            }
     }
 }

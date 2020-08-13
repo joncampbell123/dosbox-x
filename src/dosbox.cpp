@@ -798,6 +798,7 @@ void SaveGameState(bool pressed) {
     }
 }
 
+
 void LoadGameState(bool pressed) {
     if (!pressed) return;
 
@@ -1055,9 +1056,9 @@ void DOSBOX_RealInit() {
 	}
 
 	//add support for loading/saving game states
-	MAPPER_AddHandler(SaveGameState, MK_f9, MMOD1|MMOD2,"savestate","SaveState", &item);
+	MAPPER_AddHandler(SaveGameState, MK_f7, MMOD1,"savestate","SaveState", &item);
         item->set_text("Save state");
-	MAPPER_AddHandler(LoadGameState, MK_f10, MMOD1|MMOD2,"loadstate","LoadState", &item);
+	MAPPER_AddHandler(LoadGameState, MK_f8, MMOD1,"loadstate","LoadState", &item);
         item->set_text("Load state");
 	MAPPER_AddHandler(PreviousSaveSlot, MK_f7, MMOD1|MMOD2,"prevslot","PrevSlot", &item);
         item->set_text("Select previous slot");

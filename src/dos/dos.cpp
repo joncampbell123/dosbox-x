@@ -185,6 +185,7 @@ extern unsigned int ENV_KEEPFREE;// = 83;
 DOS_Block dos;
 DOS_InfoBlock dos_infoblock;
 
+extern int bootdrive;
 extern bool force_sfn, dos_kernel_disabled;
 
 Bit16u DOS_Block::psp() {
@@ -3979,6 +3980,8 @@ private:
 		WRITE_POD( &countryNo, countryNo );
 		WRITE_POD( &uselfn, uselfn );
 		WRITE_POD( &lfn_filefind_handle, lfn_filefind_handle );
+		WRITE_POD( &bootdrive, bootdrive );
+		WRITE_POD( &dos_kernel_disabled, dos_kernel_disabled );
 
 		POD_Save_DOS_Devices(stream);
 		POD_Save_DOS_DriveManager(stream);
@@ -4019,6 +4022,10 @@ private:
 		READ_POD( &countryNo, countryNo );
 		READ_POD( &uselfn, uselfn );
 		READ_POD( &lfn_filefind_handle, lfn_filefind_handle );
+		READ_POD( &bootdrive, bootdrive );
+        bool olddisable = dos_kernel_disabled;
+		READ_POD( &dos_kernel_disabled, dos_kernel_disabled );
+        if (!olddisable && dos_kernel_disabled) DispatchVMEvent(VM_EVENT_DOS_EXIT_KERNEL);
 
 		POD_Load_DOS_Devices(stream);
 		POD_Load_DOS_DriveManager(stream);
