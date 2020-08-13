@@ -23,11 +23,13 @@
     This fixes the "save state corrupted" error while
     trying to load saved states but the drives are not
     yet mounted in DOSBox-X. (Wengier)
-  - All confirm and error dialog boxes for saving or
-    loading states appear in a cross-platform manner
-    now, instead of only on Windows systems. (Wengier)
-  - Add the option to remove the saved state in the
-    selected save slot. (Wengier)
+  - The save state feature now verifies the emulated
+    machine type (VGA, PC98, etc) too when loading a
+    saved state. All confirm and error dialog boxes
+    for saving or loading states appear in a cross-
+    platform manner now, instead of only on Windows
+    systems. Also added the option to remove the saved
+    state in the selected save slot. (Wengier)
   - Increased the number of save slots from 10 to 100.
     Each page in the save slot menu (under "Capture")
     still shows 10 slots as before, but you can now go

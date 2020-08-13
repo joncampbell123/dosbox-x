@@ -704,6 +704,35 @@ std::string getTime(bool date=false)
     return buffer;
 }
 
+std::string getType() {
+    switch (machine) {
+        case MCH_HERC:
+            return "MCH_HERC";
+        case MCH_CGA:
+            return "MCH_CGA";
+        case MCH_TANDY:
+            return "MCH_TANDY";
+        case MCH_PCJR:
+            return "MCH_PCJR";
+        case MCH_EGA:
+            return "MCH_EGA";
+        case MCH_VGA:
+            return "MCH_VGA";
+        case MCH_AMSTRAD:
+            return "MCH_AMSTRAD";
+        case MCH_PC98:
+            return "MCH_PC98";
+        case MCH_FM_TOWNS:
+            return "MCH_FM_TOWNS";
+        case MCH_MCGA:
+            return "MCH_MCGA";
+        case MCH_MDA:
+            return "MCH_MDA";
+        default:
+            return "MCH_OTHER";
+    }
+}
+
 size_t GetGameState();
 
 class SlotPos
@@ -784,13 +813,8 @@ void SaveGameState(bool pressed) {
     {
         LOG_MSG("Saving state to slot: %d", (int)currentSlot + 1);
         SaveState::instance().save(currentSlot);
-        if (page==currentSlot/SaveState::SLOT_COUNT) {
-            char name[6]="slot0";
-            name[4]='0'+(char)(currentSlot%SaveState::SaveState::SLOT_COUNT);
-            std::string command=SaveState::instance().getName(currentSlot);
-            std::string str="Slot "+std::to_string(currentSlot+1)+(command==""?"":" "+command);
-            mainMenu.get_item(name).set_text(str.c_str()).refresh_item(mainMenu);
-        }
+        if (page==currentSlot/SaveState::SLOT_COUNT)
+            refresh_slots();
     }
     catch (const SaveState::Error& err)
     {
@@ -4722,6 +4746,7 @@ void SaveState::save(size_t slot) { //throw (Error)
 	bool create_version=false;
 	bool create_title=false;
 	bool create_memorysize=false;
+	bool create_machinetype=false;
 	bool create_timestamp=false;
 	extern const char* RunningProgram;
 	std::string path;
@@ -4783,6 +4808,14 @@ void SaveState::save(size_t slot) { //throw (Error)
 				memorysize.close();
 			}
 
+			if(!create_machinetype) {
+				std::string tempname = temp+"Machine_type";
+				std::ofstream machinetype (tempname.c_str(), std::ofstream::binary);
+				machinetype << getType();
+				create_machinetype=true;
+				machinetype.close();
+			}
+
 			if(!create_timestamp) {
 				std::string tempname = temp+"Time_Stamp";
 				std::ofstream timestamp (tempname.c_str(), std::ofstream::binary);
@@ -4826,6 +4859,8 @@ void SaveState::save(size_t slot) { //throw (Error)
 	my_minizip((char **)save.c_str(), (char **)save2.c_str());
 	save2=temp+"Memory_Size";
 	my_minizip((char **)save.c_str(), (char **)save2.c_str());
+	save2=temp+"Machine_Type";
+	my_minizip((char **)save.c_str(), (char **)save2.c_str());
 	save2=temp+"Time_Stamp";
 	my_minizip((char **)save.c_str(), (char **)save2.c_str());
 
@@ -4859,7 +4894,7 @@ void savestatecorrupt(const char* part) {
 
 bool confres=false;
 bool loadstateconfirm(int ind) {
-    if (ind<0||ind>3) return false;
+    if (ind<0||ind>4) return false;
     confres=false;
     MAPPER_ReleaseAllKeys();
     GFX_LosingFocus();
@@ -4880,11 +4915,11 @@ void SaveState::load(size_t slot) const { //throw (Error)
 		return;
 	}
 	SDL_PauseAudio(0);
-    clearline=true;
 	extern const char* RunningProgram;
 	bool read_version=false;
 	bool read_title=false;
 	bool read_memorysize=false;
+	bool read_machinetype=false;
 	std::string path;
 	bool Get_Custom_SaveDir(std::string& savedir);
 	if(Get_Custom_SaveDir(path)) {
@@ -5019,16 +5054,49 @@ void SaveState::load(size_t slot) const { //throw (Error)
 			check_memorysize.close();
 			char str[10];
 			itoa((int)MEM_TotalPages(), str, 10);
-			if(strncmp(buffer,str,length)) {
+			if(!length||(size_t)length!=strlen(str)||strncmp(buffer,str,length)) {
 				if(!force_load_state&&!loadstateconfirm(2)) {
 					buffer[length]='\0';
-					LOG_MSG("Aborted. Check your memory size.");
+					int size=atoi(buffer)*4096/1024/1024;
+					LOG_MSG("Aborted. Check your memory size: %d MB", size);
 					load_err=true;
 					goto delete_all;
 				}
 			}
 			read_memorysize=true;
 		}
+
+		if(!read_machinetype) {
+			my_miniunz((char **)save.c_str(),"Machine_Type",temp.c_str());
+			std::ifstream check_machinetype;
+			int length = 8;
+
+			std::string tempname = temp+"Machine_Type";
+			check_machinetype.open(tempname.c_str(), std::ifstream::in);
+			if(check_machinetype.fail()) {
+				savestatecorrupt("Machine_Type");
+				load_err=true;
+				goto delete_all;
+			}
+			check_machinetype.seekg (0, std::ios::end);
+			length = (int)check_machinetype.tellg();
+			check_machinetype.seekg (0, std::ios::beg);
+
+			char * const buffer = (char*)alloca( (length+1) * sizeof(char)); // char buffer[length];
+			check_machinetype.read (buffer, length);
+			check_machinetype.close();
+			char str[20];
+			strcpy(str, getType().c_str());
+			if(!length||(size_t)length!=strlen(str)||strncmp(buffer,str,length)) {
+				if(!force_load_state&&!loadstateconfirm(3)) {
+					LOG_MSG("Aborted. Check your machine type: %s",buffer);
+					load_err=true;
+					goto delete_all;
+				}
+			}
+			read_machinetype=true;
+		}
+
 		std::string realtemp;
 		realtemp = temp + i->first;
 		check_file.open(realtemp.c_str(), std::ifstream::in);
@@ -5039,6 +5107,7 @@ void SaveState::load(size_t slot) const { //throw (Error)
 			goto delete_all;
 		}
 
+		clearline=true;
 		fb->open(realtemp.c_str(),std::ios::in | std::ios::binary);
 		std::string str((std::istreambuf_iterator<char>(ss)), std::istreambuf_iterator<char>());
 		std::stringstream mystream;
@@ -5067,6 +5136,8 @@ delete_all:
 	save2=temp+"Program_Name";
 	remove(save2.c_str());
 	save2=temp+"Memory_Size";
+	remove(save2.c_str());
+	save2=temp+"Machine_Type";
 	remove(save2.c_str());
 	if (!load_err) LOG_MSG("[%s]: Loaded. (Slot %d)", getTime().c_str(), (int)slot+1);
 }
@@ -5129,7 +5200,7 @@ void SaveState::removeState(size_t slot) const {
 		notifyError("The selected save slot is an empty slot.", false);
 		return;
 	}
-    if (loadstateconfirm(3)) {
+    if (loadstateconfirm(4)) {
         check_slot.close();
         remove(save.c_str());
         check_slot.open(save.c_str(), std::ifstream::in);

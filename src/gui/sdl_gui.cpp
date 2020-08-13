@@ -1805,6 +1805,10 @@ static void UI_Select(GUI::ScreenSDL *screen, int select) {
             np7->raise();
             } break;
         case 26: {
+            auto *np7 = new ShowLoadWarning(screen, 150, 120, "Machine type mismatch. Load the state anyway?");
+            np7->raise();
+            } break;
+        case 27: {
             auto *np7 = new ShowLoadWarning(screen, 150, 120, "Are you sure to remove the state in this slot?");
             np7->raise();
             } break;
