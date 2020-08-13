@@ -992,7 +992,7 @@ static void process_msg(Bitu value)
 
 	buffer = (Bitu)param[2];
 	if (buffer >= GLIDE_BUFFERS) {
-	    LOG_MSG("Glide:Invalid buffer passed in grLfbLock (%llu)", buffer);
+	    LOG_MSG("Glide:Invalid buffer passed in grLfbLock (%lu)", buffer);
 	    return;
 	}
 
