@@ -5,6 +5,9 @@
   - Fixed possible failure when mounting .VHD images,
     and the issue that leading : (read-only marker)
     may not work for such images. (Wengier)
+  - Added option to automatically upgrade the config
+    file to the latest format while keeping the user
+    settings to the Windows installer. (Wengier)
   - MOUNT command's -Q (quiet) option now silences
     virtually all output of this command. (Wengier)
   - Worked around the mounting issue with LaunchBox,
