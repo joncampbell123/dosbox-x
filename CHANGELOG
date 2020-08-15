@@ -9,6 +9,9 @@
     to automatically upgrade the DOSBox-X config file
     (dosbox-x.conf) to the latest version format while
     keeping the current user settings. (Wengier)
+  - The default value for "output" (in "sdl" section)
+    is now "default", which will default to the value
+    according to your platform. (Wengier)
   - MOUNT command's -Q (quiet) option now silences
     virtually all output of this command. (Wengier)
   - Worked around the mounting issue with LaunchBox,
