@@ -5,11 +5,20 @@
   - Fixed possible failure when mounting .VHD images,
     and the issue that leading : (read-only marker)
     may not work for such images. (Wengier)
+  - Added option to the Windows installer which allows
+    to automatically upgrade the DOSBox-X config file
+    (dosbox-x.conf) to the latest version format while
+    keeping the current user settings. (Wengier)
+  - The default value for "output" (in "sdl" section)
+    is now "default", which will default to the value
+    according to your platform. (Wengier)
   - MOUNT command's -Q (quiet) option now silences
     virtually all output of this command. (Wengier)
   - Worked around the mounting issue with LaunchBox,
     by allowing a mounting command-line with single
     quotes like MOUNT C 'X:\DOS' on Windows. (Wengier)
+  - Unmounting ISO drives will auto-unmount associated
+    El Torito floppy drives (if any) too. (Wengier)
   - Updated xxHash library by Yann Collet from 0.7.4
     to the stable version 0.8.0. (Wengier)
   - Added "Quick launch program..." menu (under "DOS")
@@ -21,11 +30,13 @@
     This fixes the "save state corrupted" error while
     trying to load saved states but the drives are not
     yet mounted in DOSBox-X. (Wengier)
-  - All confirm and error dialog boxes for saving or
-    loading states appear in a cross-platform manner
-    now, instead of only on Windows systems. (Wengier)
-  - Add the option to remove the saved state in the
-    selected save slot. (Wengier)
+  - The save state feature now verifies the emulated
+    machine type (VGA, PC98, etc) too when loading a
+    saved state. All confirm and error dialog boxes
+    for saving or loading states appear in a cross-
+    platform manner now, instead of only on Windows
+    systems. Also added the option to remove the saved
+    state in the selected save slot. (Wengier)
   - Increased the number of save slots from 10 to 100.
     Each page in the save slot menu (under "Capture")
     still shows 10 slots as before, but you can now go
