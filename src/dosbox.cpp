@@ -3087,9 +3087,7 @@ void DOSBOX_SetupConfigSections(void) {
 #endif
         "  ps      : Creates PostScript\n"
         "  bmp     : Creates BMP images (very huge files, not recommended)\n"
-#if defined (WIN32)
-        "  printer : Send to an actual printer (Print dialog will appear)"
-#endif
+        "  printer : Send to an actual printer in Windows (Print dialog will appear)"
     );
 
     Pbool = secprop->Add_bool("multipage", Property::Changeable::WhenIdle, false);
