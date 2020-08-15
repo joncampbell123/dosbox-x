@@ -38,6 +38,8 @@
 # pragma warning(disable:4065) /* switch statement no case labels */
 #endif
 
+extern int bootdrive;
+extern bool bootguest, bootvm, use_quick_reboot;
 static unsigned char init_ide = 0;
 
 static const unsigned char IDE_default_IRQs[4] = {
@@ -4157,6 +4159,7 @@ void PC98_IDE_UpdateIRQ(void) {
 }
 
 void IDE_OnReset(Section *sec) {
+    if ((bootguest||(use_quick_reboot&&!bootvm))&&bootdrive>=0) return;
     (void)sec;//UNUSED
 
     for (size_t i=0;i < MAX_IDE_CONTROLLERS;i++) ide_inits[i](control->GetSection(ide_names[i]));

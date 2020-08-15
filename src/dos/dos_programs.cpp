@@ -4470,12 +4470,20 @@ private:
 
                     /* If the drive letter is also a CD-ROM drive attached to IDE, then let the IDE code know */
                     if (cdrom) IDE_CDROM_Detach(i_drive);
-
                     Drives[i_drive] = NULL;
                     DOS_EnableDriveMenu(i_drive+'A');
                     if (i_drive == DOS_GetDefaultDrive())
                         DOS_SetDrive(toupper('Z') - 'A');
                     if (!qmount) WriteOut(MSG_Get("PROGRAM_MOUNT_UMOUNT_SUCCESS"), letter);
+                    if (cdrom)
+                        for (int drv=0; drv<2; drv++)
+                            if (Drives[drv]) {
+                                fatDrive *fdp = dynamic_cast<fatDrive*>(Drives[drv]);
+                                if (fdp&&fdp->opts.mounttype==1&&letter==fdp->el.CDROM_drive) {
+                                    char drive='A'+drv;
+                                    Unmount(drive);
+                                }
+                            }
                     return true;
                 }
                 case 1:
