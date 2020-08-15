@@ -3029,7 +3029,7 @@ void DOSBOX_SetupConfigSections(void) {
     Pstring->Set_values(serials);
     Pmulti_remain->GetSection()->Add_string("parameters",Property::Changeable::WhenIdle,"");
     Pmulti_remain->Set_help(
-        "set type of device connected to com port.\n"
+        "set type of device connected to the serial (COM) port.\n"
         "Can be disabled, dummy, modem, nullmodem, directserial.\n"
         "Additional parameters must be in the same line in the form of\n"
         "parameter:value. Parameter for all types is irq (optional).\n"
@@ -3081,7 +3081,7 @@ void DOSBOX_SetupConfigSections(void) {
 #else
     Pstring = secprop->Add_string("printoutput", Property::Changeable::WhenIdle, "ps");
 #endif
-    Pstring->Set_help("Output method for finished pages: \n"
+    Pstring->Set_help("Output method for finished pages:\n"
 #ifdef C_LIBPNG
         "  png     : Creates PNG images (default)\n"
 #endif
@@ -3103,7 +3103,7 @@ void DOSBOX_SetupConfigSections(void) {
     secprop=control->AddSection_prop("parallel",&Null_Init,true);
     Pstring = secprop->Add_string("parallel1",Property::Changeable::WhenIdle,"disabled");
     Pstring->Set_help(
-            "parallel1-3 -- set type of device connected to lpt port.\n"
+            "parallel1-3 -- set type of device connected to the parallel (LPT) port.\n"
             "Can be:\n"
             "   reallpt (direct parallel port passthrough),\n"
             "   file (records data to a file or passes it to a device),\n"
@@ -3117,7 +3117,7 @@ void DOSBOX_SetupConfigSections(void) {
             "      Default: 378\n"
             "    ecpbase (base address of the ECP registers, optional).\n"
             "  Linux: realport (the parallel port device i.e. /dev/parport0).\n"
-            "  for file: \n"
+            "  for file:\n"
             "    dev:<devname> (i.e. dev:lpt1) to forward data to a device,\n"
             "    or append:<file> appends data to the specified file.\n"
             "    Without the above parameters data is written to files in the capture dir.\n"

@@ -325,7 +325,8 @@ begin
                   end
                   if (CompareText(section, '4dos') = 0) or (CompareText(section, 'config') = 0) or (CompareText(section, 'autoexec') = 0) then
                   begin
-                    FileLinesave.add(lineold);
+                    if (Length(lineold)>0) or (FileLines.Count>0) then
+                      FileLinesave.add(lineold);
                     if (Length(lineold)>0) then
                       FileLines.add(lineold);
                   end
@@ -339,12 +340,12 @@ begin
           else if (CompareText(section, '4dos') = 0) or (CompareText(section, 'config') = 0) or (CompareText(section, 'autoexec') = 0) then
           begin
             if (FileLines.Count=0) then
-              FileLinesave.add(linenew);
+              FileLinesave.add(FileLinesnew[i]);
             continue;
           end
           else if (Length(linenew)=0) or (Copy(linenew, 1, 1) = '#') then
           begin
-            FileLinesave.add(linenew);
+            FileLinesave.add(FileLinesnew[i]);
             continue;
           end
           else if (Length(section)>0) and (Length(linenew)>0) and (Pos('=', linenew) > 1) then
