@@ -1201,7 +1201,7 @@ void BIOS_SetupDisks(void) {
     RealSetVec(0x13,CALLBACK_RealPointer(call_int13));
 
     //release the drives after a soft reset
-    if (!bootguest&&(bootvm||!use_quick_reboot)||bootdrive<0) FreeBIOSDiskList();
+    if ((!bootguest&&(bootvm||!use_quick_reboot))||bootdrive<0) FreeBIOSDiskList();
 
     /* FIXME: Um... these aren't callbacks. Why are they allocated as callbacks? We have ROM general allocation now. */
     diskparm0 = CALLBACK_Allocate();

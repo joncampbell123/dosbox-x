@@ -1,4 +1,6 @@
 0.83.5
+  - VER /R now shows DOSBox-X's Git commit SHA1, in
+    addition to other version information. (Wengier)
   - Fixed that joystick may not work with the setting
     "usescancodes=auto" when a non-US keyboard layout
     is activated on the SDL1 build. (Wengier)
