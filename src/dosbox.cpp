@@ -704,6 +704,35 @@ std::string getTime(bool date=false)
     return buffer;
 }
 
+std::string getType() {
+    switch (machine) {
+        case MCH_HERC:
+            return "MCH_HERC";
+        case MCH_CGA:
+            return "MCH_CGA";
+        case MCH_TANDY:
+            return "MCH_TANDY";
+        case MCH_PCJR:
+            return "MCH_PCJR";
+        case MCH_EGA:
+            return "MCH_EGA";
+        case MCH_VGA:
+            return "MCH_VGA";
+        case MCH_AMSTRAD:
+            return "MCH_AMSTRAD";
+        case MCH_PC98:
+            return "MCH_PC98";
+        case MCH_FM_TOWNS:
+            return "MCH_FM_TOWNS";
+        case MCH_MCGA:
+            return "MCH_MCGA";
+        case MCH_MDA:
+            return "MCH_MDA";
+        default:
+            return "MCH_OTHER";
+    }
+}
+
 size_t GetGameState();
 
 class SlotPos
@@ -752,7 +781,7 @@ void notifyError(const std::string& message, bool log=true)
     MAPPER_ReleaseAllKeys();
     GFX_LosingFocus();
     saveloaderr=message;
-    GUI_Shortcut(25);
+    GUI_Shortcut(22);
     saveloaderr="";
     MAPPER_ReleaseAllKeys();
     GFX_LosingFocus();
@@ -784,17 +813,15 @@ void SaveGameState(bool pressed) {
     {
         LOG_MSG("Saving state to slot: %d", (int)currentSlot + 1);
         SaveState::instance().save(currentSlot);
-		char name[6]="slot0";
-		name[4]='0'+(char)(currentSlot%SaveState::SaveState::SLOT_COUNT);
-		std::string command=SaveState::instance().getName(currentSlot);
-		std::string str="Slot "+std::to_string(currentSlot+1)+(command==""?"":" "+command);
-		mainMenu.get_item(name).set_text(str.c_str()).refresh_item(mainMenu);
+        if (page==currentSlot/SaveState::SLOT_COUNT)
+            refresh_slots();
     }
     catch (const SaveState::Error& err)
     {
         notifyError(err);
     }
 }
+
 
 void LoadGameState(bool pressed) {
     if (!pressed) return;
@@ -1053,9 +1080,9 @@ void DOSBOX_RealInit() {
 	}
 
 	//add support for loading/saving game states
-	MAPPER_AddHandler(SaveGameState, MK_f9, MMOD1|MMOD2,"savestate","SaveState", &item);
+	MAPPER_AddHandler(SaveGameState, MK_f7, MMOD1,"savestate","SaveState", &item);
         item->set_text("Save state");
-	MAPPER_AddHandler(LoadGameState, MK_f10, MMOD1|MMOD2,"loadstate","LoadState", &item);
+	MAPPER_AddHandler(LoadGameState, MK_f8, MMOD1,"loadstate","LoadState", &item);
         item->set_text("Load state");
 	MAPPER_AddHandler(PreviousSaveSlot, MK_f7, MMOD1|MMOD2,"prevslot","PrevSlot", &item);
         item->set_text("Select previous slot");
@@ -3002,7 +3029,7 @@ void DOSBOX_SetupConfigSections(void) {
     Pstring->Set_values(serials);
     Pmulti_remain->GetSection()->Add_string("parameters",Property::Changeable::WhenIdle,"");
     Pmulti_remain->Set_help(
-        "set type of device connected to com port.\n"
+        "set type of device connected to the serial (COM) port.\n"
         "Can be disabled, dummy, modem, nullmodem, directserial.\n"
         "Additional parameters must be in the same line in the form of\n"
         "parameter:value. Parameter for all types is irq (optional).\n"
@@ -3054,15 +3081,13 @@ void DOSBOX_SetupConfigSections(void) {
 #else
     Pstring = secprop->Add_string("printoutput", Property::Changeable::WhenIdle, "ps");
 #endif
-    Pstring->Set_help("Output method for finished pages: \n"
+    Pstring->Set_help("Output method for finished pages:\n"
 #ifdef C_LIBPNG
         "  png     : Creates PNG images (default)\n"
 #endif
         "  ps      : Creates PostScript\n"
         "  bmp     : Creates BMP images (very huge files, not recommended)\n"
-#if defined (WIN32)
-        "  printer : Send to an actual printer (Print dialog will appear)"
-#endif
+        "  printer : Send to an actual printer in Windows (Print dialog will appear)"
     );
 
     Pbool = secprop->Add_bool("multipage", Property::Changeable::WhenIdle, false);
@@ -3078,7 +3103,7 @@ void DOSBOX_SetupConfigSections(void) {
     secprop=control->AddSection_prop("parallel",&Null_Init,true);
     Pstring = secprop->Add_string("parallel1",Property::Changeable::WhenIdle,"disabled");
     Pstring->Set_help(
-            "parallel1-3 -- set type of device connected to lpt port.\n"
+            "parallel1-3 -- set type of device connected to the parallel (LPT) port.\n"
             "Can be:\n"
             "   reallpt (direct parallel port passthrough),\n"
             "   file (records data to a file or passes it to a device),\n"
@@ -3092,7 +3117,7 @@ void DOSBOX_SetupConfigSections(void) {
             "      Default: 378\n"
             "    ecpbase (base address of the ECP registers, optional).\n"
             "  Linux: realport (the parallel port device i.e. /dev/parport0).\n"
-            "  for file: \n"
+            "  for file:\n"
             "    dev:<devname> (i.e. dev:lpt1) to forward data to a device,\n"
             "    or append:<file> appends data to the specified file.\n"
             "    Without the above parameters data is written to files in the capture dir.\n"
@@ -4719,6 +4744,7 @@ void SaveState::save(size_t slot) { //throw (Error)
 	bool create_version=false;
 	bool create_title=false;
 	bool create_memorysize=false;
+	bool create_machinetype=false;
 	bool create_timestamp=false;
 	extern const char* RunningProgram;
 	std::string path;
@@ -4780,6 +4806,14 @@ void SaveState::save(size_t slot) { //throw (Error)
 				memorysize.close();
 			}
 
+			if(!create_machinetype) {
+				std::string tempname = temp+"Machine_type";
+				std::ofstream machinetype (tempname.c_str(), std::ofstream::binary);
+				machinetype << getType();
+				create_machinetype=true;
+				machinetype.close();
+			}
+
 			if(!create_timestamp) {
 				std::string tempname = temp+"Time_Stamp";
 				std::ofstream timestamp (tempname.c_str(), std::ofstream::binary);
@@ -4823,6 +4857,8 @@ void SaveState::save(size_t slot) { //throw (Error)
 	my_minizip((char **)save.c_str(), (char **)save2.c_str());
 	save2=temp+"Memory_Size";
 	my_minizip((char **)save.c_str(), (char **)save2.c_str());
+	save2=temp+"Machine_Type";
+	my_minizip((char **)save.c_str(), (char **)save2.c_str());
 	save2=temp+"Time_Stamp";
 	my_minizip((char **)save.c_str(), (char **)save2.c_str());
 
@@ -4856,11 +4892,11 @@ void savestatecorrupt(const char* part) {
 
 bool confres=false;
 bool loadstateconfirm(int ind) {
-    if (ind<0||ind>2) return false;
+    if (ind<0||ind>4) return false;
     confres=false;
     MAPPER_ReleaseAllKeys();
     GFX_LosingFocus();
-    GUI_Shortcut(22+ind);
+    GUI_Shortcut(23+ind);
     MAPPER_ReleaseAllKeys();
     GFX_LosingFocus();
     bool ret=confres;
@@ -4877,11 +4913,11 @@ void SaveState::load(size_t slot) const { //throw (Error)
 		return;
 	}
 	SDL_PauseAudio(0);
-    clearline=true;
 	extern const char* RunningProgram;
 	bool read_version=false;
 	bool read_title=false;
 	bool read_memorysize=false;
+	bool read_machinetype=false;
 	std::string path;
 	bool Get_Custom_SaveDir(std::string& savedir);
 	if(Get_Custom_SaveDir(path)) {
@@ -5016,16 +5052,49 @@ void SaveState::load(size_t slot) const { //throw (Error)
 			check_memorysize.close();
 			char str[10];
 			itoa((int)MEM_TotalPages(), str, 10);
-			if(strncmp(buffer,str,length)) {
+			if(!length||(size_t)length!=strlen(str)||strncmp(buffer,str,length)) {
 				if(!force_load_state&&!loadstateconfirm(2)) {
 					buffer[length]='\0';
-					LOG_MSG("Aborted. Check your memory size.");
+					int size=atoi(buffer)*4096/1024/1024;
+					LOG_MSG("Aborted. Check your memory size: %d MB", size);
 					load_err=true;
 					goto delete_all;
 				}
 			}
 			read_memorysize=true;
 		}
+
+		if(!read_machinetype) {
+			my_miniunz((char **)save.c_str(),"Machine_Type",temp.c_str());
+			std::ifstream check_machinetype;
+			int length = 8;
+
+			std::string tempname = temp+"Machine_Type";
+			check_machinetype.open(tempname.c_str(), std::ifstream::in);
+			if(check_machinetype.fail()) {
+				savestatecorrupt("Machine_Type");
+				load_err=true;
+				goto delete_all;
+			}
+			check_machinetype.seekg (0, std::ios::end);
+			length = (int)check_machinetype.tellg();
+			check_machinetype.seekg (0, std::ios::beg);
+
+			char * const buffer = (char*)alloca( (length+1) * sizeof(char)); // char buffer[length];
+			check_machinetype.read (buffer, length);
+			check_machinetype.close();
+			char str[20];
+			strcpy(str, getType().c_str());
+			if(!length||(size_t)length!=strlen(str)||strncmp(buffer,str,length)) {
+				if(!force_load_state&&!loadstateconfirm(3)) {
+					LOG_MSG("Aborted. Check your machine type: %s",buffer);
+					load_err=true;
+					goto delete_all;
+				}
+			}
+			read_machinetype=true;
+		}
+
 		std::string realtemp;
 		realtemp = temp + i->first;
 		check_file.open(realtemp.c_str(), std::ifstream::in);
@@ -5036,6 +5105,7 @@ void SaveState::load(size_t slot) const { //throw (Error)
 			goto delete_all;
 		}
 
+		clearline=true;
 		fb->open(realtemp.c_str(),std::ios::in | std::ios::binary);
 		std::string str((std::istreambuf_iterator<char>(ss)), std::istreambuf_iterator<char>());
 		std::stringstream mystream;
@@ -5064,6 +5134,8 @@ delete_all:
 	save2=temp+"Program_Name";
 	remove(save2.c_str());
 	save2=temp+"Memory_Size";
+	remove(save2.c_str());
+	save2=temp+"Machine_Type";
 	remove(save2.c_str());
 	if (!load_err) LOG_MSG("[%s]: Loaded. (Slot %d)", getTime().c_str(), (int)slot+1);
 }
@@ -5094,6 +5166,45 @@ bool SaveState::isEmpty(size_t slot) const {
 	std::ifstream check_slot;
 	check_slot.open(save.c_str(), std::ifstream::in);
 	return check_slot.fail();
+}
+
+void SaveState::removeState(size_t slot) const {
+	if (slot >= SLOT_COUNT*MAX_PAGE) return;
+	std::string path;
+	bool Get_Custom_SaveDir(std::string& savedir);
+	if(Get_Custom_SaveDir(path)) {
+		path+=CROSS_FILESPLIT;
+	} else {
+		extern std::string capturedir;
+		const size_t last_slash_idx = capturedir.find_last_of("\\/");
+		if (std::string::npos != last_slash_idx) {
+			path = capturedir.substr(0, last_slash_idx);
+		} else {
+			path = ".";
+		}
+		path += CROSS_FILESPLIT;
+		path +="save";
+		path += CROSS_FILESPLIT;
+	}
+	std::string temp;
+	temp = path;
+	std::stringstream slotname;
+	slotname << slot+1;
+	std::string save=temp+slotname.str()+".sav";
+	std::ifstream check_slot;
+	check_slot.open(save.c_str(), std::ifstream::in);
+	if(check_slot.fail()) {
+		LOG_MSG("No saved slot - %d (%s)",(int)slot+1,save.c_str());
+		notifyError("The selected save slot is an empty slot.", false);
+		return;
+	}
+    if (loadstateconfirm(4)) {
+        check_slot.close();
+        remove(save.c_str());
+        check_slot.open(save.c_str(), std::ifstream::in);
+        if (!check_slot.fail()) notifyError("Failed to remove the state in the save slot.");
+        refresh_slots();
+    }
 }
 
 std::string SaveState::getName(size_t slot) const {

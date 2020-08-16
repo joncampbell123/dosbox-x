@@ -1,5 +1,7 @@
 For the latest information about DOSBox-X, please visit the online user guide in the DOSBox-X Wiki: https://github.com/joncampbell123/dosbox-x/wiki
 
-For the latest official releases of DOSBox-X, please check the DOSBox-X Releases page which is available from: https://github.com/joncampbell123/dosbox-x/releases
+For the latest version of DOSBox-X and the installation instructions, please see the INSTALL page: https://github.com/joncampbell123/dosbox-x/blob/master/INSTALL.md
+
+DOSBox-X versions that have been officially released so far and their change history can be found in the DOSBox-X Releases page: https://github.com/joncampbell123/dosbox-x/releases
 
 You can also visit the DOSBox-X issue tracker if you have any issues or want to request new features in DOSBox-X: https://github.com/joncampbell123/dosbox-x/issues

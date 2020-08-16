@@ -1407,7 +1407,6 @@ void CMscdex::LoadState( std::istream& stream )
 
 void POD_Save_DOS_Mscdex( std::ostream& stream )
 {
-	WRITE_POD( &dos_kernel_disabled, dos_kernel_disabled );
 	if (!dos_kernel_disabled) {
 		Bit16u dnum=mscdex->GetNumDrives();
 		WRITE_POD( &dnum, dnum);
@@ -1433,7 +1432,6 @@ void POD_Save_DOS_Mscdex( std::ostream& stream )
 
 void POD_Load_DOS_Mscdex( std::istream& stream )
 {
-	READ_POD( &dos_kernel_disabled, dos_kernel_disabled );
 	if (!dos_kernel_disabled) {
 		Bit16u dnum;
 		READ_POD( &dnum, dnum);

@@ -10,11 +10,11 @@ As a general-purpose DOS emulator, DOSBox-X has many useful and unique features 
 DOSBox-X Quick Start
 ====================
 
-Type INTRO in DOSBox-X for a quick tour. It is essential that you get familiar with the idea of mounting, since DOSBox-X does not automatically make any drive (or a part of it) accessible to the emulation, unless you turn on automatic mounting of available Windows drives at start by setting the option "automountall" to "true" (without quotes) in the dosbox-x.conf file.
+Type INTRO in DOSBox-X for a quick tour. It is essential that you get familiar with the idea of mounting, since DOSBox-X does not automatically make any drive (or a part of it) accessible to the emulation, unless you turn on automatic mounting of available Windows drives at start by setting the option "automountall" to "true" (without quotes) in DOSBox-X's config file, which is dosbox-x.conf by default.
 
 At the beginning you have got a Z:\> instead of a C:\> at the DOSBox-X prompt. Since no drives are mounted yet, you need to make your directories available as drives in DOSBox-X by using the "mount" command. For example, the command line "mount C D:\GAMES" will give you a C drive in DOSBox-X which points to your Windows D:\GAMES directory (that was created before). To change to the drive mounted like above, type "C:". If everything went fine, DOSBox-X will display the prompt "C:\>".
 
-You do not have to always type these commands. There is an [autoexec] section in the dosbox-x.conf file. The commands present there are run when DOSBox-X starts, so you can use this section for the mounting and other purposes, such as launching a specific program you want to use, or a game you want to play.
+You do not have to always type these commands. Check out the "Drive" menu to mount drives from DOSBox-X's graphical interface. There is also an [autoexec] section in DOSBox-X's config file. The commands present there are run when DOSBox-X starts, so you can use this section for the mounting and other purposes, such as launching a specific program you want to use, or a game you want to play.
 
 Further Information
 ===================
@@ -25,8 +25,9 @@ https://github.com/joncampbell123/dosbox-x/wiki
 The issue tracker and source code for DOSBox-X are available from the DOSBox-X GitHub site. Please feel free to report issues or request new features in DOSBox-X:
 https://github.com/joncampbell123/dosbox-x/issues
 
-You can get the latest official release of DOSBox-X from the DOSBox-X Releases page:
+Information about the latest released packages and installation instructions for DOSBox-X is available from the INSTALL page:
+https://github.com/joncampbell123/dosbox-x/blob/master/INSTALL.md
+
+You can get DOSBox-X versions that have been released so far and their change history from the DOSBox-X Releases page:
 https://github.com/joncampbell123/dosbox-x/releases
 
-Further information about the released packages and installation instructions for DOSBox-X is available from the INSTALL page:
-https://github.com/joncampbell123/dosbox-x/blob/master/INSTALL.md

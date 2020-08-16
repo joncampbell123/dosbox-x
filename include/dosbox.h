@@ -298,6 +298,7 @@ public:
     void save   (size_t slot);       //throw (Error)
     void load   (size_t slot) const; //throw (Error)
     bool isEmpty(size_t slot) const;
+    void removeState(size_t slot) const;
     std::string getName(size_t slot) const;
 
     //initialization: register relevant components on program startup

@@ -3593,6 +3593,34 @@ static void GUI_StartUp() {
     sdl.mouse.xsensitivity = p3->GetSection()->Get_int("xsens");
     sdl.mouse.ysensitivity = p3->GetSection()->Get_int("ysens");
     std::string output=section->Get_string("output");
+	if (output == "default") {
+#ifdef __WIN32__
+# if defined(HX_DOS)
+        output ="surface"; /* HX DOS should stick to surface */
+# elif defined(__MINGW32__) && !(C_DIRECT3D) && !defined(C_SDL2)
+        /* NTS: OpenGL output never seems to work in VirtualBox under Windows XP */
+        output = isVirtualBox ? "surface" : "opengl"; /* MinGW builds do not yet have Direct3D */
+# else
+        output = "direct3d";
+# endif
+#elif defined(MACOSX) && defined(C_OPENGL) && !defined(C_SDL2)
+        /* NTS: Lately, especially on Macbooks with Retina displays, OpenGL gives better performance
+                than the CG bitmap-based "surface" output.
+
+                On my dev system, "top" shows a 20% CPU load doing 1:1 CG Bitmap output to the screen
+                on a High DPI setup, while ignoring High DPI and rendering through Cocoa at 2x size
+                pegs the CPU core DOSBox-X is running on at 100% and emulation stutters.
+
+                So for the best experience, default to OpenGL.
+
+                Note that "surface" yields good performance with SDL2 and OS X because SDL2 doesn't
+                use the CGBitmap system, it uses OpenGL or Metal underneath automatically. */
+        output = "opengl";
+#else
+        output = "surface";
+#endif
+		LOG_MSG("The default output for the video system: %s", output.c_str());
+	}
 
     const std::string emulation = section->Get_string("mouse_emulation");
     if (emulation == "always")
@@ -6120,7 +6148,7 @@ void SDL_SetupConfigSection() {
                       "  (output=surface does not!)");
 
     const char* outputs[] = {
-        "surface", "overlay",
+        "default", "surface", "overlay",
 #if C_OPENGL
         "opengl", "openglnb", "openglhq",
 #endif
@@ -6129,31 +6157,7 @@ void SDL_SetupConfigSection() {
         "direct3d",
 #endif
         0 };
-#ifdef __WIN32__
-# if defined(HX_DOS)
-        Pstring = sdl_sec->Add_string("output", Property::Changeable::Always, "surface"); /* HX DOS should stick to surface */
-# elif defined(__MINGW32__) && !(C_DIRECT3D) && !defined(C_SDL2)
-        /* NTS: OpenGL output never seems to work in VirtualBox under Windows XP */
-        Pstring = sdl_sec->Add_string("output", Property::Changeable::Always, isVirtualBox ? "surface" : "opengl"); /* MinGW builds do not yet have Direct3D */
-# else
-        Pstring = sdl_sec->Add_string("output", Property::Changeable::Always, "direct3d");
-# endif
-#elif defined(MACOSX) && defined(C_OPENGL) && !defined(C_SDL2)
-        /* NTS: Lately, especially on Macbooks with Retina displays, OpenGL gives better performance
-                than the CG bitmap-based "surface" output.
-
-                On my dev system, "top" shows a 20% CPU load doing 1:1 CG Bitmap output to the screen
-                on a High DPI setup, while ignoring High DPI and rendering through Cocoa at 2x size
-                pegs the CPU core DOSBox-X is running on at 100% and emulation stutters.
-
-                So for the best experience, default to OpenGL.
-
-                Note that "surface" yields good performance with SDL2 and OS X because SDL2 doesn't
-                use the CGBitmap system, it uses OpenGL or Metal underneath automatically. */
-        Pstring = sdl_sec->Add_string("output", Property::Changeable::Always, "opengl");
-#else
-        Pstring = sdl_sec->Add_string("output", Property::Changeable::Always, "surface");
-#endif
+	Pstring = sdl_sec->Add_string("output", Property::Changeable::Always, "default");
     Pstring->Set_help("What video system to use for output.");
     Pstring->Set_values(outputs);
 
@@ -7893,6 +7897,13 @@ bool refresh_slots_menu_callback(DOSBoxMenu * const menu, DOSBoxMenu::item * con
     return true;
 }
 
+bool remove_state_menu_callback(DOSBoxMenu * const menu, DOSBoxMenu::item * const menuitem) {
+    (void)menu;//UNUSED
+    (void)menuitem;//UNUSED
+    SaveState::instance().removeState(GetGameState_Run());
+    return true;
+}
+
 bool first_page_menu_callback(DOSBoxMenu * const menu, DOSBoxMenu::item * const menuitem) {
     if (page>0) {
         char name[6]="slot0";
@@ -9364,7 +9375,8 @@ int main(int argc, char* argv[]) SDL_MAIN_NOEXCEPT {
         mainMenu.alloc_item(DOSBoxMenu::item_type_id,"shell_config_commands").set_text("Config options as commands").set_callback_function(shell_config_commands_menu_callback).check(enable_config_as_shell_commands);
         mainMenu.alloc_item(DOSBoxMenu::item_type_id,"quick_reboot").set_text("Enable quick reboot").set_callback_function(quick_reboot_menu_callback).check(use_quick_reboot);
         mainMenu.alloc_item(DOSBoxMenu::item_type_id,"force_loadstate").set_text("Force load state mode").set_callback_function(force_loadstate_menu_callback).check(force_load_state);
-        mainMenu.alloc_item(DOSBoxMenu::item_type_id,"refreshslot").set_text("Refresh status").set_callback_function(refresh_slots_menu_callback);
+        mainMenu.alloc_item(DOSBoxMenu::item_type_id,"removestate").set_text("Remove state in slot").set_callback_function(remove_state_menu_callback);
+        mainMenu.alloc_item(DOSBoxMenu::item_type_id,"refreshslot").set_text("Refresh display status").set_callback_function(refresh_slots_menu_callback);
 
         mainMenu.get_item("debug_blankrefreshtest").set_text("Refresh test (blank display)").set_callback_function(refreshtest_menu_callback).refresh_item(mainMenu);
 

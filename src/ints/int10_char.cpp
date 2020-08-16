@@ -797,6 +797,11 @@ static void INT10_TeletypeOutputAttr(Bit8u chr,Bit8u attr,bool useattr,Bit8u pag
         while ((PIC_FullIndex() - start) < 333.0) CALLBACK_Idle();
         // Speaker off
         IO_Write(0x61, IO_Read(0x61) & ~0x3);
+        if (CurMode->type==M_TEXT) {
+            Bit16u chat;
+            INT10_ReadCharAttr(&chat,page);
+            if ((Bit8u)(chat>>8)!=7) return;
+        }
         chr=' ';
     default:
         /* Draw the actual Character */

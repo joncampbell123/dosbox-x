@@ -47,6 +47,7 @@ InfoAfterClickLabel=You have now installed DOSBox-X. Please note that you can cu
 Name: "english"; MessagesFile: "compiler:Default.isl"
 
 [Tasks]
+Name: "contextmenu"; Description: "Add folder context menu for Windows Explorer"
 Name: "desktopicon"; Description: "{cm:CreateDesktopIcon}"; GroupDescription: "{cm:AdditionalIcons}"
 Name: "quicklaunchicon"; Description: "{cm:CreateQuickLaunchIcon}"; GroupDescription: "{cm:AdditionalIcons}"; Flags: unchecked
 
@@ -56,11 +57,13 @@ Name: "compact"; Description: "Compact installation"
 Name: "custom"; Description: "Custom installation"; Flags: iscustom
 
 [Components]
-Name: "compact"; Description: "Install default build";   Types: full compact
+Name: "compact"; Description: "Install default build";   Types: full compact custom; Flags: fixed
 Name: "full"; Description: "Copy all builds to subdirectories";   Types: full
 
 [Files]
 Source: ".\readme.txt"; DestDir: "{app}"; DestName: "README.txt"; Flags: ignoreversion; Components: full compact
+Source: ".\windows_explorer_context_menu_installer.bat"; DestDir: "{app}"; DestName: "windows_explorer_context_menu_installer.bat"; Flags: ignoreversion; Components: full compact
+Source: ".\windows_explorer_context_menu_uninstaller.bat"; DestDir: "{app}"; DestName: "windows_explorer_context_menu_uninstaller.bat"; Flags: ignoreversion; Components: full compact
 Source: "..\CHANGELOG"; DestDir: "{app}"; DestName: "changelog.txt"; Flags: ignoreversion; Components: full compact
 Source: "..\COPYING"; DestDir: "{app}"; DestName: "COPYING.txt"; Flags: ignoreversion; Components: full compact
 Source: "..\dosbox-x.reference.conf"; DestDir: "{app}"; Flags: ignoreversion; Components: full compact
@@ -94,8 +97,12 @@ Name: "{commondesktop}\{#MyAppName}"; Filename: "{app}\{#MyAppExeName}"; Tasks: 
 Name: "{userappdata}\Microsoft\Internet Explorer\Quick Launch\{#MyAppName}"; Filename: "{app}\{#MyAppExeName}"; Tasks: quicklaunchicon
 
 [Run]
+Filename: "{app}\windows_explorer_context_menu_installer.bat"; Check: IsTaskSelected('contextmenu'); Flags: runhidden
 Filename: "{app}\readme.txt"; Description: "View README.txt"; Flags: waituntilterminated runascurrentuser postinstall shellexec skipifsilent
 Filename: "{app}\{#MyAppExeName}"; Description: "{cm:LaunchProgram,{#StringChange(MyAppName, '&', '&&')}}"; Flags: nowait postinstall skipifsilent
+
+[UninstallRun]
+Filename: "{app}\windows_explorer_context_menu_uninstaller.bat"; Flags: runhidden
 
 [UninstallDelete]
 Type: files; Name: "{app}\stderr.txt"
@@ -245,13 +252,24 @@ begin
 end;
 procedure CurStepChanged(CurrentStep: TSetupStep);
 var
-  i: Integer;
-  section, line, linetmp: String;
-  FileLines: TStringList;
+  i, j, k, res: Integer;
+  section, line, linetmp, lineold, linenew: String;
+  FileLines, FileLinesold, FileLinesnew, FileLinesave: TStringList;
 begin
   if (CurrentStep = ssPostInstall) then
   begin
-    msg:='The configuration file dosbox-x.conf already exist in the destination. Do you want to keep your current settings?' #13#13 'If you choose "Yes", the new default files will be named dosbox-x.reference.conf in the installation directory.' #13#13 'If you choose "No", your old files will be renamed dosbox-x.conf.old in the installation directory instead.';
+    if FileExists(ExpandConstant('{app}\dosbox-x.reference.conf')) then
+    begin
+     LoadStringFromFile(ExpandConstant('{app}\dosbox-x.reference.conf'), line);
+     StringChangeEx(line, #13 + #10, #10, False);
+     StringChangeEx(line, #10, #13 + #10, False);
+     SaveStringToFile(ExpandConstant('{app}\dosbox-x.reference.conf'), line, False);
+    end
+    else
+    begin
+      MsgBox('Cannot find the dosbox-x.reference.conf file.', mbError, MB_OK);
+      Exit;
+    end
     if not FileExists(ExpandConstant('{app}\dosbox-x.conf')) then
     begin
       FileCopy(ExpandConstant('{app}\dosbox-x.reference.conf'), ExpandConstant('{app}\dosbox-x.conf'), false);
@@ -285,10 +303,94 @@ begin
         FileLines.SaveToFile(ExpandConstant('{app}\dosbox-x.conf'));
       end
     end
-    else if FileExists(ExpandConstant('{app}\dosbox-x.conf')) and (MsgBox(msg, mbConfirmation, MB_YESNO) = IDNO) then
+    else if (CompareStr(GetSHA1OfFile(ExpandConstant('{app}\dosbox-x.conf')), GetSHA1OfFile(ExpandConstant('{app}\dosbox-x.reference.conf'))) <> 0) or (CompareStr(GetMD5OfFile(ExpandConstant('{app}\dosbox-x.conf')), GetMD5OfFile(ExpandConstant('{app}\dosbox-x.reference.conf'))) <> 0) then
     begin
-      FileCopy(ExpandConstant('{app}\dosbox-x.conf'), ExpandConstant('{app}\dosbox-x.conf.old'), false);
-      FileCopy(ExpandConstant('{app}\dosbox-x.reference.conf'), ExpandConstant('{app}\dosbox-x.conf'), false);
+      msg:='The configuration file dosbox-x.conf already exist in the destination. Do you want to keep your current settings?' #13#13 'If you choose "Yes", your current settings will be kept and the file dosbox-x.conf will be automatically upgraded to the latest version format (recommended).' #13#13 'If you choose "No", the dosbox-x.conf file will be reset to the new default configuration, and your old dosbox-x.conf file will be named dosbox-x.conf.old in the installation directory.' #13#13 'If you choose "Cancel", your current dosbox-x.conf file will be kept as is without any modifications.' #13 #13 'In any case, the new default configuration file will be named dosbox-x.reference.conf in the installation directory.';
+      res := MsgBox(msg, mbConfirmation, MB_YESNOCANCEL);
+      if (res = IDNO) then
+      begin
+        FileCopy(ExpandConstant('{app}\dosbox-x.conf'), ExpandConstant('{app}\dosbox-x.conf.old'), false);
+        FileCopy(ExpandConstant('{app}\dosbox-x.reference.conf'), ExpandConstant('{app}\dosbox-x.conf'), false);
+      end
+      else if (res = IDYES) then
+      begin
+        FileCopy(ExpandConstant('{app}\dosbox-x.conf'), ExpandConstant('{app}\dosbox-x.conf.old'), false);
+        FileLines := TStringList.Create;
+        FileLinesold := TStringList.Create;
+        FileLinesold.LoadFromFile(ExpandConstant('{app}\dosbox-x.conf.old'));
+        FileLinesnew := TStringList.Create;
+        FileLinesnew.LoadFromFile(ExpandConstant('{app}\dosbox-x.reference.conf'));
+        FileLinesave := TStringList.Create;
+        section := '';
+        for i := 0 to FileLinesnew.Count - 1 do
+        begin
+          linenew := Trim(FileLinesnew[i]);
+          if (Length(linenew)>2) and (Copy(linenew, 1, 1) = '[') and (Copy(linenew, Length(linenew), 1) = ']') then
+          begin
+            FileLinesave.add(linenew);
+            section := Copy(linenew, 2, Length(linenew)-2);
+            for j := 0 to FileLinesold.Count - 1 do
+            begin
+              lineold := Trim(FileLinesold[j]);
+              if (Length(lineold)>2) and (Copy(lineold, 1, 1) = '[') and (Copy(lineold, Length(lineold), 1) = ']') and (section = Copy(lineold, 2, Length(lineold)-2)) then
+              begin
+                FileLines := TStringList.Create;
+                for k := j+1 to FileLinesold.Count - 1 do
+                begin
+                  lineold := Trim(FileLinesold[k]);
+                  if (Length(lineold)>2) and (Copy(lineold, 1, 1) = '[') and (Copy(lineold, Length(lineold), 1) = ']') then
+                  begin
+                    break;
+                  end
+                  if (CompareText(section, '4dos') = 0) or (CompareText(section, 'config') = 0) or (CompareText(section, 'autoexec') = 0) then
+                  begin
+                    if (Length(lineold)>0) or (FileLines.Count>0) then
+                      FileLinesave.add(lineold);
+                    if (Length(lineold)>0) then
+                      FileLines.add(lineold);
+                  end
+                  else if (Length(lineold)>0) and (Copy(lineold, 1, 1) <> '#') then
+                    FileLines.add(lineold);
+                end
+                break;
+              end
+            end
+          end
+          else if (CompareText(section, '4dos') = 0) or (CompareText(section, 'config') = 0) or (CompareText(section, 'autoexec') = 0) then
+          begin
+            if (FileLines.Count=0) then
+              FileLinesave.add(FileLinesnew[i]);
+            continue;
+          end
+          else if (Length(linenew)=0) or (Copy(linenew, 1, 1) = '#') then
+          begin
+            FileLinesave.add(FileLinesnew[i]);
+            continue;
+          end
+          else if (Length(section)>0) and (Length(linenew)>0) and (Pos('=', linenew) > 1) then
+          begin
+            res := 0;
+            linetmp := Copy(linenew, 1, Pos('=', linenew) - 1);
+            for j := 0 to FileLines.Count - 1 do
+            begin
+              lineold := Trim(FileLines[j]);
+              if (Length(lineold)>0) and (Pos('=', lineold) > 1) and (CompareText(Trim(linetmp), Trim(Copy(lineold, 1, Pos('=', lineold) - 1))) = 0) then
+              begin
+                res := 1;
+                FileLinesave.add(linetmp + '= ' + Trim(Copy(lineold, Pos('=', lineold) + 1, Length(lineold))));
+                FileLines.Delete(j);
+                break;
+              end
+            end
+            if (res = 0) then
+              FileLinesave.add(linenew);
+          end
+        end
+        FileLinesave.SaveToFile(ExpandConstant('{app}\dosbox-x.conf'));
+        FileLinesold.free;
+        FileLinesnew.free;
+        DeleteFile(ExpandConstant('{app}\dosbox-x.conf.old'));
+      end
     end
   end;
 end;
