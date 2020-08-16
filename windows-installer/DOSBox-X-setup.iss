@@ -258,6 +258,18 @@ var
 begin
   if (CurrentStep = ssPostInstall) then
   begin
+    if FileExists(ExpandConstant('{app}\dosbox-x.reference.conf')) then
+    begin
+     LoadStringFromFile(ExpandConstant('{app}\dosbox-x.reference.conf'), line);
+     StringChangeEx(line, #13 + #10, #10, False);
+     StringChangeEx(line, #10, #13 + #10, False);
+     SaveStringToFile(ExpandConstant('{app}\dosbox-x.reference.conf'), line, False);
+    end
+    else
+    begin
+      MsgBox('Cannot find the dosbox-x.reference.conf file.', mbError, MB_OK);
+      Exit;
+    end
     if not FileExists(ExpandConstant('{app}\dosbox-x.conf')) then
     begin
       FileCopy(ExpandConstant('{app}\dosbox-x.reference.conf'), ExpandConstant('{app}\dosbox-x.conf'), false);
@@ -291,7 +303,7 @@ begin
         FileLines.SaveToFile(ExpandConstant('{app}\dosbox-x.conf'));
       end
     end
-    else if FileExists(ExpandConstant('{app}\dosbox-x.reference.conf')) and (CompareStr(GetSHA1OfFile(ExpandConstant('{app}\dosbox-x.conf')), GetSHA1OfFile(ExpandConstant('{app}\dosbox-x.reference.conf'))) <> 0) or (CompareStr(GetMD5OfFile(ExpandConstant('{app}\dosbox-x.conf')), GetMD5OfFile(ExpandConstant('{app}\dosbox-x.reference.conf'))) <> 0) then
+    else if (CompareStr(GetSHA1OfFile(ExpandConstant('{app}\dosbox-x.conf')), GetSHA1OfFile(ExpandConstant('{app}\dosbox-x.reference.conf'))) <> 0) or (CompareStr(GetMD5OfFile(ExpandConstant('{app}\dosbox-x.conf')), GetMD5OfFile(ExpandConstant('{app}\dosbox-x.reference.conf'))) <> 0) then
     begin
       msg:='The configuration file dosbox-x.conf already exist in the destination. Do you want to keep your current settings?' #13#13 'If you choose "Yes", your current settings will be kept and the file dosbox-x.conf will be automatically upgraded to the latest version format (recommended).' #13#13 'If you choose "No", the dosbox-x.conf file will be reset to the new default configuration, and your old dosbox-x.conf file will be named dosbox-x.conf.old in the installation directory.' #13#13 'If you choose "Cancel", your current dosbox-x.conf file will be kept as is without any modifications.' #13 #13 'In any case, the new default configuration file will be named dosbox-x.reference.conf in the installation directory.';
       res := MsgBox(msg, mbConfirmation, MB_YESNOCANCEL);
