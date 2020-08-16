@@ -10,7 +10,9 @@
   - Added option to the Windows installer which allows
     to automatically upgrade the DOSBox-X config file
     (dosbox-x.conf) to the latest version format while
-    keeping the current user settings. (Wengier)
+    keeping the current user settings. Also added the
+    option to add the context menu for folders in the
+    Windows Explorer. (Wengier)
   - The default value for "output" (in "sdl" section)
     is now "default", which will default to the value
     according to your platform. (Wengier)
