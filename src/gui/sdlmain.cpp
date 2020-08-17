@@ -876,6 +876,7 @@ void                        GUI_Run(bool);
 const char*                 titlebar = NULL;
 extern const char*              RunningProgram;
 extern bool                 CPU_CycleAutoAdjust;
+extern                      cpu_cycles_count_t CPU_CyclePercUsed;
 #if !(ENVIRON_INCLUDED)
 extern char**                   environ;
 #endif
@@ -1040,7 +1041,7 @@ void GFX_SetTitle(Bit32s cycles,Bits frameskip,Bits timing,bool paused){
             VERSION,(int)internal_cycles);
     }
     else {
-        sprintf(title,"%s%sDOSBox-X %s, %d cyc/ms",
+        sprintf(title,"%s%sDOSBox-X %s, %d cycles/ms",
             dosbox_title.c_str(),dosbox_title.empty()?"":": ",
             VERSION,(int)internal_cycles);
     }
@@ -2864,7 +2865,7 @@ void change_output(int output) {
     if (sdl.draw.callback)
         (sdl.draw.callback)( GFX_CallBackReset );
 
-    GFX_SetTitle((Bit32s)CPU_CycleMax,-1,-1,false);
+    if (output != 7) GFX_SetTitle((Bit32s)(CPU_CycleAutoAdjust?CPU_CyclePercUsed:CPU_CycleMax),-1,-1,false);
     GFX_LogSDLState();
 
     UpdateWindowDimensions();
@@ -8068,7 +8069,7 @@ bool showdetails_menu_callback(DOSBoxMenu * const xmenu, DOSBoxMenu::item * cons
     (void)xmenu;//UNUSED
     (void)menuitem;//UNUSED
     menu.showrt = !(menu.hidecycles = !menu.hidecycles);
-    GFX_SetTitle((Bit32s)CPU_CycleMax, -1, -1, false);
+    GFX_SetTitle((Bit32s)(CPU_CycleAutoAdjust?CPU_CyclePercUsed:CPU_CycleMax), -1, -1, false);
     mainMenu.get_item("showdetails").check(!menu.hidecycles).refresh_item(mainMenu);
     return true;
 }
