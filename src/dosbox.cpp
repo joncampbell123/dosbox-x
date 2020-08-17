@@ -1374,8 +1374,8 @@ void DOSBOX_SetupConfigSections(void) {
 
     Pstring = secprop->Add_string("quit warning",Property::Changeable::OnlyAtStart,"auto");
     Pstring->Set_values(truefalseautoopt);
-    Pstring->Set_help("Set this option to indicate whether DOSBox-X should show a warning message when quitting.\n"
-            "If set to auto (default), DOSBox-X will warn only if at least one file is still open.");
+    Pstring->Set_help("Set this option to indicate whether DOSBox-X should show a warning message when the user tries to close its window.\n"
+            "If set to auto (default), DOSBox-X will warn only if at least one file handle is still open.");
 
     Pbool = secprop->Add_bool("keyboard hook", Property::Changeable::Always, false);
     Pbool->Set_help("Use keyboard hook (currently only on Windows) to catch special keys and synchronize the keyboard LEDs with the host");
