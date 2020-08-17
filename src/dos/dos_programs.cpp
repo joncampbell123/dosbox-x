@@ -142,11 +142,25 @@ static void MOUSE_ProgramStart(Program * * make) {
     *make=new MOUSE;
 }
 
+void DetachFromBios(imageDisk* image) {
+    if (image) {
+        for (int index = 0; index < MAX_DISK_IMAGES; index++) {
+            if (imageDiskList[index] == image) {
+                if (index > 1) IDE_Hard_Disk_Detach(index);
+                imageDiskList[index]->Release();
+                imageDiskChange[index] = true;
+                imageDiskList[index] = NULL;
+            }
+        }
+    }
+}
+
 void MSCDEX_SetCDInterface(int intNr, int forceCD);
+bool FDC_UnassignINT13Disk(unsigned char drv);
 bool bootguest=false, use_quick_reboot=false;
 int bootdrive=-1;
 Bit8u ZDRIVE_NUM = 25;
-
+std::string msgget;
 static const char* UnmountHelper(char umount) {
     int i_drive;
     if (umount < '0' || umount > 3+'0')
@@ -163,13 +177,19 @@ static const char* UnmountHelper(char umount) {
     if (i_drive >= MAX_DISK_IMAGES && Drives[i_drive] == NULL)
         return MSG_Get("PROGRAM_MOUNT_UMOUNT_NOT_MOUNTED");
 
-    std::string msg=MSG_Get("PROGRAM_MOUNT_UMOUNT_SUCCESS");
+    if (i_drive <= 1)
+        FDC_UnassignINT13Disk(i_drive);
+
+    msgget=MSG_Get("PROGRAM_MOUNT_UMOUNT_SUCCESS");
     if (Drives[i_drive]) {
+        const fatDrive* drive = dynamic_cast<fatDrive*>(Drives[i_drive]);
+        imageDisk* image = drive ? drive->loadedDisk : NULL;
         const isoDrive* cdrom = dynamic_cast<isoDrive*>(Drives[i_drive]);
         switch (DriveManager::UnmountDrive(i_drive)) {
             case 1: return MSG_Get("PROGRAM_MOUNT_UMOUNT_NO_VIRTUAL");
             case 2: return MSG_Get("MSCDEX_ERROR_MULTIPLE_CDROMS");
         }
+        if (image) DetachFromBios(image);
         if (cdrom) IDE_CDROM_Detach(i_drive);
         Drives[i_drive] = 0;
         DOS_EnableDriveMenu(i_drive+'A');
@@ -181,10 +201,10 @@ static const char* UnmountHelper(char umount) {
                 if (Drives[drv]) {
                     fatDrive *fdp = dynamic_cast<fatDrive*>(Drives[drv]);
                     if (fdp&&fdp->opts.mounttype==1&&toupper(umount)==fdp->el.CDROM_drive) {
-                        msg+=UnmountHelper('A'+drv);
-                        size_t found=msg.rfind("%c");
+                        msgget+=UnmountHelper('A'+drv);
+                        size_t found=msgget.rfind("%c");
                         if (found!=std::string::npos)
-                            msg.replace(found, 2, std::string(1, 'A'+drv));
+                            msgget.replace(found, 2, std::string(1, 'A'+drv));
                     }
                 }
     }
@@ -194,7 +214,7 @@ static const char* UnmountHelper(char umount) {
         imageDiskList[i_drive] = NULL;
     }
 
-    return msg.c_str();
+    return msgget.c_str();
 }
 
 #if defined(WIN32)
@@ -3797,10 +3817,6 @@ bool ElTorito_ScanForBootRecord(CDROM_Interface *drv,unsigned long &boot_record,
     return false;
 }
 
-
-bool FDC_AssignINT13Disk(unsigned char drv);
-bool FDC_UnassignINT13Disk(unsigned char drv);
-
 imageDiskMemory* CreateRamDrive(Bitu sizes[], const int reserved_cylinders, const bool forceFloppy, Program* obj) {
     imageDiskMemory* dsk = NULL;
     //if chs not specified
@@ -3941,19 +3957,6 @@ bool AttachToBiosAndIdeByLetter(imageDisk* image, const char drive, const unsign
         return AttachToBiosByIndex(image, drive - 'A');
     }
     return false;
-}
-
-void DetachFromBios(imageDisk* image) {
-    if (image) {
-        for (int index = 0; index < MAX_DISK_IMAGES; index++) {
-            if (imageDiskList[index] == image) {
-                if (index > 1) IDE_Hard_Disk_Detach(index);
-                imageDiskList[index]->Release();
-                imageDiskChange[index] = true;
-                imageDiskList[index] = NULL;
-            }
-        }
-    }
 }
 
 class IMGMOUNT : public Program {
