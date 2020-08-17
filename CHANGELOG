@@ -8,6 +8,8 @@
     a directory (instead of the current directory) as
     the working directory. DOSBox-X will look for the
     dosbox-x.conf file in this directory. (Wengier)
+  - The -winrun command-line option will enable LFN
+    support with "lfn=auto" on Windows. (Wengier).
   - VER /R now shows DOSBox-X's Git commit SHA1, in
     addition to other version information. (Wengier)
   - Fixed that joystick may not work with the setting
