@@ -28,6 +28,7 @@ SetupIconFile=.\dosbox-x.ico
 Compression=lzma
 SolidCompression=yes
 UsePreviousAppDir=yes
+ChangesAssociations=yes
 DisableStartupPrompt=yes
 DisableWelcomePage=no
 DisableDirPage=no
@@ -47,6 +48,7 @@ InfoAfterClickLabel=You have now installed DOSBox-X. Please note that you can cu
 Name: "english"; MessagesFile: "compiler:Default.isl"
 
 [Tasks]
+Name: "contextmenu"; Description: "Add ""Open with DOSBox-X"" context menu for Windows Explorer"
 Name: "desktopicon"; Description: "{cm:CreateDesktopIcon}"; GroupDescription: "{cm:AdditionalIcons}"
 Name: "quicklaunchicon"; Description: "{cm:CreateQuickLaunchIcon}"; GroupDescription: "{cm:AdditionalIcons}"; Flags: unchecked
 
@@ -61,9 +63,9 @@ Name: "full"; Description: "Copy all builds to subdirectories";   Types: full
 
 [Files]
 Source: ".\readme.txt"; DestDir: "{app}"; DestName: "README.txt"; Flags: ignoreversion; Components: full compact
+Source: ".\dosbox-x.reference.conf"; DestDir: "{app}"; Flags: ignoreversion; Components: full compact
 Source: "..\CHANGELOG"; DestDir: "{app}"; DestName: "changelog.txt"; Flags: ignoreversion; Components: full compact
 Source: "..\COPYING"; DestDir: "{app}"; DestName: "COPYING.txt"; Flags: ignoreversion; Components: full compact
-Source: "..\dosbox-x.reference.conf"; DestDir: "{app}"; Flags: ignoreversion; Components: full compact
 Source: "..\font\FREECG98.BMP"; DestDir: "{app}"; Flags: ignoreversion; Components: full compact
 Source: "..\shaders\*"; DestDir: "{app}\shaders"; Flags: ignoreversion recursesubdirs createallsubdirs; Components: full compact
 Source: "Win32_builds\x86_Release\dosbox-x.exe"; DestDir: "{app}"; Flags: ignoreversion; Check: CheckDirName('Win32_builds\x86_Release'); Components: full compact
@@ -84,6 +86,8 @@ Source: "Win64_builds\mingw-sdl2\dosbox-x.exe"; DestDir: "{app}"; Flags: ignorev
 Source: "Win64_builds\mingw-sdldraw\dosbox-x.exe"; DestDir: "{app}"; Flags: ignoreversion; Check: CheckDirName('Win64_builds\mingw-sdldraw'); Components: full compact
 Source: "Win32_builds\*"; DestDir: "{app}\Win32_builds"; Flags: ignoreversion recursesubdirs createallsubdirs; Components: full
 Source: "Win64_builds\*"; DestDir: "{app}\Win64_builds"; Flags: ignoreversion recursesubdirs createallsubdirs; Check: IsWin64; Components: full
+Source: ".\windows_explorer_context_menu_installer.bat"; DestDir: "{app}\scripts"; DestName: "windows_explorer_context_menu_installer.bat"; Flags: ignoreversion; Components: full compact
+Source: ".\windows_explorer_context_menu_uninstaller.bat"; DestDir: "{app}\scripts"; DestName: "windows_explorer_context_menu_uninstaller.bat"; Flags: ignoreversion; Components: full compact
 ; NOTE: Don't use "Flags: ignoreversion" on any shared system files
 
 [Icons]
@@ -92,6 +96,23 @@ Name: "{group}\View or edit dosbox-x.conf"; Filename: "{app}\dosbox-x.conf"
 Name: "{group}\View DOSBox-X README file"; Filename: "{app}\README.TXT"
 Name: "{commondesktop}\{#MyAppName}"; Filename: "{app}\{#MyAppExeName}"; Tasks: desktopicon
 Name: "{userappdata}\Microsoft\Internet Explorer\Quick Launch\{#MyAppName}"; Filename: "{app}\{#MyAppExeName}"; Tasks: quicklaunchicon
+
+[Registry]
+Root: HKCU; Subkey: "Software\Classes\Directory\shell\DOSBox-X"; ValueType: string; ValueName: ""; ValueData: "Open with DOSBox-X"; Check: IsTaskSelected('contextmenu'); Flags: uninsdeletevalue
+Root: HKCU; Subkey: "Software\Classes\Directory\shell\DOSBox-X"; ValueType: string; ValueName: "Icon"; ValueData: """{app}\dosbox-x.exe"",0"; Check: IsTaskSelected('contextmenu'); Flags: uninsdeletevalue
+Root: HKCU; Subkey: "Software\Classes\Directory\shell\DOSBox-X\command"; ValueType: string; ValueName: ""; ValueData: """{app}\dosbox-x.exe"" -defaultdir ""{app} "" ""%1"""; Check: IsTaskSelected('contextmenu'); Flags: uninsdeletevalue
+Root: HKCU; Subkey: "Software\Classes\Directory\Background\shell\DOSBox-X"; ValueType: string; ValueName: ""; ValueData: "Open with DOSBox-X"; Check: IsTaskSelected('contextmenu'); Flags: uninsdeletevalue
+Root: HKCU; Subkey: "Software\Classes\Directory\Background\shell\DOSBox-X"; ValueType: string; ValueName: "Icon"; ValueData: """{app}\dosbox-x.exe"",0"; Check: IsTaskSelected('contextmenu'); Flags: uninsdeletevalue
+Root: HKCU; Subkey: "Software\Classes\Directory\Background\shell\DOSBox-X\command"; ValueType: string; ValueName: ""; ValueData: """{app}\dosbox-x.exe"" -defaultdir ""{app} "" ""%1"""; Check: IsTaskSelected('contextmenu'); Flags: uninsdeletevalue
+Root: HKCU; Subkey: "Software\Classes\SystemFileAssociations\.exe\shell\Open with DOSBox-X"; ValueType: none; ValueName: ""; ValueData: ""; Check: IsTaskSelected('contextmenu'); Flags: uninsdeletevalue
+Root: HKCU; Subkey: "Software\Classes\SystemFileAssociations\.exe\shell\Open with DOSBox-X"; ValueType: string; ValueName: "Icon"; ValueData: """{app}\dosbox-x.exe"",0"; Check: IsTaskSelected('contextmenu'); Flags: uninsdeletekey
+Root: HKCU; Subkey: "Software\Classes\SystemFileAssociations\.exe\shell\Open with DOSBox-X\command"; ValueType: string; ValueName: ""; ValueData: """{app}\dosbox-x.exe"" -defaultdir ""{app} "" ""%1"""; Check: IsTaskSelected('contextmenu'); Flags: uninsdeletekey
+Root: HKCU; Subkey: "Software\Classes\SystemFileAssociations\.com\shell\Open with DOSBox-X"; ValueType: none; ValueName: ""; ValueData: ""; Check: IsTaskSelected('contextmenu'); Flags: uninsdeletevalue
+Root: HKCU; Subkey: "Software\Classes\SystemFileAssociations\.com\shell\Open with DOSBox-X"; ValueType: string; ValueName: "Icon"; ValueData: """{app}\dosbox-x.exe"",0"; Check: IsTaskSelected('contextmenu'); Flags: uninsdeletekey
+Root: HKCU; Subkey: "Software\Classes\SystemFileAssociations\.com\shell\Open with DOSBox-X\command"; ValueType: string; ValueName: ""; ValueData: """{app}\dosbox-x.exe"" -defaultdir ""{app} "" ""%1"""; Check: IsTaskSelected('contextmenu'); Flags: uninsdeletekey
+Root: HKCU; Subkey: "Software\Classes\SystemFileAssociations\.bat\shell\Open with DOSBox-X"; ValueType: none; ValueName: ""; ValueData: ""; Check: IsTaskSelected('contextmenu'); Flags: uninsdeletevalue
+Root: HKCU; Subkey: "Software\Classes\SystemFileAssociations\.bat\shell\Open with DOSBox-X"; ValueType: string; ValueName: "Icon"; ValueData: """{app}\dosbox-x.exe"",0"; Check: IsTaskSelected('contextmenu'); Flags: uninsdeletekey
+Root: HKCU; Subkey: "Software\Classes\SystemFileAssociations\.bat\shell\Open with DOSBox-X\command"; ValueType: string; ValueName: ""; ValueData: """{app}\dosbox-x.exe"" -defaultdir ""{app} "" ""%1"""; Check: IsTaskSelected('contextmenu'); Flags: uninsdeletekey
 
 [Run]
 Filename: "{app}\readme.txt"; Description: "View README.txt"; Flags: waituntilterminated runascurrentuser postinstall shellexec skipifsilent
@@ -251,6 +272,11 @@ var
 begin
   if (CurrentStep = ssPostInstall) then
   begin
+    if not FileExists(ExpandConstant('{app}\dosbox-x.reference.conf')) then
+    begin
+      MsgBox('Cannot find the dosbox-x.reference.conf file.', mbError, MB_OK);
+      Exit;
+    end
     if not FileExists(ExpandConstant('{app}\dosbox-x.conf')) then
     begin
       FileCopy(ExpandConstant('{app}\dosbox-x.reference.conf'), ExpandConstant('{app}\dosbox-x.conf'), false);
@@ -284,7 +310,7 @@ begin
         FileLines.SaveToFile(ExpandConstant('{app}\dosbox-x.conf'));
       end
     end
-    else if FileExists(ExpandConstant('{app}\dosbox-x.reference.conf')) and (CompareStr(GetSHA1OfFile(ExpandConstant('{app}\dosbox-x.conf')), GetSHA1OfFile(ExpandConstant('{app}\dosbox-x.reference.conf'))) <> 0) or (CompareStr(GetMD5OfFile(ExpandConstant('{app}\dosbox-x.conf')), GetMD5OfFile(ExpandConstant('{app}\dosbox-x.reference.conf'))) <> 0) then
+    else if (CompareStr(GetSHA1OfFile(ExpandConstant('{app}\dosbox-x.conf')), GetSHA1OfFile(ExpandConstant('{app}\dosbox-x.reference.conf'))) <> 0) or (CompareStr(GetMD5OfFile(ExpandConstant('{app}\dosbox-x.conf')), GetMD5OfFile(ExpandConstant('{app}\dosbox-x.reference.conf'))) <> 0) then
     begin
       msg:='The configuration file dosbox-x.conf already exist in the destination. Do you want to keep your current settings?' #13#13 'If you choose "Yes", your current settings will be kept and the file dosbox-x.conf will be automatically upgraded to the latest version format (recommended).' #13#13 'If you choose "No", the dosbox-x.conf file will be reset to the new default configuration, and your old dosbox-x.conf file will be named dosbox-x.conf.old in the installation directory.' #13#13 'If you choose "Cancel", your current dosbox-x.conf file will be kept as is without any modifications.' #13 #13 'In any case, the new default configuration file will be named dosbox-x.reference.conf in the installation directory.';
       res := MsgBox(msg, mbConfirmation, MB_YESNOCANCEL);
@@ -326,7 +352,7 @@ begin
                   if (CompareText(section, '4dos') = 0) or (CompareText(section, 'config') = 0) or (CompareText(section, 'autoexec') = 0) then
                   begin
                     if (Length(lineold)>0) or (FileLines.Count>0) then
-                      FileLinesave.add(lineold);
+                      FileLinesave.add(FileLinesold[k]);
                     if (Length(lineold)>0) then
                       FileLines.add(lineold);
                   end

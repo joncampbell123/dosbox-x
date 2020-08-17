@@ -69,7 +69,7 @@ extern uint32_t             GFX_Bmask;
 extern unsigned char        GFX_Bshift;
 
 extern std::string          saveloaderr;
-extern bool                 dos_kernel_disabled, confres;
+extern bool                 dos_kernel_disabled, confres, quit_confirm;
 extern Bitu                 currentWindowWidth, currentWindowHeight;
 
 extern bool                 MSG_Write(const char *);
@@ -1471,6 +1471,31 @@ public:
     }
 };
 
+class ShowQuitWarning : public GUI::ToplevelWindow {
+protected:
+    GUI::Input *name;
+public:
+    ShowQuitWarning(GUI::Screen *parent, int x, int y, const char *title) :
+        ToplevelWindow(parent, x, y, strcmp(title, "quit1")?430:330, strcmp(title, "quit1")?180:150, "Quit DOSBox-X warning") {
+            bool forcequit=strcmp(title, "quit1");
+            new GUI::Label(this, forcequit?20:40, 20, forcequit?"It may be unsafe to quit from DOSBox-X right now":"This will quit from DOSBox-X.");
+            if (forcequit) new GUI::Label(this, forcequit?20:40, 50, "because one or more files are currently open.");
+            new GUI::Label(this, forcequit?20:40, forcequit?80:50, forcequit?"Are you sure to quit anyway now?":"Are you sure?");
+            (new GUI::Button(this, forcequit?140:90, forcequit?110:80, "Yes", 70))->addActionHandler(this);
+            (new GUI::Button(this, forcequit?230:180, forcequit?110:80, "No", 70))->addActionHandler(this);
+    }
+
+    void actionExecuted(GUI::ActionEventSource *b, const GUI::String &arg) {
+        (void)b;//UNUSED
+        if (arg == "Yes")
+            quit_confirm=true;
+        if (arg == "No")
+            quit_confirm=false;
+        close();
+        if (shortcut) running = false;
+    }
+};
+
 class ConfigurationWindow : public GUI::ToplevelWindow {
 public:
     GUI::Button *saveButton, *closeButton;
@@ -1811,6 +1836,14 @@ static void UI_Select(GUI::ScreenSDL *screen, int select) {
         case 27: {
             auto *np7 = new ShowLoadWarning(screen, 150, 120, "Are you sure to remove the state in this slot?");
             np7->raise();
+            } break;
+        case 28: {
+            auto *np8 = new ShowQuitWarning(screen, 150, 120, "quit1");
+            np8->raise();
+            } break;
+        case 29: {
+            auto *np8 = new ShowQuitWarning(screen, 120, 100, "quit2");
+            np8->raise();
             } break;
         default:
             break;

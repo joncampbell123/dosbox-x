@@ -44,6 +44,7 @@ extern bool enable_config_as_shell_commands;
 extern bool dos_shell_running_program, addovl;
 extern const char* RunningProgram;
 extern Bit16u countryNo;
+extern int enablelfn;
 bool usecon = true;
 
 Bit16u shell_psp = 0;
@@ -650,6 +651,7 @@ void DOS_Shell::SyntaxError(void) {
 	WriteOut(MSG_Get("SHELL_SYNTAXERROR"));
 }
 
+bool filename_not_8x3(const char *n);
 class AUTOEXEC:public Module_base {
 private:
 	AutoexecObject autoexec[17];
@@ -665,7 +667,7 @@ public:
 
         /* The user may have given .BAT files to run on the command line */
         if (!control->auto_bat_additional.empty()) {
-            std::string cmd;
+            std::string cmd = "@echo off\n";
 
             for (unsigned int i=0;i<control->auto_bat_additional.size();i++) {
                 if (!strncmp(control->auto_bat_additional[i].c_str(), "@mount c: ", 10)) {
@@ -688,12 +690,15 @@ public:
                         batname = control->auto_bat_additional[i].substr(pos+1);
                         cmd += "@mount c: \"" + batpath + "\" -q\n";
                     }
+                    bool templfn=!uselfn&&filename_not_8x3(batname.c_str())&&(enablelfn==-1||enablelfn==-2);
                     cmd += "@c:\n";
                     cmd += "@cd \\\n";
+                    if (templfn) cmd += "@config -set lfn=true\n";
                     cmd += "@CALL \"";
                     cmd += batname;
                     cmd += "\"\n";
-                    cmd += "@mount -u c: -q\n";
+                    if (templfn) cmd += "@config -set lfn=" + std::string(enablelfn==-1?"auto":"autostart") + "\n";
+                    cmd += "@mount c: -q -u\n";
                 }
             }
 

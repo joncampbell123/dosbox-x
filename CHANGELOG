@@ -1,4 +1,13 @@
 0.83.5
+  - Added config option "quit warning" to indicate if
+    DOSBox-X should warn show a warning message when
+    you try to close the DOSBox-X window. If set to
+    "auto" (default), DOSBox-X will warn only if at
+    least one file handle is still open. (Wengier)
+  - Add command-line option "-defaultdir" to specify
+    a directory (instead of the current directory) as
+    the working directory. DOSBox-X will look for the
+    dosbox-x.conf file in this directory. (Wengier)
   - VER /R now shows DOSBox-X's Git commit SHA1, in
     addition to other version information. (Wengier)
   - Fixed that joystick may not work with the setting
@@ -10,7 +19,9 @@
   - Added option to the Windows installer which allows
     to automatically upgrade the DOSBox-X config file
     (dosbox-x.conf) to the latest version format while
-    keeping the current user settings. (Wengier)
+    keeping the current user settings. Also added the
+    option to add the context menu for executables and
+    folders in the Windows Explorer. (Wengier)
   - The default value for "output" (in "sdl" section)
     is now "default", which will default to the value
     according to your platform. (Wengier)
