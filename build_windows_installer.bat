@@ -89,7 +89,7 @@ if exist %isspath%\Win64_builds\nul rd %isspath%\Win64_builds /s /q
 %isspath%\7za.exe e -y -o%isspath%\Win64_builds\mingw-sdl2 %m64zip% "mingw-build\mingw-sdl2\dosbox-x.exe"
 %isspath%\7za.exe e -y -o%isspath%\Win64_builds\mingw-sdldraw %m64zip% "mingw-build\mingw-sdldraw\dosbox-x.exe"
 copy /y %rootdir%\dosbox-x.reference.conf %isspath%\dosbox-x.reference.conf >nul
-if exist %isspath%\unix2dos.exe %isspath%\unix2dos.exe -n %rootdir%\dosbox-x.reference.conf %isspath%\dosbox-x.reference.conf
+if exist %isspath%\unix2dos.exe %isspath%\unix2dos.exe %isspath%\dosbox-x.reference.conf
 copy /y %isspath%\dosbox-x.reference.conf %isspath%\Win32_builds\x86_Release
 copy /y %isspath%\dosbox-x.reference.conf %isspath%\Win32_builds\x86_Release_SDL2
 copy /y %isspath%\dosbox-x.reference.conf %isspath%\Win32_builds\ARM_Release

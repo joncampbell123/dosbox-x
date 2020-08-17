@@ -163,16 +163,30 @@ static const char* UnmountHelper(char umount) {
     if (i_drive >= MAX_DISK_IMAGES && Drives[i_drive] == NULL)
         return MSG_Get("PROGRAM_MOUNT_UMOUNT_NOT_MOUNTED");
 
+    std::string msg=MSG_Get("PROGRAM_MOUNT_UMOUNT_SUCCESS");
     if (Drives[i_drive]) {
+        const isoDrive* cdrom = dynamic_cast<isoDrive*>(Drives[i_drive]);
         switch (DriveManager::UnmountDrive(i_drive)) {
             case 1: return MSG_Get("PROGRAM_MOUNT_UMOUNT_NO_VIRTUAL");
             case 2: return MSG_Get("MSCDEX_ERROR_MULTIPLE_CDROMS");
         }
+        if (cdrom) IDE_CDROM_Detach(i_drive);
         Drives[i_drive] = 0;
         DOS_EnableDriveMenu(i_drive+'A');
         mem_writeb(Real2Phys(dos.tables.mediaid)+(unsigned int)i_drive*dos.tables.dpb_size,0);
         if (i_drive == DOS_GetDefaultDrive())
             DOS_SetDrive(ZDRIVE_NUM);
+        if (cdrom)
+            for (int drv=0; drv<2; drv++)
+                if (Drives[drv]) {
+                    fatDrive *fdp = dynamic_cast<fatDrive*>(Drives[drv]);
+                    if (fdp&&fdp->opts.mounttype==1&&toupper(umount)==fdp->el.CDROM_drive) {
+                        msg+=UnmountHelper('A'+drv);
+                        size_t found=msg.rfind("%c");
+                        if (found!=std::string::npos)
+                            msg.replace(found, 2, std::string(1, 'A'+drv));
+                    }
+                }
     }
 
     if (i_drive < MAX_DISK_IMAGES && imageDiskList[i_drive]) {
@@ -180,7 +194,7 @@ static const char* UnmountHelper(char umount) {
         imageDiskList[i_drive] = NULL;
     }
 
-    return MSG_Get("PROGRAM_MOUNT_UMOUNT_SUCCESS");
+    return msg.c_str();
 }
 
 #if defined(WIN32)
