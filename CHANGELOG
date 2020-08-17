@@ -5,6 +5,8 @@
     "auto" (default), DOSBox-X will warn only if at
     least one file handle is still open, or you are
     currently running a guest system. (Wengier)
+  - DOSBox-X will allow control characters 8 and 27
+    in the batch file without warnings. (Wengier)
   - Add command-line option "-defaultdir" to specify
     a directory (instead of the current directory) as
     the working directory. DOSBox-X will look for the
