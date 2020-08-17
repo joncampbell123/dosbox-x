@@ -28,6 +28,7 @@ SetupIconFile=.\dosbox-x.ico
 Compression=lzma
 SolidCompression=yes
 UsePreviousAppDir=yes
+ChangesAssociations=yes
 DisableStartupPrompt=yes
 DisableWelcomePage=no
 DisableDirPage=no
@@ -47,7 +48,7 @@ InfoAfterClickLabel=You have now installed DOSBox-X. Please note that you can cu
 Name: "english"; MessagesFile: "compiler:Default.isl"
 
 [Tasks]
-Name: "contextmenu"; Description: "Add folder context menu for Windows Explorer"
+Name: "contextmenu"; Description: "Add ""Open with DOSBox-X"" context menu for Windows Explorer"
 Name: "desktopicon"; Description: "{cm:CreateDesktopIcon}"; GroupDescription: "{cm:AdditionalIcons}"
 Name: "quicklaunchicon"; Description: "{cm:CreateQuickLaunchIcon}"; GroupDescription: "{cm:AdditionalIcons}"; Flags: unchecked
 
@@ -62,11 +63,9 @@ Name: "full"; Description: "Copy all builds to subdirectories";   Types: full
 
 [Files]
 Source: ".\readme.txt"; DestDir: "{app}"; DestName: "README.txt"; Flags: ignoreversion; Components: full compact
-Source: ".\windows_explorer_context_menu_installer.bat"; DestDir: "{app}"; DestName: "windows_explorer_context_menu_installer.bat"; Flags: ignoreversion; Components: full compact
-Source: ".\windows_explorer_context_menu_uninstaller.bat"; DestDir: "{app}"; DestName: "windows_explorer_context_menu_uninstaller.bat"; Flags: ignoreversion; Components: full compact
+Source: ".\dosbox-x.reference.conf"; DestDir: "{app}"; Flags: ignoreversion; Components: full compact
 Source: "..\CHANGELOG"; DestDir: "{app}"; DestName: "changelog.txt"; Flags: ignoreversion; Components: full compact
 Source: "..\COPYING"; DestDir: "{app}"; DestName: "COPYING.txt"; Flags: ignoreversion; Components: full compact
-Source: "..\dosbox-x.reference.conf"; DestDir: "{app}"; Flags: ignoreversion; Components: full compact
 Source: "..\font\FREECG98.BMP"; DestDir: "{app}"; Flags: ignoreversion; Components: full compact
 Source: "..\shaders\*"; DestDir: "{app}\shaders"; Flags: ignoreversion recursesubdirs createallsubdirs; Components: full compact
 Source: "Win32_builds\x86_Release\dosbox-x.exe"; DestDir: "{app}"; Flags: ignoreversion; Check: CheckDirName('Win32_builds\x86_Release'); Components: full compact
@@ -87,6 +86,8 @@ Source: "Win64_builds\mingw-sdl2\dosbox-x.exe"; DestDir: "{app}"; Flags: ignorev
 Source: "Win64_builds\mingw-sdldraw\dosbox-x.exe"; DestDir: "{app}"; Flags: ignoreversion; Check: CheckDirName('Win64_builds\mingw-sdldraw'); Components: full compact
 Source: "Win32_builds\*"; DestDir: "{app}\Win32_builds"; Flags: ignoreversion recursesubdirs createallsubdirs; Components: full
 Source: "Win64_builds\*"; DestDir: "{app}\Win64_builds"; Flags: ignoreversion recursesubdirs createallsubdirs; Check: IsWin64; Components: full
+Source: ".\windows_explorer_context_menu_installer.bat"; DestDir: "{app}\scripts"; DestName: "windows_explorer_context_menu_installer.bat"; Flags: ignoreversion; Components: full compact
+Source: ".\windows_explorer_context_menu_uninstaller.bat"; DestDir: "{app}\scripts"; DestName: "windows_explorer_context_menu_uninstaller.bat"; Flags: ignoreversion; Components: full compact
 ; NOTE: Don't use "Flags: ignoreversion" on any shared system files
 
 [Icons]
@@ -96,13 +97,26 @@ Name: "{group}\View DOSBox-X README file"; Filename: "{app}\README.TXT"
 Name: "{commondesktop}\{#MyAppName}"; Filename: "{app}\{#MyAppExeName}"; Tasks: desktopicon
 Name: "{userappdata}\Microsoft\Internet Explorer\Quick Launch\{#MyAppName}"; Filename: "{app}\{#MyAppExeName}"; Tasks: quicklaunchicon
 
+[Registry]
+Root: HKCU; Subkey: "Software\Classes\Directory\shell\DOSBox-X"; ValueType: string; ValueName: ""; ValueData: "Open with DOSBox-X"; Check: IsTaskSelected('contextmenu'); Flags: uninsdeletevalue
+Root: HKCU; Subkey: "Software\Classes\Directory\shell\DOSBox-X"; ValueType: string; ValueName: "Icon"; ValueData: """{app}\dosbox-x.exe"",0"; Check: IsTaskSelected('contextmenu'); Flags: uninsdeletevalue
+Root: HKCU; Subkey: "Software\Classes\Directory\shell\DOSBox-X\command"; ValueType: string; ValueName: ""; ValueData: """{app}\dosbox-x.exe"" -defaultdir ""{app} "" ""%1"""; Check: IsTaskSelected('contextmenu'); Flags: uninsdeletevalue
+Root: HKCU; Subkey: "Software\Classes\Directory\Background\shell\DOSBox-X"; ValueType: string; ValueName: ""; ValueData: "Open with DOSBox-X"; Check: IsTaskSelected('contextmenu'); Flags: uninsdeletevalue
+Root: HKCU; Subkey: "Software\Classes\Directory\Background\shell\DOSBox-X"; ValueType: string; ValueName: "Icon"; ValueData: """{app}\dosbox-x.exe"",0"; Check: IsTaskSelected('contextmenu'); Flags: uninsdeletevalue
+Root: HKCU; Subkey: "Software\Classes\Directory\Background\shell\DOSBox-X\command"; ValueType: string; ValueName: ""; ValueData: """{app}\dosbox-x.exe"" -defaultdir ""{app} "" ""%1"""; Check: IsTaskSelected('contextmenu'); Flags: uninsdeletevalue
+Root: HKCU; Subkey: "Software\Classes\SystemFileAssociations\.exe\shell\Open with DOSBox-X"; ValueType: none; ValueName: ""; ValueData: ""; Check: IsTaskSelected('contextmenu'); Flags: uninsdeletevalue
+Root: HKCU; Subkey: "Software\Classes\SystemFileAssociations\.exe\shell\Open with DOSBox-X"; ValueType: string; ValueName: "Icon"; ValueData: """{app}\dosbox-x.exe"",0"; Check: IsTaskSelected('contextmenu'); Flags: uninsdeletekey
+Root: HKCU; Subkey: "Software\Classes\SystemFileAssociations\.exe\shell\Open with DOSBox-X\command"; ValueType: string; ValueName: ""; ValueData: """{app}\dosbox-x.exe"" -defaultdir ""{app} "" ""%1"""; Check: IsTaskSelected('contextmenu'); Flags: uninsdeletekey
+Root: HKCU; Subkey: "Software\Classes\SystemFileAssociations\.com\shell\Open with DOSBox-X"; ValueType: none; ValueName: ""; ValueData: ""; Check: IsTaskSelected('contextmenu'); Flags: uninsdeletevalue
+Root: HKCU; Subkey: "Software\Classes\SystemFileAssociations\.com\shell\Open with DOSBox-X"; ValueType: string; ValueName: "Icon"; ValueData: """{app}\dosbox-x.exe"",0"; Check: IsTaskSelected('contextmenu'); Flags: uninsdeletekey
+Root: HKCU; Subkey: "Software\Classes\SystemFileAssociations\.com\shell\Open with DOSBox-X\command"; ValueType: string; ValueName: ""; ValueData: """{app}\dosbox-x.exe"" -defaultdir ""{app} "" ""%1"""; Check: IsTaskSelected('contextmenu'); Flags: uninsdeletekey
+Root: HKCU; Subkey: "Software\Classes\SystemFileAssociations\.bat\shell\Open with DOSBox-X"; ValueType: none; ValueName: ""; ValueData: ""; Check: IsTaskSelected('contextmenu'); Flags: uninsdeletevalue
+Root: HKCU; Subkey: "Software\Classes\SystemFileAssociations\.bat\shell\Open with DOSBox-X"; ValueType: string; ValueName: "Icon"; ValueData: """{app}\dosbox-x.exe"",0"; Check: IsTaskSelected('contextmenu'); Flags: uninsdeletekey
+Root: HKCU; Subkey: "Software\Classes\SystemFileAssociations\.bat\shell\Open with DOSBox-X\command"; ValueType: string; ValueName: ""; ValueData: """{app}\dosbox-x.exe"" -defaultdir ""{app} "" ""%1"""; Check: IsTaskSelected('contextmenu'); Flags: uninsdeletekey
+
 [Run]
-Filename: "{app}\windows_explorer_context_menu_installer.bat"; Check: IsTaskSelected('contextmenu'); Flags: runhidden
 Filename: "{app}\readme.txt"; Description: "View README.txt"; Flags: waituntilterminated runascurrentuser postinstall shellexec skipifsilent
 Filename: "{app}\{#MyAppExeName}"; Description: "{cm:LaunchProgram,{#StringChange(MyAppName, '&', '&&')}}"; Flags: nowait postinstall skipifsilent
-
-[UninstallRun]
-Filename: "{app}\windows_explorer_context_menu_uninstaller.bat"; Flags: runhidden
 
 [UninstallDelete]
 Type: files; Name: "{app}\stderr.txt"
@@ -258,14 +272,7 @@ var
 begin
   if (CurrentStep = ssPostInstall) then
   begin
-    if FileExists(ExpandConstant('{app}\dosbox-x.reference.conf')) then
-    begin
-     LoadStringFromFile(ExpandConstant('{app}\dosbox-x.reference.conf'), line);
-     StringChangeEx(line, #13 + #10, #10, False);
-     StringChangeEx(line, #10, #13 + #10, False);
-     SaveStringToFile(ExpandConstant('{app}\dosbox-x.reference.conf'), line, False);
-    end
-    else
+    if not FileExists(ExpandConstant('{app}\dosbox-x.reference.conf')) then
     begin
       MsgBox('Cannot find the dosbox-x.reference.conf file.', mbError, MB_OK);
       Exit;
@@ -345,7 +352,7 @@ begin
                   if (CompareText(section, '4dos') = 0) or (CompareText(section, 'config') = 0) or (CompareText(section, 'autoexec') = 0) then
                   begin
                     if (Length(lineold)>0) or (FileLines.Count>0) then
-                      FileLinesave.add(lineold);
+                      FileLinesave.add(FileLinesold[k]);
                     if (Length(lineold)>0) then
                       FileLines.add(lineold);
                   end

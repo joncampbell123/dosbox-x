@@ -1078,12 +1078,42 @@ void GFX_SetTitle(Bit32s cycles,Bits frameskip,Bits timing,bool paused){
 #endif
 }
 
-bool warn_on_mem_write = false;
+bool warn_on_mem_write = false, quit_confirm = false;
 
-void CPU_Snap_Back_To_Real_Mode();
+void CPU_Snap_Back_To_Real_Mode(), MAPPER_ReleaseAllKeys();
+bool CheckQuit(void) {
+    Section_prop *section = static_cast<Section_prop *>(control->GetSection("dosbox"));
+	std::string warn = section->Get_string("quit warning");
+    if (warn == "true") {
+        quit_confirm=false;
+        MAPPER_ReleaseAllKeys();
+        GFX_LosingFocus();
+        GUI_Shortcut(28);
+        MAPPER_ReleaseAllKeys();
+        GFX_LosingFocus();
+        bool ret=quit_confirm;
+        quit_confirm=false;
+        return ret;
+    } else if (warn == "false" || dos_kernel_disabled)
+        return true;
+    for (Bit8u handle = 0; handle < DOS_FILES; handle++)
+        if (Files[handle] && (Files[handle]->GetInformation()&0x8000) == 0) {
+            quit_confirm=false;
+            MAPPER_ReleaseAllKeys();
+            GFX_LosingFocus();
+            GUI_Shortcut(29);
+            MAPPER_ReleaseAllKeys();
+            GFX_LosingFocus();
+            bool ret=quit_confirm;
+            quit_confirm=false;
+            return ret;
+        }
+    return true;
+}
 
 static void KillSwitch(bool pressed) {
     if (!pressed) return;
+    if (!CheckQuit()) return;
     if (sdl.desktop.fullscreen) GFX_SwitchFullScreen();
 #if 0 /* Re-enable this hack IF DOSBox-X continues to have problems page-faulting on kill switch */
     CPU_Snap_Back_To_Real_Mode(); /* TEMPORARY HACK. There are portions of DOSBox that write to memory as if still running DOS. */
@@ -1219,7 +1249,6 @@ void PauseDOSBoxLoop(Bitu /*unused*/) {
     /* reflect in the menu that we're paused now */
     mainMenu.get_item("mapper_pause").check(true).refresh_item(mainMenu);
 
-    void MAPPER_ReleaseAllKeys(void);
     MAPPER_ReleaseAllKeys();
 
     GFX_SetTitle(-1,-1,-1,true);
@@ -1329,7 +1358,6 @@ void PauseDOSBoxLoop(Bitu /*unused*/) {
     void GFX_UpdateSDLCaptureState();
     GFX_UpdateSDLCaptureState();
 
-    void MAPPER_ReleaseAllKeys(void);
     MAPPER_ReleaseAllKeys();
 
 //  KEYBOARD_ClrBuffer();
@@ -4529,7 +4557,7 @@ static void HandleMouseButton(SDL_MouseButtonEvent * button, SDL_MouseMotionEven
 
                     switch (event.type) {
                         case SDL_QUIT:
-                            throw(0);
+                            if (CheckQuit()) throw(0);
                             break;
                         case SDL_KEYUP:
                             if (event.key.keysym.sym == SDLK_ESCAPE) {
@@ -5330,7 +5358,7 @@ void GFX_Events() {
 
                         switch (ev.type) {
                         case SDL_QUIT:
-                            throw(0);
+                            if (CheckQuit()) throw(0);
                             break; // a bit redundant at linux at least as the active events gets before the quit event.
                         case SDL_WINDOWEVENT:     // wait until we get window focus back
                             if ((ev.window.event == SDL_WINDOWEVENT_FOCUS_LOST) || (ev.window.event == SDL_WINDOWEVENT_MINIMIZED) || (ev.window.event == SDL_WINDOWEVENT_FOCUS_GAINED) || (ev.window.event == SDL_WINDOWEVENT_RESTORED) || (ev.window.event == SDL_WINDOWEVENT_EXPOSED)) {
@@ -5388,7 +5416,7 @@ void GFX_Events() {
             break;
 #endif
         case SDL_QUIT:
-            throw(0);
+            if (CheckQuit()) throw(0);
             break;
 		case SDL_MOUSEWHEEL:
 			if (wheel_key) {
@@ -5643,7 +5671,7 @@ void GFX_Events() {
 #endif
 
                         switch (ev.type) {
-                        case SDL_QUIT: throw(0); break; // a bit redundant at linux at least as the active events gets before the quit event.
+                        case SDL_QUIT: if (CheckQuit()) throw(0); break; // a bit redundant at linux at least as the active events gets before the quit event.
                         case SDL_ACTIVEEVENT:     // wait until we get window focus back
                             if (ev.active.state & (SDL_APPINPUTFOCUS | SDL_APPACTIVE)) {
                                 // We've got focus back, so unpause and break out of the loop
@@ -5677,7 +5705,7 @@ void GFX_Events() {
             HandleVideoResize(&event.resize);
             break;
         case SDL_QUIT:
-            throw(0);
+            if (CheckQuit()) throw(0);
             break;
         case SDL_VIDEOEXPOSE:
             if (sdl.draw.callback && !glide.enabled) sdl.draw.callback( GFX_CallBackRedraw );
@@ -6605,6 +6633,7 @@ bool DOSBOX_parse_argv() {
             fprintf(stderr,"  -showrt                                 Show emulation speed relative to realtime\n");
             fprintf(stderr,"  -fullscreen                             Start in fullscreen\n");
             fprintf(stderr,"  -savedir <path>                         Set save path\n");
+            fprintf(stderr,"  -defaultdir <path>                      Set the default working path\n");
 #if defined(WIN32)
             fprintf(stderr,"  -disable-numlock-check                  Disable NumLock check (Windows version only)\n");
 #endif
@@ -6726,6 +6755,12 @@ bool DOSBOX_parse_argv() {
         }
         else if (optname == "savedir") {
             if (!control->cmdline->NextOptArgv(custom_savedir)) return false;
+        }
+        else if (optname == "defaultdir") {
+            if (control->cmdline->NextOptArgv(tmp)) {
+                struct stat st;
+                if (stat(tmp.c_str(), &st) == 0 && st.st_mode & S_IFDIR) chdir(tmp.c_str());
+            }
         }
         else if (optname == "userconf") {
             control->opt_userconf = true;
@@ -7140,14 +7175,12 @@ bool mixer_mute_menu_callback(DOSBoxMenu * const menu,DOSBoxMenu::item * const m
 bool mixer_info_menu_callback(DOSBoxMenu * const menu,DOSBoxMenu::item * const menuitem) {
     (void)menu;//UNUSED
     (void)menuitem;//UNUSED
-    void MAPPER_ReleaseAllKeys(void);
     MAPPER_ReleaseAllKeys();
 
     GFX_LosingFocus();
 
     GUI_Shortcut(20);
 
-    void MAPPER_ReleaseAllKeys(void);
     MAPPER_ReleaseAllKeys();
 
     GFX_LosingFocus();
@@ -7210,14 +7243,12 @@ bool dos_ver_set_menu_callback(DOSBoxMenu * const menu,DOSBoxMenu::item * const 
 bool dos_ver_edit_menu_callback(DOSBoxMenu * const menu,DOSBoxMenu::item * const menuitem) {
     (void)menu;//UNUSED
     (void)menuitem;//UNUSED
-    void MAPPER_ReleaseAllKeys(void);
     MAPPER_ReleaseAllKeys();
 
     GFX_LosingFocus();
 
     GUI_Shortcut(19);
 
-    void MAPPER_ReleaseAllKeys(void);
     MAPPER_ReleaseAllKeys();
 
     GFX_LosingFocus();
@@ -8096,14 +8127,12 @@ bool sendkey_preset_menu_callback(DOSBoxMenu * const menu, DOSBoxMenu::item * co
 }
 
 void SetCyclesCount_mapper_shortcut_RunInternal(void) {
-    void MAPPER_ReleaseAllKeys(void);
     MAPPER_ReleaseAllKeys();
 
     GFX_LosingFocus();
 
     GUI_Shortcut(16);
 
-    void MAPPER_ReleaseAllKeys(void);
     MAPPER_ReleaseAllKeys();
 
     GFX_LosingFocus();
@@ -9746,7 +9775,6 @@ fresh_boot:
             DispatchVMEvent(VM_EVENT_RESET);
 
             /* force the mapper to let go of all keys so that the host key is not stuck (Issue #1320) */
-            void MAPPER_ReleaseAllKeys(void);
             MAPPER_ReleaseAllKeys();
             void MAPPER_LosingFocus(void);
             MAPPER_LosingFocus();
