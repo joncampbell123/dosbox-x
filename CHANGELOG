@@ -3,7 +3,8 @@
     DOSBox-X should warn show a warning message when
     you try to close the DOSBox-X window. If set to
     "auto" (default), DOSBox-X will warn only if at
-    least one file handle is still open. (Wengier)
+    least one file handle is still open, or you are
+    currently running a guest system. (Wengier)
   - Add command-line option "-defaultdir" to specify
     a directory (instead of the current directory) as
     the working directory. DOSBox-X will look for the

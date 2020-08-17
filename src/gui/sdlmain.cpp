@@ -1094,20 +1094,32 @@ bool CheckQuit(void) {
         bool ret=quit_confirm;
         quit_confirm=false;
         return ret;
-    } else if (warn == "false" || dos_kernel_disabled)
+    } else if (warn == "false")
         return true;
-    for (Bit8u handle = 0; handle < DOS_FILES; handle++)
-        if (Files[handle] && (Files[handle]->GetInformation()&0x8000) == 0) {
+    if (dos_kernel_disabled) {
+        quit_confirm=false;
+        MAPPER_ReleaseAllKeys();
+        GFX_LosingFocus();
+        GUI_Shortcut(29);
+        MAPPER_ReleaseAllKeys();
+        GFX_LosingFocus();
+        bool ret=quit_confirm;
+        quit_confirm=false;
+        return ret;
+    }
+    for (Bit8u handle = 0; handle < DOS_FILES; handle++) {
+        if (Files[handle] && (Files[handle]->GetName() == NULL || strcmp(Files[handle]->GetName(), "CON")) && (Files[handle]->GetInformation()&0x8000) == 0) {
             quit_confirm=false;
             MAPPER_ReleaseAllKeys();
             GFX_LosingFocus();
-            GUI_Shortcut(29);
+            GUI_Shortcut(30);
             MAPPER_ReleaseAllKeys();
             GFX_LosingFocus();
             bool ret=quit_confirm;
             quit_confirm=false;
             return ret;
         }
+    }
     return true;
 }
 
