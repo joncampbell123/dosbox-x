@@ -44,9 +44,9 @@ extern bool log_fileio;
 extern bool force_load_state;
 extern bool use_quick_reboot;
 extern bool enable_config_as_shell_commands;
+bool winrun=false;
 #if defined(WIN32)
 bool direct_mouse_clipboard=false;
-bool winrun=false;
 #endif
 
 bool OpenGL_using(void);
@@ -7217,7 +7217,7 @@ void dos_ver_menu(bool start) {
     mainMenu.get_item("dos_ver_500").check(dos.version.major==5&&dos.version.minor==00).enable(true).refresh_item(mainMenu);
     mainMenu.get_item("dos_ver_622").check(dos.version.major==6&&dos.version.minor==22).enable(true).refresh_item(mainMenu);
     mainMenu.get_item("dos_ver_710").check(dos.version.major==7&&dos.version.minor==10).enable(true).refresh_item(mainMenu);
-    if (start || enablelfn != -2) uselfn = enablelfn==1 || ((enablelfn == -1 || enablelfn == -2) && dos.version.major>6);
+    if (start || enablelfn != -2) uselfn = enablelfn==1 || ((enablelfn == -1 || enablelfn == -2) && (dos.version.major>6 || winrun));
 }
 
 bool dos_ver_set_menu_callback(DOSBoxMenu * const menu,DOSBoxMenu::item * const menuitem) {
@@ -7259,7 +7259,7 @@ bool dos_lfn_auto_menu_callback(DOSBoxMenu * const menu,DOSBoxMenu::item * const
     (void)menu;//UNUSED
     (void)menuitem;//UNUSED
     enablelfn = -1;
-	uselfn = dos.version.major>6;
+	uselfn = dos.version.major>6 || winrun;
     mainMenu.get_item("dos_lfn_auto").check(true).refresh_item(mainMenu);
     mainMenu.get_item("dos_lfn_enable").check(false).refresh_item(mainMenu);
     mainMenu.get_item("dos_lfn_disable").check(false).refresh_item(mainMenu);
