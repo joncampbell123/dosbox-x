@@ -3641,8 +3641,14 @@ static void GUI_StartUp() {
 # elif defined(__MINGW32__) && !(C_DIRECT3D) && !defined(C_SDL2)
         /* NTS: OpenGL output never seems to work in VirtualBox under Windows XP */
         output = isVirtualBox ? "surface" : "opengl"; /* MinGW builds do not yet have Direct3D */
-# else
+# elif C_DIRECT3D
         output = "direct3d";
+# elif C_OPENGL && !defined(C_SDL2)
+        output = isVirtualBox ? "surface" : "opengl";
+# elif C_OPENGL
+        output = "opengl";
+# else
+        output = "surface";
 # endif
 #elif defined(MACOSX) && defined(C_OPENGL) && !defined(C_SDL2)
         /* NTS: Lately, especially on Macbooks with Retina displays, OpenGL gives better performance
