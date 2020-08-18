@@ -4037,6 +4037,10 @@ public:
             return;
         }
 
+        bool roflag = false;
+        if (cmd->FindExist("-ro",true))
+            roflag = true;
+
         //initialize more variables
         unsigned long el_torito_floppy_base=~0UL;
         unsigned char el_torito_floppy_type=0xFF;
@@ -4222,11 +4226,11 @@ public:
                 if (!MountElToritoFat(drive, sizes, el_torito_cd_drive, el_torito_floppy_base, el_torito_floppy_type)) return;
             }
             else if (type == "ram") {
-                if (!MountRam(sizes, drive, ide_index, ide_slave)) return;
+                if (!MountRam(sizes, drive, ide_index, ide_slave, roflag)) return;
             }
             else {
                 //supports multiple files
-                if (!MountFat(sizes, drive, type == "hdd", str_size, paths, ide_index, ide_slave)) return;
+                if (!MountFat(sizes, drive, type == "hdd", str_size, paths, ide_index, ide_slave, roflag)) return;
             }
         } else if (fstype=="iso") {
             if (el_torito != "") {
@@ -4259,7 +4263,7 @@ public:
                 newImage = MountImageNoneRam(sizes, reserved_cylinders, driveIndex < 2);
             }
             else {
-                newImage = MountImageNone(paths[0].c_str(), sizes, reserved_cylinders);
+                newImage = MountImageNone(paths[0].c_str(), sizes, reserved_cylinders, roflag);
             }
             if (newImage == NULL) return;
             newImage->Addref();
@@ -4288,7 +4292,7 @@ public:
                         swapInDisksSpecificDrive = driveIndex;
 
                         for (size_t si=1;si < MAX_SWAPPABLE_DISKS && si < paths.size();si++) {
-                            imageDisk *img = MountImageNone(paths[si].c_str(), sizes, reserved_cylinders);
+                            imageDisk *img = MountImageNone(paths[si].c_str(), sizes, reserved_cylinders, roflag);
 
                             if (img != NULL) {
                                 diskSwap[si] = img;
@@ -4734,7 +4738,7 @@ private:
         return true;
     }
 
-    bool MountFat(Bitu sizes[], const char drive, const bool isHardDrive, const std::string &str_size, const std::vector<std::string> &paths, const signed char ide_index, const bool ide_slave) {
+    bool MountFat(Bitu sizes[], const char drive, const bool isHardDrive, const std::string &str_size, const std::vector<std::string> &paths, const signed char ide_index, const bool ide_slave, bool roflag) {
         if (Drives[drive - 'A']) {
             WriteOut(MSG_Get("PROGRAM_IMGMOUNT_ALREADY_MOUNTED"));
             return false;
@@ -4776,7 +4780,7 @@ private:
                         if (!strcasecmp(ext, ".vhd")) {
                             ro=wpcolon&&paths[i].length()>1&&paths[i].c_str()[0]==':';
                             //load the file with imageDiskVHD, which supports fixed/dynamic/differential disks
-                            imageDiskVHD::ErrorCodes ret = imageDiskVHD::Open(ro?paths[i].c_str()+1:paths[i].c_str(), false, &vhdImage);
+                            imageDiskVHD::ErrorCodes ret = imageDiskVHD::Open(ro?paths[i].c_str()+1:paths[i].c_str(), ro||roflag, &vhdImage);
                             switch (ret) {
                             case imageDiskVHD::OPEN_SUCCESS: {
                                 //upon successful, go back to old code if using a fixed disk, which patches chs values for incorrectly identified disks
@@ -4810,7 +4814,7 @@ private:
                         }
                     }
                 }
-                if (!skipDetectGeometry && !DetectGeometry(paths[i].c_str(), sizes)) {
+                if (!skipDetectGeometry && !DetectGeometry(paths[i].c_str(), sizes, roflag)) {
                     errorMessage = (char*)("Unable to detect geometry\n");
                 }
             }
@@ -4821,10 +4825,10 @@ private:
                     newDrive = new fatDrive(vhdImage, options);
                     strcpy(newDrive->info, "fatDrive ");
                     strcat(newDrive->info, ro?paths[i].c_str()+1:paths[i].c_str());
-                    if (ro) newDrive->readonly=true;
                     vhdImage = NULL;
                 }
                 else {
+                    if (roflag) options.push_back("readonly");
                     newDrive = new fatDrive(paths[i].c_str(), (Bit32u)sizes[0], (Bit32u)sizes[1], (Bit32u)sizes[2], (Bit32u)sizes[3], options);
                 }
                 imgDisks.push_back(newDrive);
@@ -4836,7 +4840,8 @@ private:
 						sprintf(ver_msg, "This operation requires DOS version %u.%u or higher.\n%s", fdrive->req_ver_major, fdrive->req_ver_minor, errorMessage);
 						errorMessage = ver_msg;
 					}
-                }
+                } else if ((vhdImage&&ro)||roflag)
+                    fdrive->readonly=true;
             }
             if (errorMessage) {
                 if (!qmount) WriteOut(errorMessage);
@@ -4874,7 +4879,7 @@ private:
         return dsk;
     }
 
-    bool MountRam(Bitu sizes[], const char drive, const signed char ide_index, const bool ide_slave) {
+    bool MountRam(Bitu sizes[], const char drive, const signed char ide_index, const bool ide_slave, bool roflag) {
         if (Drives[drive - 'A']) {
             WriteOut(MSG_Get("PROGRAM_IMGMOUNT_ALREADY_MOUNTED"));
             return false;
@@ -4890,6 +4895,7 @@ private:
         }
         dsk->Addref();
         DOS_Drive* newDrive = new fatDrive(dsk, options);
+        if (roflag) newDrive->readonly=true;
         dsk->Release();
         if (!(dynamic_cast<fatDrive*>(newDrive))->created_successfully) {
             WriteOut(MSG_Get("PROGRAM_IMGMOUNT_CANT_CREATE"));
@@ -4938,9 +4944,9 @@ private:
 
     }
 
-    bool DetectGeometry(const char* fileName, Bitu sizes[]) {
+    bool DetectGeometry(const char* fileName, Bitu sizes[], bool roflag) {
         bool yet_detected = false, readonly = wpcolon&&strlen(fileName)>1&&fileName[0]==':';
-        FILE * diskfile = fopen64(readonly?fileName+1:fileName, readonly?"rb":"rb+");
+        FILE * diskfile = fopen64(readonly?fileName+1:fileName, readonly||roflag?"rb":"rb+");
         if (!diskfile) {
             WriteOut(MSG_Get("PROGRAM_IMGMOUNT_INVALID_IMAGE"));
             return false;
@@ -5204,7 +5210,7 @@ private:
         return true;
     }
 
-    imageDisk* MountImageNone(const char* fileName, const Bitu sizesOriginal[], const int reserved_cylinders) {
+    imageDisk* MountImageNone(const char* fileName, const Bitu sizesOriginal[], const int reserved_cylinders, bool roflag) {
         imageDisk* newImage = 0;
         Bitu sizes[4];
         sizes[0] = sizesOriginal[0];
@@ -5240,7 +5246,7 @@ private:
 
 		bool readonly = wpcolon&&strlen(fileName)>1&&fileName[0]==':';
 		const char* fname=readonly?fileName+1:fileName;
-        FILE *newDisk = fopen64(fname, readonly?"rb":"rb+");
+        FILE *newDisk = fopen64(fname, readonly||roflag?"rb":"rb+");
         if (!newDisk) {
             WriteOut("Unable to open '%s'\n", fname);
             return NULL;
@@ -5322,7 +5328,7 @@ private:
 
         /* try auto-detect */
         if (sizes[3] == 0 && sizes[2] == 0) {
-            DetectGeometry(fname, sizes); /* NTS: Opens the file again, even though WE have the file open already! */
+            DetectGeometry(fname, sizes, roflag); /* NTS: Opens the file again, even though WE have the file open already! */
         }
 
         /* auto-fill: sector/track count */
@@ -6476,7 +6482,7 @@ void DOS_SetupPrograms(void) {
         "IMGMOUNT -u drive|driveLocation (or drive|driveLocation filename [options] -u)\n"
         " drive               Drive letter to mount the image at\n"
         " driveLoc            Location to mount drive, where 0-1 are FDDs, 2-5 are HDDs\n"
-        " filename            Image filename or IMGMAKE.IMG (leading ':' for read-only)\n"
+        " filename            Image filename, or IMGMAKE.IMG if not specified\n"
         " -t iso              Image type is optical disc iso or cue / bin image\n"
         " -t floppy           Image type is floppy\n"
         " -t hdd              Image type is hard disk; VHD and HDI files are supported\n"
@@ -6486,9 +6492,9 @@ void DOS_SetupPrograms(void) {
         " -fs none            Do not detect file system\n"
         " -reservecyl #       Report # number of cylinders less than actual in BIOS\n"
         " -ide 1m|1s|2m|2s    Specifies the controller to mount drive\n"
-        " -size ss,s,h,c      Specify the geometry: Sector size,Sectors,Heads,Cylinders\n"
-        " -size driveSize     Specify the drive size in KB\n"
+        " -size size          Specify the geometry, either sector size and CHS or in KB\n"
         " -bootcd cdDrive     Specify the CD drive to load the bootable floppy from\n"
+        " -ro                 Mount the drive read-only (or leading ':' for read-only)\n"
         " -u                  Unmount the drive"
     );
     MSG_Add("PROGRAM_IMGMAKE_SYNTAX",
