@@ -19,9 +19,13 @@
   - Fixed that joystick may not work with the setting
     "usescancodes=auto" when a non-US keyboard layout
     is activated on the SDL1 build. (Wengier)
+  - Fixed unmounting swap disks when unmounting drives
+    with MOUNT or IMGMOUNT command. (Wengier)
   - Fixed possible failure when mounting .VHD images,
     and the issue that leading colon (:) or read-only
     marker may not work for such images. (Wengier)
+  - IMGMOUNT command without parameters now shows the
+    number of swap disks for drive numbers. (Wengier)
   - Add "-ro" option for IMGMOUNT command to mark all
     disk imaages as read-only at once. (Wengier)
   - Added option to the Windows installer which allows
