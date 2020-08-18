@@ -1476,13 +1476,13 @@ protected:
     GUI::Input *name;
 public:
     ShowQuitWarning(GUI::Screen *parent, int x, int y, const char *title) :
-        ToplevelWindow(parent, x, y, strcmp(title, "quit1")?430:330, strcmp(title, "quit1")?180:150, "Quit DOSBox-X warning") {
-            bool forcequit=strcmp(title, "quit1");
-            new GUI::Label(this, forcequit?20:40, 20, forcequit?"It may be unsafe to quit from DOSBox-X right now":"This will quit from DOSBox-X.");
+        ToplevelWindow(parent, x, y, strcmp(title, "quit1")?430:330, !strcmp(title, "quit3")?180:150, "Quit DOSBox-X warning") {
+            bool forcequit=!strcmp(title, "quit3");
+            new GUI::Label(this, forcequit?20:40, 20, !strcmp(title, "quit1")?"This will quit from DOSBox-X.":(!strcmp(title, "quit2")?"You are currently running a guest system.":"It may be unsafe to quit from DOSBox-X right now"));
             if (forcequit) new GUI::Label(this, forcequit?20:40, 50, "because one or more files are currently open.");
-            new GUI::Label(this, forcequit?20:40, forcequit?80:50, forcequit?"Are you sure to quit anyway now?":"Are you sure?");
-            (new GUI::Button(this, forcequit?140:90, forcequit?110:80, "Yes", 70))->addActionHandler(this);
-            (new GUI::Button(this, forcequit?230:180, forcequit?110:80, "No", 70))->addActionHandler(this);
+            new GUI::Label(this, forcequit?20:40, forcequit?80:50, strcmp(title, "quit1")?"Are you sure to quit anyway now?":"Are you sure?");
+            (new GUI::Button(this, strcmp(title, "quit1")?140:90, forcequit?110:80, "Yes", 70))->addActionHandler(this);
+            (new GUI::Button(this, strcmp(title, "quit1")?230:180, forcequit?110:80, "No", 70))->addActionHandler(this);
     }
 
     void actionExecuted(GUI::ActionEventSource *b, const GUI::String &arg) {
@@ -1843,6 +1843,10 @@ static void UI_Select(GUI::ScreenSDL *screen, int select) {
             } break;
         case 29: {
             auto *np8 = new ShowQuitWarning(screen, 120, 100, "quit2");
+            np8->raise();
+            } break;
+        case 30: {
+            auto *np8 = new ShowQuitWarning(screen, 120, 100, "quit3");
             np8->raise();
             } break;
         default:

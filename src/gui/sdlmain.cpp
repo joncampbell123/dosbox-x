@@ -876,6 +876,7 @@ void                        GUI_Run(bool);
 const char*                 titlebar = NULL;
 extern const char*              RunningProgram;
 extern bool                 CPU_CycleAutoAdjust;
+extern                      cpu_cycles_count_t CPU_CyclePercUsed;
 #if !(ENVIRON_INCLUDED)
 extern char**                   environ;
 #endif
@@ -1040,7 +1041,7 @@ void GFX_SetTitle(Bit32s cycles,Bits frameskip,Bits timing,bool paused){
             VERSION,(int)internal_cycles);
     }
     else {
-        sprintf(title,"%s%sDOSBox-X %s, %d cyc/ms",
+        sprintf(title,"%s%sDOSBox-X %s, %d cycles/ms",
             dosbox_title.c_str(),dosbox_title.empty()?"":": ",
             VERSION,(int)internal_cycles);
     }
@@ -1094,20 +1095,32 @@ bool CheckQuit(void) {
         bool ret=quit_confirm;
         quit_confirm=false;
         return ret;
-    } else if (warn == "false" || dos_kernel_disabled)
+    } else if (warn == "false")
         return true;
-    for (Bit8u handle = 0; handle < DOS_FILES; handle++)
-        if (Files[handle] && (Files[handle]->GetInformation()&0x8000) == 0) {
+    if (dos_kernel_disabled) {
+        quit_confirm=false;
+        MAPPER_ReleaseAllKeys();
+        GFX_LosingFocus();
+        GUI_Shortcut(29);
+        MAPPER_ReleaseAllKeys();
+        GFX_LosingFocus();
+        bool ret=quit_confirm;
+        quit_confirm=false;
+        return ret;
+    }
+    for (Bit8u handle = 0; handle < DOS_FILES; handle++) {
+        if (Files[handle] && (Files[handle]->GetName() == NULL || strcmp(Files[handle]->GetName(), "CON")) && (Files[handle]->GetInformation()&0x8000) == 0) {
             quit_confirm=false;
             MAPPER_ReleaseAllKeys();
             GFX_LosingFocus();
-            GUI_Shortcut(29);
+            GUI_Shortcut(30);
             MAPPER_ReleaseAllKeys();
             GFX_LosingFocus();
             bool ret=quit_confirm;
             quit_confirm=false;
             return ret;
         }
+    }
     return true;
 }
 
@@ -2852,7 +2865,7 @@ void change_output(int output) {
     if (sdl.draw.callback)
         (sdl.draw.callback)( GFX_CallBackReset );
 
-    GFX_SetTitle((Bit32s)CPU_CycleMax,-1,-1,false);
+    if (output != 7) GFX_SetTitle((Bit32s)(CPU_CycleAutoAdjust?CPU_CyclePercUsed:CPU_CycleMax),-1,-1,false);
     GFX_LogSDLState();
 
     UpdateWindowDimensions();
@@ -3628,8 +3641,14 @@ static void GUI_StartUp() {
 # elif defined(__MINGW32__) && !(C_DIRECT3D) && !defined(C_SDL2)
         /* NTS: OpenGL output never seems to work in VirtualBox under Windows XP */
         output = isVirtualBox ? "surface" : "opengl"; /* MinGW builds do not yet have Direct3D */
-# else
+# elif C_DIRECT3D
         output = "direct3d";
+# elif C_OPENGL && !defined(C_SDL2)
+        output = isVirtualBox ? "surface" : "opengl";
+# elif C_OPENGL
+        output = "opengl";
+# else
+        output = "surface";
 # endif
 #elif defined(MACOSX) && defined(C_OPENGL) && !defined(C_SDL2)
         /* NTS: Lately, especially on Macbooks with Retina displays, OpenGL gives better performance
@@ -8056,7 +8075,7 @@ bool showdetails_menu_callback(DOSBoxMenu * const xmenu, DOSBoxMenu::item * cons
     (void)xmenu;//UNUSED
     (void)menuitem;//UNUSED
     menu.showrt = !(menu.hidecycles = !menu.hidecycles);
-    GFX_SetTitle((Bit32s)CPU_CycleMax, -1, -1, false);
+    GFX_SetTitle((Bit32s)(CPU_CycleAutoAdjust?CPU_CyclePercUsed:CPU_CycleMax), -1, -1, false);
     mainMenu.get_item("showdetails").check(!menu.hidecycles).refresh_item(mainMenu);
     return true;
 }

@@ -891,6 +891,7 @@ bool Config::PrintConfig(char const * const configfilename,bool everything) cons
 				if (everything&&!used1) {
 					fprintf(outfile, "%-11s = %s\n", "set path", "Z:\\");
 					fprintf(outfile, "%-11s = %s\n", "set prompt", "$P$G");
+					fprintf(outfile, "%-11s = %s\n", "set temp", "");
 				}
 				if (everything&&!used2) {
 					fprintf(outfile, "%-11s = %s\n", "install", "");

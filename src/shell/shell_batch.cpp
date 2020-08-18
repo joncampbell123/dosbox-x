@@ -179,7 +179,7 @@ again:
 			if (c>31) {
 				if (((cmd_write - cmd_buffer) + 1) < (CMD_MAXLINE - 1))
 					*cmd_write++ = (char)c;
-			} else {
+			} else if (c!=0x1b && c!='\t' && c!=8) {
                                 if (c != '\n' && c != '\r')
 					shell->WriteOut(MSG_Get("SHELL_ILLEGAL_CONTROL_CHARACTER"), c, c);
                         }
