@@ -5223,7 +5223,8 @@ private:
             const char *ext = strrchr(fileName, '.');
             if (ext != NULL) {
                 if (!strcasecmp(ext, ".vhd")) {
-                    imageDiskVHD::ErrorCodes ret = imageDiskVHD::Open(fileName, false, &newImage);
+                    bool ro=wpcolon&&strlen(fileName)>1&&fileName[0]==':';
+                    imageDiskVHD::ErrorCodes ret = imageDiskVHD::Open(ro?fileName+1:fileName, ro||roflag, &newImage);
                     switch (ret) {
                     case imageDiskVHD::ERROR_OPENING: WriteOut(MSG_Get("VHD_ERROR_OPENING")); break;
                     case imageDiskVHD::INVALID_DATA: WriteOut(MSG_Get("VHD_INVALID_DATA")); break;
