@@ -3,19 +3,31 @@
     DOSBox-X should warn show a warning message when
     you try to close the DOSBox-X window. If set to
     "auto" (default), DOSBox-X will warn only if at
-    least one file handle is still open. (Wengier)
+    least one file handle is still open, or you are
+    currently running a guest system. (Wengier)
+  - DOSBox-X will allow control characters 8 and 27
+    in the batch file without warnings. (Wengier)
   - Add command-line option "-defaultdir" to specify
     a directory (instead of the current directory) as
     the working directory. DOSBox-X will look for the
     dosbox-x.conf file in this directory. (Wengier)
+  - The -winrun command-line option will also enable
+    LFN support with "lfn=auto" on Windows. (Wengier)
   - VER /R now shows DOSBox-X's Git commit SHA1, in
-    addition to other version information. (Wengier)
+    addition to the build date and other version
+    information shown by the VER command. (Wengier)
   - Fixed that joystick may not work with the setting
     "usescancodes=auto" when a non-US keyboard layout
     is activated on the SDL1 build. (Wengier)
+  - Fixed unmounting swap disks when unmounting drives
+    with MOUNT or IMGMOUNT command. (Wengier)
   - Fixed possible failure when mounting .VHD images,
-    and the issue that leading : (read-only marker)
-    may not work for such images. (Wengier)
+    and the issue that leading colon (:) or read-only
+    marker may not work for such images. (Wengier)
+  - IMGMOUNT command without parameters now shows the
+    number of swap disks for drive numbers. (Wengier)
+  - Add "-ro" option for IMGMOUNT command to mark all
+    disk imaages as read-only at once. (Wengier)
   - Added option to the Windows installer which allows
     to automatically upgrade the DOSBox-X config file
     (dosbox-x.conf) to the latest version format while

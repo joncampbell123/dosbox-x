@@ -1199,8 +1199,10 @@ fatDrive::fatDrive(const char* sysFilename, Bit32u bytesector, Bit32u cylsector,
 		imgDTA    = new DOS_DTA(imgDTAPtr);
 	}
 
+    std::vector<std::string>::iterator it = std::find(options.begin(), options.end(), "readonly");
+    bool roflag = it!=options.end();
 	readonly = wpcolon&&strlen(sysFilename)>1&&sysFilename[0]==':';
-	diskfile = fopen64(readonly?sysFilename+1:sysFilename, readonly?"rb":"rb+");
+	diskfile = fopen64(readonly?sysFilename+1:sysFilename, readonly||roflag?"rb":"rb+");
 	if(!diskfile) {created_successfully = false;return;}
     opts.bytesector = bytesector;
     opts.cylsector = cylsector;

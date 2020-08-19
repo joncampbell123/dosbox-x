@@ -142,11 +142,26 @@ static void MOUSE_ProgramStart(Program * * make) {
     *make=new MOUSE;
 }
 
+void DetachFromBios(imageDisk* image) {
+    if (image) {
+        for (int index = 0; index < MAX_DISK_IMAGES; index++) {
+            if (imageDiskList[index] == image) {
+                if (index > 1) IDE_Hard_Disk_Detach(index);
+                imageDiskList[index]->Release();
+                imageDiskChange[index] = true;
+                imageDiskList[index] = NULL;
+            }
+        }
+    }
+}
+
+extern int swapInDisksSpecificDrive;
 void MSCDEX_SetCDInterface(int intNr, int forceCD);
+bool FDC_UnassignINT13Disk(unsigned char drv);
 bool bootguest=false, use_quick_reboot=false;
 int bootdrive=-1;
 Bit8u ZDRIVE_NUM = 25;
-
+std::string msgget;
 static const char* UnmountHelper(char umount) {
     int i_drive;
     if (umount < '0' || umount > 3+'0')
@@ -163,24 +178,53 @@ static const char* UnmountHelper(char umount) {
     if (i_drive >= MAX_DISK_IMAGES && Drives[i_drive] == NULL)
         return MSG_Get("PROGRAM_MOUNT_UMOUNT_NOT_MOUNTED");
 
+    if (i_drive <= 1)
+        FDC_UnassignINT13Disk(i_drive);
+
+    msgget=MSG_Get("PROGRAM_MOUNT_UMOUNT_SUCCESS");
     if (Drives[i_drive]) {
+        const fatDrive* drive = dynamic_cast<fatDrive*>(Drives[i_drive]);
+        imageDisk* image = drive ? drive->loadedDisk : NULL;
+        const isoDrive* cdrom = dynamic_cast<isoDrive*>(Drives[i_drive]);
         switch (DriveManager::UnmountDrive(i_drive)) {
             case 1: return MSG_Get("PROGRAM_MOUNT_UMOUNT_NO_VIRTUAL");
             case 2: return MSG_Get("MSCDEX_ERROR_MULTIPLE_CDROMS");
         }
+        if (image) DetachFromBios(image);
+        if (cdrom) IDE_CDROM_Detach(i_drive);
         Drives[i_drive] = 0;
         DOS_EnableDriveMenu(i_drive+'A');
         mem_writeb(Real2Phys(dos.tables.mediaid)+(unsigned int)i_drive*dos.tables.dpb_size,0);
         if (i_drive == DOS_GetDefaultDrive())
             DOS_SetDrive(ZDRIVE_NUM);
+        if (cdrom)
+            for (int drv=0; drv<2; drv++)
+                if (Drives[drv]) {
+                    fatDrive *fdp = dynamic_cast<fatDrive*>(Drives[drv]);
+                    if (fdp&&fdp->opts.mounttype==1&&toupper(umount)==fdp->el.CDROM_drive) {
+                        msgget+=UnmountHelper('A'+drv);
+                        size_t found=msgget.rfind("%c");
+                        if (found!=std::string::npos)
+                            msgget.replace(found, 2, std::string(1, 'A'+drv));
+                    }
+                }
     }
 
     if (i_drive < MAX_DISK_IMAGES && imageDiskList[i_drive]) {
         delete imageDiskList[i_drive];
         imageDiskList[i_drive] = NULL;
     }
+    if (swapInDisksSpecificDrive == i_drive) {
+        for (size_t si=0;si < MAX_SWAPPABLE_DISKS;si++) {
+            if (diskSwap[si] != NULL) {
+                diskSwap[si]->Release();
+                diskSwap[si] = NULL;
+            }
+        }
+        swapInDisksSpecificDrive = -1;
+    }
 
-    return MSG_Get("PROGRAM_MOUNT_UMOUNT_SUCCESS");
+    return msgget.c_str();
 }
 
 #if defined(WIN32)
@@ -1297,8 +1341,6 @@ void XMS_DoShutDown();
 void DOS_DoShutDown();
 void GUS_DOS_Shutdown();
 void SBLASTER_DOS_Shutdown();
-
-extern int swapInDisksSpecificDrive;
 
 unsigned char PC98_ITF_ROM[0x8000];
 bool PC98_ITF_ROM_init = false;
@@ -3783,10 +3825,6 @@ bool ElTorito_ScanForBootRecord(CDROM_Interface *drv,unsigned long &boot_record,
     return false;
 }
 
-
-bool FDC_AssignINT13Disk(unsigned char drv);
-bool FDC_UnassignINT13Disk(unsigned char drv);
-
 imageDiskMemory* CreateRamDrive(Bitu sizes[], const int reserved_cylinders, const bool forceFloppy, Program* obj) {
     imageDiskMemory* dsk = NULL;
     //if chs not specified
@@ -3929,19 +3967,6 @@ bool AttachToBiosAndIdeByLetter(imageDisk* image, const char drive, const unsign
     return false;
 }
 
-void DetachFromBios(imageDisk* image) {
-    if (image) {
-        for (int index = 0; index < MAX_DISK_IMAGES; index++) {
-            if (imageDiskList[index] == image) {
-                if (index > 1) IDE_Hard_Disk_Detach(index);
-                imageDiskList[index]->Release();
-                imageDiskChange[index] = true;
-                imageDiskList[index] = NULL;
-            }
-        }
-    }
-}
-
 class IMGMOUNT : public Program {
 public:
     std::vector<std::string> options;
@@ -3981,12 +4006,19 @@ public:
         if (none) WriteOut(MSG_Get("PROGRAM_IMGMOUNT_STATUS_NONE"));
 		WriteOut("\n");
 		WriteOut(MSG_Get("PROGRAM_IMGMOUNT_STATUS_2"));
-		WriteOut(MSG_Get("PROGRAM_MOUNT_STATUS_NUMBER_FORMAT"),"Drive number","Disk name");
+		WriteOut(MSG_Get("PROGRAM_MOUNT_STATUS_NUMBER_FORMAT"),"Drive number","Disk name","# of swaps");
         for(int p = 0;p < cols;p++) WriteOut("-");
         none=true;
 		for (int index = 0; index < MAX_DISK_IMAGES; index++)
 			if (imageDiskList[index]) {
-                WriteOut(MSG_Get("PROGRAM_MOUNT_STATUS_NUMBER_FORMAT"), std::to_string(index).c_str(), dynamic_cast<imageDiskElToritoFloppy *>(imageDiskList[index])!=NULL?"El Torito floppy drive":imageDiskList[index]->diskname.c_str());
+                int swaps=0;
+                if (swapInDisksSpecificDrive == index) {
+                    for (size_t si=0;si < MAX_SWAPPABLE_DISKS;si++)
+                        if (diskSwap[si] != NULL)
+                            swaps++;
+                }
+                if (!swaps) swaps=1;
+                WriteOut(MSG_Get("PROGRAM_MOUNT_STATUS_NUMBER_FORMAT"), std::to_string(index).c_str(), dynamic_cast<imageDiskElToritoFloppy *>(imageDiskList[index])!=NULL?"El Torito floppy drive":imageDiskList[index]->diskname.c_str(), std::to_string(swaps).c_str());
                 none=false;
             }
         if (none) WriteOut(MSG_Get("PROGRAM_IMGMOUNT_STATUS_NONE"));
@@ -4019,6 +4051,10 @@ public:
             Unmount(umount[0]);
             return;
         }
+
+        bool roflag = false;
+        if (cmd->FindExist("-ro",true))
+            roflag = true;
 
         //initialize more variables
         unsigned long el_torito_floppy_base=~0UL;
@@ -4205,11 +4241,11 @@ public:
                 if (!MountElToritoFat(drive, sizes, el_torito_cd_drive, el_torito_floppy_base, el_torito_floppy_type)) return;
             }
             else if (type == "ram") {
-                if (!MountRam(sizes, drive, ide_index, ide_slave)) return;
+                if (!MountRam(sizes, drive, ide_index, ide_slave, roflag)) return;
             }
             else {
                 //supports multiple files
-                if (!MountFat(sizes, drive, type == "hdd", str_size, paths, ide_index, ide_slave)) return;
+                if (!MountFat(sizes, drive, type == "hdd", str_size, paths, ide_index, ide_slave, reserved_cylinders, roflag)) return;
             }
         } else if (fstype=="iso") {
             if (el_torito != "") {
@@ -4225,12 +4261,12 @@ public:
                 if (driveIndex <= 1) {
                     if (swapInDisksSpecificDrive >= 0 && swapInDisksSpecificDrive <= 1 &&
                         swapInDisksSpecificDrive != driveIndex) {
-                        WriteOut("Multiple images given and another drive already uses multiple images");
+                        WriteOut("Multiple images given and another drive already uses multiple images\n");
                         return;
                     }
                 }
                 else {
-                    WriteOut("Multiple disk images not supported for that drive");
+                    WriteOut("Multiple disk images not supported for that drive\n");
                     return;
                 }
             }
@@ -4242,7 +4278,7 @@ public:
                 newImage = MountImageNoneRam(sizes, reserved_cylinders, driveIndex < 2);
             }
             else {
-                newImage = MountImageNone(paths[0].c_str(), sizes, reserved_cylinders);
+                newImage = MountImageNone(paths[0].c_str(), sizes, reserved_cylinders, roflag);
             }
             if (newImage == NULL) return;
             newImage->Addref();
@@ -4255,33 +4291,34 @@ public:
             else {
                 if (AttachToBiosAndIdeByIndex(newImage, (unsigned char)driveIndex, (unsigned char)ide_index, ide_slave)) {
                     WriteOut(MSG_Get("PROGRAM_IMGMOUNT_MOUNT_NUMBER"), drive - '0', (!paths.empty()) ? (wpcolon&&paths[0].length()>1&&paths[0].c_str()[0]==':'?paths[0].c_str()+1:paths[0].c_str()) : (el_torito != ""?"El Torito floppy drive":(type == "ram"?"RAM drive":"-")));
-
-                    if (paths.size() > 1) {
+                    if (swapInDisksSpecificDrive == driveIndex || swapInDisksSpecificDrive == -1) {
                         for (size_t si=0;si < MAX_SWAPPABLE_DISKS;si++) {
                             if (diskSwap[si] != NULL) {
                                 diskSwap[si]->Release();
                                 diskSwap[si] = NULL;
                             }
                         }
+                        swapInDisksSpecificDrive = -1;
+                        if (paths.size() > 1) {
+                            /* slot 0 is the image we already assigned */
+                            diskSwap[0] = newImage;
+                            diskSwap[0]->Addref();
+                            swapPosition = 0;
+                            swapInDisksSpecificDrive = driveIndex;
 
-                        /* slot 0 is the image we already assigned */
-                        diskSwap[0] = newImage;
-                        diskSwap[0]->Addref();
-                        swapPosition = 0;
-                        swapInDisksSpecificDrive = driveIndex;
+                            for (size_t si=1;si < MAX_SWAPPABLE_DISKS && si < paths.size();si++) {
+                                imageDisk *img = MountImageNone(paths[si].c_str(), sizes, reserved_cylinders, roflag);
 
-                        for (size_t si=1;si < MAX_SWAPPABLE_DISKS && si < paths.size();si++) {
-                            imageDisk *img = MountImageNone(paths[si].c_str(), sizes, reserved_cylinders);
-
-                            if (img != NULL) {
-                                diskSwap[si] = img;
-                                diskSwap[si]->Addref();
+                                if (img != NULL) {
+                                    diskSwap[si] = img;
+                                    diskSwap[si]->Addref();
+                                }
                             }
                         }
                     }
                 }
                 else {
-                    WriteOut("Invalid mount number");
+                    WriteOut("Invalid mount number\n");
                 }
             }
             newImage->Release();
@@ -4467,7 +4504,6 @@ private:
                 {
                     //detatch hard drive or floppy drive from bios and ide controller
                     if (image) DetachFromBios(image);
-
                     /* If the drive letter is also a CD-ROM drive attached to IDE, then let the IDE code know */
                     if (cdrom) IDE_CDROM_Detach(i_drive);
                     Drives[i_drive] = NULL;
@@ -4484,6 +4520,19 @@ private:
                                     Unmount(drive);
                                 }
                             }
+                    if (i_drive < MAX_DISK_IMAGES && imageDiskList[i_drive]) {
+                        delete imageDiskList[i_drive];
+                        imageDiskList[i_drive] = NULL;
+                    }
+                    if (swapInDisksSpecificDrive == i_drive) {
+                        for (size_t si=0;si < MAX_SWAPPABLE_DISKS;si++) {
+                            if (diskSwap[si] != NULL) {
+                                diskSwap[si]->Release();
+                                diskSwap[si] = NULL;
+                            }
+                        }
+                        swapInDisksSpecificDrive = -1;
+                    }
                     return true;
                 }
                 case 1:
@@ -4510,6 +4559,15 @@ private:
                 imageDiskList[index]->Release();
                 imageDiskList[index] = NULL;
                 imageDiskChange[index] = true;
+                if (swapInDisksSpecificDrive == index) {
+                    for (size_t si=0;si < MAX_SWAPPABLE_DISKS;si++) {
+                        if (diskSwap[si] != NULL) {
+                            diskSwap[si]->Release();
+                            diskSwap[si] = NULL;
+                        }
+                    }
+                    swapInDisksSpecificDrive = -1;
+                }
 				WriteOut(MSG_Get("PROGRAM_MOUNT_UMOUNT_NUMBER_SUCCESS"), letter);
                 return true;
             }
@@ -4717,7 +4775,7 @@ private:
         return true;
     }
 
-    bool MountFat(Bitu sizes[], const char drive, const bool isHardDrive, const std::string &str_size, const std::vector<std::string> &paths, const signed char ide_index, const bool ide_slave) {
+    bool MountFat(Bitu sizes[], const char drive, const bool isHardDrive, const std::string &str_size, const std::vector<std::string> &paths, const signed char ide_index, const bool ide_slave, const int reserved_cylinders, bool roflag) {
         if (Drives[drive - 'A']) {
             WriteOut(MSG_Get("PROGRAM_IMGMOUNT_ALREADY_MOUNTED"));
             return false;
@@ -4759,7 +4817,7 @@ private:
                         if (!strcasecmp(ext, ".vhd")) {
                             ro=wpcolon&&paths[i].length()>1&&paths[i].c_str()[0]==':';
                             //load the file with imageDiskVHD, which supports fixed/dynamic/differential disks
-                            imageDiskVHD::ErrorCodes ret = imageDiskVHD::Open(ro?paths[i].c_str()+1:paths[i].c_str(), false, &vhdImage);
+                            imageDiskVHD::ErrorCodes ret = imageDiskVHD::Open(ro?paths[i].c_str()+1:paths[i].c_str(), ro||roflag, &vhdImage);
                             switch (ret) {
                             case imageDiskVHD::OPEN_SUCCESS: {
                                 //upon successful, go back to old code if using a fixed disk, which patches chs values for incorrectly identified disks
@@ -4793,7 +4851,7 @@ private:
                         }
                     }
                 }
-                if (!skipDetectGeometry && !DetectGeometry(paths[i].c_str(), sizes)) {
+                if (!skipDetectGeometry && !DetectGeometry(paths[i].c_str(), sizes, roflag)) {
                     errorMessage = (char*)("Unable to detect geometry\n");
                 }
             }
@@ -4804,10 +4862,10 @@ private:
                     newDrive = new fatDrive(vhdImage, options);
                     strcpy(newDrive->info, "fatDrive ");
                     strcat(newDrive->info, ro?paths[i].c_str()+1:paths[i].c_str());
-                    if (ro) newDrive->readonly=true;
                     vhdImage = NULL;
                 }
                 else {
+                    if (roflag) options.push_back("readonly");
                     newDrive = new fatDrive(paths[i].c_str(), (Bit32u)sizes[0], (Bit32u)sizes[1], (Bit32u)sizes[2], (Bit32u)sizes[3], options);
                 }
                 imgDisks.push_back(newDrive);
@@ -4819,7 +4877,8 @@ private:
 						sprintf(ver_msg, "This operation requires DOS version %u.%u or higher.\n%s", fdrive->req_ver_major, fdrive->req_ver_minor, errorMessage);
 						errorMessage = ver_msg;
 					}
-                }
+                } else if ((vhdImage&&ro)||roflag)
+                    fdrive->readonly=true;
             }
             if (errorMessage) {
                 if (!qmount) WriteOut(errorMessage);
@@ -4839,9 +4898,36 @@ private:
         }
         if (!qmount) WriteOut(MSG_Get("PROGRAM_MOUNT_STATUS_2"), drive, tmp.c_str());
 
-        if (imgDisks.size() == 1) {
+        unsigned char driveIndex = drive-'A';
+        if (imgDisks.size() == 1 || (imgDisks.size() > 1 && (swapInDisksSpecificDrive == driveIndex || swapInDisksSpecificDrive == -1))) {
             imageDisk* image = ((fatDrive*)imgDisks[0])->loadedDisk;
-            AttachToBiosAndIdeByLetter(image, drive, (unsigned char)ide_index, ide_slave);
+            if (AttachToBiosAndIdeByLetter(image, drive, (unsigned char)ide_index, ide_slave)) {
+                if (swapInDisksSpecificDrive == driveIndex || swapInDisksSpecificDrive == -1) {
+                    for (size_t si=0;si < MAX_SWAPPABLE_DISKS;si++) {
+                        if (diskSwap[si] != NULL) {
+                            diskSwap[si]->Release();
+                            diskSwap[si] = NULL;
+                        }
+                    }
+                    swapInDisksSpecificDrive = -1;
+                    if (paths.size() > 1) {
+                        /* slot 0 is the image we already assigned */
+                        diskSwap[0] = image;
+                        diskSwap[0]->Addref();
+                        swapPosition = 0;
+                        swapInDisksSpecificDrive = driveIndex;
+
+                        for (size_t si=1;si < MAX_SWAPPABLE_DISKS && si < paths.size();si++) {
+                            imageDisk *img = MountImageNone(paths[si].c_str(), sizes, reserved_cylinders, roflag);
+
+                            if (img != NULL) {
+                                diskSwap[si] = img;
+                                diskSwap[si]->Addref();
+                            }
+                        }
+                    }
+                }
+            }
         }
         return true;
     }
@@ -4857,7 +4943,7 @@ private:
         return dsk;
     }
 
-    bool MountRam(Bitu sizes[], const char drive, const signed char ide_index, const bool ide_slave) {
+    bool MountRam(Bitu sizes[], const char drive, const signed char ide_index, const bool ide_slave, bool roflag) {
         if (Drives[drive - 'A']) {
             WriteOut(MSG_Get("PROGRAM_IMGMOUNT_ALREADY_MOUNTED"));
             return false;
@@ -4873,6 +4959,7 @@ private:
         }
         dsk->Addref();
         DOS_Drive* newDrive = new fatDrive(dsk, options);
+        if (roflag) newDrive->readonly=true;
         dsk->Release();
         if (!(dynamic_cast<fatDrive*>(newDrive))->created_successfully) {
             WriteOut(MSG_Get("PROGRAM_IMGMOUNT_CANT_CREATE"));
@@ -4921,9 +5008,9 @@ private:
 
     }
 
-    bool DetectGeometry(const char* fileName, Bitu sizes[]) {
+    bool DetectGeometry(const char* fileName, Bitu sizes[], bool roflag) {
         bool yet_detected = false, readonly = wpcolon&&strlen(fileName)>1&&fileName[0]==':';
-        FILE * diskfile = fopen64(readonly?fileName+1:fileName, readonly?"rb":"rb+");
+        FILE * diskfile = fopen64(readonly?fileName+1:fileName, readonly||roflag?"rb":"rb+");
         if (!diskfile) {
             WriteOut(MSG_Get("PROGRAM_IMGMOUNT_INVALID_IMAGE"));
             return false;
@@ -5187,7 +5274,7 @@ private:
         return true;
     }
 
-    imageDisk* MountImageNone(const char* fileName, const Bitu sizesOriginal[], const int reserved_cylinders) {
+    imageDisk* MountImageNone(const char* fileName, const Bitu sizesOriginal[], const int reserved_cylinders, bool roflag) {
         imageDisk* newImage = 0;
         Bitu sizes[4];
         sizes[0] = sizesOriginal[0];
@@ -5200,7 +5287,8 @@ private:
             const char *ext = strrchr(fileName, '.');
             if (ext != NULL) {
                 if (!strcasecmp(ext, ".vhd")) {
-                    imageDiskVHD::ErrorCodes ret = imageDiskVHD::Open(fileName, false, &newImage);
+                    bool ro=wpcolon&&strlen(fileName)>1&&fileName[0]==':';
+                    imageDiskVHD::ErrorCodes ret = imageDiskVHD::Open(ro?fileName+1:fileName, ro||roflag, &newImage);
                     switch (ret) {
                     case imageDiskVHD::ERROR_OPENING: WriteOut(MSG_Get("VHD_ERROR_OPENING")); break;
                     case imageDiskVHD::INVALID_DATA: WriteOut(MSG_Get("VHD_INVALID_DATA")); break;
@@ -5223,7 +5311,7 @@ private:
 
 		bool readonly = wpcolon&&strlen(fileName)>1&&fileName[0]==':';
 		const char* fname=readonly?fileName+1:fileName;
-        FILE *newDisk = fopen64(fname, readonly?"rb":"rb+");
+        FILE *newDisk = fopen64(fname, readonly||roflag?"rb":"rb+");
         if (!newDisk) {
             WriteOut("Unable to open '%s'\n", fname);
             return NULL;
@@ -5305,7 +5393,7 @@ private:
 
         /* try auto-detect */
         if (sizes[3] == 0 && sizes[2] == 0) {
-            DetectGeometry(fname, sizes); /* NTS: Opens the file again, even though WE have the file open already! */
+            DetectGeometry(fname, sizes, roflag); /* NTS: Opens the file again, even though WE have the file open already! */
         }
 
         /* auto-fill: sector/track count */
@@ -6116,7 +6204,7 @@ void DOS_SetupPrograms(void) {
     MSG_Add("PROGRAM_MOUSE_HELP","Turns on/off mouse.\n\nMOUSE [/?] [/U] [/V]\n  /U: Uninstall\n  /V: Reverse Y-axis\n");
     MSG_Add("PROGRAM_MOUNT_CDROMS_FOUND","CDROMs found: %d\n");
     MSG_Add("PROGRAM_MOUNT_STATUS_FORMAT","%-5s  %-58s %-12s\n");
-    MSG_Add("PROGRAM_MOUNT_STATUS_NUMBER_FORMAT","%-12s  %-50s\n");
+    MSG_Add("PROGRAM_MOUNT_STATUS_NUMBER_FORMAT","%-12s  %-50s  %-10s\n");
     MSG_Add("PROGRAM_MOUNT_STATUS_ELTORITO", "Drive %c is mounted as El Torito floppy drive\n");
     MSG_Add("PROGRAM_MOUNT_STATUS_RAMDRIVE", "Drive %c is mounted as RAM drive\n");
     MSG_Add("PROGRAM_MOUNT_STATUS_2","Drive %c is mounted as %s\n");
@@ -6450,16 +6538,16 @@ void DOS_SetupPrograms(void) {
 
     MSG_Add("PROGRAM_IMGMOUNT_HELP",
         "Mounts floppy, hard drive and optical disc images.\n"
-        "IMGMOUNT drive filename [-t floppy] [-fs fat] [-size ss,s,h,c]\n"
-        "IMGMOUNT drive filename [-t hdd] [-fs fat] [-size ss,s,h,c] [-ide 1m|1s|2m|2s]\n"
-        "IMGMOUNT driveLoc filename -fs none [-size ss,s,h,c] [-reservecyl #]\n"
-        "IMGMOUNT drive filename [-t iso] [-fs iso]\n"
+        "IMGMOUNT drive file [-ro] [-t floppy] [-fs fat] [-size ss,s,h,c]\n"
+        "IMGMOUNT drive file [-ro] [-t hdd] [-fs fat] [-size ss,s,h,c] [-ide controller]\n"
+        "IMGMOUNT driveNum file [-ro] [-fs none] [-size ss,s,h,c] [-reservecyl #]\n"
+        "IMGMOUNT drive file [-t iso] [-fs iso]\n"
         "IMGMOUNT drive [-t floppy] -bootcd cdDrive (or -el-torito cdDrive)\n"
-        "IMGMOUNT drive -t ram -size driveSize\n"
-        "IMGMOUNT -u drive|driveLocation (or drive|driveLocation filename [options] -u)\n"
+        "IMGMOUNT drive -t ram -size size\n"
+        "IMGMOUNT -u drive|driveNum (or IMGMONT drive|driveNum file [options] -u)\n"
         " drive               Drive letter to mount the image at\n"
-        " driveLoc            Location to mount drive, where 0-1 are FDDs, 2-5 are HDDs\n"
-        " filename            Image filename or IMGMAKE.IMG (leading ':' for read-only)\n"
+        " driveNum            Drive number to mount, where 0-1 are FDDs, 2-5 are HDDs\n"
+        " file                Image filename(s), or IMGMAKE.IMG if not specified\n"
         " -t iso              Image type is optical disc iso or cue / bin image\n"
         " -t floppy           Image type is floppy\n"
         " -t hdd              Image type is hard disk; VHD and HDI files are supported\n"
@@ -6468,11 +6556,11 @@ void DOS_SetupPrograms(void) {
         " -fs fat             File system is FAT; FAT12, FAT16 and FAT32 are supported\n"
         " -fs none            Do not detect file system\n"
         " -reservecyl #       Report # number of cylinders less than actual in BIOS\n"
-        " -ide 1m|1s|2m|2s    Specifies the controller to mount drive\n"
-        " -size ss,s,h,c      Specify the geometry: Sector size,Sectors,Heads,Cylinders\n"
-        " -size driveSize     Specify the drive size in KB\n"
+        " -ide controller     Specify the IDE controller (1m, 1s, 2m, 2s) to mount drive\n"
+        " -size size|ss,s,h,c Specify the size in KB, or sector size and CHS geometry\n"
         " -bootcd cdDrive     Specify the CD drive to load the bootable floppy from\n"
-        " -u                  Unmount the drive"
+        " -ro                 Mount image(s) read-only (or leading ':' for read-only)\n"
+        " -u                  Unmount the drive or drive number"
     );
     MSG_Add("PROGRAM_IMGMAKE_SYNTAX",
         "Creates floppy or hard disk images.\n"
