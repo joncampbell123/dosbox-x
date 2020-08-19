@@ -141,7 +141,7 @@ int swapInDisksSpecificDrive = -1;
 //  0 = swap across A: only
 //  1 = swap across B: only
 
-void swapInDisks(void) {
+void swapInDisks(int drive) {
     bool allNull = true;
     Bit32s diskcount = 0;
     Bits diskswapcount = 2;
@@ -161,10 +161,10 @@ void swapInDisks(void) {
     if (allNull) return;
 
     /* if a specific drive is to be swapped, then adjust to focus on it */
-    if (swapInDisksSpecificDrive >= 0 && swapInDisksSpecificDrive <= 1) {
+    if (swapInDisksSpecificDrive >= 0 && swapInDisksSpecificDrive <= 1 && (drive == -1 || drive == swapInDisksSpecificDrive)) {
         diskswapdrive = swapInDisksSpecificDrive;
         diskswapcount = 1;
-    } else if (swapInDisksSpecificDrive != -1) /* Swap A: and B: drives */
+    } else if (swapInDisksSpecificDrive != -1 || drive != -1) /* Swap A: and B: drives */
         return;
 
     /* If only one disk is loaded, this loop will load the same disk in dive A and drive B */
@@ -203,10 +203,10 @@ void swapInDrive(int drive) {
         Drives[drive]->EmptyCache();
         Drives[drive]->MediaChange();
     }
-    if (drive>=MAX_DISK_IMAGES||swapInDisksSpecificDrive!=drive) return;
+    if (drive>1||swapInDisksSpecificDrive!=drive) return;
     swapPosition++;
     if(diskSwap[swapPosition] == NULL) swapPosition = 0;
-    swapInDisks();
+    swapInDisks(drive);
     swapping_requested = true;
 }
 
@@ -225,7 +225,7 @@ void swapInNextDisk(bool pressed) {
     if (swapInDisksSpecificDrive>1) return;
     swapPosition++;
     if(diskSwap[swapPosition] == NULL) swapPosition = 0;
-    swapInDisks();
+    swapInDisks(-1);
     swapping_requested = true;
 }
 
