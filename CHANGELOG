@@ -5,8 +5,8 @@
     "auto" (default), DOSBox-X will warn only if at
     least one file handle is still open, or you are
     currently running a guest system. (Wengier)
-  - DOSBox-X will allow control characters 8 and 27
-    in the batch file without warnings. (Wengier)
+  - DOSBox-X will allow control characters 8, 9, and
+    27 in the batch file without warnings. (Wengier)
   - Add command-line option "-defaultdir" to specify
     a directory (instead of the current directory) as
     the working directory. DOSBox-X will look for the
@@ -19,6 +19,8 @@
   - Fixed that joystick may not work with the setting
     "usescancodes=auto" when a non-US keyboard layout
     is activated on the SDL1 build. (Wengier)
+  - Added "Drive information" menu item under "Drive"
+    to show the information for the drive. (Wengier)
   - The command "Swap CD" now swaps only CD drives (as
     the name), not all non-floppy drives. Also added
     "Swap disk" menu item under the "Drive" menu for
