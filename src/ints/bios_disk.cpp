@@ -164,7 +164,7 @@ void swapInDisks(void) {
     if (swapInDisksSpecificDrive >= 0 && swapInDisksSpecificDrive <= 1) {
         diskswapdrive = swapInDisksSpecificDrive;
         diskswapcount = 1;
-    } else /* Swap A: and B: drives */
+    } else if (swapInDisksSpecificDrive != -1) /* Swap A: and B: drives */
         return;
 
     /* If only one disk is loaded, this loop will load the same disk in dive A and drive B */
@@ -195,6 +195,21 @@ bool getSwapRequest(void) {
     return sreq;
 }
 
+void swapInDrive(int drive) {
+    DriveManager::CycleDisks(drive, true);
+    /* Hack/feature: rescan all disks as well */
+    LOG_MSG("Diskcaching reset for drive.", drive+'A');
+    if (Drives[drive] != NULL) {
+        Drives[drive]->EmptyCache();
+        Drives[drive]->MediaChange();
+    }
+    if (drive>=MAX_DISK_IMAGES||swapInDisksSpecificDrive!=drive) return;
+    swapPosition++;
+    if(diskSwap[swapPosition] == NULL) swapPosition = 0;
+    swapInDisks();
+    swapping_requested = true;
+}
+
 void swapInNextDisk(bool pressed) {
     if (!pressed)
         return;
@@ -207,6 +222,7 @@ void swapInNextDisk(bool pressed) {
             Drives[i]->MediaChange();
         }
     }
+    if (swapInDisksSpecificDrive>1) return;
     swapPosition++;
     if(diskSwap[swapPosition] == NULL) swapPosition = 0;
     swapInDisks();

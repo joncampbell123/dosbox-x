@@ -383,6 +383,12 @@ int DriveManager::UnmountDrive(int drive) {
 	return result;
 }
 
+char swappos[10];
+char * DriveManager::GetDrivePosition(int drive) {
+    sprintf(swappos, "%d / %d", driveInfos[drive].currentDisk+1, driveInfos[drive].disks.size());
+    return swappos;
+}
+
 bool drivemanager_init = false;
 bool int13_extensions_enable = true;
 

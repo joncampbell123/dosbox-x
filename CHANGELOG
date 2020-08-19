@@ -16,20 +16,23 @@
   - VER /R now shows DOSBox-X's Git commit SHA1, in
     addition to the build date and other version
     information shown by the VER command. (Wengier)
-  - The command "Swap CD" now swaps only CD drives (as
-    the name), not all non-floppy drives. (Wengier)
   - Fixed that joystick may not work with the setting
     "usescancodes=auto" when a non-US keyboard layout
     is activated on the SDL1 build. (Wengier)
-  - Fixed unmounting swap disks when unmounting drives
-    with MOUNT or IMGMOUNT command. (Wengier)
+  - The command "Swap CD" now swaps only CD drives (as
+    the name), not all non-floppy drives. Also fixed
+    unmounting swap disks when unmounting drives with
+    MOUNT or IMGMOUNT command. (Wengier)
   - Fixed possible failure when mounting .VHD images,
     and the issue that leading colon (:) or read-only
     marker may not work for such images. (Wengier)
   - IMGMOUNT command without parameters now shows the
-    number of swap disks for drive numbers. (Wengier)
+    disk position and number of swap disks, as well as
+    the IDE controller (if applicable). (Wengier)
   - Add "-ro" option for IMGMOUNT command to mark all
     disk imaages as read-only at once. (Wengier)
+  - Added "Swap disk" menu item under the "Drive" menu
+    for individual drives. (Wengier)
   - Added option to the Windows installer which allows
     to automatically upgrade the DOSBox-X config file
     (dosbox-x.conf) to the latest version format while

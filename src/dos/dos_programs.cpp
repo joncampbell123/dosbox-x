@@ -3967,6 +3967,7 @@ bool AttachToBiosAndIdeByLetter(imageDisk* image, const char drive, const unsign
     return false;
 }
 
+char * GetIDEPosition(unsigned char bios_disk_index);
 class IMGMOUNT : public Program {
 public:
     std::vector<std::string> options;
@@ -3979,10 +3980,11 @@ public:
         DOS_DTA dta(dos.dta());
 
         WriteOut(MSG_Get("PROGRAM_IMGMOUNT_STATUS_1"));
-        WriteOut(MSG_Get("PROGRAM_MOUNT_STATUS_FORMAT"),"Drive","Type","Label");
+        WriteOut(MSG_Get("PROGRAM_IMGMOUNT_STATUS_FORMAT"),"Drive","Type","Label","Swap Pos");
         int cols=IS_PC98_ARCH?80:real_readw(BIOSMEM_SEG,BIOSMEM_NB_COLS);
         if (!cols) cols=80;
         for(int p = 0;p < cols;p++) WriteOut("-");
+        char swapstr[10];
         bool none=true;
         for (int d = 0;d < DOS_DRIVES;d++) {
             if (!Drives[d] || (strncmp(Drives[d]->GetInfo(), "fatDrive ", 9) && strncmp(Drives[d]->GetInfo(), "isoDrive ", 9))) continue;
@@ -4000,13 +4002,13 @@ public:
             }
 
             root[1] = 0; //This way, the format string can be reused.
-            WriteOut(MSG_Get("PROGRAM_MOUNT_STATUS_FORMAT"),root, Drives[d]->GetInfo(),name);       
+            WriteOut(MSG_Get("PROGRAM_IMGMOUNT_STATUS_FORMAT"),root, Drives[d]->GetInfo(),name,DriveManager::GetDrivePosition(d));
             none=false;
         }
         if (none) WriteOut(MSG_Get("PROGRAM_IMGMOUNT_STATUS_NONE"));
 		WriteOut("\n");
 		WriteOut(MSG_Get("PROGRAM_IMGMOUNT_STATUS_2"));
-		WriteOut(MSG_Get("PROGRAM_MOUNT_STATUS_NUMBER_FORMAT"),"Drive number","Disk name","# of swaps");
+		WriteOut(MSG_Get("PROGRAM_IMGMOUNT_STATUS_NUMBER_FORMAT"),"Drive number","Disk name","IDE position","Swap Pos");
         for(int p = 0;p < cols;p++) WriteOut("-");
         none=true;
 		for (int index = 0; index < MAX_DISK_IMAGES; index++)
@@ -4018,7 +4020,8 @@ public:
                             swaps++;
                 }
                 if (!swaps) swaps=1;
-                WriteOut(MSG_Get("PROGRAM_MOUNT_STATUS_NUMBER_FORMAT"), std::to_string(index).c_str(), dynamic_cast<imageDiskElToritoFloppy *>(imageDiskList[index])!=NULL?"El Torito floppy drive":imageDiskList[index]->diskname.c_str(), std::to_string(swaps).c_str());
+                sprintf(swapstr, "%d / %d", swaps==1?1:swapPosition+1, swaps);
+                WriteOut(MSG_Get("PROGRAM_IMGMOUNT_STATUS_NUMBER_FORMAT"), std::to_string(index).c_str(), dynamic_cast<imageDiskElToritoFloppy *>(imageDiskList[index])!=NULL?"El Torito floppy drive":imageDiskList[index]->diskname.c_str(), GetIDEPosition(index), swapstr);
                 none=false;
             }
         if (none) WriteOut(MSG_Get("PROGRAM_IMGMOUNT_STATUS_NONE"));
@@ -6204,11 +6207,12 @@ void DOS_SetupPrograms(void) {
     MSG_Add("PROGRAM_MOUSE_HELP","Turns on/off mouse.\n\nMOUSE [/?] [/U] [/V]\n  /U: Uninstall\n  /V: Reverse Y-axis\n");
     MSG_Add("PROGRAM_MOUNT_CDROMS_FOUND","CDROMs found: %d\n");
     MSG_Add("PROGRAM_MOUNT_STATUS_FORMAT","%-5s  %-58s %-12s\n");
-    MSG_Add("PROGRAM_MOUNT_STATUS_NUMBER_FORMAT","%-12s  %-50s  %-10s\n");
     MSG_Add("PROGRAM_MOUNT_STATUS_ELTORITO", "Drive %c is mounted as El Torito floppy drive\n");
     MSG_Add("PROGRAM_MOUNT_STATUS_RAMDRIVE", "Drive %c is mounted as RAM drive\n");
     MSG_Add("PROGRAM_MOUNT_STATUS_2","Drive %c is mounted as %s\n");
     MSG_Add("PROGRAM_MOUNT_STATUS_1","The currently mounted drives are:\n");
+    MSG_Add("PROGRAM_IMGMOUNT_STATUS_FORMAT","%-5s  %-47s  %-12s  %-9s\n");
+    MSG_Add("PROGRAM_IMGMOUNT_STATUS_NUMBER_FORMAT","%-12s  %-40s  %-12s  %-9s\n");
     MSG_Add("PROGRAM_IMGMOUNT_STATUS_2","The currently mounted drive numbers are:\n");
     MSG_Add("PROGRAM_IMGMOUNT_STATUS_1","The currently mounted FAT/ISO drives are:\n");
     MSG_Add("PROGRAM_IMGMOUNT_STATUS_NONE","No drive available\n");
