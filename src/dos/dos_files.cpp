@@ -1889,6 +1889,7 @@ bool DOS_SetFileDate(Bit16u entry, Bit16u ntime, Bit16u ndate)
 	return true;
 }
 
+extern int swapInDisksSpecificDrive;
 void DOS_SetupFiles (void) {
 	/* Setup the File Handles */
 	Files = new DOS_File * [DOS_FILES];
@@ -1901,6 +1902,21 @@ void DOS_SetupFiles (void) {
 		if (Drives[i]) DriveManager::UnmountDrive(i);
 		Drives[i]=0;
 	}
+    for (int i=0; i<MAX_DISK_IMAGES; i++) {
+        if (imageDiskList[i]) {
+            delete imageDiskList[i];
+            imageDiskList[i] = NULL;
+        }
+    }
+    if (swapInDisksSpecificDrive != -1) {
+        for (size_t si=0;si < MAX_SWAPPABLE_DISKS;si++) {
+            if (diskSwap[si] != NULL) {
+                diskSwap[si]->Release();
+                diskSwap[si] = NULL;
+            }
+        }
+        swapInDisksSpecificDrive = -1;
+    }
 	Drives[25]=new Virtual_Drive();
 }
 

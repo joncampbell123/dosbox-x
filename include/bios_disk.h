@@ -458,7 +458,7 @@ extern Bit16u imgDTASeg; /* Real memory location of temporary DTA pointer for fa
 extern RealPt imgDTAPtr; /* Real memory location of temporary DTA pointer for fat image disk access */
 extern DOS_DTA *imgDTA;
 
-void swapInDisks(void);
+void swapInDisks(int drive);
 bool getSwapRequest(void);
 imageDisk *GetINT13HardDrive(unsigned char drv);
 imageDisk *GetINT13FloppyDrive(unsigned char drv);
