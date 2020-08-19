@@ -35,6 +35,7 @@
 #include "control.h"
 #include "shell.h"
 #include "cpu.h"
+#include "../dos/drives.h"
 
 #include <iostream>
 #include <sstream>
@@ -69,7 +70,8 @@ extern uint32_t             GFX_Bmask;
 extern unsigned char        GFX_Bshift;
 
 extern std::string          saveloaderr;
-extern bool                 dos_kernel_disabled, confres;
+extern int                  statusdrive;
+extern bool                 dos_kernel_disabled, confres, quit_confirm;
 extern Bitu                 currentWindowWidth, currentWindowHeight;
 
 extern bool                 MSG_Write(const char *);
@@ -1431,6 +1433,78 @@ public:
     }
 };
 
+class ShowDriveInfo : public GUI::ToplevelWindow {
+protected:
+    GUI::Input *name;
+public:
+    ShowDriveInfo(GUI::Screen *parent, int x, int y, const char *title) :
+        ToplevelWindow(parent, x, y, 350, 270, title) {
+            char name[DOS_NAMELENGTH_ASCII],lname[LFN_NAMELENGTH];
+            Bit32u size;Bit16u date;Bit16u time;Bit8u attr;
+            /* Command uses dta so set it to our internal dta */
+            RealPt save_dta = dos.dta();
+            dos.dta(dos.tables.tempdta);
+            DOS_DTA dta(dos.dta());
+            if (Drives[statusdrive]) {
+                char root[7] = {(char)('A'+statusdrive),':','\\','*','.','*',0};
+                bool ret = DOS_FindFirst(root,DOS_ATTR_VOLUME);
+                if (ret) {
+                    dta.GetResult(name,lname,size,date,time,attr);
+                    DOS_FindNext(); //Mark entry as invalid
+                } else name[0] = 0;
+
+                /* Change 8.3 to 11.0 */
+                const char* dot = strchr(name, '.');
+                if(dot && (dot - name == 8) ) {
+                    name[8] = name[9];name[9] = name[10];name[10] = name[11];name[11] = 0;
+                }
+
+                root[3] = 0; //This way, the format string can be reused.
+                std::string type, path, swappos="-", overlay="-";
+                const char *info = Drives[statusdrive]->GetInfo();
+                if (!strncmp(info, "fatDrive ", 9) || !strncmp(info, "isoDrive ", 9)) {
+                    type=strncmp(info, "isoDrive ", 9)?"fatDrive":"isoDrive";
+                    path=info+9;
+                    if (type=="fatDrive" && !path.size()) {
+                        fatDrive *fdp = dynamic_cast<fatDrive*>(Drives[statusdrive]);
+                        if (fdp!=NULL&&fdp->opts.mounttype==1)
+                            path="El Torito floppy drive";
+                        else if (fdp!=NULL&&fdp->opts.mounttype==2)
+                            path="RAM drive";
+                    }
+                    swappos=DriveManager::GetDrivePosition(statusdrive);
+                } else if (!strncmp(info, "local directory ", 16)) {
+                    type="local directory";
+                    path=info+16;
+                    Overlay_Drive *ddp = dynamic_cast<Overlay_Drive*>(Drives[statusdrive]);
+                    if (ddp!=NULL) overlay=ddp->getOverlaydir();
+                } else if (!strncmp(info, "CDRom ", 6)) {
+                    type="CDRom";
+                    path=info+6;
+                } else {
+                    type=info;
+                    path="";
+                }
+                if (path=="") path="-";
+                new GUI::Label(this, 40, 25, "Drive root: "+std::string(root));
+                new GUI::Label(this, 40, 50, "Drive type: "+type);
+                new GUI::Label(this, 40, 75, "Mounted as: "+path);
+                new GUI::Label(this, 40, 100, "Overlay at: "+overlay);
+                new GUI::Label(this, 40, 125, "Disk label: "+std::string(name));
+                new GUI::Label(this, 40, 150, "Swap Pos  : "+swappos);
+            }
+            dos.dta(save_dta);
+            (new GUI::Button(this, 140, 180, "Close", 70))->addActionHandler(this);
+    }
+
+    void actionExecuted(GUI::ActionEventSource *b, const GUI::String &arg) {
+        (void)b;//UNUSED
+        if (arg == "Close")
+            close();
+        if (shortcut) running = false;
+    }
+};
+
 class ShowStateCorrupt : public GUI::ToplevelWindow {
 protected:
     GUI::Input *name;
@@ -1466,6 +1540,31 @@ public:
             confres=true;
         if (arg == "No")
             confres=false;
+        close();
+        if (shortcut) running = false;
+    }
+};
+
+class ShowQuitWarning : public GUI::ToplevelWindow {
+protected:
+    GUI::Input *name;
+public:
+    ShowQuitWarning(GUI::Screen *parent, int x, int y, const char *title) :
+        ToplevelWindow(parent, x, y, strcmp(title, "quit1")?430:330, !strcmp(title, "quit3")?180:150, "Quit DOSBox-X warning") {
+            bool forcequit=!strcmp(title, "quit3");
+            new GUI::Label(this, forcequit?20:40, 20, !strcmp(title, "quit1")?"This will quit from DOSBox-X.":(!strcmp(title, "quit2")?"You are currently running a guest system.":"It may be unsafe to quit from DOSBox-X right now"));
+            if (forcequit) new GUI::Label(this, forcequit?20:40, 50, "because one or more files are currently open.");
+            new GUI::Label(this, forcequit?20:40, forcequit?80:50, strcmp(title, "quit1")?"Are you sure to quit anyway now?":"Are you sure?");
+            (new GUI::Button(this, strcmp(title, "quit1")?140:90, forcequit?110:80, "Yes", 70))->addActionHandler(this);
+            (new GUI::Button(this, strcmp(title, "quit1")?230:180, forcequit?110:80, "No", 70))->addActionHandler(this);
+    }
+
+    void actionExecuted(GUI::ActionEventSource *b, const GUI::String &arg) {
+        (void)b;//UNUSED
+        if (arg == "Yes")
+            quit_confirm=true;
+        if (arg == "No")
+            quit_confirm=false;
         close();
         if (shortcut) running = false;
     }
@@ -1811,6 +1910,22 @@ static void UI_Select(GUI::ScreenSDL *screen, int select) {
         case 27: {
             auto *np7 = new ShowLoadWarning(screen, 150, 120, "Are you sure to remove the state in this slot?");
             np7->raise();
+            } break;
+        case 28: {
+            auto *np8 = new ShowQuitWarning(screen, 150, 120, "quit1");
+            np8->raise();
+            } break;
+        case 29: {
+            auto *np8 = new ShowQuitWarning(screen, 120, 100, "quit2");
+            np8->raise();
+            } break;
+        case 30: {
+            auto *np8 = new ShowQuitWarning(screen, 120, 100, "quit3");
+            np8->raise();
+            } break;
+        case 31: if (statusdrive>-1 && statusdrive<DOS_DRIVES && Drives[statusdrive]) {
+            auto *np9 = new ShowDriveInfo(screen, 120, 70, "Drive Information");
+            np9->raise();
             } break;
         default:
             break;

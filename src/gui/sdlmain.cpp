@@ -44,9 +44,9 @@ extern bool log_fileio;
 extern bool force_load_state;
 extern bool use_quick_reboot;
 extern bool enable_config_as_shell_commands;
+bool winrun=false;
 #if defined(WIN32)
 bool direct_mouse_clipboard=false;
-bool winrun=false;
 #endif
 
 bool OpenGL_using(void);
@@ -379,6 +379,32 @@ bool drive_unmount_menu_callback(DOSBoxMenu * const menu,DOSBoxMenu::item * cons
     return true;
 }
 
+void swapInDrive(int drive);
+bool drive_swap_menu_callback(DOSBoxMenu * const menu,DOSBoxMenu::item * const menuitem) {
+    (void)menu;//UNUSED
+    (void)menuitem;//UNUSED
+
+    /* menu item has name "drive_A_" ... */
+    int drive;
+    const char *mname = menuitem->get_name().c_str();
+    if (!strncmp(mname,"drive_",6)) {
+        drive = mname[6] - 'A';
+        if (drive < 0 || drive >= DOS_DRIVES) return false;
+    }
+    else {
+        return false;
+    }
+
+    if (dos_kernel_disabled) return true;
+
+    if (drive < DOS_DRIVES && Drives[drive]) {
+        LOG(LOG_DOSMISC,LOG_DEBUG)("Triggering swap on drive %c",drive+'A');
+        swapInDrive(drive);
+    }
+
+    return true;
+}
+
 bool drive_rescan_menu_callback(DOSBoxMenu * const menu,DOSBoxMenu::item * const menuitem) {
     (void)menu;//UNUSED
     (void)menuitem;//UNUSED
@@ -400,6 +426,35 @@ bool drive_rescan_menu_callback(DOSBoxMenu * const menu,DOSBoxMenu::item * const
         LOG(LOG_DOSMISC,LOG_DEBUG)("Triggering rescan on drive %c",drive+'A');
         Drives[drive]->EmptyCache();
     }
+
+    return true;
+}
+
+int statusdrive=-1;
+void MAPPER_ReleaseAllKeys();
+bool drive_info_menu_callback(DOSBoxMenu * const menu,DOSBoxMenu::item * const menuitem) {
+    (void)menu;//UNUSED
+    (void)menuitem;//UNUSED
+
+    int drive;
+    const char *mname = menuitem->get_name().c_str();
+    if (!strncmp(mname,"drive_",6)) {
+        drive = mname[6] - 'A';
+        if (drive < 0 || drive >= DOS_DRIVES) return false;
+    }
+    else {
+        return false;
+    }
+
+    if (dos_kernel_disabled) return true;
+
+    MAPPER_ReleaseAllKeys();
+    GFX_LosingFocus();
+    statusdrive=drive;
+    GUI_Shortcut(31);
+    statusdrive=-1;
+    MAPPER_ReleaseAllKeys();
+    GFX_LosingFocus();
 
     return true;
 }
@@ -435,7 +490,9 @@ const DOSBoxMenu::callback_t drive_callbacks[] = {
     drive_mountimg_menu_callback,
 #endif
     drive_unmount_menu_callback,
+    drive_swap_menu_callback,
     drive_rescan_menu_callback,
+    drive_info_menu_callback,
     drive_boot_menu_callback,
 #if defined(WIN32)
     drive_bootimg_menu_callback,
@@ -452,7 +509,9 @@ const char *drive_opts[][2] = {
 	{ "mountimg",               "Mount disk image" },
 #endif
     { "unmount",                "Unmount" },
-    { "rescan",                 "Rescan" },
+    { "swap",                   "Swap disk" },
+    { "rescan",                 "Rescan drive" },
+    { "info",                   "Drive information" },
     { "boot",                   "Boot from drive" },
 #if defined(WIN32)
     { "bootimg",                "Boot from disk image" },
@@ -876,6 +935,7 @@ void                        GUI_Run(bool);
 const char*                 titlebar = NULL;
 extern const char*              RunningProgram;
 extern bool                 CPU_CycleAutoAdjust;
+extern                      cpu_cycles_count_t CPU_CyclePercUsed;
 #if !(ENVIRON_INCLUDED)
 extern char**                   environ;
 #endif
@@ -1040,7 +1100,7 @@ void GFX_SetTitle(Bit32s cycles,Bits frameskip,Bits timing,bool paused){
             VERSION,(int)internal_cycles);
     }
     else {
-        sprintf(title,"%s%sDOSBox-X %s, %d cyc/ms",
+        sprintf(title,"%s%sDOSBox-X %s, %d cycles/ms",
             dosbox_title.c_str(),dosbox_title.empty()?"":": ",
             VERSION,(int)internal_cycles);
     }
@@ -1078,12 +1138,54 @@ void GFX_SetTitle(Bit32s cycles,Bits frameskip,Bits timing,bool paused){
 #endif
 }
 
-bool warn_on_mem_write = false;
+bool warn_on_mem_write = false, quit_confirm = false;
 
 void CPU_Snap_Back_To_Real_Mode();
+bool CheckQuit(void) {
+    Section_prop *section = static_cast<Section_prop *>(control->GetSection("dosbox"));
+	std::string warn = section->Get_string("quit warning");
+    if (warn == "true") {
+        quit_confirm=false;
+        MAPPER_ReleaseAllKeys();
+        GFX_LosingFocus();
+        GUI_Shortcut(28);
+        MAPPER_ReleaseAllKeys();
+        GFX_LosingFocus();
+        bool ret=quit_confirm;
+        quit_confirm=false;
+        return ret;
+    } else if (warn == "false")
+        return true;
+    if (dos_kernel_disabled) {
+        quit_confirm=false;
+        MAPPER_ReleaseAllKeys();
+        GFX_LosingFocus();
+        GUI_Shortcut(29);
+        MAPPER_ReleaseAllKeys();
+        GFX_LosingFocus();
+        bool ret=quit_confirm;
+        quit_confirm=false;
+        return ret;
+    }
+    for (Bit8u handle = 0; handle < DOS_FILES; handle++) {
+        if (Files[handle] && (Files[handle]->GetName() == NULL || strcmp(Files[handle]->GetName(), "CON")) && (Files[handle]->GetInformation()&0x8000) == 0) {
+            quit_confirm=false;
+            MAPPER_ReleaseAllKeys();
+            GFX_LosingFocus();
+            GUI_Shortcut(30);
+            MAPPER_ReleaseAllKeys();
+            GFX_LosingFocus();
+            bool ret=quit_confirm;
+            quit_confirm=false;
+            return ret;
+        }
+    }
+    return true;
+}
 
 static void KillSwitch(bool pressed) {
     if (!pressed) return;
+    if (!CheckQuit()) return;
     if (sdl.desktop.fullscreen) GFX_SwitchFullScreen();
 #if 0 /* Re-enable this hack IF DOSBox-X continues to have problems page-faulting on kill switch */
     CPU_Snap_Back_To_Real_Mode(); /* TEMPORARY HACK. There are portions of DOSBox that write to memory as if still running DOS. */
@@ -1219,7 +1321,6 @@ void PauseDOSBoxLoop(Bitu /*unused*/) {
     /* reflect in the menu that we're paused now */
     mainMenu.get_item("mapper_pause").check(true).refresh_item(mainMenu);
 
-    void MAPPER_ReleaseAllKeys(void);
     MAPPER_ReleaseAllKeys();
 
     GFX_SetTitle(-1,-1,-1,true);
@@ -1329,7 +1430,6 @@ void PauseDOSBoxLoop(Bitu /*unused*/) {
     void GFX_UpdateSDLCaptureState();
     GFX_UpdateSDLCaptureState();
 
-    void MAPPER_ReleaseAllKeys(void);
     MAPPER_ReleaseAllKeys();
 
 //  KEYBOARD_ClrBuffer();
@@ -2824,7 +2924,7 @@ void change_output(int output) {
     if (sdl.draw.callback)
         (sdl.draw.callback)( GFX_CallBackReset );
 
-    GFX_SetTitle((Bit32s)CPU_CycleMax,-1,-1,false);
+    if (output != 7) GFX_SetTitle((Bit32s)(CPU_CycleAutoAdjust?CPU_CyclePercUsed:CPU_CycleMax),-1,-1,false);
     GFX_LogSDLState();
 
     UpdateWindowDimensions();
@@ -3600,8 +3700,14 @@ static void GUI_StartUp() {
 # elif defined(__MINGW32__) && !(C_DIRECT3D) && !defined(C_SDL2)
         /* NTS: OpenGL output never seems to work in VirtualBox under Windows XP */
         output = isVirtualBox ? "surface" : "opengl"; /* MinGW builds do not yet have Direct3D */
-# else
+# elif C_DIRECT3D
         output = "direct3d";
+# elif C_OPENGL && !defined(C_SDL2)
+        output = isVirtualBox ? "surface" : "opengl";
+# elif C_OPENGL
+        output = "opengl";
+# else
+        output = "surface";
 # endif
 #elif defined(MACOSX) && defined(C_OPENGL) && !defined(C_SDL2)
         /* NTS: Lately, especially on Macbooks with Retina displays, OpenGL gives better performance
@@ -4529,7 +4635,7 @@ static void HandleMouseButton(SDL_MouseButtonEvent * button, SDL_MouseMotionEven
 
                     switch (event.type) {
                         case SDL_QUIT:
-                            throw(0);
+                            if (CheckQuit()) throw(0);
                             break;
                         case SDL_KEYUP:
                             if (event.key.keysym.sym == SDLK_ESCAPE) {
@@ -5330,7 +5436,7 @@ void GFX_Events() {
 
                         switch (ev.type) {
                         case SDL_QUIT:
-                            throw(0);
+                            if (CheckQuit()) throw(0);
                             break; // a bit redundant at linux at least as the active events gets before the quit event.
                         case SDL_WINDOWEVENT:     // wait until we get window focus back
                             if ((ev.window.event == SDL_WINDOWEVENT_FOCUS_LOST) || (ev.window.event == SDL_WINDOWEVENT_MINIMIZED) || (ev.window.event == SDL_WINDOWEVENT_FOCUS_GAINED) || (ev.window.event == SDL_WINDOWEVENT_RESTORED) || (ev.window.event == SDL_WINDOWEVENT_EXPOSED)) {
@@ -5388,7 +5494,7 @@ void GFX_Events() {
             break;
 #endif
         case SDL_QUIT:
-            throw(0);
+            if (CheckQuit()) throw(0);
             break;
 		case SDL_MOUSEWHEEL:
 			if (wheel_key) {
@@ -5643,7 +5749,7 @@ void GFX_Events() {
 #endif
 
                         switch (ev.type) {
-                        case SDL_QUIT: throw(0); break; // a bit redundant at linux at least as the active events gets before the quit event.
+                        case SDL_QUIT: if (CheckQuit()) throw(0); break; // a bit redundant at linux at least as the active events gets before the quit event.
                         case SDL_ACTIVEEVENT:     // wait until we get window focus back
                             if (ev.active.state & (SDL_APPINPUTFOCUS | SDL_APPACTIVE)) {
                                 // We've got focus back, so unpause and break out of the loop
@@ -5677,7 +5783,7 @@ void GFX_Events() {
             HandleVideoResize(&event.resize);
             break;
         case SDL_QUIT:
-            throw(0);
+            if (CheckQuit()) throw(0);
             break;
         case SDL_VIDEOEXPOSE:
             if (sdl.draw.callback && !glide.enabled) sdl.draw.callback( GFX_CallBackRedraw );
@@ -6605,6 +6711,7 @@ bool DOSBOX_parse_argv() {
             fprintf(stderr,"  -showrt                                 Show emulation speed relative to realtime\n");
             fprintf(stderr,"  -fullscreen                             Start in fullscreen\n");
             fprintf(stderr,"  -savedir <path>                         Set save path\n");
+            fprintf(stderr,"  -defaultdir <path>                      Set the default working path\n");
 #if defined(WIN32)
             fprintf(stderr,"  -disable-numlock-check                  Disable NumLock check (Windows version only)\n");
 #endif
@@ -6726,6 +6833,12 @@ bool DOSBOX_parse_argv() {
         }
         else if (optname == "savedir") {
             if (!control->cmdline->NextOptArgv(custom_savedir)) return false;
+        }
+        else if (optname == "defaultdir") {
+            if (control->cmdline->NextOptArgv(tmp)) {
+                struct stat st;
+                if (stat(tmp.c_str(), &st) == 0 && st.st_mode & S_IFDIR) chdir(tmp.c_str());
+            }
         }
         else if (optname == "userconf") {
             control->opt_userconf = true;
@@ -7140,14 +7253,12 @@ bool mixer_mute_menu_callback(DOSBoxMenu * const menu,DOSBoxMenu::item * const m
 bool mixer_info_menu_callback(DOSBoxMenu * const menu,DOSBoxMenu::item * const menuitem) {
     (void)menu;//UNUSED
     (void)menuitem;//UNUSED
-    void MAPPER_ReleaseAllKeys(void);
     MAPPER_ReleaseAllKeys();
 
     GFX_LosingFocus();
 
     GUI_Shortcut(20);
 
-    void MAPPER_ReleaseAllKeys(void);
     MAPPER_ReleaseAllKeys();
 
     GFX_LosingFocus();
@@ -7184,7 +7295,7 @@ void dos_ver_menu(bool start) {
     mainMenu.get_item("dos_ver_500").check(dos.version.major==5&&dos.version.minor==00).enable(true).refresh_item(mainMenu);
     mainMenu.get_item("dos_ver_622").check(dos.version.major==6&&dos.version.minor==22).enable(true).refresh_item(mainMenu);
     mainMenu.get_item("dos_ver_710").check(dos.version.major==7&&dos.version.minor==10).enable(true).refresh_item(mainMenu);
-    if (start || enablelfn != -2) uselfn = enablelfn==1 || ((enablelfn == -1 || enablelfn == -2) && dos.version.major>6);
+    if (start || enablelfn != -2) uselfn = enablelfn==1 || ((enablelfn == -1 || enablelfn == -2) && (dos.version.major>6 || winrun));
 }
 
 bool dos_ver_set_menu_callback(DOSBoxMenu * const menu,DOSBoxMenu::item * const menuitem) {
@@ -7210,14 +7321,12 @@ bool dos_ver_set_menu_callback(DOSBoxMenu * const menu,DOSBoxMenu::item * const 
 bool dos_ver_edit_menu_callback(DOSBoxMenu * const menu,DOSBoxMenu::item * const menuitem) {
     (void)menu;//UNUSED
     (void)menuitem;//UNUSED
-    void MAPPER_ReleaseAllKeys(void);
     MAPPER_ReleaseAllKeys();
 
     GFX_LosingFocus();
 
     GUI_Shortcut(19);
 
-    void MAPPER_ReleaseAllKeys(void);
     MAPPER_ReleaseAllKeys();
 
     GFX_LosingFocus();
@@ -7228,7 +7337,7 @@ bool dos_lfn_auto_menu_callback(DOSBoxMenu * const menu,DOSBoxMenu::item * const
     (void)menu;//UNUSED
     (void)menuitem;//UNUSED
     enablelfn = -1;
-	uselfn = dos.version.major>6;
+	uselfn = dos.version.major>6 || winrun;
     mainMenu.get_item("dos_lfn_auto").check(true).refresh_item(mainMenu);
     mainMenu.get_item("dos_lfn_enable").check(false).refresh_item(mainMenu);
     mainMenu.get_item("dos_lfn_disable").check(false).refresh_item(mainMenu);
@@ -7881,6 +7990,7 @@ bool force_loadstate_menu_callback(DOSBoxMenu * const menu, DOSBoxMenu::item * c
 }
 
 void refresh_slots() {
+    mainMenu.get_item("current_page").set_text("Current page: "+to_string(page+1)+"/10").refresh_item(mainMenu);
 	for (unsigned int i=0; i<SaveState::SLOT_COUNT; i++) {
 		char name[6]="slot0";
 		name[4]='0'+i;
@@ -8025,7 +8135,7 @@ bool showdetails_menu_callback(DOSBoxMenu * const xmenu, DOSBoxMenu::item * cons
     (void)xmenu;//UNUSED
     (void)menuitem;//UNUSED
     menu.showrt = !(menu.hidecycles = !menu.hidecycles);
-    GFX_SetTitle((Bit32s)CPU_CycleMax, -1, -1, false);
+    GFX_SetTitle((Bit32s)(CPU_CycleAutoAdjust?CPU_CyclePercUsed:CPU_CycleMax), -1, -1, false);
     mainMenu.get_item("showdetails").check(!menu.hidecycles).refresh_item(mainMenu);
     return true;
 }
@@ -8096,14 +8206,12 @@ bool sendkey_preset_menu_callback(DOSBoxMenu * const menu, DOSBoxMenu::item * co
 }
 
 void SetCyclesCount_mapper_shortcut_RunInternal(void) {
-    void MAPPER_ReleaseAllKeys(void);
     MAPPER_ReleaseAllKeys();
 
     GFX_LosingFocus();
 
     GUI_Shortcut(16);
 
-    void MAPPER_ReleaseAllKeys(void);
     MAPPER_ReleaseAllKeys();
 
     GFX_LosingFocus();
@@ -9141,6 +9249,7 @@ int main(int argc, char* argv[]) SDL_MAIN_NOEXCEPT {
             item.set_text("Select save slot");
 
             {
+				mainMenu.alloc_item(DOSBoxMenu::item_type_id,"current_page").set_text("Current page: 1/10").enable(false).set_callback_function(refresh_slots_menu_callback);
 				mainMenu.alloc_item(DOSBoxMenu::item_type_id,"prev_page").set_text("Previous page").set_callback_function(prev_page_menu_callback);
 				mainMenu.alloc_item(DOSBoxMenu::item_type_id,"next_page").set_text("Next page").set_callback_function(next_page_menu_callback);
 				mainMenu.alloc_item(DOSBoxMenu::item_type_id,"first_page").set_text("Go to first page").set_callback_function(first_page_menu_callback);
@@ -9154,7 +9263,7 @@ int main(int argc, char* argv[]) SDL_MAIN_NOEXCEPT {
 				}
             }
             if (page!=GetGameState_Run()/SaveState::SLOT_COUNT) {
-                page=GetGameState_Run()/SaveState::SLOT_COUNT;
+                page=(unsigned int)(GetGameState_Run()/SaveState::SLOT_COUNT);
                 refresh_slots();
             }
 			char name[6]="slot0";
@@ -9746,7 +9855,6 @@ fresh_boot:
             DispatchVMEvent(VM_EVENT_RESET);
 
             /* force the mapper to let go of all keys so that the host key is not stuck (Issue #1320) */
-            void MAPPER_ReleaseAllKeys(void);
             MAPPER_ReleaseAllKeys();
             void MAPPER_LosingFocus(void);
             MAPPER_LosingFocus();

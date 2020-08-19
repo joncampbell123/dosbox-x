@@ -38,7 +38,7 @@ Bitu call_program;
 
 extern int enablelfn, paste_speed, wheel_key;
 extern const char *modifier;
-extern bool dos_kernel_disabled, force_nocachedir, freesizecap, wpcolon, enable_config_as_shell_commands, load, startwait, mountwarning;
+extern bool dos_kernel_disabled, force_nocachedir, freesizecap, wpcolon, enable_config_as_shell_commands, load, winrun, startwait, mountwarning;
 
 /* This registers a file on the virtual drive and creates the correct structure for it*/
 
@@ -1086,7 +1086,7 @@ void CONFIG::Run(void) {
 								mainMenu.get_item("dos_lfn_auto").check(enablelfn==-1).refresh_item(mainMenu);
 								mainMenu.get_item("dos_lfn_enable").check(enablelfn==1).refresh_item(mainMenu);
 								mainMenu.get_item("dos_lfn_disable").check(enablelfn==0).refresh_item(mainMenu);
-								uselfn = enablelfn==1 || ((enablelfn == -1 || enablelfn == -2) && dos.version.major>6);
+								uselfn = enablelfn==1 || ((enablelfn == -1 || enablelfn == -2) && (dos.version.major>6 || winrun));
 							} else if (!strcasecmp(inputline.substr(0, 4).c_str(), "ver=")) {
 								char *ver = (char *)section->Get_string("ver");
 								if (!*ver) {

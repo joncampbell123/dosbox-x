@@ -813,7 +813,9 @@ void SaveGameState(bool pressed) {
     {
         LOG_MSG("Saving state to slot: %d", (int)currentSlot + 1);
         SaveState::instance().save(currentSlot);
-        if (page==currentSlot/SaveState::SLOT_COUNT)
+        if (page!=GetGameState()/SaveState::SLOT_COUNT)
+            SetGameState(currentSlot);
+        else
             refresh_slots();
     }
     catch (const SaveState::Error& err)
@@ -857,7 +859,6 @@ void NextSaveSlot(bool pressed) {
     const bool emptySlot = SaveState::instance().isEmpty(currentSlot);
     LOG_MSG("Active save slot: %d %s", (int)currentSlot + 1, emptySlot ? "[Empty]" : "");
 }
-
 
 void PreviousSaveSlot(bool pressed) {
     if (!pressed) return;
@@ -1371,6 +1372,11 @@ void DOSBOX_SetupConfigSections(void) {
     Pstring->Set_help("Set this option (auto by default) to indicate to your OS that DOSBox-X is DPI aware.\n"
             "If it is not set, Windows Vista/7/8/10 and higher may upscale the DOSBox-X window\n"
             "on higher resolution monitors which is probably not what you want.");
+
+    Pstring = secprop->Add_string("quit warning",Property::Changeable::OnlyAtStart,"auto");
+    Pstring->Set_values(truefalseautoopt);
+    Pstring->Set_help("Set this option to indicate whether DOSBox-X should show a warning message when the user tries to close its window.\n"
+            "If set to auto (default), DOSBox-X will warn if there are open file handles or a guest system is currently running.");
 
     Pbool = secprop->Add_bool("keyboard hook", Property::Changeable::Always, false);
     Pbool->Set_help("Use keyboard hook (currently only on Windows) to catch special keys and synchronize the keyboard LEDs with the host");
@@ -5206,7 +5212,10 @@ void SaveState::removeState(size_t slot) const {
         remove(save.c_str());
         check_slot.open(save.c_str(), std::ifstream::in);
         if (!check_slot.fail()) notifyError("Failed to remove the state in the save slot.");
-        refresh_slots();
+        if (page!=GetGameState()/SaveState::SLOT_COUNT)
+            SetGameState(slot);
+        else
+            refresh_slots();
     }
 }
 

@@ -15,6 +15,11 @@ set mgbinpath=%rootdir%\..
 
 cls
 
+if not exist %rootdir%\dosbox-x.reference.conf (
+	echo Couldn't find %rootdir%\dosbox-x.reference.conf
+	goto error
+)
+
 if not exist %isspath%\date.exe (
 	echo Couldn't find %isspath%\date.exe
 	goto error
@@ -83,30 +88,30 @@ if exist %isspath%\Win64_builds\nul rd %isspath%\Win64_builds /s /q
 %isspath%\7za.exe e -y -o%isspath%\Win64_builds\mingw-lowend %m64zip% "mingw-build\mingw-lowend\dosbox-x.exe"
 %isspath%\7za.exe e -y -o%isspath%\Win64_builds\mingw-sdl2 %m64zip% "mingw-build\mingw-sdl2\dosbox-x.exe"
 %isspath%\7za.exe e -y -o%isspath%\Win64_builds\mingw-sdldraw %m64zip% "mingw-build\mingw-sdldraw\dosbox-x.exe"
-if exist %rootdir%\dosbox-x.reference.conf (
-	copy /y %rootdir%\dosbox-x.reference.conf %isspath%\Win32_builds\x86_Release
-	copy /y %rootdir%\dosbox-x.reference.conf %isspath%\Win32_builds\x86_Release_SDL2
-	copy /y %rootdir%\dosbox-x.reference.conf %isspath%\Win32_builds\ARM_Release
-	copy /y %rootdir%\dosbox-x.reference.conf %isspath%\Win32_builds\ARM_Release_SDL2
-	copy /y %rootdir%\dosbox-x.reference.conf %isspath%\Win64_builds\x64_Release
-	copy /y %rootdir%\dosbox-x.reference.conf %isspath%\Win64_builds\x64_Release_SDL2
-	copy /y %rootdir%\dosbox-x.reference.conf %isspath%\Win64_builds\ARM64_Release
-	copy /y %rootdir%\dosbox-x.reference.conf %isspath%\Win64_builds\ARM64_Release_SDL2
-	copy /y %rootdir%\dosbox-x.reference.conf %isspath%\Win32_builds\mingw
-	copy /y %rootdir%\dosbox-x.reference.conf %isspath%\Win32_builds\mingw-lowend
-	copy /y %rootdir%\dosbox-x.reference.conf %isspath%\Win32_builds\mingw-sdl2
-	copy /y %rootdir%\dosbox-x.reference.conf %isspath%\Win32_builds\mingw-sdldraw
-	copy /y %rootdir%\dosbox-x.reference.conf %isspath%\Win64_builds\mingw
-	copy /y %rootdir%\dosbox-x.reference.conf %isspath%\Win64_builds\mingw-lowend
-	copy /y %rootdir%\dosbox-x.reference.conf %isspath%\Win64_builds\mingw-sdl2
-	copy /y %rootdir%\dosbox-x.reference.conf %isspath%\Win64_builds\mingw-sdldraw
-)
+copy /y %rootdir%\dosbox-x.reference.conf %isspath%\dosbox-x.reference.conf >nul
+if exist %isspath%\unix2dos.exe %isspath%\unix2dos.exe %isspath%\dosbox-x.reference.conf
+copy /y %isspath%\dosbox-x.reference.conf %isspath%\Win32_builds\x86_Release
+copy /y %isspath%\dosbox-x.reference.conf %isspath%\Win32_builds\x86_Release_SDL2
+copy /y %isspath%\dosbox-x.reference.conf %isspath%\Win32_builds\ARM_Release
+copy /y %isspath%\dosbox-x.reference.conf %isspath%\Win32_builds\ARM_Release_SDL2
+copy /y %isspath%\dosbox-x.reference.conf %isspath%\Win64_builds\x64_Release
+copy /y %isspath%\dosbox-x.reference.conf %isspath%\Win64_builds\x64_Release_SDL2
+copy /y %isspath%\dosbox-x.reference.conf %isspath%\Win64_builds\ARM64_Release
+copy /y %isspath%\dosbox-x.reference.conf %isspath%\Win64_builds\ARM64_Release_SDL2
+copy /y %isspath%\dosbox-x.reference.conf %isspath%\Win32_builds\mingw
+copy /y %isspath%\dosbox-x.reference.conf %isspath%\Win32_builds\mingw-lowend
+copy /y %isspath%\dosbox-x.reference.conf %isspath%\Win32_builds\mingw-sdl2
+copy /y %isspath%\dosbox-x.reference.conf %isspath%\Win32_builds\mingw-sdldraw
+copy /y %isspath%\dosbox-x.reference.conf %isspath%\Win64_builds\mingw
+copy /y %isspath%\dosbox-x.reference.conf %isspath%\Win64_builds\mingw-lowend
+copy /y %isspath%\dosbox-x.reference.conf %isspath%\Win64_builds\mingw-sdl2
+copy /y %isspath%\dosbox-x.reference.conf %isspath%\Win64_builds\mingw-sdldraw
 
 echo.
 echo ***************************************
 echo * Building DOSBox-X installers ...    *
 echo ***************************************
-del %isspath%\DOSBox-X-setup*.exe
+if exist %isspath%\DOSBox-X-setup*.exe del %isspath%\DOSBox-X-setup*.exe
 %isspath%\ISCC.exe %isspath%\DOSBox-X-setup.iss
 if exist %isspath%\DOSBox-X-setup.exe ( 
 	echo Copying to %vsbinpath%\DOSBox-X-setup-%datestr%.exe ..
