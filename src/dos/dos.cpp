@@ -3217,6 +3217,8 @@ void DOS_EnableDriveMenu(char drv) {
 #endif
 		name = std::string("drive_") + drv + "_unmount";
 		mainMenu.get_item(name).enable(!dos_kernel_disabled && Drives[drv-'A'] != NULL && (drv-'A') != ZDRIVE_NUM).refresh_item(mainMenu);
+		name = std::string("drive_") + drv + "_swap";
+		mainMenu.get_item(name).enable(!dos_kernel_disabled && Drives[drv-'A'] != NULL && (drv-'A') != ZDRIVE_NUM).refresh_item(mainMenu);
 		name = std::string("drive_") + drv + "_rescan";
 		mainMenu.get_item(name).enable(!dos_kernel_disabled && Drives[drv-'A'] != NULL).refresh_item(mainMenu);
 		if (drv == 'A' || drv == 'C' || drv == 'D') {

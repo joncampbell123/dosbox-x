@@ -1854,7 +1854,7 @@ public:
                 }
 
                 swapPosition = 0;
-                swapInDisks();
+                swapInDisks(-1);
             }
             else {
                 if (swapInDisksSpecificDrive == (drive - 65)) {
@@ -3967,6 +3967,7 @@ bool AttachToBiosAndIdeByLetter(imageDisk* image, const char drive, const unsign
     return false;
 }
 
+char * GetIDEPosition(unsigned char bios_disk_index);
 class IMGMOUNT : public Program {
 public:
     std::vector<std::string> options;
@@ -3979,10 +3980,11 @@ public:
         DOS_DTA dta(dos.dta());
 
         WriteOut(MSG_Get("PROGRAM_IMGMOUNT_STATUS_1"));
-        WriteOut(MSG_Get("PROGRAM_MOUNT_STATUS_FORMAT"),"Drive","Type","Label");
+        WriteOut(MSG_Get("PROGRAM_IMGMOUNT_STATUS_FORMAT"),"Drive","Type","Label","Swap Pos");
         int cols=IS_PC98_ARCH?80:real_readw(BIOSMEM_SEG,BIOSMEM_NB_COLS);
         if (!cols) cols=80;
         for(int p = 0;p < cols;p++) WriteOut("-");
+        char swapstr[10];
         bool none=true;
         for (int d = 0;d < DOS_DRIVES;d++) {
             if (!Drives[d] || (strncmp(Drives[d]->GetInfo(), "fatDrive ", 9) && strncmp(Drives[d]->GetInfo(), "isoDrive ", 9))) continue;
@@ -4000,13 +4002,13 @@ public:
             }
 
             root[1] = 0; //This way, the format string can be reused.
-            WriteOut(MSG_Get("PROGRAM_MOUNT_STATUS_FORMAT"),root, Drives[d]->GetInfo(),name);       
+            WriteOut(MSG_Get("PROGRAM_IMGMOUNT_STATUS_FORMAT"),root, Drives[d]->GetInfo(),name,DriveManager::GetDrivePosition(d));
             none=false;
         }
         if (none) WriteOut(MSG_Get("PROGRAM_IMGMOUNT_STATUS_NONE"));
 		WriteOut("\n");
 		WriteOut(MSG_Get("PROGRAM_IMGMOUNT_STATUS_2"));
-		WriteOut(MSG_Get("PROGRAM_MOUNT_STATUS_NUMBER_FORMAT"),"Drive number","Disk name","# of swaps");
+		WriteOut(MSG_Get("PROGRAM_IMGMOUNT_STATUS_NUMBER_FORMAT"),"Drive number","Disk name","IDE position","Swap Pos");
         for(int p = 0;p < cols;p++) WriteOut("-");
         none=true;
 		for (int index = 0; index < MAX_DISK_IMAGES; index++)
@@ -4018,7 +4020,8 @@ public:
                             swaps++;
                 }
                 if (!swaps) swaps=1;
-                WriteOut(MSG_Get("PROGRAM_MOUNT_STATUS_NUMBER_FORMAT"), std::to_string(index).c_str(), dynamic_cast<imageDiskElToritoFloppy *>(imageDiskList[index])!=NULL?"El Torito floppy drive":imageDiskList[index]->diskname.c_str(), std::to_string(swaps).c_str());
+                sprintf(swapstr, "%d / %d", swaps==1?1:swapPosition+1, swaps);
+                WriteOut(MSG_Get("PROGRAM_IMGMOUNT_STATUS_NUMBER_FORMAT"), std::to_string(index).c_str(), dynamic_cast<imageDiskElToritoFloppy *>(imageDiskList[index])!=NULL?"El Torito floppy drive":imageDiskList[index]->diskname.c_str(), GetIDEPosition(index), swapstr);
                 none=false;
             }
         if (none) WriteOut(MSG_Get("PROGRAM_IMGMOUNT_STATUS_NONE"));
@@ -4899,7 +4902,7 @@ private:
         if (!qmount) WriteOut(MSG_Get("PROGRAM_MOUNT_STATUS_2"), drive, tmp.c_str());
 
         unsigned char driveIndex = drive-'A';
-        if (imgDisks.size() == 1 || (imgDisks.size() > 1 && (swapInDisksSpecificDrive == driveIndex || swapInDisksSpecificDrive == -1))) {
+        if (imgDisks.size() == 1 || (imgDisks.size() > 1 && driveIndex < 2 && (swapInDisksSpecificDrive == driveIndex || swapInDisksSpecificDrive == -1))) {
             imageDisk* image = ((fatDrive*)imgDisks[0])->loadedDisk;
             if (AttachToBiosAndIdeByLetter(image, drive, (unsigned char)ide_index, ide_slave)) {
                 if (swapInDisksSpecificDrive == driveIndex || swapInDisksSpecificDrive == -1) {
@@ -6204,11 +6207,12 @@ void DOS_SetupPrograms(void) {
     MSG_Add("PROGRAM_MOUSE_HELP","Turns on/off mouse.\n\nMOUSE [/?] [/U] [/V]\n  /U: Uninstall\n  /V: Reverse Y-axis\n");
     MSG_Add("PROGRAM_MOUNT_CDROMS_FOUND","CDROMs found: %d\n");
     MSG_Add("PROGRAM_MOUNT_STATUS_FORMAT","%-5s  %-58s %-12s\n");
-    MSG_Add("PROGRAM_MOUNT_STATUS_NUMBER_FORMAT","%-12s  %-50s  %-10s\n");
     MSG_Add("PROGRAM_MOUNT_STATUS_ELTORITO", "Drive %c is mounted as El Torito floppy drive\n");
     MSG_Add("PROGRAM_MOUNT_STATUS_RAMDRIVE", "Drive %c is mounted as RAM drive\n");
     MSG_Add("PROGRAM_MOUNT_STATUS_2","Drive %c is mounted as %s\n");
     MSG_Add("PROGRAM_MOUNT_STATUS_1","The currently mounted drives are:\n");
+    MSG_Add("PROGRAM_IMGMOUNT_STATUS_FORMAT","%-5s  %-47s  %-12s  %-9s\n");
+    MSG_Add("PROGRAM_IMGMOUNT_STATUS_NUMBER_FORMAT","%-12s  %-40s  %-12s  %-9s\n");
     MSG_Add("PROGRAM_IMGMOUNT_STATUS_2","The currently mounted drive numbers are:\n");
     MSG_Add("PROGRAM_IMGMOUNT_STATUS_1","The currently mounted FAT/ISO drives are:\n");
     MSG_Add("PROGRAM_IMGMOUNT_STATUS_NONE","No drive available\n");
@@ -6538,16 +6542,16 @@ void DOS_SetupPrograms(void) {
 
     MSG_Add("PROGRAM_IMGMOUNT_HELP",
         "Mounts floppy, hard drive and optical disc images.\n"
-        "IMGMOUNT drive filename [-t floppy] [-fs fat] [-size ss,s,h,c]\n"
-        "IMGMOUNT drive filename [-t hdd] [-fs fat] [-size ss,s,h,c] [-ide 1m|1s|2m|2s]\n"
-        "IMGMOUNT driveLoc filename -fs none [-size ss,s,h,c] [-reservecyl #]\n"
-        "IMGMOUNT drive filename [-t iso] [-fs iso]\n"
+        "IMGMOUNT drive file [-ro] [-t floppy] [-fs fat] [-size ss,s,h,c]\n"
+        "IMGMOUNT drive file [-ro] [-t hdd] [-fs fat] [-size ss,s,h,c] [-ide controller]\n"
+        "IMGMOUNT driveNum file [-ro] [-fs none] [-size ss,s,h,c] [-reservecyl #]\n"
+        "IMGMOUNT drive file [-t iso] [-fs iso]\n"
         "IMGMOUNT drive [-t floppy] -bootcd cdDrive (or -el-torito cdDrive)\n"
-        "IMGMOUNT drive -t ram -size driveSize\n"
-        "IMGMOUNT -u drive|driveLocation (or drive|driveLocation filename [options] -u)\n"
+        "IMGMOUNT drive -t ram -size size\n"
+        "IMGMOUNT -u drive|driveNum (or IMGMONT drive|driveNum file [options] -u)\n"
         " drive               Drive letter to mount the image at\n"
-        " driveLoc            Location to mount drive, where 0-1 are FDDs, 2-5 are HDDs\n"
-        " filename            Image filename, or IMGMAKE.IMG if not specified\n"
+        " driveNum            Drive number to mount, where 0-1 are FDDs, 2-5 are HDDs\n"
+        " file                Image filename(s), or IMGMAKE.IMG if not specified\n"
         " -t iso              Image type is optical disc iso or cue / bin image\n"
         " -t floppy           Image type is floppy\n"
         " -t hdd              Image type is hard disk; VHD and HDI files are supported\n"
@@ -6556,11 +6560,11 @@ void DOS_SetupPrograms(void) {
         " -fs fat             File system is FAT; FAT12, FAT16 and FAT32 are supported\n"
         " -fs none            Do not detect file system\n"
         " -reservecyl #       Report # number of cylinders less than actual in BIOS\n"
-        " -ide 1m|1s|2m|2s    Specifies the controller to mount drive\n"
-        " -size size          Specify the geometry, either sector size and CHS or in KB\n"
+        " -ide controller     Specify the IDE controller (1m, 1s, 2m, 2s) to mount drive\n"
+        " -size size|ss,s,h,c Specify the size in KB, or sector size and CHS geometry\n"
         " -bootcd cdDrive     Specify the CD drive to load the bootable floppy from\n"
-        " -ro                 Mount the drive read-only (or leading ':' for read-only)\n"
-        " -u                  Unmount the drive"
+        " -ro                 Mount image(s) read-only (or leading ':' for read-only)\n"
+        " -u                  Unmount the drive or drive number"
     );
     MSG_Add("PROGRAM_IMGMAKE_SYNTAX",
         "Creates floppy or hard disk images.\n"

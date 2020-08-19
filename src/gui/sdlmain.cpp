@@ -379,6 +379,32 @@ bool drive_unmount_menu_callback(DOSBoxMenu * const menu,DOSBoxMenu::item * cons
     return true;
 }
 
+void swapInDrive(int drive);
+bool drive_swap_menu_callback(DOSBoxMenu * const menu,DOSBoxMenu::item * const menuitem) {
+    (void)menu;//UNUSED
+    (void)menuitem;//UNUSED
+
+    /* menu item has name "drive_A_" ... */
+    int drive;
+    const char *mname = menuitem->get_name().c_str();
+    if (!strncmp(mname,"drive_",6)) {
+        drive = mname[6] - 'A';
+        if (drive < 0 || drive >= DOS_DRIVES) return false;
+    }
+    else {
+        return false;
+    }
+
+    if (dos_kernel_disabled) return true;
+
+    if (drive < DOS_DRIVES && Drives[drive]) {
+        LOG(LOG_DOSMISC,LOG_DEBUG)("Triggering swap on drive %c",drive+'A');
+        swapInDrive(drive);
+    }
+
+    return true;
+}
+
 bool drive_rescan_menu_callback(DOSBoxMenu * const menu,DOSBoxMenu::item * const menuitem) {
     (void)menu;//UNUSED
     (void)menuitem;//UNUSED
@@ -435,6 +461,7 @@ const DOSBoxMenu::callback_t drive_callbacks[] = {
     drive_mountimg_menu_callback,
 #endif
     drive_unmount_menu_callback,
+    drive_swap_menu_callback,
     drive_rescan_menu_callback,
     drive_boot_menu_callback,
 #if defined(WIN32)
@@ -452,7 +479,8 @@ const char *drive_opts[][2] = {
 	{ "mountimg",               "Mount disk image" },
 #endif
     { "unmount",                "Unmount" },
-    { "rescan",                 "Rescan" },
+    { "swap",                   "Swap disk" },
+    { "rescan",                 "Rescan drive" },
     { "boot",                   "Boot from drive" },
 #if defined(WIN32)
     { "bootimg",                "Boot from disk image" },
@@ -7931,6 +7959,7 @@ bool force_loadstate_menu_callback(DOSBoxMenu * const menu, DOSBoxMenu::item * c
 }
 
 void refresh_slots() {
+    mainMenu.get_item("current_page").set_text("Current page: "+to_string(page+1)+"/10").refresh_item(mainMenu);
 	for (unsigned int i=0; i<SaveState::SLOT_COUNT; i++) {
 		char name[6]="slot0";
 		name[4]='0'+i;
@@ -9189,6 +9218,7 @@ int main(int argc, char* argv[]) SDL_MAIN_NOEXCEPT {
             item.set_text("Select save slot");
 
             {
+				mainMenu.alloc_item(DOSBoxMenu::item_type_id,"current_page").set_text("Current page: 1/10").enable(false).set_callback_function(refresh_slots_menu_callback);
 				mainMenu.alloc_item(DOSBoxMenu::item_type_id,"prev_page").set_text("Previous page").set_callback_function(prev_page_menu_callback);
 				mainMenu.alloc_item(DOSBoxMenu::item_type_id,"next_page").set_text("Next page").set_callback_function(next_page_menu_callback);
 				mainMenu.alloc_item(DOSBoxMenu::item_type_id,"first_page").set_text("Go to first page").set_callback_function(first_page_menu_callback);
@@ -9202,7 +9232,7 @@ int main(int argc, char* argv[]) SDL_MAIN_NOEXCEPT {
 				}
             }
             if (page!=GetGameState_Run()/SaveState::SLOT_COUNT) {
-                page=GetGameState_Run()/SaveState::SLOT_COUNT;
+                page=(unsigned int)(GetGameState_Run()/SaveState::SLOT_COUNT);
                 refresh_slots();
             }
 			char name[6]="slot0";

@@ -346,6 +346,7 @@ void DriveManager::CycleAllCDs(void) {
 			// cycle disk
 			unsigned int currentDisk = driveInfos[idrive].currentDisk;
             const DOS_Drive* oldDisk = driveInfos[idrive].disks[currentDisk];
+            if (dynamic_cast<const isoDrive*>(oldDisk) == NULL) continue;
 			currentDisk = ((unsigned int)currentDisk + 1u) % (unsigned int)numDisks;		
 			DOS_Drive* newDisk = driveInfos[idrive].disks[currentDisk];
 			driveInfos[idrive].currentDisk = currentDisk;
@@ -380,6 +381,12 @@ int DriveManager::UnmountDrive(int drive) {
 	}
 	
 	return result;
+}
+
+char swappos[10];
+char * DriveManager::GetDrivePosition(int drive) {
+    sprintf(swappos, "%d / %d", driveInfos[drive].currentDisk+1, driveInfos[drive].disks.size());
+    return swappos;
 }
 
 bool drivemanager_init = false;

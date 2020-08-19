@@ -141,7 +141,7 @@ int swapInDisksSpecificDrive = -1;
 //  0 = swap across A: only
 //  1 = swap across B: only
 
-void swapInDisks(void) {
+void swapInDisks(int drive) {
     bool allNull = true;
     Bit32s diskcount = 0;
     Bits diskswapcount = 2;
@@ -161,10 +161,11 @@ void swapInDisks(void) {
     if (allNull) return;
 
     /* if a specific drive is to be swapped, then adjust to focus on it */
-    if (swapInDisksSpecificDrive >= 0 && swapInDisksSpecificDrive <= 1) {
+    if (swapInDisksSpecificDrive >= 0 && swapInDisksSpecificDrive <= 1 && (drive == -1 || drive == swapInDisksSpecificDrive)) {
         diskswapdrive = swapInDisksSpecificDrive;
         diskswapcount = 1;
-    }
+    } else if (swapInDisksSpecificDrive != -1 || drive != -1) /* Swap A: and B: drives */
+        return;
 
     /* If only one disk is loaded, this loop will load the same disk in dive A and drive B */
     while(diskcount < diskswapcount) {
@@ -194,6 +195,21 @@ bool getSwapRequest(void) {
     return sreq;
 }
 
+void swapInDrive(int drive) {
+    DriveManager::CycleDisks(drive, true);
+    /* Hack/feature: rescan all disks as well */
+    LOG_MSG("Diskcaching reset for drive.", drive+'A');
+    if (Drives[drive] != NULL) {
+        Drives[drive]->EmptyCache();
+        Drives[drive]->MediaChange();
+    }
+    if (drive>1||swapInDisksSpecificDrive!=drive) return;
+    swapPosition++;
+    if(diskSwap[swapPosition] == NULL) swapPosition = 0;
+    swapInDisks(drive);
+    swapping_requested = true;
+}
+
 void swapInNextDisk(bool pressed) {
     if (!pressed)
         return;
@@ -206,9 +222,10 @@ void swapInNextDisk(bool pressed) {
             Drives[i]->MediaChange();
         }
     }
+    if (swapInDisksSpecificDrive>1) return;
     swapPosition++;
     if(diskSwap[swapPosition] == NULL) swapPosition = 0;
-    swapInDisks();
+    swapInDisks(-1);
     swapping_requested = true;
 }
 
@@ -218,8 +235,8 @@ void swapInNextCD(bool pressed) {
     DriveManager::CycleAllCDs();
     /* Hack/feature: rescan all disks as well */
     LOG_MSG("Diskcaching reset for normal mounted drives.");
-    for(Bitu i=2;i<DOS_DRIVES;i++) { /* Swap C: D: .... Z: TODO: Need to swap ONLY if a CD-ROM drive! */
-        if (Drives[i] != NULL) {
+    for(Bitu i=2;i<DOS_DRIVES;i++) { /* Swap C: D: .... Z: if it is a CD/DVD drive */
+        if (Drives[i] != NULL && dynamic_cast<isoDrive*>(Drives[i]) != NULL) {
             Drives[i]->EmptyCache();
             Drives[i]->MediaChange();
         }

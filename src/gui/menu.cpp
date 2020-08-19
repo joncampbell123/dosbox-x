@@ -534,6 +534,7 @@ static const char *def_menu_capture_format[] =
 /* Save slots */
 static const char *def_save_slots[] =
 {
+    "current_page",
     "prev_page",
     "next_page",
     "--",
