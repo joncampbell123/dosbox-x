@@ -164,7 +164,8 @@ void swapInDisks(void) {
     if (swapInDisksSpecificDrive >= 0 && swapInDisksSpecificDrive <= 1) {
         diskswapdrive = swapInDisksSpecificDrive;
         diskswapcount = 1;
-    }
+    } else /* Swap A: and B: drives */
+        return;
 
     /* If only one disk is loaded, this loop will load the same disk in dive A and drive B */
     while(diskcount < diskswapcount) {
@@ -218,8 +219,8 @@ void swapInNextCD(bool pressed) {
     DriveManager::CycleAllCDs();
     /* Hack/feature: rescan all disks as well */
     LOG_MSG("Diskcaching reset for normal mounted drives.");
-    for(Bitu i=2;i<DOS_DRIVES;i++) { /* Swap C: D: .... Z: TODO: Need to swap ONLY if a CD-ROM drive! */
-        if (Drives[i] != NULL) {
+    for(Bitu i=2;i<DOS_DRIVES;i++) { /* Swap C: D: .... Z: if it is a CD/DVD drive */
+        if (Drives[i] != NULL && dynamic_cast<isoDrive*>(Drives[i]) != NULL) {
             Drives[i]->EmptyCache();
             Drives[i]->MediaChange();
         }

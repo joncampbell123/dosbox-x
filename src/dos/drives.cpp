@@ -346,6 +346,7 @@ void DriveManager::CycleAllCDs(void) {
 			// cycle disk
 			unsigned int currentDisk = driveInfos[idrive].currentDisk;
             const DOS_Drive* oldDisk = driveInfos[idrive].disks[currentDisk];
+            if (dynamic_cast<const isoDrive*>(oldDisk) == NULL) continue;
 			currentDisk = ((unsigned int)currentDisk + 1u) % (unsigned int)numDisks;		
 			DOS_Drive* newDisk = driveInfos[idrive].disks[currentDisk];
 			driveInfos[idrive].currentDisk = currentDisk;
