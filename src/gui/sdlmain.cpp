@@ -7931,6 +7931,7 @@ bool force_loadstate_menu_callback(DOSBoxMenu * const menu, DOSBoxMenu::item * c
 }
 
 void refresh_slots() {
+    mainMenu.get_item("current_page").set_text("Current page: "+to_string(page+1)+"/10").refresh_item(mainMenu);
 	for (unsigned int i=0; i<SaveState::SLOT_COUNT; i++) {
 		char name[6]="slot0";
 		name[4]='0'+i;
@@ -9189,6 +9190,7 @@ int main(int argc, char* argv[]) SDL_MAIN_NOEXCEPT {
             item.set_text("Select save slot");
 
             {
+				mainMenu.alloc_item(DOSBoxMenu::item_type_id,"current_page").set_text("Current page: 1/10").enable(false).set_callback_function(refresh_slots_menu_callback);
 				mainMenu.alloc_item(DOSBoxMenu::item_type_id,"prev_page").set_text("Previous page").set_callback_function(prev_page_menu_callback);
 				mainMenu.alloc_item(DOSBoxMenu::item_type_id,"next_page").set_text("Next page").set_callback_function(next_page_menu_callback);
 				mainMenu.alloc_item(DOSBoxMenu::item_type_id,"first_page").set_text("Go to first page").set_callback_function(first_page_menu_callback);
@@ -9202,7 +9204,7 @@ int main(int argc, char* argv[]) SDL_MAIN_NOEXCEPT {
 				}
             }
             if (page!=GetGameState_Run()/SaveState::SLOT_COUNT) {
-                page=GetGameState_Run()/SaveState::SLOT_COUNT;
+                page=(unsigned int)(GetGameState_Run()/SaveState::SLOT_COUNT);
                 refresh_slots();
             }
 			char name[6]="slot0";

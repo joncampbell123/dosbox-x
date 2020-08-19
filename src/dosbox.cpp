@@ -813,7 +813,9 @@ void SaveGameState(bool pressed) {
     {
         LOG_MSG("Saving state to slot: %d", (int)currentSlot + 1);
         SaveState::instance().save(currentSlot);
-        if (page==currentSlot/SaveState::SLOT_COUNT)
+        if (page!=GetGameState()/SaveState::SLOT_COUNT)
+            SetGameState(currentSlot);
+        else
             refresh_slots();
     }
     catch (const SaveState::Error& err)
@@ -857,7 +859,6 @@ void NextSaveSlot(bool pressed) {
     const bool emptySlot = SaveState::instance().isEmpty(currentSlot);
     LOG_MSG("Active save slot: %d %s", (int)currentSlot + 1, emptySlot ? "[Empty]" : "");
 }
-
 
 void PreviousSaveSlot(bool pressed) {
     if (!pressed) return;
@@ -5208,7 +5209,10 @@ void SaveState::removeState(size_t slot) const {
         remove(save.c_str());
         check_slot.open(save.c_str(), std::ifstream::in);
         if (!check_slot.fail()) notifyError("Failed to remove the state in the save slot.");
-        refresh_slots();
+        if (page!=GetGameState()/SaveState::SLOT_COUNT)
+            SetGameState(slot);
+        else
+            refresh_slots();
     }
 }
 
