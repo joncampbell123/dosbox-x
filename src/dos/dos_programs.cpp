@@ -4899,7 +4899,7 @@ private:
         if (!qmount) WriteOut(MSG_Get("PROGRAM_MOUNT_STATUS_2"), drive, tmp.c_str());
 
         unsigned char driveIndex = drive-'A';
-        if (imgDisks.size() == 1 || (imgDisks.size() > 1 && (swapInDisksSpecificDrive == driveIndex || swapInDisksSpecificDrive == -1))) {
+        if (imgDisks.size() == 1 || (imgDisks.size() > 1 && driveIndex < 3 && (swapInDisksSpecificDrive == driveIndex || swapInDisksSpecificDrive == -1))) {
             imageDisk* image = ((fatDrive*)imgDisks[0])->loadedDisk;
             if (AttachToBiosAndIdeByLetter(image, drive, (unsigned char)ide_index, ide_slave)) {
                 if (swapInDisksSpecificDrive == driveIndex || swapInDisksSpecificDrive == -1) {
