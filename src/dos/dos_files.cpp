@@ -2040,7 +2040,7 @@ void POD_Save_DOS_Files( std::ostream& stream )
             strcpy(dinfo, Drives[lcv]->GetInfo());
             WRITE_POD( &dinfo, dinfo);
             *overlaydir=0;
-            if (!strncmp(dinfo,"local directory",15) || !strncmp(dinfo,"CDRom ",6)) {
+            if (!strncmp(dinfo,"local directory ",16) || !strncmp(dinfo,"CDRom ",6)) {
                 localDrive *ldp = dynamic_cast<localDrive*>(Drives[lcv]);
                 if (!ldp) ldp = dynamic_cast<cdromDrive*>(Drives[lcv]);
                 if (ldp) {
@@ -2213,11 +2213,11 @@ void POD_Load_DOS_Files( std::istream& stream )
             READ_POD( &lalloc, lalloc);
             READ_POD( &oalloc, oalloc);
             READ_POD( &opts, opts);
-            if( Drives[lcv] && strcasecmp(Drives[lcv]->info, dinfo) && (!strncmp(dinfo,"local directory",15) || !strncmp(dinfo,"CDRom ",6) || (!strncmp(dinfo,"isoDrive ",9) || !strncmp(dinfo,"fatDrive ",9))))
+            if( Drives[lcv] && strcasecmp(Drives[lcv]->info, dinfo) && (!strncmp(dinfo,"local directory ",16) || !strncmp(dinfo,"CDRom ",6) || (!strncmp(dinfo,"isoDrive ",9) || !strncmp(dinfo,"fatDrive ",9))))
                 unmount(lcv);
             if( !Drives[lcv] ) {
                 std::vector<std::string> options;
-                if (!strncmp(dinfo,"local directory",15)) {
+                if (!strncmp(dinfo,"local directory ",16)) {
                     Drives[lcv]=new localDrive(dinfo+16,lalloc.bytes_sector,lalloc.bytes_sector,lalloc.total_clusters,lalloc.free_clusters,lalloc.mediaid,options);
                     if (Drives[lcv]) {
                         DOS_EnableDriveMenu('A'+lcv);

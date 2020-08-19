@@ -430,6 +430,35 @@ bool drive_rescan_menu_callback(DOSBoxMenu * const menu,DOSBoxMenu::item * const
     return true;
 }
 
+int statusdrive=-1;
+void MAPPER_ReleaseAllKeys();
+bool drive_info_menu_callback(DOSBoxMenu * const menu,DOSBoxMenu::item * const menuitem) {
+    (void)menu;//UNUSED
+    (void)menuitem;//UNUSED
+
+    int drive;
+    const char *mname = menuitem->get_name().c_str();
+    if (!strncmp(mname,"drive_",6)) {
+        drive = mname[6] - 'A';
+        if (drive < 0 || drive >= DOS_DRIVES) return false;
+    }
+    else {
+        return false;
+    }
+
+    if (dos_kernel_disabled) return true;
+
+    MAPPER_ReleaseAllKeys();
+    GFX_LosingFocus();
+    statusdrive=drive;
+    GUI_Shortcut(31);
+    statusdrive=-1;
+    MAPPER_ReleaseAllKeys();
+    GFX_LosingFocus();
+
+    return true;
+}
+
 bool drive_boot_menu_callback(DOSBoxMenu * const menu,DOSBoxMenu::item * const menuitem) {
     (void)menu;//UNUSED
     (void)menuitem;//UNUSED
@@ -463,6 +492,7 @@ const DOSBoxMenu::callback_t drive_callbacks[] = {
     drive_unmount_menu_callback,
     drive_swap_menu_callback,
     drive_rescan_menu_callback,
+    drive_info_menu_callback,
     drive_boot_menu_callback,
 #if defined(WIN32)
     drive_bootimg_menu_callback,
@@ -481,6 +511,7 @@ const char *drive_opts[][2] = {
     { "unmount",                "Unmount" },
     { "swap",                   "Swap disk" },
     { "rescan",                 "Rescan drive" },
+    { "info",                   "Drive information" },
     { "boot",                   "Boot from drive" },
 #if defined(WIN32)
     { "bootimg",                "Boot from disk image" },
@@ -1109,7 +1140,7 @@ void GFX_SetTitle(Bit32s cycles,Bits frameskip,Bits timing,bool paused){
 
 bool warn_on_mem_write = false, quit_confirm = false;
 
-void CPU_Snap_Back_To_Real_Mode(), MAPPER_ReleaseAllKeys();
+void CPU_Snap_Back_To_Real_Mode();
 bool CheckQuit(void) {
     Section_prop *section = static_cast<Section_prop *>(control->GetSection("dosbox"));
 	std::string warn = section->Get_string("quit warning");
