@@ -35,6 +35,7 @@
 #include "control.h"
 #include "shell.h"
 #include "cpu.h"
+#include "bios_disk.h"
 #include "../dos/drives.h"
 
 #include <iostream>
@@ -70,7 +71,7 @@ extern uint32_t             GFX_Bmask;
 extern unsigned char        GFX_Bshift;
 
 extern std::string          saveloaderr;
-extern int                  statusdrive;
+extern int                  statusdrive, swapInDisksSpecificDrive;
 extern bool                 dos_kernel_disabled, confres, quit_confirm;
 extern Bitu                 currentWindowWidth, currentWindowHeight;
 
@@ -1438,7 +1439,7 @@ protected:
     GUI::Input *name;
 public:
     ShowDriveInfo(GUI::Screen *parent, int x, int y, const char *title) :
-        ToplevelWindow(parent, x, y, 350, 270, title) {
+        ToplevelWindow(parent, x, y, 350, 260, title) {
             char name[DOS_NAMELENGTH_ASCII],lname[LFN_NAMELENGTH];
             Bit32u size;Bit16u date;Bit16u time;Bit8u attr;
             /* Command uses dta so set it to our internal dta */
@@ -1495,6 +1496,44 @@ public:
             }
             dos.dta(save_dta);
             (new GUI::Button(this, 140, 180, "Close", 70))->addActionHandler(this);
+    }
+
+    void actionExecuted(GUI::ActionEventSource *b, const GUI::String &arg) {
+        (void)b;//UNUSED
+        if (arg == "Close")
+            close();
+        if (shortcut) running = false;
+    }
+};
+
+char * GetIDEPosition(unsigned char bios_disk_index);
+class ShowDriveNumber : public GUI::ToplevelWindow {
+protected:
+    GUI::Input *name;
+public:
+    ShowDriveNumber(GUI::Screen *parent, int x, int y, const char *title) :
+        ToplevelWindow(parent, x, y, 450, 260, title) {
+        std::string str;
+		for (int index = 0; index < MAX_DISK_IMAGES; index++) {
+			if (imageDiskList[index]) {
+                int swaps=0;
+                if (swapInDisksSpecificDrive == index) {
+                    for (size_t si=0;si < MAX_SWAPPABLE_DISKS;si++)
+                        if (diskSwap[si] != NULL)
+                            swaps++;
+                }
+                if (!swaps) swaps=1;
+                if (index<2)
+                    str = "Swap position: " + std::to_string(swaps==1?1:swapPosition+1) + "/" + std::to_string(swaps) + " - " + (dynamic_cast<imageDiskElToritoFloppy *>(imageDiskList[index])!=NULL?"El Torito floppy drive":imageDiskList[index]->diskname);
+                else {
+                    str = GetIDEPosition(index);
+                    str = "IDE controller: " + (str.size()?str:"NA") + " - " + imageDiskList[index]->diskname;
+                }
+            } else
+                str = "Not yet mounted";
+            new GUI::Label(this, 40, 25*(index+1), std::to_string(index) + " - " + str);
+        }
+        (new GUI::Button(this, 190, 25*(MAX_DISK_IMAGES+1)+5, "Close", 70))->addActionHandler(this);
     }
 
     void actionExecuted(GUI::ActionEventSource *b, const GUI::String &arg) {
@@ -1926,6 +1965,10 @@ static void UI_Select(GUI::ScreenSDL *screen, int select) {
         case 31: if (statusdrive>-1 && statusdrive<DOS_DRIVES && Drives[statusdrive]) {
             auto *np9 = new ShowDriveInfo(screen, 120, 70, "Drive Information");
             np9->raise();
+            } break;
+        case 32: {
+            auto *np10 = new ShowDriveNumber(screen, 120, 70, "Mounted Drive Numbers");
+            np10->raise();
             } break;
         default:
             break;
