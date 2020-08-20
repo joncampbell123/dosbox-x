@@ -20,7 +20,10 @@
     "usescancodes=auto" when a non-US keyboard layout
     is activated on the SDL1 build. (Wengier)
   - Added "Drive information" menu item under "Drive"
-    to show the information for the drive. (Wengier)
+    menu to show information for the specified drive,
+    and added "Show mounted drive numbers" menu item
+    under "DOS" menu to show details for all mounted
+    drive numbers (0-5). (Wengier)
   - The command "Swap CD" now swaps only CD drives (as
     the name), not all non-floppy drives. Also added
     "Swap disk" menu item under the "Drive" menu for
@@ -34,7 +37,7 @@
     disk position and number of swap disks, as well as
     the IDE controller (if applicable). (Wengier)
   - Add "-ro" option for IMGMOUNT command to mark all
-    disk imaages as read-only at once. (Wengier)
+    disk images as read-only at once. (Wengier)
   - Added option to the Windows installer which allows
     to automatically upgrade the DOSBox-X config file
     (dosbox-x.conf) to the latest version format while
@@ -53,6 +56,8 @@
     El Torito floppy drives (if any) too. (Wengier)
   - Updated xxHash library by Yann Collet from 0.7.4
     to the stable version 0.8.0. (Wengier)
+  - Added support for the OPL2 audio board by setting
+    the config option "oplemu=opl2board".
   - Added "Quick launch program..." menu (under "DOS")
     to quickly run the specified program as selected
     by the Windows file browser in DOSBox-X. (Wengier)
