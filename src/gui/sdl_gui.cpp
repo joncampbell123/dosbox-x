@@ -1439,7 +1439,7 @@ protected:
     GUI::Input *name;
 public:
     ShowDriveInfo(GUI::Screen *parent, int x, int y, const char *title) :
-        ToplevelWindow(parent, x, y, 350, 260, title) {
+        ToplevelWindow(parent, x, y, 350, 280, title) {
             char name[DOS_NAMELENGTH_ASCII],lname[LFN_NAMELENGTH];
             Bit32u size;Bit16u date;Bit16u time;Bit8u attr;
             /* Command uses dta so set it to our internal dta */
@@ -1462,29 +1462,41 @@ public:
 
                 root[3] = 0; //This way, the format string can be reused.
                 std::string type, path, swappos="-", overlay="-";
+                bool readonly=false;
                 const char *info = Drives[statusdrive]->GetInfo();
                 if (!strncmp(info, "fatDrive ", 9) || !strncmp(info, "isoDrive ", 9)) {
                     type=strncmp(info, "isoDrive ", 9)?"fatDrive":"isoDrive";
                     path=info+9;
-                    if (type=="fatDrive" && !path.size()) {
-                        fatDrive *fdp = dynamic_cast<fatDrive*>(Drives[statusdrive]);
-                        if (fdp!=NULL&&fdp->opts.mounttype==1)
-                            path="El Torito floppy drive";
-                        else if (fdp!=NULL&&fdp->opts.mounttype==2)
-                            path="RAM drive";
+                    if (type=="isoDrive")
+                        readonly=true;
+                    else {
+                        readonly=Drives[statusdrive]->readonly;
+                        if (!path.size()) {
+                            fatDrive *fdp = dynamic_cast<fatDrive*>(Drives[statusdrive]);
+                            if (fdp!=NULL&&fdp->opts.mounttype==1)
+                                path="El Torito floppy drive";
+                            else if (fdp!=NULL&&fdp->opts.mounttype==2)
+                                path="RAM drive";
+                        }
                     }
                     swappos=DriveManager::GetDrivePosition(statusdrive);
                 } else if (!strncmp(info, "local directory ", 16)) {
                     type="local directory";
                     path=info+16;
+                    readonly=Drives[statusdrive]->readonly;
                     Overlay_Drive *ddp = dynamic_cast<Overlay_Drive*>(Drives[statusdrive]);
-                    if (ddp!=NULL) overlay=ddp->getOverlaydir();
+                    if (ddp!=NULL) {
+                        readonly=ddp->ovlreadonly;
+                        overlay=ddp->getOverlaydir();
+                    }
                 } else if (!strncmp(info, "CDRom ", 6)) {
                     type="CDRom";
                     path=info+6;
+                    readonly=true;
                 } else {
                     type=info;
                     path="";
+                    readonly=true;
                 }
                 if (path=="") path="-";
                 new GUI::Label(this, 40, 25, "Drive root: "+std::string(root));
@@ -1492,10 +1504,11 @@ public:
                 new GUI::Label(this, 40, 75, "Mounted as: "+path);
                 new GUI::Label(this, 40, 100, "Overlay at: "+overlay);
                 new GUI::Label(this, 40, 125, "Disk label: "+std::string(name));
-                new GUI::Label(this, 40, 150, "Swap Pos  : "+swappos);
+                new GUI::Label(this, 40, 150, "Read only : "+std::string(readonly?"Yes":"No"));
+                new GUI::Label(this, 40, 175, "Swap Pos  : "+swappos);
             }
             dos.dta(save_dta);
-            (new GUI::Button(this, 140, 180, "Close", 70))->addActionHandler(this);
+            (new GUI::Button(this, 140, 200, "Close", 70))->addActionHandler(this);
     }
 
     void actionExecuted(GUI::ActionEventSource *b, const GUI::String &arg) {
@@ -1512,7 +1525,7 @@ protected:
     GUI::Input *name;
 public:
     ShowDriveNumber(GUI::Screen *parent, int x, int y, const char *title) :
-        ToplevelWindow(parent, x, y, 450, 260, title) {
+        ToplevelWindow(parent, x, y, 480, 260, title) {
         std::string str;
 		for (int index = 0; index < MAX_DISK_IMAGES; index++) {
 			if (imageDiskList[index]) {
@@ -1963,11 +1976,11 @@ static void UI_Select(GUI::ScreenSDL *screen, int select) {
             np8->raise();
             } break;
         case 31: if (statusdrive>-1 && statusdrive<DOS_DRIVES && Drives[statusdrive]) {
-            auto *np9 = new ShowDriveInfo(screen, 120, 70, "Drive Information");
+            auto *np9 = new ShowDriveInfo(screen, 120, 50, "Drive Information");
             np9->raise();
             } break;
         case 32: {
-            auto *np10 = new ShowDriveNumber(screen, 120, 70, "Mounted Drive Numbers");
+            auto *np10 = new ShowDriveNumber(screen, 110, 70, "Mounted Drive Numbers");
             np10->raise();
             } break;
         default:
