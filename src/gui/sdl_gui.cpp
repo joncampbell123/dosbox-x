@@ -1505,10 +1505,10 @@ public:
                 new GUI::Label(this, 40, 100, "Overlay at: "+overlay);
                 new GUI::Label(this, 40, 125, "Disk label: "+std::string(name));
                 new GUI::Label(this, 40, 150, "Read only : "+std::string(readonly?"Yes":"No"));
-                new GUI::Label(this, 40, 175, "Swap Pos  : "+swappos);
+                new GUI::Label(this, 40, 175, "Swap slot : "+swappos);
             }
             dos.dta(save_dta);
-            (new GUI::Button(this, 140, 200, "Close", 70))->addActionHandler(this);
+            (new GUI::Button(this, 140, 205, "Close", 70))->addActionHandler(this);
     }
 
     void actionExecuted(GUI::ActionEventSource *b, const GUI::String &arg) {

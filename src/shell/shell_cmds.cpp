@@ -1702,6 +1702,7 @@ void DOS_Shell::CMD_COPY(char * args) {
 	while(ScanCMDBool(args,"T")) ; //Shouldn't this be A ?
 	while(ScanCMDBool(args,"A")) ;
 	bool optY=ScanCMDBool(args,"Y");
+	if (bf) optY=true;
 	std::string line;
 	if(GetEnvStr("COPYCMD",line)){
 		std::string::size_type idx = line.find('=');

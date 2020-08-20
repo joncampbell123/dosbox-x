@@ -3980,7 +3980,7 @@ public:
         DOS_DTA dta(dos.dta());
 
         WriteOut(MSG_Get("PROGRAM_IMGMOUNT_STATUS_1"));
-        WriteOut(MSG_Get("PROGRAM_IMGMOUNT_STATUS_FORMAT"),"Drive","Type","Label","Swap Pos");
+        WriteOut(MSG_Get("PROGRAM_IMGMOUNT_STATUS_FORMAT"),"Drive","Type","Label","Swap slot");
         int cols=IS_PC98_ARCH?80:real_readw(BIOSMEM_SEG,BIOSMEM_NB_COLS);
         if (!cols) cols=80;
         for(int p = 0;p < cols;p++) WriteOut("-");
@@ -4008,7 +4008,7 @@ public:
         if (none) WriteOut(MSG_Get("PROGRAM_IMGMOUNT_STATUS_NONE"));
 		WriteOut("\n");
 		WriteOut(MSG_Get("PROGRAM_IMGMOUNT_STATUS_2"));
-		WriteOut(MSG_Get("PROGRAM_IMGMOUNT_STATUS_NUMBER_FORMAT"),"Drive number","Disk name","IDE position","Swap Pos");
+		WriteOut(MSG_Get("PROGRAM_IMGMOUNT_STATUS_NUMBER_FORMAT"),"Drive number","Disk name","IDE position","Swap slot");
         for(int p = 0;p < cols;p++) WriteOut("-");
         none=true;
 		for (int index = 0; index < MAX_DISK_IMAGES; index++)
