@@ -1,4 +1,10 @@
 0.83.5
+  - Added option to allow disabling the VESA BIOS
+    window number range check when called on to
+    bank switch. Needed for "Pill" by Opiate in the
+    end credits, which for some reason requires a
+    call for window number 0xFFFF to succeed in order
+    to draw credits without glitching.
   - Added option to instruct VESA BIOS to ignore
     bank switching window parameter when asked to
     get/set bank switching window setting. Needed for

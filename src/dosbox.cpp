@@ -1817,6 +1817,14 @@ void DOSBOX_SetupConfigSections(void) {
                     "If clear, Window B is presented as not available and attempts to use it will fail. Only Window A\n"
                     "will be available, which is also DOSBox SVN behavior.");
 
+    Pbool = secprop->Add_bool("vesa bank switching window range check",Property::Changeable::Always,true);
+    Pbool->Set_help("Controls whether calls to bank switch (set the window number) through the VESA BIOS apply\n"
+                    "range checking. If set, out of range window numbers will return with an error code. This\n"
+                    "is also DOSBox SVN behavior. If clear, out of range window numbers are silently truncated\n"
+                    "to a number within range of available video memory and allowed to succeed.\n"
+                    "This is needed for some demoscene productions that rely on the silent truncation to render\n"
+                    "correctly without which drawing errors occur (e.g. end credits of Pill by Opiate)");
+
     Pbool = secprop->Add_bool("vesa zero buffer on get information",Property::Changeable::Always,true);
     Pbool->Set_help("This setting affects VESA BIOS function INT 10h AX=4F00h. If set, the VESA BIOS will zero the\n"
                     "256-byte buffer defined by the standard at ES:DI, then fill in the structure. If clear, only\n"
