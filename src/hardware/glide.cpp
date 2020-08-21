@@ -170,7 +170,7 @@ static void statWMInfo(void)
     if(SDL_GetWindowWMInfo(sdl.window, &wmi)) {
 # if defined (WIN32)
         hwnd = (HostPt)wmi.info.win.window;
-# else
+# elif defined (C_X11) && defined(LINUX)
         hwnd = (HostPt)wmi.info.x11.window;
 # endif
 #else
@@ -178,7 +178,7 @@ static void statWMInfo(void)
     if(SDL_GetWMInfo(&wmi)) {
 # if defined (WIN32)
         hwnd = (HostPt)wmi.window;
-# else
+# elif defined (C_X11) && defined(LINUX)
         hwnd = (HostPt)wmi.info.x11.window;
 # endif
 #endif
