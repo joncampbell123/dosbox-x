@@ -275,17 +275,17 @@ public:
 	return *(Bit32u *)(LFB_getAddr(addr));
     }
 
-    void writeb(PhysPt addr,Bitu val) {
+    void writeb(PhysPt addr,Bit8u val) {
 //	LOG_MSG("Glide:Write to 0x%p", LFB_getAddr(addr));
 	*(Bit8u *)(LFB_getAddr(addr))=(Bit8u)val;
     }
 
-    void writew(PhysPt addr,Bitu val) {
+    void writew(PhysPt addr,Bit16u val) {
 //	LOG_MSG("Glide:Write to 0x%p", LFB_getAddr(addr));
 	*(Bit16u *)(LFB_getAddr(addr))=(Bit16u)val;
     }
 
-    void writed(PhysPt addr,Bitu val) {
+    void writed(PhysPt addr,Bit32u val) {
 //	LOG_MSG("Glide:Write to 0x%p", LFB_getAddr(addr));
 	*(Bit32u *)(LFB_getAddr(addr))=(Bit32u)val;
     }
