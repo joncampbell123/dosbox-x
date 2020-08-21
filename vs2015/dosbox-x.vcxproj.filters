@@ -115,6 +115,9 @@
     <Filter Include="Sources\libs\zmbv">
       <UniqueIdentifier>{fd585132-36d9-4941-8490-3821d36aec5a}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Sources\hardware\sound\opl2board">
+      <UniqueIdentifier>{b7907a19-6377-4a5d-9acd-3b02efefbc09}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\src\aviwriter\avi_rw_iobuf.cpp">
@@ -305,6 +308,9 @@
     </ClCompile>
     <ClCompile Include="..\src\fpu\fpu.cpp">
       <Filter>Sources\fpu</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\hardware\opl2board\opl2board.cpp">
+      <Filter>Sources\hardware\sound\opl2board</Filter>
     </ClCompile>
     <ClCompile Include="..\src\gui\menu.cpp">
       <Filter>Sources\gui</Filter>
@@ -992,6 +998,9 @@
     <ClInclude Include="..\src\fpu\fpu_instructions.h">
       <Filter>Sources\fpu</Filter>
     </ClInclude>
+    <ClCompile Include="..\src\hardware\opl2board\opl2board.h">
+      <Filter>Sources\hardware\sound\opl2board</Filter>
+    </ClCompile>
     <ClInclude Include="..\src\gui\dosbox.cga640.bmp.h">
       <Filter>Sources\gui</Filter>
     </ClInclude>
