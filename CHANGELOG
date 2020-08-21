@@ -1,4 +1,10 @@
 0.83.5
+  - Added option to instruct VESA BIOS to ignore
+    bank switching window parameter when asked to
+    get/set bank switching window setting. Needed for
+    some old demoscene and game applications that
+    assume Window B is available, and will not render
+    SVGA properly without it.
   - Added config option "quit warning" to indicate if
     DOSBox-X should warn show a warning message when
     you try to close the DOSBox-X window. If set to

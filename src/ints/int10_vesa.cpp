@@ -31,6 +31,7 @@
 
 int hack_lfb_yadjust = 0;
 
+bool vesa_bank_switch_window_mirror = false;
 bool vesa_zero_on_get_information = true;
 
 extern int vesa_mode_width_cap;
@@ -423,7 +424,7 @@ Bit8u VESA_GetSVGAMode(Bit16u & mode) {
 }
 
 Bit8u VESA_SetCPUWindow(Bit8u window,Bit8u address) {
-	if (window) return VESA_FAIL;
+	if (window && !vesa_bank_switch_window_mirror) return VESA_FAIL;
 	if ((Bit32u)(address)*64*1024<vga.mem.memsize) {
 		IO_Write(0x3d4,0x6a);
 		IO_Write(0x3d5,(Bit8u)address);
@@ -432,7 +433,7 @@ Bit8u VESA_SetCPUWindow(Bit8u window,Bit8u address) {
 }
 
 Bit8u VESA_GetCPUWindow(Bit8u window,Bit16u & address) {
-	if (window) return VESA_FAIL;
+	if (window && !vesa_bank_switch_window_mirror) return VESA_FAIL;
 	IO_Write(0x3d4,0x6a);
 	address=IO_Read(0x3d5);
 	return VESA_SUCCESS;
