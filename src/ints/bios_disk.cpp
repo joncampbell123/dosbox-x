@@ -198,7 +198,7 @@ bool getSwapRequest(void) {
 void swapInDrive(int drive) {
     DriveManager::CycleDisks(drive, true);
     /* Hack/feature: rescan all disks as well */
-    LOG_MSG("Diskcaching reset for drive.", drive+'A');
+    LOG_MSG("Diskcaching reset for drive %c.", drive+'A');
     if (Drives[drive] != NULL) {
         Drives[drive]->EmptyCache();
         Drives[drive]->MediaChange();
