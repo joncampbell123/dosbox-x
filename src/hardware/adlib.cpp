@@ -363,14 +363,17 @@ namespace OPL2BOARD {
 			opl2AudioBoard.write(reg, val);
 		}
 		virtual Bit32u WriteAddr(Bit32u port, Bit8u val) {
+			(void)port;
 			return val;
 		}
 
 		virtual void Generate(MixerChannel* chan, Bitu samples) {
+			(void)samples;
 			Bit16s buf[1] = { 0 };
 			chan->AddSamples_m16(1, buf);
 		}
 		virtual void Init(Bitu rate) {
+			(void)rate;
 			opl2AudioBoard.reset();
 		}
 		~Handler() {
