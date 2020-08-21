@@ -1,4 +1,10 @@
 0.83.5
+  - Normal core: REP MOVSD now checks segment limits
+    for ES:(E)DI and throws a GP fault if exceeded.
+    Demoscene productions marked as using VESA BIOS
+    modes and scribbling on the VGA BIOS are relying
+    on segment limits and GP faults to fake a linear
+    framebuffer.
   - Added option to allow disabling the VESA BIOS
     window number range check when called on to
     bank switch. Needed for "Pill" by Opiate in the
