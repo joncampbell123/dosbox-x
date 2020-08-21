@@ -410,6 +410,7 @@ static const char *def_menu_dos[] =
     "mapper_swapcd",
     "--",
     "mapper_rescanall",
+    "list_drivenum",
 #if C_DEBUG
     "--",
     "DOSDebugMenu",

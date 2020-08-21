@@ -1285,6 +1285,7 @@ fatDrive::fatDrive(imageDisk *sourceLoadedDisk, std::vector<std::string> &option
     imageDiskMemory* idmem=dynamic_cast<imageDiskMemory *>(sourceLoadedDisk);
     imageDiskVHD* idvhd=dynamic_cast<imageDiskVHD *>(sourceLoadedDisk);
     if (idelt!=NULL) {
+        readonly = true;
         opts.mounttype = 1;
         el.CDROM_drive = idelt->CDROM_drive;
         el.cdrom_sector_offset = idelt->cdrom_sector_offset;

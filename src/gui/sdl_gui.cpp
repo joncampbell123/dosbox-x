@@ -35,6 +35,7 @@
 #include "control.h"
 #include "shell.h"
 #include "cpu.h"
+#include "bios_disk.h"
 #include "../dos/drives.h"
 
 #include <iostream>
@@ -70,7 +71,7 @@ extern uint32_t             GFX_Bmask;
 extern unsigned char        GFX_Bshift;
 
 extern std::string          saveloaderr;
-extern int                  statusdrive;
+extern int                  statusdrive, swapInDisksSpecificDrive;
 extern bool                 dos_kernel_disabled, confres, quit_confirm;
 extern Bitu                 currentWindowWidth, currentWindowHeight;
 
@@ -1438,7 +1439,7 @@ protected:
     GUI::Input *name;
 public:
     ShowDriveInfo(GUI::Screen *parent, int x, int y, const char *title) :
-        ToplevelWindow(parent, x, y, 350, 270, title) {
+        ToplevelWindow(parent, x, y, 350, 280, title) {
             char name[DOS_NAMELENGTH_ASCII],lname[LFN_NAMELENGTH];
             Bit32u size;Bit16u date;Bit16u time;Bit8u attr;
             /* Command uses dta so set it to our internal dta */
@@ -1461,29 +1462,41 @@ public:
 
                 root[3] = 0; //This way, the format string can be reused.
                 std::string type, path, swappos="-", overlay="-";
+                bool readonly=false;
                 const char *info = Drives[statusdrive]->GetInfo();
                 if (!strncmp(info, "fatDrive ", 9) || !strncmp(info, "isoDrive ", 9)) {
                     type=strncmp(info, "isoDrive ", 9)?"fatDrive":"isoDrive";
                     path=info+9;
-                    if (type=="fatDrive" && !path.size()) {
-                        fatDrive *fdp = dynamic_cast<fatDrive*>(Drives[statusdrive]);
-                        if (fdp!=NULL&&fdp->opts.mounttype==1)
-                            path="El Torito floppy drive";
-                        else if (fdp!=NULL&&fdp->opts.mounttype==2)
-                            path="RAM drive";
+                    if (type=="isoDrive")
+                        readonly=true;
+                    else {
+                        readonly=Drives[statusdrive]->readonly;
+                        if (!path.size()) {
+                            fatDrive *fdp = dynamic_cast<fatDrive*>(Drives[statusdrive]);
+                            if (fdp!=NULL&&fdp->opts.mounttype==1)
+                                path="El Torito floppy drive";
+                            else if (fdp!=NULL&&fdp->opts.mounttype==2)
+                                path="RAM drive";
+                        }
                     }
                     swappos=DriveManager::GetDrivePosition(statusdrive);
                 } else if (!strncmp(info, "local directory ", 16)) {
                     type="local directory";
                     path=info+16;
+                    readonly=Drives[statusdrive]->readonly;
                     Overlay_Drive *ddp = dynamic_cast<Overlay_Drive*>(Drives[statusdrive]);
-                    if (ddp!=NULL) overlay=ddp->getOverlaydir();
+                    if (ddp!=NULL) {
+                        readonly=ddp->ovlreadonly;
+                        overlay=ddp->getOverlaydir();
+                    }
                 } else if (!strncmp(info, "CDRom ", 6)) {
                     type="CDRom";
                     path=info+6;
+                    readonly=true;
                 } else {
                     type=info;
                     path="";
+                    readonly=true;
                 }
                 if (path=="") path="-";
                 new GUI::Label(this, 40, 25, "Drive root: "+std::string(root));
@@ -1491,10 +1504,49 @@ public:
                 new GUI::Label(this, 40, 75, "Mounted as: "+path);
                 new GUI::Label(this, 40, 100, "Overlay at: "+overlay);
                 new GUI::Label(this, 40, 125, "Disk label: "+std::string(name));
-                new GUI::Label(this, 40, 150, "Swap Pos  : "+swappos);
+                new GUI::Label(this, 40, 150, "Read only : "+std::string(readonly?"Yes":"No"));
+                new GUI::Label(this, 40, 175, "Swap slot : "+swappos);
             }
             dos.dta(save_dta);
-            (new GUI::Button(this, 140, 180, "Close", 70))->addActionHandler(this);
+            (new GUI::Button(this, 140, 205, "Close", 70))->addActionHandler(this);
+    }
+
+    void actionExecuted(GUI::ActionEventSource *b, const GUI::String &arg) {
+        (void)b;//UNUSED
+        if (arg == "Close")
+            close();
+        if (shortcut) running = false;
+    }
+};
+
+char * GetIDEPosition(unsigned char bios_disk_index);
+class ShowDriveNumber : public GUI::ToplevelWindow {
+protected:
+    GUI::Input *name;
+public:
+    ShowDriveNumber(GUI::Screen *parent, int x, int y, const char *title) :
+        ToplevelWindow(parent, x, y, 480, 260, title) {
+        std::string str;
+		for (int index = 0; index < MAX_DISK_IMAGES; index++) {
+			if (imageDiskList[index]) {
+                int swaps=0;
+                if (swapInDisksSpecificDrive == index) {
+                    for (size_t si=0;si < MAX_SWAPPABLE_DISKS;si++)
+                        if (diskSwap[si] != NULL)
+                            swaps++;
+                }
+                if (!swaps) swaps=1;
+                if (index<2)
+                    str = "Swap position: " + std::to_string(swaps==1?1:swapPosition+1) + "/" + std::to_string(swaps) + " - " + (dynamic_cast<imageDiskElToritoFloppy *>(imageDiskList[index])!=NULL?"El Torito floppy drive":imageDiskList[index]->diskname);
+                else {
+                    str = GetIDEPosition(index);
+                    str = "IDE controller: " + (str.size()?str:"NA") + " - " + imageDiskList[index]->diskname;
+                }
+            } else
+                str = "Not yet mounted";
+            new GUI::Label(this, 40, 25*(index+1), std::to_string(index) + " - " + str);
+        }
+        (new GUI::Button(this, 190, 25*(MAX_DISK_IMAGES+1)+5, "Close", 70))->addActionHandler(this);
     }
 
     void actionExecuted(GUI::ActionEventSource *b, const GUI::String &arg) {
@@ -1924,8 +1976,12 @@ static void UI_Select(GUI::ScreenSDL *screen, int select) {
             np8->raise();
             } break;
         case 31: if (statusdrive>-1 && statusdrive<DOS_DRIVES && Drives[statusdrive]) {
-            auto *np9 = new ShowDriveInfo(screen, 120, 70, "Drive Information");
+            auto *np9 = new ShowDriveInfo(screen, 120, 50, "Drive Information");
             np9->raise();
+            } break;
+        case 32: {
+            auto *np10 = new ShowDriveNumber(screen, 110, 70, "Mounted Drive Numbers");
+            np10->raise();
             } break;
         default:
             break;
