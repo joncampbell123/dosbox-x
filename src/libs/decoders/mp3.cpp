@@ -93,15 +93,43 @@ static void MP3_close(Sound_Sample* const sample)
     }
 } /* MP3_close */
 
-static Uint32 MP3_read(Sound_Sample* const sample, void* buffer, Uint32 desired_frames)
+static Uint32 MP3_read(Sound_Sample* const sample)
 {
-    Sound_SampleInternal* const internal = static_cast<Sound_SampleInternal*>(sample->opaque);
+    Sound_SampleInternal* const internal = static_cast<Sound_SampleInternal* const>(sample->opaque);
+    const Sint32 channels = (int) sample->actual.channels;
     mp3_t* p_mp3 = static_cast<mp3_t*>(internal->decoder_private);
 
-    // LOG_MSG("read-while: num_frames: %u", num_frames);
-    return static_cast<Uint32>(drmp3_read_pcm_frames_s16(p_mp3->p_dr,
-                                                         static_cast<drmp3_uint64>(desired_frames),
-                                                         static_cast<drmp3_int16*>(buffer)));
+    // setup our 32-bit input buffer
+    float in_buffer[4096];
+    const drmp3_uint16 in_buffer_frame_capacity = 4096 / channels;
+
+    // setup our 16-bit output buffer
+    drmp3_int16* out_buffer = (drmp3_int16 *)(internal->buffer);
+    drmp3_uint16 remaining_frames = (internal->buffer_size  / sizeof(drmp3_int16)) / channels;
+
+    // LOG_MSG("read: remaining_frames: %u", remaining_frames);
+    drmp3_uint16 total_samples_read = 0;
+    while (remaining_frames > 0) {
+        const drmp3_uint16 num_frames = (remaining_frames > in_buffer_frame_capacity) ? in_buffer_frame_capacity : remaining_frames;
+
+        // LOG_MSG("read-while: num_frames: %u", num_frames);
+        const drmp3_uint16 frames_just_read = drmp3_read_pcm_frames_f32(p_mp3->p_dr, num_frames, in_buffer);
+
+        // LOG_MSG("read-while: frames_just_read: %u", frames_just_read);
+        if (frames_just_read == 0) break; // Reached the end.
+
+        const drmp3_uint16 samples_just_read = frames_just_read * channels;
+
+        // f32 -> s16
+        drmp3dec_f32_to_s16(in_buffer, out_buffer, samples_just_read);
+
+        remaining_frames   -= frames_just_read;
+        out_buffer         += samples_just_read;
+        total_samples_read += samples_just_read;
+    }
+    // SNDDBG(("encoded stream offset: %d", SDL_RWtell(internal->rw) ));
+
+    return total_samples_read * sizeof(drmp3_int16);
 } /* MP3_read */
 
 static int32_t MP3_open(Sound_Sample* const sample, const char* const ext)

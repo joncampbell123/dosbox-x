@@ -1165,7 +1165,7 @@ bool CheckQuit(void) {
         bool ret=quit_confirm;
         quit_confirm=false;
         return ret;
-    } else if (warn == "false")
+    } else if (warn == "false" || glide.enabled)
         return true;
     if (dos_kernel_disabled) {
         quit_confirm=false;

@@ -126,14 +126,14 @@ static void FLAC_close(Sound_Sample *sample)
 } /* FLAC_close */
 
 
-static Uint32 FLAC_read(Sound_Sample *sample, void* buffer, Uint32 desired_frames)
+static Uint32 FLAC_read(Sound_Sample *sample)
 {
     Sound_SampleInternal *internal = (Sound_SampleInternal *) sample->opaque;
     drflac *dr = (drflac *) internal->decoder_private;
-    const drflac_uint64 decoded_frames = drflac_read_pcm_frames_s16(dr,
-                                                                    desired_frames,
-                                                                    (drflac_int16 *) buffer);
-    return (Uint32) decoded_frames;
+    const drflac_uint64 rc = drflac_read_pcm_frames_s16(dr,
+                                                        internal->buffer_size / (dr->channels * sizeof(drflac_int16)),
+                                                        (drflac_int16 *) internal->buffer);
+    return rc * dr->channels * sizeof (drflac_int16);
 } /* FLAC_read */
 
 

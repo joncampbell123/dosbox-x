@@ -32,6 +32,7 @@
 #include "mame/emu.h"
 #include "mame/fmopl.h"
 #include "mame/ymf262.h"
+#include "opl2board/opl2board.h"
 
 #define OPL2_INTERNAL_FREQ    3600000   // The OPL2 operates at 3.6MHz
 #define OPL3_INTERNAL_FREQ    14400000  // The OPL3 operates at 14.4MHz
@@ -349,6 +350,37 @@ struct Handler : public Adlib::Handler {
 	}
 };
 
+}
+
+namespace OPL2BOARD {
+	OPL2AudioBoard opl2AudioBoard;
+
+	struct Handler : public Adlib::Handler {
+		Handler(const char* port) {
+			opl2AudioBoard.connect(port);
+		}
+		virtual void WriteReg(Bit32u reg, Bit8u val) {
+			opl2AudioBoard.write(reg, val);
+		}
+		virtual Bit32u WriteAddr(Bit32u port, Bit8u val) {
+			(void)port;
+			return val;
+		}
+
+		virtual void Generate(MixerChannel* chan, Bitu samples) {
+			(void)samples;
+			Bit16s buf[1] = { 0 };
+			chan->AddSamples_m16(1, buf);
+		}
+		virtual void Init(Bitu rate) {
+			(void)rate;
+			opl2AudioBoard.reset();
+		}
+		~Handler() {
+			opl2AudioBoard.reset();
+			opl2AudioBoard.disconnect();
+		}
+	};
 }
 
 #define RAW_SIZE 1024
@@ -1035,6 +1067,7 @@ Module::Module( Section* configuration ) : Module_base(configuration) {
 	std::string oplemu( section->Get_string( "oplemu" ) );
 	ctrl.mixer = section->Get_bool("sbmixer");
 
+	std::string oplport(section->Get_string("oplport"));
 	adlib_force_timer_overflow_on_polling = section->Get_bool("adlib force timer overflow on detect");
 
 	mixerChan = mixerObject.Install(OPL_CallBack,rate,"FM");
@@ -1054,6 +1087,10 @@ Module::Module( Section* configuration ) : Module_base(configuration) {
 	} else if (oplemu == "nuked") {
 		handler = new NukedOPL::Handler();
 	}
+	  else if (oplemu == "opl2board") {
+		oplmode = OPL_opl2;
+		handler = new OPL2BOARD::Handler(oplport.c_str());
+		}
 	else if (oplemu == "mame") {
 		if (oplmode == OPL_opl2) {
 			handler = new MAMEOPL2::Handler();

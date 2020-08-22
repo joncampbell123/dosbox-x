@@ -1296,7 +1296,7 @@ void DOSBOX_SetupConfigSections(void) {
     const char* irqssb[] = { "7", "5", "3", "9", "10", "11", "12", 0 };
     const char* dmasgus[] = { "3", "0", "1", "5", "6", "7", 0 };
     const char* dmassb[] = { "1", "5", "0", "3", "6", "7", 0 };
-    const char* oplemus[] = { "default", "compat", "fast", "nuked", "mame", 0 };
+    const char* oplemus[] = { "default", "compat", "fast", "nuked", "mame", "opl2board", 0 };
     const char *qualityno[] = { "0", "1", "2", "3", 0 };
     const char* tandys[] = { "auto", "on", "off", 0};
     const char* ps1opt[] = { "on", "off", 0};
@@ -1808,6 +1808,22 @@ void DOSBOX_SetupConfigSections(void) {
     Pbool = secprop->Add_bool("int 10h points at vga bios",Property::Changeable::Always,true);
     Pbool->Set_help("If set, INT 10h points at the VGA BIOS. If clear, INT 10h points into the system BIOS. This option only affects EGA/VGA/SVGA emulation.\n"
                     "This option is needed for some older DOS applications that make additional checks before detecting EGA/VGA hardware (SuperCalc).");
+
+    Pbool = secprop->Add_bool("vesa bank switching window mirroring",Property::Changeable::Always,false);
+    Pbool->Set_help("If set, bank switch (windowed) VESA BIOS modes will ignore the window selection when asked\n"
+                    "to bank switch. Requests to control either Window A or Window B will succeed. This is needed\n"
+                    "for some demoscene productions with SVGA support that assume Window B is available, without\n"
+                    "which graphics do not render properly.\n"
+                    "If clear, Window B is presented as not available and attempts to use it will fail. Only Window A\n"
+                    "will be available, which is also DOSBox SVN behavior.");
+
+    Pbool = secprop->Add_bool("vesa bank switching window range check",Property::Changeable::Always,true);
+    Pbool->Set_help("Controls whether calls to bank switch (set the window number) through the VESA BIOS apply\n"
+                    "range checking. If set, out of range window numbers will return with an error code. This\n"
+                    "is also DOSBox SVN behavior. If clear, out of range window numbers are silently truncated\n"
+                    "to a number within range of available video memory and allowed to succeed.\n"
+                    "This is needed for some demoscene productions that rely on the silent truncation to render\n"
+                    "correctly without which drawing errors occur (e.g. end credits of Pill by Opiate)");
 
     Pbool = secprop->Add_bool("vesa zero buffer on get information",Property::Changeable::Always,true);
     Pbool->Set_help("This setting affects VESA BIOS function INT 10h AX=4F00h. If set, the VESA BIOS will zero the\n"
@@ -2684,6 +2700,9 @@ void DOSBOX_SetupConfigSections(void) {
     Pint->Set_values(oplrates);
     Pint->Set_help("Sample rate of OPL music emulation. Use 49716 for highest quality (set the mixer rate accordingly).");
 
+    Pstring = secprop->Add_string("oplport", Property::Changeable::WhenIdle, "");
+	Pstring->Set_help("Serial port of the OPL2 Audio Board when oplemu=opl2board, opl2mode will become 'opl2' automatically.");
+    
     Phex = secprop->Add_hex("hardwarebase",Property::Changeable::WhenIdle,0x220);
     Phex->Set_help("base address of the real hardware Sound Blaster:\n"\
         "210,220,230,240,250,260,280");

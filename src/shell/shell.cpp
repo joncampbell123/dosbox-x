@@ -201,6 +201,7 @@ DOS_Shell::DOS_Shell():Program(){
     perm = false;
 	bf=0;
 	call=false;
+	exec=false;
 	lfnfor = uselfn;
     input_eof=false;
     completion_index = 0;
@@ -459,6 +460,7 @@ void DOS_Shell::Run(void) {
 		char* sep = strpbrk(input_line,"\r\n"); //GTA installer
 		if (sep) *sep = 0;
 		DOS_Shell temp;
+        temp.exec=true;
 		temp.echo = echo;
 		temp.ParseLine(input_line);		//for *.exe *.com  |*.bat creates the bf needed by runinternal;
 		temp.RunInternal();				// exits when no bf is found.

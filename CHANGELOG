@@ -1,4 +1,24 @@
 0.83.5
+  - Fixed the issue with CD audio play by porting the
+    audio code from DOSBox ECE. (Wengier)
+  - Normal core: REP MOVSD now checks segment limits
+    for ES:(E)DI and throws a GP fault if exceeded.
+    Demoscene productions marked as using VESA BIOS
+    modes and scribbling on the VGA BIOS are relying
+    on segment limits and GP faults to fake a linear
+    framebuffer.
+  - Added option to allow disabling the VESA BIOS
+    window number range check when called on to
+    bank switch. Needed for "Pill" by Opiate in the
+    end credits, which for some reason requires a
+    call for window number 0xFFFF to succeed in order
+    to draw credits without glitching.
+  - Added option to instruct VESA BIOS to ignore
+    bank switching window parameter when asked to
+    get/set bank switching window setting. Needed for
+    some old demoscene and game applications that
+    assume Window B is available, and will not render
+    SVGA properly without it.
   - Added config option "quit warning" to indicate if
     DOSBox-X should warn show a warning message when
     you try to close the DOSBox-X window. If set to
@@ -6,7 +26,9 @@
     least one file handle is still open, or you are
     currently running a guest system. (Wengier)
   - DOSBox-X will allow control characters 8, 9, and
-    27 in the batch file without warnings. (Wengier)
+    27 in the batch file without warnings. Also, when
+    running the batch file COPY command will assume
+    /Y automatically as in real DOS. (Wengier)
   - Add command-line option "-defaultdir" to specify
     a directory (instead of the current directory) as
     the working directory. DOSBox-X will look for the
@@ -37,7 +59,9 @@
     disk position and number of swap disks, as well as
     the IDE controller (if applicable). (Wengier)
   - Add "-ro" option for IMGMOUNT command to mark all
-    disk images as read-only at once. (Wengier)
+    disk images as read-only at once. You could also
+    mark read-only disk images individually using the
+    leading colon as in previous versions. (Wengier)
   - Added option to the Windows installer which allows
     to automatically upgrade the DOSBox-X config file
     (dosbox-x.conf) to the latest version format while
