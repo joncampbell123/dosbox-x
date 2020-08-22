@@ -2318,7 +2318,7 @@ char * GetIDEPosition(unsigned char bios_disk_index) {
             }
         }
     }
-    return "";
+    return (char*)("");
 }
 
 static IDEController* GetIDEController(Bitu idx) {
