@@ -198,6 +198,36 @@ void DoString(STRING_OP type) {
 				case R_MOVSD:
 					add_index<<=2;
 					do {
+						/* NTS: Some demoscene productions use VESA BIOS modes in bank switched mode, and then write
+						 *      to it like a linear framebuffer through a segment with a limit the size of the bank
+						 *      switching window. In a way it's similar to the page fault based way Windows 95 treats
+						 *      bank switched ISA cards like a linear framebuffer.
+						 *
+						 *      In order for these demos to correctly use VESA BIOS modes, this code MUST check segment
+						 *      limits and throw a GP fault if exceeded, so that the demo code changes the active bank
+						 *      to resolve the fault. Without this check, the demo will only draw on the top 64KB of
+						 *      the screen and (depending on the implementation) may go as far as scribbling on the
+						 *      VGA BIOS at C0000h and into the UMB and DOSBox private data area! */
+						if (do_seg_limits) {
+							if (Segs.expanddown[es]) {
+								if (di_index <= SegLimit(es)) {
+									LOG_MSG("Limit check %x <= %x (E)",(unsigned int)di_index,(unsigned int)SegLimit(es));
+									LOG_MSG("Segment limit violation");
+									CPU_Exception(EXCEPTION_GP,0);
+									break;
+								}
+							}
+							else {
+								if ((di_index+4U-1UL) > SegLimit(es)) {
+									LOG_MSG("Limit check %x+%x-1 = %x > %x",(unsigned int)di_index,(unsigned int)4U,
+											(unsigned int)(di_index+4U-1U),(unsigned int)SegLimit(es));
+									LOG_MSG("Segment limit violation");
+									CPU_Exception(EXCEPTION_GP,0);
+									break;
+								}
+							}
+						}
+
 						SaveMd(di_base+di_index,LoadMd(si_base+si_index));
 						di_index=(di_index+(Bitu)add_index) & add_mask;
 						si_index=(si_index+(Bitu)add_index) & add_mask;

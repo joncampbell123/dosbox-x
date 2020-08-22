@@ -938,7 +938,7 @@ static void* XXH_memcpy(void* dest, const void* src, size_t size)
 #  define XXH_FORCE_INLINE static __forceinline
 #  define XXH_NO_INLINE static __declspec(noinline)
 #elif defined(__GNUC__)
-#  define XXH_FORCE_INLINE static __inline__ __attribute__((always_inline, unused))
+#  define XXH_FORCE_INLINE static __inline__ __attribute__((unused))
 #  define XXH_NO_INLINE static __attribute__((noinline))
 #elif defined (__cplusplus) \
   || (defined (__STDC_VERSION__) && (__STDC_VERSION__ >= 199901L))   /* C99 */
