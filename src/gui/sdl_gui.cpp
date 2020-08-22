@@ -1439,7 +1439,7 @@ protected:
     GUI::Input *name;
 public:
     ShowDriveInfo(GUI::Screen *parent, int x, int y, const char *title) :
-        ToplevelWindow(parent, x, y, 350, 280, title) {
+        ToplevelWindow(parent, x, y, 420, 280, title) {
             char name[DOS_NAMELENGTH_ASCII],lname[LFN_NAMELENGTH];
             Bit32u size;Bit16u date;Bit16u time;Bit8u attr;
             /* Command uses dta so set it to our internal dta */
@@ -1508,7 +1508,7 @@ public:
                 new GUI::Label(this, 40, 175, "Swap slot : "+swappos);
             }
             dos.dta(save_dta);
-            (new GUI::Button(this, 140, 205, "Close", 70))->addActionHandler(this);
+            (new GUI::Button(this, 175, 205, "Close", 70))->addActionHandler(this);
     }
 
     void actionExecuted(GUI::ActionEventSource *b, const GUI::String &arg) {
