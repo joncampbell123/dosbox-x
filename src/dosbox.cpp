@@ -2627,6 +2627,11 @@ void DOSBOX_SetupConfigSections(void) {
     Pint->Set_values(dmassb);
     Pint->Set_help("The High DMA number of the Sound Blaster. Set to -1 to start DOSBox-X with the High DMA unassigned");
 
+    Pbool = secprop->Add_bool("dsp command aliases",Property::Changeable::WhenIdle,true);
+    Pbool->Set_help("If set (on by default), emulation will support known undocumented aliases\n"
+                    "of common Sound Blaster DSP commands. Some broken DOS games and demos rely on these aliases.\n"
+                    "For more information: https://www.vogons.org/viewtopic.php?f=62&t=61098&start=280");
+
     Pbool = secprop->Add_bool("pic unmask irq",Property::Changeable::WhenIdle,false);
     Pbool->Set_help("Start the DOS virtual machine with the Sound Blaster IRQ already unmasked at the PIC.\n"
             "Some early DOS games/demos that support Sound Blaster expect the IRQ to fire but make\n"
