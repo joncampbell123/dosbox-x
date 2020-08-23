@@ -201,6 +201,7 @@ DOS_Shell::DOS_Shell():Program(){
     perm = false;
 	bf=0;
 	call=false;
+	exec=false;
 	lfnfor = uselfn;
     input_eof=false;
     completion_index = 0;
@@ -460,8 +461,10 @@ void DOS_Shell::Run(void) {
 		if (sep) *sep = 0;
 		DOS_Shell temp;
 		temp.echo = echo;
+		temp.exec=true;
 		temp.ParseLine(input_line);		//for *.exe *.com  |*.bat creates the bf needed by runinternal;
 		temp.RunInternal();				// exits when no bf is found.
+		temp.exec=false;
 		if (!optK||(!perm&&temp.exit))
 			return;
 	} else if (cmd->FindStringRemain("/?",line)) {

@@ -817,7 +817,7 @@ void LOG::Init() {
 	const char *blah = sect->Get_string("logfile");
 	if (blah != NULL && blah[0] != 0) {
 		if ((debuglog=fopen(blah,"wt+")) != NULL) {
-			LOG_MSG("Logging: opened logfile '%s' successfully. All further logging will go to that file.",blah);
+			LOG_MSG("Logging: opened logfile '%s' successfully. All further logging will go to this file.",blah);
 			setbuf(debuglog,NULL);
 		}
 		else {
