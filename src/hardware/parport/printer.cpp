@@ -252,7 +252,7 @@ void CPrinter::updateFont()
 	if (curFont != NULL)
 		FT_Done_Face(curFont);
 
-	const char* fontName;
+	std::string fontName;
 
 	switch (LQtypeFace)
 	{
@@ -280,59 +280,73 @@ void CPrinter::updateFont()
 	std::string configfont;
 	Cross::GetPlatformConfigDir(configfont);
 	configfont += fontName;
-	fontName = configfont.c_str();
+	fontName = configfont;
 #endif
 	
-	if (FT_New_Face(FTlib, fontName, 0, &curFont))
+	if (FT_New_Face(FTlib, fontName.c_str(), 0, &curFont))
 	{
+        std::string oldfont=fontName;
+#if defined(WIN32)
+        const char* windir = "C:\\WINDOWS";
+        struct stat wstat;
+        stat(windir,&wstat);
+        if(!(wstat.st_mode & S_IFDIR)) {
+            TCHAR dir[MAX_PATH];
+            if (GetWindowsDirectory(dir, MAX_PATH))
+                windir=dir;
+        }
+        fontName = std::string(windir) + "\\fonts\\";
+#else
+        fontName = "/usr/share/fonts/";
+#endif
         switch (LQtypeFace)
         {
             case roman:
 #if defined(WIN32)
-                fontName = "C:\\Windows\\Fonts\\times.ttf";
+                fontName += "times.ttf";
 #else
-                fontName = "/usr/share/fonts/liberation-serif/LiberationSerif-Regular.ttf";
+                fontName += "liberation-serif/LiberationSerif-Regular.ttf";
 #endif
                 break;
             case sansserif:
 #if defined(WIN32)
-                fontName = "C:\\Windows\\Fonts\\arial.ttf";
+                fontName = "arial.ttf";
 #else
-                fontName = "/usr/share/fonts/liberation-sans/LiberationSans-Regular.ttf";
+                fontName += "liberation-sans/LiberationSans-Regular.ttf";
 #endif
                 break;
             case courier:
 #if defined(WIN32)
-                fontName = "C:\\Windows\\Fonts\\cour.ttf";
+                fontName += "cour.ttf";
 #else
-                fontName = "/usr/share/fonts/liberation-mono/LiberationMono-Regular.ttf";
+                fontName += "liberation-mono/LiberationMono-Regular.ttf";
 #endif
                 break;
             case script:
 #if defined(WIN32)
-                fontName = "C:\\Windows\\Fonts\\freescpt.ttf";
+                fontName += "freescpt.ttf";
 #else
-                fontName = "/usr/share/fonts/freescpt.ttf";
+                fontName += "freescpt.ttf";
 #endif
                 break;
             case ocra:
             case ocrb:
 #if defined(WIN32)
-                fontName = "C:\\Windows\\Fonts\\Ocraext.ttf";
+                fontName += "Ocraext.ttf";
 #else
-                fontName = "/usr/share/fonts/Ocraext.ttf";
+                fontName += "Ocraext.ttf";
 #endif
                 break;
             default:
 #if defined(WIN32)
-                fontName = "C:\\Windows\\Fonts\\times.ttf";
+                fontName += "times.ttf";
 #else
-                fontName = "/usr/share/fonts/liberation-serif/LiberationSerif-Regular.ttf";
+                fontName += "liberation-serif/LiberationSerif-Regular.ttf";
 #endif
         }
-        if (FT_New_Face(FTlib, fontName, 0, &curFont)) {
+        if (FT_New_Face(FTlib, fontName.c_str(), 0, &curFont)) {
             //LOG(LOG_MISC,LOG_ERROR)("Unable to load font %s", fontName);
-            LOG_MSG("Unable to load font %s", fontName);
+            LOG_MSG("Unable to load font %s (or %s)", oldfont.c_str(), fontName.c_str());
             curFont = NULL;
         }
 	}
@@ -2185,7 +2199,7 @@ void PRINTER_Init()
 	//IO_RegisterWriteHandler(LPTPORT+2,PRINTER_writecontrol,IO_MB);
 	//IO_RegisterReadHandler(LPTPORT+2,PRINTER_readcontrol,IO_MB);
 
-	MAPPER_AddHandler(FormFeed, MK_f2 , MMOD1, "ejectpage", "Formfeed");
+	MAPPER_AddHandler(FormFeed, MK_f2 , MMOD1, "ejectpage", "Form-feed");
 }
 
 #endif
