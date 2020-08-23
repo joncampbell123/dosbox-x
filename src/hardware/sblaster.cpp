@@ -200,6 +200,7 @@ struct SB_INFO {
         bool midi_rwpoll_mode; // DSP command 0x34/0x35 MIDI Read Poll & Write Poll (0x35 with interrupt)
         bool midi_read_interrupt;
         bool midi_read_with_timestamps;
+        bool command_aliases;
         unsigned int dsp_write_busy_time; /* when you write to the DSP, how long it signals "busy" */
     } dsp;
     struct {
@@ -2242,7 +2243,7 @@ static void DSP_DoWrite(Bit8u val) {
             /* genuine SB Pro and lower: remap DSP command to emulate aliases. */
             /* TODO: Make this an enable via dosbox.conf since knowing whether the program
              *       is trying to use aliases may be useful in determining what it's trying to do. */
-            if (sb.type < SBT_16 && sb.ess_type == ESS_NONE && sb.reveal_sc_type == RSC_NONE) {
+            if (sb.dsp.command_aliases && sb.type < SBT_16 && sb.ess_type == ESS_NONE && sb.reveal_sc_type == RSC_NONE) {
                 /* 0x41...0x47 are aliases of 0x40.
                  * See also: [https://www.vogons.org/viewtopic.php?f=62&t=61098&start=280].
                  * This is required for ftp.scene.org/mirrors/hornet/demos/1994/y/yahxmas.zip which relies on the 0x41 alias of command 0x40
@@ -3490,6 +3491,8 @@ public:
             sb.dma.chan=GetDMAChannel(sb.hw.dma8);
             if (sb.dma.chan == NULL) LOG_MSG("PC-98: SB16 is unable to obtain DMA channel");
         }
+
+        sb.dsp.command_aliases=section->Get_bool("dsp command aliases");
 
         /* some DOS games/demos support Sound Blaster, and expect the IRQ to fire, but
          * make no attempt to unmask the IRQ (perhaps the programmer forgot). This option
