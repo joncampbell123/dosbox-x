@@ -580,6 +580,8 @@ int Sound_BuildAudioCVT(Sound_AudioCVT *cvt,
                         Uint16 dst_format, Uint8 dst_channels, Uint32 dst_rate,
                         Uint32 dst_size)
 {
+    (void)dst_size;
+
         /* Start off with no conversion necessary */
     cvt->needed = 0;
     cvt->filter_index = 0;

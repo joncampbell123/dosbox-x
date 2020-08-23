@@ -1,4 +1,20 @@
 0.83.5
+  - DOSBox-X will now search for system fonts if the
+    fonts required for the printing feature cannot be
+    found in the FONTS folder. (Wengier)
+  - Added menu item "Feedform" under the DOS menu for
+    manually ejecting new pages for printing. (Wengier)
+  - Support for mounting CD images with a sector size
+    of 2448, used by for example the MDF image of the
+    game Grand Theft Auto. (Wengier)
+  - Sound Blaster Pro emulation now maps DSP commands
+    0x41 to 0x47 as aliases of 0x40 (set time constant)
+    to support broken demoscene code that uses 0x41
+    in that way. Yes, such code would obviously break
+    on clone cards and the SB16. Added a config option
+    to turn it off for debugging purpose. Alias is
+    documented on Vogons forums where someone made
+    a SB Pro clone card.
   - Fixed the issue with CD audio play by porting the
     audio code from DOSBox ECE. (Wengier)
   - COPY command now assumes /Y automatically when
@@ -10,16 +26,16 @@
     modes and scribbling on the VGA BIOS are relying
     on segment limits and GP faults to fake a linear
     framebuffer.
-  - Added option to allow disabling the VESA BIOS
-    window number range check when called on to
+  - Added config option to allow disabling the VESA
+    BIOS window number range check when called on to
     bank switch. Needed for "Pill" by Opiate in the
     end credits, which for some reason requires a
     call for window number 0xFFFF to succeed in order
     to draw credits without glitching.
-  - Added option to instruct VESA BIOS to ignore
-    bank switching window parameter when asked to
-    get/set bank switching window setting. Needed for
-    some old demoscene and game applications that
+  - Added config option to instruct VESA BIOS to
+    ignore bank switching window parameter when asked
+    to get/set bank switching window setting. Needed
+    for some old demoscene and game applications that
     assume Window B is available, and will not render
     SVGA properly without it.
   - Added config option "quit warning" to indicate if

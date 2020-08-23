@@ -411,8 +411,9 @@ static const char *def_menu_dos[] =
     "--",
     "mapper_rescanall",
     "list_drivenum",
-#if C_DEBUG
     "--",
+    "mapper_ejectpage",
+#if C_DEBUG
     "DOSDebugMenu",
 #endif
     NULL

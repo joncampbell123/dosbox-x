@@ -260,7 +260,7 @@ private:
 		AudioFile       (const AudioFile&) = delete; // prevent copying
 		AudioFile&      operator= (const AudioFile&) = delete; // prevent assignment
 
-		bool            read(Bit8u *buffer, int seek, int count) { return false; }
+		bool            read(Bit8u *buffer, int seek, int count) { (void)buffer; (void)seek; (void)count; return false; }
 		bool            seek(Bit32u offset);
 		Bit16u          decode(Bit8u *buffer);
 		Bit16u          getEndian();
