@@ -1,4 +1,12 @@
 0.83.5
+  - Sound Blaster Pro emulation now maps DSP commands
+    0x41 to 0x47 as aliases of 0x40 (set time constant)
+    to support broken demoscene code that uses 0x41
+    in that way. Yes, such code would obviously break
+    on clone cards and the SB16. Added dosbox.conf
+    option to turn it off for debugging. Alias is
+    documented on Vogons forums where someone made
+    a SB Pro clone card.
   - Fixed the issue with CD audio play by porting the
     audio code from DOSBox ECE. (Wengier)
   - COPY command now assumes /Y automatically when
