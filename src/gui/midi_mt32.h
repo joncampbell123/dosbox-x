@@ -138,11 +138,11 @@ public:
                 user_romhelp();
                 return false;
             } else {
-		LOG_MSG("MT32: Loaded MT-32 ROM set (MT32_CONTROL.ROM and MT32_PCM.ROM)");
-	    }
+                LOG_MSG("MT32: Loaded MT-32 ROM set (MT32_CONTROL.ROM and MT32_PCM.ROM)");
+            }
         } else {
-	    LOG_MSG("MT32: Loaded CM-32L ROM set (CM32L_CONTROL.ROM and CM32L_PCM.ROM");
-	}
+            LOG_MSG("MT32: Loaded CM-32L ROM set (CM32L_CONTROL.ROM and CM32L_PCM.ROM");
+        }
 
 		const MT32Emu::ROMImage *controlROMImage = MT32Emu::ROMImage::makeROMImage(&controlROMFile);
 		const MT32Emu::ROMImage *pcmROMImage = MT32Emu::ROMImage::makeROMImage(&pcmROMFile);
