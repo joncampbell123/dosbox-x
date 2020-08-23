@@ -7,7 +7,7 @@ The purpose of this document is to try and build a comprehensive list of source 
 
 The base code is from the [DOSBox](https://www.dosbox.com) project in which some of the SVN commits made since 2011 were incorporated into DOSBox-X. This code had since been heavily modified by the DOSBox-X project.
 
-Some of the source code also came from similar projects such as [DOSBox SVN Daum](http://ykhwong.x-y.net), [DOSBox ECE](https://dosboxece.yesterplay.net/), [DOSBox-staging](https://dosbox-staging.github.io/) and [vDosPlus](http://www.vdosplus.org/), with major works from contributors like Wengier, Allofich, and rderooy.
+Some of the source code also came from similar projects such as [DOSBox SVN Daum](http://ykhwong.x-y.net), [DOSBox ECE](https://dosboxece.yesterplay.net/), [dosbox-staging](https://dosbox-staging.github.io/) and [vDosPlus](http://www.vdosplus.org/), with major works from contributors like Wengier, Allofich, and rderooy.
 
 A list of features ported from DOSBox SVN Daum:
 
@@ -27,14 +27,14 @@ A list of features ported from DOSBox SVN Daum:
 
 A list of features ported from DOSBox ECE:
 
+* Support for FLAC, MP3, WAV and Vorbis CD-DA tracks
 * Support for mapping mouse buttons to keyboard
 * Support for 3dfx Voodoo Glide wrapper
 * Improved support for FluidSynth MIDI synthesizer
 * Updated Nuked OPL3 to 1.8
 
-A list of features ported from DOSBox-staging:
+A list of features ported from dosbox-staging:
 
-* Support for FLAC, Opus, Vorbis, and MP3 CD-DA tracks
 * AUTOTYPE command for scripted keyboard entry
 * LS command (heavily improved since then by Wengier)
 * Modem phonebook support
@@ -61,7 +61,7 @@ Framework-agnostic GUI toolkit (Jorg Walter; GPLv3+) src/libs/gui_tk/.cpp src/li
 
 Porttalk library, to read/write I/O ports directly (Unknown source) src/libs/porttalk/.cpp src/libs/porttalk/.h
 
-FLAC, Opus, Vorbis, and MP3 libraries (David Reid, Kevin Croft, et al; GPLv2+) src/libs/decoders/.cpp src/libs/decoders/.c src/libs/decoders/.h
+FLAC, MP3, WAV, and Vorbis libraries (David Reid, Kevin Croft, et al; GPLv2+) src/libs/decoders/mp3*.cpp src/libs/decoders/.c src/libs/decoders/.h
 
 FreeDOS utilities as binary blobs (FreeDOS; no license) src/builtin/*.cpp
 
