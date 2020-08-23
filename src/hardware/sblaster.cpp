@@ -2239,6 +2239,20 @@ static void DSP_DoWrite(Bit8u val) {
 
     switch (sb.dsp.cmd) {
         case DSP_NO_COMMAND:
+            /* genuine SB Pro and lower: remap DSP command to emulate aliases. */
+            /* TODO: Make this an enable via dosbox.conf since knowing whether the program
+             *       is trying to use aliases may be useful in determining what it's trying to do. */
+            if (sb.type < SBT_16 && sb.ess_type == ESS_NONE && sb.reveal_sc_type == RSC_NONE) {
+                /* 0x41...0x47 are aliases of 0x40.
+                 * See also: [https://www.vogons.org/viewtopic.php?f=62&t=61098&start=280].
+                 * This is required for ftp.scene.org/mirrors/hornet/demos/1994/y/yahxmas.zip which relies on the 0x41 alias of command 0x40
+                 * to function (which means that it may happen to work on SB Pro but will fail on clones and will fail on SB16 cards). */
+                if (val >= 0x41 && val <= 0x47) {
+                    LOG(LOG_SB,LOG_WARN)("DSP command %02x and SB Pro or lower, treating as alias of 40h. Either written for SB16 or using undocumented alias.",val);
+                    val = 0x40;
+                }
+            }
+
             sb.dsp.cmd=val;
             if (sb.type == SBT_16)
                 sb.dsp.cmd_len=DSP_cmd_len_sb16[val];
