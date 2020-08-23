@@ -2241,8 +2241,6 @@ static void DSP_DoWrite(Bit8u val) {
     switch (sb.dsp.cmd) {
         case DSP_NO_COMMAND:
             /* genuine SB Pro and lower: remap DSP command to emulate aliases. */
-            /* TODO: Make this an enable via dosbox.conf since knowing whether the program
-             *       is trying to use aliases may be useful in determining what it's trying to do. */
             if (sb.dsp.command_aliases && sb.type < SBT_16 && sb.ess_type == ESS_NONE && sb.reveal_sc_type == RSC_NONE) {
                 /* 0x41...0x47 are aliases of 0x40.
                  * See also: [https://www.vogons.org/viewtopic.php?f=62&t=61098&start=280].
