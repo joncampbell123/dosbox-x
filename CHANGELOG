@@ -1,6 +1,10 @@
 0.83.5
-  - Support for mounting ISO/MDF images with a sector
-    size of 2448. (Wengier)
+  - DOSBox-X will now search for system fonts if the
+    fonts can not be found in FONTS folder. (Wengier)
+  - Added the menu item "Feedform" under DOS menu for
+    ejecting a new page for printing. (Wengier)
+  - Support for mounting CD images with a sector size
+    of 2448, used by Grand Theft Auto MDF. (Wengier)
   - Sound Blaster Pro emulation now maps DSP commands
     0x41 to 0x47 as aliases of 0x40 (set time constant)
     to support broken demoscene code that uses 0x41

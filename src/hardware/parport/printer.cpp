@@ -285,9 +285,56 @@ void CPrinter::updateFont()
 	
 	if (FT_New_Face(FTlib, fontName, 0, &curFont))
 	{
-		//LOG(LOG_MISC,LOG_ERROR)("Unable to load font %s", fontName);
-		LOG_MSG("Unable to load font %s", fontName);
-		curFont = NULL;
+        switch (LQtypeFace)
+        {
+            case roman:
+#if defined(WIN32)
+                fontName = "C:\\Windows\\Fonts\\times.ttf";
+#else
+                fontName = "/usr/share/fonts/liberation-serif/LiberationSerif-Regular.ttf";
+#endif
+                break;
+            case sansserif:
+#if defined(WIN32)
+                fontName = "C:\\Windows\\Fonts\\arial.ttf";
+#else
+                fontName = "/usr/share/fonts/liberation-sans/LiberationSans-Regular.ttf";
+#endif
+                break;
+            case courier:
+#if defined(WIN32)
+                fontName = "C:\\Windows\\Fonts\\cour.ttf";
+#else
+                fontName = "/usr/share/fonts/liberation-mono/LiberationMono-Regular.ttf";
+#endif
+                break;
+            case script:
+#if defined(WIN32)
+                fontName = "C:\\Windows\\Fonts\\freescpt.ttf";
+#else
+                fontName = "/usr/share/fonts/freescpt.ttf";
+#endif
+                break;
+            case ocra:
+            case ocrb:
+#if defined(WIN32)
+                fontName = "C:\\Windows\\Fonts\\Ocraext.ttf";
+#else
+                fontName = "/usr/share/fonts/Ocraext.ttf";
+#endif
+                break;
+            default:
+#if defined(WIN32)
+                fontName = "C:\\Windows\\Fonts\\times.ttf";
+#else
+                fontName = "/usr/share/fonts/liberation-serif/LiberationSerif-Regular.ttf";
+#endif
+        }
+        if (FT_New_Face(FTlib, fontName, 0, &curFont)) {
+            //LOG(LOG_MISC,LOG_ERROR)("Unable to load font %s", fontName);
+            LOG_MSG("Unable to load font %s", fontName);
+            curFont = NULL;
+        }
 	}
 
 	Real64 horizPoints = 10.5;
@@ -1597,7 +1644,7 @@ static void findNextName(const char* front, const char* ext, char* fname)
 
 void CPrinter::outputPage() 
 {
-	char fname[200]; 
+	char fname[200];
 
 	if (strcasecmp(output, "printer") == 0)
 	{

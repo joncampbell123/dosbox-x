@@ -3315,7 +3315,7 @@ private:
              *      it won't work properly (and emulation will show what happens). I also believe that tying
              *      8-bit vs 16-bit system type to the *video card* was a really dumb move. */
             if (!SecondDMAControllerAvailable()) {
-                LOG(LOG_SB,LOG_WARN)("Sound Blaster 16 enabled on a system without 16-bit DMA. Don't expect this setup to work properly! To improve compatability please edit your dosbox.conf and change sbtype to sbpro2 instead, or else enable the secondary DMA controller.");
+                LOG(LOG_SB,LOG_WARN)("Sound Blaster 16 enabled on a system without 16-bit DMA. Don't expect this setup to work properly! To improve compatibility please edit your dosbox-x.conf and change sbtype to sbpro2 instead, or else enable the secondary DMA controller.");
             }
         }
 
