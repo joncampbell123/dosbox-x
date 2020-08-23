@@ -460,10 +460,11 @@ void DOS_Shell::Run(void) {
 		char* sep = strpbrk(input_line,"\r\n"); //GTA installer
 		if (sep) *sep = 0;
 		DOS_Shell temp;
-        temp.exec=true;
 		temp.echo = echo;
+		temp.exec=true;
 		temp.ParseLine(input_line);		//for *.exe *.com  |*.bat creates the bf needed by runinternal;
 		temp.RunInternal();				// exits when no bf is found.
+		temp.exec=false;
 		if (!optK||(!perm&&temp.exit))
 			return;
 	} else if (cmd->FindStringRemain("/?",line)) {
