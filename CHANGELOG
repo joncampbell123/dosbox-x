@@ -1,9 +1,11 @@
 0.83.5
+  - Support for mounting ISO/MDF images with a sector
+    size of 2448. (Wengier)
   - Sound Blaster Pro emulation now maps DSP commands
     0x41 to 0x47 as aliases of 0x40 (set time constant)
     to support broken demoscene code that uses 0x41
     in that way. Yes, such code would obviously break
-    on clone cards and the SB16. Added dosbox.conf
+    on clone cards and the SB16. Added dosbox-x.conf
     option to turn it off for debugging. Alias is
     documented on Vogons forums where someone made
     a SB Pro clone card.
