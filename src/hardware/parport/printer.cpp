@@ -252,28 +252,33 @@ void CPrinter::updateFont()
 	if (curFont != NULL)
 		FT_Done_Face(curFont);
 
-	std::string fontName;
+	std::string fontName, basedir;
+#if defined(WIN32)
+    basedir = ".\\FONTS\\";
+#else
+    basedir = "./FONTS/";
+#endif
 
 	switch (LQtypeFace)
 	{
 	    case roman:
-		    fontName = "./FONTS/roman.ttf";
+		    fontName = basedir + "roman.ttf";
 		    break;
 	    case sansserif:
-		    fontName = "./FONTS/sansserif.ttf";
+		    fontName = basedir + "sansserif.ttf";
 		    break;
 	    case courier:
-		    fontName = "./FONTS/courier.ttf";
+		    fontName = basedir + "courier.ttf";
 		    break;
 	    case script:
-		    fontName = "./FONTS/script.ttf";
+		    fontName = basedir + "script.ttf";
 		    break;
 	    case ocra:
 	    case ocrb:
-		    fontName = "./FONTS/ocra.ttf";
+		    fontName = basedir + "ocra.ttf";
 		    break;
 	    default:
-		    fontName = "./FONTS/roman.ttf";
+		    fontName = basedir + "roman.ttf";
 	}
 	
 #ifndef WIN32
@@ -285,7 +290,7 @@ void CPrinter::updateFont()
 	
 	if (FT_New_Face(FTlib, fontName.c_str(), 0, &curFont))
 	{
-        std::string oldfont=fontName, basedir;
+        std::string oldfont=fontName;
         struct stat wstat;
 #if defined(WIN32)
         const char* windir = "C:\\WINDOWS";
