@@ -1,6 +1,6 @@
 0.83.5
-  - Allow Sound Blaster to be used by the games "Desert
-    Strike" and "Jungle Strike". (Wengier)
+  - Allowed Sound Blaster to be enabled by the games
+    "Desert Strike" and "Jungle Strike". (Wengier)
   - DOSBox-X will now search for system fonts if the
     fonts required for the printing feature cannot be
     found in the FONTS directory. (Wengier)
@@ -30,18 +30,18 @@
     framebuffer.
   - Added config option "vesa bank switching window
     range check" to allow disabling the VESA BIOS
-    window number range check when called on to bank
-    switch. Needed for "Pill" by Opiate in the end
-    credits, which for some reason requires a call
-    for window number 0xFFFF to succeed in order to
-    draw credits without glitching.
+    window number range check when called on to
+    bank switch. Needed for "Pill" by Opiate in the
+    end credits, which for some reason requires a
+    call for window number 0xFFFF to succeed in order
+    to draw credits without glitching.
   - Added config option "vesa bank switching window
-    mirroring" to instruct VESA BIOS to ignore bank
-    switching window parameter when asked to get/set
-    bank switching window setting. Needed for some
-    old demoscene and game applications that assume
-    Window B is available, and will not render SVGA
-    properly without it.
+    mirroring" for instructing VESA BIOS to ignore
+    bank switching window parameter when asked to
+    get/set bank switching window setting. Needed for
+    some old demoscene and game applications that
+    assume Window B is available, and will not render
+    SVGA properly without it.
   - Added config option "quit warning" to indicate if
     DOSBox-X should warn show a warning message when
     you try to close the DOSBox-X window. If set to
