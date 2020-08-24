@@ -1,9 +1,9 @@
 0.83.5
   - DOSBox-X will now search for system fonts if the
     fonts required for the printing feature cannot be
-    found in the FONTS folder. (Wengier)
-  - Added menu item "Feedform" under the DOS menu for
-    manually ejecting new pages for printing. (Wengier)
+    found in the FONTS directory. (Wengier)
+  - Added menu item "Send Feed-form" under the DOS menu
+    for manually ejecting new pages to print. (Wengier)
   - Support for mounting CD images with a sector size
     of 2448, used by for example the MDF image of the
     game Grand Theft Auto. (Wengier)

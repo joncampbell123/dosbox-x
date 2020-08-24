@@ -33,7 +33,7 @@
  *       cause the DSP to drop a byte and effectively cause stereo left/right
  *       swapping. It can also cause 16-bit DMA to halt.
  *
- *       As usual, expect this to be a config option --Jonathan C. */
+ *       As usual, expect this to become a config option. --Jonathan C. */
 
 /* FIXME: Sound Blaster 16 hardware has a FIFO between the ISA BUS and DSP.
  *        Could we update this code to read through a FIFO instead? How big is this

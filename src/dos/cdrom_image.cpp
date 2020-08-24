@@ -832,6 +832,10 @@ bool CDROM_Interface_Image::LoadCueSheet(char *cuefile)
 				track.sectorSize = RAW_SECTOR_SIZE;
 				track.attr = 0x40;
 				track.mode2 = true;
+			} else if (type == "MODE1/2448") {
+				track.sectorSize = 2448;
+				track.attr = 0x40;
+				track.mode2 = false;
 			} else success = false;
 
 			canAddTrack = true;

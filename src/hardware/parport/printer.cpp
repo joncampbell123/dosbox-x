@@ -285,7 +285,7 @@ void CPrinter::updateFont()
 	
 	if (FT_New_Face(FTlib, fontName.c_str(), 0, &curFont))
 	{
-        std::string oldfont=fontName;
+        std::string oldfont=fontName, basedir;
         struct stat wstat;
 #if defined(WIN32)
         const char* windir = "C:\\WINDOWS";
@@ -294,57 +294,49 @@ void CPrinter::updateFont()
             if (GetWindowsDirectory(dir, MAX_PATH))
                 windir=dir;
         }
-        fontName = std::string(windir) + "\\fonts\\";
+        basedir = std::string(windir) + "\\fonts\\";
 #else
-        fontName = "/usr/share/fonts/";
+        basedir = "/usr/share/fonts/";
 #endif
         switch (LQtypeFace)
         {
             case roman:
 #if defined(WIN32)
-                fontName += "times.ttf";
+                fontName = basedir + "times.ttf";
 #else
-                fontName += "liberation-serif/LiberationSerif-Regular.ttf";
-                if(stat(fontName.c_str(),&wstat)) fontName = "/usr/share/fonts/liberation/LiberationSerif-Regular.ttf";
+                fontName = basedir + "liberation-serif/LiberationSerif-Regular.ttf";
+                if(stat(fontName.c_str(),&wstat)) fontName = basedir + "liberation/LiberationSerif-Regular.ttf";
 #endif
                 break;
             case sansserif:
 #if defined(WIN32)
-                fontName = "arial.ttf";
+                fontName = basedir + "arial.ttf";
 #else
-                fontName += "liberation-sans/LiberationSans-Regular.ttf";
-                if(stat(fontName.c_str(),&wstat)) fontName = "/usr/share/fonts/liberation/LiberationSans-Regular.ttf";
+                fontName = basedir + "liberation-sans/LiberationSans-Regular.ttf";
+                if(stat(fontName.c_str(),&wstat)) fontName = basedir + "liberation/LiberationSans-Regular.ttf";
 #endif
                 break;
             case courier:
 #if defined(WIN32)
-                fontName += "cour.ttf";
+                fontName = basedir + "cour.ttf";
 #else
-                fontName += "liberation-mono/LiberationMono-Regular.ttf";
-                if(stat(fontName.c_str(),&wstat)) fontName = "/usr/share/fonts/liberation/LiberationMono-Regular.ttf";
+                fontName = basedir + "liberation-mono/LiberationMono-Regular.ttf";
+                if(stat(fontName.c_str(),&wstat)) fontName = basedir + "liberation/LiberationMono-Regular.ttf";
 #endif
                 break;
             case script:
-#if defined(WIN32)
-                fontName += "freescpt.ttf";
-#else
-                fontName += "freescpt.ttf";
-#endif
+                fontName = basedir + "freescpt.ttf";
                 break;
             case ocra:
             case ocrb:
-#if defined(WIN32)
-                fontName += "Ocraext.ttf";
-#else
-                fontName += "Ocraext.ttf";
-#endif
+                fontName = basedir + "ocraext.ttf";
                 break;
             default:
 #if defined(WIN32)
-                fontName += "times.ttf";
+                fontName = basedir + "times.ttf";
 #else
-                fontName += "liberation-serif/LiberationSerif-Regular.ttf";
-                if(stat(fontName.c_str(),&wstat)) fontName = "/usr/share/fonts/liberation/LiberationSerif-Regular.ttf";
+                fontName = basedir + "liberation-serif/LiberationSerif-Regular.ttf";
+                if(stat(fontName.c_str(),&wstat)) fontName = basedir + "liberation/LiberationSerif-Regular.ttf";
 #endif
         }
         if (FT_New_Face(FTlib, fontName.c_str(), 0, &curFont)) {
