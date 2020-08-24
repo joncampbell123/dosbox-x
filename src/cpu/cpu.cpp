@@ -355,7 +355,7 @@ void menu_update_autocycle(void) {
  * NMI is edge-triggered (from the Intel 386SX Microprocessor datasheet):
  *
  * "
- *   Non-Maskable Interrupt Request (NMI))
+ *   Non-Maskable Interrupt Request (NMI)
  *
  *   This input indicates a request for interrupt service
  *   which cannot be masked by software. The non-
@@ -1307,6 +1307,9 @@ do_interrupt:
 	return ; // make compiler happy
 }
 
+/* NTS: It sounds like Intel processors only change the lower 16 bits of SP on IRETD if
+ *      the stack is 16 bits. See also [https://devblogs.microsoft.com/oldnewthing/20160404-00/?p=93261].
+ *      Make sure this code emulates that bug. Some buggy games might rely on that. */
 
 void CPU_IRET(bool use32,Bit32u oldeip) {
 	Bit32u orig_esp = reg_esp;
