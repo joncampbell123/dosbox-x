@@ -2866,6 +2866,11 @@ static Bitu read_sb(Bitu port,Bitu /*iolen*/) {
         if (sb.mode == MODE_DMA_REQUIRE_IRQ_ACK)
             sb.mode = MODE_DMA;
 
+        extern const char* RunningProgram; // Wengier: Hack for Desert Strike & Jungle Strike
+        if (port==558&&!sb.dsp.out.used&&(!strcmp(RunningProgram, "DESERT")||!strcmp(RunningProgram, "JUNGLE"))) {
+            LOG_MSG("Check status by game: %s\n", RunningProgram);
+            sb.dsp.out.used++;
+        }
         if (sb.ess_type == ESS_NONE && (sb.type == SBT_1 || sb.type == SBT_2 || sb.type == SBT_PRO1 || sb.type == SBT_PRO2))
             return sb.dsp.out.used ? 0xAA : 0x2A; /* observed return values on SB 2.0---any significance? */
         else
