@@ -2948,6 +2948,7 @@ static void VGA_VerticalTimer(Bitu /*val*/) {
         break;
     case MCH_EGA:
         PIC_AddEvent(VGA_DisplayStartLatch, (float)vga.draw.delay.vrend);
+        /* Reminder to self: vga_attr.cpp says "EGA hpel can be programmed at any time" and updates vga.draw.panning within the handler */
         PIC_AddEvent(VGA_VertInterrupt,(float)(vga.draw.delay.vdend + 0.005));
         break;
     default:
