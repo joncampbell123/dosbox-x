@@ -2910,10 +2910,11 @@ static void VGA_VerticalTimer(Bitu /*val*/) {
         fv = vsynctimerval + vsync_adj;
         if (fv < 1) fv = 1;
         PIC_AddEvent(VGA_VerticalTimer,fv);
-
+#if 0
         fv = vdisplayendtimerval + vsync_adj;
         if (fv < 1) fv = 1;
         PIC_AddEvent(VGA_DisplayStartLatch,fv);
+#endif
     }
     
     switch(machine) {
