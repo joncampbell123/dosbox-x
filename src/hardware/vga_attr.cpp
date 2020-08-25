@@ -271,9 +271,6 @@ void write_p3c0(Bitu /*port*/,Bitu val,Bitu iolen) {
 			default:
 				vga.config.pel_panning=(val & 0x7);
 			}
-			if (machine==MCH_EGA)
-				// On the EGA panning can be programmed for every scanline:
-				vga.draw.panning = vga.config.pel_panning;
 			/*
 				0-3	Indicates number of pixels to shift the display left
 					Value  9bit textmode   256color mode   Other modes

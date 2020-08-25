@@ -230,6 +230,7 @@ bool enable_vretrace_poll_debugging_marker = false;
 bool vga_enable_hretrace_effects = false;
 bool vga_enable_hpel_effects = false;
 bool vga_enable_3C6_ramdac = false;
+bool egavga_per_scanline_hpel = true;
 bool vga_sierra_lock_565 = false;
 bool enable_vga_resize_delay = false;
 bool vga_ignore_hdispend_change_if_smaller = false;
@@ -808,6 +809,7 @@ void VGA_Reset(Section*) {
     vga_enable_hpel_effects = section->Get_bool("allow hpel effects");
     vga_sierra_lock_565 = section->Get_bool("sierra ramdac lock 565");
     hretrace_fx_avg_weight = section->Get_double("hretrace effect weight");
+    egavga_per_scanline_hpel = section->Get_bool("ega per scanline hpel");
     ignore_vblank_wraparound = section->Get_bool("ignore vblank wraparound");
     int10_vesa_map_as_128kb = section->Get_bool("vesa map non-lfb modes to 128kb region");
     vga_enable_hretrace_effects = section->Get_bool("allow hretrace effects");

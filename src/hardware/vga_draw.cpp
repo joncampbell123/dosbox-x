@@ -88,6 +88,7 @@ bool pc98_display_enable = true;
 extern bool pc98_40col_text;
 extern bool vga_3da_polled;
 extern bool vga_page_flip_occurred;
+extern bool egavga_per_scanline_hpel;
 extern bool vga_enable_hpel_effects;
 extern bool vga_enable_hretrace_effects;
 extern unsigned int vga_display_start_hretrace;
@@ -2504,8 +2505,10 @@ again:
      * horizontal panning register. some DOS demos take advantage of that
      * to make the picture "waver".
      *
-     * We stop doing this though if the attribute controller is setup to set hpel=0 at splitscreen. */
-    if (IS_VGA_ARCH && vga_enable_hpel_effects) {
+     * We stop doing this though if the attribute controller is setup to set hpel=0 at splitscreen.
+     *
+     * EGA allows per scanline hpel according to DOSBox SVN source code. */
+    if ((IS_VGA_ARCH && vga_enable_hpel_effects) || (IS_EGA_ARCH && egavga_per_scanline_hpel)) {
         /* Attribute Mode Controller: If bit 5 (Pixel Panning Mode) is set, then upon line compare the bottom portion is displayed as if Pixel Shift Count and Byte Panning are set to 0.
          * This ensures some demos like Future Crew "Yo" display correctly instead of the bottom non-scroller half jittering because the top half is scrolling. */
         if (vga.draw.has_split && (vga.attr.mode_control&0x20))
@@ -2582,6 +2585,24 @@ static void VGA_DrawEGASingleLine(Bitu /*blah*/) {
 
         RENDER_EndUpdate(false);
     }
+
+    /* some VGA cards (ATI chipsets especially) do not double-buffer the
+     * horizontal panning register. some DOS demos take advantage of that
+     * to make the picture "waver".
+     *
+     * We stop doing this though if the attribute controller is setup to set hpel=0 at splitscreen.
+     *
+     * EGA allows per scanline hpel according to DOSBox SVN source code. */
+    if ((IS_VGA_ARCH && vga_enable_hpel_effects) || (IS_EGA_ARCH && egavga_per_scanline_hpel)) {
+        /* Attribute Mode Controller: If bit 5 (Pixel Panning Mode) is set, then upon line compare the bottom portion is displayed as if Pixel Shift Count and Byte Panning are set to 0.
+         * This ensures some demos like Future Crew "Yo" display correctly instead of the bottom non-scroller half jittering because the top half is scrolling. */
+        if (vga.draw.has_split && (vga.attr.mode_control&0x20))
+            vga.draw.panning = 0;
+        else
+            vga.draw.panning = vga.config.pel_panning;
+    }
+
+    if (IS_EGAVGA_ARCH && !vga_double_buffered_line_compare) VGA_Update_SplitLineCompare();
 }
 
 void VGA_SetBlinking(Bitu enabled) {
@@ -2948,7 +2969,7 @@ static void VGA_VerticalTimer(Bitu /*val*/) {
         break;
     case MCH_EGA:
         PIC_AddEvent(VGA_DisplayStartLatch, (float)vga.draw.delay.vrend);
-        /* Reminder to self: vga_attr.cpp says "EGA hpel can be programmed at any time" and updates vga.draw.panning within the handler */
+        PIC_AddEvent(VGA_PanningLatch, (float)vga.draw.delay.vrend);
         PIC_AddEvent(VGA_VertInterrupt,(float)(vga.draw.delay.vdend + 0.005));
         break;
     default:

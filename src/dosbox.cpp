@@ -1858,6 +1858,13 @@ void DOSBOX_SetupConfigSections(void) {
                     "by writing to video memory beyond the current SVGA window address and will not appear correctly\n"
                     "without this option.");
 
+    Pbool = secprop->Add_bool("ega per scanline hpel",Property::Changeable::Always,true/*only because DOSBox SVN assumes this for machine=ega*/);
+    Pbool->Set_help("If set, EGA emulation allows changing hpel per scanline. This is reportedly the behavior\n"
+                    "of IBM EGA hardware according to DOSBox SVN and on by default. If clear, EGA emulation\n"
+                    "latches hpel on vertical retrace end (like VGA does), which may have been EGA clone behavior\n"
+                    "that some games were written against. Commander Keen episodes 4-6 need this option set to false when machine=ega.\n"
+                    "This option affects only EGA emulation. To change VGA hpel behavior, use the 'allow hpel effects' setting instead.");
+
     Pbool = secprop->Add_bool("allow hpel effects",Property::Changeable::Always,false);
     Pbool->Set_help("If set, allow the DOS demo or program to change the horizontal pel (panning) register per scanline.\n"
             "Some early DOS demos use this to create waving or sinus effects on the picture. Not very many VGA\n"
