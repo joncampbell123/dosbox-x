@@ -2523,7 +2523,7 @@ void DOSBOX_SetupConfigSections(void) {
 	Pstring = secprop->Add_string("fluid.samplerate",Property::Changeable::WhenIdle,"48000");
 	Pstring->Set_help("Sample rate to use with Fluidsynth.");
 
-	Pstring = secprop->Add_string("fluid.gain",Property::Changeable::WhenIdle,".6");
+	Pstring = secprop->Add_string("fluid.gain",Property::Changeable::WhenIdle,".2");
 	Pstring->Set_help("Fluidsynth gain.");
 
 	Pint = secprop->Add_int("fluid.polyphony",Property::Changeable::WhenIdle,256);
