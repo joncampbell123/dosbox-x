@@ -1,6 +1,7 @@
 0.83.5
-  - Added dosbox.conf option to control whether EGA
-    emulation latches hpel at display start (as VGA
+  - Added config option "ega per scanline hpel" in
+    [dosbox] section to control whether EGA emulation
+    latches hpel at display start (as VGA emulation
     does) or allows hpel to change per scanline.
     Setting the option to false is needed for some
     games like Commander Keen.
@@ -19,7 +20,7 @@
     to support broken demoscene code that uses 0x41
     in that way. Yes, such code would obviously break
     on clone cards and the SB16. Added a config option
-    "dsp command aliases" in "sblaster" section to turn
+    "dsp command aliases" in [sblaster] section to turn
     it off for debugging. Alias is documented on Vogons
     forums where someone made a SB Pro clone card.
   - Fixed the issue with CD audio play by porting the

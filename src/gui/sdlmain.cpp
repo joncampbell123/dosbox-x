@@ -6926,7 +6926,7 @@ bool DOSBOX_parse_argv() {
     control->cmdline->BeginOpt(/*don't eat*/false);
     while (!control->cmdline->CurrentArgvEnd()) {
         control->cmdline->GetCurrentArgv(tmp);
-
+        trim(tmp);
         {
             struct stat st;
             const char *ext = strrchr(tmp.c_str(),'.'); /* if it looks like a file... with an extension */

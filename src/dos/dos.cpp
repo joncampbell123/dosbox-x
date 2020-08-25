@@ -134,7 +134,7 @@ Bit32u DOS_HMA_FREE_START() {
 
 	if (dos_hma_allocator == 0) {
 		dos_hma_allocator = 0x110000u - 16u - (unsigned int)dos_initial_hma_free;
-		LOG(LOG_MISC,LOG_DEBUG)("Starting HMA allocation from physical address 0x%06x (FFFF:%04x)",
+		LOG(LOG_DOSMISC,LOG_DEBUG)("Starting HMA allocation from physical address 0x%06x (FFFF:%04x)",
 			dos_hma_allocator,(dos_hma_allocator+0x10u)&0xFFFFu);
 	}
 
@@ -1273,12 +1273,12 @@ static Bitu DOS_21Handler(void) {
                 case 0:
                     reg_al=0;reg_dl=0x2f;break;  /* always return '/' like dos 5.0+ */
                 case 1:
-                    LOG(LOG_MISC,LOG_DEBUG)("DOS:0x37:Attempted to set switch char");
+                    LOG(LOG_DOSMISC,LOG_DEBUG)("DOS:0x37:Attempted to set switch char");
                     reg_al=0;break;
                 case 2:
                     reg_al=0;reg_dl=0xff;break;  /* AVAILDEV \DEV\ prefix optional */
                 case 3:
-                    LOG(LOG_MISC,LOG_DEBUG)("DOS:0x37:Attempted to set AVAILDEV \\DEV\\ prefix use");
+                    LOG(LOG_DOSMISC,LOG_DEBUG)("DOS:0x37:Attempted to set AVAILDEV \\DEV\\ prefix use");
                     reg_al=0;break;
             }
             break;
@@ -1320,7 +1320,7 @@ static Bitu DOS_21Handler(void) {
             } else {
                 reg_ax=dos.errorcode;
                 CALLBACK_SCF(true);
-                LOG(LOG_MISC,LOG_NORMAL)("Remove dir failed on %s with error %X",name1,dos.errorcode);
+                LOG(LOG_DOSMISC,LOG_NORMAL)("Remove dir failed on %s with error %X",name1,dos.errorcode);
             }
 			force_sfn = false;
             break;
@@ -1513,7 +1513,7 @@ static Bitu DOS_21Handler(void) {
                     }
                     break;
                 default:
-                    LOG(LOG_MISC,LOG_ERROR)("DOS:0x43:Illegal subfunction %2X",reg_al);
+                    LOG(LOG_DOSMISC,LOG_ERROR)("DOS:0x43:Illegal subfunction %2X",reg_al);
                     reg_ax=1;
                     CALLBACK_SCF(true);
                     break;
@@ -2383,14 +2383,14 @@ static Bitu DOS_25Handler_Actual(bool fat32) {
 			}
 
 			if (fat32) {
-				LOG(LOG_MISC,LOG_DEBUG)("INT 21h AX=7305h READ: sector=%lu count=%lu ptr=%lx method='%s'",
+				LOG(LOG_DOSMISC,LOG_DEBUG)("INT 21h AX=7305h READ: sector=%lu count=%lu ptr=%lx method='%s'",
 						(unsigned long)sector_num,
 						(unsigned long)req_count,
 						(unsigned long)ptr,
 						method);
 			}
 			else {
-				LOG(LOG_MISC,LOG_DEBUG)("INT 25h READ: sector=%lu count=%lu ptr=%lx method='%s'",
+				LOG(LOG_DOSMISC,LOG_DEBUG)("INT 25h READ: sector=%lu count=%lu ptr=%lx method='%s'",
 						(unsigned long)sector_num,
 						(unsigned long)req_count,
 						(unsigned long)ptr,
@@ -2503,14 +2503,14 @@ static Bitu DOS_26Handler_Actual(bool fat32) {
 			}
 
 			if (fat32) {
-				LOG(LOG_MISC,LOG_DEBUG)("INT 21h AX=7305h WRITE: sector=%lu count=%lu ptr=%lx method='%s'",
+				LOG(LOG_DOSMISC,LOG_DEBUG)("INT 21h AX=7305h WRITE: sector=%lu count=%lu ptr=%lx method='%s'",
 						(unsigned long)sector_num,
 						(unsigned long)req_count,
 						(unsigned long)ptr,
 						method);
 			}
 			else {
-				LOG(LOG_MISC,LOG_DEBUG)("INT 26h WRITE: sector=%lu count=%lu ptr=%lx method='%s'",
+				LOG(LOG_DOSMISC,LOG_DEBUG)("INT 26h WRITE: sector=%lu count=%lu ptr=%lx method='%s'",
 						(unsigned long)sector_num,
 						(unsigned long)req_count,
 						(unsigned long)ptr,
@@ -2653,7 +2653,7 @@ public:
         if (dos_in_hma &&
             cpm_compat_mode != CPM_COMPAT_OFF &&
             cpm_compat_mode != CPM_COMPAT_DIRECT) {
-            LOG(LOG_MISC,LOG_DEBUG)("Writing HMA mirror of CP/M entry point");
+            LOG(LOG_DOSMISC,LOG_DEBUG)("Writing HMA mirror of CP/M entry point");
 
             Bitu was_a20 = XMS_GetEnabledA20();
 
@@ -2809,17 +2809,17 @@ public:
         if (dos_in_hma &&
             cpm_compat_mode != CPM_COMPAT_OFF &&
             cpm_compat_mode != CPM_COMPAT_DIRECT) {
-            LOG(LOG_MISC,LOG_DEBUG)("DOS: CP/M compatibility method with DOS in HMA requires mirror of entry point in HMA.");
+            LOG(LOG_DOSMISC,LOG_DEBUG)("DOS: CP/M compatibility method with DOS in HMA requires mirror of entry point in HMA.");
             if (dos_initial_hma_free > 0xFF00) {
                 dos_initial_hma_free = 0xFF00;
-                LOG(LOG_MISC,LOG_DEBUG)("DOS: CP/M compatibility method requires reduction of HMA free space to accomodate.");
+                LOG(LOG_DOSMISC,LOG_DEBUG)("DOS: CP/M compatibility method requires reduction of HMA free space to accomodate.");
             }
         }
 
 		if ((int)MAXENV < 0) MAXENV = 65535;
 		if ((int)ENV_KEEPFREE < 0) ENV_KEEPFREE = 1024;
 
-		LOG(LOG_MISC,LOG_DEBUG)("DOS: MAXENV=%u ENV_KEEPFREE=%u",MAXENV,ENV_KEEPFREE);
+		LOG(LOG_DOSMISC,LOG_DEBUG)("DOS: MAXENV=%u ENV_KEEPFREE=%u",MAXENV,ENV_KEEPFREE);
 
 		if (ENV_KEEPFREE < 83)
 			LOG_MSG("DOS: ENV_KEEPFREE is below 83 bytes. DOS programs that rely on undocumented data following the environment block may break.");
@@ -2866,7 +2866,7 @@ public:
                 DOS_PRIVATE_SEGMENT_END = (Bit16u)((MEM_TotalPages() << (12 - 4)) - 1); /* NTS: Remember DOSBox's implementation reuses the last paragraph for UMB linkage */
         }
 
-        LOG(LOG_MISC,LOG_DEBUG)("DOS kernel structures will be allocated from pool 0x%04x-0x%04x",
+        LOG(LOG_DOSMISC,LOG_DEBUG)("DOS kernel structures will be allocated from pool 0x%04x-0x%04x",
                 DOS_PRIVATE_SEGMENT,DOS_PRIVATE_SEGMENT_END-1);
 
         DOS_IHSEG = DOS_GetMemory(1,"DOS_IHSEG");
@@ -2880,14 +2880,14 @@ public:
         DOS_SDA_OFS = 0;
         DOS_CDS_SEG = DOS_GetMemory(0x10,"DOS_CDA_SEG");		// was 0x108
 
-		LOG(LOG_MISC,LOG_DEBUG)("DOS kernel alloc:");
-		LOG(LOG_MISC,LOG_DEBUG)("   IHSEG:        seg 0x%04x",DOS_IHSEG);
-		LOG(LOG_MISC,LOG_DEBUG)("   infoblock:    seg 0x%04x",DOS_INFOBLOCK_SEG);
-		LOG(LOG_MISC,LOG_DEBUG)("   condrv:       seg 0x%04x",DOS_CONDRV_SEG);
-		LOG(LOG_MISC,LOG_DEBUG)("   constring:    seg 0x%04x",DOS_CONSTRING_SEG);
-		LOG(LOG_MISC,LOG_DEBUG)("   SDA:          seg 0x%04x:0x%04x %u bytes",DOS_SDA_SEG,DOS_SDA_OFS,DOS_SDA_SEG_SIZE);
-		LOG(LOG_MISC,LOG_DEBUG)("   CDS:          seg 0x%04x",DOS_CDS_SEG);
-		LOG(LOG_MISC,LOG_DEBUG)("[private segment @ this point 0x%04x-0x%04x mem=0x%04lx]",
+		LOG(LOG_DOSMISC,LOG_DEBUG)("DOS kernel alloc:");
+		LOG(LOG_DOSMISC,LOG_DEBUG)("   IHSEG:        seg 0x%04x",DOS_IHSEG);
+		LOG(LOG_DOSMISC,LOG_DEBUG)("   infoblock:    seg 0x%04x",DOS_INFOBLOCK_SEG);
+		LOG(LOG_DOSMISC,LOG_DEBUG)("   condrv:       seg 0x%04x",DOS_CONDRV_SEG);
+		LOG(LOG_DOSMISC,LOG_DEBUG)("   constring:    seg 0x%04x",DOS_CONSTRING_SEG);
+		LOG(LOG_DOSMISC,LOG_DEBUG)("   SDA:          seg 0x%04x:0x%04x %u bytes",DOS_SDA_SEG,DOS_SDA_OFS,DOS_SDA_SEG_SIZE);
+		LOG(LOG_DOSMISC,LOG_DEBUG)("   CDS:          seg 0x%04x",DOS_CDS_SEG);
+		LOG(LOG_DOSMISC,LOG_DEBUG)("[private segment @ this point 0x%04x-0x%04x mem=0x%04lx]",
 			DOS_PRIVATE_SEGMENT,DOS_PRIVATE_SEGMENT_END,
 			(unsigned long)(MEM_TotalPages() << (12 - 4)));
 
@@ -2978,7 +2978,7 @@ public:
             cpm_compat_mode != CPM_COMPAT_OFF && cpm_compat_mode != CPM_COMPAT_DIRECT) {
             /* hold on, only if more than 1MB of RAM and memory access permits it */
             if (MEM_TotalPages() > 0x100 && MEM_PageMask() > 0xff/*more than 20-bit decoding*/) {
-                LOG(LOG_MISC,LOG_WARN)("DOS not in HMA or XMS is disabled. This may break programs using the CP/M compatibility call method if the A20 gate is switched on.");
+                LOG(LOG_DOSMISC,LOG_WARN)("DOS not in HMA or XMS is disabled. This may break programs using the CP/M compatibility call method if the A20 gate is switched on.");
             }
         }
 
@@ -3021,7 +3021,7 @@ public:
 				DOS_MEM_START = minimum_mcb_segment;
 		}
 
-		LOG(LOG_MISC,LOG_DEBUG)("   mem start:    seg 0x%04x",DOS_MEM_START);
+		LOG(LOG_DOSMISC,LOG_DEBUG)("   mem start:    seg 0x%04x",DOS_MEM_START);
 
 		/* carry on setup */
 		DOS_SetupMemory();								/* Setup first MCB */
@@ -3055,7 +3055,7 @@ public:
         else if (minimum_mcb_free < minimum_mcb_segment)
             minimum_mcb_free = minimum_mcb_segment;
 
-        LOG(LOG_MISC,LOG_DEBUG)("   min free:     seg 0x%04x",minimum_mcb_free);
+        LOG(LOG_DOSMISC,LOG_DEBUG)("   min free:     seg 0x%04x",minimum_mcb_free);
 
         if (DOS_MEM_START < minimum_mcb_free) {
             Bit16u sg=0,tmp;
@@ -3065,7 +3065,7 @@ public:
             tmp = 1; // start small
             if (DOS_AllocateMemory(&sg,&tmp)) {
                 if (sg < minimum_mcb_free) {
-                    LOG(LOG_MISC,LOG_DEBUG)("   min free pad: seg 0x%04x",sg);
+                    LOG(LOG_DOSMISC,LOG_DEBUG)("   min free pad: seg 0x%04x",sg);
                 }
                 else {
                     DOS_FreeMemory(sg);
@@ -3079,7 +3079,7 @@ public:
             if (sg != 0 && sg < minimum_mcb_free) {
                 tmp = minimum_mcb_free - sg;
                 if (!DOS_ResizeMemory(sg,&tmp)) {
-                    LOG(LOG_MISC,LOG_DEBUG)("    WARNING: cannot resize min free pad");
+                    LOG(LOG_DOSMISC,LOG_DEBUG)("    WARNING: cannot resize min free pad");
                 }
             }
         }
@@ -3265,7 +3265,7 @@ void DOS_Startup(Section* sec) {
 	if (test == NULL) {
         DOS_GetMemLog.clear();
         DOS_GetMemory_reinit();
-        LOG(LOG_MISC,LOG_DEBUG)("Allocating DOS kernel");
+        LOG(LOG_DOSMISC,LOG_DEBUG)("Allocating DOS kernel");
 		test = new DOS(control->GetSection("dos"));
 	}
 
@@ -3284,10 +3284,10 @@ void DOS_RescanAll(bool pressed) {
 }
 
 void DOS_Init() {
-	LOG(LOG_MISC,LOG_DEBUG)("Initializing DOS kernel (DOS_Init)");
-    LOG(LOG_MISC,LOG_DEBUG)("sizeof(union bootSector) = %u",(unsigned int)sizeof(union bootSector));
-    LOG(LOG_MISC,LOG_DEBUG)("sizeof(struct FAT_BootSector) = %u",(unsigned int)sizeof(struct FAT_BootSector));
-    LOG(LOG_MISC,LOG_DEBUG)("sizeof(direntry) = %u",(unsigned int)sizeof(direntry));
+	LOG(LOG_DOSMISC,LOG_DEBUG)("Initializing DOS kernel (DOS_Init)");
+    LOG(LOG_DOSMISC,LOG_DEBUG)("sizeof(union bootSector) = %u",(unsigned int)sizeof(union bootSector));
+    LOG(LOG_DOSMISC,LOG_DEBUG)("sizeof(struct FAT_BootSector) = %u",(unsigned int)sizeof(struct FAT_BootSector));
+    LOG(LOG_DOSMISC,LOG_DEBUG)("sizeof(direntry) = %u",(unsigned int)sizeof(direntry));
 
     /* this code makes assumptions! */
     assert(sizeof(direntry) == 32);
@@ -3339,7 +3339,7 @@ void DOS_Int21_713a(char *name1, const char *name2) {
 		} else {
 				reg_ax=dos.errorcode;
 				CALLBACK_SCF(true);
-				LOG(LOG_MISC,LOG_NORMAL)("Remove dir failed on %s with error %X",name1,dos.errorcode);
+				LOG(LOG_DOSMISC,LOG_NORMAL)("Remove dir failed on %s with error %X",name1,dos.errorcode);
 		}
 }
 

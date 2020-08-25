@@ -2303,7 +2303,7 @@ void CPU_SET_CRX(Bitu cr,Bitu value) {
 					GFX_SetTitle((Bit32s)CPU_CyclePercUsed,-1,-1,false);
 					if(!printed_cycles_auto_info) {
 						printed_cycles_auto_info = true;
-						LOG_MSG("DOSBox has switched to max cycles, because of the setting: cycles=auto.\nIf the game runs too fast, try a fixed cycles amount in DOSBox's options.");
+						LOG_MSG("DOSBox-X has switched to max cycles, because of the setting: cycles=auto.\nIf the game runs too fast, try a fixed cycles amount in DOSBox-X's options.");
 					}
                     menu_update_autocycle();
 				} else {
@@ -2907,7 +2907,7 @@ void CPU_CycleIncrease(bool pressed) {
 		    CPU_CyclesSet=CPU_CycleMax;
 #if (C_DYNAMIC_X86)
             if (CPU_CycleMax > 15000 && cpudecoder != &CPU_Core_Dyn_X86_Run)
-                LOG_MSG("CPU speed: fixed %ld cycles. If you need more than 20000, try core=dynamic in DOSBox's options.",(unsigned long)CPU_CycleMax);
+                LOG_MSG("CPU speed: fixed %ld cycles. If you need more than 20000, try core=dynamic in DOSBox-X's options.",(unsigned long)CPU_CycleMax);
             else
 // TODO: Add C_DYNREC version
 #endif
@@ -2924,7 +2924,7 @@ void CPU_CycleDecrease(bool pressed) {
 		CPU_CyclePercUsed-=5;
 		if (CPU_CyclePercUsed<=0) CPU_CyclePercUsed=1;
 		if(CPU_CyclePercUsed <=70)
-			LOG_MSG("CPU speed: max %ld percent. If the game runs too fast, try a fixed cycles amount in DOSBox's options.",(unsigned long)CPU_CyclePercUsed);
+			LOG_MSG("CPU speed: max %ld percent. If the game runs too fast, try a fixed cycles amount in DOSBox-X's options.",(unsigned long)CPU_CyclePercUsed);
 		else
 			LOG_MSG("CPU speed: max %ld percent.",(unsigned long)CPU_CyclePercUsed);
 		GFX_SetTitle((Bit32s)CPU_CyclePercUsed,-1,-1,false);

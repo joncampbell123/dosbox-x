@@ -101,10 +101,10 @@ static bool DOS_MultiplexFunctions(void) {
     case 0x0800:    /* DRIVER.SYS function */
     case 0x0801:    /* DRIVER.SYS function */
     case 0x0802:    /* DRIVER.SYS function */
-        LOG(LOG_MISC,LOG_DEBUG)("Unhandled DRIVER.SYS call AX=%04x BX=%04x CX=%04x DX=%04x BP=%04x",reg_ax,reg_bx,reg_cx,reg_dx,reg_bp);
+        LOG(LOG_DOSMISC,LOG_DEBUG)("Unhandled DRIVER.SYS call AX=%04x BX=%04x CX=%04x DX=%04x BP=%04x",reg_ax,reg_bx,reg_cx,reg_dx,reg_bp);
         break;
     case 0x0803:    /* DRIVER.SYS function */
-        LOG(LOG_MISC,LOG_DEBUG)("Unhandled DRIVER.SYS call AX=%04x BX=%04x CX=%04x DX=%04x BP=%04x",reg_ax,reg_bx,reg_cx,reg_dx,reg_bp);
+        LOG(LOG_DOSMISC,LOG_DEBUG)("Unhandled DRIVER.SYS call AX=%04x BX=%04x CX=%04x DX=%04x BP=%04x",reg_ax,reg_bx,reg_cx,reg_dx,reg_bp);
         // FIXME: Windows 95 SCANDISK.EXE relies on the drive data table list pointer provided by this call.
         //        Returning DS:DI unmodified or set to 0:0 will only send it off into the weeds chasing random data
         //        as a linked list. However looking at the code DI=0xFFFF is sufficient to prevent that until
@@ -485,7 +485,7 @@ static bool DOS_MultiplexFunctions(void) {
 			reg_bx = 0;
 			reg_di = 0xFFFF;
 			SegSet16(es,0xFFFF);
-			LOG(LOG_MISC,LOG_DEBUG)("HMA query: rejected");
+			LOG(LOG_DOSMISC,LOG_DEBUG)("HMA query: rejected");
 			return true;
 		}
 
@@ -493,7 +493,7 @@ static bool DOS_MultiplexFunctions(void) {
 		reg_bx = limit - start; /* free space in bytes */
 		SegSet16(es,0xffff);
 		reg_di = (start + 0x10) & 0xFFFF;
-		LOG(LOG_MISC,LOG_DEBUG)("HMA query: start=0x%06x limit=0x%06x free=0x%06x -> bx=%u %04x:%04x",
+		LOG(LOG_DOSMISC,LOG_DEBUG)("HMA query: start=0x%06x limit=0x%06x free=0x%06x -> bx=%u %04x:%04x",
 			start,limit,DOS_HMA_GET_FREE_SPACE(),(int)reg_bx,(int)SegValue(es),(int)reg_di);
 		} return true;
 	case 0x4a02: {	/* ALLOCATE HMA SPACE */
@@ -504,7 +504,7 @@ static bool DOS_MultiplexFunctions(void) {
 			reg_bx = 0;
 			reg_di = 0xFFFF;
 			SegSet16(es,0xFFFF);
-			LOG(LOG_MISC,LOG_DEBUG)("HMA allocation: rejected");
+			LOG(LOG_DOSMISC,LOG_DEBUG)("HMA allocation: rejected");
 			return true;
 		}
 
@@ -516,7 +516,7 @@ static bool DOS_MultiplexFunctions(void) {
 
 		Bit32u start = DOS_HMA_FREE_START();
 		if ((start+reg_bx) > limit) {
-			LOG(LOG_MISC,LOG_DEBUG)("HMA allocation: rejected (not enough room) for %u bytes (0x%x + 0x%x > 0x%x)",reg_bx,
+			LOG(LOG_DOSMISC,LOG_DEBUG)("HMA allocation: rejected (not enough room) for %u bytes (0x%x + 0x%x > 0x%x)",reg_bx,
                 (unsigned int)start,(unsigned int)reg_bx,(unsigned int)limit);
 			reg_bx = 0;
 			reg_di = 0xFFFF;
@@ -529,14 +529,14 @@ static bool DOS_MultiplexFunctions(void) {
 		SegSet16(es,0xFFFF);
 
 		/* let HMA emulation know what was claimed */
-		LOG(LOG_MISC,LOG_DEBUG)("HMA allocation: %u bytes at FFFF:%04x",reg_bx,reg_di);
+		LOG(LOG_DOSMISC,LOG_DEBUG)("HMA allocation: %u bytes at FFFF:%04x",reg_bx,reg_di);
 		DOS_HMA_CLAIMED(reg_bx);
 		} return true;
     case 0x4a10: { /* Microsoft SmartDrive (SMARTDRV) API */
-        LOG(LOG_MISC,LOG_DEBUG)("Unhandled SMARTDRV call AX=%04x BX=%04x CX=%04x DX=%04x BP=%04x",reg_ax,reg_bx,reg_cx,reg_dx,reg_bp);
+        LOG(LOG_DOSMISC,LOG_DEBUG)("Unhandled SMARTDRV call AX=%04x BX=%04x CX=%04x DX=%04x BP=%04x",reg_ax,reg_bx,reg_cx,reg_dx,reg_bp);
 	    } return true;
     case 0x4a11: { /* Microsoft DoubleSpace (DBLSPACE.BIN) API */
-        LOG(LOG_MISC,LOG_DEBUG)("Unhandled DBLSPACE call AX=%04x BX=%04x CX=%04x DX=%04x BP=%04x",reg_ax,reg_bx,reg_cx,reg_dx,reg_bp);
+        LOG(LOG_DOSMISC,LOG_DEBUG)("Unhandled DBLSPACE call AX=%04x BX=%04x CX=%04x DX=%04x BP=%04x",reg_ax,reg_bx,reg_cx,reg_dx,reg_bp);
 	    } return true;
     case 0x4a16:    /* Open bootlog */
         return true;
