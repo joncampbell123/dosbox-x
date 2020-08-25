@@ -1,4 +1,9 @@
 0.83.5
+  - Added dosbox.conf option to control whether EGA
+    emulation latches hpel at display start (as VGA
+    does) or allows hpel to change per scanline.
+    Setting the option to false is needed for some
+    games like Commander Keen.
   - Allowed Sound Blaster to be enabled by the games
     "Desert Strike" and "Jungle Strike". (Wengier)
   - DOSBox-X will now search for system fonts if the
