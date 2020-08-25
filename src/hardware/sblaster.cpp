@@ -2866,6 +2866,11 @@ static Bitu read_sb(Bitu port,Bitu /*iolen*/) {
         if (sb.mode == MODE_DMA_REQUIRE_IRQ_ACK)
             sb.mode = MODE_DMA;
 
+        extern const char* RunningProgram; // Wengier: Hack for Desert Strike & Jungle Strike
+        if (!IS_PC98_ARCH && port>0x220 && port%0x10==0xE && !sb.dsp.out.used && (!strcmp(RunningProgram, "DESERT") || !strcmp(RunningProgram, "JUNGLE"))) {
+            LOG_MSG("Check status by game: %s\n", RunningProgram);
+            sb.dsp.out.used++;
+        }
         if (sb.ess_type == ESS_NONE && (sb.type == SBT_1 || sb.type == SBT_2 || sb.type == SBT_PRO1 || sb.type == SBT_PRO2))
             return sb.dsp.out.used ? 0xAA : 0x2A; /* observed return values on SB 2.0---any significance? */
         else
@@ -3315,7 +3320,7 @@ private:
              *      it won't work properly (and emulation will show what happens). I also believe that tying
              *      8-bit vs 16-bit system type to the *video card* was a really dumb move. */
             if (!SecondDMAControllerAvailable()) {
-                LOG(LOG_SB,LOG_WARN)("Sound Blaster 16 enabled on a system without 16-bit DMA. Don't expect this setup to work properly! To improve compatability please edit your dosbox.conf and change sbtype to sbpro2 instead, or else enable the secondary DMA controller.");
+                LOG(LOG_SB,LOG_WARN)("Sound Blaster 16 enabled on a system without 16-bit DMA. Don't expect this setup to work properly! To improve compatibility please edit your dosbox-x.conf and change sbtype to sbpro2 instead, or else enable the secondary DMA controller.");
             }
         }
 

@@ -562,7 +562,7 @@ bool CDROM_Interface_Image::ReadSector(Bit8u *buffer, bool raw, unsigned long se
 	int seek = tracks[track].skip + (sector - tracks[track].start) * tracks[track].sectorSize;
 	int length = (raw ? RAW_SECTOR_SIZE : COOKED_SECTOR_SIZE);
 	if (tracks[track].sectorSize != RAW_SECTOR_SIZE && raw) return false;
-	if (tracks[track].sectorSize == RAW_SECTOR_SIZE && !tracks[track].mode2 && !raw) seek += 16;
+	if ((tracks[track].sectorSize == RAW_SECTOR_SIZE || tracks[track].sectorSize == 2448) && !tracks[track].mode2 && !raw) seek += 16;
 	if (tracks[track].mode2 && !raw) seek += 24;
 
 	// LOG_MSG("CDROM: ReadSector track=%d, desired raw=%s, sector=%ld, length=%d", track, raw ? "true":"false", sector, length);
@@ -721,6 +721,9 @@ bool CDROM_Interface_Image::LoadIsoFile(char* filename)
 	} else if (CanReadPVD(track.file, RAW_SECTOR_SIZE, true)) {
 		track.sectorSize = RAW_SECTOR_SIZE;
 		track.mode2 = true;
+	} else if (CanReadPVD(track.file, 2448, false)) {
+		track.sectorSize = 2448;
+		track.mode2 = false;
 	} else {
         delete track.file;
         track.file = NULL;
@@ -745,7 +748,7 @@ bool CDROM_Interface_Image::CanReadPVD(TrackFile *file, int sectorSize, bool mod
 {
 	Bit8u pvd[COOKED_SECTOR_SIZE];
 	int seek = 16 * sectorSize;	// first vd is located at sector 16
-	if (sectorSize == RAW_SECTOR_SIZE && !mode2) seek += 16;
+	if ((sectorSize == RAW_SECTOR_SIZE || sectorSize == 2448) && !mode2) seek += 16;
 	if (mode2) seek += 24;
 	file->read(pvd, seek, COOKED_SECTOR_SIZE);
 	// pvd[0] = descriptor type, pvd[1..5] = standard identifier, pvd[6] = iso version (+8 for High Sierra)
@@ -829,6 +832,10 @@ bool CDROM_Interface_Image::LoadCueSheet(char *cuefile)
 				track.sectorSize = RAW_SECTOR_SIZE;
 				track.attr = 0x40;
 				track.mode2 = true;
+			} else if (type == "MODE1/2448") {
+				track.sectorSize = 2448;
+				track.attr = 0x40;
+				track.mode2 = false;
 			} else success = false;
 
 			canAddTrack = true;

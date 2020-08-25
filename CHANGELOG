@@ -1,12 +1,22 @@
 0.83.5
+  - Allowed Sound Blaster to be enabled by the games
+    "Desert Strike" and "Jungle Strike". (Wengier)
+  - DOSBox-X will now search for system fonts if the
+    fonts required for the printing feature cannot be
+    found in the FONTS directory. (Wengier)
+  - Added menu item "Send Feed-form" under the DOS menu
+    for manually ejecting new pages to print. (Wengier)
+  - Support for mounting CD images with a sector size
+    of 2448, used by for example the MDF image of the
+    game Grand Theft Auto. (Wengier)
   - Sound Blaster Pro emulation now maps DSP commands
     0x41 to 0x47 as aliases of 0x40 (set time constant)
     to support broken demoscene code that uses 0x41
     in that way. Yes, such code would obviously break
-    on clone cards and the SB16. Added dosbox.conf
-    option to turn it off for debugging. Alias is
-    documented on Vogons forums where someone made
-    a SB Pro clone card.
+    on clone cards and the SB16. Added a config option
+    "dsp command aliases" in "sblaster" section to turn
+    it off for debugging. Alias is documented on Vogons
+    forums where someone made a SB Pro clone card.
   - Fixed the issue with CD audio play by porting the
     audio code from DOSBox ECE. (Wengier)
   - COPY command now assumes /Y automatically when
@@ -18,13 +28,15 @@
     modes and scribbling on the VGA BIOS are relying
     on segment limits and GP faults to fake a linear
     framebuffer.
-  - Added option to allow disabling the VESA BIOS
+  - Added config option "vesa bank switching window
+    range check" to allow disabling the VESA BIOS
     window number range check when called on to
     bank switch. Needed for "Pill" by Opiate in the
     end credits, which for some reason requires a
     call for window number 0xFFFF to succeed in order
     to draw credits without glitching.
-  - Added option to instruct VESA BIOS to ignore
+  - Added config option "vesa bank switching window
+    mirroring" for instructing VESA BIOS to ignore
     bank switching window parameter when asked to
     get/set bank switching window setting. Needed for
     some old demoscene and game applications that

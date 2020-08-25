@@ -554,7 +554,7 @@ static Bitu DOS_21Handler(void) {
      *                  whether INT 21h logging is enabled. Also removed unnecessary copying of reg_al
      *                  and reg_ah to auto type variables. */
     if (log_int21) {
-        LOG(LOG_CPU, LOG_DEBUG)("Executing interrupt 21, ah=%x, al=%x", reg_ah, reg_al);
+        LOG(LOG_DOSMISC, LOG_DEBUG)("Executing interrupt 21, ah=%x, al=%x", reg_ah, reg_al);
     }
 
     /* Real MS-DOS behavior:
