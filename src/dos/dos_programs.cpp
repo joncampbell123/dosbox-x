@@ -4048,6 +4048,10 @@ public:
             WriteOut(MSG_Get("PROGRAM_IMGMOUNT_HELP"));
             return;
         }
+		if (cmd->FindExist("-examples")) {
+			WriteOut(MSG_Get("PROGRAM_IMGMOUNT_EXAMPLE"));
+			return;
+		}
         /* Check for unmounting */
         std::string umount;
         if (cmd->FindString("-u",umount,false)) {
@@ -4460,13 +4464,13 @@ private:
                     // convert dosbox filename to system filename
                     Bit8u dummy;
                     if (!DOS_MakeName(tmp, fullname, &dummy) || strncmp(Drives[dummy]->GetInfo(), "local directory", 15)) {
-                        if (!usedef) WriteOut(MSG_Get("PROGRAM_IMGMOUNT_NON_LOCAL_DRIVE"));
+                        WriteOut(MSG_Get(usedef?"PROGRAM_IMGMOUNT_DEFAULT_NOT_FOUND":"PROGRAM_IMGMOUNT_NON_LOCAL_DRIVE"));
                         return;
                     }
 
                     localDrive *ldp = dynamic_cast<localDrive*>(Drives[dummy]);
                     if (ldp == NULL) {
-                        if (!usedef) WriteOut(MSG_Get("PROGRAM_IMGMOUNT_FILE_NOT_FOUND"));
+                        WriteOut(MSG_Get(usedef?"PROGRAM_IMGMOUNT_DEFAULT_NOT_FOUND":"PROGRAM_IMGMOUNT_FILE_NOT_FOUND"));
                         return;
                     }
 					bool readonly=wpcolon&&commandLine.length()>1&&commandLine[0]==':';
@@ -4475,7 +4479,7 @@ private:
                     commandLine = tmp;
 
                     if (pref_stat(readonly?tmp+1:tmp, &test)) {
-                        if (!usedef) WriteOut(MSG_Get("PROGRAM_IMGMOUNT_FILE_NOT_FOUND"));
+                        WriteOut(MSG_Get(usedef?"PROGRAM_IMGMOUNT_DEFAULT_NOT_FOUND":"PROGRAM_IMGMOUNT_FILE_NOT_FOUND"));
                         return;
                     }
                 }
@@ -6211,8 +6215,8 @@ void DOS_SetupPrograms(void) {
     MSG_Add("PROGRAM_MOUNT_STATUS_RAMDRIVE", "Drive %c is mounted as RAM drive\n");
     MSG_Add("PROGRAM_MOUNT_STATUS_2","Drive %c is mounted as %s\n");
     MSG_Add("PROGRAM_MOUNT_STATUS_1","The currently mounted drives are:\n");
-    MSG_Add("PROGRAM_IMGMOUNT_STATUS_FORMAT","%-5s  %-47s  %-12s  %-9s\n");
-    MSG_Add("PROGRAM_IMGMOUNT_STATUS_NUMBER_FORMAT","%-12s  %-40s  %-12s  %-9s\n");
+    MSG_Add("PROGRAM_IMGMOUNT_STATUS_FORMAT","%-5s  %-47s  %-12s  %s\n");
+    MSG_Add("PROGRAM_IMGMOUNT_STATUS_NUMBER_FORMAT","%-12s  %-40s  %-12s  %s\n");
     MSG_Add("PROGRAM_IMGMOUNT_STATUS_2","The currently mounted drive numbers are:\n");
     MSG_Add("PROGRAM_IMGMOUNT_STATUS_1","The currently mounted FAT/ISO drives are:\n");
     MSG_Add("PROGRAM_IMGMOUNT_STATUS_NONE","No drive available\n");
@@ -6531,6 +6535,7 @@ void DOS_SetupPrograms(void) {
     MSG_Add("PROGRAM_IMGMOUNT_FORMAT_UNSUPPORTED","Format \"%s\" is unsupported. Specify \"fat\" or \"iso\" or \"none\".\n");
     MSG_Add("PROGRAM_IMGMOUNT_SPECIFY_FILE","Must specify file-image to mount.\n");
     MSG_Add("PROGRAM_IMGMOUNT_FILE_NOT_FOUND","Image file not found.\n");
+    MSG_Add("PROGRAM_IMGMOUNT_DEFAULT_NOT_FOUND","Image file not found: IMGMAKE.IMG.\n");
     MSG_Add("PROGRAM_IMGMOUNT_MOUNT","To mount directories, use the \033[34;1mMOUNT\033[0m command, not the \033[34;1mIMGMOUNT\033[0m command.\n");
     MSG_Add("PROGRAM_IMGMOUNT_ALREADY_MOUNTED","Drive already mounted at that letter.\n");
     MSG_Add("PROGRAM_IMGMOUNT_ALREADY_MOUNTED_NUMBER","Drive number %d already mounted.\n");
@@ -6549,23 +6554,40 @@ void DOS_SetupPrograms(void) {
         "IMGMOUNT drive [-t floppy] -bootcd cdDrive (or -el-torito cdDrive)\n"
         "IMGMOUNT drive -t ram -size size\n"
         "IMGMOUNT -u drive|driveNum (or IMGMONT drive|driveNum file [options] -u)\n"
-        " drive               Drive letter to mount the image at\n"
-        " driveNum            Drive number to mount, where 0-1 are FDDs, 2-5 are HDDs\n"
-        " file                Image filename(s), or IMGMAKE.IMG if not specified\n"
-        " -t iso              Image type is optical disc iso or cue / bin image\n"
-        " -t floppy           Image type is floppy\n"
-        " -t hdd              Image type is hard disk; VHD and HDI files are supported\n"
-        " -t ram              Image type is RAM drive\n"
-        " -fs iso             File system is ISO 9660\n"
-        " -fs fat             File system is FAT; FAT12, FAT16 and FAT32 are supported\n"
-        " -fs none            Do not detect file system\n"
-        " -reservecyl #       Report # number of cylinders less than actual in BIOS\n"
-        " -ide controller     Specify the IDE controller (1m, 1s, 2m, 2s) to mount drive\n"
-        " -size size|ss,s,h,c Specify the size in KB, or sector size and CHS geometry\n"
-        " -bootcd cdDrive     Specify the CD drive to load the bootable floppy from\n"
-        " -ro                 Mount image(s) read-only (or leading ':' for read-only)\n"
-        " -u                  Unmount the drive or drive number"
+        " drive               Drive letter to mount the image at.\n"
+        " driveNum            Drive number to mount, where 0-1 are FDDs, 2-5 are HDDs.\n"
+        " file                Image filename(s), or IMGMAKE.IMG if not specified.\n"
+        " -t iso              Image type is optical disc iso or cue / bin image.\n"
+        " -t hdd              Image type is hard disk; VHD and HDI files are supported.\n"
+        " -t floppy|ram       Image type is floppy drive|RAM drive.\n"
+        " -fs iso             File system is ISO 9660.\n"
+        " -fs fat             File system is FAT; FAT12, FAT16 and FAT32 are supported.\n"
+        " -fs none            Do not detect file system.\n"
+        " -reservecyl #       Report # number of cylinders less than actual in BIOS.\n"
+        " -ide controller     Specify IDE controller (1m, 1s, 2m, 2s) to mount drive.\n"
+        " -size size|ss,s,h,c Specify the size in KB, or sector size and CHS geometry.\n"
+        " -bootcd cdDrive     Specify the CD drive to load the bootable floppy from.\n"
+        " -ro                 Mount image(s) read-only (or leading ':' for read-only).\n"
+        " -u                  Unmount the drive or drive number.\n"
+        " -examples           Show some usage examples."
     );
+    MSG_Add("PROGRAM_IMGMOUNT_EXAMPLE",
+        "Some usage examples of IMGMOUNT:\n\n"
+        "  \033[32;1mIMGMOUNT\033[0m                       - list mounted FAT/ISO drives & drive numbers\n"
+        "  \033[32;1mIMGMOUNT C\033[0m                     - mount hard disk image IMGMAKE.IMG as C:\n"
+        "  \033[32;1mIMGMOUNT C c:\\image.img\033[0m        - mount hard disk image c:\\image.img as C:\n"
+        "  \033[32;1mIMGMOUNT D c:\\games\\doom.iso\033[0m   - mount CD image c:\\games\\doom.iso as D:\n"
+        "  \033[32;1mIMGMOUNT 0 dos.ima\033[0m             - mount floppy image dos.ima as drive number 0\n"
+        "  \033[32;1mIMGMOUNT A -ro dos.ima\033[0m         - mount floppy image dos.ima as A: read-only\n"
+        "  \033[32;1mIMGMOUNT A :dsk1.img dsk2.img\033[0m  - mount floppy images dsk1.img and dsk2.img as\n"
+        "                                   A:, swappable via menu item \"Swap floppy\",\n"
+        "                                   with dsk1.img read-only (but not dsk2.img)\n"
+        "  \033[32;1mIMGMOUNT A -bootcd D\033[0m           - mount bootable floppy A: from CD drive D:\n"
+        "  \033[32;1mIMGMOUNT C -t ram -size 10000\033[0m  - mount hard drive C: as a 10MB RAM drive\n"
+        "  \033[32;1mIMGMOUNT C disk.img -u\033[0m         - force mount hard disk image disk.img as C:,\n"
+        "                                   auto-unmount drive beforehand if necessary\n"
+        "  \033[32;1mIMGMOUNT A -u\033[0m                  - unmount previously-mounted drive A:\n"
+        );
     MSG_Add("PROGRAM_IMGMAKE_SYNTAX",
         "Creates floppy or hard disk images.\n"
         "Usage: IMGMAKE [file] [-t type] [[-size size] | [-chs geometry]] [-spc] [-nofs]\n"
@@ -6587,7 +6609,7 @@ void DOS_SetupPrograms(void) {
         "  -nofs: Add this parameter if a blank image should be created.\n"
         "  -force: Force to overwrite the existing image file.\n"
         "  -bat: Create a .bat file with the IMGMOUNT command required for this image.\n"
-        "  -fat: FAT filesystem type (12, 16, or 32)\n"
+        "  -fat: FAT filesystem type (12, 16, or 32).\n"
         "  -spc: Sectors per cluster override. Must be a power of 2.\n"
         "  -fatcopies: Override number of FAT table copies.\n"
         "  -rootdir: Size of root directory in entries. Ignored for FAT32.\n"

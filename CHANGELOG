@@ -84,7 +84,8 @@
     marker may not work for such images. (Wengier)
   - IMGMOUNT command without parameters now shows the
     disk position and number of swap disks, as well as
-    the IDE controller (if applicable). (Wengier)
+    IDE controller (if applicable). Also added option
+    -examples to show its usage examples. (Wengier)
   - Add "-ro" option for IMGMOUNT command to mark all
     disk images as read-only at once. You could also
     mark read-only disk images individually using the
