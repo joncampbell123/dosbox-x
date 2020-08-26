@@ -33,7 +33,7 @@
  *       cause the DSP to drop a byte and effectively cause stereo left/right
  *       swapping. It can also cause 16-bit DMA to halt.
  *
- *       As usual, expect this to be a config option --Jonathan C. */
+ *       As usual, expect this to be a config option. --Jonathan C. */
 
 /* FIXME: Sound Blaster 16 hardware has a FIFO between the ISA BUS and DSP.
  *        Could we update this code to read through a FIFO instead? How big is this
@@ -2866,6 +2866,11 @@ static Bitu read_sb(Bitu port,Bitu /*iolen*/) {
         if (sb.mode == MODE_DMA_REQUIRE_IRQ_ACK)
             sb.mode = MODE_DMA;
 
+        extern const char* RunningProgram; // Wengier: Hack for Desert Strike & Jungle Strike
+        if (!IS_PC98_ARCH && port>0x220 && port%0x10==0xE && !sb.dsp.out.used && (!strcmp(RunningProgram, "DESERT") || !strcmp(RunningProgram, "JUNGLE"))) {
+            LOG_MSG("Check status by game: %s\n", RunningProgram);
+            sb.dsp.out.used++;
+        }
         if (sb.ess_type == ESS_NONE && (sb.type == SBT_1 || sb.type == SBT_2 || sb.type == SBT_PRO1 || sb.type == SBT_PRO2))
             return sb.dsp.out.used ? 0xAA : 0x2A; /* observed return values on SB 2.0---any significance? */
         else

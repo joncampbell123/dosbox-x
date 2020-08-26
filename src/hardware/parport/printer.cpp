@@ -252,28 +252,33 @@ void CPrinter::updateFont()
 	if (curFont != NULL)
 		FT_Done_Face(curFont);
 
-	std::string fontName;
+	std::string fontName, basedir;
+#if defined(WIN32)
+    basedir = ".\\FONTS\\";
+#else
+    basedir = "./FONTS/";
+#endif
 
 	switch (LQtypeFace)
 	{
 	    case roman:
-		    fontName = "./FONTS/roman.ttf";
+		    fontName = basedir + "roman.ttf";
 		    break;
 	    case sansserif:
-		    fontName = "./FONTS/sansserif.ttf";
+		    fontName = basedir + "sansserif.ttf";
 		    break;
 	    case courier:
-		    fontName = "./FONTS/courier.ttf";
+		    fontName = basedir + "courier.ttf";
 		    break;
 	    case script:
-		    fontName = "./FONTS/script.ttf";
+		    fontName = basedir + "script.ttf";
 		    break;
 	    case ocra:
 	    case ocrb:
-		    fontName = "./FONTS/ocra.ttf";
+		    fontName = basedir + "ocra.ttf";
 		    break;
 	    default:
-		    fontName = "./FONTS/roman.ttf";
+		    fontName = basedir + "roman.ttf";
 	}
 	
 #ifndef WIN32
@@ -286,62 +291,57 @@ void CPrinter::updateFont()
 	if (FT_New_Face(FTlib, fontName.c_str(), 0, &curFont))
 	{
         std::string oldfont=fontName;
+        struct stat wstat;
 #if defined(WIN32)
         const char* windir = "C:\\WINDOWS";
-        struct stat wstat;
-        stat(windir,&wstat);
-        if(!(wstat.st_mode & S_IFDIR)) {
+        if(stat(windir,&wstat) || !(wstat.st_mode & S_IFDIR)) {
             TCHAR dir[MAX_PATH];
             if (GetWindowsDirectory(dir, MAX_PATH))
                 windir=dir;
         }
-        fontName = std::string(windir) + "\\fonts\\";
+        basedir = std::string(windir) + "\\fonts\\";
 #else
-        fontName = "/usr/share/fonts/";
+        basedir = "/usr/share/fonts/";
 #endif
         switch (LQtypeFace)
         {
             case roman:
 #if defined(WIN32)
-                fontName += "times.ttf";
+                fontName = basedir + "times.ttf";
 #else
-                fontName += "liberation-serif/LiberationSerif-Regular.ttf";
+                fontName = basedir + "liberation-serif/LiberationSerif-Regular.ttf";
+                if(stat(fontName.c_str(),&wstat)) fontName = basedir + "liberation/LiberationSerif-Regular.ttf";
 #endif
                 break;
             case sansserif:
 #if defined(WIN32)
-                fontName = "arial.ttf";
+                fontName = basedir + "arial.ttf";
 #else
-                fontName += "liberation-sans/LiberationSans-Regular.ttf";
+                fontName = basedir + "liberation-sans/LiberationSans-Regular.ttf";
+                if(stat(fontName.c_str(),&wstat)) fontName = basedir + "liberation/LiberationSans-Regular.ttf";
 #endif
                 break;
             case courier:
 #if defined(WIN32)
-                fontName += "cour.ttf";
+                fontName = basedir + "cour.ttf";
 #else
-                fontName += "liberation-mono/LiberationMono-Regular.ttf";
+                fontName = basedir + "liberation-mono/LiberationMono-Regular.ttf";
+                if(stat(fontName.c_str(),&wstat)) fontName = basedir + "liberation/LiberationMono-Regular.ttf";
 #endif
                 break;
             case script:
-#if defined(WIN32)
-                fontName += "freescpt.ttf";
-#else
-                fontName += "freescpt.ttf";
-#endif
+                fontName = basedir + "freescpt.ttf";
                 break;
             case ocra:
             case ocrb:
-#if defined(WIN32)
-                fontName += "Ocraext.ttf";
-#else
-                fontName += "Ocraext.ttf";
-#endif
+                fontName = basedir + "ocraext.ttf";
                 break;
             default:
 #if defined(WIN32)
-                fontName += "times.ttf";
+                fontName = basedir + "times.ttf";
 #else
-                fontName += "liberation-serif/LiberationSerif-Regular.ttf";
+                fontName = basedir + "liberation-serif/LiberationSerif-Regular.ttf";
+                if(stat(fontName.c_str(),&wstat)) fontName = basedir + "liberation/LiberationSerif-Regular.ttf";
 #endif
         }
         if (FT_New_Face(FTlib, fontName.c_str(), 0, &curFont)) {
@@ -2199,7 +2199,9 @@ void PRINTER_Init()
 	//IO_RegisterWriteHandler(LPTPORT+2,PRINTER_writecontrol,IO_MB);
 	//IO_RegisterReadHandler(LPTPORT+2,PRINTER_readcontrol,IO_MB);
 
-	MAPPER_AddHandler(FormFeed, MK_f2 , MMOD1, "ejectpage", "Form-feed");
+    DOSBoxMenu::item *item;
+	MAPPER_AddHandler(FormFeed, MK_f2 , MMOD1, "ejectpage", "FormFeed", &item);
+    item->set_text("Send form-feed");
 }
 
 #endif
