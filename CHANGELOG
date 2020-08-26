@@ -1,7 +1,10 @@
 0.83.5
   - Added config option "startinfo" in [dosbox] section
-    to disable or enable the startup message box when
-    DOSBox-X runs. (Wengier)
+    which can be used to skip the startup information
+    box when DOSBox-X runs. Also added config option
+    "fastbioslogo" which can be used to skip the BIOS
+    logo. A new command-line option "-fastlaunch" is
+    added to skip both (fast launch mode). (Wengier)
   - Added config option "ega per scanline hpel" in
     [dosbox] section to control whether EGA emulation
     latches hpel at display start (as VGA emulation

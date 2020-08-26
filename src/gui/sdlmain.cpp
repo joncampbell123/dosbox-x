@@ -6741,7 +6741,7 @@ bool DOSBOX_parse_argv() {
             fprintf(stderr,"  -set <section property=value>           Set the config option (overriding the config file).\n");
             fprintf(stderr,"                                          Make sure to surround the string in quotes to cover spaces.\n");
             fprintf(stderr,"  -time-limit <n>                         Kill the emulator after 'n' seconds\n");
-            fprintf(stderr,"  -fastbioslogo                           Fast BIOS logo (skip 1-second pause)\n");
+            fprintf(stderr,"  -fastlaunch                             Fast launch mode (skip BIOS logo and start messages)\n");
 #if C_DEBUG
             fprintf(stderr,"  -helpdebug                              Show debug-related options\n");
 #endif
@@ -6858,6 +6858,9 @@ bool DOSBOX_parse_argv() {
         }
         else if (optname == "fastbioslogo") {
             control->opt_fastbioslogo = true;
+        }
+        else if (optname == "fastlaunch") {
+            control->opt_fastlaunch = true;
         }
         else if (optname == "conf") {
             if (!control->cmdline->NextOptArgv(tmp)) return false;

@@ -8447,7 +8447,8 @@ private:
             emscripten_sleep_with_yield(100);
         }
 #else
-        if (!control->opt_fastbioslogo&&!bootguest&&!bootfast&&(bootvm||!use_quick_reboot)) {
+        bool fastbioslogo=static_cast<Section_prop *>(control->GetSection("dosbox"))->Get_bool("fastbioslogo")||control->opt_fastbioslogo||control->opt_fastlaunch;
+        if (!fastbioslogo&&!bootguest&&!bootfast&&(bootvm||!use_quick_reboot)) {
             bool wait_for_user = false;
             Bit32u lasttick=GetTicks();
             while ((GetTicks()-lasttick)<1000) {

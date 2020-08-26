@@ -35,7 +35,7 @@ for %%a in ("%HKCU_DIR_FRNT%" "%HKCU_DIR_BACK%") do (
 for %%a in ("%HKCU_EXE_OPEN%" "%HKCU_COM_OPEN%" "%HKCU_BAT_OPEN%") do (
 	reg add %%a /f /v Icon /d "\"%DOSBOX_X_PATH%\",0" >nul 2>&1
 	if %ERRORLEVEL% NEQ 0 call :uninstall & exit /b 1
-	reg add %%a\command /f /ve /d "\"%DOSBOX_X_PATH%\" -defaultdir \"%DOSBOX_X_DIR% \" \"%%1\"" >nul 2>&1
+	reg add %%a\command /f /ve /d "\"%DOSBOX_X_PATH%\" -fastlaunch -defaultdir \"%DOSBOX_X_DIR% \" \"%%1\"" >nul 2>&1
 	if %ERRORLEVEL% NEQ 0 call :uninstall & exit /b 1
 )
 call :success & exit /b 1

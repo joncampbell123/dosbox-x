@@ -6313,7 +6313,7 @@ void DOS_SetupPrograms(void) {
     MSG_Add("PROGRAM_INTRO_USAGE_TOP",
         "\033[2J\033[32;1mAn overview of the command line options you can give to DOSBox-X.\033[0m\n"
         "Windows users must open cmd.exe or edit the shortcut to DOSBox-X.exe for this.\n\n"
-        "dosbox-x [name] [-exit] [-version] [-fullscreen] [-fastbioslogo]\n"
+        "dosbox-x [name] [-exit] [-version] [-fastlaunch] [-fullscreen]\n"
         "         [-conf congfigfile] [-lang languagefile] [-machine machinetype]\n"
         "         [-startmapper] [-noautoexec] [-scaler scaler | -forcescaler scaler]\n"
         "         [-noconsole] [-c command] [-set <section property=value>]\n\n"
@@ -6327,10 +6327,10 @@ void DOS_SetupPrograms(void) {
         "\tDOSBox-X will close itself when the DOS application name ends.\n\n"
         "\033[33;1m  -version\033[0m\n"
         "\toutput version information and exit. Useful for frontends.\n\n"
+        "\033[33;1m  -fastlaunch\033[0m\n"
+        "\tStarts Enables fast launch mode (skip BIOS logo and start messages).\n\n"
         "\033[33;1m  -fullscreen\033[0m\n"
-        "\tStarts DOSBox-X in fullscreen mode.\n\n"
-        "\033[33;1m  -fastbioslogo\033[0m\n"
-        "\tStarts Fast BIOS logo (skip 1-second pause).\n"
+        "\tStarts DOSBox-X in fullscreen mode.\n"
         );
     MSG_Add("PROGRAM_INTRO_USAGE_2",
         "\033[33;1m  -conf\033[0m configfile\n"

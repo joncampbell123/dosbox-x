@@ -1362,7 +1362,10 @@ void DOSBOX_SetupConfigSections(void) {
     Pstring->Set_help("Select another language file.");
 
     Pstring = secprop->Add_path("title",Property::Changeable::Always,"");
-    Pstring->Set_help("Additional text to place in the title bar of the window");
+    Pstring->Set_help("Additional text to place in the title bar of the window.");
+
+    Pbool = secprop->Add_bool("fastbioslogo",Property::Changeable::OnlyAtStart,false);
+    Pbool->Set_help("If set, DOSBox-X will enable fast BIOS logo mode (skip 1-second pause).");
 
     Pbool = secprop->Add_bool("startinfo",Property::Changeable::OnlyAtStart,true);
     Pbool->Set_help("If set, DOSBox-X will display startup information box when it runs.");
@@ -1399,7 +1402,7 @@ void DOSBOX_SetupConfigSections(void) {
     Phex->Set_help("If nonzero, define the physical memory address of the linear framebuffer.");
 
     Pbool = secprop->Add_bool("pci vga",Property::Changeable::WhenIdle,true);
-    Pbool->Set_help("If set, SVGA is emulated as if a PCI device (when enable pci bus=true)");
+    Pbool->Set_help("If set, SVGA is emulated as if a PCI device (when enable pci bus=true).");
 
     Pint = secprop->Add_int("vmemdelay", Property::Changeable::WhenIdle,0);
     Pint->SetMinMax(-1,100000);
@@ -1429,7 +1432,7 @@ void DOSBOX_SetupConfigSections(void) {
     Pint = secprop->Add_int("vmemsizekb", Property::Changeable::WhenIdle,0);
     Pint->SetMinMax(0,1024);
     Pint->Set_help(
-        "Amount of video memory in kilobytes, in addition to vmemsize");
+        "Amount of video memory in kilobytes, in addition to vmemsize.");
 
     Pstring = secprop->Add_path("captures",Property::Changeable::Always,"capture");
     Pstring->Set_help("Directory where things like wave, midi, screenshot get captured.");
