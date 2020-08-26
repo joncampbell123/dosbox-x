@@ -5428,7 +5428,7 @@ private:
             }
         }
 
-        LOG(LOG_MISC, LOG_NORMAL)("Mounting image as C/H/S %u/%u/%u with %u bytes/sector",
+        LOG(LOG_DOSMISC, LOG_NORMAL)("Mounting image as C/H/S %u/%u/%u with %u bytes/sector",
             (unsigned int)sizes[3], (unsigned int)sizes[2], (unsigned int)sizes[1], (unsigned int)sizes[0]);
 
         if (imagesize > 2880) newImage->Set_Geometry((Bit32u)sizes[2], (Bit32u)sizes[3], (Bit32u)sizes[1], (Bit32u)sizes[0]);

@@ -42,7 +42,7 @@ extern int lfn_filefind_handle;
 static VFILE_Block * first_file, * lfn_search[256];
 
 void VFILE_Shutdown(void) {
-	LOG(LOG_MISC,LOG_DEBUG)("Shutting down VFILE system");
+	LOG(LOG_DOSMISC,LOG_DEBUG)("Shutting down VFILE system");
 
 	while (first_file != NULL) {
 		VFILE_Block *n = first_file->next;

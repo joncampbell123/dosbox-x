@@ -188,7 +188,7 @@ bool DOS_AllocateMemory(Bit16u * segment,Bit16u * blocks) {
 
 				if (dbg_zero_on_dos_allocmem) DOS_zeromem(*segment,*blocks);
 #ifdef DEBUG_ALLOC
-				LOG(LOG_MISC,LOG_DEBUG)("DOS_AllocateMemory(blocks=0x%04x) = 0x%04x-0x%04x",*blocks,*segment,*segment+*blocks-1);
+				LOG(LOG_DOSMISC,LOG_DEBUG)("DOS_AllocateMemory(blocks=0x%04x) = 0x%04x-0x%04x",*blocks,*segment,*segment+*blocks-1);
 #endif
 				return true;
 			} else {
@@ -207,7 +207,7 @@ bool DOS_AllocateMemory(Bit16u * segment,Bit16u * blocks) {
 
 						if (dbg_zero_on_dos_allocmem) DOS_zeromem(*segment,*blocks);
 #ifdef DEBUG_ALLOC
-						LOG(LOG_MISC,LOG_DEBUG)("DOS_AllocateMemory(blocks=0x%04x) = 0x%04x-0x%04x",*blocks,*segment,*segment+*blocks-1);
+						LOG(LOG_DOSMISC,LOG_DEBUG)("DOS_AllocateMemory(blocks=0x%04x) = 0x%04x-0x%04x",*blocks,*segment,*segment+*blocks-1);
 #endif
 						return true;
 					case 1: /* bestfit */
@@ -262,7 +262,7 @@ bool DOS_AllocateMemory(Bit16u * segment,Bit16u * blocks) {
 
 							if (dbg_zero_on_dos_allocmem) DOS_zeromem(*segment,*blocks);
 #ifdef DEBUG_ALLOC
-							LOG(LOG_MISC,LOG_DEBUG)("DOS_AllocateMemory(blocks=0x%04x) = 0x%04x-0x%04x",*blocks,*segment,*segment+*blocks-1);
+							LOG(LOG_DOSMISC,LOG_DEBUG)("DOS_AllocateMemory(blocks=0x%04x) = 0x%04x-0x%04x",*blocks,*segment,*segment+*blocks-1);
 #endif
 							return true;
 						}
@@ -280,7 +280,7 @@ bool DOS_AllocateMemory(Bit16u * segment,Bit16u * blocks) {
 
 					if (dbg_zero_on_dos_allocmem) DOS_zeromem(*segment,*blocks);
 #ifdef DEBUG_ALLOC
-					LOG(LOG_MISC,LOG_DEBUG)("DOS_AllocateMemory(blocks=0x%04x) = 0x%04x-0x%04x",*blocks,*segment,*segment+*blocks-1);
+					LOG(LOG_DOSMISC,LOG_DEBUG)("DOS_AllocateMemory(blocks=0x%04x) = 0x%04x-0x%04x",*blocks,*segment,*segment+*blocks-1);
 #endif
 					return true;
 				}
@@ -293,7 +293,7 @@ bool DOS_AllocateMemory(Bit16u * segment,Bit16u * blocks) {
 	}
 
 #ifdef DEBUG_ALLOC
-	LOG(LOG_MISC,LOG_DEBUG)("DOS_AllocateMemory(blocks=0x%04x) = 0x%04x-0x%04x",*blocks,*segment,*segment+*blocks-1);
+	LOG(LOG_DOSMISC,LOG_DEBUG)("DOS_AllocateMemory(blocks=0x%04x) = 0x%04x-0x%04x",*blocks,*segment,*segment+*blocks-1);
 #endif
 	return false;
 }
@@ -305,7 +305,7 @@ bool DOS_ResizeMemory(Bit16u segment,Bit16u * blocks) {
 	}
 
 #ifdef DEBUG_ALLOC
-	LOG(LOG_MISC,LOG_DEBUG)("DOS_ResizeMemory(seg=0x%04x) blocks=0x%04x",segment,*blocks);
+	LOG(LOG_DOSMISC,LOG_DEBUG)("DOS_ResizeMemory(seg=0x%04x) blocks=0x%04x",segment,*blocks);
 #endif
 
 	DOS_MCB mcb(segment-1);
@@ -395,7 +395,7 @@ bool DOS_FreeMemory(Bit16u segment) {
 	}
 
 #ifdef DEBUG_ALLOC
-	LOG(LOG_MISC,LOG_DEBUG)("DOS_FreeMemory(seg=0x%04x)",segment);
+	LOG(LOG_DOSMISC,LOG_DEBUG)("DOS_FreeMemory(seg=0x%04x)",segment);
 #endif
 
 	mcb.SetPSPSeg(MCB_FREE);

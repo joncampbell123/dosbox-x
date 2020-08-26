@@ -914,7 +914,7 @@ bool DOS_Drive_Cache::FindFirst(char* path, Bit16u& id) {
 
     if (local_findcounter == MAX_OPENDIRS) { //Here is the reset from above.
         // no free slot found...
-        LOG(LOG_MISC,LOG_ERROR)("DIRCACHE: FindFirst/Next: All slots full. Resetting");
+        LOG(LOG_DOSMISC,LOG_ERROR)("DIRCACHE: FindFirst/Next: All slots full. Resetting");
         // Clear the internal list then.
         dirFindFirstID = 0;
         this->nextFreeFindFirst = 1; //the next free one after this search
@@ -942,7 +942,7 @@ bool DOS_Drive_Cache::FindFirst(char* path, Bit16u& id) {
         case NOSORT             : break;
     }
 
-//  LOG(LOG_MISC,LOG_ERROR)("DIRCACHE: FindFirst : %s (ID:%02X)",path,dirFindFirstID);
+//  LOG(LOG_DOSMISC,LOG_ERROR)("DIRCACHE: FindFirst : %s (ID:%02X)",path,dirFindFirstID);
     id = dirFindFirstID;
     return true;
 }
@@ -950,7 +950,7 @@ bool DOS_Drive_Cache::FindFirst(char* path, Bit16u& id) {
 bool DOS_Drive_Cache::FindNext(Bit16u id, char* &result, char* &lresult) {
     // out of range ?
     if ((id>=MAX_OPENDIRS) || !dirFindFirst[id]) {
-        LOG(LOG_MISC,LOG_ERROR)("DIRCACHE: FindFirst/Next failure : ID out of range: %04X",id);
+        LOG(LOG_DOSMISC,LOG_ERROR)("DIRCACHE: FindFirst/Next failure : ID out of range: %04X",id);
         return false;
     }
     if (!SetResult(dirFindFirst[id], result, lresult, dirFindFirst[id]->nextEntry)) {
