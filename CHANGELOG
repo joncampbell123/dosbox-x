@@ -1,4 +1,7 @@
 0.83.5
+  - Added config option "startinfo" in [dosbox] section
+    to disable or enable the startup message box when
+    DOSBox-X runs. (Wengier)
   - Added config option "ega per scanline hpel" in
     [dosbox] section to control whether EGA emulation
     latches hpel at display start (as VGA emulation

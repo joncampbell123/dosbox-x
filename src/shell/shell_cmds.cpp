@@ -29,7 +29,7 @@
 #include "pic.h"
 #include "keyboard.h"
 #include "timer.h"
-#include "../src/ints/int10.h"
+#include "../ints/int10.h"
 #include <time.h>
 #include <assert.h>
 #include "bios.h"
