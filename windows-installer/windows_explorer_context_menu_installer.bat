@@ -57,9 +57,9 @@ call :cleanup & goto :eof
 set DOSBOX_X_EXE=dosbox-x.exe
 set HKCU_DIR_FRNT=HKCU\Software\Classes\Directory\shell\DOSBox-X
 set HKCU_DIR_BACK=HKCU\Software\Classes\Directory\Background\shell\DOSBox-X
-set HKCU_EXE_OPEN=HKCU\Software\Classes\SystemFileAssociations\.exe\shell\Open with DOSBox-X
-set HKCU_COM_OPEN=HKCU\Software\Classes\SystemFileAssociations\.com\shell\Open with DOSBox-X
-set HKCU_BAT_OPEN=HKCU\Software\Classes\SystemFileAssociations\.bat\shell\Open with DOSBox-X
+set HKCU_EXE_OPEN=HKCU\Software\Classes\SystemFileAssociations\.exe\shell\Run with DOSBox-X
+set HKCU_COM_OPEN=HKCU\Software\Classes\SystemFileAssociations\.com\shell\Run with DOSBox-X
+set HKCU_BAT_OPEN=HKCU\Software\Classes\SystemFileAssociations\.bat\shell\Run with DOSBox-X
 goto :eof
 
 :cleanup
