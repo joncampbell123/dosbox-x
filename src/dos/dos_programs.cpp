@@ -3660,12 +3660,12 @@ public:
 
     void Run(void) {
 		if (cmd->FindExist("-?", false) || cmd->FindExist("/?", false)) {
-			WriteOut("A full-screen introduction to DOSBox-X.\n\nINTRO [CDROM|MOUNT|USAGE]\n");
+			WriteOut("A full-screen introduction to DOSBox-X.\n\nINTRO [/RUN] [CDROM|MOUNT|USAGE]\n");
 			return;
 		}
         std::string menuname = "BASIC"; // default
         /* Only run if called from the first shell (Xcom TFTD runs any intro file in the path) */
-        if(DOS_PSP(dos.psp()).GetParent() != DOS_PSP(DOS_PSP(dos.psp()).GetParent()).GetParent()) return;
+        if (!cmd->FindExist("-run", true)&&!cmd->FindExist("/run", true)&&DOS_PSP(dos.psp()).GetParent() != DOS_PSP(DOS_PSP(dos.psp()).GetParent()).GetParent()) return;
         if(cmd->FindExist("cdrom",false)) {
             WriteOut(MSG_Get("PROGRAM_INTRO_CDROM"));
             return;
@@ -6306,17 +6306,17 @@ void DOS_SetupPrograms(void) {
     MSG_Add("PROGRAM_INTRO_MENU_INFO","Information");
     MSG_Add("PROGRAM_INTRO_MENU_QUIT","Quit");
     MSG_Add("PROGRAM_INTRO_MENU_BASIC_HELP","\n\033[1m   \033[1m\033[KMOUNT allows you to connect real hardware to DOSBox-X's emulated PC.\033[0m\n");
-    MSG_Add("PROGRAM_INTRO_MENU_CDROM_HELP","\n\033[1m   \033[1m\033[KTo mount your CD-ROM in DOSBox-X, you have to specify some additional options\n   when mounting the CD-ROM.\033[0m\n");
+    MSG_Add("PROGRAM_INTRO_MENU_CDROM_HELP","\n\033[1m   \033[1m\033[KTo mount your CD-ROM in DOSBox-X, you need to specify additional options\n   when mounting the CD-ROM.\033[0m\n");
     MSG_Add("PROGRAM_INTRO_MENU_USAGE_HELP","\n\033[1m   \033[1m\033[KAn overview of the command line options you can give to DOSBox-X.\033[0m\n");
     MSG_Add("PROGRAM_INTRO_MENU_INFO_HELP","\n\033[1m   \033[1m\033[KHow to get more information about DOSBox-X.\033[0m\n");
     MSG_Add("PROGRAM_INTRO_MENU_QUIT_HELP","\n\033[1m   \033[1m\033[KExit from Intro.\033[0m\n");
     MSG_Add("PROGRAM_INTRO_USAGE_TOP",
         "\033[2J\033[32;1mAn overview of the command line options you can give to DOSBox-X.\033[0m\n"
-        "Windows Users must open cmd.exe or command.com or edit the shortcut to\n"
-        "DOSBox-X.exe for this.\n\n"
-        "dosbox-x [name] [-exit] [-c command] [-fullscreen] [-conf congfigfile]\n"
-        "         [-lang languagefile] [-machine machinetype] [-noconsole]\n"
-        "         [-startmapper] [-noautoexec] [-scaler scaler | -forcescaler scaler]\n       [-version]\n\n"
+        "Windows users must open cmd.exe or edit the shortcut to DOSBox-X.exe for this.\n\n"
+        "dosbox-x [name] [-exit] [-version] [-fullscreen] [-fastbioslogo]\n"
+        "         [-conf congfigfile] [-lang languagefile] [-machine machinetype]\n"
+        "         [-startmapper] [-noautoexec] [-scaler scaler | -forcescaler scaler]\n"
+        "         [-noconsole] [-c command] [-set <section property=value>]\n\n"
         );
     MSG_Add("PROGRAM_INTRO_USAGE_1",
         "\033[33;1m  name\033[0m\n"
@@ -6325,15 +6325,14 @@ void DOS_SetupPrograms(void) {
         "\tas the C: drive and execute name.\n\n"
         "\033[33;1m  -exit\033[0m\n"
         "\tDOSBox-X will close itself when the DOS application name ends.\n\n"
-        "\033[33;1m  -c\033[0m command\n"
-        "\tRuns the specified command before running name. Multiple commands\n"
-        "\tcan be specified. Each command should start with -c, though.\n"
-        "\tA command can be: an Internal Program, a DOS command or an executable\n"
-        "\ton a mounted drive.\n"
-        );
-    MSG_Add("PROGRAM_INTRO_USAGE_2",
+        "\033[33;1m  -version\033[0m\n"
+        "\toutput version information and exit. Useful for frontends.\n\n"
         "\033[33;1m  -fullscreen\033[0m\n"
         "\tStarts DOSBox-X in fullscreen mode.\n\n"
+        "\033[33;1m  -fastbioslogo\033[0m\n"
+        "\tStarts Fast BIOS logo (skip 1-second pause).\n"
+        );
+    MSG_Add("PROGRAM_INTRO_USAGE_2",
         "\033[33;1m  -conf\033[0m configfile\n"
         "\tStart DOSBox-X with the options specified in configfile.\n"
         "\tSee README for more details.\n\n"
@@ -6342,19 +6341,25 @@ void DOS_SetupPrograms(void) {
         "\033[33;1m  -noconsole\033[0m (Windows Only)\n"
         "\tStart DOSBox-X without showing the console window. Output will\n"
         "\tbe redirected to stdout.txt and stderr.txt\n"
-        );
-    MSG_Add("PROGRAM_INTRO_USAGE_3",
-        "\033[33;1m  -machine\033[0m machinetype\n"
+        "\033[33;1m  -machine\033[0m machinetype\n\n"
         "\tSetup DOSBox-X to emulate a specific type of machine. Valid choices are:\n"
         "\thercules, cga, pcjr, tandy, vga (default). The machinetype affects\n"
-        "\tboth the videocard and the available soundcards.\n\n"
+        "\tboth the videocard and the available soundcards.\n"
+        );
+    MSG_Add("PROGRAM_INTRO_USAGE_3",
         "\033[33;1m  -startmapper\033[0m\n"
         "\tEnter the keymapper directly on startup. Useful for people with\n"
         "\tkeyboard problems.\n\n"
         "\033[33;1m  -noautoexec\033[0m\n"
         "\tSkips the [autoexec] section of the loaded configuration file.\n\n"
-        "\033[33;1m  -version\033[0m\n"
-        "\toutput version information and exit. Useful for frontends.\n"
+        "\033[33;1m  -c\033[0m command\n"
+        "\tRuns the specified command before running name. Multiple commands\n"
+        "\tcan be specified. Each command should start with -c, though.\n"
+        "\tA command can be: an Internal Program, a DOS command or an executable\n"
+        "\ton a mounted drive.\n\n"
+        "\033[33;1m  -set\033[0m <section property=value>\n"
+        "\tSets the config option (overriding the config file). Multiple options\n"
+        "\tcan be specified. Each option should start with -set, though.\n"
         );
     MSG_Add("PROGRAM_INTRO_INFO",
         "\033[32;1mInformation:\033[0m\n\n"
