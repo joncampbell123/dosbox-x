@@ -70,6 +70,7 @@ bool mountwarning = true;
 bool qmount = false;
 
 void DOS_EnableDriveMenu(char drv);
+void runBoot(const char *str), runMount(const char *str), runImgmount(const char *str);
 
 #if defined(OS2)
 #define INCL DOSFILEMGR
@@ -472,7 +473,6 @@ void MenuBrowseFolder(char drive, std::string drive_type) {
 }
 
 extern bool dos_kernel_disabled, clearline;
-void runBoot(const char *str), runMount(const char *str), runImgmount(const char *str);
 void MenuBrowseImageFile(char drive, bool boot) {
 	std::string str(1, drive);
 	std::string drive_warn;
@@ -2828,7 +2828,7 @@ restart_int:
             c = 80; h = 2; s = 9; mediadesc = 0xF9; root_ent = 112;
         } else if(disktype=="fd_1200") {
             c = 80; h = 2; s = 15; mediadesc = 0xF9; root_ent = 224;
-        } else if(disktype=="fd_1440") {
+        } else if(disktype=="fd_1440"||disktype=="fd"||disktype=="floppy") {
             c = 80; h = 2; s = 18; mediadesc = 0xF0; root_ent = 224;
         } else if(disktype=="fd_2880") {
             c = 80; h = 2; s = 36; mediadesc = 0xF0; root_ent = 512; // root_ent?
@@ -6496,7 +6496,7 @@ void DOS_SetupPrograms(void) {
 		"mode if the \"leading colon write protect image\" option is enabled.\n\n"
         "Examples:\n\n"
         "\033[32;1mBOOT A:\033[0m       - boot from drive A: if it is mounted and bootable.\n"
-        "\033[32;1mBOOT :DOS.IMG\033[0m - boot from image file DOS.IMG in write-protected mode.\n"
+        "\033[32;1mBOOT :DOS.IMG\033[0m - boot from floppy image DOS.IMG in write-protected mode.\n"
         );
     MSG_Add("PROGRAM_BOOT_UNABLE","Unable to boot off of drive %c.\n");
     MSG_Add("PROGRAM_BOOT_IMAGE_OPEN","Opening image file: %s\n");
@@ -6562,27 +6562,33 @@ void DOS_SetupPrograms(void) {
         "IMGMOUNT -u drive|driveNum (or IMGMONT drive|driveNum file [options] -u)\n"
         " drive               Drive letter to mount the image at.\n"
         " driveNum            Drive number to mount, where 0-1 are FDDs, 2-5 are HDDs.\n"
-        " file                Image filename(s), or IMGMAKE.IMG if not specified.\n"
+        " file                Image filename(s), or \033[33;1mIMGMAKE.IMG\033[0m if not specified.\n"
         " -t iso              Image type is optical disc iso or cue / bin image.\n"
         " -t hdd              Image type is hard disk; VHD and HDI files are supported.\n"
         " -t floppy|ram       Image type is floppy drive|RAM drive.\n"
-        " -fs iso             File system is ISO 9660.\n"
-        " -fs fat             File system is FAT; FAT12, FAT16 and FAT32 are supported.\n"
-        " -fs none            Do not detect file system.\n"
+        " -fs iso             Filesystem is ISO 9660 (auto-assumed for .iso/.cue files).\n"
+        " -fs fat             Filesystem is FAT - FAT12, FAT16 and FAT32 are supported.\n"
+        " -fs none            Do not detect filesystem (auto-assumed for drive numbers).\n"
         " -reservecyl #       Report # number of cylinders less than actual in BIOS.\n"
         " -ide controller     Specify IDE controller (1m, 1s, 2m, 2s) to mount drive.\n"
         " -size size|ss,s,h,c Specify the size in KB, or sector size and CHS geometry.\n"
         " -bootcd cdDrive     Specify the CD drive to load the bootable floppy from.\n"
         " -ro                 Mount image(s) read-only (or leading ':' for read-only).\n"
         " -u                  Unmount the drive or drive number.\n"
-        " -examples           Show some usage examples."
+        " \033[32;1m-examples           Show some usage examples.\033[0m"
     );
     MSG_Add("PROGRAM_IMGMOUNT_EXAMPLE",
         "Some usage examples of IMGMOUNT:\n\n"
         "  \033[32;1mIMGMOUNT\033[0m                       - list mounted FAT/ISO drives & drive numbers\n"
-        "  \033[32;1mIMGMOUNT C\033[0m                     - mount hard disk image IMGMAKE.IMG as C:\n"
+        "  \033[32;1mIMGMOUNT C\033[0m                     - mount hard disk image \033[33;1mIMGMAKE.IMG\033[0m as C:\n"
+#ifdef WIN32
         "  \033[32;1mIMGMOUNT C c:\\image.img\033[0m        - mount hard disk image c:\\image.img as C:\n"
         "  \033[32;1mIMGMOUNT D c:\\files\\game.iso\033[0m   - mount CD image c:\\files\\game.iso as D:\n"
+#else
+        "  \033[32;1mIMGMOUNT C ~/image.img\033[0m         - mount hard disk image ~/image.img as C:\n"
+        "  \033[32;1mIMGMOUNT D ~/files/game.iso\033[0m    - mount CD image ~/files/game.iso as D:\n"
+#endif
+        "  \033[32;1mIMGMOUNT D cdaudio.cue\033[0m         - mount cue file of a cue/bin pair as CD drive\n"
         "  \033[32;1mIMGMOUNT 0 dos.ima\033[0m             - mount floppy image dos.ima as drive number 0\n"
         "                                   (\033[33;1mBOOT A:\033[0m will boot from drive if bootable)\n"
         "  \033[32;1mIMGMOUNT A -ro dos.ima\033[0m         - mount floppy image dos.ima as A: read-only\n"
@@ -6602,9 +6608,9 @@ void DOS_SetupPrograms(void) {
 #ifdef WIN32
         " [-source source] [-r retries]"
 #endif
-        "\n  file: Image file to create (or IMGMAKE.IMG if not set) - \033[31;1mpath on the host\033[0m\n"
+        "\n  file: Image file to create (or \033[33;1mIMGMAKE.IMG\033[0m if not set) - \033[31;1mpath on the host\033[0m\n"
         "  -t: Type of image.\n"
-        "    \033[33;1mFloppy disk templates\033[0m (names resolve to floppy sizes in kilobytes):\n"
+        "    \033[33;1mFloppy disk templates\033[0m (names resolve to floppy sizes in KB or fd=fd_1440):\n"
         "     fd_160 fd_180 fd_200 fd_320 fd_360 fd_400 fd_720 fd_1200 fd_1440 fd_2880\n"
         "    \033[33;1mHard disk templates:\033[0m\n"
         "     hd_250: 250MB image, hd_520: 520MB image, hd_2gig: 2GB image\n"
@@ -6624,19 +6630,25 @@ void DOS_SetupPrograms(void) {
         "  -source: drive letter - if specified the image is read from a floppy disk.\n"
         "  -retries: how often to retry when attempting to read a bad floppy disk(1-99).\n"
 #endif
-        "  -examples: Show some usage examples."
+        "  \033[32;1m-examples: Show some usage examples.\033[0m"
         );
     MSG_Add("PROGRAM_IMGMAKE_EXAMPLE",
         "Some usage examples of IMGMAKE:\n\n"
-        "  \033[32;1mIMGMAKE c:\\image.img -t fd_1440\033[0m          - create a 1.44MB floppy image\n"
-        "  \033[32;1mIMGMAKE c:\\image.img -t hd -size 100\033[0m     - create a 100MB hdd image\n"
-        "  \033[32;1mIMGMAKE c:\\image.img -t hd_520 -nofs\033[0m     - create a 520MB blank hdd image\n"
-        "  \033[32;1mIMGMAKE c:\\image.img -t hd_2gig -fat 32\033[0m  - create a 2GB FAT32 hdd image\n"
-        "  \033[32;1mIMGMAKE c:\\image.img -t hd -chs 130,2,17\033[0m - create a special hdd image\n"
+        "  \033[32;1mIMGMAKE -t fd\033[0m                   - create a 1.44MB floppy image \033[33;1mIMGMAKE.IMG\033[0m\n"
+        "  \033[32;1mIMGMAKE -t fd_1440 -force\033[0m       - force to create a floppy image \033[33;1mIMGMAKE.IMG\033[0m\n"
+        "  \033[32;1mIMGMAKE dos.img -t fd_2880\033[0m      - create a 2.88MB floppy image named dos.img\n"
 #ifdef WIN32
-        "  \033[32;1mIMGMAKE c:\\image.img -source a\033[0m           - read image from physical drive A\n"
+        "  \033[32;1mIMGMAKE c:\\disk.img -t hd -size 50\033[0m      - create a 50MB HDD image c:\\disk.img\n"
+        "  \033[32;1mIMGMAKE c:\\disk.img -t hd_520 -nofs\033[0m     - create a 520MB blank HDD image\n"
+        "  \033[32;1mIMGMAKE c:\\disk.img -t hd_2gig -fat 32\033[0m  - create a 2GB FAT32 HDD image\n"
+        "  \033[32;1mIMGMAKE c:\\disk.img -t hd -chs 130,2,17\033[0m - create a HDD image of specified CHS\n"
+        "  \033[32;1mIMGMAKE c:\\disk.img -source a\033[0m           - read image from physical drive A:\n"
+#else
+        "  \033[32;1mIMGMAKE ~/disk.img -t hd -size 50\033[0m       - create a 50MB HDD image ~/disk.img\n"
+        "  \033[32;1mIMGMAKE ~/disk.img -t hd_520 -nofs\033[0m      - create a 520MB blank HDD image\n"
+        "  \033[32;1mIMGMAKE ~/disk.img -t hd_2gig -fat 32\033[0m   - create a 2GB FAT32 HDD image\n"
+        "  \033[32;1mIMGMAKE ~/disk.img -t hd -chs 130,2,17\033[0m  - create a HDD image of specified CHS\n"
 #endif
-        "  \033[32;1mIMGMAKE -t fd_2880 -force\033[0m           - force to create a 2.88MB floppy image\n"
         );
 
 #ifdef WIN32
