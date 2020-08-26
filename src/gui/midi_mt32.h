@@ -137,7 +137,11 @@ public:
                 LOG(LOG_MISC,LOG_WARN)("MT32: PCM ROM file not found");
                 user_romhelp();
                 return false;
+            } else {
+                LOG_MSG("MT32: Loaded MT-32 ROM set (MT32_CONTROL.ROM and MT32_PCM.ROM)");
             }
+        } else {
+            LOG_MSG("MT32: Loaded CM-32L ROM set (CM32L_CONTROL.ROM and CM32L_PCM.ROM");
         }
 
 		const MT32Emu::ROMImage *controlROMImage = MT32Emu::ROMImage::makeROMImage(&controlROMFile);

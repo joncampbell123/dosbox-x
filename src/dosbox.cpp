@@ -1362,7 +1362,13 @@ void DOSBOX_SetupConfigSections(void) {
     Pstring->Set_help("Select another language file.");
 
     Pstring = secprop->Add_path("title",Property::Changeable::Always,"");
-    Pstring->Set_help("Additional text to place in the title bar of the window");
+    Pstring->Set_help("Additional text to place in the title bar of the window.");
+
+    Pbool = secprop->Add_bool("fastbioslogo",Property::Changeable::OnlyAtStart,false);
+    Pbool->Set_help("If set, DOSBox-X will enable fast BIOS logo mode (skip 1-second pause).");
+
+    Pbool = secprop->Add_bool("startinfo",Property::Changeable::OnlyAtStart,true);
+    Pbool->Set_help("If set, DOSBox-X will display startup information box when it runs.");
 
     Pbool = secprop->Add_bool("enable 8-bit dac",Property::Changeable::OnlyAtStart,true);
     Pbool->Set_help("If set, allow VESA BIOS calls in IBM PC mode to set DAC width. Has no effect in PC-98 mode.");
@@ -1396,7 +1402,7 @@ void DOSBOX_SetupConfigSections(void) {
     Phex->Set_help("If nonzero, define the physical memory address of the linear framebuffer.");
 
     Pbool = secprop->Add_bool("pci vga",Property::Changeable::WhenIdle,true);
-    Pbool->Set_help("If set, SVGA is emulated as if a PCI device (when enable pci bus=true)");
+    Pbool->Set_help("If set, SVGA is emulated as if a PCI device (when enable pci bus=true).");
 
     Pint = secprop->Add_int("vmemdelay", Property::Changeable::WhenIdle,0);
     Pint->SetMinMax(-1,100000);
@@ -1426,7 +1432,7 @@ void DOSBOX_SetupConfigSections(void) {
     Pint = secprop->Add_int("vmemsizekb", Property::Changeable::WhenIdle,0);
     Pint->SetMinMax(0,1024);
     Pint->Set_help(
-        "Amount of video memory in kilobytes, in addition to vmemsize");
+        "Amount of video memory in kilobytes, in addition to vmemsize.");
 
     Pstring = secprop->Add_path("captures",Property::Changeable::Always,"capture");
     Pstring->Set_help("Directory where things like wave, midi, screenshot get captured.");
@@ -1857,6 +1863,13 @@ void DOSBOX_SetupConfigSections(void) {
                     "Some games or demoscene productions assume that they can render into the next SVGA window/bank\n"
                     "by writing to video memory beyond the current SVGA window address and will not appear correctly\n"
                     "without this option.");
+
+    Pbool = secprop->Add_bool("ega per scanline hpel",Property::Changeable::Always,true/*only because DOSBox SVN assumes this for machine=ega*/);
+    Pbool->Set_help("If set, EGA emulation allows changing hpel per scanline. This is reportedly the behavior\n"
+                    "of IBM EGA hardware according to DOSBox SVN and on by default. If clear, EGA emulation\n"
+                    "latches hpel on vertical retrace end (like VGA does), which may have been EGA clone behavior\n"
+                    "that some games were written against. Commander Keen episodes 4-6 need this option set to false when machine=ega.\n"
+                    "This option affects only EGA emulation. To change VGA hpel behavior, use the 'allow hpel effects' setting instead.");
 
     Pbool = secprop->Add_bool("allow hpel effects",Property::Changeable::Always,false);
     Pbool->Set_help("If set, allow the DOS demo or program to change the horizontal pel (panning) register per scanline.\n"
@@ -2523,7 +2536,7 @@ void DOSBOX_SetupConfigSections(void) {
 	Pstring = secprop->Add_string("fluid.samplerate",Property::Changeable::WhenIdle,"48000");
 	Pstring->Set_help("Sample rate to use with Fluidsynth.");
 
-	Pstring = secprop->Add_string("fluid.gain",Property::Changeable::WhenIdle,".6");
+	Pstring = secprop->Add_string("fluid.gain",Property::Changeable::WhenIdle,".2");
 	Pstring->Set_help("Fluidsynth gain.");
 
 	Pint = secprop->Add_int("fluid.polyphony",Property::Changeable::WhenIdle,256);

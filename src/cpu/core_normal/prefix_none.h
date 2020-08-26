@@ -1251,6 +1251,13 @@ do_cli:	if (CPU_CLI()) RUNEXCEPTION();
             // NTS: The prior fix that set CPU_Cycles = 4 causes the normal core to get stuck
             //      and never break out (hanging DOSBox-X) when running PC-98 game Night Slave,
             //      so that isn't a long-term option.
+            //
+            //      Capping CPU_Cycles = 2 seems to break Commander Keen games because of the
+            //      way the video vsync and wait loop works. It waits for retrace/vsync with
+            //      interrupts disabled, then on vertical retrace, briefly enables interrupts
+            //      to allow them to run by jumping to a STI + JMP short $+2 + CLI sequence.
+            //      Note the code deliberately uses a JMP short delay to avoid STI + CLI and
+            //      make sure interrupts process.
             {
                 Bit8u b = FetchPeekb();
                 if (b == 0xFAu) {
@@ -1262,9 +1269,9 @@ do_cli:	if (CPU_CLI()) RUNEXCEPTION();
                 }
             }
             // otherwise, break for interrupt handling as normal
-            if (CPU_Cycles > 2) {
-                CPU_CycleLeft += CPU_Cycles - 2;
-                CPU_Cycles = 2;
+            if (CPU_Cycles > 1) {
+                CPU_CycleLeft += CPU_Cycles - 1;
+                CPU_Cycles = 1;
             }
             else {
                 goto decode_end;

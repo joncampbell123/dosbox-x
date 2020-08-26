@@ -1,9 +1,23 @@
 0.83.5
+  - Added config option "startinfo" in [dosbox] section
+    which can be used to skip the startup information
+    box when DOSBox-X runs. Also added config option
+    "fastbioslogo" which can be used to skip the BIOS
+    logo. A new command-line option "-fastlaunch" is
+    added to skip both (fast launch mode). (Wengier)
+  - Added config option "ega per scanline hpel" in
+    [dosbox] section to control whether EGA emulation
+    latches hpel at display start (as VGA emulation
+    does) or allows hpel to change per scanline.
+    Setting the option to false is needed for some
+    games like Commander Keen.
+  - Allowed Sound Blaster to be enabled by the games
+    "Desert Strike" and "Jungle Strike". (Wengier)
   - DOSBox-X will now search for system fonts if the
     fonts required for the printing feature cannot be
-    found in the FONTS folder. (Wengier)
-  - Added menu item "Feedform" under the DOS menu for
-    manually ejecting new pages for printing. (Wengier)
+    found in the FONTS directory. (Wengier)
+  - Added menu item "Send Feed-form" under the DOS menu
+    for manually ejecting new pages to print. (Wengier)
   - Support for mounting CD images with a sector size
     of 2448, used by for example the MDF image of the
     game Grand Theft Auto. (Wengier)
@@ -12,9 +26,9 @@
     to support broken demoscene code that uses 0x41
     in that way. Yes, such code would obviously break
     on clone cards and the SB16. Added a config option
-    to turn it off for debugging purpose. Alias is
-    documented on Vogons forums where someone made
-    a SB Pro clone card.
+    "dsp command aliases" in [sblaster] section to turn
+    it off for debugging. Alias is documented on Vogons
+    forums where someone made a SB Pro clone card.
   - Fixed the issue with CD audio play by porting the
     audio code from DOSBox ECE. (Wengier)
   - COPY command now assumes /Y automatically when
@@ -26,16 +40,18 @@
     modes and scribbling on the VGA BIOS are relying
     on segment limits and GP faults to fake a linear
     framebuffer.
-  - Added config option to allow disabling the VESA
-    BIOS window number range check when called on to
+  - Added config option "vesa bank switching window
+    range check" to allow disabling the VESA BIOS
+    window number range check when called on to
     bank switch. Needed for "Pill" by Opiate in the
     end credits, which for some reason requires a
     call for window number 0xFFFF to succeed in order
     to draw credits without glitching.
-  - Added config option to instruct VESA BIOS to
-    ignore bank switching window parameter when asked
-    to get/set bank switching window setting. Needed
-    for some old demoscene and game applications that
+  - Added config option "vesa bank switching window
+    mirroring" for instructing VESA BIOS to ignore
+    bank switching window parameter when asked to
+    get/set bank switching window setting. Needed for
+    some old demoscene and game applications that
     assume Window B is available, and will not render
     SVGA properly without it.
   - Added config option "quit warning" to indicate if
@@ -74,7 +90,8 @@
     marker may not work for such images. (Wengier)
   - IMGMOUNT command without parameters now shows the
     disk position and number of swap disks, as well as
-    the IDE controller (if applicable). (Wengier)
+    IDE controller (if applicable). Also added option
+    -examples to show its usage examples. (Wengier)
   - Add "-ro" option for IMGMOUNT command to mark all
     disk images as read-only at once. You could also
     mark read-only disk images individually using the
@@ -88,8 +105,9 @@
   - The default value for "output" (in "sdl" section)
     is now "default", which will default to the value
     according to your platform. (Wengier)
-  - MOUNT command's -Q (quiet) option now silences
-    virtually all output of this command. (Wengier)
+  - The -Q (quiet) option of MOUNT and BOOT commands
+    now silences virtually all outputs (normal and
+    error messages) of these commands. (Wengier)
   - Worked around the mounting issue with LaunchBox,
     by allowing a mounting command-line with single
     quotes like MOUNT C 'X:\DOS' on Windows. (Wengier)

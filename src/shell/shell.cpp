@@ -31,6 +31,7 @@
 #include "builtin.h"
 #include "mapper.h"
 #include "../dos/drives.h"
+#include "../ints/int10.h"
 #include <unistd.h>
 #include <time.h>
 #include <string>
@@ -474,17 +475,21 @@ void DOS_Shell::Run(void) {
 
     bool optInit=cmd->FindString("/INIT",line,true);
     if (this == first_shell) {
-        /* Start a normal shell and check for a first command init */
-        WriteOut(MSG_Get("SHELL_STARTUP_BEGIN"),VERSION,SDL_STRING,UPDATED_STR);
-        WriteOut(MSG_Get("SHELL_STARTUP_BEGIN2"));
-        WriteOut(MSG_Get("SHELL_STARTUP_BEGIN3"));
+        Section_prop *section = static_cast<Section_prop *>(control->GetSection("dosbox"));
+        if(section->Get_bool("startinfo")&&!control->opt_fastlaunch) {
+            /* Start a normal shell and check for a first command init */
+            WriteOut(MSG_Get("SHELL_STARTUP_BEGIN"),VERSION,SDL_STRING,UPDATED_STR);
+            WriteOut(MSG_Get("SHELL_STARTUP_BEGIN2"));
+            WriteOut(MSG_Get("SHELL_STARTUP_BEGIN3"));
 #if C_DEBUG
-        WriteOut(MSG_Get("SHELL_STARTUP_DEBUG"));
+            WriteOut(MSG_Get("SHELL_STARTUP_DEBUG"));
 #endif
-        if (machine == MCH_CGA || machine == MCH_AMSTRAD) WriteOut(MSG_Get("SHELL_STARTUP_CGA"));
-        if (machine == MCH_PC98) WriteOut(MSG_Get("SHELL_STARTUP_PC98"));
-        if (machine == MCH_HERC || machine == MCH_MDA) WriteOut(MSG_Get("SHELL_STARTUP_HERC"));
-        WriteOut(MSG_Get("SHELL_STARTUP_END"));
+            if (machine == MCH_CGA || machine == MCH_AMSTRAD) WriteOut(MSG_Get("SHELL_STARTUP_CGA"));
+            if (machine == MCH_PC98) WriteOut(MSG_Get("SHELL_STARTUP_PC98"));
+            if (machine == MCH_HERC || machine == MCH_MDA) WriteOut(MSG_Get("SHELL_STARTUP_HERC"));
+            WriteOut(MSG_Get("SHELL_STARTUP_END"));
+        } else if (CurMode->type==M_TEXT || IS_PC98_ARCH)
+            WriteOut("[2J");
 		if (!countryNo) {
 #if defined(WIN32)
 			char buffer[128];
@@ -497,7 +502,7 @@ void DOS_Shell::Run(void) {
 #endif
 		}
 		strcpy(config_data, "");
-		Section_prop *section = static_cast<Section_prop *>(control->GetSection("config"));
+		section = static_cast<Section_prop *>(control->GetSection("config"));
 		if (section!=NULL&&!control->opt_noconfig&&!control->opt_securemode&&!control->SecureMode()) {
 			int country = section->Get_int("country");
 			if (country>0) {

@@ -254,6 +254,86 @@ common opcode "INT" param(iw) {
     output order(stackdataw,stackdata16,flags);
 }
 
+common opcode "ROL" param(dst,src) {
+    /* NTS: Flags are not affected if src == 0 */
+    modifies flags(OF,CF);
+
+    /* (dst << src) | (dst >> (regsize - src))     rotate bits left */
+    input dst,src; /* reads dst, src */
+    output dst; /* writes dst */
+}
+
+common opcode "ROR" param(dst,src) {
+    /* NTS: Flags are not affected if src == 0 */
+    modifies flags(OF,CF);
+
+    /* (dst >> src) | (dst << (regsize - src))     rotate bits right */
+    input dst,src; /* reads dst, src */
+    output dst; /* writes dst */
+}
+
+common opcode "RCL" param(dst,src) {
+    /* NTS: Flags are not affected if src == 0 */
+    modifies flags(OF,CF);
+
+    /* approx pseudocode: shift left. bits shifted out of MSB through CF and into LSB per round. */
+    /* tmp = dst | (CF << regsize) */
+    /* (tmp << src) | (tmp >> (regsize + 1 - src)) */
+    /* CF = tmp >> regsize */
+    /* dst = tmp */
+    input dst,src; /* reads dst, src */
+    output dst; /* writes dst */
+}
+
+common opcode "RCR" param(dst,src) {
+    /* NTS: Flags are not affected if src == 0 */
+    modifies flags(OF,CF);
+
+    /* approx pseudocode: shift right. bits shifted out of LSB through CF and into MSB per round. */
+    /* tmp = (dst << 1) | CF */
+    /* (tmp >> src) | (tmp << (regsize + 1 - src)) */
+    /* CF = tmp & 1 */
+    /* dst = tmp */
+    input dst,src; /* reads dst, src */
+    output dst; /* writes dst */
+}
+
+common opcode "SHL" param(dst,src) {
+    /* NTS: Flags are not affected if src == 0 */
+    modifies flags(OF,CF,SF,ZF,PF,AF);
+
+    /* dst << src */
+    input dst,src; /* reads dst, src */
+    output dst; /* writes dst */
+}
+
+common opcode "SHR" param(dst,src) {
+    /* NTS: Flags are not affected if src == 0 */
+    modifies flags(OF,CF,SF,ZF,PF,AF);
+
+    /* dst >> src */
+    input dst,src; /* reads dst, src */
+    output dst; /* writes dst */
+}
+
+common opcode "SAL" param(dst,src) {
+    /* NTS: Flags are not affected if src == 0 */
+    modifies flags(OF,CF,SF,ZF,PF,AF);
+
+    /* dst << src (same basic result as SHL) */
+    input dst,src; /* reads dst, src */
+    output dst; /* writes dst */
+}
+
+common opcode "SAR" param(dst,src) {
+    /* NTS: Flags are not affected if src == 0 */
+    modifies flags(OF,CF,SF,ZF,PF,AF);
+
+    /* dst >> src with sign extend */
+    input dst,src; /* reads dst, src */
+    output dst; /* writes dst */
+}
+
 opcode sequence(0x00 mrm) name "ADD" { /* ADD r/m, reg */ common opcode "ADD" param(rmb,regb); }
 opcode sequence(0x01 mrm) name "ADD" { /* ADD r/m, reg */ common opcode "ADD" param(rmw,regw); }
 opcode sequence(0x02 mrm) name "ADD" { /* ADD reg, r/m */ common opcode "ADD" param(regb,rmb); }
@@ -629,3 +709,68 @@ opcode sequence(0xCE) name "INTO" {
 opcode sequence(0xCF) name "IRET" {
     common opcode "IRET" param();
 }
+opcode sequence(0xD0 mrm) where reg == 0 name "ROL" { common opcode "ROL" param(rmb,1);  }
+opcode sequence(0xD1 mrm) where reg == 0 name "ROL" { common opcode "ROL" param(rmw,1);  }
+opcode sequence(0xD2 mrm) where reg == 0 name "ROL" { common opcode "ROL" param(rmb,cl); }
+opcode sequence(0xD3 mrm) where reg == 0 name "ROL" { common opcode "ROL" param(rmw,cl); }
+
+opcode sequence(0xD0 mrm) where reg == 1 name "ROR" { common opcode "ROR" param(rmb,1);  }
+opcode sequence(0xD1 mrm) where reg == 1 name "ROR" { common opcode "ROR" param(rmw,1);  }
+opcode sequence(0xD2 mrm) where reg == 1 name "ROR" { common opcode "ROR" param(rmb,cl); }
+opcode sequence(0xD3 mrm) where reg == 1 name "ROR" { common opcode "ROR" param(rmw,cl); }
+
+opcode sequence(0xD0 mrm) where reg == 2 name "RCL" { common opcode "RCL" param(rmb,1);  }
+opcode sequence(0xD1 mrm) where reg == 2 name "RCL" { common opcode "RCL" param(rmw,1);  }
+opcode sequence(0xD2 mrm) where reg == 2 name "RCL" { common opcode "RCL" param(rmb,cl); }
+opcode sequence(0xD3 mrm) where reg == 2 name "RCL" { common opcode "RCL" param(rmw,cl); }
+
+opcode sequence(0xD0 mrm) where reg == 3 name "RCR" { common opcode "RCR" param(rmb,1);  }
+opcode sequence(0xD1 mrm) where reg == 3 name "RCR" { common opcode "RCR" param(rmw,1);  }
+opcode sequence(0xD2 mrm) where reg == 3 name "RCR" { common opcode "RCR" param(rmb,cl); }
+opcode sequence(0xD3 mrm) where reg == 3 name "RCR" { common opcode "RCR" param(rmw,cl); }
+
+opcode sequence(0xD0 mrm) where reg == 4 name "SHL" { common opcode "SHL" param(rmb,1);  }
+opcode sequence(0xD1 mrm) where reg == 4 name "SHL" { common opcode "SHL" param(rmw,1);  }
+opcode sequence(0xD2 mrm) where reg == 4 name "SHL" { common opcode "SHL" param(rmb,cl); }
+opcode sequence(0xD3 mrm) where reg == 4 name "SHL" { common opcode "SHL" param(rmw,cl); }
+
+opcode sequence(0xD0 mrm) where reg == 5 name "SHR" { common opcode "SHR" param(rmb,1);  }
+opcode sequence(0xD1 mrm) where reg == 5 name "SHR" { common opcode "SHR" param(rmw,1);  }
+opcode sequence(0xD2 mrm) where reg == 5 name "SHR" { common opcode "SHR" param(rmb,cl); }
+opcode sequence(0xD3 mrm) where reg == 5 name "SHR" { common opcode "SHR" param(rmw,cl); }
+
+opcode sequence(0xD0 mrm) where reg == 6 name "SAL" { common opcode "SAL" param(rmb,1);  }
+opcode sequence(0xD1 mrm) where reg == 6 name "SAL" { common opcode "SAL" param(rmw,1);  }
+opcode sequence(0xD2 mrm) where reg == 6 name "SAL" { common opcode "SAL" param(rmb,cl); }
+opcode sequence(0xD3 mrm) where reg == 6 name "SAL" { common opcode "SAL" param(rmw,cl); }
+
+opcode sequence(0xD0 mrm) where reg == 7 name "SAR" { common opcode "SAR" param(rmb,1);  }
+opcode sequence(0xD1 mrm) where reg == 7 name "SAR" { common opcode "SAR" param(rmw,1);  }
+opcode sequence(0xD2 mrm) where reg == 7 name "SAR" { common opcode "SAR" param(rmb,cl); }
+opcode sequence(0xD3 mrm) where reg == 7 name "SAR" { common opcode "SAR" param(rmw,cl); }
+
+opcode sequence(0xD4 immb) name "AAM" {
+    modifies flags(SF,ZF,PF,OF,AF,CF);
+
+    /* tmp = al */
+    /* ah = tmp / immb */
+    /* al = tmp % immb */
+    output ah, al;
+    input al;
+}
+
+opcode sequence(0xD5 immb) name "AAD" {
+    modifies flags(SF,ZF,PF,OF,AF,CF);
+
+    /* al = (al + (ah * immb)) & 0xFF */
+    /* ah = 0 */
+    output ah, al;
+    input ah, al;
+}
+
+opcode sequence(0xD6) name "XLAT" {
+    input base, al;
+    input memory reference word farptr(dsreg,base + al);
+    output al;
+}
+
