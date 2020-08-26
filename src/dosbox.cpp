@@ -1367,8 +1367,8 @@ void DOSBOX_SetupConfigSections(void) {
     Pbool = secprop->Add_bool("fastbioslogo",Property::Changeable::OnlyAtStart,false);
     Pbool->Set_help("If set, DOSBox-X will enable fast BIOS logo mode (skip 1-second pause).");
 
-    Pbool = secprop->Add_bool("startinfo",Property::Changeable::OnlyAtStart,true);
-    Pbool->Set_help("If set, DOSBox-X will display startup information box when it runs.");
+    Pbool = secprop->Add_bool("startbanner",Property::Changeable::OnlyAtStart,true);
+    Pbool->Set_help("If set (default), DOSBox-X will display the welcome banner when it starts.");
 
     Pbool = secprop->Add_bool("enable 8-bit dac",Property::Changeable::OnlyAtStart,true);
     Pbool->Set_help("If set, allow VESA BIOS calls in IBM PC mode to set DAC width. Has no effect in PC-98 mode.");

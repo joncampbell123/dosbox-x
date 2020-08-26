@@ -2707,7 +2707,7 @@ restart_int:
             printHelp();
             return;
         }
-		if (cmd->FindExist("-examples")) {
+		if (cmd->FindExist("/examples")||cmd->FindExist("-examples")) {
 			WriteOut(MSG_Get("PROGRAM_IMGMAKE_EXAMPLE"));
 			return;
 		}
@@ -4046,7 +4046,7 @@ public:
             WriteOut(MSG_Get("PROGRAM_IMGMOUNT_HELP"));
             return;
         }
-		if (cmd->FindExist("-examples")) {
+		if (cmd->FindExist("/examples")||cmd->FindExist("-examples")) {
 			WriteOut(MSG_Get("PROGRAM_IMGMOUNT_EXAMPLE"));
 			return;
 		}
@@ -6326,25 +6326,26 @@ void DOS_SetupPrograms(void) {
         "\033[33;1m  -exit\033[0m\n"
         "\tDOSBox-X will close itself when the DOS application name ends.\n\n"
         "\033[33;1m  -version\033[0m\n"
-        "\toutput version information and exit. Useful for frontends.\n\n"
+        "\tOutputs version information and exit. Useful for frontends.\n\n"
         "\033[33;1m  -fastlaunch\033[0m\n"
-        "\tStarts Enables fast launch mode (skip BIOS logo and start messages).\n\n"
+        "\tEnables fast launch mode (skip BIOS logo and welcome banner).\n\n"
         "\033[33;1m  -fullscreen\033[0m\n"
         "\tStarts DOSBox-X in fullscreen mode.\n"
         );
     MSG_Add("PROGRAM_INTRO_USAGE_2",
         "\033[33;1m  -conf\033[0m configfile\n"
         "\tStart DOSBox-X with the options specified in configfile.\n"
-        "\tSee README for more details.\n\n"
+        "\tSee the documentation for more details.\n\n"
         "\033[33;1m  -lang\033[0m languagefile\n"
         "\tStart DOSBox-X using the language specified in languagefile.\n\n"
         "\033[33;1m  -noconsole\033[0m (Windows Only)\n"
         "\tStart DOSBox-X without showing the console window. Output will\n"
-        "\tbe redirected to stdout.txt and stderr.txt\n"
-        "\033[33;1m  -machine\033[0m machinetype\n\n"
-        "\tSetup DOSBox-X to emulate a specific type of machine. Valid choices are:\n"
-        "\thercules, cga, pcjr, tandy, vga (default). The machinetype affects\n"
-        "\tboth the videocard and the available soundcards.\n"
+        "\tbe redirected to stdout.txt and stderr.txt\n\n"
+        "\033[33;1m  -machine\033[0m machinetype\n"
+        "\tSetup DOSBox-X to emulate a specific type of machine. Valid choices:\n"
+        "\thercules, cga, cga_mono, mcga, mda, pcjr, tandy, ega, vga, vgaonly,\n"
+        "\tpc98, vesa_nolfb, vesa_oldvbe, svga_paradise, svga_s3 (default).\n"
+        "\tThe machinetype affects both the video card and available sound cards.\n"
         );
     MSG_Add("PROGRAM_INTRO_USAGE_3",
         "\033[33;1m  -startmapper\033[0m\n"
