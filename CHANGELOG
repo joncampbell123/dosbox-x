@@ -99,8 +99,9 @@
   - The default value for "output" (in "sdl" section)
     is now "default", which will default to the value
     according to your platform. (Wengier)
-  - MOUNT command's -Q (quiet) option now silences
-    virtually all output of this command. (Wengier)
+  - The -Q (quiet) option of MOUNT and BOOT commands
+    now silences virtually all outputs (normal and
+    error messages) of these commands. (Wengier)
   - Worked around the mounting issue with LaunchBox,
     by allowing a mounting command-line with single
     quotes like MOUNT C 'X:\DOS' on Windows. (Wengier)

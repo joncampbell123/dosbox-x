@@ -555,8 +555,8 @@ search:
 			MessageBox(GetHWND(),drive_warn.c_str(),"Error",MB_OK);
 			return;
 		} else if (boot) {
-			char str[] = "A:";
-			str[0]=drive;
+			char str[] = "-Q A:";
+			str[3]=drive;
 			runBoot(str);
 			std::string drive_warn="Drive "+std::string(1, drive)+": failed to boot.";
 			MessageBox(GetHWND(),drive_warn.c_str(),"Error",MB_OK);
@@ -771,14 +771,10 @@ void MenuBootDrive(char drive) {
 #endif
 		return;
 	}
-	std::string str(1, drive);
-	char bootstring[DOS_PATHLENGTH+CROSS_LEN+20];
-	strcpy(bootstring,"Z:\\BOOT -L ");
-	strcat(bootstring,str.c_str());
-	strcat(bootstring," >nul");
-	DOS_Shell temp;
-	temp.ParseLine(bootstring);
-	std::string drive_warn="Drive "+str+": failed to boot.";
+	char str[] = "-Q A:";
+	str[3]=drive;
+	runBoot(str);
+	std::string drive_warn="Drive "+std::string(1, drive)+": failed to boot.";
 #if defined(WIN32)
 	MessageBox(GetHWND(),drive_warn.c_str(),"Error",MB_OK);
 #endif
@@ -1552,7 +1548,7 @@ public:
         bool bios_boot = false;
         bool swaponedrive = false;
         bool force = false;
-        bool quiet = false;
+        int quiet = 0;
 
         //Hack To allow long commandlines
         ChangeToLongCmd();
@@ -1573,7 +1569,9 @@ public:
             pc98_show_graphics = true;
 
         if (cmd->FindExist("-q",true))
-            quiet = true;
+            quiet = 1;
+        if (cmd->FindExist("-qq",true))
+            quiet = 2;
 
         if (cmd->FindExist("-force",true))
             force = true;
@@ -1588,14 +1586,14 @@ public:
         else if (boothax_str == "")
             boothax = BOOTHAX_NONE;
         else {
-            WriteOut("Unknown boothax mode");
+            if (!quiet) WriteOut("Unknown boothax mode");
             return;
         }
 
         /* In secure mode don't allow people to boot stuff. 
          * They might try to corrupt the data on it */
         if(control->SecureMode()) {
-            WriteOut(MSG_Get("PROGRAM_CONFIG_SECURE_DISALLOW"));
+            if (!quiet) WriteOut(MSG_Get("PROGRAM_CONFIG_SECURE_DISALLOW"));
             return;
         }
 
@@ -1603,7 +1601,7 @@ public:
             Bit32u isz1,isz2;
 
             if (bios.empty()) {
-                WriteOut("Must specify BIOS image to boot\n");
+                if (!quiet) WriteOut("Must specify BIOS image to boot\n");
                 return;
             }
 
@@ -1626,7 +1624,7 @@ public:
             /* load it */
             FILE *romfp = getFSFile(bios.c_str(), &isz1, &isz2);
             if (romfp == NULL) {
-                WriteOut("Unable to open BIOS image\n");
+                if (!quiet) WriteOut("Unable to open BIOS image\n");
                 return;
             }
             Bitu loadsz = (isz2 + 0xFU) & (~0xFU);
@@ -1773,7 +1771,7 @@ public:
 
                 Bit32u rombytesize=0;
 				bool readonly=wpcolon&&temp_line.length()>1&&temp_line[0]==':';
-                WriteOut(MSG_Get("PROGRAM_BOOT_IMAGE_OPEN"), readonly?temp_line.c_str()+1:temp_line.c_str());
+                if (!quiet) WriteOut(MSG_Get("PROGRAM_BOOT_IMAGE_OPEN"), readonly?temp_line.c_str()+1:temp_line.c_str());
                 FILE *usefile = getFSFile(temp_line.c_str(), &floppysize, &rombytesize);
                 if(usefile != NULL) {
                     char tmp[256];
@@ -1818,7 +1816,7 @@ public:
                         rombytesize_2=rombytesize;
                     }
                 } else {
-                    WriteOut(MSG_Get("PROGRAM_BOOT_IMAGE_NOT_OPEN"), readonly?temp_line.c_str()+1:temp_line.c_str());
+                    if (!quiet) WriteOut(MSG_Get("PROGRAM_BOOT_IMAGE_NOT_OPEN"), readonly?temp_line.c_str()+1:temp_line.c_str());
                     return;
                 }
 
@@ -1828,14 +1826,14 @@ public:
 
         if (!bootbyDrive) {
             if (i == 0) {
-                WriteOut("No images specified");
+                if (!quiet) WriteOut("No images specified");
                 return;
             }
 
             if (i > 1) {
                 /* if more than one image is given, then this drive becomes the focus of the swaplist */
                 if (swapInDisksSpecificDrive >= 0 && swapInDisksSpecificDrive != (drive - 65)) {
-                    WriteOut("Multiple disk images specified and another drive is already connected to the swap list");
+                    if (!quiet) WriteOut("Multiple disk images specified and another drive is already connected to the swap list");
                     return;
                 }
                 else if (swapInDisksSpecificDrive < 0 && swaponedrive) {
@@ -1882,7 +1880,7 @@ public:
         }
 
         if(imageDiskList[drive-65]==NULL) {
-            WriteOut(MSG_Get("PROGRAM_BOOT_UNABLE"), drive);
+            if (!quiet) WriteOut(MSG_Get("PROGRAM_BOOT_UNABLE"), drive);
             return;
         }
 
@@ -1899,7 +1897,7 @@ public:
         // It depends on the fd_type field of the image.
         if (!force && imageDiskList[drive-65]->class_id == imageDisk::ID_D88) {
             if (reinterpret_cast<imageDiskD88*>(imageDiskList[drive-65])->fd_type_major == imageDiskD88::DISKTYPE_2D) {
-                WriteOut("The D88 image appears to target PC-88 and cannot be booted.");
+                if (!quiet) WriteOut("The D88 image appears to target PC-88 and cannot be booted.");
                 return;
             }
         }
@@ -1908,7 +1906,7 @@ public:
         bootSector bootarea;
 
         if (imageDiskList[drive-65]->getSectSize() > sizeof(bootarea)) {
-            WriteOut("Bytes/sector too large");
+            if (!quiet) WriteOut("Bytes/sector too large");
             return;
         }
 
@@ -1952,7 +1950,7 @@ public:
 
         if (!has_read) {
             if (imageDiskList[drive - 65]->Read_Sector(0, 0, 1, (Bit8u *)&bootarea) != 0) {
-                WriteOut("Error reading drive");
+                if (!quiet) WriteOut("Error reading drive");
                 return;
             }
         }
@@ -1968,7 +1966,7 @@ public:
         }
         
         if (pcjr_hdr_type > 0) {
-            if (machine!=MCH_PCJR) WriteOut(MSG_Get("PROGRAM_BOOT_CART_WO_PCJR"));
+            if (machine!=MCH_PCJR&&!quiet) WriteOut(MSG_Get("PROGRAM_BOOT_CART_WO_PCJR"));
             else {
                 Bit8u rombuf[65536];
                 Bits cfound_at=-1;
@@ -1998,9 +1996,9 @@ public:
                             clen=rombuf[ct];
                         }
                         if (ct>6) {
-                            WriteOut(MSG_Get("PROGRAM_BOOT_CART_LIST_CMDS"),cmdlist);
+                            if (!quiet) WriteOut(MSG_Get("PROGRAM_BOOT_CART_LIST_CMDS"),cmdlist);
                         } else {
-                            WriteOut(MSG_Get("PROGRAM_BOOT_CART_NO_CMDS"));
+                            if (!quiet) WriteOut(MSG_Get("PROGRAM_BOOT_CART_NO_CMDS"));
                         }
                         for(Bitu dct=0;dct<MAX_SWAPPABLE_DISKS;dct++) {
                             if(diskSwap[dct]!=NULL) {
@@ -2030,9 +2028,9 @@ public:
                         }
                         if (cfound_at<=0) {
                             if (ct>6) {
-                                WriteOut(MSG_Get("PROGRAM_BOOT_CART_LIST_CMDS"),cmdlist);
+                                if (!quiet) WriteOut(MSG_Get("PROGRAM_BOOT_CART_LIST_CMDS"),cmdlist);
                             } else {
-                                WriteOut(MSG_Get("PROGRAM_BOOT_CART_NO_CMDS"));
+                                if (!quiet) WriteOut(MSG_Get("PROGRAM_BOOT_CART_NO_CMDS"));
                             }
                             for(Bitu dct=0;dct<MAX_SWAPPABLE_DISKS;dct++) {
                                 if(diskSwap[dct]!=NULL) {
@@ -2165,7 +2163,7 @@ public:
             if (max_seg < 0x0800) {
                 /* TODO: For the adventerous, add a configuration option or command line switch to "BOOT"
                  *       that allows us to boot the guest OS anyway in a manner that is non-standard. */
-                WriteOut("32KB of RAM is required to boot a guest OS\n");
+                if (!quiet) WriteOut("32KB of RAM is required to boot a guest OS\n");
                 return;
             }
 
@@ -2184,11 +2182,11 @@ public:
              *       (default) or just below the boot sector, or... */
 
             if((bootarea.rawdata[0]==0) && (bootarea.rawdata[1]==0)) {
-                WriteOut(MSG_Get("PROGRAM_BOOT_UNABLE"), drive);
+                if (!quiet) WriteOut(MSG_Get("PROGRAM_BOOT_UNABLE"), drive);
                 return;
             }
 
-			if (!quiet) {
+			if (quiet<2) {
 				char msg[30];
 				const Bit8u page=real_readb(BIOSMEM_SEG,BIOSMEM_CURRENT_PAGE);
 				strcpy(msg, CURSOR_POS_COL(page)>0?"\r\n":"");
@@ -4461,7 +4459,7 @@ private:
                     commandLine = homedir;
                 }
                 else {
-                    // convert dosbox filename to system filename
+                    // convert dosbox-x filename to system filename
                     Bit8u dummy;
                     if (!DOS_MakeName(tmp, fullname, &dummy) || strncmp(Drives[dummy]->GetInfo(), "local directory", 15)) {
                         WriteOut(MSG_Get(usedef?"PROGRAM_IMGMOUNT_DEFAULT_NOT_FOUND":"PROGRAM_IMGMOUNT_NON_LOCAL_DRIVE"));
@@ -6232,10 +6230,10 @@ void DOS_SetupPrograms(void) {
         "This makes the directory %s act as the C: drive inside DOSBox-X.\n"
         "The directory has to exist in the host system.\n\n"
 		"Options are accepted. For example:\n\n"
+		"\033[32;1mMOUNT -t cdrom c %s \033[0m     mounts the C: drive as a CD-ROM drive.\n"
+		"\033[32;1mMOUNT -ro c %s \033[0m          mounts the C: drive in read-only mode.\n"
 		"\033[32;1mMOUNT -nocachedir c %s \033[0m  mounts C: without caching the drive.\n"
 		"\033[32;1mMOUNT -freesize 128 c %s \033[0mmounts C: with the specified free disk space.\n"
-		"\033[32;1mMOUNT -ro c %s \033[0m          mounts the C: drive in read-only mode.\n"
-		"\033[32;1mMOUNT -t cdrom c %s \033[0m     mounts the C: drive as a CD-ROM drive.\n"
 		"\033[32;1mMOUNT -u c \033[0m                       unmounts the C: drive.\n\n"
 		"Type MOUNT with no parameters to display a list of mounted drives.\n");
     MSG_Add("PROGRAM_MOUNT_UMOUNT_NOT_MOUNTED","Drive %c is not mounted.\n");
@@ -6364,12 +6362,13 @@ void DOS_SetupPrograms(void) {
         "For information about CD-ROM support, type \033[34;1mintro cdrom\033[0m\n"
         "For information about special keys, type \033[34;1mintro special\033[0m\n"
         "For information about usage, type \033[34;1mintro usage\033[0m\n\n"
-        "For the latest version of DOSBox-X, go to \033[34;1mhttp://www.dosbox-x.com\033[0m\n"
+        "For the latest version of DOSBox-X, go to its GitHub site:\033[34;1m\n"
         "\n"
-        "For more information about DOSBox-X, read README first!\n"
+        "\033[34;1mhttps://github.com/joncampbell123/dosbox-x\033[0m\n"
+        "\n"
+        "For more information about DOSBox-X, please take a look at its Wiki:\n"
         "\n"
         "\033[34;1mhttps://github.com/joncampbell123/dosbox-x/wiki\033[0m\n"
-        "\033[34;1mhttp://vogons.zetafleet.com\033[0m\n"
         );
     MSG_Add("PROGRAM_INTRO_MOUNT_START",
         "\033[32;1mHere are some commands to get you started:\033[0m\n"
@@ -6480,17 +6479,19 @@ void DOS_SetupPrograms(void) {
     MSG_Add("PROGRAM_BOOT_WRITE_PROTECTED","Image file is read-only! Boot in write-protected mode.\n");
     MSG_Add("PROGRAM_BOOT_PRINT_ERROR","This command boots DOSBox-X from either a floppy or hard disk image.\n\n"
         "For this command, one can specify a succession of floppy disks swappable\n"
-        "by pressing Ctrl-F4, and -l specifies the mounted drive to boot from.  If\n"
-        "no drive letter is specified, this defaults to booting from the A drive.\n"
+        "by the menu command, and drive: specifies the mounted drive to boot from.\n"
+        "If no drive letter is specified, this defaults to boot from the A drive.\n"
         "The only bootable drive letters are A, C, and D.  For booting from a hard\n"
-        "drive (C or D), the image should have already been mounted using the\n"
-        "\033[34;1mIMGMOUNT\033[0m command.\n\n"
+        "drive (C or D), ensure the image is already mounted by \033[34;1mIMGMOUNT\033[0m command.\n\n"
         "The syntax of this command is:\n\n"
         "\033[34;1mBOOT diskimg1.img [diskimg2.img ...] [-L driveletter]\033[0m\n\n"
 		"Or:\n\n"
         "\033[34;1mBOOT driveletter:\033[0m\n\n"
         "Note: An image file with a leading colon (:) will be booted in write-protected\n"
-		"mode if the \"leading colon write protect image\" option is enabled.\n"
+		"mode if the \"leading colon write protect image\" option is enabled.\n\n"
+        "Examples:\n\n"
+        "\033[32;1mBOOT A:\033[0m       - boot from drive A: if it is mounted and bootable.\n"
+        "\033[32;1mBOOT :DOS.IMG\033[0m - boot from image file DOS.IMG in write-protected mode.\n"
         );
     MSG_Add("PROGRAM_BOOT_UNABLE","Unable to boot off of drive %c.\n");
     MSG_Add("PROGRAM_BOOT_IMAGE_OPEN","Opening image file: %s\n");
@@ -6576,8 +6577,9 @@ void DOS_SetupPrograms(void) {
         "  \033[32;1mIMGMOUNT\033[0m                       - list mounted FAT/ISO drives & drive numbers\n"
         "  \033[32;1mIMGMOUNT C\033[0m                     - mount hard disk image IMGMAKE.IMG as C:\n"
         "  \033[32;1mIMGMOUNT C c:\\image.img\033[0m        - mount hard disk image c:\\image.img as C:\n"
-        "  \033[32;1mIMGMOUNT D c:\\games\\doom.iso\033[0m   - mount CD image c:\\games\\doom.iso as D:\n"
+        "  \033[32;1mIMGMOUNT D c:\\files\\game.iso\033[0m   - mount CD image c:\\files\\game.iso as D:\n"
         "  \033[32;1mIMGMOUNT 0 dos.ima\033[0m             - mount floppy image dos.ima as drive number 0\n"
+        "                                   (\033[33;1mBOOT A:\033[0m will boot from drive if bootable)\n"
         "  \033[32;1mIMGMOUNT A -ro dos.ima\033[0m         - mount floppy image dos.ima as A: read-only\n"
         "  \033[32;1mIMGMOUNT A :dsk1.img dsk2.img\033[0m  - mount floppy images dsk1.img and dsk2.img as\n"
         "                                   A:, swappable via menu item \"Swap floppy\",\n"

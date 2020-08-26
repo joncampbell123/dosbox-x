@@ -190,7 +190,6 @@ extern bool dos_kernel_disabled;
 extern bool bootguest, bootfast, bootvm;
 extern int bootdrive;
 
-void runBoot(void);
 void MenuBootDrive(char drive);
 void MenuUnmountDrive(char drive);
 void SetGameState_Run(int value);

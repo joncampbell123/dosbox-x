@@ -8571,8 +8571,8 @@ private:
 
 		if ((bootguest||(!bootvm&&use_quick_reboot))&&!bootfast&&bootdrive>=0&&imageDiskList[bootdrive]) {
 			MOUSE_Startup(NULL);
-			char drive[] = "-Q A:";
-			drive[3]='A'+bootdrive;
+			char drive[] = "-QQ A:";
+			drive[4]='A'+bootdrive;
 			runBoot(drive);
 		}
 		if (use_quick_reboot&&!bootvm&&!bootfast&&bootdrive<0&&first_shell != NULL) throw int(6);
