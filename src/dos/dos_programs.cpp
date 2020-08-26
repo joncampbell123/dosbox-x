@@ -6496,7 +6496,7 @@ void DOS_SetupPrograms(void) {
 		"mode if the \"leading colon write protect image\" option is enabled.\n\n"
         "Examples:\n\n"
         "\033[32;1mBOOT A:\033[0m       - boot from drive A: if it is mounted and bootable.\n"
-        "\033[32;1mBOOT :DOS.IMG\033[0m - boot from image file DOS.IMG in write-protected mode.\n"
+        "\033[32;1mBOOT :DOS.IMG\033[0m - boot from floppy image DOS.IMG in write-protected mode.\n"
         );
     MSG_Add("PROGRAM_BOOT_UNABLE","Unable to boot off of drive %c.\n");
     MSG_Add("PROGRAM_BOOT_IMAGE_OPEN","Opening image file: %s\n");
@@ -6566,9 +6566,9 @@ void DOS_SetupPrograms(void) {
         " -t iso              Image type is optical disc iso or cue / bin image.\n"
         " -t hdd              Image type is hard disk; VHD and HDI files are supported.\n"
         " -t floppy|ram       Image type is floppy drive|RAM drive.\n"
-        " -fs iso             File system is ISO 9660.\n"
-        " -fs fat             File system is FAT; FAT12, FAT16 and FAT32 are supported.\n"
-        " -fs none            Do not detect file system.\n"
+        " -fs iso             Filesystem is ISO 9660 (auto-assumed for .iso/.cue files).\n"
+        " -fs fat             Filesystem is FAT - FAT12, FAT16 and FAT32 are supported.\n"
+        " -fs none            Do not detect filesystem (auto-assumed for drive numbers).\n"
         " -reservecyl #       Report # number of cylinders less than actual in BIOS.\n"
         " -ide controller     Specify IDE controller (1m, 1s, 2m, 2s) to mount drive.\n"
         " -size size|ss,s,h,c Specify the size in KB, or sector size and CHS geometry.\n"
@@ -6588,6 +6588,7 @@ void DOS_SetupPrograms(void) {
         "  \033[32;1mIMGMOUNT C ~/image.img\033[0m         - mount hard disk image ~/image.img as C:\n"
         "  \033[32;1mIMGMOUNT D ~/files/game.iso\033[0m    - mount CD image ~/files/game.iso as D:\n"
 #endif
+        "  \033[32;1mIMGMOUNT D cdaudio.cue\033[0m         - mount cue file of a cue/bin pair as CD drive\n"
         "  \033[32;1mIMGMOUNT 0 dos.ima\033[0m             - mount floppy image dos.ima as drive number 0\n"
         "                                   (\033[33;1mBOOT A:\033[0m will boot from drive if bootable)\n"
         "  \033[32;1mIMGMOUNT A -ro dos.ima\033[0m         - mount floppy image dos.ima as A: read-only\n"
