@@ -1,6 +1,6 @@
 #!/bin/bash
-src/dosbox-x -c 'config -all -wc dosbox-x.reference.conf' -c 'exit' || exit 1
+src/dosbox-x -fastlaunch -defaultdir . -c 'config -all -wcp dosbox-x.reference.conf' -c 'exit' || exit 1
 
-# FIXME: Adding ./ to the beginning of the path should revert to storing the config in the current working directory again.
-mv -v ~/.config/dosbox-x/dosbox-x.reference.conf dosbox-x.reference.conf || exit 1
+# Not really needed if command config -wcp [configfile] is used instead of config -wc [configfile]
+# mv -v ~/.config/dosbox-x/dosbox-x.reference.conf dosbox-x.reference.conf || exit 1
 
