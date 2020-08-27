@@ -476,7 +476,7 @@ void DOS_Shell::Run(void) {
     bool optInit=cmd->FindString("/INIT",line,true);
     if (this == first_shell) {
         Section_prop *section = static_cast<Section_prop *>(control->GetSection("dosbox"));
-        if(section->Get_bool("startinfo")&&!control->opt_fastlaunch) {
+        if(section->Get_bool("startbanner")&&!control->opt_fastlaunch) {
             /* Start a normal shell and check for a first command init */
             WriteOut(MSG_Get("SHELL_STARTUP_BEGIN"),VERSION,SDL_STRING,UPDATED_STR);
             WriteOut(MSG_Get("SHELL_STARTUP_BEGIN2"));

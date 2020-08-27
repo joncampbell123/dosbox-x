@@ -1,10 +1,12 @@
 0.83.5
-  - Added config option "startinfo" in [dosbox] section
-    which can be used to skip the startup information
-    box when DOSBox-X runs. Also added config option
-    "fastbioslogo" which can be used to skip the BIOS
-    logo. A new command-line option "-fastlaunch" is
-    added to skip both (fast launch mode). (Wengier)
+  - Added config option "startbanner" in [dosbox]
+    section which if set to "false" would skip the
+    welcome banner when DOSBox-X starts. Also added
+    config option "fastbioslogo" which if set to "true"
+    will skip the BIOS logo (replacing the command-line
+    option -fastbootlogo). A new command-line option
+    "-fastlaunch" is added to enable fast launch mode
+    by skipping both the logo and the banner. (Wengier)
   - Added config option "ega per scanline hpel" in
     [dosbox] section to control whether EGA emulation
     latches hpel at display start (as VGA emulation
@@ -138,8 +140,16 @@
     still shows 10 slots as before, but you can now go
     to the previous or next page (up to 10 pages) for
     more save slots (100 in total). (Wengier).
-  - Added support for Glide wrapper. The library file
-    glide2x.dll/libglide2x.so/libglide2x.dylib will be
+  - Add config option "voodoo_maxmem" (default: true)
+    to specify whether to use the maximum memory size
+    (12MB instead of the standard 4MB) for the Vooodoo
+    card. The [pci] section is now [voodoo] section,
+    and its only config option "voodoo" is now named
+    "voodoo_card" to make it clear it is for emulating
+    the Voodoo card hardware. (Wengier)
+  - Added support for Glide wrapper. It can be enabled
+    with "glide=true" in [voodoo] section. The library
+    file glide2x.dll/libglide2x.so/libglide2x.dylib is
     required for Glide to work. Be sure to use 32-bit
     dll for 32-bit DOSBox-X binary, and 64-bit dll for
     64-bit DOSBox-X binary. (Wengier)
