@@ -91,7 +91,7 @@ public:
         emulation_type=-1;
 
         Section_prop * section=static_cast<Section_prop *>(configuration);
-        std::string voodoo_type_str(section->Get_string("voodoo"));
+        std::string voodoo_type_str(section->Get_string("voodoo_card"));
         if (voodoo_type_str=="false") {
             emulation_type=0;
         } else if (voodoo_type_str=="software") {
@@ -109,6 +109,10 @@ public:
 
         Bits card_type = 1;
         bool max_voodoomem = true;
+		if (section->Get_bool("voodoo_maxmem"))
+			max_voodoomem = true;
+		else
+			max_voodoomem = false;
 
         bool needs_pci_device = false;
 
@@ -226,7 +230,7 @@ void VOODOO_OnPowerOn(Section* /*sec*/) {
     if (voodoo_dev == NULL) {
         voodoo_pci_enabled = true;
         voodoo_current_lfb=(VOODOO_INITIAL_LFB&0xffff0000);
-        voodoo_dev = new VOODOO(control->GetSection("pci"));
+        voodoo_dev = new VOODOO(control->GetSection("voodoo"));
 
         voodoo_lfb_cb_init();
     }

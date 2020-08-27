@@ -2390,11 +2390,15 @@ void DOSBOX_SetupConfigSections(void) {
     Pstring->Set_values(auxdevices);
     Pstring->Set_help("Type of PS/2 mouse attached to the AUX port");
 
-    secprop=control->AddSection_prop("pci",&Null_Init,false); //PCI bus
+    secprop=control->AddSection_prop("voodoo",&Null_Init,false); //Voodoo
 
-    Pstring = secprop->Add_string("voodoo",Property::Changeable::WhenIdle,"auto");
+    Pstring = secprop->Add_string("voodoo_card",Property::Changeable::WhenIdle,"auto");
     Pstring->Set_values(voodoo_settings);
-    Pstring->Set_help("Enable VOODOO support.");
+    Pstring->Set_help("Enable VOODOO card support.");
+	Pbool = secprop->Add_bool("voodoo_maxmem",Property::Changeable::OnlyAtStart,true);
+	Pbool->Set_help("Specify whether to enable maximum memory size for the VOODOO card.\n"
+                    "If set (on by default), the memory size will be 12MB (4MB front buffer + 2x4MB texture units)\n"
+		            "Otherwise, the memory size will be the standard 4MB (2MB front buffer + 1x2MB texture unit)");
 	Pbool = secprop->Add_bool("glide",Property::Changeable::WhenIdle,false);
 	Pbool->Set_help("Enable Glide emulation (requires glide2x.dll/libglide2x.so/libglide2x.dylib).");
 	//Phex = secprop->Add_hex("grport",Property::Changeable::WhenIdle,0x600);
