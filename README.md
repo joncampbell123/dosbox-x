@@ -107,11 +107,10 @@ As joncampbell123 only has limited time to work on DOSBox-X, help is
 greatly appreciated:
 
   - Testing
-    - Features
-    - Hardware accuracy
-    - Software accuracy
-    - Games, applications, demoscene executables
-    - Windows 1.0 to Windows ME guest system support
+    - Features of DOSBox-X, such as its commands and graphical functions 
+    - The normal operation of DOS games and applications within DOSBox-X
+    - Windows 1.0 to Windows ME (Windows 3.x/9x in particular) guest system support
+    - Software or hardware emulation accuracy, helped by for example demoscene software
     - Retro development
   - Bug fixes, patches, improvements, refinements
   - Suggestions, ideas, general conversation
@@ -119,8 +118,9 @@ greatly appreciated:
   - Documentation, language file translation
   - Notes regarding games, applications, hacks, weird MS-DOS tricks, etc.
 
-If you want to tweak or write some code and you don't know what to work
-on, feel free to visit the [issue tracker](https://github.com/joncampbell123/dosbox-x/issues) to get some ideas.
+See the [CONTRIBUTING](CONTRIBUTING.md) page for more contribution guidelines.
+If you want to tweak or write some code and you don't know what to work on,
+feel free to visit the [issue tracker](https://github.com/joncampbell123/dosbox-x/issues) to get some ideas.
 
 For more information about the source code, please take a look at the
 [DOSBox-X source code description](README.source-code-description) page.
