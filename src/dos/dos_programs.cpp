@@ -6554,16 +6554,16 @@ void DOS_SetupPrograms(void) {
 
     MSG_Add("PROGRAM_IMGMOUNT_HELP",
         "Mounts floppy, hard drive and optical disc images.\n"
-        "IMGMOUNT drive file [-ro] [-t floppy] [-fs fat] [-size ss,s,h,c]\n"
-        "IMGMOUNT drive file [-ro] [-t hdd] [-fs fat] [-size ss,s,h,c] [-ide controller]\n"
-        "IMGMOUNT driveNum file [-ro] [-fs none] [-size ss,s,h,c] [-reservecyl #]\n"
-        "IMGMOUNT drive file [-t iso] [-fs iso]\n"
-        "IMGMOUNT drive [-t floppy] -bootcd cdDrive (or -el-torito cdDrive)\n"
-        "IMGMOUNT drive -t ram -size size\n"
-        "IMGMOUNT -u drive|driveNum (or IMGMONT drive|driveNum file [options] -u)\n"
-        " drive               Drive letter to mount the image at.\n"
-        " driveNum            Drive number to mount, where 0-1 are FDDs, 2-5 are HDDs.\n"
-        " file                Image filename(s), or \033[33;1mIMGMAKE.IMG\033[0m if not specified.\n"
+        "\033[32;1mIMGMOUNT\033[0m \033[37;1mdrive\033[0m \033[36;1mfile\033[0m [-ro] [-t floppy] [-fs fat] [-size ss,s,h,c]\n"
+        "\033[32;1mIMGMOUNT\033[0m \033[37;1mdrive\033[0m \033[36;1mfile\033[0m [-ro] [-t hdd] [-fs fat] [-size ss,s,h,c] [-ide controller]\n"
+        "\033[32;1mIMGMOUNT\033[0m \033[37;1mdriveNum\033[0m \033[36;1mfile\033[0m [-ro] [-fs none] [-size ss,s,h,c] [-reservecyl #]\n"
+        "\033[32;1mIMGMOUNT\033[0m \033[37;1mdrive\033[0m \033[36;1mfile\033[0m [-t iso] [-fs iso]\n"
+        "\033[32;1mIMGMOUNT\033[0m \033[37;1mdrive\033[0m [-t floppy] -bootcd cdDrive (or -el-torito cdDrive)\n"
+        "\033[32;1mIMGMOUNT\033[0m \033[37;1mdrive\033[0m -t ram -size size\n"
+        "\033[32;1mIMGMOUNT\033[0m -u \033[37;1mdrive|driveNum\033[0m (or \033[32;1mIMGMOUNT\033[0m \033[37;1mdrive|driveNum\033[0m \033[36;1mfile\033[0m [options] -u)\n"
+        " \033[37;1mdrive\033[0m               Drive letter to mount the image at.\n"
+        " \033[37;1mdriveNum\033[0m            Drive number to mount, where 0-1 are FDDs, 2-5 are HDDs.\n"
+        " \033[36;1mfile\033[0m                Image filename(s), or \033[33;1mIMGMAKE.IMG\033[0m if not specified.\n"
         " -t iso              Image type is optical disc iso or cue / bin image.\n"
         " -t hdd              Image type is hard disk; VHD and HDI files are supported.\n"
         " -t floppy|ram       Image type is floppy drive|RAM drive.\n"
@@ -6604,12 +6604,13 @@ void DOS_SetupPrograms(void) {
         );
     MSG_Add("PROGRAM_IMGMAKE_SYNTAX",
         "Creates floppy or hard disk images.\n"
-        "Usage: IMGMAKE [file] [-t type] [[-size size] | [-chs geometry]] [-spc] [-nofs]\n"
-        "  [-bat] [-fat] [-fatcopies] [-rootdir] [-force]"
+        "Usage: \033[34;1mIMGMAKE [file] [-t type] [[-size size] | [-chs geometry]] [-spc] [-nofs]\033[0m\n"
+        "  \033[34;1m[-bat] [-fat] [-fatcopies] [-rootdir] [-force]"
 #ifdef WIN32
         " [-source source] [-r retries]"
 #endif
-        "\n  file: Image file to create (or \033[33;1mIMGMAKE.IMG\033[0m if not set) - \033[31;1mpath on the host\033[0m\n"
+        "\033[0m\n"
+        "  file: Image file to create (or \033[33;1mIMGMAKE.IMG\033[0m if not set) - \033[31;1mpath on the host\033[0m\n"
         "  -t: Type of image.\n"
         "    \033[33;1mFloppy disk templates\033[0m (names resolve to floppy sizes in KB or fd=fd_1440):\n"
         "     fd_160 fd_180 fd_200 fd_320 fd_360 fd_400 fd_720 fd_1200 fd_1440 fd_2880\n"

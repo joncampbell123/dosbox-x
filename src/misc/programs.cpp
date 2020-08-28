@@ -1079,9 +1079,10 @@ void CONFIG::Run(void) {
 						} else if (!strcasecmp(pvars[0].c_str(), "dos")) {
 							mountwarning = section->Get_bool("mountwarning");
 							if (!strcasecmp(inputline.substr(0, 4).c_str(), "lfn=")) {
-								if (!strcmp(section->Get_string("lfn"), "true")) enablelfn=1;
-								else if (!strcmp(section->Get_string("lfn"), "false")) enablelfn=0;
-								else if (!strcmp(section->Get_string("lfn"), "autostart")) enablelfn=-2;
+								std::string lfn = section->Get_string("lfn");
+								if (lfn=="true"||lfn=="1") enablelfn=1;
+								else if (lfn=="false"||lfn=="0") enablelfn=0;
+								else if (lfn=="autostart") enablelfn=-2;
 								else enablelfn=-1;
 								mainMenu.get_item("dos_lfn_auto").check(enablelfn==-1).refresh_item(mainMenu);
 								mainMenu.get_item("dos_lfn_enable").check(enablelfn==1).refresh_item(mainMenu);

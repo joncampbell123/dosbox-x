@@ -733,6 +733,7 @@ bool DOS_CreateFile(char const * name,Bit16u attributes,Bit16u * entry,bool fcb)
 		if (Files[handle]) Drives[drive]->EmptyCache();
 		return true;
 	} else {
+		if(dos.errorcode==DOSERR_ACCESS_DENIED||dos.errorcode==DOSERR_WRITE_PROTECTED) return false;
 		if(!PathExists(name)) DOS_SetError(DOSERR_PATH_NOT_FOUND); 
 		else DOS_SetError(DOSERR_FILE_NOT_FOUND);
 		return false;

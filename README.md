@@ -45,11 +45,11 @@ Although based on the DOSBox project, DOSBox-X is now a separate project because
 
 * Support for 3dfx Voodoo chip and Glide emulation
 
-* Support for cue sheets with FLAC, MP3, WAV, and Vorbis CD-DA tracks
+* Support for cue sheets with FLAC, MP3, WAV, and OGG Vorbis CD-DA tracks
 
 * Support for FluidSynth MIDI synthesizer and Innovation SSI-2001 emulation
 
-* Support for NE2000 Ethernet for networking and Modem Phonebook mapping
+* Support for NE2000 Ethernet for networking and modem phone book mapping
 
 * Support for features such as V-Sync, overscan border and stereo swapping
 
@@ -107,11 +107,10 @@ As joncampbell123 only has limited time to work on DOSBox-X, help is
 greatly appreciated:
 
   - Testing
-    - Features
-    - Hardware accuracy
-    - Software accuracy
-    - Games, applications, demoscene executables
-    - Windows 1.0 to Windows ME guest system support
+    - Features of DOSBox-X, such as its commands and functions 
+    - The normal operation of DOS games and applications
+    - Software or hardware emulation accuracy, helped by for example demoscene software
+    - Windows 1.0/2.x/3.x & Windows 9x/ME guest system support
     - Retro development
   - Bug fixes, patches, improvements, refinements
   - Suggestions, ideas, general conversation
@@ -119,8 +118,9 @@ greatly appreciated:
   - Documentation, language file translation
   - Notes regarding games, applications, hacks, weird MS-DOS tricks, etc.
 
-If you want to tweak or write some code and you don't know what to work
-on, feel free to visit the [issue tracker](https://github.com/joncampbell123/dosbox-x/issues) to get some ideas.
+See the [CONTRIBUTING](CONTRIBUTING.md) page for more contribution guidelines.
+If you want to tweak or write some code and you don't know what to work on,
+feel free to visit the [issue tracker](https://github.com/joncampbell123/dosbox-x/issues) to get some ideas.
 
 For more information about the source code, please take a look at the
 [DOSBox-X source code description](README.source-code-description) page.
