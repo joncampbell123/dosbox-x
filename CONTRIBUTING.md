@@ -8,8 +8,8 @@ Before contributing to DOSBox-X, please check the [issue tracker](https://github
 - DOS, Windows 1.0/2.x/3.x and Windows 9x/ME guest system support
 - Architectural symmetry with a real DOS environment (particularly MS-DOS or PC DOS)
 - Improving a platform-specific build of DOSBox-X or getting it on par with other platforms supported
-- Non-implemented (or incorrectly) system calls
-- Missing or incorrect hardware emulation, e.g. video, sound, input
+- Non-implemented (or incorrectly implemented) system calls or functions
+- Missing, incorrect, or inaccurate hardware emulation, e.g. video, sound, input
 - Bug fixes and/or improvements that allows for example demoscene productions to run in DOSBox-X
 
 You do not necessarily need to be versed in coding, in this case you will certainly spend most of your time in the [issue tracker](https://github.com/joncampbell123/dosbox-x/issues); either submitting bugs or asking for new features, or helping other DOSBox-X users by suggesting solutions to their problems. You can also help improve DOSBox-X's documentation, or translate its language file to another language.
@@ -34,6 +34,6 @@ For details of the source code, please take a look at the [DOSBox-X source code 
 
 ## Code of Conduct
 
-Please read the [Code of Conduct](CODE_OF_CONDUCT.md) page.
+Please read the [Code of Conduct](CODE_OF_CONDUCT.md) page for general information on contributing to or getting support from the project.
 
 That said, welcome to this repository !
