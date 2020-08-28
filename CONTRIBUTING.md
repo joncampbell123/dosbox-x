@@ -4,15 +4,15 @@ Before contributing, please check the Issues tab to see whether your potential c
 
 ## Scope of contributions that are welcome
 
-- the normal operation of DOS games and applications within DOSBox-X 
+- The normal operation of DOS games and applications within DOSBox-X 
 - DOS, Windows 3.x and Wiindows 9x guest system support
-- architectural symmetry with a real DOS environment
-- improving a platform-specific build of DOSBox-X or getting it on par with other platforms supported
-- non-implemented (or incorrectly) system calls
-- missing or incorrect hardware emulation, e.g. video, sound, input
-- fixes and/or improvements that allows demoscene productions to run in DOSBox-X
+- Architectural symmetry with a real DOS environment
+- Improving a platform-specific build of DOSBox-X or getting it on par with other platforms supported
+- Non-implemented (or incorrectly) system calls
+- Missing or incorrect hardware emulation, e.g. video, sound, input
+- Bug fixes and/or improvements that allows for example demoscene productions to run in DOSBox-X
 
-You do not necessarily need to be versed in coding, in this case you will certainly spend most of your time in the Issues tab; either submitting bugs or asking for new features. You can also help improve DOSBox-X's documentation or translate its language file to another lanuage.
+You do not necessarily need to be versed in coding, in this case you will certainly spend most of your time in the Issues tab; either submitting bugs or asking for new features. You can also help improve DOSBox-X's documentation or translate its language file to another language.
 
 ## Code
 
