@@ -58,6 +58,8 @@
 #if !defined(HX_DOS)
 #include <Commdlg.h>
 #endif
+#else
+#include <libgen.h>
 #endif
 bool Mouse_Drv=true;
 bool Mouse_Vertical = false;
@@ -70,7 +72,7 @@ bool mountwarning = true;
 bool qmount = false;
 
 void DOS_EnableDriveMenu(char drv);
-void runBoot(const char *str), runMount(const char *str), runImgmount(const char *str);
+void runBoot(const char *str), runMount(const char *str), runImgmount(const char *str), runRescan(const char *str);
 
 #if defined(OS2)
 #define INCL DOSFILEMGR
@@ -2799,7 +2801,7 @@ restart_int:
             if(!ReadDisk(f, src.c_str()[0],retries))
                 WriteOut(MSG_Get("PROGRAM_IMGMAKE_CANT_READ_FLOPPY"));
             fclose(f);
-            if (setdir) Drives[DOS_GetDefaultDrive()]->EmptyCache();
+            if (setdir) runRescan("-Q");
             return;
         }
 #endif
@@ -2939,6 +2941,16 @@ restart_int:
             if (chdir(dirNew)==0) setdir=true;
         }
 
+#if !defined(WIN32) && !defined(OS2)
+        if (setdir&&temp_line[0]!='/'&&!(temp_line[0]=='~'&&temp_line[1]=='/'))
+            std::replace(temp_line.begin(), temp_line.end(), '\\', '/');
+        pref_struct_stat test;
+        std::string homedir(temp_line);
+        Cross::ResolveHomedir(homedir);
+        std::string homepath=homedir;
+        if (!pref_stat(dirname((char *)homepath.c_str()), &test) && test.st_mode & S_IFDIR)
+            temp_line = homedir;
+#endif
         FILE* f = fopen(temp_line.c_str(),"r");
         if (f){
             fclose(f);
@@ -3415,8 +3427,8 @@ restart_int:
             if (!f) {
                 WriteOut(MSG_Get("PROGRAM_IMGMAKE_CANNOT_WRITE"),t2.c_str());
                 if (setdir) {
-                    Drives[DOS_GetDefaultDrive()]->EmptyCache();
                     chdir(dirCur);
+                    runRescan("-Q");
                 }
                 return;
             }
@@ -3424,8 +3436,8 @@ restart_int:
             fclose(f);
         }
         if (setdir) {
-            Drives[DOS_GetDefaultDrive()]->EmptyCache();
             chdir(dirCur);
+            runRescan("-Q");
         }
         return;
     }
@@ -3550,16 +3562,17 @@ public:
     void Run(void);
 };
 
-void RESCAN::Run(void) 
+void RESCAN::Run(void)
 {
 	if (cmd->FindExist("-?", false) || cmd->FindExist("/?", false)) {
-		WriteOut("Clears the caches of a mounted drive.\n\nRESCAN [/A]\nRESCAN [drive:]\n\n  [/A]\t\tRescan all drives\n  [drive:]\tThe drive to rescan\n\nType RESCAN with no parameters to rescan the current drive.\n");
+		WriteOut("Clears the caches of a mounted drive.\n\nRESCAN [/A] [/Q]\nRESCAN [drive:] [/Q]\n\n  [/A]\t\tRescan all drives\n  [/Q]\t\tEnable quiet mode\n  [drive:]\tThe drive to rescan\n\nType RESCAN with no parameters to rescan the current drive.\n");
 		return;
 	}
-    bool all = false;
-    
+    bool all = false, quiet = false;
+    if (cmd->FindExist("-q",true) || cmd->FindExist("/q",true))
+        quiet = true;
+
     Bit8u drive = DOS_GetDefaultDrive();
-    
     if(cmd->FindCommand(1,temp_line)) {
         //-A -All /A /All 
         if(temp_line.size() >= 2 && (temp_line[0] == '-' ||temp_line[0] =='/')&& (temp_line[1] == 'a' || temp_line[1] =='A') ) all = true;
@@ -3573,18 +3586,24 @@ void RESCAN::Run(void)
         for(Bitu i =0; i<DOS_DRIVES;i++) {
             if (Drives[i]) Drives[i]->EmptyCache();
         }
-        WriteOut(MSG_Get("PROGRAM_RESCAN_SUCCESS"));
+        if (!quiet) WriteOut(MSG_Get("PROGRAM_RESCAN_SUCCESS"));
     } else {
         if (drive < DOS_DRIVES && Drives[drive]) {
             Drives[drive]->EmptyCache();
-            WriteOut(MSG_Get("PROGRAM_RESCAN_SUCCESS"));
+            if (!quiet) WriteOut(MSG_Get("PROGRAM_RESCAN_SUCCESS"));
         } else
-            WriteOut("Invalid drive specification\n");
+            if (!quiet) WriteOut("Invalid drive specification\n");
     }
 }
 
 static void RESCAN_ProgramStart(Program * * make) {
     *make=new RESCAN;
+}
+
+void runRescan(const char *str) {
+	RESCAN rescan;
+	rescan.cmd=new CommandLine("RESCAN", str);
+	rescan.Run();
 }
 
 /* TODO: This menu code sucks. Write a better one. */
@@ -5493,7 +5512,7 @@ void KEYB::Run(void) {
             switch (keyb_error) {
                 case KEYB_NOERROR:
                     WriteOut(MSG_Get("PROGRAM_KEYB_NOERROR"),temp_line.c_str(),dos.loaded_codepage);
-                    Drives[DOS_GetDefaultDrive()]->EmptyCache();
+                    runRescan("-A -Q");
                     break;
                 case KEYB_FILENOTFOUND:
                     if (temp_line!="/?"&&temp_line!="-?") WriteOut(MSG_Get("PROGRAM_KEYB_FILENOTFOUND"),temp_line.c_str());

@@ -85,6 +85,9 @@
     the name), not all non-floppy drives. Also added
     "Swap disk" menu item under the "Drive" menu for
     swapping individual mounted drives. (Wengier)
+  - IMGMAKE now tries to resolve home directory (~)
+    on Linux platform. Also improved the help message
+    for this command. (Wengier)
   - Fixed unmounting swap disks when unmounting drives
     with MOUNT or IMGMOUNT command. (Wengier)
   - Fixed possible failure when mounting .VHD images,
@@ -107,9 +110,9 @@
   - The default value for "output" (in "sdl" section)
     is now "default", which will default to the value
     according to your platform. (Wengier)
-  - The -Q (quiet) option of MOUNT and BOOT commands
-    now silences virtually all outputs (normal and
-    error messages) of these commands. (Wengier)
+  - The -Q (quiet) option of MOUNT, BOOT and RESCAN
+    commands now silences virtually all outputs (error
+    and normal messages) of these commands. (Wengier)
   - Worked around the mounting issue with LaunchBox,
     by allowing a mounting command-line with single
     quotes like MOUNT C 'X:\DOS' on Windows. (Wengier)
