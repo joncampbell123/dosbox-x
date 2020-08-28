@@ -45,11 +45,11 @@ Although based on the DOSBox project, DOSBox-X is now a separate project because
 
 * Support for 3dfx Voodoo chip and Glide emulation
 
-* Support for cue sheets with FLAC, MP3, WAV, and Vorbis CD-DA tracks
+* Support for cue sheets with FLAC, MP3, WAV, and OGG Vorbis CD-DA tracks
 
 * Support for FluidSynth MIDI synthesizer and Innovation SSI-2001 emulation
 
-* Support for NE2000 Ethernet for networking and Modem Phonebook mapping
+* Support for NE2000 Ethernet for networking and modem phone book mapping
 
 * Support for features such as V-Sync, overscan border and stereo swapping
 
@@ -109,8 +109,8 @@ greatly appreciated:
   - Testing
     - Features of DOSBox-X, such as its commands and functions 
     - The normal operation of DOS games and applications
-    - Windows 1.0/2.x/3.x & Windows 9x/ME guest system support
     - Software or hardware emulation accuracy, helped by for example demoscene software
+    - Windows 1.0/2.x/3.x & Windows 9x/ME guest system support
     - Retro development
   - Bug fixes, patches, improvements, refinements
   - Suggestions, ideas, general conversation
