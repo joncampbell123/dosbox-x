@@ -1272,8 +1272,8 @@ void SHELL_Init() {
 		   "  /R                 Display DOSBox-X's Git commit version and build date.\n"
 		   "  [SET] number       Set the specified number as the reported DOS version.\n"
 		   "  SET [major minor]  Set the reported DOS version in major and minor format.\n\n"
-		   "  Example: \"VER 6.0\" or \"VER 7.1\" for DOS version 6.0 or 7.1 respectively.\n"
-		   "  The command \"VER SET 7 1\" however sets the reported DOS version as 7.01.\n\n" 
+		   "  E.g., \033[37;1mVER 6.0\033[0m or \033[37;1mVER 7.1\033[0m sets the DOS version to 6.0 and 7.1, respectively.\n"
+		   "  On the other hand, \033[37;1mVER SET 7 1\033[0m sets the DOS version to 7.01 instead of 7.1.\n\n"
 		   "Type VER without parameters to display DOSBox-X and the reported DOS version.\n");
 	MSG_Add("SHELL_CMD_VER_VER","DOSBox-X version %s (%s). Reported DOS version %d.%02d.\n");
 	MSG_Add("SHELL_CMD_VER_INVALID","The specified DOS version is not correct.\n");
