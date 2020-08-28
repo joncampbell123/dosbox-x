@@ -2394,13 +2394,13 @@ void DOSBOX_SetupConfigSections(void) {
 
     Pstring = secprop->Add_string("voodoo_card",Property::Changeable::WhenIdle,"auto");
     Pstring->Set_values(voodoo_settings);
-    Pstring->Set_help("Enable VOODOO card support.");
+    Pstring->Set_help("Enable support for the 3dfx Voodoo card.");
 	Pbool = secprop->Add_bool("voodoo_maxmem",Property::Changeable::OnlyAtStart,true);
-	Pbool->Set_help("Specify whether to enable maximum memory size for the VOODOO card.\n"
+	Pbool->Set_help("Specify whether to enable maximum memory size for the Voodoo card.\n"
                     "If set (on by default), the memory size will be 12MB (4MB front buffer + 2x4MB texture units)\n"
 		            "Otherwise, the memory size will be the standard 4MB (2MB front buffer + 1x2MB texture unit)");
 	Pbool = secprop->Add_bool("glide",Property::Changeable::WhenIdle,false);
-	Pbool->Set_help("Enable Glide emulation (requires glide2x.dll/libglide2x.so/libglide2x.dylib).");
+	Pbool->Set_help("Enable Glide emulation (requires a Glide wrapper - glide2x.dll/libglide2x.so/libglide2x.dylib).");
 	//Phex = secprop->Add_hex("grport",Property::Changeable::WhenIdle,0x600);
 	//Phex->Set_help("I/O port to use for host communication.");
     const char *lfb[] = {"full","full_noaux","read","read_noaux","write","write_noaux","none",0};

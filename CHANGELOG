@@ -140,13 +140,14 @@
     still shows 10 slots as before, but you can now go
     to the previous or next page (up to 10 pages) for
     more save slots (100 in total). (Wengier).
-  - Add config option "voodoo_maxmem" (default: true)
-    to specify whether to use the maximum memory size
-    (12MB instead of the standard 4MB) for the Vooodoo
-    card. The [pci] section is now [voodoo] section,
-    and its only config option "voodoo" is now named
-    "voodoo_card" to make it clear it is for emulating
-    the Voodoo card hardware. (Wengier)
+  - The [pci] section is now the [voodoo] section, and
+    the config option "voodoo" (the only option of that
+    section) is now named "voodoo_card" within the
+    [voodoo] section to make clear it is for emulating
+    the Voodoo card hardware. Also added config option
+    "voodoo_maxmem" (default: true) to specify whether
+    to use the maximum memory size (12MB instead of the
+    standard 4MB) for the Vooodoo card. (Wengier)
   - Added support for Glide wrapper. It can be enabled
     with "glide=true" in [voodoo] section. The library
     file glide2x.dll/libglide2x.so/libglide2x.dylib is
