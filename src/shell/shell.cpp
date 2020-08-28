@@ -1209,7 +1209,8 @@ void SHELL_Init() {
 	MSG_Add("SHELL_CMD_RENAME_HELP","Renames a file/directory or files.\n");
 	MSG_Add("SHELL_CMD_RENAME_HELP_LONG","RENAME [drive:][path][directoryname1 | filename1] [directoryname2 | filename2]\n"
 	        "REN [drive:][path][directoryname1 | filename1] [directoryname2 | filename2]\n\n"
-	        "Note that you can not specify a new drive or path for your destination.\n");
+	        "Note that you can not specify a new drive or path for your destination.\n\n"
+	        "Wildcards are supported for files, e.g. \033[37;1mREN *.TXT *.BAK\033[0m renames all text files.\n");
 	MSG_Add("SHELL_CMD_DELETE_HELP","Removes one or more files.\n");
 	MSG_Add("SHELL_CMD_DELETE_HELP_LONG","DEL [/P] [/F] [/Q] names\n"
 		   "ERASE [/P] [/F] [/Q] names\n\n"
@@ -1219,7 +1220,7 @@ void SHELL_Init() {
 		   "\t\twill be deleted.\n"
 		   "  /P\t\tPrompts for confirmation before deleting one or more files.\n"
 		   "  /F\t\tForce deleting of read-only files.\n"
-		   "  /Q\t\tQuiet mode, do not ask if ok to delete on global wildcard\n");
+		   "  /Q\t\tQuiet mode, do not ask if ok to delete on global wildcard.\n");
 	MSG_Add("SHELL_CMD_COPY_HELP","Copies one or more files.\n");
 	MSG_Add("SHELL_CMD_COPY_HELP_LONG","COPY [/Y | /-Y] source [+source [+ ...]] [destination]\n\n"
 		   "  source\tSpecifies the file or files to be copied.\n"
