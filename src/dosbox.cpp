@@ -2409,7 +2409,7 @@ void DOSBOX_SetupConfigSections(void) {
 	Pstring->Set_values(lfb);
 	Pstring->Set_help("Enable LFB access for Glide. OpenGlide does not support locking aux buffer, please use _noaux modes.");
 	Pbool = secprop->Add_bool("splash",Property::Changeable::WhenIdle,true);
-	Pbool->Set_help("Show 3dfx splash screen for Glide (Windows; requires 3dfxSpl2.dll).");
+	Pbool->Set_help("Show 3dfx splash screen for Glide emulation (Windows; requires 3dfxSpl2.dll).");
 
     secprop=control->AddSection_prop("mixer",&Null_Init);
     Pbool = secprop->Add_bool("nosound",Property::Changeable::OnlyAtStart,false);
