@@ -1291,7 +1291,7 @@ void DOSBOX_SetupConfigSections(void) {
         "d2",  "d4",  "d6",  "d8",  "da",  "dc",  "de",             /* NEC PC-98   (base+(port << 8) i.e. 00D2h base, 2CD2h is DSP) */
         0 };
     const char* ems_settings[] = { "true", "emsboard", "emm386", "false", 0};
-    const char* lfn_settings[] = { "true", "false", "auto", "autostart", 0};
+    const char* lfn_settings[] = { "true", "false", "1", "0", "auto", "autostart", 0};
     const char* irqsgus[] = { "5", "3", "7", "9", "10", "11", "12", 0 };
     const char* irqssb[] = { "7", "5", "3", "9", "10", "11", "12", 0 };
     const char* dmasgus[] = { "3", "0", "1", "5", "6", "7", 0 };

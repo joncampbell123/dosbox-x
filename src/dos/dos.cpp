@@ -3097,8 +3097,8 @@ public:
 		dos.internal_output=false;
 
 		std::string lfn = section->Get_string("lfn");
-		if (lfn=="true") enablelfn=1;
-		else if (lfn=="false") enablelfn=0;
+		if (lfn=="true"||lfn=="1") enablelfn=1;
+		else if (lfn=="false"||lfn=="0") enablelfn=0;
 		else if (lfn=="autostart") enablelfn=-2;
 		else enablelfn=-1;
 
