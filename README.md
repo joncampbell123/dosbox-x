@@ -107,9 +107,9 @@ As joncampbell123 only has limited time to work on DOSBox-X, help is
 greatly appreciated:
 
   - Testing
-    - Features of DOSBox-X, such as its commands and graphical functions 
-    - The normal operation of DOS games and applications within DOSBox-X
-    - Windows 1.0 to Windows ME (Windows 3.x/9x in particular) guest system support
+    - Features of DOSBox-X, such as its commands and functions 
+    - The normal operation of DOS games and applications
+    - Windows 1.0/2.x/3.x & Windows 9x/ME guest system support
     - Software or hardware emulation accuracy, helped by for example demoscene software
     - Retro development
   - Bug fixes, patches, improvements, refinements
