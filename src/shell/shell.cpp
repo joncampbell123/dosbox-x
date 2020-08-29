@@ -702,12 +702,16 @@ public:
                     cmd += "@c:\n";
                     cmd += "@cd \\\n";
                     if (templfn) cmd += "@config -set lfn=true\n";
+#if defined(WIN32) && !defined(HX_DOS)
                     if (!winautorun) cmd += "@config -set startcmd=true\n";
+#endif
                     cmd += "@CALL \"";
                     cmd += batname;
                     cmd += "\"\n";
                     if (templfn) cmd += "@config -set lfn=" + std::string(enablelfn==-1?"auto":"autostart") + "\n";
+#if defined(WIN32) && !defined(HX_DOS)
                     if (!winautorun) cmd += "@config -set startcmd=false\n";
+#endif
                     cmd += "@mount c: -q -u\n";
                 }
             }
