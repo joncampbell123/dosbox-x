@@ -684,7 +684,7 @@ public:
                 } else {
                     std::string batname;
                     /* NTS: this code might have problems with DBCS filenames - yksoft1 */
-                    LOG_MSG("auto_bat_additional %s\n", control->auto_bat_additional[i].c_str());
+                    //LOG_MSG("auto_bat_additional %s\n", control->auto_bat_additional[i].c_str());
 
                     std::replace(control->auto_bat_additional[i].begin(),control->auto_bat_additional[i].end(),'/','\\');
                     size_t pos = control->auto_bat_additional[i].find_last_of('\\');
