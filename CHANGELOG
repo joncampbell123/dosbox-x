@@ -1,4 +1,11 @@
 0.83.5
+  - Windows installer now offers the option to upgrade
+    the DOSBox-X config file (dosbox-x.conf) to the
+    latest version format automatically while keeping
+    users' current settings. It can also add a context
+    menu for executables and folders in the Windows
+    Explorer so that you could quickly run or open them
+    with DOSBox-X from the Windows Explorer. (Wengier)
   - Added config option "startbanner" in [dosbox]
     section which if set to "false" would skip the
     welcome banner when DOSBox-X starts. Also added
@@ -13,16 +20,11 @@
     does) or allows hpel to change per scanline.
     Setting the option to false is needed for some
     games like Commander Keen.
-  - Allowed Sound Blaster to be enabled by the games
-    "Desert Strike" and "Jungle Strike". (Wengier)
-  - DOSBox-X will now search for system fonts if the
-    fonts required for the printing feature cannot be
-    found in the FONTS directory. (Wengier)
-  - Added menu item "Send Feed-form" under the DOS menu
-    for manually ejecting new pages to print. (Wengier)
   - Support for mounting CD images with a sector size
     of 2448, used by for example the MDF image of the
     game Grand Theft Auto. (Wengier)
+  - Allowed Sound Blaster to be enabled by the games
+    "Desert Strike" and "Jungle Strike". (Wengier)
   - Sound Blaster Pro emulation now maps DSP commands
     0x41 to 0x47 as aliases of 0x40 (set time constant)
     to support broken demoscene code that uses 0x41
@@ -36,6 +38,9 @@
   - COPY command now assumes /Y automatically when
     running in the batch file or with CALL command
     (or COMMAND /C) as in real DOS. (Wengier)
+  - DOSBox-X will allow control characters 8 (BS),
+    9 (TAB), and 27 (ESC) when executing GOTO command
+    in batch programs without warnings. (Wengier)
   - Normal core: REP MOVSD now checks segment limits
     for ES:(E)DI and throws a GP fault if exceeded.
     Demoscene productions marked as using VESA BIOS
@@ -62,8 +67,6 @@
     "auto" (default), DOSBox-X will warn only if at
     least one file handle is still open, or you are
     currently running a guest system. (Wengier)
-  - DOSBox-X will allow control characters 8, 9, and
-    27 in the batch file without warnings. (Wengier)
   - Add command-line option "-defaultdir" to specify
     a directory (instead of the current directory) as
     the working directory. DOSBox-X will look for the
@@ -76,6 +79,14 @@
   - Fixed that joystick may not work with the setting
     "usescancodes=auto" when a non-US keyboard layout
     is activated on the SDL1 build. (Wengier)
+  - DOSBox-X will now search for system fonts if the
+    fonts required for the printing feature cannot be
+    found in the FONTS directory. (Wengier)
+  - Added menu item "Send Feed-form" under the DOS menu
+    for manually ejecting new pages to print. (Wengier)
+  - Added "Quick launch program..." menu (under "DOS")
+    to quickly run the specified program as selected
+    by the Windows file browser in DOSBox-X. (Wengier)
   - Added "Drive information" menu item under "Drive"
     menu to show information for the specified drive,
     and added "Show mounted drive numbers" menu item
@@ -86,8 +97,8 @@
     "Swap disk" menu item under the "Drive" menu for
     swapping individual mounted drives. (Wengier)
   - IMGMAKE now tries to resolve home directory (~)
-    on Linux platform. Also improved the help message
-    for this command. (Wengier)
+    on Linux and macOS platforms. Also improved the
+    help message for this command. (Wengier)
   - Fixed unmounting swap disks when unmounting drives
     with MOUNT or IMGMOUNT command. (Wengier)
   - Fixed possible failure when mounting .VHD images,
@@ -101,12 +112,6 @@
     disk images as read-only at once. You could also
     mark read-only disk images individually using the
     leading colon as in previous versions. (Wengier)
-  - Added option to the Windows installer which allows
-    to automatically upgrade the DOSBox-X config file
-    (dosbox-x.conf) to the latest version format while
-    keeping the current user settings. Also added the
-    option to add the context menu for executables and
-    folders in the Windows Explorer. (Wengier)
   - The default value for "output" (in "sdl" section)
     is now "default", which will default to the value
     according to your platform. (Wengier)
@@ -122,9 +127,6 @@
     to the stable version 0.8.0. (Wengier)
   - Added support for the OPL2 audio board by setting
     the config option "oplemu=opl2board".
-  - Added "Quick launch program..." menu (under "DOS")
-    to quickly run the specified program as selected
-    by the Windows file browser in DOSBox-X. (Wengier)
   - The save state feature now tries to save and then
     restore the mounted drives of all types (if the
     paths or image files still exist on host system).
@@ -152,11 +154,12 @@
     to use the maximum memory size (12MB instead of the
     standard 4MB) for the Vooodoo card. (Wengier)
   - Added support for Glide wrapper. It can be enabled
-    with "glide=true" in [voodoo] section. The library
-    file glide2x.dll/libglide2x.so/libglide2x.dylib is
-    required for Glide to work. Be sure to use 32-bit
-    dll for 32-bit DOSBox-X binary, and 64-bit dll for
-    64-bit DOSBox-X binary. (Wengier)
+    with the new config option "glide" set to "true"
+    in [voodoo] section. The library file glide2x.dll
+    (Windows)/libglide2x.so (Linux)/libglide2x.dylib
+    (macOS) is required for Glide to work. Be sure to
+    use 32-bit dll for 32-bit DOSBox-X binary, and
+    64-bit dll for 64-bit DOSBox-X binary. (Wengier)
 0.83.4
   - Fixed loading saved states in fullscreen mode with
     the "aspect=true" setting. (Wengier)
