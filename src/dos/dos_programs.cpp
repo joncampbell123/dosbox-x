@@ -3592,7 +3592,7 @@ void RESCAN::Run(void)
             Drives[drive]->EmptyCache();
             if (!quiet) WriteOut(MSG_Get("PROGRAM_RESCAN_SUCCESS"));
         } else
-            if (!quiet) WriteOut("Invalid drive specification\n");
+            if (!quiet) WriteOut(MSG_Get("SHELL_EXECUTE_DRIVE_NOT_FOUND"), 'A'+drive);
     }
 }
 
