@@ -3,7 +3,7 @@
     the DOSBox-X config file (dosbox-x.conf) to the
     latest version format automatically while keeping
     users' current settings. It can also add a context
-    menu for executables (.exe, .com, .bat). config
+    menu for executables (.exe, .com, .bat), config
     files (.conf) and folders in the Windows Explorer
     so that you could quickly run or open them with
     DOSBox-X from the Windows Explorer. More icons
