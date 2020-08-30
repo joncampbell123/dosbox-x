@@ -1415,7 +1415,7 @@ void fatDrive::fatDriveInit(const char *sysFilename, Bit32u bytesector, Bit32u c
                 opt_partition_index = (int)atol(value.c_str());
         }
         else {
-            LOG(LOG_MISC,LOG_DEBUG)("FAT: option '%s' = '%s' ignored, unknown",name.c_str(),value.c_str());
+            LOG(LOG_DOSMISC,LOG_DEBUG)("FAT: option '%s' = '%s' ignored, unknown",name.c_str(),value.c_str());
         }
 
 //        LOG_MSG("'%s' = '%s'",name.c_str(),value.c_str());

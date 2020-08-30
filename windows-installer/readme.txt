@@ -19,7 +19,7 @@ You do not have to always type these commands. Check out the "Drive" menu to mou
 Further Information
 ===================
 
-For more information about DOSBox-X, including usage tips and common ways to configure DOSBox-X, please read the online user guide in the DOSBox-X Wiki:
+For more complete usage information about DOSBox-X, including common ways to configure DOSBox-X and its usage tips, please read the user guide in the DOSBox-X Wiki:
 https://github.com/joncampbell123/dosbox-x/wiki
 
 The issue tracker and source code for DOSBox-X are available from the DOSBox-X GitHub site. Please feel free to report issues or request new features in DOSBox-X:

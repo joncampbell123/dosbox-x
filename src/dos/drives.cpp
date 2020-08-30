@@ -412,13 +412,13 @@ void DriveManager::Init(Section* s) {
 void DRIVES_Startup(Section *s) {
     (void)s;//UNUSED
 	if (!drivemanager_init) {
-		LOG(LOG_MISC,LOG_DEBUG)("Initializing drive system");
+		LOG(LOG_DOSMISC,LOG_DEBUG)("Initializing drive system");
 		DriveManager::Init(control->GetSection("dos"));
 	}
 }
 
 void DRIVES_Init() {
-	LOG(LOG_MISC,LOG_DEBUG)("Initializing OOS drives");
+	LOG(LOG_DOSMISC,LOG_DEBUG)("Initializing DOS drives");
 
 	// TODO: DOS kernel exit, reset, guest booting handler
 }

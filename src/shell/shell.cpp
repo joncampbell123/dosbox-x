@@ -31,6 +31,7 @@
 #include "builtin.h"
 #include "mapper.h"
 #include "../dos/drives.h"
+#include "../ints/int10.h"
 #include <unistd.h>
 #include <time.h>
 #include <string>
@@ -474,17 +475,21 @@ void DOS_Shell::Run(void) {
 
     bool optInit=cmd->FindString("/INIT",line,true);
     if (this == first_shell) {
-        /* Start a normal shell and check for a first command init */
-        WriteOut(MSG_Get("SHELL_STARTUP_BEGIN"),VERSION,SDL_STRING,UPDATED_STR);
-        WriteOut(MSG_Get("SHELL_STARTUP_BEGIN2"));
-        WriteOut(MSG_Get("SHELL_STARTUP_BEGIN3"));
+        Section_prop *section = static_cast<Section_prop *>(control->GetSection("dosbox"));
+        if(section->Get_bool("startbanner")&&!control->opt_fastlaunch) {
+            /* Start a normal shell and check for a first command init */
+            WriteOut(MSG_Get("SHELL_STARTUP_BEGIN"),VERSION,SDL_STRING,UPDATED_STR);
+            WriteOut(MSG_Get("SHELL_STARTUP_BEGIN2"));
+            WriteOut(MSG_Get("SHELL_STARTUP_BEGIN3"));
 #if C_DEBUG
-        WriteOut(MSG_Get("SHELL_STARTUP_DEBUG"));
+            WriteOut(MSG_Get("SHELL_STARTUP_DEBUG"));
 #endif
-        if (machine == MCH_CGA || machine == MCH_AMSTRAD) WriteOut(MSG_Get("SHELL_STARTUP_CGA"));
-        if (machine == MCH_PC98) WriteOut(MSG_Get("SHELL_STARTUP_PC98"));
-        if (machine == MCH_HERC || machine == MCH_MDA) WriteOut(MSG_Get("SHELL_STARTUP_HERC"));
-        WriteOut(MSG_Get("SHELL_STARTUP_END"));
+            if (machine == MCH_CGA || machine == MCH_AMSTRAD) WriteOut(MSG_Get("SHELL_STARTUP_CGA"));
+            if (machine == MCH_PC98) WriteOut(MSG_Get("SHELL_STARTUP_PC98"));
+            if (machine == MCH_HERC || machine == MCH_MDA) WriteOut(MSG_Get("SHELL_STARTUP_HERC"));
+            WriteOut(MSG_Get("SHELL_STARTUP_END"));
+        } else if (CurMode->type==M_TEXT || IS_PC98_ARCH)
+            WriteOut("[2J");
 		if (!countryNo) {
 #if defined(WIN32)
 			char buffer[128];
@@ -497,7 +502,7 @@ void DOS_Shell::Run(void) {
 #endif
 		}
 		strcpy(config_data, "");
-		Section_prop *section = static_cast<Section_prop *>(control->GetSection("config"));
+		section = static_cast<Section_prop *>(control->GetSection("config"));
 		if (section!=NULL&&!control->opt_noconfig&&!control->opt_securemode&&!control->SecureMode()) {
 			int country = section->Get_int("country");
 			if (country>0) {
@@ -679,7 +684,7 @@ public:
                 } else {
                     std::string batname;
                     /* NTS: this code might have problems with DBCS filenames - yksoft1 */
-                    LOG_MSG("auto_bat_additional %s\n", control->auto_bat_additional[i].c_str());
+                    //LOG_MSG("auto_bat_additional %s\n", control->auto_bat_additional[i].c_str());
 
                     std::replace(control->auto_bat_additional[i].begin(),control->auto_bat_additional[i].end(),'/','\\');
                     size_t pos = control->auto_bat_additional[i].find_last_of('\\');
@@ -697,10 +702,16 @@ public:
                     cmd += "@c:\n";
                     cmd += "@cd \\\n";
                     if (templfn) cmd += "@config -set lfn=true\n";
+#if defined(WIN32) && !defined(HX_DOS)
+                    if (!winautorun) cmd += "@config -set startcmd=true\n";
+#endif
                     cmd += "@CALL \"";
                     cmd += batname;
                     cmd += "\"\n";
                     if (templfn) cmd += "@config -set lfn=" + std::string(enablelfn==-1?"auto":"autostart") + "\n";
+#if defined(WIN32) && !defined(HX_DOS)
+                    if (!winautorun) cmd += "@config -set startcmd=false\n";
+#endif
                     cmd += "@mount c: -q -u\n";
                 }
             }
@@ -1155,9 +1166,12 @@ void SHELL_Init() {
 	MSG_Add("SHELL_CMD_EXIT_HELP_LONG","EXIT\n");
 	MSG_Add("SHELL_CMD_HELP_HELP","Shows DOSBox-X command help.\n");
 	MSG_Add("SHELL_CMD_HELP_HELP_LONG","HELP [/A or /ALL]\nHELP [command]\n\n"
-		    "   /A or /ALL\tLists all supported internal commands.\n\n"
-			"Note: HELP will not list external commands such as MOUNT and IMGMOUNT.\n"
-			"      External commands can be found on the Z: drive as programs.\n");
+		    "   /A or /ALL\tLists all supported internal commands.\n"
+		    "   [command]\tShows help for the specified command.\n\n"
+            "E.g., \033[37;1mHELP COPY\033[0m or \033[37;1mCOPY /?\033[0m shows help infomration for COPY command.\n\n"
+			"Note: External commands like \033[33;1mMOUNT\033[0m and \033[33;1mIMGMOUNT\033[0m are not listed by HELP [/A].\n"
+			"      These commands can be found on the Z: drive as programs (e.g. MOUNT.COM).\n"
+            "      Type \033[33;1mcommand /?\033[0m or \033[33;1mHELP command\033[0m for help information for that command.\n");
 	MSG_Add("SHELL_CMD_MKDIR_HELP","Creates a directory.\n");
 	MSG_Add("SHELL_CMD_MKDIR_HELP_LONG","MKDIR [drive:][path]\n"
 	        "MD [drive:][path]\n");
@@ -1204,7 +1218,8 @@ void SHELL_Init() {
 	MSG_Add("SHELL_CMD_RENAME_HELP","Renames a file/directory or files.\n");
 	MSG_Add("SHELL_CMD_RENAME_HELP_LONG","RENAME [drive:][path][directoryname1 | filename1] [directoryname2 | filename2]\n"
 	        "REN [drive:][path][directoryname1 | filename1] [directoryname2 | filename2]\n\n"
-	        "Note that you can not specify a new drive or path for your destination.\n");
+	        "Note that you can not specify a new drive or path for your destination.\n\n"
+	        "Wildcards are supported for files, e.g. \033[37;1mREN *.TXT *.BAK\033[0m renames all text files.\n");
 	MSG_Add("SHELL_CMD_DELETE_HELP","Removes one or more files.\n");
 	MSG_Add("SHELL_CMD_DELETE_HELP_LONG","DEL [/P] [/F] [/Q] names\n"
 		   "ERASE [/P] [/F] [/Q] names\n\n"
@@ -1214,7 +1229,7 @@ void SHELL_Init() {
 		   "\t\twill be deleted.\n"
 		   "  /P\t\tPrompts for confirmation before deleting one or more files.\n"
 		   "  /F\t\tForce deleting of read-only files.\n"
-		   "  /Q\t\tQuiet mode, do not ask if ok to delete on global wildcard\n");
+		   "  /Q\t\tQuiet mode, do not ask if ok to delete on global wildcard.\n");
 	MSG_Add("SHELL_CMD_COPY_HELP","Copies one or more files.\n");
 	MSG_Add("SHELL_CMD_COPY_HELP_LONG","COPY [/Y | /-Y] source [+source [+ ...]] [destination]\n\n"
 		   "  source\tSpecifies the file or files to be copied.\n"
@@ -1266,8 +1281,8 @@ void SHELL_Init() {
 		   "  /R                 Display DOSBox-X's Git commit version and build date.\n"
 		   "  [SET] number       Set the specified number as the reported DOS version.\n"
 		   "  SET [major minor]  Set the reported DOS version in major and minor format.\n\n"
-		   "  Example: \"VER 6.0\" or \"VER 7.1\" for DOS version 6.0 or 7.1 respectively.\n"
-		   "  The command \"VER SET 7 1\" however sets the reported DOS version as 7.01.\n\n" 
+		   "  E.g., \033[37;1mVER 6.0\033[0m or \033[37;1mVER 7.1\033[0m sets the DOS version to 6.0 and 7.1, respectively.\n"
+		   "  On the other hand, \033[37;1mVER SET 7 1\033[0m sets the DOS version to 7.01 instead of 7.1.\n\n"
 		   "Type VER without parameters to display DOSBox-X and the reported DOS version.\n");
 	MSG_Add("SHELL_CMD_VER_VER","DOSBox-X version %s (%s). Reported DOS version %d.%02d.\n");
 	MSG_Add("SHELL_CMD_VER_INVALID","The specified DOS version is not correct.\n");

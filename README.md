@@ -9,7 +9,7 @@ Like DOSBox, it emulates a PC necessary for running many MS-DOS games and applic
 
 Our goal is to eventually make DOSBox-X a complete DOS emulation package, both fully-featured and easy to use, and give the users all the options to configure the DOS virtual machine. We implement new features with each official release, and also try our best to deliver a consistent cross-platform experience for users instead of focusing on a particular platform. In order to help improve the general DOS emulation and also to aid retro-programmming, it is our desire to maintain and implement more accurate emulation, but at the same time we are also making efforts to improve emulation quality, speed, and usability for end users. Furthermore, we hope to improve the out-of-the-box experience for new users who want to run DOS programs or games.
 
-Please see the [INSTALL](INSTALL.md) page for DOSBox-X installation instructions and [Releases](https://github.com/joncampbell123/dosbox-x/releases) page for released DOSBox-X versions. For more information about DOSBox-X, such as setting up and running DOSBox-X including its usage tips, please read the user guide in the [DOSBox-X Wiki](https://github.com/joncampbell123/dosbox-x/wiki).
+Please see the [INSTALL](INSTALL.md) page for DOSBox-X installation instructions and latest packages, and the [Releases](https://github.com/joncampbell123/dosbox-x/releases) page for all released DOSBox-X versions. For more information about DOSBox-X, such as setting up and running DOSBox-X including its usage tips, please read the user guide in the [DOSBox-X Wiki](https://github.com/joncampbell123/dosbox-x/wiki).
 
 DOSBox-X is completely open-source and free of charge to use and distribute. It is released under the [GNU General Public License, version 2](COPYING).
 
@@ -25,7 +25,7 @@ Notable features in DOSBox-X
 
 Although based on the DOSBox project, DOSBox-X is now a separate project because both have their own separate schedules and development priorities. For example, the main focus of DOSBox is for running DOS games whereas DOSBox-X goes way beyond this. At this time DOSBox-X already has a great number of features that do not exist in DOSBox. Examples of such features include:
 
-* GUI menu bar and graphical configuration tool
+* GUI menu bar and built-in graphical configuration tool
 
 * Save and load state support (with save slots)
 
@@ -43,13 +43,13 @@ Although based on the DOSBox project, DOSBox-X is now a separate project because
 
 * Support for printer output, either a real or virtual printer
 
-* Support for 3dfx Glide and Voodoo chip emulation
+* Support for 3dfx Voodoo chip and Glide emulation
 
-* Support for cue sheets with FLAC, MP3, WAV, and Vorbis CD-DA tracks
+* Support for cue sheets with FLAC, MP3, WAV, and OGG Vorbis CD-DA tracks
 
 * Support for FluidSynth MIDI synthesizer and Innovation SSI-2001 emulation
 
-* Support for NE2000 Ethernet for networking and Modem Phonebook mapping
+* Support for NE2000 Ethernet for networking and modem phone book mapping
 
 * Support for features such as V-Sync, overscan border and stereo swapping
 
@@ -107,11 +107,10 @@ As joncampbell123 only has limited time to work on DOSBox-X, help is
 greatly appreciated:
 
   - Testing
-    - Features
-    - Hardware accuracy
-    - Software accuracy
-    - Games, applications, demoscene executables
-    - Windows 1.0 to Windows ME guest system support
+    - Features of DOSBox-X, such as its commands and functions 
+    - The normal operation of DOS games and applications
+    - Software or hardware emulation accuracy, helped by for example demoscene software
+    - Windows 1.0/2.x/3.x & Windows 9x/ME guest system support
     - Retro development
   - Bug fixes, patches, improvements, refinements
   - Suggestions, ideas, general conversation
@@ -119,8 +118,9 @@ greatly appreciated:
   - Documentation, language file translation
   - Notes regarding games, applications, hacks, weird MS-DOS tricks, etc.
 
-If you want to tweak or write some code and you don't know what to work
-on, feel free to visit the [issue tracker](https://github.com/joncampbell123/dosbox-x/issues) to get some ideas.
+See the [CONTRIBUTING](CONTRIBUTING.md) page for more contribution guidelines.
+If you want to tweak or write some code and you don't know what to work on,
+feel free to visit the [issue tracker](https://github.com/joncampbell123/dosbox-x/issues) to get some ideas.
 
 For more information about the source code, please take a look at the
 [DOSBox-X source code description](README.source-code-description) page.

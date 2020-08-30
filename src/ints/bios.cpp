@@ -8447,7 +8447,8 @@ private:
             emscripten_sleep_with_yield(100);
         }
 #else
-        if (!control->opt_fastbioslogo&&!bootguest&&!bootfast&&(bootvm||!use_quick_reboot)) {
+        bool fastbioslogo=static_cast<Section_prop *>(control->GetSection("dosbox"))->Get_bool("fastbioslogo")||control->opt_fastbioslogo||control->opt_fastlaunch;
+        if (!fastbioslogo&&!bootguest&&!bootfast&&(bootvm||!use_quick_reboot)) {
             bool wait_for_user = false;
             Bit32u lasttick=GetTicks();
             while ((GetTicks()-lasttick)<1000) {
@@ -8571,8 +8572,8 @@ private:
 
 		if ((bootguest||(!bootvm&&use_quick_reboot))&&!bootfast&&bootdrive>=0&&imageDiskList[bootdrive]) {
 			MOUSE_Startup(NULL);
-			char drive[] = "-Q A:";
-			drive[3]='A'+bootdrive;
+			char drive[] = "-QQ A:";
+			drive[4]='A'+bootdrive;
 			runBoot(drive);
 		}
 		if (use_quick_reboot&&!bootvm&&!bootfast&&bootdrive<0&&first_shell != NULL) throw int(6);

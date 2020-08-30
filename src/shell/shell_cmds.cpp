@@ -29,7 +29,7 @@
 #include "pic.h"
 #include "keyboard.h"
 #include "timer.h"
-#include "../src/ints/int10.h"
+#include "../ints/int10.h"
 #include <time.h>
 #include <assert.h>
 #include "bios.h"
@@ -657,6 +657,8 @@ void DOS_Shell::CMD_HELP(char * args){
 		std::string argc=std::string(StripArg(args));
 		if (argc!=""&&argc!="CWSDPMI") DoCommand((char *)(argc+(argc=="DOS4GW"||argc=="DOS32A"?"":" /?")).c_str());
 	}
+	if (!*args&&show)
+		WriteOut("Type \033[33;1mHELP command\033[0m or \033[33;1mcommand /?\033[0m for help information for the specified command.\n");
 }
 
 static void removeChar(char *str, char c) {

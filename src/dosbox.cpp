@@ -1291,7 +1291,7 @@ void DOSBOX_SetupConfigSections(void) {
         "d2",  "d4",  "d6",  "d8",  "da",  "dc",  "de",             /* NEC PC-98   (base+(port << 8) i.e. 00D2h base, 2CD2h is DSP) */
         0 };
     const char* ems_settings[] = { "true", "emsboard", "emm386", "false", 0};
-    const char* lfn_settings[] = { "true", "false", "auto", "autostart", 0};
+    const char* lfn_settings[] = { "true", "false", "1", "0", "auto", "autostart", 0};
     const char* irqsgus[] = { "5", "3", "7", "9", "10", "11", "12", 0 };
     const char* irqssb[] = { "7", "5", "3", "9", "10", "11", "12", 0 };
     const char* dmasgus[] = { "3", "0", "1", "5", "6", "7", 0 };
@@ -1362,7 +1362,13 @@ void DOSBOX_SetupConfigSections(void) {
     Pstring->Set_help("Select another language file.");
 
     Pstring = secprop->Add_path("title",Property::Changeable::Always,"");
-    Pstring->Set_help("Additional text to place in the title bar of the window");
+    Pstring->Set_help("Additional text to place in the title bar of the window.");
+
+    Pbool = secprop->Add_bool("fastbioslogo",Property::Changeable::OnlyAtStart,false);
+    Pbool->Set_help("If set, DOSBox-X will enable fast BIOS logo mode (skip 1-second pause).");
+
+    Pbool = secprop->Add_bool("startbanner",Property::Changeable::OnlyAtStart,true);
+    Pbool->Set_help("If set (default), DOSBox-X will display the welcome banner when it starts.");
 
     Pbool = secprop->Add_bool("enable 8-bit dac",Property::Changeable::OnlyAtStart,true);
     Pbool->Set_help("If set, allow VESA BIOS calls in IBM PC mode to set DAC width. Has no effect in PC-98 mode.");
@@ -1396,7 +1402,7 @@ void DOSBOX_SetupConfigSections(void) {
     Phex->Set_help("If nonzero, define the physical memory address of the linear framebuffer.");
 
     Pbool = secprop->Add_bool("pci vga",Property::Changeable::WhenIdle,true);
-    Pbool->Set_help("If set, SVGA is emulated as if a PCI device (when enable pci bus=true)");
+    Pbool->Set_help("If set, SVGA is emulated as if a PCI device (when enable pci bus=true).");
 
     Pint = secprop->Add_int("vmemdelay", Property::Changeable::WhenIdle,0);
     Pint->SetMinMax(-1,100000);
@@ -1426,7 +1432,7 @@ void DOSBOX_SetupConfigSections(void) {
     Pint = secprop->Add_int("vmemsizekb", Property::Changeable::WhenIdle,0);
     Pint->SetMinMax(0,1024);
     Pint->Set_help(
-        "Amount of video memory in kilobytes, in addition to vmemsize");
+        "Amount of video memory in kilobytes, in addition to vmemsize.");
 
     Pstring = secprop->Add_path("captures",Property::Changeable::Always,"capture");
     Pstring->Set_help("Directory where things like wave, midi, screenshot get captured.");
@@ -2261,8 +2267,8 @@ void DOSBOX_SetupConfigSections(void) {
     Pbool = secprop->Add_bool("ignore undefined msr",Property::Changeable::Always,false);
     Pbool->Set_help("Ignore RDMSR/WRMSR on undefined registers. Normally the CPU will fire an Invalid Opcode exception in that case.\n"
             "This option is off by default, enable if using software or drivers that assumes the presence of\n"
-            "certain MSR registers without checking. If you are using certain versions of the 3Dfx glide drivers for MS-DOS\n"
-            "you will need to set this to TRUE as 3Dfx appears to have coded GLIDE2.OVL to assume the presence\n"
+            "certain MSR registers without checking. If you are using certain versions of the 3dfx Glide drivers for MS-DOS\n"
+            "you will need to set this to TRUE as 3dfx appears to have coded GLIDE2X.OVL to assume the presence\n"
             "of Pentium Pro/Pentium II MTRR registers.\n"
             "WARNING: Leaving this option enabled while installing Windows 95/98/ME can cause crashes.");
 
@@ -2384,13 +2390,18 @@ void DOSBOX_SetupConfigSections(void) {
     Pstring->Set_values(auxdevices);
     Pstring->Set_help("Type of PS/2 mouse attached to the AUX port");
 
-    secprop=control->AddSection_prop("pci",&Null_Init,false); //PCI bus
+    secprop=control->AddSection_prop("voodoo",&Null_Init,false); //Voodoo
 
-    Pstring = secprop->Add_string("voodoo",Property::Changeable::WhenIdle,"auto");
+    Pstring = secprop->Add_string("voodoo_card",Property::Changeable::WhenIdle,"auto");
     Pstring->Set_values(voodoo_settings);
-    Pstring->Set_help("Enable VOODOO support.");
+    Pstring->Set_help("Enable support for the 3dfx Voodoo card.");
+	Pbool = secprop->Add_bool("voodoo_maxmem",Property::Changeable::OnlyAtStart,true);
+	Pbool->Set_help("Specify whether to enable maximum memory size for the Voodoo card.\n"
+                    "If set (on by default), the memory size will be 12MB (4MB front buffer + 2x4MB texture units)\n"
+		            "Otherwise, the memory size will be the standard 4MB (2MB front buffer + 1x2MB texture unit)");
 	Pbool = secprop->Add_bool("glide",Property::Changeable::WhenIdle,false);
-	Pbool->Set_help("Enable Glide emulation (requires glide2x.dll/libglide2x.so/libglide2x.dylib).");
+	Pbool->Set_help("Enable Glide emulation (Glide API passthrough to the host).\n"
+                    "Requires a Glide wrapper - glide2x.dll (Windows), libglide2x.so (Linux), or libglide2x.dylib (macOS).");
 	//Phex = secprop->Add_hex("grport",Property::Changeable::WhenIdle,0x600);
 	//Phex->Set_help("I/O port to use for host communication.");
     const char *lfb[] = {"full","full_noaux","read","read_noaux","write","write_noaux","none",0};
@@ -2398,7 +2409,7 @@ void DOSBOX_SetupConfigSections(void) {
 	Pstring->Set_values(lfb);
 	Pstring->Set_help("Enable LFB access for Glide. OpenGlide does not support locking aux buffer, please use _noaux modes.");
 	Pbool = secprop->Add_bool("splash",Property::Changeable::WhenIdle,true);
-	Pbool->Set_help("Show 3dfx splash screen (Windows; requires 3dfxSpl2.dll).");
+	Pbool->Set_help("Show 3dfx splash screen for Glide emulation (Windows; requires 3dfxSpl2.dll).");
 
     secprop=control->AddSection_prop("mixer",&Null_Init);
     Pbool = secprop->Add_bool("nosound",Property::Changeable::OnlyAtStart,false);

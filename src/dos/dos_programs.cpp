@@ -58,6 +58,8 @@
 #if !defined(HX_DOS)
 #include <Commdlg.h>
 #endif
+#else
+#include <libgen.h>
 #endif
 bool Mouse_Drv=true;
 bool Mouse_Vertical = false;
@@ -70,6 +72,7 @@ bool mountwarning = true;
 bool qmount = false;
 
 void DOS_EnableDriveMenu(char drv);
+void runBoot(const char *str), runMount(const char *str), runImgmount(const char *str), runRescan(const char *str);
 
 #if defined(OS2)
 #define INCL DOSFILEMGR
@@ -472,7 +475,6 @@ void MenuBrowseFolder(char drive, std::string drive_type) {
 }
 
 extern bool dos_kernel_disabled, clearline;
-void runBoot(const char *str), runMount(const char *str), runImgmount(const char *str);
 void MenuBrowseImageFile(char drive, bool boot) {
 	std::string str(1, drive);
 	std::string drive_warn;
@@ -555,8 +557,8 @@ search:
 			MessageBox(GetHWND(),drive_warn.c_str(),"Error",MB_OK);
 			return;
 		} else if (boot) {
-			char str[] = "A:";
-			str[0]=drive;
+			char str[] = "-Q A:";
+			str[3]=drive;
 			runBoot(str);
 			std::string drive_warn="Drive "+std::string(1, drive)+": failed to boot.";
 			MessageBox(GetHWND(),drive_warn.c_str(),"Error",MB_OK);
@@ -771,14 +773,10 @@ void MenuBootDrive(char drive) {
 #endif
 		return;
 	}
-	std::string str(1, drive);
-	char bootstring[DOS_PATHLENGTH+CROSS_LEN+20];
-	strcpy(bootstring,"Z:\\BOOT -L ");
-	strcat(bootstring,str.c_str());
-	strcat(bootstring," >nul");
-	DOS_Shell temp;
-	temp.ParseLine(bootstring);
-	std::string drive_warn="Drive "+str+": failed to boot.";
+	char str[] = "-Q A:";
+	str[3]=drive;
+	runBoot(str);
+	std::string drive_warn="Drive "+std::string(1, drive)+": failed to boot.";
 #if defined(WIN32)
 	MessageBox(GetHWND(),drive_warn.c_str(),"Error",MB_OK);
 #endif
@@ -1552,7 +1550,7 @@ public:
         bool bios_boot = false;
         bool swaponedrive = false;
         bool force = false;
-        bool quiet = false;
+        int quiet = 0;
 
         //Hack To allow long commandlines
         ChangeToLongCmd();
@@ -1573,7 +1571,9 @@ public:
             pc98_show_graphics = true;
 
         if (cmd->FindExist("-q",true))
-            quiet = true;
+            quiet = 1;
+        if (cmd->FindExist("-qq",true))
+            quiet = 2;
 
         if (cmd->FindExist("-force",true))
             force = true;
@@ -1588,14 +1588,14 @@ public:
         else if (boothax_str == "")
             boothax = BOOTHAX_NONE;
         else {
-            WriteOut("Unknown boothax mode");
+            if (!quiet) WriteOut("Unknown boothax mode");
             return;
         }
 
         /* In secure mode don't allow people to boot stuff. 
          * They might try to corrupt the data on it */
         if(control->SecureMode()) {
-            WriteOut(MSG_Get("PROGRAM_CONFIG_SECURE_DISALLOW"));
+            if (!quiet) WriteOut(MSG_Get("PROGRAM_CONFIG_SECURE_DISALLOW"));
             return;
         }
 
@@ -1603,7 +1603,7 @@ public:
             Bit32u isz1,isz2;
 
             if (bios.empty()) {
-                WriteOut("Must specify BIOS image to boot\n");
+                if (!quiet) WriteOut("Must specify BIOS image to boot\n");
                 return;
             }
 
@@ -1626,7 +1626,7 @@ public:
             /* load it */
             FILE *romfp = getFSFile(bios.c_str(), &isz1, &isz2);
             if (romfp == NULL) {
-                WriteOut("Unable to open BIOS image\n");
+                if (!quiet) WriteOut("Unable to open BIOS image\n");
                 return;
             }
             Bitu loadsz = (isz2 + 0xFU) & (~0xFU);
@@ -1773,7 +1773,7 @@ public:
 
                 Bit32u rombytesize=0;
 				bool readonly=wpcolon&&temp_line.length()>1&&temp_line[0]==':';
-                WriteOut(MSG_Get("PROGRAM_BOOT_IMAGE_OPEN"), readonly?temp_line.c_str()+1:temp_line.c_str());
+                if (!quiet) WriteOut(MSG_Get("PROGRAM_BOOT_IMAGE_OPEN"), readonly?temp_line.c_str()+1:temp_line.c_str());
                 FILE *usefile = getFSFile(temp_line.c_str(), &floppysize, &rombytesize);
                 if(usefile != NULL) {
                     char tmp[256];
@@ -1818,7 +1818,7 @@ public:
                         rombytesize_2=rombytesize;
                     }
                 } else {
-                    WriteOut(MSG_Get("PROGRAM_BOOT_IMAGE_NOT_OPEN"), readonly?temp_line.c_str()+1:temp_line.c_str());
+                    if (!quiet) WriteOut(MSG_Get("PROGRAM_BOOT_IMAGE_NOT_OPEN"), readonly?temp_line.c_str()+1:temp_line.c_str());
                     return;
                 }
 
@@ -1828,14 +1828,14 @@ public:
 
         if (!bootbyDrive) {
             if (i == 0) {
-                WriteOut("No images specified");
+                if (!quiet) WriteOut("No images specified");
                 return;
             }
 
             if (i > 1) {
                 /* if more than one image is given, then this drive becomes the focus of the swaplist */
                 if (swapInDisksSpecificDrive >= 0 && swapInDisksSpecificDrive != (drive - 65)) {
-                    WriteOut("Multiple disk images specified and another drive is already connected to the swap list");
+                    if (!quiet) WriteOut("Multiple disk images specified and another drive is already connected to the swap list");
                     return;
                 }
                 else if (swapInDisksSpecificDrive < 0 && swaponedrive) {
@@ -1882,7 +1882,7 @@ public:
         }
 
         if(imageDiskList[drive-65]==NULL) {
-            WriteOut(MSG_Get("PROGRAM_BOOT_UNABLE"), drive);
+            if (!quiet) WriteOut(MSG_Get("PROGRAM_BOOT_UNABLE"), drive);
             return;
         }
 
@@ -1899,7 +1899,7 @@ public:
         // It depends on the fd_type field of the image.
         if (!force && imageDiskList[drive-65]->class_id == imageDisk::ID_D88) {
             if (reinterpret_cast<imageDiskD88*>(imageDiskList[drive-65])->fd_type_major == imageDiskD88::DISKTYPE_2D) {
-                WriteOut("The D88 image appears to target PC-88 and cannot be booted.");
+                if (!quiet) WriteOut("The D88 image appears to target PC-88 and cannot be booted.");
                 return;
             }
         }
@@ -1908,7 +1908,7 @@ public:
         bootSector bootarea;
 
         if (imageDiskList[drive-65]->getSectSize() > sizeof(bootarea)) {
-            WriteOut("Bytes/sector too large");
+            if (!quiet) WriteOut("Bytes/sector too large");
             return;
         }
 
@@ -1952,7 +1952,7 @@ public:
 
         if (!has_read) {
             if (imageDiskList[drive - 65]->Read_Sector(0, 0, 1, (Bit8u *)&bootarea) != 0) {
-                WriteOut("Error reading drive");
+                if (!quiet) WriteOut("Error reading drive");
                 return;
             }
         }
@@ -1968,7 +1968,7 @@ public:
         }
         
         if (pcjr_hdr_type > 0) {
-            if (machine!=MCH_PCJR) WriteOut(MSG_Get("PROGRAM_BOOT_CART_WO_PCJR"));
+            if (machine!=MCH_PCJR&&!quiet) WriteOut(MSG_Get("PROGRAM_BOOT_CART_WO_PCJR"));
             else {
                 Bit8u rombuf[65536];
                 Bits cfound_at=-1;
@@ -1998,9 +1998,9 @@ public:
                             clen=rombuf[ct];
                         }
                         if (ct>6) {
-                            WriteOut(MSG_Get("PROGRAM_BOOT_CART_LIST_CMDS"),cmdlist);
+                            if (!quiet) WriteOut(MSG_Get("PROGRAM_BOOT_CART_LIST_CMDS"),cmdlist);
                         } else {
-                            WriteOut(MSG_Get("PROGRAM_BOOT_CART_NO_CMDS"));
+                            if (!quiet) WriteOut(MSG_Get("PROGRAM_BOOT_CART_NO_CMDS"));
                         }
                         for(Bitu dct=0;dct<MAX_SWAPPABLE_DISKS;dct++) {
                             if(diskSwap[dct]!=NULL) {
@@ -2030,9 +2030,9 @@ public:
                         }
                         if (cfound_at<=0) {
                             if (ct>6) {
-                                WriteOut(MSG_Get("PROGRAM_BOOT_CART_LIST_CMDS"),cmdlist);
+                                if (!quiet) WriteOut(MSG_Get("PROGRAM_BOOT_CART_LIST_CMDS"),cmdlist);
                             } else {
-                                WriteOut(MSG_Get("PROGRAM_BOOT_CART_NO_CMDS"));
+                                if (!quiet) WriteOut(MSG_Get("PROGRAM_BOOT_CART_NO_CMDS"));
                             }
                             for(Bitu dct=0;dct<MAX_SWAPPABLE_DISKS;dct++) {
                                 if(diskSwap[dct]!=NULL) {
@@ -2165,7 +2165,7 @@ public:
             if (max_seg < 0x0800) {
                 /* TODO: For the adventerous, add a configuration option or command line switch to "BOOT"
                  *       that allows us to boot the guest OS anyway in a manner that is non-standard. */
-                WriteOut("32KB of RAM is required to boot a guest OS\n");
+                if (!quiet) WriteOut("32KB of RAM is required to boot a guest OS\n");
                 return;
             }
 
@@ -2184,11 +2184,11 @@ public:
              *       (default) or just below the boot sector, or... */
 
             if((bootarea.rawdata[0]==0) && (bootarea.rawdata[1]==0)) {
-                WriteOut(MSG_Get("PROGRAM_BOOT_UNABLE"), drive);
+                if (!quiet) WriteOut(MSG_Get("PROGRAM_BOOT_UNABLE"), drive);
                 return;
             }
 
-			if (!quiet) {
+			if (quiet<2) {
 				char msg[30];
 				const Bit8u page=real_readb(BIOSMEM_SEG,BIOSMEM_CURRENT_PAGE);
 				strcpy(msg, CURSOR_POS_COL(page)>0?"\r\n":"");
@@ -2709,7 +2709,7 @@ restart_int:
             printHelp();
             return;
         }
-		if (cmd->FindExist("-examples")) {
+		if (cmd->FindExist("/examples")||cmd->FindExist("-examples")) {
 			WriteOut(MSG_Get("PROGRAM_IMGMAKE_EXAMPLE"));
 			return;
 		}
@@ -2801,7 +2801,7 @@ restart_int:
             if(!ReadDisk(f, src.c_str()[0],retries))
                 WriteOut(MSG_Get("PROGRAM_IMGMAKE_CANT_READ_FLOPPY"));
             fclose(f);
-            if (setdir) Drives[DOS_GetDefaultDrive()]->EmptyCache();
+            if (setdir) runRescan("-Q");
             return;
         }
 #endif
@@ -2830,7 +2830,7 @@ restart_int:
             c = 80; h = 2; s = 9; mediadesc = 0xF9; root_ent = 112;
         } else if(disktype=="fd_1200") {
             c = 80; h = 2; s = 15; mediadesc = 0xF9; root_ent = 224;
-        } else if(disktype=="fd_1440") {
+        } else if(disktype=="fd_1440"||disktype=="fd"||disktype=="floppy") {
             c = 80; h = 2; s = 18; mediadesc = 0xF0; root_ent = 224;
         } else if(disktype=="fd_2880") {
             c = 80; h = 2; s = 36; mediadesc = 0xF0; root_ent = 512; // root_ent?
@@ -2941,6 +2941,16 @@ restart_int:
             if (chdir(dirNew)==0) setdir=true;
         }
 
+#if !defined(WIN32) && !defined(OS2)
+        if (setdir&&temp_line[0]!='/'&&!(temp_line[0]=='~'&&temp_line[1]=='/'))
+            std::replace(temp_line.begin(), temp_line.end(), '\\', '/');
+        pref_struct_stat test;
+        std::string homedir(temp_line);
+        Cross::ResolveHomedir(homedir);
+        std::string homepath=homedir;
+        if (!pref_stat(dirname((char *)homepath.c_str()), &test) && test.st_mode & S_IFDIR)
+            temp_line = homedir;
+#endif
         FILE* f = fopen(temp_line.c_str(),"r");
         if (f){
             fclose(f);
@@ -3417,8 +3427,8 @@ restart_int:
             if (!f) {
                 WriteOut(MSG_Get("PROGRAM_IMGMAKE_CANNOT_WRITE"),t2.c_str());
                 if (setdir) {
-                    Drives[DOS_GetDefaultDrive()]->EmptyCache();
                     chdir(dirCur);
+                    runRescan("-Q");
                 }
                 return;
             }
@@ -3426,8 +3436,8 @@ restart_int:
             fclose(f);
         }
         if (setdir) {
-            Drives[DOS_GetDefaultDrive()]->EmptyCache();
             chdir(dirCur);
+            runRescan("-Q");
         }
         return;
     }
@@ -3552,16 +3562,17 @@ public:
     void Run(void);
 };
 
-void RESCAN::Run(void) 
+void RESCAN::Run(void)
 {
 	if (cmd->FindExist("-?", false) || cmd->FindExist("/?", false)) {
-		WriteOut("Clears the caches of a mounted drive.\n\nRESCAN [/A]\nRESCAN [drive:]\n\n  [/A]\t\tRescan all drives\n  [drive:]\tThe drive to rescan\n\nType RESCAN with no parameters to rescan the current drive.\n");
+		WriteOut("Clears the caches of a mounted drive.\n\nRESCAN [/A] [/Q]\nRESCAN [drive:] [/Q]\n\n  [/A]\t\tRescan all drives\n  [/Q]\t\tEnable quiet mode\n  [drive:]\tThe drive to rescan\n\nType RESCAN with no parameters to rescan the current drive.\n");
 		return;
 	}
-    bool all = false;
-    
+    bool all = false, quiet = false;
+    if (cmd->FindExist("-q",true) || cmd->FindExist("/q",true))
+        quiet = true;
+
     Bit8u drive = DOS_GetDefaultDrive();
-    
     if(cmd->FindCommand(1,temp_line)) {
         //-A -All /A /All 
         if(temp_line.size() >= 2 && (temp_line[0] == '-' ||temp_line[0] =='/')&& (temp_line[1] == 'a' || temp_line[1] =='A') ) all = true;
@@ -3575,18 +3586,24 @@ void RESCAN::Run(void)
         for(Bitu i =0; i<DOS_DRIVES;i++) {
             if (Drives[i]) Drives[i]->EmptyCache();
         }
-        WriteOut(MSG_Get("PROGRAM_RESCAN_SUCCESS"));
+        if (!quiet) WriteOut(MSG_Get("PROGRAM_RESCAN_SUCCESS"));
     } else {
         if (drive < DOS_DRIVES && Drives[drive]) {
             Drives[drive]->EmptyCache();
-            WriteOut(MSG_Get("PROGRAM_RESCAN_SUCCESS"));
+            if (!quiet) WriteOut(MSG_Get("PROGRAM_RESCAN_SUCCESS"));
         } else
-            WriteOut("Invalid drive specification\n");
+            if (!quiet) WriteOut(MSG_Get("SHELL_EXECUTE_DRIVE_NOT_FOUND"), 'A'+drive);
     }
 }
 
 static void RESCAN_ProgramStart(Program * * make) {
     *make=new RESCAN;
+}
+
+void runRescan(const char *str) {
+	RESCAN rescan;
+	rescan.cmd=new CommandLine("RESCAN", str);
+	rescan.Run();
 }
 
 /* TODO: This menu code sucks. Write a better one. */
@@ -3662,12 +3679,12 @@ public:
 
     void Run(void) {
 		if (cmd->FindExist("-?", false) || cmd->FindExist("/?", false)) {
-			WriteOut("A full-screen introduction to DOSBox-X.\n\nINTRO [CDROM|MOUNT|USAGE]\n");
+			WriteOut("A full-screen introduction to DOSBox-X.\n\nINTRO [/RUN] [CDROM|MOUNT|USAGE]\n");
 			return;
 		}
         std::string menuname = "BASIC"; // default
         /* Only run if called from the first shell (Xcom TFTD runs any intro file in the path) */
-        if(DOS_PSP(dos.psp()).GetParent() != DOS_PSP(DOS_PSP(dos.psp()).GetParent()).GetParent()) return;
+        if (!cmd->FindExist("-run", true)&&!cmd->FindExist("/run", true)&&DOS_PSP(dos.psp()).GetParent() != DOS_PSP(DOS_PSP(dos.psp()).GetParent()).GetParent()) return;
         if(cmd->FindExist("cdrom",false)) {
             WriteOut(MSG_Get("PROGRAM_INTRO_CDROM"));
             return;
@@ -4048,6 +4065,10 @@ public:
             WriteOut(MSG_Get("PROGRAM_IMGMOUNT_HELP"));
             return;
         }
+		if (cmd->FindExist("/examples")||cmd->FindExist("-examples")) {
+			WriteOut(MSG_Get("PROGRAM_IMGMOUNT_EXAMPLE"));
+			return;
+		}
         /* Check for unmounting */
         std::string umount;
         if (cmd->FindString("-u",umount,false)) {
@@ -4457,16 +4478,16 @@ private:
                     commandLine = homedir;
                 }
                 else {
-                    // convert dosbox filename to system filename
+                    // convert dosbox-x filename to system filename
                     Bit8u dummy;
                     if (!DOS_MakeName(tmp, fullname, &dummy) || strncmp(Drives[dummy]->GetInfo(), "local directory", 15)) {
-                        if (!usedef) WriteOut(MSG_Get("PROGRAM_IMGMOUNT_NON_LOCAL_DRIVE"));
+                        WriteOut(MSG_Get(usedef?"PROGRAM_IMGMOUNT_DEFAULT_NOT_FOUND":"PROGRAM_IMGMOUNT_NON_LOCAL_DRIVE"));
                         return;
                     }
 
                     localDrive *ldp = dynamic_cast<localDrive*>(Drives[dummy]);
                     if (ldp == NULL) {
-                        if (!usedef) WriteOut(MSG_Get("PROGRAM_IMGMOUNT_FILE_NOT_FOUND"));
+                        WriteOut(MSG_Get(usedef?"PROGRAM_IMGMOUNT_DEFAULT_NOT_FOUND":"PROGRAM_IMGMOUNT_FILE_NOT_FOUND"));
                         return;
                     }
 					bool readonly=wpcolon&&commandLine.length()>1&&commandLine[0]==':';
@@ -4475,7 +4496,7 @@ private:
                     commandLine = tmp;
 
                     if (pref_stat(readonly?tmp+1:tmp, &test)) {
-                        if (!usedef) WriteOut(MSG_Get("PROGRAM_IMGMOUNT_FILE_NOT_FOUND"));
+                        WriteOut(MSG_Get(usedef?"PROGRAM_IMGMOUNT_DEFAULT_NOT_FOUND":"PROGRAM_IMGMOUNT_FILE_NOT_FOUND"));
                         return;
                     }
                 }
@@ -5424,7 +5445,7 @@ private:
             }
         }
 
-        LOG(LOG_MISC, LOG_NORMAL)("Mounting image as C/H/S %u/%u/%u with %u bytes/sector",
+        LOG(LOG_DOSMISC, LOG_NORMAL)("Mounting image as C/H/S %u/%u/%u with %u bytes/sector",
             (unsigned int)sizes[3], (unsigned int)sizes[2], (unsigned int)sizes[1], (unsigned int)sizes[0]);
 
         if (imagesize > 2880) newImage->Set_Geometry((Bit32u)sizes[2], (Bit32u)sizes[3], (Bit32u)sizes[1], (Bit32u)sizes[0]);
@@ -5491,7 +5512,7 @@ void KEYB::Run(void) {
             switch (keyb_error) {
                 case KEYB_NOERROR:
                     WriteOut(MSG_Get("PROGRAM_KEYB_NOERROR"),temp_line.c_str(),dos.loaded_codepage);
-                    Drives[DOS_GetDefaultDrive()]->EmptyCache();
+                    runRescan("-A -Q");
                     break;
                 case KEYB_FILENOTFOUND:
                     if (temp_line!="/?"&&temp_line!="-?") WriteOut(MSG_Get("PROGRAM_KEYB_FILENOTFOUND"),temp_line.c_str());
@@ -6211,8 +6232,8 @@ void DOS_SetupPrograms(void) {
     MSG_Add("PROGRAM_MOUNT_STATUS_RAMDRIVE", "Drive %c is mounted as RAM drive\n");
     MSG_Add("PROGRAM_MOUNT_STATUS_2","Drive %c is mounted as %s\n");
     MSG_Add("PROGRAM_MOUNT_STATUS_1","The currently mounted drives are:\n");
-    MSG_Add("PROGRAM_IMGMOUNT_STATUS_FORMAT","%-5s  %-47s  %-12s  %-9s\n");
-    MSG_Add("PROGRAM_IMGMOUNT_STATUS_NUMBER_FORMAT","%-12s  %-40s  %-12s  %-9s\n");
+    MSG_Add("PROGRAM_IMGMOUNT_STATUS_FORMAT","%-5s  %-47s  %-12s  %s\n");
+    MSG_Add("PROGRAM_IMGMOUNT_STATUS_NUMBER_FORMAT","%-12s  %-40s  %-12s  %s\n");
     MSG_Add("PROGRAM_IMGMOUNT_STATUS_2","The currently mounted drive numbers are:\n");
     MSG_Add("PROGRAM_IMGMOUNT_STATUS_1","The currently mounted FAT/ISO drives are:\n");
     MSG_Add("PROGRAM_IMGMOUNT_STATUS_NONE","No drive available\n");
@@ -6228,10 +6249,10 @@ void DOS_SetupPrograms(void) {
         "This makes the directory %s act as the C: drive inside DOSBox-X.\n"
         "The directory has to exist in the host system.\n\n"
 		"Options are accepted. For example:\n\n"
+		"\033[32;1mMOUNT -t cdrom c %s \033[0m     mounts the C: drive as a CD-ROM drive.\n"
+		"\033[32;1mMOUNT -ro c %s \033[0m          mounts the C: drive in read-only mode.\n"
 		"\033[32;1mMOUNT -nocachedir c %s \033[0m  mounts C: without caching the drive.\n"
 		"\033[32;1mMOUNT -freesize 128 c %s \033[0mmounts C: with the specified free disk space.\n"
-		"\033[32;1mMOUNT -ro c %s \033[0m          mounts the C: drive in read-only mode.\n"
-		"\033[32;1mMOUNT -t cdrom c %s \033[0m     mounts the C: drive as a CD-ROM drive.\n"
 		"\033[32;1mMOUNT -u c \033[0m                       unmounts the C: drive.\n\n"
 		"Type MOUNT with no parameters to display a list of mounted drives.\n");
     MSG_Add("PROGRAM_MOUNT_UMOUNT_NOT_MOUNTED","Drive %c is not mounted.\n");
@@ -6304,17 +6325,17 @@ void DOS_SetupPrograms(void) {
     MSG_Add("PROGRAM_INTRO_MENU_INFO","Information");
     MSG_Add("PROGRAM_INTRO_MENU_QUIT","Quit");
     MSG_Add("PROGRAM_INTRO_MENU_BASIC_HELP","\n\033[1m   \033[1m\033[KMOUNT allows you to connect real hardware to DOSBox-X's emulated PC.\033[0m\n");
-    MSG_Add("PROGRAM_INTRO_MENU_CDROM_HELP","\n\033[1m   \033[1m\033[KTo mount your CD-ROM in DOSBox-X, you have to specify some additional options\n   when mounting the CD-ROM.\033[0m\n");
+    MSG_Add("PROGRAM_INTRO_MENU_CDROM_HELP","\n\033[1m   \033[1m\033[KTo mount your CD-ROM in DOSBox-X, you need to specify additional options\n   when mounting the CD-ROM.\033[0m\n");
     MSG_Add("PROGRAM_INTRO_MENU_USAGE_HELP","\n\033[1m   \033[1m\033[KAn overview of the command line options you can give to DOSBox-X.\033[0m\n");
     MSG_Add("PROGRAM_INTRO_MENU_INFO_HELP","\n\033[1m   \033[1m\033[KHow to get more information about DOSBox-X.\033[0m\n");
     MSG_Add("PROGRAM_INTRO_MENU_QUIT_HELP","\n\033[1m   \033[1m\033[KExit from Intro.\033[0m\n");
     MSG_Add("PROGRAM_INTRO_USAGE_TOP",
         "\033[2J\033[32;1mAn overview of the command line options you can give to DOSBox-X.\033[0m\n"
-        "Windows Users must open cmd.exe or command.com or edit the shortcut to\n"
-        "DOSBox-X.exe for this.\n\n"
-        "dosbox-x [name] [-exit] [-c command] [-fullscreen] [-conf congfigfile]\n"
-        "         [-lang languagefile] [-machine machinetype] [-noconsole]\n"
-        "         [-startmapper] [-noautoexec] [-scaler scaler | -forcescaler scaler]\n       [-version]\n\n"
+        "Windows users must open cmd.exe or edit the shortcut to DOSBox-X.exe for this.\n\n"
+        "dosbox-x [name] [-exit] [-version] [-fastlaunch] [-fullscreen]\n"
+        "         [-conf congfigfile] [-lang languagefile] [-machine machinetype]\n"
+        "         [-startmapper] [-noautoexec] [-scaler scaler | -forcescaler scaler]\n"
+        "         [-noconsole] [-c command] [-set <section property=value>]\n\n"
         );
     MSG_Add("PROGRAM_INTRO_USAGE_1",
         "\033[33;1m  name\033[0m\n"
@@ -6323,36 +6344,42 @@ void DOS_SetupPrograms(void) {
         "\tas the C: drive and execute name.\n\n"
         "\033[33;1m  -exit\033[0m\n"
         "\tDOSBox-X will close itself when the DOS application name ends.\n\n"
-        "\033[33;1m  -c\033[0m command\n"
-        "\tRuns the specified command before running name. Multiple commands\n"
-        "\tcan be specified. Each command should start with -c, though.\n"
-        "\tA command can be: an Internal Program, a DOS command or an executable\n"
-        "\ton a mounted drive.\n"
+        "\033[33;1m  -version\033[0m\n"
+        "\tOutputs version information and exit. Useful for frontends.\n\n"
+        "\033[33;1m  -fastlaunch\033[0m\n"
+        "\tEnables fast launch mode (skip BIOS logo and welcome banner).\n\n"
+        "\033[33;1m  -fullscreen\033[0m\n"
+        "\tStarts DOSBox-X in fullscreen mode.\n"
         );
     MSG_Add("PROGRAM_INTRO_USAGE_2",
-        "\033[33;1m  -fullscreen\033[0m\n"
-        "\tStarts DOSBox-X in fullscreen mode.\n\n"
         "\033[33;1m  -conf\033[0m configfile\n"
         "\tStart DOSBox-X with the options specified in configfile.\n"
-        "\tSee README for more details.\n\n"
+        "\tSee the documentation for more details.\n\n"
         "\033[33;1m  -lang\033[0m languagefile\n"
         "\tStart DOSBox-X using the language specified in languagefile.\n\n"
         "\033[33;1m  -noconsole\033[0m (Windows Only)\n"
         "\tStart DOSBox-X without showing the console window. Output will\n"
-        "\tbe redirected to stdout.txt and stderr.txt\n"
+        "\tbe redirected to stdout.txt and stderr.txt\n\n"
+        "\033[33;1m  -machine\033[0m machinetype\n"
+        "\tSetup DOSBox-X to emulate a specific type of machine. Valid choices:\n"
+        "\thercules, cga, cga_mono, mcga, mda, pcjr, tandy, ega, vga, vgaonly,\n"
+        "\tpc98, vesa_nolfb, vesa_oldvbe, svga_paradise, svga_s3 (default).\n"
+        "\tThe machinetype affects both the video card and available sound cards.\n"
         );
     MSG_Add("PROGRAM_INTRO_USAGE_3",
-        "\033[33;1m  -machine\033[0m machinetype\n"
-        "\tSetup DOSBox-X to emulate a specific type of machine. Valid choices are:\n"
-        "\thercules, cga, pcjr, tandy, vga (default). The machinetype affects\n"
-        "\tboth the videocard and the available soundcards.\n\n"
         "\033[33;1m  -startmapper\033[0m\n"
         "\tEnter the keymapper directly on startup. Useful for people with\n"
         "\tkeyboard problems.\n\n"
         "\033[33;1m  -noautoexec\033[0m\n"
         "\tSkips the [autoexec] section of the loaded configuration file.\n\n"
-        "\033[33;1m  -version\033[0m\n"
-        "\toutput version information and exit. Useful for frontends.\n"
+        "\033[33;1m  -c\033[0m command\n"
+        "\tRuns the specified command before running name. Multiple commands\n"
+        "\tcan be specified. Each command should start with -c, though.\n"
+        "\tA command can be: an Internal Program, a DOS command or an executable\n"
+        "\ton a mounted drive.\n\n"
+        "\033[33;1m  -set\033[0m <section property=value>\n"
+        "\tSets the config option (overriding the config file). Multiple options\n"
+        "\tcan be specified. Each option should start with -set, though.\n"
         );
     MSG_Add("PROGRAM_INTRO_INFO",
         "\033[32;1mInformation:\033[0m\n\n"
@@ -6360,12 +6387,13 @@ void DOS_SetupPrograms(void) {
         "For information about CD-ROM support, type \033[34;1mintro cdrom\033[0m\n"
         "For information about special keys, type \033[34;1mintro special\033[0m\n"
         "For information about usage, type \033[34;1mintro usage\033[0m\n\n"
-        "For the latest version of DOSBox-X, go to \033[34;1mhttp://www.dosbox-x.com\033[0m\n"
+        "For the latest version of DOSBox-X, go to its GitHub site:\033[34;1m\n"
         "\n"
-        "For more information about DOSBox-X, read README first!\n"
+        "\033[34;1mhttps://github.com/joncampbell123/dosbox-x\033[0m\n"
+        "\n"
+        "For more information about DOSBox-X, please take a look at its Wiki:\n"
         "\n"
         "\033[34;1mhttps://github.com/joncampbell123/dosbox-x/wiki\033[0m\n"
-        "\033[34;1mhttp://vogons.zetafleet.com\033[0m\n"
         );
     MSG_Add("PROGRAM_INTRO_MOUNT_START",
         "\033[32;1mHere are some commands to get you started:\033[0m\n"
@@ -6476,17 +6504,19 @@ void DOS_SetupPrograms(void) {
     MSG_Add("PROGRAM_BOOT_WRITE_PROTECTED","Image file is read-only! Boot in write-protected mode.\n");
     MSG_Add("PROGRAM_BOOT_PRINT_ERROR","This command boots DOSBox-X from either a floppy or hard disk image.\n\n"
         "For this command, one can specify a succession of floppy disks swappable\n"
-        "by pressing Ctrl-F4, and -l specifies the mounted drive to boot from.  If\n"
-        "no drive letter is specified, this defaults to booting from the A drive.\n"
+        "by the menu command, and drive: specifies the mounted drive to boot from.\n"
+        "If no drive letter is specified, this defaults to boot from the A drive.\n"
         "The only bootable drive letters are A, C, and D.  For booting from a hard\n"
-        "drive (C or D), the image should have already been mounted using the\n"
-        "\033[34;1mIMGMOUNT\033[0m command.\n\n"
+        "drive (C or D), ensure the image is already mounted by \033[34;1mIMGMOUNT\033[0m command.\n\n"
         "The syntax of this command is:\n\n"
         "\033[34;1mBOOT diskimg1.img [diskimg2.img ...] [-L driveletter]\033[0m\n\n"
 		"Or:\n\n"
         "\033[34;1mBOOT driveletter:\033[0m\n\n"
         "Note: An image file with a leading colon (:) will be booted in write-protected\n"
-		"mode if the \"leading colon write protect image\" option is enabled.\n"
+		"mode if the \"leading colon write protect image\" option is enabled.\n\n"
+        "Examples:\n\n"
+        "\033[32;1mBOOT A:\033[0m       - boot from drive A: if it is mounted and bootable.\n"
+        "\033[32;1mBOOT :DOS.IMG\033[0m - boot from floppy image DOS.IMG in write-protected mode.\n"
         );
     MSG_Add("PROGRAM_BOOT_UNABLE","Unable to boot off of drive %c.\n");
     MSG_Add("PROGRAM_BOOT_IMAGE_OPEN","Opening image file: %s\n");
@@ -6531,6 +6561,7 @@ void DOS_SetupPrograms(void) {
     MSG_Add("PROGRAM_IMGMOUNT_FORMAT_UNSUPPORTED","Format \"%s\" is unsupported. Specify \"fat\" or \"iso\" or \"none\".\n");
     MSG_Add("PROGRAM_IMGMOUNT_SPECIFY_FILE","Must specify file-image to mount.\n");
     MSG_Add("PROGRAM_IMGMOUNT_FILE_NOT_FOUND","Image file not found.\n");
+    MSG_Add("PROGRAM_IMGMOUNT_DEFAULT_NOT_FOUND","Image file not found: IMGMAKE.IMG.\n");
     MSG_Add("PROGRAM_IMGMOUNT_MOUNT","To mount directories, use the \033[34;1mMOUNT\033[0m command, not the \033[34;1mIMGMOUNT\033[0m command.\n");
     MSG_Add("PROGRAM_IMGMOUNT_ALREADY_MOUNTED","Drive already mounted at that letter.\n");
     MSG_Add("PROGRAM_IMGMOUNT_ALREADY_MOUNTED_NUMBER","Drive number %d already mounted.\n");
@@ -6542,40 +6573,65 @@ void DOS_SetupPrograms(void) {
 
     MSG_Add("PROGRAM_IMGMOUNT_HELP",
         "Mounts floppy, hard drive and optical disc images.\n"
-        "IMGMOUNT drive file [-ro] [-t floppy] [-fs fat] [-size ss,s,h,c]\n"
-        "IMGMOUNT drive file [-ro] [-t hdd] [-fs fat] [-size ss,s,h,c] [-ide controller]\n"
-        "IMGMOUNT driveNum file [-ro] [-fs none] [-size ss,s,h,c] [-reservecyl #]\n"
-        "IMGMOUNT drive file [-t iso] [-fs iso]\n"
-        "IMGMOUNT drive [-t floppy] -bootcd cdDrive (or -el-torito cdDrive)\n"
-        "IMGMOUNT drive -t ram -size size\n"
-        "IMGMOUNT -u drive|driveNum (or IMGMONT drive|driveNum file [options] -u)\n"
-        " drive               Drive letter to mount the image at\n"
-        " driveNum            Drive number to mount, where 0-1 are FDDs, 2-5 are HDDs\n"
-        " file                Image filename(s), or IMGMAKE.IMG if not specified\n"
-        " -t iso              Image type is optical disc iso or cue / bin image\n"
-        " -t floppy           Image type is floppy\n"
-        " -t hdd              Image type is hard disk; VHD and HDI files are supported\n"
-        " -t ram              Image type is RAM drive\n"
-        " -fs iso             File system is ISO 9660\n"
-        " -fs fat             File system is FAT; FAT12, FAT16 and FAT32 are supported\n"
-        " -fs none            Do not detect file system\n"
-        " -reservecyl #       Report # number of cylinders less than actual in BIOS\n"
-        " -ide controller     Specify the IDE controller (1m, 1s, 2m, 2s) to mount drive\n"
-        " -size size|ss,s,h,c Specify the size in KB, or sector size and CHS geometry\n"
-        " -bootcd cdDrive     Specify the CD drive to load the bootable floppy from\n"
-        " -ro                 Mount image(s) read-only (or leading ':' for read-only)\n"
-        " -u                  Unmount the drive or drive number"
+        "\033[32;1mIMGMOUNT\033[0m \033[37;1mdrive\033[0m \033[36;1mfile\033[0m [-ro] [-t floppy] [-fs fat] [-size ss,s,h,c]\n"
+        "\033[32;1mIMGMOUNT\033[0m \033[37;1mdrive\033[0m \033[36;1mfile\033[0m [-ro] [-t hdd] [-fs fat] [-size ss,s,h,c] [-ide controller]\n"
+        "\033[32;1mIMGMOUNT\033[0m \033[37;1mdriveNum\033[0m \033[36;1mfile\033[0m [-ro] [-fs none] [-size ss,s,h,c] [-reservecyl #]\n"
+        "\033[32;1mIMGMOUNT\033[0m \033[37;1mdrive\033[0m \033[36;1mfile\033[0m [-t iso] [-fs iso]\n"
+        "\033[32;1mIMGMOUNT\033[0m \033[37;1mdrive\033[0m [-t floppy] -bootcd cdDrive (or -el-torito cdDrive)\n"
+        "\033[32;1mIMGMOUNT\033[0m \033[37;1mdrive\033[0m -t ram -size size\n"
+        "\033[32;1mIMGMOUNT\033[0m -u \033[37;1mdrive|driveNum\033[0m (or \033[32;1mIMGMOUNT\033[0m \033[37;1mdrive|driveNum\033[0m \033[36;1mfile\033[0m [options] -u)\n"
+        " \033[37;1mdrive\033[0m               Drive letter to mount the image at.\n"
+        " \033[37;1mdriveNum\033[0m            Drive number to mount, where 0-1 are FDDs, 2-5 are HDDs.\n"
+        " \033[36;1mfile\033[0m                Image filename(s), or \033[33;1mIMGMAKE.IMG\033[0m if not specified.\n"
+        " -t iso              Image type is optical disc iso or cue / bin image.\n"
+        " -t hdd              Image type is hard disk; VHD and HDI files are supported.\n"
+        " -t floppy|ram       Image type is floppy drive|RAM drive.\n"
+        " -fs iso             Filesystem is ISO 9660 (auto-assumed for .iso/.cue files).\n"
+        " -fs fat             Filesystem is FAT - FAT12, FAT16 and FAT32 are supported.\n"
+        " -fs none            Do not detect filesystem (auto-assumed for drive numbers).\n"
+        " -reservecyl #       Report # number of cylinders less than actual in BIOS.\n"
+        " -ide controller     Specify IDE controller (1m, 1s, 2m, 2s) to mount drive.\n"
+        " -size size|ss,s,h,c Specify the size in KB, or sector size and CHS geometry.\n"
+        " -bootcd cdDrive     Specify the CD drive to load the bootable floppy from.\n"
+        " -ro                 Mount image(s) read-only (or leading ':' for read-only).\n"
+        " -u                  Unmount the drive or drive number.\n"
+        " \033[32;1m-examples           Show some usage examples.\033[0m"
     );
+    MSG_Add("PROGRAM_IMGMOUNT_EXAMPLE",
+        "Some usage examples of IMGMOUNT:\n\n"
+        "  \033[32;1mIMGMOUNT\033[0m                       - list mounted FAT/ISO drives & drive numbers\n"
+        "  \033[32;1mIMGMOUNT C\033[0m                     - mount hard disk image \033[33;1mIMGMAKE.IMG\033[0m as C:\n"
+#ifdef WIN32
+        "  \033[32;1mIMGMOUNT C c:\\image.img\033[0m        - mount hard disk image c:\\image.img as C:\n"
+        "  \033[32;1mIMGMOUNT D c:\\files\\game.iso\033[0m   - mount CD image c:\\files\\game.iso as D:\n"
+#else
+        "  \033[32;1mIMGMOUNT C ~/image.img\033[0m         - mount hard disk image ~/image.img as C:\n"
+        "  \033[32;1mIMGMOUNT D ~/files/game.iso\033[0m    - mount CD image ~/files/game.iso as D:\n"
+#endif
+        "  \033[32;1mIMGMOUNT D cdaudio.cue\033[0m         - mount cue file of a cue/bin pair as CD drive\n"
+        "  \033[32;1mIMGMOUNT 0 dos.ima\033[0m             - mount floppy image dos.ima as drive number 0\n"
+        "                                   (\033[33;1mBOOT A:\033[0m will boot from drive if bootable)\n"
+        "  \033[32;1mIMGMOUNT A -ro dos.ima\033[0m         - mount floppy image dos.ima as A: read-only\n"
+        "  \033[32;1mIMGMOUNT A :dsk1.img dsk2.img\033[0m  - mount floppy images dsk1.img and dsk2.img as\n"
+        "                                   A:, swappable via menu item \"Swap floppy\",\n"
+        "                                   with dsk1.img read-only (but not dsk2.img)\n"
+        "  \033[32;1mIMGMOUNT A -bootcd D\033[0m           - mount bootable floppy A: from CD drive D:\n"
+        "  \033[32;1mIMGMOUNT C -t ram -size 10000\033[0m  - mount hard drive C: as a 10MB RAM drive\n"
+        "  \033[32;1mIMGMOUNT C disk.img -u\033[0m         - force mount hard disk image disk.img as C:,\n"
+        "                                   auto-unmount drive beforehand if necessary\n"
+        "  \033[32;1mIMGMOUNT A -u\033[0m                  - unmount previously-mounted drive A:\n"
+        );
     MSG_Add("PROGRAM_IMGMAKE_SYNTAX",
         "Creates floppy or hard disk images.\n"
-        "Usage: IMGMAKE [file] [-t type] [[-size size] | [-chs geometry]] [-spc] [-nofs]\n"
-        "  [-bat] [-fat] [-fatcopies] [-rootdir] [-force]"
+        "Usage: \033[34;1mIMGMAKE [file] [-t type] [[-size size] | [-chs geometry]] [-spc] [-nofs]\033[0m\n"
+        "  \033[34;1m[-bat] [-fat] [-fatcopies] [-rootdir] [-force]"
 #ifdef WIN32
         " [-source source] [-r retries]"
 #endif
-        "\n  file: Image file to create (or IMGMAKE.IMG if not set) - \033[31;1mpath on the host\033[0m\n"
+        "\033[0m\n"
+        "  file: Image file to create (or \033[33;1mIMGMAKE.IMG\033[0m if not set) - \033[31;1mpath on the host\033[0m\n"
         "  -t: Type of image.\n"
-        "    \033[33;1mFloppy disk templates\033[0m (names resolve to floppy sizes in kilobytes):\n"
+        "    \033[33;1mFloppy disk templates\033[0m (names resolve to floppy sizes in KB or fd=fd_1440):\n"
         "     fd_160 fd_180 fd_200 fd_320 fd_360 fd_400 fd_720 fd_1200 fd_1440 fd_2880\n"
         "    \033[33;1mHard disk templates:\033[0m\n"
         "     hd_250: 250MB image, hd_520: 520MB image, hd_2gig: 2GB image\n"
@@ -6587,7 +6643,7 @@ void DOS_SetupPrograms(void) {
         "  -nofs: Add this parameter if a blank image should be created.\n"
         "  -force: Force to overwrite the existing image file.\n"
         "  -bat: Create a .bat file with the IMGMOUNT command required for this image.\n"
-        "  -fat: FAT filesystem type (12, 16, or 32)\n"
+        "  -fat: FAT filesystem type (12, 16, or 32).\n"
         "  -spc: Sectors per cluster override. Must be a power of 2.\n"
         "  -fatcopies: Override number of FAT table copies.\n"
         "  -rootdir: Size of root directory in entries. Ignored for FAT32.\n"
@@ -6595,19 +6651,25 @@ void DOS_SetupPrograms(void) {
         "  -source: drive letter - if specified the image is read from a floppy disk.\n"
         "  -retries: how often to retry when attempting to read a bad floppy disk(1-99).\n"
 #endif
-        "  -examples: Show some usage examples."
+        "  \033[32;1m-examples: Show some usage examples.\033[0m"
         );
     MSG_Add("PROGRAM_IMGMAKE_EXAMPLE",
         "Some usage examples of IMGMAKE:\n\n"
-        "  \033[32;1mIMGMAKE c:\\image.img -t fd_1440\033[0m          - create a 1.44MB floppy image\n"
-        "  \033[32;1mIMGMAKE c:\\image.img -t hd -size 100\033[0m     - create a 100MB hdd image\n"
-        "  \033[32;1mIMGMAKE c:\\image.img -t hd_520 -nofs\033[0m     - create a 520MB blank hdd image\n"
-        "  \033[32;1mIMGMAKE c:\\image.img -t hd_2gig -fat 32\033[0m  - create a 2GB FAT32 hdd image\n"
-        "  \033[32;1mIMGMAKE c:\\image.img -t hd -chs 130,2,17\033[0m - create a special hdd image\n"
+        "  \033[32;1mIMGMAKE -t fd\033[0m                   - create a 1.44MB floppy image \033[33;1mIMGMAKE.IMG\033[0m\n"
+        "  \033[32;1mIMGMAKE -t fd_1440 -force\033[0m       - force to create a floppy image \033[33;1mIMGMAKE.IMG\033[0m\n"
+        "  \033[32;1mIMGMAKE dos.img -t fd_2880\033[0m      - create a 2.88MB floppy image named dos.img\n"
 #ifdef WIN32
-        "  \033[32;1mIMGMAKE c:\\image.img -source a\033[0m           - read image from physical drive A\n"
+        "  \033[32;1mIMGMAKE c:\\disk.img -t hd -size 50\033[0m      - create a 50MB HDD image c:\\disk.img\n"
+        "  \033[32;1mIMGMAKE c:\\disk.img -t hd_520 -nofs\033[0m     - create a 520MB blank HDD image\n"
+        "  \033[32;1mIMGMAKE c:\\disk.img -t hd_2gig -fat 32\033[0m  - create a 2GB FAT32 HDD image\n"
+        "  \033[32;1mIMGMAKE c:\\disk.img -t hd -chs 130,2,17\033[0m - create a HDD image of specified CHS\n"
+        "  \033[32;1mIMGMAKE c:\\disk.img -source a\033[0m           - read image from physical drive A:\n"
+#else
+        "  \033[32;1mIMGMAKE ~/disk.img -t hd -size 50\033[0m       - create a 50MB HDD image ~/disk.img\n"
+        "  \033[32;1mIMGMAKE ~/disk.img -t hd_520 -nofs\033[0m      - create a 520MB blank HDD image\n"
+        "  \033[32;1mIMGMAKE ~/disk.img -t hd_2gig -fat 32\033[0m   - create a 2GB FAT32 HDD image\n"
+        "  \033[32;1mIMGMAKE ~/disk.img -t hd -chs 130,2,17\033[0m  - create a HDD image of specified CHS\n"
 #endif
-        "  \033[32;1mIMGMAKE -t fd_2880 -force\033[0m           - force to create a 2.88MB floppy image\n"
         );
 
 #ifdef WIN32
