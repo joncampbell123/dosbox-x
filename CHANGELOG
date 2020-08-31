@@ -7,8 +7,8 @@
     files (.conf) and folders in the Windows Explorer
     so that you could quickly run or open them with
     DOSBox-X from the Windows Explorer. More icons
-    are added to the DOSBox-X program group of within
-    the Start menu as well. (Wengier)
+    are added to the DOSBox-X program group within the
+    Start menu as well. (Wengier)
   - Added config option "startbanner" in [dosbox]
     section which if set to "false" would skip the
     welcome banner when DOSBox-X starts. Also added
@@ -85,7 +85,7 @@
   - DOSBox-X will now search for system fonts if the
     fonts required for the printing feature cannot be
     found in the FONTS directory. (Wengier)
-  - Added menu item "Send Feed-form" under the DOS menu
+  - Added menu item "Send form-feed" under the DOS menu
     for manually ejecting new pages to print. (Wengier)
   - Added "Quick launch program..." menu (under "DOS")
     to quickly run the specified program as selected
