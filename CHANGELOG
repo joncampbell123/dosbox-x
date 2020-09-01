@@ -42,8 +42,8 @@
     running in the batch file or with CALL command
     (or COMMAND /C) as in real DOS. (Wengier)
   - DOSBox-X will allow control characters 8 (BS),
-    9 (TAB), and 27 (ESC) when executing GOTO command
-    in batch programs without warnings. (Wengier)
+    9 (TAB), 26 (SUB), and 27 (ESC) when executing GOTO
+    command in batch files without warnings. (Wengier)
   - Normal core: REP MOVSD now checks segment limits
     for ES:(E)DI and throws a GP fault if exceeded.
     Demoscene productions marked as using VESA BIOS

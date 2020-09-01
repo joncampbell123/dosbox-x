@@ -184,7 +184,7 @@ begin
     else
       PageBuild.Values[4] := True;
     CreateHelpButton(ScaleX(20), WizardForm.CancelButton.Top, WizardForm.CancelButton.Width, WizardForm.CancelButton.Height);
-    msg:='You can specify a default DOS version for DOSBox-X to report to itself and DOS programs. This can sometimes change the feature sets of DOSBox-X. For example, specifying the reported DOS version as 7.10 will enable long filename (LFN) and FAT32 disk image support by default.' #13#13 'If you are not sure about which DOS version to report, then you can just leave this unselected, and a preset DOS version will be reported (usually 5.00).' #13#13 'This setting can be later modified in the DOSBox-X''s configuration file (dosbox-x.conf).';
+    msg:='You can specify a default DOS version for DOSBox-X to report to itself and DOS programs. This can sometimes change the feature sets of DOSBox-X. For example, selecting 7.10 as the reported DOS version will enable support for Windows-style long filenames (LFN) and FAT32 disk images (>2GB disk images) by default.' #13#13 'If you are not sure about which DOS version to report, you can also leave this unselected, then a preset DOS version will be reported (usually 5.00).' #13#13 'This setting can be later modified in the DOSBox-X''s configuration file (dosbox-x.conf).';
     PageVer:=CreateInputOptionPage(100, 'Reported DOS version', 'Specify the default DOS version to report', msg, True, False);
     PageVer.Add('DOS version 3.30');
     PageVer.Add('DOS version 5.00');
