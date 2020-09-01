@@ -9,7 +9,7 @@ rem %rootdir% is the root directory of the respository. "." assumes the current 
 rem Make sure to surround the directory in quotes (") in case it includes spaces.
 set rootdir=.
 
-set isspath=%rootdir%\windows-installer
+set isspath=%rootdir%\contrib\windows\installer
 set vsbinpath=%rootdir%\release\windows
 set mgbinpath=%rootdir%\..
 

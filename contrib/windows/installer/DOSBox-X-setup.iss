@@ -24,7 +24,7 @@ InfoBeforeFile=setup_preamble.txt
 InfoAfterFile=setup_epilogue.txt
 OutputDir=.\
 OutputBaseFilename=DOSBox-X-setup
-SetupIconFile=.\dosbox-x.ico
+SetupIconFile=..\..\icons\dosbox-x.ico
 Compression=lzma
 SolidCompression=yes
 UsePreviousAppDir=yes
@@ -38,7 +38,7 @@ AlwaysShowGroupOnReadyPage=yes
 ArchitecturesInstallIn64BitMode=x64
 PrivilegesRequired=lowest
 UninstallDisplayIcon={app}\{#MyAppExeName}
-WizardSmallImageFile=.\dosbox-x.bmp
+WizardSmallImageFile=..\..\icons\dosbox-x.bmp
 
 [Messages]
 InfoBeforeLabel=Please read the general information about DOSBox-X below.
@@ -64,10 +64,10 @@ Name: "full"; Description: "Copy all builds to subdirectories";   Types: full
 [Files]
 Source: ".\readme.txt"; DestDir: "{app}"; DestName: "README.txt"; Flags: ignoreversion; Components: full compact
 Source: ".\dosbox-x.reference.conf"; DestDir: "{app}"; Flags: ignoreversion; Components: full compact
-Source: "..\CHANGELOG"; DestDir: "{app}"; DestName: "changelog.txt"; Flags: ignoreversion; Components: full compact
-Source: "..\COPYING"; DestDir: "{app}"; DestName: "COPYING.txt"; Flags: ignoreversion; Components: full compact
-Source: "..\contrib\fonts\FREECG98.BMP"; DestDir: "{app}"; Flags: ignoreversion; Components: full compact
-Source: "..\shaders\*"; DestDir: "{app}\shaders"; Flags: ignoreversion recursesubdirs createallsubdirs; Components: full compact
+Source: "..\..\..\CHANGELOG"; DestDir: "{app}"; DestName: "changelog.txt"; Flags: ignoreversion; Components: full compact
+Source: "..\..\..\COPYING"; DestDir: "{app}"; DestName: "COPYING.txt"; Flags: ignoreversion; Components: full compact
+Source: "..\..\fonts\FREECG98.BMP"; DestDir: "{app}"; Flags: ignoreversion; Components: full compact
+Source: "..\..\shaders\*"; DestDir: "{app}\shaders"; Flags: ignoreversion recursesubdirs createallsubdirs; Components: full compact
 Source: "Win32_builds\x86_Release\dosbox-x.exe"; DestDir: "{app}"; Flags: ignoreversion; Check: CheckDirName('Win32_builds\x86_Release'); Components: full compact
 Source: "Win32_builds\x86_Release_SDL2\dosbox-x.exe"; DestDir: "{app}"; Flags: ignoreversion; Check: CheckDirName('Win32_builds\x86_Release SDL2'); Components: full compact
 Source: "Win32_builds\ARM_Release\dosbox-x.exe"; DestDir: "{app}"; Flags: ignoreversion; Check: CheckDirName('Win32_builds\ARM_Release'); Components: full compact
