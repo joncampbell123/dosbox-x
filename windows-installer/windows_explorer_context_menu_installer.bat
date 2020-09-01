@@ -29,20 +29,24 @@ for %%a in ("%HKCU_DIR_FRNT%" "%HKCU_DIR_BACK%") do (
 	if %ERRORLEVEL% NEQ 0 call :uninstall & exit /b 1
 	reg add %%a /f /v Icon /d "\"%DOSBOX_X_PATH%\",0" >nul 2>&1
 	if %ERRORLEVEL% NEQ 0 call :uninstall & exit /b 1
-	reg add %%a\command /f /ve /d "\"%DOSBOX_X_PATH%\" -defaultdir \"%DOSBOX_X_DIR% \" \"%%1\"" >nul 2>&1
+	reg add %%a\command /f /ve /d "\"%DOSBOX_X_PATH%\" -defaultdir \"%DOSBOX_X_DIR% \" \"%%v \"" >nul 2>&1
 	if %ERRORLEVEL% NEQ 0 call :uninstall & exit /b 1
 )
 for %%a in ("%HKCU_EXE_OPEN%" "%HKCU_COM_OPEN%" "%HKCU_BAT_OPEN%") do (
 	reg add %%a /f /v Icon /d "\"%DOSBOX_X_PATH%\",0" >nul 2>&1
 	if %ERRORLEVEL% NEQ 0 call :uninstall & exit /b 1
-	reg add %%a\command /f /ve /d "\"%DOSBOX_X_PATH%\" -defaultdir \"%DOSBOX_X_DIR% \" \"%%1\"" >nul 2>&1
+	reg add %%a\command /f /ve /d "\"%DOSBOX_X_PATH%\" -fastlaunch -defaultdir \"%DOSBOX_X_DIR% \" \"%%1\"" >nul 2>&1
 	if %ERRORLEVEL% NEQ 0 call :uninstall & exit /b 1
 )
+reg add "%HKCU_CONF_OPEN%" /f /v Icon /d "\"%DOSBOX_X_PATH%\",0" >nul 2>&1
+if %ERRORLEVEL% NEQ 0 call :uninstall & exit /b 1
+reg add "%HKCU_CONF_OPEN%"\command /f /ve /d "\"%DOSBOX_X_PATH%\" -conf \"%%1\"" >nul 2>&1
+if %ERRORLEVEL% NEQ 0 call :uninstall & exit /b 1
 call :success & exit /b 1
 
 :uninstall
 echo Error during registration, cleaning up...
-for %%a in ("%HKCU_DIR_FRNT%" "%HKCU_DIR_BACK%" "%HKCU_EXE_OPEN%" "%HKCU_COM_OPEN%" "%HKCU_BAT_OPEN%") do reg delete /f %%a >nul 2>&1
+for %%a in ("%HKCU_DIR_FRNT%" "%HKCU_DIR_BACK%" "%HKCU_EXE_OPEN%" "%HKCU_COM_OPEN%" "%HKCU_BAT_OPEN%" "%HKCU_CONF_OPEN%") do reg delete /f %%a >nul 2>&1
 call :failed & goto :eof
 
 :failed
@@ -57,9 +61,10 @@ call :cleanup & goto :eof
 set DOSBOX_X_EXE=dosbox-x.exe
 set HKCU_DIR_FRNT=HKCU\Software\Classes\Directory\shell\DOSBox-X
 set HKCU_DIR_BACK=HKCU\Software\Classes\Directory\Background\shell\DOSBox-X
-set HKCU_EXE_OPEN=HKCU\Software\Classes\SystemFileAssociations\.exe\shell\Open with DOSBox-X
-set HKCU_COM_OPEN=HKCU\Software\Classes\SystemFileAssociations\.com\shell\Open with DOSBox-X
-set HKCU_BAT_OPEN=HKCU\Software\Classes\SystemFileAssociations\.bat\shell\Open with DOSBox-X
+set HKCU_EXE_OPEN=HKCU\Software\Classes\SystemFileAssociations\.exe\shell\Run with DOSBox-X
+set HKCU_COM_OPEN=HKCU\Software\Classes\SystemFileAssociations\.com\shell\Run with DOSBox-X
+set HKCU_BAT_OPEN=HKCU\Software\Classes\SystemFileAssociations\.bat\shell\Run with DOSBox-X
+set HKCU_CONF_OPEN=HKCU\Software\Classes\SystemFileAssociations\.conf\shell\Open with DOSBox-X
 goto :eof
 
 :cleanup
@@ -71,4 +76,5 @@ set HKCU_DIR_BACK=
 set HKCU_EXE_OPEN=
 set HKCU_COM_OPEN=
 set HKCU_BAT_OPEN=
+set HKCU_CONF_OPEN=
 goto :eof

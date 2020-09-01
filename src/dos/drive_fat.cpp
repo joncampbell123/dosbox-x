@@ -1202,7 +1202,8 @@ fatDrive::fatDrive(const char* sysFilename, Bit32u bytesector, Bit32u cylsector,
     std::vector<std::string>::iterator it = std::find(options.begin(), options.end(), "readonly");
     bool roflag = it!=options.end();
 	readonly = wpcolon&&strlen(sysFilename)>1&&sysFilename[0]==':';
-	diskfile = fopen64(readonly?sysFilename+1:sysFilename, readonly||roflag?"rb":"rb+");
+    const char *fname=readonly?sysFilename+1:sysFilename;
+	diskfile = fopen64(fname, readonly||roflag?"rb":"rb+");
 	if(!diskfile) {created_successfully = false;return;}
     opts.bytesector = bytesector;
     opts.cylsector = cylsector;
@@ -1225,7 +1226,7 @@ fatDrive::fatDrive(const char* sysFilename, Bit32u bytesector, Bit32u cylsector,
 			return;
 		}
 		filesize = (Bit32u)(qcow2_header.size / 1024L);
-		loadedDisk = new QCow2Disk(qcow2_header, diskfile, (Bit8u *)sysFilename, filesize, bytesector, (filesize > 2880));
+		loadedDisk = new QCow2Disk(qcow2_header, diskfile, (Bit8u *)fname, filesize, bytesector, (filesize > 2880));
 	}
 	else{
 		fseeko64(diskfile, 0L, SEEK_SET);
@@ -1236,7 +1237,7 @@ fatDrive::fatDrive(const char* sysFilename, Bit32u bytesector, Bit32u cylsector,
             return;
         }
 
-        const char *ext = strrchr(sysFilename,'.'), *fname=readonly?sysFilename+1:sysFilename;
+        const char *ext = strrchr(sysFilename,'.');
 
         if (ext != NULL && !strcasecmp(ext, ".d88")) {
             fseeko64(diskfile, 0L, SEEK_END);
@@ -1285,6 +1286,7 @@ fatDrive::fatDrive(imageDisk *sourceLoadedDisk, std::vector<std::string> &option
     imageDiskMemory* idmem=dynamic_cast<imageDiskMemory *>(sourceLoadedDisk);
     imageDiskVHD* idvhd=dynamic_cast<imageDiskVHD *>(sourceLoadedDisk);
     if (idelt!=NULL) {
+        readonly = true;
         opts.mounttype = 1;
         el.CDROM_drive = idelt->CDROM_drive;
         el.cdrom_sector_offset = idelt->cdrom_sector_offset;
@@ -1413,7 +1415,7 @@ void fatDrive::fatDriveInit(const char *sysFilename, Bit32u bytesector, Bit32u c
                 opt_partition_index = (int)atol(value.c_str());
         }
         else {
-            LOG(LOG_MISC,LOG_DEBUG)("FAT: option '%s' = '%s' ignored, unknown",name.c_str(),value.c_str());
+            LOG(LOG_DOSMISC,LOG_DEBUG)("FAT: option '%s' = '%s' ignored, unknown",name.c_str(),value.c_str());
         }
 
 //        LOG_MSG("'%s' = '%s'",name.c_str(),value.c_str());

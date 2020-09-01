@@ -190,7 +190,6 @@ extern bool dos_kernel_disabled;
 extern bool bootguest, bootfast, bootvm;
 extern int bootdrive;
 
-void runBoot(void);
 void MenuBootDrive(char drive);
 void MenuUnmountDrive(char drive);
 void SetGameState_Run(int value);
@@ -379,6 +378,32 @@ bool drive_unmount_menu_callback(DOSBoxMenu * const menu,DOSBoxMenu::item * cons
     return true;
 }
 
+void swapInDrive(int drive);
+bool drive_swap_menu_callback(DOSBoxMenu * const menu,DOSBoxMenu::item * const menuitem) {
+    (void)menu;//UNUSED
+    (void)menuitem;//UNUSED
+
+    /* menu item has name "drive_A_" ... */
+    int drive;
+    const char *mname = menuitem->get_name().c_str();
+    if (!strncmp(mname,"drive_",6)) {
+        drive = mname[6] - 'A';
+        if (drive < 0 || drive >= DOS_DRIVES) return false;
+    }
+    else {
+        return false;
+    }
+
+    if (dos_kernel_disabled) return true;
+
+    if (drive < DOS_DRIVES && Drives[drive]) {
+        LOG(LOG_DOSMISC,LOG_DEBUG)("Triggering swap on drive %c",drive+'A');
+        swapInDrive(drive);
+    }
+
+    return true;
+}
+
 bool drive_rescan_menu_callback(DOSBoxMenu * const menu,DOSBoxMenu::item * const menuitem) {
     (void)menu;//UNUSED
     (void)menuitem;//UNUSED
@@ -400,6 +425,35 @@ bool drive_rescan_menu_callback(DOSBoxMenu * const menu,DOSBoxMenu::item * const
         LOG(LOG_DOSMISC,LOG_DEBUG)("Triggering rescan on drive %c",drive+'A');
         Drives[drive]->EmptyCache();
     }
+
+    return true;
+}
+
+int statusdrive=-1;
+void MAPPER_ReleaseAllKeys();
+bool drive_info_menu_callback(DOSBoxMenu * const menu,DOSBoxMenu::item * const menuitem) {
+    (void)menu;//UNUSED
+    (void)menuitem;//UNUSED
+
+    int drive;
+    const char *mname = menuitem->get_name().c_str();
+    if (!strncmp(mname,"drive_",6)) {
+        drive = mname[6] - 'A';
+        if (drive < 0 || drive >= DOS_DRIVES) return false;
+    }
+    else {
+        return false;
+    }
+
+    if (dos_kernel_disabled) return true;
+
+    MAPPER_ReleaseAllKeys();
+    GFX_LosingFocus();
+    statusdrive=drive;
+    GUI_Shortcut(31);
+    statusdrive=-1;
+    MAPPER_ReleaseAllKeys();
+    GFX_LosingFocus();
 
     return true;
 }
@@ -435,13 +489,26 @@ const DOSBoxMenu::callback_t drive_callbacks[] = {
     drive_mountimg_menu_callback,
 #endif
     drive_unmount_menu_callback,
+    drive_swap_menu_callback,
     drive_rescan_menu_callback,
+    drive_info_menu_callback,
     drive_boot_menu_callback,
 #if defined(WIN32)
     drive_bootimg_menu_callback,
 #endif
     NULL
 };
+
+bool list_drivenum_menu_callback(DOSBoxMenu * const menu,DOSBoxMenu::item * const menuitem) {
+    (void)menu;//UNUSED
+    (void)menuitem;//UNUSED
+    MAPPER_ReleaseAllKeys();
+    GFX_LosingFocus();
+    GUI_Shortcut(32);
+    MAPPER_ReleaseAllKeys();
+    GFX_LosingFocus();
+    return true;
+}
 
 const char *drive_opts[][2] = {
 #if defined(WIN32)
@@ -452,7 +519,9 @@ const char *drive_opts[][2] = {
 	{ "mountimg",               "Mount disk image" },
 #endif
     { "unmount",                "Unmount" },
-    { "rescan",                 "Rescan" },
+    { "swap",                   "Swap disk" },
+    { "rescan",                 "Rescan drive" },
+    { "info",                   "Drive information" },
     { "boot",                   "Boot from drive" },
 #if defined(WIN32)
     { "bootimg",                "Boot from disk image" },
@@ -1081,7 +1150,7 @@ void GFX_SetTitle(Bit32s cycles,Bits frameskip,Bits timing,bool paused){
 
 bool warn_on_mem_write = false, quit_confirm = false;
 
-void CPU_Snap_Back_To_Real_Mode(), MAPPER_ReleaseAllKeys();
+void CPU_Snap_Back_To_Real_Mode();
 bool CheckQuit(void) {
     Section_prop *section = static_cast<Section_prop *>(control->GetSection("dosbox"));
 	std::string warn = section->Get_string("quit warning");
@@ -1095,7 +1164,7 @@ bool CheckQuit(void) {
         bool ret=quit_confirm;
         quit_confirm=false;
         return ret;
-    } else if (warn == "false")
+    } else if (warn == "false" || glide.enabled)
         return true;
     if (dos_kernel_disabled) {
         quit_confirm=false;
@@ -6672,7 +6741,7 @@ bool DOSBOX_parse_argv() {
             fprintf(stderr,"  -set <section property=value>           Set the config option (overriding the config file).\n");
             fprintf(stderr,"                                          Make sure to surround the string in quotes to cover spaces.\n");
             fprintf(stderr,"  -time-limit <n>                         Kill the emulator after 'n' seconds\n");
-            fprintf(stderr,"  -fastbioslogo                           Fast BIOS logo (skip 1-second pause)\n");
+            fprintf(stderr,"  -fastlaunch                             Fast launch mode (skip the BIOS logo and welcome banner)\n");
 #if C_DEBUG
             fprintf(stderr,"  -helpdebug                              Show debug-related options\n");
 #endif
@@ -6790,6 +6859,9 @@ bool DOSBOX_parse_argv() {
         else if (optname == "fastbioslogo") {
             control->opt_fastbioslogo = true;
         }
+        else if (optname == "fastlaunch") {
+            control->opt_fastlaunch = true;
+        }
         else if (optname == "conf") {
             if (!control->cmdline->NextOptArgv(tmp)) return false;
             control->config_file_list.push_back(tmp);
@@ -6856,7 +6928,7 @@ bool DOSBOX_parse_argv() {
     control->cmdline->BeginOpt(/*don't eat*/false);
     while (!control->cmdline->CurrentArgvEnd()) {
         control->cmdline->GetCurrentArgv(tmp);
-
+        trim(tmp);
         {
             struct stat st;
             const char *ext = strrchr(tmp.c_str(),'.'); /* if it looks like a file... with an extension */
@@ -7931,6 +8003,7 @@ bool force_loadstate_menu_callback(DOSBoxMenu * const menu, DOSBoxMenu::item * c
 }
 
 void refresh_slots() {
+    mainMenu.get_item("current_page").set_text("Current page: "+to_string(page+1)+"/10").refresh_item(mainMenu);
 	for (unsigned int i=0; i<SaveState::SLOT_COUNT; i++) {
 		char name[6]="slot0";
 		name[4]='0'+i;
@@ -9189,6 +9262,7 @@ int main(int argc, char* argv[]) SDL_MAIN_NOEXCEPT {
             item.set_text("Select save slot");
 
             {
+				mainMenu.alloc_item(DOSBoxMenu::item_type_id,"current_page").set_text("Current page: 1/10").enable(false).set_callback_function(refresh_slots_menu_callback);
 				mainMenu.alloc_item(DOSBoxMenu::item_type_id,"prev_page").set_text("Previous page").set_callback_function(prev_page_menu_callback);
 				mainMenu.alloc_item(DOSBoxMenu::item_type_id,"next_page").set_text("Next page").set_callback_function(next_page_menu_callback);
 				mainMenu.alloc_item(DOSBoxMenu::item_type_id,"first_page").set_text("Go to first page").set_callback_function(first_page_menu_callback);
@@ -9202,7 +9276,7 @@ int main(int argc, char* argv[]) SDL_MAIN_NOEXCEPT {
 				}
             }
             if (page!=GetGameState_Run()/SaveState::SLOT_COUNT) {
-                page=GetGameState_Run()/SaveState::SLOT_COUNT;
+                page=(unsigned int)(GetGameState_Run()/SaveState::SLOT_COUNT);
                 refresh_slots();
             }
 			char name[6]="slot0";
@@ -9422,6 +9496,7 @@ int main(int argc, char* argv[]) SDL_MAIN_NOEXCEPT {
         mainMenu.alloc_item(DOSBoxMenu::item_type_id,"highdpienable").set_text("High DPI enable").set_callback_function(highdpienable_menu_callback).check(dpi_aware_enable);
         mainMenu.alloc_item(DOSBoxMenu::item_type_id,"shell_config_commands").set_text("Config options as commands").set_callback_function(shell_config_commands_menu_callback).check(enable_config_as_shell_commands);
         mainMenu.alloc_item(DOSBoxMenu::item_type_id,"quick_reboot").set_text("Enable quick reboot").set_callback_function(quick_reboot_menu_callback).check(use_quick_reboot);
+        mainMenu.alloc_item(DOSBoxMenu::item_type_id,"list_drivenum").set_text("Show mounted drive numbers").set_callback_function(list_drivenum_menu_callback);
         mainMenu.alloc_item(DOSBoxMenu::item_type_id,"force_loadstate").set_text("Force load state mode").set_callback_function(force_loadstate_menu_callback).check(force_load_state);
         mainMenu.alloc_item(DOSBoxMenu::item_type_id,"removestate").set_text("Remove state in slot").set_callback_function(remove_state_menu_callback);
         mainMenu.alloc_item(DOSBoxMenu::item_type_id,"refreshslot").set_text("Refresh display status").set_callback_function(refresh_slots_menu_callback);

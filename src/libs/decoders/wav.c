@@ -133,14 +133,14 @@ static int WAV_open(Sound_Sample *sample, const char *ext)
 } /* WAV_open */
 
 
-static Uint32 WAV_read(Sound_Sample *sample, void* buffer, Uint32 desired_frames)
+static Uint32 WAV_read(Sound_Sample *sample)
 {
     Sound_SampleInternal *internal = (Sound_SampleInternal *) sample->opaque;
     drwav *dr = (drwav *) internal->decoder_private;
     const drwav_uint64 frames_read = drwav_read_pcm_frames_s16(dr,
-                                                               desired_frames,
-                                                               (drwav_int16 *) buffer);
-    return (Uint32)frames_read;
+                                         internal->buffer_size / (dr->channels * sizeof(drwav_int16)),
+                                         (drwav_int16 *) internal->buffer);
+    return frames_read * dr->channels * sizeof (drwav_int16);
 } /* WAV_read */
 
 

@@ -2304,6 +2304,23 @@ void IDE_Hard_Disk_Detach(unsigned char bios_disk_index) {
         }
     }
 }
+
+char idepos[4];
+char * GetIDEPosition(unsigned char bios_disk_index) {
+    for (int index = 0; index < MAX_IDE_CONTROLLERS; index++) {
+        IDEController *c = GetIDEController(index);
+        if (c)
+        for (int slave = 0; slave < 2; slave++) {
+            IDEATADevice *dev = dynamic_cast<IDEATADevice*>(c->device[slave]);
+            if (dev && dev->bios_disk_index == bios_disk_index) {
+                sprintf(idepos, "%d%c", index+1, slave?'s':'m');
+                return idepos;
+            }
+        }
+    }
+    return (char*)("");
+}
+
 static IDEController* GetIDEController(Bitu idx) {
     if (idx >= MAX_IDE_CONTROLLERS) return NULL;
     return idecontroller[idx];

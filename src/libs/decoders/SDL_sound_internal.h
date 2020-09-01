@@ -1,26 +1,29 @@
 /*
- *  Modified SDL Sound API implementation
- *  -------------------------------------
- *  Internal function/structure declaration. Do NOT include in your
+ * SDL_sound -- An abstract sound format decoding API.
+ * Copyright (C) 2001  Ryan C. Gordon.
+ *
+ * This library is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU Lesser General Public
+ * License as published by the Free Software Foundation; either
+ * version 2.1 of the License, or (at your option) any later version.
+ *
+ * This library is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+ * Lesser General Public License for more details.
+ *
+ * You should have received a copy of the GNU Lesser General Public
+ * License along with this library; if not, write to the Free Software
+ * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+ */
+
+/*
+ * Internal function/structure declaration. Do NOT include in your
  *  application.
  *
- *  Copyright (C) 2020       The dosbox-staging team
- *  Copyright (C) 2018-2019  Kevin R. Croft <krcroft@gmail.com>
- *  Copyright (C) 2001-2017  Ryan C. Gordon <icculus@icculus.org>
+ * Please see the file LICENSE.txt in the source's root directory.
  *
- *  This program is free software; you can redistribute it and/or modify
- *  it under the terms of the GNU General Public License as published by
- *  the Free Software Foundation; either version 2 of the License, or
- *  (at your option) any later version.
- *
- *  This program is distributed in the hope that it will be useful,
- *  but WITHOUT ANY WARRANTY; without even the implied warranty of
- *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- *  GNU General Public License for more details.
- *
- *  You should have received a copy of the GNU General Public License along
- *  with this program; if not, write to the Free Software Foundation, Inc.,
- *  51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
+ *  This file written by Ryan C. Gordon. (icculus@icculus.org)
  */
 
 #ifndef _INCLUDE_SDL_SOUND_INTERNAL_H_
@@ -55,7 +58,7 @@
 #       define assert(x) if(!x) { fprintf(stderr,"Assertion failed in %s, line %s.\n",__FILE__,__LINE__); fclose(stderr); fclose(stdout); exit(1); }
 #   endif
 #endif
- 
+
 
 #if (!defined assert)  /* if all else fails. */
 #  define assert(x)
@@ -123,6 +126,9 @@ typedef struct __SOUND_DECODERFUNCTIONS__
          *    Sound_Sample *prev;  (offlimits)
          *    SDL_RWops *rw;       (can use, but do NOT close it)
          *    const Sound_DecoderFunctions *funcs; (that's this structure)
+         *    Sound_AudioCVT sdlcvt; (offlimits)
+         *    void *buffer;        (offlimits until read() method)
+         *    Uint32 buffer_size;  (offlimits until read() method)
          *    void *decoder_private; (read and write access)
          *
          * in rest of Sound_Sample:
@@ -130,6 +136,8 @@ typedef struct __SOUND_DECODERFUNCTIONS__
          *    const Sound_DecoderInfo *decoder;  (read only)
          *    Sound_AudioInfo desired; (read only, usually not needed here)
          *    Sound_AudioInfo actual;  (please fill this in)
+         *    void *buffer;            (offlimits)
+         *    Uint32 buffer_size;      (offlimits)
          *    Sound_SampleFlags flags; (set appropriately)
          */
     int (*open)(Sound_Sample *sample, const char *ext);
@@ -149,12 +157,15 @@ typedef struct __SOUND_DECODERFUNCTIONS__
          *   Sound_SampleInternal *internal;
          *   internal = (Sound_SampleInternal *) sample->opaque;
          *
-         *  ...and then start decoding. Fill in up to desired_frames
-         *  PCM frames of decoded sound into the space pointed to by
-         *  buffer. The encoded data is read in from internal->rw.
+         *  ...and then start decoding. Fill in up to internal->buffer_size
+         *  bytes of decoded sound in the space pointed to by
+         *  internal->buffer. The encoded data is read in from internal->rw.
+         *  Data should be decoded in the format specified during the
+         *  decoder's open() method in the sample->actual field. The
+         *  conversion to the desired format is done at a higher level.
          *
-         * The return value is the number of frames decoded into
-         *  buffer, which can be no more than desired_frames,
+         * The return value is the number of bytes decoded into
+         *  internal->buffer, which can be no more than internal->buffer_size,
          *  but can be less. If it is less, you should set a state flag:
          *
          *   If there's just no more data (end of file, etc), then do:
@@ -175,12 +186,12 @@ typedef struct __SOUND_DECODERFUNCTIONS__
          *  SOUND_SAMPLEFLAG_EAGAIN flag is reset before each call to this
          *  method.
          */
-    Uint32 (*read)(Sound_Sample *sample, void* buffer, Uint32 desired_frames);
+    Uint32 (*read)(Sound_Sample *sample);
 
         /*
          * Reset the decoding to the beginning of the stream. Nonzero on
          *  success, zero on failure.
-         *  
+         *
          * The purpose of this method is to allow for higher efficiency than
          *  an application could get by just recreating the sample externally;
          *  not only do they not have to reopen the RWops, reallocate buffers,
@@ -198,9 +209,9 @@ typedef struct __SOUND_DECODERFUNCTIONS__
         /*
          * Reposition the decoding to an arbitrary point. Nonzero on
          *  success, zero on failure.
-         *  
+         *
          * The purpose of this method is to allow for higher efficiency than
-         *  an application could get by just rewinding the sample and 
+         *  an application could get by just rewinding the sample and
          *  decoding to a given point.
          *
          * The decoder is responsible for calling seek() on the associated
@@ -212,6 +223,31 @@ typedef struct __SOUND_DECODERFUNCTIONS__
     int (*seek)(Sound_Sample *sample, Uint32 ms);
 } Sound_DecoderFunctions;
 
+
+/* A structure to hold a set of audio conversion filters and buffers */
+typedef struct Sound_AudioCVT
+{
+    int    needed;                  /* Set to 1 if conversion possible */
+    Uint16 src_format;              /* Source audio format */
+    Uint16 dst_format;              /* Target audio format */
+    double rate_incr;               /* Rate conversion increment */
+    Uint8  *buf;                    /* Buffer to hold entire audio data */
+    int    len;                     /* Length of original audio buffer */
+    int    len_cvt;                 /* Length of converted audio buffer */
+    int    len_mult;                /* buffer must be len*len_mult big */
+    double len_ratio;       /* Given len, final size is len*len_ratio */
+    void   (*filters[20])(struct Sound_AudioCVT *cvt, Uint16 *format);
+    int    filter_index;            /* Current audio conversion function */
+} Sound_AudioCVT;
+
+extern SNDDECLSPEC int Sound_BuildAudioCVT(Sound_AudioCVT *cvt,
+                        Uint16 src_format, Uint8 src_channels, Uint32 src_rate,
+                        Uint16 dst_format, Uint8 dst_channels, Uint32 dst_rate,
+                        Uint32 dst_size);
+
+extern SNDDECLSPEC int Sound_ConvertAudio(Sound_AudioCVT *cvt);
+
+
 typedef void (*MixFunc)(float *dst, void *src, Uint32 frames, float *gains);
 
 typedef struct __SOUND_SAMPLEINTERNAL__
@@ -220,7 +256,8 @@ typedef struct __SOUND_SAMPLEINTERNAL__
     Sound_Sample *prev;
     SDL_RWops *rw;
     const Sound_DecoderFunctions *funcs;
-    void *buffer;
+    Sound_AudioCVT sdlcvt;
+    Uint8 *buffer;
     Uint32 buffer_size;
     void *decoder_private;
     Sint32 total_time;
@@ -294,4 +331,3 @@ extern "C"
 #endif /* defined _INCLUDE_SDL_SOUND_INTERNAL_H_ */
 
 /* end of SDL_sound_internal.h ... */
-

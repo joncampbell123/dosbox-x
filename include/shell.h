@@ -318,6 +318,7 @@ public:
 	bool echo;
 	bool exit;
 	bool call;
+    bool exec;
     bool perm;
 	bool lfnfor;
     /* Status */

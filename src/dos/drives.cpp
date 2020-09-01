@@ -346,6 +346,7 @@ void DriveManager::CycleAllCDs(void) {
 			// cycle disk
 			unsigned int currentDisk = driveInfos[idrive].currentDisk;
             const DOS_Drive* oldDisk = driveInfos[idrive].disks[currentDisk];
+            if (dynamic_cast<const isoDrive*>(oldDisk) == NULL) continue;
 			currentDisk = ((unsigned int)currentDisk + 1u) % (unsigned int)numDisks;		
 			DOS_Drive* newDisk = driveInfos[idrive].disks[currentDisk];
 			driveInfos[idrive].currentDisk = currentDisk;
@@ -382,6 +383,12 @@ int DriveManager::UnmountDrive(int drive) {
 	return result;
 }
 
+char swappos[10];
+char * DriveManager::GetDrivePosition(int drive) {
+    sprintf(swappos, "%d / %d", driveInfos[drive].currentDisk+1, (int)driveInfos[drive].disks.size());
+    return swappos;
+}
+
 bool drivemanager_init = false;
 bool int13_extensions_enable = true;
 
@@ -405,13 +412,13 @@ void DriveManager::Init(Section* s) {
 void DRIVES_Startup(Section *s) {
     (void)s;//UNUSED
 	if (!drivemanager_init) {
-		LOG(LOG_MISC,LOG_DEBUG)("Initializing drive system");
+		LOG(LOG_DOSMISC,LOG_DEBUG)("Initializing drive system");
 		DriveManager::Init(control->GetSection("dos"));
 	}
 }
 
 void DRIVES_Init() {
-	LOG(LOG_MISC,LOG_DEBUG)("Initializing OOS drives");
+	LOG(LOG_DOSMISC,LOG_DEBUG)("Initializing DOS drives");
 
 	// TODO: DOS kernel exit, reset, guest booting handler
 }

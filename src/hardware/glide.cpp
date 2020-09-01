@@ -170,7 +170,7 @@ static void statWMInfo(void)
     if(SDL_GetWindowWMInfo(sdl.window, &wmi)) {
 # if defined (WIN32)
         hwnd = (HostPt)wmi.info.win.window;
-# else
+# elif defined (C_X11) && defined(LINUX)
         hwnd = (HostPt)wmi.info.x11.window;
 # endif
 #else
@@ -178,7 +178,7 @@ static void statWMInfo(void)
     if(SDL_GetWMInfo(&wmi)) {
 # if defined (WIN32)
         hwnd = (HostPt)wmi.window;
-# else
+# elif defined (C_X11) && defined(LINUX)
         hwnd = (HostPt)wmi.info.x11.window;
 # endif
 #endif
@@ -275,17 +275,17 @@ public:
 	return *(Bit32u *)(LFB_getAddr(addr));
     }
 
-    void writeb(PhysPt addr,Bitu val) {
+    void writeb(PhysPt addr,Bit8u val) {
 //	LOG_MSG("Glide:Write to 0x%p", LFB_getAddr(addr));
 	*(Bit8u *)(LFB_getAddr(addr))=(Bit8u)val;
     }
 
-    void writew(PhysPt addr,Bitu val) {
+    void writew(PhysPt addr,Bit16u val) {
 //	LOG_MSG("Glide:Write to 0x%p", LFB_getAddr(addr));
 	*(Bit16u *)(LFB_getAddr(addr))=(Bit16u)val;
     }
 
-    void writed(PhysPt addr,Bitu val) {
+    void writed(PhysPt addr,Bit32u val) {
 //	LOG_MSG("Glide:Write to 0x%p", LFB_getAddr(addr));
 	*(Bit32u *)(LFB_getAddr(addr))=(Bit32u)val;
     }
@@ -461,7 +461,7 @@ void GLIDE_ShutDown(Section* sec) {
 }
 
 void GLIDE_Init() {
-    test = new GLIDE(control->GetSection("pci"));
+    test = new GLIDE(control->GetSection("voodoo"));
     AddExitFunction(AddExitFunctionFuncPair(GLIDE_ShutDown),true);
 }
 
@@ -951,7 +951,7 @@ static void process_msg(Bitu value)
 	FP.grFunction0 = (pfunc0)fn_pt[i];
 	FP.grFunction0();
 
-	Section_prop *section=static_cast<Section_prop *>(control->GetSection("pci"));
+	Section_prop *section=static_cast<Section_prop *>(control->GetSection("voodoo"));
 	if (section) glide.splash = section->Get_bool("splash");
 
 #if LOG_GLIDE

@@ -87,6 +87,7 @@ public:
         opt_printconf = false;
         opt_noautoexec = false;
         opt_securemode = false;
+        opt_fastlaunch = false;
         opt_fullscreen = false;
         opt_showcycles = false;
         opt_earlydebug = false;
@@ -136,6 +137,7 @@ public:
     bool opt_noautoexec;
     bool opt_securemode;
     bool opt_fullscreen;
+    bool opt_fastlaunch;
     bool opt_showcycles;
     bool opt_earlydebug;
     bool opt_logfileio;

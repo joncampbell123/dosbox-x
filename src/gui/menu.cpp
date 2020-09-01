@@ -325,6 +325,7 @@ static const char *def_menu_video_pc98[] =
     NULL
 };
 
+#if C_DEBUG
 /* video output debug ("VideoDebugMenu") */
 static const char *def_menu_video_debug[] =
 {
@@ -334,6 +335,7 @@ static const char *def_menu_video_debug[] =
     "debug_retracepoll",
     NULL
 };
+#endif
 
 /* video menu ("VideoMenu") */
 static const char *def_menu_video[] =
@@ -410,8 +412,14 @@ static const char *def_menu_dos[] =
     "mapper_swapcd",
     "--",
     "mapper_rescanall",
-#if C_DEBUG
+    "list_drivenum",
+#if C_PRINTER || C_DEBUG
     "--",
+#endif
+#if C_PRINTER
+    "mapper_ejectpage",
+#endif
+#if C_DEBUG
     "DOSDebugMenu",
 #endif
     NULL
@@ -467,6 +475,7 @@ static const char *def_menu_dos_win[] =
 };
 #endif
 
+#if C_DEBUG
 /* DOS debug ("DOSDebugMenu") */
 static const char *def_menu_dos_debug[] =
 {
@@ -474,6 +483,7 @@ static const char *def_menu_dos_debug[] =
     "debug_logfileio",
     NULL
 };
+#endif
 
 /* sound menu ("SoundMenu") */
 static const char *def_menu_sound[] =
@@ -534,6 +544,7 @@ static const char *def_menu_capture_format[] =
 /* Save slots */
 static const char *def_save_slots[] =
 {
+    "current_page",
     "prev_page",
     "next_page",
     "--",
@@ -1290,8 +1301,10 @@ void ConstructMenu(void) {
     /* video PC-98 menu */
     ConstructSubMenu(mainMenu.get_item("VideoPC98Menu").get_master_id(), def_menu_video_pc98);
 
+#if C_DEBUG
     /* video debug menu */
     ConstructSubMenu(mainMenu.get_item("VideoDebugMenu").get_master_id(), def_menu_video_debug);
+#endif
 
     /* sound menu */
     ConstructSubMenu(mainMenu.get_item("SoundMenu").get_master_id(), def_menu_sound);
@@ -1316,8 +1329,10 @@ void ConstructMenu(void) {
     ConstructSubMenu(mainMenu.get_item("DOSWinMenu").get_master_id(), def_menu_dos_win);
 #endif
 
+#if C_DEBUG
     /* DOS debug menu */
     ConstructSubMenu(mainMenu.get_item("DOSDebugMenu").get_master_id(), def_menu_dos_debug);
+#endif
 
 #if !defined(C_EMSCRIPTEN)
     /* capture menu */

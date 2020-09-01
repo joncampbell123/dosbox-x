@@ -886,6 +886,8 @@ void INT10_OnResetComplete() {
     BIOS_UnsetupKeyboard();
 }
 
+extern bool vesa_bank_switch_window_range_check;
+extern bool vesa_bank_switch_window_mirror;
 extern bool vesa_zero_on_get_information;
 extern bool unmask_irq0_on_int10_setmode;
 extern bool int16_unmask_irq1_on_read;
@@ -1116,6 +1118,9 @@ void INT10_Startup(Section *sec) {
     (void)sec;//UNUSED
 	LOG(LOG_MISC,LOG_DEBUG)("INT 10h reinitializing");
 
+
+    vesa_bank_switch_window_range_check = static_cast<Section_prop *>(control->GetSection("dosbox"))->Get_bool("vesa bank switching window range check");
+    vesa_bank_switch_window_mirror = static_cast<Section_prop *>(control->GetSection("dosbox"))->Get_bool("vesa bank switching window mirroring");
     vesa_zero_on_get_information = static_cast<Section_prop *>(control->GetSection("dosbox"))->Get_bool("vesa zero buffer on get information");
     unmask_irq0_on_int10_setmode = static_cast<Section_prop *>(control->GetSection("dosbox"))->Get_bool("unmask timer on int 10 setmode");
 	int16_unmask_irq1_on_read = static_cast<Section_prop *>(control->GetSection("dosbox"))->Get_bool("unmask keyboard on int 16 read");

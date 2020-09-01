@@ -1,39 +1,41 @@
 /*
- *  Modified SDL Sound API implementation
- *  -------------------------------------
- *  This file implements the API, the documentation for which can
- *  be found in SDL_sound.h.  This API has been changed from its
- *  original implementation as follows:
- *    - Cut down in size; most notably exclusion of the conversion routines
- *    - Small bug fixes and warnings cleaned up
- *    - Elimination of intermediate buffers, allowing direct decoding
- *    - Moved from sample-based logic to frame-based (channel-agnostic)
+ * SDL_sound -- An abstract sound format decoding API.
+ * Copyright (C) 2001  Ryan C. Gordon.
  *
- *  Copyright (C) 2020       The dosbox-staging team
- *  Copyright (C) 2018-2019  Kevin R. Croft <krcroft@gmail.com>
- *  Copyright (C) 2001-2017  Ryan C. Gordon <icculus@icculus.org>
+ * This library is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU Lesser General Public
+ * License as published by the Free Software Foundation; either
+ * version 2.1 of the License, or (at your option) any later version.
  *
- *  This program is free software; you can redistribute it and/or modify
- *  it under the terms of the GNU General Public License as published by
- *  the Free Software Foundation; either version 2 of the License, or
- *  (at your option) any later version.
+ * This library is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+ * Lesser General Public License for more details.
  *
- *  This program is distributed in the hope that it will be useful,
- *  but WITHOUT ANY WARRANTY; without even the implied warranty of
- *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- *  GNU General Public License for more details.
- *
- *  You should have received a copy of the GNU General Public License along
- *  with this program; if not, write to the Free Software Foundation, Inc.,
- *  51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
+ * You should have received a copy of the GNU Lesser General Public
+ * License along with this library; if not, write to the Free Software
+ * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
 
-#include <stdio.h>
-#include <ctype.h>
+/**
+ * This file implements the core API, which is relatively simple.
+ *   The real meat of SDL_sound is in the decoders directory.
+ *
+ * Documentation is in SDL_sound.h ... It's verbose, honest.  :)
+ *
+ * Please see the file LICENSE.txt in the source's root directory.
+ *
+ *  This file written by Ryan C. Gordon. (icculus@icculus.org)
+ */
 
 #if HAVE_CONFIG_H
 #  include <config.h>
 #endif
+
+// #include <stdio.h>
+// #include <stdlib.h>
+// #include <string.h>
+// #include <ctype.h>
 
 #include <SDL.h>
 #include <SDL_thread.h>
@@ -42,30 +44,28 @@
 #define __SDL_SOUND_INTERNAL__
 #include "SDL_sound_internal.h"
 
+
+/* The various decoder drivers... */
+
+/* All these externs may be missing; we check SOUND_SUPPORTS_xxx before use. */
+extern const Sound_DecoderFunctions __Sound_DecoderFunctions_WAV;
+extern const Sound_DecoderFunctions __Sound_DecoderFunctions_VORBIS;
+extern const Sound_DecoderFunctions __Sound_DecoderFunctions_OPUS;
+extern const Sound_DecoderFunctions __Sound_DecoderFunctions_FLAC;
+extern const Sound_DecoderFunctions __Sound_DecoderFunctions_MP3;
+
 typedef struct
 {
     int available;
     const Sound_DecoderFunctions *funcs;
 } decoder_element;
 
-/* Supported decoder drivers... */
-extern const Sound_DecoderFunctions __Sound_DecoderFunctions_FLAC;
-extern const Sound_DecoderFunctions __Sound_DecoderFunctions_MP3;
-#ifdef USE_OPUS
-extern const Sound_DecoderFunctions __Sound_DecoderFunctions_OPUS;
-#endif
-extern const Sound_DecoderFunctions __Sound_DecoderFunctions_VORBIS;
-extern const Sound_DecoderFunctions __Sound_DecoderFunctions_WAV;
-
 static decoder_element decoders[] =
 {
+    { 0, &__Sound_DecoderFunctions_WAV },
+    { 0, &__Sound_DecoderFunctions_VORBIS },
     { 0, &__Sound_DecoderFunctions_FLAC },
     { 0, &__Sound_DecoderFunctions_MP3 },
-#ifdef USE_OPUS
-    { 0, &__Sound_DecoderFunctions_OPUS },
-#endif
-    { 0, &__Sound_DecoderFunctions_VORBIS },
-    { 0, &__Sound_DecoderFunctions_WAV },
     { 0, NULL }
 };
 
@@ -149,10 +149,7 @@ int Sound_Quit(void)
     BAIL_IF_MACRO(!initialized, ERR_NOT_INITIALIZED, 0);
 
     while (((volatile Sound_Sample *) sample_list) != NULL)
-    {
-        Sound_Sample *sample = sample_list;
-        Sound_FreeSample(sample); /* Updates sample_list. */
-    }
+        Sound_FreeSample(sample_list);
 
     initialized = 0;
 
@@ -285,7 +282,8 @@ void __Sound_SetError(const char *str)
     } /* if */
 
     err->error_available = 1;
-    snprintf(err->error_string, sizeof (err->error_string), "%s", str);
+    strncpy(err->error_string, str, sizeof (err->error_string));
+    err->error_string[sizeof (err->error_string) - 1] = '\0';
 } /* __Sound_SetError */
 
 
@@ -319,7 +317,7 @@ int __Sound_strcasecmp(const char *x, const char *y)
 
     if (y == NULL)
         return(1);
-       
+
     do
     {
         ux = toupper((int) *x);
@@ -340,30 +338,47 @@ int __Sound_strcasecmp(const char *x, const char *y)
  * Allocate a Sound_Sample, and fill in most of its fields. Those that need
  *  to be filled in later, by a decoder, will be initialized to zero.
  */
-static Sound_Sample *alloc_sample(SDL_RWops *rw, Sound_AudioInfo *desired)
+static Sound_Sample *alloc_sample(SDL_RWops *rw, Sound_AudioInfo *desired,
+                                    Uint32 bufferSize)
 {
     /*
      * !!! FIXME: We're going to need to pool samples, since the mixer
      * !!! FIXME:  might be allocating tons of these on a regular basis.
      */
-    Sound_Sample *retval = NULL;
-    Sound_Sample *sample = (Sound_Sample *)malloc(sizeof (Sound_Sample));
+    Sound_Sample *retval = (Sound_Sample *)malloc(sizeof (Sound_Sample));
     Sound_SampleInternal *internal = (Sound_SampleInternal *)malloc(sizeof (Sound_SampleInternal));
-    if (sample && internal) {
-        memset(sample, '\0', sizeof (Sound_Sample));
-        memset(internal, '\0', sizeof (Sound_SampleInternal));
-        if (desired != NULL) {
-            memcpy(&sample->desired, desired, sizeof (Sound_AudioInfo));
-        }
-        internal->rw = rw;
-        sample->opaque = internal;
-        retval = sample;
-    } else {
+    if ((retval == NULL) || (internal == NULL))
+    {
         __Sound_SetError(ERR_OUT_OF_MEMORY);
-        free(sample);
+        if (retval)
+            free(retval);
+        if (internal)
+            free(internal);
+
+        return(NULL);
+    } /* if */
+
+    memset(retval, '\0', sizeof (Sound_Sample));
+    memset(internal, '\0', sizeof (Sound_SampleInternal));
+
+    assert(bufferSize > 0);
+    retval->buffer = (Uint8 *)malloc(bufferSize);  /* pure ugly. */
+    if (!retval->buffer)
+    {
+        __Sound_SetError(ERR_OUT_OF_MEMORY);
         free(internal);
-    }
-    return retval;
+        free(retval);
+        return(NULL);
+    } /* if */
+    memset(retval->buffer, '\0', bufferSize);
+    retval->buffer_size = bufferSize;
+
+    if (desired != NULL)
+        memcpy(&retval->desired, desired, sizeof (Sound_AudioInfo));
+
+    internal->rw = rw;
+    retval->opaque = internal;
+    return(retval);
 } /* alloc_sample */
 
 
@@ -403,18 +418,20 @@ static int init_sample(const Sound_DecoderFunctions *funcs,
 {
     Sound_SampleInternal *internal = (Sound_SampleInternal *) sample->opaque;
     Sound_AudioInfo desired;
-    const Sint64 pos = SDL_RWtell(internal->rw);
+    int pos = SDL_RWtell(internal->rw);
 
         /* fill in the funcs for this decoder... */
     sample->decoder = &funcs->info;
     internal->funcs = funcs;
     if (!funcs->open(sample, ext))
     {
-        SDL_RWseek(internal->rw, (int)pos, SEEK_SET);  /* set for next try... */
+        SDL_RWseek(internal->rw, pos, SEEK_SET);  /* set for next try... */
         return(0);
     } /* if */
 
     /* success; we've got a decoder! */
+
+    /* Now we need to set up the conversion buffer... */
 
     memcpy(&desired, (_desired != NULL) ? _desired : &sample->actual,
             sizeof (Sound_AudioInfo));
@@ -426,9 +443,40 @@ static int init_sample(const Sound_DecoderFunctions *funcs,
     if (desired.rate == 0)
         desired.rate = sample->actual.rate;
 
+    if (Sound_BuildAudioCVT(&internal->sdlcvt,
+                            sample->actual.format,
+                            sample->actual.channels,
+                            sample->actual.rate,
+                            desired.format,
+                            desired.channels,
+                            desired.rate,
+                            sample->buffer_size) == -1)
+    {
+        __Sound_SetError(SDL_GetError());
+        funcs->close(sample);
+        SDL_RWseek(internal->rw, pos, SEEK_SET);  /* set for next try... */
+        return(0);
+    } /* if */
+
+    if (internal->sdlcvt.len_mult > 1)
+    {
+        Uint8 *rc = (Uint8 *)realloc(sample->buffer,
+                           sample->buffer_size * internal->sdlcvt.len_mult);
+        if (rc == NULL)
+        {
+            funcs->close(sample);
+            SDL_RWseek(internal->rw, pos, SEEK_SET);  /* set for next try... */
+            return(0);
+        } /* if */
+
+        sample->buffer = rc;
+    } /* if */
 
         /* these pointers are all one and the same. */
     memcpy(&sample->desired, &desired, sizeof (Sound_AudioInfo));
+    internal->sdlcvt.buf = internal->buffer = sample->buffer;
+    internal->buffer_size = sample->buffer_size / internal->sdlcvt.len_mult;
+    internal->sdlcvt.len = internal->buffer_size;
 
     /* Prepend our new Sound_Sample to the sample_list... */
     SDL_LockMutex(samplelist_mutex);
@@ -447,12 +495,16 @@ static int init_sample(const Sound_DecoderFunctions *funcs,
             fmt_to_str(sample->actual.format),
             sample->actual.rate,
             sample->actual.channels));
+
+    SNDDBG(("On-the-fly conversion: %s.\n",
+            internal->sdlcvt.needed ? "ENABLED" : "DISABLED"));
+
     return(1);
 } /* init_sample */
 
 
 Sound_Sample *Sound_NewSample(SDL_RWops *rw, const char *ext,
-                              Sound_AudioInfo *desired)
+                              Sound_AudioInfo *desired, Uint32 bSize)
 {
     Sound_Sample *retval;
     decoder_element *decoder;
@@ -461,7 +513,7 @@ Sound_Sample *Sound_NewSample(SDL_RWops *rw, const char *ext,
     BAIL_IF_MACRO(!initialized, ERR_NOT_INITIALIZED, NULL);
     BAIL_IF_MACRO(rw == NULL, ERR_INVALID_ARGUMENT, NULL);
 
-    retval = alloc_sample(rw, desired);
+    retval = alloc_sample(rw, desired, bSize);
     if (!retval)
         return(NULL);  /* alloc_sample() sets error message... */
 
@@ -515,6 +567,8 @@ Sound_Sample *Sound_NewSample(SDL_RWops *rw, const char *ext,
 
     /* nothing could handle the sound data... */
     free(retval->opaque);
+    if (retval->buffer != NULL)
+        free(retval->buffer);
     free(retval);
     SDL_RWclose(rw);
     __Sound_SetError(ERR_UNSUPPORTED_FORMAT);
@@ -523,7 +577,8 @@ Sound_Sample *Sound_NewSample(SDL_RWops *rw, const char *ext,
 
 
 Sound_Sample *Sound_NewSampleFromFile(const char *filename,
-                                      Sound_AudioInfo *desired)
+                                      Sound_AudioInfo *desired,
+                                      Uint32 bufferSize)
 {
     const char *ext;
     SDL_RWops *rw;
@@ -543,8 +598,29 @@ Sound_Sample *Sound_NewSampleFromFile(const char *filename,
     if (ext != NULL)
         ext++;
 
-    return(Sound_NewSample(rw, ext, desired));
+    return(Sound_NewSample(rw, ext, desired, bufferSize));
 } /* Sound_NewSampleFromFile */
+
+
+Sound_Sample *Sound_NewSampleFromMem(const Uint8 *data,
+                                     Uint32 size,
+                                     const char *ext,
+                                     Sound_AudioInfo *desired,
+                                     Uint32 bufferSize)
+{
+    SDL_RWops *rw;
+
+    BAIL_IF_MACRO(!initialized, ERR_NOT_INITIALIZED, NULL);
+    BAIL_IF_MACRO(data == NULL, ERR_INVALID_ARGUMENT, NULL);
+    BAIL_IF_MACRO(size == 0, ERR_INVALID_ARGUMENT, NULL);
+
+    rw = SDL_RWFromMem( (void*)data, size);
+    /* !!! FIXME: rw = RWops_FromMem(data, size);*/
+    BAIL_IF_MACRO(rw == NULL, SDL_GetError(), NULL);
+
+    return(Sound_NewSample(rw, ext, desired, bufferSize));
+} /* Sound_NewSampleFromMem */
+
 
 void Sound_FreeSample(Sound_Sample *sample)
 {
@@ -594,13 +670,42 @@ void Sound_FreeSample(Sound_Sample *sample)
     if (internal->rw != NULL)  /* this condition is a "just in case" thing. */
         SDL_RWclose(internal->rw);
 
+    if ((internal->buffer != NULL) && (internal->buffer != sample->buffer))
+        free(internal->buffer);
+
     free(internal);
+
+    if (sample->buffer != NULL)
+        free(sample->buffer);
+
     free(sample);
 } /* Sound_FreeSample */
 
-Uint32 Sound_Decode_Direct(Sound_Sample *sample, void* buffer, Uint32 desired_frames)
+
+int Sound_SetBufferSize(Sound_Sample *sample, Uint32 newSize)
+{
+    Uint8 *newBuf = NULL;
+    Sound_SampleInternal *internal = NULL;
+
+    BAIL_IF_MACRO(!initialized, ERR_NOT_INITIALIZED, 0);
+    BAIL_IF_MACRO(sample == NULL, ERR_INVALID_ARGUMENT, 0);
+    internal = ((Sound_SampleInternal *) sample->opaque);
+    newBuf = (Uint8 *)realloc(sample->buffer, newSize * internal->sdlcvt.len_mult);
+    BAIL_IF_MACRO(newBuf == NULL, ERR_OUT_OF_MEMORY, 0);
+
+    internal->sdlcvt.buf = internal->buffer = sample->buffer = newBuf;
+    sample->buffer_size = newSize;
+    internal->buffer_size = newSize / internal->sdlcvt.len_mult;
+    internal->sdlcvt.len = internal->buffer_size;
+
+    return(1);
+} /* Sound_SetBufferSize */
+
+
+Uint32 Sound_Decode(Sound_Sample *sample)
 {
     Sound_SampleInternal *internal = NULL;
+    Uint32 retval = 0;
 
         /* a boatload of sanity checks... */
     BAIL_IF_MACRO(!initialized, ERR_NOT_INITIALIZED, 0);
@@ -610,10 +715,71 @@ Uint32 Sound_Decode_Direct(Sound_Sample *sample, void* buffer, Uint32 desired_fr
 
     internal = (Sound_SampleInternal *) sample->opaque;
 
+    assert(sample->buffer != NULL);
+    assert(sample->buffer_size > 0);
+    assert(internal->buffer != NULL);
+    assert(internal->buffer_size > 0);
+
         /* reset EAGAIN. Decoder can flip it back on if it needs to. */
     sample->flags &= ~SOUND_SAMPLEFLAG_EAGAIN;
-    return internal->funcs->read(sample, buffer, desired_frames);
+    retval = internal->funcs->read(sample);
+
+    if (retval > 0 && internal->sdlcvt.needed)
+    {
+        internal->sdlcvt.len = retval;
+        Sound_ConvertAudio(&internal->sdlcvt);
+        retval = internal->sdlcvt.len_cvt;
+    } /* if */
+
+    return(retval);
 } /* Sound_Decode */
+
+
+Uint32 Sound_DecodeAll(Sound_Sample *sample)
+{
+    Sound_SampleInternal *internal = NULL;
+    Uint8 *buf = NULL;
+    Uint32 newBufSize = 0;
+
+    BAIL_IF_MACRO(!initialized, ERR_NOT_INITIALIZED, 0);
+    BAIL_IF_MACRO(sample->flags & SOUND_SAMPLEFLAG_EOF, ERR_PREV_EOF, 0);
+    BAIL_IF_MACRO(sample->flags & SOUND_SAMPLEFLAG_ERROR, ERR_PREV_ERROR, 0);
+
+    internal = (Sound_SampleInternal *) sample->opaque;
+
+    while ( ((sample->flags & SOUND_SAMPLEFLAG_EOF) == 0) &&
+            ((sample->flags & SOUND_SAMPLEFLAG_ERROR) == 0) )
+    {
+        Uint32 br = Sound_Decode(sample);
+        Uint8 *ptr = (Uint8 *)realloc(buf, newBufSize + br);
+        if (ptr == NULL)
+        {
+            sample->flags |= SOUND_SAMPLEFLAG_ERROR;
+            __Sound_SetError(ERR_OUT_OF_MEMORY);
+        } /* if */
+        else
+        {
+            buf = ptr;
+            memcpy( ((char *) buf) + newBufSize, sample->buffer, br );
+            newBufSize += br;
+        } /* else */
+    } /* while */
+
+    if (buf == NULL)  /* ...in case first call to realloc() fails... */
+        return(sample->buffer_size);
+
+    if (internal->buffer != sample->buffer)
+        free(internal->buffer);
+
+    free(sample->buffer);
+
+    internal->sdlcvt.buf = internal->buffer = sample->buffer = buf;
+    sample->buffer_size = newBufSize;
+    internal->buffer_size = newBufSize / internal->sdlcvt.len_mult;
+    internal->sdlcvt.len = internal->buffer_size;
+
+    return(newBufSize);
+} /* Sound_DecodeAll */
 
 
 int Sound_Rewind(Sound_Sample *sample)
