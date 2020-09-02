@@ -1,0 +1,294 @@
+<!DOCTYPE html>
+<html>
+
+  <head>
+    <meta charset='utf-8'>
+    <meta http-equiv="X-UA-Compatible" content="chrome=1">
+    <meta name="description" content="DOSBox-X: A cross-platform DOS emulator based on the DOSBox project">
+
+    <link rel="stylesheet" type="text/css" media="screen" href="stylesheets/stylesheet.css">
+
+    <title>The DOSBox-X project</title>
+  </head>
+
+  <body>
+
+    <!-- HEADER -->
+    <div id="header_wrap" class="outer">
+        <header class="inner">
+          <h1 id="project_title">DOSBox-X</h1>
+          <h2 id="project_tagline">Cross-platform DOS emulation package<br />Complete, accurate emulation and more</h2>
+        </header>
+    </div>
+
+    <!-- MAIN CONTENT -->
+    <div id="main_content_wrap" class="outer"; style="background-color: #fafacf">
+        <div style="text-align: center">
+            <h3 style="padding-top: 10px">DOSBox-X 0.83.5 Release Notes</h3>
+            <h4 style="padding-bottom: 15px; font-weight: normal">Release Date: <span style="color: green">September 1, 2020</span></h4>
+            Please report any issues in our <a href="https://github.com/joncampbell123/dosbox-x/issues">issue tracker</a>.</p>
+            <p>Also, check out our <a href="https://github.com/joncampbell123/dosbox-x/wiki">Wiki guide</a>.</p>
+            <h4>Change history</h4>
+            <table width="100%" style="border: hidden">
+            <tr>
+            <td width="20%" style="border: hidden"></td>
+            <td width="60%" style="border: hidden; text-align: left">
+            <ul>
+<li>
+Windows installer now offers the option to upgrade
+the DOSBox-X config file (dosbox-x.conf) to the
+latest version format automatically while keeping
+users' current settings. It can also add a context
+menu for executables (.exe, .com, .bat), config
+files (.conf) and folders in the Windows Explorer
+so that you could quickly run or open them with
+DOSBox-X from the Windows Explorer. More icons
+are added to the DOSBox-X program group within the
+Start menu as well. (Wengier)
+</li>
+<li>
+Added config option "startbanner" in [dosbox]
+section which if set to "false" would skip the
+welcome banner when DOSBox-X starts. Also added
+config option "fastbioslogo" which if set to "true"
+will skip the BIOS logo (replacing the command-line
+option -fastbootlogo). A new command-line option
+"-fastlaunch" is added to enable fast launch mode
+by skipping both the logo and the banner. (Wengier)
+</li>
+<li>
+Added config option "ega per scanline hpel" in
+[dosbox] section to control whether EGA emulation
+latches hpel at display start (as VGA emulation
+does) or allows hpel to change per scanline.
+Setting the option to false is needed for some
+games like Commander Keen.
+</li>
+<li>
+Support for mounting CD images with a sector size
+of 2448, used by for example the MDF image of the
+game Grand Theft Auto. (Wengier)
+</li>
+<li>
+Allowed Sound Blaster to be enabled by the games
+"Desert Strike" and "Jungle Strike". (Wengier)
+</li>
+<li>
+Sound Blaster Pro emulation now maps DSP commands
+0x41 to 0x47 as aliases of 0x40 (set time constant)
+to support broken demoscene code that uses 0x41
+in that way. Yes, such code would obviously break
+on clone cards and the SB16. Added a config option
+"dsp command aliases" in [sblaster] section to turn
+it off for debugging. Alias is documented on Vogons
+forums where someone made a SB Pro clone card.
+</li>
+<li>
+Fixed the issue with CD audio play by porting the
+audio code from DOSBox ECE. (Wengier)
+</li>
+<li>
+COPY command now assumes /Y automatically when
+running in the batch file or with CALL command
+(or COMMAND /C) as in real DOS. (Wengier)
+</li>
+<li>
+DOSBox-X will allow control characters 8 (BS),
+9 (TAB), 26 (SUB), and 27 (ESC) when executing GOTO
+command in batch files without warnings. (Wengier)
+</li>
+<li>
+Normal core: REP MOVSD now checks segment limits
+for ES:(E)DI and throws a GP fault if exceeded.
+Demoscene productions marked as using VESA BIOS
+modes and scribbling on the VGA BIOS are relying
+on segment limits and GP faults to fake a linear
+framebuffer.
+</li>
+<li>
+Added config option "vesa bank switching window
+range check" to allow disabling the VESA BIOS
+window number range check when called on to
+bank switch. Needed for "Pill" by Opiate in the
+end credits, which for some reason requires a
+call for window number 0xFFFF to succeed in order
+to draw credits without glitching.
+</li>
+<li>
+Added config option "vesa bank switching window
+mirroring" for instructing VESA BIOS to ignore
+bank switching window parameter when asked to
+get/set bank switching window setting. Needed for
+some old demoscene and game applications that
+assume Window B is available, and will not render
+SVGA properly without it.
+</li>
+<li>
+Added config option "quit warning" to indicate if
+DOSBox-X should warn show a warning message when
+you try to close the DOSBox-X window. If set to
+"auto" (default), DOSBox-X will warn only if at
+least one file handle is still open, or you are
+currently running a guest system. (Wengier)
+</li>
+<li>
+Add command-line option "-defaultdir" to specify
+a directory (instead of the current directory) as
+the working directory. DOSBox-X will look for the
+dosbox-x.conf file in this directory. (Wengier)
+</li>
+<li>
+The -winrun command-line option will also enable
+LFN support with "lfn=auto" on Windows. (Wengier)
+</li>
+<li>
+VER /R now shows DOSBox-X's Git commit SHA1, in
+addition to the build date and other version
+information shown by the VER command. (Wengier)
+</li>
+<li>
+Fixed that joystick may not work with the setting
+"usescancodes=auto" when a non-US keyboard layout
+is activated on the SDL1 build. (Wengier)
+</li>
+<li>
+DOSBox-X will now search for system fonts if the
+fonts required for the printing feature cannot be
+found in the FONTS directory. (Wengier)
+</li>
+<li>
+Added menu item "Send form-feed" under the DOS menu
+for manually ejecting new pages to print. (Wengier)
+</li>
+<li>
+Added "Quick launch program..." menu (under "DOS")
+to quickly run the specified program as selected
+by the Windows file browser in DOSBox-X. (Wengier)
+</li>
+<li>
+Added "Drive information" menu item under "Drive"
+menu to show information for the specified drive,
+and added "Show mounted drive numbers" menu item
+under "DOS" menu to show details for all mounted
+drive numbers (0-5). (Wengier)
+</li>
+<li>
+The command "Swap CD" now swaps only CD drives (as
+the name), not all non-floppy drives. Also added
+"Swap disk" menu item under the "Drive" menu for
+swapping individual mounted drives. (Wengier)
+</li>
+<li>
+IMGMAKE now tries to resolve home directory (~)
+on Linux and macOS platforms. Also improved the
+help message for this command. (Wengier)
+</li>
+<li>
+Fixed unmounting swap disks when unmounting drives
+with MOUNT or IMGMOUNT command. (Wengier)
+</li>
+<li>
+Fixed possible failure when mounting .VHD images,
+and the issue that leading colon (:) or read-only
+marker may not work for such images. (Wengier)
+</li>
+<li>
+IMGMOUNT command without parameters now shows the
+disk position and number of swap disks, as well as
+IDE controller (if applicable). Also added option
+-examples to show its usage examples. (Wengier)
+</li>
+<li>
+Add "-ro" option for IMGMOUNT command to mark all
+disk images as read-only at once. You could also
+mark read-only disk images individually using the
+leading colon as in previous versions. (Wengier)
+</li>
+<li>
+The default value for "output" (in "sdl" section)
+is now "default", which will default to the value
+according to your platform. (Wengier)
+</li>
+<li>
+The -Q (quiet) option of MOUNT, BOOT and RESCAN
+commands now silences virtually all outputs (error
+and normal messages) of these commands. (Wengier)
+</li>
+<li>
+Worked around the mounting issue with LaunchBox,
+by allowing a mounting command-line with single
+quotes like MOUNT C 'X:\DOS' on Windows. (Wengier)
+</li>
+<li>
+Unmounting ISO drives will auto-unmount associated
+El Torito floppy drives (if any) too. (Wengier)
+</li>
+<li>
+Updated xxHash library by Yann Collet from 0.7.4
+to the stable version 0.8.0. (Wengier)
+</li>
+<li>
+Added support for the OPL2 audio board by setting
+the config option "oplemu=opl2board".
+</li>
+<li>
+The save state feature now tries to save and then
+restore the mounted drives of all types (if the
+paths or image files still exist on host system).
+This fixes the "save state corrupted" error while
+trying to load saved states but the drives are not
+yet mounted in DOSBox-X. (Wengier)
+</li>
+<li>
+The save state feature now verifies the emulated
+machine type (VGA, PC98, etc) too when loading a
+saved state. All confirm and error dialog boxes
+for saving or loading states appear in a cross-
+platform manner now, instead of only on Windows
+systems. Also added the option to remove the saved
+state in the selected save slot. (Wengier)
+</li>
+<li>
+Increased the number of save slots from 10 to 100.
+Each page in the save slot menu (under "Capture")
+still shows 10 slots as before, but you can now go
+to the previous or next page (up to 10 pages) for
+more save slots (100 in total). (Wengier).
+</li>
+<li>
+The [pci] section is now the [voodoo] section, and
+the config option "voodoo" (the only option of that
+section) is now named "voodoo_card" within the
+[voodoo] section to make clear it is for emulating
+the Voodoo card hardware. Also added config option
+"voodoo_maxmem" (default: true) to specify whether
+to use the maximum memory size (12MB instead of the
+standard 4MB) for the Vooodoo card. (Wengier)
+</li>
+<li>
+Added support for Glide wrapper. It can be enabled
+with the new config option "glide" set to "true"
+in [voodoo] section. The library file glide2x.dll
+(Windows)/libglide2x.so (Linux)/libglide2x.dylib
+(macOS) is required for Glide to work. Be sure to
+use 32-bit dll for 32-bit DOSBox-X binary, and
+64-bit dll for 64-bit DOSBox-X binary. (Wengier)
+</ul>
+            </td>
+            <td></td>
+            </tr>
+            </table>
+            Return to <a href="index.html">main page</a><p />
+        </div>
+    </div>
+
+    <!-- FOOTER  -->
+    <div id="footer_wrap" class="outer">
+      <footer class="inner">
+        <p class="copyright">DOSBox-X maintained by <a href="https://github.com/joncampbell123">joncampbell123</a></p>
+        <p>Published with <a href="http://pages.github.com">GitHub Pages</a></p>
+      </footer>
+    </div>
+
+  </body>
+</html>
