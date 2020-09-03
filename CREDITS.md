@@ -49,7 +49,9 @@ A list of features ported from vDosPlus by Wengier:
 
 Features such as save & load states and Pentium MMX instructions were also ported from community contributions and have since been improved by the DOSBox-X project.
 
-The [DOSBox-X Wiki](https://github.com/joncampbell123/dosbox-x/wiki) pages were created and updated by Wengier and rderooy. 
+The [DOSBox-X website](http://dosbox-x.com) was designed and maintained by Wengier.
+
+The [DOSBox-X Wiki](https://github.com/joncampbell123/dosbox-x/wiki) pages were created and updated by Wengier and rderooy.
 
 This is an attempt to properly credit the other code and its sources below. It is **not** a complete list yet, and please feel free to revise and correct this list if there are errors.
 
