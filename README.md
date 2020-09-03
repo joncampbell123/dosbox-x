@@ -1,6 +1,6 @@
-**README for DOSBox-X**
+**Welcome to the DOSBox-X project website located on GitHub.**
 
-**DOSBox-X's official website: [http://dosbox-x.com](http://dosbox-x.com)**
+**Please visit the DOSBox-X homepage at [http://dosbox-x.com](http://dosbox-x.com)**
 
 Introduction to DOSBox-X
 ------------------------
