@@ -271,6 +271,34 @@ Full-Width Styles
   margin: 0 auto;
 }
 
+@media screen and (min-width: 981px) {
+#intro {
+  padding-bottom: 15px;
+  font-weight: normal;
+}
+}
+
+@media screen and (max-width: 980px) {
+#intro {
+  padding-bottom: 15px;
+  font-weight: normal;
+  font-size: 17px;
+}
+}
+
+@media screen and (min-width: 981px) {
+#prespace {
+  border: hidden;
+  width: 10%;
+}
+}
+
+@media screen and (max-width: 980px) {
+#prespace {
+  border: hidden;
+}
+}
+
 #linkwiki {
   display: block;
   position: relative;
