@@ -5,6 +5,8 @@ DOSBox-X is a cross-platform DOS emulator based on DOSBox, with the eventual goa
 
 The current version of DOSBox-X at this time is DOSBox-X 0.83.5, which was released on September 1, 2020. Pre-compiled Windows binaries (both 32-bit and 64-bit), Linux RPM packages (64-bit), macOS packages (64-bit) and the special HX-DOS packages (for real DOS environments) are officially available, as well as the source code packages. You will find DOSBox-X versions that have been released so far (ZIP or RPM packages) and change logs for these versions in the [Releases](https://github.com/joncampbell123/dosbox-x/releases) page. The Windows installer can also be found below (see the next section for details).
 
+See also: [DOSBox-X 0.83.5 Release Notes](http://dosbox-x.com/release-0.83.5.html)
+
 Once you get DOSBox-X installed and running, you probably want to look at the DOSBox-X user guide in the [DOSBox-X Wiki](https://github.com/joncampbell123/dosbox-x/wiki) for usage information.
 
 Windows Packages (Portable or Installer)
