@@ -36,6 +36,12 @@
 #include <time.h>
 #include <string>
 #include <sstream>
+#include <vector>
+#if defined(WIN32)
+#include <windows.h>
+#else
+#include <dirent.h>
+#endif
 #include "build_timestamp.h"
 
 static bool first_run=true;
@@ -1440,6 +1446,61 @@ void SHELL_Init() {
 //    extern bool Mouse_Vertical;
 	extern bool Mouse_Drv;
 	Mouse_Drv = true;
+
+    std::vector<std::string> names;
+    std::string dirname="drivez";
+#if defined(WIN32)
+    char exePath[CROSS_LEN];
+    WIN32_FIND_DATA fd;
+    HANDLE hFind = FindFirstFile((dirname+"\\*.*").c_str(), &fd);
+    if(hFind != INVALID_HANDLE_VALUE) {
+        do {
+            if(! (fd.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY) ) {
+                names.push_back(fd.cFileName);
+            }
+        } while(::FindNextFile(hFind, &fd));
+        ::FindClose(hFind);
+    }
+#else
+    struct dirent *dir;
+    DIR *d = opendir(dirname.c_str());
+    if (d)
+    {
+        while ((dir = readdir(d)) != NULL)
+          if (dir->d_type==DT_REG) names.push_back(dir->d_name);
+        closedir(d);
+    }
+#endif
+    long f_size;
+    Bit8u *f_data;
+    for (std::string name: names) {
+#if defined(WIN32)
+        FILE * f = fopen((dirname+"\\"+name).c_str(), "rb");
+        if (f == NULL) {
+            GetModuleFileName(NULL, exePath, sizeof(exePath));
+            char *p=strrchr(exePath, '\\');
+            if (p!=NULL) *(p+1)=0;
+            else *exePath=0;
+            strcat(exePath, (dirname+"\\"+name).c_str());
+            f = fopen(exePath, "rb");
+        }
+#else
+        FILE * f = fopen((dirname+"/"+name).c_str(), "rb");
+#endif
+        f_size = 0;
+        f_data = NULL;
+
+        if(f != NULL) {
+            fseek(f, 0, SEEK_END);
+            f_size=ftell(f);
+            f_data=(Bit8u*)malloc(f_size);
+            fseek(f, 0, SEEK_SET);
+            fread(f_data, sizeof(char), f_size, f);
+            fclose(f);
+        }
+
+        if(f_data) VFILE_Register(name.c_str(), f_data, f_size);
+    }
 
 	VFILE_RegisterBuiltinFileBlob(bfb_DEBUG_EXE);
 	VFILE_RegisterBuiltinFileBlob(bfb_MOVE_EXE);

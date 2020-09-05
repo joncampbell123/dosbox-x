@@ -38,8 +38,101 @@ struct VFILE_Block {
 	VFILE_Block * next;
 };
 
+#define MAX_VFILES 200
+char vfpos=0;
+char vfnames[MAX_VFILES][CROSS_LEN],vfsnames[MAX_VFILES][DOS_NAMELENGTH_ASCII];
 extern int lfn_filefind_handle;
 static VFILE_Block * first_file, * lfn_search[256];
+
+extern bool filename_not_8x3(const char *n), filename_not_strict_8x3(const char *n);
+extern char sfn[DOS_NAMELENGTH_ASCII];
+/* Generate 8.3 names from LFNs, with tilde usage (from ~1 to ~9999). */
+char* Generate_SFN(const char *name) {
+	if (!filename_not_8x3(name)) {
+		strcpy(sfn, name);
+		upcase(sfn);
+		return sfn;
+	}
+	char lfn[LFN_NAMELENGTH+1], *n;
+	if (name==NULL||!*name) return NULL;
+	if (strlen(name)>LFN_NAMELENGTH) {
+		strncpy(lfn, name, LFN_NAMELENGTH);
+		lfn[LFN_NAMELENGTH]=0;
+	} else
+		strcpy(lfn, name);
+	if (!strlen(lfn)) return NULL;
+	unsigned int k=1, i, t=10000;
+    const VFILE_Block* cur_file;
+	while (k<10000) {
+		n=lfn;
+		if (t>strlen(n)||k==1||k==10||k==100||k==1000) {
+			i=0;
+			*sfn=0;
+			while (*n == '.'||*n == ' ') n++;
+			while (strlen(n)&&(*(n+strlen(n)-1)=='.'||*(n+strlen(n)-1)==' ')) *(n+strlen(n)-1)=0;
+			while (*n != 0 && *n != '.' && i<(k<10?6u:(k<100?5u:(k<1000?4:3u)))) {
+				if (*n == ' ') {
+					n++;
+					continue;
+				}
+				if (*n=='"'||*n=='+'||*n=='='||*n==','||*n==';'||*n==':'||*n=='<'||*n=='>'||*n=='['||*n==']'||*n=='|'||*n=='?'||*n=='*') {
+					sfn[i++]='_';
+					n++;
+				} else
+					sfn[i++]=toupper(*(n++));
+			}
+			sfn[i++]='~';
+			t=i;
+		} else
+			i=t;
+		if (k<10)
+			sfn[i++]='0'+k;
+		else if (k<100) {
+			sfn[i++]='0'+(k/10);
+			sfn[i++]='0'+(k%10);
+		} else if (k<1000) {
+			sfn[i++]='0'+(k/100);
+			sfn[i++]='0'+((k%100)/10);
+			sfn[i++]='0'+(k%10);
+		} else {
+			sfn[i++]='0'+(k/1000);
+			sfn[i++]='0'+((k%1000)/100);
+			sfn[i++]='0'+((k%100)/10);
+			sfn[i++]='0'+(k%10);
+		}
+		if (t>strlen(n)||k==1||k==10||k==100||k==1000) {
+			char *p=strrchr(n, '.');
+			if (p!=NULL) {
+				sfn[i++]='.';
+				n=p+1;
+				while (*n == '.') n++;
+				int j=0;
+				while (*n != 0 && j++<3) {
+					if (*n == ' ') {
+						n++;
+						continue;
+					}
+					if (*n=='"'||*n=='+'||*n=='='||*n==','||*n==';'||*n==':'||*n=='<'||*n=='>'||*n=='['||*n==']'||*n=='|'||*n=='?'||*n=='*') {
+						sfn[i++]='_';
+						n++;
+					} else
+						sfn[i++]=toupper(*(n++));
+				}
+			}
+			sfn[i++]=0;
+		}
+        cur_file = first_file;
+        bool found=false;
+        while (cur_file) {
+            if (strcasecmp(sfn,cur_file->name)==0||uselfn&&strcasecmp(sfn,cur_file->lname)==0) {found=true;break;}
+            cur_file=cur_file->next;
+        }
+        if (!found) return sfn;
+		k++;
+	}
+	return "";
+}
+
 
 void VFILE_Shutdown(void) {
 	LOG(LOG_DOSMISC,LOG_DEBUG)("Shutting down VFILE system");
@@ -49,6 +142,7 @@ void VFILE_Shutdown(void) {
 		delete first_file;
 		first_file = n;
 	}
+    vfpos=0;
 }
 
 void VFILE_RegisterBuiltinFileBlob(const struct BuiltinFileBlob &b) {
@@ -56,9 +150,18 @@ void VFILE_RegisterBuiltinFileBlob(const struct BuiltinFileBlob &b) {
 }
 
 void VFILE_Register(const char * name,Bit8u * data,Bit32u size) {
+    const VFILE_Block* cur_file = first_file;
+	while (cur_file) {
+		if (strcasecmp(name,cur_file->name)==0||uselfn&&strcasecmp(name,cur_file->name)==0) return;
+		cur_file=cur_file->next;
+	}
+    strcpy(vfnames[vfpos],name);
+    strcpy(vfsnames[vfpos],filename_not_strict_8x3(name)?Generate_SFN(name):name);
+    if (!strlen(trim(vfnames[vfpos]))||!strlen(trim(vfsnames[vfpos]))) return;
 	VFILE_Block * new_file=new VFILE_Block;
-	new_file->name=name;
-	new_file->lname=name;
+	new_file->name=vfsnames[vfpos];
+	new_file->lname=vfnames[vfpos];
+    vfpos++;
 	new_file->data=data;
 	new_file->size=size;
 	new_file->date=DOS_PackDate(2002,10,1);
@@ -161,7 +264,7 @@ bool Virtual_Drive::FileOpen(DOS_File * * file,const char * name,Bit32u flags) {
 /* Scan through the internal list of files */
     const VFILE_Block* cur_file = first_file;
 	while (cur_file) {
-		if (strcasecmp(name,cur_file->name)==0) {
+		if (strcasecmp(name,cur_file->name)==0||uselfn&&strcasecmp(name,cur_file->lname)==0) {
 		/* We have a match */
 			*file=new Virtual_File(cur_file->data,cur_file->size);
 			(*file)->flags=flags;
@@ -182,7 +285,7 @@ bool Virtual_Drive::FileCreate(DOS_File * * file,const char * name,Bit16u attrib
 bool Virtual_Drive::FileUnlink(const char * name) {
     const VFILE_Block* cur_file = first_file;
 	while (cur_file) {
-		if (strcasecmp(name,cur_file->name)==0) {
+		if (strcasecmp(name,cur_file->name)==0||uselfn&&strcasecmp(name,cur_file->lname)==0) {
 			DOS_SetError(DOSERR_ACCESS_DENIED);
 			return false;
 		}
@@ -209,7 +312,7 @@ bool Virtual_Drive::TestDir(const char * dir) {
 bool Virtual_Drive::FileStat(const char* name, FileStat_Block * const stat_block){
     const VFILE_Block* cur_file = first_file;
 	while (cur_file) {
-		if (strcasecmp(name,cur_file->name)==0) {
+		if (strcasecmp(name,cur_file->name)==0||uselfn&&strcasecmp(name,cur_file->lname)==0) {
 			stat_block->attr=DOS_ATTR_ARCHIVE;
 			stat_block->size=cur_file->size;
 			stat_block->date=DOS_PackDate(2002,10,1);
@@ -224,7 +327,7 @@ bool Virtual_Drive::FileStat(const char* name, FileStat_Block * const stat_block
 bool Virtual_Drive::FileExists(const char* name){
     const VFILE_Block* cur_file = first_file;
 	while (cur_file) {
-		if (strcasecmp(name,cur_file->name)==0) return true;
+		if (strcasecmp(name,cur_file->name)==0||uselfn&&strcasecmp(name,cur_file->lname)==0) return true;
 		cur_file=cur_file->next;
 	}
 	return false;
@@ -254,7 +357,7 @@ bool Virtual_Drive::FindNext(DOS_DTA & dta) {	Bit8u attr;char pattern[CROSS_LEN]
     dta.GetSearchParams(attr,pattern,uselfn);
 	if (lfn_filefind_handle>=LFN_FILEFIND_MAX)
 		while (search_file) {
-			if (WildFileCmp(search_file->name,pattern)) {
+			if (WildFileCmp(search_file->name,pattern)||LWildFileCmp(search_file->lname,pattern)) {
 				dta.SetResult(search_file->name,search_file->lname,search_file->size,search_file->date,search_file->time,DOS_ATTR_ARCHIVE);
 				search_file=search_file->next;
 				return true;
@@ -263,7 +366,7 @@ bool Virtual_Drive::FindNext(DOS_DTA & dta) {	Bit8u attr;char pattern[CROSS_LEN]
 		}
 	else
 		while (lfn_search[lfn_filefind_handle]) {
-			if (WildFileCmp(lfn_search[lfn_filefind_handle]->name,pattern)) {
+			if (WildFileCmp(lfn_search[lfn_filefind_handle]->name,pattern)||LWildFileCmp(lfn_search[lfn_filefind_handle]->lname,pattern)) {
 				dta.SetResult(lfn_search[lfn_filefind_handle]->name,lfn_search[lfn_filefind_handle]->lname,lfn_search[lfn_filefind_handle]->size,lfn_search[lfn_filefind_handle]->date,lfn_search[lfn_filefind_handle]->time,DOS_ATTR_ARCHIVE);
 				lfn_search[lfn_filefind_handle]=lfn_search[lfn_filefind_handle]->next;
 				return true;
@@ -283,7 +386,7 @@ bool Virtual_Drive::SetFileAttr(const char * name,Bit16u attr) {
 bool Virtual_Drive::GetFileAttr(const char * name,Bit16u * attr) {
     const VFILE_Block* cur_file = first_file;
 	while (cur_file) {
-		if (strcasecmp(name,cur_file->name)==0) { 
+		if (strcasecmp(name,cur_file->name)==0||uselfn&&strcasecmp(name,cur_file->lname)==0) { 
 			*attr = DOS_ATTR_ARCHIVE;	//Maybe readonly ?
 			return true;
 		}
@@ -315,7 +418,7 @@ bool Virtual_Drive::Rename(const char * oldname,const char * newname) {
     (void)newname;//UNUSED
     const VFILE_Block* cur_file = first_file;
 	while (cur_file) {
-		if (strcasecmp(oldname,cur_file->name)==0) {
+		if (strcasecmp(oldname,cur_file->name)==0||uselfn&&strcasecmp(oldname,cur_file->lname)==0) {
 			DOS_SetError(DOSERR_ACCESS_DENIED);
 			return false;
 		}

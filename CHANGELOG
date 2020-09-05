@@ -1,5 +1,9 @@
 0.83.6
-  - 
+  - You can now add your own programs or files to the
+    Z drive! Put your programs or files in the drivez
+    directory located in the DOSBox-X program folder,
+    and they will automatically appear on the Z drive,
+    replacing built-in files if any. (Wengier).    
 0.83.5
   - Windows installer now offers the option to upgrade
     the DOSBox-X config file (dosbox-x.conf) to the
