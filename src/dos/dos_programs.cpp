@@ -2801,7 +2801,7 @@ restart_int:
             if(!ReadDisk(f, src.c_str()[0],retries))
                 WriteOut(MSG_Get("PROGRAM_IMGMAKE_CANT_READ_FLOPPY"));
             fclose(f);
-            if (setdir) runRescan("-A -Q");
+            if (setdir) runRescan("-Q");
             return;
         }
 #endif
@@ -3427,8 +3427,8 @@ restart_int:
             if (!f) {
                 WriteOut(MSG_Get("PROGRAM_IMGMAKE_CANNOT_WRITE"),t2.c_str());
                 if (setdir) {
-                    runRescan("-A -Q");
                     chdir(dirCur);
+                    runRescan("-Q");
                 }
                 return;
             }
@@ -3436,8 +3436,8 @@ restart_int:
             fclose(f);
         }
         if (setdir) {
-            runRescan("-A -Q");
             chdir(dirCur);
+            runRescan("-Q");
         }
         return;
     }
@@ -3592,7 +3592,7 @@ void RESCAN::Run(void)
             Drives[drive]->EmptyCache();
             if (!quiet) WriteOut(MSG_Get("PROGRAM_RESCAN_SUCCESS"));
         } else
-            if (!quiet) WriteOut("Invalid drive specification\n");
+            if (!quiet) WriteOut(MSG_Get("SHELL_EXECUTE_DRIVE_NOT_FOUND"), 'A'+drive);
     }
 }
 
@@ -3601,11 +3601,9 @@ static void RESCAN_ProgramStart(Program * * make) {
 }
 
 void runRescan(const char *str) {
-    DOS_Drive_Cache dirCache;
-    dirCache.EmptyCache();
-	//RESCAN rescan;
-	//rescan.cmd=new CommandLine("RESCAN", str);
-	//rescan.Run();
+	RESCAN rescan;
+	rescan.cmd=new CommandLine("RESCAN", str);
+	rescan.Run();
 }
 
 /* TODO: This menu code sucks. Write a better one. */

@@ -684,7 +684,7 @@ public:
                 } else {
                     std::string batname;
                     /* NTS: this code might have problems with DBCS filenames - yksoft1 */
-                    LOG_MSG("auto_bat_additional %s\n", control->auto_bat_additional[i].c_str());
+                    //LOG_MSG("auto_bat_additional %s\n", control->auto_bat_additional[i].c_str());
 
                     std::replace(control->auto_bat_additional[i].begin(),control->auto_bat_additional[i].end(),'/','\\');
                     size_t pos = control->auto_bat_additional[i].find_last_of('\\');
@@ -702,10 +702,16 @@ public:
                     cmd += "@c:\n";
                     cmd += "@cd \\\n";
                     if (templfn) cmd += "@config -set lfn=true\n";
+#if defined(WIN32) && !defined(HX_DOS)
+                    if (!winautorun) cmd += "@config -set startcmd=true\n";
+#endif
                     cmd += "@CALL \"";
                     cmd += batname;
                     cmd += "\"\n";
                     if (templfn) cmd += "@config -set lfn=" + std::string(enablelfn==-1?"auto":"autostart") + "\n";
+#if defined(WIN32) && !defined(HX_DOS)
+                    if (!winautorun) cmd += "@config -set startcmd=false\n";
+#endif
                     cmd += "@mount c: -q -u\n";
                 }
             }
@@ -1160,9 +1166,12 @@ void SHELL_Init() {
 	MSG_Add("SHELL_CMD_EXIT_HELP_LONG","EXIT\n");
 	MSG_Add("SHELL_CMD_HELP_HELP","Shows DOSBox-X command help.\n");
 	MSG_Add("SHELL_CMD_HELP_HELP_LONG","HELP [/A or /ALL]\nHELP [command]\n\n"
-		    "   /A or /ALL\tLists all supported internal commands.\n\n"
-			"Note: HELP will not list external commands such as MOUNT and IMGMOUNT.\n"
-			"      External commands can be found on the Z: drive as programs.\n");
+		    "   /A or /ALL\tLists all supported internal commands.\n"
+		    "   [command]\tShows help for the specified command.\n\n"
+            "E.g., \033[37;1mHELP COPY\033[0m or \033[37;1mCOPY /?\033[0m shows help infomration for COPY command.\n\n"
+			"Note: External commands like \033[33;1mMOUNT\033[0m and \033[33;1mIMGMOUNT\033[0m are not listed by HELP [/A].\n"
+			"      These commands can be found on the Z: drive as programs (e.g. MOUNT.COM).\n"
+            "      Type \033[33;1mcommand /?\033[0m or \033[33;1mHELP command\033[0m for help information for that command.\n");
 	MSG_Add("SHELL_CMD_MKDIR_HELP","Creates a directory.\n");
 	MSG_Add("SHELL_CMD_MKDIR_HELP_LONG","MKDIR [drive:][path]\n"
 	        "MD [drive:][path]\n");
