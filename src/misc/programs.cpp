@@ -77,6 +77,7 @@ public:
 };
 
 static std::vector<InternalProgramEntry*> internal_progs;
+void EMS_Startup(Section* sec), EMS_DoShutDown();
 
 void PROGRAMS_Shutdown(void) {
 	LOG(LOG_MISC,LOG_DEBUG)("Shutting down internal programs list");
@@ -550,7 +551,7 @@ private:
 	}
 };
 
-void dos_ver_menu(bool start), ReloadMapper(Section_prop *sec, bool init), SetGameState_Run(int value);
+void dos_ver_menu(bool start), ReloadMapper(Section_prop *sec, bool init), SetGameState_Run(int value), update_dos_ems_menu(void);
 bool set_ver(char *s);
 void CONFIG::Run(void) {
 	static const char* const params[] = {
@@ -1096,6 +1097,10 @@ void CONFIG::Run(void) {
 									dos_ver_menu(false);
 								} else if (set_ver(ver))
 									dos_ver_menu(false);
+							} else if (!strcasecmp(inputline.substr(0, 4).c_str(), "ems=")) {
+								EMS_DoShutDown();
+								EMS_Startup(NULL);
+                                update_dos_ems_menu();
 							} else if (!strcasecmp(inputline.substr(0, 32).c_str(), "shell configuration as commands=")) {
 								enable_config_as_shell_commands = section->Get_bool("shell configuration as commands");
 								mainMenu.get_item("shell_config_commands").check(enable_config_as_shell_commands).enable(true).refresh_item(mainMenu);

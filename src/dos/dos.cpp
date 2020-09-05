@@ -2608,6 +2608,7 @@ Bit16u DOS_IHSEG = 0;
 // Ick...
 
 void dos_ver_menu(bool start);
+void update_dos_ems_menu(void);
 void DOS_GetMemory_reset();
 void DOS_GetMemory_Choose();
 Bitu MEM_PageMask(void);
@@ -3123,6 +3124,7 @@ public:
 		}
         dos_ver_menu(true);
         mainMenu.get_item("dos_ver_edit").enable(true).refresh_item(mainMenu);
+        update_dos_ems_menu();
 
         if (IS_PC98_ARCH) {
             void PC98_InitDefFuncRow(void);
@@ -3151,6 +3153,10 @@ public:
 		mainMenu.get_item("dos_ver_622").enable(false).refresh_item(mainMenu);
 		mainMenu.get_item("dos_ver_710").enable(false).refresh_item(mainMenu);
 		mainMenu.get_item("dos_ver_edit").enable(false).refresh_item(mainMenu);
+		mainMenu.get_item("dos_ems_true").enable(false).refresh_item(mainMenu);
+		mainMenu.get_item("dos_ems_board").enable(false).refresh_item(mainMenu);
+		mainMenu.get_item("dos_ems_emm386").enable(false).refresh_item(mainMenu);
+		mainMenu.get_item("dos_ems_false").enable(false).refresh_item(mainMenu);
 		mainMenu.get_item("shell_config_commands").enable(false).refresh_item(mainMenu);
 		/* NTS: We do NOT free the drives! The OS may use them later! */
 		void DOS_ShutdownFiles();

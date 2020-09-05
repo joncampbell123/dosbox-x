@@ -1,4 +1,8 @@
 0.83.6
+  - Add menu item "Expanded memory (EMS)" under "DOS"
+    menu to dynamically enable or disable EMS memory
+    at run-time. You can now also modify EMS memory
+    with CONFIG command from command-line. (Wengier)
   - You can now add your own programs or files to the
     Z drive! Put your programs or files in the drivez
     directory located in the DOSBox-X program folder,
