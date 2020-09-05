@@ -2801,7 +2801,7 @@ restart_int:
             if(!ReadDisk(f, src.c_str()[0],retries))
                 WriteOut(MSG_Get("PROGRAM_IMGMAKE_CANT_READ_FLOPPY"));
             fclose(f);
-            if (setdir) runRescan("-Q");
+            if (setdir) runRescan("-A -Q");
             return;
         }
 #endif
@@ -3427,7 +3427,7 @@ restart_int:
             if (!f) {
                 WriteOut(MSG_Get("PROGRAM_IMGMAKE_CANNOT_WRITE"),t2.c_str());
                 if (setdir) {
-                    runRescan("-Q");
+                    runRescan("-A -Q");
                     chdir(dirCur);
                 }
                 return;
@@ -3436,7 +3436,7 @@ restart_int:
             fclose(f);
         }
         if (setdir) {
-            runRescan("-Q");
+            runRescan("-A -Q");
             chdir(dirCur);
         }
         return;
@@ -3601,9 +3601,11 @@ static void RESCAN_ProgramStart(Program * * make) {
 }
 
 void runRescan(const char *str) {
-	RESCAN rescan;
-	rescan.cmd=new CommandLine("RESCAN", str);
-	rescan.Run();
+    DOS_Drive_Cache dirCache;
+    dirCache.EmptyCache();
+	//RESCAN rescan;
+	//rescan.cmd=new CommandLine("RESCAN", str);
+	//rescan.Run();
 }
 
 /* TODO: This menu code sucks. Write a better one. */
@@ -5512,7 +5514,7 @@ void KEYB::Run(void) {
             switch (keyb_error) {
                 case KEYB_NOERROR:
                     WriteOut(MSG_Get("PROGRAM_KEYB_NOERROR"),temp_line.c_str(),dos.loaded_codepage);
-                    runRescan("-Q");
+                    runRescan("-A -Q");
                     break;
                 case KEYB_FILENOTFOUND:
                     if (temp_line!="/?"&&temp_line!="-?") WriteOut(MSG_Get("PROGRAM_KEYB_FILENOTFOUND"),temp_line.c_str());
