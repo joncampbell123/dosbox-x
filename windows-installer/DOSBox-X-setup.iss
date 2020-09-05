@@ -158,7 +158,7 @@ begin
 end;
 procedure InitializeWizard();
 begin
-    msg:='The selected build will be the default build when you run DOSBox-X from the Windows Start Menu or the desktop. ';
+    msg:='The selected build will be the default build when you run DOSBox-X from the Windows Start Menu or the desktop. Click the "Help" button for more information about this.';
     PageBuild:=CreateInputOptionPage(wpSelectDir, 'Default DOSBox-X build', 'Select the default DOSBox-X build to run', msg, True, False);
     PageBuild.Add('Windows Release SDL1');
     PageBuild.Add('Windows Release SDL2');
