@@ -7219,10 +7219,10 @@ void update_dos_ems_menu(void) {
     Section_prop * dos_section = static_cast<Section_prop *>(control->GetSection("dos"));
     const char *ems = dos_section->Get_string("ems");
     if (ems == NULL) return;
-    mainMenu.get_item("dos_ems_true").check(!strcmp(ems, "true")||!strcmp(ems, "1")).refresh_item(mainMenu);
-    mainMenu.get_item("dos_ems_board").check(!strcmp(ems, "emsboard")).refresh_item(mainMenu);
-    mainMenu.get_item("dos_ems_emm386").check(!strcmp(ems, "emm386")).refresh_item(mainMenu);
-    mainMenu.get_item("dos_ems_false").check(!strcmp(ems, "false")||!strcmp(ems, "0")).refresh_item(mainMenu);
+    mainMenu.get_item("dos_ems_true").check(!strcmp(ems, "true")||!strcmp(ems, "1")).enable(true).refresh_item(mainMenu);
+    mainMenu.get_item("dos_ems_board").check(!strcmp(ems, "emsboard")).enable(true).refresh_item(mainMenu);
+    mainMenu.get_item("dos_ems_emm386").check(!strcmp(ems, "emm386")).enable(true).refresh_item(mainMenu);
+    mainMenu.get_item("dos_ems_false").check(!strcmp(ems, "false")||!strcmp(ems, "0")).enable(true).refresh_item(mainMenu);
 }
 
 bool dos_ems_menu_callback(DOSBoxMenu * const menu,DOSBoxMenu::item * const menuitem) {
