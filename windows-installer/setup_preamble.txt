@@ -4,8 +4,8 @@ Like DOSBox, it emulates a PC necessary for running many MS-DOS games and applic
 
 As a general-purpose DOS emulator, DOSBox-X has many useful and unique features that do not exist in other emulators like DOSBox, such as GUI menu and configuration tool, the ability to save and load states, support for more DOS commands and utilities, better compatibility with DOS applications, as well as features like Windows clipboard and long filename support for a tighter integration with Windows. With DOSBox-X you can run most DOS applications and games reliably in a DOS virtual machine. Please read the README.TXT file in the installation directory for a quick start, or see the dosbox-x.conf file for more information about optional settings in DOSBox-X.
 
-The DOSBox-X GitHub website is located at the following URL. Please visit the website to get the latest information and updates:
-https://github.com/joncampbell123/dosbox-x
+Please visit the DOSBox-X homepage for the latest information about DOSBox-X:
+http://dosbox-x.com/
 
 The issue tracker and source code for DOSBox-X are available from the DOSBox-X GitHub site. Please feel free to report issues or request new features in DOSBox-X:
 https://github.com/joncampbell123/dosbox-x/issues

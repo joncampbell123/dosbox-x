@@ -18,16 +18,14 @@ You do not have to always type these commands. Check out the "Drive" menu to mou
 
 Further Information
 ===================
+Please visit the DOSBox-X homepage for the latest information about DOSBox-X:
+http://dosbox-x.com/
 
-For more complete usage information about DOSBox-X, including common ways to configure DOSBox-X and its usage tips, please read the user guide in the DOSBox-X Wiki:
+For a complete DOSBox-X user guide, including common ways to configure DOSBox-X and its usage tips, please visit the DOSBox-X Wiki:
 https://github.com/joncampbell123/dosbox-x/wiki
 
-The issue tracker and source code for DOSBox-X are available from the DOSBox-X GitHub site. Please feel free to report issues or request new features in DOSBox-X:
+If you have any issues or want to request new features, please feel free to post them in the DOSBox-X issue tracker:
 https://github.com/joncampbell123/dosbox-x/issues
 
-Information about the latest released packages and installation instructions for DOSBox-X is available from the INSTALL page:
-https://github.com/joncampbell123/dosbox-x/blob/master/INSTALL.md
-
-You can get DOSBox-X versions that have been released so far and their change history from the DOSBox-X Releases page:
-https://github.com/joncampbell123/dosbox-x/releases
-
+The source code of DOSBox-X is also available from the DOSBox-X GitHub site:
+https://github.com/joncampbell123/dosbox-x/
