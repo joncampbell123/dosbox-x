@@ -9774,6 +9774,10 @@ fresh_boot:
 #endif
 
         if (dos_kernel_shutdown) {
+
+            Bitu DOS_LoadKeyboardLayout(const char * layoutname, Bit32s codepage, const char * codepagefile);
+            if (!IS_PC98_ARCH&&dos.loaded_codepage!=437) {Bit32s tried_cp = 437;DOS_LoadKeyboardLayout("us", tried_cp, "auto");}
+
             /* NTS: we take different paths depending on whether we're just shutting down DOS
              *      or doing a hard reboot. */
 

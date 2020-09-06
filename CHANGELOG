@@ -1,4 +1,7 @@
 0.83.6
+  - Fixed freeze when trying to reboot the internal
+    DOS when using a different code page and it is in
+    CGA or EGA emulation modes. (Wengier)
   - Add menu item "Expanded memory (EMS)" under "DOS"
     menu to dynamically enable or disable EMS memory
     at run-time. You can now also modify EMS memory
