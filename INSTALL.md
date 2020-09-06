@@ -62,7 +62,7 @@ Besides Windows and Linux packages, there are also packages for the macOS (64-bi
 * [dosbox-x-macosx-x64-20200901011555.zip](https://github.com/joncampbell123/dosbox-x/releases/download/dosbox-x-v0.83.5/dosbox-x-macosx-x64-20200901011555.zip)
 * [dosbox-x-mingw-hx-dos-20200901082024.zip](https://github.com/joncampbell123/dosbox-x/releases/download/dosbox-x-v0.83.5/dosbox-x-mingw-hx-dos-20200901082024.zip)
 
-The macOS package requires macOS Sierra 10.12 or higher. Both SDL1 and SDL2 binaries (in .app format) are provided in the macOS package, in the directories named "dosbox-x" and "dosbox-x-sdl2" inside the zip file.
+The macOS package requires 64-bit macOS operating system. It should run natively on recent versions of macOS such as macOS Catalina (10.15). Both SDL1 and SDL2 binaries (in .app format) are provided in the macOS package, in the directories named "dosbox-x" and "dosbox-x-sdl2" inside the zip file. If you use an older macOS version such as OS X Yosemite (10.10), you may try to build and run DOSBox-X with the help of [MacPorts](https://www.macports.org/).
 
 The HX-DOS package allows you to run DOSBox-X in a real DOS system (MS-DOS or compatible) too with the help of the freely-available [HX DOS Extender](https://github.com/Baron-von-Riedesel/HX), which is already included in the recent HX-DOS release packages. Once you unzip the package you can directly type "DOSBOX-X" to run in DOS. Note however that not all features of DOSBox-X can be supported in this environment. See the README.TXT file inside the HX-DOS package for more information.
 
