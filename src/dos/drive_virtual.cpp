@@ -38,7 +38,7 @@ struct VFILE_Block {
 	VFILE_Block * next;
 };
 
-#define MAX_VFILES 200
+#define MAX_VFILES 500
 char vfpos=0;
 char vfnames[MAX_VFILES][CROSS_LEN],vfsnames[MAX_VFILES][DOS_NAMELENGTH_ASCII];
 extern int lfn_filefind_handle;
@@ -46,6 +46,7 @@ static VFILE_Block * first_file, * lfn_search[256];
 
 extern bool filename_not_8x3(const char *n), filename_not_strict_8x3(const char *n);
 extern char sfn[DOS_NAMELENGTH_ASCII];
+std::string hidefiles="";
 /* Generate 8.3 names from LFNs, with tilde usage (from ~1 to ~9999). */
 char* Generate_SFN(const char *name) {
 	if (!filename_not_8x3(name)) {
@@ -150,6 +151,12 @@ void VFILE_RegisterBuiltinFileBlob(const struct BuiltinFileBlob &b) {
 }
 
 void VFILE_Register(const char * name,Bit8u * data,Bit32u size) {
+    if (vfpos>=MAX_VFILES) return;
+    std::istringstream in(hidefiles);
+    if (in)	for (std::string file; in >> file; ) {
+        if (!strcasecmp(name,file.c_str())||!strcasecmp(("\""+std::string(name)+"\"").c_str(),file.c_str()))
+            return;
+    }
     const VFILE_Block* cur_file = first_file;
 	while (cur_file) {
 		if (strcasecmp(name,cur_file->name)==0||uselfn&&strcasecmp(name,cur_file->name)==0) return;
@@ -257,6 +264,8 @@ Bit16u Virtual_File::GetInformation(void) {
 Virtual_Drive::Virtual_Drive() {
 	strcpy(info,"Internal Virtual Drive");
 	for (int i=0; i<256; i++) lfn_search[i] = 0;
+    const Section_prop * section=static_cast<Section_prop *>(control->GetSection("dos"));
+    hidefiles = section->Get_string("drive z hide files");
 }
 
 
