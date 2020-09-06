@@ -1,7 +1,7 @@
-For the latest information about DOSBox-X, please visit the online user guide in the DOSBox-X Wiki: https://github.com/joncampbell123/dosbox-x/wiki
+For the latest information about DOSBox-X, please visit the DOSBox-X homepage: http://dosbox-x.com/
 
-For the latest version of DOSBox-X and the installation instructions, please see the INSTALL page: https://github.com/joncampbell123/dosbox-x/blob/master/INSTALL.md
+For a complete DOSBox-X user guide, including common ways to configure DOSBox-X and its usage tips, please visit the DOSBox-X Wiki: https://github.com/joncampbell123/dosbox-x/wiki
 
-DOSBox-X versions that have been officially released so far and their change history can be found in the DOSBox-X Releases page: https://github.com/joncampbell123/dosbox-x/releases
+The DOSBox-X source code and issue tracker are also available from the DOSBox-X GitHub site: https://github.com/joncampbell123/dosbox-x/
 
-You can also visit the DOSBox-X issue tracker if you have any issues or want to request new features in DOSBox-X: https://github.com/joncampbell123/dosbox-x/issues
+If you have any issues or want to request new features in DOSBox-X, please feel free to post them: https://github.com/joncampbell123/dosbox-x/issues

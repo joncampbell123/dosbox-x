@@ -1572,7 +1572,7 @@ Bitu GetEMSType(const Section_prop* section) {
 	std::string emstypestr = section->Get_string("ems");
 	Bitu rtype = 0;
 
-	if (emstypestr == "true")
+	if (emstypestr == "true"||emstypestr == "1")
 		rtype = EMS_MIXED;
 	else if (emstypestr == "emsboard")
 		rtype = EMS_BOARD;

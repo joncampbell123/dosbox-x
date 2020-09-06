@@ -397,6 +397,7 @@ static const char *def_menu_dos[] =
     "DOSLFNMenu",
     "--",
     "DOSPC98Menu",
+    "DOSEMSMenu",
     "--",
 #if defined(WIN32) && !defined(HX_DOS)
     "DOSWinMenu",
@@ -462,6 +463,16 @@ static const char *def_menu_dos_pc98[] =
 {
     "dos_pc98_pit_4mhz",
     "dos_pc98_pit_5mhz",
+    NULL
+};
+
+/* DOS EMS menu ("DOSEMSMenu") */
+static const char *def_menu_dos_ems[] =
+{
+    "dos_ems_true",
+    "dos_ems_board",
+    "dos_ems_emm386",
+    "dos_ems_false",
     NULL
 };
 
@@ -1323,6 +1334,9 @@ void ConstructMenu(void) {
 
     /* DOS PC-98 menu */
     ConstructSubMenu(mainMenu.get_item("DOSPC98Menu").get_master_id(), def_menu_dos_pc98);
+
+    /* DOS EMS menu */
+    ConstructSubMenu(mainMenu.get_item("DOSEMSMenu").get_master_id(), def_menu_dos_ems);
 
 #if defined(WIN32) && !defined(HX_DOS)
     /* DOS WIN menu */

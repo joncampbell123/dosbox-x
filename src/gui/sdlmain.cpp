@@ -7215,6 +7215,37 @@ bool dos_pc98_clock_menu_callback(DOSBoxMenu * const menu,DOSBoxMenu::item * con
     return true;
 }
 
+void update_dos_ems_menu(void) {
+    Section_prop * dos_section = static_cast<Section_prop *>(control->GetSection("dos"));
+    const char *ems = dos_section->Get_string("ems");
+    if (ems == NULL) return;
+    mainMenu.get_item("dos_ems_true").check(!strcmp(ems, "true")||!strcmp(ems, "1")).enable(true).refresh_item(mainMenu);
+    mainMenu.get_item("dos_ems_board").check(!strcmp(ems, "emsboard")).enable(true).refresh_item(mainMenu);
+    mainMenu.get_item("dos_ems_emm386").check(!strcmp(ems, "emm386")).enable(true).refresh_item(mainMenu);
+    mainMenu.get_item("dos_ems_false").check(!strcmp(ems, "false")||!strcmp(ems, "0")).enable(true).refresh_item(mainMenu);
+}
+
+bool dos_ems_menu_callback(DOSBoxMenu * const menu,DOSBoxMenu::item * const menuitem) {
+    (void)menu;//UNUSED
+    (void)menuitem;//UNUSED
+
+    std::string tmp="";
+    const char *mname = menuitem->get_name().c_str();
+    if (!strcmp(mname, "dos_ems_true")) tmp="ems=true";
+    else if (!strcmp(mname, "dos_ems_board")) tmp="ems=emsboard";
+    else if (!strcmp(mname, "dos_ems_emm386")) tmp="ems=emm386";
+    else if (!strcmp(mname, "dos_ems_false")) tmp="ems=false";
+    if (tmp.size()) {
+        Section_prop * dos_section = static_cast<Section_prop *>(control->GetSection("dos"));
+        dos_section->HandleInputline(tmp.c_str());
+        EMS_DoShutDown();
+        void EMS_Startup(Section* sec);
+        EMS_Startup(NULL);
+        update_dos_ems_menu();
+    }
+    return true;
+}
+
 bool dos_debug_menu_callback(DOSBoxMenu * const menu,DOSBoxMenu::item * const menuitem) {
     (void)menu;//UNUSED
     (void)menuitem;//UNUSED
@@ -9206,6 +9237,22 @@ int main(int argc, char* argv[]) SDL_MAIN_NOEXCEPT {
                         set_callback_function(dos_pc98_clock_menu_callback);
                     mainMenu.alloc_item(DOSBoxMenu::item_type_id,"dos_pc98_pit_5mhz").set_text("5MHz/10MHz").
                         set_callback_function(dos_pc98_clock_menu_callback);
+                }
+            }
+
+            {
+                DOSBoxMenu::item &item = mainMenu.alloc_item(DOSBoxMenu::submenu_type_id,"DOSEMSMenu");
+                item.set_text("Expanded memory (EMS)");
+
+                {
+                    mainMenu.alloc_item(DOSBoxMenu::item_type_id,"dos_ems_true").set_text("Enable EMS emulation").
+                        set_callback_function(dos_ems_menu_callback);
+                    mainMenu.alloc_item(DOSBoxMenu::item_type_id,"dos_ems_board").set_text("EMS board emulation").
+                        set_callback_function(dos_ems_menu_callback);
+                    mainMenu.alloc_item(DOSBoxMenu::item_type_id,"dos_ems_emm386").set_text("EMM386 emulation").
+                        set_callback_function(dos_ems_menu_callback);
+                    mainMenu.alloc_item(DOSBoxMenu::item_type_id,"dos_ems_false").set_text("Disable EMS emulation").
+                        set_callback_function(dos_ems_menu_callback);
                 }
             }
 

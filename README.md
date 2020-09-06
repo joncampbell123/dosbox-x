@@ -1,4 +1,6 @@
-**README for DOSBox-X** (official website: [dosbox-x.com](http://dosbox-x.com))
+**Welcome to the DOSBox-X project website located on GitHub.**
+
+**Be sure to also visit DOSBox-X's homepage at [http://dosbox-x.com](http://dosbox-x.com)**
 
 Introduction to DOSBox-X
 ------------------------
@@ -7,9 +9,9 @@ DOSBox-X is a cross-platform DOS emulator based on the DOSBox project (www.dosbo
 
 Like DOSBox, it emulates a PC necessary for running many MS-DOS games and applications that simply cannot be run on modern PCs and operating systems. However, while the main focus of DOSBox is for running DOS games, DOSBox-X goes much further than this. Started as a fork of the DOSBox project, it retains compatibility with the wide base of DOS games and DOS gaming DOSBox was designed for. But it is also a platform for running DOS applications, including emulating the environments to run Windows 3.x, 9x and ME and software written for those versions of Windows.
 
-Our goal is to eventually make DOSBox-X a complete DOS emulation package, both fully-featured and easy to use, and give the users all the options to configure the DOS virtual machine. We implement new features with each official release, and also try our best to deliver a consistent cross-platform experience for users instead of focusing on a particular platform. In order to help improve the general DOS emulation and also to aid retro-programmming, it is our desire to maintain and implement more accurate emulation, but at the same time we are also making efforts to improve emulation quality, speed, and usability for end users. Furthermore, we hope to improve the out-of-the-box experience for new users who want to run DOS programs or games.
+Our goal is to eventually make DOSBox-X a complete DOS emulation package, both fully-featured and easy to use, and give the users all the options to configure the DOS virtual machine. We implement new features with each official release, and also try our best to deliver a consistent cross-platform experience for users instead of focusing on a particular platform. In order to help improve the general DOS emulation and also to aid retro-development, it is our desire to maintain and implement more accurate emulation, but at the same time we are also making efforts to improve emulation quality, speed, and usability for end users. Furthermore, we hope to improve the out-of-the-box experience for new users who want to run DOS programs or games.
 
-Please see the [INSTALL](INSTALL.md) page for DOSBox-X installation instructions and latest packages, and the [Releases](https://github.com/joncampbell123/dosbox-x/releases) page for all released DOSBox-X versions. For more information about DOSBox-X, such as setting up and running DOSBox-X including its usage tips, please read the user guide in the [DOSBox-X Wiki](https://github.com/joncampbell123/dosbox-x/wiki).
+Please check out the [DOSBox-X homepage](http://dosbox-x.com) for common packages of the latest release for the supported platforms. Also see the [INSTALL](INSTALL.md) page for DOSBox-X installation instructions and other packages, and the [Releases](https://github.com/joncampbell123/dosbox-x/releases) page for archives of all released DOSBox-X versions. For more information about DOSBox-X, such as setting up and running DOSBox-X including its usage tips, please read the user guide in the [DOSBox-X Wiki](https://github.com/joncampbell123/dosbox-x/wiki).
 
 DOSBox-X is completely open-source and free of charge to use and distribute. It is released under the [GNU General Public License, version 2](COPYING).
 
@@ -73,7 +75,7 @@ DOSBox-X is a cross-platform DOS emulator, so all major host operating systems a
 
 4. MS-DOS or compatible (special HX-DOS versions)
 
-Windows binaries (both 32-bit and 64-bit), Linux RPM packages (64-bit), macOS packages (64-bit) and DOS versions are officially released periodically, typically on the last day of a month or the first day of the next month. Please see the [INSTALL](INSTALL.md) page for the latest DOSBox-X packages on these platforms and further installation instructions. You can also find ZIP (or Linux RPM) packages for all released versions and their change history in the [Releases](https://github.com/joncampbell123/dosbox-x/releases) page. 
+Windows binaries (both 32-bit and 64-bit), Linux RPM packages (64-bit), macOS packages (64-bit) and DOS versions are officially released periodically, typically on the last day of a month or the first day of the next month. Please check out the [DOSBox-X homepage](http://dosbox-x.com) and the [INSTALL](INSTALL.md) page for the latest DOSBox-X packages on these platforms and further installation instructions. You can also find ZIP (or Linux RPM) packages for all released versions and their change logs in the [Releases](https://github.com/joncampbell123/dosbox-x/releases) page. 
 
 The latest version of DOSBox-X was released on September 1, 2020. If you use Windows, please note that the default Windows releases built with Visual Studio only support Windows Vista and later (Windows 7, 8, and 10); for Windows XP, the MinGW builds are required. Auto-installable Windows packages for DOSBox-X are also available to ease the installation process, which are especially recommended for new and non-expert users. If you use the installers you will be able to start DOSBox-X as soon as the installation ends. The all-in-one Windows installer for the latest official version of DOSBox-X can be downloaded from: [DOSBox-X-Setup-Windows-latest.exe](https://github.com/Wengier/dosbox-x-wiki/raw/master/DOSBox-X-Setup-Windows-latest.exe)
 

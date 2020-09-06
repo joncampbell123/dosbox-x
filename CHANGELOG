@@ -1,3 +1,13 @@
+0.83.6
+  - Add menu item "Expanded memory (EMS)" under "DOS"
+    menu to dynamically enable or disable EMS memory
+    at run-time. You can now also modify EMS memory
+    with CONFIG command from command-line. (Wengier)
+  - You can now add your own programs or files to the
+    Z drive! Put your programs or files in the drivez
+    directory located in the DOSBox-X program folder,
+    and they will automatically appear on the Z drive,
+    replacing built-in files if any. (Wengier).    
 0.83.5
   - Windows installer now offers the option to upgrade
     the DOSBox-X config file (dosbox-x.conf) to the
@@ -403,7 +413,7 @@
     It is also fixed not to crash when used within a guest
     operting system (when the DOS kernel has been shut down
     using the BOOT command);
-    It now supports memory size up to 1000MB;
+    It now supports memory size up to 1GB;
     It will save and verify the DOSBox-X version and build.
     States saved by DOSBox-X in one platform (e.g. 64-bit
     Windows) may not work in another (e.g. 32-bit Linux).
@@ -601,6 +611,10 @@
     implementation of FluidSynth. (Wengier)
 
 0.83.1
+  - dosbox-x.conf is now recognized as the default config
+    file name in addition to dosbox.conf. The sample config
+    file "dosbox.reference.conf" has been renamed to
+    "dosbox-x.reference.conf" as well (Wengier)
   - Sound Blaster emulation fixed to better handle Goldplay
     mode detection false positive in 1994 demoscene demo
     myth_dw.zip when using Sound Blaster Pro setting in
@@ -608,10 +622,6 @@
     like Goldplay mode, but when music actually starts the
     DMA programmed to normal state without restarting
     DMA playback.
-  - dosbox-x.conf is now recognized as the default config
-    file name in addition to dosbox.conf. The sample config
-    file "dosbox.reference.conf" has been renamed to
-    "dosbox-x.reference.conf" as well (Wengier)
   - Tandy DAC output fixed to slowly ramp last sample to
     zero DC sample (128) when switched off. This fixes
     loud popping (DC offset) problems with Tandy DAC

@@ -1639,7 +1639,7 @@ void DOS_Shell::CMD_LS(char *args) {
 
 	for (const auto &entry : results) {
 		std::string name = uselfn&&!optZ?entry.lname:entry.name;
-		if (name == "." || name == "..") continue;		
+		if (name == "." || name == "..") continue;
 		if (!optA && (entry.attr&DOS_ATTR_SYSTEM || entry.attr&DOS_ATTR_HIDDEN)) continue;
 		if (entry.attr & DOS_ATTR_DIRECTORY) {
 			if (!uselfn||optZ) upcase(name);
@@ -1647,7 +1647,7 @@ void DOS_Shell::CMD_LS(char *args) {
 				WriteOut("\033[34;1m%s\033[0m\n", name.c_str());
 				p_count++;
 			} else
-				WriteOut("\033[34;1m%-*s\033[0m", max[w_count % col], name.c_str());
+				WriteOut("\033[34;1m%s\033[0m%-*s", name.c_str(), max[w_count % col]-name.size(), "");
 		} else {
 			if (!uselfn||optZ) lowcase(name);
 			bool is_executable=false;
