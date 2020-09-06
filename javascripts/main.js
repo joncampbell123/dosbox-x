@@ -1,1 +1,1 @@
-console.log('This would be the main JS file.');
+if (location.protocol !== 'https:') location.replace(`https:${location.href.substring(location.protocol.length)}`);
