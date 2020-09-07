@@ -1300,11 +1300,7 @@ public:
         if(type == "floppy") incrementFDD();
         return;
 showusage:
-#if defined (WIN32) || defined(OS2)
-       WriteOut(MSG_Get("PROGRAM_MOUNT_USAGE"));
-#else
-       WriteOut(MSG_Get("PROGRAM_MOUNT_USAGE"));
-#endif
+        WriteOut(MSG_Get("PROGRAM_MOUNT_USAGE"));
         return;
     }
 };
