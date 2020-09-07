@@ -68,12 +68,12 @@ If your system version is macOS Sierra (10.12), macOS High Sierra (10.13), or ma
 * SDL1 version: [dosbox-x-sdl1.zip](https://github.com/joncampbell123/dosbox-x/files/5180765/dosbox-x-sdl1.zip)
 * SDL2 version: [dosbox-x-sdl2.zip](https://github.com/joncampbell123/dosbox-x/files/5180766/dosbox-x-sdl2.zip)
 
-macOS versions earlier than 10.12 are not officially supported. If you use such a version such as OS X Lion (10.7) or OS X Yosemite (10.10), then you may try to build and run DOSBox-X yourself with the help of [MacPorts](https://www.macports.org/).
+macOS versions earlier than 10.12 (Sierra) are not officially supported. If you use an old version such as OS X Lion (10.7) or OS X Yosemite (10.10), then you may try to build and run DOSBox-X yourself with the help of [MacPorts](https://www.macports.org/). Also, you may not see macOS packages for some DOSBox-X versions. For example, no macOS package is available for DOSBox-X version 0.83.1.
 
-DOS Package (Portable)
-----------------------
+DOS Packages (Portable)
+-----------------------
 
-Besides Windows, Linux and macOS packages, there are also packages for the DOS platform. Yes, DOSBox-X can officially run on DOS operating systems as well, although not all features of DOSBox-X can be supported in this environment. For the current DOSBox-X version 0.83.5, the special DOS version is available as the following zip package:
+Besides Windows, Linux and macOS packages, there are also packages released for the DOS platform. Yes, DOSBox-X can officially run on DOS operating systems as well, although not all features of DOSBox-X that are available in other platforms can be supported in this environment. For the current DOSBox-X version 0.83.5, the special DOS version is available as the following zip package:
 
 * [dosbox-x-mingw-hx-dos-20200901082024.zip](https://github.com/joncampbell123/dosbox-x/releases/download/dosbox-x-v0.83.5/dosbox-x-mingw-hx-dos-20200901082024.zip)
 
