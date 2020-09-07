@@ -63,9 +63,12 @@ If you use macOS as your operating system, we also release packages for the macO
 
 The macOS package requires 64-bit macOS operating system. It should run natively on the recent versions of macOS such as macOS Catalina (10.15). Both SDL1 and SDL2 binaries (in .app format) are provided in the macOS package, in the directories named "dosbox-x" and "dosbox-x-sdl2" inside the zip file. You can select either SDL1 or SDL2 version according to your preference.
 
-If your system version is macOS Sierra (10.12), macOS High Sierra (10.13), or macOS Mojave (10.14), and you found that the DOSBox-X binaries included in the above package do not run on your system, then you can try the following alternative packages instead:
+If your system version is macOS Sierra (10.12), macOS High Sierra (10.13), or macOS Mojave (10.14), and you found that the DOSBox-X binaries included in the above package do not run on your system, then you can try the following alternative portable packages instead:
 
-macOS versions earlier than 10.12 are not officially supported. If you use such a version such as OS X Lion (10.7) and OS X Yosemite (10.10), then you may try to build and run DOSBox-X yourself with the help of [MacPorts](https://www.macports.org/).
+* SDL1 version: [dosbox-x-sdl1.zip](https://github.com/joncampbell123/dosbox-x/files/5180765/dosbox-x-sdl1.zip)
+* SDL2 version: [dosbox-x-sdl2.zip](https://github.com/joncampbell123/dosbox-x/files/5180766/dosbox-x-sdl2.zip)
+
+macOS versions earlier than 10.12 are not officially supported. If you use such a version such as OS X Lion (10.7) or OS X Yosemite (10.10), then you may try to build and run DOSBox-X yourself with the help of [MacPorts](https://www.macports.org/).
 
 DOS Package (Portable)
 ----------------------
