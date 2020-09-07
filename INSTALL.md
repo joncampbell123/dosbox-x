@@ -33,7 +33,11 @@ If you prefer to use one of the portable packages, please select the zip package
 Linux Packages (RPM)
 --------------------
 
-RPM packages are officially released for the Linux operating system (64-bit, with X11), specifically for CentOS 7 / RHEL 7 ("el7") and CentOS 8 / RHEL 8 ("el8") platforms. There are usually packages for both CentOS 7 and CentOS 8 platforms, but for the current DOSBox-X version 0.83.5 they are not officially available. For the previous version 0.83.4 the following CentOS 7 RPM packages are available (no CentOS 8 RPM packages):
+RPM packages are officially released for the Linux operating system (64-bit, with X11), specifically for CentOS 7 / RHEL 7 ("el7") and CentOS 8 / RHEL 8 ("el8") platforms. There are usually packages for both CentOS 7 and CentOS 8 platforms, but for the current DOSBox-X version 0.83.5 they are not officially available. However, you can try the following unofficial zipped RPM package:
+
+* [dosbox-x-0.83.5-0.fc32.x86_64.zip](https://github.com/joncampbell123/dosbox-x/files/5181532/dosbox-x-0.83.5-0.fc32.x86_64.zip)
+
+For the previous version 0.83.4 the following CentOS 7 RPM packages are available (no CentOS 8 RPM packages):
 
 * [dosbox-x-0.83.4-0.el7.x86_64.rpm](https://github.com/joncampbell123/dosbox-x/releases/download/dosbox-x-v0.83.4/dosbox-x-0.83.4-0.el7.x86_64.rpm)
 * [dosbox-x-debuginfo-0.83.4-0.el7.x86_64.rpm](https://github.com/joncampbell123/dosbox-x/releases/download/dosbox-x-v0.83.4/dosbox-x-debuginfo-0.83.4-0.el7.x86_64.rpm)
