@@ -54,19 +54,32 @@ Where ``<filename>`` is the main file name of the RPM package you wish to instal
 
 If you use a Linux platform that only supports DEB packages, such as Debian, Ubuntu, or Linux Mint, then you can convert the RPM package you want to install to DEB format by using the ```alien``` command-line tool, e.g. ```sudo alien <filename>.rpm```, which will generate the DEB package for use with your Linux platform from the RPM package. You will need to install the ```alien``` tool first if it is not yet installed on your Linux system.
 
-macOS and DOS Packages (Portable)
----------------------------------
+macOS Packages (Portable)
+-------------------------
 
-Besides Windows and Linux packages, there are also packages for the macOS (64-bit) and DOS platforms. For the current DOSBox-X version 0.83.5, the macOS package and the special HX-DOS package are the following zip packages respectively:
+If you use macOS as your operating system, we also release portable packages for the macOS (64-bit) platform. For the current DOSBox-X version 0.83.5, the official macOS package is available as a zip package:
 
 * [dosbox-x-macosx-x64-20200901011555.zip](https://github.com/joncampbell123/dosbox-x/releases/download/dosbox-x-v0.83.5/dosbox-x-macosx-x64-20200901011555.zip)
+
+The macOS package requires 64-bit macOS operating system. It should run natively on the recent versions of macOS such as macOS Catalina (10.15). Both SDL1 and SDL2 binaries (in .app format) are provided in the macOS package, in the directories named "dosbox-x" and "dosbox-x-sdl2" inside the zip file. You can select either SDL1 or SDL2 version according to your preference.
+
+If your system version is macOS Sierra (10.12), macOS High Sierra (10.13), or macOS Mojave (10.14), and you find that the official DOSBox-X binaries included in the above package do not run on your system, then you can try the following alternative portable packages instead:
+
+* SDL1 version: [dosbox-x-sdl1.zip](https://github.com/joncampbell123/dosbox-x/files/5180765/dosbox-x-sdl1.zip)
+* SDL2 version: [dosbox-x-sdl2.zip](https://github.com/joncampbell123/dosbox-x/files/5180766/dosbox-x-sdl2.zip)
+
+macOS versions earlier than 10.12 (Sierra) are not officially supported. If you use an old version such as OS X Lion (10.7) or OS X Yosemite (10.10), then you may try to build and run DOSBox-X yourself with the help of [MacPorts](https://www.macports.org/). Furthermore, you may not see official macOS packages for some DOSBox-X versions. For example, no official macOS package is available for DOSBox-X version 0.83.1.
+
+DOS Packages (Portable)
+-----------------------
+
+Besides Windows, Linux and macOS packages, there are also packages released for the DOS platform. Yes, DOSBox-X can officially run on DOS operating systems as well, although not all features of DOSBox-X that are available in other platforms can be supported in this environment. For the current DOSBox-X version 0.83.5, the special DOS version is available in the following zip package:
+
 * [dosbox-x-mingw-hx-dos-20200901082024.zip](https://github.com/joncampbell123/dosbox-x/releases/download/dosbox-x-v0.83.5/dosbox-x-mingw-hx-dos-20200901082024.zip)
 
-The macOS package requires 64-bit macOS operating system. It should run natively on recent versions of macOS such as macOS Catalina (10.15). Both SDL1 and SDL2 binaries (in .app format) are provided in the macOS package, in the directories named "dosbox-x" and "dosbox-x-sdl2" inside the zip file. If you use an older macOS version such as OS X Yosemite (10.10), you may try to build and run DOSBox-X with the help of [MacPorts](https://www.macports.org/).
+The DOS package allows you to run DOSBox-X in a real DOS system (MS-DOS or compatible) with the help of the freely-available [HX DOS Extender](https://github.com/Baron-von-Riedesel/HX), which is already included in the recent DOS release packages. Once you unzip the package you can directly type "DOSBOX-X" to run in DOS. See the README.TXT file inside the DOS package for more information.
 
-The HX-DOS package allows you to run DOSBox-X in a real DOS system (MS-DOS or compatible) too with the help of the freely-available [HX DOS Extender](https://github.com/Baron-von-Riedesel/HX), which is already included in the recent HX-DOS release packages. Once you unzip the package you can directly type "DOSBOX-X" to run in DOS. Note however that not all features of DOSBox-X can be supported in this environment. See the README.TXT file inside the HX-DOS package for more information.
-
-Note: You may not see such packages for some DOSBox-X versions. For example, these two packages are not available for DOSBox-X version 0.83.1.
+Note: You may not see DOS packages for some DOSBox-X versions. For example, the DOS package is not available for DOSBox-X version 0.83.1.
 
 Source Code Packages (zip or tar.gz)
 ------------------------------------
