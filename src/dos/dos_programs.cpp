@@ -6275,8 +6275,13 @@ void DOS_SetupPrograms(void) {
         "space(s), be sure to properly quote the directory with double quotes,\n"
         "e.g. %s\n\n"
         "Some other usage examples of MOUNT:\n\n"
+#if defined (WIN32) || defined(OS2)
         "\033[32;1mMOUNT\033[0m                             - list all mounted drives\n"
         "\033[32;1mMOUNT -cd\033[0m                         - list all local CD drives\n"
+#else
+        "\033[32;1mMOUNT\033[0m                            - list all mounted drives\n"
+        "\033[32;1mMOUNT -cd\033[0m                        - list all local CD drives\n"
+#endif
         "\033[32;1mMOUNT d %s\033[0m            - mount the D: drive to the directory\n"
         "\033[32;1mMOUNT c %s -t cdrom\033[0m      - mount the C: drive as a CD-ROM drive\n"
         "\033[32;1mMOUNT c %s -ro\033[0m           - mount the C: drive in read-only mode\n"
@@ -6285,7 +6290,12 @@ void DOS_SetupPrograms(void) {
         "\033[32;1mMOUNT c %s -freesize 128\033[0m - mount C: with 128MB free disk space\n"
         "\033[32;1mMOUNT c %s -u\033[0m            - force mount C: drive even if it's mounted\n"
         "\033[32;1mMOUNT c %s -t overlay\033[0m  - mount C: with overlay directory on top\n"
-        "\033[32;1mMOUNT -u c \033[0m                       - unmount the C: drive\n");
+#if defined (WIN32) || defined(OS2)
+        "\033[32;1mMOUNT c -u\033[0m                        - unmount the C: drive\n"
+#else
+        "\033[32;1mMOUNT c -u\033[0m                       - unmount the C: drive\n"
+#endif
+        );
     MSG_Add("PROGRAM_MOUNT_UMOUNT_NOT_MOUNTED","Drive %c is not mounted.\n");
     MSG_Add("PROGRAM_MOUNT_UMOUNT_SUCCESS","Drive %c has successfully been removed.\n");
     MSG_Add("PROGRAM_MOUNT_UMOUNT_NUMBER_SUCCESS","Drive number %c has successfully been removed.\n");

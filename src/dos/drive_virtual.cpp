@@ -39,11 +39,11 @@ struct VFILE_Block {
 };
 
 #define MAX_VFILES 500
-char vfpos=0;
+unsigned int vfpos=0;
 char vfnames[MAX_VFILES][CROSS_LEN],vfsnames[MAX_VFILES][DOS_NAMELENGTH_ASCII];
-extern int lfn_filefind_handle;
 static VFILE_Block * first_file, * lfn_search[256];
 
+extern int lfn_filefind_handle;
 extern bool filename_not_8x3(const char *n), filename_not_strict_8x3(const char *n);
 extern char sfn[DOS_NAMELENGTH_ASCII];
 std::string hidefiles="";
@@ -125,13 +125,13 @@ char* Generate_SFN(const char *name) {
         cur_file = first_file;
         bool found=false;
         while (cur_file) {
-            if (strcasecmp(sfn,cur_file->name)==0||uselfn&&strcasecmp(sfn,cur_file->lname)==0) {found=true;break;}
+            if (strcasecmp(sfn,cur_file->name)==0||(uselfn&&strcasecmp(sfn,cur_file->lname)==0)) {found=true;break;}
             cur_file=cur_file->next;
         }
         if (!found) return sfn;
 		k++;
 	}
-	return "";
+	return 0;
 }
 
 
@@ -159,7 +159,7 @@ void VFILE_Register(const char * name,Bit8u * data,Bit32u size) {
     }
     const VFILE_Block* cur_file = first_file;
 	while (cur_file) {
-		if (strcasecmp(name,cur_file->name)==0||uselfn&&strcasecmp(name,cur_file->name)==0) return;
+		if (strcasecmp(name,cur_file->name)==0||(uselfn&&strcasecmp(name,cur_file->name)==0)) return;
 		cur_file=cur_file->next;
 	}
     strcpy(vfnames[vfpos],name);
@@ -273,7 +273,7 @@ bool Virtual_Drive::FileOpen(DOS_File * * file,const char * name,Bit32u flags) {
 /* Scan through the internal list of files */
     const VFILE_Block* cur_file = first_file;
 	while (cur_file) {
-		if (strcasecmp(name,cur_file->name)==0||uselfn&&strcasecmp(name,cur_file->lname)==0) {
+		if (strcasecmp(name,cur_file->name)==0||(uselfn&&strcasecmp(name,cur_file->lname)==0)) {
 		/* We have a match */
 			*file=new Virtual_File(cur_file->data,cur_file->size);
 			(*file)->flags=flags;
@@ -294,7 +294,7 @@ bool Virtual_Drive::FileCreate(DOS_File * * file,const char * name,Bit16u attrib
 bool Virtual_Drive::FileUnlink(const char * name) {
     const VFILE_Block* cur_file = first_file;
 	while (cur_file) {
-		if (strcasecmp(name,cur_file->name)==0||uselfn&&strcasecmp(name,cur_file->lname)==0) {
+		if (strcasecmp(name,cur_file->name)==0||(uselfn&&strcasecmp(name,cur_file->lname)==0)) {
 			DOS_SetError(DOSERR_ACCESS_DENIED);
 			return false;
 		}
@@ -321,7 +321,7 @@ bool Virtual_Drive::TestDir(const char * dir) {
 bool Virtual_Drive::FileStat(const char* name, FileStat_Block * const stat_block){
     const VFILE_Block* cur_file = first_file;
 	while (cur_file) {
-		if (strcasecmp(name,cur_file->name)==0||uselfn&&strcasecmp(name,cur_file->lname)==0) {
+		if (strcasecmp(name,cur_file->name)==0||(uselfn&&strcasecmp(name,cur_file->lname)==0)) {
 			stat_block->attr=DOS_ATTR_ARCHIVE;
 			stat_block->size=cur_file->size;
 			stat_block->date=DOS_PackDate(2002,10,1);
@@ -336,7 +336,7 @@ bool Virtual_Drive::FileStat(const char* name, FileStat_Block * const stat_block
 bool Virtual_Drive::FileExists(const char* name){
     const VFILE_Block* cur_file = first_file;
 	while (cur_file) {
-		if (strcasecmp(name,cur_file->name)==0||uselfn&&strcasecmp(name,cur_file->lname)==0) return true;
+		if (strcasecmp(name,cur_file->name)==0||(uselfn&&strcasecmp(name,cur_file->lname)==0)) return true;
 		cur_file=cur_file->next;
 	}
 	return false;
@@ -395,7 +395,7 @@ bool Virtual_Drive::SetFileAttr(const char * name,Bit16u attr) {
 bool Virtual_Drive::GetFileAttr(const char * name,Bit16u * attr) {
     const VFILE_Block* cur_file = first_file;
 	while (cur_file) {
-		if (strcasecmp(name,cur_file->name)==0||uselfn&&strcasecmp(name,cur_file->lname)==0) { 
+		if (strcasecmp(name,cur_file->name)==0||(uselfn&&strcasecmp(name,cur_file->lname)==0)) { 
 			*attr = DOS_ATTR_ARCHIVE;	//Maybe readonly ?
 			return true;
 		}
@@ -427,7 +427,7 @@ bool Virtual_Drive::Rename(const char * oldname,const char * newname) {
     (void)newname;//UNUSED
     const VFILE_Block* cur_file = first_file;
 	while (cur_file) {
-		if (strcasecmp(oldname,cur_file->name)==0||uselfn&&strcasecmp(oldname,cur_file->lname)==0) {
+		if (strcasecmp(oldname,cur_file->name)==0||(uselfn&&strcasecmp(oldname,cur_file->lname)==0)) {
 			DOS_SetError(DOSERR_ACCESS_DENIED);
 			return false;
 		}
