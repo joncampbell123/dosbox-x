@@ -6291,9 +6291,9 @@ void DOS_SetupPrograms(void) {
         "\033[32;1mMOUNT c %s -u\033[0m            - force mount C: drive even if it's mounted\n"
         "\033[32;1mMOUNT c %s -t overlay\033[0m  - mount C: with overlay directory on top\n"
 #if defined (WIN32) || defined(OS2)
-        "\033[32;1mMOUNT -u c \033[0m                       - unmount the C: drive\n"
+        "\033[32;1mMOUNT c -u\033[0m                        - unmount the C: drive\n"
 #else
-        "\033[32;1mMOUNT -u c \033[0m                      - unmount the C: drive\n"
+        "\033[32;1mMOUNT c -u\033[0m                       - unmount the C: drive\n"
 #endif
         );
     MSG_Add("PROGRAM_MOUNT_UMOUNT_NOT_MOUNTED","Drive %c is not mounted.\n");
