@@ -1,8 +1,17 @@
 0.83.6
-  - Add menu item "Expanded memory (EMS)" under "DOS"
+  - Improved the help message of MOUNT command. Also
+    added option -examples to show its usage examples,
+    similar to IMGMOUNT and IMGMAKE commands. (Wengier)
+  - Fixed freeze when trying to reboot the internal
+    DOS when using a different code page and it is in
+    CGA or EGA emulation modes. (Wengier)
+  - Added menu item "Expanded memory (EMS)" under "DOS"
     menu to dynamically enable or disable EMS memory
     at run-time. You can now also modify EMS memory
     with CONFIG command from command-line. (Wengier)
+  - Added config option "drive z hide files" (in [dos]
+    section) to hide/remove files listed (separated by
+    space) from the Z drive. (Wengier)
   - You can now add your own programs or files to the
     Z drive! Put your programs or files in the drivez
     directory located in the DOSBox-X program folder,

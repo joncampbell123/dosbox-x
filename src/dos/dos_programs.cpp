@@ -846,6 +846,14 @@ public:
             WriteOut(MSG_Get("PROGRAM_CONFIG_SECURE_DISALLOW"));
             return;
         }
+		if (cmd->FindExist("/examples")||cmd->FindExist("-examples")) {
+#if defined (WIN32) || defined(OS2)
+            WriteOut(MSG_Get("PROGRAM_MOUNT_EXAMPLE"),"d:\\dosprogs","d:\\dosprogs","\"d:\\dos games\"","\"d:\\dos games\"","d:\\dosprogs","d:\\dosprogs","d:\\dosprogs","d:\\dosprogs","d:\\dosprogs","d:\\dosprogs","d:\\overlaydir");
+#else
+            WriteOut(MSG_Get("PROGRAM_MOUNT_EXAMPLE"),"~/dosprogs","~/dosprogs","\"~/dos games\"","\"~/dos games\"","~/dosprogs","~/dosprogs","~/dosprogs","~/dosprogs","~/dosprogs","~/dosprogs","~/overlaydir");
+#endif
+			return;
+		}
         bool path_relative_to_last_config = false;
         if (cmd->FindExist("-pr",true)) path_relative_to_last_config = true;
 
@@ -1292,11 +1300,7 @@ public:
         if(type == "floppy") incrementFDD();
         return;
 showusage:
-#if defined (WIN32) || defined(OS2)
-       WriteOut(MSG_Get("PROGRAM_MOUNT_USAGE"),"d:\\dosprogs","d:\\dosprogs","d:\\dosprogs","d:\\dosprogs","d:\\dosprogs","d:\\dosprogs");
-#else
-       WriteOut(MSG_Get("PROGRAM_MOUNT_USAGE"),"~/dosprogs","~/dosprogs","~/dosprogs","~/dosprogs","~/dosprogs","~/dosprogs");
-#endif
+        WriteOut(MSG_Get("PROGRAM_MOUNT_USAGE"));
         return;
     }
 };
@@ -4061,7 +4065,7 @@ public:
             return;
         }
         //show help if /? or -?
-        if (cmd->FindExist("/?", true) || cmd->FindExist("-?", true) || cmd->FindExist("-help", true)) {
+        if (cmd->FindExist("/?", true) || cmd->FindExist("-?", true) || cmd->FindExist("?", true) || cmd->FindExist("-help", true)) {
             WriteOut(MSG_Get("PROGRAM_IMGMOUNT_HELP"));
             return;
         }
@@ -6243,18 +6247,45 @@ void DOS_SetupPrograms(void) {
     MSG_Add("PROGRAM_MOUNT_ILL_TYPE","Illegal type %s\n");
     MSG_Add("PROGRAM_MOUNT_ALREADY_MOUNTED","Drive %c already mounted with %s\n");
     MSG_Add("PROGRAM_MOUNT_USAGE",
-        "Mounts drives from directories or drives in the host system.\n\n"
-        "Usage: \033[34;1mMOUNT [option] Drive-Letter Local-Directory\033[0m\n\n"
-        "For example: MOUNT c %s\n"
+        "Mounts directories or drives in the host system as DOSBox-X drives.\n\n"
+        "Usage: \033[34;1mMOUNT Drive-Letter Local-Directory [option]\033[0m\n\n"
+        " Drive-Letter     Drive letter where the directory or drive will be mounted.\n"
+        " Local-Directory  Local directory or drive in the host system to be mounted.\n"
+        " [option]         Option(s) for mounting. The following options are accepted:\n"
+        " -t               Specify the drive type the mounted drive to behave as.\n"
+        "                  Supported drive type: dir, floppy, cdrom, overlay\n"
+        " -label [name]    Set the volume name of the drive (all upper case)\n"
+        " -ro              Mount the drive in read-only mode.\n"
+        " -cd              Generate a list of local CD drive's \"drive #\" values.\n"
+        " -usecd [drive #] For direct hardware emulation such as audio playback.\n"
+        " -ioctl           Use lowest level hardware access (following -usecd option).\n"
+        " -aspi            Use the installed ASPI layer (following -usecd option).\n"
+        " -freesize [size] Specify the free disk space of the drive in MB.\n"
+        " -nocachedir      Do not cache the drive (real-time update).\n"
+        " -o               Report the drive as: local, remote.\n"
+        " -q               Quiet mode (no message output).\n"
+        " -u               Unmount the drive.\n"
+        " \033[32;1m-examples        Show some usage examples.\033[0m\n\n"
+        "Type MOUNT with no parameters to display a list of mounted drives.\n");
+    MSG_Add("PROGRAM_MOUNT_EXAMPLE",
+        "A basic example of MOUNT command:\n\n"
+        "\033[32;1mMOUNT c %s\033[0m\n\n"
         "This makes the directory %s act as the C: drive inside DOSBox-X.\n"
-        "The directory has to exist in the host system.\n\n"
-		"Options are accepted. For example:\n\n"
-		"\033[32;1mMOUNT -t cdrom c %s \033[0m     mounts the C: drive as a CD-ROM drive.\n"
-		"\033[32;1mMOUNT -ro c %s \033[0m          mounts the C: drive in read-only mode.\n"
-		"\033[32;1mMOUNT -nocachedir c %s \033[0m  mounts C: without caching the drive.\n"
-		"\033[32;1mMOUNT -freesize 128 c %s \033[0mmounts C: with the specified free disk space.\n"
-		"\033[32;1mMOUNT -u c \033[0m                       unmounts the C: drive.\n\n"
-		"Type MOUNT with no parameters to display a list of mounted drives.\n");
+        "The directory has to exist in the host system. If the directory contains\n"
+        "space(s), be sure to properly quote the directory with double quotes,\n"
+        "e.g. %s\n\n"
+        "Some other usage examples of MOUNT:\n\n"
+        "\033[32;1mMOUNT\033[0m                             - list all mounted drives\n"
+        "\033[32;1mMOUNT -cd\033[0m                         - list all local CD drives\n"
+        "\033[32;1mMOUNT d %s\033[0m            - mount the D: drive to the directory\n"
+        "\033[32;1mMOUNT c %s -t cdrom\033[0m      - mount the C: drive as a CD-ROM drive\n"
+        "\033[32;1mMOUNT c %s -ro\033[0m           - mount the C: drive in read-only mode\n"
+        "\033[32;1mMOUNT c %s -label TEST\033[0m   - mount the C: drive with the label TEST\n"
+        "\033[32;1mMOUNT c %s -nocachedir \033[0m  - mount C: without caching the drive\n"
+        "\033[32;1mMOUNT c %s -freesize 128\033[0m - mount C: with 128MB free disk space\n"
+        "\033[32;1mMOUNT c %s -u\033[0m            - force mount C: drive even if it's mounted\n"
+        "\033[32;1mMOUNT c %s -t overlay\033[0m  - mount C: with overlay directory on top\n"
+        "\033[32;1mMOUNT -u c \033[0m                       - unmount the C: drive\n");
     MSG_Add("PROGRAM_MOUNT_UMOUNT_NOT_MOUNTED","Drive %c is not mounted.\n");
     MSG_Add("PROGRAM_MOUNT_UMOUNT_SUCCESS","Drive %c has successfully been removed.\n");
     MSG_Add("PROGRAM_MOUNT_UMOUNT_NUMBER_SUCCESS","Drive number %c has successfully been removed.\n");
