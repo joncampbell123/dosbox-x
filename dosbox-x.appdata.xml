@@ -1,4 +1,4 @@
-?xml version="1.0" encoding="UTF-8"?>
+<?xml version="1.0" encoding="UTF-8"?>
 <component type="desktop">
   <id>dosbox-x.desktop</id>
   <project_license>GPL-2.0</project_license>
@@ -25,6 +25,6 @@
     </ul>
     With the help of DOSBox-X, it can run plenty of the old classics that don't run on your new computer!
     </p>
-  /description>
+  </description>
   <url type="homepage">https://www.dosbox-x.com</url>
 </component>
