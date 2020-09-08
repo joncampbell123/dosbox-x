@@ -984,7 +984,8 @@ void DOSBOX_InitTickLoop() {
 
 void Init_VGABIOS() {
     Section_prop *section = static_cast<Section_prop *>(control->GetSection("dosbox"));
-    assert(section != NULL);
+    Section_prop *video_section = static_cast<Section_prop *>(control->GetSection("video"));
+    assert(section != NULL && video_section != NULL);
 
     if (IS_PC98_ARCH) {
         // There IS no VGA BIOS, this is PC-98 mode!
@@ -1005,16 +1006,16 @@ void Init_VGABIOS() {
 	freesizecap = section->Get_bool("freesizecap");
     wpcolon = section->Get_bool("leading colon write protect image");
 
-    VGA_BIOS_Size_override = (Bitu)section->Get_int("vga bios size override");
+    VGA_BIOS_Size_override = (Bitu)video_section->Get_int("vga bios size override");
     if (VGA_BIOS_Size_override > 0) VGA_BIOS_Size_override = (VGA_BIOS_Size_override+0x7FFU)&(~0xFFFU);
 
-    VGA_BIOS_dont_duplicate_CGA_first_half = section->Get_bool("video bios dont duplicate cga first half rom font");
-    VIDEO_BIOS_always_carry_14_high_font = section->Get_bool("video bios always offer 14-pixel high rom font");
-    VIDEO_BIOS_always_carry_16_high_font = section->Get_bool("video bios always offer 16-pixel high rom font");
-    VIDEO_BIOS_enable_CGA_8x8_second_half = section->Get_bool("video bios enable cga second half rom font");
+    VGA_BIOS_dont_duplicate_CGA_first_half = video_section->Get_bool("video bios dont duplicate cga first half rom font");
+    VIDEO_BIOS_always_carry_14_high_font = video_section->Get_bool("video bios always offer 14-pixel high rom font");
+    VIDEO_BIOS_always_carry_16_high_font = video_section->Get_bool("video bios always offer 16-pixel high rom font");
+    VIDEO_BIOS_enable_CGA_8x8_second_half = video_section->Get_bool("video bios enable cga second half rom font");
     /* NTS: mainline compatible mapping demands the 8x8 CGA font */
-    rom_bios_8x8_cga_font = section->Get_bool("rom bios 8x8 CGA font");
-    rom_bios_vptable_enable = section->Get_bool("rom bios video parameter table");
+    rom_bios_8x8_cga_font = video_section->Get_bool("rom bios 8x8 CGA font");
+    rom_bios_vptable_enable = video_section->Get_bool("rom bios video parameter table");
 
     /* sanity check */
     if (VGA_BIOS_dont_duplicate_CGA_first_half && !rom_bios_8x8_cga_font) /* can't point at the BIOS copy if it's not there */
