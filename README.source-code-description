@@ -15,15 +15,15 @@ There is also a section for crediting the source code in the end of this page.
 General information on source code compilation
 ----------------------------------------------
 
-The four major operating systems and platforms of DOSBox-X are (in this order):
+The four major operating systems and platforms of DOSBox-X are:
 
-1. Linux (with X11) 32-bit and 64-bit x86.
+1. Linux (with X11) 32-bit and 64-bit x86, and on a Raspberry Pi 3 (arm 7).
 
-2. Windows 10 (followed by Windows 8, and Windows 7) for 32-bit and 64-bit x86.
+2. Windows 10, 8, 7, Vista and XP for 32-bit and 64-bit x86 and ARM.
 
-3. Linux (with X11) on a Raspberry Pi 3 (arm 7).
+3. macOS Sierra 10.12 or higher 64-bit.
 
-4. macOS (Mac OS X) Sierra 10.12 or higher 64-bit.
+4. DOS (MS-DOS or compatible).
 
 Straight Windows builds are expected to compile using the free community edition
 of Visual Studio 2015 to Visual Studio 2019 and the DirectX 2010 SDK.
@@ -31,8 +31,8 @@ of Visual Studio 2015 to Visual Studio 2019 and the DirectX 2010 SDK.
 Linux and MinGW Windows builds are expected to compile with the GNU autotools.
 A preliminary CMake build system is available, see README.cmake.md for details.
 
-macOS (Mac OS X) builds are expected to compile on the terminal using GNU
-autotools and the LLVM/Clang compiler provided by XCode.
+macOS builds are expected to compile on the terminal using GNU autotools and
+the LLVM/Clang compiler provided by XCode.
 
 In all cases, the code requires a C++ compiler that can support the C++11
 standard.
@@ -55,13 +55,13 @@ In Windows, the modifications also permit the emulation to run independent
 of the main window so that moving, resizing, or using menus does not cause
 emulation to pause.
 
-In macOS (Mac OS X), the modifications provide an interface to allow DOSBox-X
-to replace and manage the macOS menu bar.
+In macOS, the modifications provide an interface to allow DOSBox-X to
+replace and manage the macOS menu bar.
 
 How to compile the source code (cross-platform)
 -----------------------------------------------
 
-General Linux compile
+General Linux compile (SDL1)
 ./build-debug
 sudo make install
 
@@ -69,10 +69,10 @@ General Linux compile (SDL2)
 ./build-debug-sdl2
 sudo make install
 
-macOS (Mac OS X) compile
+macOS compile (SDL1)
 ./build-macosx
 
-macOS (Mac OS X) compile (SDL2)
+macOS compile (SDL2)
 ./build-macosx-sdl2
 
 MinGW compile (on Windows, using MinGW64) for 32-bit Windows XP
@@ -1571,8 +1571,8 @@ Crediting of source code
 ------------------------
 by Jonathan Campbell.
 
-As the developer of DOSBox-X, I cannot legitimately claim to have
-written all of the code in this project.
+As the DOSBox-X project maintainer, I cannot legitimately claim to
+have written all of the code in this project.
 
 It's more accurate to say then, that I wrote some of the code,
 that I rewrote other parts of the code, based on the DOSBox SVN
@@ -1582,8 +1582,10 @@ Some of the code is DOSBox SVN code in which some of the SVN
 commits made since 2011 were incorporated into DOSBox-X.
 
 Some of the code in this source tree also came from other DOSBox
-forks like DOSBox SVN Daum, DOSBox ECE, DOSBox-staging and vDosPlus,
-with major works from contributors like Wengier, Allofich, rderooy.
+forks like DOSBox SVN Daum, DOSBox ECE, DOSBox-staging and vDosPlus.
+
+Other code also came from other developers and contributors of the
+DOSBox-X project such as Wengier, aybe, Allofich, and rderooy.
 
 For details please look at the CREDITS.md file, which tries to build
 a comprehensive list of source code in this repository that was
