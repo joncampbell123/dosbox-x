@@ -31,6 +31,7 @@
 
 int hack_lfb_yadjust = 0;
 
+int vesa_set_display_vsync_wait = -1;
 bool vesa_bank_switch_window_range_check = true;
 bool vesa_bank_switch_window_mirror = false;
 bool vesa_zero_on_get_information = true;
@@ -572,6 +573,13 @@ Bit8u VESA_ScanLineLength(Bit8u subcall,Bit16u val, Bit16u & bytes,Bit16u & pixe
 Bit8u VESA_SetDisplayStart(Bit16u x,Bit16u y,bool wait) {
 	Bitu pixels_per_offset;
 	Bitu panning_factor = 1;
+
+	if (!wait) {
+		if (vesa_set_display_vsync_wait > 0)
+			wait = true;
+		else if (vesa_set_display_vsync_wait < 0)
+			wait = int10.vesa_oldvbe;
+	}
 
 	switch (CurMode->type) {
 	case M_TEXT:

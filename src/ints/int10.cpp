@@ -886,6 +886,7 @@ void INT10_OnResetComplete() {
     BIOS_UnsetupKeyboard();
 }
 
+extern int vesa_set_display_vsync_wait;
 extern bool vesa_bank_switch_window_range_check;
 extern bool vesa_bank_switch_window_mirror;
 extern bool vesa_zero_on_get_information;
@@ -1118,14 +1119,14 @@ void INT10_Startup(Section *sec) {
     (void)sec;//UNUSED
 	LOG(LOG_MISC,LOG_DEBUG)("INT 10h reinitializing");
 
-
-    vesa_bank_switch_window_range_check = static_cast<Section_prop *>(control->GetSection("dosbox"))->Get_bool("vesa bank switching window range check");
-    vesa_bank_switch_window_mirror = static_cast<Section_prop *>(control->GetSection("dosbox"))->Get_bool("vesa bank switching window mirroring");
-    vesa_zero_on_get_information = static_cast<Section_prop *>(control->GetSection("dosbox"))->Get_bool("vesa zero buffer on get information");
-    unmask_irq0_on_int10_setmode = static_cast<Section_prop *>(control->GetSection("dosbox"))->Get_bool("unmask timer on int 10 setmode");
-	int16_unmask_irq1_on_read = static_cast<Section_prop *>(control->GetSection("dosbox"))->Get_bool("unmask keyboard on int 16 read");
-    int16_ah_01_cf_undoc = static_cast<Section_prop *>(control->GetSection("dosbox"))->Get_bool("int16 keyboard polling undocumented cf behavior");
-    int10_vga_bios_vector = static_cast<Section_prop *>(control->GetSection("dosbox"))->Get_bool("int 10h points at vga bios");
+	vesa_set_display_vsync_wait = static_cast<Section_prop *>(control->GetSection("video"))->Get_int("vesa set display vsync");
+	vesa_bank_switch_window_range_check = static_cast<Section_prop *>(control->GetSection("video"))->Get_bool("vesa bank switching window range check");
+	vesa_bank_switch_window_mirror = static_cast<Section_prop *>(control->GetSection("video"))->Get_bool("vesa bank switching window mirroring");
+	vesa_zero_on_get_information = static_cast<Section_prop *>(control->GetSection("video"))->Get_bool("vesa zero buffer on get information");
+	unmask_irq0_on_int10_setmode = static_cast<Section_prop *>(control->GetSection("video"))->Get_bool("unmask timer on int 10 setmode");
+	int16_unmask_irq1_on_read = static_cast<Section_prop *>(control->GetSection("video"))->Get_bool("unmask keyboard on int 16 read");
+	int16_ah_01_cf_undoc = static_cast<Section_prop *>(control->GetSection("video"))->Get_bool("int16 keyboard polling undocumented cf behavior");
+	int10_vga_bios_vector = static_cast<Section_prop *>(control->GetSection("video"))->Get_bool("int 10h points at vga bios");
 
     if (!IS_PC98_ARCH) {
         INT10_InitVGA();
