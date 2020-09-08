@@ -148,6 +148,14 @@ img:not(#dosbox-x-logo) {
   -ms-box-shadow: 0 0 5px #ebebeb;
 }
 
+#dosbox-x-logo {
+  -webkit-transform: rotate(320deg);
+  -moz-transform: rotate(320deg);
+  -o-transform: rotate(320deg);
+  -ms-transform: rotate(320deg);
+  transform: rotate(320deg);
+}
+
 p img {
   display: inline;
   margin: 0;
