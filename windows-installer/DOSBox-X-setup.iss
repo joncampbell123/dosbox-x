@@ -284,6 +284,7 @@ begin
 end;
 procedure CurStepChanged(CurrentStep: TSetupStep);
 var
+  vsection: Boolean;
   i, j, k, res: Integer;
   section, line, linetmp, lineold, linenew: String;
   FileLines, FileLinesold, FileLinesnew, FileLinesave: TStringList;
@@ -346,6 +347,16 @@ begin
         FileLinesnew := TStringList.Create;
         FileLinesnew.LoadFromFile(ExpandConstant('{app}\dosbox-x.reference.conf'));
         FileLinesave := TStringList.Create;
+        vsection := False;
+        for j := 0 to FileLinesold.Count - 1 do
+        begin
+          lineold := Trim(FileLinesold[j]);
+          if (Length(lineold)>2) and (Copy(lineold, 1, 1) = '[') and (Copy(lineold, Length(lineold), 1) = ']') and (Copy(lineold, 2, Length(lineold)-2) = 'video') then
+          begin
+            vsection := True;
+            break;
+          end
+        end
         section := '';
         for i := 0 to FileLinesnew.Count - 1 do
         begin
@@ -357,7 +368,7 @@ begin
             for j := 0 to FileLinesold.Count - 1 do
             begin
               lineold := Trim(FileLinesold[j]);
-              if (Length(lineold)>2) and (Copy(lineold, 1, 1) = '[') and (Copy(lineold, Length(lineold), 1) = ']') and (section = Copy(lineold, 2, Length(lineold)-2)) then
+              if (Length(lineold)>2) and (Copy(lineold, 1, 1) = '[') and (Copy(lineold, Length(lineold), 1) = ']') and ((((CompareText(section, 'video') <> 0) or (vsection)) and (section = Copy(lineold, 2, Length(lineold)-2))) or ((not vsection) and (CompareText(section, 'video') = 0) and (CompareText(Copy(lineold, 2, Length(lineold)-2), 'dosbox') = 0))) then
               begin
                 FileLines := TStringList.Create;
                 for k := j+1 to FileLinesold.Count - 1 do
