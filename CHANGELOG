@@ -1,4 +1,9 @@
 0.83.6
+  - Moved video related config options from [dosbox]
+    section to its own [video] section. These options
+    in existing config files will be automatically
+    redirected to the [video] section from the [dosbox]
+    section when DOSBox-X starts. (Wengier)
   - Improved the help message of MOUNT command. Also
     added option -examples to show its usage examples,
     similar to IMGMOUNT and IMGMAKE commands. (Wengier)

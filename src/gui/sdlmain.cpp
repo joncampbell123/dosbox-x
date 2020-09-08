@@ -8710,6 +8710,32 @@ int main(int argc, char* argv[]) SDL_MAIN_NOEXCEPT {
 			}
 		}
 
+		// Redirect existing video related settings from [dosbox] section to the [video] section if the latter is empty
+		Section_prop * video_section = static_cast<Section_prop *>(control->GetSection("video"));
+		assert(video_section != NULL);
+		extra = const_cast<char*>(video_section->data.c_str());
+		if (!extra||!strlen(extra)) {
+			char linestr[CROSS_LEN+1], *p;
+			Section_prop * section = static_cast<Section_prop *>(control->GetSection("dosbox"));
+			extra = const_cast<char*>(section->data.c_str());
+			if (extra&&strlen(extra)) {
+				std::istringstream in(extra);
+				if (in)	for (std::string line; std::getline(in, line); ) {
+					if (!strstr(line.c_str(), "vmem")&&!strstr(line.c_str(), "vga")&&!strstr(line.c_str(), "video")&&!strstr(line.c_str(), "dac")&&!strstr(line.c_str(), "cga")&&!strstr(line.c_str(), "CGA")&&!strstr(line.c_str(), "vesa")&&!strstr(line.c_str(), "hpel")&&!strstr(line.c_str(), "hretrace")&&!strstr(line.c_str(), "debug line")&&!strstr(line.c_str(), "forcerate")&&!strstr(line.c_str(), "double-buffered")&&!strstr(line.c_str(), "vblank")&&!strstr(line.c_str(), "setmode")) continue;
+					if (line.length()>CROSS_LEN) {
+						strncpy(linestr, line.c_str(), CROSS_LEN);
+						linestr[CROSS_LEN]=0;
+					} else
+						strcpy(linestr, line.c_str());
+					p=strchr(linestr, '=');
+					if (p!=NULL&&video_section->HandleInputline(line)) {
+						*p=0;
+						LOG_MSG("Redirected \"%s\" from [dosbox] to [video] section\n", trim(linestr));
+					}
+				}
+			}
+		}
+
 		// Redirect existing files= setting from [dos] section to the [config] section if the latter is empty
 		Section_prop * config_section = static_cast<Section_prop *>(control->GetSection("config"));
 		assert(config_section != NULL);

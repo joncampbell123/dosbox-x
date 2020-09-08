@@ -1370,9 +1370,6 @@ void DOSBOX_SetupConfigSections(void) {
     Pbool = secprop->Add_bool("startbanner",Property::Changeable::OnlyAtStart,true);
     Pbool->Set_help("If set (default), DOSBox-X will display the welcome banner when it starts.");
 
-    Pbool = secprop->Add_bool("enable 8-bit dac",Property::Changeable::OnlyAtStart,true);
-    Pbool->Set_help("If set, allow VESA BIOS calls in IBM PC mode to set DAC width. Has no effect in PC-98 mode.");
-
     Pstring = secprop->Add_string("dpi aware",Property::Changeable::OnlyAtStart,"auto");
     Pstring->Set_values(truefalseautoopt);
     Pstring->Set_help("Set this option (auto by default) to indicate to your OS that DOSBox-X is DPI aware.\n"
@@ -1397,42 +1394,6 @@ void DOSBOX_SetupConfigSections(void) {
     Pstring = secprop->Add_string("machine",Property::Changeable::OnlyAtStart,"svga_s3");
     Pstring->Set_values(machines);
     Pstring->Set_help("The type of machine DOSBox-X tries to emulate.");
-
-    Phex = secprop->Add_hex("svga lfb base", Property::Changeable::OnlyAtStart, 0);
-    Phex->Set_help("If nonzero, define the physical memory address of the linear framebuffer.");
-
-    Pbool = secprop->Add_bool("pci vga",Property::Changeable::WhenIdle,true);
-    Pbool->Set_help("If set, SVGA is emulated as if a PCI device (when enable pci bus=true).");
-
-    Pint = secprop->Add_int("vmemdelay", Property::Changeable::WhenIdle,0);
-    Pint->SetMinMax(-1,100000);
-    Pint->Set_help( "VGA Memory I/O delay in nanoseconds. Set to -1 to use default, 0 to disable.\n"
-            "Default off. Enable this option (-1 or nonzero) if you are running a game or\n"
-            "demo that needs slower VGA memory (like that of older ISA hardware) to work properly.\n"
-            "If your game is not sensitive to VGA RAM I/O speed, then turning on this option\n"
-            "will do nothing but cause a significant drop in frame rate which is probably not\n"
-            "what you want. Recommended values -1, 0 to 2000.");
-
-    Pint = secprop->Add_int("vmemsize", Property::Changeable::WhenIdle,-1);
-    Pint->SetMinMax(-1,16);
-    Pint->Set_help(
-        "Amount of video memory in megabytes.\n"
-        "  The maximum resolution and color depth the svga_s3 will be able to display\n"
-        "  is determined by this value.\n "
-        " -1: auto (vmemsizekb is ignored)\n"
-        "  0: 512k (800x600  at 256 colors) if vmemsizekb=0\n"
-        "  1: 1024x768  at 256 colors or 800x600  at 64k colors\n"
-        "  2: 1600x1200 at 256 colors or 1024x768 at 64k colors or 640x480 at 16M colors\n"
-        "  4: 1600x1200 at 64k colors or 1024x768 at 16M colors\n"
-        "  8: up to 1600x1200 at 16M colors\n"
-        "For build engine games, use more memory than in the list above so it can\n"
-        "use triple buffering and thus won't flicker.\n"
-        );
-
-    Pint = secprop->Add_int("vmemsizekb", Property::Changeable::WhenIdle,0);
-    Pint->SetMinMax(0,1024);
-    Pint->Set_help(
-        "Amount of video memory in kilobytes, in addition to vmemsize.");
 
     Pstring = secprop->Add_path("captures",Property::Changeable::Always,"capture");
     Pstring->Set_help("Directory where things like wave, midi, screenshot get captured.");
@@ -1472,22 +1433,6 @@ void DOSBOX_SetupConfigSections(void) {
             "It is discarded when you boot into another OS. Mainline DOSBox uses 32KB. Testing shows that it is possible\n"
             "to run DOSBox with as little as 4KB. If DOSBox-X aborts with error \"not enough memory for internal tables\"\n"
             "then you need to increase this value.");
-
-    // NOTE: This will be revised as I test the DOSLIB code against more VGA/SVGA hardware!
-    Pstring = secprop->Add_string("vga attribute controller mapping",Property::Changeable::WhenIdle,"auto");
-    Pstring->Set_values(vga_ac_mapping_settings);
-    Pstring->Set_help(
-            "This affects how the attribute controller maps colors, especially in 256-color mode.\n"
-            "Some SVGA cards handle the attribute controller palette differently than most SVGA cards.\n"
-            "  auto                         Automatically pick the mapping based on the SVGA chipset.\n"
-            "  4x4                          Split into two 4-bit nibbles, map through AC, recombine. This is standard VGA behavior including clone SVGA cards.\n"
-            "  4low                         Split into two 4-bit nibbles, remap only the low 4 bits, recombine. This is standard ET4000 behavior.\n"
-            "\n"
-            "NOTES:\n"
-            "  Demoscene executable 'COPPER.EXE' requires the '4low' behavior in order to display line-fading effects\n"
-            "  (including scrolling credits) correctly, else those parts of the demo show up as a blank screen.\n"
-            "  \n"
-            "  4low behavior is default for ET4000 emulation.");
 
     Pstring = secprop->Add_string("a20",Property::Changeable::WhenIdle,"mask");
     Pstring->Set_help("A20 gate emulation mode.\n"
@@ -1690,58 +1635,6 @@ void DOSBOX_SetupConfigSections(void) {
     Pbool = secprop->Add_bool("leading colon write protect image",Property::Changeable::WhenIdle,true);
     Pbool->Set_help("If set, BOOT and IMGMOUNT commands will put an image file name with a leading colon (:) in write-protect mode.");
 
-    Pint = secprop->Add_int("vga bios size override", Property::Changeable::WhenIdle,0);
-    Pint->SetMinMax(512,65536);
-    Pint->Set_help("VGA BIOS size override. Override the size of the VGA BIOS (normally 32KB in compatible or 12KB in non-compatible).");
-
-    Pbool = secprop->Add_bool("video bios dont duplicate cga first half rom font",Property::Changeable::WhenIdle,false);
-    Pbool->Set_help("If set, save 4KB of EGA/VGA ROM space by pointing to the copy in the ROM BIOS of the first 128 chars");
-
-    Pbool = secprop->Add_bool("video bios always offer 14-pixel high rom font",Property::Changeable::WhenIdle,false);
-    Pbool->Set_help("If set, video BIOS will always carry the 14-pixel ROM font. If clear, 14-pixel rom font will not be offered except for EGA/VGA emulation.");
-
-    Pbool = secprop->Add_bool("video bios always offer 16-pixel high rom font",Property::Changeable::WhenIdle,false);
-    Pbool->Set_help("If set, video BIOS will always carry the 16-pixel ROM font. If clear, 16-pixel rom font will not be offered except for VGA emulation.");
-
-    Pbool = secprop->Add_bool("video bios enable cga second half rom font",Property::Changeable::WhenIdle,true);
-    Pbool->Set_help("If set, and emulating CGA/PCjr/Tandy, automatically provide the second half of the 8x8 ROM font.\n"
-            "This setting is ignored for EGA/VGA emulation. If not set, you will need a utility like GRAFTABL.COM to load the second half of the ROM font for graphics.\n"
-            "NOTE: if you disable the 14 & 16 pixel high font AND the second half when machine=cga, you will disable video bios completely.");
-
-    Pstring = secprop->Add_string("forcerate",Property::Changeable::Always,"");
-    Pstring->Set_help("Force the VGA framerate to a specific value(ntsc, pal, or specific hz), no matter what");
-
-    Pbool = secprop->Add_bool("sierra ramdac",Property::Changeable::WhenIdle,true);
-    Pbool->Set_help("Whether or not to emulate a Sierra or compatible RAMDAC at port 3C6h-3C9h.\n"
-            "Some DOS games expect to access port 3C6h to enable highcolor/truecolor SVGA modes on older chipsets.\n"
-            "Disable if you wish to emulate SVGA hardware that lacks a RAMDAC or (depending on the chipset) does\n"
-            "not emulate a RAMDAC that is accessible through port 3C6h. This option has no effect for non-VGA video hardware.");
-
-    Pbool = secprop->Add_bool("sierra ramdac lock 565",Property::Changeable::WhenIdle,false);
-    Pbool->Set_help("When emulating High Sierra highcolor RAMDAC, assume 5:6:5 at all times if set. Else,\n"
-            "bit 6 of the DAC command selects between 5:5:5 and 5:6:5. Set this option for demos or\n"
-            "games that got the command byte wrong (MFX Transgrassion 2) or any other demo that is\n"
-            "not rendering highcolor 16bpp correctly.");
-
-    Pbool = secprop->Add_bool("page flip debug line",Property::Changeable::Always,false);
-    Pbool->Set_help("VGA debugging switch. If set, an inverse line will be drawn on the exact scanline that the CRTC display offset registers were written.\n"
-            "This can be used to help diagnose whether or not the DOS game is page flipping properly according to vertical retrace if the display on-screen is flickering.");
-
-    Pbool = secprop->Add_bool("vertical retrace poll debug line",Property::Changeable::Always,false);
-    Pbool->Set_help("VGA debugging switch. If set, an inverse green dotted line will be drawn on the exact scanline that the CRTC status port (0x3DA) was read.\n"
-            "This can be used to help diagnose whether the DOS game is propertly waiting for vertical retrace.");
-
-    Pbool = secprop->Add_bool("cgasnow",Property::Changeable::WhenIdle,true);
-    Pbool->Set_help("When machine=cga, determines whether or not to emulate CGA snow in 80x25 text mode");
-
-    /* Default changed to 0x04 for "Blues Brothers" at Allofich's request [https://github.com/joncampbell123/dosbox-x/issues/1273] */
-    Phex = secprop->Add_hex("vga 3da undefined bits",Property::Changeable::WhenIdle,0x04);
-    Phex->Set_help("VGA status port 3BA/3DAh only defines bits 0 and 3. This setting allows you to assign a bit pattern to the undefined bits.\n"
-                   "The purpose of this hack is to deal with demos that read and handle port 3DAh in ways that might crash if all are zero.");
-
-    Pbool = secprop->Add_bool("unmask timer on int 10 setmode",Property::Changeable::OnlyAtStart,false);
-    Pbool->Set_help("If set, INT 10h will unmask IRQ 0 (timer) when setting video modes.");
-
     Pbool = secprop->Add_bool("unmask keyboard on int 16 read",Property::Changeable::OnlyAtStart,true);
     Pbool->Set_help("If set, INT 16h will unmask IRQ 1 (keyboard) when asked to read keyboard input.\n"
                     "It is strongly recommended that you set this option if running Windows 3.11 Windows for Workgroups in DOSBox-X.");
@@ -1800,20 +1693,136 @@ void DOSBOX_SetupConfigSections(void) {
     Pbool = secprop->Add_bool("enable pc nmi mask",Property::Changeable::WhenIdle,true);
     Pbool->Set_help("Enable PC/XT style NMI mask register (0xA0). Note that this option conflicts with the secondary PIC and will be ignored if the slave PIC is enabled.");
 
+    Pbool = secprop->Add_bool("allow more than 640kb base memory",Property::Changeable::Always,false);
+    Pbool->Set_help("If set, and space is available, allow conventional memory to extend past 640KB.\n"
+            "For example, if machine=cga, conventional memory can extend out to 0xB800 and provide up to 736KB of RAM.\n"
+            "This allows you to emulate PC/XT style memory extensions.");
+
+    Pbool = secprop->Add_bool("enable pci bus",Property::Changeable::OnlyAtStart,true);
+    Pbool->Set_help("Enable PCI bus emulation");
+
+    Pbool = secprop->Add_bool("ignore extended memory bit",Property::Changeable::Always,false);
+    Pbool->Set_help("Some DOS applications use VGA 256-color mode but accidentally clear the extended memory\n"
+                    "bit originally defined to indicate whether EGA hardware has more than 64KB of RAM.\n"
+                    "Setting this option can correct for that. Needed for Mr. Blobby.");
+
+    secprop=control->AddSection_prop("video",&Null_Init);
+    Pint = secprop->Add_int("vmemdelay", Property::Changeable::WhenIdle,0);
+    Pint->SetMinMax(-1,100000);
+    Pint->Set_help( "VGA Memory I/O delay in nanoseconds. Set to -1 to use default, 0 to disable.\n"
+            "Default off. Enable this option (-1 or nonzero) if you are running a game or\n"
+            "demo that needs slower VGA memory (like that of older ISA hardware) to work properly.\n"
+            "If your game is not sensitive to VGA RAM I/O speed, then turning on this option\n"
+            "will do nothing but cause a significant drop in frame rate which is probably not\n"
+            "what you want. Recommended values -1, 0 to 2000.");
+
+    Pint = secprop->Add_int("vmemsize", Property::Changeable::WhenIdle,-1);
+    Pint->SetMinMax(-1,16);
+    Pint->Set_help(
+        "Amount of video memory in megabytes.\n"
+        "  The maximum resolution and color depth the svga_s3 will be able to display\n"
+        "  is determined by this value.\n "
+        " -1: auto (vmemsizekb is ignored)\n"
+        "  0: 512k (800x600  at 256 colors) if vmemsizekb=0\n"
+        "  1: 1024x768  at 256 colors or 800x600  at 64k colors\n"
+        "  2: 1600x1200 at 256 colors or 1024x768 at 64k colors or 640x480 at 16M colors\n"
+        "  4: 1600x1200 at 64k colors or 1024x768 at 16M colors\n"
+        "  8: up to 1600x1200 at 16M colors\n"
+        "For build engine games, use more memory than in the list above so it can\n"
+        "use triple buffering and thus won't flicker.\n"
+        );
+
+    Pint = secprop->Add_int("vmemsizekb", Property::Changeable::WhenIdle,0);
+    Pint->SetMinMax(0,1024);
+    Pint->Set_help(
+        "Amount of video memory in kilobytes, in addition to vmemsize.");
+
+    Pbool = secprop->Add_bool("enable 8-bit dac",Property::Changeable::OnlyAtStart,true);
+    Pbool->Set_help("If set, allow VESA BIOS calls in IBM PC mode to set DAC width. Has no effect in PC-98 mode.");
+
+    Phex = secprop->Add_hex("svga lfb base", Property::Changeable::OnlyAtStart, 0);
+    Phex->Set_help("If nonzero, define the physical memory address of the linear framebuffer.");
+
+    Pbool = secprop->Add_bool("pci vga",Property::Changeable::WhenIdle,true);
+    Pbool->Set_help("If set, SVGA is emulated as if a PCI device (when enable pci bus=true).");
+
+    // NOTE: This will be revised as I test the DOSLIB code against more VGA/SVGA hardware!
+    Pstring = secprop->Add_string("vga attribute controller mapping",Property::Changeable::WhenIdle,"auto");
+    Pstring->Set_values(vga_ac_mapping_settings);
+    Pstring->Set_help(
+            "This affects how the attribute controller maps colors, especially in 256-color mode.\n"
+            "Some SVGA cards handle the attribute controller palette differently than most SVGA cards.\n"
+            "  auto                         Automatically pick the mapping based on the SVGA chipset.\n"
+            "  4x4                          Split into two 4-bit nibbles, map through AC, recombine. This is standard VGA behavior including clone SVGA cards.\n"
+            "  4low                         Split into two 4-bit nibbles, remap only the low 4 bits, recombine. This is standard ET4000 behavior.\n"
+            "\n"
+            "NOTES:\n"
+            "  Demoscene executable 'COPPER.EXE' requires the '4low' behavior in order to display line-fading effects\n"
+            "  (including scrolling credits) correctly, else those parts of the demo show up as a blank screen.\n"
+            "  \n"
+            "  4low behavior is default for ET4000 emulation.");
+
+    Pint = secprop->Add_int("vga bios size override", Property::Changeable::WhenIdle,0);
+    Pint->SetMinMax(512,65536);
+    Pint->Set_help("VGA BIOS size override. Override the size of the VGA BIOS (normally 32KB in compatible or 12KB in non-compatible).");
+
+    Pbool = secprop->Add_bool("video bios dont duplicate cga first half rom font",Property::Changeable::WhenIdle,false);
+    Pbool->Set_help("If set, save 4KB of EGA/VGA ROM space by pointing to the copy in the ROM BIOS of the first 128 chars");
+
+    Pbool = secprop->Add_bool("video bios always offer 14-pixel high rom font",Property::Changeable::WhenIdle,false);
+    Pbool->Set_help("If set, video BIOS will always carry the 14-pixel ROM font. If clear, 14-pixel rom font will not be offered except for EGA/VGA emulation.");
+
+    Pbool = secprop->Add_bool("video bios always offer 16-pixel high rom font",Property::Changeable::WhenIdle,false);
+    Pbool->Set_help("If set, video BIOS will always carry the 16-pixel ROM font. If clear, 16-pixel rom font will not be offered except for VGA emulation.");
+
+    Pbool = secprop->Add_bool("video bios enable cga second half rom font",Property::Changeable::WhenIdle,true);
+    Pbool->Set_help("If set, and emulating CGA/PCjr/Tandy, automatically provide the second half of the 8x8 ROM font.\n"
+            "This setting is ignored for EGA/VGA emulation. If not set, you will need a utility like GRAFTABL.COM to load the second half of the ROM font for graphics.\n"
+            "NOTE: if you disable the 14 & 16 pixel high font AND the second half when machine=cga, you will disable video bios completely.");
+
+    Pstring = secprop->Add_string("forcerate",Property::Changeable::Always,"");
+    Pstring->Set_help("Force the VGA framerate to a specific value(ntsc, pal, or specific hz), no matter what");
+
+    Pbool = secprop->Add_bool("sierra ramdac",Property::Changeable::WhenIdle,true);
+    Pbool->Set_help("Whether or not to emulate a Sierra or compatible RAMDAC at port 3C6h-3C9h.\n"
+            "Some DOS games expect to access port 3C6h to enable highcolor/truecolor SVGA modes on older chipsets.\n"
+            "Disable if you wish to emulate SVGA hardware that lacks a RAMDAC or (depending on the chipset) does\n"
+            "not emulate a RAMDAC that is accessible through port 3C6h. This option has no effect for non-VGA video hardware.");
+
+    Pbool = secprop->Add_bool("sierra ramdac lock 565",Property::Changeable::WhenIdle,false);
+    Pbool->Set_help("When emulating High Sierra highcolor RAMDAC, assume 5:6:5 at all times if set. Else,\n"
+            "bit 6 of the DAC command selects between 5:5:5 and 5:6:5. Set this option for demos or\n"
+            "games that got the command byte wrong (MFX Transgrassion 2) or any other demo that is\n"
+            "not rendering highcolor 16bpp correctly.");
+
+    Pbool = secprop->Add_bool("page flip debug line",Property::Changeable::Always,false);
+    Pbool->Set_help("VGA debugging switch. If set, an inverse line will be drawn on the exact scanline that the CRTC display offset registers were written.\n"
+            "This can be used to help diagnose whether or not the DOS game is page flipping properly according to vertical retrace if the display on-screen is flickering.");
+
+    Pbool = secprop->Add_bool("vertical retrace poll debug line",Property::Changeable::Always,false);
+    Pbool->Set_help("VGA debugging switch. If set, an inverse green dotted line will be drawn on the exact scanline that the CRTC status port (0x3DA) was read.\n"
+            "This can be used to help diagnose whether the DOS game is propertly waiting for vertical retrace.");
+
+    Pbool = secprop->Add_bool("cgasnow",Property::Changeable::WhenIdle,true);
+    Pbool->Set_help("When machine=cga, determines whether or not to emulate CGA snow in 80x25 text mode");
+
+    /* Default changed to 0x04 for "Blues Brothers" at Allofich's request [https://github.com/joncampbell123/dosbox-x/issues/1273] */
+    Phex = secprop->Add_hex("vga 3da undefined bits",Property::Changeable::WhenIdle,0x04);
+    Phex->Set_help("VGA status port 3BA/3DAh only defines bits 0 and 3. This setting allows you to assign a bit pattern to the undefined bits.\n"
+                   "The purpose of this hack is to deal with demos that read and handle port 3DAh in ways that might crash if all are zero.");
+
     Pbool = secprop->Add_bool("rom bios 8x8 CGA font",Property::Changeable::Always,true);
     Pbool->Set_help("If set, or mainline DOSBox compatible BIOS mapping, a legacy 8x8 CGA font (first 128 characters) is stored at 0xF000:0xFA6E. DOS programs that do not use INT 10h to locate fonts might require that font to be located there.");
 
     Pbool = secprop->Add_bool("rom bios video parameter table",Property::Changeable::Always,true);
     Pbool->Set_help("If set, or mainline DOSBox compatible BIOS mapping, DOSBox-X will emulate the video parameter table and assign that to INT 1Dh. If clear, table will not be provided.");
 
-    Pbool = secprop->Add_bool("allow more than 640kb base memory",Property::Changeable::Always,false);
-    Pbool->Set_help("If set, and space is available, allow conventional memory to extend past 640KB.\n"
-            "For example, if machine=cga, conventional memory can extend out to 0xB800 and provide up to 736KB of RAM.\n"
-            "This allows you to emulate PC/XT style memory extensions.");
-
     Pbool = secprop->Add_bool("int 10h points at vga bios",Property::Changeable::Always,true);
     Pbool->Set_help("If set, INT 10h points at the VGA BIOS. If clear, INT 10h points into the system BIOS. This option only affects EGA/VGA/SVGA emulation.\n"
                     "This option is needed for some older DOS applications that make additional checks before detecting EGA/VGA hardware (SuperCalc).");
+
+    Pbool = secprop->Add_bool("unmask timer on int 10 setmode",Property::Changeable::OnlyAtStart,false);
+    Pbool->Set_help("If set, INT 10h will unmask IRQ 0 (timer) when setting video modes.");
 
     Pbool = secprop->Add_bool("vesa bank switching window mirroring",Property::Changeable::Always,false);
     Pbool->Set_help("If set, bank switch (windowed) VESA BIOS modes will ignore the window selection when asked\n"
@@ -1979,9 +1988,6 @@ void DOSBOX_SetupConfigSections(void) {
             "try setting this option. Else, leave it turned off. Changes to other VGA CRTC registers will trigger\n"
             "a DOSBox-X mode change as normal regardless of this setting.");
 
-    Pbool = secprop->Add_bool("enable pci bus",Property::Changeable::OnlyAtStart,true);
-    Pbool->Set_help("Enable PCI bus emulation");
-
     Pbool = secprop->Add_bool("vga palette update on full load",Property::Changeable::Always,true);
     Pbool->Set_help("If set, all three bytes of the palette entry must be loaded before taking the color,\n"
                     "which is fairly typical SVGA behavior. If not set, partial changes are allowed.");
@@ -1990,11 +1996,6 @@ void DOSBOX_SetupConfigSections(void) {
     Pbool->Set_help("Some demoscene productions use VGA Mode X but accidentally enable odd/even mode.\n"
                     "Setting this option can correct for that and render the demo properly.\n"
                     "This option forces VGA emulation to ignore odd/even mode except in text and CGA modes.");
-
-    Pbool = secprop->Add_bool("ignore extended memory bit",Property::Changeable::Always,false);
-    Pbool->Set_help("Some DOS applications use VGA 256-color mode but accidentally clear the extended memory\n"
-                    "bit originally defined to indicate whether EGA hardware has more than 64KB of RAM.\n"
-                    "Setting this option can correct for that. Needed for Mr. Blobby.");
 
     secprop=control->AddSection_prop("pc98",&Null_Init);
 	Pbool = secprop->Add_bool("pc-98 BIOS copyright string",Property::Changeable::WhenIdle,false);
