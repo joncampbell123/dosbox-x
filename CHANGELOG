@@ -1,4 +1,6 @@
 0.83.6
+  - Added option to control whether VESA BIOS panning
+    (the original VBE call) waits for vsync.
   - Moved video related config options from [dosbox]
     section to its own [video] section. These options
     in existing config files will be automatically
