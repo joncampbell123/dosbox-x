@@ -288,8 +288,9 @@ DOS games. This is evident by the fact that much of the code is
 somewhat accurate code with kludges to make DOS games run,
 instead of focusing on what hardware actually does.
 
-Many of the changes I wanted to make were non-game related, and
-therefore were unlikely to be accepted by the DOSBox developers.
+Many of the changes I (the DOSBox-X project maintainer) wanted to
+make were non-game related, and therefore were unlikely to be
+accepted by the DOSBox developers.
 
 Since then, I have been modifying the source code over time to
 improve emulation, fix bugs, and resolve incompatibilities with
@@ -304,7 +305,7 @@ The original DOSBox project was not written by one programmer. It
 has been under development since late 2000 with patches, fixes,
 and improvements from members all over the Vogons forums. Despite
 not having a major official release since DOSBox 0.74 over 10
-years ago, the project is still in active development today.
+years ago, the project is still in semi-active development today.
 Meanwhile, some of the changes themselves incorporated code from
 other projects.
 
@@ -313,12 +314,14 @@ branch of DOSBox known as [DOSBox SVN Daum](http://ykhwong.x-y.net)
 which itself incorporated features from the original DOSBox
 project, DOSBox-X, and many experimental patches. Although the
 Daum branch seems to be dead, the features borrowed from it still
-exists in DOSBox-X.
+exists in DOSBox-X. Later on, DOSBox-X also incorporated several
+features and improvements from other projects such as [DOSBox ECE](https://dosboxece.yesterplay.net/),
+[dosbox-staging](https://dosbox-staging.github.io/) and [vDosPlus](http://www.vdosplus.org/).
 
-Later on, DOSBox-X also incorporated several features and improvements
-from other projects such as [DOSBox ECE](https://dosboxece.yesterplay.net/), [dosbox-staging](https://dosbox-staging.github.io/) and
-[vDosPlus](http://www.vdosplus.org/), with major improvements and works from its contributors
-such as Wengier, Allofich, and rderooy.
+The DOSBox-X project is also helped by its other developers and
+contributors such as Wengier, aybe, Allofich, and rderooy, who have
+done significant work to improve the DOSBox-X project, including
+creating the documentation and porting code from other projects.
 
 See also the [CREDITS](CREDITS.md) page for crediting of the source code.
 
