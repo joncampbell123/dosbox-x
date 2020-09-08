@@ -133,7 +133,7 @@ strong {
   font-weight: bold;
 }
 
-img {
+img:not(#dosbox-x-logo) {
   position: relative;
   margin: 0 auto;
   max-width: 739px;
