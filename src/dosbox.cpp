@@ -1733,6 +1733,16 @@ void DOSBOX_SetupConfigSections(void) {
         "use triple buffering and thus won't flicker.\n"
         );
 
+    Pint = secprop->Add_int("vesa set display vsync", Property::Changeable::WhenIdle,-1);
+    Pint->SetMinMax(-1,1);
+    Pint->Set_help(
+        "Whether to wait for vertical retrace if VESA Set Display Address is used to pan the display.\n"
+        "The default value -1 will wait if svga_oldvbe, or not otherwise. 0 means not to wait.\n"
+        "1 means always to wait. This affects only subfunction 0x00. Subfunction 0x80 will always wait\n"
+        "as specified in the VESA BIOS standard.\n"
+        "It is recommended to set this to 1 for VBETEST.EXE so that the panning test and information does not\n"
+        "go by too fast.");
+
     Pint = secprop->Add_int("vmemsizekb", Property::Changeable::WhenIdle,0);
     Pint->SetMinMax(0,1024);
     Pint->Set_help(
