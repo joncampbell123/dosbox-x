@@ -78,9 +78,9 @@ install: src/dosbox-x
 	mkdir -p $(DESTDIR)$(prefix)/share/icons/hicolor/48x48/apps
 	install -m 644 src/dosbox.png $(DESTDIR)$(prefix)/share/icons/hicolor/48x48/apps/dosbox-x.png
 	mkdir -p $(DESTDIR)$(prefix)/share/applications
-	install -m 644 dosbox-x.desktop $(DESTDIR)$(prefix)/share/applications
+	install -m 644 contrib/linux/dosbox-x.desktop $(DESTDIR)$(prefix)/share/applications
 	mkdir -p $(DESTDIR)$(prefix)/share/metainfo
-	install -m 644 dosbox-x.appdata.xml $(DESTDIR)$(prefix)/share/metainfo
+	install -m 644 contrib/linux/dosbox-x.appdata.xml $(DESTDIR)$(prefix)/share/metainfo
 	-test -x /usr/sbin/setcap && setcap cap_net_raw=ep $(DESTDIR)$(bindir)/dosbox-x
 
 install_strip: src/dosbox-x install
