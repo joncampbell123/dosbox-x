@@ -75,12 +75,12 @@ install: src/dosbox-x
 	install -m 644 CHANGELOG $(DESTDIR)$(prefix)/share/dosbox-x
 	install -m 644 font/FREECG98.BMP $(DESTDIR)$(prefix)/share/dosbox-x
 	install -m 644 dosbox-x.reference.conf $(DESTDIR)$(prefix)/share/dosbox-x
-	mkdir -p $(DESTDIR)$(prefix)/share/icons/hicolor/48x48/apps
-	install -m 644 src/dosbox.png $(DESTDIR)$(prefix)/share/icons/hicolor/48x48/apps/dosbox-x.png
+	mkdir -p $(DESTDIR)$(prefix)/share/icons/hicolor/scalable/apps
+	install -m 644 contrib/icons/dosbox-x.svg $(DESTDIR)$(prefix)/share/icons/hicolor/scalable/apps/dosbox-x.svg
 	mkdir -p $(DESTDIR)$(prefix)/share/applications
-	install -m 644 dosbox-x.desktop $(DESTDIR)$(prefix)/share/applications
+	install -m 644 contrib/linux/dosbox-x.desktop $(DESTDIR)$(prefix)/share/applications
 	mkdir -p $(DESTDIR)$(prefix)/share/metainfo
-	install -m 644 dosbox-x.appdata.xml $(DESTDIR)$(prefix)/share/metainfo
+	install -m 644 contrib/linux/dosbox-x.appdata.xml $(DESTDIR)$(prefix)/share/metainfo
 	-test -x /usr/sbin/setcap && setcap cap_net_raw=ep $(DESTDIR)$(bindir)/dosbox-x
 
 install_strip: src/dosbox-x install
@@ -92,6 +92,7 @@ uninstall:
 	rm -f $(DESTDIR)$(prefix)/share/dosbox-x/*
 	rmdir $(DESTDIR)$(prefix)/share/dosbox-x
 	rm -f $(DESTDIR)$(prefix)/share/icons/hicolor/48x48/apps/dosbox-x.png
+	rm -f $(DESTDIR)$(prefix)/share/icons/hicolor/scalable/apps/dosbox-x.svg
 	rm -f $(DESTDIR)$(prefix)/share/applications/dosbox-x.desktop
 	rm -f $(DESTDIR)$(prefix)/share/metainfo/dosbox-x.appdata.xml
 

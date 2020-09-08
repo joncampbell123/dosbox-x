@@ -1089,7 +1089,7 @@ src/shell/Makefile
 src/platform/Makefile
 src/xBRZ/Makefile
 include/Makefile
-dosbox-x.spec
+contrib/linux/dosbox-x.spec
 make-rpm.sh
 ])
 AC_OUTPUT
