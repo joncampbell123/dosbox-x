@@ -21,7 +21,7 @@ The four major operating systems and platforms of DOSBox-X are:
 
 2. Windows 10, 8, 7, Vista and XP for 32-bit and 64-bit x86 and ARM.
 
-3. macOS Sierra 10.12 or higher 64-bit.
+3. macOS (Mac OS X) Sierra 10.12 or higher 64-bit.
 
 4. DOS (MS-DOS 5.0+ or compatible).
 
@@ -586,6 +586,8 @@ src/hardware/voodoo_opengl.cpp 3Dfx Voodoo emulation
 
 src/hardware/voodoo_vogl.cpp 3Dfx Voodoo emulation
 
+src/hardware/glide.cpp      3Dfx Voodoo Glide emulation
+
 src/hardware/pc98.cpp       PC98UTIL.COM utility built-in command
 
 src/hardware/pc98_fm.cpp    PC-98 FM board emulation (ties DOSBox-X to emulation
@@ -1041,10 +1043,10 @@ relative coordinates that were decided on when the menu object was last
 called to rebuild or arrange the menus.
 
 The SDL drawn menus are the only type that requires the main DOSBox-X
-event loop to process menu events on their behalf including drawing
-and reacting to mouse/touchscreen input. Windows and Mac OS X menus do
-not require the main event loop's attention except when the user selects
-an item.
+event loop to process menu events on their behalf including drawing and
+reacting to mouse/touchscreen input. Windows and macOS menus do not
+require the main event loop's attention except when the user selects an
+item.
 
 Access to the menu items is by name, as well. get_item() returns a menu
 item by reference, which itself contains methods to control the state
