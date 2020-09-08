@@ -270,10 +270,10 @@ foundit:
 		break;
 	case M_LIN4:
 		if (!allow_vesa_4bpp) return VESA_FAIL;
-		pageSize = mblock->sheight * mblock->swidth/2;
+		pageSize = mblock->sheight * (Bit16u)(((mblock->swidth+15U)/8U)&(~1U));
 		var_write(&minfo.BytesPerScanLine,(Bit16u)(((mblock->swidth+15U)/8U)&(~1U))); /* NTS: 4bpp requires even value due to VGA registers, round up */
 		var_write(&minfo.NumberOfPlanes,0x4);
-		var_write(&minfo.BitsPerPixel,4);//FIXME: Shouldn't this say 4 planes, 1 bit per pixel??
+		var_write(&minfo.BitsPerPixel,4);   // bits per pixel is 4 as specified by VESA BIOS 2.0 specification
 		var_write(&minfo.MemoryModel,3);	//ega planar mode
 		modeAttributes = 0x1b;	// Color, graphics, no linear buffer
 		break;
