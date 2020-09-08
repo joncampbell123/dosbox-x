@@ -33,7 +33,11 @@ If you prefer to use one of the portable packages, please select the zip package
 Linux Packages (RPM)
 --------------------
 
-RPM packages are officially released for the Linux operating system (64-bit, with X11), specifically for CentOS 7 / RHEL 7 ("el7") and CentOS 8 / RHEL 8 ("el8") platforms. There are usually packages for both CentOS 7 and CentOS 8 platforms, but for the current DOSBox-X version 0.83.5 they are not officially available. For the previous version 0.83.4 the following CentOS 7 RPM packages are available (no CentOS 8 RPM packages):
+RPM packages are officially released for the Linux operating system (64-bit, with X11), specifically for CentOS 7 / RHEL 7 ("el7") and CentOS 8 / RHEL 8 ("el8") platforms. There are usually packages for both CentOS 7 and CentOS 8 platforms, but for the current DOSBox-X version 0.83.5 they are not officially available. However, you can try the following unofficial zipped RPM package:
+
+* [dosbox-x-0.83.5-0.fc32.x86_64.zip](https://github.com/joncampbell123/dosbox-x/files/5181532/dosbox-x-0.83.5-0.fc32.x86_64.zip)
+
+For the previous version 0.83.4 the following CentOS 7 RPM packages are available (no CentOS 8 RPM packages):
 
 * [dosbox-x-0.83.4-0.el7.x86_64.rpm](https://github.com/joncampbell123/dosbox-x/releases/download/dosbox-x-v0.83.4/dosbox-x-0.83.4-0.el7.x86_64.rpm)
 * [dosbox-x-debuginfo-0.83.4-0.el7.x86_64.rpm](https://github.com/joncampbell123/dosbox-x/releases/download/dosbox-x-v0.83.4/dosbox-x-debuginfo-0.83.4-0.el7.x86_64.rpm)
@@ -63,7 +67,7 @@ If you use macOS as your operating system, we also release portable packages for
 
 The macOS package requires 64-bit macOS operating system. It should run natively on the recent versions of macOS such as macOS Catalina (10.15). Both SDL1 and SDL2 binaries (in .app format) are provided in the macOS package, in the directories named "dosbox-x" and "dosbox-x-sdl2" inside the zip file. You can select either SDL1 or SDL2 version according to your preference.
 
-If your system version is macOS Sierra (10.12), macOS High Sierra (10.13), or macOS Mojave (10.14), and you find that the official DOSBox-X binaries included in the above package do not run on your system, then you can try the following alternative portable packages instead:
+If your system version is macOS Sierra (10.12), macOS High Sierra (10.13), or macOS Mojave (10.14), and you find that the official DOSBox-X binaries included in the above package do not run on your system, then you can try the alternative portable binaries in the following packages instead:
 
 * SDL1 version: [dosbox-x-sdl1.zip](https://github.com/joncampbell123/dosbox-x/files/5180765/dosbox-x-sdl1.zip)
 * SDL2 version: [dosbox-x-sdl2.zip](https://github.com/joncampbell123/dosbox-x/files/5180766/dosbox-x-sdl2.zip)
@@ -73,7 +77,7 @@ macOS versions earlier than 10.12 (Sierra) are not officially supported. If you 
 DOS Packages (Portable)
 -----------------------
 
-Besides Windows, Linux and macOS packages, there are also packages released for the DOS platform. Yes, DOSBox-X can officially run on DOS operating systems as well, although not all features of DOSBox-X that are available in other platforms can be supported in this environment. For the current DOSBox-X version 0.83.5, the special DOS version is available in the following zip package:
+Besides Windows, Linux and macOS packages, there are also packages released for the DOS operating system. Yes, DOSBox-X can officially run on DOS systems as well, as some DOS users seem to prefer to run DOS applications and games through a DOS emulator, although not all features of DOSBox-X that are available in other platforms can be supported in this environment. For the current DOSBox-X version 0.83.5, the special DOS version is available in the following zip package:
 
 * [dosbox-x-mingw-hx-dos-20200901082024.zip](https://github.com/joncampbell123/dosbox-x/releases/download/dosbox-x-v0.83.5/dosbox-x-mingw-hx-dos-20200901082024.zip)
 
