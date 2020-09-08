@@ -66,7 +66,7 @@ Source: ".\readme.txt"; DestDir: "{app}"; DestName: "README.txt"; Flags: ignorev
 Source: ".\dosbox-x.reference.conf"; DestDir: "{app}"; Flags: ignoreversion; Components: full compact
 Source: "..\CHANGELOG"; DestDir: "{app}"; DestName: "changelog.txt"; Flags: ignoreversion; Components: full compact
 Source: "..\COPYING"; DestDir: "{app}"; DestName: "COPYING.txt"; Flags: ignoreversion; Components: full compact
-Source: "..\font\FREECG98.BMP"; DestDir: "{app}"; Flags: ignoreversion; Components: full compact
+Source: "..\contrib\fonts\FREECG98.BMP"; DestDir: "{app}"; Flags: ignoreversion; Components: full compact
 Source: "..\shaders\*"; DestDir: "{app}\shaders"; Flags: ignoreversion recursesubdirs createallsubdirs; Components: full compact
 Source: "Win32_builds\x86_Release\dosbox-x.exe"; DestDir: "{app}"; Flags: ignoreversion; Check: CheckDirName('Win32_builds\x86_Release'); Components: full compact
 Source: "Win32_builds\x86_Release_SDL2\dosbox-x.exe"; DestDir: "{app}"; Flags: ignoreversion; Check: CheckDirName('Win32_builds\x86_Release SDL2'); Components: full compact

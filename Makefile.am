@@ -14,7 +14,7 @@ dosbox-x.app: src/dosbox-x src/dosbox.icns
 	cp -v src/dosbox.plist dosbox-x.app/Contents/Info.plist
 	cp -v src/dosbox.pkginfo dosbox-x.app/Contents/PkgInfo
 	cp -v src/dosbox.icns dosbox-x.app/Contents/Resources/DosBox.icns
-	cp -v font/FREECG98.BMP dosbox-x.app/Contents/Resources/freecg98.bmp
+	cp -v contrib/fonts/FREECG98.BMP dosbox-x.app/Contents/Resources/freecg98.bmp
 	cp -v src/dosbox-x dosbox-x.app/Contents/MacOS/DosBox
 # this is where it gets ugly
 	otool -L dosbox-x.app/Contents/MacOS/DosBox | grep -E '/usr/local/lib|/usr/local/opt/ffmpeg/lib' | while read X; do Y=`echo "$$X" | sed -E '/^ +/s///' | cut -d ' ' -f 1`; \
@@ -73,7 +73,7 @@ install: src/dosbox-x
 	install -m 755 src/dosbox-x $(DESTDIR)$(bindir)
 	mkdir -p $(DESTDIR)$(prefix)/share/dosbox-x
 	install -m 644 CHANGELOG $(DESTDIR)$(prefix)/share/dosbox-x
-	install -m 644 font/FREECG98.BMP $(DESTDIR)$(prefix)/share/dosbox-x
+	install -m 644 contrib/fonts/FREECG98.BMP $(DESTDIR)$(prefix)/share/dosbox-x
 	install -m 644 dosbox-x.reference.conf $(DESTDIR)$(prefix)/share/dosbox-x
 	mkdir -p $(DESTDIR)$(prefix)/share/icons/hicolor/scalable/apps
 	install -m 644 contrib/icons/dosbox-x.svg $(DESTDIR)$(prefix)/share/icons/hicolor/scalable/apps/dosbox-x.svg
