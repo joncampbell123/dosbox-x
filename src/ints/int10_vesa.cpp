@@ -501,6 +501,9 @@ Bit8u VESA_ScanLineLength(Bit8u subcall,Bit16u val, Bit16u & bytes,Bit16u & pixe
 		bytes_per_offset = 4;   // 2 characters + 2 attributes
 		break;
 	case M_LIN4:
+		bytes_per_offset = 2;
+		pixels_per_offset = 16;
+		break;
 	case M_PACKED4:
 		pixels_per_offset = 16;
 		break;
