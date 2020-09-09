@@ -1702,11 +1702,6 @@ void DOSBOX_SetupConfigSections(void) {
     Pbool = secprop->Add_bool("enable pci bus",Property::Changeable::OnlyAtStart,true);
     Pbool->Set_help("Enable PCI bus emulation");
 
-    Pbool = secprop->Add_bool("ignore extended memory bit",Property::Changeable::Always,false);
-    Pbool->Set_help("Some DOS applications use VGA 256-color mode but accidentally clear the extended memory\n"
-                    "bit originally defined to indicate whether EGA hardware has more than 64KB of RAM.\n"
-                    "Setting this option can correct for that. Needed for Mr. Blobby.");
-
     secprop=control->AddSection_prop("video",&Null_Init);
     Pint = secprop->Add_int("vmemdelay", Property::Changeable::WhenIdle,0);
     Pint->SetMinMax(-1,100000);
@@ -1985,6 +1980,11 @@ void DOSBOX_SetupConfigSections(void) {
     Pbool = secprop->Add_bool("ignore vblank wraparound",Property::Changeable::Always,false);
     Pbool->Set_help("DOSBox-X can handle active display properly if games or demos reprogram vertical blanking to end in the active picture area.\n"
             "If the wraparound handling prevents the game from displaying properly, set this to false. Out of bounds vblank values will be ignored.\n");
+
+    Pbool = secprop->Add_bool("ignore extended memory bit",Property::Changeable::Always,false);
+    Pbool->Set_help("Some DOS applications use VGA 256-color mode but accidentally clear the extended memory\n"
+                    "bit originally defined to indicate whether EGA hardware has more than 64KB of RAM.\n"
+                    "Setting this option can correct for that. Needed for Mr. Blobby.");
 
     Pbool = secprop->Add_bool("enable vga resize delay",Property::Changeable::Always,false);
     Pbool->Set_help("If the DOS game you are running relies on certain VGA raster tricks that affect active display area, enable this option.\n"

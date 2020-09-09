@@ -604,8 +604,7 @@ bool has_pcibus_enable(void);
 Bit32u MEM_get_address_bits();
 
 void VGA_Reset(Section*) {
-// FIXME: Need to read from "video" section, except for anything still under "dosbox" section.
-//    Section_prop * section=static_cast<Section_prop *>(control->GetSection("dosbox"));
+//  All non-PC98 video-related config settings are now in the [video] section
 
 	Section_prop * section=static_cast<Section_prop *>(control->GetSection("video"));
 	Section_prop * pc98_section=static_cast<Section_prop *>(control->GetSection("pc98"));
