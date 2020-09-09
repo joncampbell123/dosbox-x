@@ -3,7 +3,7 @@
 #include "../include/resource.h"
 
 // icon resource
-dosbox_ico ICON "dosbox.ico"
+dosbox_ico ICON "../contrib/icons/dosbox-x.ico"
 IDI_MAPPER ICON "mapper.ico"
 IDI_CFG_GUI ICON "cfggui.ico"
 IDI_PAUSE ICON "pause.ico"
