@@ -351,7 +351,7 @@
 copy "$(SolutionDir)\..\dosbox-x.reference.conf" "$(OutputPath)\dosbox-x.reference.conf"
 copy "$(SolutionDir)\..\CHANGELOG" "$(OutputPath)\changelog.txt"
 mkdir "$(OutputPath)\shaders"
-copy "$(SolutionDir)\..\shaders\*.*" "$(OutputPath)\shaders\"</Command>
+copy "$(SolutionDir)\..\contrib\shaders\*.*" "$(OutputPath)\shaders\"</Command>
     </PostBuildEvent>
     <PostBuildEvent>
       <Message>
@@ -385,7 +385,7 @@ copy "$(SolutionDir)\..\shaders\*.*" "$(OutputPath)\shaders\"</Command>
 copy "$(SolutionDir)\..\dosbox-x.reference.conf" "$(OutputPath)\dosbox-x.reference.conf"
 copy "$(SolutionDir)\..\CHANGELOG" "$(OutputPath)\changelog.txt"
 mkdir "$(OutputPath)\shaders"
-copy "$(SolutionDir)\..\shaders\*.*" "$(OutputPath)\shaders\"</Command>
+copy "$(SolutionDir)\..\contrib\shaders\*.*" "$(OutputPath)\shaders\"</Command>
     </PostBuildEvent>
     <PostBuildEvent>
       <Message>
@@ -415,7 +415,7 @@ copy "$(SolutionDir)\..\shaders\*.*" "$(OutputPath)\shaders\"</Command>
 copy "$(SolutionDir)\..\dosbox-x.reference.conf" "$(OutputPath)\dosbox-x.reference.conf"
 copy "$(SolutionDir)\..\CHANGELOG" "$(OutputPath)\changelog.txt"
 mkdir "$(OutputPath)\shaders"
-copy "$(SolutionDir)\..\shaders\*.*" "$(OutputPath)\shaders\"</Command>
+copy "$(SolutionDir)\..\contrib\shaders\*.*" "$(OutputPath)\shaders\"</Command>
       <Message>
       </Message>
     </PostBuildEvent>
@@ -446,7 +446,7 @@ copy "$(SolutionDir)\..\shaders\*.*" "$(OutputPath)\shaders\"</Command>
 copy "$(SolutionDir)\..\dosbox-x.reference.conf" "$(OutputPath)\dosbox-x.reference.conf"
 copy "$(SolutionDir)\..\CHANGELOG" "$(OutputPath)\changelog.txt"
 mkdir "$(OutputPath)\shaders"
-copy "$(SolutionDir)\..\shaders\*.*" "$(OutputPath)\shaders\"</Command>
+copy "$(SolutionDir)\..\contrib\shaders\*.*" "$(OutputPath)\shaders\"</Command>
       <Message>
       </Message>
     </PostBuildEvent>
@@ -477,7 +477,7 @@ copy "$(SolutionDir)\..\shaders\*.*" "$(OutputPath)\shaders\"</Command>
 copy "$(SolutionDir)\..\dosbox-x.reference.conf" "$(OutputPath)\dosbox-x.reference.conf"
 copy "$(SolutionDir)\..\CHANGELOG" "$(OutputPath)\changelog.txt"
 mkdir "$(OutputPath)\shaders"
-copy "$(SolutionDir)\..\shaders\*.*" "$(OutputPath)\shaders\"</Command>
+copy "$(SolutionDir)\..\contrib\shaders\*.*" "$(OutputPath)\shaders\"</Command>
       <Message>
       </Message>
     </PostBuildEvent>
@@ -510,7 +510,7 @@ copy "$(SolutionDir)\..\shaders\*.*" "$(OutputPath)\shaders\"</Command>
 copy "$(SolutionDir)\..\dosbox-x.reference.conf" "$(OutputPath)\dosbox-x.reference.conf"
 copy "$(SolutionDir)\..\CHANGELOG" "$(OutputPath)\changelog.txt"
 mkdir "$(OutputPath)\shaders"
-copy "$(SolutionDir)\..\shaders\*.*" "$(OutputPath)\shaders\"</Command>
+copy "$(SolutionDir)\..\contrib\shaders\*.*" "$(OutputPath)\shaders\"</Command>
       <Message>
       </Message>
     </PostBuildEvent>
@@ -541,7 +541,7 @@ copy "$(SolutionDir)\..\shaders\*.*" "$(OutputPath)\shaders\"</Command>
 copy "$(SolutionDir)\..\dosbox-x.reference.conf" "$(OutputPath)\dosbox-x.reference.conf"
 copy "$(SolutionDir)\..\CHANGELOG" "$(OutputPath)\changelog.txt"
 mkdir "$(OutputPath)\shaders"
-copy "$(SolutionDir)\..\shaders\*.*" "$(OutputPath)\shaders\"</Command>
+copy "$(SolutionDir)\..\contrib\shaders\*.*" "$(OutputPath)\shaders\"</Command>
       <Message>
       </Message>
     </PostBuildEvent>
@@ -572,7 +572,7 @@ copy "$(SolutionDir)\..\shaders\*.*" "$(OutputPath)\shaders\"</Command>
 copy "$(SolutionDir)\..\dosbox-x.reference.conf" "$(OutputPath)\dosbox-x.reference.conf"
 copy "$(SolutionDir)\..\CHANGELOG" "$(OutputPath)\changelog.txt"
 mkdir "$(OutputPath)\shaders"
-copy "$(SolutionDir)\..\shaders\*.*" "$(OutputPath)\shaders\"</Command>
+copy "$(SolutionDir)\..\contrib\shaders\*.*" "$(OutputPath)\shaders\"</Command>
       <Message>
       </Message>
     </PostBuildEvent>
@@ -609,7 +609,7 @@ copy "$(SolutionDir)\..\shaders\*.*" "$(OutputPath)\shaders\"</Command>
 copy "$(SolutionDir)\..\dosbox-x.reference.conf" "$(OutputPath)\dosbox-x.reference.conf"
 copy "$(SolutionDir)\..\CHANGELOG" "$(OutputPath)\changelog.txt"
 mkdir "$(OutputPath)\shaders"
-copy "$(SolutionDir)\..\shaders\*.*" "$(OutputPath)\shaders\"</Command>
+copy "$(SolutionDir)\..\contrib\shaders\*.*" "$(OutputPath)\shaders\"</Command>
     </PostBuildEvent>
     <PostBuildEvent>
       <Message>
@@ -644,7 +644,7 @@ copy "$(SolutionDir)\..\shaders\*.*" "$(OutputPath)\shaders\"</Command>
 copy "$(SolutionDir)\..\dosbox-x.reference.conf" "$(OutputPath)\dosbox-x.reference.conf"
 copy "$(SolutionDir)\..\CHANGELOG" "$(OutputPath)\changelog.txt"
 mkdir "$(OutputPath)\shaders"
-copy "$(SolutionDir)\..\shaders\*.*" "$(OutputPath)\shaders\"</Command>
+copy "$(SolutionDir)\..\contrib\shaders\*.*" "$(OutputPath)\shaders\"</Command>
     </PostBuildEvent>
     <PostBuildEvent>
       <Message>
@@ -675,7 +675,7 @@ copy "$(SolutionDir)\..\shaders\*.*" "$(OutputPath)\shaders\"</Command>
 copy "$(SolutionDir)\..\dosbox-x.reference.conf" "$(OutputPath)\dosbox-x.reference.conf"
 copy "$(SolutionDir)\..\CHANGELOG" "$(OutputPath)\changelog.txt"
 mkdir "$(OutputPath)\shaders"
-copy "$(SolutionDir)\..\shaders\*.*" "$(OutputPath)\shaders\"</Command>
+copy "$(SolutionDir)\..\contrib\shaders\*.*" "$(OutputPath)\shaders\"</Command>
       <Message>
       </Message>
     </PostBuildEvent>
@@ -707,7 +707,7 @@ copy "$(SolutionDir)\..\shaders\*.*" "$(OutputPath)\shaders\"</Command>
 copy "$(SolutionDir)\..\dosbox-x.reference.conf" "$(OutputPath)\dosbox-x.reference.conf"
 copy "$(SolutionDir)\..\CHANGELOG" "$(OutputPath)\changelog.txt"
 mkdir "$(OutputPath)\shaders"
-copy "$(SolutionDir)\..\shaders\*.*" "$(OutputPath)\shaders\"</Command>
+copy "$(SolutionDir)\..\contrib\shaders\*.*" "$(OutputPath)\shaders\"</Command>
       <Message>
       </Message>
     </PostBuildEvent>
@@ -739,7 +739,7 @@ copy "$(SolutionDir)\..\shaders\*.*" "$(OutputPath)\shaders\"</Command>
 copy "$(SolutionDir)\..\dosbox-x.reference.conf" "$(OutputPath)\dosbox-x.reference.conf"
 copy "$(SolutionDir)\..\CHANGELOG" "$(OutputPath)\changelog.txt"
 mkdir "$(OutputPath)\shaders"
-copy "$(SolutionDir)\..\shaders\*.*" "$(OutputPath)\shaders\"</Command>
+copy "$(SolutionDir)\..\contrib\shaders\*.*" "$(OutputPath)\shaders\"</Command>
       <Message>
       </Message>
     </PostBuildEvent>
@@ -773,7 +773,7 @@ copy "$(SolutionDir)\..\shaders\*.*" "$(OutputPath)\shaders\"</Command>
 copy "$(SolutionDir)\..\dosbox-x.reference.conf" "$(OutputPath)\dosbox-x.reference.conf"
 copy "$(SolutionDir)\..\CHANGELOG" "$(OutputPath)\changelog.txt"
 mkdir "$(OutputPath)\shaders"
-copy "$(SolutionDir)\..\shaders\*.*" "$(OutputPath)\shaders\"</Command>
+copy "$(SolutionDir)\..\contrib\shaders\*.*" "$(OutputPath)\shaders\"</Command>
       <Message>
       </Message>
     </PostBuildEvent>
@@ -805,7 +805,7 @@ copy "$(SolutionDir)\..\shaders\*.*" "$(OutputPath)\shaders\"</Command>
 copy "$(SolutionDir)\..\dosbox-x.reference.conf" "$(OutputPath)\dosbox-x.reference.conf"
 copy "$(SolutionDir)\..\CHANGELOG" "$(OutputPath)\changelog.txt"
 mkdir "$(OutputPath)\shaders"
-copy "$(SolutionDir)\..\shaders\*.*" "$(OutputPath)\shaders\"</Command>
+copy "$(SolutionDir)\..\contrib\shaders\*.*" "$(OutputPath)\shaders\"</Command>
       <Message>
       </Message>
     </PostBuildEvent>
@@ -837,7 +837,7 @@ copy "$(SolutionDir)\..\shaders\*.*" "$(OutputPath)\shaders\"</Command>
 copy "$(SolutionDir)\..\dosbox-x.reference.conf" "$(OutputPath)\dosbox-x.reference.conf"
 copy "$(SolutionDir)\..\CHANGELOG" "$(OutputPath)\changelog.txt"
 mkdir "$(OutputPath)\shaders"
-copy "$(SolutionDir)\..\shaders\*.*" "$(OutputPath)\shaders\"</Command>
+copy "$(SolutionDir)\..\contrib\shaders\*.*" "$(OutputPath)\shaders\"</Command>
       <Message>
       </Message>
     </PostBuildEvent>
