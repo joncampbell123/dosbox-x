@@ -495,32 +495,35 @@ Bit8u VESA_ScanLineLength(Bit8u subcall,Bit16u val, Bit16u & bytes,Bit16u & pixe
 	Bitu max_offset;
 
 	switch (CurMode->type) {
-	case M_TEXT:
-		vmemsize = 0x8000;      // we have only the 32kB window here
-		screen_height = CurMode->theight;
-		pixels_per_offset = 16; // two characters each 8 pixels wide
-		bytes_per_offset = 4;   // 2 characters + 2 attributes
-		break;
-	case M_LIN4:
-		bytes_per_offset = 2;
-		pixels_per_offset = 16;
-		vmemsize /= 4u; /* because planar VGA */
-		break;
-	case M_PACKED4:
-		pixels_per_offset = 16;
-		break;
-	case M_LIN8:
-		pixels_per_offset = 8;
-		break;
-	case M_LIN15:
-	case M_LIN16:
-		pixels_per_offset = 4;
-		break;
-	case M_LIN32:
-		pixels_per_offset = 2;
-		break;
-	default:
-		return VESA_MODE_UNSUPPORTED;
+		case M_TEXT:
+			vmemsize = 0x8000;      // we have only the 32kB window here
+			screen_height = CurMode->theight;
+			pixels_per_offset = 16; // two characters each 8 pixels wide
+			bytes_per_offset = 4;   // 2 characters + 2 attributes
+			break;
+		case M_LIN4:
+			bytes_per_offset = 2;
+			pixels_per_offset = 16;
+			vmemsize /= 4u; /* because planar VGA */
+			break;
+		case M_PACKED4:
+			pixels_per_offset = 16;
+			break;
+		case M_LIN8:
+			pixels_per_offset = 8;
+			break;
+		case M_LIN15:
+		case M_LIN16:
+			pixels_per_offset = 4;
+			break;
+		case M_LIN24:
+			pixels_per_offset = 2;
+			break;
+		case M_LIN32:
+			pixels_per_offset = 2;
+			break;
+		default:
+			return VESA_MODE_UNSUPPORTED;
 	}
 
 	max_offset = S3_MAX_OFFSET;
@@ -587,8 +590,12 @@ Bit8u VESA_ScanLineLength(Bit8u subcall,Bit16u val, Bit16u & bytes,Bit16u & pixe
 		// some real VESA BIOS implementations may crash here
 		return VESA_FAIL;
 
-	lines = (Bit16u)(vmemsize / bytes);
-	
+	{
+		unsigned int lines32 = (unsigned int)(vmemsize / bytes);
+		if (lines32 > 0xFFFF) lines32 = 0xFFFF;
+		lines = (Bit16u)lines32;
+	}
+
 	if (CurMode->type==M_TEXT)
 		lines *= (Bit16u)(CurMode->cheight);
 
@@ -621,6 +628,7 @@ Bit8u VESA_SetDisplayStart(Bit16u x,Bit16u y,bool wait) {
 		panning_factor = 2; // this may be DOSBox specific
 		pixels_per_offset = 4;
 		break;
+	case M_LIN24: // FIXME
 	case M_LIN32:
 		pixels_per_offset = 2;
 		break;
@@ -674,6 +682,7 @@ Bit8u VESA_GetDisplayStart(Bit16u & x,Bit16u & y) {
 		panning_factor = 2;
 		pixels_per_offset = 4;
 		break;
+	case M_LIN24: // FIXME
 	case M_LIN32:
 		pixels_per_offset = 2;
 		break;
