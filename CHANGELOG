@@ -1,4 +1,8 @@
 0.83.6
+  - VESA BIOS Set Scan Line Length fixed to properly
+    report and handle scan line length for 16-color
+    SVGA planar modes. VBETEST 16-color modes now
+    display correctly.
   - Added option to control whether VESA BIOS panning
     (the original VBE call) waits for vsync.
   - Moved video related config options from [dosbox]
