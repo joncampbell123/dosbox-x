@@ -38,9 +38,9 @@ dosbox-x.app: src/dosbox-x src/dosbox.icns
 src/dosbox.icns: src/dosbox.ico
 	rm -Rfv src/dosbox.iconset
 	mkdir src/dosbox.iconset
-	sips -z 16 16    src/dosbox.png    --out src/dosbox.iconset/icon_16x16.png
-	sips -z 32 32    src/dosbox.png    --out src/dosbox.iconset/icon_16x16@2.png
-	sips -z 32 32    src/dosbox.png    --out src/dosbox.iconset/icon_32x32.png
+	sips -z 16 16    contrib/icons/dosbox-x.png    --out src/dosbox.iconset/icon_16x16.png
+	sips -z 32 32    contrib/icons/dosbox-x.png    --out src/dosbox.iconset/icon_16x16@2.png
+	sips -z 32 32    contrib/icons/dosbox-x.png    --out src/dosbox.iconset/icon_32x32.png
 	iconutil -c icns -o src/dosbox.icns src/dosbox.iconset
 	rm -Rfv src/dosbox.iconset
 
