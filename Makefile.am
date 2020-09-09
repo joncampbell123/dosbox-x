@@ -11,8 +11,8 @@ dosbox-x.app: src/dosbox-x contrib/icons/dosbox.icns
 	mkdir dosbox-x.app/Contents
 	mkdir dosbox-x.app/Contents/MacOS
 	mkdir dosbox-x.app/Contents/Resources
-	cp -v src/dosbox.plist dosbox-x.app/Contents/Info.plist
-	cp -v src/dosbox.pkginfo dosbox-x.app/Contents/PkgInfo
+	cp -v contrib/macos/dosbox-x.plist dosbox-x.app/Contents/Info.plist
+	cp -v contrib/macos/dosbox-x.pkginfo dosbox-x.app/Contents/PkgInfo
 	cp -v contrib/icons/dosbox.icns dosbox-x.app/Contents/Resources/DosBox.icns
 	cp -v contrib/fonts/FREECG98.BMP dosbox-x.app/Contents/Resources/freecg98.bmp
 	cp -v src/dosbox-x dosbox-x.app/Contents/MacOS/DosBox
