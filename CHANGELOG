@@ -1,4 +1,9 @@
 0.83.6
+  - Added code to cap the scan line length given to
+    the VESA BIOS given the video mode. This prevents
+    VBETEST.EXE from doing test patterns smaller than
+    the actual display, which can happen with 32bpp
+    320x200 modes and 1MB or less video RAM.
   - VESA BIOS Set Scan Line Length fixed to properly
     report and handle scan line length for 16-color
     SVGA planar modes. VBETEST 16-color modes now
