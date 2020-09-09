@@ -492,6 +492,7 @@ Bit8u VESA_ScanLineLength(Bit8u subcall,Bit16u val, Bit16u & bytes,Bit16u & pixe
 	Bitu vmemsize = vga.mem.memsize;
 	Bitu new_offset = vga.config.scan_len;
 	Bitu screen_height = CurMode->sheight;
+	Bitu max_offset;
 
 	switch (CurMode->type) {
 	case M_TEXT:
@@ -521,47 +522,53 @@ Bit8u VESA_ScanLineLength(Bit8u subcall,Bit16u val, Bit16u & bytes,Bit16u & pixe
 	default:
 		return VESA_MODE_UNSUPPORTED;
 	}
+
+	max_offset = S3_MAX_OFFSET;
+	if ((max_offset * bytes_per_offset * screen_height) > vmemsize)
+		max_offset = vmemsize / (bytes_per_offset * screen_height);
+
+	if (max_offset == 0)
+		return VESA_HW_UNSUPPORTED; // scanline too long
+
 	switch (subcall) {
-	case 0x00: // set scan length in pixels
-		new_offset = val / pixels_per_offset;
-		if (val % pixels_per_offset) new_offset++;
-		
-		if (new_offset > S3_MAX_OFFSET)
-			return VESA_HW_UNSUPPORTED; // scanline too long
-		if ((new_offset * bytes_per_offset * screen_height) > vmemsize) // TODO: Option to disable check to emulate buggy VESA BIOSes
-			new_offset = vmemsize / (bytes_per_offset * screen_height);
+		case 0x00: // set scan length in pixels
+			new_offset = val / pixels_per_offset;
+			if (val % pixels_per_offset) new_offset++;
 
-		vga.config.scan_len = new_offset;
-		VGA_CheckScanLength();
-		break;
+			// NTS: The VESA BIOS standard says a too-large value should return an error.
+			//      VBETEST.EXE behavior seems to depend on this call capping the value and returning success, else it misdraws the screen and might get stuck drawing junk.
+			// TODO: Add dosbox.conf option to control which behavior is emulated.
+			if (new_offset > max_offset) new_offset = max_offset;
 
-	case 0x01: // get current scanline length
-		// implemented at the end of this function
-		break;
+			vga.config.scan_len = new_offset;
+			VGA_CheckScanLength();
+			break;
 
-	case 0x02: // set scan length in bytes
-		new_offset = val / bytes_per_offset;
-		if (val % bytes_per_offset) new_offset++;
+		case 0x01: // get current scanline length
+			// implemented at the end of this function
+			break;
 
-		if (new_offset > S3_MAX_OFFSET)
-			return VESA_HW_UNSUPPORTED; // scanline too long
-		if ((new_offset * bytes_per_offset * screen_height) > vmemsize) // TODO: Option to disable check to emulate buggy VESA BIOSes
-			new_offset = vmemsize / (bytes_per_offset * screen_height);
+		case 0x02: // set scan length in bytes
+			new_offset = val / bytes_per_offset;
+			if (val % bytes_per_offset) new_offset++;
 
-		vga.config.scan_len = new_offset;
-		VGA_CheckScanLength();
-		break;
+			// NTS: The VESA BIOS standard says a too-large value should return an error.
+			//      VBETEST.EXE behavior seems to depend on this call capping the value and returning success, else it misdraws the screen and might get stuck drawing junk.
+			// TODO: Add dosbox.conf option to control which behavior is emulated.
+			if (new_offset > max_offset) new_offset = max_offset;
 
-	case 0x03: // get maximum scan line length
-		// the smaller of either the hardware maximum scanline length or
-		// the limit to get full y resolution of this mode
-		new_offset = S3_MAX_OFFSET;
-		if ((new_offset * bytes_per_offset * screen_height) > vmemsize)
-			new_offset = vmemsize / (bytes_per_offset * screen_height);
-		break;
+			vga.config.scan_len = new_offset;
+			VGA_CheckScanLength();
+			break;
 
-	default:
-		return VESA_UNIMPLEMENTED;
+		case 0x03: // get maximum scan line length
+			// the smaller of either the hardware maximum scanline length or
+			// the limit to get full y resolution of this mode
+			new_offset = max_offset;
+			break;
+
+		default:
+			return VESA_UNIMPLEMENTED;
 	}
 
 	// set up the return values
