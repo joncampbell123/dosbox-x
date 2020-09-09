@@ -503,6 +503,7 @@ Bit8u VESA_ScanLineLength(Bit8u subcall,Bit16u val, Bit16u & bytes,Bit16u & pixe
 	case M_LIN4:
 		bytes_per_offset = 2;
 		pixels_per_offset = 16;
+		vmemsize /= 4u; /* because planar VGA */
 		break;
 	case M_PACKED4:
 		pixels_per_offset = 16;
@@ -527,6 +528,9 @@ Bit8u VESA_ScanLineLength(Bit8u subcall,Bit16u val, Bit16u & bytes,Bit16u & pixe
 		
 		if (new_offset > S3_MAX_OFFSET)
 			return VESA_HW_UNSUPPORTED; // scanline too long
+		if ((new_offset * bytes_per_offset * screen_height) > vmemsize) // TODO: Option to disable check to emulate buggy VESA BIOSes
+			new_offset = vmemsize / (bytes_per_offset * screen_height);
+
 		vga.config.scan_len = new_offset;
 		VGA_CheckScanLength();
 		break;
@@ -538,9 +542,12 @@ Bit8u VESA_ScanLineLength(Bit8u subcall,Bit16u val, Bit16u & bytes,Bit16u & pixe
 	case 0x02: // set scan length in bytes
 		new_offset = val / bytes_per_offset;
 		if (val % bytes_per_offset) new_offset++;
-		
+
 		if (new_offset > S3_MAX_OFFSET)
 			return VESA_HW_UNSUPPORTED; // scanline too long
+		if ((new_offset * bytes_per_offset * screen_height) > vmemsize) // TODO: Option to disable check to emulate buggy VESA BIOSes
+			new_offset = vmemsize / (bytes_per_offset * screen_height);
+
 		vga.config.scan_len = new_offset;
 		VGA_CheckScanLength();
 		break;
