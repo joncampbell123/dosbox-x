@@ -535,6 +535,10 @@ Bit8u VESA_ScanLineLength(Bit8u subcall,Bit16u val, Bit16u & bytes,Bit16u & pixe
 			new_offset = val / pixels_per_offset;
 			if (val % pixels_per_offset) new_offset++;
 
+			/* why does VBETEST do this? */
+			if (new_offset == 0)
+				return VESA_HW_UNSUPPORTED; // scanline too long
+
 			// NTS: The VESA BIOS standard says a too-large value should return an error.
 			//      VBETEST.EXE behavior seems to depend on this call capping the value and returning success, else it misdraws the screen and might get stuck drawing junk.
 			// TODO: Add dosbox.conf option to control which behavior is emulated.
@@ -551,6 +555,10 @@ Bit8u VESA_ScanLineLength(Bit8u subcall,Bit16u val, Bit16u & bytes,Bit16u & pixe
 		case 0x02: // set scan length in bytes
 			new_offset = val / bytes_per_offset;
 			if (val % bytes_per_offset) new_offset++;
+
+			/* why does VBETEST do this? */
+			if (new_offset == 0)
+				return VESA_HW_UNSUPPORTED; // scanline too long
 
 			// NTS: The VESA BIOS standard says a too-large value should return an error.
 			//      VBETEST.EXE behavior seems to depend on this call capping the value and returning success, else it misdraws the screen and might get stuck drawing junk.
@@ -676,6 +684,12 @@ Bit8u VESA_GetDisplayStart(Bit16u & x,Bit16u & y) {
 	IO_Read(0x3da);              // reset attribute flipflop
 	IO_Write(0x3c0,0x13 | 0x20); // panning register, screen on
 	Bit8u panning = IO_Read(0x3c1);
+
+	/* FIXME: Why does this happen with VBETEST.EXE and more than 1MB of RAM? */
+	if (vga.config.scan_len == 0) {
+		y = x = 0;
+		return VESA_SUCCESS;
+	}
 
 	Bitu virtual_screen_width = vga.config.scan_len * pixels_per_offset;
 	Bitu start_pixel = vga.config.display_start * (pixels_per_offset/2) 
