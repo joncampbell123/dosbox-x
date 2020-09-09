@@ -1119,7 +1119,7 @@ void DOSBOX_RealInit() {
 
     // CGA/EGA/VGA-specific
     extern unsigned char vga_p3da_undefined_bits;
-    vga_p3da_undefined_bits = (unsigned char)section->Get_hex("vga 3da undefined bits");
+    vga_p3da_undefined_bits = (unsigned char)static_cast<Section_prop *>(control->GetSection("video"))->Get_hex("vga 3da undefined bits");
 
     // TODO: should be parsed by motherboard emulation or lower level equiv..?
     std::string cmd_machine;
