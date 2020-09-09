@@ -516,6 +516,9 @@ Bit8u VESA_ScanLineLength(Bit8u subcall,Bit16u val, Bit16u & bytes,Bit16u & pixe
 		case M_LIN16:
 			pixels_per_offset = 4;
 			break;
+		case M_LIN24:
+			pixels_per_offset = 2;
+			break;
 		case M_LIN32:
 			pixels_per_offset = 2;
 			break;
@@ -625,6 +628,7 @@ Bit8u VESA_SetDisplayStart(Bit16u x,Bit16u y,bool wait) {
 		panning_factor = 2; // this may be DOSBox specific
 		pixels_per_offset = 4;
 		break;
+	case M_LIN24: // FIXME
 	case M_LIN32:
 		pixels_per_offset = 2;
 		break;
@@ -678,6 +682,7 @@ Bit8u VESA_GetDisplayStart(Bit16u & x,Bit16u & y) {
 		panning_factor = 2;
 		pixels_per_offset = 4;
 		break;
+	case M_LIN24: // FIXME
 	case M_LIN32:
 		pixels_per_offset = 2;
 		break;
