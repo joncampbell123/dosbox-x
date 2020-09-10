@@ -1061,7 +1061,6 @@ AH_TEMPLATE(C_ICONV_WIN32,[Define to 1 to use Win32 functions in iconv backend])
 AC_CONFIG_FILES([ 
 Makefile
 src/Makefile
-src/dosbox.plist
 src/cpu/Makefile
 src/cpu/core_full/Makefile
 src/cpu/core_normal/Makefile
@@ -1089,6 +1088,7 @@ src/shell/Makefile
 src/platform/Makefile
 src/xBRZ/Makefile
 include/Makefile
+contrib/macos/dosbox-x.plist
 contrib/linux/dosbox-x.spec
 make-rpm.sh
 ])

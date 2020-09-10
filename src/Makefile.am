@@ -57,6 +57,6 @@ dosbox_x_js_install:
 	sudo cp -v dosbox-x.data dosbox-x.html dosbox-x.js dosbox-x.wasm /var/www/html/em/
 endif
 
-EXTRA_DIST = winres.rc dosbox.ico
+EXTRA_DIST = winres.rc ../contrib/icons/dosbox-x.ico
 
 
