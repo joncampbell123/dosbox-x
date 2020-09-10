@@ -3543,25 +3543,29 @@ void DOSBOX_SetupConfigSections(void) {
                       "If set to autostart, the builtin VER command won't activate/disactivate LFN support according to the reported DOS version.");
     Pstring->SetBasic(true);
 
+    Pbool = secprop->Add_bool("autoloadfix",Property::Changeable::WhenIdle,true);
+    Pbool->Set_help("If set (default), DOSBox-X will automatically re-run the executable with LOADFIX if it failed with the \"Packed file is corrupt\" error.");
+    Pbool->SetBasic(true);
+
     Pbool = secprop->Add_bool("automount",Property::Changeable::WhenIdle,true);
     Pbool->Set_help("Enable automatic drive mounting in Windows.");
-    Pstring->SetBasic(true);
+    Pbool->SetBasic(true);
 
     Pbool = secprop->Add_bool("automountall",Property::Changeable::OnlyAtStart,false);
     Pbool->Set_help("Automatically mount all available Windows drives at start.");
-    Pstring->SetBasic(true);
+    Pbool->SetBasic(true);
 
     Pbool = secprop->Add_bool("mountwarning",Property::Changeable::OnlyAtStart,true);
     Pbool->Set_help("If set, a warning will be displayed if you try to mount C:\\ in Windows or / in other platforms.");
-    Pstring->SetBasic(true);
+    Pbool->SetBasic(true);
 
     Pbool = secprop->Add_bool("startcmd",Property::Changeable::OnlyAtStart,false);
     Pbool->Set_help("Allow starting commands to run on the Windows host including the use of START command.");
-    Pstring->SetBasic(true);
+    Pbool->SetBasic(true);
 
     Pbool = secprop->Add_bool("startwait",Property::Changeable::OnlyAtStart,true);
     Pbool->Set_help("Specify whether DOSBox-X should wait for the Windows programs after they are started.");
-    Pstring->SetBasic(true);
+    Pbool->SetBasic(true);
 
     Pstring = secprop->Add_string("startincon",Property::Changeable::OnlyAtStart,"assoc attrib chcp copy dir echo for ftype help if set type ver vol xcopy");
     Pstring->Set_help("START command will start these commands (separated by space) in a console and wait for a key press before exiting.");
