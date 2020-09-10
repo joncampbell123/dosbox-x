@@ -3,7 +3,10 @@
     main screen of the Configuration GUI to toggle
     whether to display all config options for the
     sections. If unchecked (default), it will show
-    common config options instead of all. (Wengier) 
+    common config options instead of all of them. A
+    new config option "show advanced options" is added
+    which when set to "true" will make the checkbox
+    checked by default. (Wengier)
   - Added code to cap the scan line length given to
     the VESA BIOS given the video mode. This prevents
     VBETEST.EXE from doing test patterns smaller than

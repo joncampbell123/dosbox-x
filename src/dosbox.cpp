@@ -1387,6 +1387,9 @@ void DOSBOX_SetupConfigSections(void) {
             "If set to auto (default), DOSBox-X will warn if there are open file handles or a guest system is currently running.");
     Pstring->SetBasic(true);
 
+    Pbool = secprop->Add_bool("show advanced options", Property::Changeable::Always, false);
+    Pbool->Set_help("If set, the Configuration UI will display all config options (including advanced ones) by default.");
+
     Pbool = secprop->Add_bool("keyboard hook", Property::Changeable::Always, false);
     Pbool->Set_help("Use keyboard hook (currently only on Windows) to catch special keys and synchronize the keyboard LEDs with the host");
 
