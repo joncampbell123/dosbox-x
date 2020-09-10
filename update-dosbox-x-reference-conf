@@ -1,6 +1,6 @@
 #!/bin/bash
 src/dosbox-x -fastlaunch -defaultdir . -c 'config -all -wcp dosbox-x.reference.conf' -c 'exit' || exit 1
 
-# Not really needed if command config -wcp [configfile] is used instead of config -wc [configfile]
-# mv -v ~/.config/dosbox-x/dosbox-x.reference.conf dosbox-x.reference.conf || exit 1
+# Convert to Unix format if needed
+dos2unix dosbox-x.reference.conf
 
