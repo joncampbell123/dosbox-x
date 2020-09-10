@@ -783,12 +783,12 @@ public:
         title[0] = std::toupper(title[0]);
         setTitle("Configuration for "+title);
 
-        GUI::Button *b = new GUI::Button(this, button_row_cx, button_row_y, "Cancel", button_w);
+        GUI::Button *b = new GUI::Button(this, button_row_cx, button_row_y, "Help", button_w);
+        b->addActionHandler(this);
+
+        b = new GUI::Button(this, button_row_cx + (button_w + button_pad_w), button_row_y, "Cancel", button_w);
         b->addActionHandler(this);
         closeButton = b;
-
-        b = new GUI::Button(this, button_row_cx + (button_w + button_pad_w), button_row_y, "Help", button_w);
-        b->addActionHandler(this);
 
         b = new GUI::Button(this, button_row_cx + (button_w + button_pad_w)*2, button_row_y, "OK", button_w);
 

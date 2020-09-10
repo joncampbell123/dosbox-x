@@ -2286,6 +2286,7 @@ void DOSBOX_SetupConfigSections(void) {
 
     Pbool = secprop->Add_bool("fpu",Property::Changeable::Always,true);
     Pbool->Set_help("Enable FPU emulation");
+    Pbool->SetBasic(true);
 
     Pbool = secprop->Add_bool("segment limits",Property::Changeable::Always,true);
     Pbool->Set_help("Enforce segment limits");
@@ -2352,7 +2353,7 @@ void DOSBOX_SetupConfigSections(void) {
         "                  need if 'auto' fails (Example: fixed 4000).\n"
         "  'max'           will allocate as much cycles as your computer is able to\n"
         "                  handle.");
-    Pmulti->SetBasic(true);
+    Pmulti_remain->SetBasic(true);
 
     Pstring = Pmulti_remain->GetSection()->Add_string("type",Property::Changeable::Always,"auto");
     Pmulti_remain->SetValue("auto",/*init*/true);
@@ -3218,7 +3219,6 @@ void DOSBOX_SetupConfigSections(void) {
     Pmulti_remain->SetBasic(true);
     Pmulti_remain->GetSection()->Add_string("parameters",Property::Changeable::WhenIdle,"");
     Pmulti_remain->Set_help("see serial1");
-    Pmulti->SetBasic(true);
     Pmulti_remain->SetBasic(true);
 
     Pmulti_remain = secprop->Add_multiremain("serial4",Property::Changeable::WhenIdle," ");
