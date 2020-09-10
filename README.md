@@ -7,7 +7,7 @@
 
 - [Introduction to DOSBox-X](#introduction-to-dosbox-x)
 - [Notable features in DOSBox-X](#notable-features-in-dosbox-x)
-- [DOSBox-X's supported platforms and releases](#dosbox-x-supported-platforms-and-releases)
+- [DOSBox-X supported platforms and releases](#dosbox-x-supported-platforms-and-releases)
 - [Compatibility with DOS programs and games](#compatibility-with-dos-programs-and-games)
 - [Contributing to DOSBox-X](#contributing-to-dosbox-x)
 - [DOSBox-X development and release pattern](#dosbox-x-development-and-release-pattern)
