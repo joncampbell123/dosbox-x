@@ -682,6 +682,7 @@ public:
     }
 };
 
+GUI::Checkbox *advopt;
 static std::map< std::vector<GUI::Char>, GUI::ToplevelWindow* > cfg_windows_active;
 
 class HelpWindow : public GUI::MessageBox2 {
@@ -706,6 +707,7 @@ public:
             int i = 0;
             while ((p = sec->Get_prop(i++))) {
                 std::string help=title=="4dos"&&p->propname=="rem"?"This is the 4DOS.INI file (if you use 4DOS as the command shell).":p->Get_help();
+                if (title!="4dos" && title!="Config" && title!="Autoexec" && !advopt->isChecked() && !p->basic()) continue;
                 msg += std::string("\033[31m")+p->propname+":\033[0m\n"+help+"\n\n";
             }
             if (!msg.empty()) msg.replace(msg.end()-1,msg.end(),"");
@@ -787,9 +789,10 @@ public:
 
         b = new GUI::Button(this, button_row_cx + (button_w + button_pad_w)*2, button_row_y, "OK", button_w);
 
-        int i = 0;
+        int i = 0, j = 0;
         Property *prop;
         while ((prop = section->Get_prop(i))) {
+            if (!advopt->isChecked() && !prop->basic()) {i++;continue;}
             Prop_bool   *pbool   = dynamic_cast<Prop_bool*>(prop);
             Prop_int    *pint    = dynamic_cast<Prop_int*>(prop);
             Prop_double  *pdouble  = dynamic_cast<Prop_double*>(prop);
@@ -799,16 +802,17 @@ public:
             Prop_multival_remain* pmulti_remain = dynamic_cast<Prop_multival_remain*>(prop);
 
             PropertyEditor *p;
-            if (pbool) p = new PropertyEditorBool(wiw, column_width*(i/items_per_col), (i%items_per_col)*row_height, section, prop);
-            else if (phex) p = new PropertyEditorHex(wiw, column_width*(i/items_per_col), (i%items_per_col)*row_height, section, prop);
-            else if (pint) p = new PropertyEditorInt(wiw, column_width*(i/items_per_col), (i%items_per_col)*row_height, section, prop);
-            else if (pdouble) p = new PropertyEditorFloat(wiw, column_width*(i/items_per_col), (i%items_per_col)*row_height, section, prop);
-            else if (pstring) p = new PropertyEditorString(wiw, column_width*(i/items_per_col), (i%items_per_col)*row_height, section, prop);
-            else if (pmulti) p = new PropertyEditorString(wiw, column_width*(i/items_per_col), (i%items_per_col)*row_height, section, prop);
-            else if (pmulti_remain) p = new PropertyEditorString(wiw, column_width*(i/items_per_col), (i%items_per_col)*row_height, section, prop);
+            if (pbool) p = new PropertyEditorBool(wiw, column_width*(j/items_per_col), (j%items_per_col)*row_height, section, prop);
+            else if (phex) p = new PropertyEditorHex(wiw, column_width*(j/items_per_col), (j%items_per_col)*row_height, section, prop);
+            else if (pint) p = new PropertyEditorInt(wiw, column_width*(j/items_per_col), (j%items_per_col)*row_height, section, prop);
+            else if (pdouble) p = new PropertyEditorFloat(wiw, column_width*(j/items_per_col), (j%items_per_col)*row_height, section, prop);
+            else if (pstring) p = new PropertyEditorString(wiw, column_width*(j/items_per_col), (j%items_per_col)*row_height, section, prop);
+            else if (pmulti) p = new PropertyEditorString(wiw, column_width*(j/items_per_col), (j%items_per_col)*row_height, section, prop);
+            else if (pmulti_remain) p = new PropertyEditorString(wiw, column_width*(j/items_per_col), (j%items_per_col)*row_height, section, prop);
             else { i++; continue; }
             b->addActionHandler(p);
             i++;
+            j++;
         }
         b->addActionHandler(this);
 
@@ -1648,6 +1652,8 @@ public:
         bar->addActionHandler(this);
 
         new GUI::Label(this, 10, 30, "Choose a settings group to configure:");
+        advopt = new GUI::Checkbox(this, 340, 30, "Show advanced options");
+        advopt->setChecked(false);
 
         Section *sec;
         int gridbtnwidth = 130;

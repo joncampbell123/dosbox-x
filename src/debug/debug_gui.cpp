@@ -921,6 +921,7 @@ void LOG::SetupConfigSection(void) {
 	Section_prop * sect=control->AddSection_prop("log",Null_Init);
 	Prop_string* Pstring = sect->Add_string("logfile",Property::Changeable::Always,"");
 	Pstring->Set_help("file where the log messages will be saved to");
+	Pstring->SetBasic(true);
 	char buf[64];
 	for (Bitu i = LOG_ALL + 1;i < LOG_MAX;i++) {
 		safe_strncpy(buf,loggrp[i].front, sizeof(buf));
