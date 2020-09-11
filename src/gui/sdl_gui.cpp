@@ -1807,7 +1807,14 @@ public:
                 lookup->second->raise();
             }
         } else if (arg == "Visit Homepage") {
-            ShellExecute(NULL, "open", "http://dosbox-x.com/", NULL, NULL, SW_SHOWNORMAL);
+            std::string url = "http://dosbox-x.com/";
+#if defined(WIN32)
+            ShellExecute(NULL, "open", url.c_str(), NULL, NULL, SW_SHOWNORMAL);
+#elif defined(LINUX)
+            system(("xdg-open "+url).c_str());
+#elif defined(MACOSX)
+            system(("open "+url).c_str());
+#endif
         } else if (arg == "About") {
             new GUI::MessageBox2(getScreen(), 100, 150, 330, "About DOSBox-X", aboutmsg);
         } else if (arg == "Introduction") {
