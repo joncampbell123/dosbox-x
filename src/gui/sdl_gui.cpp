@@ -330,7 +330,7 @@ static GUI::ScreenSDL *UI_Startup(GUI::ScreenSDL *screen) {
 #endif
 
 #ifdef DOSBOXMENU_EXTERNALLY_MANAGED
-    if (gui_menu_init && (!shortcut || shortcutid<16)) {
+    if (gui_menu_init) {
         gui_menu_init = false;
 
         {
@@ -356,8 +356,14 @@ static GUI::ScreenSDL *UI_Startup(GUI::ScreenSDL *screen) {
         }
     }
 
-    guiMenu.rebuild();
-    DOSBox_SetMenu(guiMenu);
+    static DOSBoxMenu nullMenu;
+    if (!shortcut || shortcutid<16) {
+        guiMenu.rebuild();
+        DOSBox_SetMenu(guiMenu);
+    } else {
+        nullMenu.rebuild();
+        DOSBox_SetMenu(nullMenu);
+    }
 #endif
 
     if (screen) screen->setSurface(sdlscreen);
