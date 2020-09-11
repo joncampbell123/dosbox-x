@@ -1,4 +1,7 @@
 0.83.6
+  - Add new "Help" menu which includes menu items
+    "Introduction", "DOSBox-X homepage", "DOSBox-X Wiki
+    guide", "DOSBox-X support" and "About". (Wengier)
   - Improved the message when automatically re-running
     the executable which failed with the "Packed file
     is corrupt" error. Also added the "autoloadfix"

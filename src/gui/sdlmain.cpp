@@ -8267,6 +8267,46 @@ bool sendkey_preset_menu_callback(DOSBoxMenu * const menu, DOSBoxMenu::item * co
     return true;
 }
 
+bool help_open_url_callback(DOSBoxMenu * const menu, DOSBoxMenu::item * const menuitem) {
+    (void)menu;//UNUSED
+    if (menuitem->get_name() == "help_homepage")
+        ShellExecute(NULL, "open", "http://dosbox-x.com/", NULL, NULL, SW_SHOWNORMAL);
+    else if (menuitem->get_name() == "help_wiki")
+        ShellExecute(NULL, "open", "https://github.com/joncampbell123/dosbox-x/wiki", NULL, NULL, SW_SHOWNORMAL);
+    else if (menuitem->get_name() == "help_issue")
+        ShellExecute(NULL, "open", "https://github.com/joncampbell123/dosbox-x/issues", NULL, NULL, SW_SHOWNORMAL);
+
+    return true;
+}
+
+bool help_intro_callback(DOSBoxMenu * const menu, DOSBoxMenu::item * const menuitem) {
+    MAPPER_ReleaseAllKeys();
+
+    GFX_LosingFocus();
+
+    GUI_Shortcut(33);
+
+    MAPPER_ReleaseAllKeys();
+
+    GFX_LosingFocus();
+
+    return true;
+}
+
+bool help_about_callback(DOSBoxMenu * const menu, DOSBoxMenu::item * const menuitem) {
+    MAPPER_ReleaseAllKeys();
+
+    GFX_LosingFocus();
+
+    GUI_Shortcut(34);
+
+    MAPPER_ReleaseAllKeys();
+
+    GFX_LosingFocus();
+
+    return true;
+}
+
 void SetCyclesCount_mapper_shortcut_RunInternal(void) {
     MAPPER_ReleaseAllKeys();
 
@@ -9396,6 +9436,24 @@ int main(int argc, char* argv[]) SDL_MAIN_NOEXCEPT {
                     mainMenu.alloc_item(DOSBoxMenu::item_type_id,name).set_text(drive_opts[i][1]).
                         set_callback_function(drive_callbacks[i]);
                 }
+            }
+        }
+
+        {
+            DOSBoxMenu::item &item = mainMenu.alloc_item(DOSBoxMenu::submenu_type_id,"HelpMenu");
+            item.set_text("Help");
+
+            {
+                mainMenu.alloc_item(DOSBoxMenu::item_type_id,"help_intro").set_text("Introduction").
+                    set_callback_function(help_intro_callback);
+                mainMenu.alloc_item(DOSBoxMenu::item_type_id,"help_homepage").set_text("DOSBox-X homepage").
+                    set_callback_function(help_open_url_callback);
+                mainMenu.alloc_item(DOSBoxMenu::item_type_id,"help_wiki").set_text("DOSBox-X Wiki guide").
+                    set_callback_function(help_open_url_callback);
+                mainMenu.alloc_item(DOSBoxMenu::item_type_id,"help_issue").set_text("DOSBox-X support").
+                    set_callback_function(help_open_url_callback);
+                mainMenu.alloc_item(DOSBoxMenu::item_type_id,"help_about").set_text("About DOSBox-X").
+                    set_callback_function(help_about_callback);
             }
         }
 

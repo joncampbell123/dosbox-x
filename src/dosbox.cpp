@@ -3700,6 +3700,80 @@ void DOSBOX_SetupConfigSections(void) {
         "name, e.g. VIA here.");
     Pstring->SetBasic(true);
 
+    /* IDE emulation options and setup */
+    for (size_t i=0;i < MAX_IDE_CONTROLLERS;i++) {
+        secprop=control->AddSection_prop(ide_names[i],&Null_Init,false);//done
+
+        /* Primary and Secondary are on by default, Teritary and Quaternary are off by default.
+         * Throughout the life of the IDE interface it was far more common for a PC to have just
+         * a Primary and Secondary interface */
+        Pbool = secprop->Add_bool("enable",Property::Changeable::OnlyAtStart,(i < 2) ? true : false);
+        if (i == 0) Pbool->Set_help("Enable IDE interface");
+        Pbool->SetBasic(true);
+
+        Pbool = secprop->Add_bool("pnp",Property::Changeable::OnlyAtStart,true);
+        if (i == 0) Pbool->Set_help("List IDE device in ISA PnP BIOS enumeration");
+        Pbool->SetBasic(true);
+
+        Pint = secprop->Add_int("irq",Property::Changeable::WhenIdle,0/*use IDE default*/);
+        if (i == 0) Pint->Set_help("IRQ used by IDE controller. Set to 0 for default.\n"
+                "WARNING: Setting the IRQ to non-standard values will not work unless the guest OS is using the ISA PnP BIOS to detect the IDE controller.\n"
+                "         Setting the IRQ to one already occupied by another device or IDE controller will trigger \"resource conflict\" errors in Windows 95.\n"
+                "         Using IRQ 9, 12, 13, or IRQ 2-7 may cause problems with MS-DOS CD-ROM drivers.");
+
+        Phex = secprop->Add_hex("io",Property::Changeable::WhenIdle,0/*use IDE default*/);
+        if (i == 0) Phex->Set_help("Base I/O port for IDE controller. Set to 0 for default.\n"
+                "WARNING: Setting the I/O port to non-standard values will not work unless the guest OS is using the ISA PnP BIOS to detect the IDE controller.\n"
+                "         Using any port other than 1F0, 170, 1E8 or 168 can prevent MS-DOS CD-ROM drivers from detecting the IDE controller.");
+
+        Phex = secprop->Add_hex("altio",Property::Changeable::WhenIdle,0/*use IDE default*/);
+        if (i == 0) Phex->Set_help("Alternate I/O port for IDE controller (alt status, etc). Set to 0 for default.\n"
+                "WARNING: Setting the I/O port to non-standard values will not work unless the guest OS is using the ISA PnP BIOS to detect the IDE controller.\n"
+                "         For best compatability set this value to io+0x206, for example, io=1F0 altio=3F6.\n"
+                "         The primary IDE controller will not claim port 3F7 if the primary floppy controller is enabled due to I/O port overlap in the 3F0-3F7 range.");
+
+        Pbool = secprop->Add_bool("int13fakeio",Property::Changeable::WhenIdle,false);
+        if (i == 0) Pbool->Set_help(
+                "If set, force IDE state change on certain INT 13h commands.\n"
+                "IDE registers will be changed as if BIOS had carried out the action.\n"
+                "If you are running Windows 3.11 or Windows 3.11 Windows for Workgroups\n"
+                "you must enable this option (and use -reservecyl 1) if you want 32-bit\n"
+                "disk access to work correctly in DOSBox-X.");
+
+        Pbool = secprop->Add_bool("int13fakev86io",Property::Changeable::WhenIdle,false);
+        if (i == 0) Pbool->Set_help(
+                "If set, and int13fakeio is set, certain INT 13h commands will cause IDE emulation to\n"
+                "issue fake CPU I/O traps (GPF) in virtual 8086 mode and a fake IRQ signal. You must\n"
+                "enable this option if you want 32-bit disk access in Windows 95 to work with DOSBox-X.");
+
+        Pbool = secprop->Add_bool("enable pio32",Property::Changeable::WhenIdle,false);
+        if (i == 0) Pbool->Set_help(
+                "If set, 32-bit I/O reads and writes are handled directly (much like PCI IDE implementations)\n"
+                "If clear, 32-bit I/O will be handled as if two 16-bit I/O (much like ISA IDE implementations)");
+
+        Pbool = secprop->Add_bool("ignore pio32",Property::Changeable::WhenIdle,false);
+        if (i == 0) Pbool->Set_help(
+                "If 32-bit I/O is enabled, attempts to read/write 32-bit I/O will be ignored entirely.\n"
+                "In this way, you can have DOSBox-X emulate one of the strange quirks of 1995-1997 era\n"
+                "laptop hardware");
+
+        Pint = secprop->Add_int("cd-rom spinup time",Property::Changeable::WhenIdle,0/*use IDE or CD-ROM default*/);
+        if (i == 0) Pint->Set_help("Emulated CD-ROM time in ms to spin up if CD is stationary.\n"
+                "Set to 0 to use controller or CD-ROM drive-specific default.");
+
+        Pint = secprop->Add_int("cd-rom spindown timeout",Property::Changeable::WhenIdle,0/*use IDE or CD-ROM default*/);
+        if (i == 0) Pint->Set_help("Emulated CD-ROM time in ms that drive will spin down automatically when not in use\n"
+                "Set to 0 to use controller or CD-ROM drive-specific default.");
+
+        Pint = secprop->Add_int("cd-rom insertion delay",Property::Changeable::WhenIdle,0/*use IDE or CD-ROM default*/);
+        if (i == 0) Pint->Set_help("Emulated CD-ROM time in ms that drive will report \"medium not present\"\n"
+                "to emulate the time it takes for someone to take out a CD and insert a new one when\n"
+                "DOSBox-X is instructed to swap or change CDs.\n"
+                "When running Windows 95 or higher a delay of 4000ms is recommended to ensure that\n"
+                "auto-insert notification triggers properly.\n"
+                "Set to 0 to use controller or CD-ROM drive-specific default.");
+    }
+
     /* floppy controller emulation options and setup */
     secprop=control->AddSection_prop("fdc, primary",&Null_Init,false);
 
@@ -3782,80 +3856,6 @@ void DOSBOX_SetupConfigSections(void) {
         "  82072                        Intel 82072 chipset\n"
         "  nec_uPD765                   NEC uPD765 chipset\n"
         "  none                         No chipset (For PC/XT mode)");
-
-    /* IDE emulation options and setup */
-    for (size_t i=0;i < MAX_IDE_CONTROLLERS;i++) {
-        secprop=control->AddSection_prop(ide_names[i],&Null_Init,false);//done
-
-        /* Primary and Secondary are on by default, Teritary and Quaternary are off by default.
-         * Throughout the life of the IDE interface it was far more common for a PC to have just
-         * a Primary and Secondary interface */
-        Pbool = secprop->Add_bool("enable",Property::Changeable::OnlyAtStart,(i < 2) ? true : false);
-        if (i == 0) Pbool->Set_help("Enable IDE interface");
-        Pbool->SetBasic(true);
-
-        Pbool = secprop->Add_bool("pnp",Property::Changeable::OnlyAtStart,true);
-        if (i == 0) Pbool->Set_help("List IDE device in ISA PnP BIOS enumeration");
-        Pbool->SetBasic(true);
-
-        Pint = secprop->Add_int("irq",Property::Changeable::WhenIdle,0/*use IDE default*/);
-        if (i == 0) Pint->Set_help("IRQ used by IDE controller. Set to 0 for default.\n"
-                "WARNING: Setting the IRQ to non-standard values will not work unless the guest OS is using the ISA PnP BIOS to detect the IDE controller.\n"
-                "         Setting the IRQ to one already occupied by another device or IDE controller will trigger \"resource conflict\" errors in Windows 95.\n"
-                "         Using IRQ 9, 12, 13, or IRQ 2-7 may cause problems with MS-DOS CD-ROM drivers.");
-
-        Phex = secprop->Add_hex("io",Property::Changeable::WhenIdle,0/*use IDE default*/);
-        if (i == 0) Phex->Set_help("Base I/O port for IDE controller. Set to 0 for default.\n"
-                "WARNING: Setting the I/O port to non-standard values will not work unless the guest OS is using the ISA PnP BIOS to detect the IDE controller.\n"
-                "         Using any port other than 1F0, 170, 1E8 or 168 can prevent MS-DOS CD-ROM drivers from detecting the IDE controller.");
-
-        Phex = secprop->Add_hex("altio",Property::Changeable::WhenIdle,0/*use IDE default*/);
-        if (i == 0) Phex->Set_help("Alternate I/O port for IDE controller (alt status, etc). Set to 0 for default.\n"
-                "WARNING: Setting the I/O port to non-standard values will not work unless the guest OS is using the ISA PnP BIOS to detect the IDE controller.\n"
-                "         For best compatability set this value to io+0x206, for example, io=1F0 altio=3F6.\n"
-                "         The primary IDE controller will not claim port 3F7 if the primary floppy controller is enabled due to I/O port overlap in the 3F0-3F7 range.");
-
-        Pbool = secprop->Add_bool("int13fakeio",Property::Changeable::WhenIdle,false);
-        if (i == 0) Pbool->Set_help(
-                "If set, force IDE state change on certain INT 13h commands.\n"
-                "IDE registers will be changed as if BIOS had carried out the action.\n"
-                "If you are running Windows 3.11 or Windows 3.11 Windows for Workgroups\n"
-                "you must enable this option (and use -reservecyl 1) if you want 32-bit\n"
-                "disk access to work correctly in DOSBox-X.");
-
-        Pbool = secprop->Add_bool("int13fakev86io",Property::Changeable::WhenIdle,false);
-        if (i == 0) Pbool->Set_help(
-                "If set, and int13fakeio is set, certain INT 13h commands will cause IDE emulation to\n"
-                "issue fake CPU I/O traps (GPF) in virtual 8086 mode and a fake IRQ signal. You must\n"
-                "enable this option if you want 32-bit disk access in Windows 95 to work with DOSBox-X.");
-
-        Pbool = secprop->Add_bool("enable pio32",Property::Changeable::WhenIdle,false);
-        if (i == 0) Pbool->Set_help(
-                "If set, 32-bit I/O reads and writes are handled directly (much like PCI IDE implementations)\n"
-                "If clear, 32-bit I/O will be handled as if two 16-bit I/O (much like ISA IDE implementations)");
-
-        Pbool = secprop->Add_bool("ignore pio32",Property::Changeable::WhenIdle,false);
-        if (i == 0) Pbool->Set_help(
-                "If 32-bit I/O is enabled, attempts to read/write 32-bit I/O will be ignored entirely.\n"
-                "In this way, you can have DOSBox-X emulate one of the strange quirks of 1995-1997 era\n"
-                "laptop hardware");
-
-        Pint = secprop->Add_int("cd-rom spinup time",Property::Changeable::WhenIdle,0/*use IDE or CD-ROM default*/);
-        if (i == 0) Pint->Set_help("Emulated CD-ROM time in ms to spin up if CD is stationary.\n"
-                "Set to 0 to use controller or CD-ROM drive-specific default.");
-
-        Pint = secprop->Add_int("cd-rom spindown timeout",Property::Changeable::WhenIdle,0/*use IDE or CD-ROM default*/);
-        if (i == 0) Pint->Set_help("Emulated CD-ROM time in ms that drive will spin down automatically when not in use\n"
-                "Set to 0 to use controller or CD-ROM drive-specific default.");
-
-        Pint = secprop->Add_int("cd-rom insertion delay",Property::Changeable::WhenIdle,0/*use IDE or CD-ROM default*/);
-        if (i == 0) Pint->Set_help("Emulated CD-ROM time in ms that drive will report \"medium not present\"\n"
-                "to emulate the time it takes for someone to take out a CD and insert a new one when\n"
-                "DOSBox-X is instructed to swap or change CDs.\n"
-                "When running Windows 95 or higher a delay of 4000ms is recommended to ensure that\n"
-                "auto-insert notification triggers properly.\n"
-                "Set to 0 to use controller or CD-ROM drive-specific default.");
-    }
 
     /* 4DOS.INI options */
     secprop=control->AddSection_prop("4dos",&Null_Init,false);

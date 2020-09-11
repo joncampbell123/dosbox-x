@@ -102,6 +102,10 @@ void                        WindowsTaskbarUpdatePreviewRegion(void);
 void                        WindowsTaskbarResetPreviewRegion(void);
 #endif
 
+const char *aboutmsg = "DOSBox-X version " VERSION " (" SDL_STRING ")\nBuild date: " UPDATED_STR "\nCopyright 2011-" COPYRIGHT_END_YEAR " The DOSBox-X Team\nProject maintainer: joncampbell123\nDOSBox-X homepage: http://dosbox-x.com";
+
+const char *intromsg = "Welcome to DOSBox-X, a complete open-source DOS emulator.\nDOSBox-X creates a DOS shell which looks like the plain DOS.\nYou can also run Windows 3.x and 9x inside the DOS machine.";
+
 /* Prepare screen for UI */
 void GUI_LoadFonts(void) {
     GUI::Font::addFont("default",new GUI::BitmapFont(int10_font_14,14,10));
@@ -1629,6 +1633,52 @@ public:
     }
 };
 
+class ShowHelpIntro : public GUI::ToplevelWindow {
+protected:
+    GUI::Input *name;
+public:
+    ShowHelpIntro(GUI::Screen *parent, int x, int y, const char *title) :
+        ToplevelWindow(parent, x, y, 580, 190, title) {
+            std::istringstream in(intromsg);
+            int r=0;
+            if (in)	for (std::string line; std::getline(in, line); ) {
+                r+=25;
+                new GUI::Label(this, 40, r, line.c_str());
+            }
+            (new GUI::Button(this, 260, 110, "Close", 70))->addActionHandler(this);
+    }
+
+    void actionExecuted(GUI::ActionEventSource *b, const GUI::String &arg) {
+        (void)b;//UNUSED
+        if (arg == "Close")
+            close();
+        if (shortcut) running = false;
+    }
+};
+
+class ShowHelpAbout : public GUI::ToplevelWindow {
+protected:
+    GUI::Input *name;
+public:
+    ShowHelpAbout(GUI::Screen *parent, int x, int y, const char *title) :
+        ToplevelWindow(parent, x, y, 420, 230, title) {
+            std::istringstream in(aboutmsg);
+            int r=0;
+            if (in)	for (std::string line; std::getline(in, line); ) {
+                r+=25;
+                new GUI::Label(this, 40, r, line.c_str());
+            }
+            (new GUI::Button(this, 180, 155, "Close", 70))->addActionHandler(this);
+    }
+
+    void actionExecuted(GUI::ActionEventSource *b, const GUI::String &arg) {
+        (void)b;//UNUSED
+        if (arg == "Close")
+            close();
+        if (shortcut) running = false;
+    }
+};
+
 class ConfigurationWindow : public GUI::ToplevelWindow {
 public:
     GUI::Button *saveButton, *closeButton;
@@ -1644,13 +1694,15 @@ public:
         bar->addItem(0,"Close");
         bar->addMenu("Settings");
         bar->addMenu("Help");
+        bar->addItem(2,"Visit Homepage");
+        bar->addItem(2,"");
         if (!dos_kernel_disabled) {
             /* these do not work until shell help text is registerd */
-            bar->addItem(2,"Introduction");
             bar->addItem(2,"Getting Started");
             bar->addItem(2,"CD-ROM Support");
             bar->addItem(2,"");
         }
+        bar->addItem(2,"Introduction");
         bar->addItem(2,"About");
         bar->addActionHandler(this);
 
@@ -1754,11 +1806,12 @@ public:
             else {
                 lookup->second->raise();
             }
+        } else if (arg == "Visit Homepage") {
+            ShellExecute(NULL, "open", "http://dosbox-x.com/", NULL, NULL, SW_SHOWNORMAL);
         } else if (arg == "About") {
-            const char *msg = PACKAGE_STRING " (C) 2002-" COPYRIGHT_END_YEAR " The DOSBox Team\nA fork of DOSBox 0.74 by TheGreatCodeholio\nBuild date: " UPDATED_STR "\n\nFor more info visit http://dosbox-x.com\nBased on DOSBox (http://dosbox.com)\n\n";
-            new GUI::MessageBox2(getScreen(), 100, 150, 480, "About DOSBox-X", msg);
+            new GUI::MessageBox2(getScreen(), 100, 150, 330, "About DOSBox-X", aboutmsg);
         } else if (arg == "Introduction") {
-            new GUI::MessageBox2(getScreen(), 20, 50, 540, "Introduction", MSG_Get("PROGRAM_INTRO"));
+            new GUI::MessageBox2(getScreen(), 20, 50, 540, "Introduction", intromsg);
         } else if (arg == "Getting Started") {
             std::string msg = MSG_Get("PROGRAM_INTRO_MOUNT_START");
 #ifdef WIN32
@@ -1992,6 +2045,14 @@ static void UI_Select(GUI::ScreenSDL *screen, int select) {
         case 32: {
             auto *np10 = new ShowDriveNumber(screen, 110, 70, "Mounted Drive Numbers");
             np10->raise();
+            } break;
+        case 33: {
+            auto *np11 = new ShowHelpIntro(screen, 70, 70, "Introduction");
+            np11->raise();
+            } break;
+        case 34: {
+            auto *np11 = new ShowHelpAbout(screen, 110, 70, "About");
+            np11->raise();
             } break;
         default:
             break;
