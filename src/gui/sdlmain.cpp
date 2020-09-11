@@ -8269,12 +8269,14 @@ bool sendkey_preset_menu_callback(DOSBoxMenu * const menu, DOSBoxMenu::item * co
 
 bool help_open_url_callback(DOSBoxMenu * const menu, DOSBoxMenu::item * const menuitem) {
     (void)menu;//UNUSED
+#if defined(_WIN32) //fixme: Linux
     if (menuitem->get_name() == "help_homepage")
         ShellExecute(NULL, "open", "http://dosbox-x.com/", NULL, NULL, SW_SHOWNORMAL);
     else if (menuitem->get_name() == "help_wiki")
         ShellExecute(NULL, "open", "https://github.com/joncampbell123/dosbox-x/wiki", NULL, NULL, SW_SHOWNORMAL);
     else if (menuitem->get_name() == "help_issue")
         ShellExecute(NULL, "open", "https://github.com/joncampbell123/dosbox-x/issues", NULL, NULL, SW_SHOWNORMAL);
+#endif
 
     return true;
 }
