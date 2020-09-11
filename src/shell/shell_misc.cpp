@@ -1146,7 +1146,7 @@ continue_1:
 			if (DOS_AllocateMemory(&segment,&blocks)) {
 				DOS_MCB mcb((Bit16u)(segment-1));
 				mcb.SetPSPSeg(0x40);
-				WriteOut("\r\n\033[33;1mDOSBox-X could not load the executable due to the above error.\033[0m\r\n\033[33;1mDOSBox-X will now try to run the executable again with LOADFIX..\033[0m\r\n");
+				WriteOut("\r\n\033[41;1m\033[1;37;1mDOSBox-X\033[0m Failed to load the executable\r\n\033[41;1m\033[37;1mDOSBox-X\033[0m Now try again with LOADFIX...\r\n");
 				infix=true;
 				Execute(name, args);
 				infix=false;
