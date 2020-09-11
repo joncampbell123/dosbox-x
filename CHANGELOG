@@ -1,4 +1,7 @@
 0.83.6
+  - The powerful SJGPLAY for DOS has been built into
+    DOSBox-X. You can now find the CDPLAY.EXE program
+    in the Z drive for playing Audio CDs. (Wengier)
   - Add new "Help" menu which includes menu items
     "Introduction", "DOSBox-X homepage", "DOSBox-X Wiki
     guide", "DOSBox-X support" and "About". (Wengier)

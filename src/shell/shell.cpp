@@ -1521,6 +1521,7 @@ void SHELL_Init() {
 		VFILE_RegisterBuiltinFileBlob(bfb_CWSDPMI_EXE);
 		VFILE_RegisterBuiltinFileBlob(bfb_DOS32A_EXE);
 		VFILE_RegisterBuiltinFileBlob(bfb_DOS4GW_EXE);
+		VFILE_RegisterBuiltinFileBlob(bfb_CDPLAY_EXE);
 		VFILE_RegisterBuiltinFileBlob(bfb_EDIT_COM);
 		VFILE_RegisterBuiltinFileBlob(bfb_TREE_EXE);
 		VFILE_RegisterBuiltinFileBlob(bfb_4DOS_COM);

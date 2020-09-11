@@ -1,5 +1,6 @@
 
 #include "dos_inc.h"
+#include "../src/builtin/cdplay.h"
 #include "../src/builtin/glide2x.h"
 #include "../src/builtin/4DOS_img.h"
 
@@ -34,5 +35,6 @@ extern struct BuiltinFileBlob bfb_25_COM_other;	// 25.COM
 extern struct BuiltinFileBlob bfb_4DOS_COM;		// 4DOS.COM
 extern struct BuiltinFileBlob bfb_4DOS_HLP;		// 4DOS.HLP
 extern struct BuiltinFileBlob bfb_4HELP_EXE;	// 4HELP.EXE
+extern struct BuiltinFileBlob bfb_CDPLAY_EXE;	// CDPLAY.EXE
 extern struct BuiltinFileBlob bfb_GLIDE2X_OVL;	// GLIDE2X.OVL
 
