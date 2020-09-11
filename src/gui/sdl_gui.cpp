@@ -695,12 +695,95 @@ public:
 std::string dispname="";
 std::string CapName(std::string name) {
     dispname = name;
-    if (name=="sdl"||name=="cpu"||name=="dos"||name=="pc98"||name=="midi"||name=="gus"||name=="ipx"||name=="ne2000")
+    if (name=="sdl"||name=="cpu"||name=="midi"||name=="gus"||name=="ipx"||name=="ne2000")
         std::transform(dispname.begin(), dispname.end(), dispname.begin(), ::toupper);
-    else if (name.substr(0, 5)=="ide, "||name.substr(0, 5)=="fdc, ")
-        for (int i=0; i<6; i++) dispname[i] = std::toupper(name[i]);
+    else if (name=="dosbox")
+        dispname="Main";
+    else if (name=="pc98")
+        dispname="PC-98";
+    else if (name=="vsync")
+        dispname="V-Sync";
+    else if (name=="dos")
+        dispname="DOS Settings";
+    else if (name=="4dos")
+        dispname="4DOS.INI";
+    else if (name=="config")
+        dispname="CONFIG.SYS";
+    else if (name=="autoexec")
+        dispname="AUTOEXEC.BAT";
+    else if (name=="sblaster")
+        dispname="Sound Blaster";
+    else if (name=="speaker")
+        dispname="PC Speaker";
+    else if (name=="serial")
+        dispname="Serial Ports";
+    else if (name=="parallel")
+        dispname="Parallel Ports";
+    else if (name=="fdc, primary")
+        dispname="Floppy Port #1";
+    else if (name=="ide, primary")
+        dispname="IDE Port #1";
+    else if (name=="ide, secondary")
+        dispname="IDE Port #2";
+    else if (name=="ide, tertiary")
+        dispname="IDE Port #3";
+    else if (name=="ide, quaternary")
+        dispname="IDE Port #4";
+    else if (name=="ide, quinternary")
+        dispname="IDE Port #5";
+    else if (name=="ide, sexternary")
+        dispname="IDE Port #6";
+    else if (name=="ide, septernary")
+        dispname="IDE Port #7";
+    else if (name=="ide, octernary")
+        dispname="IDE Port #8";
     else
         dispname[0] = std::toupper(name[0]);
+    return dispname;
+}
+
+std::string RestoreName(std::string name) {
+    dispname = name;
+    if (name=="Main")
+        dispname="dosbox";
+    else if (name=="PC-98")
+        dispname="pc98";
+    else if (name=="V-Sync")
+        dispname="vsync";
+    else if (name=="DOS Settings")
+        dispname="dos";
+    else if (name=="4DOS.INI")
+        dispname="4dos";
+    else if (name=="CONFIG.SYS")
+        dispname="config";
+    else if (name=="AUTOEXEC.BAT")
+        dispname="autoexec";
+    else if (name=="Sound Blaster")
+        dispname="sblaster";
+    else if (name=="PC Speaker")
+        dispname="speaker";
+    else if (name=="Serial Ports")
+        dispname="serial";
+    else if (name=="Parallel Ports")
+        dispname="parallel";
+    else if (name=="Floppy Port #1")
+        dispname="fdc, primary";
+    else if (name=="IDE Port #1")
+        dispname="ide, primary";
+    else if (name=="IDE Port #2")
+        dispname="ide, secondary";
+    else if (name=="IDE Port #3")
+        dispname="ide, tertiary";
+    else if (name=="IDE Port #4")
+        dispname="ide, quaternary";
+    else if (name=="IDE Port #5")
+        dispname="ide, quinternary";
+    else if (name=="IDE Port #6")
+        dispname="ide, sexternary";
+    else if (name=="IDE Port #7")
+        dispname="ide, septernary";
+    else if (name=="IDE Port #8")
+        dispname="ide, octernary";
     return dispname;
 }
 
@@ -719,10 +802,10 @@ public:
         }
 
         std::string title(section->GetName());
-        title=CapName(title);
-        setTitle("Help for "+title);
+        setTitle("Help for "+CapName(title));
+        title[0] = std::toupper(title[0]);
 
-        Section_prop* sec = dynamic_cast<Section_prop*>(section);
+        Section_prop* sec = dynamic_cast<Section_prop*>(title.substr(0, 4)=="Ide,"?control->GetSection("ide, primary"):section);
         if (sec) {
             std::string msg;
             Property *p;
@@ -802,8 +885,8 @@ public:
             move(this->x,parent->getHeight() - this->getHeight());
 
         std::string title(section->GetName());
-        title=CapName(title);
-        setTitle("Configuration for "+title);
+        setTitle("Configuration for "+CapName(title));
+        title[0] = std::toupper(title[0]);
 
         GUI::Button *b = new GUI::Button(this, button_row_cx, button_row_y, "Help", button_w);
         b->addActionHandler(this);
@@ -968,8 +1051,8 @@ public:
             scroll_h = allowed_dialog_y;
 
         std::string title(section->GetName());
+        setTitle("Configuration for "+CapName(title));
         title[0] = std::toupper(title[0]);
-        setTitle("Configuration for "+title);
 
 		char extra_data[4096] = { 0 };
 		const char * extra = const_cast<char*>(section->data.c_str());
@@ -1784,7 +1867,7 @@ public:
     }
 
     void actionExecuted(GUI::ActionEventSource *b, const GUI::String &arg) {
-        GUI::String sname = arg;
+        GUI::String sname = RestoreName(arg);
         sname.at(0) = (unsigned int)std::tolower((int)sname.at(0));
         Section *sec;
         if (arg == "Close" || arg == "Cancel" || arg == "Close") {

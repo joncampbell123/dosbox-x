@@ -7,8 +7,9 @@
     is corrupt" error. Also added the "autoloadfix"
     config option which when set to "false" will not
     automatically re-run such programs. (Wengier)
-  - Some section names in the Configuration GUI have
-    been capitalized for a better looking. (Wengier)
+  - The display for several section names in DOSBox-X's
+    Configuration GUI have been capitalized or modified
+    otherwise for a better looking. (Wengier)
   - Added the "Show advanced options" checkbox in the
     main screen of the Configuration GUI to toggle
     whether to display all config options for the
