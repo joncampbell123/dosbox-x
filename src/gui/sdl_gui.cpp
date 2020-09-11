@@ -102,6 +102,10 @@ void                        WindowsTaskbarUpdatePreviewRegion(void);
 void                        WindowsTaskbarResetPreviewRegion(void);
 #endif
 
+const char *aboutmsg = "DOSBox-X version " VERSION " (" SDL_STRING ")\nBuild date: " UPDATED_STR "\nCopyright 2011-" COPYRIGHT_END_YEAR " The DOSBox-X Team\nProject maintainer: joncampbell123\nDOSBox-X homepage: http://dosbox-x.com";
+
+const char *intromsg = "Welcome to DOSBox-X, a complete open-source DOS emulator.\nDOSBox-X creates a DOS shell which looks like the plain DOS.\nYou can also run Windows 3.x and 9x inside the DOS machine.";
+
 /* Prepare screen for UI */
 void GUI_LoadFonts(void) {
     GUI::Font::addFont("default",new GUI::BitmapFont(int10_font_14,14,10));
@@ -682,6 +686,7 @@ public:
     }
 };
 
+GUI::Checkbox *advopt;
 static std::map< std::vector<GUI::Char>, GUI::ToplevelWindow* > cfg_windows_active;
 
 class HelpWindow : public GUI::MessageBox2 {
@@ -706,6 +711,7 @@ public:
             int i = 0;
             while ((p = sec->Get_prop(i++))) {
                 std::string help=title=="4dos"&&p->propname=="rem"?"This is the 4DOS.INI file (if you use 4DOS as the command shell).":p->Get_help();
+                if (title!="4dos" && title!="Config" && title!="Autoexec" && !advopt->isChecked() && !p->basic()) continue;
                 msg += std::string("\033[31m")+p->propname+":\033[0m\n"+help+"\n\n";
             }
             if (!msg.empty()) msg.replace(msg.end()-1,msg.end(),"");
@@ -746,12 +752,15 @@ public:
         int button_row_h = 26;
         int button_row_padding_y = 5 + 5;
 
-        int num_prop = 0;
-        while (section->Get_prop(num_prop) != NULL) num_prop++;
+        int num_prop = 0, k=0;
+        while (section->Get_prop(num_prop) != NULL) {
+            if (advopt->isChecked() || section->Get_prop(num_prop)->basic()) k++;
+            num_prop++;
+        }
 
         int allowed_dialog_y = parent->getHeight() - 25 - (border_top + border_bottom) - 50;
 
-        int items_per_col = num_prop;
+        int items_per_col = k;
         int columns = 1;
 
         int scroll_h = items_per_col * row_height;
@@ -778,18 +787,19 @@ public:
         title[0] = std::toupper(title[0]);
         setTitle("Configuration for "+title);
 
-        GUI::Button *b = new GUI::Button(this, button_row_cx, button_row_y, "Cancel", button_w);
+        GUI::Button *b = new GUI::Button(this, button_row_cx, button_row_y, "Help", button_w);
+        b->addActionHandler(this);
+
+        b = new GUI::Button(this, button_row_cx + (button_w + button_pad_w), button_row_y, "Cancel", button_w);
         b->addActionHandler(this);
         closeButton = b;
 
-        b = new GUI::Button(this, button_row_cx + (button_w + button_pad_w), button_row_y, "Help", button_w);
-        b->addActionHandler(this);
-
         b = new GUI::Button(this, button_row_cx + (button_w + button_pad_w)*2, button_row_y, "OK", button_w);
 
-        int i = 0;
+        int i = 0, j = 0;
         Property *prop;
         while ((prop = section->Get_prop(i))) {
+            if (!advopt->isChecked() && !prop->basic()) {i++;continue;}
             Prop_bool   *pbool   = dynamic_cast<Prop_bool*>(prop);
             Prop_int    *pint    = dynamic_cast<Prop_int*>(prop);
             Prop_double  *pdouble  = dynamic_cast<Prop_double*>(prop);
@@ -799,16 +809,17 @@ public:
             Prop_multival_remain* pmulti_remain = dynamic_cast<Prop_multival_remain*>(prop);
 
             PropertyEditor *p;
-            if (pbool) p = new PropertyEditorBool(wiw, column_width*(i/items_per_col), (i%items_per_col)*row_height, section, prop);
-            else if (phex) p = new PropertyEditorHex(wiw, column_width*(i/items_per_col), (i%items_per_col)*row_height, section, prop);
-            else if (pint) p = new PropertyEditorInt(wiw, column_width*(i/items_per_col), (i%items_per_col)*row_height, section, prop);
-            else if (pdouble) p = new PropertyEditorFloat(wiw, column_width*(i/items_per_col), (i%items_per_col)*row_height, section, prop);
-            else if (pstring) p = new PropertyEditorString(wiw, column_width*(i/items_per_col), (i%items_per_col)*row_height, section, prop);
-            else if (pmulti) p = new PropertyEditorString(wiw, column_width*(i/items_per_col), (i%items_per_col)*row_height, section, prop);
-            else if (pmulti_remain) p = new PropertyEditorString(wiw, column_width*(i/items_per_col), (i%items_per_col)*row_height, section, prop);
+            if (pbool) p = new PropertyEditorBool(wiw, column_width*(j/items_per_col), (j%items_per_col)*row_height, section, prop);
+            else if (phex) p = new PropertyEditorHex(wiw, column_width*(j/items_per_col), (j%items_per_col)*row_height, section, prop);
+            else if (pint) p = new PropertyEditorInt(wiw, column_width*(j/items_per_col), (j%items_per_col)*row_height, section, prop);
+            else if (pdouble) p = new PropertyEditorFloat(wiw, column_width*(j/items_per_col), (j%items_per_col)*row_height, section, prop);
+            else if (pstring) p = new PropertyEditorString(wiw, column_width*(j/items_per_col), (j%items_per_col)*row_height, section, prop);
+            else if (pmulti) p = new PropertyEditorString(wiw, column_width*(j/items_per_col), (j%items_per_col)*row_height, section, prop);
+            else if (pmulti_remain) p = new PropertyEditorString(wiw, column_width*(j/items_per_col), (j%items_per_col)*row_height, section, prop);
             else { i++; continue; }
             b->addActionHandler(p);
             i++;
+            j++;
         }
         b->addActionHandler(this);
 
@@ -1622,6 +1633,52 @@ public:
     }
 };
 
+class ShowHelpIntro : public GUI::ToplevelWindow {
+protected:
+    GUI::Input *name;
+public:
+    ShowHelpIntro(GUI::Screen *parent, int x, int y, const char *title) :
+        ToplevelWindow(parent, x, y, 580, 190, title) {
+            std::istringstream in(intromsg);
+            int r=0;
+            if (in)	for (std::string line; std::getline(in, line); ) {
+                r+=25;
+                new GUI::Label(this, 40, r, line.c_str());
+            }
+            (new GUI::Button(this, 260, 110, "Close", 70))->addActionHandler(this);
+    }
+
+    void actionExecuted(GUI::ActionEventSource *b, const GUI::String &arg) {
+        (void)b;//UNUSED
+        if (arg == "Close")
+            close();
+        if (shortcut) running = false;
+    }
+};
+
+class ShowHelpAbout : public GUI::ToplevelWindow {
+protected:
+    GUI::Input *name;
+public:
+    ShowHelpAbout(GUI::Screen *parent, int x, int y, const char *title) :
+        ToplevelWindow(parent, x, y, 420, 230, title) {
+            std::istringstream in(aboutmsg);
+            int r=0;
+            if (in)	for (std::string line; std::getline(in, line); ) {
+                r+=25;
+                new GUI::Label(this, 40, r, line.c_str());
+            }
+            (new GUI::Button(this, 180, 155, "Close", 70))->addActionHandler(this);
+    }
+
+    void actionExecuted(GUI::ActionEventSource *b, const GUI::String &arg) {
+        (void)b;//UNUSED
+        if (arg == "Close")
+            close();
+        if (shortcut) running = false;
+    }
+};
+
 class ConfigurationWindow : public GUI::ToplevelWindow {
 public:
     GUI::Button *saveButton, *closeButton;
@@ -1637,17 +1694,22 @@ public:
         bar->addItem(0,"Close");
         bar->addMenu("Settings");
         bar->addMenu("Help");
+        bar->addItem(2,"Visit Homepage");
+        bar->addItem(2,"");
         if (!dos_kernel_disabled) {
             /* these do not work until shell help text is registerd */
-            bar->addItem(2,"Introduction");
             bar->addItem(2,"Getting Started");
             bar->addItem(2,"CD-ROM Support");
             bar->addItem(2,"");
         }
+        bar->addItem(2,"Introduction");
         bar->addItem(2,"About");
         bar->addActionHandler(this);
 
         new GUI::Label(this, 10, 30, "Choose a settings group to configure:");
+        advopt = new GUI::Checkbox(this, 340, 30, "Show advanced options");
+        Section_prop * section=static_cast<Section_prop *>(control->GetSection("dosbox"));
+        advopt->setChecked(section->Get_bool("show advanced options"));
 
         Section *sec;
         int gridbtnwidth = 130;
@@ -1744,11 +1806,12 @@ public:
             else {
                 lookup->second->raise();
             }
+        } else if (arg == "Visit Homepage") {
+            ShellExecute(NULL, "open", "http://dosbox-x.com/", NULL, NULL, SW_SHOWNORMAL);
         } else if (arg == "About") {
-            const char *msg = PACKAGE_STRING " (C) 2002-" COPYRIGHT_END_YEAR " The DOSBox Team\nA fork of DOSBox 0.74 by TheGreatCodeholio\nBuild date: " UPDATED_STR "\n\nFor more info visit http://dosbox-x.com\nBased on DOSBox (http://dosbox.com)\n\n";
-            new GUI::MessageBox2(getScreen(), 100, 150, 480, "About DOSBox-X", msg);
+            new GUI::MessageBox2(getScreen(), 100, 150, 330, "About DOSBox-X", aboutmsg);
         } else if (arg == "Introduction") {
-            new GUI::MessageBox2(getScreen(), 20, 50, 540, "Introduction", MSG_Get("PROGRAM_INTRO"));
+            new GUI::MessageBox2(getScreen(), 20, 50, 540, "Introduction", intromsg);
         } else if (arg == "Getting Started") {
             std::string msg = MSG_Get("PROGRAM_INTRO_MOUNT_START");
 #ifdef WIN32
@@ -1982,6 +2045,14 @@ static void UI_Select(GUI::ScreenSDL *screen, int select) {
         case 32: {
             auto *np10 = new ShowDriveNumber(screen, 110, 70, "Mounted Drive Numbers");
             np10->raise();
+            } break;
+        case 33: {
+            auto *np11 = new ShowHelpIntro(screen, 70, 70, "Introduction");
+            np11->raise();
+            } break;
+        case 34: {
+            auto *np11 = new ShowHelpAbout(screen, 110, 70, "About");
+            np11->raise();
             } break;
         default:
             break;

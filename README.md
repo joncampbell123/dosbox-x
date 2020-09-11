@@ -1,9 +1,24 @@
+
 **Welcome to the DOSBox-X project website located on GitHub.**
 
 **Be sure to also visit DOSBox-X's homepage at [http://dosbox-x.com](http://dosbox-x.com)**
 
-Introduction to DOSBox-X
-------------------------
+## Table of Contents
+
+- [Introduction to DOSBox-X](#introduction-to-dosbox-x)
+- [Notable features in DOSBox-X](#notable-features-in-dosbox-x)
+- [DOSBox-X supported platforms and releases](#dosbox-x-supported-platforms-and-releases)
+- [Compatibility with DOS programs and games](#compatibility-with-dos-programs-and-games)
+- [Contributing to DOSBox-X](#contributing-to-dosbox-x)
+- [DOSBox-X development and release pattern](#dosbox-x-development-and-release-pattern)
+- [Future development experiments](#future-development-experiments)
+- [Software security comments](#software-security-comments)
+- [Features that DOSBox-X is unlikely to support at this time](#features-that-dosbox-x-is-unlikely-to-support-at-this-time)
+- [Origin and history of the DOSBox-X project](#origin-and-history-of-the-dosbox-x-project)
+- [Known DOSBox-X forks](#known-dosbox-x-forks)
+- [Support for international language translations and keyboard layouts](#support-for-international-language-translations-and-keyboard-layouts)
+
+## Introduction to DOSBox-X
 
 DOSBox-X is a cross-platform DOS emulator based on the DOSBox project (www.dosbox.com).
 
@@ -22,8 +37,7 @@ Brought to you by: joncampbell123 (Jonathan Campbell)
 New information will be added to this README over time.
 
 
-Notable features in DOSBox-X
-----------------------------
+## Notable features in DOSBox-X
 
 Although based on the DOSBox project, DOSBox-X is now a separate project because both have their own separate schedules and development priorities. For example, the main focus of DOSBox is for running DOS games whereas DOSBox-X goes way beyond this. At this time DOSBox-X already has a great number of features that do not exist in DOSBox. Examples of such features include:
 
@@ -62,30 +76,28 @@ While the great majority of features in DOSBox-X are cross-platform, DOSBox-X do
 DOSBox-X officially supports both SDL 1.2 and SDL 2.0; both 32-bit and 64-bit builds are also supported.
 
 
-DOSBox-X's supported platforms and releases
--------------------------------------------
+## DOSBox-X supported platforms and releases
 
 DOSBox-X is a cross-platform DOS emulator, so all major host operating systems are officially supported, including:
 
-1. Windows XP or higher, 32-bit and 64-bit
+1. Windows (XP or higher), 32-bit and 64-bit
 
 2. Linux (with X11), 32-bit and 64-bit
 
 3. macOS (Mac OS X) Sierra 10.12 or higher 64-bit
 
-4. MS-DOS or compatible (special HX-DOS versions)
+4. DOS (MS-DOS 5.0+ or compatible)
 
 Windows binaries (both 32-bit and 64-bit), Linux RPM packages (64-bit), macOS packages (64-bit) and DOS versions are officially released periodically, typically on the last day of a month or the first day of the next month. Please check out the [DOSBox-X homepage](http://dosbox-x.com) and the [INSTALL](INSTALL.md) page for the latest DOSBox-X packages on these platforms and further installation instructions. You can also find ZIP (or Linux RPM) packages for all released versions and their change logs in the [Releases](https://github.com/joncampbell123/dosbox-x/releases) page. 
 
-The latest version of DOSBox-X was released on September 1, 2020. If you use Windows, please note that the default Windows releases built with Visual Studio only support Windows Vista and later (Windows 7, 8, and 10); for Windows XP, the MinGW builds are required. Auto-installable Windows packages for DOSBox-X are also available to ease the installation process, which are especially recommended for new and non-expert users. If you use the installers you will be able to start DOSBox-X as soon as the installation ends. The all-in-one Windows installer for the latest official version of DOSBox-X can be downloaded from: [DOSBox-X-Setup-Windows-latest.exe](https://github.com/Wengier/dosbox-x-wiki/raw/master/DOSBox-X-Setup-Windows-latest.exe)
+The latest version of DOSBox-X was released on September 1, 2020. If you use Windows, please note that the default Windows releases built with Visual Studio only support Windows Vista and later (Windows 7, 8, and 10); for Windows XP, the MinGW builds are required. Auto-installable Windows packages for DOSBox-X are available to ease the installation process, which are especially recommended for new and non-expert users. If you use the installers you will be able to start DOSBox-X as soon as the installation ends. The all-in-one Windows installer for the latest official version of DOSBox-X can be downloaded from: [DOSBox-X-Setup-Windows-latest.exe](https://github.com/Wengier/dosbox-x-wiki/raw/master/DOSBox-X-Setup-Windows-latest.exe)
 
-For running DOSBox-X in a real DOS system (MS-DOS or compatible), please use the special HX-DOS builds. It is achieved with the help of the freely-available [HX DOS Extender](https://github.com/Baron-von-Riedesel/HX), which is already included in the recent HX-DOS release packages. However, not all features of DOSBox-X can be supported in this environment. Moreover, while the HX-DOS builds may sometimes happen to also run on Windows, they are made for the HX DOS Extender environment so it is strongly recommended to use the Visual Studio or MinGW builds (both included in the Windows installer) for the Windows platform instead.
+For running DOSBox-X in a real DOS system (MS-DOS or compatible), please use the special HX-DOS builds included in the DOS packages. It is achieved with the help of the freely-available [HX DOS Extender](https://github.com/Baron-von-Riedesel/HX), which is already included in the recent DOS release packages. However, not all features of DOSBox-X that are supported in other platforms can be supported in this environment.
 
 The full source code is officially provided with each DOSBox-X release, which may be compiled to run on the above and other operating systems too. You can also get the latest development source code from the repository directly. See also the [DOSBox-X source code description](README.source-code-description) page for information on compiling the source code.
 
 
-Compatibility with DOS programs and games
------------------------------------------
+## Compatibility with DOS programs and games
 
 With the eventual goal of being a complete emulation package that covers all pre-2000 DOS and Windows 3.x/9x based hardware scenarios, we are making efforts to ensure that the vast majority of DOS games and applications will run in DOSBox-X, and these include both text-mode and graphical-mode DOS programs. Microsoft Windows versions that are largely DOS-based (such as Windows 3.x and 9x) are officially supported by DOSBox-X as well. Note that certain config settings may need to be changed from the default ones for some of these programs to work smoothly. Take a look at the [DOSBox-X Wiki](https://github.com/joncampbell123/dosbox-x/wiki) for more information.
 
@@ -94,8 +106,7 @@ Efforts are also made to aid retro DOS developments by attempting to accurately 
 We add new features and make other improvements in every new DOSBox-X version, so its compatibility with DOS programs and games are also improving over time. If you have some issue with a specific DOS program or game, please feel free to post it in the [issue tracker](https://github.com/joncampbell123/dosbox-x/issues).
 
 
-Contributing to DOSBox-X
-------------------------
+## Contributing to DOSBox-X
 
 We encourage new contributors by removing barriers to entry.
 Ideas and patches are always welcome, though not necessarily accepted.
@@ -133,8 +144,7 @@ Information about the debugger is also available in the
 See also the [CREDITS](CREDITS.md) page for crediting information.
 
 
-DOSBox-X’s development/release pattern
---------------------------------------
+## DOSBox-X development and release pattern
 
 In order to make DOSBox-X's development process more smooth, we have implemented a general development/release pattern for DOSBox-X. The current release pattern for DOSBox-X is as follows:
 
@@ -145,8 +155,7 @@ For example, suppose August is the current month - August 25th will be the day p
 This is DOSBox-X’s official release pattern, although it may change later.
 
 
-Future development experiments
-------------------------------
+## Future development experiments
 
 Scattered experiments and small projects are in experiments/ as proving grounds for future revisions to DOSBox-X and its codebase.
 
@@ -159,8 +168,7 @@ There are also patches in patch-integration/ for possible feature integations in
 See also [General TODO.txt](PLANS/General%20TODO.txt) for some plans of future DOSBox-X developments.
 
 
-Software security comments
---------------------------
+## Software security comments
 
 DOSBox-X cannot claim to be a "secure" application. It contains a lot of
 code designed for performance, not security. There may be vulnerabilities,
@@ -182,8 +190,7 @@ If your Linux distribution has it enabled, consider using the auditing
 system to limit what the DOSBox-X executable is allowed to do.
 
 
-Features that DOSBox-X is unlikely to support at this time
-----------------------------------------------------------
+## Features that DOSBox-X is unlikely to support at this time
 
 DOSBox-X aims to be a fully-featured DOS emulation package, but there are
 some things the design as implemented now cannot accomodate.
@@ -275,8 +282,7 @@ some things the design as implemented now cannot accomodate.
   the QBasic/TurboBasic runtime to use software emulation instead.
 
 
-Origin and history of the DOSBox-X project
-------------------------------------------
+## Origin and history of the DOSBox-X project
 
 DOSBox-X started as a fork of the original DOSBox project sometime
 in mid-2011. It was started out of a desire to improve the emulator
@@ -288,8 +294,9 @@ DOS games. This is evident by the fact that much of the code is
 somewhat accurate code with kludges to make DOS games run,
 instead of focusing on what hardware actually does.
 
-Many of the changes I wanted to make were non-game related, and
-therefore were unlikely to be accepted by the DOSBox developers.
+Many of the changes I (the DOSBox-X project maintainer) wanted to
+make were non-game related, and therefore were unlikely to be
+accepted by the DOSBox developers.
 
 Since then, I have been modifying the source code over time to
 improve emulation, fix bugs, and resolve incompatibilities with
@@ -304,7 +311,7 @@ The original DOSBox project was not written by one programmer. It
 has been under development since late 2000 with patches, fixes,
 and improvements from members all over the Vogons forums. Despite
 not having a major official release since DOSBox 0.74 over 10
-years ago, the project is still in active development today.
+years ago, the project is still in semi-active development today.
 Meanwhile, some of the changes themselves incorporated code from
 other projects.
 
@@ -313,18 +320,19 @@ branch of DOSBox known as [DOSBox SVN Daum](http://ykhwong.x-y.net)
 which itself incorporated features from the original DOSBox
 project, DOSBox-X, and many experimental patches. Although the
 Daum branch seems to be dead, the features borrowed from it still
-exists in DOSBox-X.
+exists in DOSBox-X. Later on, DOSBox-X also incorporated several
+features and improvements from other projects such as [DOSBox ECE](https://dosboxece.yesterplay.net/),
+[dosbox-staging](https://dosbox-staging.github.io/) and [vDosPlus](http://www.vdosplus.org/).
 
-Later on, DOSBox-X also incorporated several features and improvements
-from other projects such as [DOSBox ECE](https://dosboxece.yesterplay.net/), [dosbox-staging](https://dosbox-staging.github.io/) and
-[vDosPlus](http://www.vdosplus.org/), with major improvements and works from its contributors
-such as Wengier, Allofich, and rderooy.
+The DOSBox-X project is also helped by its other developers and
+contributors such as Wengier, aybe, Allofich, and rderooy, who have
+done significant work to improve the DOSBox-X project, including
+creating the documentation and porting code from other projects.
 
 See also the [CREDITS](CREDITS.md) page for crediting of the source code.
 
 
-Known DOSBox-X forks
---------------------
+## Known DOSBox-X forks
 
 DOSBox-X Emscripten port (runnable in a web browser) by Yksoft1.
 Significant changes are made in order to run efficiently within the web browser when compiled using LLVM/Emscripten.
@@ -333,8 +341,7 @@ These significant changes require dropping some useful features (including the m
 URL: https://github.com/yksoft1/dosbox-x-vanilla-sdl/tree/emscripten (look for clone URL and use the emscripten branch)
 
 
-Support for international language translations and keyboard layouts
---------------------------------------------------------------------
+## Support for international language translations and keyboard layouts
 
 DOSBox-X displays English as the default language, and uses the U.S. code page (437) by default, just like DOSBox.
 

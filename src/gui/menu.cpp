@@ -102,6 +102,7 @@ static const char *def_menu__toplevel[] =
     "CaptureMenu",
 #endif
     "DriveMenu",
+    "HelpMenu",
     NULL
 };
 
@@ -617,6 +618,21 @@ static const char *def_menu_drive[] =
     "DriveY",
     "DriveZ",
 
+    NULL
+};
+
+/* help menu ("HelpMenu") */
+static const char *def_menu_help[] =
+{
+    "help_intro",
+#if !defined(HX_DOS)
+    "--",
+    "help_homepage",
+    "help_wiki",
+    "help_issue",
+#endif
+    "--",
+    "help_about",
     NULL
 };
 
@@ -1375,6 +1391,11 @@ void ConstructMenu(void) {
             }
         }
     }
+
+#if !defined(HX_DOS)
+    /* help menu */
+    ConstructSubMenu(mainMenu.get_item("HelpMenu").get_master_id(), def_menu_help);
+#endif
 }
 
 bool MENU_SetBool(std::string secname, std::string value) {

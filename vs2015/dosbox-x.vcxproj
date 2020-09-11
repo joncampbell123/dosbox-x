@@ -347,11 +347,11 @@
       </Message>
     </CustomBuildStep>
     <PostBuildEvent>
-      <Command>copy "$(SolutionDir)\..\font\FREECG98.BMP" "$(OutputPath)\FREECG98.BMP"
+	    <Command>copy "$(SolutionDir)\..\contrib\fonts\FREECG98.BMP" "$(OutputPath)\FREECG98.BMP"
 copy "$(SolutionDir)\..\dosbox-x.reference.conf" "$(OutputPath)\dosbox-x.reference.conf"
 copy "$(SolutionDir)\..\CHANGELOG" "$(OutputPath)\changelog.txt"
 mkdir "$(OutputPath)\shaders"
-copy "$(SolutionDir)\..\shaders\*.*" "$(OutputPath)\shaders\"</Command>
+copy "$(SolutionDir)\..\contrib\shaders\*.*" "$(OutputPath)\shaders\"</Command>
     </PostBuildEvent>
     <PostBuildEvent>
       <Message>
@@ -381,11 +381,11 @@ copy "$(SolutionDir)\..\shaders\*.*" "$(OutputPath)\shaders\"</Command>
       </Message>
     </CustomBuildStep>
     <PostBuildEvent>
-      <Command>copy "$(SolutionDir)\..\font\FREECG98.BMP" "$(OutputPath)\FREECG98.BMP"
+	    <Command>copy "$(SolutionDir)\..\contrib\fonts\FREECG98.BMP" "$(OutputPath)\FREECG98.BMP"
 copy "$(SolutionDir)\..\dosbox-x.reference.conf" "$(OutputPath)\dosbox-x.reference.conf"
 copy "$(SolutionDir)\..\CHANGELOG" "$(OutputPath)\changelog.txt"
 mkdir "$(OutputPath)\shaders"
-copy "$(SolutionDir)\..\shaders\*.*" "$(OutputPath)\shaders\"</Command>
+copy "$(SolutionDir)\..\contrib\shaders\*.*" "$(OutputPath)\shaders\"</Command>
     </PostBuildEvent>
     <PostBuildEvent>
       <Message>
@@ -411,11 +411,11 @@ copy "$(SolutionDir)\..\shaders\*.*" "$(OutputPath)\shaders\"</Command>
       <SubSystem>Windows</SubSystem>
     </Link>
     <PostBuildEvent>
-      <Command>copy "$(SolutionDir)\..\font\FREECG98.BMP" "$(OutputPath)\FREECG98.BMP"
+	    <Command>copy "$(SolutionDir)\..\contrib\fonts\FREECG98.BMP" "$(OutputPath)\FREECG98.BMP"
 copy "$(SolutionDir)\..\dosbox-x.reference.conf" "$(OutputPath)\dosbox-x.reference.conf"
 copy "$(SolutionDir)\..\CHANGELOG" "$(OutputPath)\changelog.txt"
 mkdir "$(OutputPath)\shaders"
-copy "$(SolutionDir)\..\shaders\*.*" "$(OutputPath)\shaders\"</Command>
+copy "$(SolutionDir)\..\contrib\shaders\*.*" "$(OutputPath)\shaders\"</Command>
       <Message>
       </Message>
     </PostBuildEvent>
@@ -442,11 +442,11 @@ copy "$(SolutionDir)\..\shaders\*.*" "$(OutputPath)\shaders\"</Command>
       <SubSystem>Windows</SubSystem>
     </Link>
     <PostBuildEvent>
-      <Command>copy "$(SolutionDir)\..\font\FREECG98.BMP" "$(OutputPath)\FREECG98.BMP"
+      <Command>copy "$(SolutionDir)\..\contrib\fonts\FREECG98.BMP" "$(OutputPath)\FREECG98.BMP"
 copy "$(SolutionDir)\..\dosbox-x.reference.conf" "$(OutputPath)\dosbox-x.reference.conf"
 copy "$(SolutionDir)\..\CHANGELOG" "$(OutputPath)\changelog.txt"
 mkdir "$(OutputPath)\shaders"
-copy "$(SolutionDir)\..\shaders\*.*" "$(OutputPath)\shaders\"</Command>
+copy "$(SolutionDir)\..\contrib\shaders\*.*" "$(OutputPath)\shaders\"</Command>
       <Message>
       </Message>
     </PostBuildEvent>
@@ -473,11 +473,11 @@ copy "$(SolutionDir)\..\shaders\*.*" "$(OutputPath)\shaders\"</Command>
       <SubSystem>Windows</SubSystem>
     </Link>
     <PostBuildEvent>
-      <Command>copy "$(SolutionDir)\..\font\FREECG98.BMP" "$(OutputPath)\FREECG98.BMP"
+      <Command>copy "$(SolutionDir)\..\contrib\fonts\FREECG98.BMP" "$(OutputPath)\FREECG98.BMP"
 copy "$(SolutionDir)\..\dosbox-x.reference.conf" "$(OutputPath)\dosbox-x.reference.conf"
 copy "$(SolutionDir)\..\CHANGELOG" "$(OutputPath)\changelog.txt"
 mkdir "$(OutputPath)\shaders"
-copy "$(SolutionDir)\..\shaders\*.*" "$(OutputPath)\shaders\"</Command>
+copy "$(SolutionDir)\..\contrib\shaders\*.*" "$(OutputPath)\shaders\"</Command>
       <Message>
       </Message>
     </PostBuildEvent>
@@ -506,11 +506,11 @@ copy "$(SolutionDir)\..\shaders\*.*" "$(OutputPath)\shaders\"</Command>
       <SubSystem>Windows</SubSystem>
     </Link>
     <PostBuildEvent>
-      <Command>copy "$(SolutionDir)\..\font\FREECG98.BMP" "$(OutputPath)\FREECG98.BMP"
+      <Command>copy "$(SolutionDir)\..\contrib\fonts\FREECG98.BMP" "$(OutputPath)\FREECG98.BMP"
 copy "$(SolutionDir)\..\dosbox-x.reference.conf" "$(OutputPath)\dosbox-x.reference.conf"
 copy "$(SolutionDir)\..\CHANGELOG" "$(OutputPath)\changelog.txt"
 mkdir "$(OutputPath)\shaders"
-copy "$(SolutionDir)\..\shaders\*.*" "$(OutputPath)\shaders\"</Command>
+copy "$(SolutionDir)\..\contrib\shaders\*.*" "$(OutputPath)\shaders\"</Command>
       <Message>
       </Message>
     </PostBuildEvent>
@@ -537,11 +537,11 @@ copy "$(SolutionDir)\..\shaders\*.*" "$(OutputPath)\shaders\"</Command>
       <SubSystem>Windows</SubSystem>
     </Link>
     <PostBuildEvent>
-      <Command>copy "$(SolutionDir)\..\font\FREECG98.BMP" "$(OutputPath)\FREECG98.BMP"
+      <Command>copy "$(SolutionDir)\..\contrib\fonts\FREECG98.BMP" "$(OutputPath)\FREECG98.BMP"
 copy "$(SolutionDir)\..\dosbox-x.reference.conf" "$(OutputPath)\dosbox-x.reference.conf"
 copy "$(SolutionDir)\..\CHANGELOG" "$(OutputPath)\changelog.txt"
 mkdir "$(OutputPath)\shaders"
-copy "$(SolutionDir)\..\shaders\*.*" "$(OutputPath)\shaders\"</Command>
+copy "$(SolutionDir)\..\contrib\shaders\*.*" "$(OutputPath)\shaders\"</Command>
       <Message>
       </Message>
     </PostBuildEvent>
@@ -568,11 +568,11 @@ copy "$(SolutionDir)\..\shaders\*.*" "$(OutputPath)\shaders\"</Command>
       <SubSystem>Windows</SubSystem>
     </Link>
     <PostBuildEvent>
-      <Command>copy "$(SolutionDir)\..\font\FREECG98.BMP" "$(OutputPath)\FREECG98.BMP"
+      <Command>copy "$(SolutionDir)\..\contrib\fonts\FREECG98.BMP" "$(OutputPath)\FREECG98.BMP"
 copy "$(SolutionDir)\..\dosbox-x.reference.conf" "$(OutputPath)\dosbox-x.reference.conf"
 copy "$(SolutionDir)\..\CHANGELOG" "$(OutputPath)\changelog.txt"
 mkdir "$(OutputPath)\shaders"
-copy "$(SolutionDir)\..\shaders\*.*" "$(OutputPath)\shaders\"</Command>
+copy "$(SolutionDir)\..\contrib\shaders\*.*" "$(OutputPath)\shaders\"</Command>
       <Message>
       </Message>
     </PostBuildEvent>
@@ -605,11 +605,11 @@ copy "$(SolutionDir)\..\shaders\*.*" "$(OutputPath)\shaders\"</Command>
       </Message>
     </CustomBuildStep>
     <PostBuildEvent>
-      <Command>copy "$(SolutionDir)\..\font\FREECG98.BMP" "$(OutputPath)\FREECG98.BMP"
+      <Command>copy "$(SolutionDir)\..\contrib\fonts\FREECG98.BMP" "$(OutputPath)\FREECG98.BMP"
 copy "$(SolutionDir)\..\dosbox-x.reference.conf" "$(OutputPath)\dosbox-x.reference.conf"
 copy "$(SolutionDir)\..\CHANGELOG" "$(OutputPath)\changelog.txt"
 mkdir "$(OutputPath)\shaders"
-copy "$(SolutionDir)\..\shaders\*.*" "$(OutputPath)\shaders\"</Command>
+copy "$(SolutionDir)\..\contrib\shaders\*.*" "$(OutputPath)\shaders\"</Command>
     </PostBuildEvent>
     <PostBuildEvent>
       <Message>
@@ -640,11 +640,11 @@ copy "$(SolutionDir)\..\shaders\*.*" "$(OutputPath)\shaders\"</Command>
       </Message>
     </CustomBuildStep>
     <PostBuildEvent>
-      <Command>copy "$(SolutionDir)\..\font\FREECG98.BMP" "$(OutputPath)\FREECG98.BMP"
+      <Command>copy "$(SolutionDir)\..\contrib\fonts\FREECG98.BMP" "$(OutputPath)\FREECG98.BMP"
 copy "$(SolutionDir)\..\dosbox-x.reference.conf" "$(OutputPath)\dosbox-x.reference.conf"
 copy "$(SolutionDir)\..\CHANGELOG" "$(OutputPath)\changelog.txt"
 mkdir "$(OutputPath)\shaders"
-copy "$(SolutionDir)\..\shaders\*.*" "$(OutputPath)\shaders\"</Command>
+copy "$(SolutionDir)\..\contrib\shaders\*.*" "$(OutputPath)\shaders\"</Command>
     </PostBuildEvent>
     <PostBuildEvent>
       <Message>
@@ -671,11 +671,11 @@ copy "$(SolutionDir)\..\shaders\*.*" "$(OutputPath)\shaders\"</Command>
       <SubSystem>Windows</SubSystem>
     </Link>
     <PostBuildEvent>
-      <Command>copy "$(SolutionDir)\..\font\FREECG98.BMP" "$(OutputPath)\FREECG98.BMP"
+      <Command>copy "$(SolutionDir)\..\contrib\fonts\FREECG98.BMP" "$(OutputPath)\FREECG98.BMP"
 copy "$(SolutionDir)\..\dosbox-x.reference.conf" "$(OutputPath)\dosbox-x.reference.conf"
 copy "$(SolutionDir)\..\CHANGELOG" "$(OutputPath)\changelog.txt"
 mkdir "$(OutputPath)\shaders"
-copy "$(SolutionDir)\..\shaders\*.*" "$(OutputPath)\shaders\"</Command>
+copy "$(SolutionDir)\..\contrib\shaders\*.*" "$(OutputPath)\shaders\"</Command>
       <Message>
       </Message>
     </PostBuildEvent>
@@ -703,11 +703,11 @@ copy "$(SolutionDir)\..\shaders\*.*" "$(OutputPath)\shaders\"</Command>
       <SubSystem>Windows</SubSystem>
     </Link>
     <PostBuildEvent>
-      <Command>copy "$(SolutionDir)\..\font\FREECG98.BMP" "$(OutputPath)\FREECG98.BMP"
+      <Command>copy "$(SolutionDir)\..\contrib\fonts\FREECG98.BMP" "$(OutputPath)\FREECG98.BMP"
 copy "$(SolutionDir)\..\dosbox-x.reference.conf" "$(OutputPath)\dosbox-x.reference.conf"
 copy "$(SolutionDir)\..\CHANGELOG" "$(OutputPath)\changelog.txt"
 mkdir "$(OutputPath)\shaders"
-copy "$(SolutionDir)\..\shaders\*.*" "$(OutputPath)\shaders\"</Command>
+copy "$(SolutionDir)\..\contrib\shaders\*.*" "$(OutputPath)\shaders\"</Command>
       <Message>
       </Message>
     </PostBuildEvent>
@@ -735,11 +735,11 @@ copy "$(SolutionDir)\..\shaders\*.*" "$(OutputPath)\shaders\"</Command>
       <SubSystem>Windows</SubSystem>
     </Link>
     <PostBuildEvent>
-      <Command>copy "$(SolutionDir)\..\font\FREECG98.BMP" "$(OutputPath)\FREECG98.BMP"
+      <Command>copy "$(SolutionDir)\..\contrib\fonts\FREECG98.BMP" "$(OutputPath)\FREECG98.BMP"
 copy "$(SolutionDir)\..\dosbox-x.reference.conf" "$(OutputPath)\dosbox-x.reference.conf"
 copy "$(SolutionDir)\..\CHANGELOG" "$(OutputPath)\changelog.txt"
 mkdir "$(OutputPath)\shaders"
-copy "$(SolutionDir)\..\shaders\*.*" "$(OutputPath)\shaders\"</Command>
+copy "$(SolutionDir)\..\contrib\shaders\*.*" "$(OutputPath)\shaders\"</Command>
       <Message>
       </Message>
     </PostBuildEvent>
@@ -769,11 +769,11 @@ copy "$(SolutionDir)\..\shaders\*.*" "$(OutputPath)\shaders\"</Command>
       <SubSystem>Windows</SubSystem>
     </Link>
     <PostBuildEvent>
-      <Command>copy "$(SolutionDir)\..\font\FREECG98.BMP" "$(OutputPath)\FREECG98.BMP"
+      <Command>copy "$(SolutionDir)\..\contrib\fonts\FREECG98.BMP" "$(OutputPath)\FREECG98.BMP"
 copy "$(SolutionDir)\..\dosbox-x.reference.conf" "$(OutputPath)\dosbox-x.reference.conf"
 copy "$(SolutionDir)\..\CHANGELOG" "$(OutputPath)\changelog.txt"
 mkdir "$(OutputPath)\shaders"
-copy "$(SolutionDir)\..\shaders\*.*" "$(OutputPath)\shaders\"</Command>
+copy "$(SolutionDir)\..\contrib\shaders\*.*" "$(OutputPath)\shaders\"</Command>
       <Message>
       </Message>
     </PostBuildEvent>
@@ -801,11 +801,11 @@ copy "$(SolutionDir)\..\shaders\*.*" "$(OutputPath)\shaders\"</Command>
       <SubSystem>Windows</SubSystem>
     </Link>
     <PostBuildEvent>
-      <Command>copy "$(SolutionDir)\..\font\FREECG98.BMP" "$(OutputPath)\FREECG98.BMP"
+      <Command>copy "$(SolutionDir)\..\contrib\fonts\FREECG98.BMP" "$(OutputPath)\FREECG98.BMP"
 copy "$(SolutionDir)\..\dosbox-x.reference.conf" "$(OutputPath)\dosbox-x.reference.conf"
 copy "$(SolutionDir)\..\CHANGELOG" "$(OutputPath)\changelog.txt"
 mkdir "$(OutputPath)\shaders"
-copy "$(SolutionDir)\..\shaders\*.*" "$(OutputPath)\shaders\"</Command>
+copy "$(SolutionDir)\..\contrib\shaders\*.*" "$(OutputPath)\shaders\"</Command>
       <Message>
       </Message>
     </PostBuildEvent>
@@ -833,11 +833,11 @@ copy "$(SolutionDir)\..\shaders\*.*" "$(OutputPath)\shaders\"</Command>
       <SubSystem>Windows</SubSystem>
     </Link>
     <PostBuildEvent>
-      <Command>copy "$(SolutionDir)\..\font\FREECG98.BMP" "$(OutputPath)\FREECG98.BMP"
+      <Command>copy "$(SolutionDir)\..\contrib\fonts\FREECG98.BMP" "$(OutputPath)\FREECG98.BMP"
 copy "$(SolutionDir)\..\dosbox-x.reference.conf" "$(OutputPath)\dosbox-x.reference.conf"
 copy "$(SolutionDir)\..\CHANGELOG" "$(OutputPath)\changelog.txt"
 mkdir "$(OutputPath)\shaders"
-copy "$(SolutionDir)\..\shaders\*.*" "$(OutputPath)\shaders\"</Command>
+copy "$(SolutionDir)\..\contrib\shaders\*.*" "$(OutputPath)\shaders\"</Command>
       <Message>
       </Message>
     </PostBuildEvent>

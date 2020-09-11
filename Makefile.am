@@ -5,16 +5,16 @@ SUBDIRS = src include
 
 .PHONY: dosbox-x.app
 
-dosbox-x.app: src/dosbox-x src/dosbox.icns
+dosbox-x.app: src/dosbox-x contrib/icons/dosbox.icns
 	rm -Rfv dosbox-x.app
 	mkdir dosbox-x.app
 	mkdir dosbox-x.app/Contents
 	mkdir dosbox-x.app/Contents/MacOS
 	mkdir dosbox-x.app/Contents/Resources
-	cp -v src/dosbox.plist dosbox-x.app/Contents/Info.plist
-	cp -v src/dosbox.pkginfo dosbox-x.app/Contents/PkgInfo
-	cp -v src/dosbox.icns dosbox-x.app/Contents/Resources/DosBox.icns
-	cp -v font/FREECG98.BMP dosbox-x.app/Contents/Resources/freecg98.bmp
+	cp -v contrib/macos/dosbox-x.plist dosbox-x.app/Contents/Info.plist
+	cp -v contrib/macos/dosbox-x.pkginfo dosbox-x.app/Contents/PkgInfo
+	cp -v contrib/icons/dosbox.icns dosbox-x.app/Contents/Resources/DosBox.icns
+	cp -v contrib/fonts/FREECG98.BMP dosbox-x.app/Contents/Resources/freecg98.bmp
 	cp -v src/dosbox-x dosbox-x.app/Contents/MacOS/DosBox
 # this is where it gets ugly
 	otool -L dosbox-x.app/Contents/MacOS/DosBox | grep -E '/usr/local/lib|/usr/local/opt/ffmpeg/lib' | while read X; do Y=`echo "$$X" | sed -E '/^ +/s///' | cut -d ' ' -f 1`; \
@@ -35,13 +35,13 @@ dosbox-x.app: src/dosbox-x src/dosbox.icns
 		done; \
 	done
 
-src/dosbox.icns: src/dosbox.ico
+contrib/icons/dosbox.icns: contrib/icons/dosbox-x.ico
 	rm -Rfv src/dosbox.iconset
 	mkdir src/dosbox.iconset
-	sips -z 16 16    src/dosbox.png    --out src/dosbox.iconset/icon_16x16.png
-	sips -z 32 32    src/dosbox.png    --out src/dosbox.iconset/icon_16x16@2.png
-	sips -z 32 32    src/dosbox.png    --out src/dosbox.iconset/icon_32x32.png
-	iconutil -c icns -o src/dosbox.icns src/dosbox.iconset
+	sips -z 16 16    contrib/icons/dosbox-x.png    --out src/dosbox.iconset/icon_16x16.png
+	sips -z 32 32    contrib/icons/dosbox-x.png    --out src/dosbox.iconset/icon_16x16@2.png
+	sips -z 32 32    contrib/icons/dosbox-x.png    --out src/dosbox.iconset/icon_32x32.png
+	iconutil -c icns -o contrib/icons/dosbox.icns src/dosbox.iconset
 	rm -Rfv src/dosbox.iconset
 
 dox:
@@ -73,14 +73,14 @@ install: src/dosbox-x
 	install -m 755 src/dosbox-x $(DESTDIR)$(bindir)
 	mkdir -p $(DESTDIR)$(prefix)/share/dosbox-x
 	install -m 644 CHANGELOG $(DESTDIR)$(prefix)/share/dosbox-x
-	install -m 644 font/FREECG98.BMP $(DESTDIR)$(prefix)/share/dosbox-x
+	install -m 644 contrib/fonts/FREECG98.BMP $(DESTDIR)$(prefix)/share/dosbox-x
 	install -m 644 dosbox-x.reference.conf $(DESTDIR)$(prefix)/share/dosbox-x
-	mkdir -p $(DESTDIR)$(prefix)/share/icons/hicolor/48x48/apps
-	install -m 644 src/dosbox.png $(DESTDIR)$(prefix)/share/icons/hicolor/48x48/apps/dosbox-x.png
+	mkdir -p $(DESTDIR)$(prefix)/share/icons/hicolor/scalable/apps
+	install -m 644 contrib/icons/dosbox-x.svg $(DESTDIR)$(prefix)/share/icons/hicolor/scalable/apps/dosbox-x.svg
 	mkdir -p $(DESTDIR)$(prefix)/share/applications
-	install -m 644 dosbox-x.desktop $(DESTDIR)$(prefix)/share/applications
+	install -m 644 contrib/linux/dosbox-x.desktop $(DESTDIR)$(prefix)/share/applications
 	mkdir -p $(DESTDIR)$(prefix)/share/metainfo
-	install -m 644 dosbox-x.appdata.xml $(DESTDIR)$(prefix)/share/metainfo
+	install -m 644 contrib/linux/dosbox-x.appdata.xml $(DESTDIR)$(prefix)/share/metainfo
 	-test -x /usr/sbin/setcap && setcap cap_net_raw=ep $(DESTDIR)$(bindir)/dosbox-x
 
 install_strip: src/dosbox-x install
@@ -92,6 +92,7 @@ uninstall:
 	rm -f $(DESTDIR)$(prefix)/share/dosbox-x/*
 	rmdir $(DESTDIR)$(prefix)/share/dosbox-x
 	rm -f $(DESTDIR)$(prefix)/share/icons/hicolor/48x48/apps/dosbox-x.png
+	rm -f $(DESTDIR)$(prefix)/share/icons/hicolor/scalable/apps/dosbox-x.svg
 	rm -f $(DESTDIR)$(prefix)/share/applications/dosbox-x.desktop
 	rm -f $(DESTDIR)$(prefix)/share/metainfo/dosbox-x.appdata.xml
 

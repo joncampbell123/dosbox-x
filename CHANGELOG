@@ -1,4 +1,38 @@
 0.83.6
+  - Add new "Help" menu which includes menu items
+    "Introduction", "DOSBox-X homepage", "DOSBox-X Wiki
+    guide", "DOSBox-X support" and "About". (Wengier)
+  - Improved the message when automatically re-running
+    the executable which failed with the "Packed file
+    is corrupt" error. Also added the "autoloadfix"
+    config option which when set to "false" will not
+    automatically re-run such programs. (Wengier)
+  - Added the "Show advanced options" checkbox in the
+    main screen of the Configuration GUI to toggle
+    whether to display all config options for the
+    sections. If unchecked (default), it will show
+    common config options instead of all of them. A
+    new config option "show advanced options" is added
+    which when set to "true" will make the checkbox
+    checked by default. (Wengier)
+  - Added code to cap the scan line length given to
+    the VESA BIOS given the video mode. This prevents
+    VBETEST.EXE from doing test patterns smaller than
+    the actual display, which can happen with 32bpp
+    320x200 modes and 1MB or less video RAM.
+  - VESA BIOS Set Scan Line Length fixed to properly
+    report and handle scan line length for 16-color
+    SVGA planar modes. VBETEST 16-color modes now
+    display correctly.
+  - Added option to control whether VESA BIOS panning
+    (the original VBE call) waits for vsync.
+  - Moved video related config options from [dosbox]
+    section to its own [video] section. These options
+    in existing config files will be automatically
+    redirected to the [video] section from the [dosbox]
+    section when DOSBox-X starts. Windows installer can
+    also move such config options from existing config
+    files automatically. (Wengier)
   - Improved the help message of MOUNT command. Also
     added option -examples to show its usage examples,
     similar to IMGMOUNT and IMGMAKE commands. (Wengier)

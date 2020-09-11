@@ -6247,9 +6247,11 @@ void SDL_SetupConfigSection() {
 
     Pbool = sdl_sec->Add_bool("fullscreen",Property::Changeable::Always,false);
     Pbool->Set_help("Start DOSBox-X directly in fullscreen. (Press [F11/F12]+F to go back)");
+    Pbool->SetBasic(true);
      
     Pbool = sdl_sec->Add_bool("fulldouble",Property::Changeable::Always,false);
     Pbool->Set_help("Use double buffering in fullscreen. It can reduce screen flickering, but it can also result in a slow DOSBox-X.");
+    Pbool->SetBasic(true);
 
     //Pbool = sdl_sec->Add_bool("sdlresize",Property::Changeable::Always,false);
     //Pbool->Set_help("Makes window resizable (depends on scalers)");
@@ -6258,10 +6260,12 @@ void SDL_SetupConfigSection() {
     Pstring->Set_help("What resolution to use for fullscreen: original, desktop or a fixed size (e.g. 1024x768).\n"
                       "  Using your monitor's native resolution with aspect=true might give the best results.\n"
               "  If you end up with small window on a large screen, try an output different from surface.");
+    Pstring->SetBasic(true);
 
     Pstring = sdl_sec->Add_string("windowresolution",Property::Changeable::Always,"original");
     Pstring->Set_help("Scale the window to this size IF the output device supports hardware scaling.\n"
                       "  (output=surface does not!)");
+    Pstring->SetBasic(true);
 
     const char* outputs[] = {
         "default", "surface", "overlay",
@@ -6276,9 +6280,11 @@ void SDL_SetupConfigSection() {
 	Pstring = sdl_sec->Add_string("output", Property::Changeable::Always, "default");
     Pstring->Set_help("What video system to use for output.");
     Pstring->Set_values(outputs);
+    Pstring->SetBasic(true);
 
     Pbool = sdl_sec->Add_bool("autolock",Property::Changeable::Always, false);
     Pbool->Set_help("Mouse will automatically lock, if you click on the screen. (Press CTRL-F10 to unlock)");
+    Pbool->SetBasic(true);
 
     const char* feeds[] = { "none", "beep", "flash", nullptr};
     Pstring = sdl_sec->Add_string("autolock_feedback", Property::Changeable::Always, feeds[1]);
@@ -6290,15 +6296,18 @@ void SDL_SetupConfigSection() {
 	Pstring->Set_values(clipboardmodifier);
 	Pstring->Set_help("Change the keyboard modifier for the Windows clipboard copy/paste function using the right mouse button.\n"
 		"The default modifier is \"shift\". Set to \"none\" if no modifier is desired, or \"disabled\" to disable this feature.");
+    Pstring->SetBasic(true);
 
     Pint = sdl_sec->Add_int("clip_paste_speed", Property::Changeable::WhenIdle, 20);
     Pint->Set_help("Set keyboard speed for pasting from the Windows clipboard.\n"
         "If the default setting of 20 causes lost keystrokes, increase the number.\n"
         "Or experiment with decreasing the number for applications that accept keystrokes quickly.");
+    Pint->SetBasic(true);
 
     Pmulti = sdl_sec->Add_multi("sensitivity",Property::Changeable::Always, ",");
     Pmulti->Set_help("Mouse sensitivity. The optional second parameter specifies vertical sensitivity (e.g. 100,-50).");
     Pmulti->SetValue("100");
+    Pmulti->SetBasic(true);
     Pint = Pmulti->GetSection()->Add_int("xsens",Property::Changeable::Always,100);
     Pint->SetMinMax(-1000,1000);
     Pint = Pmulti->GetSection()->Add_int("ysens",Property::Changeable::Always,100);
@@ -6316,20 +6325,24 @@ void SDL_SetupConfigSection() {
         "When using a high DPI mouse, the emulation of mouse movement can noticeably reduce the\n"
         "sensitiveness of your device, i.e. the mouse is slower but more precise.");
     Pstring->Set_values(emulation);
+    Pstring->SetBasic(true);
 
     const char* wheelkeys[] = { "0", "1", "2", "3", 0 };
     Pint = sdl_sec->Add_int("mouse_wheel_key", Property::Changeable::WhenIdle, 0);
-    Pstring->Set_values(wheelkeys);
+    Pint->Set_values(wheelkeys);
     Pint->Set_help("Convert mouse wheel movements into keyboard presses such as arrow keys.\n"
 		"0: disabled; 1: up/down arrows; 2: left/right arrows; 3: PgUp/PgDn keys.");
+    Pint->SetBasic(true);
 
     Pbool = sdl_sec->Add_bool("waitonerror",Property::Changeable::Always, true);
     Pbool->Set_help("Wait before closing the console if DOSBox-X has an error.");
+    Pbool->SetBasic(true);
 
     Pmulti = sdl_sec->Add_multi("priority", Property::Changeable::Always, ",");
     Pmulti->SetValue("higher,normal",/*init*/true);
     Pmulti->Set_help("Priority levels for DOSBox-X. Second entry behind the comma is for when DOSBox-X is not focused/minimized.\n"
                      "  pause is only valid for the second entry.");
+    Pmulti->SetBasic(true);
 
     const char* actt[] = { "lowest", "lower", "normal", "higher", "highest", "pause", 0};
     Pstring = Pmulti->GetSection()->Add_string("active",Property::Changeable::Always,"higher");
@@ -6341,9 +6354,11 @@ void SDL_SetupConfigSection() {
 
     Pstring = sdl_sec->Add_path("mapperfile",Property::Changeable::Always,MAPPERFILE_SDL1);
     Pstring->Set_help("File used to load/save the key/event mappings from. Resetmapper only works with the default value.");
+    Pstring->SetBasic(true);
 
     Pstring = sdl_sec->Add_path("mapperfile_sdl2",Property::Changeable::Always,MAPPERFILE_SDL2);
     Pstring->Set_help("File used to load/save the key/event mappings from (SDL2 builds). Resetmapper only works with the default value.");
+    Pstring->SetBasic(true);
 
 #if C_DIRECT3D && C_D3DSHADERS
     Pmulti = sdl_sec->Add_multi("pixelshader",Property::Changeable::Always," ");
@@ -6360,6 +6375,7 @@ void SDL_SetupConfigSection() {
     Pstring->Set_values(truefalseautoopt);
     Pstring->Set_help("Avoid usage of symkeys, might not work on all operating systems.\n"
         "If set to \"auto\" (default), it is enabled for SDL1 and non-US keyboards.");
+    Pstring->SetBasic(true);
 
     Pint = sdl_sec->Add_int("overscan",Property::Changeable::Always, 0);
     Pint->SetMinMax(0,10);
@@ -6367,9 +6383,11 @@ void SDL_SetupConfigSection() {
 
     Pstring = sdl_sec->Add_string("titlebar", Property::Changeable::Always, "");
     Pstring->Set_help("Change the string displayed in the DOSBox-X title bar.");
+    Pstring->SetBasic(true);
 
     Pbool = sdl_sec->Add_bool("showmenu", Property::Changeable::Always, true);
     Pbool->Set_help("Whether to show the menu bar (if supported). Default true.");
+    Pstring->SetBasic(true);
 
 //  Pint = sdl_sec->Add_int("overscancolor",Property::Changeable::Always, 0);
 //  Pint->SetMinMax(0,1000);
@@ -8249,6 +8267,48 @@ bool sendkey_preset_menu_callback(DOSBoxMenu * const menu, DOSBoxMenu::item * co
     return true;
 }
 
+bool help_open_url_callback(DOSBoxMenu * const menu, DOSBoxMenu::item * const menuitem) {
+    (void)menu;//UNUSED
+#if defined(_WIN32) //fixme: Linux
+    if (menuitem->get_name() == "help_homepage")
+        ShellExecute(NULL, "open", "http://dosbox-x.com/", NULL, NULL, SW_SHOWNORMAL);
+    else if (menuitem->get_name() == "help_wiki")
+        ShellExecute(NULL, "open", "https://github.com/joncampbell123/dosbox-x/wiki", NULL, NULL, SW_SHOWNORMAL);
+    else if (menuitem->get_name() == "help_issue")
+        ShellExecute(NULL, "open", "https://github.com/joncampbell123/dosbox-x/issues", NULL, NULL, SW_SHOWNORMAL);
+#endif
+
+    return true;
+}
+
+bool help_intro_callback(DOSBoxMenu * const menu, DOSBoxMenu::item * const menuitem) {
+    MAPPER_ReleaseAllKeys();
+
+    GFX_LosingFocus();
+
+    GUI_Shortcut(33);
+
+    MAPPER_ReleaseAllKeys();
+
+    GFX_LosingFocus();
+
+    return true;
+}
+
+bool help_about_callback(DOSBoxMenu * const menu, DOSBoxMenu::item * const menuitem) {
+    MAPPER_ReleaseAllKeys();
+
+    GFX_LosingFocus();
+
+    GUI_Shortcut(34);
+
+    MAPPER_ReleaseAllKeys();
+
+    GFX_LosingFocus();
+
+    return true;
+}
+
 void SetCyclesCount_mapper_shortcut_RunInternal(void) {
     MAPPER_ReleaseAllKeys();
 
@@ -8567,7 +8627,109 @@ int main(int argc, char* argv[]) SDL_MAIN_NOEXCEPT {
             Cross::GetPlatformConfigName(tmp);
             control->ParseConfigFile((config_path + tmp).c_str());
         }
-		
+
+		// Redirect existing PC-98 related settings from other sections to the [pc98] section if the latter is empty
+		Section_prop * pc98_section = static_cast<Section_prop *>(control->GetSection("pc98"));
+		assert(pc98_section != NULL);
+		const char * extra = const_cast<char*>(pc98_section->data.c_str());
+		if (!extra||!strlen(extra)) {
+			char linestr[CROSS_LEN+1], *p;
+			Section_prop * section = static_cast<Section_prop *>(control->GetSection("dosbox"));
+			extra = const_cast<char*>(section->data.c_str());
+			if (extra&&strlen(extra)) {
+				std::istringstream in(extra);
+				if (in)	for (std::string line; std::getline(in, line); ) {
+					if (strncasecmp(line.c_str(), "pc-98 ", 6)) continue;
+					if (line.length()>CROSS_LEN) {
+						strncpy(linestr, line.c_str(), CROSS_LEN);
+						linestr[CROSS_LEN]=0;
+					} else
+						strcpy(linestr, line.c_str());
+					p=strchr(linestr, '=');
+					if (p!=NULL&&pc98_section->HandleInputline(line)) {
+						*p=0;
+						LOG_MSG("Redirected \"%s\" from [dosbox] to [pc98] section\n", trim(linestr));
+					}
+				}
+			}
+			section = static_cast<Section_prop *>(control->GetSection("dos"));
+			extra = const_cast<char*>(section->data.c_str());
+			if (extra&&strlen(extra)) {
+				std::istringstream in(extra);
+				if (in)	for (std::string line; std::getline(in, line); ) {
+					if (strncasecmp(line.c_str(), "pc-98 ", 6)) continue;
+					if (line.length()>CROSS_LEN) {
+						strncpy(linestr, line.c_str(), CROSS_LEN);
+						linestr[CROSS_LEN]=0;
+					} else
+						strcpy(linestr, line.c_str());
+					p=strchr(linestr, '=');
+					if (p!=NULL&&pc98_section->HandleInputline(line)) {
+						*p=0;
+						LOG_MSG("Redirected \"%s\" from [dos] to [pc98] section\n", trim(linestr));
+					}
+				}
+			}
+		}
+
+		// Redirect existing video related settings from [dosbox] section to the [video] section if the latter is empty
+		Section_prop * video_section = static_cast<Section_prop *>(control->GetSection("video"));
+		assert(video_section != NULL);
+		extra = const_cast<char*>(video_section->data.c_str());
+		if (!extra||!strlen(extra)) {
+			char linestr[CROSS_LEN+1], *p;
+			Section_prop * section = static_cast<Section_prop *>(control->GetSection("dosbox"));
+			extra = const_cast<char*>(section->data.c_str());
+			if (extra&&strlen(extra)) {
+				std::istringstream in(extra);
+				if (in)	for (std::string line; std::getline(in, line); ) {
+					if (!strstr(line.c_str(), "vmem")&&!strstr(line.c_str(), "vga")&&!strstr(line.c_str(), "video")&&!strstr(line.c_str(), "dac")&&!strstr(line.c_str(), "cga")&&!strstr(line.c_str(), "CGA")&&!strstr(line.c_str(), "vesa")&&!strstr(line.c_str(), "hpel")&&!strstr(line.c_str(), "hretrace")&&!strstr(line.c_str(), "debug line")&&!strstr(line.c_str(), "memory bit")&&!strstr(line.c_str(), "forcerate")&&!strstr(line.c_str(), "double-buffered")&&!strstr(line.c_str(), "vblank")&&!strstr(line.c_str(), "setmode")) continue;
+					if (line.length()>CROSS_LEN) {
+						strncpy(linestr, line.c_str(), CROSS_LEN);
+						linestr[CROSS_LEN]=0;
+					} else
+						strcpy(linestr, line.c_str());
+					p=strchr(linestr, '=');
+					if (p!=NULL&&video_section->HandleInputline(line)) {
+						*p=0;
+						LOG_MSG("Redirected \"%s\" from [dosbox] to [video] section\n", trim(linestr));
+					}
+				}
+			}
+		}
+
+		// Redirect existing files= setting from [dos] section to the [config] section if the latter is empty
+		Section_prop * config_section = static_cast<Section_prop *>(control->GetSection("config"));
+		assert(config_section != NULL);
+		extra = const_cast<char*>(config_section->data.c_str());
+		if (!extra||!strlen(extra)) {
+			char linestr[CROSS_LEN+1], *p;
+			Section_prop * section = static_cast<Section_prop *>(control->GetSection("dos"));
+			extra = const_cast<char*>(section->data.c_str());
+			if (extra&&strlen(extra)) {
+				std::istringstream in(extra);
+				if (in)	for (std::string line; std::getline(in, line); ) {
+					if (strncasecmp(line.c_str(), "files", 5)&&strncasecmp(line.c_str(), "dos in hma", 10)) continue;
+					if (line.length()>CROSS_LEN) {
+						strncpy(linestr, line.c_str(), CROSS_LEN);
+						linestr[CROSS_LEN]=0;
+					} else
+						strcpy(linestr, line.c_str());
+					p=strchr(linestr, '=');
+					if (p!=NULL) {
+						if (!strncasecmp(line.c_str(), "dos in hma", 10)) {
+							if (!strcasecmp(trim(p+1), "true")) line="dos=high";
+							else if (!strcasecmp(trim(p+1), "false")) line="dos=low";
+						}
+						if (config_section->HandleInputline(line)) {
+							*p=0;
+							LOG_MSG("Redirected \"%s\" from [dos] to [config] section\n", trim(linestr));
+						}
+					}
+				}
+			}
+		}
+
 		MSG_Add("PROGRAM_CONFIG_PROPERTY_ERROR","No such section or property.\n");
 		MSG_Add("PROGRAM_CONFIG_NO_PROPERTY","There is no property %s in section %s.\n");
 		MSG_Add("PROGRAM_CONFIG_SET_SYNTAX","The syntax for -set option is incorrect.\n");
@@ -8661,85 +8823,9 @@ int main(int argc, char* argv[]) SDL_MAIN_NOEXCEPT {
 			while (value.size() && (value.at(0) ==' ' ||value.at(0) =='=') ) value.erase(0,1);
 			for(Bitu i = 3; i < pvars.size(); i++) value += (std::string(" ") + pvars[i]);
 			std::string inputline = pvars[1] + "=" + value;
-			
+
 			bool change_success = tsec->HandleInputline(inputline.c_str());
 			if (!change_success&&!value.empty()) LOG_MSG("Cannot set \"%s\"\n", inputline.c_str());
-		}
-		
-		// Redirect existing PC-98 related settings from other sections to the [pc98] section if the latter is empty
-		Section_prop * pc98_section = static_cast<Section_prop *>(control->GetSection("pc98"));
-		assert(pc98_section != NULL);
-		const char * extra = const_cast<char*>(pc98_section->data.c_str());
-		if (!extra||!strlen(extra)) {
-			char linestr[CROSS_LEN+1], *p;
-			Section_prop * section = static_cast<Section_prop *>(control->GetSection("dosbox"));
-			extra = const_cast<char*>(section->data.c_str());
-			if (extra&&strlen(extra)) {
-				std::istringstream in(extra);
-				if (in)	for (std::string line; std::getline(in, line); ) {
-					if (strncasecmp(line.c_str(), "pc-98 ", 6)) continue;
-					if (line.length()>CROSS_LEN) {
-						strncpy(linestr, line.c_str(), CROSS_LEN);
-						linestr[CROSS_LEN]=0;
-					} else
-						strcpy(linestr, line.c_str());
-					p=strchr(linestr, '=');
-					if (p!=NULL&&pc98_section->HandleInputline(line)) {
-						*p=0;
-						LOG_MSG("Redirected \"%s\" from [dosbox] to [pc98] section\n", trim(linestr));
-					}
-				}
-			}
-			section = static_cast<Section_prop *>(control->GetSection("dos"));
-			extra = const_cast<char*>(section->data.c_str());
-			if (extra&&strlen(extra)) {
-				std::istringstream in(extra);
-				if (in)	for (std::string line; std::getline(in, line); ) {
-					if (strncasecmp(line.c_str(), "pc-98 ", 6)) continue;
-					if (line.length()>CROSS_LEN) {
-						strncpy(linestr, line.c_str(), CROSS_LEN);
-						linestr[CROSS_LEN]=0;
-					} else
-						strcpy(linestr, line.c_str());
-					p=strchr(linestr, '=');
-					if (p!=NULL&&pc98_section->HandleInputline(line)) {
-						*p=0;
-						LOG_MSG("Redirected \"%s\" from [dos] to [pc98] section\n", trim(linestr));
-					}
-				}
-			}
-		}
-
-		// Redirect existing files= setting from [dos] section to the [config] section if the latter is empty
-		Section_prop * config_section = static_cast<Section_prop *>(control->GetSection("config"));
-		assert(config_section != NULL);
-		extra = const_cast<char*>(config_section->data.c_str());
-		if (!extra||!strlen(extra)) {
-			char linestr[CROSS_LEN+1], *p;
-			Section_prop * section = static_cast<Section_prop *>(control->GetSection("dos"));
-			extra = const_cast<char*>(section->data.c_str());
-			if (extra&&strlen(extra)) {
-				std::istringstream in(extra);
-				if (in)	for (std::string line; std::getline(in, line); ) {
-					if (strncasecmp(line.c_str(), "files", 5)&&strncasecmp(line.c_str(), "dos in hma", 10)) continue;
-					if (line.length()>CROSS_LEN) {
-						strncpy(linestr, line.c_str(), CROSS_LEN);
-						linestr[CROSS_LEN]=0;
-					} else
-						strcpy(linestr, line.c_str());
-					p=strchr(linestr, '=');
-					if (p!=NULL) {
-						if (!strncasecmp(line.c_str(), "dos in hma", 10)) {
-							if (!strcasecmp(trim(p+1), "true")) line="dos=high";
-							else if (!strcasecmp(trim(p+1), "false")) line="dos=low";
-						}
-						if (config_section->HandleInputline(line)) {
-							*p=0;
-							LOG_MSG("Redirected \"%s\" from [dos] to [config] section\n", trim(linestr));
-						}
-					}
-				}
-			}
 		}
 
 #if (ENVIRON_LINKED)
@@ -9352,6 +9438,24 @@ int main(int argc, char* argv[]) SDL_MAIN_NOEXCEPT {
                     mainMenu.alloc_item(DOSBoxMenu::item_type_id,name).set_text(drive_opts[i][1]).
                         set_callback_function(drive_callbacks[i]);
                 }
+            }
+        }
+
+        {
+            DOSBoxMenu::item &item = mainMenu.alloc_item(DOSBoxMenu::submenu_type_id,"HelpMenu");
+            item.set_text("Help");
+
+            {
+                mainMenu.alloc_item(DOSBoxMenu::item_type_id,"help_intro").set_text("Introduction").
+                    set_callback_function(help_intro_callback);
+                mainMenu.alloc_item(DOSBoxMenu::item_type_id,"help_homepage").set_text("DOSBox-X homepage").
+                    set_callback_function(help_open_url_callback);
+                mainMenu.alloc_item(DOSBoxMenu::item_type_id,"help_wiki").set_text("DOSBox-X Wiki guide").
+                    set_callback_function(help_open_url_callback);
+                mainMenu.alloc_item(DOSBoxMenu::item_type_id,"help_issue").set_text("DOSBox-X support").
+                    set_callback_function(help_open_url_callback);
+                mainMenu.alloc_item(DOSBoxMenu::item_type_id,"help_about").set_text("About DOSBox-X").
+                    set_callback_function(help_about_callback);
             }
         }
 

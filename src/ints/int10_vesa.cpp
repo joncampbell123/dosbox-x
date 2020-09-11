@@ -31,6 +31,7 @@
 
 int hack_lfb_yadjust = 0;
 
+int vesa_set_display_vsync_wait = -1;
 bool vesa_bank_switch_window_range_check = true;
 bool vesa_bank_switch_window_mirror = false;
 bool vesa_zero_on_get_information = true;
@@ -270,10 +271,10 @@ foundit:
 		break;
 	case M_LIN4:
 		if (!allow_vesa_4bpp) return VESA_FAIL;
-		pageSize = mblock->sheight * mblock->swidth/2;
+		pageSize = mblock->sheight * (Bit16u)(((mblock->swidth+15U)/8U)&(~1U));
 		var_write(&minfo.BytesPerScanLine,(Bit16u)(((mblock->swidth+15U)/8U)&(~1U))); /* NTS: 4bpp requires even value due to VGA registers, round up */
 		var_write(&minfo.NumberOfPlanes,0x4);
-		var_write(&minfo.BitsPerPixel,4);//FIXME: Shouldn't this say 4 planes, 1 bit per pixel??
+		var_write(&minfo.BitsPerPixel,4);   // bits per pixel is 4 as specified by VESA BIOS 2.0 specification
 		var_write(&minfo.MemoryModel,3);	//ega planar mode
 		modeAttributes = 0x1b;	// Color, graphics, no linear buffer
 		break;
@@ -491,66 +492,94 @@ Bit8u VESA_ScanLineLength(Bit8u subcall,Bit16u val, Bit16u & bytes,Bit16u & pixe
 	Bitu vmemsize = vga.mem.memsize;
 	Bitu new_offset = vga.config.scan_len;
 	Bitu screen_height = CurMode->sheight;
+	Bitu max_offset;
 
 	switch (CurMode->type) {
-	case M_TEXT:
-		vmemsize = 0x8000;      // we have only the 32kB window here
-		screen_height = CurMode->theight;
-		pixels_per_offset = 16; // two characters each 8 pixels wide
-		bytes_per_offset = 4;   // 2 characters + 2 attributes
-		break;
-	case M_LIN4:
-	case M_PACKED4:
-		pixels_per_offset = 16;
-		break;
-	case M_LIN8:
-		pixels_per_offset = 8;
-		break;
-	case M_LIN15:
-	case M_LIN16:
-		pixels_per_offset = 4;
-		break;
-	case M_LIN32:
-		pixels_per_offset = 2;
-		break;
-	default:
-		return VESA_MODE_UNSUPPORTED;
+		case M_TEXT:
+			vmemsize = 0x8000;      // we have only the 32kB window here
+			screen_height = CurMode->theight;
+			pixels_per_offset = 16; // two characters each 8 pixels wide
+			bytes_per_offset = 4;   // 2 characters + 2 attributes
+			break;
+		case M_LIN4:
+			bytes_per_offset = 2;
+			pixels_per_offset = 16;
+			vmemsize /= 4u; /* because planar VGA */
+			break;
+		case M_PACKED4:
+			pixels_per_offset = 16;
+			break;
+		case M_LIN8:
+			pixels_per_offset = 8;
+			break;
+		case M_LIN15:
+		case M_LIN16:
+			pixels_per_offset = 4;
+			break;
+		case M_LIN24:
+			pixels_per_offset = 2;
+			break;
+		case M_LIN32:
+			pixels_per_offset = 2;
+			break;
+		default:
+			return VESA_MODE_UNSUPPORTED;
 	}
+
+	max_offset = S3_MAX_OFFSET;
+	if ((max_offset * bytes_per_offset * screen_height) > vmemsize)
+		max_offset = vmemsize / (bytes_per_offset * screen_height);
+
+	if (max_offset == 0)
+		return VESA_HW_UNSUPPORTED; // scanline too long
+
 	switch (subcall) {
-	case 0x00: // set scan length in pixels
-		new_offset = val / pixels_per_offset;
-		if (val % pixels_per_offset) new_offset++;
-		
-		if (new_offset > S3_MAX_OFFSET)
-			return VESA_HW_UNSUPPORTED; // scanline too long
-		vga.config.scan_len = new_offset;
-		VGA_CheckScanLength();
-		break;
+		case 0x00: // set scan length in pixels
+			new_offset = val / pixels_per_offset;
+			if (val % pixels_per_offset) new_offset++;
 
-	case 0x01: // get current scanline length
-		// implemented at the end of this function
-		break;
+			/* why does VBETEST do this? */
+			if (new_offset == 0)
+				return VESA_HW_UNSUPPORTED; // scanline too long
 
-	case 0x02: // set scan length in bytes
-		new_offset = val / bytes_per_offset;
-		if (val % bytes_per_offset) new_offset++;
-		
-		if (new_offset > S3_MAX_OFFSET)
-			return VESA_HW_UNSUPPORTED; // scanline too long
-		vga.config.scan_len = new_offset;
-		VGA_CheckScanLength();
-		break;
+			// NTS: The VESA BIOS standard says a too-large value should return an error.
+			//      VBETEST.EXE behavior seems to depend on this call capping the value and returning success, else it misdraws the screen and might get stuck drawing junk.
+			// TODO: Add dosbox.conf option to control which behavior is emulated.
+			if (new_offset > max_offset) new_offset = max_offset;
 
-	case 0x03: // get maximum scan line length
-		// the smaller of either the hardware maximum scanline length or
-		// the limit to get full y resolution of this mode
-		new_offset = S3_MAX_OFFSET;
-		if ((new_offset * bytes_per_offset * screen_height) > vmemsize)
-			new_offset = vmemsize / (bytes_per_offset * screen_height);
-		break;
+			vga.config.scan_len = new_offset;
+			VGA_CheckScanLength();
+			break;
 
-	default:
-		return VESA_UNIMPLEMENTED;
+		case 0x01: // get current scanline length
+			// implemented at the end of this function
+			break;
+
+		case 0x02: // set scan length in bytes
+			new_offset = val / bytes_per_offset;
+			if (val % bytes_per_offset) new_offset++;
+
+			/* why does VBETEST do this? */
+			if (new_offset == 0)
+				return VESA_HW_UNSUPPORTED; // scanline too long
+
+			// NTS: The VESA BIOS standard says a too-large value should return an error.
+			//      VBETEST.EXE behavior seems to depend on this call capping the value and returning success, else it misdraws the screen and might get stuck drawing junk.
+			// TODO: Add dosbox.conf option to control which behavior is emulated.
+			if (new_offset > max_offset) new_offset = max_offset;
+
+			vga.config.scan_len = new_offset;
+			VGA_CheckScanLength();
+			break;
+
+		case 0x03: // get maximum scan line length
+			// the smaller of either the hardware maximum scanline length or
+			// the limit to get full y resolution of this mode
+			new_offset = max_offset;
+			break;
+
+		default:
+			return VESA_UNIMPLEMENTED;
 	}
 
 	// set up the return values
@@ -561,8 +590,12 @@ Bit8u VESA_ScanLineLength(Bit8u subcall,Bit16u val, Bit16u & bytes,Bit16u & pixe
 		// some real VESA BIOS implementations may crash here
 		return VESA_FAIL;
 
-	lines = (Bit16u)(vmemsize / bytes);
-	
+	{
+		unsigned int lines32 = (unsigned int)(vmemsize / bytes);
+		if (lines32 > 0xFFFF) lines32 = 0xFFFF;
+		lines = (Bit16u)lines32;
+	}
+
 	if (CurMode->type==M_TEXT)
 		lines *= (Bit16u)(CurMode->cheight);
 
@@ -572,6 +605,13 @@ Bit8u VESA_ScanLineLength(Bit8u subcall,Bit16u val, Bit16u & bytes,Bit16u & pixe
 Bit8u VESA_SetDisplayStart(Bit16u x,Bit16u y,bool wait) {
 	Bitu pixels_per_offset;
 	Bitu panning_factor = 1;
+
+	if (!wait) {
+		if (vesa_set_display_vsync_wait > 0)
+			wait = true;
+		else if (vesa_set_display_vsync_wait < 0)
+			wait = int10.vesa_oldvbe;
+	}
 
 	switch (CurMode->type) {
 	case M_TEXT:
@@ -588,6 +628,7 @@ Bit8u VESA_SetDisplayStart(Bit16u x,Bit16u y,bool wait) {
 		panning_factor = 2; // this may be DOSBox specific
 		pixels_per_offset = 4;
 		break;
+	case M_LIN24: // FIXME
 	case M_LIN32:
 		pixels_per_offset = 2;
 		break;
@@ -641,6 +682,7 @@ Bit8u VESA_GetDisplayStart(Bit16u & x,Bit16u & y) {
 		panning_factor = 2;
 		pixels_per_offset = 4;
 		break;
+	case M_LIN24: // FIXME
 	case M_LIN32:
 		pixels_per_offset = 2;
 		break;
@@ -651,6 +693,12 @@ Bit8u VESA_GetDisplayStart(Bit16u & x,Bit16u & y) {
 	IO_Read(0x3da);              // reset attribute flipflop
 	IO_Write(0x3c0,0x13 | 0x20); // panning register, screen on
 	Bit8u panning = IO_Read(0x3c1);
+
+	/* FIXME: Why does this happen with VBETEST.EXE and more than 1MB of RAM? */
+	if (vga.config.scan_len == 0) {
+		y = x = 0;
+		return VESA_SUCCESS;
+	}
 
 	Bitu virtual_screen_width = vga.config.scan_len * pixels_per_offset;
 	Bitu start_pixel = vga.config.display_start * (pixels_per_offset/2) 

@@ -13,7 +13,7 @@ URL: http://www.dosbox-x.com
 Group: Applications/Emulators
 Source0: @PACKAGE_NAME@-@PACKAGE_VERSION@.tar.xz
 Source1: dosbox-x.desktop
-Source2: dosbox-x.png
+Source2: dosbox-x.svg
 Source3: dosbox-x.appdata.xml
 
 %description
@@ -44,15 +44,15 @@ desktop-file-install \
   --dir=%{buildroot}%{_datadir}/applications \
   %{SOURCE1}
 
-mkdir -p %{buildroot}%{_datadir}/icons/hicolor/48x48/apps
-install -p -m 0644 %SOURCE2 %{buildroot}%{_datadir}/icons/hicolor/48x48/apps
+mkdir -p %{buildroot}%{_datadir}/icons/hicolor/scalable/apps
+install -p -m 0644 %SOURCE2 %{buildroot}%{_datadir}/icons/hicolor/scalable/apps
 mkdir -p %{buildroot}%{_datadir}/metainfo
 install -p -m 0644 %SOURCE3 %{buildroot}%{_datadir}/metainfo
 
 %files
 %{_bindir}/*
 %{_datadir}/applications/*
-%{_datadir}/icons/hicolor/*/apps/dosbox-x.png
+%{_datadir}/icons/hicolor/*/apps/dosbox-x.svg
 %{_datadir}/metainfo/*
 %{_datadir}/dosbox-x
 
