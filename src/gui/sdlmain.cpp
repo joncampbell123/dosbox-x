@@ -8269,14 +8269,22 @@ bool sendkey_preset_menu_callback(DOSBoxMenu * const menu, DOSBoxMenu::item * co
 
 bool help_open_url_callback(DOSBoxMenu * const menu, DOSBoxMenu::item * const menuitem) {
     (void)menu;//UNUSED
-#if defined(_WIN32) //fixme: Linux
+    std::string url="";
     if (menuitem->get_name() == "help_homepage")
-        ShellExecute(NULL, "open", "http://dosbox-x.com/", NULL, NULL, SW_SHOWNORMAL);
+        url="http://dosbox-x.com/";
     else if (menuitem->get_name() == "help_wiki")
-        ShellExecute(NULL, "open", "https://github.com/joncampbell123/dosbox-x/wiki", NULL, NULL, SW_SHOWNORMAL);
+        url="https://github.com/joncampbell123/dosbox-x/wiki";
     else if (menuitem->get_name() == "help_issue")
-        ShellExecute(NULL, "open", "https://github.com/joncampbell123/dosbox-x/issues", NULL, NULL, SW_SHOWNORMAL);
+        url="https://github.com/joncampbell123/dosbox-x/issues";
+    if (url.size()) {
+#if defined(WIN32)
+      ShellExecute(NULL, "open", url.c_str(), NULL, NULL, SW_SHOWNORMAL);
+#elif defined(LINUX)
+      system(("xdg-open "+url).c_str());
+#elif defined(MACOSX)
+      system(("open "+url).c_str());
 #endif
+    }
 
     return true;
 }

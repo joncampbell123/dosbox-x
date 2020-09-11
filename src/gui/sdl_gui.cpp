@@ -94,7 +94,7 @@ static SDL_Surface*         background = NULL;
 #ifdef DOSBOXMENU_EXTERNALLY_MANAGED
 static bool                 gui_menu_init = true;
 #endif
-
+int                         shortcutid = -1;
 void                        GFX_GetSizeAndPos(int &x,int &y,int &width, int &height, bool &fullscreen);
 
 #if defined(WIN32) && !defined(HX_DOS)
@@ -330,7 +330,7 @@ static GUI::ScreenSDL *UI_Startup(GUI::ScreenSDL *screen) {
 #endif
 
 #ifdef DOSBOXMENU_EXTERNALLY_MANAGED
-    if (gui_menu_init) {
+    if (gui_menu_init && (!shortcut || shortcutid<16)) {
         gui_menu_init = false;
 
         {
@@ -1807,7 +1807,14 @@ public:
                 lookup->second->raise();
             }
         } else if (arg == "Visit Homepage") {
-            ShellExecute(NULL, "open", "http://dosbox-x.com/", NULL, NULL, SW_SHOWNORMAL);
+            std::string url = "http://dosbox-x.com/";
+#if defined(WIN32)
+            ShellExecute(NULL, "open", url.c_str(), NULL, NULL, SW_SHOWNORMAL);
+#elif defined(LINUX)
+            system(("xdg-open "+url).c_str());
+#elif defined(MACOSX)
+            system(("open "+url).c_str());
+#endif
         } else if (arg == "About") {
             new GUI::MessageBox2(getScreen(), 100, 150, 330, "About DOSBox-X", aboutmsg);
         } else if (arg == "Introduction") {
@@ -2112,11 +2119,13 @@ void GUI_Shortcut(int select) {
         return;
     }
 
+    shortcutid=select;
     shortcut=true;
     GUI::ScreenSDL *screen = UI_Startup(NULL);
     UI_Select(screen,select);
     UI_Shutdown(screen);
     shortcut=false;
+    shortcutid=-1;
     delete screen;
 }
 
