@@ -1557,44 +1557,6 @@ public:
     }
 };
 
-char * GetIDEPosition(unsigned char bios_disk_index);
-class ShowDriveNumber : public GUI::ToplevelWindow {
-protected:
-    GUI::Input *name;
-public:
-    ShowDriveNumber(GUI::Screen *parent, int x, int y, const char *title) :
-        ToplevelWindow(parent, x, y, 450, 260, title) {
-        std::string str;
-		for (int index = 0; index < MAX_DISK_IMAGES; index++) {
-			if (imageDiskList[index]) {
-                int swaps=0;
-                if (swapInDisksSpecificDrive == index) {
-                    for (size_t si=0;si < MAX_SWAPPABLE_DISKS;si++)
-                        if (diskSwap[si] != NULL)
-                            swaps++;
-                }
-                if (!swaps) swaps=1;
-                if (index<2)
-                    str = "Swap position: " + std::to_string(swaps==1?1:swapPosition+1) + "/" + std::to_string(swaps) + " - " + (dynamic_cast<imageDiskElToritoFloppy *>(imageDiskList[index])!=NULL?"El Torito floppy drive":imageDiskList[index]->diskname);
-                else {
-                    str = GetIDEPosition(index);
-                    str = "IDE controller: " + (str.size()?str:"NA") + " - " + imageDiskList[index]->diskname;
-                }
-            } else
-                str = "Not yet mounted";
-            new GUI::Label(this, 40, 25*(index+1), std::to_string(index) + " - " + str);
-        }
-        (new GUI::Button(this, 190, 25*(MAX_DISK_IMAGES+1)+5, "Close", 70))->addActionHandler(this);
-    }
-
-    void actionExecuted(GUI::ActionEventSource *b, const GUI::String &arg) {
-        (void)b;//UNUSED
-        if (arg == "Close")
-            close();
-        if (shortcut) running = false;
-    }
-};
-
 class ShowStateCorrupt : public GUI::ToplevelWindow {
 protected:
     GUI::Input *name;
