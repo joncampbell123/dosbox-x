@@ -692,6 +692,18 @@ public:
     }
 };
 
+std::string dispname="";
+std::string CapName(std::string name) {
+    dispname = name;
+    if (name=="sdl"||name=="cpu"||name=="dos"||name=="pc98"||name=="midi"||name=="gus"||name=="ipx"||name=="ne2000")
+        std::transform(dispname.begin(), dispname.end(), dispname.begin(), ::toupper);
+    else if (name.substr(0, 5)=="ide, "||name.substr(0, 5)=="fdc, ")
+        for (int i=0; i<6; i++) dispname[i] = std::toupper(name[i]);
+    else
+        dispname[0] = std::toupper(name[0]);
+    return dispname;
+}
+
 GUI::Checkbox *advopt;
 static std::map< std::vector<GUI::Char>, GUI::ToplevelWindow* > cfg_windows_active;
 
@@ -707,10 +719,7 @@ public:
         }
 
         std::string title(section->GetName());
-        if (title=="sdl"||title=="cpu"||title=="dos"||title=="pc98"||title=="midi"||title=="gus"||title=="ipx"||title=="ne2000")
-            std::transform(title.begin(), title.end(), title.begin(), ::toupper);
-        else
-            title.at(0) = std::toupper(title.at(0));
+        title=CapName(title);
         setTitle("Help for "+title);
 
         Section_prop* sec = dynamic_cast<Section_prop*>(section);
@@ -793,10 +802,7 @@ public:
             move(this->x,parent->getHeight() - this->getHeight());
 
         std::string title(section->GetName());
-        if (title=="sdl"||title=="cpu"||title=="dos"||title=="pc98"||title=="midi"||title=="gus"||title=="ipx"||title=="ne2000")
-            std::transform(title.begin(), title.end(), title.begin(), ::toupper);
-        else
-            title[0] = std::toupper(title[0]);
+        title=CapName(title);
         setTitle("Configuration for "+title);
 
         GUI::Button *b = new GUI::Button(this, button_row_cx, button_row_y, "Help", button_w);
@@ -1738,12 +1744,10 @@ public:
         while ((sec = control->GetSection(i))) {
             if (i != 0 && (i%15) == 0) bar->addItem(1, "|");
             std::string name = sec->GetName();
+            std::string title = CapName(name);
             name[0] = std::toupper(name[0]);
             const auto sz = gridfunc(i);
-            std::string dispname = name;
-            if (name=="Sdl"||name=="Cpu"||name=="Dos"||name=="Pc98"||name=="Midi"||name=="Gus"||name=="Ipx"||name=="Ne2000")
-                std::transform(dispname.begin(), dispname.end(), dispname.begin(), ::toupper);
-            GUI::Button *b = new GUI::Button(this, sz.first, sz.second, dispname, gridbtnwidth, gridbtnheight);
+            GUI::Button *b = new GUI::Button(this, sz.first, sz.second, title, gridbtnwidth, gridbtnheight);
             b->addActionHandler(this);
             bar->addItem(1, name);
             i++;
