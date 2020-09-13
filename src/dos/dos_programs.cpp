@@ -6340,8 +6340,8 @@ void DOS_SetupPrograms(void) {
     MSG_Add("PROGRAM_RESCAN_SUCCESS","Drive cache cleared.\n");
 
     MSG_Add("PROGRAM_INTRO",
-        "\033[2J\033[32;1mWelcome to DOSBox-X\033[0m, an x86 emulator with sound and graphics.\n"
-        "DOSBox-X creates a shell for you which looks like old plain DOS.\n"
+        "\033[2J\033[32;1mWelcome to DOSBox-X\033[0m, an open-source x86 emulator with sound and graphics.\n"
+        "DOSBox-X creates a shell for you which looks just like the plain DOS.\n"
         "\n"
         "\033[31;1mDOSBox-X will stop/exit without a warning if an error occurred!\033[0m\n"
         "\n"

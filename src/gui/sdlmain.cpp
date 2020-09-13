@@ -56,7 +56,7 @@ void GFX_OpenGLRedrawScreen(void);
 # define _GNU_SOURCE
 #endif
 
-// Tell Mac OS X to shut up about deprecated OpenGL calls
+// Tell macOS to shut up about deprecated OpenGL calls
 #ifndef GL_SILENCE_DEPRECATION
 #define GL_SILENCE_DEPRECATION
 #endif
@@ -171,6 +171,7 @@ typedef enum PROCESS_DPI_AWARENESS {
 #endif
 
 #include "sdlmain.h"
+#include "build_timestamp.h"
 
 #ifdef MACOSX
 extern bool has_touch_bar_support;
@@ -2973,14 +2974,14 @@ void GFX_SwitchFullScreen(void)
                 sdl.desktop.full.height = (unsigned int)screen_size_info.screen_dimensions_pixels.height;
 
 #if !defined(C_SDL2) && defined(MACOSX)
-            /* Mac OS X has this annoying problem with their API where the System Preferences app, display settings panel
+            /* macOS has this annoying problem with their API where the System Preferences app, display settings panel
                allows setting 720p and 1080i/1080p modes on monitors who's native resolution is less than 1920x1080 but
                supports 1920x1080.
 
                This is a problem with HDTV sets made in the late 2000s early 2010s when "HD" apparently meant LCD displays
                with 1368x768 resolution that will nonetheless accept 1080i (and later, 1080p) and downscale on display.
 
-               The problem is that with these monitors, Mac OS X's display API will NOT list 1920x1080 as one of the
+               The problem is that with these monitors, macOS's display API will NOT list 1920x1080 as one of the
                display modes even when the freaking desktop is obviously set to 1920x1080 on that monitor!
 
                If the screen reporting code says 1920x1080 and we try to go fullscreen, SDL1 will intervene and say
@@ -2989,7 +2990,7 @@ void GFX_SwitchFullScreen(void)
                So to work around this, we have to go check SDL's mode list before using the screen size returned by the
                API.
 
-               Oh and for extra fun, Mac OS X is one of those modern systems where "setting the video mode" apparently
+               Oh and for extra fun, macOS is one of those modern systems where "setting the video mode" apparently
                means NOT setting the video hardware mode but just changing how the GPU scales the display... EXCEPT when
                talking to these older displays where if the user set it to 1080i/1080p, our request to set 1368x768
                actually DOES change the video mode. This is just wonderful considering the old HDTV set I bought back in
@@ -3336,7 +3337,7 @@ Bitu GFX_GetRGB(Bit8u red, Bit8u green, Bit8u blue) {
 
 #if C_OPENGL
         case SCREEN_OPENGL:
-# if SDL_BYTEORDER == SDL_LIL_ENDIAN && defined(MACOSX) /* Mac OS X Intel builds use a weird RGBA order (alpha in the low 8 bits) */
+# if SDL_BYTEORDER == SDL_LIL_ENDIAN && defined(MACOSX) /* macOS Intel builds use a weird RGBA order (alpha in the low 8 bits) */
             //USE BGRA
             return (((unsigned long)blue << 24ul) | ((unsigned long)green << 16ul) | ((unsigned long)red <<  8ul)) | (255ul <<  0ul);
 # else
@@ -3648,9 +3649,9 @@ static void GUI_StartUp() {
     /* NTS: This should not print any warning whatsoever because Windows builds by default will use
      *      the Windows API to disable DPI scaling of the main window, unless the user modifies the
      *      setting through dosbox-x.conf or the command line. */
-    /* NTS: Mac OS X has high DPI scaling too, though Apple is wise to enable it by default only for
-     *      Macbooks with "Retina" displays. On Mac OS X, unless otherwise wanted by the user, it is
-     *      wise to let Mac OS X scale up the DOSBox-X window by 2x so that the DOS prompt is not
+    /* NTS: macOS has high DPI scaling too, though Apple is wise to enable it by default only for
+     *      Macbooks with "Retina" displays. On macOS, unless otherwise wanted by the user, it is
+     *      wise to let macOS scale up the DOSBox-X window by 2x so that the DOS prompt is not
      *      a teeny tiny window on the screen. */
     const SDL_VideoInfo* vidinfo = SDL_GetVideoInfo();
     if (vidinfo) {
@@ -6715,11 +6716,11 @@ bool DOSBOX_parse_argv() {
     while (control->cmdline->GetOpt(optname)) {
         std::transform(optname.begin(), optname.end(), optname.begin(), ::tolower);
 
-        if (optname == "version") {
+        if (optname == "ver" || optname == "version") {
             DOSBox_ShowConsole();
 
-            fprintf(stderr,"\nDOSBox-X version %s %s, copyright 2011-2020 joncampbell123.\n",VERSION,SDL_STRING);
-            fprintf(stderr,"Based on DOSBox by the DOSBox Team (See AUTHORS file)\n\n");
+            fprintf(stderr,"\nDOSBox-X version %s %s, copyright 2011-%s The DOSBox-X Team.\n",VERSION,SDL_STRING,COPYRIGHT_END_YEAR);
+            fprintf(stderr,"DOSBox-X project maintainer: joncampbell123 (The Great Codeholio)\n\n");
             fprintf(stderr,"DOSBox-X comes with ABSOLUTELY NO WARRANTY.  This is free software,\n");
             fprintf(stderr,"and you are welcome to redistribute it under certain conditions;\n");
             fprintf(stderr,"please read the COPYING file thoroughly before doing so.\n\n");
@@ -6734,11 +6735,12 @@ bool DOSBOX_parse_argv() {
             DOSBox_ShowConsole();
 
             fprintf(stderr,"\ndosbox-x [options]\n");
-            fprintf(stderr,"\nDOSBox-X version %s %s, copyright 2011-2020 joncampbell123.\n",VERSION,SDL_STRING);
-            fprintf(stderr,"Based on DOSBox by the DOSBox Team (See AUTHORS file)\n\n");
+            fprintf(stderr,"\nDOSBox-X version %s %s, copyright 2011-%s The DOSBox-X Team.\n",VERSION,SDL_STRING,COPYRIGHT_END_YEAR);
+            fprintf(stderr,"DOSBox-X project maintainer: joncampbell123 (The Great Codeholio)\n\n");
             fprintf(stderr,"Options can be started with either \"-\" or \"/\" (e.g. \"-help\" or \"/help\"):\n\n");
-            fprintf(stderr,"  -?, -h, -help                           Show this help\n");
-            fprintf(stderr,"  -editconf                               Launch editor\n");
+            fprintf(stderr,"  -?, -h, -help                           Show this help screen\n");
+            fprintf(stderr,"  -ver, -version                          Display DOSBox-X version information\n");
+            fprintf(stderr,"  -editconf <editor>                      Edit the config file with the editor\n");
             fprintf(stderr,"  -opencaptures <param>                   Launch captures\n");
             fprintf(stderr,"  -opensaves <param>                      Launch saves\n");
             fprintf(stderr,"  -printconf                              Print config file location\n");
@@ -6789,7 +6791,8 @@ bool DOSBOX_parse_argv() {
             DOSBox_ShowConsole();
 
             fprintf(stderr,"\ndosbox-x [options]\n");
-            fprintf(stderr,"\nDOSBox-X version %s %s, copyright 2011-2020 joncampbell123.\n",VERSION,SDL_STRING);
+            fprintf(stderr,"\nDOSBox-X version %s %s, copyright 2011-%s The DOSBox-X Team.\n",VERSION,SDL_STRING,COPYRIGHT_END_YEAR);
+            fprintf(stderr,"DOSBox-X project maintainer: joncampbell123 (The Great Codeholio)\n\n");
             fprintf(stderr,"Based on DOSBox by the DOSBox Team (See AUTHORS file)\n\n");
             fprintf(stderr,"Debugging options:\n\n");
             fprintf(stderr,"  -debug                                  Set all logging levels to debug\n");
@@ -8513,7 +8516,7 @@ int main(int argc, char* argv[]) SDL_MAIN_NOEXCEPT {
 #if defined(MACOSX)
     /* The resource system of DOSBox-X relies on being able to locate the Resources subdirectory
        within the DOSBox-X .app bundle. To do this, we have to first know where our own executable
-       is, which Mac OS X helpfully puts int argv[0] for us */
+       is, which macOS helpfully puts int argv[0] for us */
     /* NTS: Experimental testing shows that when we are run from the desktop (double-clicking on
             the .app bundle from the Finder) the current working directory is / (fs root). */
     extern std::string MacOSXEXEPath;
@@ -8549,7 +8552,7 @@ int main(int argc, char* argv[]) SDL_MAIN_NOEXCEPT {
             /* Only the Finder would do that.
                Even if the user somehow did this from the Terminal app, it's still
                worth changing to the home directory because certain directories
-               including / are locked readonly even for sudo in Mac OS X */
+               including / are locked readonly even for sudo in macOS */
             /* NTS: HOME is usually an absolute path */
             if (home != NULL) chdir(home);
         }
@@ -8885,12 +8888,12 @@ int main(int argc, char* argv[]) SDL_MAIN_NOEXCEPT {
 #endif
 
         /* -- Welcome to DOSBox-X! */
-        LOG_MSG("DOSBox-X version %s",VERSION);
-        LOG(LOG_MISC,LOG_NORMAL)("Copyright 2002-2019 enhanced branch by The Great Codeholio, forked from the main project by the DOSBox Team, published under GNU GPL.");
+        LOG_MSG("DOSBox-X version %s (%s)",VERSION,SDL_STRING);
+        LOG(LOG_MISC,LOG_NORMAL)(("Copyright 2011-"+std::string(COPYRIGHT_END_YEAR)+" The DOSBox-X Team. Project maintainer: joncampbell123 (The Great Codeholio). DOSBox-X published under GNU GPL.").c_str());
 
 #if defined(MACOSX)
-        LOG_MSG("Mac OS X EXE path: %s",MacOSXEXEPath.c_str());
-        LOG_MSG("Mac OS X Resource path: %s",MacOSXResPath.c_str());
+        LOG_MSG("macOS EXE path: %s",MacOSXEXEPath.c_str());
+        LOG_MSG("macOS Resource path: %s",MacOSXResPath.c_str());
 #endif
 
         /* -- [debug] setup console */
@@ -9007,7 +9010,7 @@ int main(int argc, char* argv[]) SDL_MAIN_NOEXCEPT {
         Windows_DPI_Awareness_Init();
 #endif
 #if defined(MACOSX) && !defined(C_SDL2)
-    /* Our SDL1 in-tree library has a High DPI awareness function for Mac OS X now */
+    /* Our SDL1 in-tree library has a High DPI awareness function for macOS now */
         if (!control->opt_disable_dpi_awareness)
             sdl1_hax_macosx_highdpi_set_enable(dpi_aware_enable);
 #endif
@@ -9015,7 +9018,7 @@ int main(int argc, char* argv[]) SDL_MAIN_NOEXCEPT {
 #ifdef MACOSX
         osx_detect_nstouchbar();/*assigns to has_touch_bar_support*/
         if (has_touch_bar_support) {
-            LOG_MSG("Mac OS X: NSTouchBar support detected in system");
+            LOG_MSG("macOS: NSTouchBar support detected in system");
             osx_init_touchbar();
         }
 
