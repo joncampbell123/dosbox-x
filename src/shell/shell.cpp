@@ -497,6 +497,8 @@ void DOS_Shell::Run(void) {
             WriteOut(ParseMsg(MSG_Get("SHELL_STARTUP_BEGIN3")));
 #if C_DEBUG
             WriteOut(ParseMsg(MSG_Get("SHELL_STARTUP_DEBUG")));
+#else
+            WriteOut(ParseMsg(MSG_Get("SHELL_STARTUP_EMPTY")));
 #endif
             if (machine == MCH_CGA || machine == MCH_AMSTRAD) WriteOut(ParseMsg(MSG_Get("SHELL_STARTUP_CGA")));
             if (machine == MCH_PC98) WriteOut(ParseMsg(MSG_Get("SHELL_STARTUP_PC98")));
@@ -1058,7 +1060,7 @@ void SHELL_Init() {
                     (std::string("\x86\x46 To activate the keymapper \033[31mhost+M\033[37m. Host key is ") + (mapper_keybind + ".                                    ").substr(0,20) + std::string(" \x86\x46\n")).c_str()
                );
         MSG_Add("SHELL_STARTUP_BEGIN3",
-                "\x86\x46 To start the Configuration GUI, use \033[31mhost+C\033[37m.                        \x86\x46\n"
+                "\x86\x46 To start the Configuration GUI to review settings, use \033[31mhost+C\033[37m.     \x86\x46\n"
                 "\x86\x46 For more information read the online guide in the \033[36mDOSBox-X Wiki\033[37m.   \x86\x46\n"
                 "\x86\x46                                                                    \x86\x46\n"
                );
@@ -1072,9 +1074,10 @@ void SHELL_Init() {
 #endif
                 "\x86\x46                                                                    \x86\x46\n"
                );
+        MSG_Add("SHELL_STARTUP_EMPTY", "");
         MSG_Add("SHELL_STARTUP_END",
-                "\x86\x46 \033[32mDOSBox-X project \033[33mhttp://dosbox-x.software\033[32m      PentiumPro support \033[37m \x86\x46\n"
-                "\x86\x46 \033[32mDerived from DOSBox \033[33mhttp://www.dosbox.com\033[37m                          \x86\x46\n"
+                "\x86\x46 \033[32mDOSBox-X project \033[33mhttp://dosbox-x.com/\033[32m          PentiumPro support \033[37m \x86\x46\n"
+                "\x86\x46 \033[32mDOSBox-X support \033[33mhttps://github.com/joncampbell123/dosbox-x/issues\033[37m \x86\x46\n"
                 "\x86\x5A\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44"
                 "\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44"
                 "\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44"
@@ -1130,6 +1133,9 @@ void SHELL_Init() {
 #else
                 //"\033[44;1m\xBA Debugger is also available. To enter the debugger  : \033[31mAlt \033[37m+\033[31m Pause\033[37m             \xBA\033[0m"
 #endif
+                "\033[44;1m\xBA                                                                              \xBA\033[0m"
+               );
+        MSG_Add("SHELL_STARTUP_EMPTY",
                 "\033[44;1m\xBA                                                                              \xBA\033[0m"
                );
         MSG_Add("SHELL_STARTUP_END",
