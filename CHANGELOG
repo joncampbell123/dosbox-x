@@ -1,4 +1,16 @@
 0.83.6
+  - DOSBox-X will now by default show a quit warning
+    if a DOS program or game, or a guest system is
+    running. The previous behavior can be set with
+    "quit warning=autofile". (Wengier)
+  - The mouse wheel movements will be automatically
+    converted into up/down arrows by default for the
+    intergrated DOS now. You can also enable it for
+    the guest system from the "Main" menu ("mouse wheel
+    movements" -> "Enable for guest systems also") or
+    from the config file. (Wengier)
+  - The welcome banner when DOSBox-X starts has been
+    redesigned for a better looking. (Wengier)
   - The powerful SJGPLAY for DOS has been built into
     DOSBox-X. You can now find the CDPLAY.EXE program
     in the Z drive for playing Audio CDs. (Wengier)
@@ -12,7 +24,9 @@
     automatically re-run such programs. (Wengier)
   - The display for several section names in DOSBox-X's
     Configuration GUI have been capitalized or modified
-    otherwise for a better looking. (Wengier)
+    otherwise for a better looking. A default shortcut
+    key HOST(F11/F12)+C is added for starting the
+    Configuration GUI. (Wengier)
   - Added the "Show advanced options" checkbox in the
     main screen of the Configuration GUI to toggle
     whether to display all config options for the

@@ -1192,7 +1192,7 @@ bool CheckQuit(void) {
                 return ret;
             }
         }
-    else if (RunningProgram&&stricmp(RunningProgram, "COMMAND")&&stricmp(RunningProgram, "4DOS")) {
+    else if (RunningProgram&&strcmp(RunningProgram, "COMMAND")&&strcmp(RunningProgram, "4DOS")) {
         quit_confirm=false;
         MAPPER_ReleaseAllKeys();
         GFX_LosingFocus();

@@ -3258,7 +3258,7 @@ void DOS_Shell::CMD_DEBUGBOX(char * args) {
 }
 #endif
 
-static char *str_replace(char *orig, char *rep, char *with) {
+char *str_replace(char *orig, char *rep, char *with) {
     char *result, *ins, *tmp;
     size_t len_rep, len_with, len_front;
     int count;

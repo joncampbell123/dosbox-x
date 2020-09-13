@@ -455,6 +455,14 @@ void DOS_Shell::RunInternal(void) {
 	}
 }
 
+char *str_replace(char *orig, char *rep, char *with);
+const char *ParseMsg(const char *msg) {
+    if (machine == MCH_PC98 || real_readw(BIOSMEM_SEG,BIOSMEM_NB_COLS)<=80)
+        return msg;
+    else
+        return str_replace(str_replace(str_replace((char *)msg, "\xBA\033[0m", "\xBA\033[0m\n"), "\xBB\033[0m", "\xBB\033[0m\n"), "\xBC\033[0m", "\xBC\033[0m\n");
+}
+
 void DOS_Shell::Run(void) {
 	char input_line[CMD_MAXLINE] = {0};
 	std::string line;
@@ -484,16 +492,16 @@ void DOS_Shell::Run(void) {
         Section_prop *section = static_cast<Section_prop *>(control->GetSection("dosbox"));
         if(section->Get_bool("startbanner")&&!control->opt_fastlaunch) {
             /* Start a normal shell and check for a first command init */
-            WriteOut(MSG_Get("SHELL_STARTUP_BEGIN"),VERSION,SDL_STRING,UPDATED_STR);
-            WriteOut(MSG_Get("SHELL_STARTUP_BEGIN2"));
-            WriteOut(MSG_Get("SHELL_STARTUP_BEGIN3"));
+            WriteOut(ParseMsg(MSG_Get("SHELL_STARTUP_BEGIN")),VERSION,SDL_STRING,UPDATED_STR);
+            WriteOut(ParseMsg(MSG_Get("SHELL_STARTUP_BEGIN2")));
+            WriteOut(ParseMsg(MSG_Get("SHELL_STARTUP_BEGIN3")));
 #if C_DEBUG
-            WriteOut(MSG_Get("SHELL_STARTUP_DEBUG"));
+            WriteOut(ParseMsg(MSG_Get("SHELL_STARTUP_DEBUG")));
 #endif
-            if (machine == MCH_CGA || machine == MCH_AMSTRAD) WriteOut(MSG_Get("SHELL_STARTUP_CGA"));
-            if (machine == MCH_PC98) WriteOut(MSG_Get("SHELL_STARTUP_PC98"));
-            if (machine == MCH_HERC || machine == MCH_MDA) WriteOut(MSG_Get("SHELL_STARTUP_HERC"));
-            WriteOut(MSG_Get("SHELL_STARTUP_END"));
+            if (machine == MCH_CGA || machine == MCH_AMSTRAD) WriteOut(ParseMsg(MSG_Get("SHELL_STARTUP_CGA")));
+            if (machine == MCH_PC98) WriteOut(ParseMsg(MSG_Get("SHELL_STARTUP_PC98")));
+            if (machine == MCH_HERC || machine == MCH_MDA) WriteOut(ParseMsg(MSG_Get("SHELL_STARTUP_HERC")));
+            WriteOut(ParseMsg(MSG_Get("SHELL_STARTUP_END")));
         } else if (CurMode->type==M_TEXT || IS_PC98_ARCH)
             WriteOut("[2J");
 		if (!countryNo) {
@@ -1019,7 +1027,7 @@ void SHELL_Init() {
         mapper_keybind[0] = toupper(mapper_keybind[0]);
 
     /* Punctuation is important too. */
-    mapper_keybind += ".";
+    //mapper_keybind += ".";
 
     /* NTS: MSG_Add() takes the string as const char * but it does make a copy of the string when entering into the message map,
      *      so there is no problem here of causing use-after-free crashes when we exit. */
@@ -1027,17 +1035,9 @@ void SHELL_Init() {
 
     if (machine == MCH_PC98) {
 // "\x86\x46 To activate the keymapper \033[31mhost+M\033[37m. Host key is F12.                 \x86\x46\n"
-        host_key_help =
-            std::string("\x86\x46 To activate the keymapper \033[31mhost+M\033[37m. Host key is ") +
-            (mapper_keybind + "                                     ").substr(0,20) +
-            std::string(" \x86\x46\n");
     }
     else {
 // "\xBA To activate the keymapper \033[31mhost+M\033[37m. Host key is F12.                 \xBA\n"
-        host_key_help =
-            std::string("\033[44;1m\xBA To activate the keymapper \033[31mhost+M\033[37m. Host key is ") +
-            (mapper_keybind + "                                     ").substr(0,20) +
-            std::string(" \xBA\033[0m\n");
     }
 
     if (machine == MCH_PC98) {
@@ -1048,15 +1048,17 @@ void SHELL_Init() {
                 "\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44"
                 "\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44"
                 "\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x56\n"
-                "\x86\x46 \033[32mWelcome to DOSBox-X %-8s (%-4s) %-25s\033[37m      \x86\x46\n"
+                "\x86\x46 \033[33mWelcome to DOSBox-X %-7s (%-4s) %-26s\033[37m      \x86\x46\n"
                 "\x86\x46                                                                    \x86\x46\n"
-                "\x86\x46 For a short introduction for new users type: \033[33mINTRO\033[37m                 \x86\x46\n"
-                "\x86\x46 For supported shell commands type: \033[33mHELP\033[37m                            \x86\x46\n"
+                "\x86\x46 For a list of supported shell commands, please type: \033[32mHELP\033[37m          \x86\x46\n"
+                "\x86\x46 For a short introduction for new users, please type: \033[32mINTRO\033[37m         \x86\x46\n"
                 "\x86\x46                                                                    \x86\x46\n"
                 "\x86\x46 To adjust the emulated CPU speed, use \033[31mhost -\033[37m and \033[31mhost +\033[37m.           \x86\x46\n");
         MSG_Replace("SHELL_STARTUP_BEGIN2",
-                host_key_help.c_str());
+                    (std::string("\x86\x46 To activate the keymapper \033[31mhost+M\033[37m. Host key is ") + (mapper_keybind + ".                                    ").substr(0,20) + std::string(" \x86\x46\n")).c_str()
+               );
         MSG_Add("SHELL_STARTUP_BEGIN3",
+                "\x86\x46 To start the Configuration GUI, use \033[31mhost+C\033[37m.                        \x86\x46\n"
                 "\x86\x46 For more information read the online guide in the \033[36mDOSBox-X Wiki\033[37m.   \x86\x46\n"
                 "\x86\x46                                                                    \x86\x46\n"
                );
@@ -1064,9 +1066,9 @@ void SHELL_Init() {
                 "\x86\x46 \033[31mPC-98 emulation is INCOMPLETE and CURRENTLY IN DEVELOPMENT.\033[37m        \x86\x46\n");
         MSG_Add("SHELL_STARTUP_DEBUG",
 #if defined(MACOSX)
-                "\x86\x46 Debugger is available, use \033[31mAlt-F12\033[37m to enter.                       \x86\x46\n"
+                "\x86\x46 Debugger is available, use \033[31mAlt+F12\033[37m to enter.                       \x86\x46\n"
 #else
-                "\x86\x46 Debugger is available, use \033[31mAlt-Pause\033[37m to enter.                     \x86\x46\n"
+                "\x86\x46 Debugger is available, use \033[31mAlt+Pause\033[37m to enter.                     \x86\x46\n"
 #endif
                 "\x86\x46                                                                    \x86\x46\n"
                );
@@ -1084,54 +1086,62 @@ void SHELL_Init() {
     }
     else {
         MSG_Add("SHELL_STARTUP_BEGIN",
-                "\033[44;1m\xC9\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD"
-                "\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD"
-                "\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xBB\033[0m\n"
-                "\033[44;1m\xBA \033[32mWelcome to DOSBox-X %-8s (%-4s) %-25s\033[37m      \xBA\033[0m\n"
-                "\033[44;1m\xBA                                                                    \xBA\033[0m\n"
-                "\033[44;1m\xBA For a short introduction for new users type: \033[33mINTRO\033[37m                 \xBA\033[0m\n"
-                "\033[44;1m\xBA For supported shell commands type: \033[33mHELP\033[37m                            \xBA\033[0m\n"
-                "\033[44;1m\xBA                                                                    \xBA\033[0m\n"
-                "\033[44;1m\xBA To adjust the emulated CPU speed, use \033[31mhost -\033[37m and \033[31mhost +\033[37m.           \xBA\033[0m\n"
-			   );
+                "\033[44;1m\xC9\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD"
+                "\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD"
+                "\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xBB\033[0m"
+                "\033[44;1m\xBA \033[33mWelcome to DOSBox-X %-7s (%-4s) %-26s\033[37m                \xBA\033[0m"
+                "\033[44;1m\xBA                                                                              \xBA\033[0m"
+                "\033[44;1m\xBA For a list of supported shell commands, please type: \033[32mHELP\033[37m                    \xBA\033[0m"
+                "\033[44;1m\xBA For a short introduction for new users, please type: \033[32mINTRO\033[37m                   \xBA\033[0m"
+                "\033[44;1m\xBA                                                                              \xBA\033[0m"
+                "\033[44;1m\xBA \033[36mThe default shortcut keys                                                   \033[37m \xBA\033[0m"
+                "\033[44;1m\xBA                                                                              \xBA\033[0m"
+               );
         MSG_Replace("SHELL_STARTUP_BEGIN2",
-                host_key_help.c_str());
+                (std::string("\033[44;1m\xBA For switching between window and full-screen mode  : \033[31m")+(mapper_keybind+" \033[37m+ \033[31mF\033[37m                     ").substr(0,38)+std::string("\033[37m \xBA\033[0m") +
+                std::string("\033[44;1m\xBA To start the Configuration GUI to review settings  : \033[31m")+(mapper_keybind+" \033[37m+ \033[31mC\033[37m                      ").substr(0,38)+std::string("\033[37m \xBA\033[0m") +
+                std::string("\033[44;1m\xBA To activate the mapper editor to change key mapping: \033[31m")+(mapper_keybind+" \033[37m+ \033[31mM\033[37m                     ").substr(0,38)+std::string("\033[37m \xBA\033[0m") +
+                std::string("\033[44;1m\xBA You can increase or decrease the emulated CPU speed: \033[31m")+(mapper_keybind+" \033[37m+ \033[31mPlus\033[37m      ").substr(0,25)+std::string("\033[37m, \033[31m") +
+                (mapper_keybind+" \033[37m+ \033[31mMinus\033[37m       ").substr(0,26)+std::string("\033[37m \xBA\033[0m")).c_str());
         MSG_Add("SHELL_STARTUP_BEGIN3",
-                "\033[44;1m\xBA For more information read the online guide in the \033[36mDOSBox-X Wiki\033[37m.   \xBA\033[0m\n"
-                "\033[44;1m\xBA                                                                    \xBA\033[0m\n"
+                ""
                );
         if (!mono_cga) {
-            MSG_Add("SHELL_STARTUP_CGA","\033[44;1m\xBA DOSBox-X supports Composite CGA mode.                              \xBA\033[0m\n"
-                    "\033[44;1m\xBA Use \033[31mF12\033[37m to set composite output ON, OFF, or AUTO (default).        \xBA\033[0m\n"
-                    "\033[44;1m\xBA \033[31m(Alt-)F11\033[37m changes hue; \033[31mctrl-alt-F11\033[37m selects early/late CGA model.  \xBA\033[0m\n"
-                    "\033[44;1m\xBA                                                                    \xBA\033[0m\n"
+            MSG_Add("SHELL_STARTUP_CGA","\033[44;1m\xBA DOSBox-X supports Composite CGA mode.                                        \xBA\033[0m"
+                    "\033[44;1m\xBA Use \033[31mF12\033[37m to set composite output ON, OFF, or AUTO (default).                  \xBA\033[0m"
+                    "\033[44;1m\xBA \033[31m(Alt+)F11\033[37m changes hue; \033[31mCtrl+Alt+F11\033[37m selects early/late CGA model.            \xBA\033[0m"
+                    "\033[44;1m\xBA                                                                              \xBA\033[0m"
                    );
         } else {
-            MSG_Add("SHELL_STARTUP_CGA","\033[44;1m\xBA Use \033[31mF11\033[37m to cycle through green, amber, and white monochrome color, \xBA\033[0m\n"
-                    "\033[44;1m\xBA and \033[31mAlt-F11\033[37m to change contrast/brightness settings.                \xBA\033[0m\n"
+            MSG_Add("SHELL_STARTUP_CGA","\033[44;1m\xBA Use \033[31mF11\033[37m to cycle through green, amber, and white monochrome color,           \xBA\033[0m"
+                    "\033[44;1m\xBA and \033[31mAlt+F11\033[37m to change contrast/brightness settings.                          \xBA\033[0m"
+                    "\033[44;1m\xBA                                                                              \xBA\033[0m"
                    );
         }
         MSG_Add("SHELL_STARTUP_PC98","\xBA DOSBox-X is now running in NEC PC-98 emulation mode.               \xBA\n"
                 "\xBA \033[31mPC-98 emulation is INCOMPLETE and CURRENTLY IN DEVELOPMENT.\033[37m        \xBA\n");
-        MSG_Add("SHELL_STARTUP_HERC","\033[44;1m\xBA Use F11 to cycle through white, amber, and green monochrome color. \xBA\033[0m\n"
-                "\033[44;1m\xBA Use alt-F11 to toggle horizontal blending (only in graphics mode). \xBA\033[0m\n"
-                "\033[44;1m\xBA                                                                    \xBA\033[0m\n"
+        MSG_Add("SHELL_STARTUP_HERC","\033[44;1m\xBA Use F11 to cycle through white, amber, and green monochrome color.           \xBA\033[0m"
+                "\033[44;1m\xBA Use Alt+F11 to toggle horizontal blending (only in graphics mode).           \xBA\033[0m"
+                "\033[44;1m\xBA                                                                              \xBA\033[0m"
                );
         MSG_Add("SHELL_STARTUP_DEBUG",
 #if defined(MACOSX)
-                "\033[44;1m\xBA Debugger is available, use \033[31mAlt-F12\033[37m to enter.                       \xBA\033[0m\n"
+                //"\033[44;1m\xBA Debugger is also available. To enter the debugger  : \033[31mAlt \033[37m+\033[31m F12\033[37m               \xBA\033[0m"
 #else
-                "\033[44;1m\xBA Debugger is available, use \033[31mAlt-Pause\033[37m to enter.                     \xBA\033[0m\n"
+                //"\033[44;1m\xBA Debugger is also available. To enter the debugger  : \033[31mAlt \033[37m+\033[31m Pause\033[37m             \xBA\033[0m"
 #endif
-                "\033[44;1m\xBA                                                                    \xBA\033[0m\n"
+                "\033[44;1m\xBA                                                                              \xBA\033[0m"
                );
         MSG_Add("SHELL_STARTUP_END",
-                "\033[44;1m\xBA \033[32mDOSBox-X project \033[33mhttp://dosbox-x.software\033[32m      PentiumPro support \033[37m \xBA\033[0m\n"
-                "\033[44;1m\xBA \033[32mDerived from DOSBox \033[33mhttp://www.dosbox.com\033[37m                          \xBA\033[0m\n"
-                "\033[44;1m\xC8\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD"
-                "\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD"
-                "\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xBC\033[0m\n"
-                "\033[1m\033[32mHAVE FUN!\033[0m\n"
+                "\033[44;1m\xBA \033[36mThe DOSBox-X project online                                                 \033[37m \xBA\033[0m"
+                "\033[44;1m\xBA                                                                              \xBA\033[0m"
+                "\033[44;1m\xBA \033[32mDOSBox-X Homepage\033[37m  : \033[33mhttp://dosbox-x.com/\033[32m                                   \033[37m \xBA\033[0m"
+                "\033[44;1m\xBA \033[32mDOSBox-X Wiki Guide\033[37m: \033[33mhttps://github.com/joncampbell123/dosbox-x/wiki\033[32m        \033[37m \xBA\033[0m"
+                "\033[44;1m\xBA \033[32mDOSBox-X Support\033[37m   : \033[33mhttps://github.com/joncampbell123/dosbox-x/issues      \033[37m \xBA\033[0m"
+                "\033[44;1m\xC8\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD"
+                "\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD"
+                "\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xBC\033[0m"
+                "\033[1m\033[32mHAVE FUN!                                                                      \033[0m\n"
                );
     }
 
