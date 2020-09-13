@@ -492,7 +492,7 @@ void DOS_Shell::Run(void) {
         Section_prop *section = static_cast<Section_prop *>(control->GetSection("dosbox"));
         if(section->Get_bool("startbanner")&&!control->opt_fastlaunch) {
             /* Start a normal shell and check for a first command init */
-            WriteOut(ParseMsg(MSG_Get("SHELL_STARTUP_BEGIN")),VERSION,SDL_STRING,UPDATED_STR);
+            WriteOut(ParseMsg(MSG_Get("SHELL_STARTUP_BEGIN")),std::string(VERSION)+" ("+std::string(SDL_STRING)+") Built on "+std::string(UPDATED_STR));
             WriteOut(ParseMsg(MSG_Get("SHELL_STARTUP_BEGIN2")));
             WriteOut(ParseMsg(MSG_Get("SHELL_STARTUP_BEGIN3")));
 #if C_DEBUG
@@ -1050,7 +1050,7 @@ void SHELL_Init() {
                 "\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44"
                 "\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44"
                 "\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x56\n"
-                "\x86\x46 \033[33mWelcome to DOSBox-X %-7s (%-4s) %-26s\033[37m      \x86\x46\n"
+                "\x86\x46 \033[33mWelcome to DOSBox-X %-45s\033[37m \x86\x46\n"
                 "\x86\x46                                                                    \x86\x46\n"
                 "\x86\x46 For a list of supported shell commands, please type: \033[32mHELP\033[37m          \x86\x46\n"
                 "\x86\x46 For a short introduction for new users, please type: \033[32mINTRO\033[37m         \x86\x46\n"
@@ -1092,7 +1092,7 @@ void SHELL_Init() {
                 "\033[44;1m\xC9\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD"
                 "\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD"
                 "\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xBB\033[0m"
-                "\033[44;1m\xBA \033[33mWelcome to DOSBox-X %-7s (%-4s) %-26s\033[37m                \xBA\033[0m"
+                "\033[44;1m\xBA \033[33mWelcome to DOSBox-X %-40s\033[37m           \xBA\033[0m"
                 "\033[44;1m\xBA                                                                              \xBA\033[0m"
                 "\033[44;1m\xBA For a list of supported shell commands, please type: \033[32mHELP\033[37m                    \xBA\033[0m"
                 "\033[44;1m\xBA For a short introduction for new users, please type: \033[32mINTRO\033[37m                   \xBA\033[0m"
