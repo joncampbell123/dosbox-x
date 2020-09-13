@@ -1094,18 +1094,15 @@ void SHELL_Init() {
                 "\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xBB\033[0m"
                 "\033[44;1m\xBA \033[33mWelcome to DOSBox-X %-40s\033[37m           \xBA\033[0m"
                 "\033[44;1m\xBA                                                                              \xBA\033[0m"
-                "\033[44;1m\xBA For a list of supported shell commands, please type: \033[32mHELP\033[37m                    \xBA\033[0m"
-                "\033[44;1m\xBA For a short introduction for new users, please type: \033[32mINTRO\033[37m                   \xBA\033[0m"
+                "\033[44;1m\xBA \033[35mGetting started with DOSBox-X:                                              \033[37m \xBA\033[0m"
                 "\033[44;1m\xBA                                                                              \xBA\033[0m"
-                "\033[44;1m\xBA \033[36mThe default shortcut keys                                                   \033[37m \xBA\033[0m"
-                "\033[44;1m\xBA                                                                              \xBA\033[0m"
+                "\033[44;1m\xBA - Type \033[32mHELP\033[37m for help on shell commands, \033[32mINTRO\033[37m for a tour of basic features   \xBA\033[0m"
                );
         MSG_Replace("SHELL_STARTUP_BEGIN2",
-                (std::string("\033[44;1m\xBA For switching between window and full-screen mode  : \033[31m")+(mapper_keybind+" \033[37m+ \033[31mF\033[37m                     ").substr(0,38)+std::string("\033[37m \xBA\033[0m") +
-                std::string("\033[44;1m\xBA To start the Configuration GUI to review settings  : \033[31m")+(mapper_keybind+" \033[37m+ \033[31mC\033[37m                      ").substr(0,38)+std::string("\033[37m \xBA\033[0m") +
-                std::string("\033[44;1m\xBA To activate the mapper editor to change key mapping: \033[31m")+(mapper_keybind+" \033[37m+ \033[31mM\033[37m                     ").substr(0,38)+std::string("\033[37m \xBA\033[0m") +
-                std::string("\033[44;1m\xBA You can increase or decrease the emulated CPU speed: \033[31m")+(mapper_keybind+" \033[37m+ \033[31mPlus\033[37m      ").substr(0,25)+std::string("\033[37m, \033[31m") +
-                (mapper_keybind+" \033[37m+ \033[31mMinus\033[37m       ").substr(0,26)+std::string("\033[37m \xBA\033[0m")).c_str());
+                (std::string("\033[44;1m\xBA - Switch between window and full-screen mode with \033[36mdefault\033[37m shortcut \033[31m")+(mapper_keybind+" \033[37m+ \033[31mF\033[37m                     ").substr(0,24)+std::string("\033[37m \xBA\033[0m") +
+                std::string("\033[44;1m\xBA - Launch \033[33mDOSBox-X Settings\033[37m using \033[31m")+(mapper_keybind+" \033[37m+ \033[31mC\033[37m                      ").substr(0,22)+std::string("\033[37m, and \033[33mMapper Editor\033[37m using \033[31m")+(mapper_keybind+" \033[37m+ \033[31mM\033[37m                     ").substr(0,25)+std::string("\033[37m \xBA\033[0m") +
+                std::string("\033[44;1m\xBA - Increase or decrease emulated CPU speed with \033[31m")+(mapper_keybind+" \033[37m+ \033[31mPlus\033[37m      ").substr(0,25)+std::string("\033[37m and \033[31m") +
+                (mapper_keybind+" \033[37m+ \033[31mMinus\033[37m       ").substr(0,29)+std::string("\033[37m \xBA\033[0m")).c_str());
         MSG_Add("SHELL_STARTUP_BEGIN3",
                 ""
                );
@@ -1139,7 +1136,7 @@ void SHELL_Init() {
                 "\033[44;1m\xBA                                                                              \xBA\033[0m"
                );
         MSG_Add("SHELL_STARTUP_END",
-                "\033[44;1m\xBA \033[36mThe DOSBox-X project online                                                 \033[37m \xBA\033[0m"
+                "\033[44;1m\xBA \033[35mThe DOSBox-X project online:                                                \033[37m \xBA\033[0m"
                 "\033[44;1m\xBA                                                                              \xBA\033[0m"
                 "\033[44;1m\xBA \033[32mDOSBox-X Homepage\033[37m  : \033[33mhttp://dosbox-x.com/\033[32m                                   \033[37m \xBA\033[0m"
                 "\033[44;1m\xBA \033[32mDOSBox-X Wiki Guide\033[37m: \033[33mhttps://github.com/joncampbell123/dosbox-x/wiki\033[32m        \033[37m \xBA\033[0m"

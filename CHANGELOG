@@ -10,10 +10,8 @@
     movements" -> "Enable for guest systems also") or
     from the config file. (Wengier)
   - The welcome banner when DOSBox-X starts has been
-    redesigned for a better looking. (Wengier)
-  - The powerful SJGPLAY for DOS has been built into
-    DOSBox-X. You can now find the CDPLAY.EXE program
-    in the Z drive for playing Audio CDs. (Wengier)
+    improved for a better looking and should provide
+    more helpful instructions for users. (Wengier)
   - Add new "Help" menu which includes menu items
     "Introduction", "DOSBox-X homepage", "DOSBox-X Wiki
     guide", "DOSBox-X support" and "About". (Wengier)
