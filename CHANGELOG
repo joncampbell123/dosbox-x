@@ -9,6 +9,12 @@
     the guest system from the "Main" menu ("mouse wheel
     movements" -> "Enable for guest systems also") or
     from the config file. (Wengier)
+  - The powerful SJGPLAY for DOS has been built into
+    DOSBox-X. You can now find the CDPLAY.EXE program
+    in the Z drive for playing Audio CDs in DOS. This
+    freeware program was written by Steve Gray and is
+    now included in DOSBox-X with explicit permission
+    of the author. (Wengier)
   - The welcome banner when DOSBox-X starts has been
     improved for a better looking and should provide
     more helpful instructions for users. (Wengier)
