@@ -450,7 +450,7 @@ bool drive_info_menu_callback(DOSBoxMenu * const menu,DOSBoxMenu::item * const m
     MAPPER_ReleaseAllKeys();
     GFX_LosingFocus();
     statusdrive=drive;
-    GUI_Shortcut(31);
+    GUI_Shortcut(32);
     statusdrive=-1;
     MAPPER_ReleaseAllKeys();
     GFX_LosingFocus();
@@ -504,7 +504,7 @@ bool list_drivenum_menu_callback(DOSBoxMenu * const menu,DOSBoxMenu::item * cons
     (void)menuitem;//UNUSED
     MAPPER_ReleaseAllKeys();
     GFX_LosingFocus();
-    GUI_Shortcut(32);
+    GUI_Shortcut(33);
     MAPPER_ReleaseAllKeys();
     GFX_LosingFocus();
     return true;
@@ -959,6 +959,7 @@ bool                        startup_state_numlock = false; // Global for keyboar
 bool                        startup_state_capslock = false; // Global for keyboard initialisation
 bool                        startup_state_scrlock = false; // Global for keyboard initialisation
 int mouse_start_x=-1, mouse_start_y=-1, mouse_end_x=-1, mouse_end_y=-1, fx=-1, fy=-1, paste_speed=20, wheel_key=0;
+bool wheel_guest = false;
 const char *modifier;
 
 #if defined(WIN32) && !defined(C_SDL2)
@@ -1177,18 +1178,30 @@ bool CheckQuit(void) {
         quit_confirm=false;
         return ret;
     }
-    for (Bit8u handle = 0; handle < DOS_FILES; handle++) {
-        if (Files[handle] && (Files[handle]->GetName() == NULL || strcmp(Files[handle]->GetName(), "CON")) && (Files[handle]->GetInformation()&0x8000) == 0) {
-            quit_confirm=false;
-            MAPPER_ReleaseAllKeys();
-            GFX_LosingFocus();
-            GUI_Shortcut(30);
-            MAPPER_ReleaseAllKeys();
-            GFX_LosingFocus();
-            bool ret=quit_confirm;
-            quit_confirm=false;
-            return ret;
+    if (warn == "autofile")
+        for (Bit8u handle = 0; handle < DOS_FILES; handle++) {
+            if (Files[handle] && (Files[handle]->GetName() == NULL || strcmp(Files[handle]->GetName(), "CON")) && (Files[handle]->GetInformation()&0x8000) == 0) {
+                quit_confirm=false;
+                MAPPER_ReleaseAllKeys();
+                GFX_LosingFocus();
+                GUI_Shortcut(30);
+                MAPPER_ReleaseAllKeys();
+                GFX_LosingFocus();
+                bool ret=quit_confirm;
+                quit_confirm=false;
+                return ret;
+            }
         }
+    else if (RunningProgram&&stricmp(RunningProgram, "COMMAND")&&stricmp(RunningProgram, "4DOS")) {
+        quit_confirm=false;
+        MAPPER_ReleaseAllKeys();
+        GFX_LosingFocus();
+        GUI_Shortcut(31);
+        MAPPER_ReleaseAllKeys();
+        GFX_LosingFocus();
+        bool ret=quit_confirm;
+        quit_confirm=false;
+        return ret;
     }
     return true;
 }
@@ -3697,7 +3710,9 @@ static void GUI_StartUp() {
 
     modifier = section->Get_string("clip_key_modifier");
     paste_speed = (unsigned int)section->Get_int("clip_paste_speed");
-    wheel_key = (unsigned int)section->Get_int("mouse_wheel_key");
+    wheel_key = section->Get_int("mouse_wheel_key");
+    wheel_guest=wheel_key>0;
+    if (wheel_key<0) wheel_key=-wheel_key;
 
     Prop_multival* p3 = section->Get_multival("sensitivity");
     sdl.mouse.xsensitivity = p3->GetSection()->Get_int("xsens");
@@ -3878,7 +3893,7 @@ static void GUI_StartUp() {
     pause_menu_item_tag = mainMenu.get_item("mapper_pause").get_master_id() + DOSBoxMenu::nsMenuMinimumID;
 #endif
 
-    MAPPER_AddHandler(&GUI_Run, MK_nothing, 0, "gui", "ShowGUI", &item);
+    MAPPER_AddHandler(&GUI_Run, MK_c,MMODHOST, "gui", "ShowGUI", &item);
     item->set_text("Configuration GUI");
 
     MAPPER_AddHandler(&GUI_ResetResize, MK_nothing, 0, "resetsize", "ResetSize", &item);
@@ -4989,7 +5004,7 @@ static void HandleMouseButton(SDL_MouseButtonEvent * button, SDL_MouseMotionEven
             break;
 #if !defined(C_SDL2)
         case SDL_BUTTON_WHEELUP: /* Ick, really SDL? */
-			if (wheel_key) {
+			if (wheel_key && (wheel_guest || !dos_kernel_disabled)) {
 #if defined(WIN32) && !defined(HX_DOS)
 				INPUT ip = {0};
 				ip.type = INPUT_KEYBOARD;
@@ -5008,7 +5023,7 @@ static void HandleMouseButton(SDL_MouseButtonEvent * button, SDL_MouseMotionEven
 				Mouse_ButtonPressed(100-1);
 			break;
         case SDL_BUTTON_WHEELDOWN: /* Ick, really SDL? */
-			if (wheel_key) {
+			if (wheel_key && (wheel_guest || !dos_kernel_disabled)) {
 #if defined(WIN32) && !defined(HX_DOS)
 				INPUT ip = {0};
 				ip.type = INPUT_KEYBOARD;
@@ -5507,7 +5522,7 @@ void GFX_Events() {
             if (CheckQuit()) throw(0);
             break;
 		case SDL_MOUSEWHEEL:
-			if (wheel_key) {
+			if (wheel_key && (wheel_guest || !dos_kernel_disabled)) {
 				if(event.wheel.y > 0) {
 #if defined (WIN32) && !defined(HX_DOS)
 					INPUT ip = {0};
@@ -6327,11 +6342,11 @@ void SDL_SetupConfigSection() {
     Pstring->Set_values(emulation);
     Pstring->SetBasic(true);
 
-    const char* wheelkeys[] = { "0", "1", "2", "3", 0 };
-    Pint = sdl_sec->Add_int("mouse_wheel_key", Property::Changeable::WhenIdle, 0);
-    Pint->Set_values(wheelkeys);
+    Pint = sdl_sec->Add_int("mouse_wheel_key", Property::Changeable::WhenIdle, -1);
+    Pint->SetMinMax(-3,3);
     Pint->Set_help("Convert mouse wheel movements into keyboard presses such as arrow keys.\n"
-		"0: disabled; 1: up/down arrows; 2: left/right arrows; 3: PgUp/PgDn keys.");
+        "0: disabled; 1: up/down arrows; 2: left/right arrows; 3: PgUp/PgDn keys.\n"
+        "Putting a minus sign in front will disable the conversion for guest systems.");
     Pint->SetBasic(true);
 
     Pbool = sdl_sec->Add_bool("waitonerror",Property::Changeable::Always, true);
@@ -7492,6 +7507,14 @@ bool wheel_none_menu_callback(DOSBoxMenu * const menu,DOSBoxMenu::item * const m
     return true;
 }
 
+bool wheel_guest_menu_callback(DOSBoxMenu * const menu,DOSBoxMenu::item * const menuitem) {
+    (void)menu;//UNUSED
+    (void)menuitem;//UNUSED
+    wheel_guest = !wheel_guest;
+    mainMenu.get_item("wheel_guest").check(wheel_guest).refresh_item(mainMenu);
+    return true;
+}
+
 extern bool                         gdc_5mhz_mode_initial;
 
 bool vid_pc98_5mhz_gdc_menu_callback(DOSBoxMenu * const menu,DOSBoxMenu::item * const menuitem) {
@@ -8294,7 +8317,7 @@ bool help_intro_callback(DOSBoxMenu * const menu, DOSBoxMenu::item * const menui
 
     GFX_LosingFocus();
 
-    GUI_Shortcut(33);
+    GUI_Shortcut(34);
 
     MAPPER_ReleaseAllKeys();
 
@@ -8308,7 +8331,7 @@ bool help_about_callback(DOSBoxMenu * const menu, DOSBoxMenu::item * const menui
 
     GFX_LosingFocus();
 
-    GUI_Shortcut(34);
+    GUI_Shortcut(35);
 
     MAPPER_ReleaseAllKeys();
 
@@ -9649,6 +9672,7 @@ int main(int argc, char* argv[]) SDL_MAIN_NOEXCEPT {
         mainMenu.alloc_item(DOSBoxMenu::item_type_id,"wheel_leftright").set_text("Convert to left/right arrows").set_callback_function(wheel_leftright_menu_callback);
         mainMenu.alloc_item(DOSBoxMenu::item_type_id,"wheel_pageupdown").set_text("Convert to PgUp/PgDn keys").set_callback_function(wheel_pageupdown_menu_callback);
         mainMenu.alloc_item(DOSBoxMenu::item_type_id,"wheel_none").set_text("Do not convert to arrow keys").set_callback_function(wheel_none_menu_callback);
+        mainMenu.alloc_item(DOSBoxMenu::item_type_id,"wheel_guest").set_text("Enable for guest systems also").set_callback_function(wheel_guest_menu_callback);
         mainMenu.alloc_item(DOSBoxMenu::item_type_id,"doublebuf").set_text("Double Buffering (Fullscreen)").set_callback_function(doublebuf_menu_callback).check(!!GetSetSDLValue(1, doubleBufString, 0));
         mainMenu.alloc_item(DOSBoxMenu::item_type_id,"alwaysontop").set_text("Always on top").set_callback_function(alwaysontop_menu_callback).check(is_always_on_top());
         mainMenu.alloc_item(DOSBoxMenu::item_type_id,"showdetails").set_text("Show details").set_callback_function(showdetails_menu_callback).check(!menu.hidecycles && !menu.showrt);
@@ -9666,6 +9690,7 @@ int main(int argc, char* argv[]) SDL_MAIN_NOEXCEPT {
         mainMenu.get_item("wheel_leftright").check(wheel_key==2).refresh_item(mainMenu);
         mainMenu.get_item("wheel_pageupdown").check(wheel_key==3).refresh_item(mainMenu);
         mainMenu.get_item("wheel_none").check(wheel_key==0).refresh_item(mainMenu);
+        mainMenu.get_item("wheel_guest").check(wheel_guest).refresh_item(mainMenu);
 
         bool MENU_get_swapstereo(void);
         mainMenu.get_item("mixer_swapstereo").check(MENU_get_swapstereo()).refresh_item(mainMenu);

@@ -1293,6 +1293,7 @@ void DOSBOX_SetupConfigSections(void) {
         0 };
     const char* ems_settings[] = { "true", "emsboard", "emm386", "false", "1", "0", 0};
     const char* lfn_settings[] = { "true", "false", "1", "0", "auto", "autostart", 0};
+    const char* quit_settings[] = { "true", "false", "1", "0", "auto", "autofile", 0};
     const char* irqsgus[] = { "5", "3", "7", "9", "10", "11", "12", 0 };
     const char* irqssb[] = { "7", "5", "3", "9", "10", "11", "12", 0 };
     const char* dmasgus[] = { "3", "0", "1", "5", "6", "7", 0 };
@@ -1382,9 +1383,10 @@ void DOSBOX_SetupConfigSections(void) {
             "on higher resolution monitors which is probably not what you want.");
 
     Pstring = secprop->Add_string("quit warning",Property::Changeable::OnlyAtStart,"auto");
-    Pstring->Set_values(truefalseautoopt);
+    Pstring->Set_values(quit_settings);
     Pstring->Set_help("Set this option to indicate whether DOSBox-X should show a warning message when the user tries to close its window.\n"
-            "If set to auto (default), DOSBox-X will warn if there are open file handles or a guest system is currently running.");
+            "If set to auto (default), DOSBox-X will warn if a DOS program, game or a guest system is currently running.\n"
+            "If set to autofile, DOSBox-X will warn if there are open file handles or a guest system is currently running.");
     Pstring->SetBasic(true);
 
     Pbool = secprop->Add_bool("show advanced options", Property::Changeable::Always, false);

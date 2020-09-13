@@ -1716,7 +1716,7 @@ public:
     ShowQuitWarning(GUI::Screen *parent, int x, int y, const char *title) :
         ToplevelWindow(parent, x, y, strcmp(title, "quit1")?430:330, !strcmp(title, "quit3")?180:150, "Quit DOSBox-X warning") {
             bool forcequit=!strcmp(title, "quit3");
-            new GUI::Label(this, forcequit?20:40, 20, !strcmp(title, "quit1")?"This will quit from DOSBox-X.":(!strcmp(title, "quit2")?"You are currently running a guest system.":"It may be unsafe to quit from DOSBox-X right now"));
+            new GUI::Label(this, forcequit?20:40, 20, !strcmp(title, "quit1")?"This will quit from DOSBox-X.":(!strcmp(title, "quit2")?"You are currently running a guest system.":(!strcmp(title, "quit3")?"It may be unsafe to quit from DOSBox-X right now":"You are currently running a program or game.")));
             if (forcequit) new GUI::Label(this, forcequit?20:40, 50, "because one or more files are currently open.");
             new GUI::Label(this, forcequit?20:40, forcequit?80:50, strcmp(title, "quit1")?"Are you sure to quit anyway now?":"Are you sure?");
             (new GUI::Button(this, strcmp(title, "quit1")?140:90, forcequit?110:80, "Yes", 70))->addActionHandler(this);
@@ -2147,19 +2147,23 @@ static void UI_Select(GUI::ScreenSDL *screen, int select) {
             auto *np8 = new ShowQuitWarning(screen, 120, 100, "quit3");
             np8->raise();
             } break;
-        case 31: if (statusdrive>-1 && statusdrive<DOS_DRIVES && Drives[statusdrive]) {
+        case 31: {
+            auto *np8 = new ShowQuitWarning(screen, 120, 100, "quit4");
+            np8->raise();
+            } break;
+        case 32: if (statusdrive>-1 && statusdrive<DOS_DRIVES && Drives[statusdrive]) {
             auto *np9 = new ShowDriveInfo(screen, 120, 50, "Drive Information");
             np9->raise();
             } break;
-        case 32: {
+        case 33: {
             auto *np10 = new ShowDriveNumber(screen, 110, 70, "Mounted Drive Numbers");
             np10->raise();
             } break;
-        case 33: {
+        case 34: {
             auto *np11 = new ShowHelpIntro(screen, 70, 70, "Introduction");
             np11->raise();
             } break;
-        case 34: {
+        case 35: {
             auto *np11 = new ShowHelpAbout(screen, 110, 70, "About");
             np11->raise();
             } break;

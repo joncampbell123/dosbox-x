@@ -109,8 +109,8 @@ static const char *def_menu__toplevel[] =
 /* main menu ("MainMenu") */
 static const char *def_menu_main[] =
 {
-    "mapper_mapper",
     "mapper_gui",
+    "mapper_mapper",
     "--",
     "MainSendKey",
     "--",
@@ -171,6 +171,7 @@ static const char *def_menu_main_wheelarrow[] =
     "wheel_pageupdown",
     "--",
     "wheel_none",
+    "wheel_guest",
     NULL
 };
 

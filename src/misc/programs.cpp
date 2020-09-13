@@ -38,7 +38,7 @@ Bitu call_program;
 
 extern int enablelfn, paste_speed, wheel_key;
 extern const char *modifier;
-extern bool dos_kernel_disabled, force_nocachedir, freesizecap, wpcolon, enable_config_as_shell_commands, load, winrun, winautorun, startwait, mountwarning;
+extern bool dos_kernel_disabled, force_nocachedir, freesizecap, wpcolon, enable_config_as_shell_commands, load, winrun, winautorun, startwait, mountwarning, wheel_guest;
 
 /* This registers a file on the virtual drive and creates the correct structure for it*/
 
@@ -1057,10 +1057,13 @@ void CONFIG::Run(void) {
 							paste_speed = section->Get_int("clip_paste_speed");
 							if (!strcasecmp(inputline.substr(0, 16).c_str(), "mouse_wheel_key=")) {
 								wheel_key = section->Get_int("mouse_wheel_key");
+								wheel_guest=wheel_key>0;
+								if (wheel_key<0) wheel_key=-wheel_key;
 								mainMenu.get_item("wheel_updown").check(wheel_key==1).refresh_item(mainMenu);
 								mainMenu.get_item("wheel_leftright").check(wheel_key==2).refresh_item(mainMenu);
 								mainMenu.get_item("wheel_pageupdown").check(wheel_key==3).refresh_item(mainMenu);
 								mainMenu.get_item("wheel_none").check(wheel_key==0).refresh_item(mainMenu);
+								mainMenu.get_item("wheel_guest").check(wheel_guest).refresh_item(mainMenu);
 							}
 #if defined(C_SDL2)
 							if (!strcasecmp(inputline.substr(0, 16).c_str(), "mapperfile_sdl2=")) ReloadMapper(section,true);
