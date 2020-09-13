@@ -457,10 +457,15 @@ void DOS_Shell::RunInternal(void) {
 
 char *str_replace(char *orig, char *rep, char *with);
 const char *ParseMsg(const char *msg) {
-    if (machine == MCH_PC98 || real_readw(BIOSMEM_SEG,BIOSMEM_NB_COLS)<=80)
+    char str[13];
+    strncpy(str, UPDATED_STR, 12);
+    str[12]=0;
+    if (machine == MCH_PC98)
         return msg;
+    else if (real_readw(BIOSMEM_SEG,BIOSMEM_NB_COLS)<=80)
+        return str_replace((char *)msg, "BUILDDATE", str);
     else
-        return str_replace(str_replace(str_replace((char *)msg, "\xBA\033[0m", "\xBA\033[0m\n"), "\xBB\033[0m", "\xBB\033[0m\n"), "\xBC\033[0m", "\xBC\033[0m\n");
+        return str_replace(str_replace(str_replace(str_replace((char *)msg, "\xBA\033[0m", "\xBA\033[0m\n"), "\xBB\033[0m", "\xBB\033[0m\n"), "\xBC\033[0m", "\xBC\033[0m\n"), "BUILDDATE", str);
 }
 
 void DOS_Shell::Run(void) {
@@ -492,7 +497,23 @@ void DOS_Shell::Run(void) {
         Section_prop *section = static_cast<Section_prop *>(control->GetSection("dosbox"));
         if(section->Get_bool("startbanner")&&!control->opt_fastlaunch) {
             /* Start a normal shell and check for a first command init */
-            WriteOut(ParseMsg(MSG_Get("SHELL_STARTUP_BEGIN")),std::string(VERSION)+" ("+std::string(SDL_STRING)+") Built on "+std::string(UPDATED_STR));
+            if (machine == MCH_PC98)
+                WriteOut(ParseMsg(MSG_Get("SHELL_STARTUP_BEGIN")),std::string(VERSION)+" ("+std::string(SDL_STRING)+") Built on "+std::string(UPDATED_STR));
+            else {
+                WriteOut(ParseMsg(MSG_Get("SHELL_STARTUP_BEGIN")),42,("Version "+std::string(VERSION)+" ("+
+#if defined(WIN32)
+                "Windows"
+#elif defined(HX_DOS)
+                "DOS"
+#elif defined(LINUX)
+                "Linux"
+#elif defined(MACOSX)
+                "macOS"
+#else
+                ""
+#endif
+                +" "+std::string(SDL_STRING)+") built on ").c_str());
+            }
             WriteOut(ParseMsg(MSG_Get("SHELL_STARTUP_BEGIN2")));
             WriteOut(ParseMsg(MSG_Get("SHELL_STARTUP_BEGIN3")));
 #if C_DEBUG
@@ -1092,15 +1113,19 @@ void SHELL_Init() {
                 "\033[44;1m\xC9\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD"
                 "\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD"
                 "\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xBB\033[0m"
-                "\033[44;1m\xBA \033[33mWelcome to DOSBox-X %-40s\033[37m           \xBA\033[0m"
+                "\033[44;1m\xBA \033[33mWelcome to DOSBox-X! %*s\033[35mBUILDDATE\033[37m  \xBA\033[0m"
                 "\033[44;1m\xBA                                                                              \xBA\033[0m"
-                "\033[44;1m\xBA \033[35mGetting started with DOSBox-X:                                              \033[37m \xBA\033[0m"
+                "\033[44;1m\xBA \033[36mGetting started with DOSBox-X:                                              \033[37m \xBA\033[0m"
                 "\033[44;1m\xBA                                                                              \xBA\033[0m"
-                "\033[44;1m\xBA - Type \033[32mHELP\033[37m for help on shell commands, \033[32mINTRO\033[37m for a tour of basic features   \xBA\033[0m"
+                "\033[44;1m\xBA Type \033[32mHELP\033[37m for a list of shell commands, \033[32mINTRO\033[37m for a tour of basic features.  \xBA\033[0m"
+                "\033[44;1m\xBA \033[33mGUI Menus\033[37m are available, so you can complete tasks without typing commands.  \xBA\033[0m"
+                "\033[44;1m\xBA                                                                              \xBA\033[0m"
+                "\033[44;1m\xBA \033[36mThe default shortcut keys:                                                  \033[37m \xBA\033[0m"
+                "\033[44;1m\xBA                                                                              \xBA\033[0m"
                );
         MSG_Replace("SHELL_STARTUP_BEGIN2",
-                (std::string("\033[44;1m\xBA - Switch between window and full-screen mode with \033[36mdefault\033[37m shortcut \033[31m")+(mapper_keybind+" \033[37m+ \033[31mF\033[37m                     ").substr(0,24)+std::string("\033[37m \xBA\033[0m") +
-                std::string("\033[44;1m\xBA - Launch \033[33mDOSBox-X Settings\033[37m using \033[31m")+(mapper_keybind+" \033[37m+ \033[31mC\033[37m                      ").substr(0,22)+std::string("\033[37m, and \033[33mMapper Editor\033[37m using \033[31m")+(mapper_keybind+" \033[37m+ \033[31mM\033[37m                     ").substr(0,25)+std::string("\033[37m \xBA\033[0m") +
+                (std::string("\033[44;1m\xBA - Switch between window and full-screen mode with the shortcut \033[31m")+(mapper_keybind+" \033[37m+ \033[31mF\033[37m                        ").substr(0,28)+std::string("\033[37m \xBA\033[0m") +
+                std::string("\033[44;1m\xBA - Launch \033[33mConfiguration GUI\033[37m using \033[31m")+(mapper_keybind+" \033[37m+ \033[31mC\033[37m                      ").substr(0,22)+std::string("\033[37m and \033[33mMapper Editor\033[37m using \033[31m")+(mapper_keybind+" \033[37m+ \033[31mM\033[37m                     ").substr(0,26)+std::string("\033[37m \xBA\033[0m") +
                 std::string("\033[44;1m\xBA - Increase or decrease emulated CPU speed with \033[31m")+(mapper_keybind+" \033[37m+ \033[31mPlus\033[37m      ").substr(0,25)+std::string("\033[37m and \033[31m") +
                 (mapper_keybind+" \033[37m+ \033[31mMinus\033[37m       ").substr(0,29)+std::string("\033[37m \xBA\033[0m")).c_str());
         MSG_Add("SHELL_STARTUP_BEGIN3",
@@ -1136,7 +1161,7 @@ void SHELL_Init() {
                 "\033[44;1m\xBA                                                                              \xBA\033[0m"
                );
         MSG_Add("SHELL_STARTUP_END",
-                "\033[44;1m\xBA \033[35mThe DOSBox-X project online:                                                \033[37m \xBA\033[0m"
+                "\033[44;1m\xBA \033[36mThe DOSBox-X project online:                                                \033[37m \xBA\033[0m"
                 "\033[44;1m\xBA                                                                              \xBA\033[0m"
                 "\033[44;1m\xBA \033[32mDOSBox-X Homepage\033[37m  : \033[33mhttp://dosbox-x.com/\033[32m                                   \033[37m \xBA\033[0m"
                 "\033[44;1m\xBA \033[32mDOSBox-X Wiki Guide\033[37m: \033[33mhttps://github.com/joncampbell123/dosbox-x/wiki\033[32m        \033[37m \xBA\033[0m"
