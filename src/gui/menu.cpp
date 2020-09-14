@@ -130,7 +130,7 @@ static const char *def_menu_main[] =
     "auto_lock_mouse",
     "WheelToArrow",
 #if defined(WIN32)
-    "direct_mouse_clipboard",
+    "SharedClipboard",
 #endif
 #if !defined(C_EMSCRIPTEN)//FIXME: Reset causes problems with Emscripten
     "--",
@@ -174,6 +174,21 @@ static const char *def_menu_main_wheelarrow[] =
     "wheel_guest",
     NULL
 };
+
+/* main -> shared clipboard menu ("SharedClipboard") */
+static const char *def_menu_main_clipboard[] =
+{
+    "clipboard_quick",
+    "clipboard_right",
+    "clipboard_middle",
+    "--",
+    "clipboard_device",
+    "clipboard_dosapi",
+    "--",
+    "mapper_paste",
+    NULL
+};
+
 
 /* cpu -> core menu ("CpuCoreMenu") */
 static const char *def_menu_cpu_core[] =
@@ -1272,6 +1287,9 @@ void ConstructMenu(void) {
 
     /* main mouse wheel movements menu */
     ConstructSubMenu(mainMenu.get_item("WheelToArrow").get_master_id(), def_menu_main_wheelarrow);
+
+    /* shared Windows clipboard menu */
+    ConstructSubMenu(mainMenu.get_item("SharedClipboard").get_master_id(), def_menu_main_clipboard);
 
     /* cpu menu */
     ConstructSubMenu(mainMenu.get_item("CpuMenu").get_master_id(), def_menu_cpu);

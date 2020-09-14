@@ -38,7 +38,7 @@ Bitu call_program;
 
 extern int enablelfn, paste_speed, wheel_key;
 extern const char *modifier;
-extern bool dos_kernel_disabled, force_nocachedir, freesizecap, wpcolon, enable_config_as_shell_commands, load, winrun, winautorun, startwait, mountwarning, wheel_guest;
+extern bool dos_kernel_disabled, force_nocachedir, freesizecap, wpcolon, enable_config_as_shell_commands, load, winrun, winautorun, startwait, mountwarning, wheel_guest, clipboard_dosapi;
 
 /* This registers a file on the virtual drive and creates the correct structure for it*/
 
@@ -1108,6 +1108,8 @@ void CONFIG::Run(void) {
 								enable_config_as_shell_commands = section->Get_bool("shell configuration as commands");
 								mainMenu.get_item("shell_config_commands").check(enable_config_as_shell_commands).enable(true).refresh_item(mainMenu);
 #if defined(WIN32) && !defined(HX_DOS)
+                            } else if (!strcasecmp(inputline.substr(0, 9).c_str(), "dos clipboard api=")) {
+                                clipboard_dosapi = section->Get_bool("dos clipboard api");          
 							} else if (!strcasecmp(inputline.substr(0, 9).c_str(), "startcmd=")) {
 								winautorun = section->Get_bool("startcmd");
 								mainMenu.get_item("dos_win_autorun").check(winautorun).enable(true).refresh_item(mainMenu);

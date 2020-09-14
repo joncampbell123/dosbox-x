@@ -1,4 +1,16 @@
 0.83.6
+  - Added "Shared Windows clipboard functions" menu
+    group under "Main", which allows you to enable
+    or disable the different ways for DOSBox-X to
+    communicate with the Windows clipboard. (Wengier)
+  - Added config option "dos clipboard api" in [dos]
+    section to control whether to enable the DOS APIs
+    for communications with the Windows clipboard for
+    DOS applications. (Wengier)
+  - Added config option "clip_mouse_button" to select
+    a mouse button (middle, right, or none; with right
+    mouse button being the default) for copying to and
+    pasting from the Windows clipboard. (Wengier)
   - DOSBox-X will now by default show a quit warning
     if a DOS program or game, or a guest system is
     running. The previous behavior can be set with
