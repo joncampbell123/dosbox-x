@@ -23,10 +23,13 @@
     to start the Configuration Tool as well. (Wengier)
   - The powerful SJGPLAY for DOS has been built into
     DOSBox-X. You can now find the CDPLAY.EXE program
-    in the Z drive for playing Audio CDs in DOS. This
-    freeware program was written by Steve Gray and is
-    now included in DOSBox-X with explicit permission
-    of the author. (Wengier)
+    in the Z drive for playing Audio CDs in DOS, and a
+    text file named CDPLAY.TXT for a quick usage guide.
+    The zip package including full documentation and
+    some extras will also appear as SJGPLAY.ZIP in the
+    Z drive. This freeware program was written by Steve
+    Gray and is now included in DOSBox-X with explicit
+    permission of the author. (Wengier)
   - DOSBox-X will now by default show a quit warning
     if a DOS program or game, or a guest system is
     running. The previous behavior can be set with
