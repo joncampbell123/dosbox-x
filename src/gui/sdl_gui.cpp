@@ -102,7 +102,13 @@ void                        WindowsTaskbarUpdatePreviewRegion(void);
 void                        WindowsTaskbarResetPreviewRegion(void);
 #endif
 
-const char *aboutmsg = "DOSBox-X version " VERSION " (" SDL_STRING ")\nBuild date: " UPDATED_STR "\nCopyright 2011-" COPYRIGHT_END_YEAR " The DOSBox-X Team\nProject maintainer: joncampbell123\nDOSBox-X homepage: http://dosbox-x.com";
+const char *aboutmsg = "DOSBox-X version " VERSION " (" SDL_STRING ", "
+#if defined(_M_X64) || defined (_M_AMD64) || defined (_M_ARM64)
+	"64"
+#else
+	"32"
+#endif
+	"-bit)\nBuild date: " UPDATED_STR "\nCopyright 2011-" COPYRIGHT_END_YEAR " The DOSBox-X Team\nProject maintainer: joncampbell123\nDOSBox-X homepage: http://dosbox-x.com";
 
 const char *intromsg = "Welcome to DOSBox-X, a complete open-source DOS emulator.\nDOSBox-X creates a DOS shell which looks like the plain DOS.\nYou can also run Windows 3.x and 9x inside the DOS machine.";
 
@@ -1949,7 +1955,7 @@ public:
 static void UI_Execute(GUI::ScreenSDL *screen) {
     SDL_Surface *sdlscreen;
     SDL_Event event;
-    GUI::String configString = GUI::String("DOSBox-X Configuration");
+    GUI::String configString = GUI::String("DOSBox-X Configuration Tool");
 
     sdlscreen = screen->getSurface();
     auto *cfg_wnd = new ConfigurationWindow(screen, 40, 10, configString);
@@ -2009,7 +2015,7 @@ static void UI_Select(GUI::ScreenSDL *screen, int select) {
     Section_prop *section = NULL;
     Section *sec = NULL;
     SDL_Event event;
-    GUI::String configString = GUI::String("DOSBox-X Configuration");
+    GUI::String configString = GUI::String("DOSBox-X Configuration Tool");
 
     sdlscreen = screen->getSurface();
     switch (select) {

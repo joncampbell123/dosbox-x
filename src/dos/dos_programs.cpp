@@ -1321,7 +1321,7 @@ class SHOWGUI : public Program {
 public:
     void Run(void) {
         if (cmd->FindExist("-?", false) || cmd->FindExist("/?", false)) {
-			WriteOut("Starts DOSBox-X's configuration GUI.\n\nSHOWGUI\n");
+			WriteOut("Starts DOSBox-X's graphical configuration tool.\n\nSHOWTOOL\n");
             return;
 		}
         GUI_Run(false); /* So that I don't have to run the keymapper on every setup of mine just to get the GUI --J.C */
@@ -6766,7 +6766,7 @@ void DOS_SetupPrograms(void) {
     PROGRAMS_MakeFile("LS.COM",LS_ProgramStart);
     PROGRAMS_MakeFile("LOADFIX.COM",LOADFIX_ProgramStart);
     PROGRAMS_MakeFile("A20GATE.COM",A20GATE_ProgramStart);
-    PROGRAMS_MakeFile("SHOWGUI.COM",SHOWGUI_ProgramStart);
+    PROGRAMS_MakeFile("SHOWTOOL.COM",SHOWGUI_ProgramStart);
 #if defined C_DEBUG
     PROGRAMS_MakeFile("NMITEST.COM",NMITEST_ProgramStart);
 #endif

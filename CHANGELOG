@@ -11,22 +11,26 @@
     a mouse button (middle, right, or none; with right
     mouse button being the default) for copying to and
     pasting from the Windows clipboard. (Wengier)
-  - DOSBox-X will now by default show a quit warning
-    if a DOS program or game, or a guest system is
-    running. The previous behavior can be set with
-    "quit warning=autofile". (Wengier)
   - The mouse wheel movements will be automatically
     converted into up/down arrows by default for the
     intergrated DOS now. You can also enable it for
     the guest system from the "Main" menu ("mouse wheel
     movements" -> "Enable for guest systems also") or
     from the config file. (Wengier)
+  - The command for showing the Configuration Tool has
+    been renamed from "SHOWGUI" to "SHOWTOOL". A new
+    command-line option -gui is added to CONFIG command
+    to start the Configuration Tool as well. (Wengier)
   - The powerful SJGPLAY for DOS has been built into
     DOSBox-X. You can now find the CDPLAY.EXE program
     in the Z drive for playing Audio CDs in DOS. This
     freeware program was written by Steve Gray and is
     now included in DOSBox-X with explicit permission
     of the author. (Wengier)
+  - DOSBox-X will now by default show a quit warning
+    if a DOS program or game, or a guest system is
+    running. The previous behavior can be set with
+    "quit warning=autofile". (Wengier)
   - The welcome banner when DOSBox-X starts has been
     improved for a better looking and should provide
     more helpful instructions for users. (Wengier)

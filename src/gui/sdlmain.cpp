@@ -3900,8 +3900,8 @@ static void GUI_StartUp() {
     pause_menu_item_tag = mainMenu.get_item("mapper_pause").get_master_id() + DOSBoxMenu::nsMenuMinimumID;
 #endif
 
-    MAPPER_AddHandler(&GUI_Run, MK_c,MMODHOST, "gui", "ShowGUI", &item);
-    item->set_text("Configuration GUI");
+    MAPPER_AddHandler(&GUI_Run, MK_c,MMODHOST, "gui", "ConfigTool", &item);
+    item->set_text("Configuration tool");
 
     MAPPER_AddHandler(&GUI_ResetResize, MK_nothing, 0, "resetsize", "ResetSize", &item);
     item->set_text("Reset window size");
@@ -6763,8 +6763,8 @@ bool DOSBOX_parse_argv() {
             fprintf(stderr,"  -nomenu                                 Do not show menu\n");
             fprintf(stderr,"  -userconf                               Create user level config file\n");
             fprintf(stderr,"  -conf <param>                           Use config file <param>\n");
-            fprintf(stderr,"  -startui (or -startgui)                 Start DOSBox-X with Configuration UI\n");
-            fprintf(stderr,"  -startmapper                            Start DOSBox-X with mapper editor\n");
+            fprintf(stderr,"  -startui (or -startgui)                 Start DOSBox-X with GUI configuration tool\n");
+            fprintf(stderr,"  -startmapper                            Start DOSBox-X with the mapper editor\n");
             fprintf(stderr,"  -showcycles                             Show cycles count\n");
             fprintf(stderr,"  -showrt                                 Show emulation speed relative to realtime\n");
             fprintf(stderr,"  -fullscreen                             Start in fullscreen\n");
@@ -9733,7 +9733,7 @@ int main(int argc, char* argv[]) SDL_MAIN_NOEXCEPT {
         mainMenu.alloc_item(DOSBoxMenu::item_type_id,"clipboard_right").set_text("Via right mouse button").set_callback_function(right_mouse_clipboard_menu_callback).check(mbutton==3);
         mainMenu.alloc_item(DOSBoxMenu::item_type_id,"clipboard_middle").set_text("Via middle mouse button").set_callback_function(middle_mouse_clipboard_menu_callback).check(mbutton==2);
         if (control->SecureMode()) clipboard_dosapi = false;
-        mainMenu.alloc_item(DOSBoxMenu::item_type_id,"clipboard_device").set_text("Enable DOS clipboard device").set_callback_function(dos_clipboard_device_menu_callback).check(dos_clipboard_device_access==4&&!control->SecureMode());
+        mainMenu.alloc_item(DOSBoxMenu::item_type_id,"clipboard_device").set_text("Enable DOS clipboard device access").set_callback_function(dos_clipboard_device_menu_callback).check(dos_clipboard_device_access==4&&!control->SecureMode());
         mainMenu.alloc_item(DOSBoxMenu::item_type_id,"clipboard_dosapi").set_text("Enable DOS clipboard API for applications").set_callback_function(dos_clipboard_api_menu_callback).check(clipboard_dosapi);
 #endif
         mainMenu.alloc_item(DOSBoxMenu::item_type_id,"sendkey_ctrlesc").set_text("Ctrl+Esc").set_callback_function(sendkey_preset_menu_callback);
@@ -9855,7 +9855,7 @@ int main(int argc, char* argv[]) SDL_MAIN_NOEXCEPT {
                     b.hIcon = LoadIcon(GetModuleHandle(NULL), MAKEINTRESOURCE(IDI_MAPPER));
                     b.dwMask = THB_TOOLTIP | THB_FLAGS | THB_ICON;
                     b.dwFlags = THBF_ENABLED | THBF_DISMISSONCLICK;
-                    wcscpy(b.szTip, L"Mapper");
+                    wcscpy(b.szTip, L"Mapper Editor");
                 }
 
                 {
@@ -9865,7 +9865,7 @@ int main(int argc, char* argv[]) SDL_MAIN_NOEXCEPT {
                     b.hIcon = LoadIcon(GetModuleHandle(NULL), MAKEINTRESOURCE(IDI_CFG_GUI));
                     b.dwMask = THB_TOOLTIP | THB_FLAGS | THB_ICON;
                     b.dwFlags = THBF_ENABLED | THBF_DISMISSONCLICK;
-                    wcscpy(b.szTip, L"Configuration GUI");
+                    wcscpy(b.szTip, L"Configuration Tool");
                 }
 
                 {

@@ -877,27 +877,30 @@ void PreviousSaveSlot(bool pressed) {
 }
 }
 
-std::string GetPlatform(void) {
+std::string GetPlatform(bool save) {
 	char platform[30];
 	strcpy(platform, 
-#if defined(WIN32)
-	"Windows"
+#if defined(HX_DOS)
+	"DOS "
+#elif defined(WIN32)
+	"Windows "
 #elif defined(LINUX)
-	"Linux"
+	"Linux "
 #elif unix
-    "Unix"
+    "Unix "
 #elif defined(MACOSX)
-    "macOS"
+    "macOS "
 #else
-    "Other"
+    save?"Other ":""
 #endif
 );
+    if (!save) strcat(platform, (std::string(SDL_STRING)+", ").c_str());
 #if defined(_M_X64) || defined (_M_AMD64) || defined (_M_ARM64)
-	strcat(platform, " 64");
+	strcat(platform, "64");
 #else
-	strcat(platform, " 32");
+	strcat(platform, "32");
 #endif
-	strcat(platform, "-bit build");
+	strcat(platform, save?"-bit build":"-bit");
 	return std::string(platform);
 }
 
@@ -5009,7 +5012,7 @@ void SaveState::save(size_t slot) { //throw (Error)
 			if(!create_version) {
 				std::string tempname = temp+"DOSBox-X_Version";
 				std::ofstream emulatorversion (tempname.c_str(), std::ofstream::binary);
-				emulatorversion << "DOSBox-X " << VERSION << " (" << SDL_STRING << ")" << std::endl << GetPlatform() << std::endl << UPDATED_STR;
+				emulatorversion << "DOSBox-X " << VERSION << " (" << SDL_STRING << ")" << std::endl << GetPlatform(true) << std::endl << UPDATED_STR;
 				create_version=true;
 				emulatorversion.close();
 			}
@@ -5204,7 +5207,7 @@ void SaveState::load(size_t slot) const { //throw (Error)
 			buffer[length]='\0';
 			char *p=strrchr(buffer, '\n');
 			if (p!=NULL) *p=0;
-			std::string emulatorversion = std::string("DOSBox-X ") + VERSION + std::string(" (") + SDL_STRING + std::string(")\n") + GetPlatform();
+			std::string emulatorversion = std::string("DOSBox-X ") + VERSION + std::string(" (") + SDL_STRING + std::string(")\n") + GetPlatform(true);
 			if (p==NULL||strcasecmp(buffer,emulatorversion.c_str())) {
 				if(!force_load_state&&!loadstateconfirm(0)) {
 					LOG_MSG("Aborted. Check your DOSBox-X version: %s",buffer);
