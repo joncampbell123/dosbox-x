@@ -58,6 +58,8 @@ Where ``<filename>`` is the main file name of the RPM package you wish to instal
 
 If you use a Linux platform that only supports DEB packages, such as Debian, Ubuntu, or Linux Mint, then you can convert the RPM package you want to install to DEB format by using the ```alien``` command-line tool, e.g. ```sudo alien <filename>.rpm```, which will generate the DEB package for use with your Linux platform from the RPM package. You will need to install the ```alien``` tool first if it is not yet installed on your Linux system.
 
+Moreover, you can find DOSBox-X on SnapCraft (https://snapcraft.io/dosbox-x), which maintains universal Linux packages for software including DOSBox-X. Please note the DOSBox-X Linux packages on this website are built and updated by SnapCraft instead of the DOSBox-X Team.
+
 macOS Packages (Portable)
 -------------------------
 
