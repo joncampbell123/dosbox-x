@@ -7,8 +7,8 @@
   <summary>x86/DOS emulator with sound and graphics</summary>
   <description>
     <p>
-    DOSBox-X is an enhanced DOSBox fork with more accurate emulation, including the ability
-    to run Windows 95 and 98. It also adds support for the NEC PC-98.
+    DOSBox-X is a cross-platform DOS emulator based on DOSBox-X. It aims to be a complete and accurate DOS
+    emulation package, including the ability to run Windows 95 and 98. It also adds support for the NEC PC-98.
     </p>
     <p>
     DOSBox-X emulates a legacy IBM PC and DOS environment, and has many emulation options and features such as:
