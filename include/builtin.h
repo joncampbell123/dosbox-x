@@ -1,5 +1,6 @@
 
 #include "dos_inc.h"
+#include "../src/builtin/zip.h"
 #include "../src/builtin/cdplay.h"
 #include "../src/builtin/glide2x.h"
 #include "../src/builtin/4DOS_img.h"

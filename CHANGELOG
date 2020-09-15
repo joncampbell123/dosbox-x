@@ -21,6 +21,8 @@
     been renamed from "SHOWGUI" to "SHOWTOOL". A new
     command-line option -gui is added to CONFIG command
     to start the Configuration Tool as well. (Wengier)
+  - DOSBox-X now includes ZIP.EXE and UNZIP.EXE from
+    InfoZip which will appear on the Z drive. (Wengier)
   - The powerful SJGPLAY for DOS has been built into
     DOSBox-X. You can now find the CDPLAY.EXE program
     in the Z drive for playing Audio CDs in DOS, and a
@@ -87,13 +89,19 @@
     at run-time. You can now also modify EMS memory
     with CONFIG command from command-line. (Wengier)
   - Added config option "drive z hide files" (in [dos]
-    section) to hide/remove files listed (separated by
-    space) from the Z drive. (Wengier)
+    section) to hide or remove files listed (separated
+    by spaces) from the Z drive. If a file has a "/"
+    prefix (e.g. "/INTRO.COM"), then the specified file
+    will have the hidden attribute ("DIR /A" will list
+    all such files) instead of completely disappearing
+    from the Z drive. (Wengier)
   - You can now add your own programs or files to the
     Z drive! Put your programs or files in the drivez
-    directory located in the DOSBox-X program folder,
-    and they will automatically appear on the Z drive,
-    replacing built-in files if any. (Wengier).    
+    directory located in the DOSBox-X program folder
+    or the DOSBox-X configuration directory, and they
+    will automatically appear on the Z drive. If any of
+    the files have the same names as the built-in ones,
+    they will replace the built-in files. (Wengier).
 0.83.5
   - Windows installer now offers the option to upgrade
     the DOSBox-X config file (dosbox-x.conf) to the

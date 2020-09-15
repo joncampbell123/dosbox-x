@@ -35,6 +35,7 @@ struct VFILE_Block {
 	Bit32u size;
 	Bit16u date;
 	Bit16u time;
+	bool hidden;
 	VFILE_Block * next;
 };
 
@@ -153,9 +154,14 @@ void VFILE_RegisterBuiltinFileBlob(const struct BuiltinFileBlob &b) {
 void VFILE_Register(const char * name,Bit8u * data,Bit32u size) {
     if (vfpos>=MAX_VFILES) return;
     std::istringstream in(hidefiles);
+    bool hidden=false;
     if (in)	for (std::string file; in >> file; ) {
         if (!strcasecmp(name,file.c_str())||!strcasecmp(("\""+std::string(name)+"\"").c_str(),file.c_str()))
             return;
+        if (!strcasecmp(("/"+std::string(name)).c_str(),file.c_str())||!strcasecmp(("/\""+std::string(name)+"\"").c_str(),file.c_str())) {
+            hidden=true;
+            break;
+        }
     }
     const VFILE_Block* cur_file = first_file;
 	while (cur_file) {
@@ -173,6 +179,7 @@ void VFILE_Register(const char * name,Bit8u * data,Bit32u size) {
 	new_file->size=size;
 	new_file->date=DOS_PackDate(2002,10,1);
 	new_file->time=DOS_PackTime(12,34,56);
+	new_file->hidden=hidden;
 	new_file->next=first_file;
 	first_file=new_file;
 }
@@ -322,7 +329,7 @@ bool Virtual_Drive::FileStat(const char* name, FileStat_Block * const stat_block
     const VFILE_Block* cur_file = first_file;
 	while (cur_file) {
 		if (strcasecmp(name,cur_file->name)==0||(uselfn&&strcasecmp(name,cur_file->lname)==0)) {
-			stat_block->attr=DOS_ATTR_ARCHIVE;
+			stat_block->attr=cur_file->hidden?DOS_ATTR_ARCHIVE|DOS_ATTR_HIDDEN:DOS_ATTR_ARCHIVE;
 			stat_block->size=cur_file->size;
 			stat_block->date=DOS_PackDate(2002,10,1);
 			stat_block->time=DOS_PackTime(12,34,56);
@@ -362,12 +369,13 @@ bool Virtual_Drive::FindFirst(const char * _dir,DOS_DTA & dta,bool fcb_findfirst
 	return FindNext(dta);
 }
 
-bool Virtual_Drive::FindNext(DOS_DTA & dta) {	Bit8u attr;char pattern[CROSS_LEN];
-    dta.GetSearchParams(attr,pattern,uselfn);
+bool Virtual_Drive::FindNext(DOS_DTA & dta) {
+	Bit8u attr;char pattern[CROSS_LEN];
+	dta.GetSearchParams(attr,pattern,uselfn);
 	if (lfn_filefind_handle>=LFN_FILEFIND_MAX)
 		while (search_file) {
 			if (WildFileCmp(search_file->name,pattern)||LWildFileCmp(search_file->lname,pattern)) {
-				dta.SetResult(search_file->name,search_file->lname,search_file->size,search_file->date,search_file->time,DOS_ATTR_ARCHIVE);
+				dta.SetResult(search_file->name,search_file->lname,search_file->size,search_file->date,search_file->time,search_file->hidden?DOS_ATTR_ARCHIVE|DOS_ATTR_HIDDEN:DOS_ATTR_ARCHIVE);
 				search_file=search_file->next;
 				return true;
 			}
@@ -376,7 +384,7 @@ bool Virtual_Drive::FindNext(DOS_DTA & dta) {	Bit8u attr;char pattern[CROSS_LEN]
 	else
 		while (lfn_search[lfn_filefind_handle]) {
 			if (WildFileCmp(lfn_search[lfn_filefind_handle]->name,pattern)||LWildFileCmp(lfn_search[lfn_filefind_handle]->lname,pattern)) {
-				dta.SetResult(lfn_search[lfn_filefind_handle]->name,lfn_search[lfn_filefind_handle]->lname,lfn_search[lfn_filefind_handle]->size,lfn_search[lfn_filefind_handle]->date,lfn_search[lfn_filefind_handle]->time,DOS_ATTR_ARCHIVE);
+				dta.SetResult(lfn_search[lfn_filefind_handle]->name,lfn_search[lfn_filefind_handle]->lname,lfn_search[lfn_filefind_handle]->size,lfn_search[lfn_filefind_handle]->date,lfn_search[lfn_filefind_handle]->time,lfn_search[lfn_filefind_handle]->hidden?DOS_ATTR_ARCHIVE|DOS_ATTR_HIDDEN:DOS_ATTR_ARCHIVE);
 				lfn_search[lfn_filefind_handle]=lfn_search[lfn_filefind_handle]->next;
 				return true;
 			}
@@ -396,7 +404,7 @@ bool Virtual_Drive::GetFileAttr(const char * name,Bit16u * attr) {
     const VFILE_Block* cur_file = first_file;
 	while (cur_file) {
 		if (strcasecmp(name,cur_file->name)==0||(uselfn&&strcasecmp(name,cur_file->lname)==0)) { 
-			*attr = DOS_ATTR_ARCHIVE;	//Maybe readonly ?
+			*attr = cur_file->hidden?DOS_ATTR_ARCHIVE|DOS_ATTR_HIDDEN:DOS_ATTR_ARCHIVE;	//Maybe readonly ?
 			return true;
 		}
 		cur_file=cur_file->next;

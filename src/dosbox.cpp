@@ -3358,8 +3358,9 @@ void DOSBOX_SetupConfigSections(void) {
                       "Set this option to true to prevent SCANDISK.EXE from attempting scan and repair drive Z:\n"
                       "which is impossible since Z: is a virtual drive not backed by a disk filesystem.");
 
-    Pstring = secprop->Add_string("drive z hide files",Property::Changeable::OnlyAtStart,"");
-    Pstring->Set_help("The files listed here (separated by space) will be hidden/removed from the Z drive.");
+    Pstring = secprop->Add_string("drive z hide files",Property::Changeable::OnlyAtStart,"/A20GATE.COM /DSXMENU.EXE /HEXMEM16.EXE /HEXMEM32.EXE /LOADROM.COM /NMITEST.COM /VESAMOED.COM /VFRCRATE.COM");
+    Pstring->Set_help("The files listed here (separated by space) will be either hidden or removed from the Z drive.\n"
+                      "Files with leading forward slashs (e.g. \"/A20GATE.COM\") will be hidden files (DIR /A will list them).");
 
     Pint = secprop->Add_int("hma minimum allocation",Property::Changeable::WhenIdle,0);
     Pint->Set_help("Minimum allocation size for HMA in bytes (equivalent to /HMAMIN= parameter).");
