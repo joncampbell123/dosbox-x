@@ -6770,6 +6770,7 @@ bool DOSBOX_parse_argv() {
             fprintf(stderr,"  -fullscreen                             Start in fullscreen\n");
             fprintf(stderr,"  -savedir <path>                         Set save path\n");
             fprintf(stderr,"  -defaultdir <path>                      Set the default working path\n");
+            fprintf(stderr,"  -defaultconf                            Use the default config settings\n");
 #if defined(WIN32)
             fprintf(stderr,"  -disable-numlock-check                  Disable NumLock check (Windows version only)\n");
 #endif
@@ -6914,6 +6915,9 @@ bool DOSBOX_parse_argv() {
         else if (optname == "conf") {
             if (!control->cmdline->NextOptArgv(tmp)) return false;
             control->config_file_list.push_back(tmp);
+        }
+        else if (optname == "defaultconf") {
+            control->opt_defaultconf = true;
         }
         else if (optname == "editconf") {
             if (!control->cmdline->NextOptArgv(control->opt_editconf)) return false;
@@ -8700,6 +8704,7 @@ int main(int argc, char* argv[]) SDL_MAIN_NOEXCEPT {
             }
         }
 
+    if (!control->opt_defaultconf) {
         /* -- -- if none found, use dosbox-x.conf or dosbox.conf */
         if (!control->configfiles.size()) control->ParseConfigFile("dosbox-x.conf");
         if (!control->configfiles.size()) control->ParseConfigFile("dosbox.conf");
@@ -8812,6 +8817,7 @@ int main(int argc, char* argv[]) SDL_MAIN_NOEXCEPT {
 				}
 			}
 		}
+    }
 
 		MSG_Add("PROGRAM_CONFIG_PROPERTY_ERROR","No such section or property.\n");
 		MSG_Add("PROGRAM_CONFIG_NO_PROPERTY","There is no property %s in section %s.\n");

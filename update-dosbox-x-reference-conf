@@ -1,5 +1,5 @@
 #!/bin/bash
-src/dosbox-x -fastlaunch -defaultdir . -c 'config -all -wcp dosbox-x.reference.conf' -c 'exit' || exit 1
+src/dosbox-x -defaultconf -defaultdir . -exit -fastlaunch -c 'config -all -wcp dosbox-x.reference.conf' || exit 1
 
 # Convert to Unix format if needed
 dos2unix dosbox-x.reference.conf

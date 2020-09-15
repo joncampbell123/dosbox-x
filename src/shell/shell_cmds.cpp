@@ -655,7 +655,7 @@ void DOS_Shell::CMD_HELP(char * args){
 		WriteOut("External commands such as \033[33;1mMOUNT\033[0m and \033[33;1mIMGMOUNT\033[0m can be found on the Z: drive.\n");
 	else if (*args&&!show) {
 		std::string argc=std::string(StripArg(args));
-		if (argc!=""&&argc!="CWSDPMI") DoCommand((char *)(argc+(argc=="DOS4GW"||argc=="DOS32A"?"":" /?")).c_str());
+		if (argc!=""&&argc!="CWSDPMI") DoCommand((char *)(argc+(argc=="DOS4GW"||argc=="DOS32A"||argc=="ZIP"||argc=="UNZIP"?"":" /?")).c_str());
 	}
 	if (!*args&&show)
 		WriteOut("Type \033[33;1mHELP command\033[0m or \033[33;1mcommand /?\033[0m for help information for the specified command.\n");

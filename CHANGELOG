@@ -101,7 +101,11 @@
     or the DOSBox-X configuration directory, and they
     will automatically appear on the Z drive. If any of
     the files have the same names as the built-in ones,
-    they will replace the built-in files. (Wengier).
+    they will replace the built-in files. For example,
+    you can replace the built-in EDIT.COM and XCOPY.EXE
+    programs (from FreeDOS) with MS-DOS counterparts.
+    For subdirectories please use normal directory
+    mounts (i.e. MOUNT command) instead. (Wengier).
 0.83.5
   - Windows installer now offers the option to upgrade
     the DOSBox-X config file (dosbox-x.conf) to the
@@ -174,7 +178,9 @@
     "auto" (default), DOSBox-X will warn only if at
     least one file handle is still open, or you are
     currently running a guest system. (Wengier)
-  - Add command-line option "-defaultdir" to specify
+  - Added command-line option "-defaultconf" to use the
+    default config settings. (Wengier)
+  - Added command-line option "-defaultdir" to specify
     a directory (instead of the current directory) as
     the working directory. DOSBox-X will look for the
     dosbox-x.conf file in this directory. (Wengier)
