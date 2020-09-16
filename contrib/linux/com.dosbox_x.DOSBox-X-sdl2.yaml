@@ -1,0 +1,96 @@
+app-id: com.dosbox_x.DOSBox-X-sdl2
+runtime: org.freedesktop.Platform
+runtime-version: '20.08'
+sdk: org.freedesktop.Sdk
+
+command: dosbox-x-sdl2
+
+finish-args:	# flatpak permissions
+  - --device=all	# needed for gamepads and serial/parallel
+  - --share=ipc	# needed for X11
+  - --share=network	# needed for networking (NE2000, IPX)
+  - --socket=x11
+  - --socket=wayland
+  - --socket=pulseaudio
+  - --filesystem=home
+
+cleanup:
+  - '/include'
+  - '/lib/pkgconfig'
+  - '/share/aclocal'
+  - '/share/man'
+  - '*.la'
+  - '*.a'
+  - '/share/doc'
+
+modules:
+
+# Build Mesa / GLU
+  - name: GLU
+    config-opts:
+      - --disable-static
+    sources:
+      - type: archive
+        url:  https://mesa.freedesktop.org/archive/glu/glu-9.0.1.tar.xz
+        sha256: fb5a4c2dd6ba6d1c21ab7c05129b0769544e1d68e1e3b0ffecb18e73c93055bc
+    cleanup:
+      - /include
+      - /lib/*.a
+      - /lib/*.la
+      - /lib/pkgconfig
+  
+# Build final FluidSynth 1.x release
+# FluidSynth 2.x causes "checking for fluid_synth_sysex in -lfluidsynth... no"
+  - name: FluidSynth
+    buildsystem: cmake-ninja
+    config-opts:
+      - -DLIB_SUFFIX=
+    cleanup:
+      - /bin
+      - /include
+      - /lib/pkgconfig
+      - /share/man
+      - "*.so"
+    sources:
+      - type: archive
+        url: https://github.com/FluidSynth/fluidsynth/archive/v1.1.11.tar.gz
+        sha256: da8878ff374d12392eecf87e96bad8711b8e76a154c25a571dd8614d1af80de8
+
+# Build libpcap for NE2000 (and run setcap at the end)
+  - name: libpcap
+    cleanup:
+      - "/include"
+      - "/share"
+      - "/lib/pkgconfig"
+    sources:
+      - type: archive
+        url: https://www.tcpdump.org/release/libpcap-1.9.1.tar.gz
+        sha256: 635237637c5b619bcceba91900666b64d56ecb7be63f298f601ec786ce087094
+
+# Build DOSBox-X
+  - name: dosbox-x
+    rm-configure: true
+    sources:
+      - type: dir
+        path: ../..
+      - type: file
+        path: ../icons/dosbox-x.svg
+      - type: file
+        path: dosbox-x.appdata.xml
+      - type: file
+        path: dosbox-x.desktop
+    buildsystem: simple
+    build-commands:
+      # Build the SDL2 debugger enabled version of DOSBox-X
+      - ./build-debug-sdl2
+    post-install:
+      - install -D src/dosbox-x /app/bin/dosbox-x-sdl2
+#      - setcap cap_net_raw+ep /app/bin/dosbox-x # fails due to needing root permission
+      - install -Dm644 dosbox-x.svg /app/share/icons/hicolor/scalable/apps/${FLATPAK_ID}.svg
+      - install -Dm644 dosbox-x.appdata.xml /app/share/metainfo/${FLATPAK_ID}.appdata.xml
+      - sed -i 's/<id>com.dosbox_x.DOSBox-X</<id>com.dosbox_x.DOSBox-X-sdl2</' /app/share/metainfo/${FLATPAK_ID}.appdata.xml
+      - sed -i 's/<name>DOSBox-X</<name>DOSBox-X SDL2</' /app/share/metainfo/${FLATPAK_ID}.appdata.xml
+      - install -Dm644 dosbox-x.desktop /app/share/applications/${FLATPAK_ID}.desktop
+      - sed -i s/Icon=.*/Icon=com.dosbox_x.DOSBox-X-sdl2/ /app/share/applications/${FLATPAK_ID}.desktop
+      - sed -i 's/Name=.*/Name=DOSBox-X SDL2/' /app/share/applications/${FLATPAK_ID}.desktop
+      - sed -i s/Exec=.*/Exec=dosbox-x-sdl2/ /app/share/applications/${FLATPAK_ID}.desktop

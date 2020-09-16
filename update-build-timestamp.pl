@@ -34,7 +34,7 @@ while (my $line = <FILE>) {
 	if ($line =~ /date=/) {
 		push @lines, ("          <release version=\"\@PACKAGE_VERSION\@\" date=\"" . $year . "-" . $mon . "-" . $mday . "\"/>\n");
 	} elsif ($line =~ /<!-- Copyright/) {
-		push @lines, ("<!-- Copyright $year Jonathan Campbell -->\n");
+		push @lines, ("<!-- Copyright 2020-$year Jonathan Campbell -->\n");
 	} else {
 		push @lines, $line;
 	}

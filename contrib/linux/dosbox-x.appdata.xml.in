@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!-- Copyright 2020 Jonathan Campbell -->
 <component type="desktop">
-  <id>dosbox-x.desktop</id>
+  <id>com.dosbox_x.DOSBox-X</id>
   <project_license>GPL-2.0</project_license>
   <metadata_license>CC0-1.0</metadata_license>
   <name>DOSBox-X</name>
@@ -40,5 +40,5 @@
     With the help of DOSBox-X, it can run plenty of the old classics that don't run on your new computer!
   </description>
   <url type="homepage">https://www.dosbox-x.com</url>
-  <url type="wiki">https://github.com/joncampbell123/dosbox-x/wiki</url>
+  <url type="bugtracker">https://github.com/joncampbell123/dosbox-x/issues</url>
 </component>
