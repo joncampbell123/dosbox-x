@@ -6177,7 +6177,7 @@ public:
         if (startwait && lpExecInfo.hProcess!=NULL) {
             DWORD exitCode;
             BOOL ret;
-            bool first=true;
+            int count=0;
             ctrlbrk=false;
             do {
                 ret=GetExitCodeProcess(lpExecInfo.hProcess, &exitCode);
@@ -6190,7 +6190,7 @@ public:
                     exitCode=0;
                     break;
                 }
-                if (first&&ret&&exitCode==STILL_ACTIVE) {WriteOut("(Press Ctrl+C to exit immediately)\n");first=false;}
+                if (++count==20000&&ret&&exitCode==STILL_ACTIVE) WriteOut("(Press Ctrl+C to exit immediately)\n");
             } while (ret!=0&&exitCode==STILL_ACTIVE);
             ErrorCode = GetLastError();
             CloseHandle(lpExecInfo.hProcess);
