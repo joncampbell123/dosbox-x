@@ -895,7 +895,7 @@ std::string GetPlatform(bool save) {
 #endif
 );
     if (!save) strcat(platform, (std::string(SDL_STRING)+", ").c_str());
-#if defined(_M_X64) || defined (_M_AMD64) || defined (_M_ARM64)
+#if defined(_M_X64) || defined (_M_AMD64) || defined (_M_ARM64) || defined (_M_IA64) || defined(__ia64__) || defined(__LP64__) || defined(_WIN64) || defined(__x86_64__) || defined(__aarch64__) || defined(__powerpc64__)
 	strcat(platform, "64");
 #else
 	strcat(platform, "32");
