@@ -3533,16 +3533,14 @@ void LOADFIX::Run(void)
                 char filename[128];
                 safe_strncpy(filename,temp_line.c_str(),128);
                 // Setup commandline
-                bool ok;
-                char args[256];
+                char args[256 + 1];
                 args[0] = 0;
-                do {
-                    ok = cmd->FindCommand(commandNr,temp_line);
-                    if(commandNr++>cmd->GetCount() || sizeof(args)-strlen(args)-1 < temp_line.length()+1)
-                        break;
-                    strcat(args,temp_line.c_str());
-                    strcat(args," ");
-                } while (ok);           
+                bool found = cmd->FindCommand(commandNr++, temp_line);
+                while (found) {
+                    strncat(args, temp_line.c_str(), 256);
+                    found = cmd->FindCommand(commandNr++, temp_line);
+                    if (found) strncat(args, " ", 256);
+                }
                 // Use shell to start program
                 DOS_Shell shell;
                 shell.Execute(filename,args);
