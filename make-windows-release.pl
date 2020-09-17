@@ -41,11 +41,14 @@ my @filelist = ();
 
 my @platforms = ('ARM', 'ARM64', 'Win32', 'x64');
 my @builds = ('Release', 'Release SDL2');
-my @files = ('dosbox-x.reference.conf', 'dosbox-x.exe', 'FREECG98.bmp', 'changelog.txt', 'shaders');
+my @files = ('dosbox-x.reference.conf', 'dosbox-x.exe', 'FREECG98.bmp', 'changelog.txt', 'shaders', 'intl.dll', 'libfluidsynth-3.dll', 'libglib-2.0-0.dll', 'libgobject-2.0-0.dll', 'libgthread-2.0-0.dll', 'libinstpatch-2.dll', 'libsndfile-1.dll');
 
 foreach $platform (@platforms) {
 	foreach $build (@builds) {
 		foreach $file (@files) {
+			next if ($platform eq 'ARM' || $platform eq 'ARM64') && (substr($file, -4) eq '.dll');
+
+			$file = 'libintl-8.dll' if ($platform eq 'x64') && ($file eq 'intl.dll');
 			$addfile = "bin/$platform/$build/$file";
 			die "Missing file $addfile" unless -e $addfile;
 
