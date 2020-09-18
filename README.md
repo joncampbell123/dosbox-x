@@ -359,4 +359,5 @@ in order to add additional layouts for use with DOSBox-X, please see file [READM
 on how to do so as a developer.
 
 For further information on international support and regional settings of DOSBox-X, such as steps to create DOSBox-X
-language files or use external keyboard files in DOSBox-X, as well as support for the Euro symbol and country-specific date and time formats, please look at the user guide in the [DOSBox-X Wiki](https://github.com/joncampbell123/dosbox-x/wiki).
+language files or use external keyboard files in DOSBox-X, as well as support for the Euro symbol and country-specific
+date and time formats, please look at the guide [Regional settings in DOSBox-X](https://github.com/joncampbell123/dosbox-x/wiki/Guide%3ARegional-settings-in-DOSBox%E2%80%90X) in the [DOSBox-X Wiki](https://github.com/joncampbell123/dosbox-x/wiki).
