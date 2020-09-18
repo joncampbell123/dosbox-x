@@ -7362,6 +7362,36 @@ bool mixer_info_menu_callback(DOSBoxMenu * const menu,DOSBoxMenu::item * const m
     return true;
 }
 
+bool cpu_speed_emulate_menu_callback(DOSBoxMenu * const menu,DOSBoxMenu::item * const menuitem) {
+    (void)menu;//UNUSED
+    int cyclemu = 0;
+    const char *mname = menuitem->get_name().c_str();
+    if (!strcmp(mname, "cpu88-4"))
+        cyclemu = 240;
+    else if (!strcmp(mname, "cpu286-8"))
+        cyclemu = 750;
+    else if (!strcmp(mname, "cpu286-12"))
+        cyclemu = 1510;
+    else if (!strcmp(mname, "cpu386-33"))
+        cyclemu = 6075;
+    else if (!strcmp(mname, "cpu486-33"))
+        cyclemu = 12010;
+    else if (!strcmp(mname, "cpu486-66"))
+        cyclemu = 23880;
+    else if (!strcmp(mname, "cpu586-66"))
+        cyclemu = 35618;
+    else if (!strcmp(mname, "cpu586-100"))
+        cyclemu = 60000;
+    if (cyclemu>0) {
+        Section* sec = control->GetSection("cpu");
+        if (sec) {
+            std::string tmp("cycles="+std::to_string(cyclemu));
+            sec->HandleInputline(tmp);
+        }
+    }
+    return true;
+}
+
 bool dos_mouse_enable_int33_menu_callback(DOSBoxMenu * const menu,DOSBoxMenu::item * const menuitem) {
     (void)menu;//UNUSED
     (void)menuitem;//UNUSED
@@ -9232,6 +9262,18 @@ int main(int argc, char* argv[]) SDL_MAIN_NOEXCEPT {
                 DOSBoxMenu::item &item = mainMenu.alloc_item(DOSBoxMenu::submenu_type_id,"CpuTypeMenu");
                 item.set_text("CPU type");
             }
+            {
+                DOSBoxMenu::item &item = mainMenu.alloc_item(DOSBoxMenu::submenu_type_id,"CpuSpeedMenu");
+                item.set_text("Emulate CPU speed");
+            }
+            mainMenu.alloc_item(DOSBoxMenu::item_type_id,"cpu88-4").set_text("8088 XT 4.77MHz (~240 cycles)").set_callback_function(cpu_speed_emulate_menu_callback);
+            mainMenu.alloc_item(DOSBoxMenu::item_type_id,"cpu286-8").set_text("286 8MHz (~750 cycles)").set_callback_function(cpu_speed_emulate_menu_callback);
+            mainMenu.alloc_item(DOSBoxMenu::item_type_id,"cpu286-12").set_text("286 12MHz (~1510 cycles)").set_callback_function(cpu_speed_emulate_menu_callback);
+            mainMenu.alloc_item(DOSBoxMenu::item_type_id,"cpu386-33").set_text("386DX 33MHz (~6075 cycles)").set_callback_function(cpu_speed_emulate_menu_callback);
+            mainMenu.alloc_item(DOSBoxMenu::item_type_id,"cpu486-33").set_text("486DX 33MHz (~12010 cycles)").set_callback_function(cpu_speed_emulate_menu_callback);
+            mainMenu.alloc_item(DOSBoxMenu::item_type_id,"cpu486-66").set_text("486DX2 66MHz (~23880 cycles)").set_callback_function(cpu_speed_emulate_menu_callback);
+            mainMenu.alloc_item(DOSBoxMenu::item_type_id,"cpu586-66").set_text("Pentium 66MHz (~35618 cycles)").set_callback_function(cpu_speed_emulate_menu_callback);
+            mainMenu.alloc_item(DOSBoxMenu::item_type_id,"cpu586-100").set_text("Pentium 100MHz (~60000 cycles)").set_callback_function(cpu_speed_emulate_menu_callback);
         }
         {
             DOSBoxMenu::item &item = mainMenu.alloc_item(DOSBoxMenu::submenu_type_id,"VideoMenu");

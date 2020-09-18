@@ -189,6 +189,19 @@ static const char *def_menu_main_clipboard[] =
     NULL
 };
 
+/* cpu -> core menu ("CpuSpeedMenu") */
+static const char *def_menu_cpu_speed[] =
+{
+    "cpu88-4",
+    "cpu286-8",
+    "cpu286-12",
+    "cpu386-33",
+    "cpu486-33",
+    "cpu486-66",
+    "cpu586-66",
+    "cpu586-100",
+    NULL
+};
 
 /* cpu -> core menu ("CpuCoreMenu") */
 static const char *def_menu_cpu_core[] =
@@ -239,6 +252,7 @@ static const char *def_menu_cpu[] =
     "--",
     "mapper_cycleup",
     "mapper_cycledown",
+    "CpuSpeedMenu",
     "mapper_editcycles",
     "--",
     "CpuCoreMenu",
@@ -1293,6 +1307,9 @@ void ConstructMenu(void) {
 
     /* cpu menu */
     ConstructSubMenu(mainMenu.get_item("CpuMenu").get_master_id(), def_menu_cpu);
+
+    /* cpu speed menu */
+    ConstructSubMenu(mainMenu.get_item("CpuSpeedMenu").get_master_id(), def_menu_cpu_speed);
 
     /* cpu core menu */
     ConstructSubMenu(mainMenu.get_item("CpuCoreMenu").get_master_id(), def_menu_cpu_core);
