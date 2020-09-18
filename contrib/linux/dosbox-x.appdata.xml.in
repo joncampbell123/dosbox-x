@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<!-- Copyright 2020 Jonathan Campbell -->
+<!-- Copyright 2011-2020 Jonathan Campbell -->
 <component type="desktop">
   <id>com.dosbox_x.DOSBox-X</id>
   <project_license>GPL-2.0</project_license>
