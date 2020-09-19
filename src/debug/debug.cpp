@@ -3987,18 +3987,21 @@ public:
 	        	real_writed(0,0x33<<2,0);
 			return;
 		}
-	   
+
+		Bit16u commandNr = 1;
+		if (!cmd->FindCommand(commandNr++,temp_line)) return;
+		// Get filename
 		char filename[128];
-		char args[256+1];
-	
-		cmd->FindCommand(1,temp_line);
 		safe_strncpy(filename,temp_line.c_str(),128);
-		// Read commandline
-		Bit16u i	=2;
-		args[0]		= 0;
-		for (;cmd->FindCommand(i++,temp_line)==true;) {
-			strncat(args,temp_line.c_str(),256);
-			strncat(args," ",256);
+		// Setup commandline
+		char args[256+1];
+		args[0]	= 0;
+		bool found = cmd->FindCommand(commandNr++,temp_line);
+		while (found) {
+			if (strlen(args)+temp_line.length()+1>256) break;
+			strcat(args,temp_line.c_str());
+			found = cmd->FindCommand(commandNr++,temp_line);
+			if (found) strcat(args," ");
 		}
 		// Start new shell and execute prog		
 		active = true;
