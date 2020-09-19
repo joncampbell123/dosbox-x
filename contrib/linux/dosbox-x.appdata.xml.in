@@ -1,17 +1,31 @@
 <?xml version="1.0" encoding="UTF-8"?>
+<!-- Copyright 2011-2020 Jonathan Campbell -->
 <component type="desktop">
-  <id>dosbox-x.desktop</id>
+  <id>com.dosbox_x.DOSBox-X</id>
   <project_license>GPL-2.0</project_license>
   <metadata_license>CC0-1.0</metadata_license>
   <name>DOSBox-X</name>
   <summary>x86/DOS emulator with sound and graphics</summary>
+  <categories>
+    <category>Emulation</category>
+  </categories>
+  <releases>
+          <release version="@PACKAGE_VERSION@" date="2020-9-15"/>
+  </releases>
+  <screenshots>
+	  <screenshot/>
+  </screenshots>
+  <content_rating type="oars-1.1" />
+  <translation/>
+  <update_contact>noreply@example.com</update_contact>
   <description>
     <p>
-    DOSBox-X is a cross-platform DOS emulator based on DOSBox-X. It aims to be a complete and accurate DOS
+    DOSBox-X is a cross-platform DOS emulator based on DOSBox. It aims to be a complete and accurate DOS
     emulation package, including the ability to run Windows 95 and 98. It also adds support for the NEC PC-98.
     </p>
     <p>
     DOSBox-X emulates a legacy IBM PC and DOS environment, and has many emulation options and features such as:
+    </p>
     <ul>
     <li>8086, 286, 386, 486, Pentium, Pentium MMX and Pentium Pro CPU options</li>
     <li>Mounting host directory, Harddisk Images, Diskette Images and CD-ROM images</li>
@@ -24,7 +38,7 @@
     <li>Support for running Windows 3.1, Windows 95 and Windows 98</li>
     </ul>
     With the help of DOSBox-X, it can run plenty of the old classics that don't run on your new computer!
-    </p>
   </description>
   <url type="homepage">https://www.dosbox-x.com</url>
+  <url type="bugtracker">https://github.com/joncampbell123/dosbox-x/issues</url>
 </component>

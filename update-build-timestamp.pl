@@ -22,3 +22,25 @@ print X "#define GIT_COMMIT_HASH \"$commit\"\n";
 print X "#define COPYRIGHT_END_YEAR \"$year\"\n";
 close(X);
 
+# why perl....
+use strict;
+use warnings;
+
+my $file = "contrib/linux/dosbox-x.appdata.xml.in";
+open FILE, $file or die "Can't read from $file!\n";
+
+my @lines;
+while (my $line = <FILE>) {
+	if ($line =~ /date=/) {
+		push @lines, ("          <release version=\"\@PACKAGE_VERSION\@\" date=\"" . $year . "-" . $mon . "-" . $mday . "\"/>\n");
+	} elsif ($line =~ /<!-- Copyright/) {
+		push @lines, ("<!-- Copyright 2011-$year Jonathan Campbell -->\n");
+	} else {
+		push @lines, $line;
+	}
+}
+close FILE;
+
+open FILE, '>', $file or die "Can't write to $file!\n";
+print FILE @lines;
+close FILE;
