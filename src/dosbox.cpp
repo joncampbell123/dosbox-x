@@ -2377,6 +2377,11 @@ void DOSBOX_SetupConfigSections(void) {
     Pint->Set_help("Setting it lower than 100 will be a percentage.");
     Pint->SetBasic(true);
 
+    Pint = secprop->Add_int("cycle emulation percentage adjust",Property::Changeable::Always,0);
+    Pint->SetMinMax(-50,50);
+    Pint->Set_help("The percentage adjustment for use with the \"Emulate CPU speed\" feature. Default is 0 (no adjustment), but you can adjust it (between -25% and 25%) if necessary.");
+    Pint->SetBasic(true);
+
     Pbool = secprop->Add_bool("use dynamic core with paging on",Property::Changeable::Always,true);
     Pbool->Set_help("Allow dynamic core with 386 paging enabled. This is generally OK for DOS games and Windows 3.1.\n"
                     "If the game becomes unstable, turn off this option.\n"

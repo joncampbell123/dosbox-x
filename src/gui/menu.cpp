@@ -200,6 +200,9 @@ static const char *def_menu_cpu_speed[] =
     "cpu486-66",
     "cpu586-66",
     "cpu586-100",
+    "cpu586-120",
+    "cpu586-133",
+    "cpu586-166",
     NULL
 };
 

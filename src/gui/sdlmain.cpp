@@ -7382,9 +7382,17 @@ bool cpu_speed_emulate_menu_callback(DOSBoxMenu * const menu,DOSBoxMenu::item * 
         cyclemu = 35618;
     else if (!strcmp(mname, "cpu586-100"))
         cyclemu = 60000;
+    else if (!strcmp(mname, "cpu586-120"))
+        cyclemu = 74000;
+    else if (!strcmp(mname, "cpu586-133"))
+        cyclemu = 80000;
+    else if (!strcmp(mname, "cpu586-166"))
+        cyclemu = 97240;
     if (cyclemu>0) {
         Section* sec = control->GetSection("cpu");
         if (sec) {
+            double perc = static_cast<Section_prop *>(sec)->Get_int("cycle emulation percentage adjust");
+            cyclemu*=(100+perc)/100;
             std::string tmp("cycles="+std::to_string(cyclemu));
             sec->HandleInputline(tmp);
         }
@@ -9274,6 +9282,9 @@ int main(int argc, char* argv[]) SDL_MAIN_NOEXCEPT {
             mainMenu.alloc_item(DOSBoxMenu::item_type_id,"cpu486-66").set_text("486DX2 66MHz (~23880 cycles)").set_callback_function(cpu_speed_emulate_menu_callback);
             mainMenu.alloc_item(DOSBoxMenu::item_type_id,"cpu586-66").set_text("Pentium 66MHz (~35618 cycles)").set_callback_function(cpu_speed_emulate_menu_callback);
             mainMenu.alloc_item(DOSBoxMenu::item_type_id,"cpu586-100").set_text("Pentium 100MHz (~60000 cycles)").set_callback_function(cpu_speed_emulate_menu_callback);
+            mainMenu.alloc_item(DOSBoxMenu::item_type_id,"cpu586-120").set_text("Pentium 120MHz (~74000 cycles)").set_callback_function(cpu_speed_emulate_menu_callback);
+            mainMenu.alloc_item(DOSBoxMenu::item_type_id,"cpu586-133").set_text("Pentium 133MHz (~80000 cycles)").set_callback_function(cpu_speed_emulate_menu_callback);
+            mainMenu.alloc_item(DOSBoxMenu::item_type_id,"cpu586-166").set_text("Pentium 166MHz MMX (~97240 cycles)").set_callback_function(cpu_speed_emulate_menu_callback);
         }
         {
             DOSBoxMenu::item &item = mainMenu.alloc_item(DOSBoxMenu::submenu_type_id,"VideoMenu");
