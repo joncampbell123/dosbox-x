@@ -1035,6 +1035,14 @@ void SHELL_Init() {
     if (mapper_keybind.size() > 0)
         mapper_keybind[0] = toupper(mapper_keybind[0]);
 
+    std::string default_host =
+#if defined(WIN32)
+    "F12"
+#else
+    "F11"
+#endif
+    ;
+
     /* Punctuation is important too. */
     //mapper_keybind += ".";
 
@@ -1110,10 +1118,10 @@ void SHELL_Init() {
                 "\033[44;1m\xBA                                                                              \xBA\033[0m"
                );
         MSG_Replace("SHELL_STARTUP_BEGIN2",
-                (std::string("\033[44;1m\xBA - switch between windowed and full-screen mode with key combination \033[31m")+(mapper_keybind+" \033[37m+ \033[31mF\033[37m                        ").substr(0,23)+std::string("\033[37m \xBA\033[0m") +
-                std::string("\033[44;1m\xBA - launch \033[33mConfiguration Tool\033[37m using \033[31m")+(mapper_keybind+" \033[37m+ \033[31mC\033[37m                      ").substr(0,22)+std::string("\033[37m, and \033[33mMapper Editor\033[37m using \033[31m")+(mapper_keybind+" \033[37m+ \033[31mM\033[37m                     ").substr(0,24)+std::string("\033[37m \xBA\033[0m") +
-                std::string("\033[44;1m\xBA - increase or decrease the emulation speed with \033[31m")+(mapper_keybind+" \033[37m+ \033[31mPlus\033[37m      ").substr(0,25)+std::string("\033[37m or \033[31m") +
-                (mapper_keybind+" \033[37m+ \033[31mMinus\033[37m       ").substr(0,29)+std::string("\033[37m \xBA\033[0m")).c_str());
+                (std::string("\033[44;1m\xBA - switch between windowed and full-screen mode with key combination \033[31m")+(default_host+" \033[37m+ \033[31mF\033[37m                        ").substr(0,23)+std::string("\033[37m \xBA\033[0m") +
+                std::string("\033[44;1m\xBA - launch \033[33mConfiguration Tool\033[37m using \033[31m")+(default_host+" \033[37m+ \033[31mC\033[37m                      ").substr(0,22)+std::string("\033[37m, and \033[33mMapper Editor\033[37m using \033[31m")+(default_host+" \033[37m+ \033[31mM\033[37m                     ").substr(0,24)+std::string("\033[37m \xBA\033[0m") +
+                std::string("\033[44;1m\xBA - increase or decrease the emulation speed with \033[31m")+(default_host+" \033[37m+ \033[31mPlus\033[37m      ").substr(0,25)+std::string("\033[37m or \033[31m") +
+                (default_host+" \033[37m+ \033[31mMinus\033[37m       ").substr(0,29)+std::string("\033[37m \xBA\033[0m")).c_str());
         MSG_Add("SHELL_STARTUP_BEGIN3",
                 ""
                );
