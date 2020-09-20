@@ -174,6 +174,48 @@ typedef enum PROCESS_DPI_AWARENESS {
 #include "sdlmain.h"
 #include "build_timestamp.h"
 
+namespace gl2 {
+extern PFNGLATTACHSHADERPROC glAttachShader;
+extern PFNGLCOMPILESHADERPROC glCompileShader;
+extern PFNGLCREATEPROGRAMPROC glCreateProgram;
+extern PFNGLCREATESHADERPROC glCreateShader;
+extern PFNGLDELETEPROGRAMPROC glDeleteProgram;
+extern PFNGLDELETESHADERPROC glDeleteShader;
+extern PFNGLENABLEVERTEXATTRIBARRAYPROC glEnableVertexAttribArray;
+extern PFNGLGETATTRIBLOCATIONPROC glGetAttribLocation;
+extern PFNGLGETPROGRAMIVPROC glGetProgramiv;
+extern PFNGLGETPROGRAMINFOLOGPROC glGetProgramInfoLog;
+extern PFNGLGETSHADERIVPROC glGetShaderiv;
+extern PFNGLGETSHADERINFOLOGPROC glGetShaderInfoLog;
+extern PFNGLGETUNIFORMLOCATIONPROC glGetUniformLocation;
+extern PFNGLLINKPROGRAMPROC glLinkProgram;
+extern PFNGLSHADERSOURCEPROC_NP glShaderSource;
+extern PFNGLUNIFORM2FPROC glUniform2f;
+extern PFNGLUNIFORM1IPROC glUniform1i;
+extern PFNGLUSEPROGRAMPROC glUseProgram;
+extern PFNGLVERTEXATTRIBPOINTERPROC glVertexAttribPointer;
+}
+
+#define glAttachShader            gl2::glAttachShader
+#define glCompileShader           gl2::glCompileShader
+#define glCreateProgram           gl2::glCreateProgram
+#define glCreateShader            gl2::glCreateShader
+#define glDeleteProgram           gl2::glDeleteProgram
+#define glDeleteShader            gl2::glDeleteShader
+#define glEnableVertexAttribArray gl2::glEnableVertexAttribArray
+#define glGetAttribLocation       gl2::glGetAttribLocation
+#define glGetProgramiv            gl2::glGetProgramiv
+#define glGetProgramInfoLog       gl2::glGetProgramInfoLog
+#define glGetShaderiv             gl2::glGetShaderiv
+#define glGetShaderInfoLog        gl2::glGetShaderInfoLog
+#define glGetUniformLocation      gl2::glGetUniformLocation
+#define glLinkProgram             gl2::glLinkProgram
+#define glShaderSource            gl2::glShaderSource
+#define glUniform2f               gl2::glUniform2f
+#define glUniform1i               gl2::glUniform1i
+#define glUseProgram              gl2::glUseProgram
+#define glVertexAttribPointer     gl2::glVertexAttribPointer
+
 #ifdef MACOSX
 extern bool has_touch_bar_support;
 bool osx_detect_nstouchbar(void);
@@ -2618,6 +2660,19 @@ void DoExtendedKeyboardHook(bool enable) {
 #endif
 }
 
+void GFX_SetShader(const char* src) {
+#if C_OPENGL
+	if (!sdl_opengl.use_shader || src == sdl_opengl.shader_src)
+		return;
+
+	sdl_opengl.shader_src = src;
+	if (sdl_opengl.program_object) {
+		glDeleteProgram(sdl_opengl.program_object);
+		sdl_opengl.program_object = 0;
+	}
+#endif
+}
+
 void GFX_ReleaseMouse(void) {
     if (sdl.mouse.locked)
         GFX_CaptureMouse();
@@ -3262,9 +3317,9 @@ void GFX_EndUpdate(const Bit16u *changedLines) {
     if (d3d && d3d->getForceUpdate());
     else
 #endif
-    if (!sdl.updating)
+    if (((sdl.desktop.type != SCREEN_OPENGL) || !RENDER_GetForceUpdate()) && !sdl.updating)
         return;
-
+    bool actually_updating = sdl.updating;
     sdl.updating = false;
     switch (sdl.desktop.type) 
     {
@@ -3274,6 +3329,17 @@ void GFX_EndUpdate(const Bit16u *changedLines) {
 
 #if C_OPENGL
         case SCREEN_OPENGL:
+            // Clear drawing area. Some drivers (on Linux) have more than 2 buffers and the screen might
+            // be dirty because of other programs.
+            if (!actually_updating) {
+                /* Don't really update; Just increase the frame counter.
+                 * If we tried to update it may have not worked so well
+                 * with VSync...
+                 * (Think of 60Hz on the host with 70Hz on the client.)
+                 */
+                sdl_opengl.actual_frame_count++;
+                return;
+            }
             OUTPUT_OPENGL_EndUpdate(changedLines);
             break;
 #endif
@@ -3834,8 +3900,77 @@ static void GUI_StartUp() {
     sdl.overscan_width=(unsigned int)section->Get_int("overscan");
 //  sdl.overscan_color=section->Get_int("overscancolor");
 
+#if C_OPENGL
+	if (sdl.desktop.want_type == SCREEN_OPENGL) { /* OPENGL is requested */
 #if defined(C_SDL2)
-    /* Initialize screen for first time */
+		GFX_SetResizeable(true);
+		if (!(sdl.window = GFX_SetSDLWindowMode(640,400, SCREEN_OPENGL)) || !(sdl_opengl.context = SDL_GL_CreateContext(sdl.window))) {
+#else
+		sdl.surface = SDL_SetVideoMode(640,400,0,SDL_OPENGL);
+		if (sdl.surface == NULL) {
+#endif
+			LOG_MSG("Could not initialize OpenGL, switching back to surface");
+			sdl.desktop.want_type = SCREEN_SURFACE;
+		} else {
+			sdl_opengl.program_object = 0;
+			glAttachShader = (PFNGLATTACHSHADERPROC)SDL_GL_GetProcAddress("glAttachShader");
+			glCompileShader = (PFNGLCOMPILESHADERPROC)SDL_GL_GetProcAddress("glCompileShader");
+			glCreateProgram = (PFNGLCREATEPROGRAMPROC)SDL_GL_GetProcAddress("glCreateProgram");
+			glCreateShader = (PFNGLCREATESHADERPROC)SDL_GL_GetProcAddress("glCreateShader");
+			glDeleteProgram = (PFNGLDELETEPROGRAMPROC)SDL_GL_GetProcAddress("glDeleteProgram");
+			glDeleteShader = (PFNGLDELETESHADERPROC)SDL_GL_GetProcAddress("glDeleteShader");
+			glEnableVertexAttribArray = (PFNGLENABLEVERTEXATTRIBARRAYPROC)SDL_GL_GetProcAddress("glEnableVertexAttribArray");
+			glGetAttribLocation = (PFNGLGETATTRIBLOCATIONPROC)SDL_GL_GetProcAddress("glGetAttribLocation");
+			glGetProgramiv = (PFNGLGETPROGRAMIVPROC)SDL_GL_GetProcAddress("glGetProgramiv");
+			glGetProgramInfoLog = (PFNGLGETPROGRAMINFOLOGPROC)SDL_GL_GetProcAddress("glGetProgramInfoLog");
+			glGetShaderiv = (PFNGLGETSHADERIVPROC)SDL_GL_GetProcAddress("glGetShaderiv");
+			glGetShaderInfoLog = (PFNGLGETSHADERINFOLOGPROC)SDL_GL_GetProcAddress("glGetShaderInfoLog");
+			glGetUniformLocation = (PFNGLGETUNIFORMLOCATIONPROC)SDL_GL_GetProcAddress("glGetUniformLocation");
+			glLinkProgram = (PFNGLLINKPROGRAMPROC)SDL_GL_GetProcAddress("glLinkProgram");
+			glShaderSource = (PFNGLSHADERSOURCEPROC_NP)SDL_GL_GetProcAddress("glShaderSource");
+			glUniform2f = (PFNGLUNIFORM2FPROC)SDL_GL_GetProcAddress("glUniform2f");
+			glUniform1i = (PFNGLUNIFORM1IPROC)SDL_GL_GetProcAddress("glUniform1i");
+			glUseProgram = (PFNGLUSEPROGRAMPROC)SDL_GL_GetProcAddress("glUseProgram");
+			glVertexAttribPointer = (PFNGLVERTEXATTRIBPOINTERPROC)SDL_GL_GetProcAddress("glVertexAttribPointer");
+			sdl_opengl.use_shader = (glAttachShader && glCompileShader && glCreateProgram && glDeleteProgram && glDeleteShader && \
+				glEnableVertexAttribArray && glGetAttribLocation && glGetProgramiv && glGetProgramInfoLog && \
+				glGetShaderiv && glGetShaderInfoLog && glGetUniformLocation && glLinkProgram && glShaderSource && \
+				glUniform2f && glUniform1i && glUseProgram && glVertexAttribPointer);
+
+			sdl_opengl.buffer=0;
+			sdl_opengl.framebuf=0;
+			sdl_opengl.texture=0;
+			sdl_opengl.displaylist=0;
+			glGetIntegerv (GL_MAX_TEXTURE_SIZE, &sdl_opengl.max_texsize);
+			glGenBuffersARB = (PFNGLGENBUFFERSARBPROC)SDL_GL_GetProcAddress("glGenBuffersARB");
+			glBindBufferARB = (PFNGLBINDBUFFERARBPROC)SDL_GL_GetProcAddress("glBindBufferARB");
+			glDeleteBuffersARB = (PFNGLDELETEBUFFERSARBPROC)SDL_GL_GetProcAddress("glDeleteBuffersARB");
+			glBufferDataARB = (PFNGLBUFFERDATAARBPROC)SDL_GL_GetProcAddress("glBufferDataARB");
+			glMapBufferARB = (PFNGLMAPBUFFERARBPROC)SDL_GL_GetProcAddress("glMapBufferARB");
+			glUnmapBufferARB = (PFNGLUNMAPBUFFERARBPROC)SDL_GL_GetProcAddress("glUnmapBufferARB");
+			const char * gl_ext = (const char *)glGetString (GL_EXTENSIONS);
+			if(gl_ext && *gl_ext){
+				sdl_opengl.packed_pixel=(strstr(gl_ext,"EXT_packed_pixels") != NULL);
+				sdl_opengl.paletted_texture=(strstr(gl_ext,"EXT_paletted_texture") != NULL);
+				sdl_opengl.pixel_buffer_object=(strstr(gl_ext,"GL_ARB_pixel_buffer_object") != NULL ) &&
+				    glGenBuffersARB && glBindBufferARB && glDeleteBuffersARB && glBufferDataARB &&
+				    glMapBufferARB && glUnmapBufferARB;
+    			} else {
+				sdl_opengl.packed_pixel = false;
+				sdl_opengl.paletted_texture = false;
+				sdl_opengl.pixel_buffer_object = false;
+			}
+#ifdef DB_DISABLE_DBO
+			sdl_opengl.pixel_buffer_object = false;
+#endif
+			LOG_MSG("OpenGL extension: pixel_bufer_object %d",sdl_opengl.pixel_buffer_object);
+		}
+	} /* OPENGL is requested end */
+
+#endif	//OPENGL
+
+/* Initialize screen for first time */
+#if defined(C_SDL2)
     GFX_SetResizeable(true);
     if (!GFX_SetSDLSurfaceWindow(640,400))
         E_Exit("Could not initialize video: %s",SDL_GetError());
@@ -3847,7 +3982,6 @@ static void GUI_StartUp() {
     if (SDL_BITSPERPIXEL(sdl.desktop.pixelFormat) == 24)
         LOG_MSG("SDL: You are running in 24 bpp mode, this will slow down things!");
 #else
-    /* Initialize screen for first time */
     sdl.surface=SDL_SetVideoMode(640,400,0,SDL_RESIZABLE);
     if (sdl.surface == NULL) E_Exit("Could not initialize video: %s",SDL_GetError());
     sdl.deferred_resize = false;

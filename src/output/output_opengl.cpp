@@ -14,6 +14,7 @@
 #include <algorithm>
 
 #include "sdlmain.h"
+#include "render.h"
 
 using namespace std;
 
@@ -26,6 +27,56 @@ PFNGLDELETEBUFFERSARBPROC glDeleteBuffersARB = NULL;
 PFNGLBUFFERDATAARBPROC glBufferDataARB = NULL;
 PFNGLMAPBUFFERARBPROC glMapBufferARB = NULL;
 PFNGLUNMAPBUFFERARBPROC glUnmapBufferARB = NULL;
+
+/* Apple defines these functions in their GL header (as core functions)
+ * so we can't use their names as function pointers. We can't link
+ * directly as some platforms may not have them. So they get their own
+ * namespace here to keep the official names but avoid collisions.
+ */
+namespace gl2 {
+PFNGLATTACHSHADERPROC glAttachShader = NULL;
+PFNGLCOMPILESHADERPROC glCompileShader = NULL;
+PFNGLCREATEPROGRAMPROC glCreateProgram = NULL;
+PFNGLCREATESHADERPROC glCreateShader = NULL;
+PFNGLDELETEPROGRAMPROC glDeleteProgram = NULL;
+PFNGLDELETESHADERPROC glDeleteShader = NULL;
+PFNGLENABLEVERTEXATTRIBARRAYPROC glEnableVertexAttribArray = NULL;
+PFNGLGETATTRIBLOCATIONPROC glGetAttribLocation = NULL;
+PFNGLGETPROGRAMIVPROC glGetProgramiv = NULL;
+PFNGLGETPROGRAMINFOLOGPROC glGetProgramInfoLog = NULL;
+PFNGLGETSHADERIVPROC glGetShaderiv = NULL;
+PFNGLGETSHADERINFOLOGPROC glGetShaderInfoLog = NULL;
+PFNGLGETUNIFORMLOCATIONPROC glGetUniformLocation = NULL;
+PFNGLLINKPROGRAMPROC glLinkProgram = NULL;
+PFNGLSHADERSOURCEPROC_NP glShaderSource = NULL;
+PFNGLUNIFORM2FPROC glUniform2f = NULL;
+PFNGLUNIFORM1IPROC glUniform1i = NULL;
+PFNGLUSEPROGRAMPROC glUseProgram = NULL;
+PFNGLVERTEXATTRIBPOINTERPROC glVertexAttribPointer = NULL;
+}
+
+/* "using" is meant to hide identical names declared in outer scope
+ * but is unreliable, so just redefine instead.
+ */
+#define glAttachShader            gl2::glAttachShader
+#define glCompileShader           gl2::glCompileShader
+#define glCreateProgram           gl2::glCreateProgram
+#define glCreateShader            gl2::glCreateShader
+#define glDeleteProgram           gl2::glDeleteProgram
+#define glDeleteShader            gl2::glDeleteShader
+#define glEnableVertexAttribArray gl2::glEnableVertexAttribArray
+#define glGetAttribLocation       gl2::glGetAttribLocation
+#define glGetProgramiv            gl2::glGetProgramiv
+#define glGetProgramInfoLog       gl2::glGetProgramInfoLog
+#define glGetShaderiv             gl2::glGetShaderiv
+#define glGetShaderInfoLog        gl2::glGetShaderInfoLog
+#define glGetUniformLocation      gl2::glGetUniformLocation
+#define glLinkProgram             gl2::glLinkProgram
+#define glShaderSource            gl2::glShaderSource
+#define glUniform2f               gl2::glUniform2f
+#define glUniform1i               gl2::glUniform1i
+#define glUseProgram              gl2::glUseProgram
+#define glVertexAttribPointer     gl2::glVertexAttribPointer
 
 #if C_OPENGL && DOSBOXMENU_TYPE == DOSBOXMENU_SDLDRAW
 extern unsigned int SDLDrawGenFontTextureUnitPerRow;
@@ -221,6 +272,76 @@ Bitu OUTPUT_OPENGL_GetBestMode(Bitu flags)
     return flags;
 }
 
+/* Create a GLSL shader object, load the shader source, and compile the shader. */
+static GLuint BuildShader ( GLenum type, const char *shaderSrc ) {
+	GLuint shader;
+	GLint compiled;
+	const char* src_strings[2];
+	std::string top;
+
+	// look for "#version" because it has to occur first
+	const char *ver = strstr(shaderSrc, "#version ");
+	if (ver) {
+		const char *endline = strchr(ver+9, '\n');
+		if (endline) {
+			top.assign(shaderSrc, endline-shaderSrc+1);
+			shaderSrc = endline+1;
+		}
+	}
+
+	top += (type==GL_VERTEX_SHADER) ? "#define VERTEX 1\n":"#define FRAGMENT 1\n";
+	if (!sdl_opengl.bilinear)
+		top += "#define OPENGLNB 1\n";
+
+	src_strings[0] = top.c_str();
+	src_strings[1] = shaderSrc;
+
+	// Create the shader object
+	shader = glCreateShader(type);
+	if (shader == 0) return 0;
+
+	// Load the shader source
+	glShaderSource(shader, 2, src_strings, NULL);
+
+	// Compile the shader
+	glCompileShader(shader);
+
+	// Check the compile status
+	glGetShaderiv(shader, GL_COMPILE_STATUS, &compiled);
+
+	if (!compiled) {
+		char* infoLog = NULL;
+		GLint infoLen = 0;
+		glGetShaderiv(shader, GL_INFO_LOG_LENGTH, &infoLen);
+
+		if (infoLen>1) infoLog = (char*)malloc(infoLen);
+		if (infoLog) {
+			glGetShaderInfoLog(shader, infoLen, NULL, infoLog);
+			LOG_MSG("Error compiling shader: %s", infoLog);
+			free(infoLog);
+		} else LOG_MSG("Error getting shader compilation log");
+
+		glDeleteShader(shader);
+		return 0;
+	}
+
+	return shader;
+}
+
+static bool LoadGLShaders(const char *src, GLuint *vertex, GLuint *fragment) {
+	GLuint s = BuildShader(GL_VERTEX_SHADER, src);
+	if (s) {
+		*vertex = s;
+		s = BuildShader(GL_FRAGMENT_SHADER, src);
+		if (s) {
+			*fragment = s;
+			return true;
+		}
+		glDeleteShader(*vertex);
+	}
+	return false;
+}
+
 Bitu OUTPUT_OPENGL_SetSize()
 {
     Bitu retFlags = 0;
@@ -256,10 +377,11 @@ Bitu OUTPUT_OPENGL_SetSize()
 # endif
 #endif
 
+    // try 32 bits first then 16
 #if defined(C_SDL2)
-    SetupSurfaceScaledOpenGL(SDL_WINDOW_RESIZABLE, 0);
+    if (SetupSurfaceScaledOpenGL(SDL_WINDOW_RESIZABLE,32)==NULL) SetupSurfaceScaledOpenGL(SDL_WINDOW_RESIZABLE,16);
 #else
-    SetupSurfaceScaledOpenGL(SDL_RESIZABLE, 0);
+    if (SetupSurfaceScaledOpenGL(SDL_RESIZABLE,32)==NULL) SetupSurfaceScaledOpenGL(SDL_RESIZABLE,16);
 #endif
     if (!sdl.surface || sdl.surface->format->BitsPerPixel < 15)
     {
@@ -288,6 +410,100 @@ Bitu OUTPUT_OPENGL_SetSize()
     {
         LOG_MSG("SDL:OPENGL:No support for texturesize of %d (max size is %d), falling back to surface", texsize, sdl_opengl.max_texsize);
         return 0;
+    }
+
+    if (sdl_opengl.use_shader) {
+        GLuint prog=0;
+        // reset error
+        glGetError();
+        glGetIntegerv(GL_CURRENT_PROGRAM, (GLint*)&prog);
+        // if there was an error this context doesn't support shaders
+        if (glGetError()==GL_NO_ERROR && (sdl_opengl.program_object==0 || prog!=sdl_opengl.program_object)) {
+            // check if existing program is valid
+            if (sdl_opengl.program_object) {
+                glUseProgram(sdl_opengl.program_object);
+                if (glGetError() != GL_NO_ERROR) {
+                    // program is not usable (probably new context), purge it
+                    glDeleteProgram(sdl_opengl.program_object);
+                    sdl_opengl.program_object = 0;
+                }
+            }
+
+            // does program need to be rebuilt?
+            if (sdl_opengl.program_object == 0) {
+                GLuint vertexShader, fragmentShader;
+                const char *src = sdl_opengl.shader_src;
+                if (src && !LoadGLShaders(src, &vertexShader, &fragmentShader)) {
+                    LOG_MSG("SDL:OPENGL:Failed to compile shader, falling back to default");
+                    src = NULL;
+                }
+                if (src == NULL && !LoadGLShaders(shader_src_default, &vertexShader, &fragmentShader)) {
+                    LOG_MSG("SDL:OPENGL:Failed to compile default shader!");
+                    return 0;
+                }
+
+                sdl_opengl.program_object = glCreateProgram();
+                if (!sdl_opengl.program_object) {
+                    glDeleteShader(vertexShader);
+                    glDeleteShader(fragmentShader);
+                    LOG_MSG("SDL:OPENGL:Can't create program object, falling back to surface");
+                    return 0;
+                }
+                glAttachShader(sdl_opengl.program_object, vertexShader);
+                glAttachShader(sdl_opengl.program_object, fragmentShader);
+                // Link the program
+                glLinkProgram(sdl_opengl.program_object);
+                // Even if we *are* successful, we may delete the shader objects
+                glDeleteShader(vertexShader);
+                glDeleteShader(fragmentShader);
+
+                // Check the link status
+                GLint isProgramLinked;
+                glGetProgramiv(sdl_opengl.program_object, GL_LINK_STATUS, &isProgramLinked);
+                if (!isProgramLinked) {
+                    char * infoLog = NULL;
+                    GLint infoLen = 0;
+
+                    glGetProgramiv(sdl_opengl.program_object, GL_INFO_LOG_LENGTH, &infoLen);
+                    if (infoLen>1) infoLog = (char*)malloc(infoLen);
+                    if (infoLog) {
+                        glGetProgramInfoLog(sdl_opengl.program_object, infoLen, NULL, infoLog);
+                        LOG_MSG("SDL:OPENGL:Error linking program:\n %s", infoLog);
+                        free(infoLog);
+                    } else LOG_MSG("SDL:OPENGL:Failed to retrieve program link log");
+
+                    glDeleteProgram(sdl_opengl.program_object);
+                    sdl_opengl.program_object = 0;
+                    return 0;
+                }
+
+                glUseProgram(sdl_opengl.program_object);
+
+                GLint u = glGetAttribLocation(sdl_opengl.program_object, "a_position");
+                // upper left
+                sdl_opengl.vertex_data[0] = -1.0f;
+                sdl_opengl.vertex_data[1] = 1.0f;
+                // lower left
+                sdl_opengl.vertex_data[2] = -1.0f;
+                sdl_opengl.vertex_data[3] = -3.0f;
+                // upper right
+                sdl_opengl.vertex_data[4] = 3.0f;
+                sdl_opengl.vertex_data[5] = 1.0f;
+                // Load the vertex positions
+                glVertexAttribPointer(u, 2, GL_FLOAT, GL_FALSE, 0, sdl_opengl.vertex_data);
+                glEnableVertexAttribArray(u);
+
+                u = glGetUniformLocation(sdl_opengl.program_object, "rubyTexture");
+                glUniform1i(u, 0);
+
+                sdl_opengl.ruby.texture_size = glGetUniformLocation(sdl_opengl.program_object, "rubyTextureSize");
+                sdl_opengl.ruby.input_size = glGetUniformLocation(sdl_opengl.program_object, "rubyInputSize");
+                sdl_opengl.ruby.output_size = glGetUniformLocation(sdl_opengl.program_object, "rubyOutputSize");
+                sdl_opengl.ruby.frame_count = glGetUniformLocation(sdl_opengl.program_object, "rubyFrameCount");
+                // Don't force updating unless a shader depends on frame_count
+                RENDER_SetForceUpdate(sdl_opengl.ruby.frame_count != (GLint)-1);
+            }
+        }
     }
 
     /* Create the texture and display list */
@@ -341,7 +557,7 @@ Bitu OUTPUT_OPENGL_SetSize()
     glClear(GL_COLOR_BUFFER_BIT);
     // SDL_GL_SwapBuffers();
     // glClear(GL_COLOR_BUFFER_BIT);
-    glShadeModel(GL_FLAT);
+    //glShadeModel(GL_FLAT);
     glBlendFunc(GL_ONE, GL_ZERO);
     glDisable(GL_DEPTH_TEST);
     glDisable(GL_LIGHTING);
@@ -353,36 +569,45 @@ Bitu OUTPUT_OPENGL_SetSize()
     glDisable(GL_STENCIL_TEST);
     glEnable(GL_TEXTURE_2D);
 
-    glMatrixMode(GL_MODELVIEW);
-    glLoadIdentity();
+    if (sdl_opengl.program_object) {
+        // Set shader variables
+        glUniform2f(sdl_opengl.ruby.texture_size, (float)texsize, (float)texsize);
+        glUniform2f(sdl_opengl.ruby.input_size, (float)adjTexWidth, (float)adjTexHeight);
+        glUniform2f(sdl_opengl.ruby.output_size, sdl.clip.w, sdl.clip.h);
+        // The following uniform is *not* set right now
+        sdl_opengl.actual_frame_count = 0;
+    } else {
+        glMatrixMode(GL_MODELVIEW);
+        glLoadIdentity();
 
-    glMatrixMode(GL_PROJECTION);
-    glLoadIdentity();
-    glOrtho(0, sdl.surface->w, sdl.surface->h, 0, -1, 1);
+        glMatrixMode(GL_PROJECTION);
+        glLoadIdentity();
+        glOrtho(0, sdl.surface->w, sdl.surface->h, 0, -1, 1);
 
-    glMatrixMode(GL_TEXTURE);
-    glLoadIdentity();
-    glScaled(1.0 / texsize, 1.0 / texsize, 1.0);
+        glMatrixMode(GL_TEXTURE);
+        glLoadIdentity();
+        glScaled(1.0 / texsize, 1.0 / texsize, 1.0);
 
-    // if (glIsList(sdl_opengl.displaylist)) 
-    //   glDeleteLists(sdl_opengl.displaylist, 1);
-    // sdl_opengl.displaylist = glGenLists(1);
-    sdl_opengl.displaylist = 1;
+        // if (glIsList(sdl_opengl.displaylist))
+        //   glDeleteLists(sdl_opengl.displaylist, 1);
+        // sdl_opengl.displaylist = glGenLists(1);
+        sdl_opengl.displaylist = 1;
 
-    glNewList(sdl_opengl.displaylist, GL_COMPILE);
-    glBindTexture(GL_TEXTURE_2D, sdl_opengl.texture);
+        glNewList(sdl_opengl.displaylist, GL_COMPILE);
+        glBindTexture(GL_TEXTURE_2D, sdl_opengl.texture);
 
-    glBegin(GL_QUADS);
+        glBegin(GL_QUADS);
 
-    glTexCoord2i(0, 0); glVertex2i((GLint)sdl.clip.x, (GLint)sdl.clip.y); // lower left
-    glTexCoord2i((GLint)adjTexWidth, 0); glVertex2i((GLint)sdl.clip.x + (GLint)sdl.clip.w, (GLint)sdl.clip.y); // lower right
-    glTexCoord2i((GLint)adjTexWidth, (GLint)adjTexHeight); glVertex2i((GLint)sdl.clip.x + (GLint)sdl.clip.w, (GLint)sdl.clip.y + (GLint)sdl.clip.h); // upper right
-    glTexCoord2i(0, (GLint)adjTexHeight); glVertex2i((GLint)sdl.clip.x, (GLint)sdl.clip.y + (GLint)sdl.clip.h); // upper left
+        glTexCoord2i(0, 0); glVertex2i((GLint)sdl.clip.x, (GLint)sdl.clip.y); // lower left
+        glTexCoord2i((GLint)adjTexWidth, 0); glVertex2i((GLint)sdl.clip.x + (GLint)sdl.clip.w, (GLint)sdl.clip.y); // lower right
+        glTexCoord2i((GLint)adjTexWidth, (GLint)adjTexHeight); glVertex2i((GLint)sdl.clip.x + (GLint)sdl.clip.w, (GLint)sdl.clip.y + (GLint)sdl.clip.h); // upper right
+        glTexCoord2i(0, (GLint)adjTexHeight); glVertex2i((GLint)sdl.clip.x, (GLint)sdl.clip.y + (GLint)sdl.clip.h); // upper left
 
-    glEnd();
-    glEndList();
+        glEnd();
+        glEndList();
 
-    glBindTexture(GL_TEXTURE_2D, 0);
+        glBindTexture(GL_TEXTURE_2D, 0);
+    }
 
 #if DOSBOXMENU_TYPE == DOSBOXMENU_SDLDRAW
     void GFX_DrawSDLMenu(DOSBoxMenu &menu, DOSBoxMenu::displaylist &dl);
@@ -591,8 +816,8 @@ void OUTPUT_OPENGL_EndUpdate(const Bit16u *changedLines)
 #endif
                 (void*)0);
             glBindBufferARB(GL_PIXEL_UNPACK_BUFFER_EXT, 0);
-            glCallList(sdl_opengl.displaylist);
-            SDL_GL_SwapBuffers();
+            //glCallList(sdl_opengl.displaylist);
+            //SDL_GL_SwapBuffers();
         }
         else if (changedLines) 
         {
@@ -625,6 +850,12 @@ void OUTPUT_OPENGL_EndUpdate(const Bit16u *changedLines)
                 }
                 index++;
             }
+        } else
+            return;
+        if (sdl_opengl.program_object) {
+            glUniform1i(sdl_opengl.ruby.frame_count, sdl_opengl.actual_frame_count++);
+            glDrawArrays(GL_TRIANGLES, 0, 3);
+        } else
             glCallList(sdl_opengl.displaylist);
 
 #if 0 /* DEBUG Prove to me that you're drawing the damn texture */
@@ -659,7 +890,6 @@ void OUTPUT_OPENGL_EndUpdate(const Bit16u *changedLines)
 #endif
 
             SDL_GL_SwapBuffers();
-        }
 
         if (!menu.hidecycles && !sdl.desktop.fullscreen) frames++;
     }

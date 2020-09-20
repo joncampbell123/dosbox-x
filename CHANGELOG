@@ -1,4 +1,11 @@
 0.83.6
+  - Added GLSL shader support by porting the feature
+    from DOSBox SVN. Worked for SDL1 and SDL2 builds.
+    The config option "glshader" (in [render] section)
+    can be used to specify a GLSL shader file or a
+    built-in GLSL shader when the output is set to
+    "opengl" or "openglnb". For example, you can use
+    "glshader=sharp" for pixel-perfect mode. (Wengier)
   - Support for FluidSynth MIDI Synthesizer is now
     activated by default for Windows Visual Studio
     x86/x64 builds. (Wengier)

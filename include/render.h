@@ -91,6 +91,9 @@ typedef struct {
 		Bit8u *cacheRead;
 		Bitu inHeight, inLine, outLine;
 	} scale;
+#if C_OPENGL
+	char* shader_src;
+#endif
     RenderPal_t pal;
 	bool updating;
 	bool active;
@@ -108,6 +111,7 @@ void RENDER_SetSize(Bitu width,Bitu height,Bitu bpp,float fps,double scrn_ratio)
 bool RENDER_StartUpdate(void);
 void RENDER_EndUpdate(bool abort);
 void RENDER_SetPal(Bit8u entry,Bit8u red,Bit8u green,Bit8u blue);
-
+bool RENDER_GetForceUpdate(void);
+void RENDER_SetForceUpdate(bool);
 
 #endif
