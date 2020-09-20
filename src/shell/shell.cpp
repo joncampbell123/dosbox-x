@@ -1565,6 +1565,7 @@ void SHELL_Init() {
 		VFILE_RegisterBuiltinFileBlob(bfb_CDPLAY_EXE);
 		VFILE_RegisterBuiltinFileBlob(bfb_CDPLAY_TXT);
 		VFILE_RegisterBuiltinFileBlob(bfb_CDPLAY_ZIP);
+		VFILE_RegisterBuiltinFileBlob(bfb_DOSMID_EXE);
 		VFILE_RegisterBuiltinFileBlob(bfb_ZIP_EXE);
 		VFILE_RegisterBuiltinFileBlob(bfb_UNZIP_EXE);
 		VFILE_RegisterBuiltinFileBlob(bfb_EDIT_COM);
