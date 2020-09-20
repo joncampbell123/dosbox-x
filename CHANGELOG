@@ -2,9 +2,12 @@
   - Support for FluidSynth MIDI Synthesizer is now
     activated by default for Windows Visual Studio
     x86/x64 builds. (Wengier)
-  - The DOSMID program has been built into DOSBox-X,
-    which can be found on the Z drive. You can use it
-    to play MIDI/RMI/MUS audios. (Wengier)
+  - The DOSMID and MPXPLAY programs have been built
+    into DOSBox-X, both can be found on the Z drive.
+    DOSMID can be used to play MIDI/RMI/MUS audios,
+    whereas MPXPLAY can play a variety of audio files
+    including AAC/AC3/APE/FLAC/MP2/MP3/MPC/OGG/WAV
+    and more with playlist support. (Wengier)
   - Added "Shared Windows clipboard functions" menu
     group under "Main", which allows you to enable
     or disable the different ways for DOSBox-X to

@@ -3,6 +3,7 @@
 #include "../src/builtin/zip.h"
 #include "../src/builtin/cdplay.h"
 #include "../src/builtin/dosmid.h"
+#include "../src/builtin/mpxplay.h"
 #include "../src/builtin/glide2x.h"
 #include "../src/builtin/4DOS_img.h"
 
@@ -39,5 +40,6 @@ extern struct BuiltinFileBlob bfb_4DOS_HLP;		// 4DOS.HLP
 extern struct BuiltinFileBlob bfb_4HELP_EXE;	// 4HELP.EXE
 extern struct BuiltinFileBlob bfb_CDPLAY_EXE;	// CDPLAY.EXE
 extern struct BuiltinFileBlob bfb_DOSMID_EXE;	// DOSMID.EXE
+extern struct BuiltinFileBlob bfb_MPXPLAY_EXE;	// MPXPLAY.EXE
 extern struct BuiltinFileBlob bfb_GLIDE2X_OVL;	// GLIDE2X.OVL
 
