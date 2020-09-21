@@ -496,10 +496,11 @@ void DOS_Shell::Run(void) {
         Section_prop *section = static_cast<Section_prop *>(control->GetSection("dosbox"));
         if(section->Get_bool("startbanner")&&!control->opt_fastlaunch) {
             /* Start a normal shell and check for a first command init */
+            std::string verstr = "v"+std::string(VERSION)+", "+GetPlatform(false);
             if (machine == MCH_PC98)
-                WriteOut(ParseMsg(MSG_Get("SHELL_STARTUP_BEGIN")),std::string(VERSION)+" ("+std::string(SDL_STRING)+") Built on "+std::string(UPDATED_STR));
+                WriteOut(ParseMsg(MSG_Get("SHELL_STARTUP_BEGIN")),44,verstr.c_str());
             else
-                WriteOut(ParseMsg(MSG_Get("SHELL_STARTUP_BEGIN")),54,("v"+std::string(VERSION)+", "+GetPlatform(false)).c_str());
+                WriteOut(ParseMsg(MSG_Get("SHELL_STARTUP_BEGIN")),54,verstr.c_str());
             WriteOut(ParseMsg(MSG_Get("SHELL_STARTUP_BEGIN2")));
             WriteOut(ParseMsg(MSG_Get("SHELL_STARTUP_BEGIN3")));
 #if C_DEBUG
@@ -1065,7 +1066,7 @@ void SHELL_Init() {
                 "\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44"
                 "\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44"
                 "\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x56\n"
-                "\x86\x46 \033[33mWelcome to DOSBox-X %-45s\033[37m \x86\x46\n"
+                "\x86\x46 \033[32mWelcome to DOSBox-X ! \033[33m%*s\033[37m \x86\x46\n"
                 "\x86\x46                                                                    \x86\x46\n"
                 "\x86\x46 For a list of supported shell commands, please type: \033[32mHELP\033[37m          \x86\x46\n"
                 "\x86\x46 For a short introduction for new users, please type: \033[32mINTRO\033[37m         \x86\x46\n"
