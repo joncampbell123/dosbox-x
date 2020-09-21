@@ -1037,10 +1037,10 @@ void SHELL_Init() {
         mapper_keybind[0] = toupper(mapper_keybind[0]);
 
     std::string default_host =
-#if defined(WIN32)
-    "F12"
-#else
+#if defined(WIN32) && !defined(HX_DOS)
     "F11"
+#else
+    "F12"
 #endif
     ;
 

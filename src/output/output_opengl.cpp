@@ -412,6 +412,9 @@ Bitu OUTPUT_OPENGL_SetSize()
         return 0;
     }
 
+#if DOSBOXMENU_TYPE == DOSBOXMENU_SDLDRAW
+    if (sdl_opengl.shader_src == NULL) sdl_opengl.use_shader = false;
+#endif
     if (sdl_opengl.use_shader) {
         GLuint prog=0;
         // reset error
@@ -449,6 +452,14 @@ Bitu OUTPUT_OPENGL_SetSize()
                     LOG_MSG("SDL:OPENGL:Can't create program object, falling back to surface");
                     return 0;
                 }
+#if DOSBOXMENU_TYPE == DOSBOXMENU_SDLDRAW
+                // Todo: Make SDL-drawn menu work with custom GLSL shaders
+                if (!sdl.desktop.prevent_fullscreen) {
+                    menu.toggle=false;
+                    mainMenu.showMenu(false);
+                    mainMenu.get_item("mapper_togmenu").check(!menu.toggle).refresh_item(mainMenu);
+                }
+#endif
                 glAttachShader(sdl_opengl.program_object, vertexShader);
                 glAttachShader(sdl_opengl.program_object, fragmentShader);
                 // Link the program

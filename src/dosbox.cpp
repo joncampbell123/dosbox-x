@@ -882,6 +882,8 @@ std::string GetPlatform(bool save) {
 	strcpy(platform, 
 #if defined(HX_DOS)
 	"DOS "
+#elif defined(__MINGW32__)
+	"MinGW "
 #elif defined(WIN32)
 	"Windows "
 #elif defined(LINUX)
