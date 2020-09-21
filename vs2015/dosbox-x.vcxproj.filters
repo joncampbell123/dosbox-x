@@ -618,6 +618,9 @@
     <ClCompile Include="..\src\misc\ethernet_pcap.cpp">
       <Filter>Sources\misc</Filter>
     </ClCompile>
+    <ClCompile Include="..\src\misc\ethernet_slirp.cpp">
+      <Filter>Sources\misc</Filter>
+    </ClCompile>
     <ClCompile Include="..\src\misc\regionalloctracking.cpp">
       <Filter>Sources\misc</Filter>
     </ClCompile>
@@ -1785,6 +1788,9 @@
       <Filter>Sources\libs\mt32\sha1</Filter>
     </ClInclude>
     <ClInclude Include="..\src\misc\ethernet_pcap.h">
+      <Filter>Sources\misc</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\misc\ethernet_slirp.h">
       <Filter>Sources\misc</Filter>
     </ClInclude>
     <ClInclude Include="..\src\hardware\reSID\envelope.h">

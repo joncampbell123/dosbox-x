@@ -98,7 +98,7 @@ XCode (on macOS, from the Terminal) to target macOS
 
 First install the development tools, headers and libraries needed
 
-sudo apt install automake gcc make libncurses-dev nasm libsdl-net1.2-dev libsdl2-net-dev libpcap-dev fluidsynth libfluidsynth-dev libavdevice58 libavformat-* libswscale-dev libavcodec-* libfreetype-dev libxkbfile-dev libxrandr-dev
+sudo apt install automake gcc make libncurses-dev nasm libsdl-net1.2-dev libsdl2-net-dev libpcap-dev libslirp-dev fluidsynth libfluidsynth-dev libavdevice58 libavformat-* libswscale-dev libavcodec-* libfreetype-dev libxkbfile-dev libxrandr-dev
 
 Then change to the directory where you unpacked the DOSBox-X source code, and run the following commands:
 
@@ -112,7 +112,7 @@ Alternatively you can also compile the SDL2 version by running the ./build-debug
 First install the development tools, headers and libraries needed
 
  sudo dnf group install "C Development Tools and Libraries"
- sudo dnf install SDL_net-devel SDL2_net-devel libxkbfile-devel ncurses-devel libpcap-devel libpng-devel fluidsynth-devel freetype-devel nasm
+ sudo dnf install SDL_net-devel SDL2_net-devel libxkbfile-devel ncurses-devel libpcap-devel libslirp-devel libpng-devel fluidsynth-devel freetype-devel nasm
 
 If you want to be able to record video, you will also need to install ffmpeg-devel which you can get from the optional rpmfusion-free repository.
 Then change to the directory where you unpacked the DOSBox-X source code, and run the following commands:
