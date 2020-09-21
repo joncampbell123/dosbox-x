@@ -1,8 +1,8 @@
 0.83.6
-  - Added GLSL shader support by porting the feature
-    from DOSBox SVN. OpenGL shaders are now supported
-    in both SDL1 and SDL2 builds, and this also allows
-    pixel-perfect mode to be enabled for the OpenGL
+  - Added OpenGL shader support by porting the feature
+    from DOSBox SVN. GLSL shaders are now supported in
+    both SDL1 and SDL2 builds, and this also allows
+    pixel-perfect scaling to be enabled for the OpenGL
     outputs. The config option "glshader" (in [render]
     section) can be used to specify a GLSL shader file
     or a built-in shader when the output is set to
