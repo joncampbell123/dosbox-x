@@ -7,7 +7,7 @@ The purpose of this document is to try and build a comprehensive list of source 
 
 The base code is from the [DOSBox](https://www.dosbox.com) project in which some of the SVN commits made since 2011 were incorporated into DOSBox-X. This code had since been heavily modified by the DOSBox-X project.
 
-Some of the source code also came from similar projects such as [DOSBox SVN Daum](http://ykhwong.x-y.net), [DOSBox ECE](https://dosboxece.yesterplay.net/), [dosbox-staging](https://dosbox-staging.github.io/) and [vDosPlus](http://www.vdosplus.org/), with major works from contributors like Wengier, Allofich, and rderooy.
+Some of the source code also came from similar projects such as [DOSBox SVN Daum](http://ykhwong.x-y.net), [DOSBox ECE](https://dosboxece.yesterplay.net/), [dosbox-staging](https://dosbox-staging.github.io/) and [vDosPlus](http://www.vdosplus.org/), with major works from other developers and contributors of DOSBox-X such as Wengier, aybe, Allofich, and rderooy.
 
 A list of features ported from DOSBox SVN Daum:
 
@@ -49,7 +49,9 @@ A list of features ported from vDosPlus by Wengier:
 
 Features such as save & load states and Pentium MMX instructions were also ported from community contributions and have since been improved by the DOSBox-X project.
 
-The [DOSBox-X Wiki](https://github.com/joncampbell123/dosbox-x/wiki) pages were created and updated by Wengier and rderooy. 
+The [DOSBox-X website](http://dosbox-x.com) was designed and maintained by Wengier.
+
+The [DOSBox-X Wiki](https://github.com/joncampbell123/dosbox-x/wiki) pages were created and updated by Wengier and rderooy.
 
 This is an attempt to properly credit the other code and its sources below. It is **not** a complete list yet, and please feel free to revise and correct this list if there are errors.
 

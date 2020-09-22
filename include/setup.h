@@ -127,6 +127,7 @@ public:
 	void Set_values(const char * const * in);
 	void Set_help(std::string const& in);
 	char const* Get_help();
+	void SetBasic(bool basic);
 	virtual	bool SetValue(std::string const& str)=0;
 	Value const& GetValue() const { return value;}
 	Value const& Get_Default_Value() const { return default_value; }
@@ -138,6 +139,7 @@ public:
 	virtual const std::vector<Value>& GetValues() const;
 	Value::Etype Get_type(){return default_value.type;}
 	Changeable::Value getChange() {return change;}
+	bool basic() const { return is_basic; };
 	bool modified() const { return is_modified; };
 
 protected:
@@ -151,6 +153,7 @@ protected:
 		}
 	}
 	Value value;
+	bool is_basic=false;
 	bool is_modified;
 	std::vector<Value> suggested_values;
 	typedef std::vector<Value>::iterator iter;

@@ -38,7 +38,7 @@ Bitu call_program;
 
 extern int enablelfn, paste_speed, wheel_key;
 extern const char *modifier;
-extern bool dos_kernel_disabled, force_nocachedir, freesizecap, wpcolon, enable_config_as_shell_commands, load, winrun, winautorun, startwait, mountwarning;
+extern bool dos_kernel_disabled, force_nocachedir, freesizecap, wpcolon, enable_config_as_shell_commands, load, winrun, winautorun, startwait, mountwarning, wheel_guest, clipboard_dosapi;
 
 /* This registers a file on the virtual drive and creates the correct structure for it*/
 
@@ -77,6 +77,7 @@ public:
 };
 
 static std::vector<InternalProgramEntry*> internal_progs;
+void EMS_Startup(Section* sec), EMS_DoShutDown();
 
 void PROGRAMS_Shutdown(void) {
 	LOG(LOG_MISC,LOG_DEBUG)("Shutting down internal programs list");
@@ -550,13 +551,13 @@ private:
 	}
 };
 
-void dos_ver_menu(bool start), ReloadMapper(Section_prop *sec, bool init), SetGameState_Run(int value);
+void dos_ver_menu(bool start), ReloadMapper(Section_prop *sec, bool init), SetGameState_Run(int value), update_dos_ems_menu(void);
 bool set_ver(char *s);
 void CONFIG::Run(void) {
 	static const char* const params[] = {
 		"-r", "-wcp", "-wcd", "-wc", "-writeconf", "-l", "-rmconf",
 		"-h", "-help", "-?", "-axclear", "-axadd", "-axtype", "-get", "-set",
-		"-writelang", "-wl", "-securemode", "-all", "-errtest", NULL };
+		"-writelang", "-wl", "-securemode", "-all", "-errtest", "-gui", NULL };
 	enum prs {
 		P_NOMATCH, P_NOPARAMS, // fixed return values for GetParameterFromList
 		P_RESTART,
@@ -566,7 +567,7 @@ void CONFIG::Run(void) {
 		P_AUTOEXEC_CLEAR, P_AUTOEXEC_ADD, P_AUTOEXEC_TYPE,
 		P_GETPROP, P_SETPROP,
 		P_WRITELANG, P_WRITELANG2,
-		P_SECURE, P_ALL, P_ERRTEST
+		P_SECURE, P_ALL, P_ERRTEST, P_GUI
 	} presult = P_NOMATCH;
 
 	bool all = false;
@@ -580,6 +581,11 @@ void CONFIG::Run(void) {
 	
 		case P_ALL:
 			all = true;
+			break;
+
+		case P_GUI:
+			void GUI_Run(bool pressed);
+			GUI_Run(false);
 			break;
 
 		case P_ERRTEST:
@@ -1056,10 +1062,13 @@ void CONFIG::Run(void) {
 							paste_speed = section->Get_int("clip_paste_speed");
 							if (!strcasecmp(inputline.substr(0, 16).c_str(), "mouse_wheel_key=")) {
 								wheel_key = section->Get_int("mouse_wheel_key");
+								wheel_guest=wheel_key>0;
+								if (wheel_key<0) wheel_key=-wheel_key;
 								mainMenu.get_item("wheel_updown").check(wheel_key==1).refresh_item(mainMenu);
 								mainMenu.get_item("wheel_leftright").check(wheel_key==2).refresh_item(mainMenu);
 								mainMenu.get_item("wheel_pageupdown").check(wheel_key==3).refresh_item(mainMenu);
 								mainMenu.get_item("wheel_none").check(wheel_key==0).refresh_item(mainMenu);
+								mainMenu.get_item("wheel_guest").check(wheel_guest).refresh_item(mainMenu);
 							}
 #if defined(C_SDL2)
 							if (!strcasecmp(inputline.substr(0, 16).c_str(), "mapperfile_sdl2=")) ReloadMapper(section,true);
@@ -1096,10 +1105,16 @@ void CONFIG::Run(void) {
 									dos_ver_menu(false);
 								} else if (set_ver(ver))
 									dos_ver_menu(false);
+							} else if (!strcasecmp(inputline.substr(0, 4).c_str(), "ems=")) {
+								EMS_DoShutDown();
+								EMS_Startup(NULL);
+                                update_dos_ems_menu();
 							} else if (!strcasecmp(inputline.substr(0, 32).c_str(), "shell configuration as commands=")) {
 								enable_config_as_shell_commands = section->Get_bool("shell configuration as commands");
 								mainMenu.get_item("shell_config_commands").check(enable_config_as_shell_commands).enable(true).refresh_item(mainMenu);
 #if defined(WIN32) && !defined(HX_DOS)
+                            } else if (!strcasecmp(inputline.substr(0, 9).c_str(), "dos clipboard api=")) {
+                                clipboard_dosapi = section->Get_bool("dos clipboard api");          
 							} else if (!strcasecmp(inputline.substr(0, 9).c_str(), "startcmd=")) {
 								winautorun = section->Get_bool("startcmd");
 								mainMenu.get_item("dos_win_autorun").check(winautorun).enable(true).refresh_item(mainMenu);
@@ -1175,13 +1190,14 @@ void PROGRAMS_Init() {
 	MSG_Add("PROGRAM_CONFIG_FILE_WHICH","Writing config file %s\n");
 	
 	// help
-	MSG_Add("PROGRAM_CONFIG_USAGE","The DOSBox-X configuration tool. Supported options:\n\n"\
+	MSG_Add("PROGRAM_CONFIG_USAGE","The DOSBox-X command-line configuration utility. Supported options:\n\n"\
 		"-wc (or -writeconf) without parameter: Writes to primary loaded config file.\n"\
 		"-wc (or -writeconf) with filename: Writes file to the config directory.\n"\
 		"-wl (or -writelang) with filename: Writes the current language strings.\n"\
 		"-wcp [filename] Writes config file to the program directory (dosbox-x.conf\n or the specified filename).\n"\
 		"-wcd Writes to the default config file in the config directory.\n"\
 		"-all Use this with -wc, -wcp, or -wcd to write ALL options to the config file.\n"\
+		"-gui Starts DOSBox-X's graphical configuration tool.\n"
 		"-l Lists DOSBox-X configuration parameters.\n"\
 		"-h, -help, -? sections / sectionname / propertyname\n"\
 		" Without parameters, displays this help screen. Add \"sections\" for a list of\n sections."\
@@ -1190,9 +1206,9 @@ void PROGRAMS_Init() {
 		"-axadd [line] Adds a line to the [autoexec] section.\n"\
 		"-axtype Prints the content of the [autoexec] section.\n"\
 		"-securemode Switches to secure mode where MOUNT, IMGMOUNT and BOOT will be\n"\
-        " disabled as well as the ability to create config and language files.\n"\
+		" disabled as well as the ability to create config and language files.\n"\
 		"-get \"section property\" returns the value of the property.\n"\
-		"-set \"section property=value\" sets the value of the property.\n" );
+		"-set \"section property=value\" sets the value of the property.\n");
 	MSG_Add("PROGRAM_CONFIG_HLP_PROPHLP","Purpose of property \"%s\" (contained in section \"%s\"):\n%s\n\nPossible Values: %s\nDefault value: %s\nCurrent value: %s\n");
 	MSG_Add("PROGRAM_CONFIG_HLP_LINEHLP","Purpose of section \"%s\":\n%s\nCurrent value:\n%s\n");
 	MSG_Add("PROGRAM_CONFIG_HLP_NOCHANGE","This property cannot be changed at runtime.\n");

@@ -134,6 +134,11 @@ void INT10_LoadFont(PhysPt font,bool reload,Bit16u count,Bitu offset,Bitu map,Bi
 	}
 }
 
+// FIXME: ripsaw8080 noted that while the svgaCard==SVGA_None conditions are appropriate for DOSBox SVN
+// because the vgaonly machine type is alone in displaying 9-dot character cells, but in DOSBox-X (as in
+// DOSBox SVN Daum) the char9= setting should be respected. As it is now, users will not get the wider
+// symbols when char9= is true and machine= is an SVGA machine type.
+// SVN commit reference: https://sourceforge.net/p/dosbox/code-0/3932/
 void INT10_ReloadFont(void) {
 	Bitu map=0;
 	switch(CurMode->cheight) {

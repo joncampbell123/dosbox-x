@@ -65,6 +65,7 @@ DOS_Drive_Cache::DOS_Drive_Cache(void) {
     save_dir        = 0;
     srchNr          = 0;
     label[0]        = 0;
+    basePath[0]     = 0;
     nextFreeFindFirst   = 0;
     for (Bit32u i=0; i<MAX_OPENDIRS; i++) { dirSearch[i] = 0; dirFindFirst[i] = 0; }
     SetDirSort(DIRALPHABETICAL);
@@ -76,6 +77,7 @@ DOS_Drive_Cache::DOS_Drive_Cache(const char* path, DOS_Drive *drive) {
     save_dir        = 0;
     srchNr          = 0;
     label[0]        = 0;
+    basePath[0]     = 0;
     nextFreeFindFirst   = 0;
     for (Bit32u i=0; i<MAX_OPENDIRS; i++) { dirSearch[i] = 0; dirFindFirst[i] = 0; }
     SetDirSort(DIRALPHABETICAL);
@@ -100,7 +102,7 @@ void DOS_Drive_Cache::EmptyCache(void) {
     dirBase     = new CFileInfo;
     save_dir    = 0;
     srchNr      = 0;
-    SetBaseDir(basePath,drive);
+    if (basePath[0] != 0) SetBaseDir(basePath,drive);
 }
 
 void DOS_Drive_Cache::SetLabel(const char* vname,bool cdrom,bool allowupdate) {
@@ -124,11 +126,13 @@ Bit16u DOS_Drive_Cache::GetFreeID(CFileInfo* dir) {
         }
     }
     LOG(LOG_FILES,LOG_NORMAL)("DIRCACHE: Too many open directories!");
-    dir->id=0;
+    dir->id = 0;
     return 0;
 }
 
 void DOS_Drive_Cache::SetBaseDir(const char* baseDir, DOS_Drive *drive) {
+    if (strlen(baseDir) == 0) return;
+
     Bit16u id;
     strcpy(basePath,baseDir);
     this->drive = drive;
@@ -610,7 +614,8 @@ void DOS_Drive_Cache::CreateShortName(CFileInfo* curDir, CFileInfo* info) {
         // Create number
         char buffer[8];
         info->shortNr = CreateShortNameID(curDir,tmpName);
-        sprintf(buffer,"%d",(int)info->shortNr);
+        if (GCC_UNLIKELY(info->shortNr > 9999999)) E_Exit("~9999999 same name files overflow");
+        sprintf(buffer, "%d", static_cast<unsigned int>(info->shortNr));
         // Copy first letters
         Bits tocopy = 0;
         size_t buflen = strlen(buffer);
@@ -760,7 +765,8 @@ bool DOS_Drive_Cache::OpenDir(CFileInfo* dir, const char* expand, Bit16u& id) {
     char expandcopy [CROSS_LEN];
     strcpy(expandcopy,expand);   
     // Add "/"
-    if (expandcopy[strlen(expandcopy)-1]!=CROSS_FILESPLIT) {
+    size_t expandcopylen = strlen(expandcopy);
+    if (expandcopylen > 0 && expandcopy[expandcopylen - 1] != CROSS_FILESPLIT) {
         char end[2]={CROSS_FILESPLIT,0};
         strcat(expandcopy,end);
     }

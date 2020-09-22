@@ -15,15 +15,15 @@ There is also a section for crediting the source code in the end of this page.
 General information on source code compilation
 ----------------------------------------------
 
-The four major operating systems and platforms of DOSBox-X are (in this order):
+The four major operating systems and platforms of DOSBox-X are:
 
-1. Linux (with X11) 32-bit and 64-bit x86.
+1. Linux (with X11) 32-bit and 64-bit x86, and on a Raspberry Pi 3 (arm 7).
 
-2. Windows 10 (followed by Windows 8, and Windows 7) for 32-bit and 64-bit x86.
+2. Windows 10, 8, 7, Vista and XP for 32-bit and 64-bit x86 and ARM.
 
-3. Linux (with X11) on a Raspberry Pi 3 (arm 7).
+3. macOS (Mac OS X) Sierra 10.12 or higher 64-bit.
 
-4. macOS (Mac OS X) Sierra 10.12 or higher 64-bit.
+4. DOS (MS-DOS 5.0+ or compatible).
 
 Straight Windows builds are expected to compile using the free community edition
 of Visual Studio 2015 to Visual Studio 2019 and the DirectX 2010 SDK.
@@ -31,8 +31,8 @@ of Visual Studio 2015 to Visual Studio 2019 and the DirectX 2010 SDK.
 Linux and MinGW Windows builds are expected to compile with the GNU autotools.
 A preliminary CMake build system is available, see README.cmake.md for details.
 
-macOS (Mac OS X) builds are expected to compile on the terminal using GNU
-autotools and the LLVM/Clang compiler provided by XCode.
+macOS builds are expected to compile on the terminal using GNU autotools and
+the LLVM/Clang compiler provided by XCode.
 
 In all cases, the code requires a C++ compiler that can support the C++11
 standard.
@@ -55,13 +55,13 @@ In Windows, the modifications also permit the emulation to run independent
 of the main window so that moving, resizing, or using menus does not cause
 emulation to pause.
 
-In macOS (Mac OS X), the modifications provide an interface to allow DOSBox-X
-to replace and manage the macOS menu bar.
+In macOS, the modifications provide an interface to allow DOSBox-X to
+replace and manage the macOS menu bar.
 
 How to compile the source code (cross-platform)
 -----------------------------------------------
 
-General Linux compile
+General Linux compile (SDL1)
 ./build-debug
 sudo make install
 
@@ -69,10 +69,10 @@ General Linux compile (SDL2)
 ./build-debug-sdl2
 sudo make install
 
-macOS (Mac OS X) compile
+macOS compile (SDL1)
 ./build-macosx
 
-macOS (Mac OS X) compile (SDL2)
+macOS compile (SDL2)
 ./build-macosx-sdl2
 
 MinGW compile (on Windows, using MinGW64) for 32-bit Windows XP
@@ -87,8 +87,7 @@ MinGW compile (on Windows, using MinGW, not MinGW64) to target the DOS platform 
 NOTICE: Use the 32-bit toolchain from the original MinGW project for this build, not the MinGW64 project.
         Binaries compiled with MinGW64 have extra dependencies not provided by the HX DOS Extender.
 
-macOS (Mac OS X): If you want to make an .app bundle you can run from the Finder, compile the
-program as instructed then run "make dosbox-x.app".
+macOS: If you want to make an .app bundle you can run from the Finder, compile the program as instructed then run "make dosbox-x.app".
 
 XCode (on macOS, from the Terminal) to target macOS
 ./build-debug
@@ -117,24 +116,9 @@ For building the source code in Visual Studio 2015 or 2017,
 you may change the platform toolset to v140 or v141 respectively.
 
 Libraries such as SDL, freetype, libpdcurses, libpng and zlib are already included,
-but support for FluidSynth MIDI Synthesizer is not included or enabled by default
-for Visual Studio builds.
+and as of DOSBox-X 0.83.6 support for FluidSynth MIDI Synthesizer is also included.
 
-You can enable FluidSynth support by setting up vcpkg to install the build dependency.
-vcpkg is a command-line package manager for C/C++ by Microsoft, and it is freely
-available from (with install instructions): https://github.com/microsoft/vcpkg
-
-Once vcpkg is installed and bootstrapped, open Command Prompt or PowerShell, and run:
-
-.\vcpkg integrate install
-.\vcpkg install --triplet x64-windows fluidsynth
-
-The above assumes Windows x64 build. For x86 build use "--triplet x86-windows" instead of
-"--triplet x64-windows". For ARM64 build please use "--triplet arm64-windows" instead.
-
-Then open ./vs2015/config.h and change "#undef C_FLUIDSYNTH" to "#define C_FLUIDSYNTH 1".
-
-Build the source code. FluidSynth support should now be enabled for DOSBox-X.
+Build the source code. FluidSynth support should be enabled for the DOSBox-X build.
 Set "mididevice=fluidsynth" in the [midi] section of DOSBox-X's configuration file
 (dosbox-x.conf) along with required soundfont file (e.g. FluidR3_GM.sf2) to use it.
 
@@ -368,7 +352,7 @@ src/gui/menu.cpp            Menu handling and management, processing,
                             application of menu to host OS menu framework
                             if applicable. In DOSBox-X, contains the menu
                             C++ class and menu item object system which then
-                            maps to Windows HMENU, Mac OS X NSMenu, or the
+                            maps to Windows HMENU, macOS NSMenu, or the
                             custom drawn SDL menus if neither are available.
 
                             Which menu framework is used depends on the
@@ -378,7 +362,7 @@ src/gui/menu.cpp            Menu handling and management, processing,
                                 Windows (HMENU) is used if targeting Windows
                                 and not HX DOS and not SDL2
 
-                                Mac OS X (NSMENU) is used if targeting Apple
+                                macOS (NSMENU) is used if targeting Apple
                                 macOS and not SDL2
 
                                 SDL drawn menus are used in all other cases.
@@ -587,6 +571,8 @@ src/hardware/voodoo_opengl.cpp 3Dfx Voodoo emulation
 
 src/hardware/voodoo_vogl.cpp 3Dfx Voodoo emulation
 
+src/hardware/glide.cpp      3Dfx Voodoo Glide emulation
+
 src/hardware/pc98.cpp       PC98UTIL.COM utility built-in command
 
 src/hardware/pc98_fm.cpp    PC-98 FM board emulation (ties DOSBox-X to emulation
@@ -603,7 +589,7 @@ DOSBox-X starts execution from main(), which is either
 the real main() function or a redefined main() function
 called from SDLmain depending on the platform.
 
-On Linux and Mac OS X, main() is the real main function.
+On Linux and macOS, main() is the real main function.
 
 On Windows, main() is SDLmain() and is called from the
 WinMain function defined in the SDL library.
@@ -774,7 +760,7 @@ long long integers.
 Always typecast the printf() parameters to the data type
 intended to avoid problems and warnings.
 
-While Mac OS X and Linux have runtimes that can take %llu
+While macOS and Linux have runtimes that can take %llu
 or %llx, Microsoft's runtime in Windows cannot. Either
 avoid printing long long integers or add conditional code
 to use %llx or %llx on Linux and %I64u or %I64d on Windows.
@@ -1042,10 +1028,10 @@ relative coordinates that were decided on when the menu object was last
 called to rebuild or arrange the menus.
 
 The SDL drawn menus are the only type that requires the main DOSBox-X
-event loop to process menu events on their behalf including drawing
-and reacting to mouse/touchscreen input. Windows and Mac OS X menus do
-not require the main event loop's attention except when the user selects
-an item.
+event loop to process menu events on their behalf including drawing and
+reacting to mouse/touchscreen input. Windows and macOS menus do not
+require the main event loop's attention except when the user selects an
+item.
 
 Access to the menu items is by name, as well. get_item() returns a menu
 item by reference, which itself contains methods to control the state
@@ -1571,8 +1557,8 @@ Crediting of source code
 ------------------------
 by Jonathan Campbell.
 
-As the developer of DOSBox-X, I cannot legitimately claim to have
-written all of the code in this project.
+As the DOSBox-X project maintainer, I cannot legitimately claim to
+have written all of the code in this project.
 
 It's more accurate to say then, that I wrote some of the code,
 that I rewrote other parts of the code, based on the DOSBox SVN
@@ -1582,8 +1568,10 @@ Some of the code is DOSBox SVN code in which some of the SVN
 commits made since 2011 were incorporated into DOSBox-X.
 
 Some of the code in this source tree also came from other DOSBox
-forks like DOSBox SVN Daum, DOSBox ECE, DOSBox-staging and vDosPlus,
-with major works from contributors like Wengier, Allofich, rderooy.
+forks like DOSBox SVN Daum, DOSBox ECE, dosbox-staging and vDosPlus.
+
+Other code also came from other developers and contributors of the
+DOSBox-X project such as Wengier, aybe, Allofich, and rderooy.
 
 For details please look at the CREDITS.md file, which tries to build
 a comprehensive list of source code in this repository that was

@@ -846,6 +846,14 @@ public:
             WriteOut(MSG_Get("PROGRAM_CONFIG_SECURE_DISALLOW"));
             return;
         }
+		if (cmd->FindExist("/examples")||cmd->FindExist("-examples")) {
+#if defined (WIN32) || defined(OS2)
+            WriteOut(MSG_Get("PROGRAM_MOUNT_EXAMPLE"),"d:\\dosprogs","d:\\dosprogs","\"d:\\dos games\"","\"d:\\dos games\"","d:\\dosprogs","d:\\dosprogs","d:\\dosprogs","d:\\dosprogs","d:\\dosprogs","d:\\dosprogs","d:\\overlaydir");
+#else
+            WriteOut(MSG_Get("PROGRAM_MOUNT_EXAMPLE"),"~/dosprogs","~/dosprogs","\"~/dos games\"","\"~/dos games\"","~/dosprogs","~/dosprogs","~/dosprogs","~/dosprogs","~/dosprogs","~/dosprogs","~/overlaydir");
+#endif
+			return;
+		}
         bool path_relative_to_last_config = false;
         if (cmd->FindExist("-pr",true)) path_relative_to_last_config = true;
 
@@ -1292,11 +1300,7 @@ public:
         if(type == "floppy") incrementFDD();
         return;
 showusage:
-#if defined (WIN32) || defined(OS2)
-       WriteOut(MSG_Get("PROGRAM_MOUNT_USAGE"),"d:\\dosprogs","d:\\dosprogs","d:\\dosprogs","d:\\dosprogs","d:\\dosprogs","d:\\dosprogs");
-#else
-       WriteOut(MSG_Get("PROGRAM_MOUNT_USAGE"),"~/dosprogs","~/dosprogs","~/dosprogs","~/dosprogs","~/dosprogs","~/dosprogs");
-#endif
+        WriteOut(MSG_Get("PROGRAM_MOUNT_USAGE"));
         return;
     }
 };
@@ -1317,7 +1321,7 @@ class SHOWGUI : public Program {
 public:
     void Run(void) {
         if (cmd->FindExist("-?", false) || cmd->FindExist("/?", false)) {
-			WriteOut("Starts DOSBox-X's configuration GUI.\n\nSHOWGUI\n");
+			WriteOut("Starts DOSBox-X's graphical configuration tool.\n\nSHOWTOOL\n");
             return;
 		}
         GUI_Run(false); /* So that I don't have to run the keymapper on every setup of mine just to get the GUI --J.C */
@@ -3529,16 +3533,15 @@ void LOADFIX::Run(void)
                 char filename[128];
                 safe_strncpy(filename,temp_line.c_str(),128);
                 // Setup commandline
-                bool ok;
-                char args[256];
+                char args[256 + 1];
                 args[0] = 0;
-                do {
-                    ok = cmd->FindCommand(commandNr,temp_line);
-                    if(commandNr++>cmd->GetCount() || sizeof(args)-strlen(args)-1 < temp_line.length()+1)
-                        break;
-                    strcat(args,temp_line.c_str());
-                    strcat(args," ");
-                } while (ok);           
+                bool found = cmd->FindCommand(commandNr++, temp_line);
+                while (found) {
+                    if (strlen(args) + temp_line.length() + 1 > 256) break;
+                    strcat(args, temp_line.c_str());
+                    found = cmd->FindCommand(commandNr++, temp_line);
+                    if (found) strcat(args, " ");
+                }
                 // Use shell to start program
                 DOS_Shell shell;
                 shell.Execute(filename,args);
@@ -4061,7 +4064,7 @@ public:
             return;
         }
         //show help if /? or -?
-        if (cmd->FindExist("/?", true) || cmd->FindExist("-?", true) || cmd->FindExist("-help", true)) {
+        if (cmd->FindExist("/?", true) || cmd->FindExist("-?", true) || cmd->FindExist("?", true) || cmd->FindExist("-help", true)) {
             WriteOut(MSG_Get("PROGRAM_IMGMOUNT_HELP"));
             return;
         }
@@ -6173,7 +6176,7 @@ public:
         if (startwait && lpExecInfo.hProcess!=NULL) {
             DWORD exitCode;
             BOOL ret;
-            bool first=true;
+            int count=0;
             ctrlbrk=false;
             do {
                 ret=GetExitCodeProcess(lpExecInfo.hProcess, &exitCode);
@@ -6186,7 +6189,7 @@ public:
                     exitCode=0;
                     break;
                 }
-                if (first&&ret&&exitCode==STILL_ACTIVE) {WriteOut("(Press Ctrl+C to exit immediately)\n");first=false;}
+                if (++count==20000&&ret&&exitCode==STILL_ACTIVE) WriteOut("(Press Ctrl+C to exit immediately)\n");
             } while (ret!=0&&exitCode==STILL_ACTIVE);
             ErrorCode = GetLastError();
             CloseHandle(lpExecInfo.hProcess);
@@ -6243,18 +6246,56 @@ void DOS_SetupPrograms(void) {
     MSG_Add("PROGRAM_MOUNT_ILL_TYPE","Illegal type %s\n");
     MSG_Add("PROGRAM_MOUNT_ALREADY_MOUNTED","Drive %c already mounted with %s\n");
     MSG_Add("PROGRAM_MOUNT_USAGE",
-        "Mounts drives from directories or drives in the host system.\n\n"
-        "Usage: \033[34;1mMOUNT [option] Drive-Letter Local-Directory\033[0m\n\n"
-        "For example: MOUNT c %s\n"
+        "Mounts directories or drives in the host system as DOSBox-X drives.\n"
+        "Usage: \033[34;1m\033[32;1mMOUNT\033[0m \033[37;1mdrive\033[0m \033[36;1mlocal_directory\033[0m [option]\033[0m\n\n"
+        " \033[37;1mdrive\033[0m            Drive letter where the directory or drive will be mounted.\n"
+        " \033[36;1mlocal_directory\033[0m  Local directory or drive in the host system to be mounted.\n"
+        " [option]         Option(s) for mounting. The following options are accepted:\n"
+        " -t               Specify the drive type the mounted drive to behave as.\n"
+        "                  Supported drive type: dir, floppy, cdrom, overlay\n"
+        " (Note that 'overlay' redirects writes for mounted drive to another directory)\n"
+        " -label [name]    Set the volume label name of the drive (all upper case)\n"
+        " -ro              Mount the drive in read-only mode.\n"
+        " -cd              Generate a list of local CD drive's \"drive #\" values.\n"
+        " -usecd [drive #] For direct hardware emulation such as audio playback.\n"
+        " -ioctl           Use lowest level hardware access (following -usecd option).\n"
+        " -aspi            Use the installed ASPI layer (following -usecd option).\n"
+        " -freesize [size] Specify the free disk space of drive in MB (KB for floppies).\n"
+        " -nocachedir      Do not cache the drive (real-time update).\n"
+        " -o               Report the drive as: local, remote.\n"
+        " -q               Quiet mode (no message output).\n"
+        " -u               Unmount the drive.\n"
+        " \033[32;1m-examples        Show some usage examples.\033[0m\n\n"
+        "Type MOUNT with no parameters to display a list of mounted drives.\n");
+    MSG_Add("PROGRAM_MOUNT_EXAMPLE",
+        "A basic example of MOUNT command:\n\n"
+        "\033[32;1mMOUNT c %s\033[0m\n\n"
         "This makes the directory %s act as the C: drive inside DOSBox-X.\n"
-        "The directory has to exist in the host system.\n\n"
-		"Options are accepted. For example:\n\n"
-		"\033[32;1mMOUNT -t cdrom c %s \033[0m     mounts the C: drive as a CD-ROM drive.\n"
-		"\033[32;1mMOUNT -ro c %s \033[0m          mounts the C: drive in read-only mode.\n"
-		"\033[32;1mMOUNT -nocachedir c %s \033[0m  mounts C: without caching the drive.\n"
-		"\033[32;1mMOUNT -freesize 128 c %s \033[0mmounts C: with the specified free disk space.\n"
-		"\033[32;1mMOUNT -u c \033[0m                       unmounts the C: drive.\n\n"
-		"Type MOUNT with no parameters to display a list of mounted drives.\n");
+        "The directory has to exist in the host system. If the directory contains\n"
+        "space(s), be sure to properly quote the directory with double quotes,\n"
+        "e.g. %s\n\n"
+        "Some other usage examples of MOUNT:\n\n"
+#if defined (WIN32) || defined(OS2)
+        "\033[32;1mMOUNT\033[0m                             - list all mounted drives\n"
+        "\033[32;1mMOUNT -cd\033[0m                         - list all local CD drives\n"
+#else
+        "\033[32;1mMOUNT\033[0m                            - list all mounted drives\n"
+        "\033[32;1mMOUNT -cd\033[0m                        - list all local CD drives\n"
+#endif
+        "\033[32;1mMOUNT d %s\033[0m            - mount the D: drive to the directory\n"
+        "\033[32;1mMOUNT c %s -t cdrom\033[0m      - mount the C: drive as a CD-ROM drive\n"
+        "\033[32;1mMOUNT c %s -ro\033[0m           - mount the C: drive in read-only mode\n"
+        "\033[32;1mMOUNT c %s -label TEST\033[0m   - mount the C: drive with the label TEST\n"
+        "\033[32;1mMOUNT c %s -nocachedir \033[0m  - mount C: without caching the drive\n"
+        "\033[32;1mMOUNT c %s -freesize 128\033[0m - mount C: with 128MB free disk space\n"
+        "\033[32;1mMOUNT c %s -u\033[0m            - force mount C: drive even if it's mounted\n"
+        "\033[32;1mMOUNT c %s -t overlay\033[0m  - mount C: with overlay directory on top\n"
+#if defined (WIN32) || defined(OS2)
+        "\033[32;1mMOUNT c -u\033[0m                        - unmount the C: drive\n"
+#else
+        "\033[32;1mMOUNT c -u\033[0m                       - unmount the C: drive\n"
+#endif
+        );
     MSG_Add("PROGRAM_MOUNT_UMOUNT_NOT_MOUNTED","Drive %c is not mounted.\n");
     MSG_Add("PROGRAM_MOUNT_UMOUNT_SUCCESS","Drive %c has successfully been removed.\n");
     MSG_Add("PROGRAM_MOUNT_UMOUNT_NUMBER_SUCCESS","Drive number %c has successfully been removed.\n");
@@ -6298,8 +6339,8 @@ void DOS_SetupPrograms(void) {
     MSG_Add("PROGRAM_RESCAN_SUCCESS","Drive cache cleared.\n");
 
     MSG_Add("PROGRAM_INTRO",
-        "\033[2J\033[32;1mWelcome to DOSBox-X\033[0m, an x86 emulator with sound and graphics.\n"
-        "DOSBox-X creates a shell for you which looks like old plain DOS.\n"
+        "\033[2J\033[32;1mWelcome to DOSBox-X\033[0m, an open-source x86 emulator with sound and graphics.\n"
+        "DOSBox-X creates a shell for you which looks just like the plain DOS.\n"
         "\n"
         "\033[31;1mDOSBox-X will stop/exit without a warning if an error occurred!\033[0m\n"
         "\n"
@@ -6307,14 +6348,14 @@ void DOS_SetupPrograms(void) {
     if (machine == MCH_PC98) {
         MSG_Add("PROGRAM_INTRO_MENU_UP",
             "\033[44m\033[K\033[0m\n"
-            "\033[44m\033[K\033[1m\033[1m\t\t\t\t\t\t\t  DOSBox-X Introduction \033[0m\n"
+            "\033[44m\033[K\033[1m\033[1m\t\t\t\t\t\t\t DOSBox-X Introduction\033[0m\n"
             "\033[44m\033[K\033[1m\033[1m \x86\x43\x86\x43\x86\x43\x86\x43\x86\x43\x86\x43\x86\x43\x86\x43\x86\x43\x86\x43\x86\x43\x86\x43\x86\x43\x86\x43\x86\x43\x86\x43\x86\x43\x86\x43\x86\x43\x86\x43\x86\x43\x86\x43\x86\x43\x86\x43\x86\x43\x86\x43\x86\x43\x86\x43\x86\x43\x86\x43\x86\x43\x86\x43\x86\x43\x86\x43\x86\x43\x86\x43\x86\x43\x86\x43\x86\x43\x86\x43\x86\x43\x86\x43\x86\x43\x86\x43\x86\x43\x86\x43\x86\x43\x86\x43\x86\x43\x86\x43\x86\x43\x86\x43\x86\x43\x86\x43\x86\x43\x86\x43\x86\x43\x86\x43\x86\x43\x86\x43\x86\x43\x86\x43\x86\x43\x86\x43\x86\x43\x86\x43\x86\x43\x86\x43\x86\x43\x86\x43\x86\x43\x86\x43\x86\x43\x86\x43\x86\x43\x86\x43\x86\x43\033[0m\n"
             "\033[44m\033[K\033[0m\n"
             );
     } else {
         MSG_Add("PROGRAM_INTRO_MENU_UP",
             "\033[44m\033[K\033[0m\n"
-            "\033[44m\033[K\033[1m\033[1m\t\t\t\t\t\t\t  DOSBox-X Introduction \033[0m\n"
+            "\033[44m\033[K\033[1m\033[1m\t\t\t\t\t\t\t DOSBox-X Introduction \033[0m\n"
             "\033[44m\033[K\033[1m\033[1m \xC4\xC4\xC4\xC4\xC4\xC4\xC4\xC4\xC4\xC4\xC4\xC4\xC4\xC4\xC4\xC4\xC4\xC4\xC4\xC4\xC4\xC4\xC4\xC4\xC4\xC4\xC4\xC4\xC4\xC4\xC4\xC4\xC4\xC4\xC4\xC4\xC4\xC4\xC4\xC4\xC4\xC4\xC4\xC4\xC4\xC4\xC4\xC4\xC4\xC4\xC4\xC4\xC4\xC4\xC4\xC4\xC4\xC4\xC4\xC4\xC4\xC4\xC4\xC4\xC4\xC4\xC4\xC4\xC4\xC4\xC4\xC4\xC4\xC4\xC4\xC4\xC4\033[0m\n"
             "\033[44m\033[K\033[0m\n"
             );
@@ -6724,7 +6765,7 @@ void DOS_SetupPrograms(void) {
     PROGRAMS_MakeFile("LS.COM",LS_ProgramStart);
     PROGRAMS_MakeFile("LOADFIX.COM",LOADFIX_ProgramStart);
     PROGRAMS_MakeFile("A20GATE.COM",A20GATE_ProgramStart);
-    PROGRAMS_MakeFile("SHOWGUI.COM",SHOWGUI_ProgramStart);
+    PROGRAMS_MakeFile("SHOWTOOL.COM",SHOWGUI_ProgramStart);
 #if defined C_DEBUG
     PROGRAMS_MakeFile("NMITEST.COM",NMITEST_ProgramStart);
 #endif

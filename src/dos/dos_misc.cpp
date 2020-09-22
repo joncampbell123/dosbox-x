@@ -90,7 +90,7 @@ static Bitu INT2A_Handler(void) {
 	return CBRET_NONE;
 }
 
-extern bool i4dos;
+extern bool i4dos, clipboard_dosapi;
 extern RealPt DOS_DriveDataListHead;       // INT 2Fh AX=0803h DRIVER.SYS drive data table list
 
 // INT 2F
@@ -381,12 +381,12 @@ static bool DOS_MultiplexFunctions(void) {
 		return true;
 #ifdef WIN32
 	case 0x1700:
-		if(control->SecureMode()) return false;
+		if(control->SecureMode()||!clipboard_dosapi) return false;
 		reg_al = 1;
 		reg_ah = 1;
 		return true;
 	case 0x1701:
-		if(control->SecureMode()) return false;
+		if(control->SecureMode()||!clipboard_dosapi) return false;
 		reg_ax=0;
 		if (OpenClipboard(NULL)) {
 			reg_ax=1;
@@ -394,7 +394,7 @@ static bool DOS_MultiplexFunctions(void) {
 		}
 		return true;
 	case 0x1702:
-		if(control->SecureMode()) return false;
+		if(control->SecureMode()||!clipboard_dosapi) return false;
 		reg_ax=0;
 		if (OpenClipboard(NULL))
 			{
@@ -403,7 +403,7 @@ static bool DOS_MultiplexFunctions(void) {
 			}
 		return true;
 	case 0x1703:
-		if(control->SecureMode()) return false;
+		if(control->SecureMode()||!clipboard_dosapi) return false;
 		reg_ax=0;
 		if ((reg_dx==1||reg_dx==7)&&OpenClipboard(NULL))
 			{
@@ -424,7 +424,7 @@ static bool DOS_MultiplexFunctions(void) {
 			}
 		return true;
 	case 0x1704:
-		if(control->SecureMode()) return false;
+		if(control->SecureMode()||!clipboard_dosapi) return false;
 		reg_ax=0;
 		if ((reg_dx==1||reg_dx==7)&&OpenClipboard(NULL))
 			{
@@ -439,7 +439,7 @@ static bool DOS_MultiplexFunctions(void) {
 			}
 		return true;
 	case 0x1705:
-		if(control->SecureMode()) return false;
+		if(control->SecureMode()||!clipboard_dosapi) return false;
 		reg_ax=0;
 		if ((reg_dx==1||reg_dx==7)&&OpenClipboard(NULL))
 			{
@@ -452,7 +452,7 @@ static bool DOS_MultiplexFunctions(void) {
 			}
 		return true;
 	case 0x1708:
-		if(control->SecureMode()) return false;
+		if(control->SecureMode()||!clipboard_dosapi) return false;
 		reg_ax=1;
 		CloseClipboard();
 		return true;

@@ -33,6 +33,7 @@
 #include "../dos/drives.h"
 #ifdef WIN32
 #include "../dos/cdrom.h"
+#include <shellapi.h>
 #endif
 
 #ifdef _MSC_VER
@@ -897,7 +898,7 @@ bool DOS_Shell::Execute(char* name, const char* args) {
 /* return true  => don't check for hardware changes in do_command 
  * return false =>       check for hardware changes in do_command */
 	char fullname[DOS_PATHLENGTH+4]; //stores results from Which
-    const char* p_fullname;
+	const char* p_fullname;
 	char line[CMD_MAXLINE];
 	if(strlen(args)!= 0){
 		if(*args != ' '){ //put a space in front
@@ -913,13 +914,13 @@ bool DOS_Shell::Execute(char* name, const char* args) {
 		line[0]=0;
 	}
 
+	const Section_prop* sec = static_cast<Section_prop*>(control->GetSection("dos"));
 	/* check for a drive change */
 	if (((strcmp(name + 1, ":") == 0) || (strcmp(name + 1, ":\\") == 0)) && isalpha(*name) && !control->SecureMode())
 	{
 		if (strrchr(name,'\\')) { WriteOut(MSG_Get("SHELL_EXECUTE_ILLEGAL_COMMAND"),name); return true; }
 		if (!DOS_SetDrive(toupper(name[0])-'A')) {
 #ifdef WIN32
-            const Section_prop* sec = 0; sec = static_cast<Section_prop*>(control->GetSection("dos"));
 			if(!sec->Get_bool("automount")) { WriteOut(MSG_Get("SHELL_EXECUTE_DRIVE_NOT_FOUND"),toupper(name[0])); return true; }
 			// automount: attempt direct letter to drive map.
 			int type=GetDriveType(name);
@@ -1140,13 +1141,13 @@ continue_1:
 		reg_eip=oldeip;
 		SegSet16(cs,oldcs);
 #endif
-		if (packerr&&!infix) {
+		if (packerr&&!infix&&sec->Get_bool("autoloadfix")) {
 			Bit16u segment;
 			Bit16u blocks = (Bit16u)(64*1024/16);
 			if (DOS_AllocateMemory(&segment,&blocks)) {
 				DOS_MCB mcb((Bit16u)(segment-1));
 				mcb.SetPSPSeg(0x40);
-				WriteOut("\r\nNow run it with LOADFIX..\r\n");
+				WriteOut("\r\n\033[41;1m\033[1;37;1mDOSBox-X\033[0m Failed to load the executable\r\n\033[41;1m\033[37;1mDOSBox-X\033[0m Now try again with LOADFIX...\r\n");
 				infix=true;
 				Execute(name, args);
 				infix=false;
@@ -1181,17 +1182,41 @@ continue_1:
                     strcat(winDirNew, Drives[drive]->curdir);
                 }
                 if (SetCurrentDirectory(winDirNew)) {
+                    SHELLEXECUTEINFO lpExecInfo;
                     strcpy(comline, args);
                     strcpy(comline, trim(p));
-                    char qwinName[258];
-                    sprintf(qwinName,"\"%s\"",winName);
                     WriteOut("Now run it as a Windows application...\r\n");
-                    hret = _spawnl(P_NOWAIT, winName, qwinName, comline, NULL);
+                    char dir[CROSS_LEN+15];
+                    DWORD temp = (DWORD)SHGetFileInfo(winName,NULL,NULL,NULL,SHGFI_EXETYPE);
+                    if (temp==0) temp = (DWORD)SHGetFileInfo((std::string(winDirNew)+"\\"+std::string(fullname)).c_str(),NULL,NULL,NULL,SHGFI_EXETYPE);
+                    if (HIWORD(temp)==0 && LOWORD(temp)==0x4550) { // Console applications
+                        lpExecInfo.cbSize  = sizeof(SHELLEXECUTEINFO);
+                        lpExecInfo.fMask=SEE_MASK_DOENVSUBST|SEE_MASK_NOCLOSEPROCESS;
+                        lpExecInfo.hwnd = NULL;
+                        lpExecInfo.lpVerb = "open";
+                        lpExecInfo.lpDirectory = NULL;
+                        lpExecInfo.nShow = SW_SHOW;
+                        lpExecInfo.hInstApp = (HINSTANCE) SE_ERR_DDEFAIL;
+                        strcpy(dir, "/C \"");
+                        strcat(dir, winName);
+                        strcat(dir, " ");
+                        strcat(dir, comline);
+                        strcat(dir, " & echo( & echo The command execution is completed. & pause\"");
+                        lpExecInfo.lpFile = "CMD.EXE";
+                        lpExecInfo.lpParameters = dir;
+                        ShellExecuteEx(&lpExecInfo);
+                        hret = (intptr_t)lpExecInfo.hProcess;
+                    } else {
+                        char qwinName[258];
+                        sprintf(qwinName,"\"%s\"",winName);
+                        hret = _spawnl(P_NOWAIT, winName, qwinName, comline, NULL);
+                    }
                     SetCurrentDirectory(winDirCur);
                     if (startwait && hret > 0) {
-                        bool first=true;
+                        int count=0;
                         ctrlbrk=false;
                         DWORD exitCode = 0;
+                        GetExitCodeProcess((HANDLE)hret, &exitCode);
                         while (GetExitCodeProcess((HANDLE)hret, &exitCode) && exitCode == STILL_ACTIVE) {
                             CALLBACK_Idle();
                             if (ctrlbrk) {
@@ -1202,7 +1227,7 @@ continue_1:
                                 exitCode=0;
                                 break;
                             }
-                            if (first) {WriteOut("(Press Ctrl+C to exit immediately)\n");first=false;}
+                            if (++count==20000) WriteOut("(Press Ctrl+C to exit immediately)\n");
                         }
                         dos.return_code = exitCode&255;
                         dos.return_mode = 0;

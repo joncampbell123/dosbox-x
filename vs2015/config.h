@@ -86,7 +86,7 @@
 #endif
 
 /* Define to 1 to enable fluidsynth MIDI synthesis */
-#undef C_FLUIDSYNTH
+#define C_FLUIDSYNTH 1
 
 /* Define to 1 to enable floating point emulation */
 #define C_FPU					1

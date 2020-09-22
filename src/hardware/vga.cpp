@@ -195,6 +195,7 @@ extern egc_quad                     pc98_gdc_tiles;
 extern uint8_t                      pc98_egc_srcmask[2]; /* host given (Neko: egc.srcmask) */
 extern uint8_t                      pc98_egc_maskef[2]; /* effective (Neko: egc.mask2) */
 extern uint8_t                      pc98_egc_mask[2]; /* host given (Neko: egc.mask) */
+extern std::string                  hidefiles;
 
 uint32_t S3_LFB_BASE =              S3_LFB_BASE_DEFAULT;
 
@@ -603,7 +604,9 @@ bool has_pcibus_enable(void);
 Bit32u MEM_get_address_bits();
 
 void VGA_Reset(Section*) {
-    Section_prop * section=static_cast<Section_prop *>(control->GetSection("dosbox"));
+//  All non-PC98 video-related config settings are now in the [video] section
+
+	Section_prop * section=static_cast<Section_prop *>(control->GetSection("video"));
 	Section_prop * pc98_section=static_cast<Section_prop *>(control->GetSection("pc98"));
 	
     bool lfb_default = false;
@@ -1046,6 +1049,8 @@ void VGA_Reset(Section*) {
 
     // TODO: Code to remove programs added by PROGRAMS_MakeFile
 
+    const Section_prop * dos_section=static_cast<Section_prop *>(control->GetSection("dos"));
+    hidefiles = dos_section->Get_string("drive z hide files");
     if (machine == MCH_CGA) PROGRAMS_MakeFile("CGASNOW.COM",CGASNOW_ProgramStart);
     PROGRAMS_MakeFile("VFRCRATE.COM",VFRCRATE_ProgramStart);
 

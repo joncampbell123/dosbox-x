@@ -94,13 +94,23 @@ static SDL_Surface*         background = NULL;
 #ifdef DOSBOXMENU_EXTERNALLY_MANAGED
 static bool                 gui_menu_init = true;
 #endif
-
+int                         shortcutid = -1;
 void                        GFX_GetSizeAndPos(int &x,int &y,int &width, int &height, bool &fullscreen);
 
 #if defined(WIN32) && !defined(HX_DOS)
 void                        WindowsTaskbarUpdatePreviewRegion(void);
 void                        WindowsTaskbarResetPreviewRegion(void);
 #endif
+
+const char *aboutmsg = "DOSBox-X version " VERSION " (" SDL_STRING ", "
+#if defined(_M_X64) || defined (_M_AMD64) || defined (_M_ARM64) || defined (_M_IA64) || defined(__ia64__) || defined(__LP64__) || defined(_WIN64) || defined(__x86_64__) || defined(__aarch64__) || defined(__powerpc64__)
+	"64"
+#else
+	"32"
+#endif
+	"-bit)\nBuild date: " UPDATED_STR "\nCopyright 2011-" COPYRIGHT_END_YEAR " The DOSBox-X Team\nProject maintainer: joncampbell123\nDOSBox-X homepage: http://dosbox-x.com";
+
+const char *intromsg = "Welcome to DOSBox-X, a complete open-source DOS emulator.\nDOSBox-X creates a DOS shell which looks like the plain DOS.\nYou can also run Windows 3.x and 9x inside the DOS machine.";
 
 /* Prepare screen for UI */
 void GUI_LoadFonts(void) {
@@ -352,8 +362,14 @@ static GUI::ScreenSDL *UI_Startup(GUI::ScreenSDL *screen) {
         }
     }
 
-    guiMenu.rebuild();
-    DOSBox_SetMenu(guiMenu);
+    static DOSBoxMenu nullMenu;
+    if (!shortcut || shortcutid<16) {
+        guiMenu.rebuild();
+        DOSBox_SetMenu(guiMenu);
+    } else {
+        nullMenu.rebuild();
+        DOSBox_SetMenu(nullMenu);
+    }
 #endif
 
     if (screen) screen->setSurface(sdlscreen);
@@ -682,6 +698,102 @@ public:
     }
 };
 
+std::string dispname="";
+std::string CapName(std::string name) {
+    dispname = name;
+    if (name=="sdl"||name=="cpu"||name=="midi"||name=="gus"||name=="ipx"||name=="ne2000")
+        std::transform(dispname.begin(), dispname.end(), dispname.begin(), ::toupper);
+    else if (name=="dosbox")
+        dispname="Main";
+    else if (name=="pc98")
+        dispname="PC-98";
+    else if (name=="vsync")
+        dispname="V-Sync";
+    else if (name=="dos")
+        dispname="DOS Settings";
+    else if (name=="4dos")
+        dispname="4DOS.INI";
+    else if (name=="config")
+        dispname="CONFIG.SYS";
+    else if (name=="autoexec")
+        dispname="AUTOEXEC.BAT";
+    else if (name=="sblaster")
+        dispname="Sound Blaster";
+    else if (name=="speaker")
+        dispname="PC Speaker";
+    else if (name=="serial")
+        dispname="Serial Ports";
+    else if (name=="parallel")
+        dispname="Parallel Ports";
+    else if (name=="fdc, primary")
+        dispname="Floppy Port #1";
+    else if (name=="ide, primary")
+        dispname="IDE Port #1";
+    else if (name=="ide, secondary")
+        dispname="IDE Port #2";
+    else if (name=="ide, tertiary")
+        dispname="IDE Port #3";
+    else if (name=="ide, quaternary")
+        dispname="IDE Port #4";
+    else if (name=="ide, quinternary")
+        dispname="IDE Port #5";
+    else if (name=="ide, sexternary")
+        dispname="IDE Port #6";
+    else if (name=="ide, septernary")
+        dispname="IDE Port #7";
+    else if (name=="ide, octernary")
+        dispname="IDE Port #8";
+    else
+        dispname[0] = std::toupper(name[0]);
+    return dispname;
+}
+
+std::string RestoreName(std::string name) {
+    dispname = name;
+    if (name=="Main")
+        dispname="dosbox";
+    else if (name=="PC-98")
+        dispname="pc98";
+    else if (name=="V-Sync")
+        dispname="vsync";
+    else if (name=="DOS Settings")
+        dispname="dos";
+    else if (name=="4DOS.INI")
+        dispname="4dos";
+    else if (name=="CONFIG.SYS")
+        dispname="config";
+    else if (name=="AUTOEXEC.BAT")
+        dispname="autoexec";
+    else if (name=="Sound Blaster")
+        dispname="sblaster";
+    else if (name=="PC Speaker")
+        dispname="speaker";
+    else if (name=="Serial Ports")
+        dispname="serial";
+    else if (name=="Parallel Ports")
+        dispname="parallel";
+    else if (name=="Floppy Port #1")
+        dispname="fdc, primary";
+    else if (name=="IDE Port #1")
+        dispname="ide, primary";
+    else if (name=="IDE Port #2")
+        dispname="ide, secondary";
+    else if (name=="IDE Port #3")
+        dispname="ide, tertiary";
+    else if (name=="IDE Port #4")
+        dispname="ide, quaternary";
+    else if (name=="IDE Port #5")
+        dispname="ide, quinternary";
+    else if (name=="IDE Port #6")
+        dispname="ide, sexternary";
+    else if (name=="IDE Port #7")
+        dispname="ide, septernary";
+    else if (name=="IDE Port #8")
+        dispname="ide, octernary";
+    return dispname;
+}
+
+GUI::Checkbox *advopt;
 static std::map< std::vector<GUI::Char>, GUI::ToplevelWindow* > cfg_windows_active;
 
 class HelpWindow : public GUI::MessageBox2 {
@@ -696,25 +808,26 @@ public:
         }
 
         std::string title(section->GetName());
-        title.at(0) = std::toupper(title.at(0));
-        setTitle("Help for "+title);
+        setTitle("Help for "+CapName(title));
+        title[0] = std::toupper(title[0]);
 
-        Section_prop* sec = dynamic_cast<Section_prop*>(section);
+        Section_prop* sec = dynamic_cast<Section_prop*>(title.substr(0, 4)=="Ide,"?control->GetSection("ide, primary"):section);
         if (sec) {
             std::string msg;
             Property *p;
             int i = 0;
             while ((p = sec->Get_prop(i++))) {
                 std::string help=title=="4dos"&&p->propname=="rem"?"This is the 4DOS.INI file (if you use 4DOS as the command shell).":p->Get_help();
+                if (title!="4dos" && title!="Config" && title!="Autoexec" && !advopt->isChecked() && !p->basic()) continue;
                 msg += std::string("\033[31m")+p->propname+":\033[0m\n"+help+"\n\n";
             }
             if (!msg.empty()) msg.replace(msg.end()-1,msg.end(),"");
             setText(msg);
         } else {
-        std::string name = section->GetName();
-        std::transform(name.begin(), name.end(), name.begin(), (int(*)(int))std::toupper);
-        name += "_CONFIGFILE_HELP";
-        setText(MSG_Get(name.c_str()));
+            std::string name = section->GetName();
+            std::transform(name.begin(), name.end(), name.begin(), (int(*)(int))std::toupper);
+            name += "_CONFIGFILE_HELP";
+            setText(MSG_Get(name.c_str()));
         }
     };
 
@@ -746,12 +859,15 @@ public:
         int button_row_h = 26;
         int button_row_padding_y = 5 + 5;
 
-        int num_prop = 0;
-        while (section->Get_prop(num_prop) != NULL) num_prop++;
+        int num_prop = 0, k=0;
+        while (section->Get_prop(num_prop) != NULL) {
+            if (advopt->isChecked() || section->Get_prop(num_prop)->basic()) k++;
+            num_prop++;
+        }
 
         int allowed_dialog_y = parent->getHeight() - 25 - (border_top + border_bottom) - 50;
 
-        int items_per_col = num_prop;
+        int items_per_col = k;
         int columns = 1;
 
         int scroll_h = items_per_col * row_height;
@@ -775,21 +891,22 @@ public:
             move(this->x,parent->getHeight() - this->getHeight());
 
         std::string title(section->GetName());
+        setTitle("Configuration for "+CapName(title));
         title[0] = std::toupper(title[0]);
-        setTitle("Configuration for "+title);
 
-        GUI::Button *b = new GUI::Button(this, button_row_cx, button_row_y, "Cancel", button_w);
+        GUI::Button *b = new GUI::Button(this, button_row_cx, button_row_y, "Help", button_w);
+        b->addActionHandler(this);
+
+        b = new GUI::Button(this, button_row_cx + (button_w + button_pad_w), button_row_y, "Cancel", button_w);
         b->addActionHandler(this);
         closeButton = b;
 
-        b = new GUI::Button(this, button_row_cx + (button_w + button_pad_w), button_row_y, "Help", button_w);
-        b->addActionHandler(this);
-
         b = new GUI::Button(this, button_row_cx + (button_w + button_pad_w)*2, button_row_y, "OK", button_w);
 
-        int i = 0;
+        int i = 0, j = 0;
         Property *prop;
         while ((prop = section->Get_prop(i))) {
+            if (!advopt->isChecked() && !prop->basic()) {i++;continue;}
             Prop_bool   *pbool   = dynamic_cast<Prop_bool*>(prop);
             Prop_int    *pint    = dynamic_cast<Prop_int*>(prop);
             Prop_double  *pdouble  = dynamic_cast<Prop_double*>(prop);
@@ -799,16 +916,17 @@ public:
             Prop_multival_remain* pmulti_remain = dynamic_cast<Prop_multival_remain*>(prop);
 
             PropertyEditor *p;
-            if (pbool) p = new PropertyEditorBool(wiw, column_width*(i/items_per_col), (i%items_per_col)*row_height, section, prop);
-            else if (phex) p = new PropertyEditorHex(wiw, column_width*(i/items_per_col), (i%items_per_col)*row_height, section, prop);
-            else if (pint) p = new PropertyEditorInt(wiw, column_width*(i/items_per_col), (i%items_per_col)*row_height, section, prop);
-            else if (pdouble) p = new PropertyEditorFloat(wiw, column_width*(i/items_per_col), (i%items_per_col)*row_height, section, prop);
-            else if (pstring) p = new PropertyEditorString(wiw, column_width*(i/items_per_col), (i%items_per_col)*row_height, section, prop);
-            else if (pmulti) p = new PropertyEditorString(wiw, column_width*(i/items_per_col), (i%items_per_col)*row_height, section, prop);
-            else if (pmulti_remain) p = new PropertyEditorString(wiw, column_width*(i/items_per_col), (i%items_per_col)*row_height, section, prop);
+            if (pbool) p = new PropertyEditorBool(wiw, column_width*(j/items_per_col), (j%items_per_col)*row_height, section, prop);
+            else if (phex) p = new PropertyEditorHex(wiw, column_width*(j/items_per_col), (j%items_per_col)*row_height, section, prop);
+            else if (pint) p = new PropertyEditorInt(wiw, column_width*(j/items_per_col), (j%items_per_col)*row_height, section, prop);
+            else if (pdouble) p = new PropertyEditorFloat(wiw, column_width*(j/items_per_col), (j%items_per_col)*row_height, section, prop);
+            else if (pstring) p = new PropertyEditorString(wiw, column_width*(j/items_per_col), (j%items_per_col)*row_height, section, prop);
+            else if (pmulti) p = new PropertyEditorString(wiw, column_width*(j/items_per_col), (j%items_per_col)*row_height, section, prop);
+            else if (pmulti_remain) p = new PropertyEditorString(wiw, column_width*(j/items_per_col), (j%items_per_col)*row_height, section, prop);
             else { i++; continue; }
             b->addActionHandler(p);
             i++;
+            j++;
         }
         b->addActionHandler(this);
 
@@ -939,8 +1057,8 @@ public:
             scroll_h = allowed_dialog_y;
 
         std::string title(section->GetName());
+        setTitle("Configuration for "+CapName(title));
         title[0] = std::toupper(title[0]);
-        setTitle("Configuration for "+title);
 
 		char extra_data[4096] = { 0 };
 		const char * extra = const_cast<char*>(section->data.c_str());
@@ -1604,7 +1722,7 @@ public:
     ShowQuitWarning(GUI::Screen *parent, int x, int y, const char *title) :
         ToplevelWindow(parent, x, y, strcmp(title, "quit1")?430:330, !strcmp(title, "quit3")?180:150, "Quit DOSBox-X warning") {
             bool forcequit=!strcmp(title, "quit3");
-            new GUI::Label(this, forcequit?20:40, 20, !strcmp(title, "quit1")?"This will quit from DOSBox-X.":(!strcmp(title, "quit2")?"You are currently running a guest system.":"It may be unsafe to quit from DOSBox-X right now"));
+            new GUI::Label(this, forcequit?20:40, 20, !strcmp(title, "quit1")?"This will quit from DOSBox-X.":(!strcmp(title, "quit2")?"You are currently running a guest system.":(!strcmp(title, "quit3")?"It may be unsafe to quit from DOSBox-X right now":"You are currently running a program or game.")));
             if (forcequit) new GUI::Label(this, forcequit?20:40, 50, "because one or more files are currently open.");
             new GUI::Label(this, forcequit?20:40, forcequit?80:50, strcmp(title, "quit1")?"Are you sure to quit anyway now?":"Are you sure?");
             (new GUI::Button(this, strcmp(title, "quit1")?140:90, forcequit?110:80, "Yes", 70))->addActionHandler(this);
@@ -1618,6 +1736,52 @@ public:
         if (arg == "No")
             quit_confirm=false;
         close();
+        if (shortcut) running = false;
+    }
+};
+
+class ShowHelpIntro : public GUI::ToplevelWindow {
+protected:
+    GUI::Input *name;
+public:
+    ShowHelpIntro(GUI::Screen *parent, int x, int y, const char *title) :
+        ToplevelWindow(parent, x, y, 580, 190, title) {
+            std::istringstream in(intromsg);
+            int r=0;
+            if (in)	for (std::string line; std::getline(in, line); ) {
+                r+=25;
+                new GUI::Label(this, 40, r, line.c_str());
+            }
+            (new GUI::Button(this, 260, 110, "Close", 70))->addActionHandler(this);
+    }
+
+    void actionExecuted(GUI::ActionEventSource *b, const GUI::String &arg) {
+        (void)b;//UNUSED
+        if (arg == "Close")
+            close();
+        if (shortcut) running = false;
+    }
+};
+
+class ShowHelpAbout : public GUI::ToplevelWindow {
+protected:
+    GUI::Input *name;
+public:
+    ShowHelpAbout(GUI::Screen *parent, int x, int y, const char *title) :
+        ToplevelWindow(parent, x, y, 420, 230, title) {
+            std::istringstream in(aboutmsg);
+            int r=0;
+            if (in)	for (std::string line; std::getline(in, line); ) {
+                r+=25;
+                new GUI::Label(this, 40, r, line.c_str());
+            }
+            (new GUI::Button(this, 180, 155, "Close", 70))->addActionHandler(this);
+    }
+
+    void actionExecuted(GUI::ActionEventSource *b, const GUI::String &arg) {
+        (void)b;//UNUSED
+        if (arg == "Close")
+            close();
         if (shortcut) running = false;
     }
 };
@@ -1637,17 +1801,22 @@ public:
         bar->addItem(0,"Close");
         bar->addMenu("Settings");
         bar->addMenu("Help");
+        bar->addItem(2,"Visit Homepage");
+        bar->addItem(2,"");
         if (!dos_kernel_disabled) {
             /* these do not work until shell help text is registerd */
-            bar->addItem(2,"Introduction");
             bar->addItem(2,"Getting Started");
             bar->addItem(2,"CD-ROM Support");
             bar->addItem(2,"");
         }
+        bar->addItem(2,"Introduction");
         bar->addItem(2,"About");
         bar->addActionHandler(this);
 
         new GUI::Label(this, 10, 30, "Choose a settings group to configure:");
+        advopt = new GUI::Checkbox(this, 340, 30, "Show advanced options");
+        Section_prop * section=static_cast<Section_prop *>(control->GetSection("dosbox"));
+        advopt->setChecked(section->Get_bool("show advanced options"));
 
         Section *sec;
         int gridbtnwidth = 130;
@@ -1664,9 +1833,10 @@ public:
         while ((sec = control->GetSection(i))) {
             if (i != 0 && (i%15) == 0) bar->addItem(1, "|");
             std::string name = sec->GetName();
+            std::string title = CapName(name);
             name[0] = std::toupper(name[0]);
             const auto sz = gridfunc(i);
-            GUI::Button *b = new GUI::Button(this, sz.first, sz.second, name, gridbtnwidth, gridbtnheight);
+            GUI::Button *b = new GUI::Button(this, sz.first, sz.second, title, gridbtnwidth, gridbtnheight);
             b->addActionHandler(this);
             bar->addItem(1, name);
             i++;
@@ -1703,7 +1873,7 @@ public:
     }
 
     void actionExecuted(GUI::ActionEventSource *b, const GUI::String &arg) {
-        GUI::String sname = arg;
+        GUI::String sname = RestoreName(arg);
         sname.at(0) = (unsigned int)std::tolower((int)sname.at(0));
         Section *sec;
         if (arg == "Close" || arg == "Cancel" || arg == "Close") {
@@ -1744,11 +1914,19 @@ public:
             else {
                 lookup->second->raise();
             }
+        } else if (arg == "Visit Homepage") {
+            std::string url = "http://dosbox-x.com/";
+#if defined(WIN32)
+            ShellExecute(NULL, "open", url.c_str(), NULL, NULL, SW_SHOWNORMAL);
+#elif defined(LINUX)
+            system(("xdg-open "+url).c_str());
+#elif defined(MACOSX)
+            system(("open "+url).c_str());
+#endif
         } else if (arg == "About") {
-            const char *msg = PACKAGE_STRING " (C) 2002-" COPYRIGHT_END_YEAR " The DOSBox Team\nA fork of DOSBox 0.74 by TheGreatCodeholio\nBuild date: " UPDATED_STR "\n\nFor more info visit http://dosbox-x.com\nBased on DOSBox (http://dosbox.com)\n\n";
-            new GUI::MessageBox2(getScreen(), 100, 150, 480, "About DOSBox-X", msg);
+            new GUI::MessageBox2(getScreen(), 100, 150, 330, "About DOSBox-X", aboutmsg);
         } else if (arg == "Introduction") {
-            new GUI::MessageBox2(getScreen(), 20, 50, 540, "Introduction", MSG_Get("PROGRAM_INTRO"));
+            new GUI::MessageBox2(getScreen(), 20, 50, 540, "Introduction", intromsg);
         } else if (arg == "Getting Started") {
             std::string msg = MSG_Get("PROGRAM_INTRO_MOUNT_START");
 #ifdef WIN32
@@ -1777,7 +1955,7 @@ public:
 static void UI_Execute(GUI::ScreenSDL *screen) {
     SDL_Surface *sdlscreen;
     SDL_Event event;
-    GUI::String configString = GUI::String("DOSBox-X Configuration");
+    GUI::String configString = GUI::String("DOSBox-X Configuration Tool");
 
     sdlscreen = screen->getSurface();
     auto *cfg_wnd = new ConfigurationWindow(screen, 40, 10, configString);
@@ -1837,7 +2015,7 @@ static void UI_Select(GUI::ScreenSDL *screen, int select) {
     Section_prop *section = NULL;
     Section *sec = NULL;
     SDL_Event event;
-    GUI::String configString = GUI::String("DOSBox-X Configuration");
+    GUI::String configString = GUI::String("DOSBox-X Configuration Tool");
 
     sdlscreen = screen->getSurface();
     switch (select) {
@@ -1975,13 +2153,25 @@ static void UI_Select(GUI::ScreenSDL *screen, int select) {
             auto *np8 = new ShowQuitWarning(screen, 120, 100, "quit3");
             np8->raise();
             } break;
-        case 31: if (statusdrive>-1 && statusdrive<DOS_DRIVES && Drives[statusdrive]) {
+        case 31: {
+            auto *np8 = new ShowQuitWarning(screen, 120, 100, "quit4");
+            np8->raise();
+            } break;
+        case 32: if (statusdrive>-1 && statusdrive<DOS_DRIVES && Drives[statusdrive]) {
             auto *np9 = new ShowDriveInfo(screen, 120, 50, "Drive Information");
             np9->raise();
             } break;
-        case 32: {
+        case 33: {
             auto *np10 = new ShowDriveNumber(screen, 110, 70, "Mounted Drive Numbers");
             np10->raise();
+            } break;
+        case 34: {
+            auto *np11 = new ShowHelpIntro(screen, 70, 70, "Introduction");
+            np11->raise();
+            } break;
+        case 35: {
+            auto *np11 = new ShowHelpAbout(screen, 110, 70, "About");
+            np11->raise();
             } break;
         default:
             break;
@@ -2041,11 +2231,13 @@ void GUI_Shortcut(int select) {
         return;
     }
 
+    shortcutid=select;
     shortcut=true;
     GUI::ScreenSDL *screen = UI_Startup(NULL);
     UI_Select(screen,select);
     UI_Shutdown(screen);
     shortcut=false;
+    shortcutid=-1;
     delete screen;
 }
 

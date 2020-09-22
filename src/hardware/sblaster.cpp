@@ -3795,6 +3795,16 @@ ASP>
             if (sb.hw.irq != 0xFF) temp << " I" << dec << (Bitu)sb.hw.irq;
             if (sb.hw.dma8 != 0xFF) temp << " D" << (Bitu)sb.hw.dma8;
             if (sb.type==SBT_16 && sb.hw.dma16 != 0xFF) temp << " H" << (Bitu)sb.hw.dma16;
+            if (!IS_PC98_ARCH) {
+                Section_prop * section=static_cast<Section_prop *>(control->GetSection("midi"));
+                const char* s_mpu = section->Get_string("mpu401");
+                if(strcasecmp(s_mpu,"none") && strcasecmp(s_mpu,"off") && strcasecmp(s_mpu,"false")) {
+                    Bitu baseio = (Bitu)section->Get_hex("mpubase");
+                    if (baseio == 0 || baseio < 0x300 || baseio > 0x360)
+                        baseio = 0x330;
+                    temp << " P" << hex << baseio;
+                }
+            }
             temp << " T" << static_cast<unsigned int>(sb.type) << ends;
 
             autoexecline.Install(temp.str());

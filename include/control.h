@@ -92,6 +92,7 @@ public:
         opt_showcycles = false;
         opt_earlydebug = false;
         opt_break_start = false;
+        opt_defaultconf = false;
         opt_erasemapper = false;
         opt_resetmapper = false;
         opt_startmapper = false;
@@ -134,6 +135,7 @@ public:
     bool opt_erasemapper;
     bool opt_resetmapper;
     bool opt_startmapper;
+    bool opt_defaultconf;
     bool opt_noautoexec;
     bool opt_securemode;
     bool opt_fullscreen;

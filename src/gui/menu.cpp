@@ -102,14 +102,15 @@ static const char *def_menu__toplevel[] =
     "CaptureMenu",
 #endif
     "DriveMenu",
+    "HelpMenu",
     NULL
 };
 
 /* main menu ("MainMenu") */
 static const char *def_menu_main[] =
 {
-    "mapper_mapper",
     "mapper_gui",
+    "mapper_mapper",
     "--",
     "MainSendKey",
     "--",
@@ -129,7 +130,7 @@ static const char *def_menu_main[] =
     "auto_lock_mouse",
     "WheelToArrow",
 #if defined(WIN32)
-    "direct_mouse_clipboard",
+    "SharedClipboard",
 #endif
 #if !defined(C_EMSCRIPTEN)//FIXME: Reset causes problems with Emscripten
     "--",
@@ -170,6 +171,38 @@ static const char *def_menu_main_wheelarrow[] =
     "wheel_pageupdown",
     "--",
     "wheel_none",
+    "wheel_guest",
+    NULL
+};
+
+/* main -> shared clipboard menu ("SharedClipboard") */
+static const char *def_menu_main_clipboard[] =
+{
+    "clipboard_quick",
+    "clipboard_right",
+    "clipboard_middle",
+    "--",
+    "clipboard_device",
+    "clipboard_dosapi",
+    "--",
+    "mapper_paste",
+    NULL
+};
+
+/* cpu -> core menu ("CpuSpeedMenu") */
+static const char *def_menu_cpu_speed[] =
+{
+    "cpu88-4",
+    "cpu286-8",
+    "cpu286-12",
+    "cpu386-33",
+    "cpu486-33",
+    "cpu486-66",
+    "cpu586-66",
+    "cpu586-100",
+    "cpu586-120",
+    "cpu586-133",
+    "cpu586-166",
     NULL
 };
 
@@ -222,6 +255,7 @@ static const char *def_menu_cpu[] =
     "--",
     "mapper_cycleup",
     "mapper_cycledown",
+    "CpuSpeedMenu",
     "mapper_editcycles",
     "--",
     "CpuCoreMenu",
@@ -397,6 +431,7 @@ static const char *def_menu_dos[] =
     "DOSLFNMenu",
     "--",
     "DOSPC98Menu",
+    "DOSEMSMenu",
     "--",
 #if defined(WIN32) && !defined(HX_DOS)
     "DOSWinMenu",
@@ -462,6 +497,16 @@ static const char *def_menu_dos_pc98[] =
 {
     "dos_pc98_pit_4mhz",
     "dos_pc98_pit_5mhz",
+    NULL
+};
+
+/* DOS EMS menu ("DOSEMSMenu") */
+static const char *def_menu_dos_ems[] =
+{
+    "dos_ems_true",
+    "dos_ems_board",
+    "dos_ems_emm386",
+    "dos_ems_false",
     NULL
 };
 
@@ -606,6 +651,21 @@ static const char *def_menu_drive[] =
     "DriveY",
     "DriveZ",
 
+    NULL
+};
+
+/* help menu ("HelpMenu") */
+static const char *def_menu_help[] =
+{
+    "help_intro",
+#if !defined(HX_DOS)
+    "--",
+    "help_homepage",
+    "help_wiki",
+    "help_issue",
+#endif
+    "--",
+    "help_about",
     NULL
 };
 
@@ -1245,8 +1305,14 @@ void ConstructMenu(void) {
     /* main mouse wheel movements menu */
     ConstructSubMenu(mainMenu.get_item("WheelToArrow").get_master_id(), def_menu_main_wheelarrow);
 
+    /* shared Windows clipboard menu */
+    ConstructSubMenu(mainMenu.get_item("SharedClipboard").get_master_id(), def_menu_main_clipboard);
+
     /* cpu menu */
     ConstructSubMenu(mainMenu.get_item("CpuMenu").get_master_id(), def_menu_cpu);
+
+    /* cpu speed menu */
+    ConstructSubMenu(mainMenu.get_item("CpuSpeedMenu").get_master_id(), def_menu_cpu_speed);
 
     /* cpu core menu */
     ConstructSubMenu(mainMenu.get_item("CpuCoreMenu").get_master_id(), def_menu_cpu_core);
@@ -1324,6 +1390,9 @@ void ConstructMenu(void) {
     /* DOS PC-98 menu */
     ConstructSubMenu(mainMenu.get_item("DOSPC98Menu").get_master_id(), def_menu_dos_pc98);
 
+    /* DOS EMS menu */
+    ConstructSubMenu(mainMenu.get_item("DOSEMSMenu").get_master_id(), def_menu_dos_ems);
+
 #if defined(WIN32) && !defined(HX_DOS)
     /* DOS WIN menu */
     ConstructSubMenu(mainMenu.get_item("DOSWinMenu").get_master_id(), def_menu_dos_win);
@@ -1361,6 +1430,11 @@ void ConstructMenu(void) {
             }
         }
     }
+
+#if !defined(HX_DOS)
+    /* help menu */
+    ConstructSubMenu(mainMenu.get_item("HelpMenu").get_master_id(), def_menu_help);
+#endif
 }
 
 bool MENU_SetBool(std::string secname, std::string value) {

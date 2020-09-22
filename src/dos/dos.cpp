@@ -102,9 +102,9 @@ int maxfcb=100;
 int maxdrive=1;
 int enablelfn=-1;
 bool uselfn;
-extern bool infix, winrun, startcmd, startwait;
 extern bool int15_wait_force_unmask_irq;
-extern bool startup_state_numlock, mountwarning;
+extern bool infix, winrun, startcmd, startwait;
+extern bool startup_state_numlock, mountwarning, clipboard_dosapi;
 std::string startincon;
 
 Bit32u dos_hma_allocator = 0; /* physical memory addr */
@@ -2608,6 +2608,7 @@ Bit16u DOS_IHSEG = 0;
 // Ick...
 
 void dos_ver_menu(bool start);
+void update_dos_ems_menu(void);
 void DOS_GetMemory_reset();
 void DOS_GetMemory_Choose();
 Bitu MEM_PageMask(void);
@@ -2750,8 +2751,11 @@ public:
         startcmd = section->Get_bool("startcmd");
         startincon = section->Get_string("startincon");
         char *dos_clipboard_device_enable = (char *)section->Get_string("dos clipboard device enable");
-		dos_clipboard_device_access = !strcasecmp(dos_clipboard_device_enable, "dummy")?1:(!strcasecmp(dos_clipboard_device_enable, "read")?2:(!strcasecmp(dos_clipboard_device_enable, "write")?3:(!strcasecmp(dos_clipboard_device_enable, "full")||!strcasecmp(dos_clipboard_device_enable, "true")?4:0)));
+		dos_clipboard_device_access = !strcasecmp(dos_clipboard_device_enable, "disabled")?0:(!strcasecmp(dos_clipboard_device_enable, "read")?2:(!strcasecmp(dos_clipboard_device_enable, "write")?3:(!strcasecmp(dos_clipboard_device_enable, "full")||!strcasecmp(dos_clipboard_device_enable, "true")?4:1)));
 		dos_clipboard_device_name = (char *)section->Get_string("dos clipboard device name");
+        clipboard_dosapi = section->Get_bool("dos clipboard api");
+        if (control->SecureMode()) clipboard_dosapi = false;
+        mainMenu.get_item("clipboard_dosapi").check(clipboard_dosapi).enable(true).refresh_item(mainMenu);
 		if (dos_clipboard_device_access) {
 			bool valid=true;
 			char ch[]="*? .|<>/\\\"";
@@ -2765,7 +2769,9 @@ public:
 			}
 			dos_clipboard_device_name=valid?upcase(dos_clipboard_device_name):(char *)dos_clipboard_device_default;
 			LOG(LOG_DOSMISC,LOG_NORMAL)("DOS clipboard device (%s access) is enabled with the name %s\n", dos_clipboard_device_access==1?"dummy":(dos_clipboard_device_access==2?"read":(dos_clipboard_device_access==3?"write":"full")), dos_clipboard_device_name);
-		}
+            mainMenu.get_item("clipboard_device").set_text("Enable DOS clipboard device access: "+std::string(dos_clipboard_device_name)).check(dos_clipboard_device_access==4&&!control->SecureMode()).enable(true).refresh_item(mainMenu);
+		} else
+            mainMenu.get_item("clipboard_device").enable(false).refresh_item(mainMenu);
 #else
         dos_clipboard_device_access = 0;
 		dos_clipboard_device_name=(char *)dos_clipboard_device_default;
@@ -3123,6 +3129,7 @@ public:
 		}
         dos_ver_menu(true);
         mainMenu.get_item("dos_ver_edit").enable(true).refresh_item(mainMenu);
+        update_dos_ems_menu();
 
         if (IS_PC98_ARCH) {
             void PC98_InitDefFuncRow(void);
@@ -3151,7 +3158,15 @@ public:
 		mainMenu.get_item("dos_ver_622").enable(false).refresh_item(mainMenu);
 		mainMenu.get_item("dos_ver_710").enable(false).refresh_item(mainMenu);
 		mainMenu.get_item("dos_ver_edit").enable(false).refresh_item(mainMenu);
+		mainMenu.get_item("dos_ems_true").enable(false).refresh_item(mainMenu);
+		mainMenu.get_item("dos_ems_board").enable(false).refresh_item(mainMenu);
+		mainMenu.get_item("dos_ems_emm386").enable(false).refresh_item(mainMenu);
+		mainMenu.get_item("dos_ems_false").enable(false).refresh_item(mainMenu);
 		mainMenu.get_item("shell_config_commands").enable(false).refresh_item(mainMenu);
+#if defined(WIN32)
+		mainMenu.get_item("clipboard_device").enable(false).refresh_item(mainMenu);
+		mainMenu.get_item("clipboard_dosapi").enable(false).refresh_item(mainMenu);
+#endif
 		/* NTS: We do NOT free the drives! The OS may use them later! */
 		void DOS_ShutdownFiles();
 		DOS_ShutdownFiles();

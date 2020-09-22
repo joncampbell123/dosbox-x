@@ -16,5 +16,5 @@ export LDFLAGS="-L$GCCSDK_INSTALL_ENV/lib -static"
 ./configure --host=arm-unknown-riscos --enable-core-inline "$@"
 make -j3 || exit 1
 elf2aif src/dosbox-x !DosBox-X/dosbox-x,ff8
-cp font/FREECG98.BMP !DosBox-X/resources/freecg98.bmp,69c
+cp contrib/fonts/FREECG98.BMP !DosBox-X/resources/freecg98.bmp,69c
 dos2unix -n CHANGELOG !DosBox-X/CHANGELOG,fff

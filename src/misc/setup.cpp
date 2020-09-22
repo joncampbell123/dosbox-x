@@ -270,6 +270,10 @@ char const* Property::Get_help() {
     return help_string.c_str();
 }
 
+void Property::SetBasic(bool basic) {
+    is_basic = basic;
+}
+
 bool Prop_int::SetVal(Value const& in, bool forced, bool warn, bool init) {
 	if (forced) {
 		value = in;

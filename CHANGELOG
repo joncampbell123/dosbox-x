@@ -1,3 +1,142 @@
+0.83.6
+  - Added OpenGL shader support by porting the feature
+    from DOSBox SVN. GLSL shaders are now supported in
+    both SDL1 and SDL2 builds, and this also allows
+    pixel-perfect scaling to be enabled for the OpenGL
+    outputs. The config option "glshader" (in [render]
+    section) can be used to specify a GLSL shader file
+    or a built-in shader when the output is set to
+    "opengl" or "openglnb". For example, you can use
+    the setting "glshader=sharp" (built-in shader) or
+    "glshader=pixel_perfect" (with GLSL shader file)
+    for the pixel-perfect scaling mode. (Wengier)
+  - Support for FluidSynth MIDI Synthesizer is now
+    included in the Windows Visual Studio builds by
+    default. Set "mididevice=fluidsynth" and a sound
+    font (e.g. GeneralUser_GS.sf2) to use it. (Wengier)
+  - The DOSMID and MPXPLAY programs have been built
+    into DOSBox-X, both can be found on the Z drive
+    and feature full-screen user interfaces. DOSMID
+    can be used to play MIDI/RMI/MUS audio files,
+    whereas MPXPLAY can play a variety of audio files
+    including AAC/AC3/APE/FLAC/MP2/MP3/MPC/OGG/WAV
+    and more with playlist support. (Wengier)
+  - Added "Shared Windows clipboard functions" menu
+    group under "Main", which allows you to enable
+    or disable the different ways for DOSBox-X to
+    communicate with the Windows clipboard. (Wengier)
+  - Added config option "dos clipboard api" in [dos]
+    section to control whether to enable the DOS APIs
+    for communications with the Windows clipboard for
+    DOS applications. (Wengier)
+  - Added config option "clip_mouse_button" to select
+    a mouse button (middle, right, or none; with right
+    mouse button being the default) for copying to and
+    pasting from the Windows clipboard. (Wengier)
+  - The mouse wheel movements will be automatically
+    converted into up/down arrows by default for the
+    intergrated DOS now. You can also enable it for
+    the guest system from the "Main" menu ("mouse wheel
+    movements" -> "Enable for guest systems also") or
+    from the config file. (Wengier)
+  - Added "Emulate CPU speed" menu group (under "CPU")
+    to emulate the speed of a specific CPU class. The
+    cycles to emulate are approximations of the actual
+    CPU hardware, and they are available thanks to data
+    provided by the user maximum105. Also added config
+    option "cycle emulation percentage adjust" in [cpu]
+    section for users who would like to make relative
+    percentage adjustments (between -25% and 25%) in
+    case it is necessary. (Wengier)
+  - The command for showing the Configuration Tool has
+    been renamed from "SHOWGUI" to "SHOWTOOL". A new
+    command-line option -gui is added to CONFIG command
+    to start the Configuration Tool as well. (Wengier)
+  - DOSBox-X now includes ZIP.EXE and UNZIP.EXE from
+    InfoZip which will appear on the Z drive. (Wengier)
+  - The powerful SJGPLAY for DOS has been built into
+    DOSBox-X. You can now find the CDPLAY.EXE program
+    in the Z drive for playing Audio CDs in DOS, and a
+    text file named CDPLAY.TXT for a quick usage guide.
+    The zip package including full documentation and
+    some extras will also appear as SJGPLAY.ZIP in the
+    Z drive. This freeware program was written by Steve
+    Gray and is now included in DOSBox-X with explicit
+    permission of the author. (Wengier)
+  - DOSBox-X will now by default show a quit warning
+    if a DOS program or game, or a guest system is
+    running. The previous behavior can be set with
+    "quit warning=autofile". (Wengier)
+  - The welcome banner when DOSBox-X starts has been
+    improved for a better looking and should provide
+    more helpful instructions for users. (Wengier)
+  - Add new "Help" menu which includes menu items
+    "Introduction", "DOSBox-X homepage", "DOSBox-X Wiki
+    guide", "DOSBox-X support" and "About". (Wengier)
+  - Improved the message when automatically re-running
+    the executable which failed with the "Packed file
+    is corrupt" error. Also added the "autoloadfix"
+    config option which when set to "false" will not
+    automatically re-run such programs. (Wengier)
+  - The display for several section names in DOSBox-X's
+    Configuration GUI have been capitalized or modified
+    otherwise for a better looking. A default shortcut
+    key HOST(F11/F12)+C is added for starting the
+    Configuration GUI. (Wengier)
+  - Added the "Show advanced options" checkbox in the
+    main screen of the Configuration GUI to toggle
+    whether to display all config options for the
+    sections. If unchecked (default), it will show
+    common config options instead of all of them. A
+    new config option "show advanced options" is added
+    which when set to "true" will make the checkbox
+    checked by default. (Wengier)
+  - Added code to cap the scan line length given to
+    the VESA BIOS given the video mode. This prevents
+    VBETEST.EXE from doing test patterns smaller than
+    the actual display, which can happen with 32bpp
+    320x200 modes and 1MB or less video RAM.
+  - VESA BIOS Set Scan Line Length fixed to properly
+    report and handle scan line length for 16-color
+    SVGA planar modes. VBETEST 16-color modes now
+    display correctly.
+  - Added option to control whether VESA BIOS panning
+    (the original VBE call) waits for vsync.
+  - Moved video related config options from [dosbox]
+    section to its own [video] section. These options
+    in existing config files will be automatically
+    redirected to the [video] section from the [dosbox]
+    section when DOSBox-X starts. Windows installer can
+    also move such config options from existing config
+    files automatically. (Wengier)
+  - Improved the help message of MOUNT command. Also
+    added option -examples to show its usage examples,
+    similar to IMGMOUNT and IMGMAKE commands. (Wengier)
+  - Fixed freeze when trying to reboot the internal
+    DOS when using a different code page and it is in
+    CGA or EGA emulation modes. (Wengier)
+  - Added menu item "Expanded memory (EMS)" under "DOS"
+    menu to dynamically enable or disable EMS memory
+    at run-time. You can now also modify EMS memory
+    with CONFIG command from command-line. (Wengier)
+  - Added config option "drive z hide files" (in [dos]
+    section) to hide or remove files listed (separated
+    by spaces) from the Z drive. If a file has a "/"
+    prefix (e.g. "/INTRO.COM"), then the specified file
+    will have the hidden attribute ("DIR /A" will list
+    all such files) instead of completely disappearing
+    from the Z drive. (Wengier)
+  - You can now add your own programs or files to the
+    Z drive! Put your programs or files in the drivez
+    directory located in the DOSBox-X program folder
+    or the DOSBox-X configuration directory, and they
+    will automatically appear on the Z drive. If any of
+    the files have the same names as the built-in ones,
+    they will replace the built-in files. For example,
+    you can replace the built-in EDIT.COM and XCOPY.EXE
+    programs (from FreeDOS) with MS-DOS counterparts.
+    For subdirectories please use normal directory
+    mounts (i.e. MOUNT command) instead. (Wengier).
 0.83.5
   - Windows installer now offers the option to upgrade
     the DOSBox-X config file (dosbox-x.conf) to the
@@ -70,7 +209,9 @@
     "auto" (default), DOSBox-X will warn only if at
     least one file handle is still open, or you are
     currently running a guest system. (Wengier)
-  - Add command-line option "-defaultdir" to specify
+  - Added command-line option "-defaultconf" to use the
+    default config settings. (Wengier)
+  - Added command-line option "-defaultdir" to specify
     a directory (instead of the current directory) as
     the working directory. DOSBox-X will look for the
     dosbox-x.conf file in this directory. (Wengier)
@@ -403,7 +544,7 @@
     It is also fixed not to crash when used within a guest
     operting system (when the DOS kernel has been shut down
     using the BOOT command);
-    It now supports memory size up to 1000MB;
+    It now supports memory size up to 1GB;
     It will save and verify the DOSBox-X version and build.
     States saved by DOSBox-X in one platform (e.g. 64-bit
     Windows) may not work in another (e.g. 32-bit Linux).
@@ -601,6 +742,10 @@
     implementation of FluidSynth. (Wengier)
 
 0.83.1
+  - dosbox-x.conf is now recognized as the default config
+    file name in addition to dosbox.conf. The sample config
+    file "dosbox.reference.conf" has been renamed to
+    "dosbox-x.reference.conf" as well (Wengier)
   - Sound Blaster emulation fixed to better handle Goldplay
     mode detection false positive in 1994 demoscene demo
     myth_dw.zip when using Sound Blaster Pro setting in
@@ -608,10 +753,6 @@
     like Goldplay mode, but when music actually starts the
     DMA programmed to normal state without restarting
     DMA playback.
-  - dosbox-x.conf is now recognized as the default config
-    file name in addition to dosbox.conf. The sample config
-    file "dosbox.reference.conf" has been renamed to
-    "dosbox-x.reference.conf" as well (Wengier)
   - Tandy DAC output fixed to slowly ramp last sample to
     zero DC sample (128) when switched off. This fixes
     loud popping (DC offset) problems with Tandy DAC

@@ -1,5 +1,5 @@
 dnl Init.
-AC_INIT(dosbox-x,0.83.5,[https://github.com/joncampbell123/dosbox-x/issues],[],[http://dosbox-x.software])
+AC_INIT(dosbox-x,0.83.6,[https://github.com/joncampbell123/dosbox-x/issues],[],[http://dosbox-x.software])
 AC_PREREQ(2.60)
 AC_CONFIG_SRCDIR(README.md)
 
@@ -1061,7 +1061,6 @@ AH_TEMPLATE(C_ICONV_WIN32,[Define to 1 to use Win32 functions in iconv backend])
 AC_CONFIG_FILES([ 
 Makefile
 src/Makefile
-src/dosbox.plist
 src/cpu/Makefile
 src/cpu/core_full/Makefile
 src/cpu/core_normal/Makefile
@@ -1089,7 +1088,9 @@ src/shell/Makefile
 src/platform/Makefile
 src/xBRZ/Makefile
 include/Makefile
-dosbox-x.spec
+contrib/macos/dosbox-x.plist
+contrib/linux/dosbox-x.spec
+contrib/linux/dosbox-x.appdata.xml
 make-rpm.sh
 ])
 AC_OUTPUT

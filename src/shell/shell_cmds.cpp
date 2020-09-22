@@ -655,7 +655,7 @@ void DOS_Shell::CMD_HELP(char * args){
 		WriteOut("External commands such as \033[33;1mMOUNT\033[0m and \033[33;1mIMGMOUNT\033[0m can be found on the Z: drive.\n");
 	else if (*args&&!show) {
 		std::string argc=std::string(StripArg(args));
-		if (argc!=""&&argc!="CWSDPMI") DoCommand((char *)(argc+(argc=="DOS4GW"||argc=="DOS32A"?"":" /?")).c_str());
+		if (argc!=""&&argc!="CWSDPMI") DoCommand((char *)(argc+(argc=="DOS4GW"||argc=="DOS32A"||argc=="ZIP"||argc=="UNZIP"?"":" /?")).c_str());
 	}
 	if (!*args&&show)
 		WriteOut("Type \033[33;1mHELP command\033[0m or \033[33;1mcommand /?\033[0m for help information for the specified command.\n");
@@ -1639,7 +1639,7 @@ void DOS_Shell::CMD_LS(char *args) {
 
 	for (const auto &entry : results) {
 		std::string name = uselfn&&!optZ?entry.lname:entry.name;
-		if (name == "." || name == "..") continue;		
+		if (name == "." || name == "..") continue;
 		if (!optA && (entry.attr&DOS_ATTR_SYSTEM || entry.attr&DOS_ATTR_HIDDEN)) continue;
 		if (entry.attr & DOS_ATTR_DIRECTORY) {
 			if (!uselfn||optZ) upcase(name);
@@ -1647,7 +1647,7 @@ void DOS_Shell::CMD_LS(char *args) {
 				WriteOut("\033[34;1m%s\033[0m\n", name.c_str());
 				p_count++;
 			} else
-				WriteOut("\033[34;1m%-*s\033[0m", max[w_count % col], name.c_str());
+				WriteOut("\033[34;1m%s\033[0m%-*s", name.c_str(), max[w_count % col]-name.size(), "");
 		} else {
 			if (!uselfn||optZ) lowcase(name);
 			bool is_executable=false;
@@ -3258,7 +3258,7 @@ void DOS_Shell::CMD_DEBUGBOX(char * args) {
 }
 #endif
 
-static char *str_replace(char *orig, char *rep, char *with) {
+char *str_replace(char *orig, char *rep, char *with) {
     char *result, *ins, *tmp;
     size_t len_rep, len_with, len_front;
     int count;
