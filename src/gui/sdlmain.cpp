@@ -3954,18 +3954,16 @@ static void GUI_StartUp() {
 			if(gl_ext && *gl_ext){
 				sdl_opengl.packed_pixel=(strstr(gl_ext,"EXT_packed_pixels") != NULL);
 				sdl_opengl.paletted_texture=(strstr(gl_ext,"EXT_paletted_texture") != NULL);
-				sdl_opengl.pixel_buffer_object=(strstr(gl_ext,"GL_ARB_pixel_buffer_object") != NULL ) &&
-				    glGenBuffersARB && glBindBufferARB && glDeleteBuffersARB && glBufferDataARB &&
-				    glMapBufferARB && glUnmapBufferARB;
-    			} else {
+				//sdl_opengl.pixel_buffer_object=(strstr(gl_ext,"GL_ARB_pixel_buffer_object") != NULL ) && glGenBuffersARB && glBindBufferARB && glDeleteBuffersARB && glBufferDataARB && glMapBufferARB && glUnmapBufferARB;
+			} else {
 				sdl_opengl.packed_pixel = false;
 				sdl_opengl.paletted_texture = false;
-				sdl_opengl.pixel_buffer_object = false;
+				//sdl_opengl.pixel_buffer_object = false;
 			}
 #ifdef DB_DISABLE_DBO
 			sdl_opengl.pixel_buffer_object = false;
 #endif
-			LOG_MSG("OpenGL extension: pixel_bufer_object %d",sdl_opengl.pixel_buffer_object);
+			//LOG_MSG("OpenGL extension: pixel_buffer_object %d",sdl_opengl.pixel_buffer_object);
 		}
 	} /* OPENGL is requested end */
 

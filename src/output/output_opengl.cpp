@@ -412,7 +412,7 @@ Bitu OUTPUT_OPENGL_SetSize()
         return 0;
     }
 
-    if (sdl_opengl.shader_src == NULL && !sdl_opengl.shader_def) sdl_opengl.use_shader = false;
+    if (sdl_opengl.use_shader && sdl_opengl.shader_src == NULL && !sdl_opengl.shader_def) sdl_opengl.use_shader = false;
     if (sdl_opengl.use_shader) {
         GLuint prog=0;
         // reset error
