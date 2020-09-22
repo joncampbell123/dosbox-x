@@ -2243,6 +2243,7 @@ void DOSBOX_SetupConfigSections(void) {
                     "Can be either an absolute path, a file in the \"glshaders\" subdirectory of the DOSBox-X configuration directory,\n"
                     "or one of the built-in shaders (e.g. \"sharp\" for the pixel-perfect scaling mode):\n"
                     "advinterp2x, advinterp3x, advmame2x, advmame3x, rgb2x, rgb3x, scan2x, scan3x, tv2x, tv3x, sharp.");
+    Pstring->SetBasic(true);
 #endif
 
 #if C_XBRZ
@@ -3254,6 +3255,47 @@ void DOSBOX_SetupConfigSections(void) {
     Pstring = secprop->Add_path("phonebookfile", Property::Changeable::OnlyAtStart, "phonebook-" VERSION ".txt");
     Pstring->Set_help("File used to map fake phone numbers to addresses.");
 
+    // parallel ports
+    secprop=control->AddSection_prop("parallel",&Null_Init,true);
+    Pstring = secprop->Add_string("parallel1",Property::Changeable::WhenIdle,"disabled");
+    Pstring->Set_help(
+            "parallel1-3 -- set type of device connected to the parallel (LPT) port.\n"
+            "Can be:\n"
+            "   reallpt (direct parallel port passthrough),\n"
+            "   file (records data to a file or passes it to a device),\n"
+            "   printer (virtual dot-matrix printer, see [printer] section)\n"
+            "       disney (attach Disney Sound Source emulation to this port)\n"
+            "Additional parameters must be in the same line in the form of\n"
+            "parameter:value.\n"
+            "  for reallpt:\n"
+            "  Windows:\n"
+            "    realbase (the base address of your real parallel port).\n"
+            "      Default: 378\n"
+            "    ecpbase (base address of the ECP registers, optional).\n"
+            "  Linux: realport (the parallel port device i.e. /dev/parport0).\n"
+            "  for file:\n"
+            "    dev:<devname> (i.e. dev:lpt1) to forward data to a device,\n"
+            "    or append:<file> appends data to the specified file.\n"
+            "    Without the above parameters data is written to files in the capture dir.\n"
+            "    Additional parameters: timeout:<milliseconds> = how long to wait before\n"
+            "    closing the file on inactivity (default:500), addFF to add a formfeed when\n"
+            "    closing, addLF to add a linefeed if the app doesn't, cp:<codepage number>\n"
+            "    to perform codepage translation, i.e. cp:437\n"
+            "  for printer:\n"
+            "    printer still has it's own configuration section above."
+    );
+    Pstring->SetBasic(true);
+    Pstring = secprop->Add_string("parallel2",Property::Changeable::WhenIdle,"disabled");
+    Pstring->Set_help("see parallel1");
+    Pstring->SetBasic(true);
+    Pstring = secprop->Add_string("parallel3",Property::Changeable::WhenIdle,"disabled");
+    Pstring->Set_help("see parallel1");
+    Pstring->SetBasic(true);
+
+    Pbool = secprop->Add_bool("dongle",Property::Changeable::WhenIdle,false);
+    Pbool->Set_help("Enable dongle");
+    Pbool->SetBasic(true);
+
     // printer redirection parameters
     secprop = control->AddSection_prop("printer", &Null_Init);
     Pbool = secprop->Add_bool("printer", Property::Changeable::WhenIdle, true);
@@ -3295,47 +3337,6 @@ void DOSBOX_SetupConfigSections(void) {
     Pint = secprop->Add_int("timeout", Property::Changeable::WhenIdle, 0);
     Pint->Set_help("(in milliseconds) if nonzero: the time the page will be ejected automatically after when no more data arrives at the printer.");
     Pint->SetBasic(true);
-
-    // parallel ports
-    secprop=control->AddSection_prop("parallel",&Null_Init,true);
-    Pstring = secprop->Add_string("parallel1",Property::Changeable::WhenIdle,"disabled");
-    Pstring->Set_help(
-            "parallel1-3 -- set type of device connected to the parallel (LPT) port.\n"
-            "Can be:\n"
-            "   reallpt (direct parallel port passthrough),\n"
-            "   file (records data to a file or passes it to a device),\n"
-            "   printer (virtual dot-matrix printer, see [printer] section)\n"
-            "       disney (attach Disney Sound Source emulation to this port)\n"
-            "Additional parameters must be in the same line in the form of\n"
-            "parameter:value.\n"
-            "  for reallpt:\n"
-            "  Windows:\n"
-            "    realbase (the base address of your real parallel port).\n"
-            "      Default: 378\n"
-            "    ecpbase (base address of the ECP registers, optional).\n"
-            "  Linux: realport (the parallel port device i.e. /dev/parport0).\n"
-            "  for file:\n"
-            "    dev:<devname> (i.e. dev:lpt1) to forward data to a device,\n"
-            "    or append:<file> appends data to the specified file.\n"
-            "    Without the above parameters data is written to files in the capture dir.\n"
-            "    Additional parameters: timeout:<milliseconds> = how long to wait before\n"
-            "    closing the file on inactivity (default:500), addFF to add a formfeed when\n"
-            "    closing, addLF to add a linefeed if the app doesn't, cp:<codepage number>\n"
-            "    to perform codepage translation, i.e. cp:437\n"
-            "  for printer:\n"
-            "    printer still has it's own configuration section above."
-    );
-    Pstring->SetBasic(true);
-    Pstring = secprop->Add_string("parallel2",Property::Changeable::WhenIdle,"disabled");
-    Pstring->Set_help("see parallel1");
-    Pstring->SetBasic(true);
-    Pstring = secprop->Add_string("parallel3",Property::Changeable::WhenIdle,"disabled");
-    Pstring->Set_help("see parallel1");
-    Pstring->SetBasic(true);
-
-    Pbool = secprop->Add_bool("dongle",Property::Changeable::WhenIdle,false);
-    Pbool->Set_help("Enable dongle");
-    Pbool->SetBasic(true);
 
     /* All the DOS Related stuff, which will eventually start up in the shell */
     secprop=control->AddSection_prop("dos",&Null_Init,false);//done
