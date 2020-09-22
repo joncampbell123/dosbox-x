@@ -701,7 +701,7 @@ public:
 std::string dispname="";
 std::string CapName(std::string name) {
     dispname = name;
-    if (name=="sdl"||name=="cpu"||name=="midi"||name=="gus"||name=="ipx"||name=="ne2000")
+    if (name=="sdl"||name=="cpu"||name=="midi"||name=="gus"||name=="dos"||name=="ipx"||name=="ne2000")
         std::transform(dispname.begin(), dispname.end(), dispname.begin(), ::toupper);
     else if (name=="dosbox")
         dispname="Main";
@@ -709,8 +709,6 @@ std::string CapName(std::string name) {
         dispname="PC-98";
     else if (name=="vsync")
         dispname="V-Sync";
-    else if (name=="dos")
-        dispname="DOS Settings";
     else if (name=="4dos")
         dispname="4DOS.INI";
     else if (name=="config")
@@ -756,8 +754,6 @@ std::string RestoreName(std::string name) {
         dispname="pc98";
     else if (name=="V-Sync")
         dispname="vsync";
-    else if (name=="DOS Settings")
-        dispname="dos";
     else if (name=="4DOS.INI")
         dispname="4dos";
     else if (name=="CONFIG.SYS")
@@ -1838,7 +1834,7 @@ public:
             const auto sz = gridfunc(i);
             GUI::Button *b = new GUI::Button(this, sz.first, sz.second, title, gridbtnwidth, gridbtnheight);
             b->addActionHandler(this);
-            bar->addItem(1, name);
+            bar->addItem(1, title);
             i++;
         }
 
