@@ -338,7 +338,7 @@
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
     </ClCompile>
     <Link>
-      <AdditionalDependencies>winmm.lib;imm32.lib;dxguid.lib;SetupAPI.lib;version.lib;Iphlpapi.lib;Ws2_32.lib;opengl32.lib;$(SolutionDir)fluidsynth\win32\fluidsynth.lib;$(SolutionDir)..\obj\libpdcurses\$(Platform)\$(Configuration)\libpdcurses.lib;$(SolutionDir)..\obj\zlib\$(Platform)\$(Configuration)\zlib.lib;$(SolutionDir)..\obj\libpng\$(Platform)\$(Configuration)\libpng.lib;$(SolutionDir)..\obj\freetype\$(Platform)\$(Configuration)\freetype.lib;$(SolutionDir)..\obj\SDL\$(Platform)\$(Configuration)\SDL.lib;$(SolutionDir)..\obj\SDLmain\$(Platform)\$(Configuration)\SDLmain.lib;$(SolutionDir)..\obj\SDL_net\$(Platform)\$(Configuration)\SDL_net.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>winmm.lib;imm32.lib;dsound.lib;dxguid.lib;SetupAPI.lib;version.lib;Iphlpapi.lib;Ws2_32.lib;opengl32.lib;$(SolutionDir)..\obj\libpdcurses\$(Platform)\$(Configuration)\libpdcurses.lib;$(SolutionDir)..\obj\zlib\$(Platform)\$(Configuration)\zlib.lib;$(SolutionDir)..\obj\libpng\$(Platform)\$(Configuration)\libpng.lib;$(SolutionDir)..\obj\freetype\$(Platform)\$(Configuration)\freetype.lib;$(SolutionDir)..\obj\SDL\$(Platform)\$(Configuration)\SDL.lib;$(SolutionDir)..\obj\SDLmain\$(Platform)\$(Configuration)\SDLmain.lib;$(SolutionDir)..\obj\SDL_net\$(Platform)\$(Configuration)\SDL_net.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <SubSystem>Windows</SubSystem>
     </Link>
     <CustomBuildStep />
@@ -351,8 +351,7 @@
 copy "$(SolutionDir)\..\dosbox-x.reference.conf" "$(OutputPath)\dosbox-x.reference.conf"
 copy "$(SolutionDir)\..\CHANGELOG" "$(OutputPath)\changelog.txt"
 mkdir "$(OutputPath)\shaders"
-copy "$(SolutionDir)\..\contrib\shaders\*.*" "$(OutputPath)\shaders\"
-copy "$(SolutionDir)\fluidsynth\win32\*.dll" "$(OutputPath)\"</Command>
+copy "$(SolutionDir)\..\contrib\shaders\*.*" "$(OutputPath)\shaders\"</Command>
     </PostBuildEvent>
     <PostBuildEvent>
       <Message>
@@ -373,7 +372,7 @@ copy "$(SolutionDir)\fluidsynth\win32\*.dll" "$(OutputPath)\"</Command>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
     </ClCompile>
     <Link>
-      <AdditionalDependencies>winmm.lib;imm32.lib;dxguid.lib;SetupAPI.lib;version.lib;Iphlpapi.lib;Ws2_32.lib;opengl32.lib;$(SolutionDir)fluidsynth\win32\fluidsynth.lib;$(SolutionDir)..\obj\libpdcurses\$(Platform)\$(Configuration)\libpdcurses.lib;$(SolutionDir)..\obj\zlib\$(Platform)\$(Configuration)\zlib.lib;$(SolutionDir)..\obj\libpng\$(Platform)\$(Configuration)\libpng.lib;$(SolutionDir)..\obj\freetype\$(Platform)\$(Configuration)\freetype.lib;$(SolutionDir)..\obj\SDL2\$(Platform)\$(Configuration)\sdl2.lib;$(SolutionDir)..\obj\SDL2main\$(Platform)\$(Configuration)\sdl2main.lib;$(SolutionDir)..\obj\SDL_net\$(Platform)\$(Configuration)\SDL_net.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>winmm.lib;imm32.lib;dsound.lib;dxguid.lib;SetupAPI.lib;version.lib;Iphlpapi.lib;Ws2_32.lib;opengl32.lib;$(SolutionDir)..\obj\libpdcurses\$(Platform)\$(Configuration)\libpdcurses.lib;$(SolutionDir)..\obj\zlib\$(Platform)\$(Configuration)\zlib.lib;$(SolutionDir)..\obj\libpng\$(Platform)\$(Configuration)\libpng.lib;$(SolutionDir)..\obj\freetype\$(Platform)\$(Configuration)\freetype.lib;$(SolutionDir)..\obj\SDL2\$(Platform)\$(Configuration)\sdl2.lib;$(SolutionDir)..\obj\SDL2main\$(Platform)\$(Configuration)\sdl2main.lib;$(SolutionDir)..\obj\SDL_net\$(Platform)\$(Configuration)\SDL_net.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <SubSystem>Windows</SubSystem>
     </Link>
     <CustomBuildStep />
@@ -386,8 +385,7 @@ copy "$(SolutionDir)\fluidsynth\win32\*.dll" "$(OutputPath)\"</Command>
 copy "$(SolutionDir)\..\dosbox-x.reference.conf" "$(OutputPath)\dosbox-x.reference.conf"
 copy "$(SolutionDir)\..\CHANGELOG" "$(OutputPath)\changelog.txt"
 mkdir "$(OutputPath)\shaders"
-copy "$(SolutionDir)\..\contrib\shaders\*.*" "$(OutputPath)\shaders\"
-copy "$(SolutionDir)\fluidsynth\win32\*.dll" "$(OutputPath)\"</Command>
+copy "$(SolutionDir)\..\contrib\shaders\*.*" "$(OutputPath)\shaders\"</Command>
     </PostBuildEvent>
     <PostBuildEvent>
       <Message>
@@ -409,7 +407,7 @@ copy "$(SolutionDir)\fluidsynth\win32\*.dll" "$(OutputPath)\"</Command>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
     </ClCompile>
     <Link>
-      <AdditionalDependencies>winmm.lib;imm32.lib;dxguid.lib;SetupAPI.lib;version.lib;Iphlpapi.lib;Ws2_32.lib;opengl32.lib;$(SolutionDir)fluidsynth\x64\fluidsynth.lib;$(SolutionDir)..\obj\libpdcurses\$(Platform)\$(Configuration)\libpdcurses.lib;$(SolutionDir)..\obj\zlib\$(Platform)\$(Configuration)\zlib.lib;$(SolutionDir)..\obj\libpng\$(Platform)\$(Configuration)\libpng.lib;$(SolutionDir)..\obj\freetype\$(Platform)\$(Configuration)\freetype.lib;$(SolutionDir)..\obj\SDL\$(Platform)\$(Configuration)\SDL.lib;$(SolutionDir)..\obj\SDLmain\$(Platform)\$(Configuration)\SDLmain.lib;$(SolutionDir)..\obj\SDL_net\$(Platform)\$(Configuration)\SDL_net.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>winmm.lib;imm32.lib;dsound.lib;dxguid.lib;SetupAPI.lib;version.lib;Iphlpapi.lib;Ws2_32.lib;opengl32.lib;$(SolutionDir)..\obj\libpdcurses\$(Platform)\$(Configuration)\libpdcurses.lib;$(SolutionDir)..\obj\zlib\$(Platform)\$(Configuration)\zlib.lib;$(SolutionDir)..\obj\libpng\$(Platform)\$(Configuration)\libpng.lib;$(SolutionDir)..\obj\freetype\$(Platform)\$(Configuration)\freetype.lib;$(SolutionDir)..\obj\SDL\$(Platform)\$(Configuration)\SDL.lib;$(SolutionDir)..\obj\SDLmain\$(Platform)\$(Configuration)\SDLmain.lib;$(SolutionDir)..\obj\SDL_net\$(Platform)\$(Configuration)\SDL_net.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <SubSystem>Windows</SubSystem>
     </Link>
     <PostBuildEvent>
@@ -417,8 +415,7 @@ copy "$(SolutionDir)\fluidsynth\win32\*.dll" "$(OutputPath)\"</Command>
 copy "$(SolutionDir)\..\dosbox-x.reference.conf" "$(OutputPath)\dosbox-x.reference.conf"
 copy "$(SolutionDir)\..\CHANGELOG" "$(OutputPath)\changelog.txt"
 mkdir "$(OutputPath)\shaders"
-copy "$(SolutionDir)\..\contrib\shaders\*.*" "$(OutputPath)\shaders\"
-copy "$(SolutionDir)\fluidsynth\x64\*.dll" "$(OutputPath)\"</Command>
+copy "$(SolutionDir)\..\contrib\shaders\*.*" "$(OutputPath)\shaders\"</Command>
       <Message>
       </Message>
     </PostBuildEvent>
@@ -441,7 +438,7 @@ copy "$(SolutionDir)\fluidsynth\x64\*.dll" "$(OutputPath)\"</Command>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
     </ClCompile>
     <Link>
-      <AdditionalDependencies>winmm.lib;imm32.lib;dxguid.lib;SetupAPI.lib;version.lib;Iphlpapi.lib;Ws2_32.lib;comdlg32.lib;shell32.lib;gdi32.lib;ole32.lib;oleaut32.lib;Advapi32.lib;$(SolutionDir)..\obj\libpdcurses\$(Platform)\$(Configuration)\libpdcurses.lib;$(SolutionDir)..\obj\zlib\$(Platform)\$(Configuration)\zlib.lib;$(SolutionDir)..\obj\libpng\$(Platform)\$(Configuration)\libpng.lib;$(SolutionDir)..\obj\freetype\$(Platform)\$(Configuration)\freetype.lib;$(SolutionDir)..\obj\SDL\$(Platform)\$(Configuration)\SDL.lib;$(SolutionDir)..\obj\SDLmain\$(Platform)\$(Configuration)\SDLmain.lib;$(SolutionDir)..\obj\SDL_net\$(Platform)\$(Configuration)\SDL_net.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>winmm.lib;imm32.lib;dsound.lib;dxguid.lib;SetupAPI.lib;version.lib;Iphlpapi.lib;Ws2_32.lib;comdlg32.lib;shell32.lib;gdi32.lib;ole32.lib;oleaut32.lib;Advapi32.lib;$(SolutionDir)..\obj\libpdcurses\$(Platform)\$(Configuration)\libpdcurses.lib;$(SolutionDir)..\obj\zlib\$(Platform)\$(Configuration)\zlib.lib;$(SolutionDir)..\obj\libpng\$(Platform)\$(Configuration)\libpng.lib;$(SolutionDir)..\obj\freetype\$(Platform)\$(Configuration)\freetype.lib;$(SolutionDir)..\obj\SDL\$(Platform)\$(Configuration)\SDL.lib;$(SolutionDir)..\obj\SDLmain\$(Platform)\$(Configuration)\SDLmain.lib;$(SolutionDir)..\obj\SDL_net\$(Platform)\$(Configuration)\SDL_net.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <SubSystem>Windows</SubSystem>
     </Link>
     <PostBuildEvent>
@@ -449,8 +446,7 @@ copy "$(SolutionDir)\fluidsynth\x64\*.dll" "$(OutputPath)\"</Command>
 copy "$(SolutionDir)\..\dosbox-x.reference.conf" "$(OutputPath)\dosbox-x.reference.conf"
 copy "$(SolutionDir)\..\CHANGELOG" "$(OutputPath)\changelog.txt"
 mkdir "$(OutputPath)\shaders"
-copy "$(SolutionDir)\..\contrib\shaders\*.*" "$(OutputPath)\shaders\"
-copy "$(SolutionDir)\fluidsynth\x64\*.dll" "$(OutputPath)\"</Command>
+copy "$(SolutionDir)\..\contrib\shaders\*.*" "$(OutputPath)\shaders\"</Command>
       <Message>
       </Message>
     </PostBuildEvent>
@@ -473,7 +469,7 @@ copy "$(SolutionDir)\fluidsynth\x64\*.dll" "$(OutputPath)\"</Command>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
     </ClCompile>
     <Link>
-      <AdditionalDependencies>winmm.lib;imm32.lib;dxguid.lib;SetupAPI.lib;version.lib;Iphlpapi.lib;Ws2_32.lib;comdlg32.lib;shell32.lib;gdi32.lib;ole32.lib;oleaut32.lib;Advapi32.lib;$(SolutionDir)..\obj\libpdcurses\$(Platform)\$(Configuration)\libpdcurses.lib;$(SolutionDir)..\obj\zlib\$(Platform)\$(Configuration)\zlib.lib;$(SolutionDir)..\obj\libpng\$(Platform)\$(Configuration)\libpng.lib;$(SolutionDir)..\obj\freetype\$(Platform)\$(Configuration)\freetype.lib;$(SolutionDir)..\obj\SDL\$(Platform)\$(Configuration)\SDL.lib;$(SolutionDir)..\obj\SDLmain\$(Platform)\$(Configuration)\SDLmain.lib;$(SolutionDir)..\obj\SDL_net\$(Platform)\$(Configuration)\SDL_net.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>winmm.lib;imm32.lib;dsound.lib;dxguid.lib;SetupAPI.lib;version.lib;Iphlpapi.lib;Ws2_32.lib;comdlg32.lib;shell32.lib;gdi32.lib;ole32.lib;oleaut32.lib;Advapi32.lib;$(SolutionDir)..\obj\libpdcurses\$(Platform)\$(Configuration)\libpdcurses.lib;$(SolutionDir)..\obj\zlib\$(Platform)\$(Configuration)\zlib.lib;$(SolutionDir)..\obj\libpng\$(Platform)\$(Configuration)\libpng.lib;$(SolutionDir)..\obj\freetype\$(Platform)\$(Configuration)\freetype.lib;$(SolutionDir)..\obj\SDL\$(Platform)\$(Configuration)\SDL.lib;$(SolutionDir)..\obj\SDLmain\$(Platform)\$(Configuration)\SDLmain.lib;$(SolutionDir)..\obj\SDL_net\$(Platform)\$(Configuration)\SDL_net.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <SubSystem>Windows</SubSystem>
     </Link>
     <PostBuildEvent>
@@ -506,7 +502,7 @@ copy "$(SolutionDir)\..\contrib\shaders\*.*" "$(OutputPath)\shaders\"</Command>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
     </ClCompile>
     <Link>
-      <AdditionalDependencies>winmm.lib;imm32.lib;dxguid.lib;SetupAPI.lib;version.lib;Iphlpapi.lib;Ws2_32.lib;opengl32.lib;$(SolutionDir)fluidsynth\x64\fluidsynth.lib;$(SolutionDir)..\obj\libpdcurses\$(Platform)\$(Configuration)\libpdcurses.lib;$(SolutionDir)..\obj\zlib\$(Platform)\$(Configuration)\zlib.lib;$(SolutionDir)..\obj\libpng\$(Platform)\$(Configuration)\libpng.lib;$(SolutionDir)..\obj\freetype\$(Platform)\$(Configuration)\freetype.lib;$(SolutionDir)..\obj\SDL2\$(Platform)\$(Configuration)\sdl2.lib;$(SolutionDir)..\obj\SDL2main\$(Platform)\$(Configuration)\sdl2main.lib;$(SolutionDir)..\obj\SDL_net\$(Platform)\$(Configuration)\SDL_net.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>winmm.lib;imm32.lib;dsound.lib;dxguid.lib;SetupAPI.lib;version.lib;Iphlpapi.lib;Ws2_32.lib;opengl32.lib;$(SolutionDir)..\obj\libpdcurses\$(Platform)\$(Configuration)\libpdcurses.lib;$(SolutionDir)..\obj\zlib\$(Platform)\$(Configuration)\zlib.lib;$(SolutionDir)..\obj\libpng\$(Platform)\$(Configuration)\libpng.lib;$(SolutionDir)..\obj\freetype\$(Platform)\$(Configuration)\freetype.lib;$(SolutionDir)..\obj\SDL2\$(Platform)\$(Configuration)\sdl2.lib;$(SolutionDir)..\obj\SDL2main\$(Platform)\$(Configuration)\sdl2main.lib;$(SolutionDir)..\obj\SDL_net\$(Platform)\$(Configuration)\SDL_net.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <SubSystem>Windows</SubSystem>
     </Link>
     <PostBuildEvent>
@@ -537,7 +533,7 @@ copy "$(SolutionDir)\..\contrib\shaders\*.*" "$(OutputPath)\shaders\"</Command>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
     </ClCompile>
     <Link>
-      <AdditionalDependencies>winmm.lib;imm32.lib;dxguid.lib;SetupAPI.lib;version.lib;Iphlpapi.lib;Ws2_32.lib;comdlg32.lib;shell32.lib;gdi32.lib;ole32.lib;oleaut32.lib;Advapi32.lib;$(SolutionDir)..\obj\libpdcurses\$(Platform)\$(Configuration)\libpdcurses.lib;$(SolutionDir)..\obj\zlib\$(Platform)\$(Configuration)\zlib.lib;$(SolutionDir)..\obj\libpng\$(Platform)\$(Configuration)\libpng.lib;$(SolutionDir)..\obj\freetype\$(Platform)\$(Configuration)\freetype.lib;$(SolutionDir)..\obj\SDL2\$(Platform)\$(Configuration)\sdl2.lib;$(SolutionDir)..\obj\SDL2main\$(Platform)\$(Configuration)\sdl2main.lib;$(SolutionDir)..\obj\SDL_net\$(Platform)\$(Configuration)\SDL_net.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>winmm.lib;imm32.lib;dsound.lib;dxguid.lib;SetupAPI.lib;version.lib;Iphlpapi.lib;Ws2_32.lib;comdlg32.lib;shell32.lib;gdi32.lib;ole32.lib;oleaut32.lib;Advapi32.lib;$(SolutionDir)..\obj\libpdcurses\$(Platform)\$(Configuration)\libpdcurses.lib;$(SolutionDir)..\obj\zlib\$(Platform)\$(Configuration)\zlib.lib;$(SolutionDir)..\obj\libpng\$(Platform)\$(Configuration)\libpng.lib;$(SolutionDir)..\obj\freetype\$(Platform)\$(Configuration)\freetype.lib;$(SolutionDir)..\obj\SDL2\$(Platform)\$(Configuration)\sdl2.lib;$(SolutionDir)..\obj\SDL2main\$(Platform)\$(Configuration)\sdl2main.lib;$(SolutionDir)..\obj\SDL_net\$(Platform)\$(Configuration)\SDL_net.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <SubSystem>Windows</SubSystem>
     </Link>
     <PostBuildEvent>
@@ -568,7 +564,7 @@ copy "$(SolutionDir)\..\contrib\shaders\*.*" "$(OutputPath)\shaders\"</Command>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
     </ClCompile>
     <Link>
-      <AdditionalDependencies>winmm.lib;imm32.lib;dxguid.lib;SetupAPI.lib;version.lib;Iphlpapi.lib;Ws2_32.lib;comdlg32.lib;shell32.lib;gdi32.lib;ole32.lib;oleaut32.lib;Advapi32.lib;$(SolutionDir)..\obj\libpdcurses\$(Platform)\$(Configuration)\libpdcurses.lib;$(SolutionDir)..\obj\zlib\$(Platform)\$(Configuration)\zlib.lib;$(SolutionDir)..\obj\libpng\$(Platform)\$(Configuration)\libpng.lib;$(SolutionDir)..\obj\freetype\$(Platform)\$(Configuration)\freetype.lib;$(SolutionDir)..\obj\SDL2\$(Platform)\$(Configuration)\sdl2.lib;$(SolutionDir)..\obj\SDL2main\$(Platform)\$(Configuration)\sdl2main.lib;$(SolutionDir)..\obj\SDL_net\$(Platform)\$(Configuration)\SDL_net.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>winmm.lib;imm32.lib;dsound.lib;dxguid.lib;SetupAPI.lib;version.lib;Iphlpapi.lib;Ws2_32.lib;comdlg32.lib;shell32.lib;gdi32.lib;ole32.lib;oleaut32.lib;Advapi32.lib;$(SolutionDir)..\obj\libpdcurses\$(Platform)\$(Configuration)\libpdcurses.lib;$(SolutionDir)..\obj\zlib\$(Platform)\$(Configuration)\zlib.lib;$(SolutionDir)..\obj\libpng\$(Platform)\$(Configuration)\libpng.lib;$(SolutionDir)..\obj\freetype\$(Platform)\$(Configuration)\freetype.lib;$(SolutionDir)..\obj\SDL2\$(Platform)\$(Configuration)\sdl2.lib;$(SolutionDir)..\obj\SDL2main\$(Platform)\$(Configuration)\sdl2main.lib;$(SolutionDir)..\obj\SDL_net\$(Platform)\$(Configuration)\SDL_net.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <SubSystem>Windows</SubSystem>
     </Link>
     <PostBuildEvent>
@@ -600,7 +596,7 @@ copy "$(SolutionDir)\..\contrib\shaders\*.*" "$(OutputPath)\shaders\"</Command>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
     </ClCompile>
     <Link>
-      <AdditionalDependencies>winmm.lib;imm32.lib;dxguid.lib;SetupAPI.lib;version.lib;Iphlpapi.lib;Ws2_32.lib;opengl32.lib;$(SolutionDir)fluidsynth\win32\fluidsynth.lib;$(SolutionDir)..\obj\libpdcurses\$(Platform)\$(Configuration)\libpdcurses.lib;$(SolutionDir)..\obj\zlib\$(Platform)\$(Configuration)\zlib.lib;$(SolutionDir)..\obj\libpng\$(Platform)\$(Configuration)\libpng.lib;$(SolutionDir)..\obj\freetype\$(Platform)\$(Configuration)\freetype.lib;$(SolutionDir)..\obj\SDL\$(Platform)\$(Configuration)\SDL.lib;$(SolutionDir)..\obj\SDLmain\$(Platform)\$(Configuration)\SDLmain.lib;$(SolutionDir)..\obj\SDL_net\$(Platform)\$(Configuration)\SDL_net.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>winmm.lib;imm32.lib;dsound.lib;dxguid.lib;SetupAPI.lib;version.lib;Iphlpapi.lib;Ws2_32.lib;opengl32.lib;$(SolutionDir)..\obj\libpdcurses\$(Platform)\$(Configuration)\libpdcurses.lib;$(SolutionDir)..\obj\zlib\$(Platform)\$(Configuration)\zlib.lib;$(SolutionDir)..\obj\libpng\$(Platform)\$(Configuration)\libpng.lib;$(SolutionDir)..\obj\freetype\$(Platform)\$(Configuration)\freetype.lib;$(SolutionDir)..\obj\SDL\$(Platform)\$(Configuration)\SDL.lib;$(SolutionDir)..\obj\SDLmain\$(Platform)\$(Configuration)\SDLmain.lib;$(SolutionDir)..\obj\SDL_net\$(Platform)\$(Configuration)\SDL_net.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <SubSystem>Windows</SubSystem>
     </Link>
     <CustomBuildStep />
@@ -613,8 +609,7 @@ copy "$(SolutionDir)\..\contrib\shaders\*.*" "$(OutputPath)\shaders\"</Command>
 copy "$(SolutionDir)\..\dosbox-x.reference.conf" "$(OutputPath)\dosbox-x.reference.conf"
 copy "$(SolutionDir)\..\CHANGELOG" "$(OutputPath)\changelog.txt"
 mkdir "$(OutputPath)\shaders"
-copy "$(SolutionDir)\..\contrib\shaders\*.*" "$(OutputPath)\shaders\"
-copy "$(SolutionDir)\fluidsynth\win32\*.dll" "$(OutputPath)\"</Command>
+copy "$(SolutionDir)\..\contrib\shaders\*.*" "$(OutputPath)\shaders\"</Command>
     </PostBuildEvent>
     <PostBuildEvent>
       <Message>
@@ -636,7 +631,7 @@ copy "$(SolutionDir)\fluidsynth\win32\*.dll" "$(OutputPath)\"</Command>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
     </ClCompile>
     <Link>
-      <AdditionalDependencies>winmm.lib;imm32.lib;dxguid.lib;SetupAPI.lib;version.lib;Iphlpapi.lib;Ws2_32.lib;opengl32.lib;$(SolutionDir)..\obj\libpdcurses\$(Platform)\$(Configuration)\libpdcurses.lib;$(SolutionDir)fluidsynth\win32\fluidsynth.lib;$(SolutionDir)..\obj\zlib\$(Platform)\$(Configuration)\zlib.lib;$(SolutionDir)..\obj\libpng\$(Platform)\$(Configuration)\libpng.lib;$(SolutionDir)..\obj\freetype\$(Platform)\$(Configuration)\freetype.lib;$(SolutionDir)..\obj\SDL2\$(Platform)\$(Configuration)\sdl2.lib;$(SolutionDir)..\obj\SDL2main\$(Platform)\$(Configuration)\sdl2main.lib;$(SolutionDir)..\obj\SDL_net\$(Platform)\$(Configuration)\SDL_net.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>winmm.lib;imm32.lib;dsound.lib;dxguid.lib;SetupAPI.lib;version.lib;Iphlpapi.lib;Ws2_32.lib;opengl32.lib;$(SolutionDir)..\obj\libpdcurses\$(Platform)\$(Configuration)\libpdcurses.lib;$(SolutionDir)..\obj\zlib\$(Platform)\$(Configuration)\zlib.lib;$(SolutionDir)..\obj\libpng\$(Platform)\$(Configuration)\libpng.lib;$(SolutionDir)..\obj\freetype\$(Platform)\$(Configuration)\freetype.lib;$(SolutionDir)..\obj\SDL2\$(Platform)\$(Configuration)\sdl2.lib;$(SolutionDir)..\obj\SDL2main\$(Platform)\$(Configuration)\sdl2main.lib;$(SolutionDir)..\obj\SDL_net\$(Platform)\$(Configuration)\SDL_net.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <SubSystem>Windows</SubSystem>
     </Link>
     <CustomBuildStep />
@@ -649,8 +644,7 @@ copy "$(SolutionDir)\fluidsynth\win32\*.dll" "$(OutputPath)\"</Command>
 copy "$(SolutionDir)\..\dosbox-x.reference.conf" "$(OutputPath)\dosbox-x.reference.conf"
 copy "$(SolutionDir)\..\CHANGELOG" "$(OutputPath)\changelog.txt"
 mkdir "$(OutputPath)\shaders"
-copy "$(SolutionDir)\..\contrib\shaders\*.*" "$(OutputPath)\shaders\"
-copy "$(SolutionDir)\fluidsynth\win32\*.dll" "$(OutputPath)\"</Command>
+copy "$(SolutionDir)\..\contrib\shaders\*.*" "$(OutputPath)\shaders\"</Command>
     </PostBuildEvent>
     <PostBuildEvent>
       <Message>
@@ -673,7 +667,7 @@ copy "$(SolutionDir)\fluidsynth\win32\*.dll" "$(OutputPath)\"</Command>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
     </ClCompile>
     <Link>
-      <AdditionalDependencies>winmm.lib;imm32.lib;dxguid.lib;SetupAPI.lib;version.lib;Iphlpapi.lib;Ws2_32.lib;opengl32.lib;$(SolutionDir)fluidsynth\x64\fluidsynth.lib;$(SolutionDir)..\obj\libpdcurses\$(Platform)\$(Configuration)\libpdcurses.lib;$(SolutionDir)..\obj\zlib\$(Platform)\$(Configuration)\zlib.lib;$(SolutionDir)..\obj\libpng\$(Platform)\$(Configuration)\libpng.lib;$(SolutionDir)..\obj\freetype\$(Platform)\$(Configuration)\freetype.lib;$(SolutionDir)..\obj\SDL\$(Platform)\$(Configuration)\SDL.lib;$(SolutionDir)..\obj\SDLmain\$(Platform)\$(Configuration)\SDLmain.lib;$(SolutionDir)..\obj\SDL_net\$(Platform)\$(Configuration)\SDL_net.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>winmm.lib;imm32.lib;dsound.lib;dxguid.lib;SetupAPI.lib;version.lib;Iphlpapi.lib;Ws2_32.lib;opengl32.lib;$(SolutionDir)..\obj\libpdcurses\$(Platform)\$(Configuration)\libpdcurses.lib;$(SolutionDir)..\obj\zlib\$(Platform)\$(Configuration)\zlib.lib;$(SolutionDir)..\obj\libpng\$(Platform)\$(Configuration)\libpng.lib;$(SolutionDir)..\obj\freetype\$(Platform)\$(Configuration)\freetype.lib;$(SolutionDir)..\obj\SDL\$(Platform)\$(Configuration)\SDL.lib;$(SolutionDir)..\obj\SDLmain\$(Platform)\$(Configuration)\SDLmain.lib;$(SolutionDir)..\obj\SDL_net\$(Platform)\$(Configuration)\SDL_net.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <SubSystem>Windows</SubSystem>
     </Link>
     <PostBuildEvent>
@@ -681,8 +675,7 @@ copy "$(SolutionDir)\fluidsynth\win32\*.dll" "$(OutputPath)\"</Command>
 copy "$(SolutionDir)\..\dosbox-x.reference.conf" "$(OutputPath)\dosbox-x.reference.conf"
 copy "$(SolutionDir)\..\CHANGELOG" "$(OutputPath)\changelog.txt"
 mkdir "$(OutputPath)\shaders"
-copy "$(SolutionDir)\..\contrib\shaders\*.*" "$(OutputPath)\shaders\"
-copy "$(SolutionDir)\fluidsynth\x64\*.dll" "$(OutputPath)\"</Command>
+copy "$(SolutionDir)\..\contrib\shaders\*.*" "$(OutputPath)\shaders\"</Command>
       <Message>
       </Message>
     </PostBuildEvent>
@@ -706,7 +699,7 @@ copy "$(SolutionDir)\fluidsynth\x64\*.dll" "$(OutputPath)\"</Command>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
     </ClCompile>
     <Link>
-      <AdditionalDependencies>winmm.lib;imm32.lib;dxguid.lib;SetupAPI.lib;version.lib;Iphlpapi.lib;Ws2_32.lib;comdlg32.lib;shell32.lib;gdi32.lib;ole32.lib;oleaut32.lib;Advapi32.lib;$(SolutionDir)..\obj\libpdcurses\$(Platform)\$(Configuration)\libpdcurses.lib;$(SolutionDir)..\obj\zlib\$(Platform)\$(Configuration)\zlib.lib;$(SolutionDir)..\obj\libpng\$(Platform)\$(Configuration)\libpng.lib;$(SolutionDir)..\obj\freetype\$(Platform)\$(Configuration)\freetype.lib;$(SolutionDir)..\obj\SDL\$(Platform)\$(Configuration)\SDL.lib;$(SolutionDir)..\obj\SDLmain\$(Platform)\$(Configuration)\SDLmain.lib;$(SolutionDir)..\obj\SDL_net\$(Platform)\$(Configuration)\SDL_net.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>winmm.lib;imm32.lib;dsound.lib;dxguid.lib;SetupAPI.lib;version.lib;Iphlpapi.lib;Ws2_32.lib;comdlg32.lib;shell32.lib;gdi32.lib;ole32.lib;oleaut32.lib;Advapi32.lib;$(SolutionDir)..\obj\libpdcurses\$(Platform)\$(Configuration)\libpdcurses.lib;$(SolutionDir)..\obj\zlib\$(Platform)\$(Configuration)\zlib.lib;$(SolutionDir)..\obj\libpng\$(Platform)\$(Configuration)\libpng.lib;$(SolutionDir)..\obj\freetype\$(Platform)\$(Configuration)\freetype.lib;$(SolutionDir)..\obj\SDL\$(Platform)\$(Configuration)\SDL.lib;$(SolutionDir)..\obj\SDLmain\$(Platform)\$(Configuration)\SDLmain.lib;$(SolutionDir)..\obj\SDL_net\$(Platform)\$(Configuration)\SDL_net.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <SubSystem>Windows</SubSystem>
     </Link>
     <PostBuildEvent>
@@ -738,7 +731,7 @@ copy "$(SolutionDir)\..\contrib\shaders\*.*" "$(OutputPath)\shaders\"</Command>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
     </ClCompile>
     <Link>
-      <AdditionalDependencies>winmm.lib;imm32.lib;dxguid.lib;SetupAPI.lib;version.lib;Iphlpapi.lib;Ws2_32.lib;comdlg32.lib;shell32.lib;gdi32.lib;ole32.lib;oleaut32.lib;Advapi32.lib;$(SolutionDir)..\obj\libpdcurses\$(Platform)\$(Configuration)\libpdcurses.lib;$(SolutionDir)..\obj\zlib\$(Platform)\$(Configuration)\zlib.lib;$(SolutionDir)..\obj\libpng\$(Platform)\$(Configuration)\libpng.lib;$(SolutionDir)..\obj\freetype\$(Platform)\$(Configuration)\freetype.lib;$(SolutionDir)..\obj\SDL\$(Platform)\$(Configuration)\SDL.lib;$(SolutionDir)..\obj\SDLmain\$(Platform)\$(Configuration)\SDLmain.lib;$(SolutionDir)..\obj\SDL_net\$(Platform)\$(Configuration)\SDL_net.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>winmm.lib;imm32.lib;dsound.lib;dxguid.lib;SetupAPI.lib;version.lib;Iphlpapi.lib;Ws2_32.lib;comdlg32.lib;shell32.lib;gdi32.lib;ole32.lib;oleaut32.lib;Advapi32.lib;$(SolutionDir)..\obj\libpdcurses\$(Platform)\$(Configuration)\libpdcurses.lib;$(SolutionDir)..\obj\zlib\$(Platform)\$(Configuration)\zlib.lib;$(SolutionDir)..\obj\libpng\$(Platform)\$(Configuration)\libpng.lib;$(SolutionDir)..\obj\freetype\$(Platform)\$(Configuration)\freetype.lib;$(SolutionDir)..\obj\SDL\$(Platform)\$(Configuration)\SDL.lib;$(SolutionDir)..\obj\SDLmain\$(Platform)\$(Configuration)\SDLmain.lib;$(SolutionDir)..\obj\SDL_net\$(Platform)\$(Configuration)\SDL_net.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <SubSystem>Windows</SubSystem>
     </Link>
     <PostBuildEvent>
@@ -772,7 +765,7 @@ copy "$(SolutionDir)\..\contrib\shaders\*.*" "$(OutputPath)\shaders\"</Command>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
     </ClCompile>
     <Link>
-      <AdditionalDependencies>winmm.lib;imm32.lib;dxguid.lib;SetupAPI.lib;version.lib;Iphlpapi.lib;Ws2_32.lib;opengl32.lib;$(SolutionDir)fluidsynth\x64\fluidsynth.lib;$(SolutionDir)..\obj\libpdcurses\$(Platform)\$(Configuration)\libpdcurses.lib;$(SolutionDir)..\obj\zlib\$(Platform)\$(Configuration)\zlib.lib;$(SolutionDir)..\obj\libpng\$(Platform)\$(Configuration)\libpng.lib;$(SolutionDir)..\obj\freetype\$(Platform)\$(Configuration)\freetype.lib;$(SolutionDir)..\obj\SDL2\$(Platform)\$(Configuration)\sdl2.lib;$(SolutionDir)..\obj\SDL2main\$(Platform)\$(Configuration)\sdl2main.lib;$(SolutionDir)..\obj\SDL_net\$(Platform)\$(Configuration)\SDL_net.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>winmm.lib;imm32.lib;dsound.lib;dxguid.lib;SetupAPI.lib;version.lib;Iphlpapi.lib;Ws2_32.lib;opengl32.lib;$(SolutionDir)..\obj\libpdcurses\$(Platform)\$(Configuration)\libpdcurses.lib;$(SolutionDir)..\obj\zlib\$(Platform)\$(Configuration)\zlib.lib;$(SolutionDir)..\obj\libpng\$(Platform)\$(Configuration)\libpng.lib;$(SolutionDir)..\obj\freetype\$(Platform)\$(Configuration)\freetype.lib;$(SolutionDir)..\obj\SDL2\$(Platform)\$(Configuration)\sdl2.lib;$(SolutionDir)..\obj\SDL2main\$(Platform)\$(Configuration)\sdl2main.lib;$(SolutionDir)..\obj\SDL_net\$(Platform)\$(Configuration)\SDL_net.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <SubSystem>Windows</SubSystem>
     </Link>
     <PostBuildEvent>
@@ -780,8 +773,7 @@ copy "$(SolutionDir)\..\contrib\shaders\*.*" "$(OutputPath)\shaders\"</Command>
 copy "$(SolutionDir)\..\dosbox-x.reference.conf" "$(OutputPath)\dosbox-x.reference.conf"
 copy "$(SolutionDir)\..\CHANGELOG" "$(OutputPath)\changelog.txt"
 mkdir "$(OutputPath)\shaders"
-copy "$(SolutionDir)\..\contrib\shaders\*.*" "$(OutputPath)\shaders\"
-copy "$(SolutionDir)\fluidsynth\x64\*.dll" "$(OutputPath)\"</Command>
+copy "$(SolutionDir)\..\contrib\shaders\*.*" "$(OutputPath)\shaders\"</Command>
       <Message>
       </Message>
     </PostBuildEvent>
@@ -805,7 +797,7 @@ copy "$(SolutionDir)\fluidsynth\x64\*.dll" "$(OutputPath)\"</Command>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
     </ClCompile>
     <Link>
-      <AdditionalDependencies>winmm.lib;imm32.lib;dxguid.lib;SetupAPI.lib;version.lib;Iphlpapi.lib;Ws2_32.lib;comdlg32.lib;shell32.lib;gdi32.lib;ole32.lib;oleaut32.lib;Advapi32.lib;$(SolutionDir)..\obj\libpdcurses\$(Platform)\$(Configuration)\libpdcurses.lib;$(SolutionDir)..\obj\zlib\$(Platform)\$(Configuration)\zlib.lib;$(SolutionDir)..\obj\libpng\$(Platform)\$(Configuration)\libpng.lib;$(SolutionDir)..\obj\freetype\$(Platform)\$(Configuration)\freetype.lib;$(SolutionDir)..\obj\SDL2\$(Platform)\$(Configuration)\sdl2.lib;$(SolutionDir)..\obj\SDL2main\$(Platform)\$(Configuration)\sdl2main.lib;$(SolutionDir)..\obj\SDL_net\$(Platform)\$(Configuration)\SDL_net.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>winmm.lib;imm32.lib;dsound.lib;dxguid.lib;SetupAPI.lib;version.lib;Iphlpapi.lib;Ws2_32.lib;comdlg32.lib;shell32.lib;gdi32.lib;ole32.lib;oleaut32.lib;Advapi32.lib;$(SolutionDir)..\obj\libpdcurses\$(Platform)\$(Configuration)\libpdcurses.lib;$(SolutionDir)..\obj\zlib\$(Platform)\$(Configuration)\zlib.lib;$(SolutionDir)..\obj\libpng\$(Platform)\$(Configuration)\libpng.lib;$(SolutionDir)..\obj\freetype\$(Platform)\$(Configuration)\freetype.lib;$(SolutionDir)..\obj\SDL2\$(Platform)\$(Configuration)\sdl2.lib;$(SolutionDir)..\obj\SDL2main\$(Platform)\$(Configuration)\sdl2main.lib;$(SolutionDir)..\obj\SDL_net\$(Platform)\$(Configuration)\SDL_net.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <SubSystem>Windows</SubSystem>
     </Link>
     <PostBuildEvent>
@@ -837,7 +829,7 @@ copy "$(SolutionDir)\..\contrib\shaders\*.*" "$(OutputPath)\shaders\"</Command>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
     </ClCompile>
     <Link>
-      <AdditionalDependencies>winmm.lib;imm32.lib;dxguid.lib;SetupAPI.lib;version.lib;Iphlpapi.lib;Ws2_32.lib;comdlg32.lib;shell32.lib;gdi32.lib;ole32.lib;oleaut32.lib;Advapi32.lib;$(SolutionDir)..\obj\libpdcurses\$(Platform)\$(Configuration)\libpdcurses.lib;$(SolutionDir)..\obj\zlib\$(Platform)\$(Configuration)\zlib.lib;$(SolutionDir)..\obj\libpng\$(Platform)\$(Configuration)\libpng.lib;$(SolutionDir)..\obj\freetype\$(Platform)\$(Configuration)\freetype.lib;$(SolutionDir)..\obj\SDL2\$(Platform)\$(Configuration)\sdl2.lib;$(SolutionDir)..\obj\SDL2main\$(Platform)\$(Configuration)\sdl2main.lib;$(SolutionDir)..\obj\SDL_net\$(Platform)\$(Configuration)\SDL_net.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>winmm.lib;imm32.lib;dsound.lib;dxguid.lib;SetupAPI.lib;version.lib;Iphlpapi.lib;Ws2_32.lib;comdlg32.lib;shell32.lib;gdi32.lib;ole32.lib;oleaut32.lib;Advapi32.lib;$(SolutionDir)..\obj\libpdcurses\$(Platform)\$(Configuration)\libpdcurses.lib;$(SolutionDir)..\obj\zlib\$(Platform)\$(Configuration)\zlib.lib;$(SolutionDir)..\obj\libpng\$(Platform)\$(Configuration)\libpng.lib;$(SolutionDir)..\obj\freetype\$(Platform)\$(Configuration)\freetype.lib;$(SolutionDir)..\obj\SDL2\$(Platform)\$(Configuration)\sdl2.lib;$(SolutionDir)..\obj\SDL2main\$(Platform)\$(Configuration)\sdl2main.lib;$(SolutionDir)..\obj\SDL_net\$(Platform)\$(Configuration)\SDL_net.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <SubSystem>Windows</SubSystem>
     </Link>
     <PostBuildEvent>
@@ -1128,6 +1120,42 @@ copy "$(SolutionDir)\..\contrib\shaders\*.*" "$(OutputPath)\shaders\"</Command>
     <ClCompile Include="..\src\shell\shell_cmds.cpp" />
     <ClCompile Include="..\src\shell\shell_misc.cpp" />
     <ClCompile Include="..\src\xBRZ\xbrz.cpp" />
+    <ClCompile Include="..\src\libs\fluidsynth\bindings\fluid_cmd.c" />
+    <ClCompile Include="..\src\libs\fluidsynth\bindings\fluid_filerenderer.c" />
+    <ClCompile Include="..\src\libs\fluidsynth\drivers\fluid_adriver.c" />
+    <ClCompile Include="..\src\libs\fluidsynth\drivers\fluid_aufile.c" />
+    <ClCompile Include="..\src\libs\fluidsynth\drivers\fluid_dsound.c" />
+    <ClCompile Include="..\src\libs\fluidsynth\drivers\fluid_mdriver.c" />
+    <ClCompile Include="..\src\libs\fluidsynth\drivers\fluid_sdl2.c" />
+    <ClCompile Include="..\src\libs\fluidsynth\fluid_dll.c" />
+    <ClCompile Include="..\src\libs\fluidsynth\midi\fluid_midi.c" />
+    <ClCompile Include="..\src\libs\fluidsynth\midi\fluid_midi_router.c" />
+    <ClCompile Include="..\src\libs\fluidsynth\midi\fluid_seq.c" />
+    <ClCompile Include="..\src\libs\fluidsynth\midi\fluid_seqbind.c" />
+    <ClCompile Include="..\src\libs\fluidsynth\rvoice\fluid_adsr_env.c" />
+    <ClCompile Include="..\src\libs\fluidsynth\rvoice\fluid_chorus.c" />
+    <ClCompile Include="..\src\libs\fluidsynth\rvoice\fluid_iir_filter.c" />
+    <ClCompile Include="..\src\libs\fluidsynth\rvoice\fluid_lfo.c" />
+    <ClCompile Include="..\src\libs\fluidsynth\rvoice\fluid_rev.c" />
+    <ClCompile Include="..\src\libs\fluidsynth\rvoice\fluid_rvoice.c" />
+    <ClCompile Include="..\src\libs\fluidsynth\rvoice\fluid_rvoice_dsp.c" />
+    <ClCompile Include="..\src\libs\fluidsynth\rvoice\fluid_rvoice_event.c" />
+    <ClCompile Include="..\src\libs\fluidsynth\rvoice\fluid_rvoice_mixer.c" />
+    <ClCompile Include="..\src\libs\fluidsynth\sfloader\fluid_defsfont.c" />
+    <ClCompile Include="..\src\libs\fluidsynth\sfloader\fluid_ramsfont.c" />
+    <ClCompile Include="..\src\libs\fluidsynth\synth\fluid_chan.c" />
+    <ClCompile Include="..\src\libs\fluidsynth\synth\fluid_event.c" />
+    <ClCompile Include="..\src\libs\fluidsynth\synth\fluid_gen.c" />
+    <ClCompile Include="..\src\libs\fluidsynth\synth\fluid_mod.c" />
+    <ClCompile Include="..\src\libs\fluidsynth\synth\fluid_synth.c" />
+    <ClCompile Include="..\src\libs\fluidsynth\synth\fluid_tuning.c" />
+    <ClCompile Include="..\src\libs\fluidsynth\synth\fluid_voice.c" />
+    <ClCompile Include="..\src\libs\fluidsynth\utils\fluid_conv.c" />
+    <ClCompile Include="..\src\libs\fluidsynth\utils\fluid_hash.c" />
+    <ClCompile Include="..\src\libs\fluidsynth\utils\fluid_list.c" />
+    <ClCompile Include="..\src\libs\fluidsynth\utils\fluid_ringbuffer.c" />
+    <ClCompile Include="..\src\libs\fluidsynth\utils\fluid_settings.c" />
+    <ClCompile Include="..\src\libs\fluidsynth\utils\fluid_sys.c" />
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="..\src\winres.rc" />

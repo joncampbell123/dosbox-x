@@ -174,6 +174,7 @@ typedef enum PROCESS_DPI_AWARENESS {
 #include "sdlmain.h"
 #include "build_timestamp.h"
 
+#if C_OPENGL
 namespace gl2 {
 extern PFNGLATTACHSHADERPROC glAttachShader;
 extern PFNGLCOMPILESHADERPROC glCompileShader;
@@ -215,6 +216,7 @@ extern PFNGLVERTEXATTRIBPOINTERPROC glVertexAttribPointer;
 #define glUniform1i               gl2::glUniform1i
 #define glUseProgram              gl2::glUseProgram
 #define glVertexAttribPointer     gl2::glVertexAttribPointer
+#endif
 
 #ifdef MACOSX
 extern bool has_touch_bar_support;

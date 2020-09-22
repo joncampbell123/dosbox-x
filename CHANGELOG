@@ -9,8 +9,9 @@
     "opengl" or "openglnb". For example, you can use
     "glshader=sharp" for pixel-perfect mode. (Wengier)
   - Support for FluidSynth MIDI Synthesizer is now
-    activated by default for Windows Visual Studio
-    x86/x64 builds. (Wengier)
+    included in the Windows Visual Studio builds by
+    default. Set "mididevice=fluidsynth" and a sound
+    font (e.g. GeneralUser_GS.sf2) to use it. (Wengier)
   - The DOSMID and MPXPLAY programs have been built
     into DOSBox-X, both can be found on the Z drive
     and feature full-screen user interfaces. DOSMID

@@ -86,12 +86,6 @@ Source: "Win64_builds\mingw-sdl2\dosbox-x.exe"; DestDir: "{app}"; Flags: ignorev
 Source: "Win64_builds\mingw-sdldraw\dosbox-x.exe"; DestDir: "{app}"; Flags: ignoreversion; Check: CheckDirName('Win64_builds\mingw-sdldraw'); Components: full compact
 Source: "Win32_builds\*"; DestDir: "{app}\Win32_builds"; Flags: ignoreversion recursesubdirs createallsubdirs; Components: full
 Source: "Win64_builds\*"; DestDir: "{app}\Win64_builds"; Flags: ignoreversion recursesubdirs createallsubdirs; Check: IsWin64; Components: full
-Source: "..\..\..\vs2015\fluidsynth\Win32\*.dll"; DestDir: "{app}"; Flags: ignoreversion; Check: CheckDirName('Win32_builds\x86_Release') or CheckDirName('Win32_builds\x86_Release_SDL2'); Components: full compact
-Source: "..\..\..\vs2015\fluidsynth\x64\*.dll"; DestDir: "{app}"; Flags: ignoreversion; Check: CheckDirName('Win64_builds\x64_Release') or CheckDirName('Win64_builds\x64_Release_SDL2'); Components: full compact
-Source: "..\..\..\vs2015\fluidsynth\Win32\*.dll"; DestDir: "{app}\Win32_builds\x86_Release"; Flags: ignoreversion; Components: full
-Source: "..\..\..\vs2015\fluidsynth\Win32\*.dll"; DestDir: "{app}\Win32_builds\x86_Release_SDL2"; Flags: ignoreversion; Check: IsWin64; Components: full
-Source: "..\..\..\vs2015\fluidsynth\x64\*.dll"; DestDir: "{app}\Win64_builds\x64_Release"; Flags: ignoreversion; Components: full
-Source: "..\..\..\vs2015\fluidsynth\x64\*.dll"; DestDir: "{app}\Win64_builds\x64_Release_SDL2"; Flags: ignoreversion; Check: IsWin64; Components: full
 Source: ".\windows_explorer_context_menu_installer.bat"; DestDir: "{app}\scripts"; DestName: "windows_explorer_context_menu_installer.bat"; Flags: ignoreversion; Components: full compact
 Source: ".\windows_explorer_context_menu_uninstaller.bat"; DestDir: "{app}\scripts"; DestName: "windows_explorer_context_menu_uninstaller.bat"; Flags: ignoreversion; Components: full compact
 ; NOTE: Don't use "Flags: ignoreversion" on any shared system files
