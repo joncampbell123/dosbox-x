@@ -84,6 +84,7 @@ struct SDL_OpenGL {
     int clear_countdown;
     bool use_shader;
     GLuint program_object;
+    bool shader_def=false;
     const char *shader_src;
     struct {
         GLint texture_size;

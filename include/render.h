@@ -93,6 +93,7 @@ typedef struct {
 	} scale;
 #if C_OPENGL
 	char* shader_src;
+    bool shader_def=false;
 #endif
     RenderPal_t pal;
 	bool updating;

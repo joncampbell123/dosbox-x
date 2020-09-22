@@ -1162,10 +1162,13 @@ void RENDER_Init() {
 
 #if C_OPENGL
 	char* shader_src = render.shader_src;
+    render.shader_def = false;
 	Prop_path *sh = section->Get_path("glshader");
 	std::string f = (std::string)sh->GetValue();
-	if (f.empty() || f=="none") render.shader_src = NULL;
-	else if (!RENDER_GetShader(sh->realpath,shader_src)) {
+	if (f.empty() || f=="none" || f=="default") {
+        render.shader_src = NULL;
+        render.shader_def = f=="default";
+	} else if (!RENDER_GetShader(sh->realpath,shader_src)) {
 		std::string path;
 		Cross::GetPlatformConfigDir(path);
 		path = path + "glshaders" + CROSS_FILESPLIT + f;

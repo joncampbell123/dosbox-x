@@ -2662,6 +2662,7 @@ void DoExtendedKeyboardHook(bool enable) {
 
 void GFX_SetShader(const char* src) {
 #if C_OPENGL
+	sdl_opengl.shader_def = render.shader_def;
 	if (!sdl_opengl.use_shader || src == sdl_opengl.shader_src)
 		return;
 
@@ -3936,7 +3937,6 @@ static void GUI_StartUp() {
 				glEnableVertexAttribArray && glGetAttribLocation && glGetProgramiv && glGetProgramInfoLog && \
 				glGetShaderiv && glGetShaderInfoLog && glGetUniformLocation && glLinkProgram && glShaderSource && \
 				glUniform2f && glUniform1i && glUseProgram && glVertexAttribPointer);
-
 			sdl_opengl.buffer=0;
 			sdl_opengl.framebuf=0;
 			sdl_opengl.texture=0;
