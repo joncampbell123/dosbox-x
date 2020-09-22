@@ -7,7 +7,9 @@
     section) can be used to specify a GLSL shader file
     or a built-in shader when the output is set to
     "opengl" or "openglnb". For example, you can use
-    "glshader=sharp" for pixel-perfect mode. (Wengier)
+    the setting "glshader=sharp" (built-in shader) or
+    "glshader=pixel_perfect" (with GLSL shader file)
+    for the pixel-perfect scaling mode. (Wengier)
   - Support for FluidSynth MIDI Synthesizer is now
     included in the Windows Visual Studio builds by
     default. Set "mididevice=fluidsynth" and a sound

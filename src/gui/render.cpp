@@ -1169,13 +1169,15 @@ void RENDER_Init() {
         render.shader_src = NULL;
         render.shader_def = f=="default";
 	} else if (!RENDER_GetShader(sh->realpath,shader_src)) {
-		std::string path;
-		Cross::GetPlatformConfigDir(path);
-		path = path + "glshaders" + CROSS_FILESPLIT + f;
-		if (!RENDER_GetShader(path,shader_src) && (sh->realpath==f || !RENDER_GetShader(f,shader_src))) {
-			sh->SetValue("none");
-			LOG_MSG("Shader file \"%s\" not found", f.c_str());
-		}
+		std::string path = std::string("glshaders") + CROSS_FILESPLIT + f;
+		if (!RENDER_GetShader(path,shader_src)) {
+            Cross::GetPlatformConfigDir(path);
+            path = path + "glshaders" + CROSS_FILESPLIT + f;
+            if (!RENDER_GetShader(path,shader_src) && (sh->realpath==f || !RENDER_GetShader(f,shader_src))) {
+                sh->SetValue("none");
+                LOG_MSG("Shader file \"%s\" not found", f.c_str());
+            }
+        }
 	} else
         LOG_MSG("Loaded GLSL shader: %s\n", f.c_str());
 	if (shader_src!=render.shader_src) free(shader_src);
