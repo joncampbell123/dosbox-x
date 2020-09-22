@@ -2241,7 +2241,7 @@ void DOSBOX_SetupConfigSections(void) {
     Pstring = secprop->Add_path("glshader",Property::Changeable::Always,"none");
     Pstring->Set_help("Path to GLSL shader source to use with OpenGL output (\"none\" to disable, or \"default\" for default shader).\n"
                     "Can be either an absolute path, a file in the \"glshaders\" subdirectory of the DOSBox-X configuration directory,\n"
-                    "or one of the built-in shaders (use \"sharp\" for the pixel-perfect mode):\n"
+                    "or one of the built-in shaders (e.g. \"sharp\" for the pixel-perfect scaling mode):\n"
                     "advinterp2x, advinterp3x, advmame2x, advmame3x, rgb2x, rgb3x, scan2x, scan3x, tv2x, tv3x, sharp.");
 #endif
 
