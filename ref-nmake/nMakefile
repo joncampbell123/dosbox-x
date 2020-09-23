@@ -326,7 +326,7 @@ OBJS_D3D =	$(DBX_PATH)\src\output\direct3d\direct3d.obj \
 			$(DBX_PATH)\src\output\direct3d\ScalingEffect.obj
 
 OBJS4 = $(OBJS4) $(OBJS_MT32)
-CXXFLAGS = $(CXXFLAGS) -I$(DBX_PATH)/src/mt32
+CXXFLAGS = $(CXXFLAGS) -I$(DBX_PATH)/src/libs/mt32
 
 LIBS = kernel32.lib user32.lib gdi32.lib imm32.lib winmm.lib dxguid.lib shell32.lib ole32.lib comdlg32.lib opengl32.lib advapi32.lib ws2_32.lib deps\sdl.lib deps\sdlmain.lib deps\z.lib deps\png.lib deps\pdcurses.lib
 

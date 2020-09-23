@@ -188,10 +188,10 @@ include(${CMAKE_CURRENT_SOURCE_DIR}/src/libs/CMakeLists.txt)
 include(${CMAKE_CURRENT_SOURCE_DIR}/src/libs/gui_tk/CMakeLists.txt)
 include(${CMAKE_CURRENT_SOURCE_DIR}/src/libs/porttalk/CMakeLists.txt)
 include(${CMAKE_CURRENT_SOURCE_DIR}/src/libs/zmbv/CMakeLists.txt)
+include(${CMAKE_CURRENT_SOURCE_DIR}/src/libs/mt32/CMakeLists.txt)
+include(${CMAKE_CURRENT_SOURCE_DIR}/src/libs/mt32/freeverb/CMakeLists.txt)
+include(${CMAKE_CURRENT_SOURCE_DIR}/src/libs/mt32/sha1/CMakeLists.txt)
 include(${CMAKE_CURRENT_SOURCE_DIR}/src/misc/CMakeLists.txt)
-include(${CMAKE_CURRENT_SOURCE_DIR}/src/mt32/CMakeLists.txt)
-include(${CMAKE_CURRENT_SOURCE_DIR}/src/mt32/freeverb/CMakeLists.txt)
-include(${CMAKE_CURRENT_SOURCE_DIR}/src/mt32/sha1/CMakeLists.txt)
 include(${CMAKE_CURRENT_SOURCE_DIR}/src/platform/CMakeLists.txt)
 include(${CMAKE_CURRENT_SOURCE_DIR}/src/shell/CMakeLists.txt)
 
@@ -278,7 +278,7 @@ include_directories("src/hardware/snd_pc98/x11")
 include_directories("${ZLIB_INCLUDE_DIR}/SDL2") # nasty hack (vcpkg-specific)
 
 if (NOT MSVC)
-	# x86 intrinsic include in src/mt32/mmath.h fails on bare i686 target
+	# x86 intrinsic include in src/libs/mt32/mmath.h fails on bare i686 target
 	set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -msse4.1")
 endif ()
 

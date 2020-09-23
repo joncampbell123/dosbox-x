@@ -327,7 +327,7 @@
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <ClCompile>
-      <AdditionalIncludeDirectories>$(SolutionDir)pcap;$(SolutionDir);$(SolutionDir)..;$(SolutionDir)..\include;$(SolutionDir)..\src;$(SolutionDir)..\src\aviwriter;$(SolutionDir)..\src\mt32;$(SolutionDir)..\src\hardware\snd_pc98\cbus;$(SolutionDir)..\src\hardware\snd_pc98\common;$(SolutionDir)..\src\hardware\snd_pc98\generic;$(SolutionDir)..\src\hardware\snd_pc98\sound;$(SolutionDir)..\src\hardware\snd_pc98\x11;$(SolutionDir)..\src\hardware\snd_pc98\sound\getsnd;$(SolutionDir)libpdcurses;$(SolutionDir)zlib;$(SolutionDir)libpng;$(SolutionDir)freetype\include;$(SolutionDir)sdl\include;$(SolutionDir)sdlnet;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(SolutionDir)pcap;$(SolutionDir);$(SolutionDir)..;$(SolutionDir)..\include;$(SolutionDir)..\src;$(SolutionDir)..\src\aviwriter;$(SolutionDir)..\src\libs\mt32;$(SolutionDir)..\src\hardware\snd_pc98\cbus;$(SolutionDir)..\src\hardware\snd_pc98\common;$(SolutionDir)..\src\hardware\snd_pc98\generic;$(SolutionDir)..\src\hardware\snd_pc98\sound;$(SolutionDir)..\src\hardware\snd_pc98\x11;$(SolutionDir)..\src\hardware\snd_pc98\sound\getsnd;$(SolutionDir)libpdcurses;$(SolutionDir)zlib;$(SolutionDir)libpng;$(SolutionDir)freetype\include;$(SolutionDir)sdl\include;$(SolutionDir)sdlnet;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <PreprocessorDefinitions>WIN32;__WIN32__;_CRT_SECURE_NO_WARNINGS;_FILE_OFFSET_BITS=64;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
       <WarningLevel>Level3</WarningLevel>
@@ -360,7 +360,7 @@ copy "$(SolutionDir)\..\contrib\windows\shaders\*.*" "$(OutputPath)\shaders\"</C
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug SDL2|Win32'">
     <ClCompile>
-      <AdditionalIncludeDirectories>$(SolutionDir)pcap;$(SolutionDir);$(SolutionDir)..;$(SolutionDir)..\include;$(SolutionDir)..\src;$(SolutionDir)..\src\aviwriter;$(SolutionDir)..\src\hardware\snd_pc98\cbus;$(SolutionDir)..\src\hardware\snd_pc98\common;$(SolutionDir)..\src\hardware\snd_pc98\generic;$(SolutionDir)..\src\hardware\snd_pc98\sound;$(SolutionDir)..\src\hardware\snd_pc98\x11;$(SolutionDir)..\src\hardware\snd_pc98\sound\getsnd;$(SolutionDir)..\src\mt32;$(SolutionDir)libpdcurses;$(SolutionDir)zlib;$(SolutionDir)libpng;$(SolutionDir)freetype\include;$(SolutionDir)sdl2\include;$(SolutionDir)sdlnet;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(SolutionDir)pcap;$(SolutionDir);$(SolutionDir)..;$(SolutionDir)..\include;$(SolutionDir)..\src;$(SolutionDir)..\src\aviwriter;$(SolutionDir)..\src\hardware\snd_pc98\cbus;$(SolutionDir)..\src\hardware\snd_pc98\common;$(SolutionDir)..\src\hardware\snd_pc98\generic;$(SolutionDir)..\src\hardware\snd_pc98\sound;$(SolutionDir)..\src\hardware\snd_pc98\x11;$(SolutionDir)..\src\hardware\snd_pc98\sound\getsnd;$(SolutionDir)..\src\libs\mt32;$(SolutionDir)libpdcurses;$(SolutionDir)zlib;$(SolutionDir)libpng;$(SolutionDir)freetype\include;$(SolutionDir)sdl2\include;$(SolutionDir)sdlnet;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <PreprocessorDefinitions>WIN32;__WIN32__;_CRT_SECURE_NO_WARNINGS;_FILE_OFFSET_BITS=64;C_SDL2=1;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
       <WarningLevel>Level3</WarningLevel>
@@ -397,7 +397,7 @@ copy "$(SolutionDir)\..\contrib\windows\shaders\*.*" "$(OutputPath)\shaders\"</C
       <TargetEnvironment>X64</TargetEnvironment>
     </Midl>
     <ClCompile>
-      <AdditionalIncludeDirectories>$(SolutionDir)pcap;$(SolutionDir);$(SolutionDir)..;$(SolutionDir)..\include;$(SolutionDir)..\src;$(SolutionDir)..\src\aviwriter;$(SolutionDir)..\src\mt32;$(SolutionDir)..\src\hardware\snd_pc98\cbus;$(SolutionDir)..\src\hardware\snd_pc98\common;$(SolutionDir)..\src\hardware\snd_pc98\generic;$(SolutionDir)..\src\hardware\snd_pc98\sound;$(SolutionDir)..\src\hardware\snd_pc98\x11;$(SolutionDir)..\src\hardware\snd_pc98\sound\getsnd;$(SolutionDir)libpdcurses;$(SolutionDir)zlib;$(SolutionDir)libpng;$(SolutionDir)freetype\include;$(SolutionDir)sdl\include;$(SolutionDir)sdlnet;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(SolutionDir)pcap;$(SolutionDir);$(SolutionDir)..;$(SolutionDir)..\include;$(SolutionDir)..\src;$(SolutionDir)..\src\aviwriter;$(SolutionDir)..\src\libs\mt32;$(SolutionDir)..\src\hardware\snd_pc98\cbus;$(SolutionDir)..\src\hardware\snd_pc98\common;$(SolutionDir)..\src\hardware\snd_pc98\generic;$(SolutionDir)..\src\hardware\snd_pc98\sound;$(SolutionDir)..\src\hardware\snd_pc98\x11;$(SolutionDir)..\src\hardware\snd_pc98\sound\getsnd;$(SolutionDir)libpdcurses;$(SolutionDir)zlib;$(SolutionDir)libpng;$(SolutionDir)freetype\include;$(SolutionDir)sdl\include;$(SolutionDir)sdlnet;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <PreprocessorDefinitions>WIN32;__WIN32__;_CRT_SECURE_NO_WARNINGS;_FILE_OFFSET_BITS=64;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <WarningLevel>Level3</WarningLevel>
       <SDLCheck>false</SDLCheck>
@@ -428,7 +428,7 @@ copy "$(SolutionDir)\..\contrib\windows\shaders\*.*" "$(OutputPath)\shaders\"</C
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|ARM64'">
     <Midl />
     <ClCompile>
-      <AdditionalIncludeDirectories>$(SolutionDir)pcap;$(SolutionDir);$(SolutionDir)..;$(SolutionDir)..\include;$(SolutionDir)..\src;$(SolutionDir)..\src\aviwriter;$(SolutionDir)..\src\mt32;$(SolutionDir)..\src\hardware\snd_pc98\cbus;$(SolutionDir)..\src\hardware\snd_pc98\common;$(SolutionDir)..\src\hardware\snd_pc98\generic;$(SolutionDir)..\src\hardware\snd_pc98\sound;$(SolutionDir)..\src\hardware\snd_pc98\x11;$(SolutionDir)..\src\hardware\snd_pc98\sound\getsnd;$(SolutionDir)libpdcurses;$(SolutionDir)zlib;$(SolutionDir)libpng;$(SolutionDir)freetype\include;$(SolutionDir)sdl\include;$(SolutionDir)sdlnet;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(SolutionDir)pcap;$(SolutionDir);$(SolutionDir)..;$(SolutionDir)..\include;$(SolutionDir)..\src;$(SolutionDir)..\src\aviwriter;$(SolutionDir)..\src\libs\mt32;$(SolutionDir)..\src\hardware\snd_pc98\cbus;$(SolutionDir)..\src\hardware\snd_pc98\common;$(SolutionDir)..\src\hardware\snd_pc98\generic;$(SolutionDir)..\src\hardware\snd_pc98\sound;$(SolutionDir)..\src\hardware\snd_pc98\x11;$(SolutionDir)..\src\hardware\snd_pc98\sound\getsnd;$(SolutionDir)libpdcurses;$(SolutionDir)zlib;$(SolutionDir)libpng;$(SolutionDir)freetype\include;$(SolutionDir)sdl\include;$(SolutionDir)sdlnet;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <PreprocessorDefinitions>WIN32;__WIN32__;_CRT_SECURE_NO_WARNINGS;_FILE_OFFSET_BITS=64;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
       <WarningLevel>Level3</WarningLevel>
@@ -459,7 +459,7 @@ copy "$(SolutionDir)\..\contrib\windows\shaders\*.*" "$(OutputPath)\shaders\"</C
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|ARM'">
     <Midl />
     <ClCompile>
-      <AdditionalIncludeDirectories>$(SolutionDir)pcap;$(SolutionDir);$(SolutionDir)..;$(SolutionDir)..\include;$(SolutionDir)..\src;$(SolutionDir)..\src\aviwriter;$(SolutionDir)..\src\mt32;$(SolutionDir)..\src\hardware\snd_pc98\cbus;$(SolutionDir)..\src\hardware\snd_pc98\common;$(SolutionDir)..\src\hardware\snd_pc98\generic;$(SolutionDir)..\src\hardware\snd_pc98\sound;$(SolutionDir)..\src\hardware\snd_pc98\x11;$(SolutionDir)..\src\hardware\snd_pc98\sound\getsnd;$(SolutionDir)libpdcurses;$(SolutionDir)zlib;$(SolutionDir)libpng;$(SolutionDir)freetype\include;$(SolutionDir)sdl\include;$(SolutionDir)sdlnet;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(SolutionDir)pcap;$(SolutionDir);$(SolutionDir)..;$(SolutionDir)..\include;$(SolutionDir)..\src;$(SolutionDir)..\src\aviwriter;$(SolutionDir)..\src\libs\mt32;$(SolutionDir)..\src\hardware\snd_pc98\cbus;$(SolutionDir)..\src\hardware\snd_pc98\common;$(SolutionDir)..\src\hardware\snd_pc98\generic;$(SolutionDir)..\src\hardware\snd_pc98\sound;$(SolutionDir)..\src\hardware\snd_pc98\x11;$(SolutionDir)..\src\hardware\snd_pc98\sound\getsnd;$(SolutionDir)libpdcurses;$(SolutionDir)zlib;$(SolutionDir)libpng;$(SolutionDir)freetype\include;$(SolutionDir)sdl\include;$(SolutionDir)sdlnet;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <PreprocessorDefinitions>WIN32;__WIN32__;_CRT_SECURE_NO_WARNINGS;_FILE_OFFSET_BITS=64;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
       <WarningLevel>Level3</WarningLevel>
@@ -492,7 +492,7 @@ copy "$(SolutionDir)\..\contrib\windows\shaders\*.*" "$(OutputPath)\shaders\"</C
       <TargetEnvironment>X64</TargetEnvironment>
     </Midl>
     <ClCompile>
-      <AdditionalIncludeDirectories>$(SolutionDir)pcap;$(SolutionDir);$(SolutionDir)..;$(SolutionDir)..\include;$(SolutionDir)..\src;$(SolutionDir)..\src\aviwriter;$(SolutionDir)..\src\hardware\snd_pc98\cbus;$(SolutionDir)..\src\hardware\snd_pc98\common;$(SolutionDir)..\src\hardware\snd_pc98\generic;$(SolutionDir)..\src\hardware\snd_pc98\sound;$(SolutionDir)..\src\hardware\snd_pc98\x11;$(SolutionDir)..\src\hardware\snd_pc98\sound\getsnd;$(SolutionDir)..\src\mt32;$(SolutionDir)libpdcurses;$(SolutionDir)zlib;$(SolutionDir)libpng;$(SolutionDir)freetype\include;$(SolutionDir)sdl2\include;$(SolutionDir)sdlnet;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(SolutionDir)pcap;$(SolutionDir);$(SolutionDir)..;$(SolutionDir)..\include;$(SolutionDir)..\src;$(SolutionDir)..\src\aviwriter;$(SolutionDir)..\src\hardware\snd_pc98\cbus;$(SolutionDir)..\src\hardware\snd_pc98\common;$(SolutionDir)..\src\hardware\snd_pc98\generic;$(SolutionDir)..\src\hardware\snd_pc98\sound;$(SolutionDir)..\src\hardware\snd_pc98\x11;$(SolutionDir)..\src\hardware\snd_pc98\sound\getsnd;$(SolutionDir)..\src\libs\mt32;$(SolutionDir)libpdcurses;$(SolutionDir)zlib;$(SolutionDir)libpng;$(SolutionDir)freetype\include;$(SolutionDir)sdl2\include;$(SolutionDir)sdlnet;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <PreprocessorDefinitions>WIN32;__WIN32__;_CRT_SECURE_NO_WARNINGS;_FILE_OFFSET_BITS=64;C_SDL2=1;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
       <WarningLevel>Level3</WarningLevel>
@@ -523,7 +523,7 @@ copy "$(SolutionDir)\..\contrib\windows\shaders\*.*" "$(OutputPath)\shaders\"</C
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug SDL2|ARM64'">
     <Midl />
     <ClCompile>
-      <AdditionalIncludeDirectories>$(SolutionDir)pcap;$(SolutionDir);$(SolutionDir)..;$(SolutionDir)..\include;$(SolutionDir)..\src;$(SolutionDir)..\src\aviwriter;$(SolutionDir)..\src\hardware\snd_pc98\cbus;$(SolutionDir)..\src\hardware\snd_pc98\common;$(SolutionDir)..\src\hardware\snd_pc98\generic;$(SolutionDir)..\src\hardware\snd_pc98\sound;$(SolutionDir)..\src\hardware\snd_pc98\x11;$(SolutionDir)..\src\hardware\snd_pc98\sound\getsnd;$(SolutionDir)..\src\mt32;$(SolutionDir)libpdcurses;$(SolutionDir)zlib;$(SolutionDir)libpng;$(SolutionDir)freetype\include;$(SolutionDir)sdl2\include;$(SolutionDir)sdlnet;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(SolutionDir)pcap;$(SolutionDir);$(SolutionDir)..;$(SolutionDir)..\include;$(SolutionDir)..\src;$(SolutionDir)..\src\aviwriter;$(SolutionDir)..\src\hardware\snd_pc98\cbus;$(SolutionDir)..\src\hardware\snd_pc98\common;$(SolutionDir)..\src\hardware\snd_pc98\generic;$(SolutionDir)..\src\hardware\snd_pc98\sound;$(SolutionDir)..\src\hardware\snd_pc98\x11;$(SolutionDir)..\src\hardware\snd_pc98\sound\getsnd;$(SolutionDir)..\src\libs\mt32;$(SolutionDir)libpdcurses;$(SolutionDir)zlib;$(SolutionDir)libpng;$(SolutionDir)freetype\include;$(SolutionDir)sdl2\include;$(SolutionDir)sdlnet;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <PreprocessorDefinitions>WIN32;__WIN32__;_CRT_SECURE_NO_WARNINGS;_FILE_OFFSET_BITS=64;C_SDL2=1;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
       <WarningLevel>Level3</WarningLevel>
@@ -554,7 +554,7 @@ copy "$(SolutionDir)\..\contrib\windows\shaders\*.*" "$(OutputPath)\shaders\"</C
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug SDL2|ARM'">
     <Midl />
     <ClCompile>
-      <AdditionalIncludeDirectories>$(SolutionDir)pcap;$(SolutionDir);$(SolutionDir)..;$(SolutionDir)..\include;$(SolutionDir)..\src;$(SolutionDir)..\src\aviwriter;$(SolutionDir)..\src\hardware\snd_pc98\cbus;$(SolutionDir)..\src\hardware\snd_pc98\common;$(SolutionDir)..\src\hardware\snd_pc98\generic;$(SolutionDir)..\src\hardware\snd_pc98\sound;$(SolutionDir)..\src\hardware\snd_pc98\x11;$(SolutionDir)..\src\hardware\snd_pc98\sound\getsnd;$(SolutionDir)..\src\mt32;$(SolutionDir)libpdcurses;$(SolutionDir)zlib;$(SolutionDir)libpng;$(SolutionDir)freetype\include;$(SolutionDir)sdl2\include;$(SolutionDir)sdlnet;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(SolutionDir)pcap;$(SolutionDir);$(SolutionDir)..;$(SolutionDir)..\include;$(SolutionDir)..\src;$(SolutionDir)..\src\aviwriter;$(SolutionDir)..\src\hardware\snd_pc98\cbus;$(SolutionDir)..\src\hardware\snd_pc98\common;$(SolutionDir)..\src\hardware\snd_pc98\generic;$(SolutionDir)..\src\hardware\snd_pc98\sound;$(SolutionDir)..\src\hardware\snd_pc98\x11;$(SolutionDir)..\src\hardware\snd_pc98\sound\getsnd;$(SolutionDir)..\src\libs\mt32;$(SolutionDir)libpdcurses;$(SolutionDir)zlib;$(SolutionDir)libpng;$(SolutionDir)freetype\include;$(SolutionDir)sdl2\include;$(SolutionDir)sdlnet;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <PreprocessorDefinitions>WIN32;__WIN32__;_CRT_SECURE_NO_WARNINGS;_FILE_OFFSET_BITS=64;C_SDL2=1;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
       <WarningLevel>Level3</WarningLevel>
@@ -585,7 +585,7 @@ copy "$(SolutionDir)\..\contrib\windows\shaders\*.*" "$(OutputPath)\shaders\"</C
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <ClCompile>
       <Optimization>MaxSpeed</Optimization>
-      <AdditionalIncludeDirectories>$(SolutionDir)pcap;$(SolutionDir);$(SolutionDir)..;$(SolutionDir)..\include;$(SolutionDir)..\src;$(SolutionDir)..\src\aviwriter;$(SolutionDir)..\src\mt32;$(SolutionDir)..\src\hardware\snd_pc98\cbus;$(SolutionDir)..\src\hardware\snd_pc98\common;$(SolutionDir)..\src\hardware\snd_pc98\generic;$(SolutionDir)..\src\hardware\snd_pc98\sound;$(SolutionDir)..\src\hardware\snd_pc98\x11;$(SolutionDir)..\src\hardware\snd_pc98\sound\getsnd;$(SolutionDir)libpdcurses;$(SolutionDir)zlib;$(SolutionDir)libpng;$(SolutionDir)freetype\include;$(SolutionDir)sdl\include;$(SolutionDir)sdlnet;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(SolutionDir)pcap;$(SolutionDir);$(SolutionDir)..;$(SolutionDir)..\include;$(SolutionDir)..\src;$(SolutionDir)..\src\aviwriter;$(SolutionDir)..\src\libs\mt32;$(SolutionDir)..\src\hardware\snd_pc98\cbus;$(SolutionDir)..\src\hardware\snd_pc98\common;$(SolutionDir)..\src\hardware\snd_pc98\generic;$(SolutionDir)..\src\hardware\snd_pc98\sound;$(SolutionDir)..\src\hardware\snd_pc98\x11;$(SolutionDir)..\src\hardware\snd_pc98\sound\getsnd;$(SolutionDir)libpdcurses;$(SolutionDir)zlib;$(SolutionDir)libpng;$(SolutionDir)freetype\include;$(SolutionDir)sdl\include;$(SolutionDir)sdlnet;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <PreprocessorDefinitions>WIN32;__WIN32__;_CRT_SECURE_NO_WARNINGS;_FILE_OFFSET_BITS=64;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
       <FavorSizeOrSpeed>Speed</FavorSizeOrSpeed>
@@ -619,7 +619,7 @@ copy "$(SolutionDir)\..\contrib\windows\shaders\*.*" "$(OutputPath)\shaders\"</C
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release SDL2|Win32'">
     <ClCompile>
       <Optimization>MaxSpeed</Optimization>
-      <AdditionalIncludeDirectories>$(SolutionDir)pcap;$(SolutionDir);$(SolutionDir)..;$(SolutionDir)..\include;$(SolutionDir)..\src;$(SolutionDir)..\src\aviwriter;$(SolutionDir)..\src\hardware\snd_pc98\cbus;$(SolutionDir)..\src\hardware\snd_pc98\common;$(SolutionDir)..\src\hardware\snd_pc98\generic;$(SolutionDir)..\src\hardware\snd_pc98\sound;$(SolutionDir)..\src\hardware\snd_pc98\x11;$(SolutionDir)..\src\hardware\snd_pc98\sound\getsnd;$(SolutionDir)..\src\mt32;$(SolutionDir)libpdcurses;$(SolutionDir)zlib;$(SolutionDir)libpng;$(SolutionDir)freetype\include;$(SolutionDir)sdl2\include;$(SolutionDir)sdlnet;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(SolutionDir)pcap;$(SolutionDir);$(SolutionDir)..;$(SolutionDir)..\include;$(SolutionDir)..\src;$(SolutionDir)..\src\aviwriter;$(SolutionDir)..\src\hardware\snd_pc98\cbus;$(SolutionDir)..\src\hardware\snd_pc98\common;$(SolutionDir)..\src\hardware\snd_pc98\generic;$(SolutionDir)..\src\hardware\snd_pc98\sound;$(SolutionDir)..\src\hardware\snd_pc98\x11;$(SolutionDir)..\src\hardware\snd_pc98\sound\getsnd;$(SolutionDir)..\src\libs\mt32;$(SolutionDir)libpdcurses;$(SolutionDir)zlib;$(SolutionDir)libpng;$(SolutionDir)freetype\include;$(SolutionDir)sdl2\include;$(SolutionDir)sdlnet;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <PreprocessorDefinitions>WIN32;__WIN32__;_CRT_SECURE_NO_WARNINGS;_FILE_OFFSET_BITS=64;C_SDL2=1;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
       <WarningLevel>Level3</WarningLevel>
@@ -657,7 +657,7 @@ copy "$(SolutionDir)\..\contrib\windows\shaders\*.*" "$(OutputPath)\shaders\"</C
     </Midl>
     <ClCompile>
       <Optimization>MaxSpeed</Optimization>
-      <AdditionalIncludeDirectories>$(SolutionDir)pcap;$(SolutionDir);$(SolutionDir)..;$(SolutionDir)..\include;$(SolutionDir)..\src;$(SolutionDir)..\src\aviwriter;$(SolutionDir)..\src\mt32;$(SolutionDir)..\src\hardware\snd_pc98\cbus;$(SolutionDir)..\src\hardware\snd_pc98\common;$(SolutionDir)..\src\hardware\snd_pc98\generic;$(SolutionDir)..\src\hardware\snd_pc98\sound;$(SolutionDir)..\src\hardware\snd_pc98\x11;$(SolutionDir)..\src\hardware\snd_pc98\sound\getsnd;$(SolutionDir)libpdcurses;$(SolutionDir)zlib;$(SolutionDir)libpng;$(SolutionDir)freetype\include;$(SolutionDir)sdl\include;$(SolutionDir)sdlnet;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(SolutionDir)pcap;$(SolutionDir);$(SolutionDir)..;$(SolutionDir)..\include;$(SolutionDir)..\src;$(SolutionDir)..\src\aviwriter;$(SolutionDir)..\src\libs\mt32;$(SolutionDir)..\src\hardware\snd_pc98\cbus;$(SolutionDir)..\src\hardware\snd_pc98\common;$(SolutionDir)..\src\hardware\snd_pc98\generic;$(SolutionDir)..\src\hardware\snd_pc98\sound;$(SolutionDir)..\src\hardware\snd_pc98\x11;$(SolutionDir)..\src\hardware\snd_pc98\sound\getsnd;$(SolutionDir)libpdcurses;$(SolutionDir)zlib;$(SolutionDir)libpng;$(SolutionDir)freetype\include;$(SolutionDir)sdl\include;$(SolutionDir)sdlnet;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <PreprocessorDefinitions>WIN32;__WIN32__;_CRT_SECURE_NO_WARNINGS;_FILE_OFFSET_BITS=64;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
       <WarningLevel>Level3</WarningLevel>
@@ -689,7 +689,7 @@ copy "$(SolutionDir)\..\contrib\windows\shaders\*.*" "$(OutputPath)\shaders\"</C
     <Midl />
     <ClCompile>
       <Optimization>MaxSpeed</Optimization>
-      <AdditionalIncludeDirectories>$(SolutionDir)pcap;$(SolutionDir);$(SolutionDir)..;$(SolutionDir)..\include;$(SolutionDir)..\src;$(SolutionDir)..\src\aviwriter;$(SolutionDir)..\src\mt32;$(SolutionDir)..\src\hardware\snd_pc98\cbus;$(SolutionDir)..\src\hardware\snd_pc98\common;$(SolutionDir)..\src\hardware\snd_pc98\generic;$(SolutionDir)..\src\hardware\snd_pc98\sound;$(SolutionDir)..\src\hardware\snd_pc98\x11;$(SolutionDir)..\src\hardware\snd_pc98\sound\getsnd;$(SolutionDir)libpdcurses;$(SolutionDir)zlib;$(SolutionDir)libpng;$(SolutionDir)freetype\include;$(SolutionDir)sdl\include;$(SolutionDir)sdlnet;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(SolutionDir)pcap;$(SolutionDir);$(SolutionDir)..;$(SolutionDir)..\include;$(SolutionDir)..\src;$(SolutionDir)..\src\aviwriter;$(SolutionDir)..\src\libs\mt32;$(SolutionDir)..\src\hardware\snd_pc98\cbus;$(SolutionDir)..\src\hardware\snd_pc98\common;$(SolutionDir)..\src\hardware\snd_pc98\generic;$(SolutionDir)..\src\hardware\snd_pc98\sound;$(SolutionDir)..\src\hardware\snd_pc98\x11;$(SolutionDir)..\src\hardware\snd_pc98\sound\getsnd;$(SolutionDir)libpdcurses;$(SolutionDir)zlib;$(SolutionDir)libpng;$(SolutionDir)freetype\include;$(SolutionDir)sdl\include;$(SolutionDir)sdlnet;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <PreprocessorDefinitions>WIN32;__WIN32__;_CRT_SECURE_NO_WARNINGS;_FILE_OFFSET_BITS=64;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
       <WarningLevel>Level3</WarningLevel>
@@ -721,7 +721,7 @@ copy "$(SolutionDir)\..\contrib\windows\shaders\*.*" "$(OutputPath)\shaders\"</C
     <Midl />
     <ClCompile>
       <Optimization>MaxSpeed</Optimization>
-      <AdditionalIncludeDirectories>$(SolutionDir)pcap;$(SolutionDir);$(SolutionDir)..;$(SolutionDir)..\include;$(SolutionDir)..\src;$(SolutionDir)..\src\aviwriter;$(SolutionDir)..\src\mt32;$(SolutionDir)..\src\hardware\snd_pc98\cbus;$(SolutionDir)..\src\hardware\snd_pc98\common;$(SolutionDir)..\src\hardware\snd_pc98\generic;$(SolutionDir)..\src\hardware\snd_pc98\sound;$(SolutionDir)..\src\hardware\snd_pc98\x11;$(SolutionDir)..\src\hardware\snd_pc98\sound\getsnd;$(SolutionDir)libpdcurses;$(SolutionDir)zlib;$(SolutionDir)libpng;$(SolutionDir)freetype\include;$(SolutionDir)sdl\include;$(SolutionDir)sdlnet;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(SolutionDir)pcap;$(SolutionDir);$(SolutionDir)..;$(SolutionDir)..\include;$(SolutionDir)..\src;$(SolutionDir)..\src\aviwriter;$(SolutionDir)..\src\libs\mt32;$(SolutionDir)..\src\hardware\snd_pc98\cbus;$(SolutionDir)..\src\hardware\snd_pc98\common;$(SolutionDir)..\src\hardware\snd_pc98\generic;$(SolutionDir)..\src\hardware\snd_pc98\sound;$(SolutionDir)..\src\hardware\snd_pc98\x11;$(SolutionDir)..\src\hardware\snd_pc98\sound\getsnd;$(SolutionDir)libpdcurses;$(SolutionDir)zlib;$(SolutionDir)libpng;$(SolutionDir)freetype\include;$(SolutionDir)sdl\include;$(SolutionDir)sdlnet;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <PreprocessorDefinitions>WIN32;__WIN32__;_CRT_SECURE_NO_WARNINGS;_FILE_OFFSET_BITS=64;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
       <WarningLevel>Level3</WarningLevel>
@@ -755,7 +755,7 @@ copy "$(SolutionDir)\..\contrib\windows\shaders\*.*" "$(OutputPath)\shaders\"</C
     </Midl>
     <ClCompile>
       <Optimization>MaxSpeed</Optimization>
-      <AdditionalIncludeDirectories>$(SolutionDir)pcap;$(SolutionDir);$(SolutionDir)..;$(SolutionDir)..\include;$(SolutionDir)..\src;$(SolutionDir)..\src\aviwriter;$(SolutionDir)..\src\hardware\snd_pc98\cbus;$(SolutionDir)..\src\hardware\snd_pc98\common;$(SolutionDir)..\src\hardware\snd_pc98\generic;$(SolutionDir)..\src\hardware\snd_pc98\sound;$(SolutionDir)..\src\hardware\snd_pc98\x11;$(SolutionDir)..\src\hardware\snd_pc98\sound\getsnd;$(SolutionDir)..\src\mt32;$(SolutionDir)libpdcurses;$(SolutionDir)zlib;$(SolutionDir)libpng;$(SolutionDir)freetype\include;$(SolutionDir)sdl2\include;$(SolutionDir)sdlnet;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(SolutionDir)pcap;$(SolutionDir);$(SolutionDir)..;$(SolutionDir)..\include;$(SolutionDir)..\src;$(SolutionDir)..\src\aviwriter;$(SolutionDir)..\src\hardware\snd_pc98\cbus;$(SolutionDir)..\src\hardware\snd_pc98\common;$(SolutionDir)..\src\hardware\snd_pc98\generic;$(SolutionDir)..\src\hardware\snd_pc98\sound;$(SolutionDir)..\src\hardware\snd_pc98\x11;$(SolutionDir)..\src\hardware\snd_pc98\sound\getsnd;$(SolutionDir)..\src\libs\mt32;$(SolutionDir)libpdcurses;$(SolutionDir)zlib;$(SolutionDir)libpng;$(SolutionDir)freetype\include;$(SolutionDir)sdl2\include;$(SolutionDir)sdlnet;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <PreprocessorDefinitions>WIN32;__WIN32__;_CRT_SECURE_NO_WARNINGS;_FILE_OFFSET_BITS=64;C_SDL2=1;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
       <WarningLevel>Level3</WarningLevel>
@@ -787,7 +787,7 @@ copy "$(SolutionDir)\..\contrib\windows\shaders\*.*" "$(OutputPath)\shaders\"</C
     <Midl />
     <ClCompile>
       <Optimization>MaxSpeed</Optimization>
-      <AdditionalIncludeDirectories>$(SolutionDir)pcap;$(SolutionDir);$(SolutionDir)..;$(SolutionDir)..\include;$(SolutionDir)..\src;$(SolutionDir)..\src\aviwriter;$(SolutionDir)..\src\hardware\snd_pc98\cbus;$(SolutionDir)..\src\hardware\snd_pc98\common;$(SolutionDir)..\src\hardware\snd_pc98\generic;$(SolutionDir)..\src\hardware\snd_pc98\sound;$(SolutionDir)..\src\hardware\snd_pc98\x11;$(SolutionDir)..\src\hardware\snd_pc98\sound\getsnd;$(SolutionDir)..\src\mt32;$(SolutionDir)libpdcurses;$(SolutionDir)zlib;$(SolutionDir)libpng;$(SolutionDir)freetype\include;$(SolutionDir)sdl2\include;$(SolutionDir)sdlnet;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(SolutionDir)pcap;$(SolutionDir);$(SolutionDir)..;$(SolutionDir)..\include;$(SolutionDir)..\src;$(SolutionDir)..\src\aviwriter;$(SolutionDir)..\src\hardware\snd_pc98\cbus;$(SolutionDir)..\src\hardware\snd_pc98\common;$(SolutionDir)..\src\hardware\snd_pc98\generic;$(SolutionDir)..\src\hardware\snd_pc98\sound;$(SolutionDir)..\src\hardware\snd_pc98\x11;$(SolutionDir)..\src\hardware\snd_pc98\sound\getsnd;$(SolutionDir)..\src\libs\mt32;$(SolutionDir)libpdcurses;$(SolutionDir)zlib;$(SolutionDir)libpng;$(SolutionDir)freetype\include;$(SolutionDir)sdl2\include;$(SolutionDir)sdlnet;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <PreprocessorDefinitions>WIN32;__WIN32__;_CRT_SECURE_NO_WARNINGS;_FILE_OFFSET_BITS=64;C_SDL2=1;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
       <WarningLevel>Level3</WarningLevel>
@@ -819,7 +819,7 @@ copy "$(SolutionDir)\..\contrib\windows\shaders\*.*" "$(OutputPath)\shaders\"</C
     <Midl />
     <ClCompile>
       <Optimization>MaxSpeed</Optimization>
-      <AdditionalIncludeDirectories>$(SolutionDir)pcap;$(SolutionDir);$(SolutionDir)..;$(SolutionDir)..\include;$(SolutionDir)..\src;$(SolutionDir)..\src\aviwriter;$(SolutionDir)..\src\hardware\snd_pc98\cbus;$(SolutionDir)..\src\hardware\snd_pc98\common;$(SolutionDir)..\src\hardware\snd_pc98\generic;$(SolutionDir)..\src\hardware\snd_pc98\sound;$(SolutionDir)..\src\hardware\snd_pc98\x11;$(SolutionDir)..\src\hardware\snd_pc98\sound\getsnd;$(SolutionDir)..\src\mt32;$(SolutionDir)libpdcurses;$(SolutionDir)zlib;$(SolutionDir)libpng;$(SolutionDir)freetype\include;$(SolutionDir)sdl2\include;$(SolutionDir)sdlnet;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(SolutionDir)pcap;$(SolutionDir);$(SolutionDir)..;$(SolutionDir)..\include;$(SolutionDir)..\src;$(SolutionDir)..\src\aviwriter;$(SolutionDir)..\src\hardware\snd_pc98\cbus;$(SolutionDir)..\src\hardware\snd_pc98\common;$(SolutionDir)..\src\hardware\snd_pc98\generic;$(SolutionDir)..\src\hardware\snd_pc98\sound;$(SolutionDir)..\src\hardware\snd_pc98\x11;$(SolutionDir)..\src\hardware\snd_pc98\sound\getsnd;$(SolutionDir)..\src\libs\mt32;$(SolutionDir)libpdcurses;$(SolutionDir)zlib;$(SolutionDir)libpng;$(SolutionDir)freetype\include;$(SolutionDir)sdl2\include;$(SolutionDir)sdlnet;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <PreprocessorDefinitions>WIN32;__WIN32__;_CRT_SECURE_NO_WARNINGS;_FILE_OFFSET_BITS=64;C_SDL2=1;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
       <WarningLevel>Level3</WarningLevel>
@@ -962,42 +962,42 @@ copy "$(SolutionDir)\..\contrib\windows\shaders\*.*" "$(OutputPath)\shaders\"</C
     <ClCompile Include="..\src\libs\zmbv\zmbv.cpp" />
     <ClCompile Include="..\src\misc\iconvpp.cpp" />
     <ClCompile Include="..\src\misc\shiftjis.cpp" />
-    <ClCompile Include="..\src\mt32\AReverbModel.cpp" />
+    <ClCompile Include="..\src\libs\mt32\AReverbModel.cpp" />
     <ClCompile Include="..\src\aviwriter\avi_rw_iobuf.cpp" />
     <ClCompile Include="..\src\aviwriter\avi_writer.cpp" />
-    <ClCompile Include="..\src\mt32\BReverbModel.cpp" />
-    <ClCompile Include="..\src\mt32\DelayReverb.cpp" />
-    <ClCompile Include="..\src\mt32\File.cpp" />
-    <ClCompile Include="..\src\mt32\FileStream.cpp" />
-    <ClCompile Include="..\src\mt32\FreeverbModel.cpp" />
-    <ClCompile Include="..\src\mt32\freeverb\allpass.cpp" />
-    <ClCompile Include="..\src\mt32\freeverb\comb.cpp" />
-    <ClCompile Include="..\src\mt32\freeverb\revmodel.cpp" />
+    <ClCompile Include="..\src\libs\mt32\BReverbModel.cpp" />
+    <ClCompile Include="..\src\libs\mt32\DelayReverb.cpp" />
+    <ClCompile Include="..\src\libs\mt32\File.cpp" />
+    <ClCompile Include="..\src\libs\mt32\FileStream.cpp" />
+    <ClCompile Include="..\src\libs\mt32\FreeverbModel.cpp" />
+    <ClCompile Include="..\src\libs\mt32\freeverb\allpass.cpp" />
+    <ClCompile Include="..\src\libs\mt32\freeverb\comb.cpp" />
+    <ClCompile Include="..\src\libs\mt32\freeverb\revmodel.cpp" />
     <ClCompile Include="..\src\aviwriter\guid.cpp" />
     <ClCompile Include="..\src\aviwriter\ksdataformat.cpp" />
-    <ClCompile Include="..\src\mt32\LA32Ramp.cpp" />
-    <ClCompile Include="..\src\mt32\LA32WaveGenerator.cpp" />
-    <ClCompile Include="..\src\mt32\LegacyWaveGenerator.cpp" />
+    <ClCompile Include="..\src\libs\mt32\LA32Ramp.cpp" />
+    <ClCompile Include="..\src\libs\mt32\LA32WaveGenerator.cpp" />
+    <ClCompile Include="..\src\libs\mt32\LegacyWaveGenerator.cpp" />
     <ClCompile Include="..\src\gui\menu.cpp" />
     <ClCompile Include="..\src\gui\midi.cpp" />
-    <ClCompile Include="..\src\mt32\Part.cpp" />
-    <ClCompile Include="..\src\mt32\Partial.cpp" />
-    <ClCompile Include="..\src\mt32\PartialManager.cpp" />
-    <ClCompile Include="..\src\mt32\Poly.cpp" />
+    <ClCompile Include="..\src\libs\mt32\Part.cpp" />
+    <ClCompile Include="..\src\libs\mt32\Partial.cpp" />
+    <ClCompile Include="..\src\libs\mt32\PartialManager.cpp" />
+    <ClCompile Include="..\src\libs\mt32\Poly.cpp" />
     <ClCompile Include="..\src\gui\render.cpp" />
     <ClCompile Include="..\src\gui\render_scalers.cpp" />
     <ClCompile Include="..\src\aviwriter\riff.cpp" />
     <ClCompile Include="..\src\aviwriter\riff_wav_writer.cpp" />
-    <ClCompile Include="..\src\mt32\ROMInfo.cpp" />
+    <ClCompile Include="..\src\libs\mt32\ROMInfo.cpp" />
     <ClCompile Include="..\src\gui\sdlmain.cpp" />
     <ClCompile Include="..\src\gui\sdl_gui.cpp" />
     <ClCompile Include="..\src\gui\sdl_mapper.cpp" />
-    <ClCompile Include="..\src\mt32\sha1\sha1.cpp" />
-    <ClCompile Include="..\src\mt32\Synth.cpp" />
-    <ClCompile Include="..\src\mt32\Tables.cpp" />
-    <ClCompile Include="..\src\mt32\TVA.cpp" />
-    <ClCompile Include="..\src\mt32\TVF.cpp" />
-    <ClCompile Include="..\src\mt32\TVP.cpp" />
+    <ClCompile Include="..\src\libs\mt32\sha1\sha1.cpp" />
+    <ClCompile Include="..\src\libs\mt32\Synth.cpp" />
+    <ClCompile Include="..\src\libs\mt32\Tables.cpp" />
+    <ClCompile Include="..\src\libs\mt32\TVA.cpp" />
+    <ClCompile Include="..\src\libs\mt32\TVF.cpp" />
+    <ClCompile Include="..\src\libs\mt32\TVP.cpp" />
     <ClCompile Include="..\src\hardware\adlib.cpp" />
     <ClCompile Include="..\src\hardware\cmos.cpp" />
     <ClCompile Include="..\src\hardware\dbopl.cpp" />
@@ -1396,34 +1396,34 @@ copy "$(SolutionDir)\..\contrib\windows\shaders\*.*" "$(OutputPath)\shaders\"</C
     <ClInclude Include="..\src\hardware\voodoo_vogl.h" />
     <ClInclude Include="..\src\ints\int10.h" />
     <ClInclude Include="..\src\ints\xms.h" />
-    <ClInclude Include="..\src\mt32\AReverbModel.h" />
-    <ClInclude Include="..\src\mt32\BReverbModel.h" />
-    <ClInclude Include="..\src\mt32\DelayReverb.h" />
-    <ClInclude Include="..\src\mt32\File.h" />
-    <ClInclude Include="..\src\mt32\FileStream.h" />
-    <ClInclude Include="..\src\mt32\FreeverbModel.h" />
-    <ClInclude Include="..\src\mt32\freeverb\allpass.h" />
-    <ClInclude Include="..\src\mt32\freeverb\comb.h" />
-    <ClInclude Include="..\src\mt32\freeverb\denormals.h" />
-    <ClInclude Include="..\src\mt32\freeverb\revmodel.h" />
-    <ClInclude Include="..\src\mt32\freeverb\tuning.h" />
-    <ClInclude Include="..\src\mt32\LA32Ramp.h" />
-    <ClInclude Include="..\src\mt32\LA32WaveGenerator.h" />
-    <ClInclude Include="..\src\mt32\LegacyWaveGenerator.h" />
-    <ClInclude Include="..\src\mt32\mmath.h" />
-    <ClInclude Include="..\src\mt32\mt32emu.h" />
-    <ClInclude Include="..\src\mt32\Part.h" />
-    <ClInclude Include="..\src\mt32\Partial.h" />
-    <ClInclude Include="..\src\mt32\PartialManager.h" />
-    <ClInclude Include="..\src\mt32\Poly.h" />
-    <ClInclude Include="..\src\mt32\ROMInfo.h" />
-    <ClInclude Include="..\src\mt32\sha1\sha1.h" />
-    <ClInclude Include="..\src\mt32\Structures.h" />
-    <ClInclude Include="..\src\mt32\Synth.h" />
-    <ClInclude Include="..\src\mt32\Tables.h" />
-    <ClInclude Include="..\src\mt32\TVA.h" />
-    <ClInclude Include="..\src\mt32\TVF.h" />
-    <ClInclude Include="..\src\mt32\TVP.h" />
+    <ClInclude Include="..\src\libs\mt32\AReverbModel.h" />
+    <ClInclude Include="..\src\libs\mt32\BReverbModel.h" />
+    <ClInclude Include="..\src\libs\mt32\DelayReverb.h" />
+    <ClInclude Include="..\src\libs\mt32\File.h" />
+    <ClInclude Include="..\src\libs\mt32\FileStream.h" />
+    <ClInclude Include="..\src\libs\mt32\FreeverbModel.h" />
+    <ClInclude Include="..\src\libs\mt32\freeverb\allpass.h" />
+    <ClInclude Include="..\src\libs\mt32\freeverb\comb.h" />
+    <ClInclude Include="..\src\libs\mt32\freeverb\denormals.h" />
+    <ClInclude Include="..\src\libs\mt32\freeverb\revmodel.h" />
+    <ClInclude Include="..\src\libs\mt32\freeverb\tuning.h" />
+    <ClInclude Include="..\src\libs\mt32\LA32Ramp.h" />
+    <ClInclude Include="..\src\libs\mt32\LA32WaveGenerator.h" />
+    <ClInclude Include="..\src\libs\mt32\LegacyWaveGenerator.h" />
+    <ClInclude Include="..\src\libs\mt32\mmath.h" />
+    <ClInclude Include="..\src\libs\mt32\mt32emu.h" />
+    <ClInclude Include="..\src\libs\mt32\Part.h" />
+    <ClInclude Include="..\src\libs\mt32\Partial.h" />
+    <ClInclude Include="..\src\libs\mt32\PartialManager.h" />
+    <ClInclude Include="..\src\libs\mt32\Poly.h" />
+    <ClInclude Include="..\src\libs\mt32\ROMInfo.h" />
+    <ClInclude Include="..\src\libs\mt32\sha1\sha1.h" />
+    <ClInclude Include="..\src\libs\mt32\Structures.h" />
+    <ClInclude Include="..\src\libs\mt32\Synth.h" />
+    <ClInclude Include="..\src\libs\mt32\Tables.h" />
+    <ClInclude Include="..\src\libs\mt32\TVA.h" />
+    <ClInclude Include="..\src\libs\mt32\TVF.h" />
+    <ClInclude Include="..\src\libs\mt32\TVP.h" />
     <ClInclude Include="..\src\output\direct3d\d3d_components.h" />
     <ClInclude Include="..\src\output\direct3d\direct3d.h" />
     <ClInclude Include="..\src\output\direct3d\hq2x_d3d.h" />
