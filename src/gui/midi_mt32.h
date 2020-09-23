@@ -1,8 +1,13 @@
-#include "mt32emu.h"
 #include <SDL_thread.h>
 #include <SDL_timer.h>
 #include "mixer.h"
 #include "control.h"
+
+#define MT32EMU_API_TYPE 3
+#define MT32EMU_EXPORTS_TYPE 1
+#include <mt32emu.h>
+
+static const Bitu MILLIS_PER_SECOND = 1000;
 
 class RingBuffer {
 private:
@@ -40,47 +45,152 @@ public:
 	}
 };
 
-static class MidiHandler_mt32 : public MidiHandler {
+class MidiHandler_mt32 : public MidiHandler {
 private:
-	static const Bitu MIXER_BUFFER_SIZE = MIXER_BUFSIZE >> 2;
 	MixerChannel *chan;
-	MT32Emu::Synth *synth;
-	RingBuffer midiBuffer;
+	MT32Emu::Service *service;
 	SDL_Thread *thread;
-	SDL_mutex *synthMutex;
-	SDL_semaphore *procIdleSem, *mixerReqSem;
-    Bit16s mixerBuffer[2 * MIXER_BUFFER_SIZE] = {};
-	volatile Bitu mixerBufferSize = 0;
-	volatile bool stopProcessing = false;
-	bool open, noise = false, reverseStereo = false, renderInThread = false;
-	Bit16s numPartials = 0;
+	SDL_mutex *lock;
+	SDL_cond *framesInBufferChanged;
+	Bit16s *audioBuffer;
+	Bitu audioBufferSize;
+	Bitu framesPerAudioBuffer;
+	Bitu minimumRenderFrames;
+	volatile Bitu renderPos, playPos, playedBuffers;
+	volatile bool stopProcessing;
+	bool open, noise, renderInThread;
 
-	class MT32ReportHandler : public MT32Emu::ReportHandler {
-	protected:
-		virtual void onErrorControlROM() {
-			LOG(LOG_MISC,LOG_WARN)("MT32: Couldn't open Control ROM file");
-		}
+	static void mixerCallBack(Bitu len) {
+        MidiHandler_mt32::GetInstance().handleMixerCallBack(len);
+    }
+	static int processingThread(void *) {
+        MidiHandler_mt32::GetInstance().renderingLoop();
+        return 0;
+    }
+	static void makeROMPathName(char pathName[], const char romDir[], const char fileName[], bool addPathSeparator) {
+        strcpy(pathName, romDir);
+        if (addPathSeparator) {
+            strcat(pathName, "/");
+        }
+        strcat(pathName, fileName);
+    }
+	static mt32emu_report_handler_i getReportHandlerInterface() {
+        class ReportHandler {
+        public:
+            static mt32emu_report_handler_version getReportHandlerVersionID(mt32emu_report_handler_i) {
+                return MT32EMU_REPORT_HANDLER_VERSION_0;
+            }
 
-		virtual void onErrorPCMROM() {
-			LOG(LOG_MISC,LOG_WARN)("MT32: Couldn't open PCM ROM file");
-		}
+            static void printDebug(void *instance_data, const char *fmt, va_list list) {
+                MidiHandler_mt32 &midiHandler_mt32 = *(MidiHandler_mt32 *)instance_data;
+                if (midiHandler_mt32.noise) {
+                    char s[1024];
+                    vsnprintf(s, 1023, fmt, list);
+                    LOG_MSG("MT32: %s", s);
+                }
+            }
 
-		virtual void showLCDMessage(const char *message) {
-			LOG(LOG_MISC,LOG_DEBUG)("MT32: LCD-Message: %s", message);
-		}
+            static void onErrorControlROM(void *) {
+                LOG_MSG("MT32: Couldn't open Control ROM file");
+            }
 
-		virtual void printDebug(const char *fmt, va_list list);
-	} reportHandler;
+            static void onErrorPCMROM(void *) {
+                LOG_MSG("MT32: Couldn't open PCM ROM file");
+            }
 
-	static void mixerCallBack(Bitu len);
-	static int processingThread(void *);
+            static void showLCDMessage(void *, const char *message) {
+                LOG_MSG("MT32: LCD-Message: %s", message);
+            }
+        };
+
+        static const mt32emu_report_handler_i_v0 REPORT_HANDLER_V0_IMPL = {
+            ReportHandler::getReportHandlerVersionID,
+            ReportHandler::printDebug,
+            ReportHandler::onErrorControlROM,
+            ReportHandler::onErrorPCMROM,
+            ReportHandler::showLCDMessage
+        };
+
+        static const mt32emu_report_handler_i REPORT_HANDLER_I = { &REPORT_HANDLER_V0_IMPL };
+
+        return REPORT_HANDLER_I;
+    }
+	void handleMixerCallBack(Bitu len) {
+        if (renderInThread) {
+            while (renderPos == playPos) {
+                SDL_LockMutex(lock);
+                SDL_CondWait(framesInBufferChanged, lock);
+                SDL_UnlockMutex(lock);
+                if (stopProcessing) return;
+            }
+            Bitu renderPosSnap = renderPos;
+            Bitu playPosSnap = playPos;
+            Bitu samplesReady = (renderPosSnap < playPosSnap) ? audioBufferSize - playPosSnap : renderPosSnap - playPosSnap;
+            if (len > (samplesReady >> 1)) {
+                len = samplesReady >> 1;
+            }
+            chan->AddSamples_s16(len, audioBuffer + playPosSnap);
+            playPosSnap += (len << 1);
+            while (audioBufferSize <= playPosSnap) {
+                playPosSnap -= audioBufferSize;
+                playedBuffers++;
+            }
+            playPos = playPosSnap;
+            renderPosSnap = renderPos;
+            const Bitu samplesFree = (renderPosSnap < playPosSnap) ? playPosSnap - renderPosSnap : audioBufferSize + playPosSnap - renderPosSnap;
+            if (minimumRenderFrames <= (samplesFree >> 1)) {
+                SDL_LockMutex(lock);
+                SDL_CondSignal(framesInBufferChanged);
+                SDL_UnlockMutex(lock);
+            }
+        } else {
+            service->renderBit16s((Bit16s *)MixTemp, len);
+            chan->AddSamples_s16(len, (Bit16s *)MixTemp);
+        }
+    }
+	void renderingLoop() {
+        while (!stopProcessing) {
+            const Bitu renderPosSnap = renderPos;
+            const Bitu playPosSnap = playPos;
+            Bitu samplesToRender;
+            if (renderPosSnap < playPosSnap) {
+                samplesToRender = playPosSnap - renderPosSnap - 2;
+            } else {
+                samplesToRender = audioBufferSize - renderPosSnap;
+                if (playPosSnap == 0) samplesToRender -= 2;
+            }
+            Bitu framesToRender = samplesToRender >> 1;
+            if ((framesToRender == 0) || ((framesToRender < minimumRenderFrames) && (renderPosSnap < playPosSnap))) {
+                SDL_LockMutex(lock);
+                SDL_CondWait(framesInBufferChanged, lock);
+                SDL_UnlockMutex(lock);
+            } else {
+                service->renderBit16s(audioBuffer + renderPosSnap, framesToRender);
+                renderPos = (renderPosSnap + samplesToRender) % audioBufferSize;
+                if (renderPosSnap == playPos) {
+                    SDL_LockMutex(lock);
+                    SDL_CondSignal(framesInBufferChanged);
+                    SDL_UnlockMutex(lock);
+                }
+            }
+        }
+    }
+	Bit32u inline getMidiEventTimestamp() {
+		return service->convertOutputToSynthTimestamp(Bit32u(playedBuffers * framesPerAudioBuffer + (playPos >> 1)));
+	}
 
 public:
-	MidiHandler_mt32() : chan(NULL), synth(NULL), thread(NULL), synthMutex(NULL), procIdleSem(NULL), mixerReqSem(NULL), open(false) {}
+    MidiHandler_mt32() : open(false), chan(NULL), service(NULL), thread(NULL) {
+    }
 
 	~MidiHandler_mt32() {
 		MidiHandler_mt32::Close();
 	}
+
+    static MidiHandler_mt32 & GetInstance() {
+        static MidiHandler_mt32 midiHandler_mt32;
+        return midiHandler_mt32;
+    }
 
 	const char *GetName(void) {
 		return "mt32";
@@ -98,12 +208,17 @@ public:
     }
 
 	bool Open(const char *conf) {
-        (void)conf;//UNUSED
+        service = new MT32Emu::Service();
+        Bit32u version = service->getLibraryVersionInt();
+        if (version < 0x020100) {
+            delete service;
+            service = NULL;
+            LOG_MSG("MT32: libmt32emu version is too old: %s", service->getLibraryVersionString());
+            return false;
+        }
+        service->createContext(getReportHandlerInterface(), this);
+        mt32emu_return_code rc;
 
-		MT32Emu::FileStream controlROMFile;
-		MT32Emu::FileStream pcmROMFile;
-
-        /* mt32.romdir added from DOSBox ECE by request. This romdir code taken from DOSBox ECE */
         Section_prop *section = static_cast<Section_prop *>(control->GetSection("midi"));
         const char *romDir = section->Get_string("mt32.romdir");
         if (romDir == NULL) romDir = "./"; // Paranoid NULL-check, should never happen
@@ -122,194 +237,134 @@ public:
         char pathName[4096];
 
         makeROMPathName(pathName, romDir, "CM32L_CONTROL.ROM", addPathSeparator);
-        if (!controlROMFile.open(pathName)) {
+        if (MT32EMU_RC_ADDED_CONTROL_ROM != service->addROMFile(pathName)) {
             makeROMPathName(pathName, romDir, "MT32_CONTROL.ROM", addPathSeparator);
-            if (!controlROMFile.open(pathName)) {
-                LOG(LOG_MISC,LOG_WARN)("MT32: Control ROM file not found");
+            if (MT32EMU_RC_ADDED_CONTROL_ROM != service->addROMFile(pathName)) {
+                delete service;
+                service = NULL;
+                LOG_MSG("MT32: Control ROM file not found");
                 user_romhelp();
                 return false;
             }
         }
         makeROMPathName(pathName, romDir, "CM32L_PCM.ROM", addPathSeparator);
-        if (!pcmROMFile.open(pathName)) {
+        if (MT32EMU_RC_ADDED_PCM_ROM != service->addROMFile(pathName)) {
             makeROMPathName(pathName, romDir, "MT32_PCM.ROM", addPathSeparator);
-            if (!pcmROMFile.open(pathName)) {
-                LOG(LOG_MISC,LOG_WARN)("MT32: PCM ROM file not found");
+            if (MT32EMU_RC_ADDED_PCM_ROM != service->addROMFile(pathName)) {
+                delete service;
+                service = NULL;
+                LOG_MSG("MT32: PCM ROM file not found");
                 user_romhelp();
                 return false;
-            } else {
-                LOG_MSG("MT32: Loaded MT-32 ROM set (MT32_CONTROL.ROM and MT32_PCM.ROM)");
             }
-        } else {
-            LOG_MSG("MT32: Loaded CM-32L ROM set (CM32L_CONTROL.ROM and CM32L_PCM.ROM");
         }
 
-		const MT32Emu::ROMImage *controlROMImage = MT32Emu::ROMImage::makeROMImage(&controlROMFile);
-		const MT32Emu::ROMImage *pcmROMImage = MT32Emu::ROMImage::makeROMImage(&pcmROMFile);
+        service->setPartialCount(Bit32u(section->Get_int("mt32.partials")));
+        service->setAnalogOutputMode((MT32Emu::AnalogOutputMode)section->Get_int("mt32.analog"));
+        int sampleRate = section->Get_int("mt32.rate");
+        service->setStereoOutputSampleRate(sampleRate);
+        service->setSamplerateConversionQuality((MT32Emu::SamplerateConversionQuality)section->Get_int("mt32.src.quality"));
 
-		synth = new MT32Emu::Synth(&reportHandler);
+        if (MT32EMU_RC_OK != (rc = service->openSynth())) {
+            delete service;
+            service = NULL;
+            LOG_MSG("MT32: Error initialising emulation: %i", rc);
+            return false;
+        }
 
-		/* NTS: Read and apply mt32.partials BEFORE opening the synth, because the
-			synth assumes an initial number of partials, and allocates PartialManager()
-			instances which in turn initialize THAT many partials. If we later
-			call setPartialLimit() with the (often lower) number we wanted, then
-			a memory leak will occur because the PartialManager() will only free
-			the new lower limit and leave the rest in memory. */
-		numPartials = section->Get_int("mt32.partials");
-		if(numPartials>MT32EMU_MAX_PARTIALS) numPartials=MT32EMU_MAX_PARTIALS;
-		synth->setPartialLimit((unsigned int)numPartials);
+        if (strcmp(section->Get_string("mt32.reverb.mode"), "auto") != 0) {
+            Bit8u reverbsysex[] = {0x10, 0x00, 0x01, 0x00, 0x05, 0x03};
+            reverbsysex[3] = (Bit8u)atoi(section->Get_string("mt32.reverb.mode"));
+            reverbsysex[4] = (Bit8u)section->Get_int("mt32.reverb.time");
+            reverbsysex[5] = (Bit8u)section->Get_int("mt32.reverb.level");
+            service->writeSysex(16, reverbsysex, 6);
+            service->setReverbOverridden(true);
+        }
 
-		if (!synth->open(*controlROMImage, *pcmROMImage)) {
-			LOG(LOG_MISC,LOG_WARN)("MT32: Error initialising emulation");
-			return false;
-		}
+        service->setOutputGain(0.01f * section->Get_int("mt32.output.gain"));
+        service->setReverbOutputGain(0.01f * section->Get_int("mt32.reverb.output.gain"));
+        service->setDACInputMode((MT32Emu::DACInputMode)section->Get_int("mt32.dac"));
 
-		if (strcmp(section->Get_string("mt32.reverb.mode"), "auto") != 0) {
-			Bit8u reverbsysex[] = {0x10, 0x00, 0x01, 0x00, 0x05, 0x03};
-			reverbsysex[3] = (Bit8u)atoi(section->Get_string("mt32.reverb.mode"));
-			reverbsysex[4] = (Bit8u)section->Get_int("mt32.reverb.time");
-			reverbsysex[5] = (Bit8u)section->Get_int("mt32.reverb.level");
-			synth->writeSysex(16, reverbsysex, 6);
-			synth->setReverbOverridden(true);
-		} else {
-			LOG(LOG_MISC,LOG_DEBUG)("MT32: Using default reverb");
-		}
+        service->setReversedStereoEnabled(section->Get_bool("mt32.reverse.stereo"));
+        service->setNiceAmpRampEnabled(section->Get_bool("mt32.niceampramp"));
+        noise = section->Get_bool("mt32.verbose");
+        renderInThread = section->Get_bool("mt32.thread");
 
-		if (strcmp(section->Get_string("mt32.dac"), "auto") != 0) {
-			synth->setDACInputMode((MT32Emu::DACInputMode)atoi(section->Get_string("mt32.dac")));
-			// PURE mode = 1/2 reverb output
-			if( atoi(section->Get_string("mt32.dac")) == 1 ) {
-				synth->setReverbOutputGain( 0.68f / 2 );
- 			}
-		}
+        if (noise) LOG_MSG("MT32: Set maximum number of partials %d", service->getPartialCount());
 
-		reverseStereo = strcmp(section->Get_string("mt32.reverse.stereo"), "on") == 0;
-		noise = strcmp(section->Get_string("mt32.verbose"), "on") == 0;
-		renderInThread = strcmp(section->Get_string("mt32.thread"), "on") == 0;
+        if (noise) LOG_MSG("MT32: Adding mixer channel at sample rate %d", sampleRate);
+        chan = MIXER_AddChannel(mixerCallBack, sampleRate, "MT32");
 
-		chan = MIXER_AddChannel(mixerCallBack, MT32Emu::SAMPLE_RATE, "MT32");
-		if (renderInThread) {
-			mixerBufferSize = 0;
-			stopProcessing = false;
-			synthMutex = SDL_CreateMutex();
-			procIdleSem = SDL_CreateSemaphore(0);
-			mixerReqSem = SDL_CreateSemaphore(0);
+        if (renderInThread) {
+            stopProcessing = false;
+            playPos = 0;
+            int chunkSize = section->Get_int("mt32.chunk");
+            minimumRenderFrames = (chunkSize * sampleRate) / MILLIS_PER_SECOND;
+            int latency = section->Get_int("mt32.prebuffer");
+            if (latency <= chunkSize) {
+                latency = 2 * chunkSize;
+                LOG_MSG("MT32: chunk length must be less than prebuffer length, prebuffer length reset to %i ms.", latency);
+            }
+            framesPerAudioBuffer = (latency * sampleRate) / MILLIS_PER_SECOND;
+            audioBufferSize = framesPerAudioBuffer << 1;
+            audioBuffer = new Bit16s[audioBufferSize];
+            service->renderBit16s(audioBuffer, framesPerAudioBuffer - 1);
+            renderPos = (framesPerAudioBuffer - 1) << 1;
+            playedBuffers = 1;
+            lock = SDL_CreateMutex();
+            framesInBufferChanged = SDL_CreateCond();
 #if defined(C_SDL2)
 			thread = SDL_CreateThread(processingThread, "MT32", NULL);
 #else
 			thread = SDL_CreateThread(processingThread, NULL);
 #endif
-			//if (thread == NULL || synthMutex == NULL || sleepMutex == NULL) renderInThread = false;
-		}
-		chan->Enable(true);
+        }
+        chan->Enable(true);
 
-		open = true;
-		return true;
+        open = true;
+        return true;
 	}
 
 	void Close(void) {
-		if (!open) return;
-		chan->Enable(false);
-		if (renderInThread) {
-			stopProcessing = true;
-			SDL_SemPost(mixerReqSem);
-			SDL_WaitThread(thread, NULL);
-			thread = NULL;
-			SDL_DestroyMutex(synthMutex);
-			synthMutex = NULL;
-			SDL_DestroySemaphore(procIdleSem);
-			procIdleSem = NULL;
-			SDL_DestroySemaphore(mixerReqSem);
-			mixerReqSem = NULL;
-		}
-		MIXER_DelChannel(chan);
-		chan = NULL;
-		synth->close();
-		delete synth;
-		synth = NULL;
-		open = false;
+        if (!open) return;
+        chan->Enable(false);
+        if (renderInThread) {
+            stopProcessing = true;
+            SDL_LockMutex(lock);
+            SDL_CondSignal(framesInBufferChanged);
+            SDL_UnlockMutex(lock);
+            SDL_WaitThread(thread, NULL);
+            thread = NULL;
+            SDL_DestroyMutex(lock);
+            lock = NULL;
+            SDL_DestroyCond(framesInBufferChanged);
+            framesInBufferChanged = NULL;
+            delete[] audioBuffer;
+            audioBuffer = NULL;
+        }
+        MIXER_DelChannel(chan);
+        chan = NULL;
+        service->closeSynth();
+        delete service;
+        service = NULL;
+        open = false;
 	}
 
 	void PlayMsg(Bit8u *msg) {
-		//if (!midiBuffer.put(*(Bit32u *)msg | (Bit64u(playPos + AUDIO_BUFFER_SIZE) << 32))) LOG_MSG("MT32: Playback buffer full!");
-		if (!midiBuffer.put(*(Bit32u *)msg)) { } //LOG_MSG("MT32: Playback buffer full!");
+        if (renderInThread) {
+            service->playMsgAt(SDL_SwapLE32(*(Bit32u *)msg), getMidiEventTimestamp());
+        } else {
+            service->playMsg(SDL_SwapLE32(*(Bit32u *)msg));
+        }
 	}
 
 	void PlaySysex(Bit8u *sysex, Bitu len) {
-		if (renderInThread) SDL_LockMutex(synthMutex);
-		synth->playSysex(sysex, (Bit32u)len);
-		if (renderInThread) SDL_UnlockMutex(synthMutex);
+        if (renderInThread) {
+            service->playSysexAt(sysex, len, getMidiEventTimestamp());
+        } else {
+            service->playSysex(sysex, len);
+        }
 	}
+};
 
-	MT32Emu::Synth* GetSynth() { return synth; }
-
-	void Reset() {
-		midiBuffer.reset();
-
-		if (renderInThread) SDL_LockMutex(synthMutex);
-		mixerBufferSize = 0;
-		if (renderInThread) SDL_UnlockMutex(synthMutex);
-	}
-
-	static void makeROMPathName(char pathName[], const char romDir[], const char fileName[], bool addPathSeparator);
-
-private:
-	void render(Bitu len, Bit16s *buf) {
-		Bit32u msg = midiBuffer.get();
-		if (msg != 0) synth->playMsg(msg);
-		synth->render(buf, (Bit32u)len);
-		if (reverseStereo) {
-			Bit16s *revBuf = buf;
-			for(Bitu i = 0; i < len; i++) {
-				Bit16s left = revBuf[0];
-				Bit16s right = revBuf[1];
-				*revBuf++ = right;
-				*revBuf++ = left;
-			}
-		}
-		chan->AddSamples_s16(len, buf);
-	}
-} midiHandler_mt32;
-
-void MidiHandler_mt32::makeROMPathName(char pathName[], const char romDir[], const char fileName[], bool addPathSeparator) {
-	strcpy(pathName, romDir);
-	if (addPathSeparator) {
-		strcat(pathName, "/");
-	}
-	strcat(pathName, fileName);
-}
-
-void MidiHandler_mt32::MT32ReportHandler::printDebug(const char *fmt, va_list list) {
-	if (midiHandler_mt32.noise) {
-		char s[1024];
-		strcpy(s, "MT32: ");
-		vsnprintf(s + 6, 1017, fmt, list);
-		LOG_MSG("%s", s);
-	}
-}
-
-void MidiHandler_mt32::mixerCallBack(Bitu len) {
-	if (midiHandler_mt32.renderInThread) {
-		SDL_SemWait(midiHandler_mt32.procIdleSem);
-		midiHandler_mt32.mixerBufferSize += len;
-		SDL_SemPost(midiHandler_mt32.mixerReqSem);
-	} else {
-		midiHandler_mt32.render(len, (Bit16s *)MixTemp);
-	}
-}
-
-int MidiHandler_mt32::processingThread(void *) {
-	while (!midiHandler_mt32.stopProcessing) {
-		SDL_SemPost(midiHandler_mt32.procIdleSem);
-		SDL_SemWait(midiHandler_mt32.mixerReqSem);
-		for (;;) {
-			Bitu samplesToRender = midiHandler_mt32.mixerBufferSize;
-			if (samplesToRender == 0) break;
-			SDL_LockMutex(midiHandler_mt32.synthMutex);
-			midiHandler_mt32.render(samplesToRender, midiHandler_mt32.mixerBuffer);
-			SDL_UnlockMutex(midiHandler_mt32.synthMutex);
-			midiHandler_mt32.mixerBufferSize -= samplesToRender;
-		}
-	}
-	return 0;
-}
+static MidiHandler_mt32 &Midi_mt32 = MidiHandler_mt32::GetInstance();

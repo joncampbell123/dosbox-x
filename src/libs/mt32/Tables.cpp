@@ -1,5 +1,5 @@
 /* Copyright (C) 2003, 2004, 2005, 2006, 2008, 2009 Dean Beeler, Jerome Fisher
- * Copyright (C) 2011, 2012, 2013 Dean Beeler, Jerome Fisher, Sergey V. Mikayev
+ * Copyright (C) 2011-2020 Dean Beeler, Jerome Fisher, Sergey V. Mikayev
  *
  *  This program is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU Lesser General Public License as published by
@@ -15,14 +15,14 @@
  *  along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include <cmath>
-#include <cstdlib>
-#include <cstring>
+#include "internals.h"
 
-#include "mt32emu.h"
+#include "Tables.h"
 #include "mmath.h"
 
 namespace MT32Emu {
+
+// UNUSED: const int MIDDLEC = 60;
 
 const Tables &Tables::getInstance() {
 	static const Tables instance;
@@ -30,24 +30,25 @@ const Tables &Tables::getInstance() {
 }
 
 Tables::Tables() {
-	int lf;
-	for (lf = 0; lf <= 100; lf++) {
+	for (int lf = 0; lf <= 100; lf++) {
 		// CONFIRMED:KG: This matches a ROM table found by Mok
-		float fVal = (2.0f - LOG10F((float)lf + 1.0f)) * 128.0f;
-		int val = (int)(fVal + 1.0);
+		float fVal = (2.0f - LOG10F(float(lf) + 1.0f)) * 128.0f;
+		int val = int(fVal + 1.0);
 		if (val > 255) {
 			val = 255;
 		}
-		levelToAmpSubtraction[lf] = (Bit8u)val;
+		levelToAmpSubtraction[lf] = Bit8u(val);
 	}
 
 	envLogarithmicTime[0] = 64;
-	for (lf = 1; lf <= 255; lf++) {
+	for (int lf = 1; lf <= 255; lf++) {
 		// CONFIRMED:KG: This matches a ROM table found by Mok
-		envLogarithmicTime[lf] = (Bit8u)ceil(64.0f + LOG2F((float)lf) * 8.0f);
+		envLogarithmicTime[lf] = Bit8u(ceil(64.0f + LOG2F(float(lf)) * 8.0f));
 	}
 
-#ifdef EMULATE_LAPC_I // Dummy #ifdef - we'll have runtime emulation mode selection in future.
+#if 0
+	// The table below is to be used in conjunction with emulation of VCA of newer generation units which is currently missing.
+	// These relatively small values are rather intended to fine-tune the overall amplification of the VCA.
 	// CONFIRMED: Based on a table found by Mok in the LAPC-I control ROM
 	// Note that this matches the MT-32 table, but with the values clamped to a maximum of 8.
 	memset(masterVolToAmpSubtraction, 8, 71);
@@ -63,12 +64,12 @@ Tables::Tables() {
 	// CONFIRMED: Based on a table found by Mok in the MT-32 control ROM
 	masterVolToAmpSubtraction[0] = 255;
 	for (int masterVol = 1; masterVol <= 100; masterVol++) {
-        masterVolToAmpSubtraction[masterVol] = (Bit8u)(106.31 - 16.0 * LOG2F((float)masterVol));
+		masterVolToAmpSubtraction[masterVol] = Bit8u(106.31 - 16.0f * LOG2F(float(masterVol)));
 	}
 #endif
 
 	for (int i = 0; i <= 100; i++) {
-		pulseWidth100To255[i] = (Bit8u)(i * 255 / 100.0f + 0.5f);
+		pulseWidth100To255[i] = Bit8u(i * 255 / 100.0f + 0.5f);
 		//synth->printDebug("%d: %d", i, pulseWidth100To255[i]);
 	}
 
@@ -93,4 +94,4 @@ Tables::Tables() {
 	resAmpDecayFactor = resAmpDecayFactorTable;
 }
 
-}
+} // namespace MT32Emu

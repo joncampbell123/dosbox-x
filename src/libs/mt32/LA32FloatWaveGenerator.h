@@ -1,5 +1,5 @@
 /* Copyright (C) 2003, 2004, 2005, 2006, 2008, 2009 Dean Beeler, Jerome Fisher
- * Copyright (C) 2011, 2012, 2013 Dean Beeler, Jerome Fisher, Sergey V. Mikayev
+ * Copyright (C) 2011-2020 Dean Beeler, Jerome Fisher, Sergey V. Mikayev
  *
  *  This program is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU Lesser General Public License as published by
@@ -15,22 +15,25 @@
  *  along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#if MT32EMU_ACCURATE_WG == 1
+#ifndef MT32EMU_LA32_FLOAT_WAVE_GENERATOR_H
+#define MT32EMU_LA32_FLOAT_WAVE_GENERATOR_H
 
-#ifndef MT32EMU_LA32_WAVE_GENERATOR_H
-#define MT32EMU_LA32_WAVE_GENERATOR_H
+#include "globals.h"
+#include "internals.h"
+#include "Types.h"
+#include "LA32WaveGenerator.h"
 
 namespace MT32Emu {
 
 /**
  * LA32WaveGenerator is aimed to represent the exact model of LA32 wave generator.
  * The output square wave is created by adding high / low linear segments in-between
- * the rising and falling cosine segments. Basically, it’s very similar to the phase distortion synthesis.
+ * the rising and falling cosine segments. Basically, it's very similar to the phase distortion synthesis.
  * Behaviour of a true resonance filter is emulated by adding decaying sine wave.
  * The beginning and the ending of the resonant sine is multiplied by a cosine window.
  * To synthesise sawtooth waves, the resulting square wave is multiplied by synchronous cosine wave.
  */
-class LA32WaveGenerator {
+class LA32FloatWaveGenerator {
 	//***************************************************************************
 	//  The local copy of partial parameters below
 	//***************************************************************************
@@ -40,12 +43,6 @@ class LA32WaveGenerator {
 	// True means the resulting square wave is to be multiplied by the synchronous cosine
 	bool sawtoothWaveform;
 
-	// Logarithmic amp of the wave generator
-	Bit32u amp;
-
-	// Logarithmic frequency of the resulting wave
-	Bit16u pitch;
-
 	// Values in range [1..31]
 	// Value 1 correspong to the minimum resonance
 	Bit8u resonance;
@@ -54,9 +51,6 @@ class LA32WaveGenerator {
 	// Values in range [0..128] have no effect and the resulting wave remains symmetrical
 	// Value 255 corresponds to the maximum possible asymmetric of the resulting wave
 	Bit8u pulseWidth;
-
-	// Composed of the base cutoff in range [78..178] left-shifted by 18 bits and the TVF modifier
-	Bit32u cutoffVal;
 
 	// Logarithmic PCM sample start address
 	const Bit16s *pcmWaveAddress;
@@ -98,23 +92,17 @@ public:
 
 	// Return true if the WG engine generates PCM wave samples
 	bool isPCMWave() const;
-};
+}; // class LA32FloatWaveGenerator
 
-// LA32PartialPair contains a structure of two partials being mixed / ring modulated
-class LA32PartialPair {
-	LA32WaveGenerator master;
-	LA32WaveGenerator slave;
+class LA32FloatPartialPair : public LA32PartialPair {
+	LA32FloatWaveGenerator master;
+	LA32FloatWaveGenerator slave;
 	bool ringModulated;
 	bool mixed;
 	float masterOutputSample;
 	float slaveOutputSample;
 
 public:
-	enum PairType {
-		MASTER,
-		SLAVE
-	};
-
 	// ringModulated should be set to false for the structures with mixing or stereo output
 	// ringModulated should be set to true for the structures with ring modulation
 	// mixed is used for the structures with ring modulation and indicates whether the master partial output is mixed to the ring modulator output
@@ -130,17 +118,15 @@ public:
 	void generateNextSample(const PairType master, const Bit32u amp, const Bit16u pitch, const Bit32u cutoff);
 
 	// Perform mixing / ring modulation and return the result
-	Bit16s nextOutSample();
+	float nextOutSample();
 
 	// Deactivate the WG engine
 	void deactivate(const PairType master);
 
 	// Return active state of the WG engine
 	bool isActive(const PairType master) const;
-};
+}; // class LA32FloatPartialPair
 
 } // namespace MT32Emu
 
-#endif // #ifndef MT32EMU_LA32_WAVE_GENERATOR_H
-
-#endif // #if MT32EMU_ACCURATE_WG == 1
+#endif // #ifndef MT32EMU_LA32_FLOAT_WAVE_GENERATOR_H

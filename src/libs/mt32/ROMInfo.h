@@ -1,5 +1,5 @@
 /* Copyright (C) 2003, 2004, 2005, 2006, 2008, 2009 Dean Beeler, Jerome Fisher
- * Copyright (C) 2011, 2012, 2013 Dean Beeler, Jerome Fisher, Sergey V. Mikayev
+ * Copyright (C) 2011-2020 Dean Beeler, Jerome Fisher, Sergey V. Mikayev
  *
  *  This program is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU Lesser General Public License as published by
@@ -19,6 +19,8 @@
 #define MT32EMU_ROMINFO_H
 
 #include <cstddef>
+
+#include "globals.h"
 #include "File.h"
 
 namespace MT32Emu {
@@ -28,50 +30,51 @@ namespace MT32Emu {
 struct ROMInfo {
 public:
 	size_t fileSize;
-	const char *sha1Digest;
+	const File::SHA1Digest &sha1Digest;
 	enum Type {PCM, Control, Reverb} type;
 	const char *shortName;
 	const char *description;
 	enum PairType {Full, FirstHalf, SecondHalf, Mux0, Mux1} pairType;
 	ROMInfo *pairROMInfo;
-	void *controlROMInfo;
 
 	// Returns a ROMInfo struct by inspecting the size and the SHA1 hash
-	static const ROMInfo* getROMInfo(File *file);
+	MT32EMU_EXPORT static const ROMInfo* getROMInfo(File *file);
 
 	// Currently no-op
-	static void freeROMInfo(const ROMInfo *romInfo);
+	MT32EMU_EXPORT static void freeROMInfo(const ROMInfo *romInfo);
 
 	// Allows retrieving a NULL-terminated list of ROMInfos for a range of types and pairTypes
 	// (specified by bitmasks)
 	// Useful for GUI/console app to output information on what ROMs it supports
-	static const ROMInfo** getROMInfoList(unsigned int types, unsigned int pairTypes);
+	MT32EMU_EXPORT static const ROMInfo** getROMInfoList(Bit32u types, Bit32u pairTypes);
 
 	// Frees the list of ROMInfos given
-	static void freeROMInfoList(const ROMInfo **romInfos);
+	MT32EMU_EXPORT static void freeROMInfoList(const ROMInfo **romInfos);
 };
 
 // Synth::open() is to require a full control ROMImage and a full PCM ROMImage to work
 
 class ROMImage {
 private:
-	File *file;
-	const ROMInfo *romInfo;
+	File * const file;
+	const ROMInfo * const romInfo;
+
+	ROMImage(File *file);
+	~ROMImage();
 
 public:
-
 	// Creates a ROMImage object given a ROMInfo and a File. Keeps a reference
 	// to the File and ROMInfo given, which must be freed separately by the user
 	// after the ROMImage is freed
-	static const ROMImage* makeROMImage(File *file);
+	MT32EMU_EXPORT static const ROMImage* makeROMImage(File *file);
 
 	// Must only be done after all Synths using the ROMImage are deleted
-	static void freeROMImage(const ROMImage *romImage);
+	MT32EMU_EXPORT static void freeROMImage(const ROMImage *romImage);
 
-	File *getFile() const;
-	const ROMInfo *getROMInfo() const;
+	MT32EMU_EXPORT File *getFile() const;
+	MT32EMU_EXPORT const ROMInfo *getROMInfo() const;
 };
 
-}
+} // namespace MT32Emu
 
-#endif
+#endif // #ifndef MT32EMU_ROMINFO_H

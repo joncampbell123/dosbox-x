@@ -1,5 +1,5 @@
 /* Copyright (C) 2003, 2004, 2005, 2006, 2008, 2009 Dean Beeler, Jerome Fisher
- * Copyright (C) 2011, 2012, 2013 Dean Beeler, Jerome Fisher, Sergey V. Mikayev
+ * Copyright (C) 2011-2020 Dean Beeler, Jerome Fisher, Sergey V. Mikayev
  *
  *  This program is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU Lesser General Public License as published by
@@ -19,11 +19,15 @@
  * This class emulates the calculations performed by the 8095 microcontroller in order to configure the LA-32's amplitude ramp for a single partial at each stage of its TVA envelope.
  * Unless we introduced bugs, it should be pretty much 100% accurate according to Mok's specifications.
 */
-#include <cmath>
 
-#include "mt32emu.h"
-#include "mmath.h"
-#include "PartialManager.h"
+#include "internals.h"
+
+#include "TVA.h"
+#include "Part.h"
+#include "Partial.h"
+#include "Poly.h"
+#include "Synth.h"
+#include "Tables.h"
 
 namespace MT32Emu {
 
@@ -32,31 +36,18 @@ static Bit8u biasLevelToAmpSubtractionCoeff[13] = {255, 187, 137, 100, 74, 54, 4
 
 TVA::TVA(const Partial *usePartial, LA32Ramp *useAmpRamp) :
 	partial(usePartial), ampRamp(useAmpRamp), system(&usePartial->getSynth()->mt32ram.system), phase(TVA_PHASE_DEAD) {
-
-
-	// init ptr warnings (load state crashes)
-	part = NULL;
-	partialParam = NULL;
-	patchTemp = NULL;
-	rhythmTemp = NULL;
 }
 
 void TVA::startRamp(Bit8u newTarget, Bit8u newIncrement, int newPhase) {
-	if (newPhase != phase) {
-		partial->getSynth()->partialStateChanged(partial, phase, newPhase);
-	}
 	target = newTarget;
 	phase = newPhase;
 	ampRamp->startRamp(newTarget, newIncrement);
 #if MT32EMU_MONITOR_TVA >= 1
-	partial->getSynth()->printDebug("[+%lu] [Partial %d] TVA,ramp,%d,%d,%d,%d", partial->debugGetSampleNum(), partial->debugGetPartialNum(), (newIncrement & 0x80) ? -1 : 1, (newIncrement & 0x7F), newPhase);
+	partial->getSynth()->printDebug("[+%lu] [Partial %d] TVA,ramp,%x,%s%x,%d", partial->debugGetSampleNum(), partial->debugGetPartialNum(), newTarget, (newIncrement & 0x80) ? "-" : "+", (newIncrement & 0x7F), newPhase);
 #endif
 }
 
 void TVA::end(int newPhase) {
-	if (newPhase != phase) {
-		partial->getSynth()->partialStateChanged(partial, phase, newPhase);
-	}
 	phase = newPhase;
 	playing = false;
 #if MT32EMU_MONITOR_TVA >= 1
@@ -104,14 +95,14 @@ static int calcVeloAmpSubtraction(Bit8u veloSensitivity, unsigned int velocity) 
 	// FIXME:KG: Better variable names
 	int velocityMult = veloSensitivity - 50;
 	int absVelocityMult = velocityMult < 0 ? -velocityMult : velocityMult;
-	velocityMult = (signed)((unsigned)(velocityMult * ((signed)velocity - 64)) << 2);
+	velocityMult = signed(unsigned(velocityMult * (signed(velocity) - 64)) << 2);
 	return absVelocityMult - (velocityMult >> 8); // PORTABILITY NOTE: Assumes arithmetic shift
 }
 
-static int calcBasicAmp(const Tables *tables, const Partial *partial, const MemParams::System *system, const TimbreParam::PartialParam *partialParam, const MemParams::PatchTemp *patchTemp, const MemParams::RhythmTemp *rhythmTemp, int biasAmpSubtraction, int veloAmpSubtraction, Bit8u expression) {
+static int calcBasicAmp(const Tables *tables, const Partial *partial, const MemParams::System *system, const TimbreParam::PartialParam *partialParam, const MemParams::PatchTemp *patchTemp, const MemParams::RhythmTemp *rhythmTemp, int biasAmpSubtraction, int veloAmpSubtraction, Bit8u expression, bool hasRingModQuirk) {
 	int amp = 155;
 
-	if (!partial->isRingModulatingSlave()) {
+	if (!(hasRingModQuirk ? partial->isRingModulatingNoMix() : partial->isRingModulatingSlave())) {
 		amp -= tables->masterVolToAmpSubtraction[system->masterVol];
 		if (amp < 0) {
 			return 0;
@@ -153,7 +144,7 @@ static int calcBasicAmp(const Tables *tables, const Partial *partial, const MemP
 	return amp;
 }
 
-int calcKeyTimeSubtraction(Bit8u envTimeKeyfollow, int key) {
+static int calcKeyTimeSubtraction(Bit8u envTimeKeyfollow, int key) {
 	if (envTimeKeyfollow == 0) {
 		return 0;
 	}
@@ -178,7 +169,7 @@ void TVA::reset(const Part *newPart, const TimbreParam::PartialParam *newPartial
 	biasAmpSubtraction = calcBiasAmpSubtractions(partialParam, key);
 	veloAmpSubtraction = calcVeloAmpSubtraction(partialParam->tva.veloSensitivity, velocity);
 
-	int newTarget = calcBasicAmp(tables, partial, system, partialParam, patchTemp, newRhythmTemp, biasAmpSubtraction, veloAmpSubtraction, part->getExpression());
+	int newTarget = calcBasicAmp(tables, partial, system, partialParam, patchTemp, newRhythmTemp, biasAmpSubtraction, veloAmpSubtraction, part->getExpression(), partial->getSynth()->controlROMFeatures->quirkRingModulationNoMix);
 	int newPhase;
 	if (partialParam->tva.envTime[0] == 0) {
 		// Initially go to the TVA_PHASE_ATTACK target amp, and spend the next phase going from there to the TVA_PHASE_2 target amp
@@ -195,7 +186,7 @@ void TVA::reset(const Part *newPart, const TimbreParam::PartialParam *newPartial
 	// "Go downward as quickly as possible".
 	// Since the current value is 0, the LA32Ramp will notice that we're already at or below the target and trying to go downward,
 	// and therefore jump to the target immediately and raise an interrupt.
-	startRamp((Bit8u)newTarget, 0x80 | 127, newPhase);
+	startRamp(Bit8u(newTarget), 0x80 | 127, newPhase);
 }
 
 void TVA::startAbort() {
@@ -230,18 +221,29 @@ void TVA::recalcSustain() {
 	}
 	// We're sustaining. Recalculate all the values
 	const Tables *tables = &Tables::getInstance();
-	int newTarget = calcBasicAmp(tables, partial, system, partialParam, patchTemp, rhythmTemp, biasAmpSubtraction, veloAmpSubtraction, part->getExpression());
+	int newTarget = calcBasicAmp(tables, partial, system, partialParam, patchTemp, rhythmTemp, biasAmpSubtraction, veloAmpSubtraction, part->getExpression(), partial->getSynth()->controlROMFeatures->quirkRingModulationNoMix);
 	newTarget += partialParam->tva.envLevel[3];
-	// Since we're in TVA_PHASE_SUSTAIN at this point, we know that target has been reached and an interrupt fired, so we can rely on it being the current amp.
+
+	// Although we're in TVA_PHASE_SUSTAIN at this point, we cannot be sure that there is no active ramp at the moment.
+	// In case the channel volume or the expression changes frequently, the previously started ramp may still be in progress.
+	// Real hardware units ignore this possibility and rely on the assumption that the target is the current amp.
+	// This is OK in most situations but when the ramp that is currently in progress needs to change direction
+	// due to a volume/expression update, this leads to a jump in the amp that is audible as an unpleasant click.
+	// To avoid that, we compare the newTarget with the the actual current ramp value and correct the direction if necessary.
 	int targetDelta = newTarget - target;
 
 	// Calculate an increment to get to the new amp value in a short, more or less consistent amount of time
 	Bit8u newIncrement;
-	if (targetDelta >= 0) {
-		newIncrement = tables->envLogarithmicTime[(Bit8u)targetDelta] - 2;
+	bool descending = targetDelta < 0;
+	if (!descending) {
+		newIncrement = tables->envLogarithmicTime[Bit8u(targetDelta)] - 2;
 	} else {
-		newIncrement = (tables->envLogarithmicTime[(Bit8u)-targetDelta] - 2) | 0x80;
+		newIncrement = (tables->envLogarithmicTime[Bit8u(-targetDelta)] - 2) | 0x80;
 	}
+	if (part->getSynth()->isNiceAmpRampEnabled() && (descending != ampRamp->isBelowCurrent(newTarget))) {
+		newIncrement ^= 0x80;
+	}
+
 	// Configure so that once the transition's complete and nextPhase() is called, we'll just re-enter sustain phase (or decay phase, depending on parameters at the time).
 	startRamp(newTarget, newIncrement, TVA_PHASE_SUSTAIN - 1);
 }
@@ -269,7 +271,7 @@ void TVA::nextPhase() {
 	}
 
 	bool allLevelsZeroFromNowOn = false;
-	if (partialParam->tva.envLevel[3] == 0) {
+	if (!partial->getSynth()->controlROMFeatures->quirkTVAZeroEnvLevels && partialParam->tva.envLevel[3] == 0) {
 		if (newPhase == TVA_PHASE_4) {
 			allLevelsZeroFromNowOn = true;
 		} else if (partialParam->tva.envLevel[2] == 0) {
@@ -292,7 +294,7 @@ void TVA::nextPhase() {
 	int envPointIndex = phase;
 
 	if (!allLevelsZeroFromNowOn) {
-		newTarget = calcBasicAmp(tables, partial, system, partialParam, patchTemp, rhythmTemp, biasAmpSubtraction, veloAmpSubtraction, part->getExpression());
+		newTarget = calcBasicAmp(tables, partial, system, partialParam, patchTemp, rhythmTemp, biasAmpSubtraction, veloAmpSubtraction, part->getExpression(), partial->getSynth()->controlROMFeatures->quirkRingModulationNoMix);
 
 		if (newPhase == TVA_PHASE_SUSTAIN || newPhase == TVA_PHASE_RELEASE) {
 			if (partialParam->tva.envLevel[3] == 0) {
@@ -324,7 +326,7 @@ void TVA::nextPhase() {
 		int envTimeSetting = partialParam->tva.envTime[envPointIndex];
 
 		if (newPhase == TVA_PHASE_ATTACK) {
-			envTimeSetting -= ((signed)partial->getPoly()->getVelocity() - 64) >> (6 - partialParam->tva.envTimeVeloSensitivity); // PORTABILITY NOTE: Assumes arithmetic shift
+			envTimeSetting -= (signed(partial->getPoly()->getVelocity()) - 64) >> (6 - partialParam->tva.envTimeVeloSensitivity); // PORTABILITY NOTE: Assumes arithmetic shift
 
 			if (envTimeSetting <= 0 && partialParam->tva.envTime[envPointIndex] != 0) {
 				envTimeSetting = 1;
@@ -351,14 +353,14 @@ void TVA::nextPhase() {
 					}
 				}
 				targetDelta = -targetDelta;
-				newIncrement = tables->envLogarithmicTime[(Bit8u)targetDelta] - envTimeSetting;
+				newIncrement = tables->envLogarithmicTime[Bit8u(targetDelta)] - envTimeSetting;
 				if (newIncrement <= 0) {
 					newIncrement = 1;
 				}
 				newIncrement = newIncrement | 0x80;
 			} else {
 				// FIXME: The last 22 or so entries in this table are 128 - surely that fucks things up, since that ends up being -128 signed?
-				newIncrement = tables->envLogarithmicTime[(Bit8u)targetDelta] - envTimeSetting;
+				newIncrement = tables->envLogarithmicTime[Bit8u(targetDelta)] - envTimeSetting;
 				if (newIncrement <= 0) {
 					newIncrement = 1;
 				}
@@ -373,156 +375,7 @@ void TVA::nextPhase() {
 		}
 	}
 
-	startRamp((Bit8u)newTarget, (Bit8u)newIncrement, newPhase);
+	startRamp(Bit8u(newTarget), Bit8u(newIncrement), newPhase);
 }
 
-
-#ifdef WIN32_DEBUG
-void TVA::rawVerifyState( char *name, Synth *useSynth )
-{
-	TVA *ptr1, *ptr2;
-	TVA tva_temp(partial,ampRamp);
-
-
-#ifndef WIN32_DUMP
-	return;
-#endif
-
-	ptr1 = this;
-	ptr2 = &tva_temp;
-	useSynth->rawLoadState( name, ptr2, sizeof(*this) );
-
-
-	if( ptr1->partial != ptr2->partial ) __asm int 3
-	if( ptr1->ampRamp != ptr2->ampRamp ) __asm int 3
-	if( ptr1->system != ptr2->system ) __asm int 3
-	if( ptr1->part != ptr2->part ) __asm int 3
-	if( ptr1->partialParam != ptr2->partialParam ) __asm int 3
-	if( ptr1->patchTemp != ptr2->patchTemp ) __asm int 3
-	if( ptr1->rhythmTemp != ptr2->rhythmTemp ) __asm int 3
-	if( ptr1->playing != ptr2->playing ) __asm int 3
-	if( ptr1->biasAmpSubtraction != ptr2->biasAmpSubtraction ) __asm int 3
-	if( ptr1->veloAmpSubtraction != ptr2->veloAmpSubtraction ) __asm int 3
-	if( ptr1->keyTimeSubtraction != ptr2->keyTimeSubtraction ) __asm int 3
-	if( ptr1->target != ptr2->target ) __asm int 3
-	if( ptr1->phase != ptr2->phase ) __asm int 3
-
-
-
-	// avoid destructor problems
-	memset( ptr2, 0, sizeof(*ptr2) );
-}
-#endif
-
-
-void TVA::saveState( std::ostream &stream )
-{
-	Bit16u partialParam_idx1, partialParam_idx2;
-	Bit8u part_idx;
-	Bit8u patchTemp_idx;
-	Bit8u rhythmTemp_idx;
-
-
-	// - static fastptr
-	//const Partial * const partial;
-	//LA32Ramp *ampRamp;
-	//const MemParams::System * const system;
-
-
-	// - reloc fastptr (!!)
-	//const Part *part;
-	partial->getSynth()->findPart( part, &part_idx );
-	stream.write(reinterpret_cast<const char*>(&part_idx), sizeof(part_idx) );
-
-
-	// - reloc fastptr (!!)
-	//const TimbreParam::PartialParam *partialParam;
-	partial->getSynth()->findPartialParam( partialParam, &partialParam_idx1, &partialParam_idx2 );
-	stream.write(reinterpret_cast<const char*>(&partialParam_idx1), sizeof(partialParam_idx1) );
-	stream.write(reinterpret_cast<const char*>(&partialParam_idx2), sizeof(partialParam_idx2) );
-
-
-	// - reloc fastptr (!!)
-	//const MemParams::PatchTemp *patchTemp;
-	partial->getSynth()->findPatchTemp( patchTemp, &patchTemp_idx );
-	stream.write(reinterpret_cast<const char*>(&patchTemp_idx), sizeof(patchTemp_idx) );
-
-
-	// - reloc fastptr (!!)
-	//const MemParams::RhythmTemp *rhythmTemp;
-	partial->getSynth()->findRhythmTemp( rhythmTemp, &rhythmTemp_idx );
-	stream.write(reinterpret_cast<const char*>(&rhythmTemp_idx), sizeof(rhythmTemp_idx) );
-
-
-	stream.write(reinterpret_cast<const char*>(&playing), sizeof(playing) );
-	stream.write(reinterpret_cast<const char*>(&biasAmpSubtraction), sizeof(biasAmpSubtraction) );
-	stream.write(reinterpret_cast<const char*>(&veloAmpSubtraction), sizeof(veloAmpSubtraction) );
-	stream.write(reinterpret_cast<const char*>(&keyTimeSubtraction), sizeof(keyTimeSubtraction) );
-	stream.write(reinterpret_cast<const char*>(&target), sizeof(target) );
-	stream.write(reinterpret_cast<const char*>(&phase), sizeof(phase) );
-
-
-#ifdef WIN32_DEBUG
-	// DEBUG
-	partial->getSynth()->rawDumpState( "temp-save", this, sizeof(*this) );
-	partial->getSynth()->rawDumpNo++;
-#endif
-}
-
-
-void TVA::loadState( std::istream &stream )
-{
-	Bit16u partialParam_idx1, partialParam_idx2;
-	Bit8u part_idx;
-	Bit8u patchTemp_idx;
-	Bit8u rhythmTemp_idx;
-
-
-	// - static fastptr
-	//const Partial * const partial;
-	//LA32Ramp *ampRamp;
-	//const MemParams::System * const system;
-
-
-	// - reloc fastptr (!!)
-	//const Part *part;
-	stream.read(reinterpret_cast<char*>(&part_idx), sizeof(part_idx) );
-	part = partial->getSynth()->indexPart(part_idx);
-
-
-	// - reloc fastptr (!!)
-	//const TimbreParam::PartialParam *partialParam;
-	stream.read(reinterpret_cast<char*>(&partialParam_idx1), sizeof(partialParam_idx1) );
-	stream.read(reinterpret_cast<char*>(&partialParam_idx2), sizeof(partialParam_idx2) );
-	partialParam = partial->getSynth()->indexPartialParam(partialParam_idx1, partialParam_idx2);
-
-
-	// - reloc fastptr (!!)
-	//const MemParams::PatchTemp *patchTemp;
-	stream.read(reinterpret_cast<char*>(&patchTemp_idx), sizeof(patchTemp_idx) );
-	patchTemp = partial->getSynth()->indexPatchTemp(patchTemp_idx);
-
-
-	// - reloc fastptr (!!)
-	//const MemParams::RhythmTemp *rhythmTemp;
-	stream.read(reinterpret_cast<char*>(&rhythmTemp_idx), sizeof(rhythmTemp_idx) );
-	rhythmTemp = partial->getSynth()->indexRhythmTemp(rhythmTemp_idx);
-
-
-	stream.read(reinterpret_cast<char*>(&playing), sizeof(playing) );
-	stream.read(reinterpret_cast<char*>(&biasAmpSubtraction), sizeof(biasAmpSubtraction) );
-	stream.read(reinterpret_cast<char*>(&veloAmpSubtraction), sizeof(veloAmpSubtraction) );
-	stream.read(reinterpret_cast<char*>(&keyTimeSubtraction), sizeof(keyTimeSubtraction) );
-	stream.read(reinterpret_cast<char*>(&target), sizeof(target) );
-	stream.read(reinterpret_cast<char*>(&phase), sizeof(phase) );
-
-
-#ifdef WIN32_DEBUG
-	// DEBUG
-	partial->getSynth()->rawDumpState( "temp-load", this, sizeof(*this) );
-	this->rawVerifyState( "temp-save", partial->getSynth() );
-	partial->getSynth()->rawDumpNo++;
-#endif
-}
-
-}
+} // namespace MT32Emu

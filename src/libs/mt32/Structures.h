@@ -1,5 +1,5 @@
 /* Copyright (C) 2003, 2004, 2005, 2006, 2008, 2009 Dean Beeler, Jerome Fisher
- * Copyright (C) 2011, 2012, 2013 Dean Beeler, Jerome Fisher, Sergey V. Mikayev
+ * Copyright (C) 2011-2020 Dean Beeler, Jerome Fisher, Sergey V. Mikayev
  *
  *  This program is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU Lesser General Public License as published by
@@ -18,6 +18,9 @@
 #ifndef MT32EMU_STRUCTURES_H
 #define MT32EMU_STRUCTURES_H
 
+#include "globals.h"
+#include "Types.h"
+
 namespace MT32Emu {
 
 // MT32EMU_MEMADDR() converts from sysex-padded, MT32EMU_SYSEXMEMADDR converts to it
@@ -30,13 +33,6 @@ namespace MT32Emu {
 #else
 #define MT32EMU_ALIGN_PACKED __attribute__((packed))
 #endif
-
-typedef unsigned int       Bit32u;
-typedef   signed int       Bit32s;
-typedef unsigned short int Bit16u;
-typedef   signed short int Bit16s;
-typedef unsigned char      Bit8u;
-typedef   signed char      Bit8s;
 
 // The following structures represent the MT-32's memory
 // Since sysex allows this memory to be written to in blocks of bytes,
@@ -109,8 +105,8 @@ struct TimbreParam {
 			Bit8u envTime[5]; // 0-100
 			Bit8u envLevel[4]; // 0-100 // [3]: SUSTAIN LEVEL
 		} MT32EMU_ALIGN_PACKED tva;
-	} MT32EMU_ALIGN_PACKED partial[4];
-} MT32EMU_ALIGN_PACKED;
+	} MT32EMU_ALIGN_PACKED partial[4]; // struct PartialParam
+} MT32EMU_ALIGN_PACKED; // struct TimbreParam
 
 struct PatchParam {
 	Bit8u timbreGroup; // TIMBRE GROUP  0-3 (group A, group B, Memory, Rhythm)
@@ -170,7 +166,16 @@ struct MemParams {
 		Bit8u chanAssign[9]; // MIDI CHANNEL (PART1) 0-16 (1-16,OFF)
 		Bit8u masterVol; // MASTER VOLUME 0-100
 	} MT32EMU_ALIGN_PACKED system;
-};
+}; // struct MemParams
+
+struct SoundGroup {
+	Bit8u timbreNumberTableAddrLow;
+	Bit8u timbreNumberTableAddrHigh;
+	Bit8u displayPosition;
+	Bit8u name[9];
+	Bit8u timbreCount;
+	Bit8u pad;
+} MT32EMU_ALIGN_PACKED;
 
 #if defined(_MSC_VER) || defined(__MINGW32__)
 #pragma pack(pop)
@@ -178,7 +183,52 @@ struct MemParams {
 #pragma pack()
 #endif
 
-struct ControlROMPCMStruct;
+struct ControlROMFeatureSet {
+	unsigned int quirkBasePitchOverflow : 1;
+	unsigned int quirkPitchEnvelopeOverflow : 1;
+	unsigned int quirkRingModulationNoMix : 1;
+	unsigned int quirkTVAZeroEnvLevels : 1;
+	unsigned int quirkPanMult : 1;
+	unsigned int quirkKeyShift : 1;
+	unsigned int quirkTVFBaseCutoffLimit : 1;
+
+	// Features below don't actually depend on control ROM version, which is used to identify hardware model
+	unsigned int defaultReverbMT32Compatible : 1;
+	unsigned int oldMT32AnalogLPF : 1;
+};
+
+struct ControlROMMap {
+	const char *shortName;
+	const ControlROMFeatureSet &featureSet;
+	Bit16u pcmTable; // 4 * pcmCount bytes
+	Bit16u pcmCount;
+	Bit16u timbreAMap; // 128 bytes
+	Bit16u timbreAOffset;
+	bool timbreACompressed;
+	Bit16u timbreBMap; // 128 bytes
+	Bit16u timbreBOffset;
+	bool timbreBCompressed;
+	Bit16u timbreRMap; // 2 * timbreRCount bytes
+	Bit16u timbreRCount;
+	Bit16u rhythmSettings; // 4 * rhythmSettingsCount bytes
+	Bit16u rhythmSettingsCount;
+	Bit16u reserveSettings; // 9 bytes
+	Bit16u panSettings; // 8 bytes
+	Bit16u programSettings; // 8 bytes
+	Bit16u rhythmMaxTable; // 4 bytes
+	Bit16u patchMaxTable; // 16 bytes
+	Bit16u systemMaxTable; // 23 bytes
+	Bit16u timbreMaxTable; // 72 bytes
+	Bit16u soundGroupsTable; // 14 bytes each entry
+	Bit16u soundGroupsCount;
+};
+
+struct ControlROMPCMStruct {
+	Bit8u pos;
+	Bit8u len;
+	Bit8u pitchLSB;
+	Bit8u pitchMSB;
+};
 
 struct PCMWaveEntry {
 	Bit32u addr;
@@ -192,7 +242,7 @@ struct PatchCache {
 	bool playPartial;
 	bool PCMPartial;
 	int pcm;
-	char waveform;
+	Bit8u waveform;
 
 	Bit32u structureMix;
 	int structurePosition;
@@ -210,8 +260,6 @@ struct PatchCache {
 	const TimbreParam::PartialParam *partialParam;
 };
 
-class Partial; // Forward reference for class defined in partial.h
+} // namespace MT32Emu
 
-}
-
-#endif
+#endif // #ifndef MT32EMU_STRUCTURES_H

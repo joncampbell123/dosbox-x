@@ -1,5 +1,5 @@
 /* Copyright (C) 2003, 2004, 2005, 2006, 2008, 2009 Dean Beeler, Jerome Fisher
- * Copyright (C) 2011, 2012, 2013 Dean Beeler, Jerome Fisher, Sergey V. Mikayev
+ * Copyright (C) 2011-2020 Dean Beeler, Jerome Fisher, Sergey V. Mikayev
  *
  *  This program is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU Lesser General Public License as published by
@@ -15,10 +15,14 @@
  *  along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include <cmath>
+#include "internals.h"
 
-#include "mt32emu.h"
-#include "mmath.h"
+#include "TVF.h"
+#include "LA32Ramp.h"
+#include "Partial.h"
+#include "Poly.h"
+#include "Synth.h"
+#include "Tables.h"
 
 namespace MT32Emu {
 
@@ -49,7 +53,7 @@ enum {
 	PHASE_DONE = 7
 };
 
-static int calcBaseCutoff(const TimbreParam::PartialParam *partialParam, Bit32u basePitch, unsigned int key) {
+static int calcBaseCutoff(const TimbreParam::PartialParam *partialParam, Bit32u basePitch, unsigned int key, bool quirkTVFBaseCutoffLimit) {
 	// This table matches the values used by a real LAPC-I.
 	static const Bit8s biasLevelToBiasMult[] = {85, 42, 21, 16, 10, 5, 2, 0, -2, -5, -10, -16, -21, -74, -85};
 	// These values represent unique options with no consistent pattern, so we have to use something like a table in any case.
@@ -59,7 +63,7 @@ static int calcBaseCutoff(const TimbreParam::PartialParam *partialParam, Bit32u 
 	static const Bit8s keyfollowMult21[] = {-21, -10, -5, 0, 2, 5, 8, 10, 13, 16, 18, 21, 26, 32, 42, 21, 21};
 	int baseCutoff = keyfollowMult21[partialParam->tvf.keyfollow] - keyfollowMult21[partialParam->wg.pitchKeyfollow];
 	// baseCutoff range now: -63 to 63
-	baseCutoff *= (int)key - 60;
+	baseCutoff *= int(key) - 60;
 	// baseCutoff range now: -3024 to 3024
 	int biasPoint = partialParam->tvf.biasPoint;
 	if ((biasPoint & 0x40) == 0) {
@@ -87,23 +91,25 @@ static int calcBaseCutoff(const TimbreParam::PartialParam *partialParam, Bit32u 
 		if (pitchDeltaThing > 0) {
 			baseCutoff -= pitchDeltaThing;
 		}
-	} else if (baseCutoff < -2048) {
-		baseCutoff = -2048;
+	} else if (quirkTVFBaseCutoffLimit) {
+		if (baseCutoff <= -0x400) {
+			baseCutoff = -400;
+		}
+	} else {
+		if (baseCutoff < -2048) {
+			baseCutoff = -2048;
+		}
 	}
 	baseCutoff += 2056;
 	baseCutoff >>= 4; // PORTABILITY NOTE: Hmm... Depends whether it could've been below -2056, but maybe arithmetic shift assumed?
 	if (baseCutoff > 255) {
 		baseCutoff = 255;
 	}
-	return (Bit8u)baseCutoff;
+	return Bit8u(baseCutoff);
 }
 
 TVF::TVF(const Partial *usePartial, LA32Ramp *useCutoffModifierRamp) :
 	partial(usePartial), cutoffModifierRamp(useCutoffModifierRamp) {
-
-
-	// init ptr warnings (load state crashes)
-	partialParam = NULL;
 }
 
 void TVF::startRamp(Bit8u newTarget, Bit8u newIncrement, int newPhase) {
@@ -111,7 +117,7 @@ void TVF::startRamp(Bit8u newTarget, Bit8u newIncrement, int newPhase) {
 	phase = newPhase;
 	cutoffModifierRamp->startRamp(newTarget, newIncrement);
 #if MT32EMU_MONITOR_TVF >= 1
-	partial->getSynth()->printDebug("[+%lu] [Partial %d] TVF,ramp,%d,%d,%d,%d", partial->debugGetSampleNum(), partial->debugGetPartialNum(), newTarget, (newIncrement & 0x80) ? -1 : 1, (newIncrement & 0x7F), newPhase);
+	partial->getSynth()->printDebug("[+%lu] [Partial %d] TVF,ramp,%x,%s%x,%d", partial->debugGetSampleNum(), partial->debugGetPartialNum(), newTarget, (newIncrement & 0x80) ? "-" : "+", (newIncrement & 0x7F), newPhase);
 #endif
 }
 
@@ -123,7 +129,7 @@ void TVF::reset(const TimbreParam::PartialParam *newPartialParam, unsigned int b
 
 	const Tables *tables = &Tables::getInstance();
 
-	baseCutoff = calcBaseCutoff(newPartialParam, basePitch, key);
+	baseCutoff = calcBaseCutoff(newPartialParam, basePitch, key, partial->getSynth()->controlROMFeatures->quirkTVFBaseCutoffLimit);
 #if MT32EMU_MONITOR_TVF >= 1
 	partial->getSynth()->printDebug("[+%lu] [Partial %d] TVF,base,%d", partial->debugGetSampleNum(), partial->debugGetPartialNum(), baseCutoff);
 #endif
@@ -131,7 +137,7 @@ void TVF::reset(const TimbreParam::PartialParam *newPartialParam, unsigned int b
 	int newLevelMult = velocity * newPartialParam->tvf.envVeloSensitivity;
 	newLevelMult >>= 6;
 	newLevelMult += 109 - newPartialParam->tvf.envVeloSensitivity;
-	newLevelMult += ((signed)key - 60) >> (4 - newPartialParam->tvf.envDepthKeyfollow);
+	newLevelMult += (signed(key) - 60) >> (4 - newPartialParam->tvf.envDepthKeyfollow);
 	if (newLevelMult < 0) {
 		newLevelMult = 0;
 	}
@@ -143,7 +149,7 @@ void TVF::reset(const TimbreParam::PartialParam *newPartialParam, unsigned int b
 	levelMult = newLevelMult;
 
 	if (newPartialParam->tvf.envTimeKeyfollow != 0) {
-		keyTimeSubtraction = ((signed)key - 60) >> (5 - newPartialParam->tvf.envTimeKeyfollow);
+		keyTimeSubtraction = (signed(key) - 60) >> (5 - newPartialParam->tvf.envTimeKeyfollow);
 	} else {
 		keyTimeSubtraction = 0;
 	}
@@ -231,101 +237,4 @@ void TVF::nextPhase() {
 	startRamp(newTarget, newIncrement, newPhase);
 }
 
-
-#ifdef WIN32_DEBUG
-void TVF::rawVerifyState( char *name, Synth *useSynth )
-{
-	TVF *ptr1, *ptr2;
-	TVF tvf_temp(partial,cutoffModifierRamp);
-
-
-#ifndef WIN32_DUMP
-	return;
-#endif
-
-	ptr1 = this;
-	ptr2 = &tvf_temp;
-	useSynth->rawLoadState( name, ptr2, sizeof(*this) );
-
-
-	if( ptr1->partial != ptr2->partial ) __asm int 3
-	if( ptr1->cutoffModifierRamp != ptr2->cutoffModifierRamp ) __asm int 3
-	if( ptr1->partialParam != ptr2->partialParam ) __asm int 3
-	if( ptr1->baseCutoff != ptr2->baseCutoff ) __asm int 3
-	if( ptr1->keyTimeSubtraction != ptr2->keyTimeSubtraction ) __asm int 3
-	if( ptr1->levelMult != ptr2->levelMult ) __asm int 3
-	if( ptr1->target != ptr2->target ) __asm int 3
-	if( ptr1->phase != ptr2->phase ) __asm int 3
-
-
-
-	// avoid destructor problems
-	memset( ptr2, 0, sizeof(*ptr2) );
-}
-#endif
-
-
-void TVF::saveState( std::ostream &stream )
-{
-	Bit16u partialParam_idx1, partialParam_idx2;
-
-	// - static fastptr
-	//const Partial * const partial;
-	//LA32Ramp *cutoffModifierRamp;
-
-
-	// - reloc fastptr (!!)
-	//const TimbreParam::PartialParam *partialParam;
-	partial->getSynth()->findPartialParam( partialParam, &partialParam_idx1, &partialParam_idx2 );
-
-	stream.write(reinterpret_cast<const char*>(&partialParam_idx1), sizeof(partialParam_idx1) );
-	stream.write(reinterpret_cast<const char*>(&partialParam_idx2), sizeof(partialParam_idx2) );
-
-
-	stream.write(reinterpret_cast<const char*>(&baseCutoff), sizeof(baseCutoff) );
-	stream.write(reinterpret_cast<const char*>(&keyTimeSubtraction), sizeof(keyTimeSubtraction) );
-	stream.write(reinterpret_cast<const char*>(&levelMult), sizeof(levelMult) );
-	stream.write(reinterpret_cast<const char*>(&target), sizeof(target) );
-	stream.write(reinterpret_cast<const char*>(&phase), sizeof(phase) );
-
-
-#ifdef WIN32_DEBUG
-	// DEBUG
-	partial->getSynth()->rawDumpState( "temp-save", this, sizeof(*this) );
-	partial->getSynth()->rawDumpNo++;
-#endif
-}
-
-
-void TVF::loadState( std::istream &stream )
-{
-	Bit16u partialParam_idx1, partialParam_idx2;
-
-	// - static fastptr
-	//const Partial * const partial;
-	//LA32Ramp *cutoffModifierRamp;
-
-
-	// - reloc fastptr (!!)
-	//const TimbreParam::PartialParam *partialParam;
-	stream.read(reinterpret_cast<char*>(&partialParam_idx1), sizeof(partialParam_idx1) );
-	stream.read(reinterpret_cast<char*>(&partialParam_idx2), sizeof(partialParam_idx2) );
-	partialParam = partial->getSynth()->indexPartialParam(partialParam_idx1, partialParam_idx2);
-
-
-	stream.read(reinterpret_cast<char*>(&baseCutoff), sizeof(baseCutoff) );
-	stream.read(reinterpret_cast<char*>(&keyTimeSubtraction), sizeof(keyTimeSubtraction) );
-	stream.read(reinterpret_cast<char*>(&levelMult), sizeof(levelMult) );
-	stream.read(reinterpret_cast<char*>(&target), sizeof(target) );
-	stream.read(reinterpret_cast<char*>(&phase), sizeof(phase) );
-
-
-#ifdef WIN32_DEBUG
-	// DEBUG
-	partial->getSynth()->rawDumpState( "temp-load", this, sizeof(*this) );
-	this->rawVerifyState( "temp-save", partial->getSynth() );
-	partial->getSynth()->rawDumpNo++;
-#endif
-}
-
-}
+} // namespace MT32Emu

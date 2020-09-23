@@ -1,5 +1,5 @@
 /* Copyright (C) 2003, 2004, 2005, 2006, 2008, 2009 Dean Beeler, Jerome Fisher
- * Copyright (C) 2011, 2012, 2013 Dean Beeler, Jerome Fisher, Sergey V. Mikayev
+ * Copyright (C) 2011-2020 Dean Beeler, Jerome Fisher, Sergey V. Mikayev
  *
  *  This program is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU Lesser General Public License as published by
@@ -15,14 +15,19 @@
  *  along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include "mt32emu.h"
-#include "PartialManager.h"
+#include <cstddef>
+
+#include "internals.h"
+
+#include "Poly.h"
+#include "Part.h"
+#include "Partial.h"
+#include "Synth.h"
 
 namespace MT32Emu {
 
-Poly::Poly(Synth *useSynth, Part *usePart) {
-	synth = useSynth;
-	part = usePart;
+Poly::Poly() {
+	part = NULL;
 	key = 255;
 	velocity = 255;
 	sustain = false;
@@ -34,10 +39,21 @@ Poly::Poly(Synth *useSynth, Part *usePart) {
 	next = NULL;
 }
 
+void Poly::setPart(Part *usePart) {
+	part = usePart;
+}
+
 void Poly::reset(unsigned int newKey, unsigned int newVelocity, bool newSustain, Partial **newPartials) {
 	if (isActive()) {
-		// FIXME: Throw out some big ugly debug output with a lot of exclamation marks - we should never get here
-		terminate();
+		// This should never happen
+		part->getSynth()->printDebug("Resetting active poly. Active partial count: %i\n", activePartialCount);
+		for (int i = 0; i < 4; i++) {
+			if (partials[i] != NULL && partials[i]->isActive()) {
+				partials[i]->deactivate();
+				activePartialCount--;
+			}
+		}
+		state = POLY_Inactive;
 	}
 
 	key = newKey;
@@ -94,39 +110,24 @@ bool Poly::startDecay() {
 }
 
 bool Poly::startAbort() {
-	if (state == POLY_Inactive) {
+	if (state == POLY_Inactive || part->getSynth()->isAbortingPoly()) {
 		return false;
 	}
 	for (int t = 0; t < 4; t++) {
 		Partial *partial = partials[t];
 		if (partial != NULL) {
 			partial->startAbort();
+			part->getSynth()->abortingPoly = this;
 		}
 	}
 	return true;
 }
 
-void Poly::terminate() {
-	if (state == POLY_Inactive) {
-		return;
-	}
-	for (int t = 0; t < 4; t++) {
-		Partial *partial = partials[t];
-		if (partial != NULL) {
-			partial->deactivate();
-		}
-	}
-	// FIXME: Throw out lots of debug output - this should never happen
-	// (Deactivating the partials above should've made them each call partialDeactivated(), ultimately changing the state to POLY_Inactive)
-	state = POLY_Inactive;
-}
-
 void Poly::backupCacheToPartials(PatchCache cache[4]) {
 	for (int partialNum = 0; partialNum < 4; partialNum++) {
 		Partial *partial = partials[partialNum];
-		if (partial != NULL && partial->patchCache == &cache[partialNum]) {
-			partial->cachebackup = cache[partialNum];
-			partial->patchCache = &partial->cachebackup;
+		if (partial != NULL) {
+			partial->backupCache(cache[partialNum]);
 		}
 	}
 }
@@ -171,11 +172,14 @@ void Poly::partialDeactivated(Partial *partial) {
 	}
 	if (activePartialCount == 0) {
 		state = POLY_Inactive;
+		if (part->getSynth()->abortingPoly == this) {
+			part->getSynth()->abortingPoly = NULL;
+		}
 	}
 	part->partialDeactivated(this);
 }
 
-Poly *Poly::getNext() {
+Poly *Poly::getNext() const {
 	return next;
 }
 
@@ -183,104 +187,4 @@ void Poly::setNext(Poly *poly) {
 	next = poly;
 }
 
-
-#ifdef WIN32_DEBUG
-void Poly::rawVerifyState( char *name, Synth *useSynth )
-{
-	Poly *ptr1, *ptr2;
-	Poly poly_temp(synth, part);
-
-
-#ifndef WIN32_DUMP
-	return;
-#endif
-
-	ptr1 = this;
-	ptr2 = &poly_temp;
-	useSynth->rawLoadState( name, ptr2, sizeof(*this) );
-
-
-	if( ptr1->synth != ptr2->synth ) __asm int 3
-	if( ptr1->part != ptr2->part ) __asm int 3
-	if( ptr1->key != ptr2->key ) __asm int 3
-	if( ptr1->velocity != ptr2->velocity ) __asm int 3
-	if( ptr1->activePartialCount != ptr2->activePartialCount ) __asm int 3
-	if( ptr1->sustain != ptr2->sustain ) __asm int 3
-	if( ptr1->state != ptr2->state ) __asm int 3
-
-	for( int lcv=0; lcv<4; lcv++ ) {
-		if( ptr1->partials[lcv] != ptr2->partials[lcv] ) __asm int 3
-	}
-
-
-
-	// avoid destructor problems
-	memset( ptr2, 0, sizeof(*ptr2) );
-}
-#endif
-
-
-void Poly::saveState( std::ostream &stream )
-{
-	// - static fastptr
-	//Synth *synth;
-	//Part *part;
-
-	stream.write(reinterpret_cast<const char*>(&key), sizeof(key) );
-	stream.write(reinterpret_cast<const char*>(&velocity), sizeof(velocity) );
-	stream.write(reinterpret_cast<const char*>(&activePartialCount), sizeof(activePartialCount) );
-	stream.write(reinterpret_cast<const char*>(&sustain), sizeof(sustain) );
-	stream.write(reinterpret_cast<const char*>(&state), sizeof(state) );
-
-
-	// - reloc ptr (!!!)
-	//Partial *partials[4];
-	for( int lcv=0; lcv<4; lcv++ ) {
-		Bit8u partials_idx;
-
-		synth->findPartial( partials[lcv], &partials_idx );
-		
-		stream.write(reinterpret_cast<const char*>(&partials_idx), sizeof(partials_idx) );
-	}
-
-
-#ifdef WIN32_DEBUG
-	// DEBUG
-	synth->rawDumpState( "temp-save", this, sizeof(*this) );
-	synth->rawDumpNo++;
-#endif
-}
-
-
-void Poly::loadState( std::istream &stream )
-{
-	// - static fastptr
-	//Synth *synth;
-	//Part *part;
-
-	stream.read(reinterpret_cast<char*>(&key), sizeof(key) );
-	stream.read(reinterpret_cast<char*>(&velocity), sizeof(velocity) );
-	stream.read(reinterpret_cast<char*>(&activePartialCount), sizeof(activePartialCount) );
-	stream.read(reinterpret_cast<char*>(&sustain), sizeof(sustain) );
-	stream.read(reinterpret_cast<char*>(&state), sizeof(state) );
-
-	
-	// - reloc ptr (!!!)
-	//Partial *partials[4];
-	for( int lcv=0; lcv<4; lcv++ ) {
-		Bit8u partials_idx;
-
-		stream.read(reinterpret_cast<char*>(&partials_idx), sizeof(partials_idx) );
-		partials[lcv] = (Partial *) synth->indexPartial(partials_idx);
-	}
-
-
-#ifdef WIN32_DEBUG
-	// DEBUG
-	synth->rawDumpState( "temp-load", this, sizeof(*this) );
-	this->rawVerifyState( "temp-save", synth );
-	synth->rawDumpNo++;
-#endif
-}
-
-}
+} // namespace MT32Emu

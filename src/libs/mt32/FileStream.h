@@ -1,5 +1,5 @@
 /* Copyright (C) 2003, 2004, 2005, 2006, 2008, 2009 Dean Beeler, Jerome Fisher
- * Copyright (C) 2011, 2012, 2013 Dean Beeler, Jerome Fisher, Sergey V. Mikayev
+ * Copyright (C) 2011-2020 Dean Beeler, Jerome Fisher, Sergey V. Mikayev
  *
  *  This program is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU Lesser General Public License as published by
@@ -19,26 +19,28 @@
 #define MT32EMU_FILE_STREAM_H
 
 #include <fstream>
-#include <iostream>
-#include <cstdio>
 
+#include "globals.h"
+#include "Types.h"
 #include "File.h"
 
 namespace MT32Emu {
 
-class FileStream: public File {
-private:
-	std::ifstream *ifsp;
+class FileStream : public AbstractFile {
 public:
-	FileStream();
-	virtual ~FileStream();
-	virtual size_t getSize();
-	virtual const unsigned char* getData();
+	MT32EMU_EXPORT FileStream();
+	MT32EMU_EXPORT ~FileStream();
+	MT32EMU_EXPORT size_t getSize();
+	MT32EMU_EXPORT const Bit8u *getData();
+	MT32EMU_EXPORT bool open(const char *filename);
+	MT32EMU_EXPORT void close();
 
-	bool open(const char *filename);
-	void close();
+private:
+	std::ifstream &ifsp;
+	const Bit8u *data;
+	size_t size;
 };
 
-}
+} // namespace MT32Emu
 
-#endif
+#endif // #ifndef MT32EMU_FILE_STREAM_H

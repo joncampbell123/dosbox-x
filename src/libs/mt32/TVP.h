@@ -1,5 +1,5 @@
 /* Copyright (C) 2003, 2004, 2005, 2006, 2008, 2009 Dean Beeler, Jerome Fisher
- * Copyright (C) 2011, 2012, 2013 Dean Beeler, Jerome Fisher, Sergey V. Mikayev
+ * Copyright (C) 2011-2020 Dean Beeler, Jerome Fisher, Sergey V. Mikayev
  *
  *  This program is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU Lesser General Public License as published by
@@ -18,7 +18,14 @@
 #ifndef MT32EMU_TVP_H
 #define MT32EMU_TVP_H
 
+#include "globals.h"
+#include "Types.h"
+#include "Structures.h"
+
 namespace MT32Emu {
+
+class Part;
+class Partial;
 
 class TVP {
 private:
@@ -29,25 +36,24 @@ private:
 	const TimbreParam::PartialParam *partialParam;
 	const MemParams::PatchTemp *patchTemp;
 
-	int maxCounter;
 	int processTimerIncrement;
-	int counter = 0;
-	Bit32u timeElapsed = 0;
+	int counter;
+	Bit32u timeElapsed;
 
-	int phase = 0;
-	Bit32u basePitch = 0;
-	Bit32s targetPitchOffsetWithoutLFO = 0;
-	Bit32s currentPitchOffset = 0;
+	int phase;
+	Bit32u basePitch;
+	Bit32s targetPitchOffsetWithoutLFO;
+	Bit32s currentPitchOffset;
 
-	Bit16s lfoPitchOffset = 0;
+	Bit16s lfoPitchOffset;
 	// In range -12 - 36
-	Bit8s timeKeyfollowSubtraction = 0;
+	Bit8s timeKeyfollowSubtraction;
 
-	Bit16s pitchOffsetChangePerBigTick = 0;
-	Bit16u targetPitchOffsetReachedBigTick = 0;
-	unsigned int shifts = 0;
+	Bit16s pitchOffsetChangePerBigTick;
+	Bit16u targetPitchOffsetReachedBigTick;
+	unsigned int shifts;
 
-	Bit16u pitch = 0;
+	Bit16u pitch;
 
 	void updatePitch();
 	void setupPitchChange(int targetPitchOffset, Bit8u changeDuration);
@@ -55,19 +61,13 @@ private:
 	void nextPhase();
 	void process();
 public:
-	TVP(const Partial *usePartial);
-	void reset(const Part *usePart, const TimbreParam::PartialParam *usePartialParam);
+	TVP(const Partial *partial);
+	void reset(const Part *part, const TimbreParam::PartialParam *partialParam);
 	Bit32u getBasePitch() const;
 	Bit16u nextPitch();
 	void startDecay();
+}; // class TVP
 
-	void saveState( std::ostream &stream );
-	void loadState( std::istream &stream );
+} // namespace MT32Emu
 
-	// savestate debugging
-	void rawVerifyState( char *name, Synth *synth );
-};
-
-}
-
-#endif
+#endif // #ifndef MT32EMU_TVP_H

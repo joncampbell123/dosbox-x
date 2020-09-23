@@ -1,5 +1,5 @@
 /* Copyright (C) 2003, 2004, 2005, 2006, 2008, 2009 Dean Beeler, Jerome Fisher
- * Copyright (C) 2011, 2012, 2013 Dean Beeler, Jerome Fisher, Sergey V. Mikayev
+ * Copyright (C) 2011-2020 Dean Beeler, Jerome Fisher, Sergey V. Mikayev
  *
  *  This program is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU Lesser General Public License as published by
@@ -15,12 +15,13 @@
  *  along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include <cmath>
-#include "mt32emu.h"
-#include "mmath.h"
-#include "LegacyWaveGenerator.h"
+#include <cstddef>
 
-#if MT32EMU_ACCURATE_WG == 1
+#include "internals.h"
+
+#include "LA32FloatWaveGenerator.h"
+#include "mmath.h"
+#include "Tables.h"
 
 namespace MT32Emu {
 
@@ -28,7 +29,7 @@ static const float MIDDLE_CUTOFF_VALUE = 128.0f;
 static const float RESONANCE_DECAY_THRESHOLD_CUTOFF_VALUE = 144.0f;
 static const float MAX_CUTOFF_VALUE = 240.0f;
 
-float LA32WaveGenerator::getPCMSample(unsigned int position) {
+float LA32FloatWaveGenerator::getPCMSample(unsigned int position) {
 	if (position >= pcmWaveLength) {
 		if (!pcmWaveLooped) {
 			return 0;
@@ -40,10 +41,10 @@ float LA32WaveGenerator::getPCMSample(unsigned int position) {
 	return ((pcmSample & 32768) == 0) ? sampleValue : -sampleValue;
 }
 
-void LA32WaveGenerator::initSynth(const bool sawtoothWaveform, const Bit8u pulseWidth, const Bit8u resonance) {
-	this->sawtoothWaveform = sawtoothWaveform;
-	this->pulseWidth = pulseWidth;
-	this->resonance = resonance;
+void LA32FloatWaveGenerator::initSynth(const bool useSawtoothWaveform, const Bit8u usePulseWidth, const Bit8u useResonance) {
+	sawtoothWaveform = useSawtoothWaveform;
+	pulseWidth = usePulseWidth;
+	resonance = useResonance;
 
 	wavePos = 0.0f;
 	lastFreq = 0.0f;
@@ -52,23 +53,23 @@ void LA32WaveGenerator::initSynth(const bool sawtoothWaveform, const Bit8u pulse
 	active = true;
 }
 
-void LA32WaveGenerator::initPCM(const Bit16s * const pcmWaveAddress, const Bit32u pcmWaveLength, const bool pcmWaveLooped, const bool pcmWaveInterpolated) {
-	this->pcmWaveAddress = pcmWaveAddress;
-	this->pcmWaveLength = pcmWaveLength;
-	this->pcmWaveLooped = pcmWaveLooped;
-	this->pcmWaveInterpolated = pcmWaveInterpolated;
+void LA32FloatWaveGenerator::initPCM(const Bit16s * const usePCMWaveAddress, const Bit32u usePCMWaveLength, const bool usePCMWaveLooped, const bool usePCMWaveInterpolated) {
+	pcmWaveAddress = usePCMWaveAddress;
+	pcmWaveLength = usePCMWaveLength;
+	pcmWaveLooped = usePCMWaveLooped;
+	pcmWaveInterpolated = usePCMWaveInterpolated;
 
 	pcmPosition = 0.0f;
 	active = true;
 }
 
-float LA32WaveGenerator::generateNextSample(const Bit32u ampVal, const Bit16u pitch, const Bit32u cutoffRampVal) {
+// ampVal - Logarithmic amp of the wave generator
+// pitch - Logarithmic frequency of the resulting wave
+// cutoffRampVal - Composed of the base cutoff in range [78..178] left-shifted by 18 bits and the TVF modifier
+float LA32FloatWaveGenerator::generateNextSample(const Bit32u ampVal, const Bit16u pitch, const Bit32u cutoffRampVal) {
 	if (!active) {
 		return 0.0f;
 	}
-
-	this->amp = amp;
-	this->pitch = pitch;
 
 	float sample = 0.0f;
 
@@ -88,7 +89,7 @@ float LA32WaveGenerator::generateNextSample(const Bit32u ampVal, const Bit16u pi
 	if (isPCMWave()) {
 		// Render PCM waveform
 		int len = pcmWaveLength;
-		int intPCMPosition = (int)pcmPosition;
+		int intPCMPosition = int(pcmPosition);
 		if (intPCMPosition >= len && !pcmWaveLooped) {
 			// We're now past the end of a non-looping PCM waveform so it's time to die.
 			deactivate();
@@ -109,7 +110,7 @@ float LA32WaveGenerator::generateNextSample(const Bit32u ampVal, const Bit16u pi
 
 		float newPCMPosition = pcmPosition + positionDelta;
 		if (pcmWaveLooped) {
-			newPCMPosition = fmod(newPCMPosition, (float)pcmWaveLength);
+			newPCMPosition = fmod(newPCMPosition, float(pcmWaveLength));
 		}
 		pcmPosition = newPCMPosition;
 	} else {
@@ -164,15 +165,9 @@ float LA32WaveGenerator::generateNextSample(const Bit32u ampVal, const Bit16u pi
 			hLen = 0.0f;
 		}
 
-		// Ignore pulsewidths too high for given freq and cutoff
-		float lLen = waveLen - hLen - 2 * cosineLen;
-		if (lLen < 0.0f) {
-			lLen = 0.0f;
-		}
-
 		// Correct resAmp for cutoff in range 50..66
-		if ((cutoffVal >= 128.0f) && (cutoffVal < 144.0f)) {
-			resAmp *= sin(FLOAT_PI * (cutoffVal - 128.0f) / 32.0f);
+		if ((cutoffVal >= MIDDLE_CUTOFF_VALUE) && (cutoffVal < RESONANCE_DECAY_THRESHOLD_CUTOFF_VALUE)) {
+			resAmp *= sin(FLOAT_PI * (cutoffVal - MIDDLE_CUTOFF_VALUE) / 32.0f);
 		}
 
 		// Produce filtered square wave with 2 cosine waves on slopes
@@ -196,11 +191,11 @@ float LA32WaveGenerator::generateNextSample(const Bit32u ampVal, const Bit16u pi
 			sample = -1.f;
 		}
 
-		if (cutoffVal < 128.0f) {
+		if (cutoffVal < MIDDLE_CUTOFF_VALUE) {
 
 			// Attenuate samples below cutoff 50
 			// Found by sample analysis
-			sample *= EXP2F(-0.125f * (128.0f - cutoffVal));
+			sample *= EXP2F(-0.125f * (MIDDLE_CUTOFF_VALUE - cutoffVal));
 		} else {
 
 			// Add resonance sine. Effective for cutoff > 50 only
@@ -274,26 +269,26 @@ float LA32WaveGenerator::generateNextSample(const Bit32u ampVal, const Bit16u pi
 	return sample;
 }
 
-void LA32WaveGenerator::deactivate() {
+void LA32FloatWaveGenerator::deactivate() {
 	active = false;
 }
 
-bool LA32WaveGenerator::isActive() const {
+bool LA32FloatWaveGenerator::isActive() const {
 	return active;
 }
 
-bool LA32WaveGenerator::isPCMWave() const {
+bool LA32FloatWaveGenerator::isPCMWave() const {
 	return pcmWaveAddress != NULL;
 }
 
-void LA32PartialPair::init(const bool ringModulated, const bool mixed) {
-	this->ringModulated = ringModulated;
-	this->mixed = mixed;
+void LA32FloatPartialPair::init(const bool useRingModulated, const bool useMixed) {
+	ringModulated = useRingModulated;
+	mixed = useMixed;
 	masterOutputSample = 0.0f;
 	slaveOutputSample = 0.0f;
 }
 
-void LA32PartialPair::initSynth(const PairType useMaster, const bool sawtoothWaveform, const Bit8u pulseWidth, const Bit8u resonance) {
+void LA32FloatPartialPair::initSynth(const PairType useMaster, const bool sawtoothWaveform, const Bit8u pulseWidth, const Bit8u resonance) {
 	if (useMaster == MASTER) {
 		master.initSynth(sawtoothWaveform, pulseWidth, resonance);
 	} else {
@@ -301,7 +296,7 @@ void LA32PartialPair::initSynth(const PairType useMaster, const bool sawtoothWav
 	}
 }
 
-void LA32PartialPair::initPCM(const PairType useMaster, const Bit16s *pcmWaveAddress, const Bit32u pcmWaveLength, const bool pcmWaveLooped) {
+void LA32FloatPartialPair::initPCM(const PairType useMaster, const Bit16s *pcmWaveAddress, const Bit32u pcmWaveLength, const bool pcmWaveLooped) {
 	if (useMaster == MASTER) {
 		master.initPCM(pcmWaveAddress, pcmWaveLength, pcmWaveLooped, true);
 	} else {
@@ -309,7 +304,7 @@ void LA32PartialPair::initPCM(const PairType useMaster, const Bit16s *pcmWaveAdd
 	}
 }
 
-void LA32PartialPair::generateNextSample(const PairType useMaster, const Bit32u amp, const Bit16u pitch, const Bit32u cutoff) {
+void LA32FloatPartialPair::generateNextSample(const PairType useMaster, const Bit32u amp, const Bit16u pitch, const Bit32u cutoff) {
 	if (useMaster == MASTER) {
 		masterOutputSample = master.generateNextSample(amp, pitch, cutoff);
 	} else {
@@ -317,18 +312,37 @@ void LA32PartialPair::generateNextSample(const PairType useMaster, const Bit32u 
 	}
 }
 
-Bit16s LA32PartialPair::nextOutSample() {
-	float outputSample;
-	if (ringModulated) {
-		float ringModulatedSample = masterOutputSample * slaveOutputSample;
-		outputSample = mixed ? masterOutputSample + ringModulatedSample : ringModulatedSample;
-	} else {
-		outputSample = masterOutputSample + slaveOutputSample;
+static inline float produceDistortedSample(float sample) {
+	if (sample < -1.0f) {
+		return sample + 2.0f;
+	} else if (1.0f < sample) {
+		return sample - 2.0f;
 	}
-	return Bit16s(outputSample * 8192.0f);
+	return sample;
 }
 
-void LA32PartialPair::deactivate(const PairType useMaster) {
+float LA32FloatPartialPair::nextOutSample() {
+	// Note, LA32FloatWaveGenerator produces each sample normalised in terms of a single playing partial,
+	// so the unity sample corresponds to the internal LA32 logarithmic fixed-point unity sample.
+	// However, each logarithmic sample is then unlogged to a 14-bit signed integer value, i.e. the max absolute value is 8192.
+	// Thus, considering that samples are further mapped to a 16-bit signed integer,
+	// we apply a conversion factor 0.25 to produce properly normalised float samples.
+	if (!ringModulated) {
+		return 0.25f * (masterOutputSample + slaveOutputSample);
+	}
+	/*
+	 * SEMI-CONFIRMED: Ring modulation model derived from sample analysis of specially constructed patches which exploit distortion.
+	 * LA32 ring modulator found to produce distorted output in case if the absolute value of maximal amplitude of one of the input partials exceeds 8191.
+	 * This is easy to reproduce using synth partials with resonance values close to the maximum. It looks like an integer overflow happens in this case.
+	 * As the distortion is strictly bound to the amplitude of the complete mixed square + resonance wave in the linear space,
+	 * it is reasonable to assume the ring modulation is performed also in the linear space by sample multiplication.
+	 * Most probably the overflow is caused by limited precision of the multiplication circuit as the very similar distortion occurs with panning.
+	 */
+	float ringModulatedSample = produceDistortedSample(masterOutputSample) * produceDistortedSample(slaveOutputSample);
+	return 0.25f * (mixed ? masterOutputSample + ringModulatedSample : ringModulatedSample);
+}
+
+void LA32FloatPartialPair::deactivate(const PairType useMaster) {
 	if (useMaster == MASTER) {
 		master.deactivate();
 		masterOutputSample = 0.0f;
@@ -338,10 +352,8 @@ void LA32PartialPair::deactivate(const PairType useMaster) {
 	}
 }
 
-bool LA32PartialPair::isActive(const PairType useMaster) const {
+bool LA32FloatPartialPair::isActive(const PairType useMaster) const {
 	return useMaster == MASTER ? master.isActive() : slave.isActive();
 }
 
-}
-
-#endif // #if MT32EMU_ACCURATE_WG == 1
+} // namespace MT32Emu

@@ -1,5 +1,5 @@
 /* Copyright (C) 2003, 2004, 2005, 2006, 2008, 2009 Dean Beeler, Jerome Fisher
- * Copyright (C) 2011, 2012, 2013 Dean Beeler, Jerome Fisher, Sergey V. Mikayev
+ * Copyright (C) 2011-2020 Dean Beeler, Jerome Fisher, Sergey V. Mikayev
  *
  *  This program is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU Lesser General Public License as published by
@@ -47,17 +47,17 @@ We haven't fully explored:
  - Values when ramping between levels (though this is probably correct).
  - Transition timing (may not be 100% accurate, especially for very fast ramps).
 */
-#include <cmath>
 
-#include "mt32emu.h"
+#include "internals.h"
+
 #include "LA32Ramp.h"
-#include "mmath.h"
+#include "Tables.h"
 
 namespace MT32Emu {
 
 // SEMI-CONFIRMED from sample analysis.
-const int TARGET_MULT = 0x40000;
-const unsigned int MAX_CURRENT = 0xFF * TARGET_MULT;
+const unsigned int TARGET_SHIFTS = 18;
+const unsigned int MAX_CURRENT = 0xFF << TARGET_SHIFTS;
 
 // We simulate the delay in handling "target was reached" interrupts by waiting
 // this many samples before setting interruptRaised.
@@ -96,7 +96,7 @@ void LA32Ramp::startRamp(Bit8u target, Bit8u increment) {
 		largeIncrement++;
 	}
 
-	largeTarget = target * TARGET_MULT;
+	largeTarget = target << TARGET_SHIFTS;
 	interruptCountdown = 0;
 	interruptRaised = false;
 }
@@ -152,26 +152,13 @@ void LA32Ramp::reset() {
 	interruptRaised = false;
 }
 
-
-void LA32Ramp::saveState( std::ostream &stream )
-{
-	stream.write(reinterpret_cast<const char*>(&current), sizeof(current) );
-	stream.write(reinterpret_cast<const char*>(&largeTarget), sizeof(largeTarget) );
-	stream.write(reinterpret_cast<const char*>(&largeIncrement), sizeof(largeIncrement) );
-	stream.write(reinterpret_cast<const char*>(&descending), sizeof(descending) );
-	stream.write(reinterpret_cast<const char*>(&interruptCountdown), sizeof(interruptCountdown) );
-	stream.write(reinterpret_cast<const char*>(&interruptRaised), sizeof(interruptRaised) );
+// This is actually beyond the LA32 ramp interface.
+// Instead of polling the current value, MCU receives an interrupt when a ramp completes.
+// However, this is a simple way to work around the specific behaviour of TVA
+// when in sustain phase which one normally wants to avoid.
+// See TVA::recalcSustain() for details.
+bool LA32Ramp::isBelowCurrent(Bit8u target) const {
+	return Bit32u(target << TARGET_SHIFTS) < current;
 }
 
-
-void LA32Ramp::loadState( std::istream &stream )
-{
-	stream.read(reinterpret_cast<char*>(&current), sizeof(current) );
-	stream.read(reinterpret_cast<char*>(&largeTarget), sizeof(largeTarget) );
-	stream.read(reinterpret_cast<char*>(&largeIncrement), sizeof(largeIncrement) );
-	stream.read(reinterpret_cast<char*>(&descending), sizeof(descending) );
-	stream.read(reinterpret_cast<char*>(&interruptCountdown), sizeof(interruptCountdown) );
-	stream.read(reinterpret_cast<char*>(&interruptRaised), sizeof(interruptRaised) );
-}
-
-}
+} // namespace MT32Emu

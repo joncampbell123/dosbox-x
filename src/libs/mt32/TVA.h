@@ -1,5 +1,5 @@
 /* Copyright (C) 2003, 2004, 2005, 2006, 2008, 2009 Dean Beeler, Jerome Fisher
- * Copyright (C) 2011, 2012, 2013 Dean Beeler, Jerome Fisher, Sergey V. Mikayev
+ * Copyright (C) 2011-2020 Dean Beeler, Jerome Fisher, Sergey V. Mikayev
  *
  *  This program is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU Lesser General Public License as published by
@@ -18,9 +18,15 @@
 #ifndef MT32EMU_TVA_H
 #define MT32EMU_TVA_H
 
+#include "globals.h"
+#include "Types.h"
+#include "Structures.h"
+
 namespace MT32Emu {
 
+class LA32Ramp;
 class Part;
+class Partial;
 
 // Note that when entering nextPhase(), newPhase is set to phase + 1, and the descriptions/names below refer to
 // newPhase's value.
@@ -64,13 +70,13 @@ private:
 	const MemParams::PatchTemp *patchTemp;
 	const MemParams::RhythmTemp *rhythmTemp;
 
-	bool playing = false;
+	bool playing;
 
-	int biasAmpSubtraction = 0;
-	int veloAmpSubtraction = 0;
-	int keyTimeSubtraction = 0;
+	int biasAmpSubtraction;
+	int veloAmpSubtraction;
+	int keyTimeSubtraction;
 
-	Bit8u target = 0;
+	Bit8u target;
 	int phase;
 
 	void startRamp(Bit8u newTarget, Bit8u newIncrement, int newPhase);
@@ -78,8 +84,8 @@ private:
 	void nextPhase();
 
 public:
-	TVA(const Partial *usePartial, LA32Ramp *useAmpRamp);
-	void reset(const Part *newPart, const TimbreParam::PartialParam *newPartialParam, const MemParams::RhythmTemp *newRhythmTemp);
+	TVA(const Partial *partial, LA32Ramp *ampRamp);
+	void reset(const Part *part, const TimbreParam::PartialParam *partialParam, const MemParams::RhythmTemp *rhythmTemp);
 	void handleInterrupt();
 	void recalcSustain();
 	void startDecay();
@@ -87,14 +93,8 @@ public:
 
 	bool isPlaying() const;
 	int getPhase() const;
+}; // class TVA
 
-	void saveState( std::ostream &stream );
-	void loadState( std::istream &stream );
+} // namespace MT32Emu
 
-	// savestate debugging
-	void rawVerifyState( char *name, Synth *synth );
-};
-
-}
-
-#endif /* TVA_H_ */
+#endif // #ifndef MT32EMU_TVA_H

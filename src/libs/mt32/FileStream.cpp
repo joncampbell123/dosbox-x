@@ -1,5 +1,5 @@
 /* Copyright (C) 2003, 2004, 2005, 2006, 2008, 2009 Dean Beeler, Jerome Fisher
- * Copyright (C) 2011, 2012, 2013 Dean Beeler, Jerome Fisher, Sergey V. Mikayev
+ * Copyright (C) 2011-2020 Dean Beeler, Jerome Fisher, Sergey V. Mikayev
  *
  *  This program is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU Lesser General Public License as published by
@@ -15,78 +15,84 @@
  *  along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include "mt32emu.h"
+#ifdef MT32EMU_SHARED
+#include <locale>
+#endif
+
+#include "internals.h"
+
 #include "FileStream.h"
 
 namespace MT32Emu {
 
-using std::ifstream;
-using std::ios_base;
+static inline void configureSystemLocale() {
+#ifdef MT32EMU_SHARED
+	static bool configured = false;
 
-FileStream::FileStream() {
-	ifsp = new ifstream();
+	if (configured) return;
+	configured = true;
+	std::locale::global(std::locale(""));
+#endif
 }
 
+using std::ios_base;
+
+FileStream::FileStream() : ifsp(*new std::ifstream), data(NULL), size(0)
+{}
+
 FileStream::~FileStream() {
-	if (ifsp != NULL) {
-		delete ifsp; // destructor closes the file itself
-	}
-	if (data) {
-		delete[] data;
-	}
+	// destructor closes ifsp
+	delete &ifsp;
+	delete[] data;
 }
 
 size_t FileStream::getSize() {
-	if (fileSize != 0) {
-		return fileSize;
+	if (size != 0) {
+		return size;
 	}
-	if (ifsp == NULL) {
+	if (!ifsp.is_open()) {
 		return 0;
 	}
-	if (!ifsp->is_open()) {
-		return 0;
-	}
-	ifsp->seekg(0, ios_base::end);
-	fileSize = (size_t)ifsp->tellg();
-	return fileSize;
+	ifsp.seekg(0, ios_base::end);
+	size = size_t(ifsp.tellg());
+	return size;
 }
 
-const unsigned char* FileStream::getData() {
+const Bit8u *FileStream::getData() {
 	if (data != NULL) {
 		return data;
 	}
-	if (ifsp == NULL) {
-		return NULL;
-	}
-	if (!ifsp->is_open()) {
+	if (!ifsp.is_open()) {
 		return NULL;
 	}
 	if (getSize() == 0) {
 		return NULL;
 	}
-	data = new unsigned char[fileSize];
-	if (data == NULL) {
+	Bit8u *fileData = new Bit8u[size];
+	if (fileData == NULL) {
 		return NULL;
 	}
-	ifsp->seekg(0);
-	ifsp->read((char *)data, fileSize);
-	if ((size_t)ifsp->tellg() != fileSize) {
-		delete[] data;
-		data = NULL;
+	ifsp.seekg(0);
+	ifsp.read(reinterpret_cast<char *>(fileData), std::streamsize(size));
+	if (size_t(ifsp.tellg()) != size) {
+		delete[] fileData;
 		return NULL;
 	}
+	data = fileData;
+	close();
 	return data;
 }
 
 bool FileStream::open(const char *filename) {
-	if (ifsp) {
-		ifsp->open(filename, ios_base::in | ios_base::binary);
-	}
-	return (ifsp->good());
+	configureSystemLocale();
+	ifsp.clear();
+	ifsp.open(filename, ios_base::in | ios_base::binary);
+	return !ifsp.fail();
 }
 
 void FileStream::close() {
-	ifsp->close();
+	ifsp.close();
+	ifsp.clear();
 }
 
-}
+} // namespace MT32Emu

@@ -1,5 +1,5 @@
 /* Copyright (C) 2003, 2004, 2005, 2006, 2008, 2009 Dean Beeler, Jerome Fisher
- * Copyright (C) 2011, 2012, 2013 Dean Beeler, Jerome Fisher, Sergey V. Mikayev
+ * Copyright (C) 2011-2020 Dean Beeler, Jerome Fisher, Sergey V. Mikayev
  *
  *  This program is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU Lesser General Public License as published by
@@ -18,17 +18,22 @@
 #ifndef MT32EMU_PART_H
 #define MT32EMU_PART_H
 
+#include "globals.h"
+#include "internals.h"
+#include "Types.h"
+#include "Structures.h"
+
 namespace MT32Emu {
 
-class PartialManager;
+class Poly;
 class Synth;
 
 class PolyList {
 private:
-
-public:
 	Poly *firstPoly;
 	Poly *lastPoly;
+
+public:
 	PolyList();
 	bool isEmpty() const;
 	Poly *getFirst() const;
@@ -36,7 +41,7 @@ public:
 	void prepend(Poly *poly);
 	void append(Poly *poly);
 	Poly *takeFirst();
-	void remove(Poly * const polyToRemove);
+	void remove(Poly * const poly);
 };
 
 class Part {
@@ -51,13 +56,11 @@ private:
 
 	unsigned int activePartialCount;
 	PatchCache patchCache[4];
-	PolyList freePolys;
 	PolyList activePolys;
 
 	void setPatch(const PatchParam *patch);
 	unsigned int midiKeyToKey(unsigned int midiKey);
 
-	void abortPoly(Poly *poly);
 	bool abortFirstPoly(unsigned int key);
 
 protected:
@@ -80,7 +83,7 @@ protected:
 	const char *getName() const;
 
 public:
-	Part(Synth *useSynth, unsigned int usePartNum);
+	Part(Synth *synth, unsigned int usePartNum);
 	virtual ~Part();
 	void reset();
 	void setDataEntryMSB(unsigned char midiDataEntryMSB);
@@ -101,8 +104,8 @@ public:
 	virtual void setPan(unsigned int midiPan);
 	Bit32s getPitchBend() const;
 	void setBend(unsigned int midiBend);
-	virtual void setProgram(unsigned int patchNum);
-	void setHoldPedal(bool pressed);
+	virtual void setProgram(unsigned int midiProgram);
+	void setHoldPedal(bool pedalval);
 	void stopPedalHold();
 	void updatePitchBenderRange();
 	virtual void refresh();
@@ -110,8 +113,10 @@ public:
 	virtual void setTimbre(TimbreParam *timbre);
 	virtual unsigned int getAbsTimbreNum() const;
 	const char *getCurrentInstr() const;
+	const Poly *getFirstActivePoly() const;
 	unsigned int getActivePartialCount() const;
 	unsigned int getActiveNonReleasingPartialCount() const;
+	Synth *getSynth() const;
 
 	const MemParams::PatchTemp *getPatchTemp() const;
 
@@ -123,11 +128,7 @@ public:
 	// Abort the first poly in PolyState_HELD, or if none exists, the first active poly in any state.
 	bool abortFirstPolyPreferHeld();
 	bool abortFirstPoly();
-
-	const Poly *getActivePoly(int num);
-	int getActivePolyCount();
-	const PatchCache *getPatchCache(int num);
-};
+}; // class Part
 
 class RhythmPart: public Part {
 	// Pointer to the area of the MT-32's memory dedicated to rhythm
@@ -136,18 +137,17 @@ class RhythmPart: public Part {
 	// This caches the timbres/settings in use by the rhythm part
 	PatchCache drumCache[85][4];
 public:
-	RhythmPart(Synth *useSynth, unsigned int usePartNum);
+	RhythmPart(Synth *synth, unsigned int usePartNum);
 	void refresh();
-	void refreshTimbre(unsigned int absTimbreNum);
+	void refreshTimbre(unsigned int timbreNum);
 	void setTimbre(TimbreParam *timbre);
-	void noteOn(unsigned int midiKey, unsigned int velocity);
+	void noteOn(unsigned int key, unsigned int velocity);
 	void noteOff(unsigned int midiKey);
 	unsigned int getAbsTimbreNum() const;
 	void setPan(unsigned int midiPan);
 	void setProgram(unsigned int patchNum);
-
-	const PatchCache *getDrumCache(int num1, int num2);
 };
 
-}
-#endif
+} // namespace MT32Emu
+
+#endif // #ifndef MT32EMU_PART_H

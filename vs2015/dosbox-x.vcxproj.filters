@@ -112,11 +112,11 @@
     <Filter Include="Sources\libs\mt32">
       <UniqueIdentifier>{100486ca-860f-43d4-a37d-3c5b6c9cf849}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Sources\libs\mt32\freeverb">
-      <UniqueIdentifier>{1b000c8a-88a6-4d4c-9c0c-17fc2eddc9bc}</UniqueIdentifier>
-    </Filter>
     <Filter Include="Sources\libs\mt32\sha1">
       <UniqueIdentifier>{4f7f2cfd-2b47-4f7b-9951-22375362f7fb}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Sources\libs\mt32\c_interface">
+      <UniqueIdentifier>{1c77ffdf-9bc7-404b-8b6f-77a41fc2ed1a}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>
@@ -621,13 +621,7 @@
     <ClCompile Include="..\src\misc\support.cpp">
       <Filter>Sources\misc</Filter>
     </ClCompile>
-    <ClCompile Include="..\src\libs\mt32\AReverbModel.cpp">
-      <Filter>Sources\libs\mt32</Filter>
-    </ClCompile>
     <ClCompile Include="..\src\libs\mt32\BReverbModel.cpp">
-      <Filter>Sources\libs\mt32</Filter>
-    </ClCompile>
-    <ClCompile Include="..\src\libs\mt32\DelayReverb.cpp">
       <Filter>Sources\libs\mt32</Filter>
     </ClCompile>
     <ClCompile Include="..\src\libs\mt32\File.cpp">
@@ -636,16 +630,10 @@
     <ClCompile Include="..\src\libs\mt32\FileStream.cpp">
       <Filter>Sources\libs\mt32</Filter>
     </ClCompile>
-    <ClCompile Include="..\src\libs\mt32\FreeverbModel.cpp">
-      <Filter>Sources\libs\mt32</Filter>
-    </ClCompile>
     <ClCompile Include="..\src\libs\mt32\LA32Ramp.cpp">
       <Filter>Sources\libs\mt32</Filter>
     </ClCompile>
     <ClCompile Include="..\src\libs\mt32\LA32WaveGenerator.cpp">
-      <Filter>Sources\libs\mt32</Filter>
-    </ClCompile>
-    <ClCompile Include="..\src\libs\mt32\LegacyWaveGenerator.cpp">
       <Filter>Sources\libs\mt32</Filter>
     </ClCompile>
     <ClCompile Include="..\src\libs\mt32\Part.cpp">
@@ -677,15 +665,6 @@
     </ClCompile>
     <ClCompile Include="..\src\libs\mt32\TVP.cpp">
       <Filter>Sources\libs\mt32</Filter>
-    </ClCompile>
-    <ClCompile Include="..\src\libs\mt32\freeverb\allpass.cpp">
-      <Filter>Sources\libs\mt32\freeverb</Filter>
-    </ClCompile>
-    <ClCompile Include="..\src\libs\mt32\freeverb\comb.cpp">
-      <Filter>Sources\libs\mt32\freeverb</Filter>
-    </ClCompile>
-    <ClCompile Include="..\src\libs\mt32\freeverb\revmodel.cpp">
-      <Filter>Sources\libs\mt32\freeverb</Filter>
     </ClCompile>
     <ClCompile Include="..\src\libs\mt32\sha1\sha1.cpp">
       <Filter>Sources\libs\mt32\sha1</Filter>
@@ -1044,6 +1023,21 @@
     <ClCompile Include="..\src\hardware\opl2board\opl2board.cpp">
       <Filter>Sources\hardware</Filter>
     </ClCompile>
+    <ClCompile Include="..\src\libs\mt32\LA32FloatWaveGenerator.cpp">
+      <Filter>Sources\libs\mt32</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\libs\mt32\Analog.cpp">
+      <Filter>Sources\libs\mt32</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\libs\mt32\c_interface\c_interface.cpp">
+      <Filter>Sources\libs\mt32\c_interface</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\libs\mt32\SampleRateConverter.cpp">
+      <Filter>Sources\libs\mt32</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\libs\mt32\MidiStreamParser.cpp">
+      <Filter>Sources\libs\mt32</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\src\aviwriter\avi.h">
@@ -1250,13 +1244,7 @@
     <ClInclude Include="..\src\ints\int10.h">
       <Filter>Sources\ints</Filter>
     </ClInclude>
-    <ClInclude Include="..\src\libs\mt32\AReverbModel.h">
-      <Filter>Sources\libs\mt32</Filter>
-    </ClInclude>
     <ClInclude Include="..\src\libs\mt32\BReverbModel.h">
-      <Filter>Sources\libs\mt32</Filter>
-    </ClInclude>
-    <ClInclude Include="..\src\libs\mt32\DelayReverb.h">
       <Filter>Sources\libs\mt32</Filter>
     </ClInclude>
     <ClInclude Include="..\src\libs\mt32\File.h">
@@ -1265,16 +1253,10 @@
     <ClInclude Include="..\src\libs\mt32\FileStream.h">
       <Filter>Sources\libs\mt32</Filter>
     </ClInclude>
-    <ClInclude Include="..\src\libs\mt32\FreeverbModel.h">
-      <Filter>Sources\libs\mt32</Filter>
-    </ClInclude>
     <ClInclude Include="..\src\libs\mt32\LA32Ramp.h">
       <Filter>Sources\libs\mt32</Filter>
     </ClInclude>
     <ClInclude Include="..\src\libs\mt32\LA32WaveGenerator.h">
-      <Filter>Sources\libs\mt32</Filter>
-    </ClInclude>
-    <ClInclude Include="..\src\libs\mt32\LegacyWaveGenerator.h">
       <Filter>Sources\libs\mt32</Filter>
     </ClInclude>
     <ClInclude Include="..\src\libs\mt32\mmath.h">
@@ -1315,21 +1297,6 @@
     </ClInclude>
     <ClInclude Include="..\src\libs\mt32\TVP.h">
       <Filter>Sources\libs\mt32</Filter>
-    </ClInclude>
-    <ClInclude Include="..\src\libs\mt32\freeverb\allpass.h">
-      <Filter>Sources\libs\mt32\freeverb</Filter>
-    </ClInclude>
-    <ClInclude Include="..\src\libs\mt32\freeverb\comb.h">
-      <Filter>Sources\libs\mt32\freeverb</Filter>
-    </ClInclude>
-    <ClInclude Include="..\src\libs\mt32\freeverb\denormals.h">
-      <Filter>Sources\libs\mt32\freeverb</Filter>
-    </ClInclude>
-    <ClInclude Include="..\src\libs\mt32\freeverb\revmodel.h">
-      <Filter>Sources\libs\mt32\freeverb</Filter>
-    </ClInclude>
-    <ClInclude Include="..\src\libs\mt32\freeverb\tuning.h">
-      <Filter>Sources\libs\mt32\freeverb</Filter>
     </ClInclude>
     <ClInclude Include="..\src\libs\mt32\sha1\sha1.h">
       <Filter>Sources\libs\mt32\sha1</Filter>
@@ -1876,6 +1843,27 @@
     </ClInclude>
     <ClInclude Include="..\src\hardware\opl2board\opl2board.h">
       <Filter>Sources\hardware</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\libs\mt32\LA32FloatWaveGenerator.h">
+      <Filter>Sources\libs\mt32</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\libs\mt32\Analog.h">
+      <Filter>Sources\libs\mt32</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\libs\mt32\c_interface\c_interface.h">
+      <Filter>Sources\libs\mt32\c_interface</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\libs\mt32\c_interface\c_types.h">
+      <Filter>Sources\libs\mt32\c_interface</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\libs\mt32\c_interface\cpp_interface.h">
+      <Filter>Sources\libs\mt32\c_interface</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\libs\mt32\SampleRateConverter.h">
+      <Filter>Sources\libs\mt32</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\libs\mt32\MidiStreamParser.h">
+      <Filter>Sources\libs\mt32</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

@@ -1,589 +1,182 @@
 /*
- *  sha1.cpp
- *
- *  Copyright (C) 1998, 2009
- *  Paul E. Jones <paulej@packetizer.com>
- *  All Rights Reserved.
- *
- *****************************************************************************
- *  $Id: sha1.cpp 12 2009-06-22 19:34:25Z paulej $
- *****************************************************************************
- *
- *  Description:
- *      This class implements the Secure Hashing Standard as defined
- *      in FIPS PUB 180-1 published April 17, 1995.
- *
- *      The Secure Hashing Standard, which uses the Secure Hashing
- *      Algorithm (SHA), produces a 160-bit message digest for a
- *      given data stream.  In theory, it is highly improbable that
- *      two messages will produce the same message digest.  Therefore,
- *      this algorithm can serve as a means of providing a "fingerprint"
- *      for a message.
- *
- *  Portability Issues:
- *      SHA-1 is defined in terms of 32-bit "words".  This code was
- *      written with the expectation that the processor has at least
- *      a 32-bit machine word size.  If the machine word size is larger,
- *      the code should still function properly.  One caveat to that
- *      is that the input functions taking characters and character arrays
- *      assume that only 8 bits of information are stored in each character.
- *
- *  Caveats:
- *      SHA-1 is designed to work with messages less than 2^64 bits long.
- *      Although SHA-1 allows a message digest to be generated for
- *      messages of any number of bits less than 2^64, this implementation
- *      only works with messages with a length that is a multiple of 8
- *      bits.
- *
+ Copyright (c) 2011, Micael Hildenborg
+ All rights reserved.
+
+ Redistribution and use in source and binary forms, with or without
+ modification, are permitted provided that the following conditions are met:
+    * Redistributions of source code must retain the above copyright
+      notice, this list of conditions and the following disclaimer.
+    * Redistributions in binary form must reproduce the above copyright
+      notice, this list of conditions and the following disclaimer in the
+      documentation and/or other materials provided with the distribution.
+    * Neither the name of Micael Hildenborg nor the
+      names of its contributors may be used to endorse or promote products
+      derived from this software without specific prior written permission.
+
+ THIS SOFTWARE IS PROVIDED BY Micael Hildenborg ''AS IS'' AND ANY
+ EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
+ WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+ DISCLAIMED. IN NO EVENT SHALL Micael Hildenborg BE LIABLE FOR ANY
+ DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
+ (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
+ LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND
+ ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+ (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
+ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+/*
+ Contributors:
+ Gustav
+ Several members in the gamedev.se forum.
+ Gregory Petrosyan
+ */
 
 #include "sha1.h"
 
-/*  
- *  SHA1
- *
- *  Description:
- *      This is the constructor for the sha1 class.
- *
- *  Parameters:
- *      None.
- *
- *  Returns:
- *      Nothing.
- *
- *  Comments:
- *
- */
-SHA1::SHA1()
-{
-    Reset();
-}
-
-/*  
- *  ~SHA1
- *
- *  Description:
- *      This is the destructor for the sha1 class
- *
- *  Parameters:
- *      None.
- *
- *  Returns:
- *      Nothing.
- *
- *  Comments:
- *
- */
-SHA1::~SHA1()
-{
-    // The destructor does nothing
-}
-
-/*  
- *  Reset
- *
- *  Description:
- *      This function will initialize the sha1 class member variables
- *      in preparation for computing a new message digest.
- *
- *  Parameters:
- *      None.
- *
- *  Returns:
- *      Nothing.
- *
- *  Comments:
- *
- */
-void SHA1::Reset()
-{
-    Length_Low          = 0;
-    Length_High         = 0;
-    Message_Block_Index = 0;
-
-    H[0]        = 0x67452301;
-    H[1]        = 0xEFCDAB89;
-    H[2]        = 0x98BADCFE;
-    H[3]        = 0x10325476;
-    H[4]        = 0xC3D2E1F0;
-
-    Computed    = false;
-    Corrupted   = false;
-}
-
-/*  
- *  Result
- *
- *  Description:
- *      This function will return the 160-bit message digest into the
- *      array provided.
- *
- *  Parameters:
- *      message_digest_array: [out]
- *          This is an array of five unsigned integers which will be filled
- *          with the message digest that has been computed.
- *
- *  Returns:
- *      True if successful, false if it failed.
- *
- *  Comments:
- *
- */
-bool SHA1::Result(unsigned *message_digest_array)
-{
-    int i;                                  // Counter
-
-    if (Corrupted)
+    namespace // local
     {
-        return false;
-    }
-
-    if (!Computed)
-    {
-        PadMessage();
-        Computed = true;
-    }
-
-    for(i = 0; i < 5; i++)
-    {
-        message_digest_array[i] = H[i];
-    }
-
-    return true;
-}
-
-/*  
- *  Input
- *
- *  Description:
- *      This function accepts an array of octets as the next portion of
- *      the message.
- *
- *  Parameters:
- *      message_array: [in]
- *          An array of characters representing the next portion of the
- *          message.
- *
- *  Returns:
- *      Nothing.
- *
- *  Comments:
- *
- */
-void SHA1::Input(   const unsigned char *message_array,
-                    unsigned            length)
-{
-    if (!length)
-    {
-        return;
-    }
-
-    if (Computed || Corrupted)
-    {
-        Corrupted = true;
-        return;
-    }
-
-    while(length-- && !Corrupted)
-    {
-        Message_Block[Message_Block_Index++] = (*message_array & 0xFF);
-
-        Length_Low += 8;
-        Length_Low &= 0xFFFFFFFF;               // Force it to 32 bits
-        if (Length_Low == 0)
+        // Rotate an integer value to left.
+        inline unsigned int rol(const unsigned int value,
+                const unsigned int steps)
         {
-            Length_High++;
-            Length_High &= 0xFFFFFFFF;          // Force it to 32 bits
-            if (Length_High == 0)
+            return ((value << steps) | (value >> (32 - steps)));
+        }
+
+        // Sets the first 16 integers in the buffert to zero.
+        // Used for clearing the W buffert.
+        inline void clearWBuffert(unsigned int* buffert)
+        {
+            for (int pos = 16; --pos >= 0;)
             {
-                Corrupted = true;               // Message is too long
+                buffert[pos] = 0;
             }
         }
 
-        if (Message_Block_Index == 64)
+        void innerHash(unsigned int* result, unsigned int* w)
         {
-            ProcessMessageBlock();
+            unsigned int a = result[0];
+            unsigned int b = result[1];
+            unsigned int c = result[2];
+            unsigned int d = result[3];
+            unsigned int e = result[4];
+
+            int round = 0;
+
+            #define sha1macro(func,val) \
+			{ \
+                const unsigned int t = rol(a, 5) + (func) + e + val + w[round]; \
+				e = d; \
+				d = c; \
+				c = rol(b, 30); \
+				b = a; \
+				a = t; \
+			}
+
+            while (round < 16)
+            {
+                sha1macro((b & c) | (~b & d), 0x5a827999)
+                ++round;
+            }
+            while (round < 20)
+            {
+                w[round] = rol((w[round - 3] ^ w[round - 8] ^ w[round - 14] ^ w[round - 16]), 1);
+                sha1macro((b & c) | (~b & d), 0x5a827999)
+                ++round;
+            }
+            while (round < 40)
+            {
+                w[round] = rol((w[round - 3] ^ w[round - 8] ^ w[round - 14] ^ w[round - 16]), 1);
+                sha1macro(b ^ c ^ d, 0x6ed9eba1)
+                ++round;
+            }
+            while (round < 60)
+            {
+                w[round] = rol((w[round - 3] ^ w[round - 8] ^ w[round - 14] ^ w[round - 16]), 1);
+                sha1macro((b & c) | (b & d) | (c & d), 0x8f1bbcdc)
+                ++round;
+            }
+            while (round < 80)
+            {
+                w[round] = rol((w[round - 3] ^ w[round - 8] ^ w[round - 14] ^ w[round - 16]), 1);
+                sha1macro(b ^ c ^ d, 0xca62c1d6)
+                ++round;
+            }
+
+            #undef sha1macro
+
+            result[0] += a;
+            result[1] += b;
+            result[2] += c;
+            result[3] += d;
+            result[4] += e;
+        }
+    } // namespace
+
+    void calc(const void* src, const int bytelength, unsigned char* hash)
+    {
+        // Init the result array.
+        unsigned int result[5] = { 0x67452301, 0xefcdab89, 0x98badcfe, 0x10325476, 0xc3d2e1f0 };
+
+        // Cast the void src pointer to be the byte array we can work with.
+        const unsigned char* sarray = static_cast<const unsigned char*>(src);
+
+        // The reusable round buffer
+        unsigned int w[80];
+
+        // Loop through all complete 64byte blocks.
+        const int endOfFullBlocks = bytelength - 64;
+        int endCurrentBlock;
+        int currentBlock = 0;
+
+        while (currentBlock <= endOfFullBlocks)
+        {
+            endCurrentBlock = currentBlock + 64;
+
+            // Init the round buffer with the 64 byte block data.
+            for (int roundPos = 0; currentBlock < endCurrentBlock; currentBlock += 4)
+            {
+                // This line will swap endian on big endian and keep endian on little endian.
+                w[roundPos++] = static_cast<unsigned int>(sarray[currentBlock + 3])
+                        | (static_cast<unsigned int>(sarray[currentBlock + 2]) << 8)
+                        | (static_cast<unsigned int>(sarray[currentBlock + 1]) << 16)
+                        | (static_cast<unsigned int>(sarray[currentBlock]) << 24);
+            }
+            innerHash(result, w);
         }
 
-        message_array++;
-    }
-}
-
-/*  
- *  Input
- *
- *  Description:
- *      This function accepts an array of octets as the next portion of
- *      the message.
- *
- *  Parameters:
- *      message_array: [in]
- *          An array of characters representing the next portion of the
- *          message.
- *      length: [in]
- *          The length of the message_array
- *
- *  Returns:
- *      Nothing.
- *
- *  Comments:
- *
- */
-void SHA1::Input(   const char  *message_array,
-                    unsigned    length)
-{
-    Input((unsigned char *) message_array, length);
-}
-
-/*  
- *  Input
- *
- *  Description:
- *      This function accepts a single octets as the next message element.
- *
- *  Parameters:
- *      message_element: [in]
- *          The next octet in the message.
- *
- *  Returns:
- *      Nothing.
- *
- *  Comments:
- *
- */
-void SHA1::Input(unsigned char message_element)
-{
-    Input(&message_element, 1);
-}
-
-/*  
- *  Input
- *
- *  Description:
- *      This function accepts a single octet as the next message element.
- *
- *  Parameters:
- *      message_element: [in]
- *          The next octet in the message.
- *
- *  Returns:
- *      Nothing.
- *
- *  Comments:
- *
- */
-void SHA1::Input(char message_element)
-{
-    Input((unsigned char *) &message_element, 1);
-}
-
-/*  
- *  operator<<
- *
- *  Description:
- *      This operator makes it convenient to provide character strings to
- *      the SHA1 object for processing.
- *
- *  Parameters:
- *      message_array: [in]
- *          The character array to take as input.
- *
- *  Returns:
- *      A reference to the SHA1 object.
- *
- *  Comments:
- *      Each character is assumed to hold 8 bits of information.
- *
- */
-SHA1& SHA1::operator<<(const char *message_array)
-{
-    const char *p = message_array;
-
-    while(*p)
-    {
-        Input(*p);
-        p++;
-    }
-
-    return *this;
-}
-
-/*  
- *  operator<<
- *
- *  Description:
- *      This operator makes it convenient to provide character strings to
- *      the SHA1 object for processing.
- *
- *  Parameters:
- *      message_array: [in]
- *          The character array to take as input.
- *
- *  Returns:
- *      A reference to the SHA1 object.
- *
- *  Comments:
- *      Each character is assumed to hold 8 bits of information.
- *
- */
-SHA1& SHA1::operator<<(const unsigned char *message_array)
-{
-    const unsigned char *p = message_array;
-
-    while(*p)
-    {
-        Input(*p);
-        p++;
-    }
-
-    return *this;
-}
-
-/*  
- *  operator<<
- *
- *  Description:
- *      This function provides the next octet in the message.
- *
- *  Parameters:
- *      message_element: [in]
- *          The next octet in the message
- *
- *  Returns:
- *      A reference to the SHA1 object.
- *
- *  Comments:
- *      The character is assumed to hold 8 bits of information.
- *
- */
-SHA1& SHA1::operator<<(const char message_element)
-{
-    Input((unsigned char *) &message_element, 1);
-
-    return *this;
-}
-
-/*  
- *  operator<<
- *
- *  Description:
- *      This function provides the next octet in the message.
- *
- *  Parameters:
- *      message_element: [in]
- *          The next octet in the message
- *
- *  Returns:
- *      A reference to the SHA1 object.
- *
- *  Comments:
- *      The character is assumed to hold 8 bits of information.
- *
- */
-SHA1& SHA1::operator<<(const unsigned char message_element)
-{
-    Input(&message_element, 1);
-
-    return *this;
-}
-
-/*  
- *  ProcessMessageBlock
- *
- *  Description:
- *      This function will process the next 512 bits of the message
- *      stored in the Message_Block array.
- *
- *  Parameters:
- *      None.
- *
- *  Returns:
- *      Nothing.
- *
- *  Comments:
- *      Many of the variable names in this function, especially the single
- *      character names, were used because those were the names used
- *      in the publication.
- *
- */
-void SHA1::ProcessMessageBlock()
-{
-    const unsigned K[] =    {               // Constants defined for SHA-1
-                                0x5A827999,
-                                0x6ED9EBA1,
-                                0x8F1BBCDC,
-                                0xCA62C1D6
-                            };
-    int         t;                          // Loop counter
-    unsigned    temp;                       // Temporary word value
-    unsigned    W[80];                      // Word sequence
-    unsigned    A, B, C, D, E;              // Word buffers
-
-    /*
-     *  Initialize the first 16 words in the array W
-     */
-    for(t = 0; t < 16; t++)
-    {
-        W[t] = ((unsigned) Message_Block[t * 4]) << 24;
-        W[t] |= ((unsigned) Message_Block[t * 4 + 1]) << 16;
-        W[t] |= ((unsigned) Message_Block[t * 4 + 2]) << 8;
-        W[t] |= ((unsigned) Message_Block[t * 4 + 3]);
-    }
-
-    for(t = 16; t < 80; t++)
-    {
-       W[t] = CircularShift(1,W[t-3] ^ W[t-8] ^ W[t-14] ^ W[t-16]);
-    }
-
-    A = H[0];
-    B = H[1];
-    C = H[2];
-    D = H[3];
-    E = H[4];
-
-    for(t = 0; t < 20; t++)
-    {
-        temp = CircularShift(5,A) + ((B & C) | ((~B) & D)) + E + W[t] + K[0];
-        temp &= 0xFFFFFFFF;
-        E = D;
-        D = C;
-        C = CircularShift(30,B);
-        B = A;
-        A = temp;
-    }
-
-    for(t = 20; t < 40; t++)
-    {
-        temp = CircularShift(5,A) + (B ^ C ^ D) + E + W[t] + K[1];
-        temp &= 0xFFFFFFFF;
-        E = D;
-        D = C;
-        C = CircularShift(30,B);
-        B = A;
-        A = temp;
-    }
-
-    for(t = 40; t < 60; t++)
-    {
-        temp = CircularShift(5,A) +
-               ((B & C) | (B & D) | (C & D)) + E + W[t] + K[2];
-        temp &= 0xFFFFFFFF;
-        E = D;
-        D = C;
-        C = CircularShift(30,B);
-        B = A;
-        A = temp;
-    }
-
-    for(t = 60; t < 80; t++)
-    {
-        temp = CircularShift(5,A) + (B ^ C ^ D) + E + W[t] + K[3];
-        temp &= 0xFFFFFFFF;
-        E = D;
-        D = C;
-        C = CircularShift(30,B);
-        B = A;
-        A = temp;
-    }
-
-    H[0] = (H[0] + A) & 0xFFFFFFFF;
-    H[1] = (H[1] + B) & 0xFFFFFFFF;
-    H[2] = (H[2] + C) & 0xFFFFFFFF;
-    H[3] = (H[3] + D) & 0xFFFFFFFF;
-    H[4] = (H[4] + E) & 0xFFFFFFFF;
-
-    Message_Block_Index = 0;
-}
-
-/*  
- *  PadMessage
- *
- *  Description:
- *      According to the standard, the message must be padded to an even
- *      512 bits.  The first padding bit must be a '1'.  The last 64 bits
- *      represent the length of the original message.  All bits in between
- *      should be 0.  This function will pad the message according to those
- *      rules by filling the message_block array accordingly.  It will also
- *      call ProcessMessageBlock() appropriately.  When it returns, it
- *      can be assumed that the message digest has been computed.
- *
- *  Parameters:
- *      None.
- *
- *  Returns:
- *      Nothing.
- *
- *  Comments:
- *
- */
-void SHA1::PadMessage()
-{
-    /*
-     *  Check to see if the current message block is too small to hold
-     *  the initial padding bits and length.  If so, we will pad the
-     *  block, process it, and then continue padding into a second block.
-     */
-    if (Message_Block_Index > 55)
-    {
-        Message_Block[Message_Block_Index++] = 0x80;
-        while(Message_Block_Index < 64)
+        // Handle the last and not full 64 byte block if existing.
+        endCurrentBlock = bytelength - currentBlock;
+        clearWBuffert(w);
+        int lastBlockBytes = 0;
+        for (;lastBlockBytes < endCurrentBlock; ++lastBlockBytes)
         {
-            Message_Block[Message_Block_Index++] = 0;
+            w[lastBlockBytes >> 2] |= static_cast<unsigned int>(sarray[lastBlockBytes + currentBlock]) << ((3 - (lastBlockBytes & 3)) << 3);
         }
-
-        ProcessMessageBlock();
-
-        while(Message_Block_Index < 56)
+        w[lastBlockBytes >> 2] |= 0x80 << ((3 - (lastBlockBytes & 3)) << 3);
+        if (endCurrentBlock >= 56)
         {
-            Message_Block[Message_Block_Index++] = 0;
+            innerHash(result, w);
+            clearWBuffert(w);
+        }
+        w[15] = bytelength << 3;
+        innerHash(result, w);
+
+        // Store hash in result pointer, and make sure we get in in the correct order on both endian models.
+        for (int hashByte = 20; --hashByte >= 0;)
+        {
+            hash[hashByte] = (result[hashByte >> 2] >> (((3 - hashByte) & 0x3) << 3)) & 0xff;
         }
     }
-    else
+
+    void toHexString(const unsigned char* hash, char* hexstring)
     {
-        Message_Block[Message_Block_Index++] = 0x80;
-        while(Message_Block_Index < 56)
+        const char hexDigits[] = { "0123456789abcdef" };
+
+        for (int hashByte = 20; --hashByte >= 0;)
         {
-            Message_Block[Message_Block_Index++] = 0;
+            hexstring[hashByte << 1] = hexDigits[(hash[hashByte] >> 4) & 0xf];
+            hexstring[(hashByte << 1) + 1] = hexDigits[hash[hashByte] & 0xf];
         }
-
+        hexstring[40] = 0;
     }
-
-    /*
-     *  Store the message length as the last 8 octets
-     */
-    Message_Block[56] = (Length_High >> 24) & 0xFF;
-    Message_Block[57] = (Length_High >> 16) & 0xFF;
-    Message_Block[58] = (Length_High >> 8) & 0xFF;
-    Message_Block[59] = (Length_High) & 0xFF;
-    Message_Block[60] = (Length_Low >> 24) & 0xFF;
-    Message_Block[61] = (Length_Low >> 16) & 0xFF;
-    Message_Block[62] = (Length_Low >> 8) & 0xFF;
-    Message_Block[63] = (Length_Low) & 0xFF;
-
-    ProcessMessageBlock();
-}
-
-
-/*  
- *  CircularShift
- *
- *  Description:
- *      This member function will perform a circular shifting operation.
- *
- *  Parameters:
- *      bits: [in]
- *          The number of bits to shift (1-31)
- *      word: [in]
- *          The value to shift (assumes a 32-bit integer)
- *
- *  Returns:
- *      The shifted value.
- *
- *  Comments:
- *
- */
-unsigned SHA1::CircularShift(int bits, unsigned word)
-{
-    return ((word << bits) & 0xFFFFFFFF) | ((word & 0xFFFFFFFF) >> (32-bits));
-}

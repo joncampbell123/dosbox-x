@@ -1,5 +1,5 @@
 /* Copyright (C) 2003, 2004, 2005, 2006, 2008, 2009 Dean Beeler, Jerome Fisher
- * Copyright (C) 2011, 2012, 2013 Dean Beeler, Jerome Fisher, Sergey V. Mikayev
+ * Copyright (C) 2011-2020 Dean Beeler, Jerome Fisher, Sergey V. Mikayev
  *
  *  This program is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU Lesser General Public License as published by
@@ -18,37 +18,50 @@
 #ifndef MT32EMU_PARTIALMANAGER_H
 #define MT32EMU_PARTIALMANAGER_H
 
+#include "globals.h"
+#include "internals.h"
+#include "Types.h"
+
 namespace MT32Emu {
 
+class Part;
+class Partial;
+class Poly;
 class Synth;
 
 class PartialManager {
 private:
-	Synth *synth; // Only used for sending debug output
+	Synth *synth;
 	Part **parts;
-
-    Partial* partialTable[MT32EMU_MAX_PARTIALS] = {};
-    Bit8u numReservedPartialsForPart[9] = {};
+	Poly **freePolys;
+	Partial **partialTable;
+	Bit8u numReservedPartialsForPart[9];
+	Bit32u firstFreePolyIndex;
+	int *inactivePartials; // Holds indices of inactive Partials in the Partial table
+	Bit32u inactivePartialCount;
 
 	bool abortFirstReleasingPolyWhereReserveExceeded(int minPart);
 	bool abortFirstPolyPreferHeldWhereReserveExceeded(int minPart);
 
 public:
-
-	PartialManager(Synth *useSynth, Part **useParts);
+	PartialManager(Synth *synth, Part **parts);
 	~PartialManager();
 	Partial *allocPartial(int partNum);
-	unsigned int getFreePartialCount(void);
+	unsigned int getFreePartialCount();
 	void getPerPartPartialUsage(unsigned int perPartPartialUsage[9]);
 	bool freePartials(unsigned int needed, int partNum);
 	unsigned int setReserve(Bit8u *rset);
 	void deactivateAll();
-	bool produceOutput(int i, float *leftBuf, float *rightBuf, Bit32u bufferLength);
+	bool produceOutput(int i, IntSample *leftBuf, IntSample *rightBuf, Bit32u bufferLength);
+	bool produceOutput(int i, FloatSample *leftBuf, FloatSample *rightBuf, Bit32u bufferLength);
 	bool shouldReverb(int i);
 	void clearAlreadyOutputed();
 	const Partial *getPartial(unsigned int partialNum) const;
-};
+	Poly *assignPolyToPart(Part *part);
+	void polyFreed(Poly *poly);
+	void partialDeactivated(int partialIndex);
+}; // class PartialManager
 
-}
+} // namespace MT32Emu
 
-#endif
+#endif // #ifndef MT32EMU_PARTIALMANAGER_H

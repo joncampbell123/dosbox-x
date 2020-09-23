@@ -17,6 +17,8 @@
     included in the Windows Visual Studio builds by
     default. Set "mididevice=fluidsynth" and a sound
     font (e.g. GeneralUser_GS.sf2) to use it. (Wengier)
+  - Updated the MUNT MT32 emulation library to its
+    latest version 2.4.0. (Wengier)
   - The DOSMID and MPXPLAY programs have been built
     into DOSBox-X, both can be found on the Z drive
     and feature full-screen user interfaces. DOSMID

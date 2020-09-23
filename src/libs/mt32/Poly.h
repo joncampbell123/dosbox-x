@@ -1,5 +1,5 @@
 /* Copyright (C) 2003, 2004, 2005, 2006, 2008, 2009 Dean Beeler, Jerome Fisher
- * Copyright (C) 2011, 2012, 2013 Dean Beeler, Jerome Fisher, Sergey V. Mikayev
+ * Copyright (C) 2011-2020 Dean Beeler, Jerome Fisher, Sergey V. Mikayev
  *
  *  This program is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU Lesser General Public License as published by
@@ -18,23 +18,17 @@
 #ifndef MT32EMU_POLY_H
 #define MT32EMU_POLY_H
 
-#include "FileStream.h"
+#include "globals.h"
+#include "internals.h"
 
 namespace MT32Emu {
 
-class Synth;
 class Part;
-
-enum PolyState {
-	POLY_Playing,
-	POLY_Held, // This marks keys that have been released on the keyboard, but are being held by the pedal
-	POLY_Releasing,
-	POLY_Inactive
-};
+class Partial;
+struct PatchCache;
 
 class Poly {
 private:
-	Synth *synth;
 	Part *part;
 	unsigned int key;
 	unsigned int velocity;
@@ -43,18 +37,18 @@ private:
 
 	PolyState state;
 
-    Partial* partials[4] = {};
+	Partial *partials[4];
 
 	Poly *next;
 
 public:
-	Poly(Synth *useSynth, Part *usePart);
-	void reset(unsigned int newKey, unsigned int newVelocity, bool newSustain, Partial **newPartials);
+	Poly();
+	void setPart(Part *usePart);
+	void reset(unsigned int key, unsigned int velocity, bool sustain, Partial **partials);
 	bool noteOff(bool pedalHeld);
 	bool stopPedalHold();
 	bool startDecay();
 	bool startAbort();
-	void terminate();
 
 	void backupCacheToPartials(PatchCache cache[4]);
 
@@ -67,16 +61,10 @@ public:
 
 	void partialDeactivated(Partial *partial);
 
-	Poly *getNext();
+	Poly *getNext() const;
 	void setNext(Poly *poly);
+}; // class Poly
 
-	void saveState( std::ostream &stream );
-	void loadState( std::istream &stream );
+} // namespace MT32Emu
 
-	// savestate debugging
-	void rawVerifyState( char *name, Synth *synth );
-};
-
-}
-
-#endif /* POLY_H_ */
+#endif // #ifndef MT32EMU_POLY_H

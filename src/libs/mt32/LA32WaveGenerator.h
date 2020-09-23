@@ -1,5 +1,5 @@
 /* Copyright (C) 2003, 2004, 2005, 2006, 2008, 2009 Dean Beeler, Jerome Fisher
- * Copyright (C) 2011, 2012, 2013 Dean Beeler, Jerome Fisher, Sergey V. Mikayev
+ * Copyright (C) 2011-2020 Dean Beeler, Jerome Fisher, Sergey V. Mikayev
  *
  *  This program is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU Lesser General Public License as published by
@@ -15,10 +15,12 @@
  *  along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#if MT32EMU_ACCURATE_WG == 0
-
 #ifndef MT32EMU_LA32_WAVE_GENERATOR_H
 #define MT32EMU_LA32_WAVE_GENERATOR_H
+
+#include "globals.h"
+#include "internals.h"
+#include "Types.h"
 
 namespace MT32Emu {
 
@@ -53,7 +55,7 @@ public:
 /**
  * LA32WaveGenerator is aimed to represent the exact model of LA32 wave generator.
  * The output square wave is created by adding high / low linear segments in-between
- * the rising and falling cosine segments. Basically, it’s very similar to the phase distortion synthesis.
+ * the rising and falling cosine segments. Basically, it's very similar to the phase distortion synthesis.
  * Behaviour of a true resonance filter is emulated by adding decaying sine wave.
  * The beginning and the ending of the resonant sine is multiplied by a cosine window.
  * To synthesise sawtooth waves, the resulting square wave is multiplied by synchronous cosine wave.
@@ -141,7 +143,7 @@ class LA32WaveGenerator {
 	} phase;
 
 	// Current phase of the resonance wave
-	enum {
+	enum ResonancePhase {
 		POSITIVE_RISING_RESONANCE_SINE_SEGMENT,
 		POSITIVE_FALLING_RESONANCE_SINE_SEGMENT,
 		NEGATIVE_FALLING_RESONANCE_SINE_SEGMENT,
@@ -176,13 +178,13 @@ class LA32WaveGenerator {
 
 public:
 	// Initialise the WG engine for generation of synth partial samples and set up the invariant parameters
-	void initSynth(const bool useSawtoothWaveform, const Bit8u usePulseWidth, const Bit8u useResonance);
+	void initSynth(const bool sawtoothWaveform, const Bit8u pulseWidth, const Bit8u resonance);
 
 	// Initialise the WG engine for generation of PCM partial samples and set up the invariant parameters
-	void initPCM(const Bit16s * const usePCMWaveAddress, const Bit32u usePCMWaveLength, const bool usePCMWaveLooped, const bool usePCMWaveInterpolated);
+	void initPCM(const Bit16s * const pcmWaveAddress, const Bit32u pcmWaveLength, const bool pcmWaveLooped, const bool pcmWaveInterpolated);
 
 	// Update parameters with respect to TVP, TVA and TVF, and generate next sample
-	void generateNextSample(const Bit32u useAmp, const Bit16u usePitch, const Bit32u useCutoffVal);
+	void generateNextSample(const Bit32u amp, const Bit16u pitch, const Bit32u cutoff);
 
 	// WG output in the log-space consists of two components which are to be added (or ring modulated) in the linear-space afterwards
 	LogSample getOutputLogSample(const bool first) const;
@@ -198,49 +200,67 @@ public:
 
 	// Return current PCM interpolation factor
 	Bit32u getPCMInterpolationFactor() const;
-};
+}; // class LA32WaveGenerator
 
 // LA32PartialPair contains a structure of two partials being mixed / ring modulated
 class LA32PartialPair {
-	LA32WaveGenerator master;
-	LA32WaveGenerator slave;
-	bool ringModulated;
-	bool mixed;
-
-	static Bit16s unlogAndMixWGOutput(const LA32WaveGenerator &wg, const LogSample * const ringModulatingLogSample);
-
 public:
 	enum PairType {
 		MASTER,
 		SLAVE
 	};
 
+	virtual ~LA32PartialPair() {}
+
 	// ringModulated should be set to false for the structures with mixing or stereo output
 	// ringModulated should be set to true for the structures with ring modulation
 	// mixed is used for the structures with ring modulation and indicates whether the master partial output is mixed to the ring modulator output
-	void init(const bool useRingModulated, const bool useMixed);
+	virtual void init(const bool ringModulated, const bool mixed) = 0;
 
 	// Initialise the WG engine for generation of synth partial samples and set up the invariant parameters
-	void initSynth(const PairType useMaster, const bool sawtoothWaveform, const Bit8u pulseWidth, const Bit8u resonance);
+	virtual void initSynth(const PairType master, const bool sawtoothWaveform, const Bit8u pulseWidth, const Bit8u resonance) = 0;
+
+	// Initialise the WG engine for generation of PCM partial samples and set up the invariant parameters
+	virtual void initPCM(const PairType master, const Bit16s * const pcmWaveAddress, const Bit32u pcmWaveLength, const bool pcmWaveLooped) = 0;
+
+	// Deactivate the WG engine
+	virtual void deactivate(const PairType master) = 0;
+}; // class LA32PartialPair
+
+class LA32IntPartialPair : public LA32PartialPair {
+	LA32WaveGenerator master;
+	LA32WaveGenerator slave;
+	bool ringModulated;
+	bool mixed;
+
+	static Bit16s unlogAndMixWGOutput(const LA32WaveGenerator &wg);
+
+public:
+	// ringModulated should be set to false for the structures with mixing or stereo output
+	// ringModulated should be set to true for the structures with ring modulation
+	// mixed is used for the structures with ring modulation and indicates whether the master partial output is mixed to the ring modulator output
+	void init(const bool ringModulated, const bool mixed);
+
+	// Initialise the WG engine for generation of synth partial samples and set up the invariant parameters
+	void initSynth(const PairType master, const bool sawtoothWaveform, const Bit8u pulseWidth, const Bit8u resonance);
 
 	// Initialise the WG engine for generation of PCM partial samples and set up the invariant parameters
 	void initPCM(const PairType master, const Bit16s * const pcmWaveAddress, const Bit32u pcmWaveLength, const bool pcmWaveLooped);
 
 	// Update parameters with respect to TVP, TVA and TVF, and generate next sample
-	void generateNextSample(const PairType useMaster, const Bit32u amp, const Bit16u pitch, const Bit32u cutoff);
+	void generateNextSample(const PairType master, const Bit32u amp, const Bit16u pitch, const Bit32u cutoff);
 
-	// Perform mixing / ring modulation and return the result
+	// Perform mixing / ring modulation of WG output and return the result
+	// Although, LA32 applies panning itself, we assume it is applied in the mixer, not within a pair
 	Bit16s nextOutSample();
 
 	// Deactivate the WG engine
-	void deactivate(const PairType useMaster);
+	void deactivate(const PairType master);
 
 	// Return active state of the WG engine
-	bool isActive(const PairType useMaster) const;
-};
+	bool isActive(const PairType master) const;
+}; // class LA32IntPartialPair
 
 } // namespace MT32Emu
 
 #endif // #ifndef MT32EMU_LA32_WAVE_GENERATOR_H
-
-#endif // #if MT32EMU_ACCURATE_WG == 0

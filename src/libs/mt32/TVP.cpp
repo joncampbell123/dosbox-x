@@ -1,5 +1,5 @@
 /* Copyright (C) 2003, 2004, 2005, 2006, 2008, 2009 Dean Beeler, Jerome Fisher
- * Copyright (C) 2011, 2012, 2013 Dean Beeler, Jerome Fisher, Sergey V. Mikayev
+ * Copyright (C) 2011-2020 Dean Beeler, Jerome Fisher, Sergey V. Mikayev
  *
  *  This program is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU Lesser General Public License as published by
@@ -15,10 +15,16 @@
  *  along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include <cmath>
 #include <cstdlib>
 
-#include "mt32emu.h"
+#include "internals.h"
+
+#include "TVP.h"
+#include "Part.h"
+#include "Partial.h"
+#include "Poly.h"
+#include "Synth.h"
+#include "TVA.h"
 
 namespace MT32Emu {
 
@@ -45,25 +51,21 @@ static Bit16u keyToPitchTable[] = {
 	21845, 22187, 22528, 22869
 };
 
+// We want to do processing 4000 times per second. FIXME: This is pretty arbitrary.
+static const int NOMINAL_PROCESS_TIMER_PERIOD_SAMPLES = SAMPLE_RATE / 4000;
+
+// The timer runs at 500kHz. This is how much to increment it after 8 samples passes.
+// We multiply by 8 to get rid of the fraction and deal with just integers.
+static const int PROCESS_TIMER_INCREMENT_x8 = 8 * 500000 / SAMPLE_RATE;
+
 TVP::TVP(const Partial *usePartial) :
 	partial(usePartial), system(&usePartial->getSynth()->mt32ram.system) {
-	// We want to do processing 4000 times per second. FIXME: This is pretty arbitrary.
-	maxCounter = SAMPLE_RATE / 4000;
-	// The timer runs at 500kHz. We only need to bother updating it every maxCounter samples, before we do processing.
-	// This is how much to increment it by every maxCounter samples.
-	processTimerIncrement = 500000 * maxCounter / SAMPLE_RATE;
-
-
-	// init ptr warnings (load state crashes)
-	part = NULL;
-	partialParam = NULL;
-	patchTemp = NULL;
 }
 
 static Bit16s keyToPitch(unsigned int key) {
 	// We're using a table to do: return round_to_nearest_or_even((key - 60) * (4096.0 / 12.0))
 	// Banker's rounding is just slightly annoying to do in C++
-	int k = (int)key;
+	int k = int(key);
 	Bit16s pitch = keyToPitchTable[abs(k - 60)];
 	return key < 60 ? -pitch : pitch;
 }
@@ -76,18 +78,20 @@ static inline Bit32s fineToPitch(Bit8u fine) {
 	return (fine - 50) * 4096 / 1200; // One cent per fine offset
 }
 
-static Bit32u calcBasePitch(const Partial *partial, const TimbreParam::PartialParam *partialParam, const MemParams::PatchTemp *patchTemp, unsigned int key) {
+static Bit32u calcBasePitch(const Partial *partial, const TimbreParam::PartialParam *partialParam, const MemParams::PatchTemp *patchTemp, unsigned int key, const ControlROMFeatureSet *controlROMFeatures) {
 	Bit32s basePitch = keyToPitch(key);
 	basePitch = (basePitch * pitchKeyfollowMult[partialParam->wg.pitchKeyfollow]) >> 13; // PORTABILITY NOTE: Assumes arithmetic shift
 	basePitch += coarseToPitch(partialParam->wg.pitchCoarse);
 	basePitch += fineToPitch(partialParam->wg.pitchFine);
-	// NOTE:Mok: This is done on MT-32, but not LAPC-I:
-	//pitch += coarseToPitch(patchTemp->patch.keyShift + 12);
+	if (controlROMFeatures->quirkKeyShift) {
+		// NOTE:Mok: This is done on MT-32, but not LAPC-I:
+		basePitch += coarseToPitch(patchTemp->patch.keyShift + 12);
+	}
 	basePitch += fineToPitch(patchTemp->patch.fineTune);
 
 	const ControlROMPCMStruct *controlROMPCMStruct = partial->getControlROMPCMStruct();
 	if (controlROMPCMStruct != NULL) {
-		basePitch += (Bit32s)((((Bit32s)controlROMPCMStruct->pitchMSB) << 8) | (Bit32s)controlROMPCMStruct->pitchLSB);
+		basePitch += (Bit32s(controlROMPCMStruct->pitchMSB) << 8) | Bit32s(controlROMPCMStruct->pitchLSB);
 	} else {
 		if ((partialParam->wg.waveform & 1) == 0) {
 			basePitch += 37133; // This puts Middle C at around 261.64Hz (assuming no other modifications, masterTune of 64, etc.)
@@ -97,34 +101,43 @@ static Bit32u calcBasePitch(const Partial *partial, const TimbreParam::PartialPa
 			basePitch += 33037;
 		}
 	}
-	if (basePitch < 0) {
+
+	// MT-32 GEN0 does 16-bit calculations here, allowing an integer overflow.
+	// This quirk is observable playing the patch defined for timbre "HIT BOTTOM" in Larry 3.
+	// Note, the upper bound isn't checked either.
+	if (controlROMFeatures->quirkBasePitchOverflow) {
+		basePitch = basePitch & 0xffff;
+	} else if (basePitch < 0) {
 		basePitch = 0;
-	}
-	if (basePitch > 59392) {
+	} else if (basePitch > 59392) {
 		basePitch = 59392;
 	}
-	return (Bit32u)basePitch;
+	return Bit32u(basePitch);
 }
 
 static Bit32u calcVeloMult(Bit8u veloSensitivity, unsigned int velocity) {
-	if (veloSensitivity == 0 || veloSensitivity > 3) {
-		// Note that on CM-32L/LAPC-I veloSensitivity is never > 3, since it's clipped to 3 by the max tables.
+	if (veloSensitivity == 0) {
 		return 21845; // aka floor(4096 / 12 * 64), aka ~64 semitones
+	}
+	unsigned int reversedVelocity = 127 - velocity;
+	unsigned int scaledReversedVelocity;
+	if (veloSensitivity > 3) {
+		// Note that on CM-32L/LAPC-I veloSensitivity is never > 3, since it's clipped to 3 by the max tables.
+		// MT-32 GEN0 has a bug here that leads to unspecified behaviour. We assume it is as follows.
+		scaledReversedVelocity = (reversedVelocity << 8) >> ((3 - veloSensitivity) & 0x1f);
+	} else {
+		scaledReversedVelocity = reversedVelocity << (5 + veloSensitivity);
 	}
 	// When velocity is 127, the multiplier is 21845, aka ~64 semitones (regardless of veloSensitivity).
 	// The lower the velocity, the lower the multiplier. The veloSensitivity determines the amount decreased per velocity value.
-	// The minimum multiplier (with velocity 0, veloSensitivity 3) is 170 (~half a semitone).
-	Bit32u veloMult = 32768;
-	veloMult -= (127 - velocity) << (5 + veloSensitivity);
-	veloMult *= 21845;
-	veloMult >>= 15;
-	return veloMult;
+	// The minimum multiplier on CM-32L/LAPC-I (with velocity 0, veloSensitivity 3) is 170 (~half a semitone).
+	return ((32768 - scaledReversedVelocity) * 21845) >> 15;
 }
 
 static Bit32s calcTargetPitchOffsetWithoutLFO(const TimbreParam::PartialParam *partialParam, int levelIndex, unsigned int velocity) {
 	int veloMult = calcVeloMult(partialParam->pitchEnv.veloSensitivity, velocity);
 	int targetPitchOffsetWithoutLFO = partialParam->pitchEnv.level[levelIndex] - 50;
-	targetPitchOffsetWithoutLFO = (Bit32s)(targetPitchOffsetWithoutLFO * veloMult) >> (16 - partialParam->pitchEnv.depth); // PORTABILITY NOTE: Assumes arithmetic shift
+	targetPitchOffsetWithoutLFO = (targetPitchOffsetWithoutLFO * veloMult) >> (16 - partialParam->pitchEnv.depth); // PORTABILITY NOTE: Assumes arithmetic shift
 	return targetPitchOffsetWithoutLFO;
 }
 
@@ -138,14 +151,15 @@ void TVP::reset(const Part *usePart, const TimbreParam::PartialParam *usePartial
 
 	// FIXME: We're using a per-TVP timer instead of a system-wide one for convenience.
 	timeElapsed = 0;
+	processTimerIncrement = 0;
 
-	basePitch = calcBasePitch(partial, partialParam, patchTemp, key);
+	basePitch = calcBasePitch(partial, partialParam, patchTemp, key, partial->getSynth()->controlROMFeatures);
 	currentPitchOffset = calcTargetPitchOffsetWithoutLFO(partialParam, 0, velocity);
 	targetPitchOffsetWithoutLFO = currentPitchOffset;
 	phase = 0;
 
 	if (partialParam->pitchEnv.timeKeyfollow) {
-		timeKeyfollowSubtraction = (key - 60) >> (5 - partialParam->pitchEnv.timeKeyfollow); // PORTABILITY NOTE: Assumes arithmetic shift
+		timeKeyfollowSubtraction = Bit32s(key - 60) >> (5 - partialParam->pitchEnv.timeKeyfollow); // PORTABILITY NOTE: Assumes arithmetic shift
 	} else {
 		timeKeyfollowSubtraction = 0;
 	}
@@ -166,28 +180,29 @@ Bit32u TVP::getBasePitch() const {
 void TVP::updatePitch() {
 	Bit32s newPitch = basePitch + currentPitchOffset;
 	if (!partial->isPCM() || (partial->getControlROMPCMStruct()->len & 0x01) == 0) { // FIXME: Use !partial->pcmWaveEntry->unaffectedByMasterTune instead
-		// FIXME: masterTune recalculation doesn't really happen here, and there are various bugs not yet emulated
+		// FIXME: There are various bugs not yet emulated
 		// 171 is ~half a semitone.
-		newPitch += ((system->masterTune - 64) * 171) >> 6; // PORTABILITY NOTE: Assumes arithmetic shift.
+		newPitch += partial->getSynth()->getMasterTunePitchDelta();
 	}
 	if ((partialParam->wg.pitchBenderEnabled & 1) != 0) {
 		newPitch += part->getPitchBend();
 	}
-	if (newPitch < 0) {
+
+	// MT-32 GEN0 does 16-bit calculations here, allowing an integer overflow.
+	// This quirk is exploited e.g. in Colonel's Bequest timbres "Lightning" and "SwmpBackgr".
+	if (partial->getSynth()->controlROMFeatures->quirkPitchEnvelopeOverflow) {
+		newPitch = newPitch & 0xffff;
+	} else if (newPitch < 0) {
 		newPitch = 0;
 	}
-
-// Note: Temporary #ifdef until we have proper "quirk" configuration
-// This is about right emulation of MT-32 GEN0 quirk exploited in Colonel's Bequest timbre "Lightning"
-#ifndef MT32EMU_QUIRK_PITCH_ENVELOPE_OVERFLOW_MT32
+	// This check is present in every unit.
 	if (newPitch > 59392) {
 		newPitch = 59392;
 	}
-#endif
-	pitch = (Bit16u)newPitch;
+	pitch = Bit16u(newPitch);
 
 	// FIXME: We're doing this here because that's what the CM-32L does - we should probably move this somewhere more appropriate in future.
-	partial->tva->recalcSustain();
+	partial->getTVA()->recalcSustain();
 }
 
 void TVP::targetPitchOffsetReached() {
@@ -285,13 +300,19 @@ void TVP::startDecay() {
 }
 
 Bit16u TVP::nextPitch() {
-	// FIXME: Write explanation of counter and time increment
+	// We emulate MCU software timer using these counter and processTimerIncrement variables.
+	// The value of nominalProcessTimerPeriod approximates the period in samples
+	// between subsequent firings of the timer that normally occur.
+	// However, accurate emulation is quite complicated because the timer is not guaranteed to fire in time.
+	// This makes pitch variations on real unit non-deterministic and dependent on various factors.
 	if (counter == 0) {
-		timeElapsed += processTimerIncrement;
-		timeElapsed = timeElapsed & 0x00FFFFFF;
+		timeElapsed = (timeElapsed + processTimerIncrement) & 0x00FFFFFF;
+		// This roughly emulates pitch deviations observed on real units when playing a single partial that uses TVP/LFO.
+		counter = NOMINAL_PROCESS_TIMER_PERIOD_SAMPLES + (rand() & 3);
+		processTimerIncrement = (PROCESS_TIMER_INCREMENT_x8 * counter) >> 3;
 		process();
 	}
-	counter = (counter + 1) % maxCounter;
+	counter--;
 	return pitch;
 }
 
@@ -322,165 +343,10 @@ void TVP::process() {
 		negativeBigTicksRemaining = negativeBigTicksRemaining >> rightShifts; // PORTABILITY NOTE: Assumes arithmetic shift
 		rightShifts = 13;
 	}
-	int newResult = ((Bit32s)(negativeBigTicksRemaining * pitchOffsetChangePerBigTick)) >> rightShifts; // PORTABILITY NOTE: Assumes arithmetic shift
+	int newResult = (negativeBigTicksRemaining * pitchOffsetChangePerBigTick) >> rightShifts; // PORTABILITY NOTE: Assumes arithmetic shift
 	newResult += targetPitchOffsetWithoutLFO + lfoPitchOffset;
 	currentPitchOffset = newResult;
 	updatePitch();
 }
 
-
-#ifdef WIN32_DEBUG
-void TVP::rawVerifyState( char *name, Synth *useSynth )
-{
-	TVP *ptr1, *ptr2;
-	TVP tvp_temp(partial);
-
-
-#ifndef WIN32_DUMP
-	return;
-#endif
-
-	ptr1 = this;
-	ptr2 = &tvp_temp;
-	useSynth->rawLoadState( name, ptr2, sizeof(*this) );
-
-
-	if( ptr1->partial != ptr2->partial ) __asm int 3
-	if( ptr1->system != ptr2->system ) __asm int 3
-	if( ptr1->part != ptr2->part ) __asm int 3
-	if( ptr1->partialParam != ptr2->partialParam ) __asm int 3
-	if( ptr1->patchTemp != ptr2->patchTemp ) __asm int 3
-	if( ptr1->maxCounter != ptr2->maxCounter ) __asm int 3
-	if( ptr1->processTimerIncrement != ptr2->processTimerIncrement ) __asm int 3
-	if( ptr1->counter != ptr2->counter ) __asm int 3
-	if( ptr1->timeElapsed != ptr2->timeElapsed ) __asm int 3
-	if( ptr1->phase != ptr2->phase ) __asm int 3
-	if( ptr1->basePitch != ptr2->basePitch ) __asm int 3
-	if( ptr1->targetPitchOffsetWithoutLFO != ptr2->targetPitchOffsetWithoutLFO ) __asm int 3
-	if( ptr1->currentPitchOffset != ptr2->currentPitchOffset ) __asm int 3
-	if( ptr1->lfoPitchOffset != ptr2->lfoPitchOffset ) __asm int 3
-	if( ptr1->timeKeyfollowSubtraction != ptr2->timeKeyfollowSubtraction ) __asm int 3
-	if( ptr1->pitchOffsetChangePerBigTick != ptr2->pitchOffsetChangePerBigTick ) __asm int 3
-	if( ptr1->targetPitchOffsetReachedBigTick != ptr2->targetPitchOffsetReachedBigTick ) __asm int 3
-	if( ptr1->shifts != ptr2->shifts ) __asm int 3
-	if( ptr1->pitch != ptr2->pitch ) __asm int 3
-
-		
-		
-	// avoid destructor problems
-	memset( ptr2, 0, sizeof(*ptr2) );
-}
-#endif
-
-
-void TVP::saveState( std::ostream &stream )
-{
-	Bit16u partialParam_idx1, partialParam_idx2;
-	Bit8u part_idx;
-	Bit8u patchTemp_idx;
-
-
-	// - static fastptr
-	//const Partial * const partial;
-	//const MemParams::System * const system; // FIXME: Only necessary because masterTune calculation is done in the wrong place atm.
-
-
-	// - reloc fastptr (!!)
-	//const Part *part;
-	partial->getSynth()->findPart( part, &part_idx );
-	stream.write(reinterpret_cast<const char*>(&part_idx), sizeof(part_idx) );
-
-
-	// - reloc fastptr (!!)
-	//const TimbreParam::PartialParam *partialParam;
-	partial->getSynth()->findPartialParam( partialParam, &partialParam_idx1, &partialParam_idx2 );
-	stream.write(reinterpret_cast<const char*>(&partialParam_idx1), sizeof(partialParam_idx1) );
-	stream.write(reinterpret_cast<const char*>(&partialParam_idx2), sizeof(partialParam_idx2) );
-
-
-	// - reloc fastptr (!!)
-	//const MemParams::PatchTemp *patchTemp;
-	partial->getSynth()->findPatchTemp( patchTemp, &patchTemp_idx );
-	stream.write(reinterpret_cast<const char*>(&patchTemp_idx), sizeof(patchTemp_idx) );
-
-
-	stream.write(reinterpret_cast<const char*>(&maxCounter), sizeof(maxCounter) );
-	stream.write(reinterpret_cast<const char*>(&processTimerIncrement), sizeof(processTimerIncrement) );
-	stream.write(reinterpret_cast<const char*>(&counter), sizeof(counter) );
-	stream.write(reinterpret_cast<const char*>(&timeElapsed), sizeof(timeElapsed) );
-	stream.write(reinterpret_cast<const char*>(&phase), sizeof(phase) );
-	stream.write(reinterpret_cast<const char*>(&basePitch), sizeof(basePitch) );
-	stream.write(reinterpret_cast<const char*>(&targetPitchOffsetWithoutLFO), sizeof(targetPitchOffsetWithoutLFO) );
-	stream.write(reinterpret_cast<const char*>(&currentPitchOffset), sizeof(currentPitchOffset) );
-	stream.write(reinterpret_cast<const char*>(&lfoPitchOffset), sizeof(lfoPitchOffset) );
-	stream.write(reinterpret_cast<const char*>(&timeKeyfollowSubtraction), sizeof(timeKeyfollowSubtraction) );
-	stream.write(reinterpret_cast<const char*>(&pitchOffsetChangePerBigTick), sizeof(pitchOffsetChangePerBigTick) );
-	stream.write(reinterpret_cast<const char*>(&targetPitchOffsetReachedBigTick), sizeof(targetPitchOffsetReachedBigTick) );
-	stream.write(reinterpret_cast<const char*>(&shifts), sizeof(shifts) );
-	stream.write(reinterpret_cast<const char*>(&pitch), sizeof(pitch) );
-
-
-#ifdef WIN32_DEBUG
-	// DEBUG
-	partial->getSynth()->rawDumpState( "temp-save", this, sizeof(*this) );
-	partial->getSynth()->rawDumpNo++;
-#endif
-}
-
-
-void TVP::loadState( std::istream &stream )
-{
-	Bit16u partialParam_idx1, partialParam_idx2;
-	Bit8u part_idx;
-	Bit8u patchTemp_idx;
-
-
-	// - static fastptr
-	//const Partial * const partial;
-	//const MemParams::System * const system; // FIXME: Only necessary because masterTune calculation is done in the wrong place atm.
-
-
-	// - reloc fastptr (!!)
-	//const Part *part;
-	stream.read(reinterpret_cast<char*>(&part_idx), sizeof(part_idx) );
-	part = partial->getSynth()->indexPart(part_idx);
-
-
-	// - reloc fastptr (!!)
-	//const TimbreParam::PartialParam *partialParam;
-	stream.read(reinterpret_cast<char*>(&partialParam_idx1), sizeof(partialParam_idx1) );
-	stream.read(reinterpret_cast<char*>(&partialParam_idx2), sizeof(partialParam_idx2) );
-	partialParam = partial->getSynth()->indexPartialParam(partialParam_idx1, partialParam_idx2);
-
-
-	// - reloc fastptr (!!)
-	//const MemParams::PatchTemp *patchTemp;
-	stream.read(reinterpret_cast<char*>(&patchTemp_idx), sizeof(patchTemp_idx) );
-	patchTemp = partial->getSynth()->indexPatchTemp(patchTemp_idx);
-
-
-	stream.read(reinterpret_cast<char*>(&maxCounter), sizeof(maxCounter) );
-	stream.read(reinterpret_cast<char*>(&processTimerIncrement), sizeof(processTimerIncrement) );
-	stream.read(reinterpret_cast<char*>(&counter), sizeof(counter) );
-	stream.read(reinterpret_cast<char*>(&timeElapsed), sizeof(timeElapsed) );
-	stream.read(reinterpret_cast<char*>(&phase), sizeof(phase) );
-	stream.read(reinterpret_cast<char*>(&basePitch), sizeof(basePitch) );
-	stream.read(reinterpret_cast<char*>(&targetPitchOffsetWithoutLFO), sizeof(targetPitchOffsetWithoutLFO) );
-	stream.read(reinterpret_cast<char*>(&currentPitchOffset), sizeof(currentPitchOffset) );
-	stream.read(reinterpret_cast<char*>(&lfoPitchOffset), sizeof(lfoPitchOffset) );
-	stream.read(reinterpret_cast<char*>(&timeKeyfollowSubtraction), sizeof(timeKeyfollowSubtraction) );
-	stream.read(reinterpret_cast<char*>(&pitchOffsetChangePerBigTick), sizeof(pitchOffsetChangePerBigTick) );
-	stream.read(reinterpret_cast<char*>(&targetPitchOffsetReachedBigTick), sizeof(targetPitchOffsetReachedBigTick) );
-	stream.read(reinterpret_cast<char*>(&shifts), sizeof(shifts) );
-	stream.read(reinterpret_cast<char*>(&pitch), sizeof(pitch) );
-
-
-#ifdef WIN32_DEBUG
-	// DEBUG
-	partial->getSynth()->rawDumpState( "temp-load", this, sizeof(*this) );
-	this->rawVerifyState( "temp-save", partial->getSynth() );
-	partial->getSynth()->rawDumpNo++;
-#endif
-}
-
-}
+} // namespace MT32Emu

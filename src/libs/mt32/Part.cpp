@@ -1,5 +1,5 @@
 /* Copyright (C) 2003, 2004, 2005, 2006, 2008, 2009 Dean Beeler, Jerome Fisher
- * Copyright (C) 2011, 2012, 2013 Dean Beeler, Jerome Fisher, Sergey V. Mikayev
+ * Copyright (C) 2011-2020 Dean Beeler, Jerome Fisher, Sergey V. Mikayev
  *
  *  This program is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU Lesser General Public License as published by
@@ -18,8 +18,13 @@
 #include <cstdio>
 #include <cstring>
 
-#include "mt32emu.h"
+#include "internals.h"
+
+#include "Part.h"
+#include "Partial.h"
 #include "PartialManager.h"
+#include "Poly.h"
+#include "Synth.h"
 
 namespace MT32Emu {
 
@@ -33,20 +38,10 @@ static const Bit8u PartialMixStruct[13] = {
 	1, 3, 3, 2, 2, 2, 2
 };
 
-#if 0//unused
-static const float floatKeyfollow[17] = {
-	-1.0f, -1.0f / 2.0f, -1.0f / 4.0f, 0.0f,
-	1.0f / 8.0f, 1.0f / 4.0f, 3.0f / 8.0f, 1.0f / 2.0f, 5.0f / 8.0f, 3.0f / 4.0f, 7.0f / 8.0f, 1.0f,
-	5.0f / 4.0f, 3.0f / 2.0f, 2.0f,
-	1.0009765625f, 1.0048828125f
-};
-#endif
-
-
 RhythmPart::RhythmPart(Synth *useSynth, unsigned int usePartNum): Part(useSynth, usePartNum) {
 	strcpy(name, "Rhythm");
 	rhythmTemp = &synth->mt32ram.rhythmTemp[0];
-	RhythmPart::refresh();
+	refresh();
 }
 
 Part::Part(Synth *useSynth, unsigned int usePartNum) {
@@ -59,7 +54,7 @@ Part::Part(Synth *useSynth, unsigned int usePartNum) {
 		// Nasty hack for rhythm
 		timbreTemp = NULL;
 	} else {
-		sprintf(name, "Part %u", partNum + 1);
+		sprintf(name, "Part %d", partNum + 1);
 		timbreTemp = &synth->mt32ram.timbreTemp[partNum];
 	}
 	currentInstr[0] = 0;
@@ -69,17 +64,11 @@ Part::Part(Synth *useSynth, unsigned int usePartNum) {
 	pitchBend = 0;
 	activePartialCount = 0;
 	memset(patchCache, 0, sizeof(patchCache));
-	for (int i = 0; i < MT32EMU_MAX_POLY; i++) {
-		freePolys.prepend(new Poly(synth,this));
-	}
 }
 
 Part::~Part() {
 	while (!activePolys.isEmpty()) {
 		delete activePolys.takeFirst();
-	}
-	while (!freePolys.isEmpty()) {
-		delete freePolys.takeFirst();
 	}
 }
 
@@ -127,7 +116,7 @@ Bit32s Part::getPitchBend() const {
 
 void Part::setBend(unsigned int midiBend) {
 	// CONFIRMED:
-	pitchBend = (((signed)midiBend - 8192) * pitchBenderRange) >> 14; // PORTABILITY NOTE: Assumes arithmetic shift
+	pitchBend = ((signed(midiBend) - 8192) * pitchBenderRange) >> 14; // PORTABILITY NOTE: Assumes arithmetic shift
 }
 
 Bit8u Part::getModulation() const {
@@ -135,7 +124,7 @@ Bit8u Part::getModulation() const {
 }
 
 void Part::setModulation(unsigned int midiModulation) {
-	modulation = (Bit8u)midiModulation;
+	modulation = Bit8u(midiModulation);
 }
 
 void Part::resetAllControllers() {
@@ -177,6 +166,7 @@ void Part::refresh() {
 		patchCache[t].reverb = patchTemp->patch.reverbSwitch > 0;
 	}
 	memcpy(currentInstr, timbreTemp->common.name, 10);
+	synth->newTimbreSet(partNum, patchTemp->patch.timbreGroup, patchTemp->patch.timbreNum, currentInstr);
 	updatePitchBenderRange();
 }
 
@@ -209,7 +199,6 @@ void RhythmPart::setTimbre(TimbreParam * /*timbre*/) {
 
 void Part::setTimbre(TimbreParam *timbre) {
 	*timbreTemp = *timbre;
-	synth->newTimbreSet(partNum, timbre->common.name);
 }
 
 unsigned int RhythmPart::getAbsTimbreNum() const {
@@ -270,26 +259,26 @@ void Part::cacheTimbre(PatchCache cache[4], const TimbreParam *timbre) {
 
 		switch (t) {
 		case 0:
-			cache[t].PCMPartial = (PartialStruct[(int)timbre->common.partialStructure12] & 0x2) ? true : false;
-			cache[t].structureMix = PartialMixStruct[(int)timbre->common.partialStructure12];
+			cache[t].PCMPartial = (PartialStruct[int(timbre->common.partialStructure12)] & 0x2) ? true : false;
+			cache[t].structureMix = PartialMixStruct[int(timbre->common.partialStructure12)];
 			cache[t].structurePosition = 0;
 			cache[t].structurePair = 1;
 			break;
 		case 1:
-			cache[t].PCMPartial = (PartialStruct[(int)timbre->common.partialStructure12] & 0x1) ? true : false;
-			cache[t].structureMix = PartialMixStruct[(int)timbre->common.partialStructure12];
+			cache[t].PCMPartial = (PartialStruct[int(timbre->common.partialStructure12)] & 0x1) ? true : false;
+			cache[t].structureMix = PartialMixStruct[int(timbre->common.partialStructure12)];
 			cache[t].structurePosition = 1;
 			cache[t].structurePair = 0;
 			break;
 		case 2:
-			cache[t].PCMPartial = (PartialStruct[(int)timbre->common.partialStructure34] & 0x2) ? true : false;
-			cache[t].structureMix = PartialMixStruct[(int)timbre->common.partialStructure34];
+			cache[t].PCMPartial = (PartialStruct[int(timbre->common.partialStructure34)] & 0x2) ? true : false;
+			cache[t].structureMix = PartialMixStruct[int(timbre->common.partialStructure34)];
 			cache[t].structurePosition = 0;
 			cache[t].structurePair = 3;
 			break;
 		case 3:
-			cache[t].PCMPartial = (PartialStruct[(int)timbre->common.partialStructure34] & 0x1) ? true : false;
-			cache[t].structureMix = PartialMixStruct[(int)timbre->common.partialStructure34];
+			cache[t].PCMPartial = (PartialStruct[int(timbre->common.partialStructure34)] & 0x1) ? true : false;
+			cache[t].structureMix = PartialMixStruct[int(timbre->common.partialStructure34)];
 			cache[t].structurePosition = 1;
 			cache[t].structurePair = 2;
 			break;
@@ -323,7 +312,7 @@ const char *Part::getName() const {
 
 void Part::setVolume(unsigned int midiVolume) {
 	// CONFIRMED: This calculation matches the table used in the control ROM
-	patchTemp->outputLevel = (Bit8u)(midiVolume * 100 / 127);
+	patchTemp->outputLevel = Bit8u(midiVolume * 100 / 127);
 	//synth->printDebug("%s (%s): Set volume to %d", name, currentInstr, midiVolume);
 }
 
@@ -337,7 +326,7 @@ Bit8u Part::getExpression() const {
 
 void Part::setExpression(unsigned int midiExpression) {
 	// CONFIRMED: This calculation matches the table used in the control ROM
-	expression = (Bit8u)(midiExpression * 100 / 127);
+	expression = Bit8u(midiExpression * 100 / 127);
 }
 
 void RhythmPart::setPan(unsigned int midiPan) {
@@ -351,10 +340,13 @@ void RhythmPart::setPan(unsigned int midiPan) {
 void Part::setPan(unsigned int midiPan) {
 	// NOTE: Panning is inverted compared to GM.
 
-	// CM-32L: Divide by 8.5
-	patchTemp->panpot = (Bit8u)((midiPan << 3) / 68);
-	// FIXME: MT-32: Divide by 9
-	//patchTemp->panpot = (Bit8u)(midiPan / 9);
+	if (synth->controlROMFeatures->quirkPanMult) {
+		// MT-32: Divide by 9
+		patchTemp->panpot = Bit8u(midiPan / 9);
+	} else {
+		// CM-32L: Divide by 8.5
+		patchTemp->panpot = Bit8u((midiPan << 3) / 68);
+	}
 
 	//synth->printDebug("%s (%s): Set pan to %d", name, currentInstr, panpot);
 }
@@ -363,6 +355,10 @@ void Part::setPan(unsigned int midiPan) {
  * Applies key shift to a MIDI key and converts it into an internal key value in the range 12-108.
  */
 unsigned int Part::midiKeyToKey(unsigned int midiKey) {
+	if (synth->controlROMFeatures->quirkKeyShift) {
+		// NOTE: On MT-32 GEN0, key isn't adjusted, and keyShift is applied further in TVP, unlike newer units:
+		return midiKey;
+	}
 	int key = midiKey + patchTemp->patch.keyShift;
 	if (key < 36) {
 		// After keyShift is applied, key < 36, so move up by octaves
@@ -387,7 +383,8 @@ void RhythmPart::noteOn(unsigned int midiKey, unsigned int velocity) {
 	unsigned int key = midiKey;
 	unsigned int drumNum = key - 24;
 	int drumTimbreNum = rhythmTemp[drumNum].timbre;
-	if (drumTimbreNum >= 127) { // 94 on MT-32
+	const int drumTimbreCount = 64 + synth->controlROMMap->timbreRCount; // 94 on MT-32, 128 on LAPC-I/CM32-L
+	if (drumTimbreNum == 127 || drumTimbreNum >= drumTimbreCount) { // timbre #127 is OFF, no sense to play it
 		synth->printDebug("%s: Attempted to play unmapped key %d (velocity %d)", name, midiKey, velocity);
 		return;
 	}
@@ -433,23 +430,10 @@ void Part::noteOn(unsigned int midiKey, unsigned int velocity) {
 	playPoly(patchCache, NULL, midiKey, key, velocity);
 }
 
-void Part::abortPoly(Poly *poly) {
-	if (poly->startAbort()) {
-		while (poly->isActive()) {
-			if (!synth->prerender()) {
-				synth->printDebug("%s (%s): Ran out of prerender space to abort poly gracefully", name, currentInstr);
-				poly->terminate();
-				break;
-			}
-		}
-	}
-}
-
 bool Part::abortFirstPoly(unsigned int key) {
 	for (Poly *poly = activePolys.getFirst(); poly != NULL; poly = poly->getNext()) {
 		if (poly->getKey() == key) {
-			abortPoly(poly);
-			return true;
+			return poly->startAbort();
 		}
 	}
 	return false;
@@ -458,8 +442,7 @@ bool Part::abortFirstPoly(unsigned int key) {
 bool Part::abortFirstPoly(PolyState polyState) {
 	for (Poly *poly = activePolys.getFirst(); poly != NULL; poly = poly->getNext()) {
 		if (poly->getState() == polyState) {
-			abortPoly(poly);
-			return true;
+			return poly->startAbort();
 		}
 	}
 	return false;
@@ -476,8 +459,7 @@ bool Part::abortFirstPoly() {
 	if (activePolys.isEmpty()) {
 		return false;
 	}
-	abortPoly(activePolys.getFirst());
-	return true;
+	return activePolys.getFirst()->startAbort();
 }
 
 void Part::playPoly(const PatchCache cache[4], const MemParams::RhythmTemp *rhythmTemp, unsigned int midiKey, unsigned int key, unsigned int velocity) {
@@ -491,6 +473,7 @@ void Part::playPoly(const PatchCache cache[4], const MemParams::RhythmTemp *rhyt
 	if ((patchTemp->patch.assignMode & 2) == 0) {
 		// Single-assign mode
 		abortFirstPoly(key);
+		if (synth->isAbortingPoly()) return;
 	}
 
 	if (!synth->partialManager->freePartials(needPartials, partNum)) {
@@ -500,12 +483,13 @@ void Part::playPoly(const PatchCache cache[4], const MemParams::RhythmTemp *rhyt
 #endif
 		return;
 	}
+	if (synth->isAbortingPoly()) return;
 
-	if (freePolys.isEmpty()) {
+	Poly *poly = synth->partialManager->assignPolyToPart(this);
+	if (poly == NULL) {
 		synth->printDebug("%s (%s): No free poly to play key %d (velocity %d)", name, currentInstr, midiKey, velocity);
 		return;
 	}
-	Poly *poly = freePolys.takeFirst();
 	if (patchTemp->patch.assignMode & 1) {
 		// Priority to data first received
 		activePolys.prepend(poly);
@@ -535,8 +519,7 @@ void Part::playPoly(const PatchCache cache[4], const MemParams::RhythmTemp *rhyt
 #if MT32EMU_MONITOR_PARTIALS > 1
 	synth->printPartialUsage();
 #endif
-	synth->partStateChanged(partNum, true);
-	synth->polyStateChanged(partNum);
+	synth->reportHandler->onPolyStateChanged(Bit8u(partNum));
 }
 
 void Part::allNotesOff() {
@@ -599,6 +582,10 @@ unsigned int Part::getActivePartialCount() const {
 	return activePartialCount;
 }
 
+const Poly *Part::getFirstActivePoly() const {
+	return activePolys.getFirst();
+}
+
 unsigned int Part::getActiveNonReleasingPartialCount() const {
 	unsigned int activeNonReleasingPartialCount = 0;
 	for (Poly *poly = activePolys.getFirst(); poly != NULL; poly = poly->getNext()) {
@@ -609,24 +596,23 @@ unsigned int Part::getActiveNonReleasingPartialCount() const {
 	return activeNonReleasingPartialCount;
 }
 
+Synth *Part::getSynth() const {
+	return synth;
+}
+
 void Part::partialDeactivated(Poly *poly) {
 	activePartialCount--;
 	if (!poly->isActive()) {
 		activePolys.remove(poly);
-		freePolys.prepend(poly);
-		synth->polyStateChanged(partNum);
-	}
-	if (activePartialCount == 0) {
-		synth->partStateChanged(partNum, false);
+		synth->partialManager->polyFreed(poly);
+		synth->reportHandler->onPolyStateChanged(Bit8u(partNum));
 	}
 }
-
-//#define POLY_LIST_DEBUG
 
 PolyList::PolyList() : firstPoly(NULL), lastPoly(NULL) {}
 
 bool PolyList::isEmpty() const {
-#ifdef POLY_LIST_DEBUG
+#ifdef MT32EMU_POLY_LIST_DEBUG
 	if ((firstPoly == NULL || lastPoly == NULL) && firstPoly != lastPoly) {
 		printf("PolyList: desynchronised firstPoly & lastPoly pointers\n");
 	}
@@ -643,7 +629,7 @@ Poly *PolyList::getLast() const {
 }
 
 void PolyList::prepend(Poly *poly) {
-#ifdef POLY_LIST_DEBUG
+#ifdef MT32EMU_POLY_LIST_DEBUG
 	if (poly->getNext() != NULL) {
 		printf("PolyList: Non-NULL next field in a Poly being prepended is ignored\n");
 	}
@@ -656,14 +642,14 @@ void PolyList::prepend(Poly *poly) {
 }
 
 void PolyList::append(Poly *poly) {
-#ifdef POLY_LIST_DEBUG
+#ifdef MT32EMU_POLY_LIST_DEBUG
 	if (poly->getNext() != NULL) {
 		printf("PolyList: Non-NULL next field in a Poly being appended is ignored\n");
 	}
 #endif
 	poly->setNext(NULL);
 	if (lastPoly != NULL) {
-#ifdef POLY_LIST_DEBUG
+#ifdef MT32EMU_POLY_LIST_DEBUG
 		if (lastPoly->getNext() != NULL) {
 			printf("PolyList: Non-NULL next field in the lastPoly\n");
 		}
@@ -680,7 +666,7 @@ Poly *PolyList::takeFirst() {
 	Poly *oldFirst = firstPoly;
 	firstPoly = oldFirst->getNext();
 	if (firstPoly == NULL) {
-#ifdef POLY_LIST_DEBUG
+#ifdef MT32EMU_POLY_LIST_DEBUG
 		if (lastPoly != oldFirst) {
 			printf("PolyList: firstPoly != lastPoly in a list with a single Poly\n");
 		}
@@ -699,7 +685,7 @@ void PolyList::remove(Poly * const polyToRemove) {
 	for (Poly *poly = firstPoly; poly != NULL; poly = poly->getNext()) {
 		if (poly->getNext() == polyToRemove) {
 			if (polyToRemove == lastPoly) {
-#ifdef POLY_LIST_DEBUG
+#ifdef MT32EMU_POLY_LIST_DEBUG
 				if (lastPoly->getNext() != NULL) {
 					printf("PolyList: Non-NULL next field in the lastPoly\n");
 				}
@@ -713,36 +699,4 @@ void PolyList::remove(Poly * const polyToRemove) {
 	}
 }
 
-// TODO: WE NEED TO REFRESH THIS (FROM)
-const Poly *Part::getActivePoly(int num)
-{
-	if( (size_t)num >= sizeof(activePolys) ) return NULL;
-
-	for( Poly* polyIt = activePolys.getFirst(); polyIt != activePolys.getLast(); polyIt++ ) {
-		if( num == 0 ) return polyIt;
-
-		num--;
-	}
-
-	return NULL;
-}
-
-
-int Part::getActivePolyCount()
-{
-	return sizeof(activePolys);
-}
-// TODO: WE NEED TO REFRESH THIS (TO)
-
-const PatchCache *Part::getPatchCache(int num)
-{
-	return &patchCache[num];
-}
-
-
-const PatchCache *RhythmPart::getDrumCache(int num1, int num2)
-{
-	return &drumCache[num1][num2];
-}
-
-}
+} // namespace MT32Emu

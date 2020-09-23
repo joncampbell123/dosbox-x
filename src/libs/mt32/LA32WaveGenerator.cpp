@@ -1,5 +1,5 @@
 /* Copyright (C) 2003, 2004, 2005, 2006, 2008, 2009 Dean Beeler, Jerome Fisher
- * Copyright (C) 2011, 2012, 2013 Dean Beeler, Jerome Fisher, Sergey V. Mikayev
+ * Copyright (C) 2011-2020 Dean Beeler, Jerome Fisher, Sergey V. Mikayev
  *
  *  This program is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU Lesser General Public License as published by
@@ -15,12 +15,12 @@
  *  along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include <cmath>
-#include "mt32emu.h"
-#include "mmath.h"
-#include "LA32WaveGenerator.h"
+#include <cstddef>
 
-#if MT32EMU_ACCURATE_WG == 0
+#include "internals.h"
+
+#include "LA32WaveGenerator.h"
+#include "Tables.h"
 
 namespace MT32Emu {
 
@@ -48,7 +48,7 @@ Bit16s LA32Utilites::unlog(const LogSample &logSample) {
 
 void LA32Utilites::addLogSamples(LogSample &logSample1, const LogSample &logSample2) {
 	Bit32u logSampleValue = logSample1.logValue + logSample2.logValue;
-	logSample1.logValue = logSampleValue < 65536 ? (Bit16u)logSampleValue : 65535;
+	logSample1.logValue = logSampleValue < 65536 ? Bit16u(logSampleValue) : 65535;
 	logSample1.sign = logSample1.sign == logSample2.sign ? LogSample::POSITIVE : LogSample::NEGATIVE;
 }
 
@@ -128,8 +128,7 @@ void LA32WaveGenerator::advancePosition() {
 	Bit32u lowLinearLength = (resonanceWaveLengthFactor << 8) - 4 * SINE_SEGMENT_RELATIVE_LENGTH - highLinearLength;
 	computePositions(highLinearLength, lowLinearLength, resonanceWaveLengthFactor);
 
-	// resonancePhase computation hack
-	*(int*)&resonancePhase = ((resonanceSinePosition >> 18) + (phase > POSITIVE_FALLING_SINE_SEGMENT ? 2 : 0)) & 3;
+	resonancePhase = ResonancePhase(((resonanceSinePosition >> 18) + (phase > POSITIVE_FALLING_SINE_SEGMENT ? 2 : 0)) & 3);
 }
 
 void LA32WaveGenerator::generateNextSquareWaveLogSample() {
@@ -155,7 +154,7 @@ void LA32WaveGenerator::generateNextSquareWaveLogSample() {
 		logSampleValue += (MIDDLE_CUTOFF_VALUE - cutoffVal) >> 9;
 	}
 
-	squareLogSample.logValue = logSampleValue < 65536 ? (Bit16u)logSampleValue : 65535;
+	squareLogSample.logValue = logSampleValue < 65536 ? Bit16u(logSampleValue) : 65535;
 	squareLogSample.sign = phase < NEGATIVE_FALLING_SINE_SEGMENT ? LogSample::POSITIVE : LogSample::NEGATIVE;
 }
 
@@ -195,7 +194,7 @@ void LA32WaveGenerator::generateNextResonanceWaveLogSample() {
 	// After all the amp decrements are added, it should be safe now to adjust the amp of the resonance wave to what we see on captures
 	logSampleValue -= 1 << 12;
 
-	resonanceLogSample.logValue = logSampleValue < 65536 ? (Bit16u)logSampleValue : 65535;
+	resonanceLogSample.logValue = logSampleValue < 65536 ? Bit16u(logSampleValue) : 65535;
 	resonanceLogSample.sign = resonancePhase < NEGATIVE_FALLING_RESONANCE_SINE_SEGMENT ? LogSample::POSITIVE : LogSample::NEGATIVE;
 }
 
@@ -213,7 +212,7 @@ void LA32WaveGenerator::generateNextSawtoothCosineLogSample(LogSample &logSample
 void LA32WaveGenerator::pcmSampleToLogSample(LogSample &logSample, const Bit16s pcmSample) const {
 	Bit32u logSampleValue = (32787 - (pcmSample & 32767)) << 1;
 	logSampleValue += amp >> 10;
-	logSample.logValue = logSampleValue < 65536 ? (Bit16u)logSampleValue : 65535;
+	logSample.logValue = logSampleValue < 65536 ? Bit16u(logSampleValue) : 65535;
 	logSample.sign = pcmSample < 0 ? LogSample::NEGATIVE : LogSample::POSITIVE;
 }
 
@@ -338,12 +337,12 @@ Bit32u LA32WaveGenerator::getPCMInterpolationFactor() const {
 	return pcmInterpolationFactor;
 }
 
-void LA32PartialPair::init(const bool useRingModulated, const bool useMixed) {
+void LA32IntPartialPair::init(const bool useRingModulated, const bool useMixed) {
 	ringModulated = useRingModulated;
 	mixed = useMixed;
 }
 
-void LA32PartialPair::initSynth(const PairType useMaster, const bool sawtoothWaveform, const Bit8u pulseWidth, const Bit8u resonance) {
+void LA32IntPartialPair::initSynth(const PairType useMaster, const bool sawtoothWaveform, const Bit8u pulseWidth, const Bit8u resonance) {
 	if (useMaster == MASTER) {
 		master.initSynth(sawtoothWaveform, pulseWidth, resonance);
 	} else {
@@ -351,7 +350,7 @@ void LA32PartialPair::initSynth(const PairType useMaster, const bool sawtoothWav
 	}
 }
 
-void LA32PartialPair::initPCM(const PairType useMaster, const Bit16s *pcmWaveAddress, const Bit32u pcmWaveLength, const bool pcmWaveLooped) {
+void LA32IntPartialPair::initPCM(const PairType useMaster, const Bit16s *pcmWaveAddress, const Bit32u pcmWaveLength, const bool pcmWaveLooped) {
 	if (useMaster == MASTER) {
 		master.initPCM(pcmWaveAddress, pcmWaveLength, pcmWaveLooped, true);
 	} else {
@@ -359,7 +358,7 @@ void LA32PartialPair::initPCM(const PairType useMaster, const Bit16s *pcmWaveAdd
 	}
 }
 
-void LA32PartialPair::generateNextSample(const PairType useMaster, const Bit32u amp, const Bit16u pitch, const Bit32u cutoff) {
+void LA32IntPartialPair::generateNextSample(const PairType useMaster, const Bit32u amp, const Bit16u pitch, const Bit32u cutoff) {
 	if (useMaster == MASTER) {
 		master.generateNextSample(amp, pitch, cutoff);
 	} else {
@@ -367,41 +366,49 @@ void LA32PartialPair::generateNextSample(const PairType useMaster, const Bit32u 
 	}
 }
 
-Bit16s LA32PartialPair::unlogAndMixWGOutput(const LA32WaveGenerator &wg, const LogSample * const ringModulatingLogSample) {
-	if (!wg.isActive() || ((ringModulatingLogSample != NULL) && (ringModulatingLogSample->logValue == SILENCE.logValue))) {
+Bit16s LA32IntPartialPair::unlogAndMixWGOutput(const LA32WaveGenerator &wg) {
+	if (!wg.isActive()) {
 		return 0;
 	}
-	LogSample firstLogSample = wg.getOutputLogSample(true);
-	LogSample secondLogSample = wg.getOutputLogSample(false);
-	if (ringModulatingLogSample != NULL) {
-		LA32Utilites::addLogSamples(firstLogSample, *ringModulatingLogSample);
-		LA32Utilites::addLogSamples(secondLogSample, *ringModulatingLogSample);
-	}
-	Bit16s firstSample = LA32Utilites::unlog(firstLogSample);
-	Bit16s secondSample = LA32Utilites::unlog(secondLogSample);
+	Bit16s firstSample = LA32Utilites::unlog(wg.getOutputLogSample(true));
+	Bit16s secondSample = LA32Utilites::unlog(wg.getOutputLogSample(false));
 	if (wg.isPCMWave()) {
-		return Bit16s(firstSample + ((Bit32s(secondSample - firstSample) * wg.getPCMInterpolationFactor()) >> 7));
+		return Bit16s(firstSample + (((Bit32s(secondSample) - Bit32s(firstSample)) * wg.getPCMInterpolationFactor()) >> 7));
 	}
 	return firstSample + secondSample;
 }
 
-Bit16s LA32PartialPair::nextOutSample() {
-	if (ringModulated) {
-		LogSample slaveFirstLogSample = slave.getOutputLogSample(true);
-		LogSample slaveSecondLogSample = slave.getOutputLogSample(false);
-		Bit16s sample = unlogAndMixWGOutput(master, &slaveFirstLogSample);
-		if (!slave.isPCMWave()) {
-			sample += unlogAndMixWGOutput(master, &slaveSecondLogSample);
-		}
-		if (mixed) {
-			sample += unlogAndMixWGOutput(master, NULL);
-		}
-		return sample;
-	}
-	return unlogAndMixWGOutput(master, NULL) + unlogAndMixWGOutput(slave, NULL);
+static inline Bit16s produceDistortedSample(Bit16s sample) {
+	return ((sample & 0x2000) == 0) ? Bit16s(sample & 0x1fff) : Bit16s(sample | ~0x1fff);
 }
 
-void LA32PartialPair::deactivate(const PairType useMaster) {
+Bit16s LA32IntPartialPair::nextOutSample() {
+	if (!ringModulated) {
+		return unlogAndMixWGOutput(master) + unlogAndMixWGOutput(slave);
+	}
+
+	Bit16s masterSample = unlogAndMixWGOutput(master); // Store master partial sample for further mixing
+
+	/* SEMI-CONFIRMED from sample analysis:
+	 * We observe that for partial structures with ring modulation the interpolation is not applied to the slave PCM partial.
+	 * It's assumed that the multiplication circuitry intended to perform the interpolation on the slave PCM partial
+	 * is borrowed by the ring modulation circuit (or the LA32 chip has a similar lack of resources assigned to each partial pair).
+	 */
+	Bit16s slaveSample = slave.isPCMWave() ? LA32Utilites::unlog(slave.getOutputLogSample(true)) : unlogAndMixWGOutput(slave);
+
+	/* SEMI-CONFIRMED: Ring modulation model derived from sample analysis of specially constructed patches which exploit distortion.
+	 * LA32 ring modulator found to produce distorted output in case if the absolute value of maximal amplitude of one of the input partials exceeds 8191.
+	 * This is easy to reproduce using synth partials with resonance values close to the maximum. It looks like an integer overflow happens in this case.
+	 * As the distortion is strictly bound to the amplitude of the complete mixed square + resonance wave in the linear space,
+	 * it is reasonable to assume the ring modulation is performed also in the linear space by sample multiplication.
+	 * Most probably the overflow is caused by limited precision of the multiplication circuit as the very similar distortion occurs with panning.
+	 */
+	Bit16s ringModulatedSample = Bit16s((Bit32s(produceDistortedSample(masterSample)) * Bit32s(produceDistortedSample(slaveSample))) >> 13);
+
+	return mixed ? masterSample + ringModulatedSample : ringModulatedSample;
+}
+
+void LA32IntPartialPair::deactivate(const PairType useMaster) {
 	if (useMaster == MASTER) {
 		master.deactivate();
 	} else {
@@ -409,10 +416,8 @@ void LA32PartialPair::deactivate(const PairType useMaster) {
 	}
 }
 
-bool LA32PartialPair::isActive(const PairType useMaster) const {
+bool LA32IntPartialPair::isActive(const PairType useMaster) const {
 	return useMaster == MASTER ? master.isActive() : slave.isActive();
 }
 
-}
-
-#endif // #if MT32EMU_ACCURATE_WG == 0
+} // namespace MT32Emu
