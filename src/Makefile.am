@@ -15,10 +15,6 @@ if HAVE_WINDRES
 ico_stuff = winres.rc
 endif
 
-if C_XBRZ
-SUBDIRS += xBRZ
-endif
-
 .rc.o:
 	$(WINDRES) -o $@ $<
 
@@ -39,7 +35,7 @@ endif
 
 if C_XBRZ
 if !EMSCRIPTEN
-dosbox_x_LDADD += xBRZ/libxbrz.a
+dosbox_x_LDADD += libs/xBRZ/libxbrz.a
 endif
 endif
 

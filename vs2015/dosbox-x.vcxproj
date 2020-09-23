@@ -1117,7 +1117,7 @@ copy "$(SolutionDir)\..\contrib\windows\shaders\*.*" "$(OutputPath)\shaders\"</C
     <ClCompile Include="..\src\shell\shell_batch.cpp" />
     <ClCompile Include="..\src\shell\shell_cmds.cpp" />
     <ClCompile Include="..\src\shell\shell_misc.cpp" />
-    <ClCompile Include="..\src\xBRZ\xbrz.cpp" />
+    <ClCompile Include="..\src\libs\xBRZ\xbrz.cpp" />
     <ClCompile Include="..\src\libs\fluidsynth\bindings\fluid_cmd.c" />
     <ClCompile Include="..\src\libs\fluidsynth\bindings\fluid_filerenderer.c" />
     <ClCompile Include="..\src\libs\fluidsynth\drivers\fluid_adriver.c" />
@@ -1430,9 +1430,9 @@ copy "$(SolutionDir)\..\contrib\windows\shaders\*.*" "$(OutputPath)\shaders\"</C
     <ClInclude Include="..\src\output\output_tools.h" />
     <ClInclude Include="..\src\output\output_tools_xbrz.h" />
     <ClInclude Include="..\src\resource.h" />
-    <ClInclude Include="..\src\xBRZ\xbrz.h" />
-    <ClInclude Include="..\src\xBRZ\xbrz_config.h" />
-    <ClInclude Include="..\src\xBRZ\xbrz_tools.h" />
+    <ClInclude Include="..\src\libs\xBRZ\xbrz.h" />
+    <ClInclude Include="..\src\libs\xBRZ\xbrz_config.h" />
+    <ClInclude Include="..\src\libs\xBRZ\xbrz_tools.h" />
     <ClInclude Include="config.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

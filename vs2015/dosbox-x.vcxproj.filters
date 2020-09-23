@@ -67,9 +67,6 @@
     <Filter Include="Includes">
       <UniqueIdentifier>{39027cf6-2435-4d52-a1ea-c3cc6c7f31ab}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Sources\xBRZ">
-      <UniqueIdentifier>{6212d2c1-4c3f-4ec6-ad0e-88413d9f1b6c}</UniqueIdentifier>
-    </Filter>
     <Filter Include="Sources\output">
       <UniqueIdentifier>{b81e382e-b6fe-4ac3-91d1-a4c1e031214b}</UniqueIdentifier>
     </Filter>
@@ -117,6 +114,9 @@
     </Filter>
     <Filter Include="Sources\libs\mt32\c_interface">
       <UniqueIdentifier>{1c77ffdf-9bc7-404b-8b6f-77a41fc2ed1a}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Sources\libs\xBRZ">
+      <UniqueIdentifier>{6212d2c1-4c3f-4ec6-ad0e-88413d9f1b6c}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>
@@ -756,8 +756,8 @@
     <ClCompile Include="..\src\gui\bitop.cpp">
       <Filter>Sources\gui</Filter>
     </ClCompile>
-    <ClCompile Include="..\src\xBRZ\xbrz.cpp">
-      <Filter>Sources\xBRZ</Filter>
+    <ClCompile Include="..\src\libs\xBRZ\xbrz.cpp">
+      <Filter>Sources\libs\xBRZ</Filter>
     </ClCompile>
     <ClCompile Include="..\src\gui\ptrop.cpp">
       <Filter>Sources\gui</Filter>
@@ -1583,14 +1583,14 @@
     <ClInclude Include="..\include\bitop.h">
       <Filter>Includes</Filter>
     </ClInclude>
-    <ClInclude Include="..\src\xBRZ\xbrz.h">
-      <Filter>Sources\xBRZ</Filter>
+    <ClInclude Include="..\src\libs\xBRZ\xbrz.h">
+      <Filter>Sources\libs\xBRZ</Filter>
     </ClInclude>
-    <ClInclude Include="..\src\xBRZ\xbrz_config.h">
-      <Filter>Sources\xBRZ</Filter>
+    <ClInclude Include="..\src\libs\xBRZ\xbrz_config.h">
+      <Filter>Sources\libs\xBRZ</Filter>
     </ClInclude>
-    <ClInclude Include="..\src\xBRZ\xbrz_tools.h">
-      <Filter>Sources\xBRZ</Filter>
+    <ClInclude Include="..\src\libs\xBRZ\xbrz_tools.h">
+      <Filter>Sources\libs\xBRZ</Filter>
     </ClInclude>
     <ClInclude Include="..\include\ptrop.h">
       <Filter>Includes</Filter>

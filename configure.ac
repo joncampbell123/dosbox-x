@@ -1068,7 +1068,6 @@ src/debug/Makefile
 src/dos/Makefile
 src/fpu/Makefile
 src/gui/Makefile
-src/libs/mt32/Makefile
 src/hardware/Makefile
 src/hardware/mame/Makefile
 src/hardware/serialport/Makefile
@@ -1080,13 +1079,14 @@ src/libs/Makefile
 src/libs/zmbv/Makefile
 src/libs/gui_tk/Makefile
 src/libs/porttalk/Makefile
+src/libs/mt32/Makefile
+src/libs/xBRZ/Makefile
 src/output/Makefile
 src/output/direct3d/Makefile
 src/builtin/Makefile
 src/misc/Makefile
 src/shell/Makefile
 src/platform/Makefile
-src/xBRZ/Makefile
 include/Makefile
 contrib/macos/dosbox-x.plist
 contrib/linux/dosbox-x.spec
