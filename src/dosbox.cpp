@@ -1265,10 +1265,7 @@ void DOSBOX_SetupConfigSections(void) {
 #endif
     const char* apmbiosversions[] = { "auto", "1.0", "1.1", "1.2", 0 };
     const char* driveletters[] = { "a", "b", "c", "d", "e", "f", "g", "h", "i", "j", "k", "l", "m", "n", "o", "p", "q", "r", "s", "t", "u", "v", "w", "x", "y", "z", 0};
-    const char *mt32log[] = {"off", "on",0};
-    const char *mt32thread[] = {"off", "on",0};
     const char *mt32partials[] = {"8", "9", "32", "255", "256",0};
-    const char *mt32ReverseStereo[] = {"off", "on",0};
     const char *mt32DACModes[] = {"0", "1", "2", "3",0};
     const char *mt32reverbModes[] = {"0", "1", "2", "3", "auto",0};
     const char *mt32reverbTimes[] = {"0", "1", "2", "3", "4", "5", "6", "7",0};
@@ -2608,7 +2605,8 @@ void DOSBOX_SetupConfigSections(void) {
         "Produces samples that exactly match the bits output from the emulated LA32.\n"
         "Nicer overdrive characteristics than the DAC hacks (it simply clips samples within range)\n"
         "Much less likely to overdrive than any other mode.\n"
-        "Half the volume of any of the other modes.\n"
+        "Half the volume of any of the other modes, meaning its volume relative to the reverb\n"
+        "output when mixed together directly will sound wrong. So, reverb level must be lowered.\n"
         "Perfect for developers while debugging :)\n\n"
 
         "GENERATION1 = 2\n"
