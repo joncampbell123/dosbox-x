@@ -9,7 +9,10 @@
     "opengl" or "openglnb". For example, you can use
     the setting "glshader=sharp" (built-in shader) or
     "glshader=pixel_perfect" (with GLSL shader file)
-    for the pixel-perfect scaling mode. (Wengier)
+    for the pixel-perfect scaling mode. The Windows
+    installer will also copy several GLSL shader files
+    to the "glshaders" subdirectory of the DOSBox-X
+    install directory to be used directly. (Wengier)
   - Support for FluidSynth MIDI Synthesizer is now
     included in the Windows Visual Studio builds by
     default. Set "mididevice=fluidsynth" and a sound
