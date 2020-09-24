@@ -3903,6 +3903,7 @@ static void GUI_StartUp() {
     sdl.overscan_width=(unsigned int)section->Get_int("overscan");
 //  sdl.overscan_color=section->Get_int("overscancolor");
 
+    bool initgl = false;
 #if C_OPENGL
 	if (sdl.desktop.want_type == SCREEN_OPENGL) { /* OPENGL is requested */
 #if defined(C_SDL2)
@@ -3915,6 +3916,7 @@ static void GUI_StartUp() {
 			LOG_MSG("Could not initialize OpenGL, switching back to surface");
 			sdl.desktop.want_type = SCREEN_SURFACE;
 		} else {
+			initgl = true;
 			sdl_opengl.program_object = 0;
 			glAttachShader = (PFNGLATTACHSHADERPROC)SDL_GL_GetProcAddress("glAttachShader");
 			glCompileShader = (PFNGLCOMPILESHADERPROC)SDL_GL_GetProcAddress("glCompileShader");
@@ -3971,9 +3973,11 @@ static void GUI_StartUp() {
 
 /* Initialize screen for first time */
 #if defined(C_SDL2)
-    GFX_SetResizeable(true);
-    if (!GFX_SetSDLSurfaceWindow(640,400))
-        E_Exit("Could not initialize video: %s",SDL_GetError());
+    if (!initgl) {
+        GFX_SetResizeable(true);
+        if (!GFX_SetSDLSurfaceWindow(640,400))
+            E_Exit("Could not initialize video: %s",SDL_GetError());
+    }
     sdl.surface = SDL_GetWindowSurface(sdl.window);
 //    SDL_Rect splash_rect=GFX_GetSDLSurfaceSubwindowDims(640,400);
     sdl.desktop.pixelFormat = SDL_GetWindowPixelFormat(sdl.window);
@@ -3982,8 +3986,10 @@ static void GUI_StartUp() {
     if (SDL_BITSPERPIXEL(sdl.desktop.pixelFormat) == 24)
         LOG_MSG("SDL: You are running in 24 bpp mode, this will slow down things!");
 #else
-    sdl.surface=SDL_SetVideoMode(640,400,0,SDL_RESIZABLE);
-    if (sdl.surface == NULL) E_Exit("Could not initialize video: %s",SDL_GetError());
+    if (!initgl) {
+        sdl.surface=SDL_SetVideoMode(640,400,0,SDL_RESIZABLE);
+        if (sdl.surface == NULL) E_Exit("Could not initialize video: %s",SDL_GetError());
+    }
     sdl.deferred_resize = false;
     sdl.must_redraw_all = true;
     sdl.desktop.bpp=sdl.surface->format->BitsPerPixel;
