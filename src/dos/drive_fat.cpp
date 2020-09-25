@@ -30,6 +30,8 @@
 #include "bios_disk.h"
 #include "qcow2_disk.h"
 #include "bitop.h"
+#include "callback.h"
+#include "regs.h"
 
 #include <algorithm>
 
@@ -203,7 +205,24 @@ private:
 };
 
 void time_t_to_DOS_DateTime(Bit16u &t,Bit16u &d,time_t unix_time) {
-    const struct tm *tm = localtime(&unix_time);
+    struct tm time;
+    time.tm_isdst = -1;
+	reg_ah=0x2a; // get system date
+	CALLBACK_RunRealInt(0x21);
+
+	time.tm_year = reg_cx-1900;
+	time.tm_mon = reg_dh-1;
+	time.tm_mday = reg_dl;
+
+	reg_ah=0x2c; // get system time
+	CALLBACK_RunRealInt(0x21);
+
+	time.tm_hour = reg_ch;
+	time.tm_min = reg_cl;
+	time.tm_sec = reg_dh;
+
+    time_t timet = mktime(&time);
+    struct tm *tm = localtime(timet == -1?&unix_time:&timet);
     if (tm == NULL) return;
 
     /* NTS: tm->tm_year = years since 1900,
