@@ -1338,7 +1338,8 @@ public:
         if (IS_PC98_ARCH) return;
 
 #if C_MODEM
-                const Prop_path *pbFilename = section->Get_path("phonebookfile");
+		const Prop_path *pbFilename = section->Get_path("phonebookfile");
+		MODEM_ClearPhonebook();
 		MODEM_ReadPhonebook(pbFilename->realpath);
 #endif
                 

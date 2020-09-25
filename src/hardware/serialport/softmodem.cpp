@@ -97,6 +97,15 @@ bool MODEM_ReadPhonebook(const std::string &filename) {
 	return true;
 }
 
+void MODEM_ClearPhonebook()
+{
+	for (auto entry : phones) {
+		delete entry;
+	}
+
+	phones.clear();
+}
+
 static const char *MODEM_GetAddressFromPhone(const char *input) {
 	for (const auto entry : phones) {
 		if (entry->IsMatchingPhone(input))
