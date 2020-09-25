@@ -3148,7 +3148,6 @@ public:
 		}
         mainMenu.get_item("dos_win_autorun").enable(false).refresh_item(mainMenu);
         mainMenu.get_item("dos_win_wait").enable(false).refresh_item(mainMenu);
-		mainMenu.get_item("quick_launch").enable(false).refresh_item(mainMenu);
 #endif
 		mainMenu.get_item("dos_lfn_auto").enable(false).refresh_item(mainMenu);
 		mainMenu.get_item("dos_lfn_enable").enable(false).refresh_item(mainMenu);
@@ -3162,6 +3161,7 @@ public:
 		mainMenu.get_item("dos_ems_board").enable(false).refresh_item(mainMenu);
 		mainMenu.get_item("dos_ems_emm386").enable(false).refresh_item(mainMenu);
 		mainMenu.get_item("dos_ems_false").enable(false).refresh_item(mainMenu);
+		mainMenu.get_item("quick_launch").enable(false).refresh_item(mainMenu);
 		mainMenu.get_item("shell_config_commands").enable(false).refresh_item(mainMenu);
 #if defined(WIN32)
 		mainMenu.get_item("clipboard_device").enable(false).refresh_item(mainMenu);

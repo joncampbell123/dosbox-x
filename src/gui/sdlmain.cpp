@@ -240,6 +240,7 @@ void MenuBrowseFolder(char drive, std::string drive_type);
 void MenuBrowseImageFile(char drive, bool boot);
 void MenuBootDrive(char drive);
 void MenuUnmountDrive(char drive);
+void MenuBrowseProgramFile(void);
 void SetGameState_Run(int value);
 size_t GetGameState_Run(void);
 
@@ -255,19 +256,6 @@ bool save_slot_callback(DOSBoxMenu * const menu,DOSBoxMenu::item * const menuite
 
 #if defined(WIN32)
 void MenuMountDrive(char drive, const char drive2[DOS_PATHLENGTH]);
-void MenuBrowseProgramFile(void);
-
-bool quick_launch_menu_callback(DOSBoxMenu * const menu,DOSBoxMenu::item * const menuitem) {
-    (void)menu;//UNUSED
-    (void)menuitem;//UNUSED
-
-    if (dos_kernel_disabled) return true;
-
-    MenuBrowseProgramFile();
-
-    return true;
-}
-
 bool drive_mountauto_menu_callback(DOSBoxMenu * const menu,DOSBoxMenu::item * const menuitem) {
     (void)menu;//UNUSED
     (void)menuitem;//UNUSED
@@ -571,6 +559,17 @@ const char *drive_opts[][2] = {
     { "bootimg",                "Boot from disk image" },
     { NULL, NULL }
 };
+
+bool quick_launch_menu_callback(DOSBoxMenu * const menu,DOSBoxMenu::item * const menuitem) {
+    (void)menu;//UNUSED
+    (void)menuitem;//UNUSED
+
+    if (dos_kernel_disabled) return true;
+
+    MenuBrowseProgramFile();
+
+    return true;
+}
 
 const char *scaler_menu_opts[][2] = {
     { "none",                   "None" },
@@ -9643,6 +9642,8 @@ int main(int argc, char* argv[]) SDL_MAIN_NOEXCEPT {
                     mainMenu.alloc_item(DOSBoxMenu::item_type_id,"dos_ems_false").set_text("Disable EMS emulation").
                         set_callback_function(dos_ems_menu_callback);
                 }
+                mainMenu.alloc_item(DOSBoxMenu::item_type_id,"quick_launch").set_text("Quick launch program...").
+                    set_callback_function(quick_launch_menu_callback);
             }
 
 #if defined(WIN32) && !defined(HX_DOS)
@@ -9656,8 +9657,6 @@ int main(int argc, char* argv[]) SDL_MAIN_NOEXCEPT {
                     mainMenu.alloc_item(DOSBoxMenu::item_type_id,"dos_win_wait").set_text("Wait for the application if possible").
                         set_callback_function(dos_win_wait_menu_callback);
                 }
-                mainMenu.alloc_item(DOSBoxMenu::item_type_id,"quick_launch").set_text("Quick launch program...").
-                    set_callback_function(quick_launch_menu_callback);
             }
 #endif
 

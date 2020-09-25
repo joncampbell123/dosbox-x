@@ -1653,12 +1653,12 @@ void SHELL_Init() {
 		winautorun=startcmd;
 		first_run=false;
     }
+    mainMenu.get_item("quick_launch").enable(true).refresh_item(mainMenu);
 	mainMenu.get_item("quick_reboot").check(use_quick_reboot).refresh_item(mainMenu);
 	mainMenu.get_item("shell_config_commands").check(enable_config_as_shell_commands).enable(true).refresh_item(mainMenu);
 #if defined(WIN32) && !defined(HX_DOS)
     mainMenu.get_item("dos_win_autorun").check(winautorun).enable(true).refresh_item(mainMenu);
     mainMenu.get_item("dos_win_wait").check(startwait).enable(true).refresh_item(mainMenu);
-    mainMenu.get_item("quick_launch").enable(true).refresh_item(mainMenu);
 #endif
 }
 

@@ -28,6 +28,7 @@
 #include <algorithm>
 #include <string>
 #include <vector>
+#include <sys/stat.h>
 #include "programs.h"
 #include "support.h"
 #include "drives.h"
@@ -56,6 +57,9 @@
 #include "../libs/tinyfiledialogs/tinyfiledialogs.c"
 #endif
 #if defined(WIN32)
+#if !defined(S_ISREG)
+# define S_ISREG(x) ((x & S_IFREG) == S_IFREG)
+#endif
 #include "../dos/cdrom.h"
 #include <ShlObj.h>
 #else
@@ -432,192 +436,6 @@ void MenuMountDrive(char drive, const char drive2[DOS_PATHLENGTH]) {
         newdrive->SetLabel(label.c_str(),false,true);
     }
 }
-
-void MenuBrowseProgramFile() {
-	if(control->SecureMode()) {
-		MessageBox(GetHWND(),MSG_Get("PROGRAM_CONFIG_SECURE_DISALLOW"),"Error",MB_OK);
-		return;
-	}
-	if (dos_kernel_disabled)
-		return;
-    std::string drive_warn;
-	DOS_MCB mcb(dos.psp()-1);
-	static char psp_name[9];
-	mcb.GetFileName(psp_name);
-	if(strlen(psp_name)&&strcmp(psp_name, "COMMAND")) {
-        drive_warn=strcmp(psp_name, "4DOS")?"Another program is already running.":"Another shell is currently running.";
-        MessageBox(GetHWND(),drive_warn.c_str(),"Error",MB_OK);
-        return;
-    }
-
-#if !defined(HX_DOS)
-	OPENFILENAME OpenFileName;
-	char szFile[MAX_PATH];
-	char CurrentDir[MAX_PATH];
-	const char * Temp_CurrentDir = CurrentDir;
-    char drv=' ';
-    for (int i=2; i<DOS_DRIVES-1; i++) {
-        if (!Drives[i]) {
-            drv='A'+i;
-            break;
-        }
-    }
-    if (drv==' ') {
-        for (int i=0; i<2; i++) {
-            if (!Drives[i]) {
-                drv='A'+i;
-                break;
-            }
-        }
-    }
-    if (drv==' ') { // Fallback to C: if no free drive found
-        drive_warn="Quick launch automatically mounts drive C in DOSBox-X.\nDrive C has already been mounted. Do you want to continue?";
-        if (MessageBox(GetHWND(),drive_warn.c_str(),"Warning",MB_YESNO)==IDNO) {return;}
-        drv='C';
-    }
-    mainMenu.get_item("quick_launch").enable(false).refresh_item(mainMenu);
-
-	szFile[0] = 0;
-
-	GetCurrentDirectory( MAX_PATH, CurrentDir );
-
-	OpenFileName.lStructSize = sizeof( OPENFILENAME );
-	OpenFileName.hwndOwner = NULL;
-	OpenFileName.lpstrFilter = "Executable files(*.com, *.exe, *.bat)\0*.com;*.exe;*.bat\0";
-	OpenFileName.lpstrCustomFilter = NULL;
-	OpenFileName.nMaxCustFilter = 0;
-	OpenFileName.nFilterIndex = 0;
-	OpenFileName.lpstrFile = szFile;
-	OpenFileName.nMaxFile = sizeof( szFile );
-	OpenFileName.lpstrFileTitle = NULL;
-	OpenFileName.nMaxFileTitle = 0;
-	OpenFileName.lpstrInitialDir = CurrentDir;
-	OpenFileName.lpstrTitle = "Select an executable";
-	OpenFileName.nFileOffset = 0;
-	OpenFileName.nFileExtension = 0;
-	OpenFileName.lpstrDefExt = NULL;
-	OpenFileName.lCustData = 0;
-	OpenFileName.lpfnHook = NULL;
-	OpenFileName.lpTemplateName = NULL;
-	OpenFileName.Flags = OFN_EXPLORER;
-
-search:
-	if(GetOpenFileName( &OpenFileName )) {
-		WIN32_FIND_DATA FindFileData;
-		HANDLE hFind;
-		char drive	[_MAX_DRIVE];
-		char dir	[_MAX_DIR];
-		char fname	[_MAX_FNAME];
-		char ext	[_MAX_EXT];
-
-		char * path = szFile;
-		_splitpath (path, drive, dir, fname, ext);
-		char ext_temp [_MAX_EXT]; ext_temp[0] = 0; sprintf(ext_temp,ext);
-
-		hFind = FindFirstFile(szFile, &FindFileData);
-		if (hFind == INVALID_HANDLE_VALUE) {
-			if(strcmp(ext,"")) goto search;
-			szFile[0] = 0;
-			ext[0] = 0; sprintf(ext,".com");
-			sprintf(szFile,"%s%s%s%s",drive,dir,fname,".com");
-			hFind = FindFirstFile(szFile, &FindFileData);
-			if (hFind == INVALID_HANDLE_VALUE) {
-				szFile[0] = 0;
-				ext[0] = 0; sprintf(ext,".exe");
-				sprintf(szFile,"%s%s%s%s",drive,dir,fname,".exe");
-				hFind = FindFirstFile(szFile, &FindFileData);
-				if (hFind == INVALID_HANDLE_VALUE) {
-					szFile[0] = 0;
-					ext[0] = 0; sprintf(ext,".bat");
-					sprintf(szFile,"%s%s%s%s",drive,dir,fname,".bat");
-					hFind = FindFirstFile(szFile, &FindFileData);
-					if (hFind == INVALID_HANDLE_VALUE) {
-						szFile[0] = 0;
-						ext[0]=0;
-						goto search;
-					}
-				}
-			}
-		}
-
-        clearline=true;
-        bool exist=Drives[drv-'A'];
-		char pathname[DOS_PATHLENGTH];
-		sprintf(pathname,"%s%s",drive,dir);
-		char mountstring[DOS_PATHLENGTH+CROSS_LEN+20];
-		char temp_str[3] = { 0,0,0 };
-		temp_str[0]=drv;
-		temp_str[1]=' ';
-		strcpy(mountstring,temp_str);
-		strcat(mountstring,"\"");
-		strcat(mountstring,pathname);
-		strcat(mountstring,"\"");
-		strcat(mountstring," -Q -U");
-		runMount(mountstring);
-		if (!Drives[drv-'A']) {
-			drive_warn="Drive "+std::string(1, drv)+": failed to mount.";
-			MessageBox(GetHWND(),drive_warn.c_str(),"Error",MB_OK);
-            if (!dos_kernel_disabled) mainMenu.get_item("quick_launch").enable(true).refresh_item(mainMenu);
-			return;
-        }
-        Bit8u olddrv=DOS_GetDefaultDrive();
-		DOS_SetDefaultDrive(drv-'A');
-
-		char name1[DOS_PATHLENGTH+2], name2[DOS_PATHLENGTH+4], name3[DOS_PATHLENGTH+4];
-        std::string msg="\r\nLaunching ";
-		sprintf(name1,"%s%s",fname,ext);
-        msg+=std::string(name1)+"...\r\n";
-        bool filename_not_8x3(const char *n);
-        if (filename_not_8x3(name1)) {
-            bool olduselfn=uselfn;
-            uselfn=true;
-            sprintf(name3,"\"%s%s\"",fname,ext);
-            if (DOS_GetSFNPath(name3,name2,false)) {
-                char *p=strrchr(name2, '\\');
-                strcpy(name1,p==NULL?name2:p+1);
-            }
-            uselfn=olduselfn;
-        }
-
-        Bit16u n = (Bit16u)msg.size();
-        DOS_WriteFile(STDERR,(Bit8u*)msg.c_str(),&n);
-
-		SetCurrentDirectory( Temp_CurrentDir );
-        DOS_Shell shell;
-        shell.Execute(name1," ");
-        if (!strcasecmp(ext,".bat")) {
-            bool echo=shell.echo;
-            shell.echo=false;
-            shell.RunInternal();
-            shell.echo=echo;
-        }
-        if (!exist) {
-            for (int i=0; i<1000; i++) CALLBACK_Idle();
-            drive_warn="Program has finished execution. Do you want to unmount Drive "+std::string(1, drv)+" now?";
-            if (MessageBox(GetHWND(),drive_warn.c_str(),"Warning",MB_YESNO|MB_DEFBUTTON1)==IDYES) {
-                if (Drives[olddrv]) DOS_SetDefaultDrive(olddrv);
-                char temp_str[3] = { 0,0,0 };
-                temp_str[0]=drv;
-                temp_str[1]=' ';
-                strcpy(mountstring,temp_str);
-                strcat(mountstring," -Q -U");
-                runMount(mountstring);
-            }
-        }
-        if (strcasecmp(ext,".bat")) {
-            n=1;
-            Bit8u c='\r';
-            DOS_WriteFile(STDOUT,&c,&n);
-            c='\n';
-            DOS_WriteFile(STDOUT,&c,&n);
-        }
-		shell.ShowPrompt();
-	}
-
-	SetCurrentDirectory( Temp_CurrentDir );
-    if (!dos_kernel_disabled) mainMenu.get_item("quick_launch").enable(true).refresh_item(mainMenu);
-#endif
-}
 #endif
 
 void MenuBrowseImageFile(char drive, bool boot) {
@@ -726,6 +544,158 @@ void MenuBootDrive(char drive) {
 	runBoot(str);
 	std::string drive_warn="Drive "+std::string(1, drive)+": failed to boot.";
     tinyfd_messageBox("Error",drive_warn.c_str(),"ok","error", 1);
+}
+
+void MenuBrowseProgramFile() {
+	if(control->SecureMode()) {
+        tinyfd_messageBox("Error",MSG_Get("PROGRAM_CONFIG_SECURE_DISALLOW"),"ok","error", 1);
+		return;
+	}
+	if (dos_kernel_disabled)
+		return;
+    std::string drive_warn;
+	DOS_MCB mcb(dos.psp()-1);
+	static char psp_name[9];
+	mcb.GetFileName(psp_name);
+	if(strlen(psp_name)&&strcmp(psp_name, "COMMAND")) {
+        drive_warn=strcmp(psp_name, "4DOS")?"Another program is already running.":"Another shell is currently running.";
+        tinyfd_messageBox("Error",drive_warn.c_str(),"ok","error", 1);
+        return;
+    }
+
+#if !defined(HX_DOS)
+    char drv=' ';
+    for (int i=2; i<DOS_DRIVES-1; i++) {
+        if (!Drives[i]) {
+            drv='A'+i;
+            break;
+        }
+    }
+    if (drv==' ') {
+        for (int i=0; i<2; i++) {
+            if (!Drives[i]) {
+                drv='A'+i;
+                break;
+            }
+        }
+    }
+    if (drv==' ') { // Fallback to C: if no free drive found
+        drive_warn="Quick launch automatically mounts drive C in DOSBox-X.\nDrive C has already been mounted. Do you want to continue?";
+        if (!tinyfd_messageBox("Warning",drive_warn.c_str(),"yesno", "question", 1)) {return;}
+        drv='C';
+    }
+    mainMenu.get_item("quick_launch").enable(false).refresh_item(mainMenu);
+
+    char CurrentDir[512];
+    char * Temp_CurrentDir = CurrentDir;
+    getcwd(Temp_CurrentDir, 512);
+    const char *lFilterPatterns[] = {"*.com","*.exe","*.bat"};
+    const char *lFilterDescription = "Executable files (*.com, *.exe, *.bat)";
+    char const * lTheOpenFileName = tinyfd_openFileDialog("Select an executable file to launch","",3,lFilterPatterns,lFilterDescription,0);
+
+    if (lTheOpenFileName) {
+        const char *ext = strrchr(lTheOpenFileName,'.');
+        struct stat st;
+        std::string full = std::string(lTheOpenFileName);
+        if (stat(lTheOpenFileName, &st) || !S_ISREG(st.st_mode)) {
+            if(ext!=NULL) {
+                tinyfd_messageBox("Error","Executable file not found.","ok","error", 1);
+                return;
+            }
+            full=std::string(lTheOpenFileName)+".com";
+            if (stat(full.c_str(), &st) || !S_ISREG(st.st_mode)) {
+                full=std::string(lTheOpenFileName)+".exe";
+                if (stat(full.c_str(), &st) || !S_ISREG(st.st_mode)) {
+                    full=std::string(lTheOpenFileName)+".bat";
+                    if (stat(full.c_str(), &st) || !S_ISREG(st.st_mode)) {
+                        tinyfd_messageBox("Error","Executable file not found.","ok","error", 1);
+                        return;
+                    }
+                }
+            }
+        }
+        if(ext==NULL) {
+            tinyfd_messageBox("Error","Executable file not found.","ok","error", 1);
+            return;
+        }
+        std::size_t found = full.find_last_of("/\\");
+        std::string pathname = full.substr(0,found), filename = full.substr(found+1);
+        clearline=true;
+        bool exist=Drives[drv-'A'];
+		char mountstring[DOS_PATHLENGTH+CROSS_LEN+20];
+		char temp_str[3] = { 0,0,0 };
+		temp_str[0]=drv;
+		temp_str[1]=' ';
+		strcpy(mountstring,temp_str);
+		strcat(mountstring,"\"");
+		strcat(mountstring,pathname.c_str());
+		strcat(mountstring," \"");
+		strcat(mountstring," -Q -U");
+        LOG_MSG("mountstring %s\n", mountstring);
+		runMount(mountstring);
+		if (!Drives[drv-'A']) {
+			drive_warn="Drive "+std::string(1, drv)+": failed to mount.";
+            tinyfd_messageBox("Error",drive_warn.c_str(),"ok","error", 1);
+            if (!dos_kernel_disabled) mainMenu.get_item("quick_launch").enable(true).refresh_item(mainMenu);
+			return;
+        }
+        Bit8u olddrv=DOS_GetDefaultDrive();
+		DOS_SetDefaultDrive(drv-'A');
+
+		char name1[DOS_PATHLENGTH+2], name2[DOS_PATHLENGTH+4], name3[DOS_PATHLENGTH+4];
+        std::string msg="\r\nLaunching ";
+		strcpy(name1,filename.c_str());
+        msg+=std::string(name1)+"...\r\n";
+        bool filename_not_8x3(const char *n);
+        if (filename_not_8x3(name1)) {
+            bool olduselfn=uselfn;
+            uselfn=true;
+            sprintf(name3,"\"%s\"",filename.c_str());
+            if (DOS_GetSFNPath(name3,name2,false)) {
+                char *p=strrchr(name2, '\\');
+                strcpy(name1,p==NULL?name2:p+1);
+            }
+            uselfn=olduselfn;
+        }
+
+        Bit16u n = (Bit16u)msg.size();
+        DOS_WriteFile(STDERR,(Bit8u*)msg.c_str(),&n);
+
+		chdir( Temp_CurrentDir );
+        DOS_Shell shell;
+        shell.Execute(name1," ");
+        if (!strcasecmp(ext,".bat")) {
+            bool echo=shell.echo;
+            shell.echo=false;
+            shell.RunInternal();
+            shell.echo=echo;
+        }
+        if (!exist) {
+            for (int i=0; i<1000; i++) CALLBACK_Idle();
+            drive_warn="Program has finished execution. Do you want to unmount Drive "+std::string(1, drv)+" now?";
+            if (tinyfd_messageBox("Warning",drive_warn.c_str(),"yesno", "question", 1)) {
+                if (Drives[olddrv]) DOS_SetDefaultDrive(olddrv);
+                char temp_str[3] = { 0,0,0 };
+                temp_str[0]=drv;
+                temp_str[1]=' ';
+                strcpy(mountstring,temp_str);
+                strcat(mountstring," -Q -U");
+                runMount(mountstring);
+            }
+        }
+        if (strcasecmp(ext,".bat")) {
+            n=1;
+            Bit8u c='\r';
+            DOS_WriteFile(STDOUT,&c,&n);
+            c='\n';
+            DOS_WriteFile(STDOUT,&c,&n);
+        }
+		shell.ShowPrompt();
+	}
+
+	chdir( Temp_CurrentDir );
+    if (!dos_kernel_disabled) mainMenu.get_item("quick_launch").enable(true).refresh_item(mainMenu);
+#endif
 }
 
 class MOUNT : public Program {
@@ -965,6 +935,7 @@ public:
 				if (!quiet) WriteOut(msg, toupper(i_drive));
 				if (!cmd->FindCommand(2,temp_line)||!temp_line.size()) return;
 			}
+            temp_line.erase(std::find_if(temp_line.rbegin(), temp_line.rend(), [](unsigned char ch) {return !std::isspace(ch);}).base(), temp_line.end());
             if(path_relative_to_last_config && control->configfiles.size() && !Cross::IsPathAbsolute(temp_line)) {
 		        std::string lastconfigdir(control->configfiles[control->configfiles.size()-1]);
                 std::string::size_type pos = lastconfigdir.rfind(CROSS_FILESPLIT);
