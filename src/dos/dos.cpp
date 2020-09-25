@@ -3217,10 +3217,11 @@ extern Bit8u ZDRIVE_NUM;
 void DOS_EnableDriveMenu(char drv) {
     if (drv >= 'A' && drv <= 'Z') {
 		std::string name;
-#if defined (WIN32)
 		bool empty=!dos_kernel_disabled && Drives[drv-'A'] == NULL;
+#if defined (WIN32)
 		name = std::string("drive_") + drv + "_mountauto";
 		mainMenu.get_item(name).enable(empty).refresh_item(mainMenu);
+#endif
 		name = std::string("drive_") + drv + "_mounthd";
 		mainMenu.get_item(name).enable(empty).refresh_item(mainMenu);
 		name = std::string("drive_") + drv + "_mountcd";
@@ -3229,7 +3230,6 @@ void DOS_EnableDriveMenu(char drv) {
 		mainMenu.get_item(name).enable(empty).refresh_item(mainMenu);
 		name = std::string("drive_") + drv + "_mountimg";
 		mainMenu.get_item(name).enable(empty).refresh_item(mainMenu);
-#endif
 		name = std::string("drive_") + drv + "_unmount";
 		mainMenu.get_item(name).enable(!dos_kernel_disabled && Drives[drv-'A'] != NULL && (drv-'A') != ZDRIVE_NUM).refresh_item(mainMenu);
 		name = std::string("drive_") + drv + "_swap";
@@ -3241,10 +3241,8 @@ void DOS_EnableDriveMenu(char drv) {
 		if (drv == 'A' || drv == 'C' || drv == 'D') {
 			name = std::string("drive_") + drv + "_boot";
 			mainMenu.get_item(name).enable(!dos_kernel_disabled).refresh_item(mainMenu);
-#if defined (WIN32)
 			name = std::string("drive_") + drv + "_bootimg";
 			mainMenu.get_item(name).enable(!dos_kernel_disabled).refresh_item(mainMenu);
-#endif
 		}
     }
 }

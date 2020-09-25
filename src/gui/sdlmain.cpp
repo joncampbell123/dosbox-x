@@ -236,6 +236,8 @@ extern bool dos_kernel_disabled;
 extern bool bootguest, bootfast, bootvm;
 extern int bootdrive;
 
+void MenuBrowseFolder(char drive, std::string drive_type);
+void MenuBrowseImageFile(char drive, bool boot);
 void MenuBootDrive(char drive);
 void MenuUnmountDrive(char drive);
 void SetGameState_Run(int value);
@@ -253,8 +255,6 @@ bool save_slot_callback(DOSBoxMenu * const menu,DOSBoxMenu::item * const menuite
 
 #if defined(WIN32)
 void MenuMountDrive(char drive, const char drive2[DOS_PATHLENGTH]);
-void MenuBrowseFolder(char drive, std::string drive_type);
-void MenuBrowseImageFile(char drive, bool boot);
 void MenuBrowseProgramFile(void);
 
 bool quick_launch_menu_callback(DOSBoxMenu * const menu,DOSBoxMenu::item * const menuitem) {
@@ -291,6 +291,8 @@ bool drive_mountauto_menu_callback(DOSBoxMenu * const menu,DOSBoxMenu::item * co
 
     return true;
 }
+
+#endif
 
 bool drive_mounthd_menu_callback(DOSBoxMenu * const menu,DOSBoxMenu::item * const menuitem) {
     (void)menu;//UNUSED
@@ -400,7 +402,6 @@ bool drive_bootimg_menu_callback(DOSBoxMenu * const menu,DOSBoxMenu::item * cons
 
     return true;
 }
-#endif
 
 bool drive_unmount_menu_callback(DOSBoxMenu * const menu,DOSBoxMenu::item * const menuitem) {
     (void)menu;//UNUSED
@@ -529,19 +530,17 @@ bool drive_boot_menu_callback(DOSBoxMenu * const menu,DOSBoxMenu::item * const m
 const DOSBoxMenu::callback_t drive_callbacks[] = {
 #if defined(WIN32)
     drive_mountauto_menu_callback,
+#endif
     drive_mounthd_menu_callback,
     drive_mountcd_menu_callback,
     drive_mountfd_menu_callback,
     drive_mountimg_menu_callback,
-#endif
     drive_unmount_menu_callback,
     drive_swap_menu_callback,
     drive_rescan_menu_callback,
     drive_info_menu_callback,
     drive_boot_menu_callback,
-#if defined(WIN32)
     drive_bootimg_menu_callback,
-#endif
     NULL
 };
 
@@ -559,19 +558,17 @@ bool list_drivenum_menu_callback(DOSBoxMenu * const menu,DOSBoxMenu::item * cons
 const char *drive_opts[][2] = {
 #if defined(WIN32)
 	{ "mountauto",              "Mount Automatically" },
+#endif
 	{ "mounthd",                "Mount as Hard Disk" },
 	{ "mountcd",                "Mount as CD-ROM" },
 	{ "mountfd",                "Mount as Floppy" },
 	{ "mountimg",               "Mount disk image" },
-#endif
     { "unmount",                "Unmount" },
     { "swap",                   "Swap disk" },
     { "rescan",                 "Rescan drive" },
     { "info",                   "Drive information" },
     { "boot",                   "Boot from drive" },
-#if defined(WIN32)
     { "bootimg",                "Boot from disk image" },
-#endif
     { NULL, NULL }
 };
 
@@ -3905,10 +3902,18 @@ static void GUI_StartUp() {
 
     bool initgl = false;
 #if C_OPENGL
-	if (sdl.desktop.want_type == SCREEN_OPENGL) { /* OPENGL is requested */
+    /*std::string f = (std::string)(static_cast<Section_prop *>(control->GetSection("render"))->Get_path("glshader")->GetValue());
+    if (f.empty() || f=="none")
+        sdl_opengl.use_shader = false;
+	else*/ if (sdl.desktop.want_type == SCREEN_OPENGL) { /* OPENGL is requested */
 #if defined(C_SDL2)
 		GFX_SetResizeable(true);
-		if (!(sdl.window = GFX_SetSDLWindowMode(640,400, SCREEN_OPENGL)) || !(sdl_opengl.context = SDL_GL_CreateContext(sdl.window))) {
+        sdl.window = GFX_SetSDLWindowMode(640,400, SCREEN_OPENGL);
+        if (sdl.window) {
+            sdl_opengl.context = SDL_GL_CreateContext(sdl.window);
+            sdl.surface = SDL_GetWindowSurface(sdl.window);
+        }
+		if (!sdl.window || !sdl_opengl.context || sdl.surface == NULL) {
 #else
 		sdl.surface = SDL_SetVideoMode(640,400,0,SDL_OPENGL);
 		if (sdl.surface == NULL) {
@@ -3977,9 +3982,9 @@ static void GUI_StartUp() {
         GFX_SetResizeable(true);
         if (!GFX_SetSDLSurfaceWindow(640,400))
             E_Exit("Could not initialize video: %s",SDL_GetError());
+        sdl.surface = SDL_GetWindowSurface(sdl.window);
     }
-    sdl.surface = SDL_GetWindowSurface(sdl.window);
-//    SDL_Rect splash_rect=GFX_GetSDLSurfaceSubwindowDims(640,400);
+    //SDL_Rect splash_rect=GFX_GetSDLSurfaceSubwindowDims(640,400);
     sdl.desktop.pixelFormat = SDL_GetWindowPixelFormat(sdl.window);
     LOG_MSG("SDL:Current window pixel format: %s", SDL_GetPixelFormatName(sdl.desktop.pixelFormat));
     sdl.desktop.bpp=8*SDL_BYTESPERPIXEL(sdl.desktop.pixelFormat);

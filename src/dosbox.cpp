@@ -5175,6 +5175,8 @@ delete_all:
 	remove(save2.c_str());
 	save2=temp+"Memory_Size";
 	remove(save2.c_str());
+	save2=temp+"Machine_Type";
+	remove(save2.c_str());
 	save2=temp+"Time_Stamp";
 	remove(save2.c_str());
 	if (save_err)

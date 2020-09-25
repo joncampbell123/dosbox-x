@@ -18,7 +18,8 @@
     default. Set "mididevice=fluidsynth" and a sound
     font (e.g. GeneralUser_GS.sf2) to use it. (Wengier)
   - Updated the MUNT MT32 emulation library to its
-    latest version 2.4.0. (Wengier)
+    latest version 2.4.0. A few new MT32 options are
+    added to [MIDI] section of the config. (Wengier)
   - The DOSMID and MPXPLAY programs have been built
     into DOSBox-X, both can be found on the Z drive
     and feature full-screen user interfaces. DOSMID
@@ -26,6 +27,11 @@
     whereas MPXPLAY can play a variety of audio files
     including AAC/AC3/APE/FLAC/MP2/MP3/MPC/OGG/WAV
     and more with playlist support. (Wengier)
+  - The mounting options "Mount as Hard Disk", "Mount
+    as CD-ROM", "Mount as Floppy", "Mount disk image"
+    and "Boot from disk image" (previously only for
+    Windows) in the "Drive" menu are now available
+    for non-Windows platforms as well. (Wengier)
   - Added "Shared Windows clipboard functions" menu
     group under "Main", which allows you to enable
     or disable the different ways for DOSBox-X to
