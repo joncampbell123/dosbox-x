@@ -33,6 +33,7 @@
 #include "support.h"
 #include "cross.h"
 #include "inout.h"
+#include "callback.h"
 #include "regs.h"
 #include "timer.h"
 #ifndef WIN32
@@ -1006,7 +1007,6 @@ bool localDrive::MakeDir(const char * dir) {
 	int temp=mkdir(host_name,0775);
 #endif
 	if (temp==0) dirCache.CacheOut(newdir,true);
-
 	return (temp==0);// || ((temp!=0) && (errno==EEXIST));
 }
 
@@ -1427,7 +1427,10 @@ bool localFile::Read(Bit8u * data,Bit16u * size) {
 		DOS_SetError(DOSERR_ACCESS_DENIED);
 		return false;
 	}
-	if (last_action==WRITE) fseek(fhandle,ftell(fhandle),SEEK_SET);
+	if (last_action==WRITE) {
+        fseek(fhandle,ftell(fhandle),SEEK_SET);
+        if (!newtime) UpdateLocalDateTime();
+    }
 	last_action=READ;
 	*size=(Bit16u)fread(data,1,*size,fhandle);
 	/* Fake harddrive motion. Inspector Gadget with soundblaster compatible */
@@ -1530,6 +1533,7 @@ bool localFile::Seek(Bit32u * pos,Bit32u type) {
 }
 
 bool localFile::Close() {
+    if (!newtime && fhandle && last_action == WRITE) UpdateLocalDateTime();
 	if (newtime && fhandle) {
         // force STDIO to flush buffers on this file handle, or else fclose() will write buffered data
         // and cause mtime to reset back to current time.
@@ -1630,11 +1634,41 @@ bool localFile::UpdateDateTimeFromHost(void) {
 	return true;
 }
 
+bool localFile::UpdateLocalDateTime(void) {
+    time_t timet = ::time(NULL);
+    struct tm *tm = localtime(&timet);
+    tm->tm_isdst = -1;
+	reg_ah=0x2a; // get system date
+	CALLBACK_RunRealInt(0x21);
+
+	tm->tm_year = reg_cx-1900;
+	tm->tm_mon = reg_dh-1;
+	tm->tm_mday = reg_dl;
+
+	reg_ah=0x2c; // get system time
+	CALLBACK_RunRealInt(0x21);
+
+	tm->tm_hour = reg_ch;
+	tm->tm_min = reg_cl;
+	tm->tm_sec = reg_dh;
+
+    timet = mktime(tm);
+    if (timet == -1)
+        return false;
+    tm = localtime(&timet);
+    time = ((unsigned int)tm->tm_hour << 11u) + ((unsigned int)tm->tm_min << 5u) + ((unsigned int)tm->tm_sec >> 1u);
+    date = (((unsigned int)tm->tm_year - 80u) << 9u) + (((unsigned int)tm->tm_mon + 1u) << 5u) + (unsigned int)tm->tm_mday;
+    newtime = true;
+    return true;
+}
+
+
 void localFile::Flush(void) {
 	if (last_action==WRITE) {
 		fseek(fhandle,ftell(fhandle),SEEK_SET);
         fflush(fhandle);
 		last_action=NONE;
+        if (!newtime) UpdateLocalDateTime();
 	}
 }
 

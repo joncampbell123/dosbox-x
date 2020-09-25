@@ -153,7 +153,8 @@ public:
 	bool LockFile(Bit8u mode, Bit32u pos, Bit16u size);
 #endif
 	Bit16u GetInformation(void);
-	bool UpdateDateTimeFromHost(void);   
+	bool UpdateDateTimeFromHost(void);
+	bool UpdateLocalDateTime(void);
 	void FlagReadOnlyMedium(void);
 	void Flush(void);
 	Bit32u GetSeekPos(void);
