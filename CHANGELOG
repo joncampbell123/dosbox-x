@@ -30,7 +30,8 @@
   - The mounting options "Mount as Hard Disk", "Mount
     as CD-ROM", "Mount as Floppy", "Mount disk image"
     and "Boot from disk image" (previously only for
-    Windows) in the "Drive" menu are now available
+    Windows) in the "Drive" menu and the "Quick launch
+    program..." in the "DOS" menu are now available
     for non-Windows platforms as well. (Wengier)
   - Added "Shared Windows clipboard functions" menu
     group under "Main", which allows you to enable

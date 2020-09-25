@@ -456,9 +456,9 @@ void MenuBrowseImageFile(char drive, bool boot) {
     char CurrentDir[512];
     char * Temp_CurrentDir = CurrentDir;
     getcwd(Temp_CurrentDir, 512);
-    const char *lFilterPatterns[] = {"*.ima","*.img","*.vhd","*.hdi","*.iso","*.cue","*.bin","*.mdf","*.zip","*.7z"};
+    const char *lFilterPatterns[] = {"*.ima","*.img","*.vhd","*.hdi","*.iso","*.cue","*.bin","*.mdf","*.zip","*.7z","*.IMA","*.IMG","*.VHD","*.HDI","*.ISO","*.CUE","*.BIN","*.MDF","*.ZIP","*.7Z"};
     const char *lFilterDescription = "Image/Zip files (*.ima, *.img, *.vhd, *.hdi, *.iso, *.cue, *.bin, *.mdf, *.zip, *.7z)";
-    char const * lTheOpenFileName = tinyfd_openFileDialog(("Select an image file for Drive "+str+":").c_str(),"",10,lFilterPatterns,lFilterDescription,0);
+    char const * lTheOpenFileName = tinyfd_openFileDialog(("Select an image file for Drive "+str+":").c_str(),"",20,lFilterPatterns,lFilterDescription,0);
 
 	if (lTheOpenFileName) {
         char ext[5] = "";
@@ -589,9 +589,9 @@ void MenuBrowseProgramFile() {
     char CurrentDir[512];
     char * Temp_CurrentDir = CurrentDir;
     getcwd(Temp_CurrentDir, 512);
-    const char *lFilterPatterns[] = {"*.com","*.exe","*.bat"};
+    const char *lFilterPatterns[] = {"*.com","*.exe","*.bat","*.COM","*.EXE","*.BAT"};
     const char *lFilterDescription = "Executable files (*.com, *.exe, *.bat)";
-    char const * lTheOpenFileName = tinyfd_openFileDialog("Select an executable file to launch","",3,lFilterPatterns,lFilterDescription,0);
+    char const * lTheOpenFileName = tinyfd_openFileDialog("Select an executable file to launch","",6,lFilterPatterns,lFilterDescription,0);
 
     if (lTheOpenFileName) {
         const char *ext = strrchr(lTheOpenFileName,'.');
@@ -629,9 +629,11 @@ void MenuBrowseProgramFile() {
 		strcpy(mountstring,temp_str);
 		strcat(mountstring,"\"");
 		strcat(mountstring,pathname.c_str());
+#if defined(WIN32)
+		if (pathname.size()==2&&pathname.back()==':') strcat(mountstring,"\\");
+#endif
 		strcat(mountstring," \"");
 		strcat(mountstring," -Q -U");
-        LOG_MSG("mountstring %s\n", mountstring);
 		runMount(mountstring);
 		if (!Drives[drv-'A']) {
 			drive_warn="Drive "+std::string(1, drv)+": failed to mount.";

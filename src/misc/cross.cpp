@@ -89,9 +89,12 @@ void Cross::GetPlatformConfigDir(std::string& in) {
 #elif defined(RISCOS)
 	in = "/<Choices$Write>/DosBox-X";
 #elif !defined(HX_DOS)
-	in = "~/.config/dosbox-x";
+	const char *xdg_conf_home = getenv("XDG_CONFIG_HOME");
+	const std::string conf_home = xdg_conf_home ? xdg_conf_home: "~/.config";
+	in = conf_home + "/dosbox-x";
 	ResolveHomedir(in);
 #endif
+	//LOG_MSG("Config dir: %s", in.c_str());
 	in += CROSS_FILESPLIT;
 }
 

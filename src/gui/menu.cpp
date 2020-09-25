@@ -437,7 +437,7 @@ static const char *def_menu_dos[] =
     "DOSWinMenu",
 #endif
     "shell_config_commands",
-#if defined(WIN32) && !defined(HX_DOS)
+#if !defined(HX_DOS)
     "quick_launch",
 #endif
     "--",
