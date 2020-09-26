@@ -125,21 +125,37 @@ static void RENDER_EmptyLineHandler(const void * src) {
 }
 
 /*HACK*/
-#if defined(__AVX2__)
+#ifdef __SSE__
+#ifdef __AVX2__
 /* We’re building with -mavx2 */
 # define sse2_available (1)
 # define avx2_available (1)
-#elif defined(__SSE__) && (defined(_M_AMD64) || defined(__amd64__) || defined(__e2k__))
+#elif defined(_M_AMD64) || defined(__amd64__) || defined(__e2k__)
 /* SSE2 is always available on x86_64 and Elbrus */
 # define sse2_available (1)
 extern bool             avx2_available;
 #else
-# ifdef __SSE__
 extern bool             sse2_available;
 extern bool             avx2_available;
-# endif
 #endif
 /*END HACK*/
+
+#ifdef __GNUC__
+__attribute__((__target__("avx2")))
+#endif
+static inline bool cacheHit_AVX2(const Bitu *src, Bitu *cache, Bits count) {
+    static const Bitu simd_inc = 32 / sizeof(*src);
+    while (count >= (Bits)simd_inc) {
+        __m256i v = _mm256_loadu_si256((const __m256i*)src);
+        __m256i c = _mm256_loadu_si256((const __m256i*)cache);
+        __m256i cmp = _mm256_cmpeq_epi32(v, c);
+        if (GCC_UNLIKELY((unsigned int)_mm256_movemask_epi8(cmp) != 0xFFFFFFFF))
+            return false;
+        count-=(Bits)simd_inc; src+=simd_inc; cache+=simd_inc;
+    }
+    return true;
+}
+#endif // __SSE__
 
 /* NTS: In normal conditions, the renderer at the start of the frame
  *      does not call the scaler but instead compares line by line
@@ -166,16 +182,9 @@ static inline bool RENDER_DrawLine_scanline_cacheHit(const void *s) {
         Bits count = (Bits)render.src.start;
 #if defined(__SSE__)
 #define MY_SIZEOF_INT_P sizeof(*src)
-        if (avx2_available) {
-            static const Bitu simd_inc = 32/MY_SIZEOF_INT_P;
-            while (count >= (Bits)simd_inc) {
-                __m256i v = _mm256_loadu_si256((const __m256i*)src);
-                __m256i c = _mm256_loadu_si256((const __m256i*)cache);
-                __m256i cmp = _mm256_cmpeq_epi32(v, c);
-                if (GCC_UNLIKELY((unsigned int)_mm256_movemask_epi8(cmp) != 0xFFFFFFFF))
-                    goto cacheMiss;
-                count-=(Bits)simd_inc; src+=simd_inc; cache+=simd_inc;
-            }
+        if (GCC_LIKELY(avx2_available)) {
+            if (!cacheHit_AVX2(src, cache, count))
+                goto cacheMiss;
         } else if (sse2_available) {
             static const Bitu simd_inc = 16/MY_SIZEOF_INT_P;
             while (count >= (Bits)simd_inc) {
@@ -189,7 +198,7 @@ static inline bool RENDER_DrawLine_scanline_cacheHit(const void *s) {
         }
 #undef MY_SIZEOF_INT_P
         else
-#endif
+#endif // __SSE__
         {
             while (count) {
                 if (GCC_UNLIKELY(src[0] != cache[0]))
