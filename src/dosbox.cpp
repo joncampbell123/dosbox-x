@@ -102,12 +102,7 @@
 /*===================================TODO: Move to it's own file==============================*/
 #if defined(__SSE__) && !(defined(_M_AMD64) || defined(__e2k__))
 bool sse2_available = false;
-
-# ifdef __GNUC__
-#  define cpuid(func,ax,bx,cx,dx)\
-    __asm__ __volatile__ ("cpuid":\
-    "=a" (ax), "=b" (bx), "=c" (cx), "=d" (dx) : "a" (func));
-# endif /* __GNUC__ */
+bool avx2_available = false;
 
 # if defined(_MSC_VER)
 #  define cpuid(func,a,b,c,d)\
@@ -121,10 +116,14 @@ bool sse2_available = false;
 
 void CheckSSESupport()
 {
-#if (defined (__GNUC__) || (_MSC_VER)) && !defined(EMSCRIPTEN)
+#if defined(__GNUC__) && !defined(EMSCRIPTEN)
+    sse2_available = __builtin_cpu_supports("sse2");
+    avx2_available = __builtin_cpu_supports("avx2");
+#elif (_MSC_VER) && !defined(EMSCRIPTEN)
     Bitu a, b, c, d;
     cpuid(1, a, b, c, d);
     sse2_available = ((d >> 26) & 1)?true:false;
+    avx2_available = ((b >> 5) & 1)?true:false;
 #endif
 }
 #endif
@@ -140,6 +139,7 @@ extern bool         clearline;
 extern Bitu         frames;
 extern Bitu         cycle_count;
 extern bool         sse2_available;
+extern bool         avx2_available;
 extern bool         dynamic_dos_kernel_alloc;
 extern Bitu         DOS_PRIVATE_SEGMENT_Size;
 extern bool         VGA_BIOS_dont_duplicate_CGA_first_half;

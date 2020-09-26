@@ -130,8 +130,8 @@ extern bool				DEPRECATED mainline_compatible_mapping;
 extern bool				DEPRECATED mainline_compatible_bios_mapping;
 
 #ifdef __SSE__
-extern bool				sse1_available;
 extern bool				sse2_available;
+extern bool				avx2_available;
 #endif
 
 void					MSG_Add(const char*,const char*); //add messages to the internal languagefile
