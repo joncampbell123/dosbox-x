@@ -129,7 +129,6 @@ static void RENDER_EmptyLineHandler(const void * src) {
 # define sse2_available (1) /* SSE2 is always available on x86_64 and Elbrus */
 #else
 # ifdef __SSE__
-extern bool             sse1_available;
 extern bool             sse2_available;
 # endif
 #endif

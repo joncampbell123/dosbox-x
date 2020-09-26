@@ -130,7 +130,6 @@ extern bool				DEPRECATED mainline_compatible_mapping;
 extern bool				DEPRECATED mainline_compatible_bios_mapping;
 
 #ifdef __SSE__
-extern bool				sse1_available;
 extern bool				sse2_available;
 #endif
 
