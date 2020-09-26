@@ -1339,7 +1339,6 @@ public:
 
 #if C_MODEM
 		const Prop_path *pbFilename = section->Get_path("phonebookfile");
-		MODEM_ClearPhonebook();
 		MODEM_ReadPhonebook(pbFilename->realpath);
 #endif
                 
@@ -1400,6 +1399,9 @@ public:
 	}
 
 	~SERIALPORTS () {
+#if C_MODEM
+		MODEM_ClearPhonebook();
+#endif
 		for (Bitu i = 0; i < 4; i++)
 			if (serialports[i]) {
 				delete serialports[i];

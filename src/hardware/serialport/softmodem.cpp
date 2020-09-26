@@ -54,7 +54,7 @@ private:
 	std::string address;
 };
 
-static std::vector<PhonebookEntry *> phones;
+static std::vector<PhonebookEntry> phones;
 static const char phoneValidChars[] = "01234567890*=,;#+>";
 
 static bool MODEM_IsPhoneValid(const std::string &input) {
@@ -90,8 +90,7 @@ bool MODEM_ReadPhonebook(const std::string &filename) {
 			continue;
 
 		LOG_MSG("SERIAL: Mapped phone %s to address %s", phone.c_str(), address.c_str());
-		PhonebookEntry *pbEntry = new PhonebookEntry(phone, address);
-		phones.push_back(pbEntry);
+		phones.emplace_back(phone, address);
 	}
 
 	return true;
@@ -99,17 +98,13 @@ bool MODEM_ReadPhonebook(const std::string &filename) {
 
 void MODEM_ClearPhonebook()
 {
-	for (auto entry : phones) {
-		delete entry;
-	}
-
 	phones.clear();
 }
 
 static const char *MODEM_GetAddressFromPhone(const char *input) {
-	for (const auto entry : phones) {
-		if (entry->IsMatchingPhone(input))
-			return entry->GetAddress().c_str();
+	for (const auto &entry : phones) {
+		if (entry.IsMatchingPhone(input))
+			return entry.GetAddress().c_str();
 	}
 
 	return nullptr;
