@@ -125,7 +125,7 @@ static void RENDER_EmptyLineHandler(const void * src) {
 }
 
 /*HACK*/
-#if defined(__SSE__) && (defined(_M_AMD64) || defined(__e2k__))
+#if defined(__SSE__) && (defined(_M_AMD64) || defined(__amd64__) || defined(__e2k__))
 # define sse2_available (1) /* SSE2 is always available on x86_64 and Elbrus */
 #else
 # ifdef __SSE__
