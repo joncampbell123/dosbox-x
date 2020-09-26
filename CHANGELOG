@@ -64,6 +64,9 @@
     section for users who would like to make relative
     percentage adjustments (between -25% and 25%) in
     case it is necessary. (Wengier)
+  - Added DELTREE command to delete a directory and all
+    the subdirectories and files in it as in a real DOS
+    system. Please use it with caution. (Wengier)
   - The command for showing the Configuration Tool has
     been renamed from "SHOWGUI" to "SHOWTOOL". A new
     command-line option -gui is added to CONFIG command

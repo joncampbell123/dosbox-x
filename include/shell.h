@@ -172,6 +172,10 @@ public:
      */
 	void CMD_DELETE(char * args);
 
+    /*! \brief      Delete directory tree (DELTREE)
+     */
+	void CMD_DELTREE(char * args);
+
     /*! \brief      Echo command (ECHO)
      */
 	void CMD_ECHO(char * args);

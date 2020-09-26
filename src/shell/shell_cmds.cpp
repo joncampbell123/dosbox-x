@@ -17,7 +17,7 @@
  *
  *  Heavy improvements by the DOSBox-X Team, 2011-2020
  *  DXCAPTURE, DEBUGBOX, INT2FDBG commands by joncampbell123
- *  ATTRIB, COUNTRY, FOR, LFNFOR, VERIFY, TRUENAME commands by Wengier
+ *  ATTRIB, COUNTRY, DELTREE, FOR, LFNFOR, VERIFY, TRUENAME commands by Wengier
  *  LS command by the dosbox-staging team and Wengier
  */
 
@@ -64,16 +64,17 @@ static SHELL_Cmd cmd_list[]={
 {	"CTTY",			1,		&DOS_Shell::CMD_CTTY,		"SHELL_CMD_CTTY_HELP"},
 {	"DATE",			0,		&DOS_Shell::CMD_DATE,		"SHELL_CMD_DATE_HELP"},
 {	"DEL",			0,		&DOS_Shell::CMD_DELETE,		"SHELL_CMD_DELETE_HELP"},
+{	"DELTREE",		1,		&DOS_Shell::CMD_DELTREE,	"SHELL_CMD_DELTREE_HELP"},
 {	"ECHO",			0,		&DOS_Shell::CMD_ECHO,		"SHELL_CMD_ECHO_HELP"},
 {	"ERASE",		1,		&DOS_Shell::CMD_DELETE,		"SHELL_CMD_DELETE_HELP"},
-{	"EXIT",			0,		&DOS_Shell::CMD_EXIT,		"SHELL_CMD_EXIT_HELP"},	
+{	"EXIT",			0,		&DOS_Shell::CMD_EXIT,		"SHELL_CMD_EXIT_HELP"},
 {	"FOR",			1,		&DOS_Shell::CMD_FOR,		"SHELL_CMD_FOR_HELP"},
 {	"GOTO",			1,		&DOS_Shell::CMD_GOTO,		"SHELL_CMD_GOTO_HELP"},
 {	"HELP",			1,		&DOS_Shell::CMD_HELP,		"SHELL_CMD_HELP_HELP"},
 {	"IF",			1,		&DOS_Shell::CMD_IF,			"SHELL_CMD_IF_HELP"},
 {	"LFNFOR",		1,		&DOS_Shell::CMD_LFNFOR,		"SHELL_CMD_LFNFOR_HELP"},
 {	"LH",			1,		&DOS_Shell::CMD_LOADHIGH,	"SHELL_CMD_LOADHIGH_HELP"},
-{	"LOADHIGH",		1,		&DOS_Shell::CMD_LOADHIGH, 	"SHELL_CMD_LOADHIGH_HELP"},
+{	"LOADHIGH",		1,		&DOS_Shell::CMD_LOADHIGH,	"SHELL_CMD_LOADHIGH_HELP"},
 //{   "LS",			1,		&DOS_Shell::CMD_LS,			"SHELL_CMD_LS_HELP"}, // LS as a program (Z:\LS.COM) instead of shell command
 {	"MD",			0,		&DOS_Shell::CMD_MKDIR,		"SHELL_CMD_MKDIR_HELP"},
 {	"MKDIR",		1,		&DOS_Shell::CMD_MKDIR,		"SHELL_CMD_MKDIR_HELP"},
@@ -616,6 +617,183 @@ static size_t GetPauseCount() {
 	return (rows > 3u) ? (rows - 3u) : 22u;
 }
 
+struct DtaResult {
+	char name[DOS_NAMELENGTH_ASCII];
+	char lname[LFN_NAMELENGTH+1];
+	Bit32u size;
+	Bit16u date;
+	Bit16u time;
+	Bit8u attr;
+
+	static bool groupDef(const DtaResult &lhs, const DtaResult &rhs) { return (lhs.attr & DOS_ATTR_DIRECTORY) && !(rhs.attr & DOS_ATTR_DIRECTORY)?true:((((lhs.attr & DOS_ATTR_DIRECTORY) && (rhs.attr & DOS_ATTR_DIRECTORY)) || (!(lhs.attr & DOS_ATTR_DIRECTORY) && !(rhs.attr & DOS_ATTR_DIRECTORY))) && strcmp(lhs.name, rhs.name) < 0); }
+	static bool groupDirs(const DtaResult &lhs, const DtaResult &rhs) { return (lhs.attr & DOS_ATTR_DIRECTORY) && !(rhs.attr & DOS_ATTR_DIRECTORY); }
+	static bool compareName(const DtaResult &lhs, const DtaResult &rhs) { return strcmp(lhs.name, rhs.name) < 0; }
+	static bool compareExt(const DtaResult &lhs, const DtaResult &rhs) { return strcmp(lhs.getExtension(), rhs.getExtension()) < 0; }
+	static bool compareSize(const DtaResult &lhs, const DtaResult &rhs) { return lhs.size < rhs.size; }
+	static bool compareDate(const DtaResult &lhs, const DtaResult &rhs) { return lhs.date < rhs.date || (lhs.date == rhs.date && lhs.time < rhs.time); }
+
+	const char * getExtension() const {
+		const char * ext = empty_string;
+		if (name[0] != '.') {
+			ext = strrchr(name, '.');
+			if (!ext) ext = empty_string;
+		}
+		return ext;
+	}
+
+};
+
+std::vector<std::string> tdirs;
+
+static bool doDeltree(DOS_Shell * shell, char * args, DOS_DTA dta, bool optY, bool first) {
+    char spath[DOS_PATHLENGTH],sargs[DOS_PATHLENGTH+4],path[DOS_PATHLENGTH+4],full[DOS_PATHLENGTH],sfull[DOS_PATHLENGTH+2];
+	if (!DOS_Canonicalize(args,full)||strrchr(full,'\\')==NULL) { shell->WriteOut(MSG_Get("SHELL_ILLEGAL_PATH"));return false; }
+	if (!DOS_GetSFNPath(args,spath,false)) {
+		if (first) shell->WriteOut(MSG_Get("SHELL_CMD_FILE_NOT_FOUND"),args);
+		return false;
+	}
+	if (!uselfn||!DOS_GetSFNPath(args,sfull,true)) strcpy(sfull,full);
+    sprintf(sargs,"\"%s\"",spath);
+    bool found=false, fdir=false, res=DOS_FindFirst(sargs,0xffff & ~DOS_ATTR_VOLUME);
+	if (!res) return false;
+	//end can't be 0, but if it is we'll get a nice crash, who cares :)
+    Bit16u attribute=0;
+	strcpy(path,full);
+    if (!first&&strlen(args)>3&&!strcmp(args+strlen(args)-4,"\\.\\.")) {
+        if (strlen(path)&&path[strlen(path)-1]=='\\') path[strlen(path)-1]=0;
+        if (strlen(path)&&path[strlen(path)-1]!=':') {
+            bool reset=false;
+            if(DOS_GetFileAttr(path,&attribute) && (attribute&DOS_ATTR_READ_ONLY)&&DOS_SetFileAttr(path, attribute & ~DOS_ATTR_READ_ONLY)) reset=true;
+            if (!DOS_RemoveDir(path)&&!(uselfn&&DOS_RemoveDir(sfull))) {
+                if (reset) DOS_SetFileAttr(path, attribute);
+                shell->WriteOut(MSG_Get("SHELL_CMD_RMDIR_ERROR"),uselfn?sfull:full);
+            }
+        }
+        return true;
+    }
+	*(strrchr(path,'\\')+1)=0;
+	char * end=strrchr(full,'\\')+1;*end=0;
+	char * lend=strrchr(sfull,'\\')+1;*lend=0;
+    char name[DOS_NAMELENGTH_ASCII],lname[LFN_NAMELENGTH+1];
+    Bit32u size;Bit16u time,date;Bit8u attr;Bit16u fattr;
+    std::vector<std::string> cdirs, cfiles;
+    cdirs.clear();
+	cfiles.clear();
+    std::string pfull;
+	while (res) {
+        strcpy(spath, path);
+		dta.GetResult(name,lname,size,date,time,attr);
+		if (!((!strcmp(name, ".") || !strcmp(name, "..")) && attr & DOS_ATTR_DIRECTORY)) {
+			found=true;
+			strcpy(end,name);
+			strcpy(lend,lname);
+			if (strlen(full)&&DOS_GetFileAttr(((uselfn||strchr(full, ' ')?(full[0]!='"'?"\"":""):"")+std::string(full)+(uselfn||strchr(full, ' ')?(full[strlen(full)-1]!='"'?"\"":""):"")).c_str(), &fattr)) {
+                Bit8u c;
+                Bit16u n=1;
+                if(attr&DOS_ATTR_DIRECTORY) {
+                    if (strcmp(name, ".")&&strcmp(name, "..")) {
+                        if (!optY&&first) {
+                            shell->WriteOut("Delete directory \"%s\" and all its subdirectories? (Y/N)?", uselfn?sfull:full);
+                            DOS_ReadFile (STDIN,&c,&n);
+                            if (c==3) {shell->WriteOut("^C\r\n");break;}
+                            c = c=='y'||c=='Y' ? 'Y':'N';
+                            shell->WriteOut("%c\r\n", c);
+                            if (c=='N') {res = DOS_FindNext();continue;}
+                        }
+                        fdir=true;
+                        strcat(spath, name);
+                        strcat(spath, "\\*.*");
+                        cdirs.push_back(std::string(spath));
+                    }
+                } else {
+                    if (!optY&&first) {
+                        shell->WriteOut("Delete file \"%s\" (Y/N)?", uselfn?sfull:full);
+                        DOS_ReadFile (STDIN,&c,&n);
+                        if (c==3) {shell->WriteOut("^C\r\n");break;}
+                        c = c=='y'||c=='Y' ? 'Y':'N';
+                        shell->WriteOut("%c\r\n", c);
+                        if (c=='N') {res = DOS_FindNext();continue;}
+                    }
+                    pfull=(uselfn||strchr(uselfn?sfull:full, ' ')?((uselfn?sfull:full)[0]!='"'?"\"":""):"")+std::string(uselfn?sfull:full)+(uselfn||strchr(uselfn?sfull:full, ' ')?((uselfn?sfull:full)[strlen(uselfn?sfull:full)-1]!='"'?"\"":""):"");
+                    cfiles.push_back(pfull);
+                }
+            }
+		}
+		res=DOS_FindNext();
+	}
+    while (!cfiles.empty()) {
+        bool reset=false;
+        pfull = std::string(cfiles.begin()->c_str());
+        if ((attr & DOS_ATTR_READ_ONLY)&&DOS_SetFileAttr(pfull.c_str(), attr & ~DOS_ATTR_READ_ONLY)) reset=true;
+        if (!DOS_UnlinkFile(pfull.c_str())) {
+            if (reset) DOS_SetFileAttr(pfull.c_str(), attr);
+            shell->WriteOut(MSG_Get("SHELL_CMD_DEL_ERROR"),pfull.c_str());
+        }
+        cfiles.erase(cfiles.begin());
+    }
+    if (!first&&strlen(args)>4&&!strcmp(args+strlen(args)-4,"\\*.*")) {
+        end=strrchr(full,'\\')+1;*end=0;
+        lend=strrchr(sfull,'\\')+1;*lend=0;
+        if (fdir) {
+            strcpy(spath, path);
+            strcat(spath, ".\\.");
+            cdirs.push_back(std::string(spath));
+        } else {
+            if (strlen(path)&&path[strlen(path)-1]=='\\') path[strlen(path)-1]=0;
+            if (strlen(path)&&path[strlen(path)-1]!=':') {
+                bool reset=false;
+                if(DOS_GetFileAttr(path,&attribute) && (attribute&DOS_ATTR_READ_ONLY)&&DOS_SetFileAttr(path, attribute & ~DOS_ATTR_READ_ONLY)) reset=true;
+                if (!DOS_RemoveDir(path)&&!(uselfn&&DOS_RemoveDir(sfull))) {
+                    if (reset) DOS_SetFileAttr(path, attribute);
+                    shell->WriteOut(MSG_Get("SHELL_CMD_RMDIR_ERROR"),uselfn?sfull:full);
+                }
+            }
+        }
+    }
+    tdirs.insert(tdirs.begin()+1, cdirs.begin(), cdirs.end());
+	return found;
+}
+
+void DOS_Shell::CMD_DELTREE(char * args) {
+	HELP("DELTREE");
+	StripSpaces(args);
+	bool optY=ScanCMDBool(args,"Y");
+	char * rem=ScanCMDRemain(args);
+	if (rem) {
+		WriteOut(MSG_Get("SHELL_ILLEGAL_SWITCH"),rem);
+		return;
+	}
+    if (!*args) {
+		WriteOut(MSG_Get("SHELL_MISSING_PARAMETER"),rem);
+		return;
+	}
+
+	if (uselfn&&strchr(args, '*')) {
+		char * find_last;
+		find_last=strrchr(args,'\\');
+		if (find_last==NULL) find_last=args;
+		else find_last++;
+		if (strlen(find_last)>0&&args[strlen(args)-1]=='*'&&strchr(find_last, '.')==NULL) strcat(args, ".*");
+	}
+	char buffer[CROSS_LEN];
+	args = ExpandDot(args,buffer, CROSS_LEN);
+	StripSpaces(args);
+	RealPt save_dta=dos.dta();
+	dos.dta(dos.tables.tempdta);
+	DOS_DTA dta(dos.dta());
+	tdirs.clear();
+	tdirs.push_back(std::string(args));
+	bool first=true, found=false;
+	while (!tdirs.empty()) {
+		if (doDeltree(this, (char *)tdirs.begin()->c_str(), dta, optY, first))
+			found=true;
+        first=false;
+		tdirs.erase(tdirs.begin());
+	}
+	if (!found) WriteOut(MSG_Get("SHELL_CMD_FILE_NOT_FOUND"),args);
+	dos.dta(save_dta);
+}
+
 void DOS_Shell::CMD_HELP(char * args){
 	HELP("HELP");
 	bool optall=ScanCMDBool(args,"A")|ScanCMDBool(args,"ALL");
@@ -1072,32 +1250,6 @@ char *FormatTime(Bitu hour, Bitu min, Bitu sec, Bitu msec)	{
 	return retBuf;
 	}
 
-
-struct DtaResult {
-	char name[DOS_NAMELENGTH_ASCII];
-	char lname[LFN_NAMELENGTH+1];
-	Bit32u size;
-	Bit16u date;
-	Bit16u time;
-	Bit8u attr;
-
-	static bool groupDef(const DtaResult &lhs, const DtaResult &rhs) { return (lhs.attr & DOS_ATTR_DIRECTORY) && !(rhs.attr & DOS_ATTR_DIRECTORY)?true:((((lhs.attr & DOS_ATTR_DIRECTORY) && (rhs.attr & DOS_ATTR_DIRECTORY)) || (!(lhs.attr & DOS_ATTR_DIRECTORY) && !(rhs.attr & DOS_ATTR_DIRECTORY))) && strcmp(lhs.name, rhs.name) < 0); }
-	static bool groupDirs(const DtaResult &lhs, const DtaResult &rhs) { return (lhs.attr & DOS_ATTR_DIRECTORY) && !(rhs.attr & DOS_ATTR_DIRECTORY); }
-	static bool compareName(const DtaResult &lhs, const DtaResult &rhs) { return strcmp(lhs.name, rhs.name) < 0; }
-	static bool compareExt(const DtaResult &lhs, const DtaResult &rhs) { return strcmp(lhs.getExtension(), rhs.getExtension()) < 0; }
-	static bool compareSize(const DtaResult &lhs, const DtaResult &rhs) { return lhs.size < rhs.size; }
-	static bool compareDate(const DtaResult &lhs, const DtaResult &rhs) { return lhs.date < rhs.date || (lhs.date == rhs.date && lhs.time < rhs.time); }
-
-	const char * getExtension() const {
-		const char * ext = empty_string;
-		if (name[0] != '.') {
-			ext = strrchr(name, '.');
-			if (!ext) ext = empty_string;
-		}
-		return ext;
-	}
-
-};
 
 Bit32u byte_count,file_count,dir_count;
 Bitu p_count;
