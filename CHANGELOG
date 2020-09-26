@@ -1,7 +1,8 @@
 0.83.6
   - Improved internal Voodoo card hardware emulation,
     such as fixing the font issue with the 3dfx version
-    of Tomb Raider when using non-Glide mode. (Wengier)
+    of Tomb Raider when using non-Glide mode. Portions
+    of the code are ported from DOSBox ECE. (Wengier)
   - Added OpenGL shader support by porting the feature
     from DOSBox SVN. GLSL shaders are now supported in
     both SDL1 and SDL2 builds, and this also allows

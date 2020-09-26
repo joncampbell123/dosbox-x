@@ -17,7 +17,7 @@ A list of features ported from DOSBox SVN Daum:
 * Printer output
 * NE2000 Ethernet
 * MT-32 emulation (MUNT)
-* Internal 3dfx Voodoo chip emulation
+* Internal 3dfx Voodoo card emulation (improved since then by Wengier including some code port from DOSBox ECE)
 * Some support for FluidSynth MIDI synthesizer
 * Improved PC Speaker emulation accuracy
 * CGA with Monochrome Monitor Support
@@ -29,7 +29,7 @@ A list of features ported from DOSBox ECE:
 
 * Support for FLAC, MP3, WAV and Vorbis CD-DA tracks
 * Support for mapping mouse buttons to keyboard
-* Support for 3dfx Voodoo Glide wrapper
+* Support for 3dfx Voodoo Glide wrapper (improved since then by Wengier)
 * Improved support for FluidSynth MIDI synthesizer
 * Updated Nuked OPL3 to 1.8
 
