@@ -1616,9 +1616,6 @@ void voodoo_ogl_reset_videomode(void) {
     DOSBox_SetMenu();
 #endif
 
-#if defined(C_SDL2)
-    E_Exit("SDL2 3Dfx OpenGL emulation not implemented yet");
-#else
     GFX_PreventFullscreen(true);
 
 	last_clear_color=0;
@@ -1654,7 +1651,7 @@ void voodoo_ogl_reset_videomode(void) {
 	glLoadIdentity();*/
 	// END OF FIX
 
-#if defined (WIN32) && SDL_VERSION_ATLEAST(1, 2, 11)
+#if defined (WIN32) && SDL_VERSION_ATLEAST(1, 2, 11) && !defined(C_SDL2)
 	SDL_GL_SetAttribute( SDL_GL_SWAP_CONTROL, 0 );
 #endif
 
@@ -1671,6 +1668,11 @@ void voodoo_ogl_reset_videomode(void) {
     GFX_ReleaseMouse();
     GFX_ForceFullscreenExit();
 
+#if defined(C_SDL2)
+    if (sdl.window != NULL) ogl_surface = SDL_GetWindowSurface(sdl.window);
+	if (ogl_surface == NULL)
+		E_Exit("VOODOO: opengl init error");
+#else
 	Uint32 sdl_flags = SDL_OPENGL;
 
     ogl_surface = SDL_SetVideoMode((int)v->fbi.width, (int)v->fbi.height, 32, sdl_flags);
@@ -1703,6 +1705,7 @@ void voodoo_ogl_reset_videomode(void) {
 			}
 		}
 	}
+#endif
 
     v->ogl_dimchange = true;
 
@@ -1762,8 +1765,7 @@ void voodoo_ogl_reset_videomode(void) {
 	/* Something in Windows keeps changing the shade model on us from the last glShadeModel() call. Change it back. */
 	glShadeModel(GL_SMOOTH);
 
-	LOG_MSG("VOODOO: OpenGL: mode set, resolution %d:%d %s", v->fbi.width, v->fbi.height, (sdl_flags & SDL_FULLSCREEN) ? "(fullscreen)" : "");
-#endif
+	LOG_MSG("VOODOO: OpenGL: mode set, resolution %d:%d", v->fbi.width, v->fbi.height);
 }
 
 void voodoo_ogl_update_dimensions(void) {
