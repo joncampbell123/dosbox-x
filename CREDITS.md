@@ -17,7 +17,7 @@ A list of features ported from DOSBox SVN Daum:
 * Printer output
 * NE2000 Ethernet
 * MT-32 emulation (MUNT)
-* Internal 3dfx Voodoo card emulation (improved since then by Wengier and joncampbell123 along with code port from DOSBox ECE)
+* Internal 3dfx Voodoo card emulation (improved since then by Wengier and joncampbell123 along with code ported from DOSBox ECE)
 * Some support for FluidSynth MIDI synthesizer
 * Improved PC Speaker emulation accuracy
 * CGA with Monochrome Monitor Support
@@ -29,7 +29,7 @@ A list of features ported from DOSBox ECE:
 
 * Support for FLAC, MP3, WAV and Vorbis CD-DA tracks
 * Support for mapping mouse buttons to keyboard
-* Improved support for 3dfx emulation (Glide wrapper and improved Internal card emulation; both improved since then by Wengier)
+* Improved support for 3dfx emulation (Glide wrapper and improved internal card emulation; both improved since then by Wengier)
 * Improved support for FluidSynth MIDI synthesizer
 * Updated Nuked OPL3 to 1.8
 
@@ -57,7 +57,9 @@ This is an attempt to properly credit the other code and its sources below. It i
 
 NE2000 network card emulation (Bochs; LGPLv2+) src/hardware/ne2000.cpp
 
-MT32 synthesizer (MUNT; LGPLv2.1+) src/mt32/.cpp src/mt32/.h
+MT32 synthesizer (MUNT; LGPLv2.1+) src/libs/mt32/.cpp src/libs/mt32/.h
+
+FluidSynth synthesizer (Tom Moebert; GPLv2+) src/libs/fluidsynth/.c src/libs/fluidsynth/.h
 
 Framework-agnostic GUI toolkit (Jorg Walter; GPLv3+) src/libs/gui_tk/.cpp src/libs/gui_tk/.h
 
