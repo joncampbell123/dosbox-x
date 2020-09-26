@@ -90,7 +90,7 @@ void Cross::GetPlatformConfigDir(std::string& in) {
 	in = "/<Choices$Write>/DosBox-X";
 #elif !defined(HX_DOS)
 	const char *xdg_conf_home = getenv("XDG_CONFIG_HOME");
-	const std::string conf_home = xdg_conf_home ? xdg_conf_home: "~/.config";
+	const std::string conf_home = xdg_conf_home && xdg_conf_home[0] == '/' ? xdg_conf_home: "~/.config";
 	in = conf_home + "/dosbox-x";
 	ResolveHomedir(in);
 #endif
@@ -126,7 +126,9 @@ void Cross::CreatePlatformConfigDir(std::string& in) {
 	in = "/<Choices$Write>/DosBox-X";
 	mkdir(in.c_str(),0700);
 #elif !defined(HX_DOS)
-	in = "~/.config/dosbox-x";
+	const char *xdg_conf_home = getenv("XDG_CONFIG_HOME");
+	const std::string conf_home = xdg_conf_home && xdg_conf_home[0] == '/' ? xdg_conf_home: "~/.config";
+	in = conf_home + "/dosbox-x";
 	ResolveHomedir(in);
 	mkdir(in.c_str(),0700);
 #endif
