@@ -74,16 +74,19 @@
     command-line option -gui is added to CONFIG command
     to start the Configuration Tool as well. (Wengier)
   - DOSBox-X now includes ZIP.EXE and UNZIP.EXE from
-    InfoZip which will appear on the Z drive. (Wengier)
-  - The powerful SJGPLAY for DOS has been built into
-    DOSBox-X. You can now find the CDPLAY.EXE program
-    in the Z drive for playing Audio CDs in DOS, and a
-    text file named CDPLAY.TXT for a quick usage guide.
-    The zip package including full documentation and
-    some extras will also appear as SJGPLAY.ZIP in the
-    Z drive. This freeware program was written by Steve
-    Gray and is now included in DOSBox-X with explicit
-    permission of the author. (Wengier)
+    InfoZip for zipping and unzipping files in DOS.
+    Both programs will appear on the Z drive. (Wengier)
+  - The powerful DOS CD player called SJGPLAY has been
+    built into DOSBox-X. You can now find the program
+    CDPLAY.EXE in the Z drive for playing Audio CDs in
+    DOS, which supports both graphical and command-line
+    usage, and you will also find a text file named
+    CDPLAY.TXT in the Z drive for a quick usage guide.
+    A zip package including full documentation and some
+    extras will additionally appear as SJGPLAY.ZIP in
+    the Z drive. This freeware program was written by
+    Steve Gray and is now included in DOSBox-X with
+    explicit permission of the author. (Wengier)
   - DOSBox-X will now by default show a quit warning
     if a DOS program or game, or a guest system is
     running. The previous behavior can be set with
