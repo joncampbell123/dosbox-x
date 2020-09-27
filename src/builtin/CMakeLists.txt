@@ -21,6 +21,7 @@ set(SRC_BUILTIN
 	# "${CMAKE_CURRENT_LIST_DIR}/Makefile.am"
 	"${CMAKE_CURRENT_LIST_DIR}/mem_com.cpp"
 	"${CMAKE_CURRENT_LIST_DIR}/move_exe.cpp"
+	"${CMAKE_CURRENT_LIST_DIR}/sort_exe.cpp"
 	"${CMAKE_CURRENT_LIST_DIR}/tree_exe.cpp"
 	"${CMAKE_CURRENT_LIST_DIR}/xcopy_exe.cpp"
 )

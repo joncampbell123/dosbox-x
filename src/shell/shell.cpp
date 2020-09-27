@@ -1565,6 +1565,7 @@ void SHELL_Init() {
 	VFILE_RegisterBuiltinFileBlob(bfb_FIND_EXE);
 	VFILE_RegisterBuiltinFileBlob(bfb_LASTDRIV_COM);
 	VFILE_RegisterBuiltinFileBlob(bfb_FCBS_COM);
+	VFILE_RegisterBuiltinFileBlob(bfb_SORT_EXE);
 	VFILE_RegisterBuiltinFileBlob(bfb_XCOPY_EXE);
 	VFILE_RegisterBuiltinFileBlob(bfb_APPEND_EXE);
 	VFILE_RegisterBuiltinFileBlob(bfb_DEVICE_COM);

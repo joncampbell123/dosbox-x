@@ -195,6 +195,9 @@
     <ClCompile Include="..\src\builtin\move_exe.cpp">
       <Filter>Sources\builtin</Filter>
     </ClCompile>
+    <ClCompile Include="..\src\builtin\sort_exe.cpp">
+      <Filter>Sources\builtin</Filter>
+    </ClCompile>
     <ClCompile Include="..\src\builtin\tree_exe.cpp">
       <Filter>Sources\builtin</Filter>
     </ClCompile>
