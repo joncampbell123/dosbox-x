@@ -130,6 +130,8 @@
     section when DOSBox-X starts. Windows installer can
     also move such config options from existing config
     files automatically. (Wengier)
+  - Cleared modem phone book before parsing it. Thanks
+    NicknineTheEagle for the improvement.
   - Improved the help message of MOUNT command. Also
     added option -examples to show its usage examples,
     similar to IMGMOUNT and IMGMAKE commands. (Wengier)
