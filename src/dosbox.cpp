@@ -100,7 +100,7 @@
 #include <list>
 
 /*===================================TODO: Move to it's own file==============================*/
-#ifdef __SSE__
+#if defined(__SSE__) && !(defined(_M_AMD64) || defined(__e2k__))
 bool sse2_available = false;
 bool avx2_available = false;
 
@@ -1357,7 +1357,7 @@ void DOSBOX_SetupConfigSections(void) {
         0
     };
 
-#ifdef __SSE__
+#if defined(__SSE__) && !(defined(_M_AMD64) || defined(__e2k__)) && !defined(EMSCRIPTEN)
     CheckX86ExtensionsSupport();
 #endif
     SDLNetInited = false;
