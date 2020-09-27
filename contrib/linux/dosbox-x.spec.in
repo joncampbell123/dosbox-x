@@ -14,7 +14,7 @@ Group: Applications/Emulators
 Source0: @PACKAGE_NAME@-@PACKAGE_VERSION@.tar.xz
 Source1: dosbox-x.desktop
 Source2: dosbox-x.svg
-Source3: dosbox-x.appdata.xml
+Source3: dosbox-x.metainfo.xml
 
 %description
 DOSBox-X is a cross-platform DOS emulator based on DOSBox.

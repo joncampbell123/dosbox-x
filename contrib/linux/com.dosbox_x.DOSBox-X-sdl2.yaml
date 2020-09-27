@@ -76,7 +76,7 @@ modules:
       - type: file
         path: ../icons/dosbox-x.svg
       - type: file
-        path: dosbox-x.appdata.xml
+        path: dosbox-x.metainfo.xml
       - type: file
         path: dosbox-x.desktop
     buildsystem: simple
@@ -87,9 +87,9 @@ modules:
       - install -D src/dosbox-x /app/bin/dosbox-x-sdl2
 #      - setcap cap_net_raw+ep /app/bin/dosbox-x # fails due to needing root permission
       - install -Dm644 dosbox-x.svg /app/share/icons/hicolor/scalable/apps/${FLATPAK_ID}.svg
-      - install -Dm644 dosbox-x.appdata.xml /app/share/metainfo/${FLATPAK_ID}.appdata.xml
-      - sed -i 's/<id>com.dosbox_x.DOSBox-X</<id>com.dosbox_x.DOSBox-X-sdl2</' /app/share/metainfo/${FLATPAK_ID}.appdata.xml
-      - sed -i 's/<name>DOSBox-X</<name>DOSBox-X SDL2</' /app/share/metainfo/${FLATPAK_ID}.appdata.xml
+      - install -Dm644 dosbox-x.metainfo.xml /app/share/metainfo/${FLATPAK_ID}.metainfo.xml
+      - sed -i 's/<id>com.dosbox_x.DOSBox-X</<id>com.dosbox_x.DOSBox-X-sdl2</' /app/share/metainfo/${FLATPAK_ID}.metainfo.xml
+      - sed -i 's/<name>DOSBox-X</<name>DOSBox-X SDL2</' /app/share/metainfo/${FLATPAK_ID}.metainfo.xml
       - install -Dm644 dosbox-x.desktop /app/share/applications/${FLATPAK_ID}.desktop
       - sed -i s/Icon=.*/Icon=com.dosbox_x.DOSBox-X-sdl2/ /app/share/applications/${FLATPAK_ID}.desktop
       - sed -i 's/Name=.*/Name=DOSBox-X SDL2/' /app/share/applications/${FLATPAK_ID}.desktop

@@ -1090,7 +1090,7 @@ src/platform/Makefile
 include/Makefile
 contrib/macos/dosbox-x.plist
 contrib/linux/dosbox-x.spec
-contrib/linux/dosbox-x.appdata.xml
+contrib/linux/dosbox-x.metainfo.xml
 make-rpm.sh
 ])
 AC_OUTPUT
