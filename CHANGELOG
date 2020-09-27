@@ -607,6 +607,7 @@
     phone book file entries need to be in the format of:
     "<dummy number> <hostname/ip:port>" e.g.
     5551234 cavebbs.homeip.net:23
+    Thank NicknineTheEagle for implementing this feature.
   - Implemented the missing EMS subfunctions 52h and 59h by
     porting the patch that adds them (Wengier)
   - Fixed issues with the "config -wcd -all" command and other
