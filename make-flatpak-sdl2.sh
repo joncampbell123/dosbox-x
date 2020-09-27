@@ -1,7 +1,7 @@
 #!/bin/sh
 
-# flatpak build will fail immediately if it cannot find the appdata.xml file
-# But we have a dosbox-x.appdata.xml.in file that first needs processing by autotools
+# flatpak build will fail immediately if it cannot find the metainfo.xml file
+# But we have a dosbox-x.metainfo.xml.in file that first needs processing by autotools
 ./autogen.sh
 ./configure
 
