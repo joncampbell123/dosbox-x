@@ -125,15 +125,15 @@ static void RENDER_EmptyLineHandler(const void * src) {
 }
 
 /*HACK*/
-#ifdef __SSE__
-#ifdef __AVX2__
-/* We’re building with -mavx2 */
-# define sse2_available (1)
-# define avx2_available (1)
-#elif defined(_M_AMD64) || defined(__amd64__) || defined(__e2k__)
+#if defined(_M_AMD64) || defined(__amd64__) || defined(__e2k__)
 /* SSE2 is always available on x86_64 and Elbrus */
 # define sse2_available (1)
 extern bool             avx2_available;
+#elif defined(__SSE__)
+#ifdef __AVX2__
+/* We are building with -mavx2 */
+# define sse2_available (1)
+# define avx2_available (1)
 #else
 extern bool             sse2_available;
 extern bool             avx2_available;
@@ -180,7 +180,7 @@ static inline bool RENDER_DrawLine_scanline_cacheHit(const void *s) {
         const Bitu *src = (Bitu*)s;
         Bitu *cache = (Bitu*)(render.scale.cacheRead);
         Bits count = (Bits)render.src.start;
-#if defined(__SSE__) && !(defined(_M_AMD64) || defined(__e2k__))
+#if defined(__SSE__) && !(defined(_M_AMD64) || defined(__amd64__) || defined(__e2k__))
 #define MY_SIZEOF_INT_P sizeof(*src)
         if (GCC_LIKELY(avx2_available)) {
             if (!cacheHit_AVX2(src, cache, count))
