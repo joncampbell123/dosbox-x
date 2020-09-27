@@ -1399,14 +1399,14 @@ public:
 	}
 
 	~SERIALPORTS () {
-#if C_MODEM
-		MODEM_ClearPhonebook();
-#endif
 		for (Bitu i = 0; i < 4; i++)
 			if (serialports[i]) {
 				delete serialports[i];
 				serialports[i] = 0;
 			}
+#if C_MODEM
+		MODEM_ClearPhonebook();
+#endif
 	}
 };
 

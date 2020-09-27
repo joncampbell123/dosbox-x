@@ -64,7 +64,8 @@
     section for users who would like to make relative
     percentage adjustments (between -25% and 25%) in
     case it is necessary. (Wengier)
-  - Added SORT command from FreeDOS. (Wengier)
+  - Added SORT command from FreeDOS. It can be used to
+    sort input, e.g. "TYPE FILE.TXT | SORT". (Wengier)
   - Added DELTREE command to delete a directory and all
     the subdirectories and files in it as in a real DOS
     system. Please use it with caution. (Wengier)
