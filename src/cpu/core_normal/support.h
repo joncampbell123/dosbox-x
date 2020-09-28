@@ -17,7 +17,7 @@
  */
 
 
-#define LoadMbs(off) (Bit8s)(LoadMb(off))
+#define LoadMbs(off) (int8_t)(LoadMb(off))
 #define LoadMws(off) (Bit16s)(LoadMw(off))
 #define LoadMds(off) (Bit32s)(LoadMd(off))
 
@@ -29,8 +29,8 @@
 #define SaveRw(reg,val)	reg=((Bit16u)(val))
 #define SaveRd(reg,val)	reg=((Bit32u)(val))
 
-static INLINE Bit8s Fetchbs() {
-	return (Bit8s)Fetchb();
+static INLINE int8_t Fetchbs() {
+	return (int8_t)Fetchb();
 }
 static INLINE Bit16s Fetchws() {
 	return (Bit16s)Fetchw();

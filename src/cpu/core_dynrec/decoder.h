@@ -285,7 +285,7 @@ restart_prefix:
 			dyn_push_word_imm(decode.big_op ? decode_fetchd() :  decode_fetchw());
 			break;
 		case 0x6a:
-			dyn_push_byte_imm((Bit8s)decode_fetchb());
+			dyn_push_byte_imm((int8_t)decode_fetchb());
 			break;
 
 		// signed multiplication
@@ -297,7 +297,7 @@ restart_prefix:
 		// short conditional jumps
 		case 0x70:case 0x71:case 0x72:case 0x73:case 0x74:case 0x75:case 0x76:case 0x77:	
 		case 0x78:case 0x79:case 0x7a:case 0x7b:case 0x7c:case 0x7d:case 0x7e:case 0x7f:	
-			dyn_branched_exit((BranchTypes)(opcode&0xf),(Bit8s)decode_fetchb());	
+			dyn_branched_exit((BranchTypes)(opcode&0xf),(int8_t)decode_fetchb());	
 			goto finish_block;
 
 		// 'op []/reg8,imm8'
@@ -523,7 +523,7 @@ restart_prefix:
 			goto finish_block;
 		// 'jmp short imm8'
 		case 0xeb:
-			dyn_exit_link((Bit8s)decode_fetchb());
+			dyn_exit_link((int8_t)decode_fetchb());
 			goto finish_block;
 
 

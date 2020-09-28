@@ -93,10 +93,10 @@ Bitu INT10_Handler(void) {
 		else INT10_SetActivePage(reg_al);
 		break;	
 	case 0x06:								/* Scroll Up */
-		INT10_ScrollWindow(reg_ch,reg_cl,reg_dh,reg_dl,-(Bit8s)reg_al,reg_bh,0xFF);
+		INT10_ScrollWindow(reg_ch,reg_cl,reg_dh,reg_dl,-(int8_t)reg_al,reg_bh,0xFF);
 		break;
 	case 0x07:								/* Scroll Down */
-		INT10_ScrollWindow(reg_ch,reg_cl,reg_dh,reg_dl,(Bit8s)reg_al,reg_bh,0xFF);
+		INT10_ScrollWindow(reg_ch,reg_cl,reg_dh,reg_dl,(int8_t)reg_al,reg_bh,0xFF);
 		break;
 	case 0x08:								/* Read character & attribute at cursor */
 		INT10_ReadCharAttr(&reg_ax,reg_bh);

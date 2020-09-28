@@ -25,7 +25,7 @@ typedef   signed int       Bit32s;
 typedef unsigned short int Bit16u;
 typedef   signed short int Bit16s;
 typedef unsigned char      uint8_t;
-typedef   signed char      Bit8s;
+typedef   signed char      int8_t;
 
 }
 

@@ -458,7 +458,7 @@ static void DSP_DMA_CallBack(DmaChannel * chan, DMAEvent event) {
 #define DC_OFFSET_FADE 254
 
 static INLINE uint8_t decode_ADPCM_4_sample(uint8_t sample,uint8_t & reference,Bits& scale) {
-    static const Bit8s scaleMap[64] = {
+    static const int8_t scaleMap[64] = {
         0,  1,  2,  3,  4,  5,  6,  7,  0,  -1,  -2,  -3,  -4,  -5,  -6,  -7,
         1,  3,  5,  7,  9, 11, 13, 15, -1,  -3,  -5,  -7,  -9, -11, -13, -15,
         2,  6, 10, 14, 18, 22, 26, 30, -2,  -6, -10, -14, -18, -22, -26, -30,
@@ -493,7 +493,7 @@ static INLINE uint8_t decode_ADPCM_4_sample(uint8_t sample,uint8_t & reference,B
 }
 
 static INLINE uint8_t decode_ADPCM_2_sample(uint8_t sample,uint8_t & reference,Bits& scale) {
-    static const Bit8s scaleMap[24] = {
+    static const int8_t scaleMap[24] = {
         0,  1,  0,  -1,  1,  3,  -1,  -3,
         2,  6, -2,  -6,  4, 12,  -4, -12,
         8, 24, -8, -24, 16, 48, -16, -48
@@ -522,7 +522,7 @@ static INLINE uint8_t decode_ADPCM_2_sample(uint8_t sample,uint8_t & reference,B
 }
 
 INLINE uint8_t decode_ADPCM_3_sample(uint8_t sample,uint8_t & reference,Bits& scale) {
-    static const Bit8s scaleMap[40] = { 
+    static const int8_t scaleMap[40] = { 
         0,  1,  2,  3,  0,  -1,  -2,  -3,
         1,  3,  5,  7, -1,  -3,  -5,  -7,
         2,  6, 10, 14, -2,  -6, -10, -14,
@@ -665,7 +665,7 @@ static void GenerateDMASound(Bitu size) {
             read=sb.dma.chan->Read(size,&sb.dma.buf.b8[sb.dma.remain_size]);
             Bitu total=read+sb.dma.remain_size;
             if (!sb.dma.sign)  sb.chan->AddSamples_s8(total>>1,sb.dma.buf.b8);
-            else sb.chan->AddSamples_s8s(total>>1,(Bit8s*)sb.dma.buf.b8); 
+            else sb.chan->AddSamples_s8s(total>>1,(int8_t*)sb.dma.buf.b8); 
             if (total&1) {
                 sb.dma.remain_size=1;
                 sb.dma.buf.b8[0]=sb.dma.buf.b8[total-1];
@@ -673,7 +673,7 @@ static void GenerateDMASound(Bitu size) {
         } else {
             read=sb.dma.chan->Read(size,sb.dma.buf.b8);
             if (!sb.dma.sign) sb.chan->AddSamples_m8(read,sb.dma.buf.b8);
-            else sb.chan->AddSamples_m8s(read,(Bit8s *)sb.dma.buf.b8);
+            else sb.chan->AddSamples_m8s(read,(int8_t *)sb.dma.buf.b8);
         }
         break;
     case DSP_DMA_16:

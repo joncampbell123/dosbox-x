@@ -165,7 +165,7 @@ static const uint8_t eg_incstep[4][4] = {
 // address decoding
 //
 
-static const Bit8s ad_slot[0x20] = {
+static const int8_t ad_slot[0x20] = {
     0, 1, 2, 3, 4, 5, -1, -1, 6, 7, 8, 9, 10, 11, -1, -1,
     12, 13, 14, 15, 16, 17, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1
 };
@@ -531,7 +531,7 @@ static void OPL3_PhaseGenerate(opl3_slot *slot)
     f_num = slot->channel->f_num;
     if (slot->reg_vib)
     {
-        Bit8s range;
+        int8_t range;
         uint8_t vibpos;
 
         range = (f_num >> 7) & 7;

@@ -214,7 +214,7 @@ static void INLINE gen_mov_direct_ptr(void* dest,DRC_PTR_SIZE_IM imm) {
 
 
 // add an 8bit constant value to a memory value
-static void gen_add_direct_byte(void* dest,Bit8s imm) {
+static void gen_add_direct_byte(void* dest,int8_t imm) {
 	cache_addw(0x0583);					// add [data],imm
 	cache_addd((Bit32u)dest);
 	cache_addb(imm);
@@ -223,7 +223,7 @@ static void gen_add_direct_byte(void* dest,Bit8s imm) {
 // add a 32bit (dword==true) or 16bit (dword==false) constant value to a memory value
 static void gen_add_direct_word(void* dest,Bit32u imm,bool dword) {
 	if ((imm<128) && dword) {
-		gen_add_direct_byte(dest,(Bit8s)imm);
+		gen_add_direct_byte(dest,(int8_t)imm);
 		return;
 	}
 	if (!dword) cache_addb(0x66);
@@ -234,7 +234,7 @@ static void gen_add_direct_word(void* dest,Bit32u imm,bool dword) {
 }
 
 // subtract an 8bit constant value from a memory value
-static void gen_sub_direct_byte(void* dest,Bit8s imm) {
+static void gen_sub_direct_byte(void* dest,int8_t imm) {
 	cache_addw(0x2d83);					// sub [data],imm
 	cache_addd((Bit32u)dest);
 	cache_addb(imm);
@@ -243,7 +243,7 @@ static void gen_sub_direct_byte(void* dest,Bit8s imm) {
 // subtract a 32bit (dword==true) or 16bit (dword==false) constant value from a memory value
 static void gen_sub_direct_word(void* dest,Bit32u imm,bool dword) {
 	if ((imm<128) && dword) {
-		gen_sub_direct_byte(dest,(Bit8s)imm);
+		gen_sub_direct_byte(dest,(int8_t)imm);
 		return;
 	}
 	if (!dword) cache_addb(0x66);

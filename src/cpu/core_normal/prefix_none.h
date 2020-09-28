@@ -613,7 +613,7 @@
 		{ Bit16u temp=reg_ax;reg_ax=reg_di;reg_di=temp; }
 		break;
 	CASE_W(0x98)												/* CBW */
-		reg_ax=(Bit16u)((Bit8s)reg_al);break;
+		reg_ax=(Bit16u)((int8_t)reg_al);break;
 	CASE_W(0x99)												/* CWD */
 		if (reg_ax & 0x8000) reg_dx=0xffff;else reg_dx=0;
 		break;

@@ -182,7 +182,7 @@ bool INT10_GetInsertState();
 
 bool INT10_SetVideoMode(Bit16u mode);
 
-void INT10_ScrollWindow(uint8_t rul,uint8_t cul,uint8_t rlr,uint8_t clr,Bit8s nlines,uint8_t attr,uint8_t page);
+void INT10_ScrollWindow(uint8_t rul,uint8_t cul,uint8_t rlr,uint8_t clr,int8_t nlines,uint8_t attr,uint8_t page);
 
 void INT10_SetActivePage(uint8_t page);
 bool INT10_SetCurMode(void);

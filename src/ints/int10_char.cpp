@@ -248,7 +248,7 @@ static void TEXT_FillRow(uint8_t cleft,uint8_t cright,uint8_t row,PhysPt base,ui
 }
 
 
-void INT10_ScrollWindow(uint8_t rul,uint8_t cul,uint8_t rlr,uint8_t clr,Bit8s nlines,uint8_t attr,uint8_t page) {
+void INT10_ScrollWindow(uint8_t rul,uint8_t cul,uint8_t rlr,uint8_t clr,int8_t nlines,uint8_t attr,uint8_t page) {
 /* Do some range checking */
     if (CurMode->type!=M_TEXT) page=0xff;
     BIOS_NCOLS;BIOS_NROWS;

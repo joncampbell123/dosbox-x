@@ -184,7 +184,7 @@ static Bit16u OpOffsetTable[64];
 //The lower bits are the shift of the operator vibrato value
 //The highest bit is right shifted to generate -1 or 0 for negation
 //So taking the highest input value of 7 this gives 3, 7, 3, 0, -3, -7, -3, 0
-static const Bit8s VibratoTable[ 8 ] = {	
+static const int8_t VibratoTable[ 8 ] = {	
 	1 - 0x00, 0 - 0x00, 1 - 0x00, 30 - 0x00, 
 	1 - 0x80, 0 - 0x80, 1 - 0x80, 30 - 0x80 
 };
@@ -454,7 +454,7 @@ void Operator::Write20( const Chip* chip, uint8_t val ) {
 		return;
 	reg20 = val;
 	//Shift the tremolo bit over the entire register, saved a branch, YES!
-	tremoloMask = (Bit8s)(val) >> 7;
+	tremoloMask = (int8_t)(val) >> 7;
 	tremoloMask &= ~(( 1 << ENV_EXTRA ) -1);
 	//Update specific features based on changes
 	if ( change & MASK_KSR ) {

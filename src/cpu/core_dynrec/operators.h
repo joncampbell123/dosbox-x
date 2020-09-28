@@ -1405,7 +1405,7 @@ static void DRC_CALL_CONV dynrec_mul_byte(uint8_t op) {
 static void DRC_CALL_CONV dynrec_imul_byte(uint8_t op) DRC_FC;
 static void DRC_CALL_CONV dynrec_imul_byte(uint8_t op) {
 	FillFlagsNoCFOF();
-	reg_ax=((Bit8s)reg_al) * ((Bit8s)op);
+	reg_ax=((int8_t)reg_al) * ((int8_t)op);
 	if ((reg_ax & 0xff80)==0xff80 || (reg_ax & 0xff80)==0x0000) {
 		SETFLAGBIT(CF,false);
 		SETFLAGBIT(OF,false);
@@ -1496,11 +1496,11 @@ static bool DRC_CALL_CONV dynrec_div_byte(uint8_t op) {
 
 static bool DRC_CALL_CONV dynrec_idiv_byte(uint8_t op) DRC_FC;
 static bool DRC_CALL_CONV dynrec_idiv_byte(uint8_t op) {
-	Bits val=(Bit8s)op;
+	Bits val=(int8_t)op;
 	if (val==0) return CPU_PrepareException(0,0);
 	Bits quo=((Bit16s)reg_ax) / val;
-	Bit8s rem=(Bit8s)((Bit16s)reg_ax % val);
-	Bit8s quo8s=(Bit8s)(quo&0xff);
+	int8_t rem=(int8_t)((Bit16s)reg_ax % val);
+	int8_t quo8s=(int8_t)(quo&0xff);
 	if (quo!=(Bit16s)quo8s) return CPU_PrepareException(0,0);
 	reg_ah=rem;
 	reg_al=quo8s;
@@ -1596,7 +1596,7 @@ static Bit32u DRC_CALL_CONV dynrec_dimul_dword(Bit32u op1,Bit32u op2) {
 
 static Bit16u DRC_CALL_CONV dynrec_cbw(uint8_t op) DRC_FC;
 static Bit16u DRC_CALL_CONV dynrec_cbw(uint8_t op) {
-	return (Bit8s)op;
+	return (int8_t)op;
 }
 
 static Bit32u DRC_CALL_CONV dynrec_cwde(Bit16u op) DRC_FC;

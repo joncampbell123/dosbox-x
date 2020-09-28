@@ -910,7 +910,7 @@ static void dyn_fill_ea(HostReg ea_reg,bool addseg=true) {
 		Bits imm=0;
 		switch (decode.modrm.mod) {
 		case 0:imm=0;break;
-		case 1:imm=(Bit8s)decode_fetchb();break;
+		case 1:imm=(int8_t)decode_fetchb();break;
 		case 2:imm=(Bit16s)decode_fetchw();break;
 		}
 		switch (decode.modrm.rm) {
@@ -1039,7 +1039,7 @@ skip_extend_word:
 				// basereg, maybe scalereg
 				switch (decode.modrm.mod) {
 				case 1:
-					imm=(Bit8s)decode_fetchb();
+					imm=(int8_t)decode_fetchb();
 					break;
 				case 2: {
 					Bitu val;
@@ -1117,7 +1117,7 @@ skip_extend_word:
 
 		switch (decode.modrm.mod) {
 		case 1:
-			imm=(Bit8s)decode_fetchb();
+			imm=(int8_t)decode_fetchb();
 			break;
 		case 2: {
 			Bitu val;

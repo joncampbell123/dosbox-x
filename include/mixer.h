@@ -73,8 +73,8 @@ public:
 	void finishSampleInterpolation(const Bitu upto);
 	void AddSamples_m8(Bitu len, const uint8_t * data);
 	void AddSamples_s8(Bitu len, const uint8_t * data);
-	void AddSamples_m8s(Bitu len, const Bit8s * data);
-	void AddSamples_s8s(Bitu len, const Bit8s * data);
+	void AddSamples_m8s(Bitu len, const int8_t * data);
+	void AddSamples_s8s(Bitu len, const int8_t * data);
 	void AddSamples_m16(Bitu len, const Bit16s * data);
 	void AddSamples_s16(Bitu len, const Bit16s * data);
 	void AddSamples_m16u(Bitu len, const Bit16u * data);

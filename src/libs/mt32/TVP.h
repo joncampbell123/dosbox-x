@@ -47,7 +47,7 @@ private:
 
 	Bit16s lfoPitchOffset;
 	// In range -12 - 36
-	Bit8s timeKeyfollowSubtraction;
+	int8_t timeKeyfollowSubtraction;
 
 	Bit16s pitchOffsetChangePerBigTick;
 	Bit16u targetPitchOffsetReachedBigTick;

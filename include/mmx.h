@@ -47,7 +47,7 @@ typedef union {
 	} ub;
 
 	struct {
-		Bit8s b0,b1,b2,b3,b4,b5,b6,b7;
+		int8_t b0,b1,b2,b3,b4,b5,b6,b7;
 	} sb;
 #else
 	struct {
@@ -81,7 +81,7 @@ extern MMX_reg * reg_mmx[8];
 extern MMX_reg * lookupRMregMM[256];
 
 
-Bit8s  SaturateWordSToByteS(Bit16s value);
+int8_t  SaturateWordSToByteS(Bit16s value);
 Bit16s SaturateDwordSToWordS(Bit32s value);
 uint8_t  SaturateWordSToByteU(Bit16s value);
 Bit16u SaturateDwordSToWordU(Bit32s value);

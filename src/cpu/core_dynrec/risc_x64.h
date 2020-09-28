@@ -297,7 +297,7 @@ static void INLINE gen_mov_direct_ptr(void* dest,DRC_PTR_SIZE_IM imm) {
 
 
 // add an 8bit constant value to a memory value
-static void gen_add_direct_byte(void* dest,Bit8s imm) {
+static void gen_add_direct_byte(void* dest,int8_t imm) {
 	if (!imm) return;
 	gen_memaddr(0x4,dest,1,imm,0x83);	// add [data],imm
 }
@@ -306,14 +306,14 @@ static void gen_add_direct_byte(void* dest,Bit8s imm) {
 static void gen_add_direct_word(void* dest,Bit32u imm,bool dword) {
 	if (!imm) return;
 	if ((imm<128) && dword) {
-		gen_add_direct_byte(dest,(Bit8s)imm);
+		gen_add_direct_byte(dest,(int8_t)imm);
 		return;
 	}
 	gen_memaddr(0x4,dest,(dword?4:2),imm,0x81,(dword?0:0x66));	// add [data],imm
 }
 
 // subtract an 8bit constant value from a memory value
-static void gen_sub_direct_byte(void* dest,Bit8s imm) {
+static void gen_sub_direct_byte(void* dest,int8_t imm) {
 	if (!imm) return;
 	gen_memaddr(0x2c,dest,1,imm,0x83);
 }
@@ -322,7 +322,7 @@ static void gen_sub_direct_byte(void* dest,Bit8s imm) {
 static void gen_sub_direct_word(void* dest,Bit32u imm,bool dword) {
 	if (!imm) return;
 	if ((imm<128) && dword) {
-		gen_sub_direct_byte(dest,(Bit8s)imm);
+		gen_sub_direct_byte(dest,(int8_t)imm);
 		return;
 	}
 	gen_memaddr(0x2c,dest,(dword?4:2),imm,0x81,(dword?0:0x66));	// sub [data],imm

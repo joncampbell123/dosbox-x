@@ -1959,7 +1959,7 @@ void CPrinter::fprintASCII85(FILE* f, Bit16u b)
 			else
 			{
 				char buffer[5];
-				for (Bit8s i = 4; i >= 0; i--)
+				for (int8_t i = 4; i >= 0; i--)
 				{
 					buffer[i] = (uint8_t)((Bit32u)num % (Bit32u)85);
 					buffer[i] += 33;

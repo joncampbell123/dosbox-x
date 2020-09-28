@@ -427,7 +427,7 @@ static void dyn_pop_reg(uint8_t reg) {
 	MOV_REG_WORD_FROM_HOST_REG(FC_RETOP,reg,decode.big_op);
 }
 
-static void dyn_push_byte_imm(Bit8s imm) {
+static void dyn_push_byte_imm(int8_t imm) {
 	gen_mov_dword_to_reg_imm(FC_OP1,(Bit32u)imm);
 	if (decode.big_op) gen_call_function_raw(dynrec_push_dword);
 	else gen_call_function_raw(dynrec_push_word);
@@ -527,8 +527,8 @@ static void dyn_imul_gvev(Bitu immsize) {
 			MOV_REG_WORD_TO_HOST_REG(FC_OP2,decode.modrm.reg,decode.big_op);
 			break;
 		case 1:
-			if (decode.big_op) gen_mov_dword_to_reg_imm(FC_OP2,(Bit8s)decode_fetchb());
-			else  gen_mov_word_to_reg_imm(FC_OP2,(Bit8s)decode_fetchb());
+			if (decode.big_op) gen_mov_dword_to_reg_imm(FC_OP2,(int8_t)decode_fetchb());
+			else  gen_mov_word_to_reg_imm(FC_OP2,(int8_t)decode_fetchb());
 			break;
 		case 2:
 			if (decode.big_op) gen_mov_dword_to_reg_imm(FC_OP2,(Bit16s)decode_fetchw());
@@ -600,7 +600,7 @@ static void dyn_grp1_ev_iv(bool withbyte) {
 		if (!withbyte) {
 			dyn_prep_word_imm(FC_OP2);
 		} else {
-			Bits imm=(Bit8s)decode_fetchb(); 
+			Bits imm=(int8_t)decode_fetchb(); 
 			if (decode.big_op) gen_mov_dword_to_reg_imm(FC_OP2,(Bit32u)imm);
 			else gen_mov_word_to_reg_imm(FC_OP2,(Bit16u)imm);
 		}
@@ -615,7 +615,7 @@ static void dyn_grp1_ev_iv(bool withbyte) {
 		if (!withbyte) {
 			dyn_dop_word_imm(op,decode.modrm.rm);
 		} else {
-			Bits imm=withbyte ? (Bit8s)decode_fetchb() : (decode.big_op ? decode_fetchd(): decode_fetchw()); 
+			Bits imm=withbyte ? (int8_t)decode_fetchb() : (decode.big_op ? decode_fetchd(): decode_fetchw()); 
 			dyn_dop_word_imm_old(op,decode.modrm.rm,imm);
 		}
 	}
@@ -1138,7 +1138,7 @@ static void dyn_set_byte_on_condition(BranchTypes btype) {
 
 static void dyn_loop(LoopTypes type) {
 	dyn_reduce_cycles();
-	Bit8s eip_add=(Bit8s)decode_fetchb();
+	int8_t eip_add=(int8_t)decode_fetchb();
 	Bit32u eip_base=decode.code-decode.code_start;
 	DRC_PTR_SIZE_IM branch1=0;
 	DRC_PTR_SIZE_IM branch2=0;

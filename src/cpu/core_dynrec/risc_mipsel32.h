@@ -345,12 +345,12 @@ static void INLINE gen_add_direct_word(void* dest,Bit32u imm,bool dword) {
 }
 
 // add an 8bit constant value to a dword memory value
-static void INLINE gen_add_direct_byte(void* dest,Bit8s imm) {
+static void INLINE gen_add_direct_byte(void* dest,int8_t imm) {
 	gen_add_direct_word(dest, (Bit32s)imm, 1);
 }
 
 // subtract an 8bit constant value from a dword memory value
-static void INLINE gen_sub_direct_byte(void* dest,Bit8s imm) {
+static void INLINE gen_sub_direct_byte(void* dest,int8_t imm) {
 	gen_add_direct_word(dest, -((Bit32s)imm), 1);
 }
 

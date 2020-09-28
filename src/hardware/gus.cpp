@@ -213,7 +213,7 @@ public:
 	}
 
     INLINE Bit32s LoadSample8(const Bit32u addr/*memory address without fractional bits*/) const {
-        return (Bit8s)GUSRam[addr & 0xFFFFFu/*1MB*/] << Bit32s(8); /* typecast to sign extend 8-bit value */
+        return (int8_t)GUSRam[addr & 0xFFFFFu/*1MB*/] << Bit32s(8); /* typecast to sign extend 8-bit value */
     }
 
     INLINE Bit32s LoadSample16(const Bit32u addr/*memory address without fractional bits*/) const {

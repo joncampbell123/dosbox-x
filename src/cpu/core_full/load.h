@@ -45,8 +45,8 @@ l_MODRMswitch:
 			inst_op1_d=Fetchb();
 			break;
 		case M_Ebx:
-			if (inst.rm<0xc0) inst_op1_ds=(Bit8s)LoadMb(inst.rm_eaa);
-			else inst_op1_ds=(Bit8s)reg_8(inst.rm_eai);
+			if (inst.rm<0xc0) inst_op1_ds=(int8_t)LoadMb(inst.rm_eaa);
+			else inst_op1_ds=(int8_t)reg_8(inst.rm_eai);
 			break;
 		case M_EbIb:
 			inst_op2_d=Fetchb();
@@ -426,7 +426,7 @@ l_M_Ed:
 		}
 		goto nextopcode;
 	case D_CBW:
-		reg_ax=(Bit16u)((Bit8s)reg_al);
+		reg_ax=(Bit16u)((int8_t)reg_al);
 		goto nextopcode;
 	case D_CWDE:
 		reg_eax=(Bit32u)((Bit16s)reg_ax);

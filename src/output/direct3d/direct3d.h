@@ -178,7 +178,7 @@ public:
     DWORD	dwTexHeight = 0, dwTexWidth = 0;
 
     bool 	square = false, pow2 = false, dynamic = false, bpp16;		// Texture limitations
-    Bit8s 	aspect, autofit = 0;
+    int8_t 	aspect, autofit = 0;
 
     // Pixel shader status
     bool 	psActive;

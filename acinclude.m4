@@ -299,12 +299,6 @@ dnl Linux systems for ages now have had stdint.h to define uint8_t, etc.
 AH_BOTTOM([
 #include <cstdint>
 
-#if SIZEOF_UNSIGNED_CHAR != 1
-#  error "sizeof (unsigned char) != 1"
-#else
-  typedef   signed char Bit8s;
-#endif
-
 #if SIZEOF_UNSIGNED_SHORT != 2
 #  error "sizeof (unsigned short) != 2"
 #else

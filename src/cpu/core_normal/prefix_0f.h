@@ -671,7 +671,7 @@
 		if (CPU_ArchitectureType<CPU_ARCHTYPE_386) goto illegal_opcode;
 		{
 			GetRMrw;															
-			if (rm >= 0xc0 ) {GetEArb;*rmrw=(Bit16u)(*(Bit8s *)earb);}
+			if (rm >= 0xc0 ) {GetEArb;*rmrw=(Bit16u)(*(int8_t *)earb);}
 			else {GetEAa;*rmrw=(Bit16u)LoadMbs(eaa);}
 			break;
 		}

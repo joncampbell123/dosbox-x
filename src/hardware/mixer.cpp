@@ -522,9 +522,9 @@ inline void MixerChannel::loadCurrentSample(Bitu &len, const Type* &data) {
         const uint8_t xr = signeddata ? 0x00 : 0x80;
 
         len--;
-        current[0] = ((Bit8s)((*data++) ^ xr)) << 8;
+        current[0] = ((int8_t)((*data++) ^ xr)) << 8;
         if (stereo)
-            current[1] = ((Bit8s)((*data++) ^ xr)) << 8;
+            current[1] = ((int8_t)((*data++) ^ xr)) << 8;
         else
             current[1] = current[0];
     }
@@ -701,11 +701,11 @@ void MixerChannel::AddSamples_m8(Bitu len, const uint8_t * data) {
 void MixerChannel::AddSamples_s8(Bitu len,const uint8_t * data) {
     AddSamples<uint8_t,true,false,true>(len,data);
 }
-void MixerChannel::AddSamples_m8s(Bitu len,const Bit8s * data) {
-    AddSamples<Bit8s,false,true,true>(len,data);
+void MixerChannel::AddSamples_m8s(Bitu len,const int8_t * data) {
+    AddSamples<int8_t,false,true,true>(len,data);
 }
-void MixerChannel::AddSamples_s8s(Bitu len,const Bit8s * data) {
-    AddSamples<Bit8s,true,true,true>(len,data);
+void MixerChannel::AddSamples_s8s(Bitu len,const int8_t * data) {
+    AddSamples<int8_t,true,true,true>(len,data);
 }
 void MixerChannel::AddSamples_m16(Bitu len,const Bit16s * data) {
     AddSamples<Bit16s,false,true,true>(len,data);

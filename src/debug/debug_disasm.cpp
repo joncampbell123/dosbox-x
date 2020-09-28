@@ -75,7 +75,7 @@ typedef uint8_t  UINT8;
 typedef Bit16u UINT16;
 typedef Bit32u UINT32;
 
-typedef Bit8s  INT8;
+typedef int8_t  INT8;
 typedef Bit16s INT16;
 typedef Bit32s INT32;
 

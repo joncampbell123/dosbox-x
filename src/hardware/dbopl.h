@@ -169,8 +169,8 @@ struct Channel {
 	uint8_t regC0;
 	//This should correspond with reg104, bit 6 indicates a Percussion channel, bit 7 indicates a silent channel
 	uint8_t fourMask;
-	Bit8s maskLeft;		//Sign extended values for both channel's panning
-	Bit8s maskRight;
+	int8_t maskLeft;		//Sign extended values for both channel's panning
+	int8_t maskRight;
 
 	//Forward the channel data to the operators of the channel
 	void SetChanData( const Chip* chip, Bit32u data );
@@ -217,7 +217,7 @@ struct Chip {
 	uint8_t regBD;
 	uint8_t vibratoIndex = 0;
 	uint8_t tremoloIndex = 0;
-	Bit8s vibratoSign = 0;
+	int8_t vibratoSign = 0;
 	uint8_t vibratoShift = 0;
 	uint8_t tremoloValue = 0;
 	uint8_t vibratoStrength = 0;
@@ -225,7 +225,7 @@ struct Chip {
 	//Mask for allowed wave forms
 	uint8_t waveFormMask = 0;
 	//0 or -1 when enabled
-	Bit8s opl3Active;
+	int8_t opl3Active;
 
 	//Return the maximum amount of samples before and LFO change
 	Bit32u ForwardLFO( Bit32u samples );

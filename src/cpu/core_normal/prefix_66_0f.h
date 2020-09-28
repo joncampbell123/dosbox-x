@@ -471,7 +471,7 @@
 	CASE_0F_D(0xbe)												/* MOVSX Gd,Eb */
 		{
 			GetRMrd;															
-			if (rm >= 0xc0 ) {GetEArb;*rmrd=(Bit32u)(*(Bit8s *)earb);}
+			if (rm >= 0xc0 ) {GetEArb;*rmrd=(Bit32u)(*(int8_t *)earb);}
 			else {GetEAa;*rmrd=(Bit32u)LoadMbs(eaa);}
 			break;
 		}

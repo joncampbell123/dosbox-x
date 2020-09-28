@@ -695,11 +695,11 @@ extern bool enable_fpu;
 
 #define IDIVB(op1,load,save)								\
 {															\
-	Bits val=(Bit8s)(load(op1));							\
+	Bits val=(int8_t)(load(op1));							\
 	if (val==0)	EXCEPTION(0);								\
 	Bits quo=((Bit16s)reg_ax) / val;						\
-	Bit8s rem=(Bit8s)((Bit16s)reg_ax % val);				\
-	Bit8s quo8s=(Bit8s)(quo&0xff);							\
+	int8_t rem=(int8_t)((Bit16s)reg_ax % val);				\
+	int8_t quo8s=(int8_t)(quo&0xff);							\
 	if (quo!=(Bit16s)quo8s) EXCEPTION(0);					\
 	reg_ah=(uint8_t)rem;												\
 	reg_al=(uint8_t)quo8s;											\
@@ -755,7 +755,7 @@ extern bool enable_fpu;
 
 #define IMULB(op1,load,save)								\
 {															\
-	reg_ax=((Bit8s)reg_al) * ((Bit8s)(load(op1)));			\
+	reg_ax=((int8_t)reg_al) * ((int8_t)(load(op1)));			\
 	FillFlagsNoCFOF();										\
 	SETFLAGBIT(ZF,reg_al == 0);								\
 	SETFLAGBIT(SF,reg_al & 0x80);							\

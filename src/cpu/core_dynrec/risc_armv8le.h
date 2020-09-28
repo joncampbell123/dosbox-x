@@ -694,7 +694,7 @@ static void gen_add_direct_word(void* dest,Bit32u imm,bool dword) {
 }
 
 // add an 8bit constant value to a dword memory value
-static void gen_add_direct_byte(void* dest,Bit8s imm) {
+static void gen_add_direct_byte(void* dest,int8_t imm) {
 	gen_add_direct_word(dest, (Bit32s)imm, 1);
 }
 
@@ -734,7 +734,7 @@ static void gen_sub_direct_word(void* dest,Bit32u imm,bool dword) {
 }
 
 // subtract an 8bit constant value from a dword memory value
-static void gen_sub_direct_byte(void* dest,Bit8s imm) {
+static void gen_sub_direct_byte(void* dest,int8_t imm) {
 	gen_sub_direct_word(dest, (Bit32s)imm, 1);
 }
 

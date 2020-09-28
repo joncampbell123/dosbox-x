@@ -1811,10 +1811,10 @@ call_code:
 						// catch pagefaults
 						if (call.saved.gate.paramcount&31) {
 							if (call.Type()==DESC_386_CALL_GATE) {
-								for (Bit8s i=(call.saved.gate.paramcount&31)-1;i>=0;i--) 
+								for (int8_t i=(call.saved.gate.paramcount&31)-1;i>=0;i--) 
 									mem_readd(o_stack+(uint8_t)i*4u);
 							} else {
-								for (Bit8s i=(call.saved.gate.paramcount&31)-1;i>=0;i--)
+								for (int8_t i=(call.saved.gate.paramcount&31)-1;i>=0;i--)
 									mem_readw(o_stack+(uint8_t)i*2u);
 							}
 						}
@@ -1856,7 +1856,7 @@ call_code:
 							CPU_Push32(o_ss);		//save old stack
 							CPU_Push32(o_esp);
 							if (call.saved.gate.paramcount&31)
-								for (Bit8s i=(call.saved.gate.paramcount&31)-1;i>=0;i--) 
+								for (int8_t i=(call.saved.gate.paramcount&31)-1;i>=0;i--) 
 									CPU_Push32(mem_readd(o_stack+(uint8_t)i*4u));
 							CPU_Push32(oldcs);
 							CPU_Push32(oldeip);
@@ -1864,7 +1864,7 @@ call_code:
 							CPU_Push16(o_ss);		//save old stack
 							CPU_Push16((Bit16u)o_esp);
 							if (call.saved.gate.paramcount&31)
-								for (Bit8s i=(call.saved.gate.paramcount&31)-1;i>=0;i--)
+								for (int8_t i=(call.saved.gate.paramcount&31)-1;i>=0;i--)
 									CPU_Push16(mem_readw(o_stack+(uint8_t)i*2u));
 							CPU_Push16(oldcs);
 							CPU_Push16(oldeip);
