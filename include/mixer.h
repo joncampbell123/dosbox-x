@@ -26,7 +26,7 @@
 #include "dosbox.h"
 #endif
 
-typedef void (*MIXER_MixHandler)(Bit8u * sampdate,Bit32u len);
+typedef void (*MIXER_MixHandler)(uint8_t * sampdate,Bit32u len);
 typedef void (*MIXER_Handler)(Bitu len);
 
 template <class T> T clamp(const T& n, const T& lower, const T& upper) {
@@ -35,7 +35,7 @@ template <class T> T clamp(const T& n, const T& lower, const T& upper) {
 
 #define MIXER_BUFSIZE (16*1024)
 #define MIXER_BUFMASK (MIXER_BUFSIZE-1)
-extern Bit8u MixTemp[MIXER_BUFSIZE];
+extern uint8_t MixTemp[MIXER_BUFSIZE];
 
 #define MAX_AUDIO ((1<<(16-1))-1)
 #define MIN_AUDIO -(1<<(16-1))
@@ -71,8 +71,8 @@ public:
 	void updateSlew(void);
 	void padFillSampleInterpolation(const Bitu upto);
 	void finishSampleInterpolation(const Bitu upto);
-	void AddSamples_m8(Bitu len, const Bit8u * data);
-	void AddSamples_s8(Bitu len, const Bit8u * data);
+	void AddSamples_m8(Bitu len, const uint8_t * data);
+	void AddSamples_s8(Bitu len, const uint8_t * data);
 	void AddSamples_m8s(Bitu len, const Bit8s * data);
 	void AddSamples_s8s(Bitu len, const Bit8s * data);
 	void AddSamples_m16(Bitu len, const Bit16s * data);

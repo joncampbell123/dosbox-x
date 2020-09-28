@@ -60,10 +60,10 @@ struct PIT_Block {
     Bit16u read_latch = 0;  /* counter value, latched for read back */
     Bit16u write_latch = 0; /* counter value, written by host */
 
-    Bit8u mode = 0;         /* 8254 mode (mode 0 through 5 inclusive) */
-    Bit8u read_state = 0;   /* 0=read MSB, switch to LSB, 1=LSB only, 2=MSB only, 3=read LSB, switch to MSB, latch next value */
-    Bit8u write_state = 0;  /* 0=write MSB, switch to LSB, 1=LSB only, 2=MSB only, 3=write MSB, switch to LSB, accept value */
-    Bit8u cycle_base = 0;
+    uint8_t mode = 0;         /* 8254 mode (mode 0 through 5 inclusive) */
+    uint8_t read_state = 0;   /* 0=read MSB, switch to LSB, 1=LSB only, 2=MSB only, 3=read LSB, switch to MSB, latch next value */
+    uint8_t write_state = 0;  /* 0=write MSB, switch to LSB, 1=LSB only, 2=MSB only, 3=write MSB, switch to LSB, accept value */
+    uint8_t cycle_base = 0;
 
     bool bcd = false;               /* BCD mode */
     bool go_read_latch = false;     /* reading should latch another value */
@@ -301,7 +301,7 @@ struct PIT_Block {
 
 static PIT_Block pit[3];
 
-static Bit8u latched_timerstatus;
+static uint8_t latched_timerstatus;
 // the timer status can not be overwritten until it is read or the timer was 
 // reprogrammed.
 static bool latched_timerstatus_locked;
@@ -564,7 +564,7 @@ static Bitu read_latch(Bitu port,Bitu /*iolen*/) {
     }
 
 	Bit32u counter=(Bit32u)(port-0x40);
-	Bit8u ret=0;
+	uint8_t ret=0;
 	if(GCC_UNLIKELY(pit[counter].counterstatus_set)){
 		pit[counter].counterstatus_set = false;
 		latched_timerstatus_locked = false;
@@ -633,7 +633,7 @@ static void write_p43(Bitu /*port*/,Bitu val,Bitu /*iolen*/) {
 			pit[latch].counting = false;
 			pit[latch].read_state  = (val >> 4) & 0x03;
 			pit[latch].write_state = (val >> 4) & 0x03;
-			Bit8u mode             = (val >> 1) & 0x07;
+			uint8_t mode             = (val >> 1) & 0x07;
 			if (mode > 5)
 				mode -= 4; //6,7 become 2 and 3
 

@@ -75,7 +75,7 @@ static Bitu read_p201(Bitu port,Bitu iolen) {
 	**  Joystick A, Button 2 -----------+   |   |   +----------- Joystick B, X Axis
 	**  Joystick A, Button 1 ---------------+   +--------------- Joystick B, Y Axis
 	**/
-	Bit8u ret=0xff;
+	uint8_t ret=0xff;
 	if (stick[0].enabled) {
 		if (stick[0].xcount) stick[0].xcount--; else ret&=~1;
 		if (stick[0].ycount) stick[0].ycount--; else ret&=~2;
@@ -94,7 +94,7 @@ static Bitu read_p201(Bitu port,Bitu iolen) {
 static Bitu read_p201_timed(Bitu port,Bitu iolen) {
     (void)port;//UNUSED
     (void)iolen;//UNUSED
-	Bit8u ret=0xff;
+	uint8_t ret=0xff;
 	double currentTick = PIC_FullIndex();
 	if( stick[0].enabled ){
 		if( stick[0].xtick < currentTick ) ret &=~1;

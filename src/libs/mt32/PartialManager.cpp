@@ -77,7 +77,7 @@ void PartialManager::deactivateAll() {
 	}
 }
 
-unsigned int PartialManager::setReserve(Bit8u *rset) {
+unsigned int PartialManager::setReserve(uint8_t *rset) {
 	unsigned int pr = 0;
 	for (int x = 0; x <= 8; x++) {
 		numReservedPartialsForPart[x] = rset[x];

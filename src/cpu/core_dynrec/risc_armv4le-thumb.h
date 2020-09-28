@@ -466,7 +466,7 @@ static void INLINE gen_mov_byte_to_reg_low_canuseword(HostReg dest_reg,void* dat
 // the upper 24bit of the destination register can be destroyed
 // this function does not use FC_OP1/FC_OP2 as dest_reg as these
 // registers might not be directly byte-accessible on some architectures
-static void gen_mov_byte_to_reg_low_imm(HostReg dest_reg,Bit8u imm) {
+static void gen_mov_byte_to_reg_low_imm(HostReg dest_reg,uint8_t imm) {
 	cache_addw( MOV_IMM(dest_reg, imm) );      // mov dest_reg, #(imm)
 }
 
@@ -474,7 +474,7 @@ static void gen_mov_byte_to_reg_low_imm(HostReg dest_reg,Bit8u imm) {
 // the upper 24bit of the destination register can be destroyed
 // this function can use FC_OP1/FC_OP2 as dest_reg which are
 // not directly byte-accessible on some architectures
-static void INLINE gen_mov_byte_to_reg_low_imm_canuseword(HostReg dest_reg,Bit8u imm) {
+static void INLINE gen_mov_byte_to_reg_low_imm_canuseword(HostReg dest_reg,uint8_t imm) {
 	gen_mov_byte_to_reg_low_imm(dest_reg, imm);
 }
 
@@ -793,7 +793,7 @@ static void INLINE gen_fill_branch(DRC_PTR_SIZE_IM data) {
 	if (len<0) len=-len;
 	if (len>252) LOG_MSG("Big jump %d",len);
 #endif
-	*(Bit8u*)data=(Bit8u)( ((Bit32u)cache.pos-(data+4)) >> 1 );
+	*(uint8_t*)data=(uint8_t)( ((Bit32u)cache.pos-(data+4)) >> 1 );
 }
 
 // conditional jump if register is nonzero
@@ -845,7 +845,7 @@ static void INLINE gen_fill_branch_long(Bit32u data) {
 }
 
 static void gen_run_code(void) {
-	Bit8u *pos1, *pos2, *pos3;
+	uint8_t *pos1, *pos2, *pos3;
 
 #if (__ARM_EABI__)
 	// 8-byte stack alignment
@@ -904,7 +904,7 @@ static void gen_return_function(void) {
 
 // called when a call to a function can be replaced by a
 // call to a simpler function
-static void gen_fill_function_ptr(Bit8u * pos,void* fct_ptr,Bitu flags_type) {
+static void gen_fill_function_ptr(uint8_t * pos,void* fct_ptr,Bitu flags_type) {
 #ifdef DRC_FLAGS_INVALIDATION_DCODE
 	if (((Bit32u)pos & 0x03) == 0)
 	{

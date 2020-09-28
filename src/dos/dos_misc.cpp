@@ -132,7 +132,7 @@ static bool DOS_MultiplexFunctions(void) {
 			PhysPt sftptr=Real2Phys(sftrealpt);
 			Bit32u sftofs=0x06u+reg_bx*0x3bu;
 
-			if (Files[reg_bx]) mem_writeb(sftptr+sftofs, (Bit8u)(Files[reg_bx]->refCtr));
+			if (Files[reg_bx]) mem_writeb(sftptr+sftofs, (uint8_t)(Files[reg_bx]->refCtr));
 			else mem_writeb(sftptr+sftofs,0);
 
 			if (!Files[reg_bx]) return true;
@@ -148,10 +148,10 @@ static bool DOS_MultiplexFunctions(void) {
 				mem_writew(sftptr+sftofs+0x11,0);		// size
 				mem_writew(sftptr+sftofs+0x15,0);		// current position
 			} else {
-				Bit8u drive=Files[reg_bx]->GetDrive();
+				uint8_t drive=Files[reg_bx]->GetDrive();
 
 				mem_writew(sftptr+sftofs+0x02,(Bit16u)(Files[reg_bx]->flags&3));	// file open mode
-				mem_writeb(sftptr+sftofs+0x04,(Bit8u)(Files[reg_bx]->attr));		// file attribute
+				mem_writeb(sftptr+sftofs+0x04,(uint8_t)(Files[reg_bx]->attr));		// file attribute
 				mem_writew(sftptr+sftofs+0x05,0x40|drive);							// device info word
 				mem_writed(sftptr+sftofs+0x07,RealMake(dos.tables.dpb,drive*dos.tables.dpb_size));	// dpb of the drive
 				mem_writew(sftptr+sftofs+0x0d,Files[reg_bx]->time);					// packed file time

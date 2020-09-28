@@ -45,7 +45,7 @@
 //#define DRC_USE_SEGS_ADDR
 
 // register mapping
-typedef Bit8u HostReg;
+typedef uint8_t HostReg;
 
 #define HOST_v0 2
 #define HOST_v1 3
@@ -239,7 +239,7 @@ static void INLINE gen_mov_byte_to_reg_low_canuseword(HostReg dest_reg,void* dat
 // the upper 24bit of the destination register can be destroyed
 // this function does not use FC_OP1/FC_OP2 as dest_reg as these
 // registers might not be directly byte-accessible on some architectures
-static void INLINE gen_mov_byte_to_reg_low_imm(HostReg dest_reg,Bit8u imm) {
+static void INLINE gen_mov_byte_to_reg_low_imm(HostReg dest_reg,uint8_t imm) {
 	gen_mov_word_to_reg_imm(dest_reg, imm);
 }
 
@@ -247,7 +247,7 @@ static void INLINE gen_mov_byte_to_reg_low_imm(HostReg dest_reg,Bit8u imm) {
 // the upper 24bit of the destination register can be destroyed
 // this function can use FC_OP1/FC_OP2 as dest_reg which are
 // not directly byte-accessible on some architectures
-static void INLINE gen_mov_byte_to_reg_low_imm_canuseword(HostReg dest_reg,Bit8u imm) {
+static void INLINE gen_mov_byte_to_reg_low_imm_canuseword(HostReg dest_reg,uint8_t imm) {
 	gen_mov_byte_to_reg_low_imm(dest_reg, imm);
 }
 
@@ -570,7 +570,7 @@ static void gen_return_function(void) {
 #ifdef DRC_FLAGS_INVALIDATION
 // called when a call to a function can be replaced by a
 // call to a simpler function
-static void gen_fill_function_ptr(Bit8u * pos,void* fct_ptr,Bitu flags_type) {
+static void gen_fill_function_ptr(uint8_t * pos,void* fct_ptr,Bitu flags_type) {
 #ifdef DRC_FLAGS_INVALIDATION_DCODE
 	// try to avoid function calls but rather directly fill in code
 	switch (flags_type) {
@@ -650,7 +650,7 @@ static void gen_fill_function_ptr(Bit8u * pos,void* fct_ptr,Bitu flags_type) {
 }
 #endif
 
-static void cache_block_closing(Bit8u* block_start,Bitu block_size) {
+static void cache_block_closing(uint8_t* block_start,Bitu block_size) {
 #ifdef PSP
 // writeback dcache and invalidate icache
 	Bit32u inval_start = ((Bit32u)block_start) & ~63;

@@ -97,7 +97,7 @@ bool xms_hma_alloc_non_dos_kernel_control = true;
 struct XMS_Block {
 	Bitu	size;
 	MemHandle mem;
-	Bit8u	locked;
+	uint8_t	locked;
 	bool	free;
 };
 
@@ -135,7 +135,7 @@ Bitu XMS_EnableA20(bool enable) {
     }
     else {
         // IBM PC/AT: Port 0x92, bit 1, set if A20 enabled
-        Bit8u val = IO_Read(0x92);
+        uint8_t val = IO_Read(0x92);
         if (enable) IO_Write(0x92,val | 2);
         else		IO_Write(0x92,val & ~2);
     }
@@ -335,7 +335,7 @@ Bitu XMS_UnlockMemory(Bitu handle) {
 	return XMS_BLOCK_NOT_LOCKED;
 }
 
-Bitu XMS_GetHandleInformation(Bitu handle, Bit8u& lockCount, Bit8u& numFree, Bit32u& size) {
+Bitu XMS_GetHandleInformation(Bitu handle, uint8_t& lockCount, uint8_t& numFree, Bit32u& size) {
 	if (InvalidHandle(handle)) return XMS_INVALID_HANDLE;
 	lockCount = xms_handles[handle].locked;
 	/* Find available blocks */
@@ -373,7 +373,7 @@ static bool multiplex_xms(void) {
 }
 
 INLINE void SET_RESULT(Bitu res,bool touch_bl_on_succes=true) {
-	if(touch_bl_on_succes || res) reg_bl = (Bit8u)res;
+	if(touch_bl_on_succes || res) reg_bl = (uint8_t)res;
 	reg_ax = (res==0)?1:0;
 }
 
@@ -491,7 +491,7 @@ Bitu XMS_Handler(void) {
 		reg_bl = 0;
 		break;
 	case XMS_QUERY_FREE_EXTENDED_MEMORY:						/* 08 */
-		reg_bl = (Bit8u)XMS_QueryFreeMemory(reg_eax,reg_edx);
+		reg_bl = (uint8_t)XMS_QueryFreeMemory(reg_eax,reg_edx);
 		if (reg_eax > 65535) reg_eax = 65535; /* cap sizes for older DOS programs. newer ones use function 0x88 */
 		if (reg_edx > 65535) reg_edx = 65535;
 		break;
@@ -518,7 +518,7 @@ Bitu XMS_Handler(void) {
 	case XMS_LOCK_EXTENDED_MEMORY_BLOCK: {						/* 0c */
 		Bit32u address;
 		Bitu res = XMS_LockMemory(reg_dx, address);
-		if(res) reg_bl = (Bit8u)res;
+		if(res) reg_bl = (uint8_t)res;
 		reg_ax = (res==0);
 		if (res==0) { // success
 			reg_bx=(Bit16u)(address & 0xFFFF);
@@ -553,9 +553,9 @@ Bitu XMS_Handler(void) {
 		}
 		/* Save status and linkage of upper UMB chain and link upper
 		   memory to the regular MCB chain */
-		Bit8u umb_flag=dos_infoblock.GetUMBChainState();
+		uint8_t umb_flag=dos_infoblock.GetUMBChainState();
 		if ((umb_flag&1)==0) DOS_LinkUMBsToMemChain(1);
-		Bit8u old_memstrat=DOS_GetMemAllocStrategy()&0xff;
+		uint8_t old_memstrat=DOS_GetMemAllocStrategy()&0xff;
 		DOS_SetMemAllocStrategy(0x40);	// search in UMBs only
 
 		Bit16u size=reg_dx;Bit16u seg;
@@ -570,7 +570,7 @@ Bitu XMS_Handler(void) {
 		}
 
 		/* Restore status and linkage of upper UMB chain */
-		Bit8u current_umb_flag=dos_infoblock.GetUMBChainState();
+		uint8_t current_umb_flag=dos_infoblock.GetUMBChainState();
 		if ((current_umb_flag&1)!=(umb_flag&1)) DOS_LinkUMBsToMemChain(umb_flag);
 		DOS_SetMemAllocStrategy(old_memstrat);
 		}
@@ -591,13 +591,13 @@ Bitu XMS_Handler(void) {
 		reg_bl=UMB_NO_BLOCKS_AVAILABLE;
 		break;
 	case XMS_QUERY_ANY_FREE_MEMORY:								/* 88 */
-		reg_bl = (Bit8u)XMS_QueryFreeMemory(reg_eax,reg_edx);
+		reg_bl = (uint8_t)XMS_QueryFreeMemory(reg_eax,reg_edx);
 		reg_ecx = (Bit32u)((MEM_TotalPages()*MEM_PAGESIZE)-1);			// highest known physical memory address
 		break;
 	case XMS_GET_EMB_HANDLE_INFORMATION_EXT: {					/* 8e */
-		Bit8u free_handles;
+		uint8_t free_handles;
 		Bitu result = XMS_GetHandleInformation(reg_dx,reg_bh,free_handles,reg_edx);
-		if (result != 0) reg_bl = (Bit8u)result;
+		if (result != 0) reg_bl = (uint8_t)result;
 		else reg_cx = free_handles;
 		reg_ax = (result==0);
 		} break;

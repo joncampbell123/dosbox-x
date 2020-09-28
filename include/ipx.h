@@ -112,10 +112,10 @@ public:
    	ECBClass *prevECB;	// Linked List
 	ECBClass *nextECB;
 	
-	Bit8u iuflag;		// Need to save data since we are not always in
+	uint8_t iuflag;		// Need to save data since we are not always in
 	Bit16u mysocket;	// real mode
 
-	Bit8u* databuffer;	// received data is stored here until we get called
+	uint8_t* databuffer;	// received data is stored here until we get called
 	Bitu buflen;		// by Interrupt
 
 #ifdef IPX_DEBUGMSG 
@@ -125,24 +125,24 @@ public:
 	ECBClass(Bit16u segment, Bit16u offset);
 	Bit16u getSocket(void);
 
-	Bit8u getInUseFlag(void);
+	uint8_t getInUseFlag(void);
 
-	void setInUseFlag(Bit8u flagval);
+	void setInUseFlag(uint8_t flagval);
 
-	void setCompletionFlag(Bit8u flagval);
+	void setCompletionFlag(uint8_t flagval);
 
 	Bit16u getFragCount(void);
 
 	bool writeData();
-	void writeDataBuffer(Bit8u* buffer, Bit16u length);
+	void writeDataBuffer(uint8_t* buffer, Bit16u length);
 
 	void getFragDesc(Bit16u descNum, fragmentDescriptor *fragDesc);
 	RealPt getESRAddr(void);
 
 	void NotifyESR(void);
 
-	void setImmAddress(Bit8u *immAddr);
-	void getImmAddress(Bit8u* immAddr);
+	void setImmAddress(uint8_t *immAddr);
+	void getImmAddress(uint8_t* immAddr);
 
 	~ECBClass();
 };

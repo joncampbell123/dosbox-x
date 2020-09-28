@@ -156,7 +156,7 @@ void AutoexecObject::CreateAutoexec(void) {
 		}
 		sprintf((autoexec_data + auto_len),"%s\r\n",linecopy.c_str());
 	}
-	if (first_shell) VFILE_Register("AUTOEXEC.BAT",(Bit8u *)autoexec_data,(Bit32u)strlen(autoexec_data));
+	if (first_shell) VFILE_Register("AUTOEXEC.BAT",(uint8_t *)autoexec_data,(Bit32u)strlen(autoexec_data));
 }
 
 void AutoexecObject::Uninstall() {
@@ -588,7 +588,7 @@ void DOS_Shell::Run(void) {
 			strcat(config_data, (char *)section->Get_string("rem"));
 			strcat(config_data, "\r\n");
 		}
-		VFILE_Register("CONFIG.SYS",(Bit8u *)config_data,(Bit32u)strlen(config_data));
+		VFILE_Register("CONFIG.SYS",(uint8_t *)config_data,(Bit32u)strlen(config_data));
 #if defined(WIN32)
 		if (!control->opt_securemode&&!control->SecureMode())
 		{
@@ -632,7 +632,7 @@ void DOS_Shell::Run(void) {
 				}
 			}
 		}
-		VFILE_Register("4DOS.INI",(Bit8u *)i4dos_data,(Bit32u)strlen(i4dos_data));
+		VFILE_Register("4DOS.INI",(uint8_t *)i4dos_data,(Bit32u)strlen(i4dos_data));
     }
     else if (!optInit) {
         WriteOut(optK?"\n":"DOSBox-X command shell [Version %s %s]\nCopyright DOSBox-X Team. All rights reserved\n\n",VERSION,SDL_STRING);
@@ -857,7 +857,7 @@ public:
 
 		assert(i <= 17); /* FIXME: autoexec[] should not be fixed size */
 
-		VFILE_Register("AUTOEXEC.BAT",(Bit8u *)autoexec_data,(Bit32u)strlen(autoexec_data));
+		VFILE_Register("AUTOEXEC.BAT",(uint8_t *)autoexec_data,(Bit32u)strlen(autoexec_data));
 	}
 };
 
@@ -1530,7 +1530,7 @@ void SHELL_Init() {
 #endif
     }
     long f_size;
-    Bit8u *f_data;
+    uint8_t *f_data;
     for (std::string name: names) {
 #if defined(WIN32)
         FILE * f = fopen((path+"\\"+name).c_str(), "rb");
@@ -1551,7 +1551,7 @@ void SHELL_Init() {
         if(f != NULL) {
             fseek(f, 0, SEEK_END);
             f_size=ftell(f);
-            f_data=(Bit8u*)malloc(f_size);
+            f_data=(uint8_t*)malloc(f_size);
             fseek(f, 0, SEEK_SET);
             fread(f_data, sizeof(char), f_size, f);
             fclose(f);
@@ -1644,7 +1644,7 @@ void SHELL_Init() {
 	psp.SetEnvironment(env_seg);
 	/* Set the command line for the shell start up */
 	CommandTail tail;
-	tail.count=(Bit8u)strlen(init_line);
+	tail.count=(uint8_t)strlen(init_line);
 	memset(&tail.buffer, 0, CTBUF);
 	strncpy(tail.buffer,init_line,CTBUF);
 	MEM_BlockWrite(PhysMake(psp_seg,CTBUF+1),&tail,CTBUF+1);

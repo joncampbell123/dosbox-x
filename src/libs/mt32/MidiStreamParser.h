@@ -32,10 +32,10 @@ public:
 	virtual void handleShortMessage(const Bit32u message) = 0;
 
 	// Invoked when a complete well-formed System Exclusive MIDI message is parsed in the input MIDI stream.
-	virtual void handleSysex(const Bit8u stream[], const Bit32u length) = 0;
+	virtual void handleSysex(const uint8_t stream[], const Bit32u length) = 0;
 
 	// Invoked when a System Realtime MIDI message is parsed in the input MIDI stream.
-	virtual void handleSystemRealtimeMessage(const Bit8u realtime) = 0;
+	virtual void handleSystemRealtimeMessage(const uint8_t realtime) = 0;
 
 protected:
 	~MidiReceiver() {}
@@ -67,15 +67,15 @@ public:
 	// Parses a block of raw MIDI bytes. All the parsed MIDI messages are sent in sequence to the user-supplied methods for further processing.
 	// SysEx messages are allowed to be fragmented across several calls to this method. Running status is also handled for short messages.
 	// NOTE: the total length of a SysEx message being fragmented shall not exceed MAX_STREAM_BUFFER_SIZE (32768 bytes).
-	void parseStream(const Bit8u *stream, Bit32u length);
+	void parseStream(const uint8_t *stream, Bit32u length);
 
 	// Convenience method which accepts a Bit32u-encoded short MIDI message and sends it to the user-supplied method for further processing.
 	// The short MIDI message may contain no status byte, the running status is used in this case.
 	void processShortMessage(const Bit32u message);
 
 private:
-	Bit8u runningStatus;
-	Bit8u *streamBuffer;
+	uint8_t runningStatus;
+	uint8_t *streamBuffer;
 	Bit32u streamBufferCapacity;
 	Bit32u streamBufferSize;
 	MidiReceiver &midiReceiver;
@@ -85,11 +85,11 @@ private:
 	void *reserved;
 
 	bool checkStreamBufferCapacity(const bool preserveContent);
-	bool processStatusByte(Bit8u &status);
-	Bit32u parseShortMessageStatus(const Bit8u stream[]);
-	Bit32u parseShortMessageDataBytes(const Bit8u stream[], Bit32u length);
-	Bit32u parseSysex(const Bit8u stream[], const Bit32u length);
-	Bit32u parseSysexFragment(const Bit8u stream[], const Bit32u length);
+	bool processStatusByte(uint8_t &status);
+	Bit32u parseShortMessageStatus(const uint8_t stream[]);
+	Bit32u parseShortMessageDataBytes(const uint8_t stream[], Bit32u length);
+	Bit32u parseSysex(const uint8_t stream[], const Bit32u length);
+	Bit32u parseSysexFragment(const uint8_t stream[], const Bit32u length);
 }; // class MidiStreamParserImpl
 
 // An abstract class that provides a context for parsing a stream of MIDI events coming from a single source.
@@ -109,8 +109,8 @@ public:
 
 protected:
 	void handleShortMessage(const Bit32u message);
-	void handleSysex(const Bit8u *stream, const Bit32u length);
-	void handleSystemRealtimeMessage(const Bit8u realtime);
+	void handleSysex(const uint8_t *stream, const Bit32u length);
+	void handleSystemRealtimeMessage(const uint8_t realtime);
 	void printDebug(const char *debugMessage);
 
 private:

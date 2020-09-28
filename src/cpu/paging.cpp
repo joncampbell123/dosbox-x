@@ -33,7 +33,7 @@
 PagingBlock paging;
 
 // Pagehandler implementation
-Bit8u PageHandler::readb(PhysPt addr) {
+uint8_t PageHandler::readb(PhysPt addr) {
 	E_Exit("No byte handler for read from %x",addr);	
 	return 0;
 }
@@ -50,19 +50,19 @@ Bit32u PageHandler::readd(PhysPt addr) {
     return ret;
 }
 
-void PageHandler::writeb(PhysPt addr,Bit8u /*val*/) {
+void PageHandler::writeb(PhysPt addr,uint8_t /*val*/) {
 	E_Exit("No byte handler for write to %x",addr);	
 }
 
 void PageHandler::writew(PhysPt addr,Bit16u val) {
-	writeb(addr+0,(Bit8u) (val >> 0));
-	writeb(addr+1,(Bit8u) (val >> 8));
+	writeb(addr+0,(uint8_t) (val >> 0));
+	writeb(addr+1,(uint8_t) (val >> 8));
 }
 void PageHandler::writed(PhysPt addr,Bit32u val) {
-	writeb(addr+0,(Bit8u) (val >> 0));
-	writeb(addr+1,(Bit8u) (val >> 8));
-	writeb(addr+2,(Bit8u) (val >> 16));
-	writeb(addr+3,(Bit8u) (val >> 24));
+	writeb(addr+0,(uint8_t) (val >> 0));
+	writeb(addr+1,(uint8_t) (val >> 8));
+	writeb(addr+2,(uint8_t) (val >> 16));
+	writeb(addr+3,(uint8_t) (val >> 24));
 }
 
 HostPt PageHandler::GetHostReadPt(Bitu /*phys_page*/) {
@@ -73,7 +73,7 @@ HostPt PageHandler::GetHostWritePt(Bitu /*phys_page*/) {
 	return 0;
 }
 
-bool PageHandler::readb_checked(PhysPt addr, Bit8u * val) {
+bool PageHandler::readb_checked(PhysPt addr, uint8_t * val) {
 	*val=readb(addr);	return false;
 }
 bool PageHandler::readw_checked(PhysPt addr, Bit16u * val) {
@@ -82,7 +82,7 @@ bool PageHandler::readw_checked(PhysPt addr, Bit16u * val) {
 bool PageHandler::readd_checked(PhysPt addr, Bit32u * val) {
 	*val=readd(addr);	return false;
 }
-bool PageHandler::writeb_checked(PhysPt addr,Bit8u val) {
+bool PageHandler::writeb_checked(PhysPt addr,uint8_t val) {
 	writeb(addr,val);	return false;
 }
 bool PageHandler::writew_checked(PhysPt addr,Bit16u val) {
@@ -146,7 +146,7 @@ Bitu DEBUG_EnableDebugger(void);
 
 // Intel says the lowest numeric value wins for both 386 and 486+
 // There's something strange about KR with WP=1 though
-static const Bit8u translate_array[] = {
+static const uint8_t translate_array[] = {
 	ACCESS_KR,		// 00 00
 	ACCESS_KR,		// 00 01
 	ACCESS_KR,		// 00 10
@@ -178,7 +178,7 @@ static const Bit8u translate_array[] = {
 // bit2   1=user mode
 // bit3   WP on
 
-static const Bit8u xlat_mapping[] = {
+static const uint8_t xlat_mapping[] = {
 //  KR        KRW       UR        URW
 	// index 0-3   kernel, wp 0
 	ACMAP_RW, ACMAP_RW, ACMAP_RW, ACMAP_RW,
@@ -197,7 +197,7 @@ static const Bit8u xlat_mapping[] = {
 // bit3   1=writing
 // bit4   wp
 
-static const Bit8u fault_table[] = {
+static const uint8_t fault_table[] = {
 //	KR	KRW	UR	URW
 	// WP 0
 	// index 0-3   kernel, reading
@@ -362,11 +362,11 @@ private:
 	}
 public:
 	PageFoilHandler() : PageHandler(PFLAG_INIT|PFLAG_NOCODE) {}
-	Bit8u readb(PhysPt addr) {(void)addr;read();return 0;}
+	uint8_t readb(PhysPt addr) {(void)addr;read();return 0;}
 	Bit16u readw(PhysPt addr) {(void)addr;read();return 0;}
 	Bit32u readd(PhysPt addr) {(void)addr;read();return 0;}
 
-    void writeb(PhysPt addr,Bit8u val) {
+    void writeb(PhysPt addr,uint8_t val) {
         work(addr);
         // execute the write:
         // no need to care about mpl because we won't be entered
@@ -382,11 +382,11 @@ public:
         mem_writed(addr,val);
     }
 
-    bool readb_checked(PhysPt addr, Bit8u * val) {(void)addr;(void)val;read();return true;}
+    bool readb_checked(PhysPt addr, uint8_t * val) {(void)addr;(void)val;read();return true;}
     bool readw_checked(PhysPt addr, Bit16u * val) {(void)addr;(void)val;read();return true;}
     bool readd_checked(PhysPt addr, Bit32u * val) {(void)addr;(void)val;read();return true;}
 
-    bool writeb_checked(PhysPt addr,Bit8u val) {
+    bool writeb_checked(PhysPt addr,uint8_t val) {
         work(addr);
         mem_writeb(addr,val);
         return false;
@@ -453,7 +453,7 @@ private:
 		PAGING_ClearTLB(); // TODO got a better idea?
 	}
 
-	Bit8u readb_through(PhysPt addr) {
+	uint8_t readb_through(PhysPt addr) {
 		Bitu lin_page = addr >> 12;
 		Bit32u phys_page = paging.tlb.phys_page[lin_page] & PHYSPAGE_ADDR;
 		PageHandler* handler = MEM_GetPageHandler(phys_page);
@@ -481,7 +481,7 @@ private:
 		else return handler->readd(addr);
 			}
 
-	void writeb_through(PhysPt addr, Bit8u val) {
+	void writeb_through(PhysPt addr, uint8_t val) {
 		Bitu lin_page = addr >> 12;
 		Bit32u phys_page = paging.tlb.phys_page[lin_page] & PHYSPAGE_ADDR;
 		PageHandler* handler = MEM_GetPageHandler(phys_page);
@@ -513,7 +513,7 @@ private:
 
 public:
 	ExceptionPageHandler() : PageHandler(PFLAG_INIT|PFLAG_NOCODE) {}
-	Bit8u readb(PhysPt addr) {
+	uint8_t readb(PhysPt addr) {
 		if (!cpu.mpl) return readb_through(addr);
 			
 		Exception(addr, false, false);
@@ -534,7 +534,7 @@ public:
 		Exception(addr, false, false);
 		return mem_readd(addr);
 		}
-	void writeb(PhysPt addr,Bit8u val) {
+	void writeb(PhysPt addr,uint8_t val) {
 		if (!cpu.mpl) {
 			writeb_through(addr, val);
 			return;
@@ -567,7 +567,7 @@ public:
 		mem_writed(addr, val);
 	}
 	// returning true means an exception was triggered for these _checked functions
-	bool readb_checked(PhysPt addr, Bit8u * val) {
+	bool readb_checked(PhysPt addr, uint8_t * val) {
         (void)val;//UNUSED
 		Exception(addr, false, true);
 		return true;
@@ -582,7 +582,7 @@ public:
 		Exception(addr, false, true);
 		return true;
 		}
-	bool writeb_checked(PhysPt addr,Bit8u val) {
+	bool writeb_checked(PhysPt addr,uint8_t val) {
         (void)val;//UNUSED
 		Exception(addr, true, true);
 		return true;
@@ -609,7 +609,7 @@ static void PAGING_LinkPageNew(Bitu lin_page, Bitu phys_page, Bitu linkmode, boo
 class NewInitPageHandler : public PageHandler {
 public:
 	NewInitPageHandler() : PageHandler(PFLAG_INIT|PFLAG_NOCODE) {}
-	Bit8u readb(PhysPt addr) {
+	uint8_t readb(PhysPt addr) {
 		InitPage(addr, false, false);
 		return mem_readb(addr);
 	}
@@ -621,7 +621,7 @@ public:
 		InitPage(addr, false, false);
 		return mem_readd(addr);
 	}
-	void writeb(PhysPt addr,Bit8u val) {
+	void writeb(PhysPt addr,uint8_t val) {
 		InitPage(addr, true, false);
 		mem_writeb(addr,val);
 	}
@@ -634,7 +634,7 @@ public:
 		mem_writed(addr,val);
 	}
 
-	bool readb_checked(PhysPt addr, Bit8u * val) {
+	bool readb_checked(PhysPt addr, uint8_t * val) {
 		if (InitPage(addr, false, true)) return true;
 		*val=mem_readb(addr);
 			return false;
@@ -649,7 +649,7 @@ public:
 		*val=mem_readd(addr);
 			return false;
 		}
-	bool writeb_checked(PhysPt addr,Bit8u val) {
+	bool writeb_checked(PhysPt addr,uint8_t val) {
 		if (InitPage(addr, true, true)) return true;
 		mem_writeb(addr,val);
 		return false;
@@ -845,7 +845,7 @@ void PAGING_MapPage(Bitu lin_page,Bitu phys_page) {
 
 static void PAGING_LinkPageNew(Bitu lin_page, Bitu phys_page, Bitu linkmode, bool dirty) {
 	Bitu xlat_index = linkmode | (paging.wp? 8:0) | ((cpu.cpl==3)? 4:0);
-	Bit8u outcome = xlat_mapping[xlat_index];
+	uint8_t outcome = xlat_mapping[xlat_index];
 
 	// get the physpage handler we are going to map 
 	PageHandler * handler=MEM_GetPageHandler(phys_page);

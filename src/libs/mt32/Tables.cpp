@@ -37,13 +37,13 @@ Tables::Tables() {
 		if (val > 255) {
 			val = 255;
 		}
-		levelToAmpSubtraction[lf] = Bit8u(val);
+		levelToAmpSubtraction[lf] = uint8_t(val);
 	}
 
 	envLogarithmicTime[0] = 64;
 	for (int lf = 1; lf <= 255; lf++) {
 		// CONFIRMED:KG: This matches a ROM table found by Mok
-		envLogarithmicTime[lf] = Bit8u(ceil(64.0f + LOG2F(float(lf)) * 8.0f));
+		envLogarithmicTime[lf] = uint8_t(ceil(64.0f + LOG2F(float(lf)) * 8.0f));
 	}
 
 #if 0
@@ -64,12 +64,12 @@ Tables::Tables() {
 	// CONFIRMED: Based on a table found by Mok in the MT-32 control ROM
 	masterVolToAmpSubtraction[0] = 255;
 	for (int masterVol = 1; masterVol <= 100; masterVol++) {
-		masterVolToAmpSubtraction[masterVol] = Bit8u(106.31 - 16.0f * LOG2F(float(masterVol)));
+		masterVolToAmpSubtraction[masterVol] = uint8_t(106.31 - 16.0f * LOG2F(float(masterVol)));
 	}
 #endif
 
 	for (int i = 0; i <= 100; i++) {
-		pulseWidth100To255[i] = Bit8u(i * 255 / 100.0f + 0.5f);
+		pulseWidth100To255[i] = uint8_t(i * 255 / 100.0f + 0.5f);
 		//synth->printDebug("%d: %d", i, pulseWidth100To255[i]);
 	}
 
@@ -90,7 +90,7 @@ Tables::Tables() {
 	logsin9[0] = 8191;
 
 	// found from sample analysis
-	static const Bit8u resAmpDecayFactorTable[] = {31, 16, 12, 8, 5, 3, 2, 1};
+	static const uint8_t resAmpDecayFactorTable[] = {31, 16, 12, 8, 5, 3, 2, 1};
 	resAmpDecayFactor = resAmpDecayFactorTable;
 }
 

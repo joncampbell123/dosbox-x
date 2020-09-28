@@ -21,7 +21,7 @@
 
 #if DBPP == 8
 #define PSIZE 1
-#define PTYPE Bit8u
+#define PTYPE uint8_t
 #define WC scalerWriteCache.b8
 //#define FC scalerFrameCache.b8
 #define FC (*(scalerFrameCache_t*)(&scalerSourceCache.b32[400][0])).b8
@@ -104,7 +104,7 @@
 #elif DBPP == 32
 #define PMAKE(_VAL) render.pal.lut.b32[_VAL]
 #endif
-#define SRCTYPE Bit8u
+#define SRCTYPE uint8_t
 #endif
 
 #if SBPP == 15

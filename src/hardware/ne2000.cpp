@@ -1396,7 +1396,7 @@ bx_ne2k_c::rx_frame(const void *buf, unsigned io_len)
 
 }
 
-//Bit8u macaddr[6] = { 0xAC, 0xDE, 0x48, 0x8E, 0x89, 0x19 };
+//uint8_t macaddr[6] = { 0xAC, 0xDE, 0x48, 0x8E, 0x89, 0x19 };
 
 Bitu dosbox_read(Bitu port, Bitu len) {
 	Bitu retval = theNE2kDevice->read((Bit32u)port,(unsigned int)len);
@@ -1575,7 +1575,7 @@ public:
 		// mac address
 		const char* macstring=section->Get_string("macaddr");
 		unsigned int macint[6];
-		Bit8u mac[6];
+		uint8_t mac[6];
 		if(sscanf(macstring,"%02x:%02x:%02x:%02x:%02x:%02x",
 			&macint[0],&macint[1],&macint[2],&macint[3],&macint[4],&macint[5]) != 6) {
 			mac[0]=0xac;mac[1]=0xde;mac[2]=0x48;

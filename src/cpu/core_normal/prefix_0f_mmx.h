@@ -224,8 +224,8 @@
 	{
 		if (CPU_ArchitectureType<CPU_ARCHTYPE_PMMXSLOW) goto illegal_opcode;
 		GetRM;
-		Bit8u op=(rm>>3)&7;
-		Bit8u shift=Fetchb();
+		uint8_t op=(rm>>3)&7;
+		uint8_t shift=Fetchb();
 		MMX_reg* dest=reg_mmx[rm&7];
 		switch (op) {
 			case 0x06: 	/*PSLLW*/
@@ -337,8 +337,8 @@
 	{
 		if (CPU_ArchitectureType<CPU_ARCHTYPE_PMMXSLOW) goto illegal_opcode;
 		GetRM;
-		Bit8u op=(rm>>3)&7;
-		Bit8u shift=Fetchb();
+		uint8_t op=(rm>>3)&7;
+		uint8_t shift=Fetchb();
 		MMX_reg* dest=reg_mmx[rm&7];
 		switch (op) {
 			case 0x06: 	/*PSLLD*/
@@ -409,11 +409,11 @@
 	{
 		if (CPU_ArchitectureType<CPU_ARCHTYPE_PMMXSLOW) goto illegal_opcode;
 		GetRM;
-		Bit8u shift=Fetchb();
+		uint8_t shift=Fetchb();
 		MMX_reg* dest=reg_mmx[rm&7];
 		if (shift > 63) dest->q = 0;
 		else {
-			Bit8u op=rm&0x20;
+			uint8_t op=rm&0x20;
 			if (op) {
 				dest->q <<= shift;
 			} else {

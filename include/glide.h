@@ -25,7 +25,7 @@
 /*
 ** basic data types
 */
-typedef Bit8u   FxU8;
+typedef uint8_t   FxU8;
 typedef Bit8s   FxI8;
 typedef Bit16u  FxU16;
 typedef Bit16s  FxI16;
@@ -96,7 +96,7 @@ typedef struct {
 
 typedef struct {
     const char * name;
-    const Bit8u parms;
+    const uint8_t parms;
 } GLIDE_TABLE;
 
 typedef void (FX_CALL *pfunc0)		(void);

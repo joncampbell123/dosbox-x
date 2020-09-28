@@ -67,10 +67,10 @@ static const fltype frqmul_tab[16] = {
 static fltype frqmul[16];
 
 // key scale levels
-static Bit8u kslev[8][16];
+static uint8_t kslev[8][16];
 
 // map a channel number to the register offset of the modulator (=register base)
-static const Bit8u modulatorbase[9]	= {
+static const uint8_t modulatorbase[9]	= {
 	0,1,2,
 	8,9,10,
 	16,17,18
@@ -78,20 +78,20 @@ static const Bit8u modulatorbase[9]	= {
 
 // map a register base to a modulator operator number or operator number
 #if defined(OPLTYPE_IS_OPL3)
-static const Bit8u regbase2modop[44] = {
+static const uint8_t regbase2modop[44] = {
 	0,1,2,0,1,2,0,0,3,4,5,3,4,5,0,0,6,7,8,6,7,8,					// first set
 	18,19,20,18,19,20,0,0,21,22,23,21,22,23,0,0,24,25,26,24,25,26	// second set
 };
-static const Bit8u regbase2op[44] = {
+static const uint8_t regbase2op[44] = {
 	0,1,2,9,10,11,0,0,3,4,5,12,13,14,0,0,6,7,8,15,16,17,			// first set
 	18,19,20,27,28,29,0,0,21,22,23,30,31,32,0,0,24,25,26,33,34,35	// second set
 };
 #else
-static const Bit8u regbase2modop[22*2] = {
+static const uint8_t regbase2modop[22*2] = {
 	0,1,2,0,1,2,0,0,3,4,5,3,4,5,0,0,6,7,8,6,7,8,
 	0,1,2,0,1,2,0,0,3,4,5,3,4,5,0,0,6,7,8,6,7,8
 };
-static const Bit8u regbase2op[22*2] = {
+static const uint8_t regbase2op[22*2] = {
 	0,1,2,9,10,11,0,0,3,4,5,12,13,14,0,0,6,7,8,15,16,17,
 	0,1,2,9,10,11,0,0,3,4,5,12,13,14,0,0,6,7,8,15,16,17
 };
@@ -331,7 +331,7 @@ void change_attackrate(Bitu regbase, op_type* op_pt) {
 		op_pt->env_step_a = (1<<(steps<=12?12-steps:0))-1;
 
 		Bits step_num = (step_skip<=48)?(4-(step_skip&3)):0;
-		static Bit8u step_skip_mask[5] = {0xff, 0xfe, 0xee, 0xba, 0xaa}; 
+		static uint8_t step_skip_mask[5] = {0xff, 0xfe, 0xee, 0xba, 0xaa}; 
 		op_pt->env_step_skip_a = step_skip_mask[step_num];
 
 #if defined(OPLTYPE_IS_OPL3)
@@ -586,12 +586,12 @@ void adlib_init(Bit32u samplerate) {
 		kslev[7][0] = 0;	kslev[7][1] = 24;	kslev[7][2] = 32;	kslev[7][3] = 37;
 		kslev[7][4] = 40;	kslev[7][5] = 43;	kslev[7][6] = 45;	kslev[7][7] = 47;
 		kslev[7][8] = 48;
-		for (i=9;i<16;i++) kslev[7][i] = (Bit8u)(i+41);
+		for (i=9;i<16;i++) kslev[7][i] = (uint8_t)(i+41);
 		for (Bits j=6;j>=0;j--) {
 			for (i=0;i<16;i++) {
 				Bits oct = (Bits)kslev[j+1][i]-8;
 				if (oct < 0) oct = 0;
-				kslev[j][i] = (Bit8u)oct;
+				kslev[j][i] = (uint8_t)oct;
 			}
 		}
 	}
@@ -600,7 +600,7 @@ void adlib_init(Bit32u samplerate) {
 
 
 
-void adlib_write(Bitu idx, Bit8u val) {
+void adlib_write(Bitu idx, uint8_t val) {
 	Bit32u second_set = idx&0x100;
 	adlibreg[idx] = val;
 
@@ -912,7 +912,7 @@ Bitu adlib_reg_read(Bitu port) {
 #endif
 }
 
-void adlib_write_index(Bitu port, Bit8u val) {
+void adlib_write_index(Bitu port, uint8_t val) {
     (void)port;//POSSIBLY UNUSED
 	opl_index = val;
 #if defined(OPLTYPE_IS_OPL3)

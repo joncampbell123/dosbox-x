@@ -52,7 +52,7 @@ static void bank_setup_pvga1a() {
 		// TODO: Requirements are not compatible with vga_memory implementation.
 	} else {
 		// Single bank config is straightforward
-		vga.svga.bank_read = vga.svga.bank_write = (Bit8u)pvga1a.PR0A;
+		vga.svga.bank_read = vga.svga.bank_write = (uint8_t)pvga1a.PR0A;
 		vga.svga.bank_size = 4*1024;
 		VGA_SetupHandlers();
 	}
@@ -149,7 +149,7 @@ void FinishSetMode_PVGA1A(Bitu /*crtc_base*/, VGA_ModeExtraData* modeData) {
 	IO_Write(0x3ce, 0x0a);
 	IO_Write(0x3cf, 0x00);
 	IO_Write(0x3ce, 0x0b);
-	Bit8u val = IO_Read(0x3cf);
+	uint8_t val = IO_Read(0x3cf);
 	IO_Write(0x3cf, val & ~0x08);
 	IO_Write(0x3ce, 0x0c);
 	IO_Write(0x3cf, 0x00);
@@ -158,7 +158,7 @@ void FinishSetMode_PVGA1A(Bitu /*crtc_base*/, VGA_ModeExtraData* modeData) {
 	IO_Write(0x3ce, 0x0e);
 	IO_Write(0x3cf, 0x00);
 	IO_Write(0x3ce, 0x0f);
-	IO_Write(0x3cf, (Bit8u)oldlock);
+	IO_Write(0x3cf, (uint8_t)oldlock);
 
 	if (svga.determine_mode)
 		svga.determine_mode();

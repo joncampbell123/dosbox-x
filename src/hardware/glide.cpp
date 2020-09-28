@@ -99,7 +99,7 @@ static HostPt hwnd=NULL;
 static char lfbacc=0;
 
 // Tomb Rider shadow hack
-static Bit8u tomb = 0;
+static uint8_t tomb = 0;
 static FxI32 GrOriginLocation = 0;
 
 #if defined (WIN32)
@@ -260,9 +260,9 @@ public:
 	return lin_addr[buffer];
     }
 
-    Bit8u readb(PhysPt addr) {
+    uint8_t readb(PhysPt addr) {
 //	LOG_MSG("Glide:Read from 0x%p", LFB_getAddr(addr));
-	return *(Bit8u *)(LFB_getAddr(addr));
+	return *(uint8_t *)(LFB_getAddr(addr));
     }
 
     Bit16u readw(PhysPt addr) {
@@ -275,9 +275,9 @@ public:
 	return *(Bit32u *)(LFB_getAddr(addr));
     }
 
-    void writeb(PhysPt addr,Bit8u val) {
+    void writeb(PhysPt addr,uint8_t val) {
 //	LOG_MSG("Glide:Write to 0x%p", LFB_getAddr(addr));
-	*(Bit8u *)(LFB_getAddr(addr))=(Bit8u)val;
+	*(uint8_t *)(LFB_getAddr(addr))=(uint8_t)val;
     }
 
     void writew(PhysPt addr,Bit16u val) {
@@ -513,7 +513,7 @@ void grGlideShutdown(void) {
 static bool GetFileName(char * filename)
 {
     localDrive	*ldp;
-    Bit8u	drive;
+    uint8_t	drive;
     char	fullname[DOS_PATHLENGTH];
 
     // Get full path
@@ -1812,10 +1812,10 @@ static void process_msg(Bitu value)
 	    texsize = FP.grRFunction1i1p(mipmap->odd_even_mask, &texinfo);
 
 	    MEM_BlockRead(param[2], texmem, texsize);
-	    MEM_BlockRead32(param[3], (Bit8u*)texmem+texsize, sizeof(GuNccTable));
+	    MEM_BlockRead32(param[3], (uint8_t*)texmem+texsize, sizeof(GuNccTable));
 
 	    FP.grFunction1i2p = (pfunc1i2p)fn_pt[i];
-	    FP.grFunction1i2p(param[1], texmem, (Bit8u*)texmem+texsize);
+	    FP.grFunction1i2p(param[1], texmem, (uint8_t*)texmem+texsize);
 	} else {
 	    LOG_MSG("Glide:Unable to get GrMipMapInfo pointer");
 	}

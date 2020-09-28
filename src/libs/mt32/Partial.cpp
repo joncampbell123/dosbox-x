@@ -31,8 +31,8 @@
 
 namespace MT32Emu {
 
-static const Bit8u PAN_NUMERATOR_MASTER[] = {0, 0, 0, 0, 0, 0, 0, 0, 1, 2, 3, 4, 5, 6, 7};
-static const Bit8u PAN_NUMERATOR_SLAVE[]  = {0, 1, 2, 3, 4, 5, 6, 7, 7, 7, 7, 7, 7, 7, 7};
+static const uint8_t PAN_NUMERATOR_MASTER[] = {0, 0, 0, 0, 0, 0, 0, 0, 1, 2, 3, 4, 5, 6, 7};
+static const uint8_t PAN_NUMERATOR_SLAVE[]  = {0, 1, 2, 3, 4, 5, 6, 7, 7, 7, 7, 7, 7, 7, 7};
 
 // We assume the pan is applied using the same 13-bit multiplier circuit that is also used for ring modulation
 // because of the observed sample overflow, so the panSetting values are likely mapped in a similar way via a LUT.
@@ -145,7 +145,7 @@ void Partial::startPartial(const Part *part, Poly *usePoly, const PatchCache *us
 	mixType = patchCache->structureMix;
 	structurePosition = patchCache->structurePosition;
 
-	Bit8u panSetting = rhythmTemp != NULL ? rhythmTemp->panpot : part->getPatchTemp()->panpot;
+	uint8_t panSetting = rhythmTemp != NULL ? rhythmTemp->panpot : part->getPatchTemp()->panpot;
 	if (mixType == 3) {
 		if (structurePosition == 0) {
 			panSetting = PAN_NUMERATOR_MASTER[panSetting] << 1;

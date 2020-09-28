@@ -46,7 +46,7 @@ enum {
 	CBRET_NONE=0,CBRET_STOP=1
 };
 
-extern Bit8u lastint;
+extern uint8_t lastint;
 
 static INLINE RealPt CALLBACK_RealPointer(Bitu callback) {
 	return RealMake(CB_SEG,(Bit16u)(CB_SOFFSET+callback*CB_SIZE));
@@ -59,12 +59,12 @@ static inline PhysPt CALLBACK_GetBase(void) {
 	return (PhysPt)(((PhysPt)CB_SEG << (PhysPt)4U) + (PhysPt)CB_SOFFSET);
 }
 
-Bit8u CALLBACK_Allocate();
+uint8_t CALLBACK_Allocate();
 
 void CALLBACK_Idle(void);
 
 
-void CALLBACK_RunRealInt(Bit8u intnum);
+void CALLBACK_RunRealInt(uint8_t intnum);
 void CALLBACK_RunRealFar(Bit16u seg,Bit16u off);
 void CALLBACK_RunRealFarInt(Bit16u seg,Bit16u off);
 
@@ -88,7 +88,7 @@ private:
 	enum {NONE,SETUP,SETUPAT} m_type;
     struct {	
 		RealPt old_vector;
-		Bit8u interrupt;
+		uint8_t interrupt;
 		bool installed;
 	} vectorhandler;
 public:
@@ -111,6 +111,6 @@ public:
 	RealPt Get_RealPointer() {
 		return CALLBACK_RealPointer(m_callback);
 	}
-	void Set_RealVec(Bit8u vec,bool reinstall=false);
+	void Set_RealVec(uint8_t vec,bool reinstall=false);
 };
 #endif

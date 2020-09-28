@@ -8,7 +8,7 @@ void OUTPUT_SURFACE_Initialize();
 void OUTPUT_SURFACE_Select();
 Bitu OUTPUT_SURFACE_GetBestMode(Bitu flags);
 Bitu OUTPUT_SURFACE_SetSize();
-bool OUTPUT_SURFACE_StartUpdate(Bit8u* &pixels, Bitu &pitch);
+bool OUTPUT_SURFACE_StartUpdate(uint8_t* &pixels, Bitu &pitch);
 void OUTPUT_SURFACE_EndUpdate(const Bit16u *changedLines);
 void OUTPUT_SURFACE_Shutdown();
 

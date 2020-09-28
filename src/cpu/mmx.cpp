@@ -101,11 +101,11 @@ Bit16s SaturateDwordSToWordS(Bit32s value)
   return (Bit16s) value;
 }
 
-Bit8u SaturateWordSToByteU(Bit16s value)
+uint8_t SaturateWordSToByteU(Bit16s value)
 {
   if(value < 0) return 0;
   if(value > 255) return 255;
-  return (Bit8u) value;
+  return (uint8_t) value;
 }
 
 Bit16u SaturateDwordSToWordU(Bit32s value)

@@ -273,10 +273,10 @@ public:
         }
 
         if (strcmp(section->Get_string("mt32.reverb.mode"), "auto") != 0) {
-            Bit8u reverbsysex[] = {0x10, 0x00, 0x01, 0x00, 0x05, 0x03};
-            reverbsysex[3] = (Bit8u)atoi(section->Get_string("mt32.reverb.mode"));
-            reverbsysex[4] = (Bit8u)section->Get_int("mt32.reverb.time");
-            reverbsysex[5] = (Bit8u)section->Get_int("mt32.reverb.level");
+            uint8_t reverbsysex[] = {0x10, 0x00, 0x01, 0x00, 0x05, 0x03};
+            reverbsysex[3] = (uint8_t)atoi(section->Get_string("mt32.reverb.mode"));
+            reverbsysex[4] = (uint8_t)section->Get_int("mt32.reverb.time");
+            reverbsysex[5] = (uint8_t)section->Get_int("mt32.reverb.level");
             service->writeSysex(16, reverbsysex, 6);
             service->setReverbOverridden(true);
         }
@@ -350,7 +350,7 @@ public:
         open = false;
 	}
 
-	void PlayMsg(Bit8u *msg) {
+	void PlayMsg(uint8_t *msg) {
         if (renderInThread) {
             service->playMsgAt(SDL_SwapLE32(*(Bit32u *)msg), getMidiEventTimestamp());
         } else {
@@ -358,7 +358,7 @@ public:
         }
 	}
 
-	void PlaySysex(Bit8u *sysex, Bitu len) {
+	void PlaySysex(uint8_t *sysex, Bitu len) {
         if (renderInThread) {
             service->playSysexAt(sysex, len, getMidiEventTimestamp());
         } else {

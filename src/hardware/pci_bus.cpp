@@ -61,10 +61,10 @@ static void write_pci(Bitu port,Bitu val,Bitu iolen) {
 	if (log_pci) LOG(LOG_PCI,LOG_DEBUG)("Write PCI data port %x :=%x (len %d)",(int)port,(int)val,(int)iolen);
 
 	if (pci_caddress & 0x80000000) {
-		Bit8u busnum = (Bit8u)((pci_caddress >> 16) & 0xff);
-		Bit8u devnum = (Bit8u)((pci_caddress >> 11) & 0x1f);
-		Bit8u fctnum = (Bit8u)((pci_caddress >> 8) & 0x7);
-		Bit8u regnum = (Bit8u)((pci_caddress & 0xfc) + (port & 0x03));
+		uint8_t busnum = (uint8_t)((pci_caddress >> 16) & 0xff);
+		uint8_t devnum = (uint8_t)((pci_caddress >> 11) & 0x1f);
+		uint8_t fctnum = (uint8_t)((pci_caddress >> 8) & 0x7);
+		uint8_t regnum = (uint8_t)((pci_caddress & 0xfc) + (port & 0x03));
 		if (log_pci) LOG(LOG_PCI,LOG_DEBUG)("  Write to device %x register %x (function %x) (:=%x)",(int)devnum,(int)regnum,(int)fctnum,(int)val);
 
 		if (busnum >= PCI_MAX_PCIBUSSES) return;
@@ -88,10 +88,10 @@ static Bitu read_pci(Bitu port,Bitu iolen) {
 	if (log_pci) LOG(LOG_PCI,LOG_DEBUG)("Read PCI data -> %x",pci_caddress);
 
 	if (pci_caddress & 0x80000000UL) {
-		Bit8u busnum = (Bit8u)((pci_caddress >> 16U) & 0xffU);
-		Bit8u devnum = (Bit8u)((pci_caddress >> 11U) & 0x1fU);
-		Bit8u fctnum = (Bit8u)((pci_caddress >> 8U) & 0x7U);
-		Bit8u regnum = (Bit8u)((pci_caddress & 0xfcu) + (port & 0x03U));
+		uint8_t busnum = (uint8_t)((pci_caddress >> 16U) & 0xffU);
+		uint8_t devnum = (uint8_t)((pci_caddress >> 11U) & 0x1fU);
+		uint8_t fctnum = (uint8_t)((pci_caddress >> 8U) & 0x7U);
+		uint8_t regnum = (uint8_t)((pci_caddress & 0xfcu) + (port & 0x03U));
 		if (log_pci) LOG(LOG_PCI,LOG_DEBUG)("  Read from device %x register %x (function %x)",(int)devnum,(int)regnum,(int)fctnum);
 
 		if (busnum >= PCI_MAX_PCIBUSSES) return ~0UL;
@@ -197,7 +197,7 @@ public:
 		}
 	}
 
-	virtual void config_write(Bit8u regnum,Bitu iolen,Bit32u value) {
+	virtual void config_write(uint8_t regnum,Bitu iolen,Bit32u value) {
 		if (iolen == 1) {
             const unsigned char mask = config_writemask[regnum];
             const unsigned char nmask = ~mask;
@@ -231,7 +231,7 @@ public:
 			PCI_Device::config_write(regnum,iolen,value); /* which will break down I/O into 8-bit */
 		}
 	}
-	virtual Bit32u config_read(Bit8u regnum,Bitu iolen) {
+	virtual Bit32u config_read(uint8_t regnum,Bitu iolen) {
 		if (iolen == 1) {
 			switch (regnum) {
 				case 0x4c: /* FIXME: I hope I ported this right --J.C. */

@@ -33,14 +33,14 @@ UDPsocket ipxServerSocket;  // Listening server socket
 
 packetBuffer connBuffer[SOCKETTABLESIZE];
 
-Bit8u inBuffer[IPXBUFFERSIZE];
+uint8_t inBuffer[IPXBUFFERSIZE];
 IPaddress ipconn[SOCKETTABLESIZE];  // Active TCP/IP connection 
 UDPsocket tcpconn[SOCKETTABLESIZE];  // Active TCP/IP connections
 SDLNet_SocketSet serverSocketSet;
 TIMER_TickHandler* serverTimer;
 
-Bit8u packetCRC(Bit8u *buffer, Bit16u bufSize) {
-	Bit8u tmpCRC = 0;
+uint8_t packetCRC(uint8_t *buffer, Bit16u bufSize) {
+	uint8_t tmpCRC = 0;
 	Bit16u i;
 	for(i=0;i<bufSize;i++) {
 		tmpCRC ^= *buffer;
@@ -63,7 +63,7 @@ static void closeSocket(Bit16u sockidx) {
 }
 */
 
-static void sendIPXPacket(Bit8u *buffer, Bit16s bufSize) {
+static void sendIPXPacket(uint8_t *buffer, Bit16s bufSize) {
 	Bit16u srcport, destport;
 	Bit32u srchost, desthost;
 	Bit16u i;
@@ -200,7 +200,7 @@ static void IPX_ServerLoop() {
 		}
 
 		// IPX packet is complete.  Now interpret IPX header and send to respective IP address
-		sendIPXPacket((Bit8u *)inPacket.data, inPacket.len);
+		sendIPXPacket((uint8_t *)inPacket.data, inPacket.len);
 	}
 }
 

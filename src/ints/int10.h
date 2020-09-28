@@ -97,11 +97,11 @@ extern uint32_t S3_LFB_BASE;
 #define BIOS_NCOLS Bit16u ncols=IS_PC98_ARCH ? 80 : real_readw(BIOSMEM_SEG,BIOSMEM_NB_COLS);
 #define BIOS_NROWS Bit16u nrows=IS_PC98_ARCH ? (Bit16u)(real_readb(0x60,0x112)+1u) : (Bit16u)real_readb(BIOSMEM_SEG,BIOSMEM_NB_ROWS)+1u;
 
-extern Bit8u int10_font_08[256 * 8];
-extern Bit8u int10_font_14[256 * 14];
-extern Bit8u int10_font_16[256 * 16];
-extern Bit8u int10_font_14_alternate[20 * 15 + 1];
-extern Bit8u int10_font_16_alternate[19 * 17 + 1];
+extern uint8_t int10_font_08[256 * 8];
+extern uint8_t int10_font_14[256 * 14];
+extern uint8_t int10_font_16[256 * 16];
+extern uint8_t int10_font_14_alternate[20 * 15 + 1];
+extern uint8_t int10_font_16_alternate[19 * 17 + 1];
 
 struct VideoModeBlock {
 	Bit16u	mode;
@@ -163,14 +163,14 @@ typedef struct {
 
 extern Int10Data int10;
 
-static inline Bit8u CURSOR_POS_COL(Bit8u page) {
+static inline uint8_t CURSOR_POS_COL(uint8_t page) {
     if (IS_PC98_ARCH)
         return real_readb(0x60,0x11C); /* MS-DOS kernel location */
     else
     	return real_readb(BIOSMEM_SEG,BIOSMEM_CURSOR_POS+page*2u);
 }
 
-static inline Bit8u CURSOR_POS_ROW(Bit8u page) {
+static inline uint8_t CURSOR_POS_ROW(uint8_t page) {
     if (IS_PC98_ARCH)
         return real_readb(0x60,0x110); /* MS-DOS kernel location */
     else
@@ -182,64 +182,64 @@ bool INT10_GetInsertState();
 
 bool INT10_SetVideoMode(Bit16u mode);
 
-void INT10_ScrollWindow(Bit8u rul,Bit8u cul,Bit8u rlr,Bit8u clr,Bit8s nlines,Bit8u attr,Bit8u page);
+void INT10_ScrollWindow(uint8_t rul,uint8_t cul,uint8_t rlr,uint8_t clr,Bit8s nlines,uint8_t attr,uint8_t page);
 
-void INT10_SetActivePage(Bit8u page);
+void INT10_SetActivePage(uint8_t page);
 bool INT10_SetCurMode(void);
 void INT10_DisplayCombinationCode(Bit16u * dcc,bool set);
 void INT10_GetFuncStateInformation(PhysPt save);
 
-void INT10_SetCursorShape(Bit8u first,Bit8u last);
+void INT10_SetCursorShape(uint8_t first,uint8_t last);
 void INT10_GetScreenColumns(Bit16u* cols);
-void INT10_GetCursorPos(Bit8u *row, Bit8u *col, Bit8u page);
-void INT10_SetCursorPos(Bit8u row,Bit8u col,Bit8u page);
-void INT10_TeletypeOutput(Bit8u chr,Bit8u attr);
-void INT10_TeletypeOutputAttr(Bit8u chr,Bit8u attr,bool useattr);
-void INT10_ReadCharAttr(Bit16u * result,Bit8u page);
-void INT10_WriteChar(Bit16u chr,Bit8u attr,Bit8u page,Bit16u count,bool showattr);
-void INT10_WriteString(Bit8u row,Bit8u col,Bit8u flag,Bit8u attr,PhysPt string,Bit16u count,Bit8u page);
+void INT10_GetCursorPos(uint8_t *row, uint8_t *col, uint8_t page);
+void INT10_SetCursorPos(uint8_t row,uint8_t col,uint8_t page);
+void INT10_TeletypeOutput(uint8_t chr,uint8_t attr);
+void INT10_TeletypeOutputAttr(uint8_t chr,uint8_t attr,bool useattr);
+void INT10_ReadCharAttr(Bit16u * result,uint8_t page);
+void INT10_WriteChar(Bit16u chr,uint8_t attr,uint8_t page,Bit16u count,bool showattr);
+void INT10_WriteString(uint8_t row,uint8_t col,uint8_t flag,uint8_t attr,PhysPt string,Bit16u count,uint8_t page);
 
 /* Graphics Stuff */
-void INT10_PutPixel(Bit16u x,Bit16u y,Bit8u page,Bit8u color);
-void INT10_GetPixel(Bit16u x,Bit16u y,Bit8u page,Bit8u * color);
+void INT10_PutPixel(Bit16u x,Bit16u y,uint8_t page,uint8_t color);
+void INT10_GetPixel(Bit16u x,Bit16u y,uint8_t page,uint8_t * color);
 
 /* Font Stuff */
-void INT10_LoadFont(PhysPt font,bool reload,Bit16u count,Bitu offset,Bitu map,Bit8u height);
+void INT10_LoadFont(PhysPt font,bool reload,Bit16u count,Bitu offset,Bitu map,uint8_t height);
 void INT10_ReloadFont(void);
 
 /* Palette Group */
-void INT10_SetBackgroundBorder(Bit8u val);
-void INT10_SetColorSelect(Bit8u val);
-void INT10_SetSinglePaletteRegister(Bit8u reg,Bit8u val);
-void INT10_SetOverscanBorderColor(Bit8u val);
+void INT10_SetBackgroundBorder(uint8_t val);
+void INT10_SetColorSelect(uint8_t val);
+void INT10_SetSinglePaletteRegister(uint8_t reg,uint8_t val);
+void INT10_SetOverscanBorderColor(uint8_t val);
 void INT10_SetAllPaletteRegisters(PhysPt data);
-void INT10_ToggleBlinkingBit(Bit8u state);
-void INT10_GetSinglePaletteRegister(Bit8u reg,Bit8u * val);
-void INT10_GetOverscanBorderColor(Bit8u * val);
+void INT10_ToggleBlinkingBit(uint8_t state);
+void INT10_GetSinglePaletteRegister(uint8_t reg,uint8_t * val);
+void INT10_GetOverscanBorderColor(uint8_t * val);
 void INT10_GetAllPaletteRegisters(PhysPt data);
-void INT10_SetSingleDACRegister(Bit8u index,Bit8u red,Bit8u green,Bit8u blue);
-void INT10_GetSingleDACRegister(Bit8u index,Bit8u * red,Bit8u * green,Bit8u * blue);
+void INT10_SetSingleDACRegister(uint8_t index,uint8_t red,uint8_t green,uint8_t blue);
+void INT10_GetSingleDACRegister(uint8_t index,uint8_t * red,uint8_t * green,uint8_t * blue);
 void INT10_SetDACBlock(Bit16u index,Bit16u count,PhysPt data);
 void INT10_GetDACBlock(Bit16u index,Bit16u count,PhysPt data);
-void INT10_SelectDACPage(Bit8u function,Bit8u mode);
-void INT10_GetDACPage(Bit8u* mode,Bit8u* page);
-void INT10_SetPelMask(Bit8u mask);
-void INT10_GetPelMask(Bit8u & mask);
+void INT10_SelectDACPage(uint8_t function,uint8_t mode);
+void INT10_GetDACPage(uint8_t* mode,uint8_t* page);
+void INT10_SetPelMask(uint8_t mask);
+void INT10_GetPelMask(uint8_t & mask);
 void INT10_PerformGrayScaleSumming(Bit16u start_reg,Bit16u count);
 
 
 /* Vesa Group */
-Bit8u VESA_GetSVGAInformation(Bit16u seg,Bit16u off);
-Bit8u VESA_GetSVGAModeInformation(Bit16u mode,Bit16u seg,Bit16u off);
-Bit8u VESA_SetSVGAMode(Bit16u mode);
-Bit8u VESA_GetSVGAMode(Bit16u & mode);
-Bit8u VESA_SetCPUWindow(Bit8u window,Bit8u address);
-Bit8u VESA_GetCPUWindow(Bit8u window,Bit16u & address);
-Bit8u VESA_ScanLineLength(Bit8u subcall, Bit16u val, Bit16u & bytes,Bit16u & pixels,Bit16u & lines);
-Bit8u VESA_SetDisplayStart(Bit16u x,Bit16u y,bool wait);
-Bit8u VESA_GetDisplayStart(Bit16u & x,Bit16u & y);
-Bit8u VESA_SetPalette(PhysPt data,Bitu index,Bitu count,bool wait);
-Bit8u VESA_GetPalette(PhysPt data,Bitu index,Bitu count);
+uint8_t VESA_GetSVGAInformation(Bit16u seg,Bit16u off);
+uint8_t VESA_GetSVGAModeInformation(Bit16u mode,Bit16u seg,Bit16u off);
+uint8_t VESA_SetSVGAMode(Bit16u mode);
+uint8_t VESA_GetSVGAMode(Bit16u & mode);
+uint8_t VESA_SetCPUWindow(uint8_t window,uint8_t address);
+uint8_t VESA_GetCPUWindow(uint8_t window,Bit16u & address);
+uint8_t VESA_ScanLineLength(uint8_t subcall, Bit16u val, Bit16u & bytes,Bit16u & pixels,Bit16u & lines);
+uint8_t VESA_SetDisplayStart(Bit16u x,Bit16u y,bool wait);
+uint8_t VESA_GetDisplayStart(Bit16u & x,Bit16u & y);
+uint8_t VESA_SetPalette(PhysPt data,Bitu index,Bitu count,bool wait);
+uint8_t VESA_GetPalette(PhysPt data,Bitu index,Bitu count);
 
 /* Sub Groups */
 void INT10_SetupRomMemory(void);
@@ -248,10 +248,10 @@ void INT10_SetupVESA(void);
 
 /* EGA RIL */
 RealPt INT10_EGA_RIL_GetVersionPt(void);
-void INT10_EGA_RIL_ReadRegister(Bit8u & bl, Bit16u dx);
-void INT10_EGA_RIL_WriteRegister(Bit8u & bl, Bit8u bh, Bit16u dx);
-void INT10_EGA_RIL_ReadRegisterRange(Bit8u ch, Bit8u cl, Bit16u dx, PhysPt dst);
-void INT10_EGA_RIL_WriteRegisterRange(Bit8u ch, Bit8u cl, Bit16u dx, PhysPt src);
+void INT10_EGA_RIL_ReadRegister(uint8_t & bl, Bit16u dx);
+void INT10_EGA_RIL_WriteRegister(uint8_t & bl, uint8_t bh, Bit16u dx);
+void INT10_EGA_RIL_ReadRegisterRange(uint8_t ch, uint8_t cl, Bit16u dx, PhysPt dst);
+void INT10_EGA_RIL_WriteRegisterRange(uint8_t ch, uint8_t cl, Bit16u dx, PhysPt src);
 void INT10_EGA_RIL_ReadRegisterSet(Bit16u cx, PhysPt tbl);
 void INT10_EGA_RIL_WriteRegisterSet(Bit16u cx, PhysPt tbl);
 

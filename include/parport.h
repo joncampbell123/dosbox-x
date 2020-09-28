@@ -35,16 +35,16 @@
 class device_LPT : public DOS_Device {
 public:
 	// Creates a LPT device that communicates with the num-th parallel port, i.e. is LPTnum
-	device_LPT(Bit8u num, class CParallel* pp);
+	device_LPT(uint8_t num, class CParallel* pp);
 	virtual ~device_LPT();
-	bool Read(Bit8u * data,Bit16u * size);
-	bool Write(const Bit8u * data,Bit16u * size);
+	bool Read(uint8_t * data,Bit16u * size);
+	bool Write(const uint8_t * data,Bit16u * size);
 	bool Seek(Bit32u * pos,Bit32u type);
 	bool Close();
 	Bit16u GetInformation(void);
 private:
 	CParallel* pportclass;
-	Bit8u num; // This device is LPTnum
+	uint8_t num; // This device is LPTnum
 };
 
 
@@ -61,7 +61,7 @@ public:
 #endif
 
 	// Constructor
-	CParallel(CommandLine* cmd, Bitu portnr, Bit8u initirq);
+	CParallel(CommandLine* cmd, Bitu portnr, uint8_t initirq);
 	
 	virtual ~CParallel();
 
@@ -89,8 +89,8 @@ public:
 	virtual void Write_CON(Bitu)=0;
 	virtual void Write_IOSEL(Bitu)=0;
 
-	virtual bool Putchar(Bit8u)=0;
-	Bit8u getPrinterStatus();
+	virtual bool Putchar(uint8_t)=0;
+	uint8_t getPrinterStatus();
 	void initialize();
 
 	DOS_Device* mydosdevice;

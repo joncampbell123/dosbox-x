@@ -56,7 +56,7 @@ bool BatchFile::ReadLine(char * line) {
 	}
 	DOS_SeekFile(file_handle,&(this->location),DOS_SEEK_SET);
 
-	Bit8u c=0;Bit16u n=1;
+	uint8_t c=0;Bit16u n=1;
 	char temp[CMD_MAXLINE];
 emptyline:
 	char * cmd_write=temp;
@@ -169,7 +169,7 @@ bool BatchFile::Goto(const char * where) {
 	char * cmd_write;
 
 	/* Scan till we have a match or return false */
-	Bit8u c;Bit16u n;
+	uint8_t c;Bit16u n;
 again:
 	cmd_write=cmd_buffer;
 	do {

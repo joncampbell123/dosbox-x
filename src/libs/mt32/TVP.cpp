@@ -70,11 +70,11 @@ static Bit16s keyToPitch(unsigned int key) {
 	return key < 60 ? -pitch : pitch;
 }
 
-static inline Bit32s coarseToPitch(Bit8u coarse) {
+static inline Bit32s coarseToPitch(uint8_t coarse) {
 	return (coarse - 36) * 4096 / 12; // One semitone per coarse offset
 }
 
-static inline Bit32s fineToPitch(Bit8u fine) {
+static inline Bit32s fineToPitch(uint8_t fine) {
 	return (fine - 50) * 4096 / 1200; // One cent per fine offset
 }
 
@@ -115,7 +115,7 @@ static Bit32u calcBasePitch(const Partial *partial, const TimbreParam::PartialPa
 	return Bit32u(basePitch);
 }
 
-static Bit32u calcVeloMult(Bit8u veloSensitivity, unsigned int velocity) {
+static Bit32u calcVeloMult(uint8_t veloSensitivity, unsigned int velocity) {
 	if (veloSensitivity == 0) {
 		return 21845; // aka floor(4096 / 12 * 64), aka ~64 semitones
 	}
@@ -249,8 +249,8 @@ void TVP::nextPhase() {
 }
 
 // Shifts val to the left until bit 31 is 1 and returns the number of shifts
-static Bit8u normalise(Bit32u &val) {
-	Bit8u leftShifts;
+static uint8_t normalise(Bit32u &val) {
+	uint8_t leftShifts;
 	for (leftShifts = 0; leftShifts < 31; leftShifts++) {
 		if ((val & 0x80000000) != 0) {
 			break;
@@ -260,7 +260,7 @@ static Bit8u normalise(Bit32u &val) {
 	return leftShifts;
 }
 
-void TVP::setupPitchChange(int targetPitchOffset, Bit8u changeDuration) {
+void TVP::setupPitchChange(int targetPitchOffset, uint8_t changeDuration) {
 	bool negativeDelta = targetPitchOffset < currentPitchOffset;
 	Bit32s pitchOffsetDelta = targetPitchOffset - currentPitchOffset;
 	if (pitchOffsetDelta > 32767 || pitchOffsetDelta < -32768) {
@@ -271,7 +271,7 @@ void TVP::setupPitchChange(int targetPitchOffset, Bit8u changeDuration) {
 	}
 	// We want to maximise the number of bits of the Bit16s "pitchOffsetChangePerBigTick" we use in order to get the best possible precision later
 	Bit32u absPitchOffsetDelta = pitchOffsetDelta << 16;
-	Bit8u normalisationShifts = normalise(absPitchOffsetDelta); // FIXME: Double-check: normalisationShifts is usually between 0 and 15 here, unless the delta is 0, in which case it's 31
+	uint8_t normalisationShifts = normalise(absPitchOffsetDelta); // FIXME: Double-check: normalisationShifts is usually between 0 and 15 here, unless the delta is 0, in which case it's 31
 	absPitchOffsetDelta = absPitchOffsetDelta >> 1; // Make room for the sign bit
 
 	changeDuration--; // changeDuration's now between 0 and 111

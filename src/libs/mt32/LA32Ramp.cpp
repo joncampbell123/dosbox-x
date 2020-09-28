@@ -77,7 +77,7 @@ LA32Ramp::LA32Ramp() :
 	interruptRaised(false) {
 }
 
-void LA32Ramp::startRamp(Bit8u target, Bit8u increment) {
+void LA32Ramp::startRamp(uint8_t target, uint8_t increment) {
 	// CONFIRMED: From sample analysis, this appears to be very accurate.
 	if (increment == 0) {
 		largeIncrement = 0;
@@ -157,7 +157,7 @@ void LA32Ramp::reset() {
 // However, this is a simple way to work around the specific behaviour of TVA
 // when in sustain phase which one normally wants to avoid.
 // See TVA::recalcSustain() for details.
-bool LA32Ramp::isBelowCurrent(Bit8u target) const {
+bool LA32Ramp::isBelowCurrent(uint8_t target) const {
 	return Bit32u(target << TARGET_SHIFTS) < current;
 }
 

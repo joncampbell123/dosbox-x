@@ -91,7 +91,7 @@ public:
 	virtual ~CPrinter();
 
 	// Process one character sent to virtual printer
-	void printChar(Bit8u ch);
+	void printChar(uint8_t ch);
 
 	// Hard Reset (like switching printer off and on)
 	void resetPrinterHard();
@@ -117,12 +117,12 @@ public:
 private:
 
 	// used to fill the color "sub-pallettes"
-	void FillPalette(Bit8u redmax, Bit8u greenmax, Bit8u bluemax, Bit8u colorID,
+	void FillPalette(uint8_t redmax, uint8_t greenmax, uint8_t bluemax, uint8_t colorID,
 							SDL_Palette* pal);
 
     // Checks if given char belongs to a command and process it. If false, the character
 	// should be printed
-	bool processCommandChar(Bit8u ch);
+	bool processCommandChar(uint8_t ch);
 
 	// Resets the printer to the factory settings
 	void resetPrinter();
@@ -141,10 +141,10 @@ private:
 	void drawLine(Bitu fromx, Bitu tox, Bitu y, bool broken);
 
 	// Setup the bitGraph structure
-	void setupBitImage(Bit8u dens, Bit16u numCols);
+	void setupBitImage(uint8_t dens, Bit16u numCols);
 
 	// Process a character that is part of bit image. Must be called iff bitGraph.remBytes > 0.
-	void printBitGraph(Bit8u ch);
+	void printBitGraph(uint8_t ch);
 
 	// Copies the codepage mapping from the constant array to CurMap
 	void selectCodepage(Bit16u cp);
@@ -159,13 +159,13 @@ private:
 	void finishMultipage();
 
 	// Returns value of the num-th pixel (couting left-right, top-down) in a safe way
-	Bit8u getPixel(Bit32u num);
+	uint8_t getPixel(Bit32u num);
 
 	FT_Library FTlib;					// FreeType2 library used to render the characters
 
 	SDL_Surface* page;					// Surface representing the current page
 	FT_Face curFont = NULL;					// The font currently used to render characters
-	Bit8u color = 0;
+	uint8_t color = 0;
 
 	double curX = 0, curY = 0;					// Position of the print head (in inch)
 
@@ -174,12 +174,12 @@ private:
 	bool ESCSeen = false;						// True if last read character was an ESC (0x1B)
 	bool FSSeen = false;						// True if last read character was an FS (0x1C) (IBM commands)
 
-	Bit8u numParam = 0, neededParam = 0;		// Numbers of parameters already read/needed to process command
+	uint8_t numParam = 0, neededParam = 0;		// Numbers of parameters already read/needed to process command
 
-    Bit8u params[20] = {};					// Buffer for the read params
+    uint8_t params[20] = {};					// Buffer for the read params
 	Bit16u style = 0;						// Style of font (see STYLE_* constants)
 	double cpi = 0, actcpi = 0;					// CPI value set by program and the actual one (taking in account font types)
-	Bit8u score = 0;						// Score for lines (see SCORE_* constants)
+	uint8_t score = 0;						// Score for lines (see SCORE_* constants)
 
 	double topMargin = 0, bottomMargin = 0, rightMargin = 0, leftMargin = 0;	// Margins of the page (in inch)
 	double pageWidth = 0, pageHeight = 0;								// Size of page (in inch)
@@ -187,13 +187,13 @@ private:
 	double lineSpacing = 0;											// Size of one line (in inch)
 
     double horiztabs[32] = {};				// Stores the set horizontal tabs (in inch)
-	Bit8u numHorizTabs = 0;					// Number of configured tabs
+	uint8_t numHorizTabs = 0;					// Number of configured tabs
 
     double verttabs[16] = {};				// Stores the set vertical tabs (in inch)
-	Bit8u numVertTabs = 0;					// Number of configured tabs
+	uint8_t numVertTabs = 0;					// Number of configured tabs
 
-	Bit8u curCharTable = 0;					// Currently used char table und charset
-	Bit8u printQuality = 0;					// Print quality (see QUALITY_* constants)
+	uint8_t curCharTable = 0;					// Currently used char table und charset
+	uint8_t printQuality = 0;					// Print quality (see QUALITY_* constants)
 
 	Typeface LQtypeFace = (Typeface)0;				// Typeface used in LQ printing mode
 
@@ -207,13 +207,13 @@ private:
 	{
 		Bit16u horizDens, vertDens;		// Density of image to print (in dpi)
 		bool adjacent;					// Print adjacent pixels? (ignored)
-		Bit8u bytesColumn;				// Bytes per column
+		uint8_t bytesColumn;				// Bytes per column
 		Bit16u remBytes;				// Bytes left to read before image is done
-		Bit8u column[6];				// Bytes of the current and last column
-		Bit8u readBytesColumn;			// Bytes read so far for the current column
+		uint8_t column[6];				// Bytes of the current and last column
+		uint8_t readBytesColumn;			// Bytes read so far for the current column
     } bitGraph = {};
 
-	Bit8u densk = 0, densl = 0, densy = 0, densz = 0;	// Image density modes used in ESC K/L/Y/Z commands
+	uint8_t densk = 0, densl = 0, densy = 0, densz = 0;	// Image density modes used in ESC K/L/Y/Z commands
 
     Bit16u curMap[256] = {};					// Currently used ASCII => Unicode mapping
     Bit16u charTables[4] = {};				// Charactertables
@@ -226,7 +226,7 @@ private:
 
 	double hmi = 0;							// Horizontal motion index (in inch; overrides CPI settings)
 
-	Bit8u msb = 0;							// MSB mode
+	uint8_t msb = 0;							// MSB mode
 	Bit16u numPrintAsChar = 0;				// Number of bytes to print as characters (even when normally control codes)
 
 #if defined (WIN32)
@@ -238,9 +238,9 @@ private:
 	bool multipageOutput = false;				// If true, all pages are combined to one file/print job etc. until the "eject page" button is pressed
 	Bit16u multiPageCounter = 0;			// Current page (when printing multipages)
 
-    Bit8u ASCII85Buffer[4] = {};				// Buffer used in ASCII85 encoding
-	Bit8u ASCII85BufferPos = 0;				// Position in ASCII85 encode buffer
-	Bit8u ASCII85CurCol = 0;				// Columns printed so far in the current lines
+    uint8_t ASCII85Buffer[4] = {};				// Buffer used in ASCII85 encoding
+	uint8_t ASCII85BufferPos = 0;				// Position in ASCII85 encode buffer
+	uint8_t ASCII85CurCol = 0;				// Columns printed so far in the current lines
 };
 
 #endif

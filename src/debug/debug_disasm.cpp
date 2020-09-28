@@ -71,7 +71,7 @@ Any comments/updates/bug reports to:
 #include "mem.h"
 #include "paging.h"
 
-typedef Bit8u  UINT8;
+typedef uint8_t  UINT8;
 typedef Bit16u UINT16;
 typedef Bit32u UINT32;
 
@@ -462,7 +462,7 @@ static PhysPt getbyte_mac;
 static PhysPt startPtr;
 
 static UINT8 getbyte(void) {
-    Bit8u c;
+    uint8_t c;
 
 	if (!mem_readb_checked(getbyte_mac++,&c))
         return c;

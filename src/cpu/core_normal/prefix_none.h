@@ -369,7 +369,7 @@
 		{
 			GetRM;Bitu which=(rm>>3)&7;
 			if (rm>= 0xc0) {
-				GetEArb;Bit8u ib=Fetchb();
+				GetEArb;uint8_t ib=Fetchb();
 				switch (which) {
 				case 0x00:ADDB(*earb,ib,LoadRb,SaveRb);break;
 				case 0x01: ORB(*earb,ib,LoadRb,SaveRb);break;
@@ -381,7 +381,7 @@
 				case 0x07:CMPB(*earb,ib,LoadRb,SaveRb);break;
 				}
 			} else {
-				GetEAa;Bit8u ib=Fetchb();
+				GetEAa;uint8_t ib=Fetchb();
 				switch (which) {
 				case 0x00:ADDB(eaa,ib,LoadMb,SaveMb);break;
 				case 0x01: ORB(eaa,ib,LoadMb,SaveMb);break;
@@ -463,7 +463,7 @@
 		break;
 	CASE_B(0x86)												/* XCHG Eb,Gb */
 		{	
-			GetRMrb;Bit8u oldrmrb=*rmrb;
+			GetRMrb;uint8_t oldrmrb=*rmrb;
 			if (rm >= 0xc0 ) {GetEArb;*rmrb=*earb;*earb=oldrmrb;}
 			else {GetEAa;*rmrb=LoadMb(eaa);SaveMb(eaa,oldrmrb);}
 			break;
@@ -847,7 +847,7 @@
 		continue;
 	CASE_B(0xcd)												/* INT Ib */	
 		{
-			Bit8u num=Fetchb();
+			uint8_t num=Fetchb();
 #if C_DEBUG
 			FillFlags();
 			if (DEBUG_IntBreakpoint(num)) {
@@ -911,7 +911,7 @@
 			FPU_ESC(0);
 		}
 		else {
-			Bit8u rm=Fetchb();
+			uint8_t rm=Fetchb();
 			if (rm<0xc0) { GetEAa; (void)eaa; }
 		}
 		break;
@@ -920,7 +920,7 @@
 			FPU_ESC(1);
 		}
 		else {
-			Bit8u rm=Fetchb();
+			uint8_t rm=Fetchb();
 			if (rm<0xc0) { GetEAa; (void)eaa; }
 		}
 		break;
@@ -929,7 +929,7 @@
 			FPU_ESC(2);
 		}
 		else {
-			Bit8u rm=Fetchb();
+			uint8_t rm=Fetchb();
 			if (rm<0xc0) { GetEAa; (void)eaa; }
 		}
 		break;
@@ -938,7 +938,7 @@
 			FPU_ESC(3);
 		}
 		else {
-			Bit8u rm=Fetchb();
+			uint8_t rm=Fetchb();
 			if (rm<0xc0) { GetEAa; (void)eaa; }
 		}
 		break;
@@ -947,7 +947,7 @@
 			FPU_ESC(4);
 		}
 		else {
-			Bit8u rm=Fetchb();
+			uint8_t rm=Fetchb();
 			if (rm<0xc0) { GetEAa; (void)eaa; }
 		}
 		break;
@@ -956,7 +956,7 @@
 			FPU_ESC(5);
 		}
 		else {
-			Bit8u rm=Fetchb();
+			uint8_t rm=Fetchb();
 			if (rm<0xc0) { GetEAa; (void)eaa; }
 		}
 		break;
@@ -965,7 +965,7 @@
 			FPU_ESC(6);
 		}
 		else {
-			Bit8u rm=Fetchb();
+			uint8_t rm=Fetchb();
 			if (rm<0xc0) { GetEAa; (void)eaa; }
 		}
 		break;
@@ -974,7 +974,7 @@
 			FPU_ESC(7);
 		}
 		else {
-			Bit8u rm=Fetchb();
+			uint8_t rm=Fetchb();
 			if (rm<0xc0) { GetEAa; (void)eaa; }
 		}
 		break;
@@ -989,7 +989,7 @@
 	CASE_B(0xdf)												/* FPU ESC 7 */
 		{
 			LOG(LOG_CPU,LOG_NORMAL)("FPU used");
-			Bit8u rm=Fetchb();
+			uint8_t rm=Fetchb();
 			if (rm<0xc0) GetEAa;
 		}
 		break;
@@ -1259,7 +1259,7 @@ do_cli:	if (CPU_CLI()) RUNEXCEPTION();
             //      Note the code deliberately uses a JMP short delay to avoid STI + CLI and
             //      make sure interrupts process.
             {
-                Bit8u b = FetchPeekb();
+                uint8_t b = FetchPeekb();
                 if (b == 0xFAu) {
                     /* if the next opcode is CLI, then do CLI right here before the normal core
                      * has any chance to break and handle interrupts */

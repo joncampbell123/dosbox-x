@@ -24,7 +24,7 @@
 #include "SDL_net.h"
 
 struct packetBuffer {
-	Bit8u buffer[1024];
+	uint8_t buffer[1024];
 	Bit16s packetSize;  // Packet size remaining in read
 	Bit16s packetRead;  // Bytes read of total packet
 	bool inPacket;      // In packet reception flag
@@ -41,7 +41,7 @@ void IPX_StopServer();
 bool IPX_StartServer(Bit16u portnum);
 bool IPX_isConnectedToServer(Bits tableNum, IPaddress ** ptrAddr);
 
-Bit8u packetCRC(Bit8u *buffer, Bit16u bufSize);
+uint8_t packetCRC(uint8_t *buffer, Bit16u bufSize);
 
 #endif
 

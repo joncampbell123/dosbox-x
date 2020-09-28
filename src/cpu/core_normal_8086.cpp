@@ -92,8 +92,8 @@ static inline Bit16u LoadMw(Bitu off) {
 
 static void SaveMw(Bitu off,Bitu val) {
 	if (last_ea86_offset == 0xffff) {
-		mem_writeb_inline((PhysPt)off,(Bit8u)val);
-		mem_writeb_inline((PhysPt)(off-0xffff),(Bit8u)(val>>8));
+		mem_writeb_inline((PhysPt)off,(uint8_t)val);
+		mem_writeb_inline((PhysPt)(off-0xffff),(uint8_t)(val>>8));
 	}
 	else {
 		mem_writew_inline((PhysPt)off,(Bit16u)val);
@@ -173,13 +173,13 @@ static INLINE void FetchDiscardb() {
 	core.cseip+=1;
 }
 
-static INLINE Bit8u FetchPeekb() {
-	Bit8u temp=LoadMb(core.cseip);
+static INLINE uint8_t FetchPeekb() {
+	uint8_t temp=LoadMb(core.cseip);
 	return temp;
 }
 
-static INLINE Bit8u Fetchb() {
-	Bit8u temp=LoadMb(core.cseip);
+static INLINE uint8_t Fetchb() {
+	uint8_t temp=LoadMb(core.cseip);
 	core.cseip+=1;
 	return temp;
 }

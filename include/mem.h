@@ -27,9 +27,9 @@
 
 #define MEM_PAGESIZE        (4096U)
 
-typedef Bit8u const *       ConstHostPt;        /* host (virtual) memory address aka ptr */
+typedef uint8_t const *       ConstHostPt;        /* host (virtual) memory address aka ptr */
 
-typedef Bit8u *             HostPt;             /* host (virtual) memory address aka ptr */
+typedef uint8_t *             HostPt;             /* host (virtual) memory address aka ptr */
 
 typedef Bit32u              PhysPt;      /* guest physical memory pointer */
 typedef Bit32u              LinearPt;    /* guest linear memory address */
@@ -68,7 +68,7 @@ MemHandle                   MEM_NextHandleAt(MemHandle handle,Bitu where);
             on such processors typecasting memory as uint16_t and higher can cause a fault if the
         address is not aligned to that datatype when we read/write through it. */
 
-static INLINE Bit8u host_readb(ConstHostPt const off) {
+static INLINE uint8_t host_readb(ConstHostPt const off) {
     return *off;
 }
 static INLINE Bit16u host_readw(ConstHostPt const off) {
@@ -81,12 +81,12 @@ static INLINE Bit64u host_readq(ConstHostPt const off) {
     return (Bit64u)host_readd(off) + ((Bit64u)host_readd(off+(uintptr_t)4U) << (Bit64u)32U);
 }
 
-static INLINE void host_writeb(HostPt const off,const Bit8u val) {
+static INLINE void host_writeb(HostPt const off,const uint8_t val) {
     *off = val;
 }
 static INLINE void host_writew(HostPt const off,const Bit16u val) {
-    host_writeb(off,   (Bit8u)(val));
-    host_writeb(off+1U,(Bit8u)(val >> (Bit16u)8U));
+    host_writeb(off,   (uint8_t)(val));
+    host_writeb(off+1U,(uint8_t)(val >> (Bit16u)8U));
 }
 static INLINE void host_writed(HostPt const off,const Bit32u val) {
     host_writew(off,   (Bit16u)(val));
@@ -99,8 +99,8 @@ static INLINE void host_writeq(HostPt const off,const Bit64u val) {
 
 #else
 
-static INLINE Bit8u host_readb(ConstHostPt const off) {
-    return *(const Bit8u *)off;
+static INLINE uint8_t host_readb(ConstHostPt const off) {
+    return *(const uint8_t *)off;
 }
 static INLINE Bit16u host_readw(ConstHostPt const off) {
     return le16toh((*(const Bit16u *)off)); // BSD endian.h
@@ -112,8 +112,8 @@ static INLINE Bit64u host_readq(ConstHostPt const off) {
     return le64toh((*(const Bit64u *)off)); // BSD endian.h
 }
 
-static INLINE void host_writeb(HostPt const off,const Bit8u val) {
-    *(Bit8u *)(off) = val;
+static INLINE void host_writeb(HostPt const off,const uint8_t val) {
+    *(uint8_t *)(off) = val;
 }
 static INLINE void host_writew(HostPt const off,const Bit16u val) {
     *(Bit16u *)(off) = htole16(val);
@@ -128,7 +128,7 @@ static INLINE void host_writeq(HostPt const off,const Bit64u val) {
 #endif
 
 
-static INLINE void var_write(Bit8u * const var, const Bit8u val) {
+static INLINE void var_write(uint8_t * const var, const uint8_t val) {
     host_writeb((HostPt)var, val);
 }
 
@@ -146,11 +146,11 @@ static INLINE void var_write(Bit64u * const var, const Bit64u val) {
 
 /* The Folowing six functions are slower but they recognize the paged memory system */
 
-Bit8u  mem_readb(const PhysPt address);
+uint8_t  mem_readb(const PhysPt address);
 Bit16u mem_readw(const PhysPt address);
 Bit32u mem_readd(const PhysPt address);
 
-void mem_writeb(const PhysPt address,const Bit8u val);
+void mem_writeb(const PhysPt address,const uint8_t val);
 void mem_writew(const PhysPt address,const Bit16u val);
 void mem_writed(const PhysPt address,const Bit32u val);
 
@@ -159,7 +159,7 @@ void phys_writes(PhysPt addr, const char* string, Bitu length);
 /* WARNING: These will cause a segfault or out of bounds access IF
  *          addr is beyond the end of memory */
 
-static INLINE void phys_writeb(const PhysPt addr,const Bit8u val) {
+static INLINE void phys_writeb(const PhysPt addr,const uint8_t val) {
     host_writeb(MemBase+addr,val);
 }
 static INLINE void phys_writew(const PhysPt addr,const Bit16u val) {
@@ -169,7 +169,7 @@ static INLINE void phys_writed(const PhysPt addr,const Bit32u val) {
     host_writed(MemBase+addr,val);
 }
 
-static INLINE Bit8u phys_readb(const PhysPt addr) {
+static INLINE uint8_t phys_readb(const PhysPt addr) {
     return host_readb(MemBase+addr);
 }
 static INLINE Bit16u phys_readw(const PhysPt addr) {
@@ -219,12 +219,12 @@ static inline constexpr RealPt PhysToReal416(const PhysPt phys) {
     return RealMake((Bit16u)(((PhysPt)phys >> (PhysPt)4U) & (PhysPt)0xF000U),(Bit16u)((PhysPt)phys & (PhysPt)0xFFFFU));
 }
 
-static inline constexpr PhysPt RealVecAddress(const Bit8u vec) {
+static inline constexpr PhysPt RealVecAddress(const uint8_t vec) {
     return (PhysPt)((unsigned int)vec << 2U);
 }
 
 
-static INLINE Bit8u real_readb(const Bit16u seg,const Bit16u off) {
+static INLINE uint8_t real_readb(const Bit16u seg,const Bit16u off) {
     return mem_readb(PhysMake(seg,off));
 }
 static INLINE Bit16u real_readw(const Bit16u seg,const Bit16u off) {
@@ -234,7 +234,7 @@ static INLINE Bit32u real_readd(const Bit16u seg,const Bit16u off) {
     return mem_readd(PhysMake(seg,off));
 }
 
-static INLINE void real_writeb(const Bit16u seg,const Bit16u off,const Bit8u val) {
+static INLINE void real_writeb(const Bit16u seg,const Bit16u off,const uint8_t val) {
     mem_writeb(PhysMake(seg,off),val);
 }
 static INLINE void real_writew(const Bit16u seg,const Bit16u off,const Bit16u val) {
@@ -245,15 +245,15 @@ static INLINE void real_writed(const Bit16u seg,const Bit16u off,const Bit32u va
 }
 
 
-static INLINE RealPt RealGetVec(const Bit8u vec) {
+static INLINE RealPt RealGetVec(const uint8_t vec) {
     return mem_readd(RealVecAddress(vec));
 }
 
-static INLINE void RealSetVec(const Bit8u vec,const RealPt pt) {
+static INLINE void RealSetVec(const uint8_t vec,const RealPt pt) {
     mem_writed(RealVecAddress(vec),(Bit32u)pt);
 }
 
-static INLINE void RealSetVec(const Bit8u vec,const RealPt pt,RealPt &old) {
+static INLINE void RealSetVec(const uint8_t vec,const RealPt pt,RealPt &old) {
     const PhysPt addr = RealVecAddress(vec);
     old = mem_readd(addr);
     mem_writed(addr,pt);

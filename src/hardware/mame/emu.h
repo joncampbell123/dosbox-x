@@ -24,7 +24,7 @@
 
 typedef Bit16s stream_sample_t;
 
-typedef Bit8u u8;
+typedef uint8_t u8;
 typedef Bit32u u32;
 
 class device_t;

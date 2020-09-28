@@ -36,12 +36,12 @@ public:
 		CodePageHandlerDynRec * handler;			// page containing this code
 	} page;
 	struct {
-		Bit8u * start;			// where in the cache are we
+		uint8_t * start;			// where in the cache are we
 		Bitu size;
 		CacheBlockDynRec * next;
 		// writemap masking maskpointer/start/length
 		// to allow holes in the writemap
-		Bit8u * wmapmask;
+		uint8_t * wmapmask;
 		Bit16u maskstart;
 		Bit16u masklen;
 	} cache;
@@ -64,7 +64,7 @@ static struct {
 		CacheBlockDynRec * free;		// pointer to the free list
 		CacheBlockDynRec * running;		// the last block that was entered for execution
 	} block;
-	Bit8u * pos;		// position in the cache block
+	uint8_t * pos;		// position in the cache block
 	CodePageHandlerDynRec * free_pages;		// pointer to the free list
 	CodePageHandlerDynRec * used_pages;		// pointer to the list of used pages
 	CodePageHandlerDynRec * last_page;		// the last used page
@@ -72,9 +72,9 @@ static struct {
 
 
 // cache memory pointers, to be malloc'd later
-static Bit8u * cache_code_start_ptr=NULL;
-static Bit8u * cache_code=NULL;
-static Bit8u * cache_code_link_blocks=NULL;
+static uint8_t * cache_code_start_ptr=NULL;
+static uint8_t * cache_code=NULL;
+static uint8_t * cache_code_link_blocks=NULL;
 
 static CacheBlockDynRec * cache_blocks=NULL;
 static CacheBlockDynRec link_blocks[2];		// default linking (specially marked)
@@ -139,7 +139,7 @@ public:
 	}
 
 	// the following functions will clean all cache blocks that are invalid now due to the write
-	void writeb(PhysPt addr,Bit8u val){
+	void writeb(PhysPt addr,uint8_t val){
 		addr&=4095;
 		if (host_readb(hostmem+addr)==val) return;
 		host_writeb(hostmem+addr,val);
@@ -150,7 +150,7 @@ public:
 			if (!active_count) Release();	// delay page releasing until active_count is zero
 			return;
 		} else if (!invalidation_map) {
-            invalidation_map = (Bit8u*)malloc(4096);
+            invalidation_map = (uint8_t*)malloc(4096);
             if (invalidation_map != NULL)
                 memset(invalidation_map, 0, 4096);
             else
@@ -171,7 +171,7 @@ public:
 			if (!active_count) Release();	// delay page releasing until active_count is zero
 			return;
 		} else if (!invalidation_map) {
-			invalidation_map=(Bit8u*)malloc(4096);
+			invalidation_map=(uint8_t*)malloc(4096);
             if (invalidation_map != NULL)
                 memset(invalidation_map, 0, 4096);
             else
@@ -197,7 +197,7 @@ public:
 			if (!active_count) Release();	// delay page releasing until active_count is zero
 			return;
 		} else if (!invalidation_map) {
-			invalidation_map=(Bit8u*)malloc(4096);
+			invalidation_map=(uint8_t*)malloc(4096);
             if (invalidation_map != NULL)
                 memset(invalidation_map, 0, 4096);
             else
@@ -212,7 +212,7 @@ public:
 #endif
 		InvalidateRange(addr,addr+(Bitu)3);
 	}
-	bool writeb_checked(PhysPt addr,Bit8u val) {
+	bool writeb_checked(PhysPt addr,uint8_t val) {
 		addr&=4095;
 		if (host_readb(hostmem+addr)==val) return false;
 		// see if there's code where we are writing to
@@ -224,7 +224,7 @@ public:
 			}
 		} else {
             if (!invalidation_map) {
-                invalidation_map = (Bit8u*)malloc(4096);
+                invalidation_map = (uint8_t*)malloc(4096);
                 if (invalidation_map != NULL) {
                     memset(invalidation_map, 0, 4096);
                 }
@@ -253,7 +253,7 @@ public:
 			}
 		} else {
 			if (!invalidation_map) {
-				invalidation_map=(Bit8u*)malloc(4096);
+				invalidation_map=(uint8_t*)malloc(4096);
                 if (invalidation_map != NULL)
                     memset(invalidation_map, 0, 4096);
                 else
@@ -286,7 +286,7 @@ public:
 			}
 		} else {
 			if (!invalidation_map) {
-				invalidation_map=(Bit8u*)malloc(4096);
+				invalidation_map=(uint8_t*)malloc(4096);
                 if (invalidation_map != NULL)
                     memset(invalidation_map, 0, 4096);
                 else
@@ -405,8 +405,8 @@ public:
 	}
 public:
 	// the write map, there are write_map[i] cache blocks that cover the byte at address i
-    Bit8u write_map[4096] = {};
-    Bit8u* invalidation_map = NULL;
+    uint8_t write_map[4096] = {};
+    uint8_t* invalidation_map = NULL;
     CodePageHandlerDynRec* next = NULL; // page linking
     CodePageHandlerDynRec* prev = NULL; // page linking
 private:
@@ -554,7 +554,7 @@ static void cache_closeblock(void) {
 
 
 // place an 8bit value into the cache
-static INLINE void cache_addb(Bit8u val) {
+static INLINE void cache_addb(uint8_t val) {
 	*cache.pos++=val;
 }
 
@@ -616,16 +616,16 @@ static void cache_reset(void) {
 
 		if (cache_code_start_ptr==NULL) {
 #if defined (WIN32)
-			cache_code_start_ptr=(Bit8u*)VirtualAlloc(0,CACHE_TOTAL+CACHE_MAXSIZE+PAGESIZE_TEMP-1+PAGESIZE_TEMP,
+			cache_code_start_ptr=(uint8_t*)VirtualAlloc(0,CACHE_TOTAL+CACHE_MAXSIZE+PAGESIZE_TEMP-1+PAGESIZE_TEMP,
 				MEM_COMMIT,PAGE_EXECUTE_READWRITE);
 			if (!cache_code_start_ptr)
-				cache_code_start_ptr=(Bit8u*)malloc(CACHE_TOTAL+CACHE_MAXSIZE+PAGESIZE_TEMP-1+PAGESIZE_TEMP);
+				cache_code_start_ptr=(uint8_t*)malloc(CACHE_TOTAL+CACHE_MAXSIZE+PAGESIZE_TEMP-1+PAGESIZE_TEMP);
 #else
-			cache_code_start_ptr=(Bit8u*)malloc(CACHE_TOTAL+CACHE_MAXSIZE+PAGESIZE_TEMP-1+PAGESIZE_TEMP);
+			cache_code_start_ptr=(uint8_t*)malloc(CACHE_TOTAL+CACHE_MAXSIZE+PAGESIZE_TEMP-1+PAGESIZE_TEMP);
 #endif
 			if (!cache_code_start_ptr) E_Exit("Allocating dynamic cache failed");
 
-			cache_code=(Bit8u*)(((Bitu)cache_code_start_ptr + PAGESIZE_TEMP-1) & ~(PAGESIZE_TEMP-1)); //Bitu is same size as a pointer.
+			cache_code=(uint8_t*)(((Bitu)cache_code_start_ptr + PAGESIZE_TEMP-1) & ~(PAGESIZE_TEMP-1)); //Bitu is same size as a pointer.
 
 			cache_code_link_blocks=cache_code;
 			cache_code+=PAGESIZE_TEMP;
@@ -689,17 +689,17 @@ static void cache_init(bool enable) {
 		if (cache_code_start_ptr==NULL) {
 			// allocate the code cache memory
 #if defined (WIN32)
-			cache_code_start_ptr=(Bit8u*)VirtualAlloc(0,CACHE_TOTAL+CACHE_MAXSIZE+PAGESIZE_TEMP-1+PAGESIZE_TEMP,
+			cache_code_start_ptr=(uint8_t*)VirtualAlloc(0,CACHE_TOTAL+CACHE_MAXSIZE+PAGESIZE_TEMP-1+PAGESIZE_TEMP,
 				MEM_COMMIT,PAGE_EXECUTE_READWRITE);
 			if (!cache_code_start_ptr)
-				cache_code_start_ptr=(Bit8u*)malloc(CACHE_TOTAL+CACHE_MAXSIZE+PAGESIZE_TEMP-1+PAGESIZE_TEMP);
+				cache_code_start_ptr=(uint8_t*)malloc(CACHE_TOTAL+CACHE_MAXSIZE+PAGESIZE_TEMP-1+PAGESIZE_TEMP);
 #else
-			cache_code_start_ptr=(Bit8u*)malloc(CACHE_TOTAL+CACHE_MAXSIZE+PAGESIZE_TEMP-1+PAGESIZE_TEMP);
+			cache_code_start_ptr=(uint8_t*)malloc(CACHE_TOTAL+CACHE_MAXSIZE+PAGESIZE_TEMP-1+PAGESIZE_TEMP);
 #endif
 			if(!cache_code_start_ptr) E_Exit("Allocating dynamic cache failed");
 
 			// align the cache at a page boundary
-			cache_code=(Bit8u*)(((Bitu)cache_code_start_ptr + (Bitu)(PAGESIZE_TEMP-1)) & ~((Bitu)(PAGESIZE_TEMP-1)));//Bitu is same size as a pointer.
+			cache_code=(uint8_t*)(((Bitu)cache_code_start_ptr + (Bitu)(PAGESIZE_TEMP-1)) & ~((Bitu)(PAGESIZE_TEMP-1)));//Bitu is same size as a pointer.
 
 			cache_code_link_blocks=cache_code;
 			cache_code=cache_code+PAGESIZE_TEMP;

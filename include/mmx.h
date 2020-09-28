@@ -43,7 +43,7 @@ typedef union {
 	} sw;
 
 	struct {
-		Bit8u b0,b1,b2,b3,b4,b5,b6,b7;
+		uint8_t b0,b1,b2,b3,b4,b5,b6,b7;
 	} ub;
 
 	struct {
@@ -67,11 +67,11 @@ typedef union {
 	} sw;
 
 	struct {
-		Bit8u b7,b6,b5,b4,b3,b2,b1,b0;
+		uint8_t b7,b6,b5,b4,b3,b2,b1,b0;
 	} ub;
 
 	struct {
-		Bit8u b7,b6,b5,b4,b3,b2,b1,b0;
+		uint8_t b7,b6,b5,b4,b3,b2,b1,b0;
 	} sb;
 #endif
 
@@ -83,7 +83,7 @@ extern MMX_reg * lookupRMregMM[256];
 
 Bit8s  SaturateWordSToByteS(Bit16s value);
 Bit16s SaturateDwordSToWordS(Bit32s value);
-Bit8u  SaturateWordSToByteU(Bit16s value);
+uint8_t  SaturateWordSToByteU(Bit16s value);
 Bit16u SaturateDwordSToWordU(Bit32s value);
 
 void   setFPUTagEmpty();

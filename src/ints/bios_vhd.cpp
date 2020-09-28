@@ -51,7 +51,7 @@ imageDiskVHD::ErrorCodes imageDiskVHD::Open(const char* fileName, const bool rea
 	return Open(fileName, readOnly, disk, 0);
 }
 
-imageDiskVHD::ErrorCodes imageDiskVHD::Open(const char* fileName, const bool readOnly, imageDisk** disk, const Bit8u* matchUniqueId) {
+imageDiskVHD::ErrorCodes imageDiskVHD::Open(const char* fileName, const bool readOnly, imageDisk** disk, const uint8_t* matchUniqueId) {
 	//validate input parameters
 	if (fileName == NULL) return ERROR_OPENING;
 	if (disk == NULL) return ERROR_OPENING;
@@ -79,7 +79,7 @@ imageDiskVHD::ErrorCodes imageDiskVHD::Open(const char* fileName, const bool rea
 	if (!footer.IsValid()) {
 		//if invalid, read header, and verify checksum on header
 		if (fseeko64(file, 0L, SEEK_SET)) { fclose(file); return INVALID_DATA; }
-		if (fread(&originalfooter, sizeof(Bit8u), 512, file) != 512) { fclose(file); return INVALID_DATA; }
+		if (fread(&originalfooter, sizeof(uint8_t), 512, file) != 512) { fclose(file); return INVALID_DATA; }
 		//convert from big-endian if necessary
 		footer = originalfooter;
 		footer.SwapByteOrder();
@@ -127,7 +127,7 @@ imageDiskVHD::ErrorCodes imageDiskVHD::Open(const char* fileName, const bool rea
 	//read dynamic disk header (applicable for dynamic and differencing types)
 	DynamicHeader dynHeader;
 	if (fseeko64(file, (off_t)footer.dataOffset, SEEK_SET)) { delete vhd; return INVALID_DATA; }
-	if (fread(&dynHeader, sizeof(Bit8u), 1024, file) != 1024) { delete vhd; return INVALID_DATA; }
+	if (fread(&dynHeader, sizeof(uint8_t), 1024, file) != 1024) { delete vhd; return INVALID_DATA; }
 	//swap byte order and validate checksum
 	dynHeader.SwapByteOrder();
 	if (!dynHeader.IsValid()) { delete vhd; return INVALID_DATA; }
@@ -144,12 +144,12 @@ imageDiskVHD::ErrorCodes imageDiskVHD::Open(const char* fileName, const bool rea
 				//load the platform data, if there is any
 				Bit64u dataOffset = dynHeader.parentLocatorEntry[i].platformDataOffset;
 				Bit32u dataLength = dynHeader.parentLocatorEntry[i].platformDataLength;
-				Bit8u* buffer = 0;
+				uint8_t* buffer = 0;
 				if (dataOffset && dataLength && ((Bit64u)dataOffset + dataLength) <= footerPosition) {
 					if (fseeko64(file, (off_t)dataOffset, SEEK_SET)) { delete vhd; return INVALID_DATA; }
-					buffer = (Bit8u*)malloc(dataLength + 2);
+					buffer = (uint8_t*)malloc(dataLength + 2);
 					if (buffer == 0) { delete vhd; return INVALID_DATA; }
-					if (fread(buffer, sizeof(Bit8u), dataLength, file) != dataLength) { free(buffer); delete vhd; return INVALID_DATA; }
+					if (fread(buffer, sizeof(uint8_t), dataLength, file) != dataLength) { free(buffer); delete vhd; return INVALID_DATA; }
 					buffer[dataLength] = 0; //append null character, just in case
 					buffer[dataLength + 1] = 0; //two bytes, because this might be UTF-16
 				}
@@ -187,7 +187,7 @@ imageDiskVHD::ErrorCodes imageDiskVHD::Open(const char* fileName, const bool rea
 	vhd->blockMapSectors = blockMapSectors;
 	vhd->blockMapSize = blockMapSectors * 512;
 	vhd->sectorsPerBlock = sectorsPerBlock;
-	vhd->currentBlockDirtyMap = (Bit8u*)malloc(vhd->blockMapSize);
+	vhd->currentBlockDirtyMap = (uint8_t*)malloc(vhd->blockMapSize);
 	if (vhd->currentBlockDirtyMap == 0) { delete vhd; return INVALID_DATA; }
 
 	//try loading the first block
@@ -244,7 +244,7 @@ bool imageDiskVHD::convert_UTF16_for_fopen(std::string &string, const void* data
 	return true;
 }
 
-imageDiskVHD::ErrorCodes imageDiskVHD::TryOpenParent(const char* childFileName, const imageDiskVHD::ParentLocatorEntry& entry, const Bit8u* data, const Bit32u dataLength, imageDisk** disk, const Bit8u* uniqueId) {
+imageDiskVHD::ErrorCodes imageDiskVHD::TryOpenParent(const char* childFileName, const imageDiskVHD::ParentLocatorEntry& entry, const uint8_t* data, const Bit32u dataLength, imageDisk** disk, const uint8_t* uniqueId) {
 	std::string str = "";
 	const char* slashpos = NULL;
 
@@ -297,7 +297,7 @@ imageDiskVHD::ErrorCodes imageDiskVHD::TryOpenParent(const char* childFileName, 
 	return ERROR_OPENING; //return ERROR_OPENING if the file does not exist, cannot be accessed, etc
 }
 
-Bit8u imageDiskVHD::Read_AbsoluteSector(Bit32u sectnum, void * data) {
+uint8_t imageDiskVHD::Read_AbsoluteSector(Bit32u sectnum, void * data) {
 	Bit32u blockNumber = sectnum / sectorsPerBlock;
 	Bit32u sectorOffset = sectnum % sectorsPerBlock;
 	if (!loadBlock(blockNumber)) return 0x05; //can't load block
@@ -307,7 +307,7 @@ Bit8u imageDiskVHD::Read_AbsoluteSector(Bit32u sectnum, void * data) {
 		bool hasData = currentBlockDirtyMap[byteNum] & (1 << (7 - bitNum));
 		if (hasData) {
 			if (fseeko64(diskimg, (off_t)(((Bit64u)currentBlockSectorOffset + blockMapSectors + sectorOffset) * 512ull), SEEK_SET)) return 0x05; //can't seek
-			if (fread(data, sizeof(Bit8u), 512, diskimg) != 512) return 0x05; //can't read
+			if (fread(data, sizeof(uint8_t), 512, diskimg) != 512) return 0x05; //can't read
 			return 0;
 		}
 	}
@@ -320,7 +320,7 @@ Bit8u imageDiskVHD::Read_AbsoluteSector(Bit32u sectnum, void * data) {
 	}
 }
 
-Bit8u imageDiskVHD::Write_AbsoluteSector(Bit32u sectnum, const void * data) {
+uint8_t imageDiskVHD::Write_AbsoluteSector(Bit32u sectnum, const void * data) {
 	Bit32u blockNumber = sectnum / sectorsPerBlock;
 	Bit32u sectorOffset = sectnum % sectorsPerBlock;
 	if (!loadBlock(blockNumber)) return 0x05; //can't load block
@@ -328,7 +328,7 @@ Bit8u imageDiskVHD::Write_AbsoluteSector(Bit32u sectnum, const void * data) {
 		if (!copiedFooter) {
 			//write backup of footer at start of file (should already exist, but we never checked to be sure it is readable or matches the footer we used)
 			if (fseeko64(diskimg, (off_t)0, SEEK_SET)) return 0x05;
-			if (fwrite(&originalFooter, sizeof(Bit8u), 512, diskimg) != 512) return 0x05;
+			if (fwrite(&originalFooter, sizeof(uint8_t), 512, diskimg) != 512) return 0x05;
 			copiedFooter = true;
 			//flush the data to disk after writing the backup footer
 			if (fflush(diskimg)) return 0x05;
@@ -339,7 +339,7 @@ Bit8u imageDiskVHD::Write_AbsoluteSector(Bit32u sectnum, const void * data) {
 		if (fseeko64(diskimg, (off_t)newFooterPosition + 512, SEEK_SET)) return 0x05;
 		//now write the footer
 		if (fseeko64(diskimg, (off_t)newFooterPosition, SEEK_SET)) return 0x05;
-		if (fwrite(&originalFooter, sizeof(Bit8u), 512, diskimg) != 512) return 0x05;
+		if (fwrite(&originalFooter, sizeof(uint8_t), 512, diskimg) != 512) return 0x05;
 		//save the new block location and new footer position
 		Bit32u newBlockSectorNumber = (Bit32u)((footerPosition + 511ul) / 512ul);
 		footerPosition = newFooterPosition;
@@ -347,13 +347,13 @@ Bit8u imageDiskVHD::Write_AbsoluteSector(Bit32u sectnum, const void * data) {
 		for (Bit32u i = 0; i < blockMapSize; i++) currentBlockDirtyMap[i] = 0;
 		//write the dirty map
 		if (fseeko64(diskimg, (off_t)(newBlockSectorNumber * 512ull), SEEK_SET)) return 0x05;
-		if (fwrite(currentBlockDirtyMap, sizeof(Bit8u), blockMapSize, diskimg) != blockMapSize) return 0x05;
+		if (fwrite(currentBlockDirtyMap, sizeof(uint8_t), blockMapSize, diskimg) != blockMapSize) return 0x05;
 		//flush the data to disk after expanding the file, before allocating the block in the BAT
 		if (fflush(diskimg)) return 0x05;
 		//update the BAT
 		if (fseeko64(diskimg, (off_t)(dynamicHeader.tableOffset + (blockNumber * 4ull)), SEEK_SET)) return 0x05;
 		Bit32u newBlockSectorNumberBE = SDL_SwapBE32(newBlockSectorNumber);
-		if (fwrite(&newBlockSectorNumberBE, sizeof(Bit8u), 4, diskimg) != 4) return false;
+		if (fwrite(&newBlockSectorNumberBE, sizeof(uint8_t), 4, diskimg) != 4) return false;
 		currentBlockAllocated = true;
 		currentBlockSectorOffset = newBlockSectorNumber;
 		//flush the data to disk after allocating a block
@@ -367,12 +367,12 @@ Bit8u imageDiskVHD::Write_AbsoluteSector(Bit32u sectnum, const void * data) {
 	if (!hasData) {
 		currentBlockDirtyMap[byteNum] |= 1 << (7 - bitNum);
 		if (fseeko64(diskimg, (off_t)(currentBlockSectorOffset * 512ull), SEEK_SET)) return 0x05; //can't seek
-		if (fwrite(currentBlockDirtyMap, sizeof(Bit8u), blockMapSize, diskimg) != blockMapSize) return 0x05;
+		if (fwrite(currentBlockDirtyMap, sizeof(uint8_t), blockMapSize, diskimg) != blockMapSize) return 0x05;
 	}
 	//current sector has now been marked as dirty
 	//write the sector
 	if (fseeko64(diskimg, (off_t)(((Bit64u)currentBlockSectorOffset + (Bit64u)blockMapSectors + (Bit64u)sectorOffset) * 512ull), SEEK_SET)) return 0x05; //can't seek
-	if (fwrite(data, sizeof(Bit8u), 512, diskimg) != 512) return 0x05; //can't write
+	if (fwrite(data, sizeof(uint8_t), 512, diskimg) != 512) return 0x05; //can't write
 	return 0;
 }
 
@@ -391,7 +391,7 @@ bool imageDiskVHD::loadBlock(const Bit32u blockNumber) {
 	if (blockNumber >= dynamicHeader.maxTableEntries) return false;
 	if (fseeko64(diskimg, (off_t)(dynamicHeader.tableOffset + (blockNumber * 4ull)), SEEK_SET)) return false;
 	Bit32u blockSectorOffset;
-	if (fread(&blockSectorOffset, sizeof(Bit8u), 4, diskimg) != 4) return false;
+	if (fread(&blockSectorOffset, sizeof(uint8_t), 4, diskimg) != 4) return false;
 	blockSectorOffset = SDL_SwapBE32(blockSectorOffset);
 	if (blockSectorOffset == 0xFFFFFFFFul) {
 		currentBlock = blockNumber;
@@ -402,7 +402,7 @@ bool imageDiskVHD::loadBlock(const Bit32u blockNumber) {
 		currentBlock = 0xFFFFFFFFul;
 		currentBlockAllocated = true;
 		currentBlockSectorOffset = blockSectorOffset;
-		if (fread(currentBlockDirtyMap, sizeof(Bit8u), blockMapSize, diskimg) != blockMapSize) return false;
+		if (fread(currentBlockDirtyMap, sizeof(uint8_t), blockMapSize, diskimg) != blockMapSize) return false;
 		currentBlock = blockNumber;
 	}
 	return true;
@@ -442,7 +442,7 @@ Bit32u imageDiskVHD::VHDFooter::CalculateChecksum() {
 	//however, the checksum must be stored in the correct byte order or it will not match
 
 	Bit32u ret = 0;
-    const Bit8u* dat = (Bit8u*)this->cookie;
+    const uint8_t* dat = (uint8_t*)this->cookie;
 	Bit32u oldChecksum = checksum;
 	checksum = 0;
 	for (size_t i = 0; i < sizeof(VHDFooter); i++) {
@@ -489,7 +489,7 @@ Bit32u imageDiskVHD::DynamicHeader::CalculateChecksum() {
 	//however, the checksum must be stored in the correct byte order or it will not match
 
 	Bit32u ret = 0;
-    const Bit8u* dat = (Bit8u*)this->cookie;
+    const uint8_t* dat = (uint8_t*)this->cookie;
 	Bit32u oldChecksum = checksum;
 	checksum = 0;
 	for (size_t i = 0; i < sizeof(DynamicHeader); i++) {

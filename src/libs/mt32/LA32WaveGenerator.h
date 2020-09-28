@@ -78,12 +78,12 @@ class LA32WaveGenerator {
 
 	// Values in range [1..31]
 	// Value 1 correspong to the minimum resonance
-	Bit8u resonance;
+	uint8_t resonance;
 
 	// Processed value in range [0..255]
 	// Values in range [0..128] have no effect and the resulting wave remains symmetrical
 	// Value 255 corresponds to the maximum possible asymmetric of the resulting wave
-	Bit8u pulseWidth;
+	uint8_t pulseWidth;
 
 	// Composed of the base cutoff in range [78..178] left-shifted by 18 bits and the TVF modifier
 	Bit32u cutoffVal;
@@ -178,7 +178,7 @@ class LA32WaveGenerator {
 
 public:
 	// Initialise the WG engine for generation of synth partial samples and set up the invariant parameters
-	void initSynth(const bool sawtoothWaveform, const Bit8u pulseWidth, const Bit8u resonance);
+	void initSynth(const bool sawtoothWaveform, const uint8_t pulseWidth, const uint8_t resonance);
 
 	// Initialise the WG engine for generation of PCM partial samples and set up the invariant parameters
 	void initPCM(const Bit16s * const pcmWaveAddress, const Bit32u pcmWaveLength, const bool pcmWaveLooped, const bool pcmWaveInterpolated);
@@ -218,7 +218,7 @@ public:
 	virtual void init(const bool ringModulated, const bool mixed) = 0;
 
 	// Initialise the WG engine for generation of synth partial samples and set up the invariant parameters
-	virtual void initSynth(const PairType master, const bool sawtoothWaveform, const Bit8u pulseWidth, const Bit8u resonance) = 0;
+	virtual void initSynth(const PairType master, const bool sawtoothWaveform, const uint8_t pulseWidth, const uint8_t resonance) = 0;
 
 	// Initialise the WG engine for generation of PCM partial samples and set up the invariant parameters
 	virtual void initPCM(const PairType master, const Bit16s * const pcmWaveAddress, const Bit32u pcmWaveLength, const bool pcmWaveLooped) = 0;
@@ -242,7 +242,7 @@ public:
 	void init(const bool ringModulated, const bool mixed);
 
 	// Initialise the WG engine for generation of synth partial samples and set up the invariant parameters
-	void initSynth(const PairType master, const bool sawtoothWaveform, const Bit8u pulseWidth, const Bit8u resonance);
+	void initSynth(const PairType master, const bool sawtoothWaveform, const uint8_t pulseWidth, const uint8_t resonance);
 
 	// Initialise the WG engine for generation of PCM partial samples and set up the invariant parameters
 	void initPCM(const PairType master, const Bit16s * const pcmWaveAddress, const Bit32u pcmWaveLength, const bool pcmWaveLooped);

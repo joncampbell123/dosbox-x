@@ -90,18 +90,18 @@ class PageHandler {
 public:
 	PageHandler(Bitu flg) : flags(flg) {}
 	virtual ~PageHandler(void) { }
-	virtual Bit8u readb(PhysPt addr);
+	virtual uint8_t readb(PhysPt addr);
 	virtual Bit16u readw(PhysPt addr);
 	virtual Bit32u readd(PhysPt addr);
-	virtual void writeb(PhysPt addr,Bit8u val);
+	virtual void writeb(PhysPt addr,uint8_t val);
 	virtual void writew(PhysPt addr,Bit16u val);
 	virtual void writed(PhysPt addr,Bit32u val);
 	virtual HostPt GetHostReadPt(Bitu phys_page);
 	virtual HostPt GetHostWritePt(Bitu phys_page);
-	virtual bool readb_checked(PhysPt addr,Bit8u * val);
+	virtual bool readb_checked(PhysPt addr,uint8_t * val);
 	virtual bool readw_checked(PhysPt addr,Bit16u * val);
 	virtual bool readd_checked(PhysPt addr,Bit32u * val);
-	virtual bool writeb_checked(PhysPt addr,Bit8u val);
+	virtual bool writeb_checked(PhysPt addr,uint8_t val);
 	virtual bool writew_checked(PhysPt addr,Bit16u val);
 	virtual bool writed_checked(PhysPt addr,Bit32u val);
 
@@ -396,10 +396,10 @@ static INLINE PhysPt PAGING_GetPhysicalAddress(const PhysPt linAddr) {
 
 /* Special inlined memory reading/writing */
 
-static INLINE Bit8u mem_readb_inline(const PhysPt address) {
+static INLINE uint8_t mem_readb_inline(const PhysPt address) {
 	const HostPt tlb_addr=get_tlb_read(address);
 	if (tlb_addr) return host_readb(tlb_addr+address);
-	else return (Bit8u)(get_tlb_readhandler(address))->readb(address);
+	else return (uint8_t)(get_tlb_readhandler(address))->readb(address);
 }
 
 static INLINE Bit16u mem_readw_inline(const PhysPt address) {
@@ -418,7 +418,7 @@ static INLINE Bit32u mem_readd_inline(const PhysPt address) {
 	} else return mem_unalignedreadd(address);
 }
 
-static INLINE void mem_writeb_inline(const PhysPt address,const Bit8u val) {
+static INLINE void mem_writeb_inline(const PhysPt address,const uint8_t val) {
 	const HostPt tlb_addr=get_tlb_write(address);
 	if (tlb_addr) host_writeb(tlb_addr+address,val);
 	else (get_tlb_writehandler(address))->writeb(address,val);
@@ -441,7 +441,7 @@ static INLINE void mem_writed_inline(const PhysPt address,const Bit32u val) {
 }
 
 
-static INLINE bool mem_readb_checked(const PhysPt address, Bit8u * const val) {
+static INLINE bool mem_readb_checked(const PhysPt address, uint8_t * const val) {
 	const HostPt tlb_addr=get_tlb_read(address);
 	if (tlb_addr) {
 		*val=host_readb(tlb_addr+address);
@@ -469,7 +469,7 @@ static INLINE bool mem_readd_checked(const PhysPt address, Bit32u * const val) {
 	} else return mem_unalignedreadd_checked(address, val);
 }
 
-static INLINE bool mem_writeb_checked(const PhysPt address,const Bit8u val) {
+static INLINE bool mem_writeb_checked(const PhysPt address,const uint8_t val) {
 	const HostPt tlb_addr=get_tlb_write(address);
 	if (tlb_addr) {
 		host_writeb(tlb_addr+address,val);

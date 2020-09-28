@@ -9,14 +9,14 @@
 
 #if defined (_MSC_VER)
 # if defined (_M_IX86)/*x86 only*/
-void outportb(Bit32u portid, Bit8u value) {
+void outportb(Bit32u portid, uint8_t value) {
   __asm mov edx,portid
   __asm mov al,value
   __asm out dx,al
 }
 
-Bit8u inportb(Bit32u portid) {
-  Bit8u value;
+uint8_t inportb(Bit32u portid) {
+  uint8_t value;
   
   __asm mov edx,portid
   __asm in al,dx
@@ -56,7 +56,7 @@ Bit32u inportd(Bit32u portid) {
 # endif
 #else
 # if defined(__i386__) || defined(__amd64__) || defined(__x86_64__)
-void outportb(Bit32u portid, Bit8u value) {
+void outportb(Bit32u portid, uint8_t value) {
    __asm__ volatile (
       "movl   %0,%%edx   \n"
       "movb   %1,%%al      \n"
@@ -66,8 +66,8 @@ void outportb(Bit32u portid, Bit8u value) {
       :   "edx", "al"
    );
 }
-Bit8u inportb(Bit32u portid) {
-   Bit8u value;
+uint8_t inportb(Bit32u portid) {
+   uint8_t value;
    __asm__ volatile (
       "movl   %1,%%edx   \n"
       "inb   %%dx,%%al   \n"
@@ -96,11 +96,11 @@ Bit8u inportb(Bit32u portid) {
 
 typedef struct driverpermstruct {
     Bit16u offset;
-    Bit8u value;
+    uint8_t value;
 } permblock;
 
 static HANDLE porttalkhandle=INVALID_HANDLE_VALUE;
-static Bit8u ioperm[8192];
+static uint8_t ioperm[8192];
 static bool isNT = false;
 
 bool initPorttalk() {

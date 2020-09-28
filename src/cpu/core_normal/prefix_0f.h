@@ -464,7 +464,7 @@
 				}
 			} else {
    				GetEAa;
-				Bit8u val = LoadMb(eaa);
+				uint8_t val = LoadMb(eaa);
 				if (reg_al == val) { 
 					SaveMb(eaa,*rmrb);
 					SETFLAGBIT(ZF,1);
@@ -678,7 +678,7 @@
 	CASE_0F_B(0xc0)												/* XADD Gb,Eb */
 		{
 			if (CPU_ArchitectureType<CPU_ARCHTYPE_486OLD) goto illegal_opcode;
-			GetRMrb;Bit8u oldrmrb=*rmrb;
+			GetRMrb;uint8_t oldrmrb=*rmrb;
 			if (rm >= 0xc0 ) {GetEArb;*rmrb=*earb;*earb+=oldrmrb;}
 			else {GetEAa;*rmrb=LoadMb(eaa);SaveMb(eaa,LoadMb(eaa)+oldrmrb);}
 			break;

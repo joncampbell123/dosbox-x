@@ -108,20 +108,20 @@ public:
 	Bit32u releaseAdd;
 	Bit32u rateIndex;			//Current position of the evenlope
 
-	Bit8u rateZero;				//Bits for the different states of the envelope having no changes
-	Bit8u keyOn;				//Bitmask of different values that can generate keyon
+	uint8_t rateZero;				//Bits for the different states of the envelope having no changes
+	uint8_t keyOn;				//Bitmask of different values that can generate keyon
 	//Registers, also used to check for changes
-	Bit8u reg20, reg40, reg60, reg80, regE0;
+	uint8_t reg20, reg40, reg60, reg80, regE0;
 	//Active part of the envelope we're in
-	Bit8u state;
+	uint8_t state;
 	//0xff when tremolo is enabled
-	Bit8u tremoloMask;
+	uint8_t tremoloMask;
 	//Strength of the vibrato
-	Bit8u vibStrength;
+	uint8_t vibStrength;
 	//Keep track of the calculated KSR so we can check for changes
-	Bit8u ksr;
+	uint8_t ksr;
 private:
-	void SetState( Bit8u s );
+	void SetState( uint8_t s );
 	void UpdateAttack( const Chip* chip );
 	void UpdateRelease( const Chip* chip );
 	void UpdateDecay( const Chip* chip );
@@ -130,17 +130,17 @@ public:
 	void UpdateRates( const Chip* chip );
 	void UpdateFrequency( );
 
-	void Write20( const Chip* chip, Bit8u val );
-	void Write40( const Chip* chip, Bit8u val );
-	void Write60( const Chip* chip, Bit8u val );
-	void Write80( const Chip* chip, Bit8u val );
-	void WriteE0( const Chip* chip, Bit8u val );
+	void Write20( const Chip* chip, uint8_t val );
+	void Write40( const Chip* chip, uint8_t val );
+	void Write60( const Chip* chip, uint8_t val );
+	void Write80( const Chip* chip, uint8_t val );
+	void WriteE0( const Chip* chip, uint8_t val );
 
 	bool Silent() const;
 	void Prepare( const Chip* chip );
 
-	void KeyOn( Bit8u mask);
-	void KeyOff( Bit8u mask);
+	void KeyOn( uint8_t mask);
+	void KeyOff( uint8_t mask);
 
 	template< State state>
 	Bits TemplateVolume( );
@@ -164,22 +164,22 @@ struct Channel {
 	Bit32u chanData;		//Frequency/octave and derived values
 	Bit32s old[2];			//Old data for feedback
 
-	Bit8u feedback;			//Feedback shift
-	Bit8u regB0;			//Register values to check for changes
-	Bit8u regC0;
+	uint8_t feedback;			//Feedback shift
+	uint8_t regB0;			//Register values to check for changes
+	uint8_t regC0;
 	//This should correspond with reg104, bit 6 indicates a Percussion channel, bit 7 indicates a silent channel
-	Bit8u fourMask;
+	uint8_t fourMask;
 	Bit8s maskLeft;		//Sign extended values for both channel's panning
 	Bit8s maskRight;
 
 	//Forward the channel data to the operators of the channel
 	void SetChanData( const Chip* chip, Bit32u data );
 	//Change in the chandata, check for new values and if we have to forward to operators
-	void UpdateFrequency( const Chip* chip, Bit8u fourOp );
+	void UpdateFrequency( const Chip* chip, uint8_t fourOp );
 	void UpdateSynth(const Chip* chip);
-	void WriteA0( const Chip* chip, Bit8u val );
-	void WriteB0( const Chip* chip, Bit8u val );
-	void WriteC0( const Chip* chip, Bit8u val );
+	void WriteA0( const Chip* chip, uint8_t val );
+	void WriteB0( const Chip* chip, uint8_t val );
+	void WriteC0( const Chip* chip, uint8_t val );
 
 	//call this for the first channel
 	template< bool opl3Mode >
@@ -211,19 +211,19 @@ struct Chip {
 	//18 channels with 2 operators each
 	Channel chan[18];
 
-	Bit8u reg104;
-	Bit8u reg08;
-	Bit8u reg04;
-	Bit8u regBD;
-	Bit8u vibratoIndex = 0;
-	Bit8u tremoloIndex = 0;
+	uint8_t reg104;
+	uint8_t reg08;
+	uint8_t reg04;
+	uint8_t regBD;
+	uint8_t vibratoIndex = 0;
+	uint8_t tremoloIndex = 0;
 	Bit8s vibratoSign = 0;
-	Bit8u vibratoShift = 0;
-	Bit8u tremoloValue = 0;
-	Bit8u vibratoStrength = 0;
-	Bit8u tremoloStrength = 0;
+	uint8_t vibratoShift = 0;
+	uint8_t tremoloValue = 0;
+	uint8_t vibratoStrength = 0;
+	uint8_t tremoloStrength = 0;
 	//Mask for allowed wave forms
-	Bit8u waveFormMask = 0;
+	uint8_t waveFormMask = 0;
 	//0 or -1 when enabled
 	Bit8s opl3Active;
 
@@ -231,10 +231,10 @@ struct Chip {
 	Bit32u ForwardLFO( Bit32u samples );
 	Bit32u ForwardNoise();
 
-	void WriteBD( Bit8u val );
-	void WriteReg(Bit32u reg, Bit8u val );
+	void WriteBD( uint8_t val );
+	void WriteReg(Bit32u reg, uint8_t val );
 
-	Bit32u WriteAddr( Bit32u port, Bit8u val );
+	Bit32u WriteAddr( Bit32u port, uint8_t val );
 
 	void GenerateBlock2( Bitu total, Bit32s* output );
 	void GenerateBlock3( Bitu total, Bit32s* output );
@@ -249,8 +249,8 @@ struct Chip {
 
 struct Handler : public Adlib::Handler {
 	DBOPL::Chip chip;
-	virtual Bit32u WriteAddr( Bit32u port, Bit8u val );
-	virtual void WriteReg( Bit32u addr, Bit8u val );
+	virtual Bit32u WriteAddr( Bit32u port, uint8_t val );
+	virtual void WriteReg( Bit32u addr, uint8_t val );
 	virtual void Generate( MixerChannel* chan, Bitu samples );
 	virtual void Init( Bitu rate );
 	virtual void SaveState( std::ostream& stream );

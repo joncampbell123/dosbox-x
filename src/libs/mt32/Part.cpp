@@ -28,12 +28,12 @@
 
 namespace MT32Emu {
 
-static const Bit8u PartialStruct[13] = {
+static const uint8_t PartialStruct[13] = {
 	0, 0, 2, 2, 1, 3,
 	3, 0, 3, 0, 2, 1, 3
 };
 
-static const Bit8u PartialMixStruct[13] = {
+static const uint8_t PartialMixStruct[13] = {
 	0, 1, 0, 1, 1, 0,
 	1, 3, 3, 2, 2, 2, 2
 };
@@ -119,12 +119,12 @@ void Part::setBend(unsigned int midiBend) {
 	pitchBend = ((signed(midiBend) - 8192) * pitchBenderRange) >> 14; // PORTABILITY NOTE: Assumes arithmetic shift
 }
 
-Bit8u Part::getModulation() const {
+uint8_t Part::getModulation() const {
 	return modulation;
 }
 
 void Part::setModulation(unsigned int midiModulation) {
-	modulation = Bit8u(midiModulation);
+	modulation = uint8_t(midiModulation);
 }
 
 void Part::resetAllControllers() {
@@ -312,21 +312,21 @@ const char *Part::getName() const {
 
 void Part::setVolume(unsigned int midiVolume) {
 	// CONFIRMED: This calculation matches the table used in the control ROM
-	patchTemp->outputLevel = Bit8u(midiVolume * 100 / 127);
+	patchTemp->outputLevel = uint8_t(midiVolume * 100 / 127);
 	//synth->printDebug("%s (%s): Set volume to %d", name, currentInstr, midiVolume);
 }
 
-Bit8u Part::getVolume() const {
+uint8_t Part::getVolume() const {
 	return patchTemp->outputLevel;
 }
 
-Bit8u Part::getExpression() const {
+uint8_t Part::getExpression() const {
 	return expression;
 }
 
 void Part::setExpression(unsigned int midiExpression) {
 	// CONFIRMED: This calculation matches the table used in the control ROM
-	expression = Bit8u(midiExpression * 100 / 127);
+	expression = uint8_t(midiExpression * 100 / 127);
 }
 
 void RhythmPart::setPan(unsigned int midiPan) {
@@ -342,10 +342,10 @@ void Part::setPan(unsigned int midiPan) {
 
 	if (synth->controlROMFeatures->quirkPanMult) {
 		// MT-32: Divide by 9
-		patchTemp->panpot = Bit8u(midiPan / 9);
+		patchTemp->panpot = uint8_t(midiPan / 9);
 	} else {
 		// CM-32L: Divide by 8.5
-		patchTemp->panpot = Bit8u((midiPan << 3) / 68);
+		patchTemp->panpot = uint8_t((midiPan << 3) / 68);
 	}
 
 	//synth->printDebug("%s (%s): Set pan to %d", name, currentInstr, panpot);
@@ -519,7 +519,7 @@ void Part::playPoly(const PatchCache cache[4], const MemParams::RhythmTemp *rhyt
 #if MT32EMU_MONITOR_PARTIALS > 1
 	synth->printPartialUsage();
 #endif
-	synth->reportHandler->onPolyStateChanged(Bit8u(partNum));
+	synth->reportHandler->onPolyStateChanged(uint8_t(partNum));
 }
 
 void Part::allNotesOff() {
@@ -605,7 +605,7 @@ void Part::partialDeactivated(Poly *poly) {
 	if (!poly->isActive()) {
 		activePolys.remove(poly);
 		synth->partialManager->polyFreed(poly);
-		synth->reportHandler->onPolyStateChanged(Bit8u(partNum));
+		synth->reportHandler->onPolyStateChanged(uint8_t(partNum));
 	}
 }
 

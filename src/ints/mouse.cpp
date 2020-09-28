@@ -109,11 +109,11 @@ static RealPt ps2_callback,uir_callback;
 static Bit16s oldmouseX, oldmouseY;
 
 // serial mouse emulation
-void on_mouse_event_for_serial(int delta_x,int delta_y,Bit8u buttonstate);
+void on_mouse_event_for_serial(int delta_x,int delta_y,uint8_t buttonstate);
 
 struct button_event {
-    Bit8u type;
-    Bit8u buttons;
+    uint8_t type;
+    uint8_t buttons;
 };
 
 extern bool enable_slave_pic;
@@ -151,7 +151,7 @@ static Bit16u userdefScreenMask[CURSORY];
 static Bit16u userdefCursorMask[CURSORY];
 
 static struct {
-    Bit8u buttons;
+    uint8_t buttons;
     Bit16u times_pressed[MOUSE_BUTTONS];
     Bit16u times_released[MOUSE_BUTTONS];
     Bit16u last_released_x[MOUSE_BUTTONS];
@@ -167,13 +167,13 @@ static struct {
     float x,y;
     float ps2x,ps2y;
     button_event event_queue[QUEUE_SIZE];
-    Bit8u events;//Increase if QUEUE_SIZE >255 (currently 32)
+    uint8_t events;//Increase if QUEUE_SIZE >255 (currently 32)
     Bit16u sub_seg,sub_ofs;
     Bit16u sub_mask;
 
     bool    background;
     Bit16s  backposx, backposy;
-    Bit8u   backData[CURSORX*CURSORY];
+    uint8_t   backData[CURSORX*CURSORY];
     Bit16u* screenMask;
     Bit16u* cursorMask;
     Bit16s  clipx,clipy;
@@ -195,14 +195,14 @@ static struct {
     Bit16u  language;
     Bit16u  cursorType;
     Bit16u  oldhidden;
-    Bit8u  page;
+    uint8_t  page;
     bool enabled;
     bool inhibit_draw;
     bool timer_in_progress;
     bool first_range_setx;
     bool first_range_sety;
     bool in_UIR;
-    Bit8u mode;
+    uint8_t mode;
     Bit16s gran_x,gran_y;
     int scrollwheel;
 } mouse;
@@ -319,7 +319,7 @@ void MOUSE_Limit_Events(Bitu /*val*/) {
     }
 }
 
-INLINE void Mouse_AddEvent(Bit8u type) {
+INLINE void Mouse_AddEvent(uint8_t type) {
     if (mouse.events<QUEUE_SIZE) {
         if (mouse.events>0) {
             /* Skip duplicate events */
@@ -353,8 +353,8 @@ void MOUSE_DummyEvent(void) {
 // Mouse cursor - text mode
 // ***************************************************************************
 /* Write and read directly to the screen. Do no use int_setcursorpos (LOTUS123) */
-extern void WriteChar(Bit16u col,Bit16u row,Bit8u page,Bit16u chr,Bit8u attr,bool useattr);
-extern void ReadCharAttr(Bit16u col,Bit16u row,Bit8u page,Bit16u * result);
+extern void WriteChar(Bit16u col,Bit16u row,uint8_t page,Bit16u chr,uint8_t attr,bool useattr);
+extern void ReadCharAttr(Bit16u col,Bit16u row,uint8_t page,Bit16u * result);
 
 void RestoreCursorBackgroundText() {
     if (mouse.hidden || mouse.inhibit_draw) return;
@@ -381,17 +381,17 @@ void DrawCursorText() {
     if (mouse.mode < 2) mouse.backposx >>= 1; 
 
     //use current page (CV program)
-    Bit8u page = real_readb(BIOSMEM_SEG,BIOSMEM_CURRENT_PAGE);
+    uint8_t page = real_readb(BIOSMEM_SEG,BIOSMEM_CURRENT_PAGE);
 
     if (mouse.cursorType == 0) {
         Bit16u result;
         ReadCharAttr((Bit16u)mouse.backposx,(Bit16u)mouse.backposy,page,&result);
-        mouse.backData[0]	= (Bit8u)(result & 0xFF);
-        mouse.backData[1]	= (Bit8u)(result>>8);
+        mouse.backData[0]	= (uint8_t)(result & 0xFF);
+        mouse.backData[1]	= (uint8_t)(result>>8);
         mouse.background	= true;
         // Write Cursor
         result = (result & mouse.textAndMask) ^ mouse.textXorMask;
-        WriteChar((Bit16u)mouse.backposx,(Bit16u)mouse.backposy,page,(Bit8u)(result&0xFF),(Bit8u)(result>>8),true);
+        WriteChar((Bit16u)mouse.backposx,(Bit16u)mouse.backposy,page,(uint8_t)(result&0xFF),(uint8_t)(result>>8),true);
     } else {
         Bit16u address=page * real_readw(BIOSMEM_SEG,BIOSMEM_PAGE_SIZE);
         address += (mouse.backposy * real_readw(BIOSMEM_SEG,BIOSMEM_NB_COLS) + mouse.backposx) * 2;
@@ -408,11 +408,11 @@ void DrawCursorText() {
 // Mouse cursor - graphic mode
 // ***************************************************************************
 
-static Bit8u gfxReg3CE[9];
-static Bit8u index3C4,gfxReg3C5;
+static uint8_t gfxReg3CE[9];
+static uint8_t index3C4,gfxReg3C5;
 void SaveVgaRegisters() {
     if (IS_VGA_ARCH) {
-        for (Bit8u i=0; i<9; i++) {
+        for (uint8_t i=0; i<9; i++) {
             IO_Write    (0x3CE,i);
             gfxReg3CE[i] = IO_Read(0x3CF);
         }
@@ -432,7 +432,7 @@ void SaveVgaRegisters() {
 
 void RestoreVgaRegisters() {
     if (IS_VGA_ARCH) {
-        for (Bit8u i=0; i<9; i++) {
+        for (uint8_t i=0; i<9; i++) {
             IO_Write(0x3CE,i);
             IO_Write(0x3CF,gfxReg3CE[i]);
         }
@@ -565,7 +565,7 @@ void DrawCursor() {
         Bit16u cuMask = mouse.cursorMask[addy+y-y1];
         if (addx1>0) { scMask<<=addx1; cuMask<<=addx1; dataPos += addx1; }
         for (x=x1; x<=x2; x++) {
-            Bit8u pixel = 0;
+            uint8_t pixel = 0;
             // ScreenMask
             if (scMask & HIGHESTBIT) pixel = mouse.backData[dataPos];
             scMask<<=1;
@@ -710,7 +710,7 @@ uint8_t Mouse_GetButtonState(void) {
 #if defined(WIN32)
 char text[5000];
 const char* Mouse_GetSelected(int x1, int y1, int x2, int y2, int w, int h, Bit16u *textlen) {
-	Bit8u page = real_readb(BIOSMEM_SEG,BIOSMEM_CURRENT_PAGE);
+	uint8_t page = real_readb(BIOSMEM_SEG,BIOSMEM_CURRENT_PAGE);
 	Bit16u c=0, r=0;
 	if (IS_PC98_ARCH) {
 		c=80;
@@ -740,7 +740,7 @@ const char* Mouse_GetSelected(int x1, int y1, int x2, int y2, int w, int h, Bit1
 				result=mem_readw(where);
 				if ((result & 0xFF00u) != 0u && (result & 0xFCu) != 0x08u && result==mem_readw(where+2) && ++j<c) {
 					result&=0x7F7F;
-					Bit8u j1=(result%0x100)+0x20, j2=result/0x100;
+					uint8_t j1=(result%0x100)+0x20, j2=result/0x100;
 					if (j1>32&&j1<127&&j2>32&&j2<127) {
 						text[len++]=(j1+1)/2+(j1<95?112:176);
 						text[len++]=j2+(j1%2?31+(j2/96):126);
@@ -764,7 +764,7 @@ const char* Mouse_GetSelected(int x1, int y1, int x2, int y2, int w, int h, Bit1
 }
 
 void Mouse_Select(int x1, int y1, int x2, int y2, int w, int h) {
-	Bit8u page = real_readb(BIOSMEM_SEG,BIOSMEM_CURRENT_PAGE);
+	uint8_t page = real_readb(BIOSMEM_SEG,BIOSMEM_CURRENT_PAGE);
 	Bit16u c=0, r=0;
 	if (IS_PC98_ARCH) {
 		c=80;
@@ -796,7 +796,7 @@ void Mouse_Select(int x1, int y1, int x2, int y2, int w, int h) {
 }
 
 void Restore_Text(int x1, int y1, int x2, int y2, int w, int h) {
-	Bit8u page = real_readb(BIOSMEM_SEG,BIOSMEM_CURRENT_PAGE);
+	uint8_t page = real_readb(BIOSMEM_SEG,BIOSMEM_CURRENT_PAGE);
 	Bit16u c=0, r=0;
 	if (IS_PC98_ARCH) {
 		c=80;
@@ -828,7 +828,7 @@ void Restore_Text(int x1, int y1, int x2, int y2, int w, int h) {
 }
 #endif
 
-void Mouse_ButtonPressed(Bit8u button) {
+void Mouse_ButtonPressed(uint8_t button) {
     if (!IS_PC98_ARCH && KEYBOARD_AUX_Active()) {
         switch (button) {
             case 0:
@@ -885,7 +885,7 @@ void Mouse_ButtonPressed(Bit8u button) {
     on_mouse_event_for_serial(0,0,mouse.buttons);
 }
 
-void Mouse_ButtonReleased(Bit8u button) {
+void Mouse_ButtonReleased(uint8_t button) {
     if (!IS_PC98_ARCH && KEYBOARD_AUX_Active()) {
         switch (button) {
             case 0:
@@ -1007,7 +1007,7 @@ void Mouse_BeforeNewVideoMode(bool setmode) {
 void Mouse_AfterNewVideoMode(bool setmode) {
     mouse.inhibit_draw = false;
     /* Get the correct resolution from the current video mode */
-    Bit8u mode = mem_readb(BIOS_VIDEO_MODE);
+    uint8_t mode = mem_readb(BIOS_VIDEO_MODE);
     if (setmode && mode == mouse.mode) LOG(LOG_MOUSE,LOG_NORMAL)("New video mode is the same as the old");
     mouse.first_range_setx = false;
     mouse.first_range_sety = false;
@@ -1522,7 +1522,7 @@ static Bitu INT33_Handler(void) {
         reg_dx = (Bit16u)mouse.max_y;
         break;
     case 0x2a:  /* Get cursor hot spot */
-        reg_al = (Bit8u)-mouse.hidden;    // Microsoft uses a negative byte counter for cursor visibility
+        reg_al = (uint8_t)-mouse.hidden;    // Microsoft uses a negative byte counter for cursor visibility
         reg_bx = (Bit16u)mouse.hotx;
         reg_cx = (Bit16u)mouse.hoty;
         reg_dx = 0x04;    // PS/2 mouse type
@@ -1737,7 +1737,7 @@ void BIOS_PS2Mouse_Startup(Section *sec) {
     //  iret
 
     if (MOUSE_IRQ != 0) {
-        Bit8u hwvec=(MOUSE_IRQ>7)?(0x70+MOUSE_IRQ-8):(0x8+MOUSE_IRQ);
+        uint8_t hwvec=(MOUSE_IRQ>7)?(0x70+MOUSE_IRQ-8):(0x8+MOUSE_IRQ);
         RealSetVec(hwvec,CALLBACK_RealPointer(call_int74));
     }
 
@@ -1871,7 +1871,7 @@ public:
 private:
 	virtual void getBytes(std::ostream& stream)
 	{
-		Bit8u screenMask_idx, cursorMask_idx;
+		uint8_t screenMask_idx, cursorMask_idx;
 
 
 		if( mouse.screenMask == defaultScreenMask ) screenMask_idx = 0x00;
@@ -1916,7 +1916,7 @@ private:
 
 	virtual void setBytes(std::istream& stream)
 	{
-		Bit8u screenMask_idx, cursorMask_idx;
+		uint8_t screenMask_idx, cursorMask_idx;
 
 		//*******************************************
 		//*******************************************

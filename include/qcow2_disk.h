@@ -56,9 +56,9 @@ public:
 
 	virtual ~QCow2Image();
 	
-	Bit8u read_sector(Bit32u sectnum, Bit8u* data);
+	uint8_t read_sector(Bit32u sectnum, uint8_t* data);
 
-	Bit8u write_sector(Bit32u sectnum, Bit8u* data);
+	uint8_t write_sector(Bit32u sectnum, uint8_t* data);
 	
 private:
 
@@ -86,50 +86,50 @@ private:
 
 	static Bit64u mask64(Bit64u bits);
 	
-	Bit8u pad_file(Bit64u& new_file_length);
+	uint8_t pad_file(Bit64u& new_file_length);
 
-	Bit8u read_allocated_data(Bit64u file_offset, Bit8u* data, Bit64u data_size);
+	uint8_t read_allocated_data(Bit64u file_offset, uint8_t* data, Bit64u data_size);
 
-	Bit8u read_cluster(Bit64u data_cluster_number, Bit8u* data);
+	uint8_t read_cluster(Bit64u data_cluster_number, uint8_t* data);
 
-	Bit8u read_l1_table(Bit64u address, Bit64u& l2_table_offset);
+	uint8_t read_l1_table(Bit64u address, Bit64u& l2_table_offset);
 
-	Bit8u read_l2_table(Bit64u l2_table_offset, Bit64u address, Bit64u& data_cluster_offset);
+	uint8_t read_l2_table(Bit64u l2_table_offset, Bit64u address, Bit64u& data_cluster_offset);
 
-	Bit8u read_refcount_table(Bit64u data_cluster_offset, Bit64u& refcount_cluster_offset);
+	uint8_t read_refcount_table(Bit64u data_cluster_offset, Bit64u& refcount_cluster_offset);
 
-	Bit8u read_table(Bit64u entry_offset, Bit64u entry_mask, Bit64u& entry_value);
+	uint8_t read_table(Bit64u entry_offset, Bit64u entry_mask, Bit64u& entry_value);
 
-	Bit8u read_unallocated_cluster(Bit64u data_cluster_number, Bit8u* data);
+	uint8_t read_unallocated_cluster(Bit64u data_cluster_number, uint8_t* data);
 
-	Bit8u read_unallocated_sector(Bit32u sectnum, Bit8u* data);
+	uint8_t read_unallocated_sector(Bit32u sectnum, uint8_t* data);
 
-	Bit8u update_reference_count(Bit64u cluster_offset, Bit8u* cluster_buffer);
+	uint8_t update_reference_count(Bit64u cluster_offset, uint8_t* cluster_buffer);
 
-	Bit8u write_data(Bit64u file_offset, Bit8u* data, Bit64u data_size);
+	uint8_t write_data(Bit64u file_offset, uint8_t* data, Bit64u data_size);
 
-	Bit8u write_l1_table_entry(Bit64u address, Bit64u l2_table_offset);
+	uint8_t write_l1_table_entry(Bit64u address, Bit64u l2_table_offset);
 
-	Bit8u write_l2_table_entry(Bit64u l2_table_offset, Bit64u address, Bit64u data_cluster_offset);
+	uint8_t write_l2_table_entry(Bit64u l2_table_offset, Bit64u address, Bit64u data_cluster_offset);
 
-	Bit8u write_refcount(Bit64u cluster_offset, Bit64u refcount_cluster_offset, Bit16u refcount);
+	uint8_t write_refcount(Bit64u cluster_offset, Bit64u refcount_cluster_offset, Bit16u refcount);
 
-	Bit8u write_refcount_table_entry(Bit64u cluster_offset, Bit64u refcount_cluster_offset);
+	uint8_t write_refcount_table_entry(Bit64u cluster_offset, Bit64u refcount_cluster_offset);
 
-	Bit8u write_table_entry(Bit64u entry_offset, Bit64u entry_value);
+	uint8_t write_table_entry(Bit64u entry_offset, Bit64u entry_value);
 };
 
 class QCow2Disk : public imageDisk{
 
 public:
 	
-	QCow2Disk(QCow2Image::QCow2Header& qcow2Header, FILE *qcow2File, Bit8u *imgName, Bit32u imgSizeK, Bit32u sectorSizeBytes, bool isHardDisk);
+	QCow2Disk(QCow2Image::QCow2Header& qcow2Header, FILE *qcow2File, uint8_t *imgName, Bit32u imgSizeK, Bit32u sectorSizeBytes, bool isHardDisk);
 
 	virtual ~QCow2Disk();
 	
-	virtual Bit8u Read_AbsoluteSector(Bit32u sectnum, void* data);
+	virtual uint8_t Read_AbsoluteSector(Bit32u sectnum, void* data);
 
-	virtual Bit8u Write_AbsoluteSector(Bit32u sectnum, const void* data);
+	virtual uint8_t Write_AbsoluteSector(Bit32u sectnum, const void* data);
 
 private:
 

@@ -37,7 +37,7 @@
 
 #define RAWBUF	1024
 
-Bit8u MIDI_evt_len[256] = {
+uint8_t MIDI_evt_len[256] = {
   0,0,0,0, 0,0,0,0, 0,0,0,0, 0,0,0,0,  // 0x00
   0,0,0,0, 0,0,0,0, 0,0,0,0, 0,0,0,0,  // 0x10
   0,0,0,0, 0,0,0,0, 0,0,0,0, 0,0,0,0,  // 0x20
@@ -139,7 +139,7 @@ void MIDI_State_Reset()
 
 void MIDI_State_SaveMessage()
 {
-	Bit8u channel, command, arg1, arg2;
+	uint8_t channel, command, arg1, arg2;
 
 	if( midi_state[0].init == false ) {
 		MIDI_State_Reset();
@@ -372,7 +372,7 @@ void MIDI_State_SaveMessage()
 }
 
 
-void MIDI_RawOutByte(Bit8u);
+void MIDI_RawOutByte(uint8_t);
 void MIDI_State_LoadMessage()
 {
 	if( midi_state[0].init == false ) {
@@ -506,7 +506,7 @@ void MIDI_State_LoadMessage()
 }
 
 
-void MIDI_RawOutByte(Bit8u data) {
+void MIDI_RawOutByte(uint8_t data) {
 	if (midi.sysex.start) {
 		Bit32u passed_ticks = GetTicks() - midi.sysex.start;
 		if (passed_ticks < midi.sysex.delay) SDL_Delay((Uint32)(midi.sysex.delay - passed_ticks));

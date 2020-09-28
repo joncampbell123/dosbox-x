@@ -90,7 +90,7 @@ static struct MemoryBlock {
     } lfb_mmio = {};
     struct {
         bool enabled;
-        Bit8u controlport;
+        uint8_t controlport;
     } a20 = {};
     Bit32u mem_alias_pagemask;
     Bit32u mem_alias_pagemask_active;
@@ -106,11 +106,11 @@ HostPt MemBase = NULL;
 class UnmappedPageHandler : public PageHandler {
 public:
     UnmappedPageHandler() : PageHandler(PFLAG_INIT|PFLAG_NOCODE) {}
-    Bit8u readb(PhysPt addr) {
+    uint8_t readb(PhysPt addr) {
         (void)addr;//UNUSED
         return 0xFF; /* Real hardware returns 0xFF not 0x00 */
     } 
-    void writeb(PhysPt addr,Bit8u val) {
+    void writeb(PhysPt addr,uint8_t val) {
         (void)addr;//UNUSED
         (void)val;//UNUSED
     }
@@ -119,7 +119,7 @@ public:
 class IllegalPageHandler : public PageHandler {
 public:
     IllegalPageHandler() : PageHandler(PFLAG_INIT|PFLAG_NOCODE) {}
-    Bit8u readb(PhysPt addr) {
+    uint8_t readb(PhysPt addr) {
         (void)addr;
 #if C_DEBUG
         LOG_MSG("Warning: Illegal read from %x, CS:IP %8x:%8x",addr,SegValue(cs),reg_eip);
@@ -132,7 +132,7 @@ public:
 #endif
         return 0xFF; /* Real hardware returns 0xFF not 0x00 */
     } 
-    void writeb(PhysPt addr,Bit8u val) {
+    void writeb(PhysPt addr,uint8_t val) {
         (void)addr;//UNUSED
         (void)val;//UNUSED
 #if C_DEBUG
@@ -183,7 +183,7 @@ public:
     ROMPageHandler() {
         flags=PFLAG_READABLE|PFLAG_HASROM;
     }
-    void writeb(PhysPt addr,Bit8u val){
+    void writeb(PhysPt addr,uint8_t val){
         if (IS_PC98_ARCH && (addr & ~0x7FFF) == 0xE0000u)
             { /* Many PC-98 games and programs will zero 0xE0000-0xE7FFF whether or not the 4th bitplane is mapped */ }
         else
@@ -694,7 +694,7 @@ Bitu mem_strlen(PhysPt pt) {
 }
 
 void mem_strcpy(PhysPt dest,PhysPt src) {
-    Bit8u r;
+    uint8_t r;
     while ( (r = mem_readb(src++)) ) mem_writeb_inline(dest++,r);
     mem_writeb_inline(dest,0);
 }
@@ -704,21 +704,21 @@ void mem_memcpy(PhysPt dest,PhysPt src,Bitu size) {
 }
 
 void MEM_BlockRead(PhysPt pt,void * data,Bitu size) {
-    Bit8u * write=reinterpret_cast<Bit8u *>(data);
+    uint8_t * write=reinterpret_cast<uint8_t *>(data);
     while (size--) {
         *write++=mem_readb_inline(pt++);
     }
 }
 
 void MEM_BlockWrite(PhysPt pt,void const * const data,Bitu size) {
-    Bit8u const* read = reinterpret_cast<Bit8u const*>(data);
+    uint8_t const* read = reinterpret_cast<uint8_t const*>(data);
     if (size==0)
         return;
 
     if ((pt >> 12) == ((pt+size-1)>>12)) { // Always same TLB entry
         HostPt tlb_addr=get_tlb_write(pt);
         if (!tlb_addr) {
-            Bit8u val = *read++;
+            uint8_t val = *read++;
             get_tlb_writehandler(pt)->writeb(pt,val);
             tlb_addr=get_tlb_write(pt);
             pt++; size--;
@@ -737,7 +737,7 @@ void MEM_BlockWrite(PhysPt pt,void const * const data,Bitu size) {
         const Bitu current = (((pt>>12)+1)<<12) - pt;
         Bitu remainder = size - current;
         MEM_BlockWrite(pt, data, current);
-        MEM_BlockWrite((PhysPt)(pt + current), reinterpret_cast<Bit8u const*>(data) + current, remainder);
+        MEM_BlockWrite((PhysPt)(pt + current), reinterpret_cast<uint8_t const*>(data) + current, remainder);
     }
 }
 
@@ -765,7 +765,7 @@ void MEM_BlockCopy(PhysPt dest,PhysPt src,Bitu size) {
 
 void MEM_StrCopy(PhysPt pt,char * data,Bitu size) {
     while (size--) {
-        Bit8u r=mem_readb_inline(pt++);
+        uint8_t r=mem_readb_inline(pt++);
         if (!r) break;
         *data++=(char)r;
     }
@@ -1118,55 +1118,55 @@ Bit32u mem_unalignedreadd(PhysPt address) {
 
 
 void mem_unalignedwritew(PhysPt address,Bit16u val) {
-    mem_writeb_inline(address,   (Bit8u)val);val>>=8u;
-    mem_writeb_inline(address+1u,(Bit8u)val);
+    mem_writeb_inline(address,   (uint8_t)val);val>>=8u;
+    mem_writeb_inline(address+1u,(uint8_t)val);
 }
 
 void mem_unalignedwrited(PhysPt address,Bit32u val) {
-    mem_writeb_inline(address,   (Bit8u)val);val>>=8u;
-    mem_writeb_inline(address+1u,(Bit8u)val);val>>=8u;
-    mem_writeb_inline(address+2u,(Bit8u)val);val>>=8u;
-    mem_writeb_inline(address+3u,(Bit8u)val);
+    mem_writeb_inline(address,   (uint8_t)val);val>>=8u;
+    mem_writeb_inline(address+1u,(uint8_t)val);val>>=8u;
+    mem_writeb_inline(address+2u,(uint8_t)val);val>>=8u;
+    mem_writeb_inline(address+3u,(uint8_t)val);
 }
 
 
 bool mem_unalignedreadw_checked(PhysPt address, Bit16u * val) {
-    Bit8u rval1,rval2;
+    uint8_t rval1,rval2;
     if (mem_readb_checked(address+0, &rval1)) return true;
     if (mem_readb_checked(address+1, &rval2)) return true;
-    *val=(Bit16u)(((Bit8u)rval1) | (((Bit8u)rval2) << 8));
+    *val=(Bit16u)(((uint8_t)rval1) | (((uint8_t)rval2) << 8));
     return false;
 }
 
 bool mem_unalignedreadd_checked(PhysPt address, Bit32u * val) {
-    Bit8u rval1,rval2,rval3,rval4;
+    uint8_t rval1,rval2,rval3,rval4;
     if (mem_readb_checked(address+0, &rval1)) return true;
     if (mem_readb_checked(address+1, &rval2)) return true;
     if (mem_readb_checked(address+2, &rval3)) return true;
     if (mem_readb_checked(address+3, &rval4)) return true;
-    *val=(Bit32u)(((Bit8u)rval1) | (((Bit8u)rval2) << 8) | (((Bit8u)rval3) << 16) | (((Bit8u)rval4) << 24));
+    *val=(Bit32u)(((uint8_t)rval1) | (((uint8_t)rval2) << 8) | (((uint8_t)rval3) << 16) | (((uint8_t)rval4) << 24));
     return false;
 }
 
 bool mem_unalignedwritew_checked(PhysPt address,Bit16u val) {
-    if (mem_writeb_checked(address,(Bit8u)(val & 0xff))) return true;
+    if (mem_writeb_checked(address,(uint8_t)(val & 0xff))) return true;
     val>>=8;
-    if (mem_writeb_checked(address+1,(Bit8u)(val & 0xff))) return true;
+    if (mem_writeb_checked(address+1,(uint8_t)(val & 0xff))) return true;
     return false;
 }
 
 bool mem_unalignedwrited_checked(PhysPt address,Bit32u val) {
-    if (mem_writeb_checked(address,(Bit8u)(val & 0xff))) return true;
+    if (mem_writeb_checked(address,(uint8_t)(val & 0xff))) return true;
     val>>=8;
-    if (mem_writeb_checked(address+1,(Bit8u)(val & 0xff))) return true;
+    if (mem_writeb_checked(address+1,(uint8_t)(val & 0xff))) return true;
     val>>=8;
-    if (mem_writeb_checked(address+2,(Bit8u)(val & 0xff))) return true;
+    if (mem_writeb_checked(address+2,(uint8_t)(val & 0xff))) return true;
     val>>=8;
-    if (mem_writeb_checked(address+3,(Bit8u)(val & 0xff))) return true;
+    if (mem_writeb_checked(address+3,(uint8_t)(val & 0xff))) return true;
     return false;
 }
 
-Bit8u mem_readb(const PhysPt address) {
+uint8_t mem_readb(const PhysPt address) {
     return mem_readb_inline(address);
 }
 
@@ -1183,7 +1183,7 @@ Bit32u mem_readd(const PhysPt address) {
 extern bool warn_on_mem_write;
 extern CPUBlock cpu;
 
-void mem_writeb(PhysPt address,Bit8u val) {
+void mem_writeb(PhysPt address,uint8_t val) {
 //  if (warn_on_mem_write && cpu.pmode) LOG_MSG("WARNING: post-killswitch memory write to 0x%08x = 0x%02x\n",address,val);
     mem_writeb_inline(address,val);
 }
@@ -1199,7 +1199,7 @@ void mem_writed(PhysPt address,Bit32u val) {
 }
 
 void phys_writes(PhysPt addr, const char* string, Bitu length) {
-    for(Bitu i = 0; i < length; i++) host_writeb(MemBase+addr+i,(Bit8u)string[i]);
+    for(Bitu i = 0; i < length; i++) host_writeb(MemBase+addr+i,(uint8_t)string[i]);
 }
 
 #include "control.h"
@@ -1421,7 +1421,7 @@ bool allow_port_92_reset = true;
 static void write_p92(Bitu port,Bitu val,Bitu iolen) {
     (void)iolen;//UNUSED
     (void)port;//UNUSED
-    memory.a20.controlport = (Bit8u)(val & ~2u);
+    memory.a20.controlport = (uint8_t)(val & ~2u);
     MEM_A20_Enable((val & 2u)>0);
 
     // Bit 0 = system reset (switch back to real mode)
@@ -1822,7 +1822,7 @@ void Init_RAM() {
 
     /* Allocate the RAM. We alloc as a large unsigned char array. new[] does not initialize the array,
      * so we then must zero the buffer. */
-    MemBase = new Bit8u[memory.pages*4096];
+    MemBase = new uint8_t[memory.pages*4096];
     if (!MemBase) E_Exit("Can't allocate main memory of %d KB",(int)memsizekb);
     /* Clear the memory, as new doesn't always give zeroed memory
      * (Visual C debug mode). We want zeroed memory though. */
@@ -2119,7 +2119,7 @@ public:
 private:
 	virtual void getBytes(std::ostream& stream)
 	{
-		Bit8u pagehandler_idx[0x40000];
+		uint8_t pagehandler_idx[0x40000];
 		unsigned int size_table;
 
 		// Assume 1GB maximum memory size
@@ -2165,7 +2165,7 @@ private:
 
 	virtual void setBytes(std::istream& stream)
 	{
-		Bit8u pagehandler_idx[0x40000];
+		uint8_t pagehandler_idx[0x40000];
 		void *old_ptrs[4];
 
 		old_ptrs[0] = (void *) memory.phandlers;

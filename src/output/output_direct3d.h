@@ -13,7 +13,7 @@ void OUTPUT_DIRECT3D_Initialize();
 void OUTPUT_DIRECT3D_Select();
 Bitu OUTPUT_DIRECT3D_GetBestMode(Bitu flags);
 Bitu OUTPUT_DIRECT3D_SetSize();
-bool OUTPUT_DIRECT3D_StartUpdate(Bit8u* &pixels, Bitu &pitch);
+bool OUTPUT_DIRECT3D_StartUpdate(uint8_t* &pixels, Bitu &pitch);
 void OUTPUT_DIRECT3D_EndUpdate(const Bit16u *changedLines);
 void OUTPUT_DIRECT3D_Shutdown();
 

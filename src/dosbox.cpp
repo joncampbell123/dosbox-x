@@ -968,7 +968,7 @@ void Null_Init(Section *sec) {
 	(void)sec;
 }
 
-extern Bit8u cga_comp;
+extern uint8_t cga_comp;
 extern bool new_cga;
 
 bool dpi_aware_enable = true;

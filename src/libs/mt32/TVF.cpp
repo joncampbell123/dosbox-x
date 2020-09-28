@@ -105,14 +105,14 @@ static int calcBaseCutoff(const TimbreParam::PartialParam *partialParam, Bit32u 
 	if (baseCutoff > 255) {
 		baseCutoff = 255;
 	}
-	return Bit8u(baseCutoff);
+	return uint8_t(baseCutoff);
 }
 
 TVF::TVF(const Partial *usePartial, LA32Ramp *useCutoffModifierRamp) :
 	partial(usePartial), cutoffModifierRamp(useCutoffModifierRamp) {
 }
 
-void TVF::startRamp(Bit8u newTarget, Bit8u newIncrement, int newPhase) {
+void TVF::startRamp(uint8_t newTarget, uint8_t newIncrement, int newPhase) {
 	target = newTarget;
 	phase = newPhase;
 	cutoffModifierRamp->startRamp(newTarget, newIncrement);
@@ -169,7 +169,7 @@ void TVF::reset(const TimbreParam::PartialParam *newPartialParam, unsigned int b
 	startRamp(newTarget, newIncrement, PHASE_2 - 1);
 }
 
-Bit8u TVF::getBaseCutoff() const {
+uint8_t TVF::getBaseCutoff() const {
 	return baseCutoff;
 }
 

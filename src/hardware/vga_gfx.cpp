@@ -75,9 +75,9 @@ static void write_p3cf(Bitu port,Bitu val,Bitu iolen) {
 //		LOG_DEBUG("Color Compare = %2X",val);
 		break;
 	case 3: /* Data Rotate */
-		gfx(data_rotate)=(Bit8u)val;
-		vga.config.data_rotate=(Bit8u)val & 7;
-		vga.config.raster_op=((Bit8u)val>>3) & 3;
+		gfx(data_rotate)=(uint8_t)val;
+		vga.config.data_rotate=(uint8_t)val & 7;
+		vga.config.raster_op=((uint8_t)val>>3) & 3;
 		/* 
 			0-2	Number of positions to rotate data right before it is written to
 				display memory. Only active in Write Mode 0.
@@ -98,11 +98,11 @@ static void write_p3cf(Bitu port,Bitu val,Bitu iolen) {
 		break;
 	case 5: /* Mode Register */
 		if ((gfx(mode) ^ val) & 0xf0) {
-		gfx(mode)=(Bit8u)val;
+		gfx(mode)=(uint8_t)val;
 			VGA_DetermineMode();
-		} else gfx(mode)=(Bit8u)val;
-		vga.config.write_mode=(Bit8u)val & 3;
-		vga.config.read_mode=((Bit8u)val >> 3) & 1;
+		} else gfx(mode)=(uint8_t)val;
+		vga.config.write_mode=(uint8_t)val & 3;
+		vga.config.read_mode=((uint8_t)val >> 3) & 1;
 //		LOG_DEBUG("Write Mode %d Read Mode %d val %d",vga.config.write_mode,vga.config.read_mode,val);
 		/*
 			0-1	Write Mode: Controls how data from the CPU is transformed before
@@ -145,9 +145,9 @@ static void write_p3cf(Bitu port,Bitu val,Bitu iolen) {
 		break;
 	case 6: /* Miscellaneous Register */
 		if ((gfx(miscellaneous) ^ val) & 0x0c) {
-			gfx(miscellaneous)=(Bit8u)val;
+			gfx(miscellaneous)=(uint8_t)val;
 			VGA_DetermineMode();
-		} else gfx(miscellaneous)=(Bit8u)val;
+		} else gfx(miscellaneous)=(uint8_t)val;
 		VGA_SetupHandlers();
 		/*
 			0	Indicates Graphics Mode if set, Alphanumeric mode else.
@@ -171,7 +171,7 @@ static void write_p3cf(Bitu port,Bitu val,Bitu iolen) {
 //		LOG_DEBUG("Color don't care = %2X",val);
 		break;
 	case 8: /* Bit Mask Register */
-		gfx(bit_mask)=(Bit8u)val;
+		gfx(bit_mask)=(uint8_t)val;
 		vga.config.full_bit_mask=ExpandTable[val];
 
 		/* check for unusual use of the bit mask register in chained 320x200x256 mode and switch to the slow & accurate emulation */

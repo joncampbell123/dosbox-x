@@ -25,8 +25,8 @@
 	continue;													\
 }
 
-static INLINE Bit8u the_Fetchb(EAPoint & loc) {
-	Bit8u temp=LoadMb(loc);
+static INLINE uint8_t the_Fetchb(EAPoint & loc) {
+	uint8_t temp=LoadMb(loc);
 	loc+=1;
 	return temp;
 }

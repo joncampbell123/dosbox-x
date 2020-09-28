@@ -44,18 +44,18 @@ struct PIC_Controller {
     bool rotate_on_auto_eoi;
     bool single;
     bool request_issr;
-    Bit8u vector_base;
+    uint8_t vector_base;
 
-    Bit8u irr;        // request register
-    Bit8u imr;        // mask register
-    Bit8u imrr;       // mask register reversed (makes bit tests simpler)
-    Bit8u isr;        // in service register
-    Bit8u isrr;       // in service register reversed (makes bit tests simpler)
-    Bit8u isr_ignore; // in service bits to ignore
-    Bit8u active_irq; //currently active irq
+    uint8_t irr;        // request register
+    uint8_t imr;        // mask register
+    uint8_t imrr;       // mask register reversed (makes bit tests simpler)
+    uint8_t isr;        // in service register
+    uint8_t isrr;       // in service register reversed (makes bit tests simpler)
+    uint8_t isr_ignore; // in service bits to ignore
+    uint8_t active_irq; //currently active irq
 
 
-    void set_imr(Bit8u val);
+    void set_imr(uint8_t val);
 
     void check_after_EOI(){
         //Update the active_irq as an EOI is likely to change that.
@@ -69,7 +69,7 @@ struct PIC_Controller {
         }
 
         if(isr == 0) {active_irq = 8; return;}
-        for(Bit8u i = 0, s = 1; i < 8;i++, s<<=1){
+        for(uint8_t i = 0, s = 1; i < 8;i++, s<<=1){
             if (isr & s) {
                 active_irq = i;
                 return;
@@ -85,10 +85,10 @@ struct PIC_Controller {
     //Removes signal to master/cpu that there is an irq ready.
     void deactivate();
 
-    void raise_irq(Bit8u val);
+    void raise_irq(uint8_t val);
 
-    void lower_irq(Bit8u val){
-        Bit8u bit = 1 << ( val);
+    void lower_irq(uint8_t val){
+        uint8_t bit = 1 << ( val);
         if(irr & bit) { //value will change (as it is currently active)
             irr&=~bit;
             if((bit&imrr)&isrr) { //not masked and not in service
@@ -100,7 +100,7 @@ struct PIC_Controller {
     }
 
     //handles all bits and logic related to starting this IRQ, it does NOT start the interrupt on the CPU.
-    void start_irq(Bit8u val);
+    void start_irq(uint8_t val);
 };
 
 int master_cascade_irq = -1;
@@ -114,14 +114,14 @@ bool enable_slave_pic = true; /* if set, emulate slave with cascade to master. i
 bool enable_pc_xt_nmi_mask = false;
 
 void PIC_Controller::check_for_irq(){
-    const Bit8u possible_irq = (irr&imrr)&isrr;
+    const uint8_t possible_irq = (irr&imrr)&isrr;
     if (possible_irq) {
-        Bit8u a_irq = special?8:active_irq;
+        uint8_t a_irq = special?8:active_irq;
 
         if (ignore_cascade_in_service && this == &master && a_irq == (unsigned char)master_cascade_irq)
             a_irq++;
 
-        for(Bit8u i = 0, s = 1; i < a_irq;i++, s<<=1){
+        for(uint8_t i = 0, s = 1; i < a_irq;i++, s<<=1){
             if ( possible_irq & s ) {
                 //There is an irq ready to be served => signal master and/or cpu
                 activate();
@@ -132,8 +132,8 @@ void PIC_Controller::check_for_irq(){
     deactivate(); //No irq, remove signal to master and/or cpu
 }
 
-void PIC_Controller::raise_irq(Bit8u val){
-    Bit8u bit = 1 << (val);
+void PIC_Controller::raise_irq(uint8_t val){
+    uint8_t bit = 1 << (val);
     if((irr & bit)==0) { //value changed (as it is currently not active)
         irr|=bit;
         if((bit&imrr)&isrr) { //not masked and not in service
@@ -149,8 +149,8 @@ void PIC_IRQCheckDelayed(Bitu val) {
     PIC_IRQCheckPending = 0;
 }
 
-void PIC_Controller::set_imr(Bit8u val) {
-    Bit8u change = (imr) ^ (val); //Bits that have changed become 1.
+void PIC_Controller::set_imr(uint8_t val) {
+    uint8_t change = (imr) ^ (val); //Bits that have changed become 1.
     imr  =  val;
     imrr = ~val;
 
@@ -198,7 +198,7 @@ void PIC_Controller::deactivate() {
     }
 }
 
-void PIC_Controller::start_irq(Bit8u val){
+void PIC_Controller::start_irq(uint8_t val){
     irr&=~(1<<(val));
     if (!auto_eoi) {
         if (never_mark_cascade_in_service && this == &master && val == master_cascade_irq) {
@@ -467,11 +467,11 @@ static bool IRQ_hack_check_cs_equ_ds(const int IRQ) {
 }
 
 static void slave_startIRQ(){
-    Bit8u pic1_irq = 8;
+    uint8_t pic1_irq = 8;
     bool skipped_irq = false;
-    const Bit8u p = (slave.irr & slave.imrr)&slave.isrr;
-    const Bit8u max = slave.special?8:slave.active_irq;
-    for(Bit8u i = 0,s = 1;i < max;i++, s<<=1) {
+    const uint8_t p = (slave.irr & slave.imrr)&slave.isrr;
+    const uint8_t max = slave.special?8:slave.active_irq;
+    for(uint8_t i = 0,s = 1;i < max;i++, s<<=1) {
         if (p&s) {
             if (PIC_IRQ_hax[i+8] & PIC_irq_hack_cs_equ_ds) {
                 if (!IRQ_hack_check_cs_equ_ds(i+8)) {
@@ -517,9 +517,9 @@ void PIC_runIRQs(void) {
         return; /* NMI has higher priority than PIC */
     }
 
-    const Bit8u p = (master.irr & master.imrr)&master.isrr;
-    Bit8u max = master.special?8:master.active_irq;
-    Bit8u i,s;
+    const uint8_t p = (master.irr & master.imrr)&master.isrr;
+    uint8_t max = master.special?8:master.active_irq;
+    uint8_t i,s;
 
     if (ignore_cascade_in_service && max == (unsigned char)master_cascade_irq)
         max++;
@@ -558,8 +558,8 @@ void PIC_SetIRQMask(Bitu irq, bool masked) {
     Bitu t = irq>7 ? (irq - 8): irq;
     PIC_Controller * pic=&pics[irq>7 ? 1 : 0];
     //clear bit
-    Bit8u bit = 1 <<(t);
-    Bit8u newmask = pic->imr;
+    uint8_t bit = 1 <<(t);
+    uint8_t newmask = pic->imr;
     newmask &= ~bit;
     if (masked) newmask |= bit;
     pic->set_imr(newmask);

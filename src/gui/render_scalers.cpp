@@ -25,14 +25,14 @@
 #include "render.h"
 #include <string.h>
 
-Bit8u Scaler_Aspect[SCALER_MAXHEIGHT];
+uint8_t Scaler_Aspect[SCALER_MAXHEIGHT];
 Bit16u Scaler_ChangedLines[SCALER_MAXHEIGHT];
 Bitu Scaler_ChangedLineIndex;
 
 static union {
 	Bit32u b32 [4][SCALER_MAXWIDTH*3];
 	Bit16u b16 [4][SCALER_MAXWIDTH*3];
-	Bit8u b8 [4][SCALER_MAXWIDTH*3];
+	uint8_t b8 [4][SCALER_MAXWIDTH*3];
 } scalerWriteCache;
 //scalerFrameCache_t scalerFrameCache;
 scalerSourceCache_t scalerSourceCache;

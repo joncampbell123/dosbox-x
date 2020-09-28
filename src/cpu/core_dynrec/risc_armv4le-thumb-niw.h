@@ -181,7 +181,7 @@
 #define CACHE_DATA_MAX	 (288)
 
 // data pool variables
-static Bit8u * cache_datapos = NULL;	// position of data pool in the cache block
+static uint8_t * cache_datapos = NULL;	// position of data pool in the cache block
 static Bit32u cache_datasize = 0;		// total size of data pool
 static Bit32u cache_dataindex = 0;		// used size of data pool = index of free data item (in bytes) in data pool
 
@@ -204,7 +204,7 @@ static void cache_checkinstr(Bit32u size) {
 	if (cache.pos + size + CACHE_DATA_JUMP <= cache_datapos) return;
 
 	{
-		register Bit8u * newcachepos;
+		register uint8_t * newcachepos;
 
 		newcachepos = cache_datapos + cache_datasize;
 		gen_create_branch_short(newcachepos);
@@ -214,7 +214,7 @@ static void cache_checkinstr(Bit32u size) {
 	if (cache.pos + CACHE_DATA_MAX + CACHE_DATA_ALIGN >= cache.block.active->cache.start + cache.block.active->cache.size &&
 		cache.pos + CACHE_DATA_MIN + CACHE_DATA_ALIGN + (CACHE_DATA_ALIGN - CACHE_ALIGN) < cache.block.active->cache.start + cache.block.active->cache.size)
 	{
-		cache_datapos = (Bit8u *) (((Bitu)cache.block.active->cache.start + cache.block.active->cache.size - CACHE_DATA_ALIGN) & ~(CACHE_DATA_ALIGN - 1));
+		cache_datapos = (uint8_t *) (((Bitu)cache.block.active->cache.start + cache.block.active->cache.size - CACHE_DATA_ALIGN) & ~(CACHE_DATA_ALIGN - 1));
 	} else {
 		register Bit32u cachemodsize;
 
@@ -223,9 +223,9 @@ static void cache_checkinstr(Bit32u size) {
 		if (cachemodsize + CACHE_DATA_MAX + CACHE_DATA_ALIGN <= CACHE_MAXSIZE ||
 			cachemodsize + CACHE_DATA_MIN + CACHE_DATA_ALIGN + (CACHE_DATA_ALIGN - CACHE_ALIGN) > CACHE_MAXSIZE)
 		{
-			cache_datapos = (Bit8u *) (((Bitu)cache.pos + CACHE_DATA_MAX) & ~(CACHE_DATA_ALIGN - 1));
+			cache_datapos = (uint8_t *) (((Bitu)cache.pos + CACHE_DATA_MAX) & ~(CACHE_DATA_ALIGN - 1));
 		} else {
-			cache_datapos = (Bit8u *) (((Bitu)cache.pos + (CACHE_MAXSIZE - CACHE_DATA_ALIGN) - cachemodsize) & ~(CACHE_DATA_ALIGN - 1));
+			cache_datapos = (uint8_t *) (((Bitu)cache.pos + (CACHE_MAXSIZE - CACHE_DATA_ALIGN) - cachemodsize) & ~(CACHE_DATA_ALIGN - 1));
 		}
 	}
 
@@ -235,11 +235,11 @@ static void cache_checkinstr(Bit32u size) {
 
 // function to reserve item in data pool
 // returns address of item
-static Bit8u * cache_reservedata(void) {
+static uint8_t * cache_reservedata(void) {
 	// if data pool not yet initialized, then initialize data pool
 	if (GCC_UNLIKELY(cache_datapos == NULL)) {
 		if (cache.pos + CACHE_DATA_MIN + CACHE_DATA_ALIGN < cache.block.active->cache.start + CACHE_DATA_MAX) {
-			cache_datapos = (Bit8u *) (((Bitu)cache.block.active->cache.start + CACHE_DATA_MAX) & ~(CACHE_DATA_ALIGN - 1));
+			cache_datapos = (uint8_t *) (((Bitu)cache.block.active->cache.start + CACHE_DATA_MAX) & ~(CACHE_DATA_ALIGN - 1));
 		}
 	}
 
@@ -250,7 +250,7 @@ static Bit8u * cache_reservedata(void) {
 			if (cache.pos + CACHE_DATA_MAX + CACHE_DATA_ALIGN >= cache.block.active->cache.start + cache.block.active->cache.size &&
 				cache.pos + CACHE_DATA_MIN + CACHE_DATA_ALIGN + (CACHE_DATA_ALIGN - CACHE_ALIGN) < cache.block.active->cache.start + cache.block.active->cache.size)
 			{
-				cache_datapos = (Bit8u *) (((Bitu)cache.block.active->cache.start + cache.block.active->cache.size - CACHE_DATA_ALIGN) & ~(CACHE_DATA_ALIGN - 1));
+				cache_datapos = (uint8_t *) (((Bitu)cache.block.active->cache.start + cache.block.active->cache.size - CACHE_DATA_ALIGN) & ~(CACHE_DATA_ALIGN - 1));
 			} else {
 				register Bit32u cachemodsize;
 
@@ -259,9 +259,9 @@ static Bit8u * cache_reservedata(void) {
 				if (cachemodsize + CACHE_DATA_MAX + CACHE_DATA_ALIGN <= CACHE_MAXSIZE ||
 					cachemodsize + CACHE_DATA_MIN + CACHE_DATA_ALIGN + (CACHE_DATA_ALIGN - CACHE_ALIGN) > CACHE_MAXSIZE)
 				{
-					cache_datapos = (Bit8u *) (((Bitu)cache.pos + CACHE_DATA_MAX) & ~(CACHE_DATA_ALIGN - 1));
+					cache_datapos = (uint8_t *) (((Bitu)cache.pos + CACHE_DATA_MAX) & ~(CACHE_DATA_ALIGN - 1));
 				} else {
-					cache_datapos = (Bit8u *) (((Bitu)cache.pos + (CACHE_MAXSIZE - CACHE_DATA_ALIGN) - cachemodsize) & ~(CACHE_DATA_ALIGN - 1));
+					cache_datapos = (uint8_t *) (((Bitu)cache.pos + (CACHE_MAXSIZE - CACHE_DATA_ALIGN) - cachemodsize) & ~(CACHE_DATA_ALIGN - 1));
 				}
 			}
 		}
@@ -350,7 +350,7 @@ static void gen_mov_dword_to_reg_imm(HostReg dest_reg,Bit32u imm) {
 				cache_addw( ADD_LO_PC_IMM(dest_reg, (diff - 2) >> 2) );      // add dest_reg, pc, #((diff - 2) >> 2)
 			}
 		} else {
-			Bit8u *datapos;
+			uint8_t *datapos;
 
 			datapos = cache_reservedata();
 			*(Bit32u*)datapos=imm;
@@ -605,7 +605,7 @@ static void INLINE gen_mov_byte_to_reg_low_canuseword(HostReg dest_reg,void* dat
 // the upper 24bit of the destination register can be destroyed
 // this function does not use FC_OP1/FC_OP2 as dest_reg as these
 // registers might not be directly byte-accessible on some architectures
-static void gen_mov_byte_to_reg_low_imm(HostReg dest_reg,Bit8u imm) {
+static void gen_mov_byte_to_reg_low_imm(HostReg dest_reg,uint8_t imm) {
 	cache_checkinstr(2);
 	cache_addw( MOV_IMM(dest_reg, imm) );      // mov dest_reg, #(imm)
 }
@@ -614,7 +614,7 @@ static void gen_mov_byte_to_reg_low_imm(HostReg dest_reg,Bit8u imm) {
 // the upper 24bit of the destination register can be destroyed
 // this function can use FC_OP1/FC_OP2 as dest_reg which are
 // not directly byte-accessible on some architectures
-static void INLINE gen_mov_byte_to_reg_low_imm_canuseword(HostReg dest_reg,Bit8u imm) {
+static void INLINE gen_mov_byte_to_reg_low_imm_canuseword(HostReg dest_reg,uint8_t imm) {
 	gen_mov_byte_to_reg_low_imm(dest_reg, imm);
 }
 
@@ -823,7 +823,7 @@ static INLINE void gen_lea(HostReg dest_reg,Bitu scale,Bits imm) {
 
 // helper function for gen_call_function_raw and gen_call_function_setup
 template <typename T> static void gen_call_function_helper(const T func) {
-    Bit8u *datapos;
+    uint8_t *datapos;
 
     datapos = cache_reservedata();
     *(Bit32u*)datapos=(Bit32u)func;
@@ -967,7 +967,7 @@ static void INLINE gen_fill_branch(DRC_PTR_SIZE_IM data) {
 	if (len<0) len=-len;
 	if (len>252) LOG_MSG("Big jump %d",len);
 #endif
-	*(Bit8u*)data=(Bit8u)( ((Bit32u)cache.pos-(data+4)) >> 1 );
+	*(uint8_t*)data=(uint8_t)( ((Bit32u)cache.pos-(data+4)) >> 1 );
 }
 
 
@@ -975,7 +975,7 @@ static void INLINE gen_fill_branch(DRC_PTR_SIZE_IM data) {
 // for isdword==true the 32bit of the register are tested
 // for isdword==false the lowest 8bit of the register are tested
 static Bit32u gen_create_branch_long_nonzero(HostReg reg,bool isdword) {
-	Bit8u *datapos;
+	uint8_t *datapos;
 
 	cache_checkinstr(8);
 	datapos = cache_reservedata();
@@ -998,7 +998,7 @@ static Bit32u gen_create_branch_long_nonzero(HostReg reg,bool isdword) {
 
 // compare 32bit-register against zero and jump if value less/equal than zero
 static Bit32u gen_create_branch_long_leqzero(HostReg reg) {
-	Bit8u *datapos;
+	uint8_t *datapos;
 
 	cache_checkinstr(8);
 	datapos = cache_reservedata();
@@ -1022,7 +1022,7 @@ static void INLINE gen_fill_branch_long(Bit32u data) {
 }
 
 static void gen_run_code(void) {
-	Bit8u *pos1, *pos2, *pos3;
+	uint8_t *pos1, *pos2, *pos3;
 
 #if (__ARM_EABI__)
 	// 8-byte stack alignment
@@ -1090,12 +1090,12 @@ static void INLINE gen_create_branch_short(void * func) {
 
 // called when a call to a function can be replaced by a
 // call to a simpler function
-static void gen_fill_function_ptr(Bit8u * pos,void* fct_ptr,Bitu flags_type) {
+static void gen_fill_function_ptr(uint8_t * pos,void* fct_ptr,Bitu flags_type) {
 	if ((*(Bit16u*)pos & 0xf000) == 0xe000) {
 		if ((*(Bit16u*)pos & 0x0fff) >= ((CACHE_DATA_ALIGN / 2) - 1) &&
 			(*(Bit16u*)pos & 0x0fff) < 0x0800)
 		{
-			pos = (Bit8u *) ( ( ( (Bit32u)(*(Bit16u*)pos & 0x0fff) ) << 1 ) + ((Bit32u)pos + 4) );
+			pos = (uint8_t *) ( ( ( (Bit32u)(*(Bit16u*)pos & 0x0fff) ) << 1 ) + ((Bit32u)pos + 4) );
 		}
 	}
 

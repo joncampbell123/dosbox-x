@@ -48,18 +48,18 @@ static const char* document_path;
 static char confoutputDevice[50];
 static bool confmultipageOutput;
 
-void CPrinter::FillPalette(Bit8u redmax, Bit8u greenmax, Bit8u bluemax, Bit8u colorID, SDL_Palette* pal)
+void CPrinter::FillPalette(uint8_t redmax, uint8_t greenmax, uint8_t bluemax, uint8_t colorID, SDL_Palette* pal)
 {
 	float red = (float)redmax / (float)30.9;
     float green = (float)greenmax / (float)30.9;
     float blue = (float)bluemax / (float)30.9;
 
-	Bit8u colormask = colorID<<=5;
+	uint8_t colormask = colorID<<=5;
 
 	for(int i = 0; i < 32; i++) {
-		pal->colors[i+colormask].r = 255 - (Bit8u)floor(red * (float)i);
-		pal->colors[i+colormask].g = 255 - (Bit8u)floor(green * (float)i);
-		pal->colors[i+colormask].b = 255 - (Bit8u)floor(blue * (float)i);
+		pal->colors[i+colormask].r = 255 - (uint8_t)floor(red * (float)i);
+		pal->colors[i+colormask].g = 255 - (uint8_t)floor(green * (float)i);
+		pal->colors[i+colormask].b = 255 - (uint8_t)floor(blue * (float)i);
 	}
 }
 
@@ -437,7 +437,7 @@ void CPrinter::updateFont()
 	}
 }
 
-bool CPrinter::processCommandChar(Bit8u ch)
+bool CPrinter::processCommandChar(uint8_t ch)
 {
 	if (ESCSeen || FSSeen)
 	{
@@ -1147,7 +1147,7 @@ bool CPrinter::processCommandChar(Bit8u ch)
 		    {
 			    // Find tab right to current pos
 			    double moveTo = -1;
-			    for (Bit8u i = 0; i < numHorizTabs; i++)
+			    for (uint8_t i = 0; i < numHorizTabs; i++)
 				    if (horiztabs[i] > curX)
 					    moveTo = horiztabs[i];
 			    // Nothing found => Ignore
@@ -1169,7 +1169,7 @@ bool CPrinter::processCommandChar(Bit8u ch)
 		    {
 			    // Find tab below current pos
 			    double moveTo = -1;
-			    for (Bit8u i = 0; i < numVertTabs; i++)
+			    for (uint8_t i = 0; i < numVertTabs; i++)
 				    if (verttabs[i] > curY)
 					    moveTo = verttabs[i];
 
@@ -1277,11 +1277,11 @@ void CPrinter::newPage(bool save, bool resetx)
 
 	/*for(int i = 0; i < 256; i++)
 	{
-        *((Bit8u*)page->pixels+i)=i;
+        *((uint8_t*)page->pixels+i)=i;
 	}*/
 }
 
-void CPrinter::printChar(Bit8u ch)
+void CPrinter::printChar(uint8_t ch)
 {
 	charRead = true;
 	if (page == NULL) return;
@@ -1396,12 +1396,12 @@ void CPrinter::blitGlyph(FT_Bitmap bitmap, Bit16u destx, Bit16u desty, bool add)
 		for (Bitu x = 0; x < bitmap.width; x++)
         {
 			// Read pixel from glyph bitmap
-			Bit8u source = *(bitmap.buffer + x + y * bitmap.pitch);
+			uint8_t source = *(bitmap.buffer + x + y * bitmap.pitch);
 
 			// Ignore background and don't go over the border
 			if (source > 0 && (destx + x < (Bitu)page->w) && (desty + y < (Bitu)page->h))
             {
-				Bit8u* target = (Bit8u*)page->pixels + (x + destx) + (y + desty) * page->pitch;
+				uint8_t* target = (uint8_t*)page->pixels + (x + destx) + (y + desty) * page->pitch;
 				source>>=3;
 				
 				if (add)
@@ -1435,11 +1435,11 @@ void CPrinter::drawLine(Bitu fromx, Bitu tox, Bitu y, bool broken)
 		if ((!broken || (x % breakmod <= gapstart)) && (x < (Bitu)page->w))
 		{
 			if (y > 0 && (y - 1) < (Bitu)page->h)
-				*((Bit8u*)page->pixels + x + (y - 1) * (Bitu)page->pitch) = 240;
+				*((uint8_t*)page->pixels + x + (y - 1) * (Bitu)page->pitch) = 240;
 			if (y < (Bitu)page->h)
-				*((Bit8u*)page->pixels + x + y * (Bitu)page->pitch) = !broken ? 255 : 240;
+				*((uint8_t*)page->pixels + x + y * (Bitu)page->pitch) = !broken ? 255 : 240;
 			if (y + 1 < (Bitu)page->h)
-				*((Bit8u*)page->pixels + x + (y + 1) * (Bitu)page->pitch) = 240;
+				*((uint8_t*)page->pixels + x + (y + 1) * (Bitu)page->pitch) = 240;
 		}
 	}
 	SDL_UnlockSurface(page);
@@ -1472,7 +1472,7 @@ bool CPrinter::ack()
 	return false;
 }
 
-void CPrinter::setupBitImage(Bit8u dens, Bit16u numCols)
+void CPrinter::setupBitImage(uint8_t dens, Bit16u numCols)
 {
 	switch (dens)
 	{
@@ -1568,7 +1568,7 @@ void CPrinter::setupBitImage(Bit8u dens, Bit16u numCols)
 	bitGraph.readBytesColumn = 0;
 }
 
-void CPrinter::printBitGraph(Bit8u ch)
+void CPrinter::printBitGraph(uint8_t ch)
 {
 	bitGraph.column[bitGraph.readBytesColumn++] = ch;
 	bitGraph.remBytes--;
@@ -1606,7 +1606,7 @@ void CPrinter::printBitGraph(Bit8u ch)
 					for (Bitu yy=0; yy<pixsizeY; yy++)
                     {
 						if (((PIXX + xx) < (Bitu)page->w) && ((PIXY + yy) < (Bitu)page->h))
-							*((Bit8u*)page->pixels + (PIXX + xx) + (PIXY + yy)*page->pitch) |= (color | 0x1F);
+							*((uint8_t*)page->pixels + (PIXX + xx) + (PIXY + yy)*page->pitch) |= (color | 0x1F);
 					}
 			} // else white pixel
 			curY += (double)1 / (double)bitGraph.vertDens; // TODO line wrap?
@@ -1716,7 +1716,7 @@ void CPrinter::outputPage()
 		{
 			for (Bit16u x = 0; x < page->w; x++)
 			{
-				Bit8u pixel = *((Bit8u*)page->pixels + x + (y*page->pitch));
+				uint8_t pixel = *((uint8_t*)page->pixels + x + (y*page->pitch));
 				Bit32u color = 0;
 				color |= sdlpal->colors[pixel].r;
 				color |= ((Bit32u)sdlpal->colors[pixel].g) << 8;
@@ -1804,7 +1804,7 @@ void CPrinter::outputPage()
 		// Allocate an array of scanline pointers
 		row_pointers = (png_bytep*)malloc(page->h * sizeof(png_bytep));
 		for (i = 0; i < (Bitu)page->h; i++) 
-			row_pointers[i] = ((Bit8u*)page->pixels + (i * page->pitch));
+			row_pointers[i] = ((uint8_t*)page->pixels + (i * page->pitch));
 
 		// tell the png library what to encode.
 		png_set_rows(png_ptr, info_ptr, row_pointers);
@@ -1878,8 +1878,8 @@ void CPrinter::outputPage()
 			if ((pix < numpix - 2) && (getPixel(pix) == getPixel(pix + 1)) && (getPixel(pix) == getPixel(pix + 2)))
 			{
 				// Found three or more pixels with the same color
-				Bit8u sameCount = 3;
-				Bit8u col = getPixel(pix);
+				uint8_t sameCount = 3;
+				uint8_t col = getPixel(pix);
 				while (sameCount < 128 && sameCount + pix < numpix && col == getPixel(pix + sameCount))
 					sameCount++;
 
@@ -1892,7 +1892,7 @@ void CPrinter::outputPage()
 			else
 			{
 				// Find end of heterogenous area
-				Bit8u diffCount = 1;
+				uint8_t diffCount = 1;
 				while (
                     diffCount < 128 && diffCount + pix < numpix && 
 					(
@@ -1901,7 +1901,7 @@ void CPrinter::outputPage()
                 ) diffCount++;
 
 				fprintASCII85(psfile, diffCount-1);
-				for (Bit8u i = 0; i < diffCount; i++)
+				for (uint8_t i = 0; i < diffCount; i++)
 					fprintASCII85(psfile, 255 - getPixel(pix++));
 			}
 		}
@@ -1940,7 +1940,7 @@ void CPrinter::fprintASCII85(FILE* f, Bit16u b)
 	if (b != 256)
 	{
 		if (b < 256)
-			ASCII85Buffer[ASCII85BufferPos++] = (Bit8u)b;
+			ASCII85Buffer[ASCII85BufferPos++] = (uint8_t)b;
 
 		if (ASCII85BufferPos == 4 || b == 257)
 		{
@@ -1961,7 +1961,7 @@ void CPrinter::fprintASCII85(FILE* f, Bit16u b)
 				char buffer[5];
 				for (Bit8s i = 4; i >= 0; i--)
 				{
-					buffer[i] = (Bit8u)((Bit32u)num % (Bit32u)85);
+					buffer[i] = (uint8_t)((Bit32u)num % (Bit32u)85);
 					buffer[i] += 33;
 					num /= (Bit32u)85;
 				}
@@ -1990,7 +1990,7 @@ void CPrinter::fprintASCII85(FILE* f, Bit16u b)
 		// Partial tupel if there are still bytes in the buffer
 		if (ASCII85BufferPos > 0)
 		{
-			for (Bit8u i = ASCII85BufferPos; i < 4; i++)
+			for (uint8_t i = ASCII85BufferPos; i < 4; i++)
 				ASCII85Buffer[i] = 0;
 
 			fprintASCII85(f, 257);
@@ -2030,20 +2030,20 @@ bool CPrinter::isBlank()
 
 	for (Bit16u y = 0; y < page->h; y++)
 		for (Bit16u x = 0; x < page->w; x++)
-			if (*((Bit8u*)page->pixels + x + (y * page->pitch)) != 0)
+			if (*((uint8_t*)page->pixels + x + (y * page->pitch)) != 0)
 				blank = false;
 
 	SDL_UnlockSurface(page);
 	return blank;
 }
 
-Bit8u CPrinter::getPixel(Bit32u num)
+uint8_t CPrinter::getPixel(Bit32u num)
 {
 	// Respect the pitch
-	return *((Bit8u*)page->pixels + (num % page->w) + ((num / page->w) * page->pitch));
+	return *((uint8_t*)page->pixels + (num % page->w) + ((num / page->w) * page->pitch));
 }
 
-static Bit8u dataregister; // contents of the parallel port data register
+static uint8_t dataregister; // contents of the parallel port data register
 
 Bitu PRINTER_readdata(Bitu port,Bitu iolen)
 {
@@ -2056,9 +2056,9 @@ void PRINTER_writedata(Bitu port,Bitu val,Bitu iolen)
 {
     (void)port;
     (void)iolen;
-	dataregister = (Bit8u)val;
+	dataregister = (uint8_t)val;
 }
-Bit8u controlreg = 0x04;
+uint8_t controlreg = 0x04;
 
 Bitu PRINTER_readstatus(Bitu port,Bitu iolen)
 {
@@ -2071,7 +2071,7 @@ Bitu PRINTER_readstatus(Bitu port,Bitu iolen)
 		return 0xdf;
 
 	// Printer is always online and never reports an error
-	Bit8u status = 0x1f;// 0x18;
+	uint8_t status = 0x1f;// 0x18;
 
 //	if (controlreg&0x08==0)
 //		status |= 0x10;
@@ -2137,7 +2137,7 @@ void PRINTER_writecontrol(Bitu port,Bitu val,Bitu iolen)
 		}
 	}
 
-	controlreg = (Bit8u)val;
+	controlreg = (uint8_t)val;
 	if (defaultPrinter)
 		defaultPrinter->setAutofeed((val & 0x02) > 0);
 }

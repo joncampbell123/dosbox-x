@@ -26,7 +26,7 @@
 #include "dos_inc.h"
 #include "drives.h"
 
-bool DOS_IOCTL_AX440D_CH08(Bit8u drive,bool query) {
+bool DOS_IOCTL_AX440D_CH08(uint8_t drive,bool query) {
     PhysPt ptr	= SegPhys(ds)+reg_dx;
     switch (reg_cl) {
         case 0x40:		/* Set device parameters */
@@ -154,7 +154,7 @@ bool DOS_IOCTL_AX440D_CH08(Bit8u drive,bool query) {
                  * 03h    WORD    number of disk cylinder
                  * ---BYTE 00h bit 1 set---
                  * 05h    WORD    number of tracks to format */
-                Bit8u flags = mem_readb(ptr+0);
+                uint8_t flags = mem_readb(ptr+0);
                 Bit16u head = mem_readw(ptr+1);
                 Bit16u cyl = mem_readw(ptr+3);
                 Bit16u ntracks = (flags & 0x1) ? mem_readw(ptr+5) : 1;
@@ -305,7 +305,7 @@ bool DOS_IOCTL_AX440D_CH08(Bit8u drive,bool query) {
                     return false;
                 }
 
-                Bit8u sectbuf[SECTOR_SIZE_MAX];
+                uint8_t sectbuf[SECTOR_SIZE_MAX];
 
                 if (fdp->loadedDisk == NULL) {
                     DOS_SetError(DOSERR_ACCESS_DENIED);
@@ -360,7 +360,7 @@ bool DOS_IOCTL_AX440D_CH08(Bit8u drive,bool query) {
                 while (nsect > 0) {
                     MEM_BlockRead(xfer_ptr,sectbuf,sectsize);
 
-                    Bit8u status = fdp->loadedDisk->Write_Sector(head,cyl,sect,sectbuf);
+                    uint8_t status = fdp->loadedDisk->Write_Sector(head,cyl,sect,sectbuf);
                     if (status != 0) {
                         LOG(LOG_IOCTL,LOG_DEBUG)("IOCTL 0D:61 write error at C/H/S %u/%u/%u",cyl,head,sect);
                         DOS_SetError(DOSERR_ACCESS_DENIED);//FIXME
@@ -381,7 +381,7 @@ bool DOS_IOCTL_AX440D_CH08(Bit8u drive,bool query) {
                     return false;
                 }
 
-                Bit8u sectbuf[SECTOR_SIZE_MAX];
+                uint8_t sectbuf[SECTOR_SIZE_MAX];
 
                 if (fdp->loadedDisk == NULL) {
                     DOS_SetError(DOSERR_ACCESS_DENIED);
@@ -434,7 +434,7 @@ bool DOS_IOCTL_AX440D_CH08(Bit8u drive,bool query) {
                         drive,cyl,head,sect,nsect,xfer_addr >> 16,xfer_addr & 0xFFFF,sectsize);
 
                 while (nsect > 0) {
-                    Bit8u status = fdp->loadedDisk->Read_Sector(head,cyl,sect,sectbuf);
+                    uint8_t status = fdp->loadedDisk->Read_Sector(head,cyl,sect,sectbuf);
                     if (status != 0) {
                         LOG(LOG_IOCTL,LOG_DEBUG)("IOCTL 0D:61 read error at C/H/S %u/%u/%u",cyl,head,sect);
                         DOS_SetError(DOSERR_ACCESS_DENIED);//FIXME
@@ -473,7 +473,7 @@ bool DOS_IOCTL_AX440D_CH08(Bit8u drive,bool query) {
     return true;
 }
 
-bool DOS_IOCTL_AX440D_CH48(Bit8u drive,bool query) {
+bool DOS_IOCTL_AX440D_CH48(uint8_t drive,bool query) {
     PhysPt ptr	= SegPhys(ds)+reg_dx;
     switch (reg_cl) {
         case 0x40:		/* Set device parameters */
@@ -594,7 +594,7 @@ bool DOS_IOCTL_AX440D_CH48(Bit8u drive,bool query) {
 }
 
 bool DOS_IOCTL(void) {
-	Bitu handle=0;Bit8u drive=0;
+	Bitu handle=0;uint8_t drive=0;
 	/* calls 0-4,6,7,10,12,16 use a file handle */
 	if ((reg_al<4) || (reg_al==0x06) || (reg_al==0x07) || (reg_al==0x0a) || (reg_al==0x0c) || (reg_al==0x10)) {
 		handle=RealHandle(reg_bx);
@@ -626,7 +626,7 @@ bool DOS_IOCTL(void) {
 		if (Files[handle]->GetInformation() & 0x8000) {	//Check for device
 			reg_dx=Files[handle]->GetInformation();
 		} else {
-			Bit8u hdrive=Files[handle]->GetDrive();
+			uint8_t hdrive=Files[handle]->GetDrive();
 			if (hdrive==0xff) {
 				LOG(LOG_IOCTL,LOG_NORMAL)("00:No drive set");
 				hdrive=2;	// defaulting to C:
@@ -642,7 +642,7 @@ bool DOS_IOCTL(void) {
 			return false;
 		} else {
 			if (Files[handle]->GetInformation() & 0x8000) {	//Check for device
-				reg_al=(Bit8u)(Files[handle]->GetInformation() & 0xff);
+				reg_al=(uint8_t)(Files[handle]->GetInformation() & 0xff);
 			} else {
 				DOS_SetError(DOSERR_FUNCTION_NUMBER_INVALID);
 				return false;

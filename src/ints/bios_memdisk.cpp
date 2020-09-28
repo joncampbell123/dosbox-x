@@ -193,13 +193,13 @@ void imageDiskMemory::init(diskGeo diskParams, bool isHardDrive, imageDisk* unde
 	this->total_chunks = (Bit32u)((absoluteSectors + sectors_per_chunk - 1u) / sectors_per_chunk);
 	this->chunk_size = sectors_per_chunk * diskParams.bytespersect;
 	//allocate a map of chunks that have been allocated and their memory addresses
-	ChunkMap = (Bit8u**)malloc(total_chunks * sizeof(Bit8u*));
+	ChunkMap = (uint8_t**)malloc(total_chunks * sizeof(uint8_t*));
 	if (ChunkMap == NULL) {
 		LOG_MSG("Error allocating memory map in imageDiskMemory constructor for %lu clusters.\n", (unsigned long)total_chunks);
 		return;
 	}
 	//clear memory map
-	memset((void*)ChunkMap, 0, total_chunks * sizeof(Bit8u*));
+	memset((void*)ChunkMap, 0, total_chunks * sizeof(uint8_t*));
 
 	//set internal variables
 	this->diskname = "RAM drive";
@@ -223,7 +223,7 @@ imageDiskMemory::~imageDiskMemory() {
 	if (this->underlyingImage) this->underlyingImage->Release();
 	//loop through each chunk and release it if it has been allocated
 	for (Bit32u i = 0; i < total_chunks; i++) {
-		Bit8u* chunk = ChunkMap[i];
+		uint8_t* chunk = ChunkMap[i];
 		if (chunk) free(chunk);
 	}
 	//release the memory map
@@ -235,7 +235,7 @@ imageDiskMemory::~imageDiskMemory() {
 }
 
 // Return the BIOS type of the floppy image, or 0 for hard drives
-Bit8u imageDiskMemory::GetBiosType(void) {
+uint8_t imageDiskMemory::GetBiosType(void) {
 	return this->hardDrive ? 0 : this->floppyInfo.biosval;
 }
 
@@ -247,7 +247,7 @@ void imageDiskMemory::Set_Geometry(Bit32u setHeads, Bit32u setCyl, Bit32u setSec
 }
 
 // Read a specific sector from the ramdrive
-Bit8u imageDiskMemory::Read_AbsoluteSector(Bit32u sectnum, void * data) {
+uint8_t imageDiskMemory::Read_AbsoluteSector(Bit32u sectnum, void * data) {
 	//sector number is a zero-based offset
 
 	//verify the sector number is valid
@@ -262,7 +262,7 @@ Bit8u imageDiskMemory::Read_AbsoluteSector(Bit32u sectnum, void * data) {
 	chunksect = sectnum % sectors_per_chunk;
 
 	//retrieve the memory address of the chunk
-	Bit8u* datalocation;
+	uint8_t* datalocation;
 	datalocation = ChunkMap[chunknum];
 
 	//if the chunk has not yet been allocated, return underlying image if any, or else zeros
@@ -283,7 +283,7 @@ Bit8u imageDiskMemory::Read_AbsoluteSector(Bit32u sectnum, void * data) {
 }
 
 // Write a specific sector from the ramdrive
-Bit8u imageDiskMemory::Write_AbsoluteSector(Bit32u sectnum, const void * data) {
+uint8_t imageDiskMemory::Write_AbsoluteSector(Bit32u sectnum, const void * data) {
 	//sector number is a zero-based offset
 
 	//verify the sector number is valid
@@ -298,23 +298,23 @@ Bit8u imageDiskMemory::Write_AbsoluteSector(Bit32u sectnum, const void * data) {
 	chunksect = sectnum % sectors_per_chunk;
 
 	//retrieve the memory address of the chunk
-	Bit8u* datalocation;
+	uint8_t* datalocation;
 	datalocation = ChunkMap[chunknum];
 
 	//if the chunk has not yet been allocated, allocate the chunk
 	if (datalocation == NULL) {
 		//if no underlying image, first check if we are actually saving anything
 		if (this->underlyingImage == NULL) {
-			Bit8u anyData = 0;
+			uint8_t anyData = 0;
 			for (Bit32u i = 0; i < sector_size; i++) {
-				anyData |= ((Bit8u*)data)[i];
+				anyData |= ((uint8_t*)data)[i];
 			}
 			//if it's all zeros, return success
 			if (anyData == 0) return 0x00;
 		}
 
 		//allocate a new memory chunk
-		datalocation = (Bit8u*)malloc(chunk_size);
+		datalocation = (uint8_t*)malloc(chunk_size);
 		if (datalocation == NULL) {
 			LOG_MSG("Could not allocate memory in Write_AbsoluteSector for sector %lu.\n", (unsigned long)sectnum);
 			return 0x05;
@@ -330,7 +330,7 @@ Bit8u imageDiskMemory::Write_AbsoluteSector(Bit32u sectnum, const void * data) {
 			//if this is the last chunk, don't read past the end of the original image
 			if ((chunknum + 1) == this->total_chunks) sectorsToCopy = this->total_sectors - chunkFirstSector;
 			//copy the sectors
-			Bit8u* target = datalocation;
+			uint8_t* target = datalocation;
 			for (Bit32u i = 0; i < sectorsToCopy; i++) {
 				this->underlyingImage->Read_AbsoluteSector(i + chunkFirstSector, target);
 				datalocation += this->sector_size;
@@ -347,7 +347,7 @@ Bit8u imageDiskMemory::Write_AbsoluteSector(Bit32u sectnum, const void * data) {
 }
 
 // Parition and format the ramdrive
-Bit8u imageDiskMemory::Format() {
+uint8_t imageDiskMemory::Format() {
 	//verify that the geometry of the drive is valid
 	if (this->sector_size != 512) {
 		LOG_MSG("imageDiskMemory::Format only designed for disks with 512-byte sectors.\n");
@@ -378,7 +378,7 @@ Bit8u imageDiskMemory::Format() {
 	Bit32u partitionStart = writeMBR ? this->sectors : 0; //must be aligned with the start of a head (multiple of this->sectors)
 	Bit32u partitionLength = reported_total_sectors - partitionStart; //must be aligned with the start of a head (multiple of this->sectors)
 	//figure out the media id
-	Bit8u mediaID = this->hardDrive ? 0xF8 : this->floppyInfo.mediaid;
+	uint8_t mediaID = this->hardDrive ? 0xF8 : this->floppyInfo.mediaid;
 	//figure out the number of root entries and minimum number of sectors per cluster
 	Bit32u root_ent = this->hardDrive ? 512 : this->floppyInfo.rootentries;
 	Bit32u sectors_per_cluster = this->hardDrive ? 4 : this->floppyInfo.sectcluster; //fat requires 2k clusters minimum on hard drives
@@ -404,7 +404,7 @@ Bit8u imageDiskMemory::Format() {
 		(unsigned int)root_ent, (unsigned int)(sectors_per_cluster * this->sector_size), (unsigned int)mediaID);
 
 	//write MBR if applicable
-	Bit8u sbuf[512];
+	uint8_t sbuf[512];
 	if (writeMBR) {
 		// initialize sbuf with the freedos MBR
 		memcpy(sbuf, freedos_mbr, 512);

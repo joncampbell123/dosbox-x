@@ -146,14 +146,14 @@ public:
 	virtual void showLCDMessage(const char *message) = 0;
 	virtual void onMIDIMessagePlayed() = 0;
 	virtual bool onMIDIQueueOverflow() = 0;
-	virtual void onMIDISystemRealtime(Bit8u system_realtime) = 0;
+	virtual void onMIDISystemRealtime(uint8_t system_realtime) = 0;
 	virtual void onDeviceReset() = 0;
 	virtual void onDeviceReconfig() = 0;
-	virtual void onNewReverbMode(Bit8u mode) = 0;
-	virtual void onNewReverbTime(Bit8u time) = 0;
-	virtual void onNewReverbLevel(Bit8u level) = 0;
-	virtual void onPolyStateChanged(Bit8u part_num) = 0;
-	virtual void onProgramChanged(Bit8u part_num, const char *sound_group_name, const char *patch_name) = 0;
+	virtual void onNewReverbMode(uint8_t mode) = 0;
+	virtual void onNewReverbTime(uint8_t time) = 0;
+	virtual void onNewReverbLevel(uint8_t level) = 0;
+	virtual void onPolyStateChanged(uint8_t part_num) = 0;
+	virtual void onProgramChanged(uint8_t part_num, const char *sound_group_name, const char *patch_name) = 0;
 
 protected:
 	~IReportHandler() {}
@@ -164,8 +164,8 @@ protected:
 class IMidiReceiver {
 public:
 	virtual void handleShortMessage(const Bit32u message) = 0;
-	virtual void handleSysex(const Bit8u stream[], const Bit32u length) = 0;
-	virtual void handleSystemRealtimeMessage(const Bit8u realtime) = 0;
+	virtual void handleSysex(const uint8_t stream[], const Bit32u length) = 0;
+	virtual void handleSystemRealtimeMessage(const uint8_t realtime) = 0;
 
 protected:
 	~IMidiReceiver() {}
@@ -202,7 +202,7 @@ public:
 	void createContext(mt32emu_report_handler_i report_handler = CppInterfaceImpl::NULL_REPORT_HANDLER, void *instance_data = NULL) { freeContext(); c = mt32emu_create_context(report_handler, instance_data); }
 	void createContext(IReportHandler &report_handler) { createContext(CppInterfaceImpl::getReportHandlerThunk(), &report_handler); }
 	void freeContext() { if (c != NULL) { mt32emu_free_context(c); c = NULL; } }
-	mt32emu_return_code addROMData(const Bit8u *data, size_t data_size, const mt32emu_sha1_digest *sha1_digest = NULL) { return mt32emu_add_rom_data(c, data, data_size, sha1_digest); }
+	mt32emu_return_code addROMData(const uint8_t *data, size_t data_size, const mt32emu_sha1_digest *sha1_digest = NULL) { return mt32emu_add_rom_data(c, data, data_size, sha1_digest); }
 	mt32emu_return_code addROMFile(const char *filename) { return mt32emu_add_rom_file(c, filename); }
 	void getROMInfo(mt32emu_rom_info *rom_info) { mt32emu_get_rom_info(c, rom_info); }
 	void setPartialCount(const Bit32u partial_count) { mt32emu_set_partial_count(c, partial_count); }
@@ -224,19 +224,19 @@ public:
 	void setMIDIReceiver(IMidiReceiver &midi_receiver) { setMIDIReceiver(CppInterfaceImpl::getMidiReceiverThunk(), &midi_receiver); }
 
 	Bit32u getInternalRenderedSampleCount() { return mt32emu_get_internal_rendered_sample_count(c); }
-	void parseStream(const Bit8u *stream, Bit32u length) { mt32emu_parse_stream(c, stream, length); }
-	void parseStream_At(const Bit8u *stream, Bit32u length, Bit32u timestamp) { mt32emu_parse_stream_at(c, stream, length, timestamp); }
+	void parseStream(const uint8_t *stream, Bit32u length) { mt32emu_parse_stream(c, stream, length); }
+	void parseStream_At(const uint8_t *stream, Bit32u length, Bit32u timestamp) { mt32emu_parse_stream_at(c, stream, length, timestamp); }
 	void playShortMessage(Bit32u message) { mt32emu_play_short_message(c, message); }
 	void playShortMessageAt(Bit32u message, Bit32u timestamp) { mt32emu_play_short_message_at(c, message, timestamp); }
 	mt32emu_return_code playMsg(Bit32u msg) { return mt32emu_play_msg(c, msg); }
-	mt32emu_return_code playSysex(const Bit8u *sysex, Bit32u len) { return mt32emu_play_sysex(c, sysex, len); }
+	mt32emu_return_code playSysex(const uint8_t *sysex, Bit32u len) { return mt32emu_play_sysex(c, sysex, len); }
 	mt32emu_return_code playMsgAt(Bit32u msg, Bit32u timestamp) { return mt32emu_play_msg_at(c, msg, timestamp); }
-	mt32emu_return_code playSysexAt(const Bit8u *sysex, Bit32u len, Bit32u timestamp) { return mt32emu_play_sysex_at(c, sysex, len, timestamp); }
+	mt32emu_return_code playSysexAt(const uint8_t *sysex, Bit32u len, Bit32u timestamp) { return mt32emu_play_sysex_at(c, sysex, len, timestamp); }
 
 	void playMsgNow(Bit32u msg) { mt32emu_play_msg_now(c, msg); }
-	void playMsgOnPart(Bit8u part, Bit8u code, Bit8u note, Bit8u velocity) { mt32emu_play_msg_on_part(c, part, code, note, velocity); }
-	void playSysexNow(const Bit8u *sysex, Bit32u len) { mt32emu_play_sysex_now(c, sysex, len); }
-	void writeSysex(Bit8u channel, const Bit8u *sysex, Bit32u len) { mt32emu_write_sysex(c, channel, sysex, len); }
+	void playMsgOnPart(uint8_t part, uint8_t code, uint8_t note, uint8_t velocity) { mt32emu_play_msg_on_part(c, part, code, note, velocity); }
+	void playSysexNow(const uint8_t *sysex, Bit32u len) { mt32emu_play_sysex_now(c, sysex, len); }
+	void writeSysex(uint8_t channel, const uint8_t *sysex, Bit32u len) { mt32emu_write_sysex(c, channel, sysex, len); }
 
 	void setReverbEnabled(const bool reverb_enabled) { mt32emu_set_reverb_enabled(c, reverb_enabled ? MT32EMU_BOOL_TRUE : MT32EMU_BOOL_FALSE); }
 	bool isReverbEnabled() { return mt32emu_is_reverb_enabled(c) != MT32EMU_BOOL_FALSE; }
@@ -279,10 +279,10 @@ public:
 	bool isActive() { return mt32emu_is_active(c) != MT32EMU_BOOL_FALSE; }
 	Bit32u getPartialCount() { return mt32emu_get_partial_count(c); }
 	Bit32u getPartStates() { return mt32emu_get_part_states(c); }
-	void getPartialStates(Bit8u *partial_states) { mt32emu_get_partial_states(c, partial_states); }
-	Bit32u getPlayingNotes(Bit8u part_number, Bit8u *keys, Bit8u *velocities) { return mt32emu_get_playing_notes(c, part_number, keys, velocities); }
-	const char *getPatchName(Bit8u part_number) { return mt32emu_get_patch_name(c, part_number); }
-	void readMemory(Bit32u addr, Bit32u len, Bit8u *data) { mt32emu_read_memory(c, addr, len, data); }
+	void getPartialStates(uint8_t *partial_states) { mt32emu_get_partial_states(c, partial_states); }
+	Bit32u getPlayingNotes(uint8_t part_number, uint8_t *keys, uint8_t *velocities) { return mt32emu_get_playing_notes(c, part_number, keys, velocities); }
+	const char *getPatchName(uint8_t part_number) { return mt32emu_get_patch_name(c, part_number); }
+	void readMemory(Bit32u addr, Bit32u len, uint8_t *data) { mt32emu_read_memory(c, addr, len, data); }
 
 private:
 #if MT32EMU_API_TYPE == 2

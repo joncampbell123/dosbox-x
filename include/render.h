@@ -42,17 +42,17 @@ enum ASPECT_MODES {
 
 typedef struct {
 	struct { 
-		Bit8u red;
-		Bit8u green;
-		Bit8u blue;
-		Bit8u unused;
+		uint8_t red;
+		uint8_t green;
+		uint8_t blue;
+		uint8_t unused;
 	} rgb[256];
 	union {
 		Bit16u b16[256];
 		Bit32u b32[256];
 	} lut;
 	bool changed;
-	Bit8u modified[256];
+	uint8_t modified[256];
 	Bitu first;
 	Bitu last;
 } RenderPal_t;
@@ -71,7 +71,7 @@ typedef struct {
 		Bitu count;
 		Bitu max;
 		Bitu index;
-		Bit8u hadSkip[RENDER_SKIP_CACHE];
+		uint8_t hadSkip[RENDER_SKIP_CACHE];
 	} frameskip;
 	struct {
 		Bitu size;
@@ -86,9 +86,9 @@ typedef struct {
 		ScalerComplexHandler_t complexHandler;
 		Bitu blocks, lastBlock;
 		Bitu outPitch;
-		Bit8u *outWrite;
+		uint8_t *outWrite;
 		Bitu cachePitch;
-		Bit8u *cacheRead;
+		uint8_t *cacheRead;
 		Bitu inHeight, inLine, outLine;
 	} scale;
 #if C_OPENGL
@@ -111,7 +111,7 @@ extern ScalerLineHandler_t RENDER_DrawLine;
 void RENDER_SetSize(Bitu width,Bitu height,Bitu bpp,float fps,double scrn_ratio);
 bool RENDER_StartUpdate(void);
 void RENDER_EndUpdate(bool abort);
-void RENDER_SetPal(Bit8u entry,Bit8u red,Bit8u green,Bit8u blue);
+void RENDER_SetPal(uint8_t entry,uint8_t red,uint8_t green,uint8_t blue);
 bool RENDER_GetForceUpdate(void);
 void RENDER_SetForceUpdate(bool);
 

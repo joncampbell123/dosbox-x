@@ -477,7 +477,7 @@ bool CDROM_Interface_Ioctl::LoadUnloadMedia(bool unload) {
 	return bStat>0;
 }
 
-bool CDROM_Interface_Ioctl::ReadSector(Bit8u *buffer, bool raw, unsigned long sector) {
+bool CDROM_Interface_Ioctl::ReadSector(uint8_t *buffer, bool raw, unsigned long sector) {
 	BOOL  bStat;
 	DWORD byteCount = 0;
 
@@ -508,7 +508,7 @@ bool CDROM_Interface_Ioctl::ReadSectors(PhysPt buffer, bool raw, unsigned long s
 	DWORD byteCount = 0;
 
 	Bitu	buflen	= raw ? num*RAW_SECTOR_SIZE : num*COOKED_SECTOR_SIZE;
-	Bit8u*	bufdata = new Bit8u[buflen];
+	uint8_t*	bufdata = new uint8_t[buflen];
 
 	if (!raw) {
 		// Cooked

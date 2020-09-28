@@ -208,9 +208,9 @@ static void FPU_FLD_I64(PhysPt addr,Bitu store_to) {
 
 static void FPU_FBLD(PhysPt addr,Bitu store_to) {
 	Bit64u val = 0;
-	Bit8u in = 0;
+	uint8_t in = 0;
 	Bit64u base = 1;
-	for(Bit8u i = 0;i < 9;i++){
+	for(uint8_t i = 0;i < 9;i++){
 		in = mem_readb(addr + i);
 		val += ( (in&0xf) * base); //in&0xf shouldn't be higher then 9
 		base *= 10;
@@ -296,7 +296,7 @@ static void FPU_FBST(PhysPt addr) {
 	//numbers from back to front
 	double temp=val.d;
 	Bitu p;
-	for(Bit8u i=0;i<9;i++){
+	for(uint8_t i=0;i<9;i++){
 		val.d=temp;
 		temp = static_cast<double>(static_cast<Bit64s>(floor(val.d/10.0)));
 		p = static_cast<Bitu>(val.d - 10.0*temp);  
@@ -304,14 +304,14 @@ static void FPU_FBST(PhysPt addr) {
 		temp = static_cast<double>(static_cast<Bit64s>(floor(val.d/10.0)));
 		p |= (static_cast<Bitu>(val.d - 10.0*temp)<<4);
 
-		mem_writeb(addr+i,(Bit8u)p);
+		mem_writeb(addr+i,(uint8_t)p);
 	}
 	val.d=temp;
 	temp = static_cast<double>(static_cast<Bit64s>(floor(val.d/10.0)));
 	p = static_cast<Bitu>(val.d - 10.0*temp);
 	if(sign)
 		p|=0x80;
-	mem_writeb(addr+9,(Bit8u)p);
+	mem_writeb(addr+9,(uint8_t)p);
 }
 
 #if defined(WIN32) && defined(_MSC_VER) && (_MSC_VER < 1910)
@@ -631,8 +631,8 @@ static void FPU_FLDENV(PhysPt addr){
 
 static void FPU_FSAVE(PhysPt addr){
 	FPU_FSTENV(addr);
-	Bit8u start = (cpu.code.big?28:14);
-	for(Bit8u i = 0;i < 8;i++){
+	uint8_t start = (cpu.code.big?28:14);
+	for(uint8_t i = 0;i < 8;i++){
 		FPU_ST80(addr+start,STV(i),/*&*/fpu.regs_80[STV(i)],fpu.use80[STV(i)]);
 		start += 10;
 	}
@@ -641,8 +641,8 @@ static void FPU_FSAVE(PhysPt addr){
 
 static void FPU_FRSTOR(PhysPt addr){
 	FPU_FLDENV(addr);
-	Bit8u start = (cpu.code.big?28:14);
-	for(Bit8u i = 0;i < 8;i++){
+	uint8_t start = (cpu.code.big?28:14);
+	for(uint8_t i = 0;i < 8;i++){
 		fpu.regs[STV(i)].d = FPU_FLD80(addr+start,/*&*/fpu.regs_80[STV(i)]);
 		fpu.use80[STV(i)] = true;
 		start += 10;

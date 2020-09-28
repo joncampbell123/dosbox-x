@@ -254,7 +254,7 @@ void LA32WaveGenerator::generateNextPCMWaveLogSamples() {
 	}
 }
 
-void LA32WaveGenerator::initSynth(const bool useSawtoothWaveform, const Bit8u usePulseWidth, const Bit8u useResonance) {
+void LA32WaveGenerator::initSynth(const bool useSawtoothWaveform, const uint8_t usePulseWidth, const uint8_t useResonance) {
 	sawtoothWaveform = useSawtoothWaveform;
 	pulseWidth = usePulseWidth;
 	resonance = useResonance;
@@ -342,7 +342,7 @@ void LA32IntPartialPair::init(const bool useRingModulated, const bool useMixed) 
 	mixed = useMixed;
 }
 
-void LA32IntPartialPair::initSynth(const PairType useMaster, const bool sawtoothWaveform, const Bit8u pulseWidth, const Bit8u resonance) {
+void LA32IntPartialPair::initSynth(const PairType useMaster, const bool sawtoothWaveform, const uint8_t pulseWidth, const uint8_t resonance) {
 	if (useMaster == MASTER) {
 		master.initSynth(sawtoothWaveform, pulseWidth, resonance);
 	} else {

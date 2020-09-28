@@ -40,8 +40,8 @@ const char* Mouse_GetSelected(int x1, int y1, int x2, int y2, int w, int h, Bit1
 void Mouse_Select(int x1, int y1, int x2, int y2, int w, int h);
 void Restore_Text(int x1, int y1, int x2, int y2, int w, int h);
 #endif
-void Mouse_ButtonPressed(Bit8u button);
-void Mouse_ButtonReleased(Bit8u button);
+void Mouse_ButtonPressed(uint8_t button);
+void Mouse_ButtonReleased(uint8_t button);
 
 void Mouse_AutoLock(bool enable);
 bool Mouse_IsLocked();

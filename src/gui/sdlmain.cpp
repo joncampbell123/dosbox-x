@@ -1221,7 +1221,7 @@ bool CheckQuit(void) {
         return ret;
     }
     if (warn == "autofile")
-        for (Bit8u handle = 0; handle < DOS_FILES; handle++) {
+        for (uint8_t handle = 0; handle < DOS_FILES; handle++) {
             if (Files[handle] && (Files[handle]->GetName() == NULL || strcmp(Files[handle]->GetName(), "CON")) && (Files[handle]->GetInformation()&0x8000) == 0) {
                 quit_confirm=false;
                 MAPPER_ReleaseAllKeys();
@@ -1308,11 +1308,11 @@ void GFX_SDL_Overscan(void) {
             if ((Bitu)sdl.clip.x > (Bitu)sdl.overscan_width) { rect->x += (int)sdl.clip.x-(int)sdl.overscan_width; rect->w -= (unsigned int)(2*((int)sdl.clip.x-(int)sdl.overscan_width)); }
 
             if (sdl.surface->format->BitsPerPixel == 8) { // SDL_FillRect seems to have some issues with palettized hw surfaces
-                Bit8u* pixelptr = (Bit8u*)sdl.surface->pixels;
+                uint8_t* pixelptr = (uint8_t*)sdl.surface->pixels;
                 Bitu linepitch = sdl.surface->pitch;
                 for (Bitu i=0; i<4; i++) {
                     rect = &sdl.updateRects[i];
-                    Bit8u* start = pixelptr + (unsigned int)rect->y*(unsigned int)linepitch + (unsigned int)rect->x;
+                    uint8_t* start = pixelptr + (unsigned int)rect->y*(unsigned int)linepitch + (unsigned int)rect->x;
                     for (Bitu j=0; j<(unsigned int)rect->h; j++) {
                         memset(start, vga.attr.overscan_color, rect->w);
                         start += linepitch;
@@ -2005,8 +2005,8 @@ void MenuDrawRect(int x,int y,int w,int h,Bitu color) {
     }
 }
 
-extern Bit8u int10_font_14[256 * 14];
-extern Bit8u int10_font_16[256 * 16];
+extern uint8_t int10_font_14[256 * 14];
+extern uint8_t int10_font_16[256 * 16];
 
 void MenuDrawTextChar(int x,int y,unsigned char c,Bitu color) {
     static const unsigned int fontHeight = 16;
@@ -3253,7 +3253,7 @@ void GFX_ReleaseSurfacePtr(void) {
 }
 #endif
 
-bool GFX_StartUpdate(Bit8u* &pixels,Bitu &pitch) 
+bool GFX_StartUpdate(uint8_t* &pixels,Bitu &pitch) 
 {
     if (!sdl.active || sdl.updating)
         return false;
@@ -3396,7 +3396,7 @@ void GFX_SetPalette(Bitu start,Bitu count,GFX_PalEntry * entries) {
 #endif
 }
 
-Bitu GFX_GetRGB(Bit8u red, Bit8u green, Bit8u blue) {
+Bitu GFX_GetRGB(uint8_t red, uint8_t green, uint8_t blue) {
     switch (sdl.desktop.type) {
         case SCREEN_SURFACE:
             return SDL_MapRGB(sdl.surface->format, red, green, blue);
@@ -3513,15 +3513,15 @@ static void SetPriority(PRIORITY_LEVELS level) {
     }
 }
 
-extern Bit8u int10_font_14[256 * 14];
+extern uint8_t int10_font_14[256 * 14];
 static void OutputString(Bitu x,Bitu y,const char * text,Bit32u color,Bit32u color2,SDL_Surface * output_surface) {
-    Bit32u * draw=(Bit32u*)(((Bit8u *)output_surface->pixels)+((y)*output_surface->pitch))+x;
+    Bit32u * draw=(Bit32u*)(((uint8_t *)output_surface->pixels)+((y)*output_surface->pitch))+x;
     while (*text) {
-        Bit8u * font=&int10_font_14[(*text)*14];
+        uint8_t * font=&int10_font_14[(*text)*14];
         Bitu i,j;
         Bit32u * draw_line=draw;
         for (i=0;i<14;i++) {
-            Bit8u map=*font++;
+            uint8_t map=*font++;
             for (j=0;j<8;j++) {
                 if (map & 0x80) *((Bit32u*)(draw_line+j))=color; else *((Bit32u*)(draw_line+j))=color2;
                 map<<=1;
@@ -3563,7 +3563,7 @@ void RebootGuest(bool pressed) {
 	    if (CurMode->type==M_TEXT || IS_PC98_ARCH) {
 			char msg[]="[2J";
 			Bit16u s = (Bit16u)strlen(msg);
-			DOS_WriteFile(STDERR,(Bit8u*)msg,&s);
+			DOS_WriteFile(STDERR,(uint8_t*)msg,&s);
             throw int(6);
 	    } else {
             bootfast=true;
@@ -6242,7 +6242,7 @@ static bool PasteClipboardNext()
 		if (!bModAltOn)                                                // Alt down if not already down
 			GenKBStroke(uiScanCodeAlt, true, sdlmMods);
 		   
-		Bit8u ansiVal = cKey;
+		uint8_t ansiVal = cKey;
 		for (int i = 100; i; i /= 10)
 			{
 			int numKey = ansiVal/i;                                    // High digit of Alt+ASCII number combination
@@ -6261,7 +6261,7 @@ static bool PasteClipboardNext()
     return true;
 }
 
-extern Bit8u* clipAscii;
+extern uint8_t* clipAscii;
 extern Bit32u clipSize;
 extern void Unicode2Ascii(const Bit16u* unicode);
 
@@ -6303,7 +6303,7 @@ void PasteClipboard(bool bPressed)
 #else // end emendelson from dbDOS; improved by Wengier
 #if defined(WIN32) // SDL2, MinGW / Added by Wengier
 static std::string strPasteBuffer;
-extern Bit8u* clipAscii;
+extern uint8_t* clipAscii;
 extern Bit32u clipSize;
 extern void Unicode2Ascii(const Bit16u* unicode);
 void PasteClipboard(bool bPressed) {

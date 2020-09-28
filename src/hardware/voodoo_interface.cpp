@@ -38,12 +38,12 @@ static voodoo_draw vdraw;
 Voodoo_PageHandler * voodoo_pagehandler;
 
 
-Bit8u Voodoo_PageHandler::readb(PhysPt addr) {
+uint8_t Voodoo_PageHandler::readb(PhysPt addr) {
     (void)addr;//UNUSED
 //	LOG_MSG("voodoo readb at %x",addr);
-	return (Bit8u)-1;
+	return (uint8_t)-1;
 }
-void Voodoo_PageHandler::writeb(PhysPt addr,Bit8u val) {
+void Voodoo_PageHandler::writeb(PhysPt addr,uint8_t val) {
     (void)addr;//UNUSED
     (void)val;//UNUSED
 //	LOG_MSG("voodoo writeb at %x",addr);
@@ -141,7 +141,7 @@ static void Voodoo_VerticalTimer(Bitu /*val*/) {
 		// draw all lines at once
 		Bit16u *viewbuf = (Bit16u *)(v->fbi.ram + v->fbi.rgboffs[v->fbi.frontbuf]);
 		for(Bitu i = 0; i < v->fbi.height; i++) {
-			RENDER_DrawLine((Bit8u*) viewbuf);
+			RENDER_DrawLine((uint8_t*) viewbuf);
 			viewbuf += v->fbi.rowpixels;
 		}
 		RENDER_EndUpdate(false);

@@ -71,7 +71,7 @@ struct Segments {
 union GenReg32 {
 	Bit32u dword[1];
 	Bit16u word[2];
-	Bit8u byte[4];
+	uint8_t byte[4];
 };
 
 #ifdef WORDS_BIGENDIAN

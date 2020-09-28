@@ -56,7 +56,7 @@ private:
 	Bit16u pitch;
 
 	void updatePitch();
-	void setupPitchChange(int targetPitchOffset, Bit8u changeDuration);
+	void setupPitchChange(int targetPitchOffset, uint8_t changeDuration);
 	void targetPitchOffsetReached();
 	void nextPhase();
 	void process();

@@ -36,7 +36,7 @@ std::list<DOS_GetMemLog_Entry> DOS_GetMemLog;
 #endif
 struct DOS_TableCase {	
 	Bit16u size;
-	Bit8u chars[256];
+	uint8_t chars[256];
 }
 GCC_ATTRIBUTE (packed);
 #ifdef _MSC_VER
@@ -164,7 +164,7 @@ static Bitu DOS_CaseMapFunc(void) {
 	return CBRET_NONE;
 }
 
-static Bit8u country_info[0x22] = {
+static uint8_t country_info[0x22] = {
 /* Date format      */  0x00, 0x00,
 /* Currencystring   */  0x24, 0x00, 0x00, 0x00, 0x00,
 /* Thousands sep    */  0x2c, 0x00,
@@ -180,7 +180,7 @@ static Bit8u country_info[0x22] = {
 /* Reservered 5     */  0x00, 0x00, 0x00, 0x00, 0x00
 };
 
-static Bit8u country_info_pc98[0x22] = {
+static uint8_t country_info_pc98[0x22] = {
 /* Date format      */  0x02, 0x00,
 /* Currencystring   */  0x5C, 0x00, 0x00, 0x00, 0x00,
 /* Thousands sep    */  0x2c, 0x00,
@@ -294,10 +294,10 @@ void DOS_SetupTables(void) {
 	if (enable_collating_uppercase) {
 		dos.tables.collatingseq=RealMake(DOS_GetMemory(25,"dos.tables.collatingseq"),0);
 		mem_writew(Real2Phys(dos.tables.collatingseq),0x100);
-		for (i=0; i<256; i++) mem_writeb(Real2Phys(dos.tables.collatingseq)+i+2,(Bit8u)i);
+		for (i=0; i<256; i++) mem_writeb(Real2Phys(dos.tables.collatingseq)+i+2,(uint8_t)i);
 		dos.tables.upcase=dos.tables.collatingseq+258;
 		mem_writew(Real2Phys(dos.tables.upcase),0x80);
-		for (i=0; i<128; i++) mem_writeb(Real2Phys(dos.tables.upcase)+i+2,(Bit8u)0x80+i);
+		for (i=0; i<128; i++) mem_writeb(Real2Phys(dos.tables.upcase)+i+2,(uint8_t)0x80+i);
 	}
 	else {
 		dos.tables.collatingseq = 0;
@@ -315,8 +315,8 @@ void DOS_SetupTables(void) {
     dos.tables.mediaid_offset=0x17;	//Media ID offset in DPB (MS-DOS 4.x-6.x)
 	dos.tables.mediaid=RealMake(dos.tables.dpb,dos.tables.mediaid_offset);
 	for (i=0;i<DOS_DRIVES;i++) {
-        real_writeb(dos.tables.dpb,i*dos.tables.dpb_size,(Bit8u)i);             // drive number
-        real_writeb(dos.tables.dpb,i*dos.tables.dpb_size+1,(Bit8u)i);           // unit number
+        real_writeb(dos.tables.dpb,i*dos.tables.dpb_size,(uint8_t)i);             // drive number
+        real_writeb(dos.tables.dpb,i*dos.tables.dpb_size+1,(uint8_t)i);           // unit number
         real_writew(dos.tables.dpb,i*dos.tables.dpb_size+2,0x0200);     // bytes per sector
         real_writew(dos.tables.dpb,i*dos.tables.dpb_size+6,0x0001);     // reserved sectors at the beginning of the drive
         mem_writew(Real2Phys(dos.tables.mediaid)+i*dos.tables.dpb_size,0u);
@@ -332,7 +332,7 @@ void DOS_SetupTables(void) {
 
 	/* Create a fake disk buffer head */
 	seg=DOS_GetMemory(6,"Fake disk buffer head");
-	for (Bit8u ct=0; ct<0x20; ct++) real_writeb(seg,ct,0);
+	for (uint8_t ct=0; ct<0x20; ct++) real_writeb(seg,ct,0);
 	real_writew(seg,0x00,0xffff);		// forward ptr
 	real_writew(seg,0x02,0xffff);		// backward ptr
 	real_writeb(seg,0x04,0xff);			// not in use

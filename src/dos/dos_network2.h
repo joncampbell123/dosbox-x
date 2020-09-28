@@ -48,7 +48,7 @@ extern Bit16u	NetworkHandleList[127];	/*in dos_files.cpp*/
 }//bool	Network_IsNetworkFile(Bit16u entry)
 
 
- bool	Network_OpenFile(char * filename,Bit8u flags,Bit16u * entry)
+ bool	Network_OpenFile(char * filename,uint8_t flags,Bit16u * entry)
 {
 	int oflag=_O_BINARY;
 	int shflag=0;
@@ -104,7 +104,7 @@ extern Bit16u	NetworkHandleList[127];	/*in dos_files.cpp*/
 	else	dos.errorcode=(Bit16u)_doserrno;
 
 	return false;
-}//bool	Network_OpenFile(char * filename,Bit8u flags,Bit16u * entry)
+}//bool	Network_OpenFile(char * filename,uint8_t flags,Bit16u * entry)
 
 #ifndef CMAKE_BUILD // TODO there must be a better way to fix this problem
 extern "C"
@@ -139,7 +139,7 @@ int _nhandle;
 		}
 }//bool	Network_CloseFile(Bit16u entry)
 
- bool Network_ReadFile(Bit16u entry,Bit8u * data,Bit16u * amount)
+ bool Network_ReadFile(Bit16u entry,uint8_t * data,Bit16u * amount)
 {
 	Bit32u handle=RealHandle(entry);
 	Bit16u toread=*amount;
@@ -154,10 +154,10 @@ int _nhandle;
 	}
 
 	return	(toread>=0);
-}//bool Network_ReadFile(Bit16u entry,Bit8u * data,Bit16u * amount)
+}//bool Network_ReadFile(Bit16u entry,uint8_t * data,Bit16u * amount)
 
 
- bool	Network_WriteFile(Bit16u entry,Bit8u * data,Bit16u * amount)
+ bool	Network_WriteFile(Bit16u entry,uint8_t * data,Bit16u * amount)
 {
 		Bit16u towrite=*amount;
 		Bit32u handle=RealHandle(entry);
@@ -171,7 +171,7 @@ int _nhandle;
 			*amount=0;
 		}
 		return (towrite!=-1);
-}//bool	Network_WriteFile(Bit16u entry,Bit8u * data,Bit16u * amount)
+}//bool	Network_WriteFile(Bit16u entry,uint8_t * data,Bit16u * amount)
 
 
 

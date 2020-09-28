@@ -46,27 +46,27 @@ struct _opl3_slot {
     Bit16s prout;
     Bit16s eg_rout;
     Bit16s eg_out;
-    Bit8u eg_inc;
-    Bit8u eg_gen;
-    Bit8u eg_rate;
-    Bit8u eg_ksl;
-    Bit8u *trem;
-    Bit8u reg_vib;
-    Bit8u reg_type;
-    Bit8u reg_ksr;
-    Bit8u reg_mult;
-    Bit8u reg_ksl;
-    Bit8u reg_tl;
-    Bit8u reg_ar;
-    Bit8u reg_dr;
-    Bit8u reg_sl;
-    Bit8u reg_rr;
-    Bit8u reg_wf;
-    Bit8u key;
+    uint8_t eg_inc;
+    uint8_t eg_gen;
+    uint8_t eg_rate;
+    uint8_t eg_ksl;
+    uint8_t *trem;
+    uint8_t reg_vib;
+    uint8_t reg_type;
+    uint8_t reg_ksr;
+    uint8_t reg_mult;
+    uint8_t reg_ksl;
+    uint8_t reg_tl;
+    uint8_t reg_ar;
+    uint8_t reg_dr;
+    uint8_t reg_sl;
+    uint8_t reg_rr;
+    uint8_t reg_wf;
+    uint8_t key;
     Bit32u pg_reset;
     Bit32u pg_phase;
     Bit16u pg_phase_out;
-    Bit8u slot_num;
+    uint8_t slot_num;
 };
 
 struct _opl3_channel {
@@ -74,21 +74,21 @@ struct _opl3_channel {
     opl3_channel *pair;
     opl3_chip *chip;
     Bit16s *out[4];
-    Bit8u chtype;
+    uint8_t chtype;
     Bit16u f_num;
-    Bit8u block;
-    Bit8u fb;
-    Bit8u con;
-    Bit8u alg;
-    Bit8u ksv;
+    uint8_t block;
+    uint8_t fb;
+    uint8_t con;
+    uint8_t alg;
+    uint8_t ksv;
     Bit16u cha, chb;
-    Bit8u ch_num;
+    uint8_t ch_num;
 };
 
 typedef struct _opl3_writebuf {
     Bit64u time;
     Bit16u reg;
-    Bit8u data;
+    uint8_t data;
 } opl3_writebuf;
 
 struct _opl3_chip {
@@ -96,26 +96,26 @@ struct _opl3_chip {
     opl3_slot slot[36];
     Bit16u timer;
     Bit64u eg_timer;
-    Bit8u eg_timerrem;
-    Bit8u eg_state;
-    Bit8u eg_add;
-    Bit8u newm;
-    Bit8u nts;
-    Bit8u rhy;
-    Bit8u vibpos;
-    Bit8u vibshift;
-    Bit8u tremolo;
-    Bit8u tremolopos;
-    Bit8u tremoloshift;
+    uint8_t eg_timerrem;
+    uint8_t eg_state;
+    uint8_t eg_add;
+    uint8_t newm;
+    uint8_t nts;
+    uint8_t rhy;
+    uint8_t vibpos;
+    uint8_t vibshift;
+    uint8_t tremolo;
+    uint8_t tremolopos;
+    uint8_t tremoloshift;
     Bit32u noise;
     Bit16s zeromod;
     Bit32s mixbuff[2];
-    Bit8u rm_hh_bit2;
-    Bit8u rm_hh_bit3;
-    Bit8u rm_hh_bit7;
-    Bit8u rm_hh_bit8;
-    Bit8u rm_tc_bit3;
-    Bit8u rm_tc_bit5;
+    uint8_t rm_hh_bit2;
+    uint8_t rm_hh_bit3;
+    uint8_t rm_hh_bit7;
+    uint8_t rm_hh_bit8;
+    uint8_t rm_tc_bit3;
+    uint8_t rm_tc_bit5;
     //OPL3L
     Bit32s rateratio;
     Bit32s samplecnt;
@@ -132,8 +132,8 @@ struct _opl3_chip {
 void OPL3_Generate(opl3_chip *chip, Bit16s *buf);
 void OPL3_GenerateResampled(opl3_chip *chip, Bit16s *buf);
 void OPL3_Reset(opl3_chip *chip, Bit32u samplerate);
-void OPL3_WriteReg(opl3_chip *chip, Bit16u reg, Bit8u v);
-void OPL3_WriteRegBuffered(opl3_chip *chip, Bit16u reg, Bit8u v);
+void OPL3_WriteReg(opl3_chip *chip, Bit16u reg, uint8_t v);
+void OPL3_WriteRegBuffered(opl3_chip *chip, Bit16u reg, uint8_t v);
 void OPL3_GenerateStream(opl3_chip *chip, Bit16s *sndptr, Bit32u numsamples);
 
 #endif

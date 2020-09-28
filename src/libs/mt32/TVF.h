@@ -33,14 +33,14 @@ private:
 	LA32Ramp *cutoffModifierRamp;
 	const TimbreParam::PartialParam *partialParam;
 
-	Bit8u baseCutoff;
+	uint8_t baseCutoff;
 	int keyTimeSubtraction;
 	unsigned int levelMult;
 
-	Bit8u target;
+	uint8_t target;
 	unsigned int phase;
 
-	void startRamp(Bit8u newTarget, Bit8u newIncrement, int newPhase);
+	void startRamp(uint8_t newTarget, uint8_t newIncrement, int newPhase);
 	void nextPhase();
 
 public:
@@ -51,7 +51,7 @@ public:
 	// for the lifetime of the partial.
 	// Barring bugs, the number returned is confirmed accurate
 	// (based on specs from Mok).
-	Bit8u getBaseCutoff() const;
+	uint8_t getBaseCutoff() const;
 	void handleInterrupt();
 	void startDecay();
 }; // class TVF

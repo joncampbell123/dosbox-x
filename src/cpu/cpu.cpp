@@ -1008,17 +1008,17 @@ void CPU_Exception(Bitu which,Bitu error ) {
 	}
 }
 
-Bit8u lastint;
+uint8_t lastint;
 void CPU_Interrupt(Bitu num,Bitu type,Bit32u oldeip) {
-	lastint=(Bit8u)num;
+	lastint=(uint8_t)num;
 	FillFlags();
 #if C_DEBUG
 # if C_HEAVY_DEBUG
-    bool DEBUG_IntBreakpoint(Bit8u intNum);
+    bool DEBUG_IntBreakpoint(uint8_t intNum);
     Bitu DEBUG_EnableDebugger(void);
 
     if (type != CPU_INT_SOFTWARE) { /* CPU core already takes care of SW interrupts */
-        if (DEBUG_IntBreakpoint((Bit8u)num))
+        if (DEBUG_IntBreakpoint((uint8_t)num))
             DEBUG_EnableDebugger();
     }
 # endif
@@ -1812,10 +1812,10 @@ call_code:
 						if (call.saved.gate.paramcount&31) {
 							if (call.Type()==DESC_386_CALL_GATE) {
 								for (Bit8s i=(call.saved.gate.paramcount&31)-1;i>=0;i--) 
-									mem_readd(o_stack+(Bit8u)i*4u);
+									mem_readd(o_stack+(uint8_t)i*4u);
 							} else {
 								for (Bit8s i=(call.saved.gate.paramcount&31)-1;i>=0;i--)
-									mem_readw(o_stack+(Bit8u)i*2u);
+									mem_readw(o_stack+(uint8_t)i*2u);
 							}
 						}
 
@@ -1857,7 +1857,7 @@ call_code:
 							CPU_Push32(o_esp);
 							if (call.saved.gate.paramcount&31)
 								for (Bit8s i=(call.saved.gate.paramcount&31)-1;i>=0;i--) 
-									CPU_Push32(mem_readd(o_stack+(Bit8u)i*4u));
+									CPU_Push32(mem_readd(o_stack+(uint8_t)i*4u));
 							CPU_Push32(oldcs);
 							CPU_Push32(oldeip);
 						} else {
@@ -1865,7 +1865,7 @@ call_code:
 							CPU_Push16((Bit16u)o_esp);
 							if (call.saved.gate.paramcount&31)
 								for (Bit8s i=(call.saved.gate.paramcount&31)-1;i>=0;i--)
-									CPU_Push16(mem_readw(o_stack+(Bit8u)i*2u));
+									CPU_Push16(mem_readw(o_stack+(uint8_t)i*2u));
 							CPU_Push16(oldcs);
 							CPU_Push16(oldeip);
 						}
@@ -3047,19 +3047,19 @@ public:
 	~Weitek_PageHandler() {
 	}
 
-	Bit8u readb(PhysPt addr);
-	void writeb(PhysPt addr,Bit8u val);
+	uint8_t readb(PhysPt addr);
+	void writeb(PhysPt addr,uint8_t val);
 	Bit16u readw(PhysPt addr);
 	void writew(PhysPt addr,Bit16u val);
 	Bit32u readd(PhysPt addr);
 	void writed(PhysPt addr,Bit32u val);
 };
 
-Bit8u Weitek_PageHandler::readb(PhysPt addr) {
+uint8_t Weitek_PageHandler::readb(PhysPt addr) {
     LOG_MSG("Weitek stub: readb at 0x%lx",(unsigned long)addr);
-	return (Bit8u)-1;
+	return (uint8_t)-1;
 }
-void Weitek_PageHandler::writeb(PhysPt addr,Bit8u val) {
+void Weitek_PageHandler::writeb(PhysPt addr,uint8_t val) {
     LOG_MSG("Weitek stub: writeb at 0x%lx val=0x%lx",(unsigned long)addr,(unsigned long)val);
 }
 
@@ -3811,36 +3811,36 @@ void init_vm86_fake_io() {
 
 	/* read */
 	vm86_fake_io_offs[0] = vm86_fake_io_off + wo;
-	phys_writeb((PhysPt)(phys+wo+0x00),(Bit8u)0xEC);	/* IN AL,DX */
-	phys_writeb((PhysPt)(phys+wo+0x01),(Bit8u)0xCB);	/* RETF */
+	phys_writeb((PhysPt)(phys+wo+0x00),(uint8_t)0xEC);	/* IN AL,DX */
+	phys_writeb((PhysPt)(phys+wo+0x01),(uint8_t)0xCB);	/* RETF */
 	wo += 2;
 
 	vm86_fake_io_offs[1] = vm86_fake_io_off + wo;
-	phys_writeb((PhysPt)(phys+wo+0x00),(Bit8u)0xED);	/* IN AX,DX */
-	phys_writeb((PhysPt)(phys+wo+0x01),(Bit8u)0xCB);	/* RETF */
+	phys_writeb((PhysPt)(phys+wo+0x00),(uint8_t)0xED);	/* IN AX,DX */
+	phys_writeb((PhysPt)(phys+wo+0x01),(uint8_t)0xCB);	/* RETF */
 	wo += 2;
 
 	vm86_fake_io_offs[2] = vm86_fake_io_off + wo;
-	phys_writeb((PhysPt)(phys+wo+0x00),(Bit8u)0x66);	/* IN EAX,DX */
-	phys_writeb((PhysPt)(phys+wo+0x01),(Bit8u)0xED);
-	phys_writeb((PhysPt)(phys+wo+0x02),(Bit8u)0xCB);	/* RETF */
+	phys_writeb((PhysPt)(phys+wo+0x00),(uint8_t)0x66);	/* IN EAX,DX */
+	phys_writeb((PhysPt)(phys+wo+0x01),(uint8_t)0xED);
+	phys_writeb((PhysPt)(phys+wo+0x02),(uint8_t)0xCB);	/* RETF */
 	wo += 3;
 
 	/* write */
 	vm86_fake_io_offs[3] = vm86_fake_io_off + wo;
-	phys_writeb((PhysPt)(phys+wo+0x00),(Bit8u)0xEE);	/* OUT DX,AL */
-	phys_writeb((PhysPt)(phys+wo+0x01),(Bit8u)0xCB);	/* RETF */
+	phys_writeb((PhysPt)(phys+wo+0x00),(uint8_t)0xEE);	/* OUT DX,AL */
+	phys_writeb((PhysPt)(phys+wo+0x01),(uint8_t)0xCB);	/* RETF */
 	wo += 2;
 
 	vm86_fake_io_offs[4] = vm86_fake_io_off + wo;
-	phys_writeb((PhysPt)(phys+wo+0x00),(Bit8u)0xEF);	/* OUT DX,AX */
-	phys_writeb((PhysPt)(phys+wo+0x01),(Bit8u)0xCB);	/* RETF */
+	phys_writeb((PhysPt)(phys+wo+0x00),(uint8_t)0xEF);	/* OUT DX,AX */
+	phys_writeb((PhysPt)(phys+wo+0x01),(uint8_t)0xCB);	/* RETF */
 	wo += 2;
 
 	vm86_fake_io_offs[5] = vm86_fake_io_off + wo;
-	phys_writeb((PhysPt)(phys+wo+0x00),(Bit8u)0x66);	/* OUT DX,EAX */
-	phys_writeb((PhysPt)(phys+wo+0x01),(Bit8u)0xEF);
-	phys_writeb((PhysPt)(phys+wo+0x02),(Bit8u)0xCB);	/* RETF */
+	phys_writeb((PhysPt)(phys+wo+0x00),(uint8_t)0x66);	/* OUT DX,EAX */
+	phys_writeb((PhysPt)(phys+wo+0x01),(uint8_t)0xEF);
+	phys_writeb((PhysPt)(phys+wo+0x02),(uint8_t)0xCB);	/* RETF */
 }
 
 Bitu CPU_ForceV86FakeIO_In(Bitu port,Bitu len) {

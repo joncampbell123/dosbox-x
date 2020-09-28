@@ -311,7 +311,7 @@ static void empty_keyboard_buffer() {
     */
 
 
-void KEYBOARD_SetLEDs(Bit8u bits);
+void KEYBOARD_SetLEDs(uint8_t bits);
 bool ctrlbrk=false;
 
 /* the scancode is in reg_al */
@@ -320,7 +320,7 @@ static Bitu IRQ1_Handler(void) {
  * states for numlock capslock. 
  */
     Bitu scancode=reg_al;
-    Bit8u flags1,flags2,flags3,leds,leds_orig;
+    uint8_t flags1,flags2,flags3,leds,leds_orig;
     flags1=mem_readb(BIOS_KEYBOARD_FLAGS1);
     flags2=mem_readb(BIOS_KEYBOARD_FLAGS2);
     flags3=mem_readb(BIOS_KEYBOARD_FLAGS3);
@@ -499,8 +499,8 @@ static Bitu IRQ1_Handler(void) {
             break;
         }
         if(flags1 &0x08) {
-            Bit8u token = mem_readb(BIOS_KEYBOARD_TOKEN);
-            token = token*10 + (Bit8u)(scan_to_scanascii[scancode].alt&0xff);
+            uint8_t token = mem_readb(BIOS_KEYBOARD_TOKEN);
+            token = token*10 + (uint8_t)(scan_to_scanascii[scancode].alt&0xff);
             mem_writeb(BIOS_KEYBOARD_TOKEN,token);
         } else if (flags1 &0x04) {
             add_key(scan_to_scanascii[scancode].control);
@@ -574,7 +574,7 @@ irq1_end:
     {
         const auto flg = mem_readb(BIOS_KEYBOARD_FLAGS1);
         const auto ins = static_cast<bool>(flg & BIOS_KEYBOARD_FLAGS1_INSERT_ACTIVE);
-        const auto ssl = static_cast<Bit8u>(ins ? CURSOR_SCAN_LINE_INSERT : CURSOR_SCAN_LINE_NORMAL);
+        const auto ssl = static_cast<uint8_t>(ins ? CURSOR_SCAN_LINE_INSERT : CURSOR_SCAN_LINE_NORMAL);
         if (CurMode->type == M_TEXT)
             INT10_SetCursorShape(ssl, CURSOR_SCAN_LINE_END);
     }
@@ -583,7 +583,7 @@ irq1_end:
 #if 0
 /* Signal the keyboard for next code */
 /* In dosbox port 60 reads do this as well */
-    Bit8u old61=IO_Read(0x61);
+    uint8_t old61=IO_Read(0x61);
     IO_Write(0x61,old61 | 128);
     IO_Write(0x64,0xae);
 #endif
@@ -643,7 +643,7 @@ static Bitu IRQ1_Handler_PC98(void) {
          *    bit[1] = CAPS engaged
          *    bit[0] = SHIFT is down
          */
-        Bit8u modflags = mem_readb(0x52A + 0xE);
+        uint8_t modflags = mem_readb(0x52A + 0xE);
 
         bool caps_capitals = (modflags & 1) ^ ((modflags >> 1) & 1); /* CAPS XOR SHIFT */
 
@@ -1519,8 +1519,8 @@ static void InitBiosSegment(void) {
         mem_writew(BIOS_KEYBOARD_BUFFER_END,0x3e);
         mem_writew(BIOS_KEYBOARD_BUFFER_HEAD,0x1e);
         mem_writew(BIOS_KEYBOARD_BUFFER_TAIL,0x1e);
-        Bit8u flag1 = 0;
-        Bit8u leds = 16; /* Ack received */
+        uint8_t flag1 = 0;
+        uint8_t leds = 16; /* Ack received */
 
 #if 0 /*SDL_VERSION_ATLEAST(1, 2, 14)*/
         //Nothing, mapper handles all.

@@ -28,7 +28,7 @@
 #define fltype double
 
 /*
-	define Bits, Bitu, Bit32s, Bit32u, Bit16s, Bit16u, Bit8s, Bit8u here
+	define Bits, Bitu, Bit32s, Bit32u, Bit16s, Bit16u, Bit8s, uint8_t here
 */
 /*
 #include <stdint.h>
@@ -38,7 +38,7 @@ typedef uint32_t	Bit32u;
 typedef int32_t		Bit32s;
 typedef uint16_t	Bit16u;
 typedef int16_t		Bit16s;
-typedef uint8_t		Bit8u;
+typedef uint8_t		uint8_t;
 typedef int8_t		Bit8s;
 */
 
@@ -142,7 +142,7 @@ typedef struct operator_struct {
 	Bit32u generator_pos;			// for non-standard sample rates we need to determine how many samples have passed
 	Bits cur_env_step;				// current (standardized) sample position
 	Bits env_step_a,env_step_d,env_step_r;	// number of std samples of one step (for attack/decay/release mode)
-	Bit8u step_skip_pos_a;			// position of 8-cyclic step skipping (always 2^x to check against mask)
+	uint8_t step_skip_pos_a;			// position of 8-cyclic step skipping (always 2^x to check against mask)
 	Bits env_step_skip_a;			// bitmask that determines if a step is skipped (respective bit is zero then)
 
 #if defined(OPLTYPE_IS_OPL3)
@@ -157,14 +157,14 @@ op_type op[MAXOPERATORS];
 
 Bits int_samplerate;
 	
-Bit8u status;
+uint8_t status;
 Bit32u opl_index;
 #if defined(OPLTYPE_IS_OPL3)
-Bit8u adlibreg[512];	// adlib register set (including second set)
-Bit8u wave_sel[44];		// waveform selection
+uint8_t adlibreg[512];	// adlib register set (including second set)
+uint8_t wave_sel[44];		// waveform selection
 #else
-Bit8u adlibreg[256];	// adlib register set
-Bit8u wave_sel[22];		// waveform selection
+uint8_t adlibreg[256];	// adlib register set
+uint8_t wave_sel[22];		// waveform selection
 #endif
 
 
@@ -192,10 +192,10 @@ void change_feedback(Bitu chanbase, op_type* op_pt);
 
 // general functions
 void adlib_init(Bit32u samplerate);
-void adlib_write(Bitu idx, Bit8u val);
+void adlib_write(Bitu idx, uint8_t val);
 void adlib_getsample(Bit16s* sndptr, Bits numsamples);
 
 Bitu adlib_reg_read(Bitu port);
-void adlib_write_index(Bitu port, Bit8u val);
+void adlib_write_index(Bitu port, uint8_t val);
 
 static Bit32u generator_add;	// should be a chip parameter

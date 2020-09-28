@@ -129,7 +129,7 @@ static struct {
 //#define PREFETCH_DEBUG
 
 #define MAX_PQ_SIZE 32
-static Bit8u prefetch_buffer[MAX_PQ_SIZE];
+static uint8_t prefetch_buffer[MAX_PQ_SIZE];
 static bool pq_valid=false;
 static Bitu pq_start;
 static Bitu pq_fill;
@@ -149,11 +149,11 @@ static INLINE void FetchDiscardb() {
 	FetchDiscard<uint8_t>();
 }
 
-static INLINE Bit8u FetchPeekb() {
+static INLINE uint8_t FetchPeekb() {
 	return FetchPeek<uint8_t>();
 }
 
-static Bit8u Fetchb() {
+static uint8_t Fetchb() {
 	return Fetch<uint8_t>();
 }
 
@@ -223,7 +223,7 @@ Bits CPU_Core_Prefetch_Run(void) {
 		cycle_count++;
 #endif
 restart_opcode:
-		Bit8u next_opcode=Fetchb();
+		uint8_t next_opcode=Fetchb();
 		invalidate_pq=false;
 		if (core.opcode_index&OPCODE_0F) invalidate_pq=true;
 		else switch (next_opcode) {

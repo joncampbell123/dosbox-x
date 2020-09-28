@@ -56,7 +56,7 @@ bool isIpxConnected;
 IPaddress ipxServConnIp;			// IPAddress for client connection to server
 UDPsocket ipxClientSocket;
 int UDPChannel;						// Channel used by UDP connection
-Bit8u recvBuffer[IPXBUFFERSIZE];	// Incoming packet buffer
+uint8_t recvBuffer[IPXBUFFERSIZE];	// Incoming packet buffer
 
 static RealPt ipx_callback;
 
@@ -126,16 +126,16 @@ ECBClass::ECBClass(Bit16u segment, Bit16u offset) {
 	iuflag = getInUseFlag();
 	mysocket = getSocket();
 }
-void ECBClass::writeDataBuffer(Bit8u* buffer, Bit16u length) {
+void ECBClass::writeDataBuffer(uint8_t* buffer, Bit16u length) {
 	if(databuffer!=0) delete [] databuffer;
-	databuffer = new Bit8u[length];
+	databuffer = new uint8_t[length];
 	memcpy(databuffer,buffer,length);
 	buflen=length;
 
 }
 bool ECBClass::writeData() {
 	Bitu length=buflen;
-	Bit8u* buffer = databuffer;
+	uint8_t* buffer = databuffer;
 	fragmentDescriptor tmpFrag;
 	setInUseFlag(USEFLAG_AVAILABLE);
 	Bit16u fragCount = getFragCount(); 
@@ -163,16 +163,16 @@ Bit16u ECBClass::getSocket(void) {
 	return swapByte(real_readw(RealSeg(ECBAddr), RealOff(ECBAddr) + 0xa));
 }
 
-Bit8u ECBClass::getInUseFlag(void) {
+uint8_t ECBClass::getInUseFlag(void) {
 	return real_readb(RealSeg(ECBAddr), RealOff(ECBAddr) + 0x8);
 }
 
-void ECBClass::setInUseFlag(Bit8u flagval) {
+void ECBClass::setInUseFlag(uint8_t flagval) {
 	iuflag = flagval;
 	real_writeb(RealSeg(ECBAddr), RealOff(ECBAddr) + 0x8, flagval);
 }
 
-void ECBClass::setCompletionFlag(Bit8u flagval) {
+void ECBClass::setCompletionFlag(uint8_t flagval) {
 	real_writeb(RealSeg(ECBAddr), RealOff(ECBAddr) + 0x9, flagval);
 }
 
@@ -230,13 +230,13 @@ void ECBClass::NotifyESR(void) {
 	else delete this;
 }
 
-void ECBClass::setImmAddress(Bit8u *immAddr) {
-	for(Bit8u i=0;i<6;i++)
+void ECBClass::setImmAddress(uint8_t *immAddr) {
+	for(uint8_t i=0;i<6;i++)
 		real_writeb(RealSeg(ECBAddr), RealOff(ECBAddr)+28+i, immAddr[i]);
 }
 
-void ECBClass::getImmAddress(Bit8u* immAddr) {
-	for(Bit8u i=0;i<6;i++)
+void ECBClass::getImmAddress(uint8_t* immAddr) {
+	for(uint8_t i=0;i<6;i++)
 		immAddr[i] = real_readb(RealSeg(ECBAddr), RealOff(ECBAddr)+28+i);
 }
 
@@ -381,7 +381,7 @@ static void handleIpxRequest(void) {
 						// es:si
 						// Currently no support for multiple networks
 
-			for(Bit8u i = 0; i < 6; i++) 
+			for(uint8_t i = 0; i < 6; i++) 
 				real_writeb(SegValue(es),reg_di+i,real_readb(SegValue(es),reg_si+i+4));
 
 			reg_cx=1;		// time ticks expected
@@ -464,7 +464,7 @@ static void handleIpxRequest(void) {
 				localIpxAddr.netnode[3], localIpxAddr.netnode[2],
 				localIpxAddr.netnode[1], localIpxAddr.netnode[0]);
 
-			Bit8u * addrptr = (Bit8u *)&localIpxAddr;
+			uint8_t * addrptr = (uint8_t *)&localIpxAddr;
 			for(Bit16u i=0;i<10;i++)
 				real_writeb(SegValue(es),reg_si+i,addrptr[i]);
 			break;
@@ -563,7 +563,7 @@ static void pingSend(void) {
 	}
 }
 
-static void receivePacket(Bit8u *buffer, Bit16s bufSize) {
+static void receivePacket(uint8_t *buffer, Bit16s bufSize) {
 	ECBClass *useECB;
 	ECBClass *nextECB;
 	Bit16u *bufword = (Bit16u *)buffer;
@@ -621,7 +621,7 @@ void DisconnectFromServer(bool unexpected) {
 }
 
 static void sendPacket(ECBClass* sendecb) {
-	Bit8u outbuffer[IPXBUFFERSIZE];
+	uint8_t outbuffer[IPXBUFFERSIZE];
 	fragmentDescriptor tmpFrag; 
 	Bit16u i, fragCount,t;
 	Bit16s packetsize;
@@ -637,15 +637,15 @@ static void sendPacket(ECBClass* sendecb) {
 		if(i==0) {
 			// Fragment containing IPX header
 			// Must put source address into header
-			Bit8u * addrptr;
+			uint8_t * addrptr;
 			
 			// source netnum
-			addrptr = (Bit8u *)&localIpxAddr.netnum;
+			addrptr = (uint8_t *)&localIpxAddr.netnum;
 			for(Bit16u m=0;m<4;m++) {
 				real_writeb(tmpFrag.segment,tmpFrag.offset+m+18,addrptr[m]);
 			}
 			// source node number
-			addrptr = (Bit8u *)&localIpxAddr.netnode;
+			addrptr = (uint8_t *)&localIpxAddr.netnode;
 			for(Bit16u m=0;m<6;m++) {
 				real_writeb(tmpFrag.segment,tmpFrag.offset+m+22,addrptr[m]);
 			}
@@ -681,7 +681,7 @@ static void sendPacket(ECBClass* sendecb) {
 	real_writew(tmpFrag.segment,tmpFrag.offset+2, swapByte((Bit16u)packetsize));
 	
 
-	Bit8u immedAddr[6];
+	uint8_t immedAddr[6];
 	sendecb->getImmAddress(immedAddr);
 	// filter out broadcasts and local loopbacks
 	// Real implementation uses the ImmedAddr to check wether this is a broadcast
@@ -689,13 +689,13 @@ static void sendPacket(ECBClass* sendecb) {
 	bool islocalbroadcast=true;
 	bool isloopback=true;
 
-	Bit8u * addrptr;
+	uint8_t * addrptr;
 			
-	addrptr = (Bit8u *)&localIpxAddr.netnum;
+	addrptr = (uint8_t *)&localIpxAddr.netnum;
 	for(Bitu m=0;m<4;m++) {
 		if(addrptr[m]!=outbuffer[m+0x6])isloopback=false;
 	}
-	addrptr = (Bit8u *)&localIpxAddr.netnode;
+	addrptr = (uint8_t *)&localIpxAddr.netnode;
 	for(Bitu m=0;m<6;m++) {
 		if(addrptr[m]!=outbuffer[m+0xa])isloopback=false;
 		if(immedAddr[m]!=0xff) islocalbroadcast=false;
@@ -1131,29 +1131,29 @@ public:
 		LOG_IPX("ESR callback address: %x, HandlerID %d", phyDospage,call_ipxesr1);
 
 		//save registers
-		phys_writeb(phyDospage+0,(Bit8u)0xFA);    // CLI
-		phys_writeb(phyDospage+1,(Bit8u)0x60);    // PUSHA
-		phys_writeb(phyDospage+2,(Bit8u)0x1E);    // PUSH DS
-		phys_writeb(phyDospage+3,(Bit8u)0x06);    // PUSH ES
+		phys_writeb(phyDospage+0,(uint8_t)0xFA);    // CLI
+		phys_writeb(phyDospage+1,(uint8_t)0x60);    // PUSHA
+		phys_writeb(phyDospage+2,(uint8_t)0x1E);    // PUSH DS
+		phys_writeb(phyDospage+3,(uint8_t)0x06);    // PUSH ES
 		phys_writew(phyDospage+4,(Bit16u)0xA00F); // PUSH FS
 		phys_writew(phyDospage+6,(Bit16u)0xA80F); // PUSH GS
  
 		// callback
-		phys_writeb(phyDospage+8,(Bit8u)0xFE);  // GRP 4
-		phys_writeb(phyDospage+9,(Bit8u)0x38);  // Extra Callback instruction
+		phys_writeb(phyDospage+8,(uint8_t)0xFE);  // GRP 4
+		phys_writeb(phyDospage+9,(uint8_t)0x38);  // Extra Callback instruction
 		phys_writew(phyDospage+10,call_ipxesr1);        // Callback identifier
  
 		// register recreation
 		phys_writew(phyDospage+12,(Bit16u)0xA90F); // POP GS
 		phys_writew(phyDospage+14,(Bit16u)0xA10F); // POP FS
-		phys_writeb(phyDospage+16,(Bit8u)0x07);    // POP ES
-		phys_writeb(phyDospage+17,(Bit8u)0x1F);    // POP DS
-		phys_writeb(phyDospage+18,(Bit8u)0x61);    // POPA
-		phys_writeb(phyDospage+19,(Bit8u)0xCF);    // IRET: restores flags, CS, IP
+		phys_writeb(phyDospage+16,(uint8_t)0x07);    // POP ES
+		phys_writeb(phyDospage+17,(uint8_t)0x1F);    // POP DS
+		phys_writeb(phyDospage+18,(uint8_t)0x61);    // POPA
+		phys_writeb(phyDospage+19,(uint8_t)0xCF);    // IRET: restores flags, CS, IP
  
 		// IPX version 2.12
-		//phys_writeb(phyDospage+27,(Bit8u)0x2);
-		//phys_writeb(phyDospage+28,(Bit8u)0x12);
+		//phys_writeb(phyDospage+27,(uint8_t)0x2);
+		//phys_writeb(phyDospage+28,(uint8_t)0x12);
 		//IPXVERpointer = RealMake(dospage,27);
 
 		RealPt ESRRoutineBase = RealMake(dospage, 0);
@@ -1184,8 +1184,8 @@ public:
 		IO_WriteB(0xa1,IO_ReadB(0xa1)|8);	// disable IRQ11
    
 		PhysPt phyDospage = PhysMake(dospage,0);
-		for(Bit8u i = 0;i < 32;i++)
-			phys_writeb(phyDospage+i,(Bit8u)0x00);
+		for(uint8_t i = 0;i < 32;i++)
+			phys_writeb(phyDospage+i,(uint8_t)0x00);
 
 		VFILE_Remove("IPXNET.COM");
 	}

@@ -49,7 +49,7 @@ public:
 	}
 
 	/* configuration space I/O */
-	virtual void config_write(Bit8u regnum,Bitu iolen,Bit32u value) {
+	virtual void config_write(uint8_t regnum,Bitu iolen,Bit32u value) {
 		if (iolen == 1) {
             const unsigned char mask = config_writemask[regnum];
             const unsigned char nmask = ~mask;
@@ -65,12 +65,12 @@ public:
 			/* NTS: If I recall, this virtual function call means that we'll call the
 			 *      C++ subclass's config_write() NOT our own--right? */
 			for (Bitu i=0;i < iolen;i++) {
-				config_write((Bit8u)(regnum+i),1,value&0xFF);
+				config_write((uint8_t)(regnum+i),1,value&0xFF);
 				value >>= 8U;
 			}
 		}
 	}
-	virtual Bit32u config_read(Bit8u regnum,Bitu iolen) {
+	virtual Bit32u config_read(uint8_t regnum,Bitu iolen) {
 		/* subdivide into 8-bit I/O */
 		Bit32u v=0;
 
@@ -84,7 +84,7 @@ public:
 			/* NTS: If I recall, this virtual function call means that we'll call the
 			 *      C++ subclass's config_read() NOT our own--right? */
 			for (Bitu i=0;i < iolen;i++)
-				v += ((config_read((Bit8u)(regnum+i),1)&0xFF) << ((iolen-i-1)*8));
+				v += ((config_read((uint8_t)(regnum+i),1)&0xFF) << ((iolen-i-1)*8));
 		}
 
 		return v;

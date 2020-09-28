@@ -52,8 +52,8 @@ public:
 	const char * GetName(void) { return "timidity";};
 	bool	Open(const char * conf);
 	void	Close(void);
-	void	PlayMsg(Bit8u * msg);
-	void	PlaySysex(Bit8u *msg, Bitu length);
+	void	PlayMsg(uint8_t * msg);
+	void	PlaySysex(uint8_t *msg, Bitu length);
 
 private:
 	/* creates a tcp connection to TiMidity server, returns filedesc (like open()) */
@@ -276,7 +276,7 @@ void MidiHandler_timidity::timidity_meta_seq(int p1, int p2, int p3) {
 	/* see _CHN_COMMON from soundcard.h; this is simplified
 	 * to just send seq to the server without any buffers,
 	 * delays and extra functions/macros */
-	Bit8u seqbuf[8];
+	uint8_t seqbuf[8];
 
 	seqbuf[0] = 0x92;
 	seqbuf[1] = 0;
@@ -359,8 +359,8 @@ int MidiHandler_timidity::fdgets(char *buff, size_t buff_size) {
 	return buff - beg;
 }
 
-void MidiHandler_timidity::PlayMsg(Bit8u *msg) {
-	Bit8u buf[256];
+void MidiHandler_timidity::PlayMsg(uint8_t *msg) {
+	uint8_t buf[256];
 	int position = 0;
 
 	switch (msg[0] & 0xF0) {
@@ -401,10 +401,10 @@ void MidiHandler_timidity::PlayMsg(Bit8u *msg) {
 	timidity_write_data(buf, position);
 }
 
-void MidiHandler_timidity::PlaySysex(Bit8u *msg, Bitu length) {
-	Bit8u buf[SYSEX_SIZE*4+8];
+void MidiHandler_timidity::PlaySysex(uint8_t *msg, Bitu length) {
+	uint8_t buf[SYSEX_SIZE*4+8];
 	int position = 0;
-	const Bit8u *chr = msg;
+	const uint8_t *chr = msg;
 
 	buf[position++] = SEQ_MIDIPUTC;
 	buf[position++] = 0xF0;

@@ -85,7 +85,7 @@ void VGAMEM_USEC_write_delay() {
 template <class Size>
 static INLINE void hostWrite(HostPt off, Bitu val) {
 	if ( sizeof( Size ) == 1)
-		host_writeb( off, (Bit8u)val );
+		host_writeb( off, (uint8_t)val );
 	else if ( sizeof( Size ) == 2)
 		host_writew( off, (Bit16u)val );
 	else if ( sizeof( Size ) == 4)
@@ -120,7 +120,7 @@ INLINE static Bit32u RasterOp(Bit32u input,Bit32u mask) {
 	return 0;
 }
 
-INLINE static Bit32u ModeOperation(Bit8u val) {
+INLINE static Bit32u ModeOperation(uint8_t val) {
 	Bit32u full;
 	switch (vga.config.write_mode) {
 	case 0x00:
@@ -156,7 +156,7 @@ bool pc98_pegc_linear_framebuffer_enabled(void) {
 }
 
 // TODO: This code may have to handle 16-bit MMIO reads
-Bit8u pc98_pegc_mmio_read(unsigned int reg) {
+uint8_t pc98_pegc_mmio_read(unsigned int reg) {
     if (reg >= 0x200)
         return 0x00;
 
@@ -164,11 +164,11 @@ Bit8u pc98_pegc_mmio_read(unsigned int reg) {
 }
 
 // TODO: This code may have to handle 16-bit MMIO writes
-void pc98_pegc_mmio_write(unsigned int reg,Bit8u val) {
+void pc98_pegc_mmio_write(unsigned int reg,uint8_t val) {
     if (reg >= 0x200)
         return;
 
-    Bit8u pval = pc98_pegc_mmio[reg];
+    uint8_t pval = pc98_pegc_mmio[reg];
 
     switch (reg) {
         case 0x004: // bank 0
@@ -279,13 +279,13 @@ static inline Bitu VGA_Generic_Read_Handler(PhysPt planeaddr,PhysPt rawaddr,unsi
         case 1:
             VGA_Latch templatch;
             templatch.d=(vga.latch.d & FillTable[vga.config.color_dont_care]) ^ FillTable[vga.config.color_compare & vga.config.color_dont_care];
-            return (Bit8u)~(templatch.b[0] | templatch.b[1] | templatch.b[2] | templatch.b[3]);
+            return (uint8_t)~(templatch.b[0] | templatch.b[1] | templatch.b[2] | templatch.b[3]);
     }
 
     return 0;
 }
 
-template <const bool chained> static inline void VGA_Generic_Write_Handler(PhysPt planeaddr,PhysPt rawaddr,Bit8u val) {
+template <const bool chained> static inline void VGA_Generic_Write_Handler(PhysPt planeaddr,PhysPt rawaddr,uint8_t val) {
     const unsigned char hobit_n = ((vga.seq.memory_mode&2/*Extended Memory*/) || (vga_ignore_extended_memory_bit && IS_VGA_ARCH)) ? 16u : 14u;
     Bit32u mask = vga.config.full_map_mask;
 
@@ -363,19 +363,19 @@ public:
         // planar byte offset = addr & ~3u      (discard low 2 bits)
         // planer index = addr & 3u             (use low 2 bits as plane index)
         // FIXME: Does chained mode use the lower 2 bits of the CPU address or does it use the read mode select???
-        return VGA_Generic_Read_Handler(addr&~3u, addr, (Bit8u)(addr&3u));
+        return VGA_Generic_Read_Handler(addr&~3u, addr, (uint8_t)(addr&3u));
 	}
 	static INLINE void writeHandler8(PhysPt addr, Bitu val) {
         // planar byte offset = addr & ~3u      (discard low 2 bits)
         // planer index = addr & 3u             (use low 2 bits as plane index)
-        return VGA_Generic_Write_Handler<true/*chained*/>(addr&~3u, addr, (Bit8u)val);
+        return VGA_Generic_Write_Handler<true/*chained*/>(addr&~3u, addr, (uint8_t)val);
 	}
-	Bit8u readb(PhysPt addr ) {
+	uint8_t readb(PhysPt addr ) {
 		VGAMEM_USEC_read_delay();
 		addr = PAGING_GetPhysicalAddress(addr) & vgapages.mask;
 		addr += (PhysPt)vga.svga.bank_read_full;
 //		addr = CHECKED(addr);
-		return (Bit8u)readHandler8( addr );
+		return (uint8_t)readHandler8( addr );
 	}
 	Bit16u readw(PhysPt addr ) {
 		VGAMEM_USEC_read_delay();
@@ -397,7 +397,7 @@ public:
 		ret     |= (readHandler8( addr+3 ) << 24 );
 		return ret;
 	}
-	void writeb(PhysPt addr, Bit8u val ) {
+	void writeb(PhysPt addr, uint8_t val ) {
 		VGAMEM_USEC_write_delay();
 		addr = PAGING_GetPhysicalAddress(addr) & vgapages.mask;
 		addr += (PhysPt)vga.svga.bank_write_full;
@@ -409,18 +409,18 @@ public:
 		addr = PAGING_GetPhysicalAddress(addr) & vgapages.mask;
 		addr += (PhysPt)vga.svga.bank_write_full;
 //		addr = CHECKED(addr);
-		writeHandler8( addr+0, (Bit8u)(val >> 0u) );
-		writeHandler8( addr+1, (Bit8u)(val >> 8u) );
+		writeHandler8( addr+0, (uint8_t)(val >> 0u) );
+		writeHandler8( addr+1, (uint8_t)(val >> 8u) );
 	}
 	void writed(PhysPt addr,Bit32u val) {
 		VGAMEM_USEC_write_delay();
 		addr = PAGING_GetPhysicalAddress(addr) & vgapages.mask;
 		addr += (PhysPt)vga.svga.bank_write_full;
 //		addr = CHECKED(addr);
-		writeHandler8( addr+0, (Bit8u)(val >> 0u) );
-		writeHandler8( addr+1, (Bit8u)(val >> 8u) );
-		writeHandler8( addr+2, (Bit8u)(val >> 16u) );
-		writeHandler8( addr+3, (Bit8u)(val >> 24u) );
+		writeHandler8( addr+0, (uint8_t)(val >> 0u) );
+		writeHandler8( addr+1, (uint8_t)(val >> 8u) );
+		writeHandler8( addr+2, (uint8_t)(val >> 16u) );
+		writeHandler8( addr+3, (uint8_t)(val >> 24u) );
 	}
 };
 
@@ -430,19 +430,19 @@ public:
 	static INLINE Bitu readHandler8(PhysPt addr ) {
         // planar byte offset = addr >> 2       (shift 2 bits to the right)
         // planer index = addr & 3u             (use low 2 bits as plane index)
-        return VGA_Generic_Read_Handler(addr>>2u, addr, (Bit8u)(addr&3u));
+        return VGA_Generic_Read_Handler(addr>>2u, addr, (uint8_t)(addr&3u));
 	}
 	static INLINE void writeHandler8(PhysPt addr, Bitu val) {
         // planar byte offset = addr >> 2       (shift 2 bits to the right)
         // planer index = addr & 3u             (use low 2 bits as plane index)
-        return VGA_Generic_Write_Handler<true/*chained*/>(addr>>2u, addr, (Bit8u)val);
+        return VGA_Generic_Write_Handler<true/*chained*/>(addr>>2u, addr, (uint8_t)val);
 	}
-	Bit8u readb(PhysPt addr ) {
+	uint8_t readb(PhysPt addr ) {
 		VGAMEM_USEC_read_delay();
 		addr = PAGING_GetPhysicalAddress(addr) & vgapages.mask;
 		addr += (PhysPt)vga.svga.bank_read_full;
 //		addr = CHECKED(addr);
-		return (Bit8u)readHandler8( addr );
+		return (uint8_t)readHandler8( addr );
 	}
 	Bit16u readw(PhysPt addr ) {
 		VGAMEM_USEC_read_delay();
@@ -464,7 +464,7 @@ public:
 		ret     |= (readHandler8( addr+3 ) << 24 );
 		return ret;
 	}
-	void writeb(PhysPt addr, Bit8u val ) {
+	void writeb(PhysPt addr, uint8_t val ) {
 		VGAMEM_USEC_write_delay();
 		addr = PAGING_GetPhysicalAddress(addr) & vgapages.mask;
 		addr += (PhysPt)vga.svga.bank_write_full;
@@ -476,18 +476,18 @@ public:
 		addr = PAGING_GetPhysicalAddress(addr) & vgapages.mask;
 		addr += (PhysPt)vga.svga.bank_write_full;
 //		addr = CHECKED(addr);
-		writeHandler8( addr+0, (Bit8u)(val >> 0u) );
-		writeHandler8( addr+1, (Bit8u)(val >> 8u) );
+		writeHandler8( addr+0, (uint8_t)(val >> 0u) );
+		writeHandler8( addr+1, (uint8_t)(val >> 8u) );
 	}
 	void writed(PhysPt addr,Bit32u val) {
 		VGAMEM_USEC_write_delay();
 		addr = PAGING_GetPhysicalAddress(addr) & vgapages.mask;
 		addr += (PhysPt)vga.svga.bank_write_full;
 //		addr = CHECKED(addr);
-		writeHandler8( addr+0, (Bit8u)(val >> 0u) );
-		writeHandler8( addr+1, (Bit8u)(val >> 8u) );
-		writeHandler8( addr+2, (Bit8u)(val >> 16u) );
-		writeHandler8( addr+3, (Bit8u)(val >> 24u) );
+		writeHandler8( addr+0, (uint8_t)(val >> 0u) );
+		writeHandler8( addr+1, (uint8_t)(val >> 8u) );
+		writeHandler8( addr+2, (uint8_t)(val >> 16u) );
+		writeHandler8( addr+3, (uint8_t)(val >> 24u) );
 	}
 };
 
@@ -497,12 +497,12 @@ public:
         return VGA_Generic_Read_Handler(start, start, vga.config.read_map_select);
 	}
 public:
-	Bit8u readb(PhysPt addr) {
+	uint8_t readb(PhysPt addr) {
 		VGAMEM_USEC_read_delay();
 		addr = PAGING_GetPhysicalAddress(addr) & vgapages.mask;
 		addr += (PhysPt)vga.svga.bank_read_full;
 //		addr = CHECKED2(addr);
-		return (Bit8u)readHandler(addr);
+		return (uint8_t)readHandler(addr);
 	}
 	Bit16u readw(PhysPt addr) {
 		VGAMEM_USEC_read_delay();
@@ -525,35 +525,35 @@ public:
 		return ret;
 	}
 public:
-	void writeHandler(PhysPt start, Bit8u val) {
+	void writeHandler(PhysPt start, uint8_t val) {
         VGA_Generic_Write_Handler<false/*chained*/>(start, start, val);
 	}
 public:
 	VGA_UnchainedVGA_Handler() : PageHandler(PFLAG_NOCODE) {}
-	void writeb(PhysPt addr,Bit8u val) {
+	void writeb(PhysPt addr,uint8_t val) {
 		VGAMEM_USEC_write_delay();
 		addr = PAGING_GetPhysicalAddress(addr) & vgapages.mask;
 		addr += (PhysPt)vga.svga.bank_write_full;
 //		addr = CHECKED2(addr);
-		writeHandler(addr+0,(Bit8u)(val >> 0));
+		writeHandler(addr+0,(uint8_t)(val >> 0));
 	}
 	void writew(PhysPt addr,Bit16u val) {
 		VGAMEM_USEC_write_delay();
 		addr = PAGING_GetPhysicalAddress(addr) & vgapages.mask;
 		addr += (PhysPt)vga.svga.bank_write_full;
 //		addr = CHECKED2(addr);
-		writeHandler(addr+0,(Bit8u)(val >> 0));
-		writeHandler(addr+1,(Bit8u)(val >> 8));
+		writeHandler(addr+0,(uint8_t)(val >> 0));
+		writeHandler(addr+1,(uint8_t)(val >> 8));
 	}
 	void writed(PhysPt addr,Bit32u val) {
 		VGAMEM_USEC_write_delay();
 		addr = PAGING_GetPhysicalAddress(addr) & vgapages.mask;
 		addr += (PhysPt)vga.svga.bank_write_full;
 //		addr = CHECKED2(addr);
-		writeHandler(addr+0,(Bit8u)(val >> 0));
-		writeHandler(addr+1,(Bit8u)(val >> 8));
-		writeHandler(addr+2,(Bit8u)(val >> 16));
-		writeHandler(addr+3,(Bit8u)(val >> 24));
+		writeHandler(addr+0,(uint8_t)(val >> 0));
+		writeHandler(addr+1,(uint8_t)(val >> 8));
+		writeHandler(addr+2,(uint8_t)(val >> 16));
+		writeHandler(addr+3,(uint8_t)(val >> 24));
 	}
 };
 
@@ -564,12 +564,12 @@ public:
 	VGA_CGATEXT_PageHandler() {
 		flags=PFLAG_NOCODE;
 	}
-	Bit8u readb(PhysPt addr) {
+	uint8_t readb(PhysPt addr) {
 		addr = PAGING_GetPhysicalAddress(addr) & 0x3FFF;
 		VGAMEM_USEC_read_delay();
 		return vga.tandy.mem_base[addr];
 	}
-	void writeb(PhysPt addr,Bit8u val){
+	void writeb(PhysPt addr,uint8_t val){
 		VGAMEM_USEC_write_delay();
 
 		if (enableCGASnow) {
@@ -594,12 +594,12 @@ public:
 	VGA_MCGATEXT_PageHandler() {
 		flags=PFLAG_NOCODE;
 	}
-	Bit8u readb(PhysPt addr) {
+	uint8_t readb(PhysPt addr) {
 		addr = PAGING_GetPhysicalAddress(addr) & 0xFFFF;
 		VGAMEM_USEC_read_delay();
 		return vga.tandy.mem_base[addr];
 	}
-	void writeb(PhysPt addr,Bit8u val){
+	void writeb(PhysPt addr,uint8_t val){
 		VGAMEM_USEC_write_delay();
 
 		addr = PAGING_GetPhysicalAddress(addr) & 0xFFFF;
@@ -1361,17 +1361,17 @@ void pc98_mem_msw_write(unsigned char which,unsigned char val) {
 class VGA_PC98_TEXT_PageHandler : public PageHandler {
 public:
 	VGA_PC98_TEXT_PageHandler() : PageHandler(PFLAG_NOCODE) {}
-	Bit8u readb(PhysPt addr) {
+	uint8_t readb(PhysPt addr) {
         addr &= 0x3FFFu;
 
         if (addr >= 0x3FE0u)
             return pc98_mem_msw((addr >> 2u) & 7u);
         else if ((addr & 0x2001u) == 0x2001u)
-            return (Bit8u)(~0u); /* Odd bytes of attribute RAM do not exist, apparently */
+            return (uint8_t)(~0u); /* Odd bytes of attribute RAM do not exist, apparently */
 
         return VRAM98_TEXT[addr];
     }
-	void writeb(PhysPt addr,Bit8u val) {
+	void writeb(PhysPt addr,uint8_t val) {
         addr &= 0x3FFFu;
 
         if (addr >= 0x3FE0u)
@@ -1405,10 +1405,10 @@ extern uint16_t a1_font_load_addr;
 class VGA_PC98_CG_PageHandler : public PageHandler {
 public:
 	VGA_PC98_CG_PageHandler() : PageHandler(PFLAG_NOCODE) {}
-	Bit8u readb(PhysPt addr) {
+	uint8_t readb(PhysPt addr) {
         return pc98_font_char_read(a1_font_load_addr,(addr >> 1) & 0xF,addr & 1);
     }
-	void writeb(PhysPt addr,Bit8u val) {
+	void writeb(PhysPt addr,uint8_t val) {
 		if ((a1_font_load_addr & 0x007E) == 0x0056 && (a1_font_load_addr & 0xFF00) != 0x0000)
 			pc98_font_char_write(a1_font_load_addr,(addr >> 1) & 0xF,addr & 1,val);
 		else
@@ -1420,10 +1420,10 @@ public:
 class VGA_PC98_256MMIO_PageHandler : public PageHandler {
 public:
 	VGA_PC98_256MMIO_PageHandler() : PageHandler(PFLAG_NOCODE) {}
-	Bit8u readb(PhysPt addr) {
+	uint8_t readb(PhysPt addr) {
         return pc98_pegc_mmio_read(addr & 0x7FFFu);
     }
-    void writeb(PhysPt addr,Bit8u val) {
+    void writeb(PhysPt addr,uint8_t val) {
         pc98_pegc_mmio_write(addr & 0x7FFFu,val);
     }
 };
@@ -1436,13 +1436,13 @@ public:
 class VGA_PC98_256Planar_PageHandler : public PageHandler {
 public:
 	VGA_PC98_256Planar_PageHandler() : PageHandler(PFLAG_NOCODE) {}
-	Bit8u readb(PhysPt addr) {
+	uint8_t readb(PhysPt addr) {
         (void)addr;
 
 //        LOG_MSG("PEGC 256-color planar warning: Readb from %lxh",(unsigned long)addr);
-        return (Bit8u)(~0);
+        return (uint8_t)(~0);
     }
-	void writeb(PhysPt addr,Bit8u val) {
+	void writeb(PhysPt addr,uint8_t val) {
         (void)addr;
         (void)val;
 
@@ -1467,10 +1467,10 @@ public:
 template <const unsigned int bank> class VGA_PC98_256BANK_PageHandler : public PageHandler {
 public:
 	VGA_PC98_256BANK_PageHandler() : PageHandler(PFLAG_NOCODE) {}
-	Bit8u readb(PhysPt addr) {
+	uint8_t readb(PhysPt addr) {
         return pc98_vram_256bank_from_window(bank)[addr & 0x7FFFu];
     }
-	void writeb(PhysPt addr,Bit8u val) {
+	void writeb(PhysPt addr,uint8_t val) {
         pc98_vram_256bank_from_window(bank)[addr & 0x7FFFu] = val;
     }
 };
@@ -1775,10 +1775,10 @@ public:
 	}
 
     /* byte-wise */
-	Bit8u readb(PhysPt addr) {
+	uint8_t readb(PhysPt addr) {
         return readc<uint8_t>( PAGING_GetPhysicalAddress(addr) );
     }
-	void writeb(PhysPt addr,Bit8u val) {
+	void writeb(PhysPt addr,uint8_t val) {
         writec<uint8_t>( PAGING_GetPhysicalAddress(addr), val );
     }
 
@@ -1838,11 +1838,11 @@ public:
 		CPU_IODelayRemoved += delaycyc;
 	}
 
-	Bit8u readb(PhysPt addr) {
+	uint8_t readb(PhysPt addr) {
 		delay();
 		return vga.tandy.mem_base[(addr - 0xb8000) & 0x3FFF];
 	}
-	void writeb(PhysPt addr,Bit8u val){
+	void writeb(PhysPt addr,uint8_t val){
 		delay();
 		vga.tandy.mem_base[(addr - 0xb8000) & 0x3FFF] = val;
 	}
@@ -1868,7 +1868,7 @@ extern Bitu XGA_Read(Bitu port, Bitu len);
 class VGA_MMIO_Handler : public PageHandler {
 public:
 	VGA_MMIO_Handler() : PageHandler(PFLAG_NOCODE) {}
-	void writeb(PhysPt addr,Bit8u val) {
+	void writeb(PhysPt addr,uint8_t val) {
 		VGAMEM_USEC_write_delay();
 		Bitu port = PAGING_GetPhysicalAddress(addr) & 0xffff;
 		XGA_Write(port, val, 1);
@@ -1884,10 +1884,10 @@ public:
 		XGA_Write(port, val, 4);
 	}
 
-	Bit8u readb(PhysPt addr) {
+	uint8_t readb(PhysPt addr) {
 		VGAMEM_USEC_read_delay();
 		Bitu port = PAGING_GetPhysicalAddress(addr) & 0xffff;
-		return (Bit8u)XGA_Read(port, 1);
+		return (uint8_t)XGA_Read(port, 1);
 	}
 	Bit16u readw(PhysPt addr) {
 		VGAMEM_USEC_read_delay();
@@ -1936,7 +1936,7 @@ public:
 class VGA_AMS_Handler : public PageHandler {
 public:
 	template< bool wrapping>
-	void writeHandler(PhysPt start, Bit8u val) {
+	void writeHandler(PhysPt start, uint8_t val) {
 		vga.tandy.mem_base[ start ] = val;
 #ifdef DIJDIJD
 		Bit32u data=ModeOperation(val);
@@ -1946,7 +1946,7 @@ public:
 		pixels.d&=vga.config.full_not_map_mask;
 		pixels.d|=(data & vga.config.full_map_mask);
 		((Bit32u*)vga.mem.linear)[start]=pixels.d;
-		Bit8u * write_pixels=&vga.mem.linear[VGA_CACHE_OFFSET+(start<<3)];
+		uint8_t * write_pixels=&vga.mem.linear[VGA_CACHE_OFFSET+(start<<3)];
 
 		Bit32u colors0_3, colors4_7;
 		VGA_Latch temp;temp.d=(pixels.d>>4) & 0x0f0f0f0f;
@@ -1970,7 +1970,7 @@ public:
 #endif
 	}
 //	template< bool wrapping>
-	Bit8u readHandler(PhysPt start) {
+	uint8_t readHandler(PhysPt start) {
 		return vga.tandy.mem_base[ start ];
 	}
 
@@ -1993,14 +1993,14 @@ public:
 		return ( (PAGING_GetPhysicalAddress(addr) & 0xffff) - 0x8000 ) & ( 32*1024-1 );
 	}
 
-	void writeb(PhysPt addr,Bit8u val) {
+	void writeb(PhysPt addr,uint8_t val) {
 		VGAMEM_USEC_write_delay();
 		addr = wrAddr( addr );
 		Bitu plane = vga.mode==M_AMSTRAD ? vga.amstrad.write_plane : 0x01; // 0x0F?
-		if( plane & 0x08 ) writeHandler<false>(addr+49152,(Bit8u)(val >> 0));
-		if( plane & 0x04 ) writeHandler<false>(addr+32768,(Bit8u)(val >> 0));
-		if( plane & 0x02 ) writeHandler<false>(addr+16384,(Bit8u)(val >> 0));
-		if( plane & 0x01 ) writeHandler<false>(addr+0,(Bit8u)(val >> 0));
+		if( plane & 0x08 ) writeHandler<false>(addr+49152,(uint8_t)(val >> 0));
+		if( plane & 0x04 ) writeHandler<false>(addr+32768,(uint8_t)(val >> 0));
+		if( plane & 0x02 ) writeHandler<false>(addr+16384,(uint8_t)(val >> 0));
+		if( plane & 0x01 ) writeHandler<false>(addr+0,(uint8_t)(val >> 0));
 	}
 	void writew(PhysPt addr,Bit16u val) {
 		VGAMEM_USEC_write_delay();
@@ -2008,26 +2008,26 @@ public:
 		Bitu plane = vga.mode==M_AMSTRAD ? vga.amstrad.write_plane : 0x01; // 0x0F?
 		if( plane & 0x01 )
 		{
-			writeHandler<false>(addr+0,(Bit8u)(val >> 0));
-			writeHandler<false>(addr+1,(Bit8u)(val >> 8));
+			writeHandler<false>(addr+0,(uint8_t)(val >> 0));
+			writeHandler<false>(addr+1,(uint8_t)(val >> 8));
 		}
 		addr += 16384;
 		if( plane & 0x02 )
 		{
-			writeHandler<false>(addr+0,(Bit8u)(val >> 0));
-			writeHandler<false>(addr+1,(Bit8u)(val >> 8));
+			writeHandler<false>(addr+0,(uint8_t)(val >> 0));
+			writeHandler<false>(addr+1,(uint8_t)(val >> 8));
 		}
 		addr += 16384;
 		if( plane & 0x04 )
 		{
-			writeHandler<false>(addr+0,(Bit8u)(val >> 0));
-			writeHandler<false>(addr+1,(Bit8u)(val >> 8));
+			writeHandler<false>(addr+0,(uint8_t)(val >> 0));
+			writeHandler<false>(addr+1,(uint8_t)(val >> 8));
 		}
 		addr += 16384;
 		if( plane & 0x08 )
 		{
-			writeHandler<false>(addr+0,(Bit8u)(val >> 0));
-			writeHandler<false>(addr+1,(Bit8u)(val >> 8));
+			writeHandler<false>(addr+0,(uint8_t)(val >> 0));
+			writeHandler<false>(addr+1,(uint8_t)(val >> 8));
 		}
 
 	}
@@ -2037,38 +2037,38 @@ public:
 		Bitu plane = vga.mode==M_AMSTRAD ? vga.amstrad.write_plane : 0x01; // 0x0F?
 		if( plane & 0x01 )
 		{
-			writeHandler<false>(addr+0,(Bit8u)(val >> 0));
-			writeHandler<false>(addr+1,(Bit8u)(val >> 8));
-			writeHandler<false>(addr+2,(Bit8u)(val >> 16));
-			writeHandler<false>(addr+3,(Bit8u)(val >> 24));
+			writeHandler<false>(addr+0,(uint8_t)(val >> 0));
+			writeHandler<false>(addr+1,(uint8_t)(val >> 8));
+			writeHandler<false>(addr+2,(uint8_t)(val >> 16));
+			writeHandler<false>(addr+3,(uint8_t)(val >> 24));
 		}
 		addr += 16384;
 		if( plane & 0x02 )
 		{
-			writeHandler<false>(addr+0,(Bit8u)(val >> 0));
-			writeHandler<false>(addr+1,(Bit8u)(val >> 8));
-			writeHandler<false>(addr+2,(Bit8u)(val >> 16));
-			writeHandler<false>(addr+3,(Bit8u)(val >> 24));
+			writeHandler<false>(addr+0,(uint8_t)(val >> 0));
+			writeHandler<false>(addr+1,(uint8_t)(val >> 8));
+			writeHandler<false>(addr+2,(uint8_t)(val >> 16));
+			writeHandler<false>(addr+3,(uint8_t)(val >> 24));
 		}
 		addr += 16384;
 		if( plane & 0x04 )
 		{
-			writeHandler<false>(addr+0,(Bit8u)(val >> 0));
-			writeHandler<false>(addr+1,(Bit8u)(val >> 8));
-			writeHandler<false>(addr+2,(Bit8u)(val >> 16));
-			writeHandler<false>(addr+3,(Bit8u)(val >> 24));
+			writeHandler<false>(addr+0,(uint8_t)(val >> 0));
+			writeHandler<false>(addr+1,(uint8_t)(val >> 8));
+			writeHandler<false>(addr+2,(uint8_t)(val >> 16));
+			writeHandler<false>(addr+3,(uint8_t)(val >> 24));
 		}
 		addr += 16384;
 		if( plane & 0x08 )
 		{
-			writeHandler<false>(addr+0,(Bit8u)(val >> 0));
-			writeHandler<false>(addr+1,(Bit8u)(val >> 8));
-			writeHandler<false>(addr+2,(Bit8u)(val >> 16));
-			writeHandler<false>(addr+3,(Bit8u)(val >> 24));
+			writeHandler<false>(addr+0,(uint8_t)(val >> 0));
+			writeHandler<false>(addr+1,(uint8_t)(val >> 8));
+			writeHandler<false>(addr+2,(uint8_t)(val >> 16));
+			writeHandler<false>(addr+3,(uint8_t)(val >> 24));
 		}
 
 	}
-	Bit8u readb(PhysPt addr) {
+	uint8_t readb(PhysPt addr) {
 		VGAMEM_USEC_read_delay();
 		addr = wrAddr( addr ) + ( vga.amstrad.read_plane * 16384u );
 		addr &= (64u*1024u-1u);
@@ -2133,11 +2133,11 @@ public:
 class VGA_Empty_Handler : public PageHandler {
 public:
 	VGA_Empty_Handler() : PageHandler(PFLAG_NOCODE) {}
-	Bit8u readb(PhysPt /*addr*/) {
+	uint8_t readb(PhysPt /*addr*/) {
 //		LOG(LOG_VGA, LOG_NORMAL ) ( "Read from empty memory space at %x", addr );
 		return 0xff;
 	} 
-	void writeb(PhysPt /*addr*/,Bit8u /*val*/) {
+	void writeb(PhysPt /*addr*/,uint8_t /*val*/) {
 //		LOG(LOG_VGA, LOG_NORMAL ) ( "Write %x to empty memory space at %x", val, addr );
 	}
 };
@@ -2462,9 +2462,9 @@ void VGA_SetupMemory() {
     if (vga.mem.linear == NULL) {
         VGA_Memory_ShutDown(NULL);
 
-        vga.mem.linear_orgptr = new Bit8u[vga.mem.memsize+32u];
+        vga.mem.linear_orgptr = new uint8_t[vga.mem.memsize+32u];
         memset(vga.mem.linear_orgptr,0,vga.mem.memsize+32u);
-        vga.mem.linear=(Bit8u*)(((uintptr_t)vga.mem.linear_orgptr + 16ull-1ull) & ~(16ull-1ull));
+        vga.mem.linear=(uint8_t*)(((uintptr_t)vga.mem.linear_orgptr + 16ull-1ull) & ~(16ull-1ull));
 
         /* HACK. try to avoid stale pointers */
 	    vga.draw.linear_base = vga.mem.linear;
@@ -2527,12 +2527,12 @@ void *VGA_PageHandler_Func[16] =
 void POD_Save_VGA_Memory( std::ostream& stream )
 {
 	// - static ptrs
-	//Bit8u* linear;
-	//Bit8u* linear_orgptr;
+	//uint8_t* linear;
+	//uint8_t* linear_orgptr;
 
 
 	// - pure data
-	WRITE_POD_SIZE( vga.mem.linear, sizeof(Bit8u) * vga.mem.memsize);
+	WRITE_POD_SIZE( vga.mem.linear, sizeof(uint8_t) * vga.mem.memsize);
 
 	//***************************************************
 	//***************************************************
@@ -2550,12 +2550,12 @@ void POD_Save_VGA_Memory( std::ostream& stream )
 void POD_Load_VGA_Memory( std::istream& stream )
 {
 	// - static ptrs
-	//Bit8u* linear;
-	//Bit8u* linear_orgptr;
+	//uint8_t* linear;
+	//uint8_t* linear_orgptr;
 
 
 	// - pure data
-	READ_POD_SIZE( vga.mem.linear, sizeof(Bit8u) * vga.mem.memsize);
+	READ_POD_SIZE( vga.mem.linear, sizeof(uint8_t) * vga.mem.memsize);
 
 	//***************************************************
 	//***************************************************

@@ -35,7 +35,7 @@ private:
 	Part **parts;
 	Poly **freePolys;
 	Partial **partialTable;
-	Bit8u numReservedPartialsForPart[9];
+	uint8_t numReservedPartialsForPart[9];
 	Bit32u firstFreePolyIndex;
 	int *inactivePartials; // Holds indices of inactive Partials in the Partial table
 	Bit32u inactivePartialCount;
@@ -50,7 +50,7 @@ public:
 	unsigned int getFreePartialCount();
 	void getPerPartPartialUsage(unsigned int perPartPartialUsage[9]);
 	bool freePartials(unsigned int needed, int partNum);
-	unsigned int setReserve(Bit8u *rset);
+	unsigned int setReserve(uint8_t *rset);
 	void deactivateAll();
 	bool produceOutput(int i, IntSample *leftBuf, IntSample *rightBuf, Bit32u bufferLength);
 	bool produceOutput(int i, FloatSample *leftBuf, FloatSample *rightBuf, Bit32u bufferLength);

@@ -36,7 +36,7 @@ public:
 	// May be called multiple times without an open() in between.
 	virtual void close() = 0;
 	virtual void mute() = 0;
-	virtual void setParameters(Bit8u time, Bit8u level) = 0;
+	virtual void setParameters(uint8_t time, uint8_t level) = 0;
 	virtual bool isActive() const = 0;
 	virtual bool isMT32Compatible(const ReverbMode mode) const = 0;
 	virtual bool process(const IntSample *inLeft, const IntSample *inRight, IntSample *outLeft, IntSample *outRight, Bit32u numSamples) = 0;

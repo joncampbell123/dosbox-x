@@ -45,7 +45,7 @@
 #define DRC_USE_SEGS_ADDR
 
 // register mapping
-typedef Bit8u HostReg;
+typedef uint8_t HostReg;
 
 // "lo" registers
 #define HOST_r0		 0
@@ -87,7 +87,7 @@ typedef Bit8u HostReg;
 #define HOST_pc HOST_r15
 
 
-static void cache_block_closing(Bit8u* block_start,Bitu block_size) {
+static void cache_block_closing(uint8_t* block_start,Bitu block_size) {
 #ifdef _MSC_VER
     //flush cache - Win32 API for MSVC
     FlushInstructionCache(GetCurrentProcess(), block_start, block_size);

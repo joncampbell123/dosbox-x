@@ -39,13 +39,13 @@ extern char * dos_clipboard_device_name;
 class device_NUL : public DOS_Device {
 public:
 	device_NUL() { SetName("NUL"); };
-	virtual bool Read(Bit8u * data,Bit16u * size) {
+	virtual bool Read(uint8_t * data,Bit16u * size) {
         (void)data; // UNUSED
 		*size = 0; //Return success and no data read. 
 //		LOG(LOG_IOCTL,LOG_NORMAL)("%s:READ",GetName());
 		return true;
 	}
-	virtual bool Write(const Bit8u * data,Bit16u * size) {
+	virtual bool Write(const uint8_t * data,Bit16u * size) {
         (void)data; // UNUSED
         (void)size; // UNUSED
 //		LOG(LOG_IOCTL,LOG_NORMAL)("%s:WRITE",GetName());
@@ -68,13 +68,13 @@ public:
 	device_PRN() {
 		SetName("PRN");
 	}
-	bool Read(Bit8u * data,Bit16u * size) {
+	bool Read(uint8_t * data,Bit16u * size) {
         (void)data; // UNUSED
         (void)size; // UNUSED
 		DOS_SetError(DOSERR_ACCESS_DENIED);
 		return false;
 	}
-	bool Write(const Bit8u * data,Bit16u * size) {
+	bool Write(const uint8_t * data,Bit16u * size) {
 		for(int i = 0; i < 3; i++) {
 			// look up a parallel port
 			if(parallelPortObjects[i] != NULL) {
@@ -102,7 +102,7 @@ public:
 
 #if defined(WIN32)
 bool lastwrite = false;
-Bit8u *clipAscii = NULL;
+uint8_t *clipAscii = NULL;
 Bit32u clipSize = 0, cPointer = 0, fPointer;
 
 void Unicode2Ascii(const Bit16u* unicode)
@@ -110,7 +110,7 @@ void Unicode2Ascii(const Bit16u* unicode)
 	int memNeeded = WideCharToMultiByte(dos.loaded_codepage, WC_NO_BEST_FIT_CHARS, (LPCWSTR)unicode, -1, NULL, 0, "\x07", NULL);
 	if (memNeeded <= 1)																// Includes trailing null
 		return;
-	if (!(clipAscii = (Bit8u *)malloc(memNeeded)))
+	if (!(clipAscii = (uint8_t *)malloc(memNeeded)))
 		return;
 	// Untranslated characters will be set to 0x07 (BEL), and later stripped
 	if (WideCharToMultiByte(dos.loaded_codepage, WC_NO_BEST_FIT_CHARS, (LPCWSTR)unicode, -1, (LPSTR)clipAscii, memNeeded, "\x07", NULL) != memNeeded)
@@ -199,7 +199,7 @@ private:
 				fprintf(fh, "\xff\xfe");											// It's a Unicode text file
 				for (Bit32u i = 0; i < rawdata.size(); i++)
 					{
-					Bit16u textChar =  (Bit8u)rawdata[i];
+					Bit16u textChar =  (uint8_t)rawdata[i];
 					switch (textChar)
 						{
 					case 9:																// Tab
@@ -231,7 +231,7 @@ private:
 				{
 				int bytes = ftell(fh);
 				HGLOBAL hCbData = GlobalAlloc(NULL, bytes);
-				Bit8u* pChData = (Bit8u*)GlobalLock(hCbData);
+				uint8_t* pChData = (uint8_t*)GlobalLock(hCbData);
 				if (pChData)
 					{
 					fseek(fh, 2, SEEK_SET);											// Skip Unicode signature
@@ -256,7 +256,7 @@ public:
 		strcpy(tmpAscii, "#clip$.asc");
 		strcpy(tmpUnicode, "#clip$.txt");
 	}
-	virtual bool Read(Bit8u * data,Bit16u * size) {
+	virtual bool Read(uint8_t * data,Bit16u * size) {
 		if(control->SecureMode()||!(dos_clipboard_device_access==2||dos_clipboard_device_access==4)) {
 			*size = 0;
 			return true;
@@ -277,14 +277,14 @@ public:
 		}
 		return true;
 	}
-	virtual bool Write(const Bit8u * data,Bit16u * size) {
+	virtual bool Write(const uint8_t * data,Bit16u * size) {
 		if(control->SecureMode()||!(dos_clipboard_device_access==3||dos_clipboard_device_access==4)) {
 			DOS_SetError(DOSERR_ACCESS_DENIED);
 			return false;
 		}
 		lastwrite=true;
-        const Bit8u* datasrc = (Bit8u*)data;
-		Bit8u * datadst = (Bit8u *) data;
+        const uint8_t* datasrc = (uint8_t*)data;
+		uint8_t * datadst = (uint8_t *) data;
 
 		int numSpaces = 0;
 		for (Bit16u idx = *size; idx; idx--)
@@ -369,11 +369,11 @@ public:
 };
 #endif
 
-bool DOS_Device::Read(Bit8u * data,Bit16u * size) {
+bool DOS_Device::Read(uint8_t * data,Bit16u * size) {
 	return Devices[devnum]->Read(data,size);
 }
 
-bool DOS_Device::Write(const Bit8u * data,Bit16u * size) {
+bool DOS_Device::Write(const uint8_t * data,Bit16u * size) {
 	return Devices[devnum]->Write(data,size);
 }
 
@@ -425,9 +425,9 @@ DOS_File& DOS_File::operator= (const DOS_File& orig) {
     return *this;
 }
 
-Bit8u DOS_FindDevice(char const * name) {
+uint8_t DOS_FindDevice(char const * name) {
 	/* should only check for the names before the dot and spacepadded */
-	char fullname[DOS_PATHLENGTH];Bit8u drive;
+	char fullname[DOS_PATHLENGTH];uint8_t drive;
 //	if(!name || !(*name)) return DOS_DEVICES; //important, but makename does it
 	if (!DOS_MakeName(name,fullname,&drive)) return DOS_DEVICES;
 
@@ -450,7 +450,7 @@ Bit8u DOS_FindDevice(char const * name) {
 	if (strcmp(name_part, "PRN") == 0) name_part = lpt;
 
 	/* loop through devices */
-	for(Bit8u index = 0;index < DOS_DEVICES;index++) {
+	for(uint8_t index = 0;index < DOS_DEVICES;index++) {
 		if (Devices[index]) {
 			if (WildFileCmp(name_part,Devices[index]->name)) return index;
 		}

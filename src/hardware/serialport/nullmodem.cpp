@@ -168,7 +168,7 @@ CNullModem::~CNullModem() {
 	}
 }
 
-void CNullModem::WriteChar(Bit8u data) {
+void CNullModem::WriteChar(uint8_t data) {
 	if (clientsocket)clientsocket->SendByteBuffered(data);
 	if (!tx_block) {
 		//LOG_MSG("setevreduct");
@@ -179,7 +179,7 @@ void CNullModem::WriteChar(Bit8u data) {
 
 Bits CNullModem::readChar() {
 	Bits rxchar = clientsocket->GetcharNonBlock();
-	if (telnet && rxchar>=0) return TelnetEmulation((Bit8u)rxchar);
+	if (telnet && rxchar>=0) return TelnetEmulation((uint8_t)rxchar);
 	else if (rxchar==0xff && !transparent) {// escape char
 		// get the next char
 		Bits rxchar = clientsocket->GetcharNonBlock();
@@ -192,7 +192,7 @@ Bits CNullModem::readChar() {
 }
 
 bool CNullModem::ClientConnect(TCPClientSocket* newsocket) {
-	Bit8u peernamebuf[16];
+	uint8_t peernamebuf[16];
 	clientsocket = newsocket;
  
 	if (!clientsocket->isopen) {
@@ -229,7 +229,7 @@ bool CNullModem::ServerConnect() {
 	clientsocket=serversocket->Accept();
 	if (!clientsocket) return false;
 	
-	Bit8u peeripbuf[16];
+	uint8_t peeripbuf[16];
 	clientsocket->GetRemoteAddressString(peeripbuf);
 	LOG_MSG("Serial%d: A client (%s) has connected.",(int)COMNUMBER,peeripbuf);
 #if SERIAL_DEBUG
@@ -438,7 +438,7 @@ void CNullModem::handleUpperEvent(Bit16u type) {
 /* updatePortConfig is called when emulated app changes the serial port     **/
 /* parameters baudrate, stopbits, number of databits, parity.               **/
 /*****************************************************************************/
-void CNullModem::updatePortConfig (Bit16u /*divider*/, Bit8u /*lcr*/) {
+void CNullModem::updatePortConfig (Bit16u /*divider*/, uint8_t /*lcr*/) {
 	
 }
 
@@ -449,7 +449,7 @@ void CNullModem::updateMSR () {
 bool CNullModem::doReceive () {
 		Bits rxchar = readChar();
 		if (rxchar>=0) {
-			receiveByteEx((Bit8u)rxchar,0);
+			receiveByteEx((uint8_t)rxchar,0);
 			return true;
 		}
 		else if (rxchar==-2) {
@@ -458,7 +458,7 @@ bool CNullModem::doReceive () {
 		return false;
 }
  
-void CNullModem::transmitByte (Bit8u val, bool first) {
+void CNullModem::transmitByte (uint8_t val, bool first) {
  	// transmit it later in THR_Event
 	if (first) setEvent(SERIAL_THR_EVENT, bytetime/8);
 	else setEvent(SERIAL_TX_EVENT, bytetime);
@@ -469,8 +469,8 @@ void CNullModem::transmitByte (Bit8u val, bool first) {
 	WriteChar(val);
 }
 
-Bits CNullModem::TelnetEmulation(Bit8u data) {
-	Bit8u response[3];
+Bits CNullModem::TelnetEmulation(uint8_t data) {
+	uint8_t response[3];
 	if (telClient.inIAC) {
 		if (telClient.recCommand) {
 			if ((data != 0) && (data != 1) && (data != 3)) {
@@ -587,7 +587,7 @@ void CNullModem::setBreak (bool /*value*/) {
 /*****************************************************************************/
 void CNullModem::setRTSDTR(bool xrts, bool xdtr) {
 	if (!transparent) {
-		Bit8u control[2];
+		uint8_t control[2];
 		control[0]=0xff;
 		control[1]=0x0;
 		if (xrts) control[1]|=1;

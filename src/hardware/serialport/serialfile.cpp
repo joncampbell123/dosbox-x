@@ -66,7 +66,7 @@ void CSerialFile::handleUpperEvent(Bit16u type) {
 /* updatePortConfig is called when emulated app changes the serial port     **/
 /* parameters baudrate, stopbits, number of databits, parity.               **/
 /*****************************************************************************/
-void CSerialFile::updatePortConfig(Bit16u divider, Bit8u lcr) {
+void CSerialFile::updatePortConfig(Bit16u divider, uint8_t lcr) {
     (void)divider;//UNUSED
     (void)lcr;//UNUSED
 	//LOG_MSG("Serial port at 0x%x: Port params changed: %d Baud", base,dcb.BaudRate);
@@ -75,7 +75,7 @@ void CSerialFile::updatePortConfig(Bit16u divider, Bit8u lcr) {
 void CSerialFile::updateMSR() {
 }
 
-void CSerialFile::transmitByte(Bit8u val, bool first) {
+void CSerialFile::transmitByte(uint8_t val, bool first) {
 	if(first) setEvent(SERIAL_THR_EVENT, bytetime/10); 
 	else setEvent(SERIAL_TX_EVENT, bytetime);
 

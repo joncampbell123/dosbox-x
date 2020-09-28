@@ -37,15 +37,15 @@ using namespace std;
 class isoFile : public DOS_File {
 public:
     isoFile(isoDrive* drive, const char* name, const FileStat_Block* stat, Bit32u offset);
-	bool Read(Bit8u *data, Bit16u *size);
-	bool Write(const Bit8u *data, Bit16u *size);
+	bool Read(uint8_t *data, Bit16u *size);
+	bool Write(const uint8_t *data, Bit16u *size);
 	bool Seek(Bit32u *pos, Bit32u type);
 	bool Close();
 	Bit16u GetInformation(void);
 	Bit32u GetSeekPos(void);
 private:
 	isoDrive *drive;
-    Bit8u buffer[ISO_FRAMESIZE] = {};
+    uint8_t buffer[ISO_FRAMESIZE] = {};
     int cachedSector = -1;
 	Bit32u fileBegin;
 	Bit32u filePos;
@@ -64,7 +64,7 @@ isoFile::isoFile(isoDrive* drive, const char* name, const FileStat_Block* stat, 
 	SetName(name);
 }
 
-bool isoFile::Read(Bit8u *data, Bit16u *size) {
+bool isoFile::Read(uint8_t *data, Bit16u *size) {
 	if (filePos + *size > fileEnd)
 		*size = (Bit16u)(fileEnd - filePos);
 	
@@ -101,7 +101,7 @@ bool isoFile::Read(Bit8u *data, Bit16u *size) {
 	return true;
 }
 
-bool isoFile::Write(const Bit8u* /*data*/, Bit16u* /*size*/) {
+bool isoFile::Write(const uint8_t* /*data*/, Bit16u* /*size*/) {
 	return false;
 }
 
@@ -141,15 +141,15 @@ Bit32u isoFile::GetSeekPos() {
 
 
 int   MSCDEX_RemoveDrive(char driveLetter);
-int   MSCDEX_AddDrive(char driveLetter, const char* physicalPath, Bit8u& subUnit);
-void  MSCDEX_ReplaceDrive(CDROM_Interface* cdrom, Bit8u subUnit);
+int   MSCDEX_AddDrive(char driveLetter, const char* physicalPath, uint8_t& subUnit);
+void  MSCDEX_ReplaceDrive(CDROM_Interface* cdrom, uint8_t subUnit);
 bool  MSCDEX_HasDrive(char driveLetter);
-bool  MSCDEX_GetVolumeName(Bit8u subUnit, char* name);
-Bit8u MSCDEX_GetSubUnit(char driveLetter);
+bool  MSCDEX_GetVolumeName(uint8_t subUnit, char* name);
+uint8_t MSCDEX_GetSubUnit(char driveLetter);
 
 bool CDROM_Interface_Image::images_init = false;
 
-isoDrive::isoDrive(char driveLetter, const char* fileName, Bit8u mediaid, int& error) {
+isoDrive::isoDrive(char driveLetter, const char* fileName, uint8_t mediaid, int& error) {
 
     if (!CDROM_Interface_Image::images_init) {
         CDROM_Interface_Image::images_init = true;
@@ -192,7 +192,7 @@ isoDrive::isoDrive(char driveLetter, const char* fileName, Bit8u mediaid, int& e
 
 isoDrive::~isoDrive() { }
 
-int isoDrive::UpdateMscdex(char driveLetter, const char* path, Bit8u& subUnit) {
+int isoDrive::UpdateMscdex(char driveLetter, const char* path, uint8_t& subUnit) {
 	if (MSCDEX_HasDrive(driveLetter)) {
 		subUnit = MSCDEX_GetSubUnit(driveLetter);
 		CDROM_Interface_Image* oldCdrom = CDROM_Interface_Image::images[subUnit];
@@ -277,7 +277,7 @@ bool isoDrive::FindFirst(const char *dir, DOS_DTA &dta, bool fcb_findfirst) {
 	else
 		sdid[lfn_filefind_handle]=dirIterator;
 
-	Bit8u attr;
+	uint8_t attr;
 	char pattern[CROSS_LEN];
     dta.GetSearchParams(attr, pattern, uselfn);
    
@@ -296,7 +296,7 @@ bool isoDrive::FindFirst(const char *dir, DOS_DTA &dta, bool fcb_findfirst) {
 }
 
 bool isoDrive::FindNext(DOS_DTA &dta) {
-	Bit8u attr;
+	uint8_t attr;
 	char pattern[CROSS_LEN], findName[DOS_NAMELENGTH_ASCII], lfindName[ISO_MAXPATHNAME];
     dta.GetSearchParams(attr, pattern, uselfn);
 	
@@ -305,7 +305,7 @@ bool isoDrive::FindNext(DOS_DTA &dta) {
 	
     isoDirEntry de = {};
 	while (GetNextDirEntry(dirIterator, &de)) {
-		Bit8u findAttr = DOS_ATTR_ARCHIVE | DOS_ATTR_READ_ONLY;
+		uint8_t findAttr = DOS_ATTR_ARCHIVE | DOS_ATTR_READ_ONLY;
 		if (IS_DIR(FLAGS1)) findAttr |= DOS_ATTR_DIRECTORY;
 		if (IS_HIDDEN(FLAGS1)) findAttr |= DOS_ATTR_HIDDEN;
 
@@ -379,7 +379,7 @@ HANDLE isoDrive::CreateOpenFile(const char* name) {
 }
 #endif
 
-bool isoDrive::AllocationInfo(Bit16u *bytes_sector, Bit8u *sectors_cluster, Bit16u *total_clusters, Bit16u *free_clusters) {
+bool isoDrive::AllocationInfo(Bit16u *bytes_sector, uint8_t *sectors_cluster, Bit16u *total_clusters, Bit16u *free_clusters) {
 	*bytes_sector = 2048;
 	*sectors_cluster = 1; // cluster size for cdroms ?
 	*total_clusters = 65535;
@@ -407,7 +407,7 @@ bool isoDrive::FileStat(const char *name, FileStat_Block *const stat_block) {
 	return success;
 }
 
-Bit8u isoDrive::GetMediaByte(void) {
+uint8_t isoDrive::GetMediaByte(void) {
 	return mediaid;
 }
 
@@ -449,7 +449,7 @@ int isoDrive::GetDirIterator(const isoDirEntry* de) {
 
 bool isoDrive::GetNextDirEntry(const int dirIteratorHandle, isoDirEntry* de) {
 	bool result = false;
-	Bit8u* buffer = NULL;
+	uint8_t* buffer = NULL;
 	DirIterator& dirIterator = dirIterators[dirIteratorHandle];
 	
 	// check if the directory entry is valid
@@ -491,7 +491,7 @@ void isoDrive::FreeDirIterator(const int dirIterator) {
 	}
 }
 
-bool isoDrive::ReadCachedSector(Bit8u** buffer, const Bit32u sector) {
+bool isoDrive::ReadCachedSector(uint8_t** buffer, const Bit32u sector) {
 	// get hash table entry
 	unsigned int pos = sector % ISO_MAX_HASH_TABLE_SIZE;
 	SectorHashEntry& he = sectorHashEntries[pos];
@@ -509,11 +509,11 @@ bool isoDrive::ReadCachedSector(Bit8u** buffer, const Bit32u sector) {
 	return true;
 }
 
-inline bool isoDrive :: readSector(Bit8u *buffer, Bit32u sector) {
+inline bool isoDrive :: readSector(uint8_t *buffer, Bit32u sector) {
 	return CDROM_Interface_Image::images[subUnit]->ReadSector(buffer, false, sector);
 }
 
-int isoDrive::readDirEntry(isoDirEntry* de, const Bit8u* data) {
+int isoDrive::readDirEntry(isoDirEntry* de, const uint8_t* data) {
 	// copy data into isoDirEntry struct, data[0] = length of DirEntry
 //	if (data[0] > sizeof(isoDirEntry)) return -1;//check disabled as isoDirentry is currently 258 bytes large. So it always fits
 	memcpy(de, data, data[0]);//Perharps care about a zero at the end.
@@ -555,7 +555,7 @@ int isoDrive::readDirEntry(isoDirEntry* de, const Bit8u* data) {
 }
 
 bool isoDrive :: loadImage() {
-	Bit8u pvd[COOKED_SECTOR_SIZE];
+	uint8_t pvd[COOKED_SECTOR_SIZE];
 	dataCD = false;
 	readSector(pvd, ISO_FIRST_VD);
 	if (pvd[0] == 1 && !strncmp((char*)(&pvd[1]), "CD001", 5) && pvd[6] == 1) iso = true;

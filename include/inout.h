@@ -49,11 +49,11 @@ void IO_FreeWriteHandler(Bitu port,Bitu mask,Bitu range=1);
 
 void IO_InvalidateCachedHandler(Bitu port,Bitu range=1);
 
-void IO_WriteB(Bitu port,Bit8u val);
+void IO_WriteB(Bitu port,uint8_t val);
 void IO_WriteW(Bitu port,Bit16u val);
 void IO_WriteD(Bitu port,Bit32u val);
 
-Bit8u IO_ReadB(Bitu port);
+uint8_t IO_ReadB(Bitu port);
 Bit16u IO_ReadW(Bitu port);
 Bit32u IO_ReadD(Bitu port);
 
@@ -147,10 +147,10 @@ public:
 	~IO_WriteHandleObject();
 };
 
-static INLINE void IO_Write(Bitu port,Bit8u val) {
+static INLINE void IO_Write(Bitu port,uint8_t val) {
 	IO_WriteB(port,val);
 }
-static INLINE Bit8u IO_Read(Bitu port){
+static INLINE uint8_t IO_Read(Bitu port){
 	return IO_ReadB(port);
 }
 

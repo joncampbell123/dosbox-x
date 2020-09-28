@@ -61,7 +61,7 @@ protected:
     std::istringstream      lines;
 };
 
-extern Bit8u                int10_font_14[256 * 14];
+extern uint8_t                int10_font_14[256 * 14];
 
 extern uint32_t             GFX_Rmask;
 extern unsigned char        GFX_Rshift;
@@ -124,11 +124,11 @@ static void getPixel(Bits x, Bits y, int &r, int &g, int &b, int shift)
     if (x < 0) x = 0;
     if (y < 0) y = 0;
 
-    Bit8u* src = (Bit8u *)&scalerSourceCache;
+    uint8_t* src = (uint8_t *)&scalerSourceCache;
     Bit32u pixel;
     switch (render.scale.inMode) {
         case scalerMode8:
-            pixel = *((unsigned int)x+(Bit8u*)(src+(unsigned int)y*(unsigned int)render.scale.cachePitch));
+            pixel = *((unsigned int)x+(uint8_t*)(src+(unsigned int)y*(unsigned int)render.scale.cachePitch));
             r += (int)((unsigned int)render.pal.rgb[pixel].red >> (unsigned int)shift);
             g += (int)((unsigned int)render.pal.rgb[pixel].green >> (unsigned int)shift);
             b += (int)((unsigned int)render.pal.rgb[pixel].blue >> (unsigned int)shift);
@@ -487,7 +487,7 @@ static void UI_RunCommands(GUI::ScreenSDL *s, const std::string &cmds) {
     DOS_Shell temp;
     temp.call = true;
     UI_Shutdown(s);
-    Bit16u n=1; Bit8u c='\n';
+    Bit16u n=1; uint8_t c='\n';
     DOS_WriteFile(STDOUT,&c,&n);
     temp.bf = new VirtualBatch(&temp, cmds);
     temp.RunInternal();
@@ -1555,7 +1555,7 @@ public:
     ShowDriveInfo(GUI::Screen *parent, int x, int y, const char *title) :
         ToplevelWindow(parent, x, y, 400, 280, title) {
             char name[DOS_NAMELENGTH_ASCII],lname[LFN_NAMELENGTH];
-            Bit32u size;Bit16u date;Bit16u time;Bit8u attr;
+            Bit32u size;Bit16u date;Bit16u time;uint8_t attr;
             /* Command uses dta so set it to our internal dta */
             RealPt save_dta = dos.dta();
             dos.dta(dos.tables.tempdta);

@@ -265,7 +265,7 @@ void DoString(STRING_OP type) {
 
 				case R_SCASB:
 					{
-						Bit8u val2;
+						uint8_t val2;
 						do {
 							val2=LoadMb(di_base+di_index);
 							di_index=(di_index+(Bitu)add_index) & add_mask;
@@ -310,7 +310,7 @@ void DoString(STRING_OP type) {
 
 				case R_CMPSB:
 					{
-						Bit8u val1,val2;
+						uint8_t val1,val2;
 						do {
 							val1=LoadMb(si_base+si_index);
 							val2=LoadMb(di_base+di_index);

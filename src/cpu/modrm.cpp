@@ -19,7 +19,7 @@
 #include "cpu.h"
 
 
-Bit8u * lookupRMregb[]=
+uint8_t * lookupRMregb[]=
 {
 	&reg_al,&reg_al,&reg_al,&reg_al,&reg_al,&reg_al,&reg_al,&reg_al,
 	&reg_cl,&reg_cl,&reg_cl,&reg_cl,&reg_cl,&reg_cl,&reg_cl,&reg_cl,
@@ -135,7 +135,7 @@ Bit32u * lookupRMregd[256]={
 };
 
 
-Bit8u * lookupRMEAregb[256]={
+uint8_t * lookupRMEAregb[256]={
 /* 12 lines of 16*0 should give nice errors when used */
 	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,
 	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,

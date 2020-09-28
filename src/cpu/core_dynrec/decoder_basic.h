@@ -102,7 +102,7 @@ static struct DynDecode {
 	REP_Type rep;			// current repeat prefix
 	Bitu cycles;			// number cycles used by currently translated code
 	bool seg_prefix_used;	// segment overridden
-	Bit8u seg_prefix;		// segment prefix (if seg_prefix_used==true)
+	uint8_t seg_prefix;		// segment prefix (if seg_prefix_used==true)
 
 	// block that contains the first instruction translated
 	CacheBlockDynRec * block;
@@ -113,8 +113,8 @@ static struct DynDecode {
 	struct {
 		CodePageHandlerDynRec * code;
 		Bitu index;		// index to the current byte of the instruction stream
-		Bit8u * wmap;	// write map that indicates code presence for every byte of this page
-		Bit8u * invmap;	// invalidation map
+		uint8_t * wmap;	// write map that indicates code presence for every byte of this page
+		uint8_t * invmap;	// invalidation map
 		Bitu first;		// page number 
 	} page;
 
@@ -122,14 +122,14 @@ static struct DynDecode {
 	struct {
 //		Bitu val;
 		Bitu mod;
-		Bit8u rm;
+		uint8_t rm;
 		Bitu reg;
 	} modrm;
 } decode;
 
 
 static bool MakeCodePage(Bitu lin_addr,CodePageHandlerDynRec * &cph) {
-	Bit8u rdval;
+	uint8_t rdval;
 	//Ensure page contains memory:
 	if (GCC_UNLIKELY(mem_readb_checked((PhysPt)lin_addr,&rdval))) return true;
 
@@ -216,7 +216,7 @@ static void decode_advancepage(void) {
 }
 
 // fetch the next byte of the instruction stream
-static Bit8u decode_fetchb(void) {
+static uint8_t decode_fetchb(void) {
 	if (GCC_UNLIKELY(decode.page.index>=4096)) {
 		decode_advancepage();
 	}
@@ -260,7 +260,7 @@ static void INLINE decode_increase_wmapmask(Bitu size) {
 	CacheBlockDynRec* activecb=decode.active_block; 
 	if (GCC_UNLIKELY(!activecb->cache.wmapmask)) {
 		// no mask memory yet allocated, start with a small buffer
-		activecb->cache.wmapmask=(Bit8u*)malloc(START_WMMEM);
+		activecb->cache.wmapmask=(uint8_t*)malloc(START_WMMEM);
         if (activecb->cache.wmapmask != NULL)
             memset(activecb->cache.wmapmask, 0, START_WMMEM);
         else
@@ -274,7 +274,7 @@ static void INLINE decode_increase_wmapmask(Bitu size) {
 			// mask buffer too small, increase
 			Bitu newmasklen=activecb->cache.masklen*(Bitu)4;
 			if (newmasklen<mapidx+size) newmasklen=((mapidx+size)&~3)*2;
-			Bit8u* tempmem=(Bit8u*)malloc(newmasklen);
+			uint8_t* tempmem=(uint8_t*)malloc(newmasklen);
             if (tempmem != NULL) {
                 memset(tempmem, 0, newmasklen);
                 memcpy(tempmem, activecb->cache.wmapmask, activecb->cache.masklen);
@@ -703,15 +703,15 @@ bool DRC_CALL_CONV mem_readb_checked_drc(PhysPt address) DRC_FC;
 bool DRC_CALL_CONV mem_readb_checked_drc(PhysPt address) {
 	HostPt tlb_addr=get_tlb_read(address);
 	if (tlb_addr) {
-		*((Bit8u*)(&core_dynrec.readdata))=host_readb(tlb_addr+address);
+		*((uint8_t*)(&core_dynrec.readdata))=host_readb(tlb_addr+address);
 		return false;
 	} else {
-		return get_tlb_readhandler(address)->readb_checked(address, (Bit8u*)(&core_dynrec.readdata));
+		return get_tlb_readhandler(address)->readb_checked(address, (uint8_t*)(&core_dynrec.readdata));
 	}
 }
 
-bool DRC_CALL_CONV mem_writeb_checked_drc(PhysPt address,Bit8u val) DRC_FC;
-bool DRC_CALL_CONV mem_writeb_checked_drc(PhysPt address,Bit8u val) {
+bool DRC_CALL_CONV mem_writeb_checked_drc(PhysPt address,uint8_t val) DRC_FC;
+bool DRC_CALL_CONV mem_writeb_checked_drc(PhysPt address,uint8_t val) {
 	HostPt tlb_addr=get_tlb_write(address);
 	if (tlb_addr) {
 		host_writeb(tlb_addr+address,val);
@@ -905,7 +905,7 @@ static void dyn_lea_segphys_mem(HostReg ea_reg,Bitu op1_index,void* op2,Bitu sca
 
 // calculate the effective address and store it in ea_reg
 static void dyn_fill_ea(HostReg ea_reg,bool addseg=true) {
-	Bit8u seg_base=DRC_SEG_DS;
+	uint8_t seg_base=DRC_SEG_DS;
 	if (!decode.big_addr) {
 		Bits imm=0;
 		switch (decode.modrm.mod) {
@@ -961,7 +961,7 @@ skip_extend_word:
 		}
 	} else {
 		Bits imm=0;
-		Bit8u base_reg=0;
+		uint8_t base_reg=0;
 		switch (decode.modrm.rm) {
 		case 0:base_reg=DRC_REG_EAX;break;
 		case 1:base_reg=DRC_REG_ECX;break;
@@ -971,13 +971,13 @@ skip_extend_word:
 			{
 				Bitu sib=decode_fetchb();
 				bool scaled_reg_used=false;
-				static Bit8u scaledtable[8]={
+				static uint8_t scaledtable[8]={
 					DRC_REG_EAX,DRC_REG_ECX,DRC_REG_EDX,DRC_REG_EBX,
 							0,DRC_REG_EBP,DRC_REG_ESI,DRC_REG_EDI
 				};
 				// see if scaling should be used and which register is to be scaled in this case
 				if (((sib >> 3) &7)!=4) scaled_reg_used=true;
-				Bit8u scaled_reg=scaledtable[(sib >> 3) &7];
+				uint8_t scaled_reg=scaledtable[(sib >> 3) &7];
 				Bitu scale=(sib >> 6);
 
 				switch (sib & 7) {
@@ -1164,7 +1164,7 @@ static void dyn_add_iocheck(HostReg reg_port,Bitu access_size) {
 
 // add code that checks if port access is allowed
 // the port is a constant
-static void dyn_add_iocheck_var(Bit8u accessed_port,Bitu access_size) {
+static void dyn_add_iocheck_var(uint8_t accessed_port,Bitu access_size) {
 	if (cpu.pmode) {
 		gen_call_function_II(CPU_IO_Exception,accessed_port,access_size);
 		dyn_check_exception(FC_RETOP);
@@ -1210,7 +1210,7 @@ static void gen_restore_reg(HostReg reg,HostReg dest_reg) {
 
 static Bitu mf_functions_num=0;
 static struct {
-	Bit8u* pos;
+	uint8_t* pos;
 	void* fct_ptr;
 	Bitu ftype;
 } mf_functions[64];
@@ -1263,7 +1263,7 @@ template <typename T> static void InvalidateFlagsPartially(const T current_simpl
 // this function can be replaced by a simpler one as well
 template <typename T> static void InvalidateFlagsPartially(const T current_simple_function,DRC_PTR_SIZE_IM cpos,Bitu flags_type) {
 #ifdef DRC_FLAGS_INVALIDATION
-	mf_functions[mf_functions_num].pos=(Bit8u*)cpos;
+	mf_functions[mf_functions_num].pos=(uint8_t*)cpos;
 	mf_functions[mf_functions_num].fct_ptr=reinterpret_cast<void*>((uintptr_t)current_simple_function);
 	mf_functions[mf_functions_num].ftype=flags_type;
 	mf_functions_num++;

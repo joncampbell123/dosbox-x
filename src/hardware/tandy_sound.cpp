@@ -48,18 +48,18 @@ static struct {
 		bool enabled;
 		struct {
 			Bitu base;
-			Bit8u irq,dma;
+			uint8_t irq,dma;
 		} hw;
 		struct {
 			Bitu rate;
-			Bit8u buf[TDAC_DMA_BUFSIZE];
-			Bit8u last_sample;
+			uint8_t buf[TDAC_DMA_BUFSIZE];
+			uint8_t last_sample;
 			DmaChannel * chan;
 			bool transfer_done;
 		} dma;
-		Bit8u mode,control;
+		uint8_t mode,control;
 		Bit16u frequency;
-		Bit8u amplitude;
+		uint8_t amplitude;
 		bool irq_activated;
 	} dac;
 } tandy;
@@ -168,7 +168,7 @@ static void TandyDACWrite(Bitu port,Bitu data,Bitu /*iolen*/) {
 	switch (port) {
 	case 0xc4: {
 		Bitu oldmode = tandy.dac.mode;
-		tandy.dac.mode = (Bit8u)(data&0xff);
+		tandy.dac.mode = (uint8_t)(data&0xff);
 		if ((data&3)!=(oldmode&3)) {
 			TandyDACModeChanged();
 		}
@@ -185,7 +185,7 @@ static void TandyDACWrite(Bitu port,Bitu data,Bitu /*iolen*/) {
 			// joystick mode
 			break;
 		case 1:
-			tandy.dac.control = (Bit8u)(data&0xff);
+			tandy.dac.control = (uint8_t)(data&0xff);
 			break;
 		case 2:
 			break;
@@ -195,7 +195,7 @@ static void TandyDACWrite(Bitu port,Bitu data,Bitu /*iolen*/) {
 		}
 		break;
 	case 0xc6:
-		tandy.dac.frequency = (tandy.dac.frequency & 0xf00) | (Bit8u)(data & 0xff);
+		tandy.dac.frequency = (tandy.dac.frequency & 0xf00) | (uint8_t)(data & 0xff);
 		switch (tandy.dac.mode&3) {
 		case 0:
 			// joystick mode
@@ -208,8 +208,8 @@ static void TandyDACWrite(Bitu port,Bitu data,Bitu /*iolen*/) {
 		}
 		break;
 	case 0xc7:
-		tandy.dac.frequency = (tandy.dac.frequency & 0x00ff) | (((Bit8u)(data & 0xf)) << 8);
-		tandy.dac.amplitude = (Bit8u)(data>>5);
+		tandy.dac.frequency = (tandy.dac.frequency & 0x00ff) | (((uint8_t)(data & 0xf)) << 8);
+		tandy.dac.amplitude = (uint8_t)(data>>5);
 		switch (tandy.dac.mode&3) {
 		case 0:
 			// joystick mode
@@ -229,9 +229,9 @@ static Bitu TandyDACRead(Bitu port,Bitu /*iolen*/) {
 	case 0xc4:
 		return (tandy.dac.mode&0x77) | (tandy.dac.irq_activated ? 0x08 : 0x00);
 	case 0xc6:
-		return (Bit8u)(tandy.dac.frequency&0xff);
+		return (uint8_t)(tandy.dac.frequency&0xff);
 	case 0xc7:
-		return (Bit8u)(((tandy.dac.frequency>>8)&0xf) | (tandy.dac.amplitude<<5));
+		return (uint8_t)(((tandy.dac.frequency>>8)&0xf) | (tandy.dac.amplitude<<5));
 	}
 	LOG_MSG("Tandy DAC: Read from unknown %X", (unsigned int)port);
 	return 0xff;
@@ -279,14 +279,14 @@ static void TandyDACUpdate(Bitu length) {
 		for (Bitu ct=0; ct < length; ct++) {
 			tandy.dac.chan->AddSamples_m8(1,&tandy.dac.dma.last_sample);
 			if (tandy.dac.dma.last_sample != 128)
-				tandy.dac.dma.last_sample = (Bit8u)(((((int)tandy.dac.dma.last_sample - 128) * 63) / 64) + 128);
+				tandy.dac.dma.last_sample = (uint8_t)(((((int)tandy.dac.dma.last_sample - 128) * 63) / 64) + 128);
 		}
 	} else {
 		tandy.dac.chan->AddSilence();
 	}
 }
 
-Bit8u BIOS_tandy_D4_flag = 0;
+uint8_t BIOS_tandy_D4_flag = 0;
 
 class TANDYSOUND: public Module_base {
 private:
@@ -422,7 +422,7 @@ void POD_Save_Tandy_Sound( std::ostream& stream )
 	//*******************************************
 	//*******************************************
 
-	Bit8u dma_idx;
+	uint8_t dma_idx;
 
 
 	dma_idx = 0xff;
@@ -470,7 +470,7 @@ void POD_Load_Tandy_Sound( std::istream& stream )
 	//************************************************
 	//************************************************
 
-	Bit8u dma_idx;
+	uint8_t dma_idx;
 	MixerChannel *chan_old, *dac_chan_old;
 
 	// - save static ptrs

@@ -38,7 +38,7 @@ public:
 	class SysexDataStorage;
 
 	struct MidiEvent {
-		const Bit8u *sysexData;
+		const uint8_t *sysexData;
 		union {
 			Bit32u sysexLength;
 			Bit32u shortMessageData;
@@ -54,7 +54,7 @@ public:
 	~MidiEventQueue();
 	void reset();
 	bool pushShortMessage(Bit32u shortMessageData, Bit32u timestamp);
-	bool pushSysex(const Bit8u *sysexData, Bit32u sysexLength, Bit32u timestamp);
+	bool pushSysex(const uint8_t *sysexData, Bit32u sysexLength, Bit32u timestamp);
 	const volatile MidiEvent *peekMidiEvent();
 	void dropMidiEvent();
 	inline bool isEmpty() const;

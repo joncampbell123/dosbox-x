@@ -73,7 +73,7 @@ struct PS1AUDIO
 #endif
 
 	// "DAC".
-	Bit8u FIFO[FIFOSIZE];
+	uint8_t FIFO[FIFOSIZE];
 	Bit16u FIFO_RDIndex;
 	Bit16u FIFO_WRIndex;
 	bool Playing;
@@ -84,18 +84,18 @@ struct PS1AUDIO
 	Bitu Pending;			// Bytes to go << FRAC_SHIFT
 
 	// Regs.
-	Bit8u Status;		// 0202 RD
-	Bit8u Command;		// 0202 WR / 0200 RD
-	Bit8u Data;			// 0200 WR
-	Bit8u Divisor;		// 0203 WR
-	Bit8u Unknown;		// 0204 WR (Reset?)
+	uint8_t Status;		// 0202 RD
+	uint8_t Command;		// 0202 WR / 0200 RD
+	uint8_t Data;			// 0200 WR
+	uint8_t Divisor;		// 0203 WR
+	uint8_t Unknown;		// 0204 WR (Reset?)
 };
 
 static struct PS1AUDIO ps1;
 
-static Bit8u PS1SOUND_CalcStatus(void)
+static uint8_t PS1SOUND_CalcStatus(void)
 {
-	Bit8u Status = ps1.Status & FIFO_IRQ;
+	uint8_t Status = ps1.Status & FIFO_IRQ;
 	if( !ps1.Pending ) {
 		Status |= FIFO_EMPTY;
 	}
@@ -160,11 +160,11 @@ static void PS1SOUNDWrite(Bitu port,Bitu data,Bitu iolen) {
 	{
 		case 0x0200:
 			// Data - insert into FIFO.
-			ps1.Data = (Bit8u)data;
+			ps1.Data = (uint8_t)data;
 			ps1.Status = PS1SOUND_CalcStatus();
 			if( !( ps1.Status & FIFO_FULL ) )
 			{
-				ps1.FIFO[ ps1.FIFO_WRIndex++ ]=(Bit8u)data;
+				ps1.FIFO[ ps1.FIFO_WRIndex++ ]=(uint8_t)data;
 				ps1.FIFO_WRIndex &= FIFOSIZE_MASK;
 				ps1.Pending += ( 1 << FRAC_SHIFT );
 				if( ps1.Pending > ( FIFOSIZE << FRAC_SHIFT ) ) {
@@ -174,7 +174,7 @@ static void PS1SOUNDWrite(Bitu port,Bitu data,Bitu iolen) {
 			break;
 		case 0x0202:
 			// Command.
-			ps1.Command = (Bit8u)data;
+			ps1.Command = (uint8_t)data;
 			if( data & 3 ) ps1.CanTriggerIRQ = true;
 //			switch( data & 3 )
 //			{
@@ -186,7 +186,7 @@ static void PS1SOUNDWrite(Bitu port,Bitu data,Bitu iolen) {
 		case 0x0203:
 			{
 				// Clock divisor (maybe trigger first IRQ here).
-				ps1.Divisor = (Bit8u)data;
+				ps1.Divisor = (uint8_t)data;
 				ps1.Rate = (Bit32u)( DAC_CLOCK / ( data + 1 ) );
 				// 22050 << FRAC_SHIFT / 22050 = 1 << FRAC_SHIFT
 				ps1.Adder = ( ps1.Rate << FRAC_SHIFT ) / (unsigned int)ps1.SampleRate;
@@ -211,7 +211,7 @@ static void PS1SOUNDWrite(Bitu port,Bitu data,Bitu iolen) {
 			break;
 		case 0x0204:
 			// Reset? (PS1MIC01 sets it to 08 for playback...)
-			ps1.Unknown = (Bit8u)data;
+			ps1.Unknown = (uint8_t)data;
 			if( !data )
 				PS1DAC_Reset(true);
 			break;
@@ -245,7 +245,7 @@ static Bitu PS1SOUNDRead(Bitu port,Bitu iolen) {
 //				LOG_MSG("PS1 RD %04X (%04X:%08X)",port,SegValue(cs),reg_eip);
 
 				// Read status / clear IRQ?.
-				Bit8u Status = ps1.Status = PS1SOUND_CalcStatus();
+				uint8_t Status = ps1.Status = PS1SOUND_CalcStatus();
 // Don't do this until we have some better way of detecting the triggering and ending of an IRQ.
 //				ps1.Status &= ~FIFO_IRQ;
 				return Status;
@@ -270,7 +270,7 @@ static void PS1SOUNDUpdate(Bitu length)
 		// Excessive?
 		PS1DAC_Reset(false);
 	}
-	Bit8u * buffer=(Bit8u *)MixTemp;
+	uint8_t * buffer=(uint8_t *)MixTemp;
 
 	Bits pending = 0;
 	Bitu add = 0;

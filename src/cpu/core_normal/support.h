@@ -25,7 +25,7 @@
 #define LoadRw(reg) reg
 #define LoadRd(reg) reg
 
-#define SaveRb(reg,val)	reg=((Bit8u)(val))
+#define SaveRb(reg,val)	reg=((uint8_t)(val))
 #define SaveRw(reg,val)	reg=((Bit16u)(val))
 #define SaveRd(reg,val)	reg=((Bit32u)(val))
 

@@ -503,7 +503,7 @@ bool localDrive::FileOpen(DOS_File * * file,const char * name,Bit32u flags) {
 	dirCache.ExpandName(newname);
 
 	//Flush the buffer of handles for the same file. (Betrayal in Antara)
-	Bit8u i,drive=DOS_DRIVES;
+	uint8_t i,drive=DOS_DRIVES;
 	localFile *lfp;
 	for (i=0;i<DOS_DRIVES;i++) {
 		if (Drives[i]==this) {
@@ -706,7 +706,7 @@ bool localDrive::FindFirst(const char * _dir,DOS_DTA & dta,bool fcb_findfirst) {
 		ldir[lfn_filefind_handle]=tempDir;
 	}
 	
-	Bit8u sAttr;
+	uint8_t sAttr;
 	dta.GetSearchParams(sAttr,tempDir,uselfn);
 
 	if (this->isRemote() && this->isRemovable()) {
@@ -747,8 +747,8 @@ bool localDrive::FindNext(DOS_DTA & dta) {
     char full_name[CROSS_LEN], lfull_name[LFN_NAMELENGTH+1];
     char dir_entcopy[CROSS_LEN], ldir_entcopy[CROSS_LEN];
 
-    Bit8u srch_attr;char srch_pattern[LFN_NAMELENGTH];
-	Bit8u find_attr;
+    uint8_t srch_attr;char srch_pattern[LFN_NAMELENGTH];
+	uint8_t find_attr;
 
     dta.GetSearchParams(srch_attr,srch_pattern,uselfn);
 	Bit16u id = lfn_filefind_handle>=LFN_FILEFIND_MAX?dta.GetDirID():ldid[lfn_filefind_handle];
@@ -1130,7 +1130,7 @@ bool localDrive::Rename(const char * oldname,const char * newname) {
 #if !defined(WIN32)
 #include <sys/statvfs.h>
 #endif
-bool localDrive::AllocationInfo(Bit16u * _bytes_sector,Bit8u * _sectors_cluster,Bit16u * _total_clusters,Bit16u * _free_clusters) {
+bool localDrive::AllocationInfo(Bit16u * _bytes_sector,uint8_t * _sectors_cluster,Bit16u * _total_clusters,Bit16u * _free_clusters) {
 	*_bytes_sector=allocation.bytes_sector;
 	*_sectors_cluster=allocation.sectors_cluster;
 	*_total_clusters=allocation.total_clusters;
@@ -1139,7 +1139,7 @@ bool localDrive::AllocationInfo(Bit16u * _bytes_sector,Bit8u * _sectors_cluster,
 		bool res=false;
 #if defined(WIN32)
 		long unsigned int dwSectPerClust, dwBytesPerSect, dwFreeClusters, dwTotalClusters;
-		Bit8u drive=strlen(basedir)>1&&basedir[1]==':'?toupper(basedir[0])-'A'+1:0;
+		uint8_t drive=strlen(basedir)>1&&basedir[1]==':'?toupper(basedir[0])-'A'+1:0;
 		if (drive>26) drive=0;
 		char root[4]="A:\\";
 		root[0]='A'+drive-1;
@@ -1274,7 +1274,7 @@ bool localDrive::FileStat(const char* name, FileStat_Block * const stat_block) {
 }
 
 
-Bit8u localDrive::GetMediaByte(void) {
+uint8_t localDrive::GetMediaByte(void) {
 	return allocation.mediaid;
 }
 
@@ -1388,7 +1388,7 @@ next:
     return false;
 }
 
-localDrive::localDrive(const char * startdir,Bit16u _bytes_sector,Bit8u _sectors_cluster,Bit16u _total_clusters,Bit16u _free_clusters,Bit8u _mediaid, std::vector<std::string> &options) {
+localDrive::localDrive(const char * startdir,Bit16u _bytes_sector,uint8_t _sectors_cluster,Bit16u _total_clusters,Bit16u _free_clusters,uint8_t _mediaid, std::vector<std::string> &options) {
 	strcpy(basedir,startdir);
 	sprintf(info,"local directory %s",startdir);
 	allocation.bytes_sector=_bytes_sector;
@@ -1422,7 +1422,7 @@ localDrive::localDrive(const char * startdir,Bit16u _bytes_sector,Bit8u _sectors
 
 
 //TODO Maybe use fflush, but that seemed to fuck up in visual c
-bool localFile::Read(Bit8u * data,Bit16u * size) {
+bool localFile::Read(uint8_t * data,Bit16u * size) {
 	if ((this->flags & 0xf) == OPEN_WRITE) {	// check if file opened in write-only mode
 		DOS_SetError(DOSERR_ACCESS_DENIED);
 		return false;
@@ -1437,14 +1437,14 @@ bool localFile::Read(Bit8u * data,Bit16u * size) {
 	/* Same for Igor */
 	/* hardrive motion => unmask irq 2. Only do it when it's masked as unmasking is realitively heavy to emulate */
     if (!IS_PC98_ARCH) {
-        Bit8u mask = IO_Read(0x21);
+        uint8_t mask = IO_Read(0x21);
         if(mask & 0x4 ) IO_Write(0x21,mask&0xfb);
     }
 
 	return true;
 }
 
-bool localFile::Write(const Bit8u * data,Bit16u * size) {
+bool localFile::Write(const uint8_t * data,Bit16u * size) {
 	Bit32u lastflags = this->flags & 0xf;
 	if (lastflags == OPEN_READ || lastflags == OPEN_READ_NO_MOD) {	// check if file opened in read-only mode
 		DOS_SetError(DOSERR_ACCESS_DENIED);
@@ -1465,7 +1465,7 @@ bool localFile::Write(const Bit8u * data,Bit16u * size) {
 /* ert, 20100711: Locking extensions */
 #ifdef WIN32
 #include <sys/locking.h>
-bool localFile::LockFile(Bit8u mode, Bit32u pos, Bit16u size) {
+bool localFile::LockFile(uint8_t mode, Bit32u pos, Bit16u size) {
 	HANDLE hFile = (HANDLE)_get_osfhandle(_fileno(fhandle));
 	BOOL bRet;
 
@@ -1678,12 +1678,12 @@ void localFile::Flush(void) {
 // ********************************************
 
 int  MSCDEX_RemoveDrive(char driveLetter);
-int  MSCDEX_AddDrive(char driveLetter, const char* physicalPath, Bit8u& subUnit);
-bool MSCDEX_HasMediaChanged(Bit8u subUnit);
-bool MSCDEX_GetVolumeName(Bit8u subUnit, char* name);
+int  MSCDEX_AddDrive(char driveLetter, const char* physicalPath, uint8_t& subUnit);
+bool MSCDEX_HasMediaChanged(uint8_t subUnit);
+bool MSCDEX_GetVolumeName(uint8_t subUnit, char* name);
 
 
-cdromDrive::cdromDrive(const char driveLetter, const char * startdir,Bit16u _bytes_sector,Bit8u _sectors_cluster,Bit16u _total_clusters,Bit16u _free_clusters,Bit8u _mediaid, int& error, std::vector<std::string> &options)
+cdromDrive::cdromDrive(const char driveLetter, const char * startdir,Bit16u _bytes_sector,uint8_t _sectors_cluster,Bit16u _total_clusters,Bit16u _free_clusters,uint8_t _mediaid, int& error, std::vector<std::string> &options)
 		   :localDrive(startdir,_bytes_sector,_sectors_cluster,_total_clusters,_free_clusters,_mediaid,options),
 		    subUnit(0),
 		    driveLetter('\0')
@@ -1917,7 +1917,7 @@ bool Overlay_Drive::RemoveDir(const char * dir) {
 		}
 		bool empty = true;
 		do {
-			char name[DOS_NAMELENGTH_ASCII],lname[LFN_NAMELENGTH];Bit32u size;Bit16u date;Bit16u time;Bit8u attr;
+			char name[DOS_NAMELENGTH_ASCII],lname[LFN_NAMELENGTH];Bit32u size;Bit16u date;Bit16u time;uint8_t attr;
 			dta.GetResult(name,lname,size,date,time,attr);
 			if (logoverlay) LOG_MSG("RemoveDir found %s",name);
 			if (empty && strcmp(".",name ) && strcmp("..",name)) 
@@ -2085,7 +2085,7 @@ public:
 		overlay_active = false;
 		if (logoverlay) LOG_MSG("constructing OverlayFile: %s",name);
 	}
-	bool Write(const Bit8u * data,Bit16u * size) {
+	bool Write(const uint8_t * data,Bit16u * size) {
 		Bit32u f = flags&0xf;
 		if (!overlay_active && (f == OPEN_READWRITE || f == OPEN_WRITE)) {
 			if (logoverlay) LOG_MSG("write detected, switching file for %s",GetName());
@@ -2209,7 +2209,7 @@ bool OverlayFile::create_copy() {
 	fseek(lhandle,0L,SEEK_SET);
 	
 	FILE* newhandle = NULL;
-	Bit8u drive_set = GetDrive();
+	uint8_t drive_set = GetDrive();
 	if (drive_set != 0xff && drive_set < DOS_DRIVES && Drives[drive_set]){
 		Overlay_Drive* od = dynamic_cast<Overlay_Drive*>(Drives[drive_set]);
 		if (od) {
@@ -2242,7 +2242,7 @@ static OverlayFile* ccc(DOS_File* file) {
 	return ret;
 }
 
-Overlay_Drive::Overlay_Drive(const char * startdir,const char* overlay, Bit16u _bytes_sector,Bit8u _sectors_cluster,Bit16u _total_clusters,Bit16u _free_clusters,Bit8u _mediaid,Bit8u &error,std::vector<std::string> &options)
+Overlay_Drive::Overlay_Drive(const char * startdir,const char* overlay, Bit16u _bytes_sector,uint8_t _sectors_cluster,Bit16u _total_clusters,Bit16u _free_clusters,uint8_t _mediaid,uint8_t &error,std::vector<std::string> &options)
 :localDrive(startdir,_bytes_sector,_sectors_cluster,_total_clusters,_free_clusters,_mediaid,options),special_prefix("$DBOVERLAY") {
 	optimize_cache_v1 = true; //Try to not reread overlay files on deletes. Ideally drive_cache should be improved to handle deletes properly.
 	//Currently this flag does nothing, as the current behavior is to not reread due to caching everything.
@@ -2351,7 +2351,7 @@ bool Overlay_Drive::FileOpen(DOS_File * * file,const char * name,Bit32u flags) {
 	}
 
 	//Flush the buffer of handles for the same file. (Betrayal in Antara)
-	Bit8u i,drive = DOS_DRIVES;
+	uint8_t i,drive = DOS_DRIVES;
 	localFile *lfp;
 	for (i=0;i<DOS_DRIVES;i++) {
 		if (Drives[i]==this) {
@@ -2772,8 +2772,8 @@ bool Overlay_Drive::FindNext(DOS_DTA & dta) {
 	char full_name[CROSS_LEN], lfull_name[LFN_NAMELENGTH+1];
 	char dir_entcopy[CROSS_LEN], ldir_entcopy[CROSS_LEN];
 
-	Bit8u srch_attr;char srch_pattern[DOS_NAMELENGTH_ASCII];
-	Bit8u find_attr;
+	uint8_t srch_attr;char srch_pattern[DOS_NAMELENGTH_ASCII];
+	uint8_t find_attr;
 
 	dta.GetSearchParams(srch_attr,srch_pattern,uselfn);
 	Bit16u id = lfn_filefind_handle>=LFN_FILEFIND_MAX?dta.GetDirID():ldid[lfn_filefind_handle];

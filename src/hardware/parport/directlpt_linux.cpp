@@ -36,7 +36,7 @@
 #include <fcntl.h>
 #include <SDL.h>
 
-CDirectLPT::CDirectLPT (Bitu nr, Bit8u initIrq, CommandLine* cmd)
+CDirectLPT::CDirectLPT (Bitu nr, uint8_t initIrq, CommandLine* cmd)
                               :CParallel (cmd, nr, initIrq) {
 	InstallationSuccessful = false;
 	interruptflag=true; // interrupt disabled
@@ -74,13 +74,13 @@ CDirectLPT::~CDirectLPT () {
 	if(porthandle > 0) close(porthandle);
 }
 
-bool CDirectLPT::Putchar(Bit8u val)
+bool CDirectLPT::Putchar(uint8_t val)
 {	
 	//LOG_MSG("putchar: %x",val);
 
 	// check if printer online and not busy
 	// PE and Selected: no printer attached
-	Bit8u sr=Read_SR();
+	uint8_t sr=Read_SR();
 	//LOG_MSG("SR: %x",sr);
 	if((sr&0x30)==0x30)
 	{

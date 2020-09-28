@@ -266,13 +266,13 @@ Bitu OUTPUT_DIRECT3D_SetSize()
     return retFlags;
 }
 
-bool OUTPUT_DIRECT3D_StartUpdate(Bit8u* &pixels, Bitu &pitch)
+bool OUTPUT_DIRECT3D_StartUpdate(uint8_t* &pixels, Bitu &pitch)
 {
 #if C_XBRZ
     if (sdl_xbrz.enable && sdl_xbrz.scale_on) 
     {
         sdl_xbrz.renderbuf.resize(sdl.draw.width * sdl.draw.height);
-        pixels = sdl_xbrz.renderbuf.empty() ? nullptr : reinterpret_cast<Bit8u*>(&sdl_xbrz.renderbuf[0]);
+        pixels = sdl_xbrz.renderbuf.empty() ? nullptr : reinterpret_cast<uint8_t*>(&sdl_xbrz.renderbuf[0]);
         pitch = sdl.draw.width * sizeof(uint32_t);
         sdl.updating = true;
     }
@@ -306,11 +306,11 @@ void OUTPUT_DIRECT3D_EndUpdate(const Bit16u *changedLines)
             xBRZ_Render(renderBuf, xbrzBuf, changedLines, srcWidth, srcHeight, sdl_xbrz.scale_factor);
 
             // D3D texture can be not of exactly size we expect, so we copy xBRZ buffer to the texture there, adjusting for texture pitch
-            Bit8u *tgtPix;
+            uint8_t *tgtPix;
             Bitu tgtPitch;
             if (d3d->LockTexture(tgtPix, tgtPitch) && tgtPix) // if locking fails, target texture can be nullptr
             {
-                uint32_t* tgtTex = reinterpret_cast<uint32_t*>(static_cast<Bit8u*>(tgtPix));
+                uint32_t* tgtTex = reinterpret_cast<uint32_t*>(static_cast<uint8_t*>(tgtPix));
 # if defined(XBRZ_PPL)
                 concurrency::task_group tg;
                 for (int i = 0; i < xbrzHeight; i += sdl_xbrz.task_granularity)

@@ -50,7 +50,7 @@ static Bit32u SIBZero=0;
 static Bit32u * SIBIndex[8]= { &reg_eax,&reg_ecx,&reg_edx,&reg_ebx,&SIBZero,&reg_ebp,&reg_esi,&reg_edi };
 
 static INLINE PhysPt Sib(Bitu mode) {
-	Bit8u sib=Fetchb();
+	uint8_t sib=Fetchb();
 	PhysPt base;
 	switch (sib&7) {
 	case 0:	/* EAX Base */

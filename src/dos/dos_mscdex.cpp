@@ -63,9 +63,9 @@ public:
 	void	SetNextDeviceHeader	(RealPt ptr)	{ sSave(sDeviceHeader,nextDeviceHeader,ptr);	};
 	RealPt	GetNextDeviceHeader	(void)			{ return sGet(sDeviceHeader,nextDeviceHeader);	};
 	void	SetAttribute		(Bit16u atr)	{ sSave(sDeviceHeader,devAttributes,atr);		};
-	void	SetDriveLetter		(Bit8u letter)	{ sSave(sDeviceHeader,driveLetter,letter);		};
-	void	SetNumSubUnits		(Bit8u num)		{ sSave(sDeviceHeader,numSubUnits,num);			};
-	Bit8u	GetNumSubUnits		(void)			{ return sGet(sDeviceHeader,numSubUnits);		};
+	void	SetDriveLetter		(uint8_t letter)	{ sSave(sDeviceHeader,driveLetter,letter);		};
+	void	SetNumSubUnits		(uint8_t num)		{ sSave(sDeviceHeader,numSubUnits,num);			};
+	uint8_t	GetNumSubUnits		(void)			{ return sGet(sDeviceHeader,numSubUnits);		};
 	void	SetName				(char const* _name)	{ MEM_BlockWrite(pt+offsetof(sDeviceHeader,name),_name,8); };
 	void	SetInterrupt		(Bit16u ofs)	{ sSave(sDeviceHeader,interrupt,ofs);			};
 	void	SetStrategy			(Bit16u ofs)	{ sSave(sDeviceHeader,strategy,ofs);			};
@@ -78,10 +78,10 @@ public:
 		Bit16u	devAttributes;
 		Bit16u	strategy;
 		Bit16u	interrupt;
-		Bit8u	name[8];
+		uint8_t	name[8];
 		Bit16u  wReserved;
-		Bit8u	driveLetter;
-		Bit8u	numSubUnits;
+		uint8_t	driveLetter;
+		uint8_t	numSubUnits;
     } GCC_ATTRIBUTE(packed) TDeviceHeader = {};
 	#ifdef _MSC_VER
 	#pragma pack()
@@ -96,42 +96,42 @@ public:
 	Bit16u		GetVersion			(void)	{ return (MSCDEX_VERSION_HIGH<<8)+MSCDEX_VERSION_LOW; };
 	Bit16u		GetNumDrives		(void)	{ return numDrives;			};
 	Bit16u		GetFirstDrive		(void)	{ return dinfo[0].drive; };
-	Bit8u		GetSubUnit			(Bit16u _drive);
-	bool		GetUPC				(Bit8u subUnit, Bit8u& attr, char* upc);
+	uint8_t		GetSubUnit			(Bit16u _drive);
+	bool		GetUPC				(uint8_t subUnit, uint8_t& attr, char* upc);
 
-	void		InitNewMedia		(Bit8u subUnit);
-	bool		PlayAudioSector		(Bit8u subUnit, Bit32u sector, Bit32u length);
-	bool		PlayAudioMSF		(Bit8u subUnit, Bit32u start, Bit32u length);
-	bool		StopAudio			(Bit8u subUnit);
-	bool		GetAudioStatus		(Bit8u subUnit, bool& playing, bool& pause, TMSF& start, TMSF& end);
+	void		InitNewMedia		(uint8_t subUnit);
+	bool		PlayAudioSector		(uint8_t subUnit, Bit32u sector, Bit32u length);
+	bool		PlayAudioMSF		(uint8_t subUnit, Bit32u start, Bit32u length);
+	bool		StopAudio			(uint8_t subUnit);
+	bool		GetAudioStatus		(uint8_t subUnit, bool& playing, bool& pause, TMSF& start, TMSF& end);
 
-	bool		GetSubChannelData	(Bit8u subUnit, Bit8u& attr, Bit8u& track, Bit8u &index, TMSF& rel, TMSF& abs);
+	bool		GetSubChannelData	(uint8_t subUnit, uint8_t& attr, uint8_t& track, uint8_t &index, TMSF& rel, TMSF& abs);
 
 	int			RemoveDrive			(Bit16u _drive);
-	int			AddDrive			(Bit16u _drive, char* physicalPath, Bit8u& subUnit);
+	int			AddDrive			(Bit16u _drive, char* physicalPath, uint8_t& subUnit);
 	bool 		HasDrive			(Bit16u drive);
-	void		ReplaceDrive		(CDROM_Interface* newCdrom, Bit8u subUnit);
+	void		ReplaceDrive		(CDROM_Interface* newCdrom, uint8_t subUnit);
 	void		GetDrives			(PhysPt data);
 	void		GetDriverInfo		(PhysPt data);
-	bool		GetVolumeName		(Bit8u subUnit, char* data);
+	bool		GetVolumeName		(uint8_t subUnit, char* data);
 	bool		GetFileName			(Bit16u drive, Bit16u pos, PhysPt data);
 	bool		GetDirectoryEntry	(Bit16u drive, bool copyFlag, PhysPt pathname, PhysPt buffer, Bit16u& error);
 	bool		ReadVTOC			(Bit16u drive, Bit16u volume, PhysPt data, Bit16u& offset, Bit16u& error);
 	bool		ReadSectors			(Bit16u drive, Bit32u sector, Bit16u num, PhysPt data);
-	bool		ReadSectors			(Bit8u subUnit, bool raw, Bit32u sector, Bit16u num, PhysPt data);
-	bool		ReadSectorsMSF		(Bit8u subUnit, bool raw, Bit32u start, Bit16u num, PhysPt data);
+	bool		ReadSectors			(uint8_t subUnit, bool raw, Bit32u sector, Bit16u num, PhysPt data);
+	bool		ReadSectorsMSF		(uint8_t subUnit, bool raw, Bit32u start, Bit16u num, PhysPt data);
 	bool		SendDriverRequest	(Bit16u drive, PhysPt data);
 	bool		IsValidDrive		(Bit16u _drive);
-	bool		GetCDInfo			(Bit8u subUnit, Bit8u& tr1, Bit8u& tr2, TMSF& leadOut);
-	Bit32u		GetVolumeSize		(Bit8u subUnit);
-	bool		GetTrackInfo		(Bit8u subUnit, Bit8u track, Bit8u& attr, TMSF& start);
-	Bit16u		GetStatusWord		(Bit8u subUnit,Bit16u status);
-	bool		GetCurrentPos		(Bit8u subUnit, TMSF& pos);
-	Bit32u		GetDeviceStatus		(Bit8u subUnit);
-	bool		GetMediaStatus		(Bit8u subUnit, Bit8u& status);
-	bool		LoadUnloadMedia		(Bit8u subUnit, bool unload);
-	bool		ResumeAudio			(Bit8u subUnit);
-	bool		GetMediaStatus		(Bit8u subUnit, bool& media, bool& changed, bool& trayOpen);
+	bool		GetCDInfo			(uint8_t subUnit, uint8_t& tr1, uint8_t& tr2, TMSF& leadOut);
+	Bit32u		GetVolumeSize		(uint8_t subUnit);
+	bool		GetTrackInfo		(uint8_t subUnit, uint8_t track, uint8_t& attr, TMSF& start);
+	Bit16u		GetStatusWord		(uint8_t subUnit,Bit16u status);
+	bool		GetCurrentPos		(uint8_t subUnit, TMSF& pos);
+	Bit32u		GetDeviceStatus		(uint8_t subUnit);
+	bool		GetMediaStatus		(uint8_t subUnit, uint8_t& status);
+	bool		LoadUnloadMedia		(uint8_t subUnit, bool unload);
+	bool		ResumeAudio			(uint8_t subUnit);
+	bool		GetMediaStatus		(uint8_t subUnit, bool& media, bool& changed, bool& trayOpen);
 
 	PhysPt		GetDefaultBuffer	(void);
 	PhysPt		GetTempBuffer		(void);
@@ -142,8 +142,8 @@ public:
 	Bit16u		numDrives = 0;
 
 	typedef struct SDriveInfo {
-		Bit8u	drive;			// drive letter in dosbox
-		Bit8u	physDrive;		// drive letter in system
+		uint8_t	drive;			// drive letter in dosbox
+		uint8_t	physDrive;		// drive letter in system
 		bool	audioPlay;		// audio playing active
 		bool	audioPaused;	// audio playing paused
 		Bit32u	audioStart;		// StartLoc for resume
@@ -159,8 +159,8 @@ public:
 	CDROM_Interface*		cdrom[MSCDEX_MAX_DRIVES];
 	Bit16u		rootDriverHeaderSeg = 0;
 
-	bool		ChannelControl		(Bit8u subUnit, TCtrl ctrl);
-	bool		GetChannelControl	(Bit8u subUnit, TCtrl& ctrl);
+	bool		ChannelControl		(uint8_t subUnit, TCtrl ctrl);
+	bool		GetChannelControl	(uint8_t subUnit, TCtrl& ctrl);
 };
 
 CMscdex::CMscdex(void) {
@@ -189,10 +189,10 @@ bool CMscdex::IsValidDrive(Bit16u _drive)
 	return false;
 }
 
-Bit8u CMscdex::GetSubUnit(Bit16u _drive)
+uint8_t CMscdex::GetSubUnit(Bit16u _drive)
 {
 	_drive &= 0xff; //Only lowerpart (Ultimate domain)
-	for (Bit16u i=0; i<GetNumDrives(); i++) if (dinfo[i].drive==_drive) return (Bit8u)i;
+	for (Bit16u i=0; i<GetNumDrives(); i++) if (dinfo[i].drive==_drive) return (uint8_t)i;
 	return 0xff;
 }
 
@@ -237,7 +237,7 @@ int CMscdex::RemoveDrive(Bit16u _drive)
 	return 1;
 }
 
-int CMscdex::AddDrive(Bit16u _drive, char* physicalPath, Bit8u& subUnit)
+int CMscdex::AddDrive(Bit16u _drive, char* physicalPath, uint8_t& subUnit)
 {
 	subUnit = 0;
 	if ((Bitu)GetNumDrives()+1>=MSCDEX_MAX_DRIVES) return 4;
@@ -294,7 +294,7 @@ int CMscdex::AddDrive(Bit16u _drive, char* physicalPath, Bit8u& subUnit)
 		} break;
 	case 0x01:	// iso cdrom interface	
 		LOG(LOG_MISC,LOG_NORMAL)("MSCDEX: Mounting iso file as cdrom: %s", physicalPath);
-		cdrom[numDrives] = new CDROM_Interface_Image((Bit8u)numDrives);
+		cdrom[numDrives] = new CDROM_Interface_Image((uint8_t)numDrives);
 		break;
 	case 0x02:	// fake cdrom interface (directories)
 		cdrom[numDrives] = new CDROM_Interface_Fake;
@@ -340,20 +340,20 @@ int CMscdex::AddDrive(Bit16u _drive, char* physicalPath, Bit8u& subUnit)
 		Bit16u off = sizeof(DOS_DeviceHeader::sDeviceHeader);
 		Bit16u call_strategy=CALLBACK_Allocate();
 		CallBack_Handlers[call_strategy]=MSCDEX_Strategy_Handler;
-		real_writeb(seg,off+0,(Bit8u)0xFE);		//GRP 4
-		real_writeb(seg,off+1,(Bit8u)0x38);		//Extra Callback instruction
+		real_writeb(seg,off+0,(uint8_t)0xFE);		//GRP 4
+		real_writeb(seg,off+1,(uint8_t)0x38);		//Extra Callback instruction
 		real_writew(seg,off+2,call_strategy);	//The immediate word
-		real_writeb(seg,off+4,(Bit8u)0xCB);		//A RETF Instruction
+		real_writeb(seg,off+4,(uint8_t)0xCB);		//A RETF Instruction
 		devHeader.SetStrategy(off);
 		
 		// Create Callback Interrupt
 		off += 5;
 		Bit16u call_interrupt=CALLBACK_Allocate();
 		CallBack_Handlers[call_interrupt]=MSCDEX_Interrupt_Handler;
-		real_writeb(seg,off+0,(Bit8u)0xFE);		//GRP 4
-		real_writeb(seg,off+1,(Bit8u)0x38);		//Extra Callback instruction
+		real_writeb(seg,off+0,(uint8_t)0xFE);		//GRP 4
+		real_writeb(seg,off+1,(uint8_t)0x38);		//Extra Callback instruction
 		real_writew(seg,off+2,call_interrupt);	//The immediate word
-		real_writeb(seg,off+4,(Bit8u)0xCB);		//A RETF Instruction
+		real_writeb(seg,off+4,(uint8_t)0xCB);		//A RETF Instruction
 		devHeader.SetInterrupt(off);
 		
 		rootDriverHeaderSeg = seg;
@@ -380,17 +380,17 @@ int CMscdex::AddDrive(Bit16u _drive, char* physicalPath, Bit8u& subUnit)
 		}
 		cdrom[0] = _cdrom;
 		CDROM_Interface_Image::images[0] = _cdimg;
-		dinfo[0].drive		= (Bit8u)_drive;
-		dinfo[0].physDrive	= (Bit8u)toupper(physicalPath[0]);
+		dinfo[0].drive		= (uint8_t)_drive;
+		dinfo[0].physDrive	= (uint8_t)toupper(physicalPath[0]);
 		subUnit = 0;
 	} else {
-		dinfo[numDrives].drive		= (Bit8u)_drive;
-		dinfo[numDrives].physDrive	= (Bit8u)toupper(physicalPath[0]);
-		subUnit = (Bit8u)numDrives;
+		dinfo[numDrives].drive		= (uint8_t)_drive;
+		dinfo[numDrives].physDrive	= (uint8_t)toupper(physicalPath[0]);
+		subUnit = (uint8_t)numDrives;
 	}
 	numDrives++;
 	// init channel control
-	for (Bit8u chan=0;chan<4;chan++) {
+	for (uint8_t chan=0;chan<4;chan++) {
 		dinfo[subUnit].audioCtrl.out[chan]=chan;
 		dinfo[subUnit].audioCtrl.vol[chan]=0xff;
 	}
@@ -403,7 +403,7 @@ bool CMscdex::HasDrive(Bit16u drive) {
 	return (GetSubUnit(drive) != 0xff);
 }
 
-void CMscdex::ReplaceDrive(CDROM_Interface* newCdrom, Bit8u subUnit) {
+void CMscdex::ReplaceDrive(CDROM_Interface* newCdrom, uint8_t subUnit) {
 	if (cdrom[subUnit] != NULL) {
 		StopAudio(subUnit);
 		delete cdrom[subUnit];
@@ -429,13 +429,13 @@ PhysPt CMscdex::GetTempBuffer(void) {
 
 void CMscdex::GetDriverInfo	(PhysPt data) {
 	for (Bit16u i=0; i<GetNumDrives(); i++) {
-		mem_writeb(data  ,(Bit8u)i);	// subunit
+		mem_writeb(data  ,(uint8_t)i);	// subunit
 		mem_writed(data+1,RealMake(rootDriverHeaderSeg,0));
 		data+=5;
 	}
 }
 
-bool CMscdex::GetCDInfo(Bit8u subUnit, Bit8u& tr1, Bit8u& tr2, TMSF& leadOut) {
+bool CMscdex::GetCDInfo(uint8_t subUnit, uint8_t& tr1, uint8_t& tr2, TMSF& leadOut) {
 	if (subUnit>=numDrives) return false;
 	int tr1i,tr2i;
 	// Assume Media change
@@ -445,13 +445,13 @@ bool CMscdex::GetCDInfo(Bit8u subUnit, Bit8u& tr1, Bit8u& tr2, TMSF& leadOut) {
 		tr1 = tr2 = 0;
 		memset(&leadOut,0,sizeof(leadOut));
 	} else {
-		tr1 = (Bit8u) tr1i;
-		tr2 = (Bit8u) tr2i;
+		tr1 = (uint8_t) tr1i;
+		tr2 = (uint8_t) tr2i;
 	}
 	return dinfo[subUnit].lastResult;
 }
 
-bool CMscdex::GetTrackInfo(Bit8u subUnit, Bit8u track, Bit8u& attr, TMSF& start) {
+bool CMscdex::GetTrackInfo(uint8_t subUnit, uint8_t track, uint8_t& attr, TMSF& start) {
 	if (subUnit>=numDrives) return false;
 	dinfo[subUnit].lastResult = cdrom[subUnit]->GetAudioTrackInfo(track,start,attr);	
 	if (!dinfo[subUnit].lastResult) {
@@ -461,7 +461,7 @@ bool CMscdex::GetTrackInfo(Bit8u subUnit, Bit8u track, Bit8u& attr, TMSF& start)
 	return dinfo[subUnit].lastResult;
 }
 
-bool CMscdex::PlayAudioSector(Bit8u subUnit, Bit32u sector, Bit32u length) {
+bool CMscdex::PlayAudioSector(uint8_t subUnit, Bit32u sector, Bit32u length) {
 	if (subUnit>=numDrives) return false;
 	// If value from last stop is used, this is meant as a resume
 	// better start using resume command
@@ -479,16 +479,16 @@ bool CMscdex::PlayAudioSector(Bit8u subUnit, Bit32u sector, Bit32u length) {
 	return dinfo[subUnit].lastResult;
 }
 
-bool CMscdex::PlayAudioMSF(Bit8u subUnit, Bit32u start, Bit32u length) {
+bool CMscdex::PlayAudioMSF(uint8_t subUnit, Bit32u start, Bit32u length) {
 	if (subUnit>=numDrives) return false;
-	Bit8u min		= (Bit8u)(start>>16) & 0xFF;
-	Bit8u sec		= (Bit8u)(start>> 8) & 0xFF;
-	Bit8u fr		= (Bit8u)(start>> 0) & 0xFF;
+	uint8_t min		= (uint8_t)(start>>16) & 0xFF;
+	uint8_t sec		= (uint8_t)(start>> 8) & 0xFF;
+	uint8_t fr		= (uint8_t)(start>> 0) & 0xFF;
 	Bit32u sector	= min*60u*75u+sec*75u+fr - 150u;
 	return dinfo[subUnit].lastResult = PlayAudioSector(subUnit,sector,length);
 }
 
-bool CMscdex::GetSubChannelData(Bit8u subUnit, Bit8u& attr, Bit8u& track, Bit8u &index, TMSF& rel, TMSF& abs) {
+bool CMscdex::GetSubChannelData(uint8_t subUnit, uint8_t& attr, uint8_t& track, uint8_t &index, TMSF& rel, TMSF& abs) {
 	if (subUnit>=numDrives) return false;
 	dinfo[subUnit].lastResult = cdrom[subUnit]->GetAudioSub(attr,track,index,rel,abs);
 	if (!dinfo[subUnit].lastResult) {
@@ -499,21 +499,21 @@ bool CMscdex::GetSubChannelData(Bit8u subUnit, Bit8u& attr, Bit8u& track, Bit8u 
 	return dinfo[subUnit].lastResult;
 }
 
-bool CMscdex::GetAudioStatus(Bit8u subUnit, bool& playing, bool& pause, TMSF& start, TMSF& end) {
+bool CMscdex::GetAudioStatus(uint8_t subUnit, bool& playing, bool& pause, TMSF& start, TMSF& end) {
 	if (subUnit>=numDrives) return false;
 	dinfo[subUnit].lastResult = cdrom[subUnit]->GetAudioStatus(playing,pause);
 	if (dinfo[subUnit].lastResult) {
 		if (playing) {
 			// Start
 			Bit32u addr	= dinfo[subUnit].audioStart + 150;
-			start.fr	= (Bit8u)(addr%75);	addr/=75;
-			start.sec	= (Bit8u)(addr%60); 
-			start.min	= (Bit8u)(addr/60);
+			start.fr	= (uint8_t)(addr%75);	addr/=75;
+			start.sec	= (uint8_t)(addr%60); 
+			start.min	= (uint8_t)(addr/60);
 			// End
 			addr		= dinfo[subUnit].audioEnd + 150;
-			end.fr		= (Bit8u)(addr%75);	addr/=75;
-			end.sec		= (Bit8u)(addr%60); 
-			end.min		= (Bit8u)(addr/60);
+			end.fr		= (uint8_t)(addr%75);	addr/=75;
+			end.sec		= (uint8_t)(addr%60); 
+			end.min		= (uint8_t)(addr/60);
 		} else {
 			memset(&start,0,sizeof(start));
 			memset(&end,0,sizeof(end));
@@ -528,7 +528,7 @@ bool CMscdex::GetAudioStatus(Bit8u subUnit, bool& playing, bool& pause, TMSF& st
 	return dinfo[subUnit].lastResult;
 }
 
-bool CMscdex::StopAudio(Bit8u subUnit) {
+bool CMscdex::StopAudio(uint8_t subUnit) {
 	if (subUnit>=numDrives) return false;
 	if (dinfo[subUnit].audioPlay) {
 		// Check if audio is still playing....
@@ -560,14 +560,14 @@ bool CMscdex::StopAudio(Bit8u subUnit) {
 	return dinfo[subUnit].lastResult;
 }
 
-bool CMscdex::ResumeAudio(Bit8u subUnit) {
+bool CMscdex::ResumeAudio(uint8_t subUnit) {
 	if (subUnit>=numDrives) return false;
 	return dinfo[subUnit].lastResult = PlayAudioSector(subUnit,dinfo[subUnit].audioStart,dinfo[subUnit].audioEnd);
 }
 
-Bit32u CMscdex::GetVolumeSize(Bit8u subUnit) {
+Bit32u CMscdex::GetVolumeSize(uint8_t subUnit) {
 	if (subUnit>=numDrives) return false;
-	Bit8u tr1,tr2;
+	uint8_t tr1,tr2;
 	TMSF leadOut;
 	dinfo[subUnit].lastResult = GetCDInfo(subUnit,tr1,tr2,leadOut);
 	if (dinfo[subUnit].lastResult) return (leadOut.min*60u*75u)+(leadOut.sec*75u)+leadOut.fr;
@@ -575,7 +575,7 @@ Bit32u CMscdex::GetVolumeSize(Bit8u subUnit) {
 }
 
 bool CMscdex::ReadVTOC(Bit16u drive, Bit16u volume, PhysPt data, Bit16u& offset, Bit16u& error) {
-	Bit8u subunit = GetSubUnit(drive);
+	uint8_t subunit = GetSubUnit(drive);
 /*	if (subunit>=numDrives) {
 		error=MSCDEX_ERROR_UNKNOWN_DRIVE;
 		return false;
@@ -595,12 +595,12 @@ bool CMscdex::ReadVTOC(Bit16u drive, Bit16u volume, PhysPt data, Bit16u& offset,
 			return false;
 		}
 	}
-	Bit8u type = mem_readb(data + offset);
+	uint8_t type = mem_readb(data + offset);
 	error = (type == 1) ? 1 : (type == 0xFF) ? 0xFF : 0;
 	return true;
 }
 
-bool CMscdex::GetVolumeName(Bit8u subUnit, char* data) {	
+bool CMscdex::GetVolumeName(uint8_t subUnit, char* data) {	
 	if (subUnit>=numDrives) return false;
 	Bit16u drive = dinfo[subUnit].drive;
 
@@ -623,9 +623,9 @@ bool CMscdex::GetFileName(Bit16u drive, Bit16u pos, PhysPt data) {
 	PhysPt ptoc = GetTempBuffer();
 	success = ReadVTOC(drive,0x00,ptoc,offset,error);
 	if (success) {
-		Bit8u len;
+		uint8_t len;
 		for (len=0;len<37;len++) {
-			Bit8u c=mem_readb(ptoc+offset+pos+len);
+			uint8_t c=mem_readb(ptoc+offset+pos+len);
 			if (c==0 || c==0x20) break;
 		}
 		MEM_BlockCopy(data,ptoc+offset+pos,len);
@@ -634,13 +634,13 @@ bool CMscdex::GetFileName(Bit16u drive, Bit16u pos, PhysPt data) {
 	return success; 
 }
 
-bool CMscdex::GetUPC(Bit8u subUnit, Bit8u& attr, char* upc)
+bool CMscdex::GetUPC(uint8_t subUnit, uint8_t& attr, char* upc)
 {
 	if (subUnit>=numDrives) return false;
 	return dinfo[subUnit].lastResult = cdrom[subUnit]->GetUPC(attr,&upc[0]);
 }
 
-bool CMscdex::ReadSectors(Bit8u subUnit, bool raw, Bit32u sector, Bit16u num, PhysPt data) {
+bool CMscdex::ReadSectors(uint8_t subUnit, bool raw, Bit32u sector, Bit16u num, PhysPt data) {
 	if (subUnit>=numDrives) return false;
 	if ((cpu_cycles_count_t)(4u*num*2048u+5u) < CPU_Cycles) CPU_Cycles -= cpu_cycles_count_t(4u*num*2048u);
 	else CPU_Cycles = 5u;
@@ -648,11 +648,11 @@ bool CMscdex::ReadSectors(Bit8u subUnit, bool raw, Bit32u sector, Bit16u num, Ph
 	return dinfo[subUnit].lastResult;
 }
 
-bool CMscdex::ReadSectorsMSF(Bit8u subUnit, bool raw, Bit32u start, Bit16u num, PhysPt data) {
+bool CMscdex::ReadSectorsMSF(uint8_t subUnit, bool raw, Bit32u start, Bit16u num, PhysPt data) {
 	if (subUnit>=numDrives) return false;
-	Bit8u min		= (Bit8u)(start>>16) & 0xFF;
-	Bit8u sec		= (Bit8u)(start>> 8) & 0xFF;
-	Bit8u fr		= (Bit8u)(start>> 0) & 0xFF;
+	uint8_t min		= (uint8_t)(start>>16) & 0xFF;
+	uint8_t sec		= (uint8_t)(start>> 8) & 0xFF;
+	uint8_t fr		= (uint8_t)(start>> 0) & 0xFF;
 	Bit32u sector	= min*60u*75u+sec*75u+fr - 150u;
 	return ReadSectors(subUnit,raw,sector,num,data);
 }
@@ -669,7 +669,7 @@ bool CMscdex::GetDirectoryEntry(Bit16u drive, bool copyFlag, PhysPt pathname, Ph
 	bool	foundComplete = false;
 	bool	nextPart = true;
     const char* useName = NULL;
-    Bit8u   entryLength, nameLength;
+    uint8_t   entryLength, nameLength;
 	// clear error
 	error = 0;
 	MEM_StrCopy(pathname+1,searchName,mem_readb(pathname));
@@ -738,8 +738,8 @@ bool CMscdex::GetDirectoryEntry(Bit16u drive, bool copyFlag, PhysPt pathname, Ph
 			if (foundComplete) {
 				if (copyFlag) {
 					LOG(LOG_MISC,LOG_WARN)("MSCDEX: GetDirEntry: Copyflag structure not entirely accurate maybe");
-					Bit8u readBuf[256];
-					Bit8u writeBuf[256];
+					uint8_t readBuf[256];
+					uint8_t writeBuf[256];
 					MEM_BlockRead( defBuffer+index, readBuf, entryLength );
 					writeBuf[0] = readBuf[1];						// 00h	BYTE	length of XAR in Logical Block Numbers
 					memcpy( &writeBuf[1], &readBuf[0x2], 4);		// 01h	DWORD	Logical Block Number of file start
@@ -776,22 +776,22 @@ bool CMscdex::GetDirectoryEntry(Bit16u drive, bool copyFlag, PhysPt pathname, Ph
 	return false; // not found
 }
 
-bool CMscdex::GetCurrentPos(Bit8u subUnit, TMSF& pos) {
+bool CMscdex::GetCurrentPos(uint8_t subUnit, TMSF& pos) {
 	if (subUnit>=numDrives) return false;
 	TMSF rel;
-	Bit8u attr,track,index;
+	uint8_t attr,track,index;
 	dinfo[subUnit].lastResult = GetSubChannelData(subUnit, attr, track, index, rel, pos);
 	if (!dinfo[subUnit].lastResult) memset(&pos,0,sizeof(pos));
 	return dinfo[subUnit].lastResult;
 }
 
-bool CMscdex::GetMediaStatus(Bit8u subUnit, bool& media, bool& changed, bool& trayOpen) {
+bool CMscdex::GetMediaStatus(uint8_t subUnit, bool& media, bool& changed, bool& trayOpen) {
 	if (subUnit>=numDrives) return false;
 	dinfo[subUnit].lastResult = cdrom[subUnit]->GetMediaTrayStatus(media,changed,trayOpen);
 	return dinfo[subUnit].lastResult;
 }
 
-Bit32u CMscdex::GetDeviceStatus(Bit8u subUnit) {
+Bit32u CMscdex::GetDeviceStatus(uint8_t subUnit) {
 	if (subUnit>=numDrives) return false;
 	bool media,changed,trayOpen;
 
@@ -817,7 +817,7 @@ Bit32u CMscdex::GetDeviceStatus(Bit8u subUnit) {
 	return status;
 }
 
-bool CMscdex::GetMediaStatus(Bit8u subUnit, Bit8u& status) {
+bool CMscdex::GetMediaStatus(uint8_t subUnit, uint8_t& status) {
 	if (subUnit>=numDrives) return false;
 /*	bool media,changed,open,result;
 	result = GetMediaStatus(subUnit,media,changed,open);
@@ -827,14 +827,14 @@ bool CMscdex::GetMediaStatus(Bit8u subUnit, Bit8u& status) {
 	return true;
 }
 
-bool CMscdex::LoadUnloadMedia(Bit8u subUnit, bool unload) {
+bool CMscdex::LoadUnloadMedia(uint8_t subUnit, bool unload) {
 	if (subUnit>=numDrives) return false;
 	dinfo[subUnit].lastResult = cdrom[subUnit]->LoadUnloadMedia(unload);
 	return dinfo[subUnit].lastResult;
 }
 
 bool CMscdex::SendDriverRequest(Bit16u drive, PhysPt data) {
-	Bit8u subUnit = GetSubUnit(drive);
+	uint8_t subUnit = GetSubUnit(drive);
 	if (subUnit>=numDrives) return false;
 	// Get SubUnit
 	mem_writeb(data+1,subUnit);
@@ -844,7 +844,7 @@ bool CMscdex::SendDriverRequest(Bit16u drive, PhysPt data) {
 	return true;
 }
 
-Bit16u CMscdex::GetStatusWord(Bit8u subUnit,Bit16u status) {
+Bit16u CMscdex::GetStatusWord(uint8_t subUnit,Bit16u status) {
 	if (subUnit>=numDrives) return REQUEST_STATUS_ERROR | 0x02; // error : Drive not ready
 
 	if (dinfo[subUnit].lastResult)	status |= REQUEST_STATUS_DONE;				// ok
@@ -865,14 +865,14 @@ Bit16u CMscdex::GetStatusWord(Bit8u subUnit,Bit16u status) {
 	return status;
 }
 
-void CMscdex::InitNewMedia(Bit8u subUnit) {
+void CMscdex::InitNewMedia(uint8_t subUnit) {
 	if (subUnit<numDrives) {
 		// Reopen new media
 		cdrom[subUnit]->InitNewMedia();
 	}
 }
 
-bool CMscdex::ChannelControl(Bit8u subUnit, TCtrl ctrl) {
+bool CMscdex::ChannelControl(uint8_t subUnit, TCtrl ctrl) {
 	if (subUnit>=numDrives) return false;
 	// adjust strange channel mapping
 	if (ctrl.out[0]>1) ctrl.out[0]=0;
@@ -882,7 +882,7 @@ bool CMscdex::ChannelControl(Bit8u subUnit, TCtrl ctrl) {
 	return true;
 }
 
-bool CMscdex::GetChannelControl(Bit8u subUnit, TCtrl& ctrl) {
+bool CMscdex::GetChannelControl(uint8_t subUnit, TCtrl& ctrl) {
 	if (subUnit>=numDrives) return false;
 	ctrl=dinfo[subUnit].audioCtrl;
 	return true;
@@ -910,8 +910,8 @@ bool GetMSCDEXDrive(unsigned char drive_letter,CDROM_Interface **_cdrom) {
 	return false;
 }
 
-static Bit16u MSCDEX_IOCTL_Input(PhysPt buffer,Bit8u drive_unit) {
-	Bit8u ioctl_fct = mem_readb(buffer);
+static Bit16u MSCDEX_IOCTL_Input(PhysPt buffer,uint8_t drive_unit) {
+	uint8_t ioctl_fct = mem_readb(buffer);
 	MSCDEX_LOG("MSCDEX: IOCTL INPUT Subfunction %02X",(int)ioctl_fct);
 	switch (ioctl_fct) {
 		case 0x00 : /* Get Device Header address */
@@ -920,7 +920,7 @@ static Bit16u MSCDEX_IOCTL_Input(PhysPt buffer,Bit8u drive_unit) {
 		case 0x01 :{/* Get current position */
 					TMSF pos;
 					mscdex->GetCurrentPos(drive_unit,pos);
-					Bit8u addr_mode = mem_readb(buffer+1);
+					uint8_t addr_mode = mem_readb(buffer+1);
 					if (addr_mode==0) {			// HSG
 						Bit32u frames=MSF_TO_FRAMES(pos.min, pos.sec, pos.fr);
 						if (frames<150) MSCDEX_LOG_ERROR("MSCDEX: Get position: invalid position %d:%d:%d", pos.min, pos.sec, pos.fr);
@@ -939,7 +939,7 @@ static Bit16u MSCDEX_IOCTL_Input(PhysPt buffer,Bit8u drive_unit) {
 		case 0x04 : /* Audio Channel control */
 					TCtrl ctrl;
 					if (!mscdex->GetChannelControl(drive_unit,ctrl)) return 0x01;
-					for (Bit8u chan=0;chan<4;chan++) {
+					for (uint8_t chan=0;chan<4;chan++) {
 						mem_writeb(buffer+chan*2u+1u,ctrl.out[chan]);
 						mem_writeb(buffer+chan*2u+2u,ctrl.vol[chan]);
 					}
@@ -956,14 +956,14 @@ static Bit16u MSCDEX_IOCTL_Input(PhysPt buffer,Bit8u drive_unit) {
 					mem_writed(buffer+1,mscdex->GetVolumeSize(drive_unit));
 					break;
 		case 0x09 : /* Media change ? */
-					Bit8u status;
+					uint8_t status;
 					if (!mscdex->GetMediaStatus(drive_unit,status)) {
 						status = 0;		// state unknown
 					}
 					mem_writeb(buffer+1,status);
 					break;
 		case 0x0A : /* Get Audio Disk info */	
-					Bit8u tr1,tr2; TMSF leadOut;
+					uint8_t tr1,tr2; TMSF leadOut;
 					if (!mscdex->GetCDInfo(drive_unit,tr1,tr2,leadOut)) return 0x05;
 					mem_writeb(buffer+1,tr1);
 					mem_writeb(buffer+2,tr2);
@@ -973,8 +973,8 @@ static Bit16u MSCDEX_IOCTL_Input(PhysPt buffer,Bit8u drive_unit) {
 					mem_writeb(buffer+6,0x00);
 					break;
 		case 0x0B :{/* Audio Track Info */
-					Bit8u attr; TMSF start;
-					Bit8u track = mem_readb(buffer+1);
+					uint8_t attr; TMSF start;
+					uint8_t track = mem_readb(buffer+1);
 					mscdex->GetTrackInfo(drive_unit,track,attr,start);		
 					mem_writeb(buffer+2,start.fr);
 					mem_writeb(buffer+3,start.sec);
@@ -983,7 +983,7 @@ static Bit16u MSCDEX_IOCTL_Input(PhysPt buffer,Bit8u drive_unit) {
 					mem_writeb(buffer+6,attr);
 					break; }
 		case 0x0C :{/* Get Audio Sub Channel data */
-					Bit8u attr,track,index; 
+					uint8_t attr,track,index; 
 					TMSF abs,rel;
 					mscdex->GetSubChannelData(drive_unit,attr,track,index,rel,abs);
 					mem_writeb(buffer+1,attr);
@@ -999,7 +999,7 @@ static Bit16u MSCDEX_IOCTL_Input(PhysPt buffer,Bit8u drive_unit) {
 					break;
 				   }
 		case 0x0E :{ /* Get UPC */	
-					Bit8u attr; char upc[8];
+					uint8_t attr; char upc[8];
 					mscdex->GetUPC(drive_unit,attr,&upc[0]);
 					mem_writeb(buffer+1u,attr);
 					for (unsigned int i=0; i<7; i++) mem_writeb(buffer+2u+i,(unsigned char)upc[i]);
@@ -1027,8 +1027,8 @@ static Bit16u MSCDEX_IOCTL_Input(PhysPt buffer,Bit8u drive_unit) {
 	return 0x00;	// success
 }
 
-static Bit16u MSCDEX_IOCTL_Optput(PhysPt buffer,Bit8u drive_unit) {
-	Bit8u ioctl_fct = mem_readb(buffer);
+static Bit16u MSCDEX_IOCTL_Optput(PhysPt buffer,uint8_t drive_unit) {
+	uint8_t ioctl_fct = mem_readb(buffer);
 //	MSCDEX_LOG("MSCDEX: IOCTL OUTPUT Subfunction %02X",ioctl_fct);
 	switch (ioctl_fct) {
 		case 0x00 :	// Unload /eject media
@@ -1036,7 +1036,7 @@ static Bit16u MSCDEX_IOCTL_Optput(PhysPt buffer,Bit8u drive_unit) {
 					break;
 		case 0x03: //Audio Channel control
 					TCtrl ctrl;
-					for (Bit8u chan=0;chan<4;chan++) {
+					for (uint8_t chan=0;chan<4;chan++) {
 						ctrl.out[chan]=mem_readb(buffer+chan*2u+1u);
 						ctrl.vol[chan]=mem_readb(buffer+chan*2u+2u);
 					}
@@ -1069,8 +1069,8 @@ static Bitu MSCDEX_Interrupt_Handler(void) {
 		MSCDEX_LOG_ERROR("MSCDEX: invalid call to interrupt handler");
 		return CBRET_NONE;
 	}
-	Bit8u	subUnit		= mem_readb(curReqheaderPtr+1);
-	Bit8u	funcNr		= mem_readb(curReqheaderPtr+2);
+	uint8_t	subUnit		= mem_readb(curReqheaderPtr+1);
+	uint8_t	funcNr		= mem_readb(curReqheaderPtr+2);
 	Bit16u	errcode		= 0;
 	PhysPt	buffer		= 0;
 
@@ -1257,8 +1257,8 @@ static bool MSCDEX_Handler(void) {
 class device_MSCDEX : public DOS_Device {
 public:
 	device_MSCDEX() { SetName("MSCD001"); }
-	bool Read (Bit8u * /*data*/,Bit16u * /*size*/) { return false;}
-	bool Write(const Bit8u * /*data*/,Bit16u * /*size*/) { 
+	bool Read (uint8_t * /*data*/,Bit16u * /*size*/) { return false;}
+	bool Write(const uint8_t * /*data*/,Bit16u * /*size*/) { 
 		LOG(LOG_ALL,LOG_NORMAL)("Write to mscdex device");	
 		return false;
 	}
@@ -1268,7 +1268,7 @@ public:
 	bool ReadFromControlChannel(PhysPt bufptr,Bit16u size,Bit16u * retcode);
 	bool WriteToControlChannel(PhysPt bufptr,Bit16u size,Bit16u * retcode);
 // private:
-//  Bit8u cache;
+//  uint8_t cache;
 };
 
 bool device_MSCDEX::ReadFromControlChannel(PhysPt bufptr,Bit16u size,Bit16u * retcode) { 
@@ -1287,7 +1287,7 @@ bool device_MSCDEX::WriteToControlChannel(PhysPt bufptr,Bit16u size,Bit16u * ret
 	return false;
 }
 
-int MSCDEX_AddDrive(char driveLetter, const char* physicalPath, Bit8u& subUnit)
+int MSCDEX_AddDrive(char driveLetter, const char* physicalPath, uint8_t& subUnit)
 {
 	int result = mscdex->AddDrive(driveLetter-'A',(char*)physicalPath,subUnit);
 	return result;
@@ -1304,27 +1304,27 @@ bool MSCDEX_HasDrive(char driveLetter)
 	return mscdex->HasDrive(driveLetter-'A');
 }
 
-void MSCDEX_ReplaceDrive(CDROM_Interface* cdrom, Bit8u subUnit)
+void MSCDEX_ReplaceDrive(CDROM_Interface* cdrom, uint8_t subUnit)
 {
 	mscdex->ReplaceDrive(cdrom, subUnit);
 }
 
-Bit8u MSCDEX_GetSubUnit(char driveLetter)
+uint8_t MSCDEX_GetSubUnit(char driveLetter)
 {
 	return mscdex->GetSubUnit(driveLetter-'A');
 }
 
-bool MSCDEX_GetVolumeName(Bit8u subUnit, char* name)
+bool MSCDEX_GetVolumeName(uint8_t subUnit, char* name)
 {
 	return mscdex->GetVolumeName(subUnit,name);
 }
 
-bool MSCDEX_HasMediaChanged(Bit8u subUnit)
+bool MSCDEX_HasMediaChanged(uint8_t subUnit)
 {
 	static TMSF leadOut[MSCDEX_MAX_DRIVES];
 
 	TMSF leadnew;
-	Bit8u tr1,tr2;
+	uint8_t tr1,tr2;
 	if (mscdex->GetCDInfo(subUnit,tr1,tr2,leadnew)) {
 		bool changed = (leadOut[subUnit].min!=leadnew.min) || (leadOut[subUnit].sec!=leadnew.sec) || (leadOut[subUnit].fr!=leadnew.fr);
 		if (changed) {
@@ -1410,7 +1410,7 @@ void POD_Save_DOS_Mscdex( std::ostream& stream )
 	if (!dos_kernel_disabled) {
 		Bit16u dnum=mscdex->GetNumDrives();
 		WRITE_POD( &dnum, dnum);
-		for (Bit8u drive_unit=0; drive_unit<dnum; drive_unit++) {
+		for (uint8_t drive_unit=0; drive_unit<dnum; drive_unit++) {
 			TMSF pos, start, end;
 			bool playing, pause;
 
@@ -1442,7 +1442,7 @@ void POD_Load_DOS_Mscdex( std::istream& stream )
                 mscdex->cdrom[i] = 0;
             }
         }
-		for (Bit8u drive_unit=0; drive_unit<dnum; drive_unit++) {
+		for (uint8_t drive_unit=0; drive_unit<dnum; drive_unit++) {
 			TMSF pos, start, end;
 			Bit32u msf_time, play_len;
 			bool playing, pause;

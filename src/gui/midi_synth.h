@@ -73,8 +73,8 @@ private:
 	int sfont_id;
 	bool isOpen;
 
-	void PlayEvent(Bit8u *msg, Bitu len) {
-		Bit8u event = msg[0], channel, p1, p2;
+	void PlayEvent(uint8_t *msg, Bitu len) {
+		uint8_t event = msg[0], channel, p1, p2;
 
 		switch (event) {
 		case 0xf0:
@@ -202,12 +202,12 @@ public:
 		isOpen = false;
 	};
 
-	void PlayMsg(Bit8u *msg) {
+	void PlayMsg(uint8_t *msg) {
 		synthchan->Enable(true);
 		PlayEvent(msg, MIDI_evt_len[*msg]);
 	};
 
-	void PlaySysex(Bit8u *sysex, Bitu len) {
+	void PlaySysex(uint8_t *sysex, Bitu len) {
 		PlayEvent(sysex, len);
 	};
 };
@@ -224,11 +224,11 @@ private:
 public:
 	MidiHandler_fluidsynth() : MidiHandler() {};
 	const char* GetName(void) { return "fluidsynth"; }
-	void PlaySysex(Bit8u * sysex, Bitu len) {
+	void PlaySysex(uint8_t * sysex, Bitu len) {
 		fluid_synth_sysex(synth, (char*)sysex, len, NULL, NULL, NULL, 0);
 	}
 
-	void PlayMsg(Bit8u * msg) {
+	void PlayMsg(uint8_t * msg) {
 		unsigned char chanID = msg[0] & 0x0F;
 		switch (msg[0] & 0xF0) {
 		case 0x80:

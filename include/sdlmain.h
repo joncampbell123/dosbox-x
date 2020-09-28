@@ -114,7 +114,7 @@ struct SDL_Block {
         struct {
             Bit16u width = 0, height = 0;
         } window;
-        Bit8u bpp = 0;
+        uint8_t bpp = 0;
 #if defined(C_SDL2)
         Bit32u pixelFormat = 0;
 #endif

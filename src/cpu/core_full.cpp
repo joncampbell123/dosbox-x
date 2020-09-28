@@ -59,7 +59,7 @@ typedef PhysPt EAPoint;
 
 #define EXCEPTION(blah)										\
 	{														\
-		Bit8u new_num=blah;									\
+		uint8_t new_num=blah;									\
 		CPU_Exception(new_num,0);							\
 		continue;											\
 	}

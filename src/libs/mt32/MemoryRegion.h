@@ -35,13 +35,13 @@ class Synth;
 class MemoryRegion {
 private:
 	Synth *synth;
-	Bit8u *realMemory;
-	Bit8u *maxTable;
+	uint8_t *realMemory;
+	uint8_t *maxTable;
 public:
 	MemoryRegionType type;
 	Bit32u startAddr, entrySize, entries;
 
-	MemoryRegion(Synth *useSynth, Bit8u *useRealMemory, Bit8u *useMaxTable, MemoryRegionType useType, Bit32u useStartAddr, Bit32u useEntrySize, Bit32u useEntries) {
+	MemoryRegion(Synth *useSynth, uint8_t *useRealMemory, uint8_t *useMaxTable, MemoryRegionType useType, Bit32u useStartAddr, Bit32u useEntrySize, Bit32u useEntries) {
 		synth = useSynth;
 		realMemory = useRealMemory;
 		maxTable = useMaxTable;
@@ -79,44 +79,44 @@ public:
 		}
 		return 0;
 	}
-	Bit8u getMaxValue(int off) const {
+	uint8_t getMaxValue(int off) const {
 		if (maxTable == NULL)
 			return 0xFF;
 		return maxTable[off % entrySize];
 	}
-	Bit8u *getRealMemory() const {
+	uint8_t *getRealMemory() const {
 		return realMemory;
 	}
 	bool isReadable() const {
 		return getRealMemory() != NULL;
 	}
-	void read(unsigned int entry, unsigned int off, Bit8u *dst, unsigned int len) const;
-	void write(unsigned int entry, unsigned int off, const Bit8u *src, unsigned int len, bool init = false) const;
+	void read(unsigned int entry, unsigned int off, uint8_t *dst, unsigned int len) const;
+	void write(unsigned int entry, unsigned int off, const uint8_t *src, unsigned int len, bool init = false) const;
 }; // class MemoryRegion
 
 class PatchTempMemoryRegion : public MemoryRegion {
 public:
-	PatchTempMemoryRegion(Synth *useSynth, Bit8u *useRealMemory, Bit8u *useMaxTable) : MemoryRegion(useSynth, useRealMemory, useMaxTable, MR_PatchTemp, MT32EMU_MEMADDR(0x030000), sizeof(MemParams::PatchTemp), 9) {}
+	PatchTempMemoryRegion(Synth *useSynth, uint8_t *useRealMemory, uint8_t *useMaxTable) : MemoryRegion(useSynth, useRealMemory, useMaxTable, MR_PatchTemp, MT32EMU_MEMADDR(0x030000), sizeof(MemParams::PatchTemp), 9) {}
 };
 class RhythmTempMemoryRegion : public MemoryRegion {
 public:
-	RhythmTempMemoryRegion(Synth *useSynth, Bit8u *useRealMemory, Bit8u *useMaxTable) : MemoryRegion(useSynth, useRealMemory, useMaxTable, MR_RhythmTemp, MT32EMU_MEMADDR(0x030110), sizeof(MemParams::RhythmTemp), 85) {}
+	RhythmTempMemoryRegion(Synth *useSynth, uint8_t *useRealMemory, uint8_t *useMaxTable) : MemoryRegion(useSynth, useRealMemory, useMaxTable, MR_RhythmTemp, MT32EMU_MEMADDR(0x030110), sizeof(MemParams::RhythmTemp), 85) {}
 };
 class TimbreTempMemoryRegion : public MemoryRegion {
 public:
-	TimbreTempMemoryRegion(Synth *useSynth, Bit8u *useRealMemory, Bit8u *useMaxTable) : MemoryRegion(useSynth, useRealMemory, useMaxTable, MR_TimbreTemp, MT32EMU_MEMADDR(0x040000), sizeof(TimbreParam), 8) {}
+	TimbreTempMemoryRegion(Synth *useSynth, uint8_t *useRealMemory, uint8_t *useMaxTable) : MemoryRegion(useSynth, useRealMemory, useMaxTable, MR_TimbreTemp, MT32EMU_MEMADDR(0x040000), sizeof(TimbreParam), 8) {}
 };
 class PatchesMemoryRegion : public MemoryRegion {
 public:
-	PatchesMemoryRegion(Synth *useSynth, Bit8u *useRealMemory, Bit8u *useMaxTable) : MemoryRegion(useSynth, useRealMemory, useMaxTable, MR_Patches, MT32EMU_MEMADDR(0x050000), sizeof(PatchParam), 128) {}
+	PatchesMemoryRegion(Synth *useSynth, uint8_t *useRealMemory, uint8_t *useMaxTable) : MemoryRegion(useSynth, useRealMemory, useMaxTable, MR_Patches, MT32EMU_MEMADDR(0x050000), sizeof(PatchParam), 128) {}
 };
 class TimbresMemoryRegion : public MemoryRegion {
 public:
-	TimbresMemoryRegion(Synth *useSynth, Bit8u *useRealMemory, Bit8u *useMaxTable) : MemoryRegion(useSynth, useRealMemory, useMaxTable, MR_Timbres, MT32EMU_MEMADDR(0x080000), sizeof(MemParams::PaddedTimbre), 64 + 64 + 64 + 64) {}
+	TimbresMemoryRegion(Synth *useSynth, uint8_t *useRealMemory, uint8_t *useMaxTable) : MemoryRegion(useSynth, useRealMemory, useMaxTable, MR_Timbres, MT32EMU_MEMADDR(0x080000), sizeof(MemParams::PaddedTimbre), 64 + 64 + 64 + 64) {}
 };
 class SystemMemoryRegion : public MemoryRegion {
 public:
-	SystemMemoryRegion(Synth *useSynth, Bit8u *useRealMemory, Bit8u *useMaxTable) : MemoryRegion(useSynth, useRealMemory, useMaxTable, MR_System, MT32EMU_MEMADDR(0x100000), sizeof(MemParams::System), 1) {}
+	SystemMemoryRegion(Synth *useSynth, uint8_t *useRealMemory, uint8_t *useMaxTable) : MemoryRegion(useSynth, useRealMemory, useMaxTable, MR_System, MT32EMU_MEMADDR(0x100000), sizeof(MemParams::System), 1) {}
 };
 class DisplayMemoryRegion : public MemoryRegion {
 public:

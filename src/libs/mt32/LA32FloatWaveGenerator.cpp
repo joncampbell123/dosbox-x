@@ -41,7 +41,7 @@ float LA32FloatWaveGenerator::getPCMSample(unsigned int position) {
 	return ((pcmSample & 32768) == 0) ? sampleValue : -sampleValue;
 }
 
-void LA32FloatWaveGenerator::initSynth(const bool useSawtoothWaveform, const Bit8u usePulseWidth, const Bit8u useResonance) {
+void LA32FloatWaveGenerator::initSynth(const bool useSawtoothWaveform, const uint8_t usePulseWidth, const uint8_t useResonance) {
 	sawtoothWaveform = useSawtoothWaveform;
 	pulseWidth = usePulseWidth;
 	resonance = useResonance;
@@ -288,7 +288,7 @@ void LA32FloatPartialPair::init(const bool useRingModulated, const bool useMixed
 	slaveOutputSample = 0.0f;
 }
 
-void LA32FloatPartialPair::initSynth(const PairType useMaster, const bool sawtoothWaveform, const Bit8u pulseWidth, const Bit8u resonance) {
+void LA32FloatPartialPair::initSynth(const PairType useMaster, const bool sawtoothWaveform, const uint8_t pulseWidth, const uint8_t resonance) {
 	if (useMaster == MASTER) {
 		master.initSynth(sawtoothWaveform, pulseWidth, resonance);
 	} else {

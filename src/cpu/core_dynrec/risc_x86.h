@@ -141,7 +141,7 @@ static void gen_mov_byte_to_reg_low_canuseword(HostReg dest_reg,void* data) {
 // the upper 24bit of the destination register can be destroyed
 // this function does not use FC_OP1/FC_OP2 as dest_reg as these
 // registers might not be directly byte-accessible on some architectures
-static void gen_mov_byte_to_reg_low_imm(HostReg dest_reg,Bit8u imm) {
+static void gen_mov_byte_to_reg_low_imm(HostReg dest_reg,uint8_t imm) {
 	cache_addb(0xb0+dest_reg);			// mov reg,imm
 	cache_addb(imm);
 }
@@ -150,7 +150,7 @@ static void gen_mov_byte_to_reg_low_imm(HostReg dest_reg,Bit8u imm) {
 // the upper 24bit of the destination register can be destroyed
 // this function can use FC_OP1/FC_OP2 as dest_reg which are
 // not directly byte-accessible on some architectures
-static void gen_mov_byte_to_reg_low_imm_canuseword(HostReg dest_reg,Bit8u imm) {
+static void gen_mov_byte_to_reg_low_imm_canuseword(HostReg dest_reg,uint8_t imm) {
 	cache_addb(0x66);
 	cache_addb(0xb8+dest_reg);			// mov reg,imm
 	cache_addw(imm);
@@ -259,7 +259,7 @@ static void gen_sub_direct_word(void* dest,Bit32u imm,bool dword) {
 // scale_reg is scaled by scale (scale_reg*(2^scale)) and
 // added to dest_reg, then the immediate value is added
 static INLINE void gen_lea(HostReg dest_reg,HostReg scale_reg,Bitu scale,Bits imm) {
-	Bit8u rm_base;
+	uint8_t rm_base;
 	Bitu imm_size;
 	if (!imm) {
 		imm_size=0;	rm_base=0x0;			//no imm
@@ -394,7 +394,7 @@ static void gen_fill_branch(DRC_PTR_SIZE_IM data) {
 	if (len<0) len=-len;
 	if (len>126) LOG_MSG("Big jump %d",len);
 #endif
-	*(Bit8u*)data=(Bit8u)((Bit32u)cache.pos-data-1);
+	*(uint8_t*)data=(uint8_t)((Bit32u)cache.pos-data-1);
 }
 
 // conditional jump if register is nonzero
@@ -444,7 +444,7 @@ static void gen_return_function(void) {
 #ifdef DRC_FLAGS_INVALIDATION
 // called when a call to a function can be replaced by a
 // call to a simpler function
-static void gen_fill_function_ptr(Bit8u * pos,void* fct_ptr,Bitu flags_type) {
+static void gen_fill_function_ptr(uint8_t * pos,void* fct_ptr,Bitu flags_type) {
 #ifdef DRC_FLAGS_INVALIDATION_DCODE
 	// try to avoid function calls but rather directly fill in code
 	switch (flags_type) {
@@ -506,15 +506,15 @@ static void gen_fill_function_ptr(Bit8u * pos,void* fct_ptr,Bitu flags_type) {
 			*(pos+4)=0x90;
 			break;
 		default:
-			*(Bit32u*)(pos+1)=(Bit32u)((Bit8u*)fct_ptr - (pos+1+4));	// fill function pointer
+			*(Bit32u*)(pos+1)=(Bit32u)((uint8_t*)fct_ptr - (pos+1+4));	// fill function pointer
 			break;
 	}
 #else
-	*(Bit32u*)(pos+1)=(Bit32u)((Bit8u*)fct_ptr - (pos+1+4));	// fill function pointer
+	*(Bit32u*)(pos+1)=(Bit32u)((uint8_t*)fct_ptr - (pos+1+4));	// fill function pointer
 #endif
 }
 #endif
 
-static void cache_block_closing(Bit8u* block_start,Bitu block_size) { (void)block_start; (void)block_size; }
+static void cache_block_closing(uint8_t* block_start,Bitu block_size) { (void)block_start; (void)block_size; }
 
 static void cache_block_before_close(void) { }

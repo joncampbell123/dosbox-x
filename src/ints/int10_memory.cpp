@@ -32,7 +32,7 @@ bool VIDEO_BIOS_always_carry_16_high_font = true;
 bool VIDEO_BIOS_enable_CGA_8x8_second_half = false;
 bool VIDEO_BIOS_disable = false;
 
-static Bit8u static_functionality[0x10]=
+static uint8_t static_functionality[0x10]=
 {
  /* 0 */ 0xff,  // All modes supported #1
  /* 1 */ 0xff,  // All modes supported #2
@@ -54,7 +54,7 @@ static Bit16u map_offset[8]={
 	0x2000,0x6000,0xa000,0xe000
 };
 
-void INT10_LoadFont(PhysPt font,bool reload,Bit16u count,Bitu offset,Bitu map,Bit8u height) {
+void INT10_LoadFont(PhysPt font,bool reload,Bit16u count,Bitu offset,Bitu map,uint8_t height) {
     unsigned char m64k;
 
 	if (IS_VGA_ARCH || (IS_EGA_ARCH && vga.mem.memsize >= 0x20000))
@@ -102,15 +102,15 @@ void INT10_LoadFont(PhysPt font,bool reload,Bit16u count,Bitu offset,Bitu map,Bi
 		Bitu rows=CurMode->sheight/height;
 		Bitu vdend=rows*height*((CurMode->sheight==200)?2:1)-1;
 		IO_Write(base,0x12);
-		IO_Write(base+1u,(Bit8u)vdend);
+		IO_Write(base+1u,(uint8_t)vdend);
 		//Underline location
 		if (CurMode->mode==7) {
 			IO_Write(base,0x14);
 			IO_Write(base+1u,(IO_Read(base+1u) & ~0x1fu)|(height-1u));
 		}
 		//Rows setting in bios segment
-		real_writeb(BIOSMEM_SEG,BIOSMEM_NB_ROWS,(Bit8u)(rows-1));
-		real_writeb(BIOSMEM_SEG,BIOSMEM_CHAR_HEIGHT,(Bit8u)height);
+		real_writeb(BIOSMEM_SEG,BIOSMEM_NB_ROWS,(uint8_t)(rows-1));
+		real_writeb(BIOSMEM_SEG,BIOSMEM_CHAR_HEIGHT,(uint8_t)height);
 		//Page size
 		Bitu pagesize=rows*real_readb(BIOSMEM_SEG,BIOSMEM_NB_COLS)*2;
 		pagesize+=0x100; // bios adds extra on reload
@@ -124,12 +124,12 @@ void INT10_LoadFont(PhysPt font,bool reload,Bit16u count,Bitu offset,Bitu map,Bi
         //       At the very least, if the IBM PS/2 VGA BIOS does not, then this code should be coded NOT to clip the cursor
         //       when machine=vgaonly.
         {
-            Bit8u page=real_readb(BIOSMEM_SEG,BIOSMEM_CURRENT_PAGE);
-            Bit8u cur_row=CURSOR_POS_ROW(page);
-            Bit8u cur_col=CURSOR_POS_COL(page);
+            uint8_t page=real_readb(BIOSMEM_SEG,BIOSMEM_CURRENT_PAGE);
+            uint8_t cur_row=CURSOR_POS_ROW(page);
+            uint8_t cur_col=CURSOR_POS_COL(page);
 
             if (cur_row >= rows)
-                INT10_SetCursorPos((Bit8u)(rows-1),cur_col,page);
+                INT10_SetCursorPos((uint8_t)(rows-1),cur_col,page);
         }
 	}
 }
@@ -261,7 +261,7 @@ void INT10_SetupRomMemory(void) {
 
         // ROM signature
 		phys_writew(rom_base+0,0xaa55);
-		phys_writeb(rom_base+2,(Bit8u)(VGA_BIOS_Size >> 9u));
+		phys_writeb(rom_base+2,(uint8_t)(VGA_BIOS_Size >> 9u));
         // entry point
         phys_writeb(rom_base+3,0xFE); // Callback instruction
         phys_writeb(rom_base+4,0x38);
@@ -462,18 +462,18 @@ void INT10_ReloadRomFonts(void) {
 void INT10_SetupRomMemoryChecksum(void) {
 	if (IS_EGAVGA_ARCH) { //EGA/VGA. Just to be safe
 		/* Sum of all bytes in rom module 256 should be 0 */
-		Bit8u sum = 0;
+		uint8_t sum = 0;
 		PhysPt rom_base = PhysMake(0xc000,0);
 		unsigned int last_rombyte = (unsigned int)VGA_BIOS_Size - 1;		//32 KB romsize
 		for (unsigned int i = 0;i < last_rombyte;i++)
 			sum += phys_readb(rom_base + i);	//OVERFLOW IS OKAY
-		sum = (Bit8u)((256 - (Bitu)sum)&0xff);
+		sum = (uint8_t)((256 - (Bitu)sum)&0xff);
 		phys_writeb(rom_base + last_rombyte,sum);
 	}
 }
 
 
-Bit8u int10_font_08[256 * 8] = {
+uint8_t int10_font_08[256 * 8] = {
   0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
   0x7e, 0x81, 0xa5, 0x81, 0xbd, 0x99, 0x81, 0x7e,
   0x7e, 0xff, 0xdb, 0xff, 0xc3, 0xe7, 0xff, 0x7e,
@@ -732,7 +732,7 @@ Bit8u int10_font_08[256 * 8] = {
   0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00
 };
 
-Bit8u int10_font_14[256 * 14] = {
+uint8_t int10_font_14[256 * 14] = {
   0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
   0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
   0x7e, 0x81, 0xa5, 0x81, 0x81, 0xbd, 0x99, 0x81,
@@ -1183,7 +1183,7 @@ Bit8u int10_font_14[256 * 14] = {
   0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00
 };
 
-Bit8u int10_font_16[256 * 16] = {
+uint8_t int10_font_16[256 * 16] = {
   0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
   0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
   0x00, 0x00, 0x7e, 0x81, 0xa5, 0x81, 0x81, 0xbd,
@@ -1698,7 +1698,7 @@ Bit8u int10_font_16[256 * 16] = {
   0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00
 };
 
-Bit8u int10_font_14_alternate[20 * 15 + 1] = {
+uint8_t int10_font_14_alternate[20 * 15 + 1] = {
   0x1d,
   0x00, 0x00, 0x00, 0x00, 0x24, 0x66, 0xff,
   0x66, 0x24, 0x00, 0x00, 0x00, 0x00, 0x00,
@@ -1762,7 +1762,7 @@ Bit8u int10_font_14_alternate[20 * 15 + 1] = {
   0x00
 };
 
-Bit8u int10_font_16_alternate[19 * 17 + 1] = {
+uint8_t int10_font_16_alternate[19 * 17 + 1] = {
   0x1d,
   0x00, 0x00, 0x00, 0x00, 0x00, 0x24, 0x66, 0xff,
   0x66, 0x24, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,

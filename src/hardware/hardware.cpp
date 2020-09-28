@@ -333,7 +333,7 @@ static struct {
     } multitrack_wave = {};
 	struct {
 		FILE * handle;
-		Bit8u buffer[MIDI_BUF];
+		uint8_t buffer[MIDI_BUF];
 		Bitu used,done;
 		Bit32u last;
     } midi = {};
@@ -692,10 +692,10 @@ extern uint32_t GFX_palette32bpp[256];
 
 unsigned int GFX_GetBShift();
 
-void CAPTURE_AddImage(Bitu width, Bitu height, Bitu bpp, Bitu pitch, Bitu flags, float fps, Bit8u * data, Bit8u * pal) {
+void CAPTURE_AddImage(Bitu width, Bitu height, Bitu bpp, Bitu pitch, Bitu flags, float fps, uint8_t * data, uint8_t * pal) {
 #if (C_SSHOT)
 	Bitu i;
-	Bit8u doubleRow[SCALER_MAXWIDTH*4];
+	uint8_t doubleRow[SCALER_MAXWIDTH*4];
 	Bitu countWidth = width;
 
 	if (flags & CAPTURE_FLAG_DBLH)
@@ -783,7 +783,7 @@ void CAPTURE_AddImage(Bitu width, Bitu height, Bitu bpp, Bitu pitch, Bitu flags,
 				if (flags & CAPTURE_FLAG_DBLW) {
    					for (Bitu x=0;x<countWidth;x++)
 						doubleRow[x*2+0] =
-						doubleRow[x*2+1] = ((Bit8u *)srcLine)[x];
+						doubleRow[x*2+1] = ((uint8_t *)srcLine)[x];
 					rowPointer = doubleRow;
 				}
 				break;
@@ -792,14 +792,14 @@ void CAPTURE_AddImage(Bitu width, Bitu height, Bitu bpp, Bitu pitch, Bitu flags,
 					for (Bitu x=0;x<countWidth;x++) {
 						Bitu pixel = ((Bit16u *)srcLine)[x];
 						doubleRow[x*6+0] = doubleRow[x*6+3] = ((pixel& 0x001f) * 0x21) >>  2;
-						doubleRow[x*6+1] = doubleRow[x*6+4] = (Bit8u)(((pixel& 0x03e0) * 0x21) >> 7);
+						doubleRow[x*6+1] = doubleRow[x*6+4] = (uint8_t)(((pixel& 0x03e0) * 0x21) >> 7);
 						doubleRow[x*6+2] = doubleRow[x*6+5] = ((pixel& 0x7c00) * 0x21) >>  12;
 					}
 				} else {
 					for (Bitu x=0;x<countWidth;x++) {
 						Bitu pixel = ((Bit16u *)srcLine)[x];
 						doubleRow[x*3+0] = ((pixel& 0x001f) * 0x21) >>  2;
-						doubleRow[x*3+1] = (Bit8u)(((pixel& 0x03e0) * 0x21) >> 7);
+						doubleRow[x*3+1] = (uint8_t)(((pixel& 0x03e0) * 0x21) >> 7);
 						doubleRow[x*3+2] = ((pixel& 0x7c00) * 0x21) >>  12;
 					}
 				}
@@ -826,15 +826,15 @@ void CAPTURE_AddImage(Bitu width, Bitu height, Bitu bpp, Bitu pitch, Bitu flags,
 			case 32:
 				if (flags & CAPTURE_FLAG_DBLW) {
 					for (Bitu x=0;x<countWidth;x++) {
-						doubleRow[x*6+0] = doubleRow[x*6+3] = ((Bit8u *)srcLine)[x*4+0];
-						doubleRow[x*6+1] = doubleRow[x*6+4] = ((Bit8u *)srcLine)[x*4+1];
-						doubleRow[x*6+2] = doubleRow[x*6+5] = ((Bit8u *)srcLine)[x*4+2];
+						doubleRow[x*6+0] = doubleRow[x*6+3] = ((uint8_t *)srcLine)[x*4+0];
+						doubleRow[x*6+1] = doubleRow[x*6+4] = ((uint8_t *)srcLine)[x*4+1];
+						doubleRow[x*6+2] = doubleRow[x*6+5] = ((uint8_t *)srcLine)[x*4+2];
 					}
 				} else {
 					for (Bitu x=0;x<countWidth;x++) {
-						doubleRow[x*3+0] = ((Bit8u *)srcLine)[x*4+0];
-						doubleRow[x*3+1] = ((Bit8u *)srcLine)[x*4+1];
-						doubleRow[x*3+2] = ((Bit8u *)srcLine)[x*4+2];
+						doubleRow[x*3+0] = ((uint8_t *)srcLine)[x*4+0];
+						doubleRow[x*3+1] = ((uint8_t *)srcLine)[x*4+1];
+						doubleRow[x*3+2] = ((uint8_t *)srcLine)[x*4+2];
 					}
 				}
 				rowPointer = doubleRow;
@@ -1239,8 +1239,8 @@ skip_shot:
                         switch ( bpp) {
                             case 8:
                                 for (x=0;x<countWidth;x++)
-                                    ((Bit8u *)doubleRow)[x*2+0] =
-                                        ((Bit8u *)doubleRow)[x*2+1] = ((Bit8u *)srcLine)[x];
+                                    ((uint8_t *)doubleRow)[x*2+0] =
+                                        ((uint8_t *)doubleRow)[x*2+1] = ((uint8_t *)srcLine)[x];
                                 break;
                             case 15:
                             case 16:
@@ -1322,8 +1322,8 @@ skip_shot:
 							switch (bpp) {
 								case 8:
 									for (x=0;x<countWidth;x++)
-										((Bit8u *)dstline)[x*2+0] =
-											((Bit8u *)dstline)[x*2+1] = ((Bit8u *)srcline)[x];
+										((uint8_t *)dstline)[x*2+0] =
+											((uint8_t *)dstline)[x*2+1] = ((uint8_t *)srcline)[x];
 									break;
 								case 15:
 								case 16:
@@ -1702,7 +1702,7 @@ void CAPTURE_WaveEvent(bool pressed) {
 
 /* MIDI capturing */
 
-static Bit8u midi_header[]={
+static uint8_t midi_header[]={
 	'M','T','h','d',			/* Bit32u, Header Chunk */
 	0x0,0x0,0x0,0x6,			/* Bit32u, Chunk Length */
 	0x0,0x0,					/* Bit16u, Format, 0=single track */
@@ -1714,7 +1714,7 @@ static Bit8u midi_header[]={
 };
 
 
-static void RawMidiAdd(Bit8u data) {
+static void RawMidiAdd(uint8_t data) {
 	capture.midi.buffer[capture.midi.used++]=data;
 	if (capture.midi.used >= MIDI_BUF ) {
 		capture.midi.done += capture.midi.used;
@@ -1724,13 +1724,13 @@ static void RawMidiAdd(Bit8u data) {
 }
 
 static void RawMidiAddNumber(Bit32u val) {
-	if (val & 0xfe00000) RawMidiAdd((Bit8u)(0x80|((val >> 21) & 0x7f)));
-	if (val & 0xfffc000) RawMidiAdd((Bit8u)(0x80|((val >> 14) & 0x7f)));
-	if (val & 0xfffff80) RawMidiAdd((Bit8u)(0x80|((val >> 7) & 0x7f)));
-	RawMidiAdd((Bit8u)(val & 0x7f));
+	if (val & 0xfe00000) RawMidiAdd((uint8_t)(0x80|((val >> 21) & 0x7f)));
+	if (val & 0xfffc000) RawMidiAdd((uint8_t)(0x80|((val >> 14) & 0x7f)));
+	if (val & 0xfffff80) RawMidiAdd((uint8_t)(0x80|((val >> 7) & 0x7f)));
+	RawMidiAdd((uint8_t)(val & 0x7f));
 }
 
-void CAPTURE_AddMidi(bool sysex, Bitu len, Bit8u * data) {
+void CAPTURE_AddMidi(bool sysex, Bitu len, uint8_t * data) {
 	if (!capture.midi.handle) {
 		capture.midi.handle=OpenCaptureFile("Raw Midi",".mid");
 		if (!capture.midi.handle) {
@@ -1766,11 +1766,11 @@ void CAPTURE_MidiEvent(bool pressed) {
 		fwrite(capture.midi.buffer,1,capture.midi.used,capture.midi.handle);
 		capture.midi.done+=capture.midi.used;
 		fseek(capture.midi.handle,18, SEEK_SET);
-		Bit8u size[4];
-		size[0]=(Bit8u)(capture.midi.done >> 24);
-		size[1]=(Bit8u)(capture.midi.done >> 16);
-		size[2]=(Bit8u)(capture.midi.done >> 8);
-		size[3]=(Bit8u)(capture.midi.done >> 0);
+		uint8_t size[4];
+		size[0]=(uint8_t)(capture.midi.done >> 24);
+		size[1]=(uint8_t)(capture.midi.done >> 16);
+		size[2]=(uint8_t)(capture.midi.done >> 8);
+		size[3]=(uint8_t)(capture.midi.done >> 0);
 		fwrite(&size,1,4,capture.midi.handle);
 		fclose(capture.midi.handle);
 		capture.midi.handle=0;

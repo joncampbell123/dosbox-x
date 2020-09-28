@@ -117,13 +117,13 @@ static INLINE void FetchDiscardb() {
 	core.cseip+=1;
 }
 
-static INLINE Bit8u FetchPeekb() {
-    Bit8u temp=host_readb(core.cseip);
+static INLINE uint8_t FetchPeekb() {
+    uint8_t temp=host_readb(core.cseip);
     return temp;
 }
 
-static INLINE Bit8u Fetchb() {
-    Bit8u temp=host_readb(core.cseip);
+static INLINE uint8_t Fetchb() {
+    uint8_t temp=host_readb(core.cseip);
     core.cseip+=1;
     return temp;
 }

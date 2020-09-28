@@ -208,7 +208,7 @@ bool Mixer_SampleAccurate() {
     return mixer.sampleaccurate;
 }
 
-Bit8u MixTemp[MIXER_BUFSIZE];
+uint8_t MixTemp[MIXER_BUFSIZE];
 
 inline void MixerChannel::updateSlew(void) {
     /* "slew" affects the linear interpolation ramp.
@@ -695,11 +695,11 @@ inline void MixerChannel::AddSamples(Bitu len, const Type* data) {
     }
 }
 
-void MixerChannel::AddSamples_m8(Bitu len, const Bit8u * data) {
-    AddSamples<Bit8u,false,false,true>(len,data);
+void MixerChannel::AddSamples_m8(Bitu len, const uint8_t * data) {
+    AddSamples<uint8_t,false,false,true>(len,data);
 }
-void MixerChannel::AddSamples_s8(Bitu len,const Bit8u * data) {
-    AddSamples<Bit8u,true,false,true>(len,data);
+void MixerChannel::AddSamples_s8(Bitu len,const uint8_t * data) {
+    AddSamples<uint8_t,true,false,true>(len,data);
 }
 void MixerChannel::AddSamples_m8s(Bitu len,const Bit8s * data) {
     AddSamples<Bit8s,false,true,true>(len,data);

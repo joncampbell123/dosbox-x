@@ -69,8 +69,8 @@ protected:
 	MemParams::PatchTemp *patchTemp;
 	char name[8]; // "Part 1".."Part 8", "Rhythm"
 	char currentInstr[11];
-	Bit8u modulation;
-	Bit8u expression;
+	uint8_t modulation;
+	uint8_t expression;
 	Bit32s pitchBend;
 	bool nrpn;
 	Bit16u rpn;
@@ -95,11 +95,11 @@ public:
 	virtual void noteOff(unsigned int midiKey);
 	void allNotesOff();
 	void allSoundOff();
-	Bit8u getVolume() const; // Internal volume, 0-100, exposed for use by ExternalInterface
+	uint8_t getVolume() const; // Internal volume, 0-100, exposed for use by ExternalInterface
 	void setVolume(unsigned int midiVolume);
-	Bit8u getModulation() const;
+	uint8_t getModulation() const;
 	void setModulation(unsigned int midiModulation);
-	Bit8u getExpression() const;
+	uint8_t getExpression() const;
 	void setExpression(unsigned int midiExpression);
 	virtual void setPan(unsigned int midiPan);
 	Bit32s getPitchBend() const;

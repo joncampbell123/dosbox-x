@@ -108,10 +108,10 @@ void DOS_UpdatePSPName(void) {
 	GFX_SetTitle(-1,-1,-1,false);
 }
 
-void DOS_Terminate(Bit16u pspseg,bool tsr,Bit8u exitcode) {
+void DOS_Terminate(Bit16u pspseg,bool tsr,uint8_t exitcode) {
 
 	dos.return_code=exitcode;
-	dos.return_mode=(tsr)?(Bit8u)RETURN_TSR:(Bit8u)RETURN_EXIT;
+	dos.return_mode=(tsr)?(uint8_t)RETURN_TSR:(uint8_t)RETURN_EXIT;
 	
 	DOS_PSP curpsp(pspseg);
 	if (pspseg==curpsp.GetParent()) return;
@@ -281,7 +281,7 @@ static void SetupCMDLine(Bit16u pspseg, const DOS_ParamBlock& block) {
  *        shell without any error message. The least we could do is return
  *        an error code so that the INT 21h EXEC call can print an informative
  *        error message! --J.C. */
-bool DOS_Execute(const char* name, PhysPt block_pt, Bit8u flags) {
+bool DOS_Execute(const char* name, PhysPt block_pt, uint8_t flags) {
 	EXE_Header head;Bitu i;
 	Bit16u fhandle;Bit16u len;Bit32u pos;
 	Bit16u pspseg,envseg,loadseg,memsize=0xffff,readsize;
@@ -306,7 +306,7 @@ bool DOS_Execute(const char* name, PhysPt block_pt, Bit8u flags) {
 		return false;
 	}
 	len=sizeof(EXE_Header);
-	if (!DOS_ReadFile(fhandle,(Bit8u *)&head,&len)) {
+	if (!DOS_ReadFile(fhandle,(uint8_t *)&head,&len)) {
 		DOS_CloseFile(fhandle);
 		return false;
 	}
@@ -336,7 +336,7 @@ bool DOS_Execute(const char* name, PhysPt block_pt, Bit8u flags) {
 			if (imagesize+headersize<512u) imagesize = 512u-headersize;
 		}
 	}
-	Bit8u * loadbuf=(Bit8u *)new Bit8u[0x10000u];
+	uint8_t * loadbuf=(uint8_t *)new uint8_t[0x10000u];
 	if (flags!=OVERLAY) {
 		/* Create an environment block */
 		envseg=block.exec.envseg;
@@ -438,7 +438,7 @@ bool DOS_Execute(const char* name, PhysPt block_pt, Bit8u flags) {
 		else relocate=loadseg;
 		pos=head.reloctable;DOS_SeekFile(fhandle,&pos,0);
 		for (i=0;i<head.relocations;i++) {
-			readsize=4;DOS_ReadFile(fhandle,(Bit8u *)&relocpt,&readsize);
+			readsize=4;DOS_ReadFile(fhandle,(uint8_t *)&relocpt,&readsize);
 			relocpt=host_readd((HostPt)&relocpt);		//Endianize
 			PhysPt address=PhysMake(RealSeg(relocpt)+loadseg,RealOff(relocpt));
 			mem_writew(address,mem_readw(address)+relocate);
@@ -507,9 +507,9 @@ bool DOS_Execute(const char* name, PhysPt block_pt, Bit8u flags) {
 		/* Setup bx, contains a 0xff in bl and bh if the drive in the fcb is not valid */
 		DOS_FCB fcb1(RealSeg(block.exec.fcb1),RealOff(block.exec.fcb1));
 		DOS_FCB fcb2(RealSeg(block.exec.fcb2),RealOff(block.exec.fcb2));
-		Bit8u d1 = fcb1.GetDrive(); //depends on 0 giving the dos.default drive
+		uint8_t d1 = fcb1.GetDrive(); //depends on 0 giving the dos.default drive
 		if ( (d1>=DOS_DRIVES) || !Drives[d1] ) reg_bl = 0xFF; else reg_bl = 0;
-		Bit8u d2 = fcb2.GetDrive();
+		uint8_t d2 = fcb2.GetDrive();
 		if ( (d2>=DOS_DRIVES) || !Drives[d2] ) reg_bh = 0xFF; else reg_bh = 0;
 
 		/* Write filename in new program MCB */

@@ -424,7 +424,7 @@ inline void IO_USEC_write_delay(const unsigned int szidx) {
 }
 
 #ifdef ENABLE_PORTLOG
-static Bit8u crtc_index = 0;
+static uint8_t crtc_index = 0;
 const char* const len_type[] = {" 8","16","32"};
 void log_io(Bitu width, bool write, Bitu port, Bitu val) {
 	switch(width) {
@@ -438,8 +438,8 @@ void log_io(Bitu width, bool write, Bitu port, Bitu val) {
 	if (write) {
 		// skip the video cursor position spam
 		if (port==0x3d4) {
-			if (width==0) crtc_index = (Bit8u)val;
-			else if(width==1) crtc_index = (Bit8u)(val>>8);
+			if (width==0) crtc_index = (uint8_t)val;
+			else if(width==1) crtc_index = (uint8_t)(val>>8);
 		}
 		if (crtc_index==0xe || crtc_index==0xf) {
 			if((width==0 && (port==0x3d4 || port==0x3d5))||(width==1 && port==0x3d4))
@@ -489,7 +489,7 @@ void log_io(Bitu width, bool write, Bitu port, Bitu val) {
 #endif
 
 
-void IO_WriteB(Bitu port,Bit8u val) {
+void IO_WriteB(Bitu port,uint8_t val) {
 	log_io(0, true, port, val);
 	if (GCC_UNLIKELY(GETFLAG(VM) && (CPU_IO_Exception(port,1)))) {
 		CPU_ForceV86FakeIO_Out(port,val,1);
@@ -522,14 +522,14 @@ void IO_WriteD(Bitu port,Bit32u val) {
 	}
 }
 
-Bit8u IO_ReadB(Bitu port) {
-	Bit8u retval;
+uint8_t IO_ReadB(Bitu port) {
+	uint8_t retval;
 	if (GCC_UNLIKELY(GETFLAG(VM) && (CPU_IO_Exception(port,1)))) {
-		return (Bit8u)CPU_ForceV86FakeIO_In(port,1);
+		return (uint8_t)CPU_ForceV86FakeIO_In(port,1);
 	}
 	else {
 		IO_USEC_read_delay(0);
-		retval = (Bit8u)io_readhandlers[0][port](port,1);
+		retval = (uint8_t)io_readhandlers[0][port](port,1);
 	}
 	log_io(0, false, port, retval);
 	return retval;

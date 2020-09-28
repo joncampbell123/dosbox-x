@@ -46,7 +46,7 @@
 
 
 /* 8-bit values */
-typedef Bit8u						UINT8;
+typedef uint8_t						UINT8;
 typedef Bit8s 						INT8;
 
 /* 16-bit values */

@@ -27,7 +27,7 @@ typedef enum { FILE_DEV, FILE_CAPTURE, FILE_APPEND } DFTYPE;
 
 class CFileLPT : public CParallel {
 public:
-	CFileLPT (Bitu nr, Bit8u initIrq, CommandLine* cmd);
+	CFileLPT (Bitu nr, uint8_t initIrq, CommandLine* cmd);
 
 	~CFileLPT();
 	
@@ -41,7 +41,7 @@ public:
 	bool addFF;					// add a formfeed character before closing the file/device
 	bool addLF;					// if set, add line feed after carriage return if not used by app
 
-	Bit8u lastChar = 0;				// used to save the previous character to decide wether to add LF
+	uint8_t lastChar = 0;				// used to save the previous character to decide wether to add LF
 	const Bit16u* codepage_ptr; // pointer to the translation codepage if not null
 
 	bool OpenFile();
@@ -52,13 +52,13 @@ public:
 	Bitu Read_COM();
 	Bitu Read_SR();
 
-	Bit8u datareg = 0;
-	Bit8u controlreg;
+	uint8_t datareg = 0;
+	uint8_t controlreg;
 
 	void Write_PR(Bitu);
 	void Write_CON(Bitu);
 	void Write_IOSEL(Bitu);
-	bool Putchar(Bit8u);
+	bool Putchar(uint8_t);
 
 	bool autofeed = false;
 	bool ack;

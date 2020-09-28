@@ -503,7 +503,7 @@ switch (inst.code.op) {
 				SETFLAGBIT(ZF,true);
 				goto nextopcode;
 			} else {
-				Bit8u count=0;
+				uint8_t count=0;
 				while (1) {
 					if (inst_op1_w & 0x1) break;
 					count++;inst_op1_w>>=1;
@@ -520,7 +520,7 @@ switch (inst.code.op) {
 				SETFLAGBIT(ZF,true);
 				goto nextopcode;
 			} else {
-				Bit8u count=0;
+				uint8_t count=0;
 				while (1) {
 					if (inst_op1_d & 0x1) break;
 					count++;inst_op1_d>>=1;
@@ -537,7 +537,7 @@ switch (inst.code.op) {
 				SETFLAGBIT(ZF,true);
 				goto nextopcode;
 			} else {
-				Bit8u count=15;
+				uint8_t count=15;
 				while (1) {
 					if (inst_op1_w & 0x8000) break;
 					count--;inst_op1_w<<=1;
@@ -554,7 +554,7 @@ switch (inst.code.op) {
 				SETFLAGBIT(ZF,true);
 				goto nextopcode;
 			} else {
-				Bit8u count=31;
+				uint8_t count=31;
 				while (1) {
 					if (inst_op1_d & 0x80000000) break;
 					count--;inst_op1_d<<=1;

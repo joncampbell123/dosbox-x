@@ -25,7 +25,7 @@
 
 // Purpose of this is to pass LPT register access to the virtual printer 
 
-CPrinterRedir::CPrinterRedir(Bitu nr, Bit8u initIrq, CommandLine* cmd)
+CPrinterRedir::CPrinterRedir(Bitu nr, uint8_t initIrq, CommandLine* cmd)
                               :CParallel (cmd, nr, initIrq) {
 	InstallationSuccessful = PRINTER_isInited();
 }
@@ -34,7 +34,7 @@ CPrinterRedir::~CPrinterRedir () {
 	// close file
 }
 
-bool CPrinterRedir::Putchar(Bit8u val)
+bool CPrinterRedir::Putchar(uint8_t val)
 {	
 	Write_CON(0xD4);
 	// strobe data out

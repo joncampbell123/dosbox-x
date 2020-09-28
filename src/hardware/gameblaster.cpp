@@ -92,19 +92,19 @@ static void CMS_CallBack(Bitu len) {
 }
 
 // The Gameblaster detection
-static Bit8u cms_detect_register = 0xff;
+static uint8_t cms_detect_register = 0xff;
 
 static void write_cms_detect(Bitu port, Bitu val, Bitu /* iolen */) {
 	switch ( port - cmsBase ) {
 	case 0x6:
 	case 0x7:
-		cms_detect_register = (Bit8u)val;
+		cms_detect_register = (uint8_t)val;
 		break;
 	}
 }
 
 static Bitu read_cms_detect(Bitu port, Bitu /* iolen */) {
-	Bit8u retval = 0xff;
+	uint8_t retval = 0xff;
 	switch ( port - cmsBase ) {
 	case 0x4:
 		retval = 0x7f;

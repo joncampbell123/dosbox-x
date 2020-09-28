@@ -144,7 +144,7 @@ void XGA_DrawPoint(Bitu x, Bitu y, Bitu c) {
 	switch(XGA_COLOR_MODE) {
 		case M_LIN8:
 			if (GCC_UNLIKELY(memaddr >= vga.mem.memsize)) break;
-			vga.mem.linear[memaddr] = (Bit8u)c;
+			vga.mem.linear[memaddr] = (uint8_t)c;
 			break;
 		case M_LIN15:
 			if (GCC_UNLIKELY(memaddr*2 >= vga.mem.memsize)) break;
@@ -991,7 +991,7 @@ void XGA_DrawCmd(Bitu val, Bitu len) {
 void XGA_SetDualReg(Bit32u& reg, Bitu val) {
 	switch(XGA_COLOR_MODE) {
 	case M_LIN8:
-		reg = (Bit8u)(val&0xff); break;
+		reg = (uint8_t)(val&0xff); break;
 	case M_LIN15:
 	case M_LIN16:
 		reg = (Bit16u)(val&0xffff); break;
@@ -1012,7 +1012,7 @@ void XGA_SetDualReg(Bit32u& reg, Bitu val) {
 Bitu XGA_GetDualReg(Bit32u reg) {
 	switch(XGA_COLOR_MODE) {
 	case M_LIN8:
-		return (Bit8u)(reg&0xff);
+		return (uint8_t)(reg&0xff);
 	case M_LIN15: case M_LIN16:
 		return (Bit16u)(reg&0xffff);
 	case M_LIN32:

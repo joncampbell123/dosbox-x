@@ -134,7 +134,7 @@ static const Bit16u exprom[256] = {
 // 1/2, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 10, 12, 12, 15, 15
 //
 
-static const Bit8u mt[16] = {
+static const uint8_t mt[16] = {
     1, 2, 4, 6, 8, 10, 12, 14, 16, 18, 20, 20, 24, 24, 30, 30
 };
 
@@ -142,11 +142,11 @@ static const Bit8u mt[16] = {
 // ksl table
 //
 
-static const Bit8u kslrom[16] = {
+static const uint8_t kslrom[16] = {
     0, 32, 40, 45, 48, 51, 53, 55, 56, 58, 59, 60, 61, 62, 63, 64
 };
 
-static const Bit8u kslshift[4] = {
+static const uint8_t kslshift[4] = {
     8, 1, 2, 0
 };
 
@@ -154,7 +154,7 @@ static const Bit8u kslshift[4] = {
 // envelope generator constants
 //
 
-static const Bit8u eg_incstep[4][4] = {
+static const uint8_t eg_incstep[4][4] = {
     { 0, 0, 0, 0 },
     { 1, 0, 0, 0 },
     { 1, 0, 1, 0 },
@@ -170,7 +170,7 @@ static const Bit8s ad_slot[0x20] = {
     12, 13, 14, 15, 16, 17, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1
 };
 
-static const Bit8u ch_slot[18] = {
+static const uint8_t ch_slot[18] = {
     0, 1, 2, 6, 7, 8, 12, 13, 14, 18, 19, 20, 24, 25, 26, 30, 31, 32
 };
 
@@ -354,22 +354,22 @@ static void OPL3_EnvelopeUpdateKSL(opl3_slot *slot)
     {
         ksl = 0;
     }
-    slot->eg_ksl = (Bit8u)ksl;
+    slot->eg_ksl = (uint8_t)ksl;
 }
 
 static void OPL3_EnvelopeCalc(opl3_slot *slot)
 {
-    Bit8u nonzero;
-    Bit8u rate;
-    Bit8u rate_hi;
-    Bit8u rate_lo;
-    Bit8u reg_rate = 0;
-    Bit8u ks;
-    Bit8u eg_shift, shift;
+    uint8_t nonzero;
+    uint8_t rate;
+    uint8_t rate_hi;
+    uint8_t rate_lo;
+    uint8_t reg_rate = 0;
+    uint8_t ks;
+    uint8_t eg_shift, shift;
     Bit16u eg_rout;
     Bit16s eg_inc;
-    Bit8u eg_off;
-    Bit8u reset = 0;
+    uint8_t eg_off;
+    uint8_t reset = 0;
     slot->eg_out = slot->eg_rout + (slot->reg_tl << 2)
                  + (slot->eg_ksl >> kslshift[slot->reg_ksl]) + *slot->trem;
     if (slot->key && slot->eg_gen == envelope_gen_num_release)
@@ -504,12 +504,12 @@ static void OPL3_EnvelopeCalc(opl3_slot *slot)
     }
 }
 
-static void OPL3_EnvelopeKeyOn(opl3_slot *slot, Bit8u type)
+static void OPL3_EnvelopeKeyOn(opl3_slot *slot, uint8_t type)
 {
     slot->key |= type;
 }
 
-static void OPL3_EnvelopeKeyOff(opl3_slot *slot, Bit8u type)
+static void OPL3_EnvelopeKeyOff(opl3_slot *slot, uint8_t type)
 {
     slot->key &= ~type;
 }
@@ -523,7 +523,7 @@ static void OPL3_PhaseGenerate(opl3_slot *slot)
     opl3_chip *chip;
     Bit16u f_num;
     Bit32u basefreq;
-    Bit8u rm_xor, n_bit;
+    uint8_t rm_xor, n_bit;
     Bit32u noise;
     Bit16u phase;
 
@@ -532,7 +532,7 @@ static void OPL3_PhaseGenerate(opl3_slot *slot)
     if (slot->reg_vib)
     {
         Bit8s range;
-        Bit8u vibpos;
+        uint8_t vibpos;
 
         range = (f_num >> 7) & 7;
         vibpos = slot->chip->vibpos;
@@ -612,7 +612,7 @@ static void OPL3_PhaseGenerate(opl3_slot *slot)
 // Slot
 //
 
-static void OPL3_SlotWrite20(opl3_slot *slot, Bit8u data)
+static void OPL3_SlotWrite20(opl3_slot *slot, uint8_t data)
 {
     if ((data >> 7) & 0x01)
     {
@@ -620,7 +620,7 @@ static void OPL3_SlotWrite20(opl3_slot *slot, Bit8u data)
     }
     else
     {
-        slot->trem = (Bit8u*)&slot->chip->zeromod;
+        slot->trem = (uint8_t*)&slot->chip->zeromod;
     }
     slot->reg_vib = (data >> 6) & 0x01;
     slot->reg_type = (data >> 5) & 0x01;
@@ -628,20 +628,20 @@ static void OPL3_SlotWrite20(opl3_slot *slot, Bit8u data)
     slot->reg_mult = data & 0x0f;
 }
 
-static void OPL3_SlotWrite40(opl3_slot *slot, Bit8u data)
+static void OPL3_SlotWrite40(opl3_slot *slot, uint8_t data)
 {
     slot->reg_ksl = (data >> 6) & 0x03;
     slot->reg_tl = data & 0x3f;
     OPL3_EnvelopeUpdateKSL(slot);
 }
 
-static void OPL3_SlotWrite60(opl3_slot *slot, Bit8u data)
+static void OPL3_SlotWrite60(opl3_slot *slot, uint8_t data)
 {
     slot->reg_ar = (data >> 4) & 0x0f;
     slot->reg_dr = data & 0x0f;
 }
 
-static void OPL3_SlotWrite80(opl3_slot *slot, Bit8u data)
+static void OPL3_SlotWrite80(opl3_slot *slot, uint8_t data)
 {
     slot->reg_sl = (data >> 4) & 0x0f;
     if (slot->reg_sl == 0x0f)
@@ -651,7 +651,7 @@ static void OPL3_SlotWrite80(opl3_slot *slot, Bit8u data)
     slot->reg_rr = data & 0x0f;
 }
 
-static void OPL3_SlotWriteE0(opl3_slot *slot, Bit8u data)
+static void OPL3_SlotWriteE0(opl3_slot *slot, uint8_t data)
 {
     slot->reg_wf = data & 0x07;
     if (slot->chip->newm == 0x00)
@@ -684,12 +684,12 @@ static void OPL3_SlotCalcFB(opl3_slot *slot)
 
 static void OPL3_ChannelSetupAlg(opl3_channel *channel);
 
-static void OPL3_ChannelUpdateRhythm(opl3_chip *chip, Bit8u data)
+static void OPL3_ChannelUpdateRhythm(opl3_chip *chip, uint8_t data)
 {
     opl3_channel *channel6;
     opl3_channel *channel7;
     opl3_channel *channel8;
-    Bit8u chnum;
+    uint8_t chnum;
 
     chip->rhy = data & 0x3f;
     if (chip->rhy & 0x20)
@@ -776,7 +776,7 @@ static void OPL3_ChannelUpdateRhythm(opl3_chip *chip, Bit8u data)
     }
 }
 
-static void OPL3_ChannelWriteA0(opl3_channel *channel, Bit8u data)
+static void OPL3_ChannelWriteA0(opl3_channel *channel, uint8_t data)
 {
     if (channel->chip->newm && channel->chtype == ch_4op2)
     {
@@ -796,7 +796,7 @@ static void OPL3_ChannelWriteA0(opl3_channel *channel, Bit8u data)
     }
 }
 
-static void OPL3_ChannelWriteB0(opl3_channel *channel, Bit8u data)
+static void OPL3_ChannelWriteB0(opl3_channel *channel, uint8_t data)
 {
     if (channel->chip->newm && channel->chtype == ch_4op2)
     {
@@ -919,7 +919,7 @@ static void OPL3_ChannelSetupAlg(opl3_channel *channel)
     }
 }
 
-static void OPL3_ChannelWriteC0(opl3_channel *channel, Bit8u data)
+static void OPL3_ChannelWriteC0(opl3_channel *channel, uint8_t data)
 {
     channel->fb = (data & 0x0e) >> 1;
     channel->con = data & 0x01;
@@ -1006,10 +1006,10 @@ static void OPL3_ChannelKeyOff(opl3_channel *channel)
     }
 }
 
-static void OPL3_ChannelSet4Op(opl3_chip *chip, Bit8u data)
+static void OPL3_ChannelSet4Op(opl3_chip *chip, uint8_t data)
 {
-    Bit8u bit;
-    Bit8u chnum;
+    uint8_t bit;
+    uint8_t chnum;
     for (bit = 0; bit < 6; bit++)
     {
         chnum = bit;
@@ -1045,10 +1045,10 @@ static Bit16s OPL3_ClipSample(Bit32s sample)
 
 void OPL3_Generate(opl3_chip *chip, Bit16s *buf)
 {
-    Bit8u ii;
-    Bit8u jj;
+    uint8_t ii;
+    uint8_t jj;
     Bit16s accm;
-    Bit8u shift = 0;
+    uint8_t shift = 0;
 
     buf[1] = OPL3_ClipSample(chip->mixbuff[1]);
 
@@ -1193,8 +1193,8 @@ void OPL3_GenerateResampled(opl3_chip *chip, Bit16s *buf)
 
 void OPL3_Reset(opl3_chip *chip, Bit32u samplerate)
 {
-    Bit8u slotnum;
-    Bit8u channum;
+    uint8_t slotnum;
+    uint8_t channum;
 
     memset(chip, 0, sizeof(opl3_chip));
     for (slotnum = 0; slotnum < 36; slotnum++)
@@ -1204,7 +1204,7 @@ void OPL3_Reset(opl3_chip *chip, Bit32u samplerate)
         chip->slot[slotnum].eg_rout = 0x1ff;
         chip->slot[slotnum].eg_out = 0x1ff;
         chip->slot[slotnum].eg_gen = envelope_gen_num_release;
-        chip->slot[slotnum].trem = (Bit8u*)&chip->zeromod;
+        chip->slot[slotnum].trem = (uint8_t*)&chip->zeromod;
         chip->slot[slotnum].slot_num = slotnum;
     }
     for (channum = 0; channum < 18; channum++)
@@ -1238,10 +1238,10 @@ void OPL3_Reset(opl3_chip *chip, Bit32u samplerate)
     chip->vibshift = 1;
 }
 
-void OPL3_WriteReg(opl3_chip *chip, Bit16u reg, Bit8u v)
+void OPL3_WriteReg(opl3_chip *chip, Bit16u reg, uint8_t v)
 {
-    Bit8u high = (reg >> 8) & 0x01;
-    Bit8u regm = reg & 0xff;
+    uint8_t high = (reg >> 8) & 0x01;
+    uint8_t regm = reg & 0xff;
     switch (regm & 0xf0)
     {
     case 0x00:
@@ -1337,7 +1337,7 @@ void OPL3_WriteReg(opl3_chip *chip, Bit16u reg, Bit8u v)
     }
 }
 
-void OPL3_WriteRegBuffered(opl3_chip *chip, Bit16u reg, Bit8u v)
+void OPL3_WriteRegBuffered(opl3_chip *chip, Bit16u reg, uint8_t v)
 {
     Bit64u time1, time2;
 

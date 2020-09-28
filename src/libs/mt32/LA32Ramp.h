@@ -35,11 +35,11 @@ private:
 
 public:
 	LA32Ramp();
-	void startRamp(Bit8u target, Bit8u increment);
+	void startRamp(uint8_t target, uint8_t increment);
 	Bit32u nextValue();
 	bool checkInterrupt();
 	void reset();
-	bool isBelowCurrent(Bit8u target) const;
+	bool isBelowCurrent(uint8_t target) const;
 };
 
 } // namespace MT32Emu
