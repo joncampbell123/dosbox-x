@@ -59,7 +59,7 @@ public:
 	device_CON();
 	bool Read(uint8_t * data,uint16_t * size);
 	bool Write(const uint8_t * data,uint16_t * size);
-	bool Seek(Bit32u * pos,Bit32u type);
+	bool Seek(uint32_t * pos,uint32_t type);
 	bool Close();
 	uint16_t GetInformation(void);
 	bool ReadFromControlChannel(PhysPt bufptr,uint16_t size,uint16_t * retcode) { (void)bufptr; (void)size; (void)retcode; return false; }
@@ -1102,7 +1102,7 @@ bool device_CON::Write(const uint8_t * data,uint16_t * size) {
     return true;
 }
 
-bool device_CON::Seek(Bit32u * pos,Bit32u type) {
+bool device_CON::Seek(uint32_t * pos,uint32_t type) {
     (void)pos; // UNUSED
     (void)type; // UNUSED
 	// seek is valid

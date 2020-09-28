@@ -69,7 +69,7 @@ struct Segments {
 };
 
 union GenReg32 {
-	Bit32u dword[1];
+	uint32_t dword[1];
 	uint16_t word[2];
 	uint8_t byte[4];
 };

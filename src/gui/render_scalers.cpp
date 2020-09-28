@@ -30,7 +30,7 @@ uint16_t Scaler_ChangedLines[SCALER_MAXHEIGHT];
 Bitu Scaler_ChangedLineIndex;
 
 static union {
-	Bit32u b32 [4][SCALER_MAXWIDTH*3];
+	uint32_t b32 [4][SCALER_MAXWIDTH*3];
 	uint16_t b16 [4][SCALER_MAXWIDTH*3];
 	uint8_t b8 [4][SCALER_MAXWIDTH*3];
 } scalerWriteCache;

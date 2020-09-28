@@ -16,7 +16,7 @@
  *  51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
 
-#define SaveIP() reg_eip=(Bit32u)(inst.cseip-SegBase(cs));
+#define SaveIP() reg_eip=(uint32_t)(inst.cseip-SegBase(cs));
 #define LoadIP() inst.cseip=SegBase(cs)+reg_eip;
 #define GetIP()	(inst.cseip-SegBase(cs))
 
@@ -36,8 +36,8 @@ static INLINE uint16_t the_Fetchw(EAPoint & loc) {
 	loc+=2;
 	return temp;
 }
-static INLINE Bit32u the_Fetchd(EAPoint & loc) {
-	Bit32u temp=LoadMd(loc);
+static INLINE uint32_t the_Fetchd(EAPoint & loc) {
+	uint32_t temp=LoadMd(loc);
 	loc+=4;
 	return temp;
 }

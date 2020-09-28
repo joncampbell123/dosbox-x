@@ -38,13 +38,13 @@ static const uint8_t PAN_NUMERATOR_SLAVE[]  = {0, 1, 2, 3, 4, 5, 6, 7, 7, 7, 7, 
 // because of the observed sample overflow, so the panSetting values are likely mapped in a similar way via a LUT.
 // FIXME: Sample analysis suggests that the use of panSetting is linear, but there are some quirks that still need to be resolved.
 static Bit32s getPanFactor(Bit32s panSetting) {
-	static const Bit32u PAN_FACTORS_COUNT = 15;
+	static const uint32_t PAN_FACTORS_COUNT = 15;
 	static Bit32s PAN_FACTORS[PAN_FACTORS_COUNT];
 	static bool firstRun = true;
 
 	if (firstRun) {
 		firstRun = false;
-		for (Bit32u i = 1; i < PAN_FACTORS_COUNT; i++) {
+		for (uint32_t i = 1; i < PAN_FACTORS_COUNT; i++) {
 			PAN_FACTORS[i] = Bit32s(0.5 + i * 8192.0 / double(PAN_FACTORS_COUNT - 1));
 		}
 	}
@@ -87,7 +87,7 @@ int Partial::debugGetPartialNum() const {
 }
 
 // Only used for debugging purposes
-Bit32u Partial::debugGetSampleNum() const {
+uint32_t Partial::debugGetSampleNum() const {
 	return sampleNum;
 }
 
@@ -234,7 +234,7 @@ void Partial::startPartial(const Part *part, Poly *usePoly, const PatchCache *us
 	}
 }
 
-Bit32u Partial::getAmpValue() {
+uint32_t Partial::getAmpValue() {
 	// SEMI-CONFIRMED: From sample analysis:
 	// (1) Tested with a single partial playing PCM wave 77 with pitchCoarse 36 and no keyfollow, velocity follow, etc.
 	// This gives results within +/- 2 at the output (before any DAC bitshifting)
@@ -245,18 +245,18 @@ Bit32u Partial::getAmpValue() {
 	//
 	// Also still partially unconfirmed is the behaviour when ramping between levels, as well as the timing.
 	// TODO: The tests above were performed using the float model, to be refined
-	Bit32u ampRampVal = 67117056 - ampRamp.nextValue();
+	uint32_t ampRampVal = 67117056 - ampRamp.nextValue();
 	if (ampRamp.checkInterrupt()) {
 		tva->handleInterrupt();
 	}
 	return ampRampVal;
 }
 
-Bit32u Partial::getCutoffValue() {
+uint32_t Partial::getCutoffValue() {
 	if (isPCM()) {
 		return 0;
 	}
-	Bit32u cutoffModifierRampVal = cutoffModifierRamp.nextValue();
+	uint32_t cutoffModifierRampVal = cutoffModifierRamp.nextValue();
 	if (cutoffModifierRamp.checkInterrupt()) {
 		tvf->handleInterrupt();
 	}
@@ -357,7 +357,7 @@ void Partial::produceAndMixSample(FloatSample *&leftBuf, FloatSample *&rightBuf,
 }
 
 template <class Sample, class LA32PairImpl>
-bool Partial::doProduceOutput(Sample *leftBuf, Sample *rightBuf, Bit32u length, LA32PairImpl *la32PairImpl) {
+bool Partial::doProduceOutput(Sample *leftBuf, Sample *rightBuf, uint32_t length, LA32PairImpl *la32PairImpl) {
 	if (!canProduceOutput()) return false;
 	alreadyOutputed = true;
 
@@ -369,7 +369,7 @@ bool Partial::doProduceOutput(Sample *leftBuf, Sample *rightBuf, Bit32u length, 
 	return true;
 }
 
-bool Partial::produceOutput(IntSample *leftBuf, IntSample *rightBuf, Bit32u length) {
+bool Partial::produceOutput(IntSample *leftBuf, IntSample *rightBuf, uint32_t length) {
 	if (floatMode) {
 		synth->printDebug("Partial: Invalid call to produceOutput()! Renderer = %d\n", synth->getSelectedRendererType());
 		return false;
@@ -377,7 +377,7 @@ bool Partial::produceOutput(IntSample *leftBuf, IntSample *rightBuf, Bit32u leng
 	return doProduceOutput(leftBuf, rightBuf, length, static_cast<LA32IntPartialPair *>(la32Pair));
 }
 
-bool Partial::produceOutput(FloatSample *leftBuf, FloatSample *rightBuf, Bit32u length) {
+bool Partial::produceOutput(FloatSample *leftBuf, FloatSample *rightBuf, uint32_t length) {
 	if (!floatMode) {
 		synth->printDebug("Partial: Invalid call to produceOutput()! Renderer = %d\n", synth->getSelectedRendererType());
 		return false;

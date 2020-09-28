@@ -726,19 +726,19 @@ CX	640x480	800x600	  1024x768/1280x1024
 				break;
 			case 0x01:						/* Get code for "set window" */
 				SegSet16(es,RealSeg(int10.rom.pmode_interface));
-				reg_di=RealOff(int10.rom.pmode_interface)+(Bit32u)int10.rom.pmode_interface_window;
+				reg_di=RealOff(int10.rom.pmode_interface)+(uint32_t)int10.rom.pmode_interface_window;
 				reg_cx=int10.rom.pmode_interface_start-int10.rom.pmode_interface_window;
 				reg_ax=0x004f;
 				break;
 			case 0x02:						/* Get code for "set display start" */
 				SegSet16(es,RealSeg(int10.rom.pmode_interface));
-				reg_di=RealOff(int10.rom.pmode_interface)+(Bit32u)int10.rom.pmode_interface_start;
+				reg_di=RealOff(int10.rom.pmode_interface)+(uint32_t)int10.rom.pmode_interface_start;
 				reg_cx=int10.rom.pmode_interface_palette-int10.rom.pmode_interface_start;
 				reg_ax=0x004f;
 				break;
 			case 0x03:						/* Get code for "set palette" */
 				SegSet16(es,RealSeg(int10.rom.pmode_interface));
-				reg_di=RealOff(int10.rom.pmode_interface)+(Bit32u)int10.rom.pmode_interface_palette;
+				reg_di=RealOff(int10.rom.pmode_interface)+(uint32_t)int10.rom.pmode_interface_palette;
 				reg_cx=int10.rom.pmode_interface_size-int10.rom.pmode_interface_palette;
 				reg_ax=0x004f;
 				break;

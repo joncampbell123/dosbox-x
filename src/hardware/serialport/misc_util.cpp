@@ -38,9 +38,9 @@ struct _TCPsocketX {
 	int sflag;
 };
 
-Bit32u Netwrapper_GetCapabilities()
+uint32_t Netwrapper_GetCapabilities()
 {
-	Bit32u retval=0;
+	uint32_t retval=0;
 	retval = CAPWORD;
 	return retval;
 }

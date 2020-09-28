@@ -283,11 +283,11 @@ static void SetupCMDLine(uint16_t pspseg, const DOS_ParamBlock& block) {
  *        error message! --J.C. */
 bool DOS_Execute(const char* name, PhysPt block_pt, uint8_t flags) {
 	EXE_Header head;Bitu i;
-	uint16_t fhandle;uint16_t len;Bit32u pos;
+	uint16_t fhandle;uint16_t len;uint32_t pos;
 	uint16_t pspseg,envseg,loadseg,memsize=0xffff,readsize;
 	uint16_t maxsize,maxfree=0xffff;
 	PhysPt loadaddress;RealPt relocpt;
-    Bit32u headersize = 0, imagesize = 0;
+    uint32_t headersize = 0, imagesize = 0;
 	DOS_ParamBlock block(block_pt);
 
 	block.LoadData();

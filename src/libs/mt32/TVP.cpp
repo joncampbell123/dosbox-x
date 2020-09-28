@@ -78,7 +78,7 @@ static inline Bit32s fineToPitch(uint8_t fine) {
 	return (fine - 50) * 4096 / 1200; // One cent per fine offset
 }
 
-static Bit32u calcBasePitch(const Partial *partial, const TimbreParam::PartialParam *partialParam, const MemParams::PatchTemp *patchTemp, unsigned int key, const ControlROMFeatureSet *controlROMFeatures) {
+static uint32_t calcBasePitch(const Partial *partial, const TimbreParam::PartialParam *partialParam, const MemParams::PatchTemp *patchTemp, unsigned int key, const ControlROMFeatureSet *controlROMFeatures) {
 	Bit32s basePitch = keyToPitch(key);
 	basePitch = (basePitch * pitchKeyfollowMult[partialParam->wg.pitchKeyfollow]) >> 13; // PORTABILITY NOTE: Assumes arithmetic shift
 	basePitch += coarseToPitch(partialParam->wg.pitchCoarse);
@@ -112,10 +112,10 @@ static Bit32u calcBasePitch(const Partial *partial, const TimbreParam::PartialPa
 	} else if (basePitch > 59392) {
 		basePitch = 59392;
 	}
-	return Bit32u(basePitch);
+	return uint32_t(basePitch);
 }
 
-static Bit32u calcVeloMult(uint8_t veloSensitivity, unsigned int velocity) {
+static uint32_t calcVeloMult(uint8_t veloSensitivity, unsigned int velocity) {
 	if (veloSensitivity == 0) {
 		return 21845; // aka floor(4096 / 12 * 64), aka ~64 semitones
 	}
@@ -173,7 +173,7 @@ void TVP::reset(const Part *usePart, const TimbreParam::PartialParam *usePartial
 	shifts = 0;
 }
 
-Bit32u TVP::getBasePitch() const {
+uint32_t TVP::getBasePitch() const {
 	return basePitch;
 }
 
@@ -249,7 +249,7 @@ void TVP::nextPhase() {
 }
 
 // Shifts val to the left until bit 31 is 1 and returns the number of shifts
-static uint8_t normalise(Bit32u &val) {
+static uint8_t normalise(uint32_t &val) {
 	uint8_t leftShifts;
 	for (leftShifts = 0; leftShifts < 31; leftShifts++) {
 		if ((val & 0x80000000) != 0) {
@@ -270,7 +270,7 @@ void TVP::setupPitchChange(int targetPitchOffset, uint8_t changeDuration) {
 		pitchOffsetDelta = -pitchOffsetDelta;
 	}
 	// We want to maximise the number of bits of the int16_t "pitchOffsetChangePerBigTick" we use in order to get the best possible precision later
-	Bit32u absPitchOffsetDelta = pitchOffsetDelta << 16;
+	uint32_t absPitchOffsetDelta = pitchOffsetDelta << 16;
 	uint8_t normalisationShifts = normalise(absPitchOffsetDelta); // FIXME: Double-check: normalisationShifts is usually between 0 and 15 here, unless the delta is 0, in which case it's 31
 	absPitchOffsetDelta = absPitchOffsetDelta >> 1; // Make room for the sign bit
 

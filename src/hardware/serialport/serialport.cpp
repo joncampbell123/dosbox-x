@@ -73,7 +73,7 @@ bool device_COM::Write(const uint8_t * data,uint16_t * size) {
 	return true;
 }
 
-bool device_COM::Seek(Bit32u * pos,Bit32u type) {
+bool device_COM::Seek(uint32_t * pos,uint32_t type) {
     (void)type;//UNUSED
 	*pos = 0;
 	return true;
@@ -1001,7 +1001,7 @@ void CSerial::Init_Registers () {
 	irq_active=false;
 	waiting_interrupts = 0x0;
 
-	Bit32u initbps = 9600;
+	uint32_t initbps = 9600;
 	uint8_t bytesize = 8;
 	char parity = 'N';
 							  

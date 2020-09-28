@@ -49,7 +49,7 @@ typedef struct {
 	} rgb[256];
 	union {
 		uint16_t b16[256];
-		Bit32u b32[256];
+		uint32_t b32[256];
 	} lut;
 	bool changed;
 	uint8_t modified[256];

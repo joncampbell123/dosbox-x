@@ -189,7 +189,7 @@ typedef struct {
   uint8_t  mem[BX_NE2K_MEMSIZ];  // on-chip packet memory
 
     // ne2k internal state
-  Bit32u base_address;
+  uint32_t base_address;
   int    base_irq;
   int    tx_timer_index;
   int    tx_timer_active;
@@ -210,22 +210,22 @@ public:
   /* TODO: Setup SDL */
   //eth_pktmover_c *ethdev;
 
-  BX_NE2K_SMF Bit32u read_cr(void);
-  BX_NE2K_SMF void   write_cr(Bit32u value);
+  BX_NE2K_SMF uint32_t read_cr(void);
+  BX_NE2K_SMF void   write_cr(uint32_t value);
 
-  BX_NE2K_SMF Bit32u chipmem_read(Bit32u address, unsigned int io_len);
-  BX_NE2K_SMF Bit32u asic_read(Bit32u offset, unsigned int io_len);
-  BX_NE2K_SMF Bit32u page0_read(Bit32u offset, unsigned int io_len);
-  BX_NE2K_SMF Bit32u page1_read(Bit32u offset, unsigned int io_len);
-  BX_NE2K_SMF Bit32u page2_read(Bit32u offset, unsigned int io_len);
-  BX_NE2K_SMF Bit32u page3_read(Bit32u offset, unsigned int io_len);
+  BX_NE2K_SMF uint32_t chipmem_read(uint32_t address, unsigned int io_len);
+  BX_NE2K_SMF uint32_t asic_read(uint32_t offset, unsigned int io_len);
+  BX_NE2K_SMF uint32_t page0_read(uint32_t offset, unsigned int io_len);
+  BX_NE2K_SMF uint32_t page1_read(uint32_t offset, unsigned int io_len);
+  BX_NE2K_SMF uint32_t page2_read(uint32_t offset, unsigned int io_len);
+  BX_NE2K_SMF uint32_t page3_read(uint32_t offset, unsigned int io_len);
 
-  BX_NE2K_SMF void chipmem_write(Bit32u address, Bit32u value, unsigned io_len);
-  BX_NE2K_SMF void asic_write(Bit32u address, Bit32u value, unsigned io_len);
-  BX_NE2K_SMF void page0_write(Bit32u address, Bit32u value, unsigned io_len);
-  BX_NE2K_SMF void page1_write(Bit32u address, Bit32u value, unsigned io_len);
-  BX_NE2K_SMF void page2_write(Bit32u address, Bit32u value, unsigned io_len);
-  BX_NE2K_SMF void page3_write(Bit32u address, Bit32u value, unsigned io_len);
+  BX_NE2K_SMF void chipmem_write(uint32_t address, uint32_t value, unsigned io_len);
+  BX_NE2K_SMF void asic_write(uint32_t address, uint32_t value, unsigned io_len);
+  BX_NE2K_SMF void page0_write(uint32_t address, uint32_t value, unsigned io_len);
+  BX_NE2K_SMF void page1_write(uint32_t address, uint32_t value, unsigned io_len);
+  BX_NE2K_SMF void page2_write(uint32_t address, uint32_t value, unsigned io_len);
+  BX_NE2K_SMF void page3_write(uint32_t address, uint32_t value, unsigned io_len);
 
 public:
   static void tx_timer_handler(void *);
@@ -236,11 +236,11 @@ public:
   BX_NE2K_SMF void rx_frame(const void *buf, unsigned io_len);
 
 
-  static Bit32u read_handler(void *this_ptr, Bit32u address, unsigned io_len);
-  static void   write_handler(void *this_ptr, Bit32u address, Bit32u value, unsigned io_len);
+  static uint32_t read_handler(void *this_ptr, uint32_t address, unsigned io_len);
+  static void   write_handler(void *this_ptr, uint32_t address, uint32_t value, unsigned io_len);
 #if !BX_USE_NE2K_SMF
-  Bit32u read(Bit32u address, unsigned io_len);
-  void   write(Bit32u address, Bit32u value, unsigned io_len);
+  uint32_t read(uint32_t address, unsigned io_len);
+  void   write(uint32_t address, uint32_t value, unsigned io_len);
 #endif
 
 

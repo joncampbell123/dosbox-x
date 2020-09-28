@@ -25,9 +25,9 @@
 #include "control.h"
 #include <list>
 
-Bit32u DOS_HMA_LIMIT();
-Bit32u DOS_HMA_FREE_START();
-Bit32u DOS_HMA_GET_FREE_SPACE();
+uint32_t DOS_HMA_LIMIT();
+uint32_t DOS_HMA_FREE_START();
+uint32_t DOS_HMA_GET_FREE_SPACE();
 void DOS_HMA_CLAIMED(uint16_t bytes);
 bool ANSI_SYS_installed();
 
@@ -130,14 +130,14 @@ static bool DOS_MultiplexFunctions(void) {
 		if (reg_bx<16) {
 			RealPt sftrealpt=mem_readd(Real2Phys(dos_infoblock.GetPointer())+4);
 			PhysPt sftptr=Real2Phys(sftrealpt);
-			Bit32u sftofs=0x06u+reg_bx*0x3bu;
+			uint32_t sftofs=0x06u+reg_bx*0x3bu;
 
 			if (Files[reg_bx]) mem_writeb(sftptr+sftofs, (uint8_t)(Files[reg_bx]->refCtr));
 			else mem_writeb(sftptr+sftofs,0);
 
 			if (!Files[reg_bx]) return true;
 
-			Bit32u handle=RealHandle(reg_bx);
+			uint32_t handle=RealHandle(reg_bx);
 			if (handle>=DOS_FILES) {
 				mem_writew(sftptr+sftofs+0x02,0x02);	// file open mode
 				mem_writeb(sftptr+sftofs+0x04,0x00);	// file attribute
@@ -156,9 +156,9 @@ static bool DOS_MultiplexFunctions(void) {
 				mem_writed(sftptr+sftofs+0x07,RealMake(dos.tables.dpb,drive*dos.tables.dpb_size));	// dpb of the drive
 				mem_writew(sftptr+sftofs+0x0d,Files[reg_bx]->time);					// packed file time
 				mem_writew(sftptr+sftofs+0x0f,Files[reg_bx]->date);					// packed file date
-				Bit32u curpos=0;
+				uint32_t curpos=0;
 				Files[reg_bx]->Seek(&curpos,DOS_SEEK_CUR);
-				Bit32u endpos=0;
+				uint32_t endpos=0;
 				Files[reg_bx]->Seek(&endpos,DOS_SEEK_END);
 				mem_writed(sftptr+sftofs+0x11,endpos);		// size
 				mem_writed(sftptr+sftofs+0x15,curpos);		// current position
@@ -478,7 +478,7 @@ static bool DOS_MultiplexFunctions(void) {
         // nor is DOS 5 DOSSHELL active
         return true;
 	case 0x4a01: {	/* Query free hma space */
-		Bit32u limit = DOS_HMA_LIMIT();
+		uint32_t limit = DOS_HMA_LIMIT();
 
 		if (limit == 0) {
 			/* TODO: What does MS-DOS prior to v5.0? */
@@ -489,7 +489,7 @@ static bool DOS_MultiplexFunctions(void) {
 			return true;
 		}
 
-		Bit32u start = DOS_HMA_FREE_START();
+		uint32_t start = DOS_HMA_FREE_START();
 		reg_bx = limit - start; /* free space in bytes */
 		SegSet16(es,0xffff);
 		reg_di = (start + 0x10) & 0xFFFF;
@@ -497,7 +497,7 @@ static bool DOS_MultiplexFunctions(void) {
 			start,limit,DOS_HMA_GET_FREE_SPACE(),(int)reg_bx,(int)SegValue(es),(int)reg_di);
 		} return true;
 	case 0x4a02: {	/* ALLOCATE HMA SPACE */
-		Bit32u limit = DOS_HMA_LIMIT();
+		uint32_t limit = DOS_HMA_LIMIT();
 
 		if (limit == 0) {
 			/* TODO: What does MS-DOS prior to v5.0? */
@@ -514,7 +514,7 @@ static bool DOS_MultiplexFunctions(void) {
 		if (dos.version.major < 7 && (reg_bx & 0xF) != 0)
 			reg_bx = (reg_bx + 0xF) & (~0xF);
 
-		Bit32u start = DOS_HMA_FREE_START();
+		uint32_t start = DOS_HMA_FREE_START();
 		if ((start+reg_bx) > limit) {
 			LOG(LOG_DOSMISC,LOG_DEBUG)("HMA allocation: rejected (not enough room) for %u bytes (0x%x + 0x%x > 0x%x)",reg_bx,
                 (unsigned int)start,(unsigned int)reg_bx,(unsigned int)limit);

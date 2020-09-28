@@ -92,12 +92,12 @@ static struct MemoryBlock {
         bool enabled;
         uint8_t controlport;
     } a20 = {};
-    Bit32u mem_alias_pagemask;
-    Bit32u mem_alias_pagemask_active;
-    Bit32u address_bits;
+    uint32_t mem_alias_pagemask;
+    uint32_t mem_alias_pagemask_active;
+    uint32_t address_bits;
 } memory;
 
-Bit32u MEM_get_address_bits() {
+uint32_t MEM_get_address_bits() {
     return memory.address_bits;
 }
 
@@ -195,7 +195,7 @@ public:
         else
             LOG(LOG_CPU,LOG_ERROR)("Write %x to rom at %x",(int)val,(int)addr);
     }
-    void writed(PhysPt addr,Bit32u val){
+    void writed(PhysPt addr,uint32_t val){
         if (IS_PC98_ARCH && (addr & ~0x7FFF) == 0xE0000u)
             { /* Many PC-98 games and programs will zero 0xE0000-0xE7FFF whether or not the 4th bitplane is mapped */ }
         else
@@ -742,7 +742,7 @@ void MEM_BlockWrite(PhysPt pt,void const * const data,Bitu size) {
 }
 
 void MEM_BlockRead32(PhysPt pt,void * data,Bitu size) {
-    Bit32u * write=(Bit32u *) data;
+    uint32_t * write=(uint32_t *) data;
     size>>=2;
     while (size--) {
         *write++=mem_readd_inline(pt);
@@ -751,7 +751,7 @@ void MEM_BlockRead32(PhysPt pt,void * data,Bitu size) {
 }
 
 void MEM_BlockWrite32(PhysPt pt,void * data,Bitu size) {
-    Bit32u * read=(Bit32u *) data;
+    uint32_t * read=(uint32_t *) data;
     size>>=2;
     while (size--) {
         mem_writed_inline(pt,*read++);
@@ -814,11 +814,11 @@ Bitu MEM_AllocatedPages(MemHandle handle)
 
 //TODO Maybe some protection for this whole allocation scheme
 
-INLINE Bit32u BestMatch(Bitu size) {
-    Bit32u index=XMS_START;   
-    Bit32u first=0;
-    Bit32u best=0xfffffff;
-    Bit32u best_first=0;
+INLINE uint32_t BestMatch(Bitu size) {
+    uint32_t index=XMS_START;   
+    uint32_t first=0;
+    uint32_t best=0xfffffff;
+    uint32_t best_first=0;
     while (index<memory.reported_pages) {
         /* Check if we are searching for first free page */
         if (!first) {
@@ -829,7 +829,7 @@ INLINE Bit32u BestMatch(Bitu size) {
         } else {
             /* Check if this still is used page */
             if (memory.mhandles[index]) {
-                Bit32u pages=index-first;
+                uint32_t pages=index-first;
                 if (pages==size) {
                     return first;
                 } else if (pages>size) {
@@ -853,11 +853,11 @@ INLINE Bit32u BestMatch(Bitu size) {
 /* alternate copy, that will only allocate memory on addresses
  * where the 20th address bit is zero. memory allocated in this
  * way will always be accessible no matter the state of the A20 gate */
-INLINE Bit32u BestMatch_A20_friendly(Bitu size) {
-    Bit32u index=XMS_START;
-    Bit32u first=0;
-    Bit32u best=0xfffffff;
-    Bit32u best_first=0;
+INLINE uint32_t BestMatch_A20_friendly(Bitu size) {
+    uint32_t index=XMS_START;
+    uint32_t first=0;
+    uint32_t best=0xfffffff;
+    uint32_t best_first=0;
 
     /* if the memory to allocate is more than 1MB this function will never work. give up now. */
     if (size > 0x100)
@@ -884,7 +884,7 @@ INLINE Bit32u BestMatch_A20_friendly(Bitu size) {
         } else {
             /* Check if this still is used page or on odd megabyte */
             if (memory.mhandles[index] || (index & 0x100)) {
-                Bit32u pages=index-first;
+                uint32_t pages=index-first;
                 if (pages==size) {
                     return first;
                 } else if (pages>size) {
@@ -909,7 +909,7 @@ MemHandle MEM_AllocatePages(Bitu pages,bool sequence) {
     MemHandle ret;
     if (!pages) return 0;
     if (sequence) {
-        Bit32u index=BestMatch(pages);
+        uint32_t index=BestMatch(pages);
         if (!index) return 0;
         MemHandle * next=&ret;
         while (pages) {
@@ -922,7 +922,7 @@ MemHandle MEM_AllocatePages(Bitu pages,bool sequence) {
         if (MEM_FreeTotal()<pages) return 0;
         MemHandle * next=&ret;
         while (pages) {
-            Bit32u index=BestMatch(1);
+            uint32_t index=BestMatch(1);
             if (!index) E_Exit("MEM:corruption during allocate");
             while (pages && (!memory.mhandles[index])) {
                 *next=(MemHandle)index;
@@ -942,7 +942,7 @@ MemHandle MEM_AllocatePages_A20_friendly(Bitu pages,bool sequence) {
     MemHandle ret;
     if (!pages) return 0;
     if (sequence) {
-        Bit32u index=BestMatch_A20_friendly(pages);
+        uint32_t index=BestMatch_A20_friendly(pages);
         if (!index) return 0;
 #if C_DEBUG
         if (index & 0x100) E_Exit("MEM_AllocatePages_A20_friendly failed to make sure address has bit 20 == 0");
@@ -959,7 +959,7 @@ MemHandle MEM_AllocatePages_A20_friendly(Bitu pages,bool sequence) {
         if (MEM_FreeTotal()<pages) return 0;
         MemHandle * next=&ret;
         while (pages) {
-            Bit32u index=BestMatch_A20_friendly(1);
+            uint32_t index=BestMatch_A20_friendly(1);
             if (!index) E_Exit("MEM:corruption during allocate");
 #if C_DEBUG
             if (index & 0x100) E_Exit("MEM_AllocatePages_A20_friendly failed to make sure address has bit 20 == 0");
@@ -1108,11 +1108,11 @@ uint16_t mem_unalignedreadw(PhysPt address) {
     return ret;
 }
 
-Bit32u mem_unalignedreadd(PhysPt address) {
-    Bit32u ret = (Bit32u)mem_readb_inline(address   );
-    ret       |= (Bit32u)mem_readb_inline(address+1u) << 8u;
-    ret       |= (Bit32u)mem_readb_inline(address+2u) << 16u;
-    ret       |= (Bit32u)mem_readb_inline(address+3u) << 24u;
+uint32_t mem_unalignedreadd(PhysPt address) {
+    uint32_t ret = (uint32_t)mem_readb_inline(address   );
+    ret       |= (uint32_t)mem_readb_inline(address+1u) << 8u;
+    ret       |= (uint32_t)mem_readb_inline(address+2u) << 16u;
+    ret       |= (uint32_t)mem_readb_inline(address+3u) << 24u;
     return ret;
 }
 
@@ -1122,7 +1122,7 @@ void mem_unalignedwritew(PhysPt address,uint16_t val) {
     mem_writeb_inline(address+1u,(uint8_t)val);
 }
 
-void mem_unalignedwrited(PhysPt address,Bit32u val) {
+void mem_unalignedwrited(PhysPt address,uint32_t val) {
     mem_writeb_inline(address,   (uint8_t)val);val>>=8u;
     mem_writeb_inline(address+1u,(uint8_t)val);val>>=8u;
     mem_writeb_inline(address+2u,(uint8_t)val);val>>=8u;
@@ -1138,13 +1138,13 @@ bool mem_unalignedreadw_checked(PhysPt address, uint16_t * val) {
     return false;
 }
 
-bool mem_unalignedreadd_checked(PhysPt address, Bit32u * val) {
+bool mem_unalignedreadd_checked(PhysPt address, uint32_t * val) {
     uint8_t rval1,rval2,rval3,rval4;
     if (mem_readb_checked(address+0, &rval1)) return true;
     if (mem_readb_checked(address+1, &rval2)) return true;
     if (mem_readb_checked(address+2, &rval3)) return true;
     if (mem_readb_checked(address+3, &rval4)) return true;
-    *val=(Bit32u)(((uint8_t)rval1) | (((uint8_t)rval2) << 8) | (((uint8_t)rval3) << 16) | (((uint8_t)rval4) << 24));
+    *val=(uint32_t)(((uint8_t)rval1) | (((uint8_t)rval2) << 8) | (((uint8_t)rval3) << 16) | (((uint8_t)rval4) << 24));
     return false;
 }
 
@@ -1155,7 +1155,7 @@ bool mem_unalignedwritew_checked(PhysPt address,uint16_t val) {
     return false;
 }
 
-bool mem_unalignedwrited_checked(PhysPt address,Bit32u val) {
+bool mem_unalignedwrited_checked(PhysPt address,uint32_t val) {
     if (mem_writeb_checked(address,(uint8_t)(val & 0xff))) return true;
     val>>=8;
     if (mem_writeb_checked(address+1,(uint8_t)(val & 0xff))) return true;
@@ -1174,7 +1174,7 @@ uint16_t mem_readw(const PhysPt address) {
     return mem_readw_inline(address);
 }
 
-Bit32u mem_readd(const PhysPt address) {
+uint32_t mem_readd(const PhysPt address) {
     return mem_readd_inline(address);
 }
 
@@ -1193,7 +1193,7 @@ void mem_writew(PhysPt address,uint16_t val) {
     mem_writew_inline(address,val);
 }
 
-void mem_writed(PhysPt address,Bit32u val) {
+void mem_writed(PhysPt address,uint32_t val) {
 //  if (warn_on_mem_write && cpu.pmode) LOG_MSG("WARNING: post-killswitch memory write to 0x%08x = 0x%08x\n",address,val);
     mem_writed_inline(address,val);
 }

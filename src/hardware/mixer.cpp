@@ -85,8 +85,8 @@ static struct {
     float           mastervol[2];
     float           recordvol[2];
     MixerChannel*   channels;
-    Bit32u          freq;
-    Bit32u          blocksize;
+    uint32_t          freq;
+    uint32_t          blocksize;
     struct mixedFraction samples_per_ms;
     struct mixedFraction samples_this_ms;
     struct mixedFraction samples_rendered_ms;
@@ -396,7 +396,7 @@ void MixerChannel::SetFreq(Bitu _freq,Bitu _den) {
     lowpassUpdate();
 }
 
-void CAPTURE_MultiTrackAddWave(Bit32u freq, Bit32u len, int16_t * data,const char *name);
+void CAPTURE_MultiTrackAddWave(uint32_t freq, uint32_t len, int16_t * data,const char *name);
 
 void MixerChannel::EndFrame(Bitu samples) {
     if (CaptureState & CAPTURE_MULTITRACK_WAVE) {// TODO: should be a separate call!
@@ -550,11 +550,11 @@ inline void MixerChannel::loadCurrentSample(Bitu &len, const Type* &data) {
         uint32_t d;
 
         len--;
-        if (nativeorder) d = ((Bit32u)((*data++) ^ xr));
+        if (nativeorder) d = ((uint32_t)((*data++) ^ xr));
         else d = host_readd((HostPt)(data++)) ^ xr;
         current[0] = (Bit32s)d;
         if (stereo) {
-            if (nativeorder) d = ((Bit32u)((*data++) ^ xr));
+            if (nativeorder) d = ((uint32_t)((*data++) ^ xr));
             else d = host_readd((HostPt)(data++)) ^ xr;
             current[1] = (Bit32s)d;
         }

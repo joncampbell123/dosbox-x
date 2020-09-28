@@ -386,7 +386,7 @@ bool Prop_string::CheckValue(Value const& in, bool warn) {
             return true;
         }
         if ((*it).ToString() == "%u") {
-            Bit32u value;
+            uint32_t value;
             if (sscanf(in.ToString().c_str(),"%u",&value) == 1) {
                 return true;
             }

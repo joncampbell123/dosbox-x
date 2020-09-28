@@ -31,7 +31,7 @@ LazyFlags lflags;
 /* CF     Carry Flag -- Set on high-order bit carry or borrow; cleared
           otherwise.
 */
-Bit32u get_CF(void) {
+uint32_t get_CF(void) {
 
 	switch (lflags.type) {
 	case t_UNKNOWN:
@@ -128,7 +128,7 @@ Bit32u get_CF(void) {
             four bits of   AL; cleared otherwise. Used for decimal
             arithmetic.
 */
-Bit32u get_AF(void) {
+uint32_t get_AF(void) {
 	Bitu type=lflags.type;
 	switch (type) {
 	case t_UNKNOWN:
@@ -209,7 +209,7 @@ Bit32u get_AF(void) {
 /* ZF     Zero Flag -- Set if result is zero; cleared otherwise.
 */
 
-Bit32u get_ZF(void) {
+uint32_t get_ZF(void) {
 	Bitu type=lflags.type;
 	switch (type) {
 	case t_UNKNOWN:
@@ -277,7 +277,7 @@ Bit32u get_ZF(void) {
 /* SF     Sign Flag -- Set equal to high-order bit of result (0 is
             positive, 1 if negative).
 */
-Bit32u get_SF(void) {
+uint32_t get_SF(void) {
 	Bitu type=lflags.type;
 	switch (type) {
 	case t_UNKNOWN:
@@ -343,7 +343,7 @@ Bit32u get_SF(void) {
 	return false;
 
 }
-Bit32u get_OF(void) {
+uint32_t get_OF(void) {
 	Bitu type=lflags.type;
 	switch (type) {
 	case t_UNKNOWN:
@@ -453,7 +453,7 @@ uint16_t parity_lookup[256] = {
   FLAG_PF, 0, 0, FLAG_PF, 0, FLAG_PF, FLAG_PF, 0, 0, FLAG_PF, FLAG_PF, 0, FLAG_PF, 0, 0, FLAG_PF
   };
 
-Bit32u get_PF(void) {
+uint32_t get_PF(void) {
 	switch (lflags.type) {
 	case t_UNKNOWN:
 		return GETFLAG(PF);

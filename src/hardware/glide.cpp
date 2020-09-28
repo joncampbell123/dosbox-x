@@ -59,10 +59,10 @@ extern const char* RunningProgram;
 extern bool dpi_aware_enable;
 extern bool dos_kernel_disabled;
 
-static float int_to_float(const Bit32u i)
+static float int_to_float(const uint32_t i)
 {
     float f;
-    Bit32u i_native = SDL_SwapLE32(i);
+    uint32_t i_native = SDL_SwapLE32(i);
     SDL_memcpy(&f, &i_native, 4);
     return f;
 }
@@ -86,14 +86,14 @@ static FncPointers FP;
 static void ** fn_pt=NULL;
 
 // Shared memory
-static Bit32u param[20];
+static uint32_t param[20];
 
 // Pointer to return value
 static PhysPt ret;
 static uint16_t ret_value;
 
 // Temporary texture buffer
-static Bit32u texsize=0;
+static uint32_t texsize=0;
 static void* texmem=NULL;
 static HostPt hwnd=NULL;
 static char lfbacc=0;
@@ -270,9 +270,9 @@ public:
 	return *(uint16_t *)(LFB_getAddr(addr));
     }
 
-    Bit32u readd(PhysPt addr) {
+    uint32_t readd(PhysPt addr) {
 //	LOG_MSG("Glide:Read from 0x%p", LFB_getAddr(addr));
-	return *(Bit32u *)(LFB_getAddr(addr));
+	return *(uint32_t *)(LFB_getAddr(addr));
     }
 
     void writeb(PhysPt addr,uint8_t val) {
@@ -285,9 +285,9 @@ public:
 	*(uint16_t *)(LFB_getAddr(addr))=(uint16_t)val;
     }
 
-    void writed(PhysPt addr,Bit32u val) {
+    void writed(PhysPt addr,uint32_t val) {
 //	LOG_MSG("Glide:Write to 0x%p", LFB_getAddr(addr));
-	*(Bit32u *)(LFB_getAddr(addr))=(Bit32u)val;
+	*(uint32_t *)(LFB_getAddr(addr))=(uint32_t)val;
     }
 
     HostPt GetHostReadPt(Bitu phys_page) {
@@ -489,7 +489,7 @@ void GLIDE_ResetScreen(bool update)
         sdl.window = GFX_SetSDLWindowMode(glide.width,glide.height, sdl.desktop.want_type == SCREEN_OPENGL ? SCREEN_OPENGL : SCREEN_SURFACE);
         if (sdl.window != NULL) sdl.surface = SDL_GetWindowSurface(sdl.window);
 #else
-        SDL_Surface* SDL_SetVideoMode(int width,int height,int bpp,Bit32u flags);
+        SDL_Surface* SDL_SetVideoMode(int width,int height,int bpp,uint32_t flags);
         sdl.surface = SDL_SetVideoMode(glide.width,glide.height,0,(glide.fullscreen[0]?SDL_FULLSCREEN:0)|SDL_ANYFORMAT);
 #endif
 	}
@@ -1591,13 +1591,13 @@ static void process_msg(Bitu value)
 	// Copy the data back to DB struct if successful
 	if(mem_readd(ret)) {
 	    MEM_BlockRead32(param[2], &dbguinfo, sizeof(DBGu3dfInfo));
-	    dbguinfo.header.width = (Bit32u)guinfo.header.width;
-	    dbguinfo.header.height = (Bit32u)guinfo.header.height;
+	    dbguinfo.header.width = (uint32_t)guinfo.header.width;
+	    dbguinfo.header.height = (uint32_t)guinfo.header.height;
 	    dbguinfo.header.small_lod = (Bit32s)guinfo.header.small_lod;
 	    dbguinfo.header.large_lod = (Bit32s)guinfo.header.large_lod;
 	    dbguinfo.header.aspect_ratio = (Bit32s)guinfo.header.aspect_ratio;
 	    dbguinfo.header.format = (Bit32s)guinfo.header.format;
-	    dbguinfo.mem_required = (Bit32u)guinfo.mem_required;
+	    dbguinfo.mem_required = (uint32_t)guinfo.mem_required;
 	    MEM_BlockWrite32(param[2], &dbguinfo, sizeof(DBGu3dfInfo));
 	}
 
@@ -1627,7 +1627,7 @@ static void process_msg(Bitu value)
 	// Copy the data back to DB struct if successful
 	if(mem_readd(ret)) {
 	    for(j=0;j<256;j++)
-		dbguinfo.table.palette.data[j] = (Bit32u)guinfo.table.palette.data[j];
+		dbguinfo.table.palette.data[j] = (uint32_t)guinfo.table.palette.data[j];
 	    MEM_BlockWrite(dbguinfo.data, guinfo.data, guinfo.mem_required);
 	}
 

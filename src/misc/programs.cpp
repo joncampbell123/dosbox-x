@@ -72,7 +72,7 @@ public:
 public:
 	std::string	name;
 	uint8_t*		comdata;
-	Bit32u		comsize;
+	uint32_t		comsize;
 	PROGRAMS_Main*	main;
 };
 
@@ -92,7 +92,7 @@ void PROGRAMS_Shutdown(void) {
 }
 
 void PROGRAMS_MakeFile(char const * const name,PROGRAMS_Main * main) {
-	Bit32u size=sizeof(exe_block)+sizeof(uint8_t);
+	uint32_t size=sizeof(exe_block)+sizeof(uint8_t);
 	InternalProgramEntry *ipe;
 	uint8_t *comdata;
 	uint8_t index;

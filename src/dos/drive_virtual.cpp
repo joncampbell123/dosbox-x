@@ -32,7 +32,7 @@ struct VFILE_Block {
 	const char * name;
 	const char * lname;
 	uint8_t * data;
-	Bit32u size;
+	uint32_t size;
 	uint16_t date;
 	uint16_t time;
 	bool hidden;
@@ -148,10 +148,10 @@ void VFILE_Shutdown(void) {
 }
 
 void VFILE_RegisterBuiltinFileBlob(const struct BuiltinFileBlob &b) {
-	VFILE_Register(b.recommended_file_name, (uint8_t*)b.data, (Bit32u)b.length);
+	VFILE_Register(b.recommended_file_name, (uint8_t*)b.data, (uint32_t)b.length);
 }
 
-void VFILE_Register(const char * name,uint8_t * data,Bit32u size) {
+void VFILE_Register(const char * name,uint8_t * data,uint32_t size) {
     if (vfpos>=MAX_VFILES) return;
     std::istringstream in(hidefiles);
     bool hidden=false;
@@ -201,27 +201,27 @@ void VFILE_Remove(const char *name) {
 
 class Virtual_File : public DOS_File {
 public:
-	Virtual_File(uint8_t * in_data,Bit32u in_size);
+	Virtual_File(uint8_t * in_data,uint32_t in_size);
 	bool Read(uint8_t * data,uint16_t * size);
 	bool Write(const uint8_t * data,uint16_t * size);
-	bool Seek(Bit32u * new_pos,Bit32u type);
+	bool Seek(uint32_t * new_pos,uint32_t type);
 	bool Close();
 	uint16_t GetInformation(void);
 private:
-	Bit32u file_size;
-    Bit32u file_pos = 0;
+	uint32_t file_size;
+    uint32_t file_pos = 0;
 	uint8_t * file_data;
 };
 
 
-Virtual_File::Virtual_File(uint8_t* in_data, Bit32u in_size) : file_size(in_size), file_data(in_data) {
+Virtual_File::Virtual_File(uint8_t* in_data, uint32_t in_size) : file_size(in_size), file_data(in_data) {
 	date=DOS_PackDate(2002,10,1);
 	time=DOS_PackTime(12,34,56);
 	open=true;
 }
 
 bool Virtual_File::Read(uint8_t * data,uint16_t * size) {
-	Bit32u left=file_size-file_pos;
+	uint32_t left=file_size-file_pos;
 	if (left<=*size) { 
 		memcpy(data,&file_data[file_pos],left);
 		*size=(uint16_t)left;
@@ -239,7 +239,7 @@ bool Virtual_File::Write(const uint8_t * data,uint16_t * size){
 	return false;
 }
 
-bool Virtual_File::Seek(Bit32u * new_pos,Bit32u type){
+bool Virtual_File::Seek(uint32_t * new_pos,uint32_t type){
 	switch (type) {
 	case DOS_SEEK_SET:
 		if (*new_pos<=file_size) file_pos=*new_pos;
@@ -276,7 +276,7 @@ Virtual_Drive::Virtual_Drive() {
 }
 
 
-bool Virtual_Drive::FileOpen(DOS_File * * file,const char * name,Bit32u flags) {
+bool Virtual_Drive::FileOpen(DOS_File * * file,const char * name,uint32_t flags) {
 /* Scan through the internal list of files */
     const VFILE_Block* cur_file = first_file;
 	while (cur_file) {

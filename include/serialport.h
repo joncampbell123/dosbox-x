@@ -439,7 +439,7 @@ public:
 	virtual ~device_COM();
 	bool Read(uint8_t * data,uint16_t * size);
 	bool Write(const uint8_t * data,uint16_t * size);
-	bool Seek(Bit32u * pos,Bit32u type);
+	bool Seek(uint32_t * pos,uint32_t type);
 	bool Close();
 	uint16_t GetInformation(void);
 private:

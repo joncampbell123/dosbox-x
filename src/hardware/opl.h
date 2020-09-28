@@ -28,13 +28,13 @@
 #define fltype double
 
 /*
-	define Bits, Bitu, Bit32s, Bit32u, int16_t, uint16_t, int8_t, uint8_t here
+	define Bits, Bitu, Bit32s, uint32_t, int16_t, uint16_t, int8_t, uint8_t here
 */
 /*
 #include <stdint.h>
 typedef uintptr_t	Bitu;
 typedef intptr_t	Bits;
-typedef uint32_t	Bit32u;
+typedef uint32_t	uint32_t;
 typedef int32_t		Bit32s;
 typedef uint16_t	uint16_t;
 typedef int16_t		int16_t;
@@ -122,24 +122,24 @@ typedef int8_t		int8_t;
 */
 typedef struct operator_struct {
 	Bit32s cval, lastcval;			// current output/last output (used for feedback)
-	Bit32u tcount, wfpos, tinc;		// time (position in waveform) and time increment
+	uint32_t tcount, wfpos, tinc;		// time (position in waveform) and time increment
 	fltype amp, step_amp;			// and amplification (envelope)
 	fltype vol;						// volume
 	fltype sustain_level;			// sustain level
 	Bit32s mfbi;					// feedback amount
 	fltype a0, a1, a2, a3;			// attack rate function coefficients
 	fltype decaymul, releasemul;	// decay/release rate functions
-	Bit32u op_state;				// current state of operator (attack/decay/sustain/release/off)
-	Bit32u toff;
+	uint32_t op_state;				// current state of operator (attack/decay/sustain/release/off)
+	uint32_t toff;
 	Bit32s freq_high;				// highest three bits of the frequency, used for vibrato calculations
 	int16_t* cur_wform;				// start of selected waveform
-	Bit32u cur_wmask;				// mask for selected waveform
-	Bit32u act_state;				// activity state (regular, percussion)
+	uint32_t cur_wmask;				// mask for selected waveform
+	uint32_t act_state;				// activity state (regular, percussion)
 	bool sus_keep;					// keep sustain level when decay finished
 	bool vibrato,tremolo;			// vibrato/tremolo enable bits
 	
 	// variables used to provide non-continuous envelopes
-	Bit32u generator_pos;			// for non-standard sample rates we need to determine how many samples have passed
+	uint32_t generator_pos;			// for non-standard sample rates we need to determine how many samples have passed
 	Bits cur_env_step;				// current (standardized) sample position
 	Bits env_step_a,env_step_d,env_step_r;	// number of std samples of one step (for attack/decay/release mode)
 	uint8_t step_skip_pos_a;			// position of 8-cyclic step skipping (always 2^x to check against mask)
@@ -158,7 +158,7 @@ op_type op[MAXOPERATORS];
 Bits int_samplerate;
 	
 uint8_t status;
-Bit32u opl_index;
+uint32_t opl_index;
 #if defined(OPLTYPE_IS_OPL3)
 uint8_t adlibreg[512];	// adlib register set (including second set)
 uint8_t wave_sel[44];		// waveform selection
@@ -169,10 +169,10 @@ uint8_t wave_sel[22];		// waveform selection
 
 
 // vibrato/tremolo increment/counter
-Bit32u vibtab_pos;
-Bit32u vibtab_add;
-Bit32u tremtab_pos;
-Bit32u tremtab_add;
+uint32_t vibtab_pos;
+uint32_t vibtab_add;
+uint32_t tremtab_pos;
+uint32_t tremtab_add;
 
 
 // enable an operator
@@ -191,11 +191,11 @@ void change_vibrato(Bitu regbase, op_type* op_pt);
 void change_feedback(Bitu chanbase, op_type* op_pt);
 
 // general functions
-void adlib_init(Bit32u samplerate);
+void adlib_init(uint32_t samplerate);
 void adlib_write(Bitu idx, uint8_t val);
 void adlib_getsample(int16_t* sndptr, Bits numsamples);
 
 Bitu adlib_reg_read(Bitu port);
 void adlib_write_index(Bitu port, uint8_t val);
 
-static Bit32u generator_add;	// should be a chip parameter
+static uint32_t generator_add;	// should be a chip parameter

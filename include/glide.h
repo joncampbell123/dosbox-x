@@ -29,7 +29,7 @@ typedef uint8_t   FxU8;
 typedef int8_t   FxI8;
 typedef uint16_t  FxU16;
 typedef int16_t  FxI16;
-typedef Bit32u  FxU32;
+typedef uint32_t  FxU32;
 typedef Bit32s  FxI32;
 typedef Bit32s  FxBool;
 typedef float   FxFloat;
@@ -38,7 +38,7 @@ typedef double  FxDouble;
 /*
 ** color types
 */
-typedef Bit32u                       FxColor_t;
+typedef uint32_t                       FxColor_t;
 typedef struct { float r, g, b, a; } FxColor4;
 
 /*
@@ -82,7 +82,7 @@ typedef struct {
 typedef struct {
     Bit32s		size;
     PhysPt		lfbPtr;
-    Bit32u		strideInBytes;
+    uint32_t		strideInBytes;
     Bit32s		writeMode;
     Bit32s		origin;
 } DBGrLfbInfo_t;
@@ -91,7 +91,7 @@ typedef struct {
     Gu3dfHeader 	header;
     GuTexTable		table;
     PhysPt		data;
-    Bit32u		mem_required;
+    uint32_t		mem_required;
 } DBGu3dfInfo;
 
 typedef struct {

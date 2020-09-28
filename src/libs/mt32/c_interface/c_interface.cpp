@@ -129,7 +129,7 @@ struct mt32emu_data {
 	const ROMImage *controlROMImage;
 	const ROMImage *pcmROMImage;
 	DefaultMidiStreamParser *midiParser;
-	Bit32u partialCount;
+	uint32_t partialCount;
 	AnalogOutputMode analogOutputMode;
 	SamplerateConversionState *srcState;
 };
@@ -270,7 +270,7 @@ protected:
 	void *instanceData;
 
 private:
-	void handleShortMessage(const Bit32u message) {
+	void handleShortMessage(const uint32_t message) {
 		if (delegate.v0->handleShortMessage == NULL) {
 			DefaultMidiStreamParser::handleShortMessage(message);
 		} else {
@@ -278,7 +278,7 @@ private:
 		}
 	}
 
-	void handleSysex(const uint8_t *stream, const Bit32u length) {
+	void handleSysex(const uint8_t *stream, const uint32_t length) {
 		if (delegate.v0->handleSysex == NULL) {
 			DefaultMidiStreamParser::handleSysex(stream, length);
 		} else {

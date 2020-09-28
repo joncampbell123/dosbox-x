@@ -86,7 +86,7 @@ struct MODE_INFO{
 	uint16_t WinSize;
 	uint16_t WinASegment;
 	uint16_t WinBSegment;
-	Bit32u WinFuncPtr;
+	uint32_t WinFuncPtr;
 	uint16_t BytesPerScanLine;
 	uint16_t XResolution;
 	uint16_t YResolution;
@@ -108,8 +108,8 @@ struct MODE_INFO{
 	uint8_t ReservedMaskSize;
 	uint8_t ReservedMaskPos;
 	uint8_t DirectColorModeInfo;
-	Bit32u PhysBasePtr;
-	Bit32u OffScreenMemOffset;
+	uint32_t PhysBasePtr;
+	uint32_t OffScreenMemOffset;
 	uint16_t OffScreenMemSize;
 	uint8_t Reserved[206];
 } GCC_ATTRIBUTE(packed);
@@ -427,7 +427,7 @@ uint8_t VESA_GetSVGAMode(uint16_t & mode) {
 
 uint8_t VESA_SetCPUWindow(uint8_t window,uint8_t address) {
 	if (window && !vesa_bank_switch_window_mirror) return VESA_FAIL;
-	if ((!vesa_bank_switch_window_range_check) || (Bit32u)(address)*64*1024<vga.mem.memsize) { /* range check, or silently truncate address depending on dosbox.conf setting */
+	if ((!vesa_bank_switch_window_range_check) || (uint32_t)(address)*64*1024<vga.mem.memsize) { /* range check, or silently truncate address depending on dosbox.conf setting */
 		IO_Write(0x3d4,0x6a);
 		IO_Write(0x3d5,(uint8_t)address);
 		return VESA_SUCCESS;
@@ -723,7 +723,7 @@ static Bitu VESA_PMSetWindow(void) {
 }
 static Bitu VESA_PMSetPalette(void) {
 	PhysPt data=SegPhys(es)+reg_edi;
-	Bit32u count=reg_cx;
+	uint32_t count=reg_cx;
 	IO_Write(0x3c8,reg_dl);
 	do {
 		IO_Write(0x3c9,mem_readb(data+2));
@@ -734,7 +734,7 @@ static Bitu VESA_PMSetPalette(void) {
 	return CBRET_NONE;
 }
 static Bitu VESA_PMSetStart(void) {
-	Bit32u start = (Bit32u)(((unsigned int)reg_dx << 16u) | (unsigned int)reg_cx);
+	uint32_t start = (uint32_t)(((unsigned int)reg_dx << 16u) | (unsigned int)reg_cx);
 	vga.config.display_start = start;
 	return CBRET_NONE;
 }

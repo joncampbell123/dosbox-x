@@ -149,7 +149,7 @@ extern bool         VIDEO_BIOS_enable_CGA_8x8_second_half;
 extern bool         allow_more_than_640kb;
 extern unsigned int page;
 
-Bit32u              guest_msdos_LoL = 0;
+uint32_t              guest_msdos_LoL = 0;
 uint16_t              guest_msdos_mcb_chain = 0;
 int                 boothax = BOOTHAX_NONE;
 
@@ -189,7 +189,7 @@ bool                PS1AudioCard;       // Perhaps have PS1 as a machine type...
 SVGACards           svgaCard;
 bool                SDLNetInited;
 Bit32s              ticksDone;
-Bit32u              ticksScheduled;
+uint32_t              ticksScheduled;
 bool                ticksLocked;
 bool                mono_cga=false;
 bool                ignore_opcode_63 = true;
@@ -199,16 +199,16 @@ Bitu                VGA_BIOS_SEG = 0xC000;
 Bitu                VGA_BIOS_SEG_END = 0xC800;
 Bitu                VGA_BIOS_Size = 0x8000;
 
-Bit32u                  emulator_speed = 100;
+uint32_t                  emulator_speed = 100;
 
-static Bit32u           ticksRemain;
-static Bit32u           ticksRemainSpeedFrac;
-static Bit32u           ticksLast;
-static Bit32u           ticksLastFramecounter;
-static Bit32u           ticksLastRTcounter;
+static uint32_t           ticksRemain;
+static uint32_t           ticksRemainSpeedFrac;
+static uint32_t           ticksLast;
+static uint32_t           ticksLastFramecounter;
+static uint32_t           ticksLastRTcounter;
 static double           ticksLastRTtime;
-static Bit32u           ticksAdded;
-static Bit32u           Ticks = 0;
+static uint32_t           ticksAdded;
+static uint32_t           Ticks = 0;
 extern double           rtdelta;
 static LoopHandler*     loop;
 
@@ -323,9 +323,9 @@ static Bitu Normal_Loop(void) {
     Bits ret;
 
     if (!menu.hidecycles || menu.showrt) { /* sdlmain.cpp/render.cpp doesn't even maintain the frames count when hiding cycles! */
-        Bit32u ticksNew = GetTicks();
+        uint32_t ticksNew = GetTicks();
         if (ticksNew >= Ticks) {
-            Bit32u interval = ticksNew - ticksLastFramecounter;
+            uint32_t interval = ticksNew - ticksLastFramecounter;
             double rtnow = PIC_FullIndex();
 
             if (interval == 0) interval = 1; // avoid divide by zero
@@ -436,7 +436,7 @@ void increaseticks() { //Make it return ticksRemain and set it in the function a
         ticksScheduled = 0;
         return;
     }
-    Bit32u ticksNew = GetTicks();
+    uint32_t ticksNew = GetTicks();
     ticksScheduled += ticksAdded;
 
     if (ticksNew <= ticksLast) { //lower should not be possible, only equal.
@@ -450,8 +450,8 @@ void increaseticks() { //Make it return ticksRemain and set it in the function a
                DOSBox-X keeps track of full blocks.
                This code introduces some randomness to the time slept, which improves stability on those configurations
              */
-            static const Bit32u sleeppattern[] = { 2, 2, 3, 2, 2, 4, 2 };
-            static Bit32u sleepindex = 0;
+            static const uint32_t sleeppattern[] = { 2, 2, 3, 2, 2, 4, 2 };
+            static uint32_t sleepindex = 0;
             if (ticksDone != lastsleepDone) sleepindex = 0;
             wrap_delay(sleeppattern[sleepindex++]);
             sleepindex %= sizeof(sleeppattern) / sizeof(sleeppattern[0]);

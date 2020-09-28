@@ -997,12 +997,12 @@ static void FPU_FLD_F80(PhysPt addr) {
 }
 
 static void FPU_FLD_I16(PhysPt addr,Bitu store_to) {
-	fpu.p_regs[8].m1 = (Bit32u)mem_readw(addr);
+	fpu.p_regs[8].m1 = (uint32_t)mem_readw(addr);
 	FPUD_LOAD(fild,WORD,s)
 }
 
 static void FPU_FLD_I16_EA(PhysPt addr) {
-	fpu.p_regs[8].m1 = (Bit32u)mem_readw(addr);
+	fpu.p_regs[8].m1 = (uint32_t)mem_readw(addr);
 	FPUD_LOAD_EA(fild,WORD,s)
 }
 
@@ -1149,8 +1149,8 @@ static void FPU_FXCH(Bitu stv, Bitu other){
 	fpu.tags[other] = fpu.tags[stv];
 	fpu.tags[stv] = tag;
 
-	Bit32u m1s = fpu.p_regs[other].m1;
-	Bit32u m2s = fpu.p_regs[other].m2;
+	uint32_t m1s = fpu.p_regs[other].m1;
+	uint32_t m2s = fpu.p_regs[other].m2;
 	uint16_t m3s = fpu.p_regs[other].m3;
 	fpu.p_regs[other].m1 = fpu.p_regs[stv].m1;
 	fpu.p_regs[other].m2 = fpu.p_regs[stv].m2;
@@ -1264,9 +1264,9 @@ static void FPU_FSTENV(PhysPt addr){
 		mem_writew(addr+2,static_cast<uint16_t>(fpu.sw));
 		mem_writew(addr+4,static_cast<uint16_t>(FPU_GetTag()));
 	} else { 
-		mem_writed(addr+0,static_cast<Bit32u>(fpu.cw));
-		mem_writed(addr+4,static_cast<Bit32u>(fpu.sw));
-		mem_writed(addr+8,static_cast<Bit32u>(FPU_GetTag()));
+		mem_writed(addr+0,static_cast<uint32_t>(fpu.cw));
+		mem_writed(addr+4,static_cast<uint32_t>(fpu.sw));
+		mem_writed(addr+8,static_cast<uint32_t>(FPU_GetTag()));
 	}
 }
 
@@ -1280,7 +1280,7 @@ static void FPU_FLDENV(PhysPt addr){
 	} else { 
 		cw     = mem_readd(addr+0);
 		fpu.sw = (uint16_t)mem_readd(addr+4);
-		Bit32u tagbig = mem_readd(addr+8);
+		uint32_t tagbig = mem_readd(addr+8);
 		tag    = static_cast<uint16_t>(tagbig);
 	}
 	FPU_SetTag(tag);

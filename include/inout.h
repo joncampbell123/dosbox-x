@@ -51,11 +51,11 @@ void IO_InvalidateCachedHandler(Bitu port,Bitu range=1);
 
 void IO_WriteB(Bitu port,uint8_t val);
 void IO_WriteW(Bitu port,uint16_t val);
-void IO_WriteD(Bitu port,Bit32u val);
+void IO_WriteD(Bitu port,uint32_t val);
 
 uint8_t IO_ReadB(Bitu port);
 uint16_t IO_ReadW(Bitu port);
-Bit32u IO_ReadD(Bitu port);
+uint32_t IO_ReadD(Bitu port);
 
 static const Bitu IOMASK_ISA_10BIT = 0x3FFU; /* ISA 10-bit decode */
 static const Bitu IOMASK_ISA_12BIT = 0xFFFU; /* ISA 12-bit decode */

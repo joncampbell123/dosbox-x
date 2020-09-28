@@ -156,7 +156,7 @@ void AutoexecObject::CreateAutoexec(void) {
 		}
 		sprintf((autoexec_data + auto_len),"%s\r\n",linecopy.c_str());
 	}
-	if (first_shell) VFILE_Register("AUTOEXEC.BAT",(uint8_t *)autoexec_data,(Bit32u)strlen(autoexec_data));
+	if (first_shell) VFILE_Register("AUTOEXEC.BAT",(uint8_t *)autoexec_data,(uint32_t)strlen(autoexec_data));
 }
 
 void AutoexecObject::Uninstall() {
@@ -304,7 +304,7 @@ void DOS_Shell::ParseLine(char * line) {
 	char * toc = 0;
 
 	uint16_t dummy,dummy2;
-	Bit32u bigdummy = 0;
+	uint32_t bigdummy = 0;
 	bool append;
 	bool normalstdin  = false;	/* wether stdin/out are open on start. */
 	bool normalstdout = false;	/* Bug: Assumed is they are "con"      */
@@ -588,13 +588,13 @@ void DOS_Shell::Run(void) {
 			strcat(config_data, (char *)section->Get_string("rem"));
 			strcat(config_data, "\r\n");
 		}
-		VFILE_Register("CONFIG.SYS",(uint8_t *)config_data,(Bit32u)strlen(config_data));
+		VFILE_Register("CONFIG.SYS",(uint8_t *)config_data,(uint32_t)strlen(config_data));
 #if defined(WIN32)
 		if (!control->opt_securemode&&!control->SecureMode())
 		{
 			const Section_prop* sec = 0; sec = static_cast<Section_prop*>(control->GetSection("dos"));
 			if(sec->Get_bool("automountall")) {
-				Bit32u drives = GetLogicalDrives();
+				uint32_t drives = GetLogicalDrives();
 				char name[4]="A:\\";
 				for (int i=0; i<25; i++) {
 					if ((drives & (1<<i)) && !Drives[i])
@@ -632,7 +632,7 @@ void DOS_Shell::Run(void) {
 				}
 			}
 		}
-		VFILE_Register("4DOS.INI",(uint8_t *)i4dos_data,(Bit32u)strlen(i4dos_data));
+		VFILE_Register("4DOS.INI",(uint8_t *)i4dos_data,(uint32_t)strlen(i4dos_data));
     }
     else if (!optInit) {
         WriteOut(optK?"\n":"DOSBox-X command shell [Version %s %s]\nCopyright DOSBox-X Team. All rights reserved\n\n",VERSION,SDL_STRING);
@@ -857,7 +857,7 @@ public:
 
 		assert(i <= 17); /* FIXME: autoexec[] should not be fixed size */
 
-		VFILE_Register("AUTOEXEC.BAT",(uint8_t *)autoexec_data,(Bit32u)strlen(autoexec_data));
+		VFILE_Register("AUTOEXEC.BAT",(uint8_t *)autoexec_data,(uint32_t)strlen(autoexec_data));
 	}
 };
 
@@ -1453,10 +1453,10 @@ void SHELL_Init() {
 	/* Set up int 24 and psp (Telarium games) */
 	real_writeb(psp_seg+16+1,0,0xea);		/* far jmp */
 	real_writed(psp_seg+16+1,1,real_readd(0,0x24*4));
-	real_writed(0,0x24*4,((Bit32u)psp_seg<<16) | ((16+1)<<4));
+	real_writed(0,0x24*4,((uint32_t)psp_seg<<16) | ((16+1)<<4));
 
 	/* Set up int 23 to "int 20" in the psp. Fixes what.exe */
-	real_writed(0,0x23*4,((Bit32u)psp_seg<<16));
+	real_writed(0,0x23*4,((uint32_t)psp_seg<<16));
 
 	/* Set up int 2e handler */
     if (call_int2e == 0)

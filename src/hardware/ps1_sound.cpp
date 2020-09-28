@@ -78,7 +78,7 @@ struct PS1AUDIO
 	uint16_t FIFO_WRIndex;
 	bool Playing;
 	bool CanTriggerIRQ;
-	Bit32u Rate;
+	uint32_t Rate;
 	Bitu RDIndexHi;			// FIFO_RDIndex << FRAC_SHIFT
 	Bitu Adder;				// Step << FRAC_SHIFT
 	Bitu Pending;			// Bytes to go << FRAC_SHIFT
@@ -187,7 +187,7 @@ static void PS1SOUNDWrite(Bitu port,Bitu data,Bitu iolen) {
 			{
 				// Clock divisor (maybe trigger first IRQ here).
 				ps1.Divisor = (uint8_t)data;
-				ps1.Rate = (Bit32u)( DAC_CLOCK / ( data + 1 ) );
+				ps1.Rate = (uint32_t)( DAC_CLOCK / ( data + 1 ) );
 				// 22050 << FRAC_SHIFT / 22050 = 1 << FRAC_SHIFT
 				ps1.Adder = ( ps1.Rate << FRAC_SHIFT ) / (unsigned int)ps1.SampleRate;
 				if( ps1.Rate > 22050 )
@@ -368,7 +368,7 @@ public:
 		WriteHandler[0].Install(0x200,PS1SOUNDWrite,IO_MB);
 		WriteHandler[1].Install(0x202,PS1SOUNDWrite,IO_MB,4);
 
-		Bit32u sample_rate = (Bit32u)section->Get_int("ps1audiorate");
+		uint32_t sample_rate = (uint32_t)section->Get_int("ps1audiorate");
 		ps1.chanDAC=MixerChanDAC.Install(&PS1SOUNDUpdate,sample_rate,"PS1 DAC");
 		ps1.chanSN=MixerChanSN.Install(&PS1SN76496Update,sample_rate,"PS1 SN76496");
 

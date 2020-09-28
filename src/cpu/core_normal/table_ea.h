@@ -46,8 +46,8 @@ static PhysPt EA_16_85_n(void) { return BaseDS+(uint16_t)(reg_di+(uint16_t)Fetch
 static PhysPt EA_16_86_n(void) { return BaseSS+(uint16_t)(reg_bp+(uint16_t)Fetchws()); }
 static PhysPt EA_16_87_n(void) { return BaseDS+(uint16_t)(reg_bx+(uint16_t)Fetchws()); }
 
-static Bit32u SIBZero=0;
-static Bit32u * SIBIndex[8]= { &reg_eax,&reg_ecx,&reg_edx,&reg_ebx,&SIBZero,&reg_ebp,&reg_esi,&reg_edi };
+static uint32_t SIBZero=0;
+static uint32_t * SIBIndex[8]= { &reg_eax,&reg_ecx,&reg_edx,&reg_ebx,&SIBZero,&reg_ebp,&reg_esi,&reg_edi };
 
 static INLINE PhysPt Sib(Bitu mode) {
 	uint8_t sib=Fetchb();

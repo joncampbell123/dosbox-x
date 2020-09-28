@@ -286,7 +286,7 @@ bool VOGL_Initialize(void) {
 }
 
 
-bool VOGL_CheckFeature(Bit32u feat) {
+bool VOGL_CheckFeature(uint32_t feat) {
 	switch (feat) {
 		case VOGL_ATLEAST_V20:
 			if (opengl_version >= 200) return true;
@@ -314,7 +314,7 @@ bool VOGL_CheckFeature(Bit32u feat) {
 	return false;
 }
 
-void VOGL_FlagFeature(Bit32u feat) {
+void VOGL_FlagFeature(uint32_t feat) {
 	switch (feat) {
 		case VOGL_HAS_SHADERS:
 			has_shaders = true;

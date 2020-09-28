@@ -9,13 +9,13 @@
 
 #if defined (_MSC_VER)
 # if defined (_M_IX86)/*x86 only*/
-void outportb(Bit32u portid, uint8_t value) {
+void outportb(uint32_t portid, uint8_t value) {
   __asm mov edx,portid
   __asm mov al,value
   __asm out dx,al
 }
 
-uint8_t inportb(Bit32u portid) {
+uint8_t inportb(uint32_t portid) {
   uint8_t value;
   
   __asm mov edx,portid
@@ -24,13 +24,13 @@ uint8_t inportb(Bit32u portid) {
   return value;
 }
 
-void outportw(Bit32u portid, uint16_t value) {
+void outportw(uint32_t portid, uint16_t value) {
   __asm mov edx,portid
   __asm mov ax,value
   __asm out dx,ax
 }
 
-uint16_t inportw(Bit32u portid) {
+uint16_t inportw(uint32_t portid) {
   uint16_t value;
   
   __asm mov edx,portid
@@ -39,14 +39,14 @@ uint16_t inportw(Bit32u portid) {
   return value;
 }
 
-void outportd(Bit32u portid, Bit32u value) {
+void outportd(uint32_t portid, uint32_t value) {
   __asm mov edx,portid
   __asm mov eax,value
   __asm out dx,eax
 }
 
-Bit32u inportd(Bit32u portid) {
-  Bit32u value;
+uint32_t inportd(uint32_t portid) {
+  uint32_t value;
   
   __asm mov edx,portid
   __asm in eax,dx
@@ -56,7 +56,7 @@ Bit32u inportd(Bit32u portid) {
 # endif
 #else
 # if defined(__i386__) || defined(__amd64__) || defined(__x86_64__)
-void outportb(Bit32u portid, uint8_t value) {
+void outportb(uint32_t portid, uint8_t value) {
    __asm__ volatile (
       "movl   %0,%%edx   \n"
       "movb   %1,%%al      \n"
@@ -66,7 +66,7 @@ void outportb(Bit32u portid, uint8_t value) {
       :   "edx", "al"
    );
 }
-uint8_t inportb(Bit32u portid) {
+uint8_t inportb(uint32_t portid) {
    uint8_t value;
    __asm__ volatile (
       "movl   %1,%%edx   \n"
@@ -207,7 +207,7 @@ bool setPermissionList() {
         permblock b;
         int pid = _getpid();
         int reetval=0;
-        Bit32u retval=0;
+        uint32_t retval=0;
         //output permission list to driver
         for(size_t i = 0; i < sizeof(ioperm);i++) {
             b.offset=i;

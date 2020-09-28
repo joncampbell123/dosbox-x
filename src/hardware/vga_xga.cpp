@@ -36,11 +36,11 @@ struct XGAStatus {
 		uint16_t x1, y1, x2, y2;
 	} scissors;
 
-	Bit32u readmask;
-	Bit32u writemask;
+	uint32_t readmask;
+	uint32_t writemask;
 
-	Bit32u forecolor;
-	Bit32u backcolor;
+	uint32_t forecolor;
+	uint32_t backcolor;
 
 	Bitu curcommand;
 
@@ -65,7 +65,7 @@ struct XGAStatus {
 		uint16_t cmd;
 		uint16_t curx, cury;
 		uint16_t x1, y1, x2, y2, sizex, sizey;
-		Bit32u data; /* transient data passed by multiple calls */
+		uint32_t data; /* transient data passed by multiple calls */
 		Bitu datasize;
 		Bitu buswidth;
 	} waitcmd;
@@ -137,7 +137,7 @@ void XGA_DrawPoint(Bitu x, Bitu y, Bitu c) {
 	if(y < xga.scissors.y1) return;
 	if(y > xga.scissors.y2) return;
 
-	Bit32u memaddr = (Bit32u)((y * XGA_SCREEN_WIDTH) + x);
+	uint32_t memaddr = (uint32_t)((y * XGA_SCREEN_WIDTH) + x);
 	/* Need to zero out all unused bits in modes that have any (15-bit or "32"-bit -- the last
 	   one is actually 24-bit. Without this step there may be some graphics corruption (mainly,
 	   during windows dragging. */
@@ -156,7 +156,7 @@ void XGA_DrawPoint(Bitu x, Bitu y, Bitu c) {
 			break;
 		case M_LIN32:
 			if (GCC_UNLIKELY(memaddr*4 >= vga.mem.memsize)) break;
-			((Bit32u*)(vga.mem.linear))[memaddr] = (Bit32u)c;
+			((uint32_t*)(vga.mem.linear))[memaddr] = (uint32_t)c;
 			break;
 		default:
 			break;
@@ -165,7 +165,7 @@ void XGA_DrawPoint(Bitu x, Bitu y, Bitu c) {
 }
 
 Bitu XGA_GetPoint(Bitu x, Bitu y) {
-	Bit32u memaddr = (Bit32u)((y * XGA_SCREEN_WIDTH) + x);
+	uint32_t memaddr = (uint32_t)((y * XGA_SCREEN_WIDTH) + x);
 
 	switch(XGA_COLOR_MODE) {
 	case M_LIN8:
@@ -177,7 +177,7 @@ Bitu XGA_GetPoint(Bitu x, Bitu y) {
 		return ((uint16_t*)(vga.mem.linear))[memaddr];
 	case M_LIN32:
 		if (GCC_UNLIKELY(memaddr*4 >= vga.mem.memsize)) break;
-		return ((Bit32u*)(vga.mem.linear))[memaddr];
+		return ((uint32_t*)(vga.mem.linear))[memaddr];
 	default:
 		break;
 	}
@@ -461,7 +461,7 @@ void XGA_DrawLineBresenham(Bitu val) {
 }
 
 void XGA_DrawRectangle(Bitu val) {
-	Bit32u xat, yat;
+	uint32_t xat, yat;
 	Bitu srcval;
 	Bitu destval;
 	Bitu dstdata;
@@ -623,7 +623,7 @@ void XGA_DrawWait(Bitu val, Bitu len) {
 							if(len!=4) { // Win 3.11 864 'hack?'
 								if(xga.waitcmd.datasize == 0) {
 									// set it up to wait for the next word
-									xga.waitcmd.data = (Bit32u)val;
+									xga.waitcmd.data = (uint32_t)val;
 									xga.waitcmd.datasize = 2;
 									return;
 								} else {
@@ -730,7 +730,7 @@ void XGA_DrawWait(Bitu val, Bitu len) {
 }
 
 void XGA_BlitRect(Bitu val) {
-	Bit32u xat, yat;
+	uint32_t xat, yat;
 	Bitu srcdata;
 	Bitu dstdata;
 
@@ -988,7 +988,7 @@ void XGA_DrawCmd(Bitu val, Bitu len) {
 	}
 }
 
-void XGA_SetDualReg(Bit32u& reg, Bitu val) {
+void XGA_SetDualReg(uint32_t& reg, Bitu val) {
 	switch(XGA_COLOR_MODE) {
 	case M_LIN8:
 		reg = (uint8_t)(val&0xff); break;
@@ -997,11 +997,11 @@ void XGA_SetDualReg(Bit32u& reg, Bitu val) {
 		reg = (uint16_t)(val&0xffff); break;
 	case M_LIN32:
 		if (xga.control1 & 0x200)
-			reg = (Bit32u)val;
+			reg = (uint32_t)val;
 		else if (xga.control1 & 0x10)
-			reg = (reg&0x0000ffff)|((Bit32u)(val<<16));
+			reg = (reg&0x0000ffff)|((uint32_t)(val<<16));
 		else
-			reg = (reg&0xffff0000)|((Bit32u)(val&0x0000ffff));
+			reg = (reg&0xffff0000)|((uint32_t)(val&0x0000ffff));
 		xga.control1 ^= 0x10;
 		break;
 	default:
@@ -1009,7 +1009,7 @@ void XGA_SetDualReg(Bit32u& reg, Bitu val) {
 	}
 }
 
-Bitu XGA_GetDualReg(Bit32u reg) {
+Bitu XGA_GetDualReg(uint32_t reg) {
 	switch(XGA_COLOR_MODE) {
 	case M_LIN8:
 		return (uint8_t)(reg&0xff);

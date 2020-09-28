@@ -107,8 +107,8 @@ void VOGL_Reset(void);
 
 bool VOGL_Initialize(void);
 
-bool VOGL_CheckFeature(Bit32u feat);
-void VOGL_FlagFeature(Bit32u feat);
+bool VOGL_CheckFeature(uint32_t feat);
+void VOGL_FlagFeature(uint32_t feat);
 
 void VOGL_BeginMode(INT32 new_mode);
 void VOGL_ClearBeginMode(void);

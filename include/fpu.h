@@ -53,13 +53,13 @@ typedef union {
     double d;
 #ifndef WORDS_BIGENDIAN
     struct {
-        Bit32u lower;
+        uint32_t lower;
         Bit32s upper;
     } l;
 #else
     struct {
         Bit32s upper;
-        Bit32u lower;
+        uint32_t lower;
     } l;
 #endif
     Bit64s ll;
@@ -68,12 +68,12 @@ typedef union {
 
 // dynamic x86 core needs this
 typedef struct {
-    Bit32u m1;
-    Bit32u m2;
+    uint32_t m1;
+    uint32_t m2;
     uint16_t m3;
 
     uint16_t d1;
-    Bit32u d2;
+    uint32_t d2;
 } FPU_P_Reg;
 
 // memory barrier macro. to ensure that reads/stores to one half of the FPU reg struct
@@ -171,7 +171,7 @@ typedef struct {
 	FPU_Tag		tags[9];
 	uint16_t		cw,cw_mask_all;
 	uint16_t		sw;
-	Bit32u		top;
+	uint32_t		top;
 	FPU_Round	round;
 } FPU_rec;
 

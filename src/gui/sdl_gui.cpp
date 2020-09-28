@@ -125,7 +125,7 @@ static void getPixel(Bits x, Bits y, int &r, int &g, int &b, int shift)
     if (y < 0) y = 0;
 
     uint8_t* src = (uint8_t *)&scalerSourceCache;
-    Bit32u pixel;
+    uint32_t pixel;
     switch (render.scale.inMode) {
         case scalerMode8:
             pixel = *((unsigned int)x+(uint8_t*)(src+(unsigned int)y*(unsigned int)render.scale.cachePitch));
@@ -146,7 +146,7 @@ static void getPixel(Bits x, Bits y, int &r, int &g, int &b, int shift)
             b += (int)((pixel << (3u-(unsigned int)shift)) & (0xf8u >> shift));
             break;
         case scalerMode32:
-            pixel = *((unsigned int)x+(Bit32u*)(src+(unsigned int)y*(unsigned int)render.scale.cachePitch));
+            pixel = *((unsigned int)x+(uint32_t*)(src+(unsigned int)y*(unsigned int)render.scale.cachePitch));
             r += (int)(((pixel & GFX_Rmask) >> (GFX_Rshift + shift)) & (0xffu >> shift));
             g += (int)(((pixel & GFX_Gmask) >> (GFX_Gshift + shift)) & (0xffu >> shift));
             b += (int)(((pixel & GFX_Bmask) >> (GFX_Bshift + shift)) & (0xffu >> shift));
@@ -234,7 +234,7 @@ static GUI::ScreenSDL *UI_Startup(GUI::ScreenSDL *screen) {
 
         // create screenshot for fade effect
         for (unsigned int y = 0; (int)y < sh_draw; y++) {
-            Bit32u *bg = (Bit32u*)((y+(unsigned int)sy)*(unsigned int)screenshot->pitch + (char*)screenshot->pixels) + (unsigned int)sx;
+            uint32_t *bg = (uint32_t*)((y+(unsigned int)sy)*(unsigned int)screenshot->pitch + (char*)screenshot->pixels) + (unsigned int)sx;
             for (unsigned int x = 0; (int)x < sw_draw; x++) {
                 int r = 0, g = 0, b = 0;
                 getPixel((int)(x*(unsigned int)render.src.width/(unsigned int)sw),
@@ -249,7 +249,7 @@ static GUI::ScreenSDL *UI_Startup(GUI::ScreenSDL *screen) {
         background = SDL_CreateRGBSurface(SDL_SWSURFACE, dw, dh, 32, GUI::Color::RedMask, GUI::Color::GreenMask, GUI::Color::BlueMask, 0);
         SDL_FillRect(background,0,0);
         for (int y = 0; y < sh_draw; y++) {
-            Bit32u *bg = (Bit32u*)((unsigned int)(y+sy)*(unsigned int)background->pitch + (char*)background->pixels) + sx;
+            uint32_t *bg = (uint32_t*)((unsigned int)(y+sy)*(unsigned int)background->pitch + (char*)background->pixels) + sx;
             for (int x = 0; x < sw_draw; x++) {
                 int r = 0, g = 0, b = 0;
                 getPixel(x    *(int)render.src.width/sw, y    *(int)render.src.height/sh, r, g, b, 3); 
@@ -1555,7 +1555,7 @@ public:
     ShowDriveInfo(GUI::Screen *parent, int x, int y, const char *title) :
         ToplevelWindow(parent, x, y, 400, 280, title) {
             char name[DOS_NAMELENGTH_ASCII],lname[LFN_NAMELENGTH];
-            Bit32u size;uint16_t date;uint16_t time;uint8_t attr;
+            uint32_t size;uint16_t date;uint16_t time;uint8_t attr;
             /* Command uses dta so set it to our internal dta */
             RealPt save_dta = dos.dta();
             dos.dta(dos.tables.tempdta);

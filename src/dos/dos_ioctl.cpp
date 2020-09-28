@@ -172,7 +172,7 @@ bool DOS_IOCTL_AX440D_CH08(uint8_t drive,bool query) {
                  * FIXME: MS-DOS may not adjust sector value, or maybe it does...
                  * perhaps there is a reason Linux fdisk warns about sector alignment to sect/track for MS-DOS partitions? */
                 {
-                    Bit32u adj = fdp->GetPartitionOffset();
+                    uint32_t adj = fdp->GetPartitionOffset();
                     sect += adj % fdp->loadedDisk->sectors;
                     adj /= fdp->loadedDisk->sectors;
                     head += adj % fdp->loadedDisk->heads;
@@ -218,7 +218,7 @@ bool DOS_IOCTL_AX440D_CH08(uint8_t drive,bool query) {
                  * FIXME: MS-DOS may not adjust sector value, or maybe it does...
                  * perhaps there is a reason Linux fdisk warns about sector alignment to sect/track for MS-DOS partitions? */
                 {
-                    Bit32u adj = fdp->GetPartitionOffset();
+                    uint32_t adj = fdp->GetPartitionOffset();
                     sect += adj % fdp->loadedDisk->sectors;
                     adj /= fdp->loadedDisk->sectors;
                     head += adj % fdp->loadedDisk->heads;
@@ -326,7 +326,7 @@ bool DOS_IOCTL_AX440D_CH08(uint8_t drive,bool query) {
                 uint16_t cyl = mem_readw(ptr+3);
                 uint16_t sect = mem_readw(ptr+5);
                 uint16_t nsect = mem_readw(ptr+7);
-                Bit32u xfer_addr = mem_readd(ptr+9);
+                uint32_t xfer_addr = mem_readd(ptr+9);
                 PhysPt xfer_ptr = ((xfer_addr>>16u)<<4u)+(xfer_addr&0xFFFFu);
                 uint16_t sectsize = fdp->loadedDisk->getSectSize();
 
@@ -334,7 +334,7 @@ bool DOS_IOCTL_AX440D_CH08(uint8_t drive,bool query) {
                  * FIXME: MS-DOS may not adjust sector value, or maybe it does...
                  * perhaps there is a reason Linux fdisk warns about sector alignment to sect/track for MS-DOS partitions? */
                 {
-                    Bit32u adj = fdp->GetPartitionOffset();
+                    uint32_t adj = fdp->GetPartitionOffset();
                     sect += adj % fdp->loadedDisk->sectors;
                     adj /= fdp->loadedDisk->sectors;
                     head += adj % fdp->loadedDisk->heads;
@@ -402,7 +402,7 @@ bool DOS_IOCTL_AX440D_CH08(uint8_t drive,bool query) {
                 uint16_t cyl = mem_readw(ptr+3);
                 uint16_t sect = mem_readw(ptr+5);
                 uint16_t nsect = mem_readw(ptr+7);
-                Bit32u xfer_addr = mem_readd(ptr+9);
+                uint32_t xfer_addr = mem_readd(ptr+9);
                 PhysPt xfer_ptr = ((xfer_addr>>16u)<<4u)+(xfer_addr&0xFFFFu);
                 uint16_t sectsize = fdp->loadedDisk->getSectSize();
 
@@ -410,7 +410,7 @@ bool DOS_IOCTL_AX440D_CH08(uint8_t drive,bool query) {
                  * FIXME: MS-DOS may not adjust sector value, or maybe it does...
                  * perhaps there is a reason Linux fdisk warns about sector alignment to sect/track for MS-DOS partitions? */
                 {
-                    Bit32u adj = fdp->GetPartitionOffset();;
+                    uint32_t adj = fdp->GetPartitionOffset();;
                     sect += adj % fdp->loadedDisk->sectors;
                     adj /= fdp->loadedDisk->sectors;
                     head += adj % fdp->loadedDisk->heads;
@@ -677,9 +677,9 @@ bool DOS_IOCTL(void) {
 		if (Files[handle]->GetInformation() & 0x8000) {		//Check for device
 			reg_al=(Files[handle]->GetInformation() & 0x40) ? 0x0 : 0xff;
 		} else { // FILE
-			Bit32u oldlocation=0;
+			uint32_t oldlocation=0;
 			Files[handle]->Seek(&oldlocation, DOS_SEEK_CUR);
-			Bit32u endlocation=0;
+			uint32_t endlocation=0;
 			Files[handle]->Seek(&endlocation, DOS_SEEK_END);
 			if(oldlocation < endlocation){//Still data available
 				reg_al=0xff;
@@ -775,7 +775,7 @@ bool DOS_IOCTL(void) {
 
 
 bool DOS_GetSTDINStatus(void) {
-	Bit32u handle=RealHandle(STDIN);
+	uint32_t handle=RealHandle(STDIN);
 	if (handle==0xFF) return false;
 	if (Files[handle] && (Files[handle]->GetInformation() & 64)) return false;
 	return true;

@@ -37,7 +37,7 @@
 
 #define MAX_SWAPPABLE_DISKS 20
 struct diskGeo {
-	Bit32u ksize;  /* Size in kilobytes */
+	uint32_t ksize;  /* Size in kilobytes */
 	uint16_t secttrack; /* Sectors per track */
 	uint16_t headscyl;  /* Heads per cylinder */
 	uint16_t cylcount;  /* Cylinders per side */
@@ -63,28 +63,28 @@ public:
         ID_NFD
 	};
 
-	virtual uint8_t Read_Sector(Bit32u head,Bit32u cylinder,Bit32u sector,void * data,unsigned int req_sector_size=0);
-	virtual uint8_t Write_Sector(Bit32u head,Bit32u cylinder,Bit32u sector,const void * data,unsigned int req_sector_size=0);
-	virtual uint8_t Read_AbsoluteSector(Bit32u sectnum, void * data);
-	virtual uint8_t Write_AbsoluteSector(Bit32u sectnum, const void * data);
+	virtual uint8_t Read_Sector(uint32_t head,uint32_t cylinder,uint32_t sector,void * data,unsigned int req_sector_size=0);
+	virtual uint8_t Write_Sector(uint32_t head,uint32_t cylinder,uint32_t sector,const void * data,unsigned int req_sector_size=0);
+	virtual uint8_t Read_AbsoluteSector(uint32_t sectnum, void * data);
+	virtual uint8_t Write_AbsoluteSector(uint32_t sectnum, const void * data);
 
 	virtual void Set_Reserved_Cylinders(Bitu resCyl);
-	virtual Bit32u Get_Reserved_Cylinders();
-	virtual void Set_Geometry(Bit32u setHeads, Bit32u setCyl, Bit32u setSect, Bit32u setSectSize);
-	virtual void Get_Geometry(Bit32u * getHeads, Bit32u *getCyl, Bit32u *getSect, Bit32u *getSectSize);
+	virtual uint32_t Get_Reserved_Cylinders();
+	virtual void Set_Geometry(uint32_t setHeads, uint32_t setCyl, uint32_t setSect, uint32_t setSectSize);
+	virtual void Get_Geometry(uint32_t * getHeads, uint32_t *getCyl, uint32_t *getSect, uint32_t *getSectSize);
 	virtual uint8_t GetBiosType(void);
-	virtual Bit32u getSectSize(void);
-	imageDisk(FILE *imgFile, uint8_t *imgName, Bit32u imgSizeK, bool isHardDisk);
-	imageDisk(FILE* diskimg, const char* diskName, Bit32u cylinders, Bit32u heads, Bit32u sectors, Bit32u sector_size, bool hardDrive);
+	virtual uint32_t getSectSize(void);
+	imageDisk(FILE *imgFile, uint8_t *imgName, uint32_t imgSizeK, bool isHardDisk);
+	imageDisk(FILE* diskimg, const char* diskName, uint32_t cylinders, uint32_t heads, uint32_t sectors, uint32_t sector_size, bool hardDrive);
 	virtual ~imageDisk() { if(diskimg != NULL) { fclose(diskimg); diskimg=NULL; } };
 
     IMAGE_TYPE class_id = ID_BASE;
 	std::string diskname;
     bool active = false;
-    Bit32u sector_size = 512;
-    Bit32u heads = 0;
-    Bit32u cylinders = 0;
-    Bit32u sectors = 0;
+    uint32_t sector_size = 512;
+    uint32_t heads = 0;
+    uint32_t cylinders = 0;
+    uint32_t sectors = 0;
     bool hardDrive = false;
     Bit64u diskSizeK = 0;
 
@@ -93,7 +93,7 @@ protected:
     FILE* diskimg = NULL;
     uint8_t floppytype = 0;
 
-    Bit32u reserved_cylinders = 0;
+    uint32_t reserved_cylinders = 0;
     Bit64u image_base = 0;
     Bit64u image_length = 0;
 
@@ -117,12 +117,12 @@ public:
 
 class imageDiskD88 : public imageDisk {
 public:
-	virtual uint8_t Read_Sector(Bit32u head,Bit32u cylinder,Bit32u sector,void * data,unsigned int req_sector_size=0);
-	virtual uint8_t Write_Sector(Bit32u head,Bit32u cylinder,Bit32u sector,const void * data,unsigned int req_sector_size=0);
-	virtual uint8_t Read_AbsoluteSector(Bit32u sectnum, void * data);
-	virtual uint8_t Write_AbsoluteSector(Bit32u sectnum, const void * data);
+	virtual uint8_t Read_Sector(uint32_t head,uint32_t cylinder,uint32_t sector,void * data,unsigned int req_sector_size=0);
+	virtual uint8_t Write_Sector(uint32_t head,uint32_t cylinder,uint32_t sector,const void * data,unsigned int req_sector_size=0);
+	virtual uint8_t Read_AbsoluteSector(uint32_t sectnum, void * data);
+	virtual uint8_t Write_AbsoluteSector(uint32_t sectnum, const void * data);
 
-	imageDiskD88(FILE *imgFile, uint8_t *imgName, Bit32u imgSizeK, bool isHardDisk);
+	imageDiskD88(FILE *imgFile, uint8_t *imgName, uint32_t imgSizeK, bool isHardDisk);
 	virtual ~imageDiskD88();
 
     unsigned char fd_type_major;
@@ -156,12 +156,12 @@ public:
 
 class imageDiskNFD : public imageDisk {
 public:
-	virtual uint8_t Read_Sector(Bit32u head,Bit32u cylinder,Bit32u sector,void * data,unsigned int req_sector_size=0);
-	virtual uint8_t Write_Sector(Bit32u head,Bit32u cylinder,Bit32u sector,const void * data,unsigned int req_sector_size=0);
-	virtual uint8_t Read_AbsoluteSector(Bit32u sectnum, void * data);
-	virtual uint8_t Write_AbsoluteSector(Bit32u sectnum, const void * data);
+	virtual uint8_t Read_Sector(uint32_t head,uint32_t cylinder,uint32_t sector,void * data,unsigned int req_sector_size=0);
+	virtual uint8_t Write_Sector(uint32_t head,uint32_t cylinder,uint32_t sector,const void * data,unsigned int req_sector_size=0);
+	virtual uint8_t Read_AbsoluteSector(uint32_t sectnum, void * data);
+	virtual uint8_t Write_AbsoluteSector(uint32_t sectnum, const void * data);
 
-	imageDiskNFD(FILE *imgFile, uint8_t *imgName, Bit32u imgSizeK, bool isHardDisk, unsigned int revision);
+	imageDiskNFD(FILE *imgFile, uint8_t *imgName, uint32_t imgSizeK, bool isHardDisk, unsigned int revision);
 	virtual ~imageDiskNFD();
 
     struct vfdentry {
@@ -186,12 +186,12 @@ public:
 
 class imageDiskVFD : public imageDisk {
 public:
-	virtual uint8_t Read_Sector(Bit32u head,Bit32u cylinder,Bit32u sector,void * data,unsigned int req_sector_size=0);
-	virtual uint8_t Write_Sector(Bit32u head,Bit32u cylinder,Bit32u sector,const void * data,unsigned int req_sector_size=0);
-	virtual uint8_t Read_AbsoluteSector(Bit32u sectnum, void * data);
-	virtual uint8_t Write_AbsoluteSector(Bit32u sectnum, const void * data);
+	virtual uint8_t Read_Sector(uint32_t head,uint32_t cylinder,uint32_t sector,void * data,unsigned int req_sector_size=0);
+	virtual uint8_t Write_Sector(uint32_t head,uint32_t cylinder,uint32_t sector,const void * data,unsigned int req_sector_size=0);
+	virtual uint8_t Read_AbsoluteSector(uint32_t sectnum, void * data);
+	virtual uint8_t Write_AbsoluteSector(uint32_t sectnum, const void * data);
 
-	imageDiskVFD(FILE *imgFile, uint8_t *imgName, Bit32u imgSizeK, bool isHardDisk);
+	imageDiskVFD(FILE *imgFile, uint8_t *imgName, uint32_t imgSizeK, bool isHardDisk);
 	virtual ~imageDiskVFD();
 
     struct vfdentry {
@@ -224,15 +224,15 @@ public:
 
 class imageDiskMemory : public imageDisk {
 public:
-	virtual uint8_t Read_AbsoluteSector(Bit32u sectnum, void * data);
-	virtual uint8_t Write_AbsoluteSector(Bit32u sectnum, const void * data);
+	virtual uint8_t Read_AbsoluteSector(uint32_t sectnum, void * data);
+	virtual uint8_t Write_AbsoluteSector(uint32_t sectnum, const void * data);
 	virtual uint8_t GetBiosType(void);
-	virtual void Set_Geometry(Bit32u setHeads, Bit32u setCyl, Bit32u setSect, Bit32u setSectSize);
+	virtual void Set_Geometry(uint32_t setHeads, uint32_t setCyl, uint32_t setSect, uint32_t setSectSize);
 	// Parition and format the ramdrive
 	virtual uint8_t Format();
 
 	// Create a hard drive image of a specified size; automatically select c/h/s
-	imageDiskMemory(Bit32u imgSizeK);
+	imageDiskMemory(uint32_t imgSizeK);
 	// Create a hard drive image of a specified geometry
 	imageDiskMemory(uint16_t cylinders, uint16_t heads, uint16_t sectors, uint16_t sector_size);
 	// Create a floppy image of a specified geometry
@@ -243,13 +243,13 @@ public:
 
 private:
 	void init(diskGeo diskParams, bool isHardDrive, imageDisk* underlyingImage);
-	bool CalculateFAT(Bit32u partitionStartingSector, Bit32u partitionLength, bool isHardDrive, Bit32u rootEntries, Bit32u* rootSectors, Bit32u* sectorsPerCluster, bool* isFat16, Bit32u* fatSectors, Bit32u* reservedSectors);
+	bool CalculateFAT(uint32_t partitionStartingSector, uint32_t partitionLength, bool isHardDrive, uint32_t rootEntries, uint32_t* rootSectors, uint32_t* sectorsPerCluster, bool* isFat16, uint32_t* fatSectors, uint32_t* reservedSectors);
 
 	uint8_t * * ChunkMap;
-	Bit32u sectors_per_chunk;
-	Bit32u chunk_size;
-	Bit32u total_chunks;
-    Bit32u total_sectors = 0;
+	uint32_t sectors_per_chunk;
+	uint32_t chunk_size;
+	uint32_t total_chunks;
+    uint32_t total_sectors = 0;
     imageDisk* underlyingImage = NULL;
 
 	diskGeo floppyInfo;
@@ -272,7 +272,7 @@ public:
 		PARENT_INVALID_MATCH = 0x14,
 		PARENT_INVALID_DATE = 0x15
 	};
-	enum VHDTypes : Bit32u
+	enum VHDTypes : uint32_t
 	{
 		VHD_TYPE_NONE = 0,
 		VHD_TYPE_FIXED = 2,
@@ -280,8 +280,8 @@ public:
 		VHD_TYPE_DIFFERENCING = 4
 	};
     VHDTypes vhdType = VHD_TYPE_NONE;
-	virtual uint8_t Read_AbsoluteSector(Bit32u sectnum, void * data);
-	virtual uint8_t Write_AbsoluteSector(Bit32u sectnum, const void * data);
+	virtual uint8_t Read_AbsoluteSector(uint32_t sectnum, void * data);
+	virtual uint8_t Write_AbsoluteSector(uint32_t sectnum, const void * data);
 	static ErrorCodes Open(const char* fileName, const bool readOnly, imageDisk** disk);
 	static VHDTypes GetVHDType(const char* fileName);
 	virtual ~imageDiskVHD();
@@ -294,58 +294,58 @@ private:
 	};
 	struct VHDFooter {
 		char cookie[8];
-		Bit32u features;
-		Bit32u fileFormatVersion;
+		uint32_t features;
+		uint32_t fileFormatVersion;
 		Bit64u dataOffset;
-		Bit32u timeStamp;
+		uint32_t timeStamp;
 		char creatorApp[4];
-		Bit32u creatorVersion;
-		Bit32u creatorHostOS;
+		uint32_t creatorVersion;
+		uint32_t creatorHostOS;
 		Bit64u originalSize;
 		Bit64u currentSize;
 		Geometry geometry;
 		VHDTypes diskType;
-		Bit32u checksum;
+		uint32_t checksum;
 		char uniqueId[16];
 		char savedState;
 		char reserved[427];
 
 		void SwapByteOrder();
-		Bit32u CalculateChecksum();
+		uint32_t CalculateChecksum();
 		bool IsValid();
 	};
 	struct ParentLocatorEntry {
-		Bit32u platformCode;
-		Bit32u platformDataSpace;
-		Bit32u platformDataLength;
-		Bit32u reserved;
+		uint32_t platformCode;
+		uint32_t platformDataSpace;
+		uint32_t platformDataLength;
+		uint32_t reserved;
 		Bit64u platformDataOffset;
 	};
 	struct DynamicHeader {
 		char cookie[8];
 		Bit64u dataOffset;
 		Bit64u tableOffset;
-		Bit32u headerVersion;
-		Bit32u maxTableEntries;
-		Bit32u blockSize;
-		Bit32u checksum;
+		uint32_t headerVersion;
+		uint32_t maxTableEntries;
+		uint32_t blockSize;
+		uint32_t checksum;
 		uint8_t parentUniqueId[16];
-		Bit32u parentTimeStamp;
-		Bit32u reserved;
+		uint32_t parentTimeStamp;
+		uint32_t reserved;
 		uint16_t parentUnicodeName[256];
 		ParentLocatorEntry parentLocatorEntry[8];
 		char reserved2[256];
 
 		void SwapByteOrder();
-		Bit32u CalculateChecksum();
+		uint32_t CalculateChecksum();
 		bool IsValid();
 	};
 
 	imageDiskVHD() : imageDisk(ID_VHD) { }
-    static ErrorCodes TryOpenParent(const char* childFileName, const ParentLocatorEntry& entry, const uint8_t* data, const Bit32u dataLength, imageDisk** disk, const uint8_t* uniqueId);
+    static ErrorCodes TryOpenParent(const char* childFileName, const ParentLocatorEntry& entry, const uint8_t* data, const uint32_t dataLength, imageDisk** disk, const uint8_t* uniqueId);
 	static ErrorCodes Open(const char* fileName, const bool readOnly, imageDisk** disk, const uint8_t* matchUniqueId);
-	virtual bool loadBlock(const Bit32u blockNumber);
-	static bool convert_UTF16_for_fopen(std::string &string, const void* data, const Bit32u dataLength);
+	virtual bool loadBlock(const uint32_t blockNumber);
+	static bool convert_UTF16_for_fopen(std::string &string, const void* data, const uint32_t dataLength);
 
     imageDisk* parentDisk = NULL;
 	Bit64u footerPosition = 0;
@@ -353,12 +353,12 @@ private:
     VHDFooter originalFooter = {};
     bool copiedFooter = false;
     DynamicHeader dynamicHeader = {};
-	Bit32u sectorsPerBlock = 0;
-	Bit32u blockMapSectors = 0;
-	Bit32u blockMapSize = 0;
-	Bit32u currentBlock = 0xFFFFFFFF;
+	uint32_t sectorsPerBlock = 0;
+	uint32_t blockMapSectors = 0;
+	uint32_t blockMapSize = 0;
+	uint32_t currentBlock = 0xFFFFFFFF;
     bool currentBlockAllocated = false;
-	Bit32u currentBlockSectorOffset = 0;
+	uint32_t currentBlockSectorOffset = 0;
 	uint8_t* currentBlockDirtyMap = 0;
 };
 
@@ -367,7 +367,7 @@ class imageDiskElToritoFloppy : public imageDisk {
 public:
     /* Read_Sector and Write_Sector take care of geometry translation for us,
      * then call the absolute versions. So, we override the absolute versions only */
-    virtual uint8_t Read_AbsoluteSector(Bit32u sectnum, void * data) {
+    virtual uint8_t Read_AbsoluteSector(uint32_t sectnum, void * data) {
         unsigned char buffer[2048];
 
         bool GetMSCDEXDrive(unsigned char drive_letter,CDROM_Interface **_cdrom);
@@ -381,7 +381,7 @@ public:
         memcpy(data,buffer+((sectnum&3)*512),512);
         return 0x00;
     }
-    virtual uint8_t Write_AbsoluteSector(Bit32u sectnum,const void * data) {
+    virtual uint8_t Write_AbsoluteSector(uint32_t sectnum,const void * data) {
         (void)sectnum;//UNUSED
         (void)data;//UNUSED
         return 0x05; /* fail, read only */
@@ -435,9 +435,9 @@ public:
     std::string diskname;
     uint8_t floppytype;
 
-    Bit32u sector_size;
-    Bit32u heads,cylinders,sectors;
-    Bit32u reserved_cylinders;
+    uint32_t sector_size;
+    uint32_t heads,cylinders,sectors;
+    uint32_t reserved_cylinders;
     Bit64u current_fpos; */
 };
 

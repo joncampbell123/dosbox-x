@@ -62,7 +62,7 @@
 
 
 
-Bit32u Netwrapper_GetCapabilities();
+uint32_t Netwrapper_GetCapabilities();
 
 
 class TCPClientSocket {

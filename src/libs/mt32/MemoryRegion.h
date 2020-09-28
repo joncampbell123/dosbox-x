@@ -39,9 +39,9 @@ private:
 	uint8_t *maxTable;
 public:
 	MemoryRegionType type;
-	Bit32u startAddr, entrySize, entries;
+	uint32_t startAddr, entrySize, entries;
 
-	MemoryRegion(Synth *useSynth, uint8_t *useRealMemory, uint8_t *useMaxTable, MemoryRegionType useType, Bit32u useStartAddr, Bit32u useEntrySize, Bit32u useEntries) {
+	MemoryRegion(Synth *useSynth, uint8_t *useRealMemory, uint8_t *useMaxTable, MemoryRegionType useType, uint32_t useStartAddr, uint32_t useEntrySize, uint32_t useEntries) {
 		synth = useSynth;
 		realMemory = useRealMemory;
 		maxTable = useMaxTable;
@@ -50,30 +50,30 @@ public:
 		entrySize = useEntrySize;
 		entries = useEntries;
 	}
-	int lastTouched(Bit32u addr, Bit32u len) const {
+	int lastTouched(uint32_t addr, uint32_t len) const {
 		return (offset(addr) + len - 1) / entrySize;
 	}
-	int firstTouchedOffset(Bit32u addr) const {
+	int firstTouchedOffset(uint32_t addr) const {
 		return offset(addr) % entrySize;
 	}
-	int firstTouched(Bit32u addr) const {
+	int firstTouched(uint32_t addr) const {
 		return offset(addr) / entrySize;
 	}
-	Bit32u regionEnd() const {
+	uint32_t regionEnd() const {
 		return startAddr + entrySize * entries;
 	}
-	bool contains(Bit32u addr) const {
+	bool contains(uint32_t addr) const {
 		return addr >= startAddr && addr < regionEnd();
 	}
-	int offset(Bit32u addr) const {
+	int offset(uint32_t addr) const {
 		return addr - startAddr;
 	}
-	Bit32u getClampedLen(Bit32u addr, Bit32u len) const {
+	uint32_t getClampedLen(uint32_t addr, uint32_t len) const {
 		if (addr + len > regionEnd())
 			return regionEnd() - addr;
 		return len;
 	}
-	Bit32u next(Bit32u addr, Bit32u len) const {
+	uint32_t next(uint32_t addr, uint32_t len) const {
 		if (addr + len > regionEnd()) {
 			return regionEnd() - addr;
 		}

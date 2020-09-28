@@ -25,7 +25,7 @@
 typedef int16_t stream_sample_t;
 
 typedef uint8_t u8;
-typedef Bit32u u32;
+typedef uint32_t u32;
 
 class device_t;
 struct machine_config;

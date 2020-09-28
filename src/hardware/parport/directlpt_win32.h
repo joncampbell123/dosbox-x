@@ -36,7 +36,7 @@
 class CDirectLPT : public CParallel {
 public:
 	//HANDLE driverHandle;
-	Bit32u realbaseaddress = 0;
+	uint32_t realbaseaddress = 0;
 	uint8_t originalECPControlReg = 0;
 	
 	CDirectLPT(

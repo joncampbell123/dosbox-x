@@ -29,10 +29,10 @@ class Synth;
 class MT32EMU_EXPORT MidiReceiver {
 public:
 	// Invoked when a complete short MIDI message is parsed in the input MIDI stream.
-	virtual void handleShortMessage(const Bit32u message) = 0;
+	virtual void handleShortMessage(const uint32_t message) = 0;
 
 	// Invoked when a complete well-formed System Exclusive MIDI message is parsed in the input MIDI stream.
-	virtual void handleSysex(const uint8_t stream[], const Bit32u length) = 0;
+	virtual void handleSysex(const uint8_t stream[], const uint32_t length) = 0;
 
 	// Invoked when a System Realtime MIDI message is parsed in the input MIDI stream.
 	virtual void handleSystemRealtimeMessage(const uint8_t realtime) = 0;
@@ -61,23 +61,23 @@ public:
 	// The third argument specifies streamBuffer initial capacity. The buffer capacity should be large enough to fit the longest SysEx expected.
 	// If a longer SysEx occurs, streamBuffer is reallocated to the maximum size of MAX_STREAM_BUFFER_SIZE (32768 bytes).
 	// Default capacity is SYSEX_BUFFER_SIZE (1000 bytes) which is enough to fit SysEx messages in common use.
-	MidiStreamParserImpl(MidiReceiver &, MidiReporter &, Bit32u initialStreamBufferCapacity = SYSEX_BUFFER_SIZE);
+	MidiStreamParserImpl(MidiReceiver &, MidiReporter &, uint32_t initialStreamBufferCapacity = SYSEX_BUFFER_SIZE);
 	virtual ~MidiStreamParserImpl();
 
 	// Parses a block of raw MIDI bytes. All the parsed MIDI messages are sent in sequence to the user-supplied methods for further processing.
 	// SysEx messages are allowed to be fragmented across several calls to this method. Running status is also handled for short messages.
 	// NOTE: the total length of a SysEx message being fragmented shall not exceed MAX_STREAM_BUFFER_SIZE (32768 bytes).
-	void parseStream(const uint8_t *stream, Bit32u length);
+	void parseStream(const uint8_t *stream, uint32_t length);
 
-	// Convenience method which accepts a Bit32u-encoded short MIDI message and sends it to the user-supplied method for further processing.
+	// Convenience method which accepts a uint32_t-encoded short MIDI message and sends it to the user-supplied method for further processing.
 	// The short MIDI message may contain no status byte, the running status is used in this case.
-	void processShortMessage(const Bit32u message);
+	void processShortMessage(const uint32_t message);
 
 private:
 	uint8_t runningStatus;
 	uint8_t *streamBuffer;
-	Bit32u streamBufferCapacity;
-	Bit32u streamBufferSize;
+	uint32_t streamBufferCapacity;
+	uint32_t streamBufferSize;
 	MidiReceiver &midiReceiver;
 	MidiReporter &midiReporter;
 
@@ -86,10 +86,10 @@ private:
 
 	bool checkStreamBufferCapacity(const bool preserveContent);
 	bool processStatusByte(uint8_t &status);
-	Bit32u parseShortMessageStatus(const uint8_t stream[]);
-	Bit32u parseShortMessageDataBytes(const uint8_t stream[], Bit32u length);
-	Bit32u parseSysex(const uint8_t stream[], const Bit32u length);
-	Bit32u parseSysexFragment(const uint8_t stream[], const Bit32u length);
+	uint32_t parseShortMessageStatus(const uint8_t stream[]);
+	uint32_t parseShortMessageDataBytes(const uint8_t stream[], uint32_t length);
+	uint32_t parseSysex(const uint8_t stream[], const uint32_t length);
+	uint32_t parseSysexFragment(const uint8_t stream[], const uint32_t length);
 }; // class MidiStreamParserImpl
 
 // An abstract class that provides a context for parsing a stream of MIDI events coming from a single source.
@@ -98,25 +98,25 @@ public:
 	// The argument specifies streamBuffer initial capacity. The buffer capacity should be large enough to fit the longest SysEx expected.
 	// If a longer SysEx occurs, streamBuffer is reallocated to the maximum size of MAX_STREAM_BUFFER_SIZE (32768 bytes).
 	// Default capacity is SYSEX_BUFFER_SIZE (1000 bytes) which is enough to fit SysEx messages in common use.
-	explicit MidiStreamParser(Bit32u initialStreamBufferCapacity = SYSEX_BUFFER_SIZE);
+	explicit MidiStreamParser(uint32_t initialStreamBufferCapacity = SYSEX_BUFFER_SIZE);
 };
 
 class MT32EMU_EXPORT DefaultMidiStreamParser : public MidiStreamParser {
 public:
-	explicit DefaultMidiStreamParser(Synth &synth, Bit32u initialStreamBufferCapacity = SYSEX_BUFFER_SIZE);
-	void setTimestamp(const Bit32u useTimestamp);
+	explicit DefaultMidiStreamParser(Synth &synth, uint32_t initialStreamBufferCapacity = SYSEX_BUFFER_SIZE);
+	void setTimestamp(const uint32_t useTimestamp);
 	void resetTimestamp();
 
 protected:
-	void handleShortMessage(const Bit32u message);
-	void handleSysex(const uint8_t *stream, const Bit32u length);
+	void handleShortMessage(const uint32_t message);
+	void handleSysex(const uint8_t *stream, const uint32_t length);
 	void handleSystemRealtimeMessage(const uint8_t realtime);
 	void printDebug(const char *debugMessage);
 
 private:
 	Synth &synth;
 	bool timestampSet;
-	Bit32u timestamp;
+	uint32_t timestamp;
 };
 
 } // namespace MT32Emu

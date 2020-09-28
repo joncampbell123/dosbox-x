@@ -99,7 +99,7 @@ static const uint8_t regbase2op[22*2] = {
 
 
 // start of the waveform
-static Bit32u waveform[8] = {
+static uint32_t waveform[8] = {
 	WAVEPREC,
 	WAVEPREC>>1,
 	WAVEPREC,
@@ -111,7 +111,7 @@ static Bit32u waveform[8] = {
 };
 
 // length of the waveform as mask
-static Bit32u wavemask[8] = {
+static uint32_t wavemask[8] = {
 	WAVEPREC-1,
 	WAVEPREC-1,
 	(WAVEPREC>>1)-1,
@@ -123,7 +123,7 @@ static Bit32u wavemask[8] = {
 };
 
 // where the first entry resides
-static Bit32u wavestart[8] = {
+static uint32_t wavestart[8] = {
 	0,
 	WAVEPREC>>1,
 	0,
@@ -154,26 +154,26 @@ void operator_advance(op_type* op_pt, Bit32s vib) {
 	
 	// advance waveform time
 	op_pt->tcount += op_pt->tinc;
-	op_pt->tcount += (Bit32u)((Bit32s)(op_pt->tinc)*vib)/FIXEDPT;
+	op_pt->tcount += (uint32_t)((Bit32s)(op_pt->tinc)*vib)/FIXEDPT;
 
 	op_pt->generator_pos += generator_add;
 }
 
 void operator_advance_drums(op_type* op_pt1, Bit32s vib1, op_type* op_pt2, Bit32s vib2, op_type* op_pt3, Bit32s vib3) {
-	Bit32u c1 = op_pt1->tcount/FIXEDPT;
-	Bit32u c3 = op_pt3->tcount/FIXEDPT;
-	Bit32u phasebit = (((c1 & 0x88) ^ ((c1<<5) & 0x80)) | ((c3 ^ (c3<<2)) & 0x20)) ? 0x02 : 0x00;
+	uint32_t c1 = op_pt1->tcount/FIXEDPT;
+	uint32_t c3 = op_pt3->tcount/FIXEDPT;
+	uint32_t phasebit = (((c1 & 0x88) ^ ((c1<<5) & 0x80)) | ((c3 ^ (c3<<2)) & 0x20)) ? 0x02 : 0x00;
 
-	Bit32u noisebit = rand()&1;
+	uint32_t noisebit = rand()&1;
 
-	Bit32u snare_phase_bit = (((Bitu)((op_pt1->tcount/FIXEDPT) / 0x100))&1);
+	uint32_t snare_phase_bit = (((Bitu)((op_pt1->tcount/FIXEDPT) / 0x100))&1);
 
 	//Hihat
-	Bit32u inttm = (phasebit<<8u) | (0x34u<<(phasebit ^ (noisebit<<1u)));
+	uint32_t inttm = (phasebit<<8u) | (0x34u<<(phasebit ^ (noisebit<<1u)));
 	op_pt1->wfpos = inttm*FIXEDPT;				// waveform position
 	// advance waveform time
 	op_pt1->tcount += op_pt1->tinc;
-	op_pt1->tcount += (Bit32u)((Bit32s)(op_pt1->tinc)*vib1)/FIXEDPT;
+	op_pt1->tcount += (uint32_t)((Bit32s)(op_pt1->tinc)*vib1)/FIXEDPT;
 	op_pt1->generator_pos += generator_add;
 
 	//Snare
@@ -181,7 +181,7 @@ void operator_advance_drums(op_type* op_pt1, Bit32s vib1, op_type* op_pt2, Bit32
 	op_pt2->wfpos = inttm*FIXEDPT;				// waveform position
 	// advance waveform time
 	op_pt2->tcount += op_pt2->tinc;
-	op_pt2->tcount += (Bit32u)((Bit32s)(op_pt2->tinc)*vib2)/FIXEDPT;
+	op_pt2->tcount += (uint32_t)((Bit32s)(op_pt2->tinc)*vib2)/FIXEDPT;
 	op_pt2->generator_pos += generator_add;
 
 	//Cymbal
@@ -189,7 +189,7 @@ void operator_advance_drums(op_type* op_pt1, Bit32s vib1, op_type* op_pt2, Bit32
 	op_pt3->wfpos = inttm*FIXEDPT;				// waveform position
 	// advance waveform time
 	op_pt3->tcount += op_pt3->tinc;
-	op_pt3->tcount += (Bit32u)((Bit32s)(op_pt3->tinc)*vib3)/FIXEDPT;
+	op_pt3->tcount += (uint32_t)((Bit32s)(op_pt3->tinc)*vib3)/FIXEDPT;
 	op_pt3->generator_pos += generator_add;
 }
 
@@ -199,7 +199,7 @@ void operator_advance_drums(op_type* op_pt1, Bit32s vib1, op_type* op_pt2, Bit32
 void operator_output(op_type* op_pt, Bit32s modulator, Bit32s trem) {
 	if (op_pt->op_state != OF_TYPE_OFF) {
 		op_pt->lastcval = op_pt->cval;
-		Bit32u i = (Bit32u)(((Bit32s)op_pt->wfpos+modulator)/FIXEDPT);
+		uint32_t i = (uint32_t)(((Bit32s)op_pt->wfpos+modulator)/FIXEDPT);
 
 		// wform: -16384 to 16383 (0x4000)
 		// trem :  32768 to 65535 (0x10000)
@@ -218,8 +218,8 @@ void operator_off(op_type* /*op_pt*/) {
 // output level is sustained, mode changes only when operator is turned off (->release)
 // or when the keep-sustained bit is turned off (->sustain_nokeep)
 void operator_sustain(op_type* op_pt) {
-	Bit32u num_steps_add = op_pt->generator_pos/FIXEDPT;	// number of (standardized) samples
-	for (Bit32u ct=0; ct<num_steps_add; ct++) {
+	uint32_t num_steps_add = op_pt->generator_pos/FIXEDPT;	// number of (standardized) samples
+	for (uint32_t ct=0; ct<num_steps_add; ct++) {
 		op_pt->cur_env_step++;
 	}
 	op_pt->generator_pos -= num_steps_add*FIXEDPT;
@@ -233,8 +233,8 @@ void operator_release(op_type* op_pt) {
 		op_pt->amp *= op_pt->releasemul;
 	}
 
-	Bit32u num_steps_add = op_pt->generator_pos/FIXEDPT;	// number of (standardized) samples
-	for (Bit32u ct=0; ct<num_steps_add; ct++) {
+	uint32_t num_steps_add = op_pt->generator_pos/FIXEDPT;	// number of (standardized) samples
+	for (uint32_t ct=0; ct<num_steps_add; ct++) {
 		op_pt->cur_env_step++;						// sample counter
 		if ((op_pt->cur_env_step & op_pt->env_step_r)==0) {
 			if (op_pt->amp <= 0.00000001) {
@@ -258,8 +258,8 @@ void operator_decay(op_type* op_pt) {
 		op_pt->amp *= op_pt->decaymul;
 	}
 
-	Bit32u num_steps_add = op_pt->generator_pos/FIXEDPT;	// number of (standardized) samples
-	for (Bit32u ct=0; ct<num_steps_add; ct++) {
+	uint32_t num_steps_add = op_pt->generator_pos/FIXEDPT;	// number of (standardized) samples
+	for (uint32_t ct=0; ct<num_steps_add; ct++) {
 		op_pt->cur_env_step++;
 		if ((op_pt->cur_env_step & op_pt->env_step_d)==0) {
 			if (op_pt->amp <= op_pt->sustain_level) {
@@ -284,8 +284,8 @@ void operator_decay(op_type* op_pt) {
 void operator_attack(op_type* op_pt) {
 	op_pt->amp = ((op_pt->a3*op_pt->amp + op_pt->a2)*op_pt->amp + op_pt->a1)*op_pt->amp + op_pt->a0;
 
-	Bit32u num_steps_add = op_pt->generator_pos/FIXEDPT;		// number of (standardized) samples
-	for (Bit32u ct=0; ct<num_steps_add; ct++) {
+	uint32_t num_steps_add = op_pt->generator_pos/FIXEDPT;		// number of (standardized) samples
+	for (uint32_t ct=0; ct<num_steps_add; ct++) {
 		op_pt->cur_env_step++;	// next sample
 		if ((op_pt->cur_env_step & op_pt->env_step_a)==0) {		// check if next step already reached
 			if (op_pt->amp > 1.0) {
@@ -427,13 +427,13 @@ void change_feedback(Bitu chanbase, op_type* op_pt) {
 
 void change_frequency(Bitu chanbase, Bitu regbase, op_type* op_pt) {
 	// frequency
-	Bit32u frn = ((((Bit32u)adlibreg[ARC_KON_BNUM+chanbase])&3)<<8) + (Bit32u)adlibreg[ARC_FREQ_NUM+chanbase];
+	uint32_t frn = ((((uint32_t)adlibreg[ARC_KON_BNUM+chanbase])&3)<<8) + (uint32_t)adlibreg[ARC_FREQ_NUM+chanbase];
 	// block number/octave
-	Bit32u oct = ((((Bit32u)adlibreg[ARC_KON_BNUM+chanbase])>>2)&7);
+	uint32_t oct = ((((uint32_t)adlibreg[ARC_KON_BNUM+chanbase])>>2)&7);
 	op_pt->freq_high = (Bit32s)((frn>>7)&7);
 
 	// keysplit
-	Bit32u note_sel = (adlibreg[8]>>6)&1;
+	uint32_t note_sel = (adlibreg[8]>>6)&1;
 	op_pt->toff = ((frn>>9)&(note_sel^1)) | ((frn>>8)&note_sel);
 	op_pt->toff += (oct<<1);
 
@@ -441,7 +441,7 @@ void change_frequency(Bitu chanbase, Bitu regbase, op_type* op_pt) {
 	if (!(adlibreg[ARC_TVS_KSR_MUL+regbase]&0x10)) op_pt->toff >>= 2;
 
 	// 20+a0+b0:
-	op_pt->tinc = (Bit32u)(((fltype)(frn<<oct))*frqmul[adlibreg[ARC_TVS_KSR_MUL+regbase]&15]);
+	op_pt->tinc = (uint32_t)(((fltype)(frn<<oct))*frqmul[adlibreg[ARC_TVS_KSR_MUL+regbase]&15]);
 	// 40+a0+b0:
 	fltype vol_in = (fltype)((fltype)(adlibreg[ARC_KSL_OUTLEV+regbase]&63) +
 							kslmul[adlibreg[ARC_KSL_OUTLEV+regbase]>>6]*kslev[oct][frn>>6]);
@@ -453,7 +453,7 @@ void change_frequency(Bitu chanbase, Bitu regbase, op_type* op_pt) {
 	change_releaserate(regbase,op_pt);
 }
 
-void enable_operator(Bitu regbase, op_type* op_pt, Bit32u act_type) {
+void enable_operator(Bitu regbase, op_type* op_pt, uint32_t act_type) {
 	// check if this is really an off-on transition
 	if (op_pt->act_state == OP_ACT_OFF) {
 		Bits wselbase = (Bits)regbase;
@@ -467,7 +467,7 @@ void enable_operator(Bitu regbase, op_type* op_pt, Bit32u act_type) {
 	}
 }
 
-void disable_operator(op_type* op_pt, Bit32u act_type) {
+void disable_operator(op_type* op_pt, uint32_t act_type) {
 	// check if this is really an on-off transition
 	if (op_pt->act_state != OP_ACT_OFF) {
 		op_pt->act_state &= (~act_type);
@@ -477,12 +477,12 @@ void disable_operator(op_type* op_pt, Bit32u act_type) {
 	}
 }
 
-void adlib_init(Bit32u samplerate) {
+void adlib_init(uint32_t samplerate) {
     int16_t i;
 
 	int_samplerate = samplerate;
 
-	generator_add = (Bit32u)(INTFREQU*FIXEDPT/int_samplerate);
+	generator_add = (uint32_t)(INTFREQU*FIXEDPT/int_samplerate);
 
 
 	memset((void *)adlibreg,0,sizeof(adlibreg));
@@ -535,7 +535,7 @@ void adlib_init(Bit32u samplerate) {
 	for (i=4; i<VIBTAB_SIZE; i++) vib_table[i] = vib_table[i-4]*-1;
 
 	// vibrato at ~6.1 ?? (opl3 docs say 6.1, opl4 docs say 6.0, y8950 docs say 6.4)
-	vibtab_add = static_cast<Bit32u>(VIBTAB_SIZE*FIXEDPT_LFO/8192*INTFREQU/int_samplerate);
+	vibtab_add = static_cast<uint32_t>(VIBTAB_SIZE*FIXEDPT_LFO/8192*INTFREQU/int_samplerate);
 	vibtab_pos = 0;
 
 	for (i=0; i<BLOCKBUF_SIZE; i++) vibval_const[i] = 0;
@@ -557,7 +557,7 @@ void adlib_init(Bit32u samplerate) {
 	}
 
 	// tremolo at 3.7hz
-	tremtab_add = (Bit32u)((fltype)TREMTAB_SIZE * TREM_FREQ * FIXEDPT_LFO / (fltype)int_samplerate);
+	tremtab_add = (uint32_t)((fltype)TREMTAB_SIZE * TREM_FREQ * FIXEDPT_LFO / (fltype)int_samplerate);
 	tremtab_pos = 0;
 
 	for (i=0; i<BLOCKBUF_SIZE; i++) tremval_const[i] = FIXEDPT;
@@ -601,7 +601,7 @@ void adlib_init(Bit32u samplerate) {
 
 
 void adlib_write(Bitu idx, uint8_t val) {
-	Bit32u second_set = idx&0x100;
+	uint32_t second_set = idx&0x100;
 	adlibreg[idx] = val;
 
 	switch (idx&0xf0) {

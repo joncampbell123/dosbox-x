@@ -35,13 +35,13 @@
 //My mixer channel
 static MixerChannel * cms_chan;
 //Timer to disable the channel after a while
-static Bit32u lastWriteTicks;
-static Bit32u cmsBase;
+static uint32_t lastWriteTicks;
+static uint32_t cmsBase;
 static saa1099_device* device[2];
 
 static void write_cms(Bitu port, Bitu val, Bitu /* iolen */) {
 	if(cms_chan && (!cms_chan->enabled)) cms_chan->Enable(true);
-	lastWriteTicks = (Bit32u)PIC_Ticks;
+	lastWriteTicks = (uint32_t)PIC_Ticks;
 	switch ( port - cmsBase ) {
 	case 1:
 		device[0]->control_w(0, 0, (u8)val);
@@ -129,7 +129,7 @@ public:
 	CMS(Section* configuration):Module_base(configuration) {
 		Section_prop * section = static_cast<Section_prop *>(configuration);
 		Bitu sampleRate = (Bitu)section->Get_int( "oplrate" );
-		cmsBase = (Bit32u)section->Get_hex("sbbase");
+		cmsBase = (uint32_t)section->Get_hex("sbbase");
 		WriteHandler.Install( cmsBase, write_cms, IO_MB, 4 );
 
 		// A standalone Gameblaster has a magic chip on it which is
@@ -143,10 +143,10 @@ public:
 		/* Register the Mixer CallBack */
 		cms_chan = MixerChan.Install(CMS_CallBack,sampleRate,"CMS");
 	
-		lastWriteTicks = (Bit32u)PIC_Ticks;
+		lastWriteTicks = (uint32_t)PIC_Ticks;
 
 #if 0 // unused?
-		Bit32u freq = 7159000;		//14318180 isa clock / 2
+		uint32_t freq = 7159000;		//14318180 isa clock / 2
 #endif
 
 		machine_config config;

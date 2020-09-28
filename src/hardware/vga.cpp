@@ -296,17 +296,17 @@ void vsync_poll_debug_notify() {
         vga_3da_polled = true;
 }
 
-Bit32u CGA_2_Table[16];
-Bit32u CGA_4_Table[256];
-Bit32u CGA_4_HiRes_Table[256];
-Bit32u CGA_16_Table[256];
-Bit32u TXT_Font_Table[16];
-Bit32u TXT_FG_Table[16];
-Bit32u TXT_BG_Table[16];
-Bit32u ExpandTable[256];
-Bit32u Expand16Table[4][16];
-Bit32u FillTable[16];
-Bit32u ColorTable[16];
+uint32_t CGA_2_Table[16];
+uint32_t CGA_4_Table[256];
+uint32_t CGA_4_HiRes_Table[256];
+uint32_t CGA_16_Table[256];
+uint32_t TXT_Font_Table[16];
+uint32_t TXT_FG_Table[16];
+uint32_t TXT_BG_Table[16];
+uint32_t ExpandTable[256];
+uint32_t Expand16Table[4][16];
+uint32_t FillTable[16];
+uint32_t ColorTable[16];
 double vga_force_refresh_rate = -1;
 
 void VGA_SetModeNow(VGAModes mode) {
@@ -601,7 +601,7 @@ VGA_Vsync VGA_Vsync_Decode(const char *vsyncmodestr) {
 }
 
 bool has_pcibus_enable(void);
-Bit32u MEM_get_address_bits();
+uint32_t MEM_get_address_bits();
 
 void VGA_Reset(Section*) {
 //  All non-PC98 video-related config settings are now in the [video] section
@@ -613,7 +613,7 @@ void VGA_Reset(Section*) {
     string str;
     int i;
 
-    Bit32u cpu_addr_bits = MEM_get_address_bits();
+    uint32_t cpu_addr_bits = MEM_get_address_bits();
 //    Bit64u cpu_max_addr = (Bit64u)1 << (Bit64u)cpu_addr_bits;
 
     LOG(LOG_MISC,LOG_DEBUG)("VGA_Reset() reinitializing VGA emulation");
@@ -1659,7 +1659,7 @@ public:
 private:
 	virtual void getBytes(std::ostream& stream)
 	{
-		Bit32u tandy_drawbase_idx, tandy_membase_idx;
+		uint32_t tandy_drawbase_idx, tandy_membase_idx;
 
 
 
@@ -1777,7 +1777,7 @@ private:
 
 	virtual void setBytes(std::istream& stream)
 	{
-		Bit32u tandy_drawbase_idx, tandy_membase_idx;
+		uint32_t tandy_drawbase_idx, tandy_membase_idx;
 
 
 

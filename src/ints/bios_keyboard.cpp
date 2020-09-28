@@ -1588,7 +1588,7 @@ void BIOS_SetupKeyboard(void) {
 
         CALLBACK_Setup(call_irq_pcjr_nmi,&PCjr_NMI_Keyboard_Handler,CB_IRET,"PCjr NMI Keyboard");
 
-        Bit32u a = CALLBACK_RealPointer(call_irq_pcjr_nmi);
+        uint32_t a = CALLBACK_RealPointer(call_irq_pcjr_nmi);
 
         RealSetVec(0x02/*NMI*/,a);
 

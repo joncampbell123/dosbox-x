@@ -323,8 +323,8 @@ static struct {
 		riff_wav_writer *writer;
 		int16_t buf[WAVE_BUF][2];
 		Bitu used;
-		Bit32u length;
-		Bit32u freq;
+		uint32_t length;
+		uint32_t freq;
     } wave = {};
     struct {
         avi_writer  *writer;
@@ -335,7 +335,7 @@ static struct {
 		FILE * handle;
 		uint8_t buffer[MIDI_BUF];
 		Bitu used,done;
-		Bit32u last;
+		uint32_t last;
     } midi = {};
 	struct {
 		Bitu rowlen;
@@ -580,7 +580,7 @@ FILE * OpenCaptureFile(const char * type,const char * ext) {
 }
 
 #if (C_SSHOT)
-static void CAPTURE_AddAviChunk(const char * tag, Bit32u size, void * data, Bit32u flags, unsigned int streamindex) {
+static void CAPTURE_AddAviChunk(const char * tag, uint32_t size, void * data, uint32_t flags, unsigned int streamindex) {
     (void)tag;//UNUSED
 	if (capture.video.writer != NULL) {
 		if ((int)streamindex < capture.video.writer->avi_stream_alloc) {
@@ -602,7 +602,7 @@ void CAPTURE_VideoEvent(bool pressed) {
 
 		if (capture.video.writer != NULL) {
 			if ( capture.video.audioused ) {
-				CAPTURE_AddAviChunk( "01wb", (Bit32u)(capture.video.audioused * 4), capture.video.audiobuf, 0x10, 1);
+				CAPTURE_AddAviChunk( "01wb", (uint32_t)(capture.video.audioused * 4), capture.video.audiobuf, 0x10, 1);
 				capture.video.audiowritten = capture.video.audioused*4;
 				capture.video.audioused = 0;
 			}
@@ -1220,7 +1220,7 @@ skip_shot:
                 if (codecFlags == 0) capture.video.frames++;
 
                 /* write null non-keyframe */
-                CAPTURE_AddAviChunk( "00dc", (Bit32u)0, capture.video.buf, (Bit32u)(0x0), 0u);
+                CAPTURE_AddAviChunk( "00dc", (uint32_t)0, capture.video.buf, (uint32_t)(0x0), 0u);
             }
             else {
                 if (!capture.video.codec->PrepareCompressFrame( codecFlags, format, (char *)pal, capture.video.buf, capture.video.bufSize))
@@ -1250,8 +1250,8 @@ skip_shot:
                                 break;
                             case 32:
                                 for (x=0;x<countWidth;x++)
-                                    ((Bit32u *)doubleRow)[x*2+0] =
-                                        ((Bit32u *)doubleRow)[x*2+1] = ((Bit32u *)srcLine)[x];
+                                    ((uint32_t *)doubleRow)[x*2+0] =
+                                        ((uint32_t *)doubleRow)[x*2+1] = ((uint32_t *)srcLine)[x];
                                 break;
                         }
                         rowPointer=doubleRow;
@@ -1268,12 +1268,12 @@ skip_shot:
                 if (written < 0)
                     goto skip_video;
 
-                CAPTURE_AddAviChunk( "00dc", (Bit32u)written, capture.video.buf, (Bit32u)(codecFlags & 1 ? 0x10 : 0x0), 0u);
+                CAPTURE_AddAviChunk( "00dc", (uint32_t)written, capture.video.buf, (uint32_t)(codecFlags & 1 ? 0x10 : 0x0), 0u);
                 capture.video.frames++;
             }
 
 			if ( capture.video.audioused ) {
-				CAPTURE_AddAviChunk( "01wb", (Bit32u)(capture.video.audioused * 4u), capture.video.audiobuf, /*keyframe*/0x10u, 1u);
+				CAPTURE_AddAviChunk( "01wb", (uint32_t)(capture.video.audioused * 4u), capture.video.audiobuf, /*keyframe*/0x10u, 1u);
 				capture.video.audiowritten = capture.video.audioused*4;
 				capture.video.audioused = 0;
 			}
@@ -1300,12 +1300,12 @@ skip_shot:
 
 						if (flags & CAPTURE_FLAG_DBLW) {
 							for (x=0;x < width;x++)
-								((Bit32u *)dstline)[(x*2)+0] =
-									((Bit32u *)dstline)[(x*2)+1] = GFX_palette32bpp[srcline[x]];
+								((uint32_t *)dstline)[(x*2)+0] =
+									((uint32_t *)dstline)[(x*2)+1] = GFX_palette32bpp[srcline[x]];
 						}
 						else {
 							for (x=0;x < width;x++)
-								((Bit32u *)dstline)[x] = GFX_palette32bpp[srcline[x]];
+								((uint32_t *)dstline)[x] = GFX_palette32bpp[srcline[x]];
 						}
 					}
 				}
@@ -1333,8 +1333,8 @@ skip_shot:
 									break;
 								case 32:
 									for (x=0;x<countWidth;x++)
-										((Bit32u *)dstline)[x*2+0] =
-											((Bit32u *)dstline)[x*2+1] = ((Bit32u *)srcline)[x];
+										((uint32_t *)dstline)[x*2+0] =
+											((uint32_t *)dstline)[x*2+1] = ((uint32_t *)srcline)[x];
 									break;
 							}
 						} else {
@@ -1437,7 +1437,7 @@ void CAPTURE_ScreenShotEvent(bool pressed) {
 
 MixerChannel * MIXER_FirstChannel(void);
 
-void CAPTURE_MultiTrackAddWave(Bit32u freq, Bit32u len, int16_t * data,const char *name) {
+void CAPTURE_MultiTrackAddWave(uint32_t freq, uint32_t len, int16_t * data,const char *name) {
 #if !defined(C_EMSCRIPTEN)
     if (CaptureState & CAPTURE_MULTITRACK_WAVE) {
 		if (capture.multitrack_wave.writer == NULL) {
@@ -1576,7 +1576,7 @@ skip_mt_wav:
 #endif
 }
 
-void CAPTURE_AddWave(Bit32u freq, Bit32u len, int16_t * data) {
+void CAPTURE_AddWave(uint32_t freq, uint32_t len, int16_t * data) {
 #if !defined(C_EMSCRIPTEN)
 #if (C_SSHOT)
 	if (CaptureState & CAPTURE_VIDEO) {
@@ -1645,7 +1645,7 @@ void CAPTURE_AddWave(Bit32u freq, Bit32u len, int16_t * data) {
 			memcpy( &capture.wave.buf[capture.wave.used], read, left*4);
 			capture.wave.used += left;
 			read += left*2;
-			len -= (Bit32u)left;
+			len -= (uint32_t)left;
 		}
 	}
 #endif
@@ -1686,7 +1686,7 @@ void CAPTURE_WaveEvent(bool pressed) {
             LOG_MSG("Stopped capturing wave output.");
             /* Write last piece of audio in buffer */
             riff_wav_writer_data_write(capture.wave.writer,capture.wave.buf,2*2*capture.wave.used);
-            capture.wave.length+=(Bit32u)(capture.wave.used*4);
+            capture.wave.length+=(uint32_t)(capture.wave.used*4);
             riff_wav_writer_end_data(capture.wave.writer);
             capture.wave.writer = riff_wav_writer_destroy(capture.wave.writer);
             CaptureState &= ~((unsigned int)CAPTURE_WAVE);
@@ -1703,13 +1703,13 @@ void CAPTURE_WaveEvent(bool pressed) {
 /* MIDI capturing */
 
 static uint8_t midi_header[]={
-	'M','T','h','d',			/* Bit32u, Header Chunk */
-	0x0,0x0,0x0,0x6,			/* Bit32u, Chunk Length */
+	'M','T','h','d',			/* uint32_t, Header Chunk */
+	0x0,0x0,0x0,0x6,			/* uint32_t, Chunk Length */
 	0x0,0x0,					/* uint16_t, Format, 0=single track */
 	0x0,0x1,					/* uint16_t, Track Count, 1 track */
 	0x01,0xf4,					/* uint16_t, Timing, 2 beats/second with 500 frames */
-	'M','T','r','k',			/* Bit32u, Track Chunk */
-	0x0,0x0,0x0,0x0,			/* Bit32u, Chunk Length */
+	'M','T','r','k',			/* uint32_t, Track Chunk */
+	0x0,0x0,0x0,0x0,			/* uint32_t, Chunk Length */
 	//Track data
 };
 
@@ -1723,7 +1723,7 @@ static void RawMidiAdd(uint8_t data) {
 	}
 }
 
-static void RawMidiAddNumber(Bit32u val) {
+static void RawMidiAddNumber(uint32_t val) {
 	if (val & 0xfe00000) RawMidiAdd((uint8_t)(0x80|((val >> 21) & 0x7f)));
 	if (val & 0xfffc000) RawMidiAdd((uint8_t)(0x80|((val >> 14) & 0x7f)));
 	if (val & 0xfffff80) RawMidiAdd((uint8_t)(0x80|((val >> 7) & 0x7f)));
@@ -1737,14 +1737,14 @@ void CAPTURE_AddMidi(bool sysex, Bitu len, uint8_t * data) {
 			return;
 		}
 		fwrite(midi_header,1,sizeof(midi_header),capture.midi.handle);
-		capture.midi.last=(Bit32u)PIC_Ticks;
+		capture.midi.last=(uint32_t)PIC_Ticks;
 	}
-	Bit32u delta=(Bit32u)(PIC_Ticks-capture.midi.last);
-	capture.midi.last=(Bit32u)PIC_Ticks;
+	uint32_t delta=(uint32_t)(PIC_Ticks-capture.midi.last);
+	capture.midi.last=(uint32_t)PIC_Ticks;
 	RawMidiAddNumber(delta);
 	if (sysex) {
 		RawMidiAdd( 0xf0 );
-		RawMidiAddNumber((Bit32u)len);
+		RawMidiAddNumber((uint32_t)len);
 	}
 	for (Bitu i=0;i<len;i++) 
 		RawMidiAdd(data[i]);

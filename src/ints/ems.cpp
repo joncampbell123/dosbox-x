@@ -199,7 +199,7 @@ public:
 		LOG(LOG_IOCTL,LOG_NORMAL)("EMS:Write to device");	
 		return false;
 	}
-	bool Seek(Bit32u * /*pos*/,Bit32u /*type*/){return false;}
+	bool Seek(uint32_t * /*pos*/,uint32_t /*type*/){return false;}
 	bool Close(){return false;}
 	uint16_t GetInformation(void){return 0xc0c0;}
 	bool ReadFromControlChannel(PhysPt bufptr,uint16_t size,uint16_t * retcode);
@@ -303,7 +303,7 @@ static struct {
 } vcpi ;
 
 struct MoveRegion {
-	Bit32u bytes;
+	uint32_t bytes;
 	uint8_t src_type;
 	uint16_t src_handle;
 	uint16_t src_offset;
@@ -497,7 +497,7 @@ static uint8_t EMM_MapSegment(Bitu segment,uint16_t handle,uint16_t log_page) {
 		/* unmapping doesn't need valid handle (as handle isn't used) */
 		if (log_page==NULL_PAGE) {
 			/* Unmapping */
-			if ((tphysPage>=0) && ((Bit32u)tphysPage<EMM_MAX_PHYS)) {
+			if ((tphysPage>=0) && ((uint32_t)tphysPage<EMM_MAX_PHYS)) {
 				emm_mappings[tphysPage].handle=NULL_HANDLE;
 				emm_mappings[tphysPage].page=NULL_PAGE;
 			} else {
@@ -514,7 +514,7 @@ static uint8_t EMM_MapSegment(Bitu segment,uint16_t handle,uint16_t log_page) {
 		
 		if (log_page<emm_handles[handle].pages) {
 			/* Mapping it is */
-			if ((tphysPage>=0) && ((Bit32u)tphysPage<EMM_MAX_PHYS)) {
+			if ((tphysPage>=0) && ((uint32_t)tphysPage<EMM_MAX_PHYS)) {
 				emm_mappings[tphysPage].handle=handle;
 				emm_mappings[tphysPage].page=log_page;
 			} else {
@@ -858,7 +858,7 @@ static uint8_t MemoryRegion(void) {
 		else src_handle=MEM_NextHandle(src_handle);
 		if (!region.dest_type) dest_mem+=(PhysPt)toread;
 		else dest_handle=MEM_NextHandle(dest_handle);
-		region.bytes-=(Bit32u)toread;
+		region.bytes-=(uint32_t)toread;
 	}
 
     if (!a20_was_enabled) XMS_EnableA20(false);
@@ -1098,8 +1098,8 @@ static Bitu INT67_Handler(void) {
 				reg_di+=0x400;		// advance pointer by 0x100*4
 				
 				/* Set up three descriptor table entries */
-				Bit32u cbseg_low=(CALLBACK_GetBase()&0xffff)<<16;
-				Bit32u cbseg_high=(CALLBACK_GetBase()&0x1f0000)>>16;
+				uint32_t cbseg_low=(CALLBACK_GetBase()&0xffff)<<16;
+				uint32_t cbseg_high=(CALLBACK_GetBase()&0x1f0000)>>16;
 				/* Descriptor 1 (code segment, callback segment) */
 				real_writed(SegValue(ds),reg_si+0x00,0x0000ffff|cbseg_low);
 				real_writed(SegValue(ds),reg_si+0x04,0x00009a00|cbseg_high);
@@ -1119,7 +1119,7 @@ static Bitu INT67_Handler(void) {
 				reg_ah=EMM_NO_ERROR;
 				break;
 			case 0x03:		/* VCPI Get Number of Free Pages */
-				reg_edx=(Bit32u)MEM_FreeTotal();
+				reg_edx=(uint32_t)MEM_FreeTotal();
 				reg_ah=EMM_NO_ERROR;
 				break;
 			case 0x04: {	/* VCPI Allocate one Page */
@@ -1166,7 +1166,7 @@ static Bitu INT67_Handler(void) {
 				break;
 			case 0x07:		/* VCPI Read CR0 */
 				reg_ah=EMM_NO_ERROR;
-				reg_ebx=(Bit32u)CPU_GET_CRX(0);
+				reg_ebx=(uint32_t)CPU_GET_CRX(0);
 				break;
 			case 0x0a:		/* VCPI Get PIC Vector Mappings */
 				reg_bx=vcpi.pic1_remapping;		// master PIC
@@ -1184,22 +1184,22 @@ static Bitu INT67_Handler(void) {
 				CPU_SetCPL(0);
 
 				/* Read data from ESI (linear address) */
-				Bit32u new_cr3=mem_readd(reg_esi);
-				Bit32u new_gdt_addr=mem_readd(reg_esi+4);
-				Bit32u new_idt_addr=mem_readd(reg_esi+8);
+				uint32_t new_cr3=mem_readd(reg_esi);
+				uint32_t new_gdt_addr=mem_readd(reg_esi+4);
+				uint32_t new_idt_addr=mem_readd(reg_esi+8);
 				uint16_t new_ldt=mem_readw(reg_esi+0x0c);
 				uint16_t new_tr=mem_readw(reg_esi+0x0e);
-				Bit32u new_eip=mem_readd(reg_esi+0x10);
+				uint32_t new_eip=mem_readd(reg_esi+0x10);
 				uint16_t new_cs=mem_readw(reg_esi+0x14);
 
 				/* Get GDT and IDT entries */
 				uint16_t new_gdt_limit=mem_readw(new_gdt_addr);
-				Bit32u new_gdt_base=mem_readd(new_gdt_addr+2);
+				uint32_t new_gdt_base=mem_readd(new_gdt_addr+2);
 				uint16_t new_idt_limit=mem_readw(new_idt_addr);
-				Bit32u new_idt_base=mem_readd(new_idt_addr+2);
+				uint32_t new_idt_base=mem_readd(new_idt_addr+2);
 
 				/* Switch to protected mode, paging enabled if necessary */
-				Bit32u new_cr0=(Bit32u)(CPU_GET_CRX(0)|1u);
+				uint32_t new_cr0=(uint32_t)(CPU_GET_CRX(0)|1u);
 				if (new_cr3!=0) new_cr0|=0x80000000;
 				CPU_SET_CRX(0, new_cr0);
 				CPU_SET_CRX(3, new_cr3);
@@ -1242,7 +1242,7 @@ static Bitu VCPI_PM_Handler() {
 //	LOG_MSG("VCPI PMODE handler, function %x",reg_ax);
 	switch (reg_ax) {
 	case 0xDE03:		/* VCPI Get Number of Free Pages */
-		reg_edx=(Bit32u)MEM_FreeTotal();
+		reg_edx=(uint32_t)MEM_FreeTotal();
 		reg_ah=EMM_NO_ERROR;
 		break;
 	case 0xDE04: {		/* VCPI Allocate one Page */
@@ -1344,7 +1344,7 @@ static Bitu V86_Monitor() {
 						Bitu which=(unsigned int)(rm_val >> 3u) & 7u;
 						if ((rm_val<0xc0) || (rm_val>=0xe8))
 							E_Exit("Invalid opcode 0x0f 0x20 %x caused a protection fault!",static_cast<unsigned int>(rm_val));
-						Bit32u crx=(Bit32u)CPU_GET_CRX(which);
+						uint32_t crx=(uint32_t)CPU_GET_CRX(which);
 						switch (rm_val&7) {
 							case 0:	reg_eax=crx;	break;
 							case 1:	reg_ecx=crx;	break;
@@ -1363,7 +1363,7 @@ static Bitu V86_Monitor() {
 						Bitu which=(rm_val >> 3u) & 7u;
 						if ((rm_val<0xc0) || (rm_val>=0xe8))
 							E_Exit("Invalid opcode 0x0f 0x22 %x caused a protection fault!",static_cast<unsigned int>(rm_val));
-						Bit32u crx=0;
+						uint32_t crx=0;
 						switch (rm_val&7) {
 							case 0:	crx=reg_eax;	break;
 							case 1:	crx=reg_ecx;	break;
@@ -1446,7 +1446,7 @@ static Bitu V86_Monitor() {
 	/* Read entries that were pushed onto the stack by the interrupt */
 	uint16_t return_ip=mem_readw(SegPhys(ss)+(reg_esp & cpu.stack.mask));
 	uint16_t return_cs=mem_readw(SegPhys(ss)+((reg_esp+4u) & cpu.stack.mask));
-	Bit32u return_eflags=mem_readd(SegPhys(ss)+((reg_esp+8u) & cpu.stack.mask));
+	uint32_t return_eflags=mem_readd(SegPhys(ss)+((reg_esp+8u) & cpu.stack.mask));
 
 	/* Modify stack to call v86-interrupt handler */
 	mem_writed(SegPhys(ss)+(reg_esp & cpu.stack.mask),vint_vector_ofs);
@@ -1499,15 +1499,15 @@ static void SetupVCPI() {
 	mem_writed((unsigned int)vcpi.private_area+0x0000,0x00000000);	// descriptor 0
 	mem_writed((unsigned int)vcpi.private_area+0x0004,0x00000000);	// descriptor 0
 
-	Bit32u ldt_address=((unsigned int)vcpi.private_area+0x1000);
+	uint32_t ldt_address=((unsigned int)vcpi.private_area+0x1000);
 	uint16_t ldt_limit=0xff;
-	Bit32u ldt_desc_part=(((unsigned int)ldt_address&0xffff)<<16u)|(unsigned int)ldt_limit;
+	uint32_t ldt_desc_part=(((unsigned int)ldt_address&0xffff)<<16u)|(unsigned int)ldt_limit;
 	mem_writed((unsigned int)vcpi.private_area+0x0008,(unsigned int)ldt_desc_part);	// descriptor 1 (LDT)
 	ldt_desc_part=(((unsigned int)ldt_address&0xff0000)>>16)|((unsigned int)ldt_address&0xff000000)|0x8200;
 	mem_writed((unsigned int)vcpi.private_area+0x000c,(unsigned int)ldt_desc_part);	// descriptor 1
 
-	Bit32u tss_address=((unsigned int)vcpi.private_area+0x3000);
-	Bit32u tss_desc_part=(((unsigned int)tss_address&0xffff)<<16u)|(0x0068+0x200);
+	uint32_t tss_address=((unsigned int)vcpi.private_area+0x3000);
+	uint32_t tss_desc_part=(((unsigned int)tss_address&0xffff)<<16u)|(0x0068+0x200);
 	mem_writed((unsigned int)vcpi.private_area+0x0010,(unsigned int)tss_desc_part);	// descriptor 2 (TSS)
 	tss_desc_part=(((unsigned int)tss_address&0xff0000)>>16)|((unsigned int)tss_address&0xff000000)|0x8900;
 	mem_writed((unsigned int)vcpi.private_area+0x0014,(unsigned int)tss_desc_part);	// descriptor 2
@@ -1515,11 +1515,11 @@ static void SetupVCPI() {
 	/* LDT */
 	mem_writed((unsigned int)vcpi.private_area+0x1000,0x00000000);	// descriptor 0
 	mem_writed((unsigned int)vcpi.private_area+0x1004,0x00000000);	// descriptor 0
-	Bit32u cs_desc_part=(((unsigned int)vcpi.private_area&0xffff)<<16u)|0xffff;
+	uint32_t cs_desc_part=(((unsigned int)vcpi.private_area&0xffff)<<16u)|0xffff;
 	mem_writed((unsigned int)vcpi.private_area+0x1008,(unsigned int)cs_desc_part);	// descriptor 1 (code)
 	cs_desc_part=(((unsigned int)vcpi.private_area&0xff0000)>>16u)|((unsigned int)vcpi.private_area&0xff000000)|0x9a00;
 	mem_writed((unsigned int)vcpi.private_area+0x100c,(unsigned int)cs_desc_part);	// descriptor 1
-	Bit32u ds_desc_part=(((unsigned int)vcpi.private_area&0xffff)<<16u)|0xffff;
+	uint32_t ds_desc_part=(((unsigned int)vcpi.private_area&0xffff)<<16u)|0xffff;
 	mem_writed((unsigned int)vcpi.private_area+0x1010,(unsigned int)ds_desc_part);	// descriptor 2 (data)
 	ds_desc_part=(((unsigned int)vcpi.private_area&0xff0000)>>16u)|((unsigned int)vcpi.private_area&0xff000000)|0x9200;
 	mem_writed((unsigned int)vcpi.private_area+0x1014,(unsigned int)ds_desc_part);	// descriptor 2

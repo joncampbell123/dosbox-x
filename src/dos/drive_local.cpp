@@ -476,7 +476,7 @@ bool localDrive::FileCreate(DOS_File * * file,const char * name,uint16_t attribu
 	return true;
 }
 
-bool localDrive::FileOpen(DOS_File * * file,const char * name,Bit32u flags) {
+bool localDrive::FileOpen(DOS_File * * file,const char * name,uint32_t flags) {
     if (nocachedir) EmptyCache();
 
     if (readonly) {
@@ -531,7 +531,7 @@ bool localDrive::FileOpen(DOS_File * * file,const char * name,Bit32u flags) {
 #else
 	FILE * hand=fopen(host_name,type);
 #endif
-//	Bit32u err=errno;
+//	uint32_t err=errno;
 	if (!hand) { 
 		if((flags&0xf) != OPEN_READ) {
 #ifdef host_cnv_use_wchar
@@ -802,7 +802,7 @@ again:
 	
 	/*file is okay, setup everything to be copied in DTA Block */
 	char find_name[DOS_NAMELENGTH_ASCII], lfind_name[LFN_NAMELENGTH+1];
-    uint16_t find_date,find_time;Bit32u find_size;
+    uint16_t find_date,find_time;uint32_t find_size;
 
 	if(strlen(dir_entcopy)<DOS_NAMELENGTH_ASCII){
 		strcpy(find_name,dir_entcopy);
@@ -814,7 +814,7 @@ again:
 	strcpy(lfind_name,ldir_entcopy);
     lfind_name[LFN_NAMELENGTH]=0;
 
-	find_size=(Bit32u) stat_block.st_size;
+	find_size=(uint32_t) stat_block.st_size;
     const struct tm* time;
 	if((time=localtime(&stat_block.st_mtime))!=0){
 		find_date=DOS_PackDate((uint16_t)(time->tm_year+1900),(uint16_t)(time->tm_mon+1),(uint16_t)time->tm_mday);
@@ -1269,7 +1269,7 @@ bool localDrive::FileStat(const char* name, FileStat_Block * const stat_block) {
 		stat_block->time=DOS_PackTime((uint16_t)time->tm_hour,(uint16_t)time->tm_min,(uint16_t)time->tm_sec);
 		stat_block->date=DOS_PackDate((uint16_t)(time->tm_year+1900),(uint16_t)(time->tm_mon+1),(uint16_t)time->tm_mday);
 	}
-	stat_block->size=(Bit32u)temp_stat.st_size;
+	stat_block->size=(uint32_t)temp_stat.st_size;
 	return true;
 }
 
@@ -1445,7 +1445,7 @@ bool localFile::Read(uint8_t * data,uint16_t * size) {
 }
 
 bool localFile::Write(const uint8_t * data,uint16_t * size) {
-	Bit32u lastflags = this->flags & 0xf;
+	uint32_t lastflags = this->flags & 0xf;
 	if (lastflags == OPEN_READ || lastflags == OPEN_READ_NO_MOD) {	// check if file opened in read-only mode
 		DOS_SetError(DOSERR_ACCESS_DENIED);
 		return false;
@@ -1465,7 +1465,7 @@ bool localFile::Write(const uint8_t * data,uint16_t * size) {
 /* ert, 20100711: Locking extensions */
 #ifdef WIN32
 #include <sys/locking.h>
-bool localFile::LockFile(uint8_t mode, Bit32u pos, uint16_t size) {
+bool localFile::LockFile(uint8_t mode, uint32_t pos, uint16_t size) {
 	HANDLE hFile = (HANDLE)_get_osfhandle(_fileno(fhandle));
 	BOOL bRet;
 
@@ -1505,7 +1505,7 @@ bool localFile::LockFile(uint8_t mode, Bit32u pos, uint16_t size) {
 }
 #endif
 
-bool localFile::Seek(Bit32u * pos,Bit32u type) {
+bool localFile::Seek(uint32_t * pos,uint32_t type) {
 	int seektype;
 	switch (type) {
 	case DOS_SEEK_SET:seektype=SEEK_SET;break;
@@ -1524,10 +1524,10 @@ bool localFile::Seek(Bit32u * pos,Bit32u type) {
 #if 0
 	fpos_t temppos;
 	fgetpos(fhandle,&temppos);
-	Bit32u * fake_pos=(Bit32u*)&temppos;
+	uint32_t * fake_pos=(uint32_t*)&temppos;
 	*pos=*fake_pos;
 #endif
-	*pos=(Bit32u)ftell(fhandle);
+	*pos=(uint32_t)ftell(fhandle);
 	last_action=NONE;
 	return true;
 }
@@ -1597,8 +1597,8 @@ uint16_t localFile::GetInformation(void) {
 }
 	
 
-Bit32u localFile::GetSeekPos() {
-	return (Bit32u)ftell( fhandle );
+uint32_t localFile::GetSeekPos() {
+	return (uint32_t)ftell( fhandle );
 }
 
 localFile::localFile() {}
@@ -1698,7 +1698,7 @@ cdromDrive::cdromDrive(const char driveLetter, const char * startdir,uint16_t _b
 	if (MSCDEX_GetVolumeName(subUnit,name)) dirCache.SetLabel(name,true,true);
 }
 
-bool cdromDrive::FileOpen(DOS_File * * file,const char * name,Bit32u flags) {
+bool cdromDrive::FileOpen(DOS_File * * file,const char * name,uint32_t flags) {
 	if ((flags&0xf)==OPEN_READWRITE) {
 		flags &= ~((unsigned int)OPEN_READWRITE);
 	} else if ((flags&0xf)==OPEN_WRITE) {
@@ -1917,7 +1917,7 @@ bool Overlay_Drive::RemoveDir(const char * dir) {
 		}
 		bool empty = true;
 		do {
-			char name[DOS_NAMELENGTH_ASCII],lname[LFN_NAMELENGTH];Bit32u size;uint16_t date;uint16_t time;uint8_t attr;
+			char name[DOS_NAMELENGTH_ASCII],lname[LFN_NAMELENGTH];uint32_t size;uint16_t date;uint16_t time;uint8_t attr;
 			dta.GetResult(name,lname,size,date,time,attr);
 			if (logoverlay) LOG_MSG("RemoveDir found %s",name);
 			if (empty && strcmp(".",name ) && strcmp("..",name)) 
@@ -2086,13 +2086,13 @@ public:
 		if (logoverlay) LOG_MSG("constructing OverlayFile: %s",name);
 	}
 	bool Write(const uint8_t * data,uint16_t * size) {
-		Bit32u f = flags&0xf;
+		uint32_t f = flags&0xf;
 		if (!overlay_active && (f == OPEN_READWRITE || f == OPEN_WRITE)) {
 			if (logoverlay) LOG_MSG("write detected, switching file for %s",GetName());
 			if (*data == 0) {
 				if (logoverlay) LOG_MSG("OPTIMISE: truncate on switch!!!!");
 			}
-			Bit32u a = GetTicks();
+			uint32_t a = GetTicks();
 			bool r = create_copy();
 			if (GetTicks() - a > 2) {
 				if (logoverlay) LOG_MSG("OPTIMISE: switching took %d",GetTicks() - a);
@@ -2327,7 +2327,7 @@ void Overlay_Drive::convert_overlay_to_DOSname_in_base(char* dirname )
 	}
 }
 
-bool Overlay_Drive::FileOpen(DOS_File * * file,const char * name,Bit32u flags) {
+bool Overlay_Drive::FileOpen(DOS_File * * file,const char * name,uint32_t flags) {
 	if (ovlnocachedir) {
 		dirCache.EmptyCache();
 		update_cache(true);
@@ -2532,7 +2532,7 @@ bool Overlay_Drive::Sync_leading_dirs(const char* dos_filename){
 }
 
 void Overlay_Drive::update_cache(bool read_directory_contents) {
-	Bit32u a = GetTicks();
+	uint32_t a = GetTicks();
 	std::vector<std::string> specials;
 	std::vector<std::string> dirnames;
 	std::vector<std::string> filenames;
@@ -2859,7 +2859,7 @@ again:
 	
 	/* file is okay, setup everything to be copied in DTA Block */
 	char find_name[DOS_NAMELENGTH_ASCII], lfind_name[LFN_NAMELENGTH+1];
-	uint16_t find_date,find_time;Bit32u find_size;
+	uint16_t find_date,find_time;uint32_t find_size;
 
 	if(strlen(dir_entcopy)<DOS_NAMELENGTH_ASCII){
 		strcpy(find_name,dir_entcopy);
@@ -2868,7 +2868,7 @@ again:
 	strcpy(lfind_name,ldir_entcopy);
     lfind_name[LFN_NAMELENGTH]=0;
 
-	find_size=(Bit32u) stat_block.st_size;
+	find_size=(uint32_t) stat_block.st_size;
 	struct tm *time;
 	if((time=localtime(&stat_block.st_mtime))!=0){
 		find_date=DOS_PackDate((uint16_t)(time->tm_year+1900),(uint16_t)(time->tm_mon+1),(uint16_t)time->tm_mday);
@@ -2888,7 +2888,7 @@ bool Overlay_Drive::FileUnlink(const char * name) {
     }
 
 //TODO check the basedir for file existence in order if we need to add the file to deleted file list.
-	Bit32u a = GetTicks();
+	uint32_t a = GetTicks();
 	if (logoverlay) LOG_MSG("calling unlink on %s",name);
 	char basename[CROSS_LEN];
 	strcpy(basename,basedir);
@@ -3539,7 +3539,7 @@ bool Overlay_Drive::Rename(const char * oldname,const char * newname) {
 		return false;
 	}
 
-	Bit32u a = GetTicks();
+	uint32_t a = GetTicks();
 	//First generate overlay names.
 	char overlaynameold[CROSS_LEN];
 	strcpy(overlaynameold,overlaydir);
@@ -3608,7 +3608,7 @@ bool Overlay_Drive::Rename(const char * oldname,const char * newname) {
 		//TODO CHECK if base has a file with same oldname!!!!! if it does mark it as deleted!!
 		if (localDrive::FileExists(oldname)) add_deleted_file(oldname,true);
 	} else {
-		Bit32u aa = GetTicks();
+		uint32_t aa = GetTicks();
 		//File exists in the basedrive. Make a copy and mark old one as deleted.
 		char newold[CROSS_LEN];
 		strcpy(newold,basedir);
@@ -3755,7 +3755,7 @@ bool Overlay_Drive::FileStat(const char* name, FileStat_Block * const stat_block
 	} else {
 			// ... But this function is not used at the moment.
 	}
-	stat_block->size=(Bit32u)temp_stat.st_size;
+	stat_block->size=(uint32_t)temp_stat.st_size;
 	return true;
 }
 

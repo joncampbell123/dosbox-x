@@ -221,10 +221,10 @@ private:
 	public:
 		virtual          ~TrackFile() = default;
 		virtual bool     read(uint8_t *buffer, int seek, int count) = 0;
-		virtual bool     seek(Bit32u offset) = 0;
+		virtual bool     seek(uint32_t offset) = 0;
 		virtual uint16_t   decode(uint8_t *buffer) = 0;
 		virtual uint16_t   getEndian() = 0;
-		virtual Bit32u   getRate() = 0;
+		virtual uint32_t   getRate() = 0;
 		virtual uint8_t    getChannels() = 0;
 		virtual int      getLength() = 0;
 		const uint16_t chunkSize = 0;
@@ -241,10 +241,10 @@ private:
 		BinaryFile&     operator= (const BinaryFile&) = delete; // prevent assignment
 
 		bool            read(uint8_t *buffer, int seek, int count);
-		bool            seek(Bit32u offset);
+		bool            seek(uint32_t offset);
 		uint16_t          decode(uint8_t *buffer);
 		uint16_t          getEndian();
-		Bit32u          getRate() { return 44100; }
+		uint32_t          getRate() { return 44100; }
 		uint8_t           getChannels() { return 2; }
 		int             getLength();
 	private:
@@ -261,10 +261,10 @@ private:
 		AudioFile&      operator= (const AudioFile&) = delete; // prevent assignment
 
 		bool            read(uint8_t *buffer, int seek, int count) { (void)buffer; (void)seek; (void)count; return false; }
-		bool            seek(Bit32u offset);
+		bool            seek(uint32_t offset);
 		uint16_t          decode(uint8_t *buffer);
 		uint16_t          getEndian();
-		Bit32u          getRate();
+		uint32_t          getRate();
 		uint8_t           getChannels();
 		int             getLength();
 	private:
@@ -330,16 +330,16 @@ private:
 		uint32_t                 startSector        = 0;
 		uint32_t                 totalRedbookFrames = 0;
 		uint8_t   buffer[AUDIO_DECODE_BUFFER_SIZE];
-		Bit32u  startFrame;
-		Bit32u  currFrame;
-		Bit32u  numFrames;
+		uint32_t  startFrame;
+		uint32_t  currFrame;
+		uint32_t  numFrames;
 		bool    isPlaying;
 		bool    isPaused;
 		bool    ctrlUsed;
 		TCtrl   ctrlData;
 		TrackFile* trackFile;
 		void     (MixerChannel::*addSamples) (Bitu, const int16_t*);
-		Bit32u   playbackTotal;
+		uint32_t   playbackTotal;
 		int      playbackRemaining;
 		uint16_t   bufferPos;
 		uint16_t   bufferConsumed;

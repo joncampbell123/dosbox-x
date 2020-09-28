@@ -73,12 +73,12 @@
 					 *      significant byte against 0xFF. It does NOT use the standard Intel detection process. */
 				case 0x00:										/* SGDT */
 					SaveMw(eaa,(uint16_t)CPU_SGDT_limit());
-					SaveMd(eaa+2,(Bit32u)(CPU_SGDT_base()|(CPU_ArchitectureType<CPU_ARCHTYPE_386?0xFF000000UL:0)));
+					SaveMd(eaa+2,(uint32_t)(CPU_SGDT_base()|(CPU_ArchitectureType<CPU_ARCHTYPE_386?0xFF000000UL:0)));
 					break;
 					/* NTS: Same comments for SIDT as SGDT */
 				case 0x01:										/* SIDT */
 					SaveMw(eaa,(uint16_t)CPU_SIDT_limit());
-					SaveMd(eaa+2,(Bit32u)(CPU_SIDT_base()|(CPU_ArchitectureType<CPU_ARCHTYPE_386?0xFF000000UL:0)));
+					SaveMd(eaa+2,(uint32_t)(CPU_SIDT_base()|(CPU_ArchitectureType<CPU_ARCHTYPE_386?0xFF000000UL:0)));
 					break;
 				case 0x02:										/* LGDT */
 					if (cpu.pmode && cpu.cpl) EXCEPTION(EXCEPTION_GP);
@@ -168,7 +168,7 @@
 				LOG(LOG_CPU,LOG_ERROR)("MOV XXX,CR%u with non-register",(int)which);
 			}
 			GetEArd;
-			Bit32u crx_value;
+			uint32_t crx_value;
 			if (CPU_READ_CRX(which,crx_value)) RUNEXCEPTION();
 			*eard=crx_value;
 		}
@@ -183,7 +183,7 @@
 				LOG(LOG_CPU,LOG_ERROR)("MOV XXX,DR%u with non-register",(int)which);
 			}
 			GetEArd;
-			Bit32u drx_value;
+			uint32_t drx_value;
 			if (CPU_READ_DRX(which,drx_value)) RUNEXCEPTION();
 			*eard=drx_value;
 		}
@@ -224,7 +224,7 @@
 				LOG(LOG_CPU,LOG_ERROR)("MOV XXX,TR%u with non-register",(int)which);
 			}
 			GetEArd;
-			Bit32u trx_value;
+			uint32_t trx_value;
 			if (CPU_READ_TRX(which,trx_value)) RUNEXCEPTION();
 			*eard=trx_value;
 		}
@@ -253,8 +253,8 @@
 			if (CPU_ArchitectureType<CPU_ARCHTYPE_PENTIUM) goto illegal_opcode;
 			/* Use a fixed number when in auto cycles mode as else the reported value changes constantly */
 			Bit64s tsc=(Bit64s)(PIC_FullIndex()*(double) (CPU_CycleAutoAdjust?70000:CPU_CycleMax));
-			reg_edx=(Bit32u)(tsc>>32);
-			reg_eax=(Bit32u)(tsc&0xffffffff);
+			reg_edx=(uint32_t)(tsc>>32);
+			reg_eax=(uint32_t)(tsc&0xffffffff);
 		}
 		break;
 

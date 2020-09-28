@@ -53,7 +53,7 @@ enum {
 	PHASE_DONE = 7
 };
 
-static int calcBaseCutoff(const TimbreParam::PartialParam *partialParam, Bit32u basePitch, unsigned int key, bool quirkTVFBaseCutoffLimit) {
+static int calcBaseCutoff(const TimbreParam::PartialParam *partialParam, uint32_t basePitch, unsigned int key, bool quirkTVFBaseCutoffLimit) {
 	// This table matches the values used by a real LAPC-I.
 	static const int8_t biasLevelToBiasMult[] = {85, 42, 21, 16, 10, 5, 2, 0, -2, -5, -10, -16, -21, -74, -85};
 	// These values represent unique options with no consistent pattern, so we have to use something like a table in any case.

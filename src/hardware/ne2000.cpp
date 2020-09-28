@@ -204,10 +204,10 @@ bx_ne2k_c::reset(unsigned type)
 // read_cr/write_cr - utility routines for handling reads/writes to
 // the Command Register
 //
-Bit32u
+uint32_t
 bx_ne2k_c::read_cr(void)
 {
-  Bit32u val = 
+  uint32_t val = 
     (((unsigned int)(BX_NE2K_THIS s.CR.pgsel    & 0x03u) << 6u) |
 	 ((unsigned int)(BX_NE2K_THIS s.CR.rdma_cmd & 0x07u) << 3u) |
 	  (unsigned int)(BX_NE2K_THIS s.CR.tx_packet << 2u) |
@@ -218,7 +218,7 @@ bx_ne2k_c::read_cr(void)
 }
 
 void
-bx_ne2k_c::write_cr(Bit32u value)
+bx_ne2k_c::write_cr(uint32_t value)
 {
   BX_DEBUG ("wrote 0x%02x to CR", value);
 
@@ -348,9 +348,9 @@ bx_ne2k_c::write_cr(Bit32u value)
 // The first 16 bytes contains the MAC address at even locations,
 // and there is 16K of buffer memory starting at 16K
 //
-Bit32u bx_ne2k_c::chipmem_read(Bit32u address, unsigned int io_len)
+uint32_t bx_ne2k_c::chipmem_read(uint32_t address, unsigned int io_len)
 {
-  Bit32u retval = 0;
+  uint32_t retval = 0;
 
   if ((io_len == 2) && (address & 0x1)) 
     BX_PANIC(("unaligned chipmem word read"));
@@ -386,7 +386,7 @@ Bit32u bx_ne2k_c::chipmem_read(Bit32u address, unsigned int io_len)
 }
 
 void 
-bx_ne2k_c::chipmem_write(Bit32u address, Bit32u value, unsigned io_len)
+bx_ne2k_c::chipmem_write(uint32_t address, uint32_t value, unsigned io_len)
 {
   if ((io_len == 2) && (address & 0x1)) 
     BX_PANIC(("unaligned chipmem word write"));
@@ -409,10 +409,10 @@ bx_ne2k_c::chipmem_write(Bit32u address, Bit32u value, unsigned io_len)
 // after that, insw/outsw instructions can be used to move
 // the appropriate number of bytes to/from the device.
 //
-Bit32u 
-bx_ne2k_c::asic_read(Bit32u offset, unsigned int io_len)
+uint32_t 
+bx_ne2k_c::asic_read(uint32_t offset, unsigned int io_len)
 {
-  Bit32u retval = 0;
+  uint32_t retval = 0;
 
   switch (offset) {
   case 0x0:  // Data register
@@ -468,7 +468,7 @@ bx_ne2k_c::asic_read(Bit32u offset, unsigned int io_len)
 }
 
 void
-bx_ne2k_c::asic_write(Bit32u offset, Bit32u value, unsigned io_len)
+bx_ne2k_c::asic_write(uint32_t offset, uint32_t value, unsigned io_len)
 {
   BX_DEBUG("asic write addr=0x%02x, value=0x%04x", (unsigned) offset, (unsigned) value);
   switch (offset) {
@@ -517,8 +517,8 @@ bx_ne2k_c::asic_write(Bit32u offset, Bit32u value, unsigned io_len)
 // page0_read/page0_write - These routines handle reads/writes to
 // the 'zeroth' page of the DS8390 register file
 //
-Bit32u
-bx_ne2k_c::page0_read(Bit32u offset, unsigned int io_len)
+uint32_t
+bx_ne2k_c::page0_read(uint32_t offset, unsigned int io_len)
 {
   BX_DEBUG("page 0 read from port %04x, len=%u", (unsigned) offset,
 	   (unsigned) io_len);
@@ -625,7 +625,7 @@ bx_ne2k_c::page0_read(Bit32u offset, unsigned int io_len)
 }
 
 void
-bx_ne2k_c::page0_write(Bit32u offset, Bit32u value, unsigned io_len)
+bx_ne2k_c::page0_write(uint32_t offset, uint32_t value, unsigned io_len)
 {
   BX_DEBUG("page 0 write to port %04x, len=%u", (unsigned) offset,
 	   (unsigned) io_len);
@@ -816,8 +816,8 @@ bx_ne2k_c::page0_write(Bit32u offset, Bit32u value, unsigned io_len)
 // page1_read/page1_write - These routines handle reads/writes to
 // the first page of the DS8390 register file
 //
-Bit32u
-bx_ne2k_c::page1_read(Bit32u offset, unsigned int io_len)
+uint32_t
+bx_ne2k_c::page1_read(uint32_t offset, unsigned int io_len)
 {
   BX_DEBUG("page 1 read from port %04x, len=%u", (unsigned) offset,
 	   (unsigned) io_len);
@@ -858,7 +858,7 @@ bx_ne2k_c::page1_read(Bit32u offset, unsigned int io_len)
 }
 
 void
-bx_ne2k_c::page1_write(Bit32u offset, Bit32u value, unsigned io_len)
+bx_ne2k_c::page1_write(uint32_t offset, uint32_t value, unsigned io_len)
 {
     (void)io_len;//UNUSED
   BX_DEBUG("page 1 w offset %04x", (unsigned) offset);
@@ -897,8 +897,8 @@ bx_ne2k_c::page1_write(Bit32u offset, Bit32u value, unsigned io_len)
 // page2_read/page2_write - These routines handle reads/writes to
 // the second page of the DS8390 register file
 //
-Bit32u
-bx_ne2k_c::page2_read(Bit32u offset, unsigned int io_len)
+uint32_t
+bx_ne2k_c::page2_read(uint32_t offset, unsigned int io_len)
 {
   BX_DEBUG("page 2 read from port %04x, len=%u", (unsigned) offset, (unsigned) io_len);
 
@@ -989,7 +989,7 @@ bx_ne2k_c::page2_read(Bit32u offset, unsigned int io_len)
 }
 
 void
-bx_ne2k_c::page2_write(Bit32u offset, Bit32u value, unsigned io_len)
+bx_ne2k_c::page2_write(uint32_t offset, uint32_t value, unsigned io_len)
 {
     (void)io_len;//UNUSED
   // Maybe all writes here should be BX_PANIC()'d, since they
@@ -1055,8 +1055,8 @@ bx_ne2k_c::page2_write(Bit32u offset, Bit32u value, unsigned io_len)
 //
 // page3_read/page3_write - writes to this page are illegal
 //
-Bit32u
-bx_ne2k_c::page3_read(Bit32u offset, unsigned int io_len)
+uint32_t
+bx_ne2k_c::page3_read(uint32_t offset, unsigned int io_len)
 {
     (void)offset;//UNUSED
     (void)io_len;//UNUSED
@@ -1065,7 +1065,7 @@ bx_ne2k_c::page3_read(Bit32u offset, unsigned int io_len)
 }
 
 void
-bx_ne2k_c::page3_write(Bit32u offset, Bit32u value, unsigned io_len)
+bx_ne2k_c::page3_write(uint32_t offset, uint32_t value, unsigned io_len)
 {
     (void)value;//UNUSED
     (void)offset;//UNUSED
@@ -1105,7 +1105,7 @@ bx_ne2k_c::tx_timer(void)
 // mainline when the CPU attempts a read in the i/o space registered
 // by this ne2000 instance
 //
-Bit32u bx_ne2k_c::read_handler(void *this_ptr, Bit32u address, unsigned io_len)
+uint32_t bx_ne2k_c::read_handler(void *this_ptr, uint32_t address, unsigned io_len)
 {
 #if !BX_USE_NE2K_SMF
   bx_ne2k_c *class_ptr = (bx_ne2k_c *) this_ptr;
@@ -1113,13 +1113,13 @@ Bit32u bx_ne2k_c::read_handler(void *this_ptr, Bit32u address, unsigned io_len)
   return( class_ptr->read(address, io_len) );
 }
 
-Bit32u bx_ne2k_c::read(Bit32u address, unsigned io_len)
+uint32_t bx_ne2k_c::read(uint32_t address, unsigned io_len)
 {
 #else
   UNUSED(this_ptr);
 #endif  // !BX_USE_NE2K_SMF
   BX_DEBUG("read addr %x, len %d", address, io_len);
-  Bit32u retval = 0;
+  uint32_t retval = 0;
   unsigned int offset = (unsigned int)address - (unsigned int)(BX_NE2K_THIS s.base_address);
 
   if (offset >= 0x10) {
@@ -1159,7 +1159,7 @@ Bit32u bx_ne2k_c::read(Bit32u address, unsigned io_len)
 // by this ne2000 instance
 //
 void
-bx_ne2k_c::write_handler(void *this_ptr, Bit32u address, Bit32u value, 
+bx_ne2k_c::write_handler(void *this_ptr, uint32_t address, uint32_t value, 
 			 unsigned io_len)
 {
 #if !BX_USE_NE2K_SMF
@@ -1169,7 +1169,7 @@ bx_ne2k_c::write_handler(void *this_ptr, Bit32u address, Bit32u value,
 }
 
 void
-bx_ne2k_c::write(Bit32u address, Bit32u value, unsigned io_len)
+bx_ne2k_c::write(uint32_t address, uint32_t value, unsigned io_len)
 {
 #else
   UNUSED(this_ptr);
@@ -1399,7 +1399,7 @@ bx_ne2k_c::rx_frame(const void *buf, unsigned io_len)
 //uint8_t macaddr[6] = { 0xAC, 0xDE, 0x48, 0x8E, 0x89, 0x19 };
 
 Bitu dosbox_read(Bitu port, Bitu len) {
-	Bitu retval = theNE2kDevice->read((Bit32u)port,(unsigned int)len);
+	Bitu retval = theNE2kDevice->read((uint32_t)port,(unsigned int)len);
 	//LOG_MSG("ne2k rd port %x val %4x len %d page %d, CS:IP %8x:%8x",
 	//	port, retval, len, theNE2kDevice->s.CR.pgsel,SegValue(cs),reg_eip);
 	return retval;
@@ -1407,7 +1407,7 @@ Bitu dosbox_read(Bitu port, Bitu len) {
 void dosbox_write(Bitu port, Bitu val, Bitu len) {
 	//LOG_MSG("ne2k wr port %x val %4x len %d page %d, CS:IP %8x:%8x",
 	//	port, val, len,theNE2kDevice->s.CR.pgsel,SegValue(cs),reg_eip);
-	theNE2kDevice->write((Bit32u)port, (Bit32u)val, (unsigned int)len);
+	theNE2kDevice->write((uint32_t)port, (uint32_t)val, (unsigned int)len);
 }
 
 void bx_ne2k_c::init()
@@ -1685,7 +1685,7 @@ public:
 		theNE2kDevice = new bx_ne2k_c ();
 		memcpy(theNE2kDevice->s.physaddr, mac, 6);
 
-		theNE2kDevice->s.base_address=(Bit32u)base;
+		theNE2kDevice->s.base_address=(uint32_t)base;
 		theNE2kDevice->s.base_irq=(int)irq;
 
 		theNE2kDevice->init();

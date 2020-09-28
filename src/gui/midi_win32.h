@@ -173,7 +173,7 @@ public:
 	};
 
 	void PlayMsg(uint8_t * msg) {
-		midiOutShortMsg(m_out, *(Bit32u*)msg);
+		midiOutShortMsg(m_out, *(uint32_t*)msg);
 	};
 
 	void PlaySysex(uint8_t * sysex,Bitu len) {

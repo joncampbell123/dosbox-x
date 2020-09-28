@@ -230,7 +230,7 @@
 	CASE_W(0x60)												/* PUSHA */
 		if (CPU_ArchitectureType<CPU_ARCHTYPE_80186) goto illegal_opcode;
 		{
-			Bit32u old_esp = reg_esp;
+			uint32_t old_esp = reg_esp;
 			try {
 				uint16_t old_sp = (CPU_ArchitectureType >= CPU_ARCHTYPE_286 ? reg_sp : (reg_sp-10));
 				Push_16(reg_ax);Push_16(reg_cx);Push_16(reg_dx);Push_16(reg_bx);
@@ -246,7 +246,7 @@
 	CASE_W(0x61)												/* POPA */
 		if (CPU_ArchitectureType<CPU_ARCHTYPE_80186) goto illegal_opcode;
 		{
-			Bit32u old_esp = reg_esp;
+			uint32_t old_esp = reg_esp;
 			try {
 				reg_di=Pop_16();reg_si=Pop_16();reg_bp=Pop_16();Pop_16();//Don't save SP
 				reg_bx=Pop_16();reg_dx=Pop_16();reg_cx=Pop_16();reg_ax=Pop_16();
@@ -575,7 +575,7 @@
 		}							
 	CASE_W(0x8f)												/* POP Ew */
 		{
-			Bit32u old_esp = reg_esp;
+			uint32_t old_esp = reg_esp;
 
 			try {
 				uint16_t val=Pop_16();
@@ -748,11 +748,11 @@
 #endif
 	CASE_W(0xc2)												/* RETN Iw */
 		{
-			Bit32u old_esp = reg_esp;
+			uint32_t old_esp = reg_esp;
 
 			try {
 				/* this is structured either to complete RET or leave registers unmodified if interrupted by page fault */
-				Bit32u new_eip = Pop_16();
+				uint32_t new_eip = Pop_16();
 				reg_esp += Fetchw();
 				reg_eip = new_eip;
 			}
@@ -808,7 +808,7 @@
 	CASE_W(0xc9)												/* LEAVE */
 		if (CPU_ArchitectureType<CPU_ARCHTYPE_80186) goto illegal_opcode;
 		{
-			Bit32u old_esp = reg_esp;
+			uint32_t old_esp = reg_esp;
 
 			reg_esp &= cpu.stack.notmask;
 			reg_esp |= reg_ebp&cpu.stack.mask;
@@ -900,7 +900,7 @@
 		break;
 	CASE_B(0xd7)												/* XLAT */
 		if (TEST_PREFIX_ADDR) {
-			reg_al=LoadMb(BaseDS+(Bit32u)(reg_ebx+reg_al));
+			reg_al=LoadMb(BaseDS+(uint32_t)(reg_ebx+reg_al));
 		} else {
 			reg_al=LoadMb(BaseDS+(uint16_t)(reg_bx+reg_al));
 		}
@@ -1081,7 +1081,7 @@
 		{ 
 			int16_t addip=Fetchbs();
 			SAVEIP;
-			reg_eip=(uint16_t)(reg_eip+(Bit32u)addip);
+			reg_eip=(uint16_t)(reg_eip+(uint32_t)addip);
 			continue;
 		}
 	CASE_B(0xec)												/* IN AL,DX */

@@ -36,24 +36,24 @@ using namespace std;
 
 class isoFile : public DOS_File {
 public:
-    isoFile(isoDrive* drive, const char* name, const FileStat_Block* stat, Bit32u offset);
+    isoFile(isoDrive* drive, const char* name, const FileStat_Block* stat, uint32_t offset);
 	bool Read(uint8_t *data, uint16_t *size);
 	bool Write(const uint8_t *data, uint16_t *size);
-	bool Seek(Bit32u *pos, Bit32u type);
+	bool Seek(uint32_t *pos, uint32_t type);
 	bool Close();
 	uint16_t GetInformation(void);
-	Bit32u GetSeekPos(void);
+	uint32_t GetSeekPos(void);
 private:
 	isoDrive *drive;
     uint8_t buffer[ISO_FRAMESIZE] = {};
     int cachedSector = -1;
-	Bit32u fileBegin;
-	Bit32u filePos;
-	Bit32u fileEnd;
+	uint32_t fileBegin;
+	uint32_t filePos;
+	uint32_t fileEnd;
 //	uint16_t info;
 };
 
-isoFile::isoFile(isoDrive* drive, const char* name, const FileStat_Block* stat, Bit32u offset) : drive(drive), fileBegin(offset) {
+isoFile::isoFile(isoDrive* drive, const char* name, const FileStat_Block* stat, uint32_t offset) : drive(drive), fileBegin(offset) {
 	time = stat->time;
 	date = stat->date;
 	attr = stat->attr;
@@ -105,7 +105,7 @@ bool isoFile::Write(const uint8_t* /*data*/, uint16_t* /*size*/) {
 	return false;
 }
 
-bool isoFile::Seek(Bit32u *pos, Bit32u type) {
+bool isoFile::Seek(uint32_t *pos, uint32_t type) {
 	switch (type) {
 		case DOS_SEEK_SET:
 			filePos = fileBegin + *pos;
@@ -135,7 +135,7 @@ uint16_t isoFile::GetInformation(void) {
 	return 0x40;		// read-only drive
 }
 
-Bit32u isoFile::GetSeekPos() {
+uint32_t isoFile::GetSeekPos() {
 	return filePos - fileBegin;
 }
 
@@ -215,7 +215,7 @@ void isoDrive::Activate(void) {
 	UpdateMscdex(driveLetter, fileName, subUnit);
 }
 
-bool isoDrive::FileOpen(DOS_File **file, const char *name, Bit32u flags) {
+bool isoDrive::FileOpen(DOS_File **file, const char *name, uint32_t flags) {
 	if ((flags & 0x0f) == OPEN_WRITE) {
 		DOS_SetError(DOSERR_ACCESS_DENIED);
 		return false;
@@ -323,7 +323,7 @@ bool isoDrive::FindNext(DOS_DTA &dta) {
 				strcpy(findName, (char*)de.ident);
 				upcase(findName);
 			}
-			Bit32u findSize = DATA_LENGTH(de);
+			uint32_t findSize = DATA_LENGTH(de);
 			uint16_t findDate = DOS_PackDate(1900 + de.dateYear, de.dateMonth, de.dateDay);
 			uint16_t findTime = DOS_PackTime(de.timeHour, de.timeMin, de.timeSec);
             dta.SetResult(findName, lfindName, findSize, findDate, findTime, findAttr);
@@ -491,7 +491,7 @@ void isoDrive::FreeDirIterator(const int dirIterator) {
 	}
 }
 
-bool isoDrive::ReadCachedSector(uint8_t** buffer, const Bit32u sector) {
+bool isoDrive::ReadCachedSector(uint8_t** buffer, const uint32_t sector) {
 	// get hash table entry
 	unsigned int pos = sector % ISO_MAX_HASH_TABLE_SIZE;
 	SectorHashEntry& he = sectorHashEntries[pos];
@@ -509,7 +509,7 @@ bool isoDrive::ReadCachedSector(uint8_t** buffer, const Bit32u sector) {
 	return true;
 }
 
-inline bool isoDrive :: readSector(uint8_t *buffer, Bit32u sector) {
+inline bool isoDrive :: readSector(uint8_t *buffer, uint32_t sector) {
 	return CDROM_Interface_Image::images[subUnit]->ReadSector(buffer, false, sector);
 }
 

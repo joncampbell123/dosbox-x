@@ -115,8 +115,8 @@ public:
 		Bits index=1+(Bits)(end>>(Bitu)DYN_HASH_SHIFT);
 		bool is_current_block=false;	// if the current block is modified, it has to be exited as soon as possible
 
-		Bit32u ip_point=SegPhys(cs)+reg_eip;
-		ip_point=(Bit32u)((PAGING_GetPhysicalPage(ip_point)-(phys_page<<12))+(ip_point&0xfff));
+		uint32_t ip_point=SegPhys(cs)+reg_eip;
+		ip_point=(uint32_t)((PAGING_GetPhysicalPage(ip_point)-(phys_page<<12))+(ip_point&0xfff));
 		while (index>=0) {
 			Bitu map=0;
 			// see if there is still some code in the range
@@ -186,7 +186,7 @@ public:
 #endif
 		InvalidateRange(addr,addr+(Bitu)1);
 	}
-	void writed(PhysPt addr,Bit32u val){
+	void writed(PhysPt addr,uint32_t val){
 		addr&=4095;
 		if (host_readd(hostmem+addr)==val) return;
 		host_writed(hostmem+addr,val);
@@ -208,7 +208,7 @@ public:
 			host_readd(&invalidation_map[addr])+0x1010101);
 #else
         if (invalidation_map != NULL)
-            (*(Bit32u*)& invalidation_map[addr]) += 0x1010101;
+            (*(uint32_t*)& invalidation_map[addr]) += 0x1010101;
 #endif
 		InvalidateRange(addr,addr+(Bitu)3);
 	}
@@ -274,7 +274,7 @@ public:
 		host_writew(hostmem+addr,val);
 		return false;
 	}
-	bool writed_checked(PhysPt addr,Bit32u val) {
+	bool writed_checked(PhysPt addr,uint32_t val) {
 		addr&=4095;
 		if (host_readd(hostmem+addr)==val) return false;
 		// see if there's code where we are writing to
@@ -297,7 +297,7 @@ public:
 				host_readd(&invalidation_map[addr])+0x1010101);
 #else
             if (invalidation_map != NULL)
-                (*(Bit32u*)& invalidation_map[addr]) += 0x1010101;
+                (*(uint32_t*)& invalidation_map[addr]) += 0x1010101;
 #endif
 			if (InvalidateRange(addr,addr+(Bitu)3)) {
 				cpu.exception.which=SMC_CURRENT_BLOCK;
@@ -565,8 +565,8 @@ static INLINE void cache_addw(uint16_t val) {
 }
 
 // place a 32bit value into the cache
-static INLINE void cache_addd(Bit32u val) {
-	*(Bit32u*)cache.pos=val;
+static INLINE void cache_addd(uint32_t val) {
+	*(uint32_t*)cache.pos=val;
 	cache.pos+=4;
 }
 

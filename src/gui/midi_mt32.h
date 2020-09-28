@@ -22,7 +22,7 @@ public:
 		endpos = 0;
 	}
 
-	bool put(Bit32u data) {
+	bool put(uint32_t data) {
 		unsigned int newEndpos = endpos;
 		newEndpos++;
 		if (newEndpos == bufferSize) newEndpos = 0;
@@ -32,9 +32,9 @@ public:
 		return true;
 	}
 
-	Bit32u get() {
+	uint32_t get() {
 		if (startpos == endpos) return 0;
-		Bit32u data = (Bit32u)ringBuffer[startpos]; /* <- FIXME: Um.... really? */
+		uint32_t data = (uint32_t)ringBuffer[startpos]; /* <- FIXME: Um.... really? */
 		startpos++;
 		if (startpos == bufferSize) startpos = 0;
 		return data;
@@ -175,8 +175,8 @@ private:
             }
         }
     }
-	Bit32u inline getMidiEventTimestamp() {
-		return service->convertOutputToSynthTimestamp(Bit32u(playedBuffers * framesPerAudioBuffer + (playPos >> 1)));
+	uint32_t inline getMidiEventTimestamp() {
+		return service->convertOutputToSynthTimestamp(uint32_t(playedBuffers * framesPerAudioBuffer + (playPos >> 1)));
 	}
 
 public:
@@ -209,7 +209,7 @@ public:
 
 	bool Open(const char *conf) {
         service = new MT32Emu::Service();
-        Bit32u version = service->getLibraryVersionInt();
+        uint32_t version = service->getLibraryVersionInt();
         if (version < 0x020100) {
             delete service;
             service = NULL;
@@ -259,7 +259,7 @@ public:
             }
         }
 
-        service->setPartialCount(Bit32u(section->Get_int("mt32.partials")));
+        service->setPartialCount(uint32_t(section->Get_int("mt32.partials")));
         service->setAnalogOutputMode((MT32Emu::AnalogOutputMode)section->Get_int("mt32.analog"));
         int sampleRate = section->Get_int("mt32.rate");
         service->setStereoOutputSampleRate(sampleRate);
@@ -352,9 +352,9 @@ public:
 
 	void PlayMsg(uint8_t *msg) {
         if (renderInThread) {
-            service->playMsgAt(SDL_SwapLE32(*(Bit32u *)msg), getMidiEventTimestamp());
+            service->playMsgAt(SDL_SwapLE32(*(uint32_t *)msg), getMidiEventTimestamp());
         } else {
-            service->playMsg(SDL_SwapLE32(*(Bit32u *)msg));
+            service->playMsg(SDL_SwapLE32(*(uint32_t *)msg));
         }
 	}
 

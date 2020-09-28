@@ -449,7 +449,7 @@ void DOS_Shell::InputCommand(char * line) {
             case 0x08:				/* BackSpace */
                 if (str_index) {
                     backone();
-                    Bit32u str_remain=(Bit32u)(str_len - str_index);
+                    uint32_t str_remain=(uint32_t)(str_len - str_index);
                     size++;
                     if (str_remain) {
                         memmove(&line[str_index-1],&line[str_index],str_remain);
@@ -601,7 +601,7 @@ void DOS_Shell::InputCommand(char * line) {
 
                         DOS_DTA dta(dos.dta());
 						char name[DOS_NAMELENGTH_ASCII], lname[LFN_NAMELENGTH], qlname[LFN_NAMELENGTH+2];
-                        Bit32u sz;uint16_t date;uint16_t time;uint8_t att;
+                        uint32_t sz;uint16_t date;uint16_t time;uint8_t att;
 
                         std::list<std::string> executable;
 						q=0;r=0;
@@ -1117,7 +1117,7 @@ continue_1:
 		block.SaveData();
 #if 0
 		/* Save CS:IP to some point where i can return them from */
-		Bit32u oldeip=reg_eip;
+		uint32_t oldeip=reg_eip;
 		uint16_t oldcs=SegValue(cs);
 		RealPt newcsip=CALLBACK_RealPointer(call_shellstop);
 		SegSet16(cs,RealSeg(newcsip));

@@ -49,7 +49,7 @@ public:
 	}
 
 	/* configuration space I/O */
-	virtual void config_write(uint8_t regnum,Bitu iolen,Bit32u value) {
+	virtual void config_write(uint8_t regnum,Bitu iolen,uint32_t value) {
 		if (iolen == 1) {
             const unsigned char mask = config_writemask[regnum];
             const unsigned char nmask = ~mask;
@@ -70,9 +70,9 @@ public:
 			}
 		}
 	}
-	virtual Bit32u config_read(uint8_t regnum,Bitu iolen) {
+	virtual uint32_t config_read(uint8_t regnum,Bitu iolen) {
 		/* subdivide into 8-bit I/O */
-		Bit32u v=0;
+		uint32_t v=0;
 
 		if (iolen == 1)
 			return config[regnum];

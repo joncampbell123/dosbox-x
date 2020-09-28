@@ -106,7 +106,7 @@ extern Bitu cycle_count;
 
 typedef PhysPt (*GetEAHandler)(void);
 
-static const Bit32u AddrMaskTable[2]={0x0000ffffu,0xffffffffu};
+static const uint32_t AddrMaskTable[2]={0x0000ffffu,0xffffffffu};
 
 static struct {
 	Bitu opcode_index;
@@ -161,7 +161,7 @@ static uint16_t Fetchw() {
 	return Fetch<uint16_t>();
 }
 
-static Bit32u Fetchd() {
+static uint32_t Fetchd() {
 	return Fetch<uint32_t>();
 }
 

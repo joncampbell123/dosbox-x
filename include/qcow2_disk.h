@@ -32,33 +32,33 @@ class QCow2Image{
 
 public:
 
-	static const Bit32u magic;
+	static const uint32_t magic;
 	
 	typedef struct QCow2Header {
-		Bit32u magic;
-		Bit32u version;
+		uint32_t magic;
+		uint32_t version;
 		Bit64u backing_file_offset;
-		Bit32u backing_file_size;
-		Bit32u cluster_bits;
+		uint32_t backing_file_size;
+		uint32_t cluster_bits;
 		Bit64u size; /* in bytes */
-		Bit32u crypt_method;
-		Bit32u l1_size;
+		uint32_t crypt_method;
+		uint32_t l1_size;
 		Bit64u l1_table_offset;
 		Bit64u refcount_table_offset;
-		Bit32u refcount_table_clusters;
-		Bit32u nb_snapshots;
+		uint32_t refcount_table_clusters;
+		uint32_t nb_snapshots;
 		Bit64u snapshots_offset;
 	} QCow2Header;
 	
 	static QCow2Header read_header(FILE* qcow2File);
 
-	QCow2Image(QCow2Header& qcow2Header, FILE *qcow2File, const char* imageName, Bit32u sectorSizeBytes);
+	QCow2Image(QCow2Header& qcow2Header, FILE *qcow2File, const char* imageName, uint32_t sectorSizeBytes);
 
 	virtual ~QCow2Image();
 	
-	uint8_t read_sector(Bit32u sectnum, uint8_t* data);
+	uint8_t read_sector(uint32_t sectnum, uint8_t* data);
 
-	uint8_t write_sector(Bit32u sectnum, uint8_t* data);
+	uint8_t write_sector(uint32_t sectnum, uint8_t* data);
 	
 private:
 
@@ -67,7 +67,7 @@ private:
 	static const Bit64u copy_flag;
 	static const Bit64u empty_mask;
 	static const Bit64u table_entry_mask;
-	Bit32u sector_size;
+	uint32_t sector_size;
 	Bit64u cluster_mask;
 	Bit64u cluster_size;
 	Bit64u sectors_per_cluster;
@@ -80,7 +80,7 @@ private:
 
 	static uint16_t host_read16(uint16_t buffer);
 
-	static Bit32u host_read32(Bit32u buffer);
+	static uint32_t host_read32(uint32_t buffer);
 
 	static Bit64u host_read64(Bit64u buffer);
 
@@ -102,7 +102,7 @@ private:
 
 	uint8_t read_unallocated_cluster(Bit64u data_cluster_number, uint8_t* data);
 
-	uint8_t read_unallocated_sector(Bit32u sectnum, uint8_t* data);
+	uint8_t read_unallocated_sector(uint32_t sectnum, uint8_t* data);
 
 	uint8_t update_reference_count(Bit64u cluster_offset, uint8_t* cluster_buffer);
 
@@ -123,13 +123,13 @@ class QCow2Disk : public imageDisk{
 
 public:
 	
-	QCow2Disk(QCow2Image::QCow2Header& qcow2Header, FILE *qcow2File, uint8_t *imgName, Bit32u imgSizeK, Bit32u sectorSizeBytes, bool isHardDisk);
+	QCow2Disk(QCow2Image::QCow2Header& qcow2Header, FILE *qcow2File, uint8_t *imgName, uint32_t imgSizeK, uint32_t sectorSizeBytes, bool isHardDisk);
 
 	virtual ~QCow2Disk();
 	
-	virtual uint8_t Read_AbsoluteSector(Bit32u sectnum, void* data);
+	virtual uint8_t Read_AbsoluteSector(uint32_t sectnum, void* data);
 
-	virtual uint8_t Write_AbsoluteSector(Bit32u sectnum, const void* data);
+	virtual uint8_t Write_AbsoluteSector(uint32_t sectnum, const void* data);
 
 private:
 

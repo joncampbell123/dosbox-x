@@ -7,13 +7,13 @@ bool initPorttalk(void);
 bool setPermissionList();
 void addIOPermission(uint16_t port);
 
-void outportb(Bit32u portid, uint8_t value);
-uint8_t inportb(Bit32u portid);
+void outportb(uint32_t portid, uint8_t value);
+uint8_t inportb(uint32_t portid);
 
-void outportd(Bit32u portid, Bit32u value);
-Bit32u inportd(Bit32u portid);
+void outportd(uint32_t portid, uint32_t value);
+uint32_t inportd(uint32_t portid);
 
-void outportw(Bit32u portid, uint16_t value);
-uint16_t inportw(Bit32u portid);
+void outportw(uint32_t portid, uint16_t value);
+uint16_t inportw(uint32_t portid);
 
 #endif

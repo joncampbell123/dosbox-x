@@ -224,7 +224,7 @@ static Bitu read_p3cf(Bitu port,Bitu iolen) {
 	default:
 		if (svga.read_p3cf)
 			return svga.read_p3cf(gfx(index), iolen);
-		LOG(LOG_VGAMISC,LOG_NORMAL)("Reading from illegal index %2X in port %4X",(int)static_cast<Bit32u>(gfx(index)),(int)port);
+		LOG(LOG_VGAMISC,LOG_NORMAL)("Reading from illegal index %2X in port %4X",(int)static_cast<uint32_t>(gfx(index)),(int)port);
 		break;
 	}
 	return 0;	/* Compiler happy */

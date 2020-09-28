@@ -33,7 +33,7 @@
 		MMX_reg* rmrq=lookupRMregMM[rm];
 		if (rm>=0xc0) {
 			GetEArd;
-			rmrq->ud.d0=*(Bit32u*)eard;
+			rmrq->ud.d0=*(uint32_t*)eard;
 			rmrq->ud.d1=0;
 		} else {
 			GetEAa;
@@ -49,7 +49,7 @@
 		MMX_reg* rmrq=lookupRMregMM[rm];
 		if (rm>=0xc0) {
 			GetEArd;
-			*(Bit32u*)eard=rmrq->ud.d0;
+			*(uint32_t*)eard=rmrq->ud.d0;
 		} else {
 			GetEAa;
 			SaveMd(eaa,rmrq->ud.d0);
@@ -737,10 +737,10 @@
 			GetEAa;
 			src.q = LoadMq(eaa);
 		}
-		Bit32u product0 = (Bit32u)dest->uw.w0 * (Bit32u)src.uw.w0;
-		Bit32u product1 = (Bit32u)dest->uw.w1 * (Bit32u)src.uw.w1;
-		Bit32u product2 = (Bit32u)dest->uw.w2 * (Bit32u)src.uw.w2;
-		Bit32u product3 = (Bit32u)dest->uw.w3 * (Bit32u)src.uw.w3;
+		uint32_t product0 = (uint32_t)dest->uw.w0 * (uint32_t)src.uw.w0;
+		uint32_t product1 = (uint32_t)dest->uw.w1 * (uint32_t)src.uw.w1;
+		uint32_t product2 = (uint32_t)dest->uw.w2 * (uint32_t)src.uw.w2;
+		uint32_t product3 = (uint32_t)dest->uw.w3 * (uint32_t)src.uw.w3;
 		dest->uw.w0 = (product0 & 0xffff);
 		dest->uw.w1 = (product1 & 0xffff);
 		dest->uw.w2 = (product2 & 0xffff);

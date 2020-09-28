@@ -148,9 +148,9 @@
 		reg_edi=Pop_32();break;
 	CASE_D(0x60)												/* PUSHAD */
 		{
-			Bit32u old_esp = reg_esp;
+			uint32_t old_esp = reg_esp;
 			try {
-				Bit32u tmpesp = reg_esp;
+				uint32_t tmpesp = reg_esp;
 				Push_32(reg_eax);Push_32(reg_ecx);Push_32(reg_edx);Push_32(reg_ebx);
 				Push_32(tmpesp);Push_32(reg_ebp);Push_32(reg_esi);Push_32(reg_edi);
 			}
@@ -163,7 +163,7 @@
 		} break;
 	CASE_D(0x61)												/* POPAD */
 		{
-			Bit32u old_esp = reg_esp;
+			uint32_t old_esp = reg_esp;
 			try {
 				reg_edi=Pop_32();reg_esi=Pop_32();reg_ebp=Pop_32();Pop_32();//Don't save ESP
 				reg_ebx=Pop_32();reg_edx=Pop_32();reg_ecx=Pop_32();reg_eax=Pop_32();
@@ -193,11 +193,11 @@
 			if (rm >= 0xc0 ) {
 				GetEArd;Bitu new_sel=(uint16_t)*eard;
 				CPU_ARPL(new_sel,*rmrw);
-				*eard=(Bit32u)new_sel;
+				*eard=(uint32_t)new_sel;
 			} else {
 				GetEAa;Bitu new_sel=LoadMw(eaa);
 				CPU_ARPL(new_sel,*rmrw);
-				SaveMd(eaa,(Bit32u)new_sel);
+				SaveMd(eaa,(uint32_t)new_sel);
 			}
 		}
 		break;
@@ -207,7 +207,7 @@
 		RMGdEdOp3(DIMULD,Fetchds());
 		break;
 	CASE_D(0x6a)												/* PUSH Ib */
-		Push_32((Bit32u)Fetchbs());break;
+		Push_32((uint32_t)Fetchbs());break;
 	CASE_D(0x6b)												/* IMUL Gd,Ed,Ib */
 		RMGdEdOp3(DIMULD,Fetchbs());
 		break;
@@ -253,7 +253,7 @@
 		{
 			GetRM;Bitu which=(rm>>3)&7;
 			if (rm >= 0xc0) {
-				GetEArd;Bit32u id=Fetchd();
+				GetEArd;uint32_t id=Fetchd();
 				switch (which) {
 				case 0x00:ADDD(*eard,id,LoadRd,SaveRd);break;
 				case 0x01: ORD(*eard,id,LoadRd,SaveRd);break;
@@ -265,7 +265,7 @@
 				case 0x07:CMPD(*eard,id,LoadRd,SaveRd);break;
 				}
 			} else {
-				GetEAa;Bit32u id=Fetchd();
+				GetEAa;uint32_t id=Fetchd();
 				switch (which) {
 				case 0x00:ADDD(eaa,id,LoadMd,SaveMd);break;
 				case 0x01: ORD(eaa,id,LoadMd,SaveMd);break;
@@ -283,7 +283,7 @@
 		{
 			GetRM;Bitu which=(rm>>3)&7;
 			if (rm >= 0xc0) {
-				GetEArd;Bit32u id=(Bit32u)Fetchbs();
+				GetEArd;uint32_t id=(uint32_t)Fetchbs();
 				switch (which) {
 				case 0x00:ADDD(*eard,id,LoadRd,SaveRd);break;
 				case 0x01: ORD(*eard,id,LoadRd,SaveRd);break;
@@ -295,7 +295,7 @@
 				case 0x07:CMPD(*eard,id,LoadRd,SaveRd);break;
 				}
 			} else {
-				GetEAa;Bit32u id=(Bit32u)Fetchbs();
+				GetEAa;uint32_t id=(uint32_t)Fetchbs();
 				switch (which) {
 				case 0x00:ADDD(eaa,id,LoadMd,SaveMd);break;
 				case 0x01: ORD(eaa,id,LoadMd,SaveMd);break;
@@ -313,7 +313,7 @@
 		RMEdGd(TESTD);break;
 	CASE_D(0x87)												/* XCHG Ed,Gd */
 		{	
-			GetRMrd;Bit32u oldrmrd=*rmrd;
+			GetRMrd;uint32_t oldrmrd=*rmrd;
 			if (rm >= 0xc0 ) {GetEArd;*rmrd=*eard;*eard=oldrmrd;}
 			else {GetEAa;*rmrd=LoadMd(eaa);SaveMd(eaa,oldrmrd);}
 			break;
@@ -362,18 +362,18 @@
 			GetRMrd;
 			BaseDS=BaseSS=0;
 			if (TEST_PREFIX_ADDR) {
-				*rmrd=(Bit32u)(*EATable[256+rm])();
+				*rmrd=(uint32_t)(*EATable[256+rm])();
 			} else {
-				*rmrd=(Bit32u)(*EATable[rm])();
+				*rmrd=(uint32_t)(*EATable[rm])();
 			}
 			break;
 		}
 	CASE_D(0x8f)												/* POP Ed */
 		{
-			Bit32u old_esp = reg_esp;
+			uint32_t old_esp = reg_esp;
 
 			try {
-				Bit32u val=Pop_32();
+				uint32_t val=Pop_32();
 				GetRM;
 				if (rm >= 0xc0 ) {GetEArd;*eard=val;}
 				else {GetEAa;SaveMd(eaa,val);}
@@ -385,34 +385,34 @@
 			}
 		} break;
 	CASE_D(0x91)												/* XCHG ECX,EAX */
-		{ Bit32u temp=reg_eax;reg_eax=reg_ecx;reg_ecx=temp;break;}
+		{ uint32_t temp=reg_eax;reg_eax=reg_ecx;reg_ecx=temp;break;}
 	CASE_D(0x92)												/* XCHG EDX,EAX */
-		{ Bit32u temp=reg_eax;reg_eax=reg_edx;reg_edx=temp;break;}
+		{ uint32_t temp=reg_eax;reg_eax=reg_edx;reg_edx=temp;break;}
 		break;
 	CASE_D(0x93)												/* XCHG EBX,EAX */
-		{ Bit32u temp=reg_eax;reg_eax=reg_ebx;reg_ebx=temp;break;}
+		{ uint32_t temp=reg_eax;reg_eax=reg_ebx;reg_ebx=temp;break;}
 		break;
 	CASE_D(0x94)												/* XCHG ESP,EAX */
-		{ Bit32u temp=reg_eax;reg_eax=reg_esp;reg_esp=temp;break;}
+		{ uint32_t temp=reg_eax;reg_eax=reg_esp;reg_esp=temp;break;}
 		break;
 	CASE_D(0x95)												/* XCHG EBP,EAX */
-		{ Bit32u temp=reg_eax;reg_eax=reg_ebp;reg_ebp=temp;break;}
+		{ uint32_t temp=reg_eax;reg_eax=reg_ebp;reg_ebp=temp;break;}
 		break;
 	CASE_D(0x96)												/* XCHG ESI,EAX */
-		{ Bit32u temp=reg_eax;reg_eax=reg_esi;reg_esi=temp;break;}
+		{ uint32_t temp=reg_eax;reg_eax=reg_esi;reg_esi=temp;break;}
 		break;
 	CASE_D(0x97)												/* XCHG EDI,EAX */
-		{ Bit32u temp=reg_eax;reg_eax=reg_edi;reg_edi=temp;break;}
+		{ uint32_t temp=reg_eax;reg_eax=reg_edi;reg_edi=temp;break;}
 		break;
 	CASE_D(0x98)												/* CWDE */
-		reg_eax=(Bit32u)((int16_t)reg_ax);break;
+		reg_eax=(uint32_t)((int16_t)reg_ax);break;
 	CASE_D(0x99)												/* CDQ */
 		if (reg_eax & 0x80000000) reg_edx=0xffffffff;
 		else reg_edx=0;
 		break;
 	CASE_D(0x9a)												/* CALL FAR Ad */
 		{ 
-			Bit32u newip=Fetchd();uint16_t newcs=Fetchw();
+			uint32_t newip=Fetchd();uint16_t newcs=Fetchw();
 			FillFlags();
 			CPU_CALL(true,newcs,newip,GETIP);
 #if CPU_TRAP_CHECK
@@ -483,11 +483,11 @@
 		GRP2D(Fetchb());break;
 	CASE_D(0xc2)												/* RETN Iw */
 		{
-			Bit32u old_esp = reg_esp;
+			uint32_t old_esp = reg_esp;
 
 			try {
 				/* this is structured either to complete RET or leave registers unmodified if interrupted by page fault */
-				Bit32u new_eip = Pop_32();
+				uint32_t new_eip = Pop_32();
 				reg_esp += Fetchw();
 				reg_eip = new_eip;
 			}
@@ -534,7 +534,7 @@
 		break;
 	CASE_D(0xc9)												/* LEAVE */
 		{
-			Bit32u old_esp = reg_esp;
+			uint32_t old_esp = reg_esp;
 
 			reg_esp &= cpu.stack.notmask;
 			reg_esp |= reg_ebp&cpu.stack.mask;
@@ -621,21 +621,21 @@
 			/* must not adjust (E)IP until we have completed the instruction.
 			 * if interrupted by a page fault, EIP must be unmodified. */
 			Bit32s addip=Fetchds();
-			Bit32u here=GETIP;
+			uint32_t here=GETIP;
 			Push_32(here);
-			reg_eip=(Bit32u)((Bit32u)addip+here);
+			reg_eip=(uint32_t)((uint32_t)addip+here);
 			continue;
 		}
 	CASE_D(0xe9)												/* JMP Jd */
 		{ 
 			Bit32s addip=Fetchds();
 			SAVEIP;
-			reg_eip+=(Bit32u)addip;
+			reg_eip+=(uint32_t)addip;
 			continue;
 		}
 	CASE_D(0xea)												/* JMP Ad */
 		{ 
-			Bit32u newip=Fetchd();
+			uint32_t newip=Fetchd();
 			uint16_t newcs=Fetchw();
 			FillFlags();
 			CPU_JMP(true,newcs,newip,GETIP);
@@ -651,7 +651,7 @@
 		{ 
 			Bit32s addip=Fetchbs();
 			SAVEIP;
-			reg_eip+=(Bit32u)addip;
+			reg_eip+=(uint32_t)addip;
 			continue;
 		}
 	CASE_D(0xed)												/* IN EAX,DX */
@@ -718,7 +718,7 @@
 				break;
 			case 0x02:											/* CALL NEAR Ed */
 				{ /* either EIP is set to the call address or EIP does not change if interrupted by PF */
-					Bit32u new_eip;
+					uint32_t new_eip;
 					if (rm >= 0xc0 ) {GetEArd;new_eip=*eard;}
 					else {GetEAa;new_eip=LoadMd(eaa);}
 					Push_32(GETIP); /* <- PF can happen here */
@@ -729,7 +729,7 @@
 				{
 					if (rm >= 0xc0) goto illegal_opcode;
 					GetEAa;
-					Bit32u newip=LoadMd(eaa);
+					uint32_t newip=LoadMd(eaa);
 					uint16_t newcs=LoadMw(eaa+4);
 					FillFlags();
 					CPU_CALL(true,newcs,newip,GETIP);
@@ -749,7 +749,7 @@
 				{
 					if (rm >= 0xc0) goto illegal_opcode;
 					GetEAa;
-					Bit32u newip=LoadMd(eaa);
+					uint32_t newip=LoadMd(eaa);
 					uint16_t newcs=LoadMw(eaa+4);
 					FillFlags();
 					CPU_JMP(true,newcs,newip,GETIP);

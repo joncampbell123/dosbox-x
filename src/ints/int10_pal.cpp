@@ -218,7 +218,7 @@ void INT10_SetSingleDACRegister(uint8_t index,uint8_t red,uint8_t green,uint8_t 
 		IO_Write(VGAREG_DAC_DATA,blue);
 	} else {
 		/* calculate clamped intensity, taken from VGABIOS */
-		Bit32u i=(( 77u*red + 151u*green + 28u*blue ) + 0x80u) >> 8u;
+		uint32_t i=(( 77u*red + 151u*green + 28u*blue ) + 0x80u) >> 8u;
 		uint8_t ic=(i>0x3f) ? 0x3f : ((uint8_t)(i & 0xff));
 		IO_Write(VGAREG_DAC_DATA,ic);
 		IO_Write(VGAREG_DAC_DATA,ic);
@@ -248,7 +248,7 @@ void INT10_SetDACBlock(uint16_t index,uint16_t count,PhysPt data) {
 			uint8_t blue=mem_readb(data++);
 
 			/* calculate clamped intensity, taken from VGABIOS */
-			Bit32u i=(( 77u*red + 151u*green + 28u*blue ) + 0x80u) >> 8u;
+			uint32_t i=(( 77u*red + 151u*green + 28u*blue ) + 0x80u) >> 8u;
 			uint8_t ic=(i>0x3f) ? 0x3f : ((uint8_t)(i & 0xff));
 			IO_Write(VGAREG_DAC_DATA,ic);
 			IO_Write(VGAREG_DAC_DATA,ic);
@@ -436,7 +436,7 @@ void INT10_PerformGrayScaleSumming(uint16_t start_reg,uint16_t count) {
 		uint8_t blue=IO_Read(VGAREG_DAC_DATA);
 
 		/* calculate clamped intensity, taken from VGABIOS */
-		Bit32u i=(( 77u*red + 151u*green + 28u*blue ) + 0x80u) >> 8u;
+		uint32_t i=(( 77u*red + 151u*green + 28u*blue ) + 0x80u) >> 8u;
 		uint8_t ic=(i>0x3f) ? 0x3f : ((uint8_t)(i & 0xff));
 		INT10_SetSingleDACRegister((uint8_t)(start_reg+ct),ic,ic,ic);
 	}

@@ -27,7 +27,7 @@ typedef union {
 
 #ifndef WORDS_BIGENDIAN
 	struct {
-		Bit32u d0,d1;
+		uint32_t d0,d1;
 	} ud;
 
 	struct {
@@ -51,7 +51,7 @@ typedef union {
 	} sb;
 #else
 	struct {
-		Bit32u d1,d0;
+		uint32_t d1,d0;
 	} ud;
 
 	struct {

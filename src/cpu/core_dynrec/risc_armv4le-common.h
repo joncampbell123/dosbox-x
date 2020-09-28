@@ -33,7 +33,7 @@
 #define DRC_FLAGS_INVALIDATION_DCODE
 
 // type with the same size as a pointer
-#define DRC_PTR_SIZE_IM Bit32u
+#define DRC_PTR_SIZE_IM uint32_t
 
 // calling convention modifier
 #define DRC_CALL_CONV	/* nothing */

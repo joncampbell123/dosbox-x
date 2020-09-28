@@ -85,7 +85,7 @@ static void Check_Palette(void) {
                 uint8_t r=render.pal.rgb[i].red;
                 uint8_t g=render.pal.rgb[i].green;
                 uint8_t b=render.pal.rgb[i].blue;
-                Bit32u newPal = (Bit32u)GFX_GetRGB(r,g,b);
+                uint32_t newPal = (uint32_t)GFX_GetRGB(r,g,b);
                 if (newPal != render.pal.lut.b32[i]) {
                     render.pal.changed = true;
                     render.pal.modified[i] = 1;
@@ -286,9 +286,9 @@ static void RENDER_FinishLineHandler(const void * s) {
 
 static void RENDER_ClearCacheHandler(const void * src) {
     Bitu x, width;
-    Bit32u *srcLine, *cacheLine;
-    srcLine = (Bit32u *)src;
-    cacheLine = (Bit32u *)render.scale.cacheRead;
+    uint32_t *srcLine, *cacheLine;
+    srcLine = (uint32_t *)src;
+    cacheLine = (uint32_t *)render.scale.cacheRead;
     width = render.scale.cachePitch / 4;
     for (x=0;x<width;x++)
         cacheLine[x] = ~srcLine[x];

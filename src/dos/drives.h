@@ -27,7 +27,7 @@
 
 bool DOS_CommonFAT32FAT16DiskSpaceConv(
 		uint16_t * bytes,uint8_t * sectors,uint16_t * clusters,uint16_t * free,
-		const Bit32u bytes32,const Bit32u sectors32,const Bit32u clusters32,const Bit32u free32);
+		const uint32_t bytes32,const uint32_t sectors32,const uint32_t clusters32,const uint32_t free32);
 
 bool WildFileCmp(const char * file, const char * wild);
 bool LWildFileCmp(const char * file, const char * wild);
@@ -52,7 +52,7 @@ public:
 private:
 	static struct DriveInfo {
 		std::vector<DOS_Drive*> disks;
-		Bit32u currentDisk = 0;
+		uint32_t currentDisk = 0;
 	} driveInfos[DOS_DRIVES];
 	
 	static int currentDrive;
@@ -61,7 +61,7 @@ private:
 class localDrive : public DOS_Drive {
 public:
 	localDrive(const char * startdir,uint16_t _bytes_sector,uint8_t _sectors_cluster,uint16_t _total_clusters,uint16_t _free_clusters,uint8_t _mediaid, std::vector<std::string> &options);
-	virtual bool FileOpen(DOS_File * * file,const char * name,Bit32u flags);
+	virtual bool FileOpen(DOS_File * * file,const char * name,uint32_t flags);
 	virtual FILE *GetSystemFilePtr(char const * const name, char const * const type); 
 	virtual bool GetSystemFilename(char* sysName, char const * const dosName); 
 	virtual bool FileCreate(DOS_File * * file,const char * name,uint16_t attributes);
@@ -122,7 +122,7 @@ private:
 
 public:
 	physfsDrive(const char * startdir,uint16_t _bytes_sector,uint8_t _sectors_cluster,uint16_t _total_clusters,uint16_t _free_clusters,uint8_t _mediaid);
-	virtual bool FileOpen(DOS_File * * file,const char * name,Bit32u flags);
+	virtual bool FileOpen(DOS_File * * file,const char * name,uint32_t flags);
 	virtual bool FileCreate(DOS_File * * file,const char * name,uint16_t attributes);
 	virtual bool FileUnlink(const char * name);
 	virtual bool RemoveDir(const char * dir);
@@ -172,7 +172,7 @@ struct FAT_BPB_MSDOS30 {
     uint16_t      BPB_FATSz16;                        /* offset 0x016 size 0x002 Sectors per fat (FAT12/FAT16), or 0 (FAT32). sectorsperfat */
     uint16_t      BPB_SecPerTrk;                      /* offset 0x018 size 0x002 Sectors per track. sectorspertrack */
     uint16_t      BPB_NumHeads;                       /* offset 0x01A size 0x002 Number of heads. headcount */
-    Bit32u      BPB_HiddSec;                        /* offset 0x01C size 0x004 Number of hidden sectors (i.e. starting sector of partition). hiddensectorcount (MS-DOS 3.31) */
+    uint32_t      BPB_HiddSec;                        /* offset 0x01C size 0x004 Number of hidden sectors (i.e. starting sector of partition). hiddensectorcount (MS-DOS 3.31) */
 } GCC_ATTRIBUTE(packed);                            /*    ==> 0x020 size 0x015 total */
                                                     /* ==== ADDITIONAL NOTES (Wikipedia) */
                                                     /* offset 0x01C size 0x002 Number of hidden sectors (i.e. starting sector of partition). hiddensectorcount (MS-DOS 3.0) */
@@ -189,8 +189,8 @@ struct FAT_BPB_MSDOS331 {
     uint16_t      BPB_FATSz16;                        /* offset 0x016 size 0x002 Sectors per fat (FAT12/FAT16), or 0 (FAT32). sectorsperfat */
     uint16_t      BPB_SecPerTrk;                      /* offset 0x018 size 0x002 Sectors per track. sectorspertrack */
     uint16_t      BPB_NumHeads;                       /* offset 0x01A size 0x002 Number of heads. headcount */
-    Bit32u      BPB_HiddSec;                        /* offset 0x01C size 0x004 Number of hidden sectors (i.e. starting sector of partition). hiddensectorcount (MS-DOS 3.31) */
-    Bit32u      BPB_TotSec32;                       /* offset 0x020 size 0x004 Total sectors of volume if count >= 0x10000 or FAT32, or 0 if not. totalsecdword */
+    uint32_t      BPB_HiddSec;                        /* offset 0x01C size 0x004 Number of hidden sectors (i.e. starting sector of partition). hiddensectorcount (MS-DOS 3.31) */
+    uint32_t      BPB_TotSec32;                       /* offset 0x020 size 0x004 Total sectors of volume if count >= 0x10000 or FAT32, or 0 if not. totalsecdword */
 } GCC_ATTRIBUTE(packed);                            /*    ==> 0x024 size 0x019 total */
 
 struct FAT_BPB_MSDOS40 { /* FAT12/FAT16 only */
@@ -204,12 +204,12 @@ struct FAT_BPB_MSDOS40 { /* FAT12/FAT16 only */
     uint16_t      BPB_FATSz16;                        /* offset 0x016 size 0x002 Sectors per fat (FAT12/FAT16), or 0 (FAT32). sectorsperfat */
     uint16_t      BPB_SecPerTrk;                      /* offset 0x018 size 0x002 Sectors per track. sectorspertrack */
     uint16_t      BPB_NumHeads;                       /* offset 0x01A size 0x002 Number of heads. headcount */
-    Bit32u      BPB_HiddSec;                        /* offset 0x01C size 0x004 Number of hidden sectors (i.e. starting sector of partition). hiddensectorcount (MS-DOS 3.31) */
-    Bit32u      BPB_TotSec32;                       /* offset 0x020 size 0x004 Total sectors of volume if count >= 0x10000 or FAT32, or 0 if not. totalsecdword */
+    uint32_t      BPB_HiddSec;                        /* offset 0x01C size 0x004 Number of hidden sectors (i.e. starting sector of partition). hiddensectorcount (MS-DOS 3.31) */
+    uint32_t      BPB_TotSec32;                       /* offset 0x020 size 0x004 Total sectors of volume if count >= 0x10000 or FAT32, or 0 if not. totalsecdword */
     uint8_t       BPB_DrvNum;                         /* offset 0x024 size 0x001 Physical (INT 13h) drive number */
     uint8_t       BPB_Reserved1;                      /* offset 0x025 size 0x001 Reserved? */
     uint8_t       BPB_BootSig;                        /* offset 0x026 size 0x001 Extended boot signature. 0x29 or 0x28 to indicate following members exist. */
-    Bit32u      BPB_VolID;                          /* offset 0x027 size 0x004 Volume ID, if BPB_BootSig is 0x28 or 0x29. */
+    uint32_t      BPB_VolID;                          /* offset 0x027 size 0x004 Volume ID, if BPB_BootSig is 0x28 or 0x29. */
     uint8_t       BPB_VolLab[11];                     /* offset 0x02B size 0x00B Volume label, if BPB_BootSig is 0x28 or 0x29. */
     uint8_t       BPB_FilSysType[8];                  /* offset 0x036 size 0x008 File system type, for display purposes if BPB_BootSig is 0x29. */
 } GCC_ATTRIBUTE(packed);                            /*    ==> 0x03E size 0x033 total */
@@ -225,19 +225,19 @@ struct FAT_BPB_MSDOS710_FAT32 { /* FAT32 only */
     uint16_t      BPB_FATSz16;                        /* offset 0x016 size 0x002 Sectors per fat (FAT12/FAT16), or 0 (FAT32). sectorsperfat */
     uint16_t      BPB_SecPerTrk;                      /* offset 0x018 size 0x002 Sectors per track. sectorspertrack */
     uint16_t      BPB_NumHeads;                       /* offset 0x01A size 0x002 Number of heads. headcount */
-    Bit32u      BPB_HiddSec;                        /* offset 0x01C size 0x004 Number of hidden sectors (i.e. starting sector of partition). hiddensectorcount (MS-DOS 3.31) */
-    Bit32u      BPB_TotSec32;                       /* offset 0x020 size 0x004 Total sectors of volume if count >= 0x10000 or FAT32, or 0 if not. totalsecdword */
-    Bit32u      BPB_FATSz32;                        /* offset 0x024 size 0x004 Sectors per fat (FAT32). */
+    uint32_t      BPB_HiddSec;                        /* offset 0x01C size 0x004 Number of hidden sectors (i.e. starting sector of partition). hiddensectorcount (MS-DOS 3.31) */
+    uint32_t      BPB_TotSec32;                       /* offset 0x020 size 0x004 Total sectors of volume if count >= 0x10000 or FAT32, or 0 if not. totalsecdword */
+    uint32_t      BPB_FATSz32;                        /* offset 0x024 size 0x004 Sectors per fat (FAT32). */
     uint16_t      BPB_ExtFlags;                       /* offset 0x028 size 0x002 Bitfield: [7:7] 1=one fat active 0=mirrored  [3:0]=active FAT if mirroring disabled */
     uint16_t      BPB_FSVer;                          /* offset 0x02A size 0x002 Version number. Only 0.0 is defined now. Do not mount if newer version beyond what we support */
-    Bit32u      BPB_RootClus;                       /* offset 0x02C size 0x004 Starting cluster number of the root directory (FAT32) */
+    uint32_t      BPB_RootClus;                       /* offset 0x02C size 0x004 Starting cluster number of the root directory (FAT32) */
     uint16_t      BPB_FSInfo;                         /* offset 0x030 size 0x002 Sector number in volume of FAT32 FSInfo structure in reserved area */
     uint16_t      BPB_BkBootSec;                      /* offset 0x032 size 0x002 Sector number in volume of FAT32 backup boot sector */
     uint8_t       BPB_Reserved[12];                   /* offset 0x034 size 0x00C Reserved for future expansion */
     uint8_t       BS_DrvNum;                          /* offset 0x040 size 0x001 BPB_DrvNum but moved for FAT32 */
     uint8_t       BS_Reserved1;                       /* offset 0x041 size 0x001 BPB_Reserved1 but moved for FAT32 */
     uint8_t       BS_BootSig;                         /* offset 0x042 size 0x001 Extended boot signature. 0x29 or 0x28 to indicate following members exist. */
-    Bit32u      BS_VolID;                           /* offset 0x043 size 0x004 Volume ID, if BPB_BootSig is 0x28 or 0x29. */
+    uint32_t      BS_VolID;                           /* offset 0x043 size 0x004 Volume ID, if BPB_BootSig is 0x28 or 0x29. */
     uint8_t       BS_VolLab[11];                      /* offset 0x047 size 0x00B Volume label, if BPB_BootSig is 0x28 or 0x29. */
     uint8_t       BS_FilSysType[8];                   /* offset 0x052 size 0x008 File system type, for display purposes if BPB_BootSig is 0x29. */
 } GCC_ATTRIBUTE(packed);                            /*    ==> 0x05A size 0x04F total */
@@ -312,14 +312,14 @@ struct direntry {
 	uint16_t modTime;
 	uint16_t modDate;
 	uint16_t loFirstClust;
-	Bit32u entrysize;
+	uint32_t entrysize;
 
-	inline Bit32u Cluster32(void) const {
-		return ((Bit32u)hiFirstClust << (Bit32u)16) + loFirstClust;
+	inline uint32_t Cluster32(void) const {
+		return ((uint32_t)hiFirstClust << (uint32_t)16) + loFirstClust;
 	}
-	inline void SetCluster32(const Bit32u v) {
+	inline void SetCluster32(const uint32_t v) {
 		loFirstClust = (uint16_t)v;
-		hiFirstClust = (uint16_t)(v >> (Bit32u)16);
+		hiFirstClust = (uint16_t)(v >> (uint32_t)16);
 	}
 } GCC_ATTRIBUTE(packed);
 
@@ -345,8 +345,8 @@ struct partTable {
 		uint8_t beginchs[3];
 		uint8_t parttype;
 		uint8_t endchs[3];
-		Bit32u absSectStart;
-		Bit32u partSize;
+		uint32_t absSectStart;
+		uint32_t partSize;
 	} pentry[4];
 	uint8_t  magic1; /* 0x55 */
 	uint8_t  magic2; /* 0xaa */
@@ -365,11 +365,11 @@ struct partTable {
 class imageDisk;
 class fatDrive : public DOS_Drive {
 public:
-	fatDrive(const char * sysFilename, Bit32u bytesector, Bit32u cylsector, Bit32u headscyl, Bit32u cylinders, std::vector<std::string> &options);
+	fatDrive(const char * sysFilename, uint32_t bytesector, uint32_t cylsector, uint32_t headscyl, uint32_t cylinders, std::vector<std::string> &options);
 	fatDrive(imageDisk *sourceLoadedDisk, std::vector<std::string> &options);
-    void fatDriveInit(const char *sysFilename, Bit32u bytesector, Bit32u cylsector, Bit32u headscyl, Bit32u cylinders, Bit64u filesize, const std::vector<std::string> &options);
+    void fatDriveInit(const char *sysFilename, uint32_t bytesector, uint32_t cylsector, uint32_t headscyl, uint32_t cylinders, Bit64u filesize, const std::vector<std::string> &options);
     virtual ~fatDrive();
-	virtual bool FileOpen(DOS_File * * file,const char * name,Bit32u flags);
+	virtual bool FileOpen(DOS_File * * file,const char * name,uint32_t flags);
 	virtual bool FileCreate(DOS_File * * file,const char * name,uint16_t attributes);
 	virtual bool FileUnlink(const char * name);
 	virtual bool RemoveDir(const char * dir);
@@ -387,7 +387,7 @@ public:
 	virtual unsigned long GetSerial();
 	virtual bool Rename(const char * oldname,const char * newname);
 	virtual bool AllocationInfo(uint16_t * _bytes_sector,uint8_t * _sectors_cluster,uint16_t * _total_clusters,uint16_t * _free_clusters);
-	virtual bool AllocationInfo32(Bit32u * _bytes_sector,Bit32u * _sectors_cluster,Bit32u * _total_clusters,Bit32u * _free_clusters);
+	virtual bool AllocationInfo32(uint32_t * _bytes_sector,uint32_t * _sectors_cluster,uint32_t * _total_clusters,uint32_t * _free_clusters);
 	virtual bool FileExists(const char* name);
 	virtual bool FileStat(const char* name, FileStat_Block * const stat_block);
 	virtual uint8_t GetMediaByte(void);
@@ -395,28 +395,28 @@ public:
 	virtual bool isRemovable(void);
 	virtual Bits UnMount(void);
 public:
-	uint8_t readSector(Bit32u sectnum, void * data);
-	uint8_t writeSector(Bit32u sectnum, void * data);
-	Bit32u getAbsoluteSectFromBytePos(Bit32u startClustNum, Bit32u bytePos);
-	Bit32u getSectorSize(void);
-	Bit32u getClusterSize(void);
-	Bit32u getAbsoluteSectFromChain(Bit32u startClustNum, Bit32u logicalSector);
-	bool allocateCluster(Bit32u useCluster, Bit32u prevCluster);
-	Bit32u appendCluster(Bit32u startCluster);
-	void deleteClustChain(Bit32u startCluster, Bit32u bytePos);
-	Bit32u getFirstFreeClust(void);
-	bool directoryBrowse(Bit32u dirClustNumber, direntry *useEntry, Bit32s entNum, Bit32s start=0);
-	bool directoryChange(Bit32u dirClustNumber, const direntry *useEntry, Bit32s entNum);
+	uint8_t readSector(uint32_t sectnum, void * data);
+	uint8_t writeSector(uint32_t sectnum, void * data);
+	uint32_t getAbsoluteSectFromBytePos(uint32_t startClustNum, uint32_t bytePos);
+	uint32_t getSectorSize(void);
+	uint32_t getClusterSize(void);
+	uint32_t getAbsoluteSectFromChain(uint32_t startClustNum, uint32_t logicalSector);
+	bool allocateCluster(uint32_t useCluster, uint32_t prevCluster);
+	uint32_t appendCluster(uint32_t startCluster);
+	void deleteClustChain(uint32_t startCluster, uint32_t bytePos);
+	uint32_t getFirstFreeClust(void);
+	bool directoryBrowse(uint32_t dirClustNumber, direntry *useEntry, Bit32s entNum, Bit32s start=0);
+	bool directoryChange(uint32_t dirClustNumber, const direntry *useEntry, Bit32s entNum);
 	const FAT_BootSector::bpb_union_t &GetBPB(void);
 	void SetBPB(const FAT_BootSector::bpb_union_t &bpb);
 	imageDisk *loadedDisk = NULL;
 	uint8_t req_ver_major = 0,req_ver_minor = 0;
 	bool created_successfully = true;
     struct {
-        Bit32u bytesector;
-        Bit32u cylsector;
-        Bit32u headscyl;
-        Bit32u cylinders;
+        uint32_t bytesector;
+        uint32_t cylsector;
+        uint32_t headscyl;
+        uint32_t cylinders;
         int mounttype;
     } opts = {0, 0, 0, 0, -1};
     struct {
@@ -427,14 +427,14 @@ public:
 
 private:
 	char* Generate_SFN(const char *path, const char *name);
-	Bit32u getClusterValue(Bit32u clustNum);
-	void setClusterValue(Bit32u clustNum, Bit32u clustValue);
-	Bit32u getClustFirstSect(Bit32u clustNum);
-	bool FindNextInternal(Bit32u dirClustNumber, DOS_DTA & dta, direntry *foundEntry);
-	bool getDirClustNum(const char * dir, Bit32u * clustNum, bool parDir);
-	bool getFileDirEntry(char const * const filename, direntry * useEntry, Bit32u * dirClust, Bit32u * subEntry,bool dirOk=false);
-	bool addDirectoryEntry(Bit32u dirClustNumber, const direntry& useEntry,const char *lfn=NULL);
-	void zeroOutCluster(Bit32u clustNumber);
+	uint32_t getClusterValue(uint32_t clustNum);
+	void setClusterValue(uint32_t clustNum, uint32_t clustValue);
+	uint32_t getClustFirstSect(uint32_t clustNum);
+	bool FindNextInternal(uint32_t dirClustNumber, DOS_DTA & dta, direntry *foundEntry);
+	bool getDirClustNum(const char * dir, uint32_t * clustNum, bool parDir);
+	bool getFileDirEntry(char const * const filename, direntry * useEntry, uint32_t * dirClust, uint32_t * subEntry,bool dirOk=false);
+	bool addDirectoryEntry(uint32_t dirClustNumber, const direntry& useEntry,const char *lfn=NULL);
+	void zeroOutCluster(uint32_t clustNumber);
 	bool getEntryName(const char *fullname, char *entname);
 	friend void DOS_Shell::CMD_SUBST(char* args); 	
 	struct {
@@ -471,16 +471,16 @@ private:
 	FAT_BootSector::bpb_union_t BPB = {}; // BPB in effect (translated from on-disk BPB as needed)
 	bool absolute = false;
 	uint8_t fattype = 0;
-	Bit32u CountOfClusters = 0;
-	Bit32u partSectOff = 0;
-	Bit32u partSectSize = 0;
-	Bit32u firstDataSector = 0;
-	Bit32u firstRootDirSect = 0;
+	uint32_t CountOfClusters = 0;
+	uint32_t partSectOff = 0;
+	uint32_t partSectSize = 0;
+	uint32_t firstDataSector = 0;
+	uint32_t firstRootDirSect = 0;
 
-	Bit32u cwdDirCluster = 0;
+	uint32_t cwdDirCluster = 0;
 
     uint8_t fatSectBuffer[SECTOR_SIZE_MAX * 2] = {};
-	Bit32u curFatSect = 0;
+	uint32_t curFatSect = 0;
 
 	DOS_Drive_Cache labelCache;
 public:
@@ -489,24 +489,24 @@ public:
      *
      * It is very common for instance to have PC-98 HDI images formatted with 256 bytes/sector at
      * the disk level and a FAT filesystem marked as having 1024 bytes/sector. */
-	virtual uint8_t Read_AbsoluteSector(Bit32u sectnum, void * data);
-	virtual uint8_t Write_AbsoluteSector(Bit32u sectnum, void * data);
-	virtual Bit32u getSectSize(void);
-	Bit32u sector_size = 0;
+	virtual uint8_t Read_AbsoluteSector(uint32_t sectnum, void * data);
+	virtual uint8_t Write_AbsoluteSector(uint32_t sectnum, void * data);
+	virtual uint32_t getSectSize(void);
+	uint32_t sector_size = 0;
 
     // INT 25h/INT 26h
-    virtual Bit32u GetSectorCount(void);
-    virtual Bit32u GetSectorSize(void);
-	virtual uint8_t Read_AbsoluteSector_INT25(Bit32u sectnum, void * data);
-	virtual uint8_t Write_AbsoluteSector_INT25(Bit32u sectnum, void * data);
+    virtual uint32_t GetSectorCount(void);
+    virtual uint32_t GetSectorSize(void);
+	virtual uint8_t Read_AbsoluteSector_INT25(uint32_t sectnum, void * data);
+	virtual uint8_t Write_AbsoluteSector_INT25(uint32_t sectnum, void * data);
     virtual void UpdateDPB(unsigned char dos_drive);
 
 	virtual char const * GetLabel(){return labelCache.GetLabel();};
 	virtual void SetLabel(const char *label, bool iscdrom, bool updatable);
 	virtual void UpdateBootVolumeLabel(const char *label);
-	virtual Bit32u GetPartitionOffset(void);
-	virtual Bit32u GetFirstClusterOffset(void);
-	virtual Bit32u GetHighestClusterNumber(void);
+	virtual uint32_t GetPartitionOffset(void);
+	virtual uint32_t GetFirstClusterOffset(void);
+	virtual uint32_t GetHighestClusterNumber(void);
 };
 
 PhysPt DOS_Get_DPB(unsigned int dos_drive);
@@ -515,7 +515,7 @@ class cdromDrive : public localDrive
 {
 public:
 	cdromDrive(const char driveLetter, const char * startdir,uint16_t _bytes_sector,uint8_t _sectors_cluster,uint16_t _total_clusters,uint16_t _free_clusters,uint8_t _mediaid, int& error, std::vector<std::string> &options);
-	virtual bool FileOpen(DOS_File * * file,const char * name,Bit32u flags);
+	virtual bool FileOpen(DOS_File * * file,const char * name,uint32_t flags);
 	virtual bool FileCreate(DOS_File * * file,const char * name,uint16_t attributes);
 	virtual bool FileUnlink(const char * name);
 	virtual bool RemoveDir(const char * dir);
@@ -541,7 +541,7 @@ class physfscdromDrive : public physfsDrive
 {
 public:
 	physfscdromDrive(const char driveLetter, const char * startdir,uint16_t _bytes_sector,uint8_t _sectors_cluster,uint16_t _total_clusters,uint16_t _free_clusters,uint8_t _mediaid, int& error);
-	virtual bool FileOpen(DOS_File * * file,const char * name,Bit32u flags);
+	virtual bool FileOpen(DOS_File * * file,const char * name,uint32_t flags);
 	virtual bool FileCreate(DOS_File * * file,const char * name,uint16_t attributes);
 	virtual bool FileUnlink(const char * name);
 	virtual bool RemoveDir(const char * dir);
@@ -571,8 +571,8 @@ struct isoPVD {
 	uint8_t systemIdent[32];
 	uint8_t volumeIdent[32];
 	uint8_t unused2[8];
-	Bit32u volumeSpaceSizeL;
-	Bit32u volumeSpaceSizeM;
+	uint32_t volumeSpaceSizeL;
+	uint32_t volumeSpaceSizeM;
 	uint8_t unused3[32];
 	uint16_t volumeSetSizeL;
 	uint16_t volumeSetSizeM;
@@ -580,23 +580,23 @@ struct isoPVD {
 	uint16_t volumeSeqNumberM;
 	uint16_t logicBlockSizeL;
 	uint16_t logicBlockSizeM;
-	Bit32u pathTableSizeL;
-	Bit32u pathTableSizeM;
-	Bit32u locationPathTableL;
-	Bit32u locationOptPathTableL;
-	Bit32u locationPathTableM;
-	Bit32u locationOptPathTableM;
+	uint32_t pathTableSizeL;
+	uint32_t pathTableSizeM;
+	uint32_t locationPathTableL;
+	uint32_t locationOptPathTableL;
+	uint32_t locationPathTableM;
+	uint32_t locationOptPathTableM;
 	uint8_t rootEntry[34];
-	Bit32u unused4[1858];
+	uint32_t unused4[1858];
 } GCC_ATTRIBUTE(packed);
 
 struct isoDirEntry {
 	uint8_t length;
 	uint8_t extAttrLength;
-	Bit32u extentLocationL;
-	Bit32u extentLocationM;
-	Bit32u dataLengthL;
-	Bit32u dataLengthM;
+	uint32_t extentLocationL;
+	uint32_t extentLocationM;
+	uint32_t dataLengthL;
+	uint32_t dataLengthM;
 	uint8_t dateYear;
 	uint8_t dateMonth;
 	uint8_t dateDay;
@@ -641,7 +641,7 @@ class isoDrive : public DOS_Drive {
 public:
 	isoDrive(char driveLetter, const char* fileName, uint8_t mediaid, int &error);
 	~isoDrive();
-	virtual bool FileOpen(DOS_File **file, const char *name, Bit32u flags);
+	virtual bool FileOpen(DOS_File **file, const char *name, uint32_t flags);
 	virtual bool FileCreate(DOS_File **file, const char *name, uint16_t attributes);
 	virtual bool FileUnlink(const char *name);
 	virtual bool RemoveDir(const char *dir);
@@ -666,34 +666,34 @@ public:
 	virtual bool isRemote(void);
 	virtual bool isRemovable(void);
 	virtual Bits UnMount(void);
-	bool readSector(uint8_t *buffer, Bit32u sector);
+	bool readSector(uint8_t *buffer, uint32_t sector);
 	virtual char const* GetLabel(void) {return discLabel;};
 	virtual void Activate(void);
 private:
     int  readDirEntry(isoDirEntry* de, const uint8_t* data);
 	bool loadImage();
-	bool lookupSingle(isoDirEntry *de, const char *name, Bit32u sectorStart, Bit32u length);
+	bool lookupSingle(isoDirEntry *de, const char *name, uint32_t sectorStart, uint32_t length);
 	bool lookup(isoDirEntry *de, const char *path);
 	int  UpdateMscdex(char driveLetter, const char* path, uint8_t& subUnit);
 	int  GetDirIterator(const isoDirEntry* de);
 	bool GetNextDirEntry(const int dirIteratorHandle, isoDirEntry* de);
 	void FreeDirIterator(const int dirIterator);
-	bool ReadCachedSector(uint8_t** buffer, const Bit32u sector);
+	bool ReadCachedSector(uint8_t** buffer, const uint32_t sector);
     void GetLongName(const char* ident, char* lfindName);
 	
 	struct DirIterator {
 		bool valid;
 		bool root;
-		Bit32u currentSector;
-		Bit32u endSector;
-		Bit32u pos;
+		uint32_t currentSector;
+		uint32_t endSector;
+		uint32_t pos;
 	} dirIterators[MAX_OPENDIRS];
 	
 	int nextFreeDirIterator;
 	
 	struct SectorHashEntry {
 		bool valid;
-		Bit32u sector;
+		uint32_t sector;
 		uint8_t data[ISO_FRAMESIZE];
 	} sectorHashEntries[ISO_MAX_HASH_TABLE_SIZE];
 
@@ -712,7 +712,7 @@ struct VFILE_Block;
 class Virtual_Drive: public DOS_Drive {
 public:
 	Virtual_Drive();
-	bool FileOpen(DOS_File * * file,const char * name,Bit32u flags);
+	bool FileOpen(DOS_File * * file,const char * name,uint32_t flags);
 	bool FileCreate(DOS_File * * file,const char * name,uint16_t attributes);
 	bool FileUnlink(const char * name);
 	bool RemoveDir(const char * dir);
@@ -746,7 +746,7 @@ class Overlay_Drive: public localDrive {
 public:
 	Overlay_Drive(const char * startdir,const char* overlay, uint16_t _bytes_sector,uint8_t _sectors_cluster,uint16_t _total_clusters,uint16_t _free_clusters,uint8_t _mediaid,uint8_t &error, std::vector<std::string> &options);
 
-	virtual bool FileOpen(DOS_File * * file,const char * name,Bit32u flags);
+	virtual bool FileOpen(DOS_File * * file,const char * name,uint32_t flags);
 	virtual bool FileCreate(DOS_File * * file,const char * name,uint16_t /*attributes*/);
 	virtual bool FindFirst(const char * _dir,DOS_DTA & dta,bool fcb_findfirst);
 	virtual bool FindNext(DOS_DTA & dta);

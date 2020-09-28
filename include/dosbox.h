@@ -196,7 +196,7 @@ enum {
     BOOTHAX_MSDOS
 };
 
-extern Bit32u guest_msdos_LoL;
+extern uint32_t guest_msdos_LoL;
 extern uint16_t guest_msdos_mcb_chain;
 extern int boothax;
 

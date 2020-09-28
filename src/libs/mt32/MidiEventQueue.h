@@ -40,21 +40,21 @@ public:
 	struct MidiEvent {
 		const uint8_t *sysexData;
 		union {
-			Bit32u sysexLength;
-			Bit32u shortMessageData;
+			uint32_t sysexLength;
+			uint32_t shortMessageData;
 		};
-		Bit32u timestamp;
+		uint32_t timestamp;
 	};
 
 	explicit MidiEventQueue(
 		// Must be a power of 2
-		Bit32u ringBufferSize,
-		Bit32u storageBufferSize
+		uint32_t ringBufferSize,
+		uint32_t storageBufferSize
 	);
 	~MidiEventQueue();
 	void reset();
-	bool pushShortMessage(Bit32u shortMessageData, Bit32u timestamp);
-	bool pushSysex(const uint8_t *sysexData, Bit32u sysexLength, Bit32u timestamp);
+	bool pushShortMessage(uint32_t shortMessageData, uint32_t timestamp);
+	bool pushSysex(const uint8_t *sysexData, uint32_t sysexLength, uint32_t timestamp);
 	const volatile MidiEvent *peekMidiEvent();
 	void dropMidiEvent();
 	inline bool isEmpty() const;
@@ -63,9 +63,9 @@ private:
 	SysexDataStorage &sysexDataStorage;
 
 	MidiEvent * const ringBuffer;
-	const Bit32u ringBufferMask;
-	volatile Bit32u startPosition;
-	volatile Bit32u endPosition;
+	const uint32_t ringBufferMask;
+	volatile uint32_t startPosition;
+	volatile uint32_t endPosition;
 };
 
 } // namespace MT32Emu

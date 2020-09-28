@@ -237,16 +237,16 @@ static uint16_t decode_fetchw(void) {
 	return mem_readw(decode.code-2);
 }
 // fetch the next dword of the instruction stream
-static Bit32u decode_fetchd(void) {
+static uint32_t decode_fetchd(void) {
 	if (GCC_UNLIKELY(decode.page.index>=4093)) {
-   		Bit32u val=decode_fetchb();
+   		uint32_t val=decode_fetchb();
 		val|=decode_fetchb() << 8;
 		val|=decode_fetchb() << 16;
 		val|=decode_fetchb() << 24;
 		return val;
         /* Advance to the next page */
 	}
-	*(Bit32u *)&decode.page.wmap[decode.page.index]+=0x01010101;
+	*(uint32_t *)&decode.page.wmap[decode.page.index]+=0x01010101;
 	decode.code+=4;decode.page.index+=4;
 	return mem_readd(decode.code-4);
 }
@@ -291,7 +291,7 @@ static void INLINE decode_increase_wmapmask(Bitu size) {
         switch (size) {
         case 1: activecb->cache.wmapmask[mapidx] += 0x01; break;
         case 2: (*(uint16_t*)& activecb->cache.wmapmask[mapidx]) += 0x0101; break;
-        case 4: (*(Bit32u*)& activecb->cache.wmapmask[mapidx]) += 0x01010101; break;
+        case 4: (*(uint32_t*)& activecb->cache.wmapmask[mapidx]) += 0x01010101; break;
         }
     }
 }
@@ -306,7 +306,7 @@ static bool decode_fetchb_imm(Bitu & val) {
 	if (decode.page.invmap != NULL) {
 		if (decode.page.invmap[decode.page.index] == 0) {
 			// position not yet modified
-			val=(Bit32u)decode_fetchb();
+			val=(uint32_t)decode_fetchb();
 			return false;
 		}
 
@@ -320,7 +320,7 @@ static bool decode_fetchb_imm(Bitu & val) {
 		}
 	}
 	// first time decoding or not directly accessible, just fetch the value
-	val=(Bit32u)decode_fetchb();
+	val=(uint32_t)decode_fetchb();
 	return false;
 }
 
@@ -479,7 +479,7 @@ static void INLINE dyn_get_modrm(void) {
 // adjust CPU_Cycles value
 static void dyn_reduce_cycles(void) {
 	if (!decode.cycles) decode.cycles++;
-	gen_sub_direct_word(&CPU_Cycles,(Bit32u)decode.cycles,true);
+	gen_sub_direct_word(&CPU_Cycles,(uint32_t)decode.cycles,true);
 }
 
 
@@ -487,7 +487,7 @@ static void dyn_reduce_cycles(void) {
 // set reg_eip to the start of the current instruction
 static INLINE void dyn_set_eip_last_end(HostReg reg) {
 	gen_mov_word_to_reg(reg,&reg_eip,true);
-	gen_add_imm(reg,(Bit32u)(decode.code-decode.code_start));
+	gen_add_imm(reg,(uint32_t)(decode.code-decode.code_start));
 	gen_add_direct_word(&reg_eip,decode.op_start-decode.code_start,decode.big_op);
 }
 
@@ -502,10 +502,10 @@ static INLINE void dyn_set_eip_end(void) {
 }
 
 // set reg_eip to the start of the next instruction plus an offset (imm)
-static INLINE void dyn_set_eip_end(HostReg reg,Bit32u imm=0) {
+static INLINE void dyn_set_eip_end(HostReg reg,uint32_t imm=0) {
 	gen_mov_word_to_reg(reg,&reg_eip,true); //get_extend_word will mask off the upper bits
 	//gen_mov_word_to_reg(reg,&reg_eip,decode.big_op);
-	gen_add_imm(reg,(Bit32u)(decode.code-decode.code_start+imm));
+	gen_add_imm(reg,(uint32_t)(decode.code-decode.code_start+imm));
 	if (!decode.big_op) gen_extend_word(false,reg);
 }
 
@@ -614,7 +614,7 @@ enum save_info_type {db_exception, cycle_check, string_break};
 
 
 // function that is called on exceptions
-static BlockReturn DynRunException(Bit32u eip_add,Bit32u cycle_sub) {
+static BlockReturn DynRunException(uint32_t eip_add,uint32_t cycle_sub) {
 	reg_eip+=eip_add;
 	CPU_Cycles-=cycle_sub;
 	if (cpu.exception.which==SMC_CURRENT_BLOCK) return BR_SMCBlock;
@@ -628,7 +628,7 @@ static BlockReturn DynRunException(Bit32u eip_add,Bit32u cycle_sub) {
 static struct {
 	save_info_type type;
 	DRC_PTR_SIZE_IM branch_pos;
-	Bit32u eip_change;
+	uint32_t eip_change;
 	Bitu cycles;
 } save_info_dynrec[512];
 
@@ -735,10 +735,10 @@ bool DRC_CALL_CONV mem_readd_checked_drc(PhysPt address) {
 	if ((address & 0xfff)<0xffd) {
 		HostPt tlb_addr=get_tlb_read(address);
 		if (tlb_addr) {
-			*((Bit32u*)(&core_dynrec.readdata))=host_readd(tlb_addr+address);
+			*((uint32_t*)(&core_dynrec.readdata))=host_readd(tlb_addr+address);
 			return false;
-		} else return get_tlb_readhandler(address)->readd_checked(address, (Bit32u*)(&core_dynrec.readdata));
-	} else return mem_unalignedreadd_checked(address, ((Bit32u*)(&core_dynrec.readdata)));
+		} else return get_tlb_readhandler(address)->readd_checked(address, (uint32_t*)(&core_dynrec.readdata));
+	} else return mem_unalignedreadd_checked(address, ((uint32_t*)(&core_dynrec.readdata)));
 }
 
 bool DRC_CALL_CONV mem_writew_checked_drc(PhysPt address,uint16_t val) DRC_FC;
@@ -752,8 +752,8 @@ bool DRC_CALL_CONV mem_writew_checked_drc(PhysPt address,uint16_t val) {
 	} else return mem_unalignedwritew_checked(address,val);
 }
 
-bool DRC_CALL_CONV mem_writed_checked_drc(PhysPt address,Bit32u val) DRC_FC;
-bool DRC_CALL_CONV mem_writed_checked_drc(PhysPt address,Bit32u val) {
+bool DRC_CALL_CONV mem_writed_checked_drc(PhysPt address,uint32_t val) DRC_FC;
+bool DRC_CALL_CONV mem_writed_checked_drc(PhysPt address,uint32_t val) {
 	if ((address & 0xfff)<0xffd) {
 		HostPt tlb_addr=get_tlb_write(address);
 		if (tlb_addr) {
@@ -930,26 +930,26 @@ static void dyn_fill_ea(HostReg ea_reg,bool addseg=true) {
 			break;
 		case 4:// SI
 			MOV_REG_VAL_TO_HOST_REG(ea_reg,DRC_REG_ESI);
-			if (imm) gen_add_imm(ea_reg,(Bit32u)imm);
+			if (imm) gen_add_imm(ea_reg,(uint32_t)imm);
 			break;
 		case 5:// DI
 			MOV_REG_VAL_TO_HOST_REG(ea_reg,DRC_REG_EDI);
-			if (imm) gen_add_imm(ea_reg,(Bit32u)imm);
+			if (imm) gen_add_imm(ea_reg,(uint32_t)imm);
 			break;
 		case 6:// imm/BP
 			if (!decode.modrm.mod) {
 				imm=decode_fetchw();
-				gen_mov_dword_to_reg_imm(ea_reg,(Bit32u)imm);
+				gen_mov_dword_to_reg_imm(ea_reg,(uint32_t)imm);
 				goto skip_extend_word;
 			} else {
 				MOV_REG_VAL_TO_HOST_REG(ea_reg,DRC_REG_EBP);
-				gen_add_imm(ea_reg,(Bit32u)imm);
+				gen_add_imm(ea_reg,(uint32_t)imm);
 				seg_base=DRC_SEG_SS;
 			}
 			break;
 		case 7: // BX
 			MOV_REG_VAL_TO_HOST_REG(ea_reg,DRC_REG_EBX);
-			if (imm) gen_add_imm(ea_reg,(Bit32u)imm);
+			if (imm) gen_add_imm(ea_reg,(uint32_t)imm);
 			break;
 		}
 		// zero out the high 16bit so ea_reg can be used as full register
@@ -1017,14 +1017,14 @@ skip_extend_word:
 
 						if (!addseg) {
 							if (!scaled_reg_used) {
-								gen_mov_dword_to_reg_imm(ea_reg,(Bit32u)imm);
+								gen_mov_dword_to_reg_imm(ea_reg,(uint32_t)imm);
 							} else {
 								DYN_LEA_MEM_REG_VAL(ea_reg,NULL,scaled_reg,scale,imm);
 							}
 						} else {
 							if (!scaled_reg_used) {
 								MOV_SEG_PHYS_TO_HOST_REG(ea_reg,(decode.seg_prefix_used ? decode.seg_prefix : seg_base));
-								if (imm) gen_add_imm(ea_reg,(Bit32u)imm);
+								if (imm) gen_add_imm(ea_reg,(uint32_t)imm);
 							} else {
 								DYN_LEA_SEG_PHYS_REG_VAL(ea_reg,(decode.seg_prefix_used ? decode.seg_prefix : seg_base),scaled_reg,scale,imm);
 							}
@@ -1074,7 +1074,7 @@ skip_extend_word:
 				if (!addseg) {
 					if (!scaled_reg_used) {
 						MOV_REG_VAL_TO_HOST_REG(ea_reg,base_reg);
-						gen_add_imm(ea_reg,(Bit32u)imm);
+						gen_add_imm(ea_reg,(uint32_t)imm);
 					} else {
 						DYN_LEA_REG_VAL_REG_VAL(ea_reg,base_reg,scaled_reg,scale,imm);
 					}
@@ -1082,7 +1082,7 @@ skip_extend_word:
 					if (!scaled_reg_used) {
 						MOV_SEG_PHYS_TO_HOST_REG(ea_reg,(decode.seg_prefix_used ? decode.seg_prefix : seg_base));
 						ADD_REG_VAL_TO_HOST_REG(ea_reg,base_reg);
-						if (imm) gen_add_imm(ea_reg,(Bit32u)imm);
+						if (imm) gen_add_imm(ea_reg,(uint32_t)imm);
 					} else {
 						DYN_LEA_SEG_PHYS_REG_VAL(ea_reg,(decode.seg_prefix_used ? decode.seg_prefix : seg_base),scaled_reg,scale,imm);
 						ADD_REG_VAL_TO_HOST_REG(ea_reg,base_reg);
@@ -1100,10 +1100,10 @@ skip_extend_word:
 
 				imm=(Bit32s)decode_fetchd();
 				if (!addseg) {
-					gen_mov_dword_to_reg_imm(ea_reg,(Bit32u)imm);
+					gen_mov_dword_to_reg_imm(ea_reg,(uint32_t)imm);
 				} else {
 					MOV_SEG_PHYS_TO_HOST_REG(ea_reg,(decode.seg_prefix_used ? decode.seg_prefix : seg_base));
-					if (imm) gen_add_imm(ea_reg,(Bit32u)imm);
+					if (imm) gen_add_imm(ea_reg,(uint32_t)imm);
 				}
 
 				return;
@@ -1142,11 +1142,11 @@ skip_extend_word:
 
 		if (!addseg) {
 			MOV_REG_VAL_TO_HOST_REG(ea_reg,base_reg);
-			if (imm) gen_add_imm(ea_reg,(Bit32u)imm);
+			if (imm) gen_add_imm(ea_reg,(uint32_t)imm);
 		} else {
 			MOV_SEG_PHYS_TO_HOST_REG(ea_reg,(decode.seg_prefix_used ? decode.seg_prefix : seg_base));
 			ADD_REG_VAL_TO_HOST_REG(ea_reg,base_reg);
-			if (imm) gen_add_imm(ea_reg,(Bit32u)imm);
+			if (imm) gen_add_imm(ea_reg,(uint32_t)imm);
 		}
 	}
 }

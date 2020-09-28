@@ -27,7 +27,7 @@
 
 #define SaveRb(reg,val)	reg=((uint8_t)(val))
 #define SaveRw(reg,val)	reg=((uint16_t)(val))
-#define SaveRd(reg,val)	reg=((Bit32u)(val))
+#define SaveRd(reg,val)	reg=((uint32_t)(val))
 
 static INLINE int8_t Fetchbs() {
 	return (int8_t)Fetchb();
@@ -57,28 +57,28 @@ static INLINE Bit32s Fetchds() {
  *      CS:IP variables, reg_ip and core.cseip which Fetchb() modifies. */
 //TODO Could probably make all byte operands fast?
 #define JumpCond16_b(COND) {						\
-	const Bit32u adj=(Bit32u)Fetchbs();						\
+	const uint32_t adj=(uint32_t)Fetchbs();						\
 	SAVEIP;								\
 	if (COND) reg_ip+=adj;						\
 	continue;							\
 }
 
 #define JumpCond16_w(COND) {						\
-	const Bit32u adj=(Bit32u)Fetchws();						\
+	const uint32_t adj=(uint32_t)Fetchws();						\
 	SAVEIP;								\
 	if (COND) reg_ip+=adj;						\
 	continue;							\
 }
 
 #define JumpCond32_b(COND) {						\
-	const Bit32u adj=(Bit32u)Fetchbs();						\
+	const uint32_t adj=(uint32_t)Fetchbs();						\
 	SAVEIP;								\
 	if (COND) reg_eip+=adj;						\
 	continue;							\
 }
 
 #define JumpCond32_d(COND) {						\
-	const Bit32u adj=(Bit32u)Fetchds();						\
+	const uint32_t adj=(uint32_t)Fetchds();						\
 	SAVEIP;								\
 	if (COND) reg_eip+=adj;						\
 	continue;							\

@@ -56,7 +56,7 @@ uint16_t Voodoo_PageHandler::readw(PhysPt addr) {
         return (uint16_t)-1;
     }
 
-	Bit32u retval = voodoo_r((addr>>2)&0x3FFFFF);
+	uint32_t retval = voodoo_r((addr>>2)&0x3FFFFF);
 	if (addr&3)
 		retval >>= 16;
 	else
@@ -78,14 +78,14 @@ void Voodoo_PageHandler::writew(PhysPt addr,uint16_t val) {
 		voodoo_w((addr>>2u)&0x3FFFFFu,val,0x0000ffffu);
 }
 
-Bit32u Voodoo_PageHandler::readd(PhysPt addr) {
+uint32_t Voodoo_PageHandler::readd(PhysPt addr) {
 	addr = PAGING_GetPhysicalAddress(addr);
 	if (!(addr&3)) {
 		return voodoo_r((addr>>2)&0x3FFFFF);
 	} else {
 		if (!(addr&1)) {
-			Bit32u low = voodoo_r((addr>>2)&0x3FFFFF);
-			Bit32u high = voodoo_r(((addr>>2)+1)&0x3FFFFF);
+			uint32_t low = voodoo_r((addr>>2)&0x3FFFFF);
+			uint32_t high = voodoo_r(((addr>>2)+1)&0x3FFFFF);
 			return (low>>16) | (high<<16);
 		} else {
 			LOG_MSG("voodoo readd unaligned");
@@ -94,7 +94,7 @@ Bit32u Voodoo_PageHandler::readd(PhysPt addr) {
 	return 0xffffffff;
 }
 
-void Voodoo_PageHandler::writed(PhysPt addr,Bit32u val) {
+void Voodoo_PageHandler::writed(PhysPt addr,uint32_t val) {
 	addr = PAGING_GetPhysicalAddress(addr);
 	if (!(addr&3)) {
 		voodoo_w((addr>>2)&0x3FFFFF,val,0xffffffff);
@@ -103,8 +103,8 @@ void Voodoo_PageHandler::writed(PhysPt addr,Bit32u val) {
 			voodoo_w((addr>>2)&0x3FFFFF,val<<16,0xffff0000);
 			voodoo_w(((addr>>2)+1)&0x3FFFFF,val>>16,0x0000ffff);
 		} else {
-			Bit32u val1 = voodoo_r((addr>>2)&0x3FFFFF);
-			Bit32u val2 = voodoo_r(((addr>>2)+1)&0x3FFFFF);
+			uint32_t val1 = voodoo_r((addr>>2)&0x3FFFFF);
+			uint32_t val2 = voodoo_r(((addr>>2)+1)&0x3FFFFF);
 			if ((addr&3)==1) {
 				val1 = (val1&0xffffff) | ((val&0xff)<<24);
 				val2 = (val2&0xff000000) | (val>>8);

@@ -51,7 +51,7 @@ uint8_t packetCRC(uint8_t *buffer, uint16_t bufSize) {
 
 /*
 static void closeSocket(uint16_t sockidx) {
-	Bit32u host;
+	uint32_t host;
 
 	host = ipconn[sockidx].host;
 	LOG_MSG("IPXSERVER: %d.%d.%d.%d disconnected", CONVIP(host));
@@ -65,7 +65,7 @@ static void closeSocket(uint16_t sockidx) {
 
 static void sendIPXPacket(uint8_t *buffer, int16_t bufSize) {
 	uint16_t srcport, destport;
-	Bit32u srchost, desthost;
+	uint32_t srchost, desthost;
 	uint16_t i;
 	Bits result;
 	UDPpacket outPacket;
@@ -153,7 +153,7 @@ static void IPX_ServerLoop() {
 	//char regString[] = "IPX Register\0";
 
 	uint16_t i;
-	Bit32u host;
+	uint32_t host;
 	Bits result;
 
 	inPacket.channel = -1;

@@ -51,7 +51,7 @@ public:
 //		LOG(LOG_IOCTL,LOG_NORMAL)("%s:WRITE",GetName());
 		return true;
 	}
-	virtual bool Seek(Bit32u * pos,Bit32u type) {
+	virtual bool Seek(uint32_t * pos,uint32_t type) {
         (void)type;
         (void)pos;
 //		LOG(LOG_IOCTL,LOG_NORMAL)("%s:SEEK",GetName());
@@ -87,7 +87,7 @@ public:
 		}
 		return false;
 	}
-	bool Seek(Bit32u * pos,Bit32u type) {
+	bool Seek(uint32_t * pos,uint32_t type) {
         (void)type; // UNUSED
 		*pos = 0;
 		return true;
@@ -103,7 +103,7 @@ public:
 #if defined(WIN32)
 bool lastwrite = false;
 uint8_t *clipAscii = NULL;
-Bit32u clipSize = 0, cPointer = 0, fPointer;
+uint32_t clipSize = 0, cPointer = 0, fPointer;
 
 void Unicode2Ascii(const uint16_t* unicode)
 	{
@@ -197,7 +197,7 @@ private:
 			if (fh)
 				{
 				fprintf(fh, "\xff\xfe");											// It's a Unicode text file
-				for (Bit32u i = 0; i < rawdata.size(); i++)
+				for (uint32_t i = 0; i < rawdata.size(); i++)
 					{
 					uint16_t textChar =  (uint8_t)rawdata[i];
 					switch (textChar)
@@ -311,7 +311,7 @@ public:
 			}
 		return true;
 	}
-	virtual bool Seek(Bit32u * pos,Bit32u type) {
+	virtual bool Seek(uint32_t * pos,uint32_t type) {
 		if(control->SecureMode()||!(dos_clipboard_device_access==2||dos_clipboard_device_access==4)) {
 			*pos = 0;
 			return true;
@@ -377,7 +377,7 @@ bool DOS_Device::Write(const uint8_t * data,uint16_t * size) {
 	return Devices[devnum]->Write(data,size);
 }
 
-bool DOS_Device::Seek(Bit32u * pos,Bit32u type) {
+bool DOS_Device::Seek(uint32_t * pos,uint32_t type) {
 	return Devices[devnum]->Seek(pos,type);
 }
 

@@ -44,7 +44,7 @@ extern int lfn_filefind_handle;
 unsigned long totalc, freec;
 uint16_t countryNo = 0;
 Bitu INT29_HANDLER(void);
-Bit32u BIOS_get_PC98_INT_STUB(void);
+uint32_t BIOS_get_PC98_INT_STUB(void);
 
 int ascii_toupper(int c) {
     if (c >= 'a' && c <= 'z')
@@ -107,7 +107,7 @@ extern bool infix, winrun, startcmd, startwait;
 extern bool startup_state_numlock, mountwarning, clipboard_dosapi;
 std::string startincon;
 
-Bit32u dos_hma_allocator = 0; /* physical memory addr */
+uint32_t dos_hma_allocator = 0; /* physical memory addr */
 
 Bitu XMS_EnableA20(bool enable);
 Bitu XMS_GetEnabledA20(void);
@@ -122,13 +122,13 @@ bool DOS_IS_IN_HMA() {
 	return false;
 }
 
-Bit32u DOS_HMA_LIMIT() {
+uint32_t DOS_HMA_LIMIT() {
 	if (dos.version.major < 5) return 0; /* MS-DOS 5.0+ only */
 	if (!DOS_IS_IN_HMA()) return 0;
 	return (0x110000 - 16); /* 1MB + 64KB - 16 bytes == (FFFF:FFFF + 1) == (0xFFFF0 + 0xFFFF + 1) == 0x10FFF0 */
 }
 
-Bit32u DOS_HMA_FREE_START() {
+uint32_t DOS_HMA_FREE_START() {
 	if (dos.version.major < 5) return 0; /* MS-DOS 5.0+ only */
 	if (!DOS_IS_IN_HMA()) return 0;
 
@@ -141,8 +141,8 @@ Bit32u DOS_HMA_FREE_START() {
 	return dos_hma_allocator;
 }
 
-Bit32u DOS_HMA_GET_FREE_SPACE() {
-	Bit32u start;
+uint32_t DOS_HMA_GET_FREE_SPACE() {
+	uint32_t start;
 
 	if (dos.version.major < 5) return 0; /* MS-DOS 5.0+ only */
 	if (!DOS_IS_IN_HMA()) return 0;
@@ -152,7 +152,7 @@ Bit32u DOS_HMA_GET_FREE_SPACE() {
 }
 
 void DOS_HMA_CLAIMED(uint16_t bytes) {
-	Bit32u limit = DOS_HMA_LIMIT();
+	uint32_t limit = DOS_HMA_LIMIT();
 
 	if (limit == 0) E_Exit("HMA allocatiom bug: Claim function called when HMA allocation is not enabled");
 	if (dos_hma_allocator == 0) E_Exit("HMA allocatiom bug: Claim function called without having determined start");
@@ -952,7 +952,7 @@ static Bitu DOS_21Handler(void) {
                         SegSet16(es,SegValue(ss));
                         CALLBACK_RunRealInt(0x1c);
 
-                        Bit32u memaddr = ((Bit32u)SegValue(es) << 4u) + reg_bx;
+                        uint32_t memaddr = ((uint32_t)SegValue(es) << 4u) + reg_bx;
 
                         reg_sp += 6;
                         SegSet16(es,CPU_Pop16());
@@ -1061,7 +1061,7 @@ static Bitu DOS_21Handler(void) {
                     SegSet16(es,SegValue(ss));
                     CALLBACK_RunRealInt(0x1c);
 
-                    Bit32u memaddr = ((PhysPt)SegValue(es) << 4u) + reg_bx;
+                    uint32_t memaddr = ((PhysPt)SegValue(es) << 4u) + reg_bx;
 
                     reg_sp += 6;
                     SegSet16(es,CPU_Pop16());
@@ -1125,7 +1125,7 @@ static Bitu DOS_21Handler(void) {
                 }
 
                 // timer ticks every 55ms
-                Bit32u ticks = ((((reg_ch * 60u + reg_cl) * 60u + reg_dh) * 100u) + reg_dl) * 10u / 55u;
+                uint32_t ticks = ((((reg_ch * 60u + reg_cl) * 60u + reg_dh) * 100u) + reg_dl) * 10u / 55u;
 
                 CPU_Push16(reg_ax);
                 CPU_Push16(reg_cx);
@@ -1161,7 +1161,7 @@ static Bitu DOS_21Handler(void) {
             else { //Allow time to be set to zero. Restore the orginal time for all other parameters. (QuickBasic)
                 if (reg_cx == 0 && reg_dx == 0) {time_start = mem_readd(BIOS_TIMER);LOG_MSG("Warning: game messes with DOS time!");}
                 else time_start = 0;
-				Bit32u ticks=(Bit32u)(((double)(reg_ch*3600+
+				uint32_t ticks=(uint32_t)(((double)(reg_ch*3600+
 												reg_cl*60+
 												reg_dh))*18.206481481);
 				mem_writed(BIOS_TIMER,ticks);
@@ -1202,7 +1202,7 @@ static Bitu DOS_21Handler(void) {
                     SegSet16(ds,dos.tables.dpb);
                     reg_bx = drive*dos.tables.dpb_size;
                     if (mem_readw(SegPhys(ds)+reg_bx+0x1F)==0xFFFF) {
-                        Bit32u bytes_per_sector,sectors_per_cluster,total_clusters,free_clusters;
+                        uint32_t bytes_per_sector,sectors_per_cluster,total_clusters,free_clusters;
                         if (DOS_GetFreeDiskSpace32(reg_dl,&bytes_per_sector,&sectors_per_cluster,&total_clusters,&free_clusters))
                             mem_writew(SegPhys(ds)+reg_bx+0x1F,free_clusters);
                     }
@@ -1474,7 +1474,7 @@ static Bitu DOS_21Handler(void) {
         case 0x42:                  /* LSEEK Set current file position */
             unmask_irq0 |= disk_io_unmask_irq0;
             {
-                Bit32u pos=((Bit32u)reg_cx << 16u) + reg_dx;
+                uint32_t pos=((uint32_t)reg_cx << 16u) + reg_dx;
                 if (DOS_SeekFile(reg_bx,&pos,reg_al)) {
                     reg_dx=(uint16_t)((unsigned int)pos >> 16u);
                     reg_ax=(uint16_t)(pos & 0xFFFF);
@@ -1762,8 +1762,8 @@ static Bitu DOS_21Handler(void) {
             }
         case 0x5c:  {       /* FLOCK File region locking */
             /* ert, 20100711: Locking extensions */
-            Bit32u pos=((unsigned int)reg_cx << 16u) + reg_dx;
-            Bit32u size=((unsigned int)reg_si << 16u) + reg_di;
+            uint32_t pos=((unsigned int)reg_cx << 16u) + reg_dx;
+            uint32_t size=((unsigned int)reg_si << 16u) + reg_di;
             //LOG_MSG("LockFile: BX=%d, AL=%d, POS=%d, size=%d", reg_bx, reg_al, pos, size);
             if (DOS_LockFile(reg_bx,reg_al,pos, size)) {
                 reg_ax=0;
@@ -2132,7 +2132,7 @@ static Bitu DOS_21Handler(void) {
 				CALLBACK_SCF(false);
 			} else if (reg_al==2) {
 				/* Get extended DPB */
-				Bit32u ptr = SegPhys(es)+reg_di;
+				uint32_t ptr = SegPhys(es)+reg_di;
 				uint8_t drive;
 
 				/* AX=7302h
@@ -2159,11 +2159,11 @@ static Bitu DOS_21Handler(void) {
 								mem_writew(ptr+0x00,0x3D);                                  // length of data (Windows 98)
 								/* first 24 bytes after len is DPB */
 								{
-									const Bit32u srcptr = (dos.tables.dpb << 4) + (drive*dos.tables.dpb_size);
+									const uint32_t srcptr = (dos.tables.dpb << 4) + (drive*dos.tables.dpb_size);
 									MEM_BlockRead(srcptr,tmp,24);
 									MEM_BlockWrite(ptr+0x02,tmp,24);
 								}
-								Bit32u bytes_per_sector,sectors_per_cluster,total_clusters,free_clusters,tfree;
+								uint32_t bytes_per_sector,sectors_per_cluster,total_clusters,free_clusters,tfree;
 								rsize=true;
 								totalc=freec=0;
 								if (DOS_GetFreeDiskSpace32(reg_dl,&bytes_per_sector,&sectors_per_cluster,&total_clusters,&free_clusters))
@@ -2206,7 +2206,7 @@ static Bitu DOS_21Handler(void) {
 					CALLBACK_SCF(true);
 					break;
 				}
-				Bit32u bytes_per_sector,sectors_per_cluster,total_clusters,free_clusters;
+				uint32_t bytes_per_sector,sectors_per_cluster,total_clusters,free_clusters;
 				rsize=true;
 				totalc=freec=0;
 				if (DOS_GetFreeDiskSpace32(reg_dl,&bytes_per_sector,&sectors_per_cluster,&total_clusters,&free_clusters))
@@ -2325,11 +2325,11 @@ static Bitu DOS_25Handler_Actual(bool fat32) {
 	} else {
 		DOS_Drive *drv = Drives[reg_al];
 		/* assume drv != NULL */
-		Bit32u sector_size = drv->GetSectorSize();
-		Bit32u sector_count = drv->GetSectorCount();
+		uint32_t sector_size = drv->GetSectorSize();
+		uint32_t sector_count = drv->GetSectorCount();
 		PhysPt ptr = PhysMake(SegValue(ds),reg_bx);
-		Bit32u req_count = reg_cx;
-		Bit32u sector_num = reg_dx;
+		uint32_t req_count = reg_cx;
+		uint32_t sector_num = reg_dx;
 
 		/* For < 32MB drives.
 		 *  AL = drive
@@ -2367,14 +2367,14 @@ static Bitu DOS_25Handler_Actual(bool fat32) {
 			if (fat32) {
 				sector_num = mem_readd(ptr+0);
 				req_count = mem_readw(ptr+4);
-				Bit32u p = mem_readd(ptr+6);
+				uint32_t p = mem_readd(ptr+6);
 				ptr = PhysMake(p >> 16u,p & 0xFFFFu);
 				method = "Win95/FAT32";
 			}
 			else if (req_count == 0xFFFF) {
 				sector_num = mem_readd(ptr+0);
 				req_count = mem_readw(ptr+4);
-				Bit32u p = mem_readd(ptr+6);
+				uint32_t p = mem_readd(ptr+6);
 				ptr = PhysMake(p >> 16u,p & 0xFFFFu);
 				method = ">=32MB";
 			}
@@ -2445,11 +2445,11 @@ static Bitu DOS_26Handler_Actual(bool fat32) {
 	} else {
 		DOS_Drive *drv = Drives[reg_al];
 		/* assume drv != NULL */
-		Bit32u sector_size = drv->GetSectorSize();
-		Bit32u sector_count = drv->GetSectorCount();
+		uint32_t sector_size = drv->GetSectorSize();
+		uint32_t sector_count = drv->GetSectorCount();
 		PhysPt ptr = PhysMake(SegValue(ds),reg_bx);
-		Bit32u req_count = reg_cx;
-		Bit32u sector_num = reg_dx;
+		uint32_t req_count = reg_cx;
+		uint32_t sector_num = reg_dx;
 
 		/* For < 32MB drives.
 		 *  AL = drive
@@ -2487,14 +2487,14 @@ static Bitu DOS_26Handler_Actual(bool fat32) {
 			if (fat32) {
 				sector_num = mem_readd(ptr+0);
 				req_count = mem_readw(ptr+4);
-				Bit32u p = mem_readd(ptr+6);
+				uint32_t p = mem_readd(ptr+6);
 				ptr = PhysMake(p >> 16u,p & 0xFFFFu);
 				method = "Win95/FAT32";
 			}
 			else if (req_count == 0xFFFF) {
 				sector_num = mem_readd(ptr+0);
 				req_count = mem_readw(ptr+4);
-				Bit32u p = mem_readd(ptr+6);
+				uint32_t p = mem_readd(ptr+6);
 				ptr = PhysMake(p >> 16u,p & 0xFFFFu);
 				method = ">=32MB";
 			}
@@ -2667,7 +2667,7 @@ public:
         }
     }
 
-    Bit32u DOS_Get_CPM_entry_direct(void) {
+    uint32_t DOS_Get_CPM_entry_direct(void) {
         return callback[8].Get_RealPointer();
     }
 
@@ -2964,15 +2964,15 @@ public:
             PhysPt sgp = (PhysPt)sg << (PhysPt)4u;
 
             /* Re-base the pointer so the segment is 0x60 */
-            Bit32u veco = sgp - 0x600;
+            uint32_t veco = sgp - 0x600;
             if (veco >= 0xFFF0u) E_Exit("INT stub trampoline out of bounds");
-            Bit32u vecp = RealMake(0x60,(uint16_t)veco);
+            uint32_t vecp = RealMake(0x60,(uint16_t)veco);
 
             mem_writeb(sgp+0,0xEA);
             mem_writed(sgp+1,BIOS_get_PC98_INT_STUB());
 
             for (unsigned int i=0;i < 0x100;i++) {
-                Bit32u vec = RealGetVec(i);
+                uint32_t vec = RealGetVec(i);
 
                 if (vec == BIOS_get_PC98_INT_STUB())
                     mem_writed(i*4,vecp);
@@ -3184,7 +3184,7 @@ void DOS_Write_HMA_CPM_jmp(void) {
     test->DOS_Write_HMA_CPM_jmp();
 }
 
-Bit32u DOS_Get_CPM_entry_direct(void) {
+uint32_t DOS_Get_CPM_entry_direct(void) {
     assert(test != NULL);
     return test->DOS_Get_CPM_entry_direct();
 }
@@ -3788,10 +3788,10 @@ void DOS_Int21_71a6(const char *name1, const char *name2) {
 #endif
 			sprintf(buf,"%-4s%-4s%-4s%-4s%-4s%-4s%-4s%-4s%-4s%-4s%-4s%-4s%-4s",(char*)&st,(char*)&ctime,(char*)&cdate,(char*)&atime,(char*)&adate,(char*)&mtime,(char*)&mdate,(char*)&serial_number,(char*)&st,(char*)&st,(char*)&st,(char*)&st,(char*)&handle);
 			for (int i=32;i<36;i++) buf[i]=0;
-			buf[36]=(char)((Bit32u)status.st_size%256);
-			buf[37]=(char)(((Bit32u)status.st_size%65536)/256);
-			buf[38]=(char)(((Bit32u)status.st_size%16777216)/65536);
-			buf[39]=(char)((Bit32u)status.st_size/16777216);
+			buf[36]=(char)((uint32_t)status.st_size%256);
+			buf[37]=(char)(((uint32_t)status.st_size%65536)/256);
+			buf[38]=(char)(((uint32_t)status.st_size%16777216)/65536);
+			buf[39]=(char)((uint32_t)status.st_size/16777216);
 			buf[40]=(char)status.st_nlink;
 			for (int i=41;i<47;i++) buf[i]=0;
 			buf[52]=0;

@@ -93,7 +93,7 @@ int Voodoo_OGL_GetWidth();
 int Voodoo_OGL_GetHeight();
 bool Voodoo_OGL_Active();
 
-static SDL_Surface* SetupSurfaceScaledOpenGL(Bit32u sdl_flags, Bit32u bpp) 
+static SDL_Surface* SetupSurfaceScaledOpenGL(uint32_t sdl_flags, uint32_t bpp) 
 {
     uint16_t fixedWidth;
     uint16_t fixedHeight;
@@ -750,8 +750,8 @@ void OUTPUT_OPENGL_EndUpdate(const uint16_t *changedLines)
         if (sdl_xbrz.enable && sdl_xbrz.scale_on)
         {
             // OpenGL pixel buffer is precreated for direct xBRZ output, while xBRZ render buffer is used for rendering
-            const Bit32u srcWidth = sdl.draw.width;
-            const Bit32u srcHeight = sdl.draw.height;
+            const uint32_t srcWidth = sdl.draw.width;
+            const uint32_t srcHeight = sdl.draw.height;
 
             if (sdl_xbrz.renderbuf.size() == (unsigned int)srcWidth * (unsigned int)srcHeight && srcWidth > 0 && srcHeight > 0)
             {

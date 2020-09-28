@@ -335,7 +335,7 @@ public:
 		 * Persia). */
 		CloseSecondDMAController();
 
-		Bit32u sample_rate = section->Get_int("tandyrate");
+		uint32_t sample_rate = section->Get_int("tandyrate");
 		tandy.chan=MixerChan.Install(&SN76496Update,sample_rate,"TANDY");
 
 		WriteHandler[0].Install(0xc0,SN76496Write,IO_MB,2);

@@ -113,7 +113,7 @@ static double FPU_FLD80(PhysPt addr,FPU_Reg_80 &raw) {
 	FPU_Reg result;
 	result.ll = (sign <<63)|(exp64final << 52)| mant64;
 
-	if(test.eind.l.lower == 0 && (Bit32u)test.eind.l.upper == (Bit32u)0x80000000UL && (test.begin&0x7fff) == 0x7fff) {
+	if(test.eind.l.lower == 0 && (uint32_t)test.eind.l.upper == (uint32_t)0x80000000UL && (test.begin&0x7fff) == 0x7fff) {
 		//Detect INF and -INF (score 3.11 when drawing a slur.)
 		result.d = sign?-HUGE_VAL:HUGE_VAL;
 	}
@@ -130,8 +130,8 @@ static double FPU_FLD80(PhysPt addr,FPU_Reg_80 &raw) {
 static void FPU_ST80(PhysPt addr,Bitu reg,FPU_Reg_80 &raw,bool use80) {
 	if (use80) {
 		// we have the raw 80-bit IEEE float value. we can just store
-		mem_writed(addr,(Bit32u)raw.raw.l);
-		mem_writed(addr+4,(Bit32u)(raw.raw.l >> (Bit64u)32));
+		mem_writed(addr,(uint32_t)raw.raw.l);
+		mem_writed(addr+4,(uint32_t)(raw.raw.l >> (Bit64u)32));
 		mem_writew(addr+8,(uint16_t)raw.raw.h);
 	}
 	else {
@@ -163,7 +163,7 @@ static void FPU_ST80(PhysPt addr,Bitu reg,FPU_Reg_80 &raw,bool use80) {
 static void FPU_FLD_F32(PhysPt addr,Bitu store_to) {
 	union {
 		float f;
-		Bit32u l;
+		uint32_t l;
 	}	blah;
 	blah.l = mem_readd(addr);
 	fpu.regs[store_to].d = static_cast<double>(blah.f);
@@ -246,7 +246,7 @@ static INLINE void FPU_FLD_I16_EA(PhysPt addr) {
 static void FPU_FST_F32(PhysPt addr) {
 	union {
 		float f;
-		Bit32u l;
+		uint32_t l;
 	}	blah;
 	//should depend on rounding method
 	blah.f = static_cast<float>(fpu.regs[TOP].d);
@@ -276,8 +276,8 @@ static void FPU_FST_I64(PhysPt addr) {
 		// FIXME: This works so far for DOS demos that use the "Pentium memcpy trick" to copy 64 bits at a time.
 		//        What this code needs to do is take the exponent into account and then clamp the 64-bit int within range.
 		//        This cheap hack is good enough for now.
-		mem_writed(addr,(Bit32u)(fpu.regs_80[TOP].raw.l));
-		mem_writed(addr+4,(Bit32u)(fpu.regs_80[TOP].raw.l >> (Bit64u)32));
+		mem_writed(addr,(uint32_t)(fpu.regs_80[TOP].raw.l));
+		mem_writed(addr+4,(uint32_t)(fpu.regs_80[TOP].raw.l >> (Bit64u)32));
 	}
 	else {
 		blah.ll = static_cast<Bit64s>(FROUND(fpu.regs[TOP].d));
@@ -604,15 +604,15 @@ static void FPU_FSTENV(PhysPt addr){
 		mem_writew(addr+2,static_cast<uint16_t>(fpu.sw));
 		mem_writew(addr+4,static_cast<uint16_t>(FPU_GetTag()));
 	} else { 
-		mem_writed(addr+0,static_cast<Bit32u>(fpu.cw));
-		mem_writed(addr+4,static_cast<Bit32u>(fpu.sw));
-		mem_writed(addr+8,static_cast<Bit32u>(FPU_GetTag()));
+		mem_writed(addr+0,static_cast<uint32_t>(fpu.cw));
+		mem_writed(addr+4,static_cast<uint32_t>(fpu.sw));
+		mem_writed(addr+8,static_cast<uint32_t>(FPU_GetTag()));
 	}
 }
 
 static void FPU_FLDENV(PhysPt addr){
 	uint16_t tag;
-	Bit32u tagbig;
+	uint32_t tagbig;
 	Bitu cw;
 	if(!cpu.code.big) {
 		cw     = mem_readw(addr+0);

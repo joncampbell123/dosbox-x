@@ -18,10 +18,10 @@
 
 extern uint8_t  * lookupRMregb[];
 extern uint16_t * lookupRMregw[];
-extern Bit32u * lookupRMregd[];
+extern uint32_t * lookupRMregd[];
 extern uint8_t  * lookupRMEAregb[256];
 extern uint16_t * lookupRMEAregw[256];
-extern Bit32u * lookupRMEAregd[256];
+extern uint32_t * lookupRMEAregd[256];
 
 #define GetRM												\
 	uint8_t rm=Fetchb();
@@ -35,7 +35,7 @@ extern Bit32u * lookupRMEAregd[256];
 	rmrw=lookupRMregw[rm];			
 
 #define Getrd												\
-	Bit32u * rmrd;											\
+	uint32_t * rmrd;											\
 	rmrd=lookupRMregd[rm];			
 
 
@@ -59,6 +59,6 @@ extern Bit32u * lookupRMEAregd[256];
 	uint16_t * earw=lookupRMEAregw[rm];
 
 #define GetEArd												\
-	Bit32u * eard=lookupRMEAregd[rm];
+	uint32_t * eard=lookupRMEAregd[rm];
 
 

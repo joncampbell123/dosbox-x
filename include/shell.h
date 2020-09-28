@@ -58,7 +58,7 @@ public:
 	bool Goto(const char * where);
 	void Shift(void);
 	uint16_t file_handle;
-	Bit32u location;
+	uint32_t location;
 	bool echo;
 	DOS_Shell * shell;
 	BatchFile * prev;
@@ -331,7 +331,7 @@ public:
 
 struct SHELL_Cmd {
 	const char * name;								/* Command name*/
-	Bit32u flags;									/* Flags about the command */
+	uint32_t flags;									/* Flags about the command */
 	void (DOS_Shell::*handler)(char * args);		/* Handler for this command */
 	const char * help;								/* String with command help */
 };

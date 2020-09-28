@@ -44,7 +44,7 @@ struct JoyStick {
 JoystickType joytype;
 static JoyStick stick[2];
 
-static Bit32u last_write = 0;
+static uint32_t last_write = 0;
 static bool write_active = false;
 static bool swap34 = false;
 bool button_wrapping_enabled = true;
@@ -122,7 +122,7 @@ static void write_p201(Bitu port,Bitu val,Bitu iolen) {
     (void)iolen;//UNUSED
 	/* Store writetime index */
 	write_active = true;
-	last_write = (Bit32u)PIC_Ticks;
+	last_write = (uint32_t)PIC_Ticks;
 	if (stick[0].enabled) {
 		stick[0].xcount=(Bitu)((stick[0].xpos*RANGE)+RANGE);
 		stick[0].ycount=(Bitu)((stick[0].ypos*RANGE)+RANGE);

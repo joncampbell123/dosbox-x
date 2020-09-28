@@ -39,15 +39,15 @@ typedef void (* DMA_CallBack)(DmaChannel * chan,DMAEvent event);
 
 class DmaChannel {
 public:
-	Bit32u pagebase;
+	uint32_t pagebase;
 	uint16_t baseaddr;
-	Bit32u curraddr;
+	uint32_t curraddr;
 	uint16_t basecnt;
 	uint16_t currcnt;
 	uint8_t channum;
 	uint8_t pagenum;
     uint8_t DMA16_PAGESHIFT;
-    Bit32u DMA16_ADDRMASK;
+    uint32_t DMA16_ADDRMASK;
 	uint8_t DMA16;
     uint8_t transfer_mode;
 	bool increment;
@@ -121,7 +121,7 @@ public:
 	}
 	void SetPage(uint8_t val) {
 		pagenum=val;
-		pagebase=(Bit32u)(pagenum >> DMA16_PAGESHIFT) << (Bit32u)((uint8_t)16u + DMA16_PAGESHIFT);
+		pagebase=(uint32_t)(pagenum >> DMA16_PAGESHIFT) << (uint32_t)((uint8_t)16u + DMA16_PAGESHIFT);
 	}
 	void Raise_Request(void) {
 		request=true;
@@ -172,6 +172,6 @@ DmaChannel * GetDMAChannel(uint8_t chan);
 void CloseSecondDMAController(void);
 bool SecondDMAControllerAvailable(void);
 
-void DMA_SetWrapping(Bit32u wrap);
+void DMA_SetWrapping(uint32_t wrap);
 
 #endif

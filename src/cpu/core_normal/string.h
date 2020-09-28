@@ -34,8 +34,8 @@ extern int cpu_rep_max;
 
 void DoString(STRING_OP type) {
 	static PhysPt  si_base,di_base;
-	static Bit32u	si_index,di_index;
-	static Bit32u	add_mask;
+	static uint32_t	si_index,di_index;
+	static uint32_t	add_mask;
 	static Bitu	count,count_left;
 	static Bits	add_index;
 
@@ -295,7 +295,7 @@ void DoString(STRING_OP type) {
 				case R_SCASD:
 					add_index<<=2;
 					{
-						Bit32u val2;
+						uint32_t val2;
 						do {
 							val2=LoadMd(di_base+di_index);
 							di_index=(di_index+(Bitu)add_index) & add_mask;
@@ -344,7 +344,7 @@ void DoString(STRING_OP type) {
 				case R_CMPSD:
 					add_index<<=2;
 					{
-						Bit32u val1,val2;
+						uint32_t val1,val2;
 						do {
 							val1=LoadMd(si_base+si_index);
 							val2=LoadMd(di_base+di_index);

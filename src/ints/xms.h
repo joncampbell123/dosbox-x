@@ -23,9 +23,9 @@ Bitu	XMS_QueryFreeMemory		(uint16_t& largestFree, uint16_t& totalFree);
 Bitu	XMS_AllocateMemory		(Bitu size, uint16_t& handle);
 Bitu	XMS_FreeMemory			(Bitu handle);
 Bitu	XMS_MoveMemory			(PhysPt bpt);
-Bitu	XMS_LockMemory			(Bitu handle, Bit32u& address);
+Bitu	XMS_LockMemory			(Bitu handle, uint32_t& address);
 Bitu	XMS_UnlockMemory		(Bitu handle);
-Bitu	XMS_GetHandleInformation(Bitu handle, uint8_t& lockCount, uint8_t& numFree, Bit32u& size);
+Bitu	XMS_GetHandleInformation(Bitu handle, uint8_t& lockCount, uint8_t& numFree, uint32_t& size);
 Bitu	XMS_ResizeMemory		(Bitu handle, Bitu newSize);
 
 Bitu	XMS_EnableA20			(bool enable);

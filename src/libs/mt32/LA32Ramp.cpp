@@ -84,7 +84,7 @@ void LA32Ramp::startRamp(uint8_t target, uint8_t increment) {
 	} else {
 		// Three bits in the fractional part, no need to interpolate
 		// (unsigned int)(EXP2F(((increment & 0x7F) + 24) / 8.0f) + 0.125f)
-		Bit32u expArg = increment & 0x7F;
+		uint32_t expArg = increment & 0x7F;
 		largeIncrement = 8191 - Tables::getInstance().exp9[~(expArg << 6) & 511];
 		largeIncrement <<= expArg >> 3;
 		largeIncrement += 64;
@@ -101,7 +101,7 @@ void LA32Ramp::startRamp(uint8_t target, uint8_t increment) {
 	interruptRaised = false;
 }
 
-Bit32u LA32Ramp::nextValue() {
+uint32_t LA32Ramp::nextValue() {
 	if (interruptCountdown > 0) {
 		if (--interruptCountdown == 0) {
 			interruptRaised = true;
@@ -158,7 +158,7 @@ void LA32Ramp::reset() {
 // when in sustain phase which one normally wants to avoid.
 // See TVA::recalcSustain() for details.
 bool LA32Ramp::isBelowCurrent(uint8_t target) const {
-	return Bit32u(target << TARGET_SHIFTS) < current;
+	return uint32_t(target << TARGET_SHIFTS) < current;
 }
 
 } // namespace MT32Emu

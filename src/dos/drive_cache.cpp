@@ -67,7 +67,7 @@ DOS_Drive_Cache::DOS_Drive_Cache(void) {
     label[0]        = 0;
     basePath[0]     = 0;
     nextFreeFindFirst   = 0;
-    for (Bit32u i=0; i<MAX_OPENDIRS; i++) { dirSearch[i] = 0; dirFindFirst[i] = 0; }
+    for (uint32_t i=0; i<MAX_OPENDIRS; i++) { dirSearch[i] = 0; dirFindFirst[i] = 0; }
     SetDirSort(DIRALPHABETICAL);
     updatelabel = true;
 }
@@ -79,7 +79,7 @@ DOS_Drive_Cache::DOS_Drive_Cache(const char* path, DOS_Drive *drive) {
     label[0]        = 0;
     basePath[0]     = 0;
     nextFreeFindFirst   = 0;
-    for (Bit32u i=0; i<MAX_OPENDIRS; i++) { dirSearch[i] = 0; dirFindFirst[i] = 0; }
+    for (uint32_t i=0; i<MAX_OPENDIRS; i++) { dirSearch[i] = 0; dirFindFirst[i] = 0; }
     SetDirSort(DIRALPHABETICAL);
     SetBaseDir(path,drive);
     updatelabel = true;
@@ -87,13 +87,13 @@ DOS_Drive_Cache::DOS_Drive_Cache(const char* path, DOS_Drive *drive) {
 
 DOS_Drive_Cache::~DOS_Drive_Cache(void) {
     Clear();
-    for (Bit32u i=0; i<MAX_OPENDIRS; i++) { DeleteFileInfo(dirFindFirst[i]); dirFindFirst[i]=0; }
+    for (uint32_t i=0; i<MAX_OPENDIRS; i++) { DeleteFileInfo(dirFindFirst[i]); dirFindFirst[i]=0; }
 }
 
 void DOS_Drive_Cache::Clear(void) {
     DeleteFileInfo(dirBase); dirBase = 0;
     nextFreeFindFirst   = 0;
-    for (Bit32u i=0; i<MAX_OPENDIRS; i++) dirSearch[i] = 0;
+    for (uint32_t i=0; i<MAX_OPENDIRS; i++) dirSearch[i] = 0;
 }
 
 void DOS_Drive_Cache::EmptyCache(void) {
@@ -226,8 +226,8 @@ void DOS_Drive_Cache::AddEntry(const char* path, bool checkExists) {
         Bits index = GetLongName(dir,file);
         if (index>=0) {
             // Check if there are any open search dir that are affected by this...
-            if (dir) for (Bit32u i=0; i<MAX_OPENDIRS; i++) {
-                if ((dirSearch[i]==dir) && ((Bit32u)index<=dirSearch[i]->nextEntry)) 
+            if (dir) for (uint32_t i=0; i<MAX_OPENDIRS; i++) {
+                if ((dirSearch[i]==dir) && ((uint32_t)index<=dirSearch[i]->nextEntry)) 
                     dirSearch[i]->nextEntry++;
             }
         }
@@ -300,10 +300,10 @@ void DOS_Drive_Cache::AddEntryDirOverlay(const char* path, char *sfile, bool che
 			  strcpy(sfile, genname);
 	  }
       if (index>=0) {
-          Bit32u i;
+          uint32_t i;
           // Check if there are any open search dir that are affected by this...
           if (dir) for (i=0; i<MAX_OPENDIRS; i++) {
-              if ((dirSearch[i]==dir) && ((Bit32u)index<=dirSearch[i]->nextEntry)) 
+              if ((dirSearch[i]==dir) && ((uint32_t)index<=dirSearch[i]->nextEntry)) 
                   dirSearch[i]->nextEntry++;
           }
 
@@ -326,7 +326,7 @@ void DOS_Drive_Cache::DeleteEntry(const char* path, bool ignoreLastDir) {
         // Check if there are any open search dir that are affected by this...
         char expand [CROSS_LEN];
         CFileInfo* dir = FindDirInfo(path,expand);
-        if (dir) for (Bit32u i=0; i<MAX_OPENDIRS; i++) {
+        if (dir) for (uint32_t i=0; i<MAX_OPENDIRS; i++) {
             if ((dirSearch[i]==dir) && (dirSearch[i]->nextEntry>0)) 
                 dirSearch[i]->nextEntry--;
         }   
@@ -354,12 +354,12 @@ void DOS_Drive_Cache::CacheOut(const char* path, bool ignoreLastDir) {
 
 //  LOG_DEBUG("DIR: Caching out %s : dir %s",expand,dir->orgname);
 //  clear cache first?
-    for (Bit32u i=0; i<MAX_OPENDIRS; i++) {
+    for (uint32_t i=0; i<MAX_OPENDIRS; i++) {
         dirSearch[i] = 0; //free[i] = true;    
     }
     // delete file objects...
     //Maybe check if it is a file and then only delete the file and possibly the long name. instead of all objects in the dir.
-    for(Bit32u i=0; i<dir->fileList.size(); i++) {
+    for(uint32_t i=0; i<dir->fileList.size(); i++) {
         if (dirSearch[srchNr]==dir->fileList[i]) dirSearch[srchNr] = 0;
         DeleteFileInfo(dir->fileList[i]); dir->fileList[i] = 0;
     }
@@ -968,7 +968,7 @@ bool DOS_Drive_Cache::FindNext(uint16_t id, char* &result, char* &lresult) {
 }
 
 void DOS_Drive_Cache::ClearFileInfo(CFileInfo *dir) {
-    for(Bit32u i=0; i<dir->fileList.size(); i++) {
+    for(uint32_t i=0; i<dir->fileList.size(); i++) {
         if (CFileInfo *info = dir->fileList[i])
             ClearFileInfo(info);
     }

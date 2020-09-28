@@ -61,7 +61,7 @@ enum {
 };
 
 struct FileStat_Block {
-	Bit32u size;
+	uint32_t size;
 	uint16_t time;
 	uint16_t date;
 	uint16_t attr;
@@ -81,10 +81,10 @@ public:
 	virtual	~DOS_File(){if(name) delete [] name;};
 	virtual bool	Read(uint8_t * data,uint16_t * size)=0;
 	virtual bool	Write(const uint8_t * data,uint16_t * size)=0;
-	virtual bool	Seek(Bit32u * pos,Bit32u type)=0;
+	virtual bool	Seek(uint32_t * pos,uint32_t type)=0;
 	virtual bool	Close()=0;
 	/* ert, 20100711: Locking extensions */
-	virtual bool    LockFile(uint8_t mode, Bit32u pos, uint16_t size) { (void)mode; (void)pos; (void)size; return false; };
+	virtual bool    LockFile(uint8_t mode, uint32_t pos, uint16_t size) { (void)mode; (void)pos; (void)size; return false; };
 	virtual uint16_t	GetInformation(void)=0;
 	virtual void	SetName(const char* _name)	{ if (name) delete[] name; name = new char[strlen(_name)+1]; strcpy(name,_name); }
 	virtual char*	GetName(void)				{ return name; };
@@ -93,7 +93,7 @@ public:
 	virtual void	AddRef()					{ refCtr++; };
 	virtual Bits	RemoveRef()					{ return --refCtr; };
 	virtual bool	UpdateDateTimeFromHost()	{ return true; }
-	virtual Bit32u	GetSeekPos()	{ return 0xffffffff; }
+	virtual uint32_t	GetSeekPos()	{ return 0xffffffff; }
 	void SetDrive(uint8_t drv) { hdrive=drv;}
 	uint8_t GetDrive(void) { return hdrive;}
 	virtual void 	SaveState( std::ostream& stream );
@@ -102,7 +102,7 @@ public:
 
 	char* name = NULL;
 	uint8_t drive = 0;
-	Bit32u flags;
+	uint32_t flags;
 	bool open;
 
 	uint16_t attr;
@@ -131,7 +131,7 @@ public:
 	virtual ~DOS_Device() {};
 	virtual bool	Read(uint8_t * data,uint16_t * size);
 	virtual bool	Write(const uint8_t * data,uint16_t * size);
-	virtual bool	Seek(Bit32u * pos,Bit32u type);
+	virtual bool	Seek(uint32_t * pos,uint32_t type);
 	virtual bool	Close();
 	virtual uint16_t	GetInformation(void);
 	virtual bool	ReadFromControlChannel(PhysPt bufptr,uint16_t size,uint16_t * retcode);
@@ -147,17 +147,17 @@ public:
 	localFile(const char* _name, FILE * handle);
 	bool Read(uint8_t * data,uint16_t * size);
 	bool Write(const uint8_t * data,uint16_t * size);
-	bool Seek(Bit32u * pos,Bit32u type);
+	bool Seek(uint32_t * pos,uint32_t type);
 	bool Close();
 #ifdef WIN32
-	bool LockFile(uint8_t mode, Bit32u pos, uint16_t size);
+	bool LockFile(uint8_t mode, uint32_t pos, uint16_t size);
 #endif
 	uint16_t GetInformation(void);
 	bool UpdateDateTimeFromHost(void);
 	bool UpdateLocalDateTime(void);
 	void FlagReadOnlyMedium(void);
 	void Flush(void);
-	Bit32u GetSeekPos(void);
+	uint32_t GetSeekPos(void);
 	FILE * fhandle;
 private:
 	bool read_only_medium;
@@ -210,7 +210,7 @@ public:
 			nextEntry = shortNr = 0;
 		}
 		~CFileInfo(void) {
-			for (Bit32u i=0; i<fileList.size(); i++) delete fileList[i];
+			for (uint32_t i=0; i<fileList.size(); i++) delete fileList[i];
 			fileList.clear();
 			longNameList.clear();
 		};
@@ -269,7 +269,7 @@ class DOS_Drive {
 public:
 	DOS_Drive();
 	virtual ~DOS_Drive(){};
-	virtual bool FileOpen(DOS_File * * file,const char * name,Bit32u flags)=0;
+	virtual bool FileOpen(DOS_File * * file,const char * name,uint32_t flags)=0;
 	virtual bool FileCreate(DOS_File * * file,const char * name,uint16_t attributes)=0;
 	virtual bool FileUnlink(const char * _name)=0;
 	virtual bool RemoveDir(const char * _dir)=0;
@@ -286,7 +286,7 @@ public:
 #endif
 	virtual bool Rename(const char * oldname,const char * newname)=0;
 	virtual bool AllocationInfo(uint16_t * _bytes_sector,uint8_t * _sectors_cluster,uint16_t * _total_clusters,uint16_t * _free_clusters)=0;
-	virtual bool AllocationInfo32(Bit32u * _bytes_sector,Bit32u * _sectors_cluster,Bit32u * _total_clusters,Bit32u * _free_clusters) { (void)_bytes_sector; (void)_sectors_cluster; (void)_total_clusters; (void)_free_clusters; return false; }
+	virtual bool AllocationInfo32(uint32_t * _bytes_sector,uint32_t * _sectors_cluster,uint32_t * _total_clusters,uint32_t * _free_clusters) { (void)_bytes_sector; (void)_sectors_cluster; (void)_total_clusters; (void)_free_clusters; return false; }
 	virtual bool FileExists(const char* name)=0;
 	virtual bool FileStat(const char* name, FileStat_Block * const stat_block)=0;
 	virtual uint8_t GetMediaByte(void)=0;
@@ -321,10 +321,10 @@ public:
 	virtual void UpdateDPB(unsigned char dos_drive) { (void)dos_drive; };
 
     // INT 25h/INT 26h
-    virtual Bit32u GetSectorCount(void) { return 0; }
-    virtual Bit32u GetSectorSize(void) { return 0; } // LOGICAL sector size (from the FAT driver) not PHYSICAL disk sector size
-	virtual uint8_t Read_AbsoluteSector_INT25(Bit32u sectnum, void * data) { (void)sectnum; (void)data; return 0x05; }
-	virtual uint8_t Write_AbsoluteSector_INT25(Bit32u sectnum, void * data) { (void)sectnum; (void)data; return 0x05; }
+    virtual uint32_t GetSectorCount(void) { return 0; }
+    virtual uint32_t GetSectorSize(void) { return 0; } // LOGICAL sector size (from the FAT driver) not PHYSICAL disk sector size
+	virtual uint8_t Read_AbsoluteSector_INT25(uint32_t sectnum, void * data) { (void)sectnum; (void)data; return 0x05; }
+	virtual uint8_t Write_AbsoluteSector_INT25(uint32_t sectnum, void * data) { (void)sectnum; (void)data; return 0x05; }
 };
 
 enum { OPEN_READ=0, OPEN_WRITE=1, OPEN_READWRITE=2, OPEN_READ_NO_MOD=4, DOS_NOT_INHERIT=128};
@@ -345,6 +345,6 @@ void DOS_AddDevice(DOS_Device * adddev);
 /* DelDevice destroys the device that is pointed to. */
 void DOS_DelDevice(DOS_Device * dev);
 
-void VFILE_Register(const char * name,uint8_t * data,Bit32u size);
+void VFILE_Register(const char * name,uint8_t * data,uint32_t size);
 void VFILE_RegisterBuiltinFileBlob(const struct BuiltinFileBlob &b);
 #endif

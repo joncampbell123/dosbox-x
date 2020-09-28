@@ -1717,10 +1717,10 @@ void CPrinter::outputPage()
 			for (uint16_t x = 0; x < page->w; x++)
 			{
 				uint8_t pixel = *((uint8_t*)page->pixels + x + (y*page->pitch));
-				Bit32u color = 0;
+				uint32_t color = 0;
 				color |= sdlpal->colors[pixel].r;
-				color |= ((Bit32u)sdlpal->colors[pixel].g) << 8;
-				color |= ((Bit32u)sdlpal->colors[pixel].b) << 16;
+				color |= ((uint32_t)sdlpal->colors[pixel].g) << 8;
+				color |= ((uint32_t)sdlpal->colors[pixel].b) << 16;
 				SetPixel(memHDC, x, y, color);
 			}
 		}
@@ -1868,8 +1868,8 @@ void CPrinter::outputPage()
 
 		SDL_LockSurface(page);
 
-		Bit32u pix = 0;
-		Bit32u numpix = page->h * page->w;
+		uint32_t pix = 0;
+		uint32_t numpix = page->h * page->w;
 		ASCII85BufferPos = ASCII85CurCol = 0;
 
 		while (pix < numpix)
@@ -1944,7 +1944,7 @@ void CPrinter::fprintASCII85(FILE* f, uint16_t b)
 
 		if (ASCII85BufferPos == 4 || b == 257)
 		{
-			Bit32u num = (Bit32u)ASCII85Buffer[0] << 24 | (Bit32u)ASCII85Buffer[1] << 16 | (Bit32u)ASCII85Buffer[2] << 8 | (Bit32u)ASCII85Buffer[3];
+			uint32_t num = (uint32_t)ASCII85Buffer[0] << 24 | (uint32_t)ASCII85Buffer[1] << 16 | (uint32_t)ASCII85Buffer[2] << 8 | (uint32_t)ASCII85Buffer[3];
 
 			// Deal with special case
 			if (num == 0 && b != 257)
@@ -1961,9 +1961,9 @@ void CPrinter::fprintASCII85(FILE* f, uint16_t b)
 				char buffer[5];
 				for (int8_t i = 4; i >= 0; i--)
 				{
-					buffer[i] = (uint8_t)((Bit32u)num % (Bit32u)85);
+					buffer[i] = (uint8_t)((uint32_t)num % (uint32_t)85);
 					buffer[i] += 33;
-					num /= (Bit32u)85;
+					num /= (uint32_t)85;
 				}
 
 				// Make sure a line never starts with a % (which may be mistaken as start of a comment)
@@ -2037,7 +2037,7 @@ bool CPrinter::isBlank()
 	return blank;
 }
 
-uint8_t CPrinter::getPixel(Bit32u num)
+uint8_t CPrinter::getPixel(uint32_t num)
 {
 	// Respect the pitch
 	return *((uint8_t*)page->pixels + (num % page->w) + ((num / page->w) * page->pitch));

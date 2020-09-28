@@ -146,7 +146,7 @@ bool VGA_IsCaptureInProgress(void);
 static uint8_t * VGA_Draw_AMS_4BPP_Line(Bitu vidstart, Bitu line) {
     const uint8_t *base = vga.tandy.draw_base + ((line & vga.tandy.line_mask) << vga.tandy.line_shift);
     const uint8_t *lbase;
-    Bit32u *draw = (Bit32u *)TempLine;
+    uint32_t *draw = (uint32_t *)TempLine;
     for (Bitu x=vga.draw.blocks;x>0;x--, vidstart++) {
         lbase = &base[ vidstart & (8 * 1024 -1) ];
         Bitu val0 = lbase[ 0 ];
@@ -281,7 +281,7 @@ void VGA_Draw2_Recompute_CRTC_MaskAdd(void) {
 
 static uint8_t * VGA_Draw_1BPP_Line(Bitu vidstart, Bitu line) {
     const uint8_t *base = vga.tandy.draw_base + ((line & vga.tandy.line_mask) << vga.tandy.line_shift);
-    Bit32u *draw = (Bit32u *)TempLine;
+    uint32_t *draw = (uint32_t *)TempLine;
     for (Bitu x=vga.draw.blocks;x>0;x--, vidstart++) {
         Bitu val = base[vidstart & (8 * 1024 -1)];
         *draw++=CGA_2_Table[val >> 4];
@@ -292,7 +292,7 @@ static uint8_t * VGA_Draw_1BPP_Line(Bitu vidstart, Bitu line) {
 
 static uint8_t * VGA_Draw_1BPP_Blend_Line(Bitu vidstart, Bitu line) {
     const uint8_t *base = vga.tandy.draw_base + ((line & vga.tandy.line_mask) << vga.tandy.line_shift);
-    Bit32u *draw = (Bit32u *)TempLine;
+    uint32_t *draw = (uint32_t *)TempLine;
     Bitu carry = 0;
     for (Bitu x=vga.draw.blocks;x>0;x--, vidstart++) {
         Bitu val1 = base[vidstart & (8 * 1024 -1)];
@@ -305,7 +305,7 @@ static uint8_t * VGA_Draw_1BPP_Blend_Line(Bitu vidstart, Bitu line) {
 }
 
 static uint8_t * EGA_Draw_2BPP_Line_as_EGA(Bitu vidstart, Bitu line) {
-    const Bit32u *base = (Bit32u*)vga.draw.linear_base + ((line & vga.tandy.line_mask) << vga.tandy.line_shift);
+    const uint32_t *base = (uint32_t*)vga.draw.linear_base + ((line & vga.tandy.line_mask) << vga.tandy.line_shift);
     uint8_t * draw=(uint8_t *)TempLine;
     VGA_Latch pixels;
 
@@ -327,8 +327,8 @@ static uint8_t * EGA_Draw_2BPP_Line_as_EGA(Bitu vidstart, Bitu line) {
 }
 
 static uint8_t * VGA_Draw_2BPP_Line_as_VGA(Bitu vidstart, Bitu line) {
-    const Bit32u *base = (Bit32u*)vga.draw.linear_base + ((line & vga.tandy.line_mask) << vga.tandy.line_shift);
-    Bit32u * draw=(Bit32u *)TempLine;
+    const uint32_t *base = (uint32_t*)vga.draw.linear_base + ((line & vga.tandy.line_mask) << vga.tandy.line_shift);
+    uint32_t * draw=(uint32_t *)TempLine;
     VGA_Latch pixels;
 
     for (Bitu x=0;x<vga.draw.blocks;x++) {
@@ -349,7 +349,7 @@ static uint8_t * VGA_Draw_2BPP_Line_as_VGA(Bitu vidstart, Bitu line) {
 }
 
 static uint8_t * EGA_Draw_1BPP_Line_as_EGA(Bitu vidstart, Bitu line) {
-    const Bit32u *base = (Bit32u*)vga.draw.linear_base + ((line & vga.tandy.line_mask) << vga.tandy.line_shift);
+    const uint32_t *base = (uint32_t*)vga.draw.linear_base + ((line & vga.tandy.line_mask) << vga.tandy.line_shift);
     uint8_t * draw=(uint8_t *)TempLine;
     VGA_Latch pixels;
 
@@ -366,7 +366,7 @@ static uint8_t * EGA_Draw_1BPP_Line_as_EGA(Bitu vidstart, Bitu line) {
 
 static uint8_t * VGA_Draw_1BPP_Line_as_MCGA(Bitu vidstart, Bitu line) {
     const uint8_t *base = (uint8_t*)vga.tandy.draw_base + ((line & vga.tandy.line_mask) << vga.tandy.line_shift);
-    Bit32u * draw=(Bit32u *)TempLine;
+    uint32_t * draw=(uint32_t *)TempLine;
 
     for (Bitu x=0;x<vga.draw.blocks;x++) {
         Bitu val = base[vidstart & vga.tandy.addr_mask];
@@ -379,8 +379,8 @@ static uint8_t * VGA_Draw_1BPP_Line_as_MCGA(Bitu vidstart, Bitu line) {
 }
 
 static uint8_t * VGA_Draw_1BPP_Line_as_VGA(Bitu vidstart, Bitu line) {
-    const Bit32u *base = (Bit32u*)vga.draw.linear_base + ((line & vga.tandy.line_mask) << vga.tandy.line_shift);
-    Bit32u * draw=(Bit32u *)TempLine;
+    const uint32_t *base = (uint32_t*)vga.draw.linear_base + ((line & vga.tandy.line_mask) << vga.tandy.line_shift);
+    uint32_t * draw=(uint32_t *)TempLine;
     VGA_Latch pixels;
 
     for (Bitu x=0;x<vga.draw.blocks;x++) {
@@ -396,7 +396,7 @@ static uint8_t * VGA_Draw_1BPP_Line_as_VGA(Bitu vidstart, Bitu line) {
 
 static uint8_t * VGA_Draw_2BPP_Line_as_MCGA(Bitu vidstart, Bitu line) {
     const uint8_t *base = vga.tandy.draw_base + ((line & vga.tandy.line_mask) << vga.tandy.line_shift);
-    Bit32u * draw=(Bit32u *)TempLine;
+    uint32_t * draw=(uint32_t *)TempLine;
 
     for (Bitu x=0;x<vga.draw.blocks;x++) {
         unsigned char val = base[vidstart & vga.tandy.addr_mask];
@@ -411,7 +411,7 @@ static uint8_t * VGA_Draw_2BPP_Line_as_MCGA(Bitu vidstart, Bitu line) {
 
 static uint8_t * VGA_Draw_2BPP_Line(Bitu vidstart, Bitu line) {
     const uint8_t *base = vga.tandy.draw_base + ((line & vga.tandy.line_mask) << vga.tandy.line_shift);
-    Bit32u * draw=(Bit32u *)TempLine;
+    uint32_t * draw=(uint32_t *)TempLine;
     for (Bitu x=0;x<vga.draw.blocks;x++) {
         Bitu val = base[vidstart & vga.tandy.addr_mask];
         vidstart++;
@@ -422,7 +422,7 @@ static uint8_t * VGA_Draw_2BPP_Line(Bitu vidstart, Bitu line) {
 
 static uint8_t * VGA_Draw_2BPPHiRes_Line(Bitu vidstart, Bitu line) {
     const uint8_t *base = vga.tandy.draw_base + ((line & vga.tandy.line_mask) << vga.tandy.line_shift);
-    Bit32u * draw=(Bit32u *)TempLine;
+    uint32_t * draw=(uint32_t *)TempLine;
     for (Bitu x=0;x<vga.draw.blocks;x++) {
         Bitu val1 = base[vidstart & vga.tandy.addr_mask];
         ++vidstart;
@@ -439,7 +439,7 @@ static Bitu temp[643]={0};
 static uint8_t * VGA_Draw_CGA16_Line(Bitu vidstart, Bitu line) {
     const uint8_t *base = vga.tandy.draw_base + ((line & vga.tandy.line_mask) << vga.tandy.line_shift);
 #define CGA16_READER(OFF) (base[(vidstart +(OFF))& (8*1024 -1)])
-    Bit32u * draw=(Bit32u *)TempLine;
+    uint32_t * draw=(uint32_t *)TempLine;
     //There are 640 hdots in each line of the screen.
     //The color of an even hdot always depends on only 4 bits of video RAM.
     //The color of an odd hdot depends on 4 bits of video RAM in
@@ -498,7 +498,7 @@ static uint8_t * VGA_Draw_4BPP_Line_Double(Bitu vidstart, Bitu line) {
 }
 
 #if SDL_BYTEORDER == SDL_LIL_ENDIAN && defined(MACOSX) /* Mac OS X Intel builds use a weird RGBA order (alpha in the low 8 bits) */
-static inline Bit32u guest_bgr_to_macosx_rgba(const Bit32u x) {
+static inline uint32_t guest_bgr_to_macosx_rgba(const uint32_t x) {
     /* guest: XRGB      X   R   G   B
      * host:  RGBX      B   G   R   X */
     return      ((x & 0x000000FFU) << 24U) +      /* BBxxxxxx */
@@ -563,7 +563,7 @@ static uint8_t * VGA_Draw_Linear_Line(Bitu vidstart, Bitu /*line*/) {
     return ret;
 }
 
-static void Alt_VGA_256color_CharClock(Bit32u* &temps,const VGA_Latch &pixels) {
+static void Alt_VGA_256color_CharClock(uint32_t* &temps,const VGA_Latch &pixels) {
     /* one group of 4 */
     *temps++ = vga.dac.xlat32[pixels.b[0]];
     *temps++ = vga.dac.xlat32[pixels.b[1]];
@@ -572,7 +572,7 @@ static void Alt_VGA_256color_CharClock(Bit32u* &temps,const VGA_Latch &pixels) {
 }
 
 static uint8_t * Alt_VGA_256color_Draw_Line_Tseng_ET4000(Bitu /*vidstart*/, Bitu /*line*/) {
-    Bit32u* temps = (Bit32u*) TempLine;
+    uint32_t* temps = (uint32_t*) TempLine;
     Bitu count = vga.draw.blocks;
 
     // Tseng ET4000 cards in 256-color mode appear to treat DWORD mode the same as BYTE mode,
@@ -582,7 +582,7 @@ static uint8_t * Alt_VGA_256color_Draw_Line_Tseng_ET4000(Bitu /*vidstart*/, Bitu
 
     while (count > 0u) {
         const unsigned int addr = vga.draw_2[0].crtc_addr_fetch_and_advance();
-        VGA_Latch pixels(*vga.draw_2[0].drawptr<Bit32u>(addr << shift));
+        VGA_Latch pixels(*vga.draw_2[0].drawptr<uint32_t>(addr << shift));
         Alt_VGA_256color_CharClock(temps,pixels);
         count--;
     }
@@ -591,12 +591,12 @@ static uint8_t * Alt_VGA_256color_Draw_Line_Tseng_ET4000(Bitu /*vidstart*/, Bitu
 }
 
 static uint8_t * Alt_VGA_256color_Draw_Line(Bitu /*vidstart*/, Bitu /*line*/) {
-    Bit32u* temps = (Bit32u*) TempLine;
+    uint32_t* temps = (uint32_t*) TempLine;
     Bitu count = vga.draw.blocks;
 
     while (count > 0u) {
         const unsigned int addr = vga.draw_2[0].crtc_addr_fetch_and_advance();
-        VGA_Latch pixels(*vga.draw_2[0].drawptr<Bit32u>(addr << vga.config.addr_shift));
+        VGA_Latch pixels(*vga.draw_2[0].drawptr<uint32_t>(addr << vga.config.addr_shift));
         Alt_VGA_256color_CharClock(temps,pixels);
         count--;
     }
@@ -608,7 +608,7 @@ static uint8_t * Alt_VGA_256color_Draw_Line(Bitu /*vidstart*/, Bitu /*line*/) {
 #define SHIFTED_PIXEL       *temps++ = vga.dac.xlat32[((cur << 4u) + (nex >> 4u)) & 0xFFu]
 #define UNSHIFTED_PIXEL     *temps++ = vga.dac.xlat32[nex]; cur = nex
 
-template <const unsigned int pixelcount> static inline void Alt_VGA_256color_2x4bit_Draw_CharClock(Bit32u* &temps,const VGA_Latch &pixels,unsigned char &cur,unsigned char &nex) {
+template <const unsigned int pixelcount> static inline void Alt_VGA_256color_2x4bit_Draw_CharClock(uint32_t* &temps,const VGA_Latch &pixels,unsigned char &cur,unsigned char &nex) {
 /* NTS:
  *   pixels == 7 for first char clock on the line
  *   pixels == 8 for the rest of the char clocks
@@ -664,20 +664,20 @@ template <const unsigned int pixelcount> static inline void Alt_VGA_256color_2x4
  * Not all SVGA cards emulate this. Tseng ET4000 for example will react by just rendering
  * the 320 pixels horizontally squeezed on the left half of the screen and nothing on the right. */
 static uint8_t * Alt_VGA_256color_2x4bit_Draw_Line(Bitu /*vidstart*/, Bitu /*line*/) {
-    Bit32u* temps = (Bit32u*) TempLine;
+    uint32_t* temps = (uint32_t*) TempLine;
     Bitu count = vga.draw.blocks;
 
     if (count > 0u) {
         unsigned char cur,nex;
         /* on VGA hardware I've seen, the first pixel is the full 8-bit pixel value of the FIRST pixel in memory. */
         unsigned int addr = vga.draw_2[0].crtc_addr_fetch_and_advance();
-        VGA_Latch pixels(*vga.draw_2[0].drawptr<Bit32u>(addr << vga.config.addr_shift));
+        VGA_Latch pixels(*vga.draw_2[0].drawptr<uint32_t>(addr << vga.config.addr_shift));
         Alt_VGA_256color_2x4bit_Draw_CharClock<7>(temps,pixels,cur,nex);
         count--;
 
         while (count > 0u) {
             addr = vga.draw_2[0].crtc_addr_fetch_and_advance();
-            VGA_Latch pixels2(*vga.draw_2[0].drawptr<Bit32u>(addr << vga.config.addr_shift));
+            VGA_Latch pixels2(*vga.draw_2[0].drawptr<uint32_t>(addr << vga.config.addr_shift));
             Alt_VGA_256color_2x4bit_Draw_CharClock<8>(temps,pixels2,cur,nex);
             count--;
         }
@@ -685,7 +685,7 @@ static uint8_t * Alt_VGA_256color_2x4bit_Draw_Line(Bitu /*vidstart*/, Bitu /*lin
         /* the top nibble of the first pixel past the end is visible on real hardware */
         {
             addr = vga.draw_2[0].crtc_addr_fetch_and_advance();
-            VGA_Latch pixels2(*vga.draw_2[0].drawptr<Bit32u>(addr << vga.config.addr_shift));
+            VGA_Latch pixels2(*vga.draw_2[0].drawptr<uint32_t>(addr << vga.config.addr_shift));
             Alt_VGA_256color_2x4bit_Draw_CharClock<1>(temps,pixels,cur,nex);
         }
     }
@@ -695,7 +695,7 @@ static uint8_t * Alt_VGA_256color_2x4bit_Draw_Line(Bitu /*vidstart*/, Bitu /*lin
 
 /* WARNING: This routine assumes (vidstart&3) == 0 */
 static uint8_t * VGA_Draw_Xlat32_VGA_CRTC_bmode_Line(Bitu vidstart, Bitu /*line*/) {
-    Bit32u* temps = (Bit32u*) TempLine;
+    uint32_t* temps = (uint32_t*) TempLine;
     unsigned int poff = 0;
     Bitu skip; /* how much to skip after drawing 4 pixels */
 
@@ -748,7 +748,7 @@ static uint8_t * VGA_Draw_Xlat32_VGA_CRTC_bmode_Line(Bitu vidstart, Bitu /*line*
 }
 
 static uint8_t * VGA_Draw_Xlat32_Linear_Line(Bitu vidstart, Bitu /*line*/) {
-    Bit32u* temps = (Bit32u*) TempLine;
+    uint32_t* temps = (uint32_t*) TempLine;
 
     /* hack for Surprise! productions "copper" demo.
      * when the demo talks about making the picture waver, what it's doing is diddling
@@ -782,7 +782,7 @@ static uint8_t * VGA_Draw_Xlat32_Linear_Line(Bitu vidstart, Bitu /*line*/) {
     return TempLine;
 }
 
-extern Bit32u Expand16Table[4][16];
+extern uint32_t Expand16Table[4][16];
 
 template <const unsigned int card,typename templine_type_t> static inline templine_type_t EGA_Planar_Common_Block_xlat(const uint8_t t) {
     if (card == MCH_VGA)
@@ -793,8 +793,8 @@ template <const unsigned int card,typename templine_type_t> static inline templi
     return 0;
 }
 
-template <const unsigned int card,typename templine_type_t> static inline void EGA_Planar_Common_Block(templine_type_t * const temps,const Bit32u t1,const Bit32u t2) {
-    Bit32u tmp;
+template <const unsigned int card,typename templine_type_t> static inline void EGA_Planar_Common_Block(templine_type_t * const temps,const uint32_t t1,const uint32_t t2) {
+    uint32_t tmp;
 
     tmp =   Expand16Table[0][(t1>>0)&0xFF] |
             Expand16Table[1][(t1>>8)&0xFF] |
@@ -815,8 +815,8 @@ template <const unsigned int card,typename templine_type_t> static inline void E
     temps[7] = EGA_Planar_Common_Block_xlat<card,templine_type_t>((tmp>>24ul)&0xFFul);
 }
 
-template <const unsigned int card,typename templine_type_t> static inline void Alt_EGA_Planar_Common_Block(templine_type_t * &temps,const Bit32u t) {
-    Bit32u tmp;
+template <const unsigned int card,typename templine_type_t> static inline void Alt_EGA_Planar_Common_Block(templine_type_t * &temps,const uint32_t t) {
+    uint32_t tmp;
 
     tmp =   Expand16Table[0][(t >>  4)&0xF] |
             Expand16Table[1][(t >> 12)&0xF] |
@@ -845,8 +845,8 @@ template <const unsigned int card,typename templine_type_t> static uint8_t * EGA
     Bitu i = 0;
 
     while (count > 0u) {
-        Bit32u t1,t2;
-        t1 = t2 = *((Bit32u*)(&vga.draw.linear_base[ vidstart & vga.draw.linear_mask ]));
+        uint32_t t1,t2;
+        t1 = t2 = *((uint32_t*)(&vga.draw.linear_base[ vidstart & vga.draw.linear_mask ]));
         t1 = (t1 >> 4) & 0x0f0f0f0f;
         t2 &= 0x0f0f0f0f;
         vidstart += (uintptr_t)4 << (uintptr_t)vga.config.addr_shift;
@@ -863,7 +863,7 @@ static uint8_t * EGA_Draw_VGA_Planar_Xlat8_Line(Bitu vidstart, Bitu line) {
 }
 
 static uint8_t * VGA_Draw_VGA_Planar_Xlat32_Line(Bitu vidstart, Bitu line) {
-    return EGA_Planar_Common_Line<MCH_VGA,Bit32u>(vidstart,line);
+    return EGA_Planar_Common_Line<MCH_VGA,uint32_t>(vidstart,line);
 }
 
 template <const unsigned int card,typename templine_type_t> static uint8_t * Alt_EGA_Planar_Common_Line() {
@@ -872,7 +872,7 @@ template <const unsigned int card,typename templine_type_t> static uint8_t * Alt
 
     while (count > 0u) {
         const unsigned int addr = vga.draw_2[0].crtc_addr_fetch_and_advance();
-        VGA_Latch pixels(*vga.draw_2[0].drawptr<Bit32u>(addr << vga.config.addr_shift));
+        VGA_Latch pixels(*vga.draw_2[0].drawptr<uint32_t>(addr << vga.config.addr_shift));
         Alt_EGA_Planar_Common_Block<card,templine_type_t>(temps,pixels.d);
         count--;
     }
@@ -885,11 +885,11 @@ static uint8_t * Alt_EGA_Planar_Draw_Line(Bitu /*vidstart*/, Bitu /*line*/) {
 }
 
 static uint8_t * Alt_VGA_Planar_Draw_Line(Bitu /*vidstart*/, Bitu /*line*/) {
-    return Alt_EGA_Planar_Common_Line<MCH_VGA,Bit32u>();
+    return Alt_EGA_Planar_Common_Line<MCH_VGA,uint32_t>();
 }
 
 static uint8_t * VGA_Draw_VGA_Packed4_Xlat32_Line(Bitu vidstart, Bitu /*line*/) {
-    Bit32u* temps = (Bit32u*) TempLine;
+    uint32_t* temps = (uint32_t*) TempLine;
 
     for (Bitu i = 0; i < ((vga.draw.line_length>>2)+vga.draw.panning); i += 2) {
         uint8_t t = vga.draw.linear_base[ vidstart & vga.draw.linear_mask ];
@@ -929,7 +929,7 @@ static uint8_t * VGA_Draw_VGA_Line_Xlat32_HWMouse( Bitu vidstart, Bitu /*line*/)
         // This is used when the mouse cursor partially leaves the screen.
         // It is arranged as bitmap of 16bits of bitA followed by 16bits of bitB, each
         // AB bits corresponding to a cursor pixel. The whole map is 8kB in size.
-        Bit32u* temp2 = (Bit32u*)VGA_Draw_Xlat32_Linear_Line(vidstart, 0);
+        uint32_t* temp2 = (uint32_t*)VGA_Draw_Xlat32_Linear_Line(vidstart, 0);
         //memcpy(TempLine, &vga.mem.linear[ vidstart ], vga.draw.width);
 
         // the index of the bit inside the cursor bitmap we start at:
@@ -937,12 +937,12 @@ static uint8_t * VGA_Draw_VGA_Line_Xlat32_HWMouse( Bitu vidstart, Bitu /*line*/)
         // convert to video memory addr and bit index
         // start adjusted to the pattern structure (thus shift address by 2 instead of 3)
         // Need to get rid of the third bit, so "/8 *2" becomes ">> 2 & ~1"
-        Bitu cursorMemStart = ((sourceStartBit >> 2ul) & ~1ul) + (((Bit32u)vga.s3.hgc.startaddr) << 10ul);
+        Bitu cursorMemStart = ((sourceStartBit >> 2ul) & ~1ul) + (((uint32_t)vga.s3.hgc.startaddr) << 10ul);
         Bitu cursorStartBit = sourceStartBit & 0x7u;
         // stay at the right position in the pattern
         if (cursorMemStart & 0x2) cursorMemStart--;
         Bitu cursorMemEnd = cursorMemStart + (Bitu)((64 - vga.s3.hgc.posx) >> 2);
-        Bit32u* xat = &temp2[vga.s3.hgc.originx]; // mouse data start pos. in scanline
+        uint32_t* xat = &temp2[vga.s3.hgc.originx]; // mouse data start pos. in scanline
         for (Bitu m = cursorMemStart; m < cursorMemEnd; (m&1)?(m+=3):m++) {
             // for each byte of cursor data
             uint8_t bitsA = vga.mem.linear[m];
@@ -988,7 +988,7 @@ static uint8_t * VGA_Draw_VGA_Line_HWMouse( Bitu vidstart, Bitu /*line*/) {
         // convert to video memory addr and bit index
         // start adjusted to the pattern structure (thus shift address by 2 instead of 3)
         // Need to get rid of the third bit, so "/8 *2" becomes ">> 2 & ~1"
-        Bitu cursorMemStart = ((sourceStartBit >> 2) & ~1ul) + (((Bit32u)vga.s3.hgc.startaddr) << 10ul);
+        Bitu cursorMemStart = ((sourceStartBit >> 2) & ~1ul) + (((uint32_t)vga.s3.hgc.startaddr) << 10ul);
         Bitu cursorStartBit = sourceStartBit & 0x7u;
         // stay at the right position in the pattern
         if (cursorMemStart & 0x2) cursorMemStart--;
@@ -1041,7 +1041,7 @@ static uint8_t * VGA_Draw_LIN16_Line_HWMouse(Bitu vidstart, Bitu /*line*/) {
     } else {
         memcpy(TempLine, &vga.mem.linear[ vidstart ], vga.draw.width*2);
         Bitu sourceStartBit = ((lineat - vga.s3.hgc.originy) + vga.s3.hgc.posy)*64 + vga.s3.hgc.posx; 
-        Bitu cursorMemStart = ((sourceStartBit >> 2) & ~1ul) + (((Bit32u)vga.s3.hgc.startaddr) << 10ul);
+        Bitu cursorMemStart = ((sourceStartBit >> 2) & ~1ul) + (((uint32_t)vga.s3.hgc.startaddr) << 10ul);
         Bitu cursorStartBit = sourceStartBit & 0x7u;
         if (cursorMemStart & 0x2) cursorMemStart--;
         Bitu cursorMemEnd = cursorMemStart + (Bitu)((64 - vga.s3.hgc.posx) >> 2);
@@ -1092,11 +1092,11 @@ static uint8_t * VGA_Draw_LIN32_Line_HWMouse(Bitu vidstart, Bitu /*line*/) {
     } else {
         memcpy(TempLine, &vga.mem.linear[ vidstart ], vga.draw.width*4);
         Bitu sourceStartBit = ((lineat - vga.s3.hgc.originy) + vga.s3.hgc.posy)*64 + vga.s3.hgc.posx; 
-        Bitu cursorMemStart = ((sourceStartBit >> 2) & ~1ul) + (((Bit32u)vga.s3.hgc.startaddr) << 10ul);
+        Bitu cursorMemStart = ((sourceStartBit >> 2) & ~1ul) + (((uint32_t)vga.s3.hgc.startaddr) << 10ul);
         Bitu cursorStartBit = sourceStartBit & 0x7u;
         if (cursorMemStart & 0x2) cursorMemStart--;
         Bitu cursorMemEnd = cursorMemStart + (Bitu)((64 - vga.s3.hgc.posx) >> 2);
-        Bit32u* xat = &((Bit32u*)TempLine)[vga.s3.hgc.originx];
+        uint32_t* xat = &((uint32_t*)TempLine)[vga.s3.hgc.originx];
         for (Bitu m = cursorMemStart; m < cursorMemEnd; (m&1)?(m+=3):m++) {
             // for each byte of cursor data
             uint8_t bitsA = vga.mem.linear[m];
@@ -1107,9 +1107,9 @@ static uint8_t * VGA_Draw_LIN32_Line_HWMouse(Bitu vidstart, Bitu /*line*/) {
                     if (bitsB&bit) *xat ^= ~0U;
                     //else Transparent
                 } else if (bitsB&bit) {
-                    *xat = *(Bit32u*)vga.s3.hgc.forestack;
+                    *xat = *(uint32_t*)vga.s3.hgc.forestack;
                 } else {
-                    *xat = *(Bit32u*)vga.s3.hgc.backstack;
+                    *xat = *(uint32_t*)vga.s3.hgc.backstack;
                 }
                 xat++;
             }
@@ -1119,8 +1119,8 @@ static uint8_t * VGA_Draw_LIN32_Line_HWMouse(Bitu vidstart, Bitu /*line*/) {
 #endif
 }
 
-static const Bit32u* VGA_Planar_Memwrap(Bitu vidstart) {
-    return (const Bit32u*)vga.mem.linear + (vidstart & vga.draw.planar_mask);
+static const uint32_t* VGA_Planar_Memwrap(Bitu vidstart) {
+    return (const uint32_t*)vga.mem.linear + (vidstart & vga.draw.planar_mask);
 }
 
 static const uint8_t* VGA_Text_Memwrap(Bitu vidstart) {
@@ -1136,11 +1136,11 @@ static const uint8_t* VGA_Text_Memwrap(Bitu vidstart) {
     } else return &vga.tandy.draw_base[vidstart];
 }
 
-static Bit32u FontMask[2]={0xffffffff,0x0};
+static uint32_t FontMask[2]={0xffffffff,0x0};
 
 template <const bool snow> static uint8_t * CGA_COMMON_TEXT_Draw_Line(Bitu vidstart, Bitu line) {
     Bits font_addr;
-    Bit32u * draw=(Bit32u *)TempLine;
+    uint32_t * draw=(uint32_t *)TempLine;
     const uint8_t* vidmem = VGA_Text_Memwrap(vidstart);
 
     if (snow) {
@@ -1164,10 +1164,10 @@ template <const bool snow> static uint8_t * CGA_COMMON_TEXT_Draw_Line(Bitu vidst
         }
 
         Bitu font=vga.draw.font_tables[(col >> 3)&1][chr*32+line];
-        Bit32u mask1=TXT_Font_Table[font>>4] & FontMask[col >> 7];
-        Bit32u mask2=TXT_Font_Table[font&0xf] & FontMask[col >> 7];
-        Bit32u fg=TXT_FG_Table[col&0xf];
-        Bit32u bg=TXT_BG_Table[col>>4];
+        uint32_t mask1=TXT_Font_Table[font>>4] & FontMask[col >> 7];
+        uint32_t mask2=TXT_Font_Table[font&0xf] & FontMask[col >> 7];
+        uint32_t fg=TXT_FG_Table[col&0xf];
+        uint32_t bg=TXT_BG_Table[col>>4];
         *draw++=(fg&mask1) | (bg&~mask1);
         *draw++=(fg&mask2) | (bg&~mask2);
     }
@@ -1180,8 +1180,8 @@ template <const bool snow> static uint8_t * CGA_COMMON_TEXT_Draw_Line(Bitu vidst
     if (font_addr>=0 && font_addr<(Bits)vga.draw.blocks) {
         if (line<vga.draw.cursor.sline) goto skip_cursor;
         if (line>vga.draw.cursor.eline) goto skip_cursor;
-        draw=(Bit32u *)&TempLine[(unsigned long)font_addr*8ul];
-        Bit32u att=TXT_FG_Table[vga.tandy.draw_base[vga.draw.cursor.address+1ul]&0xfu];
+        draw=(uint32_t *)&TempLine[(unsigned long)font_addr*8ul];
+        uint32_t att=TXT_FG_Table[vga.tandy.draw_base[vga.draw.cursor.address+1ul]&0xfu];
         *draw++=att;*draw++=att;
     }
 skip_cursor:
@@ -1218,7 +1218,7 @@ template <const unsigned int card,typename templine_type_t> static inline uint8_
 
     while (blocks--) { // for each character in the line
         const unsigned int addr = vga.draw_2[0].crtc_addr_fetch_and_advance();
-        VGA_Latch pixels(*vga.draw_2[0].drawptr<Bit32u>(addr << vga.config.addr_shift));
+        VGA_Latch pixels(*vga.draw_2[0].drawptr<uint32_t>(addr << vga.config.addr_shift));
         Alt_EGAVGA_Common_2BPP_Draw_Line_CharClock<card,templine_type_t>(draw,pixels);
     }
 
@@ -1230,11 +1230,11 @@ static uint8_t *Alt_EGA_2BPP_Draw_Line(Bitu /*vidstart*/, Bitu /*line*/) {
 }
 
 static uint8_t *Alt_VGA_2BPP_Draw_Line(Bitu /*vidstart*/, Bitu /*line*/) {
-    return Alt_EGAVGA_Common_2BPP_Draw_Line<MCH_VGA,Bit32u>();
+    return Alt_EGAVGA_Common_2BPP_Draw_Line<MCH_VGA,uint32_t>();
 }
 
 static uint8_t *Alt_CGA_2color_Draw_Line(Bitu /*vidstart*/, Bitu /*line*/) {
-    Bit32u* draw = (Bit32u*)TempLine; // NTS: This is typecast in this way only to write 4 pixels at once at 8bpp
+    uint32_t* draw = (uint32_t*)TempLine; // NTS: This is typecast in this way only to write 4 pixels at once at 8bpp
     Bitu blocks = vga.draw.blocks;
 
     while (blocks--) { // for each character in the line
@@ -1252,7 +1252,7 @@ static uint8_t *Alt_CGA_2color_Draw_Line(Bitu /*vidstart*/, Bitu /*line*/) {
 }
 
 static uint8_t *Alt_CGA_4color_Draw_Line(Bitu /*vidstart*/, Bitu /*line*/) {
-    Bit32u* draw = (Bit32u*)TempLine; // NTS: This is typecast in this way only to write 4 pixels at once at 8bpp
+    uint32_t* draw = (uint32_t*)TempLine; // NTS: This is typecast in this way only to write 4 pixels at once at 8bpp
     Bitu blocks = vga.draw.blocks;
 
     while (blocks--) { // for each character in the line
@@ -1276,12 +1276,12 @@ static inline bool Alt_CGA_TEXT_In_Cursor_Row(const unsigned int line) {
         (line <= vga.draw.cursor.eline) && vga.draw.cursor.enabled);
 }
 
-// NTS: 8bpp typecast as Bit32u to speedily draw characters
-static inline void Alt_CGA_TEXT_Combined_Draw_Line_RenderBMP(Bit32u* &draw,unsigned int font,unsigned char attr) {
-    const Bit32u mask1=TXT_Font_Table[font>>4] & FontMask[attr >> 7];
-    const Bit32u mask2=TXT_Font_Table[font&0xf] & FontMask[attr >> 7];
-    const Bit32u fg=TXT_FG_Table[attr&0xf];
-    const Bit32u bg=TXT_BG_Table[attr>>4];
+// NTS: 8bpp typecast as uint32_t to speedily draw characters
+static inline void Alt_CGA_TEXT_Combined_Draw_Line_RenderBMP(uint32_t* &draw,unsigned int font,unsigned char attr) {
+    const uint32_t mask1=TXT_Font_Table[font>>4] & FontMask[attr >> 7];
+    const uint32_t mask2=TXT_Font_Table[font&0xf] & FontMask[attr >> 7];
+    const uint32_t fg=TXT_FG_Table[attr&0xf];
+    const uint32_t bg=TXT_BG_Table[attr>>4];
 
     *draw++=(fg&mask1) | (bg&~mask1);
     *draw++=(fg&mask2) | (bg&~mask2);
@@ -1296,7 +1296,7 @@ static inline unsigned char Alt_CGA_TEXT_Load_Font_Bitmap(const unsigned char ch
 
 template <const bool snow> static uint8_t * Alt_CGA_COMMON_TEXT_Draw_Line(void) {
     // keep it aligned:
-    Bit32u* draw = (Bit32u*)TempLine; // NTS: This is typecast in this way only to write 4 pixels at once at 8bpp
+    uint32_t* draw = (uint32_t*)TempLine; // NTS: This is typecast in this way only to write 4 pixels at once at 8bpp
     Bitu blocks = vga.draw.blocks;
 
     const unsigned int line = vga.draw_2[0].vert.current_char_pixel & 7;
@@ -1349,7 +1349,7 @@ static uint8_t * Alt_CGA_CGASNOW_TEXT_Draw_Line(Bitu /*vidstart*/, Bitu /*line*/
 
 static uint8_t * MCGA_TEXT_Draw_Line(Bitu vidstart, Bitu line) {
     // keep it aligned:
-    Bit32u* draw = (Bit32u*)TempLine;
+    uint32_t* draw = (uint32_t*)TempLine;
     const uint8_t* vidmem = VGA_Text_Memwrap(vidstart);
     Bitu blocks = vga.draw.blocks;
     if (vga.draw.panning) blocks++; // if the text is panned part of an 
@@ -1398,7 +1398,7 @@ static uint8_t * MCGA_TEXT_Draw_Line(Bitu vidstart, Bitu line) {
         Bits attr_addr = ((Bits)vga.draw.cursor.address - (Bits)vidstart) >> (Bits)1; /* <- FIXME: This right? */
         if (attr_addr >= 0 && attr_addr < (Bits)vga.draw.blocks) {
             Bitu index = (Bitu)attr_addr * (vga.draw.char9dot?9u:8u) * 4u;
-            draw = (Bit32u*)(&TempLine[index]);
+            draw = (uint32_t*)(&TempLine[index]);
             
             Bitu foreground = vga.tandy.draw_base[(vga.draw.cursor.address<<1)+1] & 0xf;
             for (Bitu i = 0; i < 8; i++) {
@@ -1411,7 +1411,7 @@ static uint8_t * MCGA_TEXT_Draw_Line(Bitu vidstart, Bitu line) {
 
 static uint8_t * VGA_TEXT_Herc_Draw_Line(Bitu vidstart, Bitu line) {
     Bits font_addr;
-    Bit32u * draw=(Bit32u *)TempLine;
+    uint32_t * draw=(uint32_t *)TempLine;
     const uint8_t* vidmem = VGA_Text_Memwrap(vidstart);
 
     for (Bitu cx=0;cx<vga.draw.blocks;cx++) {
@@ -1422,7 +1422,7 @@ static uint8_t * VGA_TEXT_Herc_Draw_Line(Bitu vidstart, Bitu line) {
             *draw++=0;
             *draw++=0;
         } else {
-            Bit32u bg, fg;
+            uint32_t bg, fg;
             bool underline=false;
             if ((attrib&0x77)==0x70) {
                 bg = TXT_BG_Table[0x7];
@@ -1434,7 +1434,7 @@ static uint8_t * VGA_TEXT_Herc_Draw_Line(Bitu vidstart, Bitu line) {
                 if (attrib&0x8) fg = TXT_FG_Table[0xf];
                 else fg = TXT_FG_Table[0x7];
             }
-            Bit32u mask1, mask2;
+            uint32_t mask1, mask2;
             if (GCC_UNLIKELY(underline)) mask1 = mask2 = FontMask[attrib >> 7];
             else {
                 Bitu font=vga.draw.font_tables[0][chr*32+line];
@@ -1450,9 +1450,9 @@ static uint8_t * VGA_TEXT_Herc_Draw_Line(Bitu vidstart, Bitu line) {
     if (font_addr>=0 && font_addr<(Bits)vga.draw.blocks) {
         if (line<vga.draw.cursor.sline) goto skip_cursor;
         if (line>vga.draw.cursor.eline) goto skip_cursor;
-        draw=(Bit32u *)&TempLine[(unsigned long)font_addr*8ul];
+        draw=(uint32_t *)&TempLine[(unsigned long)font_addr*8ul];
         uint8_t attr = vga.tandy.draw_base[vga.draw.cursor.address+1];
-        Bit32u cg;
+        uint32_t cg;
         if (attr&0x8) {
             cg = TXT_FG_Table[0xf];
         } else if ((attr&0x77)==0x70) {
@@ -1476,14 +1476,14 @@ static inline bool Alt_MDA_TEXT_In_Cursor_Row(const unsigned int line) {
         (line <= vga.draw.cursor.eline) && vga.draw.cursor.enabled);
 }
 
-// NTS: 8bpp typecast as Bit32u to speedily draw characters
-static inline void Alt_MDA_TEXT_Combined_Draw_Line_RenderBMP(Bit32u* &draw,unsigned int font,unsigned char attrib) {
+// NTS: 8bpp typecast as uint32_t to speedily draw characters
+static inline void Alt_MDA_TEXT_Combined_Draw_Line_RenderBMP(uint32_t* &draw,unsigned int font,unsigned char attrib) {
     if (!(attrib&0x77)) {
         // 00h, 80h, 08h, 88h produce black space
         *draw++=0;
         *draw++=0;
     } else {
-        Bit32u bg, fg;
+        uint32_t bg, fg;
 
         if ((attrib&0x77)==0x70) {
             bg = TXT_BG_Table[0x7];
@@ -1495,8 +1495,8 @@ static inline void Alt_MDA_TEXT_Combined_Draw_Line_RenderBMP(Bit32u* &draw,unsig
             else fg = TXT_FG_Table[0x7];
         }
 
-        const Bit32u mask1=TXT_Font_Table[font>>4] & FontMask[attrib >> 7]; // blinking
-        const Bit32u mask2=TXT_Font_Table[font&0xf] & FontMask[attrib >> 7];
+        const uint32_t mask1=TXT_Font_Table[font>>4] & FontMask[attrib >> 7]; // blinking
+        const uint32_t mask2=TXT_Font_Table[font&0xf] & FontMask[attrib >> 7];
         *draw++=(fg&mask1) | (bg&~mask1);
         *draw++=(fg&mask2) | (bg&~mask2);
     }
@@ -1513,7 +1513,7 @@ static inline unsigned char Alt_MDA_TEXT_Load_Font_Bitmap(const unsigned char ch
 
 static uint8_t * Alt_MDA_COMMON_TEXT_Draw_Line(void) {
     // keep it aligned:
-    Bit32u* draw = (Bit32u*)TempLine; // NTS: This is typecast in this way only to write 4 pixels at once at 8bpp
+    uint32_t* draw = (uint32_t*)TempLine; // NTS: This is typecast in this way only to write 4 pixels at once at 8bpp
     Bitu blocks = vga.draw.blocks;
 
     const unsigned int line = vga.draw_2[0].vert.current_char_pixel & 15;
@@ -1540,7 +1540,7 @@ static uint8_t * Alt_MDA_TEXT_Draw_Line(Bitu /*vidstart*/, Bitu /*line*/) {
 template <const unsigned int card,typename templine_type_t> static inline uint8_t* EGAVGA_TEXT_Combined_Draw_Line(Bitu vidstart,Bitu line) {
     // keep it aligned:
     templine_type_t* draw = ((templine_type_t*)TempLine) + 16 - vga.draw.panning;
-    const Bit32u* vidmem = VGA_Planar_Memwrap(vidstart); // pointer to chars+attribs
+    const uint32_t* vidmem = VGA_Planar_Memwrap(vidstart); // pointer to chars+attribs
     Bitu blocks = vga.draw.blocks;
     if (vga.draw.panning) blocks++; // if the text is panned part of an 
                                     // additional character becomes visible
@@ -1619,7 +1619,7 @@ static uint8_t* EGA_TEXT_Xlat8_Draw_Line(Bitu vidstart, Bitu line) {
 
 // combined 8/9-dot wide text mode 16bpp line drawing function
 static uint8_t* VGA_TEXT_Xlat32_Draw_Line(Bitu vidstart, Bitu line) {
-    return EGAVGA_TEXT_Combined_Draw_Line<MCH_VGA,Bit32u>(vidstart,line);
+    return EGAVGA_TEXT_Combined_Draw_Line<MCH_VGA,uint32_t>(vidstart,line);
 }
 
 template <const unsigned int card,typename templine_type_t,const unsigned int pixels> static inline void Alt_EGAVGA_TEXT_Combined_Draw_Line_RenderBMP(templine_type_t* &draw,unsigned int font,const unsigned char foreground,const unsigned char background) {
@@ -1687,7 +1687,7 @@ template <const unsigned int card,typename templine_type_t,const unsigned int pi
 
     while (blocks--) { // for each character in the line
         const unsigned int addr = vga.draw_2[0].crtc_addr_fetch_and_advance();
-        VGA_Latch pixels(*vga.draw_2[0].drawptr<Bit32u>(addr << vga.config.addr_shift));
+        VGA_Latch pixels(*vga.draw_2[0].drawptr<uint32_t>(addr << vga.config.addr_shift));
 
         const unsigned char chr = pixels.b[0];
         const unsigned char attr = pixels.b[1];
@@ -1718,7 +1718,7 @@ static uint8_t* Alt_EGA_TEXT_Xlat8_Draw_Line(Bitu /*vidstart*/, Bitu /*line*/) {
 
 // combined 8/9-dot wide text mode 16bpp line drawing function
 static uint8_t* Alt_VGA_TEXT_Xlat32_Draw_Line(Bitu /*vidstart*/, Bitu /*line*/) {
-    return Alt_EGAVGA_TEXT_Combined_Draw_Line<MCH_VGA,Bit32u>();
+    return Alt_EGAVGA_TEXT_Combined_Draw_Line<MCH_VGA,uint32_t>();
 }
 
 extern bool pc98_attr4_graphic;
@@ -1883,9 +1883,9 @@ extern bool                 gdc_5mhz_mode;
 
 static uint8_t* VGA_PC98_Xlat32_Draw_Line(Bitu vidstart, Bitu line) {
     // keep it aligned:
-    Bit32u* draw = ((Bit32u*)TempLine);
+    uint32_t* draw = ((uint32_t*)TempLine);
     Bitu blocks = vga.draw.blocks;
-    Bit32u vidmem = vidstart;
+    uint32_t vidmem = vidstart;
     uint16_t chr = 0,attr = 0;
     uint16_t lineoverlay = 0; // vertical + underline overlay over the character cell, but apparently with a 4-pixel delay
     bool doublewide = false;
@@ -1919,7 +1919,7 @@ static uint8_t* VGA_PC98_Xlat32_Draw_Line(Bitu vidstart, Bitu line) {
     // Think of it as a 3-plane GRB color graphics mode, each plane is 1 bit per pixel.
     // G-RAM is addressed 16 bits per RAM cycle.
     if (pc98_gdc[GDC_SLAVE].display_enable && ok_raster && pc98_display_enable) {
-        draw = ((Bit32u*)TempLine) + disp_off;
+        draw = ((uint32_t*)TempLine) + disp_off;
         blocks = vga.draw.blocks;
 
         if (pc98_gdc_vramop & (1 << VOPBIT_VGA)) {
@@ -1987,7 +1987,7 @@ static uint8_t* VGA_PC98_Xlat32_Draw_Line(Bitu vidstart, Bitu line) {
     if (pc98_gdc[GDC_MASTER].display_enable && pc98_display_enable) {
         Bitu gdcvidmem = pc98_gdc[GDC_MASTER].scan_address;
 
-        draw = ((Bit32u*)TempLine);/* without the disp_off, to emulate 1-pixel cutoff in CRT mode */
+        draw = ((uint32_t*)TempLine);/* without the disp_off, to emulate 1-pixel cutoff in CRT mode */
         blocks = vga.draw.blocks;
 
         vidmem = pc98_gdc[GDC_MASTER].scan_address;
@@ -2421,8 +2421,8 @@ again:
                     wptr[i] = value;
                 }
             } else if (vga.draw.bpp==32) {
-                Bit32u* wptr = (Bit32u*) TempLine;
-                Bit32u value = vga.dac.xlat32[bg_color_index];
+                uint32_t* wptr = (uint32_t*) TempLine;
+                uint32_t value = vga.dac.xlat32[bg_color_index];
                 for (Bitu i = 0; i < sizeof(TempLine)/4; i++) {
                     wptr[i] = value;
                 }

@@ -38,7 +38,7 @@ bool has_pcibus_enable(void) {
     return pcibus_enable;
 }
 
-static Bit32u pci_caddress=0;			// current PCI addressing
+static uint32_t pci_caddress=0;			// current PCI addressing
 
 static PCI_Device* pci_devices[PCI_MAX_PCIBUSSES][PCI_MAX_PCIDEVICES]={{NULL}};		// registered PCI devices
 
@@ -54,7 +54,7 @@ static void write_pci_addr(Bitu port,Bitu val,Bitu iolen) {
     (void)iolen;//UNUSED
     (void)port;//UNUSED
     if (log_pci) LOG(LOG_PCI,LOG_DEBUG)("Write PCI address :=%x",(int)val);
-	pci_caddress=(Bit32u)val;
+	pci_caddress=(uint32_t)val;
 }
 
 static void write_pci(Bitu port,Bitu val,Bitu iolen) {
@@ -72,7 +72,7 @@ static void write_pci(Bitu port,Bitu val,Bitu iolen) {
 
 		PCI_Device* dev=pci_devices[busnum][devnum];
 		if (dev == NULL) return;
-		dev->config_write(regnum,iolen,(Bit32u)val);
+		dev->config_write(regnum,iolen,(uint32_t)val);
 	}
 }
 
@@ -151,10 +151,10 @@ public:
 		host_writew(config_writemask+0x04,0x0023);	/* allow changing mem/io enable and VGA palette snoop */
 
 		host_writed(config_writemask+0x10,0xFF000000);	/* BAR0: memory resource 16MB aligned */
-		host_writed(config+0x10,(((Bit32u)S3_LFB_BASE)&0xfffffff0) | 0x8);
+		host_writed(config+0x10,(((uint32_t)S3_LFB_BASE)&0xfffffff0) | 0x8);
 
 		host_writed(config_writemask+0x14,0xFFFF0000);	/* BAR1: memory resource 64KB aligned */
-		host_writed(config+0x14,(((Bit32u)(S3_LFB_BASE+0x1000000))&0xfffffff0));
+		host_writed(config+0x14,(((uint32_t)(S3_LFB_BASE+0x1000000))&0xfffffff0));
 	}
 };
 
@@ -187,7 +187,7 @@ public:
 		host_writew(config_writemask+0x04,0x0123);	/* allow changing mem/io enable, B2B enable, and VGA palette snoop */
 
 		host_writed(config_writemask+0x10,0xFF000000);	/* BAR0: memory resource 16MB aligned */
-		host_writed(config+0x10,(((Bit32u)VOODOO_INITIAL_LFB)&0xfffffff0) | 0x8);
+		host_writed(config+0x10,(((uint32_t)VOODOO_INITIAL_LFB)&0xfffffff0) | 0x8);
 
 		if (getDeviceID() >= 2) {
 			config[0x40] = 0x00;
@@ -197,7 +197,7 @@ public:
 		}
 	}
 
-	virtual void config_write(uint8_t regnum,Bitu iolen,Bit32u value) {
+	virtual void config_write(uint8_t regnum,Bitu iolen,uint32_t value) {
 		if (iolen == 1) {
             const unsigned char mask = config_writemask[regnum];
             const unsigned char nmask = ~mask;
@@ -231,7 +231,7 @@ public:
 			PCI_Device::config_write(regnum,iolen,value); /* which will break down I/O into 8-bit */
 		}
 	}
-	virtual Bit32u config_read(uint8_t regnum,Bitu iolen) {
+	virtual uint32_t config_read(uint8_t regnum,Bitu iolen) {
 		if (iolen == 1) {
 			switch (regnum) {
 				case 0x4c: /* FIXME: I hope I ported this right --J.C. */

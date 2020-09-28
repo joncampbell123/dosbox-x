@@ -86,7 +86,7 @@ extern bool pcibus_enable;
 
 uint32_t Keyb_ig_status();
 bool VM_Boot_DOSBox_Kernel();
-Bit32u MEM_get_address_bits();
+uint32_t MEM_get_address_bits();
 Bitu bios_post_parport_count();
 Bitu bios_post_comport_count();
 void pc98_update_cpu_page_ptr(void);
@@ -409,7 +409,7 @@ void dosbox_integration_trigger_read() {
             break;
 
         case 0x434D55: /* read user mouse cursor position */
-            dosbox_int_register = (Bit32u((uint16_t)user_cursor_y & 0xFFFFUL) << 16UL) | Bit32u((uint16_t)user_cursor_x & 0xFFFFUL);
+            dosbox_int_register = (uint32_t((uint16_t)user_cursor_y & 0xFFFFUL) << 16UL) | uint32_t((uint16_t)user_cursor_x & 0xFFFFUL);
             break;
 
         case 0x434D56: { /* read user mouse cursor position (normalized for Windows 3.x) */
@@ -2063,7 +2063,7 @@ static Bitu INT70_Handler(void) {
     IO_Write(0x70,0xc);
     IO_Read(0x71);
     if (mem_readb(BIOS_WAIT_FLAG_ACTIVE)) {
-        Bit32u count=mem_readd(BIOS_WAIT_FLAG_COUNT);
+        uint32_t count=mem_readd(BIOS_WAIT_FLAG_COUNT);
         if (count>997) {
             mem_writed(BIOS_WAIT_FLAG_COUNT,count-997);
         } else {
@@ -2193,7 +2193,7 @@ static void Tandy_SetupTransfer(PhysPt bufpt,bool isplayback) {
     real_writeb(0x40,0xd4,bufpage);
 
     /* calculate transfer size (respects segment boundaries) */
-    Bit32u tlength=length;
+    uint32_t tlength=length;
     if (tlength+(bufpt&0xffff)>0x10000) tlength=0x10000-(bufpt&0xffff);
     real_writew(0x40,0xd0,(uint16_t)(length-tlength));    /* remaining buffer length */
     tlength--;
@@ -2356,7 +2356,7 @@ static Bitu INT1A_Handler(void) {
     switch (reg_ah) {
     case 0x00:  /* Get System time */
         {
-            Bit32u ticks=mem_readd(BIOS_TIMER);
+            uint32_t ticks=mem_readd(BIOS_TIMER);
             reg_al=mem_readb(BIOS_24_HOURS_FLAG);
             mem_writeb(BIOS_24_HOURS_FLAG,0); // reset the "flag"
             reg_cx=(uint16_t)(ticks >> 16u);
@@ -2460,7 +2460,7 @@ static Bitu INT1A_Handler(void) {
                 case 0x02: {    // find device
                     Bitu devnr=0u;
                     Bitu count=0x100u;
-                    Bit32u devicetag=((unsigned int)reg_cx<<16u)|reg_dx;
+                    uint32_t devicetag=((unsigned int)reg_cx<<16u)|reg_dx;
                     Bits found=-1;
                     for (Bitu i=0; i<=count; i++) {
                         IO_WriteD(0xcf8,0x80000000u|(i<<8u)); // query unique device/subdevice entries
@@ -2488,7 +2488,7 @@ static Bitu INT1A_Handler(void) {
                 case 0x03: {    // find device by class code
                     Bitu devnr=0;
                     Bitu count=0x100u;
-                    Bit32u classtag=reg_ecx&0xffffffu;
+                    uint32_t classtag=reg_ecx&0xffffffu;
                     Bits found=-1;
                     for (Bitu i=0; i<=count; i++) {
                         IO_WriteD(0xcf8,0x80000000u|(i<<8u)); // query unique device/subdevice entries
@@ -3806,9 +3806,9 @@ static unsigned int PC98_FDC_SZ_TO_BYTES(unsigned int sz) {
     return 128U << sz;
 }
 
-int PC98_BIOS_SCSI_POS(imageDisk *floppy,Bit32u &sector) {
+int PC98_BIOS_SCSI_POS(imageDisk *floppy,uint32_t &sector) {
     if (reg_al & 0x80) {
-        Bit32u img_heads=0,img_cyl=0,img_sect=0,img_ssz=0;
+        uint32_t img_heads=0,img_cyl=0,img_sect=0,img_ssz=0;
 
         floppy->Get_Geometry(&img_heads, &img_cyl, &img_sect, &img_ssz);
 
@@ -3839,11 +3839,11 @@ int PC98_BIOS_SCSI_POS(imageDisk *floppy,Bit32u &sector) {
 }
 
 void PC98_BIOS_SCSI_CALL(void) {
-    Bit32u img_heads=0,img_cyl=0,img_sect=0,img_ssz=0;
-    Bit32u memaddr,size,ssize;
+    uint32_t img_heads=0,img_cyl=0,img_sect=0,img_ssz=0;
+    uint32_t memaddr,size,ssize;
     imageDisk *floppy;
     unsigned int i;
-    Bit32u sector;
+    uint32_t sector;
     int idx;
 
 #if 0
@@ -4070,7 +4070,7 @@ void FDC_WAIT_TIMER_HACK(void) {
 
 void PC98_BIOS_FDC_CALL(unsigned int flags) {
     static unsigned int fdc_cyl[2]={0,0},fdc_head[2]={0,0},fdc_sect[2]={0,0},fdc_sz[2]={0,0}; // FIXME: Rename and move out. Making "static" is a hack here.
-    Bit32u img_heads=0,img_cyl=0,img_sect=0,img_ssz=0;
+    uint32_t img_heads=0,img_cyl=0,img_sect=0,img_ssz=0;
     unsigned int drive;
     unsigned int status;
     unsigned int size,accsize,unitsize;
@@ -5288,14 +5288,14 @@ static Bitu INT11_Handler(void) {
 #endif
 
 static void BIOS_HostTimeSync() {
-    Bit32u milli = 0;
+    uint32_t milli = 0;
 #if defined(DB_HAVE_CLOCK_GETTIME) && ! defined(WIN32)
     struct timespec tp;
     clock_gettime(CLOCK_REALTIME,&tp);
 	
     struct tm *loctime;
     loctime = localtime(&tp.tv_sec);
-    milli = (Bit32u) (tp.tv_nsec / 1000000);
+    milli = (uint32_t) (tp.tv_nsec / 1000000);
 #else
     /* Setup time and date */
     struct timeb timebuffer;
@@ -5303,7 +5303,7 @@ static void BIOS_HostTimeSync() {
     
     const struct tm *loctime;
     loctime = localtime (&timebuffer.time);
-    milli = (Bit32u) timebuffer.millitm;
+    milli = (uint32_t) timebuffer.millitm;
 #endif
     /*
     loctime->tm_hour = 23;
@@ -5318,7 +5318,7 @@ static void BIOS_HostTimeSync() {
     dos.date.month=(uint8_t)loctime->tm_mon+1;
     dos.date.year=(uint16_t)loctime->tm_year+1900;
 
-    Bit32u ticks=(Bit32u)(((double)(
+    uint32_t ticks=(uint32_t)(((double)(
         (unsigned int)loctime->tm_hour*3600u*1000u+
         (unsigned int)loctime->tm_min*60u*1000u+
         (unsigned int)loctime->tm_sec*1000u+
@@ -5377,7 +5377,7 @@ static Bitu INT8_PC98_Handler(void) {
 
 static Bitu INT8_Handler(void) {
     /* Increase the bios tick counter */
-    Bit32u value = mem_readd(BIOS_TIMER) + 1;
+    uint32_t value = mem_readd(BIOS_TIMER) + 1;
     if(value >= 0x1800B0) {
         // time wrap at midnight
         mem_writeb(BIOS_24_HOURS_FLAG,mem_readb(BIOS_24_HOURS_FLAG)+1);
@@ -5407,7 +5407,7 @@ static Bitu INT8_Handler(void) {
             check = false;
             time_t curtime;struct tm *loctime;
             curtime = time (NULL);loctime = localtime (&curtime);
-            Bit32u ticksnu = (Bit32u)((loctime->tm_hour*3600+loctime->tm_min*60+loctime->tm_sec)*(float)PIT_TICK_RATE/65536.0);
+            uint32_t ticksnu = (uint32_t)((loctime->tm_hour*3600+loctime->tm_min*60+loctime->tm_sec)*(float)PIT_TICK_RATE/65536.0);
             Bit32s bios = value;Bit32s tn = ticksnu;
             Bit32s diff = tn - bios;
             if(diff>0) {
@@ -5704,7 +5704,7 @@ static Bitu INT15_Handler(void) {
                 CALLBACK_SCF(true);
                 break;
             }
-            Bit32u count=((Bit32u)reg_cx<<16u)|reg_dx;
+            uint32_t count=((uint32_t)reg_cx<<16u)|reg_dx;
             mem_writed(BIOS_WAIT_FLAG_POINTER,RealMake(SegValue(es),reg_bx));
             mem_writed(BIOS_WAIT_FLAG_COUNT,count);
             mem_writeb(BIOS_WAIT_FLAG_ACTIVE,1);
@@ -5758,7 +5758,7 @@ static Bitu INT15_Handler(void) {
                 break;
             }
             uint8_t t;
-            Bit32u count=((Bit32u)reg_cx<<16u)|reg_dx;
+            uint32_t count=((uint32_t)reg_cx<<16u)|reg_dx;
             mem_writed(BIOS_WAIT_FLAG_POINTER,RealMake(0,BIOS_WAIT_FLAG_TEMP));
             mem_writed(BIOS_WAIT_FLAG_COUNT,count);
             mem_writeb(BIOS_WAIT_FLAG_ACTIVE,1);
@@ -6956,7 +6956,7 @@ void gdc_16color_enable_update_vars(void) {
     }
 }
 
-Bit32u BIOS_get_PC98_INT_STUB(void) {
+uint32_t BIOS_get_PC98_INT_STUB(void) {
     return callback[18].Get_RealPointer();
 }
 
@@ -7015,7 +7015,7 @@ private:
 
         if (bios_post_counter != 0 && reset_post_delay != 0) {
             /* reboot delay, in case the guest OS/application had something to day before hitting the "reset" signal */
-            Bit32u lasttick=GetTicks();
+            uint32_t lasttick=GetTicks();
             while ((GetTicks()-lasttick) < reset_post_delay) {
                 void CALLBACK_IdleNoInts(void);
                 CALLBACK_IdleNoInts();
@@ -7480,7 +7480,7 @@ private:
             {
                 Bitu ofs = 0xFD813; /* 0xFD80:0013 try not to look like a phony address */
                 unsigned int vec = 0x1D;
-                Bit32u target = callback[6].Get_RealPointer();
+                uint32_t target = callback[6].Get_RealPointer();
 
                 phys_writeb(ofs+0,0xEA);        // JMP FAR <callback>
                 phys_writed(ofs+1,target);
@@ -8139,7 +8139,7 @@ private:
     CALLBACK_HandlerObject cb_bios_adapter_rom_scan;
     static Bitu cb_bios_adapter_rom_scan__func(void) {
         unsigned long size;
-        Bit32u c1;
+        uint32_t c1;
 
         /* FIXME: I have no documentation on how PC-98 scans for adapter ROM or even if it supports it */
         if (IS_PC98_ARCH) return CBRET_NONE;
@@ -8440,7 +8440,7 @@ private:
         //       modified, with the same look and feel of an old BIOS.
 
 #if C_EMSCRIPTEN
-        Bit32u lasttick=GetTicks();
+        uint32_t lasttick=GetTicks();
         while ((GetTicks()-lasttick)<1000) {
             void CALLBACK_Idle(void);
             CALLBACK_Idle();
@@ -8450,7 +8450,7 @@ private:
         bool fastbioslogo=static_cast<Section_prop *>(control->GetSection("dosbox"))->Get_bool("fastbioslogo")||control->opt_fastbioslogo||control->opt_fastlaunch;
         if (!fastbioslogo&&!bootguest&&!bootfast&&(bootvm||!use_quick_reboot)) {
             bool wait_for_user = false;
-            Bit32u lasttick=GetTicks();
+            uint32_t lasttick=GetTicks();
             while ((GetTicks()-lasttick)<1000) {
                 if (machine == MCH_PC98) {
                     reg_eax = 0x0100;   // sense key
@@ -8922,7 +8922,7 @@ public:
         }
         real_writeb(0x40,0xd4,0x00);
         if (tandy_DAC_callback[0]) {
-            Bit32u orig_vector=real_readd(0x40,0xd6);
+            uint32_t orig_vector=real_readd(0x40,0xd6);
             if (orig_vector==tandy_DAC_callback[0]->Get_RealPointer()) {
                 /* set IRQ vector to old value */
                 uint8_t tandy_irq = 7;

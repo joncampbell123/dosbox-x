@@ -181,7 +181,7 @@ struct FullData {
 	Bitu entry;
 	Bitu rm;
 	EAPoint rm_eaa;
-	Bit32u rm_off;
+	uint32_t rm_off;
 	Bitu rm_eai;
 	Bitu rm_index;
 	Bitu rm_mod;
@@ -189,7 +189,7 @@ struct FullData {
 	EAPoint cseip;
 #ifdef WORDS_BIGENDIAN
 	union {
-		Bit32u dword[1];
+		uint32_t dword[1];
 		Bit32s dwords[1];
 		uint16_t word[2];
 		int16_t words[2];
@@ -200,7 +200,7 @@ struct FullData {
 	union {	
 		uint8_t b;int8_t bs;
 		uint16_t w;int16_t ws;
-		Bit32u d;Bit32s ds;
+		uint32_t d;Bit32s ds;
 	} op1,op2,imm;
 #endif
 	Bitu new_flags;

@@ -108,7 +108,7 @@ restartopcode:
 		inst.entry=(inst.entry & 0xffffff00u) | Fetchb();
 		inst.code=OpCodeTable[inst.entry];
         Bitu old_flags = reg_flags;
-		Bit32u old_esp = reg_esp; // always restore stack pointer on page fault
+		uint32_t old_esp = reg_esp; // always restore stack pointer on page fault
 		try {
 			#include "core_full/load.h"
 			#include "core_full/op.h"

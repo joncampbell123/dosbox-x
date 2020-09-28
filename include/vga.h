@@ -134,13 +134,13 @@ typedef struct {
 	uint8_t data_rotate;
 	uint8_t raster_op;
 
-	Bit32u full_bit_mask;
-	Bit32u full_map_mask;
-	Bit32u full_not_map_mask;
-	Bit32u full_set_reset;
-	Bit32u full_not_enable_set_reset;
-	Bit32u full_enable_set_reset;
-	Bit32u full_enable_and_set_reset;
+	uint32_t full_bit_mask;
+	uint32_t full_map_mask;
+	uint32_t full_not_map_mask;
+	uint32_t full_set_reset;
+	uint32_t full_not_enable_set_reset;
+	uint32_t full_enable_set_reset;
+	uint32_t full_enable_and_set_reset;
 } VGA_Config;
 
 typedef enum {
@@ -573,7 +573,7 @@ typedef struct {
 } VGA_HERC;
 
 typedef struct {
-	Bit32u mask_plane;
+	uint32_t mask_plane;
 	uint8_t write_plane;
 	uint8_t read_plane;
 	uint8_t border_color;
@@ -700,7 +700,7 @@ typedef struct {
 	uint8_t combine[16];
 	RGBEntry rgb[0x100];
 	uint16_t xlat16[256];
-	Bit32u xlat32[256];
+	uint32_t xlat32[256];
 	uint8_t hidac_counter;
 	uint8_t reg02;
 } VGA_Dac;
@@ -724,11 +724,11 @@ typedef union CGA_Latch {
 } CGA_Latch;
 
 typedef union VGA_Latch {
-	Bit32u d;
+	uint32_t d;
     uint8_t b[4] = {};
 
     VGA_Latch() { }
-    VGA_Latch(const Bit32u raw) : d(raw) { }
+    VGA_Latch(const uint32_t raw) : d(raw) { }
 } VGA_Latch;
 
 typedef struct VGA_Memory_t {
@@ -741,9 +741,9 @@ typedef struct VGA_Memory_t {
 } VGA_Memory;
 
 typedef struct {
-	Bit32u page;
-	Bit32u addr;
-	Bit32u mask;
+	uint32_t page;
+	uint32_t addr;
+	uint32_t mask;
 	PageHandler *handler;
 } VGA_LFB;
 
@@ -890,17 +890,17 @@ void SVGA_Setup_Driver(void);
 // Amount of video memory required for a mode, implemented in int10_modes.cpp
 Bitu VideoModeMemSize(Bitu mode);
 
-extern Bit32u ExpandTable[256];
-extern Bit32u FillTable[16];
-extern Bit32u CGA_2_Table[16];
-extern Bit32u CGA_4_Table[256];
-extern Bit32u CGA_4_HiRes_Table[256];
-extern Bit32u CGA_16_Table[256];
-extern Bit32u TXT_Font_Table[16];
-extern Bit32u TXT_FG_Table[16];
-extern Bit32u TXT_BG_Table[16];
-extern Bit32u Expand16Table[4][16];
-extern Bit32u Expand16BigTable[0x10000];
+extern uint32_t ExpandTable[256];
+extern uint32_t FillTable[16];
+extern uint32_t CGA_2_Table[16];
+extern uint32_t CGA_4_Table[256];
+extern uint32_t CGA_4_HiRes_Table[256];
+extern uint32_t CGA_16_Table[256];
+extern uint32_t TXT_Font_Table[16];
+extern uint32_t TXT_FG_Table[16];
+extern uint32_t TXT_BG_Table[16];
+extern uint32_t Expand16Table[4][16];
+extern uint32_t Expand16BigTable[0x10000];
 
 void VGA_DAC_UpdateColorPalette();
 

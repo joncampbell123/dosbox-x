@@ -181,7 +181,7 @@ static const uint8_t ch_slot[18] = {
 typedef int16_t(*envelope_sinfunc)(uint16_t phase, uint16_t envelope);
 typedef void(*envelope_genfunc)(opl3_slot *slott);
 
-static int16_t OPL3_EnvelopeCalcExp(Bit32u level)
+static int16_t OPL3_EnvelopeCalcExp(uint32_t level)
 {
     if (level > 0x1fff)
     {
@@ -522,9 +522,9 @@ static void OPL3_PhaseGenerate(opl3_slot *slot)
 {
     opl3_chip *chip;
     uint16_t f_num;
-    Bit32u basefreq;
+    uint32_t basefreq;
     uint8_t rm_xor, n_bit;
-    Bit32u noise;
+    uint32_t noise;
     uint16_t phase;
 
     chip = slot->chip;
@@ -1191,7 +1191,7 @@ void OPL3_GenerateResampled(opl3_chip *chip, int16_t *buf)
     chip->samplecnt += 1 << RSM_FRAC;
 }
 
-void OPL3_Reset(opl3_chip *chip, Bit32u samplerate)
+void OPL3_Reset(opl3_chip *chip, uint32_t samplerate)
 {
     uint8_t slotnum;
     uint8_t channum;
@@ -1365,9 +1365,9 @@ void OPL3_WriteRegBuffered(opl3_chip *chip, uint16_t reg, uint8_t v)
     chip->writebuf_last = (chip->writebuf_last + 1) % OPL_WRITEBUF_SIZE;
 }
 
-void OPL3_GenerateStream(opl3_chip *chip, int16_t *sndptr, Bit32u numsamples)
+void OPL3_GenerateStream(opl3_chip *chip, int16_t *sndptr, uint32_t numsamples)
 {
-    Bit32u i;
+    uint32_t i;
 
     for(i = 0; i < numsamples; i++)
     {

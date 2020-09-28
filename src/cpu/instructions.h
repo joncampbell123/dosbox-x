@@ -319,7 +319,7 @@ extern bool enable_fpu;
 
 #define RCLD(op1,op2,load,save)							\
 	if (!op2) break;									\
-{	Bit32u cf=(Bit32u)FillFlags()&0x1;					\
+{	uint32_t cf=(uint32_t)FillFlags()&0x1;					\
 	lf_var1d=load(op1);									\
 	lf_var2b=op2;										\
 	if (lf_var2b==1)	{								\
@@ -362,7 +362,7 @@ extern bool enable_fpu;
 
 #define RCRD(op1,op2,load,save)								\
 	if (op2) {												\
-		Bit32u cf=(Bit32u)FillFlags()&0x1;					\
+		uint32_t cf=(uint32_t)FillFlags()&0x1;					\
 		lf_var1d=load(op1);									\
 		lf_var2b=op2;										\
 		if (lf_var2b==1) {									\
@@ -589,7 +589,7 @@ extern bool enable_fpu;
 	}
 
 #define PARITY16(x)  (parity_lookup[((unsigned int)((uint16_t)(x))>>8u)&0xffu]^parity_lookup[((uint8_t)(x))&0xffu]^FLAG_PF)
-#define PARITY32(x)  (PARITY16(((uint16_t)(x))&0xffffu)^PARITY16(((unsigned int)((Bit32u)(x))>>16u)&0xffffu)^FLAG_PF)
+#define PARITY32(x)  (PARITY16(((uint16_t)(x))&0xffffu)^PARITY16(((unsigned int)((uint32_t)(x))>>16u)&0xffffu)^FLAG_PF)
 
 #define MULB(op1,load,save)									\
 	reg_ax=reg_al*load(op1);								\
@@ -620,8 +620,8 @@ extern bool enable_fpu;
 #define MULD(op1,load,save)									\
 {															\
 	Bit64u tempu=(Bit64u)reg_eax*(Bit64u)(load(op1));		\
-	reg_eax=(Bit32u)(tempu);								\
-	reg_edx=(Bit32u)(tempu >> 32);							\
+	reg_eax=(uint32_t)(tempu);								\
+	reg_edx=(uint32_t)(tempu >> 32);							\
 	FillFlagsNoCFOF();										\
 	SETFLAGBIT(ZF,reg_eax == 0 && CPU_CORE >= CPU_ARCHTYPE_286);							\
 	SETFLAGBIT(PF,PARITY32(reg_eax)^PARITY32(reg_edx)^FLAG_PF);						\
@@ -656,11 +656,11 @@ extern bool enable_fpu;
 {															\
 	Bitu val=load(op1);										\
 	if (val==0)	EXCEPTION(0);								\
-	Bitu num=((Bit32u)reg_dx<<16)|reg_ax;							\
+	Bitu num=((uint32_t)reg_dx<<16)|reg_ax;							\
 	Bitu quo=num/val;										\
 	uint16_t rem=(uint16_t)(num % val);							\
 	uint16_t quo16=(uint16_t)(quo&0xffff);						\
-	if (quo!=(Bit32u)quo16) EXCEPTION(0);					\
+	if (quo!=(uint32_t)quo16) EXCEPTION(0);					\
 	reg_dx=rem;												\
 	reg_ax=quo16;											\
 	FillFlags();											\
@@ -678,8 +678,8 @@ extern bool enable_fpu;
 	if (val==0) EXCEPTION(0);									\
 	Bit64u num=(((Bit64u)reg_edx)<<32)|reg_eax;				\
 	Bit64u quo=num/val;										\
-	Bit32u rem=(Bit32u)(num % val);							\
-	Bit32u quo32=(Bit32u)(quo&0xffffffff);					\
+	uint32_t rem=(uint32_t)(num % val);							\
+	uint32_t quo32=(uint32_t)(quo&0xffffffff);					\
 	if (quo!=(Bit64u)quo32) EXCEPTION(0);					\
 	reg_edx=rem;											\
 	reg_eax=quo32;											\
@@ -742,15 +742,15 @@ extern bool enable_fpu;
 	Bit32s rem=(Bit32s)(num % val);							\
 	Bit32s quo32s=(Bit32s)(quo&0xffffffff);					\
 	if (quo!=(Bit64s)quo32s) EXCEPTION(0);					\
-	reg_edx=(Bit32u)rem;											\
-	reg_eax=(Bit32u)quo32s;											\
+	reg_edx=(uint32_t)rem;											\
+	reg_eax=(uint32_t)quo32s;											\
 	FillFlags();											\
 	SETFLAGBIT(AF,0);/*FIXME*/									\
 	SETFLAGBIT(SF,0);/*FIXME*/									\
 	SETFLAGBIT(OF,0);/*FIXME*/									\
 	SETFLAGBIT(ZF,(rem==0)&&((quo32s&1)!=0));								\
 	SETFLAGBIT(CF,((rem&3) >= 1 && (rem&3) <= 2)); \
-	SETFLAGBIT(PF,PARITY32((Bit32u)rem&0xffffffffu)^PARITY32((Bit32u)quo32s&0xffffffffu)^FLAG_PF);					\
+	SETFLAGBIT(PF,PARITY32((uint32_t)rem&0xffffffffu)^PARITY32((uint32_t)quo32s&0xffffffffu)^FLAG_PF);					\
 }
 
 #define IMULB(op1,load,save)								\
@@ -788,8 +788,8 @@ extern bool enable_fpu;
 {															\
 	Bit64s temps=((Bit64s)((Bit32s)reg_eax))*				\
 				 ((Bit64s)((Bit32s)(load(op1))));			\
-	reg_eax=(Bit32u)(temps);								\
-	reg_edx=(Bit32u)(temps >> 32);							\
+	reg_eax=(uint32_t)(temps);								\
+	reg_edx=(uint32_t)(temps >> 32);							\
 	FillFlagsNoCFOF();										\
 	SETFLAGBIT(ZF,reg_eax == 0);							\
 	SETFLAGBIT(SF,reg_eax & 0x80000000);					\
@@ -957,7 +957,7 @@ extern bool enable_fpu;
 	uint8_t val=op3 & 0x1Fu;												\
 	if (!val) break;													\
 	lf_var2b=val;lf_var1d=((unsigned int)load(op1)<<16u)|op2;					\
-	Bit32u tempd=lf_var1d << lf_var2b;							\
+	uint32_t tempd=lf_var1d << lf_var2b;							\
   	if (lf_var2b>16u) tempd |= ((unsigned int)op2 << (lf_var2b - 16u));			\
 	lf_resw=(uint16_t)((unsigned int)tempd >> 16u);								\
 	save(op1,lf_resw);											\
@@ -976,7 +976,7 @@ extern bool enable_fpu;
 	uint8_t val=op3 & 0x1Fu;												\
 	if (!val) break;													\
 	lf_var2b=val;lf_var1d=((unsigned int)op2<<16u)|load(op1);					\
-	Bit32u tempd=(unsigned int)lf_var1d >> lf_var2b;							\
+	uint32_t tempd=(unsigned int)lf_var1d >> lf_var2b;							\
   	if (lf_var2b>16u) tempd |= ((unsigned int)op2 << (32u-lf_var2b));			\
 	lf_resw=(uint16_t)(tempd);										\
 	save(op1,lf_resw);											\

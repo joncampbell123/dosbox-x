@@ -43,7 +43,7 @@ extern uint16_t	NetworkHandleList[127];	/*in dos_files.cpp*/
 
  bool	Network_IsActiveResource(uint16_t entry)
 {
-	Bit32u		handle=RealHandle(entry);
+	uint32_t		handle=RealHandle(entry);
 	return	(NetworkHandleList[entry]==handle);
 }//bool	Network_IsNetworkFile(uint16_t entry)
 
@@ -113,7 +113,7 @@ int _nhandle;
 
  bool	Network_CloseFile(uint16_t entry)
 {
-		Bit32u handle=RealHandle(entry);
+		uint32_t handle=RealHandle(entry);
 		int _Expr_val=!!((handle >= 0 && (unsigned)handle < (unsigned)_nhandle));
 		//_ASSERT_EXPR( ( _Expr_val ), _CRT_WIDE(#(handle >= 0 && (unsigned)handle < (unsigned)_nhandle)) );
 		if (!(handle > 0) || ( !( _Expr_val ))) {
@@ -141,7 +141,7 @@ int _nhandle;
 
  bool Network_ReadFile(uint16_t entry,uint8_t * data,uint16_t * amount)
 {
-	Bit32u handle=RealHandle(entry);
+	uint32_t handle=RealHandle(entry);
 	uint16_t toread=*amount;
 
 	toread=_read(handle,data,toread);
@@ -160,7 +160,7 @@ int _nhandle;
  bool	Network_WriteFile(uint16_t entry,uint8_t * data,uint16_t * amount)
 {
 		uint16_t towrite=*amount;
-		Bit32u handle=RealHandle(entry);
+		uint32_t handle=RealHandle(entry);
 
 		towrite=_write(handle,data,towrite);
 		if(towrite!=-1)

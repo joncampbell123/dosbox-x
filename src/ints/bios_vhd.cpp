@@ -143,7 +143,7 @@ imageDiskVHD::ErrorCodes imageDiskVHD::Open(const char* fileName, const bool rea
 			if (dynHeader.parentLocatorEntry[i].platformCode != 0) {
 				//load the platform data, if there is any
 				Bit64u dataOffset = dynHeader.parentLocatorEntry[i].platformDataOffset;
-				Bit32u dataLength = dynHeader.parentLocatorEntry[i].platformDataLength;
+				uint32_t dataLength = dynHeader.parentLocatorEntry[i].platformDataLength;
 				uint8_t* buffer = 0;
 				if (dataOffset && dataLength && ((Bit64u)dataOffset + dataLength) <= footerPosition) {
 					if (fseeko64(file, (off_t)dataOffset, SEEK_SET)) { delete vhd; return INVALID_DATA; }
@@ -170,14 +170,14 @@ imageDiskVHD::ErrorCodes imageDiskVHD::Open(const char* fileName, const bool rea
 	}
 
 	//calculate sectors per block
-	Bit32u sectorsPerBlock = dynHeader.blockSize / 512;
+	uint32_t sectorsPerBlock = dynHeader.blockSize / 512;
 	//calculate block map size
-	Bit32u blockMapSectors = ((
+	uint32_t blockMapSectors = ((
 		((sectorsPerBlock /* 4096 sectors/block (typ) = 4096 bits required */
 		+ 7) / 8) /* convert to bytes and round up to nearest byte; 4096/8 = 512 bytes required */
 		+ 511) / 512); /* convert to sectors and round up to nearest sector; 512/512 = 1 sector */
 	//check that the BAT is large enough for the disk
-	Bit32u tablesRequired = (Bit32u)((calcDiskSize + (dynHeader.blockSize - 1)) / dynHeader.blockSize);
+	uint32_t tablesRequired = (uint32_t)((calcDiskSize + (dynHeader.blockSize - 1)) / dynHeader.blockSize);
 	if (dynHeader.maxTableEntries < tablesRequired) { delete vhd; return INVALID_DATA; }
 	//check that the BAT is contained within the file
 	if (((Bit64u)dynHeader.tableOffset + ((Bit64u)dynHeader.maxTableEntries * (Bit64u)4)) > footerPosition) { delete vhd; return INVALID_DATA; }
@@ -205,7 +205,7 @@ int iso8859_1_encode(int utf32code) {
 }
 
 //this function (1) converts data from UTF-16 to a native string for fopen (depending on the host OS), and (2) converts slashes, if necessary
-bool imageDiskVHD::convert_UTF16_for_fopen(std::string &string, const void* data, const Bit32u dataLength) {
+bool imageDiskVHD::convert_UTF16_for_fopen(std::string &string, const void* data, const uint32_t dataLength) {
 	//note: data is UTF-16 and always little-endian, with no null terminator
 	//dataLength is not the number of characters, but the number of bytes
 
@@ -244,7 +244,7 @@ bool imageDiskVHD::convert_UTF16_for_fopen(std::string &string, const void* data
 	return true;
 }
 
-imageDiskVHD::ErrorCodes imageDiskVHD::TryOpenParent(const char* childFileName, const imageDiskVHD::ParentLocatorEntry& entry, const uint8_t* data, const Bit32u dataLength, imageDisk** disk, const uint8_t* uniqueId) {
+imageDiskVHD::ErrorCodes imageDiskVHD::TryOpenParent(const char* childFileName, const imageDiskVHD::ParentLocatorEntry& entry, const uint8_t* data, const uint32_t dataLength, imageDisk** disk, const uint8_t* uniqueId) {
 	std::string str = "";
 	const char* slashpos = NULL;
 
@@ -297,13 +297,13 @@ imageDiskVHD::ErrorCodes imageDiskVHD::TryOpenParent(const char* childFileName, 
 	return ERROR_OPENING; //return ERROR_OPENING if the file does not exist, cannot be accessed, etc
 }
 
-uint8_t imageDiskVHD::Read_AbsoluteSector(Bit32u sectnum, void * data) {
-	Bit32u blockNumber = sectnum / sectorsPerBlock;
-	Bit32u sectorOffset = sectnum % sectorsPerBlock;
+uint8_t imageDiskVHD::Read_AbsoluteSector(uint32_t sectnum, void * data) {
+	uint32_t blockNumber = sectnum / sectorsPerBlock;
+	uint32_t sectorOffset = sectnum % sectorsPerBlock;
 	if (!loadBlock(blockNumber)) return 0x05; //can't load block
 	if (currentBlockAllocated) {
-		Bit32u byteNum = sectorOffset / 8;
-		Bit32u bitNum = sectorOffset % 8;
+		uint32_t byteNum = sectorOffset / 8;
+		uint32_t bitNum = sectorOffset % 8;
 		bool hasData = currentBlockDirtyMap[byteNum] & (1 << (7 - bitNum));
 		if (hasData) {
 			if (fseeko64(diskimg, (off_t)(((Bit64u)currentBlockSectorOffset + blockMapSectors + sectorOffset) * 512ull), SEEK_SET)) return 0x05; //can't seek
@@ -320,9 +320,9 @@ uint8_t imageDiskVHD::Read_AbsoluteSector(Bit32u sectnum, void * data) {
 	}
 }
 
-uint8_t imageDiskVHD::Write_AbsoluteSector(Bit32u sectnum, const void * data) {
-	Bit32u blockNumber = sectnum / sectorsPerBlock;
-	Bit32u sectorOffset = sectnum % sectorsPerBlock;
+uint8_t imageDiskVHD::Write_AbsoluteSector(uint32_t sectnum, const void * data) {
+	uint32_t blockNumber = sectnum / sectorsPerBlock;
+	uint32_t sectorOffset = sectnum % sectorsPerBlock;
 	if (!loadBlock(blockNumber)) return 0x05; //can't load block
 	if (!currentBlockAllocated) {
 		if (!copiedFooter) {
@@ -341,10 +341,10 @@ uint8_t imageDiskVHD::Write_AbsoluteSector(Bit32u sectnum, const void * data) {
 		if (fseeko64(diskimg, (off_t)newFooterPosition, SEEK_SET)) return 0x05;
 		if (fwrite(&originalFooter, sizeof(uint8_t), 512, diskimg) != 512) return 0x05;
 		//save the new block location and new footer position
-		Bit32u newBlockSectorNumber = (Bit32u)((footerPosition + 511ul) / 512ul);
+		uint32_t newBlockSectorNumber = (uint32_t)((footerPosition + 511ul) / 512ul);
 		footerPosition = newFooterPosition;
 		//clear the dirty flags for the new footer position
-		for (Bit32u i = 0; i < blockMapSize; i++) currentBlockDirtyMap[i] = 0;
+		for (uint32_t i = 0; i < blockMapSize; i++) currentBlockDirtyMap[i] = 0;
 		//write the dirty map
 		if (fseeko64(diskimg, (off_t)(newBlockSectorNumber * 512ull), SEEK_SET)) return 0x05;
 		if (fwrite(currentBlockDirtyMap, sizeof(uint8_t), blockMapSize, diskimg) != blockMapSize) return 0x05;
@@ -352,7 +352,7 @@ uint8_t imageDiskVHD::Write_AbsoluteSector(Bit32u sectnum, const void * data) {
 		if (fflush(diskimg)) return 0x05;
 		//update the BAT
 		if (fseeko64(diskimg, (off_t)(dynamicHeader.tableOffset + (blockNumber * 4ull)), SEEK_SET)) return 0x05;
-		Bit32u newBlockSectorNumberBE = SDL_SwapBE32(newBlockSectorNumber);
+		uint32_t newBlockSectorNumberBE = SDL_SwapBE32(newBlockSectorNumber);
 		if (fwrite(&newBlockSectorNumberBE, sizeof(uint8_t), 4, diskimg) != 4) return false;
 		currentBlockAllocated = true;
 		currentBlockSectorOffset = newBlockSectorNumber;
@@ -360,8 +360,8 @@ uint8_t imageDiskVHD::Write_AbsoluteSector(Bit32u sectnum, const void * data) {
 		if (fflush(diskimg)) return 0x05;
 	}
 	//current block has now been allocated
-	Bit32u byteNum = sectorOffset / 8;
-	Bit32u bitNum = sectorOffset % 8;
+	uint32_t byteNum = sectorOffset / 8;
+	uint32_t bitNum = sectorOffset % 8;
 	bool hasData = currentBlockDirtyMap[byteNum] & (1 << (7 - bitNum));
 	//if the sector hasn't been marked as dirty, mark it as dirty
 	if (!hasData) {
@@ -386,11 +386,11 @@ imageDiskVHD::VHDTypes imageDiskVHD::GetVHDType(const char* fileName) {
 	return ret;
 }
 
-bool imageDiskVHD::loadBlock(const Bit32u blockNumber) {
+bool imageDiskVHD::loadBlock(const uint32_t blockNumber) {
 	if (currentBlock == blockNumber) return true;
 	if (blockNumber >= dynamicHeader.maxTableEntries) return false;
 	if (fseeko64(diskimg, (off_t)(dynamicHeader.tableOffset + (blockNumber * 4ull)), SEEK_SET)) return false;
-	Bit32u blockSectorOffset;
+	uint32_t blockSectorOffset;
 	if (fread(&blockSectorOffset, sizeof(uint8_t), 4, diskimg) != 4) return false;
 	blockSectorOffset = SDL_SwapBE32(blockSectorOffset);
 	if (blockSectorOffset == 0xFFFFFFFFul) {
@@ -429,21 +429,21 @@ void imageDiskVHD::VHDFooter::SwapByteOrder() {
 	originalSize = SDL_SwapBE64(originalSize);
 	currentSize = SDL_SwapBE64(currentSize);
 	geometry.cylinders = SDL_SwapBE16(geometry.cylinders);
-	diskType = (VHDTypes)SDL_SwapBE32((Bit32u)diskType);
+	diskType = (VHDTypes)SDL_SwapBE32((uint32_t)diskType);
 	checksum = SDL_SwapBE32(checksum);
 	//guid might need the byte order swapped also
 	//however, for our purposes (comparing to the parent guid on differential disks),
 	//  it doesn't matter so long as we are consistent
 }
 
-Bit32u imageDiskVHD::VHDFooter::CalculateChecksum() {
+uint32_t imageDiskVHD::VHDFooter::CalculateChecksum() {
 	//checksum is one's complement of sum of bytes excluding the checksum
 	//because of that, the byte order doesn't matter when calculating the checksum
 	//however, the checksum must be stored in the correct byte order or it will not match
 
-	Bit32u ret = 0;
+	uint32_t ret = 0;
     const uint8_t* dat = (uint8_t*)this->cookie;
-	Bit32u oldChecksum = checksum;
+	uint32_t oldChecksum = checksum;
 	checksum = 0;
 	for (size_t i = 0; i < sizeof(VHDFooter); i++) {
 		ret += dat[i];
@@ -483,14 +483,14 @@ void imageDiskVHD::DynamicHeader::SwapByteOrder() {
 	//  it doesn't matter so long as we are consistent
 }
 
-Bit32u imageDiskVHD::DynamicHeader::CalculateChecksum() {
+uint32_t imageDiskVHD::DynamicHeader::CalculateChecksum() {
 	//checksum is one's complement of sum of bytes excluding the checksum
 	//because of that, the byte order doesn't matter when calculating the checksum
 	//however, the checksum must be stored in the correct byte order or it will not match
 
-	Bit32u ret = 0;
+	uint32_t ret = 0;
     const uint8_t* dat = (uint8_t*)this->cookie;
-	Bit32u oldChecksum = checksum;
+	uint32_t oldChecksum = checksum;
 	checksum = 0;
 	for (size_t i = 0; i < sizeof(DynamicHeader); i++) {
 		ret += dat[i];

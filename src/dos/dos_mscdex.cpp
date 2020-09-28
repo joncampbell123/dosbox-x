@@ -100,8 +100,8 @@ public:
 	bool		GetUPC				(uint8_t subUnit, uint8_t& attr, char* upc);
 
 	void		InitNewMedia		(uint8_t subUnit);
-	bool		PlayAudioSector		(uint8_t subUnit, Bit32u sector, Bit32u length);
-	bool		PlayAudioMSF		(uint8_t subUnit, Bit32u start, Bit32u length);
+	bool		PlayAudioSector		(uint8_t subUnit, uint32_t sector, uint32_t length);
+	bool		PlayAudioMSF		(uint8_t subUnit, uint32_t start, uint32_t length);
 	bool		StopAudio			(uint8_t subUnit);
 	bool		GetAudioStatus		(uint8_t subUnit, bool& playing, bool& pause, TMSF& start, TMSF& end);
 
@@ -117,17 +117,17 @@ public:
 	bool		GetFileName			(uint16_t drive, uint16_t pos, PhysPt data);
 	bool		GetDirectoryEntry	(uint16_t drive, bool copyFlag, PhysPt pathname, PhysPt buffer, uint16_t& error);
 	bool		ReadVTOC			(uint16_t drive, uint16_t volume, PhysPt data, uint16_t& offset, uint16_t& error);
-	bool		ReadSectors			(uint16_t drive, Bit32u sector, uint16_t num, PhysPt data);
-	bool		ReadSectors			(uint8_t subUnit, bool raw, Bit32u sector, uint16_t num, PhysPt data);
-	bool		ReadSectorsMSF		(uint8_t subUnit, bool raw, Bit32u start, uint16_t num, PhysPt data);
+	bool		ReadSectors			(uint16_t drive, uint32_t sector, uint16_t num, PhysPt data);
+	bool		ReadSectors			(uint8_t subUnit, bool raw, uint32_t sector, uint16_t num, PhysPt data);
+	bool		ReadSectorsMSF		(uint8_t subUnit, bool raw, uint32_t start, uint16_t num, PhysPt data);
 	bool		SendDriverRequest	(uint16_t drive, PhysPt data);
 	bool		IsValidDrive		(uint16_t _drive);
 	bool		GetCDInfo			(uint8_t subUnit, uint8_t& tr1, uint8_t& tr2, TMSF& leadOut);
-	Bit32u		GetVolumeSize		(uint8_t subUnit);
+	uint32_t		GetVolumeSize		(uint8_t subUnit);
 	bool		GetTrackInfo		(uint8_t subUnit, uint8_t track, uint8_t& attr, TMSF& start);
 	uint16_t		GetStatusWord		(uint8_t subUnit,uint16_t status);
 	bool		GetCurrentPos		(uint8_t subUnit, TMSF& pos);
-	Bit32u		GetDeviceStatus		(uint8_t subUnit);
+	uint32_t		GetDeviceStatus		(uint8_t subUnit);
 	bool		GetMediaStatus		(uint8_t subUnit, uint8_t& status);
 	bool		LoadUnloadMedia		(uint8_t subUnit, bool unload);
 	bool		ResumeAudio			(uint8_t subUnit);
@@ -146,11 +146,11 @@ public:
 		uint8_t	physDrive;		// drive letter in system
 		bool	audioPlay;		// audio playing active
 		bool	audioPaused;	// audio playing paused
-		Bit32u	audioStart;		// StartLoc for resume
-		Bit32u	audioEnd;		// EndLoc for resume
+		uint32_t	audioStart;		// StartLoc for resume
+		uint32_t	audioEnd;		// EndLoc for resume
 		bool	locked;			// drive locked ?
 		bool	lastResult;		// last operation success ?
-		Bit32u	volumeSize;		// for media change
+		uint32_t	volumeSize;		// for media change
 		TCtrl	audioCtrl;		// audio channel control
 	} TDriveInfo;
 
@@ -165,7 +165,7 @@ public:
 
 CMscdex::CMscdex(void) {
 	memset(dinfo,0,sizeof(dinfo));
-	for (Bit32u i=0; i<MSCDEX_MAX_DRIVES; i++) cdrom[i] = 0;
+	for (uint32_t i=0; i<MSCDEX_MAX_DRIVES; i++) cdrom[i] = 0;
 }
 
 CMscdex::~CMscdex(void) {
@@ -326,7 +326,7 @@ int CMscdex::AddDrive(uint16_t _drive, char* physicalPath, uint8_t& subUnit)
 		devHeader.SetName				("MSCD001 ");
 
 		//Link it in the device chain
-		Bit32u start = dos_infoblock.GetDeviceChain();
+		uint32_t start = dos_infoblock.GetDeviceChain();
 		uint16_t segm  = (uint16_t)(start>>16ul);
 		uint16_t offm  = (uint16_t)(start&0xFFFFu);
 		while(start != 0xFFFFFFFFul) {
@@ -461,7 +461,7 @@ bool CMscdex::GetTrackInfo(uint8_t subUnit, uint8_t track, uint8_t& attr, TMSF& 
 	return dinfo[subUnit].lastResult;
 }
 
-bool CMscdex::PlayAudioSector(uint8_t subUnit, Bit32u sector, Bit32u length) {
+bool CMscdex::PlayAudioSector(uint8_t subUnit, uint32_t sector, uint32_t length) {
 	if (subUnit>=numDrives) return false;
 	// If value from last stop is used, this is meant as a resume
 	// better start using resume command
@@ -479,12 +479,12 @@ bool CMscdex::PlayAudioSector(uint8_t subUnit, Bit32u sector, Bit32u length) {
 	return dinfo[subUnit].lastResult;
 }
 
-bool CMscdex::PlayAudioMSF(uint8_t subUnit, Bit32u start, Bit32u length) {
+bool CMscdex::PlayAudioMSF(uint8_t subUnit, uint32_t start, uint32_t length) {
 	if (subUnit>=numDrives) return false;
 	uint8_t min		= (uint8_t)(start>>16) & 0xFF;
 	uint8_t sec		= (uint8_t)(start>> 8) & 0xFF;
 	uint8_t fr		= (uint8_t)(start>> 0) & 0xFF;
-	Bit32u sector	= min*60u*75u+sec*75u+fr - 150u;
+	uint32_t sector	= min*60u*75u+sec*75u+fr - 150u;
 	return dinfo[subUnit].lastResult = PlayAudioSector(subUnit,sector,length);
 }
 
@@ -505,7 +505,7 @@ bool CMscdex::GetAudioStatus(uint8_t subUnit, bool& playing, bool& pause, TMSF& 
 	if (dinfo[subUnit].lastResult) {
 		if (playing) {
 			// Start
-			Bit32u addr	= dinfo[subUnit].audioStart + 150;
+			uint32_t addr	= dinfo[subUnit].audioStart + 150;
 			start.fr	= (uint8_t)(addr%75);	addr/=75;
 			start.sec	= (uint8_t)(addr%60); 
 			start.min	= (uint8_t)(addr/60);
@@ -565,7 +565,7 @@ bool CMscdex::ResumeAudio(uint8_t subUnit) {
 	return dinfo[subUnit].lastResult = PlayAudioSector(subUnit,dinfo[subUnit].audioStart,dinfo[subUnit].audioEnd);
 }
 
-Bit32u CMscdex::GetVolumeSize(uint8_t subUnit) {
+uint32_t CMscdex::GetVolumeSize(uint8_t subUnit) {
 	if (subUnit>=numDrives) return false;
 	uint8_t tr1,tr2;
 	TMSF leadOut;
@@ -640,7 +640,7 @@ bool CMscdex::GetUPC(uint8_t subUnit, uint8_t& attr, char* upc)
 	return dinfo[subUnit].lastResult = cdrom[subUnit]->GetUPC(attr,&upc[0]);
 }
 
-bool CMscdex::ReadSectors(uint8_t subUnit, bool raw, Bit32u sector, uint16_t num, PhysPt data) {
+bool CMscdex::ReadSectors(uint8_t subUnit, bool raw, uint32_t sector, uint16_t num, PhysPt data) {
 	if (subUnit>=numDrives) return false;
 	if ((cpu_cycles_count_t)(4u*num*2048u+5u) < CPU_Cycles) CPU_Cycles -= cpu_cycles_count_t(4u*num*2048u);
 	else CPU_Cycles = 5u;
@@ -648,17 +648,17 @@ bool CMscdex::ReadSectors(uint8_t subUnit, bool raw, Bit32u sector, uint16_t num
 	return dinfo[subUnit].lastResult;
 }
 
-bool CMscdex::ReadSectorsMSF(uint8_t subUnit, bool raw, Bit32u start, uint16_t num, PhysPt data) {
+bool CMscdex::ReadSectorsMSF(uint8_t subUnit, bool raw, uint32_t start, uint16_t num, PhysPt data) {
 	if (subUnit>=numDrives) return false;
 	uint8_t min		= (uint8_t)(start>>16) & 0xFF;
 	uint8_t sec		= (uint8_t)(start>> 8) & 0xFF;
 	uint8_t fr		= (uint8_t)(start>> 0) & 0xFF;
-	Bit32u sector	= min*60u*75u+sec*75u+fr - 150u;
+	uint32_t sector	= min*60u*75u+sec*75u+fr - 150u;
 	return ReadSectors(subUnit,raw,sector,num,data);
 }
 
 // Called from INT 2F
-bool CMscdex::ReadSectors(uint16_t drive, Bit32u sector, uint16_t num, PhysPt data) {
+bool CMscdex::ReadSectors(uint16_t drive, uint32_t sector, uint16_t num, PhysPt data) {
 	return ReadSectors(GetSubUnit(drive),false,sector,num,data);
 }
 
@@ -693,7 +693,7 @@ bool CMscdex::GetDirectoryEntry(uint16_t drive, bool copyFlag, PhysPt pathname, 
 	}
 	uint16_t offset = iso ? 156:180;
 	// get directory position
-	Bit32u dirEntrySector	= mem_readd(defBuffer+offset+2);
+	uint32_t dirEntrySector	= mem_readd(defBuffer+offset+2);
 	Bits dirSize		= (Bit32s)mem_readd(defBuffer+offset+10);
 	while (dirSize>0) {
 		uint16_t index = 0;
@@ -791,7 +791,7 @@ bool CMscdex::GetMediaStatus(uint8_t subUnit, bool& media, bool& changed, bool& 
 	return dinfo[subUnit].lastResult;
 }
 
-Bit32u CMscdex::GetDeviceStatus(uint8_t subUnit) {
+uint32_t CMscdex::GetDeviceStatus(uint8_t subUnit) {
 	if (subUnit>=numDrives) return false;
 	bool media,changed,trayOpen;
 
@@ -806,7 +806,7 @@ Bit32u CMscdex::GetDeviceStatus(uint8_t subUnit) {
 			dinfo[subUnit].audioPlay = false;
 	}
 
-	Bit32u status = ((trayOpen?1u:0u) << 0u)					|	// Drive is open ?
+	uint32_t status = ((trayOpen?1u:0u) << 0u)					|	// Drive is open ?
 					((dinfo[subUnit].locked?1u:0u) << 1u)		|	// Drive is locked ?
 					(1u<<2u)									|	// raw + cooked sectors
 					(1u<<4u)									|	// Can read sudio
@@ -922,7 +922,7 @@ static uint16_t MSCDEX_IOCTL_Input(PhysPt buffer,uint8_t drive_unit) {
 					mscdex->GetCurrentPos(drive_unit,pos);
 					uint8_t addr_mode = mem_readb(buffer+1);
 					if (addr_mode==0) {			// HSG
-						Bit32u frames=MSF_TO_FRAMES(pos.min, pos.sec, pos.fr);
+						uint32_t frames=MSF_TO_FRAMES(pos.min, pos.sec, pos.fr);
 						if (frames<150) MSCDEX_LOG_ERROR("MSCDEX: Get position: invalid position %d:%d:%d", pos.min, pos.sec, pos.fr);
 						else frames-=150;
 						mem_writed(buffer+2,frames);
@@ -1096,7 +1096,7 @@ static Bitu MSCDEX_Interrupt_Handler(void) {
 						break;
 		case 0x80	:	// Read long
 		case 0x82	: { // Read long prefetch -> both the same here :)
-						Bit32u start = mem_readd(curReqheaderPtr+0x14);
+						uint32_t start = mem_readd(curReqheaderPtr+0x14);
 						uint16_t len	 = mem_readw(curReqheaderPtr+0x12);
 						bool raw	 = (mem_readb(curReqheaderPtr+0x18)==1);
 						if (mem_readb(curReqheaderPtr+0x0D)==0x00) // HSG
@@ -1108,8 +1108,8 @@ static Bitu MSCDEX_Interrupt_Handler(void) {
 		case 0x83	:	// Seek - dont care :)
 						break;
 		case 0x84	: {	/* Play Audio Sectors */
-						Bit32u start = mem_readd(curReqheaderPtr+0x0E);
-						Bit32u len	 = mem_readd(curReqheaderPtr+0x12);
+						uint32_t start = mem_readd(curReqheaderPtr+0x0E);
+						uint32_t len	 = mem_readd(curReqheaderPtr+0x12);
 						if (mem_readb(curReqheaderPtr+0x0D)==0x00) // HSG
 							mscdex->PlayAudioSector(subUnit,start,len);
 						else // RED BOOK
@@ -1187,7 +1187,7 @@ static bool MSCDEX_Handler(void) {
 						// not functional in production MSCDEX
 						break;
 		case 0x1508: {	// read sectors 
-						Bit32u sector = ((Bit32u)reg_si << 16u) + (Bit32u)reg_di;
+						uint32_t sector = ((uint32_t)reg_si << 16u) + (uint32_t)reg_di;
 						if (mscdex->ReadSectors(reg_cx,sector,reg_dx,data)) {
 							reg_ax = 0;
 						} else {
@@ -1262,7 +1262,7 @@ public:
 		LOG(LOG_ALL,LOG_NORMAL)("Write to mscdex device");	
 		return false;
 	}
-	bool Seek(Bit32u * /*pos*/,Bit32u /*type*/){return false;}
+	bool Seek(uint32_t * /*pos*/,uint32_t /*type*/){return false;}
 	bool Close(){return false;}
 	uint16_t GetInformation(void){return 0xc880;}
 	bool ReadFromControlChannel(PhysPt bufptr,uint16_t size,uint16_t * retcode);
@@ -1444,7 +1444,7 @@ void POD_Load_DOS_Mscdex( std::istream& stream )
         }
 		for (uint8_t drive_unit=0; drive_unit<dnum; drive_unit++) {
 			TMSF pos, start, end;
-			Bit32u msf_time, play_len;
+			uint32_t msf_time, play_len;
 			bool playing, pause;
 
 

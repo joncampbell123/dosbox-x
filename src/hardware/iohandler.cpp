@@ -511,7 +511,7 @@ void IO_WriteW(Bitu port,uint16_t val) {
 	}
 }
 
-void IO_WriteD(Bitu port,Bit32u val) {
+void IO_WriteD(Bitu port,uint32_t val) {
 	log_io(2, true, port, val);
 	if (GCC_UNLIKELY(GETFLAG(VM) && (CPU_IO_Exception(port,4)))) {
 		CPU_ForceV86FakeIO_Out(port,val,4);
@@ -548,14 +548,14 @@ uint16_t IO_ReadW(Bitu port) {
 	return retval;
 }
 
-Bit32u IO_ReadD(Bitu port) {
-	Bit32u retval;
+uint32_t IO_ReadD(Bitu port) {
+	uint32_t retval;
 	if (GCC_UNLIKELY(GETFLAG(VM) && (CPU_IO_Exception(port,4)))) {
-		return (Bit32u)CPU_ForceV86FakeIO_In(port,4);
+		return (uint32_t)CPU_ForceV86FakeIO_In(port,4);
 	}
 	else {
 		IO_USEC_read_delay(2);
-		retval = (Bit32u)io_readhandlers[2][port](port,4);
+		retval = (uint32_t)io_readhandlers[2][port](port,4);
 	}
 	log_io(2, false, port, retval);
 	return retval;

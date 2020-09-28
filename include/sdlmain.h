@@ -96,9 +96,9 @@ struct SDL_Block {
     int window_desired_width = 0, window_desired_height = 0;
 #endif
     struct {
-        Bit32u width = 0;
-        Bit32u height = 0;
-        Bit32u bpp = 0;
+        uint32_t width = 0;
+        uint32_t height = 0;
+        uint32_t bpp = 0;
         Bitu flags = 0;
         double scalex = 0, scaley = 0;
         GFX_CallBack_t callback = 0;
@@ -116,7 +116,7 @@ struct SDL_Block {
         } window;
         uint8_t bpp = 0;
 #if defined(C_SDL2)
-        Bit32u pixelFormat = 0;
+        uint32_t pixelFormat = 0;
 #endif
         bool fullscreen = false;
         bool lazy_fullscreen = false;
@@ -166,7 +166,7 @@ struct SDL_Block {
 #if defined (WIN32)
     bool using_windib = false;
     // Time when sdl regains focus (alt-tab) in windowed mode
-    Bit32u focus_ticks = 0;
+    uint32_t focus_ticks = 0;
 #endif
     // state of alt-keys for certain special handlings
     uint16_t laltstate = 0, raltstate = 0;

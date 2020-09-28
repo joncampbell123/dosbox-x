@@ -113,8 +113,8 @@ static inline Bit64u mem_readq(PhysPt addr) {
 }
 
 static inline void mem_writeq(PhysPt addr,Bit64u v) {
-    mem_writed(addr,    (Bit32u)v);
-    mem_writed(addr+4ul,(Bit32u)(v >> (Bit64u)32ul));
+    mem_writed(addr,    (uint32_t)v);
+    mem_writed(addr+4ul,(uint32_t)(v >> (Bit64u)32ul));
 }
 
 #define BIAS80 16383
@@ -524,15 +524,15 @@ static void FPU_FSTENV(PhysPt addr){
 		mem_writew(addr+2,static_cast<uint16_t>(fpu.sw));
 		mem_writew(addr+4,static_cast<uint16_t>(FPU_GetTag()));
 	} else { 
-		mem_writed(addr+0,static_cast<Bit32u>(fpu.cw));
-		mem_writed(addr+4,static_cast<Bit32u>(fpu.sw));
-		mem_writed(addr+8,static_cast<Bit32u>(FPU_GetTag()));
+		mem_writed(addr+0,static_cast<uint32_t>(fpu.cw));
+		mem_writed(addr+4,static_cast<uint32_t>(fpu.sw));
+		mem_writed(addr+8,static_cast<uint32_t>(FPU_GetTag()));
 	}
 }
 
 static void FPU_FLDENV(PhysPt addr){
 	uint16_t tag;
-	Bit32u tagbig;
+	uint32_t tagbig;
 	Bitu cw;
 	if(!cpu.code.big) {
 		cw     = mem_readw(addr+0);

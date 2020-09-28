@@ -38,10 +38,10 @@ private:
 
 	int processTimerIncrement;
 	int counter;
-	Bit32u timeElapsed;
+	uint32_t timeElapsed;
 
 	int phase;
-	Bit32u basePitch;
+	uint32_t basePitch;
 	Bit32s targetPitchOffsetWithoutLFO;
 	Bit32s currentPitchOffset;
 
@@ -63,7 +63,7 @@ private:
 public:
 	TVP(const Partial *partial);
 	void reset(const Part *part, const TimbreParam::PartialParam *partialParam);
-	Bit32u getBasePitch() const;
+	uint32_t getBasePitch() const;
 	uint16_t nextPitch();
 	void startDecay();
 }; // class TVP

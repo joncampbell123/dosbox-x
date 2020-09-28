@@ -71,13 +71,13 @@ extern uint16_t Scaler_ChangedLines[];
 /* Not entirely happy about those +2's since they make a non power of 2, with muls instead of shift */
 typedef uint8_t scalerChangeCache_t [SCALER_COMPLEXHEIGHT][SCALER_COMPLEXWIDTH / SCALER_BLOCKSIZE] ;
 typedef union {
-	Bit32u b32	[SCALER_COMPLEXHEIGHT] [SCALER_COMPLEXWIDTH];
+	uint32_t b32	[SCALER_COMPLEXHEIGHT] [SCALER_COMPLEXWIDTH];
 	uint16_t b16	[SCALER_COMPLEXHEIGHT] [SCALER_COMPLEXWIDTH];
 	uint8_t b8	[SCALER_COMPLEXHEIGHT] [SCALER_COMPLEXWIDTH];
 } scalerFrameCache_t;
 #endif
 typedef union {
-	Bit32u b32	[SCALER_MAXHEIGHT] [SCALER_MAXWIDTH];
+	uint32_t b32	[SCALER_MAXHEIGHT] [SCALER_MAXWIDTH];
 	uint16_t b16	[SCALER_MAXHEIGHT] [SCALER_MAXWIDTH];
 	uint8_t b8	[SCALER_MAXHEIGHT] [SCALER_MAXWIDTH];
 } scalerSourceCache_t;

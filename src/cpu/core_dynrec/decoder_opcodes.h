@@ -261,7 +261,7 @@ static void dyn_prep_word_imm(uint8_t reg) {
 			return;
 		}
 	}
-	if (decode.big_op) gen_mov_dword_to_reg_imm(FC_OP2,(Bit32u)val);
+	if (decode.big_op) gen_mov_dword_to_reg_imm(FC_OP2,(uint32_t)val);
 	else gen_mov_word_to_reg_imm(FC_OP2,(uint16_t)val);
 }
 
@@ -274,7 +274,7 @@ static void dyn_dop_word_imm(DualOps op,uint8_t reg) {
 
 static void dyn_dop_word_imm_old(DualOps op,uint8_t reg,Bitu imm) {
 	MOV_REG_WORD_TO_HOST_REG(FC_OP1,reg,decode.big_op);
-	if (decode.big_op) gen_mov_dword_to_reg_imm(FC_OP2,(Bit32u)imm);
+	if (decode.big_op) gen_mov_dword_to_reg_imm(FC_OP2,(uint32_t)imm);
 	else gen_mov_word_to_reg_imm(FC_OP2,(uint16_t)imm);
 	dyn_dop_word_gencall(op,decode.big_op);
 	if ((op!=DOP_CMP) && (op!=DOP_TEST)) MOV_REG_WORD_FROM_HOST_REG(FC_RETOP,reg,decode.big_op);
@@ -300,7 +300,7 @@ static void dyn_mov_word_imm(uint8_t reg) {
 			return;
 		}
 	}
-	if (decode.big_op) gen_mov_dword_to_reg_imm(FC_OP1,(Bit32u)val);
+	if (decode.big_op) gen_mov_dword_to_reg_imm(FC_OP1,(uint32_t)val);
 	else gen_mov_word_to_reg_imm(FC_OP1,(uint16_t)val);
 	MOV_REG_WORD_FROM_HOST_REG(FC_OP1,reg,decode.big_op);
 }
@@ -313,14 +313,14 @@ static void dyn_sop_word(SingleOps op,uint8_t reg) {
 }
 
 
-static void dyn_mov_byte_al_direct(Bit32u imm) {
+static void dyn_mov_byte_al_direct(uint32_t imm) {
 	MOV_SEG_PHYS_TO_HOST_REG(FC_ADDR,(decode.seg_prefix_used ? decode.seg_prefix : DRC_SEG_DS));
 	gen_add_imm(FC_ADDR,imm);
 	dyn_read_byte(FC_ADDR,FC_TMP_BA1);
 	MOV_REG_BYTE_FROM_HOST_REG_LOW(FC_TMP_BA1,DRC_REG_EAX,0);
 }
 
-static void dyn_mov_byte_ax_direct(Bit32u imm) {
+static void dyn_mov_byte_ax_direct(uint32_t imm) {
 	MOV_SEG_PHYS_TO_HOST_REG(FC_ADDR,(decode.seg_prefix_used ? decode.seg_prefix : DRC_SEG_DS));
 	gen_add_imm(FC_ADDR,imm);
 	dyn_read_word(FC_ADDR,FC_OP1,decode.big_op);
@@ -334,7 +334,7 @@ static void dyn_mov_byte_direct_al() {
 		if (decode_fetchd_imm(val)) {
 			gen_add(FC_ADDR,(void*)val);
 		} else {
-			gen_add_imm(FC_ADDR,(Bit32u)val);
+			gen_add_imm(FC_ADDR,(uint32_t)val);
 		}
 	} else {
 		gen_add_imm(FC_ADDR,decode_fetchw());
@@ -343,7 +343,7 @@ static void dyn_mov_byte_direct_al() {
 	dyn_write_byte(FC_ADDR,FC_TMP_BA1);
 }
 
-static void dyn_mov_byte_direct_ax(Bit32u imm) {
+static void dyn_mov_byte_direct_ax(uint32_t imm) {
 	MOV_SEG_PHYS_TO_HOST_REG(FC_ADDR,(decode.seg_prefix_used ? decode.seg_prefix : DRC_SEG_DS));
 	gen_add_imm(FC_ADDR,imm);
 	MOV_REG_WORD_TO_HOST_REG(FC_OP1,DRC_REG_EAX,decode.big_op);
@@ -428,12 +428,12 @@ static void dyn_pop_reg(uint8_t reg) {
 }
 
 static void dyn_push_byte_imm(int8_t imm) {
-	gen_mov_dword_to_reg_imm(FC_OP1,(Bit32u)imm);
+	gen_mov_dword_to_reg_imm(FC_OP1,(uint32_t)imm);
 	if (decode.big_op) gen_call_function_raw(dynrec_push_dword);
 	else gen_call_function_raw(dynrec_push_word);
 }
 
-static void dyn_push_word_imm(Bit32u imm) {
+static void dyn_push_word_imm(uint32_t imm) {
 	if (decode.big_op) {
 		gen_mov_dword_to_reg_imm(FC_OP1,imm);
 		gen_call_function_raw(dynrec_push_dword);
@@ -601,7 +601,7 @@ static void dyn_grp1_ev_iv(bool withbyte) {
 			dyn_prep_word_imm(FC_OP2);
 		} else {
 			Bits imm=(int8_t)decode_fetchb(); 
-			if (decode.big_op) gen_mov_dword_to_reg_imm(FC_OP2,(Bit32u)imm);
+			if (decode.big_op) gen_mov_dword_to_reg_imm(FC_OP2,(uint32_t)imm);
 			else gen_mov_word_to_reg_imm(FC_OP2,(uint16_t)imm);
 		}
 
@@ -852,7 +852,7 @@ static Bitu dyn_grp4_ev(void) {
 		gen_mov_regs(FC_ADDR,FC_OP1);
 		gen_protect_addr_reg();
 		gen_mov_word_to_reg(FC_OP1,decode.big_op?(void*)(&reg_eip):(void*)(&reg_ip),decode.big_op);
-		gen_add_imm(FC_OP1,(Bit32u)(decode.code-decode.code_start));
+		gen_add_imm(FC_OP1,(uint32_t)(decode.code-decode.code_start));
 		if (decode.big_op) gen_call_function_raw(dynrec_push_dword);
 		else gen_call_function_raw(dynrec_push_word);
 
@@ -1105,7 +1105,7 @@ static void dyn_exit_link(Bit32s eip_change) {
 
 
 static void dyn_branched_exit(BranchTypes btype,Bit32s eip_add) {
-	Bit32u eip_base=decode.code-decode.code_start;
+	uint32_t eip_base=decode.code-decode.code_start;
 	dyn_reduce_cycles();
 
 	dyn_branchflag_to_reg(btype);
@@ -1139,7 +1139,7 @@ static void dyn_set_byte_on_condition(BranchTypes btype) {
 static void dyn_loop(LoopTypes type) {
 	dyn_reduce_cycles();
 	int8_t eip_add=(int8_t)decode_fetchb();
-	Bit32u eip_base=decode.code-decode.code_start;
+	uint32_t eip_base=decode.code-decode.code_start;
 	DRC_PTR_SIZE_IM branch1=0;
 	DRC_PTR_SIZE_IM branch2=0;
 	switch (type) {
@@ -1159,7 +1159,7 @@ static void dyn_loop(LoopTypes type) {
 	case LOOP_NE:
 	case LOOP_NONE:
 		MOV_REG_WORD_TO_HOST_REG(FC_OP1,DRC_REG_ECX,decode.big_addr);
-		gen_add_imm(FC_OP1,(Bit32u)(-1));
+		gen_add_imm(FC_OP1,(uint32_t)(-1));
 		MOV_REG_WORD_FROM_HOST_REG(FC_OP1,DRC_REG_ECX,decode.big_addr);
 		branch2=gen_create_branch_on_zero(FC_OP1,decode.big_addr);
 		break;
@@ -1175,7 +1175,7 @@ static void dyn_loop(LoopTypes type) {
 	if (branch1) {
 		gen_fill_branch(branch1);
 		MOV_REG_WORD_TO_HOST_REG(FC_OP1,DRC_REG_ECX,decode.big_addr);
-		gen_add_imm(FC_OP1,(Bit32u)(-1));
+		gen_add_imm(FC_OP1,(uint32_t)(-1));
 		MOV_REG_WORD_FROM_HOST_REG(FC_OP1,DRC_REG_ECX,decode.big_addr);
 	}
 	// Branch taken
@@ -1238,7 +1238,7 @@ static void dyn_call_far_imm(void) {
 
 static void dyn_jmp_far_imm(void) {
     uint16_t sel;
-    Bit32u off;
+    uint32_t off;
 	off=decode.big_op ? decode_fetchd() : decode_fetchw();
 	sel=decode_fetchw();
 	dyn_reduce_cycles();
@@ -1440,7 +1440,7 @@ static void dynrec_pusha_word(void) {
 }
 
 static void dynrec_pusha_dword(void) {
-	Bit32u tmpesp = reg_esp;
+	uint32_t tmpesp = reg_esp;
 	CPU_Push32(reg_eax);CPU_Push32(reg_ecx);CPU_Push32(reg_edx);CPU_Push32(reg_ebx);
 	CPU_Push32(tmpesp);CPU_Push32(reg_ebp);CPU_Push32(reg_esi);CPU_Push32(reg_edi);
 }

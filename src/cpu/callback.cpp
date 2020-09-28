@@ -120,7 +120,7 @@ void CALLBACK_Idle(void) {
 	Bitu oldIF=GETFLAG(IF);
 	SETFLAGBIT(IF,true);
 	uint16_t oldcs=SegValue(cs);
-	Bit32u oldeip=reg_eip;
+	uint32_t oldeip=reg_eip;
 	SegSet16(cs,CB_SEG);
 	reg_eip=CB_SOFFSET+call_idle*CB_SIZE;
 	DOSBOX_RunMachine();
@@ -141,7 +141,7 @@ void CALLBACK_IdleNoInts(void) {
 //	Bitu oldIF=GETFLAG(IF);
 //	SETFLAGBIT(IF,true);
 	uint16_t oldcs=SegValue(cs);
-	Bit32u oldeip=reg_eip;
+	uint32_t oldeip=reg_eip;
 	SegSet16(cs,CB_SEG);
 	reg_eip=CB_SOFFSET+call_idle*CB_SIZE;
 	DOSBOX_RunMachine();
@@ -170,7 +170,7 @@ void CALLBACK_RunRealFarInt(uint16_t seg,uint16_t off) {
 	mem_writew(SegPhys(ss)+reg_sp,RealOff(CALLBACK_RealPointer(call_stop)));
 	mem_writew(SegPhys(ss)+reg_sp+2,RealSeg(CALLBACK_RealPointer(call_stop)));
 	mem_writew(SegPhys(ss)+reg_sp+4,(uint16_t)reg_flags);
-	Bit32u oldeip=reg_eip;
+	uint32_t oldeip=reg_eip;
 	uint16_t oldcs=SegValue(cs);
 	reg_eip=off;
 	SegSet16(cs,seg);
@@ -183,7 +183,7 @@ void CALLBACK_RunRealFar(uint16_t seg,uint16_t off) {
 	reg_sp-=4;
 	mem_writew(SegPhys(ss)+reg_sp,RealOff(CALLBACK_RealPointer(call_stop)));
 	mem_writew(SegPhys(ss)+reg_sp+2,RealSeg(CALLBACK_RealPointer(call_stop)));
-	Bit32u oldeip=reg_eip;
+	uint32_t oldeip=reg_eip;
 	uint16_t oldcs=SegValue(cs);
 	reg_eip=off;
 	SegSet16(cs,seg);
@@ -193,7 +193,7 @@ void CALLBACK_RunRealFar(uint16_t seg,uint16_t off) {
 }
 
 void CALLBACK_RunRealInt_retcsip(uint8_t intnum,Bitu &rcs,Bitu &rip) {
-	Bit32u oldeip=reg_eip;
+	uint32_t oldeip=reg_eip;
 	uint16_t oldcs=SegValue(cs);
 	reg_eip=CB_SOFFSET+(CB_MAX*CB_SIZE)+(intnum*6U);
 	SegSet16(cs,CB_SEG);
@@ -205,7 +205,7 @@ void CALLBACK_RunRealInt_retcsip(uint8_t intnum,Bitu &rcs,Bitu &rip) {
 }
 
 void CALLBACK_RunRealInt(uint8_t intnum) {
-	Bit32u oldeip=reg_eip;
+	uint32_t oldeip=reg_eip;
 	uint16_t oldcs=SegValue(cs);
 	reg_eip=CB_SOFFSET+(CB_MAX*CB_SIZE)+(intnum*6U);
 	SegSet16(cs,CB_SEG);
@@ -215,7 +215,7 @@ void CALLBACK_RunRealInt(uint8_t intnum) {
 }
 
 void CALLBACK_SZF(bool val) {
-    Bit32u tempf;
+    uint32_t tempf;
 
     if (cpu.stack.big)
         tempf = mem_readd(SegPhys(ss)+reg_esp+8); // first word past FAR 32:32
@@ -232,7 +232,7 @@ void CALLBACK_SZF(bool val) {
 }
 
 void CALLBACK_SCF(bool val) {
-    Bit32u tempf;
+    uint32_t tempf;
 
     if (cpu.stack.big)
         tempf = mem_readd(SegPhys(ss)+reg_esp+8); // first word past FAR 32:32
@@ -249,7 +249,7 @@ void CALLBACK_SCF(bool val) {
 }
 
 void CALLBACK_SIF(bool val) {
-    Bit32u tempf;
+    uint32_t tempf;
 
     if (cpu.stack.big)
         tempf = mem_readd(SegPhys(ss)+reg_esp+8); // first word past FAR 32:32

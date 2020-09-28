@@ -2323,8 +2323,8 @@ Bitu GFX_SetSize(Bitu width, Bitu height, Bitu flags, double scalex, double scal
 
     sdl.must_redraw_all = true;
 
-    sdl.draw.width = (Bit32u)width;
-    sdl.draw.height = (Bit32u)height;
+    sdl.draw.width = (uint32_t)width;
+    sdl.draw.height = (uint32_t)height;
     sdl.draw.flags = flags;
     sdl.draw.callback = callback;
     sdl.draw.scalex = scalex;
@@ -3365,7 +3365,7 @@ void GFX_EndUpdate(const uint16_t *changedLines) {
         {
             sdl.deferred_resize = false;
 #if !defined(C_SDL2)
-            void GFX_RedrawScreen(Bit32u nWidth, Bit32u nHeight);
+            void GFX_RedrawScreen(uint32_t nWidth, uint32_t nHeight);
             GFX_RedrawScreen(sdl.draw.width, sdl.draw.height);
 #endif
         }
@@ -3514,16 +3514,16 @@ static void SetPriority(PRIORITY_LEVELS level) {
 }
 
 extern uint8_t int10_font_14[256 * 14];
-static void OutputString(Bitu x,Bitu y,const char * text,Bit32u color,Bit32u color2,SDL_Surface * output_surface) {
-    Bit32u * draw=(Bit32u*)(((uint8_t *)output_surface->pixels)+((y)*output_surface->pitch))+x;
+static void OutputString(Bitu x,Bitu y,const char * text,uint32_t color,uint32_t color2,SDL_Surface * output_surface) {
+    uint32_t * draw=(uint32_t*)(((uint8_t *)output_surface->pixels)+((y)*output_surface->pitch))+x;
     while (*text) {
         uint8_t * font=&int10_font_14[(*text)*14];
         Bitu i,j;
-        Bit32u * draw_line=draw;
+        uint32_t * draw_line=draw;
         for (i=0;i<14;i++) {
             uint8_t map=*font++;
             for (j=0;j<8;j++) {
-                if (map & 0x80) *((Bit32u*)(draw_line+j))=color; else *((Bit32u*)(draw_line+j))=color2;
+                if (map & 0x80) *((uint32_t*)(draw_line+j))=color; else *((uint32_t*)(draw_line+j))=color2;
                 map<<=1;
             }
             draw_line+=output_surface->pitch/4;
@@ -4070,7 +4070,7 @@ bool Mouse_IsLocked()
     return sdl.mouse.locked;
 }
 
-static void RedrawScreen(Bit32u nWidth, Bit32u nHeight) {
+static void RedrawScreen(uint32_t nWidth, uint32_t nHeight) {
     (void)nWidth;//UNUSED
     (void)nHeight;//UNUSED
 //  int width;
@@ -4146,7 +4146,7 @@ static void RedrawScreen(Bit32u nWidth, Bit32u nHeight) {
     RENDER_CallBack( GFX_CallBackReset);
 }
 
-void GFX_RedrawScreen(Bit32u nWidth, Bit32u nHeight) {
+void GFX_RedrawScreen(uint32_t nWidth, uint32_t nHeight) {
     RedrawScreen(nWidth, nHeight);
 }
 
@@ -6262,7 +6262,7 @@ static bool PasteClipboardNext()
 }
 
 extern uint8_t* clipAscii;
-extern Bit32u clipSize;
+extern uint32_t clipSize;
 extern void Unicode2Ascii(const uint16_t* unicode);
 
 void PasteClipboard(bool bPressed)
@@ -6304,7 +6304,7 @@ void PasteClipboard(bool bPressed)
 #if defined(WIN32) // SDL2, MinGW / Added by Wengier
 static std::string strPasteBuffer;
 extern uint8_t* clipAscii;
-extern Bit32u clipSize;
+extern uint32_t clipSize;
 extern void Unicode2Ascii(const uint16_t* unicode);
 void PasteClipboard(bool bPressed) {
 	if (!bPressed||!OpenClipboard(NULL)) return;
@@ -6587,13 +6587,13 @@ static void show_warning(char const * const message) {
 #endif
     if(!sdl.surface) return;
 #if SDL_BYTEORDER == SDL_BIG_ENDIAN
-    Bit32u rmask = 0xff000000;
-    Bit32u gmask = 0x00ff0000;
-    Bit32u bmask = 0x0000ff00;
+    uint32_t rmask = 0xff000000;
+    uint32_t gmask = 0x00ff0000;
+    uint32_t bmask = 0x0000ff00;
 #else
-    Bit32u rmask = 0x000000ff;
-    Bit32u gmask = 0x0000ff00;                    
-    Bit32u bmask = 0x00ff0000;
+    uint32_t rmask = 0x000000ff;
+    uint32_t gmask = 0x0000ff00;                    
+    uint32_t bmask = 0x00ff0000;
 #endif
     SDL_Surface* splash_surf = SDL_CreateRGBSurface(SDL_SWSURFACE, 640, 400, 32, rmask, gmask, bmask, 0);
     if (!splash_surf) return;
@@ -10229,8 +10229,8 @@ fresh_boot:
 
             /* revector some dos-allocated interrupts */
             if (!reboot_machine) {
-                real_writed(0,0x01*4,(Bit32u)BIOS_DEFAULT_HANDLER_LOCATION);
-                real_writed(0,0x03*4,(Bit32u)BIOS_DEFAULT_HANDLER_LOCATION);
+                real_writed(0,0x01*4,(uint32_t)BIOS_DEFAULT_HANDLER_LOCATION);
+                real_writed(0,0x03*4,(uint32_t)BIOS_DEFAULT_HANDLER_LOCATION);
             }
 
             grGlideShutdown();

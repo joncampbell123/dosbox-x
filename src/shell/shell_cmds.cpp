@@ -202,7 +202,7 @@ __do_command_begin:
 //		if (*line == ':') break; //This breaks drive switching as that is handled at a later stage. 
 		if ((*line == '.') ||(*line == '\\')) {  //allow stuff like cd.. and dir.exe cd\kees
 			*cmd_write=0;
-			Bit32u cmd_index=0;
+			uint32_t cmd_index=0;
 			while (cmd_list[cmd_index].name) {
 				if (strcasecmp(cmd_list[cmd_index].name,cmd_buffer)==0) {
 					(this->*(cmd_list[cmd_index].handler))(line);
@@ -228,7 +228,7 @@ __do_command_begin:
     }
 
 /* Check the internal list */
-	Bit32u cmd_index=0;
+	uint32_t cmd_index=0;
 	while (cmd_list[cmd_index].name) {
 		if (strcasecmp(cmd_list[cmd_index].name,cmd_buffer)==0) {
 			(this->*(cmd_list[cmd_index].handler))(line);
@@ -360,7 +360,7 @@ void DOS_Shell::CMD_INT2FDBG(char * args) {
 	/* TODO: Allow /U to remove INT 2Fh hook */
 	if (ScanCMDBool(args,"I")) {
 		if (int2fdbg_hook_callback == 0) {
-			Bit32u old_int2Fh;
+			uint32_t old_int2Fh;
 			PhysPt w;
 
 			int2fdbg_hook_callback = CALLBACK_Allocate();
@@ -460,7 +460,7 @@ void DOS_Shell::CMD_DELETE(char * args) {
 	char full[DOS_PATHLENGTH],sfull[DOS_PATHLENGTH+2];
 	char buffer[CROSS_LEN];
     char name[DOS_NAMELENGTH_ASCII],lname[LFN_NAMELENGTH+1];
-    Bit32u size;uint16_t time,date;uint8_t attr;
+    uint32_t size;uint16_t time,date;uint8_t attr;
 	args = ExpandDot(args,buffer, CROSS_LEN);
 	StripSpaces(args);
 	if (!DOS_Canonicalize(args,full)) { WriteOut(MSG_Get("SHELL_ILLEGAL_PATH"));dos.dta(save_dta);return; }
@@ -620,7 +620,7 @@ static size_t GetPauseCount() {
 struct DtaResult {
 	char name[DOS_NAMELENGTH_ASCII];
 	char lname[LFN_NAMELENGTH+1];
-	Bit32u size;
+	uint32_t size;
 	uint16_t date;
 	uint16_t time;
 	uint8_t attr;
@@ -675,7 +675,7 @@ static bool doDeltree(DOS_Shell * shell, char * args, DOS_DTA dta, bool optY, bo
 	char * end=strrchr(full,'\\')+1;*end=0;
 	char * lend=strrchr(sfull,'\\')+1;*lend=0;
     char name[DOS_NAMELENGTH_ASCII],lname[LFN_NAMELENGTH+1];
-    Bit32u size;uint16_t time,date;uint8_t attr;uint16_t fattr;
+    uint32_t size;uint16_t time,date;uint8_t attr;uint16_t fattr;
     std::vector<std::string> cdirs, cfiles;
     cdirs.clear();
 	cfiles.clear();
@@ -801,7 +801,7 @@ void DOS_Shell::CMD_HELP(char * args){
 	args = trim(args);
 	upcase(args);
 	if(!optall&&!*args) WriteOut(MSG_Get("SHELL_CMD_HELP"));
-	Bit32u cmd_index=0,write_count=0;
+	uint32_t cmd_index=0,write_count=0;
 	bool show=false;
 	while (cmd_list[cmd_index].name) {
 		if (optall || (*args && !strcmp(args, cmd_list[cmd_index].name)) || (!*args && !cmd_list[cmd_index].flags)) {
@@ -864,7 +864,7 @@ void DOS_Shell::CMD_RENAME(char * args){
 	StripSpaces(args);
 	if (*args) {SyntaxError();return;}
 	char* slash = strrchr(arg1,'\\');
-	Bit32u size;uint16_t date;uint16_t time;uint8_t attr;
+	uint32_t size;uint16_t date;uint16_t time;uint8_t attr;
 	char name[DOS_NAMELENGTH_ASCII], lname[LFN_NAMELENGTH+1], tname1[LFN_NAMELENGTH+1], tname2[LFN_NAMELENGTH+1], text1[LFN_NAMELENGTH+1], text2[LFN_NAMELENGTH+1], tfull[CROSS_LEN+2];
 	//dir_source and target are introduced for when we support multiple files being renamed.
 	char sargs[CROSS_LEN], targs[CROSS_LEN], dir_source[DOS_PATHLENGTH + 4] = {0}, dir_target[CROSS_LEN + 4] = {0}, target[CROSS_LEN + 4] = {0}; //not sure if drive portion is included in pathlength
@@ -1186,7 +1186,7 @@ void DOS_Shell::CMD_RMDIR(char * args) {
 }
 
 static void FormatNumber(Bit64u num,char * buf) {
-	Bit32u numm,numk,numb,numg,numt;
+	uint32_t numm,numk,numb,numg,numt;
 	numb=num % 1000;
 	num/=1000;
 	numk=num % 1000;
@@ -1251,7 +1251,7 @@ char *FormatTime(Bitu hour, Bitu min, Bitu sec, Bitu msec)	{
 	}
 
 
-Bit32u byte_count,file_count,dir_count;
+uint32_t byte_count,file_count,dir_count;
 Bitu p_count;
 std::vector<std::string> dirs, adirs;
 
@@ -1296,7 +1296,7 @@ static bool doDir(DOS_Shell * shell, char * args, DOS_DTA dta, char * numformat,
 	}
     if (*(sargs+strlen(sargs)-1) != '\\') strcat(sargs,"\\");
 
-	Bit32u cbyte_count=0,cfile_count=0,w_count=0;
+	uint32_t cbyte_count=0,cfile_count=0,w_count=0;
 	int fbak=lfn_filefind_handle;
 	lfn_filefind_handle=uselfn&&!optZ?LFN_FILEFIND_INTERNAL:LFN_FILEFIND_NONE;
 	bool ret=DOS_FindFirst(args,0xffff & ~DOS_ATTR_VOLUME), found=true, first=true;
@@ -1354,7 +1354,7 @@ static bool doDir(DOS_Shell * shell, char * args, DOS_DTA dta, char * numformat,
 
 			char * name = iter->name;
 			char *lname = iter->lname;
-			Bit32u size = iter->size;
+			uint32_t size = iter->size;
 			uint16_t date = iter->date;
 			uint16_t time = iter->time;
 			uint8_t attr = iter->attr;
@@ -1662,7 +1662,7 @@ void DOS_Shell::CMD_DIR(char * args) {
 		//TODO Free Space
 		Bitu free_space=1024u*1024u*100u;
 		if (Drives[drive]) {
-			Bit32u bytes_sector32;Bit32u sectors_cluster32;Bit32u total_clusters32;Bit32u free_clusters32;
+			uint32_t bytes_sector32;uint32_t sectors_cluster32;uint32_t total_clusters32;uint32_t free_clusters32;
 			if ((dos.version.major > 7 || (dos.version.major == 7 && dos.version.minor >= 10)) &&
 				Drives[drive]->AllocationInfo32(&bytes_sector32,&sectors_cluster32,&total_clusters32,&free_clusters32)) { /* FAT32 aware extended API */
 				rsize=true;
@@ -1848,7 +1848,7 @@ void DOS_Shell::CMD_COPY(char * args) {
 	RealPt save_dta=dos.dta();
 	dos.dta(dos.tables.tempdta);
 	DOS_DTA dta(dos.dta());
-	Bit32u size;uint16_t date;uint16_t time;uint8_t attr;
+	uint32_t size;uint16_t date;uint16_t time;uint8_t attr;
 	char name[DOS_NAMELENGTH_ASCII], lname[LFN_NAMELENGTH+1];
 	std::vector<copysource> sources;
 	// ignore /b and /t switches: always copy binary
@@ -1955,7 +1955,7 @@ void DOS_Shell::CMD_COPY(char * args) {
 
 	copysource oldsource;
 	copysource source;
-	Bit32u count = 0;
+	uint32_t count = 0;
 	while(sources.size()) {
 		/* Get next source item and keep track of old source for concat start end */
 		oldsource = source;
@@ -2151,7 +2151,7 @@ void DOS_Shell::CMD_COPY(char * args) {
 					}
 					//Don't create a new file when in concat mode
 					if (oldsource.concat || DOS_CreateFile(nameTarget,0,&targetHandle)) {
-						Bit32u dummy=0;
+						uint32_t dummy=0;
 
                         if (DOS_FindDevice(name) == DOS_DEVICES && !DOS_SetFileDate(targetHandle, ftime, fdate))
                             LOG_MSG("WARNING: COPY unable to apply date/time to dest");
@@ -2596,7 +2596,7 @@ void DOS_Shell::CMD_DATE(char * args) {
 	}
 	// check if a date was passed in command line
 	char c=dos.tables.country[11], c1, c2;
-	Bit32u newday,newmonth,newyear;
+	uint32_t newday,newmonth,newyear;
 	int n=dos.tables.country[0]==1?sscanf(args,"%u%c%u%c%u",&newday,&c1,&newmonth,&c2,&newyear):(dos.tables.country[0]==2?sscanf(args,"%u%c%u%c%u",&newyear,&c1,&newmonth,&c2,&newday):sscanf(args,"%u%c%u%c%u",&newmonth,&c1,&newday,&c2,&newyear));
 	if (n==5 && c1==c && c2==c) {
 		reg_cx = static_cast<uint16_t>(newyear);
@@ -2613,11 +2613,11 @@ void DOS_Shell::CMD_DATE(char * args) {
 	CALLBACK_RunRealInt(0x21);
 
 	const char* datestring = MSG_Get("SHELL_CMD_DATE_DAYS");
-	Bit32u length;
+	uint32_t length;
 	char day[6] = {0};
 	if(sscanf(datestring,"%u",&length) && (length<5) && (strlen(datestring)==((size_t)length*7+1))) {
 		// date string appears valid
-		for(Bit32u i = 0; i < length; i++) day[i] = datestring[reg_al*length+1+i];
+		for(uint32_t i = 0; i < length; i++) day[i] = datestring[reg_al*length+1+i];
 	}
 	bool dateonly = ScanCMDBool(args,"T");
 	if(!dateonly) WriteOut(MSG_Get("SHELL_CMD_DATE_NOW"));
@@ -2666,13 +2666,13 @@ void DOS_Shell::CMD_TIME(char * args) {
 		// reg_ah=0x2d; // set system time TODO
 		// CALLBACK_RunRealInt(0x21);
 		
-		Bit32u ticks=(Bit32u)(((double)(loctime->tm_hour*3600+
+		uint32_t ticks=(uint32_t)(((double)(loctime->tm_hour*3600+
 										loctime->tm_min*60+
 										loctime->tm_sec))*18.206481481);
 		mem_writed(BIOS_TIMER,ticks);
 		return;
 	}
-	Bit32u newhour,newminute,newsecond;
+	uint32_t newhour,newminute,newsecond;
 	char c=dos.tables.country[13], c1, c2;
 	if (sscanf(args,"%u%c%u%c%u",&newhour,&c1,&newminute,&c2,&newsecond)==5 && c1==c && c2==c) {
 		//reg_ch = static_cast<uint16_t>(newhour);
@@ -2686,7 +2686,7 @@ void DOS_Shell::CMD_TIME(char * args) {
 		if( newhour > 23 || newminute > 59 || newsecond > 59)
 			WriteOut(MSG_Get("SHELL_CMD_TIME_ERROR"));
 		else {
-			Bit32u ticks=(Bit32u)(((double)(newhour*3600+
+			uint32_t ticks=(uint32_t)(((double)(newhour*3600+
 											newminute*60+
 											newsecond))*18.206481481);
 			mem_writed(BIOS_TIMER,ticks);
@@ -2727,7 +2727,7 @@ void DOS_Shell::CMD_SUBST(char * args) {
 		CommandLine command(0,args);
 		if (!command.GetCount()) {
 			char name[DOS_NAMELENGTH_ASCII],lname[LFN_NAMELENGTH];
-			Bit32u size;uint16_t date;uint16_t time;uint8_t attr;
+			uint32_t size;uint16_t date;uint16_t time;uint8_t attr;
 			/* Command uses dta so set it to our internal dta */
 			RealPt save_dta = dos.dta();
 			dos.dta(dos.tables.tempdta);
@@ -2917,7 +2917,7 @@ static bool doAttrib(DOS_Shell * shell, char * args, DOS_DTA dta, bool optS, boo
 	char * end=strrchr(full,'\\')+1;*end=0;
 	char * lend=strrchr(sfull,'\\')+1;*lend=0;
     char name[DOS_NAMELENGTH_ASCII],lname[LFN_NAMELENGTH+1];
-    Bit32u size;uint16_t time,date;uint8_t attr;uint16_t fattr;
+    uint32_t size;uint16_t time,date;uint8_t attr;uint16_t fattr;
 	while (res) {
 		dta.GetResult(name,lname,size,date,time,attr);
 		if (!((!strcmp(name, ".") || !strcmp(name, "..") || strchr(sargs, '*')!=NULL || strchr(sargs, '?')!=NULL) && attr & DOS_ATTR_DIRECTORY)) {
@@ -3127,7 +3127,7 @@ void DOS_Shell::CMD_VOL(char *args){
 	uint8_t drive=DOS_GetDefaultDrive();
 	if(args && *args){
 		args++;
-		Bit32u argLen = (Bit32u)strlen(args);
+		uint32_t argLen = (uint32_t)strlen(args);
 		switch (args[argLen-1]) {
 		case ':' :
 			if(!strcasecmp(args,":")) return;
@@ -3504,7 +3504,7 @@ void DOS_Shell::CMD_FOR(char *args) {
 						path[k++]=path[i];
 				path[k]=0;
 			}
-			Bit32u size;
+			uint32_t size;
 			uint16_t date, time;
 			uint8_t attr;
 			DOS_DTA dta(dos.dta());
@@ -3650,7 +3650,7 @@ void DOS_Shell::CMD_DXCAPTURE(char * args) {
     if (post_exit_delay_ms > 0) {
         LOG_MSG("Pausing for post exit delay (%.3f seconds)",(double)post_exit_delay_ms / 1000);
 
-        Bit32u lasttick=GetTicks();
+        uint32_t lasttick=GetTicks();
         while ((GetTicks()-lasttick)<post_exit_delay_ms) {
             CALLBACK_Idle();
 

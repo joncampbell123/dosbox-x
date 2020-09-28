@@ -43,10 +43,10 @@ namespace OPL2 {
 	#include "opl.cpp"
 
 	struct Handler : public Adlib::Handler {
-		virtual void WriteReg( Bit32u reg, uint8_t val ) {
+		virtual void WriteReg( uint32_t reg, uint8_t val ) {
 			adlib_write(reg,val);
 		}
-		virtual Bit32u WriteAddr( Bit32u port, uint8_t val ) {
+		virtual uint32_t WriteAddr( uint32_t port, uint8_t val ) {
             (void)port;//UNUSED
 			return val;
 		}
@@ -62,7 +62,7 @@ namespace OPL2 {
 		}
 
 		virtual void Init( Bitu rate ) {
-			adlib_init((Bit32u)rate);
+			adlib_init((uint32_t)rate);
 		}
 
 		virtual void SaveState( std::ostream& stream ) {
@@ -110,10 +110,10 @@ namespace OPL3 {
 	#include "opl.cpp"
 
 	struct Handler : public Adlib::Handler {
-		virtual void WriteReg( Bit32u reg, uint8_t val ) {
+		virtual void WriteReg( uint32_t reg, uint8_t val ) {
 			adlib_write(reg,val);
 		}
-		virtual Bit32u WriteAddr( Bit32u port, uint8_t val ) {
+		virtual uint32_t WriteAddr( uint32_t port, uint8_t val ) {
 			adlib_write_index(port, val);
 			return opl_index;
 		}
@@ -128,7 +128,7 @@ namespace OPL3 {
 		}
 
 		virtual void Init( Bitu rate ) {
-			adlib_init((Bit32u)rate);
+			adlib_init((uint32_t)rate);
 		}
 
 		virtual void SaveState( std::ostream& stream ) {
@@ -177,13 +177,13 @@ struct Handler : public Adlib::Handler {
 	opl3_chip chip = {};
 	uint8_t newm = 0;
 
-	void WriteReg(Bit32u reg, uint8_t val) override {
+	void WriteReg(uint32_t reg, uint8_t val) override {
 		OPL3_WriteRegBuffered(&chip, (uint16_t)reg, val);
 		if (reg == 0x105)
 			newm = reg & 0x01;
 	}
 
-	Bit32u WriteAddr(Bit32u port, uint8_t val) override {
+	uint32_t WriteAddr(uint32_t port, uint8_t val) override {
 		uint16_t addr;
 		addr = val;
 		if ((port & 2) && (addr == 0x05 || newm)) {
@@ -204,7 +204,7 @@ struct Handler : public Adlib::Handler {
 
 	void Init(Bitu rate) override {
 		newm = 0;
-		OPL3_Reset(&chip, (Bit32u)rate);
+		OPL3_Reset(&chip, (uint32_t)rate);
 	}
 
 	~Handler() {
@@ -218,11 +218,11 @@ namespace MAMEOPL2 {
 struct Handler : public Adlib::Handler {
 	void* chip = NULL;
 
-	virtual void WriteReg(Bit32u reg, uint8_t val) {
+	virtual void WriteReg(uint32_t reg, uint8_t val) {
 		ym3812_write(chip, 0, (int)reg);
 		ym3812_write(chip, 1, (int)val);
 	}
-	virtual Bit32u WriteAddr(Bit32u /*port*/, uint8_t val) {
+	virtual uint32_t WriteAddr(uint32_t /*port*/, uint8_t val) {
 		return val;
 	}
 	virtual void Generate(MixerChannel* chan, Bitu samples) {
@@ -284,11 +284,11 @@ namespace MAMEOPL3 {
 struct Handler : public Adlib::Handler {
 	void* chip = NULL;
 
-	virtual void WriteReg(Bit32u reg, uint8_t val) {
+	virtual void WriteReg(uint32_t reg, uint8_t val) {
 		ymf262_write(chip, 0, (int)reg);
 		ymf262_write(chip, 1, (int)val);
 	}
-	virtual Bit32u WriteAddr(Bit32u /*port*/, uint8_t val) {
+	virtual uint32_t WriteAddr(uint32_t /*port*/, uint8_t val) {
 		return val;
 	}
 	virtual void Generate(MixerChannel* chan, Bitu samples) {
@@ -359,10 +359,10 @@ namespace OPL2BOARD {
 		Handler(const char* port) {
 			opl2AudioBoard.connect(port);
 		}
-		virtual void WriteReg(Bit32u reg, uint8_t val) {
+		virtual void WriteReg(uint32_t reg, uint8_t val) {
 			opl2AudioBoard.write(reg, val);
 		}
-		virtual Bit32u WriteAddr(Bit32u port, uint8_t val) {
+		virtual uint32_t WriteAddr(uint32_t port, uint8_t val) {
 			(void)port;
 			return val;
 		}
@@ -408,8 +408,8 @@ struct RawHeader {
 	uint8_t id[8];				/* 0x00, "DBRAWOPL" */
 	uint16_t versionHigh;			/* 0x08, size of the data following the m */
 	uint16_t versionLow;			/* 0x0a, size of the data following the m */
-	Bit32u commands;			/* 0x0c, Bit32u amount of command/data pairs */
-	Bit32u milliseconds;		/* 0x10, Bit32u Total milliseconds of data in this chunk */
+	uint32_t commands;			/* 0x0c, uint32_t amount of command/data pairs */
+	uint32_t milliseconds;		/* 0x10, uint32_t Total milliseconds of data in this chunk */
 	uint8_t hardware;				/* 0x14, uint8_t Hardware Type 0=opl2,1=dual-opl2,2=opl3 */
 	uint8_t format;				/* 0x15, uint8_t Format 0=cmd/data interleaved, 1 maybe all cdms, followed by all data */
 	uint8_t compression;			/* 0x16, uint8_t Compression Type, 0 = No Compression */
@@ -439,10 +439,10 @@ class Capture {
     RawHeader header = {};
 
 	FILE*	handle;				//File used for writing
-	Bit32u	startTicks;			//Start used to check total raw length on end
-	Bit32u	lastTicks;			//Last ticks when last last cmd was added
+	uint32_t	startTicks;			//Start used to check total raw length on end
+	uint32_t	lastTicks;			//Last ticks when last last cmd was added
     uint8_t   buf[1024] = {};     //16 added for delay commands and what not
-	Bit32u	bufUsed;
+	uint32_t	bufUsed;
 #if 0//unused
     uint8_t	cmd[2];				//Last cmd's sent to either ports
 	bool	doneOpl3;
@@ -500,7 +500,7 @@ class Capture {
 			ClearBuf();
 		}
 	}
-	void AddWrite( Bit32u regFull, uint8_t val ) {
+	void AddWrite( uint32_t regFull, uint8_t val ) {
 		uint8_t regMask = regFull & 0xff;
 		/*
 			Do some special checks if we're doing opl3 or dualopl2 commands
@@ -564,7 +564,7 @@ class Capture {
 		}
 	}
 public:
-	bool DoWrite( Bit32u regFull, uint8_t val ) {
+	bool DoWrite( uint32_t regFull, uint8_t val ) {
 		uint8_t regMask = regFull & 0xff;
 		//Check the raw index for this register if we actually have to save it
 		if ( handle ) {
@@ -582,8 +582,8 @@ public:
 				return true;
 			/* Check how much time has passed */
 			Bitu passed = PIC_Ticks - lastTicks;
-			lastTicks = (Bit32u)PIC_Ticks;
-			header.milliseconds += (Bit32u)passed;
+			lastTicks = (uint32_t)PIC_Ticks;
+			header.milliseconds += (uint32_t)passed;
 
 			//if ( passed > 0 ) LOG_MSG( "Delay %d", passed ) ;
 			
@@ -629,8 +629,8 @@ skipWrite:
 		/* Write the command that triggered this */
 		AddWrite( regFull, val );
 		//Init the timing information for the next commands
-		lastTicks = (Bit32u)PIC_Ticks;	
-		startTicks = (Bit32u)PIC_Ticks;
+		lastTicks = (uint32_t)PIC_Ticks;	
+		startTicks = (uint32_t)PIC_Ticks;
 		return true;
 	}
 	Capture( RegisterCache* _cache ) {
@@ -654,7 +654,7 @@ Chip
 Chip::Chip() : timer0(80), timer1(320) {
 }
 
-bool Chip::Write( Bit32u reg, uint8_t val ) {
+bool Chip::Write( uint32_t reg, uint8_t val ) {
 	if (adlib_force_timer_overflow_on_polling) {
 		/* detect end of polling loop by whether it writes */
 		last_poll = PIC_FullIndex();
@@ -740,7 +740,7 @@ uint8_t Chip::Read( ) {
 	return ret;
 }
 
-void Module::CacheWrite( Bit32u reg, uint8_t val ) {
+void Module::CacheWrite( uint32_t reg, uint8_t val ) {
 	//capturing?
 	if ( capture ) {
 		capture->DoWrite( reg, val );
@@ -767,7 +767,7 @@ void Module::DualWrite( uint8_t index, uint8_t reg, uint8_t val ) {
 		val &= 0x0f;
 		val |= index ? 0xA0 : 0x50;
 	}
-	Bit32u fullReg = reg + (index ? 0x100u : 0u);
+	uint32_t fullReg = reg + (index ? 0x100u : 0u);
 	handler->WriteReg( fullReg, val );
 	CacheWrite( fullReg, val );
 }
@@ -806,7 +806,7 @@ Bitu Module::CtrlRead( void ) {
 void Module::PortWrite( Bitu port, Bitu val, Bitu iolen ) {
     (void)iolen;//UNUSED
 	//Keep track of last write time
-	lastUsed = (Bit32u)PIC_Ticks;
+	lastUsed = (uint32_t)PIC_Ticks;
 	//Maybe only enable with a keyon?
 	if ( !mixerChan->enabled ) {
 		mixerChan->Enable(true);
@@ -845,7 +845,7 @@ void Module::PortWrite( Bitu port, Bitu val, Bitu iolen ) {
 		//Make sure to clip them in the right range
 		switch ( mode ) {
 		case MODE_OPL2:
-			reg.normal = handler->WriteAddr( (Bit32u)port, (uint8_t)val ) & 0xff;
+			reg.normal = handler->WriteAddr( (uint32_t)port, (uint8_t)val ) & 0xff;
 			break;
 		case MODE_OPL3GOLD:
 			if ( port == 0x38a ) {
@@ -862,7 +862,7 @@ void Module::PortWrite( Bitu port, Bitu val, Bitu iolen ) {
 			}
 			//Fall-through if not handled by control chip
 		case MODE_OPL3:
-			reg.normal = handler->WriteAddr( (Bit32u)port, (uint8_t)val ) & 0x1ff;
+			reg.normal = handler->WriteAddr( (uint32_t)port, (uint8_t)val ) & 0x1ff;
 			break;
 		case MODE_DUALOPL2:
 			//Not a 0x?88 port, when write to a specific side
@@ -947,7 +947,7 @@ static void OPL_CallBack(Bitu len) {
 		Bitu i;
 		for (i=0xb0;i<0xb9;i++) if (module->cache[i]&0x20||module->cache[i+0x100]&0x20) break;
 		if (i==0xb9) module->mixerChan->Enable(false);
-		else module->lastUsed = (Bit32u)PIC_Ticks;
+		else module->lastUsed = (uint32_t)PIC_Ticks;
 	}
 }
 

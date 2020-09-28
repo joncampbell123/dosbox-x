@@ -89,7 +89,7 @@ static INLINE void hostWrite(HostPt off, Bitu val) {
 	else if ( sizeof( Size ) == 2)
 		host_writew( off, (uint16_t)val );
 	else if ( sizeof( Size ) == 4)
-		host_writed( off, (Bit32u)val );
+		host_writed( off, (uint32_t)val );
 }
 
 template <class Size>
@@ -106,7 +106,7 @@ static INLINE Bitu  hostRead(HostPt off ) {
 
 void VGA_MapMMIO(void);
 //Nice one from DosEmu
-INLINE static Bit32u RasterOp(Bit32u input,Bit32u mask) {
+INLINE static uint32_t RasterOp(uint32_t input,uint32_t mask) {
 	switch (vga.config.raster_op) {
 	case 0x00:	/* None */
 		return (input & mask) | (vga.latch.d & ~mask);
@@ -120,8 +120,8 @@ INLINE static Bit32u RasterOp(Bit32u input,Bit32u mask) {
 	return 0;
 }
 
-INLINE static Bit32u ModeOperation(uint8_t val) {
-	Bit32u full;
+INLINE static uint32_t ModeOperation(uint8_t val) {
+	uint32_t full;
 	switch (vga.config.write_mode) {
 	case 0x00:
 		// Write Mode 0: In this mode, the host data is first rotated as per the Rotate Count field, then the Enable Set/Reset mechanism selects data from this or the Set/Reset field. Then the selected Logical Operation is performed on the resulting data and the data in the latch register. Then the Bit Mask field is used to select which bits come from the resulting data and which come from the latch register. Finally, only the bit planes enabled by the Memory Plane Write Enable field are written to memory. 
@@ -272,7 +272,7 @@ static inline Bitu VGA_Generic_Read_Handler(PhysPt planeaddr,PhysPt rawaddr,unsi
         planeaddr &= mask & (vga.mem.memmask >> 2u);
     }
 
-    vga.latch.d=((Bit32u*)vga.mem.linear)[planeaddr];
+    vga.latch.d=((uint32_t*)vga.mem.linear)[planeaddr];
     switch (vga.config.read_mode) {
         case 0:
             return (vga.latch.b[plane]);
@@ -287,7 +287,7 @@ static inline Bitu VGA_Generic_Read_Handler(PhysPt planeaddr,PhysPt rawaddr,unsi
 
 template <const bool chained> static inline void VGA_Generic_Write_Handler(PhysPt planeaddr,PhysPt rawaddr,uint8_t val) {
     const unsigned char hobit_n = ((vga.seq.memory_mode&2/*Extended Memory*/) || (vga_ignore_extended_memory_bit && IS_VGA_ARCH)) ? 16u : 14u;
-    Bit32u mask = vga.config.full_map_mask;
+    uint32_t mask = vga.config.full_map_mask;
 
     /* Sequencer Memory Mode Register (04h)
      * bits[3:3] = Chain 4 enable
@@ -330,10 +330,10 @@ template <const bool chained> static inline void VGA_Generic_Write_Handler(PhysP
         planeaddr &= mask & (vga.mem.memmask >> 2u);
     }
 
-    Bit32u data=ModeOperation(val);
+    uint32_t data=ModeOperation(val);
     VGA_Latch pixels;
 
-    pixels.d =((Bit32u*)vga.mem.linear)[planeaddr];
+    pixels.d =((uint32_t*)vga.mem.linear)[planeaddr];
     pixels.d&=~mask;
     pixels.d|=(data & mask);
 
@@ -342,7 +342,7 @@ template <const bool chained> static inline void VGA_Generic_Write_Handler(PhysP
      *        this hack */
     vga.draw.font[planeaddr] = pixels.b[2];
 
-    ((Bit32u*)vga.mem.linear)[planeaddr]=pixels.d;
+    ((uint32_t*)vga.mem.linear)[planeaddr]=pixels.d;
 }
 
 // Slow accurate emulation.
@@ -386,12 +386,12 @@ public:
 		ret     |= (readHandler8( addr+1 ) << 8 );
 		return ret;
 	}
-	Bit32u readd(PhysPt addr ) {
+	uint32_t readd(PhysPt addr ) {
 		VGAMEM_USEC_read_delay();
 		addr = PAGING_GetPhysicalAddress(addr) & vgapages.mask;
 		addr += (PhysPt)vga.svga.bank_read_full;
 //		addr = CHECKED(addr);
-		Bit32u ret = (Bit32u)(readHandler8( addr+0 ) << 0 );
+		uint32_t ret = (uint32_t)(readHandler8( addr+0 ) << 0 );
 		ret     |= (readHandler8( addr+1 ) << 8 );
 		ret     |= (readHandler8( addr+2 ) << 16 );
 		ret     |= (readHandler8( addr+3 ) << 24 );
@@ -412,7 +412,7 @@ public:
 		writeHandler8( addr+0, (uint8_t)(val >> 0u) );
 		writeHandler8( addr+1, (uint8_t)(val >> 8u) );
 	}
-	void writed(PhysPt addr,Bit32u val) {
+	void writed(PhysPt addr,uint32_t val) {
 		VGAMEM_USEC_write_delay();
 		addr = PAGING_GetPhysicalAddress(addr) & vgapages.mask;
 		addr += (PhysPt)vga.svga.bank_write_full;
@@ -453,12 +453,12 @@ public:
 		ret     |= (readHandler8( addr+1 ) << 8 );
 		return ret;
 	}
-	Bit32u readd(PhysPt addr ) {
+	uint32_t readd(PhysPt addr ) {
 		VGAMEM_USEC_read_delay();
 		addr = PAGING_GetPhysicalAddress(addr) & vgapages.mask;
 		addr += (PhysPt)vga.svga.bank_read_full;
 //		addr = CHECKED(addr);
-		Bit32u ret = (Bit32u)(readHandler8( addr+0 ) << 0 );
+		uint32_t ret = (uint32_t)(readHandler8( addr+0 ) << 0 );
 		ret     |= (readHandler8( addr+1 ) << 8 );
 		ret     |= (readHandler8( addr+2 ) << 16 );
 		ret     |= (readHandler8( addr+3 ) << 24 );
@@ -479,7 +479,7 @@ public:
 		writeHandler8( addr+0, (uint8_t)(val >> 0u) );
 		writeHandler8( addr+1, (uint8_t)(val >> 8u) );
 	}
-	void writed(PhysPt addr,Bit32u val) {
+	void writed(PhysPt addr,uint32_t val) {
 		VGAMEM_USEC_write_delay();
 		addr = PAGING_GetPhysicalAddress(addr) & vgapages.mask;
 		addr += (PhysPt)vga.svga.bank_write_full;
@@ -513,12 +513,12 @@ public:
 		ret     |= (readHandler(addr+1) << 8);
 		return  ret;
 	}
-	Bit32u readd(PhysPt addr) {
+	uint32_t readd(PhysPt addr) {
 		VGAMEM_USEC_read_delay();
 		addr = PAGING_GetPhysicalAddress(addr) & vgapages.mask;
 		addr += (PhysPt)vga.svga.bank_read_full;
 //		addr = CHECKED2(addr);
-		Bit32u ret = (Bit32u)(readHandler(addr+0) << 0);
+		uint32_t ret = (uint32_t)(readHandler(addr+0) << 0);
 		ret     |= (readHandler(addr+1) << 8);
 		ret     |= (readHandler(addr+2) << 16);
 		ret     |= (readHandler(addr+3) << 24);
@@ -545,7 +545,7 @@ public:
 		writeHandler(addr+0,(uint8_t)(val >> 0));
 		writeHandler(addr+1,(uint8_t)(val >> 8));
 	}
-	void writed(PhysPt addr,Bit32u val) {
+	void writed(PhysPt addr,uint32_t val) {
 		VGAMEM_USEC_write_delay();
 		addr = PAGING_GetPhysicalAddress(addr) & vgapages.mask;
 		addr += (PhysPt)vga.svga.bank_write_full;
@@ -580,7 +580,7 @@ public:
 			double timeInLine = fmod(timeInFrame,vga.draw.delay.htotal);
 
 			/* we're in active area. which column should the snow show up on? */
-			Bit32u x = (Bit32u)((timeInLine * 80) / vga.draw.delay.hblkstart);
+			uint32_t x = (uint32_t)((timeInLine * 80) / vga.draw.delay.hblkstart);
 			if ((unsigned)x < 80) vga.draw.cga_snow[x] = val;
 		}
 
@@ -1878,7 +1878,7 @@ public:
 		Bitu port = PAGING_GetPhysicalAddress(addr) & 0xffff;
 		XGA_Write(port, val, 2);
 	}
-	void writed(PhysPt addr,Bit32u val) {
+	void writed(PhysPt addr,uint32_t val) {
 		VGAMEM_USEC_write_delay();
 		Bitu port = PAGING_GetPhysicalAddress(addr) & 0xffff;
 		XGA_Write(port, val, 4);
@@ -1894,10 +1894,10 @@ public:
 		Bitu port = PAGING_GetPhysicalAddress(addr) & 0xffff;
 		return (uint16_t)XGA_Read(port, 2);
 	}
-	Bit32u readd(PhysPt addr) {
+	uint32_t readd(PhysPt addr) {
 		VGAMEM_USEC_read_delay();
 		Bitu port = PAGING_GetPhysicalAddress(addr) & 0xffff;
-		return (Bit32u)XGA_Read(port, 4);
+		return (uint32_t)XGA_Read(port, 4);
 	}
 };
 
@@ -1939,33 +1939,33 @@ public:
 	void writeHandler(PhysPt start, uint8_t val) {
 		vga.tandy.mem_base[ start ] = val;
 #ifdef DIJDIJD
-		Bit32u data=ModeOperation(val);
+		uint32_t data=ModeOperation(val);
 		/* Update video memory and the pixel buffer */
 		VGA_Latch pixels;
-		pixels.d=((Bit32u*)vga.mem.linear)[start];
+		pixels.d=((uint32_t*)vga.mem.linear)[start];
 		pixels.d&=vga.config.full_not_map_mask;
 		pixels.d|=(data & vga.config.full_map_mask);
-		((Bit32u*)vga.mem.linear)[start]=pixels.d;
+		((uint32_t*)vga.mem.linear)[start]=pixels.d;
 		uint8_t * write_pixels=&vga.mem.linear[VGA_CACHE_OFFSET+(start<<3)];
 
-		Bit32u colors0_3, colors4_7;
+		uint32_t colors0_3, colors4_7;
 		VGA_Latch temp;temp.d=(pixels.d>>4) & 0x0f0f0f0f;
 			colors0_3 = 
 			Expand16Table[0][temp.b[0]] |
 			Expand16Table[1][temp.b[1]] |
 			Expand16Table[2][temp.b[2]] |
 			Expand16Table[3][temp.b[3]];
-		*(Bit32u *)write_pixels=colors0_3;
+		*(uint32_t *)write_pixels=colors0_3;
 		temp.d=pixels.d & 0x0f0f0f0f;
 		colors4_7 = 
 			Expand16Table[0][temp.b[0]] |
 			Expand16Table[1][temp.b[1]] |
 			Expand16Table[2][temp.b[2]] |
 			Expand16Table[3][temp.b[3]];
-		*(Bit32u *)(write_pixels+4)=colors4_7;
+		*(uint32_t *)(write_pixels+4)=colors4_7;
 		if (wrapping && GCC_UNLIKELY( start < 512)) {
-			*(Bit32u *)(write_pixels+512*1024)=colors0_3;
-			*(Bit32u *)(write_pixels+512*1024+4)=colors4_7;
+			*(uint32_t *)(write_pixels+512*1024)=colors0_3;
+			*(uint32_t *)(write_pixels+512*1024+4)=colors4_7;
 		}
 #endif
 	}
@@ -2031,7 +2031,7 @@ public:
 		}
 
 	}
-	void writed(PhysPt addr,Bit32u val) {
+	void writed(PhysPt addr,uint32_t val) {
 		VGAMEM_USEC_write_delay();
 		addr = wrAddr( addr );
 		Bitu plane = vga.mode==M_AMSTRAD ? vga.amstrad.write_plane : 0x01; // 0x0F?
@@ -2082,15 +2082,15 @@ public:
 			(readHandler(addr+0) << 0u) |
 			(readHandler(addr+1) << 8u);
 	}
-	Bit32u readd(PhysPt addr) {
+	uint32_t readd(PhysPt addr) {
 		VGAMEM_USEC_read_delay();
 		addr = wrAddr( addr ) + ( vga.amstrad.read_plane * 16384u );
 		addr &= (64u*1024u-1u);
 		return 
-			(Bit32u)(readHandler(addr+0) << 0u)  |
-			(Bit32u)(readHandler(addr+1) << 8u)  |
-			(Bit32u)(readHandler(addr+2) << 16u) |
-			(Bit32u)(readHandler(addr+3) << 24u);
+			(uint32_t)(readHandler(addr+0) << 0u)  |
+			(uint32_t)(readHandler(addr+1) << 8u)  |
+			(uint32_t)(readHandler(addr+2) << 16u) |
+			(uint32_t)(readHandler(addr+3) << 24u);
 	}
 
 /*

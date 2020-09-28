@@ -50,7 +50,7 @@ struct ipxnetaddr {
 	Uint8 netnode[6];
 } localIpxAddr;
 
-Bit32u udpPort;
+uint32_t udpPort;
 bool isIpxServer;
 bool isIpxConnected;
 IPaddress ipxServConnIp;			// IPAddress for client connection to server
@@ -197,7 +197,7 @@ RealPt ECBClass::getESRAddr(void) {
 }
 
 void ECBClass::NotifyESR(void) {
-	Bit32u ESRval = real_readd(RealSeg(ECBAddr), RealOff(ECBAddr)+4);
+	uint32_t ESRval = real_readd(RealSeg(ECBAddr), RealOff(ECBAddr)+4);
 	if(ESRval || databuffer) { // databuffer: write data at realmode/v86 time
 		// LOG_IPX("ECB: SN%7d to be notified.", SerialNumber);
 		// take the ECB out of the current list
@@ -796,7 +796,7 @@ bool ConnectToServer(char const *strAddr) {
 				// Wait for return packet from server.
 				// This will contain our IPX address and port num
 				Bits result;
-				Bit32u ticks, elapsed;
+				uint32_t ticks, elapsed;
 				ticks = GetTicks();
 
 				while(true) {
@@ -1032,7 +1032,7 @@ public:
 			}
 
 			if(strcasecmp("ping", temp_line.c_str()) == 0) {
-				Bit32u ticks;
+				uint32_t ticks;
 				IPXHeader pingHead;
 
 				if(!incomingPacket.connected) {

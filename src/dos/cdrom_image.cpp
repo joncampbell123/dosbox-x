@@ -126,7 +126,7 @@ uint16_t CDROM_Interface_Image::BinaryFile::getEndian()
 	#endif
 }
 
-bool CDROM_Interface_Image::BinaryFile::seek(Bit32u offset)
+bool CDROM_Interface_Image::BinaryFile::seek(uint32_t offset)
 {
 	file->seekg(offset, ios::beg);
 	return !file->fail();
@@ -175,7 +175,7 @@ CDROM_Interface_Image::AudioFile::~AudioFile()
  *  or number of channels.  To do this, we convert the byte offset to a
  *  time-offset, and use the Sound_Seek() function to move the read position.
  */
-bool CDROM_Interface_Image::AudioFile::seek(Bit32u offset)
+bool CDROM_Interface_Image::AudioFile::seek(uint32_t offset)
 {
 	#ifdef DEBUG
 	const auto begin = std::chrono::steady_clock::now();
@@ -204,9 +204,9 @@ uint16_t CDROM_Interface_Image::AudioFile::getEndian()
 	return sample ? sample->actual.format : AUDIO_S16SYS;
 }
 
-Bit32u CDROM_Interface_Image::AudioFile::getRate()
+uint32_t CDROM_Interface_Image::AudioFile::getRate()
 {
-	Bit32u rate(0);
+	uint32_t rate(0);
 	if (sample) {
 		rate = sample->actual.rate;
 	}
@@ -417,13 +417,13 @@ bool CDROM_Interface_Image::PlayAudioSector(unsigned long start, unsigned long l
 		TrackFile* trackFile = tracks[track].file;
 
 		// Convert the playback start sector to a time offset (milliseconds) relative to the track
-		const Bit32u offset = tracks[track].skip + (start - tracks[track].start) * tracks[track].sectorSize;
+		const uint32_t offset = tracks[track].skip + (start - tracks[track].start) * tracks[track].sectorSize;
 		is_playable = trackFile->seek(offset);
 
 		// only initialize the player elements if our track is playable
 		if (is_playable) {
 			const uint8_t channels = trackFile->getChannels();
-			const Bit32u rate = trackFile->getRate();
+			const uint32_t rate = trackFile->getRate();
 
 			player.cd = this;
 			player.trackFile = trackFile;

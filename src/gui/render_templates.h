@@ -63,7 +63,7 @@
 #endif
 #elif DBPP == 32
 #define PSIZE 4
-#define PTYPE Bit32u
+#define PTYPE uint32_t
 #define WC scalerWriteCache.b32
 //#define FC scalerFrameCache.b32
 #define FC (*(scalerFrameCache_t*)(&scalerSourceCache.b32[400][0])).b32
@@ -148,7 +148,7 @@
 #elif DBPP == 32
 #define PMAKE(_VAL) (_VAL)
 #endif
-#define SRCTYPE Bit32u
+#define SRCTYPE uint32_t
 #endif
 
 //  C0 C1 C2 D3

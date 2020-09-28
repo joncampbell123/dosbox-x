@@ -149,7 +149,7 @@ CDirectLPT::CDirectLPT (Bitu nr, uint8_t initIrq, CommandLine* cmd)
 		LOG_MSG("Parallel Port: Invalid base address.");
 		return;
 	}*/
-	Bit32u ecpbase = 0;
+	uint32_t ecpbase = 0;
 	if(cmd->FindStringBegin("ecpbase:",str,false)) {
 		if(sscanf(str.c_str(), "%x",&ecpbase)!=1) {
 			LOG_MSG("parallel%d: Invalid realbase parameter.",nr);

@@ -32,10 +32,10 @@ extern int lfn_filefind_handle;
 struct finddata {
        uint8_t attr;
        uint8_t fres1[19];
-       Bit32u mtime;
-       Bit32u mdate;
-       Bit32u hsize;
-       Bit32u size;
+       uint32_t mtime;
+       uint32_t mdate;
+       uint32_t hsize;
+       uint32_t size;
        uint8_t fres2[8];
        char lname[260];
        char sname[14];
@@ -84,7 +84,7 @@ void DOS_InfoBlock::SetLocation(uint16_t segment) {
 	sSave(sDIB,lastdrive,(uint8_t)maxdrive);//increase this if you add drives to cds-chain
 
 	sSave(sDIB,diskInfoBuffer,RealMake(segment,offsetof(sDIB,diskBufferHeadPt)));
-	sSave(sDIB,setverPtr,(Bit32u)0);
+	sSave(sDIB,setverPtr,(uint32_t)0);
 
 	sSave(sDIB,a20FixOfs,(uint16_t)0);
 	sSave(sDIB,pspLastIfHMA,(uint16_t)0);
@@ -101,17 +101,17 @@ void DOS_InfoBlock::SetLocation(uint16_t segment) {
 	sSave(sDIB,maxSectorLength,(uint16_t)0x200);
 
 	sSave(sDIB,dirtyDiskBuffers,(uint16_t)0);
-	sSave(sDIB,lookaheadBufPt,(Bit32u)0);
+	sSave(sDIB,lookaheadBufPt,(uint32_t)0);
 	sSave(sDIB,lookaheadBufNumber,(uint16_t)0);
 	sSave(sDIB,bufferLocation,(uint8_t)0);		// buffer in base memory, no workspace
-	sSave(sDIB,workspaceBuffer,(Bit32u)0);
+	sSave(sDIB,workspaceBuffer,(uint32_t)0);
 
 	sSave(sDIB,minMemForExec,(uint16_t)0);
 	sSave(sDIB,memAllocScanStart,(uint16_t)DOS_MEM_START);
 	sSave(sDIB,startOfUMBChain,(uint16_t)0xffff);
 	sSave(sDIB,chainingUMB,(uint8_t)0);
 
-	sSave(sDIB,nulNextDriver,(Bit32u)0xffffffff);
+	sSave(sDIB,nulNextDriver,(uint32_t)0xffffffff);
 	sSave(sDIB,nulAttributes,(uint16_t)0x8004);
 	sSave(sDIB,nulStrategy,(uint16_t)0x0000);
 	sSave(sDIB,nulInterrupt,(uint16_t)0x0000);
@@ -142,19 +142,19 @@ void DOS_InfoBlock::SetBuffers(uint16_t x,uint16_t y) {
 	sSave(sDIB,buffers_y,y);
 }
 
-void DOS_InfoBlock::SetCurDirStruct(Bit32u _curdirstruct) {
+void DOS_InfoBlock::SetCurDirStruct(uint32_t _curdirstruct) {
 	sSave(sDIB,curDirStructure,_curdirstruct);
 }
 
-void DOS_InfoBlock::SetFCBTable(Bit32u _fcbtable) {
+void DOS_InfoBlock::SetFCBTable(uint32_t _fcbtable) {
 	sSave(sDIB,fcbTable,_fcbtable);
 }
 
-void DOS_InfoBlock::SetDeviceChainStart(Bit32u _devchain) {
+void DOS_InfoBlock::SetDeviceChainStart(uint32_t _devchain) {
 	sSave(sDIB,nulNextDriver,_devchain);
 }
 
-void DOS_InfoBlock::SetDiskBufferHeadPt(Bit32u _dbheadpt) {
+void DOS_InfoBlock::SetDiskBufferHeadPt(uint32_t _dbheadpt) {
 	sSave(sDIB,diskBufferHeadPt,_dbheadpt);
 }
 
@@ -178,7 +178,7 @@ void DOS_InfoBlock::SetBlockDevices(uint8_t _count) {
 	sSave(sDIB,blockDevices,_count);
 }
 
-void DOS_InfoBlock::SetFirstDPB(Bit32u _first_dpb) {
+void DOS_InfoBlock::SetFirstDPB(uint32_t _first_dpb) {
     sSave(sDIB,firstDPB,_first_dpb);
 }
 
@@ -186,7 +186,7 @@ RealPt DOS_InfoBlock::GetPointer(void) {
 	return RealMake(seg,offsetof(sDIB,firstDPB));
 }
 
-Bit32u DOS_InfoBlock::GetDeviceChain(void) {
+uint32_t DOS_InfoBlock::GetDeviceChain(void) {
 	return sGet(sDIB,nulNextDriver);
 }
 
@@ -233,7 +233,7 @@ void DOS_PSP::MakeNew(uint16_t mem_size) {
          * which is probably why Microsoft never did this in the DOS kernel. Choosing this method
          * removes the need for the copy of INT 30h in the HMA area, and therefore opens up all 64KB of
          * HMA if you want. */
-        Bit32u DOS_Get_CPM_entry_direct(void);
+        uint32_t DOS_Get_CPM_entry_direct(void);
 
 	    /* far call opcode */
         sSave(sPSP,far_call,0x9a);
@@ -418,7 +418,7 @@ void DOS_DTA::SetupSearch(uint8_t _sdrive,uint8_t _sattr,char * pattern) {
 	}
 }
 
-void DOS_DTA::SetResult(const char * _name, const char * _lname, Bit32u _size,uint16_t _date,uint16_t _time,uint8_t _attr) {
+void DOS_DTA::SetResult(const char * _name, const char * _lname, uint32_t _size,uint16_t _date,uint16_t _time,uint8_t _attr) {
 	fd.hsize=0;
 	fd.size=_size;
 	fd.mdate=_date;
@@ -437,7 +437,7 @@ void DOS_DTA::SetResult(const char * _name, const char * _lname, Bit32u _size,ui
 }
 
 
-void DOS_DTA::GetResult(char * _name, char * _lname,Bit32u & _size,uint16_t & _date,uint16_t & _time,uint8_t & _attr) {
+void DOS_DTA::GetResult(char * _name, char * _lname,uint32_t & _size,uint16_t & _date,uint16_t & _time,uint8_t & _attr) {
 	strcpy(_lname,fd.lname);
 	if (fd.sname[0]!=0) strcpy(_name,fd.sname);
 	else if (strlen(fd.lname)<DOS_NAMELENGTH_ASCII) strcpy(_name,fd.lname);
@@ -528,13 +528,13 @@ void DOS_FCB::SetName(uint8_t _drive, const char* _fname, const char* _ext) {
 	MEM_BlockWrite(pt+offsetof(sFCB,ext),_ext,3);
 }
 
-void DOS_FCB::SetSizeDateTime(Bit32u _size,uint16_t _date,uint16_t _time) {
+void DOS_FCB::SetSizeDateTime(uint32_t _size,uint16_t _date,uint16_t _time) {
 	sSave(sFCB,filesize,_size);
 	sSave(sFCB,date,_date);
 	sSave(sFCB,time,_time);
 }
 
-void DOS_FCB::GetSizeDateTime(Bit32u & _size,uint16_t & _date,uint16_t & _time) {
+void DOS_FCB::GetSizeDateTime(uint32_t & _size,uint16_t & _date,uint16_t & _time) {
 	_size=sGet(sFCB,filesize);
 	_date=(uint16_t)sGet(sFCB,date);
 	_time=(uint16_t)sGet(sFCB,time);
@@ -561,11 +561,11 @@ void DOS_FCB::SetSeqData(uint8_t _fhandle,uint16_t _rec_size) {
 	sSave(sFCB,rec_size,_rec_size);
 }
 
-void DOS_FCB::GetRandom(Bit32u & _random) {
+void DOS_FCB::GetRandom(uint32_t & _random) {
 	_random=sGet(sFCB,rndm);
 }
 
-void DOS_FCB::SetRandom(Bit32u _random) {
+void DOS_FCB::SetRandom(uint32_t _random) {
 	sSave(sFCB,rndm,_random);
 }
 
@@ -580,7 +580,7 @@ void DOS_FCB::FileOpen(uint8_t _fhandle) {
 	sSave(sFCB,cur_block,0u);
 	sSave(sFCB,rec_size,128u);
 //	sSave(sFCB,rndm,0); // breaks Jewels of darkness. 
-	Bit32u size = 0;
+	uint32_t size = 0;
 	Files[_fhandle]->Seek(&size,DOS_SEEK_END);
 	sSave(sFCB,filesize,size);
 	size = 0;
@@ -629,7 +629,7 @@ void DOS_FCB::SetAttr(uint8_t attr) {
 	if(extended) mem_writeb(pt - 1,attr);
 }
 
-void DOS_FCB::SetResult(Bit32u size,uint16_t date,uint16_t time,uint8_t attr) {
+void DOS_FCB::SetResult(uint32_t size,uint16_t date,uint16_t time,uint8_t attr) {
 	mem_writed(pt + 0x1d,size);
 	mem_writew(pt + 0x19,date);
 	mem_writew(pt + 0x17,time);

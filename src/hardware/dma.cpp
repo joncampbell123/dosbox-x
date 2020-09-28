@@ -43,9 +43,9 @@ bool enable_dma_extra_page_registers = true;
 bool dma_page_register_writeonly = false;
 
 #define EMM_PAGEFRAME4K	((0xE000*16)/4096)
-Bit32u ems_board_mapping[LINK_START];
+uint32_t ems_board_mapping[LINK_START];
 
-static Bit32u dma_wrapping = 0xffff;
+static uint32_t dma_wrapping = 0xffff;
 
 bool enable_1st_dma = true;
 bool enable_2nd_dma = true;
@@ -68,13 +68,13 @@ enum {
 /* DMA block anti-copypasta common code */
 template <const unsigned int dma_mode> static inline void DMA_BlockReadCommonSetup(
     /*output*/PhysPt &o_xfer,unsigned int &o_size,
-     /*input*/PhysPt const spage,PhysPt offset,Bitu size,const uint8_t dma16,const Bit32u DMA16_ADDRMASK) {
+     /*input*/PhysPt const spage,PhysPt offset,Bitu size,const uint8_t dma16,const uint32_t DMA16_ADDRMASK) {
     assert(size != 0u);
 
 	const Bitu highpart_addr_page = spage>>12;
 	size <<= dma16;
 	offset <<= dma16;
-	const Bit32u dma_wrap = (((0xfffful << dma16) + dma16)&DMA16_ADDRMASK) | dma_wrapping;
+	const uint32_t dma_wrap = (((0xfffful << dma16) + dma16)&DMA16_ADDRMASK) | dma_wrapping;
     offset &= dma_wrap;
     Bitu page = highpart_addr_page+(offset >> 12); /* page */
     offset &= 0xFFFu; /* 4KB offset in page */
@@ -95,7 +95,7 @@ template <const unsigned int dma_mode> static inline void DMA_BlockReadCommonSet
 /* read a block from physical memory.
  * This code assumes new DMA read code that transfers 4KB at a time (4KB byte or 2KB word) therefore it is safe
  * to compute the page and offset once and transfer in a tight loop. */
-template <const unsigned int dma_mode> static void DMA_BlockRead4KB(const PhysPt spage,const PhysPt offset,void * data,const Bitu size,const uint8_t dma16,const Bit32u DMA16_ADDRMASK) {
+template <const unsigned int dma_mode> static void DMA_BlockRead4KB(const PhysPt spage,const PhysPt offset,void * data,const Bitu size,const uint8_t dma16,const uint32_t DMA16_ADDRMASK) {
 	uint8_t *write = (uint8_t*)data;
     unsigned int o_size;
     PhysPt xfer;
@@ -113,7 +113,7 @@ template <const unsigned int dma_mode> static void DMA_BlockRead4KB(const PhysPt
 
 /* write a block into physical memory.
  * assume caller has already clipped the transfer to stay within a 4KB page. */
-template <const unsigned int dma_mode> static void DMA_BlockWrite4KB(PhysPt spage,PhysPt offset,const void * data,Bitu size,uint8_t dma16,const Bit32u DMA16_ADDRMASK) {
+template <const unsigned int dma_mode> static void DMA_BlockWrite4KB(PhysPt spage,PhysPt offset,const void * data,Bitu size,uint8_t dma16,const uint32_t DMA16_ADDRMASK) {
     const uint8_t *read = (const uint8_t*)data;
     unsigned int o_size;
     PhysPt xfer;
@@ -279,10 +279,10 @@ void DmaController::WriteControllerReg(Bitu reg,Bitu val,Bitu /*len*/) {
 		flipflop=!flipflop;
 		if (flipflop) {
 			chan->baseaddr=(uint16_t)((chan->baseaddr&0xff00)|val);
-			chan->curraddr=(Bit32u)((chan->curraddr&0xff00)|val);
+			chan->curraddr=(uint32_t)((chan->curraddr&0xff00)|val);
 		} else {
 			chan->baseaddr=(uint16_t)((chan->baseaddr&0x00ff)|(val << 8));
-			chan->curraddr=(Bit32u)((chan->curraddr&0x00ff)|(val << 8));
+			chan->curraddr=(uint32_t)((chan->curraddr&0x00ff)|(val << 8));
 		}
 		break;
 	/* set DMA transfer count (1st byte low part, 2nd byte high part) */
@@ -435,9 +435,9 @@ Bitu DmaChannel::Read(Bitu want, uint8_t * buffer) {
      *          cannot accidentally cause buffer overrun issues that cause
      *          mystery crashes. */
 
-    const Bit32u addrmask = 0xFFFu >> DMA16; /* 16-bit ISA style DMA needs 0x7FFF, else 0xFFFF. Use 0x7FF/0xFFF (4KB) for simplicity reasons. */
+    const uint32_t addrmask = 0xFFFu >> DMA16; /* 16-bit ISA style DMA needs 0x7FFF, else 0xFFFF. Use 0x7FF/0xFFF (4KB) for simplicity reasons. */
     while (want > 0) {
-        const Bit32u addr =
+        const uint32_t addr =
             curraddr & addrmask;
         const Bitu wrapdo =
             increment ?
@@ -451,14 +451,14 @@ Bitu DmaChannel::Read(Bitu want, uint8_t * buffer) {
         assert(cando <= (addrmask + 1u));
 
         if (increment) {
-            assert((curraddr & (~addrmask)) == ((curraddr + ((Bit32u)cando - 1u)) & (~addrmask)));//check our work, must not cross a 4KB boundary
+            assert((curraddr & (~addrmask)) == ((curraddr + ((uint32_t)cando - 1u)) & (~addrmask)));//check our work, must not cross a 4KB boundary
             DMA_BlockRead4KB<DMA_INCREMENT>(pagebase,curraddr,buffer,cando,DMA16,DMA16_ADDRMASK);
-            curraddr += (Bit32u)cando;
+            curraddr += (uint32_t)cando;
         }
         else {
-            assert((curraddr & (~addrmask)) == ((curraddr - ((Bit32u)cando - 1u)) & (~addrmask)));//check our work, must not cross a 4KB boundary
+            assert((curraddr & (~addrmask)) == ((curraddr - ((uint32_t)cando - 1u)) & (~addrmask)));//check our work, must not cross a 4KB boundary
             DMA_BlockRead4KB<DMA_DECREMENT>(pagebase,curraddr,buffer,cando,DMA16,DMA16_ADDRMASK);
-            curraddr -= (Bit32u)cando;
+            curraddr -= (uint32_t)cando;
         }
 
         curraddr &= dma_wrapping;
@@ -521,9 +521,9 @@ Bitu DmaChannel::Write(Bitu want, uint8_t * buffer) {
      *          cannot accidentally cause buffer overrun issues that cause
      *          mystery crashes. */
 
-    const Bit32u addrmask = 0xFFFu >> DMA16; /* 16-bit ISA style DMA needs 0x7FFF, else 0xFFFF. Use 0x7FF/0xFFF (4KB) for simplicity reasons. */
+    const uint32_t addrmask = 0xFFFu >> DMA16; /* 16-bit ISA style DMA needs 0x7FFF, else 0xFFFF. Use 0x7FF/0xFFF (4KB) for simplicity reasons. */
     while (want > 0) {
-        const Bit32u addr =
+        const uint32_t addr =
             curraddr & addrmask;
         const Bitu wrapdo =
             increment ?
@@ -537,14 +537,14 @@ Bitu DmaChannel::Write(Bitu want, uint8_t * buffer) {
         assert(cando <= (addrmask + 1u));
 
         if (increment) {
-            assert((curraddr & (~addrmask)) == ((curraddr + ((Bit32u)cando - 1u)) & (~addrmask)));//check our work, must not cross a 4KB boundary
+            assert((curraddr & (~addrmask)) == ((curraddr + ((uint32_t)cando - 1u)) & (~addrmask)));//check our work, must not cross a 4KB boundary
             DMA_BlockWrite4KB<DMA_INCREMENT>(pagebase,curraddr,buffer,cando,DMA16,DMA16_ADDRMASK);
-            curraddr += (Bit32u)cando;
+            curraddr += (uint32_t)cando;
         }
         else {
-            assert((curraddr & (~addrmask)) == ((curraddr - ((Bit32u)cando - 1u)) & (~addrmask)));//check our work, must not cross a 4KB boundary
+            assert((curraddr & (~addrmask)) == ((curraddr - ((uint32_t)cando - 1u)) & (~addrmask)));//check our work, must not cross a 4KB boundary
             DMA_BlockWrite4KB<DMA_DECREMENT>(pagebase,curraddr,buffer,cando,DMA16,DMA16_ADDRMASK);
-            curraddr -= (Bit32u)cando;
+            curraddr -= (uint32_t)cando;
         }
 
         curraddr &= dma_wrapping;
@@ -583,7 +583,7 @@ Bitu DmaChannel::Write(Bitu want, uint8_t * buffer) {
 	return done;
 }
 
-void DMA_SetWrapping(Bit32u wrap) {
+void DMA_SetWrapping(uint32_t wrap) {
 	dma_wrapping = wrap;
 }
 

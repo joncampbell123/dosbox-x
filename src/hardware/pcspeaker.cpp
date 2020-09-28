@@ -51,7 +51,7 @@ typedef struct {
 
 typedef union {
 	unsigned char pit_mode;
-	Bit32u counter;
+	uint32_t counter;
 	output_state_t output_state;
 } state_specific_data_u;
 

@@ -63,8 +63,8 @@ struct _opl3_slot {
     uint8_t reg_rr;
     uint8_t reg_wf;
     uint8_t key;
-    Bit32u pg_reset;
-    Bit32u pg_phase;
+    uint32_t pg_reset;
+    uint32_t pg_phase;
     uint16_t pg_phase_out;
     uint8_t slot_num;
 };
@@ -107,7 +107,7 @@ struct _opl3_chip {
     uint8_t tremolo;
     uint8_t tremolopos;
     uint8_t tremoloshift;
-    Bit32u noise;
+    uint32_t noise;
     int16_t zeromod;
     Bit32s mixbuff[2];
     uint8_t rm_hh_bit2;
@@ -123,17 +123,17 @@ struct _opl3_chip {
     int16_t samples[2];
 
     Bit64u writebuf_samplecnt;
-    Bit32u writebuf_cur;
-    Bit32u writebuf_last;
+    uint32_t writebuf_cur;
+    uint32_t writebuf_last;
     Bit64u writebuf_lasttime;
     opl3_writebuf writebuf[OPL_WRITEBUF_SIZE];
 };
 
 void OPL3_Generate(opl3_chip *chip, int16_t *buf);
 void OPL3_GenerateResampled(opl3_chip *chip, int16_t *buf);
-void OPL3_Reset(opl3_chip *chip, Bit32u samplerate);
+void OPL3_Reset(opl3_chip *chip, uint32_t samplerate);
 void OPL3_WriteReg(opl3_chip *chip, uint16_t reg, uint8_t v);
 void OPL3_WriteRegBuffered(opl3_chip *chip, uint16_t reg, uint8_t v);
-void OPL3_GenerateStream(opl3_chip *chip, int16_t *sndptr, Bit32u numsamples);
+void OPL3_GenerateStream(opl3_chip *chip, int16_t *sndptr, uint32_t numsamples);
 
 #endif

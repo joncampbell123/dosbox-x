@@ -414,8 +414,8 @@ void PC98_FM_OnEnterPC98(Section *sec) {
 
                 /* fake INT D2h sound BIOS entry point at CEE0:0000.
                  * Unlike the LIO interface there's only one interrupt (if Neko Project II code is correct) */
-                Bit32u ofs = 0xCEE0u << 4u;
-                Bit32u callback_addr = soundbios_callback.Get_RealPointer();
+                uint32_t ofs = 0xCEE0u << 4u;
+                uint32_t callback_addr = soundbios_callback.Get_RealPointer();
 
                 phys_writed(ofs+0,0x0001);      // number of entries
                 phys_writew(ofs+4,0xD2);        // INT D2h entry point

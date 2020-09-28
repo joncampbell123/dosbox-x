@@ -231,8 +231,8 @@ struct ControlROMPCMStruct {
 };
 
 struct PCMWaveEntry {
-	Bit32u addr;
-	Bit32u len;
+	uint32_t addr;
+	uint32_t len;
 	bool loop;
 	ControlROMPCMStruct *controlROMPCMStruct;
 };
@@ -244,13 +244,13 @@ struct PatchCache {
 	int pcm;
 	uint8_t waveform;
 
-	Bit32u structureMix;
+	uint32_t structureMix;
 	int structurePosition;
 	int structurePair;
 
 	// The following fields are actually common to all partials in the timbre
 	bool dirty;
-	Bit32u partialCount;
+	uint32_t partialCount;
 	bool sustain;
 	bool reverb;
 

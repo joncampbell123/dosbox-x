@@ -26,7 +26,7 @@
 #include "dosbox.h"
 #endif
 
-typedef void (*MIXER_MixHandler)(uint8_t * sampdate,Bit32u len);
+typedef void (*MIXER_MixHandler)(uint8_t * sampdate,uint32_t len);
 typedef void (*MIXER_Handler)(Bitu len);
 
 template <class T> T clamp(const T& n, const T& lower, const T& upper) {

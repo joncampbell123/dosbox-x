@@ -63,11 +63,11 @@ bool PartialManager::shouldReverb(int i) {
 	return partialTable[i]->shouldReverb();
 }
 
-bool PartialManager::produceOutput(int i, IntSample *leftBuf, IntSample *rightBuf, Bit32u bufferLength) {
+bool PartialManager::produceOutput(int i, IntSample *leftBuf, IntSample *rightBuf, uint32_t bufferLength) {
 	return partialTable[i]->produceOutput(leftBuf, rightBuf, bufferLength);
 }
 
-bool PartialManager::produceOutput(int i, FloatSample *leftBuf, FloatSample *rightBuf, Bit32u bufferLength) {
+bool PartialManager::produceOutput(int i, FloatSample *leftBuf, FloatSample *rightBuf, uint32_t bufferLength) {
 	return partialTable[i]->produceOutput(leftBuf, rightBuf, bufferLength);
 }
 
@@ -93,7 +93,7 @@ Partial *PartialManager::allocPartial(int partNum) {
 		return partial;
 	}
 	synth->printDebug("PartialManager Error: No inactive partials to allocate for part %d, current partial state:\n", partNum);
-	for (Bit32u i = 0; i < synth->getPartialCount(); i++) {
+	for (uint32_t i = 0; i < synth->getPartialCount(); i++) {
 		const Partial *partial = partialTable[i];
 		synth->printDebug("[Partial %d]: activation=%d, owner part=%d\n", i, partial->isActive(), partial->getOwnerPart());
 	}
@@ -276,9 +276,9 @@ Poly *PartialManager::assignPolyToPart(Part *part) {
 void PartialManager::polyFreed(Poly *poly) {
 	if (0 == firstFreePolyIndex) {
 		synth->printDebug("PartialManager Error: Cannot return freed poly, currently active polys:\n");
-		for (Bit32u partNum = 0; partNum < 9; partNum++) {
+		for (uint32_t partNum = 0; partNum < 9; partNum++) {
 			const Poly *activePoly = synth->getPart(partNum)->getFirstActivePoly();
-			Bit32u polyCount = 0;
+			uint32_t polyCount = 0;
 			while (activePoly != NULL) {
 				activePoly = activePoly->getNext();
 				polyCount++;
@@ -298,7 +298,7 @@ void PartialManager::partialDeactivated(int partialIndex) {
 		return;
 	}
 	synth->printDebug("PartialManager Error: Cannot return deactivated partial %d, current partial state:\n", partialIndex);
-	for (Bit32u i = 0; i < synth->getPartialCount(); i++) {
+	for (uint32_t i = 0; i < synth->getPartialCount(); i++) {
 		const Partial *partial = partialTable[i];
 		synth->printDebug("[Partial %d]: activation=%d, owner part=%d\n", i, partial->isActive(), partial->getOwnerPart());
 	}

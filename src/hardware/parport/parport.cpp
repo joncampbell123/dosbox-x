@@ -53,7 +53,7 @@ bool device_LPT::Write(const uint8_t * data,uint16_t * size) {
 	return true;
 }
 
-bool device_LPT::Seek(Bit32u * pos,Bit32u type) {
+bool device_LPT::Seek(uint32_t * pos,uint32_t type) {
     (void)type;//UNUSED
 	*pos = 0;
 	return true;

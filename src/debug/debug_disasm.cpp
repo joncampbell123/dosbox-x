@@ -73,7 +73,7 @@ Any comments/updates/bug reports to:
 
 typedef uint8_t  UINT8;
 typedef uint16_t UINT16;
-typedef Bit32u UINT32;
+typedef uint32_t UINT32;
 
 typedef int8_t  INT8;
 typedef int16_t INT16;
@@ -104,7 +104,7 @@ INLINE UINT32 le_uint32(const void* ptr) {
 static UINT8 must_do_size;   /* used with size of operand */
 static int wordop;           /* dealing with word or byte operand */
 
-static Bit32u instruction_offset;
+static uint32_t instruction_offset;
 //static UINT16 instruction_segment;
 
 static char* ubufs;           /* start of buffer */
@@ -1079,7 +1079,7 @@ static void ua_str(char const *str)
 }
 
 
-Bitu DasmI386(char* buffer, PhysPt pc, Bit32u cur_ip, bool bit32)
+Bitu DasmI386(char* buffer, PhysPt pc, uint32_t cur_ip, bool bit32)
 {
   	Bitu c;
 

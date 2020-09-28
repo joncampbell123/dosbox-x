@@ -25,10 +25,10 @@
 
 using namespace MT32Emu;
 
-DefaultMidiStreamParser::DefaultMidiStreamParser(Synth &useSynth, Bit32u initialStreamBufferCapacity) :
+DefaultMidiStreamParser::DefaultMidiStreamParser(Synth &useSynth, uint32_t initialStreamBufferCapacity) :
 	MidiStreamParser(initialStreamBufferCapacity), synth(useSynth), timestampSet(false) {}
 
-void DefaultMidiStreamParser::setTimestamp(const Bit32u useTimestamp) {
+void DefaultMidiStreamParser::setTimestamp(const uint32_t useTimestamp) {
 	timestampSet = true;
 	timestamp = useTimestamp;
 }
@@ -37,7 +37,7 @@ void DefaultMidiStreamParser::resetTimestamp() {
 	timestampSet = false;
 }
 
-void DefaultMidiStreamParser::handleShortMessage(const Bit32u message) {
+void DefaultMidiStreamParser::handleShortMessage(const uint32_t message) {
 	do {
 		if (timestampSet) {
 			if (synth.playMsg(message, timestamp)) return;
@@ -48,7 +48,7 @@ void DefaultMidiStreamParser::handleShortMessage(const Bit32u message) {
 	} while (synth.reportHandler->onMIDIQueueOverflow());
 }
 
-void DefaultMidiStreamParser::handleSysex(const uint8_t *stream, const Bit32u length) {
+void DefaultMidiStreamParser::handleSysex(const uint8_t *stream, const uint32_t length) {
 	do {
 		if (timestampSet) {
 			if (synth.playSysex(stream, length, timestamp)) return;
@@ -67,10 +67,10 @@ void DefaultMidiStreamParser::printDebug(const char *debugMessage) {
 	synth.printDebug("%s", debugMessage);
 }
 
-MidiStreamParser::MidiStreamParser(Bit32u initialStreamBufferCapacity) :
+MidiStreamParser::MidiStreamParser(uint32_t initialStreamBufferCapacity) :
 	MidiStreamParserImpl(*this, *this, initialStreamBufferCapacity) {}
 
-MidiStreamParserImpl::MidiStreamParserImpl(MidiReceiver &useReceiver, MidiReporter &useReporter, Bit32u initialStreamBufferCapacity) :
+MidiStreamParserImpl::MidiStreamParserImpl(MidiReceiver &useReceiver, MidiReporter &useReporter, uint32_t initialStreamBufferCapacity) :
 	midiReceiver(useReceiver), midiReporter(useReporter)
 {
 	if (initialStreamBufferCapacity < SYSEX_BUFFER_SIZE) initialStreamBufferCapacity = SYSEX_BUFFER_SIZE;
@@ -87,9 +87,9 @@ MidiStreamParserImpl::~MidiStreamParserImpl() {
 	delete[] streamBuffer;
 }
 
-void MidiStreamParserImpl::parseStream(const uint8_t *stream, Bit32u length) {
+void MidiStreamParserImpl::parseStream(const uint8_t *stream, uint32_t length) {
 	while (length > 0) {
-		Bit32u parsedMessageLength = 0;
+		uint32_t parsedMessageLength = 0;
 		if (0xF8 <= *stream) {
 			// Process System Realtime immediately and go on
 			midiReceiver.handleSystemRealtimeMessage(*stream);
@@ -117,7 +117,7 @@ void MidiStreamParserImpl::parseStream(const uint8_t *stream, Bit32u length) {
 	}
 }
 
-void MidiStreamParserImpl::processShortMessage(const Bit32u message) {
+void MidiStreamParserImpl::processShortMessage(const uint32_t message) {
 	// Adds running status to the MIDI message if it doesn't contain one
 	uint8_t status = uint8_t(message & 0xFF);
 	if (0xF8 <= status) {
@@ -167,9 +167,9 @@ bool MidiStreamParserImpl::processStatusByte(uint8_t &status) {
 }
 
 // Returns # of bytes parsed
-Bit32u MidiStreamParserImpl::parseShortMessageStatus(const uint8_t stream[]) {
+uint32_t MidiStreamParserImpl::parseShortMessageStatus(const uint8_t stream[]) {
 	uint8_t status = *stream;
-	Bit32u parsedLength = processStatusByte(status) ? 0 : 1;
+	uint32_t parsedLength = processStatusByte(status) ? 0 : 1;
 	if (0x80 <= status) { // If no running status available yet, skip one byte
 		*streamBuffer = status;
 		++streamBufferSize;
@@ -178,9 +178,9 @@ Bit32u MidiStreamParserImpl::parseShortMessageStatus(const uint8_t stream[]) {
 }
 
 // Returns # of bytes parsed
-Bit32u MidiStreamParserImpl::parseShortMessageDataBytes(const uint8_t stream[], Bit32u length) {
-	const Bit32u shortMessageLength = Synth::getShortMessageLength(*streamBuffer);
-	Bit32u parsedLength = 0;
+uint32_t MidiStreamParserImpl::parseShortMessageDataBytes(const uint8_t stream[], uint32_t length) {
+	const uint32_t shortMessageLength = Synth::getShortMessageLength(*streamBuffer);
+	uint32_t parsedLength = 0;
 
 	// Append incoming bytes to streamBuffer
 	while ((streamBufferSize < shortMessageLength) && (length-- > 0)) {
@@ -204,8 +204,8 @@ Bit32u MidiStreamParserImpl::parseShortMessageDataBytes(const uint8_t stream[], 
 	if (streamBufferSize < shortMessageLength) return parsedLength; // Still lacks data bytes
 
 	// Assemble short message
-	Bit32u shortMessage = streamBuffer[0];
-	for (Bit32u i = 1; i < shortMessageLength; ++i) {
+	uint32_t shortMessage = streamBuffer[0];
+	for (uint32_t i = 1; i < shortMessageLength; ++i) {
 		shortMessage |= streamBuffer[i] << (i << 3);
 	}
 	midiReceiver.handleShortMessage(shortMessage);
@@ -214,9 +214,9 @@ Bit32u MidiStreamParserImpl::parseShortMessageDataBytes(const uint8_t stream[], 
 }
 
 // Returns # of bytes parsed
-Bit32u MidiStreamParserImpl::parseSysex(const uint8_t stream[], const Bit32u length) {
+uint32_t MidiStreamParserImpl::parseSysex(const uint8_t stream[], const uint32_t length) {
 	// Find SysEx length
-	Bit32u sysexLength = 1;
+	uint32_t sysexLength = 1;
 	while (sysexLength < length) {
 		uint8_t nextByte = stream[sysexLength++];
 		if (0x80 <= nextByte) {
@@ -251,8 +251,8 @@ Bit32u MidiStreamParserImpl::parseSysex(const uint8_t stream[], const Bit32u len
 }
 
 // Returns # of bytes parsed
-Bit32u MidiStreamParserImpl::parseSysexFragment(const uint8_t stream[], const Bit32u length) {
-	Bit32u parsedLength = 0;
+uint32_t MidiStreamParserImpl::parseSysexFragment(const uint8_t stream[], const uint32_t length) {
+	uint32_t parsedLength = 0;
 	while (parsedLength < length) {
 		uint8_t nextByte = stream[parsedLength++];
 		if (nextByte < 0x80) {

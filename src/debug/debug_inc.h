@@ -82,9 +82,9 @@ public:
 
     WINDOW * win_inp;                   /* Input window (not counted in tab enumeration) */
 
-    Bit32u active_win;					/* Current active window */
-	Bit32u input_y;
-	Bit32u global_mask;					/* Current msgmask */
+    uint32_t active_win;					/* Current active window */
+	uint32_t input_y;
+	uint32_t global_mask;					/* Current msgmask */
 
     unsigned char data_view;
 
@@ -106,17 +106,17 @@ public:
 
 
 struct DASMLine {
-	Bit32u pc;
+	uint32_t pc;
 	char dasm[80];
 	PhysPt ea;
 	uint16_t easeg;
-	Bit32u eaoff;
+	uint32_t eaoff;
 };
 
 extern DBGBlock dbg;
 
 /* Local Debug Stuff */
-Bitu DasmI386(char* buffer, PhysPt pc, Bit32u cur_ip, bool bit32);
+Bitu DasmI386(char* buffer, PhysPt pc, uint32_t cur_ip, bool bit32);
 int  DasmLastOperandSize(void);
 #endif
 

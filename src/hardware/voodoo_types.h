@@ -55,7 +55,7 @@ typedef int16_t						INT16;
 
 /* 32-bit values */
 #ifndef _WINDOWS_
-typedef Bit32u						UINT32;
+typedef uint32_t						UINT32;
 typedef Bit32s						INT32;
 #endif
 

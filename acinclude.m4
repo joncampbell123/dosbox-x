@@ -300,10 +300,8 @@ AH_BOTTOM([
 #include <cstdint>
 
 #if SIZEOF_UNSIGNED_INT == 4
-  typedef unsigned int Bit32u;
   typedef   signed int Bit32s;
 #elif SIZEOF_UNSIGNED_LONG == 4
-  typedef unsigned long Bit32u;
   typedef   signed long Bit32s;
 #else
 #  error "can't find sizeof(type) of 4 bytes!"
@@ -320,7 +318,7 @@ AH_BOTTOM([
 #endif
 
 #if SIZEOF_INT_P == 4
-  typedef Bit32u Bitu;
+  typedef uint32_t Bitu;
   typedef Bit32s Bits;
 #else
   typedef Bit64u Bitu;

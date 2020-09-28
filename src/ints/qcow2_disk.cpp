@@ -27,7 +27,7 @@ using namespace std;
 
 
 //Public constant.
-	const Bit32u QCow2Image::magic = 0x514649FB;
+	const uint32_t QCow2Image::magic = 0x514649FB;
 
 
 //Public function to read a QCow2 header.
@@ -56,7 +56,7 @@ using namespace std;
 
 
 //Public Constructor.
-	QCow2Image::QCow2Image(QCow2Image::QCow2Header& qcow2Header, FILE *qcow2File, const char* imageName, Bit32u sectorSizeBytes) : file(qcow2File), header(qcow2Header), sector_size(sectorSizeBytes), backing_image(NULL)
+	QCow2Image::QCow2Image(QCow2Image::QCow2Header& qcow2Header, FILE *qcow2File, const char* imageName, uint32_t sectorSizeBytes) : file(qcow2File), header(qcow2Header), sector_size(sectorSizeBytes), backing_image(NULL)
 	{
 		cluster_mask = mask64(header.cluster_bits);
 		cluster_size = cluster_mask + 1;
@@ -116,7 +116,7 @@ using namespace std;
 
 
 //Public function to a read a sector.
-	uint8_t QCow2Image::read_sector(Bit32u sectnum, uint8_t* data){
+	uint8_t QCow2Image::read_sector(uint32_t sectnum, uint8_t* data){
 		const Bit64u address = (Bit64u)sectnum * sector_size;
 		if (address >= header.size){
 			return 0x05;
@@ -140,7 +140,7 @@ using namespace std;
 
 
 //Public function to a write a sector.
-	uint8_t QCow2Image::write_sector(Bit32u sectnum, uint8_t* data){
+	uint8_t QCow2Image::write_sector(uint32_t sectnum, uint8_t* data){
 		const Bit64u address = (Bit64u)sectnum * sector_size;
 		if (address >= header.size){
 			return 0x05;
@@ -215,7 +215,7 @@ using namespace std;
         return buffer;
     }
 
-    inline Bit32u QCow2Image::host_read32(Bit32u buffer) {
+    inline uint32_t QCow2Image::host_read32(uint32_t buffer) {
         return buffer;
     }
 
@@ -227,7 +227,7 @@ using namespace std;
         return (buffer >> 8) | (buffer << 8);
     }
 
-    inline Bit32u QCow2Image::host_read32(Bit32u buffer) {
+    inline uint32_t QCow2Image::host_read32(uint32_t buffer) {
         return (buffer >> 24) | (((buffer >> 16) & 0xff) << 8) |
             (((buffer >> 8) & 0xff) << 16) | (buffer << 24);
     }
@@ -350,7 +350,7 @@ using namespace std;
 
 
 //Read a sector not currently allocated in the image file.
-	inline uint8_t QCow2Image::read_unallocated_sector(Bit32u sectnum, uint8_t* data){
+	inline uint8_t QCow2Image::read_unallocated_sector(uint32_t sectnum, uint8_t* data){
 		if(backing_image == NULL){
 			std::fill(data, data+sector_size, 0);
 			return 0;
@@ -433,7 +433,7 @@ using namespace std;
 
 
 //Public Constructor.
-	QCow2Disk::QCow2Disk(QCow2Image::QCow2Header& qcow2Header, FILE *qcow2File, uint8_t *imgName, Bit32u imgSizeK, Bit32u sectorSizeBytes, bool isHardDisk) : imageDisk(qcow2File, imgName, imgSizeK, isHardDisk), qcowImage(qcow2Header, qcow2File, (const char*) imgName, sectorSizeBytes){
+	QCow2Disk::QCow2Disk(QCow2Image::QCow2Header& qcow2Header, FILE *qcow2File, uint8_t *imgName, uint32_t imgSizeK, uint32_t sectorSizeBytes, bool isHardDisk) : imageDisk(qcow2File, imgName, imgSizeK, isHardDisk), qcowImage(qcow2Header, qcow2File, (const char*) imgName, sectorSizeBytes){
 	}
 
 
@@ -443,12 +443,12 @@ using namespace std;
 
 
 //Public function to a read a sector.
-	uint8_t QCow2Disk::Read_AbsoluteSector(Bit32u sectnum, void* data){
+	uint8_t QCow2Disk::Read_AbsoluteSector(uint32_t sectnum, void* data){
 		return qcowImage.read_sector(sectnum, (uint8_t*)data);
 	}
 
 
 //Public function to a write a sector.
-	uint8_t QCow2Disk::Write_AbsoluteSector(Bit32u sectnum,const void* data){
+	uint8_t QCow2Disk::Write_AbsoluteSector(uint32_t sectnum,const void* data){
 		return qcowImage.write_sector(sectnum, (uint8_t*)data);
 	}
