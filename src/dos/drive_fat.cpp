@@ -205,9 +205,10 @@ private:
 };
 
 void time_t_to_DOS_DateTime(Bit16u &t,Bit16u &d,time_t unix_time) {
-    Bit16u oldax=reg_ax, oldcx=reg_cx, olddx=reg_dx;
     struct tm time;
     time.tm_isdst = -1;
+
+    uint16_t oldax=reg_ax, oldcx=reg_cx, olddx=reg_dx;
 	reg_ah=0x2a; // get system date
 	CALLBACK_RunRealInt(0x21);
 

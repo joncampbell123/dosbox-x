@@ -133,7 +133,7 @@
     section when DOSBox-X starts. Windows installer can
     also move such config options from existing config
     files automatically. (Wengier)
-  - Cleared modem phone book before parsing it. Thanks
+  - Cleared modem phone book before parsing it. Thank
     NicknineTheEagle for the improvement.
   - Improved the help message of MOUNT command. Also
     added option -examples to show its usage examples,
@@ -141,6 +141,9 @@
   - Fixed freeze when trying to reboot the internal
     DOS when using a different code page and it is in
     CGA or EGA emulation modes. (Wengier)
+  - DOSBox-X will now try to use the internal DOS date
+    and time (instead of always using the host date and
+    date) for file modication timestamps. (Wengier)
   - Added menu item "Expanded memory (EMS)" under "DOS"
     menu to dynamically enable or disable EMS memory
     at run-time. You can now also modify EMS memory

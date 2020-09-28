@@ -1635,10 +1635,11 @@ bool localFile::UpdateDateTimeFromHost(void) {
 }
 
 bool localFile::UpdateLocalDateTime(void) {
-    Bit16u oldax=reg_ax, oldcx=reg_cx, olddx=reg_dx;
     time_t timet = ::time(NULL);
     struct tm *tm = localtime(&timet);
     tm->tm_isdst = -1;
+    uint16_t oldax=reg_ax, oldcx=reg_cx, olddx=reg_dx;
+
 	reg_ah=0x2a; // get system date
 	CALLBACK_RunRealInt(0x21);
 
