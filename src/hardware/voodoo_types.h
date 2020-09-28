@@ -51,7 +51,7 @@ typedef int8_t 						INT8;
 
 /* 16-bit values */
 typedef uint16_t						UINT16;
-typedef Bit16s						INT16;
+typedef int16_t						INT16;
 
 /* 32-bit values */
 #ifndef _WINDOWS_

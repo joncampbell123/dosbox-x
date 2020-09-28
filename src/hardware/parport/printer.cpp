@@ -926,7 +926,7 @@ bool CPrinter::processCommandChar(uint8_t ch)
 			    break;
 		    case 0x5c: // Set relative horizontal print position (ESC \)
 			    {
-				    Bit16s toMove = PARAM16(0);
+				    int16_t toMove = PARAM16(0);
 				    double unitSize = definedUnit;
 				    if (unitSize < 0)
 					    unitSize = (double)(printQuality == QUALITY_DRAFT ? 120.0 : 180.0);
@@ -1104,7 +1104,7 @@ bool CPrinter::processCommandChar(uint8_t ch)
 				    double unitSize = definedUnit;
 				    if (unitSize < 0)
 					    unitSize = (double)360.0;
-				    double newPos = curY + ((double)((Bit16s)PARAM16(2)) * unitSize);
+				    double newPos = curY + ((double)((int16_t)PARAM16(2)) * unitSize);
 				    if (newPos > topMargin)
 				    {
 					    if (newPos > bottomMargin)

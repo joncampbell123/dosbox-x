@@ -45,11 +45,11 @@ private:
 	Bit32s targetPitchOffsetWithoutLFO;
 	Bit32s currentPitchOffset;
 
-	Bit16s lfoPitchOffset;
+	int16_t lfoPitchOffset;
 	// In range -12 - 36
 	int8_t timeKeyfollowSubtraction;
 
-	Bit16s pitchOffsetChangePerBigTick;
+	int16_t pitchOffsetChangePerBigTick;
 	uint16_t targetPitchOffsetReachedBigTick;
 	unsigned int shifts;
 

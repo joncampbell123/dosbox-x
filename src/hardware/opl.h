@@ -28,7 +28,7 @@
 #define fltype double
 
 /*
-	define Bits, Bitu, Bit32s, Bit32u, Bit16s, uint16_t, int8_t, uint8_t here
+	define Bits, Bitu, Bit32s, Bit32u, int16_t, uint16_t, int8_t, uint8_t here
 */
 /*
 #include <stdint.h>
@@ -37,7 +37,7 @@ typedef intptr_t	Bits;
 typedef uint32_t	Bit32u;
 typedef int32_t		Bit32s;
 typedef uint16_t	uint16_t;
-typedef int16_t		Bit16s;
+typedef int16_t		int16_t;
 typedef uint8_t		uint8_t;
 typedef int8_t		int8_t;
 */
@@ -132,7 +132,7 @@ typedef struct operator_struct {
 	Bit32u op_state;				// current state of operator (attack/decay/sustain/release/off)
 	Bit32u toff;
 	Bit32s freq_high;				// highest three bits of the frequency, used for vibrato calculations
-	Bit16s* cur_wform;				// start of selected waveform
+	int16_t* cur_wform;				// start of selected waveform
 	Bit32u cur_wmask;				// mask for selected waveform
 	Bit32u act_state;				// activity state (regular, percussion)
 	bool sus_keep;					// keep sustain level when decay finished
@@ -193,7 +193,7 @@ void change_feedback(Bitu chanbase, op_type* op_pt);
 // general functions
 void adlib_init(Bit32u samplerate);
 void adlib_write(Bitu idx, uint8_t val);
-void adlib_getsample(Bit16s* sndptr, Bits numsamples);
+void adlib_getsample(int16_t* sndptr, Bits numsamples);
 
 Bitu adlib_reg_read(Bitu port);
 void adlib_write_index(Bitu port, uint8_t val);

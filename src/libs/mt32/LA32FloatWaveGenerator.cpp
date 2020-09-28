@@ -36,7 +36,7 @@ float LA32FloatWaveGenerator::getPCMSample(unsigned int position) {
 		}
 		position = position % pcmWaveLength;
 	}
-	Bit16s pcmSample = pcmWaveAddress[position];
+	int16_t pcmSample = pcmWaveAddress[position];
 	float sampleValue = EXP2F(((pcmSample & 32767) - 32787.0f) / 2048.0f);
 	return ((pcmSample & 32768) == 0) ? sampleValue : -sampleValue;
 }
@@ -53,7 +53,7 @@ void LA32FloatWaveGenerator::initSynth(const bool useSawtoothWaveform, const uin
 	active = true;
 }
 
-void LA32FloatWaveGenerator::initPCM(const Bit16s * const usePCMWaveAddress, const Bit32u usePCMWaveLength, const bool usePCMWaveLooped, const bool usePCMWaveInterpolated) {
+void LA32FloatWaveGenerator::initPCM(const int16_t * const usePCMWaveAddress, const Bit32u usePCMWaveLength, const bool usePCMWaveLooped, const bool usePCMWaveInterpolated) {
 	pcmWaveAddress = usePCMWaveAddress;
 	pcmWaveLength = usePCMWaveLength;
 	pcmWaveLooped = usePCMWaveLooped;
@@ -296,7 +296,7 @@ void LA32FloatPartialPair::initSynth(const PairType useMaster, const bool sawtoo
 	}
 }
 
-void LA32FloatPartialPair::initPCM(const PairType useMaster, const Bit16s *pcmWaveAddress, const Bit32u pcmWaveLength, const bool pcmWaveLooped) {
+void LA32FloatPartialPair::initPCM(const PairType useMaster, const int16_t *pcmWaveAddress, const Bit32u pcmWaveLength, const bool pcmWaveLooped) {
 	if (useMaster == MASTER) {
 		master.initPCM(pcmWaveAddress, pcmWaveLength, pcmWaveLooped, true);
 	} else {

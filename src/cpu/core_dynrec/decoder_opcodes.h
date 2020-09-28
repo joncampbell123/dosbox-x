@@ -531,8 +531,8 @@ static void dyn_imul_gvev(Bitu immsize) {
 			else  gen_mov_word_to_reg_imm(FC_OP2,(int8_t)decode_fetchb());
 			break;
 		case 2:
-			if (decode.big_op) gen_mov_dword_to_reg_imm(FC_OP2,(Bit16s)decode_fetchw());
-			else gen_mov_word_to_reg_imm(FC_OP2,(Bit16s)decode_fetchw());
+			if (decode.big_op) gen_mov_dword_to_reg_imm(FC_OP2,(int16_t)decode_fetchw());
+			else gen_mov_word_to_reg_imm(FC_OP2,(int16_t)decode_fetchw());
 			break;
 		case 4:
 			if (decode.big_op) gen_mov_dword_to_reg_imm(FC_OP2,(Bit32s)decode_fetchd());
@@ -1204,7 +1204,7 @@ static void dyn_ret_near(uint16_t bytes) {
 static void dyn_call_near_imm(void) {
 	Bit32s imm;
 	if (decode.big_op) imm=(Bit32s)decode_fetchd();
-	else imm=(Bit16s)decode_fetchw();
+	else imm=(int16_t)decode_fetchw();
 	dyn_set_eip_end(FC_OP1);
 	if (decode.big_op) gen_call_function_raw(dynrec_push_dword);
 	else gen_call_function_raw(dynrec_push_word);

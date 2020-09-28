@@ -261,11 +261,11 @@
 	CASE_W(0x62)												/* BOUND */
 		if (CPU_ArchitectureType<CPU_ARCHTYPE_80186) goto illegal_opcode;
 		{
-			Bit16s bound_min, bound_max;
+			int16_t bound_min, bound_max;
 			GetRMrw;GetEAa;
-			bound_min=(Bit16s)LoadMw(eaa);
-			bound_max=(Bit16s)LoadMw(eaa+2u);
-			if ( (((Bit16s)*rmrw) < bound_min) || (((Bit16s)*rmrw) > bound_max) ) {
+			bound_min=(int16_t)LoadMw(eaa);
+			bound_max=(int16_t)LoadMw(eaa+2u);
+			if ( (((int16_t)*rmrw) < bound_min) || (((int16_t)*rmrw) > bound_max) ) {
 				EXCEPTION(5);
 			}
 		}
@@ -1079,7 +1079,7 @@
 		}
 	CASE_W(0xeb)												/* JMP Jb */
 		{ 
-			Bit16s addip=Fetchbs();
+			int16_t addip=Fetchbs();
 			SAVEIP;
 			reg_eip=(uint16_t)(reg_eip+(Bit32u)addip);
 			continue;

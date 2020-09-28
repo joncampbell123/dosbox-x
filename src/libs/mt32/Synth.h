@@ -152,7 +152,7 @@ private:
 	const ControlROMFeatureSet *controlROMFeatures;
 	const ControlROMMap *controlROMMap;
 	uint8_t controlROMData[CONTROL_ROM_SIZE];
-	Bit16s *pcmROMData;
+	int16_t *pcmROMData;
 	size_t pcmROMSize; // This is in 16-bit samples, therefore half the number of bytes in the ROM
 
 	uint8_t soundGroupIx[128]; // For each standard timbre
@@ -242,12 +242,12 @@ private:
 	Bit32s getMasterTunePitchDelta() const;
 
 public:
-	static inline Bit16s clipSampleEx(Bit32s sampleEx) {
+	static inline int16_t clipSampleEx(Bit32s sampleEx) {
 		// Clamp values above 32767 to 32767, and values below -32768 to -32768
 		// FIXME: Do we really need this stuff? I think these branches are very well predicted. Instead, this introduces a chain.
 		// The version below is actually a bit faster on my system...
-		//return ((sampleEx + 0x8000) & ~0xFFFF) ? Bit16s((sampleEx >> 31) ^ 0x7FFF) : (Bit16s)sampleEx;
-		return ((-0x8000 <= sampleEx) && (sampleEx <= 0x7FFF)) ? Bit16s(sampleEx) : Bit16s((sampleEx >> 31) ^ 0x7FFF);
+		//return ((sampleEx + 0x8000) & ~0xFFFF) ? int16_t((sampleEx >> 31) ^ 0x7FFF) : (int16_t)sampleEx;
+		return ((-0x8000 <= sampleEx) && (sampleEx <= 0x7FFF)) ? int16_t(sampleEx) : int16_t((sampleEx >> 31) ^ 0x7FFF);
 	}
 
 	static inline float clipSampleEx(float sampleEx) {
@@ -268,11 +268,11 @@ public:
 		}
 	}
 
-	static inline Bit16s convertSample(float sample) {
+	static inline int16_t convertSample(float sample) {
 		return Synth::clipSampleEx(Bit32s(sample * 32768.0f)); // This multiplier corresponds to normalised floats
 	}
 
-	static inline float convertSample(Bit16s sample) {
+	static inline float convertSample(int16_t sample) {
 		return float(sample) / 32768.0f; // This multiplier corresponds to normalised floats
 	}
 
@@ -483,7 +483,7 @@ public:
 	// to retain emulation accuracy in whole audible frequency spectra. Otherwise, native digital signal sample rate is retained.
 	// getStereoOutputSampleRate() can be used to query actual sample rate of the output signal.
 	// The length is in frames, not bytes (in 16-bit stereo, one frame is 4 bytes). Uses NATIVE byte ordering.
-	MT32EMU_EXPORT void render(Bit16s *stream, Bit32u len);
+	MT32EMU_EXPORT void render(int16_t *stream, Bit32u len);
 	// Same as above but outputs to a float stereo stream.
 	MT32EMU_EXPORT void render(float *stream, Bit32u len);
 
@@ -491,8 +491,8 @@ public:
 	// No further processing performed in analog circuitry emulation is applied to the signal.
 	// NULL may be specified in place of any or all of the stream buffers to skip it.
 	// The length is in samples, not bytes. Uses NATIVE byte ordering.
-	MT32EMU_EXPORT void renderStreams(Bit16s *nonReverbLeft, Bit16s *nonReverbRight, Bit16s *reverbDryLeft, Bit16s *reverbDryRight, Bit16s *reverbWetLeft, Bit16s *reverbWetRight, Bit32u len);
-	MT32EMU_EXPORT void renderStreams(const DACOutputStreams<Bit16s> &streams, Bit32u len);
+	MT32EMU_EXPORT void renderStreams(int16_t *nonReverbLeft, int16_t *nonReverbRight, int16_t *reverbDryLeft, int16_t *reverbDryRight, int16_t *reverbWetLeft, int16_t *reverbWetRight, Bit32u len);
+	MT32EMU_EXPORT void renderStreams(const DACOutputStreams<int16_t> &streams, Bit32u len);
 	// Same as above but outputs to float streams.
 	MT32EMU_EXPORT void renderStreams(float *nonReverbLeft, float *nonReverbRight, float *reverbDryLeft, float *reverbDryRight, float *reverbWetLeft, float *reverbWetRight, Bit32u len);
 	MT32EMU_EXPORT void renderStreams(const DACOutputStreams<float> &streams, Bit32u len);

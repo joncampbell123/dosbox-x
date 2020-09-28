@@ -74,8 +74,8 @@ static void CMS_CallBack(Bitu len) {
 			return;
 		}
 		Bit32s result[BUFFER_SIZE][2];
-		Bit16s work[2][BUFFER_SIZE];
-		Bit16s* buffers[2] = { work[0], work[1] };
+		int16_t work[2][BUFFER_SIZE];
+		int16_t* buffers[2] = { work[0], work[1] };
 		device_sound_interface::sound_stream stream;
 		device[0]->sound_stream_update(stream, 0, buffers, (int)len);
 		for (Bitu i = 0; i < len; i++) {

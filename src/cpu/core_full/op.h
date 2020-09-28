@@ -651,10 +651,10 @@ switch (inst.code.op) {
 #endif
 	case O_BOUNDw:
 		{
-			Bit16s bound_min, bound_max;
-			bound_min=(Bit16s)LoadMw(inst.rm_eaa);
-			bound_max=(Bit16s)LoadMw(inst.rm_eaa+2);
-			if ( (((Bit16s)inst_op1_w) < bound_min) || (((Bit16s)inst_op1_w) > bound_max) ) {
+			int16_t bound_min, bound_max;
+			bound_min=(int16_t)LoadMw(inst.rm_eaa);
+			bound_max=(int16_t)LoadMw(inst.rm_eaa+2);
+			if ( (((int16_t)inst_op1_w) < bound_min) || (((int16_t)inst_op1_w) > bound_max) ) {
 				EXCEPTION(5);
 			}
 		}

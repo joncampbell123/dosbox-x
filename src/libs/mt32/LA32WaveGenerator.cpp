@@ -38,11 +38,11 @@ uint16_t LA32Utilites::interpolateExp(const uint16_t fract) {
 	return expTabEntry2 + (((expTabEntry1 - expTabEntry2) * extraBits) >> 3);
 }
 
-Bit16s LA32Utilites::unlog(const LogSample &logSample) {
-	//Bit16s sample = (Bit16s)EXP2F(13.0f - logSample.logValue / 1024.0f);
+int16_t LA32Utilites::unlog(const LogSample &logSample) {
+	//int16_t sample = (int16_t)EXP2F(13.0f - logSample.logValue / 1024.0f);
 	Bit32u intLogValue = logSample.logValue >> 12;
 	uint16_t fracLogValue = logSample.logValue & 4095;
-	Bit16s sample = interpolateExp(fracLogValue) >> intLogValue;
+	int16_t sample = interpolateExp(fracLogValue) >> intLogValue;
 	return logSample.sign == LogSample::POSITIVE ? sample : -sample;
 }
 
@@ -209,7 +209,7 @@ void LA32WaveGenerator::generateNextSawtoothCosineLogSample(LogSample &logSample
 	logSample.sign = ((sawtoothCosinePosition & (1 << 19)) == 0) ? LogSample::POSITIVE : LogSample::NEGATIVE;
 }
 
-void LA32WaveGenerator::pcmSampleToLogSample(LogSample &logSample, const Bit16s pcmSample) const {
+void LA32WaveGenerator::pcmSampleToLogSample(LogSample &logSample, const int16_t pcmSample) const {
 	Bit32u logSampleValue = (32787 - (pcmSample & 32767)) << 1;
 	logSampleValue += amp >> 10;
 	logSample.logValue = logSampleValue < 65536 ? uint16_t(logSampleValue) : 65535;
@@ -273,7 +273,7 @@ void LA32WaveGenerator::initSynth(const bool useSawtoothWaveform, const uint8_t 
 	active = true;
 }
 
-void LA32WaveGenerator::initPCM(const Bit16s * const usePCMWaveAddress, const Bit32u usePCMWaveLength, const bool usePCMWaveLooped, const bool usePCMWaveInterpolated) {
+void LA32WaveGenerator::initPCM(const int16_t * const usePCMWaveAddress, const Bit32u usePCMWaveLength, const bool usePCMWaveLooped, const bool usePCMWaveInterpolated) {
 	pcmWaveAddress = usePCMWaveAddress;
 	pcmWaveLength = usePCMWaveLength;
 	pcmWaveLooped = usePCMWaveLooped;
@@ -350,7 +350,7 @@ void LA32IntPartialPair::initSynth(const PairType useMaster, const bool sawtooth
 	}
 }
 
-void LA32IntPartialPair::initPCM(const PairType useMaster, const Bit16s *pcmWaveAddress, const Bit32u pcmWaveLength, const bool pcmWaveLooped) {
+void LA32IntPartialPair::initPCM(const PairType useMaster, const int16_t *pcmWaveAddress, const Bit32u pcmWaveLength, const bool pcmWaveLooped) {
 	if (useMaster == MASTER) {
 		master.initPCM(pcmWaveAddress, pcmWaveLength, pcmWaveLooped, true);
 	} else {
@@ -366,35 +366,35 @@ void LA32IntPartialPair::generateNextSample(const PairType useMaster, const Bit3
 	}
 }
 
-Bit16s LA32IntPartialPair::unlogAndMixWGOutput(const LA32WaveGenerator &wg) {
+int16_t LA32IntPartialPair::unlogAndMixWGOutput(const LA32WaveGenerator &wg) {
 	if (!wg.isActive()) {
 		return 0;
 	}
-	Bit16s firstSample = LA32Utilites::unlog(wg.getOutputLogSample(true));
-	Bit16s secondSample = LA32Utilites::unlog(wg.getOutputLogSample(false));
+	int16_t firstSample = LA32Utilites::unlog(wg.getOutputLogSample(true));
+	int16_t secondSample = LA32Utilites::unlog(wg.getOutputLogSample(false));
 	if (wg.isPCMWave()) {
-		return Bit16s(firstSample + (((Bit32s(secondSample) - Bit32s(firstSample)) * wg.getPCMInterpolationFactor()) >> 7));
+		return int16_t(firstSample + (((Bit32s(secondSample) - Bit32s(firstSample)) * wg.getPCMInterpolationFactor()) >> 7));
 	}
 	return firstSample + secondSample;
 }
 
-static inline Bit16s produceDistortedSample(Bit16s sample) {
-	return ((sample & 0x2000) == 0) ? Bit16s(sample & 0x1fff) : Bit16s(sample | ~0x1fff);
+static inline int16_t produceDistortedSample(int16_t sample) {
+	return ((sample & 0x2000) == 0) ? int16_t(sample & 0x1fff) : int16_t(sample | ~0x1fff);
 }
 
-Bit16s LA32IntPartialPair::nextOutSample() {
+int16_t LA32IntPartialPair::nextOutSample() {
 	if (!ringModulated) {
 		return unlogAndMixWGOutput(master) + unlogAndMixWGOutput(slave);
 	}
 
-	Bit16s masterSample = unlogAndMixWGOutput(master); // Store master partial sample for further mixing
+	int16_t masterSample = unlogAndMixWGOutput(master); // Store master partial sample for further mixing
 
 	/* SEMI-CONFIRMED from sample analysis:
 	 * We observe that for partial structures with ring modulation the interpolation is not applied to the slave PCM partial.
 	 * It's assumed that the multiplication circuitry intended to perform the interpolation on the slave PCM partial
 	 * is borrowed by the ring modulation circuit (or the LA32 chip has a similar lack of resources assigned to each partial pair).
 	 */
-	Bit16s slaveSample = slave.isPCMWave() ? LA32Utilites::unlog(slave.getOutputLogSample(true)) : unlogAndMixWGOutput(slave);
+	int16_t slaveSample = slave.isPCMWave() ? LA32Utilites::unlog(slave.getOutputLogSample(true)) : unlogAndMixWGOutput(slave);
 
 	/* SEMI-CONFIRMED: Ring modulation model derived from sample analysis of specially constructed patches which exploit distortion.
 	 * LA32 ring modulator found to produce distorted output in case if the absolute value of maximal amplitude of one of the input partials exceeds 8191.
@@ -403,7 +403,7 @@ Bit16s LA32IntPartialPair::nextOutSample() {
 	 * it is reasonable to assume the ring modulation is performed also in the linear space by sample multiplication.
 	 * Most probably the overflow is caused by limited precision of the multiplication circuit as the very similar distortion occurs with panning.
 	 */
-	Bit16s ringModulatedSample = Bit16s((Bit32s(produceDistortedSample(masterSample)) * Bit32s(produceDistortedSample(slaveSample))) >> 13);
+	int16_t ringModulatedSample = int16_t((Bit32s(produceDistortedSample(masterSample)) * Bit32s(produceDistortedSample(slaveSample))) >> 13);
 
 	return mixed ? masterSample + ringModulatedSample : ringModulatedSample;
 }

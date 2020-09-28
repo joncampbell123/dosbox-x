@@ -150,7 +150,7 @@ static uint16_t SinTable[ 512 ];
 
 //6 is just 0 shifted and masked
 
-static Bit16s WaveTable[ 8 * 512 ];
+static int16_t WaveTable[ 8 * 512 ];
 //Distance into WaveTable the wave starts
 static const uint16_t WaveBaseTable[8] = {
 	0x000, 0x200, 0x200, 0x800,
@@ -1366,7 +1366,7 @@ void InitTables( void ) {
 	//Add 0.5 for the trunc rounding of the integer cast
 	//Do a PI sinetable instead of the original 0.5 PI
 	for ( int i = 0; i < 512; i++ ) {
-		SinTable[i] = (Bit16s)( 0.5 - log10( sin( (i + 0.5) * (PI / 512.0) ) ) / log10(2.0)*256 );
+		SinTable[i] = (int16_t)( 0.5 - log10( sin( (i + 0.5) * (PI / 512.0) ) ) / log10(2.0)*256 );
 	}
 #endif
 #if ( DBOPL_WAVE == WAVE_TABLEMUL )
@@ -1380,25 +1380,25 @@ void InitTables( void ) {
 
 	//Sine Wave Base
 	for ( int i = 0; i < 512; i++ ) {
-		WaveTable[ 0x0200 + i ] = (Bit16s)(sin( (i + 0.5) * (PI / 512.0) ) * 4084);
+		WaveTable[ 0x0200 + i ] = (int16_t)(sin( (i + 0.5) * (PI / 512.0) ) * 4084);
 		WaveTable[ 0x0000 + i ] = -WaveTable[ 0x200 + i ];
 	}
 	//Exponential wave
 	for ( int i = 0; i < 256; i++ ) {
-		WaveTable[ 0x700 + i ] = (Bit16s)( 0.5 + ( pow(2.0, -1.0 + ( 255 - i * 8) * ( 1.0 /256 ) ) ) * 4085 );
+		WaveTable[ 0x700 + i ] = (int16_t)( 0.5 + ( pow(2.0, -1.0 + ( 255 - i * 8) * ( 1.0 /256 ) ) ) * 4085 );
 		WaveTable[ 0x6ff - i ] = -WaveTable[ 0x700 + i ];
 	}
 #endif
 #if ( DBOPL_WAVE == WAVE_TABLELOG )
 	//Sine Wave Base
 	for ( int i = 0; i < 512; i++ ) {
-		WaveTable[ 0x0200 + i ] = (Bit16s)( 0.5 - log10( sin( (i + 0.5) * (PI / 512.0) ) ) / log10(2.0)*256 );
-		WaveTable[ 0x0000 + i ] = ((Bit16s)0x8000) | WaveTable[ 0x200 + i];
+		WaveTable[ 0x0200 + i ] = (int16_t)( 0.5 - log10( sin( (i + 0.5) * (PI / 512.0) ) ) / log10(2.0)*256 );
+		WaveTable[ 0x0000 + i ] = ((int16_t)0x8000) | WaveTable[ 0x200 + i];
 	}
 	//Exponential wave
 	for ( int i = 0; i < 256; i++ ) {
 		WaveTable[ 0x700 + i ] = i * 8;
-		WaveTable[ 0x6ff - i ] = ((Bit16s)0x8000) | i * 8;
+		WaveTable[ 0x6ff - i ] = ((int16_t)0x8000) | i * 8;
 	} 
 #endif
 
@@ -1662,7 +1662,7 @@ void Handler::LoadState( std::istream& stream )
 		for( int lcv2=0; lcv2<2; lcv2++ ) {
 			chip.chan[lcv1].op[lcv2].volHandler = VolumeHandlerTable[ volhandler_idx[lcv1][lcv2] ];
 
-			chip.chan[lcv1].op[lcv2].waveBase = (Bit16s *) ((Bitu) wavebase_idx[lcv1][lcv2] + (Bitu) &WaveTable);
+			chip.chan[lcv1].op[lcv2].waveBase = (int16_t *) ((Bitu) wavebase_idx[lcv1][lcv2] + (Bitu) &WaveTable);
 		}
 
 

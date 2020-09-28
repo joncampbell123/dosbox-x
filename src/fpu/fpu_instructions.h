@@ -97,12 +97,12 @@ static double FROUND(double in){
 
 static double FPU_FLD80(PhysPt addr,FPU_Reg_80 &raw) {
 	struct {
-		Bit16s begin;
+		int16_t begin;
 		FPU_Reg eind;
 	} test;
 	test.eind.l.lower = mem_readd(addr);
 	test.eind.l.upper = (Bit32s)mem_readd(addr+4);
-	test.begin = (Bit16s)mem_readw(addr+8);
+	test.begin = (int16_t)mem_readw(addr+8);
    
 	Bit64s exp64 = (((test.begin&0x7fff) - (Bit64s)BIAS80));
 	Bit64s blah = ((exp64 >0)?exp64:-exp64)&0x3ff;
@@ -137,7 +137,7 @@ static void FPU_ST80(PhysPt addr,Bitu reg,FPU_Reg_80 &raw,bool use80) {
 	else {
 		// convert the "double" type to 80-bit IEEE and store
 		struct {
-			Bit16s begin;
+			int16_t begin;
 			FPU_Reg eind;
 		} test;
 		Bit64s sign80 = ((Bit64u)fpu.regs[reg].ll&ULONGTYPE(0x8000000000000000))?1:0;
@@ -151,7 +151,7 @@ static void FPU_ST80(PhysPt addr,Bitu reg,FPU_Reg_80 &raw,bool use80) {
 			//Ca-cyber doesn't like this when result is zero.
 			exp80final += (BIAS80 - BIAS64);
 		}
-		test.begin = (static_cast<Bit16s>(sign80)<<15)| static_cast<Bit16s>(exp80final);
+		test.begin = (static_cast<int16_t>(sign80)<<15)| static_cast<int16_t>(exp80final);
 		test.eind.ll = mant80final;
 		mem_writed(addr,test.eind.l.lower);
 		mem_writed(addr+4,(uint32_t)test.eind.l.upper);
@@ -182,7 +182,7 @@ static void FPU_FLD_F80(PhysPt addr) {
 }
 
 static void FPU_FLD_I16(PhysPt addr,Bitu store_to) {
-	Bit16s blah = (Bit16s)mem_readw(addr);
+	int16_t blah = (int16_t)mem_readw(addr);
 	fpu.regs[store_to].d = static_cast<double>(blah);
 	fpu.use80[store_to] = false;
 }
@@ -263,7 +263,7 @@ static void FPU_FST_F80(PhysPt addr) {
 }
 
 static void FPU_FST_I16(PhysPt addr) {
-	mem_writew(addr,(uint16_t)static_cast<Bit16s>(FROUND(fpu.regs[TOP].d)));
+	mem_writew(addr,(uint16_t)static_cast<int16_t>(FROUND(fpu.regs[TOP].d)));
 }
 
 static void FPU_FST_I32(PhysPt addr) {

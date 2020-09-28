@@ -28,7 +28,7 @@
 typedef uint8_t   FxU8;
 typedef int8_t   FxI8;
 typedef uint16_t  FxU16;
-typedef Bit16s  FxI16;
+typedef int16_t  FxI16;
 typedef Bit32u  FxU32;
 typedef Bit32s  FxI32;
 typedef Bit32s  FxBool;

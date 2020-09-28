@@ -35,7 +35,7 @@ static uint16_t lowerDurationToDivisor[] = {34078, 37162, 40526, 44194, 48194, 5
 // The table matches exactly what the manual claims (when divided by 8192):
 // -1, -1/2, -1/4, 0, 1/8, 1/4, 3/8, 1/2, 5/8, 3/4, 7/8, 1, 5/4, 3/2, 2, s1, s2
 // ...except for the last two entries, which are supposed to be "1 cent above 1" and "2 cents above 1", respectively. They can only be roughly approximated with this integer math.
-static Bit16s pitchKeyfollowMult[] = {-8192, -4096, -2048, 0, 1024, 2048, 3072, 4096, 5120, 6144, 7168, 8192, 10240, 12288, 16384, 8198, 8226};
+static int16_t pitchKeyfollowMult[] = {-8192, -4096, -2048, 0, 1024, 2048, 3072, 4096, 5120, 6144, 7168, 8192, 10240, 12288, 16384, 8198, 8226};
 
 // Note: Keys < 60 use keyToPitchTable[60 - key], keys >= 60 use keyToPitchTable[key - 60].
 // FIXME: This table could really be shorter, since we never use e.g. key 127.
@@ -62,11 +62,11 @@ TVP::TVP(const Partial *usePartial) :
 	partial(usePartial), system(&usePartial->getSynth()->mt32ram.system) {
 }
 
-static Bit16s keyToPitch(unsigned int key) {
+static int16_t keyToPitch(unsigned int key) {
 	// We're using a table to do: return round_to_nearest_or_even((key - 60) * (4096.0 / 12.0))
 	// Banker's rounding is just slightly annoying to do in C++
 	int k = int(key);
-	Bit16s pitch = keyToPitchTable[abs(k - 60)];
+	int16_t pitch = keyToPitchTable[abs(k - 60)];
 	return key < 60 ? -pitch : pitch;
 }
 
@@ -269,7 +269,7 @@ void TVP::setupPitchChange(int targetPitchOffset, uint8_t changeDuration) {
 	if (negativeDelta) {
 		pitchOffsetDelta = -pitchOffsetDelta;
 	}
-	// We want to maximise the number of bits of the Bit16s "pitchOffsetChangePerBigTick" we use in order to get the best possible precision later
+	// We want to maximise the number of bits of the int16_t "pitchOffsetChangePerBigTick" we use in order to get the best possible precision later
 	Bit32u absPitchOffsetDelta = pitchOffsetDelta << 16;
 	uint8_t normalisationShifts = normalise(absPitchOffsetDelta); // FIXME: Double-check: normalisationShifts is usually between 0 and 15 here, unless the delta is 0, in which case it's 31
 	absPitchOffsetDelta = absPitchOffsetDelta >> 1; // Make room for the sign bit
@@ -278,7 +278,7 @@ void TVP::setupPitchChange(int targetPitchOffset, uint8_t changeDuration) {
 	unsigned int upperDuration = changeDuration >> 3; // upperDuration's now between 0 and 13
 	shifts = normalisationShifts + upperDuration + 2;
 	uint16_t divisor = lowerDurationToDivisor[changeDuration & 7];
-	Bit16s newPitchOffsetChangePerBigTick = ((absPitchOffsetDelta & 0xFFFF0000) / divisor) >> 1; // Result now fits within 15 bits. FIXME: Check nothing's getting sign-extended incorrectly
+	int16_t newPitchOffsetChangePerBigTick = ((absPitchOffsetDelta & 0xFFFF0000) / divisor) >> 1; // Result now fits within 15 bits. FIXME: Check nothing's getting sign-extended incorrectly
 	if (negativeDelta) {
 		newPitchOffsetChangePerBigTick = -newPitchOffsetChangePerBigTick;
 	}
@@ -330,7 +330,7 @@ void TVP::process() {
 		return;
 	}
 
-	Bit16s negativeBigTicksRemaining = (timeElapsed >> 8) - targetPitchOffsetReachedBigTick;
+	int16_t negativeBigTicksRemaining = (timeElapsed >> 8) - targetPitchOffsetReachedBigTick;
 	if (negativeBigTicksRemaining >= 0) {
 		// We've reached the time for a phase change
 		targetPitchOffsetReached();

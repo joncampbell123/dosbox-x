@@ -57,7 +57,7 @@ static void synth_log(int level,
 static void synth_CallBack(Bitu len) {
 	if (synth_soft != NULL) {
 		fluid_synth_write_s16(synth_soft, len, MixTemp, 0, 2, MixTemp, 1, 2);
-		synthchan->AddSamples_s16(len,(Bit16s *)MixTemp);
+		synthchan->AddSamples_s16(len,(int16_t *)MixTemp);
 	}
 }
 

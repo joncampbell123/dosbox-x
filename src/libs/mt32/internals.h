@@ -89,7 +89,7 @@
 
 namespace MT32Emu {
 
-typedef Bit16s IntSample;
+typedef int16_t IntSample;
 typedef Bit32s IntSampleEx;
 typedef float FloatSample;
 

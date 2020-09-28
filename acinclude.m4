@@ -299,12 +299,6 @@ dnl Linux systems for ages now have had stdint.h to define uint8_t, etc.
 AH_BOTTOM([
 #include <cstdint>
 
-#if SIZEOF_UNSIGNED_SHORT != 2
-#  error "sizeof (unsigned short) != 2"
-#else
-  typedef   signed short Bit16s;
-#endif
-
 #if SIZEOF_UNSIGNED_INT == 4
   typedef unsigned int Bit32u;
   typedef   signed int Bit32s;

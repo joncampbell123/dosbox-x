@@ -96,8 +96,8 @@ static void SN76496Update(Bitu length) {
 	const Bitu MAX_SAMPLES = 2048;
 	if (length > MAX_SAMPLES)
 		return;
-	Bit16s buffer[MAX_SAMPLES];
-	Bit16s* outputs = buffer;
+	int16_t buffer[MAX_SAMPLES];
+	int16_t* outputs = buffer;
 
 	device_sound_interface::sound_stream stream;
 	static_cast<device_sound_interface&>(device).sound_stream_update(stream, 0, &outputs, (int)length);

@@ -171,7 +171,7 @@ void ffmpeg_audio_frame_send() {
 	ffmpeg_audio_sample_counter += (Bit64u)ffmpeg_aud_frame->nb_samples;
 }
 
-void ffmpeg_take_audio(Bit16s *raw,unsigned int samples) {
+void ffmpeg_take_audio(int16_t *raw,unsigned int samples) {
 	if (ffmpeg_aud_codec == NULL || ffmpeg_aud_frame == NULL || ffmpeg_fmt_ctx == NULL) return;
 
 	if ((unsigned long)ffmpeg_aud_write >= (unsigned long)ffmpeg_aud_frame->nb_samples) {
@@ -321,7 +321,7 @@ Bitu CaptureState = 0;
 static struct {
 	struct {
 		riff_wav_writer *writer;
-		Bit16s buf[WAVE_BUF][2];
+		int16_t buf[WAVE_BUF][2];
 		Bitu used;
 		Bit32u length;
 		Bit32u freq;
@@ -344,7 +344,7 @@ static struct {
 	struct {
 		avi_writer	*writer;
 		Bitu		frames;
-		Bit16s		audiobuf[WAVE_BUF][2];
+		int16_t		audiobuf[WAVE_BUF][2];
 		Bitu		audioused;
 		Bitu		audiorate;
 		Bitu		audiowritten;
@@ -1396,7 +1396,7 @@ skip_shot:
 			capture.video.frames++;
 
 			if ( capture.video.audioused ) {
-				ffmpeg_take_audio((Bit16s*)capture.video.audiobuf/*NTS: Ewwwwww.... what if the compiler pads the 2-dimensional array?*/,capture.video.audioused);
+				ffmpeg_take_audio((int16_t*)capture.video.audiobuf/*NTS: Ewwwwww.... what if the compiler pads the 2-dimensional array?*/,capture.video.audioused);
 				capture.video.audiowritten = capture.video.audioused*4;
 				capture.video.audioused = 0;
 			}
@@ -1437,7 +1437,7 @@ void CAPTURE_ScreenShotEvent(bool pressed) {
 
 MixerChannel * MIXER_FirstChannel(void);
 
-void CAPTURE_MultiTrackAddWave(Bit32u freq, Bit32u len, Bit16s * data,const char *name) {
+void CAPTURE_MultiTrackAddWave(Bit32u freq, Bit32u len, int16_t * data,const char *name) {
 #if !defined(C_EMSCRIPTEN)
     if (CaptureState & CAPTURE_MULTITRACK_WAVE) {
 		if (capture.multitrack_wave.writer == NULL) {
@@ -1576,7 +1576,7 @@ skip_mt_wav:
 #endif
 }
 
-void CAPTURE_AddWave(Bit32u freq, Bit32u len, Bit16s * data) {
+void CAPTURE_AddWave(Bit32u freq, Bit32u len, int16_t * data) {
 #if !defined(C_EMSCRIPTEN)
 #if (C_SSHOT)
 	if (CaptureState & CAPTURE_VIDEO) {
@@ -1631,7 +1631,7 @@ void CAPTURE_AddWave(Bit32u freq, Bit32u len, Bit16s * data) {
 			capture.wave.freq = freq;
 			LOG_MSG("Started capturing wave output.");
 		}
-		Bit16s * read = data;
+		int16_t * read = data;
 		while (len > 0 ) {
 			Bitu left = WAVE_BUF - capture.wave.used;
 			if (!left) {

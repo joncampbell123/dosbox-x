@@ -99,9 +99,9 @@ mt32emu_service_i mt32emu_get_service_i();
 #define mt32emu_is_nice_panning_enabled iV3()->isNicePanningEnabled
 #define mt32emu_set_nice_partial_mixing_enabled iV3()->setNicePartialMixingEnabled
 #define mt32emu_is_nice_partial_mixing_enabled iV3()->isNicePartialMixingEnabled
-#define mt32emu_render_bit16s i.v0->renderBit16s
+#define mt32emu_render_bit16s i.v0->renderint16_t
 #define mt32emu_render_float i.v0->renderFloat
-#define mt32emu_render_bit16s_streams i.v0->renderBit16sStreams
+#define mt32emu_render_bit16s_streams i.v0->renderint16_tStreams
 #define mt32emu_render_float_streams i.v0->renderFloatStreams
 #define mt32emu_has_active_partials i.v0->hasActivePartials
 #define mt32emu_is_active i.v0->isActive
@@ -270,9 +270,9 @@ public:
 	void setNicePartialMixingEnabled(const bool enabled) { mt32emu_set_nice_partial_mixing_enabled(c, enabled ? MT32EMU_BOOL_TRUE : MT32EMU_BOOL_FALSE); }
 	bool isNicePartialMixingEnabled() { return mt32emu_is_nice_partial_mixing_enabled(c) != MT32EMU_BOOL_FALSE; }
 
-	void renderBit16s(Bit16s *stream, Bit32u len) { mt32emu_render_bit16s(c, stream, len); }
+	void renderint16_t(int16_t *stream, Bit32u len) { mt32emu_render_bit16s(c, stream, len); }
 	void renderFloat(float *stream, Bit32u len) { mt32emu_render_float(c, stream, len); }
-	void renderBit16sStreams(const mt32emu_dac_output_bit16s_streams *streams, Bit32u len) { mt32emu_render_bit16s_streams(c, streams, len); }
+	void renderint16_tStreams(const mt32emu_dac_output_bit16s_streams *streams, Bit32u len) { mt32emu_render_bit16s_streams(c, streams, len); }
 	void renderFloatStreams(const mt32emu_dac_output_float_streams *streams, Bit32u len) { mt32emu_render_float_streams(c, streams, len); }
 
 	bool hasActivePartials() { return mt32emu_has_active_partials(c) != MT32EMU_BOOL_FALSE; }

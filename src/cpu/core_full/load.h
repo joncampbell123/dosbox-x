@@ -70,7 +70,7 @@ l_MODRMswitch:
 			inst_op1_d=Fetchw();
 			break;
 		case M_EwxGwx:
-			inst_op2_ds=(Bit16s)reg_16(inst.rm_index);
+			inst_op2_ds=(int16_t)reg_16(inst.rm_index);
 			goto l_M_Ewx;
 		case M_EwxIbx:
 			inst_op2_ds=Fetchbs();
@@ -79,8 +79,8 @@ l_MODRMswitch:
 			inst_op2_ds=Fetchws();
 l_M_Ewx:		
 		case M_Ewx:
-			if (inst.rm<0xc0) inst_op1_ds=(Bit16s)LoadMw(inst.rm_eaa);
-			else inst_op1_ds=(Bit16s)reg_16(inst.rm_eai);
+			if (inst.rm<0xc0) inst_op1_ds=(int16_t)LoadMw(inst.rm_eaa);
+			else inst_op1_ds=(int16_t)reg_16(inst.rm_eai);
 			break;
 		case M_EwIb:
 			inst_op2_d=Fetchb();
@@ -99,7 +99,7 @@ l_M_Ewx:
 			goto l_M_EwGw;
 		case M_EwGwt:
 			inst_op2_d=reg_16(inst.rm_index);
-			inst.rm_eaa+=(Bitu)(((Bit16s)inst_op2_d >> 4) * 2);
+			inst.rm_eaa+=(Bitu)(((int16_t)inst_op2_d >> 4) * 2);
 			goto l_M_Ew;
 l_M_EwGw:			
 		case M_EwGw:
@@ -429,7 +429,7 @@ l_M_Ed:
 		reg_ax=(uint16_t)((int8_t)reg_al);
 		goto nextopcode;
 	case D_CWDE:
-		reg_eax=(Bit32u)((Bit16s)reg_ax);
+		reg_eax=(Bit32u)((int16_t)reg_ax);
 		goto nextopcode;
 	case D_CWD:
 		if (reg_ax & 0x8000) reg_dx=0xffff;

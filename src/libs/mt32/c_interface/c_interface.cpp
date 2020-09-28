@@ -705,7 +705,7 @@ void mt32emu_render_float(mt32emu_const_context context, float *stream, mt32emu_
 }
 
 void mt32emu_render_bit16s_streams(mt32emu_const_context context, const mt32emu_dac_output_bit16s_streams *streams, mt32emu_bit32u len) {
-	context->synth->renderStreams(*reinterpret_cast<const DACOutputStreams<Bit16s> *>(streams), len);
+	context->synth->renderStreams(*reinterpret_cast<const DACOutputStreams<int16_t> *>(streams), len);
 }
 
 void mt32emu_render_float_streams(mt32emu_const_context context, const mt32emu_dac_output_float_streams *streams, mt32emu_bit32u len) {

@@ -52,7 +52,7 @@ private:
 	SDL_Thread *thread;
 	SDL_mutex *lock;
 	SDL_cond *framesInBufferChanged;
-	Bit16s *audioBuffer;
+	int16_t *audioBuffer;
 	Bitu audioBufferSize;
 	Bitu framesPerAudioBuffer;
 	Bitu minimumRenderFrames;
@@ -144,8 +144,8 @@ private:
                 SDL_UnlockMutex(lock);
             }
         } else {
-            service->renderBit16s((Bit16s *)MixTemp, len);
-            chan->AddSamples_s16(len, (Bit16s *)MixTemp);
+            service->renderint16_t((int16_t *)MixTemp, len);
+            chan->AddSamples_s16(len, (int16_t *)MixTemp);
         }
     }
 	void renderingLoop() {
@@ -165,7 +165,7 @@ private:
                 SDL_CondWait(framesInBufferChanged, lock);
                 SDL_UnlockMutex(lock);
             } else {
-                service->renderBit16s(audioBuffer + renderPosSnap, framesToRender);
+                service->renderint16_t(audioBuffer + renderPosSnap, framesToRender);
                 renderPos = (renderPosSnap + samplesToRender) % audioBufferSize;
                 if (renderPosSnap == playPos) {
                     SDL_LockMutex(lock);
@@ -307,8 +307,8 @@ public:
             }
             framesPerAudioBuffer = (latency * sampleRate) / MILLIS_PER_SECOND;
             audioBufferSize = framesPerAudioBuffer << 1;
-            audioBuffer = new Bit16s[audioBufferSize];
-            service->renderBit16s(audioBuffer, framesPerAudioBuffer - 1);
+            audioBuffer = new int16_t[audioBufferSize];
+            service->renderint16_t(audioBuffer, framesPerAudioBuffer - 1);
             renderPos = (framesPerAudioBuffer - 1) << 1;
             playedBuffers = 1;
             lock = SDL_CreateMutex();

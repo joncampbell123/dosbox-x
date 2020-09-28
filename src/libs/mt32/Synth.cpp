@@ -541,7 +541,7 @@ bool Synth::loadPCMROM(const ROMImage &pcmROMImage) {
 
 		int order[16] = {0, 9, 1, 2, 3, 4, 5, 6, 7, 10, 11, 12, 13, 14, 15, 8};
 
-		Bit16s log = 0;
+		int16_t log = 0;
 		for (int u = 0; u < 15; u++) {
 			int bit;
 			if (order[u] < 8) {
@@ -549,7 +549,7 @@ bool Synth::loadPCMROM(const ROMImage &pcmROMImage) {
 			} else {
 				bit = (c >> (7 - (order[u] - 8))) & 0x1;
 			}
-			log = log | Bit16s(bit << (15 - u));
+			log = log | int16_t(bit << (15 - u));
 		}
 		pcmROMData[i] = log;
 	}
@@ -672,7 +672,7 @@ bool Synth::open(const ROMImage &controlROMImage, const ROMImage &pcmROMImage, B
 	// 1MB PCM ROM for CM-32L, LAPC-I, CM-64, CM-500
 	// Note that the size below is given in samples (16-bit), not bytes
 	pcmROMSize = controlROMMap->pcmCount == 256 ? 512 * 1024 : 256 * 1024;
-	pcmROMData = new Bit16s[pcmROMSize];
+	pcmROMData = new int16_t[pcmROMSize];
 
 #if MT32EMU_MONITOR_INIT
 	printDebug("Loading PCM ROM");
@@ -2061,7 +2061,7 @@ static inline void renderStereo(bool opened, Renderer *renderer, S *stream, Bit3
 	}
 }
 
-void Synth::render(Bit16s *stream, Bit32u len) {
+void Synth::render(int16_t *stream, Bit32u len) {
 	renderStereo(opened, renderer, stream, len);
 }
 
@@ -2194,7 +2194,7 @@ static inline void renderStreams(bool opened, Renderer *renderer, const DACOutpu
 	}
 }
 
-void Synth::renderStreams(const DACOutputStreams<Bit16s> &streams, Bit32u len) {
+void Synth::renderStreams(const DACOutputStreams<int16_t> &streams, Bit32u len) {
 	MT32Emu::renderStreams(opened, renderer, streams, len);
 }
 
@@ -2203,9 +2203,9 @@ void Synth::renderStreams(const DACOutputStreams<float> &streams, Bit32u len) {
 }
 
 void Synth::renderStreams(
-	Bit16s *nonReverbLeft, Bit16s *nonReverbRight,
-	Bit16s *reverbDryLeft, Bit16s *reverbDryRight,
-	Bit16s *reverbWetLeft, Bit16s *reverbWetRight,
+	int16_t *nonReverbLeft, int16_t *nonReverbRight,
+	int16_t *reverbDryLeft, int16_t *reverbDryRight,
+	int16_t *reverbWetLeft, int16_t *reverbWetRight,
 	Bit32u len)
 {
 	DACOutputStreams<IntSample> streams = {

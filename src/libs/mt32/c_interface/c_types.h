@@ -276,9 +276,9 @@ typedef union mt32emu_service_i mt32emu_service_i;
 	void (*setReversedStereoEnabled)(mt32emu_const_context context, const mt32emu_boolean enabled); \
 	mt32emu_boolean (*isReversedStereoEnabled)(mt32emu_const_context context); \
 \
-	void (*renderBit16s)(mt32emu_const_context context, mt32emu_bit16s *stream, mt32emu_bit32u len); \
+	void (*renderint16_t)(mt32emu_const_context context, mt32emu_bit16s *stream, mt32emu_bit32u len); \
 	void (*renderFloat)(mt32emu_const_context context, float *stream, mt32emu_bit32u len); \
-	void (*renderBit16sStreams)(mt32emu_const_context context, const mt32emu_dac_output_bit16s_streams *streams, mt32emu_bit32u len); \
+	void (*renderint16_tStreams)(mt32emu_const_context context, const mt32emu_dac_output_bit16s_streams *streams, mt32emu_bit32u len); \
 	void (*renderFloatStreams)(mt32emu_const_context context, const mt32emu_dac_output_float_streams *streams, mt32emu_bit32u len); \
 \
 	mt32emu_boolean (*hasActivePartials)(mt32emu_const_context context); \

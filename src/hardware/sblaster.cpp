@@ -131,7 +131,7 @@ struct SB_INFO {
         Bit64u start;
         union {
             uint8_t  b8[DMA_BUFSIZE];
-            Bit16s b16[DMA_BUFSIZE];
+            int16_t b16[DMA_BUFSIZE];
         } buf;
         Bitu bits;
         DmaChannel * chan;
@@ -204,7 +204,7 @@ struct SB_INFO {
         unsigned int dsp_write_busy_time; /* when you write to the DSP, how long it signals "busy" */
     } dsp;
     struct {
-        Bit16s last;
+        int16_t last;
         double dac_t,dac_pt;
     } dac;
     struct {
@@ -749,7 +749,7 @@ static void DMA_DAC_Event(Bitu val) {
     unsigned char tmp[4];
     Bitu read,expct;
     signed int L,R;
-    Bit16s out[2];
+    int16_t out[2];
 
     if (sb.dma.chan->masked) {
         PIC_AddEvent(DMA_DAC_Event,1000.0 / sb.dma_dac_srcrate);

@@ -911,7 +911,7 @@ static void dyn_fill_ea(HostReg ea_reg,bool addseg=true) {
 		switch (decode.modrm.mod) {
 		case 0:imm=0;break;
 		case 1:imm=(int8_t)decode_fetchb();break;
-		case 2:imm=(Bit16s)decode_fetchw();break;
+		case 2:imm=(int16_t)decode_fetchw();break;
 		}
 		switch (decode.modrm.rm) {
 		case 0:// BX+SI

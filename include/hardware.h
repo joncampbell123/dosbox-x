@@ -46,7 +46,7 @@ bool TS_Get_Address(Bitu& tsaddr, Bitu& tsirq, Bitu& tsdma);
 extern uint8_t adlib_commandreg;
 FILE * OpenCaptureFile(const char * type,const char * ext);
 
-void CAPTURE_AddWave(Bit32u freq, Bit32u len, Bit16s * data);
+void CAPTURE_AddWave(Bit32u freq, Bit32u len, int16_t * data);
 #define CAPTURE_FLAG_DBLW	0x1
 #define CAPTURE_FLAG_DBLH	0x2
 #define CAPTURE_FLAG_NOCHANGE   0x4

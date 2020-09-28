@@ -634,7 +634,7 @@ void FPU_ESC7_EA(Bitu rm,PhysPt addr) {
 	Bitu group=(rm >> 3) & 7;
 	Bitu sub=(rm & 7);
 	switch(group){
-	case 0x00:  /* FILD Bit16s */
+	case 0x00:  /* FILD int16_t */
 		{
 			unsigned char old_TOP = TOP;
 
@@ -652,10 +652,10 @@ void FPU_ESC7_EA(Bitu rm,PhysPt addr) {
 	case 0x01:
 		LOG(LOG_FPU,LOG_WARN)("ESC 7 EA:Unhandled group %d subfunction %d",(int)group,(int)sub);
 		break;
-	case 0x02:   /* FIST Bit16s */
+	case 0x02:   /* FIST int16_t */
 		FPU_FST_I16(addr);
 		break;
-	case 0x03:	/* FISTP Bit16s */
+	case 0x03:	/* FISTP int16_t */
 		FPU_FST_I16(addr);
 		FPU_FPOP();
 		break;

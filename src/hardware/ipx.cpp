@@ -563,7 +563,7 @@ static void pingSend(void) {
 	}
 }
 
-static void receivePacket(uint8_t *buffer, Bit16s bufSize) {
+static void receivePacket(uint8_t *buffer, int16_t bufSize) {
 	ECBClass *useECB;
 	ECBClass *nextECB;
 	uint16_t *bufword = (uint16_t *)buffer;
@@ -624,7 +624,7 @@ static void sendPacket(ECBClass* sendecb) {
 	uint8_t outbuffer[IPXBUFFERSIZE];
 	fragmentDescriptor tmpFrag; 
 	uint16_t i, fragCount,t;
-	Bit16s packetsize;
+	int16_t packetsize;
 	uint16_t *wordptr;
 	Bits result;
 	UDPpacket outPacket;

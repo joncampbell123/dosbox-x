@@ -1434,9 +1434,9 @@ static void DRC_CALL_CONV dynrec_mul_word(uint16_t op) {
 static void DRC_CALL_CONV dynrec_imul_word(uint16_t op) DRC_FC;
 static void DRC_CALL_CONV dynrec_imul_word(uint16_t op) {
 	FillFlagsNoCFOF();
-	Bits temps=Bits((Bit16s)reg_ax)*Bits((Bit16s)op);
-	reg_ax=(Bit16s)(temps);
-	reg_dx=(Bit16s)(temps >> 16);
+	Bits temps=Bits((int16_t)reg_ax)*Bits((int16_t)op);
+	reg_ax=(int16_t)(temps);
+	reg_dx=(int16_t)(temps >> 16);
 	if (((temps & 0xffff8000)==0xffff8000 || (temps & 0xffff8000)==0x0000)) {
 		SETFLAGBIT(CF,false);
 		SETFLAGBIT(OF,false);
@@ -1498,10 +1498,10 @@ static bool DRC_CALL_CONV dynrec_idiv_byte(uint8_t op) DRC_FC;
 static bool DRC_CALL_CONV dynrec_idiv_byte(uint8_t op) {
 	Bits val=(int8_t)op;
 	if (val==0) return CPU_PrepareException(0,0);
-	Bits quo=((Bit16s)reg_ax) / val;
-	int8_t rem=(int8_t)((Bit16s)reg_ax % val);
+	Bits quo=((int16_t)reg_ax) / val;
+	int8_t rem=(int8_t)((int16_t)reg_ax % val);
 	int8_t quo8s=(int8_t)(quo&0xff);
-	if (quo!=(Bit16s)quo8s) return CPU_PrepareException(0,0);
+	if (quo!=(int16_t)quo8s) return CPU_PrepareException(0,0);
 	reg_ah=rem;
 	reg_al=quo8s;
 	return false;
@@ -1523,12 +1523,12 @@ static bool DRC_CALL_CONV dynrec_div_word(uint16_t op) {
 
 static bool DRC_CALL_CONV dynrec_idiv_word(uint16_t op) DRC_FC;
 static bool DRC_CALL_CONV dynrec_idiv_word(uint16_t op) {
-	Bits val=(Bit16s)op;
+	Bits val=(int16_t)op;
 	if (val==0) return CPU_PrepareException(0,0);
 	Bits num=(Bit32s)((reg_dx<<16)|reg_ax);
 	Bits quo=num/val;
-	Bit16s rem=(Bit16s)(num % val);
-	Bit16s quo16s=(Bit16s)quo;
+	int16_t rem=(int16_t)(num % val);
+	int16_t quo16s=(int16_t)quo;
 	if (quo!=(Bit32s)quo16s) return CPU_PrepareException(0,0);
 	reg_dx=rem;
 	reg_ax=quo16s;
@@ -1567,7 +1567,7 @@ static bool DRC_CALL_CONV dynrec_idiv_dword(Bit32u op) {
 static uint16_t DRC_CALL_CONV dynrec_dimul_word(uint16_t op1,uint16_t op2) DRC_FC;
 static uint16_t DRC_CALL_CONV dynrec_dimul_word(uint16_t op1,uint16_t op2) {
 	FillFlagsNoCFOF();
-	Bits res=Bits((Bit16s)op1) * Bits((Bit16s)op2);
+	Bits res=Bits((int16_t)op1) * Bits((int16_t)op2);
 	if ((res>-32768)  && (res<32767)) {
 		SETFLAGBIT(CF,false);
 		SETFLAGBIT(OF,false);
@@ -1601,7 +1601,7 @@ static uint16_t DRC_CALL_CONV dynrec_cbw(uint8_t op) {
 
 static Bit32u DRC_CALL_CONV dynrec_cwde(uint16_t op) DRC_FC;
 static Bit32u DRC_CALL_CONV dynrec_cwde(uint16_t op) {
-	return (Bit16s)op;
+	return (int16_t)op;
 }
 
 static uint16_t DRC_CALL_CONV dynrec_cwd(uint16_t op) DRC_FC;
@@ -1652,8 +1652,8 @@ static void DRC_CALL_CONV dynrec_std(void) {
 }
 
 
-static uint16_t DRC_CALL_CONV dynrec_movsb_word(uint16_t count,Bit16s add_index,PhysPt si_base,PhysPt di_base) DRC_FC;
-static uint16_t DRC_CALL_CONV dynrec_movsb_word(uint16_t count,Bit16s add_index,PhysPt si_base,PhysPt di_base) {
+static uint16_t DRC_CALL_CONV dynrec_movsb_word(uint16_t count,int16_t add_index,PhysPt si_base,PhysPt di_base) DRC_FC;
+static uint16_t DRC_CALL_CONV dynrec_movsb_word(uint16_t count,int16_t add_index,PhysPt si_base,PhysPt di_base) {
 	uint16_t count_left;
 	if (count<(Bitu)CPU_Cycles) {
 		count_left=0;
@@ -1688,8 +1688,8 @@ static Bit32u DRC_CALL_CONV dynrec_movsb_dword(Bit32u count,Bit32s add_index,Phy
 	return count_left;
 }
 
-static uint16_t DRC_CALL_CONV dynrec_movsw_word(uint16_t count,Bit16s add_index,PhysPt si_base,PhysPt di_base) DRC_FC;
-static uint16_t DRC_CALL_CONV dynrec_movsw_word(uint16_t count,Bit16s add_index,PhysPt si_base,PhysPt di_base) {
+static uint16_t DRC_CALL_CONV dynrec_movsw_word(uint16_t count,int16_t add_index,PhysPt si_base,PhysPt di_base) DRC_FC;
+static uint16_t DRC_CALL_CONV dynrec_movsw_word(uint16_t count,int16_t add_index,PhysPt si_base,PhysPt di_base) {
 	uint16_t count_left;
 	if (count<(Bitu)CPU_Cycles) {
 		count_left=0;
@@ -1726,8 +1726,8 @@ static Bit32u DRC_CALL_CONV dynrec_movsw_dword(Bit32u count,Bit32s add_index,Phy
 	return count_left;
 }
 
-static uint16_t DRC_CALL_CONV dynrec_movsd_word(uint16_t count,Bit16s add_index,PhysPt si_base,PhysPt di_base) DRC_FC;
-static uint16_t DRC_CALL_CONV dynrec_movsd_word(uint16_t count,Bit16s add_index,PhysPt si_base,PhysPt di_base) {
+static uint16_t DRC_CALL_CONV dynrec_movsd_word(uint16_t count,int16_t add_index,PhysPt si_base,PhysPt di_base) DRC_FC;
+static uint16_t DRC_CALL_CONV dynrec_movsd_word(uint16_t count,int16_t add_index,PhysPt si_base,PhysPt di_base) {
 	uint16_t count_left;
 	if (count<(Bitu)CPU_Cycles) {
 		count_left=0;
@@ -1765,8 +1765,8 @@ static Bit32u DRC_CALL_CONV dynrec_movsd_dword(Bit32u count,Bit32s add_index,Phy
 }
 
 
-static uint16_t DRC_CALL_CONV dynrec_lodsb_word(uint16_t count,Bit16s add_index,PhysPt si_base) DRC_FC;
-static uint16_t DRC_CALL_CONV dynrec_lodsb_word(uint16_t count,Bit16s add_index,PhysPt si_base) {
+static uint16_t DRC_CALL_CONV dynrec_lodsb_word(uint16_t count,int16_t add_index,PhysPt si_base) DRC_FC;
+static uint16_t DRC_CALL_CONV dynrec_lodsb_word(uint16_t count,int16_t add_index,PhysPt si_base) {
 	uint16_t count_left;
 	if (count<(Bitu)CPU_Cycles) {
 		count_left=0;
@@ -1799,8 +1799,8 @@ static Bit32u DRC_CALL_CONV dynrec_lodsb_dword(Bit32u count,Bit32s add_index,Phy
 	return count_left;
 }
 
-static uint16_t DRC_CALL_CONV dynrec_lodsw_word(uint16_t count,Bit16s add_index,PhysPt si_base) DRC_FC;
-static uint16_t DRC_CALL_CONV dynrec_lodsw_word(uint16_t count,Bit16s add_index,PhysPt si_base) {
+static uint16_t DRC_CALL_CONV dynrec_lodsw_word(uint16_t count,int16_t add_index,PhysPt si_base) DRC_FC;
+static uint16_t DRC_CALL_CONV dynrec_lodsw_word(uint16_t count,int16_t add_index,PhysPt si_base) {
 	uint16_t count_left;
 	if (count<(Bitu)CPU_Cycles) {
 		count_left=0;
@@ -1835,8 +1835,8 @@ static Bit32u DRC_CALL_CONV dynrec_lodsw_dword(Bit32u count,Bit32s add_index,Phy
 	return count_left;
 }
 
-static uint16_t DRC_CALL_CONV dynrec_lodsd_word(uint16_t count,Bit16s add_index,PhysPt si_base) DRC_FC;
-static uint16_t DRC_CALL_CONV dynrec_lodsd_word(uint16_t count,Bit16s add_index,PhysPt si_base) {
+static uint16_t DRC_CALL_CONV dynrec_lodsd_word(uint16_t count,int16_t add_index,PhysPt si_base) DRC_FC;
+static uint16_t DRC_CALL_CONV dynrec_lodsd_word(uint16_t count,int16_t add_index,PhysPt si_base) {
 	uint16_t count_left;
 	if (count<(Bitu)CPU_Cycles) {
 		count_left=0;
@@ -1872,8 +1872,8 @@ static Bit32u DRC_CALL_CONV dynrec_lodsd_dword(Bit32u count,Bit32s add_index,Phy
 }
 
 
-static uint16_t DRC_CALL_CONV dynrec_stosb_word(uint16_t count,Bit16s add_index,PhysPt di_base) DRC_FC;
-static uint16_t DRC_CALL_CONV dynrec_stosb_word(uint16_t count,Bit16s add_index,PhysPt di_base) {
+static uint16_t DRC_CALL_CONV dynrec_stosb_word(uint16_t count,int16_t add_index,PhysPt di_base) DRC_FC;
+static uint16_t DRC_CALL_CONV dynrec_stosb_word(uint16_t count,int16_t add_index,PhysPt di_base) {
 	uint16_t count_left;
 	if (count<(Bitu)CPU_Cycles) {
 		count_left=0;
@@ -1906,8 +1906,8 @@ static Bit32u DRC_CALL_CONV dynrec_stosb_dword(Bit32u count,Bit32s add_index,Phy
 	return count_left;
 }
 
-static uint16_t DRC_CALL_CONV dynrec_stosw_word(uint16_t count,Bit16s add_index,PhysPt di_base) DRC_FC;
-static uint16_t DRC_CALL_CONV dynrec_stosw_word(uint16_t count,Bit16s add_index,PhysPt di_base) {
+static uint16_t DRC_CALL_CONV dynrec_stosw_word(uint16_t count,int16_t add_index,PhysPt di_base) DRC_FC;
+static uint16_t DRC_CALL_CONV dynrec_stosw_word(uint16_t count,int16_t add_index,PhysPt di_base) {
 	uint16_t count_left;
 	if (count<(Bitu)CPU_Cycles) {
 		count_left=0;
@@ -1942,8 +1942,8 @@ static Bit32u DRC_CALL_CONV dynrec_stosw_dword(Bit32u count,Bit32s add_index,Phy
 	return count_left;
 }
 
-static uint16_t DRC_CALL_CONV dynrec_stosd_word(uint16_t count,Bit16s add_index,PhysPt di_base) DRC_FC;
-static uint16_t DRC_CALL_CONV dynrec_stosd_word(uint16_t count,Bit16s add_index,PhysPt di_base) {
+static uint16_t DRC_CALL_CONV dynrec_stosd_word(uint16_t count,int16_t add_index,PhysPt di_base) DRC_FC;
+static uint16_t DRC_CALL_CONV dynrec_stosd_word(uint16_t count,int16_t add_index,PhysPt di_base) {
 	uint16_t count_left;
 	if (count<(Bitu)CPU_Cycles) {
 		count_left=0;

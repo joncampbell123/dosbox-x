@@ -22,7 +22,7 @@
 #define M_PI           3.14159265358979323846
 #endif
 
-typedef Bit16s stream_sample_t;
+typedef int16_t stream_sample_t;
 
 typedef uint8_t u8;
 typedef Bit32u u32;

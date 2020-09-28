@@ -96,7 +96,7 @@ void SampleRateConverter::getOutputSamples(float *buffer, unsigned int length) {
 #endif
 }
 
-void SampleRateConverter::getOutputSamples(Bit16s *outBuffer, unsigned int length) {
+void SampleRateConverter::getOutputSamples(int16_t *outBuffer, unsigned int length) {
 	static const unsigned int CHANNEL_COUNT = 2;
 
 	if (useSynthDelegate) {

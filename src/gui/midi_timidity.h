@@ -284,7 +284,7 @@ void MidiHandler_timidity::timidity_meta_seq(int p1, int p2, int p3) {
 	seqbuf[3] = 0x7f;
 	seqbuf[4] = p1;
 	seqbuf[5] = p2;
-	*(Bit16s *)&seqbuf[6] = p3;
+	*(int16_t *)&seqbuf[6] = p3;
 
 	timidity_write_data(seqbuf, sizeof(seqbuf));
 }

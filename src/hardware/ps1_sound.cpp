@@ -331,11 +331,11 @@ static void PS1SN76496Update(Bitu length)
 		ps1.chanSN->Enable(false);
 	}
 
-	//Bit16s * buffer=(Bit16s *)MixTemp;
+	//int16_t * buffer=(int16_t *)MixTemp;
 #if 0
 	SN76496Update(&ps1.sn,buffer,length);
 #endif
-	ps1.chanSN->AddSamples_m16(length,(Bit16s *)MixTemp);
+	ps1.chanSN->AddSamples_m16(length,(int16_t *)MixTemp);
 }
 
 #include "regs.h"

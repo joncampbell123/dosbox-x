@@ -29,7 +29,7 @@
 
      extern void  Out32 (short portaddr, short datum);
 
-static Bit16s hardopldiff;
+static int16_t hardopldiff;
 static bool isCMS;
 static FILE * logfp = NULL;
 

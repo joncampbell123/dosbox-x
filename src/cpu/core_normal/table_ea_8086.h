@@ -19,28 +19,28 @@
 typedef PhysPt (*EA_LookupHandler)(void);
 
 /* The MOD/RM Decoder for EA for this decoder's addressing modes */
-static PhysPt EA_16_00_n(void) { return BaseDS+(last_ea86_offset=((uint16_t)(reg_bx+(Bit16s)reg_si))); }
-static PhysPt EA_16_01_n(void) { return BaseDS+(last_ea86_offset=((uint16_t)(reg_bx+(Bit16s)reg_di))); }
-static PhysPt EA_16_02_n(void) { return BaseSS+(last_ea86_offset=((uint16_t)(reg_bp+(Bit16s)reg_si))); }
-static PhysPt EA_16_03_n(void) { return BaseSS+(last_ea86_offset=((uint16_t)(reg_bp+(Bit16s)reg_di))); }
+static PhysPt EA_16_00_n(void) { return BaseDS+(last_ea86_offset=((uint16_t)(reg_bx+(int16_t)reg_si))); }
+static PhysPt EA_16_01_n(void) { return BaseDS+(last_ea86_offset=((uint16_t)(reg_bx+(int16_t)reg_di))); }
+static PhysPt EA_16_02_n(void) { return BaseSS+(last_ea86_offset=((uint16_t)(reg_bp+(int16_t)reg_si))); }
+static PhysPt EA_16_03_n(void) { return BaseSS+(last_ea86_offset=((uint16_t)(reg_bp+(int16_t)reg_di))); }
 static PhysPt EA_16_04_n(void) { return BaseDS+(last_ea86_offset=((uint16_t)(reg_si))); }
 static PhysPt EA_16_05_n(void) { return BaseDS+(last_ea86_offset=((uint16_t)(reg_di))); }
 static PhysPt EA_16_06_n(void) { return BaseDS+(last_ea86_offset=((uint16_t)(Fetchw())));}
 static PhysPt EA_16_07_n(void) { return BaseDS+(last_ea86_offset=((uint16_t)(reg_bx))); }
 
-static PhysPt EA_16_40_n(void) { return BaseDS+(last_ea86_offset=((uint16_t)(reg_bx+(Bit16s)reg_si+Fetchbs()))); }
-static PhysPt EA_16_41_n(void) { return BaseDS+(last_ea86_offset=((uint16_t)(reg_bx+(Bit16s)reg_di+Fetchbs()))); }
-static PhysPt EA_16_42_n(void) { return BaseSS+(last_ea86_offset=((uint16_t)(reg_bp+(Bit16s)reg_si+Fetchbs()))); }
-static PhysPt EA_16_43_n(void) { return BaseSS+(last_ea86_offset=((uint16_t)(reg_bp+(Bit16s)reg_di+Fetchbs()))); }
+static PhysPt EA_16_40_n(void) { return BaseDS+(last_ea86_offset=((uint16_t)(reg_bx+(int16_t)reg_si+Fetchbs()))); }
+static PhysPt EA_16_41_n(void) { return BaseDS+(last_ea86_offset=((uint16_t)(reg_bx+(int16_t)reg_di+Fetchbs()))); }
+static PhysPt EA_16_42_n(void) { return BaseSS+(last_ea86_offset=((uint16_t)(reg_bp+(int16_t)reg_si+Fetchbs()))); }
+static PhysPt EA_16_43_n(void) { return BaseSS+(last_ea86_offset=((uint16_t)(reg_bp+(int16_t)reg_di+Fetchbs()))); }
 static PhysPt EA_16_44_n(void) { return BaseDS+(last_ea86_offset=((uint16_t)(reg_si+Fetchbs()))); }
 static PhysPt EA_16_45_n(void) { return BaseDS+(last_ea86_offset=((uint16_t)(reg_di+Fetchbs()))); }
 static PhysPt EA_16_46_n(void) { return BaseSS+(last_ea86_offset=((uint16_t)(reg_bp+Fetchbs()))); }
 static PhysPt EA_16_47_n(void) { return BaseDS+(last_ea86_offset=((uint16_t)(reg_bx+Fetchbs()))); }
 
-static PhysPt EA_16_80_n(void) { return BaseDS+(last_ea86_offset=((uint16_t)(reg_bx+(Bit16s)reg_si+Fetchws()))); }
-static PhysPt EA_16_81_n(void) { return BaseDS+(last_ea86_offset=((uint16_t)(reg_bx+(Bit16s)reg_di+Fetchws()))); }
-static PhysPt EA_16_82_n(void) { return BaseSS+(last_ea86_offset=((uint16_t)(reg_bp+(Bit16s)reg_si+Fetchws()))); }
-static PhysPt EA_16_83_n(void) { return BaseSS+(last_ea86_offset=((uint16_t)(reg_bp+(Bit16s)reg_di+Fetchws()))); }
+static PhysPt EA_16_80_n(void) { return BaseDS+(last_ea86_offset=((uint16_t)(reg_bx+(int16_t)reg_si+Fetchws()))); }
+static PhysPt EA_16_81_n(void) { return BaseDS+(last_ea86_offset=((uint16_t)(reg_bx+(int16_t)reg_di+Fetchws()))); }
+static PhysPt EA_16_82_n(void) { return BaseSS+(last_ea86_offset=((uint16_t)(reg_bp+(int16_t)reg_si+Fetchws()))); }
+static PhysPt EA_16_83_n(void) { return BaseSS+(last_ea86_offset=((uint16_t)(reg_bp+(int16_t)reg_di+Fetchws()))); }
 static PhysPt EA_16_84_n(void) { return BaseDS+(last_ea86_offset=((uint16_t)(reg_si+Fetchws()))); }
 static PhysPt EA_16_85_n(void) { return BaseDS+(last_ea86_offset=((uint16_t)(reg_di+Fetchws()))); }
 static PhysPt EA_16_86_n(void) { return BaseSS+(last_ea86_offset=((uint16_t)(reg_bp+Fetchws()))); }

@@ -558,16 +558,16 @@ void CDROM_Interface_Ioctl::dx_CDAudioCallBack(Bitu len) {
 	}
 	SDL_mutexV(player.mutex);
 	if (player.ctrlUsed) {
-		Bit16s sample0,sample1;
-		Bit16s * samples=(Bit16s *)&player.buffer;
+		int16_t sample0,sample1;
+		int16_t * samples=(int16_t *)&player.buffer;
 		for (Bitu pos=0;pos<len/4;pos++) {
 			sample0=samples[pos*2+player.ctrlData.out[0]];
 			sample1=samples[pos*2+player.ctrlData.out[1]];
-			samples[pos*2+0]=(Bit16s)(sample0*player.ctrlData.vol[0]/255.0);
-			samples[pos*2+1]=(Bit16s)(sample1*player.ctrlData.vol[1]/255.0);
+			samples[pos*2+0]=(int16_t)(sample0*player.ctrlData.vol[0]/255.0);
+			samples[pos*2+1]=(int16_t)(sample1*player.ctrlData.vol[1]/255.0);
 		}
 	}
-	player.channel->AddSamples_s16(len/4,(Bit16s *)player.buffer);
+	player.channel->AddSamples_s16(len/4,(int16_t *)player.buffer);
 	memmove(player.buffer, &player.buffer[len], player.bufLen - len);
 	player.bufLen -= len;
 }

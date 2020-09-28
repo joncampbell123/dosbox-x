@@ -192,14 +192,14 @@ struct FullData {
 		Bit32u dword[1];
 		Bit32s dwords[1];
 		uint16_t word[2];
-		Bit16s words[2];
+		int16_t words[2];
 		uint8_t byte[4];
 		int8_t bytes[4];
 		} blah1,blah2,blah_imm;
 #else
 	union {	
 		uint8_t b;int8_t bs;
-		uint16_t w;Bit16s ws;
+		uint16_t w;int16_t ws;
 		Bit32u d;Bit32s ds;
 	} op1,op2,imm;
 #endif

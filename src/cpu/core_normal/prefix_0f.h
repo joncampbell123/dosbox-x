@@ -399,7 +399,7 @@
 				GetEArw;
 				SETFLAGBIT(CF,(*earw & mask));
 			} else {
-				GetEAa;eaa+=(PhysPt)((((Bit16s)*rmrw)>>4)*2);
+				GetEAa;eaa+=(PhysPt)((((int16_t)*rmrw)>>4)*2);
 				uint16_t old=LoadMw(eaa);
 				SETFLAGBIT(CF,(old & mask));
 			}
@@ -430,7 +430,7 @@
 				SETFLAGBIT(CF,(*earw & mask));
 				*earw|=mask;
 			} else {
-				GetEAa;eaa+=(PhysPt)((((Bit16s)*rmrw)>>4)*2);
+				GetEAa;eaa+=(PhysPt)((((int16_t)*rmrw)>>4)*2);
 				uint16_t old=LoadMw(eaa);
 				SETFLAGBIT(CF,(old & mask));
 				SaveMw(eaa,old | mask);
@@ -525,7 +525,7 @@
 				SETFLAGBIT(CF,(*earw & mask));
 				*earw&= ~mask;
 			} else {
-				GetEAa;eaa+=(PhysPt)((((Bit16s)*rmrw)>>4)*2);
+				GetEAa;eaa+=(PhysPt)((((int16_t)*rmrw)>>4)*2);
 				uint16_t old=LoadMw(eaa);
 				SETFLAGBIT(CF,(old & mask));
 				SaveMw(eaa,old & ~mask);
@@ -624,7 +624,7 @@
 				SETFLAGBIT(CF,(*earw & mask));
 				*earw^=mask;
 			} else {
-				GetEAa;eaa+=(PhysPt)((((Bit16s)*rmrw)>>4)*2);
+				GetEAa;eaa+=(PhysPt)((((int16_t)*rmrw)>>4)*2);
 				uint16_t old=LoadMw(eaa);
 				SETFLAGBIT(CF,(old & mask));
 				SaveMw(eaa,old ^ mask);

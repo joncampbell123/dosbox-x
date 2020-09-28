@@ -94,7 +94,7 @@ Bit32u get_CF(void) {
 	case t_SARb:
 		return (((int8_t) lf_var1b) >> (lf_var2b - 1)) & 1;
 	case t_SARw:
-		return (((Bit16s) lf_var1w) >> (lf_var2b - 1)) & 1;
+		return (((int16_t) lf_var1w) >> (lf_var2b - 1)) & 1;
 	case t_SARd:
 		return (((Bit32s) lf_var1d) >> (lf_var2b - 1)) & 1;
 	case t_NEGb:
@@ -806,7 +806,7 @@ Bitu FillFlags(void) {
 		SET_FLAG(AF,(lf_var2b&0x1f));
 		break;
 	case t_SARw:
-		SET_FLAG(CF,(((Bit16s) lf_var1w) >> (lf_var2b - 1)) & 1);
+		SET_FLAG(CF,(((int16_t) lf_var1w) >> (lf_var2b - 1)) & 1);
 		DOFLAG_ZFw;
 		DOFLAG_SFw;
 		SET_FLAG(OF,false);

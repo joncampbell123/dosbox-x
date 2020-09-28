@@ -52,7 +52,7 @@ namespace OPL2 {
 		}
 
 		virtual void Generate( MixerChannel* chan, Bitu samples ) {
-			Bit16s buf[1024];
+			int16_t buf[1024];
 			while( samples > 0 ) {
 				Bitu todo = samples > 1024 ? 1024 : samples;
 				samples -= todo;
@@ -118,7 +118,7 @@ namespace OPL3 {
 			return opl_index;
 		}
 		virtual void Generate( MixerChannel* chan, Bitu samples ) {
-			Bit16s buf[1024*2];
+			int16_t buf[1024*2];
 			while( samples > 0 ) {
 				Bitu todo = samples > 1024 ? 1024 : samples;
 				samples -= todo;
@@ -226,7 +226,7 @@ struct Handler : public Adlib::Handler {
 		return val;
 	}
 	virtual void Generate(MixerChannel* chan, Bitu samples) {
-		Bit16s buf[1024 * 2];
+		int16_t buf[1024 * 2];
 		while (samples > 0) {
 			Bitu todo = samples > 1024 ? 1024 : samples;
 			samples -= todo;
@@ -293,9 +293,9 @@ struct Handler : public Adlib::Handler {
 	}
 	virtual void Generate(MixerChannel* chan, Bitu samples) {
 		//We generate data for 4 channels, but only the first 2 are connected on a pc
-		Bit16s buf[4][1024];
-		Bit16s result[1024][2];
-		Bit16s* buffers[4] = { buf[0], buf[1], buf[2], buf[3] };
+		int16_t buf[4][1024];
+		int16_t result[1024][2];
+		int16_t* buffers[4] = { buf[0], buf[1], buf[2], buf[3] };
 
 		while (samples > 0) {
 			Bitu todo = samples > 1024 ? 1024 : samples;
@@ -369,7 +369,7 @@ namespace OPL2BOARD {
 
 		virtual void Generate(MixerChannel* chan, Bitu samples) {
 			(void)samples;
-			Bit16s buf[1] = { 0 };
+			int16_t buf[1] = { 0 };
 			chan->AddSamples_m16(1, buf);
 		}
 		virtual void Init(Bitu rate) {

@@ -405,7 +405,7 @@
 		{ Bit32u temp=reg_eax;reg_eax=reg_edi;reg_edi=temp;break;}
 		break;
 	CASE_D(0x98)												/* CWDE */
-		reg_eax=(Bit32u)((Bit16s)reg_ax);break;
+		reg_eax=(Bit32u)((int16_t)reg_ax);break;
 	CASE_D(0x99)												/* CDQ */
 		if (reg_eax & 0x80000000) reg_edx=0xffffffff;
 		else reg_edx=0;

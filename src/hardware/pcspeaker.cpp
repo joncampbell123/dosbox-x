@@ -572,7 +572,7 @@ void PCSPEAKER_SetType(bool pit_clock_gate_enabled, bool pit_output_enabled) {
  *      the tick. */
 static void PCSPEAKER_CallBack(Bitu len) {
 	bool ultrasonic = false;
-	Bit16s * stream=(Bit16s*)MixTemp;
+	int16_t * stream=(int16_t*)MixTemp;
 	ForwardPIT(1.0 + PIC_TickIndex());
     CheckPITSynchronization();
 	spkr.last_index = PIC_TickIndex();
@@ -648,9 +648,9 @@ static void PCSPEAKER_CallBack(Bitu len) {
 				}
 			}
 		}
-		*stream++=(Bit16s)(value/sample_add);
+		*stream++=(int16_t)(value/sample_add);
 	}
-	if(spkr.chan) spkr.chan->AddSamples_m16(len,(Bit16s*)MixTemp);
+	if(spkr.chan) spkr.chan->AddSamples_m16(len,(int16_t*)MixTemp);
 
 	//Turn off speaker after 10 seconds of idle or one second idle when in off mode
 	bool turnoff = false;

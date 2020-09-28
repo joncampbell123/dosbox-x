@@ -324,7 +324,7 @@ private:
 		CDROM_Interface_Image *cd;
 		MixerChannel   *channel;
 		SDL_mutex                *mutex             = nullptr;
-		void (MixerChannel::*addFrames) (Bitu, const Bit16s*) = nullptr;
+		void (MixerChannel::*addFrames) (Bitu, const int16_t*) = nullptr;
 		uint32_t                 playedTrackFrames  = 0;
 		uint32_t                 totalTrackFrames   = 0;
 		uint32_t                 startSector        = 0;
@@ -338,7 +338,7 @@ private:
 		bool    ctrlUsed;
 		TCtrl   ctrlData;
 		TrackFile* trackFile;
-		void     (MixerChannel::*addSamples) (Bitu, const Bit16s*);
+		void     (MixerChannel::*addSamples) (Bitu, const int16_t*);
 		Bit32u   playbackTotal;
 		int      playbackRemaining;
 		uint16_t   bufferPos;

@@ -697,10 +697,10 @@ extern bool enable_fpu;
 {															\
 	Bits val=(int8_t)(load(op1));							\
 	if (val==0)	EXCEPTION(0);								\
-	Bits quo=((Bit16s)reg_ax) / val;						\
-	int8_t rem=(int8_t)((Bit16s)reg_ax % val);				\
+	Bits quo=((int16_t)reg_ax) / val;						\
+	int8_t rem=(int8_t)((int16_t)reg_ax % val);				\
 	int8_t quo8s=(int8_t)(quo&0xff);							\
-	if (quo!=(Bit16s)quo8s) EXCEPTION(0);					\
+	if (quo!=(int16_t)quo8s) EXCEPTION(0);					\
 	reg_ah=(uint8_t)rem;												\
 	reg_al=(uint8_t)quo8s;											\
 	FillFlags();											\
@@ -715,12 +715,12 @@ extern bool enable_fpu;
 
 #define IDIVW(op1,load,save)								\
 {															\
-	Bits val=(Bit16s)(load(op1));							\
+	Bits val=(int16_t)(load(op1));							\
 	if (val==0) EXCEPTION(0);									\
 	Bits num=(Bit32s)(((unsigned int)reg_dx<<16u)|(unsigned int)reg_ax);					\
 	Bits quo=num/val;										\
-	Bit16s rem=(Bit16s)(num % val);							\
-	Bit16s quo16s=(Bit16s)quo;								\
+	int16_t rem=(int16_t)(num % val);							\
+	int16_t quo16s=(int16_t)quo;								\
 	if (quo!=(Bit32s)quo16s) EXCEPTION(0);					\
 	reg_dx=(uint16_t)rem;												\
 	reg_ax=(uint16_t)quo16s;											\
@@ -770,7 +770,7 @@ extern bool enable_fpu;
 
 #define IMULW(op1,load,save)								\
 {															\
-	Bits temps=((Bit16s)reg_ax)*((Bit16s)(load(op1)));		\
+	Bits temps=((int16_t)reg_ax)*((int16_t)(load(op1)));		\
 	reg_ax=(uint16_t)(temps);									\
 	reg_dx=(uint16_t)(temps >> 16);							\
 	FillFlagsNoCFOF();										\
@@ -806,7 +806,7 @@ extern bool enable_fpu;
 
 #define DIMULW(op1,op2,op3,load,save)						\
 {															\
-	Bits res=((Bit16s)op2) * ((Bit16s)op3);					\
+	Bits res=((int16_t)op2) * ((int16_t)op3);					\
 	save(op1,res & 0xffff);									\
 	FillFlagsNoCFOF();										\
 	if ((res>= -32768)  && (res<=32767)) {					\

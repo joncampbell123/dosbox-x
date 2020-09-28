@@ -218,7 +218,7 @@ public:
 
     INLINE Bit32s LoadSample16(const Bit32u addr/*memory address without fractional bits*/) const {
         const Bit32u adjaddr = (addr & 0xC0000u/*256KB bank*/) | ((addr & 0x1FFFFu) << 1u/*16-bit sample value within bank*/);
-        return (Bit16s)host_readw(GUSRam + adjaddr);/* typecast to sign extend 16-bit value */
+        return (int16_t)host_readw(GUSRam + adjaddr);/* typecast to sign extend 16-bit value */
     }
 
     // Returns a single 16-bit sample from the Gravis's RAM
@@ -2002,7 +2002,7 @@ static void MakeTables(void) {
 	int i;
 	double out = (double)(1 << 13);
 	for (i=4095;i>=0;i--) {
-		vol16bit[i]=(uint16_t)((Bit16s)out);
+		vol16bit[i]=(uint16_t)((int16_t)out);
 		out/=1.002709201;		/* 0.0235 dB Steps */
         //Original amplification routine in the hardware
         //vol16bit[i] = ((256 + i & 0xff) << VOL_SHIFT) / (1 << (24 - (i >> 8)));

@@ -492,14 +492,14 @@
 			GetEAa;
 			src.q = LoadMq(eaa);
 		}
-		dest->sb.b0 = SaturateWordSToByteS((Bit16s)dest->sb.b0+(Bit16s)src.sb.b0);
-		dest->sb.b1 = SaturateWordSToByteS((Bit16s)dest->sb.b1+(Bit16s)src.sb.b1);
-		dest->sb.b2 = SaturateWordSToByteS((Bit16s)dest->sb.b2+(Bit16s)src.sb.b2);
-		dest->sb.b3 = SaturateWordSToByteS((Bit16s)dest->sb.b3+(Bit16s)src.sb.b3);
-		dest->sb.b4 = SaturateWordSToByteS((Bit16s)dest->sb.b4+(Bit16s)src.sb.b4);
-		dest->sb.b5 = SaturateWordSToByteS((Bit16s)dest->sb.b5+(Bit16s)src.sb.b5);
-		dest->sb.b6 = SaturateWordSToByteS((Bit16s)dest->sb.b6+(Bit16s)src.sb.b6);
-		dest->sb.b7 = SaturateWordSToByteS((Bit16s)dest->sb.b7+(Bit16s)src.sb.b7);
+		dest->sb.b0 = SaturateWordSToByteS((int16_t)dest->sb.b0+(int16_t)src.sb.b0);
+		dest->sb.b1 = SaturateWordSToByteS((int16_t)dest->sb.b1+(int16_t)src.sb.b1);
+		dest->sb.b2 = SaturateWordSToByteS((int16_t)dest->sb.b2+(int16_t)src.sb.b2);
+		dest->sb.b3 = SaturateWordSToByteS((int16_t)dest->sb.b3+(int16_t)src.sb.b3);
+		dest->sb.b4 = SaturateWordSToByteS((int16_t)dest->sb.b4+(int16_t)src.sb.b4);
+		dest->sb.b5 = SaturateWordSToByteS((int16_t)dest->sb.b5+(int16_t)src.sb.b5);
+		dest->sb.b6 = SaturateWordSToByteS((int16_t)dest->sb.b6+(int16_t)src.sb.b6);
+		dest->sb.b7 = SaturateWordSToByteS((int16_t)dest->sb.b7+(int16_t)src.sb.b7);
 		break;
 	}
 	CASE_0F_MMX(0xED)												/* PADDSW Pq,Qq */
@@ -532,14 +532,14 @@
 			GetEAa;
 			src.q = LoadMq(eaa);
 		}
-		dest->ub.b0 = SaturateWordSToByteU((Bit16s)dest->ub.b0+(Bit16s)src.ub.b0);
-		dest->ub.b1 = SaturateWordSToByteU((Bit16s)dest->ub.b1+(Bit16s)src.ub.b1);
-		dest->ub.b2 = SaturateWordSToByteU((Bit16s)dest->ub.b2+(Bit16s)src.ub.b2);
-		dest->ub.b3 = SaturateWordSToByteU((Bit16s)dest->ub.b3+(Bit16s)src.ub.b3);
-		dest->ub.b4 = SaturateWordSToByteU((Bit16s)dest->ub.b4+(Bit16s)src.ub.b4);
-		dest->ub.b5 = SaturateWordSToByteU((Bit16s)dest->ub.b5+(Bit16s)src.ub.b5);
-		dest->ub.b6 = SaturateWordSToByteU((Bit16s)dest->ub.b6+(Bit16s)src.ub.b6);
-		dest->ub.b7 = SaturateWordSToByteU((Bit16s)dest->ub.b7+(Bit16s)src.ub.b7);
+		dest->ub.b0 = SaturateWordSToByteU((int16_t)dest->ub.b0+(int16_t)src.ub.b0);
+		dest->ub.b1 = SaturateWordSToByteU((int16_t)dest->ub.b1+(int16_t)src.ub.b1);
+		dest->ub.b2 = SaturateWordSToByteU((int16_t)dest->ub.b2+(int16_t)src.ub.b2);
+		dest->ub.b3 = SaturateWordSToByteU((int16_t)dest->ub.b3+(int16_t)src.ub.b3);
+		dest->ub.b4 = SaturateWordSToByteU((int16_t)dest->ub.b4+(int16_t)src.ub.b4);
+		dest->ub.b5 = SaturateWordSToByteU((int16_t)dest->ub.b5+(int16_t)src.ub.b5);
+		dest->ub.b6 = SaturateWordSToByteU((int16_t)dest->ub.b6+(int16_t)src.ub.b6);
+		dest->ub.b7 = SaturateWordSToByteU((int16_t)dest->ub.b7+(int16_t)src.ub.b7);
 		break;
 	}
 	CASE_0F_MMX(0xDD)												/* PADDUSW Pq,Qq */
@@ -628,14 +628,14 @@
 			GetEAa;
 			src.q = LoadMq(eaa);
 		}
-		dest->sb.b0 = SaturateWordSToByteS((Bit16s)dest->sb.b0-(Bit16s)src.sb.b0);
-		dest->sb.b1 = SaturateWordSToByteS((Bit16s)dest->sb.b1-(Bit16s)src.sb.b1);
-		dest->sb.b2 = SaturateWordSToByteS((Bit16s)dest->sb.b2-(Bit16s)src.sb.b2);
-		dest->sb.b3 = SaturateWordSToByteS((Bit16s)dest->sb.b3-(Bit16s)src.sb.b3);
-		dest->sb.b4 = SaturateWordSToByteS((Bit16s)dest->sb.b4-(Bit16s)src.sb.b4);
-		dest->sb.b5 = SaturateWordSToByteS((Bit16s)dest->sb.b5-(Bit16s)src.sb.b5);
-		dest->sb.b6 = SaturateWordSToByteS((Bit16s)dest->sb.b6-(Bit16s)src.sb.b6);
-		dest->sb.b7 = SaturateWordSToByteS((Bit16s)dest->sb.b7-(Bit16s)src.sb.b7);
+		dest->sb.b0 = SaturateWordSToByteS((int16_t)dest->sb.b0-(int16_t)src.sb.b0);
+		dest->sb.b1 = SaturateWordSToByteS((int16_t)dest->sb.b1-(int16_t)src.sb.b1);
+		dest->sb.b2 = SaturateWordSToByteS((int16_t)dest->sb.b2-(int16_t)src.sb.b2);
+		dest->sb.b3 = SaturateWordSToByteS((int16_t)dest->sb.b3-(int16_t)src.sb.b3);
+		dest->sb.b4 = SaturateWordSToByteS((int16_t)dest->sb.b4-(int16_t)src.sb.b4);
+		dest->sb.b5 = SaturateWordSToByteS((int16_t)dest->sb.b5-(int16_t)src.sb.b5);
+		dest->sb.b6 = SaturateWordSToByteS((int16_t)dest->sb.b6-(int16_t)src.sb.b6);
+		dest->sb.b7 = SaturateWordSToByteS((int16_t)dest->sb.b7-(int16_t)src.sb.b7);
 		break;
 	}
 	CASE_0F_MMX(0xE9)												/* PSUBSW Pq,Qq */

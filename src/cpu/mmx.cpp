@@ -87,21 +87,21 @@ MMX_reg * lookupRMregMM[256]={
 };
 
 
-int8_t SaturateWordSToByteS(Bit16s value)
+int8_t SaturateWordSToByteS(int16_t value)
 {
   if(value < -128) return -128;
   if(value >  127) return  127;
   return (int8_t) value;
 }
 
-Bit16s SaturateDwordSToWordS(Bit32s value)
+int16_t SaturateDwordSToWordS(Bit32s value)
 {
   if(value < -32768) return -32768;
   if(value >  32767) return  32767;
-  return (Bit16s) value;
+  return (int16_t) value;
 }
 
-uint8_t SaturateWordSToByteU(Bit16s value)
+uint8_t SaturateWordSToByteU(int16_t value)
 {
   if(value < 0) return 0;
   if(value > 255) return 255;

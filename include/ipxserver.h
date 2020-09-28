@@ -25,8 +25,8 @@
 
 struct packetBuffer {
 	uint8_t buffer[1024];
-	Bit16s packetSize;  // Packet size remaining in read
-	Bit16s packetRead;  // Bytes read of total packet
+	int16_t packetSize;  // Packet size remaining in read
+	int16_t packetRead;  // Bytes read of total packet
 	bool inPacket;      // In packet reception flag
 	bool connected;		// Connected flag
 	bool waitsize;

@@ -619,20 +619,20 @@ void CDROM_Interface_Image::CDAudioCallBack(Bitu len)
 			if (player.bufferPos - player.bufferConsumed >= requested) {
 				if (player.ctrlUsed) {
 					for (uint8_t i=0; i < channels; i++) {
-						Bit16s  sample;
-						Bit16s* samples = (Bit16s*)&player.buffer[player.bufferConsumed];
+						int16_t  sample;
+						int16_t* samples = (int16_t*)&player.buffer[player.bufferConsumed];
 						for (Bitu pos = 0; pos < requested / bytes_per_request; pos++) {
 							#if defined(WORDS_BIGENDIAN)
-							sample = (Bit16s)host_readw((HostPt) & samples[pos * 2 + player.ctrlData.out[i]]);
+							sample = (int16_t)host_readw((HostPt) & samples[pos * 2 + player.ctrlData.out[i]]);
 							#else
 							sample = samples[pos * 2 + player.ctrlData.out[i]];
 							#endif
-							samples[pos * 2 + i] = (Bit16s)(sample * player.ctrlData.vol[i] / 255.0);
+							samples[pos * 2 + i] = (int16_t)(sample * player.ctrlData.vol[i] / 255.0);
 						}
 					}
 				}
 				// uses either the stereo or mono and native or nonnative AddSamples call assigned during construction
-				(player.channel->*player.addSamples)(requested / bytes_per_request, (Bit16s*)(player.buffer + player.bufferConsumed) );
+				(player.channel->*player.addSamples)(requested / bytes_per_request, (int16_t*)(player.buffer + player.bufferConsumed) );
 				player.bufferConsumed += requested;
 				player.playbackRemaining -= requested;
 
@@ -672,7 +672,7 @@ void CDROM_Interface_Image::CDAudioCallBack(Bitu len)
 				// if we decoded less than expected, which could be due to EOF or if the CUE file specified
 				// an exact "INDEX 01 MIN:SEC:FRAMES" value but the compressed track is ever-so-slightly less than
 				// that specified, then simply pad with zeros.
-				const Bit16s underDecode = chunkSize - decoded;
+				const int16_t underDecode = chunkSize - decoded;
 				if (underDecode > 0) {
 
                     #ifdef DEBUG

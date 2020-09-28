@@ -133,9 +133,9 @@ static void INLINE mov_imm_to_temp1(Bit32u imm) {
 	temp1_value = imm;
 }
 
-static Bit16s gen_addr_temp1(Bit32u addr) {
+static int16_t gen_addr_temp1(Bit32u addr) {
 	Bit32u hihalf = addr & 0xffff0000;
-	Bit16s lohalf = addr & 0xffff;
+	int16_t lohalf = addr & 0xffff;
 	if (lohalf > 32764) {  // [l,s]wl will overflow
 		hihalf = addr;
 		lohalf = 0;
@@ -147,7 +147,7 @@ static Bit16s gen_addr_temp1(Bit32u addr) {
 // move a 32bit (dword==true) or 16bit (dword==false) value from memory into dest_reg
 // 16bit moves may destroy the upper 16bit of the destination register
 static void gen_mov_word_to_reg(HostReg dest_reg,void* data,bool dword) {
-	Bit16s lohalf = gen_addr_temp1((Bit32u)data);
+	int16_t lohalf = gen_addr_temp1((Bit32u)data);
 	// alignment....
 	if (dword) {
 		if ((Bit32u)data & 3) {
@@ -190,7 +190,7 @@ static void gen_mov_word_to_reg_imm(HostReg dest_reg,uint16_t imm) {
 
 // move 32bit (dword==true) or 16bit (dword==false) of a register into memory
 static void gen_mov_word_from_reg(HostReg src_reg,void* dest,bool dword) {
-	Bit16s lohalf = gen_addr_temp1((Bit32u)dest);
+	int16_t lohalf = gen_addr_temp1((Bit32u)dest);
 	// alignment....
 	if (dword) {
 		if ((Bit32u)dest & 3) {
@@ -222,7 +222,7 @@ static void gen_mov_word_from_reg(HostReg src_reg,void* dest,bool dword) {
 // this function does not use FC_OP1/FC_OP2 as dest_reg as these
 // registers might not be directly byte-accessible on some architectures
 static void gen_mov_byte_to_reg_low(HostReg dest_reg,void* data) {
-	Bit16s lohalf = gen_addr_temp1((Bit32u)data);
+	int16_t lohalf = gen_addr_temp1((Bit32u)data);
 	cache_addw(lohalf);			// lbu dest_reg, 0(temp1)
 	cache_addw(0x9000+(temp1<<5)+dest_reg);
 }
@@ -253,7 +253,7 @@ static void INLINE gen_mov_byte_to_reg_low_imm_canuseword(HostReg dest_reg,uint8
 
 // move the lowest 8bit of a register into memory
 static void gen_mov_byte_from_reg_low(HostReg src_reg,void* dest) {
-	Bit16s lohalf = gen_addr_temp1((Bit32u)dest);
+	int16_t lohalf = gen_addr_temp1((Bit32u)dest);
 	cache_addw(lohalf);			// sb src_reg, 0(temp1)
 	cache_addw(0xA000+(temp1<<5)+src_reg);
 }

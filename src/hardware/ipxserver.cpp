@@ -63,7 +63,7 @@ static void closeSocket(uint16_t sockidx) {
 }
 */
 
-static void sendIPXPacket(uint8_t *buffer, Bit16s bufSize) {
+static void sendIPXPacket(uint8_t *buffer, int16_t bufSize) {
 	uint16_t srcport, destport;
 	Bit32u srchost, desthost;
 	uint16_t i;

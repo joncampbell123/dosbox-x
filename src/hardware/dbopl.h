@@ -87,7 +87,7 @@ public:
 #if (DBOPL_WAVE == WAVE_HANDLER)
 	WaveHandler waveHandler;	//Routine that generate a wave 
 #else
-	Bit16s* waveBase;
+	int16_t* waveBase;
 	Bit32u waveMask;
 	Bit32u waveStart;
 #endif

@@ -34,7 +34,7 @@
 
 
 static fltype recipsamp;	// inverse of sampling rate
-static Bit16s wavtable[WAVEPREC*3];	// wave form table
+static int16_t wavtable[WAVEPREC*3];	// wave form table
 
 // vibrato/tremolo tables
 static Bit32s vib_table[VIBTAB_SIZE];
@@ -478,7 +478,7 @@ void disable_operator(op_type* op_pt, Bit32u act_type) {
 }
 
 void adlib_init(Bit32u samplerate) {
-    Bit16s i;
+    int16_t i;
 
 	int_samplerate = samplerate;
 
@@ -569,12 +569,12 @@ void adlib_init(Bit32u samplerate) {
 
 		// create waveform tables
 		for (i=0;i<(WAVEPREC>>1);i++) {
-			wavtable[(i<<1)  +WAVEPREC]	= (Bit16s)(16384*sin((fltype)(i<<1)*PI*2/WAVEPREC));
-			wavtable[(i<<1)+1+WAVEPREC]	= (Bit16s)(16384*sin((fltype)((i<<1)+1)*PI*2/WAVEPREC));
+			wavtable[(i<<1)  +WAVEPREC]	= (int16_t)(16384*sin((fltype)(i<<1)*PI*2/WAVEPREC));
+			wavtable[(i<<1)+1+WAVEPREC]	= (int16_t)(16384*sin((fltype)((i<<1)+1)*PI*2/WAVEPREC));
 			wavtable[i]					= wavtable[(i<<1)  +WAVEPREC];
 			// alternative: (zero-less)
-/*			wavtable[(i<<1)  +WAVEPREC]	= (Bit16s)(16384*sin((fltype)((i<<2)+1)*PI/WAVEPREC));
-			wavtable[(i<<1)+1+WAVEPREC]	= (Bit16s)(16384*sin((fltype)((i<<2)+3)*PI/WAVEPREC));
+/*			wavtable[(i<<1)  +WAVEPREC]	= (int16_t)(16384*sin((fltype)((i<<2)+1)*PI/WAVEPREC));
+			wavtable[(i<<1)+1+WAVEPREC]	= (int16_t)(16384*sin((fltype)((i<<2)+3)*PI/WAVEPREC));
 			wavtable[i]					= wavtable[(i<<1)-1+WAVEPREC]; */
 		}
 		for (i=0;i<(WAVEPREC>>3);i++) {
@@ -923,10 +923,10 @@ void adlib_write_index(Bitu port, uint8_t val) {
 #endif
 }
 
-static void OPL_INLINE clipit16(Bit32s ival, Bit16s* outval) {
+static void OPL_INLINE clipit16(Bit32s ival, int16_t* outval) {
 	if (ival<32768) {
 		if (ival>-32769) {
-			*outval=(Bit16s)ival;
+			*outval=(int16_t)ival;
 		} else {
 			*outval = -32768;
 		}
@@ -954,7 +954,7 @@ static void OPL_INLINE clipit16(Bit32s ival, Bit16s* outval) {
 	outbufl[i] += chanval;
 #endif
 
-void adlib_getsample(Bit16s* sndptr, Bits numsamples) {
+void adlib_getsample(int16_t* sndptr, Bits numsamples) {
 	Bits i, endsamples;
 	op_type* cptr;
 
@@ -1574,6 +1574,6 @@ void adlib_loadstate( std::istream& stream )
 	//****************************************************
 
 	for( int lcv=0; lcv<MAXOPERATORS; lcv++ ) {
-		op[lcv].cur_wform = (Bit16s *) ((Bitu) &wavtable + cur_wform_idx[lcv]);
+		op[lcv].cur_wform = (int16_t *) ((Bitu) &wavtable + cur_wform_idx[lcv]);
 	}
 }

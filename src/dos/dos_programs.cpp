@@ -4976,7 +4976,7 @@ private:
             sizes[0] = 512; // sector size
             sizes[1] = buf[0x3b];   // sectors
             sizes[2] = buf[0x3a];   // heads
-            sizes[3] = SDL_SwapBE16((uint16_t)(*(Bit16s*)(buf + 0x38)));    // cylinders
+            sizes[3] = SDL_SwapBE16((uint16_t)(*(int16_t*)(buf + 0x38)));    // cylinders
 
                                                                 // Do translation (?)
             while ((sizes[2] < 128u) && (sizes[3] > 1023u)) {

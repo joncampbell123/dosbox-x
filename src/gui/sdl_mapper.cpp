@@ -128,7 +128,7 @@ typedef std::vector<CBindGroup *>::iterator     CBindGroup_it;
 
 static struct {
     bool                                        button_pressed[MAX_VJOY_BUTTONS];
-    Bit16s                                      axis_pos[MAX_VJOY_AXES];
+    int16_t                                      axis_pos[MAX_VJOY_AXES];
     bool                                        hat_pressed[MAX_VJOY_HATS];
 } virtual_joysticks[2];
 
@@ -595,7 +595,7 @@ public:
     Bitu flags;
 
     //! \brief Binding value (TODO?)
-    Bit16s value;
+    int16_t value;
 
     //! \brief Event object this binding is bound to (for visual UI purposes)
     CEvent * event;
@@ -1633,7 +1633,7 @@ private:
         return response;
     }
 
-    static void ProcessInput(Bit16s x, Bit16s y, float deadzone, DOSBox_Vector2& joy)
+    static void ProcessInput(int16_t x, int16_t y, float deadzone, DOSBox_Vector2& joy)
     {
         // http://www.third-helix.com/2013/04/12/doing-thumbstick-dead-zones-right.html
 
@@ -1666,8 +1666,8 @@ protected:
 
     DOSBox_Vector2 GetJoystickVector(int joystick, int thumbStick, int xAxis, int yAxis) const
     {
-        Bit16s x = virtual_joysticks[joystick].axis_pos[xAxis];
-        Bit16s y = virtual_joysticks[joystick].axis_pos[yAxis];
+        int16_t x = virtual_joysticks[joystick].axis_pos[xAxis];
+        int16_t y = virtual_joysticks[joystick].axis_pos[yAxis];
         float deadzone;
         float response;
         if (joystick == 0)
@@ -2451,7 +2451,7 @@ public:
         if (notify_button != NULL)
             notify_button->SetPartialInvert(GetValue()/32768.0);
 
-        virtual_joysticks[stick].axis_pos[axis]=(Bit16s)(GetValue()*(positive?1:-1));
+        virtual_joysticks[stick].axis_pos[axis]=(int16_t)(GetValue()*(positive?1:-1));
     }
 
     virtual Bitu GetActivityCount(void) {

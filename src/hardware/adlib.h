@@ -42,7 +42,7 @@ public:
 	bool enabled;
 	bool overflow;
 
-	Timer( Bit16s micros ) {
+	Timer( int16_t micros ) {
 		overflow = false;
 		enabled = false;
 		counter = 0;
