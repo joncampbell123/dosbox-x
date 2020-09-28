@@ -92,7 +92,7 @@ static void gen_mov_reg_qword(HostReg dest_reg,uint64_t imm);
 
 // This function generates an instruction with register addressing and a memory location
 static INLINE void gen_reg_memaddr(HostReg reg,void* data,uint8_t op,uint8_t prefix=0) {
-	Bit64s diff = (Bit64s)data-((Bit64s)cache.pos+(prefix?7:6));
+	int64_t diff = (int64_t)data-((int64_t)cache.pos+(prefix?7:6));
 //	if ((diff<0x80000000LL) && (diff>-0x80000000LL)) { //clang messes itself up on this...
 	if ( (diff>>63) == (diff>>31) ) { //signed bit extend, test to see if value fits in a int32_t
 		// mov reg,[rip+diff] (or similar, depending on the op) to fetch *data
@@ -125,7 +125,7 @@ static INLINE void gen_reg_memaddr(HostReg reg,void* data,uint8_t op,uint8_t pre
 
 // Same as above, but with immediate addressing and a memory location
 static INLINE void gen_memaddr(uint8_t modreg,void* data,Bitu off,Bitu imm,uint8_t op,uint8_t prefix=0) {
-	Bit64s diff = (Bit64s)data-((Bit64s)cache.pos+off+(prefix?7:6));
+	int64_t diff = (int64_t)data-((int64_t)cache.pos+off+(prefix?7:6));
 //	if ((diff<0x80000000LL) && (diff>-0x80000000LL)) {
 	if ( (diff>>63) == (diff>>31) ) {
 		// RIP-relative addressing is offset after the instruction 
@@ -568,7 +568,7 @@ static uint64_t gen_create_branch_on_nonzero(HostReg reg,bool dword) {
 // calculate relative offset and fill it into the location pointed to by data
 static void gen_fill_branch(DRC_PTR_SIZE_IM data) {
 #if C_DEBUG
-	Bit64s len=(uint64_t)cache.pos-data;
+	int64_t len=(uint64_t)cache.pos-data;
 	if (len<0) len=-len;
 	if (len>126) LOG_MSG("Big jump %d",(int)len);
 #endif

@@ -737,11 +737,11 @@ extern bool enable_fpu;
 {															\
 	Bits val=(int32_t)(load(op1));							\
 	if (val==0) EXCEPTION(0);									\
-	Bit64s num=(Bit64s)((((uint64_t)reg_edx)<<(uint64_t)32)|(uint64_t)reg_eax);				\
-	Bit64s quo=num/val;										\
+	int64_t num=(int64_t)((((uint64_t)reg_edx)<<(uint64_t)32)|(uint64_t)reg_eax);				\
+	int64_t quo=num/val;										\
 	int32_t rem=(int32_t)(num % val);							\
 	int32_t quo32s=(int32_t)(quo&0xffffffff);					\
-	if (quo!=(Bit64s)quo32s) EXCEPTION(0);					\
+	if (quo!=(int64_t)quo32s) EXCEPTION(0);					\
 	reg_edx=(uint32_t)rem;											\
 	reg_eax=(uint32_t)quo32s;											\
 	FillFlags();											\
@@ -786,8 +786,8 @@ extern bool enable_fpu;
 
 #define IMULD(op1,load,save)								\
 {															\
-	Bit64s temps=((Bit64s)((int32_t)reg_eax))*				\
-				 ((Bit64s)((int32_t)(load(op1))));			\
+	int64_t temps=((int64_t)((int32_t)reg_eax))*				\
+				 ((int64_t)((int32_t)(load(op1))));			\
 	reg_eax=(uint32_t)(temps);								\
 	reg_edx=(uint32_t)(temps >> 32);							\
 	FillFlagsNoCFOF();										\
@@ -818,11 +818,11 @@ extern bool enable_fpu;
 
 #define DIMULD(op1,op2,op3,load,save)						\
 {															\
-	Bit64s res=((Bit64s)((int32_t)op2))*((Bit64s)((int32_t)op3));	\
+	int64_t res=((int64_t)((int32_t)op2))*((int64_t)((int32_t)op3));	\
 	save(op1,(int32_t)res);									\
 	FillFlagsNoCFOF();										\
-	if ((res>=-((Bit64s)(2147483647)+1)) &&					\
-		(res<=(Bit64s)2147483647)) {						\
+	if ((res>=-((int64_t)(2147483647)+1)) &&					\
+		(res<=(int64_t)2147483647)) {						\
 		SETFLAGBIT(CF,false);SETFLAGBIT(OF,false);			\
 	} else {												\
 		SETFLAGBIT(CF,true);SETFLAGBIT(OF,true);			\

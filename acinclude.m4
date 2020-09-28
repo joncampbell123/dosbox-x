@@ -299,20 +299,12 @@ dnl Linux systems for ages now have had stdint.h to define uint8_t, etc.
 AH_BOTTOM([
 #include <cstdint>
 
-#if SIZEOF_UNSIGNED_LONG == 8
-  typedef   signed long Bit64s;
-#elif SIZEOF_UNSIGNED_LONG_LONG == 8
-  typedef   signed long long Bit64s;
-#else
-#  error "can't find data type of 8 bytes"
-#endif
-
 #if SIZEOF_INT_P == 4
   typedef uint32_t Bitu;
   typedef int32_t Bits;
 #else
   typedef uint64_t Bitu;
-  typedef Bit64s Bits;
+  typedef int64_t Bits;
 #endif
 
 ])

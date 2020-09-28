@@ -674,7 +674,7 @@ void FPU_ESC7_EA(Bitu rm,PhysPt addr) {
 			}
 		}
 		break;
-	case 0x05:  /* FILD Bit64s */
+	case 0x05:  /* FILD int64_t */
 		{
 			unsigned char old_TOP = TOP;
 
@@ -693,7 +693,7 @@ void FPU_ESC7_EA(Bitu rm,PhysPt addr) {
 		FPU_FBST(addr);
 		FPU_FPOP();
 		break;
-	case 0x07:  /* FISTP Bit64s */
+	case 0x07:  /* FISTP int64_t */
 		FPU_FST_I64(addr);
 		FPU_FPOP();
 		break;

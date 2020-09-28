@@ -62,7 +62,7 @@ typedef union {
         uint32_t lower;
     } l;
 #endif
-    Bit64s ll;
+    int64_t ll;
 	MMX_reg reg_mmx;
 } FPU_Reg;
 

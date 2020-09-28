@@ -85,7 +85,7 @@ static long double FROUND(long double in){
 	case ROUND_Nearest:	
 		if (in-floorl(in)>0.5) return (floorl(in)+1);
 		else if (in-floorl(in)<0.5) return (floorl(in));
-		else return (((static_cast<Bit64s>(floorl(in)))&1)!=0)?(floorl(in)+1):(floorl(in));
+		else return (((static_cast<int64_t>(floorl(in)))&1)!=0)?(floorl(in)+1):(floorl(in));
 		break;
 	case ROUND_Down:
 		return (floorl(in));
@@ -160,7 +160,7 @@ static void FPU_FLD_I32(PhysPt addr,Bitu store_to) {
 }
 
 static void FPU_FLD_I64(PhysPt addr,Bitu store_to) {
-    Bit64s blah = (Bit64s)mem_readq(addr);
+    int64_t blah = (int64_t)mem_readq(addr);
 	fpu.regs_80[store_to].v = static_cast<long double>(blah);
 }
 
@@ -225,7 +225,7 @@ static void FPU_FST_I32(PhysPt addr) {
 }
 
 static void FPU_FST_I64(PhysPt addr) {
-	mem_writeq(addr,(uint64_t)static_cast<Bit64s>(FROUND(fpu.regs_80[TOP].v)));
+	mem_writeq(addr,(uint64_t)static_cast<int64_t>(FROUND(fpu.regs_80[TOP].v)));
 }
 
 static void FPU_FBST(PhysPt addr) {
@@ -240,16 +240,16 @@ static void FPU_FBST(PhysPt addr) {
 	Bitu p;
 	for(Bitu i=0;i<9;i++){
 		val.v=temp;
-		temp = static_cast<long double>(static_cast<Bit64s>(floor(val.v/10.0l)));
+		temp = static_cast<long double>(static_cast<int64_t>(floor(val.v/10.0l)));
 		p = static_cast<Bitu>(val.v - 10.0l*temp);  
 		val.v=temp;
-		temp = static_cast<long double>(static_cast<Bit64s>(floor(val.v/10.0l)));
+		temp = static_cast<long double>(static_cast<int64_t>(floor(val.v/10.0l)));
 		p |= (static_cast<Bitu>(val.v - 10.0l*temp)<<4);
 
 		mem_writeb(addr+i,p);
 	}
 	val.v=temp;
-	temp = static_cast<long double>(static_cast<Bit64s>(floor(val.v/10.0)));
+	temp = static_cast<long double>(static_cast<int64_t>(floor(val.v/10.0)));
 	p = static_cast<Bitu>(val.v - 10.0l*temp);
 	if(sign)
 		p|=0x80;
@@ -436,14 +436,14 @@ static inline void FPU_FCOMI(Bitu st, Bitu other){
 }
 
 static void FPU_FRNDINT(void){
-	Bit64s temp= static_cast<Bit64s>(FROUND(fpu.regs_80[TOP].v));
+	int64_t temp= static_cast<int64_t>(FROUND(fpu.regs_80[TOP].v));
 	fpu.regs_80[TOP].v=static_cast<long double>(temp);
 }
 
 static void FPU_FPREM(void){
 	long double valtop = fpu.regs_80[TOP].v;
 	long double valdiv = fpu.regs_80[STV(1)].v;
-	Bit64s ressaved = static_cast<Bit64s>( (valtop/valdiv) );
+	int64_t ressaved = static_cast<int64_t>( (valtop/valdiv) );
 // Some backups
 //	long double res=valtop - ressaved*valdiv; 
 //      res= fmod(valtop,valdiv);
@@ -459,10 +459,10 @@ static void FPU_FPREM1(void){
 	long double valdiv = fpu.regs_80[STV(1)].v;
 	long double quot = valtop/valdiv;
 	long double quotf = floorl(quot);
-	Bit64s ressaved;
-	if (quot-quotf>0.5) ressaved = static_cast<Bit64s>(quotf+1);
-	else if (quot-quotf<0.5) ressaved = static_cast<Bit64s>(quotf);
-	else ressaved = static_cast<Bit64s>((((static_cast<Bit64s>(quotf))&1)!=0)?(quotf+1):(quotf));
+	int64_t ressaved;
+	if (quot-quotf>0.5) ressaved = static_cast<int64_t>(quotf+1);
+	else if (quot-quotf<0.5) ressaved = static_cast<int64_t>(quotf);
+	else ressaved = static_cast<int64_t>((((static_cast<int64_t>(quotf))&1)!=0)?(quotf+1):(quotf));
 	fpu.regs_80[TOP].v = valtop - ressaved*valdiv;
 	FPU_SET_C0(static_cast<Bitu>(ressaved&4));
 	FPU_SET_C3(static_cast<Bitu>(ressaved&2));
@@ -513,7 +513,7 @@ static void FPU_FYL2XP1(void){
 }
 
 static void FPU_FSCALE(void){
-	fpu.regs_80[TOP].v *= powl(2.0,static_cast<long double>(static_cast<Bit64s>(fpu.regs_80[STV(1)].v)));
+	fpu.regs_80[TOP].v *= powl(2.0,static_cast<long double>(static_cast<int64_t>(fpu.regs_80[STV(1)].v)));
 	return; //2^x where x is chopped.
 }
 
@@ -575,8 +575,8 @@ static void FPU_FXTRACT(void) {
 	// if double ever uses a different base please correct this function
 
 	FPU_Reg_80 test = fpu.regs_80[TOP];
-	Bit64s exp80 = test.raw.h & 0x7FFFu;
-	Bit64s exp80final = exp80 - FPU_Reg_80_exponent_bias;
+	int64_t exp80 = test.raw.h & 0x7FFFu;
+	int64_t exp80final = exp80 - FPU_Reg_80_exponent_bias;
 	long double mant = test.v / (powl(2.0,static_cast<long double>(exp80final)));
 	fpu.regs_80[TOP].v = static_cast<long double>(exp80final);
 	FPU_PUSH(mant);

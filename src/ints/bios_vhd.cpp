@@ -67,8 +67,8 @@ imageDiskVHD::ErrorCodes imageDiskVHD::Open(const char* fileName, const bool rea
 	if (ftello64(file) < 512) { fclose(file); return INVALID_DATA; }
 	//read footer
 	if (fseeko64(file, -512L, SEEK_CUR)) { fclose(file); return INVALID_DATA; }
-	uint64_t footerPosition = (uint64_t)((Bit64s)ftello64(file)); /* make sure to sign extend! */
-	if ((Bit64s)footerPosition < 0LL) { fclose(file); return INVALID_DATA; }
+	uint64_t footerPosition = (uint64_t)((int64_t)ftello64(file)); /* make sure to sign extend! */
+	if ((int64_t)footerPosition < 0LL) { fclose(file); return INVALID_DATA; }
 	VHDFooter originalfooter;
 	VHDFooter footer;
 	if (fread(&originalfooter, 512, 1, file) != 1) { fclose(file); return INVALID_DATA; }

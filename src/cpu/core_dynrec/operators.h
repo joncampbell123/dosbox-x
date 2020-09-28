@@ -1465,7 +1465,7 @@ static void DRC_CALL_CONV dynrec_mul_dword(uint32_t op) {
 static void DRC_CALL_CONV dynrec_imul_dword(uint32_t op) DRC_FC;
 static void DRC_CALL_CONV dynrec_imul_dword(uint32_t op) {
 	FillFlagsNoCFOF();
-	Bit64s temps=((Bit64s)((int32_t)reg_eax))*((Bit64s)((int32_t)op));
+	int64_t temps=((int64_t)((int32_t)reg_eax))*((int64_t)((int32_t)op));
 	reg_eax=(uint32_t)(temps);
 	reg_edx=(uint32_t)(temps >> 32);
 	if ((reg_edx==0xffffffff) && (reg_eax & 0x80000000) ) {
@@ -1553,11 +1553,11 @@ static bool DRC_CALL_CONV dynrec_idiv_dword(uint32_t op) DRC_FC;
 static bool DRC_CALL_CONV dynrec_idiv_dword(uint32_t op) {
 	Bits val=(int32_t)op;
 	if (val==0) return CPU_PrepareException(0,0);
-	Bit64s num=(((uint64_t)reg_edx)<<32)|reg_eax;	
-	Bit64s quo=num/val;
+	int64_t num=(((uint64_t)reg_edx)<<32)|reg_eax;	
+	int64_t quo=num/val;
 	int32_t rem=(int32_t)(num % val);
 	int32_t quo32s=(int32_t)(quo&0xffffffff);
-	if (quo!=(Bit64s)quo32s) return CPU_PrepareException(0,0);
+	if (quo!=(int64_t)quo32s) return CPU_PrepareException(0,0);
 	reg_edx=rem;
 	reg_eax=quo32s;
 	return false;
@@ -1581,8 +1581,8 @@ static uint16_t DRC_CALL_CONV dynrec_dimul_word(uint16_t op1,uint16_t op2) {
 static uint32_t DRC_CALL_CONV dynrec_dimul_dword(uint32_t op1,uint32_t op2) DRC_FC;
 static uint32_t DRC_CALL_CONV dynrec_dimul_dword(uint32_t op1,uint32_t op2) {
 	FillFlagsNoCFOF();
-	Bit64s res=((Bit64s)((int32_t)op1))*((Bit64s)((int32_t)op2));
-	if ((res>-((Bit64s)(2147483647)+1)) && (res<(Bit64s)2147483647)) {
+	int64_t res=((int64_t)((int32_t)op1))*((int64_t)((int32_t)op2));
+	if ((res>-((int64_t)(2147483647)+1)) && (res<(int64_t)2147483647)) {
 		SETFLAGBIT(CF,false);
 		SETFLAGBIT(OF,false);
 	} else {

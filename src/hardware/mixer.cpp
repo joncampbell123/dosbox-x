@@ -353,9 +353,9 @@ void MixerChannel::lowpassUpdate() {
 }
 
 inline int32_t MixerChannel::lowpassStep(int32_t in,const unsigned int iteration,const unsigned int channel) {
-    const Bit64s m1 = (Bit64s)in * (Bit64s)lowpass_alpha;
-    const Bit64s m2 = ((Bit64s)lowpass[iteration][channel] << ((Bit64s)16)) - ((Bit64s)lowpass[iteration][channel] * (Bit64s)lowpass_alpha);
-    const int32_t ns = (int32_t)((m1 + m2) >> (Bit64s)16);
+    const int64_t m1 = (int64_t)in * (int64_t)lowpass_alpha;
+    const int64_t m2 = ((int64_t)lowpass[iteration][channel] << ((int64_t)16)) - ((int64_t)lowpass[iteration][channel] * (int64_t)lowpass_alpha);
+    const int32_t ns = (int32_t)((m1 + m2) >> (int64_t)16);
     lowpass[iteration][channel] = ns;
     return ns;
 }
@@ -415,8 +415,8 @@ void MixerChannel::EndFrame(Bitu samples) {
 
             if (cnv > 1024) cnv = 1024;
             for (Bitu i=0;i<cnv;i++) {
-                convert[i][0]=MIXER_CLIP(((Bit64s)msbuffer[i][0] * (Bit64s)volscale1) >> (MIXER_VOLSHIFT + MIXER_VOLSHIFT));
-                convert[i][1]=MIXER_CLIP(((Bit64s)msbuffer[i][1] * (Bit64s)volscale2) >> (MIXER_VOLSHIFT + MIXER_VOLSHIFT));
+                convert[i][0]=MIXER_CLIP(((int64_t)msbuffer[i][0] * (int64_t)volscale1) >> (MIXER_VOLSHIFT + MIXER_VOLSHIFT));
+                convert[i][1]=MIXER_CLIP(((int64_t)msbuffer[i][1] * (int64_t)volscale2) >> (MIXER_VOLSHIFT + MIXER_VOLSHIFT));
             }
             CAPTURE_MultiTrackAddWave(mixer.freq,cnv,(int16_t*)convert,name);
         }
@@ -787,8 +787,8 @@ static void MIXER_MixData(Bitu fracs/*render up to*/) {
         if (added>1024) added=1024;
         Bitu readpos = mixer.work_in + prev_rendered;
         for (Bitu i=0;i<added;i++) {
-            convert[i][0]=MIXER_CLIP(((Bit64s)mixer.work[readpos][0] * (Bit64s)volscale1) >> (MIXER_VOLSHIFT + MIXER_VOLSHIFT));
-            convert[i][1]=MIXER_CLIP(((Bit64s)mixer.work[readpos][1] * (Bit64s)volscale2) >> (MIXER_VOLSHIFT + MIXER_VOLSHIFT));
+            convert[i][0]=MIXER_CLIP(((int64_t)mixer.work[readpos][0] * (int64_t)volscale1) >> (MIXER_VOLSHIFT + MIXER_VOLSHIFT));
+            convert[i][1]=MIXER_CLIP(((int64_t)mixer.work[readpos][1] * (int64_t)volscale2) >> (MIXER_VOLSHIFT + MIXER_VOLSHIFT));
             readpos++;
         }
         assert(readpos <= MIXER_BUFSIZE);
@@ -806,10 +806,10 @@ static void MIXER_MixData(Bitu fracs/*render up to*/) {
         }
         else if (cando != 0) {
             for (Bitu i=0;i < cando;i++) {
-                phys_writew(mixer_capture_write,(uint16_t)MIXER_CLIP(((Bit64s)mixer.work[readpos][0]) >> (MIXER_VOLSHIFT)));
+                phys_writew(mixer_capture_write,(uint16_t)MIXER_CLIP(((int64_t)mixer.work[readpos][0]) >> (MIXER_VOLSHIFT)));
                 mixer_capture_write += 2;
 
-                phys_writew(mixer_capture_write,(uint16_t)MIXER_CLIP(((Bit64s)mixer.work[readpos][1]) >> (MIXER_VOLSHIFT)));
+                phys_writew(mixer_capture_write,(uint16_t)MIXER_CLIP(((int64_t)mixer.work[readpos][1]) >> (MIXER_VOLSHIFT)));
                 mixer_capture_write += 2;
 
                 readpos++;
@@ -909,8 +909,8 @@ static void SDLCALL MIXER_CallBack(void * userdata, Uint8 *stream, int len) {
         int32_t *in = &mixer.work[mixer.work_out][0];
         while (need > 0) {
             if (mixer.work_out == mixer.work_in) break;
-            *output++ = MIXER_CLIP((((Bit64s)(*in++)) * (Bit64s)volscale1) >> (MIXER_VOLSHIFT + MIXER_VOLSHIFT));
-            *output++ = MIXER_CLIP((((Bit64s)(*in++)) * (Bit64s)volscale2) >> (MIXER_VOLSHIFT + MIXER_VOLSHIFT));
+            *output++ = MIXER_CLIP((((int64_t)(*in++)) * (int64_t)volscale1) >> (MIXER_VOLSHIFT + MIXER_VOLSHIFT));
+            *output++ = MIXER_CLIP((((int64_t)(*in++)) * (int64_t)volscale2) >> (MIXER_VOLSHIFT + MIXER_VOLSHIFT));
             mixer.work_out++;
             if (mixer.work_out >= mixer.work_wrap) {
                 mixer.work_out = 0;

@@ -62,7 +62,7 @@ typedef int32_t						INT32;
 /* 64-bit values */
 #ifndef _WINDOWS_
 typedef uint64_t						UINT64;
-typedef Bit64s						INT64;
+typedef int64_t						INT64;
 #endif
 
 /* core components of the attotime structure */
