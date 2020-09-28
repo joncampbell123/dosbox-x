@@ -167,7 +167,7 @@ private:
 	FT_Face curFont = NULL;					// The font currently used to render characters
 	Bit8u color = 0;
 
-	Real64 curX = 0, curY = 0;					// Position of the print head (in inch)
+	double curX = 0, curY = 0;					// Position of the print head (in inch)
 
 	Bit16u dpi = 0;							// dpi of the page
 	Bit16u ESCCmd = 0;						// ESC-command that is currently processed
@@ -178,18 +178,18 @@ private:
 
     Bit8u params[20] = {};					// Buffer for the read params
 	Bit16u style = 0;						// Style of font (see STYLE_* constants)
-	Real64 cpi = 0, actcpi = 0;					// CPI value set by program and the actual one (taking in account font types)
+	double cpi = 0, actcpi = 0;					// CPI value set by program and the actual one (taking in account font types)
 	Bit8u score = 0;						// Score for lines (see SCORE_* constants)
 
-	Real64 topMargin = 0, bottomMargin = 0, rightMargin = 0, leftMargin = 0;	// Margins of the page (in inch)
-	Real64 pageWidth = 0, pageHeight = 0;								// Size of page (in inch)
-	Real64 defaultPageWidth = 0, defaultPageHeight = 0;					// Default size of page (in inch)
-	Real64 lineSpacing = 0;											// Size of one line (in inch)
+	double topMargin = 0, bottomMargin = 0, rightMargin = 0, leftMargin = 0;	// Margins of the page (in inch)
+	double pageWidth = 0, pageHeight = 0;								// Size of page (in inch)
+	double defaultPageWidth = 0, defaultPageHeight = 0;					// Default size of page (in inch)
+	double lineSpacing = 0;											// Size of one line (in inch)
 
-    Real64 horiztabs[32] = {};				// Stores the set horizontal tabs (in inch)
+    double horiztabs[32] = {};				// Stores the set horizontal tabs (in inch)
 	Bit8u numHorizTabs = 0;					// Number of configured tabs
 
-    Real64 verttabs[16] = {};				// Stores the set vertical tabs (in inch)
+    double verttabs[16] = {};				// Stores the set vertical tabs (in inch)
 	Bit8u numVertTabs = 0;					// Number of configured tabs
 
 	Bit8u curCharTable = 0;					// Currently used char table und charset
@@ -197,7 +197,7 @@ private:
 
 	Typeface LQtypeFace = (Typeface)0;				// Typeface used in LQ printing mode
 
-	Real64 extraIntraSpace = 0;				// Extra space between two characters (set by program, in inch)
+	double extraIntraSpace = 0;				// Extra space between two characters (set by program, in inch)
 
 	bool charRead = false;						// True if a character was read since the printer was last initialized
 	bool autoFeed = false;						// True if a LF should automatically added after a CR
@@ -218,13 +218,13 @@ private:
     Bit16u curMap[256] = {};					// Currently used ASCII => Unicode mapping
     Bit16u charTables[4] = {};				// Charactertables
 
-	Real64 definedUnit = 0;					// Unit used by some ESC/P2 commands (negative => use default)
+	double definedUnit = 0;					// Unit used by some ESC/P2 commands (negative => use default)
 
 	bool multipoint = false;					// If multipoint mode is enabled
-	Real64 multiPointSize = 0;				// Point size of font in multipoint mode
-	Real64 multicpi = 0;					// CPI used in multipoint mode
+	double multiPointSize = 0;				// Point size of font in multipoint mode
+	double multicpi = 0;					// CPI used in multipoint mode
 
-	Real64 hmi = 0;							// Horizontal motion index (in inch; overrides CPI settings)
+	double hmi = 0;							// Horizontal motion index (in inch; overrides CPI settings)
 
 	Bit8u msb = 0;							// MSB mode
 	Bit16u numPrintAsChar = 0;				// Number of bytes to print as characters (even when normally control codes)
