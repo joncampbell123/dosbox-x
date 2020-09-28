@@ -299,12 +299,6 @@ dnl Linux systems for ages now have had stdint.h to define uint8_t, etc.
 AH_BOTTOM([
 #include <cstdint>
 
-#if SIZEOF_INT_P == 4
-  typedef uint32_t Bitu;
-  typedef int32_t Bits;
-#else
-  typedef uint64_t Bitu;
-  typedef int64_t Bits;
-#endif
-
+typedef uintptr_t Bitu;
+typedef intptr_t Bits;
 ])

@@ -77,7 +77,6 @@ AC_C_CONST
 AC_C_INLINE
 AC_TYPE_SIZE_T
 AC_STRUCT_TM
-AC_CHECK_SIZEOF(int *)
 
 dnl some semi complex check for sys/socket so it works on darwin as well
 AC_CHECK_HEADERS([stdlib.h sys/types.h])
