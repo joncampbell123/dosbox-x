@@ -200,27 +200,27 @@ struct ControlROMFeatureSet {
 struct ControlROMMap {
 	const char *shortName;
 	const ControlROMFeatureSet &featureSet;
-	Bit16u pcmTable; // 4 * pcmCount bytes
-	Bit16u pcmCount;
-	Bit16u timbreAMap; // 128 bytes
-	Bit16u timbreAOffset;
+	uint16_t pcmTable; // 4 * pcmCount bytes
+	uint16_t pcmCount;
+	uint16_t timbreAMap; // 128 bytes
+	uint16_t timbreAOffset;
 	bool timbreACompressed;
-	Bit16u timbreBMap; // 128 bytes
-	Bit16u timbreBOffset;
+	uint16_t timbreBMap; // 128 bytes
+	uint16_t timbreBOffset;
 	bool timbreBCompressed;
-	Bit16u timbreRMap; // 2 * timbreRCount bytes
-	Bit16u timbreRCount;
-	Bit16u rhythmSettings; // 4 * rhythmSettingsCount bytes
-	Bit16u rhythmSettingsCount;
-	Bit16u reserveSettings; // 9 bytes
-	Bit16u panSettings; // 8 bytes
-	Bit16u programSettings; // 8 bytes
-	Bit16u rhythmMaxTable; // 4 bytes
-	Bit16u patchMaxTable; // 16 bytes
-	Bit16u systemMaxTable; // 23 bytes
-	Bit16u timbreMaxTable; // 72 bytes
-	Bit16u soundGroupsTable; // 14 bytes each entry
-	Bit16u soundGroupsCount;
+	uint16_t timbreRMap; // 2 * timbreRCount bytes
+	uint16_t timbreRCount;
+	uint16_t rhythmSettings; // 4 * rhythmSettingsCount bytes
+	uint16_t rhythmSettingsCount;
+	uint16_t reserveSettings; // 9 bytes
+	uint16_t panSettings; // 8 bytes
+	uint16_t programSettings; // 8 bytes
+	uint16_t rhythmMaxTable; // 4 bytes
+	uint16_t patchMaxTable; // 16 bytes
+	uint16_t systemMaxTable; // 23 bytes
+	uint16_t timbreMaxTable; // 72 bytes
+	uint16_t soundGroupsTable; // 14 bytes each entry
+	uint16_t soundGroupsCount;
 };
 
 struct ControlROMPCMStruct {

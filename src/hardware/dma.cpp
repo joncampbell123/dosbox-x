@@ -278,10 +278,10 @@ void DmaController::WriteControllerReg(Bitu reg,Bitu val,Bitu /*len*/) {
 		chan=GetChannel((uint8_t)(reg >> 1));
 		flipflop=!flipflop;
 		if (flipflop) {
-			chan->baseaddr=(Bit16u)((chan->baseaddr&0xff00)|val);
+			chan->baseaddr=(uint16_t)((chan->baseaddr&0xff00)|val);
 			chan->curraddr=(Bit32u)((chan->curraddr&0xff00)|val);
 		} else {
-			chan->baseaddr=(Bit16u)((chan->baseaddr&0x00ff)|(val << 8));
+			chan->baseaddr=(uint16_t)((chan->baseaddr&0x00ff)|(val << 8));
 			chan->curraddr=(Bit32u)((chan->curraddr&0x00ff)|(val << 8));
 		}
 		break;
@@ -291,11 +291,11 @@ void DmaController::WriteControllerReg(Bitu reg,Bitu val,Bitu /*len*/) {
 		chan=GetChannel((uint8_t)(reg >> 1));
 		flipflop=!flipflop;
 		if (flipflop) {
-			chan->basecnt=(Bit16u)((chan->basecnt&0xff00)|val);
-			chan->currcnt=(Bit16u)((chan->currcnt&0xff00)|val);
+			chan->basecnt=(uint16_t)((chan->basecnt&0xff00)|val);
+			chan->currcnt=(uint16_t)((chan->currcnt&0xff00)|val);
 		} else {
-			chan->basecnt=(Bit16u)((chan->basecnt&0x00ff)|(val << 8));
-			chan->currcnt=(Bit16u)((chan->currcnt&0x00ff)|(val << 8));
+			chan->basecnt=(uint16_t)((chan->basecnt&0x00ff)|(val << 8));
+			chan->currcnt=(uint16_t)((chan->currcnt&0x00ff)|(val << 8));
 		}
 		break;
 	case 0x8:		/* Comand reg not used */
@@ -463,7 +463,7 @@ Bitu DmaChannel::Read(Bitu want, uint8_t * buffer) {
 
         curraddr &= dma_wrapping;
         buffer += cando << DMA16;
-        currcnt -= (Bit16u)cando;
+        currcnt -= (uint16_t)cando;
         want -= cando;
         done += cando;
 
@@ -549,7 +549,7 @@ Bitu DmaChannel::Write(Bitu want, uint8_t * buffer) {
 
         curraddr &= dma_wrapping;
         buffer += cando << DMA16;
-        currcnt -= (Bit16u)cando;
+        currcnt -= (uint16_t)cando;
         want -= cando;
         done += cando;
 
@@ -603,7 +603,7 @@ void DMA_Destroy(Section* /*sec*/) {
 }
 
 void DMA_Reset(Section* /*sec*/) {
-	Bit16u i;
+	uint16_t i;
 
 	DMA_FreeControllers();
 

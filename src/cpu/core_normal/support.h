@@ -26,7 +26,7 @@
 #define LoadRd(reg) reg
 
 #define SaveRb(reg,val)	reg=((uint8_t)(val))
-#define SaveRw(reg,val)	reg=((Bit16u)(val))
+#define SaveRw(reg,val)	reg=((uint16_t)(val))
 #define SaveRd(reg,val)	reg=((Bit32u)(val))
 
 static INLINE int8_t Fetchbs() {

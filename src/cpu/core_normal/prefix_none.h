@@ -232,7 +232,7 @@
 		{
 			Bit32u old_esp = reg_esp;
 			try {
-				Bit16u old_sp = (CPU_ArchitectureType >= CPU_ARCHTYPE_286 ? reg_sp : (reg_sp-10));
+				uint16_t old_sp = (CPU_ArchitectureType >= CPU_ARCHTYPE_286 ? reg_sp : (reg_sp-10));
 				Push_16(reg_ax);Push_16(reg_cx);Push_16(reg_dx);Push_16(reg_bx);
 				Push_16(old_sp);Push_16(reg_bp);Push_16(reg_si);Push_16(reg_di);
 			}
@@ -278,11 +278,11 @@
 			if (rm >= 0xc0 ) {
 				GetEArw;Bitu new_sel=*earw;
 				CPU_ARPL(new_sel,*rmrw);
-				*earw=(Bit16u)new_sel;
+				*earw=(uint16_t)new_sel;
 			} else {
 				GetEAa;Bitu new_sel=LoadMw(eaa);
 				CPU_ARPL(new_sel,*rmrw);
-				SaveMw(eaa,(Bit16u)new_sel);
+				SaveMw(eaa,(uint16_t)new_sel);
 			}
 		}
 		break;
@@ -310,7 +310,7 @@
 		break;
 	CASE_W(0x6a)												/* PUSH Ib */
 		if (CPU_ArchitectureType<CPU_ARCHTYPE_80186) goto illegal_opcode;
-		Push_16((Bit16u)Fetchbs());
+		Push_16((uint16_t)Fetchbs());
 		break;
 	CASE_W(0x6b)												/* IMUL Gw,Ew,Ib */
 		if (CPU_ArchitectureType<CPU_ARCHTYPE_80186) goto illegal_opcode;
@@ -399,7 +399,7 @@
 		{
 			GetRM;Bitu which=(rm>>3)&7;
 			if (rm>= 0xc0) {
-				GetEArw;Bit16u iw=Fetchw();
+				GetEArw;uint16_t iw=Fetchw();
 				switch (which) {
 				case 0x00:ADDW(*earw,iw,LoadRw,SaveRw);break;
 				case 0x01: ORW(*earw,iw,LoadRw,SaveRw);break;
@@ -411,7 +411,7 @@
 				case 0x07:CMPW(*earw,iw,LoadRw,SaveRw);break;
 				}
 			} else {
-				GetEAa;Bit16u iw=Fetchw();
+				GetEAa;uint16_t iw=Fetchw();
 				switch (which) {
 				case 0x00:ADDW(eaa,iw,LoadMw,SaveMw);break;
 				case 0x01: ORW(eaa,iw,LoadMw,SaveMw);break;
@@ -429,7 +429,7 @@
 		{
 			GetRM;Bitu which=(rm>>3)&7;
 			if (rm>= 0xc0) {
-				GetEArw;Bit16u iw=(Bit16u)Fetchbs();
+				GetEArw;uint16_t iw=(uint16_t)Fetchbs();
 				switch (which) {
 				case 0x00:ADDW(*earw,iw,LoadRw,SaveRw);break;
 				case 0x01: ORW(*earw,iw,LoadRw,SaveRw);break;
@@ -441,7 +441,7 @@
 				case 0x07:CMPW(*earw,iw,LoadRw,SaveRw);break;
 				}
 			} else {
-				GetEAa;Bit16u iw=(Bit16u)Fetchbs();
+				GetEAa;uint16_t iw=(uint16_t)Fetchbs();
 				switch (which) {
 				case 0x00:ADDW(eaa,iw,LoadMw,SaveMw);break;
 				case 0x01: ORW(eaa,iw,LoadMw,SaveMw);break;
@@ -470,7 +470,7 @@
 		}
 	CASE_W(0x87)												/* XCHG Ew,Gw */
 		{	
-			GetRMrw;Bit16u oldrmrw=*rmrw;
+			GetRMrw;uint16_t oldrmrw=*rmrw;
 			if (rm >= 0xc0 ) {GetEArw;*rmrw=*earw;*earw=oldrmrw;}
 			else {GetEAa;*rmrw=LoadMw(eaa);SaveMw(eaa,oldrmrw);}
 			break;
@@ -517,7 +517,7 @@
 		}
 	CASE_W(0x8c)												/* Mov Ew,Sw */
 		{
-			GetRM;Bit16u val;Bitu which=(rm>>3)&7;
+			GetRM;uint16_t val;Bitu which=(rm>>3)&7;
 			switch (which) {
 			case 0x00:					/* MOV Ew,ES */
 				val=SegValue(es);break;
@@ -545,15 +545,15 @@
 			BaseDS=BaseSS=0;
 			GetRMrw;
 			if (TEST_PREFIX_ADDR) {
-				*rmrw=(Bit16u)(*EATable[256+rm])();
+				*rmrw=(uint16_t)(*EATable[256+rm])();
 			} else {
-				*rmrw=(Bit16u)(*EATable[rm])();
+				*rmrw=(uint16_t)(*EATable[rm])();
 			}
 			break;
 		}
 	CASE_B(0x8e)												/* MOV Sw,Ew */
 		{
-			GetRM;Bit16u val;Bitu which=(rm>>3)&7;
+			GetRM;uint16_t val;Bitu which=(rm>>3)&7;
 			if (rm >= 0xc0 ) {GetEArw;val=*earw;}
 			else {GetEAa;val=LoadMw(eaa);}
 			switch (which) {
@@ -578,7 +578,7 @@
 			Bit32u old_esp = reg_esp;
 
 			try {
-				Bit16u val=Pop_16();
+				uint16_t val=Pop_16();
 				GetRM;
 				if (rm >= 0xc0 ) {GetEArw;*earw=val;}
 				else {GetEAa;SaveMw(eaa,val);}
@@ -592,35 +592,35 @@
 	CASE_B(0x90)												/* NOP */
 		break;
 	CASE_W(0x91)												/* XCHG CX,AX */
-		{ Bit16u temp=reg_ax;reg_ax=reg_cx;reg_cx=temp; }
+		{ uint16_t temp=reg_ax;reg_ax=reg_cx;reg_cx=temp; }
 		break;
 	CASE_W(0x92)												/* XCHG DX,AX */
-		{ Bit16u temp=reg_ax;reg_ax=reg_dx;reg_dx=temp; }
+		{ uint16_t temp=reg_ax;reg_ax=reg_dx;reg_dx=temp; }
 		break;
 	CASE_W(0x93)												/* XCHG BX,AX */
-		{ Bit16u temp=reg_ax;reg_ax=reg_bx;reg_bx=temp; }
+		{ uint16_t temp=reg_ax;reg_ax=reg_bx;reg_bx=temp; }
 		break;
 	CASE_W(0x94)												/* XCHG SP,AX */
-		{ Bit16u temp=reg_ax;reg_ax=reg_sp;reg_sp=temp; }
+		{ uint16_t temp=reg_ax;reg_ax=reg_sp;reg_sp=temp; }
 		break;
 	CASE_W(0x95)												/* XCHG BP,AX */
-		{ Bit16u temp=reg_ax;reg_ax=reg_bp;reg_bp=temp; }
+		{ uint16_t temp=reg_ax;reg_ax=reg_bp;reg_bp=temp; }
 		break;
 	CASE_W(0x96)												/* XCHG SI,AX */
-		{ Bit16u temp=reg_ax;reg_ax=reg_si;reg_si=temp; }
+		{ uint16_t temp=reg_ax;reg_ax=reg_si;reg_si=temp; }
 		break;
 	CASE_W(0x97)												/* XCHG DI,AX */
-		{ Bit16u temp=reg_ax;reg_ax=reg_di;reg_di=temp; }
+		{ uint16_t temp=reg_ax;reg_ax=reg_di;reg_di=temp; }
 		break;
 	CASE_W(0x98)												/* CBW */
-		reg_ax=(Bit16u)((int8_t)reg_al);break;
+		reg_ax=(uint16_t)((int8_t)reg_al);break;
 	CASE_W(0x99)												/* CWD */
 		if (reg_ax & 0x8000) reg_dx=0xffff;else reg_dx=0;
 		break;
 	CASE_W(0x9a)												/* CALL Ap */
 		{ 
 			FillFlags();
-			Bit16u newip=Fetchw();Bit16u newcs=Fetchw();
+			uint16_t newip=Fetchw();uint16_t newcs=Fetchw();
 			CPU_CALL(false,newcs,newip,GETIP);
 #if CPU_TRAP_CHECK
 			if (GETFLAG(TF)) {	
@@ -902,7 +902,7 @@
 		if (TEST_PREFIX_ADDR) {
 			reg_al=LoadMb(BaseDS+(Bit32u)(reg_ebx+reg_al));
 		} else {
-			reg_al=LoadMb(BaseDS+(Bit16u)(reg_bx+reg_al));
+			reg_al=LoadMb(BaseDS+(uint16_t)(reg_bx+reg_al));
 		}
 		break;
 #ifdef CPU_FPU
@@ -1050,23 +1050,23 @@
 		{ 
 			/* must not adjust (E)IP until we have completed the instruction.
 			 * if interrupted by a page fault, EIP must be unmodified. */
-			Bit16u addip=(Bit16u)Fetchws();
-			Bit16u here=GETIP;
+			uint16_t addip=(uint16_t)Fetchws();
+			uint16_t here=GETIP;
 			Push_16(here);
-			reg_eip=(Bit16u)(addip+here);
+			reg_eip=(uint16_t)(addip+here);
 			continue;
 		}
 	CASE_W(0xe9)												/* JMP Jw */
 		{ 
-			Bit16u addip=(Bit16u)Fetchws();
+			uint16_t addip=(uint16_t)Fetchws();
 			SAVEIP;
-			reg_eip=(Bit16u)(reg_eip+addip);
+			reg_eip=(uint16_t)(reg_eip+addip);
 			continue;
 		}
 	CASE_W(0xea)												/* JMP Ap */
 		{ 
-			Bit16u newip=Fetchw();
-			Bit16u newcs=Fetchw();
+			uint16_t newip=Fetchw();
+			uint16_t newcs=Fetchw();
 			FillFlags();
 			CPU_JMP(false,newcs,newip,GETIP);
 #if CPU_TRAP_CHECK
@@ -1081,7 +1081,7 @@
 		{ 
 			Bit16s addip=Fetchbs();
 			SAVEIP;
-			reg_eip=(Bit16u)(reg_eip+(Bit32u)addip);
+			reg_eip=(uint16_t)(reg_eip+(Bit32u)addip);
 			continue;
 		}
 	CASE_B(0xec)												/* IN AL,DX */
@@ -1321,7 +1321,7 @@ do_cli:	if (CPU_CLI()) RUNEXCEPTION();
 				break;		
 			case 0x02:										/* CALL Ev */
 				{ /* either EIP is set to the call address or EIP does not change if interrupted by PF */
-					Bit16u new_eip;
+					uint16_t new_eip;
 					if (rm >= 0xc0 ) {GetEArw;new_eip=*earw;}
 					else {GetEAa;new_eip=LoadMw(eaa);}
 					Push_16(GETIP); /* <- PF may happen here */
@@ -1332,8 +1332,8 @@ do_cli:	if (CPU_CLI()) RUNEXCEPTION();
 				{
 					if (rm >= 0xc0) goto illegal_opcode;
 					GetEAa;
-					Bit16u newip=LoadMw(eaa);
-					Bit16u newcs=LoadMw(eaa+2);
+					uint16_t newip=LoadMw(eaa);
+					uint16_t newcs=LoadMw(eaa+2);
 					FillFlags();
 					CPU_CALL(false,newcs,newip,GETIP);
 #if CPU_TRAP_CHECK
@@ -1353,8 +1353,8 @@ do_cli:	if (CPU_CLI()) RUNEXCEPTION();
 				{
 					if (rm >= 0xc0) goto illegal_opcode;
 					GetEAa;
-					Bit16u newip=LoadMw(eaa);
-					Bit16u newcs=LoadMw(eaa+2);
+					uint16_t newip=LoadMw(eaa);
+					uint16_t newcs=LoadMw(eaa+2);
 					FillFlags();
 					CPU_JMP(false,newcs,newip,GETIP);
 #if CPU_TRAP_CHECK

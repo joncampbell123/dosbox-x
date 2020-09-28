@@ -69,7 +69,7 @@ void CPrinterRedir::Write_IOSEL(Bitu val) {
     (void)val; // UNUSED
 	// nothing
 }
-void CPrinterRedir::handleUpperEvent(Bit16u type) {
+void CPrinterRedir::handleUpperEvent(uint16_t type) {
     (void)type; // UNUSED
 }
 #endif // C_PRINTER

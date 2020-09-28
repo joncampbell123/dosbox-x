@@ -434,7 +434,7 @@ Bit32u get_OF(void) {
 #define PARITY16(x)  (parity_lookup[((x)>>8)&0xff]^parity_lookup[(x)&0xff]^FLAG_PF)
 #define PARITY32(x)  (PARITY16((x)&0xffff)^PARITY16(((x)>>16)&0xffff)^FLAG_PF)
 
-Bit16u parity_lookup[256] = {
+uint16_t parity_lookup[256] = {
   FLAG_PF, 0, 0, FLAG_PF, 0, FLAG_PF, FLAG_PF, 0, 0, FLAG_PF, FLAG_PF, 0, FLAG_PF, 0, 0, FLAG_PF,
   0, FLAG_PF, FLAG_PF, 0, FLAG_PF, 0, 0, FLAG_PF, FLAG_PF, 0, 0, FLAG_PF, 0, FLAG_PF, FLAG_PF, 0,
   0, FLAG_PF, FLAG_PF, 0, FLAG_PF, 0, 0, FLAG_PF, FLAG_PF, 0, 0, FLAG_PF, 0, FLAG_PF, FLAG_PF, 0,

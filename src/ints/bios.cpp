@@ -107,7 +107,7 @@ int unhandled_irq_method = UNHANDLED_IRQ_SIMPLE;
 unsigned int reset_post_delay = 0;
 
 Bitu call_irq_default = 0;
-Bit16u biosConfigSeg=0;
+uint16_t biosConfigSeg=0;
 
 Bitu BIOS_DEFAULT_IRQ0_LOCATION = ~0u;       // (RealMake(0xf000,0xfea5))
 Bitu BIOS_DEFAULT_IRQ1_LOCATION = ~0u;       // (RealMake(0xf000,0xe987))
@@ -409,7 +409,7 @@ void dosbox_integration_trigger_read() {
             break;
 
         case 0x434D55: /* read user mouse cursor position */
-            dosbox_int_register = (Bit32u((Bit16u)user_cursor_y & 0xFFFFUL) << 16UL) | Bit32u((Bit16u)user_cursor_x & 0xFFFFUL);
+            dosbox_int_register = (Bit32u((uint16_t)user_cursor_y & 0xFFFFUL) << 16UL) | Bit32u((uint16_t)user_cursor_x & 0xFFFFUL);
             break;
 
         case 0x434D56: { /* read user mouse cursor position (normalized for Windows 3.x) */
@@ -663,7 +663,7 @@ void dosbox_integration_trigger_write() {
             void pc98_keyboard_send(const unsigned char b);
             void Mouse_CursorMoved(float xrel,float yrel,float x,float y,bool emulate);
             void KEYBOARD_AUX_Event(float x,float y,Bitu buttons,int scrollwheel);
-            void KEYBOARD_AddBuffer(Bit16u data);
+            void KEYBOARD_AddBuffer(uint16_t data);
 
             switch ((dosbox_int_register>>8)&0xFF) {
                 case 0x00: // keyboard
@@ -907,7 +907,7 @@ static IO_WriteHandler* dosbox_integration_cb_port_w(IO_CalloutObject &co,Bitu p
 /* if mem_systems 0 then size_extended is reported as the real size else 
  * zero is reported. ems and xms can increase or decrease the other_memsystems
  * counter using the BIOS_ZeroExtendedSize call */
-static Bit16u size_extended;
+static uint16_t size_extended;
 static unsigned int ISA_PNP_WPORT = 0x20B;
 static unsigned int ISA_PNP_WPORT_BIOS = 0;
 static IO_ReadHandleObject *ISAPNP_PNP_READ_PORT = NULL;        /* 0x200-0x3FF range */
@@ -1538,7 +1538,7 @@ void ISAPNP_Cfg_Reset(Section *sec) {
 
         phys_writeb(base+0x03,(uint8_t)0xFE);                     //GRP 4
         phys_writeb(base+0x04,(uint8_t)0x38);                     //Extra Callback instruction
-        phys_writew(base+0x05,(Bit16u)cb);                      //The immediate word
+        phys_writew(base+0x05,(uint16_t)cb);                      //The immediate word
 
         phys_writeb(base+0x07,0x5D);                             /* pop (e)bp */
         phys_writeb(base+0x08,0x5D);                             /* pop (e)bp */
@@ -1964,7 +1964,7 @@ static Bitu ISAPNP_Handler(bool protmode /* called from protected mode interface
 
             const ISAPNP_SysDevNode *nd = ISAPNP_SysDevNodes[Node];
 
-            mem_writew(devNodeBuffer_ptr+0,(Bit16u)(nd->raw_len+3)); /* Length */
+            mem_writew(devNodeBuffer_ptr+0,(uint16_t)(nd->raw_len+3)); /* Length */
             mem_writeb(devNodeBuffer_ptr+2,Node); /* on most PnP BIOS implementations I've seen "handle" is set to the same value as Node */
             for (i=0;i < (Bitu)nd->raw_len;i++)
                 mem_writeb(devNodeBuffer_ptr+i+3,nd->raw[i]);
@@ -2084,12 +2084,12 @@ static Bitu INT70_Handler(void) {
 
 CALLBACK_HandlerObject* tandy_DAC_callback[2];
 static struct {
-    Bit16u port;
+    uint16_t port;
     uint8_t irq;
     uint8_t dma;
 } tandy_sb;
 static struct {
-    Bit16u port;
+    uint16_t port;
     uint8_t irq;
     uint8_t dma;
 } tandy_dac;
@@ -2098,7 +2098,7 @@ static bool Tandy_InitializeSB() {
     /* see if soundblaster module available and at what port/IRQ/DMA */
     Bitu sbport, sbirq, sbdma;
     if (SB_Get_Address(sbport, sbirq, sbdma)) {
-        tandy_sb.port=(Bit16u)(sbport&0xffff);
+        tandy_sb.port=(uint16_t)(sbport&0xffff);
         tandy_sb.irq =(uint8_t)(sbirq&0xff);
         tandy_sb.dma =(uint8_t)(sbdma&0xff);
         return true;
@@ -2113,7 +2113,7 @@ static bool Tandy_InitializeTS() {
     /* see if Tandy DAC module available and at what port/IRQ/DMA */
     Bitu tsport, tsirq, tsdma;
     if (TS_Get_Address(tsport, tsirq, tsdma)) {
-        tandy_dac.port=(Bit16u)(tsport&0xffff);
+        tandy_dac.port=(uint16_t)(tsport&0xffff);
         tandy_dac.irq =(uint8_t)(tsirq&0xff);
         tandy_dac.dma =(uint8_t)(tsdma&0xff);
         return true;
@@ -2134,7 +2134,7 @@ static bool Tandy_TransferInProgress(void) {
     else if (tandy_dac.port) tandy_dma = tandy_dac.dma;
 
     IO_Write(0x0c,0x00);
-    Bit16u datalen = (IO_ReadB(tandy_dma * 2 + 1)) + (IO_ReadB(tandy_dma * 2 + 1) << 8);
+    uint16_t datalen = (IO_ReadB(tandy_dma * 2 + 1)) + (IO_ReadB(tandy_dma * 2 + 1) << 8);
     if (datalen==0xffff) return false;  /* no DMA transfer */
     else if ((datalen<0x10) && (real_readb(0x40,0xd4)==0x0f) && (real_readw(0x40,0xd2)==0x1c)) {
         /* stop already requested */
@@ -2195,14 +2195,14 @@ static void Tandy_SetupTransfer(PhysPt bufpt,bool isplayback) {
     /* calculate transfer size (respects segment boundaries) */
     Bit32u tlength=length;
     if (tlength+(bufpt&0xffff)>0x10000) tlength=0x10000-(bufpt&0xffff);
-    real_writew(0x40,0xd0,(Bit16u)(length-tlength));    /* remaining buffer length */
+    real_writew(0x40,0xd0,(uint16_t)(length-tlength));    /* remaining buffer length */
     tlength--;
 
     /* set transfer size */
     IO_Write(tandy_dma*2u+1u,(uint8_t)(tlength&0xffu));
     IO_Write(tandy_dma*2u+1u,(uint8_t)((tlength>>8u)&0xffu));
 
-    Bit16u delay=(Bit16u)(real_readw(0x40,0xd2)&0xfff);
+    uint16_t delay=(uint16_t)(real_readw(0x40,0xd2)&0xfff);
     uint8_t amplitude=(uint8_t)(((unsigned int)real_readw(0x40,0xd2)>>13u)&0x7u);
     if (tandy_sb.port) {
         IO_Write(0x0a,tandy_dma);   /* enable DMA channel */
@@ -2227,7 +2227,7 @@ static void Tandy_SetupTransfer(PhysPt bufpt,bool isplayback) {
 
     if (!isplayback) {
         /* mark transfer as recording operation */
-        real_writew(0x40,0xd2,(Bit16u)(delay|0x1000));
+        real_writew(0x40,0xd2,(uint16_t)(delay|0x1000));
     }
 }
 
@@ -2359,8 +2359,8 @@ static Bitu INT1A_Handler(void) {
             Bit32u ticks=mem_readd(BIOS_TIMER);
             reg_al=mem_readb(BIOS_24_HOURS_FLAG);
             mem_writeb(BIOS_24_HOURS_FLAG,0); // reset the "flag"
-            reg_cx=(Bit16u)(ticks >> 16u);
-            reg_dx=(Bit16u)(ticks & 0xffff);
+            reg_cx=(uint16_t)(ticks >> 16u);
+            reg_dx=(uint16_t)(ticks & 0xffff);
             break;
         }
     case 0x01:  /* Set System time */
@@ -2569,8 +2569,8 @@ static Bitu INT1A_Handler(void) {
     return CBRET_NONE;
 }   
 
-bool INT16_get_key(Bit16u &code);
-bool INT16_peek_key(Bit16u &code);
+bool INT16_get_key(uint16_t &code);
+bool INT16_peek_key(uint16_t &code);
 
 extern uint8_t                     GDC_display_plane;
 extern uint8_t                     GDC_display_plane_pending;
@@ -3047,7 +3047,7 @@ void update_pc98_function_row(unsigned char setting,bool force_redraw) {
 
     real_writeb(0x60,0x111,(pc98_function_row_mode != 0) ? 0x01 : 0x00);/* function key row display status */
 
-    void vga_pc98_direct_cursor_pos(Bit16u address);
+    void vga_pc98_direct_cursor_pos(uint16_t address);
     vga_pc98_direct_cursor_pos((r*80)+c);
 }
 
@@ -3149,7 +3149,7 @@ void pc98_update_text_lineheight_from_bda(void) {
  *
  *       See also: [https://github.com/joncampbell123/dosbox-x/issues/1066] */
 static Bitu INT18_PC98_Handler(void) {
-    Bit16u temp16;
+    uint16_t temp16;
 
 #if 0
     if (reg_ah >= 0x0A) {
@@ -3326,7 +3326,7 @@ static Bitu INT18_PC98_Handler(void) {
             PC98_show_cursor(false);
             break;
         case 0x13: /* set cursor position (DX=byte position) */
-            void vga_pc98_direct_cursor_pos(Bit16u address);
+            void vga_pc98_direct_cursor_pos(uint16_t address);
 
             pc98_gdc[GDC_MASTER].force_fifo_complete();
             vga_pc98_direct_cursor_pos(reg_dx >> 1);
@@ -5104,7 +5104,7 @@ static Bitu INTDC_PC98_Handler(void) {
             else if (reg_ah == 0x01) { /* CL=0x10 AH=0x01 DS:DX write string to CON */
                 /* According to the example at http://tepe.tec.fukuoka-u.ac.jp/HP98/studfile/grth/gt10.pdf
                  * the string ends in '$' just like the main DOS string output function. */
-                Bit16u ofs = reg_dx;
+                uint16_t ofs = reg_dx;
                 do {
                     unsigned char c = real_readb(SegValue(ds),ofs++);
                     if (c == '$') break;
@@ -5123,7 +5123,7 @@ static Bitu INTDC_PC98_Handler(void) {
                 goto done;
             }
             else if (reg_ah == 0x03) { /* CL=0x10 AH=0x03 DL=X-coord DH=Y-coord set cursor position */
-                void INTDC_CL10h_AH03h(Bit16u raw);
+                void INTDC_CL10h_AH03h(uint16_t raw);
                 INTDC_CL10h_AH03h(reg_dx);
                 goto done;
             }
@@ -5138,22 +5138,22 @@ static Bitu INTDC_PC98_Handler(void) {
                 goto done;
             }
             else if (reg_ah == 0x06) { /* CL=0x10 AH=0x06 DX=count Move cursor up multiple lines */
-                void INTDC_CL10h_AH06h(Bit16u count);
+                void INTDC_CL10h_AH06h(uint16_t count);
                 INTDC_CL10h_AH06h(reg_dx);
                 goto done;
             }
             else if (reg_ah == 0x07) { /* CL=0x10 AH=0x07 DX=count Move cursor down multiple lines */
-                void INTDC_CL10h_AH07h(Bit16u count);
+                void INTDC_CL10h_AH07h(uint16_t count);
                 INTDC_CL10h_AH07h(reg_dx);
                 goto done;
             }
             else if (reg_ah == 0x08) { /* CL=0x10 AH=0x08 DX=count Move cursor right multiple lines */
-                void INTDC_CL10h_AH08h(Bit16u count);
+                void INTDC_CL10h_AH08h(uint16_t count);
                 INTDC_CL10h_AH08h(reg_dx);
                 goto done;
             }
             else if (reg_ah == 0x09) { /* CL=0x10 AH=0x09 DX=count Move cursor left multiple lines */
-                void INTDC_CL10h_AH09h(Bit16u count);
+                void INTDC_CL10h_AH09h(uint16_t count);
                 INTDC_CL10h_AH09h(reg_dx);
                 goto done;
             }
@@ -5316,7 +5316,7 @@ static void BIOS_HostTimeSync() {
 
     dos.date.day=(uint8_t)loctime->tm_mday;
     dos.date.month=(uint8_t)loctime->tm_mon+1;
-    dos.date.year=(Bit16u)loctime->tm_year+1900;
+    dos.date.year=(uint16_t)loctime->tm_year+1900;
 
     Bit32u ticks=(Bit32u)(((double)(
         (unsigned int)loctime->tm_hour*3600u*1000u+
@@ -5342,7 +5342,7 @@ void BIOS_KEYBOARD_SetLEDs(Bitu state) {
 
 /* PC-98 IRQ 0 system timer */
 static Bitu INT8_PC98_Handler(void) {
-    Bit16u counter = mem_readw(0x58A) - 1;
+    uint16_t counter = mem_readw(0x58A) - 1;
     mem_writew(0x58A,counter);
 
     /* NTS 2018/02/23: I just confirmed from the ROM BIOS of an actual
@@ -5470,7 +5470,7 @@ static Bitu INT17_Handler(void) {
     return CBRET_NONE;
 }
 
-static bool INT14_Wait(Bit16u port, uint8_t mask, uint8_t timeout, uint8_t* retval) {
+static bool INT14_Wait(uint16_t port, uint8_t mask, uint8_t timeout, uint8_t* retval) {
     double starttime = PIC_FullIndex();
     double timeout_f = timeout * 1000.0;
     while (((*retval = IO_ReadB(port)) & mask) != mask) {
@@ -5512,7 +5512,7 @@ static Bitu INT14_Handler(void) {
         return CBRET_NONE;
     }
     
-    Bit16u port = real_readw(0x40,reg_dx * 2u); // DX is always port number
+    uint16_t port = real_readw(0x40,reg_dx * 2u); // DX is always port number
     uint8_t timeout = mem_readb((PhysPt)((unsigned int)BIOS_COM1_TIMEOUT + (unsigned int)reg_dx));
     if (port==0)    {
         LOG(LOG_BIOS,LOG_NORMAL)("BIOS INT14: port %d does not exist.",reg_dx);
@@ -5527,7 +5527,7 @@ static Bitu INT14_Handler(void) {
 
         // set baud rate
         Bitu baudrate = 9600u;
-        Bit16u baudresult;
+        uint16_t baudresult;
         Bitu rawbaud=(Bitu)reg_al>>5u;
         
         if (rawbaud==0){ baudrate=110u;}
@@ -5539,7 +5539,7 @@ static Bitu INT14_Handler(void) {
         else if (rawbaud==6){ baudrate=4800u;}
         else if (rawbaud==7){ baudrate=9600u;}
 
-        baudresult = (Bit16u)(115200u / baudrate);
+        baudresult = (uint16_t)(115200u / baudrate);
 
         IO_WriteB(port+3u, 0x80u);    // enable divider access
         IO_WriteB(port, (uint8_t)baudresult&0xffu);
@@ -5727,11 +5727,11 @@ static Bitu INT15_Handler(void) {
             }
         } else if (reg_dx == 0x0001) {
             if (JOYSTICK_IsEnabled(0)) {
-                reg_ax = (Bit16u)(JOYSTICK_GetMove_X(0)*127+128);
-                reg_bx = (Bit16u)(JOYSTICK_GetMove_Y(0)*127+128);
+                reg_ax = (uint16_t)(JOYSTICK_GetMove_X(0)*127+128);
+                reg_bx = (uint16_t)(JOYSTICK_GetMove_Y(0)*127+128);
                 if(JOYSTICK_IsEnabled(1)) {
-                    reg_cx = (Bit16u)(JOYSTICK_GetMove_X(1)*127+128);
-                    reg_dx = (Bit16u)(JOYSTICK_GetMove_Y(1)*127+128);
+                    reg_cx = (uint16_t)(JOYSTICK_GetMove_X(1)*127+128);
+                    reg_dx = (uint16_t)(JOYSTICK_GetMove_Y(1)*127+128);
                 }
                 else {
                     reg_cx = reg_dx = 0;
@@ -5739,8 +5739,8 @@ static Bitu INT15_Handler(void) {
                 CALLBACK_SCF(false);
             } else if (JOYSTICK_IsEnabled(1)) {
                 reg_ax = reg_bx = 0;
-                reg_cx = (Bit16u)(JOYSTICK_GetMove_X(1)*127+128);
-                reg_dx = (Bit16u)(JOYSTICK_GetMove_Y(1)*127+128);
+                reg_cx = (uint16_t)(JOYSTICK_GetMove_X(1)*127+128);
+                reg_dx = (uint16_t)(JOYSTICK_GetMove_Y(1)*127+128);
                 CALLBACK_SCF(false);
             } else {            
                 reg_ax = reg_bx = reg_cx = reg_dx = 0;
@@ -6509,8 +6509,8 @@ static Bitu Default_IRQ_Handler(void) {
         else IO_WriteB(0x21, IO_ReadB(0x21) | (master_isr & ~4));
         IO_WriteB(0x20, 0x20);
 #if C_DEBUG
-        Bit16u irq = 0;
-        Bit16u isr = master_isr;
+        uint16_t irq = 0;
+        uint16_t isr = master_isr;
         if (slave_isr) isr = slave_isr << 8;
         while (isr >>= 1) irq++;
         LOG(LOG_BIOS, LOG_WARN)("Unexpected IRQ %u", irq);
@@ -7036,7 +7036,7 @@ private:
 
         if (bios_first_init) {
             /* clear the first 1KB-32KB */
-            for (Bit16u i=0x400;i<0x8000;i++) real_writeb(0x0,i,0);
+            for (uint16_t i=0x400;i<0x8000;i++) real_writeb(0x0,i,0);
         }
 
         if (IS_PC98_ARCH) {
@@ -7325,18 +7325,18 @@ private:
         }
         else {
             /* Clear the vector table */
-            for (Bit16u i=0x70*4;i<0x400;i++) real_writeb(0x00,i,0);
+            for (uint16_t i=0x70*4;i<0x400;i++) real_writeb(0x00,i,0);
 
             /* Only setup default handler for first part of interrupt table */
-            for (Bit16u ct=0;ct<0x60;ct++) {
+            for (uint16_t ct=0;ct<0x60;ct++) {
                 real_writed(0,ct*4,CALLBACK_RealPointer(call_default));
             }
-            for (Bit16u ct=0x68;ct<0x70;ct++) {
+            for (uint16_t ct=0x68;ct<0x70;ct++) {
                 real_writed(0,ct*4,CALLBACK_RealPointer(call_default));
             }
 
             // default handler for IRQ 2-7
-            for (Bit16u ct=0x0A;ct <= 0x0F;ct++)
+            for (uint16_t ct=0x0A;ct <= 0x0F;ct++)
                 RealSetVec(ct,BIOS_DEFAULT_IRQ07_DEF_LOCATION);
         }
 
@@ -7506,11 +7506,11 @@ private:
             callback[17].Set_RealVec(0xF2,/*reinstall*/true);
 
             // default handler for IRQ 2-7
-            for (Bit16u ct=0x0A;ct <= 0x0F;ct++)
+            for (uint16_t ct=0x0A;ct <= 0x0F;ct++)
                 RealSetVec(ct,BIOS_DEFAULT_IRQ07_DEF_LOCATION);
 
             // default handler for IRQ 8-15
-            for (Bit16u ct=0;ct < 8;ct++)
+            for (uint16_t ct=0;ct < 8;ct++)
                 RealSetVec(ct+(IS_PC98_ARCH ? 0x10 : 0x70),BIOS_DEFAULT_IRQ815_DEF_LOCATION);
 
             // LIO graphics interface (number of entry points, unknown WORD value and offset into the segment).
@@ -7698,7 +7698,7 @@ private:
 
                     RealPt current_irq=RealGetVec(tandy_irq_vector);
                     real_writed(0x40,0xd6,current_irq);
-                    for (Bit16u i=0; i<0x10; i++) phys_writeb(PhysMake(0xf000,0xa084+i),0x80);
+                    for (uint16_t i=0; i<0x10; i++) phys_writeb(PhysMake(0xf000,0xa084+i),0x80);
                 } else real_writeb(0x40,0xd4,0x00);
             }
         }
@@ -7707,7 +7707,7 @@ private:
             /* Setup some stuff in 0x40 bios segment */
 
             // Disney workaround
-            //      Bit16u disney_port = mem_readw(BIOS_ADDRESS_LPT1);
+            //      uint16_t disney_port = mem_readw(BIOS_ADDRESS_LPT1);
             // port timeouts
             // always 1 second even if the port does not exist
             //      BIOS_SetLPTPort(0, disney_port);
@@ -7728,8 +7728,8 @@ private:
             /* Setup equipment list */
             // look http://www.bioscentral.com/misc/bda.htm
 
-            //Bit16u config=0x4400; //1 Floppy, 2 serial and 1 parallel 
-            Bit16u config = 0x0;
+            //uint16_t config=0x4400; //1 Floppy, 2 serial and 1 parallel 
+            uint16_t config = 0x0;
 
             config |= bios_post_parport_count() << 14;
             config |= bios_post_comport_count() << 9;
@@ -8148,7 +8148,7 @@ private:
 
         while (adapter_scan_start < 0xF0000) {
             if (AdapterROM_Read(adapter_scan_start,&size)) {
-                Bit16u segm = (Bit16u)(adapter_scan_start >> 4);
+                uint16_t segm = (uint16_t)(adapter_scan_start >> 4);
 
                 LOG(LOG_MISC,LOG_DEBUG)("BIOS ADAPTER ROM scan found ROM at 0x%lx (size=%lu)",(unsigned long)adapter_scan_start,size);
 
@@ -8808,25 +8808,25 @@ public:
             // POST
             phys_writeb(wo+0x00,(uint8_t)0xFE);                       //GRP 4
             phys_writeb(wo+0x01,(uint8_t)0x38);                       //Extra Callback instruction
-            phys_writew(wo+0x02,(Bit16u)cb_bios_post.Get_callback());           //The immediate word
+            phys_writew(wo+0x02,(uint16_t)cb_bios_post.Get_callback());           //The immediate word
             wo += 4;
 
             // video bios scan
             phys_writeb(wo+0x00,(uint8_t)0xFE);                       //GRP 4
             phys_writeb(wo+0x01,(uint8_t)0x38);                       //Extra Callback instruction
-            phys_writew(wo+0x02,(Bit16u)cb_bios_scan_video_bios.Get_callback());        //The immediate word
+            phys_writew(wo+0x02,(uint16_t)cb_bios_scan_video_bios.Get_callback());        //The immediate word
             wo += 4;
 
             // adapter ROM scan
             phys_writeb(wo+0x00,(uint8_t)0xFE);                       //GRP 4
             phys_writeb(wo+0x01,(uint8_t)0x38);                       //Extra Callback instruction
-            phys_writew(wo+0x02,(Bit16u)cb_bios_adapter_rom_scan.Get_callback());       //The immediate word
+            phys_writew(wo+0x02,(uint16_t)cb_bios_adapter_rom_scan.Get_callback());       //The immediate word
             wo += 4;
 
             // startup screen
             phys_writeb(wo+0x00,(uint8_t)0xFE);                       //GRP 4
             phys_writeb(wo+0x01,(uint8_t)0x38);                       //Extra Callback instruction
-            phys_writew(wo+0x02,(Bit16u)cb_bios_startup_screen.Get_callback());     //The immediate word
+            phys_writew(wo+0x02,(uint16_t)cb_bios_startup_screen.Get_callback());     //The immediate word
             wo += 4;
 
             // user boot hook
@@ -8842,14 +8842,14 @@ public:
             BIOS_boot_code_offset = wo;
             phys_writeb(wo+0x00,(uint8_t)0xFE);                       //GRP 4
             phys_writeb(wo+0x01,(uint8_t)0x38);                       //Extra Callback instruction
-            phys_writew(wo+0x02,(Bit16u)cb_bios_boot.Get_callback());           //The immediate word
+            phys_writew(wo+0x02,(uint16_t)cb_bios_boot.Get_callback());           //The immediate word
             wo += 4;
 
             // boot fail
             BIOS_bootfail_code_offset = wo;
             phys_writeb(wo+0x00,(uint8_t)0xFE);                       //GRP 4
             phys_writeb(wo+0x01,(uint8_t)0x38);                       //Extra Callback instruction
-            phys_writew(wo+0x02,(Bit16u)cb_bios_bootfail.Get_callback());           //The immediate word
+            phys_writew(wo+0x02,(uint16_t)cb_bios_bootfail.Get_callback());           //The immediate word
             wo += 4;
 
             /* fence */
@@ -8864,7 +8864,7 @@ public:
 
                 phys_writeb(bo+0x00,(uint8_t)0xFE);                       //GRP 4
                 phys_writeb(bo+0x01,(uint8_t)0x38);                       //Extra Callback instruction
-                phys_writew(bo+0x02,(Bit16u)cb_pc98_rombasic.Get_callback());           //The immediate word
+                phys_writew(bo+0x02,(uint16_t)cb_pc98_rombasic.Get_callback());           //The immediate word
 
                 phys_writeb(bo+0x04,0xEB);                             // JMP $-2
                 phys_writeb(bo+0x05,0xFE);
@@ -8963,7 +8963,7 @@ void BIOS_Enter_Boot_Phase(void) {
     CPU_SetSegGeneral(cs, BIOS_boot_code_offset >> 4UL);
 }
 
-void BIOS_SetCOMPort(Bitu port, Bit16u baseaddr) {
+void BIOS_SetCOMPort(Bitu port, uint16_t baseaddr) {
     switch(port) {
     case 0:
         mem_writew(BIOS_BASE_ADDRESS_COM1,baseaddr);
@@ -8984,7 +8984,7 @@ void BIOS_SetCOMPort(Bitu port, Bit16u baseaddr) {
     }
 }
 
-void BIOS_SetLPTPort(Bitu port, Bit16u baseaddr) {
+void BIOS_SetLPTPort(Bitu port, uint16_t baseaddr) {
     switch(port) {
     case 0:
         mem_writew(BIOS_ADDRESS_LPT1,baseaddr);

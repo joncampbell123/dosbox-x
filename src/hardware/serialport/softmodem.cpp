@@ -152,7 +152,7 @@ CSerialModem::~CSerialModem() {
 		removeEvent(i);
 }
 
-void CSerialModem::handleUpperEvent(Bit16u type) {
+void CSerialModem::handleUpperEvent(uint16_t type) {
 	switch (type) {
 	case SERIAL_RX_EVENT: {
 		// check for bytes to be sent to port
@@ -260,11 +260,11 @@ bool CSerialModem::Dial(const char *host) {
 	const char *destination = buf;
 
 	// Scan host for port
-	Bit16u port;
+	uint16_t port;
 	char *hasport=strrchr(buf, ':');
 	if (hasport) {
 		*hasport++ = 0;
-		port = (Bit16u)atoi(hasport);
+		port = (uint16_t)atoi(hasport);
 	}
 	else port=MODEM_DEFAULT_PORT;
 	
@@ -363,7 +363,7 @@ void CSerialModem::EnterIdleState(void){
 			delete waitingclientsocket;
 	} else if (listenport) {
 
-		serversocket=new TCPServerSocket((Bit16u)listenport);
+		serversocket=new TCPServerSocket((uint16_t)listenport);
 		if(!serversocket->isopen) {
 			LOG_MSG("Serial%d: Modem could not open TCP port %u.",
                                 static_cast<uint32_t>(COMNUMBER),
@@ -946,7 +946,7 @@ void CSerialModem::transmitByte(uint8_t val, bool first) {
 	//LOG_MSG("MODEM: Byte %x to be transmitted",val);
 }
 
-void CSerialModem::updatePortConfig(Bit16u, uint8_t lcr) {
+void CSerialModem::updatePortConfig(uint16_t, uint8_t lcr) {
     (void) lcr; // deliberately unused by needed to meet the API
 }
 

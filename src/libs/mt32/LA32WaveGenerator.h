@@ -38,7 +38,7 @@ struct LogSample {
 	// 16-bit fixed point value, includes 12-bit fractional part
 	// 4-bit integer part allows to present any 16-bit sample in the log-space
 	// Obviously, the log value doesn't contain the sign of the resulting sample
-	Bit16u logValue;
+	uint16_t logValue;
 	enum {
 		POSITIVE,
 		NEGATIVE
@@ -47,7 +47,7 @@ struct LogSample {
 
 class LA32Utilites {
 public:
-	static Bit16u interpolateExp(const Bit16u fract);
+	static uint16_t interpolateExp(const uint16_t fract);
 	static Bit16s unlog(const LogSample &logSample);
 	static void addLogSamples(LogSample &logSample1, const LogSample &logSample2);
 };
@@ -74,7 +74,7 @@ class LA32WaveGenerator {
 	Bit32u amp;
 
 	// Logarithmic frequency of the resulting wave
-	Bit16u pitch;
+	uint16_t pitch;
 
 	// Values in range [1..31]
 	// Value 1 correspong to the minimum resonance
@@ -184,7 +184,7 @@ public:
 	void initPCM(const Bit16s * const pcmWaveAddress, const Bit32u pcmWaveLength, const bool pcmWaveLooped, const bool pcmWaveInterpolated);
 
 	// Update parameters with respect to TVP, TVA and TVF, and generate next sample
-	void generateNextSample(const Bit32u amp, const Bit16u pitch, const Bit32u cutoff);
+	void generateNextSample(const Bit32u amp, const uint16_t pitch, const Bit32u cutoff);
 
 	// WG output in the log-space consists of two components which are to be added (or ring modulated) in the linear-space afterwards
 	LogSample getOutputLogSample(const bool first) const;
@@ -248,7 +248,7 @@ public:
 	void initPCM(const PairType master, const Bit16s * const pcmWaveAddress, const Bit32u pcmWaveLength, const bool pcmWaveLooped);
 
 	// Update parameters with respect to TVP, TVA and TVF, and generate next sample
-	void generateNextSample(const PairType master, const Bit32u amp, const Bit16u pitch, const Bit32u cutoff);
+	void generateNextSample(const PairType master, const Bit32u amp, const uint16_t pitch, const Bit32u cutoff);
 
 	// Perform mixing / ring modulation of WG output and return the result
 	// Although, LA32 applies panning itself, we assume it is applied in the mixer, not within a pair

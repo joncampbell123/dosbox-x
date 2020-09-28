@@ -29,22 +29,22 @@ public:
 	unsigned char config[256];
 	unsigned char config_writemask[256];
 
-	PCI_Device(Bit16u vendor, Bit16u device);
+	PCI_Device(uint16_t vendor, uint16_t device);
 	virtual ~PCI_Device();
 
 	/* configuration space assistant functions */
 
-	Bit16u getDeviceID() {
+	uint16_t getDeviceID() {
 		return host_readw(config + 0x02);
 	}
-	void setDeviceID(const Bit16u device) {
+	void setDeviceID(const uint16_t device) {
 		return host_writew(config + 0x02,device);
 	}
 
-	Bit16u getVendorID() {
+	uint16_t getVendorID() {
 		return host_readw(config + 0x00);
 	}
-	void setVendorID(const Bit16u vendor) {
+	void setVendorID(const uint16_t vendor) {
 		return host_writew(config + 0x00,vendor);
 	}
 

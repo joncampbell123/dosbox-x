@@ -128,8 +128,8 @@ static INLINE uint8_t Fetchb() {
     return temp;
 }
 
-static INLINE Bit16u Fetchw() {
-    Bit16u temp=host_readw(core.cseip);
+static INLINE uint16_t Fetchw() {
+    uint16_t temp=host_readw(core.cseip);
     core.cseip+=2;
     return temp;
 }

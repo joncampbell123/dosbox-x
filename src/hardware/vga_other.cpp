@@ -275,8 +275,8 @@ static void write_lightpen(Bitu port,Bitu val,Bitu) {
 			double timeInLine = fmod(timeInFrame,vga.draw.delay.htotal);
 			Bitu current_scanline = (Bitu)(timeInFrame / vga.draw.delay.htotal);
 			
-			vga.other.lightpen = (Bit16u)((vga.draw.address_add/2) * (current_scanline/2));
-			vga.other.lightpen += (Bit16u)((timeInLine / vga.draw.delay.hdend) *
+			vga.other.lightpen = (uint16_t)((vga.draw.address_add/2) * (current_scanline/2));
+			vga.other.lightpen += (uint16_t)((timeInLine / vga.draw.delay.hdend) *
 				((float)(vga.draw.address_add/2)));
 		}
 		break;

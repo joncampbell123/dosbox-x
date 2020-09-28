@@ -1474,9 +1474,9 @@ const std::string& CommandLine::GetRawCmdline(void) {
     return raw_cmdline;
 }
 
-Bit16u CommandLine::Get_arglength() {
+uint16_t CommandLine::Get_arglength() {
     if (cmds.empty()) return 0;
-    Bit16u i=1;
+    uint16_t i=1;
     for(cmd_it it=cmds.begin();it != cmds.end();++it)
         i+=(*it).size() + 1;
     return --i;

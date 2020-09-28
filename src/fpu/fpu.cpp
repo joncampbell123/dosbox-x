@@ -32,12 +32,12 @@
 FPU_rec fpu;
 
 void FPU_FLDCW(PhysPt addr){
-	Bit16u temp = mem_readw(addr);
+	uint16_t temp = mem_readw(addr);
 	FPU_SetCW(temp);
 }
 
-Bit16u FPU_GetTag(void){
-	Bit16u tag=0;
+uint16_t FPU_GetTag(void){
+	uint16_t tag=0;
 
 	for (Bitu i=0;i<8;i++)
 		tag |= (fpu.tags[i]&3) << (2*i);

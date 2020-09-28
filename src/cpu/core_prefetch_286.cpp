@@ -166,7 +166,7 @@ static uint8_t Fetchb() {
 	return Fetch<uint8_t>();
 }
 
-static Bit16u Fetchw() {
+static uint16_t Fetchw() {
 	return Fetch<uint16_t>();
 }
 

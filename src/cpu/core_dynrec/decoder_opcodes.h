@@ -262,7 +262,7 @@ static void dyn_prep_word_imm(uint8_t reg) {
 		}
 	}
 	if (decode.big_op) gen_mov_dword_to_reg_imm(FC_OP2,(Bit32u)val);
-	else gen_mov_word_to_reg_imm(FC_OP2,(Bit16u)val);
+	else gen_mov_word_to_reg_imm(FC_OP2,(uint16_t)val);
 }
 
 static void dyn_dop_word_imm(DualOps op,uint8_t reg) {
@@ -275,7 +275,7 @@ static void dyn_dop_word_imm(DualOps op,uint8_t reg) {
 static void dyn_dop_word_imm_old(DualOps op,uint8_t reg,Bitu imm) {
 	MOV_REG_WORD_TO_HOST_REG(FC_OP1,reg,decode.big_op);
 	if (decode.big_op) gen_mov_dword_to_reg_imm(FC_OP2,(Bit32u)imm);
-	else gen_mov_word_to_reg_imm(FC_OP2,(Bit16u)imm);
+	else gen_mov_word_to_reg_imm(FC_OP2,(uint16_t)imm);
 	dyn_dop_word_gencall(op,decode.big_op);
 	if ((op!=DOP_CMP) && (op!=DOP_TEST)) MOV_REG_WORD_FROM_HOST_REG(FC_RETOP,reg,decode.big_op);
 }
@@ -301,7 +301,7 @@ static void dyn_mov_word_imm(uint8_t reg) {
 		}
 	}
 	if (decode.big_op) gen_mov_dword_to_reg_imm(FC_OP1,(Bit32u)val);
-	else gen_mov_word_to_reg_imm(FC_OP1,(Bit16u)val);
+	else gen_mov_word_to_reg_imm(FC_OP1,(uint16_t)val);
 	MOV_REG_WORD_FROM_HOST_REG(FC_OP1,reg,decode.big_op);
 }
 
@@ -438,7 +438,7 @@ static void dyn_push_word_imm(Bit32u imm) {
 		gen_mov_dword_to_reg_imm(FC_OP1,imm);
 		gen_call_function_raw(dynrec_push_dword);
 	} else {
-		gen_mov_word_to_reg_imm(FC_OP1,(Bit16u)imm);
+		gen_mov_word_to_reg_imm(FC_OP1,(uint16_t)imm);
 		gen_call_function_raw(dynrec_push_word);
 	}
 }
@@ -536,7 +536,7 @@ static void dyn_imul_gvev(Bitu immsize) {
 			break;
 		case 4:
 			if (decode.big_op) gen_mov_dword_to_reg_imm(FC_OP2,(Bit32s)decode_fetchd());
-			else gen_mov_word_to_reg_imm(FC_OP2,(Bit16u)((Bit32s)decode_fetchd()));
+			else gen_mov_word_to_reg_imm(FC_OP2,(uint16_t)((Bit32s)decode_fetchd()));
 			break;
 	}
 
@@ -602,7 +602,7 @@ static void dyn_grp1_ev_iv(bool withbyte) {
 		} else {
 			Bits imm=(int8_t)decode_fetchb(); 
 			if (decode.big_op) gen_mov_dword_to_reg_imm(FC_OP2,(Bit32u)imm);
-			else gen_mov_word_to_reg_imm(FC_OP2,(Bit16u)imm);
+			else gen_mov_word_to_reg_imm(FC_OP2,(uint16_t)imm);
 		}
 
 		dyn_dop_word_gencall(op,decode.big_op);
@@ -1186,7 +1186,7 @@ static void dyn_loop(LoopTypes type) {
 }
 
 
-static void dyn_ret_near(Bit16u bytes) {
+static void dyn_ret_near(uint16_t bytes) {
 	dyn_reduce_cycles();
 
 	if (decode.big_op) gen_call_function_raw(dynrec_pop_dword);
@@ -1237,7 +1237,7 @@ static void dyn_call_far_imm(void) {
 }
 
 static void dyn_jmp_far_imm(void) {
-    Bit16u sel;
+    uint16_t sel;
     Bit32u off;
 	off=decode.big_op ? decode_fetchd() : decode_fetchw();
 	sel=decode_fetchw();
@@ -1434,7 +1434,7 @@ static void dyn_leave(void) {
 
 
 static void dynrec_pusha_word(void) {
-	Bit16u old_sp=reg_sp;
+	uint16_t old_sp=reg_sp;
 	CPU_Push16(reg_ax);CPU_Push16(reg_cx);CPU_Push16(reg_dx);CPU_Push16(reg_bx);
 	CPU_Push16(old_sp);CPU_Push16(reg_bp);CPU_Push16(reg_si);CPU_Push16(reg_di);
 }

@@ -37,11 +37,11 @@ public:
 	// Creates a LPT device that communicates with the num-th parallel port, i.e. is LPTnum
 	device_LPT(uint8_t num, class CParallel* pp);
 	virtual ~device_LPT();
-	bool Read(uint8_t * data,Bit16u * size);
-	bool Write(const uint8_t * data,Bit16u * size);
+	bool Read(uint8_t * data,uint16_t * size);
+	bool Write(const uint8_t * data,uint16_t * size);
 	bool Seek(Bit32u * pos,Bit32u type);
 	bool Close();
-	Bit16u GetInformation(void);
+	uint16_t GetInformation(void);
 private:
 	CParallel* pportclass;
 	uint8_t num; // This device is LPTnum
@@ -68,10 +68,10 @@ public:
 	IO_ReadHandleObject ReadHandler[3];
 	IO_WriteHandleObject WriteHandler[3];
 
-	void setEvent(Bit16u type, float duration);
-	void removeEvent(Bit16u type);
-	void handleEvent(Bit16u type);
-	virtual void handleUpperEvent(Bit16u type)=0;
+	void setEvent(uint16_t type, float duration);
+	void removeEvent(uint16_t type);
+	void handleEvent(uint16_t type);
+	virtual void handleUpperEvent(uint16_t type)=0;
 
 	void registerDOSDevice();
 	void unregisterDOSDevice();
@@ -98,7 +98,7 @@ public:
 
 extern CParallel* parallelPortObjects[];
 
-const Bit16u parallel_baseaddr[3] = {0x378,0x278,0x3bc};
+const uint16_t parallel_baseaddr[3] = {0x378,0x278,0x3bc};
 
 #endif
 

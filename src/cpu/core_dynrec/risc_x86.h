@@ -99,7 +99,7 @@ static void gen_mov_word_to_reg(HostReg dest_reg,void* data,bool dword) {
 
 // move a 16bit constant value into dest_reg
 // the upper 16bit of the destination register may be destroyed
-static void gen_mov_word_to_reg_imm(HostReg dest_reg,Bit16u imm) {
+static void gen_mov_word_to_reg_imm(HostReg dest_reg,uint16_t imm) {
 	cache_addb(0x66);
 	cache_addb(0xb8+dest_reg);			// mov reg,imm
 	cache_addw(imm);
@@ -230,7 +230,7 @@ static void gen_add_direct_word(void* dest,Bit32u imm,bool dword) {
 	cache_addw(0x0581);					// add [data],imm
 	cache_addd((Bit32u)dest);
 	if (dword) cache_addd((Bit32u)imm);
-	else cache_addw((Bit16u)imm);
+	else cache_addw((uint16_t)imm);
 }
 
 // subtract an 8bit constant value from a memory value
@@ -250,7 +250,7 @@ static void gen_sub_direct_word(void* dest,Bit32u imm,bool dword) {
 	cache_addw(0x2d81);					// sub [data],imm
 	cache_addd((Bit32u)dest);
 	if (dword) cache_addd((Bit32u)imm);
-	else cache_addw((Bit16u)imm);
+	else cache_addw((uint16_t)imm);
 }
 
 

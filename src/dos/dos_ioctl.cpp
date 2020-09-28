@@ -155,10 +155,10 @@ bool DOS_IOCTL_AX440D_CH08(uint8_t drive,bool query) {
                  * ---BYTE 00h bit 1 set---
                  * 05h    WORD    number of tracks to format */
                 uint8_t flags = mem_readb(ptr+0);
-                Bit16u head = mem_readw(ptr+1);
-                Bit16u cyl = mem_readw(ptr+3);
-                Bit16u ntracks = (flags & 0x1) ? mem_readw(ptr+5) : 1;
-                Bit16u sect = 0;
+                uint16_t head = mem_readw(ptr+1);
+                uint16_t cyl = mem_readw(ptr+3);
+                uint16_t ntracks = (flags & 0x1) ? mem_readw(ptr+5) : 1;
+                uint16_t sect = 0;
 
                 fatDrive *fdp = dynamic_cast<fatDrive*>(Drives[drive]);
                 if (fdp == NULL || fdp->readonly) {
@@ -201,10 +201,10 @@ bool DOS_IOCTL_AX440D_CH08(uint8_t drive,bool query) {
                 /* 01h    WORD    number of disk head
                  * 03h    WORD    number of disk cylinder
                  * 05h    WORD    number of tracks to verify */
-                Bit16u head = mem_readw(ptr+1);
-                Bit16u cyl = mem_readw(ptr+3);
-                Bit16u ntracks = mem_readw(ptr+5);
-                Bit16u sect = 0;
+                uint16_t head = mem_readw(ptr+1);
+                uint16_t cyl = mem_readw(ptr+3);
+                uint16_t ntracks = mem_readw(ptr+5);
+                uint16_t sect = 0;
 
                 fatDrive *fdp = dynamic_cast<fatDrive*>(Drives[drive]);
                 if (fdp == NULL) {
@@ -322,13 +322,13 @@ bool DOS_IOCTL_AX440D_CH08(uint8_t drive,bool query) {
                  * 05h    WORD    number of first sector to read/write
                  * 07h    WORD    number of sectors
                  * 09h    DWORD   transfer address */
-                Bit16u head = mem_readw(ptr+1);
-                Bit16u cyl = mem_readw(ptr+3);
-                Bit16u sect = mem_readw(ptr+5);
-                Bit16u nsect = mem_readw(ptr+7);
+                uint16_t head = mem_readw(ptr+1);
+                uint16_t cyl = mem_readw(ptr+3);
+                uint16_t sect = mem_readw(ptr+5);
+                uint16_t nsect = mem_readw(ptr+7);
                 Bit32u xfer_addr = mem_readd(ptr+9);
                 PhysPt xfer_ptr = ((xfer_addr>>16u)<<4u)+(xfer_addr&0xFFFFu);
-                Bit16u sectsize = fdp->loadedDisk->getSectSize();
+                uint16_t sectsize = fdp->loadedDisk->getSectSize();
 
                 /* BUT: These are C/H/S values relative to the partition!
                  * FIXME: MS-DOS may not adjust sector value, or maybe it does...
@@ -398,13 +398,13 @@ bool DOS_IOCTL_AX440D_CH08(uint8_t drive,bool query) {
                  * 05h    WORD    number of first sector to read/write
                  * 07h    WORD    number of sectors
                  * 09h    DWORD   transfer address */
-                Bit16u head = mem_readw(ptr+1);
-                Bit16u cyl = mem_readw(ptr+3);
-                Bit16u sect = mem_readw(ptr+5);
-                Bit16u nsect = mem_readw(ptr+7);
+                uint16_t head = mem_readw(ptr+1);
+                uint16_t cyl = mem_readw(ptr+3);
+                uint16_t sect = mem_readw(ptr+5);
+                uint16_t nsect = mem_readw(ptr+7);
                 Bit32u xfer_addr = mem_readd(ptr+9);
                 PhysPt xfer_ptr = ((xfer_addr>>16u)<<4u)+(xfer_addr&0xFFFFu);
-                Bit16u sectsize = fdp->loadedDisk->getSectSize();
+                uint16_t sectsize = fdp->loadedDisk->getSectSize();
 
                 /* BUT: These are C/H/S values relative to the partition!
                  * FIXME: MS-DOS may not adjust sector value, or maybe it does...
@@ -653,7 +653,7 @@ bool DOS_IOCTL(void) {
 		if (Files[handle]->GetInformation() & 0xc000) {
 			/* is character device with IOCTL support */
 			PhysPt bufptr=PhysMake(SegValue(ds),reg_dx);
-			Bit16u retcode=0;
+			uint16_t retcode=0;
 			if (((DOS_Device*)(Files[handle]))->ReadFromControlChannel(bufptr,reg_cx,&retcode)) {
 				reg_ax=retcode;
 				return true;
@@ -665,7 +665,7 @@ bool DOS_IOCTL(void) {
 		if (Files[handle]->GetInformation() & 0xc000) {
 			/* is character device with IOCTL support */
 			PhysPt bufptr=PhysMake(SegValue(ds),reg_dx);
-			Bit16u retcode=0;
+			uint16_t retcode=0;
 			if (((DOS_Device*)(Files[handle]))->WriteToControlChannel(bufptr,reg_cx,&retcode)) {
 				reg_ax=retcode;
 				return true;

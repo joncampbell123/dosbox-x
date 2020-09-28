@@ -148,8 +148,8 @@ static INLINE uint8_t Fetchb() {
 	return temp;
 }
 
-static INLINE Bit16u Fetchw() {
-	Bit16u temp=LoadMw(core.cseip);
+static INLINE uint16_t Fetchw() {
+	uint16_t temp=LoadMw(core.cseip);
 	core.cseip+=2;
 	return temp;
 }

@@ -35,11 +35,11 @@ public:
 	void setRTS(bool val);
 	void setDTR(bool val);
 
-	void updatePortConfig(Bit16u, uint8_t lcr);
+	void updatePortConfig(uint16_t, uint8_t lcr);
 	void updateMSR();
 	void transmitByte(uint8_t val, bool first);
 	void setBreak(bool value);
-	void handleUpperEvent(Bit16u type);
+	void handleUpperEvent(uint16_t type);
 
 	FILE* fp = NULL;
     std::string filename;

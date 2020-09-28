@@ -68,7 +68,7 @@ Bit32u Netwrapper_GetCapabilities();
 class TCPClientSocket {
 	public:
 	TCPClientSocket(TCPsocket source);
-	TCPClientSocket(const char* destination, Bit16u port);
+	TCPClientSocket(const char* destination, uint16_t port);
 #ifdef NATIVESOCKETS
 	uint8_t* nativetcpstruct;
 	TCPClientSocket(int platformsocket);
@@ -111,7 +111,7 @@ class TCPServerSocket {
 	public:
 	bool isopen;
 	TCPsocket mysock;
-	TCPServerSocket(Bit16u port);
+	TCPServerSocket(uint16_t port);
 	~TCPServerSocket();
 	TCPClientSocket* Accept();
 };

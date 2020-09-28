@@ -102,10 +102,10 @@ Bitu OUTPUT_DIRECT3D_SetSize()
 {
     Bitu retFlags = 0;
 
-    Bit16u fixedWidth;
-    Bit16u fixedHeight;
-    Bit16u windowWidth;
-    Bit16u windowHeight;
+    uint16_t fixedWidth;
+    uint16_t fixedHeight;
+    uint16_t windowWidth;
+    uint16_t windowHeight;
     Bitu adjTexWidth = sdl.draw.width;
     Bitu adjTexHeight = sdl.draw.height;
 
@@ -137,8 +137,8 @@ Bitu OUTPUT_DIRECT3D_SetSize()
         int cw = fixedWidth, ch = fixedHeight;
         Bitu scale = 1;
 
-        if (cw == 0) cw = (Bit16u)(sdl.draw.width * sdl.draw.scalex);
-        if (ch == 0) ch = (Bit16u)(sdl.draw.height * sdl.draw.scaley);
+        if (cw == 0) cw = (uint16_t)(sdl.draw.width * sdl.draw.scalex);
+        if (ch == 0) ch = (uint16_t)(sdl.draw.height * sdl.draw.scaley);
 
         while ((cw / scale) >= (640 * 2) && (ch / scale) >= (400 * 2))
             scale++;
@@ -160,8 +160,8 @@ Bitu OUTPUT_DIRECT3D_SetSize()
     }
     else 
     {
-        windowWidth = (Bit16u)(sdl.draw.width * sdl.draw.scalex);
-        windowHeight = (Bit16u)(sdl.draw.height * sdl.draw.scaley);
+        windowWidth = (uint16_t)(sdl.draw.width * sdl.draw.scalex);
+        windowHeight = (uint16_t)(sdl.draw.height * sdl.draw.scaley);
         if (render.aspect) aspectCorrectExtend(windowWidth, windowHeight);
         sdl.clip.w = windowWidth; sdl.clip.h = windowHeight;
     }
@@ -286,7 +286,7 @@ bool OUTPUT_DIRECT3D_StartUpdate(uint8_t* &pixels, Bitu &pitch)
     return sdl.updating;
 }
 
-void OUTPUT_DIRECT3D_EndUpdate(const Bit16u *changedLines)
+void OUTPUT_DIRECT3D_EndUpdate(const uint16_t *changedLines)
 {
 #if C_XBRZ
     if (sdl_xbrz.enable && sdl_xbrz.scale_on) 

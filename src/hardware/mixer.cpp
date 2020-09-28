@@ -533,11 +533,11 @@ inline void MixerChannel::loadCurrentSample(Bitu &len, const Type* &data) {
         uint16_t d;
 
         len--;
-        if (nativeorder) d = ((Bit16u)((*data++) ^ xr));
+        if (nativeorder) d = ((uint16_t)((*data++) ^ xr));
         else d = host_readw((HostPt)(data++)) ^ xr;
         current[0] = (Bit16s)d;
         if (stereo) {
-            if (nativeorder) d = ((Bit16u)((*data++) ^ xr));
+            if (nativeorder) d = ((uint16_t)((*data++) ^ xr));
             else d = host_readw((HostPt)(data++)) ^ xr;
             current[1] = (Bit16s)d;
         }
@@ -713,11 +713,11 @@ void MixerChannel::AddSamples_m16(Bitu len,const Bit16s * data) {
 void MixerChannel::AddSamples_s16(Bitu len,const Bit16s * data) {
     AddSamples<Bit16s,true,true,true>(len,data);
 }
-void MixerChannel::AddSamples_m16u(Bitu len,const Bit16u * data) {
-    AddSamples<Bit16u,false,false,true>(len,data);
+void MixerChannel::AddSamples_m16u(Bitu len,const uint16_t * data) {
+    AddSamples<uint16_t,false,false,true>(len,data);
 }
-void MixerChannel::AddSamples_s16u(Bitu len,const Bit16u * data) {
-    AddSamples<Bit16u,true,false,true>(len,data);
+void MixerChannel::AddSamples_s16u(Bitu len,const uint16_t * data) {
+    AddSamples<uint16_t,true,false,true>(len,data);
 }
 void MixerChannel::AddSamples_m32(Bitu len,const Bit32s * data) {
     AddSamples<Bit32s,false,true,true>(len,data);
@@ -731,11 +731,11 @@ void MixerChannel::AddSamples_m16_nonnative(Bitu len,const Bit16s * data) {
 void MixerChannel::AddSamples_s16_nonnative(Bitu len,const Bit16s * data) {
     AddSamples<Bit16s,true,true,false>(len,data);
 }
-void MixerChannel::AddSamples_m16u_nonnative(Bitu len,const Bit16u * data) {
-    AddSamples<Bit16u,false,false,false>(len,data);
+void MixerChannel::AddSamples_m16u_nonnative(Bitu len,const uint16_t * data) {
+    AddSamples<uint16_t,false,false,false>(len,data);
 }
-void MixerChannel::AddSamples_s16u_nonnative(Bitu len,const Bit16u * data) {
-    AddSamples<Bit16u,true,false,false>(len,data);
+void MixerChannel::AddSamples_s16u_nonnative(Bitu len,const uint16_t * data) {
+    AddSamples<uint16_t,true,false,false>(len,data);
 }
 void MixerChannel::AddSamples_m32_nonnative(Bitu len,const Bit32s * data) {
     AddSamples<Bit32s,false,true,false>(len,data);
@@ -806,10 +806,10 @@ static void MIXER_MixData(Bitu fracs/*render up to*/) {
         }
         else if (cando != 0) {
             for (Bitu i=0;i < cando;i++) {
-                phys_writew(mixer_capture_write,(Bit16u)MIXER_CLIP(((Bit64s)mixer.work[readpos][0]) >> (MIXER_VOLSHIFT)));
+                phys_writew(mixer_capture_write,(uint16_t)MIXER_CLIP(((Bit64s)mixer.work[readpos][0]) >> (MIXER_VOLSHIFT)));
                 mixer_capture_write += 2;
 
-                phys_writew(mixer_capture_write,(Bit16u)MIXER_CLIP(((Bit64s)mixer.work[readpos][1]) >> (MIXER_VOLSHIFT)));
+                phys_writew(mixer_capture_write,(uint16_t)MIXER_CLIP(((Bit64s)mixer.work[readpos][1]) >> (MIXER_VOLSHIFT)));
                 mixer_capture_write += 2;
 
                 readpos++;

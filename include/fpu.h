@@ -70,9 +70,9 @@ typedef union {
 typedef struct {
     Bit32u m1;
     Bit32u m2;
-    Bit16u m3;
+    uint16_t m3;
 
-    Bit16u d1;
+    uint16_t d1;
     Bit32u d2;
 } FPU_P_Reg;
 
@@ -169,8 +169,8 @@ typedef struct {
 	bool		use80[9];		// if set, use the 80-bit precision version
 #endif
 	FPU_Tag		tags[9];
-	Bit16u		cw,cw_mask_all;
-	Bit16u		sw;
+	uint16_t		cw,cw_mask_all;
+	uint16_t		sw;
 	Bit32u		top;
 	FPU_Round	round;
 } FPU_rec;
@@ -190,10 +190,10 @@ extern FPU_rec fpu;
 #define STV(i)  ( (fpu.top+ (i) ) & 7 )
 
 
-Bit16u FPU_GetTag(void);
+uint16_t FPU_GetTag(void);
 void FPU_FLDCW(PhysPt addr);
 
-static INLINE void FPU_SetTag(Bit16u tag){
+static INLINE void FPU_SetTag(uint16_t tag){
 	for(Bitu i=0;i<8;i++)
 		fpu.tags[i] = static_cast<FPU_Tag>((tag >>(2*i))&3);
 }
@@ -204,8 +204,8 @@ static INLINE void FPU_SetCW(Bitu word){
 	//       us as an Intel 287 when cputype == 286.
 	word &= 0x7FFF;
 
-	fpu.cw = (Bit16u)word;
-	fpu.cw_mask_all = (Bit16u)(word | 0x3f);
+	fpu.cw = (uint16_t)word;
+	fpu.cw_mask_all = (uint16_t)(word | 0x3f);
 	fpu.round = (FPU_Round)((word >> 10) & 3);
 }
 

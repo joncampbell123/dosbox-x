@@ -68,7 +68,7 @@ enum GUSType {
 #define WCTRL_IRQPENDING        0x80
 
 // fixed panning table (avx)
-static Bit16u const pantablePDF[16] = { 0, 13, 26, 41, 57, 72, 94, 116, 141, 169, 203, 244, 297, 372, 500, 4095 };
+static uint16_t const pantablePDF[16] = { 0, 13, 26, 41, 57, 72, 94, 116, 141, 169, 203, 244, 297, 372, 500, 4095 };
 static bool gus_fixed_table = false;
 
 uint8_t adlib_commandreg;
@@ -82,7 +82,7 @@ static bool enable_autoamp = false;
 static bool startup_ultrinit = false;
 static bool ignore_active_channel_write_while_active = false;
 static bool dma_enable_on_dma_control_polling = false;
-static Bit16u vol16bit[4096];
+static uint16_t vol16bit[4096];
 static Bit32u pantable[16];
 static enum GUSType gus_type = GUS_CLASSIC;
 static bool gus_ics_mixer = false;
@@ -100,14 +100,14 @@ struct GFGus {
 					// apparently the last byte read OR written to ports 3X3-3X5 as seen
 					// on actual GUS hardware.
 	uint8_t gRegSelect;
-	Bit16u gRegData;
+	uint16_t gRegData;
 	Bit32u gDramAddr;
 	Bit32u gDramAddrMask;
-	Bit16u gCurChannel;
+	uint16_t gCurChannel;
 
 	uint8_t gUltraMAXControl;
 	uint8_t DMAControl;
-	Bit16u dmaAddr;
+	uint16_t dmaAddr;
 	uint8_t dmaAddrOffset; /* bits 0-3 of the addr */
 	uint8_t TimerControl;
 	uint8_t SampControl;
@@ -172,7 +172,7 @@ public:
 	Bit32u WaveAddr;
 	Bit32u WaveAdd;
 	uint8_t  WaveCtrl;
-	Bit16u WaveFreq;
+	uint16_t WaveFreq;
 
 	Bit32u RampStart;
 	Bit32u RampEnd;
@@ -248,7 +248,7 @@ public:
         }
     }
 
-	void WriteWaveFreq(Bit16u val) {
+	void WriteWaveFreq(uint16_t val) {
 		WaveFreq = val;
 		if (myGUS.fixed_sample_rate_output) {
 			double frameadd = double(val >> 1)/512.0;		//Samples / original gus frame
@@ -691,13 +691,13 @@ static void CheckVoiceIrq(void) {
 	}
 }
 
-static Bit16u ExecuteReadRegister(void) {
+static uint16_t ExecuteReadRegister(void) {
 	uint8_t tmpreg;
 //	LOG_MSG("Read global reg %x",myGUS.gRegSelect);
 	switch (myGUS.gRegSelect) {
 	case 0x8E:  // read active channel register
 		// NTS: The GUS SDK documents the active channel count as bits 5-0, which is wrong. it's bits 4-0. bits 7-5 are always 1 on real hardware.
-		return ((Bit16u)(0xE0 | (myGUS.ActiveChannelsUser - 1))) << 8;
+		return ((uint16_t)(0xE0 | (myGUS.ActiveChannelsUser - 1))) << 8;
 	case 0x41: // Dma control register - read acknowledges DMA IRQ
         if (dma_enable_on_dma_control_polling) {
             if (!GetDMAChannel(myGUS.dma1)->masked && !(myGUS.DMAControl & 0x01) && !(myGUS.IRQStatus & 0x80)) {
@@ -711,50 +711,50 @@ static Bit16u ExecuteReadRegister(void) {
 		tmpreg |= (myGUS.IRQStatus & 0x80) >> 1;
 		myGUS.IRQStatus&=0x7f;
 		GUS_CheckIRQ();
-		return (Bit16u)(tmpreg << 8);
+		return (uint16_t)(tmpreg << 8);
 	case 0x42:  // Dma address register
 		return myGUS.dmaAddr;
 	case 0x45:  // Timer control register.  Identical in operation to Adlib's timer
-		return (Bit16u)(myGUS.TimerControl << 8);
+		return (uint16_t)(myGUS.TimerControl << 8);
 		break;
 	case 0x49:  // Dma sample register
 		tmpreg = myGUS.DMAControl & 0xbf;
 		tmpreg |= (myGUS.IRQStatus & 0x80) >> 1;
-		return (Bit16u)(tmpreg << 8);
+		return (uint16_t)(tmpreg << 8);
 	case 0x4c:  // GUS reset register
 		tmpreg = (GUS_reset_reg & ~0x4) | (myGUS.irqenabled ? 0x4 : 0x0);
 		/* GUS Classic observed behavior: You can read Register 4Ch from both 3X4 and 3X5 and get the same 8-bit contents */
-		return ((Bit16u)(tmpreg << 8) | (Bit16u)tmpreg);
+		return ((uint16_t)(tmpreg << 8) | (uint16_t)tmpreg);
 	case 0x80: // Channel voice control read register
 		if (curchan) return curchan->ReadWaveCtrl() << 8;
 		else return 0x0300;
 	case 0x81:  // Channel frequency control register
-		if(curchan) return (Bit16u)(curchan->WaveFreq);
+		if(curchan) return (uint16_t)(curchan->WaveFreq);
 		else return 0x0000;
 	case 0x82: // Channel MSB start address register
-		if (curchan) return (Bit16u)(curchan->WaveStart >> 16);
+		if (curchan) return (uint16_t)(curchan->WaveStart >> 16);
 		else return 0x0000;
 	case 0x83: // Channel LSW start address register
-		if (curchan) return (Bit16u)(curchan->WaveStart);
+		if (curchan) return (uint16_t)(curchan->WaveStart);
 		else return 0x0000;
 	case 0x84: // Channel MSB end address register
-		if (curchan) return (Bit16u)(curchan->WaveEnd >> 16);
+		if (curchan) return (uint16_t)(curchan->WaveEnd >> 16);
 		else return 0x0000;
 	case 0x85: // Channel LSW end address register
-		if (curchan) return (Bit16u)(curchan->WaveEnd);
+		if (curchan) return (uint16_t)(curchan->WaveEnd);
 		else return 0x0000;
 
 	case 0x89: // Channel volume register
-		if (curchan) return (Bit16u)((curchan->RampVol >> RAMP_FRACT) << 4);
+		if (curchan) return (uint16_t)((curchan->RampVol >> RAMP_FRACT) << 4);
 		else return 0x0000;
 	case 0x8a: // Channel MSB current address register
-		if (curchan) return (Bit16u)(curchan->WaveAddr >> 16);
+		if (curchan) return (uint16_t)(curchan->WaveAddr >> 16);
 		else return 0x0000;
 	case 0x8b: // Channel LSW current address register
-		if (curchan) return (Bit16u)(curchan->WaveAddr);
+		if (curchan) return (uint16_t)(curchan->WaveAddr);
 		else return 0x0000;
 	case 0x8c: // Channel pan pot register
-        if (curchan) return (Bit16u)(curchan->PanPot << 8);
+        if (curchan) return (uint16_t)(curchan->PanPot << 8);
         else return 0x0800;
 	case 0x8d: // Channel volume control register
 		if (curchan) return curchan->ReadRampCtrl() << 8;
@@ -769,7 +769,7 @@ static Bit16u ExecuteReadRegister(void) {
 		myGUS.WaveIRQ&=~mask;
 		myGUS.IRQStatus&=0x9f;
 		CheckVoiceIrq();
-		return (Bit16u)(tmpreg << 8);
+		return (uint16_t)(tmpreg << 8);
 	default:
 #if LOG_GUS
 		LOG_MSG("Read Register num 0x%x", myGUS.gRegSelect);
@@ -795,7 +795,7 @@ static void ExecuteGlobRegister(void) {
 	switch(myGUS.gRegSelect) {
 	case 0x0:  // Channel voice control register
 		gus_chan->FillUp();
-		if(curchan) curchan->WriteWaveCtrl((Bit16u)myGUS.gRegData>>8);
+		if(curchan) curchan->WriteWaveCtrl((uint16_t)myGUS.gRegData>>8);
 		break;
 	case 0x1:  // Channel frequency control register
 		gus_chan->FillUp();
@@ -828,26 +828,26 @@ static void ExecuteGlobRegister(void) {
 	case 0x6:  // Channel volume ramp rate register
 		gus_chan->FillUp();
 		if(curchan != NULL) {
-			uint8_t tmpdata = (Bit16u)myGUS.gRegData>>8;
+			uint8_t tmpdata = (uint16_t)myGUS.gRegData>>8;
 			curchan->WriteRampRate(tmpdata);
 		}
 		break;
 	case 0x7:  // Channel volume ramp start register  EEEEMMMM
 		if(curchan != NULL) {
-			uint8_t tmpdata = (Bit16u)myGUS.gRegData >> 8;
+			uint8_t tmpdata = (uint16_t)myGUS.gRegData >> 8;
 			curchan->RampStart = (Bit32u)(tmpdata << (4+RAMP_FRACT));
 		}
 		break;
 	case 0x8:  // Channel volume ramp end register  EEEEMMMM
 		if(curchan != NULL) {
-			uint8_t tmpdata = (Bit16u)myGUS.gRegData >> 8;
+			uint8_t tmpdata = (uint16_t)myGUS.gRegData >> 8;
 			curchan->RampEnd = (Bit32u)(tmpdata << (4+RAMP_FRACT));
 		}
 		break;
 	case 0x9:  // Channel current volume register
 		gus_chan->FillUp();
 		if(curchan != NULL) {
-			Bit16u tmpdata = (Bit16u)myGUS.gRegData >> 4;
+			uint16_t tmpdata = (uint16_t)myGUS.gRegData >> 4;
 			curchan->RampVol = (Bit32u)(tmpdata << RAMP_FRACT);
 			curchan->UpdateVolumes();
 		}
@@ -868,11 +868,11 @@ static void ExecuteGlobRegister(void) {
 		break;
 	case 0xC:  // Channel pan pot register
 		gus_chan->FillUp();
-		if(curchan) curchan->WritePanPot((Bit16u)myGUS.gRegData>>8);
+		if(curchan) curchan->WritePanPot((uint16_t)myGUS.gRegData>>8);
 		break;
 	case 0xD:  // Channel volume control register
 		gus_chan->FillUp();
-		if(curchan) curchan->WriteRampCtrl((Bit16u)myGUS.gRegData>>8);
+		if(curchan) curchan->WriteRampCtrl((uint16_t)myGUS.gRegData>>8);
 		break;
 	case 0xE:  // Set active channel register
         /* Hack for "Ice Fever" demoscene production:
@@ -1351,7 +1351,7 @@ static void write_gus_cs4231(Bitu port,Bitu val,Bitu iolen) {
 }
 
 static Bitu read_gus(Bitu port,Bitu iolen) {
-	Bit16u reg16;
+	uint16_t reg16;
 
     (void)iolen;//UNUSED
 //	LOG_MSG("read from gus port %x",port);
@@ -1632,20 +1632,20 @@ static void write_gus(Bitu port,Bitu val,Bitu iolen) {
 			if (gus_type < GUS_INTERWAVE) // Versions prior to the Interwave will reflect last I/O to 3X2-3X5 when read back from 3X3
 				myGUS.gRegSelectData = val & 0xFF;
 
-			myGUS.gRegData=(Bit16u)val;
+			myGUS.gRegData=(uint16_t)val;
 			ExecuteGlobRegister();
 		} else {
 			if (gus_type < GUS_INTERWAVE) // Versions prior to the Interwave will reflect last I/O to 3X2-3X5 when read back from 3X3
 				myGUS.gRegSelectData = val;
 
-			myGUS.gRegData = (Bit16u)val;
+			myGUS.gRegData = (uint16_t)val;
 		}
 		break;
 	case 0x305:
 		if (gus_type < GUS_INTERWAVE) // Versions prior to the Interwave will reflect last I/O to 3X2-3X5 when read back from 3X3
 			myGUS.gRegSelectData = val;
 
-		myGUS.gRegData = (Bit16u)((0x00ff & myGUS.gRegData) | val << 8);
+		myGUS.gRegData = (uint16_t)((0x00ff & myGUS.gRegData) | val << 8);
 		ExecuteGlobRegister();
 		break;
 	case 0x307:
@@ -2002,7 +2002,7 @@ static void MakeTables(void) {
 	int i;
 	double out = (double)(1 << 13);
 	for (i=4095;i>=0;i--) {
-		vol16bit[i]=(Bit16u)((Bit16s)out);
+		vol16bit[i]=(uint16_t)((Bit16s)out);
 		out/=1.002709201;		/* 0.0235 dB Steps */
         //Original amplification routine in the hardware
         //vol16bit[i] = ((256 + i & 0xff) << VOL_SHIFT) / (1 << (24 - (i >> 8)));

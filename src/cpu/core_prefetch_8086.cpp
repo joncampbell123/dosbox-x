@@ -46,14 +46,14 @@ extern bool ignore_opcode_63;
 #include "debug.h"
 #endif
 
-static Bit16u last_ea86_offset;
+static uint16_t last_ea86_offset;
 
 /* NTS: we special case writes to seg:ffff to emulate 8086 behavior where word read/write wraps around the 64KB segment */
 #if (!C_CORE_INLINE)
 
 #define LoadMb(off) mem_readb(off)
 
-static inline Bit16u LoadMw(Bitu off) {
+static inline uint16_t LoadMw(Bitu off) {
 	if (last_ea86_offset == 0xffff)
 		return (mem_readb(off) | (mem_readb(off-0xffff) << 8));
 
@@ -82,7 +82,7 @@ static void SaveMw(Bitu off,Bitu val) {
 
 #define LoadMb(off) mem_readb_inline(off)
 
-static inline Bit16u LoadMw(Bitu off) {
+static inline uint16_t LoadMw(Bitu off) {
 	if (last_ea86_offset == 0xffff)
 		return (mem_readb_inline((PhysPt)off) | (mem_readb_inline((PhysPt)(off-0xffff)) << 8));
 
@@ -99,7 +99,7 @@ static void SaveMw(Bitu off,Bitu val) {
 		mem_writeb_inline((PhysPt)(off-0xffff),(uint8_t)(val>>8));
 	}
 	else {
-		mem_writew_inline((PhysPt)off,(Bit16u)val);
+		mem_writew_inline((PhysPt)off,(uint16_t)val);
 	}
 }
 
@@ -203,7 +203,7 @@ static uint8_t Fetchb() {
 	return Fetch<uint8_t>();
 }
 
-static Bit16u Fetchw() {
+static uint16_t Fetchw() {
 	return Fetch<uint16_t>();
 }
 

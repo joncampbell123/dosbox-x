@@ -211,7 +211,7 @@ using namespace std;
 
 //Helper functions for endianness. QCOW format is big endian so we need different functions than those defined in mem.h.
 #if defined(WORDS_BIGENDIAN) || !defined(C_UNALIGNED_MEMORY)
-    inline Bit16u QCow2Image::host_read16(Bit16u buffer) {
+    inline uint16_t QCow2Image::host_read16(uint16_t buffer) {
         return buffer;
     }
 
@@ -223,7 +223,7 @@ using namespace std;
         return buffer;
     }
 #else
-    inline Bit16u QCow2Image::host_read16(Bit16u buffer) {
+    inline uint16_t QCow2Image::host_read16(uint16_t buffer) {
         return (buffer >> 8) | (buffer << 8);
     }
 
@@ -411,9 +411,9 @@ using namespace std;
 
 
 //Write a refcount.
-	inline uint8_t QCow2Image::write_refcount(Bit64u cluster_offset, Bit64u refcount_cluster_offset, Bit16u refcount){
+	inline uint8_t QCow2Image::write_refcount(Bit64u cluster_offset, Bit64u refcount_cluster_offset, uint16_t refcount){
 		const Bit64u refcount_offset = refcount_cluster_offset + (((cluster_offset/cluster_size) & refcount_mask) << 1);
-		Bit16u buffer = host_read16(refcount);
+		uint16_t buffer = host_read16(refcount);
 		return write_data(refcount_offset, (uint8_t*)&buffer, sizeof buffer);
 	}
 

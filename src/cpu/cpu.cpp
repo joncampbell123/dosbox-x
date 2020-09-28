@@ -495,7 +495,7 @@ void Descriptor:: Save(PhysPt address) {
 }
 
 
-void CPU_Push16(Bit16u value) {
+void CPU_Push16(uint16_t value) {
 	Bit32u new_esp=(reg_esp&cpu.stack.notmask)|((reg_esp-2)&cpu.stack.mask);
 	mem_writew(SegPhys(ss) + (new_esp & cpu.stack.mask) ,value);
 	reg_esp=new_esp;
@@ -507,8 +507,8 @@ void CPU_Push32(Bit32u value) {
 	reg_esp=new_esp;
 }
 
-Bit16u CPU_Pop16(void) {
-	Bit16u val=mem_readw(SegPhys(ss) + (reg_esp & cpu.stack.mask));
+uint16_t CPU_Pop16(void) {
+	uint16_t val=mem_readw(SegPhys(ss) + (reg_esp & cpu.stack.mask));
 	reg_esp=(reg_esp&cpu.stack.notmask)|((reg_esp+2)&cpu.stack.mask);
 	return val;
 }
@@ -616,7 +616,7 @@ bool CPU_PUSHF(Bitu use32) {
 	FillFlags();
 	if (use32) 
 		CPU_Push32(reg_flags & 0xfcffff);
-	else CPU_Push16((Bit16u)reg_flags);
+	else CPU_Push16((uint16_t)reg_flags);
 	return false;
 }
 
@@ -659,14 +659,14 @@ public:
 	}
 	Bitu Get_back(void) {
 		cpu.mpl=0;
-		Bit16u backlink=mem_readw(base);
+		uint16_t backlink=mem_readw(base);
 		cpu.mpl=3;
 		return backlink;
 	}
 	void SaveSelector(void) {
 		cpu.gdt.SetDescriptor(selector,desc);
 	}
-	void Get_SSx_ESPx(Bitu level,Bit16u & _ss,Bit32u & _esp) {
+	void Get_SSx_ESPx(Bitu level,uint16_t & _ss,Bit32u & _esp) {
 		cpu.mpl=0;
 		if (is386) {
 			PhysPt where=(PhysPt)(base+offsetof(TSS_32,esp0)+level*8);
@@ -742,7 +742,7 @@ bool CPU_SwitchTask(Bitu new_tss_selector,TSwitchType tstype,Bit32u old_eip) {
 	}
 	Bitu new_cr3=0;
 	Bit32u new_eax,new_ebx,new_ecx,new_edx,new_esp,new_ebp,new_esi,new_edi;
-	Bit16u new_es,new_cs,new_ss,new_ds,new_fs,new_gs;
+	uint16_t new_es,new_cs,new_ss,new_ds,new_fs,new_gs;
 	Bitu new_ldt,new_eflags;
     Bit32u new_eip;
 	/* Read new context from new TSS */
@@ -815,7 +815,7 @@ bool CPU_SwitchTask(Bitu new_tss_selector,TSwitchType tstype,Bit32u old_eip) {
 		if (new_tss.is386) {
 			mem_writed(new_tss.base+offsetof(TSS_32,back),(Bit32u)cpu_tss.selector);
 		} else {
-			mem_writew(new_tss.base+offsetof(TSS_16,back),(Bit16u)cpu_tss.selector);
+			mem_writew(new_tss.base+offsetof(TSS_16,back),(uint16_t)cpu_tss.selector);
 		}
 		/* And make the new task's eflag have the nested task bit */
 		new_eflags|=FLAG_NT;
@@ -916,11 +916,11 @@ bool CPU_IO_Exception(Bitu port,Bitu size) {
 		cpu.mpl=0;
 		if (!cpu_tss.is386) goto doexception;
 		PhysPt bwhere=cpu_tss.base+0x66;
-		Bit16u ofs=mem_readw(bwhere);
+		uint16_t ofs=mem_readw(bwhere);
 		if (ofs>cpu_tss.limit) goto doexception;
 		bwhere=(PhysPt)(cpu_tss.base+ofs+(port/8));
-		Bit16u map=mem_readw(bwhere);
-		Bit16u mask=(0xffffu >> (16u - size)) << (port & 7u);
+		uint16_t map=mem_readw(bwhere);
+		uint16_t mask=(0xffffu >> (16u - size)) << (port & 7u);
 		if (map & mask) goto doexception;
 		cpu.mpl=3;
 	}
@@ -1028,7 +1028,7 @@ void CPU_Interrupt(Bitu num,Bitu type,Bit32u oldeip) {
             if (dos_kernel_disabled) {
                 if ((reg_ah == 0x4A/*alloc*/ || reg_ah == 0x49/*free*/) && guest_msdos_LoL == 0) { /* needed for MS-DOS 3.3 */
                     if (SegValue(cs) != CB_SEG) {
-                        Bit16u old_es,old_bx,old_ax;
+                        uint16_t old_es,old_bx,old_ax;
 
                         LOG_MSG("INT 21h AH=%02xh intercepting call to determine LoL\n",reg_ah);
 
@@ -1125,7 +1125,7 @@ void CPU_Interrupt(Bitu num,Bitu type,Bit32u oldeip) {
 			return;
 		}
 
-        Bit16u old_ss;
+        uint16_t old_ss;
         Bit32u old_esp;
 		Bitu old_cpl;
 
@@ -1168,9 +1168,9 @@ void CPU_Interrupt(Bitu num,Bitu type,Bit32u oldeip) {
 							"V86 interrupt calling codesegment with DPL>0",
 							EXCEPTION_GP,gate_sel & 0xfffc)
 
-						Bit16u n_ss;
+						uint16_t n_ss;
                         Bit32u n_esp;
-                        Bit16u o_ss;
+                        uint16_t o_ss;
                         Bit32u o_esp;
 						o_ss=SegValue(ss);
 						o_esp=reg_esp;
@@ -1228,7 +1228,7 @@ void CPU_Interrupt(Bitu num,Bitu type,Bit32u oldeip) {
 						} else {					/* 16-bit Gate */
 							if (reg_flags & FLAG_VM) E_Exit("V86 to 16-bit gate");
 							CPU_Push16(o_ss);
-							CPU_Push16((Bit16u)o_esp);
+							CPU_Push16((uint16_t)o_esp);
 						}
 //						LOG_MSG("INT:Gate to inner level SS:%X SP:%X",n_ss,n_esp);
 						goto do_interrupt;
@@ -1255,14 +1255,14 @@ do_interrupt:
 						CPU_Push16(reg_flags & 0xffff);
 						CPU_Push16(SegValue(cs));
 						CPU_Push16(oldeip);
-						if (type & CPU_INT_HAS_ERROR) CPU_Push16((Bit16u)cpu.exception.error);
+						if (type & CPU_INT_HAS_ERROR) CPU_Push16((uint16_t)cpu.exception.error);
 					}
 					break;		
 				default:
 					E_Exit("INT:Gate Selector points to illegal descriptor with type %x",(int)cs_desc.Type());
 				}
 
-				Segs.val[cs]=(Bit16u)((gate_sel&0xfffc) | cpu.cpl);
+				Segs.val[cs]=(uint16_t)((gate_sel&0xfffc) | cpu.cpl);
 				Segs.phys[cs]=cs_desc.GetBase();
 				Segs.limit[cs]=do_seg_limits? (PhysPt)cs_desc.GetLimit():((PhysPt)(~0UL));
 				Segs.expanddown[cs]=cs_desc.GetExpandDown();
@@ -1287,7 +1287,7 @@ do_interrupt:
 			if (type & CPU_INT_HAS_ERROR) {
 				//TODO Be sure about this, seems somewhat unclear
 				if (cpu_tss.is386) CPU_Push32((Bit32u)cpu.exception.error);
-				else CPU_Push16((Bit16u)cpu.exception.error);
+				else CPU_Push16((uint16_t)cpu.exception.error);
 			}
 			return;
 		default:
@@ -1360,15 +1360,15 @@ void CPU_IRET(bool use32,Bit32u oldeip) {
 					reg_esp=(tempesp&cpu.stack.notmask)|((tempesp+4)&cpu.stack.mask);
 
 					reg_eip=new_eip;
-					SegSet16(cs,(Bit16u)(new_cs&0xffff));
+					SegSet16(cs,(uint16_t)(new_cs&0xffff));
 					/* IOPL can not be modified in v86 mode by IRET */
 					CPU_SetFlags(new_flags,FMASK_NORMAL|FLAG_NT);
 				} else {
-					Bit16u new_eip=mem_readw(SegPhys(ss) + (reg_esp & cpu.stack.mask));
+					uint16_t new_eip=mem_readw(SegPhys(ss) + (reg_esp & cpu.stack.mask));
 					Bit32u tempesp=(reg_esp&cpu.stack.notmask)|((reg_esp+2)&cpu.stack.mask);
-					Bit16u new_cs=mem_readw(SegPhys(ss) + (tempesp & cpu.stack.mask));
+					uint16_t new_cs=mem_readw(SegPhys(ss) + (tempesp & cpu.stack.mask));
 					tempesp=(tempesp&cpu.stack.notmask)|((tempesp+2)&cpu.stack.mask);
-					Bit16u new_flags=mem_readw(SegPhys(ss) + (tempesp & cpu.stack.mask));
+					uint16_t new_flags=mem_readw(SegPhys(ss) + (tempesp & cpu.stack.mask));
 					reg_esp=(tempesp&cpu.stack.notmask)|((tempesp+2)&cpu.stack.mask);
 
 					reg_eip=(Bit32u)new_eip;
@@ -1415,7 +1415,7 @@ void CPU_IRET(bool use32,Bit32u oldeip) {
 				try {
 				reg_esp=tempesp;
 				reg_eip=n_eip & 0xffff;
-				Bit16u n_ss,n_es,n_ds,n_fs,n_gs;
+				uint16_t n_ss,n_es,n_ds,n_fs,n_gs;
                 Bit32u n_esp;
 				n_esp=CPU_Pop32();
 				n_ss=CPU_Pop32() & 0xffff;
@@ -1435,7 +1435,7 @@ void CPU_IRET(bool use32,Bit32u oldeip) {
 				CPU_SetSegGeneral(gs,n_gs);
 				reg_esp=n_esp;
 				cpu.code.big=false;
-				SegSet16(cs,(Bit16u)n_cs_sel);
+				SegSet16(cs,(uint16_t)n_cs_sel);
 				LOG(LOG_CPU,LOG_NORMAL)("IRET:Back to V86: CS:%X IP %X SS:%X SP %X FLAGS:%X",SegValue(cs),reg_eip,SegValue(ss),reg_esp,reg_flags);	
 				return;
 				}
@@ -1499,7 +1499,7 @@ void CPU_IRET(bool use32,Bit32u oldeip) {
 			Segs.limit[cs]=do_seg_limits? (PhysPt)n_cs_desc.GetLimit():((PhysPt)(~0UL));
 			Segs.phys[cs]=n_cs_desc.GetBase();
 			cpu.code.big=n_cs_desc.Big()>0;
-			Segs.val[cs]=(Bit16u)n_cs_sel;
+			Segs.val[cs]=(uint16_t)n_cs_sel;
 			reg_eip=n_eip;
 
 			Bitu mask=cpu.cpl ? (FMASK_NORMAL | FLAG_NT) : FMASK_ALL;
@@ -1561,7 +1561,7 @@ void CPU_IRET(bool use32,Bit32u oldeip) {
 			CPU_SetCPL(n_cs_rpl);
 			reg_eip=n_eip;
 
-			Segs.val[ss]=(Bit16u)n_ss;
+			Segs.val[ss]=(uint16_t)n_ss;
 			Segs.phys[ss]=n_ss_desc.GetBase();
 			Segs.limit[ss]=do_seg_limits? (PhysPt)n_ss_desc.GetLimit():((PhysPt)(~0UL));
 			Segs.expanddown[ss]=n_ss_desc.GetExpandDown();
@@ -1594,7 +1594,7 @@ void CPU_JMP(bool use32,Bitu selector,Bitu offset,Bit32u oldeip) {
 		} else {
 			reg_eip=(Bit32u)offset;
 		}
-		SegSet16(cs,(Bit16u)selector);
+		SegSet16(cs,(uint16_t)selector);
 		if (!cpu_allow_big16) cpu.code.big=false;
 		return;
 	} else {
@@ -1635,7 +1635,7 @@ CODE_jmp:
 			Segs.limit[cs]=do_seg_limits? (PhysPt)desc.GetLimit():((PhysPt)(~0UL));
 			Segs.phys[cs]=desc.GetBase();
 			cpu.code.big=desc.Big()>0;
-			Segs.val[cs]=(Bit16u)((selector & 0xfffc) | cpu.cpl);
+			Segs.val[cs]=(uint16_t)((selector & 0xfffc) | cpu.cpl);
 			reg_eip=(Bit32u)offset;
 			return;
 		case DESC_386_TSS_A:
@@ -1679,7 +1679,7 @@ void CPU_CALL(bool use32,Bitu selector,Bitu offset,Bit32u oldeip) {
 			throw;
 		}
 		if (!cpu_allow_big16) cpu.code.big=false;
-		SegSet16(cs,(Bit16u)selector);
+		SegSet16(cs,(uint16_t)selector);
 		return;
 	} else {
 		CPU_CHECK_COND((selector & 0xfffc)==0,
@@ -1737,7 +1737,7 @@ call_code:
 			Segs.limit[cs]=do_seg_limits? (PhysPt)call.GetLimit():((PhysPt)(~0UL));
 			Segs.phys[cs]=call.GetBase();
 			cpu.code.big=call.Big()>0;
-			Segs.val[cs]=(Bit16u)((selector & 0xfffc) | cpu.cpl);
+			Segs.val[cs]=(uint16_t)((selector & 0xfffc) | cpu.cpl);
 			return;
 		case DESC_386_CALL_GATE: 
 		case DESC_286_CALL_GATE:
@@ -1776,7 +1776,7 @@ call_code:
 					/* Check if we goto inner priviledge */
 					if (n_cs_dpl < cpu.cpl) {
 						/* Get new SS:ESP out of TSS */
-                        Bit16u n_ss_sel;
+                        uint16_t n_ss_sel;
                         Bit32u n_esp;
 						Descriptor n_ss_desc;
 						cpu_tss.Get_SSx_ESPx(n_cs_dpl,n_ss_sel,n_esp);
@@ -1804,7 +1804,7 @@ call_code:
 
 						/* Load the new SS:ESP and save data on it */
 						Bit32u o_esp		= reg_esp;
-						Bit16u o_ss		= SegValue(ss);
+						uint16_t o_ss		= SegValue(ss);
 						PhysPt o_stack  = SegPhys(ss)+(reg_esp & cpu.stack.mask);
 
 
@@ -1842,12 +1842,12 @@ call_code:
 						}
 
 						CPU_SetCPL(n_cs_desc.DPL());
-						Bit16u oldcs    = SegValue(cs);
+						uint16_t oldcs    = SegValue(cs);
 						/* Switch to new CS:EIP */
 						Segs.expanddown[cs]=n_cs_desc.GetExpandDown();
 						Segs.limit[cs]  = do_seg_limits? (PhysPt)n_cs_desc.GetLimit():((PhysPt)(~0UL));
 						Segs.phys[cs]	= n_cs_desc.GetBase();
-						Segs.val[cs]	= (Bit16u)((n_cs_sel & 0xfffc) | cpu.cpl);
+						Segs.val[cs]	= (uint16_t)((n_cs_sel & 0xfffc) | cpu.cpl);
 						cpu.code.big	= n_cs_desc.Big()>0;
 						reg_eip			= (Bit32u)n_eip;
 						if (!use32)	reg_eip&=0xffff;
@@ -1862,7 +1862,7 @@ call_code:
 							CPU_Push32(oldeip);
 						} else {
 							CPU_Push16(o_ss);		//save old stack
-							CPU_Push16((Bit16u)o_esp);
+							CPU_Push16((uint16_t)o_esp);
 							if (call.saved.gate.paramcount&31)
 								for (int8_t i=(call.saved.gate.paramcount&31)-1;i>=0;i--)
 									CPU_Push16(mem_readw(o_stack+(uint8_t)i*2u));
@@ -1898,7 +1898,7 @@ call_code:
 					Segs.expanddown[cs]=n_cs_desc.GetExpandDown();
 					Segs.limit[cs]  = do_seg_limits? (PhysPt)n_cs_desc.GetLimit():((PhysPt)(~0UL));
 					Segs.phys[cs]	= n_cs_desc.GetBase();
-					Segs.val[cs]	= (Bit16u)((n_cs_sel & 0xfffc) | cpu.cpl);
+					Segs.val[cs]	= (uint16_t)((n_cs_sel & 0xfffc) | cpu.cpl);
 					cpu.code.big	= n_cs_desc.Big()>0;
 					reg_eip			= (Bit32u)n_eip;
 					if (!use32)	reg_eip&=0xffff;
@@ -1943,7 +1943,7 @@ void CPU_RET(bool use32,Bitu bytes,Bit32u oldeip) {
 	if (!cpu.pmode || (reg_flags & FLAG_VM)) {
 		try {
 		Bit32u new_ip;
-        Bit16u new_cs;
+        uint16_t new_cs;
 		if (!use32) {
 			new_ip=CPU_Pop16();
 			new_cs=CPU_Pop16();
@@ -2029,12 +2029,12 @@ RET_same_level:
 			Segs.limit[cs]=do_seg_limits? (PhysPt)desc.GetLimit():((PhysPt)(~0UL));
 			Segs.phys[cs]=desc.GetBase();
 			cpu.code.big=desc.Big()>0;
-			Segs.val[cs]=(Bit16u)selector;
+			Segs.val[cs]=(uint16_t)selector;
 			reg_eip=offset;
 			if (cpu.stack.big) {
 				reg_esp+=(Bit32u)bytes;
 			} else {
-				reg_sp+=(Bit16u)bytes;
+				reg_sp+=(uint16_t)bytes;
 			}
 			LOG(LOG_CPU,LOG_NORMAL)("RET - Same level to %X:%X RPL %X DPL %X",selector,offset,rpl,desc.DPL());
 			return;
@@ -2113,10 +2113,10 @@ RET_same_level:
 			Segs.limit[cs]=do_seg_limits? (PhysPt)desc.GetLimit():((PhysPt)(~0UL));
 			Segs.phys[cs]=desc.GetBase();
 			cpu.code.big=desc.Big()>0;
-			Segs.val[cs]=(Bit16u)((selector&0xfffc) | cpu.cpl);
+			Segs.val[cs]=(uint16_t)((selector&0xfffc) | cpu.cpl);
 			reg_eip=offset;
 
-			Segs.val[ss]=(Bit16u)n_ss;
+			Segs.val[ss]=(uint16_t)n_ss;
 			Segs.phys[ss]=n_ss_desc.GetBase();
 			Segs.limit[ss]=do_seg_limits? (PhysPt)n_ss_desc.GetLimit():((PhysPt)(~0UL));
 			Segs.expanddown[ss]=n_ss_desc.GetExpandDown();
@@ -2129,7 +2129,7 @@ RET_same_level:
 				cpu.stack.big=false;
 				cpu.stack.mask=0xffff;
 				cpu.stack.notmask=0xffff0000;
-				reg_sp=(Bit16u)((n_esp & 0xffff)+bytes);
+				reg_sp=(uint16_t)((n_esp & 0xffff)+bytes);
 			}
 
 			CPU_CheckSegments();
@@ -2648,7 +2648,7 @@ void CPU_VERW(Bitu selector) {
 	SETFLAGBIT(ZF,true);
 }
 
-bool CPU_SetSegGeneral(SegNames seg,Bit16u value) {
+bool CPU_SetSegGeneral(SegNames seg,uint16_t value) {
 	if (!cpu.pmode || (reg_flags & FLAG_VM)) {
 		Segs.val[seg]=value;
 		Segs.phys[seg]=(PhysPt)value << 4u;
@@ -2756,7 +2756,7 @@ bool CPU_PopSeg(SegNames seg,bool use32) {
 	Bitu addsp = use32 ? 0x04 : 0x02;
 	//Calculate this beforehand since the stack mask might change
 	Bit32u new_esp  = (reg_esp&cpu.stack.notmask) | ((reg_esp + addsp)&cpu.stack.mask);
-	if (CPU_SetSegGeneral(seg,(Bit16u)val)) return true;
+	if (CPU_SetSegGeneral(seg,(uint16_t)val)) return true;
 	reg_esp = new_esp;
 	return false;
 }
@@ -2846,7 +2846,7 @@ void CPU_ENTER(bool use32,Bitu bytes,Bitu level) {
 	if (!use32) {
 		sp_index-=2;
 		mem_writew(SegPhys(ss)+sp_index,reg_bp);
-		reg_bp=(Bit16u)(reg_esp-2);
+		reg_bp=(uint16_t)(reg_esp-2);
 		if (level) {
 			for (Bitu i=1;i<level;i++) {	
 				sp_index-=2;bp_index-=2;
@@ -3049,8 +3049,8 @@ public:
 
 	uint8_t readb(PhysPt addr);
 	void writeb(PhysPt addr,uint8_t val);
-	Bit16u readw(PhysPt addr);
-	void writew(PhysPt addr,Bit16u val);
+	uint16_t readw(PhysPt addr);
+	void writew(PhysPt addr,uint16_t val);
 	Bit32u readd(PhysPt addr);
 	void writed(PhysPt addr,Bit32u val);
 };
@@ -3063,12 +3063,12 @@ void Weitek_PageHandler::writeb(PhysPt addr,uint8_t val) {
     LOG_MSG("Weitek stub: writeb at 0x%lx val=0x%lx",(unsigned long)addr,(unsigned long)val);
 }
 
-Bit16u Weitek_PageHandler::readw(PhysPt addr) {
+uint16_t Weitek_PageHandler::readw(PhysPt addr) {
     LOG_MSG("Weitek stub: readw at 0x%lx",(unsigned long)addr);
-	return (Bit16u)-1;
+	return (uint16_t)-1;
 }
 
-void Weitek_PageHandler::writew(PhysPt addr,Bit16u val) {
+void Weitek_PageHandler::writew(PhysPt addr,uint16_t val) {
     LOG_MSG("Weitek stub: writew at 0x%lx val=0x%lx",(unsigned long)addr,(unsigned long)val);
 }
 
@@ -3725,11 +3725,11 @@ void TaskStateSegment::LoadState( std::istream& stream )
 }
 
 // TODO: This looks to be unused
-Bit16u CPU_FindDecoderType( CPU_Decoder *decoder )
+uint16_t CPU_FindDecoderType( CPU_Decoder *decoder )
 {
     (void)decoder;//UNUSED
 
-	Bit16u decoder_idx;
+	uint16_t decoder_idx;
 
 	decoder_idx = 0xffff;
 
@@ -3762,7 +3762,7 @@ else if( cpudecoder == &CPU_Core_Dynrec_Trap_Run ) decoder_idx = 102;
 }
 
 // TODO: This looks to be unused
-CPU_Decoder* CPU_IndexDecoderType(Bit16u decoder_idx)
+CPU_Decoder* CPU_IndexDecoderType(uint16_t decoder_idx)
 {
     switch (decoder_idx) {
     case 0: return &CPU_Core_Normal_Run;
@@ -3853,7 +3853,7 @@ Bitu CPU_ForceV86FakeIO_In(Bitu port,Bitu len) {
 	reg_edx = (Bit32u)port;
 
 	/* make the CPU execute that instruction */
-	CALLBACK_RunRealFar((Bit16u)vm86_fake_io_seg, (Bit16u)vm86_fake_io_offs[(len==4?2:(len-1))+0]);
+	CALLBACK_RunRealFar((uint16_t)vm86_fake_io_seg, (uint16_t)vm86_fake_io_offs[(len==4?2:(len-1))+0]);
 
 	/* take whatever the CPU or OS v86 trap left in EAX and return it */
 	ret = reg_eax;
@@ -3878,7 +3878,7 @@ void CPU_ForceV86FakeIO_Out(Bitu port,Bitu val,Bitu len) {
 	reg_eax = (Bit32u)val;
 
 	/* make the CPU execute that instruction */
-	CALLBACK_RunRealFar((Bit16u)vm86_fake_io_seg, (Bit16u)vm86_fake_io_offs[(len==4?2:(len-1))+3]);
+	CALLBACK_RunRealFar((uint16_t)vm86_fake_io_seg, (uint16_t)vm86_fake_io_offs[(len==4?2:(len-1))+3]);
 
 	/* then restore EAX:EDX */
 	reg_eax = old_eax;
@@ -3966,7 +3966,7 @@ SerializeCPU() : SerializeGlobalPOD("CPU")
 private:
 virtual void getBytes(std::ostream& stream)
 {
-    Bit16u decoder_idx;
+    uint16_t decoder_idx;
 
 // UNUSED
 //  extern Bits PageFaultCore(void);
@@ -4022,8 +4022,8 @@ virtual void getBytes(std::ostream& stream)
 
 virtual void setBytes(std::istream& stream)
 {
-    Bit16u decoder_idx;
-    Bit16u decoder_old;
+    uint16_t decoder_idx;
+    uint16_t decoder_old;
 
 
 

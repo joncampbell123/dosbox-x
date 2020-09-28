@@ -30,25 +30,25 @@ static const Bit32u RESONANCE_DECAY_THRESHOLD_CUTOFF_VALUE = 144 << 18;
 static const Bit32u MAX_CUTOFF_VALUE = 240 << 18;
 static const LogSample SILENCE = {65535, LogSample::POSITIVE};
 
-Bit16u LA32Utilites::interpolateExp(const Bit16u fract) {
-	Bit16u expTabIndex = fract >> 3;
-	Bit16u extraBits = ~fract & 7;
-	Bit16u expTabEntry2 = 8191 - Tables::getInstance().exp9[expTabIndex];
-	Bit16u expTabEntry1 = expTabIndex == 0 ? 8191 : (8191 - Tables::getInstance().exp9[expTabIndex - 1]);
+uint16_t LA32Utilites::interpolateExp(const uint16_t fract) {
+	uint16_t expTabIndex = fract >> 3;
+	uint16_t extraBits = ~fract & 7;
+	uint16_t expTabEntry2 = 8191 - Tables::getInstance().exp9[expTabIndex];
+	uint16_t expTabEntry1 = expTabIndex == 0 ? 8191 : (8191 - Tables::getInstance().exp9[expTabIndex - 1]);
 	return expTabEntry2 + (((expTabEntry1 - expTabEntry2) * extraBits) >> 3);
 }
 
 Bit16s LA32Utilites::unlog(const LogSample &logSample) {
 	//Bit16s sample = (Bit16s)EXP2F(13.0f - logSample.logValue / 1024.0f);
 	Bit32u intLogValue = logSample.logValue >> 12;
-	Bit16u fracLogValue = logSample.logValue & 4095;
+	uint16_t fracLogValue = logSample.logValue & 4095;
 	Bit16s sample = interpolateExp(fracLogValue) >> intLogValue;
 	return logSample.sign == LogSample::POSITIVE ? sample : -sample;
 }
 
 void LA32Utilites::addLogSamples(LogSample &logSample1, const LogSample &logSample2) {
 	Bit32u logSampleValue = logSample1.logValue + logSample2.logValue;
-	logSample1.logValue = logSampleValue < 65536 ? Bit16u(logSampleValue) : 65535;
+	logSample1.logValue = logSampleValue < 65536 ? uint16_t(logSampleValue) : 65535;
 	logSample1.sign = logSample1.sign == logSample2.sign ? LogSample::POSITIVE : LogSample::NEGATIVE;
 }
 
@@ -154,7 +154,7 @@ void LA32WaveGenerator::generateNextSquareWaveLogSample() {
 		logSampleValue += (MIDDLE_CUTOFF_VALUE - cutoffVal) >> 9;
 	}
 
-	squareLogSample.logValue = logSampleValue < 65536 ? Bit16u(logSampleValue) : 65535;
+	squareLogSample.logValue = logSampleValue < 65536 ? uint16_t(logSampleValue) : 65535;
 	squareLogSample.sign = phase < NEGATIVE_FALLING_SINE_SEGMENT ? LogSample::POSITIVE : LogSample::NEGATIVE;
 }
 
@@ -194,7 +194,7 @@ void LA32WaveGenerator::generateNextResonanceWaveLogSample() {
 	// After all the amp decrements are added, it should be safe now to adjust the amp of the resonance wave to what we see on captures
 	logSampleValue -= 1 << 12;
 
-	resonanceLogSample.logValue = logSampleValue < 65536 ? Bit16u(logSampleValue) : 65535;
+	resonanceLogSample.logValue = logSampleValue < 65536 ? uint16_t(logSampleValue) : 65535;
 	resonanceLogSample.sign = resonancePhase < NEGATIVE_FALLING_RESONANCE_SINE_SEGMENT ? LogSample::POSITIVE : LogSample::NEGATIVE;
 }
 
@@ -212,7 +212,7 @@ void LA32WaveGenerator::generateNextSawtoothCosineLogSample(LogSample &logSample
 void LA32WaveGenerator::pcmSampleToLogSample(LogSample &logSample, const Bit16s pcmSample) const {
 	Bit32u logSampleValue = (32787 - (pcmSample & 32767)) << 1;
 	logSampleValue += amp >> 10;
-	logSample.logValue = logSampleValue < 65536 ? Bit16u(logSampleValue) : 65535;
+	logSample.logValue = logSampleValue < 65536 ? uint16_t(logSampleValue) : 65535;
 	logSample.sign = pcmSample < 0 ? LogSample::NEGATIVE : LogSample::POSITIVE;
 }
 
@@ -283,7 +283,7 @@ void LA32WaveGenerator::initPCM(const Bit16s * const usePCMWaveAddress, const Bi
 	active = true;
 }
 
-void LA32WaveGenerator::generateNextSample(const Bit32u useAmp, const Bit16u usePitch, const Bit32u useCutoffVal) {
+void LA32WaveGenerator::generateNextSample(const Bit32u useAmp, const uint16_t usePitch, const Bit32u useCutoffVal) {
 	if (!active) {
 		return;
 	}
@@ -358,7 +358,7 @@ void LA32IntPartialPair::initPCM(const PairType useMaster, const Bit16s *pcmWave
 	}
 }
 
-void LA32IntPartialPair::generateNextSample(const PairType useMaster, const Bit32u amp, const Bit16u pitch, const Bit32u cutoff) {
+void LA32IntPartialPair::generateNextSample(const PairType useMaster, const Bit32u amp, const uint16_t pitch, const Bit32u cutoff) {
 	if (useMaster == MASTER) {
 		master.generateNextSample(amp, pitch, cutoff);
 	} else {

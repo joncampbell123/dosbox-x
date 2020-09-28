@@ -105,7 +105,7 @@ CSerialMouse::~CSerialMouse() {
 	removeEvent(SERIAL_TX_EVENT);
 }
 
-void CSerialMouse::handleUpperEvent(Bit16u type) {
+void CSerialMouse::handleUpperEvent(uint16_t type) {
 	if(type==SERIAL_TX_EVENT) {
 	//LOG_MSG("SERIAL_TX_EVENT");
 		ByteTransmitted(); // tx timeout
@@ -141,7 +141,7 @@ void CSerialMouse::handleUpperEvent(Bit16u type) {
 /* updatePortConfig is called when emulated app changes the serial port     **/
 /* parameters baudrate, stopbits, number of databits, parity.               **/
 /*****************************************************************************/
-void CSerialMouse::updatePortConfig(Bit16u divider, uint8_t lcr) {
+void CSerialMouse::updatePortConfig(uint16_t divider, uint8_t lcr) {
     (void)divider;//UNUSED
     (void)lcr;//UNUSED
 	//LOG_MSG("Serial port at 0x%x: Port params changed: %d Baud", base,dcb.BaudRate);

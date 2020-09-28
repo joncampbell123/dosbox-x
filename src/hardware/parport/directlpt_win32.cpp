@@ -164,12 +164,12 @@ CDirectLPT::CDirectLPT (Bitu nr, uint8_t initIrq, CommandLine* cmd)
 	}
 	/*
 	// add the standard parallel port registers
-	addIOPermission((Bit16u)realbaseaddress);
-	addIOPermission((Bit16u)realbaseaddress+1);
-	addIOPermission((Bit16u)realbaseaddress+2);
+	addIOPermission((uint16_t)realbaseaddress);
+	addIOPermission((uint16_t)realbaseaddress+1);
+	addIOPermission((uint16_t)realbaseaddress+2);
 	
 	// if it could be a ECP port: make the extended control register accessible
-	if(isECP)addIOPermission((Bit16u)ecpbase);
+	if(isECP)addIOPermission((uint16_t)ecpbase);
 	
 	// bail out if porttalk fails
 	if(!setPermissionList())
@@ -353,7 +353,7 @@ void CDirectLPT::Write_IOSEL(Bitu val) {
 	Out32(realbaseaddress+1,val);
 }
 
-void CDirectLPT::handleUpperEvent(Bit16u type) { (void)type; }
+void CDirectLPT::handleUpperEvent(uint16_t type) { (void)type; }
 
 
 #endif

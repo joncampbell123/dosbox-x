@@ -687,10 +687,10 @@ static void GenerateDMASound(Bitu size) {
             Bitu total=read+sb.dma.remain_size;
 #if defined(WORDS_BIGENDIAN)
             if (sb.dma.sign) sb.chan->AddSamples_s16_nonnative(total>>1,sb.dma.buf.b16);
-            else sb.chan->AddSamples_s16u_nonnative(total>>1,(Bit16u *)sb.dma.buf.b16);
+            else sb.chan->AddSamples_s16u_nonnative(total>>1,(uint16_t *)sb.dma.buf.b16);
 #else
             if (sb.dma.sign) sb.chan->AddSamples_s16(total>>1,sb.dma.buf.b16);
-            else sb.chan->AddSamples_s16u(total>>1,(Bit16u *)sb.dma.buf.b16);
+            else sb.chan->AddSamples_s16u(total>>1,(uint16_t *)sb.dma.buf.b16);
 #endif
             if (total&1) {
                 sb.dma.remain_size=1;
@@ -701,10 +701,10 @@ static void GenerateDMASound(Bitu size) {
                 >> (sb.dma.mode==DSP_DMA_16_ALIASED ? 1:0);
 #if defined(WORDS_BIGENDIAN)
             if (sb.dma.sign) sb.chan->AddSamples_m16_nonnative(read,sb.dma.buf.b16);
-            else sb.chan->AddSamples_m16u_nonnative(read,(Bit16u *)sb.dma.buf.b16);
+            else sb.chan->AddSamples_m16u_nonnative(read,(uint16_t *)sb.dma.buf.b16);
 #else
             if (sb.dma.sign) sb.chan->AddSamples_m16(read,sb.dma.buf.b16);
-            else sb.chan->AddSamples_m16u(read,(Bit16u *)sb.dma.buf.b16);
+            else sb.chan->AddSamples_m16u(read,(uint16_t *)sb.dma.buf.b16);
 #endif
         }
         //restore buffer length value to byte size in aliased mode

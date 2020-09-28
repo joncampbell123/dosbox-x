@@ -45,7 +45,7 @@ void PC98_GetCtrlVFuncKeyEscape(size_t &len,unsigned char buf[16],const unsigned
 
 ShiftJISDecoder con_sjis;
 
-Bit16u last_int16_code = 0;
+uint16_t last_int16_code = 0;
 
 static size_t dev_con_pos=0,dev_con_max=0;
 static unsigned char dev_con_readbuf[64];
@@ -57,13 +57,13 @@ uint8_t DefaultANSIAttr() {
 class device_CON : public DOS_Device {
 public:
 	device_CON();
-	bool Read(uint8_t * data,Bit16u * size);
-	bool Write(const uint8_t * data,Bit16u * size);
+	bool Read(uint8_t * data,uint16_t * size);
+	bool Write(const uint8_t * data,uint16_t * size);
 	bool Seek(Bit32u * pos,Bit32u type);
 	bool Close();
-	Bit16u GetInformation(void);
-	bool ReadFromControlChannel(PhysPt bufptr,Bit16u size,Bit16u * retcode) { (void)bufptr; (void)size; (void)retcode; return false; }
-	bool WriteToControlChannel(PhysPt bufptr,Bit16u size,Bit16u * retcode) { (void)bufptr; (void)size; (void)retcode; return false; }
+	uint16_t GetInformation(void);
+	bool ReadFromControlChannel(PhysPt bufptr,uint16_t size,uint16_t * retcode) { (void)bufptr; (void)size; (void)retcode; return false; }
+	bool WriteToControlChannel(PhysPt bufptr,uint16_t size,uint16_t * retcode) { (void)bufptr; (void)size; (void)retcode; return false; }
     bool ANSI_SYS_installed();
 private:
 	void ClearAnsi(void);
@@ -79,8 +79,8 @@ private:
 		uint8_t attr;         // machine-specific
 		uint8_t data[NUMBER_ANSI_DATA];
 		uint8_t numberofarg;
-		Bit16u nrows;
-		Bit16u ncols;
+		uint16_t nrows;
+		uint16_t ncols;
 		uint8_t savecol;
 		uint8_t saverow;
 		bool warned;
@@ -193,7 +193,7 @@ private:
     }
 
 	static void Real_INT10_SetCursorPos(uint8_t row,uint8_t col,uint8_t page) {
-		Bit16u		oldax,oldbx,olddx;
+		uint16_t		oldax,oldbx,olddx;
 
 		oldax=reg_ax;
 		oldbx=reg_bx;
@@ -383,7 +383,7 @@ private:
             }
         }
         else {
-            Bit16u oldax,oldbx;
+            uint16_t oldax,oldbx;
             oldax=reg_ax;
             oldbx=reg_bx;
 
@@ -405,7 +405,7 @@ private:
 		Real_INT10_SetCursorPos(cur_row,cur_col,page);
 
 		//Write the character
-		Bit16u		oldax,oldbx,oldcx;
+		uint16_t		oldax,oldbx,oldcx;
 		oldax=reg_ax;
 		oldbx=reg_bx;
 		oldcx=reg_cx;
@@ -564,7 +564,7 @@ private:
 	}//void Real_INT10_TeletypeOutputAttr(uint8_t chr,uint8_t attr,bool useattr) 
 public:
     // INT DC interface: CL=0x10 AH=0x03
-    void INTDC_CL10h_AH03h(Bit16u raw) {
+    void INTDC_CL10h_AH03h(uint16_t raw) {
         /* NTS: This emulates translation behavior seen in INT DCh interface:
          *
          *      DX = raw
@@ -589,22 +589,22 @@ public:
         ESC_M();
     }
 
-    void INTDC_CL10h_AH06h(Bit16u count) {
+    void INTDC_CL10h_AH06h(uint16_t count) {
         ansi.data[0] = (uint8_t)count; /* truncation is deliberate, just like the actual ANSI driver */
         ESC_BRACKET_A();
     }
 
-    void INTDC_CL10h_AH07h(Bit16u count) {
+    void INTDC_CL10h_AH07h(uint16_t count) {
         ansi.data[0] = (uint8_t)count; /* truncation is deliberate, just like the actual ANSI driver */
         ESC_BRACKET_B();
     }
 
-    void INTDC_CL10h_AH08h(Bit16u count) {
+    void INTDC_CL10h_AH08h(uint16_t count) {
         ansi.data[0] = (uint8_t)count; /* truncation is deliberate, just like the actual ANSI driver */
         ESC_BRACKET_C();
     }
 
-    void INTDC_CL10h_AH09h(Bit16u count) {
+    void INTDC_CL10h_AH09h(uint16_t count) {
         ansi.data[0] = (uint8_t)count; /* truncation is deliberate, just like the actual ANSI driver */
         ESC_BRACKET_D();
     }
@@ -656,9 +656,9 @@ public:
 //
 // The PDF documents ANSI codes defined on PC-98, which may or may not be a complete listing.
 
-bool device_CON::Read(uint8_t * data,Bit16u * size) {
-	Bit16u oldax=reg_ax;
-	Bit16u count=0;
+bool device_CON::Read(uint8_t * data,uint16_t * size) {
+	uint16_t oldax=reg_ax;
+	uint16_t count=0;
 	auto defattr=DefaultANSIAttr();
 	INT10_SetCurMode();
 	if ((readcache) && (*size)) {
@@ -756,8 +756,8 @@ bool device_CON::Read(uint8_t * data,Bit16u * size) {
 bool log_dev_con = false;
 std::string log_dev_con_str;
 
-bool device_CON::Write(const uint8_t * data,Bit16u * size) {
-    Bit16u count=0;
+bool device_CON::Write(const uint8_t * data,uint16_t * size) {
+    uint16_t count=0;
     Bitu i;
     uint8_t col,row,page;
 
@@ -1116,9 +1116,9 @@ bool device_CON::Close() {
 
 extern bool dos_con_use_int16_to_detect_input;
 
-Bit16u device_CON::GetInformation(void) {
+uint16_t device_CON::GetInformation(void) {
 	if (dos_con_use_int16_to_detect_input || IS_PC98_ARCH) {
-		Bit16u ret = 0x80D3; /* No Key Available */
+		uint16_t ret = 0x80D3; /* No Key Available */
 
 		/* DOSBox-X behavior: Use INT 16h AH=0x11 Query keyboard status/preview key.
 		 * The reason we do this is some DOS programs actually rely on hooking INT 16h
@@ -1140,7 +1140,7 @@ Bit16u device_CON::GetInformation(void) {
 		 * will trigger the INT 16h AH=0x11 hook it relies on. */
 		if (readcache || dev_con_pos < dev_con_max) return 0x8093; /* key available */
 
-		Bit16u saved_ax = reg_ax;
+		uint16_t saved_ax = reg_ax;
 
 		reg_ah = (IS_EGAVGA_ARCH)?0x11:0x1; // check for keystroke
 
@@ -1184,15 +1184,15 @@ Bit16u device_CON::GetInformation(void) {
 	}
 	else {
 		/* DOSBox mainline behavior: alternate "fast" way through direct manipulation of keyboard scan buffer */
-		Bit16u head=mem_readw(BIOS_KEYBOARD_BUFFER_HEAD);
-		Bit16u tail=mem_readw(BIOS_KEYBOARD_BUFFER_TAIL);
+		uint16_t head=mem_readw(BIOS_KEYBOARD_BUFFER_HEAD);
+		uint16_t tail=mem_readw(BIOS_KEYBOARD_BUFFER_TAIL);
 
 		if ((head==tail) && !readcache) return 0x80D3;	/* No Key Available */
 		if (readcache || real_readw(0x40,head)) return 0x8093;		/* Key Available */
 
 		/* remove the zero from keyboard buffer */
-		Bit16u start=mem_readw(BIOS_KEYBOARD_BUFFER_START);
-		Bit16u end	=mem_readw(BIOS_KEYBOARD_BUFFER_END);
+		uint16_t start=mem_readw(BIOS_KEYBOARD_BUFFER_START);
+		uint16_t end	=mem_readw(BIOS_KEYBOARD_BUFFER_END);
 		head+=2;
 		if (head>=end) head=start;
 		mem_writew(BIOS_KEYBOARD_BUFFER_HEAD,head);

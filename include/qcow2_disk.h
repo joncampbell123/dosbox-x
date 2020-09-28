@@ -78,7 +78,7 @@ private:
 	Bit64u refcount_bits;
 	QCow2Image* backing_image;
 
-	static Bit16u host_read16(Bit16u buffer);
+	static uint16_t host_read16(uint16_t buffer);
 
 	static Bit32u host_read32(Bit32u buffer);
 
@@ -112,7 +112,7 @@ private:
 
 	uint8_t write_l2_table_entry(Bit64u l2_table_offset, Bit64u address, Bit64u data_cluster_offset);
 
-	uint8_t write_refcount(Bit64u cluster_offset, Bit64u refcount_cluster_offset, Bit16u refcount);
+	uint8_t write_refcount(Bit64u cluster_offset, Bit64u refcount_cluster_offset, uint16_t refcount);
 
 	uint8_t write_refcount_table_entry(Bit64u cluster_offset, Bit64u refcount_cluster_offset);
 

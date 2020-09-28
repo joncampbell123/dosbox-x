@@ -28,7 +28,7 @@
 #define fltype double
 
 /*
-	define Bits, Bitu, Bit32s, Bit32u, Bit16s, Bit16u, int8_t, uint8_t here
+	define Bits, Bitu, Bit32s, Bit32u, Bit16s, uint16_t, int8_t, uint8_t here
 */
 /*
 #include <stdint.h>
@@ -36,7 +36,7 @@ typedef uintptr_t	Bitu;
 typedef intptr_t	Bits;
 typedef uint32_t	Bit32u;
 typedef int32_t		Bit32s;
-typedef uint16_t	Bit16u;
+typedef uint16_t	uint16_t;
 typedef int16_t		Bit16s;
 typedef uint8_t		uint8_t;
 typedef int8_t		int8_t;

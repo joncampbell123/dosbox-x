@@ -82,7 +82,7 @@ public:
 	void initPCM(const Bit16s * const pcmWaveAddress, const Bit32u pcmWaveLength, const bool pcmWaveLooped, const bool pcmWaveInterpolated);
 
 	// Update parameters with respect to TVP, TVA and TVF, and generate next sample
-	float generateNextSample(const Bit32u amp, const Bit16u pitch, const Bit32u cutoff);
+	float generateNextSample(const Bit32u amp, const uint16_t pitch, const Bit32u cutoff);
 
 	// Deactivate the WG engine
 	void deactivate();
@@ -115,7 +115,7 @@ public:
 	void initPCM(const PairType master, const Bit16s * const pcmWaveAddress, const Bit32u pcmWaveLength, const bool pcmWaveLooped);
 
 	// Update parameters with respect to TVP, TVA and TVF, and generate next sample
-	void generateNextSample(const PairType master, const Bit32u amp, const Bit16u pitch, const Bit32u cutoff);
+	void generateNextSample(const PairType master, const Bit32u amp, const uint16_t pitch, const Bit32u cutoff);
 
 	// Perform mixing / ring modulation and return the result
 	float nextOutSample();

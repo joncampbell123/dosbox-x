@@ -58,7 +58,7 @@ static struct {
 			bool transfer_done;
 		} dma;
 		uint8_t mode,control;
-		Bit16u frequency;
+		uint16_t frequency;
 		uint8_t amplitude;
 		bool irq_activated;
 	} dac;

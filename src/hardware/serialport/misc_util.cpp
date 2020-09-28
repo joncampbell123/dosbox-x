@@ -128,7 +128,7 @@ TCPClientSocket::TCPClientSocket(TCPsocket source) {
 		isopen=true;
 	}
 }
-TCPClientSocket::TCPClientSocket(const char* destination, Bit16u port) {
+TCPClientSocket::TCPClientSocket(const char* destination, uint16_t port) {
 #ifdef NATIVESOCKETS
 	nativetcpstruct=0;
 #endif
@@ -289,7 +289,7 @@ void TCPClientSocket::SetSendBufferSize(Bitu bufsize) {
 }
 
 
-TCPServerSocket::TCPServerSocket(Bit16u port)
+TCPServerSocket::TCPServerSocket(uint16_t port)
 {
 	isopen = false;
 	mysock = 0;

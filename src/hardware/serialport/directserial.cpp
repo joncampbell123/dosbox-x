@@ -90,7 +90,7 @@ CDirectSerial::~CDirectSerial () {
 
 // to be continued...
 
-void CDirectSerial::handleUpperEvent(Bit16u type) {
+void CDirectSerial::handleUpperEvent(uint16_t type) {
 /*
 #if SERIAL_DEBUG
 		const char* s;
@@ -276,7 +276,7 @@ bool CDirectSerial::doReceive() {
 
 // updatePortConfig is called when emulated app changes the serial port
 // parameters baudrate, stopbits, number of databits, parity.
-void CDirectSerial::updatePortConfig (Bit16u divider, uint8_t lcr) {
+void CDirectSerial::updatePortConfig (uint16_t divider, uint8_t lcr) {
 	uint8_t parity = 0;
 
 	switch ((lcr & 0x38)>>3) {

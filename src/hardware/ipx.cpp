@@ -64,10 +64,10 @@ SDLNet_SocketSet clientSocketSet;
 
 packetBuffer incomingPacket;
 
-static Bit16u socketCount;
-static Bit16u opensockets[SOCKTABLESIZE]; 
+static uint16_t socketCount;
+static uint16_t opensockets[SOCKTABLESIZE]; 
 
-static Bit16u swapByte(Bit16u sockNum) {
+static uint16_t swapByte(uint16_t sockNum) {
 	return ((sockNum>> 8) | (sockNum << 8));
 }
 
@@ -90,7 +90,7 @@ Bitu ECBAmount = 0;
 #endif
 
 
-ECBClass::ECBClass(Bit16u segment, Bit16u offset) {
+ECBClass::ECBClass(uint16_t segment, uint16_t offset) {
 	ECBAddr = RealMake(segment, offset);
 	databuffer = 0;
 	
@@ -126,7 +126,7 @@ ECBClass::ECBClass(Bit16u segment, Bit16u offset) {
 	iuflag = getInUseFlag();
 	mysocket = getSocket();
 }
-void ECBClass::writeDataBuffer(uint8_t* buffer, Bit16u length) {
+void ECBClass::writeDataBuffer(uint8_t* buffer, uint16_t length) {
 	if(databuffer!=0) delete [] databuffer;
 	databuffer = new uint8_t[length];
 	memcpy(databuffer,buffer,length);
@@ -138,11 +138,11 @@ bool ECBClass::writeData() {
 	uint8_t* buffer = databuffer;
 	fragmentDescriptor tmpFrag;
 	setInUseFlag(USEFLAG_AVAILABLE);
-	Bit16u fragCount = getFragCount(); 
+	uint16_t fragCount = getFragCount(); 
 	Bitu bufoffset = 0;
-	for(Bit16u i = 0;i < fragCount;i++) {
+	for(uint16_t i = 0;i < fragCount;i++) {
 		getFragDesc(i,&tmpFrag);
-		for(Bit16u t = 0;t < tmpFrag.size;t++) {
+		for(uint16_t t = 0;t < tmpFrag.size;t++) {
 			real_writeb(tmpFrag.segment, tmpFrag.offset + t, buffer[bufoffset]);
 			bufoffset++;
 			if(bufoffset >= length) {
@@ -159,7 +159,7 @@ bool ECBClass::writeData() {
 	return false;
 }
 
-Bit16u ECBClass::getSocket(void) {
+uint16_t ECBClass::getSocket(void) {
 	return swapByte(real_readw(RealSeg(ECBAddr), RealOff(ECBAddr) + 0xa));
 }
 
@@ -176,12 +176,12 @@ void ECBClass::setCompletionFlag(uint8_t flagval) {
 	real_writeb(RealSeg(ECBAddr), RealOff(ECBAddr) + 0x9, flagval);
 }
 
-Bit16u ECBClass::getFragCount(void) {
+uint16_t ECBClass::getFragCount(void) {
 	return real_readw(RealSeg(ECBAddr), RealOff(ECBAddr) + 34);
 }
 
-void ECBClass::getFragDesc(Bit16u descNum, fragmentDescriptor *fragDesc) {
-	Bit16u memoff = RealOff(ECBAddr) + 30 + ((descNum+1) * 6);
+void ECBClass::getFragDesc(uint16_t descNum, fragmentDescriptor *fragDesc) {
+	uint16_t memoff = RealOff(ECBAddr) + 30 + ((descNum+1) * 6);
 	fragDesc->offset = real_readw(RealSeg(ECBAddr), memoff);
 	memoff += 2;
 	fragDesc->segment = real_readw(RealSeg(ECBAddr), memoff);
@@ -263,7 +263,7 @@ ECBClass::~ECBClass() {
 
 
 
-static bool sockInUse(Bit16u sockNum) {
+static bool sockInUse(uint16_t sockNum) {
 	for(Bitu i=0;i<socketCount;i++) {
 		if (opensockets[i] == sockNum) return true;
 	}
@@ -271,7 +271,7 @@ static bool sockInUse(Bit16u sockNum) {
 }
 
 static void OpenSocket(void) {
-	Bit16u sockNum, sockAlloc;
+	uint16_t sockNum, sockAlloc;
 	sockNum = swapByte(reg_dx);
 
 	if(socketCount >= SOCKTABLESIZE) {
@@ -304,7 +304,7 @@ static void OpenSocket(void) {
 }
 
 static void CloseSocket(void) {
-	Bit16u sockNum, i;
+	uint16_t sockNum, i;
 	ECBClass* tmpECB = ECBList;
 	ECBClass* tmp2ECB = ECBList;
 
@@ -465,7 +465,7 @@ static void handleIpxRequest(void) {
 				localIpxAddr.netnode[1], localIpxAddr.netnode[0]);
 
 			uint8_t * addrptr = (uint8_t *)&localIpxAddr;
-			for(Bit16u i=0;i<10;i++)
+			for(uint16_t i=0;i<10;i++)
 				real_writeb(SegValue(es),reg_si+i,addrptr[i]);
 			break;
 		}
@@ -566,8 +566,8 @@ static void pingSend(void) {
 static void receivePacket(uint8_t *buffer, Bit16s bufSize) {
 	ECBClass *useECB;
 	ECBClass *nextECB;
-	Bit16u *bufword = (Bit16u *)buffer;
-	Bit16u useSocket = swapByte(bufword[8]);
+	uint16_t *bufword = (uint16_t *)buffer;
+	uint16_t useSocket = swapByte(bufword[8]);
 	IPXHeader * tmpHeader;
 	tmpHeader = (IPXHeader *)buffer;
 
@@ -589,7 +589,7 @@ static void receivePacket(uint8_t *buffer, Bit16s bufSize) {
 	{
 		nextECB = useECB->nextECB;
 		if(useECB->iuflag == USEFLAG_LISTENING && useECB->mysocket == useSocket) {
-			useECB->writeDataBuffer(buffer, (Bit16u)bufSize);
+			useECB->writeDataBuffer(buffer, (uint16_t)bufSize);
 			useECB->NotifyESR();
 			return;
 		}
@@ -623,9 +623,9 @@ void DisconnectFromServer(bool unexpected) {
 static void sendPacket(ECBClass* sendecb) {
 	uint8_t outbuffer[IPXBUFFERSIZE];
 	fragmentDescriptor tmpFrag; 
-	Bit16u i, fragCount,t;
+	uint16_t i, fragCount,t;
 	Bit16s packetsize;
-	Bit16u *wordptr;
+	uint16_t *wordptr;
 	Bits result;
 	UDPpacket outPacket;
 		
@@ -641,12 +641,12 @@ static void sendPacket(ECBClass* sendecb) {
 			
 			// source netnum
 			addrptr = (uint8_t *)&localIpxAddr.netnum;
-			for(Bit16u m=0;m<4;m++) {
+			for(uint16_t m=0;m<4;m++) {
 				real_writeb(tmpFrag.segment,tmpFrag.offset+m+18,addrptr[m]);
 			}
 			// source node number
 			addrptr = (uint8_t *)&localIpxAddr.netnode;
-			for(Bit16u m=0;m<6;m++) {
+			for(uint16_t m=0;m<6;m++) {
 				real_writeb(tmpFrag.segment,tmpFrag.offset+m+22,addrptr[m]);
 			}
 			// Source socket
@@ -669,16 +669,16 @@ static void sendPacket(ECBClass* sendecb) {
 	}
 	
 	// Add length and source socket to IPX header
-	wordptr = (Bit16u *)&outbuffer[0];
+	wordptr = (uint16_t *)&outbuffer[0];
 	// Blank CRC
 	//wordptr[0] = 0xffff;
 	// Length
-	wordptr[1] = swapByte((Bit16u)packetsize);
+	wordptr[1] = swapByte((uint16_t)packetsize);
 	// Source socket
 	//wordptr[14] = swapByte(sendecb->getSocket());
 	
 	sendecb->getFragDesc(0,&tmpFrag);
-	real_writew(tmpFrag.segment,tmpFrag.offset+2, swapByte((Bit16u)packetsize));
+	real_writew(tmpFrag.segment,tmpFrag.offset+2, swapByte((uint16_t)packetsize));
 	
 
 	uint8_t immedAddr[6];
@@ -752,7 +752,7 @@ bool ConnectToServer(char const *strAddr) {
 	int numsent;
 	UDPpacket regPacket;
 	IPXHeader regHeader;
-	if(!SDLNet_ResolveHost(&ipxServConnIp, strAddr, (Bit16u)udpPort)) {
+	if(!SDLNet_ResolveHost(&ipxServConnIp, strAddr, (uint16_t)udpPort)) {
 
 		// Generate the MAC address.  This is made by zeroing out the first two
 		// octets and then using the actual IP address for the last 4 octets.
@@ -945,7 +945,7 @@ public:
 					} else {
 						udpPort = (unsigned int)strtol(temp_line.c_str(), NULL, 10);
 					}
-					startsuccess = IPX_StartServer((Bit16u)udpPort);
+					startsuccess = IPX_StartServer((uint16_t)udpPort);
 					if(startsuccess) {
 						WriteOut("IPX Tunneling Server started\n");
 						isIpxServer = true;
@@ -1085,7 +1085,7 @@ Bitu IPX_ESRHandler(void) {
 void VFILE_Remove(const char *name);
 
 // FIXME: VS2015 doesn't seem to like class IPX::dospage
-static Bit16u dospage;
+static uint16_t dospage;
 
 class IPX: public Module_base {
 private:
@@ -1122,7 +1122,7 @@ public:
 		callback_ipxint.Set_RealVec(0x7a);
 
 		callback_esr.Allocate(&IPX_ESRHandler,"IPX_ESR");
-		Bit16u call_ipxesr1 = callback_esr.Get_callback();
+		uint16_t call_ipxesr1 = callback_esr.Get_callback();
 
 		if(!dospage) dospage = DOS_GetMemory(2,"IPX dospage"); // can not be freed yet
 
@@ -1135,8 +1135,8 @@ public:
 		phys_writeb(phyDospage+1,(uint8_t)0x60);    // PUSHA
 		phys_writeb(phyDospage+2,(uint8_t)0x1E);    // PUSH DS
 		phys_writeb(phyDospage+3,(uint8_t)0x06);    // PUSH ES
-		phys_writew(phyDospage+4,(Bit16u)0xA00F); // PUSH FS
-		phys_writew(phyDospage+6,(Bit16u)0xA80F); // PUSH GS
+		phys_writew(phyDospage+4,(uint16_t)0xA00F); // PUSH FS
+		phys_writew(phyDospage+6,(uint16_t)0xA80F); // PUSH GS
  
 		// callback
 		phys_writeb(phyDospage+8,(uint8_t)0xFE);  // GRP 4
@@ -1144,8 +1144,8 @@ public:
 		phys_writew(phyDospage+10,call_ipxesr1);        // Callback identifier
  
 		// register recreation
-		phys_writew(phyDospage+12,(Bit16u)0xA90F); // POP GS
-		phys_writew(phyDospage+14,(Bit16u)0xA10F); // POP FS
+		phys_writew(phyDospage+12,(uint16_t)0xA90F); // POP GS
+		phys_writew(phyDospage+14,(uint16_t)0xA10F); // POP FS
 		phys_writeb(phyDospage+16,(uint8_t)0x07);    // POP ES
 		phys_writeb(phyDospage+17,(uint8_t)0x1F);    // POP DS
 		phys_writeb(phyDospage+18,(uint8_t)0x61);    // POPA

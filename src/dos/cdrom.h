@@ -217,17 +217,17 @@ private:
 	// Nested Class Definitions
 	class TrackFile {
 	protected:
-		TrackFile(Bit16u _chunkSize) : chunkSize(_chunkSize) {}
+		TrackFile(uint16_t _chunkSize) : chunkSize(_chunkSize) {}
 	public:
 		virtual          ~TrackFile() = default;
 		virtual bool     read(uint8_t *buffer, int seek, int count) = 0;
 		virtual bool     seek(Bit32u offset) = 0;
-		virtual Bit16u   decode(uint8_t *buffer) = 0;
-		virtual Bit16u   getEndian() = 0;
+		virtual uint16_t   decode(uint8_t *buffer) = 0;
+		virtual uint16_t   getEndian() = 0;
 		virtual Bit32u   getRate() = 0;
 		virtual uint8_t    getChannels() = 0;
 		virtual int      getLength() = 0;
-		const Bit16u chunkSize = 0;
+		const uint16_t chunkSize = 0;
 	};
 
     //! \brief Binary file reader for the image
@@ -242,8 +242,8 @@ private:
 
 		bool            read(uint8_t *buffer, int seek, int count);
 		bool            seek(Bit32u offset);
-		Bit16u          decode(uint8_t *buffer);
-		Bit16u          getEndian();
+		uint16_t          decode(uint8_t *buffer);
+		uint16_t          getEndian();
 		Bit32u          getRate() { return 44100; }
 		uint8_t           getChannels() { return 2; }
 		int             getLength();
@@ -262,8 +262,8 @@ private:
 
 		bool            read(uint8_t *buffer, int seek, int count) { (void)buffer; (void)seek; (void)count; return false; }
 		bool            seek(Bit32u offset);
-		Bit16u          decode(uint8_t *buffer);
-		Bit16u          getEndian();
+		uint16_t          decode(uint8_t *buffer);
+		uint16_t          getEndian();
 		Bit32u          getRate();
 		uint8_t           getChannels();
 		int             getLength();
@@ -341,8 +341,8 @@ private:
 		void     (MixerChannel::*addSamples) (Bitu, const Bit16s*);
 		Bit32u   playbackTotal;
 		int      playbackRemaining;
-		Bit16u   bufferPos;
-		Bit16u   bufferConsumed;
+		uint16_t   bufferPos;
+		uint16_t   bufferConsumed;
 	} player;
 
 	// Private utility functions

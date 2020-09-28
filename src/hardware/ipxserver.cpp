@@ -39,9 +39,9 @@ UDPsocket tcpconn[SOCKETTABLESIZE];  // Active TCP/IP connections
 SDLNet_SocketSet serverSocketSet;
 TIMER_TickHandler* serverTimer;
 
-uint8_t packetCRC(uint8_t *buffer, Bit16u bufSize) {
+uint8_t packetCRC(uint8_t *buffer, uint16_t bufSize) {
 	uint8_t tmpCRC = 0;
-	Bit16u i;
+	uint16_t i;
 	for(i=0;i<bufSize;i++) {
 		tmpCRC ^= *buffer;
 		buffer++;
@@ -50,7 +50,7 @@ uint8_t packetCRC(uint8_t *buffer, Bit16u bufSize) {
 }
 
 /*
-static void closeSocket(Bit16u sockidx) {
+static void closeSocket(uint16_t sockidx) {
 	Bit32u host;
 
 	host = ipconn[sockidx].host;
@@ -64,9 +64,9 @@ static void closeSocket(Bit16u sockidx) {
 */
 
 static void sendIPXPacket(uint8_t *buffer, Bit16s bufSize) {
-	Bit16u srcport, destport;
+	uint16_t srcport, destport;
 	Bit32u srchost, desthost;
-	Bit16u i;
+	uint16_t i;
 	Bits result;
 	UDPpacket outPacket;
 	outPacket.channel = -1;
@@ -152,7 +152,7 @@ static void IPX_ServerLoop() {
 
 	//char regString[] = "IPX Register\0";
 
-	Bit16u i;
+	uint16_t i;
 	Bit32u host;
 	Bits result;
 
@@ -209,8 +209,8 @@ void IPX_StopServer() {
 	SDLNet_UDP_Close(ipxServerSocket);
 }
 
-bool IPX_StartServer(Bit16u portnum) {
-	Bit16u i;
+bool IPX_StartServer(uint16_t portnum) {
+	uint16_t i;
 
 	if(!SDLNet_ResolveHost(&ipxServerIp, NULL, portnum)) {
 	

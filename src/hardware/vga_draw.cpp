@@ -1018,8 +1018,8 @@ static uint8_t * VGA_Draw_VGA_Line_HWMouse( Bitu vidstart, Bitu /*line*/) {
 
 /* render 16bpp line DOUBLED horizontally */
 static uint8_t * VGA_Draw_LIN16_Line_2x(Bitu vidstart, Bitu /*line*/) {
-    Bit16u *s = (Bit16u*)(&vga.mem.linear[vidstart]);
-    Bit16u *d = (Bit16u*)TempLine;
+    uint16_t *s = (uint16_t*)(&vga.mem.linear[vidstart]);
+    uint16_t *d = (uint16_t*)TempLine;
 
     for (Bitu i = 0; i < (vga.draw.line_length>>2); i++) {
         d[0] = d[1] = *s++;
@@ -1045,7 +1045,7 @@ static uint8_t * VGA_Draw_LIN16_Line_HWMouse(Bitu vidstart, Bitu /*line*/) {
         Bitu cursorStartBit = sourceStartBit & 0x7u;
         if (cursorMemStart & 0x2) cursorMemStart--;
         Bitu cursorMemEnd = cursorMemStart + (Bitu)((64 - vga.s3.hgc.posx) >> 2);
-        Bit16u* xat = &((Bit16u*)TempLine)[vga.s3.hgc.originx];
+        uint16_t* xat = &((uint16_t*)TempLine)[vga.s3.hgc.originx];
         for (Bitu m = cursorMemStart; m < cursorMemEnd; (m&1)?(m+=3):m++) {
             // for each byte of cursor data
             uint8_t bitsA = vga.mem.linear[m];
@@ -1060,9 +1060,9 @@ static uint8_t * VGA_Draw_LIN16_Line_HWMouse(Bitu vidstart, Bitu /*line*/) {
                 } else if (bitsB&bit) {
                     // Source as well as destination are uint8_t arrays, 
                     // so this should work out endian-wise?
-                    *xat = *(Bit16u*)vga.s3.hgc.forestack;
+                    *xat = *(uint16_t*)vga.s3.hgc.forestack;
                 } else {
-                    *xat = *(Bit16u*)vga.s3.hgc.backstack;
+                    *xat = *(uint16_t*)vga.s3.hgc.backstack;
                 }
                 xat++;
             }
@@ -1239,7 +1239,7 @@ static uint8_t *Alt_CGA_2color_Draw_Line(Bitu /*vidstart*/, Bitu /*line*/) {
 
     while (blocks--) { // for each character in the line
         const unsigned int addr = vga.draw_2[0].crtc_addr_fetch_and_advance();
-        CGA_Latch pixels(*vga.draw_2[0].drawptr<Bit16u>(addr));
+        CGA_Latch pixels(*vga.draw_2[0].drawptr<uint16_t>(addr));
 
         *draw++=CGA_2_Table[pixels.b[0] >> 4];
         *draw++=CGA_2_Table[pixels.b[0] & 0xf];
@@ -1257,7 +1257,7 @@ static uint8_t *Alt_CGA_4color_Draw_Line(Bitu /*vidstart*/, Bitu /*line*/) {
 
     while (blocks--) { // for each character in the line
         const unsigned int addr = vga.draw_2[0].crtc_addr_fetch_and_advance();
-        CGA_Latch pixels(*vga.draw_2[0].drawptr<Bit16u>(addr));
+        CGA_Latch pixels(*vga.draw_2[0].drawptr<uint16_t>(addr));
 
         *draw++=CGA_4_Table[pixels.b[0]];
         *draw++=CGA_4_Table[pixels.b[1]];
@@ -1313,7 +1313,7 @@ template <const bool snow> static uint8_t * Alt_CGA_COMMON_TEXT_Draw_Line(void) 
 
     while (blocks--) { // for each character in the line
         const unsigned int addr = vga.draw_2[0].crtc_addr_fetch_and_advance();
-        CGA_Latch pixels(*vga.draw_2[0].drawptr<Bit16u>(addr));
+        CGA_Latch pixels(*vga.draw_2[0].drawptr<uint16_t>(addr));
 
         unsigned char chr = pixels.b[0];
         unsigned char attr = pixels.b[1];
@@ -1521,7 +1521,7 @@ static uint8_t * Alt_MDA_COMMON_TEXT_Draw_Line(void) {
 
     while (blocks--) { // for each character in the line
         const unsigned int addr = vga.draw_2[0].crtc_addr_fetch_and_advance();
-        CGA_Latch pixels(*vga.draw_2[0].drawptr<Bit16u>(addr));
+        CGA_Latch pixels(*vga.draw_2[0].drawptr<uint16_t>(addr));
 
         unsigned char chr = pixels.b[0];
         unsigned char attr = pixels.b[1];
@@ -1886,8 +1886,8 @@ static uint8_t* VGA_PC98_Xlat32_Draw_Line(Bitu vidstart, Bitu line) {
     Bit32u* draw = ((Bit32u*)TempLine);
     Bitu blocks = vga.draw.blocks;
     Bit32u vidmem = vidstart;
-    Bit16u chr = 0,attr = 0;
-    Bit16u lineoverlay = 0; // vertical + underline overlay over the character cell, but apparently with a 4-pixel delay
+    uint16_t chr = 0,attr = 0;
+    uint16_t lineoverlay = 0; // vertical + underline overlay over the character cell, but apparently with a 4-pixel delay
     bool doublewide = false;
     unsigned int disp_off = 0;
     unsigned char font,foreground;
@@ -2022,8 +2022,8 @@ static uint8_t* VGA_PC98_Xlat32_Draw_Line(Bitu vidstart, Bitu line) {
 
             if (!doublewide) {
 interrupted_char_begin:
-                chr = ((Bit16u*)vga.mem.linear)[(vidmem & 0xFFFU) + 0x0000U];
-                attr = ((Bit16u*)vga.mem.linear)[(vidmem & 0xFFFU) + 0x1000U];
+                chr = ((uint16_t*)vga.mem.linear)[(vidmem & 0xFFFU) + 0x0000U];
+                attr = ((uint16_t*)vga.mem.linear)[(vidmem & 0xFFFU) + 0x1000U];
 
                 if (pc98_attr4_graphic && (attr & 0x10)) {
                     /* the "vertical line" attribute (bit 4) can be redefined as a signal
@@ -2101,8 +2101,8 @@ interrupted_char_begin:
                 if ((chr&0x78U) == 0x08 || (chr&0x7FU) >= 0x56) {
                     uint16_t n_chr;
 
-                    n_chr = ((Bit16u*)vga.mem.linear)[(vidmem & 0xFFFU) + 0x0000U];
-                    attr = ((Bit16u*)vga.mem.linear)[(vidmem & 0xFFFU) + 0x1000U];
+                    n_chr = ((uint16_t*)vga.mem.linear)[(vidmem & 0xFFFU) + 0x0000U];
+                    attr = ((uint16_t*)vga.mem.linear)[(vidmem & 0xFFFU) + 0x1000U];
 
                     if ((chr&0x7F7F) != (n_chr&0x7F7F))
                         goto interrupted_char_begin;
@@ -2415,8 +2415,8 @@ again:
             if (vga.draw.bpp==8) {
                 memset(TempLine, bg_color_index, sizeof(TempLine));
             } else if (vga.draw.bpp==16) {
-                Bit16u* wptr = (Bit16u*) TempLine;
-                Bit16u value = vga.dac.xlat16[bg_color_index];
+                uint16_t* wptr = (uint16_t*) TempLine;
+                uint16_t value = vga.dac.xlat16[bg_color_index];
                 for (Bitu i = 0; i < sizeof(TempLine)/2; i++) {
                     wptr[i] = value;
                 }

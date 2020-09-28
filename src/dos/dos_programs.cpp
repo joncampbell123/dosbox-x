@@ -240,7 +240,7 @@ void MountHelper(char drive, const char drive2[DOS_PATHLENGTH], std::string driv
 	DOS_Drive * newdrive;
 	std::string temp_line;
 	std::string str_size;
-	Bit16u sizes[4];
+	uint16_t sizes[4];
 	uint8_t mediaid;
 
 	if(drive_type=="CDROM") {
@@ -343,7 +343,7 @@ void MenuMountDrive(char drive, const char drive2[DOS_PATHLENGTH]) {
 	DOS_Drive * newdrive;
 	std::string temp_line;
 	std::string str_size;
-	Bit16u sizes[4];
+	uint16_t sizes[4];
 	uint8_t mediaid;
 	drive_warn="Do you really want to give DOSBox-X access to";
 	int type=GetDriveType(drive2);
@@ -660,7 +660,7 @@ void MenuBrowseProgramFile() {
             uselfn=olduselfn;
         }
 
-        Bit16u n = (Bit16u)msg.size();
+        uint16_t n = (uint16_t)msg.size();
         DOS_WriteFile(STDERR,(uint8_t*)msg.c_str(),&n);
 
 		chdir( Temp_CurrentDir );
@@ -705,7 +705,7 @@ public:
     std::vector<std::string> options;
     void ListMounts(void) {
         char name[DOS_NAMELENGTH_ASCII],lname[LFN_NAMELENGTH];
-        Bit32u size;Bit16u date;Bit16u time;uint8_t attr;
+        Bit32u size;uint16_t date;uint16_t time;uint8_t attr;
         /* Command uses dta so set it to our internal dta */
         RealPt save_dta = dos.dta();
         dos.dta(dos.tables.tempdta);
@@ -864,7 +864,7 @@ public:
 		std::transform(type.begin(), type.end(), type.begin(), ::tolower);
         bool iscdrom = (type =="cdrom"); //Used for mscdex bug cdrom label name emulation
         if (type=="floppy" || type=="dir" || type=="cdrom" || type =="overlay") {
-            Bit16u sizes[4];
+            uint16_t sizes[4];
             uint8_t mediaid;
             std::string str_size;
             if (type=="floppy") {
@@ -886,13 +886,13 @@ public:
             std::string mb_size;
             if(cmd->FindString("-freesize",mb_size,true)) {
                 char teststr[1024];
-                Bit16u freesize = static_cast<Bit16u>(atoi(mb_size.c_str()));
+                uint16_t freesize = static_cast<uint16_t>(atoi(mb_size.c_str()));
                 if (type=="floppy") {
                     // freesize in kb
                     sprintf(teststr,"512,1,2880,%d",freesize*1024/(512*1)>2880?2880:freesize*1024/(512*1));
                 } else {
 					if (freesize>1919) freesize=1919;
-					Bit16u numc=type=="cdrom"?1:32;
+					uint16_t numc=type=="cdrom"?1:32;
                     Bit32u total_size_cyl=32765;
 					Bit32u tmp=(Bit32u)freesize*1024*1024/(type=="cdrom"?2048*1:512*32);
 					if (tmp>65534) numc=type=="cdrom"?(tmp+65535)/65536:64;
@@ -1283,7 +1283,7 @@ public:
     void writeb(PhysPt addr,uint8_t val){
         LOG(LOG_CPU,LOG_ERROR)("Write %x to rom at %x",(int)val,(int)addr);
     }
-    void writew(PhysPt addr,Bit16u val){
+    void writew(PhysPt addr,uint16_t val){
         LOG(LOG_CPU,LOG_ERROR)("Write %x to rom at %x",(int)val,(int)addr);
     }
     void writed(PhysPt addr,Bit32u val){
@@ -2078,7 +2078,7 @@ public:
                         /* run cartridge setup */
                         SegSet16(ds,dos.psp());
                         SegSet16(es,dos.psp());
-                        CALLBACK_RunRealFar((Bit16u)romseg,(Bit16u)cfound_at);
+                        CALLBACK_RunRealFar((uint16_t)romseg,(uint16_t)cfound_at);
                     }
                 }
             }
@@ -2118,15 +2118,15 @@ public:
 				strcat(msg, "Booting from drive ");
 				strcat(msg, std::string(1, drive).c_str());
 				strcat(msg, "...\r\n");
-				Bit16u s = (Bit16u)strlen(msg);
+				uint16_t s = (uint16_t)strlen(msg);
 				DOS_WriteFile(STDERR,(uint8_t*)msg,&s);
 			}
 
             if (IS_PC98_ARCH) {
-                for(i=0;i<bootsize;i++) real_writeb((Bit16u)load_seg, (Bit16u)i, bootarea.rawdata[i]);
+                for(i=0;i<bootsize;i++) real_writeb((uint16_t)load_seg, (uint16_t)i, bootarea.rawdata[i]);
             }
             else {
-                for(i=0;i<bootsize;i++) real_writeb(0, (Bit16u)((load_seg<<4) + i), bootarea.rawdata[i]);
+                for(i=0;i<bootsize;i++) real_writeb(0, (uint16_t)((load_seg<<4) + i), bootarea.rawdata[i]);
             }
 
             /* debug */
@@ -2167,14 +2167,14 @@ public:
                  * load_seg at 0x1FE0 which on the original 128KB PC-98 puts it at the top of memory
                  *
                  */
-                SegSet16(cs, (Bit16u)load_seg);
+                SegSet16(cs, (uint16_t)load_seg);
                 SegSet16(ds, 0x0000);
-                SegSet16(es, (Bit16u)load_seg);
+                SegSet16(es, (uint16_t)load_seg);
                 reg_ip = 0;
                 reg_ebx = 0x200;
                 reg_esp = 0xD8;
                 /* set up stack at a safe place */
-                SegSet16(ss, (Bit16u)stack_seg);
+                SegSet16(ss, (uint16_t)stack_seg);
                 reg_esi = (Bit32u)load_seg;
                 reg_ecx = 0x200;
                 reg_ebp = 0;
@@ -2211,7 +2211,7 @@ public:
 
                 /* PC-98 MS-DOS boot sector behavior suggests that the BIOS does a CALL FAR
                  * to the boot sector, and the boot sector can RETF back to the BIOS on failure. */
-                CPU_Push16((Bit16u)(BIOS_bootfail_code_offset >> 4)); /* segment */
+                CPU_Push16((uint16_t)(BIOS_bootfail_code_offset >> 4)); /* segment */
                 CPU_Push16(BIOS_bootfail_code_offset & 0xF); /* offset */
 
                 /* clear the text layer */
@@ -2243,7 +2243,7 @@ public:
                 uint8_t F2DD_MODE = 0; /* 5CAh (ref. PC-9800 Series Technical Data Book - BIOS 1992 page 233 */
                 /* bits [7:4] = 640KB FD drives 3:0 ??
                  * bits [3:0] = 1MB FD drives 3:0 ?? */
-                Bit16u disk_equip = 0, disk_equip_144 = 0;
+                uint16_t disk_equip = 0, disk_equip_144 = 0;
                 uint8_t scsi_equip = 0;
 
                 /* FIXME: MS-DOS appears to be able to see disk image B: but only
@@ -2264,7 +2264,7 @@ public:
                     if (imageDiskList[i+2] != NULL) {
                         scsi_equip |= (1u << i);
 
-                        Bit16u m = 0x460u + ((Bit16u)i * 4u);
+                        uint16_t m = 0x460u + ((uint16_t)i * 4u);
 
                         mem_writeb(m+0u,sects);
                         mem_writeb(m+1u,heads);
@@ -2301,11 +2301,11 @@ public:
                 SegSet16(cs, 0);
                 SegSet16(ds, 0);
                 SegSet16(es, 0);
-                reg_ip = (Bit16u)(load_seg<<4);
+                reg_ip = (uint16_t)(load_seg<<4);
                 reg_ebx = (Bit32u)(load_seg<<4); //Real code probably uses bx to load the image
                 reg_esp = 0x100;
                 /* set up stack at a safe place */
-                SegSet16(ss, (Bit16u)stack_seg);
+                SegSet16(ss, (uint16_t)stack_seg);
                 reg_esi = 0;
                 reg_ecx = 1;
                 reg_ebp = 0;
@@ -2736,7 +2736,7 @@ restart_int:
 		std::transform(disktype.begin(), disktype.end(), disktype.begin(), ::tolower);
 
         uint8_t mediadesc = 0xF8; // media descriptor byte; also used to differ fd and hd
-        Bit16u root_ent = 512; // FAT root directory entries: 512 is for harddisks
+        uint16_t root_ent = 512; // FAT root directory entries: 512 is for harddisks
         if(disktype=="fd_160") {
             c = 40; h = 1; s = 8; mediadesc = 0xFE; root_ent = 56; // root_ent?
         } else if(disktype=="fd_180") {
@@ -3174,7 +3174,7 @@ restart_int:
             Bitu data_area = vol_sectors - reserved_sectors - (sect_per_fat * fat_copies);
             if (FAT < 32) data_area -= ((root_ent * 32u) + 511u) / 512u;
             clusters = data_area / sectors_per_cluster;
-            if (FAT < 32) host_writew(&sbuf[0x16],(Bit16u)sect_per_fat);
+            if (FAT < 32) host_writew(&sbuf[0x16],(uint16_t)sect_per_fat);
 
             /* Too many or to few clusters can foul up FAT12/FAT16/FAT32 detection and cause corruption! */
             if ((clusters+2u) < fatlimitmin) {
@@ -3313,7 +3313,7 @@ restart_int:
             // size and geometry
             *(Bit64u*)(footer+0x30) = *(Bit64u*)(footer+0x28) = SDL_SwapBE64(size);
 
-            *(Bit16u*)(footer+0x38) = SDL_SwapBE16(c);
+            *(uint16_t*)(footer+0x38) = SDL_SwapBE16(c);
             *(uint8_t*)( footer+0x3A) = h;
             *(uint8_t*)( footer+0x3B) = s;
             *(Bit32u*)(footer+0x3C) = SDL_SwapBE32(2);
@@ -3381,11 +3381,11 @@ public:
 };
 
 bool XMS_Active(void);
-Bitu XMS_AllocateMemory(Bitu size, Bit16u& handle);
+Bitu XMS_AllocateMemory(Bitu size, uint16_t& handle);
 
 void LOADFIX::Run(void) 
 {
-    Bit16u commandNr    = 1;
+    uint16_t commandNr    = 1;
     Bitu kb             = 64;
     bool xms            = false;
 
@@ -3424,7 +3424,7 @@ void LOADFIX::Run(void)
     // Allocate Memory
     if (xms) {
         if (XMS_Active()) {
-            Bit16u handle;
+            uint16_t handle;
             Bitu err;
 
             err = XMS_AllocateMemory(kb,/*&*/handle);
@@ -3440,10 +3440,10 @@ void LOADFIX::Run(void)
         }
     }
     else {
-        Bit16u segment;
-        Bit16u blocks = (Bit16u)(kb*1024/16);
+        uint16_t segment;
+        uint16_t blocks = (uint16_t)(kb*1024/16);
         if (DOS_AllocateMemory(&segment,&blocks)) {
-            DOS_MCB mcb((Bit16u)(segment-1));
+            DOS_MCB mcb((uint16_t)(segment-1));
             mcb.SetPSPSeg(0x40);            // use fake segment
             WriteOut(MSG_Get("PROGRAM_LOADFIX_ALLOC"),kb);
             // Prepare commandline...
@@ -3543,7 +3543,7 @@ public:
         WriteOut(MSG_Get("PROGRAM_INTRO_MOUNT_END"));
     }
     void DisplayUsage(void) {
-        uint8_t c;Bit16u n=1;
+        uint8_t c;uint16_t n=1;
         WriteOut(MSG_Get("PROGRAM_INTRO_USAGE_TOP"));
         WriteOut(MSG_Get("PROGRAM_INTRO_USAGE_1"));
         DOS_ReadFile (STDIN,&c,&n);
@@ -3571,7 +3571,7 @@ public:
 
     bool CON_IN(uint8_t * data) {
         uint8_t c;
-        Bit16u n=1;
+        uint16_t n=1;
 
         /* handle arrow keys vs normal input,
          * with special conditions for PC-98 and IBM PC */
@@ -3618,7 +3618,7 @@ public:
         }
 
         if(cmd->FindExist("usage",false)) { DisplayUsage(); return; }
-        uint8_t c;Bit16u n=1;
+        uint8_t c;uint16_t n=1;
 
 #define CURSOR(option) \
     if (menuname==option) DisplayMenuCursorStart(); \
@@ -3817,7 +3817,7 @@ imageDiskMemory* CreateRamDrive(Bitu sizes[], const int reserved_cylinders, cons
                 if (obj!=NULL) obj->WriteOut("Floppy size not recognized\n");
                 return NULL;
             }
-            dsk = new imageDiskMemory((Bit16u)sizes[3], (Bit16u)sizes[2], (Bit16u)sizes[1], (Bit16u)sizes[0]);
+            dsk = new imageDiskMemory((uint16_t)sizes[3], (uint16_t)sizes[2], (uint16_t)sizes[1], (uint16_t)sizes[0]);
         }
     }
     if (!dsk->active) {
@@ -3912,7 +3912,7 @@ public:
     std::vector<std::string> options;
     void ListImgMounts(void) {
         char name[DOS_NAMELENGTH_ASCII],lname[LFN_NAMELENGTH];
-        Bit32u size;Bit16u date;Bit16u time;uint8_t attr;
+        Bit32u size;uint16_t date;uint16_t time;uint8_t attr;
         /* Command uses dta so set it to our internal dta */
         RealPt save_dta = dos.dta();
         dos.dta(dos.tables.tempdta);
@@ -4976,7 +4976,7 @@ private:
             sizes[0] = 512; // sector size
             sizes[1] = buf[0x3b];   // sectors
             sizes[2] = buf[0x3a];   // heads
-            sizes[3] = SDL_SwapBE16((Bit16u)(*(Bit16s*)(buf + 0x38)));    // cylinders
+            sizes[3] = SDL_SwapBE16((uint16_t)(*(Bit16s*)(buf + 0x38)));    // cylinders
 
                                                                 // Do translation (?)
             while ((sizes[2] < 128u) && (sizes[3] > 1023u)) {
@@ -5100,9 +5100,9 @@ private:
          */
         uint8_t starthead = 0; // start head of partition
         uint8_t startsect = 0; // start sector of partition
-        Bit16u startcyl = 0; // start cylinder of partition
+        uint16_t startcyl = 0; // start cylinder of partition
         uint8_t ptype = 0;     // Partition Type
-        Bit16u endcyl = 0;   // end cylinder of partition
+        uint16_t endcyl = 0;   // end cylinder of partition
         uint8_t heads = 0;     // heads in partition
         uint8_t sectors = 0;   // sectors per track in partition
         Bit32u pe1_size = host_readd(&buf[0x1ca]);
@@ -5143,7 +5143,7 @@ private:
                 //LOG_MSG("psize %u start %u end %u",pe1_size,part_start,part_end);
             } else {
                 sizes[0] = 512; sizes[1] = sectors;
-                sizes[2] = heads; sizes[3] = (Bit16u)(fcsize / (heads*sectors));
+                sizes[2] = heads; sizes[3] = (uint16_t)(fcsize / (heads*sectors));
                 if (sizes[3]>1023) sizes[3] = 1023;
                 return true;
             }
@@ -5479,7 +5479,7 @@ public:
 };
 
 void MODE::Run(void) {
-    Bit16u rate=0,delay=0,mode;
+    uint16_t rate=0,delay=0,mode;
     if (!cmd->FindCommand(1,temp_line) || temp_line=="/?") {
         WriteOut(MSG_Get("PROGRAM_MODE_USAGE"));
         return;
@@ -5524,10 +5524,10 @@ void MORE::Run(void) {
         WriteOut(MSG_Get("PROGRAM_MORE_USAGE"));
         return;
     }
-    Bit16u ncols=mem_readw(BIOS_SCREEN_COLUMNS);
-    Bit16u nrows=(Bit16u)mem_readb(BIOS_ROWS_ON_SCREEN_MINUS_1);
-    Bit16u col=1,row=1;
-    uint8_t c;Bit16u n=1;
+    uint16_t ncols=mem_readw(BIOS_SCREEN_COLUMNS);
+    uint16_t nrows=(uint16_t)mem_readb(BIOS_ROWS_ON_SCREEN_MINUS_1);
+    uint16_t col=1,row=1;
+    uint8_t c;uint16_t n=1;
     WriteOut("\n");
     while (n) {
         DOS_ReadFile(STDIN,&c,&n);
@@ -5700,7 +5700,7 @@ public:
         /* If no label is provided, MS-DOS will prompt the user whether to delete the label. */
         if (label.empty()) {
             uint8_t c,ans=0;
-            Bit16u s;
+            uint16_t s;
 
             do {
                 WriteOut("Delete the volume label (Y/N)? ");
@@ -6102,7 +6102,7 @@ public:
                 ret=GetExitCodeProcess(lpExecInfo.hProcess, &exitCode);
                 CALLBACK_Idle();
                 if (ctrlbrk) {
-                    uint8_t c;Bit16u n=1;
+                    uint8_t c;uint16_t n=1;
                     DOS_ReadFile (STDIN,&c,&n);
                     if (c == 3) WriteOut("^C\n");
                     EndStartProcess();

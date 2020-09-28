@@ -69,7 +69,7 @@ bool OUTPUT_SURFACE_StartUpdate(uint8_t* &pixels, Bitu &pitch)
     return true;
 }
 
-void OUTPUT_SURFACE_EndUpdate(const Bit16u *changedLines)
+void OUTPUT_SURFACE_EndUpdate(const uint16_t *changedLines)
 {
 #if DOSBOXMENU_TYPE == DOSBOXMENU_SDLDRAW
     GFX_DrawSDLMenu(mainMenu, mainMenu.display_list);
@@ -188,7 +188,7 @@ void OUTPUT_SURFACE_EndUpdate(const Bit16u *changedLines)
                     SDL_Rect *rect = &sdl.updateRects[rectCount++];
                     rect->x = sdl.clip.x;
                     rect->y = sdl.clip.y + (int)y;
-                    rect->w = (Bit16u)sdl.draw.width;
+                    rect->w = (uint16_t)sdl.draw.width;
                     rect->h = changedLines[index];
                     y += changedLines[index];
                     SDL_rect_cliptoscreen(*rect);

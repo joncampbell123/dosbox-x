@@ -319,7 +319,7 @@ switch (inst.code.op) {
 		break;
 	case O_XCHG_AX:
 		{
-			Bit16u temp=reg_ax;
+			uint16_t temp=reg_ax;
 			reg_ax=inst_op1_w;
 			inst_op1_w=temp;
 			break;
@@ -425,11 +425,11 @@ switch (inst.code.op) {
 	case O_GRP7d:
 		switch (inst.rm_index) {
 		case 0:		/* SGDT */
-			SaveMw(inst.rm_eaa,(Bit16u)CPU_SGDT_limit());
+			SaveMw(inst.rm_eaa,(uint16_t)CPU_SGDT_limit());
 			SaveMd(inst.rm_eaa+2,(Bit32u)CPU_SGDT_base());
 			goto nextopcode;
 		case 1:		/* SIDT */
-			SaveMw(inst.rm_eaa,(Bit16u)CPU_SIDT_limit());
+			SaveMw(inst.rm_eaa,(uint16_t)CPU_SIDT_limit());
 			SaveMd(inst.rm_eaa+2,(Bit32u)CPU_SIDT_base());
 			goto nextopcode;
 		case 2:		/* LGDT */

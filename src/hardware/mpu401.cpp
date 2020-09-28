@@ -83,8 +83,8 @@ static struct {
 		Bits data_onoff;
 		Bitu command_byte,cmd_pending;
 		uint8_t tmask,cmask,amask;
-		Bit16u midi_mask;
-		Bit16u req_mask;
+		uint16_t midi_mask;
+		uint16_t req_mask;
 		uint8_t channel,old_chan;
 	} state;
 	struct {
@@ -355,7 +355,7 @@ static void MPU401_WriteData(Bitu port,Bitu val,Bitu iolen) {
 		case 0xef: /* Set 9-16 MIDI channel mask */
 			mpu.state.command_byte=0;
 			mpu.state.midi_mask&=0x00ff;
-			mpu.state.midi_mask|=((Bit16u)val)<<8;
+			mpu.state.midi_mask|=((uint16_t)val)<<8;
 			return;
 		//case 0xe2:	/* Set graduation for relative tempo */
 		//case 0xe4:	/* Set metronome */

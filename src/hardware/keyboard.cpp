@@ -43,8 +43,8 @@
 
 void AUX_Reset();
 void KEYBOARD_Reset();
-static void KEYBOARD_SetPort60(Bit16u val);
-void KEYBOARD_AddBuffer(Bit16u data);
+static void KEYBOARD_SetPort60(uint16_t val);
+void KEYBOARD_AddBuffer(uint16_t data);
 static void KEYBOARD_Add8042Response(uint8_t data);
 void KEYBOARD_SetLEDs(uint8_t bits);
 
@@ -106,7 +106,7 @@ static struct {
     Bitu buf8042_pos;
     int pending_key;
 
-    Bit16u buffer[KEYBUFSIZE];
+    uint16_t buffer[KEYBUFSIZE];
     Bitu used;
     Bitu pos;
 
@@ -236,7 +236,7 @@ int KEYBOARD_AUX_Active() {
     return keyb.auxactive && !keyb.ps2mouse.int33_taken;
 }
 
-static void KEYBOARD_SetPort60(Bit16u val) {
+static void KEYBOARD_SetPort60(uint16_t val) {
     keyb.auxchanged=(val&AUX)>0;
     keyb.p60changed=true;
     keyb.p60data=(uint8_t)val;
@@ -309,7 +309,7 @@ static void KEYBOARD_Add8042Response(uint8_t data) {
     PIC_AddEvent(KEYBOARD_TransferBuffer,KEYDELAY);
 }
 
-void KEYBOARD_AddBuffer(Bit16u data) {
+void KEYBOARD_AddBuffer(uint16_t data) {
     if (keyb.used>=KEYBUFSIZE) {
         LOG(LOG_KEYBOARD,LOG_NORMAL)("Buffer full, dropping code");
         KEYBOARD_ClrBuffer(); return;

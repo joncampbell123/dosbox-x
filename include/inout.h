@@ -50,11 +50,11 @@ void IO_FreeWriteHandler(Bitu port,Bitu mask,Bitu range=1);
 void IO_InvalidateCachedHandler(Bitu port,Bitu range=1);
 
 void IO_WriteB(Bitu port,uint8_t val);
-void IO_WriteW(Bitu port,Bit16u val);
+void IO_WriteW(Bitu port,uint16_t val);
 void IO_WriteD(Bitu port,Bit32u val);
 
 uint8_t IO_ReadB(Bitu port);
-Bit16u IO_ReadW(Bitu port);
+uint16_t IO_ReadW(Bitu port);
 Bit32u IO_ReadD(Bitu port);
 
 static const Bitu IOMASK_ISA_10BIT = 0x3FFU; /* ISA 10-bit decode */
@@ -113,15 +113,15 @@ public:
 	void Install(Bitu port,Bitu portmask/*IOMASK_ISA_10BIT, etc.*/,IO_ReadCalloutHandler *r_handler,IO_WriteCalloutHandler *w_handler);
 	void Uninstall();
 public:
-    Bit16u io_mask;
-    Bit16u range_mask;
-    Bit16u alias_mask;
+    uint16_t io_mask;
+    uint16_t range_mask;
+    uint16_t alias_mask;
     unsigned int getcounter;
     IO_ReadCalloutHandler *m_r_handler;
     IO_WriteCalloutHandler *m_w_handler;
     bool alloc;
 public:
-    inline bool MatchPort(const Bit16u p) {
+    inline bool MatchPort(const uint16_t p) {
         /* (p & io_mask) == (m_port & io_mask) but this also works.
          * apparently modern x86 processors are faster at addition/subtraction than bitmasking.
          * for this to work, m_port must be a multiple of the I/O range. For example, if the I/O

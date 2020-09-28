@@ -106,7 +106,7 @@ void CPU_Reset_AutoAdjust(void);
 
 //CPU Stuff
 
-extern Bit16u parity_lookup[256];
+extern uint16_t parity_lookup[256];
 
 void CPU_SetCPL(Bitu newcpl);
 bool CPU_LLDT(Bitu selector);
@@ -186,13 +186,13 @@ static INLINE void CPU_SW_Interrupt_NoIOPLCheck(Bitu num,Bit32u oldeip) {
 bool CPU_PrepareException(Bitu which,Bitu error);
 void CPU_Exception(Bitu which,Bitu error=0);
 
-bool CPU_SetSegGeneral(SegNames seg,Bit16u value);
+bool CPU_SetSegGeneral(SegNames seg,uint16_t value);
 bool CPU_PopSeg(SegNames seg,bool use32);
 
 bool CPU_CPUID(void);
-Bit16u CPU_Pop16(void);
+uint16_t CPU_Pop16(void);
 Bit32u CPU_Pop32(void);
-void CPU_Push16(Bit16u value);
+void CPU_Push16(uint16_t value);
 void CPU_Push32(Bit32u value);
 
 void CPU_SetFlags(Bitu word,Bitu mask);
@@ -311,22 +311,22 @@ struct G_Descriptor {
 } GCC_ATTRIBUTE(packed);
 
 struct TSS_16 {	
-    Bit16u back;                 /* Back link to other task */
-    Bit16u sp0;				     /* The CK stack pointer */
-    Bit16u ss0;					 /* The CK stack selector */
-	Bit16u sp1;                  /* The parent KL stack pointer */
-    Bit16u ss1;                  /* The parent KL stack selector */
-	Bit16u sp2;                  /* Unused */
-    Bit16u ss2;                  /* Unused */
-    Bit16u ip;                   /* The instruction pointer */
-    Bit16u flags;                /* The flags */
-    Bit16u ax, cx, dx, bx;       /* The general purpose registers */
-    Bit16u sp, bp, si, di;       /* The special purpose registers */
-    Bit16u es;                   /* The extra selector */
-    Bit16u cs;                   /* The code selector */
-    Bit16u ss;                   /* The application stack selector */
-    Bit16u ds;                   /* The data selector */
-    Bit16u ldt;                  /* The local descriptor table */
+    uint16_t back;                 /* Back link to other task */
+    uint16_t sp0;				     /* The CK stack pointer */
+    uint16_t ss0;					 /* The CK stack selector */
+	uint16_t sp1;                  /* The parent KL stack pointer */
+    uint16_t ss1;                  /* The parent KL stack selector */
+	uint16_t sp2;                  /* Unused */
+    uint16_t ss2;                  /* Unused */
+    uint16_t ip;                   /* The instruction pointer */
+    uint16_t flags;                /* The flags */
+    uint16_t ax, cx, dx, bx;       /* The general purpose registers */
+    uint16_t sp, bp, si, di;       /* The special purpose registers */
+    uint16_t es;                   /* The extra selector */
+    uint16_t cs;                   /* The code selector */
+    uint16_t ss;                   /* The application stack selector */
+    uint16_t ds;                   /* The data selector */
+    uint16_t ldt;                  /* The local descriptor table */
 } GCC_ATTRIBUTE(packed);
 
 struct TSS_32 {	

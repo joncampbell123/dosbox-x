@@ -139,7 +139,7 @@ bool CFileLPT::Putchar(uint8_t val)
 	if(!fileOpen) if(!OpenFile()) return false;
 
 	if(codepage_ptr!=NULL) {
-		Bit16u extchar = codepage_ptr[val];
+		uint16_t extchar = codepage_ptr[val];
 		if(extchar & 0xFF00) fputc((int)((uint8_t)(extchar >> 8)),file);
 		fputc((Bitu)(extchar & 0xFF),file);
 
@@ -186,7 +186,7 @@ void CFileLPT::Write_IOSEL(Bitu val) {
     (void)val;//UNUSED
 	// not needed for file printing functionality
 }
-void CFileLPT::handleUpperEvent(Bit16u type) {
+void CFileLPT::handleUpperEvent(uint16_t type) {
     (void)type;//UNUSED
 	if(fileOpen && timeout != 0) {
 		if(lastUsedTick + timeout < PIC_Ticks) {

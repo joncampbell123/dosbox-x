@@ -29,7 +29,7 @@
 namespace MT32Emu {
 
 // FIXME: Add Explanation
-static Bit16u lowerDurationToDivisor[] = {34078, 37162, 40526, 44194, 48194, 52556, 57312, 62499};
+static uint16_t lowerDurationToDivisor[] = {34078, 37162, 40526, 44194, 48194, 52556, 57312, 62499};
 
 // These values represent unique options with no consistent pattern, so we have to use something like a table in any case.
 // The table matches exactly what the manual claims (when divided by 8192):
@@ -39,7 +39,7 @@ static Bit16s pitchKeyfollowMult[] = {-8192, -4096, -2048, 0, 1024, 2048, 3072, 
 
 // Note: Keys < 60 use keyToPitchTable[60 - key], keys >= 60 use keyToPitchTable[key - 60].
 // FIXME: This table could really be shorter, since we never use e.g. key 127.
-static Bit16u keyToPitchTable[] = {
+static uint16_t keyToPitchTable[] = {
 	    0,   341,   683,  1024,  1365,  1707,  2048,  2389,
 	 2731,  3072,  3413,  3755,  4096,  4437,  4779,  5120,
 	 5461,  5803,  6144,  6485,  6827,  7168,  7509,  7851,
@@ -199,7 +199,7 @@ void TVP::updatePitch() {
 	if (newPitch > 59392) {
 		newPitch = 59392;
 	}
-	pitch = Bit16u(newPitch);
+	pitch = uint16_t(newPitch);
 
 	// FIXME: We're doing this here because that's what the CM-32L does - we should probably move this somewhere more appropriate in future.
 	partial->getTVA()->recalcSustain();
@@ -277,7 +277,7 @@ void TVP::setupPitchChange(int targetPitchOffset, uint8_t changeDuration) {
 	changeDuration--; // changeDuration's now between 0 and 111
 	unsigned int upperDuration = changeDuration >> 3; // upperDuration's now between 0 and 13
 	shifts = normalisationShifts + upperDuration + 2;
-	Bit16u divisor = lowerDurationToDivisor[changeDuration & 7];
+	uint16_t divisor = lowerDurationToDivisor[changeDuration & 7];
 	Bit16s newPitchOffsetChangePerBigTick = ((absPitchOffsetDelta & 0xFFFF0000) / divisor) >> 1; // Result now fits within 15 bits. FIXME: Check nothing's getting sign-extended incorrectly
 	if (negativeDelta) {
 		newPitchOffsetChangePerBigTick = -newPitchOffsetChangePerBigTick;
@@ -299,7 +299,7 @@ void TVP::startDecay() {
 	targetPitchOffsetReachedBigTick = timeElapsed >> 8; // FIXME: Afaict there's no good reason for this - check
 }
 
-Bit16u TVP::nextPitch() {
+uint16_t TVP::nextPitch() {
 	// We emulate MCU software timer using these counter and processTimerIncrement variables.
 	// The value of nominalProcessTimerPeriod approximates the period in samples
 	// between subsequent firings of the timer that normally occur.

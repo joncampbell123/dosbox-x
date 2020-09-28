@@ -25,7 +25,7 @@
 static uint8_t cga_masks[4]={0x3f,0xcf,0xf3,0xfc};
 static uint8_t cga_masks2[8]={0x7f,0xbf,0xdf,0xef,0xf7,0xfb,0xfd,0xfe};
 
-void INT10_PutPixel(Bit16u x,Bit16u y,uint8_t page,uint8_t color) {
+void INT10_PutPixel(uint16_t x,uint16_t y,uint8_t page,uint8_t color) {
 	static bool putpixelwarned = false;
 
     if (IS_PC98_ARCH) {
@@ -38,7 +38,7 @@ void INT10_PutPixel(Bit16u x,Bit16u y,uint8_t page,uint8_t color) {
 	{
 		if (real_readb(BIOSMEM_SEG,BIOSMEM_CURRENT_MODE)<=5) {
 			// this is a 16k mode
-			Bit16u off=(y>>1)*80+(x>>2);
+			uint16_t off=(y>>1)*80+(x>>2);
 			if (y&1) off+=8*1024;
 
 			uint8_t old=real_readb(0xb800,off);
@@ -51,7 +51,7 @@ void INT10_PutPixel(Bit16u x,Bit16u y,uint8_t page,uint8_t color) {
 			real_writeb(0xb800,off,old);
 		} else {
 			// a 32k mode: PCJr special case (see M_TANDY16)
-			Bit16u seg;
+			uint16_t seg;
 			if (machine==MCH_PCJR) {
 				uint8_t cpupage =
 					(real_readb(BIOSMEM_SEG, BIOSMEM_CRTCPU_PAGE) >> 3) & 0x7;
@@ -59,10 +59,10 @@ void INT10_PutPixel(Bit16u x,Bit16u y,uint8_t page,uint8_t color) {
 			} else
 				seg = 0xb800;
 
-			Bit16u off=(y>>2)*160+((x>>2)&(~1));
+			uint16_t off=(y>>2)*160+((x>>2)&(~1));
 			off+=(8*1024) * (y & 3);
 
-			Bit16u old=real_readw(seg,off);
+			uint16_t old=real_readw(seg,off);
 			if (color & 0x80) {
 				old^=(color&1) << (7-(x&7));
 				old^=((color&2)>>1) << ((7-(x&7))+8);
@@ -75,7 +75,7 @@ void INT10_PutPixel(Bit16u x,Bit16u y,uint8_t page,uint8_t color) {
 	break;
 	case M_CGA2:
         if (machine == MCH_MCGA && real_readb(BIOSMEM_SEG, BIOSMEM_CURRENT_MODE) == 0x11) {
-            Bit16u off=y*80+(x>>3);
+            uint16_t off=y*80+(x>>3);
             uint8_t old=real_readb(0xa000,off);
 
             if (color & 0x80) {
@@ -87,7 +87,7 @@ void INT10_PutPixel(Bit16u x,Bit16u y,uint8_t page,uint8_t color) {
             real_writeb(0xa000,off,old);
         }
         else {
-				Bit16u off=(y>>1)*80+(x>>3);
+				uint16_t off=(y>>1)*80+(x>>3);
 				if (y&1) off+=8*1024;
 				uint8_t old=real_readb(0xb800,off);
 				if (color & 0x80) {
@@ -107,7 +107,7 @@ void INT10_PutPixel(Bit16u x,Bit16u y,uint8_t page,uint8_t color) {
 		bool is_32k = (real_readb(BIOSMEM_SEG, BIOSMEM_CURRENT_MODE) >= 9)?
 			true:false;
 
-		Bit16u segment, offset;
+		uint16_t segment, offset;
 		if (is_32k) {
 			if (machine==MCH_PCJR) {
 				uint8_t cpupage =
@@ -199,7 +199,7 @@ void INT10_PutPixel(Bit16u x,Bit16u y,uint8_t page,uint8_t color) {
 	}	
 }
 
-void INT10_GetPixel(Bit16u x,Bit16u y,uint8_t page,uint8_t * color) {
+void INT10_GetPixel(uint16_t x,uint16_t y,uint8_t page,uint8_t * color) {
     if (IS_PC98_ARCH) {
         // TODO: Not supported yet
         return;
@@ -208,7 +208,7 @@ void INT10_GetPixel(Bit16u x,Bit16u y,uint8_t page,uint8_t * color) {
 	switch (CurMode->type) {
 	case M_CGA4:
 		{
-			Bit16u off=(y>>1)*80+(x>>2);
+			uint16_t off=(y>>1)*80+(x>>2);
 			if (y&1) off+=8*1024;
 			uint8_t val=real_readb(0xb800,off);
 			*color=(val>>((3-(x&3))*2)) & 3 ;
@@ -216,7 +216,7 @@ void INT10_GetPixel(Bit16u x,Bit16u y,uint8_t page,uint8_t * color) {
 		break;
 	case M_CGA2:
 		{
-			Bit16u off=(y>>1)*80+(x>>3);
+			uint16_t off=(y>>1)*80+(x>>3);
 			if (y&1) off+=8*1024;
 			uint8_t val=real_readb(0xb800,off);
 			*color=(val>>(7-(x&7))) & 1 ;
@@ -225,7 +225,7 @@ void INT10_GetPixel(Bit16u x,Bit16u y,uint8_t page,uint8_t * color) {
 	case M_TANDY16:
 		{
 			bool is_32k = (real_readb(BIOSMEM_SEG, BIOSMEM_CURRENT_MODE) >= 9)?true:false;
-			Bit16u segment, offset;
+			uint16_t segment, offset;
 			if (is_32k) {
 				if (machine==MCH_PCJR) {
 					uint8_t cpupage = (real_readb(BIOSMEM_SEG, BIOSMEM_CRTCPU_PAGE) >> 3) & 0x7;

@@ -138,17 +138,17 @@ typedef struct {
     bx_bool  deferred;	// DFR - collision active
   } RSR;
 
-  Bit16u local_dma;	// 01,02h read ; current local DMA addr
+  uint16_t local_dma;	// 01,02h read ; current local DMA addr
   uint8_t  page_start;  // 01h write ; page start register
   uint8_t  page_stop;   // 02h write ; page stop register
   uint8_t  bound_ptr;   // 03h read/write ; boundary pointer
   uint8_t  tx_page_start; // 04h write ; transmit page start register
   uint8_t  num_coll;    // 05h read  ; number-of-collisions register
-  Bit16u tx_bytes;    // 05,06h write ; transmit byte-count register
+  uint16_t tx_bytes;    // 05,06h write ; transmit byte-count register
   uint8_t  fifo;	// 06h read  ; FIFO
-  Bit16u remote_dma;  // 08,09h read ; current remote DMA addr
-  Bit16u remote_start;  // 08,09h write ; remote start address register
-  Bit16u remote_bytes;  // 0a,0bh write ; remote byte-count register
+  uint16_t remote_dma;  // 08,09h read ; current remote DMA addr
+  uint16_t remote_start;  // 08,09h write ; remote start address register
+  uint16_t remote_bytes;  // 0a,0bh write ; remote byte-count register
   uint8_t  tallycnt_0;  // 0dh read  ; tally counter 0 (frame align errors)
   uint8_t  tallycnt_1;  // 0eh read  ; tally counter 1 (CRC errors)
   uint8_t  tallycnt_2;  // 0fh read  ; tally counter 2 (missed pkt errors)
@@ -178,7 +178,7 @@ typedef struct {
   //
   uint8_t  rempkt_ptr;   // 03h read/write ; remote next-packet pointer
   uint8_t  localpkt_ptr; // 05h read/write ; local next-packet pointer
-  Bit16u address_cnt;  // 06,07h read/write ; address counter
+  uint16_t address_cnt;  // 06,07h read/write ; address counter
 
     //
     // Page 3  - should never be modified.

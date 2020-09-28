@@ -35,7 +35,7 @@ std::list<DOS_GetMemLog_Entry> DOS_GetMemLog;
 #pragma pack(1)
 #endif
 struct DOS_TableCase {	
-	Bit16u size;
+	uint16_t size;
 	uint8_t chars[256];
 }
 GCC_ATTRIBUTE (packed);
@@ -56,7 +56,7 @@ void DOS_Casemap_Free(void) {
     }
 }
 
-static Bit16u dos_memseg=0;//DOS_PRIVATE_SEGMENT;
+static uint16_t dos_memseg=0;//DOS_PRIVATE_SEGMENT;
 
 extern Bitu VGA_BIOS_SEG_END;
 bool DOS_GetMemory_unmapped = false;
@@ -90,8 +90,8 @@ void DOS_GetMemory_Choose() {
 	if (DOS_PRIVATE_SEGMENT == 0) {
         /* DOSBox-X non-compatible: Position ourself just past the VGA BIOS */
         /* NTS: Code has been arranged so that DOS kernel init follows BIOS INT10h init */
-        DOS_PRIVATE_SEGMENT=(Bit16u)VGA_BIOS_SEG_END;
-        DOS_PRIVATE_SEGMENT_END= (Bit16u)(DOS_PRIVATE_SEGMENT + DOS_PRIVATE_SEGMENT_Size);
+        DOS_PRIVATE_SEGMENT=(uint16_t)VGA_BIOS_SEG_END;
+        DOS_PRIVATE_SEGMENT_END= (uint16_t)(DOS_PRIVATE_SEGMENT + DOS_PRIVATE_SEGMENT_Size);
 
         if (IS_PC98_ARCH) {
             bool PC98_FM_SoundBios_Enabled(void);
@@ -128,7 +128,7 @@ void DOS_GetMemory_Choose() {
 	}
 }
 
-Bit16u DOS_GetMemory(Bit16u pages,const char *who) {
+uint16_t DOS_GetMemory(uint16_t pages,const char *who) {
 	if (who == NULL) who = "";
 	if (dos_memseg == 0) {
 		if (DOS_GetMemory_unmapped) E_Exit("DOS:Attempt to use DOS_GetMemory() when private area was unmapped by BOOT");
@@ -142,7 +142,7 @@ Bit16u DOS_GetMemory(Bit16u pages,const char *who) {
 			pages,who,dos_memseg,DOS_PRIVATE_SEGMENT,DOS_PRIVATE_SEGMENT_END);
 		E_Exit("DOS:Not enough memory for internal tables");
 	}
-	Bit16u page=dos_memseg;
+	uint16_t page=dos_memseg;
 	LOG(LOG_DOSMISC,LOG_DEBUG)("DOS_GetMemory(0x%04x pages,\"%s\") = 0x%04x",pages,who,page);
 
     {
@@ -208,7 +208,7 @@ PhysPt DOS_Get_DPB(unsigned int dos_drive) {
 }
 
 void DOS_SetupTables(void) {
-	Bit16u seg;Bit16u i;
+	uint16_t seg;uint16_t i;
 	dos.tables.tempdta=RealMake(DOS_GetMemory(4,"dos.tables.tempdta"),0);
 	dos.tables.tempdta_fcbdelete=RealMake(DOS_GetMemory(4,"dos.tables.fcbdelete"),0);
 	/* Create the DOS Info Block */

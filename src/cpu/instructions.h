@@ -306,7 +306,7 @@ extern bool enable_fpu;
 
 #define RCLW(op1,op2,load,save)							\
 	if (!(op2%17)) break;								\
-{	Bit16u cf=(Bit16u)FillFlags()&0x1;					\
+{	uint16_t cf=(uint16_t)FillFlags()&0x1;					\
 	lf_var1w=load(op1);									\
 	lf_var2b=op2%17;									\
 	lf_resw=(lf_var1w << lf_var2b) |					\
@@ -349,7 +349,7 @@ extern bool enable_fpu;
 
 #define RCRW(op1,op2,load,save)								\
 	if (op2%17) {											\
-		Bit16u cf=(Bit16u)FillFlags()&0x1;					\
+		uint16_t cf=(uint16_t)FillFlags()&0x1;					\
 		lf_var1w=load(op1);									\
 		lf_var2b=op2%17;									\
 	 	lf_resw=(lf_var1w >> lf_var2b) |					\
@@ -575,8 +575,8 @@ extern bool enable_fpu;
 //Took this from bochs, i seriously hate these weird bcd opcodes
 #define AAD(op1)											\
 	{														\
-		Bit16u ax1 = reg_ah * op1;							\
-		Bit16u ax2 = ax1 + reg_al;							\
+		uint16_t ax1 = reg_ah * op1;							\
+		uint16_t ax2 = ax1 + reg_al;							\
 		reg_al = (uint8_t) ax2;								\
 		reg_ah = 0;											\
 		SETFLAGBIT(CF,false);								\
@@ -588,8 +588,8 @@ extern bool enable_fpu;
 		lflags.type=t_UNKNOWN;								\
 	}
 
-#define PARITY16(x)  (parity_lookup[((unsigned int)((Bit16u)(x))>>8u)&0xffu]^parity_lookup[((uint8_t)(x))&0xffu]^FLAG_PF)
-#define PARITY32(x)  (PARITY16(((Bit16u)(x))&0xffffu)^PARITY16(((unsigned int)((Bit32u)(x))>>16u)&0xffffu)^FLAG_PF)
+#define PARITY16(x)  (parity_lookup[((unsigned int)((uint16_t)(x))>>8u)&0xffu]^parity_lookup[((uint8_t)(x))&0xffu]^FLAG_PF)
+#define PARITY32(x)  (PARITY16(((uint16_t)(x))&0xffffu)^PARITY16(((unsigned int)((Bit32u)(x))>>16u)&0xffffu)^FLAG_PF)
 
 #define MULB(op1,load,save)									\
 	reg_ax=reg_al*load(op1);								\
@@ -605,8 +605,8 @@ extern bool enable_fpu;
 #define MULW(op1,load,save)									\
 {															\
 	Bitu tempu=(Bitu)reg_ax*(Bitu)(load(op1));				\
-	reg_ax=(Bit16u)(tempu);									\
-	reg_dx=(Bit16u)(tempu >> 16);							\
+	reg_ax=(uint16_t)(tempu);									\
+	reg_dx=(uint16_t)(tempu >> 16);							\
 	FillFlagsNoCFOF();										\
 	SETFLAGBIT(ZF,reg_ax == 0 && CPU_CORE >= CPU_ARCHTYPE_286);								\
 	SETFLAGBIT(PF,PARITY16(reg_ax)^PARITY16(reg_dx)^FLAG_PF);						\
@@ -658,8 +658,8 @@ extern bool enable_fpu;
 	if (val==0)	EXCEPTION(0);								\
 	Bitu num=((Bit32u)reg_dx<<16)|reg_ax;							\
 	Bitu quo=num/val;										\
-	Bit16u rem=(Bit16u)(num % val);							\
-	Bit16u quo16=(Bit16u)(quo&0xffff);						\
+	uint16_t rem=(uint16_t)(num % val);							\
+	uint16_t quo16=(uint16_t)(quo&0xffff);						\
 	if (quo!=(Bit32u)quo16) EXCEPTION(0);					\
 	reg_dx=rem;												\
 	reg_ax=quo16;											\
@@ -722,8 +722,8 @@ extern bool enable_fpu;
 	Bit16s rem=(Bit16s)(num % val);							\
 	Bit16s quo16s=(Bit16s)quo;								\
 	if (quo!=(Bit32s)quo16s) EXCEPTION(0);					\
-	reg_dx=(Bit16u)rem;												\
-	reg_ax=(Bit16u)quo16s;											\
+	reg_dx=(uint16_t)rem;												\
+	reg_ax=(uint16_t)quo16s;											\
 	FillFlags();											\
 	SETFLAGBIT(AF,0);/*FIXME*/									\
 	SETFLAGBIT(SF,0);/*FIXME*/									\
@@ -771,8 +771,8 @@ extern bool enable_fpu;
 #define IMULW(op1,load,save)								\
 {															\
 	Bits temps=((Bit16s)reg_ax)*((Bit16s)(load(op1)));		\
-	reg_ax=(Bit16u)(temps);									\
-	reg_dx=(Bit16u)(temps >> 16);							\
+	reg_ax=(uint16_t)(temps);									\
+	reg_dx=(uint16_t)(temps >> 16);							\
 	FillFlagsNoCFOF();										\
 	SETFLAGBIT(ZF,reg_ax == 0);								\
 	SETFLAGBIT(SF,reg_ax & 0x8000);							\
@@ -959,7 +959,7 @@ extern bool enable_fpu;
 	lf_var2b=val;lf_var1d=((unsigned int)load(op1)<<16u)|op2;					\
 	Bit32u tempd=lf_var1d << lf_var2b;							\
   	if (lf_var2b>16u) tempd |= ((unsigned int)op2 << (lf_var2b - 16u));			\
-	lf_resw=(Bit16u)((unsigned int)tempd >> 16u);								\
+	lf_resw=(uint16_t)((unsigned int)tempd >> 16u);								\
 	save(op1,lf_resw);											\
 	lflags.type=t_DSHLw;
 
@@ -978,7 +978,7 @@ extern bool enable_fpu;
 	lf_var2b=val;lf_var1d=((unsigned int)op2<<16u)|load(op1);					\
 	Bit32u tempd=(unsigned int)lf_var1d >> lf_var2b;							\
   	if (lf_var2b>16u) tempd |= ((unsigned int)op2 << (32u-lf_var2b));			\
-	lf_resw=(Bit16u)(tempd);										\
+	lf_resw=(uint16_t)(tempd);										\
 	save(op1,lf_resw);											\
 	lflags.type=t_DSHRw;
 

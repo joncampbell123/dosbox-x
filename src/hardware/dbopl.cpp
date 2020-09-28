@@ -132,12 +132,12 @@ static const uint8_t EnvelopeIncreaseTable[13] = {
 };
 
 #if ( DBOPL_WAVE == WAVE_HANDLER ) || ( DBOPL_WAVE == WAVE_TABLELOG )
-static Bit16u ExpTable[ 256 ];
+static uint16_t ExpTable[ 256 ];
 #endif
 
 #if ( DBOPL_WAVE == WAVE_HANDLER )
 //PI table used by WAVEHANDLER
-static Bit16u SinTable[ 512 ];
+static uint16_t SinTable[ 512 ];
 #endif
 
 #if ( DBOPL_WAVE > WAVE_HANDLER )
@@ -152,34 +152,34 @@ static Bit16u SinTable[ 512 ];
 
 static Bit16s WaveTable[ 8 * 512 ];
 //Distance into WaveTable the wave starts
-static const Bit16u WaveBaseTable[8] = {
+static const uint16_t WaveBaseTable[8] = {
 	0x000, 0x200, 0x200, 0x800,
 	0xa00, 0xc00, 0x100, 0x400,
 
 };
 //Mask the counter with this
-static const Bit16u WaveMaskTable[8] = {
+static const uint16_t WaveMaskTable[8] = {
 	1023, 1023, 511, 511,
 	1023, 1023, 512, 1023,
 };
 
 //Where to start the counter on at keyon
-static const Bit16u WaveStartTable[8] = {
+static const uint16_t WaveStartTable[8] = {
 	512, 0, 0, 0,
 	0, 512, 512, 256,
 };
 #endif
 
 #if ( DBOPL_WAVE == WAVE_TABLEMUL )
-static Bit16u MulTable[ 384 ];
+static uint16_t MulTable[ 384 ];
 #endif
 
 static uint8_t KslTable[ 8 * 16 ];
 static uint8_t TremoloTable[ TREMOLO_TABLE ];
 //Start of a channel behind the chip struct start
-static Bit16u ChanOffsetTable[32];
+static uint16_t ChanOffsetTable[32];
 //Start of an operator behind the chip struct start
-static Bit16u OpOffsetTable[64];
+static uint16_t OpOffsetTable[64];
 
 //The lower bits are the shift of the operator vibrato value
 //The highest bit is right shifted to generate -1 or 0 for negation
@@ -1375,7 +1375,7 @@ void InitTables( void ) {
 		int s = i * 8;
 		//TODO maybe keep some of the precision errors of the original table?
 		double val = ( 0.5 + ( pow(2.0, -1.0 + ( 255 - s) * ( 1.0 /256 ) )) * ( 1 << MUL_SH ));
-		MulTable[i] = (Bit16u)(val);
+		MulTable[i] = (uint16_t)(val);
 	}
 
 	//Sine Wave Base
@@ -1457,7 +1457,7 @@ void InitTables( void ) {
 		if ( i >= 16 )
 			index += 9;
 		Bitu blah = reinterpret_cast<Bitu>( &(chip->chan[ index ]) );
-		ChanOffsetTable[i] = (Bit16u)blah;
+		ChanOffsetTable[i] = (uint16_t)blah;
 	}
 	//Same for operators
 	for ( Bitu i = 0; i < 64; i++ ) {
@@ -1472,12 +1472,12 @@ void InitTables( void ) {
 		Bitu opNum = ( i % 8 ) / 3;
 		DBOPL::Channel* chan = 0;
 		Bitu blah = reinterpret_cast<Bitu>( &(chan->op[opNum]) );
-		OpOffsetTable[i] = (Bit16u)(ChanOffsetTable[ chNum ] + blah);
+		OpOffsetTable[i] = (uint16_t)(ChanOffsetTable[ chNum ] + blah);
 	}
 #if 0
 	//Stupid checks if table's are correct
 	for ( Bitu i = 0; i < 18; i++ ) {
-		Bit32u find = (Bit16u)( &(chip->chan[ i ]) );
+		Bit32u find = (uint16_t)( &(chip->chan[ i ]) );
 		for ( Bitu c = 0; c < 32; c++ ) {
 			if ( ChanOffsetTable[c] == find ) {
 				find = 0;
@@ -1489,7 +1489,7 @@ void InitTables( void ) {
 		}
 	}
 	for ( Bitu i = 0; i < 36; i++ ) {
-		Bit32u find = (Bit16u)( &(chip->chan[ i / 2 ].op[i % 2]) );
+		Bit32u find = (uint16_t)( &(chip->chan[ i / 2 ].op[i % 2]) );
 		for ( Bitu c = 0; c < 64; c++ ) {
 			if ( OpOffsetTable[c] == find ) {
 				find = 0;

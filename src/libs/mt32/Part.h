@@ -73,8 +73,8 @@ protected:
 	uint8_t expression;
 	Bit32s pitchBend;
 	bool nrpn;
-	Bit16u rpn;
-	Bit16u pitchBenderRange; // (patchTemp->patch.benderRange * 683) at the time of the last MIDI program change or MIDI data entry.
+	uint16_t rpn;
+	uint16_t pitchBenderRange; // (patchTemp->patch.benderRange * 683) at the time of the last MIDI program change or MIDI data entry.
 
 	void backupCacheToPartials(PatchCache cache[4]);
 	void cacheTimbre(PatchCache cache[4], const TimbreParam *timbre);

@@ -37,7 +37,7 @@
 #include "filelpt.h"
 #include "dos_inc.h"
 
-bool device_LPT::Read(uint8_t * data,Bit16u * size) {
+bool device_LPT::Read(uint8_t * data,uint16_t * size) {
     (void)data;//UNUSED
 	*size=0;
 	LOG(LOG_DOSMISC,LOG_NORMAL)("LPTDEVICE:Read called");
@@ -45,8 +45,8 @@ bool device_LPT::Read(uint8_t * data,Bit16u * size) {
 }
 
 
-bool device_LPT::Write(const uint8_t * data,Bit16u * size) {
-	for (Bit16u i=0; i<*size; i++)
+bool device_LPT::Write(const uint8_t * data,uint16_t * size) {
+	for (uint16_t i=0; i<*size; i++)
 	{
 		if(!pportclass->Putchar(data[i])) return false;
 	}
@@ -63,7 +63,7 @@ bool device_LPT::Close() {
 	return false;
 }
 
-Bit16u device_LPT::GetInformation(void) {
+uint16_t device_LPT::GetInformation(void) {
 	return 0x80A0;
 }
 
@@ -86,19 +86,19 @@ device_LPT::~device_LPT() {
 static void Parallel_EventHandler(Bitu val) {
 	Bitu serclassid=val&0x3;
 	if(parallelPortObjects[serclassid]!=0)
-		parallelPortObjects[serclassid]->handleEvent((Bit16u)(val>>2ul));
+		parallelPortObjects[serclassid]->handleEvent((uint16_t)(val>>2ul));
 }
 
-void CParallel::setEvent(Bit16u type, float duration) {
+void CParallel::setEvent(uint16_t type, float duration) {
     PIC_AddEvent(Parallel_EventHandler,duration,((Bitu)type<<2u)|(Bitu)port_nr);
 }
 
-void CParallel::removeEvent(Bit16u type) {
+void CParallel::removeEvent(uint16_t type) {
     // TODO
 	PIC_RemoveSpecificEvents(Parallel_EventHandler,((Bitu)type<<2u)|(Bitu)port_nr);
 }
 
-void CParallel::handleEvent(Bit16u type) {
+void CParallel::handleEvent(uint16_t type) {
 	handleUpperEvent(type);
 }
 
@@ -313,9 +313,9 @@ void BIOS_Post_register_parports() {
 
 	for (i=0;i < 3;i++) {
 		if (parallelPortObjects[i] != NULL)
-			BIOS_SetLPTPort(i,(Bit16u)parallelPortObjects[i]->base);
-		else if (DISNEY_HasInit() && parallel_baseaddr[i] == (Bit16u)DISNEY_BasePort())
-			BIOS_SetLPTPort(i,(Bit16u)DISNEY_BasePort());
+			BIOS_SetLPTPort(i,(uint16_t)parallelPortObjects[i]->base);
+		else if (DISNEY_HasInit() && parallel_baseaddr[i] == (uint16_t)DISNEY_BasePort())
+			BIOS_SetLPTPort(i,(uint16_t)DISNEY_BasePort());
 	}
 }
 	

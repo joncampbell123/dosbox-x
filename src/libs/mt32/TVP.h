@@ -50,10 +50,10 @@ private:
 	int8_t timeKeyfollowSubtraction;
 
 	Bit16s pitchOffsetChangePerBigTick;
-	Bit16u targetPitchOffsetReachedBigTick;
+	uint16_t targetPitchOffsetReachedBigTick;
 	unsigned int shifts;
 
-	Bit16u pitch;
+	uint16_t pitch;
 
 	void updatePitch();
 	void setupPitchChange(int targetPitchOffset, uint8_t changeDuration);
@@ -64,7 +64,7 @@ public:
 	TVP(const Partial *partial);
 	void reset(const Part *part, const TimbreParam::PartialParam *partialParam);
 	Bit32u getBasePitch() const;
-	Bit16u nextPitch();
+	uint16_t nextPitch();
 	void startDecay();
 }; // class TVP
 

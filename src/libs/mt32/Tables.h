@@ -51,8 +51,8 @@ public:
 	// CONFIRMED:
 	uint8_t pulseWidth100To255[101];
 
-	Bit16u exp9[512];
-	Bit16u logsin9[512];
+	uint16_t exp9[512];
+	uint16_t logsin9[512];
 
 	const uint8_t *resAmpDecayFactor;
 }; // class Tables

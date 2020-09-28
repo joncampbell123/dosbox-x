@@ -280,7 +280,7 @@ void DoString(STRING_OP type) {
 				case R_SCASW:
 					add_index<<=1;
 					{
-						Bit16u val2;
+						uint16_t val2;
 						do {
 							val2=LoadMw(di_base+di_index);
 							di_index=(di_index+(Bitu)add_index) & add_mask;
@@ -327,7 +327,7 @@ void DoString(STRING_OP type) {
 				case R_CMPSW:
 					add_index<<=1;
 					{
-						Bit16u val1,val2;
+						uint16_t val1,val2;
 						do {
 							val1=LoadMw(si_base+si_index);
 							val2=LoadMw(di_base+di_index);

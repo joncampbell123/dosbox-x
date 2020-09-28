@@ -106,12 +106,12 @@ struct XMS_Block {
 #endif
 struct XMS_MemMove{
 	Bit32u length;
-	Bit16u src_handle;
+	uint16_t src_handle;
 	union {
 		RealPt realpt;
 		Bit32u offset;
 	} src;
-	Bit16u dest_handle;
+	uint16_t dest_handle;
 	union {
 		RealPt realpt;
 		Bit32u offset;
@@ -212,9 +212,9 @@ void XMS_ZeroAllocation(MemHandle mem,unsigned int pages) {
 extern bool enable_a20_on_windows_init;
 extern bool dbg_zero_on_xms_allocmem;
 
-Bitu XMS_AllocateMemory(Bitu size, Bit16u& handle) {	// size = kb
+Bitu XMS_AllocateMemory(Bitu size, uint16_t& handle) {	// size = kb
 	/* Find free handle */
-	Bit16u index=1;
+	uint16_t index=1;
 	while (!xms_handles[index].free) {
 		if (++index>=XMS_HANDLES) return XMS_OUT_OF_HANDLES;
 	}
@@ -487,7 +487,7 @@ Bitu XMS_Handler(void) {
         SET_RESULT(XMS_LocalDisableA20());
 		break;
 	case XMS_QUERY_A20:											/* 07 */
-		reg_ax = (Bit16u)XMS_GetEnabledA20();
+		reg_ax = (uint16_t)XMS_GetEnabledA20();
 		reg_bl = 0;
 		break;
 	case XMS_QUERY_FREE_EXTENDED_MEMORY:						/* 08 */
@@ -499,13 +499,13 @@ Bitu XMS_Handler(void) {
 		{ /* Chopping off bits 16-31 to fall through to ALLOCATE_EXTENDED_MEMORY is inaccurate.
 		     The Extended Memory Specification states you use all of EDX, so programs can request
 		     64MB or more. Even if DOSBox does not (yet) support >= 64MB of RAM. */
-		Bit16u handle = 0;
+		uint16_t handle = 0;
 		SET_RESULT(XMS_AllocateMemory(reg_edx,handle));
 		reg_dx = handle;
 		} break;
 	case XMS_ALLOCATE_EXTENDED_MEMORY:							/* 09 */
 		{
-		Bit16u handle = 0;
+		uint16_t handle = 0;
 		SET_RESULT(XMS_AllocateMemory(reg_dx,handle));
 		reg_dx = handle;
 		} break;
@@ -521,8 +521,8 @@ Bitu XMS_Handler(void) {
 		if(res) reg_bl = (uint8_t)res;
 		reg_ax = (res==0);
 		if (res==0) { // success
-			reg_bx=(Bit16u)(address & 0xFFFF);
-			reg_dx=(Bit16u)(address >> 16);
+			reg_bx=(uint16_t)(address & 0xFFFF);
+			reg_dx=(uint16_t)(address >> 16);
 		}
 		} break;
 	case XMS_UNLOCK_EXTENDED_MEMORY_BLOCK:						/* 0d */
@@ -544,7 +544,7 @@ Bitu XMS_Handler(void) {
 			reg_bl=XMS_FUNCTION_NOT_IMPLEMENTED;
 			break;
 		}
-		Bit16u umb_start=dos_infoblock.GetStartOfUMBChain();
+		uint16_t umb_start=dos_infoblock.GetStartOfUMBChain();
 		if (umb_start==0xffff) {
 			reg_ax=0;
 			reg_bl=UMB_NO_BLOCKS_AVAILABLE;
@@ -558,7 +558,7 @@ Bitu XMS_Handler(void) {
 		uint8_t old_memstrat=DOS_GetMemAllocStrategy()&0xff;
 		DOS_SetMemAllocStrategy(0x40);	// search in UMBs only
 
-		Bit16u size=reg_dx;Bit16u seg;
+		uint16_t size=reg_dx;uint16_t seg;
 		if (DOS_AllocateMemory(&seg,&size)) {
 			reg_ax=1;
 			reg_bx=seg;
@@ -739,10 +739,10 @@ public:
 
 		if (first_umb_seg == 0) {
 			first_umb_seg = DOS_PRIVATE_SEGMENT_END;
-			if (first_umb_seg < (Bit16u)VGA_BIOS_SEG_END)
-				first_umb_seg = (Bit16u)VGA_BIOS_SEG_END;
+			if (first_umb_seg < (uint16_t)VGA_BIOS_SEG_END)
+				first_umb_seg = (uint16_t)VGA_BIOS_SEG_END;
 		}
-		if (first_umb_size == 0) first_umb_size = (Bit16u)(ROMBIOS_MinAllocatedLoc()>>4);
+		if (first_umb_size == 0) first_umb_size = (uint16_t)(ROMBIOS_MinAllocatedLoc()>>4);
 
 		if (first_umb_seg < 0xC000 || first_umb_seg < DOS_PRIVATE_SEGMENT_END) {
 			LOG(LOG_MISC,LOG_WARN)("UMB blocks before 0xD000 conflict with VGA (0xA000-0xBFFF), VGA BIOS (0xC000-0xC7FF) and DOSBox private area (0x%04x-0x%04x)",
@@ -794,7 +794,7 @@ public:
         if (ems_available && first_umb_size >= GetEMSPageFrameSegment()) {
             assert(GetEMSPageFrameSegment() >= 0xA000);
             LOG(LOG_MISC,LOG_DEBUG)("UMB overlaps EMS page frame at 0x%04x, truncating region",(unsigned int)GetEMSPageFrameSegment());
-            first_umb_size = (Bit16u)(GetEMSPageFrameSegment() - 1);
+            first_umb_size = (uint16_t)(GetEMSPageFrameSegment() - 1);
         }
         /* UMB cannot interfere with EGC 4th graphics bitplane on PC-98 */
         /* TODO: Allow UMB into E000:xxxx if emulating a PC-98 that lacks 16-color mode. */

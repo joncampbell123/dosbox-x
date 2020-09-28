@@ -302,7 +302,6 @@ AH_BOTTOM([
 #if SIZEOF_UNSIGNED_SHORT != 2
 #  error "sizeof (unsigned short) != 2"
 #else
-  typedef unsigned short Bit16u;
   typedef   signed short Bit16s;
 #endif
 

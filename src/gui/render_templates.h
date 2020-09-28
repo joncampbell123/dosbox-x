@@ -36,7 +36,7 @@
 #define blueShift	0
 #elif DBPP == 15 || DBPP == 16
 #define PSIZE 2
-#define PTYPE Bit16u
+#define PTYPE uint16_t
 #define WC scalerWriteCache.b16
 //#define FC scalerFrameCache.b16
 #define FC (*(scalerFrameCache_t*)(&scalerSourceCache.b32[400][0])).b16
@@ -120,7 +120,7 @@
 #  define PMAKE(_VAL)  (((_VAL&(31u<<10u))<<9u)|((_VAL&(31u<<5u))<<6u)|((_VAL&31u)<<3u))
 # endif
 #endif
-#define SRCTYPE Bit16u
+#define SRCTYPE uint16_t
 #endif
 
 #if SBPP == 16
@@ -136,7 +136,7 @@
 #  define PMAKE(_VAL)  (((_VAL&(31u<<11u))<<8u)|((_VAL&(63u<<5u))<<5u)|((_VAL&31u)<<3u))
 # endif
 #endif
-#define SRCTYPE Bit16u
+#define SRCTYPE uint16_t
 #endif
 
 #if SBPP == 32

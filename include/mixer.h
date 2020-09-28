@@ -77,14 +77,14 @@ public:
 	void AddSamples_s8s(Bitu len, const int8_t * data);
 	void AddSamples_m16(Bitu len, const Bit16s * data);
 	void AddSamples_s16(Bitu len, const Bit16s * data);
-	void AddSamples_m16u(Bitu len, const Bit16u * data);
-	void AddSamples_s16u(Bitu len, const Bit16u * data);
+	void AddSamples_m16u(Bitu len, const uint16_t * data);
+	void AddSamples_s16u(Bitu len, const uint16_t * data);
 	void AddSamples_m32(Bitu len, const Bit32s * data);
 	void AddSamples_s32(Bitu len, const Bit32s * data);
 	void AddSamples_m16_nonnative(Bitu len, const Bit16s * data);
 	void AddSamples_s16_nonnative(Bitu len, const Bit16s * data);
-	void AddSamples_m16u_nonnative(Bitu len, const Bit16u * data);
-	void AddSamples_s16u_nonnative(Bitu len, const Bit16u * data);
+	void AddSamples_m16u_nonnative(Bitu len, const uint16_t * data);
+	void AddSamples_s16u_nonnative(Bitu len, const uint16_t * data);
 	void AddSamples_m32_nonnative(Bitu len, const Bit32s * data);
 	void AddSamples_s32_nonnative(Bitu len, const Bit32s * data);
 

@@ -35,7 +35,7 @@ public:
 	CDirectSerial(Bitu id, CommandLine* cmd);
 	~CDirectSerial();
 
-	void updatePortConfig(Bit16u divider, uint8_t lcr);
+	void updatePortConfig(uint16_t divider, uint8_t lcr);
 	void updateMSR();
 	void transmitByte(uint8_t val, bool first);
 	void setBreak(bool value);
@@ -43,7 +43,7 @@ public:
 	void setRTSDTR(bool rts, bool dtr);
 	void setRTS(bool val);
 	void setDTR(bool val);
-	void handleUpperEvent(Bit16u type);
+	void handleUpperEvent(uint16_t type);
 
 private:
 	COMPORT comport;

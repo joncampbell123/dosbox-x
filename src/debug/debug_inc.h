@@ -109,7 +109,7 @@ struct DASMLine {
 	Bit32u pc;
 	char dasm[80];
 	PhysPt ea;
-	Bit16u easeg;
+	uint16_t easeg;
 	Bit32u eaoff;
 };
 

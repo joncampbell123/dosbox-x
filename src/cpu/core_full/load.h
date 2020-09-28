@@ -349,7 +349,7 @@ l_M_Ed:
 		if (CPU_ArchitectureType<CPU_ARCHTYPE_80186) goto illegalopcode;
 		{
 			try {
-				Bit16u old_sp = (CPU_ArchitectureType >= CPU_ARCHTYPE_286 ? reg_sp : (reg_sp-10));
+				uint16_t old_sp = (CPU_ArchitectureType >= CPU_ARCHTYPE_286 ? reg_sp : (reg_sp-10));
 				Push_16(reg_ax);Push_16(reg_cx);Push_16(reg_dx);Push_16(reg_bx);
 				Push_16(old_sp);Push_16(reg_bp);Push_16(reg_si);Push_16(reg_di);
 			}
@@ -415,18 +415,18 @@ l_M_Ed:
 			if (inst.prefix & PREFIX_ADDR) {
 				reg_al=LoadMb(inst.seg.base+(Bit32u)(reg_ebx+reg_al));
 			} else {
-				reg_al=LoadMb(inst.seg.base+(Bit16u)(reg_bx+reg_al));
+				reg_al=LoadMb(inst.seg.base+(uint16_t)(reg_bx+reg_al));
 			}
 		} else {
 			if (inst.prefix & PREFIX_ADDR) {
 				reg_al=LoadMb(SegBase(ds)+(Bit32u)(reg_ebx+reg_al));
 			} else {
-				reg_al=LoadMb(SegBase(ds)+(Bit16u)(reg_bx+reg_al));
+				reg_al=LoadMb(SegBase(ds)+(uint16_t)(reg_bx+reg_al));
 			}
 		}
 		goto nextopcode;
 	case D_CBW:
-		reg_ax=(Bit16u)((int8_t)reg_al);
+		reg_ax=(uint16_t)((int8_t)reg_al);
 		goto nextopcode;
 	case D_CWDE:
 		reg_eax=(Bit32u)((Bit16s)reg_ax);

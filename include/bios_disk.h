@@ -38,12 +38,12 @@
 #define MAX_SWAPPABLE_DISKS 20
 struct diskGeo {
 	Bit32u ksize;  /* Size in kilobytes */
-	Bit16u secttrack; /* Sectors per track */
-	Bit16u headscyl;  /* Heads per cylinder */
-	Bit16u cylcount;  /* Cylinders per side */
-	Bit16u biosval;   /* Type to return from BIOS */
-    Bit16u bytespersect; /* Bytes per sector */
-	Bit16u rootentries;  /* Root directory entries */
+	uint16_t secttrack; /* Sectors per track */
+	uint16_t headscyl;  /* Heads per cylinder */
+	uint16_t cylcount;  /* Cylinders per side */
+	uint16_t biosval;   /* Type to return from BIOS */
+    uint16_t bytespersect; /* Bytes per sector */
+	uint16_t rootentries;  /* Root directory entries */
 	uint8_t sectcluster;   /* Sectors per cluster */
 	uint8_t mediaid;       /* Media ID */
 };
@@ -234,7 +234,7 @@ public:
 	// Create a hard drive image of a specified size; automatically select c/h/s
 	imageDiskMemory(Bit32u imgSizeK);
 	// Create a hard drive image of a specified geometry
-	imageDiskMemory(Bit16u cylinders, Bit16u heads, Bit16u sectors, Bit16u sector_size);
+	imageDiskMemory(uint16_t cylinders, uint16_t heads, uint16_t sectors, uint16_t sector_size);
 	// Create a floppy image of a specified geometry
     imageDiskMemory(const diskGeo& floppyGeometry);
 	// Create a copy-on-write memory image of an existing image
@@ -288,7 +288,7 @@ public:
 
 private:
 	struct Geometry {
-		Bit16u cylinders;
+		uint16_t cylinders;
 		uint8_t heads;
 		uint8_t sectors;
 	};
@@ -332,7 +332,7 @@ private:
 		uint8_t parentUniqueId[16];
 		Bit32u parentTimeStamp;
 		Bit32u reserved;
-		Bit16u parentUnicodeName[256];
+		uint16_t parentUnicodeName[256];
 		ParentLocatorEntry parentLocatorEntry[8];
 		char reserved2[256];
 
@@ -454,7 +454,7 @@ extern bool imageDiskChange[MAX_DISK_IMAGES];
 extern imageDisk *imageDiskList[MAX_DISK_IMAGES];
 extern imageDisk *diskSwap[MAX_SWAPPABLE_DISKS];
 extern Bit32s swapPosition;
-extern Bit16u imgDTASeg; /* Real memory location of temporary DTA pointer for fat image disk access */
+extern uint16_t imgDTASeg; /* Real memory location of temporary DTA pointer for fat image disk access */
 extern RealPt imgDTAPtr; /* Real memory location of temporary DTA pointer for fat image disk access */
 extern DOS_DTA *imgDTA;
 

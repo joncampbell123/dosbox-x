@@ -134,13 +134,13 @@ static void getPixel(Bits x, Bits y, int &r, int &g, int &b, int shift)
             b += (int)((unsigned int)render.pal.rgb[pixel].blue >> (unsigned int)shift);
             break;
         case scalerMode15:
-            pixel = *((unsigned int)x+(Bit16u*)(src+(unsigned int)y*(unsigned int)render.scale.cachePitch));
+            pixel = *((unsigned int)x+(uint16_t*)(src+(unsigned int)y*(unsigned int)render.scale.cachePitch));
             r += (int)((pixel >> (7u+(unsigned int)shift)) & (0xf8u >> (unsigned int)shift));
             g += (int)((pixel >> (2u+(unsigned int)shift)) & (0xf8u >> (unsigned int)shift));
             b += (int)((pixel << (3u-(unsigned int)shift)) & (0xf8u >> (unsigned int)shift));
             break;
         case scalerMode16:
-            pixel = *((unsigned int)x+(Bit16u*)(src+(unsigned int)y*(unsigned int)render.scale.cachePitch));
+            pixel = *((unsigned int)x+(uint16_t*)(src+(unsigned int)y*(unsigned int)render.scale.cachePitch));
             r += (int)((pixel >> (8u+(unsigned int)shift)) & (0xf8u >> shift));
             g += (int)((pixel >> (3u+(unsigned int)shift)) & (0xfcu >> shift));
             b += (int)((pixel << (3u-(unsigned int)shift)) & (0xf8u >> shift));
@@ -277,7 +277,7 @@ static GUI::ScreenSDL *UI_Startup(GUI::ScreenSDL *screen) {
     if (mouselocked) GFX_CaptureMouse();
 
 #if defined(C_SDL2)
-    extern SDL_Window * GFX_SetSDLSurfaceWindow(Bit16u width, Bit16u height);
+    extern SDL_Window * GFX_SetSDLSurfaceWindow(uint16_t width, uint16_t height);
 
     void GFX_SetResizeable(bool enable);
     GFX_SetResizeable(false);
@@ -487,7 +487,7 @@ static void UI_RunCommands(GUI::ScreenSDL *s, const std::string &cmds) {
     DOS_Shell temp;
     temp.call = true;
     UI_Shutdown(s);
-    Bit16u n=1; uint8_t c='\n';
+    uint16_t n=1; uint8_t c='\n';
     DOS_WriteFile(STDOUT,&c,&n);
     temp.bf = new VirtualBatch(&temp, cmds);
     temp.RunInternal();
@@ -1555,7 +1555,7 @@ public:
     ShowDriveInfo(GUI::Screen *parent, int x, int y, const char *title) :
         ToplevelWindow(parent, x, y, 400, 280, title) {
             char name[DOS_NAMELENGTH_ASCII],lname[LFN_NAMELENGTH];
-            Bit32u size;Bit16u date;Bit16u time;uint8_t attr;
+            Bit32u size;uint16_t date;uint16_t time;uint8_t attr;
             /* Command uses dta so set it to our internal dta */
             RealPt save_dta = dos.dta();
             dos.dta(dos.tables.tempdta);

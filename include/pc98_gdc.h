@@ -58,7 +58,7 @@ struct PC98_GDC_state {
 
     size_t fifo_can_read(void);
     bool fifo_empty(void);
-    Bit16u read_fifo(void);
+    uint16_t read_fifo(void);
 
     /* NTS:
      *

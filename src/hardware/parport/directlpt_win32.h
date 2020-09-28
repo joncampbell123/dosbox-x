@@ -63,7 +63,7 @@ public:
 	void Write_IOSEL(Bitu);
 	bool Putchar(uint8_t);
 
-	void handleUpperEvent(Bit16u type);
+	void handleUpperEvent(uint16_t type);
 };
 
 #endif	// WIN32

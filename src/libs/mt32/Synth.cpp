@@ -556,7 +556,7 @@ bool Synth::loadPCMROM(const ROMImage &pcmROMImage) {
 	return true;
 }
 
-bool Synth::initPCMList(Bit16u mapAddress, Bit16u count) {
+bool Synth::initPCMList(uint16_t mapAddress, uint16_t count) {
 	ControlROMPCMStruct *tps = reinterpret_cast<ControlROMPCMStruct *>(&controlROMData[mapAddress]);
 	for (int i = 0; i < count; i++) {
 		Bit32u rAddr = tps[i].pos * 0x800;
@@ -577,7 +577,7 @@ bool Synth::initPCMList(Bit16u mapAddress, Bit16u count) {
 	return false;
 }
 
-bool Synth::initCompressedTimbre(Bit16u timbreNum, const uint8_t *src, Bit32u srcLen) {
+bool Synth::initCompressedTimbre(uint16_t timbreNum, const uint8_t *src, Bit32u srcLen) {
 	// "Compressed" here means that muted partials aren't present in ROM (except in the case of partial 0 being muted).
 	// Instead the data from the previous unmuted partial is used.
 	if (srcLen < sizeof(TimbreParam::CommonParam)) {
@@ -601,10 +601,10 @@ bool Synth::initCompressedTimbre(Bit16u timbreNum, const uint8_t *src, Bit32u sr
 	return true;
 }
 
-bool Synth::initTimbres(Bit16u mapAddress, Bit16u offset, Bit16u count, Bit16u startTimbre, bool compressed) {
+bool Synth::initTimbres(uint16_t mapAddress, uint16_t offset, uint16_t count, uint16_t startTimbre, bool compressed) {
 	const uint8_t *timbreMap = &controlROMData[mapAddress];
-	for (Bit16u i = 0; i < count * 2; i += 2) {
-		Bit16u address = (timbreMap[i + 1] << 8) | timbreMap[i];
+	for (uint16_t i = 0; i < count * 2; i += 2) {
+		uint16_t address = (timbreMap[i + 1] << 8) | timbreMap[i];
 		if (!compressed && (address + offset + sizeof(TimbreParam) > CONTROL_ROM_SIZE)) {
 			printDebug("Control ROM error: Timbre map entry 0x%04x for timbre %d points to invalid timbre address 0x%04x", i, startTimbre, address);
 			return false;

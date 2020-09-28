@@ -269,7 +269,7 @@ lock_texture:
     return S_OK;
 }
 
-bool CDirect3D::UnlockTexture(const Bit16u *changed)
+bool CDirect3D::UnlockTexture(const uint16_t *changed)
 {
 	changedLines = changed;
 #if D3D_THREAD

@@ -215,9 +215,9 @@ private:
 	bool loadControlROM(const ROMImage &controlROMImage);
 	bool loadPCMROM(const ROMImage &pcmROMImage);
 
-	bool initPCMList(Bit16u mapAddress, Bit16u count);
-	bool initTimbres(Bit16u mapAddress, Bit16u offset, Bit16u timbreCount, Bit16u startTimbre, bool compressed);
-	bool initCompressedTimbre(Bit16u drumNum, const uint8_t *mem, Bit32u memLen);
+	bool initPCMList(uint16_t mapAddress, uint16_t count);
+	bool initTimbres(uint16_t mapAddress, uint16_t offset, uint16_t timbreCount, uint16_t startTimbre, bool compressed);
+	bool initCompressedTimbre(uint16_t drumNum, const uint8_t *mem, Bit32u memLen);
 	void initReverbModels(bool mt32CompatibleMode);
 	void initSoundGroups(char newSoundGroupNames[][9]);
 

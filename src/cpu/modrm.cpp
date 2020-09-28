@@ -58,7 +58,7 @@ uint8_t * lookupRMregb[]=
 	&reg_bh,&reg_bh,&reg_bh,&reg_bh,&reg_bh,&reg_bh,&reg_bh,&reg_bh
 };
 
-Bit16u * lookupRMregw[]={
+uint16_t * lookupRMregw[]={
 	&reg_ax,&reg_ax,&reg_ax,&reg_ax,&reg_ax,&reg_ax,&reg_ax,&reg_ax,
 	&reg_cx,&reg_cx,&reg_cx,&reg_cx,&reg_cx,&reg_cx,&reg_cx,&reg_cx,
 	&reg_dx,&reg_dx,&reg_dx,&reg_dx,&reg_dx,&reg_dx,&reg_dx,&reg_dx,
@@ -159,7 +159,7 @@ uint8_t * lookupRMEAregb[256]={
 	&reg_al,&reg_cl,&reg_dl,&reg_bl,&reg_ah,&reg_ch,&reg_dh,&reg_bh
 };
 
-Bit16u * lookupRMEAregw[256]={
+uint16_t * lookupRMEAregw[256]={
 /* 12 lines of 16*0 should give nice errors when used */
 	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,
 	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,

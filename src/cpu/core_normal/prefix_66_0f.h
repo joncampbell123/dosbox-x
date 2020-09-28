@@ -27,8 +27,8 @@
 					Bitu saveval;
 					if (!which) saveval=CPU_SLDT();
 					else saveval=CPU_STR();
-					if (rm >= 0xc0) {GetEArw;*earw=(Bit16u)saveval;}
-					else {GetEAa;SaveMw(eaa,(Bit16u)saveval);}
+					if (rm >= 0xc0) {GetEArw;*earw=(uint16_t)saveval;}
+					else {GetEAa;SaveMw(eaa,(uint16_t)saveval);}
 				}
 				break;
 			case 0x02:case 0x03:case 0x04:case 0x05:
@@ -68,11 +68,11 @@
 				GetEAa;Bitu limit;
 				switch (which) {
 				case 0x00:										/* SGDT */
-					SaveMw(eaa,(Bit16u)CPU_SGDT_limit());
+					SaveMw(eaa,(uint16_t)CPU_SGDT_limit());
 					SaveMd(eaa+2,(Bit32u)CPU_SGDT_base());
 					break;
 				case 0x01:										/* SIDT */
-					SaveMw(eaa,(Bit16u)CPU_SIDT_limit());
+					SaveMw(eaa,(uint16_t)CPU_SIDT_limit());
 					SaveMd(eaa+2,(Bit32u)CPU_SIDT_base());
 					break;
 				case 0x02:										/* LGDT */
@@ -84,11 +84,11 @@
 					CPU_LIDT(LoadMw(eaa),LoadMd(eaa+2));
 					break;
 				case 0x04:										/* SMSW */
-					SaveMw(eaa,(Bit16u)CPU_SMSW());
+					SaveMw(eaa,(uint16_t)CPU_SMSW());
 					break;
 				case 0x06:										/* LMSW */
 					limit=LoadMw(eaa);
-					if (CPU_LMSW((Bit16u)limit)) RUNEXCEPTION();
+					if (CPU_LMSW((uint16_t)limit)) RUNEXCEPTION();
 					break;
 				case 0x07:										/* INVLPG */
 					if (cpu.pmode && cpu.cpl) EXCEPTION(EXCEPTION_GP);

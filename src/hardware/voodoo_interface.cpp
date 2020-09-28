@@ -49,11 +49,11 @@ void Voodoo_PageHandler::writeb(PhysPt addr,uint8_t val) {
 //	LOG_MSG("voodoo writeb at %x",addr);
 }
 
-Bit16u Voodoo_PageHandler::readw(PhysPt addr) {
+uint16_t Voodoo_PageHandler::readw(PhysPt addr) {
 	addr = PAGING_GetPhysicalAddress(addr);
     if (addr&1) {
         LOG_MSG("voodoo readw unaligned");
-        return (Bit16u)-1;
+        return (uint16_t)-1;
     }
 
 	Bit32u retval = voodoo_r((addr>>2)&0x3FFFFF);
@@ -62,10 +62,10 @@ Bit16u Voodoo_PageHandler::readw(PhysPt addr) {
 	else
 		retval &= 0xffff;
 
-	return (Bit16u)retval;
+	return (uint16_t)retval;
 }
 
-void Voodoo_PageHandler::writew(PhysPt addr,Bit16u val) {
+void Voodoo_PageHandler::writew(PhysPt addr,uint16_t val) {
 	addr = PAGING_GetPhysicalAddress(addr);
 	if (addr&1u) {
         LOG_MSG("voodoo writew unaligned");
@@ -139,7 +139,7 @@ static void Voodoo_VerticalTimer(Bitu /*val*/) {
 		r.max_y = (int)v->fbi.height;
 
 		// draw all lines at once
-		Bit16u *viewbuf = (Bit16u *)(v->fbi.ram + v->fbi.rgboffs[v->fbi.frontbuf]);
+		uint16_t *viewbuf = (uint16_t *)(v->fbi.ram + v->fbi.rgboffs[v->fbi.frontbuf]);
 		for(Bitu i = 0; i < v->fbi.height; i++) {
 			RENDER_DrawLine((uint8_t*) viewbuf);
 			viewbuf += v->fbi.rowpixels;

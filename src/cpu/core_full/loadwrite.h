@@ -31,8 +31,8 @@ static INLINE uint8_t the_Fetchb(EAPoint & loc) {
 	return temp;
 }
 	
-static INLINE Bit16u the_Fetchw(EAPoint & loc) {
-	Bit16u temp=LoadMw(loc);
+static INLINE uint16_t the_Fetchw(EAPoint & loc) {
+	uint16_t temp=LoadMw(loc);
 	loc+=2;
 	return temp;
 }

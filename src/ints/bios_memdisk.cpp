@@ -118,7 +118,7 @@ imageDiskMemory::imageDiskMemory(const diskGeo& floppyGeometry) : imageDisk(ID_M
 }
 
 // Create a hard drive image of a specified geometry
-imageDiskMemory::imageDiskMemory(Bit16u cylinders, Bit16u heads, Bit16u sectors, Bit16u sector_size) : imageDisk(ID_MEMORY) {
+imageDiskMemory::imageDiskMemory(uint16_t cylinders, uint16_t heads, uint16_t sectors, uint16_t sector_size) : imageDisk(ID_MEMORY) {
 	diskGeo diskParams;
 	diskParams.secttrack = sectors;
 	diskParams.cylcount = cylinders;
@@ -138,10 +138,10 @@ imageDiskMemory::imageDiskMemory(imageDisk* underlyingImage) : imageDisk(ID_MEMO
 	diskGeo diskParams;
 	Bit32u heads, cylinders, sectors, bytesPerSector;
 	underlyingImage->Get_Geometry(&heads, &cylinders, &sectors, &bytesPerSector);
-	diskParams.headscyl = (Bit16u)heads;
-	diskParams.cylcount = (Bit16u)cylinders;
-	diskParams.secttrack = (Bit16u)sectors;
-	diskParams.bytespersect = (Bit16u)bytesPerSector;
+	diskParams.headscyl = (uint16_t)heads;
+	diskParams.cylcount = (uint16_t)cylinders;
+	diskParams.secttrack = (uint16_t)sectors;
+	diskParams.bytespersect = (uint16_t)bytesPerSector;
 	diskParams.biosval = 0;
 	diskParams.ksize = 0;
 	diskParams.mediaid = 0xF0;
@@ -453,7 +453,7 @@ uint8_t imageDiskMemory::Format() {
 	// Root directory entries
 	host_writew(&sbuf[0x11], root_ent);
 	// total sectors (<= 65535)
-	if (partitionLength < 0x10000u) host_writew(&sbuf[0x13], (Bit16u)partitionLength);
+	if (partitionLength < 0x10000u) host_writew(&sbuf[0x13], (uint16_t)partitionLength);
 	// media descriptor
 	sbuf[0x15] = mediaID;
 	// sectors per FAT

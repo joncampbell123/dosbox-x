@@ -33,8 +33,8 @@ struct VFILE_Block {
 	const char * lname;
 	uint8_t * data;
 	Bit32u size;
-	Bit16u date;
-	Bit16u time;
+	uint16_t date;
+	uint16_t time;
 	bool hidden;
 	VFILE_Block * next;
 };
@@ -202,11 +202,11 @@ void VFILE_Remove(const char *name) {
 class Virtual_File : public DOS_File {
 public:
 	Virtual_File(uint8_t * in_data,Bit32u in_size);
-	bool Read(uint8_t * data,Bit16u * size);
-	bool Write(const uint8_t * data,Bit16u * size);
+	bool Read(uint8_t * data,uint16_t * size);
+	bool Write(const uint8_t * data,uint16_t * size);
 	bool Seek(Bit32u * new_pos,Bit32u type);
 	bool Close();
-	Bit16u GetInformation(void);
+	uint16_t GetInformation(void);
 private:
 	Bit32u file_size;
     Bit32u file_pos = 0;
@@ -220,11 +220,11 @@ Virtual_File::Virtual_File(uint8_t* in_data, Bit32u in_size) : file_size(in_size
 	open=true;
 }
 
-bool Virtual_File::Read(uint8_t * data,Bit16u * size) {
+bool Virtual_File::Read(uint8_t * data,uint16_t * size) {
 	Bit32u left=file_size-file_pos;
 	if (left<=*size) { 
 		memcpy(data,&file_data[file_pos],left);
-		*size=(Bit16u)left;
+		*size=(uint16_t)left;
 	} else {
 		memcpy(data,&file_data[file_pos],*size);
 	}
@@ -232,7 +232,7 @@ bool Virtual_File::Read(uint8_t * data,Bit16u * size) {
 	return true;
 }
 
-bool Virtual_File::Write(const uint8_t * data,Bit16u * size){
+bool Virtual_File::Write(const uint8_t * data,uint16_t * size){
     (void)data;//UNUSED
     (void)size;//UNUSED
 	/* Not really writable */
@@ -263,7 +263,7 @@ bool Virtual_File::Close(){
 }
 
 
-Bit16u Virtual_File::GetInformation(void) {
+uint16_t Virtual_File::GetInformation(void) {
 	return 0x40;	// read-only drive
 }
 
@@ -291,7 +291,7 @@ bool Virtual_Drive::FileOpen(DOS_File * * file,const char * name,Bit32u flags) {
 	return false;
 }
 
-bool Virtual_Drive::FileCreate(DOS_File * * file,const char * name,Bit16u attributes) {
+bool Virtual_Drive::FileCreate(DOS_File * * file,const char * name,uint16_t attributes) {
     (void)file;//UNUSED
     (void)name;//UNUSED
     (void)attributes;//UNUSED
@@ -394,13 +394,13 @@ bool Virtual_Drive::FindNext(DOS_DTA & dta) {
 	return false;
 }
 
-bool Virtual_Drive::SetFileAttr(const char * name,Bit16u attr) {
+bool Virtual_Drive::SetFileAttr(const char * name,uint16_t attr) {
     (void)name;
     (void)attr;
 	return false;
 }
 
-bool Virtual_Drive::GetFileAttr(const char * name,Bit16u * attr) {
+bool Virtual_Drive::GetFileAttr(const char * name,uint16_t * attr) {
     const VFILE_Block* cur_file = first_file;
 	while (cur_file) {
 		if (strcasecmp(name,cur_file->name)==0||(uselfn&&strcasecmp(name,cur_file->lname)==0)) { 
@@ -444,7 +444,7 @@ bool Virtual_Drive::Rename(const char * oldname,const char * newname) {
 	return false;
 }
 
-bool Virtual_Drive::AllocationInfo(Bit16u * _bytes_sector,uint8_t * _sectors_cluster,Bit16u * _total_clusters,Bit16u * _free_clusters) {
+bool Virtual_Drive::AllocationInfo(uint16_t * _bytes_sector,uint8_t * _sectors_cluster,uint16_t * _total_clusters,uint16_t * _free_clusters) {
 	*_bytes_sector=512;
 	*_sectors_cluster=32;
 	*_total_clusters=32765;	// total size is always 500 mb

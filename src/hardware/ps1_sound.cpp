@@ -74,8 +74,8 @@ struct PS1AUDIO
 
 	// "DAC".
 	uint8_t FIFO[FIFOSIZE];
-	Bit16u FIFO_RDIndex;
-	Bit16u FIFO_WRIndex;
+	uint16_t FIFO_RDIndex;
+	uint16_t FIFO_WRIndex;
 	bool Playing;
 	bool CanTriggerIRQ;
 	Bit32u Rate;
@@ -317,7 +317,7 @@ static void PS1SOUNDUpdate(Bitu length)
 	// Update positions and see if we can clear the FIFO_FULL flag.
 	ps1.RDIndexHi = pos;
 //	if( ps1.FIFO_RDIndex != ( pos >> FRAC_SHIFT ) ) ps1.Status &= ~FIFO_FULL;
-	ps1.FIFO_RDIndex = (Bit16u)(pos >> FRAC_SHIFT);
+	ps1.FIFO_RDIndex = (uint16_t)(pos >> FRAC_SHIFT);
 	if( pending < 0 ) pending = 0;
 	ps1.Pending = (Bitu)pending;
 

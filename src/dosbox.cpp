@@ -150,7 +150,7 @@ extern bool         allow_more_than_640kb;
 extern unsigned int page;
 
 Bit32u              guest_msdos_LoL = 0;
-Bit16u              guest_msdos_mcb_chain = 0;
+uint16_t              guest_msdos_mcb_chain = 0;
 int                 boothax = BOOTHAX_NONE;
 
 bool                want_fm_towns = false;

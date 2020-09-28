@@ -304,7 +304,7 @@ void PC98_GDC_state::take_cursor_char_setup(unsigned char bi) {
 }
 
 void PC98_GDC_state::idle_proc(void) {
-    Bit16u val;
+    uint16_t val;
 
     if (fifo_empty())
         return;
@@ -428,8 +428,8 @@ bool PC98_GDC_state::fifo_empty(void) {
     return (fifo_read >= fifo_write);
 }
 
-Bit16u PC98_GDC_state::read_fifo(void) {
-    Bit16u val;
+uint16_t PC98_GDC_state::read_fifo(void) {
+    uint16_t val;
 
     val = fifo[fifo_read];
     if (fifo_read < fifo_write)

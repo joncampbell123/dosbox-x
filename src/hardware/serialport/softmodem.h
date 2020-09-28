@@ -192,12 +192,12 @@ public:
 
 	//TODO
 	void Timer2(void);
-	void handleUpperEvent(Bit16u type);
+	void handleUpperEvent(uint16_t type);
 
 	void RXBufferEmpty();
 
 	void transmitByte(uint8_t val, bool first);
-	void updatePortConfig(Bit16u divider, uint8_t lcr);
+	void updatePortConfig(uint16_t divider, uint8_t lcr);
 	void updateMSR();
 
 	void setBreak(bool);

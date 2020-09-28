@@ -87,7 +87,7 @@ private:
     DWORD dwX = 0, dwY = 0;					// X,Y position
     DWORD dwWidth, dwHeight;                            // DOSBox framebuffer size
     DWORD dwScaledWidth = 0, dwScaledHeight = 0;                // D3D backbuffer size
-    const Bit16u* changedLines = NULL;
+    const uint16_t* changedLines = NULL;
 
 	int					backbuffer_clear_countdown = 0;
 
@@ -188,7 +188,7 @@ public:
     HRESULT LoadPixelShader(const char*, double, double, bool forced=false);
     HRESULT Resize3DEnvironment(Bitu, Bitu, Bitu, Bitu, Bitu, Bitu, Bitu, Bitu, bool fullscreen=false);
     bool LockTexture(uint8_t * & pixels,Bitu & pitch);
-    bool UnlockTexture(const Bit16u *changed);
+    bool UnlockTexture(const uint16_t *changed);
 
     CDirect3D(Bit32u width = 640, Bit32u height = 400):dwWidth(width),dwHeight(height) {
 	mhmodDX9 = NULL;

@@ -40,7 +40,7 @@ static CPrinter* defaultPrinter = NULL;
 #define PIXX ((Bitu)floor(curX*dpi+0.5))
 #define PIXY ((Bitu)floor(curY*dpi+0.5))
 
-static Bit16u confdpi, confwidth, confheight;
+static uint16_t confdpi, confwidth, confheight;
 static Bitu printer_timout;
 static bool timeout_dirty;
 static const char* document_path;
@@ -63,7 +63,7 @@ void CPrinter::FillPalette(uint8_t redmax, uint8_t greenmax, uint8_t bluemax, ui
 	}
 }
 
-CPrinter::CPrinter(Bit16u dpi, Bit16u width, Bit16u height, char* output, bool multipageOutput) 
+CPrinter::CPrinter(uint16_t dpi, uint16_t width, uint16_t height, char* output, bool multipageOutput) 
 {
 	if (FT_Init_FreeType(&FTlib))
 	{
@@ -223,9 +223,9 @@ CPrinter::~CPrinter(void)
 #endif
 }
 
-void CPrinter::selectCodepage(Bit16u cp)
+void CPrinter::selectCodepage(uint16_t cp)
 {
-	const Bit16u* mapToUse = NULL;
+	const uint16_t* mapToUse = NULL;
 
 	Bitu i = 0;
 	while(charmap[i].codepage!=0)
@@ -424,7 +424,7 @@ void CPrinter::updateFont()
 		actcpi /= 2.0/3.0;
 	}
 
-	FT_Set_Char_Size(curFont, (Bit16u)horizPoints*64, (Bit16u)vertPoints*64, dpi, dpi);
+	FT_Set_Char_Size(curFont, (uint16_t)horizPoints*64, (uint16_t)vertPoints*64, dpi, dpi);
 	
 	if (style & STYLE_ITALICS || charTables[curCharTable] == 0)
 	{
@@ -1316,8 +1316,8 @@ void CPrinter::printChar(uint8_t ch)
 	// Render a high-quality bitmap
 	FT_Render_Glyph(curFont->glyph, FT_RENDER_MODE_NORMAL);
 
-	Bit16u penX = (Bit16u)(PIXX + curFont->glyph->bitmap_left);
-	Bit16u penY = (Bit16u)(PIXY - curFont->glyph->bitmap_top + curFont->size->metrics.ascender / 64);
+	uint16_t penX = (uint16_t)(PIXX + curFont->glyph->bitmap_left);
+	uint16_t penY = (uint16_t)(PIXY - curFont->glyph->bitmap_top + curFont->size->metrics.ascender / 64);
 
 	if (style & STYLE_SUBSCRIPT) penY += curFont->glyph->bitmap.rows / 2;
 
@@ -1345,7 +1345,7 @@ void CPrinter::printChar(uint8_t ch)
 	SDL_UnlockSurface(page);
 
 	// For line printing
-	Bit16u lineStart = (Bit16u)PIXX;
+	uint16_t lineStart = (uint16_t)PIXX;
 
 	// advance the cursor to the right
 	double x_advance;
@@ -1365,15 +1365,15 @@ void CPrinter::printChar(uint8_t ch)
 	if ((score != SCORE_NONE) && (style & (STYLE_UNDERLINE|STYLE_STRIKETHROUGH|STYLE_OVERSCORE)))
 	{
 		// Find out where to put the line
-		Bit16u lineY = (Bit16u)PIXY;
+		uint16_t lineY = (uint16_t)PIXY;
 		double height = (curFont->size->metrics.height >> 6); // TODO height is fixed point madness...
 
 		if (style & STYLE_UNDERLINE)
-            lineY = (Bit16u)PIXY + (Bit16u)(height * 0.9);
+            lineY = (uint16_t)PIXY + (uint16_t)(height * 0.9);
 		else if (style & STYLE_STRIKETHROUGH)
-            lineY = (Bit16u)PIXY + (Bit16u)(height * 0.45);
+            lineY = (uint16_t)PIXY + (uint16_t)(height * 0.45);
 		else if (style & STYLE_OVERSCORE)
-			lineY = (Bit16u)PIXY - (Bit16u)(((score == SCORE_DOUBLE) || (score == SCORE_DOUBLEBROKEN)) ? 5 : 0);
+			lineY = (uint16_t)PIXY - (uint16_t)(((score == SCORE_DOUBLE) || (score == SCORE_DOUBLEBROKEN)) ? 5 : 0);
 
 		drawLine(lineStart, PIXX, lineY, score == SCORE_SINGLEBROKEN || score == SCORE_DOUBLEBROKEN);
 
@@ -1390,7 +1390,7 @@ void CPrinter::printChar(uint8_t ch)
 	}
 }
 
-void CPrinter::blitGlyph(FT_Bitmap bitmap, Bit16u destx, Bit16u desty, bool add) {
+void CPrinter::blitGlyph(FT_Bitmap bitmap, uint16_t destx, uint16_t desty, bool add) {
 	for (Bitu y = 0; y < bitmap.rows; y++)
     {
 		for (Bitu x = 0; x < bitmap.width; x++)
@@ -1472,7 +1472,7 @@ bool CPrinter::ack()
 	return false;
 }
 
-void CPrinter::setupBitImage(uint8_t dens, Bit16u numCols)
+void CPrinter::setupBitImage(uint8_t dens, uint16_t numCols)
 {
 	switch (dens)
 	{
@@ -1667,8 +1667,8 @@ void CPrinter::outputPage()
 		if(mouselocked)
 			 GFX_CaptureMouse();
 
-		Bit16u physW = GetDeviceCaps(printerDC, PHYSICALWIDTH);
-		Bit16u physH = GetDeviceCaps(printerDC, PHYSICALHEIGHT);
+		uint16_t physW = GetDeviceCaps(printerDC, PHYSICALWIDTH);
+		uint16_t physH = GetDeviceCaps(printerDC, PHYSICALHEIGHT);
 
 		double scaleW, scaleH;
 
@@ -1712,9 +1712,9 @@ void CPrinter::outputPage()
 
 		SDL_Palette* sdlpal = page->format->palette;
 
-		for (Bit16u y = 0; y < page->h; y++)
+		for (uint16_t y = 0; y < page->h; y++)
 		{
-			for (Bit16u x = 0; x < page->w; x++)
+			for (uint16_t x = 0; x < page->w; x++)
 			{
 				uint8_t pixel = *((uint8_t*)page->pixels + x + (y*page->pitch));
 				Bit32u color = 0;
@@ -1850,7 +1850,7 @@ void CPrinter::outputPage()
 			// Print header
 			fprintf(psfile, "%%!PS-Adobe-3.0\n");
 			fprintf(psfile, "%%%%Pages: (atend)\n");
-			fprintf(psfile, "%%%%BoundingBox: 0 0 %i %i\n", (Bit16u)(defaultPageWidth * 72), (Bit16u)(defaultPageHeight * 72));
+			fprintf(psfile, "%%%%BoundingBox: 0 0 %i %i\n", (uint16_t)(defaultPageWidth * 72), (uint16_t)(defaultPageHeight * 72));
 			fprintf(psfile, "%%%%Creator: DOSBOX Virtual Printer\n");
 			fprintf(psfile, "%%%%DocumentData: Clean7Bit\n");
 			fprintf(psfile, "%%%%LanguageLevel: 2\n");
@@ -1859,7 +1859,7 @@ void CPrinter::outputPage()
 		}
 
 		fprintf(psfile, "%%%%Page: %i %i\n", multiPageCounter, multiPageCounter);
-		fprintf(psfile, "%i %i scale\n", (Bit16u)(defaultPageWidth * 72), (Bit16u)(defaultPageHeight * 72));
+		fprintf(psfile, "%i %i scale\n", (uint16_t)(defaultPageWidth * 72), (uint16_t)(defaultPageHeight * 72));
 		fprintf(psfile, "%i %i 8 [%i 0 0 -%i 0 %i]\n", page->w, page->h, page->w, page->h, page->h);
 		fprintf(psfile, "currentfile\n");
 		fprintf(psfile, "/ASCII85Decode filter\n");
@@ -1935,7 +1935,7 @@ void CPrinter::outputPage()
 	}
 }
 
-void CPrinter::fprintASCII85(FILE* f, Bit16u b)
+void CPrinter::fprintASCII85(FILE* f, uint16_t b)
 {
 	if (b != 256)
 	{
@@ -2028,8 +2028,8 @@ bool CPrinter::isBlank()
 
 	SDL_LockSurface(page);
 
-	for (Bit16u y = 0; y < page->h; y++)
-		for (Bit16u x = 0; x < page->w; x++)
+	for (uint16_t y = 0; y < page->h; y++)
+		for (uint16_t x = 0; x < page->w; x++)
 			if (*((uint8_t*)page->pixels + x + (y * page->pitch)) != 0)
 				blank = false;
 

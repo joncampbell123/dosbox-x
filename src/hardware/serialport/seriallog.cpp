@@ -46,7 +46,7 @@ void CSerialLog::log_emit() {
 	}
 }
 
-void CSerialLog::handleUpperEvent(Bit16u type) {
+void CSerialLog::handleUpperEvent(uint16_t type) {
 	if(type==SERIAL_TX_EVENT) {
 	//LOG_MSG("SERIAL_TX_EVENT");
 		ByteTransmitted(); // tx timeout
@@ -63,7 +63,7 @@ void CSerialLog::handleUpperEvent(Bit16u type) {
 /* updatePortConfig is called when emulated app changes the serial port     **/
 /* parameters baudrate, stopbits, number of databits, parity.               **/
 /*****************************************************************************/
-void CSerialLog::updatePortConfig(Bit16u divider, uint8_t lcr) {
+void CSerialLog::updatePortConfig(uint16_t divider, uint8_t lcr) {
     (void)divider;//UNUSED
     (void)lcr;//UNUSED
 	//LOG_MSG("Serial port at 0x%x: Port params changed: %d Baud", base,dcb.BaudRate);

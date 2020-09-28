@@ -32,7 +32,7 @@ public:
 		toblock->link[index].from=this;				// remember who links me
 	}
 	struct {
-		Bit16u start,end;		// where in the page is the original code
+		uint16_t start,end;		// where in the page is the original code
 		CodePageHandlerDynRec * handler;			// page containing this code
 	} page;
 	struct {
@@ -42,8 +42,8 @@ public:
 		// writemap masking maskpointer/start/length
 		// to allow holes in the writemap
 		uint8_t * wmapmask;
-		Bit16u maskstart;
-		Bit16u masklen;
+		uint16_t maskstart;
+		uint16_t masklen;
 	} cache;
 	struct {
 		Bitu index;
@@ -160,7 +160,7 @@ public:
             invalidation_map[addr]++;
 		InvalidateRange(addr,addr);
 	}
-	void writew(PhysPt addr,Bit16u val){
+	void writew(PhysPt addr,uint16_t val){
 		addr&=4095;
 		if (host_readw(hostmem+addr)==val) return;
 		host_writew(hostmem+addr,val);
@@ -182,7 +182,7 @@ public:
 			host_readw(&invalidation_map[addr])+0x101);
 #else
         if (invalidation_map != NULL)
-            (*(Bit16u*)& invalidation_map[addr]) += 0x101;
+            (*(uint16_t*)& invalidation_map[addr]) += 0x101;
 #endif
 		InvalidateRange(addr,addr+(Bitu)1);
 	}
@@ -241,7 +241,7 @@ public:
 		host_writeb(hostmem+addr,val);
 		return false;
 	}
-	bool writew_checked(PhysPt addr,Bit16u val) {
+	bool writew_checked(PhysPt addr,uint16_t val) {
 		addr&=4095;
 		if (host_readw(hostmem+addr)==val) return false;
 		// see if there's code where we are writing to
@@ -264,7 +264,7 @@ public:
 				host_readw(&invalidation_map[addr])+0x101);
 #else
             if (invalidation_map != NULL)
-                (*(Bit16u*)& invalidation_map[addr]) += 0x101;
+                (*(uint16_t*)& invalidation_map[addr]) += 0x101;
 #endif
 			if (InvalidateRange(addr,addr+(Bitu)1)) {
 				cpu.exception.which=SMC_CURRENT_BLOCK;
@@ -310,7 +310,7 @@ public:
 
     // add a cache block to this page and note it in the hash map
 	void AddCacheBlock(CacheBlockDynRec * block) {
-		Bitu index=1u+(Bitu)(block->page.start>>(Bit16u)DYN_HASH_SHIFT);
+		Bitu index=1u+(Bitu)(block->page.start>>(uint16_t)DYN_HASH_SHIFT);
 		block->hash.next=hash_map[index];	// link to old block at index from the new block
 		block->hash.index=index;
 		hash_map[index]=block;				// put new block at hash position
@@ -559,8 +559,8 @@ static INLINE void cache_addb(uint8_t val) {
 }
 
 // place a 16bit value into the cache
-static INLINE void cache_addw(Bit16u val) {
-	*(Bit16u*)cache.pos=val;
+static INLINE void cache_addw(uint16_t val) {
+	*(uint16_t*)cache.pos=val;
 	cache.pos+=2;
 }
 

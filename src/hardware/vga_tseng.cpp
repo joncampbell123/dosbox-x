@@ -536,12 +536,12 @@ void SetupDAC_ET4K() {
 }
 
 // BIOS extensions for HiColor-enabled cards
-bool INT10_SetVideoMode(Bit16u mode);
+bool INT10_SetVideoMode(uint16_t mode);
 
 void INT10Extensions_ET4K() {
     switch (reg_ax) {
     case 0x10F0: /* ET4000: SET HiColor GRAPHICS MODE */
-        if (INT10_SetVideoMode(0x200 | Bit16u(reg_bl))) {
+        if (INT10_SetVideoMode(0x200 | uint16_t(reg_bl))) {
             reg_ax = 0x0010;
         }
         break;

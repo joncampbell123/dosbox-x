@@ -341,7 +341,7 @@ static void gen_mov_word_to_reg(HostReg dest_reg,void* data,bool dword) {
 
 // move a 16bit constant value into dest_reg
 // the upper 16bit of the destination register may be destroyed
-static void INLINE gen_mov_word_to_reg_imm(HostReg dest_reg,Bit16u imm) {
+static void INLINE gen_mov_word_to_reg_imm(HostReg dest_reg,uint16_t imm) {
 	gen_mov_dword_to_reg_imm(dest_reg, (Bit32u)imm);
 }
 
@@ -913,32 +913,32 @@ static void gen_fill_function_ptr(uint8_t * pos,void* fct_ptr,Bitu flags_type) {
 			case t_ADDb:
 			case t_ADDw:
 			case t_ADDd:
-				*(Bit16u*)pos=ADD_REG(HOST_a1, HOST_a1, HOST_a2);	// add a1, a1, a2
-				*(Bit16u*)(pos+2)=B_FWD(14);						// b after_call (pc+14)
+				*(uint16_t*)pos=ADD_REG(HOST_a1, HOST_a1, HOST_a2);	// add a1, a1, a2
+				*(uint16_t*)(pos+2)=B_FWD(14);						// b after_call (pc+14)
 				break;
 			case t_ORb:
 			case t_ORw:
 			case t_ORd:
-				*(Bit16u*)pos=ORR(HOST_a1, HOST_a2);				// orr a1, a2
-				*(Bit16u*)(pos+2)=B_FWD(14);						// b after_call (pc+14)
+				*(uint16_t*)pos=ORR(HOST_a1, HOST_a2);				// orr a1, a2
+				*(uint16_t*)(pos+2)=B_FWD(14);						// b after_call (pc+14)
 				break;
 			case t_ANDb:
 			case t_ANDw:
 			case t_ANDd:
-				*(Bit16u*)pos=AND(HOST_a1, HOST_a2);				// and a1, a2
-				*(Bit16u*)(pos+2)=B_FWD(14);						// b after_call (pc+14)
+				*(uint16_t*)pos=AND(HOST_a1, HOST_a2);				// and a1, a2
+				*(uint16_t*)(pos+2)=B_FWD(14);						// b after_call (pc+14)
 				break;
 			case t_SUBb:
 			case t_SUBw:
 			case t_SUBd:
-				*(Bit16u*)pos=SUB_REG(HOST_a1, HOST_a1, HOST_a2);	// sub a1, a1, a2
-				*(Bit16u*)(pos+2)=B_FWD(14);						// b after_call (pc+14)
+				*(uint16_t*)pos=SUB_REG(HOST_a1, HOST_a1, HOST_a2);	// sub a1, a1, a2
+				*(uint16_t*)(pos+2)=B_FWD(14);						// b after_call (pc+14)
 				break;
 			case t_XORb:
 			case t_XORw:
 			case t_XORd:
-				*(Bit16u*)pos=EOR(HOST_a1, HOST_a2);				// eor a1, a2
-				*(Bit16u*)(pos+2)=B_FWD(14);						// b after_call (pc+14)
+				*(uint16_t*)pos=EOR(HOST_a1, HOST_a2);				// eor a1, a2
+				*(uint16_t*)(pos+2)=B_FWD(14);						// b after_call (pc+14)
 				break;
 			case t_CMPb:
 			case t_CMPw:
@@ -946,110 +946,110 @@ static void gen_fill_function_ptr(uint8_t * pos,void* fct_ptr,Bitu flags_type) {
 			case t_TESTb:
 			case t_TESTw:
 			case t_TESTd:
-				*(Bit16u*)pos=B_FWD(16);							// b after_call (pc+16)
+				*(uint16_t*)pos=B_FWD(16);							// b after_call (pc+16)
 				break;
 			case t_INCb:
 			case t_INCw:
 			case t_INCd:
-				*(Bit16u*)pos=ADD_IMM3(HOST_a1, HOST_a1, 1);		// add a1, a1, #1
-				*(Bit16u*)(pos+2)=B_FWD(14);						// b after_call (pc+14)
+				*(uint16_t*)pos=ADD_IMM3(HOST_a1, HOST_a1, 1);		// add a1, a1, #1
+				*(uint16_t*)(pos+2)=B_FWD(14);						// b after_call (pc+14)
 				break;
 			case t_DECb:
 			case t_DECw:
 			case t_DECd:
-				*(Bit16u*)pos=SUB_IMM3(HOST_a1, HOST_a1, 1);		// sub a1, a1, #1
-				*(Bit16u*)(pos+2)=B_FWD(14);						// b after_call (pc+14)
+				*(uint16_t*)pos=SUB_IMM3(HOST_a1, HOST_a1, 1);		// sub a1, a1, #1
+				*(uint16_t*)(pos+2)=B_FWD(14);						// b after_call (pc+14)
 				break;
 			case t_SHLb:
 			case t_SHLw:
 			case t_SHLd:
-				*(Bit16u*)pos=LSL_REG(HOST_a1, HOST_a2);			// lsl a1, a2
-				*(Bit16u*)(pos+2)=B_FWD(14);						// b after_call (pc+14)
+				*(uint16_t*)pos=LSL_REG(HOST_a1, HOST_a2);			// lsl a1, a2
+				*(uint16_t*)(pos+2)=B_FWD(14);						// b after_call (pc+14)
 				break;
 			case t_SHRb:
-				*(Bit16u*)pos=LSL_IMM(HOST_a1, HOST_a1, 24);		// lsl a1, a1, #24
-				*(Bit16u*)(pos+2)=LSR_IMM(HOST_a1, HOST_a1, 24);	// lsr a1, a1, #24
-				*(Bit16u*)(pos+4)=LSR_REG(HOST_a1, HOST_a2);		// lsr a1, a2
-				*(Bit16u*)(pos+6)=B_FWD(10);						// b after_call (pc+10)
+				*(uint16_t*)pos=LSL_IMM(HOST_a1, HOST_a1, 24);		// lsl a1, a1, #24
+				*(uint16_t*)(pos+2)=LSR_IMM(HOST_a1, HOST_a1, 24);	// lsr a1, a1, #24
+				*(uint16_t*)(pos+4)=LSR_REG(HOST_a1, HOST_a2);		// lsr a1, a2
+				*(uint16_t*)(pos+6)=B_FWD(10);						// b after_call (pc+10)
 				break;
 			case t_SHRw:
-				*(Bit16u*)pos=LSL_IMM(HOST_a1, HOST_a1, 16);		// lsl a1, a1, #16
-				*(Bit16u*)(pos+2)=LSR_IMM(HOST_a1, HOST_a1, 16);	// lsr a1, a1, #16
-				*(Bit16u*)(pos+4)=LSR_REG(HOST_a1, HOST_a2);		// lsr a1, a2
-				*(Bit16u*)(pos+6)=B_FWD(10);						// b after_call (pc+10)
+				*(uint16_t*)pos=LSL_IMM(HOST_a1, HOST_a1, 16);		// lsl a1, a1, #16
+				*(uint16_t*)(pos+2)=LSR_IMM(HOST_a1, HOST_a1, 16);	// lsr a1, a1, #16
+				*(uint16_t*)(pos+4)=LSR_REG(HOST_a1, HOST_a2);		// lsr a1, a2
+				*(uint16_t*)(pos+6)=B_FWD(10);						// b after_call (pc+10)
 				break;
 			case t_SHRd:
-				*(Bit16u*)pos=LSR_REG(HOST_a1, HOST_a2);			// lsr a1, a2
-				*(Bit16u*)(pos+2)=B_FWD(14);						// b after_call (pc+14)
+				*(uint16_t*)pos=LSR_REG(HOST_a1, HOST_a2);			// lsr a1, a2
+				*(uint16_t*)(pos+2)=B_FWD(14);						// b after_call (pc+14)
 				break;
 			case t_SARb:
-				*(Bit16u*)pos=LSL_IMM(HOST_a1, HOST_a1, 24);		// lsl a1, a1, #24
-				*(Bit16u*)(pos+2)=ASR_IMM(HOST_a1, HOST_a1, 24);	// asr a1, a1, #24
-				*(Bit16u*)(pos+4)=ASR_REG(HOST_a1, HOST_a2);		// asr a1, a2
-				*(Bit16u*)(pos+6)=B_FWD(10);						// b after_call (pc+10)
+				*(uint16_t*)pos=LSL_IMM(HOST_a1, HOST_a1, 24);		// lsl a1, a1, #24
+				*(uint16_t*)(pos+2)=ASR_IMM(HOST_a1, HOST_a1, 24);	// asr a1, a1, #24
+				*(uint16_t*)(pos+4)=ASR_REG(HOST_a1, HOST_a2);		// asr a1, a2
+				*(uint16_t*)(pos+6)=B_FWD(10);						// b after_call (pc+10)
 				break;
 			case t_SARw:
-				*(Bit16u*)pos=LSL_IMM(HOST_a1, HOST_a1, 16);		// lsl a1, a1, #16
-				*(Bit16u*)(pos+2)=ASR_IMM(HOST_a1, HOST_a1, 16);	// asr a1, a1, #16
-				*(Bit16u*)(pos+4)=ASR_REG(HOST_a1, HOST_a2);		// asr a1, a2
-				*(Bit16u*)(pos+6)=B_FWD(10);						// b after_call (pc+10)
+				*(uint16_t*)pos=LSL_IMM(HOST_a1, HOST_a1, 16);		// lsl a1, a1, #16
+				*(uint16_t*)(pos+2)=ASR_IMM(HOST_a1, HOST_a1, 16);	// asr a1, a1, #16
+				*(uint16_t*)(pos+4)=ASR_REG(HOST_a1, HOST_a2);		// asr a1, a2
+				*(uint16_t*)(pos+6)=B_FWD(10);						// b after_call (pc+10)
 				break;
 			case t_SARd:
-				*(Bit16u*)pos=ASR_REG(HOST_a1, HOST_a2);			// asr a1, a2
-				*(Bit16u*)(pos+2)=B_FWD(14);						// b after_call (pc+14)
+				*(uint16_t*)pos=ASR_REG(HOST_a1, HOST_a2);			// asr a1, a2
+				*(uint16_t*)(pos+2)=B_FWD(14);						// b after_call (pc+14)
 				break;
 			case t_RORb:
-				*(Bit16u*)pos=LSL_IMM(HOST_a1, HOST_a1, 24);		// lsl a1, a1, #24
-				*(Bit16u*)(pos+2)=LSR_IMM(templo1, HOST_a1, 8);		// lsr templo1, a1, #8
-				*(Bit16u*)(pos+4)=ORR(HOST_a1, templo1);			// orr a1, templo1
-				*(Bit16u*)(pos+6)=LSR_IMM(templo1, HOST_a1, 16);	// lsr templo1, a1, #16
-				*(Bit16u*)(pos+8)=ORR(HOST_a1, templo1);			// orr a1, templo1
-				*(Bit16u*)(pos+10)=ROR_REG(HOST_a1, HOST_a2);		// ror a1, a2
-				*(Bit16u*)(pos+12)=B_FWD(4);						// b after_call (pc+4)
+				*(uint16_t*)pos=LSL_IMM(HOST_a1, HOST_a1, 24);		// lsl a1, a1, #24
+				*(uint16_t*)(pos+2)=LSR_IMM(templo1, HOST_a1, 8);		// lsr templo1, a1, #8
+				*(uint16_t*)(pos+4)=ORR(HOST_a1, templo1);			// orr a1, templo1
+				*(uint16_t*)(pos+6)=LSR_IMM(templo1, HOST_a1, 16);	// lsr templo1, a1, #16
+				*(uint16_t*)(pos+8)=ORR(HOST_a1, templo1);			// orr a1, templo1
+				*(uint16_t*)(pos+10)=ROR_REG(HOST_a1, HOST_a2);		// ror a1, a2
+				*(uint16_t*)(pos+12)=B_FWD(4);						// b after_call (pc+4)
 				break;
 			case t_RORw:
-				*(Bit16u*)pos=LSL_IMM(HOST_a1, HOST_a1, 16);		// lsl a1, a1, #16
-				*(Bit16u*)(pos+2)=LSR_IMM(templo1, HOST_a1, 16);	// lsr templo1, a1, #16
-				*(Bit16u*)(pos+4)=ORR(HOST_a1, templo1);			// orr a1, templo1
-				*(Bit16u*)(pos+6)=ROR_REG(HOST_a1, HOST_a2);		// ror a1, a2
-				*(Bit16u*)(pos+8)=B_FWD(8);							// b after_call (pc+8)
+				*(uint16_t*)pos=LSL_IMM(HOST_a1, HOST_a1, 16);		// lsl a1, a1, #16
+				*(uint16_t*)(pos+2)=LSR_IMM(templo1, HOST_a1, 16);	// lsr templo1, a1, #16
+				*(uint16_t*)(pos+4)=ORR(HOST_a1, templo1);			// orr a1, templo1
+				*(uint16_t*)(pos+6)=ROR_REG(HOST_a1, HOST_a2);		// ror a1, a2
+				*(uint16_t*)(pos+8)=B_FWD(8);							// b after_call (pc+8)
 				break;
 			case t_RORd:
-				*(Bit16u*)pos=ROR_REG(HOST_a1, HOST_a2);			// ror a1, a2
-				*(Bit16u*)(pos+2)=B_FWD(14);						// b after_call (pc+14)
+				*(uint16_t*)pos=ROR_REG(HOST_a1, HOST_a2);			// ror a1, a2
+				*(uint16_t*)(pos+2)=B_FWD(14);						// b after_call (pc+14)
 				break;
 			case t_ROLb:
-				*(Bit16u*)pos=LSL_IMM(HOST_a1, HOST_a1, 24);		// lsl a1, a1, #24
-				*(Bit16u*)(pos+2)=NEG(HOST_a2, HOST_a2);			// neg a2, a2
-				*(Bit16u*)(pos+4)=LSR_IMM(templo1, HOST_a1, 8);		// lsr templo1, a1, #8
-				*(Bit16u*)(pos+6)=ADD_IMM8(HOST_a2, 32);			// add a2, #32
-				*(Bit16u*)(pos+8)=ORR(HOST_a1, templo1);			// orr a1, templo1
-				*(Bit16u*)(pos+10)=NOP;								// nop
-				*(Bit16u*)(pos+12)=LSR_IMM(templo1, HOST_a1, 16);	// lsr templo1, a1, #16
-				*(Bit16u*)(pos+14)=NOP;								// nop
-				*(Bit16u*)(pos+16)=ORR(HOST_a1, templo1);			// orr a1, templo1
-				*(Bit16u*)(pos+18)=ROR_REG(HOST_a1, HOST_a2);		// ror a1, a2
+				*(uint16_t*)pos=LSL_IMM(HOST_a1, HOST_a1, 24);		// lsl a1, a1, #24
+				*(uint16_t*)(pos+2)=NEG(HOST_a2, HOST_a2);			// neg a2, a2
+				*(uint16_t*)(pos+4)=LSR_IMM(templo1, HOST_a1, 8);		// lsr templo1, a1, #8
+				*(uint16_t*)(pos+6)=ADD_IMM8(HOST_a2, 32);			// add a2, #32
+				*(uint16_t*)(pos+8)=ORR(HOST_a1, templo1);			// orr a1, templo1
+				*(uint16_t*)(pos+10)=NOP;								// nop
+				*(uint16_t*)(pos+12)=LSR_IMM(templo1, HOST_a1, 16);	// lsr templo1, a1, #16
+				*(uint16_t*)(pos+14)=NOP;								// nop
+				*(uint16_t*)(pos+16)=ORR(HOST_a1, templo1);			// orr a1, templo1
+				*(uint16_t*)(pos+18)=ROR_REG(HOST_a1, HOST_a2);		// ror a1, a2
 				break;
 			case t_ROLw:
-				*(Bit16u*)pos=LSL_IMM(HOST_a1, HOST_a1, 16);		// lsl a1, a1, #16
-				*(Bit16u*)(pos+2)=NEG(HOST_a2, HOST_a2);			// neg a2, a2
-				*(Bit16u*)(pos+4)=LSR_IMM(templo1, HOST_a1, 16);	// lsr templo1, a1, #16
-				*(Bit16u*)(pos+6)=ADD_IMM8(HOST_a2, 32);			// add a2, #32
-				*(Bit16u*)(pos+8)=ORR(HOST_a1, templo1);			// orr a1, templo1
-				*(Bit16u*)(pos+10)=ROR_REG(HOST_a1, HOST_a2);		// ror a1, a2
-				*(Bit16u*)(pos+12)=B_FWD(4);						// b after_call (pc+4)
+				*(uint16_t*)pos=LSL_IMM(HOST_a1, HOST_a1, 16);		// lsl a1, a1, #16
+				*(uint16_t*)(pos+2)=NEG(HOST_a2, HOST_a2);			// neg a2, a2
+				*(uint16_t*)(pos+4)=LSR_IMM(templo1, HOST_a1, 16);	// lsr templo1, a1, #16
+				*(uint16_t*)(pos+6)=ADD_IMM8(HOST_a2, 32);			// add a2, #32
+				*(uint16_t*)(pos+8)=ORR(HOST_a1, templo1);			// orr a1, templo1
+				*(uint16_t*)(pos+10)=ROR_REG(HOST_a1, HOST_a2);		// ror a1, a2
+				*(uint16_t*)(pos+12)=B_FWD(4);						// b after_call (pc+4)
 				break;
 			case t_ROLd:
-				*(Bit16u*)pos=NEG(HOST_a2, HOST_a2);				// neg a2, a2
-				*(Bit16u*)(pos+2)=ADD_IMM8(HOST_a2, 32);			// add a2, #32
-				*(Bit16u*)(pos+4)=ROR_REG(HOST_a1, HOST_a2);		// ror a1, a2
-				*(Bit16u*)(pos+6)=B_FWD(10);						// b after_call (pc+10)
+				*(uint16_t*)pos=NEG(HOST_a2, HOST_a2);				// neg a2, a2
+				*(uint16_t*)(pos+2)=ADD_IMM8(HOST_a2, 32);			// add a2, #32
+				*(uint16_t*)(pos+4)=ROR_REG(HOST_a1, HOST_a2);		// ror a1, a2
+				*(uint16_t*)(pos+6)=B_FWD(10);						// b after_call (pc+10)
 				break;
 			case t_NEGb:
 			case t_NEGw:
 			case t_NEGd:
-				*(Bit16u*)pos=NEG(HOST_a1, HOST_a1);				// neg a1, a1
-				*(Bit16u*)(pos+2)=B_FWD(14);						// b after_call (pc+14)
+				*(uint16_t*)pos=NEG(HOST_a1, HOST_a1);				// neg a1, a1
+				*(uint16_t*)(pos+2)=B_FWD(14);						// b after_call (pc+14)
 				break;
 			default:
 				*(Bit32u*)(pos+8)=(Bit32u)fct_ptr;		// simple_func
@@ -1063,32 +1063,32 @@ static void gen_fill_function_ptr(uint8_t * pos,void* fct_ptr,Bitu flags_type) {
 			case t_ADDb:
 			case t_ADDw:
 			case t_ADDd:
-				*(Bit16u*)pos=ADD_REG(HOST_a1, HOST_a1, HOST_a2);	// add a1, a1, a2
-				*(Bit16u*)(pos+2)=B_FWD(16);						// b after_call (pc+16)
+				*(uint16_t*)pos=ADD_REG(HOST_a1, HOST_a1, HOST_a2);	// add a1, a1, a2
+				*(uint16_t*)(pos+2)=B_FWD(16);						// b after_call (pc+16)
 				break;
 			case t_ORb:
 			case t_ORw:
 			case t_ORd:
-				*(Bit16u*)pos=ORR(HOST_a1, HOST_a2);				// orr a1, a2
-				*(Bit16u*)(pos+2)=B_FWD(16);						// b after_call (pc+16)
+				*(uint16_t*)pos=ORR(HOST_a1, HOST_a2);				// orr a1, a2
+				*(uint16_t*)(pos+2)=B_FWD(16);						// b after_call (pc+16)
 				break;
 			case t_ANDb:
 			case t_ANDw:
 			case t_ANDd:
-				*(Bit16u*)pos=AND(HOST_a1, HOST_a2);				// and a1, a2
-				*(Bit16u*)(pos+2)=B_FWD(16);						// b after_call (pc+16)
+				*(uint16_t*)pos=AND(HOST_a1, HOST_a2);				// and a1, a2
+				*(uint16_t*)(pos+2)=B_FWD(16);						// b after_call (pc+16)
 				break;
 			case t_SUBb:
 			case t_SUBw:
 			case t_SUBd:
-				*(Bit16u*)pos=SUB_REG(HOST_a1, HOST_a1, HOST_a2);	// sub a1, a1, a2
-				*(Bit16u*)(pos+2)=B_FWD(16);						// b after_call (pc+16)
+				*(uint16_t*)pos=SUB_REG(HOST_a1, HOST_a1, HOST_a2);	// sub a1, a1, a2
+				*(uint16_t*)(pos+2)=B_FWD(16);						// b after_call (pc+16)
 				break;
 			case t_XORb:
 			case t_XORw:
 			case t_XORd:
-				*(Bit16u*)pos=EOR(HOST_a1, HOST_a2);				// eor a1, a2
-				*(Bit16u*)(pos+2)=B_FWD(16);						// b after_call (pc+16)
+				*(uint16_t*)pos=EOR(HOST_a1, HOST_a2);				// eor a1, a2
+				*(uint16_t*)(pos+2)=B_FWD(16);						// b after_call (pc+16)
 				break;
 			case t_CMPb:
 			case t_CMPw:
@@ -1096,111 +1096,111 @@ static void gen_fill_function_ptr(uint8_t * pos,void* fct_ptr,Bitu flags_type) {
 			case t_TESTb:
 			case t_TESTw:
 			case t_TESTd:
-				*(Bit16u*)pos=B_FWD(18);							// b after_call (pc+18)
+				*(uint16_t*)pos=B_FWD(18);							// b after_call (pc+18)
 				break;
 			case t_INCb:
 			case t_INCw:
 			case t_INCd:
-				*(Bit16u*)pos=ADD_IMM3(HOST_a1, HOST_a1, 1);		// add a1, a1, #1
-				*(Bit16u*)(pos+2)=B_FWD(16);						// b after_call (pc+16)
+				*(uint16_t*)pos=ADD_IMM3(HOST_a1, HOST_a1, 1);		// add a1, a1, #1
+				*(uint16_t*)(pos+2)=B_FWD(16);						// b after_call (pc+16)
 				break;
 			case t_DECb:
 			case t_DECw:
 			case t_DECd:
-				*(Bit16u*)pos=SUB_IMM3(HOST_a1, HOST_a1, 1);		// sub a1, a1, #1
-				*(Bit16u*)(pos+2)=B_FWD(16);						// b after_call (pc+16)
+				*(uint16_t*)pos=SUB_IMM3(HOST_a1, HOST_a1, 1);		// sub a1, a1, #1
+				*(uint16_t*)(pos+2)=B_FWD(16);						// b after_call (pc+16)
 				break;
 			case t_SHLb:
 			case t_SHLw:
 			case t_SHLd:
-				*(Bit16u*)pos=LSL_REG(HOST_a1, HOST_a2);			// lsl a1, a2
-				*(Bit16u*)(pos+2)=B_FWD(16);						// b after_call (pc+16)
+				*(uint16_t*)pos=LSL_REG(HOST_a1, HOST_a2);			// lsl a1, a2
+				*(uint16_t*)(pos+2)=B_FWD(16);						// b after_call (pc+16)
 				break;
 			case t_SHRb:
-				*(Bit16u*)pos=LSL_IMM(HOST_a1, HOST_a1, 24);		// lsl a1, a1, #24
-				*(Bit16u*)(pos+2)=LSR_IMM(HOST_a1, HOST_a1, 24);	// lsr a1, a1, #24
-				*(Bit16u*)(pos+4)=LSR_REG(HOST_a1, HOST_a2);		// lsr a1, a2
-				*(Bit16u*)(pos+6)=B_FWD(12);						// b after_call (pc+12)
+				*(uint16_t*)pos=LSL_IMM(HOST_a1, HOST_a1, 24);		// lsl a1, a1, #24
+				*(uint16_t*)(pos+2)=LSR_IMM(HOST_a1, HOST_a1, 24);	// lsr a1, a1, #24
+				*(uint16_t*)(pos+4)=LSR_REG(HOST_a1, HOST_a2);		// lsr a1, a2
+				*(uint16_t*)(pos+6)=B_FWD(12);						// b after_call (pc+12)
 				break;
 			case t_SHRw:
-				*(Bit16u*)pos=LSL_IMM(HOST_a1, HOST_a1, 16);		// lsl a1, a1, #16
-				*(Bit16u*)(pos+2)=LSR_IMM(HOST_a1, HOST_a1, 16);	// lsr a1, a1, #16
-				*(Bit16u*)(pos+4)=LSR_REG(HOST_a1, HOST_a2);		// lsr a1, a2
-				*(Bit16u*)(pos+6)=B_FWD(12);						// b after_call (pc+12)
+				*(uint16_t*)pos=LSL_IMM(HOST_a1, HOST_a1, 16);		// lsl a1, a1, #16
+				*(uint16_t*)(pos+2)=LSR_IMM(HOST_a1, HOST_a1, 16);	// lsr a1, a1, #16
+				*(uint16_t*)(pos+4)=LSR_REG(HOST_a1, HOST_a2);		// lsr a1, a2
+				*(uint16_t*)(pos+6)=B_FWD(12);						// b after_call (pc+12)
 				break;
 			case t_SHRd:
-				*(Bit16u*)pos=LSR_REG(HOST_a1, HOST_a2);			// lsr a1, a2
-				*(Bit16u*)(pos+2)=B_FWD(16);						// b after_call (pc+16)
+				*(uint16_t*)pos=LSR_REG(HOST_a1, HOST_a2);			// lsr a1, a2
+				*(uint16_t*)(pos+2)=B_FWD(16);						// b after_call (pc+16)
 				break;
 			case t_SARb:
-				*(Bit16u*)pos=LSL_IMM(HOST_a1, HOST_a1, 24);		// lsl a1, a1, #24
-				*(Bit16u*)(pos+2)=ASR_IMM(HOST_a1, HOST_a1, 24);	// asr a1, a1, #24
-				*(Bit16u*)(pos+4)=ASR_REG(HOST_a1, HOST_a2);		// asr a1, a2
-				*(Bit16u*)(pos+6)=B_FWD(12);						// b after_call (pc+12)
+				*(uint16_t*)pos=LSL_IMM(HOST_a1, HOST_a1, 24);		// lsl a1, a1, #24
+				*(uint16_t*)(pos+2)=ASR_IMM(HOST_a1, HOST_a1, 24);	// asr a1, a1, #24
+				*(uint16_t*)(pos+4)=ASR_REG(HOST_a1, HOST_a2);		// asr a1, a2
+				*(uint16_t*)(pos+6)=B_FWD(12);						// b after_call (pc+12)
 				break;
 			case t_SARw:
-				*(Bit16u*)pos=LSL_IMM(HOST_a1, HOST_a1, 16);		// lsl a1, a1, #16
-				*(Bit16u*)(pos+2)=ASR_IMM(HOST_a1, HOST_a1, 16);	// asr a1, a1, #16
-				*(Bit16u*)(pos+4)=ASR_REG(HOST_a1, HOST_a2);		// asr a1, a2
-				*(Bit16u*)(pos+6)=B_FWD(12);						// b after_call (pc+12)
+				*(uint16_t*)pos=LSL_IMM(HOST_a1, HOST_a1, 16);		// lsl a1, a1, #16
+				*(uint16_t*)(pos+2)=ASR_IMM(HOST_a1, HOST_a1, 16);	// asr a1, a1, #16
+				*(uint16_t*)(pos+4)=ASR_REG(HOST_a1, HOST_a2);		// asr a1, a2
+				*(uint16_t*)(pos+6)=B_FWD(12);						// b after_call (pc+12)
 				break;
 			case t_SARd:
-				*(Bit16u*)pos=ASR_REG(HOST_a1, HOST_a2);			// asr a1, a2
-				*(Bit16u*)(pos+2)=B_FWD(16);						// b after_call (pc+16)
+				*(uint16_t*)pos=ASR_REG(HOST_a1, HOST_a2);			// asr a1, a2
+				*(uint16_t*)(pos+2)=B_FWD(16);						// b after_call (pc+16)
 				break;
 			case t_RORb:
-				*(Bit16u*)pos=LSL_IMM(HOST_a1, HOST_a1, 24);		// lsl a1, a1, #24
-				*(Bit16u*)(pos+2)=LSR_IMM(templo1, HOST_a1, 8);		// lsr templo1, a1, #8
-				*(Bit16u*)(pos+4)=ORR(HOST_a1, templo1);			// orr a1, templo1
-				*(Bit16u*)(pos+6)=LSR_IMM(templo1, HOST_a1, 16);	// lsr templo1, a1, #16
-				*(Bit16u*)(pos+8)=ORR(HOST_a1, templo1);			// orr a1, templo1
-				*(Bit16u*)(pos+10)=ROR_REG(HOST_a1, HOST_a2);		// ror a1, a2
-				*(Bit16u*)(pos+12)=B_FWD(6);						// b after_call (pc+6)
+				*(uint16_t*)pos=LSL_IMM(HOST_a1, HOST_a1, 24);		// lsl a1, a1, #24
+				*(uint16_t*)(pos+2)=LSR_IMM(templo1, HOST_a1, 8);		// lsr templo1, a1, #8
+				*(uint16_t*)(pos+4)=ORR(HOST_a1, templo1);			// orr a1, templo1
+				*(uint16_t*)(pos+6)=LSR_IMM(templo1, HOST_a1, 16);	// lsr templo1, a1, #16
+				*(uint16_t*)(pos+8)=ORR(HOST_a1, templo1);			// orr a1, templo1
+				*(uint16_t*)(pos+10)=ROR_REG(HOST_a1, HOST_a2);		// ror a1, a2
+				*(uint16_t*)(pos+12)=B_FWD(6);						// b after_call (pc+6)
 				break;
 			case t_RORw:
-				*(Bit16u*)pos=LSL_IMM(HOST_a1, HOST_a1, 16);		// lsl a1, a1, #16
-				*(Bit16u*)(pos+2)=LSR_IMM(templo1, HOST_a1, 16);	// lsr templo1, a1, #16
-				*(Bit16u*)(pos+4)=ORR(HOST_a1, templo1);			// orr a1, templo1
-				*(Bit16u*)(pos+6)=ROR_REG(HOST_a1, HOST_a2);		// ror a1, a2
-				*(Bit16u*)(pos+8)=B_FWD(10);						// b after_call (pc+10)
+				*(uint16_t*)pos=LSL_IMM(HOST_a1, HOST_a1, 16);		// lsl a1, a1, #16
+				*(uint16_t*)(pos+2)=LSR_IMM(templo1, HOST_a1, 16);	// lsr templo1, a1, #16
+				*(uint16_t*)(pos+4)=ORR(HOST_a1, templo1);			// orr a1, templo1
+				*(uint16_t*)(pos+6)=ROR_REG(HOST_a1, HOST_a2);		// ror a1, a2
+				*(uint16_t*)(pos+8)=B_FWD(10);						// b after_call (pc+10)
 				break;
 			case t_RORd:
-				*(Bit16u*)pos=ROR_REG(HOST_a1, HOST_a2);			// ror a1, a2
-				*(Bit16u*)(pos+2)=B_FWD(16);						// b after_call (pc+16)
+				*(uint16_t*)pos=ROR_REG(HOST_a1, HOST_a2);			// ror a1, a2
+				*(uint16_t*)(pos+2)=B_FWD(16);						// b after_call (pc+16)
 				break;
 			case t_ROLb:
-				*(Bit16u*)pos=LSL_IMM(HOST_a1, HOST_a1, 24);		// lsl a1, a1, #24
-				*(Bit16u*)(pos+2)=NEG(HOST_a2, HOST_a2);			// neg a2, a2
-				*(Bit16u*)(pos+4)=LSR_IMM(templo1, HOST_a1, 8);		// lsr templo1, a1, #8
-				*(Bit16u*)(pos+6)=ADD_IMM8(HOST_a2, 32);			// add a2, #32
-				*(Bit16u*)(pos+8)=ORR(HOST_a1, templo1);			// orr a1, templo1
-				*(Bit16u*)(pos+10)=NOP;								// nop
-				*(Bit16u*)(pos+12)=LSR_IMM(templo1, HOST_a1, 16);	// lsr templo1, a1, #16
-				*(Bit16u*)(pos+14)=NOP;								// nop
-				*(Bit16u*)(pos+16)=ORR(HOST_a1, templo1);			// orr a1, templo1
-				*(Bit16u*)(pos+18)=NOP;								// nop
-				*(Bit16u*)(pos+20)=ROR_REG(HOST_a1, HOST_a2);		// ror a1, a2
+				*(uint16_t*)pos=LSL_IMM(HOST_a1, HOST_a1, 24);		// lsl a1, a1, #24
+				*(uint16_t*)(pos+2)=NEG(HOST_a2, HOST_a2);			// neg a2, a2
+				*(uint16_t*)(pos+4)=LSR_IMM(templo1, HOST_a1, 8);		// lsr templo1, a1, #8
+				*(uint16_t*)(pos+6)=ADD_IMM8(HOST_a2, 32);			// add a2, #32
+				*(uint16_t*)(pos+8)=ORR(HOST_a1, templo1);			// orr a1, templo1
+				*(uint16_t*)(pos+10)=NOP;								// nop
+				*(uint16_t*)(pos+12)=LSR_IMM(templo1, HOST_a1, 16);	// lsr templo1, a1, #16
+				*(uint16_t*)(pos+14)=NOP;								// nop
+				*(uint16_t*)(pos+16)=ORR(HOST_a1, templo1);			// orr a1, templo1
+				*(uint16_t*)(pos+18)=NOP;								// nop
+				*(uint16_t*)(pos+20)=ROR_REG(HOST_a1, HOST_a2);		// ror a1, a2
 				break;
 			case t_ROLw:
-				*(Bit16u*)pos=LSL_IMM(HOST_a1, HOST_a1, 16);		// lsl a1, a1, #16
-				*(Bit16u*)(pos+2)=NEG(HOST_a2, HOST_a2);			// neg a2, a2
-				*(Bit16u*)(pos+4)=LSR_IMM(templo1, HOST_a1, 16);	// lsr templo1, a1, #16
-				*(Bit16u*)(pos+6)=ADD_IMM8(HOST_a2, 32);			// add a2, #32
-				*(Bit16u*)(pos+8)=ORR(HOST_a1, templo1);			// orr a1, templo1
-				*(Bit16u*)(pos+10)=ROR_REG(HOST_a1, HOST_a2);		// ror a1, a2
-				*(Bit16u*)(pos+12)=B_FWD(6);						// b after_call (pc+6)
+				*(uint16_t*)pos=LSL_IMM(HOST_a1, HOST_a1, 16);		// lsl a1, a1, #16
+				*(uint16_t*)(pos+2)=NEG(HOST_a2, HOST_a2);			// neg a2, a2
+				*(uint16_t*)(pos+4)=LSR_IMM(templo1, HOST_a1, 16);	// lsr templo1, a1, #16
+				*(uint16_t*)(pos+6)=ADD_IMM8(HOST_a2, 32);			// add a2, #32
+				*(uint16_t*)(pos+8)=ORR(HOST_a1, templo1);			// orr a1, templo1
+				*(uint16_t*)(pos+10)=ROR_REG(HOST_a1, HOST_a2);		// ror a1, a2
+				*(uint16_t*)(pos+12)=B_FWD(6);						// b after_call (pc+6)
 				break;
 			case t_ROLd:
-				*(Bit16u*)pos=NEG(HOST_a2, HOST_a2);				// neg a2, a2
-				*(Bit16u*)(pos+2)=ADD_IMM8(HOST_a2, 32);			// add a2, #32
-				*(Bit16u*)(pos+4)=ROR_REG(HOST_a1, HOST_a2);		// ror a1, a2
-				*(Bit16u*)(pos+6)=B_FWD(12);						// b after_call (pc+12)
+				*(uint16_t*)pos=NEG(HOST_a2, HOST_a2);				// neg a2, a2
+				*(uint16_t*)(pos+2)=ADD_IMM8(HOST_a2, 32);			// add a2, #32
+				*(uint16_t*)(pos+4)=ROR_REG(HOST_a1, HOST_a2);		// ror a1, a2
+				*(uint16_t*)(pos+6)=B_FWD(12);						// b after_call (pc+12)
 				break;
 			case t_NEGb:
 			case t_NEGw:
 			case t_NEGd:
-				*(Bit16u*)pos=NEG(HOST_a1, HOST_a1);				// neg a1, a1
-				*(Bit16u*)(pos+2)=B_FWD(16);						// b after_call (pc+16)
+				*(uint16_t*)pos=NEG(HOST_a1, HOST_a1);				// neg a1, a1
+				*(uint16_t*)(pos+2)=B_FWD(16);						// b after_call (pc+16)
 				break;
 			default:
 				*(Bit32u*)(pos+10)=(Bit32u)fct_ptr;		// simple_func

@@ -33,20 +33,20 @@ const char * RunningProgram="DOSBOX-X";
 #pragma pack(1)
 #endif
 struct EXE_Header {
-	Bit16u signature;					/* EXE Signature MZ or ZM */
-	Bit16u extrabytes;					/* Bytes on the last page */
-	Bit16u pages;						/* Pages in file */
-	Bit16u relocations;					/* Relocations in file */
-	Bit16u headersize;					/* Paragraphs in header */
-	Bit16u minmemory;					/* Minimum amount of memory */
-	Bit16u maxmemory;					/* Maximum amount of memory */
-	Bit16u initSS;
-	Bit16u initSP;
-	Bit16u checksum;
-	Bit16u initIP;
-	Bit16u initCS;
-	Bit16u reloctable;
-	Bit16u overlay;
+	uint16_t signature;					/* EXE Signature MZ or ZM */
+	uint16_t extrabytes;					/* Bytes on the last page */
+	uint16_t pages;						/* Pages in file */
+	uint16_t relocations;					/* Relocations in file */
+	uint16_t headersize;					/* Paragraphs in header */
+	uint16_t minmemory;					/* Minimum amount of memory */
+	uint16_t maxmemory;					/* Maximum amount of memory */
+	uint16_t initSS;
+	uint16_t initSP;
+	uint16_t checksum;
+	uint16_t initIP;
+	uint16_t initCS;
+	uint16_t reloctable;
+	uint16_t overlay;
 } GCC_ATTRIBUTE(packed);
 #ifdef _MSC_VER
 #pragma pack()
@@ -108,7 +108,7 @@ void DOS_UpdatePSPName(void) {
 	GFX_SetTitle(-1,-1,-1,false);
 }
 
-void DOS_Terminate(Bit16u pspseg,bool tsr,uint8_t exitcode) {
+void DOS_Terminate(uint16_t pspseg,bool tsr,uint8_t exitcode) {
 
 	dos.return_code=exitcode;
 	dos.return_mode=(tsr)?(uint8_t)RETURN_TSR:(uint8_t)RETURN_EXIT;
@@ -164,12 +164,12 @@ void DOS_Terminate(Bit16u pspseg,bool tsr,uint8_t exitcode) {
 	return;
 }
 
-static bool MakeEnv(const char* name, Bit16u* segment) {
+static bool MakeEnv(const char* name, uint16_t* segment) {
 	/* If segment to copy environment is 0 copy the caller's environment */
 	DOS_PSP psp(dos.psp());
 	PhysPt envread,envwrite;
 	unsigned int keepfree;
-	Bit16u envsize=1;
+	uint16_t envsize=1;
 	bool parentenv=true;
 
 	/* below 83 bytes, we must not append the mystery 0x01 + program name string */
@@ -193,7 +193,7 @@ static bool MakeEnv(const char* name, Bit16u* segment) {
 		}
 		envsize += 2;									/* account for trailing \0\0 */
 	}
-	Bit16u size = long2para(envsize+keepfree);
+	uint16_t size = long2para(envsize+keepfree);
 	if (size == 0) size = 1;
 	if (!DOS_AllocateMemory(segment,&size)) return false;
 	envwrite=PhysMake(*segment,0);
@@ -222,10 +222,10 @@ static bool MakeEnv(const char* name, Bit16u* segment) {
 	return true;
 }
 
-bool DOS_NewPSP(Bit16u segment, Bit16u size) {
+bool DOS_NewPSP(uint16_t segment, uint16_t size) {
 	DOS_PSP psp(segment);
 	psp.MakeNew(size);
-	Bit16u parent_psp_seg=psp.GetParent();
+	uint16_t parent_psp_seg=psp.GetParent();
 	DOS_PSP psp_parent(parent_psp_seg);
 	psp.CopyFileTable(&psp_parent,false);
 	// copy command line as well (Kings Quest AGI -cga switch)
@@ -233,10 +233,10 @@ bool DOS_NewPSP(Bit16u segment, Bit16u size) {
 	return true;
 }
 
-bool DOS_ChildPSP(Bit16u segment, Bit16u size) {
+bool DOS_ChildPSP(uint16_t segment, uint16_t size) {
 	DOS_PSP psp(segment);
 	psp.MakeNew(size);
-	Bit16u parent_psp_seg = psp.GetParent();
+	uint16_t parent_psp_seg = psp.GetParent();
 	DOS_PSP psp_parent(parent_psp_seg);
 	psp.CopyFileTable(&psp_parent,true);
 	psp.SetCommandTail(RealMake(parent_psp_seg,0x80));
@@ -251,11 +251,11 @@ bool DOS_ChildPSP(Bit16u segment, Bit16u size) {
 	return true;
 }
 
-static void SetupPSP(Bit16u pspseg,Bit16u memsize,Bit16u envseg) {
+static void SetupPSP(uint16_t pspseg,uint16_t memsize,uint16_t envseg) {
 	/* Fix the PSP for psp and environment MCB's */
-	DOS_MCB mcb((Bit16u)(pspseg-1));
+	DOS_MCB mcb((uint16_t)(pspseg-1));
 	mcb.SetPSPSeg(pspseg);
-	mcb.SetPt((Bit16u)(envseg-1));
+	mcb.SetPt((uint16_t)(envseg-1));
 	mcb.SetPSPSeg(pspseg);
 
 	DOS_PSP psp(pspseg);
@@ -268,7 +268,7 @@ static void SetupPSP(Bit16u pspseg,Bit16u memsize,Bit16u envseg) {
 
 }
 
-static void SetupCMDLine(Bit16u pspseg, const DOS_ParamBlock& block) {
+static void SetupCMDLine(uint16_t pspseg, const DOS_ParamBlock& block) {
 	DOS_PSP psp(pspseg);
 	// if cmdtail==0 it will inited as empty in SetCommandTail
 	psp.SetCommandTail(block.exec.cmdtail);
@@ -283,9 +283,9 @@ static void SetupCMDLine(Bit16u pspseg, const DOS_ParamBlock& block) {
  *        error message! --J.C. */
 bool DOS_Execute(const char* name, PhysPt block_pt, uint8_t flags) {
 	EXE_Header head;Bitu i;
-	Bit16u fhandle;Bit16u len;Bit32u pos;
-	Bit16u pspseg,envseg,loadseg,memsize=0xffff,readsize;
-	Bit16u maxsize,maxfree=0xffff;
+	uint16_t fhandle;uint16_t len;Bit32u pos;
+	uint16_t pspseg,envseg,loadseg,memsize=0xffff,readsize;
+	uint16_t maxsize,maxfree=0xffff;
 	PhysPt loadaddress;RealPt relocpt;
     Bit32u headersize = 0, imagesize = 0;
 	DOS_ParamBlock block(block_pt);
@@ -323,7 +323,7 @@ bool DOS_Execute(const char* name, PhysPt block_pt, uint8_t flags) {
 		/* Convert the header to correct endian, i hope this works */
 		HostPt endian=(HostPt)&head;
 		for (i=0;i<sizeof(EXE_Header)/2;i++) {
-			*((Bit16u *)endian)=host_readw(endian);
+			*((uint16_t *)endian)=host_readw(endian);
 			endian+=2;
 		}
 		if ((head.signature!=MAGIC1) && (head.signature!=MAGIC2)) iscom=true;
@@ -344,7 +344,7 @@ bool DOS_Execute(const char* name, PhysPt block_pt, uint8_t flags) {
 			DOS_CloseFile(fhandle);
 			return false;
 		}
-		Bit16u minsize;
+		uint16_t minsize;
 		/* Get Memory */		
 		DOS_AllocateMemory(&pspseg,&maxfree);
 		if (iscom) {
@@ -352,7 +352,7 @@ bool DOS_Execute(const char* name, PhysPt block_pt, uint8_t flags) {
 			if (machine==MCH_PCJR) {
 				/* try to load file into memory below 96k */ 
 				pos=0;DOS_SeekFile(fhandle,&pos,DOS_SEEK_SET);	
-				Bit16u dataread=0x1800;
+				uint16_t dataread=0x1800;
 				DOS_ReadFile(fhandle,loadbuf,&dataread);
 				if (dataread<0x1800) maxsize=dataread;
 				if (minsize>maxsize) minsize=maxsize;
@@ -373,7 +373,7 @@ bool DOS_Execute(const char* name, PhysPt block_pt, uint8_t flags) {
 			if (iscom) {
 				/* Reduce minimum of needed memory size to filesize */
 				pos=0;DOS_SeekFile(fhandle,&pos,DOS_SEEK_SET);	
-				Bit16u dataread=0xf800;
+				uint16_t dataread=0xf800;
 				DOS_ReadFile(fhandle,loadbuf,&dataread);
 				if (dataread<0xf800) minsize=((dataread+0x10)>>4)+0x20;
 			}
@@ -428,12 +428,12 @@ bool DOS_Execute(const char* name, PhysPt block_pt, uint8_t flags) {
 			loadaddress+=0x8000;imagesize-=0x8000;
 		}
 		if (imagesize>0) {
-			readsize=(Bit16u)imagesize;DOS_ReadFile(fhandle,loadbuf,&readsize);
+			readsize=(uint16_t)imagesize;DOS_ReadFile(fhandle,loadbuf,&readsize);
 			MEM_BlockWrite(loadaddress,loadbuf,readsize);
 //			if (readsize!=imagesize) LOG(LOG_EXEC,LOG_NORMAL)("Illegal header");
 		}
 		/* Relocate the exe image */
-		Bit16u relocate;
+		uint16_t relocate;
 		if (flags==OVERLAY) relocate=block.overlay.relocation;
 		else relocate=loadseg;
 		pos=head.reloctable;DOS_SeekFile(fhandle,&pos,0);

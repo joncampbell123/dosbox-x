@@ -108,7 +108,7 @@ template <enum IO_Type_t iotype> static unsigned int IO_Gen_Callout_Read(Bitu &r
         IO_CalloutObject &obj = vec[scan++];
         if (!obj.isInstalled()) continue;
         if (obj.m_r_handler == NULL) continue;
-        if (!obj.MatchPort((Bit16u)port)) continue;
+        if (!obj.MatchPort((uint16_t)port)) continue;
 
         t_f = obj.m_r_handler(obj,port,iolen);
         if (t_f != NULL) {
@@ -140,7 +140,7 @@ template <enum IO_Type_t iotype> static unsigned int IO_Gen_Callout_Write(IO_Wri
         IO_CalloutObject &obj = vec[scan++];
         if (!obj.isInstalled()) continue;
         if (obj.m_w_handler == NULL) continue;
-        if (!obj.MatchPort((Bit16u)port)) continue;
+        if (!obj.MatchPort((uint16_t)port)) continue;
 
         t_f = obj.m_w_handler(obj,port,iolen);
         if (t_f != NULL) {
@@ -500,7 +500,7 @@ void IO_WriteB(Bitu port,uint8_t val) {
 	}
 }
 
-void IO_WriteW(Bitu port,Bit16u val) {
+void IO_WriteW(Bitu port,uint16_t val) {
 	log_io(1, true, port, val);
 	if (GCC_UNLIKELY(GETFLAG(VM) && (CPU_IO_Exception(port,2)))) {
 		CPU_ForceV86FakeIO_Out(port,val,2);
@@ -535,14 +535,14 @@ uint8_t IO_ReadB(Bitu port) {
 	return retval;
 }
 
-Bit16u IO_ReadW(Bitu port) {
-	Bit16u retval;
+uint16_t IO_ReadW(Bitu port) {
+	uint16_t retval;
 	if (GCC_UNLIKELY(GETFLAG(VM) && (CPU_IO_Exception(port,2)))) {
-		return (Bit16u)CPU_ForceV86FakeIO_In(port,2);
+		return (uint16_t)CPU_ForceV86FakeIO_In(port,2);
 	}
 	else {
 		IO_USEC_read_delay(1);
-		retval = (Bit16u)io_readhandlers[1][port](port,2);
+		retval = (uint16_t)io_readhandlers[1][port](port,2);
 	}
 	log_io(1, false, port, retval);
 	return retval;
@@ -645,7 +645,7 @@ void IO_CalloutObject::Install(Bitu port,Bitu portmask/*IOMASK_ISA_10BIT, etc.*/
             range_mask = 0;
             test = portmask ^ 0xFFFFU;
             while ((test & m) == m) {
-                range_mask = (Bit16u)m;
+                range_mask = (uint16_t)m;
                 m = (m << 1) + 1;
             }
 
@@ -663,7 +663,7 @@ void IO_CalloutObject::Install(Bitu port,Bitu portmask/*IOMASK_ISA_10BIT, etc.*/
             alias_mask = range_mask;
             test = portmask + range_mask; /* will break if portmask & range_mask != 0 */
             while ((test & m) == m) {
-                alias_mask = (Bit16u)m;
+                alias_mask = (uint16_t)m;
                 m = (m << 1) + 1;
             }
 
@@ -708,7 +708,7 @@ void IO_CalloutObject::Install(Bitu port,Bitu portmask/*IOMASK_ISA_10BIT, etc.*/
 		m_port=port;
 		m_mask=0; /* not used */
 		m_range=0; /* not used */
-        io_mask=(Bit16u)portmask;
+        io_mask=(uint16_t)portmask;
         m_r_handler=r_handler;
         m_w_handler=w_handler;
 

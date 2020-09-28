@@ -57,7 +57,7 @@ public:
 	virtual bool ReadLine(char * line);
 	bool Goto(const char * where);
 	void Shift(void);
-	Bit16u file_handle;
+	uint16_t file_handle;
 	Bit32u location;
 	bool echo;
 	DOS_Shell * shell;
@@ -89,7 +89,7 @@ private:
     typedef std::map<std::string, std::string, less_ignore_case<std::string> > cmd_alias_map_t;
     cmd_alias_map_t cmd_alias;
 
-	Bit16u completion_index;
+	uint16_t completion_index;
 	
 private:
 	void ProcessCmdLineEnvVarStitution(char * line);
@@ -317,7 +317,7 @@ public:
 #endif
 
 	/* The shell's variables */
-	Bit16u input_handle;
+	uint16_t input_handle;
 	BatchFile * bf;                     //! Batch file to execute
 	bool echo;
 	bool exit;

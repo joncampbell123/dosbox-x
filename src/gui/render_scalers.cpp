@@ -26,12 +26,12 @@
 #include <string.h>
 
 uint8_t Scaler_Aspect[SCALER_MAXHEIGHT];
-Bit16u Scaler_ChangedLines[SCALER_MAXHEIGHT];
+uint16_t Scaler_ChangedLines[SCALER_MAXHEIGHT];
 Bitu Scaler_ChangedLineIndex;
 
 static union {
 	Bit32u b32 [4][SCALER_MAXWIDTH*3];
-	Bit16u b16 [4][SCALER_MAXWIDTH*3];
+	uint16_t b16 [4][SCALER_MAXWIDTH*3];
 	uint8_t b8 [4][SCALER_MAXWIDTH*3];
 } scalerWriteCache;
 //scalerFrameCache_t scalerFrameCache;
@@ -63,9 +63,9 @@ static INLINE void BituMove( void *_dst, const void * _src, Bitu size) {
 
 static INLINE void ScalerAddLines( Bitu changed, Bitu count ) {
 	if ((Scaler_ChangedLineIndex & 1) == changed ) {
-		Scaler_ChangedLines[Scaler_ChangedLineIndex] += (Bit16u)count;
+		Scaler_ChangedLines[Scaler_ChangedLineIndex] += (uint16_t)count;
 	} else {
-		Scaler_ChangedLines[++Scaler_ChangedLineIndex] = (Bit16u)count;
+		Scaler_ChangedLines[++Scaler_ChangedLineIndex] = (uint16_t)count;
 	}
 	render.scale.outWrite += render.scale.outPitch * count;
 }

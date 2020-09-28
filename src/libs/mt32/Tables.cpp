@@ -78,12 +78,12 @@ Tables::Tables() {
 	// To improve the precision of computations, the lower bits are supposed to be used for interpolation as the LA32 chip also
 	// contains another 512-row table with inverted differences between the main table values.
 	for (int i = 0; i < 512; i++) {
-		exp9[i] = Bit16u(8191.5f - EXP2F(13.0f + ~i / 512.0f));
+		exp9[i] = uint16_t(8191.5f - EXP2F(13.0f + ~i / 512.0f));
 	}
 
 	// There is a logarithmic sine table inside the LA32 chip. The table contains 13-bit integer values.
 	for (int i = 1; i < 512; i++) {
-		logsin9[i] = Bit16u(0.5f - LOG2F(sin((i + 0.5f) / 1024.0f * FLOAT_PI)) * 1024.0f);
+		logsin9[i] = uint16_t(0.5f - LOG2F(sin((i + 0.5f) / 1024.0f * FLOAT_PI)) * 1024.0f);
 	}
 
 	// The very first value is clamped to the maximum possible 13-bit integer

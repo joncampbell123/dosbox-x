@@ -109,18 +109,18 @@ static void gen_mov_regs(HostReg reg_dst,HostReg reg_src) {
 // move a 32bit constant value into dest_reg
 static void gen_mov_dword_to_reg_imm(HostReg dest_reg,Bit32u imm) {
 	if(imm < 65536) {
-		cache_addw((Bit16u)imm);		// ori dest_reg, $0, imm
+		cache_addw((uint16_t)imm);		// ori dest_reg, $0, imm
 		cache_addw(0x3400+dest_reg);
 	} else if(((Bit32s)imm < 0) && ((Bit32s)imm >= -32768)) {
-		cache_addw((Bit16u)imm);		// addiu dest_reg, $0, imm
+		cache_addw((uint16_t)imm);		// addiu dest_reg, $0, imm
 		cache_addw(0x2400+dest_reg);
 	} else if(!(imm & 0xffff)) {
-		cache_addw((Bit16u)(imm >> 16));	// lui dest_reg, %hi(imm)
+		cache_addw((uint16_t)(imm >> 16));	// lui dest_reg, %hi(imm)
 		cache_addw(0x3c00+dest_reg);
 	} else {
-		cache_addw((Bit16u)(imm >> 16));	// lui dest_reg, %hi(imm)
+		cache_addw((uint16_t)(imm >> 16));	// lui dest_reg, %hi(imm)
 		cache_addw(0x3c00+dest_reg);
-		cache_addw((Bit16u)imm);		// ori dest_reg, dest_reg, %lo(imm)
+		cache_addw((uint16_t)imm);		// ori dest_reg, dest_reg, %lo(imm)
 		cache_addw(0x3400+(dest_reg<<5)+dest_reg);
 	}
 }
@@ -183,7 +183,7 @@ static void gen_mov_word_to_reg(HostReg dest_reg,void* data,bool dword) {
 
 // move a 16bit constant value into dest_reg
 // the upper 16bit of the destination register may be destroyed
-static void gen_mov_word_to_reg_imm(HostReg dest_reg,Bit16u imm) {
+static void gen_mov_word_to_reg_imm(HostReg dest_reg,uint16_t imm) {
 	cache_addw(imm);			// ori dest_reg, $0, imm
 	cache_addw(0x3400+dest_reg);
 }
@@ -303,7 +303,7 @@ static void gen_add(HostReg reg,void* op) {
 static void gen_add_imm(HostReg reg,Bit32u imm) {
 	if(!imm) return;
 	if(((Bit32s)imm >= -32768) && ((Bit32s)imm < 32768)) {
-		cache_addw((Bit16u)imm);	// addiu reg, reg, imm
+		cache_addw((uint16_t)imm);	// addiu reg, reg, imm
 		cache_addw(0x2400+(reg<<5)+reg);
 	} else {
 		mov_imm_to_temp1(imm);
@@ -315,7 +315,7 @@ static void gen_add_imm(HostReg reg,Bit32u imm) {
 // and a 32bit constant value with a full register
 static void gen_and_imm(HostReg reg,Bit32u imm) {
 	if(imm < 65536) { 
-		cache_addw((Bit16u)imm);      // andi reg, reg, imm 
+		cache_addw((uint16_t)imm);      // andi reg, reg, imm 
 		cache_addw(0x3000+(reg<<5)+reg); 
 	} else { 
 		mov_imm_to_temp1((Bit32u)imm); 
@@ -438,7 +438,7 @@ static void INLINE gen_jmp_ptr(void * ptr,Bits imm=0) {
 		imm = 0;
 	}
 	temp1_valid = false;
-	cache_addw((Bit16u)imm);	// lw temp2, imm(temp2)
+	cache_addw((uint16_t)imm);	// lw temp2, imm(temp2)
 	cache_addw(0x8C00+(temp2<<5)+temp2);
 	cache_addd((temp2<<21)+8); 	// jr temp2 
 	DELAY;
@@ -480,7 +480,7 @@ static void INLINE gen_fill_branch(DRC_PTR_SIZE_IM data) {
 	if (len>126) LOG_MSG("Big jump %d",len);
 #endif
 	temp1_valid = false;			// this is a branch target
-	*(Bit16u*)data=((Bit16u)((Bit32u)cache.pos-data-4)>>2);
+	*(uint16_t*)data=((uint16_t)((Bit32u)cache.pos-data-4)>>2);
 }
 
 #if 0	// assume for the moment no branch will go farther then +/- 128KB

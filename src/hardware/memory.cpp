@@ -189,7 +189,7 @@ public:
         else
             LOG(LOG_CPU,LOG_ERROR)("Write %x to rom at %x",(int)val,(int)addr);
     }
-    void writew(PhysPt addr,Bit16u val){
+    void writew(PhysPt addr,uint16_t val){
         if (IS_PC98_ARCH && (addr & ~0x7FFF) == 0xE0000u)
             { /* Many PC-98 games and programs will zero 0xE0000-0xE7FFF whether or not the 4th bitplane is mapped */ }
         else
@@ -685,7 +685,7 @@ void MEM_ResetPageHandler_Unmapped(Bitu phys_page, Bitu pages) {
 }
 
 Bitu mem_strlen(PhysPt pt) {
-    Bit16u x=0;
+    uint16_t x=0;
     while (x<1024) {
         if (!mem_readb_inline(pt+x)) return x;
         x++;
@@ -1102,9 +1102,9 @@ void MEM_A20_Enable(bool enabled) {
 
 
 /* Memory access functions */
-Bit16u mem_unalignedreadw(PhysPt address) {
-    Bit16u ret = (Bit16u)mem_readb_inline(address);
-    ret       |= (Bit16u)mem_readb_inline(address+1u) << 8u;
+uint16_t mem_unalignedreadw(PhysPt address) {
+    uint16_t ret = (uint16_t)mem_readb_inline(address);
+    ret       |= (uint16_t)mem_readb_inline(address+1u) << 8u;
     return ret;
 }
 
@@ -1117,7 +1117,7 @@ Bit32u mem_unalignedreadd(PhysPt address) {
 }
 
 
-void mem_unalignedwritew(PhysPt address,Bit16u val) {
+void mem_unalignedwritew(PhysPt address,uint16_t val) {
     mem_writeb_inline(address,   (uint8_t)val);val>>=8u;
     mem_writeb_inline(address+1u,(uint8_t)val);
 }
@@ -1130,11 +1130,11 @@ void mem_unalignedwrited(PhysPt address,Bit32u val) {
 }
 
 
-bool mem_unalignedreadw_checked(PhysPt address, Bit16u * val) {
+bool mem_unalignedreadw_checked(PhysPt address, uint16_t * val) {
     uint8_t rval1,rval2;
     if (mem_readb_checked(address+0, &rval1)) return true;
     if (mem_readb_checked(address+1, &rval2)) return true;
-    *val=(Bit16u)(((uint8_t)rval1) | (((uint8_t)rval2) << 8));
+    *val=(uint16_t)(((uint8_t)rval1) | (((uint8_t)rval2) << 8));
     return false;
 }
 
@@ -1148,7 +1148,7 @@ bool mem_unalignedreadd_checked(PhysPt address, Bit32u * val) {
     return false;
 }
 
-bool mem_unalignedwritew_checked(PhysPt address,Bit16u val) {
+bool mem_unalignedwritew_checked(PhysPt address,uint16_t val) {
     if (mem_writeb_checked(address,(uint8_t)(val & 0xff))) return true;
     val>>=8;
     if (mem_writeb_checked(address+1,(uint8_t)(val & 0xff))) return true;
@@ -1170,7 +1170,7 @@ uint8_t mem_readb(const PhysPt address) {
     return mem_readb_inline(address);
 }
 
-Bit16u mem_readw(const PhysPt address) {
+uint16_t mem_readw(const PhysPt address) {
     return mem_readw_inline(address);
 }
 
@@ -1188,7 +1188,7 @@ void mem_writeb(PhysPt address,uint8_t val) {
     mem_writeb_inline(address,val);
 }
 
-void mem_writew(PhysPt address,Bit16u val) {
+void mem_writew(PhysPt address,uint16_t val) {
 //  if (warn_on_mem_write && cpu.pmode) LOG_MSG("WARNING: post-killswitch memory write to 0x%08x = 0x%04x\n",address,val);
     mem_writew_inline(address,val);
 }
@@ -1208,12 +1208,12 @@ unsigned char CMOS_GetShutdownByte();
 void CPU_Snap_Back_To_Real_Mode();
 void DEBUG_Enable(bool pressed);
 void CPU_Snap_Back_Forget();
-Bit16u CPU_Pop16(void);
+uint16_t CPU_Pop16(void);
 
 static bool cmos_reset_type_9_sarcastic_win31_comments=true;
 
 void On_Software_286_int15_block_move_return(unsigned char code) {
-    Bit16u vec_seg,vec_off;
+    uint16_t vec_seg,vec_off;
 
     /* make CPU core stop immediately */
     CPU_Cycles = 0;
@@ -1260,7 +1260,7 @@ void On_Software_286_int15_block_move_return(unsigned char code) {
 }
 
 void On_Software_286_reset_vector(unsigned char code) {
-    Bit16u vec_seg,vec_off;
+    uint16_t vec_seg,vec_off;
 
     /* make CPU core stop immediately */
     CPU_Cycles = 0;
@@ -1363,16 +1363,16 @@ void On_Software_CPU_Reset() {
             CPU_SetSegGeneral(ss,0x0000);
 
             /* continue program execution after CPU reset */
-            Bit16u reset_sp = mem_readw(0x404);
-            Bit16u reset_ss = mem_readw(0x406);
+            uint16_t reset_sp = mem_readw(0x404);
+            uint16_t reset_ss = mem_readw(0x406);
 
             LOG_MSG("PC-98 reset and continue: SS:SP = %04x:%04x",reset_ss,reset_sp);
 
             reg_esp = reset_sp;
             CPU_SetSegGeneral(ss,reset_ss);
 
-            Bit16u new_ip = CPU_Pop16();
-            Bit16u new_cs = CPU_Pop16();
+            uint16_t new_ip = CPU_Pop16();
+            uint16_t new_cs = CPU_Pop16();
 
             reg_eip = new_ip;
             CPU_SetSegGeneral(cs,new_cs);

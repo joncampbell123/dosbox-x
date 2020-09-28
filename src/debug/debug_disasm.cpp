@@ -72,7 +72,7 @@ Any comments/updates/bug reports to:
 #include "paging.h"
 
 typedef uint8_t  UINT8;
-typedef Bit16u UINT16;
+typedef uint16_t UINT16;
 typedef Bit32u UINT32;
 
 typedef int8_t  INT8;

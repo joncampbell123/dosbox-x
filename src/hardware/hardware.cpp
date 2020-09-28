@@ -790,14 +790,14 @@ void CAPTURE_AddImage(Bitu width, Bitu height, Bitu bpp, Bitu pitch, Bitu flags,
 			case 15:
 				if (flags & CAPTURE_FLAG_DBLW) {
 					for (Bitu x=0;x<countWidth;x++) {
-						Bitu pixel = ((Bit16u *)srcLine)[x];
+						Bitu pixel = ((uint16_t *)srcLine)[x];
 						doubleRow[x*6+0] = doubleRow[x*6+3] = ((pixel& 0x001f) * 0x21) >>  2;
 						doubleRow[x*6+1] = doubleRow[x*6+4] = (uint8_t)(((pixel& 0x03e0) * 0x21) >> 7);
 						doubleRow[x*6+2] = doubleRow[x*6+5] = ((pixel& 0x7c00) * 0x21) >>  12;
 					}
 				} else {
 					for (Bitu x=0;x<countWidth;x++) {
-						Bitu pixel = ((Bit16u *)srcLine)[x];
+						Bitu pixel = ((uint16_t *)srcLine)[x];
 						doubleRow[x*3+0] = ((pixel& 0x001f) * 0x21) >>  2;
 						doubleRow[x*3+1] = (uint8_t)(((pixel& 0x03e0) * 0x21) >> 7);
 						doubleRow[x*3+2] = ((pixel& 0x7c00) * 0x21) >>  12;
@@ -808,14 +808,14 @@ void CAPTURE_AddImage(Bitu width, Bitu height, Bitu bpp, Bitu pitch, Bitu flags,
 			case 16:
 				if (flags & CAPTURE_FLAG_DBLW) {
 					for (Bitu x=0;x<countWidth;x++) {
-						Bitu pixel = ((Bit16u *)srcLine)[x];
+						Bitu pixel = ((uint16_t *)srcLine)[x];
 						doubleRow[x*6+0] = doubleRow[x*6+3] = ((pixel& 0x001f) * 0x21) >> 2;
 						doubleRow[x*6+1] = doubleRow[x*6+4] = ((pixel& 0x07e0) * 0x41) >> 9;
 						doubleRow[x*6+2] = doubleRow[x*6+5] = ((pixel& 0xf800) * 0x21) >> 13;
 					}
 				} else {
 					for (Bitu x=0;x<countWidth;x++) {
-						Bitu pixel = ((Bit16u *)srcLine)[x];
+						Bitu pixel = ((uint16_t *)srcLine)[x];
 						doubleRow[x*3+0] = ((pixel& 0x001f) * 0x21) >>  2;
 						doubleRow[x*3+1] = ((pixel& 0x07e0) * 0x41) >>  9;
 						doubleRow[x*3+2] = ((pixel& 0xf800) * 0x21) >>  13;
@@ -1245,8 +1245,8 @@ skip_shot:
                             case 15:
                             case 16:
                                 for (x=0;x<countWidth;x++)
-                                    ((Bit16u *)doubleRow)[x*2+0] =
-                                        ((Bit16u *)doubleRow)[x*2+1] = ((Bit16u *)srcLine)[x];
+                                    ((uint16_t *)doubleRow)[x*2+0] =
+                                        ((uint16_t *)doubleRow)[x*2+1] = ((uint16_t *)srcLine)[x];
                                 break;
                             case 32:
                                 for (x=0;x<countWidth;x++)
@@ -1328,8 +1328,8 @@ skip_shot:
 								case 15:
 								case 16:
 									for (x=0;x<countWidth;x++)
-										((Bit16u *)dstline)[x*2+0] =
-											((Bit16u *)dstline)[x*2+1] = ((Bit16u *)srcline)[x];
+										((uint16_t *)dstline)[x*2+0] =
+											((uint16_t *)dstline)[x*2+1] = ((uint16_t *)srcline)[x];
 									break;
 								case 32:
 									for (x=0;x<countWidth;x++)
@@ -1705,9 +1705,9 @@ void CAPTURE_WaveEvent(bool pressed) {
 static uint8_t midi_header[]={
 	'M','T','h','d',			/* Bit32u, Header Chunk */
 	0x0,0x0,0x0,0x6,			/* Bit32u, Chunk Length */
-	0x0,0x0,					/* Bit16u, Format, 0=single track */
-	0x0,0x1,					/* Bit16u, Track Count, 1 track */
-	0x01,0xf4,					/* Bit16u, Timing, 2 beats/second with 500 frames */
+	0x0,0x0,					/* uint16_t, Format, 0=single track */
+	0x0,0x1,					/* uint16_t, Track Count, 1 track */
+	0x01,0xf4,					/* uint16_t, Timing, 2 beats/second with 500 frames */
 	'M','T','r','k',			/* Bit32u, Track Chunk */
 	0x0,0x0,0x0,0x0,			/* Bit32u, Chunk Length */
 	//Track data

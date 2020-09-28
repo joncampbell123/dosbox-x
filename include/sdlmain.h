@@ -106,13 +106,13 @@ struct SDL_Block {
     bool wait_on_error = false;
     struct {
         struct {
-            Bit16u width = 0, height = 0;
+            uint16_t width = 0, height = 0;
             bool fixed = false;
             bool display_res = false;
             bool width_auto = false, height_auto = false;
         } full;
         struct {
-            Bit16u width = 0, height = 0;
+            uint16_t width = 0, height = 0;
         } window;
         uint8_t bpp = 0;
 #if defined(C_SDL2)
@@ -169,9 +169,9 @@ struct SDL_Block {
     Bit32u focus_ticks = 0;
 #endif
     // state of alt-keys for certain special handlings
-    Bit16u laltstate = 0, raltstate = 0;
-    Bit16u lctrlstate = 0, rctrlstate = 0;
-    Bit16u lshiftstate = 0, rshiftstate = 0;
+    uint16_t laltstate = 0, raltstate = 0;
+    uint16_t lctrlstate = 0, rctrlstate = 0;
+    uint16_t lshiftstate = 0, rshiftstate = 0;
     bool must_redraw_all = false;
     bool deferred_resize = false;
     bool init_ignore = false;
@@ -216,7 +216,7 @@ void UpdateWindowDimensions(void);
 void UpdateWindowDimensions(Bitu width, Bitu height);
 
 #if defined(C_SDL2)
-SDL_Window* GFX_SetSDLWindowMode(Bit16u width, Bit16u height, SCREEN_TYPES screenType);
+SDL_Window* GFX_SetSDLWindowMode(uint16_t width, uint16_t height, SCREEN_TYPES screenType);
 #endif
 
 #if defined(C_SDL2) && defined(C_OPENGL)/*HACK*/

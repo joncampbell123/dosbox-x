@@ -46,10 +46,10 @@ static Bitu call_int16 = 0,call_irq1 = 0,irq1_ret_ctrlbreak_callback = 0,call_ir
 /* Nice table from BOCHS i should feel bad for ripping this */
 #define none 0
 static struct {
-  Bit16u normal;
-  Bit16u shift;
-  Bit16u control;
-  Bit16u alt;
+  uint16_t normal;
+  uint16_t shift;
+  uint16_t control;
+  uint16_t alt;
   } scan_to_scanascii[MAX_SCAN_CODE + 1] = {
       {   none,   none,   none,   none },
       { 0x011b, 0x011b, 0x011b, 0x01f0 }, /* escape */
@@ -142,12 +142,12 @@ static struct {
       { 0x8600, 0x8800, 0x8a00, 0x8c00 }  /* F12 */
       };
 
-bool BIOS_AddKeyToBuffer(Bit16u code) {
+bool BIOS_AddKeyToBuffer(uint16_t code) {
     if (!IS_PC98_ARCH) {
         if (mem_readb(BIOS_KEYBOARD_FLAGS2)&8) return true;
     }
 
-    Bit16u start,end,head,tail,ttail;
+    uint16_t start,end,head,tail,ttail;
     if (IS_PC98_ARCH) {
         start=0x502;
         end=0x522;
@@ -195,12 +195,12 @@ bool BIOS_AddKeyToBuffer(Bit16u code) {
     return true;
 }
 
-static void add_key(Bit16u code) {
+static void add_key(uint16_t code) {
     if (code!=0 || IS_PC98_ARCH) BIOS_AddKeyToBuffer(code);
 }
 
-static bool get_key(Bit16u &code) {
-    Bit16u start,end,head,tail,thead;
+static bool get_key(uint16_t &code) {
+    uint16_t start,end,head,tail,thead;
     if (IS_PC98_ARCH) {
         start=0x502;
         end=0x522;
@@ -244,12 +244,12 @@ static bool get_key(Bit16u &code) {
     return true;
 }
 
-bool INT16_get_key(Bit16u &code) {
+bool INT16_get_key(uint16_t &code) {
     return get_key(code);
 }
 
-static bool check_key(Bit16u &code) {
-    Bit16u head,tail;
+static bool check_key(uint16_t &code) {
+    uint16_t head,tail;
 
     if (IS_PC98_ARCH) {
         head =mem_readw(0x524/*head*/);
@@ -270,7 +270,7 @@ static bool check_key(Bit16u &code) {
     return true;
 }
 
-bool INT16_peek_key(Bit16u &code) {
+bool INT16_peek_key(uint16_t &code) {
     return check_key(code);
 }
 
@@ -386,7 +386,7 @@ static Bitu IRQ1_Handler(void) {
         else flags2 &= ~0x02;
         if( !( (flags3 &0x08) || (flags2 &0x02) ) ) { /* Both alt released */
             flags1 &= ~0x08;
-            Bit16u token =mem_readb(BIOS_KEYBOARD_TOKEN);
+            uint16_t token =mem_readb(BIOS_KEYBOARD_TOKEN);
             if(token != 0){
                 add_key(token);
                 mem_writeb(BIOS_KEYBOARD_TOKEN,0);
@@ -513,7 +513,7 @@ static Bitu IRQ1_Handler(void) {
         if (scancode==0x2e && !(flags3 & 0x01) && (flags1&0x04))
             ctrlbrk=true;
     normal_key:
-        Bit16u asciiscan;
+        uint16_t asciiscan;
         /* Now Handle the releasing of keys and see if they match up for a code */
         /* Handle the actual scancode */
         if (scancode & 0x80) goto irq1_end;
@@ -625,7 +625,7 @@ static Bitu IRQ1_Handler_PC98(void) {
 
         /* Testing on real hardware shows INT 18h AH=0 returns raw scancode in upper half, ASCII in lower half.
          * Just like INT 16h on IBM PC hardware */
-        Bit16u scan_add = sc_8251 << 8U;
+        uint16_t scan_add = sc_8251 << 8U;
 
         /* NOTES:
          *  - The bitmap also tracks CAPS, and KANA state. It does NOT track NUM state.
@@ -1350,7 +1350,7 @@ static Bitu IRQ1_CtrlBreakAfterInt1B(void) {
 
 /* check whether key combination is enhanced or not,
    translate key if necessary */
-static bool IsEnhancedKey(Bit16u &key) {
+static bool IsEnhancedKey(uint16_t &key) {
     if (IS_PC98_ARCH)
         return false;
 
@@ -1381,7 +1381,7 @@ bool int16_unmask_irq1_on_read = true;
 bool int16_ah_01_cf_undoc = true;
 
 Bitu INT16_Handler(void) {
-    Bit16u temp=0;
+    uint16_t temp=0;
     switch (reg_ah) {
     case 0x00: /* GET KEYSTROKE */
         if (int16_unmask_irq1_on_read)

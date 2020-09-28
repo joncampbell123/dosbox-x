@@ -135,7 +135,7 @@ static INLINE void gen_memaddr(uint8_t modreg,void* data,Bitu off,Bitu imm,uint8
 
 		switch(off) {
 			case 1: cache_addb(((uint8_t)imm&0xff)); break;
-			case 2: cache_addw(((Bit16u)imm&0xffff)); break;
+			case 2: cache_addw(((uint16_t)imm&0xffff)); break;
 			case 4: cache_addd(((Bit32u)imm&0xffffffff)); break;
 		}
 
@@ -147,7 +147,7 @@ static INLINE void gen_memaddr(uint8_t modreg,void* data,Bitu off,Bitu imm,uint8
 
 		switch(off) {
 			case 1: cache_addb(((uint8_t)imm&0xff)); break;
-			case 2: cache_addw(((Bit16u)imm&0xffff)); break;
+			case 2: cache_addw(((uint16_t)imm&0xffff)); break;
 			case 4: cache_addd(((Bit32u)imm&0xffffffff)); break;
 		}
 
@@ -162,7 +162,7 @@ static INLINE void gen_memaddr(uint8_t modreg,void* data,Bitu off,Bitu imm,uint8
 
 		switch(off) {
 			case 1: cache_addb(((uint8_t)imm&0xff)); break;
-			case 2: cache_addw(((Bit16u)imm&0xffff)); break;
+			case 2: cache_addw(((uint16_t)imm&0xffff)); break;
 			case 4: cache_addd(((Bit32u)imm&0xffffffff)); break;
 		}
 
@@ -179,7 +179,7 @@ static void gen_mov_word_to_reg(HostReg dest_reg,void* data,bool dword,uint8_t p
 
 // move a 16bit constant value into dest_reg
 // the upper 16bit of the destination register may be destroyed
-static void gen_mov_word_to_reg_imm(HostReg dest_reg,Bit16u imm) {
+static void gen_mov_word_to_reg_imm(HostReg dest_reg,uint16_t imm) {
 	cache_addb(0xb8+dest_reg);			// mov reg,imm
 	cache_addd((Bit32u)imm);
 }

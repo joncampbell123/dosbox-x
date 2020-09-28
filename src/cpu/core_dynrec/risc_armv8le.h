@@ -472,7 +472,7 @@ static void gen_mov_word_to_reg(HostReg dest_reg,void* data,bool dword) {
 
 // move a 16bit constant value into dest_reg
 // the upper 16bit of the destination register may be destroyed
-static void INLINE gen_mov_word_to_reg_imm(HostReg dest_reg,Bit16u imm) {
+static void INLINE gen_mov_word_to_reg_imm(HostReg dest_reg,uint16_t imm) {
 	cache_addd( MOVZ(dest_reg, imm, 0) );   // movz dest_reg, #imm
 }
 

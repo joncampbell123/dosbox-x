@@ -178,13 +178,13 @@ struct Handler : public Adlib::Handler {
 	uint8_t newm = 0;
 
 	void WriteReg(Bit32u reg, uint8_t val) override {
-		OPL3_WriteRegBuffered(&chip, (Bit16u)reg, val);
+		OPL3_WriteRegBuffered(&chip, (uint16_t)reg, val);
 		if (reg == 0x105)
 			newm = reg & 0x01;
 	}
 
 	Bit32u WriteAddr(Bit32u port, uint8_t val) override {
-		Bit16u addr;
+		uint16_t addr;
 		addr = val;
 		if ((port & 2) && (addr == 0x05 || newm)) {
 			addr |= 0x100;
@@ -406,8 +406,8 @@ namespace Adlib {
 
 struct RawHeader {
 	uint8_t id[8];				/* 0x00, "DBRAWOPL" */
-	Bit16u versionHigh;			/* 0x08, size of the data following the m */
-	Bit16u versionLow;			/* 0x0a, size of the data following the m */
+	uint16_t versionHigh;			/* 0x08, size of the data following the m */
+	uint16_t versionLow;			/* 0x0a, size of the data following the m */
 	Bit32u commands;			/* 0x0c, Bit32u amount of command/data pairs */
 	Bit32u milliseconds;		/* 0x10, Bit32u Total milliseconds of data in this chunk */
 	uint8_t hardware;				/* 0x14, uint8_t Hardware Type 0=opl2,1=dual-opl2,2=opl3 */
@@ -523,7 +523,7 @@ class Capture {
 		AddBuf( raw, val );
 	}
 	void WriteCache( void  ) {
-		Bit16u i;
+		uint16_t i;
         uint8_t val;
 		/* Check the registers to add */
 		for (i=0;i<256;i++) {

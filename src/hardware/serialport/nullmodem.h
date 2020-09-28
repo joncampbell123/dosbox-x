@@ -38,7 +38,7 @@ public:
 	CNullModem(Bitu id, CommandLine* cmd);
 	~CNullModem();
 
-	void updatePortConfig(Bit16u divider, uint8_t lcr);
+	void updatePortConfig(uint16_t divider, uint8_t lcr);
 	void updateMSR();
 	void transmitByte(uint8_t val, bool first);
 	void setBreak(bool value);
@@ -46,15 +46,15 @@ public:
 	void setRTSDTR(bool rts, bool dtr);
 	void setRTS(bool val);
 	void setDTR(bool val);
-	void handleUpperEvent(Bit16u type);
+	void handleUpperEvent(uint16_t type);
 
 private:
 	TCPServerSocket* serversocket;
 	TCPClientSocket* clientsocket;
 
 	bool receiveblock;		// It's not a block of data it rather blocks
-	Bit16u serverport;		// we are a server if this is nonzero
-	Bit16u clientport;
+	uint16_t serverport;		// we are a server if this is nonzero
+	uint16_t clientport;
 
 	uint8_t hostnamebuffer[128]; // the name passed to us by the user
 

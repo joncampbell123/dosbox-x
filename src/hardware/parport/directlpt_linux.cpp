@@ -158,6 +158,6 @@ void CDirectLPT::Write_IOSEL(Bitu val) {
 	// switches direction old-style TODO
 	if((val==0xAA)||(val==0x55)) LOG_MSG("TODO implement IBM-style direction switch");
 }
-void CDirectLPT::handleUpperEvent(Bit16u type) { (void)type; }
+void CDirectLPT::handleUpperEvent(uint16_t type) { (void)type; }
 #endif
 #endif

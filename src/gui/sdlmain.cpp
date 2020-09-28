@@ -1528,7 +1528,7 @@ SDL_Window* GFX_GetSDLWindow(void) {
     return sdl.window;
 }
 
-SDL_Window* GFX_SetSDLWindowMode(Bit16u width, Bit16u height, SCREEN_TYPES screenType) 
+SDL_Window* GFX_SetSDLWindowMode(uint16_t width, uint16_t height, SCREEN_TYPES screenType) 
 {
     static SCREEN_TYPES lastType = SCREEN_SURFACE;
     if (sdl.renderer) {
@@ -1662,13 +1662,13 @@ void GFX_SetResizeable(bool enable) {
 
 // Used for the mapper UI and more: Creates a fullscreen window with desktop res
 // on Android, and a non-fullscreen window with the input dimensions otherwise.
-SDL_Window * GFX_SetSDLSurfaceWindow(Bit16u width, Bit16u height) {
+SDL_Window * GFX_SetSDLSurfaceWindow(uint16_t width, uint16_t height) {
     return GFX_SetSDLWindowMode(width, height, SCREEN_SURFACE);
 }
 
 // Returns the rectangle in the current window to be used for scaling a
 // sub-window with the given dimensions, like the mapper UI.
-SDL_Rect GFX_GetSDLSurfaceSubwindowDims(Bit16u width, Bit16u height) {
+SDL_Rect GFX_GetSDLSurfaceSubwindowDims(uint16_t width, uint16_t height) {
     SDL_Rect rect;
     rect.x=rect.y=0;
     rect.w=width;
@@ -1678,7 +1678,7 @@ SDL_Rect GFX_GetSDLSurfaceSubwindowDims(Bit16u width, Bit16u height) {
 
 # if !defined(C_SDL2)
 // Currently used for an initial test here
-static SDL_Window * GFX_SetSDLOpenGLWindow(Bit16u width, Bit16u height) {
+static SDL_Window * GFX_SetSDLOpenGLWindow(uint16_t width, uint16_t height) {
     return GFX_SetSDLWindowMode(width, height, SCREEN_OPENGL);
 }
 # endif
@@ -2881,8 +2881,8 @@ void res_init(void) {
             char* height = const_cast<char*>(strchr(windowresolution,'x'));
             if(height && *height) {
                 *height = 0;
-                sdl.desktop.window.height = (Bit16u)atoi(height+1);
-                sdl.desktop.window.width  = (Bit16u)atoi(res);
+                sdl.desktop.window.height = (uint16_t)atoi(height+1);
+                sdl.desktop.window.width  = (uint16_t)atoi(res);
             }
         }
     }
@@ -3302,7 +3302,7 @@ void GFX_OpenGLRedrawScreen(void) {
 #endif
 }
 
-void GFX_EndUpdate(const Bit16u *changedLines) {
+void GFX_EndUpdate(const uint16_t *changedLines) {
 #if C_EMSCRIPTEN
     emscripten_sleep_with_yield(0);
 #endif
@@ -3562,7 +3562,7 @@ void RebootGuest(bool pressed) {
 	if (!dos_kernel_disabled) {
 	    if (CurMode->type==M_TEXT || IS_PC98_ARCH) {
 			char msg[]="[2J";
-			Bit16u s = (Bit16u)strlen(msg);
+			uint16_t s = (uint16_t)strlen(msg);
 			DOS_WriteFile(STDERR,(uint8_t*)msg,&s);
             throw int(6);
 	    } else {
@@ -3666,8 +3666,8 @@ static void GUI_StartUp() {
                 char* height = const_cast<char*>(strchr(fullresolution,'x'));
                 if (height && * height) {
                     *height = 0;
-                    sdl.desktop.full.height = (Bit16u)atoi(height+1);
-                    sdl.desktop.full.width  = (Bit16u)atoi(res);
+                    sdl.desktop.full.height = (uint16_t)atoi(height+1);
+                    sdl.desktop.full.width  = (uint16_t)atoi(res);
                 }
             }
         }
@@ -3684,8 +3684,8 @@ static void GUI_StartUp() {
             char* height = const_cast<char*>(strchr(windowresolution,'x'));
             if(height && *height) {
                 *height = 0;
-                sdl.desktop.window.height = (Bit16u)atoi(height+1);
-                sdl.desktop.window.width  = (Bit16u)atoi(res);
+                sdl.desktop.window.height = (uint16_t)atoi(height+1);
+                sdl.desktop.window.width  = (uint16_t)atoi(res);
             }
         }
     }
@@ -4190,8 +4190,8 @@ void GFX_HandleVideoResize(int width, int height) {
 
     /* TODO: Only if FULLSCREEN_DESKTOP */
     if (screen_size_info.screen_dimensions_pixels.width != 0 && screen_size_info.screen_dimensions_pixels.height != 0) {
-        sdl.desktop.full.width = (Bit16u)screen_size_info.screen_dimensions_pixels.width;
-        sdl.desktop.full.height = (Bit16u)screen_size_info.screen_dimensions_pixels.height;
+        sdl.desktop.full.width = (uint16_t)screen_size_info.screen_dimensions_pixels.width;
+        sdl.desktop.full.height = (uint16_t)screen_size_info.screen_dimensions_pixels.height;
     }
     else {
         SDL_DisplayMode dm;
@@ -5277,19 +5277,19 @@ void* GetSetSDLValue(int isget, std::string& target, void* setval) {
         else sdl.draw.callback = *static_cast<GFX_CallBack_t*>(setval);
     } else if (target == "desktop.full.width") {
         if (isget) return (void*) sdl.desktop.full.width;
-        else sdl.desktop.full.width = *static_cast<Bit16u*>(setval);
+        else sdl.desktop.full.width = *static_cast<uint16_t*>(setval);
     } else if (target == "desktop.full.height") {
         if (isget) return (void*) sdl.desktop.full.height;
-        else sdl.desktop.full.height = *static_cast<Bit16u*>(setval);
+        else sdl.desktop.full.height = *static_cast<uint16_t*>(setval);
     } else if (target == "desktop.full.fixed") {
         if (isget) return (void*) sdl.desktop.full.fixed;
         else sdl.desktop.full.fixed = setval;
     } else if (target == "desktop.window.width") {
         if (isget) return (void*) sdl.desktop.window.width;
-        else sdl.desktop.window.width = *static_cast<Bit16u*>(setval);
+        else sdl.desktop.window.width = *static_cast<uint16_t*>(setval);
     } else if (target == "desktop.window.height") {
         if (isget) return (void*) sdl.desktop.window.height;
-        else sdl.desktop.window.height = *static_cast<Bit16u*>(setval);
+        else sdl.desktop.window.height = *static_cast<uint16_t*>(setval);
 */
     } else if (target == "desktop.fullscreen") {
         if (isget) return (void*) sdl.desktop.fullscreen;
@@ -6263,7 +6263,7 @@ static bool PasteClipboardNext()
 
 extern uint8_t* clipAscii;
 extern Bit32u clipSize;
-extern void Unicode2Ascii(const Bit16u* unicode);
+extern void Unicode2Ascii(const uint16_t* unicode);
 
 void PasteClipboard(bool bPressed)
 {
@@ -6277,7 +6277,7 @@ void PasteClipboard(bool bPressed)
     HANDLE hContents = GetClipboardData(CF_UNICODETEXT);
     if (!hContents) {CloseClipboard();return;}
 
-    Bit16u *szClipboard = (Bit16u *)GlobalLock(hContents);
+    uint16_t *szClipboard = (uint16_t *)GlobalLock(hContents);
     if (szClipboard)
     {
 		clipSize=0;
@@ -6305,13 +6305,13 @@ void PasteClipboard(bool bPressed)
 static std::string strPasteBuffer;
 extern uint8_t* clipAscii;
 extern Bit32u clipSize;
-extern void Unicode2Ascii(const Bit16u* unicode);
+extern void Unicode2Ascii(const uint16_t* unicode);
 void PasteClipboard(bool bPressed) {
 	if (!bPressed||!OpenClipboard(NULL)) return;
     if (!IsClipboardFormatAvailable(CF_UNICODETEXT)) {CloseClipboard();return;}
     HANDLE hContents = GetClipboardData(CF_UNICODETEXT);
     if (!hContents) {CloseClipboard();return;}
-    Bit16u *szClipboard = (Bit16u *)GlobalLock(hContents);
+    uint16_t *szClipboard = (uint16_t *)GlobalLock(hContents);
     if (szClipboard)
     {
 		clipSize=0;
@@ -6353,9 +6353,9 @@ bool PasteClipboardNext() {
 #endif
 
 #if defined (WIN32)
-extern Bit16u cpMap[256];
+extern uint16_t cpMap[256];
 void CopyClipboard(void) {
-	Bit16u len=0;
+	uint16_t len=0;
 	const char* text = Mouse_GetSelected(mouse_start_x-sdl.clip.x,mouse_start_y-sdl.clip.y,mouse_end_x-sdl.clip.x,mouse_end_y-sdl.clip.y,(int)(currentWindowWidth-sdl.clip.x),(int)(currentWindowHeight-sdl.clip.y), &len);
 	if (OpenClipboard(NULL)&&EmptyClipboard()) {
 		HGLOBAL clipbuffer = GlobalAlloc(GMEM_DDESHARE, (len+1)*2);
@@ -10124,7 +10124,7 @@ fresh_boot:
         wait_debugger = false;
         reboot_machine = false;
         dos_kernel_shutdown = false;
-        guest_msdos_mcb_chain = (Bit16u)(~0u);
+        guest_msdos_mcb_chain = (uint16_t)(~0u);
 
         /* NTS: CPU reset handler, and BIOS init, has the instruction pointer poised to run through BIOS initialization,
          *      which will then "boot" into the DOSBox-X kernel, and then the shell, by calling VM_Boot_DOSBox_Kernel() */

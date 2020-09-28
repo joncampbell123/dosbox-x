@@ -106,7 +106,7 @@ void DOS_Shell::ShowPrompt(void) {
 }
 
 static void outc(uint8_t c) {
-	Bit16u n=1;
+	uint16_t n=1;
 	DOS_WriteFile(STDOUT,&c,&n);
 }
 
@@ -129,7 +129,7 @@ void MoveCaretBackwards()
 	if (col != 0) 
 		return;
 
-	Bit16u cols;
+	uint16_t cols;
 	INT10_GetScreenColumns(&cols);
 	INT10_SetCursorPos(row - 1, static_cast<uint8_t>(cols), page);
 }
@@ -137,11 +137,11 @@ void MoveCaretBackwards()
 /* NTS: buffer pointed to by "line" must be at least CMD_MAXLINE+1 large */
 void DOS_Shell::InputCommand(char * line) {
 	Bitu size=CMD_MAXLINE-2; //lastcharacter+0
-	uint8_t c;Bit16u n=1;
-	Bit16u str_len=0;Bit16u str_index=0;
-	Bit16u len=0;
+	uint8_t c;uint16_t n=1;
+	uint16_t str_len=0;uint16_t str_index=0;
+	uint16_t len=0;
 	bool current_hist=false; // current command stored in history?
-    Bit16u cr;
+    uint16_t cr;
 
     input_eof = false;
 	line[0] = '\0';
@@ -168,10 +168,10 @@ void DOS_Shell::InputCommand(char * line) {
         }
 
         if (input_handle != STDIN) { /* FIXME: Need DOS_IsATTY() or somesuch */
-            cr = (Bit16u)c; /* we're not reading from the console */
+            cr = (uint16_t)c; /* we're not reading from the console */
         }
         else if (IS_PC98_ARCH) {
-            extern Bit16u last_int16_code;
+            extern uint16_t last_int16_code;
 
             /* shift state is needed for some key combinations not directly supported by CON driver.
              * bit 4 = CTRL
@@ -238,20 +238,20 @@ void DOS_Shell::InputCommand(char * line) {
                         cr = 0;
                 }
                 else {
-                    cr = (Bit16u)c;
+                    cr = (uint16_t)c;
                 }
             }
             else {
-                cr = (Bit16u)c;
+                cr = (uint16_t)c;
             }
         }
         else {
             if (c == 0) {
 				DOS_ReadFile(input_handle,&c,&n);
-                cr = (Bit16u)c << (Bit16u)8;
+                cr = (uint16_t)c << (uint16_t)8;
             }
             else {
-                cr = (Bit16u)c;
+                cr = (uint16_t)c;
             }
         }
 
@@ -265,7 +265,7 @@ void DOS_Shell::InputCommand(char * line) {
                         line[str_index ++] = (char)c;
                         DOS_WriteFile(STDOUT,&c,&n);
                     }
-                    str_len = str_index = (Bit16u)it_history->length();
+                    str_len = str_index = (uint16_t)it_history->length();
                     size = (unsigned int)CMD_MAXLINE - str_index - 2u;
                     line[str_len] = 0;
                 }
@@ -371,7 +371,7 @@ void DOS_Shell::InputCommand(char * line) {
                     backone(); outc(' '); backone();
                 }
                 strcpy(line, it_history->c_str());
-                len = (Bit16u)it_history->length();
+                len = (uint16_t)it_history->length();
                 str_len = str_index = len;
                 size = (unsigned int)CMD_MAXLINE - str_index - 2u;
                 DOS_WriteFile(STDOUT, (uint8_t *)line, &len);
@@ -405,7 +405,7 @@ void DOS_Shell::InputCommand(char * line) {
                     backone(); outc(' '); backone();
                 }
                 strcpy(line, it_history->c_str());
-                len = (Bit16u)it_history->length();
+                len = (uint16_t)it_history->length();
                 str_len = str_index = len;
                 size = (unsigned int)CMD_MAXLINE - str_index - 2u;
                 DOS_WriteFile(STDOUT, (uint8_t *)line, &len);
@@ -415,7 +415,7 @@ void DOS_Shell::InputCommand(char * line) {
             case 0x5300:/* DELETE */
                 {
                     if(str_index>=str_len) break;
-                    Bit16u a=str_len-str_index-1;
+                    uint16_t a=str_len-str_index-1;
                     uint8_t* text=reinterpret_cast<uint8_t*>(&line[str_index+1]);
                     DOS_WriteFile(STDOUT,text,&a);//write buffer to screen
                     outc(' ');backone();
@@ -439,7 +439,7 @@ void DOS_Shell::InputCommand(char * line) {
                         }
 
                         strcpy(&line[completion_index], it_completion->c_str());
-                        len = (Bit16u)it_completion->length();
+                        len = (uint16_t)it_completion->length();
                         str_len = str_index = (Bitu)(completion_index + len);
                         size = (unsigned int)CMD_MAXLINE - str_index - 2u;
                         DOS_WriteFile(STDOUT, (uint8_t *)it_completion->c_str(), &len);
@@ -456,7 +456,7 @@ void DOS_Shell::InputCommand(char * line) {
                         line[--str_len]=0;
                         str_index --;
                         /* Go back to redraw */
-                        for (Bit16u i=str_index; i < str_len; i++)
+                        for (uint16_t i=str_index; i < str_len; i++)
                             outc((uint8_t)line[i]);
                     } else {
                         line[--str_index] = '\0';
@@ -526,7 +526,7 @@ void DOS_Shell::InputCommand(char * line) {
 
                         if (p_completion_start) {
                             p_completion_start ++;
-                            completion_index = (Bit16u)(str_len - strlen(p_completion_start));
+                            completion_index = (uint16_t)(str_len - strlen(p_completion_start));
                         } else {
                             p_completion_start = line;
                             completion_index = 0;
@@ -534,9 +534,9 @@ void DOS_Shell::InputCommand(char * line) {
 						k=completion_index;
 
                         const char *path;
-						if ((path = strrchr(line+completion_index,':'))) completion_index = (Bit16u)(path-line+1);
-                        if ((path = strrchr(line+completion_index,'\\'))) completion_index = (Bit16u)(path-line+1);
-                        if ((path = strrchr(line+completion_index,'/'))) completion_index = (Bit16u)(path-line+1);
+						if ((path = strrchr(line+completion_index,':'))) completion_index = (uint16_t)(path-line+1);
+                        if ((path = strrchr(line+completion_index,'\\'))) completion_index = (uint16_t)(path-line+1);
+                        if ((path = strrchr(line+completion_index,'/'))) completion_index = (uint16_t)(path-line+1);
 
                         // build the completion list
                         char mask[DOS_PATHLENGTH+2] = {0}, smask[DOS_PATHLENGTH] = {0};
@@ -601,7 +601,7 @@ void DOS_Shell::InputCommand(char * line) {
 
                         DOS_DTA dta(dos.dta());
 						char name[DOS_NAMELENGTH_ASCII], lname[LFN_NAMELENGTH], qlname[LFN_NAMELENGTH+2];
-                        Bit32u sz;Bit16u date;Bit16u time;uint8_t att;
+                        Bit32u sz;uint16_t date;uint16_t time;uint8_t att;
 
                         std::list<std::string> executable;
 						q=0;r=0;
@@ -652,7 +652,7 @@ void DOS_Shell::InputCommand(char * line) {
                         }
 
                         strcpy(&line[completion_index], it_completion->c_str());
-                        len = (Bit16u)it_completion->length();
+                        len = (uint16_t)it_completion->length();
                         str_len = str_index = (Bitu)(completion_index + len);
                         size = (unsigned int)CMD_MAXLINE - str_index - 2u;
                         DOS_WriteFile(STDOUT, (uint8_t *)it_completion->c_str(), &len);
@@ -701,7 +701,7 @@ void DOS_Shell::InputCommand(char * line) {
                 if (l_completion.size()) l_completion.clear();
                 if(str_index < str_len && !INT10_GetInsertState()) { //mem_readb(BIOS_KEYBOARD_FLAGS1)&0x80) dev_con.h ?
                     outc(' ');//move cursor one to the right.
-                    Bit16u a = str_len - str_index;
+                    uint16_t a = str_len - str_index;
                     uint8_t* text=reinterpret_cast<uint8_t*>(&line[str_index]);
                     DOS_WriteFile(STDOUT,text,&a);//write buffer to screen
                     backone();//undo the cursor the right.
@@ -934,7 +934,7 @@ first_1:
 			else { WriteOut(MSG_Get("SHELL_EXECUTE_DRIVE_NOT_FOUND"),toupper(name[0])); return true; }
 
 first_2:
-		uint8_t c;Bit16u n=1;
+		uint8_t c;uint16_t n=1;
 		DOS_ReadFile (STDIN,&c,&n);
 		do switch (c) {
 			case 'n':			case 'N':
@@ -1099,7 +1099,7 @@ continue_1:
 
 		/* Parse FCB (first two parameters) and put them into the current DOS_PSP */
 		uint8_t add;
-		Bit16u skip = 0;
+		uint16_t skip = 0;
 		//find first argument, we end up at parseline[256] if there is only one argument (similar for the second), which exists and is 0.
 		while(skip < 256 && parseline[skip] == 0) skip++;
 		FCB_Parsename(dos.psp(),0x5C,0x01,parseline + skip,&add);
@@ -1118,7 +1118,7 @@ continue_1:
 #if 0
 		/* Save CS:IP to some point where i can return them from */
 		Bit32u oldeip=reg_eip;
-		Bit16u oldcs=SegValue(cs);
+		uint16_t oldcs=SegValue(cs);
 		RealPt newcsip=CALLBACK_RealPointer(call_shellstop);
 		SegSet16(cs,RealSeg(newcsip));
 		reg_ip=RealOff(newcsip);
@@ -1142,10 +1142,10 @@ continue_1:
 		SegSet16(cs,oldcs);
 #endif
 		if (packerr&&!infix&&sec->Get_bool("autoloadfix")) {
-			Bit16u segment;
-			Bit16u blocks = (Bit16u)(64*1024/16);
+			uint16_t segment;
+			uint16_t blocks = (uint16_t)(64*1024/16);
 			if (DOS_AllocateMemory(&segment,&blocks)) {
-				DOS_MCB mcb((Bit16u)(segment-1));
+				DOS_MCB mcb((uint16_t)(segment-1));
 				mcb.SetPSPSeg(0x40);
 				WriteOut("\r\n\033[41;1m\033[1;37;1mDOSBox-X\033[0m Failed to load the executable\r\n\033[41;1m\033[37;1mDOSBox-X\033[0m Now try again with LOADFIX...\r\n");
 				infix=true;
@@ -1220,7 +1220,7 @@ continue_1:
                         while (GetExitCodeProcess((HANDLE)hret, &exitCode) && exitCode == STILL_ACTIVE) {
                             CALLBACK_Idle();
                             if (ctrlbrk) {
-                                uint8_t c;Bit16u n=1;
+                                uint8_t c;uint16_t n=1;
                                 DOS_ReadFile (STDIN,&c,&n);
                                 if (c == 3) WriteOut("^C\n");
                                 EndRunProcess();
@@ -1236,7 +1236,7 @@ continue_1:
                         hret = 0;
                     else
                         hret = errno;
-                    DOS_SetError((Bit16u)hret);
+                    DOS_SetError((uint16_t)hret);
                     bool ret=hret == 0;
                     hret=0;
                     return ret;

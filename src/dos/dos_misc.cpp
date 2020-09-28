@@ -28,7 +28,7 @@
 Bit32u DOS_HMA_LIMIT();
 Bit32u DOS_HMA_FREE_START();
 Bit32u DOS_HMA_GET_FREE_SPACE();
-void DOS_HMA_CLAIMED(Bit16u bytes);
+void DOS_HMA_CLAIMED(uint16_t bytes);
 bool ANSI_SYS_installed();
 
 extern bool enable_share_exe_fake;
@@ -42,7 +42,7 @@ static Bitu call_int2f,call_int2a;
 static std::list<MultiplexHandler*> Multiplex;
 typedef std::list<MultiplexHandler*>::iterator Multiplex_it;
 
-const char *Win_NameThatVXD(Bit16u devid) {
+const char *Win_NameThatVXD(uint16_t devid) {
 	switch (devid) {
 		case 0x0006:	return "V86MMGR";
 		case 0x000C:	return "VMD";
@@ -150,7 +150,7 @@ static bool DOS_MultiplexFunctions(void) {
 			} else {
 				uint8_t drive=Files[reg_bx]->GetDrive();
 
-				mem_writew(sftptr+sftofs+0x02,(Bit16u)(Files[reg_bx]->flags&3));	// file open mode
+				mem_writew(sftptr+sftofs+0x02,(uint16_t)(Files[reg_bx]->flags&3));	// file open mode
 				mem_writeb(sftptr+sftofs+0x04,(uint8_t)(Files[reg_bx]->attr));		// file attribute
 				mem_writew(sftptr+sftofs+0x05,0x40|drive);							// device info word
 				mem_writed(sftptr+sftofs+0x07,RealMake(dos.tables.dpb,drive*dos.tables.dpb_size));	// dpb of the drive
@@ -244,7 +244,7 @@ static bool DOS_MultiplexFunctions(void) {
         strcpy(name,regpath);
         MEM_BlockWrite(SegPhys(es)+reg_di,name,(Bitu)(strlen(name)+1));
         reg_ax=0;
-        reg_cx=(Bit16u)strlen(name);
+        reg_cx=(uint16_t)strlen(name);
         return true;
     case 0x1614:    /* Set SYSTEM.DAT path */
 		if (dos.version.major < 7) return false;
@@ -430,8 +430,8 @@ static bool DOS_MultiplexFunctions(void) {
 			{
 			if (HANDLE text = GetClipboardData(reg_dx==1?CF_TEXT:CF_OEMTEXT))
 				{
-				reg_ax=(Bit16u)strlen((char *)text)+1;
-				reg_dx=(Bit16u)((strlen((char *)text)+1)/65536);
+				reg_ax=(uint16_t)strlen((char *)text)+1;
+				reg_dx=(uint16_t)((strlen((char *)text)+1)/65536);
 				}
 			else
 				reg_dx=0;

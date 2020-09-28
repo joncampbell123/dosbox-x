@@ -719,10 +719,10 @@
 		Bit32s product1 = (Bit32s)dest->sw.w1 * (Bit32s)src.sw.w1;
 		Bit32s product2 = (Bit32s)dest->sw.w2 * (Bit32s)src.sw.w2;
 		Bit32s product3 = (Bit32s)dest->sw.w3 * (Bit32s)src.sw.w3;
-		dest->uw.w0 = (Bit16u)(product0 >> 16);
-		dest->uw.w1 = (Bit16u)(product1 >> 16);
-		dest->uw.w2 = (Bit16u)(product2 >> 16);
-		dest->uw.w3 = (Bit16u)(product3 >> 16);
+		dest->uw.w0 = (uint16_t)(product0 >> 16);
+		dest->uw.w1 = (uint16_t)(product1 >> 16);
+		dest->uw.w2 = (uint16_t)(product2 >> 16);
+		dest->uw.w3 = (uint16_t)(product3 >> 16);
 		break;
 	}
 	CASE_0F_MMX(0xD5)												/* PMULLW Pq,Qq */

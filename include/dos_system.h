@@ -62,9 +62,9 @@ enum {
 
 struct FileStat_Block {
 	Bit32u size;
-	Bit16u time;
-	Bit16u date;
-	Bit16u attr;
+	uint16_t time;
+	uint16_t date;
+	uint16_t attr;
 };
 
 class DOS_DTA;
@@ -79,13 +79,13 @@ public:
 	DOS_File(const DOS_File& orig);
 	DOS_File & operator= (const DOS_File & orig);
 	virtual	~DOS_File(){if(name) delete [] name;};
-	virtual bool	Read(uint8_t * data,Bit16u * size)=0;
-	virtual bool	Write(const uint8_t * data,Bit16u * size)=0;
+	virtual bool	Read(uint8_t * data,uint16_t * size)=0;
+	virtual bool	Write(const uint8_t * data,uint16_t * size)=0;
 	virtual bool	Seek(Bit32u * pos,Bit32u type)=0;
 	virtual bool	Close()=0;
 	/* ert, 20100711: Locking extensions */
-	virtual bool    LockFile(uint8_t mode, Bit32u pos, Bit16u size) { (void)mode; (void)pos; (void)size; return false; };
-	virtual Bit16u	GetInformation(void)=0;
+	virtual bool    LockFile(uint8_t mode, Bit32u pos, uint16_t size) { (void)mode; (void)pos; (void)size; return false; };
+	virtual uint16_t	GetInformation(void)=0;
 	virtual void	SetName(const char* _name)	{ if (name) delete[] name; name = new char[strlen(_name)+1]; strcpy(name,_name); }
 	virtual char*	GetName(void)				{ return name; };
 	virtual bool	IsOpen()					{ return open; };
@@ -105,9 +105,9 @@ public:
 	Bit32u flags;
 	bool open;
 
-	Bit16u attr;
-	Bit16u time;
-	Bit16u date;
+	uint16_t attr;
+	uint16_t time;
+	uint16_t date;
 	Bits refCtr;
 	bool newtime = false;
 	/* Some Device Specific Stuff */
@@ -129,13 +129,13 @@ public:
 	}
 	DOS_Device():DOS_File(),devnum(0){};
 	virtual ~DOS_Device() {};
-	virtual bool	Read(uint8_t * data,Bit16u * size);
-	virtual bool	Write(const uint8_t * data,Bit16u * size);
+	virtual bool	Read(uint8_t * data,uint16_t * size);
+	virtual bool	Write(const uint8_t * data,uint16_t * size);
 	virtual bool	Seek(Bit32u * pos,Bit32u type);
 	virtual bool	Close();
-	virtual Bit16u	GetInformation(void);
-	virtual bool	ReadFromControlChannel(PhysPt bufptr,Bit16u size,Bit16u * retcode);
-	virtual bool	WriteToControlChannel(PhysPt bufptr,Bit16u size,Bit16u * retcode);
+	virtual uint16_t	GetInformation(void);
+	virtual bool	ReadFromControlChannel(PhysPt bufptr,uint16_t size,uint16_t * retcode);
+	virtual bool	WriteToControlChannel(PhysPt bufptr,uint16_t size,uint16_t * retcode);
 	void SetDeviceNumber(Bitu num) { devnum=num;}
 private:
 	Bitu devnum;
@@ -145,14 +145,14 @@ class localFile : public DOS_File {
 public:
 	localFile();
 	localFile(const char* _name, FILE * handle);
-	bool Read(uint8_t * data,Bit16u * size);
-	bool Write(const uint8_t * data,Bit16u * size);
+	bool Read(uint8_t * data,uint16_t * size);
+	bool Write(const uint8_t * data,uint16_t * size);
 	bool Seek(Bit32u * pos,Bit32u type);
 	bool Close();
 #ifdef WIN32
-	bool LockFile(uint8_t mode, Bit32u pos, Bit16u size);
+	bool LockFile(uint8_t mode, Bit32u pos, uint16_t size);
 #endif
-	Bit16u GetInformation(void);
+	uint16_t GetInformation(void);
 	bool UpdateDateTimeFromHost(void);
 	bool UpdateLocalDateTime(void);
 	void FlagReadOnlyMedium(void);
@@ -181,15 +181,15 @@ public:
 
 	void		SetBaseDir			(const char* baseDir, DOS_Drive *drive);
 	void		SetDirSort			(TDirSort sort) { sortDirType = sort; };
-	bool		OpenDir				(const char* path, Bit16u& id);
-    bool        ReadDir             (Bit16u id, char* &result, char * &lresult);
+	bool		OpenDir				(const char* path, uint16_t& id);
+    bool        ReadDir             (uint16_t id, char* &result, char * &lresult);
 
 	void		ExpandName			(char* path);
 	char*		GetExpandName		(const char* path);
 	bool		GetShortName		(const char* fullname, char* shortname);
 
-	bool		FindFirst			(char* path, Bit16u& id);
-    bool        FindNext            (Bit16u id, char* &result, char* &lresult);
+	bool		FindFirst			(char* path, uint16_t& id);
+    bool        FindNext            (uint16_t id, char* &result, char* &lresult);
 
 	void		CacheOut			(const char* path, bool ignoreLastDir = false);
 	void		AddEntry			(const char* path, bool checkExists = false);
@@ -218,7 +218,7 @@ public:
 		char		shortname	[DOS_NAMELENGTH_ASCII];
 		bool        isOverlayDir;
 		bool		isDir;
-		Bit16u		id;
+		uint16_t		id;
 		Bitu		nextEntry;
 		Bitu		shortNr;
 		// contents
@@ -239,10 +239,10 @@ private:
 	bool		IsCachedIn		(CFileInfo* curDir);
 	CFileInfo*	FindDirInfo		(const char* path, char* expandedPath);
 	bool		RemoveSpaces		(char* str);
-	bool		OpenDir			(CFileInfo* dir, const char* expand, Bit16u& id);
+	bool		OpenDir			(CFileInfo* dir, const char* expand, uint16_t& id);
     char*       CreateEntry     (CFileInfo* dir, const char* name, const char* sname, bool is_directory);
 	void		CopyEntry		(CFileInfo* dir, CFileInfo* from);
-	Bit16u		GetFreeID		(CFileInfo* dir);
+	uint16_t		GetFreeID		(CFileInfo* dir);
 	void		Clear			(void);
 
 	CFileInfo*	dirBase;
@@ -255,11 +255,11 @@ private:
 	char		save_path			[CROSS_LEN] = {};
 	char		save_expanded		[CROSS_LEN] = {};
 
-	Bit16u		srchNr;
+	uint16_t		srchNr;
 	CFileInfo*	dirSearch			[MAX_OPENDIRS];
 	char		dirSearchName		[MAX_OPENDIRS] = {};
 	CFileInfo*	dirFindFirst		[MAX_OPENDIRS];
-	Bit16u		nextFreeFindFirst;
+	uint16_t		nextFreeFindFirst;
 
 	char		label				[CROSS_LEN];
 	bool		updatelabel;
@@ -270,22 +270,22 @@ public:
 	DOS_Drive();
 	virtual ~DOS_Drive(){};
 	virtual bool FileOpen(DOS_File * * file,const char * name,Bit32u flags)=0;
-	virtual bool FileCreate(DOS_File * * file,const char * name,Bit16u attributes)=0;
+	virtual bool FileCreate(DOS_File * * file,const char * name,uint16_t attributes)=0;
 	virtual bool FileUnlink(const char * _name)=0;
 	virtual bool RemoveDir(const char * _dir)=0;
 	virtual bool MakeDir(const char * _dir)=0;
 	virtual bool TestDir(const char * _dir)=0;
 	virtual bool FindFirst(const char * _dir,DOS_DTA & dta,bool fcb_findfirst=false)=0;
 	virtual bool FindNext(DOS_DTA & dta)=0;
-	virtual bool SetFileAttr(const char * name,Bit16u attr)=0;
-	virtual bool GetFileAttr(const char * name,Bit16u * attr)=0;
+	virtual bool SetFileAttr(const char * name,uint16_t attr)=0;
+	virtual bool GetFileAttr(const char * name,uint16_t * attr)=0;
 	virtual bool GetFileAttrEx(char* name, struct stat *status)=0;
 	virtual unsigned long GetCompressedSize(char* name)=0;
 #if defined (WIN32)
 	virtual HANDLE CreateOpenFile(char const* const name)=0;
 #endif
 	virtual bool Rename(const char * oldname,const char * newname)=0;
-	virtual bool AllocationInfo(Bit16u * _bytes_sector,uint8_t * _sectors_cluster,Bit16u * _total_clusters,Bit16u * _free_clusters)=0;
+	virtual bool AllocationInfo(uint16_t * _bytes_sector,uint8_t * _sectors_cluster,uint16_t * _total_clusters,uint16_t * _free_clusters)=0;
 	virtual bool AllocationInfo32(Bit32u * _bytes_sector,Bit32u * _sectors_cluster,Bit32u * _total_clusters,Bit32u * _free_clusters) { (void)_bytes_sector; (void)_sectors_cluster; (void)_total_clusters; (void)_free_clusters; return false; }
 	virtual bool FileExists(const char* name)=0;
 	virtual bool FileStat(const char* name, FileStat_Block * const stat_block)=0;

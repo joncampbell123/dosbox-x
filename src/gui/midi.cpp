@@ -75,17 +75,17 @@ static struct {
 	bool ignore;
 
 	// NOTE: 16-bit ($ffff = not used, $00-ff = data value)
-	Bit16u code_80[0x80];			// note off (w/ velocity)
-	Bit16u code_90[0x80];			// note on (w/ velocity)
-	Bit16u code_a0[0x80];			// aftertouch (polyphonic key pressure)
-	Bit16u code_b0[0x80];			// Continuous controller (GM 1.0 + GS)
-	Bit16u code_c0[1];				// patch change
-	Bit16u code_d0[1];				// channel pressure (after-touch)
-	Bit16u code_e0[2];				// pitch bend
-	//Bit16u code_f0-ff				// system messages
+	uint16_t code_80[0x80];			// note off (w/ velocity)
+	uint16_t code_90[0x80];			// note on (w/ velocity)
+	uint16_t code_a0[0x80];			// aftertouch (polyphonic key pressure)
+	uint16_t code_b0[0x80];			// Continuous controller (GM 1.0 + GS)
+	uint16_t code_c0[1];				// patch change
+	uint16_t code_d0[1];				// channel pressure (after-touch)
+	uint16_t code_e0[2];				// pitch bend
+	//uint16_t code_f0-ff				// system messages
 
-	Bit16u code_rpn_coarse[3];		// registered parameter numbers (GM 1.0)
-	Bit16u code_rpn_fine[3];			// registered parameter numbers (GM 1.0)
+	uint16_t code_rpn_coarse[3];		// registered parameter numbers (GM 1.0)
+	uint16_t code_rpn_fine[3];			// registered parameter numbers (GM 1.0)
 } midi_state[16];
 
 

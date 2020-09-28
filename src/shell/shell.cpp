@@ -50,16 +50,16 @@ extern bool startcmd, startwait, winautorun;
 extern bool enable_config_as_shell_commands;
 extern bool dos_shell_running_program, addovl;
 extern const char* RunningProgram;
-extern Bit16u countryNo;
+extern uint16_t countryNo;
 extern int enablelfn;
 bool usecon = true;
 
-Bit16u shell_psp = 0;
+uint16_t shell_psp = 0;
 Bitu call_int2e = 0;
 
 void runMount(const char *str);
 void MSG_Replace(const char * _name, const char* _val);
-void DOS_SetCountry(Bit16u countryNo);
+void DOS_SetCountry(uint16_t countryNo);
 void CALLBACK_DeAllocate(Bitu in);
 void GFX_SetTitle(Bit32s cycles, Bits frameskip, Bits timing, bool paused);
 
@@ -303,7 +303,7 @@ void DOS_Shell::ParseLine(char * line) {
 	char * out = 0;
 	char * toc = 0;
 
-	Bit16u dummy,dummy2;
+	uint16_t dummy,dummy2;
 	Bit32u bigdummy = 0;
 	bool append;
 	bool normalstdin  = false;	/* wether stdin/out are open on start. */
@@ -325,7 +325,7 @@ void DOS_Shell::ParseLine(char * line) {
 	}
 	bool fail=false;
 	char pipetmp[270];
-	Bit16u fattr;
+	uint16_t fattr;
 	if (toc) {
 #ifdef WIN32
 		srand(GetTickCount());
@@ -518,7 +518,7 @@ void DOS_Shell::Run(void) {
 #if defined(WIN32)
 			char buffer[128];
 			if (GetLocaleInfo(LOCALE_USER_DEFAULT, LOCALE_ICOUNTRY, buffer, 128)) {
-				countryNo = Bit16u(atoi(buffer));
+				countryNo = uint16_t(atoi(buffer));
 				DOS_SetCountry(countryNo);
 			}
 			else
@@ -900,7 +900,7 @@ void AUTOEXEC_Init() {
 static Bitu INT2E_Handler(void) {
 	/* Save return address and current process */
 	RealPt save_ret=real_readd(SegValue(ss),reg_sp);
-	Bit16u save_psp=dos.psp();
+	uint16_t save_psp=dos.psp();
 
 	/* Set first shell as process and copy command */
 	dos.psp(shell_psp);//DOS_FIRST_SHELL);
@@ -1397,10 +1397,10 @@ void SHELL_Init() {
      *      the UMB as DOSBox SVN would do) */
 
 	/* Now call up the shell for the first time */
-	Bit16u psp_seg;//=DOS_FIRST_SHELL;
-	Bit16u env_seg;//=DOS_FIRST_SHELL+19; //DOS_GetMemory(1+(4096/16))+1;
-	Bit16u stack_seg;//=DOS_GetMemory(2048/16,"COMMAND.COM stack");
-    Bit16u tmp,total_sz;
+	uint16_t psp_seg;//=DOS_FIRST_SHELL;
+	uint16_t env_seg;//=DOS_FIRST_SHELL+19; //DOS_GetMemory(1+(4096/16))+1;
+	uint16_t stack_seg;//=DOS_GetMemory(2048/16,"COMMAND.COM stack");
+    uint16_t tmp,total_sz;
 
     // decide shell env size
     if (dosbox_shell_env_size == 0)
@@ -1431,13 +1431,13 @@ void SHELL_Init() {
     shell_psp = psp_seg;
 
     {
-        DOS_MCB mcb((Bit16u)(env_seg-1));
+        DOS_MCB mcb((uint16_t)(env_seg-1));
         mcb.SetPSPSeg(psp_seg);
         mcb.SetFileName("COMMAND");
     }
 
     {
-        DOS_MCB mcb((Bit16u)(psp_seg-1));
+        DOS_MCB mcb((uint16_t)(psp_seg-1));
         mcb.SetPSPSeg(psp_seg);
         mcb.SetFileName("COMMAND");
     }
@@ -1628,7 +1628,7 @@ void SHELL_Init() {
 	 * 01 01 01 00 02
 	 * In order to achieve this: First open 2 files. Close the first and
 	 * duplicate the second (so the entries get 01) */
-	Bit16u dummy=0;
+	uint16_t dummy=0;
 	DOS_OpenFile("CON",OPEN_READWRITE,&dummy);	/* STDIN  */
 	DOS_OpenFile("CON",OPEN_READWRITE,&dummy);	/* STDOUT */
 	DOS_CloseFile(0);							/* Close STDIN */

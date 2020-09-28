@@ -24,14 +24,14 @@ uint8_t inportb(Bit32u portid) {
   return value;
 }
 
-void outportw(Bit32u portid, Bit16u value) {
+void outportw(Bit32u portid, uint16_t value) {
   __asm mov edx,portid
   __asm mov ax,value
   __asm out dx,ax
 }
 
-Bit16u inportw(Bit32u portid) {
-  Bit16u value;
+uint16_t inportw(Bit32u portid) {
+  uint16_t value;
   
   __asm mov edx,portid
   __asm in ax,dx
@@ -95,7 +95,7 @@ uint8_t inportb(Bit32u portid) {
 #include "PortTalk_IOCTL.h"
 
 typedef struct driverpermstruct {
-    Bit16u offset;
+    uint16_t offset;
     uint8_t value;
 } permblock;
 
@@ -196,7 +196,7 @@ error:
     if(ServiceManager) CloseServiceHandle(ServiceManager);
     return false;
 }
-void addIOPermission(Bit16u port) {
+void addIOPermission(uint16_t port) {
     if(isNT)
         ioperm[(port>>3)]&=(~(1<<(port&0x7)));
 }
@@ -246,7 +246,7 @@ bool initPorttalk() {
     return true;
 }
 
-void addIOPermission(Bit16u port) {
+void addIOPermission(uint16_t port) {
     ioperm(port,1,1);
 }
 

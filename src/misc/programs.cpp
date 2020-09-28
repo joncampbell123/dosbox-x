@@ -200,10 +200,10 @@ void Program::WriteOut(const char * format,...) {
 	vsnprintf(buf,2047,format,msg);
 	va_end(msg);
 
-	Bit16u size = (Bit16u)strlen(buf);
+	uint16_t size = (uint16_t)strlen(buf);
 	dos.internal_output=true;
-	for(Bit16u i = 0; i < size;i++) {
-		uint8_t out;Bit16u s=1;
+	for(uint16_t i = 0; i < size;i++) {
+		uint8_t out;uint16_t s=1;
 		if (buf[i] == 0xA && last_written_character != 0xD) {
 			out = 0xD;DOS_WriteFile(STDOUT,&out,&s);
 		}
@@ -216,11 +216,11 @@ void Program::WriteOut(const char * format,...) {
 }
 
 void Program::WriteOut_NoParsing(const char * format) {
-	Bit16u size = (Bit16u)strlen(format);
+	uint16_t size = (uint16_t)strlen(format);
 	char const* buf = format;
 	dos.internal_output=true;
-	for(Bit16u i = 0; i < size;i++) {
-		uint8_t out;Bit16u s=1;
+	for(uint16_t i = 0; i < size;i++) {
+		uint8_t out;uint16_t s=1;
 		if (buf[i] == 0xA && last_written_character != 0xD) {
 			out = 0xD;DOS_WriteFile(STDOUT,&out,&s);
 		}
@@ -238,8 +238,8 @@ static bool LocateEnvironmentBlock(PhysPt &env_base,PhysPt &env_fence,Bitu env_s
 		return false;
 	}
 
-	DOS_MCB env_mcb((Bit16u)(env_seg-1)); /* read the environment block's MCB to determine how large it is */
-	env_base = PhysMake((Bit16u)env_seg,0);
+	DOS_MCB env_mcb((uint16_t)(env_seg-1)); /* read the environment block's MCB to determine how large it is */
+	env_base = PhysMake((uint16_t)env_seg,0);
 	env_fence = env_base + (PhysPt)(env_mcb.GetSize() << 4u);
 	return true;
 }

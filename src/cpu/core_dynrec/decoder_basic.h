@@ -226,13 +226,13 @@ static uint8_t decode_fetchb(void) {
 	return mem_readb(decode.code-1);
 }
 // fetch the next word of the instruction stream
-static Bit16u decode_fetchw(void) {
+static uint16_t decode_fetchw(void) {
 	if (GCC_UNLIKELY(decode.page.index>=4095)) {
-   		Bit16u val=decode_fetchb();
+   		uint16_t val=decode_fetchb();
 		val|=decode_fetchb() << 8;
 		return val;
 	}
-	*(Bit16u *)&decode.page.wmap[decode.page.index]+=0x0101;
+	*(uint16_t *)&decode.page.wmap[decode.page.index]+=0x0101;
 	decode.code+=2;decode.page.index+=2;
 	return mem_readw(decode.code-2);
 }
@@ -265,7 +265,7 @@ static void INLINE decode_increase_wmapmask(Bitu size) {
             memset(activecb->cache.wmapmask, 0, START_WMMEM);
         else
             E_Exit("Memory allocation failed in decode_increase_wmapmask");
-		activecb->cache.maskstart=(Bit16u)decode.page.index;	// start of buffer is current code position
+		activecb->cache.maskstart=(uint16_t)decode.page.index;	// start of buffer is current code position
 		activecb->cache.masklen=START_WMMEM;
 		mapidx=0;
 	} else {
@@ -280,7 +280,7 @@ static void INLINE decode_increase_wmapmask(Bitu size) {
                 memcpy(tempmem, activecb->cache.wmapmask, activecb->cache.masklen);
                 free(activecb->cache.wmapmask);
                 activecb->cache.wmapmask = tempmem;
-                activecb->cache.masklen = (Bit16u)newmasklen;
+                activecb->cache.masklen = (uint16_t)newmasklen;
             }
             else
                 E_Exit("Memory allocation failed in decode_increase_wmapmask");
@@ -290,7 +290,7 @@ static void INLINE decode_increase_wmapmask(Bitu size) {
     if (activecb->cache.wmapmask != NULL) {
         switch (size) {
         case 1: activecb->cache.wmapmask[mapidx] += 0x01; break;
-        case 2: (*(Bit16u*)& activecb->cache.wmapmask[mapidx]) += 0x0101; break;
+        case 2: (*(uint16_t*)& activecb->cache.wmapmask[mapidx]) += 0x0101; break;
         case 4: (*(Bit32u*)& activecb->cache.wmapmask[mapidx]) += 0x01010101; break;
         }
     }
@@ -724,10 +724,10 @@ bool DRC_CALL_CONV mem_readw_checked_drc(PhysPt address) {
 	if ((address & 0xfff)<0xfff) {
 		HostPt tlb_addr=get_tlb_read(address);
 		if (tlb_addr) {
-			*((Bit16u*)(&core_dynrec.readdata))=host_readw(tlb_addr+address);
+			*((uint16_t*)(&core_dynrec.readdata))=host_readw(tlb_addr+address);
 			return false;
-		} else return get_tlb_readhandler(address)->readw_checked(address, (Bit16u*)(&core_dynrec.readdata));
-	} else return mem_unalignedreadw_checked(address, ((Bit16u*)(&core_dynrec.readdata)));
+		} else return get_tlb_readhandler(address)->readw_checked(address, (uint16_t*)(&core_dynrec.readdata));
+	} else return mem_unalignedreadw_checked(address, ((uint16_t*)(&core_dynrec.readdata)));
 }
 
 bool DRC_CALL_CONV mem_readd_checked_drc(PhysPt address) DRC_FC;
@@ -741,8 +741,8 @@ bool DRC_CALL_CONV mem_readd_checked_drc(PhysPt address) {
 	} else return mem_unalignedreadd_checked(address, ((Bit32u*)(&core_dynrec.readdata)));
 }
 
-bool DRC_CALL_CONV mem_writew_checked_drc(PhysPt address,Bit16u val) DRC_FC;
-bool DRC_CALL_CONV mem_writew_checked_drc(PhysPt address,Bit16u val) {
+bool DRC_CALL_CONV mem_writew_checked_drc(PhysPt address,uint16_t val) DRC_FC;
+bool DRC_CALL_CONV mem_writew_checked_drc(PhysPt address,uint16_t val) {
 	if ((address & 0xfff)<0xfff) {
 		HostPt tlb_addr=get_tlb_write(address);
 		if (tlb_addr) {

@@ -34,7 +34,7 @@ typedef uint8_t *             HostPt;             /* host (virtual) memory addre
 typedef Bit32u              PhysPt;      /* guest physical memory pointer */
 typedef Bit32u              LinearPt;    /* guest linear memory address */
 typedef Bit32u              RealPt;      /* guest real-mode memory address (16:16 -> seg:offset) */
-typedef Bit16u              SegmentVal;  /* guest segment value */
+typedef uint16_t              SegmentVal;  /* guest segment value */
 
 typedef Bit32s              MemHandle;
 
@@ -71,8 +71,8 @@ MemHandle                   MEM_NextHandleAt(MemHandle handle,Bitu where);
 static INLINE uint8_t host_readb(ConstHostPt const off) {
     return *off;
 }
-static INLINE Bit16u host_readw(ConstHostPt const off) {
-    return (Bit16u)host_readb(off) + ((Bit16u)host_readb(off+(uintptr_t)1U) << (Bit16u)8U);
+static INLINE uint16_t host_readw(ConstHostPt const off) {
+    return (uint16_t)host_readb(off) + ((uint16_t)host_readb(off+(uintptr_t)1U) << (uint16_t)8U);
 }
 static INLINE Bit32u host_readd(ConstHostPt const off) {
     return (Bit32u)host_readw(off) + ((Bit32u)host_readw(off+(uintptr_t)2U) << (Bit32u)16U);
@@ -84,13 +84,13 @@ static INLINE Bit64u host_readq(ConstHostPt const off) {
 static INLINE void host_writeb(HostPt const off,const uint8_t val) {
     *off = val;
 }
-static INLINE void host_writew(HostPt const off,const Bit16u val) {
+static INLINE void host_writew(HostPt const off,const uint16_t val) {
     host_writeb(off,   (uint8_t)(val));
-    host_writeb(off+1U,(uint8_t)(val >> (Bit16u)8U));
+    host_writeb(off+1U,(uint8_t)(val >> (uint16_t)8U));
 }
 static INLINE void host_writed(HostPt const off,const Bit32u val) {
-    host_writew(off,   (Bit16u)(val));
-    host_writew(off+2U,(Bit16u)(val >> (Bit32u)16U));
+    host_writew(off,   (uint16_t)(val));
+    host_writew(off+2U,(uint16_t)(val >> (Bit32u)16U));
 }
 static INLINE void host_writeq(HostPt const off,const Bit64u val) {
     host_writed(off,   (Bit32u)(val));
@@ -102,8 +102,8 @@ static INLINE void host_writeq(HostPt const off,const Bit64u val) {
 static INLINE uint8_t host_readb(ConstHostPt const off) {
     return *(const uint8_t *)off;
 }
-static INLINE Bit16u host_readw(ConstHostPt const off) {
-    return le16toh((*(const Bit16u *)off)); // BSD endian.h
+static INLINE uint16_t host_readw(ConstHostPt const off) {
+    return le16toh((*(const uint16_t *)off)); // BSD endian.h
 }
 static INLINE Bit32u host_readd(ConstHostPt const off) {
     return le32toh((*(const Bit32u *)off)); // BSD endian.h
@@ -115,8 +115,8 @@ static INLINE Bit64u host_readq(ConstHostPt const off) {
 static INLINE void host_writeb(HostPt const off,const uint8_t val) {
     *(uint8_t *)(off) = val;
 }
-static INLINE void host_writew(HostPt const off,const Bit16u val) {
-    *(Bit16u *)(off) = htole16(val);
+static INLINE void host_writew(HostPt const off,const uint16_t val) {
+    *(uint16_t *)(off) = htole16(val);
 }
 static INLINE void host_writed(HostPt const off,const Bit32u val) {
     *(Bit32u *)(off) = htole32(val);
@@ -132,7 +132,7 @@ static INLINE void var_write(uint8_t * const var, const uint8_t val) {
     host_writeb((HostPt)var, val);
 }
 
-static INLINE void var_write(Bit16u * const var, const Bit16u val) {
+static INLINE void var_write(uint16_t * const var, const uint16_t val) {
     host_writew((HostPt)var, val);
 }
 
@@ -147,11 +147,11 @@ static INLINE void var_write(Bit64u * const var, const Bit64u val) {
 /* The Folowing six functions are slower but they recognize the paged memory system */
 
 uint8_t  mem_readb(const PhysPt address);
-Bit16u mem_readw(const PhysPt address);
+uint16_t mem_readw(const PhysPt address);
 Bit32u mem_readd(const PhysPt address);
 
 void mem_writeb(const PhysPt address,const uint8_t val);
-void mem_writew(const PhysPt address,const Bit16u val);
+void mem_writew(const PhysPt address,const uint16_t val);
 void mem_writed(const PhysPt address,const Bit32u val);
 
 void phys_writes(PhysPt addr, const char* string, Bitu length);
@@ -162,7 +162,7 @@ void phys_writes(PhysPt addr, const char* string, Bitu length);
 static INLINE void phys_writeb(const PhysPt addr,const uint8_t val) {
     host_writeb(MemBase+addr,val);
 }
-static INLINE void phys_writew(const PhysPt addr,const Bit16u val) {
+static INLINE void phys_writew(const PhysPt addr,const uint16_t val) {
     host_writew(MemBase+addr,val);
 }
 static INLINE void phys_writed(const PhysPt addr,const Bit32u val) {
@@ -172,7 +172,7 @@ static INLINE void phys_writed(const PhysPt addr,const Bit32u val) {
 static INLINE uint8_t phys_readb(const PhysPt addr) {
     return host_readb(MemBase+addr);
 }
-static INLINE Bit16u phys_readw(const PhysPt addr) {
+static INLINE uint16_t phys_readw(const PhysPt addr) {
     return host_readw(MemBase+addr);
 }
 static INLINE Bit32u phys_readd(const PhysPt addr) {
@@ -194,29 +194,29 @@ void mem_strcpy(PhysPt dest,PhysPt src);
 
 /* The folowing functions are all shortcuts to the above functions using physical addressing */
 
-static inline constexpr PhysPt PhysMake(const Bit16u seg,const Bit16u off) {
+static inline constexpr PhysPt PhysMake(const uint16_t seg,const uint16_t off) {
     return ((PhysPt)seg << (PhysPt)4U) + (PhysPt)off;
 }
 
-static inline constexpr Bit16u RealSeg(const RealPt pt) {
-    return (Bit16u)((RealPt)pt >> (RealPt)16U);
+static inline constexpr uint16_t RealSeg(const RealPt pt) {
+    return (uint16_t)((RealPt)pt >> (RealPt)16U);
 }
 
-static inline constexpr Bit16u RealOff(const RealPt pt) {
-    return (Bit16u)((RealPt)pt & (RealPt)0xffffu);
+static inline constexpr uint16_t RealOff(const RealPt pt) {
+    return (uint16_t)((RealPt)pt & (RealPt)0xffffu);
 }
 
 static inline constexpr PhysPt Real2Phys(const RealPt pt) {
     return (PhysPt)(((PhysPt)RealSeg(pt) << (PhysPt)4U) + (PhysPt)RealOff(pt));
 }
 
-static inline constexpr RealPt RealMake(const Bit16u seg,const Bit16u off) {
+static inline constexpr RealPt RealMake(const uint16_t seg,const uint16_t off) {
     return (RealPt)(((RealPt)seg << (RealPt)16U) + (RealPt)off);
 }
 
 /* convert physical address to 4:16 real pointer (example: 0xABCDE -> 0xA000:0xBCDE) */
 static inline constexpr RealPt PhysToReal416(const PhysPt phys) {
-    return RealMake((Bit16u)(((PhysPt)phys >> (PhysPt)4U) & (PhysPt)0xF000U),(Bit16u)((PhysPt)phys & (PhysPt)0xFFFFU));
+    return RealMake((uint16_t)(((PhysPt)phys >> (PhysPt)4U) & (PhysPt)0xF000U),(uint16_t)((PhysPt)phys & (PhysPt)0xFFFFU));
 }
 
 static inline constexpr PhysPt RealVecAddress(const uint8_t vec) {
@@ -224,23 +224,23 @@ static inline constexpr PhysPt RealVecAddress(const uint8_t vec) {
 }
 
 
-static INLINE uint8_t real_readb(const Bit16u seg,const Bit16u off) {
+static INLINE uint8_t real_readb(const uint16_t seg,const uint16_t off) {
     return mem_readb(PhysMake(seg,off));
 }
-static INLINE Bit16u real_readw(const Bit16u seg,const Bit16u off) {
+static INLINE uint16_t real_readw(const uint16_t seg,const uint16_t off) {
     return mem_readw(PhysMake(seg,off));
 }
-static INLINE Bit32u real_readd(const Bit16u seg,const Bit16u off) {
+static INLINE Bit32u real_readd(const uint16_t seg,const uint16_t off) {
     return mem_readd(PhysMake(seg,off));
 }
 
-static INLINE void real_writeb(const Bit16u seg,const Bit16u off,const uint8_t val) {
+static INLINE void real_writeb(const uint16_t seg,const uint16_t off,const uint8_t val) {
     mem_writeb(PhysMake(seg,off),val);
 }
-static INLINE void real_writew(const Bit16u seg,const Bit16u off,const Bit16u val) {
+static INLINE void real_writew(const uint16_t seg,const uint16_t off,const uint16_t val) {
     mem_writew(PhysMake(seg,off),val);
 }
-static INLINE void real_writed(const Bit16u seg,const Bit16u off,const Bit32u val) {
+static INLINE void real_writed(const uint16_t seg,const uint16_t off,const Bit32u val) {
     mem_writed(PhysMake(seg,off),val);
 }
 

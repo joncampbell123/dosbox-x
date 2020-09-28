@@ -108,11 +108,11 @@ uint8_t SaturateWordSToByteU(Bit16s value)
   return (uint8_t) value;
 }
 
-Bit16u SaturateDwordSToWordU(Bit32s value)
+uint16_t SaturateDwordSToWordU(Bit32s value)
 {
   if(value < 0) return 0;
   if(value > 65535) return 65535;
-  return (Bit16u) value;
+  return (uint16_t) value;
 }
 
 void setFPUTagEmpty() {

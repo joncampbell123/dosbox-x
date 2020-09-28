@@ -19,8 +19,8 @@
 #ifndef __XMS_H__
 #define __XMS_H__
 
-Bitu	XMS_QueryFreeMemory		(Bit16u& largestFree, Bit16u& totalFree);
-Bitu	XMS_AllocateMemory		(Bitu size, Bit16u& handle);
+Bitu	XMS_QueryFreeMemory		(uint16_t& largestFree, uint16_t& totalFree);
+Bitu	XMS_AllocateMemory		(Bitu size, uint16_t& handle);
 Bitu	XMS_FreeMemory			(Bitu handle);
 Bitu	XMS_MoveMemory			(PhysPt bpt);
 Bitu	XMS_LockMemory			(Bitu handle, Bit32u& address);

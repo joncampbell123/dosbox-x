@@ -22,7 +22,7 @@ namespace MT32Emu {
 
 typedef unsigned int       Bit32u;
 typedef   signed int       Bit32s;
-typedef unsigned short int Bit16u;
+typedef unsigned short int uint16_t;
 typedef   signed short int Bit16s;
 typedef unsigned char      uint8_t;
 typedef   signed char      int8_t;

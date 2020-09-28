@@ -65,7 +65,7 @@ struct _opl3_slot {
     uint8_t key;
     Bit32u pg_reset;
     Bit32u pg_phase;
-    Bit16u pg_phase_out;
+    uint16_t pg_phase_out;
     uint8_t slot_num;
 };
 
@@ -75,26 +75,26 @@ struct _opl3_channel {
     opl3_chip *chip;
     Bit16s *out[4];
     uint8_t chtype;
-    Bit16u f_num;
+    uint16_t f_num;
     uint8_t block;
     uint8_t fb;
     uint8_t con;
     uint8_t alg;
     uint8_t ksv;
-    Bit16u cha, chb;
+    uint16_t cha, chb;
     uint8_t ch_num;
 };
 
 typedef struct _opl3_writebuf {
     Bit64u time;
-    Bit16u reg;
+    uint16_t reg;
     uint8_t data;
 } opl3_writebuf;
 
 struct _opl3_chip {
     opl3_channel channel[18];
     opl3_slot slot[36];
-    Bit16u timer;
+    uint16_t timer;
     Bit64u eg_timer;
     uint8_t eg_timerrem;
     uint8_t eg_state;
@@ -132,8 +132,8 @@ struct _opl3_chip {
 void OPL3_Generate(opl3_chip *chip, Bit16s *buf);
 void OPL3_GenerateResampled(opl3_chip *chip, Bit16s *buf);
 void OPL3_Reset(opl3_chip *chip, Bit32u samplerate);
-void OPL3_WriteReg(opl3_chip *chip, Bit16u reg, uint8_t v);
-void OPL3_WriteRegBuffered(opl3_chip *chip, Bit16u reg, uint8_t v);
+void OPL3_WriteReg(opl3_chip *chip, uint16_t reg, uint8_t v);
+void OPL3_WriteRegBuffered(opl3_chip *chip, uint16_t reg, uint8_t v);
 void OPL3_GenerateStream(opl3_chip *chip, Bit16s *sndptr, Bit32u numsamples);
 
 #endif

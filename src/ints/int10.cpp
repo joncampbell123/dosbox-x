@@ -557,7 +557,7 @@ CX	640x480	800x600	  1024x768/1280x1024
 				Bitu ret=INT10_VideoState_GetSize(reg_cx);
 				if (ret) {
 					reg_al=0x1c;
-					reg_bx=(Bit16u)ret;
+					reg_bx=(uint16_t)ret;
 				} else reg_al=0;
 				}
 				break;
@@ -604,7 +604,7 @@ CX	640x480	800x600	  1024x768/1280x1024
 					Bitu ret=INT10_VideoState_GetSize(reg_cx);
 					if (ret) {
 						reg_ah=0;
-						reg_bx=(Bit16u)ret;
+						reg_bx=(uint16_t)ret;
 					} else reg_ah=1;
 					}
 					break;

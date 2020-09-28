@@ -56,7 +56,7 @@ Bitu call_int13 = 0;
 Bitu diskparm0 = 0, diskparm1 = 0;
 static uint8_t last_status;
 static uint8_t last_drive;
-Bit16u imgDTASeg;
+uint16_t imgDTASeg;
 RealPt imgDTAPtr;
 DOS_DTA *imgDTA;
 bool killRead;
@@ -109,22 +109,22 @@ void updateDPT(void) {
         if (imageDiskList[i + 2] != NULL) {
             imageDiskList[i + 2]->Get_Geometry(&tmpheads, &tmpcyl, &tmpsect, &tmpsize);
         }
-        phys_writew(dpphysaddr[i], (Bit16u)tmpcyl);
+        phys_writew(dpphysaddr[i], (uint16_t)tmpcyl);
         phys_writeb(dpphysaddr[i] + 0x2, (uint8_t)tmpheads);
         phys_writew(dpphysaddr[i] + 0x3, 0);
-        phys_writew(dpphysaddr[i] + 0x5, tmpcyl == 0 ? 0 : (Bit16u)-1);
+        phys_writew(dpphysaddr[i] + 0x5, tmpcyl == 0 ? 0 : (uint16_t)-1);
         phys_writeb(dpphysaddr[i] + 0x7, 0);
         phys_writeb(dpphysaddr[i] + 0x8, tmpcyl == 0 ? 0 : (0xc0 | (((tmpheads) > 8) << 3)));
         phys_writeb(dpphysaddr[i] + 0x9, 0);
         phys_writeb(dpphysaddr[i] + 0xa, 0);
         phys_writeb(dpphysaddr[i] + 0xb, 0);
-        phys_writew(dpphysaddr[i] + 0xc, (Bit16u)tmpcyl);
+        phys_writew(dpphysaddr[i] + 0xc, (uint16_t)tmpcyl);
         phys_writeb(dpphysaddr[i] + 0xe, (uint8_t)tmpsect);
     }
 }
 
 void incrementFDD(void) {
-    Bit16u equipment=mem_readw(BIOS_CONFIGURATION);
+    uint16_t equipment=mem_readw(BIOS_CONFIGURATION);
     if(equipment&1) {
         Bitu numofdisks = (equipment>>6)&3;
         numofdisks++;
@@ -698,13 +698,13 @@ static bool driveInactive(uint8_t driveNum) {
 static struct {
     uint8_t sz;
     uint8_t res;
-    Bit16u num;
-    Bit16u off;
-    Bit16u seg;
+    uint16_t num;
+    uint16_t off;
+    uint16_t seg;
     Bit32u sector;
 } dap;
 
-static void readDAP(Bit16u seg, Bit16u off) {
+static void readDAP(uint16_t seg, uint16_t off) {
     dap.sz = real_readb(seg,off++);
     dap.res = real_readb(seg,off++);
     dap.num = real_readw(seg,off); off += 2;
@@ -724,7 +724,7 @@ void IDE_EmuINT13DiskReadByBIOS(unsigned char disk,unsigned int cyl,unsigned int
 void IDE_EmuINT13DiskReadByBIOS_LBA(unsigned char disk,uint64_t lba);
 
 static Bitu INT13_DiskHandler(void) {
-    Bit16u segat, bufptr;
+    uint16_t segat, bufptr;
     uint8_t sectbuf[512];
     uint8_t  drivenum;
     Bitu  i,t;
@@ -1029,8 +1029,8 @@ static Bitu INT13_DiskHandler(void) {
             Bit32u ts = static_cast<Bit32u>(largesize);
             reg_ah = (drivenum <2)?1:3; //With 2 for floppy MSDOS starts calling int 13 ah 16
             if(reg_ah == 3) {
-                reg_cx = static_cast<Bit16u>(ts >>16);
-                reg_dx = static_cast<Bit16u>(ts & 0xffff);
+                reg_cx = static_cast<uint16_t>(ts >>16);
+                reg_dx = static_cast<uint16_t>(ts & 0xffff);
             }
             CALLBACK_SCF(false);
         } else {

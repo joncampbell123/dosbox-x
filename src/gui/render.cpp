@@ -71,7 +71,7 @@ static void Check_Palette(void) {
                 uint8_t r=render.pal.rgb[i].red;
                 uint8_t g=render.pal.rgb[i].green;
                 uint8_t b=render.pal.rgb[i].blue;
-                Bit16u newPal = (Bit16u)GFX_GetRGB(r,g,b);
+                uint16_t newPal = (uint16_t)GFX_GetRGB(r,g,b);
                 if (newPal != render.pal.lut.b16[i]) {
                     render.pal.changed = true;
                     render.pal.modified[i] = 1;

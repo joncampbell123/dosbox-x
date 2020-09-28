@@ -42,8 +42,8 @@ struct CommandTail{
 #pragma pack ()
 #endif
 
-extern Bit16u first_umb_seg;
-extern Bit16u first_umb_size;
+extern uint16_t first_umb_seg;
+extern uint16_t first_umb_size;
 
 bool MEM_unmap_physmem(Bitu start,Bitu end);
 bool MEM_map_RAM_physmem(Bitu start,Bitu end);
@@ -55,7 +55,7 @@ struct BuiltinFileBlob {
 };
 
 struct DOS_Date {
-	Bit16u year;
+	uint16_t year;
 	uint8_t month;
 	uint8_t day;
 };
@@ -95,9 +95,9 @@ union bootSector {
 	struct entries {
 		uint8_t jump[3];
 		uint8_t oem_name[8];
-		Bit16u bytesect;
+		uint16_t bytesect;
 		uint8_t sectclust;
-		Bit16u reserve_sect;
+		uint16_t reserve_sect;
 	} bootdata;
 	uint8_t rawdata[SECTOR_SIZE_MAX];
 } GCC_ATTRIBUTE(packed);
@@ -133,17 +133,17 @@ extern Bitu DOS_FILES;
 
 // dos swappable area is 0x320 bytes beyond the sysvars table
 // device driver chain is inside sysvars
-extern Bit16u DOS_INFOBLOCK_SEG;// 0x80	// sysvars (list of lists)
-extern Bit16u DOS_CONDRV_SEG;// 0xa0
-extern Bit16u DOS_CONSTRING_SEG;// 0xa8
-extern Bit16u DOS_SDA_SEG;// 0xb2		// dos swappable area
-extern Bit16u DOS_SDA_SEG_SIZE;
-extern Bit16u DOS_SDA_OFS;// 0
-extern Bit16u DOS_CDS_SEG;// 0x108
-extern Bit16u DOS_MEM_START;// 0x158	 // regression to r3437 fixes nascar 2 colors
+extern uint16_t DOS_INFOBLOCK_SEG;// 0x80	// sysvars (list of lists)
+extern uint16_t DOS_CONDRV_SEG;// 0xa0
+extern uint16_t DOS_CONSTRING_SEG;// 0xa8
+extern uint16_t DOS_SDA_SEG;// 0xb2		// dos swappable area
+extern uint16_t DOS_SDA_SEG_SIZE;
+extern uint16_t DOS_SDA_OFS;// 0
+extern uint16_t DOS_CDS_SEG;// 0x108
+extern uint16_t DOS_MEM_START;// 0x158	 // regression to r3437 fixes nascar 2 colors
 
-extern Bit16u DOS_PRIVATE_SEGMENT;// 0xc800
-extern Bit16u DOS_PRIVATE_SEGMENT_END;// 0xd000
+extern uint16_t DOS_PRIVATE_SEGMENT;// 0xc800
+extern uint16_t DOS_PRIVATE_SEGMENT_END;// 0xd000
 
 /* internal Dos Tables */
 
@@ -154,7 +154,7 @@ extern DOS_Device * Devices[DOS_DEVICES];
 extern uint8_t dos_copybuf[0x10000];
 
 
-void DOS_SetError(Bit16u code);
+void DOS_SetError(uint16_t code);
 
 /* File Handling Routines */
 
@@ -163,28 +163,28 @@ enum { HAND_NONE=0,HAND_FILE,HAND_DEVICE};
 
 /* Routines for File Class */
 void DOS_SetupFiles (void);
-bool DOS_ReadFile(Bit16u entry,uint8_t * data,Bit16u * amount, bool fcb = false);
-bool DOS_WriteFile(Bit16u entry,uint8_t * data,Bit16u * amount,bool fcb = false);
-bool DOS_SeekFile(Bit16u entry,Bit32u * pos,Bit32u type,bool fcb = false);
+bool DOS_ReadFile(uint16_t entry,uint8_t * data,uint16_t * amount, bool fcb = false);
+bool DOS_WriteFile(uint16_t entry,uint8_t * data,uint16_t * amount,bool fcb = false);
+bool DOS_SeekFile(uint16_t entry,Bit32u * pos,Bit32u type,bool fcb = false);
 /* ert, 20100711: Locking extensions */
-bool DOS_LockFile(Bit16u entry,uint8_t mode,Bit32u pos,Bit32u size);
-bool DOS_CloseFile(Bit16u entry,bool fcb = false);
-bool DOS_FlushFile(Bit16u entry);
-bool DOS_DuplicateEntry(Bit16u entry,Bit16u * newentry);
-bool DOS_ForceDuplicateEntry(Bit16u entry,Bit16u newentry);
-bool DOS_GetFileDate(Bit16u entry, Bit16u* otime, Bit16u* odate);
-bool DOS_SetFileDate(Bit16u entry, Bit16u ntime, Bit16u ndate);
+bool DOS_LockFile(uint16_t entry,uint8_t mode,Bit32u pos,Bit32u size);
+bool DOS_CloseFile(uint16_t entry,bool fcb = false);
+bool DOS_FlushFile(uint16_t entry);
+bool DOS_DuplicateEntry(uint16_t entry,uint16_t * newentry);
+bool DOS_ForceDuplicateEntry(uint16_t entry,uint16_t newentry);
+bool DOS_GetFileDate(uint16_t entry, uint16_t* otime, uint16_t* odate);
+bool DOS_SetFileDate(uint16_t entry, uint16_t ntime, uint16_t ndate);
 
 /* Routines for Drive Class */
-bool DOS_OpenFile(char const * name,uint8_t flags,Bit16u * entry,bool fcb = false);
-bool DOS_OpenFileExtended(char const * name, Bit16u flags, Bit16u createAttr, Bit16u action, Bit16u *entry, Bit16u* status);
-bool DOS_CreateFile(char const * name,Bit16u attributes,Bit16u * entry, bool fcb = false);
+bool DOS_OpenFile(char const * name,uint8_t flags,uint16_t * entry,bool fcb = false);
+bool DOS_OpenFileExtended(char const * name, uint16_t flags, uint16_t createAttr, uint16_t action, uint16_t *entry, uint16_t* status);
+bool DOS_CreateFile(char const * name,uint16_t attributes,uint16_t * entry, bool fcb = false);
 bool DOS_UnlinkFile(char const * const name);
 bool DOS_GetSFNPath(char const * const path, char *SFNpath, bool LFN);
-bool DOS_FindFirst(char *search,Bit16u attr,bool fcb_findfirst=false);
+bool DOS_FindFirst(char *search,uint16_t attr,bool fcb_findfirst=false);
 bool DOS_FindNext(void);
 bool DOS_Canonicalize(char const * const name,char * const big);
-bool DOS_CreateTempFile(char * const name,Bit16u * entry);
+bool DOS_CreateTempFile(char * const name,uint16_t * entry);
 bool DOS_FileExists(char const * const name);
 
 /* Helper Functions */
@@ -198,10 +198,10 @@ bool DOS_ChangeDir(char const * const dir);
 bool DOS_MakeDir(char const * const dir);
 bool DOS_RemoveDir(char const * const dir);
 bool DOS_Rename(char const * const oldname,char const * const newname);
-bool DOS_GetFreeDiskSpace(uint8_t drive,Bit16u * bytes,uint8_t * sectors,Bit16u * clusters,Bit16u * free);
+bool DOS_GetFreeDiskSpace(uint8_t drive,uint16_t * bytes,uint8_t * sectors,uint16_t * clusters,uint16_t * free);
 bool DOS_GetFreeDiskSpace32(uint8_t drive,Bit32u * bytes,Bit32u * sectors,Bit32u * clusters,Bit32u * free);
-bool DOS_GetFileAttr(char const * const name,Bit16u * attr);
-bool DOS_SetFileAttr(char const * const name,Bit16u attr);
+bool DOS_GetFileAttr(char const * const name,uint16_t * attr);
+bool DOS_SetFileAttr(char const * const name,uint16_t attr);
 bool DOS_GetFileAttrEx(char const* const name, struct stat *status, uint8_t hdrive=-1);
 unsigned long DOS_GetCompressedFileSize(char const* const name);
 #if defined (WIN32)
@@ -215,39 +215,39 @@ uint8_t DOS_FindDevice(char const * name);
 void DOS_SetupDevices(void);
 
 /* Execute and new process creation */
-bool DOS_NewPSP(Bit16u segment,Bit16u size);
-bool DOS_ChildPSP(Bit16u segment,Bit16u size);
+bool DOS_NewPSP(uint16_t segment,uint16_t size);
+bool DOS_ChildPSP(uint16_t segment,uint16_t size);
 bool DOS_Execute(const char* name, PhysPt block_pt, uint8_t flags);
-void DOS_Terminate(Bit16u pspseg,bool tsr,uint8_t exitcode);
+void DOS_Terminate(uint16_t pspseg,bool tsr,uint8_t exitcode);
 
 /* Memory Handling Routines */
 void DOS_SetupMemory(void);
-bool DOS_AllocateMemory(Bit16u * segment,Bit16u * blocks);
-bool DOS_ResizeMemory(Bit16u segment,Bit16u * blocks);
-bool DOS_FreeMemory(Bit16u segment);
-void DOS_FreeProcessMemory(Bit16u pspseg);
-Bit16u DOS_GetMemory(Bit16u pages,const char *who=NULL);
-bool DOS_SetMemAllocStrategy(Bit16u strat);
-Bit16u DOS_GetMemAllocStrategy(void);
+bool DOS_AllocateMemory(uint16_t * segment,uint16_t * blocks);
+bool DOS_ResizeMemory(uint16_t segment,uint16_t * blocks);
+bool DOS_FreeMemory(uint16_t segment);
+void DOS_FreeProcessMemory(uint16_t pspseg);
+uint16_t DOS_GetMemory(uint16_t pages,const char *who=NULL);
+bool DOS_SetMemAllocStrategy(uint16_t strat);
+uint16_t DOS_GetMemAllocStrategy(void);
 void DOS_BuildUMBChain(bool umb_active,bool ems_active);
-bool DOS_LinkUMBsToMemChain(Bit16u linkstate);
+bool DOS_LinkUMBsToMemChain(uint16_t linkstate);
 
 /* FCB stuff */
-bool DOS_FCBOpen(Bit16u seg,Bit16u offset);
-bool DOS_FCBCreate(Bit16u seg,Bit16u offset);
-bool DOS_FCBClose(Bit16u seg,Bit16u offset);
-bool DOS_FCBFindFirst(Bit16u seg,Bit16u offset);
-bool DOS_FCBFindNext(Bit16u seg,Bit16u offset);
-uint8_t DOS_FCBRead(Bit16u seg,Bit16u offset, Bit16u recno);
-uint8_t DOS_FCBWrite(Bit16u seg,Bit16u offset,Bit16u recno);
-uint8_t DOS_FCBRandomRead(Bit16u seg,Bit16u offset,Bit16u * numRec,bool restore);
-uint8_t DOS_FCBRandomWrite(Bit16u seg,Bit16u offset,Bit16u * numRec,bool restore);
-bool DOS_FCBGetFileSize(Bit16u seg,Bit16u offset);
-bool DOS_FCBDeleteFile(Bit16u seg,Bit16u offset);
-bool DOS_FCBRenameFile(Bit16u seg, Bit16u offset);
-void DOS_FCBSetRandomRecord(Bit16u seg, Bit16u offset);
-uint8_t FCB_Parsename(Bit16u seg,Bit16u offset,uint8_t parser ,char *string, uint8_t *change);
-bool DOS_GetAllocationInfo(uint8_t drive,Bit16u * _bytes_sector,uint8_t * _sectors_cluster,Bit16u * _total_clusters);
+bool DOS_FCBOpen(uint16_t seg,uint16_t offset);
+bool DOS_FCBCreate(uint16_t seg,uint16_t offset);
+bool DOS_FCBClose(uint16_t seg,uint16_t offset);
+bool DOS_FCBFindFirst(uint16_t seg,uint16_t offset);
+bool DOS_FCBFindNext(uint16_t seg,uint16_t offset);
+uint8_t DOS_FCBRead(uint16_t seg,uint16_t offset, uint16_t recno);
+uint8_t DOS_FCBWrite(uint16_t seg,uint16_t offset,uint16_t recno);
+uint8_t DOS_FCBRandomRead(uint16_t seg,uint16_t offset,uint16_t * numRec,bool restore);
+uint8_t DOS_FCBRandomWrite(uint16_t seg,uint16_t offset,uint16_t * numRec,bool restore);
+bool DOS_FCBGetFileSize(uint16_t seg,uint16_t offset);
+bool DOS_FCBDeleteFile(uint16_t seg,uint16_t offset);
+bool DOS_FCBRenameFile(uint16_t seg, uint16_t offset);
+void DOS_FCBSetRandomRecord(uint16_t seg, uint16_t offset);
+uint8_t FCB_Parsename(uint16_t seg,uint16_t offset,uint8_t parser ,char *string, uint8_t *change);
+bool DOS_GetAllocationInfo(uint8_t drive,uint16_t * _bytes_sector,uint8_t * _sectors_cluster,uint16_t * _total_clusters);
 
 /* Extra DOS Interrupts */
 void DOS_SetupMisc(void);
@@ -272,18 +272,18 @@ enum {
 };
 
 
-static INLINE Bit16u long2para(Bit32u size) {
+static INLINE uint16_t long2para(Bit32u size) {
 	if (size>0xFFFF0) return 0xffff;
-	if (size&0xf) return (Bit16u)((size>>4)+1);
-	else return (Bit16u)(size>>4);
+	if (size&0xf) return (uint16_t)((size>>4)+1);
+	else return (uint16_t)(size>>4);
 }
 
 
-static INLINE Bit16u DOS_PackTime(Bit16u hour,Bit16u min,Bit16u sec) {
+static INLINE uint16_t DOS_PackTime(uint16_t hour,uint16_t min,uint16_t sec) {
 	return (hour&0x1f)<<11 | (min&0x3f) << 5 | ((sec/2)&0x1f);
 }
 
-static INLINE Bit16u DOS_PackDate(Bit16u year,Bit16u mon,Bit16u day) {
+static INLINE uint16_t DOS_PackDate(uint16_t year,uint16_t mon,uint16_t day) {
 	return ((year-1980)&0x7f)<<9 | (mon&0x3f) << 5 | (day&0x1f);
 }
 
@@ -356,12 +356,12 @@ public:
 	inline void SaveIt(const Bit32u size, const PhysPt addr, const Bit32u val) {
 		switch (size) {
 		case 1:mem_writeb(pt+addr,(uint8_t)val);break;
-		case 2:mem_writew(pt+addr,(Bit16u)val);break;
+		case 2:mem_writew(pt+addr,(uint16_t)val);break;
 		case 4:mem_writed(pt+addr,(Bit32u)val);break;
 		}
 	}
-    inline void SetPt(const Bit16u seg) { pt=PhysMake(seg,0);}
-    inline void SetPt(const Bit16u seg, const Bit16u off) { pt=PhysMake(seg,off);}
+    inline void SetPt(const uint16_t seg) { pt=PhysMake(seg,0);}
+    inline void SetPt(const uint16_t seg, const uint16_t off) { pt=PhysMake(seg,off);}
     inline void SetPt(const RealPt addr) { pt=Real2Phys(addr);}
     inline PhysPt GetPtPhys(void) const { return pt; }
     inline void SetPtPhys(const PhysPt _pt) { pt=_pt; }
@@ -371,23 +371,23 @@ protected:
 
 class DOS_PSP :public MemStruct {
 public:
-	DOS_PSP						(Bit16u segment)		{ SetPt(segment);seg=segment;};
-	void	MakeNew				(Bit16u mem_size);
+	DOS_PSP						(uint16_t segment)		{ SetPt(segment);seg=segment;};
+	void	MakeNew				(uint16_t mem_size);
 	void	CopyFileTable		(DOS_PSP* srcpsp,bool createchildpsp);
-	Bit16u	FindFreeFileEntry	(void);
+	uint16_t	FindFreeFileEntry	(void);
 	void	CloseFiles			(void);
 
 	void	SaveVectors			(void);
 	void	RestoreVectors		(void);
-	void	SetSize				(Bit16u size)			{ sSave(sPSP,next_seg,size);		};
-	Bit16u	GetSize				(void)					{ return (Bit16u)sGet(sPSP,next_seg);		};
-	void	SetEnvironment		(Bit16u envseg)			{ sSave(sPSP,environment,envseg);	};
-	Bit16u	GetEnvironment		(void)					{ return (Bit16u)sGet(sPSP,environment);	};
-	Bit16u	GetSegment			(void)					{ return seg;						};
-	void	SetFileHandle		(Bit16u index, uint8_t handle);
-	uint8_t	GetFileHandle		(Bit16u index);
-	void	SetParent			(Bit16u parent)			{ sSave(sPSP,psp_parent,parent);	};
-	Bit16u	GetParent			(void)					{ return (Bit16u)sGet(sPSP,psp_parent);		};
+	void	SetSize				(uint16_t size)			{ sSave(sPSP,next_seg,size);		};
+	uint16_t	GetSize				(void)					{ return (uint16_t)sGet(sPSP,next_seg);		};
+	void	SetEnvironment		(uint16_t envseg)			{ sSave(sPSP,environment,envseg);	};
+	uint16_t	GetEnvironment		(void)					{ return (uint16_t)sGet(sPSP,environment);	};
+	uint16_t	GetSegment			(void)					{ return seg;						};
+	void	SetFileHandle		(uint16_t index, uint8_t handle);
+	uint8_t	GetFileHandle		(uint16_t index);
+	void	SetParent			(uint16_t parent)			{ sSave(sPSP,psp_parent,parent);	};
+	uint16_t	GetParent			(void)					{ return (uint16_t)sGet(sPSP,psp_parent);		};
 	void	SetStack			(RealPt stackpt)		{ sSave(sPSP,stack,stackpt);		};
 	RealPt	GetStack			(void)					{ return sGet(sPSP,stack);			};
 	void	SetInt22			(RealPt int22pt)		{ sSave(sPSP,int_22,int22pt);		};
@@ -397,8 +397,8 @@ public:
 	void	SetCommandTail		(RealPt src);
 	void    StoreCommandTail    (void);
 	void    RestoreCommandTail  (void);
-	bool	SetNumFiles			(Bit16u fileNum);
-	Bit16u	FindEntryByHandle	(uint8_t handle);
+	bool	SetNumFiles			(uint16_t fileNum);
+	uint16_t	FindEntryByHandle	(uint8_t handle);
 			
 private:
 	#ifdef _MSC_VER
@@ -406,24 +406,24 @@ private:
 	#endif
 	struct sPSP {
 		uint8_t	exit[2];			/* CP/M-like exit poimt */
-		Bit16u	next_seg;			/* Segment of first byte beyond memory allocated or program */
+		uint16_t	next_seg;			/* Segment of first byte beyond memory allocated or program */
 		uint8_t	fill_1;				/* single char fill */
 		uint8_t	far_call;			/* far call opcode */
 		RealPt	cpm_entry;			/* CPM Service Request address*/
 		RealPt	int_22;				/* Terminate Address */
 		RealPt	int_23;				/* Break Address */
 		RealPt	int_24;				/* Critical Error Address */
-		Bit16u	psp_parent;			/* Parent PSP Segment */
+		uint16_t	psp_parent;			/* Parent PSP Segment */
 		uint8_t	files[20];			/* File Table - 0xff is unused */
-		Bit16u	environment;		/* Segment of evironment table */
+		uint16_t	environment;		/* Segment of evironment table */
 		RealPt	stack;				/* SS:SP Save point for int 0x21 calls */
-		Bit16u	max_files;			/* Maximum open files */
+		uint16_t	max_files;			/* Maximum open files */
 		RealPt	file_table;			/* Pointer to File Table PSP:0x18 */
 		RealPt	prev_psp;			/* Pointer to previous PSP */
 		uint8_t interim_flag;
 		uint8_t truename_flag;
-		Bit16u nn_flags;
-		Bit16u dos_version;
+		uint16_t nn_flags;
+		uint16_t dos_version;
 		uint8_t	fill_2[14];			/* Lot's of unused stuff i can't care aboue */
 		uint8_t	service[3];			/* INT 0x21 Service call int 0x21;retf; */
 		uint8_t	fill_3[9];			/* This has some blocks with FCB info */
@@ -435,9 +435,9 @@ private:
 	#ifdef _MSC_VER
 	#pragma pack()
 	#endif
-	Bit16u	seg;
+	uint16_t	seg;
 public:
-	static	Bit16u rootpsp;
+	static	uint16_t rootpsp;
 };
 
 class DOS_ParamBlock:public MemStruct {
@@ -450,11 +450,11 @@ public:
 	#pragma pack (1)
 	#endif
 	struct sOverlay {
-		Bit16u loadseg;
-		Bit16u relocation;
+		uint16_t loadseg;
+		uint16_t relocation;
 	} GCC_ATTRIBUTE(packed);
 	struct sExec {
-		Bit16u envseg;
+		uint16_t envseg;
 		RealPt cmdtail;
 		RealPt fcb1;
 		RealPt fcb2;
@@ -471,18 +471,18 @@ public:
 class DOS_InfoBlock:public MemStruct {
 public:
     DOS_InfoBlock() : seg(0) {};
-	void SetLocation(Bit16u  segment);
+	void SetLocation(uint16_t  segment);
     void SetFirstDPB(Bit32u _first_dpb);
-	void SetFirstMCB(Bit16u _firstmcb);
-	void SetBuffers(Bit16u x,Bit16u y);
+	void SetFirstMCB(uint16_t _firstmcb);
+	void SetBuffers(uint16_t x,uint16_t y);
 	void SetCurDirStruct(Bit32u _curdirstruct);
 	void SetFCBTable(Bit32u _fcbtable);
 	void SetDeviceChainStart(Bit32u _devchain);
 	void SetDiskBufferHeadPt(Bit32u _dbheadpt);
-	void SetStartOfUMBChain(Bit16u _umbstartseg);
+	void SetStartOfUMBChain(uint16_t _umbstartseg);
 	void SetUMBChainState(uint8_t _umbchaining);
 	void SetBlockDevices(uint8_t _count);
-	Bit16u	GetStartOfUMBChain(void);
+	uint16_t	GetStartOfUMBChain(void);
 	uint8_t	GetUMBChainState(void);
 	RealPt	GetPointer(void);
 	Bit32u GetDeviceChain(void);
@@ -492,59 +492,59 @@ public:
 	#endif
 	struct sDIB {		
 		uint8_t	unknown1[4];
-		Bit16u	magicWord;			// -0x22 needs to be 1
+		uint16_t	magicWord;			// -0x22 needs to be 1
 		uint8_t	unknown2[8];
-		Bit16u	regCXfrom5e;		// -0x18 CX from last int21/ah=5e
-		Bit16u	countLRUcache;		// -0x16 LRU counter for FCB caching
-		Bit16u	countLRUopens;		// -0x14 LRU counter for FCB openings
+		uint16_t	regCXfrom5e;		// -0x18 CX from last int21/ah=5e
+		uint16_t	countLRUcache;		// -0x16 LRU counter for FCB caching
+		uint16_t	countLRUopens;		// -0x14 LRU counter for FCB openings
 		uint8_t	stuff[6];		// -0x12 some stuff, hopefully never used....
-		Bit16u	sharingCount;		// -0x0c sharing retry count
-		Bit16u	sharingDelay;		// -0x0a sharing retry delay
+		uint16_t	sharingCount;		// -0x0c sharing retry count
+		uint16_t	sharingDelay;		// -0x0a sharing retry delay
 		RealPt	diskBufPtr;		// -0x08 pointer to disk buffer
-		Bit16u	ptrCONinput;		// -0x04 pointer to con input
-		Bit16u	firstMCB;		// -0x02 first memory control block
+		uint16_t	ptrCONinput;		// -0x04 pointer to con input
+		uint16_t	firstMCB;		// -0x02 first memory control block
 		RealPt	firstDPB;		//  0x00 first drive parameter block
 		RealPt	firstFileTable;		//  0x04 first system file table
 		RealPt	activeClock;		//  0x08 active clock device header
 		RealPt	activeCon;		//  0x0c active console device header
-		Bit16u	maxSectorLength;	//  0x10 maximum bytes per sector of any block device;
+		uint16_t	maxSectorLength;	//  0x10 maximum bytes per sector of any block device;
 		RealPt	diskInfoBuffer;		//  0x12 pointer to disk info buffer
 		RealPt  curDirStructure;	//  0x16 pointer to current array of directory structure
 		RealPt	fcbTable;		//  0x1a pointer to system FCB table
-		Bit16u	protFCBs;		//  0x1e protected fcbs
+		uint16_t	protFCBs;		//  0x1e protected fcbs
 		uint8_t	blockDevices;		//  0x20 installed block devices
 		uint8_t	lastdrive;		//  0x21 lastdrive
 		Bit32u	nulNextDriver;	//  0x22 NUL driver next pointer
-		Bit16u	nulAttributes;	//  0x26 NUL driver aattributes
-        Bit16u  nulStrategy;    //  0x28 NUL driver strategy routine
-        Bit16u  nulInterrupt;   //  0x2A NUL driver interrupt routine
+		uint16_t	nulAttributes;	//  0x26 NUL driver aattributes
+        uint16_t  nulStrategy;    //  0x28 NUL driver strategy routine
+        uint16_t  nulInterrupt;   //  0x2A NUL driver interrupt routine
 		uint8_t	nulString[8];	//  0x2c NUL driver name string
 		uint8_t	joindedDrives;		//  0x34 joined drives
-		Bit16u	specialCodeSeg;		//  0x35 special code segment
+		uint16_t	specialCodeSeg;		//  0x35 special code segment
 		RealPt  setverPtr;		//  0x37 pointer to setver
-		Bit16u  a20FixOfs;		//  0x3b a20 fix routine offset
-		Bit16u  pspLastIfHMA;		//  0x3d psp of last program (if dos in hma)
-		Bit16u	buffers_x;		//  0x3f x in BUFFERS x,y
-		Bit16u	buffers_y;		//  0x41 y in BUFFERS x,y
+		uint16_t  a20FixOfs;		//  0x3b a20 fix routine offset
+		uint16_t  pspLastIfHMA;		//  0x3d psp of last program (if dos in hma)
+		uint16_t	buffers_x;		//  0x3f x in BUFFERS x,y
+		uint16_t	buffers_y;		//  0x41 y in BUFFERS x,y
 		uint8_t	bootDrive;		//  0x43 boot drive
 		uint8_t	useDwordMov;		//  0x44 use dword moves
-		Bit16u	extendedSize;		//  0x45 size of extended memory
+		uint16_t	extendedSize;		//  0x45 size of extended memory
 		Bit32u	diskBufferHeadPt;	//  0x47 pointer to least-recently used buffer header
-		Bit16u	dirtyDiskBuffers;	//  0x4b number of dirty disk buffers
+		uint16_t	dirtyDiskBuffers;	//  0x4b number of dirty disk buffers
 		Bit32u	lookaheadBufPt;		//  0x4d pointer to lookahead buffer
-		Bit16u	lookaheadBufNumber;		//  0x51 number of lookahead buffers
+		uint16_t	lookaheadBufNumber;		//  0x51 number of lookahead buffers
 		uint8_t	bufferLocation;			//  0x53 workspace buffer location
 		Bit32u	workspaceBuffer;		//  0x54 pointer to workspace buffer
 		uint8_t	unknown3[11];			//  0x58
 		uint8_t	chainingUMB;			//  0x63 bit0: UMB chain linked to MCB chain
-		Bit16u	minMemForExec;			//  0x64 minimum paragraphs needed for current program
-		Bit16u	startOfUMBChain;		//  0x66 segment of first UMB-MCB
-		Bit16u	memAllocScanStart;		//  0x68 start paragraph for memory allocation
+		uint16_t	minMemForExec;			//  0x64 minimum paragraphs needed for current program
+		uint16_t	startOfUMBChain;		//  0x66 segment of first UMB-MCB
+		uint16_t	memAllocScanStart;		//  0x68 start paragraph for memory allocation
 	} GCC_ATTRIBUTE(packed);
 	#ifdef _MSC_VER
 	#pragma pack ()
 	#endif
-	Bit16u	seg;
+	uint16_t	seg;
 };
 
 class DOS_DTA:public MemStruct{
@@ -554,15 +554,15 @@ public:
     int GetFindData(int fmt,char * finddata,int *c);
 	
 	void SetupSearch(uint8_t _sdrive,uint8_t _sattr,char * pattern);
-	void SetResult(const char * _name,const char * _lname,Bit32u _size,Bit16u _date,Bit16u _time,uint8_t _attr);
+	void SetResult(const char * _name,const char * _lname,Bit32u _size,uint16_t _date,uint16_t _time,uint8_t _attr);
 	
 	uint8_t GetSearchDrive(void);
 	void GetSearchParams(uint8_t & _sattr,char * _spattern,bool lfn);
-    void GetResult(char * _name,char * _lname,Bit32u & _size,Bit16u & _date,Bit16u & _time,uint8_t & _attr);
+    void GetResult(char * _name,char * _lname,Bit32u & _size,uint16_t & _date,uint16_t & _time,uint8_t & _attr);
 
-	void	SetDirID(Bit16u entry)			{ sSave(sDTA,dirID,entry); };
+	void	SetDirID(uint16_t entry)			{ sSave(sDTA,dirID,entry); };
 	void	SetDirIDCluster(Bit32u entry)	{ sSave(sDTA,dirCluster,entry); };
-	Bit16u	GetDirID(void)				{ return (Bit16u)sGet(sDTA,dirID); };
+	uint16_t	GetDirID(void)				{ return (uint16_t)sGet(sDTA,dirID); };
 	Bit32u	GetDirIDCluster(void)		{ return (Bit32u)sGet(sDTA,dirCluster); };
     uint8_t   GetAttr(void)               { return (uint8_t)sGet(sDTA,sattr); }
 private:
@@ -574,12 +574,12 @@ private:
         uint8_t spname[8];                    /* The Search pattern for the filename */              
         uint8_t spext[3];                     /* The Search pattern for the extension */
 		uint8_t sattr;						/* The Attributes that need to be found */
-		Bit16u dirID;						/* custom: dir-search ID for multiple searches at the same time */
+		uint16_t dirID;						/* custom: dir-search ID for multiple searches at the same time */
 		Bit32u dirCluster;					/* custom (drive_fat only): cluster number for multiple searches at the same time. 32-bit wide on FAT32 aware MS-DOS 7.1 or higher. */
 		uint8_t fill[2];
 		uint8_t attr;
-		Bit16u time;
-		Bit16u date;
+		uint16_t time;
+		uint16_t date;
 		Bit32u size;
 		char name[DOS_NAMELENGTH_ASCII];
 	} GCC_ATTRIBUTE(packed);
@@ -594,26 +594,26 @@ private:
 
 class DOS_FCB: public MemStruct {
 public:
-	DOS_FCB(Bit16u seg,Bit16u off,bool allow_extended=true);
+	DOS_FCB(uint16_t seg,uint16_t off,bool allow_extended=true);
 	void Create(bool _extended);
     void SetName(uint8_t _drive, const char* _fname, const char* _ext);
-	void SetSizeDateTime(Bit32u _size,Bit16u _date,Bit16u _time);
-	void GetSizeDateTime(Bit32u & _size,Bit16u & _date,Bit16u & _time);
+	void SetSizeDateTime(Bit32u _size,uint16_t _date,uint16_t _time);
+	void GetSizeDateTime(Bit32u & _size,uint16_t & _date,uint16_t & _time);
     void GetVolumeName(char * fillname);
 	void GetName(char * fillname);
 	void FileOpen(uint8_t _fhandle);
 	void FileClose(uint8_t & _fhandle);
-	void GetRecord(Bit16u & _cur_block,uint8_t & _cur_rec);
-	void SetRecord(Bit16u _cur_block,uint8_t _cur_rec);
-	void GetSeqData(uint8_t & _fhandle,Bit16u & _rec_size);
-	void SetSeqData(uint8_t _fhandle,Bit16u _rec_size);
+	void GetRecord(uint16_t & _cur_block,uint8_t & _cur_rec);
+	void SetRecord(uint16_t _cur_block,uint8_t _cur_rec);
+	void GetSeqData(uint8_t & _fhandle,uint16_t & _rec_size);
+	void SetSeqData(uint8_t _fhandle,uint16_t _rec_size);
 	void GetRandom(Bit32u & _random);
 	void SetRandom(Bit32u  _random);
 	uint8_t GetDrive(void);
 	bool Extended(void);
 	void GetAttr(uint8_t & attr);
 	void SetAttr(uint8_t attr);
-	void SetResult(Bit32u size,Bit16u date,Bit16u time,uint8_t attr);
+	void SetResult(Bit32u size,uint16_t date,uint16_t time,uint8_t attr);
 	bool Valid(void);
 	void ClearBlockRecsize(void);
 private:
@@ -626,11 +626,11 @@ private:
 		uint8_t drive;			/* Drive number 0=default, 1=A, etc */
 		uint8_t filename[8];		/* Space padded name */
 		uint8_t ext[3];			/* Space padded extension */
-		Bit16u cur_block;		/* Current Block */
-		Bit16u rec_size;		/* Logical record size */
+		uint16_t cur_block;		/* Current Block */
+		uint16_t rec_size;		/* Logical record size */
 		Bit32u filesize;		/* File Size */
-		Bit16u date;
-		Bit16u time;
+		uint16_t date;
+		uint16_t time;
 		/* Reserved Block should be 8 bytes */
 		uint8_t sft_entries;
 		uint8_t share_attributes;
@@ -650,23 +650,23 @@ private:
 
 class DOS_MCB : public MemStruct{
 public:
-	DOS_MCB(Bit16u seg) { SetPt(seg); }
+	DOS_MCB(uint16_t seg) { SetPt(seg); }
 	void SetFileName(const char * const _name) { MEM_BlockWrite(pt+offsetof(sMCB,filename),_name,8); }
 	void GetFileName(char * const _name) { MEM_BlockRead(pt+offsetof(sMCB,filename),_name,8);_name[8]=0;}
 	void SetType(uint8_t _type) { sSave(sMCB,type,_type);}
-	void SetSize(Bit16u _size) { sSave(sMCB,size,_size);}
-	void SetPSPSeg(Bit16u _pspseg) { sSave(sMCB,psp_segment,_pspseg);}
+	void SetSize(uint16_t _size) { sSave(sMCB,size,_size);}
+	void SetPSPSeg(uint16_t _pspseg) { sSave(sMCB,psp_segment,_pspseg);}
 	uint8_t GetType(void) { return (uint8_t)sGet(sMCB,type);}
-	Bit16u GetSize(void) { return (Bit16u)sGet(sMCB,size);}
-	Bit16u GetPSPSeg(void) { return (Bit16u)sGet(sMCB,psp_segment);}
+	uint16_t GetSize(void) { return (uint16_t)sGet(sMCB,size);}
+	uint16_t GetPSPSeg(void) { return (uint16_t)sGet(sMCB,psp_segment);}
 private:
 	#ifdef _MSC_VER
 	#pragma pack (1)
 	#endif
 	struct sMCB {
 		uint8_t type;
-		Bit16u psp_segment;
-		Bit16u size;	
+		uint16_t psp_segment;
+		uint16_t size;	
 		uint8_t unused[3];
 		uint8_t filename[8];
 	} GCC_ATTRIBUTE(packed);
@@ -677,13 +677,13 @@ private:
 
 class DOS_SDA : public MemStruct {
 public:
-	DOS_SDA(Bit16u _seg,Bit16u _offs) { SetPt(_seg,_offs); }
+	DOS_SDA(uint16_t _seg,uint16_t _offs) { SetPt(_seg,_offs); }
 	void Init();   
 	void SetDrive(uint8_t _drive) { sSave(sSDA,current_drive, _drive); }
 	void SetDTA(Bit32u _dta) { sSave(sSDA,current_dta, _dta); }
-	void SetPSP(Bit16u _psp) { sSave(sSDA,current_psp, _psp); }
+	void SetPSP(uint16_t _psp) { sSave(sSDA,current_psp, _psp); }
 	uint8_t GetDrive(void) { return (uint8_t)sGet(sSDA,current_drive); }
-	Bit16u GetPSP(void) { return (Bit16u)sGet(sSDA,current_psp); }
+	uint16_t GetPSP(void) { return (uint16_t)sGet(sSDA,current_psp); }
 	Bit32u GetDTA(void) { return (Bit32u)sGet(sSDA,current_dta); }
 	
 	
@@ -696,14 +696,14 @@ private:
 		uint8_t inDOS_flag;		/* 0x01 InDOS flag (count of active INT 21 calls) */
 		uint8_t drive_crit_error;		/* 0x02 Drive on which current critical error occurred or FFh */
 		uint8_t locus_of_last_error;	/* 0x03 locus of last error */
-		Bit16u extended_error_code;	/* 0x04 extended error code of last error */
+		uint16_t extended_error_code;	/* 0x04 extended error code of last error */
 		uint8_t suggested_action;		/* 0x06 suggested action for last error */
 		uint8_t error_class;		/* 0x07 class of last error*/
 		Bit32u last_error_pointer; 	/* 0x08 ES:DI pointer for last error */
 		Bit32u current_dta;		/* 0x0C current DTA (Disk Transfer Address) */
-		Bit16u current_psp; 		/* 0x10 current PSP */
-		Bit16u sp_int_23;		/* 0x12 stores SP across an INT 23 */
-		Bit16u return_code;		/* 0x14 return code from last process termination (zerod after reading with AH=4Dh) */
+		uint16_t current_psp; 		/* 0x10 current PSP */
+		uint16_t sp_int_23;		/* 0x12 stores SP across an INT 23 */
+		uint16_t return_code;		/* 0x14 return code from last process termination (zerod after reading with AH=4Dh) */
 		uint8_t current_drive;		/* 0x16 current drive */
 		uint8_t extended_break_flag; 	/* 0x17 extended break flag */
 		uint8_t fill[2];			/* 0x18 flag: code page switching || flag: copy of previous byte in case of INT 24 Abort*/
@@ -717,10 +717,10 @@ extern DOS_InfoBlock dos_infoblock;
 struct DOS_Block {
     DOS_Date date = {};
     DOS_Version version = {};
-    Bit16u firstMCB = 0;
-    Bit16u errorcode = 0;
-    Bit16u psp();//{return DOS_SDA(DOS_SDA_SEG,DOS_SDA_OFS).GetPSP();};
-    void psp(Bit16u _seg);//{ DOS_SDA(DOS_SDA_SEG,DOS_SDA_OFS).SetPSP(_seg);};
+    uint16_t firstMCB = 0;
+    uint16_t errorcode = 0;
+    uint16_t psp();//{return DOS_SDA(DOS_SDA_SEG,DOS_SDA_OFS).GetPSP();};
+    void psp(uint16_t _seg);//{ DOS_SDA(DOS_SDA_SEG,DOS_SDA_OFS).SetPSP(_seg);};
     RealPt dta();//{return DOS_SDA(DOS_SDA_SEG,DOS_SDA_OFS).GetDTA();};
     void dta(RealPt _dta);//{DOS_SDA(DOS_SDA_SEG,DOS_SDA_OFS).SetDTA(_dta);};
     uint8_t return_code = 0, return_mode = 0;
@@ -740,23 +740,23 @@ struct DOS_Block {
         RealPt collatingseq = 0;
         RealPt upcase = 0;
         uint8_t* country = NULL;//Will be copied to dos memory. resides in real mem
-        Bit16u dpb = 0; //Fake Disk parameter system using only the first entry so the drive letter matches
-        Bit16u dpb_size = 0x21; // bytes per DPB entry (MS-DOS 4.x-6.x size)
-        Bit16u mediaid_offset = 0x17; // media ID offset in DPB (MS-DOS 4.x-6.x case)
+        uint16_t dpb = 0; //Fake Disk parameter system using only the first entry so the drive letter matches
+        uint16_t dpb_size = 0x21; // bytes per DPB entry (MS-DOS 4.x-6.x size)
+        uint16_t mediaid_offset = 0x17; // media ID offset in DPB (MS-DOS 4.x-6.x case)
     } tables;
-    Bit16u loaded_codepage = 0;
+    uint16_t loaded_codepage = 0;
 };
 
 extern DOS_Block dos;
 
-static INLINE uint8_t RealHandle(Bit16u handle) {
+static INLINE uint8_t RealHandle(uint16_t handle) {
 	DOS_PSP psp(dos.psp());	
 	return psp.GetFileHandle(handle);
 }
 
 struct DOS_GetMemLog_Entry {
-    Bit16u      segbase = 0;
-    Bit16u      pages = 0;
+    uint16_t      segbase = 0;
+    uint16_t      pages = 0;
     std::string who;
 };
 

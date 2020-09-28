@@ -598,7 +598,7 @@ static uint8_t vga_palette[248][3]=
 };
 VideoModeBlock * CurMode = NULL;
 
-static bool SetCurMode(VideoModeBlock modeblock[],Bit16u mode) {
+static bool SetCurMode(VideoModeBlock modeblock[],uint16_t mode) {
 	Bitu i=0;
 	while (modeblock[i].mode!=0xffff) {
 		if (modeblock[i].mode!=mode)
@@ -660,7 +660,7 @@ static void SetTextLines(void) {
 
 bool INT10_SetCurMode(void) {
 	bool mode_changed=false;
-	Bit16u bios_mode=(Bit16u)real_readb(BIOSMEM_SEG,BIOSMEM_CURRENT_MODE);
+	uint16_t bios_mode=(uint16_t)real_readb(BIOSMEM_SEG,BIOSMEM_CURRENT_MODE);
 	if (CurMode == NULL || CurMode->mode != bios_mode) {
 		switch (machine) {
 		case MCH_CGA:
@@ -719,7 +719,7 @@ static void FinishSetMode(bool clearmem) {
         case M_CGA4:
             if ((machine==MCH_PCJR) && (CurMode->mode >= 9)) {
                 // PCJR cannot access the full 32k at 0xb800
-                for (Bit16u ct=0;ct<16*1024;ct++) {
+                for (uint16_t ct=0;ct<16*1024;ct++) {
                     // 0x1800 is the last 32k block in 128k, as set in the CRTCPU_PAGE register 
                     real_writew(0x1800,ct*2,0x0000);
                 }
@@ -728,23 +728,23 @@ static void FinishSetMode(bool clearmem) {
             // fall-through
 		case M_CGA2:
             if (machine == MCH_MCGA && CurMode->mode == 0x11) {
-                for (Bit16u ct=0;ct<32*1024;ct++) {
+                for (uint16_t ct=0;ct<32*1024;ct++) {
                     real_writew( 0xa000,ct*2,0x0000);
                 }
             }
             else {
-                for (Bit16u ct=0;ct<16*1024;ct++) {
+                for (uint16_t ct=0;ct<16*1024;ct++) {
                     real_writew( 0xb800,ct*2,0x0000);
                 }
             }
 			break;
 		case M_TEXT: {
-			Bit16u max = (Bit16u)(CurMode->ptotal*CurMode->plength)>>1;
+			uint16_t max = (uint16_t)(CurMode->ptotal*CurMode->plength)>>1;
 			if (CurMode->mode == 7) {
-				for (Bit16u ct=0;ct<max;ct++) real_writew(0xB000,ct*2,0x0720);
+				for (uint16_t ct=0;ct<max;ct++) real_writew(0xB000,ct*2,0x0720);
 			}
 			else {
-				for (Bit16u ct=0;ct<max;ct++) real_writew(0xB800,ct*2,0x0720);
+				for (uint16_t ct=0;ct<max;ct++) real_writew(0xB800,ct*2,0x0720);
 			}
 			break;
 		}
@@ -767,11 +767,11 @@ static void FinishSetMode(bool clearmem) {
 	/* Setup the BIOS */
 	if (CurMode->mode<128) real_writeb(BIOSMEM_SEG,BIOSMEM_CURRENT_MODE,(uint8_t)CurMode->mode);
 	else real_writeb(BIOSMEM_SEG,BIOSMEM_CURRENT_MODE,(uint8_t)(CurMode->mode-0x98));	//Looks like the s3 bios
-	real_writew(BIOSMEM_SEG,BIOSMEM_NB_COLS,(Bit16u)CurMode->twidth);
-	real_writew(BIOSMEM_SEG,BIOSMEM_PAGE_SIZE,(Bit16u)CurMode->plength);
+	real_writew(BIOSMEM_SEG,BIOSMEM_NB_COLS,(uint16_t)CurMode->twidth);
+	real_writew(BIOSMEM_SEG,BIOSMEM_PAGE_SIZE,(uint16_t)CurMode->plength);
 	real_writew(BIOSMEM_SEG,BIOSMEM_CRTC_ADDRESS,((CurMode->mode==7 )|| (CurMode->mode==0x0f)) ? 0x3b4 : 0x3d4);
 	real_writeb(BIOSMEM_SEG,BIOSMEM_NB_ROWS,(uint8_t)(CurMode->theight-1));
-	real_writew(BIOSMEM_SEG,BIOSMEM_CHAR_HEIGHT,(Bit16u)CurMode->cheight);
+	real_writew(BIOSMEM_SEG,BIOSMEM_CHAR_HEIGHT,(uint16_t)CurMode->cheight);
 	real_writeb(BIOSMEM_SEG,BIOSMEM_VIDEO_CTL,(0x60|(clearmem?0:0x80)));
 	real_writeb(BIOSMEM_SEG,BIOSMEM_SWITCHES,0x09);
 
@@ -802,7 +802,7 @@ static void FinishSetMode(bool clearmem) {
 
 extern bool en_int33;
 
-bool INT10_SetVideoMode_OTHER(Bit16u mode,bool clearmem) {
+bool INT10_SetVideoMode_OTHER(uint16_t mode,bool clearmem) {
 	switch (machine) {
 	case MCH_CGA:
 	case MCH_AMSTRAD:
@@ -838,7 +838,7 @@ bool INT10_SetVideoMode_OTHER(Bit16u mode,bool clearmem) {
 	LOG(LOG_INT10,LOG_NORMAL)("Set Video Mode %X",mode);
 
 	/* Setup the CRTC */
-	Bit16u crtc_base=(machine==MCH_HERC || machine==MCH_MDA) ? 0x3b4 : 0x3d4;
+	uint16_t crtc_base=(machine==MCH_HERC || machine==MCH_MDA) ? 0x3b4 : 0x3d4;
 
     if (machine == MCH_MCGA) {
         // unlock CRTC regs 0-7
@@ -850,18 +850,18 @@ bool INT10_SetVideoMode_OTHER(Bit16u mode,bool clearmem) {
     }
 
 	//Horizontal total
-	IO_WriteW(crtc_base,(Bit16u)(0x00 | (CurMode->htotal) << 8));
+	IO_WriteW(crtc_base,(uint16_t)(0x00 | (CurMode->htotal) << 8));
     if (machine == MCH_MCGA) {
         //Horizontal displayed
-        IO_WriteW(crtc_base,(Bit16u)(0x01 | (CurMode->hdispend-1) << 8));
+        IO_WriteW(crtc_base,(uint16_t)(0x01 | (CurMode->hdispend-1) << 8));
         //Horizontal sync position
-        IO_WriteW(crtc_base,(Bit16u)(0x02 | (CurMode->hdispend) << 8));
+        IO_WriteW(crtc_base,(uint16_t)(0x02 | (CurMode->hdispend) << 8));
     }
     else {
         //Horizontal displayed
-        IO_WriteW(crtc_base,(Bit16u)(0x01 | (CurMode->hdispend) << 8));
+        IO_WriteW(crtc_base,(uint16_t)(0x01 | (CurMode->hdispend) << 8));
         //Horizontal sync position
-        IO_WriteW(crtc_base,(Bit16u)(0x02 | (CurMode->hdispend+1) << 8));
+        IO_WriteW(crtc_base,(uint16_t)(0x02 | (CurMode->hdispend+1) << 8));
     }
     //Horizontal sync width, seems to be fixed to 0xa, for cga at least, hercules has 0xf
 	// PCjr doubles sync width in high resolution modes, good for aspect correction
@@ -872,15 +872,15 @@ bool INT10_SetVideoMode_OTHER(Bit16u mode,bool clearmem) {
 	else if(CurMode->hdispend==80) syncwidth = 0xc;
 	else syncwidth = 0x6;
 	
-	IO_WriteW(crtc_base,(Bit16u)(0x03 | (syncwidth) << 8));
+	IO_WriteW(crtc_base,(uint16_t)(0x03 | (syncwidth) << 8));
 	////Vertical total
-	IO_WriteW(crtc_base,(Bit16u)(0x04 | (CurMode->vtotal) << 8));
+	IO_WriteW(crtc_base,(uint16_t)(0x04 | (CurMode->vtotal) << 8));
 	//Vertical total adjust, 6 for cga,hercules,tandy
-	IO_WriteW(crtc_base,(Bit16u)(0x05 | (6) << 8));
+	IO_WriteW(crtc_base,(uint16_t)(0x05 | (6) << 8));
 	//Vertical displayed
-	IO_WriteW(crtc_base,(Bit16u)(0x06 | (CurMode->vdispend) << 8));
+	IO_WriteW(crtc_base,(uint16_t)(0x06 | (CurMode->vdispend) << 8));
 	//Vertical sync position
-	IO_WriteW(crtc_base,(Bit16u)(0x07 | (CurMode->vdispend + ((CurMode->vtotal - CurMode->vdispend)/2)-1) << 8));
+	IO_WriteW(crtc_base,(uint16_t)(0x07 | (CurMode->vdispend + ((CurMode->vtotal - CurMode->vdispend)/2)-1) << 8));
 	//Maximum scanline
 	uint8_t scanline,crtpage;
 	scanline=8;
@@ -1072,7 +1072,7 @@ bool INT10_SetVideoMode_OTHER(Bit16u mode,bool clearmem) {
 	RealPt vparams = RealGetVec(0x1d);
 	if (vparams != 0 && (vparams != BIOS_VIDEO_TABLE_LOCATION) && (mode < 8)) {
 		// load crtc parameters from video params table
-		Bit16u crtc_block_index = 0;
+		uint16_t crtc_block_index = 0;
 		if (mode < 2) crtc_block_index = 0;
 		else if (mode < 4) crtc_block_index = 1;
 		else if (mode < 7) crtc_block_index = 2;
@@ -1081,7 +1081,7 @@ bool INT10_SetVideoMode_OTHER(Bit16u mode,bool clearmem) {
 		else crtc_block_index = 3; // Tandy/PCjr modes
 
 		// init CRTC registers
-		for (Bit16u i = 0; i < 16; i++)
+		for (uint16_t i = 0; i < 16; i++)
 			IO_WriteW(crtc_base, (uint16_t)(i | (real_readb(RealSeg(vparams), 
 				RealOff(vparams) + i + crtc_block_index*16) << 8)));
 	}
@@ -1094,7 +1094,7 @@ bool INT10_SetVideoMode_OTHER(Bit16u mode,bool clearmem) {
 
 bool unmask_irq0_on_int10_setmode = true;
 
-bool INT10_SetVideoMode(Bit16u mode) {
+bool INT10_SetVideoMode(uint16_t mode) {
 	//LOG_MSG("set mode %x",mode);
 	bool clearmem=true;Bitu i;
 	if (mode>=0x100) {
@@ -1163,7 +1163,7 @@ bool INT10_SetVideoMode(Bit16u mode) {
 	IO_Write(0x3c4,0); IO_Write(0x3c5,1); // reset
 	IO_Write(0x3c4,1); IO_Write(0x3c5,0x20); // screen off
 
-	Bit16u crtc_base;
+	uint16_t crtc_base;
 	bool mono_mode=(mode == 7) || (mode==0xf);  
 	if (mono_mode) crtc_base=0x3b4;
 	else crtc_base=0x3d4;
@@ -2231,9 +2231,9 @@ public:
         }
 
         if (enable == 0)
-            ModeList_VGA[array_i].special |= (Bit16u)  _USER_DISABLED;
+            ModeList_VGA[array_i].special |= (uint16_t)  _USER_DISABLED;
         else if (enable == 1)
-            ModeList_VGA[array_i].special &= (Bit16u)(~_USER_DISABLED);
+            ModeList_VGA[array_i].special &= (uint16_t)(~_USER_DISABLED);
 
         if (doDelete) {
             if (ModeList_VGA[array_i].type != M_ERROR)
@@ -2288,9 +2288,9 @@ public:
                 ModeList_VGA[array_i].sheight = (Bitu)h;
 
                 if (h >= 340)
-                    ModeList_VGA[array_i].special &= (Bit16u)(~_REPEAT1);
+                    ModeList_VGA[array_i].special &= (uint16_t)(~_REPEAT1);
                 else
-                    ModeList_VGA[array_i].special |= (Bit16u)  _REPEAT1;
+                    ModeList_VGA[array_i].special |= (uint16_t)  _REPEAT1;
 
                 if (ModeList_VGA[array_i].special & _REPEAT1)
                     ModeList_VGA[array_i].vdispend = (Bitu)h * 2u;
@@ -2309,7 +2309,7 @@ public:
 
         if (newmode >= 0x40) {
             WriteOut("Mode 0x%x moved to mode 0x%x\n",(unsigned int)ModeList_VGA[array_i].mode,(unsigned int)newmode);
-            ModeList_VGA[array_i].mode = (Bit16u)newmode;
+            ModeList_VGA[array_i].mode = (uint16_t)newmode;
             INT10_WriteVESAModeList(int10.rom.vesa_alloc_modes);
         }
 

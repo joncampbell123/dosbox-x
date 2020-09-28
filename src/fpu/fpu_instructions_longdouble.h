@@ -520,9 +520,9 @@ static void FPU_FSCALE(void){
 static void FPU_FSTENV(PhysPt addr){
 	FPU_SET_TOP(TOP);
 	if(!cpu.code.big) {
-		mem_writew(addr+0,static_cast<Bit16u>(fpu.cw));
-		mem_writew(addr+2,static_cast<Bit16u>(fpu.sw));
-		mem_writew(addr+4,static_cast<Bit16u>(FPU_GetTag()));
+		mem_writew(addr+0,static_cast<uint16_t>(fpu.cw));
+		mem_writew(addr+2,static_cast<uint16_t>(fpu.sw));
+		mem_writew(addr+4,static_cast<uint16_t>(FPU_GetTag()));
 	} else { 
 		mem_writed(addr+0,static_cast<Bit32u>(fpu.cw));
 		mem_writed(addr+4,static_cast<Bit32u>(fpu.sw));
@@ -531,7 +531,7 @@ static void FPU_FSTENV(PhysPt addr){
 }
 
 static void FPU_FLDENV(PhysPt addr){
-	Bit16u tag;
+	uint16_t tag;
 	Bit32u tagbig;
 	Bitu cw;
 	if(!cpu.code.big) {
@@ -540,9 +540,9 @@ static void FPU_FLDENV(PhysPt addr){
 		tag    = mem_readw(addr+4);
 	} else { 
 		cw     = mem_readd(addr+0);
-		fpu.sw = (Bit16u)mem_readd(addr+4);
+		fpu.sw = (uint16_t)mem_readd(addr+4);
 		tagbig = mem_readd(addr+8);
-		tag    = static_cast<Bit16u>(tagbig);
+		tag    = static_cast<uint16_t>(tagbig);
 	}
 	FPU_SetTag(tag);
 	FPU_SetCW(cw);

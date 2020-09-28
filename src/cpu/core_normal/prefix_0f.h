@@ -28,8 +28,8 @@
 					Bitu saveval;
 					if (!which) saveval=CPU_SLDT();
 					else saveval=CPU_STR();
-					if (rm >= 0xc0) {GetEArw;*earw=(Bit16u)saveval;}
-					else {GetEAa;SaveMw(eaa,(Bit16u)saveval);}
+					if (rm >= 0xc0) {GetEArw;*earw=(uint16_t)saveval;}
+					else {GetEAa;SaveMw(eaa,(uint16_t)saveval);}
 				}
 				break;
 			case 0x02:case 0x03:case 0x04:case 0x05:
@@ -72,12 +72,12 @@
 					 *      Some programs, including Microsoft Windows 3.0, execute SGDT and then compare the most
 					 *      significant byte against 0xFF. It does NOT use the standard Intel detection process. */
 				case 0x00:										/* SGDT */
-					SaveMw(eaa,(Bit16u)CPU_SGDT_limit());
+					SaveMw(eaa,(uint16_t)CPU_SGDT_limit());
 					SaveMd(eaa+2,(Bit32u)(CPU_SGDT_base()|(CPU_ArchitectureType<CPU_ARCHTYPE_386?0xFF000000UL:0)));
 					break;
 					/* NTS: Same comments for SIDT as SGDT */
 				case 0x01:										/* SIDT */
-					SaveMw(eaa,(Bit16u)CPU_SIDT_limit());
+					SaveMw(eaa,(uint16_t)CPU_SIDT_limit());
 					SaveMd(eaa+2,(Bit32u)(CPU_SIDT_base()|(CPU_ArchitectureType<CPU_ARCHTYPE_386?0xFF000000UL:0)));
 					break;
 				case 0x02:										/* LGDT */
@@ -89,7 +89,7 @@
 					CPU_LIDT(LoadMw(eaa),LoadMd(eaa+2) & 0xFFFFFF);
 					break;
 				case 0x04:										/* SMSW */
-					SaveMw(eaa,(Bit16u)CPU_SMSW());
+					SaveMw(eaa,(uint16_t)CPU_SMSW());
 					break;
 				case 0x06:										/* LMSW */
 					limit=LoadMw(eaa);
@@ -111,7 +111,7 @@
 					if (cpu.pmode && cpu.cpl) EXCEPTION(EXCEPTION_GP);
 					goto illegal_opcode;
 				case 0x04:										/* SMSW */
-					*earw=(Bit16u)CPU_SMSW();
+					*earw=(uint16_t)CPU_SMSW();
 					break;
 				case 0x06:										/* LMSW */
 					if (CPU_LMSW(*earw)) RUNEXCEPTION();
@@ -132,7 +132,7 @@
 			} else {
 				GetEAa;CPU_LAR(LoadMw(eaa),ar);
 			}
-			*rmrw=(Bit16u)ar;
+			*rmrw=(uint16_t)ar;
 		}
 		break;
 	CASE_0F_W(0x03)												/* LSL Gw,Ew */
@@ -145,7 +145,7 @@
 			} else {
 				GetEAa;CPU_LSL(LoadMw(eaa),limit);
 			}
-			*rmrw=(Bit16u)limit;
+			*rmrw=(uint16_t)limit;
 		}
 		break;
 	CASE_0F_B(0x06)												/* CLTS */
@@ -394,13 +394,13 @@
 		if (CPU_ArchitectureType<CPU_ARCHTYPE_386) goto illegal_opcode;
 		{
 			FillFlags();GetRMrw;
-			Bit16u mask=1u << (*rmrw & 15u);
+			uint16_t mask=1u << (*rmrw & 15u);
 			if (rm >= 0xc0 ) {
 				GetEArw;
 				SETFLAGBIT(CF,(*earw & mask));
 			} else {
 				GetEAa;eaa+=(PhysPt)((((Bit16s)*rmrw)>>4)*2);
-				Bit16u old=LoadMw(eaa);
+				uint16_t old=LoadMw(eaa);
 				SETFLAGBIT(CF,(old & mask));
 			}
 			break;
@@ -424,14 +424,14 @@
 		if (CPU_ArchitectureType<CPU_ARCHTYPE_386) goto illegal_opcode;
 		{
 			FillFlags();GetRMrw;
-			Bit16u mask=1u << (*rmrw & 15u);
+			uint16_t mask=1u << (*rmrw & 15u);
 			if (rm >= 0xc0 ) {
 				GetEArw;
 				SETFLAGBIT(CF,(*earw & mask));
 				*earw|=mask;
 			} else {
 				GetEAa;eaa+=(PhysPt)((((Bit16s)*rmrw)>>4)*2);
-				Bit16u old=LoadMw(eaa);
+				uint16_t old=LoadMw(eaa);
 				SETFLAGBIT(CF,(old & mask));
 				SaveMw(eaa,old | mask);
 			}
@@ -492,7 +492,7 @@
 				}
 			} else {
    				GetEAa;
-				Bit16u val = LoadMw(eaa);
+				uint16_t val = LoadMw(eaa);
 				if(reg_ax == val) { 
 					SaveMw(eaa,*rmrw);
 					SETFLAGBIT(ZF,1);
@@ -519,14 +519,14 @@
 		if (CPU_ArchitectureType<CPU_ARCHTYPE_386) goto illegal_opcode;
 		{
 			FillFlags();GetRMrw;
-			Bit16u mask=1u << (*rmrw & 15u);
+			uint16_t mask=1u << (*rmrw & 15u);
 			if (rm >= 0xc0 ) {
 				GetEArw;
 				SETFLAGBIT(CF,(*earw & mask));
 				*earw&= ~mask;
 			} else {
 				GetEAa;eaa+=(PhysPt)((((Bit16s)*rmrw)>>4)*2);
-				Bit16u old=LoadMw(eaa);
+				uint16_t old=LoadMw(eaa);
 				SETFLAGBIT(CF,(old & mask));
 				SaveMw(eaa,old & ~mask);
 			}
@@ -575,7 +575,7 @@
 			FillFlags();GetRM;
 			if (rm >= 0xc0 ) {
 				GetEArw;
-				Bit16u mask=1 << (Fetchb() & 15);
+				uint16_t mask=1 << (Fetchb() & 15);
 				SETFLAGBIT(CF,(*earw & mask));
 				switch (rm & 0x38) {
 				case 0x20:										/* BT */
@@ -593,8 +593,8 @@
 					E_Exit("CPU:0F:BA:Illegal subfunction %X",rm & 0x38);
 				}
 			} else {
-				GetEAa;Bit16u old=LoadMw(eaa);
-				Bit16u mask=1 << (Fetchb() & 15);
+				GetEAa;uint16_t old=LoadMw(eaa);
+				uint16_t mask=1 << (Fetchb() & 15);
 				SETFLAGBIT(CF,(old & mask));
 				switch (rm & 0x38) {
 				case 0x20:										/* BT */
@@ -618,14 +618,14 @@
 		if (CPU_ArchitectureType<CPU_ARCHTYPE_386) goto illegal_opcode;
 		{
 			FillFlags();GetRMrw;
-			Bit16u mask=1u << (*rmrw & 15u);
+			uint16_t mask=1u << (*rmrw & 15u);
 			if (rm >= 0xc0 ) {
 				GetEArw;
 				SETFLAGBIT(CF,(*earw & mask));
 				*earw^=mask;
 			} else {
 				GetEAa;eaa+=(PhysPt)((((Bit16s)*rmrw)>>4)*2);
-				Bit16u old=LoadMw(eaa);
+				uint16_t old=LoadMw(eaa);
 				SETFLAGBIT(CF,(old & mask));
 				SaveMw(eaa,old ^ mask);
 			}
@@ -635,13 +635,13 @@
 		if (CPU_ArchitectureType<CPU_ARCHTYPE_386) goto illegal_opcode;
 		{
 			GetRMrw;
-			Bit16u value;
+			uint16_t value;
 			if (rm >= 0xc0) { GetEArw; value=*earw; } 
 			else			{ GetEAa; value=LoadMw(eaa); }
 			if (value==0) {
 				SETFLAGBIT(ZF,true);
 			} else {
-				Bit16u result = 0;
+				uint16_t result = 0;
 				while ((value & 0x01)==0) { result++; value>>=1; }
 				SETFLAGBIT(ZF,false);
 				*rmrw = result;
@@ -653,13 +653,13 @@
 		if (CPU_ArchitectureType<CPU_ARCHTYPE_386) goto illegal_opcode;
 		{
 			GetRMrw;
-			Bit16u value;
+			uint16_t value;
 			if (rm >= 0xc0) { GetEArw; value=*earw; } 
 			else			{ GetEAa; value=LoadMw(eaa); }
 			if (value==0) {
 				SETFLAGBIT(ZF,true);
 			} else {
-				Bit16u result = 15;	// Operandsize-1
+				uint16_t result = 15;	// Operandsize-1
 				while ((value & 0x8000)==0) { result--; value<<=1; }
 				SETFLAGBIT(ZF,false);
 				*rmrw = result;
@@ -671,8 +671,8 @@
 		if (CPU_ArchitectureType<CPU_ARCHTYPE_386) goto illegal_opcode;
 		{
 			GetRMrw;															
-			if (rm >= 0xc0 ) {GetEArb;*rmrw=(Bit16u)(*(int8_t *)earb);}
-			else {GetEAa;*rmrw=(Bit16u)LoadMbs(eaa);}
+			if (rm >= 0xc0 ) {GetEArb;*rmrw=(uint16_t)(*(int8_t *)earb);}
+			else {GetEAa;*rmrw=(uint16_t)LoadMbs(eaa);}
 			break;
 		}
 	CASE_0F_B(0xc0)												/* XADD Gb,Eb */
@@ -686,7 +686,7 @@
 	CASE_0F_W(0xc1)												/* XADD Gw,Ew */
 		{
 			if (CPU_ArchitectureType<CPU_ARCHTYPE_486OLD) goto illegal_opcode;
-			GetRMrw;Bit16u oldrmrw=*rmrw;
+			GetRMrw;uint16_t oldrmrw=*rmrw;
 			if (rm >= 0xc0 ) {GetEArw;*rmrw=*earw;*earw+=oldrmrw;}
 			else {GetEAa;*rmrw=LoadMw(eaa);SaveMw(eaa,LoadMw(eaa)+oldrmrw);}
 			break;

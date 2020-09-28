@@ -42,10 +42,10 @@
 
 #define LOG_SER(x) log_ser 
 
-bool device_COM::Read(uint8_t * data,Bit16u * size) {
+bool device_COM::Read(uint8_t * data,uint16_t * size) {
 	// DTR + RTS on
 	sclass->Write_MCR(0x03);
-	for (Bit16u i=0; i<*size; i++)
+	for (uint16_t i=0; i<*size; i++)
 	{
 		uint8_t status;
 		if(!(sclass->Getchar(&data[i],&status,true,1000))) {
@@ -57,10 +57,10 @@ bool device_COM::Read(uint8_t * data,Bit16u * size) {
 }
 
 
-bool device_COM::Write(const uint8_t * data,Bit16u * size) {
+bool device_COM::Write(const uint8_t * data,uint16_t * size) {
 	// DTR + RTS on
 	sclass->Write_MCR(0x03);
-	for (Bit16u i=0; i<*size; i++)
+	for (uint16_t i=0; i<*size; i++)
 	{
 		if(!(sclass->Putchar(data[i],true,true,1000))) {
 			*size=i;
@@ -83,7 +83,7 @@ bool device_COM::Close() {
 	return false;
 }
 
-Bit16u device_COM::GetInformation(void) {
+uint16_t device_COM::GetInformation(void) {
 	return 0x80A0;
 }
 
@@ -246,19 +246,19 @@ void CSerial::changeLineProperties() {
 static void Serial_EventHandler(Bitu val) {
 	Bitu serclassid=val&0x3;
 	if(serialports[serclassid]!=0)
-		serialports[serclassid]->handleEvent((Bit16u)(val>>2));
+		serialports[serclassid]->handleEvent((uint16_t)(val>>2));
 }
 
-void CSerial::setEvent(Bit16u type, float duration) {
+void CSerial::setEvent(uint16_t type, float duration) {
     PIC_AddEvent(Serial_EventHandler,duration,(Bitu)(((unsigned int)type<<2u)|(unsigned int)idnumber));
 }
 
-void CSerial::removeEvent(Bit16u type) {
+void CSerial::removeEvent(uint16_t type) {
     // TODO
 	PIC_RemoveSpecificEvents(Serial_EventHandler,(Bitu)(((unsigned int)type<<2u)|(unsigned int)idnumber));
 }
 
-void CSerial::handleEvent(Bit16u type) {
+void CSerial::handleEvent(uint16_t type) {
 	switch(type) {
 		case SERIAL_TX_LOOPBACK_EVENT: {
 
@@ -598,7 +598,7 @@ Bitu CSerial::Read_IER () {
 void CSerial::Write_IER (uint8_t data) {
 	if (LCR & LCR_DIVISOR_Enable_MASK) {	// write to DLM
 		baud_divider&=0xff;
-		baud_divider |= ((Bit16u)data)<<8;
+		baud_divider |= ((uint16_t)data)<<8;
 		changeLineProperties();
 	} else {
 		// Retrigger TX interrupt
@@ -1006,7 +1006,7 @@ void CSerial::Init_Registers () {
 	char parity = 'N';
 							  
 	uint8_t lcrresult = 0;
-	Bit16u baudresult = 0;
+	uint16_t baudresult = 0;
 
 	IER = 0;
 	ISR = 0x1;
@@ -1074,7 +1074,7 @@ void CSerial::Init_Registers () {
 
 	// baudrate
 	if (initbps > 0)
-		baudresult = (Bit16u) (115200 / initbps);
+		baudresult = (uint16_t) (115200 / initbps);
 	else
 		baudresult = 12;			// = 9600 baud
 
@@ -1090,7 +1090,7 @@ void CSerial::Init_Registers () {
 
 CSerial::CSerial(Bitu id, CommandLine* cmd) {
 	idnumber=id;
-	Bit16u base = serial_baseaddr[id];
+	uint16_t base = serial_baseaddr[id];
     InstallationSuccessful = false;
     bytetime = 0;
     waiting_interrupts = 0;
@@ -1294,7 +1294,7 @@ bool CSerial::Putchar(uint8_t data, bool wait_dsr, bool wait_cts, Bitu timeout) 
 }
 
 void BIOS_PnP_ComPortRegister(Bitu port,Bitu irq);
-void BIOS_SetCOMPort(Bitu port, Bit16u baseaddr);
+void BIOS_SetCOMPort(Bitu port, uint16_t baseaddr);
 
 void BIOS_Post_register_comports_PNP() {
 	unsigned int i;

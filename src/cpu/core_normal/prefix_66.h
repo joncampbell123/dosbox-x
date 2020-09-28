@@ -191,7 +191,7 @@
 			if (((cpu.pmode) && (reg_flags & FLAG_VM)) || (!cpu.pmode)) goto illegal_opcode;
 			GetRMrw;
 			if (rm >= 0xc0 ) {
-				GetEArd;Bitu new_sel=(Bit16u)*eard;
+				GetEArd;Bitu new_sel=(uint16_t)*eard;
 				CPU_ARPL(new_sel,*rmrw);
 				*eard=(Bit32u)new_sel;
 			} else {
@@ -334,7 +334,7 @@
 		}
 	CASE_D(0x8c)												/* Mov Ew,Sw */
 			{
-				GetRM;Bit16u val;Bitu which=(rm>>3)&7;
+				GetRM;uint16_t val;Bitu which=(rm>>3)&7;
 				switch (which) {
 				case 0x00:					/* MOV Ew,ES */
 					val=SegValue(es);break;
@@ -412,7 +412,7 @@
 		break;
 	CASE_D(0x9a)												/* CALL FAR Ad */
 		{ 
-			Bit32u newip=Fetchd();Bit16u newcs=Fetchw();
+			Bit32u newip=Fetchd();uint16_t newcs=Fetchw();
 			FillFlags();
 			CPU_CALL(true,newcs,newip,GETIP);
 #if CPU_TRAP_CHECK
@@ -636,7 +636,7 @@
 	CASE_D(0xea)												/* JMP Ad */
 		{ 
 			Bit32u newip=Fetchd();
-			Bit16u newcs=Fetchw();
+			uint16_t newcs=Fetchw();
 			FillFlags();
 			CPU_JMP(true,newcs,newip,GETIP);
 #if CPU_TRAP_CHECK
@@ -730,7 +730,7 @@
 					if (rm >= 0xc0) goto illegal_opcode;
 					GetEAa;
 					Bit32u newip=LoadMd(eaa);
-					Bit16u newcs=LoadMw(eaa+4);
+					uint16_t newcs=LoadMw(eaa+4);
 					FillFlags();
 					CPU_CALL(true,newcs,newip,GETIP);
 #if CPU_TRAP_CHECK
@@ -750,7 +750,7 @@
 					if (rm >= 0xc0) goto illegal_opcode;
 					GetEAa;
 					Bit32u newip=LoadMd(eaa);
-					Bit16u newcs=LoadMw(eaa+4);
+					uint16_t newcs=LoadMw(eaa+4);
 					FillFlags();
 					CPU_JMP(true,newcs,newip,GETIP);
 #if CPU_TRAP_CHECK

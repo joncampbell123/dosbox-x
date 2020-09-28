@@ -18,7 +18,7 @@
 
 {
 	EAPoint seg_base;
-	Bit16u off;
+	uint16_t off;
 	switch ((inst.rm_mod<<3)|inst.rm_eai) {
 	case 0x00:
 		off=reg_bx+reg_si;

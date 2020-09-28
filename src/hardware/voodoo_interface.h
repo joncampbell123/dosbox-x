@@ -47,8 +47,8 @@ public:
 
 	uint8_t readb(PhysPt addr);
 	void writeb(PhysPt addr,uint8_t val);
-	Bit16u readw(PhysPt addr);
-	void writew(PhysPt addr,Bit16u val);
+	uint16_t readw(PhysPt addr);
+	void writew(PhysPt addr,uint16_t val);
 	Bit32u readd(PhysPt addr);
 	void writed(PhysPt addr,Bit32u val);
 };

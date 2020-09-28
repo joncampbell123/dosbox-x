@@ -1177,7 +1177,7 @@ const void *pic_state_timer_table[] = {
 
 
 //#include <windows.h>
-Bit16u PIC_State_FindEvent( Bitu addr ) {
+uint16_t PIC_State_FindEvent( Bitu addr ) {
 	int size;
 
 	size = sizeof(pic_state_event_table) / sizeof(void *);
@@ -1192,7 +1192,7 @@ Bit16u PIC_State_FindEvent( Bitu addr ) {
 }
 
 
-Bit16u PIC_State_FindTimer( Bitu addr ) {
+uint16_t PIC_State_FindTimer( Bitu addr ) {
 	int size;
 
 	size = sizeof(pic_state_timer_table) / sizeof(void *);
@@ -1207,14 +1207,14 @@ Bit16u PIC_State_FindTimer( Bitu addr ) {
 }
 
 
-Bitu PIC_State_IndexEvent( Bit16u index ) {
+Bitu PIC_State_IndexEvent( uint16_t index ) {
 	if( index == 0xffff ) return 0;
 
 	return (Bitu) (pic_state_event_table[index]);
 }
 
 
-Bitu PIC_State_IndexTimer( Bit16u index ) {
+Bitu PIC_State_IndexTimer( uint16_t index ) {
 	if( index == 0xffff ) return 0;
 
 	return (Bitu) (pic_state_timer_table[index]);
@@ -1234,12 +1234,12 @@ public:
 private:
     virtual void getBytes(std::ostream& stream)
     {
-				Bit16u pic_free_idx, pic_next_idx;
-				Bit16u pic_next_ptr[PIC_QUEUESIZE];
+				uint16_t pic_free_idx, pic_next_idx;
+				uint16_t pic_next_ptr[PIC_QUEUESIZE];
 
 				TickerBlock *ticker_ptr;
-				Bit16u ticker_size;
-				Bit16u ticker_handler_idx;
+				uint16_t ticker_size;
+				uint16_t ticker_handler_idx;
 
 
 				for( int lcv=0; lcv<PIC_QUEUESIZE; lcv++ ) {
@@ -1283,7 +1283,7 @@ private:
 				pic_free_idx = 0xffff;
 				pic_next_idx = 0xffff;
 				for( int lcv=0; lcv<PIC_QUEUESIZE; lcv++ ) {
-					Bit16u event_idx;
+					uint16_t event_idx;
 
 					// - data
 					stream.write(reinterpret_cast<const char*>(&pic_queue.entries[lcv].index), sizeof(pic_queue.entries[lcv].index) );
@@ -1337,8 +1337,8 @@ private:
 
     virtual void setBytes(std::istream& stream)
     {
-				Bit16u free_idx, next_idx;
-				Bit16u ticker_size;
+				uint16_t free_idx, next_idx;
+				uint16_t ticker_size;
 
 
         SerializeGlobalPOD::setBytes(stream);
@@ -1354,7 +1354,7 @@ private:
 
 
 				for( int lcv=0; lcv<PIC_QUEUESIZE; lcv++ ) {
-					Bit16u event_idx, next_idx;
+					uint16_t event_idx, next_idx;
 
 					// - data
 					stream.read(reinterpret_cast<char*>(&pic_queue.entries[lcv].index), sizeof(pic_queue.entries[lcv].index) );
@@ -1412,7 +1412,7 @@ private:
 					TickerBlock *ticker_ptr;
 
 					for( int lcv = 0; lcv<ticker_size; lcv++ ) {
-						Bit16u ticker_idx;
+						uint16_t ticker_idx;
 
 						if( lcv == 0 ) {
 							ticker_ptr = new TickerBlock;

@@ -520,11 +520,11 @@ typedef struct VGA_Experimental_Model_1_t {
 
 typedef struct {
 	uint8_t curmode;
-	Bit16u originx, originy;
+	uint16_t originx, originy;
 	uint8_t fstackpos, bstackpos;
 	uint8_t forestack[4];
 	uint8_t backstack[4];
-	Bit16u startaddr;
+	uint16_t startaddr;
 	uint8_t posx, posy;
 	uint8_t mc[64][64];
 } VGA_HWCURSOR;
@@ -549,7 +549,7 @@ typedef struct {
 	uint8_t reg_6b; // LFB BIOS scratchpad
 	uint8_t ex_hor_overflow;
 	uint8_t ex_ver_overflow;
-	Bit16u la_window;
+	uint16_t la_window;
 	uint8_t misc_control_2;
 	uint8_t ext_mem_ctrl;
 	Bitu xga_screen_width;
@@ -591,7 +591,7 @@ typedef struct {
 	uint8_t vsyncp;
 	uint8_t vsyncw;
 	uint8_t max_scanline;
-	Bit16u lightpen;
+	uint16_t lightpen;
 	bool lightpen_triggered;
 	uint8_t cursor_start;
 	uint8_t cursor_end;
@@ -699,7 +699,7 @@ typedef struct {
 	Bitu first_changed;
 	uint8_t combine[16];
 	RGBEntry rgb[0x100];
-	Bit16u xlat16[256];
+	uint16_t xlat16[256];
 	Bit32u xlat32[256];
 	uint8_t hidac_counter;
 	uint8_t reg02;
@@ -716,11 +716,11 @@ typedef struct {
 } VGA_SVGA;
 
 typedef union CGA_Latch {
-	Bit16u d;
+	uint16_t d;
     uint8_t b[2] = {};
 
     CGA_Latch() { }
-    CGA_Latch(const Bit16u raw) : d(raw) { }
+    CGA_Latch(const uint16_t raw) : d(raw) { }
 } CGA_Latch;
 
 typedef union VGA_Latch {

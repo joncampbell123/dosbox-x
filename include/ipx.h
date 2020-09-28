@@ -98,9 +98,9 @@ struct IPXHeader {
 } GCC_ATTRIBUTE(packed);
 
 struct fragmentDescriptor {
-	Bit16u offset;
-	Bit16u segment;
-	Bit16u size;
+	uint16_t offset;
+	uint16_t segment;
+	uint16_t size;
 };
 
 #define IPXBUFFERSIZE 1424
@@ -113,7 +113,7 @@ public:
 	ECBClass *nextECB;
 	
 	uint8_t iuflag;		// Need to save data since we are not always in
-	Bit16u mysocket;	// real mode
+	uint16_t mysocket;	// real mode
 
 	uint8_t* databuffer;	// received data is stored here until we get called
 	Bitu buflen;		// by Interrupt
@@ -122,8 +122,8 @@ public:
 	Bitu SerialNumber;
 #endif
 
-	ECBClass(Bit16u segment, Bit16u offset);
-	Bit16u getSocket(void);
+	ECBClass(uint16_t segment, uint16_t offset);
+	uint16_t getSocket(void);
 
 	uint8_t getInUseFlag(void);
 
@@ -131,12 +131,12 @@ public:
 
 	void setCompletionFlag(uint8_t flagval);
 
-	Bit16u getFragCount(void);
+	uint16_t getFragCount(void);
 
 	bool writeData();
-	void writeDataBuffer(uint8_t* buffer, Bit16u length);
+	void writeDataBuffer(uint8_t* buffer, uint16_t length);
 
-	void getFragDesc(Bit16u descNum, fragmentDescriptor *fragDesc);
+	void getFragDesc(uint16_t descNum, fragmentDescriptor *fragDesc);
 	RealPt getESRAddr(void);
 
 	void NotifyESR(void);

@@ -116,7 +116,7 @@ int CDROM_Interface_Image::BinaryFile::getLength()
 	return length;
 }
 
-Bit16u CDROM_Interface_Image::BinaryFile::getEndian()
+uint16_t CDROM_Interface_Image::BinaryFile::getEndian()
 {
 	// Image files are read into native-endian byte-order
 	#if defined(WORDS_BIGENDIAN)
@@ -132,7 +132,7 @@ bool CDROM_Interface_Image::BinaryFile::seek(Bit32u offset)
 	return !file->fail();
 }
 
-Bit16u CDROM_Interface_Image::BinaryFile::decode(uint8_t *buffer)
+uint16_t CDROM_Interface_Image::BinaryFile::decode(uint8_t *buffer)
 {
 	file->read((char*)buffer, chunkSize);
 	return file->gcount();
@@ -192,14 +192,14 @@ bool CDROM_Interface_Image::AudioFile::seek(Bit32u offset)
 	return result;
 }
 
-Bit16u CDROM_Interface_Image::AudioFile::decode(uint8_t *buffer)
+uint16_t CDROM_Interface_Image::AudioFile::decode(uint8_t *buffer)
 {
-	const Bit16u bytes = Sound_Decode(sample);
+	const uint16_t bytes = Sound_Decode(sample);
 	memcpy(buffer, sample->buffer, bytes);
 	return bytes;
 }
 
-Bit16u CDROM_Interface_Image::AudioFile::getEndian()
+uint16_t CDROM_Interface_Image::AudioFile::getEndian()
 {
 	return sample ? sample->actual.format : AUDIO_S16SYS;
 }
@@ -283,7 +283,7 @@ bool CDROM_Interface_Image::SetDevice(char* path, int forceCD)
 		// print error message on dosbox console
 		char buf[MAX_LINE_LENGTH];
 		snprintf(buf, MAX_LINE_LENGTH, "Could not load image file: %s\r\n", path);
-		Bit16u size = (Bit16u)strlen(buf);
+		uint16_t size = (uint16_t)strlen(buf);
 		DOS_WriteFile(STDOUT, (uint8_t*)buf, &size);
 	}
 	return result;
@@ -581,10 +581,10 @@ void CDROM_Interface_Image::CDAudioCallBack(Bitu len)
 	// determine bytes per request (16-bit samples)
 	const uint8_t channels = player.trackFile->getChannels();
 	const uint8_t bytes_per_request = channels * 2;
-	Bit16u total_requested = len * bytes_per_request;
+	uint16_t total_requested = len * bytes_per_request;
 
 	while (total_requested > 0) {
-		Bit16u requested = total_requested;
+		uint16_t requested = total_requested;
 
 		// Every now and then the callback wants a big number of bytes,
 		// which can exceed our circular buffer. In these cases we need
@@ -661,12 +661,12 @@ void CDROM_Interface_Image::CDAudioCallBack(Bitu len)
 
 			// 3. Fill
 			// =======
-			const Bit16u chunkSize = player.trackFile->chunkSize;
+			const uint16_t chunkSize = player.trackFile->chunkSize;
 			while(AUDIO_DECODE_BUFFER_SIZE - player.bufferPos >= chunkSize &&
 			      (player.bufferPos - player.bufferConsumed < player.playbackRemaining ||
 				   player.bufferPos - player.bufferConsumed < requested) ) {
 
-				const Bit16u decoded = player.trackFile->decode(player.buffer + player.bufferPos);
+				const uint16_t decoded = player.trackFile->decode(player.buffer + player.bufferPos);
 				player.bufferPos += decoded;
 
 				// if we decoded less than expected, which could be due to EOF or if the CUE file specified

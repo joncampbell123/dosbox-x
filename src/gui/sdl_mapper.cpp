@@ -1976,7 +1976,7 @@ public:
         }
 
         unsigned i;
-        Bit16u j;
+        uint16_t j;
         j=button_state;
         for(i=0;i<16;i++) if (j & 1) break; else j>>=1;
         JOYSTICK_Button(0,0,i&1);
@@ -2040,7 +2040,7 @@ public:
     }
 
 protected:
-    Bit16u button_state;
+    uint16_t button_state;
 };
 
 void CBindGroup::ActivateBindList(CBindList * list,Bits value,bool ev_trigger) {
@@ -3008,8 +3008,8 @@ static void SetActiveEvent(CEvent * event) {
 }
 
 #if defined(C_SDL2)
-extern SDL_Window * GFX_SetSDLSurfaceWindow(Bit16u width, Bit16u height);
-extern SDL_Rect GFX_GetSDLSurfaceSubwindowDims(Bit16u width, Bit16u height);
+extern SDL_Window * GFX_SetSDLSurfaceWindow(uint16_t width, uint16_t height);
+extern SDL_Rect GFX_GetSDLSurfaceSubwindowDims(uint16_t width, uint16_t height);
 extern void GFX_UpdateDisplayDimensions(int width, int height);
 #endif
 

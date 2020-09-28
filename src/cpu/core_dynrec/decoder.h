@@ -41,7 +41,7 @@ static CacheBlockDynRec * CreateCacheBlock(CodePageHandlerDynRec * codepage,Phys
 	decode.page.invmap=codepage->invalidation_map;
 	decode.page.first=start >> 12;
 	decode.active_block=decode.block=cache_openblock();
-	decode.block->page.start=(Bit16u)decode.page.index;
+	decode.block->page.start=(uint16_t)decode.page.index;
 	codepage->AddCacheBlock(decode.block);
 
 	InitFlagsOptimization();
@@ -610,7 +610,7 @@ finish_block:
 
 	// setup the correct end-address
 	decode.page.index--;
-	decode.active_block->page.end=(Bit16u)decode.page.index;
+	decode.active_block->page.end=(uint16_t)decode.page.index;
 //	LOG_MSG("Created block size %d start %d end %d",decode.block->cache.size,decode.block->page.start,decode.block->page.end);
 
 	return decode.block;

@@ -155,10 +155,10 @@ public:
 	void changeLineProperties();
 	Bitu idnumber;
 
-	void setEvent(Bit16u type, float duration);
-	void removeEvent(Bit16u type);
-	void handleEvent(Bit16u type);
-	virtual void handleUpperEvent(Bit16u type)=0;
+	void setEvent(uint16_t type, float duration);
+	void removeEvent(uint16_t type);
+	void handleEvent(uint16_t type);
+	virtual void handleUpperEvent(uint16_t type)=0;
 	
 	// defines for event type
 #define SERIAL_TX_LOOPBACK_EVENT 0
@@ -241,7 +241,7 @@ public:
 	virtual void setBreak(bool value)=0;
 	
 	// change baudrate, number of bits, parity, word length al at once
-	virtual void updatePortConfig(Bit16u divider, uint8_t lcr)=0;
+	virtual void updatePortConfig(uint16_t divider, uint8_t lcr)=0;
 	
 	void Init_Registers();
 	
@@ -277,7 +277,7 @@ private:
 	// 16C550
 	//				read/write		name
 
-	Bit16u baud_divider;
+	uint16_t baud_divider;
 	#define RHR_OFFSET 0	// r Receive Holding Register, also LSB of Divisor Latch (r/w)
 							// Data: whole byte
 	#define THR_OFFSET 0	// w Transmit Holding Register
@@ -427,7 +427,7 @@ private:
 
 extern CSerial* serialports[];
 const uint8_t serial_defaultirq[] = { 4, 3, 4, 3 };
-const Bit16u serial_baseaddr[] = {0x3f8,0x2f8,0x3e8,0x2e8};
+const uint16_t serial_baseaddr[] = {0x3f8,0x2f8,0x3e8,0x2e8};
 const char* const serial_comname[]={"COM1","COM2","COM3","COM4"};
 
 // the COM devices
@@ -437,11 +437,11 @@ public:
 	// Creates a COM device that communicates with the num-th parallel port, i.e. is LPTnum
 	device_COM(class CSerial* sc);
 	virtual ~device_COM();
-	bool Read(uint8_t * data,Bit16u * size);
-	bool Write(const uint8_t * data,Bit16u * size);
+	bool Read(uint8_t * data,uint16_t * size);
+	bool Write(const uint8_t * data,uint16_t * size);
 	bool Seek(Bit32u * pos,Bit32u type);
 	bool Close();
-	Bit16u GetInformation(void);
+	uint16_t GetInformation(void);
 private:
 	CSerial* sclass;
 };

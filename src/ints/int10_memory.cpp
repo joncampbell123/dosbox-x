@@ -49,12 +49,12 @@ static uint8_t static_functionality[0x10]=
  /* f */ 0x00   // reserved
 };
 
-static Bit16u map_offset[8]={
+static uint16_t map_offset[8]={
 	0x0000,0x4000,0x8000,0xc000,
 	0x2000,0x6000,0xa000,0xe000
 };
 
-void INT10_LoadFont(PhysPt font,bool reload,Bit16u count,Bitu offset,Bitu map,uint8_t height) {
+void INT10_LoadFont(PhysPt font,bool reload,uint16_t count,Bitu offset,Bitu map,uint8_t height) {
     unsigned char m64k;
 
 	if (IS_VGA_ARCH || (IS_EGA_ARCH && vga.mem.memsize >= 0x20000))
@@ -62,8 +62,8 @@ void INT10_LoadFont(PhysPt font,bool reload,Bit16u count,Bitu offset,Bitu map,ui
     else
         m64k = 0x00;
 
-    PhysPt ftwhere = PhysMake(0xa000, map_offset[map & 0x7] + (Bit16u)(offset * 32));
-	Bit16u base=real_readw(BIOSMEM_SEG,BIOSMEM_CRTC_ADDRESS);
+    PhysPt ftwhere = PhysMake(0xa000, map_offset[map & 0x7] + (uint16_t)(offset * 32));
+	uint16_t base=real_readw(BIOSMEM_SEG,BIOSMEM_CRTC_ADDRESS);
 	bool mono=(base==VGAREG_MDA_CRTC_ADDRESS);
 	
 	//Put video adapter in planar mode
@@ -74,7 +74,7 @@ void INT10_LoadFont(PhysPt font,bool reload,Bit16u count,Bitu offset,Bitu map,ui
 	IO_Write(0x3ce,0x06);IO_Write(0x3cf,0x04); // CPU memory window A0000-AFFFF
 	
 	//Load character patterns
-	for (Bit16u i=0;i<count;i++) {
+	for (uint16_t i=0;i<count;i++) {
 		MEM_BlockCopy(ftwhere+i*32u,font,height);
 		font+=height;
 	}
@@ -114,7 +114,7 @@ void INT10_LoadFont(PhysPt font,bool reload,Bit16u count,Bitu offset,Bitu map,ui
 		//Page size
 		Bitu pagesize=rows*real_readb(BIOSMEM_SEG,BIOSMEM_NB_COLS)*2;
 		pagesize+=0x100; // bios adds extra on reload
-		real_writew(BIOSMEM_SEG,BIOSMEM_PAGE_SIZE,(Bit16u)pagesize);
+		real_writew(BIOSMEM_SEG,BIOSMEM_PAGE_SIZE,(uint16_t)pagesize);
 		//Cursor shape
 		if (height>=14) height--; // move up one line on 14+ line fonts
 		INT10_SetCursorShape(height-2,height-1);
@@ -210,7 +210,7 @@ void INT10_SetupRomMemory(void) {
             for (unsigned int i=0;i<256*16;i++)
                 phys_writeb((PhysPt)base+i,int10_font_16[i]);
 
-            int10.rom.font_16 = RealMake((Bit16u)(base >> 4u),(Bit16u)(base & 0xF));
+            int10.rom.font_16 = RealMake((uint16_t)(base >> 4u),(uint16_t)(base & 0xF));
 
             // MCGA has the pointer at 40:A8 (BIOSMEM_VS_POINTER), confirmed on real hardware.
             // It points into the BIOS, because MCGA systems do not have a BIOS at C000:0000
@@ -220,13 +220,13 @@ void INT10_SetupRomMemory(void) {
             vptr -= vptroff;
             Bitu vptroff_limit = vptroff + 0x600;
 
-            int10.rom.video_parameter_table=RealMake((Bit16u)vptrseg, (Bit16u)vptroff);
+            int10.rom.video_parameter_table=RealMake((uint16_t)vptrseg, (uint16_t)vptroff);
             vptroff+=INT10_SetupVideoParameterTable((PhysPt)(vptr+vptroff));
 
             // The dynamic save area should be in RAM, it cannot exist in ROM
             int10.rom.video_dynamic_save_area=0;
 
-            int10.rom.video_save_pointers=RealMake((Bit16u)vptrseg, (Bit16u)vptroff);
+            int10.rom.video_save_pointers=RealMake((uint16_t)vptrseg, (uint16_t)vptroff);
             phys_writed((PhysPt)(vptr+vptroff),int10.rom.video_parameter_table);
             vptroff+=4;
             phys_writed((PhysPt)(vptr+vptroff),int10.rom.video_dynamic_save_area);		// dynamic save area pointer
@@ -265,7 +265,7 @@ void INT10_SetupRomMemory(void) {
         // entry point
         phys_writeb(rom_base+3,0xFE); // Callback instruction
         phys_writeb(rom_base+4,0x38);
-        phys_writew(rom_base+5,(Bit16u)VGA_ROM_BIOS_ENTRY_cb);
+        phys_writew(rom_base+5,(uint16_t)VGA_ROM_BIOS_ENTRY_cb);
         phys_writeb(rom_base+7,0xCB); // RETF
 
         // VGA BIOS copyright
@@ -289,8 +289,8 @@ void INT10_SetupRomMemory(void) {
 				LOG(LOG_MISC,LOG_DEBUG)("Redirecting INT 10h to point at the VGA BIOS");
 
 				phys_writeb(rom_base+0xEE,0xEA); // JMP FAR
-				phys_writew(rom_base+0xEF,(Bit16u)(biosint10 & 0xFFFFu));
-				phys_writew(rom_base+0xF1,(Bit16u)((biosint10 >> 16u) & 0xFFFFu));
+				phys_writew(rom_base+0xEF,(uint16_t)(biosint10 & 0xFFFFu));
+				phys_writew(rom_base+0xF1,(uint16_t)((biosint10 >> 16u) & 0xFFFFu));
 
 				/* WARNING: This overwrites the INT 10 startup code's vector successfully only because this
 				 *          code is called AFTER it has initialized the INT 10h vector. If initialization

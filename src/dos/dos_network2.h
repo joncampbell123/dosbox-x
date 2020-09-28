@@ -31,24 +31,24 @@ August 8 2005		cyberwalker
 #include <fcntl.h>
 #include <share.h>
 
-extern Bit16u	NetworkHandleList[127];	/*in dos_files.cpp*/
+extern uint16_t	NetworkHandleList[127];	/*in dos_files.cpp*/
 
  bool	Network_IsNetworkResource(char * filename)
 {
 	if(strlen(filename)>1)
 			return (filename[0]=='\\' && filename[1]=='\\');
 	else	return false;
-}//bool	Network_IsNetworkFile(Bit16u entry)
+}//bool	Network_IsNetworkFile(uint16_t entry)
 
 
- bool	Network_IsActiveResource(Bit16u entry)
+ bool	Network_IsActiveResource(uint16_t entry)
 {
 	Bit32u		handle=RealHandle(entry);
 	return	(NetworkHandleList[entry]==handle);
-}//bool	Network_IsNetworkFile(Bit16u entry)
+}//bool	Network_IsNetworkFile(uint16_t entry)
 
 
- bool	Network_OpenFile(char * filename,uint8_t flags,Bit16u * entry)
+ bool	Network_OpenFile(char * filename,uint8_t flags,uint16_t * entry)
 {
 	int oflag=_O_BINARY;
 	int shflag=0;
@@ -101,17 +101,17 @@ extern Bit16u	NetworkHandleList[127];	/*in dos_files.cpp*/
 
 		return	true;
 	}
-	else	dos.errorcode=(Bit16u)_doserrno;
+	else	dos.errorcode=(uint16_t)_doserrno;
 
 	return false;
-}//bool	Network_OpenFile(char * filename,uint8_t flags,Bit16u * entry)
+}//bool	Network_OpenFile(char * filename,uint8_t flags,uint16_t * entry)
 
 #ifndef CMAKE_BUILD // TODO there must be a better way to fix this problem
 extern "C"
 #endif
 int _nhandle;
 
- bool	Network_CloseFile(Bit16u entry)
+ bool	Network_CloseFile(uint16_t entry)
 {
 		Bit32u handle=RealHandle(entry);
 		int _Expr_val=!!((handle >= 0 && (unsigned)handle < (unsigned)_nhandle));
@@ -119,7 +119,7 @@ int _nhandle;
 		if (!(handle > 0) || ( !( _Expr_val ))) {
 			_doserrno = 0L;
 			errno = EBADF;
-			dos.errorcode=(Bit16u)_doserrno;
+			dos.errorcode=(uint16_t)_doserrno;
 			return false;
 		}
 
@@ -134,15 +134,15 @@ int _nhandle;
 		}
 		else
 		{
-			dos.errorcode=(Bit16u)_doserrno;
+			dos.errorcode=(uint16_t)_doserrno;
 			return	false;
 		}
-}//bool	Network_CloseFile(Bit16u entry)
+}//bool	Network_CloseFile(uint16_t entry)
 
- bool Network_ReadFile(Bit16u entry,uint8_t * data,Bit16u * amount)
+ bool Network_ReadFile(uint16_t entry,uint8_t * data,uint16_t * amount)
 {
 	Bit32u handle=RealHandle(entry);
-	Bit16u toread=*amount;
+	uint16_t toread=*amount;
 
 	toread=_read(handle,data,toread);
 	if (toread>=0) 
@@ -150,16 +150,16 @@ int _nhandle;
 	else	
 	{
 		*amount=0;
-		dos.errorcode=(Bit16u)_doserrno;
+		dos.errorcode=(uint16_t)_doserrno;
 	}
 
 	return	(toread>=0);
-}//bool Network_ReadFile(Bit16u entry,uint8_t * data,Bit16u * amount)
+}//bool Network_ReadFile(uint16_t entry,uint8_t * data,uint16_t * amount)
 
 
- bool	Network_WriteFile(Bit16u entry,uint8_t * data,Bit16u * amount)
+ bool	Network_WriteFile(uint16_t entry,uint8_t * data,uint16_t * amount)
 {
-		Bit16u towrite=*amount;
+		uint16_t towrite=*amount;
 		Bit32u handle=RealHandle(entry);
 
 		towrite=_write(handle,data,towrite);
@@ -167,11 +167,11 @@ int _nhandle;
 			*amount=towrite;
 		else 
 		{
-			dos.errorcode=(Bit16u)_doserrno;
+			dos.errorcode=(uint16_t)_doserrno;
 			*amount=0;
 		}
 		return (towrite!=-1);
-}//bool	Network_WriteFile(Bit16u entry,uint8_t * data,Bit16u * amount)
+}//bool	Network_WriteFile(uint16_t entry,uint8_t * data,uint16_t * amount)
 
 
 

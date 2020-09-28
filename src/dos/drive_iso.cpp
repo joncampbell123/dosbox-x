@@ -29,7 +29,7 @@
 #define FLAGS2	((iso) ? de->fileFlags : de->timeZone)
 
 char fullname[LFN_NAMELENGTH];
-static Bit16u sdid[256];
+static uint16_t sdid[256];
 extern int lfn_filefind_handle;
 
 using namespace std;
@@ -37,11 +37,11 @@ using namespace std;
 class isoFile : public DOS_File {
 public:
     isoFile(isoDrive* drive, const char* name, const FileStat_Block* stat, Bit32u offset);
-	bool Read(uint8_t *data, Bit16u *size);
-	bool Write(const uint8_t *data, Bit16u *size);
+	bool Read(uint8_t *data, uint16_t *size);
+	bool Write(const uint8_t *data, uint16_t *size);
 	bool Seek(Bit32u *pos, Bit32u type);
 	bool Close();
-	Bit16u GetInformation(void);
+	uint16_t GetInformation(void);
 	Bit32u GetSeekPos(void);
 private:
 	isoDrive *drive;
@@ -50,7 +50,7 @@ private:
 	Bit32u fileBegin;
 	Bit32u filePos;
 	Bit32u fileEnd;
-//	Bit16u info;
+//	uint16_t info;
 };
 
 isoFile::isoFile(isoDrive* drive, const char* name, const FileStat_Block* stat, Bit32u offset) : drive(drive), fileBegin(offset) {
@@ -64,21 +64,21 @@ isoFile::isoFile(isoDrive* drive, const char* name, const FileStat_Block* stat, 
 	SetName(name);
 }
 
-bool isoFile::Read(uint8_t *data, Bit16u *size) {
+bool isoFile::Read(uint8_t *data, uint16_t *size) {
 	if (filePos + *size > fileEnd)
-		*size = (Bit16u)(fileEnd - filePos);
+		*size = (uint16_t)(fileEnd - filePos);
 	
-	Bit16u nowSize = 0;
+	uint16_t nowSize = 0;
 	int sector = (int)(filePos / ISO_FRAMESIZE);
-	Bit16u sectorPos = (Bit16u)(filePos % ISO_FRAMESIZE);
+	uint16_t sectorPos = (uint16_t)(filePos % ISO_FRAMESIZE);
 	
 	if (sector != cachedSector) {
 		if (drive->readSector(buffer, (unsigned int)sector)) cachedSector = sector;
 		else { *size = 0; cachedSector = -1; }
 	}
 	while (nowSize < *size) {
-		Bit16u remSector = ISO_FRAMESIZE - sectorPos;
-		Bit16u remSize = *size - nowSize;
+		uint16_t remSector = ISO_FRAMESIZE - sectorPos;
+		uint16_t remSize = *size - nowSize;
 		if(remSector < remSize) {
 			memcpy(&data[nowSize], &buffer[sectorPos], remSector);
 			nowSize += remSector;
@@ -101,7 +101,7 @@ bool isoFile::Read(uint8_t *data, Bit16u *size) {
 	return true;
 }
 
-bool isoFile::Write(const uint8_t* /*data*/, Bit16u* /*size*/) {
+bool isoFile::Write(const uint8_t* /*data*/, uint16_t* /*size*/) {
 	return false;
 }
 
@@ -131,7 +131,7 @@ bool isoFile::Close() {
 	return true;
 }
 
-Bit16u isoFile::GetInformation(void) {
+uint16_t isoFile::GetInformation(void) {
 	return 0x40;		// read-only drive
 }
 
@@ -236,7 +236,7 @@ bool isoDrive::FileOpen(DOS_File **file, const char *name, Bit32u flags) {
 	return success;
 }
 
-bool isoDrive::FileCreate(DOS_File** /*file*/, const char* /*name*/, Bit16u /*attributes*/) {
+bool isoDrive::FileCreate(DOS_File** /*file*/, const char* /*name*/, uint16_t /*attributes*/) {
 	DOS_SetError(DOSERR_ACCESS_DENIED);
 	return false;
 }
@@ -273,7 +273,7 @@ bool isoDrive::FindFirst(const char *dir, DOS_DTA &dta, bool fcb_findfirst) {
 	bool isRoot = (*dir == 0);
 	dirIterators[dirIterator].root = isRoot;
 	if (lfn_filefind_handle>=LFN_FILEFIND_MAX)
-		dta.SetDirID((Bit16u)dirIterator);
+		dta.SetDirID((uint16_t)dirIterator);
 	else
 		sdid[lfn_filefind_handle]=dirIterator;
 
@@ -324,8 +324,8 @@ bool isoDrive::FindNext(DOS_DTA &dta) {
 				upcase(findName);
 			}
 			Bit32u findSize = DATA_LENGTH(de);
-			Bit16u findDate = DOS_PackDate(1900 + de.dateYear, de.dateMonth, de.dateDay);
-			Bit16u findTime = DOS_PackTime(de.timeHour, de.timeMin, de.timeSec);
+			uint16_t findDate = DOS_PackDate(1900 + de.dateYear, de.dateMonth, de.dateDay);
+			uint16_t findTime = DOS_PackTime(de.timeHour, de.timeMin, de.timeSec);
             dta.SetResult(findName, lfindName, findSize, findDate, findTime, findAttr);
 			return true;
 		}
@@ -342,13 +342,13 @@ bool isoDrive::Rename(const char* /*oldname*/, const char* /*newname*/) {
 	return false;
 }
 
-bool isoDrive::SetFileAttr(const char * name,Bit16u attr) {
+bool isoDrive::SetFileAttr(const char * name,uint16_t attr) {
     (void)name;
     (void)attr;
 	return false;
 }
 
-bool isoDrive::GetFileAttr(const char *name, Bit16u *attr) {
+bool isoDrive::GetFileAttr(const char *name, uint16_t *attr) {
 	*attr = 0;
 	isoDirEntry de;
 	bool success = lookup(&de, name);
@@ -379,7 +379,7 @@ HANDLE isoDrive::CreateOpenFile(const char* name) {
 }
 #endif
 
-bool isoDrive::AllocationInfo(Bit16u *bytes_sector, uint8_t *sectors_cluster, Bit16u *total_clusters, Bit16u *free_clusters) {
+bool isoDrive::AllocationInfo(uint16_t *bytes_sector, uint8_t *sectors_cluster, uint16_t *total_clusters, uint16_t *free_clusters) {
 	*bytes_sector = 2048;
 	*sectors_cluster = 1; // cluster size for cdroms ?
 	*total_clusters = 65535;
@@ -561,7 +561,7 @@ bool isoDrive :: loadImage() {
 	if (pvd[0] == 1 && !strncmp((char*)(&pvd[1]), "CD001", 5) && pvd[6] == 1) iso = true;
 	else if (pvd[8] == 1 && !strncmp((char*)(&pvd[9]), "CDROM", 5) && pvd[14] == 1) iso = false;
 	else return false;
-	Bit16u offset = iso ? 156 : 180;
+	uint16_t offset = iso ? 156 : 180;
 	if (readDirEntry(&this->rootEntry, &pvd[offset])>0) {
 		dataCD = true;
 		return true;

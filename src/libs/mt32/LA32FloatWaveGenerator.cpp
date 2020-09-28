@@ -66,7 +66,7 @@ void LA32FloatWaveGenerator::initPCM(const Bit16s * const usePCMWaveAddress, con
 // ampVal - Logarithmic amp of the wave generator
 // pitch - Logarithmic frequency of the resulting wave
 // cutoffRampVal - Composed of the base cutoff in range [78..178] left-shifted by 18 bits and the TVF modifier
-float LA32FloatWaveGenerator::generateNextSample(const Bit32u ampVal, const Bit16u pitch, const Bit32u cutoffRampVal) {
+float LA32FloatWaveGenerator::generateNextSample(const Bit32u ampVal, const uint16_t pitch, const Bit32u cutoffRampVal) {
 	if (!active) {
 		return 0.0f;
 	}
@@ -304,7 +304,7 @@ void LA32FloatPartialPair::initPCM(const PairType useMaster, const Bit16s *pcmWa
 	}
 }
 
-void LA32FloatPartialPair::generateNextSample(const PairType useMaster, const Bit32u amp, const Bit16u pitch, const Bit32u cutoff) {
+void LA32FloatPartialPair::generateNextSample(const PairType useMaster, const Bit32u amp, const uint16_t pitch, const Bit32u cutoff) {
 	if (useMaster == MASTER) {
 		masterOutputSample = master.generateNextSample(amp, pitch, cutoff);
 	} else {

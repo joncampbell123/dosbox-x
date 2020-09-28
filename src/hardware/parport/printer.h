@@ -87,7 +87,7 @@ enum Typeface
 class CPrinter {
 public:
 
-	CPrinter (Bit16u dpi, Bit16u width, Bit16u height, char* output, bool multipageOutput);
+	CPrinter (uint16_t dpi, uint16_t width, uint16_t height, char* output, bool multipageOutput);
 	virtual ~CPrinter();
 
 	// Process one character sent to virtual printer
@@ -135,25 +135,25 @@ private:
 
 	// Blits the given glyph on the page surface. If add is true, the values of bitmap are
 	// added to the values of the pixels in the page
-	void blitGlyph(FT_Bitmap bitmap, Bit16u destx, Bit16u desty, bool add);
+	void blitGlyph(FT_Bitmap bitmap, uint16_t destx, uint16_t desty, bool add);
 
 	// Draws an anti-aliased line from (fromx, y) to (tox, y). If broken is true, gaps are included
 	void drawLine(Bitu fromx, Bitu tox, Bitu y, bool broken);
 
 	// Setup the bitGraph structure
-	void setupBitImage(uint8_t dens, Bit16u numCols);
+	void setupBitImage(uint8_t dens, uint16_t numCols);
 
 	// Process a character that is part of bit image. Must be called iff bitGraph.remBytes > 0.
 	void printBitGraph(uint8_t ch);
 
 	// Copies the codepage mapping from the constant array to CurMap
-	void selectCodepage(Bit16u cp);
+	void selectCodepage(uint16_t cp);
 
 	// Output current page 
 	void outputPage();
 
 	// Prints out a byte using ASCII85 encoding (only outputs something every four bytes). When b>255, closes the ASCII85 string
-	void fprintASCII85(FILE* f, Bit16u b);
+	void fprintASCII85(FILE* f, uint16_t b);
 
 	// Closes a multipage document
 	void finishMultipage();
@@ -169,15 +169,15 @@ private:
 
 	double curX = 0, curY = 0;					// Position of the print head (in inch)
 
-	Bit16u dpi = 0;							// dpi of the page
-	Bit16u ESCCmd = 0;						// ESC-command that is currently processed
+	uint16_t dpi = 0;							// dpi of the page
+	uint16_t ESCCmd = 0;						// ESC-command that is currently processed
 	bool ESCSeen = false;						// True if last read character was an ESC (0x1B)
 	bool FSSeen = false;						// True if last read character was an FS (0x1C) (IBM commands)
 
 	uint8_t numParam = 0, neededParam = 0;		// Numbers of parameters already read/needed to process command
 
     uint8_t params[20] = {};					// Buffer for the read params
-	Bit16u style = 0;						// Style of font (see STYLE_* constants)
+	uint16_t style = 0;						// Style of font (see STYLE_* constants)
 	double cpi = 0, actcpi = 0;					// CPI value set by program and the actual one (taking in account font types)
 	uint8_t score = 0;						// Score for lines (see SCORE_* constants)
 
@@ -205,18 +205,18 @@ private:
 
 	struct bitGraphicParams				// Holds information about printing bit images
 	{
-		Bit16u horizDens, vertDens;		// Density of image to print (in dpi)
+		uint16_t horizDens, vertDens;		// Density of image to print (in dpi)
 		bool adjacent;					// Print adjacent pixels? (ignored)
 		uint8_t bytesColumn;				// Bytes per column
-		Bit16u remBytes;				// Bytes left to read before image is done
+		uint16_t remBytes;				// Bytes left to read before image is done
 		uint8_t column[6];				// Bytes of the current and last column
 		uint8_t readBytesColumn;			// Bytes read so far for the current column
     } bitGraph = {};
 
 	uint8_t densk = 0, densl = 0, densy = 0, densz = 0;	// Image density modes used in ESC K/L/Y/Z commands
 
-    Bit16u curMap[256] = {};					// Currently used ASCII => Unicode mapping
-    Bit16u charTables[4] = {};				// Charactertables
+    uint16_t curMap[256] = {};					// Currently used ASCII => Unicode mapping
+    uint16_t charTables[4] = {};				// Charactertables
 
 	double definedUnit = 0;					// Unit used by some ESC/P2 commands (negative => use default)
 
@@ -227,7 +227,7 @@ private:
 	double hmi = 0;							// Horizontal motion index (in inch; overrides CPI settings)
 
 	uint8_t msb = 0;							// MSB mode
-	Bit16u numPrintAsChar = 0;				// Number of bytes to print as characters (even when normally control codes)
+	uint16_t numPrintAsChar = 0;				// Number of bytes to print as characters (even when normally control codes)
 
 #if defined (WIN32)
 	HDC printerDC = NULL;						// Win32 printer device
@@ -236,7 +236,7 @@ private:
 	char* output = NULL;						// Output method selected by user
 	void* outputHandle = NULL;					// If not null, additional pages will be appended to the given handle
 	bool multipageOutput = false;				// If true, all pages are combined to one file/print job etc. until the "eject page" button is pressed
-	Bit16u multiPageCounter = 0;			// Current page (when printing multipages)
+	uint16_t multiPageCounter = 0;			// Current page (when printing multipages)
 
     uint8_t ASCII85Buffer[4] = {};				// Buffer used in ASCII85 encoding
 	uint8_t ASCII85BufferPos = 0;				// Position in ASCII85 encode buffer

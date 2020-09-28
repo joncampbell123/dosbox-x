@@ -35,20 +35,20 @@
 // it only forces the clock gate on and PIT 1 to cycle.
 bool speaker_clock_lock_on = false;
 
-static INLINE void BIN2BCD(Bit16u& val) {
-	Bit16u temp=val%10 + (((val/10)%10)<<4)+ (((val/100)%10)<<8) + (((val/1000)%10)<<12);
+static INLINE void BIN2BCD(uint16_t& val) {
+	uint16_t temp=val%10 + (((val/10)%10)<<4)+ (((val/100)%10)<<8) + (((val/1000)%10)<<12);
 	val=temp;
 }
 
-static INLINE void BCD2BIN(Bit16u& val) {
-	Bit16u temp= (val&0x0f) +((val>>4)&0x0f) *10 +((val>>8)&0x0f) *100 +((val>>12)&0x0f) *1000;
+static INLINE void BCD2BIN(uint16_t& val) {
+	uint16_t temp= (val&0x0f) +((val>>4)&0x0f) *10 +((val>>8)&0x0f) *100 +((val>>12)&0x0f) *1000;
 	val=temp;
 }
 
 struct PIT_Block {
     struct read_counter_result {
-        Bit16u          counter = 0xFFFFu;
-        Bit16u          cycle = 0;          // cycle (Mode 3: 0 or 1)
+        uint16_t          counter = 0xFFFFu;
+        uint16_t          cycle = 0;          // cycle (Mode 3: 0 or 1)
     };
 
     Bitu cntr = 0;          /* counter value written to 40h-42h as the interval. may take effect immediately (after port 43h) or after count expires */
@@ -57,8 +57,8 @@ struct PIT_Block {
     double start = 0;       /* time base (in ms) that cycle started at */
     double now = 0;         /* current time (in ms) */
 
-    Bit16u read_latch = 0;  /* counter value, latched for read back */
-    Bit16u write_latch = 0; /* counter value, written by host */
+    uint16_t read_latch = 0;  /* counter value, latched for read back */
+    uint16_t write_latch = 0; /* counter value, written by host */
 
     uint8_t mode = 0;         /* 8254 mode (mode 0 through 5 inclusive) */
     uint8_t read_state = 0;   /* 0=read MSB, switch to LSB, 1=LSB only, 2=MSB only, 3=read LSB, switch to MSB, latch next value */
@@ -99,7 +99,7 @@ struct PIT_Block {
         start = now = t;
         cycle_base = 0;
     }
-    void restart_counter_at(pic_tickindex_t t,Bit16u counter) {
+    void restart_counter_at(pic_tickindex_t t,uint16_t counter) {
         double c_delay;
 
         if (counter == 0)
@@ -251,10 +251,10 @@ struct PIT_Block {
                     /* Counter keeps on counting after passing terminal count */
                     if (bcd) {
                         tmp = fmod(index,((double)(1000ul *   10000ul)) / PIT_TICK_RATE);
-                        ret.counter = (Bit16u)(((unsigned long)(cntr_cur - ((tmp * PIT_TICK_RATE) / 1000.0))) %   10000ul);
+                        ret.counter = (uint16_t)(((unsigned long)(cntr_cur - ((tmp * PIT_TICK_RATE) / 1000.0))) %   10000ul);
                     } else {
                         tmp = fmod(index,((double)(1000ul * 0x10000ul)) / PIT_TICK_RATE);
-                        ret.counter = (Bit16u)(((unsigned long)(cntr_cur - ((tmp * PIT_TICK_RATE) / 1000.0))) % 0x10000ul);
+                        ret.counter = (uint16_t)(((unsigned long)(cntr_cur - ((tmp * PIT_TICK_RATE) / 1000.0))) % 0x10000ul);
                     }
 
                     if (mode == 0) {
@@ -268,10 +268,10 @@ struct PIT_Block {
                 if (index > delay) // has timed out
                     ret.counter = 0xFFFF;
                 else
-                    ret.counter = (Bit16u)(cntr_cur - (index * (PIT_TICK_RATE / 1000.0)));
+                    ret.counter = (uint16_t)(cntr_cur - (index * (PIT_TICK_RATE / 1000.0)));
                 break;
             case 2:		/* Rate Generator */
-                ret.counter = (Bit16u)(cntr_cur - ((fmod(index,delay) / delay) * cntr_cur));
+                ret.counter = (uint16_t)(cntr_cur - ((fmod(index,delay) / delay) * cntr_cur));
                 break;
             case 3:		/* Square Wave Rate Generator */
                 {
@@ -288,7 +288,7 @@ struct PIT_Block {
                         ret.cycle = (ret.cycle + 1u) & 1u;
                     }
 
-                    ret.counter = ((Bit16u)(cntr_cur - ((tmp * cntr_cur) / delay))) & 0xFFFEu; /* always even value */
+                    ret.counter = ((uint16_t)(cntr_cur - ((tmp * cntr_cur) / delay))) & 0xFFFEu; /* always even value */
                 }
                 break;
             default:

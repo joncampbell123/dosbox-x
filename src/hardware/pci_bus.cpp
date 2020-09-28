@@ -114,7 +114,7 @@ static Bitu PCI_PM_Handler() {
 PCI_Device::~PCI_Device() {
 }
 
-PCI_Device::PCI_Device(Bit16u vendor, Bit16u device) {
+PCI_Device::PCI_Device(uint16_t vendor, uint16_t device) {
 	memset(config,0,256);		/* zero config space */
 	memset(config_writemask,0,256);	/* none of it is writeable */
 	setVendorID(vendor);
@@ -126,9 +126,9 @@ PCI_Device::PCI_Device(Bit16u vendor, Bit16u device) {
 
 class PCI_VGADevice:public PCI_Device {
 private:
-	static const Bit16u vendor=0x5333;		// S3
-	static const Bit16u device=0x8811;		// trio64
-//	static const Bit16u device=0x8810;		// trio32
+	static const uint16_t vendor=0x5333;		// S3
+	static const uint16_t device=0x8811;		// trio64
+//	static const uint16_t device=0x8810;		// trio32
 public:
 	PCI_VGADevice():PCI_Device(vendor,device) {
 		// init (S3 graphics card)
@@ -161,9 +161,9 @@ public:
 
 class PCI_SSTDevice:public PCI_Device {
 private:
-	static const Bit16u vendor=0x121a;	// 3dfx
-	Bit16u oscillator_ctr;
-	Bit16u pci_ctr;
+	static const uint16_t vendor=0x121a;	// 3dfx
+	uint16_t oscillator_ctr;
+	uint16_t pci_ctr;
 public:
 	PCI_SSTDevice(Bitu type):PCI_Device(vendor,(type==2)?0x0002:0x0001) {
 		oscillator_ctr=0;

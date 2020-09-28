@@ -90,7 +90,7 @@ static Bit32u param[20];
 
 // Pointer to return value
 static PhysPt ret;
-static Bit16u ret_value;
+static uint16_t ret_value;
 
 // Temporary texture buffer
 static Bit32u texsize=0;
@@ -135,7 +135,7 @@ static void write_gl(Bitu port,Bitu val,Bitu iolen)
 {
     (void)port;
     (void)iolen;
-    static Bit16u glsegment = 0;
+    static uint16_t glsegment = 0;
 
     ret = 0;
     ret_value = G_FAIL;
@@ -265,9 +265,9 @@ public:
 	return *(uint8_t *)(LFB_getAddr(addr));
     }
 
-    Bit16u readw(PhysPt addr) {
+    uint16_t readw(PhysPt addr) {
 //	LOG_MSG("Glide:Read from 0x%p", LFB_getAddr(addr));
-	return *(Bit16u *)(LFB_getAddr(addr));
+	return *(uint16_t *)(LFB_getAddr(addr));
     }
 
     Bit32u readd(PhysPt addr) {
@@ -280,9 +280,9 @@ public:
 	*(uint8_t *)(LFB_getAddr(addr))=(uint8_t)val;
     }
 
-    void writew(PhysPt addr,Bit16u val) {
+    void writew(PhysPt addr,uint16_t val) {
 //	LOG_MSG("Glide:Write to 0x%p", LFB_getAddr(addr));
-	*(Bit16u *)(LFB_getAddr(addr))=(Bit16u)val;
+	*(uint16_t *)(LFB_getAddr(addr))=(uint16_t)val;
     }
 
     void writed(PhysPt addr,Bit32u val) {
@@ -485,7 +485,7 @@ void GLIDE_ResetScreen(bool update)
 #if defined(C_SDL2)
         void GFX_SetResizeable(bool enable);
         GFX_SetResizeable(true);
-        SDL_Window* GFX_SetSDLWindowMode(Bit16u width, Bit16u height, SCREEN_TYPES screenType);
+        SDL_Window* GFX_SetSDLWindowMode(uint16_t width, uint16_t height, SCREEN_TYPES screenType);
         sdl.window = GFX_SetSDLWindowMode(glide.width,glide.height, sdl.desktop.want_type == SCREEN_OPENGL ? SCREEN_OPENGL : SCREEN_SURFACE);
         if (sdl.window != NULL) sdl.surface = SDL_GetWindowSurface(sdl.window);
 #else

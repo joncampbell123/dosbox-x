@@ -233,7 +233,7 @@ void INT10_GetSingleDACRegister(uint8_t index,uint8_t * red,uint8_t * green,uint
 	*blue=IO_Read(VGAREG_DAC_DATA);
 }
 
-void INT10_SetDACBlock(Bit16u index,Bit16u count,PhysPt data) {
+void INT10_SetDACBlock(uint16_t index,uint16_t count,PhysPt data) {
  	IO_Write(VGAREG_DAC_WRITE_ADDRESS,(uint8_t)index);
 	if ((real_readb(BIOSMEM_SEG,BIOSMEM_MODESET_CTL)&0x06)==0) {
 		for (;count>0;count--) {
@@ -257,7 +257,7 @@ void INT10_SetDACBlock(Bit16u index,Bit16u count,PhysPt data) {
 	}
 }
 
-void INT10_GetDACBlock(Bit16u index,Bit16u count,PhysPt data) {
+void INT10_GetDACBlock(uint16_t index,uint16_t count,PhysPt data) {
  	IO_Write(VGAREG_DAC_READ_ADDRESS,(uint8_t)index);
 	for (;count>0;count--) {
 		mem_writeb(data++,IO_Read(VGAREG_DAC_DATA));
@@ -427,7 +427,7 @@ void INT10_SetColorSelect(uint8_t val) {
 	}
 }
 
-void INT10_PerformGrayScaleSumming(Bit16u start_reg,Bit16u count) {
+void INT10_PerformGrayScaleSumming(uint16_t start_reg,uint16_t count) {
 	if (count>0x100) count=0x100;
 	for (Bitu ct=0; ct<count; ct++) {
 		IO_Write(VGAREG_DAC_READ_ADDRESS,(uint8_t)(start_reg+ct));

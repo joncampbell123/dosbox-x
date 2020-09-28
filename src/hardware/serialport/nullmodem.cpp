@@ -135,17 +135,17 @@ CNullModem::CNullModem(Bitu id, CommandLine* cmd):CSerial (id, cmd) {
 				hostnamebuffer[sizeof(hostnamebuffer)-1]=0;
 			}
 			memcpy(hostnamebuffer,hostnamechar,hostlen);
-			clientport=(Bit16u)temptcpport;
+			clientport=(uint16_t)temptcpport;
 			if (dtrrespect) {
 				// we connect as soon as DTR is switched on
 				setEvent(SERIAL_NULLMODEM_DTR_EVENT, 50);
 				LOG_MSG("Serial%d: Waiting for DTR...",(int)COMNUMBER);
 			} else if (!ClientConnect(
-				new TCPClientSocket((char*)hostnamebuffer,(Bit16u)clientport)))
+				new TCPClientSocket((char*)hostnamebuffer,(uint16_t)clientport)))
 				return;
 		} else {
 			// we are a server
-			serverport = (Bit16u)temptcpport;
+			serverport = (uint16_t)temptcpport;
 			if (!ServerListen()) return;
 		}
 	}
@@ -162,7 +162,7 @@ CNullModem::~CNullModem() {
 	if (serversocket) delete serversocket;
 	if (clientsocket) delete clientsocket;
 	// remove events
-	for(Bit16u i = SERIAL_BASE_EVENT_COUNT+1;
+	for(uint16_t i = SERIAL_BASE_EVENT_COUNT+1;
 			i <= SERIAL_NULLMODEM_EVENT_COUNT; i++) {
 		removeEvent(i);
 	}
@@ -281,7 +281,7 @@ void CNullModem::Disconnect() {
 	}
 }
 
-void CNullModem::handleUpperEvent(Bit16u type) {
+void CNullModem::handleUpperEvent(uint16_t type) {
 	
 	switch(type) {
 		case SERIAL_POLLING_EVENT: {
@@ -424,7 +424,7 @@ void CNullModem::handleUpperEvent(Bit16u type) {
 			if ((!DTR_delta) && getDTR()) {
 				// DTR went positive. Try to connect.
 				if (ClientConnect(new TCPClientSocket((char*)hostnamebuffer,
-								(Bit16u)clientport)))
+								(uint16_t)clientport)))
 					break; // no more DTR wait event when connected
 			}
 			DTR_delta = getDTR();
@@ -438,7 +438,7 @@ void CNullModem::handleUpperEvent(Bit16u type) {
 /* updatePortConfig is called when emulated app changes the serial port     **/
 /* parameters baudrate, stopbits, number of databits, parity.               **/
 /*****************************************************************************/
-void CNullModem::updatePortConfig (Bit16u /*divider*/, uint8_t /*lcr*/) {
+void CNullModem::updatePortConfig (uint16_t /*divider*/, uint8_t /*lcr*/) {
 	
 }
 

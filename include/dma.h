@@ -40,10 +40,10 @@ typedef void (* DMA_CallBack)(DmaChannel * chan,DMAEvent event);
 class DmaChannel {
 public:
 	Bit32u pagebase;
-	Bit16u baseaddr;
+	uint16_t baseaddr;
 	Bit32u curraddr;
-	Bit16u basecnt;
-	Bit16u currcnt;
+	uint16_t basecnt;
+	uint16_t currcnt;
 	uint8_t channum;
 	uint8_t pagenum;
     uint8_t DMA16_PAGESHIFT;

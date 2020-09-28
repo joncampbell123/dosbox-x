@@ -42,7 +42,7 @@ public:
 	bool addLF;					// if set, add line feed after carriage return if not used by app
 
 	uint8_t lastChar = 0;				// used to save the previous character to decide wether to add LF
-	const Bit16u* codepage_ptr; // pointer to the translation codepage if not null
+	const uint16_t* codepage_ptr; // pointer to the translation codepage if not null
 
 	bool OpenFile();
 	
@@ -64,7 +64,7 @@ public:
 	bool ack;
 	unsigned int timeout = 0;
 	Bitu lastUsedTick = 0;
-	virtual void handleUpperEvent(Bit16u type);
+	virtual void handleUpperEvent(uint16_t type);
 };
 
 #endif	// include guard
