@@ -93,7 +93,7 @@ static void RestoreRegisters(void) {
 	reg_sp+=18;
 }
 
-extern void GFX_SetTitle(Bit32s cycles, Bits frameskip, Bits timing, bool paused);
+extern void GFX_SetTitle(int32_t cycles, Bits frameskip, Bits timing, bool paused);
 void DOS_UpdatePSPName(void) {
 	DOS_MCB mcb(dos.psp()-1);
 	static char name[9];
@@ -149,7 +149,7 @@ void DOS_Terminate(uint16_t pspseg,bool tsr,uint8_t exitcode) {
 		CPU_CycleLeft=0;
 		CPU_Cycles=0;
 		CPU_CycleMax=CPU_OldCycleMax;
-		GFX_SetTitle((Bit32s)CPU_OldCycleMax,-1,-1,false);
+		GFX_SetTitle((int32_t)CPU_OldCycleMax,-1,-1,false);
 	} else {
 		GFX_SetTitle(-1,-1,-1,false);
 	}

@@ -160,17 +160,17 @@ bool DOS_MakeName(char const * const name,char * const fullname,uint8_t * drive)
 				continue;
 			}
 
-			Bit32s iDown;
+			int32_t iDown;
 			bool dots = true;
-			Bit32s templen=(Bit32s)strlen(tempdir);
+			int32_t templen=(int32_t)strlen(tempdir);
 			for(iDown=0;(iDown < templen) && dots;iDown++)
 				if(tempdir[iDown] != '.')
 					dots = false;
 
 			// only dots?
 			if (dots && (templen > 1)) {
-				Bit32s cDots = templen - 1;
-				for(iDown=(Bit32s)strlen(fullname)-1;iDown>=0;iDown--) {
+				int32_t cDots = templen - 1;
+				for(iDown=(int32_t)strlen(fullname)-1;iDown>=0;iDown--) {
 					if(fullname[iDown]=='\\' || iDown==0) {
 						lastdir = (uint32_t)iDown;
 						cDots--;

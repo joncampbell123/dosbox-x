@@ -48,7 +48,7 @@ static INLINE uint32_t the_Fetchd(EAPoint & loc) {
 
 #define Fetchbs() (int8_t)the_Fetchb(inst.cseip)
 #define Fetchws() (int16_t)the_Fetchw(inst.cseip)
-#define Fetchds() (Bit32s)the_Fetchd(inst.cseip)
+#define Fetchds() (int32_t)the_Fetchd(inst.cseip)
 
 #define Push_16 CPU_Push16
 #define Push_32 CPU_Push32

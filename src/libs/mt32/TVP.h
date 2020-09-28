@@ -42,8 +42,8 @@ private:
 
 	int phase;
 	uint32_t basePitch;
-	Bit32s targetPitchOffsetWithoutLFO;
-	Bit32s currentPitchOffset;
+	int32_t targetPitchOffsetWithoutLFO;
+	int32_t currentPitchOffset;
 
 	int16_t lfoPitchOffset;
 	// In range -12 - 36

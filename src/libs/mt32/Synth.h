@@ -239,10 +239,10 @@ private:
 	const Part *getPart(uint8_t partNum) const;
 
 	void resetMasterTunePitchDelta();
-	Bit32s getMasterTunePitchDelta() const;
+	int32_t getMasterTunePitchDelta() const;
 
 public:
-	static inline int16_t clipSampleEx(Bit32s sampleEx) {
+	static inline int16_t clipSampleEx(int32_t sampleEx) {
 		// Clamp values above 32767 to 32767, and values below -32768 to -32768
 		// FIXME: Do we really need this stuff? I think these branches are very well predicted. Instead, this introduces a chain.
 		// The version below is actually a bit faster on my system...
@@ -269,7 +269,7 @@ public:
 	}
 
 	static inline int16_t convertSample(float sample) {
-		return Synth::clipSampleEx(Bit32s(sample * 32768.0f)); // This multiplier corresponds to normalised floats
+		return Synth::clipSampleEx(int32_t(sample * 32768.0f)); // This multiplier corresponds to normalised floats
 	}
 
 	static inline float convertSample(int16_t sample) {

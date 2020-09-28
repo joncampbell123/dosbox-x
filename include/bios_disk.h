@@ -453,7 +453,7 @@ void incrementFDD(void);
 extern bool imageDiskChange[MAX_DISK_IMAGES];
 extern imageDisk *imageDiskList[MAX_DISK_IMAGES];
 extern imageDisk *diskSwap[MAX_SWAPPABLE_DISKS];
-extern Bit32s swapPosition;
+extern int32_t swapPosition;
 extern uint16_t imgDTASeg; /* Real memory location of temporary DTA pointer for fat image disk access */
 extern RealPt imgDTAPtr; /* Real memory location of temporary DTA pointer for fat image disk access */
 extern DOS_DTA *imgDTA;

@@ -109,7 +109,7 @@ struct _opl3_chip {
     uint8_t tremoloshift;
     uint32_t noise;
     int16_t zeromod;
-    Bit32s mixbuff[2];
+    int32_t mixbuff[2];
     uint8_t rm_hh_bit2;
     uint8_t rm_hh_bit3;
     uint8_t rm_hh_bit7;
@@ -117,8 +117,8 @@ struct _opl3_chip {
     uint8_t rm_tc_bit3;
     uint8_t rm_tc_bit5;
     //OPL3L
-    Bit32s rateratio;
-    Bit32s samplecnt;
+    int32_t rateratio;
+    int32_t samplecnt;
     int16_t oldsamples[2];
     int16_t samples[2];
 

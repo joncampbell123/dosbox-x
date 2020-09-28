@@ -322,7 +322,7 @@ public:
 			getClipboard();
 			fPointer =0;
 			}
-		Bit32s newPos;
+		int32_t newPos;
 		switch (type)
 			{
 		case 0:																			// Start of file
@@ -340,7 +340,7 @@ public:
 			return false;
 			}
 			}
-		if (newPos > (Bit32s)clipSize)													// Different from "real" Files
+		if (newPos > (int32_t)clipSize)													// Different from "real" Files
 			newPos = clipSize;
 		else if (newPos < 0)
 			newPos = 0;

@@ -110,7 +110,7 @@ void Part::setHoldPedal(bool pressed) {
 	}
 }
 
-Bit32s Part::getPitchBend() const {
+int32_t Part::getPitchBend() const {
 	return pitchBend;
 }
 

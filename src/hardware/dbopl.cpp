@@ -330,7 +330,7 @@ static const WaveHandler WaveHandlerTable[8] = {
 	uint32_t tl = reg40 & 0x3f;
 	uint8_t kslShift = KslShiftTable[ reg40 >> 6 ];
 	//Make sure the attenuation goes to the right bits
-	totalLevel = (Bit32s)(tl << ( ENV_BITS - 7 ));	//Total level goes 2 bits below max
+	totalLevel = (int32_t)(tl << ( ENV_BITS - 7 ));	//Total level goes 2 bits below max
 	totalLevel += ( kslBase << ENV_EXTRA ) >> kslShift;
 }
 
@@ -372,17 +372,17 @@ void Operator::UpdateRates( const Chip* chip ) {
 	UpdateRelease( chip );
 }
 
-/*INLINE*/ Bit32s Operator::RateForward( uint32_t add ) {
+/*INLINE*/ int32_t Operator::RateForward( uint32_t add ) {
 	rateIndex += add;
-	Bit32s ret = (Bit32s)(rateIndex >> RATE_SH);
+	int32_t ret = (int32_t)(rateIndex >> RATE_SH);
 	rateIndex = rateIndex & RATE_MASK;
 	return ret;
 }
 
 template< Operator::State yes>
 Bits Operator::TemplateVolume(  ) {
-	Bit32s vol = volume;
-	Bit32s change;
+	int32_t vol = volume;
+	int32_t change;
 	switch ( yes ) {
 	case OFF:
 		return ENV_MAX;
@@ -534,12 +534,12 @@ void Operator::WriteE0( const Chip* chip, uint8_t val ) {
 }
 
 /*INLINE*/ void Operator::Prepare( const Chip* chip )  {
-	currentLevel = (uint32_t)(totalLevel + (Bit32s)(chip->tremoloValue & tremoloMask));
+	currentLevel = (uint32_t)(totalLevel + (int32_t)(chip->tremoloValue & tremoloMask));
 	waveCurrent = waveAdd;
 	if ( vibStrength >> chip->vibratoShift ) {
-		Bit32s add = (Bit32s)(vibrato >> chip->vibratoShift);
+		int32_t add = (int32_t)(vibrato >> chip->vibratoShift);
 		//Sign extend over the shift value
-		Bit32s neg = chip->vibratoSign;
+		int32_t neg = chip->vibratoSign;
 		//Negate the add with -1 or 0
 		add = ( add ^ neg ) - neg; 
 		waveCurrent += (Bitu)add;
@@ -575,11 +575,11 @@ void Operator::KeyOff( uint8_t mask ) {
 #elif ( DBOPL_WAVE == WAVE_TABLEMUL )
 	return (waveBase[ index & waveMask ] * MulTable[ vol >> ENV_EXTRA ]) >> MUL_SH;
 #elif ( DBOPL_WAVE == WAVE_TABLELOG )
-	Bit32s wave = waveBase[ index & waveMask ];
+	int32_t wave = waveBase[ index & waveMask ];
 	uint32_t total = ( wave & 0x7fff ) + vol << ( 3 - ENV_EXTRA );
-	Bit32s sig = ExpTable[ total & 0xff ];
+	int32_t sig = ExpTable[ total & 0xff ];
 	uint32_t exp = total >> 8;
-	Bit32s neg = wave >> 16;
+	int32_t neg = wave >> 16;
 	return ((sig ^ neg) - neg) >> exp;
 #else
 #error "No valid wave routine"
@@ -797,13 +797,13 @@ void Channel::UpdateSynth( const Chip* chip ) {
 }
 
 template< bool opl3Mode>
-/*INLINE*/ void Channel::GeneratePercussion( Chip* chip, Bit32s* output ) {
+/*INLINE*/ void Channel::GeneratePercussion( Chip* chip, int32_t* output ) {
 	Channel* chan = this;
 
 	//BassDrum
-	Bit32s mod = (Bit32s)((uint32_t)(old[0] + old[1]) >> feedback);
+	int32_t mod = (int32_t)((uint32_t)(old[0] + old[1]) >> feedback);
 	old[0] = old[1];
-	old[1] = (Bit32s)Op(0)->GetSample( mod );
+	old[1] = (int32_t)Op(0)->GetSample( mod );
 
 	//When bassdrum is in AM mode first operator is ignoed
 	if ( chan->regC0 & 1 ) {
@@ -811,7 +811,7 @@ template< bool opl3Mode>
 	} else {
 		mod = old[0];
 	}
-	Bit32s sample = (Bit32s)Op(1)->GetSample( mod );
+	int32_t sample = (int32_t)Op(1)->GetSample( mod );
 
 
 	//Precalculate stuff used by other outputs
@@ -824,22 +824,22 @@ template< bool opl3Mode>
 	uint32_t hhVol = (uint32_t)Op(2)->ForwardVolume();
 	if ( !ENV_SILENT( hhVol ) ) {
 		uint32_t hhIndex = (phaseBit<<8) | (0x34 << ( phaseBit ^ (noiseBit << 1 )));
-		sample += (Bit32s)Op(2)->GetWave( hhIndex, hhVol );
+		sample += (int32_t)Op(2)->GetWave( hhIndex, hhVol );
 	}
 	//Snare Drum
 	uint32_t sdVol = (uint32_t)Op(3)->ForwardVolume();
 	if ( !ENV_SILENT( sdVol ) ) {
 		uint32_t sdIndex = ( 0x100 + (c2 & 0x100) ) ^ ( noiseBit << 8 );
-		sample += (Bit32s)Op(3)->GetWave( sdIndex, sdVol );
+		sample += (int32_t)Op(3)->GetWave( sdIndex, sdVol );
 	}
 	//Tom-tom
-	sample += (Bit32s)Op(4)->GetSample( 0 );
+	sample += (int32_t)Op(4)->GetSample( 0 );
 
 	//Top-Cymbal
 	uint32_t tcVol = (uint32_t)Op(5)->ForwardVolume();
 	if ( !ENV_SILENT( tcVol ) ) {
 		uint32_t tcIndex = (1 + phaseBit) << 8;
-		sample += (Bit32s)Op(5)->GetWave( tcIndex, tcVol );
+		sample += (int32_t)Op(5)->GetWave( tcIndex, tcVol );
 	}
 	sample <<= 1;
 	if ( opl3Mode ) {
@@ -851,7 +851,7 @@ template< bool opl3Mode>
 }
 
 template<SynthMode mode>
-Channel* Channel::BlockTemplate( Chip* chip, uint32_t samples, Bit32s* output ) {
+Channel* Channel::BlockTemplate( Chip* chip, uint32_t samples, int32_t* output ) {
 	switch( mode ) {
 	case sm2AM:
 	case sm3AM:
@@ -916,33 +916,33 @@ Channel* Channel::BlockTemplate( Chip* chip, uint32_t samples, Bit32s* output ) 
 		}
 
 		//Do unsigned shift so we can shift out all bits but still stay in 10 bit range otherwise
-		Bit32s mod = (Bit32s)((uint32_t)((old[0] + old[1])) >> feedback);
+		int32_t mod = (int32_t)((uint32_t)((old[0] + old[1])) >> feedback);
 		old[0] = old[1];
-		old[1] = (Bit32s)Op(0)->GetSample( mod );
-		Bit32s sample;
-		Bit32s out0 = old[0];
+		old[1] = (int32_t)Op(0)->GetSample( mod );
+		int32_t sample;
+		int32_t out0 = old[0];
 		if ( mode == sm2AM || mode == sm3AM ) {
-			sample = (Bit32s)(out0 + Op(1)->GetSample( 0 ));
+			sample = (int32_t)(out0 + Op(1)->GetSample( 0 ));
 		} else if ( mode == sm2FM || mode == sm3FM ) {
-			sample = (Bit32s)Op(1)->GetSample( out0 );
+			sample = (int32_t)Op(1)->GetSample( out0 );
 		} else if ( mode == sm3FMFM ) {
 			Bits next = Op(1)->GetSample( out0 ); 
 			next = Op(2)->GetSample( next );
-			sample = (Bit32s)Op(3)->GetSample( next );
+			sample = (int32_t)Op(3)->GetSample( next );
 		} else if ( mode == sm3AMFM ) {
 			sample = out0;
 			Bits next = Op(1)->GetSample( 0 ); 
 			next = Op(2)->GetSample( next );
-			sample += (Bit32s)Op(3)->GetSample( next );
+			sample += (int32_t)Op(3)->GetSample( next );
 		} else if ( mode == sm3FMAM ) {
-			sample = (Bit32s)Op(1)->GetSample( out0 );
+			sample = (int32_t)Op(1)->GetSample( out0 );
 			Bits next = Op(2)->GetSample( 0 );
-			sample += (Bit32s)Op(3)->GetSample( next );
+			sample += (int32_t)Op(3)->GetSample( next );
 		} else if ( mode == sm3AMAM ) {
 			sample = out0;
 			Bits next = Op(1)->GetSample( 0 ); 
-			sample += (Bit32s)Op(2)->GetSample( next );
-			sample += (Bit32s)Op(3)->GetSample( 0 );
+			sample += (int32_t)Op(2)->GetSample( next );
+			sample += (int32_t)Op(3)->GetSample( 0 );
 		}
 		switch( mode ) {
 		case sm2AM:
@@ -1194,10 +1194,10 @@ uint32_t Chip::WriteAddr( uint32_t port, uint8_t val ) {
 	return 0u;
 }
 
-void Chip::GenerateBlock2( Bitu total, Bit32s* output ) {
+void Chip::GenerateBlock2( Bitu total, int32_t* output ) {
 	while ( total > 0 ) {
 		uint32_t samples = ForwardLFO( (uint32_t)total );
-		memset(output, 0, sizeof(Bit32s) * samples);
+		memset(output, 0, sizeof(int32_t) * samples);
 //		int count = 0;
 		for( Channel* ch = chan; ch < chan + 9; ) {
 //			count++;
@@ -1208,10 +1208,10 @@ void Chip::GenerateBlock2( Bitu total, Bit32s* output ) {
 	}
 }
 
-void Chip::GenerateBlock3( Bitu total, Bit32s* output  ) {
+void Chip::GenerateBlock3( Bitu total, int32_t* output  ) {
 	while ( total > 0 ) {
 		uint32_t samples = ForwardLFO( (uint32_t)total );
-		memset(output, 0, sizeof(Bit32s) * samples *2);
+		memset(output, 0, sizeof(int32_t) * samples *2);
 //		int count = 0;
 		for( Channel* ch = chan; ch < chan + 18; ) {
 //			count++;
@@ -1258,24 +1258,24 @@ void Chip::Setup( uint32_t rate ) {
 		EnvelopeSelect( i, index, shift );
 		linearRates[i] = (uint32_t)( scale * (EnvelopeIncreaseTable[ index ] << ( RATE_SH + ENV_EXTRA - shift - 3 )));
 	}
-//	Bit32s attackDiffs[62];
+//	int32_t attackDiffs[62];
 	//Generate the best matching attack rate
 	for ( uint8_t i = 0; i < 62; i++ ) {
 		uint8_t index, shift;
 		EnvelopeSelect( i, index, shift );
 		//Original amount of samples the attack would take
-		Bit32s originalAmount = (Bit32s)((uint32_t)( (AttackSamplesTable[ index ] << shift) / scale));
+		int32_t originalAmount = (int32_t)((uint32_t)( (AttackSamplesTable[ index ] << shift) / scale));
 		 
-		Bit32s guessAdd = (Bit32s)((uint32_t)( scale * (EnvelopeIncreaseTable[ index ] << ( RATE_SH - shift - 3 ))));
-		Bit32s bestAdd = guessAdd;
+		int32_t guessAdd = (int32_t)((uint32_t)( scale * (EnvelopeIncreaseTable[ index ] << ( RATE_SH - shift - 3 ))));
+		int32_t bestAdd = guessAdd;
 		uint32_t bestDiff = 1 << 30;
 		for( uint32_t passes = 0; passes < 16; passes ++ ) {
-			Bit32s volume = ENV_MAX;
-			Bit32s samples = 0;
+			int32_t volume = ENV_MAX;
+			int32_t samples = 0;
 			uint32_t count = 0;
 			while ( volume > 0 && samples < originalAmount * 2 ) {
 				count += (uint32_t)guessAdd;
-				Bit32s change = (Bit32s)(count >> RATE_SH);
+				int32_t change = (int32_t)(count >> RATE_SH);
 				count &= RATE_MASK;
 				if ( GCC_UNLIKELY(change) ) { // less than 1 % 
 					volume += ( ~volume * change ) >> 3;
@@ -1283,7 +1283,7 @@ void Chip::Setup( uint32_t rate ) {
 				samples++;
 
 			}
-			Bit32s diff = originalAmount - samples;
+			int32_t diff = originalAmount - samples;
 			uint32_t lDiff = labs( diff );
 			//Init last on first pass
 			if ( lDiff < bestDiff ) {
@@ -1295,7 +1295,7 @@ void Chip::Setup( uint32_t rate ) {
 			}
 			//Linear correction factor, not exactly perfect but seems to work
 			double correct = (originalAmount - diff) / (double)originalAmount;
-			guessAdd = (Bit32s)(guessAdd * correct);
+			guessAdd = (int32_t)(guessAdd * correct);
 			//Below our target
 			if ( diff < 0 ) {
 				//Always add one here for rounding, an overshoot will get corrected by another pass decreasing
@@ -1512,7 +1512,7 @@ void Handler::WriteReg( uint32_t addr, uint8_t val ) {
 }
 
 void Handler::Generate( MixerChannel* chan, Bitu samples ) {
-	Bit32s buffer[ 512 * 2 ];
+	int32_t buffer[ 512 * 2 ];
 	if ( GCC_UNLIKELY(samples > 512) )
 		samples = 512;
 	if ( !chip.opl3Active ) {

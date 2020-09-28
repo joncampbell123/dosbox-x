@@ -373,7 +373,7 @@ int16_t LA32IntPartialPair::unlogAndMixWGOutput(const LA32WaveGenerator &wg) {
 	int16_t firstSample = LA32Utilites::unlog(wg.getOutputLogSample(true));
 	int16_t secondSample = LA32Utilites::unlog(wg.getOutputLogSample(false));
 	if (wg.isPCMWave()) {
-		return int16_t(firstSample + (((Bit32s(secondSample) - Bit32s(firstSample)) * wg.getPCMInterpolationFactor()) >> 7));
+		return int16_t(firstSample + (((int32_t(secondSample) - int32_t(firstSample)) * wg.getPCMInterpolationFactor()) >> 7));
 	}
 	return firstSample + secondSample;
 }
@@ -403,7 +403,7 @@ int16_t LA32IntPartialPair::nextOutSample() {
 	 * it is reasonable to assume the ring modulation is performed also in the linear space by sample multiplication.
 	 * Most probably the overflow is caused by limited precision of the multiplication circuit as the very similar distortion occurs with panning.
 	 */
-	int16_t ringModulatedSample = int16_t((Bit32s(produceDistortedSample(masterSample)) * Bit32s(produceDistortedSample(slaveSample))) >> 13);
+	int16_t ringModulatedSample = int16_t((int32_t(produceDistortedSample(masterSample)) * int32_t(produceDistortedSample(slaveSample))) >> 13);
 
 	return mixed ? masterSample + ringModulatedSample : ringModulatedSample;
 }

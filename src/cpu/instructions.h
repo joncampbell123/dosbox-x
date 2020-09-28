@@ -717,11 +717,11 @@ extern bool enable_fpu;
 {															\
 	Bits val=(int16_t)(load(op1));							\
 	if (val==0) EXCEPTION(0);									\
-	Bits num=(Bit32s)(((unsigned int)reg_dx<<16u)|(unsigned int)reg_ax);					\
+	Bits num=(int32_t)(((unsigned int)reg_dx<<16u)|(unsigned int)reg_ax);					\
 	Bits quo=num/val;										\
 	int16_t rem=(int16_t)(num % val);							\
 	int16_t quo16s=(int16_t)quo;								\
-	if (quo!=(Bit32s)quo16s) EXCEPTION(0);					\
+	if (quo!=(int32_t)quo16s) EXCEPTION(0);					\
 	reg_dx=(uint16_t)rem;												\
 	reg_ax=(uint16_t)quo16s;											\
 	FillFlags();											\
@@ -735,12 +735,12 @@ extern bool enable_fpu;
 
 #define IDIVD(op1,load,save)								\
 {															\
-	Bits val=(Bit32s)(load(op1));							\
+	Bits val=(int32_t)(load(op1));							\
 	if (val==0) EXCEPTION(0);									\
 	Bit64s num=(Bit64s)((((Bit64u)reg_edx)<<(Bit64u)32)|(Bit64u)reg_eax);				\
 	Bit64s quo=num/val;										\
-	Bit32s rem=(Bit32s)(num % val);							\
-	Bit32s quo32s=(Bit32s)(quo&0xffffffff);					\
+	int32_t rem=(int32_t)(num % val);							\
+	int32_t quo32s=(int32_t)(quo&0xffffffff);					\
 	if (quo!=(Bit64s)quo32s) EXCEPTION(0);					\
 	reg_edx=(uint32_t)rem;											\
 	reg_eax=(uint32_t)quo32s;											\
@@ -786,8 +786,8 @@ extern bool enable_fpu;
 
 #define IMULD(op1,load,save)								\
 {															\
-	Bit64s temps=((Bit64s)((Bit32s)reg_eax))*				\
-				 ((Bit64s)((Bit32s)(load(op1))));			\
+	Bit64s temps=((Bit64s)((int32_t)reg_eax))*				\
+				 ((Bit64s)((int32_t)(load(op1))));			\
 	reg_eax=(uint32_t)(temps);								\
 	reg_edx=(uint32_t)(temps >> 32);							\
 	FillFlagsNoCFOF();										\
@@ -818,8 +818,8 @@ extern bool enable_fpu;
 
 #define DIMULD(op1,op2,op3,load,save)						\
 {															\
-	Bit64s res=((Bit64s)((Bit32s)op2))*((Bit64s)((Bit32s)op3));	\
-	save(op1,(Bit32s)res);									\
+	Bit64s res=((Bit64s)((int32_t)op2))*((Bit64s)((int32_t)op3));	\
+	save(op1,(int32_t)res);									\
 	FillFlagsNoCFOF();										\
 	if ((res>=-((Bit64s)(2147483647)+1)) &&					\
 		(res<=(Bit64s)2147483647)) {						\

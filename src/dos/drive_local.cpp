@@ -1515,7 +1515,7 @@ bool localFile::Seek(uint32_t * pos,uint32_t type) {
 	//TODO Give some doserrorcode;
 		return false;//ERROR
 	}
-	int ret=fseek(fhandle,*reinterpret_cast<Bit32s*>(pos),seektype);
+	int ret=fseek(fhandle,*reinterpret_cast<int32_t*>(pos),seektype);
 	if (ret!=0) {
 		// Out of file range, pretend everythings ok 
 		// and move file pointer top end of file... ?! (Black Thorne)

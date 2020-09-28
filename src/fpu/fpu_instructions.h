@@ -101,7 +101,7 @@ static double FPU_FLD80(PhysPt addr,FPU_Reg_80 &raw) {
 		FPU_Reg eind;
 	} test;
 	test.eind.l.lower = mem_readd(addr);
-	test.eind.l.upper = (Bit32s)mem_readd(addr+4);
+	test.eind.l.upper = (int32_t)mem_readd(addr+4);
 	test.begin = (int16_t)mem_readw(addr+8);
    
 	Bit64s exp64 = (((test.begin&0x7fff) - (Bit64s)BIAS80));
@@ -172,7 +172,7 @@ static void FPU_FLD_F32(PhysPt addr,Bitu store_to) {
 
 static void FPU_FLD_F64(PhysPt addr,Bitu store_to) {
 	fpu.regs[store_to].l.lower = mem_readd(addr);
-	fpu.regs[store_to].l.upper = (Bit32s)mem_readd(addr+4);
+	fpu.regs[store_to].l.upper = (int32_t)mem_readd(addr+4);
 	fpu.use80[store_to] = false;
 }
 
@@ -188,7 +188,7 @@ static void FPU_FLD_I16(PhysPt addr,Bitu store_to) {
 }
 
 static void FPU_FLD_I32(PhysPt addr,Bitu store_to) {
-	Bit32s blah = (Bit32s)mem_readd(addr);
+	int32_t blah = (int32_t)mem_readd(addr);
 	fpu.regs[store_to].d = static_cast<double>(blah);
 	fpu.use80[store_to] = false;
 }
@@ -196,7 +196,7 @@ static void FPU_FLD_I32(PhysPt addr,Bitu store_to) {
 static void FPU_FLD_I64(PhysPt addr,Bitu store_to) {
 	FPU_Reg blah;
 	blah.l.lower = mem_readd(addr);
-	blah.l.upper = (Bit32s)mem_readd(addr+4);
+	blah.l.upper = (int32_t)mem_readd(addr+4);
 	fpu.regs[store_to].d = static_cast<double>(blah.ll);
 	// store the signed 64-bit integer in the 80-bit format mantissa with faked exponent.
 	// this is needed for DOS and Windows games that use the Pentium fast memcpy trick, using FLD/FST to copy 64 bits at a time.
@@ -267,7 +267,7 @@ static void FPU_FST_I16(PhysPt addr) {
 }
 
 static void FPU_FST_I32(PhysPt addr) {
-	mem_writed(addr,(uint32_t)static_cast<Bit32s>(FROUND(fpu.regs[TOP].d)));
+	mem_writed(addr,(uint32_t)static_cast<int32_t>(FROUND(fpu.regs[TOP].d)));
 }
 
 static void FPU_FST_I64(PhysPt addr) {

@@ -40,7 +40,7 @@ typedef Bits ( DB_FASTCALL *WaveHandler) ( Bitu i, Bitu volume );
 #endif
 
 typedef Bits ( DBOPL::Operator::*VolumeHandler) ( );
-typedef Channel* ( DBOPL::Channel::*SynthHandler) ( Chip* chip, uint32_t samples, Bit32s* output );
+typedef Channel* ( DBOPL::Channel::*SynthHandler) ( Chip* chip, uint32_t samples, int32_t* output );
 
 //Different synth modes that can generate blocks of data
 typedef enum {
@@ -98,10 +98,10 @@ public:
 	uint32_t chanData;			//Frequency/octave and derived data coming from whatever channel controls this
 	uint32_t freqMul;				//Scale channel frequency with this, TODO maybe remove?
 	uint32_t vibrato;				//Scaled up vibrato strength
-	Bit32s sustainLevel;		//When stopping at sustain level stop here
-	Bit32s totalLevel;			//totalLevel is added to every generated volume
+	int32_t sustainLevel;		//When stopping at sustain level stop here
+	int32_t totalLevel;			//totalLevel is added to every generated volume
 	uint32_t currentLevel;		//totalLevel + tremolo
-	Bit32s volume;				//The currently active volume
+	int32_t volume;				//The currently active volume
 	
 	uint32_t attackAdd;			//Timers for the different states of the envelope
 	uint32_t decayAdd;
@@ -145,7 +145,7 @@ public:
 	template< State state>
 	Bits TemplateVolume( );
 
-	Bit32s RateForward( uint32_t add );
+	int32_t RateForward( uint32_t add );
 	Bitu ForwardWave();
 	Bitu ForwardVolume();
 
@@ -162,7 +162,7 @@ struct Channel {
 	}
 	SynthHandler synthHandler;
 	uint32_t chanData;		//Frequency/octave and derived values
-	Bit32s old[2];			//Old data for feedback
+	int32_t old[2];			//Old data for feedback
 
 	uint8_t feedback;			//Feedback shift
 	uint8_t regB0;			//Register values to check for changes
@@ -183,11 +183,11 @@ struct Channel {
 
 	//call this for the first channel
 	template< bool opl3Mode >
-	void GeneratePercussion( Chip* chip, Bit32s* output );
+	void GeneratePercussion( Chip* chip, int32_t* output );
 
 	//Generate blocks of data in specific modes
 	template<SynthMode mode>
-	Channel* BlockTemplate( Chip* chip, uint32_t samples, Bit32s* output );
+	Channel* BlockTemplate( Chip* chip, uint32_t samples, int32_t* output );
 	Channel();
 };
 
@@ -236,8 +236,8 @@ struct Chip {
 
 	uint32_t WriteAddr( uint32_t port, uint8_t val );
 
-	void GenerateBlock2( Bitu total, Bit32s* output );
-	void GenerateBlock3( Bitu total, Bit32s* output );
+	void GenerateBlock2( Bitu total, int32_t* output );
+	void GenerateBlock3( Bitu total, int32_t* output );
 
 	//Update the synth handlers in all channels
 	void UpdateSynths();

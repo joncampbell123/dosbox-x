@@ -31,7 +31,7 @@ typedef union {
 	} ud;
 
 	struct {
-		Bit32s d0,d1;
+		int32_t d0,d1;
 	} sd;
 
 	struct {
@@ -55,7 +55,7 @@ typedef union {
 	} ud;
 
 	struct {
-		Bit32s d1,d0;
+		int32_t d1,d0;
 	} sd;
 
 	struct {
@@ -82,9 +82,9 @@ extern MMX_reg * lookupRMregMM[256];
 
 
 int8_t  SaturateWordSToByteS(int16_t value);
-int16_t SaturateDwordSToWordS(Bit32s value);
+int16_t SaturateDwordSToWordS(int32_t value);
 uint8_t  SaturateWordSToByteU(int16_t value);
-uint16_t SaturateDwordSToWordU(Bit32s value);
+uint16_t SaturateDwordSToWordU(int32_t value);
 
 void   setFPUTagEmpty();
 

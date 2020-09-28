@@ -405,8 +405,8 @@ public:
 	uint32_t appendCluster(uint32_t startCluster);
 	void deleteClustChain(uint32_t startCluster, uint32_t bytePos);
 	uint32_t getFirstFreeClust(void);
-	bool directoryBrowse(uint32_t dirClustNumber, direntry *useEntry, Bit32s entNum, Bit32s start=0);
-	bool directoryChange(uint32_t dirClustNumber, const direntry *useEntry, Bit32s entNum);
+	bool directoryBrowse(uint32_t dirClustNumber, direntry *useEntry, int32_t entNum, int32_t start=0);
+	bool directoryChange(uint32_t dirClustNumber, const direntry *useEntry, int32_t entNum);
 	const FAT_BootSector::bpb_union_t &GetBPB(void);
 	void SetBPB(const FAT_BootSector::bpb_union_t &bpb);
 	imageDisk *loadedDisk = NULL;

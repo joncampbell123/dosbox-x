@@ -37,15 +37,15 @@ static const uint8_t PAN_NUMERATOR_SLAVE[]  = {0, 1, 2, 3, 4, 5, 6, 7, 7, 7, 7, 
 // We assume the pan is applied using the same 13-bit multiplier circuit that is also used for ring modulation
 // because of the observed sample overflow, so the panSetting values are likely mapped in a similar way via a LUT.
 // FIXME: Sample analysis suggests that the use of panSetting is linear, but there are some quirks that still need to be resolved.
-static Bit32s getPanFactor(Bit32s panSetting) {
+static int32_t getPanFactor(int32_t panSetting) {
 	static const uint32_t PAN_FACTORS_COUNT = 15;
-	static Bit32s PAN_FACTORS[PAN_FACTORS_COUNT];
+	static int32_t PAN_FACTORS[PAN_FACTORS_COUNT];
 	static bool firstRun = true;
 
 	if (firstRun) {
 		firstRun = false;
 		for (uint32_t i = 1; i < PAN_FACTORS_COUNT; i++) {
-			PAN_FACTORS[i] = Bit32s(0.5 + i * 8192.0 / double(PAN_FACTORS_COUNT - 1));
+			PAN_FACTORS[i] = int32_t(0.5 + i * 8192.0 / double(PAN_FACTORS_COUNT - 1));
 		}
 	}
 	return PAN_FACTORS[panSetting];

@@ -70,16 +70,16 @@ static int16_t keyToPitch(unsigned int key) {
 	return key < 60 ? -pitch : pitch;
 }
 
-static inline Bit32s coarseToPitch(uint8_t coarse) {
+static inline int32_t coarseToPitch(uint8_t coarse) {
 	return (coarse - 36) * 4096 / 12; // One semitone per coarse offset
 }
 
-static inline Bit32s fineToPitch(uint8_t fine) {
+static inline int32_t fineToPitch(uint8_t fine) {
 	return (fine - 50) * 4096 / 1200; // One cent per fine offset
 }
 
 static uint32_t calcBasePitch(const Partial *partial, const TimbreParam::PartialParam *partialParam, const MemParams::PatchTemp *patchTemp, unsigned int key, const ControlROMFeatureSet *controlROMFeatures) {
-	Bit32s basePitch = keyToPitch(key);
+	int32_t basePitch = keyToPitch(key);
 	basePitch = (basePitch * pitchKeyfollowMult[partialParam->wg.pitchKeyfollow]) >> 13; // PORTABILITY NOTE: Assumes arithmetic shift
 	basePitch += coarseToPitch(partialParam->wg.pitchCoarse);
 	basePitch += fineToPitch(partialParam->wg.pitchFine);
@@ -91,7 +91,7 @@ static uint32_t calcBasePitch(const Partial *partial, const TimbreParam::Partial
 
 	const ControlROMPCMStruct *controlROMPCMStruct = partial->getControlROMPCMStruct();
 	if (controlROMPCMStruct != NULL) {
-		basePitch += (Bit32s(controlROMPCMStruct->pitchMSB) << 8) | Bit32s(controlROMPCMStruct->pitchLSB);
+		basePitch += (int32_t(controlROMPCMStruct->pitchMSB) << 8) | int32_t(controlROMPCMStruct->pitchLSB);
 	} else {
 		if ((partialParam->wg.waveform & 1) == 0) {
 			basePitch += 37133; // This puts Middle C at around 261.64Hz (assuming no other modifications, masterTune of 64, etc.)
@@ -134,7 +134,7 @@ static uint32_t calcVeloMult(uint8_t veloSensitivity, unsigned int velocity) {
 	return ((32768 - scaledReversedVelocity) * 21845) >> 15;
 }
 
-static Bit32s calcTargetPitchOffsetWithoutLFO(const TimbreParam::PartialParam *partialParam, int levelIndex, unsigned int velocity) {
+static int32_t calcTargetPitchOffsetWithoutLFO(const TimbreParam::PartialParam *partialParam, int levelIndex, unsigned int velocity) {
 	int veloMult = calcVeloMult(partialParam->pitchEnv.veloSensitivity, velocity);
 	int targetPitchOffsetWithoutLFO = partialParam->pitchEnv.level[levelIndex] - 50;
 	targetPitchOffsetWithoutLFO = (targetPitchOffsetWithoutLFO * veloMult) >> (16 - partialParam->pitchEnv.depth); // PORTABILITY NOTE: Assumes arithmetic shift
@@ -159,7 +159,7 @@ void TVP::reset(const Part *usePart, const TimbreParam::PartialParam *usePartial
 	phase = 0;
 
 	if (partialParam->pitchEnv.timeKeyfollow) {
-		timeKeyfollowSubtraction = Bit32s(key - 60) >> (5 - partialParam->pitchEnv.timeKeyfollow); // PORTABILITY NOTE: Assumes arithmetic shift
+		timeKeyfollowSubtraction = int32_t(key - 60) >> (5 - partialParam->pitchEnv.timeKeyfollow); // PORTABILITY NOTE: Assumes arithmetic shift
 	} else {
 		timeKeyfollowSubtraction = 0;
 	}
@@ -178,7 +178,7 @@ uint32_t TVP::getBasePitch() const {
 }
 
 void TVP::updatePitch() {
-	Bit32s newPitch = basePitch + currentPitchOffset;
+	int32_t newPitch = basePitch + currentPitchOffset;
 	if (!partial->isPCM() || (partial->getControlROMPCMStruct()->len & 0x01) == 0) { // FIXME: Use !partial->pcmWaveEntry->unaffectedByMasterTune instead
 		// FIXME: There are various bugs not yet emulated
 		// 171 is ~half a semitone.
@@ -262,7 +262,7 @@ static uint8_t normalise(uint32_t &val) {
 
 void TVP::setupPitchChange(int targetPitchOffset, uint8_t changeDuration) {
 	bool negativeDelta = targetPitchOffset < currentPitchOffset;
-	Bit32s pitchOffsetDelta = targetPitchOffset - currentPitchOffset;
+	int32_t pitchOffsetDelta = targetPitchOffset - currentPitchOffset;
 	if (pitchOffsetDelta > 32767 || pitchOffsetDelta < -32768) {
 		pitchOffsetDelta = 32767;
 	}

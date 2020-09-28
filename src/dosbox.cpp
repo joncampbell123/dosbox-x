@@ -129,7 +129,7 @@ static void CheckX86ExtensionsSupport()
 #endif
 /*=============================================================================*/
 
-extern void         GFX_SetTitle(Bit32s cycles,Bits frameskip,Bits timing,bool paused);
+extern void         GFX_SetTitle(int32_t cycles,Bits frameskip,Bits timing,bool paused);
 
 extern bool         force_nocachedir;
 extern bool         freesizecap;
@@ -188,7 +188,7 @@ MachineType         machine;
 bool                PS1AudioCard;       // Perhaps have PS1 as a machine type...?
 SVGACards           svgaCard;
 bool                SDLNetInited;
-Bit32s              ticksDone;
+int32_t              ticksDone;
 uint32_t              ticksScheduled;
 bool                ticksLocked;
 bool                mono_cga=false;
@@ -337,7 +337,7 @@ static Bitu Normal_Loop(void) {
             ticksLastFramecounter = Ticks;
             Ticks = ticksNew + 500;     // next update in 500ms
             frames = (frames * 1000) / interval; // compensate for interval, be more exact (FIXME: so can we adjust for fractional frame rates)
-            GFX_SetTitle((Bit32s)CPU_CycleMax,-1,-1,false);
+            GFX_SetTitle((int32_t)CPU_CycleMax,-1,-1,false);
             frames = 0;
         }
     }
@@ -424,7 +424,7 @@ static Bitu Normal_Loop(void) {
 }
 
 void increaseticks() { //Make it return ticksRemain and set it in the function above to remove the global variable.
-    static Bit32s lastsleepDone = -1;
+    static int32_t lastsleepDone = -1;
     static Bitu sleep1count = 0;
     if (GCC_UNLIKELY(ticksLocked)) { // For Fast Forward Mode
         ticksRemainSpeedFrac = 0;
@@ -456,7 +456,7 @@ void increaseticks() { //Make it return ticksRemain and set it in the function a
             wrap_delay(sleeppattern[sleepindex++]);
             sleepindex %= sizeof(sleeppattern) / sizeof(sleeppattern[0]);
         }
-        Bit32s timeslept = (Bit32s)(GetTicks() - ticksNew);
+        int32_t timeslept = (int32_t)(GetTicks() - ticksNew);
         // Count how many times in the current block (of 250 ms) the time slept was 1 ms
         if (CPU_CycleAutoAdjust && !CPU_SkipCycleAutoAdjust && timeslept == 1) sleep1count++;
         lastsleepDone = ticksDone;
@@ -483,7 +483,7 @@ void increaseticks() { //Make it return ticksRemain and set it in the function a
     }
 
     ticksLast = ticksNew;
-    ticksDone += (Bit32s)ticksRemain;
+    ticksDone += (int32_t)ticksRemain;
     if (ticksRemain > 20) {
         ticksRemain = 20;
     }
@@ -496,8 +496,8 @@ void increaseticks() { //Make it return ticksRemain and set it in the function a
     if (ticksScheduled >= 250 || ticksDone >= 250 || (ticksAdded > 15 && ticksScheduled >= 5)) {
         if (ticksDone < 1) ticksDone = 1; // Protect against div by zero
         /* ratio we are aiming for is around 90% usage*/
-        Bit32s ratio = (Bit32s)((ticksScheduled * (CPU_CyclePercUsed * 90 * 1024 / 100 / 100)) / ticksDone);
-        Bit32s new_cmax = (Bit32s)CPU_CycleMax;
+        int32_t ratio = (int32_t)((ticksScheduled * (CPU_CyclePercUsed * 90 * 1024 / 100 / 100)) / ticksDone);
+        int32_t new_cmax = (int32_t)CPU_CycleMax;
         Bit64s cproc = (Bit64s)CPU_CycleMax * (Bit64s)ticksScheduled;
         if (cproc > 0) {
             /* ignore the cycles added due to the IO delay code in order
@@ -505,7 +505,7 @@ void increaseticks() { //Make it return ticksRemain and set it in the function a
             double ratioremoved = (double)CPU_IODelayRemoved / (double)cproc;
             if (ratioremoved < 1.0) {
                 double ratio_not_removed = 1 - ratioremoved;
-                ratio = (Bit32s)((double)ratio * ratio_not_removed);
+                ratio = (int32_t)((double)ratio * ratio_not_removed);
                 /* Don't allow very high ratio which can cause us to lock as we don't scale down
                  * for very low ratios. High ratio might result because of timing resolution */
                 if (ticksScheduled >= 250 && ticksDone < 10 && ratio > 16384)
@@ -522,12 +522,12 @@ void increaseticks() { //Make it return ticksRemain and set it in the function a
                 if (ratio <= 1024) {
                     // ratio_not_removed = 1.0; //enabling this restores the old formula
                     double r = (1.0 + ratio_not_removed) / (ratio_not_removed + 1024.0 / (static_cast<double>(ratio)));
-                    new_cmax = 1 + static_cast<Bit32s>(CPU_CycleMax * r);
+                    new_cmax = 1 + static_cast<int32_t>(CPU_CycleMax * r);
                 }
                 else {
                     Bit64s ratio_with_removed = (Bit64s)((((double)ratio - 1024.0) * ratio_not_removed) + 1024.0);
                     Bit64s cmax_scaled = (Bit64s)CPU_CycleMax * ratio_with_removed;
-                    new_cmax = (Bit32s)(1 + (CPU_CycleMax >> 1) + cmax_scaled / (Bit64s)2048);
+                    new_cmax = (int32_t)(1 + (CPU_CycleMax >> 1) + cmax_scaled / (Bit64s)2048);
                 }
             }
         }

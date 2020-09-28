@@ -71,7 +71,7 @@ protected:
 	char currentInstr[11];
 	uint8_t modulation;
 	uint8_t expression;
-	Bit32s pitchBend;
+	int32_t pitchBend;
 	bool nrpn;
 	uint16_t rpn;
 	uint16_t pitchBenderRange; // (patchTemp->patch.benderRange * 683) at the time of the last MIDI program change or MIDI data entry.
@@ -102,7 +102,7 @@ public:
 	uint8_t getExpression() const;
 	void setExpression(unsigned int midiExpression);
 	virtual void setPan(unsigned int midiPan);
-	Bit32s getPitchBend() const;
+	int32_t getPitchBend() const;
 	void setBend(unsigned int midiBend);
 	virtual void setProgram(unsigned int midiProgram);
 	void setHoldPedal(bool pedalval);

@@ -339,9 +339,9 @@ void DOS_Drive_Cache::CacheOut(const char* path, bool ignoreLastDir) {
     
     if (ignoreLastDir) {
         char tmp[CROSS_LEN] = { 0 };
-        Bit32s len=0;
+        int32_t len=0;
         const char* pos = strrchr(path,CROSS_FILESPLIT);
-        if (pos) len = (Bit32s)(pos - path);
+        if (pos) len = (int32_t)(pos - path);
         if (len>0) { 
             safe_strncpy(tmp,path,len+1); 
         } else  {

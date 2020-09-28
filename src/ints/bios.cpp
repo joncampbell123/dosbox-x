@@ -5408,8 +5408,8 @@ static Bitu INT8_Handler(void) {
             time_t curtime;struct tm *loctime;
             curtime = time (NULL);loctime = localtime (&curtime);
             uint32_t ticksnu = (uint32_t)((loctime->tm_hour*3600+loctime->tm_min*60+loctime->tm_sec)*(float)PIT_TICK_RATE/65536.0);
-            Bit32s bios = value;Bit32s tn = ticksnu;
-            Bit32s diff = tn - bios;
+            int32_t bios = value;int32_t tn = ticksnu;
+            int32_t diff = tn - bios;
             if(diff>0) {
                 if(diff < 18) { diff  = 0; } else diff = 9;
             } else {

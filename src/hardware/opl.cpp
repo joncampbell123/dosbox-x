@@ -37,21 +37,21 @@ static fltype recipsamp;	// inverse of sampling rate
 static int16_t wavtable[WAVEPREC*3];	// wave form table
 
 // vibrato/tremolo tables
-static Bit32s vib_table[VIBTAB_SIZE];
-static Bit32s trem_table[TREMTAB_SIZE*2];
+static int32_t vib_table[VIBTAB_SIZE];
+static int32_t trem_table[TREMTAB_SIZE*2];
 
-static Bit32s vibval_const[BLOCKBUF_SIZE];
-static Bit32s tremval_const[BLOCKBUF_SIZE];
+static int32_t vibval_const[BLOCKBUF_SIZE];
+static int32_t tremval_const[BLOCKBUF_SIZE];
 
 // vibrato value tables (used per-operator)
-static Bit32s vibval_var1[BLOCKBUF_SIZE];
-static Bit32s vibval_var2[BLOCKBUF_SIZE];
-//static Bit32s vibval_var3[BLOCKBUF_SIZE];
-//static Bit32s vibval_var4[BLOCKBUF_SIZE];
+static int32_t vibval_var1[BLOCKBUF_SIZE];
+static int32_t vibval_var2[BLOCKBUF_SIZE];
+//static int32_t vibval_var3[BLOCKBUF_SIZE];
+//static int32_t vibval_var4[BLOCKBUF_SIZE];
 
 // vibrato/trmolo value table pointers
-static Bit32s *vibval1, *vibval2, *vibval3, *vibval4;
-static Bit32s *tremval1, *tremval2, *tremval3, *tremval4;
+static int32_t *vibval1, *vibval2, *vibval3, *vibval4;
+static int32_t *tremval1, *tremval2, *tremval3, *tremval4;
 
 
 // key scale level lookup table
@@ -149,17 +149,17 @@ static fltype decrelconst[4] = {
 };
 
 
-void operator_advance(op_type* op_pt, Bit32s vib) {
+void operator_advance(op_type* op_pt, int32_t vib) {
 	op_pt->wfpos = op_pt->tcount;						// waveform position
 	
 	// advance waveform time
 	op_pt->tcount += op_pt->tinc;
-	op_pt->tcount += (uint32_t)((Bit32s)(op_pt->tinc)*vib)/FIXEDPT;
+	op_pt->tcount += (uint32_t)((int32_t)(op_pt->tinc)*vib)/FIXEDPT;
 
 	op_pt->generator_pos += generator_add;
 }
 
-void operator_advance_drums(op_type* op_pt1, Bit32s vib1, op_type* op_pt2, Bit32s vib2, op_type* op_pt3, Bit32s vib3) {
+void operator_advance_drums(op_type* op_pt1, int32_t vib1, op_type* op_pt2, int32_t vib2, op_type* op_pt3, int32_t vib3) {
 	uint32_t c1 = op_pt1->tcount/FIXEDPT;
 	uint32_t c3 = op_pt3->tcount/FIXEDPT;
 	uint32_t phasebit = (((c1 & 0x88) ^ ((c1<<5) & 0x80)) | ((c3 ^ (c3<<2)) & 0x20)) ? 0x02 : 0x00;
@@ -173,7 +173,7 @@ void operator_advance_drums(op_type* op_pt1, Bit32s vib1, op_type* op_pt2, Bit32
 	op_pt1->wfpos = inttm*FIXEDPT;				// waveform position
 	// advance waveform time
 	op_pt1->tcount += op_pt1->tinc;
-	op_pt1->tcount += (uint32_t)((Bit32s)(op_pt1->tinc)*vib1)/FIXEDPT;
+	op_pt1->tcount += (uint32_t)((int32_t)(op_pt1->tinc)*vib1)/FIXEDPT;
 	op_pt1->generator_pos += generator_add;
 
 	//Snare
@@ -181,7 +181,7 @@ void operator_advance_drums(op_type* op_pt1, Bit32s vib1, op_type* op_pt2, Bit32
 	op_pt2->wfpos = inttm*FIXEDPT;				// waveform position
 	// advance waveform time
 	op_pt2->tcount += op_pt2->tinc;
-	op_pt2->tcount += (uint32_t)((Bit32s)(op_pt2->tinc)*vib2)/FIXEDPT;
+	op_pt2->tcount += (uint32_t)((int32_t)(op_pt2->tinc)*vib2)/FIXEDPT;
 	op_pt2->generator_pos += generator_add;
 
 	//Cymbal
@@ -189,24 +189,24 @@ void operator_advance_drums(op_type* op_pt1, Bit32s vib1, op_type* op_pt2, Bit32
 	op_pt3->wfpos = inttm*FIXEDPT;				// waveform position
 	// advance waveform time
 	op_pt3->tcount += op_pt3->tinc;
-	op_pt3->tcount += (uint32_t)((Bit32s)(op_pt3->tinc)*vib3)/FIXEDPT;
+	op_pt3->tcount += (uint32_t)((int32_t)(op_pt3->tinc)*vib3)/FIXEDPT;
 	op_pt3->generator_pos += generator_add;
 }
 
 
 // output level is sustained, mode changes only when operator is turned off (->release)
 // or when the keep-sustained bit is turned off (->sustain_nokeep)
-void operator_output(op_type* op_pt, Bit32s modulator, Bit32s trem) {
+void operator_output(op_type* op_pt, int32_t modulator, int32_t trem) {
 	if (op_pt->op_state != OF_TYPE_OFF) {
 		op_pt->lastcval = op_pt->cval;
-		uint32_t i = (uint32_t)(((Bit32s)op_pt->wfpos+modulator)/FIXEDPT);
+		uint32_t i = (uint32_t)(((int32_t)op_pt->wfpos+modulator)/FIXEDPT);
 
 		// wform: -16384 to 16383 (0x4000)
 		// trem :  32768 to 65535 (0x10000)
 		// step_amp: 0.0 to 1.0
 		// vol  : 1/2^14 to 1/2^29 (/0x4000; /1../0x8000)
 
-		op_pt->cval = (Bit32s)(op_pt->step_amp*op_pt->vol*op_pt->cur_wform[i&op_pt->cur_wmask]*trem/16.0);
+		op_pt->cval = (int32_t)(op_pt->step_amp*op_pt->vol*op_pt->cur_wform[i&op_pt->cur_wmask]*trem/16.0);
 	}
 }
 
@@ -421,7 +421,7 @@ void change_vibrato(Bitu regbase, op_type* op_pt) {
 // change amount of self-feedback
 void change_feedback(Bitu chanbase, op_type* op_pt) {
 	Bits feedback = adlibreg[ARC_FEEDBACK+chanbase]&14;
-	if (feedback) op_pt->mfbi = (Bit32s)(pow(FL2,(fltype)((feedback>>1)+8)));
+	if (feedback) op_pt->mfbi = (int32_t)(pow(FL2,(fltype)((feedback>>1)+8)));
 	else op_pt->mfbi = 0;
 }
 
@@ -430,7 +430,7 @@ void change_frequency(Bitu chanbase, Bitu regbase, op_type* op_pt) {
 	uint32_t frn = ((((uint32_t)adlibreg[ARC_KON_BNUM+chanbase])&3)<<8) + (uint32_t)adlibreg[ARC_FREQ_NUM+chanbase];
 	// block number/octave
 	uint32_t oct = ((((uint32_t)adlibreg[ARC_KON_BNUM+chanbase])>>2)&7);
-	op_pt->freq_high = (Bit32s)((frn>>7)&7);
+	op_pt->freq_high = (int32_t)((frn>>7)&7);
 
 	// keysplit
 	uint32_t note_sel = (adlibreg[8]>>6)&1;
@@ -542,7 +542,7 @@ void adlib_init(uint32_t samplerate) {
 
 
 	// create tremolo table
-	Bit32s trem_table_int[TREMTAB_SIZE];
+	int32_t trem_table_int[TREMTAB_SIZE];
 	for (i=0; i<14; i++)	trem_table_int[i] = i-13;		// upwards (13 to 26 -> -0.5/6 to 0)
 	for (i=14; i<41; i++)	trem_table_int[i] = -i+14;		// downwards (26 to 0 -> 0 to -1/6)
 	for (i=41; i<53; i++)	trem_table_int[i] = i-40-26;	// upwards (1 to 12 -> -1/6 to -0.5/6)
@@ -550,10 +550,10 @@ void adlib_init(uint32_t samplerate) {
 	for (i=0; i<TREMTAB_SIZE; i++) {
 		// 0.0 .. -26/26*4.8/6 == [0.0 .. -0.8], 4/53 steps == [1 .. 0.57]
 		fltype trem_val1=(fltype)(((fltype)trem_table_int[i])*4.8/26.0/6.0);				// 4.8db
-		fltype trem_val2=(fltype)((fltype)((Bit32s)(trem_table_int[i]/4))*1.2/6.0/6.0);		// 1.2db (larger stepping)
+		fltype trem_val2=(fltype)((fltype)((int32_t)(trem_table_int[i]/4))*1.2/6.0/6.0);		// 1.2db (larger stepping)
 
-		trem_table[i] = (Bit32s)(pow(FL2,trem_val1)*FIXEDPT);
-		trem_table[TREMTAB_SIZE+i] = (Bit32s)(pow(FL2,trem_val2)*FIXEDPT);
+		trem_table[i] = (int32_t)(pow(FL2,trem_val1)*FIXEDPT);
+		trem_table[TREMTAB_SIZE+i] = (int32_t)(pow(FL2,trem_val2)*FIXEDPT);
 	}
 
 	// tremolo at 3.7hz
@@ -923,7 +923,7 @@ void adlib_write_index(Bitu port, uint8_t val) {
 #endif
 }
 
-static void OPL_INLINE clipit16(Bit32s ival, int16_t* outval) {
+static void OPL_INLINE clipit16(int32_t ival, int16_t* outval) {
 	if (ival<32768) {
 		if (ival>-32769) {
 			*outval=(int16_t)ival;
@@ -958,15 +958,15 @@ void adlib_getsample(int16_t* sndptr, Bits numsamples) {
 	Bits i, endsamples;
 	op_type* cptr;
 
-	Bit32s outbufl[BLOCKBUF_SIZE];
+	int32_t outbufl[BLOCKBUF_SIZE];
 #if defined(OPLTYPE_IS_OPL3)
 	// second output buffer (right channel for opl3 stereo)
-	Bit32s outbufr[BLOCKBUF_SIZE];
+	int32_t outbufr[BLOCKBUF_SIZE];
 #endif
 
 	// vibrato/tremolo lookup tables (global, to possibly be used by all operators)
-	Bit32s vib_lut[BLOCKBUF_SIZE];
-	Bit32s trem_lut[BLOCKBUF_SIZE];
+	int32_t vib_lut[BLOCKBUF_SIZE];
+	int32_t trem_lut[BLOCKBUF_SIZE];
 
 	Bits samples_to_process = numsamples;
 
@@ -974,14 +974,14 @@ void adlib_getsample(int16_t* sndptr, Bits numsamples) {
 		endsamples = samples_to_process-cursmp;
 		if (endsamples>BLOCKBUF_SIZE) endsamples = BLOCKBUF_SIZE;
 
-		memset((void*)&outbufl,0,(unsigned int)endsamples*sizeof(Bit32s));
+		memset((void*)&outbufl,0,(unsigned int)endsamples*sizeof(int32_t));
 #if defined(OPLTYPE_IS_OPL3)
 		// clear second output buffer (opl3 stereo)
-		if (adlibreg[0x105]&1) memset((void*)&outbufr,0,(unsigned int)endsamples*sizeof(Bit32s));
+		if (adlibreg[0x105]&1) memset((void*)&outbufr,0,(unsigned int)endsamples*sizeof(int32_t));
 #endif
 
 		// calculate vibrato/tremolo lookup tables
-		Bit32s vib_tshift = ((adlibreg[ARC_PERC_MODE]&0x40)==0) ? 1 : 0;	// 14cents/7cents switching
+		int32_t vib_tshift = ((adlibreg[ARC_PERC_MODE]&0x40)==0) ? 1 : 0;	// 14cents/7cents switching
 		for (i=0;i<endsamples;i++) {
 			// cycle through vibrato table
 			vibtab_pos += vibtab_add;
@@ -1004,7 +1004,7 @@ void adlib_getsample(int16_t* sndptr, Bits numsamples) {
 					if (cptr[9].vibrato) {
 						vibval1 = vibval_var1;
 						for (i=0;i<endsamples;i++)
-							vibval1[i] = (Bit32s)((vib_lut[i]*cptr[9].freq_high/8)*FIXEDPT*VIBFAC);
+							vibval1[i] = (int32_t)((vib_lut[i]*cptr[9].freq_high/8)*FIXEDPT*VIBFAC);
 					} else vibval1 = vibval_const;
 					if (cptr[9].tremolo) tremval1 = trem_lut;	// tremolo enabled, use table
 					else tremval1 = tremval_const;
@@ -1015,7 +1015,7 @@ void adlib_getsample(int16_t* sndptr, Bits numsamples) {
 						opfuncs[cptr[9].op_state](&cptr[9]);
 						operator_output(&cptr[9],0,tremval1[i]);
 						
-						Bit32s chanval = cptr[9].cval*2;
+						int32_t chanval = cptr[9].cval*2;
 						CHANVAL_OUT
 					}
 				}
@@ -1025,12 +1025,12 @@ void adlib_getsample(int16_t* sndptr, Bits numsamples) {
 					if ((cptr[0].vibrato) && (cptr[0].op_state != OF_TYPE_OFF)) {
 						vibval1 = vibval_var1;
 						for (i=0;i<endsamples;i++)
-							vibval1[i] = (Bit32s)((vib_lut[i]*cptr[0].freq_high/8)*FIXEDPT*VIBFAC);
+							vibval1[i] = (int32_t)((vib_lut[i]*cptr[0].freq_high/8)*FIXEDPT*VIBFAC);
 					} else vibval1 = vibval_const;
 					if ((cptr[9].vibrato) && (cptr[9].op_state != OF_TYPE_OFF)) {
 						vibval2 = vibval_var2;
 						for (i=0;i<endsamples;i++)
-							vibval2[i] = (Bit32s)((vib_lut[i]*cptr[9].freq_high/8)*FIXEDPT*VIBFAC);
+							vibval2[i] = (int32_t)((vib_lut[i]*cptr[9].freq_high/8)*FIXEDPT*VIBFAC);
 					} else vibval2 = vibval_const;
 					if (cptr[0].tremolo) tremval1 = trem_lut;	// tremolo enabled, use table
 					else tremval1 = tremval_const;
@@ -1047,7 +1047,7 @@ void adlib_getsample(int16_t* sndptr, Bits numsamples) {
 						opfuncs[cptr[9].op_state](&cptr[9]);
 						operator_output(&cptr[9],cptr[0].cval*FIXEDPT,tremval2[i]);
 						
-						Bit32s chanval = cptr[9].cval*2;
+						int32_t chanval = cptr[9].cval*2;
 						CHANVAL_OUT
 					}
 				}
@@ -1059,7 +1059,7 @@ void adlib_getsample(int16_t* sndptr, Bits numsamples) {
 				if (cptr[0].vibrato) {
 					vibval3 = vibval_var1;
 					for (i=0;i<endsamples;i++)
-						vibval3[i] = (Bit32s)((vib_lut[i]*cptr[0].freq_high/8)*FIXEDPT*VIBFAC);
+						vibval3[i] = (int32_t)((vib_lut[i]*cptr[0].freq_high/8)*FIXEDPT*VIBFAC);
 				} else vibval3 = vibval_const;
 
 				if (cptr[0].tremolo) tremval3 = trem_lut;	// tremolo enabled, use table
@@ -1070,7 +1070,7 @@ void adlib_getsample(int16_t* sndptr, Bits numsamples) {
 					operator_advance(&cptr[0],vibval3[i]);
 					opfuncs[cptr[0].op_state](&cptr[0]);		//TomTom
 					operator_output(&cptr[0],0,tremval3[i]);
-					Bit32s chanval = cptr[0].cval*2;
+					int32_t chanval = cptr[0].cval*2;
 					CHANVAL_OUT
 				}
 			}
@@ -1082,12 +1082,12 @@ void adlib_getsample(int16_t* sndptr, Bits numsamples) {
 				if ((cptr[0].vibrato) && (cptr[0].op_state != OF_TYPE_OFF)) {
 					vibval1 = vibval_var1;
 					for (i=0;i<endsamples;i++)
-						vibval1[i] = (Bit32s)((vib_lut[i]*cptr[0].freq_high/8)*FIXEDPT*VIBFAC);
+						vibval1[i] = (int32_t)((vib_lut[i]*cptr[0].freq_high/8)*FIXEDPT*VIBFAC);
 				} else vibval1 = vibval_const;
 				if ((cptr[9].vibrato) && (cptr[9].op_state == OF_TYPE_OFF)) {
 					vibval2 = vibval_var2;
 					for (i=0;i<endsamples;i++)
-						vibval2[i] = (Bit32s)((vib_lut[i]*cptr[9].freq_high/8)*FIXEDPT*VIBFAC);
+						vibval2[i] = (int32_t)((vib_lut[i]*cptr[9].freq_high/8)*FIXEDPT*VIBFAC);
 				} else vibval2 = vibval_const;
 
 				if (cptr[0].tremolo) tremval1 = trem_lut;	// tremolo enabled, use table
@@ -1099,7 +1099,7 @@ void adlib_getsample(int16_t* sndptr, Bits numsamples) {
 				if ((cptr[9].vibrato) && (cptr[9].op_state == OF_TYPE_OFF)) {
 					vibval4 = vibval_var2;
 					for (i=0;i<endsamples;i++)
-						vibval4[i] = (Bit32s)((vib_lut[i]*cptr[9].freq_high/8)*FIXEDPT*VIBFAC);
+						vibval4[i] = (int32_t)((vib_lut[i]*cptr[9].freq_high/8)*FIXEDPT*VIBFAC);
 				} else vibval4 = vibval_const;
 
 				if (cptr[9].tremolo) tremval4 = trem_lut;	// tremolo enabled, use table
@@ -1118,7 +1118,7 @@ void adlib_getsample(int16_t* sndptr, Bits numsamples) {
 					opfuncs[op[8+9].op_state](&op[8+9]);		//Cymbal
 					operator_output(&op[8+9],0,tremval4[i]);
 
-					Bit32s chanval = (op[7].cval + op[7+9].cval + op[8+9].cval)*2;
+					int32_t chanval = (op[7].cval + op[7+9].cval + op[8+9].cval)*2;
 					CHANVAL_OUT
 				}
 			}
@@ -1156,7 +1156,7 @@ void adlib_getsample(int16_t* sndptr, Bits numsamples) {
 							if (cptr[0].vibrato) {
 								vibval1 = vibval_var1;
 								for (i=0;i<endsamples;i++)
-									vibval1[i] = (Bit32s)((vib_lut[i]*cptr[0].freq_high/8)*FIXEDPT*VIBFAC);
+									vibval1[i] = (int32_t)((vib_lut[i]*cptr[0].freq_high/8)*FIXEDPT*VIBFAC);
 							} else vibval1 = vibval_const;
 							if (cptr[0].tremolo) tremval1 = trem_lut;	// tremolo enabled, use table
 							else tremval1 = tremval_const;
@@ -1167,7 +1167,7 @@ void adlib_getsample(int16_t* sndptr, Bits numsamples) {
 								opfuncs[cptr[0].op_state](&cptr[0]);
 								operator_output(&cptr[0],(cptr[0].lastcval+cptr[0].cval)*cptr[0].mfbi/2,tremval1[i]);
 
-								Bit32s chanval = cptr[0].cval;
+								int32_t chanval = cptr[0].cval;
 								CHANVAL_OUT
 							}
 						}
@@ -1176,7 +1176,7 @@ void adlib_getsample(int16_t* sndptr, Bits numsamples) {
 							if ((cptr[9].vibrato) && (cptr[9].op_state != OF_TYPE_OFF)) {
 								vibval1 = vibval_var1;
 								for (i=0;i<endsamples;i++)
-									vibval1[i] = (Bit32s)((vib_lut[i]*cptr[9].freq_high/8)*FIXEDPT*VIBFAC);
+									vibval1[i] = (int32_t)((vib_lut[i]*cptr[9].freq_high/8)*FIXEDPT*VIBFAC);
 							} else vibval1 = vibval_const;
 							if (cptr[9].tremolo) tremval1 = trem_lut;	// tremolo enabled, use table
 							else tremval1 = tremval_const;
@@ -1193,7 +1193,7 @@ void adlib_getsample(int16_t* sndptr, Bits numsamples) {
 								opfuncs[cptr[3].op_state](&cptr[3]);
 								operator_output(&cptr[3],cptr[9].cval*FIXEDPT,tremval2[i]);
 
-								Bit32s chanval = cptr[3].cval;
+								int32_t chanval = cptr[3].cval;
 								CHANVAL_OUT
 							}
 						}
@@ -1208,7 +1208,7 @@ void adlib_getsample(int16_t* sndptr, Bits numsamples) {
 								opfuncs[cptr[3+9].op_state](&cptr[3+9]);
 								operator_output(&cptr[3+9],0,tremval1[i]);
 
-								Bit32s chanval = cptr[3+9].cval;
+								int32_t chanval = cptr[3+9].cval;
 								CHANVAL_OUT
 							}
 						}
@@ -1218,7 +1218,7 @@ void adlib_getsample(int16_t* sndptr, Bits numsamples) {
 							if (cptr[0].vibrato) {
 								vibval1 = vibval_var1;
 								for (i=0;i<endsamples;i++)
-									vibval1[i] = (Bit32s)((vib_lut[i]*cptr[0].freq_high/8)*FIXEDPT*VIBFAC);
+									vibval1[i] = (int32_t)((vib_lut[i]*cptr[0].freq_high/8)*FIXEDPT*VIBFAC);
 							} else vibval1 = vibval_const;
 							if (cptr[0].tremolo) tremval1 = trem_lut;	// tremolo enabled, use table
 							else tremval1 = tremval_const;
@@ -1229,7 +1229,7 @@ void adlib_getsample(int16_t* sndptr, Bits numsamples) {
 								opfuncs[cptr[0].op_state](&cptr[0]);
 								operator_output(&cptr[0],(cptr[0].lastcval+cptr[0].cval)*cptr[0].mfbi/2,tremval1[i]);
 
-								Bit32s chanval = cptr[0].cval;
+								int32_t chanval = cptr[0].cval;
 								CHANVAL_OUT
 							}
 						}
@@ -1238,7 +1238,7 @@ void adlib_getsample(int16_t* sndptr, Bits numsamples) {
 							if ((cptr[9].vibrato) && (cptr[9].op_state != OF_TYPE_OFF)) {
 								vibval1 = vibval_var1;
 								for (i=0;i<endsamples;i++)
-									vibval1[i] = (Bit32s)((vib_lut[i]*cptr[9].freq_high/8)*FIXEDPT*VIBFAC);
+									vibval1[i] = (int32_t)((vib_lut[i]*cptr[9].freq_high/8)*FIXEDPT*VIBFAC);
 							} else vibval1 = vibval_const;
 							if (cptr[9].tremolo) tremval1 = trem_lut;	// tremolo enabled, use table
 							else tremval1 = tremval_const;
@@ -1261,7 +1261,7 @@ void adlib_getsample(int16_t* sndptr, Bits numsamples) {
 								opfuncs[cptr[3+9].op_state](&cptr[3+9]);
 								operator_output(&cptr[3+9],cptr[3].cval*FIXEDPT,tremval3[i]);
 
-								Bit32s chanval = cptr[3+9].cval;
+								int32_t chanval = cptr[3+9].cval;
 								CHANVAL_OUT
 							}
 						}
@@ -1274,12 +1274,12 @@ void adlib_getsample(int16_t* sndptr, Bits numsamples) {
 				if ((cptr[0].vibrato) && (cptr[0].op_state != OF_TYPE_OFF)) {
 					vibval1 = vibval_var1;
 					for (i=0;i<endsamples;i++)
-						vibval1[i] = (Bit32s)((vib_lut[i]*cptr[0].freq_high/8)*FIXEDPT*VIBFAC);
+						vibval1[i] = (int32_t)((vib_lut[i]*cptr[0].freq_high/8)*FIXEDPT*VIBFAC);
 				} else vibval1 = vibval_const;
 				if ((cptr[9].vibrato) && (cptr[9].op_state != OF_TYPE_OFF)) {
 					vibval2 = vibval_var2;
 					for (i=0;i<endsamples;i++)
-						vibval2[i] = (Bit32s)((vib_lut[i]*cptr[9].freq_high/8)*FIXEDPT*VIBFAC);
+						vibval2[i] = (int32_t)((vib_lut[i]*cptr[9].freq_high/8)*FIXEDPT*VIBFAC);
 				} else vibval2 = vibval_const;
 				if (cptr[0].tremolo) tremval1 = trem_lut;	// tremolo enabled, use table
 				else tremval1 = tremval_const;
@@ -1298,7 +1298,7 @@ void adlib_getsample(int16_t* sndptr, Bits numsamples) {
 					opfuncs[cptr[9].op_state](&cptr[9]);
 					operator_output(&cptr[9],0,tremval2[i]);
 
-					Bit32s chanval = cptr[9].cval + cptr[0].cval;
+					int32_t chanval = cptr[9].cval + cptr[0].cval;
 					CHANVAL_OUT
 				}
 			} else {
@@ -1310,12 +1310,12 @@ void adlib_getsample(int16_t* sndptr, Bits numsamples) {
 							if ((cptr[0].vibrato) && (cptr[0].op_state != OF_TYPE_OFF)) {
 								vibval1 = vibval_var1;
 								for (i=0;i<endsamples;i++)
-									vibval1[i] = (Bit32s)((vib_lut[i]*cptr[0].freq_high/8)*FIXEDPT*VIBFAC);
+									vibval1[i] = (int32_t)((vib_lut[i]*cptr[0].freq_high/8)*FIXEDPT*VIBFAC);
 							} else vibval1 = vibval_const;
 							if ((cptr[9].vibrato) && (cptr[9].op_state != OF_TYPE_OFF)) {
 								vibval2 = vibval_var2;
 								for (i=0;i<endsamples;i++)
-									vibval2[i] = (Bit32s)((vib_lut[i]*cptr[9].freq_high/8)*FIXEDPT*VIBFAC);
+									vibval2[i] = (int32_t)((vib_lut[i]*cptr[9].freq_high/8)*FIXEDPT*VIBFAC);
 							} else vibval2 = vibval_const;
 							if (cptr[0].tremolo) tremval1 = trem_lut;	// tremolo enabled, use table
 							else tremval1 = tremval_const;
@@ -1332,7 +1332,7 @@ void adlib_getsample(int16_t* sndptr, Bits numsamples) {
 								opfuncs[cptr[9].op_state](&cptr[9]);
 								operator_output(&cptr[9],cptr[0].cval*FIXEDPT,tremval2[i]);
 
-								Bit32s chanval = cptr[9].cval;
+								int32_t chanval = cptr[9].cval;
 								CHANVAL_OUT
 							}
 						}
@@ -1353,7 +1353,7 @@ void adlib_getsample(int16_t* sndptr, Bits numsamples) {
 								opfuncs[cptr[3+9].op_state](&cptr[3+9]);
 								operator_output(&cptr[3+9],cptr[3].cval*FIXEDPT,tremval2[i]);
 
-								Bit32s chanval = cptr[3+9].cval;
+								int32_t chanval = cptr[3+9].cval;
 								CHANVAL_OUT
 							}
 						}
@@ -1365,12 +1365,12 @@ void adlib_getsample(int16_t* sndptr, Bits numsamples) {
 							if ((cptr[0].vibrato) && (cptr[0].op_state != OF_TYPE_OFF)) {
 								vibval1 = vibval_var1;
 								for (i=0;i<endsamples;i++)
-									vibval1[i] = (Bit32s)((vib_lut[i]*cptr[0].freq_high/8)*FIXEDPT*VIBFAC);
+									vibval1[i] = (int32_t)((vib_lut[i]*cptr[0].freq_high/8)*FIXEDPT*VIBFAC);
 							} else vibval1 = vibval_const;
 							if ((cptr[9].vibrato) && (cptr[9].op_state != OF_TYPE_OFF)) {
 								vibval2 = vibval_var2;
 								for (i=0;i<endsamples;i++)
-									vibval2[i] = (Bit32s)((vib_lut[i]*cptr[9].freq_high/8)*FIXEDPT*VIBFAC);
+									vibval2[i] = (int32_t)((vib_lut[i]*cptr[9].freq_high/8)*FIXEDPT*VIBFAC);
 							} else vibval2 = vibval_const;
 							if (cptr[0].tremolo) tremval1 = trem_lut;	// tremolo enabled, use table
 							else tremval1 = tremval_const;
@@ -1399,7 +1399,7 @@ void adlib_getsample(int16_t* sndptr, Bits numsamples) {
 								opfuncs[cptr[3+9].op_state](&cptr[3+9]);
 								operator_output(&cptr[3+9],cptr[3].cval*FIXEDPT,tremval4[i]);
 
-								Bit32s chanval = cptr[3+9].cval;
+								int32_t chanval = cptr[3+9].cval;
 								CHANVAL_OUT
 							}
 						}
@@ -1412,12 +1412,12 @@ void adlib_getsample(int16_t* sndptr, Bits numsamples) {
 				if ((cptr[0].vibrato) && (cptr[0].op_state != OF_TYPE_OFF)) {
 					vibval1 = vibval_var1;
 					for (i=0;i<endsamples;i++)
-						vibval1[i] = (Bit32s)((vib_lut[i]*cptr[0].freq_high/8)*FIXEDPT*VIBFAC);
+						vibval1[i] = (int32_t)((vib_lut[i]*cptr[0].freq_high/8)*FIXEDPT*VIBFAC);
 				} else vibval1 = vibval_const;
 				if ((cptr[9].vibrato) && (cptr[9].op_state != OF_TYPE_OFF)) {
 					vibval2 = vibval_var2;
 					for (i=0;i<endsamples;i++)
-						vibval2[i] = (Bit32s)((vib_lut[i]*cptr[9].freq_high/8)*FIXEDPT*VIBFAC);
+						vibval2[i] = (int32_t)((vib_lut[i]*cptr[9].freq_high/8)*FIXEDPT*VIBFAC);
 				} else vibval2 = vibval_const;
 				if (cptr[0].tremolo) tremval1 = trem_lut;	// tremolo enabled, use table
 				else tremval1 = tremval_const;
@@ -1436,7 +1436,7 @@ void adlib_getsample(int16_t* sndptr, Bits numsamples) {
 					opfuncs[cptr[9].op_state](&cptr[9]);
 					operator_output(&cptr[9],cptr[0].cval*FIXEDPT,tremval2[i]);
 
-					Bit32s chanval = cptr[9].cval;
+					int32_t chanval = cptr[9].cval;
 					CHANVAL_OUT
 				}
 			}

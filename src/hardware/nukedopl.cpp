@@ -1030,7 +1030,7 @@ static void OPL3_ChannelSet4Op(opl3_chip *chip, uint8_t data)
     }
 }
 
-static int16_t OPL3_ClipSample(Bit32s sample)
+static int16_t OPL3_ClipSample(int32_t sample)
 {
     if (sample > 32767)
     {

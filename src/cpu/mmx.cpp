@@ -94,7 +94,7 @@ int8_t SaturateWordSToByteS(int16_t value)
   return (int8_t) value;
 }
 
-int16_t SaturateDwordSToWordS(Bit32s value)
+int16_t SaturateDwordSToWordS(int32_t value)
 {
   if(value < -32768) return -32768;
   if(value >  32767) return  32767;
@@ -108,7 +108,7 @@ uint8_t SaturateWordSToByteU(int16_t value)
   return (uint8_t) value;
 }
 
-uint16_t SaturateDwordSToWordU(Bit32s value)
+uint16_t SaturateDwordSToWordU(int32_t value)
 {
   if(value < 0) return 0;
   if(value > 65535) return 65535;

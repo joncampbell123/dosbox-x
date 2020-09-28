@@ -492,7 +492,7 @@ static uint8_t EMM_MapSegment(Bitu segment,uint16_t handle,uint16_t log_page) {
 	}
 
 	if (valid_segment) {
-		Bit32s tphysPage = ((Bit32s)segment-(Bit32s)EMM_PAGEFRAME)/(Bit32s)(0x1000/EMM_MAX_PHYS);
+		int32_t tphysPage = ((int32_t)segment-(int32_t)EMM_PAGEFRAME)/(int32_t)(0x1000/EMM_MAX_PHYS);
 
 		/* unmapping doesn't need valid handle (as handle isn't used) */
 		if (log_page==NULL_PAGE) {

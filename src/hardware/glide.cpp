@@ -1593,10 +1593,10 @@ static void process_msg(Bitu value)
 	    MEM_BlockRead32(param[2], &dbguinfo, sizeof(DBGu3dfInfo));
 	    dbguinfo.header.width = (uint32_t)guinfo.header.width;
 	    dbguinfo.header.height = (uint32_t)guinfo.header.height;
-	    dbguinfo.header.small_lod = (Bit32s)guinfo.header.small_lod;
-	    dbguinfo.header.large_lod = (Bit32s)guinfo.header.large_lod;
-	    dbguinfo.header.aspect_ratio = (Bit32s)guinfo.header.aspect_ratio;
-	    dbguinfo.header.format = (Bit32s)guinfo.header.format;
+	    dbguinfo.header.small_lod = (int32_t)guinfo.header.small_lod;
+	    dbguinfo.header.large_lod = (int32_t)guinfo.header.large_lod;
+	    dbguinfo.header.aspect_ratio = (int32_t)guinfo.header.aspect_ratio;
+	    dbguinfo.header.format = (int32_t)guinfo.header.format;
 	    dbguinfo.mem_required = (uint32_t)guinfo.mem_required;
 	    MEM_BlockWrite32(param[2], &dbguinfo, sizeof(DBGu3dfInfo));
 	}

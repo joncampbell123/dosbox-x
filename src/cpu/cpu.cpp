@@ -76,7 +76,7 @@ bool cpu_triple_fault_reset;
 int cpu_rep_max = 0;
 
 Bitu DEBUG_EnableDebugger(void);
-extern void GFX_SetTitle(Bit32s cycles, Bits frameskip, Bits timing, bool paused);
+extern void GFX_SetTitle(int32_t cycles, Bits frameskip, Bits timing, bool paused);
 
 CPU_Regs cpu_regs;
 CPUBlock cpu;
@@ -2300,7 +2300,7 @@ void CPU_SET_CRX(Bitu cr,Bitu value) {
 					CPU_CycleLeft=0;
 					CPU_Cycles=0;
 					CPU_OldCycleMax=CPU_CycleMax;
-					GFX_SetTitle((Bit32s)CPU_CyclePercUsed,-1,-1,false);
+					GFX_SetTitle((int32_t)CPU_CyclePercUsed,-1,-1,false);
 					if(!printed_cycles_auto_info) {
 						printed_cycles_auto_info = true;
 						LOG_MSG("DOSBox-X has switched to max cycles, because of the setting: cycles=auto.\nIf the game runs too fast, try a fixed cycles amount in DOSBox-X's options.");
@@ -2890,13 +2890,13 @@ void CPU_CycleIncrease(bool pressed) {
 		CPU_CyclePercUsed+=5;
 		if (CPU_CyclePercUsed>105) CPU_CyclePercUsed=105;
 		LOG_MSG("CPU speed: max %ld percent.",(unsigned long)CPU_CyclePercUsed);
-		GFX_SetTitle((Bit32s)CPU_CyclePercUsed,-1,-1,false);
+		GFX_SetTitle((int32_t)CPU_CyclePercUsed,-1,-1,false);
 	} else {
-		Bit32s old_cycles= (Bit32s)CPU_CycleMax;
+		int32_t old_cycles= (int32_t)CPU_CycleMax;
 		if (CPU_CycleUp < 100) {
-			CPU_CycleMax = (Bit32s)(CPU_CycleMax * (1 + (float)CPU_CycleUp / 100.0));
+			CPU_CycleMax = (int32_t)(CPU_CycleMax * (1 + (float)CPU_CycleUp / 100.0));
 		} else {
-			CPU_CycleMax = (Bit32s)(CPU_CycleMax + CPU_CycleUp);
+			CPU_CycleMax = (int32_t)(CPU_CycleMax + CPU_CycleUp);
 		}
 
 		CPU_CycleLeft=0;CPU_Cycles=0;
@@ -2913,7 +2913,7 @@ void CPU_CycleIncrease(bool pressed) {
 #endif
                 LOG_MSG("CPU speed: fixed %ld cycles.",(unsigned long)CPU_CycleMax);
         }
-		GFX_SetTitle((Bit32s)CPU_CycleMax,-1,-1,false);
+		GFX_SetTitle((int32_t)CPU_CycleMax,-1,-1,false);
         CPU_SyncCycleMaxToProp();
 	}
 }
@@ -2927,12 +2927,12 @@ void CPU_CycleDecrease(bool pressed) {
 			LOG_MSG("CPU speed: max %ld percent. If the game runs too fast, try a fixed cycles amount in DOSBox-X's options.",(unsigned long)CPU_CyclePercUsed);
 		else
 			LOG_MSG("CPU speed: max %ld percent.",(unsigned long)CPU_CyclePercUsed);
-		GFX_SetTitle((Bit32s)CPU_CyclePercUsed,-1,-1,false);
+		GFX_SetTitle((int32_t)CPU_CyclePercUsed,-1,-1,false);
 	} else {
 		if (CPU_CycleDown < 100) {
-			CPU_CycleMax = (Bit32s)(CPU_CycleMax / (1 + (float)CPU_CycleDown / 100.0));
+			CPU_CycleMax = (int32_t)(CPU_CycleMax / (1 + (float)CPU_CycleDown / 100.0));
 		} else {
-			CPU_CycleMax = (Bit32s)(CPU_CycleMax - CPU_CycleDown);
+			CPU_CycleMax = (int32_t)(CPU_CycleMax - CPU_CycleDown);
 		}
 		CPU_CycleLeft=0;CPU_Cycles=0;
 		if (CPU_CycleMax <= 0) CPU_CycleMax=1;
@@ -2942,7 +2942,7 @@ void CPU_CycleDecrease(bool pressed) {
 		    CPU_CyclesSet=CPU_CycleMax;
 		    LOG_MSG("CPU speed: fixed %ld cycles.",(unsigned long)CPU_CycleMax);
 		}
-		GFX_SetTitle((Bit32s)CPU_CycleMax,-1,-1,false);
+		GFX_SetTitle((int32_t)CPU_CycleMax,-1,-1,false);
         CPU_SyncCycleMaxToProp();
 	}
 }
@@ -3028,7 +3028,7 @@ void CPU_Disable_SkipAutoAdjust(void) {
 }
 
 
-extern Bit32s ticksDone;
+extern int32_t ticksDone;
 extern uint32_t ticksScheduled;
 extern int dynamic_core_cache_block_size;
 
@@ -3280,7 +3280,7 @@ public:
 						int percval=0;
 						std::istringstream stream(str);
 						stream >> percval;
-						if ((percval>0) && (percval<=105)) CPU_CyclePercUsed=(Bit32s)percval;
+						if ((percval>0) && (percval<=105)) CPU_CyclePercUsed=(int32_t)percval;
 					} else if (str=="limit") {
 						cmdnum++;
 						if (cmd.FindCommand((unsigned int)cmdnum,str)) {
@@ -3305,7 +3305,7 @@ public:
 							int percval=0;
 							std::istringstream stream(str);
 							stream >> percval;
-							if ((percval>0) && (percval<=105)) CPU_CyclePercUsed=(Bit32s)percval;
+							if ((percval>0) && (percval<=105)) CPU_CyclePercUsed=(int32_t)percval;
 						} else if (str=="limit") {
 							cmdnum++;
 							if (cmd.FindCommand((unsigned int)cmdnum,str)) {
@@ -3319,8 +3319,8 @@ public:
 							std::istringstream stream(str);
 							stream >> rmdval;
 							if (rmdval>0) {
-								CPU_CycleMax=(Bit32s)rmdval;
-								CPU_OldCycleMax=(Bit32s)rmdval;
+								CPU_CycleMax=(int32_t)rmdval;
+								CPU_OldCycleMax=(int32_t)rmdval;
 							}
 						}
 					}
@@ -3330,14 +3330,14 @@ public:
 				int rmdval=0;
 				std::istringstream stream(str);
 				stream >> rmdval;
-				CPU_CycleMax=(Bit32s)rmdval;
+				CPU_CycleMax=(int32_t)rmdval;
 			} else {
 				std::istringstream stream(type);
 				int rmdval=0;
 				stream >> rmdval;
 				if(rmdval) {
-					CPU_CycleMax=(Bit32s)rmdval;
-					CPU_CyclesSet=(Bit32s)rmdval;
+					CPU_CycleMax=(int32_t)rmdval;
+					CPU_CyclesSet=(int32_t)rmdval;
 				}
 			}
 			CPU_CycleAutoAdjust=false;
@@ -3599,8 +3599,8 @@ public:
             throw int(3);
         }
 
-		if (CPU_CycleAutoAdjust) GFX_SetTitle((Bit32s)CPU_CyclePercUsed,-1,-1,false);
-		else GFX_SetTitle((Bit32s)CPU_CycleMax,-1,-1,false);
+		if (CPU_CycleAutoAdjust) GFX_SetTitle((int32_t)CPU_CyclePercUsed,-1,-1,false);
+		else GFX_SetTitle((int32_t)CPU_CycleMax,-1,-1,false);
 		// savestate support
 		cpu.hlt.old_decoder=cpudecoder;
 		return true;

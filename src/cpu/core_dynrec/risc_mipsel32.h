@@ -111,7 +111,7 @@ static void gen_mov_dword_to_reg_imm(HostReg dest_reg,uint32_t imm) {
 	if(imm < 65536) {
 		cache_addw((uint16_t)imm);		// ori dest_reg, $0, imm
 		cache_addw(0x3400+dest_reg);
-	} else if(((Bit32s)imm < 0) && ((Bit32s)imm >= -32768)) {
+	} else if(((int32_t)imm < 0) && ((int32_t)imm >= -32768)) {
 		cache_addw((uint16_t)imm);		// addiu dest_reg, $0, imm
 		cache_addw(0x2400+dest_reg);
 	} else if(!(imm & 0xffff)) {
@@ -302,7 +302,7 @@ static void gen_add(HostReg reg,void* op) {
 // add a 32bit constant value to a full register
 static void gen_add_imm(HostReg reg,uint32_t imm) {
 	if(!imm) return;
-	if(((Bit32s)imm >= -32768) && ((Bit32s)imm < 32768)) {
+	if(((int32_t)imm >= -32768) && ((int32_t)imm < 32768)) {
 		cache_addw((uint16_t)imm);	// addiu reg, reg, imm
 		cache_addw(0x2400+(reg<<5)+reg);
 	} else {
@@ -346,17 +346,17 @@ static void INLINE gen_add_direct_word(void* dest,uint32_t imm,bool dword) {
 
 // add an 8bit constant value to a dword memory value
 static void INLINE gen_add_direct_byte(void* dest,int8_t imm) {
-	gen_add_direct_word(dest, (Bit32s)imm, 1);
+	gen_add_direct_word(dest, (int32_t)imm, 1);
 }
 
 // subtract an 8bit constant value from a dword memory value
 static void INLINE gen_sub_direct_byte(void* dest,int8_t imm) {
-	gen_add_direct_word(dest, -((Bit32s)imm), 1);
+	gen_add_direct_word(dest, -((int32_t)imm), 1);
 }
 
 // subtract a 32bit (dword==true) or 16bit (dword==false) constant value from a memory value
 static void INLINE gen_sub_direct_word(void* dest,uint32_t imm,bool dword) {
-	gen_add_direct_word(dest, -(Bit32s)imm, dword);
+	gen_add_direct_word(dest, -(int32_t)imm, dword);
 }
 
 // effective address calculation, destination is dest_reg

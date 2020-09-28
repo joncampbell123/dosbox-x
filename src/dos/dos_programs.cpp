@@ -5388,8 +5388,8 @@ void runImgmount(const char *str) {
 	imgmount.Run();
 }
 
-Bitu DOS_SwitchKeyboardLayout(const char* new_layout, Bit32s& tried_cp);
-Bitu DOS_LoadKeyboardLayout(const char * layoutname, Bit32s codepage, const char * codepagefile);
+Bitu DOS_SwitchKeyboardLayout(const char* new_layout, int32_t& tried_cp);
+Bitu DOS_LoadKeyboardLayout(const char * layoutname, int32_t codepage, const char * codepagefile);
 const char* DOS_GetLoadedLayout(void);
 
 class KEYB : public Program {
@@ -5415,7 +5415,7 @@ void KEYB::Run(void) {
             /* first parameter is layout ID */
             Bitu keyb_error=0;
             std::string cp_string;
-            Bit32s tried_cp = -1;
+            int32_t tried_cp = -1;
             if (cmd->FindCommand(2,cp_string)) {
                 /* second parameter is codepage number */
                 tried_cp=atoi(cp_string.c_str());

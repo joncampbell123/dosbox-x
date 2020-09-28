@@ -155,7 +155,7 @@ static void FPU_FLD_I16(PhysPt addr,Bitu store_to) {
 }
 
 static void FPU_FLD_I32(PhysPt addr,Bitu store_to) {
-	Bit32s blah = (Bit32s)mem_readd(addr);
+	int32_t blah = (int32_t)mem_readd(addr);
 	fpu.regs_80[store_to].v = static_cast<long double>(blah);
 }
 
@@ -221,7 +221,7 @@ static void FPU_FST_I16(PhysPt addr) {
 }
 
 static void FPU_FST_I32(PhysPt addr) {
-	mem_writed(addr,(uint32_t)static_cast<Bit32s>(FROUND(fpu.regs_80[TOP].v)));
+	mem_writed(addr,(uint32_t)static_cast<int32_t>(FROUND(fpu.regs_80[TOP].v)));
 }
 
 static void FPU_FST_I64(PhysPt addr) {

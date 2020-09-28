@@ -821,7 +821,7 @@ extern Bitu time_limit_ms;
 static unsigned long PIC_benchstart = 0;
 static unsigned long PIC_tickstart = 0;
 
-extern void GFX_SetTitle(Bit32s cycles, Bits frameskip, Bits timing, bool paused);
+extern void GFX_SetTitle(int32_t cycles, Bits frameskip, Bits timing, bool paused);
 void TIMER_AddTick(void) {
     /* Setup new amount of cycles for PIC */
     PIC_Ticks++;

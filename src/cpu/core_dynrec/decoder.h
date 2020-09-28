@@ -195,7 +195,7 @@ restart_prefix:
 				case 0x80:case 0x81:case 0x82:case 0x83:case 0x84:case 0x85:case 0x86:case 0x87:	
 				case 0x88:case 0x89:case 0x8a:case 0x8b:case 0x8c:case 0x8d:case 0x8e:case 0x8f:	
 					dyn_branched_exit((BranchTypes)(dual_code&0xf),
-						decode.big_op ? (Bit32s)decode_fetchd() : (int16_t)decode_fetchw());
+						decode.big_op ? (int32_t)decode_fetchd() : (int16_t)decode_fetchw());
 					goto finish_block;
 
 				// conditional byte set instructions
@@ -515,7 +515,7 @@ restart_prefix:
 			goto finish_block;
 		// 'jmp near imm16/32'
 		case 0xe9:
-			dyn_exit_link(decode.big_op ? (Bit32s)decode_fetchd() : (int16_t)decode_fetchw());
+			dyn_exit_link(decode.big_op ? (int32_t)decode_fetchd() : (int16_t)decode_fetchw());
 			goto finish_block;
 		// 'jmp far'
 		case 0xea:

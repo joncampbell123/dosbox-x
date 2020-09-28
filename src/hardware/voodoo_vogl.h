@@ -113,8 +113,8 @@ void VOGL_FlagFeature(uint32_t feat);
 void VOGL_BeginMode(INT32 new_mode);
 void VOGL_ClearBeginMode(void);
 
-void VOGL_SetDepthMode(Bit32s mode, Bit32s func);
-void VOGL_SetAlphaMode(Bit32s enabled_mode,GLuint src_rgb_fac,GLuint dst_rgb_fac,
+void VOGL_SetDepthMode(int32_t mode, int32_t func);
+void VOGL_SetAlphaMode(int32_t enabled_mode,GLuint src_rgb_fac,GLuint dst_rgb_fac,
 											GLuint src_alpha_fac,GLuint dst_alpha_fac);
 
 void VOGL_SetDepthMaskMode(bool masked);

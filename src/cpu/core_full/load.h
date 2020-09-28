@@ -120,10 +120,10 @@ l_M_Ew:
 			inst_op1_d=Fetchd();
 			break;
 		case M_EdxGdx:
-			inst_op2_ds=(Bit32s)reg_32(inst.rm_index);
+			inst_op2_ds=(int32_t)reg_32(inst.rm_index);
 		case M_Edx:
-			if (inst.rm<0xc0) inst_op1_d=(uint32_t)((Bit32s)LoadMd(inst.rm_eaa));
-			else inst_op1_d=(uint32_t)((Bit32s)reg_32(inst.rm_eai));
+			if (inst.rm<0xc0) inst_op1_d=(uint32_t)((int32_t)LoadMd(inst.rm_eaa));
+			else inst_op1_d=(uint32_t)((int32_t)reg_32(inst.rm_eai));
 			break;
 		case M_EdIb:
 			inst_op2_d=Fetchb();
@@ -139,7 +139,7 @@ l_M_Ew:
 			goto l_M_EdGd;
 		case M_EdGdt:
 			inst_op2_d=reg_32(inst.rm_index);
-			inst.rm_eaa+=(uint32_t)(((Bit32s)inst_op2_d >> 5) * 4);
+			inst.rm_eaa+=(uint32_t)(((int32_t)inst_op2_d >> 5) * 4);
 			goto l_M_Ed;
 		case M_EdGdIb:
 			inst_imm_d=Fetchb();

@@ -193,7 +193,7 @@ public:
 class Extensions {
 public:
 	RendererType selectedRendererType;
-	Bit32s masterTunePitchDelta;
+	int32_t masterTunePitchDelta;
 	bool niceAmpRamp;
 	bool nicePanning;
 	bool nicePartialMixing;
@@ -965,7 +965,7 @@ uint32_t Synth::getShortMessageLength(uint32_t msg) {
 uint32_t Synth::addMIDIInterfaceDelay(uint32_t len, uint32_t timestamp) {
 	uint32_t transferTime =  uint32_t(double(len) * MIDI_DATA_TRANSFER_RATE);
 	// Dealing with wrapping
-	if (Bit32s(timestamp - lastReceivedMIDIEventTimestamp) < 0) {
+	if (int32_t(timestamp - lastReceivedMIDIEventTimestamp) < 0) {
 		timestamp = lastReceivedMIDIEventTimestamp;
 	}
 	timestamp += transferTime;
@@ -1812,7 +1812,7 @@ void Synth::resetMasterTunePitchDelta() {
 #endif
 }
 
-Bit32s Synth::getMasterTunePitchDelta() const {
+int32_t Synth::getMasterTunePitchDelta() const {
 	return extensions.masterTunePitchDelta;
 }
 
@@ -2115,7 +2115,7 @@ void RendererImpl<Sample>::doRenderStreams(const DACOutputStreams<Sample> &strea
 		uint32_t thisLen = 1;
 		if (!isAbortingPoly()) {
 			const volatile MidiEventQueue::MidiEvent *nextEvent = getMidiQueue().peekMidiEvent();
-			Bit32s samplesToNextEvent = (nextEvent != NULL) ? Bit32s(nextEvent->timestamp - getRenderedSampleCount()) : MAX_SAMPLES_PER_RUN;
+			int32_t samplesToNextEvent = (nextEvent != NULL) ? int32_t(nextEvent->timestamp - getRenderedSampleCount()) : MAX_SAMPLES_PER_RUN;
 			if (samplesToNextEvent > 0) {
 				thisLen = len > MAX_SAMPLES_PER_RUN ? MAX_SAMPLES_PER_RUN : len;
 				if (thisLen > uint32_t(samplesToNextEvent)) {

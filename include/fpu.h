@@ -54,11 +54,11 @@ typedef union {
 #ifndef WORDS_BIGENDIAN
     struct {
         uint32_t lower;
-        Bit32s upper;
+        int32_t upper;
     } l;
 #else
     struct {
-        Bit32s upper;
+        int32_t upper;
         uint32_t lower;
     } l;
 #endif

@@ -28,14 +28,14 @@
 #define fltype double
 
 /*
-	define Bits, Bitu, Bit32s, uint32_t, int16_t, uint16_t, int8_t, uint8_t here
+	define Bits, Bitu, int32_t, uint32_t, int16_t, uint16_t, int8_t, uint8_t here
 */
 /*
 #include <stdint.h>
 typedef uintptr_t	Bitu;
 typedef intptr_t	Bits;
 typedef uint32_t	uint32_t;
-typedef int32_t		Bit32s;
+typedef int32_t		int32_t;
 typedef uint16_t	uint16_t;
 typedef int16_t		int16_t;
 typedef uint8_t		uint8_t;
@@ -121,17 +121,17 @@ typedef int8_t		int8_t;
      channel.
 */
 typedef struct operator_struct {
-	Bit32s cval, lastcval;			// current output/last output (used for feedback)
+	int32_t cval, lastcval;			// current output/last output (used for feedback)
 	uint32_t tcount, wfpos, tinc;		// time (position in waveform) and time increment
 	fltype amp, step_amp;			// and amplification (envelope)
 	fltype vol;						// volume
 	fltype sustain_level;			// sustain level
-	Bit32s mfbi;					// feedback amount
+	int32_t mfbi;					// feedback amount
 	fltype a0, a1, a2, a3;			// attack rate function coefficients
 	fltype decaymul, releasemul;	// decay/release rate functions
 	uint32_t op_state;				// current state of operator (attack/decay/sustain/release/off)
 	uint32_t toff;
-	Bit32s freq_high;				// highest three bits of the frequency, used for vibrato calculations
+	int32_t freq_high;				// highest three bits of the frequency, used for vibrato calculations
 	int16_t* cur_wform;				// start of selected waveform
 	uint32_t cur_wmask;				// mask for selected waveform
 	uint32_t act_state;				// activity state (regular, percussion)
@@ -147,7 +147,7 @@ typedef struct operator_struct {
 
 #if defined(OPLTYPE_IS_OPL3)
 	bool is_4op,is_4op_attached;	// base of a 4op channel/part of a 4op channel
-	Bit32s left_pan,right_pan;		// opl3 stereo panning amount
+	int32_t left_pan,right_pan;		// opl3 stereo panning amount
 #endif
 } op_type;
 

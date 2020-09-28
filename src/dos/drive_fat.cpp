@@ -270,7 +270,7 @@ void fatFile::Flush(void) {
     if (modified || newtime) {
         direntry tmpentry = {};
 
-        myDrive->directoryBrowse(dirCluster, &tmpentry, (Bit32s)dirIndex);
+        myDrive->directoryBrowse(dirCluster, &tmpentry, (int32_t)dirIndex);
 
         if (newtime) {
             tmpentry.modTime = time;
@@ -285,7 +285,7 @@ void fatFile::Flush(void) {
             tmpentry.modDate = cd;
         }
 
-        myDrive->directoryChange(dirCluster, &tmpentry, (Bit32s)dirIndex);
+        myDrive->directoryChange(dirCluster, &tmpentry, (int32_t)dirIndex);
         modified = false;
         newtime = false;
     }
@@ -455,7 +455,7 @@ bool fatFile::Write(const uint8_t * data, uint16_t *size) {
 	if(curSectOff>0 && loadedSector) myDrive->writeSector(currentSector, sectorBuffer);
 
 finalizeWrite:
-	myDrive->directoryBrowse(dirCluster, &tmpentry, (Bit32s)dirIndex);
+	myDrive->directoryBrowse(dirCluster, &tmpentry, (int32_t)dirIndex);
 	tmpentry.entrysize = filelength;
 
 	if (myDrive->GetBPB().is_fat32())
@@ -463,25 +463,25 @@ finalizeWrite:
 	else
 		tmpentry.loFirstClust = (uint16_t)firstCluster;
 
-	myDrive->directoryChange(dirCluster, &tmpentry, (Bit32s)dirIndex);
+	myDrive->directoryChange(dirCluster, &tmpentry, (int32_t)dirIndex);
 
 	*size =sizecount;
 	return true;
 }
 
 bool fatFile::Seek(uint32_t *pos, uint32_t type) {
-	Bit32s seekto=0;
+	int32_t seekto=0;
 	
 	switch(type) {
 		case DOS_SEEK_SET:
-			seekto = (Bit32s)*pos;
+			seekto = (int32_t)*pos;
 			break;
 		case DOS_SEEK_CUR:
 			/* Is this relative seek signed? */
-			seekto = (Bit32s)*pos + (Bit32s)seekpos;
+			seekto = (int32_t)*pos + (int32_t)seekpos;
 			break;
 		case DOS_SEEK_END:
-			seekto = (Bit32s)filelength + (Bit32s)*pos;
+			seekto = (int32_t)filelength + (int32_t)*pos;
 			break;
 	}
 //	LOG_MSG("Seek to %d with type %d (absolute value %d)", *pos, type, seekto);
@@ -508,7 +508,7 @@ bool fatFile::Close() {
     if (modified || newtime) {
         direntry tmpentry = {};
 
-        myDrive->directoryBrowse(dirCluster, &tmpentry, (Bit32s)dirIndex);
+        myDrive->directoryBrowse(dirCluster, &tmpentry, (int32_t)dirIndex);
 
         if (newtime) {
             tmpentry.modTime = time;
@@ -523,7 +523,7 @@ bool fatFile::Close() {
             tmpentry.modDate = cd;
         }
 
-        myDrive->directoryChange(dirCluster, &tmpentry, (Bit32s)dirIndex);
+        myDrive->directoryChange(dirCluster, &tmpentry, (int32_t)dirIndex);
     }
 
 	return false;
@@ -979,7 +979,7 @@ uint32_t fatDrive::getAbsoluteSectFromBytePos(uint32_t startClustNum, uint32_t b
 }
 
 uint32_t fatDrive::getAbsoluteSectFromChain(uint32_t startClustNum, uint32_t logicalSector) {
-	Bit32s skipClust = (Bit32s)(logicalSector / BPB.v.BPB_SecPerClus);
+	int32_t skipClust = (int32_t)(logicalSector / BPB.v.BPB_SecPerClus);
 	uint32_t sectClust = (uint32_t)(logicalSector % BPB.v.BPB_SecPerClus);
 
 	/* startClustNum == 0 means the file is (likely) zero length and has no allocation chain yet.
@@ -2084,7 +2084,7 @@ bool fatDrive::FileCreate(DOS_File **file, const char *name, uint16_t attributes
 		/* Update directory entry */
 		fileEntry.entrysize=0;
 		fileEntry.SetCluster32(0);
-		directoryChange(dirClust, &fileEntry, (Bit32s)subEntry);
+		directoryChange(dirClust, &fileEntry, (int32_t)subEntry);
 	} else {
 		/* Can we even get the name of the file itself? */
 		if(!getEntryName(name, &dirName[0])||!strlen(trim(dirName))) return false;
@@ -2210,7 +2210,7 @@ bool fatDrive::FileUnlink(const char * name) {
 
 	/* remove primary 8.3 SFN */
 	fileEntry.entryname[0] = 0xe5;
-	directoryChange(dirClust, &fileEntry, (Bit32s)subEntry);
+	directoryChange(dirClust, &fileEntry, (int32_t)subEntry);
 
 	/* delete allocation chain */
 	{
@@ -2510,7 +2510,7 @@ bool fatDrive::SetFileAttr(const char *name, uint16_t attr) {
 		return false;
 	} else {
 		fileEntry.attrib=(uint8_t)attr;
-		directoryChange(dirClust, &fileEntry, (Bit32s)subEntry);
+		directoryChange(dirClust, &fileEntry, (int32_t)subEntry);
 	}
 	return true;
 }
@@ -2557,7 +2557,7 @@ unsigned long fatDrive::GetSerial() {
 		return BPB.v.BPB_VolID?BPB.v.BPB_VolID:0x1234;
 }
 
-bool fatDrive::directoryBrowse(uint32_t dirClustNumber, direntry *useEntry, Bit32s entNum, Bit32s start/*=0*/) {
+bool fatDrive::directoryBrowse(uint32_t dirClustNumber, direntry *useEntry, int32_t entNum, int32_t start/*=0*/) {
 	direntry sectbuf[MAX_DIRENTS_PER_SECTOR];	/* 16 directory entries per 512 byte sector */
 	uint32_t entryoffset = 0;	/* Index offset within sector */
 	uint32_t tmpsector;
@@ -2596,7 +2596,7 @@ bool fatDrive::directoryBrowse(uint32_t dirClustNumber, direntry *useEntry, Bit3
 	return true;
 }
 
-bool fatDrive::directoryChange(uint32_t dirClustNumber, const direntry *useEntry, Bit32s entNum) {
+bool fatDrive::directoryChange(uint32_t dirClustNumber, const direntry *useEntry, int32_t entNum) {
 	direntry sectbuf[MAX_DIRENTS_PER_SECTOR];	/* 16 directory entries per 512 byte sector */
 	uint32_t entryoffset = 0;	/* Index offset within sector */
 	uint32_t tmpsector = 0;
@@ -2911,7 +2911,7 @@ bool fatDrive::RemoveDir(const char *dir) {
 	/* Check to make sure directory is empty */
 	uint32_t filecount = 0;
 	/* Set to 2 to skip first 2 entries, [.] and [..] */
-	Bit32s fileidx = 2;
+	int32_t fileidx = 2;
 	while(directoryBrowse(dummyClust, &tmpentry, fileidx)) {
 		/* Check for non-deleted files */
 		if(tmpentry.entryname[0] != 0xe5) filecount++;
@@ -2995,11 +2995,11 @@ bool fatDrive::Rename(const char * oldname, const char * newname) {
 		if (filename_not_strict_8x3(lfn)) {
 			char oldchar=fileEntry1.entryname[0];
 			fileEntry1.entryname[0] = 0xe5;
-			directoryChange(dirClust1, &fileEntry1, (Bit32s)subEntry1);
+			directoryChange(dirClust1, &fileEntry1, (int32_t)subEntry1);
 			char *sfn=Generate_SFN(path, lfn);
 			if (sfn!=NULL) convToDirFile(sfn, &pathName2[0]);
 			fileEntry1.entryname[0] = oldchar;
-			directoryChange(dirClust1, &fileEntry1, (Bit32s)subEntry1);
+			directoryChange(dirClust1, &fileEntry1, (int32_t)subEntry1);
 		} else
 			lfn = NULL;
 	}
@@ -3011,7 +3011,7 @@ bool fatDrive::Rename(const char * oldname, const char * newname) {
 
 	/* Remove old 8.3 SFN entry */
 	fileEntry1.entryname[0] = 0xe5;
-	directoryChange(dirClust1, &fileEntry1, (Bit32s)subEntry1);
+	directoryChange(dirClust1, &fileEntry1, (int32_t)subEntry1);
 
 	/* remove LFNs of old entry only if emulating LFNs or DOS version 7.0.
 	 * Earlier DOS versions ignore LFNs. */

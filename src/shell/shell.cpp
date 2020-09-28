@@ -61,7 +61,7 @@ void runMount(const char *str);
 void MSG_Replace(const char * _name, const char* _val);
 void DOS_SetCountry(uint16_t countryNo);
 void CALLBACK_DeAllocate(Bitu in);
-void GFX_SetTitle(Bit32s cycles, Bits frameskip, Bits timing, bool paused);
+void GFX_SetTitle(int32_t cycles, Bits frameskip, Bits timing, bool paused);
 
 Bitu call_shellstop = 0;
 /* Larger scope so shell_del autoexec can use it to

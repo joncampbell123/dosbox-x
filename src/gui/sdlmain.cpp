@@ -1131,11 +1131,11 @@ bool IsDebuggerActive(void);
 
 extern std::string dosbox_title;
 
-void GFX_SetTitle(Bit32s cycles,Bits frameskip,Bits timing,bool paused){
+void GFX_SetTitle(int32_t cycles,Bits frameskip,Bits timing,bool paused){
     (void)frameskip;//UNUSED
     (void)timing;//UNUSED
 //  static Bits internal_frameskip=0;
-    static Bit32s internal_cycles=0;
+    static int32_t internal_cycles=0;
 //  static Bits internal_timing=0;
     char title[200] = {0};
 
@@ -3003,7 +3003,7 @@ void change_output(int output) {
     if (sdl.draw.callback)
         (sdl.draw.callback)( GFX_CallBackReset );
 
-    if (output != 7) GFX_SetTitle((Bit32s)(CPU_CycleAutoAdjust?CPU_CyclePercUsed:CPU_CycleMax),-1,-1,false);
+    if (output != 7) GFX_SetTitle((int32_t)(CPU_CycleAutoAdjust?CPU_CyclePercUsed:CPU_CycleMax),-1,-1,false);
     GFX_LogSDLState();
 
     UpdateWindowDimensions();
@@ -8458,7 +8458,7 @@ bool showdetails_menu_callback(DOSBoxMenu * const xmenu, DOSBoxMenu::item * cons
     (void)xmenu;//UNUSED
     (void)menuitem;//UNUSED
     menu.showrt = !(menu.hidecycles = !menu.hidecycles);
-    GFX_SetTitle((Bit32s)(CPU_CycleAutoAdjust?CPU_CyclePercUsed:CPU_CycleMax), -1, -1, false);
+    GFX_SetTitle((int32_t)(CPU_CycleAutoAdjust?CPU_CyclePercUsed:CPU_CycleMax), -1, -1, false);
     mainMenu.get_item("showdetails").check(!menu.hidecycles).refresh_item(mainMenu);
     return true;
 }

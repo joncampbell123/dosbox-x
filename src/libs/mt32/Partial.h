@@ -48,7 +48,7 @@ private:
 	// Actually, LA-32 receives only 3 bits as a pan setting, but we abuse these to emulate
 	// the inverted partial mixing as well. Also we double the values (making them correspond
 	// to the panpot range) to enable NicePanning mode, with respect to MoK.
-	Bit32s leftPanValue, rightPanValue;
+	int32_t leftPanValue, rightPanValue;
 
 	int ownerPart; // -1 if unassigned
 	int mixType;

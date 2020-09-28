@@ -41,17 +41,17 @@ static inline bool diffYUV(uint32_t yuv1, uint32_t yuv2)
 	uint32_t mask;
 
 	diff = ((yuv1 & Ymask) - (yuv2 & Ymask));
-	mask = (uint32_t)(((Bit32s)diff) >> 31); // ~1/-1 if value < 0, 0 otherwise
+	mask = (uint32_t)(((int32_t)diff) >> 31); // ~1/-1 if value < 0, 0 otherwise
 	diff = (diff ^ mask) - mask; //-1: ~value + 1; 0: value
 	if (diff > trY) return true;
 
 	diff = ((yuv1 & Umask) - (yuv2 & Umask));
-	mask = (uint32_t)(((Bit32s)diff) >> 31); // ~1/-1 if value < 0, 0 otherwise
+	mask = (uint32_t)(((int32_t)diff) >> 31); // ~1/-1 if value < 0, 0 otherwise
 	diff = (diff ^ mask) - mask; //-1: ~value + 1; 0: value
 	if (diff > trU) return true;
 
 	diff = ((yuv1 & Vmask) - (yuv2 & Vmask));
-	mask = (uint32_t)(((Bit32s)diff) >> 31); // ~1/-1 if value < 0, 0 otherwise
+	mask = (uint32_t)(((int32_t)diff) >> 31); // ~1/-1 if value < 0, 0 otherwise
 	diff = (diff ^ mask) - mask; //-1: ~value + 1; 0: value
 	if (diff > trV) return true;
 

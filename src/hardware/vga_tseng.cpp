@@ -904,7 +904,7 @@ void FinishSetMode_ET3K(Bitu crtc_base, VGA_ModeExtraData* modeData) {
         Bitu best = 1;
         int dist = 100000000;
         for (Bitu i = 0; i < 8; i++) {
-            int cdiff = abs( static_cast<Bit32s>(target - static_cast<Bits>(et3k.clockFreq[i])) );
+            int cdiff = abs( static_cast<int32_t>(target - static_cast<Bits>(et3k.clockFreq[i])) );
             if (cdiff < dist) {
                 best = i;
                 dist = cdiff;

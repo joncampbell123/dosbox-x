@@ -68,7 +68,7 @@ void CMOS_SetRegister(Bitu regNr, uint8_t val); //For setting equipment word
 bool imageDiskChange[MAX_DISK_IMAGES]={false};
 imageDisk *imageDiskList[MAX_DISK_IMAGES]={NULL};
 imageDisk *diskSwap[MAX_SWAPPABLE_DISKS]={NULL};
-Bit32s swapPosition;
+int32_t swapPosition;
 
 imageDisk *GetINT13FloppyDrive(unsigned char drv) {
     if (drv >= 2)
@@ -143,11 +143,11 @@ int swapInDisksSpecificDrive = -1;
 
 void swapInDisks(int drive) {
     bool allNull = true;
-    Bit32s diskcount = 0;
+    int32_t diskcount = 0;
     Bits diskswapcount = 2;
     Bits diskswapdrive = 0;
-    Bit32s swapPos = swapPosition;
-    Bit32s i;
+    int32_t swapPos = swapPosition;
+    int32_t i;
 
     /* Check to make sure that  there is at least one setup image */
     for(i=0;i<MAX_SWAPPABLE_DISKS;i++) {

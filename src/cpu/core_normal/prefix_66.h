@@ -177,11 +177,11 @@
 		} break;
 	CASE_D(0x62)												/* BOUND Ed */
 		{
-			Bit32s bound_min, bound_max;
+			int32_t bound_min, bound_max;
 			GetRMrd;GetEAa;
-			bound_min=(Bit32s)LoadMd(eaa);
-			bound_max=(Bit32s)LoadMd(eaa+4);
-			if ( (((Bit32s)*rmrd) < bound_min) || (((Bit32s)*rmrd) > bound_max) ) {
+			bound_min=(int32_t)LoadMd(eaa);
+			bound_max=(int32_t)LoadMd(eaa+4);
+			if ( (((int32_t)*rmrd) < bound_min) || (((int32_t)*rmrd) > bound_max) ) {
 				EXCEPTION(5);
 			}
 		}
@@ -620,7 +620,7 @@
 		{ 
 			/* must not adjust (E)IP until we have completed the instruction.
 			 * if interrupted by a page fault, EIP must be unmodified. */
-			Bit32s addip=Fetchds();
+			int32_t addip=Fetchds();
 			uint32_t here=GETIP;
 			Push_32(here);
 			reg_eip=(uint32_t)((uint32_t)addip+here);
@@ -628,7 +628,7 @@
 		}
 	CASE_D(0xe9)												/* JMP Jd */
 		{ 
-			Bit32s addip=Fetchds();
+			int32_t addip=Fetchds();
 			SAVEIP;
 			reg_eip+=(uint32_t)addip;
 			continue;
@@ -649,7 +649,7 @@
 		}
 	CASE_D(0xeb)												/* JMP Jb */
 		{ 
-			Bit32s addip=Fetchbs();
+			int32_t addip=Fetchbs();
 			SAVEIP;
 			reg_eip+=(uint32_t)addip;
 			continue;

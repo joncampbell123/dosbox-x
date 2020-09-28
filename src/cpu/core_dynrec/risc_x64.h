@@ -94,7 +94,7 @@ static void gen_mov_reg_qword(HostReg dest_reg,Bit64u imm);
 static INLINE void gen_reg_memaddr(HostReg reg,void* data,uint8_t op,uint8_t prefix=0) {
 	Bit64s diff = (Bit64s)data-((Bit64s)cache.pos+(prefix?7:6));
 //	if ((diff<0x80000000LL) && (diff>-0x80000000LL)) { //clang messes itself up on this...
-	if ( (diff>>63) == (diff>>31) ) { //signed bit extend, test to see if value fits in a Bit32s
+	if ( (diff>>63) == (diff>>31) ) { //signed bit extend, test to see if value fits in a int32_t
 		// mov reg,[rip+diff] (or similar, depending on the op) to fetch *data
 		if(prefix) cache_addb(prefix);
 		cache_addb(op);

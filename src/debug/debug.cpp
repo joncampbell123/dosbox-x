@@ -70,7 +70,7 @@ const char *egc_fgc_modes[4] = {
 };
 
 bool pc98_pegc_linear_framebuffer_enabled(void);
-void GFX_SetTitle(Bit32s cycles,Bits frameskip,Bits timing,bool paused);
+void GFX_SetTitle(int32_t cycles,Bits frameskip,Bits timing,bool paused);
 
 extern bool                 dos_kernel_disabled;
 extern bool                 is_paused;
@@ -2894,7 +2894,7 @@ uint32_t DEBUG_CheckKeys(void) {
     }
 	
 	if (key >='1' && key <='5' && strlen(codeViewData.inputStr) == 0) {
-		const Bit32s v[] ={5,500,1000,5000,10000};
+		const int32_t v[] ={5,500,1000,5000,10000};
 		CPU_Cycles= v[key - '1'];
 
 		skipFirstInstruction = true;

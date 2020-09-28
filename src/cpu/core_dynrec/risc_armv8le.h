@@ -622,7 +622,7 @@ static void gen_add_imm(HostReg reg,uint32_t imm) {
 
 	if(!imm) return;
 
-	imm2 = (uint32_t) (-((Bit32s)imm));
+	imm2 = (uint32_t) (-((int32_t)imm));
 
 	if (imm < 4096) {
 		cache_addd( ADD_IMM(reg, reg, imm, 0) );            // add reg, reg, #imm
@@ -695,7 +695,7 @@ static void gen_add_direct_word(void* dest,uint32_t imm,bool dword) {
 
 // add an 8bit constant value to a dword memory value
 static void gen_add_direct_byte(void* dest,int8_t imm) {
-	gen_add_direct_word(dest, (Bit32s)imm, 1);
+	gen_add_direct_word(dest, (int32_t)imm, 1);
 }
 
 // subtract a 32bit (dword==true) or 16bit (dword==false) constant value from a memory value
@@ -710,7 +710,7 @@ static void gen_sub_direct_word(void* dest,uint32_t imm,bool dword) {
 		gen_mov_word_to_reg_helper(temp3, dest, dword, temp1);
 	}
 
-	imm2 = (uint32_t) (-((Bit32s)imm));
+	imm2 = (uint32_t) (-((int32_t)imm));
 
 	if (imm < 4096) {
 		cache_addd( SUB_IMM(temp3, temp3, imm, 0) );            // sub temp3, temp3, #imm
@@ -735,7 +735,7 @@ static void gen_sub_direct_word(void* dest,uint32_t imm,bool dword) {
 
 // subtract an 8bit constant value from a dword memory value
 static void gen_sub_direct_byte(void* dest,int8_t imm) {
-	gen_sub_direct_word(dest, (Bit32s)imm, 1);
+	gen_sub_direct_word(dest, (int32_t)imm, 1);
 }
 
 // effective address calculation, destination is dest_reg

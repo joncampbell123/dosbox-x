@@ -241,7 +241,7 @@
 				GetEArd;
 				SETFLAGBIT(CF,(*eard & mask));
 			} else {
-				GetEAa;eaa+=(PhysPt)((((Bit32s)*rmrd)>>5)*4);
+				GetEAa;eaa+=(PhysPt)((((int32_t)*rmrd)>>5)*4);
 				uint32_t old=LoadMd(eaa);
 				SETFLAGBIT(CF,(old & mask));
 			}
@@ -267,7 +267,7 @@
 				SETFLAGBIT(CF,(*eard & mask));
 				*eard|=mask;
 			} else {
-				GetEAa;eaa+=(PhysPt)((((Bit32s)*rmrd)>>5)*4);
+				GetEAa;eaa+=(PhysPt)((((int32_t)*rmrd)>>5)*4);
 				uint32_t old=LoadMd(eaa);
 				SETFLAGBIT(CF,(old & mask));
 				SaveMd(eaa,old | mask);
@@ -332,7 +332,7 @@
 				SETFLAGBIT(CF,(*eard & mask));
 				*eard&= ~mask;
 			} else {
-				GetEAa;eaa+=(PhysPt)((((Bit32s)*rmrd)>>5)*4);
+				GetEAa;eaa+=(PhysPt)((((int32_t)*rmrd)>>5)*4);
 				uint32_t old=LoadMd(eaa);
 				SETFLAGBIT(CF,(old & mask));
 				SaveMd(eaa,old & ~mask);
@@ -427,7 +427,7 @@
 				SETFLAGBIT(CF,(*eard & mask));
 				*eard^=mask;
 			} else {
-				GetEAa;eaa+=(PhysPt)((((Bit32s)*rmrd)>>5)*4);
+				GetEAa;eaa+=(PhysPt)((((int32_t)*rmrd)>>5)*4);
 				uint32_t old=LoadMd(eaa);
 				SETFLAGBIT(CF,(old & mask));
 				SaveMd(eaa,old ^ mask);

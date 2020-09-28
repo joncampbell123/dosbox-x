@@ -41,7 +41,7 @@ typedef PhysPt EAPoint;
 
 #define LoadMbs(off) (int8_t)(LoadMb(off))
 #define LoadMws(off) (int16_t)(LoadMw(off))
-#define LoadMds(off) (Bit32s)(LoadMd(off))
+#define LoadMds(off) (int32_t)(LoadMd(off))
 
 #define SaveMb(off,val)	mem_writeb_inline(off,val)
 #define SaveMw(off,val)	mem_writew_inline(off,val)

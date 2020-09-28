@@ -694,7 +694,7 @@ bool CMscdex::GetDirectoryEntry(uint16_t drive, bool copyFlag, PhysPt pathname, 
 	uint16_t offset = iso ? 156:180;
 	// get directory position
 	uint32_t dirEntrySector	= mem_readd(defBuffer+offset+2);
-	Bits dirSize		= (Bit32s)mem_readd(defBuffer+offset+10);
+	Bits dirSize		= (int32_t)mem_readd(defBuffer+offset+10);
 	while (dirSize>0) {
 		uint16_t index = 0;
 		if (!ReadSectors(GetSubUnit(drive),false,dirEntrySector,1,defBuffer)) return false;
@@ -763,7 +763,7 @@ bool CMscdex::GetDirectoryEntry(uint16_t drive, bool copyFlag, PhysPt pathname, 
 			}
 			// change directory
 			dirEntrySector = mem_readd(defBuffer+index+2);
-			dirSize	= (Bit32s)mem_readd(defBuffer+index+10);
+			dirSize	= (int32_t)mem_readd(defBuffer+index+10);
 			nextPart = true;
 		} else {
 			// continue search in next sector

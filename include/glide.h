@@ -30,8 +30,8 @@ typedef int8_t   FxI8;
 typedef uint16_t  FxU16;
 typedef int16_t  FxI16;
 typedef uint32_t  FxU32;
-typedef Bit32s  FxI32;
-typedef Bit32s  FxBool;
+typedef int32_t  FxI32;
+typedef int32_t  FxBool;
 typedef float   FxFloat;
 typedef double  FxDouble;
 
@@ -72,19 +72,19 @@ typedef struct { float r, g, b, a; } FxColor4;
 
 // Some glide structs might have different size in guest 32-bit DOS (pointers)
 typedef struct {
-    Bit32s		smallLod;
-    Bit32s		largeLod;
-    Bit32s		aspectRatio;
-    Bit32s		format;
+    int32_t		smallLod;
+    int32_t		largeLod;
+    int32_t		aspectRatio;
+    int32_t		format;
     PhysPt		data;
 } DBGrTexInfo;
 
 typedef struct {
-    Bit32s		size;
+    int32_t		size;
     PhysPt		lfbPtr;
     uint32_t		strideInBytes;
-    Bit32s		writeMode;
-    Bit32s		origin;
+    int32_t		writeMode;
+    int32_t		origin;
 } DBGrLfbInfo_t;
 
 typedef struct {

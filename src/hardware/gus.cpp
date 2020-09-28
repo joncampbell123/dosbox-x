@@ -76,7 +76,7 @@ static MixerChannel * gus_chan;
 static uint8_t const irqtable[8] = { 0/*invalid*/, 2, 5, 3, 7, 11, 12, 15 };
 static uint8_t const dmatable[8] = { 0/*NO DMA*/, 1, 3, 5, 6, 7, 0/*invalid*/, 0/*invalid*/ };
 static uint8_t GUSRam[1024*1024 + 16/*safety margin*/]; // 1024K of GUS Ram
-static Bit32s AutoAmp = 512;
+static int32_t AutoAmp = 512;
 static bool unmask_irq = false;
 static bool enable_autoamp = false;
 static bool startup_ultrinit = false;
@@ -149,12 +149,12 @@ struct GFGus {
 	uint32_t RampIRQ;
 	uint32_t WaveIRQ;
     double masterVolume;    /* decibels */
-    Bit32s masterVolumeMul; /* 1<<9 fixed */
+    int32_t masterVolumeMul; /* 1<<9 fixed */
 
     void updateMasterVolume(void) {
         double vol = masterVolume;
         if (vol > 6) vol = 6; // allow some amplification but don't let it overflow
-        masterVolumeMul = (Bit32s)((1 << 9) * pow(10.0,vol / 20.0));
+        masterVolumeMul = (int32_t)((1 << 9) * pow(10.0,vol / 20.0));
         if (AutoAmp > masterVolumeMul) AutoAmp = masterVolumeMul;
     }
 } myGUS;
@@ -187,8 +187,8 @@ public:
 	uint32_t irqmask;
 	uint32_t PanLeft;
 	uint32_t PanRight;
-	Bit32s VolLeft;
-	Bit32s VolRight;
+	int32_t VolLeft;
+	int32_t VolRight;
 
 	GUSChannels(uint8_t num) { 
 		channum = num;
@@ -212,38 +212,38 @@ public:
 		PanPot = 0x7;
 	}
 
-    INLINE Bit32s LoadSample8(const uint32_t addr/*memory address without fractional bits*/) const {
-        return (int8_t)GUSRam[addr & 0xFFFFFu/*1MB*/] << Bit32s(8); /* typecast to sign extend 8-bit value */
+    INLINE int32_t LoadSample8(const uint32_t addr/*memory address without fractional bits*/) const {
+        return (int8_t)GUSRam[addr & 0xFFFFFu/*1MB*/] << int32_t(8); /* typecast to sign extend 8-bit value */
     }
 
-    INLINE Bit32s LoadSample16(const uint32_t addr/*memory address without fractional bits*/) const {
+    INLINE int32_t LoadSample16(const uint32_t addr/*memory address without fractional bits*/) const {
         const uint32_t adjaddr = (addr & 0xC0000u/*256KB bank*/) | ((addr & 0x1FFFFu) << 1u/*16-bit sample value within bank*/);
         return (int16_t)host_readw(GUSRam + adjaddr);/* typecast to sign extend 16-bit value */
     }
 
     // Returns a single 16-bit sample from the Gravis's RAM
-    INLINE Bit32s GetSample8() const {
+    INLINE int32_t GetSample8() const {
         /* LoadSample*() will take care of wrapping to 1MB */
         const uint32_t useAddr = WaveAddr >> WAVE_FRACT;
         {
             // Interpolate
-            Bit32s w1 = LoadSample8(useAddr);
-            Bit32s w2 = LoadSample8(useAddr + 1u);
-            Bit32s diff = w2 - w1;
-            Bit32s scale = (Bit32s)(WaveAddr & WAVE_FRACT_MASK);
+            int32_t w1 = LoadSample8(useAddr);
+            int32_t w2 = LoadSample8(useAddr + 1u);
+            int32_t diff = w2 - w1;
+            int32_t scale = (int32_t)(WaveAddr & WAVE_FRACT_MASK);
             return (w1 + ((diff * scale) >> WAVE_FRACT));
         }
     }
 
-    INLINE Bit32s GetSample16() const {
+    INLINE int32_t GetSample16() const {
         /* Load Sample*() will take care of wrapping to 1MB and funky bank/sample conversion */
         const uint32_t useAddr = WaveAddr >> WAVE_FRACT;
         {
             // Interpolate
-            Bit32s w1 = LoadSample16(useAddr);
-            Bit32s w2 = LoadSample16(useAddr + 1u);
-            Bit32s diff = w2 - w1;
-            Bit32s scale = (Bit32s)(WaveAddr & WAVE_FRACT_MASK);
+            int32_t w1 = LoadSample16(useAddr);
+            int32_t w2 = LoadSample16(useAddr + 1u);
+            int32_t diff = w2 - w1;
+            int32_t scale = (int32_t)(WaveAddr & WAVE_FRACT_MASK);
             return (w1 + ((diff * scale) >> WAVE_FRACT));
         }
     }
@@ -396,9 +396,9 @@ public:
 		}
 	}
 	INLINE void UpdateVolumes(void) {
-		Bit32s templeft=(Bit32s)RampVol - (Bit32s)PanLeft;
+		int32_t templeft=(int32_t)RampVol - (int32_t)PanLeft;
 		templeft&=~(templeft >> 31); /* <- NTS: This is a rather elaborate way to clamp negative values to zero using negate and sign extend */
-		Bit32s tempright=(Bit32s)RampVol - (Bit32s)PanRight;
+		int32_t tempright=(int32_t)RampVol - (int32_t)PanRight;
 		tempright&=~(tempright >> 31); /* <- NTS: This is a rather elaborate way to clamp negative values to zero using negate and sign extend */
 		VolLeft=vol16bit[templeft >> RAMP_FRACT];
 		VolRight=vol16bit[tempright >> RAMP_FRACT];
@@ -406,15 +406,15 @@ public:
 	INLINE void RampUpdate(void) {
 		if (RampCtrl & 0x3) return; /* if the ramping is turned off, then don't change the ramp */
 
-		Bit32s RampLeft;
+		int32_t RampLeft;
 		if (RampCtrl & 0x40) {
 			RampVol-=RampAdd;
-			if ((Bit32s)RampVol < (Bit32s)0) RampVol=0;
-			RampLeft=(Bit32s)RampStart-(Bit32s)RampVol;
+			if ((int32_t)RampVol < (int32_t)0) RampVol=0;
+			RampLeft=(int32_t)RampStart-(int32_t)RampVol;
 		} else {
 			RampVol+=RampAdd;
 			if (RampVol > ((4096 << RAMP_FRACT)-1)) RampVol=((4096 << RAMP_FRACT)-1);
-			RampLeft=(Bit32s)RampVol-(Bit32s)RampEnd;
+			RampLeft=(int32_t)RampVol-(int32_t)RampEnd;
 		}
 		if (RampLeft<0) {
 			UpdateVolumes();
@@ -428,18 +428,18 @@ public:
 		if (RampCtrl & 0x08) {
 			/* Bi-directional looping */
 			if (RampCtrl & 0x10) RampCtrl^=0x40;
-			RampVol = (RampCtrl & 0x40) ? (uint32_t)((Bit32s)RampEnd-(Bit32s)RampLeft) : (uint32_t)((Bit32s)RampStart+(Bit32s)RampLeft);
+			RampVol = (RampCtrl & 0x40) ? (uint32_t)((int32_t)RampEnd-(int32_t)RampLeft) : (uint32_t)((int32_t)RampStart+(int32_t)RampLeft);
 		} else {
 			RampCtrl|=1;	//Stop the channel
 			RampVol = (RampCtrl & 0x40) ? RampStart : RampEnd;
 		}
-		if ((Bit32s)RampVol < (Bit32s)0) RampVol=0;
+		if ((int32_t)RampVol < (int32_t)0) RampVol=0;
 		if (RampVol > ((4096 << RAMP_FRACT)-1)) RampVol=((4096 << RAMP_FRACT)-1);
 		UpdateVolumes();
 	}
 
-    void generateSamples(Bit32s* stream, uint32_t len) {
-        Bit32s tmpsamp;
+    void generateSamples(int32_t* stream, uint32_t len) {
+        int32_t tmpsamp;
         int i;
 
         /* NTS: The GUS is *always* rendering the audio sample at the current position,
@@ -463,9 +463,9 @@ public:
                     tmpsamp = GetSample8();
                 // Output stereo sample if DAC enable on
                 if ((GUS_reset_reg & 0x02/*DAC enable*/) == 0x02) {
-                    Bit32s* const sp = stream + (i << 1);
-                    const Bit32s L = tmpsamp * VolLeft;
-                    const Bit32s R = tmpsamp * VolRight;
+                    int32_t* const sp = stream + (i << 1);
+                    const int32_t L = tmpsamp * VolLeft;
+                    const int32_t R = tmpsamp * VolRight;
 
                     if (Lc & 1) sp[0] += L;
                     if (Lc & 2) sp[1] += L;
@@ -1919,7 +1919,7 @@ static void GUS_DMA_Callback(DmaChannel * chan,DMAEvent event) {
 }
 
 static void GUS_CallBack(Bitu len) {
-    Bit32s buffer[MIXER_BUFSIZE][2];
+    int32_t buffer[MIXER_BUFSIZE][2];
     memset(buffer, 0, len * sizeof(buffer[0]));
 
     if ((GUS_reset_reg & 0x01/*!master reset*/) == 0x01) {

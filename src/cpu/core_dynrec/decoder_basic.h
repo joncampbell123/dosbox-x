@@ -1013,7 +1013,7 @@ skip_extend_word:
 							return;
 						}
 						// couldn't get a pointer, use the current value
-						imm=(Bit32s)val;
+						imm=(int32_t)val;
 
 						if (!addseg) {
 							if (!scaled_reg_used) {
@@ -1066,7 +1066,7 @@ skip_extend_word:
 						return;
 					}
 					// couldn't get a pointer, use the current value
-					imm=(Bit32s)val;
+					imm=(int32_t)val;
 					break;
 					}
 				}
@@ -1098,7 +1098,7 @@ skip_extend_word:
 			} else {
 				// no base, no scalereg
 
-				imm=(Bit32s)decode_fetchd();
+				imm=(int32_t)decode_fetchd();
 				if (!addseg) {
 					gen_mov_dword_to_reg_imm(ea_reg,(uint32_t)imm);
 				} else {
@@ -1135,7 +1135,7 @@ skip_extend_word:
 				return;
 			}
 			// couldn't get a pointer, use the current value
-			imm=(Bit32s)val;
+			imm=(int32_t)val;
 			break;
 			}
 		}

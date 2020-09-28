@@ -195,10 +195,10 @@ extern "C" void pc98_fm_dosbox_fmtimer_clearevent(unsigned int n) {
 static void pc98_mix_CallBack(Bitu len) {
     unsigned int s = len;
 
-    if (s > (sizeof(MixTemp)/sizeof(Bit32s)/2))
-        s = (sizeof(MixTemp)/sizeof(Bit32s)/2);
+    if (s > (sizeof(MixTemp)/sizeof(int32_t)/2))
+        s = (sizeof(MixTemp)/sizeof(int32_t)/2);
 
-    memset(MixTemp,0,s * sizeof(Bit32s) * 2);
+    memset(MixTemp,0,s * sizeof(int32_t) * 2);
 
     opngen_getpcm(NULL, (SINT32*)MixTemp, s);
     tms3631_getpcm(&tms3631, (SINT32*)MixTemp, s);
@@ -221,7 +221,7 @@ static void pc98_mix_CallBack(Bitu len) {
 
     pcm86gen_getpcm(NULL, (SINT32*)MixTemp, s);
 
-    pc98_mixer->AddSamples_s32(s, (Bit32s*)MixTemp);
+    pc98_mixer->AddSamples_s32(s, (int32_t*)MixTemp);
 }
 
 static bool pc98fm_init = false;
