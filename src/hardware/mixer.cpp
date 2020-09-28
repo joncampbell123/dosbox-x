@@ -218,7 +218,7 @@ inline void MixerChannel::updateSlew(void) {
     if (freq_nslew < freq_n) freq_nslew = freq_n;
 
     if (freq_nslew_want > 0 && freq_nslew_want < freq_n)
-        max_change = ((Bit64u)freq_nslew_want * (Bit64u)0x8000) / (Bit64u)freq_n;
+        max_change = ((uint64_t)freq_nslew_want * (uint64_t)0x8000) / (uint64_t)freq_n;
     else
         max_change = 0x7FFFFFFFUL;
 }
@@ -385,8 +385,8 @@ void MixerChannel::SetFreq(Bitu _freq,Bitu _den) {
         return;
 
     if (freq_d_orig != _den) {
-        Bit64u tmp = (Bit64u)freq_f * (Bit64u)_den * (Bit64u)mixer.freq;
-        freq_f = freq_fslew = (unsigned int)(tmp / (Bit64u)freq_d_orig);
+        uint64_t tmp = (uint64_t)freq_f * (uint64_t)_den * (uint64_t)mixer.freq;
+        freq_f = freq_fslew = (unsigned int)(tmp / (uint64_t)freq_d_orig);
     }
 
     freq_n = _freq;
@@ -462,10 +462,10 @@ void MixerChannel::Mix(Bitu whole,Bitu frac) {
     rendering_to_n = whole;
     rendering_to_d = frac;
     while (msbuffer_o < whole) {
-        Bit64u todo = (Bit64u)(whole - msbuffer_o) * (Bit64u)freq_n;
-        todo += (Bit64u)freq_f;
-        todo += (Bit64u)freq_d - (Bit64u)1;
-        todo /= (Bit64u)freq_d;
+        uint64_t todo = (uint64_t)(whole - msbuffer_o) * (uint64_t)freq_n;
+        todo += (uint64_t)freq_f;
+        todo += (uint64_t)freq_d - (uint64_t)1;
+        todo /= (uint64_t)freq_d;
         if (!current_loaded) todo++;
         handler(todo);
 

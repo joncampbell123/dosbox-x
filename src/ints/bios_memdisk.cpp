@@ -70,7 +70,7 @@ imageDiskMemory::imageDiskMemory(uint32_t imgSizeK) : imageDisk(ID_MEMORY) {
 	//set the sector size to 512 bytes
 	uint32_t sector_size = 512;
 	//calculate the total number of sectors on the drive (imgSizeK * 2)
-	Bit64u total_sectors = ((Bit64u)imgSizeK * 1024 + sector_size - 1) / sector_size;
+	uint64_t total_sectors = ((uint64_t)imgSizeK * 1024 + sector_size - 1) / sector_size;
 
 	//calculate cylinders, sectors, and heads according to the targets above
 	uint32_t sectors, heads, cylinders;
@@ -159,12 +159,12 @@ void imageDiskMemory::init(diskGeo diskParams, bool isHardDrive, imageDisk* unde
 	if (underlyingImage) underlyingImage->Addref();
 
 	//calculate the total number of sectors on the drive, and check for overflows
-	Bit64u absoluteSectors = (Bit64u)diskParams.cylcount * (Bit64u)diskParams.headscyl;
+	uint64_t absoluteSectors = (uint64_t)diskParams.cylcount * (uint64_t)diskParams.headscyl;
 	if (absoluteSectors > 0x100000000u) {
 		LOG_MSG("Image size too large in imageDiskMemory constructor.\n");
 		return;
 	}
-	absoluteSectors *= (Bit64u)diskParams.secttrack;
+	absoluteSectors *= (uint64_t)diskParams.secttrack;
 	if (absoluteSectors > 0x100000000u) {
 		LOG_MSG("Image size too large in imageDiskMemory constructor.\n");
 		return;
@@ -176,7 +176,7 @@ void imageDiskMemory::init(diskGeo diskParams, bool isHardDrive, imageDisk* unde
 	}
 
 	//calculate total size of the drive in kilobytes, and check for overflow
-	Bit64u diskSizeK = ((Bit64u)diskParams.headscyl * (Bit64u)diskParams.cylcount * (Bit64u)diskParams.secttrack * (Bit64u)diskParams.bytespersect + (Bit64u)1023) / (Bit64u)1024;
+	uint64_t diskSizeK = ((uint64_t)diskParams.headscyl * (uint64_t)diskParams.cylcount * (uint64_t)diskParams.secttrack * (uint64_t)diskParams.bytespersect + (uint64_t)1023) / (uint64_t)1024;
 	if (diskSizeK >= 0x100000000u)
 	{
 		LOG_MSG("Image size too large in imageDiskMemory constructor.\n");
@@ -515,7 +515,7 @@ bool imageDiskMemory::CalculateFAT(uint32_t partitionStartingSector, uint32_t pa
 			LOG_MSG("Invalid number of sectors per cluster\n");
 			return false;
 	}
-	if (((Bit64u)partitionStartingSector + partitionLength) > 0xfffffffful) {
+	if (((uint64_t)partitionStartingSector + partitionLength) > 0xfffffffful) {
 		LOG_MSG("Invalid partition size\n");
 		return false;
 	}
@@ -549,7 +549,7 @@ bool imageDiskMemory::CalculateFAT(uint32_t partitionStartingSector, uint32_t pa
 	uint32_t dataSectors;
 	uint32_t dataClusters;
 	//first try FAT12 - compute the minimum number of fat sectors necessary using the minimum number of sectors per cluster
-	*fatSectors = (((Bit64u)partitionLength - *reservedSectors - *rootSectors + 2) * 3 + *sectorsPerCluster * 1024 + 5) / (*sectorsPerCluster * 1024 + 6);
+	*fatSectors = (((uint64_t)partitionLength - *reservedSectors - *rootSectors + 2) * 3 + *sectorsPerCluster * 1024 + 5) / (*sectorsPerCluster * 1024 + 6);
 	dataSectors = partitionLength - *reservedSectors - *rootSectors - *fatSectors - *fatSectors;
 	dataClusters = dataSectors / *sectorsPerCluster;
 	//check if this calculation makes the drive too big to fit within a FAT12 drive
@@ -562,7 +562,7 @@ bool imageDiskMemory::CalculateFAT(uint32_t partitionStartingSector, uint32_t pa
 			//compute the minimum number of fat sectors necessary starting with the minimum number of sectors per cluster
 			//  the +2 is for the two reserved data sectors (sector #0 and sector #1) which are not stored on the drive, but are in the map
 			//  rounds up and assumes 512 byte sector size
-			*fatSectors = ((Bit64u)partitionLength - *reservedSectors - *rootSectors + 2 + (*sectorsPerCluster * 256 + 1)) / (*sectorsPerCluster * 256 + 2);
+			*fatSectors = ((uint64_t)partitionLength - *reservedSectors - *rootSectors + 2 + (*sectorsPerCluster * 256 + 1)) / (*sectorsPerCluster * 256 + 2);
 
 			//compute the number of data sectors and clusters with this arrangement
 			dataSectors = partitionLength - *reservedSectors - *rootSectors - *fatSectors - *fatSectors;

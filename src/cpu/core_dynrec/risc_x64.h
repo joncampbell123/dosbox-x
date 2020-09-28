@@ -30,7 +30,7 @@
 #define DRC_FLAGS_INVALIDATION_DCODE
 
 // type with the same size as a pointer
-#define DRC_PTR_SIZE_IM Bit64u
+#define DRC_PTR_SIZE_IM uint64_t
 
 // calling convention modifier
 #define DRC_CALL_CONV	/* nothing */
@@ -88,7 +88,7 @@ static void gen_mov_regs(HostReg reg_dst,HostReg reg_src) {
 	cache_addb(0xc0+(reg_dst<<3)+reg_src);
 }
 
-static void gen_mov_reg_qword(HostReg dest_reg,Bit64u imm);
+static void gen_mov_reg_qword(HostReg dest_reg,uint64_t imm);
 
 // This function generates an instruction with register addressing and a memory location
 static INLINE void gen_reg_memaddr(HostReg reg,void* data,uint8_t op,uint8_t prefix=0) {
@@ -100,20 +100,20 @@ static INLINE void gen_reg_memaddr(HostReg reg,void* data,uint8_t op,uint8_t pre
 		cache_addb(op);
 		cache_addb(0x05+(reg<<3));
 		// RIP-relative addressing is offset after the instruction 
-		cache_addd((uint32_t)(((Bit64u)diff)&0xffffffffLL)); 
-	} else if ((Bit64u)data<0x100000000LL) {
+		cache_addd((uint32_t)(((uint64_t)diff)&0xffffffffLL)); 
+	} else if ((uint64_t)data<0x100000000LL) {
 		// mov reg,[data] (or similar, depending on the op) when absolute address of data is <4GB
 		if(prefix) cache_addb(prefix);
 		cache_addb(op);
 		cache_addw(0x2504+(reg<<3));
-		cache_addd((uint32_t)(((Bit64u)data)&0xffffffffLL));
+		cache_addd((uint32_t)(((uint64_t)data)&0xffffffffLL));
 	} else {
 		// load 64-bit data into tmp_reg and do mov reg,[tmp_reg] (or similar, depending on the op)
 		HostReg tmp_reg = HOST_EAX;
 		if(reg == HOST_EAX) tmp_reg = HOST_ECX;
 
 		cache_addb(0x50+tmp_reg);	// push rax/rcx
-		gen_mov_reg_qword(tmp_reg,(Bit64u)data);
+		gen_mov_reg_qword(tmp_reg,(uint64_t)data);
 
 		if(prefix) cache_addb(prefix);
 		cache_addb(op);
@@ -131,7 +131,7 @@ static INLINE void gen_memaddr(uint8_t modreg,void* data,Bitu off,Bitu imm,uint8
 		// RIP-relative addressing is offset after the instruction 
 		if(prefix) cache_addb(prefix);
 		cache_addw(op+((modreg+1)<<8));
-		cache_addd((uint32_t)(((Bit64u)diff)&0xffffffffLL));
+		cache_addd((uint32_t)(((uint64_t)diff)&0xffffffffLL));
 
 		switch(off) {
 			case 1: cache_addb(((uint8_t)imm&0xff)); break;
@@ -139,11 +139,11 @@ static INLINE void gen_memaddr(uint8_t modreg,void* data,Bitu off,Bitu imm,uint8
 			case 4: cache_addd(((uint32_t)imm&0xffffffff)); break;
 		}
 
-	} else if ((Bit64u)data<0x100000000LL) {
+	} else if ((uint64_t)data<0x100000000LL) {
 		if(prefix) cache_addb(prefix);
 		cache_addw(op+(modreg<<8));
 		cache_addb(0x25);
-		cache_addd((uint32_t)(((Bit64u)data)&0xffffffffLL));
+		cache_addd((uint32_t)(((uint64_t)data)&0xffffffffLL));
 
 		switch(off) {
 			case 1: cache_addb(((uint8_t)imm&0xff)); break;
@@ -155,7 +155,7 @@ static INLINE void gen_memaddr(uint8_t modreg,void* data,Bitu off,Bitu imm,uint8
 		HostReg tmp_reg = HOST_EAX;
 
 		cache_addb(0x50+tmp_reg);	// push rax
-		gen_mov_reg_qword(tmp_reg,(Bit64u)data);
+		gen_mov_reg_qword(tmp_reg,(uint64_t)data);
 
 		if(prefix) cache_addb(prefix);
 		cache_addw(op+((modreg-4+tmp_reg)<<8));
@@ -191,7 +191,7 @@ static void gen_mov_dword_to_reg_imm(HostReg dest_reg,uint32_t imm) {
 }
 
 // move a 64bit constant value into a full register
-static void gen_mov_reg_qword(HostReg dest_reg,Bit64u imm) {
+static void gen_mov_reg_qword(HostReg dest_reg,uint64_t imm) {
 	if (imm==(uint32_t)imm) {
 		gen_mov_dword_to_reg_imm(dest_reg, (uint32_t)imm);
 		return;
@@ -376,18 +376,18 @@ static INLINE void gen_lea(HostReg dest_reg,Bitu scale,Bits imm) {
 // generate a call to a parameterless function
 template <typename T> static void INLINE gen_call_function_raw(const T func) {
 	cache_addw(0xb848);
-	cache_addq((Bit64u)func);
+	cache_addq((uint64_t)func);
 	cache_addw(0xd0ff);
 }
 
 // generate a call to a function with paramcount parameters
 // note: the parameters are loaded in the architecture specific way
 // using the gen_load_param_ functions below
-template <typename T> static Bit64u INLINE gen_call_function_setup(const T func,Bitu paramcount,bool fastcall=false) {
+template <typename T> static uint64_t INLINE gen_call_function_setup(const T func,Bitu paramcount,bool fastcall=false) {
 	(void)paramcount;
 	(void)fastcall;
 
-	Bit64u proc_addr = (Bit64u)cache.pos;
+	uint64_t proc_addr = (uint64_t)cache.pos;
 	gen_call_function_raw(func);
 	return proc_addr;
 }
@@ -528,7 +528,7 @@ static void INLINE gen_load_param_mem(Bitu mem,Bitu param) {
 // jump to an address pointed at by ptr, offset is in imm
 static void gen_jmp_ptr(void * ptr,Bits imm=0) {
 	cache_addw(0xa148);		// mov rax,[data]
-	cache_addq((Bit64u)ptr);
+	cache_addq((uint64_t)ptr);
 
 	cache_addb(0xff);		// jmp [rax+imm]
 	if (!imm) {
@@ -545,40 +545,40 @@ static void gen_jmp_ptr(void * ptr,Bits imm=0) {
 
 // short conditional jump (+-127 bytes) if register is zero
 // the destination is set by gen_fill_branch() later
-static Bit64u gen_create_branch_on_zero(HostReg reg,bool dword) {
+static uint64_t gen_create_branch_on_zero(HostReg reg,bool dword) {
 	if (!dword) cache_addb(0x66);
 	cache_addb(0x0b);					// or reg,reg
 	cache_addb(0xc0+reg+(reg<<3));
 
 	cache_addw(0x0074);					// jz addr
-	return ((Bit64u)cache.pos-1);
+	return ((uint64_t)cache.pos-1);
 }
 
 // short conditional jump (+-127 bytes) if register is nonzero
 // the destination is set by gen_fill_branch() later
-static Bit64u gen_create_branch_on_nonzero(HostReg reg,bool dword) {
+static uint64_t gen_create_branch_on_nonzero(HostReg reg,bool dword) {
 	if (!dword) cache_addb(0x66);
 	cache_addb(0x0b);					// or reg,reg
 	cache_addb(0xc0+reg+(reg<<3));
 
 	cache_addw(0x0075);					// jnz addr
-	return ((Bit64u)cache.pos-1);
+	return ((uint64_t)cache.pos-1);
 }
 
 // calculate relative offset and fill it into the location pointed to by data
 static void gen_fill_branch(DRC_PTR_SIZE_IM data) {
 #if C_DEBUG
-	Bit64s len=(Bit64u)cache.pos-data;
+	Bit64s len=(uint64_t)cache.pos-data;
 	if (len<0) len=-len;
 	if (len>126) LOG_MSG("Big jump %d",(int)len);
 #endif
-	*(uint8_t*)data=(uint8_t)((Bit64u)cache.pos-data-1);
+	*(uint8_t*)data=(uint8_t)((uint64_t)cache.pos-data-1);
 }
 
 // conditional jump if register is nonzero
 // for isdword==true the 32bit of the register are tested
 // for isdword==false the lowest 8bit of the register are tested
-static Bit64u gen_create_branch_long_nonzero(HostReg reg,bool isdword) {
+static uint64_t gen_create_branch_long_nonzero(HostReg reg,bool isdword) {
 	// isdword: cmp reg32,0
 	// not isdword: cmp reg8,0
 	cache_addb(0x0a+(isdword?1:0));				// or reg,reg
@@ -586,22 +586,22 @@ static Bit64u gen_create_branch_long_nonzero(HostReg reg,bool isdword) {
 
 	cache_addw(0x850f);		// jnz
 	cache_addd(0);
-	return ((Bit64u)cache.pos-4);
+	return ((uint64_t)cache.pos-4);
 }
 
 // compare 32bit-register against zero and jump if value less/equal than zero
-static Bit64u gen_create_branch_long_leqzero(HostReg reg) {
+static uint64_t gen_create_branch_long_leqzero(HostReg reg) {
 	cache_addw(0xf883+(reg<<8));
 	cache_addb(0x00);		// cmp reg,0
 
 	cache_addw(0x8e0f);		// jle
 	cache_addd(0);
-	return ((Bit64u)cache.pos-4);
+	return ((uint64_t)cache.pos-4);
 }
 
 // calculate long relative offset and fill it into the location pointed to by data
-static void gen_fill_branch_long(Bit64u data) {
-	*(uint32_t*)data=(uint32_t)((Bit64u)cache.pos-data-4);
+static void gen_fill_branch_long(uint64_t data) {
+	*(uint32_t*)data=(uint32_t)((uint64_t)cache.pos-data-4);
 }
 
 static void gen_run_code(void) {
@@ -701,7 +701,7 @@ static void gen_fill_function_ptr(uint8_t * pos,void* fct_ptr,Bitu flags_type) {
 			return;
 	}
 #endif
-	*(Bit64u*)(pos+2)=(Bit64u)fct_ptr;		// fill function pointer
+	*(uint64_t*)(pos+2)=(uint64_t)fct_ptr;		// fill function pointer
 }
 #endif
 

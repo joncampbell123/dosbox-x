@@ -571,8 +571,8 @@ static INLINE void cache_addd(uint32_t val) {
 }
 
 // place a 64bit value into the cache
-static INLINE void cache_addq(Bit64u val) {
-	*(Bit64u*)cache.pos=val;
+static INLINE void cache_addq(uint64_t val) {
+	*(uint64_t*)cache.pos=val;
 	cache.pos+=8;
 }
 

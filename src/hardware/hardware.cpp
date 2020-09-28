@@ -77,9 +77,9 @@ AVFrame*		ffmpeg_vidrgb_frame = NULL;
 SwsContext*		ffmpeg_sws_ctx = NULL;
 bool			ffmpeg_avformat_began = false;
 unsigned int		ffmpeg_aud_write = 0;
-Bit64u			ffmpeg_audio_sample_counter = 0;
-Bit64u			ffmpeg_video_frame_time_offset = 0;
-Bit64u			ffmpeg_video_frame_last_time = 0;
+uint64_t			ffmpeg_audio_sample_counter = 0;
+uint64_t			ffmpeg_video_frame_time_offset = 0;
+uint64_t			ffmpeg_video_frame_last_time = 0;
 
 int             ffmpeg_yuv_format_choice = -1;  // -1 default  4 = 444   2 = 422   0 = 420
 
@@ -168,7 +168,7 @@ void ffmpeg_audio_frame_send() {
 	}
 	av_packet_unref(&pkt);
 
-	ffmpeg_audio_sample_counter += (Bit64u)ffmpeg_aud_frame->nb_samples;
+	ffmpeg_audio_sample_counter += (uint64_t)ffmpeg_aud_frame->nb_samples;
 }
 
 void ffmpeg_take_audio(int16_t *raw,unsigned int samples) {
@@ -243,7 +243,7 @@ void ffmpeg_flush_video() {
 					int gotit=0;
 					if (avcodec_encode_video2(ffmpeg_vid_ctx,&pkt,NULL,&gotit) == 0) {
 						if (gotit) {
-							Bit64u tm;
+							uint64_t tm;
 
 							again = true;
 							tm = (uint64_t)pkt.pts;
@@ -1367,9 +1367,9 @@ skip_shot:
 				ffmpeg_vid_frame->key_frame = ((capture.video.frames % 15) == 0)?1:0;
 				if (avcodec_encode_video2(ffmpeg_vid_ctx,&pkt,ffmpeg_vid_frame,&gotit) == 0) {
 					if (gotit) {
-						Bit64u tm;
+						uint64_t tm;
 
-						tm = (Bit64u)pkt.pts;
+						tm = (uint64_t)pkt.pts;
 						pkt.stream_index = ffmpeg_vid_stream->index;
 						av_packet_rescale_ts(&pkt,ffmpeg_vid_ctx->time_base,ffmpeg_vid_stream->time_base);
 						pkt.pts += (int64_t)ffmpeg_video_frame_time_offset;

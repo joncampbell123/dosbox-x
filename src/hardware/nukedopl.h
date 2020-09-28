@@ -86,7 +86,7 @@ struct _opl3_channel {
 };
 
 typedef struct _opl3_writebuf {
-    Bit64u time;
+    uint64_t time;
     uint16_t reg;
     uint8_t data;
 } opl3_writebuf;
@@ -95,7 +95,7 @@ struct _opl3_chip {
     opl3_channel channel[18];
     opl3_slot slot[36];
     uint16_t timer;
-    Bit64u eg_timer;
+    uint64_t eg_timer;
     uint8_t eg_timerrem;
     uint8_t eg_state;
     uint8_t eg_add;
@@ -122,10 +122,10 @@ struct _opl3_chip {
     int16_t oldsamples[2];
     int16_t samples[2];
 
-    Bit64u writebuf_samplecnt;
+    uint64_t writebuf_samplecnt;
     uint32_t writebuf_cur;
     uint32_t writebuf_last;
-    Bit64u writebuf_lasttime;
+    uint64_t writebuf_lasttime;
     opl3_writebuf writebuf[OPL_WRITEBUF_SIZE];
 };
 

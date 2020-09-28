@@ -619,7 +619,7 @@ extern bool enable_fpu;
 
 #define MULD(op1,load,save)									\
 {															\
-	Bit64u tempu=(Bit64u)reg_eax*(Bit64u)(load(op1));		\
+	uint64_t tempu=(uint64_t)reg_eax*(uint64_t)(load(op1));		\
 	reg_eax=(uint32_t)(tempu);								\
 	reg_edx=(uint32_t)(tempu >> 32);							\
 	FillFlagsNoCFOF();										\
@@ -676,11 +676,11 @@ extern bool enable_fpu;
 {															\
 	Bitu val=load(op1);										\
 	if (val==0) EXCEPTION(0);									\
-	Bit64u num=(((Bit64u)reg_edx)<<32)|reg_eax;				\
-	Bit64u quo=num/val;										\
+	uint64_t num=(((uint64_t)reg_edx)<<32)|reg_eax;				\
+	uint64_t quo=num/val;										\
 	uint32_t rem=(uint32_t)(num % val);							\
 	uint32_t quo32=(uint32_t)(quo&0xffffffff);					\
-	if (quo!=(Bit64u)quo32) EXCEPTION(0);					\
+	if (quo!=(uint64_t)quo32) EXCEPTION(0);					\
 	reg_edx=rem;											\
 	reg_eax=quo32;											\
 	FillFlags();											\
@@ -737,7 +737,7 @@ extern bool enable_fpu;
 {															\
 	Bits val=(int32_t)(load(op1));							\
 	if (val==0) EXCEPTION(0);									\
-	Bit64s num=(Bit64s)((((Bit64u)reg_edx)<<(Bit64u)32)|(Bit64u)reg_eax);				\
+	Bit64s num=(Bit64s)((((uint64_t)reg_edx)<<(uint64_t)32)|(uint64_t)reg_eax);				\
 	Bit64s quo=num/val;										\
 	int32_t rem=(int32_t)(num % val);							\
 	int32_t quo32s=(int32_t)(quo&0xffffffff);					\

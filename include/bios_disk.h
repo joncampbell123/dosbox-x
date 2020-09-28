@@ -86,7 +86,7 @@ public:
     uint32_t cylinders = 0;
     uint32_t sectors = 0;
     bool hardDrive = false;
-    Bit64u diskSizeK = 0;
+    uint64_t diskSizeK = 0;
 
 protected:
 	imageDisk(IMAGE_TYPE class_id);
@@ -94,8 +94,8 @@ protected:
     uint8_t floppytype = 0;
 
     uint32_t reserved_cylinders = 0;
-    Bit64u image_base = 0;
-    Bit64u image_length = 0;
+    uint64_t image_base = 0;
+    uint64_t image_length = 0;
 
 private:
     volatile int refcount = 0;
@@ -296,13 +296,13 @@ private:
 		char cookie[8];
 		uint32_t features;
 		uint32_t fileFormatVersion;
-		Bit64u dataOffset;
+		uint64_t dataOffset;
 		uint32_t timeStamp;
 		char creatorApp[4];
 		uint32_t creatorVersion;
 		uint32_t creatorHostOS;
-		Bit64u originalSize;
-		Bit64u currentSize;
+		uint64_t originalSize;
+		uint64_t currentSize;
 		Geometry geometry;
 		VHDTypes diskType;
 		uint32_t checksum;
@@ -319,12 +319,12 @@ private:
 		uint32_t platformDataSpace;
 		uint32_t platformDataLength;
 		uint32_t reserved;
-		Bit64u platformDataOffset;
+		uint64_t platformDataOffset;
 	};
 	struct DynamicHeader {
 		char cookie[8];
-		Bit64u dataOffset;
-		Bit64u tableOffset;
+		uint64_t dataOffset;
+		uint64_t tableOffset;
 		uint32_t headerVersion;
 		uint32_t maxTableEntries;
 		uint32_t blockSize;
@@ -348,7 +348,7 @@ private:
 	static bool convert_UTF16_for_fopen(std::string &string, const void* data, const uint32_t dataLength);
 
     imageDisk* parentDisk = NULL;
-	Bit64u footerPosition = 0;
+	uint64_t footerPosition = 0;
     VHDFooter footer = {};
     VHDFooter originalFooter = {};
     bool copiedFooter = false;
@@ -417,7 +417,7 @@ public:
             LOG_MSG("BUG! unsupported floppy_emu_type in El Torito floppy object\n");
         }
 
-        diskSizeK = ((Bit64u)heads * cylinders * sectors * sector_size) / 1024;
+        diskSizeK = ((uint64_t)heads * cylinders * sectors * sector_size) / 1024;
         active = true;
     }
     virtual ~imageDiskElToritoFloppy() {
@@ -438,7 +438,7 @@ public:
     uint32_t sector_size;
     uint32_t heads,cylinders,sectors;
     uint32_t reserved_cylinders;
-    Bit64u current_fpos; */
+    uint64_t current_fpos; */
 };
 
 void updateDPT(void);

@@ -326,29 +326,29 @@ static list<string>::iterator histBuffPos = histBuff.end();
 /* Helpers */
 /***********/
 
-static const Bit64u mem_no_address = (Bit64u)(~0ULL);
+static const uint64_t mem_no_address = (uint64_t)(~0ULL);
 
-Bit64u LinMakeProt(uint16_t selector, uint32_t offset)
+uint64_t LinMakeProt(uint16_t selector, uint32_t offset)
 {
 	Descriptor desc;
 
     if (cpu.gdt.GetDescriptor(selector,desc)) {
         if (selector >= 8 && desc.Type() != 0) {
             if (offset <= desc.GetLimit())
-                return desc.GetBase()+(Bit64u)offset;
+                return desc.GetBase()+(uint64_t)offset;
         }
     }
 
 	return mem_no_address;
 }
 
-Bit64u GetAddress(uint16_t seg, uint32_t offset)
+uint64_t GetAddress(uint16_t seg, uint32_t offset)
 {
 	if (cpu.pmode && !(reg_flags & FLAG_VM))
         return LinMakeProt(seg,offset);
 
-	if (seg==SegValue(cs)) return SegPhys(cs)+(Bit64u)offset;
-	return ((Bit64u)seg<<4u)+offset;
+	if (seg==SegValue(cs)) return SegPhys(cs)+(uint64_t)offset;
+	return ((uint64_t)seg<<4u)+offset;
 }
 
 static char empty_sel[] = { ' ',' ',0 };
@@ -890,7 +890,7 @@ static void DrawData(void) {
 
 	uint8_t ch;
 	uint32_t add = dataOfs;
-	Bit64u address;
+	uint64_t address;
     int w,h,y;
 
 	/* Data win */	
@@ -1162,7 +1162,7 @@ static void DrawCode(void) {
 
     getmaxyx(dbg.win_code,h,w);
 	for (int i=0;i<h;i++) {
-        Bit64u start = GetAddress(codeViewData.useCS,disEIP);
+        uint64_t start = GetAddress(codeViewData.useCS,disEIP);
 
 		bool saveSel = false;
 		if (has_colors()) {

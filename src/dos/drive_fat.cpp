@@ -1402,7 +1402,7 @@ void fatDrive::UpdateDPB(unsigned char dos_drive) {
     }
 }
 
-void fatDrive::fatDriveInit(const char *sysFilename, uint32_t bytesector, uint32_t cylsector, uint32_t headscyl, uint32_t cylinders, Bit64u filesize, const std::vector<std::string> &options) {
+void fatDrive::fatDriveInit(const char *sysFilename, uint32_t bytesector, uint32_t cylsector, uint32_t headscyl, uint32_t cylinders, uint64_t filesize, const std::vector<std::string> &options) {
 	uint32_t startSector = 0,countSector = 0;
 	bool pc98_512_to_1024_allow = false;
     int opt_partition_index = -1;

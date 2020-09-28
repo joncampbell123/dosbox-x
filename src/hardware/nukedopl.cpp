@@ -1339,7 +1339,7 @@ void OPL3_WriteReg(opl3_chip *chip, uint16_t reg, uint8_t v)
 
 void OPL3_WriteRegBuffered(opl3_chip *chip, uint16_t reg, uint8_t v)
 {
-    Bit64u time1, time2;
+    uint64_t time1, time2;
 
     if (chip->writebuf[chip->writebuf_last].reg & 0x200)
     {

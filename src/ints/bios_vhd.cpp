@@ -67,7 +67,7 @@ imageDiskVHD::ErrorCodes imageDiskVHD::Open(const char* fileName, const bool rea
 	if (ftello64(file) < 512) { fclose(file); return INVALID_DATA; }
 	//read footer
 	if (fseeko64(file, -512L, SEEK_CUR)) { fclose(file); return INVALID_DATA; }
-	Bit64u footerPosition = (Bit64u)((Bit64s)ftello64(file)); /* make sure to sign extend! */
+	uint64_t footerPosition = (uint64_t)((Bit64s)ftello64(file)); /* make sure to sign extend! */
 	if ((Bit64s)footerPosition < 0LL) { fclose(file); return INVALID_DATA; }
 	VHDFooter originalfooter;
 	VHDFooter footer;
@@ -89,7 +89,7 @@ imageDiskVHD::ErrorCodes imageDiskVHD::Open(const char* fileName, const bool rea
 	//check that uniqueId matches
 	if (matchUniqueId && memcmp(matchUniqueId, footer.uniqueId, 16)) { fclose(file); return INVALID_MATCH; }
 	//calculate disk size
-	Bit64u calcDiskSize = (Bit64u)footer.geometry.cylinders * (Bit64u)footer.geometry.heads * (Bit64u)footer.geometry.sectors * (Bit64u)512;
+	uint64_t calcDiskSize = (uint64_t)footer.geometry.cylinders * (uint64_t)footer.geometry.heads * (uint64_t)footer.geometry.sectors * (uint64_t)512;
 	if (!calcDiskSize) { fclose(file); return INVALID_DATA; }
 	//if fixed image, return plain imageDisk rather than imageDiskVFD
 	if (footer.diskType == VHD_TYPE_FIXED) {
@@ -142,10 +142,10 @@ imageDiskVHD::ErrorCodes imageDiskVHD::Open(const char* fileName, const bool rea
 			//ignore entries with platform code 'none'
 			if (dynHeader.parentLocatorEntry[i].platformCode != 0) {
 				//load the platform data, if there is any
-				Bit64u dataOffset = dynHeader.parentLocatorEntry[i].platformDataOffset;
+				uint64_t dataOffset = dynHeader.parentLocatorEntry[i].platformDataOffset;
 				uint32_t dataLength = dynHeader.parentLocatorEntry[i].platformDataLength;
 				uint8_t* buffer = 0;
-				if (dataOffset && dataLength && ((Bit64u)dataOffset + dataLength) <= footerPosition) {
+				if (dataOffset && dataLength && ((uint64_t)dataOffset + dataLength) <= footerPosition) {
 					if (fseeko64(file, (off_t)dataOffset, SEEK_SET)) { delete vhd; return INVALID_DATA; }
 					buffer = (uint8_t*)malloc(dataLength + 2);
 					if (buffer == 0) { delete vhd; return INVALID_DATA; }
@@ -180,7 +180,7 @@ imageDiskVHD::ErrorCodes imageDiskVHD::Open(const char* fileName, const bool rea
 	uint32_t tablesRequired = (uint32_t)((calcDiskSize + (dynHeader.blockSize - 1)) / dynHeader.blockSize);
 	if (dynHeader.maxTableEntries < tablesRequired) { delete vhd; return INVALID_DATA; }
 	//check that the BAT is contained within the file
-	if (((Bit64u)dynHeader.tableOffset + ((Bit64u)dynHeader.maxTableEntries * (Bit64u)4)) > footerPosition) { delete vhd; return INVALID_DATA; }
+	if (((uint64_t)dynHeader.tableOffset + ((uint64_t)dynHeader.maxTableEntries * (uint64_t)4)) > footerPosition) { delete vhd; return INVALID_DATA; }
 
 	//set remaining variables
 	vhd->dynamicHeader = dynHeader;
@@ -306,7 +306,7 @@ uint8_t imageDiskVHD::Read_AbsoluteSector(uint32_t sectnum, void * data) {
 		uint32_t bitNum = sectorOffset % 8;
 		bool hasData = currentBlockDirtyMap[byteNum] & (1 << (7 - bitNum));
 		if (hasData) {
-			if (fseeko64(diskimg, (off_t)(((Bit64u)currentBlockSectorOffset + blockMapSectors + sectorOffset) * 512ull), SEEK_SET)) return 0x05; //can't seek
+			if (fseeko64(diskimg, (off_t)(((uint64_t)currentBlockSectorOffset + blockMapSectors + sectorOffset) * 512ull), SEEK_SET)) return 0x05; //can't seek
 			if (fread(data, sizeof(uint8_t), 512, diskimg) != 512) return 0x05; //can't read
 			return 0;
 		}
@@ -334,7 +334,7 @@ uint8_t imageDiskVHD::Write_AbsoluteSector(uint32_t sectnum, const void * data) 
 			if (fflush(diskimg)) return 0x05;
 		}
 		//calculate new location of footer, and round up to nearest 512 byte increment "just in case"
-		Bit64u newFooterPosition = (((footerPosition - 512ull + blockMapSize + dynamicHeader.blockSize) + 511ull) / 512ull) * 512ull;
+		uint64_t newFooterPosition = (((footerPosition - 512ull + blockMapSize + dynamicHeader.blockSize) + 511ull) / 512ull) * 512ull;
 		//attempt to extend the length appropriately first (on some operating systems this will extend the file)
 		if (fseeko64(diskimg, (off_t)newFooterPosition + 512, SEEK_SET)) return 0x05;
 		//now write the footer
@@ -371,7 +371,7 @@ uint8_t imageDiskVHD::Write_AbsoluteSector(uint32_t sectnum, const void * data) 
 	}
 	//current sector has now been marked as dirty
 	//write the sector
-	if (fseeko64(diskimg, (off_t)(((Bit64u)currentBlockSectorOffset + (Bit64u)blockMapSectors + (Bit64u)sectorOffset) * 512ull), SEEK_SET)) return 0x05; //can't seek
+	if (fseeko64(diskimg, (off_t)(((uint64_t)currentBlockSectorOffset + (uint64_t)blockMapSectors + (uint64_t)sectorOffset) * 512ull), SEEK_SET)) return 0x05; //can't seek
 	if (fwrite(data, sizeof(uint8_t), 512, diskimg) != 512) return 0x05; //can't write
 	return 0;
 }
@@ -398,7 +398,7 @@ bool imageDiskVHD::loadBlock(const uint32_t blockNumber) {
 		currentBlockAllocated = false;
 	}
 	else {
-		if (fseeko64(diskimg, (off_t)(blockSectorOffset * (Bit64u)512), SEEK_SET)) return false;
+		if (fseeko64(diskimg, (off_t)(blockSectorOffset * (uint64_t)512), SEEK_SET)) return false;
 		currentBlock = 0xFFFFFFFFul;
 		currentBlockAllocated = true;
 		currentBlockSectorOffset = blockSectorOffset;

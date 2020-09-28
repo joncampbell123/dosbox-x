@@ -367,7 +367,7 @@ class fatDrive : public DOS_Drive {
 public:
 	fatDrive(const char * sysFilename, uint32_t bytesector, uint32_t cylsector, uint32_t headscyl, uint32_t cylinders, std::vector<std::string> &options);
 	fatDrive(imageDisk *sourceLoadedDisk, std::vector<std::string> &options);
-    void fatDriveInit(const char *sysFilename, uint32_t bytesector, uint32_t cylsector, uint32_t headscyl, uint32_t cylinders, Bit64u filesize, const std::vector<std::string> &options);
+    void fatDriveInit(const char *sysFilename, uint32_t bytesector, uint32_t cylsector, uint32_t headscyl, uint32_t cylinders, uint64_t filesize, const std::vector<std::string> &options);
     virtual ~fatDrive();
 	virtual bool FileOpen(DOS_File * * file,const char * name,uint32_t flags);
 	virtual bool FileCreate(DOS_File * * file,const char * name,uint16_t attributes);

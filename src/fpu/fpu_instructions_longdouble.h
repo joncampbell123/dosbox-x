@@ -103,18 +103,18 @@ static long double FROUND(long double in){
 }
 
 // TODO: Incorporate into paging.h
-static inline Bit64u mem_readq(PhysPt addr) {
-    Bit64u tmp;
+static inline uint64_t mem_readq(PhysPt addr) {
+    uint64_t tmp;
 
-    tmp  = (Bit64u)mem_readd(addr);
-    tmp |= (Bit64u)mem_readd(addr+4ul) << (Bit64u)32ul;
+    tmp  = (uint64_t)mem_readd(addr);
+    tmp |= (uint64_t)mem_readd(addr+4ul) << (uint64_t)32ul;
 
     return tmp;
 }
 
-static inline void mem_writeq(PhysPt addr,Bit64u v) {
+static inline void mem_writeq(PhysPt addr,uint64_t v) {
     mem_writed(addr,    (uint32_t)v);
-    mem_writed(addr+4ul,(uint32_t)(v >> (Bit64u)32ul));
+    mem_writed(addr+4ul,(uint32_t)(v >> (uint64_t)32ul));
 }
 
 #define BIAS80 16383
@@ -165,9 +165,9 @@ static void FPU_FLD_I64(PhysPt addr,Bitu store_to) {
 }
 
 static void FPU_FBLD(PhysPt addr,Bitu store_to) {
-	Bit64u val = 0;
+	uint64_t val = 0;
 	Bitu in = 0;
-	Bit64u base = 1;
+	uint64_t base = 1;
 	for(Bitu i = 0;i < 9;i++){
 		in = mem_readb(addr + i);
 		val += ( (in&0xf) * base); //in&0xf shouldn't be higher then 9

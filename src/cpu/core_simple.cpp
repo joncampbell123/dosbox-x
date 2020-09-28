@@ -42,7 +42,7 @@ extern bool ignore_opcode_63;
 #define LoadMb(off) mem_readb(off)
 #define LoadMw(off) mem_readw(off)
 #define LoadMd(off) mem_readd(off)
-#define LoadMq(off) ((Bit64u)((Bit64u)mem_readd(off+4)<<32 | (Bit64u)mem_readd(off)))
+#define LoadMq(off) ((uint64_t)((uint64_t)mem_readd(off+4)<<32 | (uint64_t)mem_readd(off)))
 
 #define SaveMb(off,val) mem_writeb(off,val)
 #define SaveMw(off,val) mem_writew(off,val)

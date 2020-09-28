@@ -300,10 +300,8 @@ AH_BOTTOM([
 #include <cstdint>
 
 #if SIZEOF_UNSIGNED_LONG == 8
-  typedef unsigned long Bit64u;
   typedef   signed long Bit64s;
 #elif SIZEOF_UNSIGNED_LONG_LONG == 8
-  typedef unsigned long long Bit64u;
   typedef   signed long long Bit64s;
 #else
 #  error "can't find data type of 8 bytes"
@@ -313,7 +311,7 @@ AH_BOTTOM([
   typedef uint32_t Bitu;
   typedef int32_t Bits;
 #else
-  typedef Bit64u Bitu;
+  typedef uint64_t Bitu;
   typedef Bit64s Bits;
 #endif
 

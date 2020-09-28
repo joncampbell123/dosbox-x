@@ -117,18 +117,18 @@ using namespace std;
 
 //Public function to a read a sector.
 	uint8_t QCow2Image::read_sector(uint32_t sectnum, uint8_t* data){
-		const Bit64u address = (Bit64u)sectnum * sector_size;
+		const uint64_t address = (uint64_t)sectnum * sector_size;
 		if (address >= header.size){
 			return 0x05;
 		}
-		Bit64u l2_table_offset;
+		uint64_t l2_table_offset;
 		if (0 != read_l1_table(address, l2_table_offset)){
 			return 0x05;
 		}
 		if (0 == l2_table_offset){
 			return read_unallocated_sector(sectnum, data);
 		}
-		Bit64u data_cluster_offset;
+		uint64_t data_cluster_offset;
 		if (0 != read_l2_table(l2_table_offset, address, data_cluster_offset)){
 			return 0x05;
 		}
@@ -141,11 +141,11 @@ using namespace std;
 
 //Public function to a write a sector.
 	uint8_t QCow2Image::write_sector(uint32_t sectnum, uint8_t* data){
-		const Bit64u address = (Bit64u)sectnum * sector_size;
+		const uint64_t address = (uint64_t)sectnum * sector_size;
 		if (address >= header.size){
 			return 0x05;
 		}
-		Bit64u l2_table_offset;
+		uint64_t l2_table_offset;
 		if (0 != read_l1_table(address, l2_table_offset)){
 			return 0x05;
 		}
@@ -168,7 +168,7 @@ using namespace std;
 			}
 			delete[] cluster_buffer;
 		}
-		Bit64u data_cluster_offset;
+		uint64_t data_cluster_offset;
 		if (0 != read_l2_table(l2_table_offset, address, data_cluster_offset)){
 			return 0x05;
 		}
@@ -184,8 +184,8 @@ using namespace std;
 				delete[] cluster_buffer;
 				return 0x05;
 			}
-			const Bit64u cluster_buffer_sector_offset = address & cluster_mask;
-			for (Bit64u i = 0; i < sector_size; i++){
+			const uint64_t cluster_buffer_sector_offset = address & cluster_mask;
+			for (uint64_t i = 0; i < sector_size; i++){
 				cluster_buffer[cluster_buffer_sector_offset + i] = data[i];
 			}
 			if (0 != write_data(data_cluster_offset, cluster_buffer, cluster_size)){
@@ -204,9 +204,9 @@ using namespace std;
 
 
 //Private constants.
-	const Bit64u QCow2Image::copy_flag = 0x8000000000000000;
-	const Bit64u QCow2Image::empty_mask = 0xFFFFFFFFFFFFFFFF;
-	const Bit64u QCow2Image::table_entry_mask = 0x00FFFFFFFFFFFFFF;
+	const uint64_t QCow2Image::copy_flag = 0x8000000000000000;
+	const uint64_t QCow2Image::empty_mask = 0xFFFFFFFFFFFFFFFF;
+	const uint64_t QCow2Image::table_entry_mask = 0x00FFFFFFFFFFFFFF;
 
 
 //Helper functions for endianness. QCOW format is big endian so we need different functions than those defined in mem.h.
@@ -219,7 +219,7 @@ using namespace std;
         return buffer;
     }
 
-    inline Bit64u QCow2Image::host_read64(Bit64u buffer) {
+    inline uint64_t QCow2Image::host_read64(uint64_t buffer) {
         return buffer;
     }
 #else
@@ -232,7 +232,7 @@ using namespace std;
             (((buffer >> 8) & 0xff) << 16) | (buffer << 24);
     }
 
-    inline Bit64u QCow2Image::host_read64(Bit64u buffer) {
+    inline uint64_t QCow2Image::host_read64(uint64_t buffer) {
         return
             (buffer >> 56) | (((buffer >> 48) & 0xff) << 8) |
             (((buffer >> 40) & 0xff) << 16) | (((buffer >> 32) & 0xff) << 24) |
@@ -243,18 +243,18 @@ using namespace std;
 
 
 //Generate a mask for a given number of bits.
-	inline Bit64u QCow2Image::mask64(Bit64u bits){
+	inline uint64_t QCow2Image::mask64(uint64_t bits){
 		return (1ull << bits) - 1ull;
 	}
 
 
 //Pad a file with zeros if it doesn't end on a cluster boundary.
-	uint8_t QCow2Image::pad_file(Bit64u& new_file_length){
+	uint8_t QCow2Image::pad_file(uint64_t& new_file_length){
 		if (0 != fseeko64(file, 0, SEEK_END)){
 			return 0x05;
 		}
-		const Bit64u old_file_length = (Bit64u)ftello64(file);
-		const Bit64u padding_size = (cluster_size - (old_file_length % cluster_size)) % cluster_size;
+		const uint64_t old_file_length = (uint64_t)ftello64(file);
+		const uint64_t padding_size = (cluster_size - (old_file_length % cluster_size)) % cluster_size;
 		new_file_length = old_file_length + padding_size;
 		if (0 == padding_size){
 			return 0;
@@ -268,7 +268,7 @@ using namespace std;
 
 
 //Read data of arbitrary length that is present in the image file.
-	uint8_t QCow2Image::read_allocated_data(Bit64u file_offset, uint8_t* data, Bit64u data_size)
+	uint8_t QCow2Image::read_allocated_data(uint64_t file_offset, uint8_t* data, uint64_t data_size)
 	{
 		if (0 != fseeko64(file, (off_t)file_offset, SEEK_SET)){
 			return 0x05;
@@ -281,20 +281,20 @@ using namespace std;
 
 
 //Read an entire cluster that may or may not be allocated in the image file.
-	uint8_t QCow2Image::read_cluster(Bit64u data_cluster_number, uint8_t* data)
+	uint8_t QCow2Image::read_cluster(uint64_t data_cluster_number, uint8_t* data)
 	{
-		const Bit64u address = data_cluster_number * cluster_size;
+		const uint64_t address = data_cluster_number * cluster_size;
 		if (address >= header.size){
 			return 0x05;
 		}
-		Bit64u l2_table_offset;
+		uint64_t l2_table_offset;
 		if (0 != read_l1_table(address, l2_table_offset)){
 			return 0x05;
 		}
 		if (0 == l2_table_offset){
 			return read_unallocated_cluster(data_cluster_number, data);
 		}
-		Bit64u data_cluster_offset;
+		uint64_t data_cluster_offset;
 		if (0 != read_l2_table(l2_table_offset, address, data_cluster_offset)){
 			return 0x05;
 		}
@@ -306,30 +306,30 @@ using namespace std;
 
 
 //Read the L1 table to get the offset of the L2 table for a given address.
-	inline uint8_t QCow2Image::read_l1_table(Bit64u address, Bit64u& l2_table_offset){
-		const Bit64u l1_entry_offset = header.l1_table_offset + ((address >> l1_bits) << 3);
+	inline uint8_t QCow2Image::read_l1_table(uint64_t address, uint64_t& l2_table_offset){
+		const uint64_t l1_entry_offset = header.l1_table_offset + ((address >> l1_bits) << 3);
 		return read_table(l1_entry_offset, table_entry_mask, l2_table_offset);
 	}
 
 
 //Read an L2 table to get the offset of the data cluster for a given address.
-	inline uint8_t QCow2Image::read_l2_table(Bit64u l2_table_offset, Bit64u address, Bit64u& data_cluster_offset){
-		const Bit64u l2_entry_offset = l2_table_offset + (((address >> header.cluster_bits) & l2_mask) << 3);
+	inline uint8_t QCow2Image::read_l2_table(uint64_t l2_table_offset, uint64_t address, uint64_t& data_cluster_offset){
+		const uint64_t l2_entry_offset = l2_table_offset + (((address >> header.cluster_bits) & l2_mask) << 3);
 		return read_table(l2_entry_offset, table_entry_mask, data_cluster_offset);
 	}
 
 
 //Read the refcount table to get the offset of the refcount cluster for a given address.
-	inline uint8_t QCow2Image::read_refcount_table(Bit64u data_cluster_offset, Bit64u& refcount_cluster_offset){
-		const Bit64u refcount_entry_offset = header.refcount_table_offset + (((data_cluster_offset/cluster_size) >> refcount_bits) << 3);
+	inline uint8_t QCow2Image::read_refcount_table(uint64_t data_cluster_offset, uint64_t& refcount_cluster_offset){
+		const uint64_t refcount_entry_offset = header.refcount_table_offset + (((data_cluster_offset/cluster_size) >> refcount_bits) << 3);
 		return read_table(refcount_entry_offset, empty_mask, refcount_cluster_offset);
 	}
 
 
 //Read a table entry at the given offset.
-	inline uint8_t QCow2Image::read_table(Bit64u entry_offset, Bit64u entry_mask, Bit64u& entry_value){
+	inline uint8_t QCow2Image::read_table(uint64_t entry_offset, uint64_t entry_mask, uint64_t& entry_value){
         (void)entry_mask;//UNUSED
-		Bit64u buffer;
+		uint64_t buffer;
 		if (0 != read_allocated_data(entry_offset, (uint8_t*)&buffer, sizeof buffer)){
 			return 0x05;
 		}
@@ -339,7 +339,7 @@ using namespace std;
 
 
 //Read a cluster not currently allocated in the image file.
-	inline uint8_t QCow2Image::read_unallocated_cluster(Bit64u data_cluster_number, uint8_t* data)
+	inline uint8_t QCow2Image::read_unallocated_cluster(uint64_t data_cluster_number, uint8_t* data)
 	{
 		if(backing_image == NULL){
 			std::fill(data, data + cluster_size, 0);
@@ -359,8 +359,8 @@ using namespace std;
 	}
 
 //Update the reference count for a cluster.
-	uint8_t QCow2Image::update_reference_count(Bit64u cluster_offset, uint8_t* cluster_buffer){
-		Bit64u refcount_cluster_offset;
+	uint8_t QCow2Image::update_reference_count(uint64_t cluster_offset, uint8_t* cluster_buffer){
+		uint64_t refcount_cluster_offset;
 		if (0 != read_refcount_table(cluster_offset, refcount_cluster_offset)){
 			return 0x05;
 		}
@@ -385,7 +385,7 @@ using namespace std;
 
 
 //Write data of arbitrary length to the image file.
-	uint8_t QCow2Image::write_data(Bit64u file_offset, uint8_t* data, Bit64u data_size){
+	uint8_t QCow2Image::write_data(uint64_t file_offset, uint8_t* data, uint64_t data_size){
 		if (0 != fseeko64(file, (off_t)file_offset, SEEK_SET)){
 			return 0x05;
 		}
@@ -397,37 +397,37 @@ using namespace std;
 
 
 //Write an L2 table offset into the L1 table.
-	inline uint8_t QCow2Image::write_l1_table_entry(Bit64u address, Bit64u l2_table_offset){
-		const Bit64u l1_entry_offset = header.l1_table_offset + ((address >> l1_bits) << 3);
+	inline uint8_t QCow2Image::write_l1_table_entry(uint64_t address, uint64_t l2_table_offset){
+		const uint64_t l1_entry_offset = header.l1_table_offset + ((address >> l1_bits) << 3);
 		return write_table_entry(l1_entry_offset, l2_table_offset | copy_flag);
 	}
 
 
 //Write a data cluster offset into an L2 table.
-	inline uint8_t QCow2Image::write_l2_table_entry(Bit64u l2_table_offset, Bit64u address, Bit64u data_cluster_offset){
-		const Bit64u l2_entry_offset = l2_table_offset + (((address >> header.cluster_bits) & l2_mask) << 3);
+	inline uint8_t QCow2Image::write_l2_table_entry(uint64_t l2_table_offset, uint64_t address, uint64_t data_cluster_offset){
+		const uint64_t l2_entry_offset = l2_table_offset + (((address >> header.cluster_bits) & l2_mask) << 3);
 		return write_table_entry(l2_entry_offset, data_cluster_offset | copy_flag);
 	}
 
 
 //Write a refcount.
-	inline uint8_t QCow2Image::write_refcount(Bit64u cluster_offset, Bit64u refcount_cluster_offset, uint16_t refcount){
-		const Bit64u refcount_offset = refcount_cluster_offset + (((cluster_offset/cluster_size) & refcount_mask) << 1);
+	inline uint8_t QCow2Image::write_refcount(uint64_t cluster_offset, uint64_t refcount_cluster_offset, uint16_t refcount){
+		const uint64_t refcount_offset = refcount_cluster_offset + (((cluster_offset/cluster_size) & refcount_mask) << 1);
 		uint16_t buffer = host_read16(refcount);
 		return write_data(refcount_offset, (uint8_t*)&buffer, sizeof buffer);
 	}
 
 
 //Write a refcount table entry.
-	inline uint8_t QCow2Image::write_refcount_table_entry(Bit64u cluster_offset, Bit64u refcount_cluster_offset){
-		const Bit64u refcount_entry_offset = header.refcount_table_offset + (((cluster_offset/cluster_size) >> refcount_bits) << 3);
+	inline uint8_t QCow2Image::write_refcount_table_entry(uint64_t cluster_offset, uint64_t refcount_cluster_offset){
+		const uint64_t refcount_entry_offset = header.refcount_table_offset + (((cluster_offset/cluster_size) >> refcount_bits) << 3);
 		return write_table_entry(refcount_entry_offset, refcount_cluster_offset);
 	}
 
 
 //Write a table entry at the given offset.
-	inline uint8_t QCow2Image::write_table_entry(Bit64u entry_offset, Bit64u entry_value){
-		Bit64u buffer = host_read64(entry_value);
+	inline uint8_t QCow2Image::write_table_entry(uint64_t entry_offset, uint64_t entry_value){
+		uint64_t buffer = host_read64(entry_value);
 		return write_data(entry_offset, (uint8_t*)&buffer, sizeof buffer);
 	}
 

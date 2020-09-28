@@ -77,8 +77,8 @@ static INLINE uint16_t host_readw(ConstHostPt const off) {
 static INLINE uint32_t host_readd(ConstHostPt const off) {
     return (uint32_t)host_readw(off) + ((uint32_t)host_readw(off+(uintptr_t)2U) << (uint32_t)16U);
 }
-static INLINE Bit64u host_readq(ConstHostPt const off) {
-    return (Bit64u)host_readd(off) + ((Bit64u)host_readd(off+(uintptr_t)4U) << (Bit64u)32U);
+static INLINE uint64_t host_readq(ConstHostPt const off) {
+    return (uint64_t)host_readd(off) + ((uint64_t)host_readd(off+(uintptr_t)4U) << (uint64_t)32U);
 }
 
 static INLINE void host_writeb(HostPt const off,const uint8_t val) {
@@ -92,9 +92,9 @@ static INLINE void host_writed(HostPt const off,const uint32_t val) {
     host_writew(off,   (uint16_t)(val));
     host_writew(off+2U,(uint16_t)(val >> (uint32_t)16U));
 }
-static INLINE void host_writeq(HostPt const off,const Bit64u val) {
+static INLINE void host_writeq(HostPt const off,const uint64_t val) {
     host_writed(off,   (uint32_t)(val));
-    host_writed(off+4U,(uint32_t)(val >> (Bit64u)32U));
+    host_writed(off+4U,(uint32_t)(val >> (uint64_t)32U));
 }
 
 #else
@@ -108,8 +108,8 @@ static INLINE uint16_t host_readw(ConstHostPt const off) {
 static INLINE uint32_t host_readd(ConstHostPt const off) {
     return le32toh((*(const uint32_t *)off)); // BSD endian.h
 }
-static INLINE Bit64u host_readq(ConstHostPt const off) {
-    return le64toh((*(const Bit64u *)off)); // BSD endian.h
+static INLINE uint64_t host_readq(ConstHostPt const off) {
+    return le64toh((*(const uint64_t *)off)); // BSD endian.h
 }
 
 static INLINE void host_writeb(HostPt const off,const uint8_t val) {
@@ -121,8 +121,8 @@ static INLINE void host_writew(HostPt const off,const uint16_t val) {
 static INLINE void host_writed(HostPt const off,const uint32_t val) {
     *(uint32_t *)(off) = htole32(val);
 }
-static INLINE void host_writeq(HostPt const off,const Bit64u val) {
-    *(Bit64u *)(off) = htole64(val);
+static INLINE void host_writeq(HostPt const off,const uint64_t val) {
+    *(uint64_t *)(off) = htole64(val);
 }
 
 #endif
@@ -140,7 +140,7 @@ static INLINE void var_write(uint32_t * const var, const uint32_t val) {
     host_writed((HostPt)var, val);
 }
 
-static INLINE void var_write(Bit64u * const var, const Bit64u val) {
+static INLINE void var_write(uint64_t * const var, const uint64_t val) {
     host_writeq((HostPt)var, val);
 }
 

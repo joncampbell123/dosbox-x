@@ -128,7 +128,7 @@ struct SB_INFO {
         DMA_MODES mode;
         Bitu rate,mul;
         Bitu total,left,min;
-        Bit64u start;
+        uint64_t start;
         union {
             uint8_t  b8[DMA_BUFSIZE];
             int16_t b16[DMA_BUFSIZE];
@@ -2357,8 +2357,8 @@ void updateSoundBlasterFilter(Bitu rate) {
          *
          * This implementation is matched aginst real hardware by ear, even though the reference hardware is a
          * laptop with a cheap tinny amplifier */
-        Bit64u filter_raw = (Bit64u)7160000ULL / (256u - ESSreg(0xA2));
-        Bit64u filter_hz = (filter_raw * (Bit64u)11) / (Bit64u)(82 * 4); /* match lowpass by ear compared to real hardware */
+        uint64_t filter_raw = (uint64_t)7160000ULL / (256u - ESSreg(0xA2));
+        uint64_t filter_hz = (filter_raw * (uint64_t)11) / (uint64_t)(82 * 4); /* match lowpass by ear compared to real hardware */
 
         if ((filter_hz * 2) > sb.freq)
             sb.chan->SetSlewFreq(filter_hz * 2 * sb.chan->freq_d_orig);

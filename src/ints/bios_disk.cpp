@@ -258,10 +258,10 @@ uint8_t imageDisk::Read_Sector(uint32_t head,uint32_t cylinder,uint32_t sector,v
 }
 
 uint8_t imageDisk::Read_AbsoluteSector(uint32_t sectnum, void * data) {
-    Bit64u bytenum,res;
+    uint64_t bytenum,res;
     int got;
 
-    bytenum = (Bit64u)sectnum * (Bit64u)sector_size;
+    bytenum = (uint64_t)sectnum * (uint64_t)sector_size;
     if ((bytenum + sector_size) > this->image_length) {
         LOG_MSG("Attempt to read invalid sector in Read_AbsoluteSector for sector %lu.\n", (unsigned long)sectnum);
         return 0x05;
@@ -271,7 +271,7 @@ uint8_t imageDisk::Read_AbsoluteSector(uint32_t sectnum, void * data) {
     //LOG_MSG("Reading sectors %ld at bytenum %I64d", sectnum, bytenum);
 
     fseeko64(diskimg,(fseek_ofs_t)bytenum,SEEK_SET);
-    res = (Bit64u)ftello64(diskimg);
+    res = (uint64_t)ftello64(diskimg);
     if (res != bytenum) {
         LOG_MSG("fseek() failed in Read_AbsoluteSector for sector %lu. Want=%llu Got=%llu\n",
             (unsigned long)sectnum,(unsigned long long)bytenum,(unsigned long long)res);
@@ -303,9 +303,9 @@ uint8_t imageDisk::Write_Sector(uint32_t head,uint32_t cylinder,uint32_t sector,
 
 
 uint8_t imageDisk::Write_AbsoluteSector(uint32_t sectnum, const void *data) {
-    Bit64u bytenum;
+    uint64_t bytenum;
 
-    bytenum = (Bit64u)sectnum * sector_size;
+    bytenum = (uint64_t)sectnum * sector_size;
     if ((bytenum + sector_size) > this->image_length) {
         LOG_MSG("Attempt to read invalid sector in Write_AbsoluteSector for sector %lu.\n", (unsigned long)sectnum);
         return 0x05;
@@ -315,7 +315,7 @@ uint8_t imageDisk::Write_AbsoluteSector(uint32_t sectnum, const void *data) {
     //LOG_MSG("Writing sectors to %ld at bytenum %d", sectnum, bytenum);
 
     fseeko64(diskimg,(fseek_ofs_t)bytenum,SEEK_SET);
-    if ((Bit64u)ftello64(diskimg) != bytenum)
+    if ((uint64_t)ftello64(diskimg) != bytenum)
         LOG_MSG("WARNING: fseek() failed in Write_AbsoluteSector for sector %lu\n",(unsigned long)sectnum);
 
     size_t ret=fwrite(data, sector_size, 1, diskimg);
@@ -341,7 +341,7 @@ imageDisk::imageDisk(FILE* diskimg, const char* diskName, uint32_t cylinders, ui
     this->heads = heads;
     this->sectors = sectors;
     image_base = 0;
-    this->image_length = (Bit64u)cylinders * heads * sectors * sector_size;
+    this->image_length = (uint64_t)cylinders * heads * sectors * sector_size;
     refcount = 0;
     this->sector_size = sector_size;
     this->diskSizeK = this->image_length / 1024;
@@ -428,7 +428,7 @@ typedef struct {
 }NHD_FILE_HEAD,*LP_NHD_FILE_HEAD;
 #pragma pack(pop)
 
-imageDisk::imageDisk(FILE* imgFile, uint8_t* imgName, uint32_t imgSizeK, bool isHardDisk) : diskSizeK(imgSizeK), diskimg(imgFile), image_length((Bit64u)imgSizeK * 1024) {
+imageDisk::imageDisk(FILE* imgFile, uint8_t* imgName, uint32_t imgSizeK, bool isHardDisk) : diskSizeK(imgSizeK), diskimg(imgFile), image_length((uint64_t)imgSizeK * 1024) {
     if (imgName != NULL)
         diskname = (const char*)imgName;
 
@@ -1024,7 +1024,7 @@ static Bitu INT13_DiskHandler(void) {
                 return CBRET_NONE;
             }
             imageDiskList[drivenum]->Get_Geometry(&tmpheads, &tmpcyl, &tmpsect, &tmpsize);
-            Bit64u largesize = tmpheads*tmpcyl*tmpsect*tmpsize;
+            uint64_t largesize = tmpheads*tmpcyl*tmpsect*tmpsize;
             largesize/=512;
             uint32_t ts = static_cast<uint32_t>(largesize);
             reg_ah = (drivenum <2)?1:3; //With 2 for floppy MSDOS starts calling int 13 ah 16

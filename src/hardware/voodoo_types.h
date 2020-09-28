@@ -61,7 +61,7 @@ typedef int32_t						INT32;
 
 /* 64-bit values */
 #ifndef _WINDOWS_
-typedef Bit64u						UINT64;
+typedef uint64_t						UINT64;
 typedef Bit64s						INT64;
 #endif
 

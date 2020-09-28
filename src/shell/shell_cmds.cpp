@@ -1185,7 +1185,7 @@ void DOS_Shell::CMD_RMDIR(char * args) {
 	}
 }
 
-static void FormatNumber(Bit64u num,char * buf) {
+static void FormatNumber(uint64_t num,char * buf) {
 	uint32_t numm,numk,numb,numg,numt;
 	numb=num % 1000;
 	num/=1000;

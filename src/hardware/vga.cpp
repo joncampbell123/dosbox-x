@@ -614,7 +614,7 @@ void VGA_Reset(Section*) {
     int i;
 
     uint32_t cpu_addr_bits = MEM_get_address_bits();
-//    Bit64u cpu_max_addr = (Bit64u)1 << (Bit64u)cpu_addr_bits;
+//    uint64_t cpu_max_addr = (uint64_t)1 << (uint64_t)cpu_addr_bits;
 
     LOG(LOG_MISC,LOG_DEBUG)("VGA_Reset() reinitializing VGA emulation");
 

@@ -14,7 +14,7 @@ private:
 	static const unsigned int bufferSize = 1024;
 	volatile unsigned int startpos;
 	volatile unsigned int endpos;
-    Bit64u ringBuffer[bufferSize] = {};
+    uint64_t ringBuffer[bufferSize] = {};
 
 public:
 	RingBuffer() {

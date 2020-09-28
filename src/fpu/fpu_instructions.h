@@ -119,7 +119,7 @@ static double FPU_FLD80(PhysPt addr,FPU_Reg_80 &raw) {
 	}
 
 	/* store the raw value. */
-	raw.raw.l = (Bit64u)test.eind.ll;
+	raw.raw.l = (uint64_t)test.eind.ll;
 	raw.raw.h = (uint16_t)test.begin;
 
 	return result.d;
@@ -131,7 +131,7 @@ static void FPU_ST80(PhysPt addr,Bitu reg,FPU_Reg_80 &raw,bool use80) {
 	if (use80) {
 		// we have the raw 80-bit IEEE float value. we can just store
 		mem_writed(addr,(uint32_t)raw.raw.l);
-		mem_writed(addr+4,(uint32_t)(raw.raw.l >> (Bit64u)32));
+		mem_writed(addr+4,(uint32_t)(raw.raw.l >> (uint64_t)32));
 		mem_writew(addr+8,(uint16_t)raw.raw.h);
 	}
 	else {
@@ -140,7 +140,7 @@ static void FPU_ST80(PhysPt addr,Bitu reg,FPU_Reg_80 &raw,bool use80) {
 			int16_t begin;
 			FPU_Reg eind;
 		} test;
-		Bit64s sign80 = ((Bit64u)fpu.regs[reg].ll&ULONGTYPE(0x8000000000000000))?1:0;
+		Bit64s sign80 = ((uint64_t)fpu.regs[reg].ll&ULONGTYPE(0x8000000000000000))?1:0;
 		Bit64s exp80 =  fpu.regs[reg].ll&LONGTYPE(0x7ff0000000000000);
 		Bit64s exp80final = (exp80>>52);
 		Bit64s mant80 = fpu.regs[reg].ll&LONGTYPE(0x000fffffffffffff);
@@ -201,15 +201,15 @@ static void FPU_FLD_I64(PhysPt addr,Bitu store_to) {
 	// store the signed 64-bit integer in the 80-bit format mantissa with faked exponent.
 	// this is needed for DOS and Windows games that use the Pentium fast memcpy trick, using FLD/FST to copy 64 bits at a time.
 	// I wonder if that trick is what helped spur Intel to make the MMX extensions :)
-	fpu.regs_80[store_to].raw.l = (Bit64u)blah.ll;
-	fpu.regs_80[store_to].raw.h = ((blah.ll/*sign bit*/ >> (Bit64u)63) ? 0x8000u : 0x0000u) + FPU_Reg_80_exponent_bias + 63u; // FIXME: Verify this is correct!
+	fpu.regs_80[store_to].raw.l = (uint64_t)blah.ll;
+	fpu.regs_80[store_to].raw.h = ((blah.ll/*sign bit*/ >> (uint64_t)63) ? 0x8000u : 0x0000u) + FPU_Reg_80_exponent_bias + 63u; // FIXME: Verify this is correct!
 	fpu.use80[store_to] = true;
 }
 
 static void FPU_FBLD(PhysPt addr,Bitu store_to) {
-	Bit64u val = 0;
+	uint64_t val = 0;
 	uint8_t in = 0;
-	Bit64u base = 1;
+	uint64_t base = 1;
 	for(uint8_t i = 0;i < 9;i++){
 		in = mem_readb(addr + i);
 		val += ( (in&0xf) * base); //in&0xf shouldn't be higher then 9
@@ -277,7 +277,7 @@ static void FPU_FST_I64(PhysPt addr) {
 		//        What this code needs to do is take the exponent into account and then clamp the 64-bit int within range.
 		//        This cheap hack is good enough for now.
 		mem_writed(addr,(uint32_t)(fpu.regs_80[TOP].raw.l));
-		mem_writed(addr+4,(uint32_t)(fpu.regs_80[TOP].raw.l >> (Bit64u)32));
+		mem_writed(addr+4,(uint32_t)(fpu.regs_80[TOP].raw.l >> (uint64_t)32));
 	}
 	else {
 		blah.ll = static_cast<Bit64s>(FROUND(fpu.regs[TOP].d));
@@ -289,7 +289,7 @@ static void FPU_FST_I64(PhysPt addr) {
 static void FPU_FBST(PhysPt addr) {
 	FPU_Reg val = fpu.regs[TOP];
 	bool sign = false;
-	if((Bit64u)fpu.regs[TOP].ll & ULONGTYPE(0x8000000000000000)) { //sign
+	if((uint64_t)fpu.regs[TOP].ll & ULONGTYPE(0x8000000000000000)) { //sign
 		sign=true;
 		val.d=-val.d;
 	}
@@ -547,7 +547,7 @@ static void FPU_FPREM1(void){
 }
 
 static void FPU_FXAM(void){
-	if((Bit64u)fpu.regs[TOP].ll & ULONGTYPE(0x8000000000000000))	//sign
+	if((uint64_t)fpu.regs[TOP].ll & ULONGTYPE(0x8000000000000000))	//sign
 	{ 
 		FPU_SET_C1(1);
 	} 

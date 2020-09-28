@@ -23,7 +23,7 @@
 
 typedef union {
 
-	Bit64u q;
+	uint64_t q;
 
 #ifndef WORDS_BIGENDIAN
 	struct {

@@ -2626,7 +2626,7 @@ restart_int:
         std::string tmp;
 
         unsigned int c, h, s, sectors; 
-        Bit64u size = 0;
+        uint64_t size = 0;
 
         if(cmd->FindExist("-?")) {
             printHelp();
@@ -3311,7 +3311,7 @@ restart_int:
             *(uint32_t*)(footer+0x18) = uint32_t(SDL_SwapBE32((Uint32)vhdtime));
 #endif
             // size and geometry
-            *(Bit64u*)(footer+0x30) = *(Bit64u*)(footer+0x28) = SDL_SwapBE64(size);
+            *(uint64_t*)(footer+0x30) = *(uint64_t*)(footer+0x28) = SDL_SwapBE64(size);
 
             *(uint16_t*)(footer+0x38) = SDL_SwapBE16(c);
             *(uint8_t*)( footer+0x3A) = h;
@@ -5266,14 +5266,14 @@ private:
 
         QCow2Image::QCow2Header qcow2_header = QCow2Image::read_header(newDisk);
 
-        Bit64u sectors;
+        uint64_t sectors;
         if (qcow2_header.magic == QCow2Image::magic && (qcow2_header.version == 2 || qcow2_header.version == 3)) {
             uint32_t cluster_size = 1u << qcow2_header.cluster_bits;
             if ((sizes[0] < 512) || ((cluster_size % sizes[0]) != 0)) {
                 WriteOut("Sector size must be larger than 512 bytes and evenly divide the image cluster size of %lu bytes.\n", cluster_size);
                 return 0;
             }
-            sectors = (Bit64u)qcow2_header.size / (Bit64u)sizes[0];
+            sectors = (uint64_t)qcow2_header.size / (uint64_t)sizes[0];
             imagesize = (uint32_t)(qcow2_header.size / 1024L);
             setbuf(newDisk, NULL);
             newImage = new QCow2Disk(qcow2_header, newDisk, (uint8_t *)fname, imagesize, (uint32_t)sizes[0], (imagesize > 2880));
@@ -5292,35 +5292,35 @@ private:
 
             if (ext != NULL && !strcasecmp(ext, ".d88")) {
                 fseeko64(newDisk, 0L, SEEK_END);
-                sectors = (Bit64u)ftello64(newDisk) / (Bit64u)sizes[0];
+                sectors = (uint64_t)ftello64(newDisk) / (uint64_t)sizes[0];
                 imagesize = (uint32_t)(sectors / 2); /* orig. code wants it in KBs */
                 setbuf(newDisk, NULL);
                 newImage = new imageDiskD88(newDisk, (uint8_t *)fname, imagesize, (imagesize > 2880));
             }
             else if (!memcmp(tmp, "VFD1.", 5)) { /* FDD files */
                 fseeko64(newDisk, 0L, SEEK_END);
-                sectors = (Bit64u)ftello64(newDisk) / (Bit64u)sizes[0];
+                sectors = (uint64_t)ftello64(newDisk) / (uint64_t)sizes[0];
                 imagesize = (uint32_t)(sectors / 2); /* orig. code wants it in KBs */
                 setbuf(newDisk, NULL);
                 newImage = new imageDiskVFD(newDisk, (uint8_t *)fname, imagesize, (imagesize > 2880));
             }
             else if (!memcmp(tmp,"T98FDDIMAGE.R0\0\0",16)) {
                 fseeko64(newDisk, 0L, SEEK_END);
-                sectors = (Bit64u)ftello64(newDisk) / (Bit64u)sizes[0];
+                sectors = (uint64_t)ftello64(newDisk) / (uint64_t)sizes[0];
                 imagesize = (uint32_t)(sectors / 2); /* orig. code wants it in KBs */
                 setbuf(newDisk, NULL);
                 newImage = new imageDiskNFD(newDisk, (uint8_t *)fname, imagesize, (imagesize > 2880), 0);
             }
             else if (!memcmp(tmp,"T98FDDIMAGE.R1\0\0",16)) {
                 fseeko64(newDisk, 0L, SEEK_END);
-                sectors = (Bit64u)ftello64(newDisk) / (Bit64u)sizes[0];
+                sectors = (uint64_t)ftello64(newDisk) / (uint64_t)sizes[0];
                 imagesize = (uint32_t)(sectors / 2); /* orig. code wants it in KBs */
                 setbuf(newDisk, NULL);
                 newImage = new imageDiskNFD(newDisk, (uint8_t *)fname, imagesize, (imagesize > 2880), 1);
             }
             else {
                 fseeko64(newDisk, 0L, SEEK_END);
-                sectors = (Bit64u)ftello64(newDisk) / (Bit64u)sizes[0];
+                sectors = (uint64_t)ftello64(newDisk) / (uint64_t)sizes[0];
                 imagesize = (uint32_t)(sectors / 2); /* orig. code wants it in KBs */
                 setbuf(newDisk, NULL);
                 newImage = new imageDisk(newDisk, (uint8_t *)fname, imagesize, (imagesize > 2880));
@@ -5348,7 +5348,7 @@ private:
         /* auto-fill: head/cylinder count */
         if (sizes[3]/*cylinders*/ == 0 && sizes[2]/*heads*/ == 0) {
             sizes[2] = 16; /* typical hard drive, unless a very old drive */
-            sizes[3]/*cylinders*/ = (Bitu)((Bit64u)sectors / (Bit64u)sizes[2]/*heads*/ / (Bit64u)sizes[1]/*sectors/track*/);
+            sizes[3]/*cylinders*/ = (Bitu)((uint64_t)sectors / (uint64_t)sizes[2]/*heads*/ / (uint64_t)sizes[1]/*sectors/track*/);
 
             if (IS_PC98_ARCH) {
                 /* TODO: PC-98 has it's own issues with a 4096-cylinder limit */
@@ -5363,7 +5363,7 @@ private:
                     if (sizes[2] >= 256) sizes[2] = 255;
 
                     /* and recompute cylinders */
-                    sizes[3]/*cylinders*/ = (Bitu)((Bit64u)sectors / (Bit64u)sizes[2]/*heads*/ / (Bit64u)sizes[1]/*sectors/track*/);
+                    sizes[3]/*cylinders*/ = (Bitu)((uint64_t)sectors / (uint64_t)sizes[2]/*heads*/ / (uint64_t)sizes[1]/*sectors/track*/);
                 }
             }
         }
