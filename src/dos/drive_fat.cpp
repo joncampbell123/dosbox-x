@@ -205,6 +205,7 @@ private:
 };
 
 void time_t_to_DOS_DateTime(Bit16u &t,Bit16u &d,time_t unix_time) {
+    Bit16u oldax=reg_ax, oldcx=reg_cx, olddx=reg_dx;
     struct tm time;
     time.tm_isdst = -1;
 	reg_ah=0x2a; // get system date
@@ -221,8 +222,12 @@ void time_t_to_DOS_DateTime(Bit16u &t,Bit16u &d,time_t unix_time) {
 	time.tm_min = reg_cl;
 	time.tm_sec = reg_dh;
 
+    reg_ax=oldax;
+    reg_cx=oldcx;
+    reg_dx=olddx;
+
     time_t timet = mktime(&time);
-    struct tm *tm = localtime(timet == -1?&unix_time:&timet);
+    const struct tm *tm = localtime(timet == -1?&unix_time:&timet);
     if (tm == NULL) return;
 
     /* NTS: tm->tm_year = years since 1900,

@@ -1635,6 +1635,7 @@ bool localFile::UpdateDateTimeFromHost(void) {
 }
 
 bool localFile::UpdateLocalDateTime(void) {
+    Bit16u oldax=reg_ax, oldcx=reg_cx, olddx=reg_dx;
     time_t timet = ::time(NULL);
     struct tm *tm = localtime(&timet);
     tm->tm_isdst = -1;
@@ -1651,6 +1652,10 @@ bool localFile::UpdateLocalDateTime(void) {
 	tm->tm_hour = reg_ch;
 	tm->tm_min = reg_cl;
 	tm->tm_sec = reg_dh;
+
+    reg_ax=oldax;
+    reg_cx=oldcx;
+    reg_dx=olddx;
 
     timet = mktime(tm);
     if (timet == -1)
