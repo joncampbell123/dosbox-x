@@ -69,7 +69,7 @@
   - Added DELTREE command to delete a directory and all
     the subdirectories and files in it as in a real DOS
     system. Please use it with caution. (Wengier)
-  - The command for showing the Configuration Tool has
+  - The command for starting the Configuration Tool has
     been renamed from "SHOWGUI" to "CFGTOOL". A new
     command-line option -gui is added to CONFIG command
     to start the Configuration Tool as well. (Wengier)
@@ -103,10 +103,10 @@
     config option which when set to "false" will not
     automatically re-run such programs. (Wengier)
   - The display for several section names in DOSBox-X's
-    Configuration GUI have been capitalized or modified
-    otherwise for a better looking. A default shortcut
-    key HOST(F11/F12)+C is added for starting the
-    Configuration GUI. (Wengier)
+    graphical configuration tool has been capitalized
+    or modified otherwise to look better. A default
+    shortcut key HOST(F11/F12)+C is added for starting
+    the graphical configuration tool. (Wengier)
   - Added the "Show advanced options" checkbox in the
     main screen of the Configuration GUI to toggle
     whether to display all config options for the
