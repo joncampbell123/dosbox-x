@@ -345,6 +345,6 @@ typedef         double     Real64;
 #define PACKAGE_NAME "dosbox-x"
 #define PACKAGE_STRING "dosbox-x 0.82.22"
 #define PACKAGE_TARNAME "dosbox-x"
-#define PACKAGE_URL "http://dosbox-x.software"
+#define PACKAGE_URL "https://dosbox-x.com"
 #define PACKAGE_VERSION "0.82.22"
 #define VERSION "0.82.22"
