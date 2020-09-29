@@ -70,7 +70,7 @@
     the subdirectories and files in it as in a real DOS
     system. Please use it with caution. (Wengier)
   - The command for showing the Configuration Tool has
-    been renamed from "SHOWGUI" to "SHOWTOOL". A new
+    been renamed from "SHOWGUI" to "CFGTOOL". A new
     command-line option -gui is added to CONFIG command
     to start the Configuration Tool as well. (Wengier)
   - DOSBox-X now includes ZIP.EXE and UNZIP.EXE from

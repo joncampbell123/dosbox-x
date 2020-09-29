@@ -1236,19 +1236,19 @@ void runMount(const char *str) {
 
 void GUI_Run(bool pressed);
 
-class SHOWGUI : public Program {
+class CFGTOOL : public Program {
 public:
     void Run(void) {
         if (cmd->FindExist("-?", false) || cmd->FindExist("/?", false)) {
-			WriteOut("Starts DOSBox-X's graphical configuration tool.\n\nSHOWTOOL\n");
+			WriteOut("Starts DOSBox-X's graphical configuration tool.\n\nCFGTOOL\n");
             return;
 		}
         GUI_Run(false); /* So that I don't have to run the keymapper on every setup of mine just to get the GUI --J.C */
     }
 };
 
-static void SHOWGUI_ProgramStart(Program * * make) {
-    *make=new SHOWGUI;
+static void CFGTOOL_ProgramStart(Program * * make) {
+    *make=new CFGTOOL;
 }
 
 extern bool custom_bios;
@@ -6685,7 +6685,7 @@ void DOS_SetupPrograms(void) {
     PROGRAMS_MakeFile("LS.COM",LS_ProgramStart);
     PROGRAMS_MakeFile("LOADFIX.COM",LOADFIX_ProgramStart);
     PROGRAMS_MakeFile("A20GATE.COM",A20GATE_ProgramStart);
-    PROGRAMS_MakeFile("SHOWTOOL.COM",SHOWGUI_ProgramStart);
+    PROGRAMS_MakeFile("CFGTOOL.COM",CFGTOOL_ProgramStart);
 #if defined C_DEBUG
     PROGRAMS_MakeFile("NMITEST.COM",NMITEST_ProgramStart);
 #endif
