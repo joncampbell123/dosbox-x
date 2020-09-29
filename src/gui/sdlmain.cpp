@@ -1207,7 +1207,7 @@ bool CheckQuit(void) {
         bool ret=quit_confirm;
         quit_confirm=false;
         return ret;
-    } else if (warn == "false" || glide.enabled)
+    } else if (warn == "false" || glide.enabled || (RunningProgram&&!strcmp(RunningProgram, "LOADLIN")))
         return true;
     if (dos_kernel_disabled) {
         quit_confirm=false;

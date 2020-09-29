@@ -1240,7 +1240,7 @@ class CFGTOOL : public Program {
 public:
     void Run(void) {
         if (cmd->FindExist("-?", false) || cmd->FindExist("/?", false)) {
-			WriteOut("Starts DOSBox-X's graphical configuration tool.\n\nCFGTOOL\n");
+			WriteOut("Starts DOSBox-X's graphical configuration tool.\n\nCFGTOOL\n\nNote: You can also use CONFIG command for command-line configurations.\n");
             return;
 		}
         GUI_Run(false); /* So that I don't have to run the keymapper on every setup of mine just to get the GUI --J.C */
