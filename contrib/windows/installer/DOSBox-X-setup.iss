@@ -1,7 +1,7 @@
 #define MyAppName "DOSBox-X"
 #define MyAppVersion "0.83.6"
 #define MyAppPublisher "joncampbell123"
-#define MyAppURL "http://dosbox-x.com/"
+#define MyAppURL "https://dosbox-x.com/"
 #define MyAppExeName "dosbox-x.exe"
 #define MyAppBuildDate GetDateTimeString('yyyymmdd_hhnnss', '', '')
 

@@ -108,7 +108,7 @@ const char *aboutmsg = "DOSBox-X version " VERSION " (" SDL_STRING ", "
 #else
 	"32"
 #endif
-	"-bit)\nBuild date: " UPDATED_STR "\nCopyright 2011-" COPYRIGHT_END_YEAR " The DOSBox-X Team\nProject maintainer: joncampbell123\nDOSBox-X homepage: http://dosbox-x.com";
+	"-bit)\nBuild date: " UPDATED_STR "\nCopyright 2011-" COPYRIGHT_END_YEAR " The DOSBox-X Team\nProject maintainer: joncampbell123\nDOSBox-X homepage: https://dosbox-x.com";
 
 const char *intromsg = "Welcome to DOSBox-X, a complete open-source DOS emulator.\nDOSBox-X creates a DOS shell which looks like the plain DOS.\nYou can also run Windows 3.x and 9x inside the DOS machine.";
 

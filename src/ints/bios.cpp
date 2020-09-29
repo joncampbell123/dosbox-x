@@ -8181,7 +8181,7 @@ private:
     }
     CALLBACK_HandlerObject cb_bios_startup_screen;
     static Bitu cb_bios_startup_screen__func(void) {
-        const char *msg = "DOSBox-X (C) 2011-" COPYRIGHT_END_YEAR " The DOSBox-X Team\nDOSBox-X project maintainer: joncampbell123\nFor more information visit http://dosbox-x.com/\n\n";
+        const char *msg = "DOSBox-X (C) 2011-" COPYRIGHT_END_YEAR " The DOSBox-X Team\nDOSBox-X project maintainer: joncampbell123\nFor more information visit https://dosbox-x.com/\n\n";
         int logo_x,logo_y,x,y,rowheight=8;
 
         y = 2;
