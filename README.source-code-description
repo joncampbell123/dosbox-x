@@ -158,7 +158,7 @@ Libpng (optional)
 
 Zlib (optional)
     Needed by libpng.
-    For win32 get libz (rename to zlib) from http://gnuwin32.sourceforge.net/packages.html
+    For win32 get libz (rename to zlib) from https://gnuwin32.sourceforge.net/packages.html
     See http://www.zlib.net for more details.
     License: Open Source
 
