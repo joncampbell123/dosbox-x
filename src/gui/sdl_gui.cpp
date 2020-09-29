@@ -1911,7 +1911,7 @@ public:
                 lookup->second->raise();
             }
         } else if (arg == "Visit Homepage") {
-            std::string url = "http://dosbox-x.com/";
+            std::string url = "https://dosbox-x.com/";
 #if defined(WIN32)
             ShellExecute(NULL, "open", url.c_str(), NULL, NULL, SW_SHOWNORMAL);
 #elif defined(LINUX)
