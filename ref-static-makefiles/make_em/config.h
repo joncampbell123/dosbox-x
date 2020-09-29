@@ -206,7 +206,7 @@
 #define PACKAGE_TARNAME "dosbox-x"
 
 /* Define to the home page for this package. */
-#define PACKAGE_URL "http://dosbox-x.software"
+#define PACKAGE_URL "https://dosbox-x.com"
 
 /* Define to the version of this package. */
 #define PACKAGE_VERSION "0.82.22"
