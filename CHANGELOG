@@ -167,8 +167,10 @@
     they will replace the built-in files. For example,
     you can replace the built-in EDIT.COM and XCOPY.EXE
     programs (from FreeDOS) with MS-DOS counterparts.
-    For subdirectories please use normal directory
-    mounts (i.e. MOUNT command) instead. (Wengier).
+    Windows installer will now automatically create a
+    drivez directory with a README.TXT file in it too.
+    For subdirectories support please use MOUNT command
+    to mount local directory instead. (Wengier).
 0.83.5
   - Windows installer now offers the option to upgrade
     the DOSBox-X config file (dosbox-x.conf) to the
