@@ -9,7 +9,7 @@ Version: @PACKAGE_VERSION@
 Release: 0%{?dist}
 Summary: DOS emulator for running DOS games and applications including Windows 3.x/9x
 License: GPL
-URL: http://dosbox-x.com
+URL: https://dosbox-x.com
 Group: Applications/Emulators
 Source0: @PACKAGE_NAME@-@PACKAGE_VERSION@.tar.xz
 Source1: dosbox-x.desktop

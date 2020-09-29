@@ -5,7 +5,7 @@ DOSBox-X is a cross-platform DOS emulator based on DOSBox, with the eventual goa
 
 The current version of DOSBox-X at this time is DOSBox-X 0.83.5, which was released on September 1, 2020. Pre-compiled Windows binaries (both 32-bit and 64-bit), Linux RPM packages (64-bit), macOS packages (64-bit) and the special HX-DOS packages (for real DOS environments) are officially available, as well as the source code packages. You will find DOSBox-X versions that have been released so far (ZIP or RPM packages) and change logs for these versions in the [Releases](https://github.com/joncampbell123/dosbox-x/releases) page. The Windows installers are also available (see the next section for details).
 
-See also: [DOSBox-X 0.83.5 Release Notes](http://dosbox-x.com/release-0.83.5.html)
+See also: [DOSBox-X 0.83.5 Release Notes](https://dosbox-x.com/release-0.83.5.html)
 
 Once you get DOSBox-X installed and running, you probably want to look at the DOSBox-X user guide in the [DOSBox-X Wiki](https://github.com/joncampbell123/dosbox-x/wiki) for usage information.
 
@@ -95,6 +95,6 @@ Full source code packages of DOSBox-X are also available in both zip and tar.gz 
 * [dosbox-x-v0.83.5.zip](https://github.com/joncampbell123/dosbox-x/archive/dosbox-x-v0.83.5.zip)
 * [dosbox-x-v0.83.5.tar.gz](https://github.com/joncampbell123/dosbox-x/archive/dosbox-x-v0.83.5.tar.gz)
 
-If you prefer you can compile DOSBox-X from the source code by yourself. The source code packages as listed in the Releases page contain the source code for that released version, and in this example the current DOSBox-X 0.83.5 version. On the other hand, if you are looking for the latest source code of DOSBox-X (including the most recent development changes in the source code), you may want to use the source code in the repository instead, or you can browse the latest source code using [Doxygen](http://dosbox-x.com/doxygen/html/index.html).
+If you prefer you can compile DOSBox-X from the source code by yourself. The source code packages as listed in the Releases page contain the source code for that released version, and in this example the current DOSBox-X 0.83.5 version. On the other hand, if you are looking for the latest source code of DOSBox-X (including the most recent development changes in the source code), you may want to use the source code in the repository instead, or you can browse the latest source code using [Doxygen](https://dosbox-x.com/doxygen/html/index.html).
 
 You could use either the released source code package or the latest source code according to your needs, and the source code may be compiled to run on the above-mentioned platforms (Windows, Linux, macOS and DOS) and possibly other operating systems too. Please see the [DOSBox-X source code description](README.source-code-description) file for detailed instructions on building the DOSBox-X source code and further information of the source code.

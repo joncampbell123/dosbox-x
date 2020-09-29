@@ -163,7 +163,7 @@ bool                dbg_zero_on_xms_allocmem = true;
 bool                dbg_zero_on_ems_allocmem = true;
 
 /* the exact frequency of the NTSC color subcarrier ~3.579545454...MHz or 315/88 */
-/* see: http://en.wikipedia.org/wiki/Colorburst */
+/* see: https://en.wikipedia.org/wiki/Colorburst */
 #define             NTSC_COLOR_SUBCARRIER_NUM       (315000000ULL)
 #define             NTSC_COLOR_SUBCARRIER_DEN       (88ULL)
 
@@ -915,7 +915,7 @@ void PreviousSaveSlot_Run(void) { PreviousSaveSlot(true); }
 
 /* TODO: move to utility header */
 #ifdef _MSC_VER /* Microsoft C++ does not have strtoull */
-# if _MSC_VER < 1800 /* But Visual Studio 2013 apparently does (http://www.vogons.org/viewtopic.php?f=41&t=31881&sid=49ff69ebc0459ed6523f5a250daa4d8c&start=400#p355770) */
+# if _MSC_VER < 1800 /* But Visual Studio 2013 apparently does (https://www.vogons.org/viewtopic.php?f=41&t=31881&sid=49ff69ebc0459ed6523f5a250daa4d8c&start=400#p355770) */
 unsigned long long strtoull(const char *s,char **endptr,int base) {
     return _strtoui64(s,endptr,base); /* pfff... whatever Microsoft */
 }
@@ -3908,7 +3908,7 @@ void DOSBOX_SetupConfigSections(void) {
         "manually. You must use the -fdc option regardless if loading floppies into\n"
         "drives attached to any other FDC than the primary controller");
 
-    /* FIXME: From http://wiki.osdev.org/Floppy_Disk_Controller#Configure
+    /* FIXME: From https://wiki.osdev.org/Floppy_Disk_Controller#Configure
      *
      *    "The three modes are PC-AT mode, PS/2 mode, and Model 30 mode. The most likely mode ... is model 30 mode.
      *    You may find some pre-1996 Pentium machines using PS/2 mode. You can ignore PC-AT mode."

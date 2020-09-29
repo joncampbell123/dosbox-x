@@ -135,7 +135,7 @@ Libraries used by DOSBox-X
 The following libraries are used by DOSBox-X:
 
 SDL 1.2.x or SDL 2.0.x
-    The Simple DirectMedia Library available at http://www.libsdl.org
+    The Simple DirectMedia Library available at https://www.libsdl.org
     The DLL distributed with the Windows SDL1 version of DOSBox-X had
     been modified from the original. You can find the changes in the
     source package of DOSBox-X (src/platform/sdl-win32.diff). If you
@@ -147,29 +147,29 @@ SDL 1.2.x or SDL 2.0.x
 Curses (optional)
     If you want to enable the debugger you need a curses library.
     ncurses should be installed on just about every unix distro.
-    For win32 get pdcurses at http://pdcurses.sourceforge.net
+    For win32 get pdcurses at https://pdcurses.sourceforge.net
     License: Open source
 
 Libpng (optional)
     Needed for the screenshots.
-    For win32 get libpng from http://gnuwin32.sourceforge.net/packages.html
+    For win32 get libpng from https://gnuwin32.sourceforge.net/packages.html
     See http://www.libpng.org/pub/png/ for more details.
     License: Open Source
 
 Zlib (optional)
     Needed by libpng.
-    For win32 get libz (rename to zlib) from http://gnuwin32.sourceforge.net/packages.html
+    For win32 get libz (rename to zlib) from https://gnuwin32.sourceforge.net/packages.html
     See http://www.zlib.net for more details.
     License: Open Source
 
 SDL_Net (optional)
-    For modem/ipx support. Get it from http://www.libsdl.org/projects/SDL_net/
+    For modem/ipx support. Get it from https://www.libsdl.org/projects/SDL_net/
     Licensed under LGPL
 
 SDL_Sound 
     For compressed audio on diskimages. (optional)
     This is for cue/bin CD-ROM images with compressed (MP3/OGG/FLAC) audio tracks.
-    Get it from http://icculus.org/SDL_sound
+    Get it from https://icculus.org/SDL_sound
     Licenced under LGPL
 
 ALSA_Headers
@@ -319,14 +319,14 @@ src/shell/shell_cmds.cpp    Shell internal command handling, shell commands:
                                 DIR         CD/CHDIR    ADDKEY      ALIAS
                                 ATTRIB      BREAK       CALL        CHOICE
                                 CLS         COPY        COUNTRY     CTTY
-                                DATE        DEL/ERASE   ECHO        EXIT
-                                FOR         GOTO        HELP        IF
-                                LFNFOR      LH/LOADHIGH MD/MKDIR    MORE
-                                PATH        PAUSE       PROMPT      RD/RMDIR
-                                REM         REN/RENAME  SET         SHIFT
-                                SUBST       TIME        TYPE        VER
-                                VERIFY      VOL         TRUENAME    DX-CAPTURE
-                                DEBUGBOX    INT2FDBG
+                                DATE        DEL/ERASE   DELTREE     ECHO
+                                EXIT        FOR         GOTO        HELP
+                                IF          LFNFOR      LH/LOADHIGH MD/MKDIR
+                                MORE        PATH        PAUSE       PROMPT
+                                RD/RMDIR    REM         REN/RENAME  SET
+                                SHIFT       SUBST       TIME        TYPE
+                                VER         VERIFY      VOL         TRUENAME
+                                DX-CAPTURE  DEBUGBOX    INT2FDBG
 
 src/shell/shell_misc.cpp    PROMPT generator, command line input interface,
                             shell execution, and command location via PATH
@@ -430,7 +430,8 @@ src/builtin/*.cpp           Built-in executable binaries, defined as unsigned ch
                                 DEVICE.COM      DOS32A.EXE      DOS4GW.EXE      DOSIDLE.EXE
                                 EDIT.COM        FCBS.COM        FIND.EXE        HEXMEM16.EXE
                                 HEXMEM32.EXE    LASTDRIV.COM    MEM.COM         MOVE.EXE
-                                TREE.EXE        XCOPY.EXE
+                                TREE.EXE        UNZIP.EXE       XCOPY.EXE       ZIP.EXE
+                                Plus a few more...
 
 src/cpu/paging.cpp          Paging and page handling code, TLB (translation lookaside buffer),
                             Page handlers
@@ -1321,7 +1322,7 @@ NOTE: To better understand the term "copper effects", read
       the following links describing the original
       Commodore Amiga video hardware:
 
-      http://eab.abime.net/showthread.php?t=21866
+      https://eab.abime.net/showthread.php?t=21866
       https://en.wikipedia.org/wiki/Original_Chip_Set#Copper
 
 PIC events are used in the VGA code to trigger rendering

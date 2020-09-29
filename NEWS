@@ -1,8 +1,10 @@
-For the latest version of DOSBox-X please go to the Releases page.
+For the latest information related to DOSBox-X please visit its homepage: https://dosbox-x.com/
 
-Also look at the file CHANGELOG for latest changes to the DOSBox-X source tree.
+An archive of all DOSBox-X official releases so far are available in the Releases page.
 
-Below are changes to DOSBox (up to 0.74-3).
+Also look at the CHANGELOG file for change logs of different DOSBox-X versions.
+
+Below are changes to vanilla DOSBox (up to 0.74-3).
 
 0.74-3
 A security release for DOSBox 0.74:

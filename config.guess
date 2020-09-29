@@ -15,7 +15,7 @@ timestamp='2017-05-27'
 # General Public License for more details.
 #
 # You should have received a copy of the GNU General Public License
-# along with this program; if not, see <http://www.gnu.org/licenses/>.
+# along with this program; if not, see <https://www.gnu.org/licenses/>.
 #
 # As a special exception to the GNU General Public License, if you
 # distribute this file as part of a program that contains a
@@ -27,7 +27,7 @@ timestamp='2017-05-27'
 # Originally written by Per Bothner; maintained since 2000 by Ben Elliston.
 #
 # You can get the latest version of this script from:
-# http://git.savannah.gnu.org/gitweb/?p=config.git;a=blob_plain;f=config.guess
+# https://git.savannah.gnu.org/gitweb/?p=config.git;a=blob_plain;f=config.guess
 #
 # Please send patches to <config-patches@gnu.org>.
 
@@ -1432,9 +1432,9 @@ This script (version $timestamp), has failed to recognize the
 operating system you are using. If your script is old, overwrite
 config.guess and config.sub with the latest versions from:
 
-  http://git.savannah.gnu.org/gitweb/?p=config.git;a=blob_plain;f=config.guess
+  https://git.savannah.gnu.org/gitweb/?p=config.git;a=blob_plain;f=config.guess
 and
-  http://git.savannah.gnu.org/gitweb/?p=config.git;a=blob_plain;f=config.sub
+  https://git.savannah.gnu.org/gitweb/?p=config.git;a=blob_plain;f=config.sub
 
 If $0 has already been updated, send the following data and any
 information you think might be pertinent to config-patches@gnu.org to
