@@ -319,14 +319,14 @@ src/shell/shell_cmds.cpp    Shell internal command handling, shell commands:
                                 DIR         CD/CHDIR    ADDKEY      ALIAS
                                 ATTRIB      BREAK       CALL        CHOICE
                                 CLS         COPY        COUNTRY     CTTY
-                                DATE        DEL/ERASE   ECHO        EXIT
-                                FOR         GOTO        HELP        IF
-                                LFNFOR      LH/LOADHIGH MD/MKDIR    MORE
-                                PATH        PAUSE       PROMPT      RD/RMDIR
-                                REM         REN/RENAME  SET         SHIFT
-                                SUBST       TIME        TYPE        VER
-                                VERIFY      VOL         TRUENAME    DX-CAPTURE
-                                DEBUGBOX    INT2FDBG
+                                DATE        DEL/ERASE   DELTREE     ECHO
+                                EXIT        FOR         GOTO        HELP
+                                IF          LFNFOR      LH/LOADHIGH MD/MKDIR
+                                MORE        PATH        PAUSE       PROMPT
+                                RD/RMDIR    REM         REN/RENAME  SET
+                                SHIFT       SUBST       TIME        TYPE
+                                VER         VERIFY      VOL         TRUENAME
+                                DX-CAPTURE  DEBUGBOX    INT2FDBG
 
 src/shell/shell_misc.cpp    PROMPT generator, command line input interface,
                             shell execution, and command location via PATH
@@ -430,7 +430,8 @@ src/builtin/*.cpp           Built-in executable binaries, defined as unsigned ch
                                 DEVICE.COM      DOS32A.EXE      DOS4GW.EXE      DOSIDLE.EXE
                                 EDIT.COM        FCBS.COM        FIND.EXE        HEXMEM16.EXE
                                 HEXMEM32.EXE    LASTDRIV.COM    MEM.COM         MOVE.EXE
-                                TREE.EXE        XCOPY.EXE
+                                TREE.EXE        UNZIP.EXE       XCOPY.EXE       ZIP.EXE
+                                Plus a few more...
 
 src/cpu/paging.cpp          Paging and page handling code, TLB (translation lookaside buffer),
                             Page handlers
