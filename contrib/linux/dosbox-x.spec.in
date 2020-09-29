@@ -7,9 +7,9 @@ Requires: fluid-soundfont-gm
 Name: @PACKAGE_NAME@
 Version: @PACKAGE_VERSION@
 Release: 0%{?dist}
-Summary: @PACKAGE_DESCRIPTION@
+Summary: DOS emulator for running DOS games and applications including Windows 3.x/9x
 License: GPL
-URL: http://www.dosbox-x.com
+URL: http://dosbox-x.com
 Group: Applications/Emulators
 Source0: @PACKAGE_NAME@-@PACKAGE_VERSION@.tar.xz
 Source1: dosbox-x.desktop
@@ -48,6 +48,8 @@ mkdir -p %{buildroot}%{_datadir}/icons/hicolor/scalable/apps
 install -p -m 0644 %SOURCE2 %{buildroot}%{_datadir}/icons/hicolor/scalable/apps
 mkdir -p %{buildroot}%{_datadir}/metainfo
 install -p -m 0644 %SOURCE3 %{buildroot}%{_datadir}/metainfo
+mkdir -p %{buildroot}%{_datadir}/dosbox-x/glshaders
+install -p -m 0644 $RPM_BUILD_DIR/dosbox-x/contrib/glshaders/*.glsl %{buildroot}%{_datadir}/dosbox-x/glshaders
 
 %files
 %{_bindir}/*
@@ -55,6 +57,9 @@ install -p -m 0644 %SOURCE3 %{buildroot}%{_datadir}/metainfo
 %{_datadir}/icons/hicolor/*/apps/dosbox-x.svg
 %{_datadir}/metainfo/*
 %{_datadir}/dosbox-x
+%{_datadir}/dosbox-x/*
+%{_datadir}/dosbox-x/glshaders
+%{_datadir}/dosbox-x/glshaders/*
 
 # Required for NE2000 networking support
 %post
