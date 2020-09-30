@@ -616,8 +616,14 @@ if test x$enable_freetype = xyes; then
 fi
 
 dnl LIBRARY TEST: FFMPEG support
-AC_CHECK_LIB(avcodec,avcodec_open2,have_ffmpeg=yes,have_ffmpeg=no,)
-AC_CHECK_HEADER(libavcodec/avcodec.h,have_avcodec_h=yes,have_avcodec_h=no,)
+pkg-config --exists libavcodec; RES=$?
+if test x$RES = x0; then
+  have_avcodec_h=yes
+  have_ffmpeg=yes
+else
+  have_avcodec_h=no
+  have_ffmpeg=no
+fi
 
 dnl LIBRARY TEST: OpenGL support
 AC_CHECK_LIB(GL, main, have_gl_lib=yes, have_gl_lib=no , )
