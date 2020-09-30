@@ -1476,11 +1476,11 @@ fluid_settings_option_concat (fluid_settings_t *settings, const char *name,
     if (option)
     {
       newlist = fluid_list_append (newlist, option);
-      len += strlen (option);
+      len += (int)strlen (option);
     }
   }
 
-  if (count > 1) len += (count - 1) * strlen (separator);
+  if (count > 1) len += (int)((count - 1) * strlen (separator));
   len++;        /* For terminator */
 
   /* Sort by name */
@@ -1524,7 +1524,7 @@ fluid_settings_foreach_iter (void* key, void* value, void* data)
   int pathlen;
   char *s;
 
-  pathlen = strlen (bag->path);
+  pathlen = (int)strlen (bag->path);
 
   if (pathlen > 0)
   {

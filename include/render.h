@@ -57,7 +57,7 @@ typedef struct {
 	Bitu last;
 } RenderPal_t;
 
-typedef struct {
+typedef struct Render_t {
 	struct {
 		Bitu width, start;
 		Bitu height;

@@ -624,7 +624,7 @@ bool DOS_LockFile(uint16_t entry,uint8_t mode,uint32_t pos,uint32_t size) {
 #endif
 }
 
-bool DOS_CloseFile(uint16_t entry, bool fcb) {
+bool DOS_CloseFile(uint16_t entry, bool fcb, uint8_t * refcnt) {
 #if defined(WIN32) && !defined(__MINGW32__)
 	if(Network_IsActiveResource(entry))
 		return Network_CloseFile(entry);
@@ -648,10 +648,12 @@ bool DOS_CloseFile(uint16_t entry, bool fcb) {
 	DOS_PSP psp(dos.psp());
 	if (!fcb) psp.SetFileHandle(entry,0xff);
 
-	if (Files[handle]->RemoveRef()<=0) {
+	Bits refs=Files[handle]->RemoveRef();
+	if (refs<=0) {
 		delete Files[handle];
 		Files[handle]=0;
 	}
+	if (refcnt!=NULL) *refcnt=static_cast<uint8_t>(refs+1);
 	return true;
 }
 

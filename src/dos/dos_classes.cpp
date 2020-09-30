@@ -376,7 +376,7 @@ bool DOS_PSP::SetNumFiles(uint16_t fileNum) {
 	//20 minimum. clipper program.
 	if (fileNum < 20) fileNum = 20;
 	 
-	if (fileNum > 20 && ((fileNum+2) > sGet(sPSP,max_files))) {
+	if (fileNum > 20 && ((uint32_t)(fileNum+2) > sGet(sPSP,max_files))) {
 		// Allocate needed paragraphs
 		fileNum+=2;	// Add a few more files for safety
 		uint16_t para = (fileNum/16)+((fileNum%16)>0);

@@ -1072,10 +1072,10 @@ fluid_ostream_printf (fluid_ostream_t out, char* format, ...)
 
     /* Handle write differently depending on if its a socket or file descriptor */
     if (!(out & WIN32_SOCKET_FLAG))
-      return write(out, buf, strlen (buf));
+      return write(out, buf, (unsigned int)strlen (buf));
 
     /* Socket */
-    retval = send (out & ~WIN32_SOCKET_FLAG, buf, strlen (buf), 0);
+    retval = send (out & ~WIN32_SOCKET_FLAG, buf, (int)strlen (buf), 0);
 
     return retval != SOCKET_ERROR ? retval : -1;
   }

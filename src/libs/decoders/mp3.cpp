@@ -105,7 +105,7 @@ static Uint32 MP3_read(Sound_Sample* const sample)
 
     // setup our 16-bit output buffer
     drmp3_int16* out_buffer = (drmp3_int16 *)(internal->buffer);
-    drmp3_uint16 remaining_frames = (internal->buffer_size  / sizeof(drmp3_int16)) / channels;
+    drmp3_uint16 remaining_frames = (drmp3_uint16)((internal->buffer_size  / sizeof(drmp3_int16)) / channels);
 
     // LOG_MSG("read: remaining_frames: %u", remaining_frames);
     drmp3_uint16 total_samples_read = 0;

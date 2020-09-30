@@ -1127,7 +1127,7 @@ new_fluid_preset_zone(char *name)
     return NULL;
   }
   zone->next = NULL;
-  size = 1 + FLUID_STRLEN(name);
+  size = (int)(1 + FLUID_STRLEN(name));
   zone->name = FLUID_MALLOC(size);
   if (zone->name == NULL) {
     FLUID_LOG(FLUID_ERR, "Out of memory");
@@ -1528,7 +1528,7 @@ new_fluid_inst_zone(char* name)
     return NULL;
   }
   zone->next = NULL;
-  size = 1 + FLUID_STRLEN(name);
+  size = (int)(1 + FLUID_STRLEN(name));
   zone->name = FLUID_MALLOC(size);
   if (zone->name == NULL) {
     FLUID_LOG(FLUID_ERR, "Out of memory");
