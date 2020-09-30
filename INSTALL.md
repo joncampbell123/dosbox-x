@@ -25,7 +25,7 @@ You can easily upgrade from a previous version of DOSBox-X to the new version wi
 
 Apart from the Windows installers, you can usually find three zip packages for each DOSBox-X version for the Windows platform in the Releases page as an alternative way to install DOSBox-X. These zip files are portable packages containing binaries built with Visual Studio 2019, MinGW 32-bit and MinGW 64-bit (or mingw-w64). For the current DOSBox-X version 0.83.6, these portable builds are separately available from:
 
-* [dosbox-x-windows-vsbin-20200930224615.zip](https://github.com/joncampbell123/dosbox-x/releases/download/dosbox-x-v0.83.6/dosbox-x-windows-vsbin-20200930224615.zip)
+* [dosbox-x-vsbuild-win-20200930224615.zip](https://github.com/joncampbell123/dosbox-x/releases/download/dosbox-x-v0.83.6/dosbox-x-vsbuild-win-20200930224615.zip)
 * [dosbox-x-mingw-win32-20200930224903.zip](https://github.com/joncampbell123/dosbox-x/releases/download/dosbox-x-v0.83.6/dosbox-x-mingw-win32-20200930224903.zip)
 * [dosbox-x-mingw-win64-20200930235023.zip](https://github.com/joncampbell123/dosbox-x/releases/download/dosbox-x-v0.83.6/dosbox-x-mingw-win64-20200930235023.zip)
 

@@ -24,14 +24,14 @@ if ( "$branch" eq "develop-win-sdl1-async-hack-201802" ) {
 }
 
 $suffix = $subdir;
-$suffix =~ s/^.*\/windows/vsbin/g;
+$suffix =~ s/^.*\/windows/vsbuild/g;
 
 mkdir "release" unless -d "release";
 mkdir "$subdir" unless -d "$subdir";
 
 die "bin directory not exist" unless -d "bin";
 
-my $zipname = "dosbox-x-windows-$suffix-$datestr.zip";
+my $zipname = "dosbox-x-$suffix-win-$datestr.zip";
 exit 0 if -f $zipname;
 die unless -f $ziptool;
 
