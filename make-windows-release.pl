@@ -24,7 +24,7 @@ if ( "$branch" eq "develop-win-sdl1-async-hack-201802" ) {
 }
 
 $suffix = $subdir;
-$suffix =~ s/^.*\///g;
+$suffix =~ s/^.*\/windows/vsbin/g;
 
 mkdir "release" unless -d "release";
 mkdir "$subdir" unless -d "$subdir";
