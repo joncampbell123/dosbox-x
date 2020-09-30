@@ -92,15 +92,36 @@ macOS: If you want to make an .app bundle you can run from the Finder, compile t
 XCode (on macOS, from the Terminal) to target macOS
 ./build-debug
 
-To compile DOSBox-X in Ubuntu (added by kapper1224):
+## To compile DOSBox-X in Ubuntu (added by kapper1224):
 
 sudo apt install automake libncurses-dev nasm libsdl-net1.2-dev libpcap-dev libfluidsynth-devffmpeg libavdevice58 libavformat-* libswscale-* libavcodec-*
 ./build
 sudo make install
 
-To create a DOSBox-X RPM for use in RHEL, CentOS or Fedora
+## To compile DOSBox-X in Fedora Workstation:
 
-./make-rpm.sh
+First install the development tools, headers and libraries needed
+
+ sudo dnf group install "C Development Tools and Libraries"
+ sudo dnf install SDL_net-devel SDL2_net-devel libxkbfile-devel ncurses-devel libpcap-devel libpng-devel fluidsynth-devel freetype-devel nasm
+
+If you want to be able to record video, you will also need to install ffmpeg-devel which you can get from the optional rpmfusion-free repository.
+Then change to the directory where you unpacked the DOSBox-X source code, and run the following commands:
+
+ ./build-debug
+ sudo make install
+
+Alternatively you can also compile the SDL2 version by running the ./build-debug-sdl2 script.
+
+## To create a DOSBox-X RPM for use in RHEL, CentOS or Fedora:
+
+First ensure that your system has all the necessary development tools and libraries installed, such as by following the dnf steps in the above "To compile DOSBox-X in Fedora Workstation".
+Then run the following commands:
+
+ sudo dnf group install "RPM Development Tools"
+ ./make-rpm.sh
+
+After a successful compile, the RPM can be found in the releases directory.
 
 Compiling the source code using Visual Studio (Windows)
 -------------------------------------------------------

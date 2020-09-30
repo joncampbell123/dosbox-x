@@ -10,7 +10,7 @@ finish-args:	# flatpak permissions
   - --share=ipc	# needed for X11
   - --share=network	# needed for networking (NE2000, IPX)
   - --socket=x11
-  #- --socket=wayland	# pointless with SDL1
+  - --nosocket=wayland	# wayland does not work atm
   - --socket=pulseaudio
   - --filesystem=home
 
