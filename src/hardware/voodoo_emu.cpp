@@ -2758,8 +2758,8 @@ UINT32 register_r(UINT32 offset)
 			/* start with a blank slate */
 			result = 0;
 
-			result |= ((Bit32u)(Voodoo_GetVRetracePosition() * 0x1fff)) & 0x1fff;
-			result |= (((Bit32u)(Voodoo_GetHRetracePosition() * 0x7ff)) & 0x7ff) << 16;
+			result |= ((uint32_t)(Voodoo_GetVRetracePosition() * 0x1fff)) & 0x1fff;
+			result |= (((uint32_t)(Voodoo_GetHRetracePosition() * 0x7ff)) & 0x7ff) << 16;
 
 			CPU_Core_Dyn_X86_RestoreDHFPUState();
 			break;

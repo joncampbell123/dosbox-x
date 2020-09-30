@@ -32,13 +32,13 @@
 namespace MT32Emu {
 
 // CONFIRMED: Matches a table in ROM - haven't got around to coming up with a formula for it yet.
-static Bit8u biasLevelToAmpSubtractionCoeff[13] = {255, 187, 137, 100, 74, 54, 40, 29, 21, 15, 10, 5, 0};
+static uint8_t biasLevelToAmpSubtractionCoeff[13] = {255, 187, 137, 100, 74, 54, 40, 29, 21, 15, 10, 5, 0};
 
 TVA::TVA(const Partial *usePartial, LA32Ramp *useAmpRamp) :
 	partial(usePartial), ampRamp(useAmpRamp), system(&usePartial->getSynth()->mt32ram.system), phase(TVA_PHASE_DEAD) {
 }
 
-void TVA::startRamp(Bit8u newTarget, Bit8u newIncrement, int newPhase) {
+void TVA::startRamp(uint8_t newTarget, uint8_t newIncrement, int newPhase) {
 	target = newTarget;
 	phase = newPhase;
 	ampRamp->startRamp(newTarget, newIncrement);
@@ -55,11 +55,11 @@ void TVA::end(int newPhase) {
 #endif
 }
 
-static int multBias(Bit8u biasLevel, int bias) {
+static int multBias(uint8_t biasLevel, int bias) {
 	return (bias * biasLevelToAmpSubtractionCoeff[biasLevel]) >> 5;
 }
 
-static int calcBiasAmpSubtraction(Bit8u biasPoint, Bit8u biasLevel, int key) {
+static int calcBiasAmpSubtraction(uint8_t biasPoint, uint8_t biasLevel, int key) {
 	if ((biasPoint & 0x40) == 0) {
 		int bias = biasPoint + 33 - key;
 		if (bias > 0) {
@@ -91,7 +91,7 @@ static int calcBiasAmpSubtractions(const TimbreParam::PartialParam *partialParam
 	return biasAmpSubtraction;
 }
 
-static int calcVeloAmpSubtraction(Bit8u veloSensitivity, unsigned int velocity) {
+static int calcVeloAmpSubtraction(uint8_t veloSensitivity, unsigned int velocity) {
 	// FIXME:KG: Better variable names
 	int velocityMult = veloSensitivity - 50;
 	int absVelocityMult = velocityMult < 0 ? -velocityMult : velocityMult;
@@ -99,7 +99,7 @@ static int calcVeloAmpSubtraction(Bit8u veloSensitivity, unsigned int velocity) 
 	return absVelocityMult - (velocityMult >> 8); // PORTABILITY NOTE: Assumes arithmetic shift
 }
 
-static int calcBasicAmp(const Tables *tables, const Partial *partial, const MemParams::System *system, const TimbreParam::PartialParam *partialParam, const MemParams::PatchTemp *patchTemp, const MemParams::RhythmTemp *rhythmTemp, int biasAmpSubtraction, int veloAmpSubtraction, Bit8u expression, bool hasRingModQuirk) {
+static int calcBasicAmp(const Tables *tables, const Partial *partial, const MemParams::System *system, const TimbreParam::PartialParam *partialParam, const MemParams::PatchTemp *patchTemp, const MemParams::RhythmTemp *rhythmTemp, int biasAmpSubtraction, int veloAmpSubtraction, uint8_t expression, bool hasRingModQuirk) {
 	int amp = 155;
 
 	if (!(hasRingModQuirk ? partial->isRingModulatingNoMix() : partial->isRingModulatingSlave())) {
@@ -144,7 +144,7 @@ static int calcBasicAmp(const Tables *tables, const Partial *partial, const MemP
 	return amp;
 }
 
-static int calcKeyTimeSubtraction(Bit8u envTimeKeyfollow, int key) {
+static int calcKeyTimeSubtraction(uint8_t envTimeKeyfollow, int key) {
 	if (envTimeKeyfollow == 0) {
 		return 0;
 	}
@@ -186,7 +186,7 @@ void TVA::reset(const Part *newPart, const TimbreParam::PartialParam *newPartial
 	// "Go downward as quickly as possible".
 	// Since the current value is 0, the LA32Ramp will notice that we're already at or below the target and trying to go downward,
 	// and therefore jump to the target immediately and raise an interrupt.
-	startRamp(Bit8u(newTarget), 0x80 | 127, newPhase);
+	startRamp(uint8_t(newTarget), 0x80 | 127, newPhase);
 }
 
 void TVA::startAbort() {
@@ -197,7 +197,7 @@ void TVA::startDecay() {
 	if (phase >= TVA_PHASE_RELEASE) {
 		return;
 	}
-	Bit8u newIncrement;
+	uint8_t newIncrement;
 	if (partialParam->tva.envTime[4] == 0) {
 		newIncrement = 1;
 	} else {
@@ -233,12 +233,12 @@ void TVA::recalcSustain() {
 	int targetDelta = newTarget - target;
 
 	// Calculate an increment to get to the new amp value in a short, more or less consistent amount of time
-	Bit8u newIncrement;
+	uint8_t newIncrement;
 	bool descending = targetDelta < 0;
 	if (!descending) {
-		newIncrement = tables->envLogarithmicTime[Bit8u(targetDelta)] - 2;
+		newIncrement = tables->envLogarithmicTime[uint8_t(targetDelta)] - 2;
 	} else {
-		newIncrement = (tables->envLogarithmicTime[Bit8u(-targetDelta)] - 2) | 0x80;
+		newIncrement = (tables->envLogarithmicTime[uint8_t(-targetDelta)] - 2) | 0x80;
 	}
 	if (part->getSynth()->isNiceAmpRampEnabled() && (descending != ampRamp->isBelowCurrent(newTarget))) {
 		newIncrement ^= 0x80;
@@ -353,14 +353,14 @@ void TVA::nextPhase() {
 					}
 				}
 				targetDelta = -targetDelta;
-				newIncrement = tables->envLogarithmicTime[Bit8u(targetDelta)] - envTimeSetting;
+				newIncrement = tables->envLogarithmicTime[uint8_t(targetDelta)] - envTimeSetting;
 				if (newIncrement <= 0) {
 					newIncrement = 1;
 				}
 				newIncrement = newIncrement | 0x80;
 			} else {
 				// FIXME: The last 22 or so entries in this table are 128 - surely that fucks things up, since that ends up being -128 signed?
-				newIncrement = tables->envLogarithmicTime[Bit8u(targetDelta)] - envTimeSetting;
+				newIncrement = tables->envLogarithmicTime[uint8_t(targetDelta)] - envTimeSetting;
 				if (newIncrement <= 0) {
 					newIncrement = 1;
 				}
@@ -375,7 +375,7 @@ void TVA::nextPhase() {
 		}
 	}
 
-	startRamp(Bit8u(newTarget), Bit8u(newIncrement), newPhase);
+	startRamp(uint8_t(newTarget), uint8_t(newIncrement), newPhase);
 }
 
 } // namespace MT32Emu

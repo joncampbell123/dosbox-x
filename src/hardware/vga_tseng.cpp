@@ -31,12 +31,12 @@ extern bool vga_sierra_lock_565;
 
 // Tseng ET4K data
 typedef struct {
-    Bit8u extensionsEnabled;
+    uint8_t extensionsEnabled;
 
 // Current DAC mode
-    Bit8u hicolorDACcmdmode;
+    uint8_t hicolorDACcmdmode;
 // HiColor DAC control register. See comments below. Only bits 5-7 are emulated, close to SC11485 version.
-    Bit8u hicolorDACcommand;
+    uint8_t hicolorDACcommand;
 
 // Stored exact values of some registers. Documentation only specifies some bits but hardware checks may
 // expect other bits to be preserved.
@@ -131,7 +131,7 @@ void write_p3d5_et4k(Bitu reg,Bitu val,Bitu iolen) {
         vga.config.line_compare = (vga.config.line_compare & 0x3ff) | ((val&0x10)<<6);
     // Abusing s3 ex_ver_overflow field. This is to be cleaned up later.
         {
-            Bit8u s3val =
+            uint8_t s3val =
                 ((val & 0x01) << 2) | // vbstart
                 ((val & 0x02) >> 1) | // vtotal
                 ((val & 0x04) >> 1) | // vdispend
@@ -350,14 +350,14 @@ void FinishSetMode_ET4K(Bitu crtc_base, VGA_ModeExtraData* modeData) {
     // Reinterpret hor_overflow. Curiously, three bits out of four are
     // in the same places. Input has hdispend (not supported), output
     // has CRTC offset (also not supported)
-    Bit8u et4k_hor_overflow = 
+    uint8_t et4k_hor_overflow = 
         (modeData->hor_overflow & 0x01) |
         (modeData->hor_overflow & 0x04) |
         (modeData->hor_overflow & 0x10);
     IO_Write(crtc_base,0x3f);IO_Write(crtc_base+1,et4k_hor_overflow);
 
     // Reinterpret ver_overflow
-    Bit8u et4k_ver_overflow =
+    uint8_t et4k_ver_overflow =
         ((modeData->ver_overflow & 0x01) << 1) | // vtotal10
         ((modeData->ver_overflow & 0x02) << 1) | // vdispend10
         ((modeData->ver_overflow & 0x04) >> 2) | // vbstart10
@@ -482,7 +482,7 @@ void write_p3c6_et4k(Bitu port,Bitu val,Bitu iolen) {
     if (et4k.hicolorDACcmdmode <= 3) {
         write_p3c6(port, val, iolen);
     } else {
-        Bit8u command = val & 0xe0;
+        uint8_t command = val & 0xe0;
         if (command != et4k.hicolorDACcommand) {
             et4k.hicolorDACcommand = command;
             DetermineMode_ET4K();
@@ -536,12 +536,12 @@ void SetupDAC_ET4K() {
 }
 
 // BIOS extensions for HiColor-enabled cards
-bool INT10_SetVideoMode(Bit16u mode);
+bool INT10_SetVideoMode(uint16_t mode);
 
 void INT10Extensions_ET4K() {
     switch (reg_ax) {
     case 0x10F0: /* ET4000: SET HiColor GRAPHICS MODE */
-        if (INT10_SetVideoMode(0x200 | Bit16u(reg_bl))) {
+        if (INT10_SetVideoMode(0x200 | uint16_t(reg_bl))) {
             reg_ax = 0x0010;
         }
         break;
@@ -559,7 +559,7 @@ void INT10Extensions_ET4K() {
             break;
         case 1: case 2:
             {
-                Bit8u val = (reg_bl == 1) ? 0xa0 : 0xe0;
+                uint8_t val = (reg_bl == 1) ? 0xa0 : 0xe0;
                 if (val != et4k.hicolorDACcommand) {
                     et4k.hicolorDACcommand = val;
                     DetermineMode_ET4K();
@@ -732,7 +732,7 @@ void write_p3d5_et3k(Bitu reg,Bitu val,Bitu iolen) {
         vga.config.line_compare = (vga.config.line_compare & 0x3ff) | ((val&0x10)<<6);
     // Abusing s3 ex_ver_overflow field. This is to be cleaned up later.
         {
-            Bit8u s3val =
+            uint8_t s3val =
                 ((val & 0x01) << 2) | // vbstart
                 ((val & 0x02) >> 1) | // vtotal
                 ((val & 0x04) >> 1) | // vdispend
@@ -875,7 +875,7 @@ void FinishSetMode_ET3K(Bitu crtc_base, VGA_ModeExtraData* modeData) {
 
     // Tseng ET3K does not have horizontal overflow bits
     // Reinterpret ver_overflow
-    Bit8u et4k_ver_overflow =
+    uint8_t et4k_ver_overflow =
         ((modeData->ver_overflow & 0x01) << 1) | // vtotal10
         ((modeData->ver_overflow & 0x02) << 1) | // vdispend10
         ((modeData->ver_overflow & 0x04) >> 2) | // vbstart10
@@ -884,7 +884,7 @@ void FinishSetMode_ET3K(Bitu crtc_base, VGA_ModeExtraData* modeData) {
     IO_Write(crtc_base,0x25);IO_Write(crtc_base+1,et4k_ver_overflow);
 
     // Clear remaining ext CRTC registers
-    for (Bit8u i=0x16; i<=0x21; i++) {
+    for (uint8_t i=0x16; i<=0x21; i++) {
         IO_Write(crtc_base,i);
         IO_Write(crtc_base+1,0);
     }
@@ -904,7 +904,7 @@ void FinishSetMode_ET3K(Bitu crtc_base, VGA_ModeExtraData* modeData) {
         Bitu best = 1;
         int dist = 100000000;
         for (Bitu i = 0; i < 8; i++) {
-            int cdiff = abs( static_cast<Bit32s>(target - static_cast<Bits>(et3k.clockFreq[i])) );
+            int cdiff = abs( static_cast<int32_t>(target - static_cast<Bits>(et3k.clockFreq[i])) );
             if (cdiff < dist) {
                 best = i;
                 dist = cdiff;

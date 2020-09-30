@@ -28,7 +28,7 @@
 
 #define HQ2X_RESOLUTION 16
 
-void BuildHq2xLookupTexture(Bitu width, Bitu height, Bitu rwidth, Bitu rheight, Bit8u* texture);
+void BuildHq2xLookupTexture(Bitu width, Bitu height, Bitu rwidth, Bitu rheight, uint8_t* texture);
 
 #define HQ2X_D3D_TABLE_DATA { \
 0x90,0x91,0x92,0x93,0x94,0x91,0x92,0x4c,0x90,0x91,0x92,0x93,0x94,0x91,0x92,0x97,\

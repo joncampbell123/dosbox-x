@@ -37,7 +37,7 @@ extern SDL_xBRZ sdl_xbrz;
 void xBRZ_Initialize();
 void xBRZ_Change_Options(Section_prop* section);
 bool xBRZ_SetScaleParameters(int srcWidth, int srcHeight, int dstWidth, int dstHeight);
-void xBRZ_Render(const uint32_t* renderBuf, uint32_t* xbrzBuf, const Bit16u *changedLines, const int srcWidth, const int srcHeight, int scalingFactor);
+void xBRZ_Render(const uint32_t* renderBuf, uint32_t* xbrzBuf, const uint16_t *changedLines, const int srcWidth, const int srcHeight, int scalingFactor);
 void xBRZ_PostScale(const uint32_t* src, const int srcWidth, const int srcHeight, const int srcPitch,
     uint32_t* tgt, const int tgtWidth, const int tgtHeight, const int tgtPitch,
     const bool bilinear, const int task_granularity);

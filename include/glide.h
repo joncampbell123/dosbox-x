@@ -25,20 +25,20 @@
 /*
 ** basic data types
 */
-typedef Bit8u   FxU8;
-typedef Bit8s   FxI8;
-typedef Bit16u  FxU16;
-typedef Bit16s  FxI16;
-typedef Bit32u  FxU32;
-typedef Bit32s  FxI32;
-typedef Bit32s  FxBool;
+typedef uint8_t   FxU8;
+typedef int8_t   FxI8;
+typedef uint16_t  FxU16;
+typedef int16_t  FxI16;
+typedef uint32_t  FxU32;
+typedef int32_t  FxI32;
+typedef int32_t  FxBool;
 typedef float   FxFloat;
 typedef double  FxDouble;
 
 /*
 ** color types
 */
-typedef Bit32u                       FxColor_t;
+typedef uint32_t                       FxColor_t;
 typedef struct { float r, g, b, a; } FxColor4;
 
 /*
@@ -72,31 +72,31 @@ typedef struct { float r, g, b, a; } FxColor4;
 
 // Some glide structs might have different size in guest 32-bit DOS (pointers)
 typedef struct {
-    Bit32s		smallLod;
-    Bit32s		largeLod;
-    Bit32s		aspectRatio;
-    Bit32s		format;
+    int32_t		smallLod;
+    int32_t		largeLod;
+    int32_t		aspectRatio;
+    int32_t		format;
     PhysPt		data;
 } DBGrTexInfo;
 
 typedef struct {
-    Bit32s		size;
+    int32_t		size;
     PhysPt		lfbPtr;
-    Bit32u		strideInBytes;
-    Bit32s		writeMode;
-    Bit32s		origin;
+    uint32_t		strideInBytes;
+    int32_t		writeMode;
+    int32_t		origin;
 } DBGrLfbInfo_t;
 
 typedef struct {
     Gu3dfHeader 	header;
     GuTexTable		table;
     PhysPt		data;
-    Bit32u		mem_required;
+    uint32_t		mem_required;
 } DBGu3dfInfo;
 
 typedef struct {
     const char * name;
-    const Bit8u parms;
+    const uint8_t parms;
 } GLIDE_TABLE;
 
 typedef void (FX_CALL *pfunc0)		(void);

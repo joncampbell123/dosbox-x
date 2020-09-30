@@ -42,7 +42,7 @@ extern bool dos_kernel_disabled, force_nocachedir, freesizecap, wpcolon, enable_
 
 /* This registers a file on the virtual drive and creates the correct structure for it*/
 
-static Bit8u exe_block[]={
+static uint8_t exe_block[]={
 	0xbc,0x00,0x04,					//0x100 MOV SP,0x400  decrease stack size
 	0xbb,0x40,0x00,					//0x103 MOV BX,0x0040 for memory resize
 	0xb4,0x4a,					//0x106 MOV AH,0x4A   Resize memory block
@@ -71,8 +71,8 @@ public:
 	}
 public:
 	std::string	name;
-	Bit8u*		comdata;
-	Bit32u		comsize;
+	uint8_t*		comdata;
+	uint32_t		comsize;
 	PROGRAMS_Main*	main;
 };
 
@@ -92,20 +92,20 @@ void PROGRAMS_Shutdown(void) {
 }
 
 void PROGRAMS_MakeFile(char const * const name,PROGRAMS_Main * main) {
-	Bit32u size=sizeof(exe_block)+sizeof(Bit8u);
+	uint32_t size=sizeof(exe_block)+sizeof(uint8_t);
 	InternalProgramEntry *ipe;
-	Bit8u *comdata;
-	Bit8u index;
+	uint8_t *comdata;
+	uint8_t index;
 
 	/* Copy save the pointer in the vector and save it's index */
 	if (internal_progs.size()>255) E_Exit("PROGRAMS_MakeFile program size too large (%d)",static_cast<int>(internal_progs.size()));
 
-	index = (Bit8u)internal_progs.size();
-	comdata = (Bit8u *)malloc(32); //MEM LEAK
+	index = (uint8_t)internal_progs.size();
+	comdata = (uint8_t *)malloc(32); //MEM LEAK
 	memcpy(comdata,&exe_block,sizeof(exe_block));
 	memcpy(&comdata[sizeof(exe_block)],&index,sizeof(index));
-	comdata[CB_POS]=(Bit8u)(call_program&0xff);
-	comdata[CB_POS+1]=(Bit8u)((call_program>>8)&0xff);
+	comdata[CB_POS]=(uint8_t)(call_program&0xff);
+	comdata[CB_POS+1]=(uint8_t)((call_program>>8)&0xff);
 
 	ipe = new InternalProgramEntry();
 	ipe->main = main;
@@ -118,8 +118,8 @@ void PROGRAMS_MakeFile(char const * const name,PROGRAMS_Main * main) {
 
 static Bitu PROGRAMS_Handler(void) {
 	/* This sets up everything for a program start up call */
-	Bitu size=sizeof(Bit8u);
-	Bit8u index;
+	Bitu size=sizeof(uint8_t);
+	uint8_t index;
 	/* Read the index from program code in memory */
 	PhysPt reader=PhysMake(dos.psp(),256+sizeof(exe_block));
 	HostPt writer=(HostPt)&index;
@@ -200,36 +200,36 @@ void Program::WriteOut(const char * format,...) {
 	vsnprintf(buf,2047,format,msg);
 	va_end(msg);
 
-	Bit16u size = (Bit16u)strlen(buf);
+	uint16_t size = (uint16_t)strlen(buf);
 	dos.internal_output=true;
-	for(Bit16u i = 0; i < size;i++) {
-		Bit8u out;Bit16u s=1;
+	for(uint16_t i = 0; i < size;i++) {
+		uint8_t out;uint16_t s=1;
 		if (buf[i] == 0xA && last_written_character != 0xD) {
 			out = 0xD;DOS_WriteFile(STDOUT,&out,&s);
 		}
-		last_written_character = (char)(out = (Bit8u)buf[i]);
+		last_written_character = (char)(out = (uint8_t)buf[i]);
 		DOS_WriteFile(STDOUT,&out,&s);
 	}
 	dos.internal_output=false;
 	
-//	DOS_WriteFile(STDOUT,(Bit8u *)buf,&size);
+//	DOS_WriteFile(STDOUT,(uint8_t *)buf,&size);
 }
 
 void Program::WriteOut_NoParsing(const char * format) {
-	Bit16u size = (Bit16u)strlen(format);
+	uint16_t size = (uint16_t)strlen(format);
 	char const* buf = format;
 	dos.internal_output=true;
-	for(Bit16u i = 0; i < size;i++) {
-		Bit8u out;Bit16u s=1;
+	for(uint16_t i = 0; i < size;i++) {
+		uint8_t out;uint16_t s=1;
 		if (buf[i] == 0xA && last_written_character != 0xD) {
 			out = 0xD;DOS_WriteFile(STDOUT,&out,&s);
 		}
-		last_written_character = (char)(out = (Bit8u)buf[i]);
+		last_written_character = (char)(out = (uint8_t)buf[i]);
 		DOS_WriteFile(STDOUT,&out,&s);
 	}
 	dos.internal_output=false;
 
-//	DOS_WriteFile(STDOUT,(Bit8u *)format,&size);
+//	DOS_WriteFile(STDOUT,(uint8_t *)format,&size);
 }
 
 static bool LocateEnvironmentBlock(PhysPt &env_base,PhysPt &env_fence,Bitu env_seg) {
@@ -238,8 +238,8 @@ static bool LocateEnvironmentBlock(PhysPt &env_base,PhysPt &env_fence,Bitu env_s
 		return false;
 	}
 
-	DOS_MCB env_mcb((Bit16u)(env_seg-1)); /* read the environment block's MCB to determine how large it is */
-	env_base = PhysMake((Bit16u)env_seg,0);
+	DOS_MCB env_mcb((uint16_t)(env_seg-1)); /* read the environment block's MCB to determine how large it is */
+	env_base = PhysMake((uint16_t)env_seg,0);
 	env_fence = env_base + (PhysPt)(env_mcb.GetSize() << 4u);
 	return true;
 }
@@ -490,11 +490,11 @@ bool Program::SetEnv(const char * entry,const char * new_string) {
 		}
 
 		assert(env_scan < env_fence);
-		for (const char *s=bigentry.c_str();*s != 0;) mem_writeb(env_scan++,(Bit8u)(*s++));
+		for (const char *s=bigentry.c_str();*s != 0;) mem_writeb(env_scan++,(uint8_t)(*s++));
 		mem_writeb(env_scan++,'=');
 
 		assert(env_scan < env_fence);
-		for (const char *s=new_string;*s != 0;) mem_writeb(env_scan++,(Bit8u)(*s++));
+		for (const char *s=new_string;*s != 0;) mem_writeb(env_scan++,(uint8_t)(*s++));
 		mem_writeb(env_scan++,0);
 		mem_writeb(env_scan++,0);
 

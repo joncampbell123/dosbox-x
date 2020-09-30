@@ -42,9 +42,9 @@
 extern bool log_int21, log_fileio;
 extern int lfn_filefind_handle;
 unsigned long totalc, freec;
-Bit16u countryNo = 0;
+uint16_t countryNo = 0;
 Bitu INT29_HANDLER(void);
-Bit32u BIOS_get_PC98_INT_STUB(void);
+uint32_t BIOS_get_PC98_INT_STUB(void);
 
 int ascii_toupper(int c) {
     if (c >= 'a' && c <= 'z')
@@ -107,7 +107,7 @@ extern bool infix, winrun, startcmd, startwait;
 extern bool startup_state_numlock, mountwarning, clipboard_dosapi;
 std::string startincon;
 
-Bit32u dos_hma_allocator = 0; /* physical memory addr */
+uint32_t dos_hma_allocator = 0; /* physical memory addr */
 
 Bitu XMS_EnableA20(bool enable);
 Bitu XMS_GetEnabledA20(void);
@@ -122,13 +122,13 @@ bool DOS_IS_IN_HMA() {
 	return false;
 }
 
-Bit32u DOS_HMA_LIMIT() {
+uint32_t DOS_HMA_LIMIT() {
 	if (dos.version.major < 5) return 0; /* MS-DOS 5.0+ only */
 	if (!DOS_IS_IN_HMA()) return 0;
 	return (0x110000 - 16); /* 1MB + 64KB - 16 bytes == (FFFF:FFFF + 1) == (0xFFFF0 + 0xFFFF + 1) == 0x10FFF0 */
 }
 
-Bit32u DOS_HMA_FREE_START() {
+uint32_t DOS_HMA_FREE_START() {
 	if (dos.version.major < 5) return 0; /* MS-DOS 5.0+ only */
 	if (!DOS_IS_IN_HMA()) return 0;
 
@@ -141,8 +141,8 @@ Bit32u DOS_HMA_FREE_START() {
 	return dos_hma_allocator;
 }
 
-Bit32u DOS_HMA_GET_FREE_SPACE() {
-	Bit32u start;
+uint32_t DOS_HMA_GET_FREE_SPACE() {
+	uint32_t start;
 
 	if (dos.version.major < 5) return 0; /* MS-DOS 5.0+ only */
 	if (!DOS_IS_IN_HMA()) return 0;
@@ -151,8 +151,8 @@ Bit32u DOS_HMA_GET_FREE_SPACE() {
 	return (DOS_HMA_LIMIT() - start);
 }
 
-void DOS_HMA_CLAIMED(Bit16u bytes) {
-	Bit32u limit = DOS_HMA_LIMIT();
+void DOS_HMA_CLAIMED(uint16_t bytes) {
+	uint32_t limit = DOS_HMA_LIMIT();
 
 	if (limit == 0) E_Exit("HMA allocatiom bug: Claim function called when HMA allocation is not enabled");
 	if (dos_hma_allocator == 0) E_Exit("HMA allocatiom bug: Claim function called without having determined start");
@@ -160,20 +160,20 @@ void DOS_HMA_CLAIMED(Bit16u bytes) {
 	if (dos_hma_allocator > limit) E_Exit("HMA allocation bug: Exceeded limit");
 }
 
-Bit16u DOS_INFOBLOCK_SEG=0x80;	// sysvars (list of lists)
-Bit16u DOS_CONDRV_SEG=0xa0;
-Bit16u DOS_CONSTRING_SEG=0xa8;
-Bit16u DOS_SDA_SEG=0xb2;		// dos swappable area
-Bit16u DOS_SDA_SEG_SIZE=0x560;  // WordPerfect 5.1 consideration (emendelson)
-Bit16u DOS_SDA_OFS=0;
-Bit16u DOS_CDS_SEG=0x108;
-Bit16u DOS_MEM_START=0x158;	 // regression to r3437 fixes nascar 2 colors
-Bit16u minimum_mcb_segment=0x70;
-Bit16u minimum_mcb_free=0x70;
-Bit16u minimum_dos_initial_private_segment=0x70;
+uint16_t DOS_INFOBLOCK_SEG=0x80;	// sysvars (list of lists)
+uint16_t DOS_CONDRV_SEG=0xa0;
+uint16_t DOS_CONSTRING_SEG=0xa8;
+uint16_t DOS_SDA_SEG=0xb2;		// dos swappable area
+uint16_t DOS_SDA_SEG_SIZE=0x560;  // WordPerfect 5.1 consideration (emendelson)
+uint16_t DOS_SDA_OFS=0;
+uint16_t DOS_CDS_SEG=0x108;
+uint16_t DOS_MEM_START=0x158;	 // regression to r3437 fixes nascar 2 colors
+uint16_t minimum_mcb_segment=0x70;
+uint16_t minimum_mcb_free=0x70;
+uint16_t minimum_dos_initial_private_segment=0x70;
 
-Bit16u DOS_PRIVATE_SEGMENT=0;//0xc800;
-Bit16u DOS_PRIVATE_SEGMENT_END=0;//0xd000;
+uint16_t DOS_PRIVATE_SEGMENT=0;//0xc800;
+uint16_t DOS_PRIVATE_SEGMENT_END=0;//0xd000;
 
 Bitu DOS_PRIVATE_SEGMENT_Size=0x800;	// 32KB (0x800 pages), mainline DOSBox behavior
 
@@ -188,7 +188,7 @@ DOS_InfoBlock dos_infoblock;
 extern int bootdrive;
 extern bool force_sfn, dos_kernel_disabled;
 
-Bit16u DOS_Block::psp() {
+uint16_t DOS_Block::psp() {
 	if (dos_kernel_disabled) {
 		LOG_MSG("BUG: DOS kernel is disabled (booting a guest OS), and yet somebody is still asking for DOS's current PSP segment\n");
 		return 0x0000;
@@ -197,7 +197,7 @@ Bit16u DOS_Block::psp() {
 	return DOS_SDA(DOS_SDA_SEG,DOS_SDA_OFS).GetPSP();
 }
 
-void DOS_Block::psp(Bit16u _seg) {
+void DOS_Block::psp(uint16_t _seg) {
 	if (dos_kernel_disabled) {
 		LOG_MSG("BUG: DOS kernel is disabled (booting a guest OS), and yet somebody is still attempting to change DOS's current PSP segment\n");
 		return;
@@ -225,16 +225,16 @@ void DOS_Block::dta(RealPt _dta) {
 }
 
 #define DOS_COPYBUFSIZE 0x10000
-Bit8u dos_copybuf[DOS_COPYBUFSIZE];
+uint8_t dos_copybuf[DOS_COPYBUFSIZE];
 #ifdef WIN32
-Bit16u	NetworkHandleList[127];Bit8u dos_copybuf_second[DOS_COPYBUFSIZE];
+uint16_t	NetworkHandleList[127];uint8_t dos_copybuf_second[DOS_COPYBUFSIZE];
 #endif
 
-void DOS_SetError(Bit16u code) {
+void DOS_SetError(uint16_t code) {
 	dos.errorcode=code;
 }
 
-void DOS_SetCountry(Bit16u countryNo) {
+void DOS_SetCountry(uint16_t countryNo) {
 	if (dos.tables.country==NULL) return;
 
     // For US, Latin America and International English use 12h clock
@@ -311,13 +311,13 @@ void DOS_SetCountry(Bit16u countryNo) {
 	}
 }
 
-const Bit8u DOS_DATE_months[] = {
+const uint8_t DOS_DATE_months[] = {
 	0, 31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31
 };
 
-static void DOS_AddDays(Bit8u days) {
+static void DOS_AddDays(uint8_t days) {
 	dos.date.day += days;
-	Bit8u monthlimit = DOS_DATE_months[dos.date.month];
+	uint8_t monthlimit = DOS_DATE_months[dos.date.month];
 
 	if(dos.date.day > monthlimit) {
 		if((dos.date.year %4 == 0) && (dos.date.month==2)) {
@@ -399,15 +399,15 @@ void DOS_Int21_71a8(char* name1, const char* name2);
 void DOS_Int21_71aa(char* name1, const char* name2);
 Bitu DEBUG_EnableDebugger(void);
 void runMount(const char *str);
-void CALLBACK_RunRealInt_retcsip(Bit8u intnum,Bitu &cs,Bitu &ip);
+void CALLBACK_RunRealInt_retcsip(uint8_t intnum,Bitu &cs,Bitu &ip);
 
 bool DOS_BreakINT23InProgress = false;
 
 void DOS_PrintCBreak() {
 	/* print ^C <newline> */
-	Bit16u n = 4;
+	uint16_t n = 4;
 	const char *nl = "^C\r\n";
-	DOS_WriteFile(STDOUT,(Bit8u*)nl,&n);
+	DOS_WriteFile(STDOUT,(uint8_t*)nl,&n);
 }
 
 bool DOS_BreakTest() {
@@ -614,7 +614,7 @@ static Bitu DOS_21Handler(void) {
             break;
         case 0x01:      /* Read character from STDIN, with echo */
             {   
-                Bit8u c;Bit16u n=1;
+                uint8_t c;uint16_t n=1;
                 dos.echo=true;
                 DOS_ReadFile(STDIN,&c,&n);
                 if (c == 3) {
@@ -627,7 +627,7 @@ static Bitu DOS_21Handler(void) {
             break;
         case 0x02:      /* Write character to STDOUT */
             {
-                Bit8u c=reg_dl;Bit16u n=1;
+                uint8_t c=reg_dl;uint16_t n=1;
                 DOS_WriteFile(STDOUT,&c,&n);
                 //Not in the official specs, but happens nonetheless. (last written character)
                 reg_al=(c==9)?0x20:c; //strangely, tab conversion to spaces is reflected here
@@ -635,9 +635,9 @@ static Bitu DOS_21Handler(void) {
             break;
         case 0x03:      /* Read character from STDAUX */
             {
-                Bit16u port = real_readw(0x40,0);
+                uint16_t port = real_readw(0x40,0);
                 if(port!=0 && serialports[0]) {
-                    Bit8u status;
+                    uint8_t status;
                     // RTS/DTR on
                     IO_WriteB((Bitu)port + 4u, 0x3u);
                     serialports[0]->Getchar(&reg_al, &status, true, 0xFFFFFFFF);
@@ -646,7 +646,7 @@ static Bitu DOS_21Handler(void) {
             break;
         case 0x04:      /* Write Character to STDAUX */
             {
-                Bit16u port = real_readw(0x40,0);
+                uint16_t port = real_readw(0x40,0);
                 if(port!=0 && serialports[0]) {
                     // RTS/DTR on
                     IO_WriteB((Bitu)port + 4u, 0x3u);
@@ -680,7 +680,7 @@ static Bitu DOS_21Handler(void) {
                             CALLBACK_SZF(true);
                             break;
                         }
-                        Bit8u c;Bit16u n=1;
+                        uint8_t c;uint16_t n=1;
                         DOS_ReadFile(STDIN,&c,&n);
                         reg_al=c;
                         CALLBACK_SZF(false);
@@ -688,7 +688,7 @@ static Bitu DOS_21Handler(void) {
                     }
                 default:
                     {
-                        Bit8u c = reg_dl;Bit16u n = 1;
+                        uint8_t c = reg_dl;uint16_t n = 1;
                         dos.direct_output=true;
                         DOS_WriteFile(STDOUT,&c,&n);
                         dos.direct_output=false;
@@ -699,14 +699,14 @@ static Bitu DOS_21Handler(void) {
             break;
         case 0x07:      /* Character Input, without echo */
             {
-                Bit8u c;Bit16u n=1;
+                uint8_t c;uint16_t n=1;
                 DOS_ReadFile (STDIN,&c,&n);
                 reg_al=c;
                 break;
             }
         case 0x08:      /* Direct Character Input, without echo (checks for breaks officially :)*/
             {
-                Bit8u c;Bit16u n=1;
+                uint8_t c;uint16_t n=1;
                 DOS_ReadFile (STDIN,&c,&n);
                 if (c == 3) {
                     DOS_BreakAction();
@@ -717,7 +717,7 @@ static Bitu DOS_21Handler(void) {
             }
         case 0x09:      /* Write string to STDOUT */
             {   
-                Bit8u c;Bit16u n=1;
+                uint8_t c;uint16_t n=1;
                 PhysPt buf=SegPhys(ds)+reg_dx;
                 std::string str="";
                 while ((c=mem_readb(buf++))!='$') {
@@ -732,8 +732,8 @@ static Bitu DOS_21Handler(void) {
             {
                 //TODO ADD Break checkin in STDIN but can't care that much for it
                 PhysPt data=SegPhys(ds)+reg_dx;
-                Bit8u free=mem_readb(data);
-                Bit8u read=0;Bit8u c;Bit16u n=1;
+                uint8_t free=mem_readb(data);
+                uint8_t read=0;uint8_t c;uint16_t n=1;
                 if (!free) break;
                 free--;
                 for(;;) {
@@ -758,7 +758,7 @@ static Bitu DOS_21Handler(void) {
                         if (!DOS_BreakTest()) return CBRET_NONE;
                     }
                     if (read == free && c != 13) {      // Keyboard buffer full
-                        Bit8u bell = 7;
+                        uint8_t bell = 7;
                         DOS_WriteFile(STDOUT, &bell, &n);
                         continue;
                     }
@@ -781,9 +781,9 @@ static Bitu DOS_21Handler(void) {
         case 0x0c:      /* Flush Buffer and read STDIN call */
             {
                 /* flush buffer if STDIN is CON */
-                Bit8u handle=RealHandle(STDIN);
+                uint8_t handle=RealHandle(STDIN);
                 if (handle!=0xFF && Files[handle] && Files[handle]->IsName("CON")) {
-                    Bit8u c;Bit16u n;
+                    uint8_t c;uint16_t n;
                     while (DOS_GetSTDINStatus()) {
                         n=1;    DOS_ReadFile(STDIN,&c,&n);
                     }
@@ -795,7 +795,7 @@ static Bitu DOS_21Handler(void) {
                     case 0x8:
                     case 0xa:
                         { 
-                            Bit8u oldah=reg_ah;
+                            uint8_t oldah=reg_ah;
                             reg_ah=reg_al;
                             DOS_21Handler();
                             reg_ah=oldah;
@@ -889,14 +889,14 @@ static Bitu DOS_21Handler(void) {
             goto default_fallthrough;
         case 0x21:      /* Read random record from FCB */
             {
-                Bit16u toread=1;
+                uint16_t toread=1;
                 reg_al = DOS_FCBRandomRead(SegValue(ds),reg_dx,&toread,true);
             }
             LOG(LOG_FCB,LOG_NORMAL)("DOS:0x21 FCB-Random read used, result:al=%d",reg_al);
             break;
         case 0x22:      /* Write random record to FCB */
             {
-                Bit16u towrite=1;
+                uint16_t towrite=1;
                 reg_al=DOS_FCBRandomWrite(SegValue(ds),reg_dx,&towrite,true);
             }
             LOG(LOG_FCB,LOG_NORMAL)("DOS:0x22 FCB-Random write used, result:al=%d",reg_al);
@@ -929,7 +929,7 @@ static Bitu DOS_21Handler(void) {
             break;
         case 0x29:      /* Parse filename into FCB */
             {   
-                Bit8u difference;
+                uint8_t difference;
                 char string[1024];
                 MEM_StrCopy(SegPhys(ds)+reg_si,string,1023); // 1024 toasts the stack
                 reg_al=FCB_Parsename(SegValue(es),reg_di,reg_al ,string, &difference);
@@ -952,7 +952,7 @@ static Bitu DOS_21Handler(void) {
                         SegSet16(es,SegValue(ss));
                         CALLBACK_RunRealInt(0x1c);
 
-                        Bit32u memaddr = ((Bit32u)SegValue(es) << 4u) + reg_bx;
+                        uint32_t memaddr = ((uint32_t)SegValue(es) << 4u) + reg_bx;
 
                         reg_sp += 6;
                         SegSet16(es,CPU_Pop16());
@@ -1014,7 +1014,7 @@ static Bitu DOS_21Handler(void) {
                     break;                      // done
                 }
 
-                Bit16u cx = reg_cx;
+                uint16_t cx = reg_cx;
 
                 CPU_Push16(reg_ax);
                 CPU_Push16(reg_cx);
@@ -1061,7 +1061,7 @@ static Bitu DOS_21Handler(void) {
                     SegSet16(es,SegValue(ss));
                     CALLBACK_RunRealInt(0x1c);
 
-                    Bit32u memaddr = ((PhysPt)SegValue(es) << 4u) + reg_bx;
+                    uint32_t memaddr = ((PhysPt)SegValue(es) << 4u) + reg_bx;
 
                     reg_sp += 6;
                     SegSet16(es,CPU_Pop16());
@@ -1088,7 +1088,7 @@ static Bitu DOS_21Handler(void) {
 
                     // calculate milliseconds (% 20 to prevent overflow, .55ms has period of 20)
                     // direcly read BIOS_TIMER, don't want to destroy regs by calling int 1a
-                    reg_dl = (Bit8u)((mem_readd(BIOS_TIMER) % 20) * 55 % 100);
+                    reg_dl = (uint8_t)((mem_readd(BIOS_TIMER) % 20) * 55 % 100);
                 }
                 break;
             }
@@ -1101,13 +1101,13 @@ static Bitu DOS_21Handler(void) {
             if(time_start<=ticks) ticks-=time_start;
             Bitu time=(Bitu)((100.0/((double)PIT_TICK_RATE/65536.0)) * (double)ticks);
 
-            reg_dl=(Bit8u)((Bitu)time % 100); // 1/100 seconds
+            reg_dl=(uint8_t)((Bitu)time % 100); // 1/100 seconds
             time/=100;
-            reg_dh=(Bit8u)((Bitu)time % 60); // seconds
+            reg_dh=(uint8_t)((Bitu)time % 60); // seconds
             time/=60;
-            reg_cl=(Bit8u)((Bitu)time % 60); // minutes
+            reg_cl=(uint8_t)((Bitu)time % 60); // minutes
             time/=60;
-            reg_ch=(Bit8u)((Bitu)time % 24); // hours
+            reg_ch=(uint8_t)((Bitu)time % 24); // hours
 
             //Simulate DOS overhead for timing-sensitive games
             //Robomaze 2
@@ -1125,7 +1125,7 @@ static Bitu DOS_21Handler(void) {
                 }
 
                 // timer ticks every 55ms
-                Bit32u ticks = ((((reg_ch * 60u + reg_cl) * 60u + reg_dh) * 100u) + reg_dl) * 10u / 55u;
+                uint32_t ticks = ((((reg_ch * 60u + reg_cl) * 60u + reg_dh) * 100u) + reg_dl) * 10u / 55u;
 
                 CPU_Push16(reg_ax);
                 CPU_Push16(reg_cx);
@@ -1143,8 +1143,8 @@ static Bitu DOS_21Handler(void) {
                 // use BIOS to update clock ticks to sync time
                 // could set directly, but setting is safer to do via dedicated call (at least in theory)
                 reg_ah = 1;     // set system time
-                reg_cx = (Bit16u)(ticks >> 16);
-                reg_dx = (Bit16u)(ticks & 0xffff);
+                reg_cx = (uint16_t)(ticks >> 16);
+                reg_dx = (uint16_t)(ticks & 0xffff);
 
                 CALLBACK_RunRealInt(0x1a);
 
@@ -1161,7 +1161,7 @@ static Bitu DOS_21Handler(void) {
             else { //Allow time to be set to zero. Restore the orginal time for all other parameters. (QuickBasic)
                 if (reg_cx == 0 && reg_dx == 0) {time_start = mem_readd(BIOS_TIMER);LOG_MSG("Warning: game messes with DOS time!");}
                 else time_start = 0;
-				Bit32u ticks=(Bit32u)(((double)(reg_ch*3600+
+				uint32_t ticks=(uint32_t)(((double)(reg_ch*3600+
 												reg_cl*60+
 												reg_dh))*18.206481481);
 				mem_writed(BIOS_TIMER,ticks);
@@ -1194,7 +1194,7 @@ static Bitu DOS_21Handler(void) {
         case 0x32: /* Get drive parameter block for specific drive */
             {   /* Officially a dpb should be returned as well. The disk detection part is implemented */
                 case_0x32_fallthrough:
-                Bit8u drive=reg_dl;
+                uint8_t drive=reg_dl;
                 if (!drive || reg_ah==0x1f) drive = DOS_GetDefaultDrive();
                 else drive--;
                 if (drive < DOS_DRIVES && Drives[drive] && !Drives[drive]->isRemovable()) {
@@ -1202,7 +1202,7 @@ static Bitu DOS_21Handler(void) {
                     SegSet16(ds,dos.tables.dpb);
                     reg_bx = drive*dos.tables.dpb_size;
                     if (mem_readw(SegPhys(ds)+reg_bx+0x1F)==0xFFFF) {
-                        Bit32u bytes_per_sector,sectors_per_cluster,total_clusters,free_clusters;
+                        uint32_t bytes_per_sector,sectors_per_cluster,total_clusters,free_clusters;
                         if (DOS_GetFreeDiskSpace32(reg_dl,&bytes_per_sector,&sectors_per_cluster,&total_clusters,&free_clusters))
                             mem_writew(SegPhys(ds)+reg_bx+0x1F,free_clusters);
                     }
@@ -1242,20 +1242,20 @@ static Bitu DOS_21Handler(void) {
             reg_bx=DOS_SDA_OFS + 0x01;
             break;
         case 0x35:      /* Get interrupt vector */
-            reg_bx=real_readw(0,((Bit16u)reg_al)*4);
-            SegSet16(es,real_readw(0,((Bit16u)reg_al)*4+2));
+            reg_bx=real_readw(0,((uint16_t)reg_al)*4);
+            SegSet16(es,real_readw(0,((uint16_t)reg_al)*4+2));
             break;
         case 0x36:      /* Get Free Disk Space */
             {
-                Bit16u bytes,clusters,free;
-                Bit8u sectors;
+                uint16_t bytes,clusters,free;
+                uint8_t sectors;
                 if (DOS_GetFreeDiskSpace(reg_dl,&bytes,&sectors,&clusters,&free)) {
                     reg_ax=sectors;
                     reg_bx=free;
                     reg_cx=bytes;
                     reg_dx=clusters;
                 } else {
-                    Bit8u drive=reg_dl;
+                    uint8_t drive=reg_dl;
                     if (drive==0) drive=DOS_GetDefaultDrive();
                     else drive--;
                     if (drive<2) {
@@ -1351,7 +1351,7 @@ static Bitu DOS_21Handler(void) {
 		{
             unmask_irq0 |= disk_io_unmask_irq0;
             MEM_StrCopy(SegPhys(ds)+reg_dx,name1,DOSNAMEBUF);
-			Bit8u oldal=reg_al;
+			uint8_t oldal=reg_al;
 			force_sfn = true;
             if (DOS_OpenFile(name1,reg_al,&reg_ax)) {
 				force_sfn = false;
@@ -1384,7 +1384,7 @@ static Bitu DOS_21Handler(void) {
             unmask_irq0 |= disk_io_unmask_irq0;
             /* TODO: If handle is STDIN and not binary do CTRL+C checking */
             { 
-                Bit16u toread=reg_cx;
+                uint16_t toread=reg_cx;
 
                 /* if the offset and size exceed the end of the 64KB segment,
                  * truncate the read according to observed MS-DOS 5.0 behavior
@@ -1397,7 +1397,7 @@ static Bitu DOS_21Handler(void) {
                  *
                  * Ref: http://files.scene.org/get/mirrors/hornet/demos/1995/d/darkp.zip */
                 if (((uint32_t)toread+(uint32_t)reg_dx) > 0xFFFFUL && (reg_dx & 0xFU) != 0U) {
-                    Bit16u nuread = (Bit16u)(0x10000UL - (reg_dx & 0xF)); /* FIXME: If MS-DOS 5.0 truncates it any farther I need to know! */
+                    uint16_t nuread = (uint16_t)(0x10000UL - (reg_dx & 0xF)); /* FIXME: If MS-DOS 5.0 truncates it any farther I need to know! */
 
                     if (nuread > toread) nuread = toread;
                     LOG_MSG("INT 21h READ warning: DX=%04xh CX=%04xh exceeds 64KB, truncating to %04xh",reg_dx,toread,nuread);
@@ -1429,7 +1429,7 @@ static Bitu DOS_21Handler(void) {
         case 0x40:                  /* WRITE Write to file or device */
             unmask_irq0 |= disk_io_unmask_irq0;
             {
-                Bit16u towrite=reg_cx;
+                uint16_t towrite=reg_cx;
 
                 /* if the offset and size exceed the end of the 64KB segment,
                  * truncate the write according to observed MS-DOS 5.0 READ behavior
@@ -1439,7 +1439,7 @@ static Bitu DOS_21Handler(void) {
                  * that MS-DOS probably does the same with write as well, though
                  * this has not yet been confirmed. --J.C. */
                 if (((uint32_t)towrite+(uint32_t)reg_dx) > 0xFFFFUL && (reg_dx & 0xFU) != 0U) {
-                    Bit16u nuwrite = (Bit16u)(0x10000UL - (reg_dx & 0xF)); /* FIXME: If MS-DOS 5.0 truncates it any farther I need to know! */
+                    uint16_t nuwrite = (uint16_t)(0x10000UL - (reg_dx & 0xF)); /* FIXME: If MS-DOS 5.0 truncates it any farther I need to know! */
 
                     if (nuwrite > towrite) nuwrite = towrite;
                     LOG_MSG("INT 21h WRITE warning: DX=%04xh CX=%04xh exceeds 64KB, truncating to %04xh",reg_dx,towrite,nuwrite);
@@ -1474,10 +1474,10 @@ static Bitu DOS_21Handler(void) {
         case 0x42:                  /* LSEEK Set current file position */
             unmask_irq0 |= disk_io_unmask_irq0;
             {
-                Bit32u pos=((Bit32u)reg_cx << 16u) + reg_dx;
+                uint32_t pos=((uint32_t)reg_cx << 16u) + reg_dx;
                 if (DOS_SeekFile(reg_bx,&pos,reg_al)) {
-                    reg_dx=(Bit16u)((unsigned int)pos >> 16u);
-                    reg_ax=(Bit16u)(pos & 0xFFFF);
+                    reg_dx=(uint16_t)((unsigned int)pos >> 16u);
+                    reg_ax=(uint16_t)(pos & 0xFFFF);
                     CALLBACK_SCF(false);
                 } else {
                     reg_ax=dos.errorcode;
@@ -1492,7 +1492,7 @@ static Bitu DOS_21Handler(void) {
             switch (reg_al) {
                 case 0x00:              /* Get */
                     {
-                        Bit16u attr_val=reg_cx;
+                        uint16_t attr_val=reg_cx;
                         if (DOS_GetFileAttr(name1,&attr_val)) {
                             reg_cx=attr_val;
                             reg_ax=attr_val; /* Undocumented */   
@@ -1556,7 +1556,7 @@ static Bitu DOS_21Handler(void) {
             break;
         case 0x48:                  /* Allocate memory */
             {
-                Bit16u size=reg_bx;Bit16u seg;
+                uint16_t size=reg_bx;uint16_t seg;
                 if (DOS_AllocateMemory(&seg,&size)) {
                     reg_ax=seg;
                     CALLBACK_SCF(false);
@@ -1577,7 +1577,7 @@ static Bitu DOS_21Handler(void) {
             break;
         case 0x4a:                  /* Resize memory block */
             {
-                Bit16u size=reg_bx;
+                uint16_t size=reg_bx;
                 if (DOS_ResizeMemory(SegValue(es),&size)) {
                     reg_ax=SegValue(es);
                     CALLBACK_SCF(false);
@@ -1637,7 +1637,7 @@ static Bitu DOS_21Handler(void) {
             reg_bx=dos.psp();
             break;
         case 0x52: {                /* Get list of lists */
-            Bit8u count=2; // floppy drives always counted
+            uint8_t count=2; // floppy drives always counted
             while (count<DOS_DRIVES && Drives[count] && !Drives[count]->isRemovable()) count++;
             dos_infoblock.SetBlockDevices(count);
             RealPt addr=dos_infoblock.GetPointer();
@@ -1671,16 +1671,18 @@ static Bitu DOS_21Handler(void) {
 			force_sfn = false;
             break;      
         case 0x57:                  /* Get/Set File's Date and Time */
-            if (reg_al==0x00) {
-                if (DOS_GetFileDate(reg_bx,&reg_cx,&reg_dx)) {
+            if (reg_al == 0x00) {
+                if (DOS_GetFileDate(reg_bx, &reg_cx, &reg_dx)) {
                     CALLBACK_SCF(false);
                 } else {
+                    reg_ax = dos.errorcode;
                     CALLBACK_SCF(true);
                 }
-            } else if (reg_al==0x01) {
+            } else if (reg_al == 0x01) {
                 if (DOS_SetFileDate(reg_bx,reg_cx,reg_dx)) {
                     CALLBACK_SCF(false);
                 } else {
+                    reg_ax = dos.errorcode;
                     CALLBACK_SCF(true);
                 }
             } else {
@@ -1728,7 +1730,7 @@ static Bitu DOS_21Handler(void) {
             break;
         case 0x5a:                  /* Create temporary file */
             {
-                Bit16u handle;
+                uint16_t handle;
                 MEM_StrCopy(SegPhys(ds)+reg_dx,name1,DOSNAMEBUF);
                 if (DOS_CreateTempFile(name1,&handle)) {
                     reg_ax=handle;
@@ -1743,7 +1745,7 @@ static Bitu DOS_21Handler(void) {
         case 0x5b:                  /* Create new file */
             {
                 MEM_StrCopy(SegPhys(ds)+reg_dx,name1,DOSNAMEBUF);
-                Bit16u handle;
+                uint16_t handle;
                 if (DOS_OpenFile(name1,0,&handle)) {
                     DOS_CloseFile(handle);
                     DOS_SetError(DOSERR_FILE_ALREADY_EXISTS);
@@ -1762,8 +1764,8 @@ static Bitu DOS_21Handler(void) {
             }
         case 0x5c:  {       /* FLOCK File region locking */
             /* ert, 20100711: Locking extensions */
-            Bit32u pos=((unsigned int)reg_cx << 16u) + reg_dx;
-            Bit32u size=((unsigned int)reg_si << 16u) + reg_di;
+            uint32_t pos=((unsigned int)reg_cx << 16u) + reg_dx;
+            uint32_t size=((unsigned int)reg_si << 16u) + reg_di;
             //LOG_MSG("LockFile: BX=%d, AL=%d, POS=%d, size=%d", reg_bx, reg_al, pos, size);
             if (DOS_LockFile(reg_bx,reg_al,pos, size)) {
                 reg_ax=0;
@@ -1805,7 +1807,7 @@ static Bitu DOS_21Handler(void) {
                     break;
                 case    0x35:   //Peek pipe
                     {
-                        Bit16u  uTmpSI=reg_si;
+                        uint16_t  uTmpSI=reg_si;
                         if(Network_PeekNamedPipe(reg_bx,
                                     dos_copybuf,reg_cx,
                                     reg_cx,reg_si,reg_dx,
@@ -1887,7 +1889,7 @@ static Bitu DOS_21Handler(void) {
 							char buffer[128];
 							if (GetLocaleInfo(LOCALE_USER_DEFAULT, LOCALE_ICOUNTRY, buffer, 128))
 								{
-								countryNo = Bit16u(atoi(buffer));
+								countryNo = uint16_t(atoi(buffer));
 								DOS_SetCountry(countryNo);
 								}
 							else
@@ -1935,7 +1937,7 @@ static Bitu DOS_21Handler(void) {
                         {
                             int in  = reg_dl;
                             int out = toupper(in);
-                            reg_dl  = (Bit8u)out;
+                            reg_dl  = (uint8_t)out;
                         }
                         CALLBACK_SCF(false);
                         break;
@@ -1951,7 +1953,7 @@ static Bitu DOS_21Handler(void) {
                             dos_copybuf[len] = 0;
                             //No upcase as String(0x21) might be multiple asciz strings
                             for (Bitu count = 0; count < len;count++)
-                                dos_copybuf[count] = (Bit8u)toupper(*reinterpret_cast<unsigned char*>(dos_copybuf+count));
+                                dos_copybuf[count] = (uint8_t)toupper(*reinterpret_cast<unsigned char*>(dos_copybuf+count));
                             MEM_BlockWrite(data,dos_copybuf,len);
                         }
                         CALLBACK_SCF(false);
@@ -2013,7 +2015,7 @@ static Bitu DOS_21Handler(void) {
             break;
         case 0x69:                  /* Get/Set disk serial number */
             {
-                Bit16u old_cx=reg_cx;
+                uint16_t old_cx=reg_cx;
                 switch(reg_al)      {
                     case 0x00:              /* Get */
                         LOG(LOG_DOSMISC,LOG_NORMAL)("DOS:Get Disk serial number");
@@ -2132,8 +2134,8 @@ static Bitu DOS_21Handler(void) {
 				CALLBACK_SCF(false);
 			} else if (reg_al==2) {
 				/* Get extended DPB */
-				Bit32u ptr = SegPhys(es)+reg_di;
-				Bit8u drive;
+				uint32_t ptr = SegPhys(es)+reg_di;
+				uint8_t drive;
 
 				/* AX=7302h
 				 * DL=drive
@@ -2159,11 +2161,11 @@ static Bitu DOS_21Handler(void) {
 								mem_writew(ptr+0x00,0x3D);                                  // length of data (Windows 98)
 								/* first 24 bytes after len is DPB */
 								{
-									const Bit32u srcptr = (dos.tables.dpb << 4) + (drive*dos.tables.dpb_size);
+									const uint32_t srcptr = (dos.tables.dpb << 4) + (drive*dos.tables.dpb_size);
 									MEM_BlockRead(srcptr,tmp,24);
 									MEM_BlockWrite(ptr+0x02,tmp,24);
 								}
-								Bit32u bytes_per_sector,sectors_per_cluster,total_clusters,free_clusters,tfree;
+								uint32_t bytes_per_sector,sectors_per_cluster,total_clusters,free_clusters,tfree;
 								rsize=true;
 								totalc=freec=0;
 								if (DOS_GetFreeDiskSpace32(reg_dl,&bytes_per_sector,&sectors_per_cluster,&total_clusters,&free_clusters))
@@ -2206,7 +2208,7 @@ static Bitu DOS_21Handler(void) {
 					CALLBACK_SCF(true);
 					break;
 				}
-				Bit32u bytes_per_sector,sectors_per_cluster,total_clusters,free_clusters;
+				uint32_t bytes_per_sector,sectors_per_cluster,total_clusters,free_clusters;
 				rsize=true;
 				totalc=freec=0;
 				if (DOS_GetFreeDiskSpace32(reg_dl,&bytes_per_sector,&sectors_per_cluster,&total_clusters,&free_clusters))
@@ -2292,10 +2294,10 @@ static Bitu DOS_20Handler(void) {
 
 static Bitu DOS_CPMHandler(void) {
 	// Convert a CPM-style call to a normal DOS call
-	Bit16u flags=CPU_Pop16();
+	uint16_t flags=CPU_Pop16();
 	CPU_Pop16();
-	Bit16u caller_seg=CPU_Pop16();
-	Bit16u caller_off=CPU_Pop16();
+	uint16_t caller_seg=CPU_Pop16();
+	uint16_t caller_off=CPU_Pop16();
 	CPU_Push16(flags);
 	CPU_Push16(caller_seg);
 	CPU_Push16(caller_off);
@@ -2309,8 +2311,8 @@ static Bitu DOS_CPMHandler(void) {
 
 static Bitu DOS_27Handler(void) {
 	// Terminate & stay resident
-	Bit16u para = (reg_dx/16)+((reg_dx % 16)>0);
-	Bit16u psp = dos.psp(); //mem_readw(SegPhys(ss)+reg_sp+2);
+	uint16_t para = (reg_dx/16)+((reg_dx % 16)>0);
+	uint16_t psp = dos.psp(); //mem_readw(SegPhys(ss)+reg_sp+2);
 	if (DOS_ResizeMemory(psp,&para)) {
 		DOS_Terminate(psp,true,0);
 		if (DOS_BreakINT23InProgress) throw int(0); /* HACK: Ick */
@@ -2325,11 +2327,11 @@ static Bitu DOS_25Handler_Actual(bool fat32) {
 	} else {
 		DOS_Drive *drv = Drives[reg_al];
 		/* assume drv != NULL */
-		Bit32u sector_size = drv->GetSectorSize();
-		Bit32u sector_count = drv->GetSectorCount();
+		uint32_t sector_size = drv->GetSectorSize();
+		uint32_t sector_count = drv->GetSectorCount();
 		PhysPt ptr = PhysMake(SegValue(ds),reg_bx);
-		Bit32u req_count = reg_cx;
-		Bit32u sector_num = reg_dx;
+		uint32_t req_count = reg_cx;
+		uint32_t sector_num = reg_dx;
 
 		/* For < 32MB drives.
 		 *  AL = drive
@@ -2367,14 +2369,14 @@ static Bitu DOS_25Handler_Actual(bool fat32) {
 			if (fat32) {
 				sector_num = mem_readd(ptr+0);
 				req_count = mem_readw(ptr+4);
-				Bit32u p = mem_readd(ptr+6);
+				uint32_t p = mem_readd(ptr+6);
 				ptr = PhysMake(p >> 16u,p & 0xFFFFu);
 				method = "Win95/FAT32";
 			}
 			else if (req_count == 0xFFFF) {
 				sector_num = mem_readd(ptr+0);
 				req_count = mem_readw(ptr+4);
-				Bit32u p = mem_readd(ptr+6);
+				uint32_t p = mem_readd(ptr+6);
 				ptr = PhysMake(p >> 16u,p & 0xFFFFu);
 				method = ">=32MB";
 			}
@@ -2401,7 +2403,7 @@ static Bitu DOS_25Handler_Actual(bool fat32) {
 			reg_ax = 0;
 
 			while (req_count > 0) {
-				Bit8u res = drv->Read_AbsoluteSector_INT25(sector_num,tmp);
+				uint8_t res = drv->Read_AbsoluteSector_INT25(sector_num,tmp);
 				if (res != 0) {
 					reg_ax = 0x8002;
 					SETFLAGBIT(CF,true);
@@ -2445,11 +2447,11 @@ static Bitu DOS_26Handler_Actual(bool fat32) {
 	} else {
 		DOS_Drive *drv = Drives[reg_al];
 		/* assume drv != NULL */
-		Bit32u sector_size = drv->GetSectorSize();
-		Bit32u sector_count = drv->GetSectorCount();
+		uint32_t sector_size = drv->GetSectorSize();
+		uint32_t sector_count = drv->GetSectorCount();
 		PhysPt ptr = PhysMake(SegValue(ds),reg_bx);
-		Bit32u req_count = reg_cx;
-		Bit32u sector_num = reg_dx;
+		uint32_t req_count = reg_cx;
+		uint32_t sector_num = reg_dx;
 
 		/* For < 32MB drives.
 		 *  AL = drive
@@ -2487,14 +2489,14 @@ static Bitu DOS_26Handler_Actual(bool fat32) {
 			if (fat32) {
 				sector_num = mem_readd(ptr+0);
 				req_count = mem_readw(ptr+4);
-				Bit32u p = mem_readd(ptr+6);
+				uint32_t p = mem_readd(ptr+6);
 				ptr = PhysMake(p >> 16u,p & 0xFFFFu);
 				method = "Win95/FAT32";
 			}
 			else if (req_count == 0xFFFF) {
 				sector_num = mem_readd(ptr+0);
 				req_count = mem_readw(ptr+4);
-				Bit32u p = mem_readd(ptr+6);
+				uint32_t p = mem_readd(ptr+6);
 				ptr = PhysMake(p >> 16u,p & 0xFFFFu);
 				method = ">=32MB";
 			}
@@ -2524,7 +2526,7 @@ static Bitu DOS_26Handler_Actual(bool fat32) {
 				for (unsigned int i=0;i < (unsigned int)sector_size;i++)
 					tmp[i] = mem_readb(ptr+i);
 
-				Bit8u res = drv->Write_AbsoluteSector_INT25(sector_num,tmp);
+				uint8_t res = drv->Write_AbsoluteSector_INT25(sector_num,tmp);
 				if (res != 0) {
 					reg_ax = 0x8002;
 					SETFLAGBIT(CF,true);
@@ -2553,7 +2555,7 @@ bool enable_collating_uppercase = true;
 bool keep_private_area_on_boot = false;
 bool private_always_from_umb = false;
 bool private_segment_in_umb = true;
-Bit16u DOS_IHSEG = 0;
+uint16_t DOS_IHSEG = 0;
 
 // NOTE about 0x70 and PC-98 emulation mode:
 //
@@ -2660,14 +2662,14 @@ public:
 
             XMS_EnableA20(true);
 
-            mem_writeb(0x1000C0,(Bit8u)0xea);		// jmpf
+            mem_writeb(0x1000C0,(uint8_t)0xea);		// jmpf
             mem_unalignedwrited(0x1000C0+1,callback[8].Get_RealPointer());
 
             if (!was_a20) XMS_EnableA20(false);
         }
     }
 
-    Bit32u DOS_Get_CPM_entry_direct(void) {
+    uint32_t DOS_Get_CPM_entry_direct(void) {
         return callback[8].Get_RealPointer();
     }
 
@@ -2869,7 +2871,7 @@ public:
             if (MEM_TotalPages() > 0x9C)
                 DOS_PRIVATE_SEGMENT_END = 0x9C00;
             else
-                DOS_PRIVATE_SEGMENT_END = (Bit16u)((MEM_TotalPages() << (12 - 4)) - 1); /* NTS: Remember DOSBox's implementation reuses the last paragraph for UMB linkage */
+                DOS_PRIVATE_SEGMENT_END = (uint16_t)((MEM_TotalPages() << (12 - 4)) - 1); /* NTS: Remember DOSBox's implementation reuses the last paragraph for UMB linkage */
         }
 
         LOG(LOG_DOSMISC,LOG_DEBUG)("DOS kernel structures will be allocated from pool 0x%04x-0x%04x",
@@ -2950,7 +2952,7 @@ public:
 		callback[8].Install(DOS_CPMHandler,CB_CPM,"DOS/CPM Int 30-31");
 		int30=RealGetVec(0x30);
 		int31=RealGetVec(0x31);
-		mem_writeb(0x30*4,(Bit8u)0xea);		// jmpf
+		mem_writeb(0x30*4,(uint8_t)0xea);		// jmpf
 		mem_unalignedwrited(0x30*4+1,callback[8].Get_RealPointer());
 		// pseudocode for CB_CPM:
 		//	pushf
@@ -2960,19 +2962,19 @@ public:
             /* Any interrupt vector pointing to the INT stub in the BIOS must be rewritten to point to a JMP to the stub
              * residing in the DOS segment (60h) because some PC-98 resident drivers use segment 60h as a check for
              * installed vs uninstalled (MUSIC.COM, Peret em Heru) */
-            Bit16u sg = DOS_GetMemory(1/*paragraph*/,"INT stub trampoline");
+            uint16_t sg = DOS_GetMemory(1/*paragraph*/,"INT stub trampoline");
             PhysPt sgp = (PhysPt)sg << (PhysPt)4u;
 
             /* Re-base the pointer so the segment is 0x60 */
-            Bit32u veco = sgp - 0x600;
+            uint32_t veco = sgp - 0x600;
             if (veco >= 0xFFF0u) E_Exit("INT stub trampoline out of bounds");
-            Bit32u vecp = RealMake(0x60,(Bit16u)veco);
+            uint32_t vecp = RealMake(0x60,(uint16_t)veco);
 
             mem_writeb(sgp+0,0xEA);
             mem_writed(sgp+1,BIOS_get_PC98_INT_STUB());
 
             for (unsigned int i=0;i < 0x100;i++) {
-                Bit32u vec = RealGetVec(i);
+                uint32_t vec = RealGetVec(i);
 
                 if (vec == BIOS_get_PC98_INT_STUB())
                     mem_writed(i*4,vecp);
@@ -3007,7 +3009,7 @@ public:
 				unsigned int segend;
 
 				seg = DOS_MEM_START;
-				DOS_MEM_START += (Bit16u)DOS_PRIVATE_SEGMENT_Size;
+				DOS_MEM_START += (uint16_t)DOS_PRIVATE_SEGMENT_Size;
 				segend = DOS_MEM_START;
 
 				if (segend >= (MEM_TotalPages() << (12 - 4)))
@@ -3064,7 +3066,7 @@ public:
         LOG(LOG_DOSMISC,LOG_DEBUG)("   min free:     seg 0x%04x",minimum_mcb_free);
 
         if (DOS_MEM_START < minimum_mcb_free) {
-            Bit16u sg=0,tmp;
+            uint16_t sg=0,tmp;
 
             dos.psp(8); // DOS ownership
 
@@ -3184,7 +3186,7 @@ void DOS_Write_HMA_CPM_jmp(void) {
     test->DOS_Write_HMA_CPM_jmp();
 }
 
-Bit32u DOS_Get_CPM_entry_direct(void) {
+uint32_t DOS_Get_CPM_entry_direct(void) {
     assert(test != NULL);
     return test->DOS_Get_CPM_entry_direct();
 }
@@ -3203,7 +3205,7 @@ void DOS_ShutdownFiles() {
 }
 
 void DOS_ShutdownDrives() {
-	for (Bit16u i=0;i<DOS_DRIVES;i++) {
+	for (uint16_t i=0;i<DOS_DRIVES;i++) {
 		delete Drives[i];
 		Drives[i] = NULL;
 	}
@@ -3212,7 +3214,7 @@ void DOS_ShutdownDrives() {
 void update_pc98_function_row(unsigned char setting,bool force_redraw=false);
 void DOS_Casemap_Free();
 
-extern Bit8u ZDRIVE_NUM;
+extern uint8_t ZDRIVE_NUM;
 
 void DOS_EnableDriveMenu(char drv) {
     if (drv >= 'A' && drv <= 'Z') {
@@ -3401,7 +3403,7 @@ void DOS_Int21_7143(char *name1, const char *name2) {
 		switch (reg_bl) {
 				case 0x00:                              /* Get */
 				{
-					Bit16u attr_val=reg_cx;
+					uint16_t attr_val=reg_cx;
 					if (DOS_GetFileAttr(name1,&attr_val)) {
 							reg_cx=attr_val;
 							reg_ax=0;
@@ -3485,8 +3487,8 @@ void DOS_Int21_7143(char *name1, const char *name2) {
 						const struct tm * ltime;
 						time_t ttime=reg_bl==0x04?status.st_mtime:reg_bl==0x06?status.st_atime:status.st_ctime;
 						if ((ltime=localtime(&ttime))!=0) {
-							reg_cx=DOS_PackTime((Bit16u)ltime->tm_hour,(Bit16u)ltime->tm_min,(Bit16u)ltime->tm_sec);
-							reg_di=DOS_PackDate((Bit16u)(ltime->tm_year+1900),(Bit16u)(ltime->tm_mon+1),(Bit16u)ltime->tm_mday);
+							reg_cx=DOS_PackTime((uint16_t)ltime->tm_hour,(uint16_t)ltime->tm_min,(uint16_t)ltime->tm_sec);
+							reg_di=DOS_PackDate((uint16_t)(ltime->tm_year+1900),(uint16_t)(ltime->tm_mon+1),(uint16_t)ltime->tm_mday);
 						}
 						if (reg_bl==0x08)
 							reg_si = 0;
@@ -3531,8 +3533,8 @@ void DOS_Int21_714e(char *name1, char *name2) {
 			CALLBACK_SCF(true);
 			return;
 		}
-		Bit16u entry;
-		Bit8u i,handle=(Bit8u)DOS_FILES;
+		uint16_t entry;
+		uint8_t i,handle=(uint8_t)DOS_FILES;
 		for (i=1;i<DOS_FILES;i++) {
 			if (!Files[i]) {
 				handle=i;
@@ -3550,7 +3552,7 @@ void DOS_Int21_714e(char *name1, char *name2) {
 		bool b=DOS_FindFirst(name2,reg_cx,false);
 		lfn_filefind_handle=LFN_FILEFIND_NONE;
 		int error=dos.errorcode;
-		Bit16u attribute = 0;
+		uint16_t attribute = 0;
 		if (!b&&!(strlen(name2)==3&&*(name2+1)==':'&&*(name2+2)=='\\')&&DOS_GetFileAttr(name2, &attribute) && (attribute&DOS_ATTR_DIRECTORY)) {
 			strcat(name2,"\\*.*");
 			lfn_filefind_handle=handle;
@@ -3594,7 +3596,7 @@ void DOS_Int21_714e(char *name1, char *name2) {
 void DOS_Int21_714f(const char *name1, const char *name2) {
     (void)name1;
     (void)name2;
-		Bit8u handle=(Bit8u)reg_bx;
+		uint8_t handle=(uint8_t)reg_bx;
 		if (!handle || handle>=DOS_FILES || !Files[handle]) {
 			reg_ax=DOSERR_INVALID_HANDLE;
 			CALLBACK_SCF(true);
@@ -3719,14 +3721,14 @@ void DOS_Int21_71a0(char *name1, char *name2) {
 void DOS_Int21_71a1(const char *name1, const char *name2) {
     (void)name1;
     (void)name2;
-		Bit8u handle=(Bit8u)reg_bx;
+		uint8_t handle=(uint8_t)reg_bx;
 		if (!handle || handle>=DOS_FILES || !Files[handle]) {
 			reg_ax=DOSERR_INVALID_HANDLE;
 			CALLBACK_SCF(true);
 			return;
 		}
 		DOS_PSP psp(dos.psp());
-		Bit16u entry=psp.FindEntryByHandle(handle);
+		uint16_t entry=psp.FindEntryByHandle(handle);
 		if (entry>0&&entry!=0xff) psp.SetFileHandle(entry,0xff);
 		if (entry>0&&Files[handle]->RemoveRef()<=0) {
 			delete Files[handle];
@@ -3741,7 +3743,7 @@ void DOS_Int21_71a6(const char *name1, const char *name2) {
     (void)name2;
 	char buf[64];
 	unsigned long serial_number=0x1234,st=0,cdate=0,ctime=0,adate=0,atime=0,mdate=0,mtime=0;
-	Bit8u entry=(Bit8u)reg_bx, handle;
+	uint8_t entry=(uint8_t)reg_bx, handle;
 	if (entry>=DOS_FILES) {
 		reg_ax=DOSERR_INVALID_HANDLE;
 		CALLBACK_SCF(true);
@@ -3752,7 +3754,7 @@ void DOS_Int21_71a6(const char *name1, const char *name2) {
 		if (Files[i] && psp.FindEntryByHandle(i)==entry)
 			handle=i;
 	if (handle < DOS_FILES && Files[handle] && Files[handle]->name!=NULL) {
-		Bit8u drive=Files[handle]->GetDrive();
+		uint8_t drive=Files[handle]->GetDrive();
 		if (Drives[drive]) {
 			if (!strncmp(Drives[drive]->GetInfo(),"fatDrive ",9)) {
 				fatDrive* fdp = dynamic_cast<fatDrive*>(Drives[drive]);
@@ -3772,26 +3774,26 @@ void DOS_Int21_71a6(const char *name1, const char *name2) {
 			const struct tm * ltime;
 			ttime=status.st_ctime;
 			if ((ltime=localtime(&ttime))!=0) {
-				ctime=DOS_PackTime((Bit16u)ltime->tm_hour,(Bit16u)ltime->tm_min,(Bit16u)ltime->tm_sec);
-				cdate=DOS_PackDate((Bit16u)(ltime->tm_year+1900),(Bit16u)(ltime->tm_mon+1),(Bit16u)ltime->tm_mday);
+				ctime=DOS_PackTime((uint16_t)ltime->tm_hour,(uint16_t)ltime->tm_min,(uint16_t)ltime->tm_sec);
+				cdate=DOS_PackDate((uint16_t)(ltime->tm_year+1900),(uint16_t)(ltime->tm_mon+1),(uint16_t)ltime->tm_mday);
 			}
 			ttime=status.st_atime;
 			if ((ltime=localtime(&ttime))!=0) {
-				atime=DOS_PackTime((Bit16u)ltime->tm_hour,(Bit16u)ltime->tm_min,(Bit16u)ltime->tm_sec);
-				adate=DOS_PackDate((Bit16u)(ltime->tm_year+1900),(Bit16u)(ltime->tm_mon+1),(Bit16u)ltime->tm_mday);
+				atime=DOS_PackTime((uint16_t)ltime->tm_hour,(uint16_t)ltime->tm_min,(uint16_t)ltime->tm_sec);
+				adate=DOS_PackDate((uint16_t)(ltime->tm_year+1900),(uint16_t)(ltime->tm_mon+1),(uint16_t)ltime->tm_mday);
 			}
 			ttime=status.st_mtime;
 			if ((ltime=localtime(&ttime))!=0) {
-				mtime=DOS_PackTime((Bit16u)ltime->tm_hour,(Bit16u)ltime->tm_min,(Bit16u)ltime->tm_sec);
-				mdate=DOS_PackDate((Bit16u)(ltime->tm_year+1900),(Bit16u)(ltime->tm_mon+1),(Bit16u)ltime->tm_mday);
+				mtime=DOS_PackTime((uint16_t)ltime->tm_hour,(uint16_t)ltime->tm_min,(uint16_t)ltime->tm_sec);
+				mdate=DOS_PackDate((uint16_t)(ltime->tm_year+1900),(uint16_t)(ltime->tm_mon+1),(uint16_t)ltime->tm_mday);
 			}
 #endif
 			sprintf(buf,"%-4s%-4s%-4s%-4s%-4s%-4s%-4s%-4s%-4s%-4s%-4s%-4s%-4s",(char*)&st,(char*)&ctime,(char*)&cdate,(char*)&atime,(char*)&adate,(char*)&mtime,(char*)&mdate,(char*)&serial_number,(char*)&st,(char*)&st,(char*)&st,(char*)&st,(char*)&handle);
 			for (int i=32;i<36;i++) buf[i]=0;
-			buf[36]=(char)((Bit32u)status.st_size%256);
-			buf[37]=(char)(((Bit32u)status.st_size%65536)/256);
-			buf[38]=(char)(((Bit32u)status.st_size%16777216)/65536);
-			buf[39]=(char)((Bit32u)status.st_size/16777216);
+			buf[36]=(char)((uint32_t)status.st_size%256);
+			buf[37]=(char)(((uint32_t)status.st_size%65536)/256);
+			buf[38]=(char)(((uint32_t)status.st_size%16777216)/65536);
+			buf[39]=(char)((uint32_t)status.st_size/16777216);
 			buf[40]=(char)status.st_nlink;
 			for (int i=41;i<47;i++) buf[i]=0;
 			buf[52]=0;
@@ -3876,7 +3878,7 @@ void DOS_Int21_71aa(char* name1, const char* name2) {
 	switch (reg_bh) {
 		case 0:
 		{
-			Bit8u drive=reg_bl-1;
+			uint8_t drive=reg_bl-1;
 			if (drive==DOS_GetDefaultDrive() || Drives[drive] || drive==25) {
 				reg_ax = DOSERR_INVALID_DRIVE;
 				CALLBACK_SCF(true);
@@ -3902,7 +3904,7 @@ void DOS_Int21_71aa(char* name1, const char* name2) {
 		}
 		case 1:
 		{
-			Bit8u drive=reg_bl-1;
+			uint8_t drive=reg_bl-1;
 			if (drive==DOS_GetDefaultDrive() || !Drives[drive] || drive==25) {
 				reg_ax = DOSERR_INVALID_DRIVE;
 				CALLBACK_SCF(true);
@@ -3925,7 +3927,7 @@ void DOS_Int21_71aa(char* name1, const char* name2) {
 		}
 		case 2:
 		{
-			Bit8u drive=reg_bl>0?reg_bl-1:DOS_GetDefaultDrive();
+			uint8_t drive=reg_bl>0?reg_bl-1:DOS_GetDefaultDrive();
 			if (Drives[drive]&&!strncmp(Drives[drive]->GetInfo(),"local directory ",16)) {
 				strcpy(name1,Drives[drive]->GetInfo()+16);
 				MEM_BlockWrite(SegPhys(ds)+reg_dx,name1,(Bitu)(strlen(name1)+1));

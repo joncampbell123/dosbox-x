@@ -36,7 +36,7 @@
 class VOODOO;
 static VOODOO* voodoo_dev;
 
-static Bit32u voodoo_current_lfb=(VOODOO_INITIAL_LFB&0xffff0000);
+static uint32_t voodoo_current_lfb=(VOODOO_INITIAL_LFB&0xffff0000);
 
 static bool voodoo_pci_enabled = false;
 static MEM_Callout_t voodoo_lfb_cb = MEM_Callout_t_none;
@@ -195,7 +195,7 @@ void VOODOO_PCI_Enable(bool enable) {
 }
 
 
-void VOODOO_PCI_SetLFB(Bit32u lfbaddr) {
+void VOODOO_PCI_SetLFB(uint32_t lfbaddr) {
     lfbaddr &= 0xFFFF0000UL;
 
     if (lfbaddr == voodoo_current_lfb)

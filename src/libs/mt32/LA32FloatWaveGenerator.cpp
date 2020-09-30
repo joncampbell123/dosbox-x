@@ -36,12 +36,12 @@ float LA32FloatWaveGenerator::getPCMSample(unsigned int position) {
 		}
 		position = position % pcmWaveLength;
 	}
-	Bit16s pcmSample = pcmWaveAddress[position];
+	int16_t pcmSample = pcmWaveAddress[position];
 	float sampleValue = EXP2F(((pcmSample & 32767) - 32787.0f) / 2048.0f);
 	return ((pcmSample & 32768) == 0) ? sampleValue : -sampleValue;
 }
 
-void LA32FloatWaveGenerator::initSynth(const bool useSawtoothWaveform, const Bit8u usePulseWidth, const Bit8u useResonance) {
+void LA32FloatWaveGenerator::initSynth(const bool useSawtoothWaveform, const uint8_t usePulseWidth, const uint8_t useResonance) {
 	sawtoothWaveform = useSawtoothWaveform;
 	pulseWidth = usePulseWidth;
 	resonance = useResonance;
@@ -53,7 +53,7 @@ void LA32FloatWaveGenerator::initSynth(const bool useSawtoothWaveform, const Bit
 	active = true;
 }
 
-void LA32FloatWaveGenerator::initPCM(const Bit16s * const usePCMWaveAddress, const Bit32u usePCMWaveLength, const bool usePCMWaveLooped, const bool usePCMWaveInterpolated) {
+void LA32FloatWaveGenerator::initPCM(const int16_t * const usePCMWaveAddress, const uint32_t usePCMWaveLength, const bool usePCMWaveLooped, const bool usePCMWaveInterpolated) {
 	pcmWaveAddress = usePCMWaveAddress;
 	pcmWaveLength = usePCMWaveLength;
 	pcmWaveLooped = usePCMWaveLooped;
@@ -66,7 +66,7 @@ void LA32FloatWaveGenerator::initPCM(const Bit16s * const usePCMWaveAddress, con
 // ampVal - Logarithmic amp of the wave generator
 // pitch - Logarithmic frequency of the resulting wave
 // cutoffRampVal - Composed of the base cutoff in range [78..178] left-shifted by 18 bits and the TVF modifier
-float LA32FloatWaveGenerator::generateNextSample(const Bit32u ampVal, const Bit16u pitch, const Bit32u cutoffRampVal) {
+float LA32FloatWaveGenerator::generateNextSample(const uint32_t ampVal, const uint16_t pitch, const uint32_t cutoffRampVal) {
 	if (!active) {
 		return 0.0f;
 	}
@@ -288,7 +288,7 @@ void LA32FloatPartialPair::init(const bool useRingModulated, const bool useMixed
 	slaveOutputSample = 0.0f;
 }
 
-void LA32FloatPartialPair::initSynth(const PairType useMaster, const bool sawtoothWaveform, const Bit8u pulseWidth, const Bit8u resonance) {
+void LA32FloatPartialPair::initSynth(const PairType useMaster, const bool sawtoothWaveform, const uint8_t pulseWidth, const uint8_t resonance) {
 	if (useMaster == MASTER) {
 		master.initSynth(sawtoothWaveform, pulseWidth, resonance);
 	} else {
@@ -296,7 +296,7 @@ void LA32FloatPartialPair::initSynth(const PairType useMaster, const bool sawtoo
 	}
 }
 
-void LA32FloatPartialPair::initPCM(const PairType useMaster, const Bit16s *pcmWaveAddress, const Bit32u pcmWaveLength, const bool pcmWaveLooped) {
+void LA32FloatPartialPair::initPCM(const PairType useMaster, const int16_t *pcmWaveAddress, const uint32_t pcmWaveLength, const bool pcmWaveLooped) {
 	if (useMaster == MASTER) {
 		master.initPCM(pcmWaveAddress, pcmWaveLength, pcmWaveLooped, true);
 	} else {
@@ -304,7 +304,7 @@ void LA32FloatPartialPair::initPCM(const PairType useMaster, const Bit16s *pcmWa
 	}
 }
 
-void LA32FloatPartialPair::generateNextSample(const PairType useMaster, const Bit32u amp, const Bit16u pitch, const Bit32u cutoff) {
+void LA32FloatPartialPair::generateNextSample(const PairType useMaster, const uint32_t amp, const uint16_t pitch, const uint32_t cutoff) {
 	if (useMaster == MASTER) {
 		masterOutputSample = master.generateNextSample(amp, pitch, cutoff);
 	} else {

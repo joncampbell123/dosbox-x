@@ -68,10 +68,10 @@ static void Check_Palette(void) {
         case scalerMode15:
         case scalerMode16:
             for (i=render.pal.first;i<=render.pal.last;i++) {
-                Bit8u r=render.pal.rgb[i].red;
-                Bit8u g=render.pal.rgb[i].green;
-                Bit8u b=render.pal.rgb[i].blue;
-                Bit16u newPal = (Bit16u)GFX_GetRGB(r,g,b);
+                uint8_t r=render.pal.rgb[i].red;
+                uint8_t g=render.pal.rgb[i].green;
+                uint8_t b=render.pal.rgb[i].blue;
+                uint16_t newPal = (uint16_t)GFX_GetRGB(r,g,b);
                 if (newPal != render.pal.lut.b16[i]) {
                     render.pal.changed = true;
                     render.pal.modified[i] = 1;
@@ -82,10 +82,10 @@ static void Check_Palette(void) {
         case scalerMode32:
         default:
             for (i=render.pal.first;i<=render.pal.last;i++) {
-                Bit8u r=render.pal.rgb[i].red;
-                Bit8u g=render.pal.rgb[i].green;
-                Bit8u b=render.pal.rgb[i].blue;
-                Bit32u newPal = (Bit32u)GFX_GetRGB(r,g,b);
+                uint8_t r=render.pal.rgb[i].red;
+                uint8_t g=render.pal.rgb[i].green;
+                uint8_t b=render.pal.rgb[i].blue;
+                uint32_t newPal = (uint32_t)GFX_GetRGB(r,g,b);
                 if (newPal != render.pal.lut.b32[i]) {
                     render.pal.changed = true;
                     render.pal.modified[i] = 1;
@@ -99,7 +99,7 @@ static void Check_Palette(void) {
     render.pal.last=0;
 }
 
-void RENDER_SetPal(Bit8u entry,Bit8u red,Bit8u green,Bit8u blue) {
+void RENDER_SetPal(uint8_t entry,uint8_t red,uint8_t green,uint8_t blue) {
     if (GFX_GetBShift() == 0) {
         GFX_palette32bpp[entry] =
             ((uint32_t)red << (uint32_t)16) +
@@ -286,16 +286,16 @@ static void RENDER_FinishLineHandler(const void * s) {
 
 static void RENDER_ClearCacheHandler(const void * src) {
     Bitu x, width;
-    Bit32u *srcLine, *cacheLine;
-    srcLine = (Bit32u *)src;
-    cacheLine = (Bit32u *)render.scale.cacheRead;
+    uint32_t *srcLine, *cacheLine;
+    srcLine = (uint32_t *)src;
+    cacheLine = (uint32_t *)render.scale.cacheRead;
     width = render.scale.cachePitch / 4;
     for (x=0;x<width;x++)
         cacheLine[x] = ~srcLine[x];
     render.scale.lineHandler( src );
 }
 
-extern void GFX_SetTitle(Bit32s cycles,Bits frameskip,Bits timing,bool paused);
+extern void GFX_SetTitle(int32_t cycles,Bits frameskip,Bits timing,bool paused);
 
 bool RENDER_StartUpdate(void) {
     if (GCC_UNLIKELY(render.updating))
@@ -312,7 +312,7 @@ bool RENDER_StartUpdate(void) {
     }
     render.scale.inLine = 0;
     render.scale.outLine = 0;
-    render.scale.cacheRead = (Bit8u*)&scalerSourceCache;
+    render.scale.cacheRead = (uint8_t*)&scalerSourceCache;
     render.scale.outWrite = 0;
     render.scale.outPitch = 0;
     Scaler_ChangedLines[0] = 0;
@@ -380,7 +380,7 @@ void RENDER_EndUpdate( bool abort ) {
             flags |= CAPTURE_FLAG_NOCHANGE;
 
         CAPTURE_AddImage( render.src.width, render.src.height, render.src.bpp, pitch,
-            flags, fps, (Bit8u *)&scalerSourceCache, (Bit8u*)&render.pal.rgb );
+            flags, fps, (uint8_t *)&scalerSourceCache, (uint8_t*)&render.pal.rgb );
     }
     if ( render.scale.outWrite ) {
         GFX_EndUpdate( abort? NULL : Scaler_ChangedLines );
@@ -420,7 +420,7 @@ static Bitu MakeAspectTable(Bitu skip,Bitu height,double scaley,Bitu miny) {
             Bitu templines = (Bitu)lines;
             lines -= templines;
             linesadded += templines;
-            Scaler_Aspect[i] = (Bit8u)templines;
+            Scaler_Aspect[i] = (uint8_t)templines;
         } else {
             Scaler_Aspect[i] = 0;
         }
@@ -845,7 +845,7 @@ static void BlankTestRefresh(bool pressed) {
     BlankDisplay();
 }*/
 
-//extern void GFX_SetTitle(Bit32s cycles, Bits frameskip, Bits timing, bool paused);
+//extern void GFX_SetTitle(int32_t cycles, Bits frameskip, Bits timing, bool paused);
 static void IncreaseFrameSkip(bool pressed) {
     if (!pressed)
         return;

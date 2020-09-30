@@ -58,7 +58,7 @@ size_t FileStream::getSize() {
 	return size;
 }
 
-const Bit8u *FileStream::getData() {
+const uint8_t *FileStream::getData() {
 	if (data != NULL) {
 		return data;
 	}
@@ -68,7 +68,7 @@ const Bit8u *FileStream::getData() {
 	if (getSize() == 0) {
 		return NULL;
 	}
-	Bit8u *fileData = new Bit8u[size];
+	uint8_t *fileData = new uint8_t[size];
 	if (fileData == NULL) {
 		return NULL;
 	}

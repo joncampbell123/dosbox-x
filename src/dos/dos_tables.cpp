@@ -35,8 +35,8 @@ std::list<DOS_GetMemLog_Entry> DOS_GetMemLog;
 #pragma pack(1)
 #endif
 struct DOS_TableCase {	
-	Bit16u size;
-	Bit8u chars[256];
+	uint16_t size;
+	uint8_t chars[256];
 }
 GCC_ATTRIBUTE (packed);
 #ifdef _MSC_VER
@@ -56,7 +56,7 @@ void DOS_Casemap_Free(void) {
     }
 }
 
-static Bit16u dos_memseg=0;//DOS_PRIVATE_SEGMENT;
+static uint16_t dos_memseg=0;//DOS_PRIVATE_SEGMENT;
 
 extern Bitu VGA_BIOS_SEG_END;
 bool DOS_GetMemory_unmapped = false;
@@ -90,8 +90,8 @@ void DOS_GetMemory_Choose() {
 	if (DOS_PRIVATE_SEGMENT == 0) {
         /* DOSBox-X non-compatible: Position ourself just past the VGA BIOS */
         /* NTS: Code has been arranged so that DOS kernel init follows BIOS INT10h init */
-        DOS_PRIVATE_SEGMENT=(Bit16u)VGA_BIOS_SEG_END;
-        DOS_PRIVATE_SEGMENT_END= (Bit16u)(DOS_PRIVATE_SEGMENT + DOS_PRIVATE_SEGMENT_Size);
+        DOS_PRIVATE_SEGMENT=(uint16_t)VGA_BIOS_SEG_END;
+        DOS_PRIVATE_SEGMENT_END= (uint16_t)(DOS_PRIVATE_SEGMENT + DOS_PRIVATE_SEGMENT_Size);
 
         if (IS_PC98_ARCH) {
             bool PC98_FM_SoundBios_Enabled(void);
@@ -128,7 +128,7 @@ void DOS_GetMemory_Choose() {
 	}
 }
 
-Bit16u DOS_GetMemory(Bit16u pages,const char *who) {
+uint16_t DOS_GetMemory(uint16_t pages,const char *who) {
 	if (who == NULL) who = "";
 	if (dos_memseg == 0) {
 		if (DOS_GetMemory_unmapped) E_Exit("DOS:Attempt to use DOS_GetMemory() when private area was unmapped by BOOT");
@@ -142,7 +142,7 @@ Bit16u DOS_GetMemory(Bit16u pages,const char *who) {
 			pages,who,dos_memseg,DOS_PRIVATE_SEGMENT,DOS_PRIVATE_SEGMENT_END);
 		E_Exit("DOS:Not enough memory for internal tables");
 	}
-	Bit16u page=dos_memseg;
+	uint16_t page=dos_memseg;
 	LOG(LOG_DOSMISC,LOG_DEBUG)("DOS_GetMemory(0x%04x pages,\"%s\") = 0x%04x",pages,who,page);
 
     {
@@ -164,7 +164,7 @@ static Bitu DOS_CaseMapFunc(void) {
 	return CBRET_NONE;
 }
 
-static Bit8u country_info[0x22] = {
+static uint8_t country_info[0x22] = {
 /* Date format      */  0x00, 0x00,
 /* Currencystring   */  0x24, 0x00, 0x00, 0x00, 0x00,
 /* Thousands sep    */  0x2c, 0x00,
@@ -180,7 +180,7 @@ static Bit8u country_info[0x22] = {
 /* Reservered 5     */  0x00, 0x00, 0x00, 0x00, 0x00
 };
 
-static Bit8u country_info_pc98[0x22] = {
+static uint8_t country_info_pc98[0x22] = {
 /* Date format      */  0x02, 0x00,
 /* Currencystring   */  0x5C, 0x00, 0x00, 0x00, 0x00,
 /* Thousands sep    */  0x2c, 0x00,
@@ -208,7 +208,7 @@ PhysPt DOS_Get_DPB(unsigned int dos_drive) {
 }
 
 void DOS_SetupTables(void) {
-	Bit16u seg;Bit16u i;
+	uint16_t seg;uint16_t i;
 	dos.tables.tempdta=RealMake(DOS_GetMemory(4,"dos.tables.tempdta"),0);
 	dos.tables.tempdta_fcbdelete=RealMake(DOS_GetMemory(4,"dos.tables.fcbdelete"),0);
 	/* Create the DOS Info Block */
@@ -294,10 +294,10 @@ void DOS_SetupTables(void) {
 	if (enable_collating_uppercase) {
 		dos.tables.collatingseq=RealMake(DOS_GetMemory(25,"dos.tables.collatingseq"),0);
 		mem_writew(Real2Phys(dos.tables.collatingseq),0x100);
-		for (i=0; i<256; i++) mem_writeb(Real2Phys(dos.tables.collatingseq)+i+2,(Bit8u)i);
+		for (i=0; i<256; i++) mem_writeb(Real2Phys(dos.tables.collatingseq)+i+2,(uint8_t)i);
 		dos.tables.upcase=dos.tables.collatingseq+258;
 		mem_writew(Real2Phys(dos.tables.upcase),0x80);
-		for (i=0; i<128; i++) mem_writeb(Real2Phys(dos.tables.upcase)+i+2,(Bit8u)0x80+i);
+		for (i=0; i<128; i++) mem_writeb(Real2Phys(dos.tables.upcase)+i+2,(uint8_t)0x80+i);
 	}
 	else {
 		dos.tables.collatingseq = 0;
@@ -315,8 +315,8 @@ void DOS_SetupTables(void) {
     dos.tables.mediaid_offset=0x17;	//Media ID offset in DPB (MS-DOS 4.x-6.x)
 	dos.tables.mediaid=RealMake(dos.tables.dpb,dos.tables.mediaid_offset);
 	for (i=0;i<DOS_DRIVES;i++) {
-        real_writeb(dos.tables.dpb,i*dos.tables.dpb_size,(Bit8u)i);             // drive number
-        real_writeb(dos.tables.dpb,i*dos.tables.dpb_size+1,(Bit8u)i);           // unit number
+        real_writeb(dos.tables.dpb,i*dos.tables.dpb_size,(uint8_t)i);             // drive number
+        real_writeb(dos.tables.dpb,i*dos.tables.dpb_size+1,(uint8_t)i);           // unit number
         real_writew(dos.tables.dpb,i*dos.tables.dpb_size+2,0x0200);     // bytes per sector
         real_writew(dos.tables.dpb,i*dos.tables.dpb_size+6,0x0001);     // reserved sectors at the beginning of the drive
         mem_writew(Real2Phys(dos.tables.mediaid)+i*dos.tables.dpb_size,0u);
@@ -332,7 +332,7 @@ void DOS_SetupTables(void) {
 
 	/* Create a fake disk buffer head */
 	seg=DOS_GetMemory(6,"Fake disk buffer head");
-	for (Bit8u ct=0; ct<0x20; ct++) real_writeb(seg,ct,0);
+	for (uint8_t ct=0; ct<0x20; ct++) real_writeb(seg,ct,0);
 	real_writew(seg,0x00,0xffff);		// forward ptr
 	real_writew(seg,0x02,0xffff);		// backward ptr
 	real_writeb(seg,0x04,0xff);			// not in use

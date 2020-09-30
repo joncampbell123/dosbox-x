@@ -47,12 +47,12 @@ set winzip=
 set m32zip=
 set m64zip=
 
-for %%i in (%vsbinpath%\dosbox-x-windows-%datestr%-*-vsbin.zip) do set winzip=%%i
+for %%i in (%vsbinpath%\dosbox-x-windows-vsbin-%datestr%*.zip) do set winzip=%%i
 for %%i in (%mgbinpath%\dosbox-x-mingw-win32-%datestr%*.zip) do set m32zip=%%i
 for %%i in (%mgbinpath%\dosbox-x-mingw-win64-%datestr%*.zip) do set m64zip=%%i
 
 if not exist "%winzip%" (
-	echo Couldn't find dosbox-x-windows-%datestr%-*-vsbin.zip at %vsbinpath%
+	echo Couldn't find dosbox-x-windows-vsbin-%datestr%*.zip at %vsbinpath%
 	goto error
 )
 

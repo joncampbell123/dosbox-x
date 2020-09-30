@@ -98,8 +98,8 @@ static const unsigned int ACCURATE_LPF_DELAY_LINE_LENGTH = 16; // Must be a powe
 static const unsigned int ACCURATE_LPF_NUMBER_OF_PHASES = 3; // Upsampling factor
 static const unsigned int ACCURATE_LPF_PHASE_INCREMENT_REGULAR = 2; // Downsampling factor
 static const unsigned int ACCURATE_LPF_PHASE_INCREMENT_OVERSAMPLED = 1; // No downsampling
-static const Bit32u ACCURATE_LPF_DELTAS_REGULAR[][ACCURATE_LPF_NUMBER_OF_PHASES] = { { 0, 0, 0 }, { 1, 1, 0 }, { 1, 2, 1 } };
-static const Bit32u ACCURATE_LPF_DELTAS_OVERSAMPLED[][ACCURATE_LPF_NUMBER_OF_PHASES] = { { 0, 0, 0 }, { 1, 0, 0 }, { 1, 0, 1 } };
+static const uint32_t ACCURATE_LPF_DELTAS_REGULAR[][ACCURATE_LPF_NUMBER_OF_PHASES] = { { 0, 0, 0 }, { 1, 1, 0 }, { 1, 2, 1 } };
+static const uint32_t ACCURATE_LPF_DELTAS_OVERSAMPLED[][ACCURATE_LPF_NUMBER_OF_PHASES] = { { 0, 0, 0 }, { 1, 0, 0 }, { 1, 0, 1 } };
 
 template <class SampleEx>
 class AbstractLowPassFilter {
@@ -169,7 +169,7 @@ public:
 class AccurateLowPassFilter : public AbstractLowPassFilter<IntSampleEx>, public AbstractLowPassFilter<FloatSample> {
 private:
 	const FloatSample * const LPF_TAPS;
-	const Bit32u (* const deltas)[ACCURATE_LPF_NUMBER_OF_PHASES];
+	const uint32_t (* const deltas)[ACCURATE_LPF_NUMBER_OF_PHASES];
 	const unsigned int phaseIncrement;
 	const unsigned int outputSampleRate;
 
@@ -227,18 +227,18 @@ public:
 		return leftChannelLPF.getOutputSampleRate();
 	}
 
-	Bit32u getDACStreamsLength(const Bit32u outputLength) const {
+	uint32_t getDACStreamsLength(const uint32_t outputLength) const {
 		return leftChannelLPF.estimateInSampleCount(outputLength);
 	}
 
 	void setSynthOutputGain(const float synthGain);
 	void setReverbOutputGain(const float reverbGain, const bool mt32ReverbCompatibilityMode);
 
-	bool process(IntSample *outStream, const IntSample *nonReverbLeft, const IntSample *nonReverbRight, const IntSample *reverbDryLeft, const IntSample *reverbDryRight, const IntSample *reverbWetLeft, const IntSample *reverbWetRight, Bit32u outLength);
-	bool process(FloatSample *outStream, const FloatSample *nonReverbLeft, const FloatSample *nonReverbRight, const FloatSample *reverbDryLeft, const FloatSample *reverbDryRight, const FloatSample *reverbWetLeft, const FloatSample *reverbWetRight, Bit32u outLength);
+	bool process(IntSample *outStream, const IntSample *nonReverbLeft, const IntSample *nonReverbRight, const IntSample *reverbDryLeft, const IntSample *reverbDryRight, const IntSample *reverbWetLeft, const IntSample *reverbWetRight, uint32_t outLength);
+	bool process(FloatSample *outStream, const FloatSample *nonReverbLeft, const FloatSample *nonReverbRight, const FloatSample *reverbDryLeft, const FloatSample *reverbDryRight, const FloatSample *reverbWetLeft, const FloatSample *reverbWetRight, uint32_t outLength);
 
 	template <class Sample>
-	void produceOutput(Sample *outStream, const Sample *nonReverbLeft, const Sample *nonReverbRight, const Sample *reverbDryLeft, const Sample *reverbDryRight, const Sample *reverbWetLeft, const Sample *reverbWetRight, Bit32u outLength) {
+	void produceOutput(Sample *outStream, const Sample *nonReverbLeft, const Sample *nonReverbRight, const Sample *reverbDryLeft, const Sample *reverbDryRight, const Sample *reverbWetLeft, const Sample *reverbWetRight, uint32_t outLength) {
 		if (outStream == NULL) {
 			leftChannelLPF.addPositionIncrement(outLength);
 			rightChannelLPF.addPositionIncrement(outLength);
@@ -278,23 +278,23 @@ Analog *Analog::createAnalog(const AnalogOutputMode mode, const bool oldMT32Anal
 }
 
 template<>
-bool AnalogImpl<IntSampleEx>::process(IntSample *outStream, const IntSample *nonReverbLeft, const IntSample *nonReverbRight, const IntSample *reverbDryLeft, const IntSample *reverbDryRight, const IntSample *reverbWetLeft, const IntSample *reverbWetRight, Bit32u outLength) {
+bool AnalogImpl<IntSampleEx>::process(IntSample *outStream, const IntSample *nonReverbLeft, const IntSample *nonReverbRight, const IntSample *reverbDryLeft, const IntSample *reverbDryRight, const IntSample *reverbWetLeft, const IntSample *reverbWetRight, uint32_t outLength) {
 	produceOutput(outStream, nonReverbLeft, nonReverbRight, reverbDryLeft, reverbDryRight, reverbWetLeft, reverbWetRight, outLength);
 	return true;
 }
 
 template<>
-bool AnalogImpl<FloatSample>::process(IntSample *, const IntSample *, const IntSample *, const IntSample *, const IntSample *, const IntSample *, const IntSample *, Bit32u) {
+bool AnalogImpl<FloatSample>::process(IntSample *, const IntSample *, const IntSample *, const IntSample *, const IntSample *, const IntSample *, const IntSample *, uint32_t) {
 	return false;
 }
 
 template<>
-bool AnalogImpl<IntSampleEx>::process(FloatSample *, const FloatSample *, const FloatSample *, const FloatSample *, const FloatSample *, const FloatSample *, const FloatSample *, Bit32u) {
+bool AnalogImpl<IntSampleEx>::process(FloatSample *, const FloatSample *, const FloatSample *, const FloatSample *, const FloatSample *, const FloatSample *, const FloatSample *, uint32_t) {
 	return false;
 }
 
 template<>
-bool AnalogImpl<FloatSample>::process(FloatSample *outStream, const FloatSample *nonReverbLeft, const FloatSample *nonReverbRight, const FloatSample *reverbDryLeft, const FloatSample *reverbDryRight, const FloatSample *reverbWetLeft, const FloatSample *reverbWetRight, Bit32u outLength) {
+bool AnalogImpl<FloatSample>::process(FloatSample *outStream, const FloatSample *nonReverbLeft, const FloatSample *nonReverbRight, const FloatSample *reverbDryLeft, const FloatSample *reverbDryRight, const FloatSample *reverbWetLeft, const FloatSample *reverbWetRight, uint32_t outLength) {
 	produceOutput(outStream, nonReverbLeft, nonReverbRight, reverbDryLeft, reverbDryRight, reverbWetLeft, reverbWetRight, outLength);
 	return true;
 }
@@ -412,8 +412,8 @@ unsigned int AccurateLowPassFilter::getOutputSampleRate() const {
 }
 
 unsigned int AccurateLowPassFilter::estimateInSampleCount(const unsigned int outSamples) const {
-	Bit32u cycleCount = outSamples / ACCURATE_LPF_NUMBER_OF_PHASES;
-	Bit32u remainder = outSamples - cycleCount * ACCURATE_LPF_NUMBER_OF_PHASES;
+	uint32_t cycleCount = outSamples / ACCURATE_LPF_NUMBER_OF_PHASES;
+	uint32_t remainder = outSamples - cycleCount * ACCURATE_LPF_NUMBER_OF_PHASES;
 	return cycleCount * phaseIncrement + deltas[remainder][phase];
 }
 

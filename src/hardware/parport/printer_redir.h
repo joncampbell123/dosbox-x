@@ -9,7 +9,7 @@
 
 class CPrinterRedir : public CParallel {
 public:
-	CPrinterRedir(Bitu nr, Bit8u initIrq, CommandLine* cmd);
+	CPrinterRedir(Bitu nr, uint8_t initIrq, CommandLine* cmd);
 	
 
 	~CPrinterRedir();
@@ -23,9 +23,9 @@ public:
 	void Write_PR(Bitu);
 	void Write_CON(Bitu);
 	void Write_IOSEL(Bitu);
-	bool Putchar(Bit8u);
+	bool Putchar(uint8_t);
 
-	void handleUpperEvent(Bit16u type);
+	void handleUpperEvent(uint16_t type);
 };
 
 #endif	// include guard
