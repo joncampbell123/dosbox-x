@@ -7,12 +7,13 @@ Before contributing to DOSBox-X, please check the [issue tracker](https://github
 - The normal operation of DOS games and applications within DOSBox-X 
 - DOS, Windows 1.0/2.x/3.x and Windows 9x/ME guest system support
 - Architectural symmetry with a real DOS environment (particularly MS-DOS or PC DOS)
+- Improving the user interface, general functions and usability of DOSBox-X
 - Improving a platform-specific build of DOSBox-X or getting it on par with other platforms supported
 - Non-implemented (or incorrectly implemented) system calls or functions
 - Missing, incorrect, or inaccurate hardware emulation, e.g. video, sound, input
 - Bug fixes and/or improvements that allows for example demoscene productions to run in DOSBox-X
 
-You do not necessarily need to be versed in coding, in this case you will certainly spend most of your time in the [issue tracker](https://github.com/joncampbell123/dosbox-x/issues); either submitting bugs or asking for new features, or helping other DOSBox-X users by suggesting solutions to their problems. You can also help improve DOSBox-X's documentation, or translate its language file to another language.
+You do not necessarily need to be versed in coding; there are other ways to contribute to the project as well. For example, you can submit bug reports, asking for new features, or helping other DOSBox-X users by suggesting solutions to their problems in the [issue tracker](https://github.com/joncampbell123/dosbox-x/issues). You may also help improve DOSBox-X's documentation (such as the [DOSBox-X Wiki](https://github.com/joncampbell123/dosbox-x/wiki)), translate its language file to another language, or help promoting the software in other websites.
 
 ## Code
 
