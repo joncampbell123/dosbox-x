@@ -3,6 +3,8 @@
 
 **Be sure to also visit DOSBox-X's homepage at [https://dosbox-x.com](https://dosbox-x.com)**
 
+**Alternative domain of the project homepage: [http://dosbox-x.software](http://dosbox-x.software)**
+
 ## Table of Contents
 
 - [Introduction to DOSBox-X](#introduction-to-dosbox-x)
