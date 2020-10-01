@@ -1,0 +1,303 @@
+<!DOCTYPE html>
+<html>
+
+  <head>
+    <meta charset='utf-8'>
+    <meta http-equiv="X-UA-Compatible" content="chrome=1">
+    <meta name="description" content="DOSBox-X: A cross-platform DOS emulator based on the DOSBox project">
+
+    <link rel="stylesheet" type="text/css" media="screen" href="css/style.css">
+
+    <script type="text/javascript" src="js/script.js"></script>
+    <title>DOSBox-X - Complete and accurate DOS emulator</title>
+  </head>
+
+  <body>
+
+    <!-- HEADER -->
+    <div id="header_wrap" class="outer">
+        <table width="100%" style="border: hidden">
+        <tr>
+        <td width="25%" style="border: hidden; min-width: 300px; text-align: center">
+          &nbsp;<p />&nbsp;<br/>
+          <img id="dosbox-x-logo" src="images/dosbox-x-logo.svg" title="DOSBox-X" alt="DOSBox-X logo" style="width:90px" />
+        </td><td>&nbsp;<p />
+          <h1 id="project_title">DOSBox-X</h1>
+          <h2 id="project_tagline">Cross-platform DOS emulation package<br />Complete, accurate emulation and more</h2>
+        </td>
+        </tr>
+        </table>
+    </div>
+
+    <!-- MAIN CONTENT -->
+    <div id="main_content_wrap" class="outer"; style="background-color: #fafacf">
+        <div style="text-align: center">
+            <h3 style="padding-top: 10px">DOSBox-X 0.83.6 Release Notes</h3>
+            <h4 style="padding-bottom: 15px; font-weight: normal">Release Date: <span style="color: green">September 30, 2020</span></h4>
+            Please report any issues in our <a href="https://github.com/joncampbell123/dosbox-x/issues">issue tracker</a>.</p>
+            <p>Also, make sure to check out our <a href="https://github.com/joncampbell123/dosbox-x/wiki">Wiki guide</a>.</p>
+            <h4>New in This Version</h4>
+            <table width="100%" style="border: hidden">
+            <tr>
+            <td width="20%" style="border: hidden"></td>
+            <td width="60%" style="border: hidden; text-align: left">
+            <ul>
+<li>
+Improved internal Voodoo card hardware emulation,
+such as fixing the font issue with the 3dfx version
+of Tomb Raider when using non-Glide mode. Portions
+of the code are ported from DOSBox ECE. (Wengier)
+</li>
+<li>
+Added OpenGL shader support by porting the feature
+from DOSBox SVN. GLSL shaders are now supported in
+both SDL1 and SDL2 builds, and this also allows
+pixel-perfect scaling to be enabled for the OpenGL
+outputs. The config option "glshader" (in [render]
+section) can be used to specify a GLSL shader file
+or a built-in shader when the output is set to
+"opengl" or "openglnb". For example, you can use
+the setting "glshader=sharp" (built-in shader) or
+"glshader=pixel_perfect" (with GLSL shader file)
+for the pixel-perfect scaling mode. The Windows
+installer will also copy several GLSL shader files
+to the "glshaders" subdirectory of the DOSBox-X
+install directory to be used directly. (Wengier)
+</li>
+<li>
+Support for FluidSynth MIDI Synthesizer is now
+included in the Windows Visual Studio builds by
+default. Set "mididevice=fluidsynth" and a sound
+font (e.g. GeneralUser_GS.sf2) to use it. (Wengier)
+</li>
+<li>
+Updated the MUNT MT32 emulation library to its
+latest version 2.4.0. A few new MT32 config options
+(starting with "mt32.") are added to [midi] section
+of the DOSBox-X configuration. (Wengier)
+</li>
+<li>
+The DOSMID and MPXPLAY programs have been built
+into DOSBox-X, both can be found on the Z drive and
+feature full-screen user interfaces with support
+for command-line usages (use /? option for help).
+DOSMID can play MIDI/RMI/MUS audio files, whereas
+MPXPLAY is a powerful and flexible audio player
+with support for a variety of formats including
+AAC/AC3/APE/FLAC/MP2/MP3/MPC/OGG/WAV and more with
+playlist support. (Wengier)
+</li>
+<li>
+The mounting options "Mount as Hard Disk", "Mount
+as CD-ROM", "Mount as Floppy", "Mount disk image"
+and "Boot from disk image" (previously only for
+Windows) in the "Drive" menu and the "Quick launch
+program..." in the "DOS" menu are now available
+for non-Windows platforms as well. (Wengier)
+</li>
+<li>
+Added "Shared Windows clipboard functions" menu
+group under "Main", which allows you to enable
+or disable the different ways for DOSBox-X to
+communicate with the Windows clipboard. (Wengier)
+</li>
+<li>
+Added config option "dos clipboard api" in [dos]
+section to control whether to enable the DOS APIs
+for communications with the Windows clipboard for
+DOS applications. (Wengier)
+</li>
+<li>
+Added config option "clip_mouse_button" to select
+a mouse button (middle, right, or none; with right
+mouse button being the default) for copying to and
+pasting from the Windows clipboard. (Wengier)
+</li>
+<li>
+The mouse wheel movements will be automatically
+converted into up/down arrows by default for the
+intergrated DOS now. You can also enable it for
+the guest system from the "Main" menu ("mouse wheel
+movements" -> "Enable for guest systems also") or
+from the config file. (Wengier)
+</li>
+<li>
+Added "Emulate CPU speed" menu group (under "CPU")
+to emulate the speed of a specific CPU class. The
+cycles to emulate are approximations of the actual
+CPU hardware, and they are available thanks to data
+provided by the user maximum105. Also added config
+option "cycle emulation percentage adjust" in [cpu]
+section for users who would like to make relative
+percentage adjustments (between -25% and 25%) in
+case it is necessary. (Wengier)
+</li>
+<li>
+Added SORT command from FreeDOS. It can be used to
+sort input, e.g. "TYPE FILE.TXT | SORT". (Wengier)
+</li>
+<li>
+Added DELTREE command to delete a directory and all
+the subdirectories and files in it as in a real DOS
+system. Please use it with caution. (Wengier)
+</li>
+<li>
+The command for starting the Configuration Tool has
+been renamed from "SHOWGUI" to "CFGTOOL". A new
+command-line option -gui is added to CONFIG command
+to start the Configuration Tool as well. (Wengier)
+</li>
+<li>
+DOSBox-X now includes ZIP.EXE and UNZIP.EXE from
+InfoZip for zipping and unzipping files in DOS.
+Both programs will appear on the Z drive. (Wengier)
+</li>
+<li>
+The powerful DOS CD player called SJGPLAY has been
+built into DOSBox-X. You can now find the program
+CDPLAY.EXE in the Z drive for playing Audio CDs in
+DOS, which supports both graphical and command-line
+usage, and you will also find a text file named
+CDPLAY.TXT in the Z drive for a quick usage guide.
+A zip package including full documentation and some
+extras will additionally appear as SJGPLAY.ZIP in
+the Z drive. This freeware program was written by
+Steve Gray and is now included in DOSBox-X with
+explicit permission of the author. (Wengier)
+</li>
+<li>
+DOSBox-X will now by default show a quit warning
+if a DOS program or game, or a guest system is
+running. The previous behavior can be set with
+"quit warning=autofile". (Wengier)
+</li>
+<li>
+The welcome banner when DOSBox-X starts has been
+improved for a better looking and should provide
+more helpful instructions for users. (Wengier)
+</li>
+<li>
+Add new "Help" menu which includes menu items
+"Introduction", "DOSBox-X homepage", "DOSBox-X Wiki
+guide", "DOSBox-X support" and "About". (Wengier)
+</li>
+<li>
+Improved the message when automatically re-running
+the executable which failed with the "Packed file
+is corrupt" error. Also added the "autoloadfix"
+config option which when set to "false" will not
+automatically re-run such programs. (Wengier)
+</li>
+<li>
+The display for several section names in DOSBox-X's
+graphical configuration tool has been capitalized
+or modified otherwise to look better. A default
+shortcut key HOST(F11/F12)+C is added for starting
+the graphical configuration tool. (Wengier)
+</li>
+<li>
+Added the "Show advanced options" checkbox in the
+main screen of the Configuration GUI to toggle
+whether to display all config options for the
+sections. If unchecked (default), it will show
+common config options instead of all of them. A
+new config option "show advanced options" is added
+which when set to "true" will make the checkbox
+checked by default. (Wengier)
+</li>
+<li>
+Added code to cap the scan line length given to
+the VESA BIOS given the video mode. This prevents
+VBETEST.EXE from doing test patterns smaller than
+the actual display, which can happen with 32bpp
+320x200 modes and 1MB or less video RAM.
+</li>
+<li>
+VESA BIOS Set Scan Line Length fixed to properly
+report and handle scan line length for 16-color
+SVGA planar modes. VBETEST 16-color modes now
+display correctly.
+</li>
+<li>
+Added option to control whether VESA BIOS panning
+(the original VBE call) waits for vsync.
+</li>
+<li>
+Moved video related config options from [dosbox]
+section to its own [video] section. These options
+in existing config files will be automatically
+redirected to the [video] section from the [dosbox]
+section when DOSBox-X starts. Windows installer can
+also move such config options from existing config
+files automatically. (Wengier)
+</li>
+<li>
+Cleared modem phone book before parsing it. Thank
+NicknineTheEagle for the improvement.
+</li>
+<li>
+Improved the help message of MOUNT command. Also
+added option -examples to show its usage examples,
+similar to IMGMOUNT and IMGMAKE commands. (Wengier)
+</li>
+<li>
+Fixed freeze when trying to reboot the internal
+DOS when using a different code page and it is in
+CGA or EGA emulation modes. (Wengier)
+</li>
+<li>
+DOSBox-X will now try to use the internal DOS date
+and time (instead of always using the host date and
+date) for file modication timestamps. (Wengier)
+</li>
+<li>
+Added menu item "Expanded memory (EMS)" under "DOS"
+menu to dynamically enable or disable EMS memory
+at run-time. You can now also modify EMS memory
+with CONFIG command from command-line. (Wengier)
+</li>
+<li>
+Added config option "drive z hide files" (in [dos]
+section) to hide or remove files listed (separated
+by spaces) from the Z drive. If a file has a "/"
+prefix (e.g. "/INTRO.COM"), then the specified file
+will have the hidden attribute ("DIR /A" will list
+all such files) instead of completely disappearing
+from the Z drive. (Wengier)
+</li>
+<li>
+You can now add your own programs or files to the
+Z drive! Put your programs or files in the drivez
+directory located in the DOSBox-X program folder
+or the DOSBox-X configuration directory, and they
+will automatically appear on the Z drive. If any of
+the files have the same names as the built-in ones,
+they will replace the built-in files. For example,
+you can replace the built-in EDIT.COM and XCOPY.EXE
+programs (from FreeDOS) with MS-DOS counterparts.
+Windows installer will now automatically create a
+drivez directory with a README.TXT file in it too.
+For subdirectories support please use MOUNT command
+to mount local directory instead. (Wengier).
+</li>
+</ul>
+            </td>
+            <td></td>
+            </tr>
+            </table>
+            Return to <a href="index.html">main page</a><p />
+        </div>
+    </div>
+
+    <!-- FOOTER  -->
+    <div id="footer_wrap" class="outer">
+      <footer class="inner">
+        <p class="copyright">DOSBox-X homepage URL: <a href="https://dosbox-x.com">https://dosbox-x.com</a> (or <a href="http://dosbox-x.software">http://dosbox-x.software)</a></p>
+        <p>DOSBox-X maintained by <a href="https://github.com/joncampbell123">joncampbell123</a> (Jonathan Campbell)</p>
+        <p>Website designed by <a href="https://github.com/wengier">Wengier</a> (Wengier Wu)</p>
+        <p>Published with <a href="http://pages.github.com">GitHub Pages</a></p>
+      </footer>
+    </div>
+
+  </body>
+</html>
