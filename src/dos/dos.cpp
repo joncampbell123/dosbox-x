@@ -1671,16 +1671,18 @@ static Bitu DOS_21Handler(void) {
 			force_sfn = false;
             break;      
         case 0x57:                  /* Get/Set File's Date and Time */
-            if (reg_al==0x00) {
-                if (DOS_GetFileDate(reg_bx,&reg_cx,&reg_dx)) {
+            if (reg_al == 0x00) {
+                if (DOS_GetFileDate(reg_bx, &reg_cx, &reg_dx)) {
                     CALLBACK_SCF(false);
                 } else {
+                    reg_ax = dos.errorcode;
                     CALLBACK_SCF(true);
                 }
-            } else if (reg_al==0x01) {
+            } else if (reg_al == 0x01) {
                 if (DOS_SetFileDate(reg_bx,reg_cx,reg_dx)) {
                     CALLBACK_SCF(false);
                 } else {
+                    reg_ax = dos.errorcode;
                     CALLBACK_SCF(true);
                 }
             } else {
