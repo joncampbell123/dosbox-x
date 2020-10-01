@@ -19,7 +19,7 @@ To change to the drive mounted like above, type "C:". If everything went fine, D
 Further Information
 ===================
 Please visit the DOSBox-X homepage for the latest information about DOSBox-X:
-https://dosbox-x.com/
+https://dosbox-x.com/ or http://dosbox-x.software/
 
 For a complete DOSBox-X user guide, including common ways to configure DOSBox-X and its usage tips, please visit the DOSBox-X Wiki:
 https://github.com/joncampbell123/dosbox-x/wiki
