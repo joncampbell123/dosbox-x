@@ -296,7 +296,9 @@ void MountHelper(char drive, const char drive2[DOS_PATHLENGTH], std::string driv
 			default :   errmsg=MSG_Get("MSCDEX_UNKNOWN_ERROR");          break;
 		}
 		if (error) {
+#if !defined(HX_DOS)
             tinyfd_messageBox(error==5?"Warning":"Error",errmsg.c_str(),"ok","error", 1);
+#endif
 			if (error!=5) {
 				delete newdrive;
 				return;
@@ -443,11 +445,15 @@ void MenuBrowseImageFile(char drive, bool boot) {
 	std::string drive_warn;
 	if (Drives[drive-'A']&&!boot) {
 		drive_warn="Drive "+str+": is already mounted. Unmount it first, and then try again.";
+#if !defined(HX_DOS)
         tinyfd_messageBox("Error",drive_warn.c_str(),"ok","error", 1);
+#endif
 		return;
 	}
 	if(control->SecureMode()) {
+#if !defined(HX_DOS)
         tinyfd_messageBox("Error",MSG_Get("PROGRAM_CONFIG_SECURE_DISALLOW"),"ok","error", 1);
+#endif
 		return;
 	}
 	if (dos_kernel_disabled)
@@ -505,11 +511,15 @@ void MenuBrowseFolder(char drive, std::string drive_type) {
     std::string str(1, drive);
 	if (Drives[drive-'A']) {
 		std::string drive_warn="Drive "+str+": is already mounted. Unmount it first, and then try again.";
+#if !defined(HX_DOS)
         tinyfd_messageBox("Error",drive_warn.c_str(),"ok","error", 1);
+#endif
 		return;
 	}
 	if(control->SecureMode()) {
+#if !defined(HX_DOS)
         tinyfd_messageBox("Error",MSG_Get("PROGRAM_CONFIG_SECURE_DISALLOW"),"ok","error", 1);
+#endif
 		return;
 	}
 #if !defined(HX_DOS)
@@ -528,7 +538,9 @@ void MenuBrowseFolder(char drive, std::string drive_type) {
 void MenuUnmountDrive(char drive) {
 	if (!Drives[drive-'A']) {
 		std::string drive_warn="Drive "+std::string(1, drive)+": is not yet mounted.";
+#if !defined(HX_DOS)
         tinyfd_messageBox("Error",drive_warn.c_str(),"ok","error", 1);
+#endif
 		return;
 	}
     UnmountHelper(drive);
@@ -536,19 +548,25 @@ void MenuUnmountDrive(char drive) {
 
 void MenuBootDrive(char drive) {
 	if(control->SecureMode()) {
+#if !defined(HX_DOS)
         tinyfd_messageBox("Error",MSG_Get("PROGRAM_CONFIG_SECURE_DISALLOW"),"ok","error", 1);
+#endif
 		return;
 	}
 	char str[] = "-Q A:";
 	str[3]=drive;
 	runBoot(str);
 	std::string drive_warn="Drive "+std::string(1, drive)+": failed to boot.";
+#if !defined(HX_DOS)
     tinyfd_messageBox("Error",drive_warn.c_str(),"ok","error", 1);
+#endif
 }
 
 void MenuBrowseProgramFile() {
 	if(control->SecureMode()) {
+#if !defined(HX_DOS)
         tinyfd_messageBox("Error",MSG_Get("PROGRAM_CONFIG_SECURE_DISALLOW"),"ok","error", 1);
+#endif
 		return;
 	}
 	if (dos_kernel_disabled)
@@ -559,7 +577,9 @@ void MenuBrowseProgramFile() {
 	mcb.GetFileName(psp_name);
 	if(strlen(psp_name)&&strcmp(psp_name, "COMMAND")) {
         drive_warn=strcmp(psp_name, "4DOS")?"Another program is already running.":"Another shell is currently running.";
+#if !defined(HX_DOS)
         tinyfd_messageBox("Error",drive_warn.c_str(),"ok","error", 1);
+#endif
         return;
     }
 
