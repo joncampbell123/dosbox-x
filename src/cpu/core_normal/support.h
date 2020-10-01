@@ -17,27 +17,27 @@
  */
 
 
-#define LoadMbs(off) (Bit8s)(LoadMb(off))
-#define LoadMws(off) (Bit16s)(LoadMw(off))
-#define LoadMds(off) (Bit32s)(LoadMd(off))
+#define LoadMbs(off) (int8_t)(LoadMb(off))
+#define LoadMws(off) (int16_t)(LoadMw(off))
+#define LoadMds(off) (int32_t)(LoadMd(off))
 
 #define LoadRb(reg) reg
 #define LoadRw(reg) reg
 #define LoadRd(reg) reg
 
-#define SaveRb(reg,val)	reg=((Bit8u)(val))
-#define SaveRw(reg,val)	reg=((Bit16u)(val))
-#define SaveRd(reg,val)	reg=((Bit32u)(val))
+#define SaveRb(reg,val)	reg=((uint8_t)(val))
+#define SaveRw(reg,val)	reg=((uint16_t)(val))
+#define SaveRd(reg,val)	reg=((uint32_t)(val))
 
-static INLINE Bit8s Fetchbs() {
-	return (Bit8s)Fetchb();
+static INLINE int8_t Fetchbs() {
+	return (int8_t)Fetchb();
 }
-static INLINE Bit16s Fetchws() {
-	return (Bit16s)Fetchw();
+static INLINE int16_t Fetchws() {
+	return (int16_t)Fetchw();
 }
 
-static INLINE Bit32s Fetchds() {
-	return (Bit32s)Fetchd();
+static INLINE int32_t Fetchds() {
+	return (int32_t)Fetchd();
 }
 
 
@@ -57,28 +57,28 @@ static INLINE Bit32s Fetchds() {
  *      CS:IP variables, reg_ip and core.cseip which Fetchb() modifies. */
 //TODO Could probably make all byte operands fast?
 #define JumpCond16_b(COND) {						\
-	const Bit32u adj=(Bit32u)Fetchbs();						\
+	const uint32_t adj=(uint32_t)Fetchbs();						\
 	SAVEIP;								\
 	if (COND) reg_ip+=adj;						\
 	continue;							\
 }
 
 #define JumpCond16_w(COND) {						\
-	const Bit32u adj=(Bit32u)Fetchws();						\
+	const uint32_t adj=(uint32_t)Fetchws();						\
 	SAVEIP;								\
 	if (COND) reg_ip+=adj;						\
 	continue;							\
 }
 
 #define JumpCond32_b(COND) {						\
-	const Bit32u adj=(Bit32u)Fetchbs();						\
+	const uint32_t adj=(uint32_t)Fetchbs();						\
 	SAVEIP;								\
 	if (COND) reg_eip+=adj;						\
 	continue;							\
 }
 
 #define JumpCond32_d(COND) {						\
-	const Bit32u adj=(Bit32u)Fetchds();						\
+	const uint32_t adj=(uint32_t)Fetchds();						\
 	SAVEIP;								\
 	if (COND) reg_eip+=adj;						\
 	continue;							\

@@ -43,14 +43,14 @@ void CMS_ShutDown(Section* sec);
 bool SB_Get_Address(Bitu& sbaddr, Bitu& sbirq, Bitu& sbdma);
 bool TS_Get_Address(Bitu& tsaddr, Bitu& tsirq, Bitu& tsdma);
 
-extern Bit8u adlib_commandreg;
+extern uint8_t adlib_commandreg;
 FILE * OpenCaptureFile(const char * type,const char * ext);
 
-void CAPTURE_AddWave(Bit32u freq, Bit32u len, Bit16s * data);
+void CAPTURE_AddWave(uint32_t freq, uint32_t len, int16_t * data);
 #define CAPTURE_FLAG_DBLW	0x1
 #define CAPTURE_FLAG_DBLH	0x2
 #define CAPTURE_FLAG_NOCHANGE   0x4
-void CAPTURE_AddImage(Bitu width, Bitu height, Bitu bpp, Bitu pitch, Bitu flags, float fps, Bit8u * data, Bit8u * pal);
-void CAPTURE_AddMidi(bool sysex, Bitu len, Bit8u * data);
+void CAPTURE_AddImage(Bitu width, Bitu height, Bitu bpp, Bitu pitch, Bitu flags, float fps, uint8_t * data, uint8_t * pal);
+void CAPTURE_AddMidi(bool sysex, Bitu len, uint8_t * data);
 
 #endif

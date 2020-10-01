@@ -59,10 +59,10 @@ extern const char* RunningProgram;
 extern bool dpi_aware_enable;
 extern bool dos_kernel_disabled;
 
-static float int_to_float(const Bit32u i)
+static float int_to_float(const uint32_t i)
 {
     float f;
-    Bit32u i_native = SDL_SwapLE32(i);
+    uint32_t i_native = SDL_SwapLE32(i);
     SDL_memcpy(&f, &i_native, 4);
     return f;
 }
@@ -86,20 +86,20 @@ static FncPointers FP;
 static void ** fn_pt=NULL;
 
 // Shared memory
-static Bit32u param[20];
+static uint32_t param[20];
 
 // Pointer to return value
 static PhysPt ret;
-static Bit16u ret_value;
+static uint16_t ret_value;
 
 // Temporary texture buffer
-static Bit32u texsize=0;
+static uint32_t texsize=0;
 static void* texmem=NULL;
 static HostPt hwnd=NULL;
 static char lfbacc=0;
 
 // Tomb Rider shadow hack
-static Bit8u tomb = 0;
+static uint8_t tomb = 0;
 static FxI32 GrOriginLocation = 0;
 
 #if defined (WIN32)
@@ -135,7 +135,7 @@ static void write_gl(Bitu port,Bitu val,Bitu iolen)
 {
     (void)port;
     (void)iolen;
-    static Bit16u glsegment = 0;
+    static uint16_t glsegment = 0;
 
     ret = 0;
     ret_value = G_FAIL;
@@ -260,34 +260,34 @@ public:
 	return lin_addr[buffer];
     }
 
-    Bit8u readb(PhysPt addr) {
+    uint8_t readb(PhysPt addr) {
 //	LOG_MSG("Glide:Read from 0x%p", LFB_getAddr(addr));
-	return *(Bit8u *)(LFB_getAddr(addr));
+	return *(uint8_t *)(LFB_getAddr(addr));
     }
 
-    Bit16u readw(PhysPt addr) {
+    uint16_t readw(PhysPt addr) {
 //	LOG_MSG("Glide:Read from 0x%p", LFB_getAddr(addr));
-	return *(Bit16u *)(LFB_getAddr(addr));
+	return *(uint16_t *)(LFB_getAddr(addr));
     }
 
-    Bit32u readd(PhysPt addr) {
+    uint32_t readd(PhysPt addr) {
 //	LOG_MSG("Glide:Read from 0x%p", LFB_getAddr(addr));
-	return *(Bit32u *)(LFB_getAddr(addr));
+	return *(uint32_t *)(LFB_getAddr(addr));
     }
 
-    void writeb(PhysPt addr,Bit8u val) {
+    void writeb(PhysPt addr,uint8_t val) {
 //	LOG_MSG("Glide:Write to 0x%p", LFB_getAddr(addr));
-	*(Bit8u *)(LFB_getAddr(addr))=(Bit8u)val;
+	*(uint8_t *)(LFB_getAddr(addr))=(uint8_t)val;
     }
 
-    void writew(PhysPt addr,Bit16u val) {
+    void writew(PhysPt addr,uint16_t val) {
 //	LOG_MSG("Glide:Write to 0x%p", LFB_getAddr(addr));
-	*(Bit16u *)(LFB_getAddr(addr))=(Bit16u)val;
+	*(uint16_t *)(LFB_getAddr(addr))=(uint16_t)val;
     }
 
-    void writed(PhysPt addr,Bit32u val) {
+    void writed(PhysPt addr,uint32_t val) {
 //	LOG_MSG("Glide:Write to 0x%p", LFB_getAddr(addr));
-	*(Bit32u *)(LFB_getAddr(addr))=(Bit32u)val;
+	*(uint32_t *)(LFB_getAddr(addr))=(uint32_t)val;
     }
 
     HostPt GetHostReadPt(Bitu phys_page) {
@@ -485,11 +485,11 @@ void GLIDE_ResetScreen(bool update)
 #if defined(C_SDL2)
         void GFX_SetResizeable(bool enable);
         GFX_SetResizeable(true);
-        SDL_Window* GFX_SetSDLWindowMode(Bit16u width, Bit16u height, SCREEN_TYPES screenType);
+        SDL_Window* GFX_SetSDLWindowMode(uint16_t width, uint16_t height, SCREEN_TYPES screenType);
         sdl.window = GFX_SetSDLWindowMode(glide.width,glide.height, sdl.desktop.want_type == SCREEN_OPENGL ? SCREEN_OPENGL : SCREEN_SURFACE);
         if (sdl.window != NULL) sdl.surface = SDL_GetWindowSurface(sdl.window);
 #else
-        SDL_Surface* SDL_SetVideoMode(int width,int height,int bpp,Bit32u flags);
+        SDL_Surface* SDL_SetVideoMode(int width,int height,int bpp,uint32_t flags);
         sdl.surface = SDL_SetVideoMode(glide.width,glide.height,0,(glide.fullscreen[0]?SDL_FULLSCREEN:0)|SDL_ANYFORMAT);
 #endif
 	}
@@ -513,7 +513,7 @@ void grGlideShutdown(void) {
 static bool GetFileName(char * filename)
 {
     localDrive	*ldp;
-    Bit8u	drive;
+    uint8_t	drive;
     char	fullname[DOS_PATHLENGTH];
 
     // Get full path
@@ -1591,13 +1591,13 @@ static void process_msg(Bitu value)
 	// Copy the data back to DB struct if successful
 	if(mem_readd(ret)) {
 	    MEM_BlockRead32(param[2], &dbguinfo, sizeof(DBGu3dfInfo));
-	    dbguinfo.header.width = (Bit32u)guinfo.header.width;
-	    dbguinfo.header.height = (Bit32u)guinfo.header.height;
-	    dbguinfo.header.small_lod = (Bit32s)guinfo.header.small_lod;
-	    dbguinfo.header.large_lod = (Bit32s)guinfo.header.large_lod;
-	    dbguinfo.header.aspect_ratio = (Bit32s)guinfo.header.aspect_ratio;
-	    dbguinfo.header.format = (Bit32s)guinfo.header.format;
-	    dbguinfo.mem_required = (Bit32u)guinfo.mem_required;
+	    dbguinfo.header.width = (uint32_t)guinfo.header.width;
+	    dbguinfo.header.height = (uint32_t)guinfo.header.height;
+	    dbguinfo.header.small_lod = (int32_t)guinfo.header.small_lod;
+	    dbguinfo.header.large_lod = (int32_t)guinfo.header.large_lod;
+	    dbguinfo.header.aspect_ratio = (int32_t)guinfo.header.aspect_ratio;
+	    dbguinfo.header.format = (int32_t)guinfo.header.format;
+	    dbguinfo.mem_required = (uint32_t)guinfo.mem_required;
 	    MEM_BlockWrite32(param[2], &dbguinfo, sizeof(DBGu3dfInfo));
 	}
 
@@ -1627,7 +1627,7 @@ static void process_msg(Bitu value)
 	// Copy the data back to DB struct if successful
 	if(mem_readd(ret)) {
 	    for(j=0;j<256;j++)
-		dbguinfo.table.palette.data[j] = (Bit32u)guinfo.table.palette.data[j];
+		dbguinfo.table.palette.data[j] = (uint32_t)guinfo.table.palette.data[j];
 	    MEM_BlockWrite(dbguinfo.data, guinfo.data, guinfo.mem_required);
 	}
 
@@ -1812,10 +1812,10 @@ static void process_msg(Bitu value)
 	    texsize = FP.grRFunction1i1p(mipmap->odd_even_mask, &texinfo);
 
 	    MEM_BlockRead(param[2], texmem, texsize);
-	    MEM_BlockRead32(param[3], (Bit8u*)texmem+texsize, sizeof(GuNccTable));
+	    MEM_BlockRead32(param[3], (uint8_t*)texmem+texsize, sizeof(GuNccTable));
 
 	    FP.grFunction1i2p = (pfunc1i2p)fn_pt[i];
-	    FP.grFunction1i2p(param[1], texmem, (Bit8u*)texmem+texsize);
+	    FP.grFunction1i2p(param[1], texmem, (uint8_t*)texmem+texsize);
 	} else {
 	    LOG_MSG("Glide:Unable to get GrMipMapInfo pointer");
 	}

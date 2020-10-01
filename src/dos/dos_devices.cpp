@@ -39,28 +39,28 @@ extern char * dos_clipboard_device_name;
 class device_NUL : public DOS_Device {
 public:
 	device_NUL() { SetName("NUL"); };
-	virtual bool Read(Bit8u * data,Bit16u * size) {
+	virtual bool Read(uint8_t * data,uint16_t * size) {
         (void)data; // UNUSED
 		*size = 0; //Return success and no data read. 
 //		LOG(LOG_IOCTL,LOG_NORMAL)("%s:READ",GetName());
 		return true;
 	}
-	virtual bool Write(const Bit8u * data,Bit16u * size) {
+	virtual bool Write(const uint8_t * data,uint16_t * size) {
         (void)data; // UNUSED
         (void)size; // UNUSED
 //		LOG(LOG_IOCTL,LOG_NORMAL)("%s:WRITE",GetName());
 		return true;
 	}
-	virtual bool Seek(Bit32u * pos,Bit32u type) {
+	virtual bool Seek(uint32_t * pos,uint32_t type) {
         (void)type;
         (void)pos;
 //		LOG(LOG_IOCTL,LOG_NORMAL)("%s:SEEK",GetName());
 		return true;
 	}
 	virtual bool Close() { return true; }
-	virtual Bit16u GetInformation(void) { return 0x8084; }
-	virtual bool ReadFromControlChannel(PhysPt bufptr,Bit16u size,Bit16u * retcode) { (void)bufptr; (void)size; (void)retcode; return false; }
-	virtual bool WriteToControlChannel(PhysPt bufptr,Bit16u size,Bit16u * retcode) { (void)bufptr; (void)size; (void)retcode; return false; }
+	virtual uint16_t GetInformation(void) { return 0x8084; }
+	virtual bool ReadFromControlChannel(PhysPt bufptr,uint16_t size,uint16_t * retcode) { (void)bufptr; (void)size; (void)retcode; return false; }
+	virtual bool WriteToControlChannel(PhysPt bufptr,uint16_t size,uint16_t * retcode) { (void)bufptr; (void)size; (void)retcode; return false; }
 };
 
 class device_PRN : public DOS_Device {
@@ -68,18 +68,18 @@ public:
 	device_PRN() {
 		SetName("PRN");
 	}
-	bool Read(Bit8u * data,Bit16u * size) {
+	bool Read(uint8_t * data,uint16_t * size) {
         (void)data; // UNUSED
         (void)size; // UNUSED
 		DOS_SetError(DOSERR_ACCESS_DENIED);
 		return false;
 	}
-	bool Write(const Bit8u * data,Bit16u * size) {
+	bool Write(const uint8_t * data,uint16_t * size) {
 		for(int i = 0; i < 3; i++) {
 			// look up a parallel port
 			if(parallelPortObjects[i] != NULL) {
 				// send the data
-				for (Bit16u j=0; j<*size; j++) {
+				for (uint16_t j=0; j<*size; j++) {
 					if(!parallelPortObjects[i]->Putchar(data[j])) return false;
 				}
 				return true;
@@ -87,12 +87,12 @@ public:
 		}
 		return false;
 	}
-	bool Seek(Bit32u * pos,Bit32u type) {
+	bool Seek(uint32_t * pos,uint32_t type) {
         (void)type; // UNUSED
 		*pos = 0;
 		return true;
 	}
-	Bit16u GetInformation(void) {
+	uint16_t GetInformation(void) {
 		return 0x80A0;
 	}
 	bool Close() {
@@ -102,15 +102,15 @@ public:
 
 #if defined(WIN32)
 bool lastwrite = false;
-Bit8u *clipAscii = NULL;
-Bit32u clipSize = 0, cPointer = 0, fPointer;
+uint8_t *clipAscii = NULL;
+uint32_t clipSize = 0, cPointer = 0, fPointer;
 
-void Unicode2Ascii(const Bit16u* unicode)
+void Unicode2Ascii(const uint16_t* unicode)
 	{
 	int memNeeded = WideCharToMultiByte(dos.loaded_codepage, WC_NO_BEST_FIT_CHARS, (LPCWSTR)unicode, -1, NULL, 0, "\x07", NULL);
 	if (memNeeded <= 1)																// Includes trailing null
 		return;
-	if (!(clipAscii = (Bit8u *)malloc(memNeeded)))
+	if (!(clipAscii = (uint8_t *)malloc(memNeeded)))
 		return;
 	// Untranslated characters will be set to 0x07 (BEL), and later stripped
 	if (WideCharToMultiByte(dos.loaded_codepage, WC_NO_BEST_FIT_CHARS, (LPCWSTR)unicode, -1, (LPSTR)clipAscii, memNeeded, "\x07", NULL) != memNeeded)
@@ -138,7 +138,7 @@ bool getClipboard()
 		{
 		if (HANDLE cbText = GetClipboardData(CF_UNICODETEXT))
 			{
-			Bit16u *unicode = (Bit16u *)GlobalLock(cbText);
+			uint16_t *unicode = (uint16_t *)GlobalLock(cbText);
 			Unicode2Ascii(unicode);
 			GlobalUnlock(cbText);
 			}
@@ -147,7 +147,7 @@ bool getClipboard()
 	return clipSize != 0;
 	}
 
-Bit16u cpMap[256] = {
+uint16_t cpMap[256] = {
 	0x0020, 0x263a, 0x263b, 0x2665, 0x2666, 0x2663, 0x2660, 0x2219, 0x25d8, 0x25cb, 0x25d9, 0x2642, 0x2640, 0x266a, 0x266b, 0x263c,
 	0x25ba, 0x25c4, 0x2195, 0x203c, 0x00b6, 0x00a7, 0x25ac, 0x21a8, 0x2191, 0x2193, 0x2192, 0x2190, 0x221f, 0x2194, 0x25b2, 0x25bc,
 	0x0020, 0x0021, 0x0022, 0x0023, 0x0024, 0x0025, 0x0026, 0x0027, 0x0028, 0x0029, 0x002a, 0x002b, 0x002c, 0x002d, 0x002e, 0x002f,
@@ -197,9 +197,9 @@ private:
 			if (fh)
 				{
 				fprintf(fh, "\xff\xfe");											// It's a Unicode text file
-				for (Bit32u i = 0; i < rawdata.size(); i++)
+				for (uint32_t i = 0; i < rawdata.size(); i++)
 					{
-					Bit16u textChar =  (Bit8u)rawdata[i];
+					uint16_t textChar =  (uint8_t)rawdata[i];
 					switch (textChar)
 						{
 					case 9:																// Tab
@@ -231,7 +231,7 @@ private:
 				{
 				int bytes = ftell(fh);
 				HGLOBAL hCbData = GlobalAlloc(NULL, bytes);
-				Bit8u* pChData = (Bit8u*)GlobalLock(hCbData);
+				uint8_t* pChData = (uint8_t*)GlobalLock(hCbData);
 				if (pChData)
 					{
 					fseek(fh, 2, SEEK_SET);											// Skip Unicode signature
@@ -256,7 +256,7 @@ public:
 		strcpy(tmpAscii, "#clip$.asc");
 		strcpy(tmpUnicode, "#clip$.txt");
 	}
-	virtual bool Read(Bit8u * data,Bit16u * size) {
+	virtual bool Read(uint8_t * data,uint16_t * size) {
 		if(control->SecureMode()||!(dos_clipboard_device_access==2||dos_clipboard_device_access==4)) {
 			*size = 0;
 			return true;
@@ -270,24 +270,24 @@ public:
 		if (fPointer >= clipSize)
 			*size = 0;
 		else if (fPointer+*size > clipSize)
-			*size = (Bit16u)(clipSize-fPointer);
+			*size = (uint16_t)(clipSize-fPointer);
 		if (*size > 0) {
 			memmove(data, clipAscii+fPointer, *size);
 			fPointer += *size;
 		}
 		return true;
 	}
-	virtual bool Write(const Bit8u * data,Bit16u * size) {
+	virtual bool Write(const uint8_t * data,uint16_t * size) {
 		if(control->SecureMode()||!(dos_clipboard_device_access==3||dos_clipboard_device_access==4)) {
 			DOS_SetError(DOSERR_ACCESS_DENIED);
 			return false;
 		}
 		lastwrite=true;
-        const Bit8u* datasrc = (Bit8u*)data;
-		Bit8u * datadst = (Bit8u *) data;
+        const uint8_t* datasrc = (uint8_t*)data;
+		uint8_t * datadst = (uint8_t *) data;
 
 		int numSpaces = 0;
-		for (Bit16u idx = *size; idx; idx--)
+		for (uint16_t idx = *size; idx; idx--)
 			{
 			if (*datasrc == ' ')														// Put spaces on hold
 				numSpaces++;
@@ -303,7 +303,7 @@ public:
 			}
 		while (numSpaces--)
 			*(datadst++) = ' ';
-		if (Bit16u newsize = (Bit16u)(datadst - data))									// If data
+		if (uint16_t newsize = (uint16_t)(datadst - data))									// If data
 			{
 			if (rawdata.capacity() < 100000)											// Prevent repetive size allocations
 				rawdata.reserve(100000);
@@ -311,7 +311,7 @@ public:
 			}
 		return true;
 	}
-	virtual bool Seek(Bit32u * pos,Bit32u type) {
+	virtual bool Seek(uint32_t * pos,uint32_t type) {
 		if(control->SecureMode()||!(dos_clipboard_device_access==2||dos_clipboard_device_access==4)) {
 			*pos = 0;
 			return true;
@@ -322,7 +322,7 @@ public:
 			getClipboard();
 			fPointer =0;
 			}
-		Bit32s newPos;
+		int32_t newPos;
 		switch (type)
 			{
 		case 0:																			// Start of file
@@ -340,7 +340,7 @@ public:
 			return false;
 			}
 			}
-		if (newPos > (Bit32s)clipSize)													// Different from "real" Files
+		if (newPos > (int32_t)clipSize)													// Different from "real" Files
 			newPos = clipSize;
 		else if (newPos < 0)
 			newPos = 0;
@@ -363,21 +363,21 @@ public:
 		CommitData();
 		return true;
 	}
-	Bit16u GetInformation(void) {
+	uint16_t GetInformation(void) {
 		return 0x80E0;
 	}
 };
 #endif
 
-bool DOS_Device::Read(Bit8u * data,Bit16u * size) {
+bool DOS_Device::Read(uint8_t * data,uint16_t * size) {
 	return Devices[devnum]->Read(data,size);
 }
 
-bool DOS_Device::Write(const Bit8u * data,Bit16u * size) {
+bool DOS_Device::Write(const uint8_t * data,uint16_t * size) {
 	return Devices[devnum]->Write(data,size);
 }
 
-bool DOS_Device::Seek(Bit32u * pos,Bit32u type) {
+bool DOS_Device::Seek(uint32_t * pos,uint32_t type) {
 	return Devices[devnum]->Seek(pos,type);
 }
 
@@ -385,15 +385,15 @@ bool DOS_Device::Close() {
 	return Devices[devnum]->Close();
 }
 
-Bit16u DOS_Device::GetInformation(void) { 
+uint16_t DOS_Device::GetInformation(void) { 
 	return Devices[devnum]->GetInformation();
 }
 
-bool DOS_Device::ReadFromControlChannel(PhysPt bufptr,Bit16u size,Bit16u * retcode) { 
+bool DOS_Device::ReadFromControlChannel(PhysPt bufptr,uint16_t size,uint16_t * retcode) { 
 	return Devices[devnum]->ReadFromControlChannel(bufptr,size,retcode);
 }
 
-bool DOS_Device::WriteToControlChannel(PhysPt bufptr,Bit16u size,Bit16u * retcode) { 
+bool DOS_Device::WriteToControlChannel(PhysPt bufptr,uint16_t size,uint16_t * retcode) { 
 	return Devices[devnum]->WriteToControlChannel(bufptr,size,retcode);
 }
 
@@ -425,9 +425,9 @@ DOS_File& DOS_File::operator= (const DOS_File& orig) {
     return *this;
 }
 
-Bit8u DOS_FindDevice(char const * name) {
+uint8_t DOS_FindDevice(char const * name) {
 	/* should only check for the names before the dot and spacepadded */
-	char fullname[DOS_PATHLENGTH];Bit8u drive;
+	char fullname[DOS_PATHLENGTH];uint8_t drive;
 //	if(!name || !(*name)) return DOS_DEVICES; //important, but makename does it
 	if (!DOS_MakeName(name,fullname,&drive)) return DOS_DEVICES;
 
@@ -450,7 +450,7 @@ Bit8u DOS_FindDevice(char const * name) {
 	if (strcmp(name_part, "PRN") == 0) name_part = lpt;
 
 	/* loop through devices */
-	for(Bit8u index = 0;index < DOS_DEVICES;index++) {
+	for(uint8_t index = 0;index < DOS_DEVICES;index++) {
 		if (Devices[index]) {
 			if (WildFileCmp(name_part,Devices[index]->name)) return index;
 		}
@@ -538,13 +538,13 @@ void DOS_SetupDevices(void) {
 /* PC-98 INT DC CL=0x10 AH=0x00 DL=cjar */
 void PC98_INTDC_WriteChar(unsigned char b) {
     if (DOS_CON != NULL) {
-        Bit16u sz = 1;
+        uint16_t sz = 1;
 
         DOS_CON->Write(&b,&sz);
     }
 }
 
-void INTDC_CL10h_AH03h(Bit16u raw) {
+void INTDC_CL10h_AH03h(uint16_t raw) {
     if (DOS_CON != NULL)
         DOS_CON->INTDC_CL10h_AH03h(raw);
 }
@@ -559,22 +559,22 @@ void INTDC_CL10h_AH05h(void) {
         DOS_CON->INTDC_CL10h_AH05h();
 }
 
-void INTDC_CL10h_AH06h(Bit16u count) {
+void INTDC_CL10h_AH06h(uint16_t count) {
     if (DOS_CON != NULL)
         DOS_CON->INTDC_CL10h_AH06h(count);
 }
 
-void INTDC_CL10h_AH07h(Bit16u count) {
+void INTDC_CL10h_AH07h(uint16_t count) {
     if (DOS_CON != NULL)
         DOS_CON->INTDC_CL10h_AH07h(count);
 }
 
-void INTDC_CL10h_AH08h(Bit16u count) {
+void INTDC_CL10h_AH08h(uint16_t count) {
     if (DOS_CON != NULL)
         DOS_CON->INTDC_CL10h_AH08h(count);
 }
 
-void INTDC_CL10h_AH09h(Bit16u count) {
+void INTDC_CL10h_AH09h(uint16_t count) {
     if (DOS_CON != NULL)
         DOS_CON->INTDC_CL10h_AH09h(count);
 }
@@ -582,7 +582,7 @@ void INTDC_CL10h_AH09h(Bit16u count) {
 Bitu INT29_HANDLER(void) {
     if (DOS_CON != NULL) {
         unsigned char b = reg_al;
-        Bit16u sz = 1;
+        uint16_t sz = 1;
 
         DOS_CON->Write(&b,&sz);
     }

@@ -87,32 +87,32 @@ MMX_reg * lookupRMregMM[256]={
 };
 
 
-Bit8s SaturateWordSToByteS(Bit16s value)
+int8_t SaturateWordSToByteS(int16_t value)
 {
   if(value < -128) return -128;
   if(value >  127) return  127;
-  return (Bit8s) value;
+  return (int8_t) value;
 }
 
-Bit16s SaturateDwordSToWordS(Bit32s value)
+int16_t SaturateDwordSToWordS(int32_t value)
 {
   if(value < -32768) return -32768;
   if(value >  32767) return  32767;
-  return (Bit16s) value;
+  return (int16_t) value;
 }
 
-Bit8u SaturateWordSToByteU(Bit16s value)
+uint8_t SaturateWordSToByteU(int16_t value)
 {
   if(value < 0) return 0;
   if(value > 255) return 255;
-  return (Bit8u) value;
+  return (uint8_t) value;
 }
 
-Bit16u SaturateDwordSToWordU(Bit32s value)
+uint16_t SaturateDwordSToWordU(int32_t value)
 {
   if(value < 0) return 0;
   if(value > 65535) return 65535;
-  return (Bit16u) value;
+  return (uint16_t) value;
 }
 
 void setFPUTagEmpty() {

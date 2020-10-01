@@ -26,7 +26,7 @@ struct GLIDE_Block
     bool splash;
     bool enabled;
     bool * fullscreen;
-    Bit16u width, height;
+    uint16_t width, height;
     class GLIDE_PageHandler * lfb_pagehandler;
     GLIDE_Block():enabled(false),fullscreen(0),width(0),height(0),lfb_pagehandler((GLIDE_PageHandler*)0) { }
 };

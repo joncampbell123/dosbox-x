@@ -25,7 +25,7 @@ namespace MT32Emu {
 
 class LA32Ramp {
 private:
-	Bit32u current;
+	uint32_t current;
 	unsigned int largeTarget;
 	unsigned int largeIncrement;
 	bool descending;
@@ -35,11 +35,11 @@ private:
 
 public:
 	LA32Ramp();
-	void startRamp(Bit8u target, Bit8u increment);
-	Bit32u nextValue();
+	void startRamp(uint8_t target, uint8_t increment);
+	uint32_t nextValue();
 	bool checkInterrupt();
 	void reset();
-	bool isBelowCurrent(Bit8u target) const;
+	bool isBelowCurrent(uint8_t target) const;
 };
 
 } // namespace MT32Emu

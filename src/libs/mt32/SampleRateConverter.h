@@ -48,7 +48,7 @@ public:
 
 	// Fills the provided output buffer with the results of the sample rate conversion.
 	// The input samples are automatically retrieved from the synth as necessary.
-	void getOutputSamples(MT32Emu::Bit16s *buffer, unsigned int length);
+	void getOutputSamples(MT32Emu::int16_t *buffer, unsigned int length);
 
 	// Fills the provided output buffer with the results of the sample rate conversion.
 	// The input samples are automatically retrieved from the synth as necessary.

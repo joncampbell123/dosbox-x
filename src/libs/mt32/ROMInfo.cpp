@@ -23,7 +23,7 @@
 
 namespace MT32Emu {
 
-static const ROMInfo *getKnownROMInfoFromList(Bit32u index) {
+static const ROMInfo *getKnownROMInfoFromList(uint32_t index) {
 	// Known ROMs
 	static const ROMInfo CTRL_MT32_V1_04 = {65536, "5a5cb5a77d7d55ee69657c2f870416daed52dea7", ROMInfo::Control, "ctrl_mt32_1_04", "MT-32 Control v1.04", ROMInfo::Full, NULL};
 	static const ROMInfo CTRL_MT32_V1_05 = {65536, "e17a3a6d265bf1fa150312061134293d2b58288c", ROMInfo::Control, "ctrl_mt32_1_05", "MT-32 Control v1.05", ROMInfo::Full, NULL};
@@ -56,7 +56,7 @@ static const ROMInfo *getKnownROMInfoFromList(Bit32u index) {
 
 const ROMInfo* ROMInfo::getROMInfo(File *file) {
 	size_t fileSize = file->getSize();
-	for (Bit32u i = 0; getKnownROMInfoFromList(i) != NULL; i++) {
+	for (uint32_t i = 0; getKnownROMInfoFromList(i) != NULL; i++) {
 		const ROMInfo *romInfo = getKnownROMInfoFromList(i);
 		if (fileSize == romInfo->fileSize && !strcmp(file->getSHA1(), romInfo->sha1Digest)) {
 			return romInfo;
@@ -69,17 +69,17 @@ void ROMInfo::freeROMInfo(const ROMInfo *romInfo) {
 	(void) romInfo;
 }
 
-static Bit32u getROMCount() {
-	Bit32u count;
+static uint32_t getROMCount() {
+	uint32_t count;
 	for(count = 0; getKnownROMInfoFromList(count) != NULL; count++) {
 	}
 	return count;
 }
 
-const ROMInfo** ROMInfo::getROMInfoList(Bit32u types, Bit32u pairTypes) {
+const ROMInfo** ROMInfo::getROMInfoList(uint32_t types, uint32_t pairTypes) {
 	const ROMInfo **romInfoList = new const ROMInfo*[getROMCount() + 1];
 	const ROMInfo **currentROMInList = romInfoList;
-	for (Bit32u i = 0; getKnownROMInfoFromList(i) != NULL; i++) {
+	for (uint32_t i = 0; getKnownROMInfoFromList(i) != NULL; i++) {
 		const ROMInfo *romInfo = getKnownROMInfoFromList(i);
 		if ((types & (1 << romInfo->type)) && (pairTypes & (1 << romInfo->pairType))) {
 			*currentROMInList++ = romInfo;

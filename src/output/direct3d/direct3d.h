@@ -87,7 +87,7 @@ private:
     DWORD dwX = 0, dwY = 0;					// X,Y position
     DWORD dwWidth, dwHeight;                            // DOSBox framebuffer size
     DWORD dwScaledWidth = 0, dwScaledHeight = 0;                // D3D backbuffer size
-    const Bit16u* changedLines = NULL;
+    const uint16_t* changedLines = NULL;
 
 	int					backbuffer_clear_countdown = 0;
 
@@ -178,7 +178,7 @@ public:
     DWORD	dwTexHeight = 0, dwTexWidth = 0;
 
     bool 	square = false, pow2 = false, dynamic = false, bpp16;		// Texture limitations
-    Bit8s 	aspect, autofit = 0;
+    int8_t 	aspect, autofit = 0;
 
     // Pixel shader status
     bool 	psActive;
@@ -187,10 +187,10 @@ public:
     HRESULT InitializeDX(HWND, bool);
     HRESULT LoadPixelShader(const char*, double, double, bool forced=false);
     HRESULT Resize3DEnvironment(Bitu, Bitu, Bitu, Bitu, Bitu, Bitu, Bitu, Bitu, bool fullscreen=false);
-    bool LockTexture(Bit8u * & pixels,Bitu & pitch);
-    bool UnlockTexture(const Bit16u *changed);
+    bool LockTexture(uint8_t * & pixels,Bitu & pitch);
+    bool UnlockTexture(const uint16_t *changed);
 
-    CDirect3D(Bit32u width = 640, Bit32u height = 400):dwWidth(width),dwHeight(height) {
+    CDirect3D(uint32_t width = 640, uint32_t height = 400):dwWidth(width),dwHeight(height) {
 	mhmodDX9 = NULL;
 	pD3D9 = NULL;
 	pD3DDevice9 = NULL;

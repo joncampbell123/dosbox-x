@@ -93,12 +93,12 @@ int Voodoo_OGL_GetWidth();
 int Voodoo_OGL_GetHeight();
 bool Voodoo_OGL_Active();
 
-static SDL_Surface* SetupSurfaceScaledOpenGL(Bit32u sdl_flags, Bit32u bpp) 
+static SDL_Surface* SetupSurfaceScaledOpenGL(uint32_t sdl_flags, uint32_t bpp) 
 {
-    Bit16u fixedWidth;
-    Bit16u fixedHeight;
-    Bit16u windowWidth;
-    Bit16u windowHeight;
+    uint16_t fixedWidth;
+    uint16_t fixedHeight;
+    uint16_t windowWidth;
+    uint16_t windowHeight;
 
 retry:
 #if defined(C_SDL2)
@@ -150,9 +150,9 @@ retry:
         int scale = 1;
 
         if (cw == 0)
-            cw = (Bit16u)(sdl.draw.width*sdl.draw.scalex);
+            cw = (uint16_t)(sdl.draw.width*sdl.draw.scalex);
         if (ch == 0)
-            ch = (Bit16u)(sdl.draw.height*sdl.draw.scaley);
+            ch = (uint16_t)(sdl.draw.height*sdl.draw.scaley);
 
         while ((cw / scale) >= (640 * 2) && (ch / scale) >= (400 * 2))
             scale++;
@@ -169,8 +169,8 @@ retry:
     if (Voodoo_OGL_GetWidth() != 0 && Voodoo_OGL_GetHeight() != 0 && Voodoo_OGL_Active() && sdl.desktop.prevent_fullscreen)
     { 
         /* 3Dfx openGL do not allow resize */
-        sdl.clip.w = windowWidth = (Bit16u)Voodoo_OGL_GetWidth();
-        sdl.clip.h = windowHeight = (Bit16u)Voodoo_OGL_GetHeight();
+        sdl.clip.w = windowWidth = (uint16_t)Voodoo_OGL_GetWidth();
+        sdl.clip.h = windowHeight = (uint16_t)Voodoo_OGL_GetHeight();
     }
     else if (fixedWidth && fixedHeight) 
     {
@@ -180,8 +180,8 @@ retry:
     }
     else 
     {
-        windowWidth = (Bit16u)(sdl.draw.width * sdl.draw.scalex);
-        windowHeight = (Bit16u)(sdl.draw.height * sdl.draw.scaley);
+        windowWidth = (uint16_t)(sdl.draw.width * sdl.draw.scalex);
+        windowHeight = (uint16_t)(sdl.draw.height * sdl.draw.scaley);
         if (render.aspect) aspectCorrectExtend(windowWidth, windowHeight);
         sdl.clip.w = windowWidth; sdl.clip.h = windowHeight;
     }
@@ -660,7 +660,7 @@ Bitu OUTPUT_OPENGL_SetSize()
 
         /* load the font */
         {
-            extern Bit8u int10_font_16[256 * 16];
+            extern uint8_t int10_font_16[256 * 16];
 
             uint32_t tmp[8 * 16];
             unsigned int x, y, c;
@@ -698,13 +698,13 @@ Bitu OUTPUT_OPENGL_SetSize()
     return retFlags;
 }
 
-bool OUTPUT_OPENGL_StartUpdate(Bit8u* &pixels, Bitu &pitch)
+bool OUTPUT_OPENGL_StartUpdate(uint8_t* &pixels, Bitu &pitch)
 {
 #if C_XBRZ    
     if (sdl_xbrz.enable && sdl_xbrz.scale_on) 
     {
         sdl_xbrz.renderbuf.resize(sdl.draw.width * sdl.draw.height);
-        pixels = sdl_xbrz.renderbuf.empty() ? nullptr : reinterpret_cast<Bit8u*>(&sdl_xbrz.renderbuf[0]);
+        pixels = sdl_xbrz.renderbuf.empty() ? nullptr : reinterpret_cast<uint8_t*>(&sdl_xbrz.renderbuf[0]);
         pitch = sdl.draw.width * sizeof(uint32_t);
     }
     else
@@ -713,11 +713,11 @@ bool OUTPUT_OPENGL_StartUpdate(Bit8u* &pixels, Bitu &pitch)
         if (sdl_opengl.pixel_buffer_object)
         {
             glBindBufferARB(GL_PIXEL_UNPACK_BUFFER_EXT, sdl_opengl.buffer);
-            pixels = (Bit8u *)glMapBufferARB(GL_PIXEL_UNPACK_BUFFER_EXT, GL_WRITE_ONLY);
+            pixels = (uint8_t *)glMapBufferARB(GL_PIXEL_UNPACK_BUFFER_EXT, GL_WRITE_ONLY);
         }
         else
         {
-            pixels = (Bit8u *)sdl_opengl.framebuf;
+            pixels = (uint8_t *)sdl_opengl.framebuf;
         }
         pitch = sdl_opengl.pitch;
     }
@@ -726,7 +726,7 @@ bool OUTPUT_OPENGL_StartUpdate(Bit8u* &pixels, Bitu &pitch)
     return true;
 }
 
-void OUTPUT_OPENGL_EndUpdate(const Bit16u *changedLines)
+void OUTPUT_OPENGL_EndUpdate(const uint16_t *changedLines)
 {
     if (!(sdl.must_redraw_all && changedLines == NULL)) 
     {
@@ -750,8 +750,8 @@ void OUTPUT_OPENGL_EndUpdate(const Bit16u *changedLines)
         if (sdl_xbrz.enable && sdl_xbrz.scale_on)
         {
             // OpenGL pixel buffer is precreated for direct xBRZ output, while xBRZ render buffer is used for rendering
-            const Bit32u srcWidth = sdl.draw.width;
-            const Bit32u srcHeight = sdl.draw.height;
+            const uint32_t srcWidth = sdl.draw.width;
+            const uint32_t srcHeight = sdl.draw.height;
 
             if (sdl_xbrz.renderbuf.size() == (unsigned int)srcWidth * (unsigned int)srcHeight && srcWidth > 0 && srcHeight > 0)
             {
@@ -800,7 +800,7 @@ void OUTPUT_OPENGL_EndUpdate(const Bit16u *changedLines)
                     // works on Linux
                     GL_UNSIGNED_INT_8_8_8_8_REV,
 #endif
-                    (Bit8u *)sdl_opengl.framebuf);
+                    (uint8_t *)sdl_opengl.framebuf);
             }
             glCallList(sdl_opengl.displaylist);
             SDL_GL_SwapBuffers();
@@ -843,7 +843,7 @@ void OUTPUT_OPENGL_EndUpdate(const Bit16u *changedLines)
                 }
                 else 
                 {
-                    Bit8u *pixels = (Bit8u *)sdl_opengl.framebuf + y * sdl_opengl.pitch;
+                    uint8_t *pixels = (uint8_t *)sdl_opengl.framebuf + y * sdl_opengl.pitch;
                     Bitu height = changedLines[index];
                     glTexSubImage2D(GL_TEXTURE_2D, 0, 0, (int)y,
                         (int)sdl.draw.width, (int)height, GL_BGRA_EXT,

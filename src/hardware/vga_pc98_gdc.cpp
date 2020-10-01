@@ -304,7 +304,7 @@ void PC98_GDC_state::take_cursor_char_setup(unsigned char bi) {
 }
 
 void PC98_GDC_state::idle_proc(void) {
-    Bit16u val;
+    uint16_t val;
 
     if (fifo_empty())
         return;
@@ -428,8 +428,8 @@ bool PC98_GDC_state::fifo_empty(void) {
     return (fifo_read >= fifo_write);
 }
 
-Bit16u PC98_GDC_state::read_fifo(void) {
-    Bit16u val;
+uint16_t PC98_GDC_state::read_fifo(void) {
+    uint16_t val;
 
     val = fifo[fifo_read];
     if (fifo_read < fifo_write)
@@ -748,7 +748,7 @@ void pc98_gdc_write(Bitu port,Bitu val,Bitu iolen) {
                 if (gdc_analog) { /* 16/256-color mode */
                     if (pc98_gdc_vramop & (1 << VOPBIT_VGA)) {
                         pc98_pal_vga[(3*pc98_16col_analog_rgb_palette_index) + 0] = (uint8_t)val;
-                        vga.dac.rgb[pc98_16col_analog_rgb_palette_index].green = (Bit8u)val;
+                        vga.dac.rgb[pc98_16col_analog_rgb_palette_index].green = (uint8_t)val;
                         VGA_DAC_UpdateColor(pc98_16col_analog_rgb_palette_index);
                     }
                     else {
@@ -773,7 +773,7 @@ void pc98_gdc_write(Bitu port,Bitu val,Bitu iolen) {
                 if (gdc_analog) { /* 16/256-color mode */
                     if (pc98_gdc_vramop & (1 << VOPBIT_VGA)) {
                         pc98_pal_vga[(3*pc98_16col_analog_rgb_palette_index) + 1] = (uint8_t)val;
-                        vga.dac.rgb[pc98_16col_analog_rgb_palette_index].red = (Bit8u)val;
+                        vga.dac.rgb[pc98_16col_analog_rgb_palette_index].red = (uint8_t)val;
                         VGA_DAC_UpdateColor(pc98_16col_analog_rgb_palette_index);
                     }
                     else {
@@ -798,7 +798,7 @@ void pc98_gdc_write(Bitu port,Bitu val,Bitu iolen) {
                 if (gdc_analog) { /* 16/256-color mode */
                     if (pc98_gdc_vramop & (1 << VOPBIT_VGA)) {
                         pc98_pal_vga[(3*pc98_16col_analog_rgb_palette_index) + 2] = (uint8_t)val;
-                        vga.dac.rgb[pc98_16col_analog_rgb_palette_index].blue = (Bit8u)val;
+                        vga.dac.rgb[pc98_16col_analog_rgb_palette_index].blue = (uint8_t)val;
                         VGA_DAC_UpdateColor(pc98_16col_analog_rgb_palette_index);
                     }
                     else {

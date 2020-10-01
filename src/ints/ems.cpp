@@ -114,12 +114,12 @@ enum {
 };
 
 struct EMM_Mapping {
-	Bit16u handle;
-	Bit16u page;
+	uint16_t handle;
+	uint16_t page;
 };
 
 struct EMM_Handle {
-	Bit16u pages;
+	uint16_t pages;
 	MemHandle mem;
 	char name[8];
 	bool saved_page_map;
@@ -144,7 +144,7 @@ static EMM_Handle emm_handles[EMM_MAX_HANDLES];
 static EMM_Mapping emm_mappings[EMM_MAX_PHYS];
 static EMM_Mapping emm_segmentmappings[0x40];
 
-bool EMS_GetMapping(Bitu &handle,Bit16u &log_page,Bitu ems_page) {
+bool EMS_GetMapping(Bitu &handle,uint16_t &log_page,Bitu ems_page) {
     if (ems_page < EMM_MAX_PHYS) {
         auto &x = emm_mappings[ems_page];
 
@@ -186,7 +186,7 @@ bool EMS_Active(void) {
     return ems_type != EMS_NONE;
 }
 
-static Bit16u GEMMIS_seg; 
+static uint16_t GEMMIS_seg; 
 
 class device_EMM : public DOS_Device {
 public:
@@ -194,22 +194,22 @@ public:
 		SetName("EMMXXXX0");
 		GEMMIS_seg=0;
 	}
-	bool Read(Bit8u * /*data*/,Bit16u * /*size*/) { return false;}
-	bool Write(const Bit8u * /*data*/,Bit16u * /*size*/){ 
+	bool Read(uint8_t * /*data*/,uint16_t * /*size*/) { return false;}
+	bool Write(const uint8_t * /*data*/,uint16_t * /*size*/){ 
 		LOG(LOG_IOCTL,LOG_NORMAL)("EMS:Write to device");	
 		return false;
 	}
-	bool Seek(Bit32u * /*pos*/,Bit32u /*type*/){return false;}
+	bool Seek(uint32_t * /*pos*/,uint32_t /*type*/){return false;}
 	bool Close(){return false;}
-	Bit16u GetInformation(void){return 0xc0c0;}
-	bool ReadFromControlChannel(PhysPt bufptr,Bit16u size,Bit16u * retcode);
-	bool WriteToControlChannel(PhysPt /*bufptr*/,Bit16u /*size*/,Bit16u * /*retcode*/){return true;}
+	uint16_t GetInformation(void){return 0xc0c0;}
+	bool ReadFromControlChannel(PhysPt bufptr,uint16_t size,uint16_t * retcode);
+	bool WriteToControlChannel(PhysPt /*bufptr*/,uint16_t /*size*/,uint16_t * /*retcode*/){return true;}
 private:
-//	Bit8u cache;
+//	uint8_t cache;
 	bool is_emm386;
 };
 
-bool device_EMM::ReadFromControlChannel(PhysPt bufptr,Bit16u size,Bit16u * retcode) { 
+bool device_EMM::ReadFromControlChannel(PhysPt bufptr,uint16_t size,uint16_t * retcode) { 
 	Bitu subfct=mem_readb(bufptr);
 	switch (subfct) {
 		case 0x00:
@@ -243,7 +243,7 @@ bool device_EMM::ReadFromControlChannel(PhysPt bufptr,Bit16u size,Bit16u * retco
 				mem_writeb(GEMMIS_addr+0x0a+frnr,0x03);		// frame type: EMS frame in 64k page
 				mem_writeb(GEMMIS_addr+0x0b+frnr,0xff);		// owner: NONE
 				mem_writew(GEMMIS_addr+0x0c+frnr,0x7fff);	// no logical page number
-				mem_writeb(GEMMIS_addr+0x0e + frnr,(Bit8u)(frct&0xff));		// physical EMS page number
+				mem_writeb(GEMMIS_addr+0x0e + frnr,(uint8_t)(frct&0xff));		// physical EMS page number
 				mem_writeb(GEMMIS_addr+0x0f+frnr,0x00);		// EMS frame
 			}
 			/* build non-EMS ROM frames (0xf000-0x10000) */
@@ -286,7 +286,7 @@ bool device_EMM::ReadFromControlChannel(PhysPt bufptr,Bit16u size,Bit16u * retco
 			if (!is_emm386) return false;
 			if (EMM_MINOR_VERSION < 0x2d) return false;
 			if (size!=4) return false;
-			mem_writew(bufptr+0x00,(Bit16u)(MEM_TotalPages()*4ul));	// max size (kb)
+			mem_writew(bufptr+0x00,(uint16_t)(MEM_TotalPages()*4ul));	// max size (kb)
 			mem_writew(bufptr+0x02,0x80);							// min size (kb)
 			*retcode=2;
 			return true;
@@ -296,37 +296,37 @@ bool device_EMM::ReadFromControlChannel(PhysPt bufptr,Bit16u size,Bit16u * retco
 
 static struct {
 	bool enabled;
-	Bit16u ems_handle;
+	uint16_t ems_handle;
 	Bitu pm_interface;
 	MemHandle private_area;
-	Bit8u pic1_remapping,pic2_remapping;
+	uint8_t pic1_remapping,pic2_remapping;
 } vcpi ;
 
 struct MoveRegion {
-	Bit32u bytes;
-	Bit8u src_type;
-	Bit16u src_handle;
-	Bit16u src_offset;
-	Bit16u src_page_seg;
-	Bit8u dest_type;
-	Bit16u dest_handle;
-	Bit16u dest_offset;
-	Bit16u dest_page_seg;
+	uint32_t bytes;
+	uint8_t src_type;
+	uint16_t src_handle;
+	uint16_t src_offset;
+	uint16_t src_page_seg;
+	uint8_t dest_type;
+	uint16_t dest_handle;
+	uint16_t dest_offset;
+	uint16_t dest_page_seg;
 };
 
-static Bit16u EMM_GetTotalPages(void) {
+static uint16_t EMM_GetTotalPages(void) {
 	Bitu count=MEM_FreeLargest()/4;
 	if (count>0x7fff) count=0x7fff;
-	return (Bit16u)count;
+	return (uint16_t)count;
 }
 
-static Bit16u EMM_GetFreePages(void) {
+static uint16_t EMM_GetFreePages(void) {
 	Bitu count=MEM_FreeTotal()/4;
 	if (count>0x7fff) count=0x7fff;
-	return (Bit16u)count;
+	return (uint16_t)count;
 }
 
-static bool INLINE ValidHandle(Bit16u handle) {
+static bool INLINE ValidHandle(uint16_t handle) {
 	if (handle>=EMM_MAX_HANDLES) return false;
 	if (emm_handles[handle].pages==NULL_HANDLE) return false;
 	return true;
@@ -349,14 +349,14 @@ void EMS_ZeroAllocation(MemHandle mem,unsigned int pages) {
 extern bool dbg_zero_on_ems_allocmem;
 
 /* NTS: "page" in EMS refers to 16KB regions, not the 4KB memory pages we normally work with */
-static Bit8u EMM_AllocateMemory(Bit16u pages,Bit16u & dhandle,bool can_allocate_zpages) {
+static uint8_t EMM_AllocateMemory(uint16_t pages,uint16_t & dhandle,bool can_allocate_zpages) {
 	/* Check for 0 page allocation */
 	if (!pages) {
 		if (!can_allocate_zpages) return EMM_ZERO_PAGES;
 	}
 	/* Check for enough free pages */
 	if ((MEM_FreeTotal()/ 4) < pages) { return EMM_OUT_OF_LOG;}
-	Bit16u handle = 1;
+	uint16_t handle = 1;
 	/* Check for a free handle */
 	while (emm_handles[handle].pages != NULL_HANDLE) {
 		if (++handle >= EMM_MAX_HANDLES) {return EMM_OUT_OF_HANDLES;}
@@ -374,12 +374,12 @@ static Bit8u EMM_AllocateMemory(Bit16u pages,Bit16u & dhandle,bool can_allocate_
 	return EMM_NO_ERROR;
 }
 
-static Bit8u EMM_AllocateSystemHandle(Bit16u pages/*NTS: EMS pages are 16KB, this does not refer to 4KB CPU pages*/) {
+static uint8_t EMM_AllocateSystemHandle(uint16_t pages/*NTS: EMS pages are 16KB, this does not refer to 4KB CPU pages*/) {
 	MemHandle mem = 0;
 
 	/* Check for enough free pages */
 	if ((MEM_FreeTotal()/ 4) < pages) { return EMM_OUT_OF_LOG;}
-	Bit16u handle = EMM_SYSTEM_HANDLE;	// emm system handle (reserved for OS usage)
+	uint16_t handle = EMM_SYSTEM_HANDLE;	// emm system handle (reserved for OS usage)
 	/* Release memory if already allocated */
 	if (emm_handles[handle].pages != NULL_HANDLE) {
 		MEM_ReleasePages(emm_handles[handle].mem);
@@ -409,7 +409,7 @@ static Bit8u EMM_AllocateSystemHandle(Bit16u pages/*NTS: EMS pages are 16KB, thi
 	return EMM_NO_ERROR;
 }
 
-static Bit8u EMM_ReallocatePages(Bit16u handle, const Bit16u& pages) {
+static uint8_t EMM_ReallocatePages(uint16_t handle, const uint16_t& pages) {
 	/* Check for valid handle */
 	if (!ValidHandle(handle)) return EMM_INVALID_HANDLE;
 	if (emm_handles[handle].pages != 0) {
@@ -428,7 +428,7 @@ static Bit8u EMM_ReallocatePages(Bit16u handle, const Bit16u& pages) {
 Bitu XMS_EnableA20(bool enable);
 Bitu XMS_GetEnabledA20(void);
 
-static Bit8u EMM_MapPage(Bitu phys_page,Bit16u handle,Bit16u log_page) {
+static uint8_t EMM_MapPage(Bitu phys_page,uint16_t handle,uint16_t log_page) {
 //	LOG_MSG("EMS MapPage handle %d phys %d log %d",handle,phys_page,log_page);
 	/* Check for too high physical page */
 	if (phys_page>=EMM_MAX_PHYS) return EMM_ILL_PHYS;
@@ -472,7 +472,7 @@ static Bit8u EMM_MapPage(Bitu phys_page,Bit16u handle,Bit16u log_page) {
 	}
 }
 
-static Bit8u EMM_MapSegment(Bitu segment,Bit16u handle,Bit16u log_page) {
+static uint8_t EMM_MapSegment(Bitu segment,uint16_t handle,uint16_t log_page) {
 //	LOG_MSG("EMS MapSegment handle %d segment %d log %d",handle,segment,log_page);
 
 	bool valid_segment=false;
@@ -492,12 +492,12 @@ static Bit8u EMM_MapSegment(Bitu segment,Bit16u handle,Bit16u log_page) {
 	}
 
 	if (valid_segment) {
-		Bit32s tphysPage = ((Bit32s)segment-(Bit32s)EMM_PAGEFRAME)/(Bit32s)(0x1000/EMM_MAX_PHYS);
+		int32_t tphysPage = ((int32_t)segment-(int32_t)EMM_PAGEFRAME)/(int32_t)(0x1000/EMM_MAX_PHYS);
 
 		/* unmapping doesn't need valid handle (as handle isn't used) */
 		if (log_page==NULL_PAGE) {
 			/* Unmapping */
-			if ((tphysPage>=0) && ((Bit32u)tphysPage<EMM_MAX_PHYS)) {
+			if ((tphysPage>=0) && ((uint32_t)tphysPage<EMM_MAX_PHYS)) {
 				emm_mappings[tphysPage].handle=NULL_HANDLE;
 				emm_mappings[tphysPage].page=NULL_PAGE;
 			} else {
@@ -514,7 +514,7 @@ static Bit8u EMM_MapSegment(Bitu segment,Bit16u handle,Bit16u log_page) {
 		
 		if (log_page<emm_handles[handle].pages) {
 			/* Mapping it is */
-			if ((tphysPage>=0) && ((Bit32u)tphysPage<EMM_MAX_PHYS)) {
+			if ((tphysPage>=0) && ((uint32_t)tphysPage<EMM_MAX_PHYS)) {
 				emm_mappings[tphysPage].handle=handle;
 				emm_mappings[tphysPage].page=log_page;
 			} else {
@@ -538,7 +538,7 @@ static Bit8u EMM_MapSegment(Bitu segment,Bit16u handle,Bit16u log_page) {
 	return EMM_ILL_PHYS;
 }
 
-static Bit8u EMM_ReleaseMemory(Bit16u handle) {
+static uint8_t EMM_ReleaseMemory(uint16_t handle) {
 	/* Check for valid handle */
 	if (!ValidHandle(handle)) return EMM_INVALID_HANDLE;
 
@@ -561,7 +561,7 @@ static Bit8u EMM_ReleaseMemory(Bit16u handle) {
 	return EMM_NO_ERROR;
 }
 
-static Bit8u EMM_SavePageMap(Bit16u handle) {
+static uint8_t EMM_SavePageMap(uint16_t handle) {
 	/* Check for valid handle */
 	if (handle>=EMM_MAX_HANDLES || (handle != 0 && emm_handles[handle].pages==NULL_HANDLE)) {
 		return EMM_INVALID_HANDLE;
@@ -577,7 +577,7 @@ static Bit8u EMM_SavePageMap(Bit16u handle) {
 	return EMM_NO_ERROR;
 }
 
-static Bit8u EMM_RestoreMappingTable(void) {
+static uint8_t EMM_RestoreMappingTable(void) {
 	/* Move through the mappings table and setup mapping accordingly */
 	for (Bitu i=0;i<0x40;i++) {
 		/* Skip the pageframe */
@@ -590,7 +590,7 @@ static Bit8u EMM_RestoreMappingTable(void) {
 
 	return EMM_NO_ERROR;
 }
-static Bit8u EMM_RestorePageMap(Bit16u handle) {
+static uint8_t EMM_RestorePageMap(uint16_t handle) {
 	/* Check for valid handle */
 	if (handle>=EMM_MAX_HANDLES || (handle != 0 && emm_handles[handle].pages==NULL_HANDLE)) {
 		return EMM_INVALID_HANDLE;
@@ -606,9 +606,9 @@ static Bit8u EMM_RestorePageMap(Bit16u handle) {
 	return EMM_RestoreMappingTable();
 }
 
-static Bit8u EMM_GetPagesForAllHandles(PhysPt table,Bit16u & handles) {
+static uint8_t EMM_GetPagesForAllHandles(PhysPt table,uint16_t & handles) {
 	handles=0;
-	for (Bit16u i=0;i<EMM_MAX_HANDLES;i++) {
+	for (uint16_t i=0;i<EMM_MAX_HANDLES;i++) {
 		if (emm_handles[i].pages!=NULL_HANDLE) {
 			handles++;
 			mem_writew(table,i);
@@ -619,8 +619,8 @@ static Bit8u EMM_GetPagesForAllHandles(PhysPt table,Bit16u & handles) {
 	return EMM_NO_ERROR;
 }
 
-static Bit8u EMM_PartialPageMapping(void) {
-	PhysPt list,data;Bit16u count;
+static uint8_t EMM_PartialPageMapping(void) {
+	PhysPt list,data;uint16_t count;
 	switch (reg_al) {
 	case 0x00:	/* Save Partial Page Map */
 		list = SegPhys(ds)+reg_si;
@@ -628,9 +628,9 @@ static Bit8u EMM_PartialPageMapping(void) {
 		count=mem_readw(list);list+=2;
 		mem_writew(data,count);data+=2;
 		for (;count>0;count--) {
-			Bit16u segment=mem_readw(list);list+=2;
+			uint16_t segment=mem_readw(list);list+=2;
 			if ((segment>=EMM_PAGEFRAME) && (segment<EMM_PAGEFRAME+0x1000u)) {
-				Bit16u page = (unsigned int)(segment-EMM_PAGEFRAME) / (unsigned int)(EMM_PAGE_SIZE>>4u);
+				uint16_t page = (unsigned int)(segment-EMM_PAGEFRAME) / (unsigned int)(EMM_PAGE_SIZE>>4u);
 				mem_writew(data,segment);data+=2;
 				MEM_BlockWrite(data,&emm_mappings[page],sizeof(EMM_Mapping));
 				data+=sizeof(EMM_Mapping);
@@ -647,9 +647,9 @@ static Bit8u EMM_PartialPageMapping(void) {
 		data = SegPhys(ds)+reg_si;
 		count= mem_readw(data);data+=2;
 		for (;count>0;count--) {
-			Bit16u segment=mem_readw(data);data+=2;
+			uint16_t segment=mem_readw(data);data+=2;
 			if ((segment>=EMM_PAGEFRAME) && (segment<EMM_PAGEFRAME+0x1000)) {
-				Bit16u page = (unsigned int)(segment-EMM_PAGEFRAME) / (unsigned int)(EMM_PAGE_SIZE>>4);
+				uint16_t page = (unsigned int)(segment-EMM_PAGEFRAME) / (unsigned int)(EMM_PAGE_SIZE>>4);
 				MEM_BlockRead(data,&emm_mappings[page],sizeof(EMM_Mapping));
 			} else if ((ems_type == EMS_MIXED) || (ems_type == EMS_EMM386) || ((segment>=EMM_PAGEFRAME-0x1000) && (segment<EMM_PAGEFRAME)) || ((segment>=0xa000) && (segment<0xb000))) {
 				MEM_BlockRead(data,&emm_segmentmappings[segment>>10u],sizeof(EMM_Mapping));
@@ -660,7 +660,7 @@ static Bit8u EMM_PartialPageMapping(void) {
 		}
 		return EMM_RestoreMappingTable();
 	case 0x02:	/* Get Partial Page Map Array Size */
-		reg_al=(Bit8u)(2u+reg_bx*(2u+sizeof(EMM_Mapping)));
+		reg_al=(uint8_t)(2u+reg_bx*(2u+sizeof(EMM_Mapping)));
 		break;
 	default:
 		LOG(LOG_MISC,LOG_ERROR)("EMS:Call %2X Subfunction %2X not supported",reg_ah,reg_al);
@@ -669,9 +669,9 @@ static Bit8u EMM_PartialPageMapping(void) {
 	return EMM_NO_ERROR;
 }
 
-static Bit8u HandleNameSearch(void) {
+static uint8_t HandleNameSearch(void) {
 	char name[9];
-	Bit16u handle=0;PhysPt data;
+	uint16_t handle=0;PhysPt data;
 	switch (reg_al) {
 	case 0x00:	/* Get all handle names */
 		reg_al=0;data=SegPhys(es)+reg_di;
@@ -706,8 +706,8 @@ static Bit8u HandleNameSearch(void) {
 	return EMM_NO_ERROR;
 }
 
-static Bit8u GetSetHandleName(void) {
-	Bit16u handle=reg_dx;
+static uint8_t GetSetHandleName(void) {
+	uint16_t handle=reg_dx;
 	switch (reg_al) {
 	case 0x00:	/* Get Handle Name */
 		if (handle>=EMM_MAX_HANDLES || emm_handles[handle].pages==NULL_HANDLE) return EMM_INVALID_HANDLE;
@@ -725,7 +725,7 @@ static Bit8u GetSetHandleName(void) {
 
 }
 
-static Bit8u GetSetHandleAttributes(void) {
+static uint8_t GetSetHandleAttributes(void) {
 	switch (reg_al) {
 	case 0x00:	// Get handle attribubtes
 		if (!ValidHandle(reg_dx)) return EMM_INVALID_HANDLE;
@@ -763,10 +763,10 @@ static void LoadMoveRegion(PhysPt data,MoveRegion & region) {
 	region.dest_page_seg=mem_readw(data+0x10);
 }
 
-static Bit8u MemoryRegion(void) {
+static uint8_t MemoryRegion(void) {
 	MoveRegion region;
-	Bit8u buf_src[MEM_PAGE_SIZE];
-	Bit8u buf_dest[MEM_PAGE_SIZE];
+	uint8_t buf_src[MEM_PAGE_SIZE];
+	uint8_t buf_dest[MEM_PAGE_SIZE];
 	if (reg_al>1) {
 		LOG(LOG_MISC,LOG_ERROR)("EMS:Call %2X Subfunction %2X not supported",reg_ah,reg_al);
 		return EMM_FUNC_NOSUP;
@@ -858,7 +858,7 @@ static Bit8u MemoryRegion(void) {
 		else src_handle=MEM_NextHandle(src_handle);
 		if (!region.dest_type) dest_mem+=(PhysPt)toread;
 		else dest_handle=MEM_NextHandle(dest_handle);
-		region.bytes-=(Bit32u)toread;
+		region.bytes-=(uint32_t)toread;
 	}
 
     if (!a20_was_enabled) XMS_EnableA20(false);
@@ -946,8 +946,8 @@ static Bitu INT67_Handler(void) {
 			case 0x00: // use physical page numbers
 				{	PhysPt data = SegPhys(ds)+reg_si;
 					for (int i=0; i<reg_cx; i++) {
-						Bit16u logPage	= mem_readw(data); data+=2;
-						Bit16u physPage = mem_readw(data); data+=2;
+						uint16_t logPage	= mem_readw(data); data+=2;
+						uint16_t physPage = mem_readw(data); data+=2;
 						reg_ah = EMM_MapPage(physPage,reg_dx,logPage);
 						if (reg_ah!=EMM_NO_ERROR) break;
 					}
@@ -955,7 +955,7 @@ static Bitu INT67_Handler(void) {
 			case 0x01: // use segment address 
 				{	PhysPt data = SegPhys(ds)+reg_si;
 					for (int i=0; i<reg_cx; i++) {
-						Bit16u logPage	= mem_readw(data); data+=2;
+						uint16_t logPage	= mem_readw(data); data+=2;
 						reg_ah = EMM_MapSegment(mem_readw(data),reg_dx,logPage); data+=2;
 						if (reg_ah!=EMM_NO_ERROR) break;
 					}
@@ -986,8 +986,8 @@ static Bitu INT67_Handler(void) {
 	case 0x58: // Get mappable physical array address array
 		if (reg_al==0x00) {
 			PhysPt data = SegPhys(es)+reg_di;
-			Bit16u step = 0x1000 / EMM_MAX_PHYS;
-			for (Bit16u i=0; i<EMM_MAX_PHYS; i++) {
+			uint16_t step = 0x1000 / EMM_MAX_PHYS;
+			for (uint16_t i=0; i<EMM_MAX_PHYS; i++) {
 				mem_writew(data,EMM_PAGEFRAME+step*i);	data+=2;
 				mem_writew(data,i);						data+=2;
 			}
@@ -1010,7 +1010,7 @@ static Bitu INT67_Handler(void) {
 			}
 			break;
 		case 0x01:	// get unallocated raw page count
-			reg_dx=(Bit16u)(MEM_TotalPages()/4);		//Not entirely correct but okay
+			reg_dx=(uint16_t)(MEM_TotalPages()/4);		//Not entirely correct but okay
 			reg_bx=EMM_GetFreePages();
 			break;
 		default:
@@ -1071,7 +1071,7 @@ static Bitu INT67_Handler(void) {
 				}
 				break;
 			case 0x01: {	/* VCPI Get Protected Mode Interface */
-				Bit16u ct;
+				uint16_t ct;
 				/* Set up page table buffer */
 				for (ct=0; ct<0xff; ct++) {
 					real_writeb(SegValue(es),reg_di+ct*4+0x00,0x67);		// access bits
@@ -1085,10 +1085,10 @@ static Bitu INT67_Handler(void) {
 				}
 				/* adjust paging entries for page frame (if mapped) */
 				for (ct=0; ct<4; ct++) { 
-					Bit16u handle=emm_mappings[ct].handle;
+					uint16_t handle=emm_mappings[ct].handle;
 					if (handle!=0xffff) {
-						Bit16u memh=(Bit16u)MEM_NextHandleAt(emm_handles[handle].mem,(unsigned int)emm_mappings[ct].page*4u);
-						Bit16u entry_addr=(unsigned int)reg_di+(unsigned int)(EMM_PAGEFRAME>>6u)+(unsigned int)(ct*0x10u);
+						uint16_t memh=(uint16_t)MEM_NextHandleAt(emm_handles[handle].mem,(unsigned int)emm_mappings[ct].page*4u);
+						uint16_t entry_addr=(unsigned int)reg_di+(unsigned int)(EMM_PAGEFRAME>>6u)+(unsigned int)(ct*0x10u);
 						real_writew(SegValue(es),entry_addr+0x00u+0x01u,(memh+0u)*0x10u);		// mapping of 1/4 of page
 						real_writew(SegValue(es),entry_addr+0x04u+0x01u,(memh+1u)*0x10u);		// mapping of 2/4 of page
 						real_writew(SegValue(es),entry_addr+0x08u+0x01u,(memh+2u)*0x10u);		// mapping of 3/4 of page
@@ -1098,8 +1098,8 @@ static Bitu INT67_Handler(void) {
 				reg_di+=0x400;		// advance pointer by 0x100*4
 				
 				/* Set up three descriptor table entries */
-				Bit32u cbseg_low=(CALLBACK_GetBase()&0xffff)<<16;
-				Bit32u cbseg_high=(CALLBACK_GetBase()&0x1f0000)>>16;
+				uint32_t cbseg_low=(CALLBACK_GetBase()&0xffff)<<16;
+				uint32_t cbseg_high=(CALLBACK_GetBase()&0x1f0000)>>16;
 				/* Descriptor 1 (code segment, callback segment) */
 				real_writed(SegValue(ds),reg_si+0x00,0x0000ffff|cbseg_low);
 				real_writed(SegValue(ds),reg_si+0x04,0x00009a00|cbseg_high);
@@ -1119,7 +1119,7 @@ static Bitu INT67_Handler(void) {
 				reg_ah=EMM_NO_ERROR;
 				break;
 			case 0x03:		/* VCPI Get Number of Free Pages */
-				reg_edx=(Bit32u)MEM_FreeTotal();
+				reg_edx=(uint32_t)MEM_FreeTotal();
 				reg_ah=EMM_NO_ERROR;
 				break;
 			case 0x04: {	/* VCPI Allocate one Page */
@@ -1140,13 +1140,13 @@ static Bitu INT67_Handler(void) {
 				if (((unsigned int)(reg_cx<<8u)>=(unsigned int)EMM_PAGEFRAME) && ((unsigned int)(reg_cx<<8u)<(unsigned int)EMM_PAGEFRAME+0x1000u)) {
 					/* Page is in Pageframe, so check what EMS-page it is
 					   and return the physical address */
-					Bit8u phys_page;
-					Bit16u mem_seg=(unsigned int)reg_cx<<8u;
+					uint8_t phys_page;
+					uint16_t mem_seg=(unsigned int)reg_cx<<8u;
 					if (mem_seg<EMM_PAGEFRAME+0x400) phys_page=0;
 					else if (mem_seg<EMM_PAGEFRAME+0x800) phys_page=1;
 					else if (mem_seg<EMM_PAGEFRAME+0xc00) phys_page=2;
 					else phys_page=3;
-					Bit16u handle=emm_mappings[phys_page].handle;
+					uint16_t handle=emm_mappings[phys_page].handle;
 					if (handle==0xffff) {
 						reg_ah=EMM_ILL_PHYS;
 						break;
@@ -1166,7 +1166,7 @@ static Bitu INT67_Handler(void) {
 				break;
 			case 0x07:		/* VCPI Read CR0 */
 				reg_ah=EMM_NO_ERROR;
-				reg_ebx=(Bit32u)CPU_GET_CRX(0);
+				reg_ebx=(uint32_t)CPU_GET_CRX(0);
 				break;
 			case 0x0a:		/* VCPI Get PIC Vector Mappings */
 				reg_bx=vcpi.pic1_remapping;		// master PIC
@@ -1184,22 +1184,22 @@ static Bitu INT67_Handler(void) {
 				CPU_SetCPL(0);
 
 				/* Read data from ESI (linear address) */
-				Bit32u new_cr3=mem_readd(reg_esi);
-				Bit32u new_gdt_addr=mem_readd(reg_esi+4);
-				Bit32u new_idt_addr=mem_readd(reg_esi+8);
-				Bit16u new_ldt=mem_readw(reg_esi+0x0c);
-				Bit16u new_tr=mem_readw(reg_esi+0x0e);
-				Bit32u new_eip=mem_readd(reg_esi+0x10);
-				Bit16u new_cs=mem_readw(reg_esi+0x14);
+				uint32_t new_cr3=mem_readd(reg_esi);
+				uint32_t new_gdt_addr=mem_readd(reg_esi+4);
+				uint32_t new_idt_addr=mem_readd(reg_esi+8);
+				uint16_t new_ldt=mem_readw(reg_esi+0x0c);
+				uint16_t new_tr=mem_readw(reg_esi+0x0e);
+				uint32_t new_eip=mem_readd(reg_esi+0x10);
+				uint16_t new_cs=mem_readw(reg_esi+0x14);
 
 				/* Get GDT and IDT entries */
-				Bit16u new_gdt_limit=mem_readw(new_gdt_addr);
-				Bit32u new_gdt_base=mem_readd(new_gdt_addr+2);
-				Bit16u new_idt_limit=mem_readw(new_idt_addr);
-				Bit32u new_idt_base=mem_readd(new_idt_addr+2);
+				uint16_t new_gdt_limit=mem_readw(new_gdt_addr);
+				uint32_t new_gdt_base=mem_readd(new_gdt_addr+2);
+				uint16_t new_idt_limit=mem_readw(new_idt_addr);
+				uint32_t new_idt_base=mem_readd(new_idt_addr+2);
 
 				/* Switch to protected mode, paging enabled if necessary */
-				Bit32u new_cr0=(Bit32u)(CPU_GET_CRX(0)|1u);
+				uint32_t new_cr0=(uint32_t)(CPU_GET_CRX(0)|1u);
 				if (new_cr3!=0) new_cr0|=0x80000000;
 				CPU_SET_CRX(0, new_cr0);
 				CPU_SET_CRX(3, new_cr3);
@@ -1242,7 +1242,7 @@ static Bitu VCPI_PM_Handler() {
 //	LOG_MSG("VCPI PMODE handler, function %x",reg_ax);
 	switch (reg_ax) {
 	case 0xDE03:		/* VCPI Get Number of Free Pages */
-		reg_edx=(Bit32u)MEM_FreeTotal();
+		reg_edx=(uint32_t)MEM_FreeTotal();
 		reg_ah=EMM_NO_ERROR;
 		break;
 	case 0xDE04: {		/* VCPI Allocate one Page */
@@ -1270,7 +1270,7 @@ static Bitu VCPI_PM_Handler() {
 		CPU_SET_CRX(3, 0);
 
 		PhysPt tbaddr=(PhysPt)vcpi.private_area+0x0000u+(0x10u&0xfff8u)+5u;
-		Bit8u tb=mem_readb(tbaddr);
+		uint8_t tb=mem_readb(tbaddr);
 		mem_writeb(tbaddr, tb&0xfd);
 
 		/* Load descriptor table registers */
@@ -1331,9 +1331,9 @@ static Bitu V86_Monitor() {
 		reg_esp+=6;		// skip ip of CALL and error code of EXCEPTION 0x0d
 
 		/* Get address of faulting instruction */
-		Bit16u v86_cs=mem_readw(SegPhys(ss)+((reg_esp+4) & cpu.stack.mask));
-		Bit16u v86_ip=mem_readw(SegPhys(ss)+((reg_esp+0) & cpu.stack.mask));
-		Bit8u v86_opcode=mem_readb(((unsigned int)v86_cs<<4u)+(unsigned int)v86_ip);
+		uint16_t v86_cs=mem_readw(SegPhys(ss)+((reg_esp+4) & cpu.stack.mask));
+		uint16_t v86_ip=mem_readw(SegPhys(ss)+((reg_esp+0) & cpu.stack.mask));
+		uint8_t v86_opcode=mem_readb(((unsigned int)v86_cs<<4u)+(unsigned int)v86_ip);
 //		LOG_MSG("v86 monitor caught protection violation at %x:%x, opcode=%x",v86_cs,v86_ip,v86_opcode);
 		switch (v86_opcode) {
 			case 0x0f:		// double byte opcode
@@ -1344,7 +1344,7 @@ static Bitu V86_Monitor() {
 						Bitu which=(unsigned int)(rm_val >> 3u) & 7u;
 						if ((rm_val<0xc0) || (rm_val>=0xe8))
 							E_Exit("Invalid opcode 0x0f 0x20 %x caused a protection fault!",static_cast<unsigned int>(rm_val));
-						Bit32u crx=(Bit32u)CPU_GET_CRX(which);
+						uint32_t crx=(uint32_t)CPU_GET_CRX(which);
 						switch (rm_val&7) {
 							case 0:	reg_eax=crx;	break;
 							case 1:	reg_ecx=crx;	break;
@@ -1363,7 +1363,7 @@ static Bitu V86_Monitor() {
 						Bitu which=(rm_val >> 3u) & 7u;
 						if ((rm_val<0xc0) || (rm_val>=0xe8))
 							E_Exit("Invalid opcode 0x0f 0x22 %x caused a protection fault!",static_cast<unsigned int>(rm_val));
-						Bit32u crx=0;
+						uint32_t crx=0;
 						switch (rm_val&7) {
 							case 0:	crx=reg_eax;	break;
 							case 1:	crx=reg_ecx;	break;
@@ -1438,15 +1438,15 @@ static Bitu V86_Monitor() {
 	}
 
 	/* Get address to interrupt handler */
-	Bit16u vint_vector_seg=mem_readw((PhysPt)(SegValue(ds)+int_num+2u));
-	Bit16u vint_vector_ofs=mem_readw((PhysPt)int_num);
+	uint16_t vint_vector_seg=mem_readw((PhysPt)(SegValue(ds)+int_num+2u));
+	uint16_t vint_vector_ofs=mem_readw((PhysPt)int_num);
 	if (reg_sp!=0x1fdau) reg_esp+=(2u+3u*4u);	// Interrupt from within protected mode
 	else reg_esp+=2;
 
 	/* Read entries that were pushed onto the stack by the interrupt */
-	Bit16u return_ip=mem_readw(SegPhys(ss)+(reg_esp & cpu.stack.mask));
-	Bit16u return_cs=mem_readw(SegPhys(ss)+((reg_esp+4u) & cpu.stack.mask));
-	Bit32u return_eflags=mem_readd(SegPhys(ss)+((reg_esp+8u) & cpu.stack.mask));
+	uint16_t return_ip=mem_readw(SegPhys(ss)+(reg_esp & cpu.stack.mask));
+	uint16_t return_cs=mem_readw(SegPhys(ss)+((reg_esp+4u) & cpu.stack.mask));
+	uint32_t return_eflags=mem_readd(SegPhys(ss)+((reg_esp+8u) & cpu.stack.mask));
 
 	/* Modify stack to call v86-interrupt handler */
 	mem_writed(SegPhys(ss)+(reg_esp & cpu.stack.mask),vint_vector_ofs);
@@ -1454,14 +1454,14 @@ static Bitu V86_Monitor() {
 	mem_writed(SegPhys(ss)+((reg_esp+8u) & cpu.stack.mask),return_eflags&(~(FLAG_IF|FLAG_TF)));
 
 	/* Adjust SP of v86-stack */
-	Bit16u v86_ss=mem_readw(SegPhys(ss)+((reg_esp+0x10u) & cpu.stack.mask));
-	Bit16u v86_sp=mem_readw(SegPhys(ss)+((reg_esp+0x0cu) & cpu.stack.mask))-6u;
+	uint16_t v86_ss=mem_readw(SegPhys(ss)+((reg_esp+0x10u) & cpu.stack.mask));
+	uint16_t v86_sp=mem_readw(SegPhys(ss)+((reg_esp+0x0cu) & cpu.stack.mask))-6u;
 	mem_writew(SegPhys(ss)+((reg_esp+0x0cu) & cpu.stack.mask),v86_sp);
 
 	/* Return to original code after v86-interrupt handler */
 	mem_writew((unsigned int)(v86_ss<<4u)+(unsigned int)v86_sp+0u,return_ip);
 	mem_writew((unsigned int)(v86_ss<<4u)+(unsigned int)v86_sp+2u,return_cs);
-	mem_writew((unsigned int)(v86_ss<<4u)+(unsigned int)v86_sp+4u,(Bit16u)(return_eflags&0xffffu));
+	mem_writew((unsigned int)(v86_ss<<4u)+(unsigned int)v86_sp+4u,(uint16_t)(return_eflags&0xffffu));
 	return CBRET_NONE;
 }
 
@@ -1499,15 +1499,15 @@ static void SetupVCPI() {
 	mem_writed((unsigned int)vcpi.private_area+0x0000,0x00000000);	// descriptor 0
 	mem_writed((unsigned int)vcpi.private_area+0x0004,0x00000000);	// descriptor 0
 
-	Bit32u ldt_address=((unsigned int)vcpi.private_area+0x1000);
-	Bit16u ldt_limit=0xff;
-	Bit32u ldt_desc_part=(((unsigned int)ldt_address&0xffff)<<16u)|(unsigned int)ldt_limit;
+	uint32_t ldt_address=((unsigned int)vcpi.private_area+0x1000);
+	uint16_t ldt_limit=0xff;
+	uint32_t ldt_desc_part=(((unsigned int)ldt_address&0xffff)<<16u)|(unsigned int)ldt_limit;
 	mem_writed((unsigned int)vcpi.private_area+0x0008,(unsigned int)ldt_desc_part);	// descriptor 1 (LDT)
 	ldt_desc_part=(((unsigned int)ldt_address&0xff0000)>>16)|((unsigned int)ldt_address&0xff000000)|0x8200;
 	mem_writed((unsigned int)vcpi.private_area+0x000c,(unsigned int)ldt_desc_part);	// descriptor 1
 
-	Bit32u tss_address=((unsigned int)vcpi.private_area+0x3000);
-	Bit32u tss_desc_part=(((unsigned int)tss_address&0xffff)<<16u)|(0x0068+0x200);
+	uint32_t tss_address=((unsigned int)vcpi.private_area+0x3000);
+	uint32_t tss_desc_part=(((unsigned int)tss_address&0xffff)<<16u)|(0x0068+0x200);
 	mem_writed((unsigned int)vcpi.private_area+0x0010,(unsigned int)tss_desc_part);	// descriptor 2 (TSS)
 	tss_desc_part=(((unsigned int)tss_address&0xff0000)>>16)|((unsigned int)tss_address&0xff000000)|0x8900;
 	mem_writed((unsigned int)vcpi.private_area+0x0014,(unsigned int)tss_desc_part);	// descriptor 2
@@ -1515,17 +1515,17 @@ static void SetupVCPI() {
 	/* LDT */
 	mem_writed((unsigned int)vcpi.private_area+0x1000,0x00000000);	// descriptor 0
 	mem_writed((unsigned int)vcpi.private_area+0x1004,0x00000000);	// descriptor 0
-	Bit32u cs_desc_part=(((unsigned int)vcpi.private_area&0xffff)<<16u)|0xffff;
+	uint32_t cs_desc_part=(((unsigned int)vcpi.private_area&0xffff)<<16u)|0xffff;
 	mem_writed((unsigned int)vcpi.private_area+0x1008,(unsigned int)cs_desc_part);	// descriptor 1 (code)
 	cs_desc_part=(((unsigned int)vcpi.private_area&0xff0000)>>16u)|((unsigned int)vcpi.private_area&0xff000000)|0x9a00;
 	mem_writed((unsigned int)vcpi.private_area+0x100c,(unsigned int)cs_desc_part);	// descriptor 1
-	Bit32u ds_desc_part=(((unsigned int)vcpi.private_area&0xffff)<<16u)|0xffff;
+	uint32_t ds_desc_part=(((unsigned int)vcpi.private_area&0xffff)<<16u)|0xffff;
 	mem_writed((unsigned int)vcpi.private_area+0x1010,(unsigned int)ds_desc_part);	// descriptor 2 (data)
 	ds_desc_part=(((unsigned int)vcpi.private_area&0xff0000)>>16u)|((unsigned int)vcpi.private_area&0xff000000)|0x9200;
 	mem_writed((unsigned int)vcpi.private_area+0x1014,(unsigned int)ds_desc_part);	// descriptor 2
 
 	/* IDT setup */
-	for (Bit16u int_ct=0; int_ct<0x100; int_ct++) {
+	for (uint16_t int_ct=0; int_ct<0x100; int_ct++) {
 		/* build a CALL NEAR V86MON, the value of IP pushed by the
 			CALL is used to identify the interrupt number */
 		mem_writeb((unsigned int)vcpi.private_area+0x2800+(unsigned int)int_ct*4u+0,0xe8);	// call
@@ -1595,7 +1595,7 @@ Bitu call_int67 = 0;
 
 class EMS: public Module_base {
 private:
-    Bit16u ems_baseseg = 0;
+    uint16_t ems_baseseg = 0;
     DOS_Device* emm_device = NULL;
     unsigned int oshandle_memsize_16kb = 0;
     RealPt /*old4b_pointer,*/old67_pointer = 0/*NULL*/;
@@ -1766,11 +1766,11 @@ public:
 
                 XMS_EnableA20(true);
 
-                mem_writeb((unsigned int)vcpi.private_area+0x2e00,(Bit8u)0xFE);       //GRP 4
-                mem_writeb((unsigned int)vcpi.private_area+0x2e01,(Bit8u)0x38);       //Extra Callback instruction
+                mem_writeb((unsigned int)vcpi.private_area+0x2e00,(uint8_t)0xFE);       //GRP 4
+                mem_writeb((unsigned int)vcpi.private_area+0x2e01,(uint8_t)0x38);       //Extra Callback instruction
                 mem_writew((unsigned int)vcpi.private_area+0x2e02,call_v86mon.Get_callback());		//The immediate word
-                mem_writeb((unsigned int)vcpi.private_area+0x2e04,(Bit8u)0x66);
-                mem_writeb((unsigned int)vcpi.private_area+0x2e05,(Bit8u)0xCF);       //A IRETD Instruction
+                mem_writeb((unsigned int)vcpi.private_area+0x2e04,(uint8_t)0x66);
+                mem_writeb((unsigned int)vcpi.private_area+0x2e05,(uint8_t)0xCF);       //A IRETD Instruction
 
                 XMS_EnableA20(old_a20 != 0);
             }

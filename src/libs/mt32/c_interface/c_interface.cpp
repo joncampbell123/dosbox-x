@@ -129,7 +129,7 @@ struct mt32emu_data {
 	const ROMImage *controlROMImage;
 	const ROMImage *pcmROMImage;
 	DefaultMidiStreamParser *midiParser;
-	Bit32u partialCount;
+	uint32_t partialCount;
 	AnalogOutputMode analogOutputMode;
 	SamplerateConversionState *srcState;
 };
@@ -195,7 +195,7 @@ private:
 		return delegate.v0->onMIDIQueueOverflow(instanceData) != MT32EMU_BOOL_FALSE;
 	}
 
-	void onMIDISystemRealtime(Bit8u systemRealtime) {
+	void onMIDISystemRealtime(uint8_t systemRealtime) {
 		if (delegate.v0->onMIDISystemRealtime == NULL) {
 			ReportHandler::onMIDISystemRealtime(systemRealtime);
 		} else {
@@ -219,7 +219,7 @@ private:
 		}
 	}
 
-	void onNewReverbMode(Bit8u mode) {
+	void onNewReverbMode(uint8_t mode) {
 		if (delegate.v0->onNewReverbMode == NULL) {
 			ReportHandler::onNewReverbMode(mode);
 		} else {
@@ -227,7 +227,7 @@ private:
 		}
 	}
 
-	void onNewReverbTime(Bit8u time) {
+	void onNewReverbTime(uint8_t time) {
 		if (delegate.v0->onNewReverbTime == NULL) {
 			ReportHandler::onNewReverbTime(time);
 		} else {
@@ -235,7 +235,7 @@ private:
 		}
 	}
 
-	void onNewReverbLevel(Bit8u level) {
+	void onNewReverbLevel(uint8_t level) {
 		if (delegate.v0->onNewReverbLevel == NULL) {
 			ReportHandler::onNewReverbLevel(level);
 		} else {
@@ -243,7 +243,7 @@ private:
 		}
 	}
 
-	void onPolyStateChanged(Bit8u partNum) {
+	void onPolyStateChanged(uint8_t partNum) {
 		if (delegate.v0->onPolyStateChanged == NULL) {
 			ReportHandler::onPolyStateChanged(partNum);
 		} else {
@@ -251,7 +251,7 @@ private:
 		}
 	}
 
-	void onProgramChanged(Bit8u partNum, const char *soundGroupName, const char *patchName) {
+	void onProgramChanged(uint8_t partNum, const char *soundGroupName, const char *patchName) {
 		if (delegate.v0->onProgramChanged == NULL) {
 			ReportHandler::onProgramChanged(partNum, soundGroupName, patchName);
 		} else {
@@ -270,7 +270,7 @@ protected:
 	void *instanceData;
 
 private:
-	void handleShortMessage(const Bit32u message) {
+	void handleShortMessage(const uint32_t message) {
 		if (delegate.v0->handleShortMessage == NULL) {
 			DefaultMidiStreamParser::handleShortMessage(message);
 		} else {
@@ -278,7 +278,7 @@ private:
 		}
 	}
 
-	void handleSysex(const Bit8u *stream, const Bit32u length) {
+	void handleSysex(const uint8_t *stream, const uint32_t length) {
 		if (delegate.v0->handleSysex == NULL) {
 			DefaultMidiStreamParser::handleSysex(stream, length);
 		} else {
@@ -286,7 +286,7 @@ private:
 		}
 	}
 
-	void handleSystemRealtimeMessage(const Bit8u realtime) {
+	void handleSystemRealtimeMessage(const uint8_t realtime) {
 		if (delegate.v0->handleSystemRealtimeMessage == NULL) {
 			DefaultMidiStreamParser::handleSystemRealtimeMessage(realtime);
 		} else {
@@ -705,7 +705,7 @@ void mt32emu_render_float(mt32emu_const_context context, float *stream, mt32emu_
 }
 
 void mt32emu_render_bit16s_streams(mt32emu_const_context context, const mt32emu_dac_output_bit16s_streams *streams, mt32emu_bit32u len) {
-	context->synth->renderStreams(*reinterpret_cast<const DACOutputStreams<Bit16s> *>(streams), len);
+	context->synth->renderStreams(*reinterpret_cast<const DACOutputStreams<int16_t> *>(streams), len);
 }
 
 void mt32emu_render_float_streams(mt32emu_const_context context, const mt32emu_dac_output_float_streams *streams, mt32emu_bit32u len) {

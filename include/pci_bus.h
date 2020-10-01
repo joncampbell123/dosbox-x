@@ -29,27 +29,27 @@ public:
 	unsigned char config[256];
 	unsigned char config_writemask[256];
 
-	PCI_Device(Bit16u vendor, Bit16u device);
+	PCI_Device(uint16_t vendor, uint16_t device);
 	virtual ~PCI_Device();
 
 	/* configuration space assistant functions */
 
-	Bit16u getDeviceID() {
+	uint16_t getDeviceID() {
 		return host_readw(config + 0x02);
 	}
-	void setDeviceID(const Bit16u device) {
+	void setDeviceID(const uint16_t device) {
 		return host_writew(config + 0x02,device);
 	}
 
-	Bit16u getVendorID() {
+	uint16_t getVendorID() {
 		return host_readw(config + 0x00);
 	}
-	void setVendorID(const Bit16u vendor) {
+	void setVendorID(const uint16_t vendor) {
 		return host_writew(config + 0x00,vendor);
 	}
 
 	/* configuration space I/O */
-	virtual void config_write(Bit8u regnum,Bitu iolen,Bit32u value) {
+	virtual void config_write(uint8_t regnum,Bitu iolen,uint32_t value) {
 		if (iolen == 1) {
             const unsigned char mask = config_writemask[regnum];
             const unsigned char nmask = ~mask;
@@ -65,14 +65,14 @@ public:
 			/* NTS: If I recall, this virtual function call means that we'll call the
 			 *      C++ subclass's config_write() NOT our own--right? */
 			for (Bitu i=0;i < iolen;i++) {
-				config_write((Bit8u)(regnum+i),1,value&0xFF);
+				config_write((uint8_t)(regnum+i),1,value&0xFF);
 				value >>= 8U;
 			}
 		}
 	}
-	virtual Bit32u config_read(Bit8u regnum,Bitu iolen) {
+	virtual uint32_t config_read(uint8_t regnum,Bitu iolen) {
 		/* subdivide into 8-bit I/O */
-		Bit32u v=0;
+		uint32_t v=0;
 
 		if (iolen == 1)
 			return config[regnum];
@@ -84,7 +84,7 @@ public:
 			/* NTS: If I recall, this virtual function call means that we'll call the
 			 *      C++ subclass's config_read() NOT our own--right? */
 			for (Bitu i=0;i < iolen;i++)
-				v += ((config_read((Bit8u)(regnum+i),1)&0xFF) << ((iolen-i-1)*8));
+				v += ((config_read((uint8_t)(regnum+i),1)&0xFF) << ((iolen-i-1)*8));
 		}
 
 		return v;

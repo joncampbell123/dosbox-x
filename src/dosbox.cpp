@@ -129,7 +129,7 @@ static void CheckX86ExtensionsSupport()
 #endif
 /*=============================================================================*/
 
-extern void         GFX_SetTitle(Bit32s cycles,Bits frameskip,Bits timing,bool paused);
+extern void         GFX_SetTitle(int32_t cycles,Bits frameskip,Bits timing,bool paused);
 
 extern bool         force_nocachedir;
 extern bool         freesizecap;
@@ -149,8 +149,8 @@ extern bool         VIDEO_BIOS_enable_CGA_8x8_second_half;
 extern bool         allow_more_than_640kb;
 extern unsigned int page;
 
-Bit32u              guest_msdos_LoL = 0;
-Bit16u              guest_msdos_mcb_chain = 0;
+uint32_t              guest_msdos_LoL = 0;
+uint16_t              guest_msdos_mcb_chain = 0;
 int                 boothax = BOOTHAX_NONE;
 
 bool                want_fm_towns = false;
@@ -188,8 +188,8 @@ MachineType         machine;
 bool                PS1AudioCard;       // Perhaps have PS1 as a machine type...?
 SVGACards           svgaCard;
 bool                SDLNetInited;
-Bit32s              ticksDone;
-Bit32u              ticksScheduled;
+int32_t              ticksDone;
+uint32_t              ticksScheduled;
 bool                ticksLocked;
 bool                mono_cga=false;
 bool                ignore_opcode_63 = true;
@@ -199,16 +199,16 @@ Bitu                VGA_BIOS_SEG = 0xC000;
 Bitu                VGA_BIOS_SEG_END = 0xC800;
 Bitu                VGA_BIOS_Size = 0x8000;
 
-Bit32u                  emulator_speed = 100;
+uint32_t                  emulator_speed = 100;
 
-static Bit32u           ticksRemain;
-static Bit32u           ticksRemainSpeedFrac;
-static Bit32u           ticksLast;
-static Bit32u           ticksLastFramecounter;
-static Bit32u           ticksLastRTcounter;
+static uint32_t           ticksRemain;
+static uint32_t           ticksRemainSpeedFrac;
+static uint32_t           ticksLast;
+static uint32_t           ticksLastFramecounter;
+static uint32_t           ticksLastRTcounter;
 static double           ticksLastRTtime;
-static Bit32u           ticksAdded;
-static Bit32u           Ticks = 0;
+static uint32_t           ticksAdded;
+static uint32_t           Ticks = 0;
 extern double           rtdelta;
 static LoopHandler*     loop;
 
@@ -323,9 +323,9 @@ static Bitu Normal_Loop(void) {
     Bits ret;
 
     if (!menu.hidecycles || menu.showrt) { /* sdlmain.cpp/render.cpp doesn't even maintain the frames count when hiding cycles! */
-        Bit32u ticksNew = GetTicks();
+        uint32_t ticksNew = GetTicks();
         if (ticksNew >= Ticks) {
-            Bit32u interval = ticksNew - ticksLastFramecounter;
+            uint32_t interval = ticksNew - ticksLastFramecounter;
             double rtnow = PIC_FullIndex();
 
             if (interval == 0) interval = 1; // avoid divide by zero
@@ -337,7 +337,7 @@ static Bitu Normal_Loop(void) {
             ticksLastFramecounter = Ticks;
             Ticks = ticksNew + 500;     // next update in 500ms
             frames = (frames * 1000) / interval; // compensate for interval, be more exact (FIXME: so can we adjust for fractional frame rates)
-            GFX_SetTitle((Bit32s)CPU_CycleMax,-1,-1,false);
+            GFX_SetTitle((int32_t)CPU_CycleMax,-1,-1,false);
             frames = 0;
         }
     }
@@ -424,7 +424,7 @@ static Bitu Normal_Loop(void) {
 }
 
 void increaseticks() { //Make it return ticksRemain and set it in the function above to remove the global variable.
-    static Bit32s lastsleepDone = -1;
+    static int32_t lastsleepDone = -1;
     static Bitu sleep1count = 0;
     if (GCC_UNLIKELY(ticksLocked)) { // For Fast Forward Mode
         ticksRemainSpeedFrac = 0;
@@ -436,7 +436,7 @@ void increaseticks() { //Make it return ticksRemain and set it in the function a
         ticksScheduled = 0;
         return;
     }
-    Bit32u ticksNew = GetTicks();
+    uint32_t ticksNew = GetTicks();
     ticksScheduled += ticksAdded;
 
     if (ticksNew <= ticksLast) { //lower should not be possible, only equal.
@@ -450,13 +450,13 @@ void increaseticks() { //Make it return ticksRemain and set it in the function a
                DOSBox-X keeps track of full blocks.
                This code introduces some randomness to the time slept, which improves stability on those configurations
              */
-            static const Bit32u sleeppattern[] = { 2, 2, 3, 2, 2, 4, 2 };
-            static Bit32u sleepindex = 0;
+            static const uint32_t sleeppattern[] = { 2, 2, 3, 2, 2, 4, 2 };
+            static uint32_t sleepindex = 0;
             if (ticksDone != lastsleepDone) sleepindex = 0;
             wrap_delay(sleeppattern[sleepindex++]);
             sleepindex %= sizeof(sleeppattern) / sizeof(sleeppattern[0]);
         }
-        Bit32s timeslept = (Bit32s)(GetTicks() - ticksNew);
+        int32_t timeslept = (int32_t)(GetTicks() - ticksNew);
         // Count how many times in the current block (of 250 ms) the time slept was 1 ms
         if (CPU_CycleAutoAdjust && !CPU_SkipCycleAutoAdjust && timeslept == 1) sleep1count++;
         lastsleepDone = ticksDone;
@@ -483,7 +483,7 @@ void increaseticks() { //Make it return ticksRemain and set it in the function a
     }
 
     ticksLast = ticksNew;
-    ticksDone += (Bit32s)ticksRemain;
+    ticksDone += (int32_t)ticksRemain;
     if (ticksRemain > 20) {
         ticksRemain = 20;
     }
@@ -496,16 +496,16 @@ void increaseticks() { //Make it return ticksRemain and set it in the function a
     if (ticksScheduled >= 250 || ticksDone >= 250 || (ticksAdded > 15 && ticksScheduled >= 5)) {
         if (ticksDone < 1) ticksDone = 1; // Protect against div by zero
         /* ratio we are aiming for is around 90% usage*/
-        Bit32s ratio = (Bit32s)((ticksScheduled * (CPU_CyclePercUsed * 90 * 1024 / 100 / 100)) / ticksDone);
-        Bit32s new_cmax = (Bit32s)CPU_CycleMax;
-        Bit64s cproc = (Bit64s)CPU_CycleMax * (Bit64s)ticksScheduled;
+        int32_t ratio = (int32_t)((ticksScheduled * (CPU_CyclePercUsed * 90 * 1024 / 100 / 100)) / ticksDone);
+        int32_t new_cmax = (int32_t)CPU_CycleMax;
+        int64_t cproc = (int64_t)CPU_CycleMax * (int64_t)ticksScheduled;
         if (cproc > 0) {
             /* ignore the cycles added due to the IO delay code in order
                to have smoother auto cycle adjustments */
             double ratioremoved = (double)CPU_IODelayRemoved / (double)cproc;
             if (ratioremoved < 1.0) {
                 double ratio_not_removed = 1 - ratioremoved;
-                ratio = (Bit32s)((double)ratio * ratio_not_removed);
+                ratio = (int32_t)((double)ratio * ratio_not_removed);
                 /* Don't allow very high ratio which can cause us to lock as we don't scale down
                  * for very low ratios. High ratio might result because of timing resolution */
                 if (ticksScheduled >= 250 && ticksDone < 10 && ratio > 16384)
@@ -522,12 +522,12 @@ void increaseticks() { //Make it return ticksRemain and set it in the function a
                 if (ratio <= 1024) {
                     // ratio_not_removed = 1.0; //enabling this restores the old formula
                     double r = (1.0 + ratio_not_removed) / (ratio_not_removed + 1024.0 / (static_cast<double>(ratio)));
-                    new_cmax = 1 + static_cast<Bit32s>(CPU_CycleMax * r);
+                    new_cmax = 1 + static_cast<int32_t>(CPU_CycleMax * r);
                 }
                 else {
-                    Bit64s ratio_with_removed = (Bit64s)((((double)ratio - 1024.0) * ratio_not_removed) + 1024.0);
-                    Bit64s cmax_scaled = (Bit64s)CPU_CycleMax * ratio_with_removed;
-                    new_cmax = (Bit32s)(1 + (CPU_CycleMax >> 1) + cmax_scaled / (Bit64s)2048);
+                    int64_t ratio_with_removed = (int64_t)((((double)ratio - 1024.0) * ratio_not_removed) + 1024.0);
+                    int64_t cmax_scaled = (int64_t)CPU_CycleMax * ratio_with_removed;
+                    new_cmax = (int32_t)(1 + (CPU_CycleMax >> 1) + cmax_scaled / (int64_t)2048);
                 }
             }
         }
@@ -968,7 +968,7 @@ void Null_Init(Section *sec) {
 	(void)sec;
 }
 
-extern Bit8u cga_comp;
+extern uint8_t cga_comp;
 extern bool new_cga;
 
 bool dpi_aware_enable = true;

@@ -46,23 +46,23 @@
 
 
 /* 8-bit values */
-typedef Bit8u						UINT8;
-typedef Bit8s 						INT8;
+typedef uint8_t						UINT8;
+typedef int8_t 						INT8;
 
 /* 16-bit values */
-typedef Bit16u						UINT16;
-typedef Bit16s						INT16;
+typedef uint16_t						UINT16;
+typedef int16_t						INT16;
 
 /* 32-bit values */
 #ifndef _WINDOWS_
-typedef Bit32u						UINT32;
-typedef Bit32s						INT32;
+typedef uint32_t						UINT32;
+typedef int32_t						INT32;
 #endif
 
 /* 64-bit values */
 #ifndef _WINDOWS_
-typedef Bit64u						UINT64;
-typedef Bit64s						INT64;
+typedef uint64_t						UINT64;
+typedef int64_t						INT64;
 #endif
 
 /* core components of the attotime structure */

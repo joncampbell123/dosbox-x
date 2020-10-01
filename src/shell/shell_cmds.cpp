@@ -110,8 +110,8 @@ static SHELL_Cmd cmd_list[]={
 extern int enablelfn, lfn_filefind_handle;
 extern bool date_host_forced, usecon, rsize;
 extern unsigned long freec;
-extern Bit16u countryNo;
-void DOS_SetCountry(Bit16u countryNo);
+extern uint16_t countryNo;
+void DOS_SetCountry(uint16_t countryNo);
 
 /* support functions */
 static char empty_char = 0;
@@ -202,7 +202,7 @@ __do_command_begin:
 //		if (*line == ':') break; //This breaks drive switching as that is handled at a later stage. 
 		if ((*line == '.') ||(*line == '\\')) {  //allow stuff like cd.. and dir.exe cd\kees
 			*cmd_write=0;
-			Bit32u cmd_index=0;
+			uint32_t cmd_index=0;
 			while (cmd_list[cmd_index].name) {
 				if (strcasecmp(cmd_list[cmd_index].name,cmd_buffer)==0) {
 					(this->*(cmd_list[cmd_index].handler))(line);
@@ -228,7 +228,7 @@ __do_command_begin:
     }
 
 /* Check the internal list */
-	Bit32u cmd_index=0;
+	uint32_t cmd_index=0;
 	while (cmd_list[cmd_index].name) {
 		if (strcasecmp(cmd_list[cmd_index].name,cmd_buffer)==0) {
 			(this->*(cmd_list[cmd_index].handler))(line);
@@ -360,7 +360,7 @@ void DOS_Shell::CMD_INT2FDBG(char * args) {
 	/* TODO: Allow /U to remove INT 2Fh hook */
 	if (ScanCMDBool(args,"I")) {
 		if (int2fdbg_hook_callback == 0) {
-			Bit32u old_int2Fh;
+			uint32_t old_int2Fh;
 			PhysPt w;
 
 			int2fdbg_hook_callback = CALLBACK_Allocate();
@@ -374,18 +374,18 @@ void DOS_Shell::CMD_INT2FDBG(char * args) {
 			/* overwrite the callback with code to chain the call down, then invoke our callback on the way back up: */
 
 			/* first, chain to the previous INT 15h handler */
-			phys_writeb(w++,(Bit8u)0x9C);					//PUSHF
-			phys_writeb(w++,(Bit8u)0x9A);					//CALL FAR <address>
-			phys_writew(w,(Bit16u)(old_int2Fh&0xFFFF)); w += 2;		//offset
-			phys_writew(w,(Bit16u)((old_int2Fh>>16)&0xFFFF)); w += 2;	//seg
+			phys_writeb(w++,(uint8_t)0x9C);					//PUSHF
+			phys_writeb(w++,(uint8_t)0x9A);					//CALL FAR <address>
+			phys_writew(w,(uint16_t)(old_int2Fh&0xFFFF)); w += 2;		//offset
+			phys_writew(w,(uint16_t)((old_int2Fh>>16)&0xFFFF)); w += 2;	//seg
 
 			/* then, having returned from it, invoke our callback */
-			phys_writeb(w++,(Bit8u)0xFE);					//GRP 4
-			phys_writeb(w++,(Bit8u)0x38);					//Extra Callback instruction
-			phys_writew(w,(Bit16u)int2fdbg_hook_callback); w += 2;		//The immediate word
+			phys_writeb(w++,(uint8_t)0xFE);					//GRP 4
+			phys_writeb(w++,(uint8_t)0x38);					//Extra Callback instruction
+			phys_writew(w,(uint16_t)int2fdbg_hook_callback); w += 2;		//The immediate word
 
 			/* return */
-			phys_writeb(w++,(Bit8u)0xCF);					//IRET
+			phys_writeb(w++,(uint8_t)0xCF);					//IRET
 
 			LOG_MSG("INT 2Fh debugging hook set\n");
 			WriteOut("INT 2Fh hook set\n");
@@ -419,7 +419,7 @@ void DOS_Shell::CMD_CLS(char * args) {
    if (CurMode->type==M_TEXT || IS_PC98_ARCH)
        WriteOut("[2J");
    else { 
-      reg_ax=(Bit16u)CurMode->mode; 
+      reg_ax=(uint16_t)CurMode->mode; 
       CALLBACK_RunRealInt(0x10); 
    } 
 }
@@ -460,12 +460,12 @@ void DOS_Shell::CMD_DELETE(char * args) {
 	char full[DOS_PATHLENGTH],sfull[DOS_PATHLENGTH+2];
 	char buffer[CROSS_LEN];
     char name[DOS_NAMELENGTH_ASCII],lname[LFN_NAMELENGTH+1];
-    Bit32u size;Bit16u time,date;Bit8u attr;
+    uint32_t size;uint16_t time,date;uint8_t attr;
 	args = ExpandDot(args,buffer, CROSS_LEN);
 	StripSpaces(args);
 	if (!DOS_Canonicalize(args,full)) { WriteOut(MSG_Get("SHELL_ILLEGAL_PATH"));dos.dta(save_dta);return; }
 	if (strlen(args)&&args[strlen(args)-1]!='\\') {
-		Bit16u fattr;
+		uint16_t fattr;
 		if (strcmp(args,"*.*")&&DOS_GetFileAttr(args, &fattr) && (fattr&DOS_ATTR_DIRECTORY))
 			strcat(args, "\\");
 	}
@@ -485,7 +485,7 @@ void DOS_Shell::CMD_DELETE(char * args) {
 first_1:
 			WriteOut(MSG_Get("SHELL_CMD_DEL_SURE"));
 first_2:
-			Bit8u c;Bit16u n=1;
+			uint8_t c;uint16_t n=1;
 			DOS_ReadFile (STDIN,&c,&n);
 			do switch (c) {
 			case 'n':			case 'N':
@@ -583,8 +583,8 @@ continue_1:
 			strcpy(lend,lname);
 			if (optP) {
 				WriteOut("Delete %s (Y/N)?", uselfn?sfull:full);
-				Bit8u c;
-				Bit16u n=1;
+				uint8_t c;
+				uint16_t n=1;
 				DOS_ReadFile (STDIN,&c,&n);
 				if (c==3) {WriteOut("^C\r\n");break;}
 				c = c=='y'||c=='Y' ? 'Y':'N';
@@ -609,7 +609,7 @@ continue_1:
 }
 
 static size_t GetPauseCount() {
-	Bit16u rows;
+	uint16_t rows;
 	if (IS_PC98_ARCH)
 		rows=real_readb(0x60,0x113) & 0x01 ? 25 : 20;
 	else
@@ -620,10 +620,10 @@ static size_t GetPauseCount() {
 struct DtaResult {
 	char name[DOS_NAMELENGTH_ASCII];
 	char lname[LFN_NAMELENGTH+1];
-	Bit32u size;
-	Bit16u date;
-	Bit16u time;
-	Bit8u attr;
+	uint32_t size;
+	uint16_t date;
+	uint16_t time;
+	uint8_t attr;
 
 	static bool groupDef(const DtaResult &lhs, const DtaResult &rhs) { return (lhs.attr & DOS_ATTR_DIRECTORY) && !(rhs.attr & DOS_ATTR_DIRECTORY)?true:((((lhs.attr & DOS_ATTR_DIRECTORY) && (rhs.attr & DOS_ATTR_DIRECTORY)) || (!(lhs.attr & DOS_ATTR_DIRECTORY) && !(rhs.attr & DOS_ATTR_DIRECTORY))) && strcmp(lhs.name, rhs.name) < 0); }
 	static bool groupDirs(const DtaResult &lhs, const DtaResult &rhs) { return (lhs.attr & DOS_ATTR_DIRECTORY) && !(rhs.attr & DOS_ATTR_DIRECTORY); }
@@ -657,7 +657,7 @@ static bool doDeltree(DOS_Shell * shell, char * args, DOS_DTA dta, bool optY, bo
     bool found=false, fdir=false, res=DOS_FindFirst(sargs,0xffff & ~DOS_ATTR_VOLUME);
 	if (!res) return false;
 	//end can't be 0, but if it is we'll get a nice crash, who cares :)
-    Bit16u attribute=0;
+    uint16_t attribute=0;
 	strcpy(path,full);
     if (!first&&strlen(args)>3&&!strcmp(args+strlen(args)-4,"\\.\\.")) {
         if (strlen(path)&&path[strlen(path)-1]=='\\') path[strlen(path)-1]=0;
@@ -675,7 +675,7 @@ static bool doDeltree(DOS_Shell * shell, char * args, DOS_DTA dta, bool optY, bo
 	char * end=strrchr(full,'\\')+1;*end=0;
 	char * lend=strrchr(sfull,'\\')+1;*lend=0;
     char name[DOS_NAMELENGTH_ASCII],lname[LFN_NAMELENGTH+1];
-    Bit32u size;Bit16u time,date;Bit8u attr;Bit16u fattr;
+    uint32_t size;uint16_t time,date;uint8_t attr;uint16_t fattr;
     std::vector<std::string> cdirs, cfiles;
     cdirs.clear();
 	cfiles.clear();
@@ -688,8 +688,8 @@ static bool doDeltree(DOS_Shell * shell, char * args, DOS_DTA dta, bool optY, bo
 			strcpy(end,name);
 			strcpy(lend,lname);
 			if (strlen(full)&&DOS_GetFileAttr(((uselfn||strchr(full, ' ')?(full[0]!='"'?"\"":""):"")+std::string(full)+(uselfn||strchr(full, ' ')?(full[strlen(full)-1]!='"'?"\"":""):"")).c_str(), &fattr)) {
-                Bit8u c;
-                Bit16u n=1;
+                uint8_t c;
+                uint16_t n=1;
                 if(attr&DOS_ATTR_DIRECTORY) {
                     if (strcmp(name, ".")&&strcmp(name, "..")) {
                         if (!optY&&first) {
@@ -801,7 +801,7 @@ void DOS_Shell::CMD_HELP(char * args){
 	args = trim(args);
 	upcase(args);
 	if(!optall&&!*args) WriteOut(MSG_Get("SHELL_CMD_HELP"));
-	Bit32u cmd_index=0,write_count=0;
+	uint32_t cmd_index=0,write_count=0;
 	bool show=false;
 	while (cmd_list[cmd_index].name) {
 		if (optall || (*args && !strcmp(args, cmd_list[cmd_index].name)) || (!*args && !cmd_list[cmd_index].flags)) {
@@ -820,7 +820,7 @@ void DOS_Shell::CMD_HELP(char * args){
 				WriteOut("<\033[34;1m%-8s\033[0m> %s",cmd_list[cmd_index].name,MSG_Get(cmd_list[cmd_index].help));
 				if(!(++write_count%GetPauseCount())) {
 					WriteOut(MSG_Get("SHELL_CMD_PAUSE"));
-					Bit8u c;Bit16u n=1;
+					uint8_t c;uint16_t n=1;
 					DOS_ReadFile(STDIN,&c,&n);
 					if (c==3) {WriteOut("^C\r\n");break;}
 					if (c==0) DOS_ReadFile(STDIN,&c,&n); // read extended key
@@ -864,7 +864,7 @@ void DOS_Shell::CMD_RENAME(char * args){
 	StripSpaces(args);
 	if (*args) {SyntaxError();return;}
 	char* slash = strrchr(arg1,'\\');
-	Bit32u size;Bit16u date;Bit16u time;Bit8u attr;
+	uint32_t size;uint16_t date;uint16_t time;uint8_t attr;
 	char name[DOS_NAMELENGTH_ASCII], lname[LFN_NAMELENGTH+1], tname1[LFN_NAMELENGTH+1], tname2[LFN_NAMELENGTH+1], text1[LFN_NAMELENGTH+1], text2[LFN_NAMELENGTH+1], tfull[CROSS_LEN+2];
 	//dir_source and target are introduced for when we support multiple files being renamed.
 	char sargs[CROSS_LEN], targs[CROSS_LEN], dir_source[DOS_PATHLENGTH + 4] = {0}, dir_target[CROSS_LEN + 4] = {0}, target[CROSS_LEN + 4] = {0}; //not sure if drive portion is included in pathlength
@@ -1100,13 +1100,13 @@ void DOS_Shell::CMD_CHDIR(char * args) {
 		WriteOut(MSG_Get("SHELL_ILLEGAL_PATH"));
 		return;
 	}
-	Bit8u drive = DOS_GetDefaultDrive()+'A';
+	uint8_t drive = DOS_GetDefaultDrive()+'A';
 	char dir[DOS_PATHLENGTH];
 	if (!*args) {
         DOS_GetCurrentDir(0,dir,true);
 		WriteOut("%c:\\%s\n",drive,dir);
 	} else if(strlen(args) == 2 && args[1]==':') {
-		Bit8u targetdrive = (args[0] | 0x20)-'a' + 1;
+		uint8_t targetdrive = (args[0] | 0x20)-'a' + 1;
 		unsigned char targetdisplay = *reinterpret_cast<unsigned char*>(&args[0]);
         if(!DOS_GetCurrentDir(targetdrive,dir,true)) { // verify that this should be true
 			if(drive == 'Z') {
@@ -1185,8 +1185,8 @@ void DOS_Shell::CMD_RMDIR(char * args) {
 	}
 }
 
-static void FormatNumber(Bit64u num,char * buf) {
-	Bit32u numm,numk,numb,numg,numt;
+static void FormatNumber(uint64_t num,char * buf) {
+	uint32_t numm,numk,numb,numg,numt;
 	numb=num % 1000;
 	num/=1000;
 	numk=num % 1000;
@@ -1216,7 +1216,7 @@ static void FormatNumber(Bit64u num,char * buf) {
 }
 
 char buffer[15] = {0};
-char *FormatDate(Bit16u year, Bit8u month, Bit8u day) {
+char *FormatDate(uint16_t year, uint8_t month, uint8_t day) {
 	char formatstring[6], c=dos.tables.country[11];
 	sprintf(formatstring, dos.tables.country[0]==1?"D%cM%cY":(dos.tables.country[0]==2?"Y%cM%cD":"M%cD%cY"), c, c);
 	Bitu bufferptr=0;
@@ -1251,7 +1251,7 @@ char *FormatTime(Bitu hour, Bitu min, Bitu sec, Bitu msec)	{
 	}
 
 
-Bit32u byte_count,file_count,dir_count;
+uint32_t byte_count,file_count,dir_count;
 Bitu p_count;
 std::vector<std::string> dirs, adirs;
 
@@ -1259,7 +1259,7 @@ static bool dirPaused(DOS_Shell * shell, Bitu w_size, bool optP, bool optW) {
 	p_count+=optW?5:1;
 	if (optP && p_count%(GetPauseCount()*w_size)<1) {
 		shell->WriteOut(MSG_Get("SHELL_CMD_PAUSE"));
-		Bit8u c;Bit16u n=1;
+		uint8_t c;uint16_t n=1;
 		DOS_ReadFile(STDIN,&c,&n);
 		if (c==3) {shell->WriteOut("^C\r\n");return false;}
 		if (c==0) DOS_ReadFile(STDIN,&c,&n); // read extended key
@@ -1287,7 +1287,7 @@ static bool doDir(DOS_Shell * shell, char * args, DOS_DTA dta, char * numformat,
 			p_count+=optW?10:2;
 			if (p_count%(GetPauseCount()*w_size)<2) {
 				shell->WriteOut(MSG_Get("SHELL_CMD_PAUSE"));
-				Bit8u c;Bit16u n=1;
+				uint8_t c;uint16_t n=1;
 				DOS_ReadFile(STDIN,&c,&n);
 				if (c==3) {shell->WriteOut("^C\r\n");return false;}
 				if (c==0) DOS_ReadFile(STDIN,&c,&n); // read extended key
@@ -1296,7 +1296,7 @@ static bool doDir(DOS_Shell * shell, char * args, DOS_DTA dta, char * numformat,
 	}
     if (*(sargs+strlen(sargs)-1) != '\\') strcat(sargs,"\\");
 
-	Bit32u cbyte_count=0,cfile_count=0,w_count=0;
+	uint32_t cbyte_count=0,cfile_count=0,w_count=0;
 	int fbak=lfn_filefind_handle;
 	lfn_filefind_handle=uselfn&&!optZ?LFN_FILEFIND_INTERNAL:LFN_FILEFIND_NONE;
 	bool ret=DOS_FindFirst(args,0xffff & ~DOS_ATTR_VOLUME), found=true, first=true;
@@ -1354,10 +1354,10 @@ static bool doDir(DOS_Shell * shell, char * args, DOS_DTA dta, char * numformat,
 
 			char * name = iter->name;
 			char *lname = iter->lname;
-			Bit32u size = iter->size;
-			Bit16u date = iter->date;
-			Bit16u time = iter->time;
-			Bit8u attr = iter->attr;
+			uint32_t size = iter->size;
+			uint16_t date = iter->date;
+			uint16_t time = iter->time;
+			uint8_t attr = iter->attr;
 
 			/* output the file */
 			if (optB) {
@@ -1374,7 +1374,7 @@ static bool doDir(DOS_Shell * shell, char * args, DOS_DTA dta, char * numformat,
 						p_count+=optW?15:3;
 						if (optS&&p_count%(GetPauseCount()*w_size)<3) {
 							shell->WriteOut(MSG_Get("SHELL_CMD_PAUSE"));
-							Bit8u c;Bit16u n=1;
+							uint8_t c;uint16_t n=1;
 							DOS_ReadFile(STDIN,&c,&n);
 							if (c==3) {shell->WriteOut("^C\r\n");return false;}
 							if (c==0) DOS_ReadFile(STDIN,&c,&n); // read extended key
@@ -1387,11 +1387,11 @@ static bool doDir(DOS_Shell * shell, char * args, DOS_DTA dta, char * numformat,
 					if (!ext) ext = empty_string;
 					else *ext++ = 0;
 				}
-				Bit8u day	= (Bit8u)(date & 0x001f);
-				Bit8u month	= (Bit8u)((date >> 5) & 0x000f);
-				Bit16u year = (Bit16u)((date >> 9) + 1980);
-				Bit8u hour	= (Bit8u)((time >> 5 ) >> 6);
-				Bit8u minute = (Bit8u)((time >> 5) & 0x003f);
+				uint8_t day	= (uint8_t)(date & 0x001f);
+				uint8_t month	= (uint8_t)((date >> 5) & 0x000f);
+				uint16_t year = (uint16_t)((date >> 9) + 1980);
+				uint8_t hour	= (uint8_t)((time >> 5 ) >> 6);
+				uint8_t minute = (uint8_t)((time >> 5) & 0x003f);
 
 				if (attr & DOS_ATTR_DIRECTORY) {
 					if (optW) {
@@ -1423,7 +1423,7 @@ static bool doDir(DOS_Shell * shell, char * args, DOS_DTA dta, char * numformat,
 			if (optP && !(++p_count%(GetPauseCount()*w_size))) {
 				if (optW&&w_count%5) {shell->WriteOut("\n");w_count=0;}
 				shell->WriteOut(MSG_Get("SHELL_CMD_PAUSE"));
-				Bit8u c;Bit16u n=1;
+				uint8_t c;uint16_t n=1;
 				DOS_ReadFile(STDIN,&c,&n);
 				if (c==3) {shell->WriteOut("^C\r\n");return false;}
 				if (c==0) DOS_ReadFile(STDIN,&c,&n); // read extended key
@@ -1593,7 +1593,7 @@ void DOS_Shell::CMD_DIR(char * args) {
 		return;
 	}
 	if (!strrchr(args,'*') && !strrchr(args,'?')) {
-		Bit16u attribute=0;
+		uint16_t attribute=0;
 		if(!DOS_GetSFNPath(args,sargs,false)) {
 			WriteOut(MSG_Get("SHELL_ILLEGAL_PATH"));
 			return;
@@ -1658,11 +1658,11 @@ void DOS_Shell::CMD_DIR(char * args) {
 		FormatNumber(byte_count,numformat);
 		WriteOut(MSG_Get("SHELL_CMD_DIR_BYTES_USED"),file_count,numformat);
 		if (!dirPaused(this, w_size, optP, optW)) {dos.dta(save_dta);return;}
-		Bit8u drive=dta.GetSearchDrive();
+		uint8_t drive=dta.GetSearchDrive();
 		//TODO Free Space
 		Bitu free_space=1024u*1024u*100u;
 		if (Drives[drive]) {
-			Bit32u bytes_sector32;Bit32u sectors_cluster32;Bit32u total_clusters32;Bit32u free_clusters32;
+			uint32_t bytes_sector32;uint32_t sectors_cluster32;uint32_t total_clusters32;uint32_t free_clusters32;
 			if ((dos.version.major > 7 || (dos.version.major == 7 && dos.version.minor >= 10)) &&
 				Drives[drive]->AllocationInfo32(&bytes_sector32,&sectors_cluster32,&total_clusters32,&free_clusters32)) { /* FAT32 aware extended API */
 				rsize=true;
@@ -1671,7 +1671,7 @@ void DOS_Shell::CMD_DIR(char * args) {
 				rsize=false;
 			}
 			else {
-				Bit16u bytes_sector;Bit8u sectors_cluster;Bit16u total_clusters;Bit16u free_clusters;
+				uint16_t bytes_sector;uint8_t sectors_cluster;uint16_t total_clusters;uint16_t free_clusters;
 				rsize=true;
 				freec=0;
 				Drives[drive]->AllocationInfo(&bytes_sector,&sectors_cluster,&total_clusters,&free_clusters);
@@ -1820,7 +1820,7 @@ void DOS_Shell::CMD_LS(char *args) {
 		}
 		if (optP&&p_count>=GetPauseCount()) {
 			WriteOut(MSG_Get("SHELL_CMD_PAUSE"));
-			Bit8u c;Bit16u n=1;
+			uint8_t c;uint16_t n=1;
 			DOS_ReadFile(STDIN,&c,&n);
 			if (c==3) {WriteOut("^C\r\n");dos.dta(save_dta);return;}
 			if (c==0) DOS_ReadFile(STDIN,&c,&n); // read extended key
@@ -1848,7 +1848,7 @@ void DOS_Shell::CMD_COPY(char * args) {
 	RealPt save_dta=dos.dta();
 	dos.dta(dos.tables.tempdta);
 	DOS_DTA dta(dos.dta());
-	Bit32u size;Bit16u date;Bit16u time;Bit8u attr;
+	uint32_t size;uint16_t date;uint16_t time;uint8_t attr;
 	char name[DOS_NAMELENGTH_ASCII], lname[LFN_NAMELENGTH+1];
 	std::vector<copysource> sources;
 	// ignore /b and /t switches: always copy binary
@@ -1955,7 +1955,7 @@ void DOS_Shell::CMD_COPY(char * args) {
 
 	copysource oldsource;
 	copysource source;
-	Bit32u count = 0;
+	uint32_t count = 0;
 	while(sources.size()) {
 		/* Get next source item and keep track of old source for concat start end */
 		oldsource = source;
@@ -2012,7 +2012,7 @@ void DOS_Shell::CMD_COPY(char * args) {
 			return;
 		}
 
-		Bit16u sourceHandle,targetHandle = 0;
+		uint16_t sourceHandle,targetHandle = 0;
 		char nameTarget[DOS_PATHLENGTH];
 		char nameSource[DOS_PATHLENGTH], nametmp[DOS_PATHLENGTH+2];
 		
@@ -2066,7 +2066,7 @@ void DOS_Shell::CMD_COPY(char * args) {
 			dta.GetResult(name,lname,size,date,time,attr);
 
 			if ((attr & DOS_ATTR_DIRECTORY)==0) {
-                Bit16u ftime,fdate;
+                uint16_t ftime,fdate;
 
 				strcpy(nameSource,pathSource);
 				strcat(nameSource,name);
@@ -2114,14 +2114,14 @@ void DOS_Shell::CMD_COPY(char * args) {
 							DOS_CloseFile(targetHandle);
 						return;
 						}
-					Bit16u fattr;
+					uint16_t fattr;
 					bool exist = DOS_GetFileAttr(nameTarget, &fattr);
 					if (!(attr & DOS_ATTR_DIRECTORY) && DOS_FindDevice(nameTarget) == DOS_DEVICES) {
 						if (exist && !optY && !oldsource.concat) {
 							dos.echo=false;
 							WriteOut(MSG_Get("SHELL_CMD_COPY_CONFIRM"), nameTarget);
-							Bit8u c;
-							Bit16u n=1;
+							uint8_t c;
+							uint16_t n=1;
 							while (true)
 								{
 								DOS_ReadFile (STDIN,&c,&n);
@@ -2135,7 +2135,7 @@ void DOS_Shell::CMD_COPY(char * args) {
 						if (!exist&&size) {
 							int drive=strlen(nameTarget)>1&&(nameTarget[1]==':'||nameTarget[2]==':')?(toupper(nameTarget[nameTarget[0]=='"'?1:0])-'A'):-1;
 							if (drive>=0&&Drives[drive]) {
-								Bit16u bytes_sector;Bit8u sectors_cluster;Bit16u total_clusters;Bit16u free_clusters;
+								uint16_t bytes_sector;uint8_t sectors_cluster;uint16_t total_clusters;uint16_t free_clusters;
 								rsize=true;
 								freec=0;
 								Drives[drive]->AllocationInfo(&bytes_sector,&sectors_cluster,&total_clusters,&free_clusters);
@@ -2151,7 +2151,7 @@ void DOS_Shell::CMD_COPY(char * args) {
 					}
 					//Don't create a new file when in concat mode
 					if (oldsource.concat || DOS_CreateFile(nameTarget,0,&targetHandle)) {
-						Bit32u dummy=0;
+						uint32_t dummy=0;
 
                         if (DOS_FindDevice(name) == DOS_DEVICES && !DOS_SetFileDate(targetHandle, ftime, fdate))
                             LOG_MSG("WARNING: COPY unable to apply date/time to dest");
@@ -2160,9 +2160,9 @@ void DOS_Shell::CMD_COPY(char * args) {
 						if (!oldsource.concat || (DOS_OpenFile(nameTarget,OPEN_READWRITE,&targetHandle) && 
 					        	                  DOS_SeekFile(targetHandle,&dummy,DOS_SEEK_END))) {
 							// Copy 
-							static Bit8u buffer[0x8000]; // static, otherwise stack overflow possible.
+							static uint8_t buffer[0x8000]; // static, otherwise stack overflow possible.
 							bool	failed = false;
-							Bit16u	toread = 0x8000;
+							uint16_t	toread = 0x8000;
 							bool iscon=DOS_FindDevice(name)==DOS_FindDevice("con");
 							if (iscon) dos.echo=true;
 							bool cont;
@@ -2298,7 +2298,7 @@ void DOS_Shell::CMD_IF(char * args) {
 			return;
 		}
 
-		Bit8u n = 0;
+		uint8_t n = 0;
 		do n = n * 10 + (*word - '0');
 		while (isdigit(*++word));
 		if(*word && !isspace(*word)) {
@@ -2429,7 +2429,7 @@ void DOS_Shell::CMD_TYPE(char * args) {
 		WriteOut(MSG_Get("SHELL_SYNTAXERROR"));
 		return;
 	}
-	Bit16u handle;
+	uint16_t handle;
 	char * word;
 nextfile:
 	word=StripArg(args);
@@ -2437,7 +2437,7 @@ nextfile:
 		WriteOut(MSG_Get("SHELL_CMD_FILE_NOT_FOUND"),word);
 		return;
 	}
-	Bit8u c;Bit16u n=1;
+	uint8_t c;uint16_t n=1;
 	bool iscon=DOS_FindDevice(word)==DOS_FindDevice("con");
 	while (n) {
 		DOS_ReadFile(handle,&c,&n);
@@ -2457,7 +2457,7 @@ void DOS_Shell::CMD_REM(char * args) {
 }
 
 static char PAUSED(void) {
-	Bit8u c; Bit16u n=1, handle;
+	uint8_t c; uint16_t n=1, handle;
 	if (!usecon&&DOS_OpenFile("con", OPEN_READWRITE, &handle)) {
 		DOS_ReadFile (handle,&c,&n);
 		DOS_CloseFile(handle);
@@ -2471,8 +2471,8 @@ void DOS_Shell::CMD_MORE(char * args) {
 	//ScanCMDBool(args,">");
 	int nchars = 0, nlines = 0, linecount = 0, LINES = 25, COLS = 80, TABSIZE = 8;
 	char * word;
-	Bit8u c, last=0;
-	Bit16u n=1;
+	uint8_t c, last=0;
+	uint16_t n=1;
 	StripSpaces(args);
 	if (IS_PC98_ARCH) {
 		LINES=real_readb(0x60,0x113) & 0x01 ? 25 : 20;
@@ -2521,7 +2521,7 @@ void DOS_Shell::CMD_MORE(char * args) {
 		WriteOut(MSG_Get("SHELL_SYNTAXERROR"));
 		return;
 	}
-	Bit16u handle;
+	uint16_t handle;
 nextfile:
 	word=StripArg(args);
 	if (!DOS_OpenFile(word,0,&handle)) {
@@ -2565,7 +2565,7 @@ void DOS_Shell::CMD_PAUSE(char * args){
 		WriteOut("%s\n",args);	// optional specified message
 	} else
 	WriteOut(MSG_Get("SHELL_CMD_PAUSE"));
-	Bit8u c;Bit16u n=1;
+	uint8_t c;uint16_t n=1;
 	DOS_ReadFile(STDIN,&c,&n);
 	if (c==0) DOS_ReadFile(STDIN,&c,&n); // read extended key
 }
@@ -2596,12 +2596,12 @@ void DOS_Shell::CMD_DATE(char * args) {
 	}
 	// check if a date was passed in command line
 	char c=dos.tables.country[11], c1, c2;
-	Bit32u newday,newmonth,newyear;
+	uint32_t newday,newmonth,newyear;
 	int n=dos.tables.country[0]==1?sscanf(args,"%u%c%u%c%u",&newday,&c1,&newmonth,&c2,&newyear):(dos.tables.country[0]==2?sscanf(args,"%u%c%u%c%u",&newyear,&c1,&newmonth,&c2,&newday):sscanf(args,"%u%c%u%c%u",&newmonth,&c1,&newday,&c2,&newyear));
 	if (n==5 && c1==c && c2==c) {
-		reg_cx = static_cast<Bit16u>(newyear);
-		reg_dh = static_cast<Bit8u>(newmonth);
-		reg_dl = static_cast<Bit8u>(newday);
+		reg_cx = static_cast<uint16_t>(newyear);
+		reg_dh = static_cast<uint8_t>(newmonth);
+		reg_dl = static_cast<uint8_t>(newday);
 
 		reg_ah=0x2b; // set system date
 		CALLBACK_RunRealInt(0x21);
@@ -2613,11 +2613,11 @@ void DOS_Shell::CMD_DATE(char * args) {
 	CALLBACK_RunRealInt(0x21);
 
 	const char* datestring = MSG_Get("SHELL_CMD_DATE_DAYS");
-	Bit32u length;
+	uint32_t length;
 	char day[6] = {0};
 	if(sscanf(datestring,"%u",&length) && (length<5) && (strlen(datestring)==((size_t)length*7+1))) {
 		// date string appears valid
-		for(Bit32u i = 0; i < length; i++) day[i] = datestring[reg_al*length+1+i];
+		for(uint32_t i = 0; i < length; i++) day[i] = datestring[reg_al*length+1+i];
 	}
 	bool dateonly = ScanCMDBool(args,"T");
 	if(!dateonly) WriteOut(MSG_Get("SHELL_CMD_DATE_NOW"));
@@ -2640,9 +2640,9 @@ void DOS_Shell::CMD_DATE(char * args) {
 		if (week < 0) week = (week + 7) % 7;
 
 		const char* my_week[7]={"Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"};
-		WriteOut("%s %s\n",my_week[week],FormatDate((Bit16u)reg_cx, (Bit8u)reg_dh, (Bit8u)reg_dl));
+		WriteOut("%s %s\n",my_week[week],FormatDate((uint16_t)reg_cx, (uint8_t)reg_dh, (uint8_t)reg_dl));
 	} else
-		WriteOut("%s %s\n",day, FormatDate((Bit16u)reg_cx, (Bit8u)reg_dh, (Bit8u)reg_dl));
+		WriteOut("%s %s\n",day, FormatDate((uint16_t)reg_cx, (uint8_t)reg_dh, (uint8_t)reg_dl));
 	if(!dateonly) {
 		char format[11];
 		sprintf(format, dos.tables.country[0]==1?"DD%cMM%cYYYY":(dos.tables.country[0]==2?"YYYY%cMM%cDD":"MM%cDD%cYYYY"), c, c);
@@ -2666,18 +2666,18 @@ void DOS_Shell::CMD_TIME(char * args) {
 		// reg_ah=0x2d; // set system time TODO
 		// CALLBACK_RunRealInt(0x21);
 		
-		Bit32u ticks=(Bit32u)(((double)(loctime->tm_hour*3600+
+		uint32_t ticks=(uint32_t)(((double)(loctime->tm_hour*3600+
 										loctime->tm_min*60+
 										loctime->tm_sec))*18.206481481);
 		mem_writed(BIOS_TIMER,ticks);
 		return;
 	}
-	Bit32u newhour,newminute,newsecond;
+	uint32_t newhour,newminute,newsecond;
 	char c=dos.tables.country[13], c1, c2;
 	if (sscanf(args,"%u%c%u%c%u",&newhour,&c1,&newminute,&c2,&newsecond)==5 && c1==c && c2==c) {
-		//reg_ch = static_cast<Bit16u>(newhour);
-		//reg_cl = static_cast<Bit8u>(newminute);
-		//reg_dx = static_cast<Bit8u>(newsecond)<<8;
+		//reg_ch = static_cast<uint16_t>(newhour);
+		//reg_cl = static_cast<uint8_t>(newminute);
+		//reg_dx = static_cast<uint8_t>(newsecond)<<8;
 
 		//reg_ah=0x2d; // set system time
 		//CALLBACK_RunRealInt(0x21);
@@ -2686,7 +2686,7 @@ void DOS_Shell::CMD_TIME(char * args) {
 		if( newhour > 23 || newminute > 59 || newsecond > 59)
 			WriteOut(MSG_Get("SHELL_CMD_TIME_ERROR"));
 		else {
-			Bit32u ticks=(Bit32u)(((double)(newhour*3600+
+			uint32_t ticks=(uint32_t)(((double)(newhour*3600+
 											newminute*60+
 											newsecond))*18.206481481);
 			mem_writed(BIOS_TIMER,ticks);
@@ -2727,7 +2727,7 @@ void DOS_Shell::CMD_SUBST(char * args) {
 		CommandLine command(0,args);
 		if (!command.GetCount()) {
 			char name[DOS_NAMELENGTH_ASCII],lname[LFN_NAMELENGTH];
-			Bit32u size;Bit16u date;Bit16u time;Bit8u attr;
+			uint32_t size;uint16_t date;uint16_t time;uint8_t attr;
 			/* Command uses dta so set it to our internal dta */
 			RealPt save_dta = dos.dta();
 			dos.dta(dos.tables.tempdta);
@@ -2782,7 +2782,7 @@ void DOS_Shell::CMD_SUBST(char * args) {
 		strcat(mountstring,temp_str);
 		strcat(mountstring," ");
 
-        Bit8u drive;char dir[DOS_PATHLENGTH+2],fulldir[DOS_PATHLENGTH];
+        uint8_t drive;char dir[DOS_PATHLENGTH+2],fulldir[DOS_PATHLENGTH];
         if (strchr(arg.c_str(),'\"')==NULL)
             sprintf(dir,"\"%s\"",arg.c_str());
         else strcpy(dir,arg.c_str());
@@ -2829,14 +2829,14 @@ void DOS_Shell::CMD_SUBST(char * args) {
 
 void DOS_Shell::CMD_LOADHIGH(char *args){
 	HELP("LOADHIGH");
-	Bit16u umb_start=dos_infoblock.GetStartOfUMBChain();
-	Bit8u umb_flag=dos_infoblock.GetUMBChainState();
-	Bit8u old_memstrat=(Bit8u)(DOS_GetMemAllocStrategy()&0xff);
+	uint16_t umb_start=dos_infoblock.GetStartOfUMBChain();
+	uint8_t umb_flag=dos_infoblock.GetUMBChainState();
+	uint8_t old_memstrat=(uint8_t)(DOS_GetMemAllocStrategy()&0xff);
 	if (umb_start==0x9fff) {
 		if ((umb_flag&1)==0) DOS_LinkUMBsToMemChain(1);
 		DOS_SetMemAllocStrategy(0x80);	// search in UMBs first
 		this->ParseLine(args);
-		Bit8u current_umb_flag=dos_infoblock.GetUMBChainState();
+		uint8_t current_umb_flag=dos_infoblock.GetUMBChainState();
 		if ((current_umb_flag&1)!=(umb_flag&1)) DOS_LinkUMBsToMemChain(umb_flag);
 		DOS_SetMemAllocStrategy(old_memstrat);	// restore strategy
 	} else this->ParseLine(args);
@@ -2867,8 +2867,8 @@ void DOS_Shell::CMD_CHOICE(char * args){
 	}
 	if (!rem || !*rem) rem = defchoice; /* No choices specified use YN */
 	ptr = rem;
-	Bit8u c;
-	if(!optS) while ((c = (Bit8u)(*ptr))) *ptr++ = (char)toupper(c); /* When in no case-sensitive mode. make everything upcase */
+	uint8_t c;
+	if(!optS) while ((c = (uint8_t)(*ptr))) *ptr++ = (char)toupper(c); /* When in no case-sensitive mode. make everything upcase */
 	if(args && *args ) {
 		StripSpaces(args);
 		size_t argslen = strlen(args);
@@ -2889,15 +2889,15 @@ void DOS_Shell::CMD_CHOICE(char * args){
 		WriteOut("%c]?",rem[len-1]);
 	}
 
-	Bit16u n=1;
+	uint16_t n=1;
 	do {
 		DOS_ReadFile (STDIN,&c,&n);
 		if (c==3) {WriteOut("^C\r\n");dos.return_code=0;return;}
 	} while (!c || !(ptr = strchr(rem,(optS?c:toupper(c)))));
-	c = optS?c:(Bit8u)toupper(c);
+	c = optS?c:(uint8_t)toupper(c);
 	DOS_WriteFile (STDOUT,&c, &n);
 	c = '\n'; DOS_WriteFile (STDOUT,&c, &n);
-	dos.return_code = (Bit8u)(ptr-rem+1);
+	dos.return_code = (uint8_t)(ptr-rem+1);
 }
 
 static bool doAttrib(DOS_Shell * shell, char * args, DOS_DTA dta, bool optS, bool adda, bool adds, bool addh, bool addr, bool suba, bool subs, bool subh, bool subr) {
@@ -2917,7 +2917,7 @@ static bool doAttrib(DOS_Shell * shell, char * args, DOS_DTA dta, bool optS, boo
 	char * end=strrchr(full,'\\')+1;*end=0;
 	char * lend=strrchr(sfull,'\\')+1;*lend=0;
     char name[DOS_NAMELENGTH_ASCII],lname[LFN_NAMELENGTH+1];
-    Bit32u size;Bit16u time,date;Bit8u attr;Bit16u fattr;
+    uint32_t size;uint16_t time,date;uint8_t attr;uint16_t fattr;
 	while (res) {
 		dta.GetResult(name,lname,size,date,time,attr);
 		if (!((!strcmp(name, ".") || !strcmp(name, "..") || strchr(sargs, '*')!=NULL || strchr(sargs, '?')!=NULL) && attr & DOS_ATTR_DIRECTORY)) {
@@ -3124,10 +3124,10 @@ void DOS_Shell::CMD_VER(char *args) {
 
 void DOS_Shell::CMD_VOL(char *args){
 	HELP("VOL");
-	Bit8u drive=DOS_GetDefaultDrive();
+	uint8_t drive=DOS_GetDefaultDrive();
 	if(args && *args){
 		args++;
-		Bit32u argLen = (Bit32u)strlen(args);
+		uint32_t argLen = (uint32_t)strlen(args);
 		switch (args[argLen-1]) {
 		case ':' :
 			if(!strcasecmp(args,":")) return;
@@ -3181,7 +3181,7 @@ void DOS_Shell::CMD_TRUENAME(char * args) {
 		return;
 	}
 	char *name = StripArg(args), fullname[DOS_PATHLENGTH];
-	Bit8u drive;
+	uint8_t drive;
 	if (DOS_MakeName(name, fullname, &drive))
 		WriteOut("%c:\\%s\r\n", drive+'A', fullname);
 	else
@@ -3504,9 +3504,9 @@ void DOS_Shell::CMD_FOR(char *args) {
 						path[k++]=path[i];
 				path[k]=0;
 			}
-			Bit32u size;
-			Bit16u date, time;
-			Bit8u attr;
+			uint32_t size;
+			uint16_t date, time;
+			uint8_t attr;
 			DOS_DTA dta(dos.dta());
 			std::vector<std::string> sources;
 			std::string tmp;
@@ -3650,7 +3650,7 @@ void DOS_Shell::CMD_DXCAPTURE(char * args) {
     if (post_exit_delay_ms > 0) {
         LOG_MSG("Pausing for post exit delay (%.3f seconds)",(double)post_exit_delay_ms / 1000);
 
-        Bit32u lasttick=GetTicks();
+        uint32_t lasttick=GetTicks();
         while ((GetTicks()-lasttick)<post_exit_delay_ms) {
             CALLBACK_Idle();
 
@@ -3691,7 +3691,7 @@ void DOS_Shell::CMD_DXCAPTURE(char * args) {
 void DOS_Shell::CMD_CTTY(char * args) {
 	HELP("CTTY");
 	/* NTS: This is written to emulate the simplistic parsing in MS-DOS 6.22 */
-	Bit16u handle;
+	uint16_t handle;
 	int i;
 
 	/* args has leading space? */

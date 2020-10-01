@@ -42,12 +42,12 @@
 
 #define LOG_SER(x) log_ser 
 
-bool device_COM::Read(Bit8u * data,Bit16u * size) {
+bool device_COM::Read(uint8_t * data,uint16_t * size) {
 	// DTR + RTS on
 	sclass->Write_MCR(0x03);
-	for (Bit16u i=0; i<*size; i++)
+	for (uint16_t i=0; i<*size; i++)
 	{
-		Bit8u status;
+		uint8_t status;
 		if(!(sclass->Getchar(&data[i],&status,true,1000))) {
 			*size=i;
 			return true;
@@ -57,10 +57,10 @@ bool device_COM::Read(Bit8u * data,Bit16u * size) {
 }
 
 
-bool device_COM::Write(const Bit8u * data,Bit16u * size) {
+bool device_COM::Write(const uint8_t * data,uint16_t * size) {
 	// DTR + RTS on
 	sclass->Write_MCR(0x03);
-	for (Bit16u i=0; i<*size; i++)
+	for (uint16_t i=0; i<*size; i++)
 	{
 		if(!(sclass->Putchar(data[i],true,true,1000))) {
 			*size=i;
@@ -73,7 +73,7 @@ bool device_COM::Write(const Bit8u * data,Bit16u * size) {
 	return true;
 }
 
-bool device_COM::Seek(Bit32u * pos,Bit32u type) {
+bool device_COM::Seek(uint32_t * pos,uint32_t type) {
     (void)type;//UNUSED
 	*pos = 0;
 	return true;
@@ -83,7 +83,7 @@ bool device_COM::Close() {
 	return false;
 }
 
-Bit16u device_COM::GetInformation(void) {
+uint16_t device_COM::GetInformation(void) {
 	return 0x80A0;
 }
 
@@ -181,28 +181,28 @@ static void SERIAL_Write (Bitu port, Bitu val, Bitu) {
 #endif
 	switch (index) {
 		case THR_OFFSET:
-			serialports[i]->Write_THR ((Bit8u)val);
+			serialports[i]->Write_THR ((uint8_t)val);
 			return;
 		case IER_OFFSET:
-			serialports[i]->Write_IER ((Bit8u)val);
+			serialports[i]->Write_IER ((uint8_t)val);
 			return;
 		case FCR_OFFSET:
-			serialports[i]->Write_FCR ((Bit8u)val);
+			serialports[i]->Write_FCR ((uint8_t)val);
 			return;
 		case LCR_OFFSET:
-			serialports[i]->Write_LCR ((Bit8u)val);
+			serialports[i]->Write_LCR ((uint8_t)val);
 			return;
 		case MCR_OFFSET:
-			serialports[i]->Write_MCR ((Bit8u)val);
+			serialports[i]->Write_MCR ((uint8_t)val);
 			return;
 		case MSR_OFFSET:
-			serialports[i]->Write_MSR ((Bit8u)val);
+			serialports[i]->Write_MSR ((uint8_t)val);
 			return;
 		case SPR_OFFSET:
-			serialports[i]->Write_SPR ((Bit8u)val);
+			serialports[i]->Write_SPR ((uint8_t)val);
 			return;
 		default:
-			serialports[i]->Write_reserved ((Bit8u)val, port & 0x7);
+			serialports[i]->Write_reserved ((uint8_t)val, port & 0x7);
 	}
 }
 #if SERIAL_DEBUG
@@ -246,19 +246,19 @@ void CSerial::changeLineProperties() {
 static void Serial_EventHandler(Bitu val) {
 	Bitu serclassid=val&0x3;
 	if(serialports[serclassid]!=0)
-		serialports[serclassid]->handleEvent((Bit16u)(val>>2));
+		serialports[serclassid]->handleEvent((uint16_t)(val>>2));
 }
 
-void CSerial::setEvent(Bit16u type, float duration) {
+void CSerial::setEvent(uint16_t type, float duration) {
     PIC_AddEvent(Serial_EventHandler,duration,(Bitu)(((unsigned int)type<<2u)|(unsigned int)idnumber));
 }
 
-void CSerial::removeEvent(Bit16u type) {
+void CSerial::removeEvent(uint16_t type) {
     // TODO
 	PIC_RemoveSpecificEvents(Serial_EventHandler,(Bitu)(((unsigned int)type<<2u)|(unsigned int)idnumber));
 }
 
-void CSerial::handleEvent(Bit16u type) {
+void CSerial::handleEvent(uint16_t type) {
 	switch(type) {
 		case SERIAL_TX_LOOPBACK_EVENT: {
 
@@ -307,7 +307,7 @@ void CSerial::handleEvent(Bit16u type) {
 /*****************************************************************************/
 /* Interrupt control routines                                               **/
 /*****************************************************************************/
-void CSerial::rise (Bit8u priority) {
+void CSerial::rise (uint8_t priority) {
 #if SERIAL_DEBUG
 	if(priority&TX_PRIORITY && !(waiting_interrupts&TX_PRIORITY))
 		log_ser(dbg_interrupt,"tx interrupt on.");
@@ -324,7 +324,7 @@ void CSerial::rise (Bit8u priority) {
 }
 
 // clears the pending interrupt, triggers other waiting interrupt
-void CSerial::clear (Bit8u priority) {
+void CSerial::clear (uint8_t priority) {
 	
 #if SERIAL_DEBUG
 	if(priority&TX_PRIORITY && (waiting_interrupts&TX_PRIORITY))
@@ -381,7 +381,7 @@ bool CSerial::CanReceiveByte() {
 /*****************************************************************************/
 /* A byte was received                                                      **/
 /*****************************************************************************/
-void CSerial::receiveByteEx (Bit8u data, Bit8u error) {
+void CSerial::receiveByteEx (uint8_t data, uint8_t error) {
 #if SERIAL_DEBUG
 	log_ser(dbg_serialtraffic,data<0x10 ? "\t\t\t\trx 0x%02x (%u)":
 		"\t\t\t\trx 0x%02x (%c)", data, data);
@@ -409,7 +409,7 @@ void CSerial::receiveByteEx (Bit8u data, Bit8u error) {
 				errorfifo->addb(error);
 			}
 			else {
-				Bit8u toperror=errorfifo->getTop();
+				uint8_t toperror=errorfifo->getTop();
 				if(!toperror) errors_in_fifo++;
 				errorfifo->addb(error|toperror);
 			}
@@ -452,7 +452,7 @@ void CSerial::receiveByteEx (Bit8u data, Bit8u error) {
 	}
 }
 
-void CSerial::receiveByte (Bit8u data) {
+void CSerial::receiveByte (uint8_t data) {
 	receiveByteEx(data,0);
 }
 
@@ -476,7 +476,7 @@ void CSerial::ByteTransmitting() {
 void CSerial::ByteTransmitted () {
 	if(!txfifo->isEmpty()) {
 		// there is more data
-		Bit8u data = txfifo->getb();
+		uint8_t data = txfifo->getb();
 #if SERIAL_DEBUG
 		log_ser(dbg_serialtraffic,data<0x10?
 			"\t\t\t\t\ttx 0x%02x (%u) (from buffer)":
@@ -497,7 +497,7 @@ void CSerial::ByteTransmitted () {
 /*****************************************************************************/
 /* Transmit Holding Register, also LSB of Divisor Latch (r/w)               **/
 /*****************************************************************************/
-void CSerial::Write_THR (Bit8u data) {
+void CSerial::Write_THR (uint8_t data) {
 	// 0-7 transmit data
 	
 	if (LCR & LCR_DIVISOR_Enable_MASK) {
@@ -556,9 +556,9 @@ Bitu CSerial::Read_RHR () {
 	// 0-7 received data
 	if (LCR & LCR_DIVISOR_Enable_MASK) return baud_divider&0xff;
 	else {
-		Bit8u data=rxfifo->getb();
+		uint8_t data=rxfifo->getb();
 		if(FCR&FCR_ACTIVATE) {
-			Bit8u error=errorfifo->getb();
+			uint8_t error=errorfifo->getb();
 			if(error) errors_in_fifo--;
 			// new error
 			if(!rxfifo->isEmpty()) {
@@ -595,10 +595,10 @@ Bitu CSerial::Read_IER () {
 	else return IER&0x0f;
 }
 
-void CSerial::Write_IER (Bit8u data) {
+void CSerial::Write_IER (uint8_t data) {
 	if (LCR & LCR_DIVISOR_Enable_MASK) {	// write to DLM
 		baud_divider&=0xff;
-		baud_divider |= ((Bit16u)data)<<8;
+		baud_divider |= ((uint16_t)data)<<8;
 		changeLineProperties();
 	} else {
 		// Retrigger TX interrupt
@@ -628,7 +628,7 @@ Bitu CSerial::Read_ISR () {
 	// 4-7	0
 
 	if(IER&Modem_Status_INT_Enable_MASK) updateMSR();
-	Bit8u retval = ISR;
+	uint8_t retval = ISR;
 
 	// clear changes ISR!! mean..
 	if(ISR==ISR_TX_VAL) clear(TX_PRIORITY);
@@ -640,7 +640,7 @@ Bitu CSerial::Read_ISR () {
 #define BIT_CHANGE_H(oldv,newv,bitmask) (!(oldv&bitmask) && (newv&bitmask))
 #define BIT_CHANGE_L(oldv,newv,bitmask) ((oldv&bitmask) && !(newv&bitmask))
 
-void CSerial::Write_FCR (Bit8u data) {
+void CSerial::Write_FCR (uint8_t data) {
 	if(BIT_CHANGE_H(FCR,data,FCR_ACTIVATE)) {
 		// FIFO was switched on
 		errors_in_fifo=0; // should already be 0
@@ -691,8 +691,8 @@ Bitu CSerial::Read_LCR () {
 	return LCR;
 }
 
-void CSerial::Write_LCR (Bit8u data) {
-	Bit8u lcr_old = LCR;
+void CSerial::Write_LCR (uint8_t data) {
+	uint8_t lcr_old = LCR;
 	LCR = data;
 	if (((data ^ lcr_old) & LCR_PORTCONFIG_MASK) != 0) {
 		changeLineProperties();
@@ -722,7 +722,7 @@ Bitu CSerial::Read_MCR () {
 	// 3	-OP2
 	// 4	loopback enable
 	// 5-7	0
-	Bit8u retval=0;
+	uint8_t retval=0;
 	if(dtr) retval|=MCR_DTR_MASK;
 	if(rts) retval|=MCR_RTS_MASK;
 	if(op1) retval|=MCR_OP1_MASK;
@@ -731,7 +731,7 @@ Bitu CSerial::Read_MCR () {
 	return retval;
 }
 
-void CSerial::Write_MCR (Bit8u data) {
+void CSerial::Write_MCR (uint8_t data) {
 	// WARNING: At the time setRTSDTR is called rts and dsr members are still wrong.
 	if (data&FIFO_FLOWCONTROL) LOG_MSG("Warning: tried to activate hardware handshake.");
 	bool new_dtr = (data & MCR_DTR_MASK)? true:false;
@@ -832,7 +832,7 @@ Bitu CSerial::Read_LSR () {
 	return retval;
 }
 
-void CSerial::Write_MSR (Bit8u val) {
+void CSerial::Write_MSR (uint8_t val) {
 	d_cts = (val&MSR_dCTS_MASK)?true:false;
 	d_dsr = (val&MSR_dDSR_MASK)?true:false;
 	d_cd = (val&MSR_dCD_MASK)?true:false;
@@ -848,7 +848,7 @@ void CSerial::Write_MSR (Bit8u val) {
 // - real values
 // - write operation to MCR in loopback mode
 Bitu CSerial::Read_MSR () {
-	Bit8u retval=0;
+	uint8_t retval=0;
 	
 	if (loopback) {
 		
@@ -889,14 +889,14 @@ Bitu CSerial::Read_SPR () {
 	return SPR;
 }
 
-void CSerial::Write_SPR (Bit8u data) {
+void CSerial::Write_SPR (uint8_t data) {
 	SPR = data;
 }
 
 /*****************************************************************************/
 /* Write_reserved                                                           **/
 /*****************************************************************************/
-void CSerial::Write_reserved (Bit8u data, Bit8u address) {
+void CSerial::Write_reserved (uint8_t data, uint8_t address) {
     (void)data;//UNUSED
     (void)address;//UNUSED
 	/*LOG_UART("Serial%d: Write to reserved register, value 0x%x, register %x",
@@ -1001,12 +1001,12 @@ void CSerial::Init_Registers () {
 	irq_active=false;
 	waiting_interrupts = 0x0;
 
-	Bit32u initbps = 9600;
-	Bit8u bytesize = 8;
+	uint32_t initbps = 9600;
+	uint8_t bytesize = 8;
 	char parity = 'N';
 							  
-	Bit8u lcrresult = 0;
-	Bit16u baudresult = 0;
+	uint8_t lcrresult = 0;
+	uint16_t baudresult = 0;
 
 	IER = 0;
 	ISR = 0x1;
@@ -1074,14 +1074,14 @@ void CSerial::Init_Registers () {
 
 	// baudrate
 	if (initbps > 0)
-		baudresult = (Bit16u) (115200 / initbps);
+		baudresult = (uint16_t) (115200 / initbps);
 	else
 		baudresult = 12;			// = 9600 baud
 
 	Write_MCR (0);
 	Write_LCR (LCR_DIVISOR_Enable_MASK);
-	Write_THR ((Bit8u) baudresult & 0xff);
-	Write_IER ((Bit8u) (baudresult >> 8));
+	Write_THR ((uint8_t) baudresult & 0xff);
+	Write_IER ((uint8_t) (baudresult >> 8));
 	Write_LCR (lcrresult);
 	updateMSR();
 	Read_MSR();
@@ -1090,7 +1090,7 @@ void CSerial::Init_Registers () {
 
 CSerial::CSerial(Bitu id, CommandLine* cmd) {
 	idnumber=id;
-	Bit16u base = serial_baseaddr[id];
+	uint16_t base = serial_baseaddr[id];
     InstallationSuccessful = false;
     bytetime = 0;
     waiting_interrupts = 0;
@@ -1209,7 +1209,7 @@ void CSerial::unregisterDOSDevice() {
 
 CSerial::~CSerial(void) {
 	unregisterDOSDevice();
-	for(Bit8u i = 0; i <= SERIAL_BASE_EVENT_COUNT; i++)
+	for(uint8_t i = 0; i <= SERIAL_BASE_EVENT_COUNT; i++)
 		removeEvent(i);
 
 	if (rxfifo != NULL) {
@@ -1226,7 +1226,7 @@ CSerial::~CSerial(void) {
 	}
 }
 
-bool CSerial::Getchar(Bit8u* data, Bit8u* lsr, bool wait_dsr, Bitu timeout) {
+bool CSerial::Getchar(uint8_t* data, uint8_t* lsr, bool wait_dsr, Bitu timeout) {
 	double starttime=PIC_FullIndex();
 	// wait for DSR on
 	if(wait_dsr) {
@@ -1240,7 +1240,7 @@ bool CSerial::Getchar(Bit8u* data, Bit8u* lsr, bool wait_dsr, Bitu timeout) {
 		}
 	}
 	// wait for a byte to arrive
-	while((!((*lsr=(Bit8u)Read_LSR())&0x1))&&(starttime>PIC_FullIndex()-timeout))
+	while((!((*lsr=(uint8_t)Read_LSR())&0x1))&&(starttime>PIC_FullIndex()-timeout))
 		CALLBACK_Idle();
 	
 	if(!(starttime>PIC_FullIndex()-timeout)) {
@@ -1249,7 +1249,7 @@ bool CSerial::Getchar(Bit8u* data, Bit8u* lsr, bool wait_dsr, Bitu timeout) {
 #endif
 		return false;
 	}
-	*data=(Bit8u)Read_RHR();
+	*data=(uint8_t)Read_RHR();
 
 #if SERIAL_DEBUG
 	log_ser(dbg_aux,"Getchar read 0x%x",*data);
@@ -1258,7 +1258,7 @@ bool CSerial::Getchar(Bit8u* data, Bit8u* lsr, bool wait_dsr, Bitu timeout) {
 }
 
 
-bool CSerial::Putchar(Bit8u data, bool wait_dsr, bool wait_cts, Bitu timeout) {
+bool CSerial::Putchar(uint8_t data, bool wait_dsr, bool wait_cts, Bitu timeout) {
 	
 	double starttime=PIC_FullIndex();
 	// wait for it to become empty
@@ -1294,7 +1294,7 @@ bool CSerial::Putchar(Bit8u data, bool wait_dsr, bool wait_cts, Bitu timeout) {
 }
 
 void BIOS_PnP_ComPortRegister(Bitu port,Bitu irq);
-void BIOS_SetCOMPort(Bitu port, Bit16u baseaddr);
+void BIOS_SetCOMPort(Bitu port, uint16_t baseaddr);
 
 void BIOS_Post_register_comports_PNP() {
 	unsigned int i;
@@ -1343,7 +1343,7 @@ public:
 #endif
                 
 		char s_property[] = "serialx"; 
-		for(Bit8u i = 0; i < 4; i++) {
+		for(uint8_t i = 0; i < 4; i++) {
 			// get the configuration property
 			s_property[6] = '1' + i;
 			Prop_multival* p = section->Get_multival(s_property);

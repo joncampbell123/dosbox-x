@@ -22,7 +22,7 @@
 class MidiHandler_oss: public MidiHandler {
 private:
 	int  device;
-	Bit8u device_num;
+	uint8_t device_num;
 	bool isOpen;
 public:
 	MidiHandler_oss() : MidiHandler(),isOpen(false) {};
@@ -45,8 +45,8 @@ public:
 		if (!isOpen) return;
 		if (device>0) close(device);
 	};
-	void PlayMsg(Bit8u * msg) {
-		Bit8u buf[128];Bitu pos=0;
+	void PlayMsg(uint8_t * msg) {
+		uint8_t buf[128];Bitu pos=0;
 		Bitu len=MIDI_evt_len[*msg];
 		for (;len>0;len--) {
 			buf[pos++] = SEQ_MIDIPUTC;
@@ -60,8 +60,8 @@ public:
             LOG(LOG_IO, LOG_ERROR) ("Writing error in PlayMsg\n");
         }
 	};
-	void PlaySysex(Bit8u * sysex,Bitu len) {
-		Bit8u buf[SYSEX_SIZE*4];Bitu pos=0;
+	void PlaySysex(uint8_t * sysex,Bitu len) {
+		uint8_t buf[SYSEX_SIZE*4];Bitu pos=0;
 		for (;len>0;len--) {
 			buf[pos++] = SEQ_MIDIPUTC;
 			buf[pos++] = *sysex++;

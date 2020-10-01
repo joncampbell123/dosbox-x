@@ -67,7 +67,7 @@ bool xBRZ_SetScaleParameters(int srcWidth, int srcHeight, int dstWidth, int dstH
     return sdl_xbrz.scale_on;
 }
 
-void xBRZ_Render(const uint32_t* renderBuf, uint32_t* xbrzBuf, const Bit16u *changedLines, const int srcWidth, const int srcHeight, int scalingFactor)
+void xBRZ_Render(const uint32_t* renderBuf, uint32_t* xbrzBuf, const uint16_t *changedLines, const int srcWidth, const int srcHeight, int scalingFactor)
 {
 #ifdef XBRZ_PPL
     if (changedLines) // perf: in worst case similar to full input scaling

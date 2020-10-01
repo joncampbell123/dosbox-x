@@ -35,7 +35,7 @@ unsigned int DISNEY_BASE = 0x0378;
 #define DISNEY_SIZE 128
 
 typedef struct _dac_channel {
-	Bit8u buffer[DISNEY_SIZE];	// data buffer
+	uint8_t buffer[DISNEY_SIZE];	// data buffer
 	Bitu used;					// current data buffer level
 	double speedcheck_sum;
 	double speedcheck_last;
@@ -45,9 +45,9 @@ typedef struct _dac_channel {
 
 static struct {
 	// parallel port stuff
-	Bit8u data;
-	Bit8u status;
-	Bit8u control;
+	uint8_t data;
+	uint8_t status;
+	uint8_t control;
 	// the D/A channels
 	dac_channel da[2];
 
@@ -196,7 +196,7 @@ static void disney_write(Bitu port,Bitu val,Bitu iolen) {
 	switch (port-DISNEY_BASE) {
 	case 0:		/* Data Port */
 	{
-		disney.data=(Bit8u)val;
+		disney.data=(uint8_t)val;
 		// if data is written here too often without using the stereo
 		// mechanism we use the simple DAC machanism. 
         if(disney.state != DS_RUNNING) {
@@ -263,7 +263,7 @@ static void disney_write(Bitu port,Bitu val,Bitu iolen) {
 
 //		LOG_WARN("DISNEY:Control write %x",val);
 		if (val&0x10) LOG(LOG_MISC,LOG_ERROR)("DISNEY:Parallel IRQ Enabled");
-		disney.control=(Bit8u)val;
+		disney.control=(uint8_t)val;
 		break;
 	}
 }
@@ -296,8 +296,8 @@ static Bitu disney_read(Bitu port,Bitu iolen) {
 	return 0xff;
 }
 
-static void DISNEY_PlayStereo(Bitu len, Bit8u* l, Bit8u* r) {
-	static Bit8u stereodata[DISNEY_SIZE*2];
+static void DISNEY_PlayStereo(Bitu len, uint8_t* l, uint8_t* r) {
+	static uint8_t stereodata[DISNEY_SIZE*2];
 	for(Bitu i = 0; i < len; i++) {
 		stereodata[i*2] = l[i];
 		stereodata[i*2+1] = r[i];
@@ -330,8 +330,8 @@ static void DISNEY_CallBack(Bitu len) {
 	// TODO: len > DISNEY
 	} else { // not enough data
 		if(disney.stereo) {
-			Bit8u gapfiller0 = 128;
-			Bit8u gapfiller1 = 128;
+			uint8_t gapfiller0 = 128;
+			uint8_t gapfiller1 = 128;
 			if(real_used) {
 				gapfiller0 = disney.da[0].buffer[real_used-1];
 				gapfiller1 = disney.da[1].buffer[real_used-1];
@@ -346,7 +346,7 @@ static void DISNEY_CallBack(Bitu len) {
 			len -= real_used;
 
 		} else { // mono
-			Bit8u gapfiller = 128; //Keep the middle
+			uint8_t gapfiller = 128; //Keep the middle
 			if(real_used) {
 				// fix for some stupid game; it outputs 0 at the end of the stream
 				// causing a click. So if we have at least two bytes availible in the
@@ -473,7 +473,7 @@ void POD_Save_Disney( std::ostream& stream )
 	//************************************************
 	//************************************************
 
-	Bit8u dac_leader_idx;
+	uint8_t dac_leader_idx;
 
 
 	dac_leader_idx = 0xff;
@@ -520,7 +520,7 @@ void POD_Load_Disney( std::istream& stream )
 	//************************************************
 	//************************************************
 
-	Bit8u dac_leader_idx;
+	uint8_t dac_leader_idx;
 	MixerObject *mo_old;
 	MixerChannel *chan_old;
 

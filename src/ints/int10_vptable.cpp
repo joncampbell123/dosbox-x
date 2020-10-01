@@ -25,7 +25,7 @@
 
 bool rom_bios_vptable_enable = true;
 
-const Bit8u vparams[] = {
+const uint8_t vparams[] = {
 	// 40x25 mode 0 and 1 crtc registers
 	0x38, 0x28, 0x2d, 0x0a, 0x1f, 0x06, 0x19, 0x1c, 0x02, 0x07, 0x06, 0x07, 0,0,0,0,
 	// 80x25 mode 2 and 3 crtc registers
@@ -42,7 +42,7 @@ const Bit8u vparams[] = {
 	0x2c, 0x28, 0x2d, 0x29, 0x2a, 0x2e, 0x1e, 0x29
 };
 
-const Bit8u vparams_pcjr[] = {
+const uint8_t vparams_pcjr[] = {
 	// 40x25 mode 0 and 1 crtc registers
 	0x38, 0x28, 0x2c, 0x06, 0x1f, 0x06, 0x19, 0x1c, 0x02, 0x07, 0x06, 0x07, 0,0,0,0,
 	// 80x25 mode 2 and 3 crtc registers
@@ -59,7 +59,7 @@ const Bit8u vparams_pcjr[] = {
 	0x2c, 0x28, 0x2d, 0x29, 0x2a, 0x2e, 0x1e, 0x29
 };
 
-const Bit8u vparams_tandy[] = {
+const uint8_t vparams_tandy[] = {
 	// 40x25 mode 0 and 1 crtc registers
 	0x38, 0x28, 0x2c, 0x08, 0x1f, 0x06, 0x19, 0x1c, 0x02, 0x07, 0x06, 0x07, 0,0,0,0,
 	// 80x25 mode 2 and 3 crtc registers
@@ -77,7 +77,7 @@ const Bit8u vparams_tandy[] = {
 };
 
 #if 0//unused
-const Bit8u vparams_tandy_td[] = {
+const uint8_t vparams_tandy_td[] = {
 	// 40x25 mode 0 and 1 crtc registers
 	0x38, 0x28, 0x2d, 0x0a, 0x1f, 0x06, 0x19, 0x1c, 0x02, 0x07, 0x06, 0x07, 0,0,0,0,
 	// 80x25 mode 2 and 3 crtc registers
@@ -98,7 +98,7 @@ const Bit8u vparams_tandy_td[] = {
 #endif
 
 
-static Bit8u video_parameter_table_vga[0x40*0x1d]={
+static uint8_t video_parameter_table_vga[0x40*0x1d]={
 // video parameter table for mode 0 (cga emulation)
   0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
   0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
@@ -330,7 +330,7 @@ static Bit8u video_parameter_table_vga[0x40*0x1d]={
   0x00, 0x00, 0x00, 0x00, 0x00, 0x40, 0x05, 0x0f, 0xff  // graphics registers 0-8
 };
 
-static Bit8u video_parameter_table_ega[0x40*0x17]={
+static uint8_t video_parameter_table_ega[0x40*0x17]={
 // video parameter table for mode 0 (cga emulation)
   0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
   0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
@@ -562,14 +562,14 @@ static Bit8u video_parameter_table_ega[0x40*0x17]={
 // TODO: Copy 0x170 bytes of video parameter table from MCGA BIOS.
 //       Refer to NOTES, which has a snapshot of the MCGA BIOS within it.
 
-Bit16u INT10_SetupVideoParameterTable(PhysPt basepos) {
+uint16_t INT10_SetupVideoParameterTable(PhysPt basepos) {
 	if (IS_VGA_ARCH) {
-		for (Bit16u i=0;i<0x40*0x1d;i++) {
+		for (uint16_t i=0;i<0x40*0x1d;i++) {
 			phys_writeb(basepos+i,video_parameter_table_vga[i]);
 		}
 		return 0x40*0x1d;
 	} else {
-		for (Bit16u i=0;i<0x40*0x17;i++) {
+		for (uint16_t i=0;i<0x40*0x17;i++) {
 			phys_writeb(basepos+i,video_parameter_table_ega[i]);
 		}
 		return 0x40*0x17;
@@ -578,7 +578,7 @@ Bit16u INT10_SetupVideoParameterTable(PhysPt basepos) {
 }
 
 Bitu RealToPhys(Bitu x) {
-	return PhysMake((Bit16u)(x>>16),x&0xFFFF);
+	return PhysMake((uint16_t)(x>>16),x&0xFFFF);
 }
 
 void INT10_SetupBasicVideoParameterTable(void) {
@@ -658,7 +658,7 @@ void INT10_GenerateVideoParameterTable(void) {
 			LOG_MSG("  0x%02x, 0x%02x, 0x%02x, 0x%02x, // sequencer registers",seq_regs[0],seq_regs[1],seq_regs[2],seq_regs[3]);
 			LOG_MSG("  0x%02x, // misc output registers",IO_ReadB(0x3cc));
 			Bitu crtc_regs[0x19];
-			Bit16u crt_addr=real_readw(BIOSMEM_SEG,BIOSMEM_CRTC_ADDRESS);
+			uint16_t crt_addr=real_readw(BIOSMEM_SEG,BIOSMEM_CRTC_ADDRESS);
 			for (ct=0; ct<0x19; ct++) {
 				IO_WriteB(crt_addr,ct);
 				crtc_regs[ct]=IO_ReadB(crt_addr+1);
@@ -716,7 +716,7 @@ void INT10_GenerateVideoParameterTable(void) {
 		LOG_MSG("  0x%02x, 0x%02x, 0x%02x, 0x%02x, // sequencer registers",seq_regs[0],seq_regs[1],seq_regs[2],seq_regs[3]);
 		LOG_MSG("  0x%02x, // misc output registers",IO_ReadB(0x3cc));
 		Bitu crtc_regs[0x19];
-		Bit16u crt_addr=real_readw(BIOSMEM_SEG,BIOSMEM_CRTC_ADDRESS);
+		uint16_t crt_addr=real_readw(BIOSMEM_SEG,BIOSMEM_CRTC_ADDRESS);
 		for (ct=0; ct<0x19; ct++) {
 			IO_WriteB(crt_addr,ct);
 			crtc_regs[ct]=IO_ReadB(crt_addr+1);
@@ -773,7 +773,7 @@ void INT10_GenerateVideoParameterTable(void) {
 			LOG_MSG("  0x%02x, 0x%02x, 0x%02x, 0x%02x, // sequencer registers",seq_regs[0],seq_regs[1],seq_regs[2],seq_regs[3]);
 			LOG_MSG("  0x%02x, // misc output registers",IO_ReadB(0x3cc));
 			Bitu crtc_regs[0x19];
-			Bit16u crt_addr=real_readw(BIOSMEM_SEG,BIOSMEM_CRTC_ADDRESS);
+			uint16_t crt_addr=real_readw(BIOSMEM_SEG,BIOSMEM_CRTC_ADDRESS);
 			for (ct=0; ct<0x19; ct++) {
 				IO_WriteB(crt_addr,ct);
 				crtc_regs[ct]=IO_ReadB(crt_addr+1);
@@ -828,7 +828,7 @@ void INT10_GenerateVideoParameterTable(void) {
 			LOG_MSG("  0x%02x, 0x%02x, 0x%02x, 0x%02x, // sequencer registers",seq_regs[0],seq_regs[1],seq_regs[2],seq_regs[3]);
 			LOG_MSG("  0x%02x, // misc output registers",IO_ReadB(0x3cc));
 			Bitu crtc_regs[0x19];
-			Bit16u crt_addr=real_readw(BIOSMEM_SEG,BIOSMEM_CRTC_ADDRESS);
+			uint16_t crt_addr=real_readw(BIOSMEM_SEG,BIOSMEM_CRTC_ADDRESS);
 			for (ct=0; ct<0x19; ct++) {
 				IO_WriteB(crt_addr,ct);
 				crtc_regs[ct]=IO_ReadB(crt_addr+1);

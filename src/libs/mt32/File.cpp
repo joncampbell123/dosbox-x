@@ -48,7 +48,7 @@ const File::SHA1Digest &AbstractFile::getSHA1() {
 		return sha1Digest;
 	}
 
-	const Bit8u *data = getData();
+	const uint8_t *data = getData();
 	if (data == NULL) {
 		return sha1Digest;
 	}
@@ -60,17 +60,17 @@ const File::SHA1Digest &AbstractFile::getSHA1() {
 	return sha1Digest;
 }
 
-ArrayFile::ArrayFile(const Bit8u *useData, size_t useSize) : data(useData), size(useSize)
+ArrayFile::ArrayFile(const uint8_t *useData, size_t useSize) : data(useData), size(useSize)
 {}
 
-ArrayFile::ArrayFile(const Bit8u *useData, size_t useSize, const SHA1Digest &useSHA1Digest) : AbstractFile(useSHA1Digest), data(useData), size(useSize)
+ArrayFile::ArrayFile(const uint8_t *useData, size_t useSize, const SHA1Digest &useSHA1Digest) : AbstractFile(useSHA1Digest), data(useData), size(useSize)
 {}
 
 size_t ArrayFile::getSize() {
 	return size;
 }
 
-const Bit8u *ArrayFile::getData() {
+const uint8_t *ArrayFile::getData() {
 	return data;
 }
 

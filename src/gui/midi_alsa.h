@@ -72,12 +72,12 @@ private:
 public:
 	MidiHandler_alsa() : MidiHandler() {};
 	const char* GetName(void) { return "alsa"; }
-	void PlaySysex(Bit8u * sysex,Bitu len) {
+	void PlaySysex(uint8_t * sysex,Bitu len) {
 		snd_seq_ev_set_sysex(&ev, len, sysex);
 		send_event(1);
 	}
 
-	void PlayMsg(Bit8u * msg) {
+	void PlayMsg(uint8_t * msg) {
 		ev.type = SND_SEQ_EVENT_OSS;
 
 		ev.data.raw32.d[0] = msg[0];

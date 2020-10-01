@@ -26,7 +26,7 @@
 #include "dos_inc.h"
 #include "drives.h"
 
-bool DOS_IOCTL_AX440D_CH08(Bit8u drive,bool query) {
+bool DOS_IOCTL_AX440D_CH08(uint8_t drive,bool query) {
     PhysPt ptr	= SegPhys(ds)+reg_dx;
     switch (reg_cl) {
         case 0x40:		/* Set device parameters */
@@ -154,11 +154,11 @@ bool DOS_IOCTL_AX440D_CH08(Bit8u drive,bool query) {
                  * 03h    WORD    number of disk cylinder
                  * ---BYTE 00h bit 1 set---
                  * 05h    WORD    number of tracks to format */
-                Bit8u flags = mem_readb(ptr+0);
-                Bit16u head = mem_readw(ptr+1);
-                Bit16u cyl = mem_readw(ptr+3);
-                Bit16u ntracks = (flags & 0x1) ? mem_readw(ptr+5) : 1;
-                Bit16u sect = 0;
+                uint8_t flags = mem_readb(ptr+0);
+                uint16_t head = mem_readw(ptr+1);
+                uint16_t cyl = mem_readw(ptr+3);
+                uint16_t ntracks = (flags & 0x1) ? mem_readw(ptr+5) : 1;
+                uint16_t sect = 0;
 
                 fatDrive *fdp = dynamic_cast<fatDrive*>(Drives[drive]);
                 if (fdp == NULL || fdp->readonly) {
@@ -172,7 +172,7 @@ bool DOS_IOCTL_AX440D_CH08(Bit8u drive,bool query) {
                  * FIXME: MS-DOS may not adjust sector value, or maybe it does...
                  * perhaps there is a reason Linux fdisk warns about sector alignment to sect/track for MS-DOS partitions? */
                 {
-                    Bit32u adj = fdp->GetPartitionOffset();
+                    uint32_t adj = fdp->GetPartitionOffset();
                     sect += adj % fdp->loadedDisk->sectors;
                     adj /= fdp->loadedDisk->sectors;
                     head += adj % fdp->loadedDisk->heads;
@@ -201,10 +201,10 @@ bool DOS_IOCTL_AX440D_CH08(Bit8u drive,bool query) {
                 /* 01h    WORD    number of disk head
                  * 03h    WORD    number of disk cylinder
                  * 05h    WORD    number of tracks to verify */
-                Bit16u head = mem_readw(ptr+1);
-                Bit16u cyl = mem_readw(ptr+3);
-                Bit16u ntracks = mem_readw(ptr+5);
-                Bit16u sect = 0;
+                uint16_t head = mem_readw(ptr+1);
+                uint16_t cyl = mem_readw(ptr+3);
+                uint16_t ntracks = mem_readw(ptr+5);
+                uint16_t sect = 0;
 
                 fatDrive *fdp = dynamic_cast<fatDrive*>(Drives[drive]);
                 if (fdp == NULL) {
@@ -218,7 +218,7 @@ bool DOS_IOCTL_AX440D_CH08(Bit8u drive,bool query) {
                  * FIXME: MS-DOS may not adjust sector value, or maybe it does...
                  * perhaps there is a reason Linux fdisk warns about sector alignment to sect/track for MS-DOS partitions? */
                 {
-                    Bit32u adj = fdp->GetPartitionOffset();
+                    uint32_t adj = fdp->GetPartitionOffset();
                     sect += adj % fdp->loadedDisk->sectors;
                     adj /= fdp->loadedDisk->sectors;
                     head += adj % fdp->loadedDisk->heads;
@@ -305,7 +305,7 @@ bool DOS_IOCTL_AX440D_CH08(Bit8u drive,bool query) {
                     return false;
                 }
 
-                Bit8u sectbuf[SECTOR_SIZE_MAX];
+                uint8_t sectbuf[SECTOR_SIZE_MAX];
 
                 if (fdp->loadedDisk == NULL) {
                     DOS_SetError(DOSERR_ACCESS_DENIED);
@@ -322,19 +322,19 @@ bool DOS_IOCTL_AX440D_CH08(Bit8u drive,bool query) {
                  * 05h    WORD    number of first sector to read/write
                  * 07h    WORD    number of sectors
                  * 09h    DWORD   transfer address */
-                Bit16u head = mem_readw(ptr+1);
-                Bit16u cyl = mem_readw(ptr+3);
-                Bit16u sect = mem_readw(ptr+5);
-                Bit16u nsect = mem_readw(ptr+7);
-                Bit32u xfer_addr = mem_readd(ptr+9);
+                uint16_t head = mem_readw(ptr+1);
+                uint16_t cyl = mem_readw(ptr+3);
+                uint16_t sect = mem_readw(ptr+5);
+                uint16_t nsect = mem_readw(ptr+7);
+                uint32_t xfer_addr = mem_readd(ptr+9);
                 PhysPt xfer_ptr = ((xfer_addr>>16u)<<4u)+(xfer_addr&0xFFFFu);
-                Bit16u sectsize = fdp->loadedDisk->getSectSize();
+                uint16_t sectsize = fdp->loadedDisk->getSectSize();
 
                 /* BUT: These are C/H/S values relative to the partition!
                  * FIXME: MS-DOS may not adjust sector value, or maybe it does...
                  * perhaps there is a reason Linux fdisk warns about sector alignment to sect/track for MS-DOS partitions? */
                 {
-                    Bit32u adj = fdp->GetPartitionOffset();
+                    uint32_t adj = fdp->GetPartitionOffset();
                     sect += adj % fdp->loadedDisk->sectors;
                     adj /= fdp->loadedDisk->sectors;
                     head += adj % fdp->loadedDisk->heads;
@@ -360,7 +360,7 @@ bool DOS_IOCTL_AX440D_CH08(Bit8u drive,bool query) {
                 while (nsect > 0) {
                     MEM_BlockRead(xfer_ptr,sectbuf,sectsize);
 
-                    Bit8u status = fdp->loadedDisk->Write_Sector(head,cyl,sect,sectbuf);
+                    uint8_t status = fdp->loadedDisk->Write_Sector(head,cyl,sect,sectbuf);
                     if (status != 0) {
                         LOG(LOG_IOCTL,LOG_DEBUG)("IOCTL 0D:61 write error at C/H/S %u/%u/%u",cyl,head,sect);
                         DOS_SetError(DOSERR_ACCESS_DENIED);//FIXME
@@ -381,7 +381,7 @@ bool DOS_IOCTL_AX440D_CH08(Bit8u drive,bool query) {
                     return false;
                 }
 
-                Bit8u sectbuf[SECTOR_SIZE_MAX];
+                uint8_t sectbuf[SECTOR_SIZE_MAX];
 
                 if (fdp->loadedDisk == NULL) {
                     DOS_SetError(DOSERR_ACCESS_DENIED);
@@ -398,19 +398,19 @@ bool DOS_IOCTL_AX440D_CH08(Bit8u drive,bool query) {
                  * 05h    WORD    number of first sector to read/write
                  * 07h    WORD    number of sectors
                  * 09h    DWORD   transfer address */
-                Bit16u head = mem_readw(ptr+1);
-                Bit16u cyl = mem_readw(ptr+3);
-                Bit16u sect = mem_readw(ptr+5);
-                Bit16u nsect = mem_readw(ptr+7);
-                Bit32u xfer_addr = mem_readd(ptr+9);
+                uint16_t head = mem_readw(ptr+1);
+                uint16_t cyl = mem_readw(ptr+3);
+                uint16_t sect = mem_readw(ptr+5);
+                uint16_t nsect = mem_readw(ptr+7);
+                uint32_t xfer_addr = mem_readd(ptr+9);
                 PhysPt xfer_ptr = ((xfer_addr>>16u)<<4u)+(xfer_addr&0xFFFFu);
-                Bit16u sectsize = fdp->loadedDisk->getSectSize();
+                uint16_t sectsize = fdp->loadedDisk->getSectSize();
 
                 /* BUT: These are C/H/S values relative to the partition!
                  * FIXME: MS-DOS may not adjust sector value, or maybe it does...
                  * perhaps there is a reason Linux fdisk warns about sector alignment to sect/track for MS-DOS partitions? */
                 {
-                    Bit32u adj = fdp->GetPartitionOffset();;
+                    uint32_t adj = fdp->GetPartitionOffset();;
                     sect += adj % fdp->loadedDisk->sectors;
                     adj /= fdp->loadedDisk->sectors;
                     head += adj % fdp->loadedDisk->heads;
@@ -434,7 +434,7 @@ bool DOS_IOCTL_AX440D_CH08(Bit8u drive,bool query) {
                         drive,cyl,head,sect,nsect,xfer_addr >> 16,xfer_addr & 0xFFFF,sectsize);
 
                 while (nsect > 0) {
-                    Bit8u status = fdp->loadedDisk->Read_Sector(head,cyl,sect,sectbuf);
+                    uint8_t status = fdp->loadedDisk->Read_Sector(head,cyl,sect,sectbuf);
                     if (status != 0) {
                         LOG(LOG_IOCTL,LOG_DEBUG)("IOCTL 0D:61 read error at C/H/S %u/%u/%u",cyl,head,sect);
                         DOS_SetError(DOSERR_ACCESS_DENIED);//FIXME
@@ -473,7 +473,7 @@ bool DOS_IOCTL_AX440D_CH08(Bit8u drive,bool query) {
     return true;
 }
 
-bool DOS_IOCTL_AX440D_CH48(Bit8u drive,bool query) {
+bool DOS_IOCTL_AX440D_CH48(uint8_t drive,bool query) {
     PhysPt ptr	= SegPhys(ds)+reg_dx;
     switch (reg_cl) {
         case 0x40:		/* Set device parameters */
@@ -594,7 +594,7 @@ bool DOS_IOCTL_AX440D_CH48(Bit8u drive,bool query) {
 }
 
 bool DOS_IOCTL(void) {
-	Bitu handle=0;Bit8u drive=0;
+	Bitu handle=0;uint8_t drive=0;
 	/* calls 0-4,6,7,10,12,16 use a file handle */
 	if ((reg_al<4) || (reg_al==0x06) || (reg_al==0x07) || (reg_al==0x0a) || (reg_al==0x0c) || (reg_al==0x10)) {
 		handle=RealHandle(reg_bx);
@@ -626,7 +626,7 @@ bool DOS_IOCTL(void) {
 		if (Files[handle]->GetInformation() & 0x8000) {	//Check for device
 			reg_dx=Files[handle]->GetInformation();
 		} else {
-			Bit8u hdrive=Files[handle]->GetDrive();
+			uint8_t hdrive=Files[handle]->GetDrive();
 			if (hdrive==0xff) {
 				LOG(LOG_IOCTL,LOG_NORMAL)("00:No drive set");
 				hdrive=2;	// defaulting to C:
@@ -642,7 +642,7 @@ bool DOS_IOCTL(void) {
 			return false;
 		} else {
 			if (Files[handle]->GetInformation() & 0x8000) {	//Check for device
-				reg_al=(Bit8u)(Files[handle]->GetInformation() & 0xff);
+				reg_al=(uint8_t)(Files[handle]->GetInformation() & 0xff);
 			} else {
 				DOS_SetError(DOSERR_FUNCTION_NUMBER_INVALID);
 				return false;
@@ -653,7 +653,7 @@ bool DOS_IOCTL(void) {
 		if (Files[handle]->GetInformation() & 0xc000) {
 			/* is character device with IOCTL support */
 			PhysPt bufptr=PhysMake(SegValue(ds),reg_dx);
-			Bit16u retcode=0;
+			uint16_t retcode=0;
 			if (((DOS_Device*)(Files[handle]))->ReadFromControlChannel(bufptr,reg_cx,&retcode)) {
 				reg_ax=retcode;
 				return true;
@@ -665,7 +665,7 @@ bool DOS_IOCTL(void) {
 		if (Files[handle]->GetInformation() & 0xc000) {
 			/* is character device with IOCTL support */
 			PhysPt bufptr=PhysMake(SegValue(ds),reg_dx);
-			Bit16u retcode=0;
+			uint16_t retcode=0;
 			if (((DOS_Device*)(Files[handle]))->WriteToControlChannel(bufptr,reg_cx,&retcode)) {
 				reg_ax=retcode;
 				return true;
@@ -677,9 +677,9 @@ bool DOS_IOCTL(void) {
 		if (Files[handle]->GetInformation() & 0x8000) {		//Check for device
 			reg_al=(Files[handle]->GetInformation() & 0x40) ? 0x0 : 0xff;
 		} else { // FILE
-			Bit32u oldlocation=0;
+			uint32_t oldlocation=0;
 			Files[handle]->Seek(&oldlocation, DOS_SEEK_CUR);
-			Bit32u endlocation=0;
+			uint32_t endlocation=0;
 			Files[handle]->Seek(&endlocation, DOS_SEEK_END);
 			if(oldlocation < endlocation){//Still data available
 				reg_al=0xff;
@@ -775,7 +775,7 @@ bool DOS_IOCTL(void) {
 
 
 bool DOS_GetSTDINStatus(void) {
-	Bit32u handle=RealHandle(STDIN);
+	uint32_t handle=RealHandle(STDIN);
 	if (handle==0xFF) return false;
 	if (Files[handle] && (Files[handle]->GetInformation() & 64)) return false;
 	return true;
