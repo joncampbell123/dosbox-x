@@ -37,13 +37,13 @@ Tables::Tables() {
 		if (val > 255) {
 			val = 255;
 		}
-		levelToAmpSubtraction[lf] = Bit8u(val);
+		levelToAmpSubtraction[lf] = uint8_t(val);
 	}
 
 	envLogarithmicTime[0] = 64;
 	for (int lf = 1; lf <= 255; lf++) {
 		// CONFIRMED:KG: This matches a ROM table found by Mok
-		envLogarithmicTime[lf] = Bit8u(ceil(64.0f + LOG2F(float(lf)) * 8.0f));
+		envLogarithmicTime[lf] = uint8_t(ceil(64.0f + LOG2F(float(lf)) * 8.0f));
 	}
 
 #if 0
@@ -64,12 +64,12 @@ Tables::Tables() {
 	// CONFIRMED: Based on a table found by Mok in the MT-32 control ROM
 	masterVolToAmpSubtraction[0] = 255;
 	for (int masterVol = 1; masterVol <= 100; masterVol++) {
-		masterVolToAmpSubtraction[masterVol] = Bit8u(106.31 - 16.0f * LOG2F(float(masterVol)));
+		masterVolToAmpSubtraction[masterVol] = uint8_t(106.31 - 16.0f * LOG2F(float(masterVol)));
 	}
 #endif
 
 	for (int i = 0; i <= 100; i++) {
-		pulseWidth100To255[i] = Bit8u(i * 255 / 100.0f + 0.5f);
+		pulseWidth100To255[i] = uint8_t(i * 255 / 100.0f + 0.5f);
 		//synth->printDebug("%d: %d", i, pulseWidth100To255[i]);
 	}
 
@@ -78,19 +78,19 @@ Tables::Tables() {
 	// To improve the precision of computations, the lower bits are supposed to be used for interpolation as the LA32 chip also
 	// contains another 512-row table with inverted differences between the main table values.
 	for (int i = 0; i < 512; i++) {
-		exp9[i] = Bit16u(8191.5f - EXP2F(13.0f + ~i / 512.0f));
+		exp9[i] = uint16_t(8191.5f - EXP2F(13.0f + ~i / 512.0f));
 	}
 
 	// There is a logarithmic sine table inside the LA32 chip. The table contains 13-bit integer values.
 	for (int i = 1; i < 512; i++) {
-		logsin9[i] = Bit16u(0.5f - LOG2F(sin((i + 0.5f) / 1024.0f * FLOAT_PI)) * 1024.0f);
+		logsin9[i] = uint16_t(0.5f - LOG2F(sin((i + 0.5f) / 1024.0f * FLOAT_PI)) * 1024.0f);
 	}
 
 	// The very first value is clamped to the maximum possible 13-bit integer
 	logsin9[0] = 8191;
 
 	// found from sample analysis
-	static const Bit8u resAmpDecayFactorTable[] = {31, 16, 12, 8, 5, 3, 2, 1};
+	static const uint8_t resAmpDecayFactorTable[] = {31, 16, 12, 8, 5, 3, 2, 1};
 	resAmpDecayFactor = resAmpDecayFactorTable;
 }
 

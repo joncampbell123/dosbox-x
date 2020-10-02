@@ -63,7 +63,7 @@ public:
 	CFifo(Bitu _size) {
 		size = _size;
 		pos = used = 0;
-		data = new Bit8u[size];
+		data = new uint8_t[size];
 	}
 	~CFifo() {
 		delete[] data;
@@ -78,7 +78,7 @@ public:
 		used = pos = 0;
 	}
 
-	void addb(Bit8u _val) {
+	void addb(uint8_t _val) {
 		if(used>=size) {
 			static Bits lcount=0;
 			if (lcount < 1000) {
@@ -94,7 +94,7 @@ public:
 		//LOG_MSG("+%x", _val);
 		used++;
 	}
-	void adds(Bit8u * _str, Bitu _len) {
+	void adds(uint8_t * _str, Bitu _len) {
 		if((used+_len) > size) {
 			static Bits lcount=0;
 			if (lcount < 1000) {
@@ -114,7 +114,7 @@ public:
 			data[where++] = *_str++;
 		}
 	}
-	Bit8u getb(void) {
+	uint8_t getb(void) {
 		if (!used) {
 			static Bits lcount=0;
 			if (lcount < 1000) {
@@ -129,7 +129,7 @@ public:
 		//LOG_MSG("-%x", data[where]);
 		return data[where];
 	}
-	void gets(Bit8u * _str,Bitu _len) {
+	void gets(uint8_t * _str,Bitu _len) {
 		if (!used) {
 			static Bits lcount=0;
 			if (lcount < 1000) {
@@ -148,7 +148,7 @@ public:
 		}
 	}
 private:
-	Bit8u *data;
+	uint8_t *data;
 	Bitu size, pos, used;
 };
 #define MREG_AUTOANSWER_COUNT 0
@@ -188,16 +188,16 @@ public:
 	
 	void MC_Changed(Bitu new_mc);
 
-	void TelnetEmulation(Bit8u * data, Bitu size);
+	void TelnetEmulation(uint8_t * data, Bitu size);
 
 	//TODO
 	void Timer2(void);
-	void handleUpperEvent(Bit16u type);
+	void handleUpperEvent(uint16_t type);
 
 	void RXBufferEmpty();
 
-	void transmitByte(Bit8u val, bool first);
-	void updatePortConfig(Bit16u divider, Bit8u lcr);
+	void transmitByte(uint8_t val, bool first);
+	void updatePortConfig(uint16_t divider, uint8_t lcr);
 	void updateMSR();
 
 	void setBreak(bool);
@@ -221,7 +221,7 @@ protected:
 	bool connected;
 	Bitu doresponse;
 
-	Bit8u waiting_tx_character;
+	uint8_t waiting_tx_character;
 
 	Bitu cmdpause;
 	Bits ringtimer;
@@ -231,10 +231,10 @@ protected:
 	Bitu flowcontrol;
 	Bitu dtrmode;
 	Bits dtrofftimer;
-	Bit8u tmpbuf[MODEM_BUFFER_QUEUE_SIZE];
+	uint8_t tmpbuf[MODEM_BUFFER_QUEUE_SIZE];
 
 	Bitu listenport;
-	Bit8u reg[SREGS];
+	uint8_t reg[SREGS];
 	
 	
 	TCPServerSocket* serversocket;
@@ -249,7 +249,7 @@ protected:
 					
 		bool inIAC;
 		bool recCommand;
-		Bit8u command;
+		uint8_t command;
 	} telClient;
 	struct {
 		bool active;

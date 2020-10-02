@@ -296,17 +296,17 @@ void vsync_poll_debug_notify() {
         vga_3da_polled = true;
 }
 
-Bit32u CGA_2_Table[16];
-Bit32u CGA_4_Table[256];
-Bit32u CGA_4_HiRes_Table[256];
-Bit32u CGA_16_Table[256];
-Bit32u TXT_Font_Table[16];
-Bit32u TXT_FG_Table[16];
-Bit32u TXT_BG_Table[16];
-Bit32u ExpandTable[256];
-Bit32u Expand16Table[4][16];
-Bit32u FillTable[16];
-Bit32u ColorTable[16];
+uint32_t CGA_2_Table[16];
+uint32_t CGA_4_Table[256];
+uint32_t CGA_4_HiRes_Table[256];
+uint32_t CGA_16_Table[256];
+uint32_t TXT_Font_Table[16];
+uint32_t TXT_FG_Table[16];
+uint32_t TXT_BG_Table[16];
+uint32_t ExpandTable[256];
+uint32_t Expand16Table[4][16];
+uint32_t FillTable[16];
+uint32_t ColorTable[16];
 double vga_force_refresh_rate = -1;
 
 void VGA_SetModeNow(VGAModes mode) {
@@ -436,8 +436,8 @@ void VGA_SetClock(Bitu which,Bitu target) {
     VGA_StartResize();
 }
 
-void VGA_SetCGA2Table(Bit8u val0,Bit8u val1) {
-    const Bit8u total[2] = {val0,val1};
+void VGA_SetCGA2Table(uint8_t val0,uint8_t val1) {
+    const uint8_t total[2] = {val0,val1};
     for (Bitu i=0;i<16u;i++) {
         CGA_2_Table[i]=
 #ifdef WORDS_BIGENDIAN
@@ -455,8 +455,8 @@ void VGA_SetCGA2Table(Bit8u val0,Bit8u val1) {
     }
 }
 
-void VGA_SetCGA4Table(Bit8u val0,Bit8u val1,Bit8u val2,Bit8u val3) {
-    const Bit8u total[4] = {val0,val1,val2,val3};
+void VGA_SetCGA4Table(uint8_t val0,uint8_t val1,uint8_t val2,uint8_t val3) {
+    const uint8_t total[4] = {val0,val1,val2,val3};
     for (Bitu i=0;i<256u;i++) {
         CGA_4_Table[i]=
 #ifdef WORDS_BIGENDIAN
@@ -601,7 +601,7 @@ VGA_Vsync VGA_Vsync_Decode(const char *vsyncmodestr) {
 }
 
 bool has_pcibus_enable(void);
-Bit32u MEM_get_address_bits();
+uint32_t MEM_get_address_bits();
 
 void VGA_Reset(Section*) {
 //  All non-PC98 video-related config settings are now in the [video] section
@@ -613,8 +613,8 @@ void VGA_Reset(Section*) {
     string str;
     int i;
 
-    Bit32u cpu_addr_bits = MEM_get_address_bits();
-//    Bit64u cpu_max_addr = (Bit64u)1 << (Bit64u)cpu_addr_bits;
+    uint32_t cpu_addr_bits = MEM_get_address_bits();
+//    uint64_t cpu_max_addr = (uint64_t)1 << (uint64_t)cpu_addr_bits;
 
     LOG(LOG_MISC,LOG_DEBUG)("VGA_Reset() reinitializing VGA emulation");
 
@@ -1659,7 +1659,7 @@ public:
 private:
 	virtual void getBytes(std::ostream& stream)
 	{
-		Bit32u tandy_drawbase_idx, tandy_membase_idx;
+		uint32_t tandy_drawbase_idx, tandy_membase_idx;
 
 
 
@@ -1729,11 +1729,11 @@ private:
 
 
 		// - static ptrs + 'new' data
-		//Bit8u* fastmem;
-		//Bit8u* fastmem_orgptr;
+		//uint8_t* fastmem;
+		//uint8_t* fastmem_orgptr;
 
 		// - 'new' data
-		//WRITE_POD_SIZE( vga.fastmem_orgptr, sizeof(Bit8u) * ((vga.vmemsize << 1) + 4096 + 16) );
+		//WRITE_POD_SIZE( vga.fastmem_orgptr, sizeof(uint8_t) * ((vga.vmemsize << 1) + 4096 + 16) );
 
 
 		// - pure data (variable on S3 card)
@@ -1742,10 +1742,10 @@ private:
 
 #ifdef VGA_KEEP_CHANGES
 		// - static ptr
-		//Bit8u* map;
+		//uint8_t* map;
 
 		// - 'new' data
-		WRITE_POD_SIZE( vga.changes.map, sizeof(Bit8u) * (VGA_MEMORY >> VGA_CHANGE_SHIFT) + 32 );
+		WRITE_POD_SIZE( vga.changes.map, sizeof(uint8_t) * (VGA_MEMORY >> VGA_CHANGE_SHIFT) + 32 );
 
 
 		// - pure data
@@ -1777,7 +1777,7 @@ private:
 
 	virtual void setBytes(std::istream& stream)
 	{
-		Bit32u tandy_drawbase_idx, tandy_membase_idx;
+		uint32_t tandy_drawbase_idx, tandy_membase_idx;
 
 
 
@@ -1840,11 +1840,11 @@ private:
 
 
 		// - static ptrs + 'new' data
-		//Bit8u* fastmem;
-		//Bit8u* fastmem_orgptr;
+		//uint8_t* fastmem;
+		//uint8_t* fastmem_orgptr;
 
 		// - 'new' data
-		//READ_POD_SIZE( vga.fastmem_orgptr, sizeof(Bit8u) * ((vga.vmemsize << 1) + 4096 + 16) );
+		//READ_POD_SIZE( vga.fastmem_orgptr, sizeof(uint8_t) * ((vga.vmemsize << 1) + 4096 + 16) );
 
 
 		// - pure data (variable on S3 card)
@@ -1853,10 +1853,10 @@ private:
 
 #ifdef VGA_KEEP_CHANGES
 		// - static ptr
-		//Bit8u* map;
+		//uint8_t* map;
 
 		// - 'new' data
-		READ_POD_SIZE( vga.changes.map, sizeof(Bit8u) * (VGA_MEMORY >> VGA_CHANGE_SHIFT) + 32 );
+		READ_POD_SIZE( vga.changes.map, sizeof(uint8_t) * (VGA_MEMORY >> VGA_CHANGE_SHIFT) + 32 );
 
 
 		// - pure data

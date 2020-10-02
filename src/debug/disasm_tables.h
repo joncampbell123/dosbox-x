@@ -52,7 +52,7 @@ enum {
 
 struct Dentry {
 	char * start;
-	Bit8u info[MAX_INFO];
+	uint8_t info[MAX_INFO];
 };
 
 static char * G1_Table[8]={"add ","or ","adc ","sbb ","and ","sub ","xor ","cmp "};

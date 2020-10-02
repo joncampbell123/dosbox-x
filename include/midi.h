@@ -29,8 +29,8 @@ public:
 	MidiHandler();
 	virtual bool Open(const char * /*conf*/) { return true; };
 	virtual void Close(void) {};
-	virtual void PlayMsg(Bit8u * /*msg*/) {};
-	virtual void PlaySysex(Bit8u * /*sysex*/,Bitu /*len*/) {};
+	virtual void PlayMsg(uint8_t * /*msg*/) {};
+	virtual void PlaySysex(uint8_t * /*sysex*/,Bitu /*len*/) {};
 	virtual const char * GetName(void) { return "none"; };
 	virtual void ListAll(Program * /*base*/) {};
 	virtual ~MidiHandler() { };
@@ -43,13 +43,13 @@ struct DB_Midi {
 	Bitu status;
 	Bitu cmd_len;
 	Bitu cmd_pos;
-    Bit8u cmd_buf[8] = {};
-    Bit8u rt_buf[8] = {};
+    uint8_t cmd_buf[8] = {};
+    uint8_t rt_buf[8] = {};
 	struct midi_state_sysex_t {
-        Bit8u buf[SYSEX_SIZE] = {};
+        uint8_t buf[SYSEX_SIZE] = {};
 		Bitu used;
 		Bitu delay;
-		Bit32u start;
+		uint32_t start;
 
 		midi_state_sysex_t() : used(0), delay(0), start(0) { }
 	} sysex;

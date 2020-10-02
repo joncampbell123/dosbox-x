@@ -33,7 +33,7 @@
 		MMX_reg* rmrq=lookupRMregMM[rm];
 		if (rm>=0xc0) {
 			GetEArd;
-			rmrq->ud.d0=*(Bit32u*)eard;
+			rmrq->ud.d0=*(uint32_t*)eard;
 			rmrq->ud.d1=0;
 		} else {
 			GetEAa;
@@ -49,7 +49,7 @@
 		MMX_reg* rmrq=lookupRMregMM[rm];
 		if (rm>=0xc0) {
 			GetEArd;
-			*(Bit32u*)eard=rmrq->ud.d0;
+			*(uint32_t*)eard=rmrq->ud.d0;
 		} else {
 			GetEAa;
 			SaveMd(eaa,rmrq->ud.d0);
@@ -224,8 +224,8 @@
 	{
 		if (CPU_ArchitectureType<CPU_ARCHTYPE_PMMXSLOW) goto illegal_opcode;
 		GetRM;
-		Bit8u op=(rm>>3)&7;
-		Bit8u shift=Fetchb();
+		uint8_t op=(rm>>3)&7;
+		uint8_t shift=Fetchb();
 		MMX_reg* dest=reg_mmx[rm&7];
 		switch (op) {
 			case 0x06: 	/*PSLLW*/
@@ -337,8 +337,8 @@
 	{
 		if (CPU_ArchitectureType<CPU_ARCHTYPE_PMMXSLOW) goto illegal_opcode;
 		GetRM;
-		Bit8u op=(rm>>3)&7;
-		Bit8u shift=Fetchb();
+		uint8_t op=(rm>>3)&7;
+		uint8_t shift=Fetchb();
 		MMX_reg* dest=reg_mmx[rm&7];
 		switch (op) {
 			case 0x06: 	/*PSLLD*/
@@ -409,11 +409,11 @@
 	{
 		if (CPU_ArchitectureType<CPU_ARCHTYPE_PMMXSLOW) goto illegal_opcode;
 		GetRM;
-		Bit8u shift=Fetchb();
+		uint8_t shift=Fetchb();
 		MMX_reg* dest=reg_mmx[rm&7];
 		if (shift > 63) dest->q = 0;
 		else {
-			Bit8u op=rm&0x20;
+			uint8_t op=rm&0x20;
 			if (op) {
 				dest->q <<= shift;
 			} else {
@@ -492,14 +492,14 @@
 			GetEAa;
 			src.q = LoadMq(eaa);
 		}
-		dest->sb.b0 = SaturateWordSToByteS((Bit16s)dest->sb.b0+(Bit16s)src.sb.b0);
-		dest->sb.b1 = SaturateWordSToByteS((Bit16s)dest->sb.b1+(Bit16s)src.sb.b1);
-		dest->sb.b2 = SaturateWordSToByteS((Bit16s)dest->sb.b2+(Bit16s)src.sb.b2);
-		dest->sb.b3 = SaturateWordSToByteS((Bit16s)dest->sb.b3+(Bit16s)src.sb.b3);
-		dest->sb.b4 = SaturateWordSToByteS((Bit16s)dest->sb.b4+(Bit16s)src.sb.b4);
-		dest->sb.b5 = SaturateWordSToByteS((Bit16s)dest->sb.b5+(Bit16s)src.sb.b5);
-		dest->sb.b6 = SaturateWordSToByteS((Bit16s)dest->sb.b6+(Bit16s)src.sb.b6);
-		dest->sb.b7 = SaturateWordSToByteS((Bit16s)dest->sb.b7+(Bit16s)src.sb.b7);
+		dest->sb.b0 = SaturateWordSToByteS((int16_t)dest->sb.b0+(int16_t)src.sb.b0);
+		dest->sb.b1 = SaturateWordSToByteS((int16_t)dest->sb.b1+(int16_t)src.sb.b1);
+		dest->sb.b2 = SaturateWordSToByteS((int16_t)dest->sb.b2+(int16_t)src.sb.b2);
+		dest->sb.b3 = SaturateWordSToByteS((int16_t)dest->sb.b3+(int16_t)src.sb.b3);
+		dest->sb.b4 = SaturateWordSToByteS((int16_t)dest->sb.b4+(int16_t)src.sb.b4);
+		dest->sb.b5 = SaturateWordSToByteS((int16_t)dest->sb.b5+(int16_t)src.sb.b5);
+		dest->sb.b6 = SaturateWordSToByteS((int16_t)dest->sb.b6+(int16_t)src.sb.b6);
+		dest->sb.b7 = SaturateWordSToByteS((int16_t)dest->sb.b7+(int16_t)src.sb.b7);
 		break;
 	}
 	CASE_0F_MMX(0xED)												/* PADDSW Pq,Qq */
@@ -514,10 +514,10 @@
 			GetEAa;
 			src.q = LoadMq(eaa);
 		}
-		dest->sw.w0 = SaturateDwordSToWordS((Bit32s)dest->sw.w0+(Bit32s)src.sw.w0);
-		dest->sw.w1 = SaturateDwordSToWordS((Bit32s)dest->sw.w1+(Bit32s)src.sw.w1);
-		dest->sw.w2 = SaturateDwordSToWordS((Bit32s)dest->sw.w2+(Bit32s)src.sw.w2);
-		dest->sw.w3 = SaturateDwordSToWordS((Bit32s)dest->sw.w3+(Bit32s)src.sw.w3);
+		dest->sw.w0 = SaturateDwordSToWordS((int32_t)dest->sw.w0+(int32_t)src.sw.w0);
+		dest->sw.w1 = SaturateDwordSToWordS((int32_t)dest->sw.w1+(int32_t)src.sw.w1);
+		dest->sw.w2 = SaturateDwordSToWordS((int32_t)dest->sw.w2+(int32_t)src.sw.w2);
+		dest->sw.w3 = SaturateDwordSToWordS((int32_t)dest->sw.w3+(int32_t)src.sw.w3);
 		break;
 	}
 	CASE_0F_MMX(0xDC)												/* PADDUSB Pq,Qq */
@@ -532,14 +532,14 @@
 			GetEAa;
 			src.q = LoadMq(eaa);
 		}
-		dest->ub.b0 = SaturateWordSToByteU((Bit16s)dest->ub.b0+(Bit16s)src.ub.b0);
-		dest->ub.b1 = SaturateWordSToByteU((Bit16s)dest->ub.b1+(Bit16s)src.ub.b1);
-		dest->ub.b2 = SaturateWordSToByteU((Bit16s)dest->ub.b2+(Bit16s)src.ub.b2);
-		dest->ub.b3 = SaturateWordSToByteU((Bit16s)dest->ub.b3+(Bit16s)src.ub.b3);
-		dest->ub.b4 = SaturateWordSToByteU((Bit16s)dest->ub.b4+(Bit16s)src.ub.b4);
-		dest->ub.b5 = SaturateWordSToByteU((Bit16s)dest->ub.b5+(Bit16s)src.ub.b5);
-		dest->ub.b6 = SaturateWordSToByteU((Bit16s)dest->ub.b6+(Bit16s)src.ub.b6);
-		dest->ub.b7 = SaturateWordSToByteU((Bit16s)dest->ub.b7+(Bit16s)src.ub.b7);
+		dest->ub.b0 = SaturateWordSToByteU((int16_t)dest->ub.b0+(int16_t)src.ub.b0);
+		dest->ub.b1 = SaturateWordSToByteU((int16_t)dest->ub.b1+(int16_t)src.ub.b1);
+		dest->ub.b2 = SaturateWordSToByteU((int16_t)dest->ub.b2+(int16_t)src.ub.b2);
+		dest->ub.b3 = SaturateWordSToByteU((int16_t)dest->ub.b3+(int16_t)src.ub.b3);
+		dest->ub.b4 = SaturateWordSToByteU((int16_t)dest->ub.b4+(int16_t)src.ub.b4);
+		dest->ub.b5 = SaturateWordSToByteU((int16_t)dest->ub.b5+(int16_t)src.ub.b5);
+		dest->ub.b6 = SaturateWordSToByteU((int16_t)dest->ub.b6+(int16_t)src.ub.b6);
+		dest->ub.b7 = SaturateWordSToByteU((int16_t)dest->ub.b7+(int16_t)src.ub.b7);
 		break;
 	}
 	CASE_0F_MMX(0xDD)												/* PADDUSW Pq,Qq */
@@ -554,10 +554,10 @@
 			GetEAa;
 			src.q = LoadMq(eaa);
 		}
-		dest->uw.w0 = SaturateDwordSToWordU((Bit32s)dest->uw.w0+(Bit32s)src.uw.w0);
-		dest->uw.w1 = SaturateDwordSToWordU((Bit32s)dest->uw.w1+(Bit32s)src.uw.w1);
-		dest->uw.w2 = SaturateDwordSToWordU((Bit32s)dest->uw.w2+(Bit32s)src.uw.w2);
-		dest->uw.w3 = SaturateDwordSToWordU((Bit32s)dest->uw.w3+(Bit32s)src.uw.w3);
+		dest->uw.w0 = SaturateDwordSToWordU((int32_t)dest->uw.w0+(int32_t)src.uw.w0);
+		dest->uw.w1 = SaturateDwordSToWordU((int32_t)dest->uw.w1+(int32_t)src.uw.w1);
+		dest->uw.w2 = SaturateDwordSToWordU((int32_t)dest->uw.w2+(int32_t)src.uw.w2);
+		dest->uw.w3 = SaturateDwordSToWordU((int32_t)dest->uw.w3+(int32_t)src.uw.w3);
 		break;
 	}
 	CASE_0F_MMX(0xF8)												/* PSUBB Pq,Qq */
@@ -628,14 +628,14 @@
 			GetEAa;
 			src.q = LoadMq(eaa);
 		}
-		dest->sb.b0 = SaturateWordSToByteS((Bit16s)dest->sb.b0-(Bit16s)src.sb.b0);
-		dest->sb.b1 = SaturateWordSToByteS((Bit16s)dest->sb.b1-(Bit16s)src.sb.b1);
-		dest->sb.b2 = SaturateWordSToByteS((Bit16s)dest->sb.b2-(Bit16s)src.sb.b2);
-		dest->sb.b3 = SaturateWordSToByteS((Bit16s)dest->sb.b3-(Bit16s)src.sb.b3);
-		dest->sb.b4 = SaturateWordSToByteS((Bit16s)dest->sb.b4-(Bit16s)src.sb.b4);
-		dest->sb.b5 = SaturateWordSToByteS((Bit16s)dest->sb.b5-(Bit16s)src.sb.b5);
-		dest->sb.b6 = SaturateWordSToByteS((Bit16s)dest->sb.b6-(Bit16s)src.sb.b6);
-		dest->sb.b7 = SaturateWordSToByteS((Bit16s)dest->sb.b7-(Bit16s)src.sb.b7);
+		dest->sb.b0 = SaturateWordSToByteS((int16_t)dest->sb.b0-(int16_t)src.sb.b0);
+		dest->sb.b1 = SaturateWordSToByteS((int16_t)dest->sb.b1-(int16_t)src.sb.b1);
+		dest->sb.b2 = SaturateWordSToByteS((int16_t)dest->sb.b2-(int16_t)src.sb.b2);
+		dest->sb.b3 = SaturateWordSToByteS((int16_t)dest->sb.b3-(int16_t)src.sb.b3);
+		dest->sb.b4 = SaturateWordSToByteS((int16_t)dest->sb.b4-(int16_t)src.sb.b4);
+		dest->sb.b5 = SaturateWordSToByteS((int16_t)dest->sb.b5-(int16_t)src.sb.b5);
+		dest->sb.b6 = SaturateWordSToByteS((int16_t)dest->sb.b6-(int16_t)src.sb.b6);
+		dest->sb.b7 = SaturateWordSToByteS((int16_t)dest->sb.b7-(int16_t)src.sb.b7);
 		break;
 	}
 	CASE_0F_MMX(0xE9)												/* PSUBSW Pq,Qq */
@@ -650,10 +650,10 @@
 			GetEAa;
 			src.q = LoadMq(eaa);
 		}
-		dest->sw.w0 = SaturateDwordSToWordS((Bit32s)dest->sw.w0-(Bit32s)src.sw.w0);
-		dest->sw.w1 = SaturateDwordSToWordS((Bit32s)dest->sw.w1-(Bit32s)src.sw.w1);
-		dest->sw.w2 = SaturateDwordSToWordS((Bit32s)dest->sw.w2-(Bit32s)src.sw.w2);
-		dest->sw.w3 = SaturateDwordSToWordS((Bit32s)dest->sw.w3-(Bit32s)src.sw.w3);
+		dest->sw.w0 = SaturateDwordSToWordS((int32_t)dest->sw.w0-(int32_t)src.sw.w0);
+		dest->sw.w1 = SaturateDwordSToWordS((int32_t)dest->sw.w1-(int32_t)src.sw.w1);
+		dest->sw.w2 = SaturateDwordSToWordS((int32_t)dest->sw.w2-(int32_t)src.sw.w2);
+		dest->sw.w3 = SaturateDwordSToWordS((int32_t)dest->sw.w3-(int32_t)src.sw.w3);
 		break;
 	}
 	CASE_0F_MMX(0xD8)												/* PSUBUSB Pq,Qq */
@@ -715,14 +715,14 @@
 			GetEAa;
 			src.q = LoadMq(eaa);
 		}
-		Bit32s product0 = (Bit32s)dest->sw.w0 * (Bit32s)src.sw.w0;
-		Bit32s product1 = (Bit32s)dest->sw.w1 * (Bit32s)src.sw.w1;
-		Bit32s product2 = (Bit32s)dest->sw.w2 * (Bit32s)src.sw.w2;
-		Bit32s product3 = (Bit32s)dest->sw.w3 * (Bit32s)src.sw.w3;
-		dest->uw.w0 = (Bit16u)(product0 >> 16);
-		dest->uw.w1 = (Bit16u)(product1 >> 16);
-		dest->uw.w2 = (Bit16u)(product2 >> 16);
-		dest->uw.w3 = (Bit16u)(product3 >> 16);
+		int32_t product0 = (int32_t)dest->sw.w0 * (int32_t)src.sw.w0;
+		int32_t product1 = (int32_t)dest->sw.w1 * (int32_t)src.sw.w1;
+		int32_t product2 = (int32_t)dest->sw.w2 * (int32_t)src.sw.w2;
+		int32_t product3 = (int32_t)dest->sw.w3 * (int32_t)src.sw.w3;
+		dest->uw.w0 = (uint16_t)(product0 >> 16);
+		dest->uw.w1 = (uint16_t)(product1 >> 16);
+		dest->uw.w2 = (uint16_t)(product2 >> 16);
+		dest->uw.w3 = (uint16_t)(product3 >> 16);
 		break;
 	}
 	CASE_0F_MMX(0xD5)												/* PMULLW Pq,Qq */
@@ -737,10 +737,10 @@
 			GetEAa;
 			src.q = LoadMq(eaa);
 		}
-		Bit32u product0 = (Bit32u)dest->uw.w0 * (Bit32u)src.uw.w0;
-		Bit32u product1 = (Bit32u)dest->uw.w1 * (Bit32u)src.uw.w1;
-		Bit32u product2 = (Bit32u)dest->uw.w2 * (Bit32u)src.uw.w2;
-		Bit32u product3 = (Bit32u)dest->uw.w3 * (Bit32u)src.uw.w3;
+		uint32_t product0 = (uint32_t)dest->uw.w0 * (uint32_t)src.uw.w0;
+		uint32_t product1 = (uint32_t)dest->uw.w1 * (uint32_t)src.uw.w1;
+		uint32_t product2 = (uint32_t)dest->uw.w2 * (uint32_t)src.uw.w2;
+		uint32_t product3 = (uint32_t)dest->uw.w3 * (uint32_t)src.uw.w3;
 		dest->uw.w0 = (product0 & 0xffff);
 		dest->uw.w1 = (product1 & 0xffff);
 		dest->uw.w2 = (product2 & 0xffff);
@@ -762,15 +762,15 @@
 		if (dest->ud.d0 == 0x80008000 && src.ud.d0 == 0x80008000)
 			dest->ud.d0 = 0x80000000;
 		else {
-			Bit32s product0 = (Bit32s)dest->sw.w0 * (Bit32s)src.sw.w0;
-			Bit32s product1 = (Bit32s)dest->sw.w1 * (Bit32s)src.sw.w1;
+			int32_t product0 = (int32_t)dest->sw.w0 * (int32_t)src.sw.w0;
+			int32_t product1 = (int32_t)dest->sw.w1 * (int32_t)src.sw.w1;
 			dest->ud.d0 = (uint32_t)(product0 + product1);
 		}
 		if (dest->ud.d1 == 0x80008000 && src.ud.d1 == 0x80008000)
 			dest->ud.d1 = 0x80000000;
 		else {
-			Bit32s product2 = (Bit32s)dest->sw.w2 * (Bit32s)src.sw.w2;
-			Bit32s product3 = (Bit32s)dest->sw.w3 * (Bit32s)src.sw.w3;
+			int32_t product2 = (int32_t)dest->sw.w2 * (int32_t)src.sw.w2;
+			int32_t product3 = (int32_t)dest->sw.w3 * (int32_t)src.sw.w3;
 			dest->sd.d1 = (int32_t)(product2 + product3);
 		}
 		break;

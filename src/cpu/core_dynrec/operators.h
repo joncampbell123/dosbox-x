@@ -18,80 +18,80 @@
 
 
 
-static Bit8u DRC_CALL_CONV dynrec_add_byte(Bit8u op1,Bit8u op2) DRC_FC;
-static Bit8u DRC_CALL_CONV dynrec_add_byte(Bit8u op1,Bit8u op2) {
+static uint8_t DRC_CALL_CONV dynrec_add_byte(uint8_t op1,uint8_t op2) DRC_FC;
+static uint8_t DRC_CALL_CONV dynrec_add_byte(uint8_t op1,uint8_t op2) {
 	lf_var1b=op1;
 	lf_var2b=op2;
-	lf_resb=(Bit8u)(lf_var1b+lf_var2b);
+	lf_resb=(uint8_t)(lf_var1b+lf_var2b);
 	lflags.type=t_ADDb;
 	return lf_resb;
 }
 
-static Bit8u DRC_CALL_CONV dynrec_add_byte_simple(Bit8u op1,Bit8u op2) DRC_FC;
-static Bit8u DRC_CALL_CONV dynrec_add_byte_simple(Bit8u op1,Bit8u op2) {
+static uint8_t DRC_CALL_CONV dynrec_add_byte_simple(uint8_t op1,uint8_t op2) DRC_FC;
+static uint8_t DRC_CALL_CONV dynrec_add_byte_simple(uint8_t op1,uint8_t op2) {
 	return op1+op2;
 }
 
-static Bit8u DRC_CALL_CONV dynrec_adc_byte(Bit8u op1,Bit8u op2) DRC_FC;
-static Bit8u DRC_CALL_CONV dynrec_adc_byte(Bit8u op1,Bit8u op2) {
+static uint8_t DRC_CALL_CONV dynrec_adc_byte(uint8_t op1,uint8_t op2) DRC_FC;
+static uint8_t DRC_CALL_CONV dynrec_adc_byte(uint8_t op1,uint8_t op2) {
 	lflags.oldcf=get_CF()!=0;
 	lf_var1b=op1;
 	lf_var2b=op2;
-	lf_resb=(Bit8u)(lf_var1b+lf_var2b+lflags.oldcf);
+	lf_resb=(uint8_t)(lf_var1b+lf_var2b+lflags.oldcf);
 	lflags.type=t_ADCb;
 	return lf_resb;
 }
 
-static Bit8u DRC_CALL_CONV dynrec_adc_byte_simple(Bit8u op1,Bit8u op2) DRC_FC;
-static Bit8u DRC_CALL_CONV dynrec_adc_byte_simple(Bit8u op1,Bit8u op2) {
-	return (Bit8u)(op1+op2+(Bitu)(get_CF()!=0));
+static uint8_t DRC_CALL_CONV dynrec_adc_byte_simple(uint8_t op1,uint8_t op2) DRC_FC;
+static uint8_t DRC_CALL_CONV dynrec_adc_byte_simple(uint8_t op1,uint8_t op2) {
+	return (uint8_t)(op1+op2+(Bitu)(get_CF()!=0));
 }
 
-static Bit8u DRC_CALL_CONV dynrec_sub_byte(Bit8u op1,Bit8u op2) DRC_FC;
-static Bit8u DRC_CALL_CONV dynrec_sub_byte(Bit8u op1,Bit8u op2) {
+static uint8_t DRC_CALL_CONV dynrec_sub_byte(uint8_t op1,uint8_t op2) DRC_FC;
+static uint8_t DRC_CALL_CONV dynrec_sub_byte(uint8_t op1,uint8_t op2) {
 	lf_var1b=op1;
 	lf_var2b=op2;
-	lf_resb=(Bit8u)(lf_var1b-lf_var2b);
+	lf_resb=(uint8_t)(lf_var1b-lf_var2b);
 	lflags.type=t_SUBb;
 	return lf_resb;
 }
 
-static Bit8u DRC_CALL_CONV dynrec_sub_byte_simple(Bit8u op1,Bit8u op2) DRC_FC;
-static Bit8u DRC_CALL_CONV dynrec_sub_byte_simple(Bit8u op1,Bit8u op2) {
+static uint8_t DRC_CALL_CONV dynrec_sub_byte_simple(uint8_t op1,uint8_t op2) DRC_FC;
+static uint8_t DRC_CALL_CONV dynrec_sub_byte_simple(uint8_t op1,uint8_t op2) {
 	return op1-op2;
 }
 
-static Bit8u DRC_CALL_CONV dynrec_sbb_byte(Bit8u op1,Bit8u op2) DRC_FC;
-static Bit8u DRC_CALL_CONV dynrec_sbb_byte(Bit8u op1,Bit8u op2) {
+static uint8_t DRC_CALL_CONV dynrec_sbb_byte(uint8_t op1,uint8_t op2) DRC_FC;
+static uint8_t DRC_CALL_CONV dynrec_sbb_byte(uint8_t op1,uint8_t op2) {
 	lflags.oldcf=get_CF()!=0;
 	lf_var1b=op1;
 	lf_var2b=op2;
-	lf_resb=(Bit8u)(lf_var1b-(lf_var2b+lflags.oldcf));
+	lf_resb=(uint8_t)(lf_var1b-(lf_var2b+lflags.oldcf));
 	lflags.type=t_SBBb;
 	return lf_resb;
 }
 
-static Bit8u DRC_CALL_CONV dynrec_sbb_byte_simple(Bit8u op1,Bit8u op2) DRC_FC;
-static Bit8u DRC_CALL_CONV dynrec_sbb_byte_simple(Bit8u op1,Bit8u op2) {
-	return (Bit8u)(op1-(op2+(Bitu)(get_CF()!=0)));
+static uint8_t DRC_CALL_CONV dynrec_sbb_byte_simple(uint8_t op1,uint8_t op2) DRC_FC;
+static uint8_t DRC_CALL_CONV dynrec_sbb_byte_simple(uint8_t op1,uint8_t op2) {
+	return (uint8_t)(op1-(op2+(Bitu)(get_CF()!=0)));
 }
 
-static void DRC_CALL_CONV dynrec_cmp_byte(Bit8u op1,Bit8u op2) DRC_FC;
-static void DRC_CALL_CONV dynrec_cmp_byte(Bit8u op1,Bit8u op2) {
+static void DRC_CALL_CONV dynrec_cmp_byte(uint8_t op1,uint8_t op2) DRC_FC;
+static void DRC_CALL_CONV dynrec_cmp_byte(uint8_t op1,uint8_t op2) {
 	lf_var1b=op1;
 	lf_var2b=op2;
-	lf_resb=(Bit8u)(lf_var1b-lf_var2b);
+	lf_resb=(uint8_t)(lf_var1b-lf_var2b);
 	lflags.type=t_CMPb;
 }
 
-static void DRC_CALL_CONV dynrec_cmp_byte_simple(Bit8u op1,Bit8u op2) DRC_FC;
-static void DRC_CALL_CONV dynrec_cmp_byte_simple(Bit8u op1,Bit8u op2) {
+static void DRC_CALL_CONV dynrec_cmp_byte_simple(uint8_t op1,uint8_t op2) DRC_FC;
+static void DRC_CALL_CONV dynrec_cmp_byte_simple(uint8_t op1,uint8_t op2) {
 	(void)op1;
 	(void)op2;
 }
 
-static Bit8u DRC_CALL_CONV dynrec_xor_byte(Bit8u op1,Bit8u op2) DRC_FC;
-static Bit8u DRC_CALL_CONV dynrec_xor_byte(Bit8u op1,Bit8u op2) {
+static uint8_t DRC_CALL_CONV dynrec_xor_byte(uint8_t op1,uint8_t op2) DRC_FC;
+static uint8_t DRC_CALL_CONV dynrec_xor_byte(uint8_t op1,uint8_t op2) {
 	lf_var1b=op1;
 	lf_var2b=op2;
 	lf_resb=lf_var1b ^ lf_var2b;
@@ -99,13 +99,13 @@ static Bit8u DRC_CALL_CONV dynrec_xor_byte(Bit8u op1,Bit8u op2) {
 	return lf_resb;
 }
 
-static Bit8u DRC_CALL_CONV dynrec_xor_byte_simple(Bit8u op1,Bit8u op2) DRC_FC;
-static Bit8u DRC_CALL_CONV dynrec_xor_byte_simple(Bit8u op1,Bit8u op2) {
+static uint8_t DRC_CALL_CONV dynrec_xor_byte_simple(uint8_t op1,uint8_t op2) DRC_FC;
+static uint8_t DRC_CALL_CONV dynrec_xor_byte_simple(uint8_t op1,uint8_t op2) {
 	return op1 ^ op2;
 }
 
-static Bit8u DRC_CALL_CONV dynrec_and_byte(Bit8u op1,Bit8u op2) DRC_FC;
-static Bit8u DRC_CALL_CONV dynrec_and_byte(Bit8u op1,Bit8u op2) {
+static uint8_t DRC_CALL_CONV dynrec_and_byte(uint8_t op1,uint8_t op2) DRC_FC;
+static uint8_t DRC_CALL_CONV dynrec_and_byte(uint8_t op1,uint8_t op2) {
 	lf_var1b=op1;
 	lf_var2b=op2;
 	lf_resb=lf_var1b & lf_var2b;
@@ -113,13 +113,13 @@ static Bit8u DRC_CALL_CONV dynrec_and_byte(Bit8u op1,Bit8u op2) {
 	return lf_resb;
 }
 
-static Bit8u DRC_CALL_CONV dynrec_and_byte_simple(Bit8u op1,Bit8u op2) DRC_FC;
-static Bit8u DRC_CALL_CONV dynrec_and_byte_simple(Bit8u op1,Bit8u op2) {
+static uint8_t DRC_CALL_CONV dynrec_and_byte_simple(uint8_t op1,uint8_t op2) DRC_FC;
+static uint8_t DRC_CALL_CONV dynrec_and_byte_simple(uint8_t op1,uint8_t op2) {
 	return op1 & op2;
 }
 
-static Bit8u DRC_CALL_CONV dynrec_or_byte(Bit8u op1,Bit8u op2) DRC_FC;
-static Bit8u DRC_CALL_CONV dynrec_or_byte(Bit8u op1,Bit8u op2) {
+static uint8_t DRC_CALL_CONV dynrec_or_byte(uint8_t op1,uint8_t op2) DRC_FC;
+static uint8_t DRC_CALL_CONV dynrec_or_byte(uint8_t op1,uint8_t op2) {
 	lf_var1b=op1;
 	lf_var2b=op2;
 	lf_resb=lf_var1b | lf_var2b;
@@ -127,99 +127,99 @@ static Bit8u DRC_CALL_CONV dynrec_or_byte(Bit8u op1,Bit8u op2) {
 	return lf_resb;
 }
 
-static Bit8u DRC_CALL_CONV dynrec_or_byte_simple(Bit8u op1,Bit8u op2) DRC_FC;
-static Bit8u DRC_CALL_CONV dynrec_or_byte_simple(Bit8u op1,Bit8u op2) {
+static uint8_t DRC_CALL_CONV dynrec_or_byte_simple(uint8_t op1,uint8_t op2) DRC_FC;
+static uint8_t DRC_CALL_CONV dynrec_or_byte_simple(uint8_t op1,uint8_t op2) {
 	return op1 | op2;
 }
 
-static void DRC_CALL_CONV dynrec_test_byte(Bit8u op1,Bit8u op2) DRC_FC;
-static void DRC_CALL_CONV dynrec_test_byte(Bit8u op1,Bit8u op2) {
+static void DRC_CALL_CONV dynrec_test_byte(uint8_t op1,uint8_t op2) DRC_FC;
+static void DRC_CALL_CONV dynrec_test_byte(uint8_t op1,uint8_t op2) {
 	lf_var1b=op1;
 	lf_var2b=op2;
 	lf_resb=lf_var1b & lf_var2b;
 	lflags.type=t_TESTb;
 }
 
-static void DRC_CALL_CONV dynrec_test_byte_simple(Bit8u op1,Bit8u op2) DRC_FC;
-static void DRC_CALL_CONV dynrec_test_byte_simple(Bit8u op1,Bit8u op2) {
+static void DRC_CALL_CONV dynrec_test_byte_simple(uint8_t op1,uint8_t op2) DRC_FC;
+static void DRC_CALL_CONV dynrec_test_byte_simple(uint8_t op1,uint8_t op2) {
 	(void)op1;
 	(void)op2;
 }
 
-static Bit16u DRC_CALL_CONV dynrec_add_word(Bit16u op1,Bit16u op2) DRC_FC;
-static Bit16u DRC_CALL_CONV dynrec_add_word(Bit16u op1,Bit16u op2) {
+static uint16_t DRC_CALL_CONV dynrec_add_word(uint16_t op1,uint16_t op2) DRC_FC;
+static uint16_t DRC_CALL_CONV dynrec_add_word(uint16_t op1,uint16_t op2) {
 	lf_var1w=op1;
 	lf_var2w=op2;
-	lf_resw=(Bit16u)(lf_var1w+lf_var2w);
+	lf_resw=(uint16_t)(lf_var1w+lf_var2w);
 	lflags.type=t_ADDw;
 	return lf_resw;
 }
 
-static Bit16u DRC_CALL_CONV dynrec_add_word_simple(Bit16u op1,Bit16u op2) DRC_FC;
-static Bit16u DRC_CALL_CONV dynrec_add_word_simple(Bit16u op1,Bit16u op2) {
+static uint16_t DRC_CALL_CONV dynrec_add_word_simple(uint16_t op1,uint16_t op2) DRC_FC;
+static uint16_t DRC_CALL_CONV dynrec_add_word_simple(uint16_t op1,uint16_t op2) {
 	return op1+op2;
 }
 
-static Bit16u DRC_CALL_CONV dynrec_adc_word(Bit16u op1,Bit16u op2) DRC_FC;
-static Bit16u DRC_CALL_CONV dynrec_adc_word(Bit16u op1,Bit16u op2) {
+static uint16_t DRC_CALL_CONV dynrec_adc_word(uint16_t op1,uint16_t op2) DRC_FC;
+static uint16_t DRC_CALL_CONV dynrec_adc_word(uint16_t op1,uint16_t op2) {
 	lflags.oldcf=get_CF()!=0;
 	lf_var1w=op1;
 	lf_var2w=op2;
-	lf_resw=(Bit16u)(lf_var1w+lf_var2w+lflags.oldcf);
+	lf_resw=(uint16_t)(lf_var1w+lf_var2w+lflags.oldcf);
 	lflags.type=t_ADCw;
 	return lf_resw;
 }
 
-static Bit16u DRC_CALL_CONV dynrec_adc_word_simple(Bit16u op1,Bit16u op2) DRC_FC;
-static Bit16u DRC_CALL_CONV dynrec_adc_word_simple(Bit16u op1,Bit16u op2) {
-	return (Bit16u)(op1+op2+(Bitu)(get_CF()!=0));
+static uint16_t DRC_CALL_CONV dynrec_adc_word_simple(uint16_t op1,uint16_t op2) DRC_FC;
+static uint16_t DRC_CALL_CONV dynrec_adc_word_simple(uint16_t op1,uint16_t op2) {
+	return (uint16_t)(op1+op2+(Bitu)(get_CF()!=0));
 }
 
-static Bit16u DRC_CALL_CONV dynrec_sub_word(Bit16u op1,Bit16u op2) DRC_FC;
-static Bit16u DRC_CALL_CONV dynrec_sub_word(Bit16u op1,Bit16u op2) {
+static uint16_t DRC_CALL_CONV dynrec_sub_word(uint16_t op1,uint16_t op2) DRC_FC;
+static uint16_t DRC_CALL_CONV dynrec_sub_word(uint16_t op1,uint16_t op2) {
 	lf_var1w=op1;
 	lf_var2w=op2;
-	lf_resw=(Bit16u)(lf_var1w-lf_var2w);
+	lf_resw=(uint16_t)(lf_var1w-lf_var2w);
 	lflags.type=t_SUBw;
 	return lf_resw;
 }
 
-static Bit16u DRC_CALL_CONV dynrec_sub_word_simple(Bit16u op1,Bit16u op2) DRC_FC;
-static Bit16u DRC_CALL_CONV dynrec_sub_word_simple(Bit16u op1,Bit16u op2) {
+static uint16_t DRC_CALL_CONV dynrec_sub_word_simple(uint16_t op1,uint16_t op2) DRC_FC;
+static uint16_t DRC_CALL_CONV dynrec_sub_word_simple(uint16_t op1,uint16_t op2) {
 	return op1-op2;
 }
 
-static Bit16u DRC_CALL_CONV dynrec_sbb_word(Bit16u op1,Bit16u op2) DRC_FC;
-static Bit16u DRC_CALL_CONV dynrec_sbb_word(Bit16u op1,Bit16u op2) {
+static uint16_t DRC_CALL_CONV dynrec_sbb_word(uint16_t op1,uint16_t op2) DRC_FC;
+static uint16_t DRC_CALL_CONV dynrec_sbb_word(uint16_t op1,uint16_t op2) {
 	lflags.oldcf=get_CF()!=0;
 	lf_var1w=op1;
 	lf_var2w=op2;
-	lf_resw=(Bit16u)(lf_var1w-(lf_var2w+lflags.oldcf));
+	lf_resw=(uint16_t)(lf_var1w-(lf_var2w+lflags.oldcf));
 	lflags.type=t_SBBw;
 	return lf_resw;
 }
 
-static Bit16u DRC_CALL_CONV dynrec_sbb_word_simple(Bit16u op1,Bit16u op2) DRC_FC;
-static Bit16u DRC_CALL_CONV dynrec_sbb_word_simple(Bit16u op1,Bit16u op2) {
-	return (Bit16u)(op1-(op2+(Bitu)(get_CF()!=0)));
+static uint16_t DRC_CALL_CONV dynrec_sbb_word_simple(uint16_t op1,uint16_t op2) DRC_FC;
+static uint16_t DRC_CALL_CONV dynrec_sbb_word_simple(uint16_t op1,uint16_t op2) {
+	return (uint16_t)(op1-(op2+(Bitu)(get_CF()!=0)));
 }
 
-static void DRC_CALL_CONV dynrec_cmp_word(Bit16u op1,Bit16u op2) DRC_FC;
-static void DRC_CALL_CONV dynrec_cmp_word(Bit16u op1,Bit16u op2) {
+static void DRC_CALL_CONV dynrec_cmp_word(uint16_t op1,uint16_t op2) DRC_FC;
+static void DRC_CALL_CONV dynrec_cmp_word(uint16_t op1,uint16_t op2) {
 	lf_var1w=op1;
 	lf_var2w=op2;
-	lf_resw=(Bit16u)(lf_var1w-lf_var2w);
+	lf_resw=(uint16_t)(lf_var1w-lf_var2w);
 	lflags.type=t_CMPw;
 }
 
-static void DRC_CALL_CONV dynrec_cmp_word_simple(Bit16u op1,Bit16u op2) DRC_FC;
-static void DRC_CALL_CONV dynrec_cmp_word_simple(Bit16u op1,Bit16u op2) {
+static void DRC_CALL_CONV dynrec_cmp_word_simple(uint16_t op1,uint16_t op2) DRC_FC;
+static void DRC_CALL_CONV dynrec_cmp_word_simple(uint16_t op1,uint16_t op2) {
 	(void)op1;
 	(void)op2;
 }
 
-static Bit16u DRC_CALL_CONV dynrec_xor_word(Bit16u op1,Bit16u op2) DRC_FC;
-static Bit16u DRC_CALL_CONV dynrec_xor_word(Bit16u op1,Bit16u op2) {
+static uint16_t DRC_CALL_CONV dynrec_xor_word(uint16_t op1,uint16_t op2) DRC_FC;
+static uint16_t DRC_CALL_CONV dynrec_xor_word(uint16_t op1,uint16_t op2) {
 	lf_var1w=op1;
 	lf_var2w=op2;
 	lf_resw=lf_var1w ^ lf_var2w;
@@ -227,13 +227,13 @@ static Bit16u DRC_CALL_CONV dynrec_xor_word(Bit16u op1,Bit16u op2) {
 	return lf_resw;
 }
 
-static Bit16u DRC_CALL_CONV dynrec_xor_word_simple(Bit16u op1,Bit16u op2) DRC_FC;
-static Bit16u DRC_CALL_CONV dynrec_xor_word_simple(Bit16u op1,Bit16u op2) {
+static uint16_t DRC_CALL_CONV dynrec_xor_word_simple(uint16_t op1,uint16_t op2) DRC_FC;
+static uint16_t DRC_CALL_CONV dynrec_xor_word_simple(uint16_t op1,uint16_t op2) {
 	return op1 ^ op2;
 }
 
-static Bit16u DRC_CALL_CONV dynrec_and_word(Bit16u op1,Bit16u op2) DRC_FC;
-static Bit16u DRC_CALL_CONV dynrec_and_word(Bit16u op1,Bit16u op2) {
+static uint16_t DRC_CALL_CONV dynrec_and_word(uint16_t op1,uint16_t op2) DRC_FC;
+static uint16_t DRC_CALL_CONV dynrec_and_word(uint16_t op1,uint16_t op2) {
 	lf_var1w=op1;
 	lf_var2w=op2;
 	lf_resw=lf_var1w & lf_var2w;
@@ -241,13 +241,13 @@ static Bit16u DRC_CALL_CONV dynrec_and_word(Bit16u op1,Bit16u op2) {
 	return lf_resw;
 }
 
-static Bit16u DRC_CALL_CONV dynrec_and_word_simple(Bit16u op1,Bit16u op2) DRC_FC;
-static Bit16u DRC_CALL_CONV dynrec_and_word_simple(Bit16u op1,Bit16u op2) {
+static uint16_t DRC_CALL_CONV dynrec_and_word_simple(uint16_t op1,uint16_t op2) DRC_FC;
+static uint16_t DRC_CALL_CONV dynrec_and_word_simple(uint16_t op1,uint16_t op2) {
 	return op1 & op2;
 }
 
-static Bit16u DRC_CALL_CONV dynrec_or_word(Bit16u op1,Bit16u op2) DRC_FC;
-static Bit16u DRC_CALL_CONV dynrec_or_word(Bit16u op1,Bit16u op2) {
+static uint16_t DRC_CALL_CONV dynrec_or_word(uint16_t op1,uint16_t op2) DRC_FC;
+static uint16_t DRC_CALL_CONV dynrec_or_word(uint16_t op1,uint16_t op2) {
 	lf_var1w=op1;
 	lf_var2w=op2;
 	lf_resw=lf_var1w | lf_var2w;
@@ -255,27 +255,27 @@ static Bit16u DRC_CALL_CONV dynrec_or_word(Bit16u op1,Bit16u op2) {
 	return lf_resw;
 }
 
-static Bit16u DRC_CALL_CONV dynrec_or_word_simple(Bit16u op1,Bit16u op2) DRC_FC;
-static Bit16u DRC_CALL_CONV dynrec_or_word_simple(Bit16u op1,Bit16u op2) {
+static uint16_t DRC_CALL_CONV dynrec_or_word_simple(uint16_t op1,uint16_t op2) DRC_FC;
+static uint16_t DRC_CALL_CONV dynrec_or_word_simple(uint16_t op1,uint16_t op2) {
 	return op1 | op2;
 }
 
-static void DRC_CALL_CONV dynrec_test_word(Bit16u op1,Bit16u op2) DRC_FC;
-static void DRC_CALL_CONV dynrec_test_word(Bit16u op1,Bit16u op2) {
+static void DRC_CALL_CONV dynrec_test_word(uint16_t op1,uint16_t op2) DRC_FC;
+static void DRC_CALL_CONV dynrec_test_word(uint16_t op1,uint16_t op2) {
 	lf_var1w=op1;
 	lf_var2w=op2;
 	lf_resw=lf_var1w & lf_var2w;
 	lflags.type=t_TESTw;
 }
 
-static void DRC_CALL_CONV dynrec_test_word_simple(Bit16u op1,Bit16u op2) DRC_FC;
-static void DRC_CALL_CONV dynrec_test_word_simple(Bit16u op1,Bit16u op2) {
+static void DRC_CALL_CONV dynrec_test_word_simple(uint16_t op1,uint16_t op2) DRC_FC;
+static void DRC_CALL_CONV dynrec_test_word_simple(uint16_t op1,uint16_t op2) {
 	(void)op1;
 	(void)op2;
 }
 
-static Bit32u DRC_CALL_CONV dynrec_add_dword(Bit32u op1,Bit32u op2) DRC_FC;
-static Bit32u DRC_CALL_CONV dynrec_add_dword(Bit32u op1,Bit32u op2) {
+static uint32_t DRC_CALL_CONV dynrec_add_dword(uint32_t op1,uint32_t op2) DRC_FC;
+static uint32_t DRC_CALL_CONV dynrec_add_dword(uint32_t op1,uint32_t op2) {
 	lf_var1d=op1;
 	lf_var2d=op2;
 	lf_resd=lf_var1d+lf_var2d;
@@ -283,13 +283,13 @@ static Bit32u DRC_CALL_CONV dynrec_add_dword(Bit32u op1,Bit32u op2) {
 	return lf_resd;
 }
 
-static Bit32u DRC_CALL_CONV dynrec_add_dword_simple(Bit32u op1,Bit32u op2) DRC_FC;
-static Bit32u DRC_CALL_CONV dynrec_add_dword_simple(Bit32u op1,Bit32u op2) {
+static uint32_t DRC_CALL_CONV dynrec_add_dword_simple(uint32_t op1,uint32_t op2) DRC_FC;
+static uint32_t DRC_CALL_CONV dynrec_add_dword_simple(uint32_t op1,uint32_t op2) {
 	return op1 + op2;
 }
 
-static Bit32u DRC_CALL_CONV dynrec_adc_dword(Bit32u op1,Bit32u op2) DRC_FC;
-static Bit32u DRC_CALL_CONV dynrec_adc_dword(Bit32u op1,Bit32u op2) {
+static uint32_t DRC_CALL_CONV dynrec_adc_dword(uint32_t op1,uint32_t op2) DRC_FC;
+static uint32_t DRC_CALL_CONV dynrec_adc_dword(uint32_t op1,uint32_t op2) {
 	lflags.oldcf=get_CF()!=0;
 	lf_var1d=op1;
 	lf_var2d=op2;
@@ -298,13 +298,13 @@ static Bit32u DRC_CALL_CONV dynrec_adc_dword(Bit32u op1,Bit32u op2) {
 	return lf_resd;
 }
 
-static Bit32u DRC_CALL_CONV dynrec_adc_dword_simple(Bit32u op1,Bit32u op2) DRC_FC;
-static Bit32u DRC_CALL_CONV dynrec_adc_dword_simple(Bit32u op1,Bit32u op2) {
+static uint32_t DRC_CALL_CONV dynrec_adc_dword_simple(uint32_t op1,uint32_t op2) DRC_FC;
+static uint32_t DRC_CALL_CONV dynrec_adc_dword_simple(uint32_t op1,uint32_t op2) {
 	return op1+op2+(Bitu)(get_CF()!=0);
 }
 
-static Bit32u DRC_CALL_CONV dynrec_sub_dword(Bit32u op1,Bit32u op2) DRC_FC;
-static Bit32u DRC_CALL_CONV dynrec_sub_dword(Bit32u op1,Bit32u op2) {
+static uint32_t DRC_CALL_CONV dynrec_sub_dword(uint32_t op1,uint32_t op2) DRC_FC;
+static uint32_t DRC_CALL_CONV dynrec_sub_dword(uint32_t op1,uint32_t op2) {
 	lf_var1d=op1;
 	lf_var2d=op2;
 	lf_resd=lf_var1d-lf_var2d;
@@ -312,13 +312,13 @@ static Bit32u DRC_CALL_CONV dynrec_sub_dword(Bit32u op1,Bit32u op2) {
 	return lf_resd;
 }
 
-static Bit32u DRC_CALL_CONV dynrec_sub_dword_simple(Bit32u op1,Bit32u op2) DRC_FC;
-static Bit32u DRC_CALL_CONV dynrec_sub_dword_simple(Bit32u op1,Bit32u op2) {
+static uint32_t DRC_CALL_CONV dynrec_sub_dword_simple(uint32_t op1,uint32_t op2) DRC_FC;
+static uint32_t DRC_CALL_CONV dynrec_sub_dword_simple(uint32_t op1,uint32_t op2) {
 	return op1-op2;
 }
 
-static Bit32u DRC_CALL_CONV dynrec_sbb_dword(Bit32u op1,Bit32u op2) DRC_FC;
-static Bit32u DRC_CALL_CONV dynrec_sbb_dword(Bit32u op1,Bit32u op2) {
+static uint32_t DRC_CALL_CONV dynrec_sbb_dword(uint32_t op1,uint32_t op2) DRC_FC;
+static uint32_t DRC_CALL_CONV dynrec_sbb_dword(uint32_t op1,uint32_t op2) {
 	lflags.oldcf=get_CF()!=0;
 	lf_var1d=op1;
 	lf_var2d=op2;
@@ -327,27 +327,27 @@ static Bit32u DRC_CALL_CONV dynrec_sbb_dword(Bit32u op1,Bit32u op2) {
 	return lf_resd;
 }
 
-static Bit32u DRC_CALL_CONV dynrec_sbb_dword_simple(Bit32u op1,Bit32u op2) DRC_FC;
-static Bit32u DRC_CALL_CONV dynrec_sbb_dword_simple(Bit32u op1,Bit32u op2) {
+static uint32_t DRC_CALL_CONV dynrec_sbb_dword_simple(uint32_t op1,uint32_t op2) DRC_FC;
+static uint32_t DRC_CALL_CONV dynrec_sbb_dword_simple(uint32_t op1,uint32_t op2) {
 	return op1-(op2+(Bitu)(get_CF()!=0));
 }
 
-static void DRC_CALL_CONV dynrec_cmp_dword(Bit32u op1,Bit32u op2) DRC_FC;
-static void DRC_CALL_CONV dynrec_cmp_dword(Bit32u op1,Bit32u op2) {
+static void DRC_CALL_CONV dynrec_cmp_dword(uint32_t op1,uint32_t op2) DRC_FC;
+static void DRC_CALL_CONV dynrec_cmp_dword(uint32_t op1,uint32_t op2) {
 	lf_var1d=op1;
 	lf_var2d=op2;
 	lf_resd=lf_var1d-lf_var2d;
 	lflags.type=t_CMPd;
 }
 
-static void DRC_CALL_CONV dynrec_cmp_dword_simple(Bit32u op1,Bit32u op2) DRC_FC;
-static void DRC_CALL_CONV dynrec_cmp_dword_simple(Bit32u op1,Bit32u op2) {
+static void DRC_CALL_CONV dynrec_cmp_dword_simple(uint32_t op1,uint32_t op2) DRC_FC;
+static void DRC_CALL_CONV dynrec_cmp_dword_simple(uint32_t op1,uint32_t op2) {
 	(void)op1;
 	(void)op2;
 }
 
-static Bit32u DRC_CALL_CONV dynrec_xor_dword(Bit32u op1,Bit32u op2) DRC_FC;
-static Bit32u DRC_CALL_CONV dynrec_xor_dword(Bit32u op1,Bit32u op2) {
+static uint32_t DRC_CALL_CONV dynrec_xor_dword(uint32_t op1,uint32_t op2) DRC_FC;
+static uint32_t DRC_CALL_CONV dynrec_xor_dword(uint32_t op1,uint32_t op2) {
 	lf_var1d=op1;
 	lf_var2d=op2;
 	lf_resd=lf_var1d ^ lf_var2d;
@@ -355,13 +355,13 @@ static Bit32u DRC_CALL_CONV dynrec_xor_dword(Bit32u op1,Bit32u op2) {
 	return lf_resd;
 }
 
-static Bit32u DRC_CALL_CONV dynrec_xor_dword_simple(Bit32u op1,Bit32u op2) DRC_FC;
-static Bit32u DRC_CALL_CONV dynrec_xor_dword_simple(Bit32u op1,Bit32u op2) {
+static uint32_t DRC_CALL_CONV dynrec_xor_dword_simple(uint32_t op1,uint32_t op2) DRC_FC;
+static uint32_t DRC_CALL_CONV dynrec_xor_dword_simple(uint32_t op1,uint32_t op2) {
 	return op1 ^ op2;
 }
 
-static Bit32u DRC_CALL_CONV dynrec_and_dword(Bit32u op1,Bit32u op2) DRC_FC;
-static Bit32u DRC_CALL_CONV dynrec_and_dword(Bit32u op1,Bit32u op2) {
+static uint32_t DRC_CALL_CONV dynrec_and_dword(uint32_t op1,uint32_t op2) DRC_FC;
+static uint32_t DRC_CALL_CONV dynrec_and_dword(uint32_t op1,uint32_t op2) {
 	lf_var1d=op1;
 	lf_var2d=op2;
 	lf_resd=lf_var1d & lf_var2d;
@@ -369,13 +369,13 @@ static Bit32u DRC_CALL_CONV dynrec_and_dword(Bit32u op1,Bit32u op2) {
 	return lf_resd;
 }
 
-static Bit32u DRC_CALL_CONV dynrec_and_dword_simple(Bit32u op1,Bit32u op2) DRC_FC;
-static Bit32u DRC_CALL_CONV dynrec_and_dword_simple(Bit32u op1,Bit32u op2) {
+static uint32_t DRC_CALL_CONV dynrec_and_dword_simple(uint32_t op1,uint32_t op2) DRC_FC;
+static uint32_t DRC_CALL_CONV dynrec_and_dword_simple(uint32_t op1,uint32_t op2) {
 	return op1 & op2;
 }
 
-static Bit32u DRC_CALL_CONV dynrec_or_dword(Bit32u op1,Bit32u op2) DRC_FC;
-static Bit32u DRC_CALL_CONV dynrec_or_dword(Bit32u op1,Bit32u op2) {
+static uint32_t DRC_CALL_CONV dynrec_or_dword(uint32_t op1,uint32_t op2) DRC_FC;
+static uint32_t DRC_CALL_CONV dynrec_or_dword(uint32_t op1,uint32_t op2) {
 	lf_var1d=op1;
 	lf_var2d=op2;
 	lf_resd=lf_var1d | lf_var2d;
@@ -383,21 +383,21 @@ static Bit32u DRC_CALL_CONV dynrec_or_dword(Bit32u op1,Bit32u op2) {
 	return lf_resd;
 }
 
-static Bit32u DRC_CALL_CONV dynrec_or_dword_simple(Bit32u op1,Bit32u op2) DRC_FC;
-static Bit32u DRC_CALL_CONV dynrec_or_dword_simple(Bit32u op1,Bit32u op2) {
+static uint32_t DRC_CALL_CONV dynrec_or_dword_simple(uint32_t op1,uint32_t op2) DRC_FC;
+static uint32_t DRC_CALL_CONV dynrec_or_dword_simple(uint32_t op1,uint32_t op2) {
 	return op1 | op2;
 }
 
-static void DRC_CALL_CONV dynrec_test_dword(Bit32u op1,Bit32u op2) DRC_FC;
-static void DRC_CALL_CONV dynrec_test_dword(Bit32u op1,Bit32u op2) {
+static void DRC_CALL_CONV dynrec_test_dword(uint32_t op1,uint32_t op2) DRC_FC;
+static void DRC_CALL_CONV dynrec_test_dword(uint32_t op1,uint32_t op2) {
 	lf_var1d=op1;
 	lf_var2d=op2;
 	lf_resd=lf_var1d & lf_var2d;
 	lflags.type=t_TESTd;
 }
 
-static void DRC_CALL_CONV dynrec_test_dword_simple(Bit32u op1,Bit32u op2) DRC_FC;
-static void DRC_CALL_CONV dynrec_test_dword_simple(Bit32u op1,Bit32u op2) {
+static void DRC_CALL_CONV dynrec_test_dword_simple(uint32_t op1,uint32_t op2) DRC_FC;
+static void DRC_CALL_CONV dynrec_test_dword_simple(uint32_t op1,uint32_t op2) {
 	(void)op1;
 	(void)op2;
 }
@@ -536,8 +536,8 @@ static void dyn_dop_word_gencall(DualOps op,bool dword) {
 }
 
 
-static Bit8u DRC_CALL_CONV dynrec_inc_byte(Bit8u op) DRC_FC;
-static Bit8u DRC_CALL_CONV dynrec_inc_byte(Bit8u op) {
+static uint8_t DRC_CALL_CONV dynrec_inc_byte(uint8_t op) DRC_FC;
+static uint8_t DRC_CALL_CONV dynrec_inc_byte(uint8_t op) {
 	LoadCF;
 	lf_var1b=op;
 	lf_resb=lf_var1b+1;
@@ -545,13 +545,13 @@ static Bit8u DRC_CALL_CONV dynrec_inc_byte(Bit8u op) {
 	return lf_resb;
 }
 
-static Bit8u DRC_CALL_CONV dynrec_inc_byte_simple(Bit8u op) DRC_FC;
-static Bit8u DRC_CALL_CONV dynrec_inc_byte_simple(Bit8u op) {
+static uint8_t DRC_CALL_CONV dynrec_inc_byte_simple(uint8_t op) DRC_FC;
+static uint8_t DRC_CALL_CONV dynrec_inc_byte_simple(uint8_t op) {
 	return op+1;
 }
 
-static Bit8u DRC_CALL_CONV dynrec_dec_byte(Bit8u op) DRC_FC;
-static Bit8u DRC_CALL_CONV dynrec_dec_byte(Bit8u op) {
+static uint8_t DRC_CALL_CONV dynrec_dec_byte(uint8_t op) DRC_FC;
+static uint8_t DRC_CALL_CONV dynrec_dec_byte(uint8_t op) {
 	LoadCF;
 	lf_var1b=op;
 	lf_resb=lf_var1b-1;
@@ -559,31 +559,31 @@ static Bit8u DRC_CALL_CONV dynrec_dec_byte(Bit8u op) {
 	return lf_resb;
 }
 
-static Bit8u DRC_CALL_CONV dynrec_dec_byte_simple(Bit8u op) DRC_FC;
-static Bit8u DRC_CALL_CONV dynrec_dec_byte_simple(Bit8u op) {
+static uint8_t DRC_CALL_CONV dynrec_dec_byte_simple(uint8_t op) DRC_FC;
+static uint8_t DRC_CALL_CONV dynrec_dec_byte_simple(uint8_t op) {
 	return op-1;
 }
 
-static Bit8u DRC_CALL_CONV dynrec_not_byte(Bit8u op) DRC_FC;
-static Bit8u DRC_CALL_CONV dynrec_not_byte(Bit8u op) {
+static uint8_t DRC_CALL_CONV dynrec_not_byte(uint8_t op) DRC_FC;
+static uint8_t DRC_CALL_CONV dynrec_not_byte(uint8_t op) {
 	return ~op;
 }
 
-static Bit8u DRC_CALL_CONV dynrec_neg_byte(Bit8u op) DRC_FC;
-static Bit8u DRC_CALL_CONV dynrec_neg_byte(Bit8u op) {
+static uint8_t DRC_CALL_CONV dynrec_neg_byte(uint8_t op) DRC_FC;
+static uint8_t DRC_CALL_CONV dynrec_neg_byte(uint8_t op) {
 	lf_var1b=op;
 	lf_resb=0-lf_var1b;
 	lflags.type=t_NEGb;
 	return lf_resb;
 }
 
-static Bit8u DRC_CALL_CONV dynrec_neg_byte_simple(Bit8u op) DRC_FC;
-static Bit8u DRC_CALL_CONV dynrec_neg_byte_simple(Bit8u op) {
+static uint8_t DRC_CALL_CONV dynrec_neg_byte_simple(uint8_t op) DRC_FC;
+static uint8_t DRC_CALL_CONV dynrec_neg_byte_simple(uint8_t op) {
 	return 0-op;
 }
 
-static Bit16u DRC_CALL_CONV dynrec_inc_word(Bit16u op) DRC_FC;
-static Bit16u DRC_CALL_CONV dynrec_inc_word(Bit16u op) {
+static uint16_t DRC_CALL_CONV dynrec_inc_word(uint16_t op) DRC_FC;
+static uint16_t DRC_CALL_CONV dynrec_inc_word(uint16_t op) {
 	LoadCF;
 	lf_var1w=op;
 	lf_resw=lf_var1w+1;
@@ -591,13 +591,13 @@ static Bit16u DRC_CALL_CONV dynrec_inc_word(Bit16u op) {
 	return lf_resw;
 }
 
-static Bit16u DRC_CALL_CONV dynrec_inc_word_simple(Bit16u op) DRC_FC;
-static Bit16u DRC_CALL_CONV dynrec_inc_word_simple(Bit16u op) {
+static uint16_t DRC_CALL_CONV dynrec_inc_word_simple(uint16_t op) DRC_FC;
+static uint16_t DRC_CALL_CONV dynrec_inc_word_simple(uint16_t op) {
 	return op+1;
 }
 
-static Bit16u DRC_CALL_CONV dynrec_dec_word(Bit16u op) DRC_FC;
-static Bit16u DRC_CALL_CONV dynrec_dec_word(Bit16u op) {
+static uint16_t DRC_CALL_CONV dynrec_dec_word(uint16_t op) DRC_FC;
+static uint16_t DRC_CALL_CONV dynrec_dec_word(uint16_t op) {
 	LoadCF;
 	lf_var1w=op;
 	lf_resw=lf_var1w-1;
@@ -605,31 +605,31 @@ static Bit16u DRC_CALL_CONV dynrec_dec_word(Bit16u op) {
 	return lf_resw;
 }
 
-static Bit16u DRC_CALL_CONV dynrec_dec_word_simple(Bit16u op) DRC_FC;
-static Bit16u DRC_CALL_CONV dynrec_dec_word_simple(Bit16u op) {
+static uint16_t DRC_CALL_CONV dynrec_dec_word_simple(uint16_t op) DRC_FC;
+static uint16_t DRC_CALL_CONV dynrec_dec_word_simple(uint16_t op) {
 	return op-1;
 }
 
-static Bit16u DRC_CALL_CONV dynrec_not_word(Bit16u op) DRC_FC;
-static Bit16u DRC_CALL_CONV dynrec_not_word(Bit16u op) {
+static uint16_t DRC_CALL_CONV dynrec_not_word(uint16_t op) DRC_FC;
+static uint16_t DRC_CALL_CONV dynrec_not_word(uint16_t op) {
 	return ~op;
 }
 
-static Bit16u DRC_CALL_CONV dynrec_neg_word(Bit16u op) DRC_FC;
-static Bit16u DRC_CALL_CONV dynrec_neg_word(Bit16u op) {
+static uint16_t DRC_CALL_CONV dynrec_neg_word(uint16_t op) DRC_FC;
+static uint16_t DRC_CALL_CONV dynrec_neg_word(uint16_t op) {
 	lf_var1w=op;
 	lf_resw=0-lf_var1w;
 	lflags.type=t_NEGw;
 	return lf_resw;
 }
 
-static Bit16u DRC_CALL_CONV dynrec_neg_word_simple(Bit16u op) DRC_FC;
-static Bit16u DRC_CALL_CONV dynrec_neg_word_simple(Bit16u op) {
+static uint16_t DRC_CALL_CONV dynrec_neg_word_simple(uint16_t op) DRC_FC;
+static uint16_t DRC_CALL_CONV dynrec_neg_word_simple(uint16_t op) {
 	return 0-op;
 }
 
-static Bit32u DRC_CALL_CONV dynrec_inc_dword(Bit32u op) DRC_FC;
-static Bit32u DRC_CALL_CONV dynrec_inc_dword(Bit32u op) {
+static uint32_t DRC_CALL_CONV dynrec_inc_dword(uint32_t op) DRC_FC;
+static uint32_t DRC_CALL_CONV dynrec_inc_dword(uint32_t op) {
 	LoadCF;
 	lf_var1d=op;
 	lf_resd=lf_var1d+1;
@@ -637,13 +637,13 @@ static Bit32u DRC_CALL_CONV dynrec_inc_dword(Bit32u op) {
 	return lf_resd;
 }
 
-static Bit32u DRC_CALL_CONV dynrec_inc_dword_simple(Bit32u op) DRC_FC;
-static Bit32u DRC_CALL_CONV dynrec_inc_dword_simple(Bit32u op) {
+static uint32_t DRC_CALL_CONV dynrec_inc_dword_simple(uint32_t op) DRC_FC;
+static uint32_t DRC_CALL_CONV dynrec_inc_dword_simple(uint32_t op) {
 	return op+1;
 }
 
-static Bit32u DRC_CALL_CONV dynrec_dec_dword(Bit32u op) DRC_FC;
-static Bit32u DRC_CALL_CONV dynrec_dec_dword(Bit32u op) {
+static uint32_t DRC_CALL_CONV dynrec_dec_dword(uint32_t op) DRC_FC;
+static uint32_t DRC_CALL_CONV dynrec_dec_dword(uint32_t op) {
 	LoadCF;
 	lf_var1d=op;
 	lf_resd=lf_var1d-1;
@@ -651,26 +651,26 @@ static Bit32u DRC_CALL_CONV dynrec_dec_dword(Bit32u op) {
 	return lf_resd;
 }
 
-static Bit32u DRC_CALL_CONV dynrec_dec_dword_simple(Bit32u op) DRC_FC;
-static Bit32u DRC_CALL_CONV dynrec_dec_dword_simple(Bit32u op) {
+static uint32_t DRC_CALL_CONV dynrec_dec_dword_simple(uint32_t op) DRC_FC;
+static uint32_t DRC_CALL_CONV dynrec_dec_dword_simple(uint32_t op) {
 	return op-1;
 }
 
-static Bit32u DRC_CALL_CONV dynrec_not_dword(Bit32u op) DRC_FC;
-static Bit32u DRC_CALL_CONV dynrec_not_dword(Bit32u op) {
+static uint32_t DRC_CALL_CONV dynrec_not_dword(uint32_t op) DRC_FC;
+static uint32_t DRC_CALL_CONV dynrec_not_dword(uint32_t op) {
 	return ~op;
 }
 
-static Bit32u DRC_CALL_CONV dynrec_neg_dword(Bit32u op) DRC_FC;
-static Bit32u DRC_CALL_CONV dynrec_neg_dword(Bit32u op) {
+static uint32_t DRC_CALL_CONV dynrec_neg_dword(uint32_t op) DRC_FC;
+static uint32_t DRC_CALL_CONV dynrec_neg_dword(uint32_t op) {
 	lf_var1d=op;
 	lf_resd=0-lf_var1d;
 	lflags.type=t_NEGd;
 	return lf_resd;
 }
 
-static Bit32u DRC_CALL_CONV dynrec_neg_dword_simple(Bit32u op) DRC_FC;
-static Bit32u DRC_CALL_CONV dynrec_neg_dword_simple(Bit32u op) {
+static uint32_t DRC_CALL_CONV dynrec_neg_dword_simple(uint32_t op) DRC_FC;
+static uint32_t DRC_CALL_CONV dynrec_neg_dword_simple(uint32_t op) {
 	return 0-op;
 }
 
@@ -739,8 +739,8 @@ static void dyn_sop_word_gencall(SingleOps op,bool dword) {
 }
 
 
-static Bit8u DRC_CALL_CONV dynrec_rol_byte(Bit8u op1,Bit8u op2) DRC_FC;
-static Bit8u DRC_CALL_CONV dynrec_rol_byte(Bit8u op1,Bit8u op2) {
+static uint8_t DRC_CALL_CONV dynrec_rol_byte(uint8_t op1,uint8_t op2) DRC_FC;
+static uint8_t DRC_CALL_CONV dynrec_rol_byte(uint8_t op1,uint8_t op2) {
 	if (!(op2&0x7)) {
 		if (op2&0x18) {
 			FillFlagsNoCFOF();
@@ -758,14 +758,14 @@ static Bit8u DRC_CALL_CONV dynrec_rol_byte(Bit8u op1,Bit8u op2) {
 	return lf_resb;
 }
 
-static Bit8u DRC_CALL_CONV dynrec_rol_byte_simple(Bit8u op1,Bit8u op2) DRC_FC;
-static Bit8u DRC_CALL_CONV dynrec_rol_byte_simple(Bit8u op1,Bit8u op2) {
+static uint8_t DRC_CALL_CONV dynrec_rol_byte_simple(uint8_t op1,uint8_t op2) DRC_FC;
+static uint8_t DRC_CALL_CONV dynrec_rol_byte_simple(uint8_t op1,uint8_t op2) {
 	if (!(op2&0x7)) return op1;
 	return (op1 << (op2&0x07)) | (op1 >> (8-(op2&0x07)));
 }
 
-static Bit8u DRC_CALL_CONV dynrec_ror_byte(Bit8u op1,Bit8u op2) DRC_FC;
-static Bit8u DRC_CALL_CONV dynrec_ror_byte(Bit8u op1,Bit8u op2) {
+static uint8_t DRC_CALL_CONV dynrec_ror_byte(uint8_t op1,uint8_t op2) DRC_FC;
+static uint8_t DRC_CALL_CONV dynrec_ror_byte(uint8_t op1,uint8_t op2) {
 	if (!(op2&0x7)) {
 		if (op2&0x18) {
 			FillFlagsNoCFOF();
@@ -783,16 +783,16 @@ static Bit8u DRC_CALL_CONV dynrec_ror_byte(Bit8u op1,Bit8u op2) {
 	return lf_resb;
 }
 
-static Bit8u DRC_CALL_CONV dynrec_ror_byte_simple(Bit8u op1,Bit8u op2) DRC_FC;
-static Bit8u DRC_CALL_CONV dynrec_ror_byte_simple(Bit8u op1,Bit8u op2) {
+static uint8_t DRC_CALL_CONV dynrec_ror_byte_simple(uint8_t op1,uint8_t op2) DRC_FC;
+static uint8_t DRC_CALL_CONV dynrec_ror_byte_simple(uint8_t op1,uint8_t op2) {
 	if (!(op2&0x7)) return op1;
 	return (op1 >> (op2&0x07)) | (op1 << (8-(op2&0x07)));
 }
 
-static Bit8u DRC_CALL_CONV dynrec_rcl_byte(Bit8u op1,Bit8u op2) DRC_FC;
-static Bit8u DRC_CALL_CONV dynrec_rcl_byte(Bit8u op1,Bit8u op2) {
+static uint8_t DRC_CALL_CONV dynrec_rcl_byte(uint8_t op1,uint8_t op2) DRC_FC;
+static uint8_t DRC_CALL_CONV dynrec_rcl_byte(uint8_t op1,uint8_t op2) {
 	if (op2%9) {
-		Bit8u cf=(Bit8u)FillFlags()&0x1;
+		uint8_t cf=(uint8_t)FillFlags()&0x1;
 		lf_var1b=op1;
 		lf_var2b=op2%9;
 		lf_resb=(lf_var1b << lf_var2b) | (cf << (lf_var2b-1)) | (lf_var1b >> (9-lf_var2b));
@@ -802,10 +802,10 @@ static Bit8u DRC_CALL_CONV dynrec_rcl_byte(Bit8u op1,Bit8u op2) {
 	} else return op1;
 }
 
-static Bit8u DRC_CALL_CONV dynrec_rcr_byte(Bit8u op1,Bit8u op2) DRC_FC;
-static Bit8u DRC_CALL_CONV dynrec_rcr_byte(Bit8u op1,Bit8u op2) {
+static uint8_t DRC_CALL_CONV dynrec_rcr_byte(uint8_t op1,uint8_t op2) DRC_FC;
+static uint8_t DRC_CALL_CONV dynrec_rcr_byte(uint8_t op1,uint8_t op2) {
 	if (op2%9) {
-		Bit8u cf=(Bit8u)FillFlags()&0x1;
+		uint8_t cf=(uint8_t)FillFlags()&0x1;
 		lf_var1b=op1;
 		lf_var2b=op2%9;
 	 	lf_resb=(lf_var1b >> lf_var2b) | (cf << (8-lf_var2b)) | (lf_var1b << (9-lf_var2b));					\
@@ -815,8 +815,8 @@ static Bit8u DRC_CALL_CONV dynrec_rcr_byte(Bit8u op1,Bit8u op2) {
 	} else return op1;
 }
 
-static Bit8u DRC_CALL_CONV dynrec_shl_byte(Bit8u op1,Bit8u op2) DRC_FC;
-static Bit8u DRC_CALL_CONV dynrec_shl_byte(Bit8u op1,Bit8u op2) {
+static uint8_t DRC_CALL_CONV dynrec_shl_byte(uint8_t op1,uint8_t op2) DRC_FC;
+static uint8_t DRC_CALL_CONV dynrec_shl_byte(uint8_t op1,uint8_t op2) {
 	if (!op2) return op1;
 	lf_var1b=op1;
 	lf_var2b=op2;
@@ -825,14 +825,14 @@ static Bit8u DRC_CALL_CONV dynrec_shl_byte(Bit8u op1,Bit8u op2) {
 	return lf_resb;
 }
 
-static Bit8u DRC_CALL_CONV dynrec_shl_byte_simple(Bit8u op1,Bit8u op2) DRC_FC;
-static Bit8u DRC_CALL_CONV dynrec_shl_byte_simple(Bit8u op1,Bit8u op2) {
+static uint8_t DRC_CALL_CONV dynrec_shl_byte_simple(uint8_t op1,uint8_t op2) DRC_FC;
+static uint8_t DRC_CALL_CONV dynrec_shl_byte_simple(uint8_t op1,uint8_t op2) {
 	if (!op2) return op1;
 	return op1 << op2;
 }
 
-static Bit8u DRC_CALL_CONV dynrec_shr_byte(Bit8u op1,Bit8u op2) DRC_FC;
-static Bit8u DRC_CALL_CONV dynrec_shr_byte(Bit8u op1,Bit8u op2) {
+static uint8_t DRC_CALL_CONV dynrec_shr_byte(uint8_t op1,uint8_t op2) DRC_FC;
+static uint8_t DRC_CALL_CONV dynrec_shr_byte(uint8_t op1,uint8_t op2) {
 	if (!op2) return op1;
 	lf_var1b=op1;
 	lf_var2b=op2;
@@ -841,14 +841,14 @@ static Bit8u DRC_CALL_CONV dynrec_shr_byte(Bit8u op1,Bit8u op2) {
 	return lf_resb;
 }
 
-static Bit8u DRC_CALL_CONV dynrec_shr_byte_simple(Bit8u op1,Bit8u op2) DRC_FC;
-static Bit8u DRC_CALL_CONV dynrec_shr_byte_simple(Bit8u op1,Bit8u op2) {
+static uint8_t DRC_CALL_CONV dynrec_shr_byte_simple(uint8_t op1,uint8_t op2) DRC_FC;
+static uint8_t DRC_CALL_CONV dynrec_shr_byte_simple(uint8_t op1,uint8_t op2) {
 	if (!op2) return op1;
 	return op1 >> op2;
 }
 
-static Bit8u DRC_CALL_CONV dynrec_sar_byte(Bit8u op1,Bit8u op2) DRC_FC;
-static Bit8u DRC_CALL_CONV dynrec_sar_byte(Bit8u op1,Bit8u op2) {
+static uint8_t DRC_CALL_CONV dynrec_sar_byte(uint8_t op1,uint8_t op2) DRC_FC;
+static uint8_t DRC_CALL_CONV dynrec_sar_byte(uint8_t op1,uint8_t op2) {
 	if (!op2) return op1;
 	lf_var1b=op1;
 	lf_var2b=op2;
@@ -862,16 +862,16 @@ static Bit8u DRC_CALL_CONV dynrec_sar_byte(Bit8u op1,Bit8u op2) {
 	return lf_resb;
 }
 
-static Bit8u DRC_CALL_CONV dynrec_sar_byte_simple(Bit8u op1,Bit8u op2) DRC_FC;
-static Bit8u DRC_CALL_CONV dynrec_sar_byte_simple(Bit8u op1,Bit8u op2) {
+static uint8_t DRC_CALL_CONV dynrec_sar_byte_simple(uint8_t op1,uint8_t op2) DRC_FC;
+static uint8_t DRC_CALL_CONV dynrec_sar_byte_simple(uint8_t op1,uint8_t op2) {
 	if (!op2) return op1;
 	if (op2>8) op2=8;
     if (op1 & 0x80) return (op1 >> op2) | (0xff << (8 - op2));
 	else return op1 >> op2;
 }
 
-static Bit16u DRC_CALL_CONV dynrec_rol_word(Bit16u op1,Bit8u op2) DRC_FC;
-static Bit16u DRC_CALL_CONV dynrec_rol_word(Bit16u op1,Bit8u op2) {
+static uint16_t DRC_CALL_CONV dynrec_rol_word(uint16_t op1,uint8_t op2) DRC_FC;
+static uint16_t DRC_CALL_CONV dynrec_rol_word(uint16_t op1,uint8_t op2) {
 	if (!(op2&0xf)) {
 		if (op2&0x10) {
 			FillFlagsNoCFOF();
@@ -889,14 +889,14 @@ static Bit16u DRC_CALL_CONV dynrec_rol_word(Bit16u op1,Bit8u op2) {
 	return lf_resw;
 }
 
-static Bit16u DRC_CALL_CONV dynrec_rol_word_simple(Bit16u op1,Bit8u op2) DRC_FC;
-static Bit16u DRC_CALL_CONV dynrec_rol_word_simple(Bit16u op1,Bit8u op2) {
+static uint16_t DRC_CALL_CONV dynrec_rol_word_simple(uint16_t op1,uint8_t op2) DRC_FC;
+static uint16_t DRC_CALL_CONV dynrec_rol_word_simple(uint16_t op1,uint8_t op2) {
 	if (!(op2&0xf)) return op1;
 	return (op1 << (op2&0xf)) | (op1 >> (16-(op2&0xf)));
 }
 
-static Bit16u DRC_CALL_CONV dynrec_ror_word(Bit16u op1,Bit8u op2) DRC_FC;
-static Bit16u DRC_CALL_CONV dynrec_ror_word(Bit16u op1,Bit8u op2) {
+static uint16_t DRC_CALL_CONV dynrec_ror_word(uint16_t op1,uint8_t op2) DRC_FC;
+static uint16_t DRC_CALL_CONV dynrec_ror_word(uint16_t op1,uint8_t op2) {
 	if (!(op2&0xf)) {
 		if (op2&0x10) {
 			FillFlagsNoCFOF();
@@ -914,16 +914,16 @@ static Bit16u DRC_CALL_CONV dynrec_ror_word(Bit16u op1,Bit8u op2) {
 	return lf_resw;
 }
 
-static Bit16u DRC_CALL_CONV dynrec_ror_word_simple(Bit16u op1,Bit8u op2) DRC_FC;
-static Bit16u DRC_CALL_CONV dynrec_ror_word_simple(Bit16u op1,Bit8u op2) {
+static uint16_t DRC_CALL_CONV dynrec_ror_word_simple(uint16_t op1,uint8_t op2) DRC_FC;
+static uint16_t DRC_CALL_CONV dynrec_ror_word_simple(uint16_t op1,uint8_t op2) {
 	if (!(op2&0xf)) return op1;
 	return (op1 >> (op2&0xf)) | (op1 << (16-(op2&0xf)));
 }
 
-static Bit16u DRC_CALL_CONV dynrec_rcl_word(Bit16u op1,Bit8u op2) DRC_FC;
-static Bit16u DRC_CALL_CONV dynrec_rcl_word(Bit16u op1,Bit8u op2) {
+static uint16_t DRC_CALL_CONV dynrec_rcl_word(uint16_t op1,uint8_t op2) DRC_FC;
+static uint16_t DRC_CALL_CONV dynrec_rcl_word(uint16_t op1,uint8_t op2) {
 	if (op2%17) {
-		Bit16u cf=(Bit16u)FillFlags()&0x1;
+		uint16_t cf=(uint16_t)FillFlags()&0x1;
 		lf_var1w=op1;
 		lf_var2b=op2%17;
 		lf_resw=(lf_var1w << lf_var2b) | (cf << (lf_var2b-1)) | (lf_var1w >> (17-lf_var2b));
@@ -933,10 +933,10 @@ static Bit16u DRC_CALL_CONV dynrec_rcl_word(Bit16u op1,Bit8u op2) {
 	} else return op1;
 }
 
-static Bit16u DRC_CALL_CONV dynrec_rcr_word(Bit16u op1,Bit8u op2) DRC_FC;
-static Bit16u DRC_CALL_CONV dynrec_rcr_word(Bit16u op1,Bit8u op2) {
+static uint16_t DRC_CALL_CONV dynrec_rcr_word(uint16_t op1,uint8_t op2) DRC_FC;
+static uint16_t DRC_CALL_CONV dynrec_rcr_word(uint16_t op1,uint8_t op2) {
 	if (op2%17) {
-		Bit16u cf=(Bit16u)FillFlags()&0x1;
+		uint16_t cf=(uint16_t)FillFlags()&0x1;
 		lf_var1w=op1;
 		lf_var2b=op2%17;
 	 	lf_resw=(lf_var1w >> lf_var2b) | (cf << (16-lf_var2b)) | (lf_var1w << (17-lf_var2b));
@@ -946,8 +946,8 @@ static Bit16u DRC_CALL_CONV dynrec_rcr_word(Bit16u op1,Bit8u op2) {
 	} else return op1;
 }
 
-static Bit16u DRC_CALL_CONV dynrec_shl_word(Bit16u op1,Bit8u op2) DRC_FC;
-static Bit16u DRC_CALL_CONV dynrec_shl_word(Bit16u op1,Bit8u op2) {
+static uint16_t DRC_CALL_CONV dynrec_shl_word(uint16_t op1,uint8_t op2) DRC_FC;
+static uint16_t DRC_CALL_CONV dynrec_shl_word(uint16_t op1,uint8_t op2) {
 	if (!op2) return op1;
 	lf_var1w=op1;
 	lf_var2b=op2;
@@ -956,14 +956,14 @@ static Bit16u DRC_CALL_CONV dynrec_shl_word(Bit16u op1,Bit8u op2) {
 	return lf_resw;
 }
 
-static Bit16u DRC_CALL_CONV dynrec_shl_word_simple(Bit16u op1,Bit8u op2) DRC_FC;
-static Bit16u DRC_CALL_CONV dynrec_shl_word_simple(Bit16u op1,Bit8u op2) {
+static uint16_t DRC_CALL_CONV dynrec_shl_word_simple(uint16_t op1,uint8_t op2) DRC_FC;
+static uint16_t DRC_CALL_CONV dynrec_shl_word_simple(uint16_t op1,uint8_t op2) {
 	if (!op2) return op1;
 	return op1 << op2;
 }
 
-static Bit16u DRC_CALL_CONV dynrec_shr_word(Bit16u op1,Bit8u op2) DRC_FC;
-static Bit16u DRC_CALL_CONV dynrec_shr_word(Bit16u op1,Bit8u op2) {
+static uint16_t DRC_CALL_CONV dynrec_shr_word(uint16_t op1,uint8_t op2) DRC_FC;
+static uint16_t DRC_CALL_CONV dynrec_shr_word(uint16_t op1,uint8_t op2) {
 	if (!op2) return op1;
 	lf_var1w=op1;
 	lf_var2b=op2;
@@ -972,14 +972,14 @@ static Bit16u DRC_CALL_CONV dynrec_shr_word(Bit16u op1,Bit8u op2) {
 	return lf_resw;
 }
 
-static Bit16u DRC_CALL_CONV dynrec_shr_word_simple(Bit16u op1,Bit8u op2) DRC_FC;
-static Bit16u DRC_CALL_CONV dynrec_shr_word_simple(Bit16u op1,Bit8u op2) {
+static uint16_t DRC_CALL_CONV dynrec_shr_word_simple(uint16_t op1,uint8_t op2) DRC_FC;
+static uint16_t DRC_CALL_CONV dynrec_shr_word_simple(uint16_t op1,uint8_t op2) {
 	if (!op2) return op1;
 	return op1 >> op2;
 }
 
-static Bit16u DRC_CALL_CONV dynrec_sar_word(Bit16u op1,Bit8u op2) DRC_FC;
-static Bit16u DRC_CALL_CONV dynrec_sar_word(Bit16u op1,Bit8u op2) {
+static uint16_t DRC_CALL_CONV dynrec_sar_word(uint16_t op1,uint8_t op2) DRC_FC;
+static uint16_t DRC_CALL_CONV dynrec_sar_word(uint16_t op1,uint8_t op2) {
 	if (!op2) return op1;
 	lf_var1w=op1;
 	lf_var2b=op2;
@@ -993,16 +993,16 @@ static Bit16u DRC_CALL_CONV dynrec_sar_word(Bit16u op1,Bit8u op2) {
 	return lf_resw;
 }
 
-static Bit16u DRC_CALL_CONV dynrec_sar_word_simple(Bit16u op1,Bit8u op2) DRC_FC;
-static Bit16u DRC_CALL_CONV dynrec_sar_word_simple(Bit16u op1,Bit8u op2) {
+static uint16_t DRC_CALL_CONV dynrec_sar_word_simple(uint16_t op1,uint8_t op2) DRC_FC;
+static uint16_t DRC_CALL_CONV dynrec_sar_word_simple(uint16_t op1,uint8_t op2) {
 	if (!op2) return op1;
 	if (op2>16) op2=16;
 	if (op1 & 0x8000) return (op1 >> op2) | (0xffff << (16 - op2));
 	else return op1 >> op2;
 }
 
-static Bit32u DRC_CALL_CONV dynrec_rol_dword(Bit32u op1,Bit8u op2) DRC_FC;
-static Bit32u DRC_CALL_CONV dynrec_rol_dword(Bit32u op1,Bit8u op2) {
+static uint32_t DRC_CALL_CONV dynrec_rol_dword(uint32_t op1,uint8_t op2) DRC_FC;
+static uint32_t DRC_CALL_CONV dynrec_rol_dword(uint32_t op1,uint8_t op2) {
 	if (!op2) return op1;
 	FillFlagsNoCFOF();
 	lf_var1d=op1;
@@ -1013,14 +1013,14 @@ static Bit32u DRC_CALL_CONV dynrec_rol_dword(Bit32u op1,Bit8u op2) {
 	return lf_resd;
 }
 
-static Bit32u DRC_CALL_CONV dynrec_rol_dword_simple(Bit32u op1,Bit8u op2) DRC_FC;
-static Bit32u DRC_CALL_CONV dynrec_rol_dword_simple(Bit32u op1,Bit8u op2) {
+static uint32_t DRC_CALL_CONV dynrec_rol_dword_simple(uint32_t op1,uint8_t op2) DRC_FC;
+static uint32_t DRC_CALL_CONV dynrec_rol_dword_simple(uint32_t op1,uint8_t op2) {
 	if (!op2) return op1;
 	return (op1 << op2) | (op1 >> (32-op2));
 }
 
-static Bit32u DRC_CALL_CONV dynrec_ror_dword(Bit32u op1,Bit8u op2) DRC_FC;
-static Bit32u DRC_CALL_CONV dynrec_ror_dword(Bit32u op1,Bit8u op2) {
+static uint32_t DRC_CALL_CONV dynrec_ror_dword(uint32_t op1,uint8_t op2) DRC_FC;
+static uint32_t DRC_CALL_CONV dynrec_ror_dword(uint32_t op1,uint8_t op2) {
 	if (!op2) return op1;
 	FillFlagsNoCFOF();
 	lf_var1d=op1;
@@ -1031,16 +1031,16 @@ static Bit32u DRC_CALL_CONV dynrec_ror_dword(Bit32u op1,Bit8u op2) {
 	return lf_resd;
 }
 
-static Bit32u DRC_CALL_CONV dynrec_ror_dword_simple(Bit32u op1,Bit8u op2) DRC_FC;
-static Bit32u DRC_CALL_CONV dynrec_ror_dword_simple(Bit32u op1,Bit8u op2) {
+static uint32_t DRC_CALL_CONV dynrec_ror_dword_simple(uint32_t op1,uint8_t op2) DRC_FC;
+static uint32_t DRC_CALL_CONV dynrec_ror_dword_simple(uint32_t op1,uint8_t op2) {
 	if (!op2) return op1;
 	return (op1 >> op2) | (op1 << (32-op2));
 }
 
-static Bit32u DRC_CALL_CONV dynrec_rcl_dword(Bit32u op1,Bit8u op2) DRC_FC;
-static Bit32u DRC_CALL_CONV dynrec_rcl_dword(Bit32u op1,Bit8u op2) {
+static uint32_t DRC_CALL_CONV dynrec_rcl_dword(uint32_t op1,uint8_t op2) DRC_FC;
+static uint32_t DRC_CALL_CONV dynrec_rcl_dword(uint32_t op1,uint8_t op2) {
 	if (!op2) return op1;
-	Bit32u cf=(Bit32u)FillFlags()&0x1;
+	uint32_t cf=(uint32_t)FillFlags()&0x1;
 	lf_var1d=op1;
 	lf_var2b=op2;
 	if (lf_var2b==1) {
@@ -1053,10 +1053,10 @@ static Bit32u DRC_CALL_CONV dynrec_rcl_dword(Bit32u op1,Bit8u op2) {
 	return lf_resd;
 }
 
-static Bit32u DRC_CALL_CONV dynrec_rcr_dword(Bit32u op1,Bit8u op2) DRC_FC;
-static Bit32u DRC_CALL_CONV dynrec_rcr_dword(Bit32u op1,Bit8u op2) {
+static uint32_t DRC_CALL_CONV dynrec_rcr_dword(uint32_t op1,uint8_t op2) DRC_FC;
+static uint32_t DRC_CALL_CONV dynrec_rcr_dword(uint32_t op1,uint8_t op2) {
 	if (op2) {
-		Bit32u cf=(Bit32u)FillFlags()&0x1;
+		uint32_t cf=(uint32_t)FillFlags()&0x1;
 		lf_var1d=op1;
 		lf_var2b=op2;
 		if (lf_var2b==1) {
@@ -1070,8 +1070,8 @@ static Bit32u DRC_CALL_CONV dynrec_rcr_dword(Bit32u op1,Bit8u op2) {
 	} else return op1;
 }
 
-static Bit32u DRC_CALL_CONV dynrec_shl_dword(Bit32u op1,Bit8u op2) DRC_FC;
-static Bit32u DRC_CALL_CONV dynrec_shl_dword(Bit32u op1,Bit8u op2) {
+static uint32_t DRC_CALL_CONV dynrec_shl_dword(uint32_t op1,uint8_t op2) DRC_FC;
+static uint32_t DRC_CALL_CONV dynrec_shl_dword(uint32_t op1,uint8_t op2) {
 	if (!op2) return op1;
 	lf_var1d=op1;
 	lf_var2b=op2;
@@ -1080,14 +1080,14 @@ static Bit32u DRC_CALL_CONV dynrec_shl_dword(Bit32u op1,Bit8u op2) {
 	return lf_resd;
 }
 
-static Bit32u DRC_CALL_CONV dynrec_shl_dword_simple(Bit32u op1,Bit8u op2) DRC_FC;
-static Bit32u DRC_CALL_CONV dynrec_shl_dword_simple(Bit32u op1,Bit8u op2) {
+static uint32_t DRC_CALL_CONV dynrec_shl_dword_simple(uint32_t op1,uint8_t op2) DRC_FC;
+static uint32_t DRC_CALL_CONV dynrec_shl_dword_simple(uint32_t op1,uint8_t op2) {
 	if (!op2) return op1;
 	return op1 << op2;
 }
 
-static Bit32u DRC_CALL_CONV dynrec_shr_dword(Bit32u op1,Bit8u op2) DRC_FC;
-static Bit32u DRC_CALL_CONV dynrec_shr_dword(Bit32u op1,Bit8u op2) {
+static uint32_t DRC_CALL_CONV dynrec_shr_dword(uint32_t op1,uint8_t op2) DRC_FC;
+static uint32_t DRC_CALL_CONV dynrec_shr_dword(uint32_t op1,uint8_t op2) {
 	if (!op2) return op1;
 	lf_var1d=op1;
 	lf_var2b=op2;
@@ -1096,14 +1096,14 @@ static Bit32u DRC_CALL_CONV dynrec_shr_dword(Bit32u op1,Bit8u op2) {
 	return lf_resd;
 }
 
-static Bit32u DRC_CALL_CONV dynrec_shr_dword_simple(Bit32u op1,Bit8u op2) DRC_FC;
-static Bit32u DRC_CALL_CONV dynrec_shr_dword_simple(Bit32u op1,Bit8u op2) {
+static uint32_t DRC_CALL_CONV dynrec_shr_dword_simple(uint32_t op1,uint8_t op2) DRC_FC;
+static uint32_t DRC_CALL_CONV dynrec_shr_dword_simple(uint32_t op1,uint8_t op2) {
 	if (!op2) return op1;
 	return op1 >> op2;
 }
 
-static Bit32u DRC_CALL_CONV dynrec_sar_dword(Bit32u op1,Bit8u op2) DRC_FC;
-static Bit32u DRC_CALL_CONV dynrec_sar_dword(Bit32u op1,Bit8u op2) {
+static uint32_t DRC_CALL_CONV dynrec_sar_dword(uint32_t op1,uint8_t op2) DRC_FC;
+static uint32_t DRC_CALL_CONV dynrec_sar_dword(uint32_t op1,uint8_t op2) {
 	if (!op2) return op1;
 	lf_var2b=op2;
 	lf_var1d=op1;
@@ -1116,8 +1116,8 @@ static Bit32u DRC_CALL_CONV dynrec_sar_dword(Bit32u op1,Bit8u op2) {
 	return lf_resd;
 }
 
-static Bit32u DRC_CALL_CONV dynrec_sar_dword_simple(Bit32u op1,Bit8u op2) DRC_FC;
-static Bit32u DRC_CALL_CONV dynrec_sar_dword_simple(Bit32u op1,Bit8u op2) {
+static uint32_t DRC_CALL_CONV dynrec_sar_dword_simple(uint32_t op1,uint8_t op2) DRC_FC;
+static uint32_t DRC_CALL_CONV dynrec_sar_dword_simple(uint32_t op1,uint8_t op2) {
 	if (!op2) return op1;
 	if (op1 & 0x80000000) return (op1 >> op2) | (0xffffffff << (32 - op2));
 	else return op1 >> op2;
@@ -1228,31 +1228,31 @@ static void dyn_shift_word_gencall(ShiftOps op,bool dword) {
 	}
 }
 
-static Bit16u DRC_CALL_CONV dynrec_dshl_word(Bit16u op1,Bit16u op2,Bit8u op3) DRC_FC;
-static Bit16u DRC_CALL_CONV dynrec_dshl_word(Bit16u op1,Bit16u op2,Bit8u op3) {
-	Bit8u val=op3 & 0x1f;
+static uint16_t DRC_CALL_CONV dynrec_dshl_word(uint16_t op1,uint16_t op2,uint8_t op3) DRC_FC;
+static uint16_t DRC_CALL_CONV dynrec_dshl_word(uint16_t op1,uint16_t op2,uint8_t op3) {
+	uint8_t val=op3 & 0x1f;
 	if (!val) return op1;
 	lf_var2b=val;
 	lf_var1d=(op1<<16)|op2;
-	Bit32u tempd=lf_var1d << lf_var2b;
+	uint32_t tempd=lf_var1d << lf_var2b;
   	if (lf_var2b>16) tempd |= (op2 << (lf_var2b - 16));
-	lf_resw=(Bit16u)(tempd >> 16);
+	lf_resw=(uint16_t)(tempd >> 16);
 	lflags.type=t_DSHLw;
 	return lf_resw;
 }
 
-static Bit16u DRC_CALL_CONV dynrec_dshl_word_simple(Bit16u op1,Bit16u op2,Bit8u op3) DRC_FC;
-static Bit16u DRC_CALL_CONV dynrec_dshl_word_simple(Bit16u op1,Bit16u op2,Bit8u op3) {
-	Bit8u val=op3 & 0x1f;
+static uint16_t DRC_CALL_CONV dynrec_dshl_word_simple(uint16_t op1,uint16_t op2,uint8_t op3) DRC_FC;
+static uint16_t DRC_CALL_CONV dynrec_dshl_word_simple(uint16_t op1,uint16_t op2,uint8_t op3) {
+	uint8_t val=op3 & 0x1f;
 	if (!val) return op1;
-	Bit32u tempd=(Bit32u)((((Bit32u)op1)<<16)|op2) << val;
+	uint32_t tempd=(uint32_t)((((uint32_t)op1)<<16)|op2) << val;
   	if (val>16) tempd |= (op2 << (val - 16));
-	return (Bit16u)(tempd >> 16);
+	return (uint16_t)(tempd >> 16);
 }
 
-static Bit32u DRC_CALL_CONV dynrec_dshl_dword(Bit32u op1,Bit32u op2,Bit8u op3) DRC_FC;
-static Bit32u DRC_CALL_CONV dynrec_dshl_dword(Bit32u op1,Bit32u op2,Bit8u op3) {
-	Bit8u val=op3 & 0x1f;
+static uint32_t DRC_CALL_CONV dynrec_dshl_dword(uint32_t op1,uint32_t op2,uint8_t op3) DRC_FC;
+static uint32_t DRC_CALL_CONV dynrec_dshl_dword(uint32_t op1,uint32_t op2,uint8_t op3) {
+	uint8_t val=op3 & 0x1f;
 	if (!val) return op1;
 	lf_var2b=val;
 	lf_var1d=op1;
@@ -1261,38 +1261,38 @@ static Bit32u DRC_CALL_CONV dynrec_dshl_dword(Bit32u op1,Bit32u op2,Bit8u op3) {
 	return lf_resd;
 }
 
-static Bit32u DRC_CALL_CONV dynrec_dshl_dword_simple(Bit32u op1,Bit32u op2,Bit8u op3) DRC_FC;
-static Bit32u DRC_CALL_CONV dynrec_dshl_dword_simple(Bit32u op1,Bit32u op2,Bit8u op3) {
-	Bit8u val=op3 & 0x1f;
+static uint32_t DRC_CALL_CONV dynrec_dshl_dword_simple(uint32_t op1,uint32_t op2,uint8_t op3) DRC_FC;
+static uint32_t DRC_CALL_CONV dynrec_dshl_dword_simple(uint32_t op1,uint32_t op2,uint8_t op3) {
+	uint8_t val=op3 & 0x1f;
 	if (!val) return op1;
 	return (op1 << val) | (op2 >> (32-val));
 }
 
-static Bit16u DRC_CALL_CONV dynrec_dshr_word(Bit16u op1,Bit16u op2,Bit8u op3) DRC_FC;
-static Bit16u DRC_CALL_CONV dynrec_dshr_word(Bit16u op1,Bit16u op2,Bit8u op3) {
-	Bit8u val=op3 & 0x1f;
+static uint16_t DRC_CALL_CONV dynrec_dshr_word(uint16_t op1,uint16_t op2,uint8_t op3) DRC_FC;
+static uint16_t DRC_CALL_CONV dynrec_dshr_word(uint16_t op1,uint16_t op2,uint8_t op3) {
+	uint8_t val=op3 & 0x1f;
 	if (!val) return op1;
 	lf_var2b=val;
 	lf_var1d=(op2<<16)|op1;
-	Bit32u tempd=lf_var1d >> lf_var2b;
+	uint32_t tempd=lf_var1d >> lf_var2b;
   	if (lf_var2b>16) tempd |= (op2 << (32-lf_var2b ));
-	lf_resw=(Bit16u)(tempd);
+	lf_resw=(uint16_t)(tempd);
 	lflags.type=t_DSHRw;
 	return lf_resw;
 }
 
-static Bit16u DRC_CALL_CONV dynrec_dshr_word_simple(Bit16u op1,Bit16u op2,Bit8u op3) DRC_FC;
-static Bit16u DRC_CALL_CONV dynrec_dshr_word_simple(Bit16u op1,Bit16u op2,Bit8u op3) {
-	Bit8u val=op3 & 0x1f;
+static uint16_t DRC_CALL_CONV dynrec_dshr_word_simple(uint16_t op1,uint16_t op2,uint8_t op3) DRC_FC;
+static uint16_t DRC_CALL_CONV dynrec_dshr_word_simple(uint16_t op1,uint16_t op2,uint8_t op3) {
+	uint8_t val=op3 & 0x1f;
 	if (!val) return op1;
-	Bit32u tempd=(Bit32u)((((Bit32u)op2)<<16)|op1) >> val;
+	uint32_t tempd=(uint32_t)((((uint32_t)op2)<<16)|op1) >> val;
   	if (val>16) tempd |= (op2 << (32-val));
-	return (Bit16u)(tempd);
+	return (uint16_t)(tempd);
 }
 
-static Bit32u DRC_CALL_CONV dynrec_dshr_dword(Bit32u op1,Bit32u op2,Bit8u op3) DRC_FC;
-static Bit32u DRC_CALL_CONV dynrec_dshr_dword(Bit32u op1,Bit32u op2,Bit8u op3) {
-	Bit8u val=op3 & 0x1f;
+static uint32_t DRC_CALL_CONV dynrec_dshr_dword(uint32_t op1,uint32_t op2,uint8_t op3) DRC_FC;
+static uint32_t DRC_CALL_CONV dynrec_dshr_dword(uint32_t op1,uint32_t op2,uint8_t op3) {
+	uint8_t val=op3 & 0x1f;
 	if (!val) return op1;
 	lf_var2b=val;
 	lf_var1d=op1;
@@ -1301,9 +1301,9 @@ static Bit32u DRC_CALL_CONV dynrec_dshr_dword(Bit32u op1,Bit32u op2,Bit8u op3) {
 	return lf_resd;
 }
 
-static Bit32u DRC_CALL_CONV dynrec_dshr_dword_simple(Bit32u op1,Bit32u op2,Bit8u op3) DRC_FC;
-static Bit32u DRC_CALL_CONV dynrec_dshr_dword_simple(Bit32u op1,Bit32u op2,Bit8u op3) {
-	Bit8u val=op3 & 0x1f;
+static uint32_t DRC_CALL_CONV dynrec_dshr_dword_simple(uint32_t op1,uint32_t op2,uint8_t op3) DRC_FC;
+static uint32_t DRC_CALL_CONV dynrec_dshr_dword_simple(uint32_t op1,uint32_t op2,uint8_t op3) {
+	uint8_t val=op3 & 0x1f;
 	if (!val) return op1;
 	return (op1 >> val) | (op2 << (32-val));
 }
@@ -1330,39 +1330,39 @@ static void dyn_dpshift_dword_gencall(bool left) {
 
 
 
-static Bit32u DRC_CALL_CONV dynrec_get_of(void)		DRC_FC;
-static Bit32u DRC_CALL_CONV dynrec_get_of(void)		{ return TFLG_O; }
-static Bit32u DRC_CALL_CONV dynrec_get_nof(void)	DRC_FC;
-static Bit32u DRC_CALL_CONV dynrec_get_nof(void)	{ return TFLG_NO; }
-static Bit32u DRC_CALL_CONV dynrec_get_cf(void)		DRC_FC;
-static Bit32u DRC_CALL_CONV dynrec_get_cf(void)		{ return TFLG_B; }
-static Bit32u DRC_CALL_CONV dynrec_get_ncf(void)	DRC_FC;
-static Bit32u DRC_CALL_CONV dynrec_get_ncf(void)	{ return TFLG_NB; }
-static Bit32u DRC_CALL_CONV dynrec_get_zf(void)		DRC_FC;
-static Bit32u DRC_CALL_CONV dynrec_get_zf(void)		{ return TFLG_Z; }
-static Bit32u DRC_CALL_CONV dynrec_get_nzf(void)	DRC_FC;
-static Bit32u DRC_CALL_CONV dynrec_get_nzf(void)	{ return TFLG_NZ; }
-static Bit32u DRC_CALL_CONV dynrec_get_sf(void)		DRC_FC;
-static Bit32u DRC_CALL_CONV dynrec_get_sf(void)		{ return TFLG_S; }
-static Bit32u DRC_CALL_CONV dynrec_get_nsf(void)	DRC_FC;
-static Bit32u DRC_CALL_CONV dynrec_get_nsf(void)	{ return TFLG_NS; }
-static Bit32u DRC_CALL_CONV dynrec_get_pf(void)		DRC_FC;
-static Bit32u DRC_CALL_CONV dynrec_get_pf(void)		{ return TFLG_P; }
-static Bit32u DRC_CALL_CONV dynrec_get_npf(void)	DRC_FC;
-static Bit32u DRC_CALL_CONV dynrec_get_npf(void)	{ return TFLG_NP; }
+static uint32_t DRC_CALL_CONV dynrec_get_of(void)		DRC_FC;
+static uint32_t DRC_CALL_CONV dynrec_get_of(void)		{ return TFLG_O; }
+static uint32_t DRC_CALL_CONV dynrec_get_nof(void)	DRC_FC;
+static uint32_t DRC_CALL_CONV dynrec_get_nof(void)	{ return TFLG_NO; }
+static uint32_t DRC_CALL_CONV dynrec_get_cf(void)		DRC_FC;
+static uint32_t DRC_CALL_CONV dynrec_get_cf(void)		{ return TFLG_B; }
+static uint32_t DRC_CALL_CONV dynrec_get_ncf(void)	DRC_FC;
+static uint32_t DRC_CALL_CONV dynrec_get_ncf(void)	{ return TFLG_NB; }
+static uint32_t DRC_CALL_CONV dynrec_get_zf(void)		DRC_FC;
+static uint32_t DRC_CALL_CONV dynrec_get_zf(void)		{ return TFLG_Z; }
+static uint32_t DRC_CALL_CONV dynrec_get_nzf(void)	DRC_FC;
+static uint32_t DRC_CALL_CONV dynrec_get_nzf(void)	{ return TFLG_NZ; }
+static uint32_t DRC_CALL_CONV dynrec_get_sf(void)		DRC_FC;
+static uint32_t DRC_CALL_CONV dynrec_get_sf(void)		{ return TFLG_S; }
+static uint32_t DRC_CALL_CONV dynrec_get_nsf(void)	DRC_FC;
+static uint32_t DRC_CALL_CONV dynrec_get_nsf(void)	{ return TFLG_NS; }
+static uint32_t DRC_CALL_CONV dynrec_get_pf(void)		DRC_FC;
+static uint32_t DRC_CALL_CONV dynrec_get_pf(void)		{ return TFLG_P; }
+static uint32_t DRC_CALL_CONV dynrec_get_npf(void)	DRC_FC;
+static uint32_t DRC_CALL_CONV dynrec_get_npf(void)	{ return TFLG_NP; }
 
-static Bit32u DRC_CALL_CONV dynrec_get_cf_or_zf(void)			DRC_FC;
-static Bit32u DRC_CALL_CONV dynrec_get_cf_or_zf(void)			{ return TFLG_BE; }
-static Bit32u DRC_CALL_CONV dynrec_get_ncf_and_nzf(void)		DRC_FC;
-static Bit32u DRC_CALL_CONV dynrec_get_ncf_and_nzf(void)		{ return TFLG_NBE; }
-static Bit32u DRC_CALL_CONV dynrec_get_sf_neq_of(void)			DRC_FC;
-static Bit32u DRC_CALL_CONV dynrec_get_sf_neq_of(void)			{ return TFLG_L; }
-static Bit32u DRC_CALL_CONV dynrec_get_sf_eq_of(void)			DRC_FC;
-static Bit32u DRC_CALL_CONV dynrec_get_sf_eq_of(void)			{ return TFLG_NL; }
-static Bit32u DRC_CALL_CONV dynrec_get_zf_or_sf_neq_of(void)	DRC_FC;
-static Bit32u DRC_CALL_CONV dynrec_get_zf_or_sf_neq_of(void)	{ return TFLG_LE; }
-static Bit32u DRC_CALL_CONV dynrec_get_nzf_and_sf_eq_of(void)	DRC_FC;
-static Bit32u DRC_CALL_CONV dynrec_get_nzf_and_sf_eq_of(void)	{ return TFLG_NLE; }
+static uint32_t DRC_CALL_CONV dynrec_get_cf_or_zf(void)			DRC_FC;
+static uint32_t DRC_CALL_CONV dynrec_get_cf_or_zf(void)			{ return TFLG_BE; }
+static uint32_t DRC_CALL_CONV dynrec_get_ncf_and_nzf(void)		DRC_FC;
+static uint32_t DRC_CALL_CONV dynrec_get_ncf_and_nzf(void)		{ return TFLG_NBE; }
+static uint32_t DRC_CALL_CONV dynrec_get_sf_neq_of(void)			DRC_FC;
+static uint32_t DRC_CALL_CONV dynrec_get_sf_neq_of(void)			{ return TFLG_L; }
+static uint32_t DRC_CALL_CONV dynrec_get_sf_eq_of(void)			DRC_FC;
+static uint32_t DRC_CALL_CONV dynrec_get_sf_eq_of(void)			{ return TFLG_NL; }
+static uint32_t DRC_CALL_CONV dynrec_get_zf_or_sf_neq_of(void)	DRC_FC;
+static uint32_t DRC_CALL_CONV dynrec_get_zf_or_sf_neq_of(void)	{ return TFLG_LE; }
+static uint32_t DRC_CALL_CONV dynrec_get_nzf_and_sf_eq_of(void)	DRC_FC;
+static uint32_t DRC_CALL_CONV dynrec_get_nzf_and_sf_eq_of(void)	{ return TFLG_NLE; }
 
 
 static void dyn_branchflag_to_reg(BranchTypes btype) {
@@ -1388,8 +1388,8 @@ static void dyn_branchflag_to_reg(BranchTypes btype) {
 }
 
 
-static void DRC_CALL_CONV dynrec_mul_byte(Bit8u op) DRC_FC;
-static void DRC_CALL_CONV dynrec_mul_byte(Bit8u op) {
+static void DRC_CALL_CONV dynrec_mul_byte(uint8_t op) DRC_FC;
+static void DRC_CALL_CONV dynrec_mul_byte(uint8_t op) {
 	FillFlagsNoCFOF();
 	reg_ax=reg_al*op;
 	SETFLAGBIT(ZF,reg_al == 0);
@@ -1402,10 +1402,10 @@ static void DRC_CALL_CONV dynrec_mul_byte(Bit8u op) {
 	}
 }
 
-static void DRC_CALL_CONV dynrec_imul_byte(Bit8u op) DRC_FC;
-static void DRC_CALL_CONV dynrec_imul_byte(Bit8u op) {
+static void DRC_CALL_CONV dynrec_imul_byte(uint8_t op) DRC_FC;
+static void DRC_CALL_CONV dynrec_imul_byte(uint8_t op) {
 	FillFlagsNoCFOF();
-	reg_ax=((Bit8s)reg_al) * ((Bit8s)op);
+	reg_ax=((int8_t)reg_al) * ((int8_t)op);
 	if ((reg_ax & 0xff80)==0xff80 || (reg_ax & 0xff80)==0x0000) {
 		SETFLAGBIT(CF,false);
 		SETFLAGBIT(OF,false);
@@ -1415,12 +1415,12 @@ static void DRC_CALL_CONV dynrec_imul_byte(Bit8u op) {
 	}
 }
 
-static void DRC_CALL_CONV dynrec_mul_word(Bit16u op) DRC_FC;
-static void DRC_CALL_CONV dynrec_mul_word(Bit16u op) {
+static void DRC_CALL_CONV dynrec_mul_word(uint16_t op) DRC_FC;
+static void DRC_CALL_CONV dynrec_mul_word(uint16_t op) {
 	FillFlagsNoCFOF();
 	Bitu tempu=(Bitu)reg_ax*(Bitu)op;
-	reg_ax=(Bit16u)(tempu);
-	reg_dx=(Bit16u)(tempu >> 16);
+	reg_ax=(uint16_t)(tempu);
+	reg_dx=(uint16_t)(tempu >> 16);
 	SETFLAGBIT(ZF,reg_ax == 0);
 	if (reg_dx) {
 		SETFLAGBIT(CF,true);
@@ -1431,12 +1431,12 @@ static void DRC_CALL_CONV dynrec_mul_word(Bit16u op) {
 	}
 }
 
-static void DRC_CALL_CONV dynrec_imul_word(Bit16u op) DRC_FC;
-static void DRC_CALL_CONV dynrec_imul_word(Bit16u op) {
+static void DRC_CALL_CONV dynrec_imul_word(uint16_t op) DRC_FC;
+static void DRC_CALL_CONV dynrec_imul_word(uint16_t op) {
 	FillFlagsNoCFOF();
-	Bits temps=Bits((Bit16s)reg_ax)*Bits((Bit16s)op);
-	reg_ax=(Bit16s)(temps);
-	reg_dx=(Bit16s)(temps >> 16);
+	Bits temps=Bits((int16_t)reg_ax)*Bits((int16_t)op);
+	reg_ax=(int16_t)(temps);
+	reg_dx=(int16_t)(temps >> 16);
 	if (((temps & 0xffff8000)==0xffff8000 || (temps & 0xffff8000)==0x0000)) {
 		SETFLAGBIT(CF,false);
 		SETFLAGBIT(OF,false);
@@ -1446,12 +1446,12 @@ static void DRC_CALL_CONV dynrec_imul_word(Bit16u op) {
 	}
 }
 
-static void DRC_CALL_CONV dynrec_mul_dword(Bit32u op) DRC_FC;
-static void DRC_CALL_CONV dynrec_mul_dword(Bit32u op) {
+static void DRC_CALL_CONV dynrec_mul_dword(uint32_t op) DRC_FC;
+static void DRC_CALL_CONV dynrec_mul_dword(uint32_t op) {
 	FillFlagsNoCFOF();
-	Bit64u tempu=(Bit64u)reg_eax*(Bit64u)op;
-	reg_eax=(Bit32u)(tempu);
-	reg_edx=(Bit32u)(tempu >> 32);
+	uint64_t tempu=(uint64_t)reg_eax*(uint64_t)op;
+	reg_eax=(uint32_t)(tempu);
+	reg_edx=(uint32_t)(tempu >> 32);
 	SETFLAGBIT(ZF,reg_eax == 0);
 	if (reg_edx) {
 		SETFLAGBIT(CF,true);
@@ -1462,12 +1462,12 @@ static void DRC_CALL_CONV dynrec_mul_dword(Bit32u op) {
 	}
 }
 
-static void DRC_CALL_CONV dynrec_imul_dword(Bit32u op) DRC_FC;
-static void DRC_CALL_CONV dynrec_imul_dword(Bit32u op) {
+static void DRC_CALL_CONV dynrec_imul_dword(uint32_t op) DRC_FC;
+static void DRC_CALL_CONV dynrec_imul_dword(uint32_t op) {
 	FillFlagsNoCFOF();
-	Bit64s temps=((Bit64s)((Bit32s)reg_eax))*((Bit64s)((Bit32s)op));
-	reg_eax=(Bit32u)(temps);
-	reg_edx=(Bit32u)(temps >> 32);
+	int64_t temps=((int64_t)((int32_t)reg_eax))*((int64_t)((int32_t)op));
+	reg_eax=(uint32_t)(temps);
+	reg_edx=(uint32_t)(temps >> 32);
 	if ((reg_edx==0xffffffff) && (reg_eax & 0x80000000) ) {
 		SETFLAGBIT(CF,false);
 		SETFLAGBIT(OF,false);
@@ -1481,93 +1481,93 @@ static void DRC_CALL_CONV dynrec_imul_dword(Bit32u op) {
 }
 
 
-static bool DRC_CALL_CONV dynrec_div_byte(Bit8u op) DRC_FC;
-static bool DRC_CALL_CONV dynrec_div_byte(Bit8u op) {
+static bool DRC_CALL_CONV dynrec_div_byte(uint8_t op) DRC_FC;
+static bool DRC_CALL_CONV dynrec_div_byte(uint8_t op) {
 	Bitu val=op;
 	if (val==0) return CPU_PrepareException(0,0);
 	Bitu quo=reg_ax / val;
-	Bit8u rem=(Bit8u)(reg_ax % val);
-	Bit8u quo8=(Bit8u)(quo&0xff);
+	uint8_t rem=(uint8_t)(reg_ax % val);
+	uint8_t quo8=(uint8_t)(quo&0xff);
 	if (quo>0xff) return CPU_PrepareException(0,0);
 	reg_ah=rem;
 	reg_al=quo8;
 	return false;
 }
 
-static bool DRC_CALL_CONV dynrec_idiv_byte(Bit8u op) DRC_FC;
-static bool DRC_CALL_CONV dynrec_idiv_byte(Bit8u op) {
-	Bits val=(Bit8s)op;
+static bool DRC_CALL_CONV dynrec_idiv_byte(uint8_t op) DRC_FC;
+static bool DRC_CALL_CONV dynrec_idiv_byte(uint8_t op) {
+	Bits val=(int8_t)op;
 	if (val==0) return CPU_PrepareException(0,0);
-	Bits quo=((Bit16s)reg_ax) / val;
-	Bit8s rem=(Bit8s)((Bit16s)reg_ax % val);
-	Bit8s quo8s=(Bit8s)(quo&0xff);
-	if (quo!=(Bit16s)quo8s) return CPU_PrepareException(0,0);
+	Bits quo=((int16_t)reg_ax) / val;
+	int8_t rem=(int8_t)((int16_t)reg_ax % val);
+	int8_t quo8s=(int8_t)(quo&0xff);
+	if (quo!=(int16_t)quo8s) return CPU_PrepareException(0,0);
 	reg_ah=rem;
 	reg_al=quo8s;
 	return false;
 }
 
-static bool DRC_CALL_CONV dynrec_div_word(Bit16u op) DRC_FC;
-static bool DRC_CALL_CONV dynrec_div_word(Bit16u op) {
+static bool DRC_CALL_CONV dynrec_div_word(uint16_t op) DRC_FC;
+static bool DRC_CALL_CONV dynrec_div_word(uint16_t op) {
 	Bitu val=op;
 	if (val==0)	return CPU_PrepareException(0,0);
-	Bitu num=((Bit32u)reg_dx<<16)|reg_ax;
+	Bitu num=((uint32_t)reg_dx<<16)|reg_ax;
 	Bitu quo=num/val;
-	Bit16u rem=(Bit16u)(num % val);
-	Bit16u quo16=(Bit16u)(quo&0xffff);
-	if (quo!=(Bit32u)quo16) return CPU_PrepareException(0,0);
+	uint16_t rem=(uint16_t)(num % val);
+	uint16_t quo16=(uint16_t)(quo&0xffff);
+	if (quo!=(uint32_t)quo16) return CPU_PrepareException(0,0);
 	reg_dx=rem;
 	reg_ax=quo16;
 	return false;
 }
 
-static bool DRC_CALL_CONV dynrec_idiv_word(Bit16u op) DRC_FC;
-static bool DRC_CALL_CONV dynrec_idiv_word(Bit16u op) {
-	Bits val=(Bit16s)op;
+static bool DRC_CALL_CONV dynrec_idiv_word(uint16_t op) DRC_FC;
+static bool DRC_CALL_CONV dynrec_idiv_word(uint16_t op) {
+	Bits val=(int16_t)op;
 	if (val==0) return CPU_PrepareException(0,0);
-	Bits num=(Bit32s)((reg_dx<<16)|reg_ax);
+	Bits num=(int32_t)((reg_dx<<16)|reg_ax);
 	Bits quo=num/val;
-	Bit16s rem=(Bit16s)(num % val);
-	Bit16s quo16s=(Bit16s)quo;
-	if (quo!=(Bit32s)quo16s) return CPU_PrepareException(0,0);
+	int16_t rem=(int16_t)(num % val);
+	int16_t quo16s=(int16_t)quo;
+	if (quo!=(int32_t)quo16s) return CPU_PrepareException(0,0);
 	reg_dx=rem;
 	reg_ax=quo16s;
 	return false;
 }
 
-static bool DRC_CALL_CONV dynrec_div_dword(Bit32u op) DRC_FC;
-static bool DRC_CALL_CONV dynrec_div_dword(Bit32u op) {
+static bool DRC_CALL_CONV dynrec_div_dword(uint32_t op) DRC_FC;
+static bool DRC_CALL_CONV dynrec_div_dword(uint32_t op) {
 	Bitu val=op;
 	if (val==0) return CPU_PrepareException(0,0);
-	Bit64u num=(((Bit64u)reg_edx)<<32)|reg_eax;
-	Bit64u quo=num/val;
-	Bit32u rem=(Bit32u)(num % val);
-	Bit32u quo32=(Bit32u)(quo&0xffffffff);
-	if (quo!=(Bit64u)quo32) return CPU_PrepareException(0,0);
+	uint64_t num=(((uint64_t)reg_edx)<<32)|reg_eax;
+	uint64_t quo=num/val;
+	uint32_t rem=(uint32_t)(num % val);
+	uint32_t quo32=(uint32_t)(quo&0xffffffff);
+	if (quo!=(uint64_t)quo32) return CPU_PrepareException(0,0);
 	reg_edx=rem;
 	reg_eax=quo32;
 	return false;
 }
 
-static bool DRC_CALL_CONV dynrec_idiv_dword(Bit32u op) DRC_FC;
-static bool DRC_CALL_CONV dynrec_idiv_dword(Bit32u op) {
-	Bits val=(Bit32s)op;
+static bool DRC_CALL_CONV dynrec_idiv_dword(uint32_t op) DRC_FC;
+static bool DRC_CALL_CONV dynrec_idiv_dword(uint32_t op) {
+	Bits val=(int32_t)op;
 	if (val==0) return CPU_PrepareException(0,0);
-	Bit64s num=(((Bit64u)reg_edx)<<32)|reg_eax;	
-	Bit64s quo=num/val;
-	Bit32s rem=(Bit32s)(num % val);
-	Bit32s quo32s=(Bit32s)(quo&0xffffffff);
-	if (quo!=(Bit64s)quo32s) return CPU_PrepareException(0,0);
+	int64_t num=(((uint64_t)reg_edx)<<32)|reg_eax;	
+	int64_t quo=num/val;
+	int32_t rem=(int32_t)(num % val);
+	int32_t quo32s=(int32_t)(quo&0xffffffff);
+	if (quo!=(int64_t)quo32s) return CPU_PrepareException(0,0);
 	reg_edx=rem;
 	reg_eax=quo32s;
 	return false;
 }
 
 
-static Bit16u DRC_CALL_CONV dynrec_dimul_word(Bit16u op1,Bit16u op2) DRC_FC;
-static Bit16u DRC_CALL_CONV dynrec_dimul_word(Bit16u op1,Bit16u op2) {
+static uint16_t DRC_CALL_CONV dynrec_dimul_word(uint16_t op1,uint16_t op2) DRC_FC;
+static uint16_t DRC_CALL_CONV dynrec_dimul_word(uint16_t op1,uint16_t op2) {
 	FillFlagsNoCFOF();
-	Bits res=Bits((Bit16s)op1) * Bits((Bit16s)op2);
+	Bits res=Bits((int16_t)op1) * Bits((int16_t)op2);
 	if ((res>-32768)  && (res<32767)) {
 		SETFLAGBIT(CF,false);
 		SETFLAGBIT(OF,false);
@@ -1575,50 +1575,50 @@ static Bit16u DRC_CALL_CONV dynrec_dimul_word(Bit16u op1,Bit16u op2) {
 		SETFLAGBIT(CF,true);
 		SETFLAGBIT(OF,true);
 	}
-	return (Bit16u)(res & 0xffff);
+	return (uint16_t)(res & 0xffff);
 }
 
-static Bit32u DRC_CALL_CONV dynrec_dimul_dword(Bit32u op1,Bit32u op2) DRC_FC;
-static Bit32u DRC_CALL_CONV dynrec_dimul_dword(Bit32u op1,Bit32u op2) {
+static uint32_t DRC_CALL_CONV dynrec_dimul_dword(uint32_t op1,uint32_t op2) DRC_FC;
+static uint32_t DRC_CALL_CONV dynrec_dimul_dword(uint32_t op1,uint32_t op2) {
 	FillFlagsNoCFOF();
-	Bit64s res=((Bit64s)((Bit32s)op1))*((Bit64s)((Bit32s)op2));
-	if ((res>-((Bit64s)(2147483647)+1)) && (res<(Bit64s)2147483647)) {
+	int64_t res=((int64_t)((int32_t)op1))*((int64_t)((int32_t)op2));
+	if ((res>-((int64_t)(2147483647)+1)) && (res<(int64_t)2147483647)) {
 		SETFLAGBIT(CF,false);
 		SETFLAGBIT(OF,false);
 	} else {
 		SETFLAGBIT(CF,true);
 		SETFLAGBIT(OF,true);
 	}
-	return (Bit32s)res;
+	return (int32_t)res;
 }
 
 
 
-static Bit16u DRC_CALL_CONV dynrec_cbw(Bit8u op) DRC_FC;
-static Bit16u DRC_CALL_CONV dynrec_cbw(Bit8u op) {
-	return (Bit8s)op;
+static uint16_t DRC_CALL_CONV dynrec_cbw(uint8_t op) DRC_FC;
+static uint16_t DRC_CALL_CONV dynrec_cbw(uint8_t op) {
+	return (int8_t)op;
 }
 
-static Bit32u DRC_CALL_CONV dynrec_cwde(Bit16u op) DRC_FC;
-static Bit32u DRC_CALL_CONV dynrec_cwde(Bit16u op) {
-	return (Bit16s)op;
+static uint32_t DRC_CALL_CONV dynrec_cwde(uint16_t op) DRC_FC;
+static uint32_t DRC_CALL_CONV dynrec_cwde(uint16_t op) {
+	return (int16_t)op;
 }
 
-static Bit16u DRC_CALL_CONV dynrec_cwd(Bit16u op) DRC_FC;
-static Bit16u DRC_CALL_CONV dynrec_cwd(Bit16u op) {
+static uint16_t DRC_CALL_CONV dynrec_cwd(uint16_t op) DRC_FC;
+static uint16_t DRC_CALL_CONV dynrec_cwd(uint16_t op) {
 	if (op & 0x8000) return 0xffff;
 	else return 0;
 }
 
-static Bit32u DRC_CALL_CONV dynrec_cdq(Bit32u op) DRC_FC;
-static Bit32u DRC_CALL_CONV dynrec_cdq(Bit32u op) {
+static uint32_t DRC_CALL_CONV dynrec_cdq(uint32_t op) DRC_FC;
+static uint32_t DRC_CALL_CONV dynrec_cdq(uint32_t op) {
 	if (op & 0x80000000) return 0xffffffff;
 	else return 0;
 }
 
 
-static void DRC_CALL_CONV dynrec_sahf(Bit16u op) DRC_FC;
-static void DRC_CALL_CONV dynrec_sahf(Bit16u op) {
+static void DRC_CALL_CONV dynrec_sahf(uint16_t op) DRC_FC;
+static void DRC_CALL_CONV dynrec_sahf(uint16_t op) {
 	SETFLAGBIT(OF,get_OF());
 	lflags.type=t_UNKNOWN;
 	CPU_SetFlags(op>>8,FMASK_NORMAL & 0xff);
@@ -1652,14 +1652,14 @@ static void DRC_CALL_CONV dynrec_std(void) {
 }
 
 
-static Bit16u DRC_CALL_CONV dynrec_movsb_word(Bit16u count,Bit16s add_index,PhysPt si_base,PhysPt di_base) DRC_FC;
-static Bit16u DRC_CALL_CONV dynrec_movsb_word(Bit16u count,Bit16s add_index,PhysPt si_base,PhysPt di_base) {
-	Bit16u count_left;
+static uint16_t DRC_CALL_CONV dynrec_movsb_word(uint16_t count,int16_t add_index,PhysPt si_base,PhysPt di_base) DRC_FC;
+static uint16_t DRC_CALL_CONV dynrec_movsb_word(uint16_t count,int16_t add_index,PhysPt si_base,PhysPt di_base) {
+	uint16_t count_left;
 	if (count<(Bitu)CPU_Cycles) {
 		count_left=0;
 	} else {
-		count_left=(Bit16u)(count-CPU_Cycles);
-		count=(Bit16u)CPU_Cycles;
+		count_left=(uint16_t)(count-CPU_Cycles);
+		count=(uint16_t)CPU_Cycles;
 		CPU_Cycles=0;
 	}
 	for (;count>0;count--) {
@@ -1670,14 +1670,14 @@ static Bit16u DRC_CALL_CONV dynrec_movsb_word(Bit16u count,Bit16s add_index,Phys
 	return count_left;
 }
 
-static Bit32u DRC_CALL_CONV dynrec_movsb_dword(Bit32u count,Bit32s add_index,PhysPt si_base,PhysPt di_base) DRC_FC;
-static Bit32u DRC_CALL_CONV dynrec_movsb_dword(Bit32u count,Bit32s add_index,PhysPt si_base,PhysPt di_base) {
-	Bit32u count_left;
+static uint32_t DRC_CALL_CONV dynrec_movsb_dword(uint32_t count,int32_t add_index,PhysPt si_base,PhysPt di_base) DRC_FC;
+static uint32_t DRC_CALL_CONV dynrec_movsb_dword(uint32_t count,int32_t add_index,PhysPt si_base,PhysPt di_base) {
+	uint32_t count_left;
 	if (count<(Bitu)CPU_Cycles) {
 		count_left=0;
 	} else {
-		count_left= (Bit32u)(count-CPU_Cycles);
-		count= (Bit32u)CPU_Cycles;
+		count_left= (uint32_t)(count-CPU_Cycles);
+		count= (uint32_t)CPU_Cycles;
 		CPU_Cycles=0;
 	}
 	for (;count>0;count--) {
@@ -1688,14 +1688,14 @@ static Bit32u DRC_CALL_CONV dynrec_movsb_dword(Bit32u count,Bit32s add_index,Phy
 	return count_left;
 }
 
-static Bit16u DRC_CALL_CONV dynrec_movsw_word(Bit16u count,Bit16s add_index,PhysPt si_base,PhysPt di_base) DRC_FC;
-static Bit16u DRC_CALL_CONV dynrec_movsw_word(Bit16u count,Bit16s add_index,PhysPt si_base,PhysPt di_base) {
-	Bit16u count_left;
+static uint16_t DRC_CALL_CONV dynrec_movsw_word(uint16_t count,int16_t add_index,PhysPt si_base,PhysPt di_base) DRC_FC;
+static uint16_t DRC_CALL_CONV dynrec_movsw_word(uint16_t count,int16_t add_index,PhysPt si_base,PhysPt di_base) {
+	uint16_t count_left;
 	if (count<(Bitu)CPU_Cycles) {
 		count_left=0;
 	} else {
-		count_left=(Bit16u)(count-CPU_Cycles);
-		count=(Bit16u)CPU_Cycles;
+		count_left=(uint16_t)(count-CPU_Cycles);
+		count=(uint16_t)CPU_Cycles;
 		CPU_Cycles=0;
 	}
 	add_index<<=1;
@@ -1707,14 +1707,14 @@ static Bit16u DRC_CALL_CONV dynrec_movsw_word(Bit16u count,Bit16s add_index,Phys
 	return count_left;
 }
 
-static Bit32u DRC_CALL_CONV dynrec_movsw_dword(Bit32u count,Bit32s add_index,PhysPt si_base,PhysPt di_base) DRC_FC;
-static Bit32u DRC_CALL_CONV dynrec_movsw_dword(Bit32u count,Bit32s add_index,PhysPt si_base,PhysPt di_base) {
-	Bit32u count_left;
+static uint32_t DRC_CALL_CONV dynrec_movsw_dword(uint32_t count,int32_t add_index,PhysPt si_base,PhysPt di_base) DRC_FC;
+static uint32_t DRC_CALL_CONV dynrec_movsw_dword(uint32_t count,int32_t add_index,PhysPt si_base,PhysPt di_base) {
+	uint32_t count_left;
 	if (count<(Bitu)CPU_Cycles) {
 		count_left=0;
 	} else {
-		count_left= (Bit32u)(count-CPU_Cycles);
-		count= (Bit32u)CPU_Cycles;
+		count_left= (uint32_t)(count-CPU_Cycles);
+		count= (uint32_t)CPU_Cycles;
 		CPU_Cycles=0;
 	}
 	add_index<<=1;
@@ -1726,14 +1726,14 @@ static Bit32u DRC_CALL_CONV dynrec_movsw_dword(Bit32u count,Bit32s add_index,Phy
 	return count_left;
 }
 
-static Bit16u DRC_CALL_CONV dynrec_movsd_word(Bit16u count,Bit16s add_index,PhysPt si_base,PhysPt di_base) DRC_FC;
-static Bit16u DRC_CALL_CONV dynrec_movsd_word(Bit16u count,Bit16s add_index,PhysPt si_base,PhysPt di_base) {
-	Bit16u count_left;
+static uint16_t DRC_CALL_CONV dynrec_movsd_word(uint16_t count,int16_t add_index,PhysPt si_base,PhysPt di_base) DRC_FC;
+static uint16_t DRC_CALL_CONV dynrec_movsd_word(uint16_t count,int16_t add_index,PhysPt si_base,PhysPt di_base) {
+	uint16_t count_left;
 	if (count<(Bitu)CPU_Cycles) {
 		count_left=0;
 	} else {
-		count_left=(Bit16u)(count-CPU_Cycles);
-		count=(Bit16u)CPU_Cycles;
+		count_left=(uint16_t)(count-CPU_Cycles);
+		count=(uint16_t)CPU_Cycles;
 		CPU_Cycles=0;
 	}
 	add_index<<=2;
@@ -1745,14 +1745,14 @@ static Bit16u DRC_CALL_CONV dynrec_movsd_word(Bit16u count,Bit16s add_index,Phys
 	return count_left;
 }
 
-static Bit32u DRC_CALL_CONV dynrec_movsd_dword(Bit32u count,Bit32s add_index,PhysPt si_base,PhysPt di_base) DRC_FC;
-static Bit32u DRC_CALL_CONV dynrec_movsd_dword(Bit32u count,Bit32s add_index,PhysPt si_base,PhysPt di_base) {
-	Bit32u count_left;
+static uint32_t DRC_CALL_CONV dynrec_movsd_dword(uint32_t count,int32_t add_index,PhysPt si_base,PhysPt di_base) DRC_FC;
+static uint32_t DRC_CALL_CONV dynrec_movsd_dword(uint32_t count,int32_t add_index,PhysPt si_base,PhysPt di_base) {
+	uint32_t count_left;
 	if (count<(Bitu)CPU_Cycles) {
 		count_left=0;
 	} else {
-		count_left= (Bit32u)(count - CPU_Cycles);
-		count= (Bit32u)CPU_Cycles;
+		count_left= (uint32_t)(count - CPU_Cycles);
+		count= (uint32_t)CPU_Cycles;
 		CPU_Cycles=0;
 	}
 	add_index<<=2;
@@ -1765,14 +1765,14 @@ static Bit32u DRC_CALL_CONV dynrec_movsd_dword(Bit32u count,Bit32s add_index,Phy
 }
 
 
-static Bit16u DRC_CALL_CONV dynrec_lodsb_word(Bit16u count,Bit16s add_index,PhysPt si_base) DRC_FC;
-static Bit16u DRC_CALL_CONV dynrec_lodsb_word(Bit16u count,Bit16s add_index,PhysPt si_base) {
-	Bit16u count_left;
+static uint16_t DRC_CALL_CONV dynrec_lodsb_word(uint16_t count,int16_t add_index,PhysPt si_base) DRC_FC;
+static uint16_t DRC_CALL_CONV dynrec_lodsb_word(uint16_t count,int16_t add_index,PhysPt si_base) {
+	uint16_t count_left;
 	if (count<(Bitu)CPU_Cycles) {
 		count_left=0;
 	} else {
-		count_left=(Bit16u)(count-CPU_Cycles);
-		count=(Bit16u)CPU_Cycles;
+		count_left=(uint16_t)(count-CPU_Cycles);
+		count=(uint16_t)CPU_Cycles;
 		CPU_Cycles=0;
 	}
 	for (;count>0;count--) {
@@ -1782,14 +1782,14 @@ static Bit16u DRC_CALL_CONV dynrec_lodsb_word(Bit16u count,Bit16s add_index,Phys
 	return count_left;
 }
 
-static Bit32u DRC_CALL_CONV dynrec_lodsb_dword(Bit32u count,Bit32s add_index,PhysPt si_base) DRC_FC;
-static Bit32u DRC_CALL_CONV dynrec_lodsb_dword(Bit32u count,Bit32s add_index,PhysPt si_base) {
-	Bit32u count_left;
+static uint32_t DRC_CALL_CONV dynrec_lodsb_dword(uint32_t count,int32_t add_index,PhysPt si_base) DRC_FC;
+static uint32_t DRC_CALL_CONV dynrec_lodsb_dword(uint32_t count,int32_t add_index,PhysPt si_base) {
+	uint32_t count_left;
 	if (count<(Bitu)CPU_Cycles) {
 		count_left=0;
 	} else {
-		count_left= (Bit32u)(count - CPU_Cycles);
-		count= (Bit32u)CPU_Cycles;
+		count_left= (uint32_t)(count - CPU_Cycles);
+		count= (uint32_t)CPU_Cycles;
 		CPU_Cycles=0;
 	}
 	for (;count>0;count--) {
@@ -1799,14 +1799,14 @@ static Bit32u DRC_CALL_CONV dynrec_lodsb_dword(Bit32u count,Bit32s add_index,Phy
 	return count_left;
 }
 
-static Bit16u DRC_CALL_CONV dynrec_lodsw_word(Bit16u count,Bit16s add_index,PhysPt si_base) DRC_FC;
-static Bit16u DRC_CALL_CONV dynrec_lodsw_word(Bit16u count,Bit16s add_index,PhysPt si_base) {
-	Bit16u count_left;
+static uint16_t DRC_CALL_CONV dynrec_lodsw_word(uint16_t count,int16_t add_index,PhysPt si_base) DRC_FC;
+static uint16_t DRC_CALL_CONV dynrec_lodsw_word(uint16_t count,int16_t add_index,PhysPt si_base) {
+	uint16_t count_left;
 	if (count<(Bitu)CPU_Cycles) {
 		count_left=0;
 	} else {
-		count_left=(Bit16u)(count-CPU_Cycles);
-		count=(Bit16u)CPU_Cycles;
+		count_left=(uint16_t)(count-CPU_Cycles);
+		count=(uint16_t)CPU_Cycles;
 		CPU_Cycles=0;
 	}
 	add_index<<=1;
@@ -1817,14 +1817,14 @@ static Bit16u DRC_CALL_CONV dynrec_lodsw_word(Bit16u count,Bit16s add_index,Phys
 	return count_left;
 }
 
-static Bit32u DRC_CALL_CONV dynrec_lodsw_dword(Bit32u count,Bit32s add_index,PhysPt si_base) DRC_FC;
-static Bit32u DRC_CALL_CONV dynrec_lodsw_dword(Bit32u count,Bit32s add_index,PhysPt si_base) {
-	Bit32u count_left;
+static uint32_t DRC_CALL_CONV dynrec_lodsw_dword(uint32_t count,int32_t add_index,PhysPt si_base) DRC_FC;
+static uint32_t DRC_CALL_CONV dynrec_lodsw_dword(uint32_t count,int32_t add_index,PhysPt si_base) {
+	uint32_t count_left;
 	if (count<(Bitu)CPU_Cycles) {
 		count_left=0;
 	} else {
-		count_left= (Bit32u)(count - CPU_Cycles);
-		count= (Bit32u)CPU_Cycles;
+		count_left= (uint32_t)(count - CPU_Cycles);
+		count= (uint32_t)CPU_Cycles;
 		CPU_Cycles=0;
 	}
 	add_index<<=1;
@@ -1835,14 +1835,14 @@ static Bit32u DRC_CALL_CONV dynrec_lodsw_dword(Bit32u count,Bit32s add_index,Phy
 	return count_left;
 }
 
-static Bit16u DRC_CALL_CONV dynrec_lodsd_word(Bit16u count,Bit16s add_index,PhysPt si_base) DRC_FC;
-static Bit16u DRC_CALL_CONV dynrec_lodsd_word(Bit16u count,Bit16s add_index,PhysPt si_base) {
-	Bit16u count_left;
+static uint16_t DRC_CALL_CONV dynrec_lodsd_word(uint16_t count,int16_t add_index,PhysPt si_base) DRC_FC;
+static uint16_t DRC_CALL_CONV dynrec_lodsd_word(uint16_t count,int16_t add_index,PhysPt si_base) {
+	uint16_t count_left;
 	if (count<(Bitu)CPU_Cycles) {
 		count_left=0;
 	} else {
-		count_left=(Bit16u)(count-CPU_Cycles);
-		count=(Bit16u)CPU_Cycles;
+		count_left=(uint16_t)(count-CPU_Cycles);
+		count=(uint16_t)CPU_Cycles;
 		CPU_Cycles=0;
 	}
 	add_index<<=2;
@@ -1853,14 +1853,14 @@ static Bit16u DRC_CALL_CONV dynrec_lodsd_word(Bit16u count,Bit16s add_index,Phys
 	return count_left;
 }
 
-static Bit32u DRC_CALL_CONV dynrec_lodsd_dword(Bit32u count,Bit32s add_index,PhysPt si_base) DRC_FC;
-static Bit32u DRC_CALL_CONV dynrec_lodsd_dword(Bit32u count,Bit32s add_index,PhysPt si_base) {
-	Bit32u count_left;
+static uint32_t DRC_CALL_CONV dynrec_lodsd_dword(uint32_t count,int32_t add_index,PhysPt si_base) DRC_FC;
+static uint32_t DRC_CALL_CONV dynrec_lodsd_dword(uint32_t count,int32_t add_index,PhysPt si_base) {
+	uint32_t count_left;
 	if (count<(Bitu)CPU_Cycles) {
 		count_left=0;
 	} else {
-		count_left= (Bit32u)(count - CPU_Cycles);
-		count= (Bit32u)CPU_Cycles;
+		count_left= (uint32_t)(count - CPU_Cycles);
+		count= (uint32_t)CPU_Cycles;
 		CPU_Cycles=0;
 	}
 	add_index<<=2;
@@ -1872,14 +1872,14 @@ static Bit32u DRC_CALL_CONV dynrec_lodsd_dword(Bit32u count,Bit32s add_index,Phy
 }
 
 
-static Bit16u DRC_CALL_CONV dynrec_stosb_word(Bit16u count,Bit16s add_index,PhysPt di_base) DRC_FC;
-static Bit16u DRC_CALL_CONV dynrec_stosb_word(Bit16u count,Bit16s add_index,PhysPt di_base) {
-	Bit16u count_left;
+static uint16_t DRC_CALL_CONV dynrec_stosb_word(uint16_t count,int16_t add_index,PhysPt di_base) DRC_FC;
+static uint16_t DRC_CALL_CONV dynrec_stosb_word(uint16_t count,int16_t add_index,PhysPt di_base) {
+	uint16_t count_left;
 	if (count<(Bitu)CPU_Cycles) {
 		count_left=0;
 	} else {
-		count_left=(Bit16u)(count-CPU_Cycles);
-		count=(Bit16u)CPU_Cycles;
+		count_left=(uint16_t)(count-CPU_Cycles);
+		count=(uint16_t)CPU_Cycles;
 		CPU_Cycles=0;
 	}
 	for (;count>0;count--) {
@@ -1889,14 +1889,14 @@ static Bit16u DRC_CALL_CONV dynrec_stosb_word(Bit16u count,Bit16s add_index,Phys
 	return count_left;
 }
 
-static Bit32u DRC_CALL_CONV dynrec_stosb_dword(Bit32u count,Bit32s add_index,PhysPt di_base) DRC_FC;
-static Bit32u DRC_CALL_CONV dynrec_stosb_dword(Bit32u count,Bit32s add_index,PhysPt di_base) {
-	Bit32u count_left;
+static uint32_t DRC_CALL_CONV dynrec_stosb_dword(uint32_t count,int32_t add_index,PhysPt di_base) DRC_FC;
+static uint32_t DRC_CALL_CONV dynrec_stosb_dword(uint32_t count,int32_t add_index,PhysPt di_base) {
+	uint32_t count_left;
 	if (count<(Bitu)CPU_Cycles) {
 		count_left=0;
 	} else {
-		count_left= (Bit32u)(count - CPU_Cycles);
-		count= (Bit32u)CPU_Cycles;
+		count_left= (uint32_t)(count - CPU_Cycles);
+		count= (uint32_t)CPU_Cycles;
 		CPU_Cycles=0;
 	}
 	for (;count>0;count--) {
@@ -1906,14 +1906,14 @@ static Bit32u DRC_CALL_CONV dynrec_stosb_dword(Bit32u count,Bit32s add_index,Phy
 	return count_left;
 }
 
-static Bit16u DRC_CALL_CONV dynrec_stosw_word(Bit16u count,Bit16s add_index,PhysPt di_base) DRC_FC;
-static Bit16u DRC_CALL_CONV dynrec_stosw_word(Bit16u count,Bit16s add_index,PhysPt di_base) {
-	Bit16u count_left;
+static uint16_t DRC_CALL_CONV dynrec_stosw_word(uint16_t count,int16_t add_index,PhysPt di_base) DRC_FC;
+static uint16_t DRC_CALL_CONV dynrec_stosw_word(uint16_t count,int16_t add_index,PhysPt di_base) {
+	uint16_t count_left;
 	if (count<(Bitu)CPU_Cycles) {
 		count_left=0;
 	} else {
-		count_left=(Bit16u)(count-CPU_Cycles);
-		count=(Bit16u)CPU_Cycles;
+		count_left=(uint16_t)(count-CPU_Cycles);
+		count=(uint16_t)CPU_Cycles;
 		CPU_Cycles=0;
 	}
 	add_index<<=1;
@@ -1924,14 +1924,14 @@ static Bit16u DRC_CALL_CONV dynrec_stosw_word(Bit16u count,Bit16s add_index,Phys
 	return count_left;
 }
 
-static Bit32u DRC_CALL_CONV dynrec_stosw_dword(Bit32u count,Bit32s add_index,PhysPt di_base) DRC_FC;
-static Bit32u DRC_CALL_CONV dynrec_stosw_dword(Bit32u count,Bit32s add_index,PhysPt di_base) {
-	Bit32u count_left;
+static uint32_t DRC_CALL_CONV dynrec_stosw_dword(uint32_t count,int32_t add_index,PhysPt di_base) DRC_FC;
+static uint32_t DRC_CALL_CONV dynrec_stosw_dword(uint32_t count,int32_t add_index,PhysPt di_base) {
+	uint32_t count_left;
 	if (count<(Bitu)CPU_Cycles) {
 		count_left=0;
 	} else {
-		count_left= (Bit32u)(count - CPU_Cycles);
-		count=(Bit32u) CPU_Cycles;
+		count_left= (uint32_t)(count - CPU_Cycles);
+		count=(uint32_t) CPU_Cycles;
 		CPU_Cycles=0;
 	}
 	add_index<<=1;
@@ -1942,14 +1942,14 @@ static Bit32u DRC_CALL_CONV dynrec_stosw_dword(Bit32u count,Bit32s add_index,Phy
 	return count_left;
 }
 
-static Bit16u DRC_CALL_CONV dynrec_stosd_word(Bit16u count,Bit16s add_index,PhysPt di_base) DRC_FC;
-static Bit16u DRC_CALL_CONV dynrec_stosd_word(Bit16u count,Bit16s add_index,PhysPt di_base) {
-	Bit16u count_left;
+static uint16_t DRC_CALL_CONV dynrec_stosd_word(uint16_t count,int16_t add_index,PhysPt di_base) DRC_FC;
+static uint16_t DRC_CALL_CONV dynrec_stosd_word(uint16_t count,int16_t add_index,PhysPt di_base) {
+	uint16_t count_left;
 	if (count<(Bitu)CPU_Cycles) {
 		count_left=0;
 	} else {
-		count_left=(Bit16u)(count-CPU_Cycles);
-		count=(Bit16u)CPU_Cycles;
+		count_left=(uint16_t)(count-CPU_Cycles);
+		count=(uint16_t)CPU_Cycles;
 		CPU_Cycles=0;
 	}
 	add_index<<=2;
@@ -1960,14 +1960,14 @@ static Bit16u DRC_CALL_CONV dynrec_stosd_word(Bit16u count,Bit16s add_index,Phys
 	return count_left;
 }
 
-static Bit32u DRC_CALL_CONV dynrec_stosd_dword(Bit32u count,Bit32s add_index,PhysPt di_base) DRC_FC;
-static Bit32u DRC_CALL_CONV dynrec_stosd_dword(Bit32u count,Bit32s add_index,PhysPt di_base) {
-	Bit32u count_left;
+static uint32_t DRC_CALL_CONV dynrec_stosd_dword(uint32_t count,int32_t add_index,PhysPt di_base) DRC_FC;
+static uint32_t DRC_CALL_CONV dynrec_stosd_dword(uint32_t count,int32_t add_index,PhysPt di_base) {
+	uint32_t count_left;
 	if (count<(Bitu)CPU_Cycles) {
 		count_left=0;
 	} else {
-		count_left= (Bit32u)(count - CPU_Cycles);
-		count=(Bit32u) CPU_Cycles;
+		count_left= (uint32_t)(count - CPU_Cycles);
+		count=(uint32_t) CPU_Cycles;
 		CPU_Cycles=0;
 	}
 	add_index<<=2;
@@ -1979,30 +1979,30 @@ static Bit32u DRC_CALL_CONV dynrec_stosd_dword(Bit32u count,Bit32s add_index,Phy
 }
 
 
-static void DRC_CALL_CONV dynrec_push_word(Bit16u value) DRC_FC;
-static void DRC_CALL_CONV dynrec_push_word(Bit16u value) {
-	Bit32u new_esp=(reg_esp&cpu.stack.notmask)|((reg_esp-2)&cpu.stack.mask);
+static void DRC_CALL_CONV dynrec_push_word(uint16_t value) DRC_FC;
+static void DRC_CALL_CONV dynrec_push_word(uint16_t value) {
+	uint32_t new_esp=(reg_esp&cpu.stack.notmask)|((reg_esp-2)&cpu.stack.mask);
 	mem_writew(SegPhys(ss) + (new_esp & cpu.stack.mask),value);
 	reg_esp=new_esp;
 }
 
-static void DRC_CALL_CONV dynrec_push_dword(Bit32u value) DRC_FC;
-static void DRC_CALL_CONV dynrec_push_dword(Bit32u value) {
-	Bit32u new_esp=(reg_esp&cpu.stack.notmask)|((reg_esp-4)&cpu.stack.mask);
+static void DRC_CALL_CONV dynrec_push_dword(uint32_t value) DRC_FC;
+static void DRC_CALL_CONV dynrec_push_dword(uint32_t value) {
+	uint32_t new_esp=(reg_esp&cpu.stack.notmask)|((reg_esp-4)&cpu.stack.mask);
 	mem_writed(SegPhys(ss) + (new_esp & cpu.stack.mask) ,value);
 	reg_esp=new_esp;
 }
 
-static Bit16u DRC_CALL_CONV dynrec_pop_word(void) DRC_FC;
-static Bit16u DRC_CALL_CONV dynrec_pop_word(void) {
-	Bit16u val=mem_readw(SegPhys(ss) + (reg_esp & cpu.stack.mask));
+static uint16_t DRC_CALL_CONV dynrec_pop_word(void) DRC_FC;
+static uint16_t DRC_CALL_CONV dynrec_pop_word(void) {
+	uint16_t val=mem_readw(SegPhys(ss) + (reg_esp & cpu.stack.mask));
 	reg_esp=(reg_esp&cpu.stack.notmask)|((reg_esp+2)&cpu.stack.mask);
 	return val;
 }
 
-static Bit32u DRC_CALL_CONV dynrec_pop_dword(void) DRC_FC;
-static Bit32u DRC_CALL_CONV dynrec_pop_dword(void) {
-	Bit32u val=mem_readd(SegPhys(ss) + (reg_esp & cpu.stack.mask));
+static uint32_t DRC_CALL_CONV dynrec_pop_dword(void) DRC_FC;
+static uint32_t DRC_CALL_CONV dynrec_pop_dword(void) {
+	uint32_t val=mem_readd(SegPhys(ss) + (reg_esp & cpu.stack.mask));
 	reg_esp=(reg_esp&cpu.stack.notmask)|((reg_esp+4)&cpu.stack.mask);
 	return val;
 }

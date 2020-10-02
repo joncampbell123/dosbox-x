@@ -28,18 +28,18 @@
 #define fltype double
 
 /*
-	define Bits, Bitu, Bit32s, Bit32u, Bit16s, Bit16u, Bit8s, Bit8u here
+	define Bits, Bitu, int32_t, uint32_t, int16_t, uint16_t, int8_t, uint8_t here
 */
 /*
 #include <stdint.h>
 typedef uintptr_t	Bitu;
 typedef intptr_t	Bits;
-typedef uint32_t	Bit32u;
-typedef int32_t		Bit32s;
-typedef uint16_t	Bit16u;
-typedef int16_t		Bit16s;
-typedef uint8_t		Bit8u;
-typedef int8_t		Bit8s;
+typedef uint32_t	uint32_t;
+typedef int32_t		int32_t;
+typedef uint16_t	uint16_t;
+typedef int16_t		int16_t;
+typedef uint8_t		uint8_t;
+typedef int8_t		int8_t;
 */
 
 
@@ -121,33 +121,33 @@ typedef int8_t		Bit8s;
      channel.
 */
 typedef struct operator_struct {
-	Bit32s cval, lastcval;			// current output/last output (used for feedback)
-	Bit32u tcount, wfpos, tinc;		// time (position in waveform) and time increment
+	int32_t cval, lastcval;			// current output/last output (used for feedback)
+	uint32_t tcount, wfpos, tinc;		// time (position in waveform) and time increment
 	fltype amp, step_amp;			// and amplification (envelope)
 	fltype vol;						// volume
 	fltype sustain_level;			// sustain level
-	Bit32s mfbi;					// feedback amount
+	int32_t mfbi;					// feedback amount
 	fltype a0, a1, a2, a3;			// attack rate function coefficients
 	fltype decaymul, releasemul;	// decay/release rate functions
-	Bit32u op_state;				// current state of operator (attack/decay/sustain/release/off)
-	Bit32u toff;
-	Bit32s freq_high;				// highest three bits of the frequency, used for vibrato calculations
-	Bit16s* cur_wform;				// start of selected waveform
-	Bit32u cur_wmask;				// mask for selected waveform
-	Bit32u act_state;				// activity state (regular, percussion)
+	uint32_t op_state;				// current state of operator (attack/decay/sustain/release/off)
+	uint32_t toff;
+	int32_t freq_high;				// highest three bits of the frequency, used for vibrato calculations
+	int16_t* cur_wform;				// start of selected waveform
+	uint32_t cur_wmask;				// mask for selected waveform
+	uint32_t act_state;				// activity state (regular, percussion)
 	bool sus_keep;					// keep sustain level when decay finished
 	bool vibrato,tremolo;			// vibrato/tremolo enable bits
 	
 	// variables used to provide non-continuous envelopes
-	Bit32u generator_pos;			// for non-standard sample rates we need to determine how many samples have passed
+	uint32_t generator_pos;			// for non-standard sample rates we need to determine how many samples have passed
 	Bits cur_env_step;				// current (standardized) sample position
 	Bits env_step_a,env_step_d,env_step_r;	// number of std samples of one step (for attack/decay/release mode)
-	Bit8u step_skip_pos_a;			// position of 8-cyclic step skipping (always 2^x to check against mask)
+	uint8_t step_skip_pos_a;			// position of 8-cyclic step skipping (always 2^x to check against mask)
 	Bits env_step_skip_a;			// bitmask that determines if a step is skipped (respective bit is zero then)
 
 #if defined(OPLTYPE_IS_OPL3)
 	bool is_4op,is_4op_attached;	// base of a 4op channel/part of a 4op channel
-	Bit32s left_pan,right_pan;		// opl3 stereo panning amount
+	int32_t left_pan,right_pan;		// opl3 stereo panning amount
 #endif
 } op_type;
 
@@ -157,22 +157,22 @@ op_type op[MAXOPERATORS];
 
 Bits int_samplerate;
 	
-Bit8u status;
-Bit32u opl_index;
+uint8_t status;
+uint32_t opl_index;
 #if defined(OPLTYPE_IS_OPL3)
-Bit8u adlibreg[512];	// adlib register set (including second set)
-Bit8u wave_sel[44];		// waveform selection
+uint8_t adlibreg[512];	// adlib register set (including second set)
+uint8_t wave_sel[44];		// waveform selection
 #else
-Bit8u adlibreg[256];	// adlib register set
-Bit8u wave_sel[22];		// waveform selection
+uint8_t adlibreg[256];	// adlib register set
+uint8_t wave_sel[22];		// waveform selection
 #endif
 
 
 // vibrato/tremolo increment/counter
-Bit32u vibtab_pos;
-Bit32u vibtab_add;
-Bit32u tremtab_pos;
-Bit32u tremtab_add;
+uint32_t vibtab_pos;
+uint32_t vibtab_add;
+uint32_t tremtab_pos;
+uint32_t tremtab_add;
 
 
 // enable an operator
@@ -191,11 +191,11 @@ void change_vibrato(Bitu regbase, op_type* op_pt);
 void change_feedback(Bitu chanbase, op_type* op_pt);
 
 // general functions
-void adlib_init(Bit32u samplerate);
-void adlib_write(Bitu idx, Bit8u val);
-void adlib_getsample(Bit16s* sndptr, Bits numsamples);
+void adlib_init(uint32_t samplerate);
+void adlib_write(Bitu idx, uint8_t val);
+void adlib_getsample(int16_t* sndptr, Bits numsamples);
 
 Bitu adlib_reg_read(Bitu port);
-void adlib_write_index(Bitu port, Bit8u val);
+void adlib_write_index(Bitu port, uint8_t val);
 
-static Bit32u generator_add;	// should be a chip parameter
+static uint32_t generator_add;	// should be a chip parameter

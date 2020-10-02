@@ -77,12 +77,6 @@ AC_C_CONST
 AC_C_INLINE
 AC_TYPE_SIZE_T
 AC_STRUCT_TM
-AC_CHECK_SIZEOF(unsigned char)
-AC_CHECK_SIZEOF(unsigned short)
-AC_CHECK_SIZEOF(unsigned int)
-AC_CHECK_SIZEOF(unsigned long)
-AC_CHECK_SIZEOF(unsigned long long)
-AC_CHECK_SIZEOF(int *)
 
 dnl some semi complex check for sys/socket so it works on darwin as well
 AC_CHECK_HEADERS([stdlib.h sys/types.h])
@@ -227,7 +221,7 @@ LIBS_BACKUP=$LIBS;
 LIBS="$LIBS -lm";
 AC_LINK_IFELSE([AC_LANG_PROGRAM([[#include <math.h>]],[[
         powf(1.0f, 1.0f);
-]])], [AC_MSG_RESULT(yes)], [AC_DEFINE([DB_HAVE_NO_POWF],[1],[libm doesn't include powf])])
+]])], [AC_MSG_RESULT(yes)], [AC_DEFINE([DB_HAVE_NO_POWF],[1],[libm doesn’t include powf])])
 LIBS=$LIBS_BACKUP
 
 dnl Look for clock_gettime, a DB_HAVE_CLOCK_GETTIME is set when present
@@ -385,12 +379,12 @@ else
 fi
 
 # FIXME: Arrggh we need the WHOLE PATH
-pwd=`pwd`
+pwd=`realpath $srcdir`
 
-CFLAGS="$CFLAGS -I$pwd/vs2015/sdlnet/linux-host/include -I$pwd/vs2015/sdlnet/linux-host/include/SDL"
+CFLAGS="$CFLAGS -I$pwd -I$pwd/vs2015/sdlnet/linux-host/include -I$pwd/vs2015/sdlnet/linux-host/include/SDL"
 LDFLAGS="$LDFLAGS -L$pwd/vs2015/sdlnet/linux-host/lib"
-CPPFLAGS="$CPPFLAGS -I$pwd/vs2015/sdlnet/linux-host/include -I$pwd/vs2015/sdlnet/linux-host/include/SDL"
-CXXFLAGS="$CXXFLAGS -I$pwd/vs2015/sdlnet/linux-host/include -I$pwd/vs2015/sdlnet/linux-host/include/SDL"
+CPPFLAGS="$CPPFLAGS -I$pwd -I$pwd/vs2015/sdlnet/linux-host/include -I$pwd/vs2015/sdlnet/linux-host/include/SDL"
+CXXFLAGS="$CXXFLAGS -I$pwd -I$pwd/vs2015/sdlnet/linux-host/include -I$pwd/vs2015/sdlnet/linux-host/include/SDL"
 
 dnl LIBRARY TEST: SDLnet initial test
 AC_CHECK_HEADER(SDL_net.h,have_sdl_net_h=yes,)
@@ -1105,5 +1099,5 @@ AC_OUTPUT
 chmod +x make-rpm.sh
 
 # HACK: Write all PACKAGE defines to vs2015/config_package.h so Windows builds are kept in sync
-grep -E 'PACKAGE|VERSION' config.h >vs2015/config_package.h
+grep -E 'PACKAGE|VERSION' config.h > $srcdir/vs2015/config_package.h
 

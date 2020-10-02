@@ -1472,7 +1472,7 @@ void voodoo_ogl_fastfill(void) {
 	}
 
 
-	Bit32u clear_mask=0;
+	uint32_t clear_mask=0;
 	if (FBZMODE_RGB_BUFFER_MASK(v->reg[fbzMode].u)) {
 		clear_mask|=GL_COLOR_BUFFER_BIT;
 

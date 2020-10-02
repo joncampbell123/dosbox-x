@@ -40,12 +40,12 @@ public:
 
 	virtual ~Analog() {}
 	virtual unsigned int getOutputSampleRate() const = 0;
-	virtual Bit32u getDACStreamsLength(const Bit32u outputLength) const = 0;
+	virtual uint32_t getDACStreamsLength(const uint32_t outputLength) const = 0;
 	virtual void setSynthOutputGain(const float synthGain) = 0;
 	virtual void setReverbOutputGain(const float reverbGain, const bool mt32ReverbCompatibilityMode) = 0;
 
-	virtual bool process(IntSample *outStream, const IntSample *nonReverbLeft, const IntSample *nonReverbRight, const IntSample *reverbDryLeft, const IntSample *reverbDryRight, const IntSample *reverbWetLeft, const IntSample *reverbWetRight, Bit32u outLength) = 0;
-	virtual bool process(FloatSample *outStream, const FloatSample *nonReverbLeft, const FloatSample *nonReverbRight, const FloatSample *reverbDryLeft, const FloatSample *reverbDryRight, const FloatSample *reverbWetLeft, const FloatSample *reverbWetRight, Bit32u outLength) = 0;
+	virtual bool process(IntSample *outStream, const IntSample *nonReverbLeft, const IntSample *nonReverbRight, const IntSample *reverbDryLeft, const IntSample *reverbDryRight, const IntSample *reverbWetLeft, const IntSample *reverbWetRight, uint32_t outLength) = 0;
+	virtual bool process(FloatSample *outStream, const FloatSample *nonReverbLeft, const FloatSample *nonReverbRight, const FloatSample *reverbDryLeft, const FloatSample *reverbDryRight, const FloatSample *reverbWetLeft, const FloatSample *reverbWetRight, uint32_t outLength) = 0;
 };
 
 } // namespace MT32Emu

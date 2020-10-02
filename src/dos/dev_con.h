@@ -45,30 +45,30 @@ void PC98_GetCtrlVFuncKeyEscape(size_t &len,unsigned char buf[16],const unsigned
 
 ShiftJISDecoder con_sjis;
 
-Bit16u last_int16_code = 0;
+uint16_t last_int16_code = 0;
 
 static size_t dev_con_pos=0,dev_con_max=0;
 static unsigned char dev_con_readbuf[64];
 
-Bit8u DefaultANSIAttr() {
+uint8_t DefaultANSIAttr() {
 	return IS_PC98_ARCH ? 0xE1 : 0x07;
 }
 
 class device_CON : public DOS_Device {
 public:
 	device_CON();
-	bool Read(Bit8u * data,Bit16u * size);
-	bool Write(const Bit8u * data,Bit16u * size);
-	bool Seek(Bit32u * pos,Bit32u type);
+	bool Read(uint8_t * data,uint16_t * size);
+	bool Write(const uint8_t * data,uint16_t * size);
+	bool Seek(uint32_t * pos,uint32_t type);
 	bool Close();
-	Bit16u GetInformation(void);
-	bool ReadFromControlChannel(PhysPt bufptr,Bit16u size,Bit16u * retcode) { (void)bufptr; (void)size; (void)retcode; return false; }
-	bool WriteToControlChannel(PhysPt bufptr,Bit16u size,Bit16u * retcode) { (void)bufptr; (void)size; (void)retcode; return false; }
+	uint16_t GetInformation(void);
+	bool ReadFromControlChannel(PhysPt bufptr,uint16_t size,uint16_t * retcode) { (void)bufptr; (void)size; (void)retcode; return false; }
+	bool WriteToControlChannel(PhysPt bufptr,uint16_t size,uint16_t * retcode) { (void)bufptr; (void)size; (void)retcode; return false; }
     bool ANSI_SYS_installed();
 private:
 	void ClearAnsi(void);
-	void Output(Bit8u chr);
-	Bit8u readcache;
+	void Output(uint8_t chr);
+	uint8_t readcache;
 	struct ansi { /* should create a constructor, which would fill them with the appropriate values */
         bool installed;     // ANSI.SYS is installed (and therefore escapes are handled)
 		bool esc;
@@ -76,13 +76,13 @@ private:
         bool equcurp;       // ????? ESC = Y X      cursor pos    (not sure if PC-98 specific or general to DOS ANSI.SYS)
         bool pc98rab;       // PC-98 ESC [ > ...    (right angle bracket) I will rename this variable if MS-DOS ANSI.SYS also supports this sequence
 		bool enabled;
-		Bit8u attr;         // machine-specific
-		Bit8u data[NUMBER_ANSI_DATA];
-		Bit8u numberofarg;
-		Bit16u nrows;
-		Bit16u ncols;
-		Bit8u savecol;
-		Bit8u saverow;
+		uint8_t attr;         // machine-specific
+		uint8_t data[NUMBER_ANSI_DATA];
+		uint8_t numberofarg;
+		uint16_t nrows;
+		uint16_t ncols;
+		uint8_t savecol;
+		uint8_t saverow;
 		bool warned;
 	} ansi;
 
@@ -106,9 +106,9 @@ private:
 
     // ESC [ A
     void ESC_BRACKET_A(void) {
-        Bit8u page=real_readb(BIOSMEM_SEG,BIOSMEM_CURRENT_PAGE);
-        Bit8u tempdata;
-        Bit8u col,row;
+        uint8_t page=real_readb(BIOSMEM_SEG,BIOSMEM_CURRENT_PAGE);
+        uint8_t tempdata;
+        uint8_t col,row;
 
         col=CURSOR_POS_COL(page) ;
         row=CURSOR_POS_ROW(page) ;
@@ -121,9 +121,9 @@ private:
 
     // ESC [ B
     void ESC_BRACKET_B(void) {
-        Bit8u page=real_readb(BIOSMEM_SEG,BIOSMEM_CURRENT_PAGE);
-        Bit8u tempdata;
-        Bit8u col,row;
+        uint8_t page=real_readb(BIOSMEM_SEG,BIOSMEM_CURRENT_PAGE);
+        uint8_t tempdata;
+        uint8_t col,row;
 
         col=CURSOR_POS_COL(page) ;
         row=CURSOR_POS_ROW(page) ;
@@ -139,9 +139,9 @@ private:
 
     // ESC [ C
     void ESC_BRACKET_C(void) {
-        Bit8u page=real_readb(BIOSMEM_SEG,BIOSMEM_CURRENT_PAGE);
-        Bit8u tempdata;
-        Bit8u col,row;
+        uint8_t page=real_readb(BIOSMEM_SEG,BIOSMEM_CURRENT_PAGE);
+        uint8_t tempdata;
+        uint8_t col,row;
 
         col=CURSOR_POS_COL(page);
         row=CURSOR_POS_ROW(page);
@@ -157,9 +157,9 @@ private:
 
     // ESC [ D
     void ESC_BRACKET_D(void) {
-        Bit8u page=real_readb(BIOSMEM_SEG,BIOSMEM_CURRENT_PAGE);
-        Bit8u tempdata;
-        Bit8u col,row;
+        uint8_t page=real_readb(BIOSMEM_SEG,BIOSMEM_CURRENT_PAGE);
+        uint8_t tempdata;
+        uint8_t col,row;
 
         col=CURSOR_POS_COL(page);
         row=CURSOR_POS_ROW(page);
@@ -172,7 +172,7 @@ private:
 
     // ESC = Y X
     void ESC_EQU_cursor_pos(void) {
-        Bit8u page=real_readb(BIOSMEM_SEG,BIOSMEM_CURRENT_PAGE);
+        uint8_t page=real_readb(BIOSMEM_SEG,BIOSMEM_CURRENT_PAGE);
 
         /* This is what the PC-98 ANSI driver does */
         if(ansi.data[0] >= 0x20) ansi.data[0] -= 0x20;
@@ -185,15 +185,15 @@ private:
             ansi.nrows = real_readb(BIOSMEM_SEG,BIOSMEM_NB_ROWS) + 1;
         }
         /* Turn them into positions that are on the screen */
-        if(ansi.data[0] >= ansi.nrows) ansi.data[0] = (Bit8u)ansi.nrows - 1;
-        if(ansi.data[1] >= ansi.ncols) ansi.data[1] = (Bit8u)ansi.ncols - 1;
+        if(ansi.data[0] >= ansi.nrows) ansi.data[0] = (uint8_t)ansi.nrows - 1;
+        if(ansi.data[1] >= ansi.ncols) ansi.data[1] = (uint8_t)ansi.ncols - 1;
         Real_INT10_SetCursorPos(ansi.data[0],ansi.data[1],page);
 
         ClearAnsi();
     }
 
-	static void Real_INT10_SetCursorPos(Bit8u row,Bit8u col,Bit8u page) {
-		Bit16u		oldax,oldbx,olddx;
+	static void Real_INT10_SetCursorPos(uint8_t row,uint8_t col,uint8_t page) {
+		uint16_t		oldax,oldbx,olddx;
 
 		oldax=reg_ax;
 		oldbx=reg_bx;
@@ -289,7 +289,7 @@ private:
                 else if (code == 0x97) {// CTRL+F6   Toggle 20/25-line text      HANDLED INTERNALLY, NEVER RETURNED TO CONSOLE
                     /* toggle the bit and change the text layer */
                     {
-                        Bit8u b = real_readb(0x60,0x113);
+                        uint8_t b = real_readb(0x60,0x113);
                         real_writeb(0x60,0x113,b ^ 1);
 
                         reg_ah = 0x0A; /* Set CRT mode */
@@ -302,7 +302,7 @@ private:
 
                     /* clear the screen */
                     {
-                        Bit8u page = real_readb(BIOSMEM_SEG,BIOSMEM_CURRENT_PAGE);
+                        uint8_t page = real_readb(BIOSMEM_SEG,BIOSMEM_CURRENT_PAGE);
 
                         /* it also redraws the function key row */
                         update_pc98_function_row(pc98_function_row_mode,true);
@@ -316,7 +316,7 @@ private:
                     pc98_function_row_user_toggle();
                 }
                 else if (code == 0x99) {// CTRL+F8   Clear screen, home cursor   HANDLED INTERNALLY, NEVER RETURNED TO CONSOLE
-                    Bit8u page = real_readb(BIOSMEM_SEG,BIOSMEM_CURRENT_PAGE);
+                    uint8_t page = real_readb(BIOSMEM_SEG,BIOSMEM_CURRENT_PAGE);
 
                     /* it also redraws the function key row */
                     update_pc98_function_row(pc98_function_row_mode,true);
@@ -357,18 +357,18 @@ private:
         return false;
     }
 
-	static void Real_INT10_TeletypeOutput(Bit8u xChar,Bit8u xAttr) {
+	static void Real_INT10_TeletypeOutput(uint8_t xChar,uint8_t xAttr) {
         if (IS_PC98_ARCH) {
             if (con_sjis.take(xChar)) {
                 BIOS_NCOLS;
-                Bit8u page=real_readb(BIOSMEM_SEG,BIOSMEM_CURRENT_PAGE);
-                Bit8u cur_row=CURSOR_POS_ROW(page);
-                Bit8u cur_col=CURSOR_POS_COL(page);
+                uint8_t page=real_readb(BIOSMEM_SEG,BIOSMEM_CURRENT_PAGE);
+                uint8_t cur_row=CURSOR_POS_ROW(page);
+                uint8_t cur_col=CURSOR_POS_COL(page);
                 unsigned char cw = con_sjis.doublewide ? 2 : 1;
 
                 /* FIXME: I'm not sure what NEC's ANSI driver does if a doublewide character is printed at column 79 */
                 if ((cur_col+cw) > ncols) {
-                    cur_col = (Bit8u)ncols;
+                    cur_col = (uint8_t)ncols;
                     AdjustCursorPosition(cur_col,cur_row);
                 }
 
@@ -383,7 +383,7 @@ private:
             }
         }
         else {
-            Bit16u oldax,oldbx;
+            uint16_t oldax,oldbx;
             oldax=reg_ax;
             oldbx=reg_bx;
 
@@ -399,13 +399,13 @@ private:
 	}
 
 
-	static void Real_WriteChar(Bit8u cur_col,Bit8u cur_row,
-					Bit8u page,Bit8u chr,Bit8u attr,Bit8u useattr) {
+	static void Real_WriteChar(uint8_t cur_col,uint8_t cur_row,
+					uint8_t page,uint8_t chr,uint8_t attr,uint8_t useattr) {
 		//Cursor position
 		Real_INT10_SetCursorPos(cur_row,cur_col,page);
 
 		//Write the character
-		Bit16u		oldax,oldbx,oldcx;
+		uint16_t		oldax,oldbx,oldcx;
 		oldax=reg_ax;
 		oldbx=reg_bx;
 		oldcx=reg_cx;
@@ -435,13 +435,13 @@ private:
     static void LineFeedRev(void) { // ESC M
 		BIOS_NCOLS;BIOS_NROWS;
 		auto defattr = DefaultANSIAttr();
-		Bit8u page=real_readb(BIOSMEM_SEG,BIOSMEM_CURRENT_PAGE);
-		Bit8u cur_row=CURSOR_POS_ROW(page);
-		Bit8u cur_col=CURSOR_POS_COL(page);
+		uint8_t page=real_readb(BIOSMEM_SEG,BIOSMEM_CURRENT_PAGE);
+		uint8_t cur_row=CURSOR_POS_ROW(page);
+		uint8_t cur_col=CURSOR_POS_COL(page);
 
 		if(cur_row==0) 
 		{
-            INT10_ScrollWindow(0,0,(Bit8u)(nrows-1),(Bit8u)(ncols-1),1,defattr,0);
+            INT10_ScrollWindow(0,0,(uint8_t)(nrows-1),(uint8_t)(ncols-1),1,defattr,0);
         }
         else {
             cur_row--;
@@ -453,22 +453,22 @@ private:
     static void LineFeed(void) { // ESC D
 		BIOS_NCOLS;BIOS_NROWS;
 		auto defattr = DefaultANSIAttr();
-		Bit8u page=real_readb(BIOSMEM_SEG,BIOSMEM_CURRENT_PAGE);
-		Bit8u cur_row=CURSOR_POS_ROW(page);
-		Bit8u cur_col=CURSOR_POS_COL(page);
+		uint8_t page=real_readb(BIOSMEM_SEG,BIOSMEM_CURRENT_PAGE);
+		uint8_t cur_row=CURSOR_POS_ROW(page);
+		uint8_t cur_col=CURSOR_POS_COL(page);
 
         if (cur_row < nrows) cur_row++;
 
 		if(cur_row==nrows) 
 		{
-            INT10_ScrollWindow(0,0,(Bit8u)(nrows-1),(Bit8u)(ncols-1),-1,defattr,0);
+            INT10_ScrollWindow(0,0,(uint8_t)(nrows-1),(uint8_t)(ncols-1),-1,defattr,0);
             cur_row--;
 		}
 
 		Real_INT10_SetCursorPos(cur_row,cur_col,page);	
     }
 	
-	static void AdjustCursorPosition(Bit8u& cur_col,Bit8u& cur_row) {
+	static void AdjustCursorPosition(uint8_t& cur_col,uint8_t& cur_row) {
 		BIOS_NCOLS;BIOS_NROWS;
 		auto defattr = DefaultANSIAttr();
 		//Need a new line?
@@ -485,7 +485,7 @@ private:
 		if(cur_row==nrows) 
 		{
             if (IS_PC98_ARCH)
-		        INT10_ScrollWindow(0,0,(Bit8u)(nrows-1),(Bit8u)(ncols-1),-1,defattr,0);
+		        INT10_ScrollWindow(0,0,(uint8_t)(nrows-1),(uint8_t)(ncols-1),-1,defattr,0);
             else
                 Real_INT10_TeletypeOutput('\n',defattr);	//Scroll up
 
@@ -494,12 +494,12 @@ private:
 	}
 
 
-	void Real_INT10_TeletypeOutputAttr(Bit8u chr,Bit8u attr,bool useattr) {
+	void Real_INT10_TeletypeOutputAttr(uint8_t chr,uint8_t attr,bool useattr) {
 		//TODO Check if this page thing is correct
-		Bit8u page=real_readb(BIOSMEM_SEG,BIOSMEM_CURRENT_PAGE);
+		uint8_t page=real_readb(BIOSMEM_SEG,BIOSMEM_CURRENT_PAGE);
 //		BIOS_NCOLS;BIOS_NROWS;
-		Bit8u cur_row=CURSOR_POS_ROW(page);
-		Bit8u cur_col=CURSOR_POS_COL(page);
+		uint8_t cur_row=CURSOR_POS_ROW(page);
+		uint8_t cur_col=CURSOR_POS_COL(page);
 		switch (chr) 
 		{
 		case 7: {
@@ -541,7 +541,7 @@ private:
 
                     /* FIXME: I'm not sure what NEC's ANSI driver does if a doublewide character is printed at column 79 */
                     if ((cur_col+cw) > ncols) {
-                        cur_col = (Bit8u)ncols;
+                        cur_col = (uint8_t)ncols;
                         AdjustCursorPosition(cur_col,cur_row);
                     }
 
@@ -561,10 +561,10 @@ private:
 		
 		AdjustCursorPosition(cur_col,cur_row);
 		Real_INT10_SetCursorPos(cur_row,cur_col,page);	
-	}//void Real_INT10_TeletypeOutputAttr(Bit8u chr,Bit8u attr,bool useattr) 
+	}//void Real_INT10_TeletypeOutputAttr(uint8_t chr,uint8_t attr,bool useattr) 
 public:
     // INT DC interface: CL=0x10 AH=0x03
-    void INTDC_CL10h_AH03h(Bit16u raw) {
+    void INTDC_CL10h_AH03h(uint16_t raw) {
         /* NTS: This emulates translation behavior seen in INT DCh interface:
          *
          *      DX = raw
@@ -589,23 +589,23 @@ public:
         ESC_M();
     }
 
-    void INTDC_CL10h_AH06h(Bit16u count) {
-        ansi.data[0] = (Bit8u)count; /* truncation is deliberate, just like the actual ANSI driver */
+    void INTDC_CL10h_AH06h(uint16_t count) {
+        ansi.data[0] = (uint8_t)count; /* truncation is deliberate, just like the actual ANSI driver */
         ESC_BRACKET_A();
     }
 
-    void INTDC_CL10h_AH07h(Bit16u count) {
-        ansi.data[0] = (Bit8u)count; /* truncation is deliberate, just like the actual ANSI driver */
+    void INTDC_CL10h_AH07h(uint16_t count) {
+        ansi.data[0] = (uint8_t)count; /* truncation is deliberate, just like the actual ANSI driver */
         ESC_BRACKET_B();
     }
 
-    void INTDC_CL10h_AH08h(Bit16u count) {
-        ansi.data[0] = (Bit8u)count; /* truncation is deliberate, just like the actual ANSI driver */
+    void INTDC_CL10h_AH08h(uint16_t count) {
+        ansi.data[0] = (uint8_t)count; /* truncation is deliberate, just like the actual ANSI driver */
         ESC_BRACKET_C();
     }
 
-    void INTDC_CL10h_AH09h(Bit16u count) {
-        ansi.data[0] = (Bit8u)count; /* truncation is deliberate, just like the actual ANSI driver */
+    void INTDC_CL10h_AH09h(uint16_t count) {
+        ansi.data[0] = (uint8_t)count; /* truncation is deliberate, just like the actual ANSI driver */
         ESC_BRACKET_D();
     }
 
@@ -656,9 +656,9 @@ public:
 //
 // The PDF documents ANSI codes defined on PC-98, which may or may not be a complete listing.
 
-bool device_CON::Read(Bit8u * data,Bit16u * size) {
-	Bit16u oldax=reg_ax;
-	Bit16u count=0;
+bool device_CON::Read(uint8_t * data,uint16_t * size) {
+	uint16_t oldax=reg_ax;
+	uint16_t count=0;
 	auto defattr=DefaultANSIAttr();
 	INT10_SetCurMode();
 	if ((readcache) && (*size)) {
@@ -668,7 +668,7 @@ bool device_CON::Read(Bit8u * data,Bit16u * size) {
 	}
 	while (*size>count) {
         if (dev_con_pos < dev_con_max) {
-            data[count++] = (Bit8u)dev_con_readbuf[dev_con_pos++];
+            data[count++] = (uint8_t)dev_con_readbuf[dev_con_pos++];
             continue;
         }
 
@@ -756,10 +756,10 @@ bool device_CON::Read(Bit8u * data,Bit16u * size) {
 bool log_dev_con = false;
 std::string log_dev_con_str;
 
-bool device_CON::Write(const Bit8u * data,Bit16u * size) {
-    Bit16u count=0;
+bool device_CON::Write(const uint8_t * data,uint16_t * size) {
+    uint16_t count=0;
     Bitu i;
-    Bit8u col,row,page;
+    uint8_t col,row,page;
 
     INT10_SetCurMode();
 
@@ -918,7 +918,7 @@ bool device_CON::Write(const Bit8u * data,Bit16u * size) {
                         ansi.attr = DefaultANSIAttr();
                     }
                     for(i=0;i<=ansi.numberofarg;i++){ 
-                        const Bit8u COLORFLAGS[][8] = {
+                        const uint8_t COLORFLAGS[][8] = {
                         //  Black   Red Green Yellow Blue  Pink  Cyan  White
                             { 0x0,  0x4,  0x2,  0x6,  0x1,  0x5,  0x3,  0x7 }, /*   IBM */
                             { 0x0, 0x40, 0x80, 0xC0, 0x20, 0x60, 0xA0, 0xE0 }, /* PC-98 */
@@ -928,7 +928,7 @@ bool device_CON::Write(const Bit8u * data,Bit16u * size) {
                         if(IS_PC98_ARCH) {
                             // Convert alternate color codes to regular ones
                             if(ansi.data[i] >= 17 && ansi.data[i] <= 23) {
-                                const Bit8u convtbl[] = {
+                                const uint8_t convtbl[] = {
                                     31, 34, 35, 32, 33, 36, 37
                                 };
                                 ansi.data[i] = convtbl[ansi.data[i] - 17];
@@ -990,7 +990,7 @@ bool device_CON::Write(const Bit8u * data,Bit16u * size) {
                             case 45:
                             case 46:
                             case 47: {
-                                Bit8u shift = IS_PC98_ARCH ? 0 : 4;
+                                uint8_t shift = IS_PC98_ARCH ? 0 : 4;
                                 ansi.attr &= ~(flagset[7] << shift);
                                 ansi.attr |= (flagset[ansi.data[i] - 40] << shift);
                                 ansi.attr |= IS_PC98_ARCH ? 0x04 : 0;
@@ -1016,8 +1016,8 @@ bool device_CON::Write(const Bit8u * data,Bit16u * size) {
                     /* Turn them into positions that are on the screen */
                     if(ansi.data[0] == 0) ansi.data[0] = 1;
                     if(ansi.data[1] == 0) ansi.data[1] = 1;
-                    if(ansi.data[0] > ansi.nrows) ansi.data[0] = (Bit8u)ansi.nrows;
-                    if(ansi.data[1] > ansi.ncols) ansi.data[1] = (Bit8u)ansi.ncols;
+                    if(ansi.data[0] > ansi.nrows) ansi.data[0] = (uint8_t)ansi.nrows;
+                    if(ansi.data[1] > ansi.ncols) ansi.data[1] = (uint8_t)ansi.ncols;
                     Real_INT10_SetCursorPos(--(ansi.data[0]),--(ansi.data[1]),page); /*ansi=1 based, int10 is 0 based */
                     ClearAnsi();
                     break;
@@ -1102,7 +1102,7 @@ bool device_CON::Write(const Bit8u * data,Bit16u * size) {
     return true;
 }
 
-bool device_CON::Seek(Bit32u * pos,Bit32u type) {
+bool device_CON::Seek(uint32_t * pos,uint32_t type) {
     (void)pos; // UNUSED
     (void)type; // UNUSED
 	// seek is valid
@@ -1116,9 +1116,9 @@ bool device_CON::Close() {
 
 extern bool dos_con_use_int16_to_detect_input;
 
-Bit16u device_CON::GetInformation(void) {
+uint16_t device_CON::GetInformation(void) {
 	if (dos_con_use_int16_to_detect_input || IS_PC98_ARCH) {
-		Bit16u ret = 0x80D3; /* No Key Available */
+		uint16_t ret = 0x80D3; /* No Key Available */
 
 		/* DOSBox-X behavior: Use INT 16h AH=0x11 Query keyboard status/preview key.
 		 * The reason we do this is some DOS programs actually rely on hooking INT 16h
@@ -1140,7 +1140,7 @@ Bit16u device_CON::GetInformation(void) {
 		 * will trigger the INT 16h AH=0x11 hook it relies on. */
 		if (readcache || dev_con_pos < dev_con_max) return 0x8093; /* key available */
 
-		Bit16u saved_ax = reg_ax;
+		uint16_t saved_ax = reg_ax;
 
 		reg_ah = (IS_EGAVGA_ARCH)?0x11:0x1; // check for keystroke
 
@@ -1184,15 +1184,15 @@ Bit16u device_CON::GetInformation(void) {
 	}
 	else {
 		/* DOSBox mainline behavior: alternate "fast" way through direct manipulation of keyboard scan buffer */
-		Bit16u head=mem_readw(BIOS_KEYBOARD_BUFFER_HEAD);
-		Bit16u tail=mem_readw(BIOS_KEYBOARD_BUFFER_TAIL);
+		uint16_t head=mem_readw(BIOS_KEYBOARD_BUFFER_HEAD);
+		uint16_t tail=mem_readw(BIOS_KEYBOARD_BUFFER_TAIL);
 
 		if ((head==tail) && !readcache) return 0x80D3;	/* No Key Available */
 		if (readcache || real_readw(0x40,head)) return 0x8093;		/* Key Available */
 
 		/* remove the zero from keyboard buffer */
-		Bit16u start=mem_readw(BIOS_KEYBOARD_BUFFER_START);
-		Bit16u end	=mem_readw(BIOS_KEYBOARD_BUFFER_END);
+		uint16_t start=mem_readw(BIOS_KEYBOARD_BUFFER_START);
+		uint16_t end	=mem_readw(BIOS_KEYBOARD_BUFFER_END);
 		head+=2;
 		if (head>=end) head=start;
 		mem_writew(BIOS_KEYBOARD_BUFFER_HEAD,head);
@@ -1234,7 +1234,7 @@ device_CON::device_CON() {
 }
 
 void device_CON::ClearAnsi(void){
-	for(Bit8u i=0; i<NUMBER_ANSI_DATA;i++) ansi.data[i]=0;
+	for(uint8_t i=0; i<NUMBER_ANSI_DATA;i++) ansi.data[i]=0;
     ansi.pc98rab=false;
     ansi.equcurp=false;
 	ansi.esc=false;
@@ -1242,15 +1242,15 @@ void device_CON::ClearAnsi(void){
 	ansi.numberofarg=0;
 }
 
-void device_CON::Output(Bit8u chr) {
+void device_CON::Output(uint8_t chr) {
 	if (dos.internal_output || ansi.enabled) {
 		if (CurMode->type==M_TEXT) {
-			Bit8u page=real_readb(BIOSMEM_SEG,BIOSMEM_CURRENT_PAGE);
-			Bit8u col=CURSOR_POS_COL(page);
-			Bit8u row=CURSOR_POS_ROW(page);
+			uint8_t page=real_readb(BIOSMEM_SEG,BIOSMEM_CURRENT_PAGE);
+			uint8_t col=CURSOR_POS_COL(page);
+			uint8_t row=CURSOR_POS_ROW(page);
 			BIOS_NCOLS;BIOS_NROWS;
 			if (nrows==row+1 && (chr=='\n' || (ncols==col+1 && chr!='\r' && chr!=8 && chr!=7))) {
-				INT10_ScrollWindow(0,0,(Bit8u)(nrows-1),(Bit8u)(ncols-1),-1,ansi.attr,page);
+				INT10_ScrollWindow(0,0,(uint8_t)(nrows-1),(uint8_t)(ncols-1),-1,ansi.attr,page);
 				INT10_SetCursorPos(row-1,col,page);
 			}
 		}

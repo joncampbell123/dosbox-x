@@ -54,14 +54,14 @@ switch (inst.code.op) {
 		lflags.oldcf=(get_CF()!=0);
 		lf_var1d=inst_op1_d;
 		lf_var2d=inst_op2_d;
-		inst_op1_d=lf_resd=(Bit32u)(lf_var1d + lf_var2d + lflags.oldcf);
+		inst_op1_d=lf_resd=(uint32_t)(lf_var1d + lf_var2d + lflags.oldcf);
 		lflags.type=inst.code.op;
 		break;
 	case t_SBBb:	case t_SBBw:	case t_SBBd:
 		lflags.oldcf=(get_CF()!=0);
 		lf_var1d=inst_op1_d;
 		lf_var2d=inst_op2_d;
-		inst_op1_d=lf_resd=(Bit32u)(lf_var1d - lf_var2d - lflags.oldcf);
+		inst_op1_d=lf_resd=(uint32_t)(lf_var1d - lf_var2d - lflags.oldcf);
 		lflags.type=inst.code.op;
 		break;
 	case t_INCb:	case t_INCw:	case t_INCd:
@@ -319,14 +319,14 @@ switch (inst.code.op) {
 		break;
 	case O_XCHG_AX:
 		{
-			Bit16u temp=reg_ax;
+			uint16_t temp=reg_ax;
 			reg_ax=inst_op1_w;
 			inst_op1_w=temp;
 			break;
 		}
 	case O_XCHG_EAX:
 		{
-			Bit32u temp=reg_eax;
+			uint32_t temp=reg_eax;
 			reg_eax=inst_op1_d;
 			inst_op1_d=temp;
 			break;
@@ -397,10 +397,10 @@ switch (inst.code.op) {
 		if ((reg_flags & FLAG_VM) || (!cpu.pmode)) goto illegalopcode;
 		switch (inst.rm_index) {
 		case 0x00:	/* SLDT */
-			inst_op1_d=(Bit32u)CPU_SLDT();
+			inst_op1_d=(uint32_t)CPU_SLDT();
 			break;
 		case 0x01:	/* STR */
-			inst_op1_d=(Bit32u)CPU_STR();
+			inst_op1_d=(uint32_t)CPU_STR();
 			break;
 		case 0x02:	/* LLDT */
 			if (cpu.cpl) EXCEPTION(EXCEPTION_GP);
@@ -425,12 +425,12 @@ switch (inst.code.op) {
 	case O_GRP7d:
 		switch (inst.rm_index) {
 		case 0:		/* SGDT */
-			SaveMw(inst.rm_eaa,(Bit16u)CPU_SGDT_limit());
-			SaveMd(inst.rm_eaa+2,(Bit32u)CPU_SGDT_base());
+			SaveMw(inst.rm_eaa,(uint16_t)CPU_SGDT_limit());
+			SaveMd(inst.rm_eaa+2,(uint32_t)CPU_SGDT_base());
 			goto nextopcode;
 		case 1:		/* SIDT */
-			SaveMw(inst.rm_eaa,(Bit16u)CPU_SIDT_limit());
-			SaveMd(inst.rm_eaa+2,(Bit32u)CPU_SIDT_base());
+			SaveMw(inst.rm_eaa,(uint16_t)CPU_SIDT_limit());
+			SaveMd(inst.rm_eaa+2,(uint32_t)CPU_SIDT_base());
 			goto nextopcode;
 		case 2:		/* LGDT */
 			if (cpu.pmode && cpu.cpl) EXCEPTION(EXCEPTION_GP);
@@ -441,7 +441,7 @@ switch (inst.code.op) {
 			CPU_LIDT(LoadMw(inst.rm_eaa),LoadMd(inst.rm_eaa+2)&((inst.code.op == O_GRP7w) ? 0xFFFFFF : 0xFFFFFFFF));
 			goto nextopcode;
 		case 4:		/* SMSW */
-			inst_op1_d=(Bit32u)CPU_SMSW();
+			inst_op1_d=(uint32_t)CPU_SMSW();
 			break;
 		case 6:		/* LMSW */
 			FillFlags();
@@ -479,21 +479,21 @@ switch (inst.code.op) {
 		{
 			Bitu ar=inst_op2_d;
 			CPU_LAR(inst_op1_w,ar);
-			inst_op1_d=(Bit32u)ar;
+			inst_op1_d=(uint32_t)ar;
 		}
 		break;
 	case O_LSL:
 		{
 			Bitu limit=inst_op2_d;
 			CPU_LSL(inst_op1_w,limit);
-			inst_op1_d=(Bit32u)limit;
+			inst_op1_d=(uint32_t)limit;
 		}
 		break;
 	case O_ARPL:
 		{
 			Bitu new_sel=inst_op1_d;
 			CPU_ARPL(new_sel,inst_op2_d);
-			inst_op1_d=(Bit32u)new_sel;
+			inst_op1_d=(uint32_t)new_sel;
 		}
 		break;
 	case O_BSFw:
@@ -503,7 +503,7 @@ switch (inst.code.op) {
 				SETFLAGBIT(ZF,true);
 				goto nextopcode;
 			} else {
-				Bit8u count=0;
+				uint8_t count=0;
 				while (1) {
 					if (inst_op1_w & 0x1) break;
 					count++;inst_op1_w>>=1;
@@ -520,7 +520,7 @@ switch (inst.code.op) {
 				SETFLAGBIT(ZF,true);
 				goto nextopcode;
 			} else {
-				Bit8u count=0;
+				uint8_t count=0;
 				while (1) {
 					if (inst_op1_d & 0x1) break;
 					count++;inst_op1_d>>=1;
@@ -537,7 +537,7 @@ switch (inst.code.op) {
 				SETFLAGBIT(ZF,true);
 				goto nextopcode;
 			} else {
-				Bit8u count=15;
+				uint8_t count=15;
 				while (1) {
 					if (inst_op1_w & 0x8000) break;
 					count--;inst_op1_w<<=1;
@@ -554,7 +554,7 @@ switch (inst.code.op) {
 				SETFLAGBIT(ZF,true);
 				goto nextopcode;
 			} else {
-				Bit8u count=31;
+				uint8_t count=31;
 				while (1) {
 					if (inst_op1_d & 0x80000000) break;
 					count--;inst_op1_d<<=1;
@@ -651,10 +651,10 @@ switch (inst.code.op) {
 #endif
 	case O_BOUNDw:
 		{
-			Bit16s bound_min, bound_max;
-			bound_min=(Bit16s)LoadMw(inst.rm_eaa);
-			bound_max=(Bit16s)LoadMw(inst.rm_eaa+2);
-			if ( (((Bit16s)inst_op1_w) < bound_min) || (((Bit16s)inst_op1_w) > bound_max) ) {
+			int16_t bound_min, bound_max;
+			bound_min=(int16_t)LoadMw(inst.rm_eaa);
+			bound_max=(int16_t)LoadMw(inst.rm_eaa+2);
+			if ( (((int16_t)inst_op1_w) < bound_min) || (((int16_t)inst_op1_w) > bound_max) ) {
 				EXCEPTION(5);
 			}
 		}

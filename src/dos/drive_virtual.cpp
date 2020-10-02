@@ -31,10 +31,10 @@
 struct VFILE_Block {
 	const char * name;
 	const char * lname;
-	Bit8u * data;
-	Bit32u size;
-	Bit16u date;
-	Bit16u time;
+	uint8_t * data;
+	uint32_t size;
+	uint16_t date;
+	uint16_t time;
 	bool hidden;
 	VFILE_Block * next;
 };
@@ -148,10 +148,10 @@ void VFILE_Shutdown(void) {
 }
 
 void VFILE_RegisterBuiltinFileBlob(const struct BuiltinFileBlob &b) {
-	VFILE_Register(b.recommended_file_name, (Bit8u*)b.data, (Bit32u)b.length);
+	VFILE_Register(b.recommended_file_name, (uint8_t*)b.data, (uint32_t)b.length);
 }
 
-void VFILE_Register(const char * name,Bit8u * data,Bit32u size) {
+void VFILE_Register(const char * name,uint8_t * data,uint32_t size) {
     if (vfpos>=MAX_VFILES) return;
     std::istringstream in(hidefiles);
     bool hidden=false;
@@ -201,30 +201,30 @@ void VFILE_Remove(const char *name) {
 
 class Virtual_File : public DOS_File {
 public:
-	Virtual_File(Bit8u * in_data,Bit32u in_size);
-	bool Read(Bit8u * data,Bit16u * size);
-	bool Write(const Bit8u * data,Bit16u * size);
-	bool Seek(Bit32u * new_pos,Bit32u type);
+	Virtual_File(uint8_t * in_data,uint32_t in_size);
+	bool Read(uint8_t * data,uint16_t * size);
+	bool Write(const uint8_t * data,uint16_t * size);
+	bool Seek(uint32_t * new_pos,uint32_t type);
 	bool Close();
-	Bit16u GetInformation(void);
+	uint16_t GetInformation(void);
 private:
-	Bit32u file_size;
-    Bit32u file_pos = 0;
-	Bit8u * file_data;
+	uint32_t file_size;
+    uint32_t file_pos = 0;
+	uint8_t * file_data;
 };
 
 
-Virtual_File::Virtual_File(Bit8u* in_data, Bit32u in_size) : file_size(in_size), file_data(in_data) {
+Virtual_File::Virtual_File(uint8_t* in_data, uint32_t in_size) : file_size(in_size), file_data(in_data) {
 	date=DOS_PackDate(2002,10,1);
 	time=DOS_PackTime(12,34,56);
 	open=true;
 }
 
-bool Virtual_File::Read(Bit8u * data,Bit16u * size) {
-	Bit32u left=file_size-file_pos;
+bool Virtual_File::Read(uint8_t * data,uint16_t * size) {
+	uint32_t left=file_size-file_pos;
 	if (left<=*size) { 
 		memcpy(data,&file_data[file_pos],left);
-		*size=(Bit16u)left;
+		*size=(uint16_t)left;
 	} else {
 		memcpy(data,&file_data[file_pos],*size);
 	}
@@ -232,14 +232,14 @@ bool Virtual_File::Read(Bit8u * data,Bit16u * size) {
 	return true;
 }
 
-bool Virtual_File::Write(const Bit8u * data,Bit16u * size){
+bool Virtual_File::Write(const uint8_t * data,uint16_t * size){
     (void)data;//UNUSED
     (void)size;//UNUSED
 	/* Not really writable */
 	return false;
 }
 
-bool Virtual_File::Seek(Bit32u * new_pos,Bit32u type){
+bool Virtual_File::Seek(uint32_t * new_pos,uint32_t type){
 	switch (type) {
 	case DOS_SEEK_SET:
 		if (*new_pos<=file_size) file_pos=*new_pos;
@@ -263,7 +263,7 @@ bool Virtual_File::Close(){
 }
 
 
-Bit16u Virtual_File::GetInformation(void) {
+uint16_t Virtual_File::GetInformation(void) {
 	return 0x40;	// read-only drive
 }
 
@@ -276,7 +276,7 @@ Virtual_Drive::Virtual_Drive() {
 }
 
 
-bool Virtual_Drive::FileOpen(DOS_File * * file,const char * name,Bit32u flags) {
+bool Virtual_Drive::FileOpen(DOS_File * * file,const char * name,uint32_t flags) {
 /* Scan through the internal list of files */
     const VFILE_Block* cur_file = first_file;
 	while (cur_file) {
@@ -291,7 +291,7 @@ bool Virtual_Drive::FileOpen(DOS_File * * file,const char * name,Bit32u flags) {
 	return false;
 }
 
-bool Virtual_Drive::FileCreate(DOS_File * * file,const char * name,Bit16u attributes) {
+bool Virtual_Drive::FileCreate(DOS_File * * file,const char * name,uint16_t attributes) {
     (void)file;//UNUSED
     (void)name;//UNUSED
     (void)attributes;//UNUSED
@@ -355,7 +355,7 @@ bool Virtual_Drive::FindFirst(const char * _dir,DOS_DTA & dta,bool fcb_findfirst
 		search_file=first_file;
 	else
 		lfn_search[lfn_filefind_handle]=first_file;
-	Bit8u attr;char pattern[CROSS_LEN];
+	uint8_t attr;char pattern[CROSS_LEN];
     dta.GetSearchParams(attr,pattern,uselfn);
 	if (attr == DOS_ATTR_VOLUME) {
 		dta.SetResult(GetLabel(),GetLabel(),0,0,0,DOS_ATTR_VOLUME);
@@ -370,7 +370,7 @@ bool Virtual_Drive::FindFirst(const char * _dir,DOS_DTA & dta,bool fcb_findfirst
 }
 
 bool Virtual_Drive::FindNext(DOS_DTA & dta) {
-	Bit8u attr;char pattern[CROSS_LEN];
+	uint8_t attr;char pattern[CROSS_LEN];
 	dta.GetSearchParams(attr,pattern,uselfn);
 	if (lfn_filefind_handle>=LFN_FILEFIND_MAX)
 		while (search_file) {
@@ -394,13 +394,13 @@ bool Virtual_Drive::FindNext(DOS_DTA & dta) {
 	return false;
 }
 
-bool Virtual_Drive::SetFileAttr(const char * name,Bit16u attr) {
+bool Virtual_Drive::SetFileAttr(const char * name,uint16_t attr) {
     (void)name;
     (void)attr;
 	return false;
 }
 
-bool Virtual_Drive::GetFileAttr(const char * name,Bit16u * attr) {
+bool Virtual_Drive::GetFileAttr(const char * name,uint16_t * attr) {
     const VFILE_Block* cur_file = first_file;
 	while (cur_file) {
 		if (strcasecmp(name,cur_file->name)==0||(uselfn&&strcasecmp(name,cur_file->lname)==0)) { 
@@ -444,7 +444,7 @@ bool Virtual_Drive::Rename(const char * oldname,const char * newname) {
 	return false;
 }
 
-bool Virtual_Drive::AllocationInfo(Bit16u * _bytes_sector,Bit8u * _sectors_cluster,Bit16u * _total_clusters,Bit16u * _free_clusters) {
+bool Virtual_Drive::AllocationInfo(uint16_t * _bytes_sector,uint8_t * _sectors_cluster,uint16_t * _total_clusters,uint16_t * _free_clusters) {
 	*_bytes_sector=512;
 	*_sectors_cluster=32;
 	*_total_clusters=32765;	// total size is always 500 mb
@@ -452,7 +452,7 @@ bool Virtual_Drive::AllocationInfo(Bit16u * _bytes_sector,Bit8u * _sectors_clust
 	return true;
 }
 
-Bit8u Virtual_Drive::GetMediaByte(void) {
+uint8_t Virtual_Drive::GetMediaByte(void) {
 	return 0xF8;
 }
 

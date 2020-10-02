@@ -23,55 +23,55 @@
 
 typedef union {
 
-	Bit64u q;
+	uint64_t q;
 
 #ifndef WORDS_BIGENDIAN
 	struct {
-		Bit32u d0,d1;
+		uint32_t d0,d1;
 	} ud;
 
 	struct {
-		Bit32s d0,d1;
+		int32_t d0,d1;
 	} sd;
 
 	struct {
-		Bit16u w0,w1,w2,w3;
+		uint16_t w0,w1,w2,w3;
 	} uw;
 
 	struct {
-		Bit16s w0,w1,w2,w3;
+		int16_t w0,w1,w2,w3;
 	} sw;
 
 	struct {
-		Bit8u b0,b1,b2,b3,b4,b5,b6,b7;
+		uint8_t b0,b1,b2,b3,b4,b5,b6,b7;
 	} ub;
 
 	struct {
-		Bit8s b0,b1,b2,b3,b4,b5,b6,b7;
+		int8_t b0,b1,b2,b3,b4,b5,b6,b7;
 	} sb;
 #else
 	struct {
-		Bit32u d1,d0;
+		uint32_t d1,d0;
 	} ud;
 
 	struct {
-		Bit32s d1,d0;
+		int32_t d1,d0;
 	} sd;
 
 	struct {
-		Bit16u w3,w2,w1,w0;
+		uint16_t w3,w2,w1,w0;
 	} uw;
 
 	struct {
-		Bit16u w3,w2,w1,w0;
+		uint16_t w3,w2,w1,w0;
 	} sw;
 
 	struct {
-		Bit8u b7,b6,b5,b4,b3,b2,b1,b0;
+		uint8_t b7,b6,b5,b4,b3,b2,b1,b0;
 	} ub;
 
 	struct {
-		Bit8u b7,b6,b5,b4,b3,b2,b1,b0;
+		uint8_t b7,b6,b5,b4,b3,b2,b1,b0;
 	} sb;
 #endif
 
@@ -81,10 +81,10 @@ extern MMX_reg * reg_mmx[8];
 extern MMX_reg * lookupRMregMM[256];
 
 
-Bit8s  SaturateWordSToByteS(Bit16s value);
-Bit16s SaturateDwordSToWordS(Bit32s value);
-Bit8u  SaturateWordSToByteU(Bit16s value);
-Bit16u SaturateDwordSToWordU(Bit32s value);
+int8_t  SaturateWordSToByteS(int16_t value);
+int16_t SaturateDwordSToWordS(int32_t value);
+uint8_t  SaturateWordSToByteU(int16_t value);
+uint16_t SaturateDwordSToWordU(int32_t value);
 
 void   setFPUTagEmpty();
 

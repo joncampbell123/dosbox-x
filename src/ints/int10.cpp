@@ -66,7 +66,7 @@ Bitu INT10_Handler(void) {
 		break;
 	case 0x05:								/* Set Active Page */
 		if ((reg_al & 0x80) && IS_TANDY_ARCH) {
-			Bit8u crtcpu=real_readb(BIOSMEM_SEG, BIOSMEM_CRTCPU_PAGE);		
+			uint8_t crtcpu=real_readb(BIOSMEM_SEG, BIOSMEM_CRTCPU_PAGE);		
 			switch (reg_al) {
 			case 0x80:
 				reg_bh=crtcpu & 7;
@@ -93,10 +93,10 @@ Bitu INT10_Handler(void) {
 		else INT10_SetActivePage(reg_al);
 		break;	
 	case 0x06:								/* Scroll Up */
-		INT10_ScrollWindow(reg_ch,reg_cl,reg_dh,reg_dl,-(Bit8s)reg_al,reg_bh,0xFF);
+		INT10_ScrollWindow(reg_ch,reg_cl,reg_dh,reg_dl,-(int8_t)reg_al,reg_bh,0xFF);
 		break;
 	case 0x07:								/* Scroll Down */
-		INT10_ScrollWindow(reg_ch,reg_cl,reg_dh,reg_dl,(Bit8s)reg_al,reg_bh,0xFF);
+		INT10_ScrollWindow(reg_ch,reg_cl,reg_dh,reg_dl,(int8_t)reg_al,reg_bh,0xFF);
 		break;
 	case 0x08:								/* Read character & attribute at cursor */
 		INT10_ReadCharAttr(&reg_ax,reg_bh);
@@ -132,7 +132,7 @@ Bitu INT10_Handler(void) {
 	case 0x0F:								/* Get videomode */
 		reg_bh=real_readb(BIOSMEM_SEG,BIOSMEM_CURRENT_PAGE);
 		reg_al=real_readb(BIOSMEM_SEG,BIOSMEM_CURRENT_MODE)|(real_readb(BIOSMEM_SEG,BIOSMEM_VIDEO_CTL)&0x80);
-		reg_ah=(Bit8u)real_readw(BIOSMEM_SEG,BIOSMEM_NB_COLS);
+		reg_ah=(uint8_t)real_readw(BIOSMEM_SEG,BIOSMEM_NB_COLS);
 		break;					
 	case 0x10:								/* Palette functions */
         if (machine==MCH_MCGA) {
@@ -393,8 +393,8 @@ graphics_chars:
 						break;
 					}
 				}
-				Bit8u modeset_ctl = real_readb(BIOSMEM_SEG,BIOSMEM_MODESET_CTL);
-				Bit8u video_switches = real_readb(BIOSMEM_SEG,BIOSMEM_SWITCHES)&0xf0;
+				uint8_t modeset_ctl = real_readb(BIOSMEM_SEG,BIOSMEM_MODESET_CTL);
+				uint8_t video_switches = real_readb(BIOSMEM_SEG,BIOSMEM_SWITCHES)&0xf0;
 				switch(reg_al) {
 				case 0: // 200
 					modeset_ctl &= 0xef;
@@ -428,7 +428,7 @@ graphics_chars:
 					reg_al=0;		//invalid subfunction
 					break;
 				}
-				Bit8u temp = real_readb(BIOSMEM_SEG,BIOSMEM_MODESET_CTL) & 0xf7;
+				uint8_t temp = real_readb(BIOSMEM_SEG,BIOSMEM_MODESET_CTL) & 0xf7;
 				if (reg_al&1) temp|=8;		// enable if al=0
 				real_writeb(BIOSMEM_SEG,BIOSMEM_MODESET_CTL,temp);
 				reg_al=0x12;
@@ -449,7 +449,7 @@ graphics_chars:
 					reg_al=0;
 					break;
 				}
-				Bit8u temp = real_readb(BIOSMEM_SEG,BIOSMEM_MODESET_CTL) & 0xfd;
+				uint8_t temp = real_readb(BIOSMEM_SEG,BIOSMEM_MODESET_CTL) & 0xfd;
 				if (!(reg_al&1)) temp|=2;		// enable if al=0
 				real_writeb(BIOSMEM_SEG,BIOSMEM_MODESET_CTL,temp);
 				reg_al=0x12;
@@ -464,7 +464,7 @@ graphics_chars:
 					reg_al=0;
 					break;
 				}
-				Bit8u temp = real_readb(BIOSMEM_SEG,BIOSMEM_VIDEO_CTL) & 0xfe;
+				uint8_t temp = real_readb(BIOSMEM_SEG,BIOSMEM_VIDEO_CTL) & 0xfe;
 				real_writeb(BIOSMEM_SEG,BIOSMEM_VIDEO_CTL,temp|reg_al);
 				reg_al=0x12;
 				break;	
@@ -481,7 +481,7 @@ graphics_chars:
 				break;
 			}
 			IO_Write(0x3c4,0x1);
-			Bit8u clocking = IO_Read(0x3c5);
+			uint8_t clocking = IO_Read(0x3c5);
 			
 			if (reg_al==0) clocking &= ~0x20;
 			else clocking |= 0x20;
@@ -557,7 +557,7 @@ CX	640x480	800x600	  1024x768/1280x1024
 				Bitu ret=INT10_VideoState_GetSize(reg_cx);
 				if (ret) {
 					reg_al=0x1c;
-					reg_bx=(Bit16u)ret;
+					reg_bx=(uint16_t)ret;
 				} else reg_al=0;
 				}
 				break;
@@ -604,7 +604,7 @@ CX	640x480	800x600	  1024x768/1280x1024
 					Bitu ret=INT10_VideoState_GetSize(reg_cx);
 					if (ret) {
 						reg_ah=0;
-						reg_bx=(Bit16u)ret;
+						reg_bx=(uint16_t)ret;
 					} else reg_ah=1;
 					}
 					break;
@@ -726,19 +726,19 @@ CX	640x480	800x600	  1024x768/1280x1024
 				break;
 			case 0x01:						/* Get code for "set window" */
 				SegSet16(es,RealSeg(int10.rom.pmode_interface));
-				reg_di=RealOff(int10.rom.pmode_interface)+(Bit32u)int10.rom.pmode_interface_window;
+				reg_di=RealOff(int10.rom.pmode_interface)+(uint32_t)int10.rom.pmode_interface_window;
 				reg_cx=int10.rom.pmode_interface_start-int10.rom.pmode_interface_window;
 				reg_ax=0x004f;
 				break;
 			case 0x02:						/* Get code for "set display start" */
 				SegSet16(es,RealSeg(int10.rom.pmode_interface));
-				reg_di=RealOff(int10.rom.pmode_interface)+(Bit32u)int10.rom.pmode_interface_start;
+				reg_di=RealOff(int10.rom.pmode_interface)+(uint32_t)int10.rom.pmode_interface_start;
 				reg_cx=int10.rom.pmode_interface_palette-int10.rom.pmode_interface_start;
 				reg_ax=0x004f;
 				break;
 			case 0x03:						/* Get code for "set palette" */
 				SegSet16(es,RealSeg(int10.rom.pmode_interface));
-				reg_di=RealOff(int10.rom.pmode_interface)+(Bit32u)int10.rom.pmode_interface_palette;
+				reg_di=RealOff(int10.rom.pmode_interface)+(uint32_t)int10.rom.pmode_interface_palette;
 				reg_cx=int10.rom.pmode_interface_size-int10.rom.pmode_interface_palette;
 				reg_ax=0x004f;
 				break;
@@ -825,7 +825,7 @@ static void INT10_InitVGA(void) {
 static void SetupTandyBios(void) {
 	if (machine==MCH_TANDY) {
 		unsigned int i;
-		static Bit8u TandyConfig[130]= {
+		static uint8_t TandyConfig[130]= {
 		0x21, 0x42, 0x49, 0x4f, 0x53, 0x20, 0x52, 0x4f, 0x4d, 0x20, 0x76, 0x65, 0x72,
 		0x73, 0x69, 0x6f, 0x6e, 0x20, 0x30, 0x32, 0x2e, 0x30, 0x30, 0x2e, 0x30, 0x30,
 		0x0d, 0x0a, 0x43, 0x6f, 0x6d, 0x70, 0x61, 0x74, 0x69, 0x62, 0x69, 0x6c, 0x69,
@@ -1090,7 +1090,7 @@ fail:
     return false;
 }
 
-extern Bit8u int10_font_16[256 * 16];
+extern uint8_t int10_font_16[256 * 16];
 
 extern VideoModeBlock PC98_Mode;
 

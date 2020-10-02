@@ -38,33 +38,33 @@ private:
 
 	int processTimerIncrement;
 	int counter;
-	Bit32u timeElapsed;
+	uint32_t timeElapsed;
 
 	int phase;
-	Bit32u basePitch;
-	Bit32s targetPitchOffsetWithoutLFO;
-	Bit32s currentPitchOffset;
+	uint32_t basePitch;
+	int32_t targetPitchOffsetWithoutLFO;
+	int32_t currentPitchOffset;
 
-	Bit16s lfoPitchOffset;
+	int16_t lfoPitchOffset;
 	// In range -12 - 36
-	Bit8s timeKeyfollowSubtraction;
+	int8_t timeKeyfollowSubtraction;
 
-	Bit16s pitchOffsetChangePerBigTick;
-	Bit16u targetPitchOffsetReachedBigTick;
+	int16_t pitchOffsetChangePerBigTick;
+	uint16_t targetPitchOffsetReachedBigTick;
 	unsigned int shifts;
 
-	Bit16u pitch;
+	uint16_t pitch;
 
 	void updatePitch();
-	void setupPitchChange(int targetPitchOffset, Bit8u changeDuration);
+	void setupPitchChange(int targetPitchOffset, uint8_t changeDuration);
 	void targetPitchOffsetReached();
 	void nextPhase();
 	void process();
 public:
 	TVP(const Partial *partial);
 	void reset(const Part *part, const TimbreParam::PartialParam *partialParam);
-	Bit32u getBasePitch() const;
-	Bit16u nextPitch();
+	uint32_t getBasePitch() const;
+	uint16_t nextPitch();
 	void startDecay();
 }; // class TVP
 

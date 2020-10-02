@@ -43,12 +43,12 @@ private:
 	const int partialIndex; // Index of this Partial in the global partial table
 	// Number of the sample currently being rendered by produceOutput(), or 0 if no run is in progress
 	// This is only kept available for debugging purposes.
-	Bit32u sampleNum;
+	uint32_t sampleNum;
 
 	// Actually, LA-32 receives only 3 bits as a pan setting, but we abuse these to emulate
 	// the inverted partial mixing as well. Also we double the values (making them correspond
 	// to the panpot range) to enable NicePanning mode, with respect to MoK.
-	Bit32s leftPanValue, rightPanValue;
+	int32_t leftPanValue, rightPanValue;
 
 	int ownerPart; // -1 if unassigned
 	int mixType;
@@ -80,11 +80,11 @@ private:
 	const PatchCache *patchCache;
 	PatchCache cachebackup;
 
-	Bit32u getAmpValue();
-	Bit32u getCutoffValue();
+	uint32_t getAmpValue();
+	uint32_t getCutoffValue();
 
 	template <class Sample, class LA32PairImpl>
-	bool doProduceOutput(Sample *leftBuf, Sample *rightBuf, Bit32u length, LA32PairImpl *la32PairImpl);
+	bool doProduceOutput(Sample *leftBuf, Sample *rightBuf, uint32_t length, LA32PairImpl *la32PairImpl);
 	bool canProduceOutput();
 	template <class LA32PairImpl>
 	bool generateNextSample(LA32PairImpl *la32PairImpl);
@@ -98,7 +98,7 @@ public:
 	~Partial();
 
 	int debugGetPartialNum() const;
-	Bit32u debugGetSampleNum() const;
+	uint32_t debugGetSampleNum() const;
 
 	int getOwnerPart() const;
 	const Poly *getPoly() const;
@@ -122,8 +122,8 @@ public:
 	// Returns true only if data written to buffer
 	// These functions produce processed stereo samples
 	// made from combining this single partial with its pair, if it has one.
-	bool produceOutput(IntSample *leftBuf, IntSample *rightBuf, Bit32u length);
-	bool produceOutput(FloatSample *leftBuf, FloatSample *rightBuf, Bit32u length);
+	bool produceOutput(IntSample *leftBuf, IntSample *rightBuf, uint32_t length);
+	bool produceOutput(FloatSample *leftBuf, FloatSample *rightBuf, uint32_t length);
 }; // class Partial
 
 } // namespace MT32Emu

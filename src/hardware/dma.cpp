@@ -43,9 +43,9 @@ bool enable_dma_extra_page_registers = true;
 bool dma_page_register_writeonly = false;
 
 #define EMM_PAGEFRAME4K	((0xE000*16)/4096)
-Bit32u ems_board_mapping[LINK_START];
+uint32_t ems_board_mapping[LINK_START];
 
-static Bit32u dma_wrapping = 0xffff;
+static uint32_t dma_wrapping = 0xffff;
 
 bool enable_1st_dma = true;
 bool enable_2nd_dma = true;
@@ -68,13 +68,13 @@ enum {
 /* DMA block anti-copypasta common code */
 template <const unsigned int dma_mode> static inline void DMA_BlockReadCommonSetup(
     /*output*/PhysPt &o_xfer,unsigned int &o_size,
-     /*input*/PhysPt const spage,PhysPt offset,Bitu size,const Bit8u dma16,const Bit32u DMA16_ADDRMASK) {
+     /*input*/PhysPt const spage,PhysPt offset,Bitu size,const uint8_t dma16,const uint32_t DMA16_ADDRMASK) {
     assert(size != 0u);
 
 	const Bitu highpart_addr_page = spage>>12;
 	size <<= dma16;
 	offset <<= dma16;
-	const Bit32u dma_wrap = (((0xfffful << dma16) + dma16)&DMA16_ADDRMASK) | dma_wrapping;
+	const uint32_t dma_wrap = (((0xfffful << dma16) + dma16)&DMA16_ADDRMASK) | dma_wrapping;
     offset &= dma_wrap;
     Bitu page = highpart_addr_page+(offset >> 12); /* page */
     offset &= 0xFFFu; /* 4KB offset in page */
@@ -95,8 +95,8 @@ template <const unsigned int dma_mode> static inline void DMA_BlockReadCommonSet
 /* read a block from physical memory.
  * This code assumes new DMA read code that transfers 4KB at a time (4KB byte or 2KB word) therefore it is safe
  * to compute the page and offset once and transfer in a tight loop. */
-template <const unsigned int dma_mode> static void DMA_BlockRead4KB(const PhysPt spage,const PhysPt offset,void * data,const Bitu size,const Bit8u dma16,const Bit32u DMA16_ADDRMASK) {
-	Bit8u *write = (Bit8u*)data;
+template <const unsigned int dma_mode> static void DMA_BlockRead4KB(const PhysPt spage,const PhysPt offset,void * data,const Bitu size,const uint8_t dma16,const uint32_t DMA16_ADDRMASK) {
+	uint8_t *write = (uint8_t*)data;
     unsigned int o_size;
     PhysPt xfer;
 
@@ -113,8 +113,8 @@ template <const unsigned int dma_mode> static void DMA_BlockRead4KB(const PhysPt
 
 /* write a block into physical memory.
  * assume caller has already clipped the transfer to stay within a 4KB page. */
-template <const unsigned int dma_mode> static void DMA_BlockWrite4KB(PhysPt spage,PhysPt offset,const void * data,Bitu size,Bit8u dma16,const Bit32u DMA16_ADDRMASK) {
-    const Bit8u *read = (const Bit8u*)data;
+template <const unsigned int dma_mode> static void DMA_BlockWrite4KB(PhysPt spage,PhysPt offset,const void * data,Bitu size,uint8_t dma16,const uint32_t DMA16_ADDRMASK) {
+    const uint8_t *read = (const uint8_t*)data;
     unsigned int o_size;
     PhysPt xfer;
 
@@ -129,7 +129,7 @@ template <const unsigned int dma_mode> static void DMA_BlockWrite4KB(PhysPt spag
     }
 }
 
-DmaChannel * GetDMAChannel(Bit8u chan) {
+DmaChannel * GetDMAChannel(uint8_t chan) {
 	if (chan<4) {
 		/* channel on first DMA controller */
 		if (DmaControllers[0]) return DmaControllers[0]->GetChannel(chan);
@@ -154,7 +154,7 @@ bool SecondDMAControllerAvailable(void) {
 	else return false;
 }
 
-static Bit8u pc98_port_29h = 0;
+static uint8_t pc98_port_29h = 0;
 
 static void DMA_Write_Port(Bitu port,Bitu val,Bitu /*iolen*/) {
     if (IS_PC98_ARCH) {
@@ -171,7 +171,7 @@ static void DMA_Write_Port(Bitu port,Bitu val,Bitu /*iolen*/) {
             }
         }
         else if (port == 0x29) { /* auto bank increment */
-            pc98_port_29h = (Bit8u)val;
+            pc98_port_29h = (uint8_t)val;
             DmaControllers[0]->GetChannel(val & 3)->page_bank_increment_wraparound =
                 ((val & 0x08) ? 0xF0 : 0x00) +
                 ((val & 0x04) ? 0x0F : 0x00);
@@ -197,14 +197,14 @@ static void DMA_Write_Port(Bitu port,Bitu val,Bitu /*iolen*/) {
 		dma_extra_page_registers[port&0xF] = (unsigned char)val;
 		switch (port) {
 			/* write DMA page register */
-			case 0x81:GetDMAChannel(2)->SetPage((Bit8u)val);break;
-			case 0x82:GetDMAChannel(3)->SetPage((Bit8u)val);break;
-			case 0x83:GetDMAChannel(1)->SetPage((Bit8u)val);break;
-			case 0x87:GetDMAChannel(0)->SetPage((Bit8u)val);break;
-			case 0x89:GetDMAChannel(6)->SetPage((Bit8u)val);break;
-			case 0x8a:GetDMAChannel(7)->SetPage((Bit8u)val);break;
-			case 0x8b:GetDMAChannel(5)->SetPage((Bit8u)val);break;
-			case 0x8f:GetDMAChannel(4)->SetPage((Bit8u)val);break;
+			case 0x81:GetDMAChannel(2)->SetPage((uint8_t)val);break;
+			case 0x82:GetDMAChannel(3)->SetPage((uint8_t)val);break;
+			case 0x83:GetDMAChannel(1)->SetPage((uint8_t)val);break;
+			case 0x87:GetDMAChannel(0)->SetPage((uint8_t)val);break;
+			case 0x89:GetDMAChannel(6)->SetPage((uint8_t)val);break;
+			case 0x8a:GetDMAChannel(7)->SetPage((uint8_t)val);break;
+			case 0x8b:GetDMAChannel(5)->SetPage((uint8_t)val);break;
+			case 0x8f:GetDMAChannel(4)->SetPage((uint8_t)val);break;
 			default:
 				  if (!enable_dma_extra_page_registers)
 					  LOG(LOG_DMACONTROL,LOG_NORMAL)("Trying to write undefined DMA page register %x",(int)port);
@@ -275,27 +275,27 @@ void DmaController::WriteControllerReg(Bitu reg,Bitu val,Bitu /*len*/) {
 	/* set base address of DMA transfer (1st byte low part, 2nd byte high part) */
 	case 0x0:case 0x2:case 0x4:case 0x6:
 		UpdateEMSMapping();
-		chan=GetChannel((Bit8u)(reg >> 1));
+		chan=GetChannel((uint8_t)(reg >> 1));
 		flipflop=!flipflop;
 		if (flipflop) {
-			chan->baseaddr=(Bit16u)((chan->baseaddr&0xff00)|val);
-			chan->curraddr=(Bit32u)((chan->curraddr&0xff00)|val);
+			chan->baseaddr=(uint16_t)((chan->baseaddr&0xff00)|val);
+			chan->curraddr=(uint32_t)((chan->curraddr&0xff00)|val);
 		} else {
-			chan->baseaddr=(Bit16u)((chan->baseaddr&0x00ff)|(val << 8));
-			chan->curraddr=(Bit32u)((chan->curraddr&0x00ff)|(val << 8));
+			chan->baseaddr=(uint16_t)((chan->baseaddr&0x00ff)|(val << 8));
+			chan->curraddr=(uint32_t)((chan->curraddr&0x00ff)|(val << 8));
 		}
 		break;
 	/* set DMA transfer count (1st byte low part, 2nd byte high part) */
 	case 0x1:case 0x3:case 0x5:case 0x7:
 		UpdateEMSMapping();
-		chan=GetChannel((Bit8u)(reg >> 1));
+		chan=GetChannel((uint8_t)(reg >> 1));
 		flipflop=!flipflop;
 		if (flipflop) {
-			chan->basecnt=(Bit16u)((chan->basecnt&0xff00)|val);
-			chan->currcnt=(Bit16u)((chan->currcnt&0xff00)|val);
+			chan->basecnt=(uint16_t)((chan->basecnt&0xff00)|val);
+			chan->currcnt=(uint16_t)((chan->currcnt&0xff00)|val);
 		} else {
-			chan->basecnt=(Bit16u)((chan->basecnt&0x00ff)|(val << 8));
-			chan->currcnt=(Bit16u)((chan->currcnt&0x00ff)|(val << 8));
+			chan->basecnt=(uint16_t)((chan->basecnt&0x00ff)|(val << 8));
+			chan->currcnt=(uint16_t)((chan->currcnt&0x00ff)|(val << 8));
 		}
 		break;
 	case 0x8:		/* Comand reg not used */
@@ -320,7 +320,7 @@ void DmaController::WriteControllerReg(Bitu reg,Bitu val,Bitu /*len*/) {
 		flipflop=false;
 		break;
 	case 0xd:		/* Master Clear/Reset */
-		for (Bit8u ct=0;ct<4;ct++) {
+		for (uint8_t ct=0;ct<4;ct++) {
 			chan=GetChannel(ct);
 			chan->SetMask(true);
 			chan->tcount=false;
@@ -329,14 +329,14 @@ void DmaController::WriteControllerReg(Bitu reg,Bitu val,Bitu /*len*/) {
 		break;
 	case 0xe:		/* Clear Mask register */		
 		UpdateEMSMapping();
-		for (Bit8u ct=0;ct<4;ct++) {
+		for (uint8_t ct=0;ct<4;ct++) {
 			chan=GetChannel(ct);
 			chan->SetMask(false);
 		}
 		break;
 	case 0xf:		/* Multiple Mask register */
 		UpdateEMSMapping();
-		for (Bit8u ct=0;ct<4;ct++) {
+		for (uint8_t ct=0;ct<4;ct++) {
 			chan=GetChannel(ct);
 			chan->SetMask(val & 1);
 			val>>=1;
@@ -350,7 +350,7 @@ Bitu DmaController::ReadControllerReg(Bitu reg,Bitu /*len*/) {
 	switch (reg) {
 	/* read base address of DMA transfer (1st byte low part, 2nd byte high part) */
 	case 0x0:case 0x2:case 0x4:case 0x6:
-		chan=GetChannel((Bit8u)(reg >> 1));
+		chan=GetChannel((uint8_t)(reg >> 1));
 		flipflop=!flipflop;
 		if (flipflop) {
 			return chan->curraddr & 0xff;
@@ -359,7 +359,7 @@ Bitu DmaController::ReadControllerReg(Bitu reg,Bitu /*len*/) {
 		}
 	/* read DMA transfer count (1st byte low part, 2nd byte high part) */
 	case 0x1:case 0x3:case 0x5:case 0x7:
-		chan=GetChannel((Bit8u)(reg >> 1));
+		chan=GetChannel((uint8_t)(reg >> 1));
 		flipflop=!flipflop;
 		if (flipflop) {
 			return chan->currcnt & 0xff;
@@ -368,7 +368,7 @@ Bitu DmaController::ReadControllerReg(Bitu reg,Bitu /*len*/) {
 		}
 	case 0x8:		/* Status Register */
 		ret=0;
-		for (Bit8u ct=0;ct<4;ct++) {
+		for (uint8_t ct=0;ct<4;ct++) {
 			chan=GetChannel(ct);
 			if (chan->tcount) ret |= (Bitu)1U << ct;
 			chan->tcount=false;
@@ -385,7 +385,7 @@ Bitu DmaController::ReadControllerReg(Bitu reg,Bitu /*len*/) {
 	return 0xffffffff;
 }
 
-DmaChannel::DmaChannel(Bit8u num, bool dma16) {
+DmaChannel::DmaChannel(uint8_t num, bool dma16) {
 	masked = true;
 	callback = NULL;
 	channum = num;
@@ -411,7 +411,7 @@ DmaChannel::DmaChannel(Bit8u num, bool dma16) {
 	request = false;
 }
 
-Bitu DmaChannel::Read(Bitu want, Bit8u * buffer) {
+Bitu DmaChannel::Read(Bitu want, uint8_t * buffer) {
 	Bitu done=0;
 	curraddr &= dma_wrapping;
 
@@ -435,9 +435,9 @@ Bitu DmaChannel::Read(Bitu want, Bit8u * buffer) {
      *          cannot accidentally cause buffer overrun issues that cause
      *          mystery crashes. */
 
-    const Bit32u addrmask = 0xFFFu >> DMA16; /* 16-bit ISA style DMA needs 0x7FFF, else 0xFFFF. Use 0x7FF/0xFFF (4KB) for simplicity reasons. */
+    const uint32_t addrmask = 0xFFFu >> DMA16; /* 16-bit ISA style DMA needs 0x7FFF, else 0xFFFF. Use 0x7FF/0xFFF (4KB) for simplicity reasons. */
     while (want > 0) {
-        const Bit32u addr =
+        const uint32_t addr =
             curraddr & addrmask;
         const Bitu wrapdo =
             increment ?
@@ -451,19 +451,19 @@ Bitu DmaChannel::Read(Bitu want, Bit8u * buffer) {
         assert(cando <= (addrmask + 1u));
 
         if (increment) {
-            assert((curraddr & (~addrmask)) == ((curraddr + ((Bit32u)cando - 1u)) & (~addrmask)));//check our work, must not cross a 4KB boundary
+            assert((curraddr & (~addrmask)) == ((curraddr + ((uint32_t)cando - 1u)) & (~addrmask)));//check our work, must not cross a 4KB boundary
             DMA_BlockRead4KB<DMA_INCREMENT>(pagebase,curraddr,buffer,cando,DMA16,DMA16_ADDRMASK);
-            curraddr += (Bit32u)cando;
+            curraddr += (uint32_t)cando;
         }
         else {
-            assert((curraddr & (~addrmask)) == ((curraddr - ((Bit32u)cando - 1u)) & (~addrmask)));//check our work, must not cross a 4KB boundary
+            assert((curraddr & (~addrmask)) == ((curraddr - ((uint32_t)cando - 1u)) & (~addrmask)));//check our work, must not cross a 4KB boundary
             DMA_BlockRead4KB<DMA_DECREMENT>(pagebase,curraddr,buffer,cando,DMA16,DMA16_ADDRMASK);
-            curraddr -= (Bit32u)cando;
+            curraddr -= (uint32_t)cando;
         }
 
         curraddr &= dma_wrapping;
         buffer += cando << DMA16;
-        currcnt -= (Bit16u)cando;
+        currcnt -= (uint16_t)cando;
         want -= cando;
         done += cando;
 
@@ -497,7 +497,7 @@ Bitu DmaChannel::Read(Bitu want, Bit8u * buffer) {
 	return done;
 }
 
-Bitu DmaChannel::Write(Bitu want, Bit8u * buffer) {
+Bitu DmaChannel::Write(Bitu want, uint8_t * buffer) {
 	Bitu done=0;
 	curraddr &= dma_wrapping;
 
@@ -521,9 +521,9 @@ Bitu DmaChannel::Write(Bitu want, Bit8u * buffer) {
      *          cannot accidentally cause buffer overrun issues that cause
      *          mystery crashes. */
 
-    const Bit32u addrmask = 0xFFFu >> DMA16; /* 16-bit ISA style DMA needs 0x7FFF, else 0xFFFF. Use 0x7FF/0xFFF (4KB) for simplicity reasons. */
+    const uint32_t addrmask = 0xFFFu >> DMA16; /* 16-bit ISA style DMA needs 0x7FFF, else 0xFFFF. Use 0x7FF/0xFFF (4KB) for simplicity reasons. */
     while (want > 0) {
-        const Bit32u addr =
+        const uint32_t addr =
             curraddr & addrmask;
         const Bitu wrapdo =
             increment ?
@@ -537,19 +537,19 @@ Bitu DmaChannel::Write(Bitu want, Bit8u * buffer) {
         assert(cando <= (addrmask + 1u));
 
         if (increment) {
-            assert((curraddr & (~addrmask)) == ((curraddr + ((Bit32u)cando - 1u)) & (~addrmask)));//check our work, must not cross a 4KB boundary
+            assert((curraddr & (~addrmask)) == ((curraddr + ((uint32_t)cando - 1u)) & (~addrmask)));//check our work, must not cross a 4KB boundary
             DMA_BlockWrite4KB<DMA_INCREMENT>(pagebase,curraddr,buffer,cando,DMA16,DMA16_ADDRMASK);
-            curraddr += (Bit32u)cando;
+            curraddr += (uint32_t)cando;
         }
         else {
-            assert((curraddr & (~addrmask)) == ((curraddr - ((Bit32u)cando - 1u)) & (~addrmask)));//check our work, must not cross a 4KB boundary
+            assert((curraddr & (~addrmask)) == ((curraddr - ((uint32_t)cando - 1u)) & (~addrmask)));//check our work, must not cross a 4KB boundary
             DMA_BlockWrite4KB<DMA_DECREMENT>(pagebase,curraddr,buffer,cando,DMA16,DMA16_ADDRMASK);
-            curraddr -= (Bit32u)cando;
+            curraddr -= (uint32_t)cando;
         }
 
         curraddr &= dma_wrapping;
         buffer += cando << DMA16;
-        currcnt -= (Bit16u)cando;
+        currcnt -= (uint16_t)cando;
         want -= cando;
         done += cando;
 
@@ -583,7 +583,7 @@ Bitu DmaChannel::Write(Bitu want, Bit8u * buffer) {
 	return done;
 }
 
-void DMA_SetWrapping(Bit32u wrap) {
+void DMA_SetWrapping(uint32_t wrap) {
 	dma_wrapping = wrap;
 }
 
@@ -603,7 +603,7 @@ void DMA_Destroy(Section* /*sec*/) {
 }
 
 void DMA_Reset(Section* /*sec*/) {
-	Bit16u i;
+	uint16_t i;
 
 	DMA_FreeControllers();
 
@@ -722,9 +722,9 @@ const void *dma_state_callback_table[] = {
 };
 
 
-Bit8u POD_State_Find_DMA_Callback( Bitu addr )
+uint8_t POD_State_Find_DMA_Callback( Bitu addr )
 {
-	Bit8u size;
+	uint8_t size;
 
 	size = sizeof(dma_state_callback_table) / sizeof(void *);
 	for( int lcv=0; lcv<size; lcv++ ) {
@@ -737,14 +737,14 @@ Bit8u POD_State_Find_DMA_Callback( Bitu addr )
 }
 
 
-Bitu POD_State_Index_DMA_Callback( Bit8u index )
+Bitu POD_State_Index_DMA_Callback( uint8_t index )
 {
 	return (Bitu) dma_state_callback_table[index];
 }
 
 void DmaChannel::SaveState( std::ostream& stream )
 {
-	Bit8u dma_callback;
+	uint8_t dma_callback;
 
 
 	dma_callback = POD_State_Find_DMA_Callback( (Bitu) (callback) );
@@ -779,7 +779,7 @@ void DmaChannel::SaveState( std::ostream& stream )
 
 void DmaChannel::LoadState( std::istream& stream )
 {
-	Bit8u dma_callback;
+	uint8_t dma_callback;
 
 
 	dma_callback = POD_State_Find_DMA_Callback( (Bitu) (callback) );

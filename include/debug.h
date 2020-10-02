@@ -19,9 +19,9 @@
 void DEBUG_SetupConsole(void);
 void DEBUG_DrawScreen(void);
 bool DEBUG_Breakpoint(void);
-bool DEBUG_IntBreakpoint(Bit8u intNum);
+bool DEBUG_IntBreakpoint(uint8_t intNum);
 void DEBUG_Enable(bool pressed);
-void DEBUG_CheckExecuteBreakpoint(Bit16u seg, Bit32u off);
+void DEBUG_CheckExecuteBreakpoint(uint16_t seg, uint32_t off);
 bool DEBUG_ExitLoop(void);
 void DEBUG_RefreshPage(char scroll);
 Bitu DEBUG_EnableDebugger(void);

@@ -172,11 +172,11 @@ public:
 		CloseHandle (m_event);
 	};
 
-	void PlayMsg(Bit8u * msg) {
-		midiOutShortMsg(m_out, *(Bit32u*)msg);
+	void PlayMsg(uint8_t * msg) {
+		midiOutShortMsg(m_out, *(uint32_t*)msg);
 	};
 
-	void PlaySysex(Bit8u * sysex,Bitu len) {
+	void PlaySysex(uint8_t * sysex,Bitu len) {
 #if WIN32_MIDI_PORT_PROTECT
 		if( midi_dll_active == false ) {
 #endif
@@ -225,7 +225,7 @@ public:
 
 	void Reset()
 	{
-		Bit8u buf[64];
+		uint8_t buf[64];
 
 		// flush buffers
 		midiOutReset(m_out);
@@ -238,7 +238,7 @@ public:
 		buf[3] = 0x09;
 		buf[4] = 0x01;
 		buf[5] = 0xf7;
-		PlaySysex( (Bit8u *) buf, 6 );
+		PlaySysex( (uint8_t *) buf, 6 );
 
 
 		// GS1 reset
@@ -253,7 +253,7 @@ public:
 		buf[8] = 0x00;
 		buf[9] = 0x41;
 		buf[10] = 0xf7;
-		PlaySysex( (Bit8u *) buf, 11 );
+		PlaySysex( (uint8_t *) buf, 11 );
 	}
 };
 

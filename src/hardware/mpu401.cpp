@@ -29,7 +29,7 @@
 
 extern bool enable_slave_pic;
 
-void MIDI_RawOutByte(Bit8u data);
+void MIDI_RawOutByte(uint8_t data);
 bool MIDI_Available(void);
 
 static void MPU401_Event(Bitu);
@@ -65,12 +65,12 @@ static struct {
 	bool intelligent;
 	MpuMode mode;
 	Bitu irq;
-	Bit8u queue[MPU401_QUEUE];
+	uint8_t queue[MPU401_QUEUE];
 	Bitu queue_pos,queue_used;
 	struct track {
 		Bits counter;
-		Bit8u value[8],sys_val;
-		Bit8u vlength,length;
+		uint8_t value[8],sys_val;
+		uint8_t vlength,length;
 		MpuDataType type;
 	} playbuf[8],condbuf;
 	struct {
@@ -82,17 +82,17 @@ static struct {
 		bool eoi_scheduled;
 		Bits data_onoff;
 		Bitu command_byte,cmd_pending;
-		Bit8u tmask,cmask,amask;
-		Bit16u midi_mask;
-		Bit16u req_mask;
-		Bit8u channel,old_chan;
+		uint8_t tmask,cmask,amask;
+		uint16_t midi_mask;
+		uint16_t req_mask;
+		uint8_t channel,old_chan;
 	} state;
 	struct {
-		Bit8u timebase,old_timebase;
-		Bit8u tempo,old_tempo;
-		Bit8u tempo_rel,old_tempo_rel;
-		Bit8u tempo_grad;
-		Bit8u cth_rate,cth_counter;
+		uint8_t timebase,old_timebase;
+		uint8_t tempo,old_tempo;
+		uint8_t tempo_rel,old_tempo_rel;
+		uint8_t tempo_grad;
+		uint8_t cth_rate,cth_counter;
 		bool clock_to_host,cth_active;
 	} clock;
 } mpu;
@@ -101,7 +101,7 @@ int MPU401_GetIRQ() {
 	return (int)mpu.irq;
 }
 
-static void QueueByte(Bit8u data) {
+static void QueueByte(uint8_t data) {
 	if (mpu.state.block_ack) {mpu.state.block_ack=false;return;}
 	if (mpu.queue_used==0 && mpu.intelligent) {
 		mpu.state.irq_pending=true;
@@ -124,7 +124,7 @@ static void ClrQueue(void) {
 static Bitu MPU401_ReadStatus(Bitu port,Bitu iolen) {
     (void)iolen;//UNUSED
     (void)port;//UNUSED
-	Bit8u ret=0x3f;	/* Bits 6 and 7 clear */
+	uint8_t ret=0x3f;	/* Bits 6 and 7 clear */
 	if (mpu.state.cmd_pending) ret|=0x40;
 	if (!mpu.queue_used) ret|=0x80;
 	return ret;
@@ -154,7 +154,7 @@ static void MPU401_WriteCommand(Bitu port,Bitu val,Bitu iolen) {
 			case  0x4:	/* Stop */
 				PIC_RemoveEvents(MPU401_Event);
 				mpu.state.playing=false;
-				for (Bit8u i=0xb0;i<0xbf;i++) {	/* All notes off */
+				for (uint8_t i=0xb0;i<0xbf;i++) {	/* All notes off */
 					MIDI_RawOutByte(i);
 					MIDI_RawOutByte(0x7b);
 					MIDI_RawOutByte(0);
@@ -170,7 +170,7 @@ static void MPU401_WriteCommand(Bitu port,Bitu val,Bitu iolen) {
 		}
 	}
 	else if (val>=0xa0 && val<=0xa7) {	/* Request play counter */
-		if (mpu.state.cmask&(1<<(val&7))) QueueByte((Bit8u)mpu.playbuf[val&7].counter);
+		if (mpu.state.cmask&(1<<(val&7))) QueueByte((uint8_t)mpu.playbuf[val&7].counter);
 	}
 	else if (val>=0xd0 && val<=0xd7) {	/* Send data */
 		mpu.state.old_chan=mpu.state.channel;
@@ -247,7 +247,7 @@ static void MPU401_WriteCommand(Bitu port,Bitu val,Bitu iolen) {
 			break;
 		case 0xb9:	/* Clear play map */
 		case 0xb8:	/* Clear play counters */
-			for (Bit8u i=0xb0;i<0xbf;i++) {	/* All notes off */
+			for (uint8_t i=0xb0;i<0xbf;i++) {	/* All notes off */
 				MIDI_RawOutByte(i);
 				MIDI_RawOutByte(0x7b);
 				MIDI_RawOutByte(0);
@@ -286,7 +286,7 @@ static void MPU401_WriteCommand(Bitu port,Bitu val,Bitu iolen) {
 static Bitu MPU401_ReadData(Bitu port,Bitu iolen) {
     (void)iolen;//UNUSED
     (void)port;//UNUSED
-	Bit8u ret=MSG_MPU_ACK;
+	uint8_t ret=MSG_MPU_ACK;
 	if (mpu.queue_used) {
 		if (mpu.queue_pos>=MPU401_QUEUE) mpu.queue_pos-=MPU401_QUEUE;
 		ret=mpu.queue[mpu.queue_pos];
@@ -321,31 +321,31 @@ static Bitu MPU401_ReadData(Bitu port,Bitu iolen) {
 static void MPU401_WriteData(Bitu port,Bitu val,Bitu iolen) {
     (void)iolen;//UNUSED
     (void)port;//UNUSED
-	if (mpu.mode==M_UART) {MIDI_RawOutByte((Bit8u)val);return;}
+	if (mpu.mode==M_UART) {MIDI_RawOutByte((uint8_t)val);return;}
 	switch (mpu.state.command_byte) {	/* 0xe# command data */
 		case 0x00:
 			break;
 		case 0xe0:	/* Set tempo */
 			mpu.state.command_byte=0;
-			mpu.clock.tempo=(Bit8u)val;
+			mpu.clock.tempo=(uint8_t)val;
 			return;
 		case 0xe1:	/* Set relative tempo */
 			mpu.state.command_byte=0;
             mpu.clock.old_tempo_rel=mpu.clock.tempo_rel;
-            mpu.clock.tempo_rel=(Bit8u)val;
+            mpu.clock.tempo_rel=(uint8_t)val;
             if (val != 0x40) LOG(LOG_MISC,LOG_ERROR)("MPU-401:Relative tempo change value 0x%x (%.3f)",(unsigned int)val,(double)val / 0x40);
 			return;
 		case 0xe7:	/* Set internal clock to host interval */
 			mpu.state.command_byte=0;
-			mpu.clock.cth_rate=(Bit8u)(val>>2);
+			mpu.clock.cth_rate=(uint8_t)(val>>2);
 			return;
 		case 0xec:	/* Set active track mask */
 			mpu.state.command_byte=0;
-			mpu.state.tmask=(Bit8u)val;
+			mpu.state.tmask=(uint8_t)val;
 			return;
 		case 0xed: /* Set play counter mask */
 			mpu.state.command_byte=0;
-			mpu.state.cmask=(Bit8u)val;
+			mpu.state.cmask=(uint8_t)val;
 			return;
 		case 0xee: /* Set 1-8 MIDI channel mask */
 			mpu.state.command_byte=0;
@@ -355,7 +355,7 @@ static void MPU401_WriteData(Bitu port,Bitu val,Bitu iolen) {
 		case 0xef: /* Set 9-16 MIDI channel mask */
 			mpu.state.command_byte=0;
 			mpu.state.midi_mask&=0x00ff;
-			mpu.state.midi_mask|=((Bit16u)val)<<8;
+			mpu.state.midi_mask|=((uint16_t)val)<<8;
 			return;
 		//case 0xe2:	/* Set graduation for relative tempo */
 		//case 0xe4:	/* Set metronome */
@@ -371,11 +371,11 @@ static void MPU401_WriteData(Bitu port,Bitu val,Bitu iolen) {
 			cnt=0;
 				switch (val&0xf0) {
 					case 0xc0:case 0xd0:
-						mpu.playbuf[mpu.state.channel].value[0]=(Bit8u)val;
+						mpu.playbuf[mpu.state.channel].value[0]=(uint8_t)val;
 						length=2;
 						break;
 					case 0x80:case 0x90:case 0xa0:case 0xb0:case 0xe0:
-						mpu.playbuf[mpu.state.channel].value[0]=(Bit8u)val;
+						mpu.playbuf[mpu.state.channel].value[0]=(uint8_t)val;
 						length=3;
 						break;
 					case 0xf0:
@@ -388,7 +388,7 @@ static void MPU401_WriteData(Bitu port,Bitu val,Bitu iolen) {
 						MIDI_RawOutByte(mpu.playbuf[mpu.state.channel].value[0]);
 				}
 		}
-		if (cnt<length) {MIDI_RawOutByte((Bit8u)val);cnt++;}
+		if (cnt<length) {MIDI_RawOutByte((uint8_t)val);cnt++;}
 		if (cnt==length) {
 			mpu.state.wsd=0;
 			mpu.state.channel=mpu.state.old_chan;
@@ -409,7 +409,7 @@ static void MPU401_WriteData(Bitu port,Bitu val,Bitu iolen) {
 					length=0;
 			}
 		}
-		if (!length || cnt<length) {MIDI_RawOutByte((Bit8u)val);cnt++;}
+		if (!length || cnt<length) {MIDI_RawOutByte((uint8_t)val);cnt++;}
 		if (cnt==length) mpu.state.wsm=0;
 		return;
 	}
@@ -432,13 +432,13 @@ static void MPU401_WriteData(Bitu port,Bitu val,Bitu iolen) {
 			case  1: /* Command byte #1 */
 				mpu.condbuf.type=T_COMMAND;
 				if (val==0xf8 || val==0xf9) mpu.condbuf.type=T_OVERFLOW;
-				mpu.condbuf.value[mpu.condbuf.vlength]=(Bit8u)val;
+				mpu.condbuf.value[mpu.condbuf.vlength]=(uint8_t)val;
 				mpu.condbuf.vlength++;
 				if ((val&0xf0)!=0xe0) MPU401_EOIHandlerDispatch();
 				else mpu.state.data_onoff++;
 				break;
 			case  2:/* Command byte #2 */
-				mpu.condbuf.value[mpu.condbuf.vlength]=(Bit8u)val;
+				mpu.condbuf.value[mpu.condbuf.vlength]=(uint8_t)val;
 				mpu.condbuf.vlength++;
 				MPU401_EOIHandlerDispatch();
 				break;
@@ -467,12 +467,12 @@ static void MPU401_WriteData(Bitu port,Bitu val,Bitu iolen) {
 					case 0xf0: /* System message or mark */
 						if (val>0xf7) {
 							mpu.playbuf[mpu.state.channel].type=T_MARK;
-							mpu.playbuf[mpu.state.channel].sys_val=(Bit8u)val;
+							mpu.playbuf[mpu.state.channel].sys_val=(uint8_t)val;
 							length=1;
 						} else {
 							LOG(LOG_MISC,LOG_ERROR)("MPU-401:Illegal message");
 							mpu.playbuf[mpu.state.channel].type=T_MIDI_SYS;
-							mpu.playbuf[mpu.state.channel].sys_val=(Bit8u)val;
+							mpu.playbuf[mpu.state.channel].sys_val=(uint8_t)val;
 							length=1;
 						}
 						break;
@@ -492,12 +492,12 @@ static void MPU401_WriteData(Bitu port,Bitu val,Bitu iolen) {
 						break;
 				}
 			}
-			if (!(posd==1 && val>=0xf0)) mpu.playbuf[mpu.state.channel].value[posd-1]=(Bit8u)val;
+			if (!(posd==1 && val>=0xf0)) mpu.playbuf[mpu.state.channel].value[posd-1]=(uint8_t)val;
 			if (posd==length) MPU401_EOIHandlerDispatch();
 	}
 }
 
-static void MPU401_IntelligentOut(Bit8u chan) {
+static void MPU401_IntelligentOut(uint8_t chan) {
 	Bitu val;
 	switch (mpu.playbuf[chan].type) {
 		case T_OVERFLOW:
@@ -505,7 +505,7 @@ static void MPU401_IntelligentOut(Bit8u chan) {
 		case T_MARK:
 			val=mpu.playbuf[chan].sys_val;
 			if (val==0xfc) {
-				MIDI_RawOutByte((Bit8u)val);
+				MIDI_RawOutByte((uint8_t)val);
 				mpu.state.amask&=~(1<<chan);
 				mpu.state.req_mask&=~(1<<chan);
 			}
@@ -519,7 +519,7 @@ static void MPU401_IntelligentOut(Bit8u chan) {
 	}
 }
 
-static void UpdateTrack(Bit8u chan) {
+static void UpdateTrack(uint8_t chan) {
 	MPU401_IntelligentOut(chan);
 	if (mpu.state.amask&(1<<chan)) {
 		mpu.playbuf[chan].vlength=0;
@@ -551,7 +551,7 @@ static void MPU401_Event(Bitu val) {
     (void)val;//UNUSED
 	if (mpu.mode==M_UART) return;
 	if (mpu.state.irq_pending) goto next_event;
-	for (Bit8u i=0;i<8;i++) { /* Decrease counters */
+	for (uint8_t i=0;i<8;i++) { /* Decrease counters */
 		if (mpu.state.amask&(1<<i)) {
 			mpu.playbuf[i].counter--;
 			if (mpu.playbuf[i].counter<=0) UpdateTrack(i);
@@ -595,7 +595,7 @@ static void MPU401_EOIHandler(Bitu val) {
 	}
 	mpu.state.irq_pending=false;
 	if (!mpu.state.playing || !mpu.state.req_mask) return;
-	Bit8u i=0;
+	uint8_t i=0;
 	do {
 		if (mpu.state.req_mask&(1<<i)) {
 			QueueByte(0xf0+i);

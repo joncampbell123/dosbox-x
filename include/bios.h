@@ -177,11 +177,11 @@ extern RegionAllocTracking rombios_alloc;
 
 void BIOS_ZeroExtendedSize(bool in);
 
-bool BIOS_AddKeyToBuffer(Bit16u code);
+bool BIOS_AddKeyToBuffer(uint16_t code);
 
 void INT10_ReloadRomFonts();
 
-void BIOS_SetLPTPort (Bitu port, Bit16u baseaddr);
+void BIOS_SetLPTPort (Bitu port, uint16_t baseaddr);
 
 // \brief Synchronizes emulator num lock state with host.
 void BIOS_SynchronizeNumLock();

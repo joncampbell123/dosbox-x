@@ -36,16 +36,16 @@ Bitu INT10_VideoState_GetSize(Bitu state) {
 }
 
 bool INT10_VideoState_Save(Bitu state,RealPt buffer) {
-	Bit16u ct;
+	uint16_t ct;
 	if ((state&7)==0) return false;
 
-	Bit16u base_seg=RealSeg(buffer);
-	Bit16u base_dest=RealOff(buffer)+0x20u;
+	uint16_t base_seg=RealSeg(buffer);
+	uint16_t base_dest=RealOff(buffer)+0x20u;
 
 	if (state&1)  {
 		real_writew(base_seg,RealOff(buffer),base_dest);
 
-		Bit16u crt_reg=real_readw(BIOSMEM_SEG,BIOSMEM_CRTC_ADDRESS);
+		uint16_t crt_reg=real_readw(BIOSMEM_SEG,BIOSMEM_CRTC_ADDRESS);
 		real_writew(base_seg,base_dest+0x40,crt_reg);
 
 		real_writeb(base_seg,base_dest+0x00,IO_ReadB(0x3c4));
@@ -57,7 +57,7 @@ bool INT10_VideoState_Save(Bitu state,RealPt buffer) {
 
 		// sequencer
 		for (ct=1; ct<5; ct++) {
-			IO_WriteB(0x3c4,(Bit8u)ct);
+			IO_WriteB(0x3c4,(uint8_t)ct);
 			real_writeb(base_seg,base_dest+0x04+ct,IO_ReadB(0x3c5));
 		}
 
@@ -65,34 +65,34 @@ bool INT10_VideoState_Save(Bitu state,RealPt buffer) {
 
 		// crt controller
 		for (ct=0; ct<0x19; ct++) {
-			IO_WriteB(crt_reg,(Bit8u)ct);
+			IO_WriteB(crt_reg,(uint8_t)ct);
 			real_writeb(base_seg,base_dest+0x0a+ct,IO_ReadB(crt_reg+1u));
 		}
 
 		// attr registers
 		for (ct=0; ct<4; ct++) {
 			IO_ReadB(crt_reg+6u);
-			IO_WriteB(0x3c0,(Bit8u)(0x10+ct));
+			IO_WriteB(0x3c0,(uint8_t)(0x10+ct));
 			real_writeb(base_seg,base_dest+0x33+ct,IO_ReadB(0x3c1));
 		}
 
 		// graphics registers
 		for (ct=0; ct<9; ct++) {
-			IO_WriteB(0x3ce,(Bit8u)ct);
+			IO_WriteB(0x3ce,(uint8_t)ct);
 			real_writeb(base_seg,base_dest+0x37+ct,IO_ReadB(0x3cf));
 		}
 
 		// save some registers
 		IO_WriteB(0x3c4,2);
-		Bit8u crtc_2=IO_ReadB(0x3c5);
+		uint8_t crtc_2=IO_ReadB(0x3c5);
 		IO_WriteB(0x3c4,4);
-		Bit8u crtc_4=IO_ReadB(0x3c5);
+		uint8_t crtc_4=IO_ReadB(0x3c5);
 		IO_WriteB(0x3ce,6);
-		Bit8u gfx_6=IO_ReadB(0x3cf);
+		uint8_t gfx_6=IO_ReadB(0x3cf);
 		IO_WriteB(0x3ce,5);
-		Bit8u gfx_5=IO_ReadB(0x3cf);
+		uint8_t gfx_5=IO_ReadB(0x3cf);
 		IO_WriteB(0x3ce,4);
-		Bit8u gfx_4=IO_ReadB(0x3cf);
+		uint8_t gfx_4=IO_ReadB(0x3cf);
 
 		// reprogram for full access to plane latches
 		IO_WriteW(0x3c4,0x0f02);
@@ -115,7 +115,7 @@ bool INT10_VideoState_Save(Bitu state,RealPt buffer) {
 
 		for (ct=0; ct<0x10; ct++) {
 			IO_ReadB(crt_reg+6u);
-			IO_WriteB(0x3c0,(Bit8u)ct);
+			IO_WriteB(0x3c0,(uint8_t)ct);
 			real_writeb(base_seg,base_dest+0x23u+ct,IO_ReadB(0x3c1));
 		}
         IO_ReadB(crt_reg+6u);
@@ -147,21 +147,21 @@ bool INT10_VideoState_Save(Bitu state,RealPt buffer) {
 	if (state&4)  {
 		real_writew(base_seg,RealOff(buffer)+4u,base_dest);
 
-		Bit16u crt_reg=real_readw(BIOSMEM_SEG,BIOSMEM_CRTC_ADDRESS);
+		uint16_t crt_reg=real_readw(BIOSMEM_SEG,BIOSMEM_CRTC_ADDRESS);
 
 		IO_ReadB(crt_reg+6u);
 		IO_WriteB(0x3c0,0x14);
 		real_writeb(base_seg,base_dest+0x303,IO_ReadB(0x3c1));
 
-		Bit8u dac_state=IO_ReadB(0x3c7)&1u;
-		Bit8u dac_windex=IO_ReadB(0x3c8);
+		uint8_t dac_state=IO_ReadB(0x3c7)&1u;
+		uint8_t dac_windex=IO_ReadB(0x3c8);
 		if (dac_state!=0) dac_windex--;
 		real_writeb(base_seg,base_dest+0x000,dac_state);
 		real_writeb(base_seg,base_dest+0x001,dac_windex);
 		real_writeb(base_seg,base_dest+0x002,IO_ReadB(0x3c6));
 
 		for (ct=0; ct<0x100; ct++) {
-			IO_WriteB(0x3c7,(Bit8u)ct);
+			IO_WriteB(0x3c7,(uint8_t)ct);
 			real_writeb(base_seg,base_dest+0x003u+ct*3u+0,IO_ReadB(0x3c9));
 			real_writeb(base_seg,base_dest+0x003u+ct*3u+1,IO_ReadB(0x3c9));
 			real_writeb(base_seg,base_dest+0x003u+ct*3u+2,IO_ReadB(0x3c9));
@@ -177,7 +177,7 @@ bool INT10_VideoState_Save(Bitu state,RealPt buffer) {
 	if ((svgaCard==SVGA_S3Trio) && (state&8u))  {
 		real_writew(base_seg,RealOff(buffer)+6u,base_dest);
 
-		Bit16u crt_reg=real_readw(BIOSMEM_SEG,BIOSMEM_CRTC_ADDRESS);
+		uint16_t crt_reg=real_readw(BIOSMEM_SEG,BIOSMEM_CRTC_ADDRESS);
 
 		IO_WriteB(0x3c4,0x08);
 //		Bitu seq_8=IO_ReadB(0x3c5);
@@ -187,7 +187,7 @@ bool INT10_VideoState_Save(Bitu state,RealPt buffer) {
 
 		// sequencer
 		for (ct=0; ct<0x13; ct++) {
-			IO_WriteB(0x3c4,(Bit8u)(0x09+ct));
+			IO_WriteB(0x3c4,(uint8_t)(0x09+ct));
 			real_writeb(base_seg,base_dest+0x00+ct,IO_ReadB(0x3c5));
 		}
 
@@ -196,12 +196,12 @@ bool INT10_VideoState_Save(Bitu state,RealPt buffer) {
 		IO_WriteW(crt_reg,0xa539);
 
 		// crt controller
-		Bit8u ct_dest=0x13;
+		uint8_t ct_dest=0x13;
 		for (ct=0; ct<0x40; ct++) {
 			if ((ct==0x4a-0x30) || (ct==0x4b-0x30)) {
 				IO_WriteB(crt_reg,0x45);
 				IO_ReadB(crt_reg+1u);
-				IO_WriteB(crt_reg,(Bit8u)(0x30+ct));
+				IO_WriteB(crt_reg,(uint8_t)(0x30+ct));
 				real_writeb(base_seg,base_dest+(ct_dest++),IO_ReadB(crt_reg+1u));
 				real_writeb(base_seg,base_dest+(ct_dest++),IO_ReadB(crt_reg+1u));
 				real_writeb(base_seg,base_dest+(ct_dest++),IO_ReadB(crt_reg+1u));
@@ -215,15 +215,15 @@ bool INT10_VideoState_Save(Bitu state,RealPt buffer) {
 }
 
 bool INT10_VideoState_Restore(Bitu state,RealPt buffer) {
-	Bit16u ct;
+	uint16_t ct;
 	if ((state&7u)==0) return false;
 
-	Bit16u base_seg=RealSeg(buffer);
-	Bit16u base_dest;
+	uint16_t base_seg=RealSeg(buffer);
+	uint16_t base_dest;
 
 	if (state&1u)  {
 		base_dest=real_readw(base_seg,RealOff(buffer));
-		Bit16u crt_reg=real_readw(base_seg,base_dest+0x40);
+		uint16_t crt_reg=real_readw(base_seg,base_dest+0x40);
 
 		// reprogram for full access to plane latches
 		IO_WriteW(0x3c4,0x0704);
@@ -245,7 +245,7 @@ bool INT10_VideoState_Restore(Bitu state,RealPt buffer) {
 
 		// sequencer
 		for (ct=1; ct<5; ct++) {
-			IO_WriteW(0x3c4,(Bit16u)((unsigned int)ct+(unsigned int)(real_readb((unsigned int)base_seg,(unsigned int)base_dest+0x04+ct)<<8u)));
+			IO_WriteW(0x3c4,(uint16_t)((unsigned int)ct+(unsigned int)(real_readb((unsigned int)base_seg,(unsigned int)base_dest+0x04+ct)<<8u)));
 		}
 
 		IO_WriteB(0x3c2,real_readb(base_seg,base_dest+0x09));
@@ -254,7 +254,7 @@ bool INT10_VideoState_Restore(Bitu state,RealPt buffer) {
 
 		// crt controller
 		for (ct=0; ct<0x19; ct++) {
-			IO_WriteW(crt_reg,(Bit16u)((unsigned int)ct+(unsigned int)(real_readb((unsigned int)base_seg,(unsigned int)base_dest+0x0a+ct)<<8u)));
+			IO_WriteW(crt_reg,(uint16_t)((unsigned int)ct+(unsigned int)(real_readb((unsigned int)base_seg,(unsigned int)base_dest+0x0a+ct)<<8u)));
 		}
 
 		IO_ReadB(crt_reg+6u);
@@ -305,7 +305,7 @@ bool INT10_VideoState_Restore(Bitu state,RealPt buffer) {
 	if (state&4)  {
 		base_dest=real_readw(base_seg,RealOff(buffer)+4u);
 
-		Bit16u crt_reg=real_readw(BIOSMEM_SEG,BIOSMEM_CRTC_ADDRESS);
+		uint16_t crt_reg=real_readw(BIOSMEM_SEG,BIOSMEM_CRTC_ADDRESS);
 
 		IO_WriteB(0x3c6,real_readb((unsigned int)base_seg,(unsigned int)base_dest+0x002));
 
@@ -335,9 +335,9 @@ bool INT10_VideoState_Restore(Bitu state,RealPt buffer) {
 	if ((svgaCard==SVGA_S3Trio) && (state&8))  {
 		base_dest=real_readw((unsigned int)base_seg,(unsigned int)RealOff(buffer)+6u);
 
-		Bit16u crt_reg=real_readw(BIOSMEM_SEG,BIOSMEM_CRTC_ADDRESS);
+		uint16_t crt_reg=real_readw(BIOSMEM_SEG,BIOSMEM_CRTC_ADDRESS);
 
-		Bit8u seq_idx=IO_ReadB(0x3c4);
+		uint8_t seq_idx=IO_ReadB(0x3c4);
 		IO_WriteB(0x3c4,0x08);
 //		Bitu seq_8=IO_ReadB(0x3c5);
 		IO_ReadB(0x3c5);

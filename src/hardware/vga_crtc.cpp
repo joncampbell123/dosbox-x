@@ -51,10 +51,10 @@ extern bool vga_ignore_hdispend_change_if_smaller;
 void vga_write_p3d4(Bitu port,Bitu val,Bitu iolen) {
     (void)iolen;//UNUSED
     (void)port;//UNUSED
-	crtc(index)=(Bit8u)val;
+	crtc(index)=(uint8_t)val;
 }
 
-void vga_pc98_direct_cursor_pos(Bit16u address) {
+void vga_pc98_direct_cursor_pos(uint16_t address) {
 	vga.config.cursor_start = address;
 }
 
@@ -74,7 +74,7 @@ void vga_write_p3d5(Bitu port,Bitu val,Bitu iolen) {
 	switch(crtc(index)) {
 	case 0x00:	/* Horizontal Total Register */
 		if (crtc(read_only)) break;
-		crtc(horizontal_total)=(Bit8u)val;
+		crtc(horizontal_total)=(uint8_t)val;
 		/* 	0-7  Horizontal Total Character Clocks-5 */
 		break;
 	case 0x01:	/* Horizontal Display End Register */
@@ -85,11 +85,11 @@ void vga_write_p3d5(Bitu port,Bitu val,Bitu iolen) {
 			 * from demos like DoWhackaDo. */
 			if (vga_ignore_hdispend_change_if_smaller && val < crtc(horizontal_display_end)) {
 				/* do not call VGA_StartResize, allow change */
-				crtc(horizontal_display_end)=(Bit8u)val;
+				crtc(horizontal_display_end)=(uint8_t)val;
 				LOG_MSG("VGA Horz. Display End: accepting change but will not call VGA_StartResize()");
 			}
 			else {
-				crtc(horizontal_display_end)=(Bit8u)val;
+				crtc(horizontal_display_end)=(uint8_t)val;
 				VGA_StartResize();
 			}
 		}
@@ -97,12 +97,12 @@ void vga_write_p3d5(Bitu port,Bitu val,Bitu iolen) {
 		break;
 	case 0x02:	/* Start Horizontal Blanking Register */
 		if (crtc(read_only)) break;
-		crtc(start_horizontal_blanking)=(Bit8u)val;
+		crtc(start_horizontal_blanking)=(uint8_t)val;
 		/*	0-7  The count at which Horizontal Blanking starts */
 		break;
 	case 0x03:	/* End Horizontal Blanking Register */
 		if (crtc(read_only)) break;
-		crtc(end_horizontal_blanking)=(Bit8u)val;
+		crtc(end_horizontal_blanking)=(uint8_t)val;
 		/*
 			0-4	Horizontal Blanking ends when the last 6 bits of the character
 				counter equals this field. Bit 5 is at 3d4h index 5 bit 7.
@@ -114,12 +114,12 @@ void vga_write_p3d5(Bitu port,Bitu val,Bitu iolen) {
 		break;
 	case 0x04:	/* Start Horizontal Retrace Register */
 		if (crtc(read_only)) break;
-		crtc(start_horizontal_retrace)=(Bit8u)val;
+		crtc(start_horizontal_retrace)=(uint8_t)val;
 		/*	0-7  Horizontal Retrace starts when the Character Counter reaches this value. */
 		break;
 	case 0x05:	/* End Horizontal Retrace Register */
 		if (crtc(read_only)) break;
-		crtc(end_horizontal_retrace)=(Bit8u)val;
+		crtc(end_horizontal_retrace)=(uint8_t)val;
 		/*
 			0-4	Horizontal Retrace ends when the last 5 bits of the character counter
 				equals this value.
@@ -131,7 +131,7 @@ void vga_write_p3d5(Bitu port,Bitu val,Bitu iolen) {
 	case 0x06: /* Vertical Total Register */
 		if (crtc(read_only)) break;
 		if (val != crtc(vertical_total)) {
-			crtc(vertical_total)=(Bit8u)val;	
+			crtc(vertical_total)=(uint8_t)val;	
 			VGA_StartResize();
 		}
 		/*	0-7	Lower 8 bits of the Vertical Total. Bit 8 is found in 3d4h index 7
@@ -144,9 +144,9 @@ void vga_write_p3d5(Bitu port,Bitu val,Bitu iolen) {
 		vga.config.line_compare=(vga.config.line_compare & 0x6ff) | (val & 0x10) << 4;
 		if (crtc(read_only)) break;
 		if ((vga.crtc.overflow ^ val) & 0xd6) {
-			crtc(overflow)=(Bit8u)val;
+			crtc(overflow)=(uint8_t)val;
 			VGA_StartResize();
-		} else crtc(overflow)=(Bit8u)val;
+		} else crtc(overflow)=(uint8_t)val;
 		/*
 			0  Bit 8 of Vertical Total (3d4h index 6)
 			1  Bit 8 of Vertical Display End (3d4h index 12h)
@@ -159,7 +159,7 @@ void vga_write_p3d5(Bitu port,Bitu val,Bitu iolen) {
 		*/
 		break;
 	case 0x08:	/* Preset Row Scan Register */
-		crtc(preset_row_scan)=(Bit8u)val;
+		crtc(preset_row_scan)=(uint8_t)val;
 		vga.config.hlines_skip=val&31;
 		if (IS_VGA_ARCH) vga.config.bytes_skip=(val>>5)&3;
 		else vga.config.bytes_skip=0;
@@ -180,8 +180,8 @@ void vga_write_p3d5(Bitu port,Bitu val,Bitu iolen) {
 		} else if(machine==MCH_EGA) {
 			val &= 0x7f; // EGA ignores the doublescan bit
 			}
-		Bit8u old = crtc(maximum_scan_line);
-		crtc(maximum_scan_line) = (Bit8u)val;
+		uint8_t old = crtc(maximum_scan_line);
+		crtc(maximum_scan_line) = (uint8_t)val;
 
         unsigned char chk = 0x20;
 
@@ -204,7 +204,7 @@ void vga_write_p3d5(Bitu port,Bitu val,Bitu iolen) {
 		break;
 	}
 	case 0x0A:	/* Cursor Start Register */
-		crtc(cursor_start)=(Bit8u)val;
+		crtc(cursor_start)=(uint8_t)val;
 		vga.draw.cursor.sline=val&0x1f;
 		if (IS_VGA_ARCH) vga.draw.cursor.enabled=!(val&0x20);
 		else vga.draw.cursor.enabled=true;
@@ -214,7 +214,7 @@ void vga_write_p3d5(Bitu port,Bitu val,Bitu iolen) {
 		*/
 		break;
 	case 0x0B:	/* Cursor End Register */
-		crtc(cursor_end)=(Bit8u)val;
+		crtc(cursor_end)=(uint8_t)val;
 		vga.draw.cursor.eline=val&0x1f;
 		vga.draw.cursor.delay=(val>>5)&0x3;
 
@@ -224,32 +224,32 @@ void vga_write_p3d5(Bitu port,Bitu val,Bitu iolen) {
 		*/
 		break;
 	case 0x0C:	/* Start Address High Register */
-		crtc(start_address_high)=(Bit8u)val;
+		crtc(start_address_high)=(uint8_t)val;
 		vga.config.display_start=(vga.config.display_start & 0xFF00FF)| (val << 8);
 		/* 0-7  Upper 8 bits of the start address of the display buffer */
 		page_flip_debug_notify();
 		break;
 	case 0x0D:	/* Start Address Low Register */
-		crtc(start_address_low)=(Bit8u)val;
+		crtc(start_address_low)=(uint8_t)val;
 		vga.config.display_start=(vga.config.display_start & 0xFFFF00)| val;
 		/*	0-7	Lower 8 bits of the start address of the display buffer */
 		page_flip_debug_notify();
 		break;
 	case 0x0E:	/*Cursor Location High Register */
-		crtc(cursor_location_high)=(Bit8u)val;
+		crtc(cursor_location_high)=(uint8_t)val;
 		vga.config.cursor_start&=0xff00ff;
 		vga.config.cursor_start|=val << 8;
 		/*	0-7  Upper 8 bits of the address of the cursor */
 		break;
 	case 0x0F:	/* Cursor Location Low Register */
 //TODO update cursor on screen
-		crtc(cursor_location_low)=(Bit8u)val;
+		crtc(cursor_location_low)=(uint8_t)val;
 		vga.config.cursor_start&=0xffff00;
 		vga.config.cursor_start|=val;
 		/*	0-7  Lower 8 bits of the address of the cursor */
 		break;
 	case 0x10:	/* Vertical Retrace Start Register */
-		crtc(vertical_retrace_start)=(Bit8u)val;
+		crtc(vertical_retrace_start)=(uint8_t)val;
 		/*	
 			0-7	Lower 8 bits of Vertical Retrace Start. Vertical Retrace starts when
 			the line counter reaches this value. Bit 8 is found in 3d4h index 7
@@ -257,7 +257,7 @@ void vga_write_p3d5(Bitu port,Bitu val,Bitu iolen) {
 		*/
 		break;
 	case 0x11:	/* Vertical Retrace End Register */
-		crtc(vertical_retrace_end)=(Bit8u)val;
+		crtc(vertical_retrace_end)=(uint8_t)val;
 		
 		if (IS_EGAVGA_ARCH && !(val & 0x10)) {
 			vga.draw.vret_triggered=false;
@@ -283,10 +283,10 @@ void vga_write_p3d5(Bitu port,Bitu val,Bitu iolen) {
 				// if they are reverted in a short timeframe
 				PIC_RemoveEvents(VGA_SetupDrawing);
 				vga.draw.resizing=false;
-				crtc(vertical_display_end)=(Bit8u)val;
+				crtc(vertical_display_end)=(uint8_t)val;
 				VGA_StartResize(150);
 			} else {
-				crtc(vertical_display_end)=(Bit8u)val;
+				crtc(vertical_display_end)=(uint8_t)val;
 				VGA_StartResize();
 			}
 		}
@@ -297,7 +297,7 @@ void vga_write_p3d5(Bitu port,Bitu val,Bitu iolen) {
 		*/
 		break;
 	case 0x13:	/* Offset register */
-		crtc(offset)=(Bit8u)val;
+		crtc(offset)=(uint8_t)val;
 		vga.config.scan_len&=0x300;
 		vga.config.scan_len|=val;
 		VGA_CheckScanLength();
@@ -307,7 +307,7 @@ void vga_write_p3d5(Bitu port,Bitu val,Bitu iolen) {
 		*/
 		break;
 	case 0x14:	/* Underline Location Register */
-		crtc(underline_location)=(Bit8u)val;
+		crtc(underline_location)=(uint8_t)val;
         VGA_CheckAddrShift();
 		VGA_CheckScanLength();
 		/*
@@ -318,7 +318,7 @@ void vga_write_p3d5(Bitu port,Bitu val,Bitu iolen) {
 		break;
 	case 0x15:	/* Start Vertical Blank Register */
 		if (val!=crtc(start_vertical_blanking)) {
-			crtc(start_vertical_blanking)=(Bit8u)val;
+			crtc(start_vertical_blanking)=(uint8_t)val;
 			VGA_StartResize();
 		}
 		/* 
@@ -329,7 +329,7 @@ void vga_write_p3d5(Bitu port,Bitu val,Bitu iolen) {
 		break;
 	case 0x16:	/*  End Vertical Blank Register */
 		if (val!=crtc(end_vertical_blanking)) {
-			crtc(end_vertical_blanking)=(Bit8u)val;
+			crtc(end_vertical_blanking)=(uint8_t)val;
 			VGA_StartResize();
 		}
 		/*
@@ -339,7 +339,7 @@ void vga_write_p3d5(Bitu port,Bitu val,Bitu iolen) {
 		*/
 		break;
 	case 0x17:	/* Mode Control Register */
-		crtc(mode_control)=(Bit8u)val;
+		crtc(mode_control)=(uint8_t)val;
 		vga.tandy.line_mask = (~val) & 3u;
 
 		if ( vga.tandy.line_mask ) {
@@ -372,7 +372,7 @@ void vga_write_p3d5(Bitu port,Bitu val,Bitu iolen) {
 		*/
 		break;
 	case 0x18:	/* Line Compare Register */
-		crtc(line_compare)=(Bit8u)val;
+		crtc(line_compare)=(uint8_t)val;
 		vga.config.line_compare=(vga.config.line_compare & 0x700) | val;
 		/*
 			0-7	Lower 8 bits of the Line Compare. When the Line counter reaches this

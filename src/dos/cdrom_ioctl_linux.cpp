@@ -60,7 +60,7 @@ bool CDROM_Interface_Ioctl::ReadSectors(PhysPt buffer, bool raw, unsigned long s
 	Bitu buflen = raw ? num * (unsigned int)CD_FRAMESIZE_RAW : num * (unsigned int)CD_FRAMESIZE;
     assert(buflen != 0u);
 
-	Bit8u* buf = new Bit8u[buflen];	
+	uint8_t* buf = new uint8_t[buflen];	
 	int ret;
 	
 	if (raw) {

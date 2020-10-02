@@ -1937,7 +1937,7 @@ void MENU_Check_Drive(HMENU handle, int cdrom, int floppy, int local, int image,
 }
 
 void MENU_KeyDelayRate(int delay, int rate) {
-    IO_Write(0x60,0xf3); IO_Write(0x60,(Bit8u)(((delay-1)<<5)|(32-rate)));
+    IO_Write(0x60,0xf3); IO_Write(0x60,(uint8_t)(((delay-1)<<5)|(32-rate)));
     LOG_MSG("GUI: Keyboard rate %d, delay %d", rate, delay);
 }
 

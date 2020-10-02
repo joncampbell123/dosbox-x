@@ -53,14 +53,14 @@ enum {
 	PHASE_DONE = 7
 };
 
-static int calcBaseCutoff(const TimbreParam::PartialParam *partialParam, Bit32u basePitch, unsigned int key, bool quirkTVFBaseCutoffLimit) {
+static int calcBaseCutoff(const TimbreParam::PartialParam *partialParam, uint32_t basePitch, unsigned int key, bool quirkTVFBaseCutoffLimit) {
 	// This table matches the values used by a real LAPC-I.
-	static const Bit8s biasLevelToBiasMult[] = {85, 42, 21, 16, 10, 5, 2, 0, -2, -5, -10, -16, -21, -74, -85};
+	static const int8_t biasLevelToBiasMult[] = {85, 42, 21, 16, 10, 5, 2, 0, -2, -5, -10, -16, -21, -74, -85};
 	// These values represent unique options with no consistent pattern, so we have to use something like a table in any case.
 	// The table entries, when divided by 21, match approximately what the manual claims:
 	// -1, -1/2, -1/4, 0, 1/8, 1/4, 3/8, 1/2, 5/8, 3/4, 7/8, 1, 5/4, 3/2, 2, s1, s2
 	// Note that the entry for 1/8 is rounded to 2 (from 1/8 * 21 = 2.625), which seems strangely inaccurate compared to the others.
-	static const Bit8s keyfollowMult21[] = {-21, -10, -5, 0, 2, 5, 8, 10, 13, 16, 18, 21, 26, 32, 42, 21, 21};
+	static const int8_t keyfollowMult21[] = {-21, -10, -5, 0, 2, 5, 8, 10, 13, 16, 18, 21, 26, 32, 42, 21, 21};
 	int baseCutoff = keyfollowMult21[partialParam->tvf.keyfollow] - keyfollowMult21[partialParam->wg.pitchKeyfollow];
 	// baseCutoff range now: -63 to 63
 	baseCutoff *= int(key) - 60;
@@ -105,14 +105,14 @@ static int calcBaseCutoff(const TimbreParam::PartialParam *partialParam, Bit32u 
 	if (baseCutoff > 255) {
 		baseCutoff = 255;
 	}
-	return Bit8u(baseCutoff);
+	return uint8_t(baseCutoff);
 }
 
 TVF::TVF(const Partial *usePartial, LA32Ramp *useCutoffModifierRamp) :
 	partial(usePartial), cutoffModifierRamp(useCutoffModifierRamp) {
 }
 
-void TVF::startRamp(Bit8u newTarget, Bit8u newIncrement, int newPhase) {
+void TVF::startRamp(uint8_t newTarget, uint8_t newIncrement, int newPhase) {
 	target = newTarget;
 	phase = newPhase;
 	cutoffModifierRamp->startRamp(newTarget, newIncrement);
@@ -169,7 +169,7 @@ void TVF::reset(const TimbreParam::PartialParam *newPartialParam, unsigned int b
 	startRamp(newTarget, newIncrement, PHASE_2 - 1);
 }
 
-Bit8u TVF::getBaseCutoff() const {
+uint8_t TVF::getBaseCutoff() const {
 	return baseCutoff;
 }
 

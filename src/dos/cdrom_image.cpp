@@ -101,7 +101,7 @@ CDROM_Interface_Image::BinaryFile::~BinaryFile()
 	file = nullptr;
 }
 
-bool CDROM_Interface_Image::BinaryFile::read(Bit8u *buffer, int seek, int count)
+bool CDROM_Interface_Image::BinaryFile::read(uint8_t *buffer, int seek, int count)
 {
 	file->seekg(seek, ios::beg);
 	file->read((char*)buffer, count);
@@ -116,7 +116,7 @@ int CDROM_Interface_Image::BinaryFile::getLength()
 	return length;
 }
 
-Bit16u CDROM_Interface_Image::BinaryFile::getEndian()
+uint16_t CDROM_Interface_Image::BinaryFile::getEndian()
 {
 	// Image files are read into native-endian byte-order
 	#if defined(WORDS_BIGENDIAN)
@@ -126,13 +126,13 @@ Bit16u CDROM_Interface_Image::BinaryFile::getEndian()
 	#endif
 }
 
-bool CDROM_Interface_Image::BinaryFile::seek(Bit32u offset)
+bool CDROM_Interface_Image::BinaryFile::seek(uint32_t offset)
 {
 	file->seekg(offset, ios::beg);
 	return !file->fail();
 }
 
-Bit16u CDROM_Interface_Image::BinaryFile::decode(Bit8u *buffer)
+uint16_t CDROM_Interface_Image::BinaryFile::decode(uint8_t *buffer)
 {
 	file->read((char*)buffer, chunkSize);
 	return file->gcount();
@@ -175,7 +175,7 @@ CDROM_Interface_Image::AudioFile::~AudioFile()
  *  or number of channels.  To do this, we convert the byte offset to a
  *  time-offset, and use the Sound_Seek() function to move the read position.
  */
-bool CDROM_Interface_Image::AudioFile::seek(Bit32u offset)
+bool CDROM_Interface_Image::AudioFile::seek(uint32_t offset)
 {
 	#ifdef DEBUG
 	const auto begin = std::chrono::steady_clock::now();
@@ -192,30 +192,30 @@ bool CDROM_Interface_Image::AudioFile::seek(Bit32u offset)
 	return result;
 }
 
-Bit16u CDROM_Interface_Image::AudioFile::decode(Bit8u *buffer)
+uint16_t CDROM_Interface_Image::AudioFile::decode(uint8_t *buffer)
 {
-	const Bit16u bytes = Sound_Decode(sample);
+	const uint16_t bytes = Sound_Decode(sample);
 	memcpy(buffer, sample->buffer, bytes);
 	return bytes;
 }
 
-Bit16u CDROM_Interface_Image::AudioFile::getEndian()
+uint16_t CDROM_Interface_Image::AudioFile::getEndian()
 {
 	return sample ? sample->actual.format : AUDIO_S16SYS;
 }
 
-Bit32u CDROM_Interface_Image::AudioFile::getRate()
+uint32_t CDROM_Interface_Image::AudioFile::getRate()
 {
-	Bit32u rate(0);
+	uint32_t rate(0);
 	if (sample) {
 		rate = sample->actual.rate;
 	}
 	return rate;
 }
 
-Bit8u CDROM_Interface_Image::AudioFile::getChannels()
+uint8_t CDROM_Interface_Image::AudioFile::getChannels()
 {
-	Bit8u channels(0);
+	uint8_t channels(0);
 	if (sample) {
 		channels = sample->actual.channels;
 	}
@@ -246,7 +246,7 @@ int CDROM_Interface_Image::refCount = 0;
 CDROM_Interface_Image* CDROM_Interface_Image::images[26] = {};
 CDROM_Interface_Image::imagePlayer CDROM_Interface_Image::player;
 
-CDROM_Interface_Image::CDROM_Interface_Image(Bit8u subUnit)
+CDROM_Interface_Image::CDROM_Interface_Image(uint8_t subUnit)
 		      :subUnit(subUnit)
 {
 	images[subUnit] = this;
@@ -283,8 +283,8 @@ bool CDROM_Interface_Image::SetDevice(char* path, int forceCD)
 		// print error message on dosbox console
 		char buf[MAX_LINE_LENGTH];
 		snprintf(buf, MAX_LINE_LENGTH, "Could not load image file: %s\r\n", path);
-		Bit16u size = (Bit16u)strlen(buf);
-		DOS_WriteFile(STDOUT, (Bit8u*)buf, &size);
+		uint16_t size = (uint16_t)strlen(buf);
+		DOS_WriteFile(STDOUT, (uint8_t*)buf, &size);
 	}
 	return result;
 }
@@ -417,13 +417,13 @@ bool CDROM_Interface_Image::PlayAudioSector(unsigned long start, unsigned long l
 		TrackFile* trackFile = tracks[track].file;
 
 		// Convert the playback start sector to a time offset (milliseconds) relative to the track
-		const Bit32u offset = tracks[track].skip + (start - tracks[track].start) * tracks[track].sectorSize;
+		const uint32_t offset = tracks[track].skip + (start - tracks[track].start) * tracks[track].sectorSize;
 		is_playable = trackFile->seek(offset);
 
 		// only initialize the player elements if our track is playable
 		if (is_playable) {
-			const Bit8u channels = trackFile->getChannels();
-			const Bit32u rate = trackFile->getRate();
+			const uint8_t channels = trackFile->getChannels();
+			const uint32_t rate = trackFile->getRate();
 
 			player.cd = this;
 			player.trackFile = trackFile;
@@ -509,7 +509,7 @@ bool CDROM_Interface_Image::ReadSectors(PhysPt buffer, bool raw, unsigned long s
 {
 	int sectorSize = raw ? RAW_SECTOR_SIZE : COOKED_SECTOR_SIZE;
 	Bitu buflen = num * sectorSize;
-	Bit8u* buf = new Bit8u[buflen];
+	uint8_t* buf = new uint8_t[buflen];
 
 	bool success = true; //Gobliiins reads 0 sectors
 	for(unsigned long i = 0; i < num; i++) {
@@ -527,7 +527,7 @@ bool CDROM_Interface_Image::ReadSectorsHost(void *buffer, bool raw, unsigned lon
 	unsigned int sectorSize = raw ? RAW_SECTOR_SIZE : COOKED_SECTOR_SIZE;
 	bool success = true; //Gobliiins reads 0 sectors
 	for(unsigned long i = 0; i < num; i++) {
-		success = ReadSector((Bit8u*)buffer + (i * (Bitu)sectorSize), raw, sector + i);
+		success = ReadSector((uint8_t*)buffer + (i * (Bitu)sectorSize), raw, sector + i);
 		if (!success) break;
 	}
 
@@ -554,7 +554,7 @@ int CDROM_Interface_Image::GetTrack(int sector)
 	return -1;
 }
 
-bool CDROM_Interface_Image::ReadSector(Bit8u *buffer, bool raw, unsigned long sector)
+bool CDROM_Interface_Image::ReadSector(uint8_t *buffer, bool raw, unsigned long sector)
 {
 	int track = GetTrack(sector) - 1;
 	if (track < 0) return false;
@@ -579,12 +579,12 @@ void CDROM_Interface_Image::CDAudioCallBack(Bitu len)
 
 
 	// determine bytes per request (16-bit samples)
-	const Bit8u channels = player.trackFile->getChannels();
-	const Bit8u bytes_per_request = channels * 2;
-	Bit16u total_requested = len * bytes_per_request;
+	const uint8_t channels = player.trackFile->getChannels();
+	const uint8_t bytes_per_request = channels * 2;
+	uint16_t total_requested = len * bytes_per_request;
 
 	while (total_requested > 0) {
-		Bit16u requested = total_requested;
+		uint16_t requested = total_requested;
 
 		// Every now and then the callback wants a big number of bytes,
 		// which can exceed our circular buffer. In these cases we need
@@ -618,21 +618,21 @@ void CDROM_Interface_Image::CDAudioCallBack(Bitu len)
 			// ==========
 			if (player.bufferPos - player.bufferConsumed >= requested) {
 				if (player.ctrlUsed) {
-					for (Bit8u i=0; i < channels; i++) {
-						Bit16s  sample;
-						Bit16s* samples = (Bit16s*)&player.buffer[player.bufferConsumed];
+					for (uint8_t i=0; i < channels; i++) {
+						int16_t  sample;
+						int16_t* samples = (int16_t*)&player.buffer[player.bufferConsumed];
 						for (Bitu pos = 0; pos < requested / bytes_per_request; pos++) {
 							#if defined(WORDS_BIGENDIAN)
-							sample = (Bit16s)host_readw((HostPt) & samples[pos * 2 + player.ctrlData.out[i]]);
+							sample = (int16_t)host_readw((HostPt) & samples[pos * 2 + player.ctrlData.out[i]]);
 							#else
 							sample = samples[pos * 2 + player.ctrlData.out[i]];
 							#endif
-							samples[pos * 2 + i] = (Bit16s)(sample * player.ctrlData.vol[i] / 255.0);
+							samples[pos * 2 + i] = (int16_t)(sample * player.ctrlData.vol[i] / 255.0);
 						}
 					}
 				}
 				// uses either the stereo or mono and native or nonnative AddSamples call assigned during construction
-				(player.channel->*player.addSamples)(requested / bytes_per_request, (Bit16s*)(player.buffer + player.bufferConsumed) );
+				(player.channel->*player.addSamples)(requested / bytes_per_request, (int16_t*)(player.buffer + player.bufferConsumed) );
 				player.bufferConsumed += requested;
 				player.playbackRemaining -= requested;
 
@@ -661,18 +661,18 @@ void CDROM_Interface_Image::CDAudioCallBack(Bitu len)
 
 			// 3. Fill
 			// =======
-			const Bit16u chunkSize = player.trackFile->chunkSize;
+			const uint16_t chunkSize = player.trackFile->chunkSize;
 			while(AUDIO_DECODE_BUFFER_SIZE - player.bufferPos >= chunkSize &&
 			      (player.bufferPos - player.bufferConsumed < player.playbackRemaining ||
 				   player.bufferPos - player.bufferConsumed < requested) ) {
 
-				const Bit16u decoded = player.trackFile->decode(player.buffer + player.bufferPos);
+				const uint16_t decoded = player.trackFile->decode(player.buffer + player.bufferPos);
 				player.bufferPos += decoded;
 
 				// if we decoded less than expected, which could be due to EOF or if the CUE file specified
 				// an exact "INDEX 01 MIN:SEC:FRAMES" value but the compressed track is ever-so-slightly less than
 				// that specified, then simply pad with zeros.
-				const Bit16s underDecode = chunkSize - decoded;
+				const int16_t underDecode = chunkSize - decoded;
 				if (underDecode > 0) {
 
                     #ifdef DEBUG
@@ -746,7 +746,7 @@ bool CDROM_Interface_Image::LoadIsoFile(char* filename)
 
 bool CDROM_Interface_Image::CanReadPVD(TrackFile *file, int sectorSize, bool mode2)
 {
-	Bit8u pvd[COOKED_SECTOR_SIZE];
+	uint8_t pvd[COOKED_SECTOR_SIZE];
 	int seek = 16 * sectorSize;	// first vd is located at sector 16
 	if ((sectorSize == RAW_SECTOR_SIZE || sectorSize == 2448) && !mode2) seek += 16;
 	if (mode2) seek += 24;
@@ -997,7 +997,7 @@ bool CDROM_Interface_Image::GetRealFileName(string &filename, string &pathname)
 	char fullname[CROSS_LEN];
 	char tmp[CROSS_LEN];
 	safe_strncpy(tmp, filename.c_str(), CROSS_LEN);
-	Bit8u drive;
+	uint8_t drive;
 	if (!DOS_MakeName(tmp, fullname, &drive)) {
 		return false;
 	}

@@ -67,7 +67,7 @@ DOS_Drive_Cache::DOS_Drive_Cache(void) {
     label[0]        = 0;
     basePath[0]     = 0;
     nextFreeFindFirst   = 0;
-    for (Bit32u i=0; i<MAX_OPENDIRS; i++) { dirSearch[i] = 0; dirFindFirst[i] = 0; }
+    for (uint32_t i=0; i<MAX_OPENDIRS; i++) { dirSearch[i] = 0; dirFindFirst[i] = 0; }
     SetDirSort(DIRALPHABETICAL);
     updatelabel = true;
 }
@@ -79,7 +79,7 @@ DOS_Drive_Cache::DOS_Drive_Cache(const char* path, DOS_Drive *drive) {
     label[0]        = 0;
     basePath[0]     = 0;
     nextFreeFindFirst   = 0;
-    for (Bit32u i=0; i<MAX_OPENDIRS; i++) { dirSearch[i] = 0; dirFindFirst[i] = 0; }
+    for (uint32_t i=0; i<MAX_OPENDIRS; i++) { dirSearch[i] = 0; dirFindFirst[i] = 0; }
     SetDirSort(DIRALPHABETICAL);
     SetBaseDir(path,drive);
     updatelabel = true;
@@ -87,13 +87,13 @@ DOS_Drive_Cache::DOS_Drive_Cache(const char* path, DOS_Drive *drive) {
 
 DOS_Drive_Cache::~DOS_Drive_Cache(void) {
     Clear();
-    for (Bit32u i=0; i<MAX_OPENDIRS; i++) { DeleteFileInfo(dirFindFirst[i]); dirFindFirst[i]=0; }
+    for (uint32_t i=0; i<MAX_OPENDIRS; i++) { DeleteFileInfo(dirFindFirst[i]); dirFindFirst[i]=0; }
 }
 
 void DOS_Drive_Cache::Clear(void) {
     DeleteFileInfo(dirBase); dirBase = 0;
     nextFreeFindFirst   = 0;
-    for (Bit32u i=0; i<MAX_OPENDIRS; i++) dirSearch[i] = 0;
+    for (uint32_t i=0; i<MAX_OPENDIRS; i++) dirSearch[i] = 0;
 }
 
 void DOS_Drive_Cache::EmptyCache(void) {
@@ -116,10 +116,10 @@ void DOS_Drive_Cache::SetLabel(const char* vname,bool cdrom,bool allowupdate) {
     LOG(LOG_DOSMISC,LOG_NORMAL)("DIRCACHE: Set volume label to %s",label);
 }
 
-Bit16u DOS_Drive_Cache::GetFreeID(CFileInfo* dir) {
+uint16_t DOS_Drive_Cache::GetFreeID(CFileInfo* dir) {
     if (dir->id != MAX_OPENDIRS)
         return dir->id;
-    for (Bit16u i=0; i<MAX_OPENDIRS; i++) {
+    for (uint16_t i=0; i<MAX_OPENDIRS; i++) {
         if (!dirSearch[i]) {
             dir->id = i;
             return i;
@@ -133,7 +133,7 @@ Bit16u DOS_Drive_Cache::GetFreeID(CFileInfo* dir) {
 void DOS_Drive_Cache::SetBaseDir(const char* baseDir, DOS_Drive *drive) {
     if (strlen(baseDir) == 0) return;
 
-    Bit16u id;
+    uint16_t id;
     strcpy(basePath,baseDir);
     this->drive = drive;
     if (OpenDir(baseDir,id)) {
@@ -226,8 +226,8 @@ void DOS_Drive_Cache::AddEntry(const char* path, bool checkExists) {
         Bits index = GetLongName(dir,file);
         if (index>=0) {
             // Check if there are any open search dir that are affected by this...
-            if (dir) for (Bit32u i=0; i<MAX_OPENDIRS; i++) {
-                if ((dirSearch[i]==dir) && ((Bit32u)index<=dirSearch[i]->nextEntry)) 
+            if (dir) for (uint32_t i=0; i<MAX_OPENDIRS; i++) {
+                if ((dirSearch[i]==dir) && ((uint32_t)index<=dirSearch[i]->nextEntry)) 
                     dirSearch[i]->nextEntry++;
             }
         }
@@ -300,10 +300,10 @@ void DOS_Drive_Cache::AddEntryDirOverlay(const char* path, char *sfile, bool che
 			  strcpy(sfile, genname);
 	  }
       if (index>=0) {
-          Bit32u i;
+          uint32_t i;
           // Check if there are any open search dir that are affected by this...
           if (dir) for (i=0; i<MAX_OPENDIRS; i++) {
-              if ((dirSearch[i]==dir) && ((Bit32u)index<=dirSearch[i]->nextEntry)) 
+              if ((dirSearch[i]==dir) && ((uint32_t)index<=dirSearch[i]->nextEntry)) 
                   dirSearch[i]->nextEntry++;
           }
 
@@ -326,7 +326,7 @@ void DOS_Drive_Cache::DeleteEntry(const char* path, bool ignoreLastDir) {
         // Check if there are any open search dir that are affected by this...
         char expand [CROSS_LEN];
         CFileInfo* dir = FindDirInfo(path,expand);
-        if (dir) for (Bit32u i=0; i<MAX_OPENDIRS; i++) {
+        if (dir) for (uint32_t i=0; i<MAX_OPENDIRS; i++) {
             if ((dirSearch[i]==dir) && (dirSearch[i]->nextEntry>0)) 
                 dirSearch[i]->nextEntry--;
         }   
@@ -339,9 +339,9 @@ void DOS_Drive_Cache::CacheOut(const char* path, bool ignoreLastDir) {
     
     if (ignoreLastDir) {
         char tmp[CROSS_LEN] = { 0 };
-        Bit32s len=0;
+        int32_t len=0;
         const char* pos = strrchr(path,CROSS_FILESPLIT);
-        if (pos) len = (Bit32s)(pos - path);
+        if (pos) len = (int32_t)(pos - path);
         if (len>0) { 
             safe_strncpy(tmp,path,len+1); 
         } else  {
@@ -354,12 +354,12 @@ void DOS_Drive_Cache::CacheOut(const char* path, bool ignoreLastDir) {
 
 //  LOG_DEBUG("DIR: Caching out %s : dir %s",expand,dir->orgname);
 //  clear cache first?
-    for (Bit32u i=0; i<MAX_OPENDIRS; i++) {
+    for (uint32_t i=0; i<MAX_OPENDIRS; i++) {
         dirSearch[i] = 0; //free[i] = true;    
     }
     // delete file objects...
     //Maybe check if it is a file and then only delete the file and possibly the long name. instead of all objects in the dir.
-    for(Bit32u i=0; i<dir->fileList.size(); i++) {
+    for(uint32_t i=0; i<dir->fileList.size(); i++) {
         if (dirSearch[srchNr]==dir->fileList[i]) dirSearch[srchNr] = 0;
         DeleteFileInfo(dir->fileList[i]); dir->fileList[i] = 0;
     }
@@ -670,7 +670,7 @@ DOS_Drive_Cache::CFileInfo* DOS_Drive_Cache::FindDirInfo(const char* path, char*
     const char* start = path;
     const char*     pos;
     CFileInfo*  curDir = dirBase;
-    Bit16u      id;
+    uint16_t      id;
 
     if (save_dir && (strcmp(path,save_path)==0)) {
         strcpy(expandedPath,save_expanded);
@@ -749,7 +749,7 @@ DOS_Drive_Cache::CFileInfo* DOS_Drive_Cache::FindDirInfo(const char* path, char*
     return curDir;
 }
 
-bool DOS_Drive_Cache::OpenDir(const char* path, Bit16u& id) {
+bool DOS_Drive_Cache::OpenDir(const char* path, uint16_t& id) {
     char expand[CROSS_LEN] = {0};
     CFileInfo* dir = FindDirInfo(path,expand);
     if (OpenDir(dir,expand,id)) {
@@ -759,7 +759,7 @@ bool DOS_Drive_Cache::OpenDir(const char* path, Bit16u& id) {
     return false;
 }
 
-bool DOS_Drive_Cache::OpenDir(CFileInfo* dir, const char* expand, Bit16u& id) {
+bool DOS_Drive_Cache::OpenDir(CFileInfo* dir, const char* expand, uint16_t& id) {
     id = GetFreeID(dir);
     dirSearch[id] = dir;
     char expandcopy [CROSS_LEN];
@@ -837,7 +837,7 @@ void DOS_Drive_Cache::CopyEntry(CFileInfo* dir, CFileInfo* from) {
     dir->fileList.push_back(info);
 }
 
-bool DOS_Drive_Cache::ReadDir(Bit16u id, char* &result, char * &lresult) {
+bool DOS_Drive_Cache::ReadDir(uint16_t id, char* &result, char * &lresult) {
     // shouldnt happen...
     if (id>=MAX_OPENDIRS) return false;
 
@@ -901,21 +901,21 @@ bool DOS_Drive_Cache::SetResult(CFileInfo* dir, char* &result, char* &lresult, B
 }
 
 // FindFirst / FindNext
-bool DOS_Drive_Cache::FindFirst(char* path, Bit16u& id) {
-    Bit16u  dirID;
+bool DOS_Drive_Cache::FindFirst(char* path, uint16_t& id) {
+    uint16_t  dirID;
     // Cache directory in 
     if (!OpenDir(path,dirID)) return false;
 
     //Find a free slot.
     //If the next one isn't free, move on to the next, if none is free => reset and assume the worst
-    Bit16u local_findcounter = 0;
+    uint16_t local_findcounter = 0;
     while ( local_findcounter < MAX_OPENDIRS ) {
         if (dirFindFirst[this->nextFreeFindFirst] == 0) break;
         if (++this->nextFreeFindFirst >= MAX_OPENDIRS) this->nextFreeFindFirst = 0; //Wrap around
         local_findcounter++;
     }
 
-    Bit16u  dirFindFirstID = this->nextFreeFindFirst++;
+    uint16_t  dirFindFirstID = this->nextFreeFindFirst++;
     if (this->nextFreeFindFirst >= MAX_OPENDIRS) this->nextFreeFindFirst = 0; //Increase and wrap around for the next search.
 
     if (local_findcounter == MAX_OPENDIRS) { //Here is the reset from above.
@@ -953,7 +953,7 @@ bool DOS_Drive_Cache::FindFirst(char* path, Bit16u& id) {
     return true;
 }
 
-bool DOS_Drive_Cache::FindNext(Bit16u id, char* &result, char* &lresult) {
+bool DOS_Drive_Cache::FindNext(uint16_t id, char* &result, char* &lresult) {
     // out of range ?
     if ((id>=MAX_OPENDIRS) || !dirFindFirst[id]) {
         LOG(LOG_DOSMISC,LOG_ERROR)("DIRCACHE: FindFirst/Next failure : ID out of range: %04X",id);
@@ -968,7 +968,7 @@ bool DOS_Drive_Cache::FindNext(Bit16u id, char* &result, char* &lresult) {
 }
 
 void DOS_Drive_Cache::ClearFileInfo(CFileInfo *dir) {
-    for(Bit32u i=0; i<dir->fileList.size(); i++) {
+    for(uint32_t i=0; i<dir->fileList.size(); i++) {
         if (CFileInfo *info = dir->fileList[i])
             ClearFileInfo(info);
     }
