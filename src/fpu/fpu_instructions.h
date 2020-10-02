@@ -288,30 +288,30 @@ static void FPU_FST_I64(PhysPt addr) {
 
 static void FPU_FBST(PhysPt addr) {
 	FPU_Reg val = fpu.regs[TOP];
-	bool sign = false;
-	if((uint64_t)fpu.regs[TOP].ll & ULONGTYPE(0x8000000000000000)) { //sign
-		sign=true;
-		val.d=-val.d;
-	}
-	//numbers from back to front
-	double temp=val.d;
-	Bitu p;
-	for(uint8_t i=0;i<9;i++){
-		val.d=temp;
-		temp = static_cast<double>(static_cast<int64_t>(floor(val.d/10.0)));
-		p = static_cast<Bitu>(val.d - 10.0*temp);  
-		val.d=temp;
-		temp = static_cast<double>(static_cast<int64_t>(floor(val.d/10.0)));
-		p |= (static_cast<Bitu>(val.d - 10.0*temp)<<4);
+	if(val.ll & LONGTYPE(0x8000000000000000)) { // MSB = sign
+		mem_writeb(addr+9,0x80);
+		val.d = -val.d;
+	} else mem_writeb(addr+9,0);
 
-		mem_writeb(addr+i,(uint8_t)p);
+	uint64_t rndint = static_cast<uint64_t>(FROUND(val.d));
+	// BCD (18 decimal digits) overflow? (0x0DE0B6B3A763FFFF max)
+	if (rndint > LONGTYPE(999999999999999999)) {
+		// write BCD integer indefinite value
+		mem_writed(addr+0,0);
+		mem_writed(addr+4,0xC0000000);
+		mem_writew(addr+8,0xFFFF);
+		return;
 	}
-	val.d=temp;
-	temp = static_cast<double>(static_cast<int64_t>(floor(val.d/10.0)));
-	p = static_cast<Bitu>(val.d - 10.0*temp);
-	if(sign)
-		p|=0x80;
-	mem_writeb(addr+9,(uint8_t)p);
+
+	//numbers from back to front
+	for(uint8_t i=0;i<9;i++){
+		uint64_t temp = rndint / 10;
+		uint8_t p = static_cast<uint8_t>(rndint % 10);
+		rndint = temp / 10;
+		p |= (static_cast<uint8_t>(temp % 10)) << 4;
+		mem_writeb(addr++,p);
+	}
+	// flags? C1 should indicate if value was rounded up
 }
 
 #if defined(WIN32) && defined(_MSC_VER) && (_MSC_VER < 1910)
