@@ -72,14 +72,14 @@ install: src/dosbox-x
 	mkdir -p $(DESTDIR)$(bindir)
 	install -m 755 src/dosbox-x $(DESTDIR)$(bindir)
 	mkdir -p $(DESTDIR)$(prefix)/share/dosbox-x/glshaders
-	install -m 644 CHANGELOG $(DESTDIR)$(prefix)/share/dosbox-x
-	install -m 644 contrib/fonts/FREECG98.BMP $(DESTDIR)$(prefix)/share/dosbox-x
-	install -m 644 dosbox-x.reference.conf $(DESTDIR)$(prefix)/share/dosbox-x
-	install -m 644 contrib/glshaders/*.glsl $(DESTDIR)$(prefix)/share/dosbox-x/glshaders
+	install -m 644 $(srcdir)/CHANGELOG $(DESTDIR)$(prefix)/share/dosbox-x
+	install -m 644 $(srcdir)/contrib/fonts/FREECG98.BMP $(DESTDIR)$(prefix)/share/dosbox-x
+	install -m 644 $(srcdir)/dosbox-x.reference.conf $(DESTDIR)$(prefix)/share/dosbox-x
+	install -m 644 $(srcdir)/contrib/glshaders/*.glsl $(DESTDIR)$(prefix)/share/dosbox-x/glshaders
 	mkdir -p $(DESTDIR)$(prefix)/share/icons/hicolor/scalable/apps
-	install -m 644 contrib/icons/dosbox-x.svg $(DESTDIR)$(prefix)/share/icons/hicolor/scalable/apps/dosbox-x.svg
+	install -m 644 $(srcdir)/contrib/icons/dosbox-x.svg $(DESTDIR)$(prefix)/share/icons/hicolor/scalable/apps/dosbox-x.svg
 	mkdir -p $(DESTDIR)$(prefix)/share/applications
-	install -m 644 contrib/linux/dosbox-x.desktop $(DESTDIR)$(prefix)/share/applications
+	install -m 644 $(srcdir)/contrib/linux/dosbox-x.desktop $(DESTDIR)$(prefix)/share/applications
 	mkdir -p $(DESTDIR)$(prefix)/share/metainfo
 	install -m 644 contrib/linux/dosbox-x.metainfo.xml $(DESTDIR)$(prefix)/share/metainfo
 	-test -x /usr/sbin/setcap && setcap cap_net_raw=ep $(DESTDIR)$(bindir)/dosbox-x
