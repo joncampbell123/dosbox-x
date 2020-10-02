@@ -54,6 +54,17 @@ modules:
         url: https://github.com/FluidSynth/fluidsynth/archive/v2.1.5.tar.gz
         sha256: b539b7c65a650b56f01cd60a4e83c6125c217c5a63c0c214ef6274894a677d00
 
+# Build libslirp for networking
+  - name: libslirp
+    buildsystem: meson
+    cleanup:
+      - "/include"
+      - "/lib/pkgconfig"
+    sources:
+      - type: archive
+        url: https://elmarco.fedorapeople.org/libslirp-4.3.1.tar.xz
+        sha256: 388b4b08a8cc0996cc5155cb027a097dc1a7f2cfe84b1121496608ab5366cc48
+
 # Build DOSBox-X SDL1
   - name: dosbox-x
     rm-configure: true
