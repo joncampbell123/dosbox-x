@@ -23,6 +23,7 @@
 
 #include "config.h"
 #include <math.h>
+#include <stdint.h>
 
 #if C_D3DSHADERS
 
