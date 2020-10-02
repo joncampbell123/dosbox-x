@@ -106,9 +106,7 @@ extern uint16_t	NetworkHandleList[127];	/*in dos_files.cpp*/
 	return false;
 }//bool	Network_OpenFile(char * filename,uint8_t flags,uint16_t * entry)
 
-#ifndef CMAKE_BUILD // TODO there must be a better way to fix this problem
 extern "C"
-#endif
 int _nhandle;
 
  bool	Network_CloseFile(uint16_t entry)
