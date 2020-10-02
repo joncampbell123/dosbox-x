@@ -29,7 +29,6 @@ Straight Windows builds are expected to compile using the free community edition
 of Visual Studio 2015 to Visual Studio 2019 and the DirectX 2010 SDK.
 
 Linux and MinGW Windows builds are expected to compile with the GNU autotools.
-A preliminary CMake build system is available, see README.cmake.md for details.
 
 macOS builds are expected to compile on the terminal using GNU autotools and
 the LLVM/Clang compiler provided by XCode.
