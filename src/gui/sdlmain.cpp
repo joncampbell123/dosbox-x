@@ -7041,7 +7041,9 @@ bool DOSBOX_parse_argv() {
         else if (optname == "defaultdir") {
             if (control->cmdline->NextOptArgv(tmp)) {
                 struct stat st;
-                if (stat(tmp.c_str(), &st) == 0 && st.st_mode & S_IFDIR) chdir(tmp.c_str());
+                if (stat(tmp.c_str(), &st) == 0 && st.st_mode & S_IFDIR)
+                    if (chdir(tmp.c_str()) < 0)
+                        return false;
             }
         }
         else if (optname == "userconf") {
@@ -8541,9 +8543,11 @@ bool help_open_url_callback(DOSBoxMenu * const menu, DOSBoxMenu::item * const me
 #if defined(WIN32)
       ShellExecute(NULL, "open", url.c_str(), NULL, NULL, SW_SHOWNORMAL);
 #elif defined(LINUX)
-      system(("xdg-open "+url).c_str());
+      int ret = system(("xdg-open "+url).c_str());
+      return WIFEXITED(ret) && WEXITSTATUS(ret);
 #elif defined(MACOSX)
-      system(("open "+url).c_str());
+      int ret = system(("open "+url).c_str());
+      return WIFEXITED(ret) && WEXITSTATUS(ret);
 #endif
     }
 
