@@ -8554,7 +8554,7 @@ bool help_open_url_callback(DOSBoxMenu * const menu, DOSBoxMenu::item * const me
     return true;
 }
 
-bool help_intro_callback(DOSBoxMenu * const menu, DOSBoxMenu::item * const menuitem) {
+bool help_intro_callback(DOSBoxMenu * const /*menu*/, DOSBoxMenu::item * const /*menuitem*/) {
     MAPPER_ReleaseAllKeys();
 
     GFX_LosingFocus();
@@ -8568,7 +8568,7 @@ bool help_intro_callback(DOSBoxMenu * const menu, DOSBoxMenu::item * const menui
     return true;
 }
 
-bool help_about_callback(DOSBoxMenu * const menu, DOSBoxMenu::item * const menuitem) {
+bool help_about_callback(DOSBoxMenu * const /*menu*/, DOSBoxMenu::item * const /*menuitem*/) {
     MAPPER_ReleaseAllKeys();
 
     GFX_LosingFocus();
