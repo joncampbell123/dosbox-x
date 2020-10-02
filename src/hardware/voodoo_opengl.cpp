@@ -1628,7 +1628,9 @@ void voodoo_ogl_reset_videomode(void) {
 
 	GFX_TearDown();
 
+#if !defined(C_SDL2)
 	bool full_sdl_restart = true;	// make dependent on surface=opengl
+#endif
 
 	SDL_GL_SetAttribute(SDL_GL_RED_SIZE, 8);
 	SDL_GL_SetAttribute(SDL_GL_GREEN_SIZE, 8);
