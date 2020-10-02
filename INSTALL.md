@@ -16,11 +16,12 @@ You probably want to use the all-in-one Windows installation packages for the ea
 
 * [dosbox-x-windows-0.83.6-setup.exe](https://github.com/joncampbell123/dosbox-x/releases/download/dosbox-x-v0.83.6/dosbox-x-windows-0.83.6-setup.exe)
 
-The Windows installers for recent DOSBox-X versions are also available from:
+Windows installers for the previous DOSBox-X versions are also available from:
 
 * [dosbox-x-windows-0.83.5-setup.exe](https://github.com/joncampbell123/dosbox-x/releases/download/dosbox-x-v0.83.5/dosbox-x-windows-0.83.5-setup.exe)
 * [dosbox-x-windows-0.83.4-setup.exe](https://github.com/joncampbell123/dosbox-x/releases/download/dosbox-x-v0.83.4/dosbox-x-windows-0.83.4-setup.exe)
-* [dosbox-x-windows-0.83.3-setup.exe](https://github.com/joncampbell123/dosbox-x/releases/download/dosbox-x-v0.83.3/dosbox-x-windows-0.83.3-setup.exe)
+
+You can easily upgrade from a previous version of DOSBox-X to the new version with the Windows installer. The Windows installer in fact offers an option to automatically upgrade the config file (dosbox-x.conf) to the new version format while keeping all the user-customized settings already made. When you select this (recommended), the config file will include all options of the latest DOSBox-X version and also will keep all the changes already done previously by the user.
 
 Apart from the Windows installers, you can usually find three zip packages for each DOSBox-X version for the Windows platform in the Releases page as an alternative way to install DOSBox-X. These zip files are portable packages containing binaries built with Visual Studio 2019, MinGW 32-bit and MinGW 64-bit (or mingw-w64). For the current DOSBox-X version 0.83.6, these portable builds are separately available from:
 
