@@ -909,12 +909,21 @@ fi
 
 dnl FEATURE: Whether to use libpcap, and enable NE2000 emulation
 AH_TEMPLATE(C_NE2000,[Define to 1 to enable NE2000 ethernet passthrough, requires libpcap])
-if test x$have_pcap_lib = xyes -a x$have_pcap_h = xyes ; then
-  LIBS="$LIBS -lpcap";
-  AC_DEFINE(C_NE2000,1)
-else
-  AC_MSG_WARN([Can't find libpcap, NE2000 ethernet passthrough disabled])
-fi
+case "$host" in
+    *-*-cygwin* | *-*-mingw32*)
+       CFLAGS="$CFLAGS -I$pwd/vs2015/pcap"
+       CXXFLAGS="$CXXFLAGS -I$pwd/vs2015/pcap"
+       AC_DEFINE(C_NE2000,1)
+    ;;
+    *)
+       if test x$have_pcap_lib = xyes -a x$have_pcap_h = xyes ; then
+         LIBS="$LIBS -lpcap";
+         AC_DEFINE(C_NE2000,1)
+       else
+         AC_MSG_WARN([Can't find libpcap, NE2000 ethernet passthrough disabled])
+       fi
+    ;;
+esac
 
 if test x$enable_x11 != xno; then
   dnl FEATURE: Whether to use X11 XKBlib
