@@ -1371,7 +1371,7 @@ static void fluid_handle_settings_iter1(void* data, char* name, int type)
 {
   struct _fluid_handle_settings_data_t* d = (struct _fluid_handle_settings_data_t*) data;
 
-  int len = FLUID_STRLEN(name);
+  int len = (int)FLUID_STRLEN(name);
   if (len > d->len) {
     d->len = len;
   }
@@ -1381,7 +1381,7 @@ static void fluid_handle_settings_iter2(void* data, char* name, int type)
 {
   struct _fluid_handle_settings_data_t* d = (struct _fluid_handle_settings_data_t*) data;
 
-  int len = FLUID_STRLEN(name);
+  int len = (int)FLUID_STRLEN(name);
   fluid_ostream_printf(d->out, "%s", name);
   while (len++ < d->len) {
     fluid_ostream_printf(d->out, " ");

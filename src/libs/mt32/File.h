@@ -32,7 +32,7 @@ public:
 
 	virtual ~File() {}
 	virtual size_t getSize() = 0;
-	virtual const Bit8u *getData() = 0;
+	virtual const uint8_t *getData() = 0;
 	virtual const SHA1Digest &getSHA1() = 0;
 
 	virtual void close() = 0;
@@ -56,15 +56,15 @@ private:
 
 class MT32EMU_EXPORT ArrayFile : public AbstractFile {
 public:
-	ArrayFile(const Bit8u *data, size_t size);
-	ArrayFile(const Bit8u *data, size_t size, const SHA1Digest &sha1Digest);
+	ArrayFile(const uint8_t *data, size_t size);
+	ArrayFile(const uint8_t *data, size_t size, const SHA1Digest &sha1Digest);
 
 	size_t getSize();
-	const Bit8u *getData();
+	const uint8_t *getData();
 	void close() {}
 
 private:
-	const Bit8u *data;
+	const uint8_t *data;
 	size_t size;
 };
 

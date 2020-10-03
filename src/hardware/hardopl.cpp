@@ -29,7 +29,7 @@
 
      extern void  Out32 (short portaddr, short datum);
 
-static Bit16s hardopldiff;
+static int16_t hardopldiff;
 static bool isCMS;
 static FILE * logfp = NULL;
 
@@ -69,7 +69,7 @@ bool hwopl_dirty=false;
 static IO_ReadHandleObject* hwOPL_ReadHandler[16] ;
 static IO_WriteHandleObject* hwOPL_WriteHandler[16];
 
-const Bit16u oplports[]={
+const uint16_t oplports[]={
 		0x0,0x1,0x2,0x3,0x8,0x9,
 		0x388,0x389,0x38A,0x38B};
 
@@ -144,7 +144,7 @@ void HARDOPL_Init(Bitu hardwareaddr, Bitu blasteraddr, bool isCMSp) {
 		for(int i = 0; i < 10; i++)	{
 			hwOPL_ReadHandler[i]=new IO_ReadHandleObject();
 			hwOPL_WriteHandler[i]=new IO_WriteHandleObject();
-			Bit16u port=oplports[i];
+			uint16_t port=oplports[i];
 			if(i<6) port+=blasteraddr; 
 			hwOPL_ReadHandler[i]->Install(port,read_hwio,IO_MB);
 			hwOPL_WriteHandler[i]->Install(port,write_hwio,IO_MB);

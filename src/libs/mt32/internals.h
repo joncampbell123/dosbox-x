@@ -89,8 +89,8 @@
 
 namespace MT32Emu {
 
-typedef Bit16s IntSample;
-typedef Bit32s IntSampleEx;
+typedef int16_t IntSample;
+typedef int32_t IntSampleEx;
 typedef float FloatSample;
 
 enum PolyState {

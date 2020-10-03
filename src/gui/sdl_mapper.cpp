@@ -128,7 +128,7 @@ typedef std::vector<CBindGroup *>::iterator     CBindGroup_it;
 
 static struct {
     bool                                        button_pressed[MAX_VJOY_BUTTONS];
-    Bit16s                                      axis_pos[MAX_VJOY_AXES];
+    int16_t                                      axis_pos[MAX_VJOY_AXES];
     bool                                        hat_pressed[MAX_VJOY_HATS];
 } virtual_joysticks[2];
 
@@ -158,7 +158,7 @@ struct KeyBlock {
 static DOSBoxMenu                               mapperMenu;
 #endif
 
-extern Bit8u                                    int10_font_14[256 * 14];
+extern uint8_t                                    int10_font_14[256 * 14];
 
 std::map<std::string,std::string>               pending_string_binds;
 
@@ -272,8 +272,8 @@ static bool initjoy=true;
 
 static void                                     SetActiveEvent(CEvent * event);
 static void                                     SetActiveBind(CBind * _bind);
-static void                                     change_action_text(const char* text,Bit8u col);
-static void                                     DrawText(Bitu x,Bitu y,const char * text,Bit8u color,Bit8u bkcolor=CLR_BLACK);
+static void                                     change_action_text(const char* text,uint8_t col);
+static void                                     DrawText(Bitu x,Bitu y,const char * text,uint8_t color,uint8_t bkcolor=CLR_BLACK);
 static void                                     MAPPER_SaveBinds(void);
 
 CEvent*                                         get_mapper_event_by_name(const std::string &x);
@@ -595,7 +595,7 @@ public:
     Bitu flags;
 
     //! \brief Binding value (TODO?)
-    Bit16s value;
+    int16_t value;
 
     //! \brief Event object this binding is bound to (for visual UI purposes)
     CEvent * event;
@@ -790,7 +790,7 @@ typedef SDL_Scancode SDLKey;
 #define MAX_SDLKEYS 323
 
 static int usescancodes=-1;
-static Bit8u scancode_map[MAX_SDLKEYS];
+static uint8_t scancode_map[MAX_SDLKEYS];
 
 #define Z SDLK_UNKNOWN
 
@@ -1292,7 +1292,7 @@ protected:
 
 class CJHatBind : public CBind {
 public:
-    CJHatBind(CBindList * _list,CBindGroup * _group,Bitu _hat,Bit8u _dir) : CBind(_list) {
+    CJHatBind(CBindList * _list,CBindGroup * _group,Bitu _hat,uint8_t _dir) : CBind(_list) {
         group = _group;
         hat   = _hat;
         dir   = _dir;
@@ -1315,7 +1315,7 @@ public:
 protected:
     CBindGroup * group;
     Bitu hat;
-    Bit8u dir;
+    uint8_t dir;
 };
 
 class CStickBindGroup : public  CBindGroup {
@@ -1419,7 +1419,7 @@ public:
             bind=CreateButtonBind(but);
         } else if (!strcasecmp(type,"hat")) {
             Bitu hat=(Bitu)ConvDecWord(StripWord(buf));           
-            Bit8u dir=(Bit8u)ConvDecWord(StripWord(buf));           
+            uint8_t dir=(uint8_t)ConvDecWord(StripWord(buf));           
             bind=CreateHatBind(hat,dir);
         }
         return bind;
@@ -1594,7 +1594,7 @@ private:
             return new CJButtonBind(&button_lists[button],this,button);
         return NULL;
     }
-    CBind * CreateHatBind(Bitu hat,Bit8u value) {
+    CBind * CreateHatBind(Bitu hat,uint8_t value) {
         Bitu hat_dir;
         if (value&SDL_HAT_UP) hat_dir=0;
         else if (value&SDL_HAT_RIGHT) hat_dir=1;
@@ -1633,7 +1633,7 @@ private:
         return response;
     }
 
-    static void ProcessInput(Bit16s x, Bit16s y, float deadzone, DOSBox_Vector2& joy)
+    static void ProcessInput(int16_t x, int16_t y, float deadzone, DOSBox_Vector2& joy)
     {
         // http://www.third-helix.com/2013/04/12/doing-thumbstick-dead-zones-right.html
 
@@ -1666,8 +1666,8 @@ protected:
 
     DOSBox_Vector2 GetJoystickVector(int joystick, int thumbStick, int xAxis, int yAxis) const
     {
-        Bit16s x = virtual_joysticks[joystick].axis_pos[xAxis];
-        Bit16s y = virtual_joysticks[joystick].axis_pos[yAxis];
+        int16_t x = virtual_joysticks[joystick].axis_pos[xAxis];
+        int16_t y = virtual_joysticks[joystick].axis_pos[yAxis];
         float deadzone;
         float response;
         if (joystick == 0)
@@ -1976,7 +1976,7 @@ public:
         }
 
         unsigned i;
-        Bit16u j;
+        uint16_t j;
         j=button_state;
         for(i=0;i<16;i++) if (j & 1) break; else j>>=1;
         JOYSTICK_Button(0,0,i&1);
@@ -2040,7 +2040,7 @@ public:
     }
 
 protected:
-    Bit16u button_state;
+    uint16_t button_state;
 };
 
 void CBindGroup::ActivateBindList(CBindList * list,Bits value,bool ev_trigger) {
@@ -2078,19 +2078,19 @@ public:
         press=false;
     }
     virtual void Draw(void) {
-        Bit8u bg;
+        uint8_t bg;
 
         if (!enabled) return;
 
         if (!invert)
-            bg = press ? Bit8u(CLR_DARKGREEN) : bkcolor;
+            bg = press ? uint8_t(CLR_DARKGREEN) : bkcolor;
         else
             bg = color;
 
 #if defined(C_SDL2)
-        Bit8u * point=((Bit8u *)mapper.draw_surface->pixels)+(y*mapper.draw_surface->w)+x;
+        uint8_t * point=((uint8_t *)mapper.draw_surface->pixels)+(y*mapper.draw_surface->w)+x;
 #else
-        Bit8u * point=((Bit8u *)mapper.surface->pixels)+(y*mapper.surface->pitch)+x;
+        uint8_t * point=((uint8_t *)mapper.surface->pixels)+(y*mapper.surface->pitch)+x;
 #endif
         for (Bitu lines=0;lines<dy;lines++)  {
             if (lines==0 || lines==(dy-1)) {
@@ -2124,11 +2124,11 @@ public:
         mapper.redraw=true;
     }
     virtual void RebindRedraw(void) {}
-    void SetColor(Bit8u _col) { color=_col; }
+    void SetColor(uint8_t _col) { color=_col; }
 protected:
     Bitu x,y,dx,dy;
-    Bit8u color;
-    Bit8u bkcolor;
+    uint8_t color;
+    uint8_t bkcolor;
     bool press;
     bool invert;
     bool enabled;
@@ -2141,13 +2141,13 @@ public:
     CTextButton(Bitu _x,Bitu _y,Bitu _dx,Bitu _dy,const char * _text) : CButton(_x,_y,_dx,_dy) { text=_text; invertw=0; }
     virtual ~CTextButton() {}
     void Draw(void) {
-        Bit8u fg,bg;
+        uint8_t fg,bg;
 
         if (!enabled) return;
 
         if (!invert) {
             fg = color;
-            bg = press ? Bit8u(CLR_DARKGREEN) : bkcolor;
+            bg = press ? uint8_t(CLR_DARKGREEN) : bkcolor;
         }
         else {
             fg = bkcolor;
@@ -2158,9 +2158,9 @@ public:
         DrawText(x+2,y+2,text,fg,bg);
 
 #if defined(C_SDL2)
-        Bit8u * point=((Bit8u *)mapper.draw_surface->pixels)+(y*mapper.draw_surface->w)+x;
+        uint8_t * point=((uint8_t *)mapper.draw_surface->pixels)+(y*mapper.draw_surface->w)+x;
 #else
-        Bit8u * point=((Bit8u *)mapper.surface->pixels)+(y*mapper.surface->pitch)+x;
+        uint8_t * point=((uint8_t *)mapper.surface->pixels)+(y*mapper.surface->pitch)+x;
 #endif
         for (Bitu lines=0;lines<(dy-1);lines++) {
             if (lines != 0) {
@@ -2325,9 +2325,9 @@ public:
         CTextButton::Draw();
         if (checked) {
 #if defined(C_SDL2)
-            Bit8u * point=((Bit8u *)mapper.draw_surface->pixels)+((y+2)*mapper.draw_surface->pitch)+x+dx-dy+2;
+            uint8_t * point=((uint8_t *)mapper.draw_surface->pixels)+((y+2)*mapper.draw_surface->pitch)+x+dx-dy+2;
 #else
-            Bit8u * point=((Bit8u *)mapper.surface->pixels)+((y+2)*mapper.surface->pitch)+x+dx-dy+2;
+            uint8_t * point=((uint8_t *)mapper.surface->pixels)+((y+2)*mapper.surface->pitch)+x+dx-dy+2;
 #endif
             for (Bitu lines=0;lines<(dy-4);lines++)  {
                 memset(point,color,dy-4);
@@ -2404,7 +2404,7 @@ public:
 
 class CMouseButtonEvent : public CTriggeredEvent {
 public:
-	CMouseButtonEvent(char const * const _entry,Bit8u _button) : CTriggeredEvent(_entry) {
+	CMouseButtonEvent(char const * const _entry,uint8_t _button) : CTriggeredEvent(_entry) {
 		button=_button;
         notify_button=NULL;
 	}
@@ -2427,7 +2427,7 @@ public:
     //! \brief Text button in the mapper UI to indicate our status by
     CTextButton *notify_button;
 
-	Bit8u button;
+	uint8_t button;
 };
 
 //! \brief Joystick axis event handling for the mapper
@@ -2451,7 +2451,7 @@ public:
         if (notify_button != NULL)
             notify_button->SetPartialInvert(GetValue()/32768.0);
 
-        virtual_joysticks[stick].axis_pos[axis]=(Bit16s)(GetValue()*(positive?1:-1));
+        virtual_joysticks[stick].axis_pos[axis]=(int16_t)(GetValue()*(positive?1:-1));
     }
 
     virtual Bitu GetActivityCount(void) {
@@ -2917,17 +2917,17 @@ CEvent *get_mapper_event_by_name(const std::string &x) {
     return NULL;
 }
 
-static void DrawText(Bitu x,Bitu y,const char * text,Bit8u color,Bit8u bkcolor/*=CLR_BLACK*/) {
+static void DrawText(Bitu x,Bitu y,const char * text,uint8_t color,uint8_t bkcolor/*=CLR_BLACK*/) {
 #if defined(C_SDL2)
-    Bit8u * draw=((Bit8u *)mapper.draw_surface->pixels)+(y*mapper.draw_surface->w)+x;
+    uint8_t * draw=((uint8_t *)mapper.draw_surface->pixels)+(y*mapper.draw_surface->w)+x;
 #else
-    Bit8u * draw=((Bit8u *)mapper.surface->pixels)+(y*mapper.surface->pitch)+x;
+    uint8_t * draw=((uint8_t *)mapper.surface->pixels)+(y*mapper.surface->pitch)+x;
 #endif
     while (*text) {
-        Bit8u * font=&int10_font_14[(*text)*14];
-        Bitu i,j;Bit8u * draw_line=draw;
+        uint8_t * font=&int10_font_14[(*text)*14];
+        Bitu i,j;uint8_t * draw_line=draw;
         for (i=0;i<14;i++) {
-            Bit8u map=*font++;
+            uint8_t map=*font++;
             for (j=0;j<8;j++) {
                 if (map & 0x80) *(draw_line+j)=color;
                 else *(draw_line+j)=bkcolor;
@@ -2957,7 +2957,7 @@ void MAPPER_TriggerEventByName(const std::string& name) {
     }
 }
 
-static void change_action_text(const char* text,Bit8u col) {
+static void change_action_text(const char* text,uint8_t col) {
     bind_but.action->Change(text,"");
     bind_but.action->SetColor(col);
 }
@@ -3008,8 +3008,8 @@ static void SetActiveEvent(CEvent * event) {
 }
 
 #if defined(C_SDL2)
-extern SDL_Window * GFX_SetSDLSurfaceWindow(Bit16u width, Bit16u height);
-extern SDL_Rect GFX_GetSDLSurfaceSubwindowDims(Bit16u width, Bit16u height);
+extern SDL_Window * GFX_SetSDLSurfaceWindow(uint16_t width, uint16_t height);
+extern SDL_Rect GFX_GetSDLSurfaceSubwindowDims(uint16_t width, uint16_t height);
 extern void GFX_UpdateDisplayDimensions(int width, int height);
 #endif
 
@@ -3045,7 +3045,7 @@ static CKeyEvent * AddKeyButtonEvent(Bitu x,Bitu y,Bitu dx,Bitu dy,char const * 
     return event;
 }
 
-static CMouseButtonEvent * AddMouseButtonEvent(Bitu x,Bitu y,Bitu dx,Bitu dy,char const * const title,char const * const entry,Bit8u key) {
+static CMouseButtonEvent * AddMouseButtonEvent(Bitu x,Bitu y,Bitu dx,Bitu dy,char const * const title,char const * const entry,uint8_t key) {
 	char buf[64];
 	strcpy(buf,"mouse_");
 	strcat(buf,entry);
@@ -4128,7 +4128,7 @@ static void CreateBindGroups(void) {
         if (mapper.sticks.num) SDL_JoystickEventState(SDL_ENABLE);
         else return;
 #endif
-        Bit8u joyno=0;
+        uint8_t joyno=0;
         switch (joytype) {
         case JOY_NONE:
             break;
@@ -4596,7 +4596,7 @@ void loadScanCode() {
         for (i=0; i<MAX_SDLKEYS; i++) scancode_map[i]=0;
         for (i=0; i<MAX_SCANCODES; i++) {
             SDLKey key=sdlkey_map[i];
-            if (key<MAX_SDLKEYS) scancode_map[key]=(Bit8u)i;
+            if (key<MAX_SDLKEYS) scancode_map[key]=(uint8_t)i;
         }
     }
 }

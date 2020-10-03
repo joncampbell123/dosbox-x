@@ -28,7 +28,7 @@
 
 #include "printer_charmaps.h"
 
-CFileLPT::CFileLPT (Bitu nr, Bit8u initIrq, CommandLine* cmd)
+CFileLPT::CFileLPT (Bitu nr, uint8_t initIrq, CommandLine* cmd)
                               :CParallel (cmd, nr,initIrq) {
     bool is_file = false;
 	InstallationSuccessful = false;
@@ -127,7 +127,7 @@ bool CFileLPT::OpenFile() {
 	}
 }
 
-bool CFileLPT::Putchar(Bit8u val)
+bool CFileLPT::Putchar(uint8_t val)
 {	
 #if PARALLEL_DEBUG
 	log_par(dbg_putchar,"putchar  0x%2x",val);
@@ -139,8 +139,8 @@ bool CFileLPT::Putchar(Bit8u val)
 	if(!fileOpen) if(!OpenFile()) return false;
 
 	if(codepage_ptr!=NULL) {
-		Bit16u extchar = codepage_ptr[val];
-		if(extchar & 0xFF00) fputc((int)((Bit8u)(extchar >> 8)),file);
+		uint16_t extchar = codepage_ptr[val];
+		if(extchar & 0xFF00) fputc((int)((uint8_t)(extchar >> 8)),file);
 		fputc((Bitu)(extchar & 0xFF),file);
 
 	} else fputc((Bitu)val,file);
@@ -160,14 +160,14 @@ Bitu CFileLPT::Read_COM() {
 	return controlreg;
 }
 Bitu CFileLPT::Read_SR() {
-	Bit8u status =0x9f;
+	uint8_t status =0x9f;
 	if(!ack) status |= 0x40;
 	ack=false;
 	return status;
 }
 
 void CFileLPT::Write_PR(Bitu val) {
-	datareg = (Bit8u)val;
+	datareg = (uint8_t)val;
 }
 void CFileLPT::Write_CON(Bitu val) {
 	// init printer if bit 4 is switched on
@@ -186,7 +186,7 @@ void CFileLPT::Write_IOSEL(Bitu val) {
     (void)val;//UNUSED
 	// not needed for file printing functionality
 }
-void CFileLPT::handleUpperEvent(Bit16u type) {
+void CFileLPT::handleUpperEvent(uint16_t type) {
     (void)type;//UNUSED
 	if(fileOpen && timeout != 0) {
 		if(lastUsedTick + timeout < PIC_Ticks) {

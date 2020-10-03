@@ -93,8 +93,8 @@ inline void conc2d(Hq2x,SBPP)(PTYPE * line0, PTYPE * line1, const PTYPE * fc)
 
 	if (_RGBtoYUV == 0) conc2d(InitLUTs,SBPP)();
 
-	Bit32u pattern = 0;
-	const Bit32u YUV4 = RGBtoYUV(C4);
+	uint32_t pattern = 0;
+	const uint32_t YUV4 = RGBtoYUV(C4);
 	if (C4 != C0 && diffYUV(YUV4, RGBtoYUV(C0))) pattern |= 0x0001;
 	if (C4 != C1 && diffYUV(YUV4, RGBtoYUV(C1))) pattern |= 0x0002;
 	if (C4 != C2 && diffYUV(YUV4, RGBtoYUV(C2))) pattern |= 0x0004;

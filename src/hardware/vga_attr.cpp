@@ -59,7 +59,7 @@ void VGA_ATTR_SetEGAMonitorPalette(EGAMonitorMode m) {
 		case MONO:
 			//LOG_MSG("Monitor MONO");
 			for (Bitu i=0;i<64;i++) {
-				Bit8u value = ((i & 0x8)? 0x2a:0) + ((i & 0x10)? 0x15:0);
+				uint8_t value = ((i & 0x8)? 0x2a:0) + ((i & 0x10)? 0x15:0);
 				vga.dac.rgb[i].red = vga.dac.rgb[i].green =
 					vga.dac.rgb[i].blue = value;
 			}
@@ -67,11 +67,11 @@ void VGA_ATTR_SetEGAMonitorPalette(EGAMonitorMode m) {
 	}
 
 	// update the mappings
-	for (Bit8u i=0;i<0x10;i++)
+	for (uint8_t i=0;i<0x10;i++)
 		VGA_ATTR_SetPalette(i,vga.attr.palette[i]);
 }
 
-void VGA_ATTR_SetPalette(Bit8u index, Bit8u val) {
+void VGA_ATTR_SetPalette(uint8_t index, uint8_t val) {
 	// the attribute table stores only 6 bits
 	val &= 63; 
 	vga.attr.palette[index] = val;
@@ -159,7 +159,7 @@ void write_p3c0(Bitu /*port*/,Bitu val,Bitu iolen) {
 		case 0x08:		case 0x09:		case 0x0a:		case 0x0b:
 		case 0x0c:		case 0x0d:		case 0x0e:		case 0x0f:
 			if (attr(disabled) & 0x1) {
-                VGA_ATTR_SetPalette(attr(index),(Bit8u)val);
+                VGA_ATTR_SetPalette(attr(index),(uint8_t)val);
 
                 /* if the color plane enable register is anything other than 0x0F, then
                  * the whole attribute palette must be re-sent to the DAC because the
@@ -168,11 +168,11 @@ void write_p3c0(Bitu /*port*/,Bitu val,Bitu iolen) {
                  * emulation because it uses the color plane enable mask directly. */
                 if (IS_VGA_ARCH && (attr(color_plane_enable) & 0x0F) != 0x0F) {
                     /* update entries before the desired index */
-                    for (Bit8u i=0;i < attr(index);i++)
+                    for (uint8_t i=0;i < attr(index);i++)
                         VGA_ATTR_SetPalette(i,vga.attr.palette[i]);
 
                     /* update entries after the desired index */
-                    for (Bit8u i=attr(index)+1;i < 0x10;i++)
+                    for (uint8_t i=attr(index)+1;i < 0x10;i++)
                         VGA_ATTR_SetPalette(i,vga.attr.palette[i]);
                 }
             }
@@ -184,10 +184,10 @@ void write_p3c0(Bitu /*port*/,Bitu val,Bitu iolen) {
 		case 0x10: { /* Mode Control Register */
 			if (!IS_VGA_ARCH) val&=0x1f;	// not really correct, but should do it
 			Bitu difference = attr(mode_control)^val;
-			attr(mode_control)=(Bit8u)val;
+			attr(mode_control)=(uint8_t)val;
 
 			if (difference & 0x80) {
-				for (Bit8u i=0;i<0x10;i++)
+				for (uint8_t i=0;i<0x10;i++)
 					VGA_ATTR_SetPalette(i,vga.attr.palette[i]);
 			}
 			if (difference & 0x08)
@@ -201,13 +201,13 @@ void write_p3c0(Bitu /*port*/,Bitu val,Bitu iolen) {
 			if (difference & 0x04) {
 				// recompute the panning value
 				if(vga.mode==M_TEXT) {
-					Bit8u pan_reg = attr(horizontal_pel_panning);
+					uint8_t pan_reg = attr(horizontal_pel_panning);
 					if (pan_reg > 7)
 						vga.config.pel_panning=0;
 					else if (val&0x4) // 9-dot wide characters
-						vga.config.pel_panning=(Bit8u)(pan_reg+1);
+						vga.config.pel_panning=(uint8_t)(pan_reg+1);
 					else // 8-dot characters
-						vga.config.pel_panning=(Bit8u)pan_reg;
+						vga.config.pel_panning=(uint8_t)pan_reg;
 				}
 			}
 			/*
@@ -229,7 +229,7 @@ void write_p3c0(Bitu /*port*/,Bitu val,Bitu iolen) {
 			break;
 		}
 		case 0x11:	/* Overscan Color Register */
-			attr(overscan_color)=(Bit8u)val;
+			attr(overscan_color)=(uint8_t)val;
 			/* 0-5  Color of screen border. Color is defined as in the palette registers. */
 			break;
 		case 0x12:	/* Color Plane Enable Register */
@@ -237,11 +237,11 @@ void write_p3c0(Bitu /*port*/,Bitu val,Bitu iolen) {
 			/* To support weird modes. */
 			if ((attr(color_plane_enable)^val) & 0xf) {
 				// in case the plane enable bits change...
-				attr(color_plane_enable)=(Bit8u)val;
-				for (Bit8u i=0;i<0x10;i++)
+				attr(color_plane_enable)=(uint8_t)val;
+				for (uint8_t i=0;i<0x10;i++)
 					VGA_ATTR_SetPalette(i,vga.attr.palette[i]);
 			} else
-				attr(color_plane_enable)=(Bit8u)val;
+				attr(color_plane_enable)=(uint8_t)val;
 			/* 
 				0	Bit plane 0 is enabled if set.
 				1	Bit plane 1 is enabled if set.
@@ -259,9 +259,9 @@ void write_p3c0(Bitu /*port*/,Bitu val,Bitu iolen) {
 				if (val > 7)
 					vga.config.pel_panning=0;
 				else if (vga.attr.mode_control&0x4) // 9-dot wide characters
-					vga.config.pel_panning=(Bit8u)(val+1);
+					vga.config.pel_panning=(uint8_t)(val+1);
 				else // 8-dot characters
-					vga.config.pel_panning=(Bit8u)val;
+					vga.config.pel_panning=(uint8_t)val;
 				break;
 			case M_VGA:
 			case M_LIN8:
@@ -291,8 +291,8 @@ void write_p3c0(Bitu /*port*/,Bitu val,Bitu iolen) {
 				break;
 			}
 			if (attr(color_select) ^ val) {
-				attr(color_select)=(Bit8u)val;
-				for (Bit8u i=0;i<0x10;i++)
+				attr(color_select)=(uint8_t)val;
+				for (uint8_t i=0;i<0x10;i++)
 					VGA_ATTR_SetPalette(i,vga.attr.palette[i]);
 			}
 			/*

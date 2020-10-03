@@ -755,7 +755,7 @@ static int dirExists(char const * aDirPath)
 
 		if (!aDirPath)
 			return 0;
-		lDirLen = strlen(aDirPath);
+		lDirLen = (int)strlen(aDirPath);
 		if (!lDirLen)
 			return 1;
 		if ( (lDirLen == 2) && (aDirPath[1] == ':') )
@@ -1529,7 +1529,7 @@ wchar_t * tinyfd_openFileDialogW(
         ofn.nMaxCustFilter = 0;
         ofn.nFilterIndex = 1;
         ofn.lpstrFile = lBuff;
-		ofn.nMaxFile = lFullBuffLen;
+		ofn.nMaxFile = (DWORD)lFullBuffLen;
         ofn.lpstrFileTitle = NULL;
         ofn.nMaxFileTitle = MAX_PATH_OR_CMD / 2;
         ofn.lpstrInitialDir = wcslen(lDirname) ? lDirname : NULL;
@@ -2535,7 +2535,7 @@ static void writeUtf8( char const * aUtf8String )
 
 	lConsoleHandle = GetStdHandle(STD_OUTPUT_HANDLE);
 	lTmpWChar = tinyfd_utf8to16(aUtf8String);
-	(void)WriteConsoleW(lConsoleHandle, lTmpWChar, wcslen(lTmpWChar), &lNum, NULL);
+	(void)WriteConsoleW(lConsoleHandle, lTmpWChar, (DWORD)wcslen(lTmpWChar), &lNum, NULL);
 }
 
 

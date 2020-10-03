@@ -385,7 +385,7 @@ fluid_file_renderer_process_block(fluid_file_renderer_t* dev)
 
 	for (offset = 0; offset < dev->buf_size; offset += n) {
 
-		n = fwrite((char*) dev->buf + offset, 1, dev->buf_size - offset, dev->file);
+		n = (int)fwrite((char*) dev->buf + offset, 1, dev->buf_size - offset, dev->file);
 		if (n < 0) {
 			FLUID_LOG(FLUID_ERR, "Audio output file write error: %s",
 				  strerror (errno));

@@ -13,7 +13,9 @@ Before contributing to DOSBox-X, please check the [issue tracker](https://github
 - Missing, incorrect, or inaccurate hardware emulation, e.g. video, sound, input
 - Bug fixes and/or improvements that allows for example demoscene productions to run in DOSBox-X
 
-You do not necessarily need to be versed in coding; there are other ways to contribute to the project as well. For example, you can submit bug reports, asking for new features, or helping other DOSBox-X users by suggesting solutions to their problems in the [issue tracker](https://github.com/joncampbell123/dosbox-x/issues). You may also help improve DOSBox-X's documentation (such as the [DOSBox-X Wiki](https://github.com/joncampbell123/dosbox-x/wiki)), translate its language file to another language, or help promoting the software in other websites.
+As DOSBox-X aims to be a complete and accurate DOS emulation package, please keep in mind as in general rule the more complete and accurate the emulation, the better. In the area of hardware for example, from original IBM PC hardware with 64KB of RAM all the way up to late 1990's hardware, whatever it takes to get the game or software package to run, covering all pre-2000 DOS and Windows 9x based hardware scenarios, including peripherals, motherboards, CPUs, and all manner of hardware that was made for PC hardware of that time.
+
+You do not necessarily need to be versed in coding; there are other ways to contribute to the project as well. For example, you can submit bug reports, asking for new features or requesting other improvements in the [issue tracker](https://github.com/joncampbell123/dosbox-x/issues). General conversations and helping other DOSBox-X users (e.g. suggesting solutions to their problems) are appreciated as well. You may also help improve DOSBox-X's documentation (such as the [DOSBox-X Wiki](https://github.com/joncampbell123/dosbox-x/wiki)), translate its language file to another language, or help promoting the software in other websites and forums.
 
 ## Code
 

@@ -33,14 +33,14 @@ public:
 	void setRTS(bool val);
 	void setDTR(bool val);
 
-	void updatePortConfig(Bit16u, Bit8u lcr);
+	void updatePortConfig(uint16_t, uint8_t lcr);
 	void updateMSR();
-	void transmitByte(Bit8u val, bool first);
+	void transmitByte(uint8_t val, bool first);
 	void setBreak(bool value);
-	void handleUpperEvent(Bit16u type);
+	void handleUpperEvent(uint16_t type);
 
 #ifdef CHECKIT_TESTPLUG
-	Bit8u loopbackdata;
+	uint8_t loopbackdata;
 #endif
 
 };

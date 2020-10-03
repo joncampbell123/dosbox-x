@@ -64,7 +64,7 @@ public:
 	void FillVector(std::vector<std::string> & vector);
 	unsigned int GetCount(void);
 	void Shift(unsigned int amount=1);
-	Bit16u Get_arglength();
+	uint16_t Get_arglength();
 
 	bool BeginOpt(bool eat_argv=true);
 	bool GetOpt(std::string &name);

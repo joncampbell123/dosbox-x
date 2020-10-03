@@ -35,7 +35,7 @@
 
 void VOODOO_PCI_InitEnable(Bitu val);
 void VOODOO_PCI_Enable(bool enable);
-void VOODOO_PCI_SetLFB(Bit32u lfbaddr);
+void VOODOO_PCI_SetLFB(uint32_t lfbaddr);
 bool VOODOO_PCI_CheckLFBPage(Bitu page);
 PageHandler* VOODOO_GetPageHandler();
 

@@ -54,7 +54,7 @@ public:
 	MyFifo(Bitu maxsize_) {
 		maxsize=size=maxsize_;
 		pos=used=0;
-		data=new Bit8u[size];
+		data=new uint8_t[size];
 	}
 	~MyFifo() {
 		if (data != NULL) {
@@ -85,7 +85,7 @@ public:
 		data[0]=0;
 	}
 
-	bool addb(Bit8u _val) {
+	bool addb(uint8_t _val) {
 		Bitu where=pos+used;
 		if (where>=size) where-=size;
 		if(used>=size) {
@@ -99,7 +99,7 @@ public:
 		used++;
 		return true;
 	}
-	Bit8u getb() {
+	uint8_t getb() {
 		if (!used) return data[pos];
 		Bitu where=pos;
 		used--;
@@ -107,7 +107,7 @@ public:
 		if (pos>=size) pos-=size;
 		return data[where];
 	}
-	Bit8u getTop() {
+	uint8_t getTop() {
 		Bitu where=pos+used;
 		if (where>=size) where-=size;
 		if(used>=size) {
@@ -117,11 +117,11 @@ public:
 		return data[where];
 	}
 
-	Bit8u probeByte() {
+	uint8_t probeByte() {
 		return data[pos];
 	}
 private:
-	Bit8u * data;
+	uint8_t * data;
 	Bitu maxsize,size,pos,used;
 };
 
@@ -155,10 +155,10 @@ public:
 	void changeLineProperties();
 	Bitu idnumber;
 
-	void setEvent(Bit16u type, float duration);
-	void removeEvent(Bit16u type);
-	void handleEvent(Bit16u type);
-	virtual void handleUpperEvent(Bit16u type)=0;
+	void setEvent(uint16_t type, float duration);
+	void removeEvent(uint16_t type);
+	void handleEvent(uint16_t type);
+	virtual void handleUpperEvent(uint16_t type)=0;
 	
 	// defines for event type
 #define SERIAL_TX_LOOPBACK_EVENT 0
@@ -201,15 +201,15 @@ public:
 	virtual void setDTR(bool val)=0;
 
 	// Register access
-	void Write_THR(Bit8u data);
-	void Write_IER(Bit8u data);
-	void Write_FCR(Bit8u data);
-	void Write_LCR(Bit8u data);
-	void Write_MCR(Bit8u data);
+	void Write_THR(uint8_t data);
+	void Write_IER(uint8_t data);
+	void Write_FCR(uint8_t data);
+	void Write_LCR(uint8_t data);
+	void Write_MCR(uint8_t data);
 	// Really old hardware seems to have the delta part of this register writable
-	void Write_MSR(Bit8u val);
-	void Write_SPR(Bit8u data);
-	void Write_reserved(Bit8u data, Bit8u address);
+	void Write_MSR(uint8_t val);
+	void Write_SPR(uint8_t data);
+	void Write_reserved(uint8_t data, uint8_t address);
 
 	Bitu Read_RHR();
 	Bitu Read_IER();
@@ -221,8 +221,8 @@ public:
 	Bitu Read_SPR();
 	
 	// If a byte comes from loopback or prepherial, put it in here.
-	void receiveByte(Bit8u data);
-	void receiveByteEx(Bit8u data, Bit8u error);
+	void receiveByte(uint8_t data);
+	void receiveByteEx(uint8_t data, uint8_t error);
 
 	// depratched
 	// connected device checks, if port can receive data:
@@ -235,18 +235,18 @@ public:
 	void ByteTransmitted();
 
 	// Transmit byte to prepherial
-	virtual void transmitByte(Bit8u val, bool first)=0;
+	virtual void transmitByte(uint8_t val, bool first)=0;
 
 	// switch break state to the passed value
 	virtual void setBreak(bool value)=0;
 	
 	// change baudrate, number of bits, parity, word length al at once
-	virtual void updatePortConfig(Bit16u divider, Bit8u lcr)=0;
+	virtual void updatePortConfig(uint16_t divider, uint8_t lcr)=0;
 	
 	void Init_Registers();
 	
-	bool Putchar(Bit8u data, bool wait_dsr, bool wait_cts, Bitu timeout);
-	bool Getchar(Bit8u* data, Bit8u* lsr, bool wait_dsr, Bitu timeout);
+	bool Putchar(uint8_t data, bool wait_dsr, bool wait_cts, Bitu timeout);
+	bool Getchar(uint8_t* data, uint8_t* lsr, bool wait_dsr, Bitu timeout);
 
 	DOS_Device* mydosdevice;
 
@@ -260,10 +260,10 @@ private:
 	void ComputeInterrupts();
 	
 	// a sub-interrupt is triggered
-	void rise(Bit8u priority);
+	void rise(uint8_t priority);
 
 	// clears the pending sub-interrupt
-	void clear(Bit8u priority);
+	void clear(uint8_t priority);
 	
 	#define ERROR_PRIORITY 4	// overrun, parity error, frame error, break
 	#define RX_PRIORITY 1		// a byte has been received
@@ -272,17 +272,17 @@ private:
 	#define TIMEOUT_PRIORITY 0x10
 	#define NONE_PRIORITY 0
 
-	Bit8u waiting_interrupts;	// these are on, but maybe not enabled
+	uint8_t waiting_interrupts;	// these are on, but maybe not enabled
 	
 	// 16C550
 	//				read/write		name
 
-	Bit16u baud_divider;
+	uint16_t baud_divider;
 	#define RHR_OFFSET 0	// r Receive Holding Register, also LSB of Divisor Latch (r/w)
 							// Data: whole byte
 	#define THR_OFFSET 0	// w Transmit Holding Register
 							// Data: whole byte
-	Bit8u IER;	//	r/w		Interrupt Enable Register, also MSB of Divisor Latch
+	uint8_t IER;	//	r/w		Interrupt Enable Register, also MSB of Divisor Latch
 	#define IER_OFFSET 1
 
 	bool irq_active;
@@ -292,7 +292,7 @@ private:
 	#define Receive_Line_INT_Enable_MASK	0x4
 	#define Modem_Status_INT_Enable_MASK	0x8
 
-	Bit8u ISR;	//	r				Interrupt Status Register
+	uint8_t ISR;	//	r				Interrupt Status Register
 	#define ISR_OFFSET 2
 
 	#define ISR_CLEAR_VAL 0x1
@@ -302,7 +302,7 @@ private:
 	#define ISR_TX_VAL 0x2
 	#define ISR_MSR_VAL 0x0
 public:	
-	Bit8u LCR;	//	r/w				Line Control Register
+	uint8_t LCR;	//	r/w				Line Control Register
 private:
 	#define LCR_OFFSET 3
 						// bit0: word length bit0
@@ -348,7 +348,7 @@ private:
 	#define MCR_OP2_MASK 0x8
 	#define MCR_LOOPBACK_Enable_MASK 0x10
 public:	
-	Bit8u LSR;	//	r				Line Status Register
+	uint8_t LSR;	//	r				Line Status Register
 private:
 
 	#define LSR_OFFSET 5
@@ -397,13 +397,13 @@ private:
 	#define MSR_RI_MASK 0x40
 	#define MSR_CD_MASK 0x80
 
-	Bit8u SPR;	//	r/w				Scratchpad Register
+	uint8_t SPR;	//	r/w				Scratchpad Register
 	#define SPR_OFFSET 7
 
 
 	// For loopback purposes...
-	Bit8u loopback_data;
-	void transmitLoopbackByte(Bit8u val, bool value);
+	uint8_t loopback_data;
+	void transmitLoopbackByte(uint8_t val, bool value);
 
 	// 16C550 (FIFO)
 	public: // todo remove
@@ -414,7 +414,7 @@ private:
 	Bitu errors_in_fifo;
 	Bitu rx_interrupt_threshold;
 	Bitu fifosize;
-	Bit8u FCR;
+	uint8_t FCR;
 	bool sync_guardtime;
 	#define FIFO_STATUS_ACTIVE 0xc0 // FIFO is active AND works ;)
 	#define FIFO_ERROR 0x80
@@ -426,8 +426,8 @@ private:
 };
 
 extern CSerial* serialports[];
-const Bit8u serial_defaultirq[] = { 4, 3, 4, 3 };
-const Bit16u serial_baseaddr[] = {0x3f8,0x2f8,0x3e8,0x2e8};
+const uint8_t serial_defaultirq[] = { 4, 3, 4, 3 };
+const uint16_t serial_baseaddr[] = {0x3f8,0x2f8,0x3e8,0x2e8};
 const char* const serial_comname[]={"COM1","COM2","COM3","COM4"};
 
 // the COM devices
@@ -437,11 +437,11 @@ public:
 	// Creates a COM device that communicates with the num-th parallel port, i.e. is LPTnum
 	device_COM(class CSerial* sc);
 	virtual ~device_COM();
-	bool Read(Bit8u * data,Bit16u * size);
-	bool Write(const Bit8u * data,Bit16u * size);
-	bool Seek(Bit32u * pos,Bit32u type);
+	bool Read(uint8_t * data,uint16_t * size);
+	bool Write(const uint8_t * data,uint16_t * size);
+	bool Seek(uint32_t * pos,uint32_t type);
 	bool Close();
-	Bit16u GetInformation(void);
+	uint16_t GetInformation(void);
 private:
 	CSerial* sclass;
 };

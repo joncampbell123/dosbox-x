@@ -36,7 +36,7 @@
 #include "dosbox.h"
 
 #define bx_bool int
-#define bx_param_c Bit8u
+#define bx_param_c uint8_t
 
 
 #  define BX_NE2K_SMF
@@ -63,8 +63,8 @@ typedef struct {
     bx_bool  stop;		// STP - Software Reset command
     bx_bool  start;		// START - start the NIC
     bx_bool  tx_packet;	// TXP - initiate packet transmission
-    Bit8u    rdma_cmd;      // RD0,RD1,RD2 - Remote DMA command
-    Bit8u	 pgsel;		// PS0,PS1 - Page select
+    uint8_t    rdma_cmd;      // RD0,RD1,RD2 - Remote DMA command
+    uint8_t	 pgsel;		// PS0,PS1 - Page select
   } CR;
   // Interrupt Status Register - 07h read/write
   struct ISR_t {  
@@ -95,15 +95,15 @@ typedef struct {
     bx_bool  longaddr;	// LAS - long-address select
     bx_bool  loop;		// LS  - loopback select
     bx_bool  auto_rx;	// AR  - auto-remove rx packets with remote DMA
-    Bit8u    fifo_size;	// FT0,FT1 - fifo threshold
+    uint8_t    fifo_size;	// FT0,FT1 - fifo threshold
   } DCR;
   // Transmit Configuration Register - 0dh write
   struct TCR_t {
     bx_bool  crc_disable;	// CRC - inhibit tx CRC
-    Bit8u    loop_cntl;	// LB0,LB1 - loopback control
+    uint8_t    loop_cntl;	// LB0,LB1 - loopback control
     bx_bool  ext_stoptx;    // ATD - allow tx disable by external mcast
     bx_bool  coll_prio;	// OFST - backoff algorithm select
-    Bit8u    reserved;      //  D5,D6,D7 - reserved
+    uint8_t    reserved;      //  D5,D6,D7 - reserved
   } TCR;
   // Transmit Status Register - 04h read
   struct TSR_t {
@@ -124,7 +124,7 @@ typedef struct {
     bx_bool  multicast;	// AM  - check mcast hash array
     bx_bool  promisc;	// PRO - accept all packets
     bx_bool  monitor;	// MON - check pkts, but don't rx
-    Bit8u    reserved;	//  D6,D7 - reserved
+    uint8_t    reserved;	//  D6,D7 - reserved
   } RCR;
   // Receive Status Register - 0ch read
   struct RSR_t {
@@ -138,29 +138,29 @@ typedef struct {
     bx_bool  deferred;	// DFR - collision active
   } RSR;
 
-  Bit16u local_dma;	// 01,02h read ; current local DMA addr
-  Bit8u  page_start;  // 01h write ; page start register
-  Bit8u  page_stop;   // 02h write ; page stop register
-  Bit8u  bound_ptr;   // 03h read/write ; boundary pointer
-  Bit8u  tx_page_start; // 04h write ; transmit page start register
-  Bit8u  num_coll;    // 05h read  ; number-of-collisions register
-  Bit16u tx_bytes;    // 05,06h write ; transmit byte-count register
-  Bit8u  fifo;	// 06h read  ; FIFO
-  Bit16u remote_dma;  // 08,09h read ; current remote DMA addr
-  Bit16u remote_start;  // 08,09h write ; remote start address register
-  Bit16u remote_bytes;  // 0a,0bh write ; remote byte-count register
-  Bit8u  tallycnt_0;  // 0dh read  ; tally counter 0 (frame align errors)
-  Bit8u  tallycnt_1;  // 0eh read  ; tally counter 1 (CRC errors)
-  Bit8u  tallycnt_2;  // 0fh read  ; tally counter 2 (missed pkt errors)
+  uint16_t local_dma;	// 01,02h read ; current local DMA addr
+  uint8_t  page_start;  // 01h write ; page start register
+  uint8_t  page_stop;   // 02h write ; page stop register
+  uint8_t  bound_ptr;   // 03h read/write ; boundary pointer
+  uint8_t  tx_page_start; // 04h write ; transmit page start register
+  uint8_t  num_coll;    // 05h read  ; number-of-collisions register
+  uint16_t tx_bytes;    // 05,06h write ; transmit byte-count register
+  uint8_t  fifo;	// 06h read  ; FIFO
+  uint16_t remote_dma;  // 08,09h read ; current remote DMA addr
+  uint16_t remote_start;  // 08,09h write ; remote start address register
+  uint16_t remote_bytes;  // 0a,0bh write ; remote byte-count register
+  uint8_t  tallycnt_0;  // 0dh read  ; tally counter 0 (frame align errors)
+  uint8_t  tallycnt_1;  // 0eh read  ; tally counter 1 (CRC errors)
+  uint8_t  tallycnt_2;  // 0fh read  ; tally counter 2 (missed pkt errors)
 
   //
   // Page 1
   //
   //   Command Register 00h (repeated)
   //
-  Bit8u  physaddr[6];  // 01-06h read/write ; MAC address
-  Bit8u  curr_page;    // 07h read/write ; current page register
-  Bit8u  mchash[8];    // 08-0fh read/write ; multicast hash array
+  uint8_t  physaddr[6];  // 01-06h read/write ; MAC address
+  uint8_t  curr_page;    // 07h read/write ; current page register
+  uint8_t  mchash[8];    // 08-0fh read/write ; multicast hash array
 
   //
   // Page 2  - diagnostic use only
@@ -176,20 +176,20 @@ typedef struct {
   //   Data Configuration Register 0eh read (repeated)
   //   Interrupt Mask Register 0fh read (repeated)
   //
-  Bit8u  rempkt_ptr;   // 03h read/write ; remote next-packet pointer
-  Bit8u  localpkt_ptr; // 05h read/write ; local next-packet pointer
-  Bit16u address_cnt;  // 06,07h read/write ; address counter
+  uint8_t  rempkt_ptr;   // 03h read/write ; remote next-packet pointer
+  uint8_t  localpkt_ptr; // 05h read/write ; local next-packet pointer
+  uint16_t address_cnt;  // 06,07h read/write ; address counter
 
     //
     // Page 3  - should never be modified.
     //
 
     // Novell ASIC state
-  Bit8u  macaddr[32];          // ASIC ROM'd MAC address, even bytes
-  Bit8u  mem[BX_NE2K_MEMSIZ];  // on-chip packet memory
+  uint8_t  macaddr[32];          // ASIC ROM'd MAC address, even bytes
+  uint8_t  mem[BX_NE2K_MEMSIZ];  // on-chip packet memory
 
     // ne2k internal state
-  Bit32u base_address;
+  uint32_t base_address;
   int    base_irq;
   int    tx_timer_index;
   int    tx_timer_active;
@@ -210,22 +210,22 @@ public:
   /* TODO: Setup SDL */
   //eth_pktmover_c *ethdev;
 
-  BX_NE2K_SMF Bit32u read_cr(void);
-  BX_NE2K_SMF void   write_cr(Bit32u value);
+  BX_NE2K_SMF uint32_t read_cr(void);
+  BX_NE2K_SMF void   write_cr(uint32_t value);
 
-  BX_NE2K_SMF Bit32u chipmem_read(Bit32u address, unsigned int io_len);
-  BX_NE2K_SMF Bit32u asic_read(Bit32u offset, unsigned int io_len);
-  BX_NE2K_SMF Bit32u page0_read(Bit32u offset, unsigned int io_len);
-  BX_NE2K_SMF Bit32u page1_read(Bit32u offset, unsigned int io_len);
-  BX_NE2K_SMF Bit32u page2_read(Bit32u offset, unsigned int io_len);
-  BX_NE2K_SMF Bit32u page3_read(Bit32u offset, unsigned int io_len);
+  BX_NE2K_SMF uint32_t chipmem_read(uint32_t address, unsigned int io_len);
+  BX_NE2K_SMF uint32_t asic_read(uint32_t offset, unsigned int io_len);
+  BX_NE2K_SMF uint32_t page0_read(uint32_t offset, unsigned int io_len);
+  BX_NE2K_SMF uint32_t page1_read(uint32_t offset, unsigned int io_len);
+  BX_NE2K_SMF uint32_t page2_read(uint32_t offset, unsigned int io_len);
+  BX_NE2K_SMF uint32_t page3_read(uint32_t offset, unsigned int io_len);
 
-  BX_NE2K_SMF void chipmem_write(Bit32u address, Bit32u value, unsigned io_len);
-  BX_NE2K_SMF void asic_write(Bit32u address, Bit32u value, unsigned io_len);
-  BX_NE2K_SMF void page0_write(Bit32u address, Bit32u value, unsigned io_len);
-  BX_NE2K_SMF void page1_write(Bit32u address, Bit32u value, unsigned io_len);
-  BX_NE2K_SMF void page2_write(Bit32u address, Bit32u value, unsigned io_len);
-  BX_NE2K_SMF void page3_write(Bit32u address, Bit32u value, unsigned io_len);
+  BX_NE2K_SMF void chipmem_write(uint32_t address, uint32_t value, unsigned io_len);
+  BX_NE2K_SMF void asic_write(uint32_t address, uint32_t value, unsigned io_len);
+  BX_NE2K_SMF void page0_write(uint32_t address, uint32_t value, unsigned io_len);
+  BX_NE2K_SMF void page1_write(uint32_t address, uint32_t value, unsigned io_len);
+  BX_NE2K_SMF void page2_write(uint32_t address, uint32_t value, unsigned io_len);
+  BX_NE2K_SMF void page3_write(uint32_t address, uint32_t value, unsigned io_len);
 
 public:
   static void tx_timer_handler(void *);
@@ -236,11 +236,11 @@ public:
   BX_NE2K_SMF void rx_frame(const void *buf, unsigned io_len);
 
 
-  static Bit32u read_handler(void *this_ptr, Bit32u address, unsigned io_len);
-  static void   write_handler(void *this_ptr, Bit32u address, Bit32u value, unsigned io_len);
+  static uint32_t read_handler(void *this_ptr, uint32_t address, unsigned io_len);
+  static void   write_handler(void *this_ptr, uint32_t address, uint32_t value, unsigned io_len);
 #if !BX_USE_NE2K_SMF
-  Bit32u read(Bit32u address, unsigned io_len);
-  void   write(Bit32u address, Bit32u value, unsigned io_len);
+  uint32_t read(uint32_t address, unsigned io_len);
+  void   write(uint32_t address, uint32_t value, unsigned io_len);
 #endif
 
 

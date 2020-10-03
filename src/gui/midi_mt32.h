@@ -14,7 +14,7 @@ private:
 	static const unsigned int bufferSize = 1024;
 	volatile unsigned int startpos;
 	volatile unsigned int endpos;
-    Bit64u ringBuffer[bufferSize] = {};
+    uint64_t ringBuffer[bufferSize] = {};
 
 public:
 	RingBuffer() {
@@ -22,7 +22,7 @@ public:
 		endpos = 0;
 	}
 
-	bool put(Bit32u data) {
+	bool put(uint32_t data) {
 		unsigned int newEndpos = endpos;
 		newEndpos++;
 		if (newEndpos == bufferSize) newEndpos = 0;
@@ -32,9 +32,9 @@ public:
 		return true;
 	}
 
-	Bit32u get() {
+	uint32_t get() {
 		if (startpos == endpos) return 0;
-		Bit32u data = (Bit32u)ringBuffer[startpos]; /* <- FIXME: Um.... really? */
+		uint32_t data = (uint32_t)ringBuffer[startpos]; /* <- FIXME: Um.... really? */
 		startpos++;
 		if (startpos == bufferSize) startpos = 0;
 		return data;
@@ -52,7 +52,7 @@ private:
 	SDL_Thread *thread;
 	SDL_mutex *lock;
 	SDL_cond *framesInBufferChanged;
-	Bit16s *audioBuffer;
+	int16_t *audioBuffer;
 	Bitu audioBufferSize;
 	Bitu framesPerAudioBuffer;
 	Bitu minimumRenderFrames;
@@ -144,8 +144,8 @@ private:
                 SDL_UnlockMutex(lock);
             }
         } else {
-            service->renderBit16s((Bit16s *)MixTemp, len);
-            chan->AddSamples_s16(len, (Bit16s *)MixTemp);
+            service->renderint16_t((int16_t *)MixTemp, len);
+            chan->AddSamples_s16(len, (int16_t *)MixTemp);
         }
     }
 	void renderingLoop() {
@@ -165,7 +165,7 @@ private:
                 SDL_CondWait(framesInBufferChanged, lock);
                 SDL_UnlockMutex(lock);
             } else {
-                service->renderBit16s(audioBuffer + renderPosSnap, framesToRender);
+                service->renderint16_t(audioBuffer + renderPosSnap, framesToRender);
                 renderPos = (renderPosSnap + samplesToRender) % audioBufferSize;
                 if (renderPosSnap == playPos) {
                     SDL_LockMutex(lock);
@@ -175,8 +175,8 @@ private:
             }
         }
     }
-	Bit32u inline getMidiEventTimestamp() {
-		return service->convertOutputToSynthTimestamp(Bit32u(playedBuffers * framesPerAudioBuffer + (playPos >> 1)));
+	uint32_t inline getMidiEventTimestamp() {
+		return service->convertOutputToSynthTimestamp(uint32_t(playedBuffers * framesPerAudioBuffer + (playPos >> 1)));
 	}
 
 public:
@@ -209,7 +209,7 @@ public:
 
 	bool Open(const char *conf) {
         service = new MT32Emu::Service();
-        Bit32u version = service->getLibraryVersionInt();
+        uint32_t version = service->getLibraryVersionInt();
         if (version < 0x020100) {
             delete service;
             service = NULL;
@@ -259,7 +259,7 @@ public:
             }
         }
 
-        service->setPartialCount(Bit32u(section->Get_int("mt32.partials")));
+        service->setPartialCount(uint32_t(section->Get_int("mt32.partials")));
         service->setAnalogOutputMode((MT32Emu::AnalogOutputMode)section->Get_int("mt32.analog"));
         int sampleRate = section->Get_int("mt32.rate");
         service->setStereoOutputSampleRate(sampleRate);
@@ -273,10 +273,10 @@ public:
         }
 
         if (strcmp(section->Get_string("mt32.reverb.mode"), "auto") != 0) {
-            Bit8u reverbsysex[] = {0x10, 0x00, 0x01, 0x00, 0x05, 0x03};
-            reverbsysex[3] = (Bit8u)atoi(section->Get_string("mt32.reverb.mode"));
-            reverbsysex[4] = (Bit8u)section->Get_int("mt32.reverb.time");
-            reverbsysex[5] = (Bit8u)section->Get_int("mt32.reverb.level");
+            uint8_t reverbsysex[] = {0x10, 0x00, 0x01, 0x00, 0x05, 0x03};
+            reverbsysex[3] = (uint8_t)atoi(section->Get_string("mt32.reverb.mode"));
+            reverbsysex[4] = (uint8_t)section->Get_int("mt32.reverb.time");
+            reverbsysex[5] = (uint8_t)section->Get_int("mt32.reverb.level");
             service->writeSysex(16, reverbsysex, 6);
             service->setReverbOverridden(true);
         }
@@ -307,8 +307,8 @@ public:
             }
             framesPerAudioBuffer = (latency * sampleRate) / MILLIS_PER_SECOND;
             audioBufferSize = framesPerAudioBuffer << 1;
-            audioBuffer = new Bit16s[audioBufferSize];
-            service->renderBit16s(audioBuffer, framesPerAudioBuffer - 1);
+            audioBuffer = new int16_t[audioBufferSize];
+            service->renderint16_t(audioBuffer, framesPerAudioBuffer - 1);
             renderPos = (framesPerAudioBuffer - 1) << 1;
             playedBuffers = 1;
             lock = SDL_CreateMutex();
@@ -350,15 +350,15 @@ public:
         open = false;
 	}
 
-	void PlayMsg(Bit8u *msg) {
+	void PlayMsg(uint8_t *msg) {
         if (renderInThread) {
-            service->playMsgAt(SDL_SwapLE32(*(Bit32u *)msg), getMidiEventTimestamp());
+            service->playMsgAt(SDL_SwapLE32(*(uint32_t *)msg), getMidiEventTimestamp());
         } else {
-            service->playMsg(SDL_SwapLE32(*(Bit32u *)msg));
+            service->playMsg(SDL_SwapLE32(*(uint32_t *)msg));
         }
 	}
 
-	void PlaySysex(Bit8u *sysex, Bitu len) {
+	void PlaySysex(uint8_t *sysex, Bitu len) {
         if (renderInThread) {
             service->playSysexAt(sysex, len, getMidiEventTimestamp());
         } else {

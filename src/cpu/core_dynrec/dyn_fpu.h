@@ -648,7 +648,7 @@ static void dyn_fpu_esc7(){
 		}
 	} else {
 		switch(decode.modrm.reg){
-		case 0x00:  /* FILD Bit16s */
+		case 0x00:  /* FILD int16_t */
 			gen_call_function_raw(FPU_PREP_PUSH);
 			dyn_fill_ea(FC_OP1); 
 			gen_mov_word_to_reg(FC_OP2,(void*)(&TOP),true);
@@ -657,11 +657,11 @@ static void dyn_fpu_esc7(){
 		case 0x01:
 			LOG(LOG_FPU,LOG_WARN)("ESC 7 EA:Unhandled group %d subfunction %d",(unsigned int)decode.modrm.reg,(unsigned int)decode.modrm.rm);
 			break;
-		case 0x02:   /* FIST Bit16s */
+		case 0x02:   /* FIST int16_t */
 			dyn_fill_ea(FC_ADDR); 
 			gen_call_function_R(FPU_FST_I16,FC_ADDR);
 			break;
-		case 0x03:	/* FISTP Bit16s */
+		case 0x03:	/* FISTP int16_t */
 			dyn_fill_ea(FC_ADDR); 
 			gen_call_function_R(FPU_FST_I16,FC_ADDR);
 			gen_call_function_raw(FPU_FPOP);
@@ -672,7 +672,7 @@ static void dyn_fpu_esc7(){
 			gen_mov_word_to_reg(FC_OP2,(void*)(&TOP),true);
 			gen_call_function_RR(FPU_FBLD,FC_OP1,FC_OP2);
 			break;
-		case 0x05:  /* FILD Bit64s */
+		case 0x05:  /* FILD int64_t */
 			gen_call_function_raw(FPU_PREP_PUSH);
 			dyn_fill_ea(FC_OP1);
 			gen_mov_word_to_reg(FC_OP2,(void*)(&TOP),true);
@@ -683,7 +683,7 @@ static void dyn_fpu_esc7(){
 			gen_call_function_R(FPU_FBST,FC_ADDR);
 			gen_call_function_raw(FPU_FPOP);
 			break;
-		case 0x07:  /* FISTP Bit64s */
+		case 0x07:  /* FISTP int64_t */
 			dyn_fill_ea(FC_ADDR); 
 			gen_call_function_R(FPU_FST_I64,FC_ADDR);
 			gen_call_function_raw(FPU_FPOP);

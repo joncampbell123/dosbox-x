@@ -61,7 +61,7 @@ protected:
     std::istringstream      lines;
 };
 
-extern Bit8u                int10_font_14[256 * 14];
+extern uint8_t                int10_font_14[256 * 14];
 
 extern uint32_t             GFX_Rmask;
 extern unsigned char        GFX_Rshift;
@@ -77,7 +77,7 @@ extern Bitu                 currentWindowWidth, currentWindowHeight;
 
 extern bool                 MSG_Write(const char *);
 extern void                 LoadMessageFile(const char * fname);
-extern void                 GFX_SetTitle(Bit32s cycles,Bits frameskip,Bits timing,bool paused);
+extern void                 GFX_SetTitle(int32_t cycles,Bits frameskip,Bits timing,bool paused);
 
 static int                  cursor;
 static bool                 running;
@@ -124,29 +124,29 @@ static void getPixel(Bits x, Bits y, int &r, int &g, int &b, int shift)
     if (x < 0) x = 0;
     if (y < 0) y = 0;
 
-    Bit8u* src = (Bit8u *)&scalerSourceCache;
-    Bit32u pixel;
+    uint8_t* src = (uint8_t *)&scalerSourceCache;
+    uint32_t pixel;
     switch (render.scale.inMode) {
         case scalerMode8:
-            pixel = *((unsigned int)x+(Bit8u*)(src+(unsigned int)y*(unsigned int)render.scale.cachePitch));
+            pixel = *((unsigned int)x+(uint8_t*)(src+(unsigned int)y*(unsigned int)render.scale.cachePitch));
             r += (int)((unsigned int)render.pal.rgb[pixel].red >> (unsigned int)shift);
             g += (int)((unsigned int)render.pal.rgb[pixel].green >> (unsigned int)shift);
             b += (int)((unsigned int)render.pal.rgb[pixel].blue >> (unsigned int)shift);
             break;
         case scalerMode15:
-            pixel = *((unsigned int)x+(Bit16u*)(src+(unsigned int)y*(unsigned int)render.scale.cachePitch));
+            pixel = *((unsigned int)x+(uint16_t*)(src+(unsigned int)y*(unsigned int)render.scale.cachePitch));
             r += (int)((pixel >> (7u+(unsigned int)shift)) & (0xf8u >> (unsigned int)shift));
             g += (int)((pixel >> (2u+(unsigned int)shift)) & (0xf8u >> (unsigned int)shift));
             b += (int)((pixel << (3u-(unsigned int)shift)) & (0xf8u >> (unsigned int)shift));
             break;
         case scalerMode16:
-            pixel = *((unsigned int)x+(Bit16u*)(src+(unsigned int)y*(unsigned int)render.scale.cachePitch));
+            pixel = *((unsigned int)x+(uint16_t*)(src+(unsigned int)y*(unsigned int)render.scale.cachePitch));
             r += (int)((pixel >> (8u+(unsigned int)shift)) & (0xf8u >> shift));
             g += (int)((pixel >> (3u+(unsigned int)shift)) & (0xfcu >> shift));
             b += (int)((pixel << (3u-(unsigned int)shift)) & (0xf8u >> shift));
             break;
         case scalerMode32:
-            pixel = *((unsigned int)x+(Bit32u*)(src+(unsigned int)y*(unsigned int)render.scale.cachePitch));
+            pixel = *((unsigned int)x+(uint32_t*)(src+(unsigned int)y*(unsigned int)render.scale.cachePitch));
             r += (int)(((pixel & GFX_Rmask) >> (GFX_Rshift + shift)) & (0xffu >> shift));
             g += (int)(((pixel & GFX_Gmask) >> (GFX_Gshift + shift)) & (0xffu >> shift));
             b += (int)(((pixel & GFX_Bmask) >> (GFX_Bshift + shift)) & (0xffu >> shift));
@@ -234,7 +234,7 @@ static GUI::ScreenSDL *UI_Startup(GUI::ScreenSDL *screen) {
 
         // create screenshot for fade effect
         for (unsigned int y = 0; (int)y < sh_draw; y++) {
-            Bit32u *bg = (Bit32u*)((y+(unsigned int)sy)*(unsigned int)screenshot->pitch + (char*)screenshot->pixels) + (unsigned int)sx;
+            uint32_t *bg = (uint32_t*)((y+(unsigned int)sy)*(unsigned int)screenshot->pitch + (char*)screenshot->pixels) + (unsigned int)sx;
             for (unsigned int x = 0; (int)x < sw_draw; x++) {
                 int r = 0, g = 0, b = 0;
                 getPixel((int)(x*(unsigned int)render.src.width/(unsigned int)sw),
@@ -249,7 +249,7 @@ static GUI::ScreenSDL *UI_Startup(GUI::ScreenSDL *screen) {
         background = SDL_CreateRGBSurface(SDL_SWSURFACE, dw, dh, 32, GUI::Color::RedMask, GUI::Color::GreenMask, GUI::Color::BlueMask, 0);
         SDL_FillRect(background,0,0);
         for (int y = 0; y < sh_draw; y++) {
-            Bit32u *bg = (Bit32u*)((unsigned int)(y+sy)*(unsigned int)background->pitch + (char*)background->pixels) + sx;
+            uint32_t *bg = (uint32_t*)((unsigned int)(y+sy)*(unsigned int)background->pitch + (char*)background->pixels) + sx;
             for (int x = 0; x < sw_draw; x++) {
                 int r = 0, g = 0, b = 0;
                 getPixel(x    *(int)render.src.width/sw, y    *(int)render.src.height/sh, r, g, b, 3); 
@@ -277,7 +277,7 @@ static GUI::ScreenSDL *UI_Startup(GUI::ScreenSDL *screen) {
     if (mouselocked) GFX_CaptureMouse();
 
 #if defined(C_SDL2)
-    extern SDL_Window * GFX_SetSDLSurfaceWindow(Bit16u width, Bit16u height);
+    extern SDL_Window * GFX_SetSDLSurfaceWindow(uint16_t width, uint16_t height);
 
     void GFX_SetResizeable(bool enable);
     GFX_SetResizeable(false);
@@ -487,7 +487,7 @@ static void UI_RunCommands(GUI::ScreenSDL *s, const std::string &cmds) {
     DOS_Shell temp;
     temp.call = true;
     UI_Shutdown(s);
-    Bit16u n=1; Bit8u c='\n';
+    uint16_t n=1; uint8_t c='\n';
     DOS_WriteFile(STDOUT,&c,&n);
     temp.bf = new VirtualBatch(&temp, cmds);
     temp.RunInternal();
@@ -1555,7 +1555,7 @@ public:
     ShowDriveInfo(GUI::Screen *parent, int x, int y, const char *title) :
         ToplevelWindow(parent, x, y, 400, 280, title) {
             char name[DOS_NAMELENGTH_ASCII],lname[LFN_NAMELENGTH];
-            Bit32u size;Bit16u date;Bit16u time;Bit8u attr;
+            uint32_t size;uint16_t date;uint16_t time;uint8_t attr;
             /* Command uses dta so set it to our internal dta */
             RealPt save_dta = dos.dta();
             dos.dta(dos.tables.tempdta);

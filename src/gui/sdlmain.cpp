@@ -1131,11 +1131,11 @@ bool IsDebuggerActive(void);
 
 extern std::string dosbox_title;
 
-void GFX_SetTitle(Bit32s cycles,Bits frameskip,Bits timing,bool paused){
+void GFX_SetTitle(int32_t cycles,Bits frameskip,Bits timing,bool paused){
     (void)frameskip;//UNUSED
     (void)timing;//UNUSED
 //  static Bits internal_frameskip=0;
-    static Bit32s internal_cycles=0;
+    static int32_t internal_cycles=0;
 //  static Bits internal_timing=0;
     char title[200] = {0};
 
@@ -1221,7 +1221,7 @@ bool CheckQuit(void) {
         return ret;
     }
     if (warn == "autofile")
-        for (Bit8u handle = 0; handle < DOS_FILES; handle++) {
+        for (uint8_t handle = 0; handle < DOS_FILES; handle++) {
             if (Files[handle] && (Files[handle]->GetName() == NULL || strcmp(Files[handle]->GetName(), "CON")) && (Files[handle]->GetInformation()&0x8000) == 0) {
                 quit_confirm=false;
                 MAPPER_ReleaseAllKeys();
@@ -1308,11 +1308,11 @@ void GFX_SDL_Overscan(void) {
             if ((Bitu)sdl.clip.x > (Bitu)sdl.overscan_width) { rect->x += (int)sdl.clip.x-(int)sdl.overscan_width; rect->w -= (unsigned int)(2*((int)sdl.clip.x-(int)sdl.overscan_width)); }
 
             if (sdl.surface->format->BitsPerPixel == 8) { // SDL_FillRect seems to have some issues with palettized hw surfaces
-                Bit8u* pixelptr = (Bit8u*)sdl.surface->pixels;
+                uint8_t* pixelptr = (uint8_t*)sdl.surface->pixels;
                 Bitu linepitch = sdl.surface->pitch;
                 for (Bitu i=0; i<4; i++) {
                     rect = &sdl.updateRects[i];
-                    Bit8u* start = pixelptr + (unsigned int)rect->y*(unsigned int)linepitch + (unsigned int)rect->x;
+                    uint8_t* start = pixelptr + (unsigned int)rect->y*(unsigned int)linepitch + (unsigned int)rect->x;
                     for (Bitu j=0; j<(unsigned int)rect->h; j++) {
                         memset(start, vga.attr.overscan_color, rect->w);
                         start += linepitch;
@@ -1528,7 +1528,7 @@ SDL_Window* GFX_GetSDLWindow(void) {
     return sdl.window;
 }
 
-SDL_Window* GFX_SetSDLWindowMode(Bit16u width, Bit16u height, SCREEN_TYPES screenType) 
+SDL_Window* GFX_SetSDLWindowMode(uint16_t width, uint16_t height, SCREEN_TYPES screenType) 
 {
     static SCREEN_TYPES lastType = SCREEN_SURFACE;
     if (sdl.renderer) {
@@ -1662,13 +1662,13 @@ void GFX_SetResizeable(bool enable) {
 
 // Used for the mapper UI and more: Creates a fullscreen window with desktop res
 // on Android, and a non-fullscreen window with the input dimensions otherwise.
-SDL_Window * GFX_SetSDLSurfaceWindow(Bit16u width, Bit16u height) {
+SDL_Window * GFX_SetSDLSurfaceWindow(uint16_t width, uint16_t height) {
     return GFX_SetSDLWindowMode(width, height, SCREEN_SURFACE);
 }
 
 // Returns the rectangle in the current window to be used for scaling a
 // sub-window with the given dimensions, like the mapper UI.
-SDL_Rect GFX_GetSDLSurfaceSubwindowDims(Bit16u width, Bit16u height) {
+SDL_Rect GFX_GetSDLSurfaceSubwindowDims(uint16_t width, uint16_t height) {
     SDL_Rect rect;
     rect.x=rect.y=0;
     rect.w=width;
@@ -1678,7 +1678,7 @@ SDL_Rect GFX_GetSDLSurfaceSubwindowDims(Bit16u width, Bit16u height) {
 
 # if !defined(C_SDL2)
 // Currently used for an initial test here
-static SDL_Window * GFX_SetSDLOpenGLWindow(Bit16u width, Bit16u height) {
+static SDL_Window * GFX_SetSDLOpenGLWindow(uint16_t width, uint16_t height) {
     return GFX_SetSDLWindowMode(width, height, SCREEN_OPENGL);
 }
 # endif
@@ -2005,8 +2005,8 @@ void MenuDrawRect(int x,int y,int w,int h,Bitu color) {
     }
 }
 
-extern Bit8u int10_font_14[256 * 14];
-extern Bit8u int10_font_16[256 * 16];
+extern uint8_t int10_font_14[256 * 14];
+extern uint8_t int10_font_16[256 * 16];
 
 void MenuDrawTextChar(int x,int y,unsigned char c,Bitu color) {
     static const unsigned int fontHeight = 16;
@@ -2323,8 +2323,8 @@ Bitu GFX_SetSize(Bitu width, Bitu height, Bitu flags, double scalex, double scal
 
     sdl.must_redraw_all = true;
 
-    sdl.draw.width = (Bit32u)width;
-    sdl.draw.height = (Bit32u)height;
+    sdl.draw.width = (uint32_t)width;
+    sdl.draw.height = (uint32_t)height;
     sdl.draw.flags = flags;
     sdl.draw.callback = callback;
     sdl.draw.scalex = scalex;
@@ -2881,8 +2881,8 @@ void res_init(void) {
             char* height = const_cast<char*>(strchr(windowresolution,'x'));
             if(height && *height) {
                 *height = 0;
-                sdl.desktop.window.height = (Bit16u)atoi(height+1);
-                sdl.desktop.window.width  = (Bit16u)atoi(res);
+                sdl.desktop.window.height = (uint16_t)atoi(height+1);
+                sdl.desktop.window.width  = (uint16_t)atoi(res);
             }
         }
     }
@@ -3003,7 +3003,7 @@ void change_output(int output) {
     if (sdl.draw.callback)
         (sdl.draw.callback)( GFX_CallBackReset );
 
-    if (output != 7) GFX_SetTitle((Bit32s)(CPU_CycleAutoAdjust?CPU_CyclePercUsed:CPU_CycleMax),-1,-1,false);
+    if (output != 7) GFX_SetTitle((int32_t)(CPU_CycleAutoAdjust?CPU_CyclePercUsed:CPU_CycleMax),-1,-1,false);
     GFX_LogSDLState();
 
     UpdateWindowDimensions();
@@ -3253,7 +3253,7 @@ void GFX_ReleaseSurfacePtr(void) {
 }
 #endif
 
-bool GFX_StartUpdate(Bit8u* &pixels,Bitu &pitch) 
+bool GFX_StartUpdate(uint8_t* &pixels,Bitu &pitch) 
 {
     if (!sdl.active || sdl.updating)
         return false;
@@ -3302,7 +3302,7 @@ void GFX_OpenGLRedrawScreen(void) {
 #endif
 }
 
-void GFX_EndUpdate(const Bit16u *changedLines) {
+void GFX_EndUpdate(const uint16_t *changedLines) {
 #if C_EMSCRIPTEN
     emscripten_sleep_with_yield(0);
 #endif
@@ -3365,7 +3365,7 @@ void GFX_EndUpdate(const Bit16u *changedLines) {
         {
             sdl.deferred_resize = false;
 #if !defined(C_SDL2)
-            void GFX_RedrawScreen(Bit32u nWidth, Bit32u nHeight);
+            void GFX_RedrawScreen(uint32_t nWidth, uint32_t nHeight);
             GFX_RedrawScreen(sdl.draw.width, sdl.draw.height);
 #endif
         }
@@ -3396,7 +3396,7 @@ void GFX_SetPalette(Bitu start,Bitu count,GFX_PalEntry * entries) {
 #endif
 }
 
-Bitu GFX_GetRGB(Bit8u red, Bit8u green, Bit8u blue) {
+Bitu GFX_GetRGB(uint8_t red, uint8_t green, uint8_t blue) {
     switch (sdl.desktop.type) {
         case SCREEN_SURFACE:
             return SDL_MapRGB(sdl.surface->format, red, green, blue);
@@ -3513,17 +3513,17 @@ static void SetPriority(PRIORITY_LEVELS level) {
     }
 }
 
-extern Bit8u int10_font_14[256 * 14];
-static void OutputString(Bitu x,Bitu y,const char * text,Bit32u color,Bit32u color2,SDL_Surface * output_surface) {
-    Bit32u * draw=(Bit32u*)(((Bit8u *)output_surface->pixels)+((y)*output_surface->pitch))+x;
+extern uint8_t int10_font_14[256 * 14];
+static void OutputString(Bitu x,Bitu y,const char * text,uint32_t color,uint32_t color2,SDL_Surface * output_surface) {
+    uint32_t * draw=(uint32_t*)(((uint8_t *)output_surface->pixels)+((y)*output_surface->pitch))+x;
     while (*text) {
-        Bit8u * font=&int10_font_14[(*text)*14];
+        uint8_t * font=&int10_font_14[(*text)*14];
         Bitu i,j;
-        Bit32u * draw_line=draw;
+        uint32_t * draw_line=draw;
         for (i=0;i<14;i++) {
-            Bit8u map=*font++;
+            uint8_t map=*font++;
             for (j=0;j<8;j++) {
-                if (map & 0x80) *((Bit32u*)(draw_line+j))=color; else *((Bit32u*)(draw_line+j))=color2;
+                if (map & 0x80) *((uint32_t*)(draw_line+j))=color; else *((uint32_t*)(draw_line+j))=color2;
                 map<<=1;
             }
             draw_line+=output_surface->pitch/4;
@@ -3562,8 +3562,8 @@ void RebootGuest(bool pressed) {
 	if (!dos_kernel_disabled) {
 	    if (CurMode->type==M_TEXT || IS_PC98_ARCH) {
 			char msg[]="[2J";
-			Bit16u s = (Bit16u)strlen(msg);
-			DOS_WriteFile(STDERR,(Bit8u*)msg,&s);
+			uint16_t s = (uint16_t)strlen(msg);
+			DOS_WriteFile(STDERR,(uint8_t*)msg,&s);
             throw int(6);
 	    } else {
             bootfast=true;
@@ -3666,8 +3666,8 @@ static void GUI_StartUp() {
                 char* height = const_cast<char*>(strchr(fullresolution,'x'));
                 if (height && * height) {
                     *height = 0;
-                    sdl.desktop.full.height = (Bit16u)atoi(height+1);
-                    sdl.desktop.full.width  = (Bit16u)atoi(res);
+                    sdl.desktop.full.height = (uint16_t)atoi(height+1);
+                    sdl.desktop.full.width  = (uint16_t)atoi(res);
                 }
             }
         }
@@ -3684,8 +3684,8 @@ static void GUI_StartUp() {
             char* height = const_cast<char*>(strchr(windowresolution,'x'));
             if(height && *height) {
                 *height = 0;
-                sdl.desktop.window.height = (Bit16u)atoi(height+1);
-                sdl.desktop.window.width  = (Bit16u)atoi(res);
+                sdl.desktop.window.height = (uint16_t)atoi(height+1);
+                sdl.desktop.window.width  = (uint16_t)atoi(res);
             }
         }
     }
@@ -4070,7 +4070,7 @@ bool Mouse_IsLocked()
     return sdl.mouse.locked;
 }
 
-static void RedrawScreen(Bit32u nWidth, Bit32u nHeight) {
+static void RedrawScreen(uint32_t nWidth, uint32_t nHeight) {
     (void)nWidth;//UNUSED
     (void)nHeight;//UNUSED
 //  int width;
@@ -4146,7 +4146,7 @@ static void RedrawScreen(Bit32u nWidth, Bit32u nHeight) {
     RENDER_CallBack( GFX_CallBackReset);
 }
 
-void GFX_RedrawScreen(Bit32u nWidth, Bit32u nHeight) {
+void GFX_RedrawScreen(uint32_t nWidth, uint32_t nHeight) {
     RedrawScreen(nWidth, nHeight);
 }
 
@@ -4190,8 +4190,8 @@ void GFX_HandleVideoResize(int width, int height) {
 
     /* TODO: Only if FULLSCREEN_DESKTOP */
     if (screen_size_info.screen_dimensions_pixels.width != 0 && screen_size_info.screen_dimensions_pixels.height != 0) {
-        sdl.desktop.full.width = (Bit16u)screen_size_info.screen_dimensions_pixels.width;
-        sdl.desktop.full.height = (Bit16u)screen_size_info.screen_dimensions_pixels.height;
+        sdl.desktop.full.width = (uint16_t)screen_size_info.screen_dimensions_pixels.width;
+        sdl.desktop.full.height = (uint16_t)screen_size_info.screen_dimensions_pixels.height;
     }
     else {
         SDL_DisplayMode dm;
@@ -5277,19 +5277,19 @@ void* GetSetSDLValue(int isget, std::string& target, void* setval) {
         else sdl.draw.callback = *static_cast<GFX_CallBack_t*>(setval);
     } else if (target == "desktop.full.width") {
         if (isget) return (void*) sdl.desktop.full.width;
-        else sdl.desktop.full.width = *static_cast<Bit16u*>(setval);
+        else sdl.desktop.full.width = *static_cast<uint16_t*>(setval);
     } else if (target == "desktop.full.height") {
         if (isget) return (void*) sdl.desktop.full.height;
-        else sdl.desktop.full.height = *static_cast<Bit16u*>(setval);
+        else sdl.desktop.full.height = *static_cast<uint16_t*>(setval);
     } else if (target == "desktop.full.fixed") {
         if (isget) return (void*) sdl.desktop.full.fixed;
         else sdl.desktop.full.fixed = setval;
     } else if (target == "desktop.window.width") {
         if (isget) return (void*) sdl.desktop.window.width;
-        else sdl.desktop.window.width = *static_cast<Bit16u*>(setval);
+        else sdl.desktop.window.width = *static_cast<uint16_t*>(setval);
     } else if (target == "desktop.window.height") {
         if (isget) return (void*) sdl.desktop.window.height;
-        else sdl.desktop.window.height = *static_cast<Bit16u*>(setval);
+        else sdl.desktop.window.height = *static_cast<uint16_t*>(setval);
 */
     } else if (target == "desktop.fullscreen") {
         if (isget) return (void*) sdl.desktop.fullscreen;
@@ -6242,7 +6242,7 @@ static bool PasteClipboardNext()
 		if (!bModAltOn)                                                // Alt down if not already down
 			GenKBStroke(uiScanCodeAlt, true, sdlmMods);
 		   
-		Bit8u ansiVal = cKey;
+		uint8_t ansiVal = cKey;
 		for (int i = 100; i; i /= 10)
 			{
 			int numKey = ansiVal/i;                                    // High digit of Alt+ASCII number combination
@@ -6261,9 +6261,9 @@ static bool PasteClipboardNext()
     return true;
 }
 
-extern Bit8u* clipAscii;
-extern Bit32u clipSize;
-extern void Unicode2Ascii(const Bit16u* unicode);
+extern uint8_t* clipAscii;
+extern uint32_t clipSize;
+extern void Unicode2Ascii(const uint16_t* unicode);
 
 void PasteClipboard(bool bPressed)
 {
@@ -6277,7 +6277,7 @@ void PasteClipboard(bool bPressed)
     HANDLE hContents = GetClipboardData(CF_UNICODETEXT);
     if (!hContents) {CloseClipboard();return;}
 
-    Bit16u *szClipboard = (Bit16u *)GlobalLock(hContents);
+    uint16_t *szClipboard = (uint16_t *)GlobalLock(hContents);
     if (szClipboard)
     {
 		clipSize=0;
@@ -6303,15 +6303,15 @@ void PasteClipboard(bool bPressed)
 #else // end emendelson from dbDOS; improved by Wengier
 #if defined(WIN32) // SDL2, MinGW / Added by Wengier
 static std::string strPasteBuffer;
-extern Bit8u* clipAscii;
-extern Bit32u clipSize;
-extern void Unicode2Ascii(const Bit16u* unicode);
+extern uint8_t* clipAscii;
+extern uint32_t clipSize;
+extern void Unicode2Ascii(const uint16_t* unicode);
 void PasteClipboard(bool bPressed) {
 	if (!bPressed||!OpenClipboard(NULL)) return;
     if (!IsClipboardFormatAvailable(CF_UNICODETEXT)) {CloseClipboard();return;}
     HANDLE hContents = GetClipboardData(CF_UNICODETEXT);
     if (!hContents) {CloseClipboard();return;}
-    Bit16u *szClipboard = (Bit16u *)GlobalLock(hContents);
+    uint16_t *szClipboard = (uint16_t *)GlobalLock(hContents);
     if (szClipboard)
     {
 		clipSize=0;
@@ -6353,9 +6353,9 @@ bool PasteClipboardNext() {
 #endif
 
 #if defined (WIN32)
-extern Bit16u cpMap[256];
+extern uint16_t cpMap[256];
 void CopyClipboard(void) {
-	Bit16u len=0;
+	uint16_t len=0;
 	const char* text = Mouse_GetSelected(mouse_start_x-sdl.clip.x,mouse_start_y-sdl.clip.y,mouse_end_x-sdl.clip.x,mouse_end_y-sdl.clip.y,(int)(currentWindowWidth-sdl.clip.x),(int)(currentWindowHeight-sdl.clip.y), &len);
 	if (OpenClipboard(NULL)&&EmptyClipboard()) {
 		HGLOBAL clipbuffer = GlobalAlloc(GMEM_DDESHARE, (len+1)*2);
@@ -6587,13 +6587,13 @@ static void show_warning(char const * const message) {
 #endif
     if(!sdl.surface) return;
 #if SDL_BYTEORDER == SDL_BIG_ENDIAN
-    Bit32u rmask = 0xff000000;
-    Bit32u gmask = 0x00ff0000;
-    Bit32u bmask = 0x0000ff00;
+    uint32_t rmask = 0xff000000;
+    uint32_t gmask = 0x00ff0000;
+    uint32_t bmask = 0x0000ff00;
 #else
-    Bit32u rmask = 0x000000ff;
-    Bit32u gmask = 0x0000ff00;                    
-    Bit32u bmask = 0x00ff0000;
+    uint32_t rmask = 0x000000ff;
+    uint32_t gmask = 0x0000ff00;                    
+    uint32_t bmask = 0x00ff0000;
 #endif
     SDL_Surface* splash_surf = SDL_CreateRGBSurface(SDL_SWSURFACE, 640, 400, 32, rmask, gmask, bmask, 0);
     if (!splash_surf) return;
@@ -7041,7 +7041,9 @@ bool DOSBOX_parse_argv() {
         else if (optname == "defaultdir") {
             if (control->cmdline->NextOptArgv(tmp)) {
                 struct stat st;
-                if (stat(tmp.c_str(), &st) == 0 && st.st_mode & S_IFDIR) chdir(tmp.c_str());
+                if (stat(tmp.c_str(), &st) == 0 && st.st_mode & S_IFDIR)
+                    if (chdir(tmp.c_str()) < 0)
+                        return false;
             }
         }
         else if (optname == "userconf") {
@@ -8458,7 +8460,7 @@ bool showdetails_menu_callback(DOSBoxMenu * const xmenu, DOSBoxMenu::item * cons
     (void)xmenu;//UNUSED
     (void)menuitem;//UNUSED
     menu.showrt = !(menu.hidecycles = !menu.hidecycles);
-    GFX_SetTitle((Bit32s)(CPU_CycleAutoAdjust?CPU_CyclePercUsed:CPU_CycleMax), -1, -1, false);
+    GFX_SetTitle((int32_t)(CPU_CycleAutoAdjust?CPU_CyclePercUsed:CPU_CycleMax), -1, -1, false);
     mainMenu.get_item("showdetails").check(!menu.hidecycles).refresh_item(mainMenu);
     return true;
 }
@@ -8541,16 +8543,18 @@ bool help_open_url_callback(DOSBoxMenu * const menu, DOSBoxMenu::item * const me
 #if defined(WIN32)
       ShellExecute(NULL, "open", url.c_str(), NULL, NULL, SW_SHOWNORMAL);
 #elif defined(LINUX)
-      system(("xdg-open "+url).c_str());
+      int ret = system(("xdg-open "+url).c_str());
+      return WIFEXITED(ret) && WEXITSTATUS(ret);
 #elif defined(MACOSX)
-      system(("open "+url).c_str());
+      int ret = system(("open "+url).c_str());
+      return WIFEXITED(ret) && WEXITSTATUS(ret);
 #endif
     }
 
     return true;
 }
 
-bool help_intro_callback(DOSBoxMenu * const menu, DOSBoxMenu::item * const menuitem) {
+bool help_intro_callback(DOSBoxMenu * const /*menu*/, DOSBoxMenu::item * const /*menuitem*/) {
     MAPPER_ReleaseAllKeys();
 
     GFX_LosingFocus();
@@ -8564,7 +8568,7 @@ bool help_intro_callback(DOSBoxMenu * const menu, DOSBoxMenu::item * const menui
     return true;
 }
 
-bool help_about_callback(DOSBoxMenu * const menu, DOSBoxMenu::item * const menuitem) {
+bool help_about_callback(DOSBoxMenu * const /*menu*/, DOSBoxMenu::item * const /*menuitem*/) {
     MAPPER_ReleaseAllKeys();
 
     GFX_LosingFocus();
@@ -10124,7 +10128,7 @@ fresh_boot:
         wait_debugger = false;
         reboot_machine = false;
         dos_kernel_shutdown = false;
-        guest_msdos_mcb_chain = (Bit16u)(~0u);
+        guest_msdos_mcb_chain = (uint16_t)(~0u);
 
         /* NTS: CPU reset handler, and BIOS init, has the instruction pointer poised to run through BIOS initialization,
          *      which will then "boot" into the DOSBox-X kernel, and then the shell, by calling VM_Boot_DOSBox_Kernel() */
@@ -10229,8 +10233,8 @@ fresh_boot:
 
             /* revector some dos-allocated interrupts */
             if (!reboot_machine) {
-                real_writed(0,0x01*4,(Bit32u)BIOS_DEFAULT_HANDLER_LOCATION);
-                real_writed(0,0x03*4,(Bit32u)BIOS_DEFAULT_HANDLER_LOCATION);
+                real_writed(0,0x01*4,(uint32_t)BIOS_DEFAULT_HANDLER_LOCATION);
+                real_writed(0,0x03*4,(uint32_t)BIOS_DEFAULT_HANDLER_LOCATION);
             }
 
             grGlideShutdown();

@@ -181,11 +181,11 @@ public:
 		}
 	}
 
-	void PlayMsg(Bit8u * msg) {
+	void PlayMsg(uint8_t * msg) {
 		MusicDeviceMIDIEvent(m_synth, msg[0], msg[1], msg[2], 0);
 	}	
 
-	void PlaySysex(Bit8u * sysex, Bitu len) {
+	void PlaySysex(uint8_t * sysex, Bitu len) {
 		MusicDeviceSysEx(m_synth, sysex, len);
 	}
 };

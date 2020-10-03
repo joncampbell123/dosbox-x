@@ -20,12 +20,12 @@
 #define DOSBOX_LAZYFLAGS_H
 
 //Flag Handling
-Bit32u get_CF(void);
-Bit32u get_AF(void);
-Bit32u get_ZF(void);
-Bit32u get_SF(void);
-Bit32u get_OF(void);
-Bit32u get_PF(void);
+uint32_t get_CF(void);
+uint32_t get_AF(void);
+uint32_t get_ZF(void);
+uint32_t get_SF(void);
+uint32_t get_OF(void);
+uint32_t get_PF(void);
 
 Bitu FillFlags(void);
 void FillFlagsNoCFOF(void);
@@ -39,7 +39,7 @@ struct LazyFlags {
     GenReg32 var1,var2,res;
 	Bitu type;
 	Bitu prev_type;
-	Bit8u oldcf;
+	uint8_t oldcf;
 };
 
 extern LazyFlags lfags;

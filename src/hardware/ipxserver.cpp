@@ -33,15 +33,15 @@ UDPsocket ipxServerSocket;  // Listening server socket
 
 packetBuffer connBuffer[SOCKETTABLESIZE];
 
-Bit8u inBuffer[IPXBUFFERSIZE];
+uint8_t inBuffer[IPXBUFFERSIZE];
 IPaddress ipconn[SOCKETTABLESIZE];  // Active TCP/IP connection 
 UDPsocket tcpconn[SOCKETTABLESIZE];  // Active TCP/IP connections
 SDLNet_SocketSet serverSocketSet;
 TIMER_TickHandler* serverTimer;
 
-Bit8u packetCRC(Bit8u *buffer, Bit16u bufSize) {
-	Bit8u tmpCRC = 0;
-	Bit16u i;
+uint8_t packetCRC(uint8_t *buffer, uint16_t bufSize) {
+	uint8_t tmpCRC = 0;
+	uint16_t i;
 	for(i=0;i<bufSize;i++) {
 		tmpCRC ^= *buffer;
 		buffer++;
@@ -50,8 +50,8 @@ Bit8u packetCRC(Bit8u *buffer, Bit16u bufSize) {
 }
 
 /*
-static void closeSocket(Bit16u sockidx) {
-	Bit32u host;
+static void closeSocket(uint16_t sockidx) {
+	uint32_t host;
 
 	host = ipconn[sockidx].host;
 	LOG_MSG("IPXSERVER: %d.%d.%d.%d disconnected", CONVIP(host));
@@ -63,10 +63,10 @@ static void closeSocket(Bit16u sockidx) {
 }
 */
 
-static void sendIPXPacket(Bit8u *buffer, Bit16s bufSize) {
-	Bit16u srcport, destport;
-	Bit32u srchost, desthost;
-	Bit16u i;
+static void sendIPXPacket(uint8_t *buffer, int16_t bufSize) {
+	uint16_t srcport, destport;
+	uint32_t srchost, desthost;
+	uint16_t i;
 	Bits result;
 	UDPpacket outPacket;
 	outPacket.channel = -1;
@@ -152,8 +152,8 @@ static void IPX_ServerLoop() {
 
 	//char regString[] = "IPX Register\0";
 
-	Bit16u i;
-	Bit32u host;
+	uint16_t i;
+	uint32_t host;
 	Bits result;
 
 	inPacket.channel = -1;
@@ -200,7 +200,7 @@ static void IPX_ServerLoop() {
 		}
 
 		// IPX packet is complete.  Now interpret IPX header and send to respective IP address
-		sendIPXPacket((Bit8u *)inPacket.data, inPacket.len);
+		sendIPXPacket((uint8_t *)inPacket.data, inPacket.len);
 	}
 }
 
@@ -209,8 +209,8 @@ void IPX_StopServer() {
 	SDLNet_UDP_Close(ipxServerSocket);
 }
 
-bool IPX_StartServer(Bit16u portnum) {
-	Bit16u i;
+bool IPX_StartServer(uint16_t portnum) {
+	uint16_t i;
 
 	if(!SDLNet_ResolveHost(&ipxServerIp, NULL, portnum)) {
 	

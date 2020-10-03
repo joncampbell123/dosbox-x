@@ -50,18 +50,18 @@ extern bool startcmd, startwait, winautorun;
 extern bool enable_config_as_shell_commands;
 extern bool dos_shell_running_program, addovl;
 extern const char* RunningProgram;
-extern Bit16u countryNo;
+extern uint16_t countryNo;
 extern int enablelfn;
 bool usecon = true;
 
-Bit16u shell_psp = 0;
+uint16_t shell_psp = 0;
 Bitu call_int2e = 0;
 
 void runMount(const char *str);
 void MSG_Replace(const char * _name, const char* _val);
-void DOS_SetCountry(Bit16u countryNo);
+void DOS_SetCountry(uint16_t countryNo);
 void CALLBACK_DeAllocate(Bitu in);
-void GFX_SetTitle(Bit32s cycles, Bits frameskip, Bits timing, bool paused);
+void GFX_SetTitle(int32_t cycles, Bits frameskip, Bits timing, bool paused);
 
 Bitu call_shellstop = 0;
 /* Larger scope so shell_del autoexec can use it to
@@ -156,7 +156,7 @@ void AutoexecObject::CreateAutoexec(void) {
 		}
 		sprintf((autoexec_data + auto_len),"%s\r\n",linecopy.c_str());
 	}
-	if (first_shell) VFILE_Register("AUTOEXEC.BAT",(Bit8u *)autoexec_data,(Bit32u)strlen(autoexec_data));
+	if (first_shell) VFILE_Register("AUTOEXEC.BAT",(uint8_t *)autoexec_data,(uint32_t)strlen(autoexec_data));
 }
 
 void AutoexecObject::Uninstall() {
@@ -303,8 +303,8 @@ void DOS_Shell::ParseLine(char * line) {
 	char * out = 0;
 	char * toc = 0;
 
-	Bit16u dummy,dummy2;
-	Bit32u bigdummy = 0;
+	uint16_t dummy,dummy2;
+	uint32_t bigdummy = 0;
 	bool append;
 	bool normalstdin  = false;	/* wether stdin/out are open on start. */
 	bool normalstdout = false;	/* Bug: Assumed is they are "con"      */
@@ -325,7 +325,7 @@ void DOS_Shell::ParseLine(char * line) {
 	}
 	bool fail=false;
 	char pipetmp[270];
-	Bit16u fattr;
+	uint16_t fattr;
 	if (toc) {
 #ifdef WIN32
 		srand(GetTickCount());
@@ -518,7 +518,7 @@ void DOS_Shell::Run(void) {
 #if defined(WIN32)
 			char buffer[128];
 			if (GetLocaleInfo(LOCALE_USER_DEFAULT, LOCALE_ICOUNTRY, buffer, 128)) {
-				countryNo = Bit16u(atoi(buffer));
+				countryNo = uint16_t(atoi(buffer));
 				DOS_SetCountry(countryNo);
 			}
 			else
@@ -588,13 +588,13 @@ void DOS_Shell::Run(void) {
 			strcat(config_data, (char *)section->Get_string("rem"));
 			strcat(config_data, "\r\n");
 		}
-		VFILE_Register("CONFIG.SYS",(Bit8u *)config_data,(Bit32u)strlen(config_data));
+		VFILE_Register("CONFIG.SYS",(uint8_t *)config_data,(uint32_t)strlen(config_data));
 #if defined(WIN32)
 		if (!control->opt_securemode&&!control->SecureMode())
 		{
 			const Section_prop* sec = 0; sec = static_cast<Section_prop*>(control->GetSection("dos"));
 			if(sec->Get_bool("automountall")) {
-				Bit32u drives = GetLogicalDrives();
+				uint32_t drives = GetLogicalDrives();
 				char name[4]="A:\\";
 				for (int i=0; i<25; i++) {
 					if ((drives & (1<<i)) && !Drives[i])
@@ -632,7 +632,7 @@ void DOS_Shell::Run(void) {
 				}
 			}
 		}
-		VFILE_Register("4DOS.INI",(Bit8u *)i4dos_data,(Bit32u)strlen(i4dos_data));
+		VFILE_Register("4DOS.INI",(uint8_t *)i4dos_data,(uint32_t)strlen(i4dos_data));
     }
     else if (!optInit) {
         WriteOut(optK?"\n":"DOSBox-X command shell [Version %s %s]\nCopyright DOSBox-X Team. All rights reserved\n\n",VERSION,SDL_STRING);
@@ -857,7 +857,7 @@ public:
 
 		assert(i <= 17); /* FIXME: autoexec[] should not be fixed size */
 
-		VFILE_Register("AUTOEXEC.BAT",(Bit8u *)autoexec_data,(Bit32u)strlen(autoexec_data));
+		VFILE_Register("AUTOEXEC.BAT",(uint8_t *)autoexec_data,(uint32_t)strlen(autoexec_data));
 	}
 };
 
@@ -900,7 +900,7 @@ void AUTOEXEC_Init() {
 static Bitu INT2E_Handler(void) {
 	/* Save return address and current process */
 	RealPt save_ret=real_readd(SegValue(ss),reg_sp);
-	Bit16u save_psp=dos.psp();
+	uint16_t save_psp=dos.psp();
 
 	/* Set first shell as process and copy command */
 	dos.psp(shell_psp);//DOS_FIRST_SHELL);
@@ -1400,10 +1400,10 @@ void SHELL_Init() {
      *      the UMB as DOSBox SVN would do) */
 
 	/* Now call up the shell for the first time */
-	Bit16u psp_seg;//=DOS_FIRST_SHELL;
-	Bit16u env_seg;//=DOS_FIRST_SHELL+19; //DOS_GetMemory(1+(4096/16))+1;
-	Bit16u stack_seg;//=DOS_GetMemory(2048/16,"COMMAND.COM stack");
-    Bit16u tmp,total_sz;
+	uint16_t psp_seg;//=DOS_FIRST_SHELL;
+	uint16_t env_seg;//=DOS_FIRST_SHELL+19; //DOS_GetMemory(1+(4096/16))+1;
+	uint16_t stack_seg;//=DOS_GetMemory(2048/16,"COMMAND.COM stack");
+    uint16_t tmp,total_sz;
 
     // decide shell env size
     if (dosbox_shell_env_size == 0)
@@ -1434,13 +1434,13 @@ void SHELL_Init() {
     shell_psp = psp_seg;
 
     {
-        DOS_MCB mcb((Bit16u)(env_seg-1));
+        DOS_MCB mcb((uint16_t)(env_seg-1));
         mcb.SetPSPSeg(psp_seg);
         mcb.SetFileName("COMMAND");
     }
 
     {
-        DOS_MCB mcb((Bit16u)(psp_seg-1));
+        DOS_MCB mcb((uint16_t)(psp_seg-1));
         mcb.SetPSPSeg(psp_seg);
         mcb.SetFileName("COMMAND");
     }
@@ -1456,10 +1456,10 @@ void SHELL_Init() {
 	/* Set up int 24 and psp (Telarium games) */
 	real_writeb(psp_seg+16+1,0,0xea);		/* far jmp */
 	real_writed(psp_seg+16+1,1,real_readd(0,0x24*4));
-	real_writed(0,0x24*4,((Bit32u)psp_seg<<16) | ((16+1)<<4));
+	real_writed(0,0x24*4,((uint32_t)psp_seg<<16) | ((16+1)<<4));
 
 	/* Set up int 23 to "int 20" in the psp. Fixes what.exe */
-	real_writed(0,0x23*4,((Bit32u)psp_seg<<16));
+	real_writed(0,0x23*4,((uint32_t)psp_seg<<16));
 
 	/* Set up int 2e handler */
     if (call_int2e == 0)
@@ -1533,7 +1533,7 @@ void SHELL_Init() {
 #endif
     }
     long f_size;
-    Bit8u *f_data;
+    uint8_t *f_data;
     for (std::string name: names) {
 #if defined(WIN32)
         FILE * f = fopen((path+"\\"+name).c_str(), "rb");
@@ -1554,7 +1554,7 @@ void SHELL_Init() {
         if(f != NULL) {
             fseek(f, 0, SEEK_END);
             f_size=ftell(f);
-            f_data=(Bit8u*)malloc(f_size);
+            f_data=(uint8_t*)malloc(f_size);
             fseek(f, 0, SEEK_SET);
             fread(f_data, sizeof(char), f_size, f);
             fclose(f);
@@ -1631,7 +1631,7 @@ void SHELL_Init() {
 	 * 01 01 01 00 02
 	 * In order to achieve this: First open 2 files. Close the first and
 	 * duplicate the second (so the entries get 01) */
-	Bit16u dummy=0;
+	uint16_t dummy=0;
 	DOS_OpenFile("CON",OPEN_READWRITE,&dummy);	/* STDIN  */
 	DOS_OpenFile("CON",OPEN_READWRITE,&dummy);	/* STDOUT */
 	DOS_CloseFile(0);							/* Close STDIN */
@@ -1647,7 +1647,7 @@ void SHELL_Init() {
 	psp.SetEnvironment(env_seg);
 	/* Set the command line for the shell start up */
 	CommandTail tail;
-	tail.count=(Bit8u)strlen(init_line);
+	tail.count=(uint8_t)strlen(init_line);
 	memset(&tail.buffer, 0, CTBUF);
 	strncpy(tail.buffer,init_line,CTBUF);
 	MEM_BlockWrite(PhysMake(psp_seg,CTBUF+1),&tail,CTBUF+1);

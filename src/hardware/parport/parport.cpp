@@ -37,7 +37,7 @@
 #include "filelpt.h"
 #include "dos_inc.h"
 
-bool device_LPT::Read(Bit8u * data,Bit16u * size) {
+bool device_LPT::Read(uint8_t * data,uint16_t * size) {
     (void)data;//UNUSED
 	*size=0;
 	LOG(LOG_DOSMISC,LOG_NORMAL)("LPTDEVICE:Read called");
@@ -45,15 +45,15 @@ bool device_LPT::Read(Bit8u * data,Bit16u * size) {
 }
 
 
-bool device_LPT::Write(const Bit8u * data,Bit16u * size) {
-	for (Bit16u i=0; i<*size; i++)
+bool device_LPT::Write(const uint8_t * data,uint16_t * size) {
+	for (uint16_t i=0; i<*size; i++)
 	{
 		if(!pportclass->Putchar(data[i])) return false;
 	}
 	return true;
 }
 
-bool device_LPT::Seek(Bit32u * pos,Bit32u type) {
+bool device_LPT::Seek(uint32_t * pos,uint32_t type) {
     (void)type;//UNUSED
 	*pos = 0;
 	return true;
@@ -63,12 +63,12 @@ bool device_LPT::Close() {
 	return false;
 }
 
-Bit16u device_LPT::GetInformation(void) {
+uint16_t device_LPT::GetInformation(void) {
 	return 0x80A0;
 }
 
 const char* lptname[]={"LPT1","LPT2","LPT3"};
-device_LPT::device_LPT(Bit8u num, class CParallel* pp) {
+device_LPT::device_LPT(uint8_t num, class CParallel* pp) {
 	pportclass = pp;
 	SetName(lptname[num]);
 	this->num = num;
@@ -86,19 +86,19 @@ device_LPT::~device_LPT() {
 static void Parallel_EventHandler(Bitu val) {
 	Bitu serclassid=val&0x3;
 	if(parallelPortObjects[serclassid]!=0)
-		parallelPortObjects[serclassid]->handleEvent((Bit16u)(val>>2ul));
+		parallelPortObjects[serclassid]->handleEvent((uint16_t)(val>>2ul));
 }
 
-void CParallel::setEvent(Bit16u type, float duration) {
+void CParallel::setEvent(uint16_t type, float duration) {
     PIC_AddEvent(Parallel_EventHandler,duration,((Bitu)type<<2u)|(Bitu)port_nr);
 }
 
-void CParallel::removeEvent(Bit16u type) {
+void CParallel::removeEvent(uint16_t type) {
     // TODO
 	PIC_RemoveSpecificEvents(Parallel_EventHandler,((Bitu)type<<2u)|(Bitu)port_nr);
 }
 
-void CParallel::handleEvent(Bit16u type) {
+void CParallel::handleEvent(uint16_t type) {
 	handleUpperEvent(type);
 }
 
@@ -179,7 +179,7 @@ void CParallel::log_par(bool active, char const* format,...) {
 #endif
 
 // Initialisation
-CParallel::CParallel(CommandLine* cmd, Bitu portnr, Bit8u initirq) {
+CParallel::CParallel(CommandLine* cmd, Bitu portnr, uint8_t initirq) {
     (void)cmd;//UNUSED
 	base = parallel_baseaddr[portnr];
 	irq = initirq;
@@ -231,7 +231,7 @@ CParallel::CParallel(CommandLine* cmd, Bitu portnr, Bit8u initirq) {
 void CParallel::registerDOSDevice() {
 	if (mydosdevice == NULL) {
 		LOG(LOG_MISC,LOG_DEBUG)("LPT%d: Registering DOS device",(int)port_nr+1);
-		mydosdevice = new device_LPT((Bit8u)port_nr, this);
+		mydosdevice = new device_LPT((uint8_t)port_nr, this);
 		DOS_AddDevice(mydosdevice);
 	}
 }
@@ -248,7 +248,7 @@ CParallel::~CParallel(void) {
 	unregisterDOSDevice();
 }
 
-Bit8u CParallel::getPrinterStatus()
+uint8_t CParallel::getPrinterStatus()
 {
 	/*	7      not busy
 		6      acknowledge
@@ -257,7 +257,7 @@ Bit8u CParallel::getPrinterStatus()
 		3      I/O error
 		2-1    unused
 		0      timeout  */
-	Bit8u statusreg=(Bit8u)Read_SR();
+	uint8_t statusreg=(uint8_t)Read_SR();
 
 	//LOG_MSG("get printer status: %x",statusreg);
 	statusreg^=0x48;
@@ -313,9 +313,9 @@ void BIOS_Post_register_parports() {
 
 	for (i=0;i < 3;i++) {
 		if (parallelPortObjects[i] != NULL)
-			BIOS_SetLPTPort(i,(Bit16u)parallelPortObjects[i]->base);
-		else if (DISNEY_HasInit() && parallel_baseaddr[i] == (Bit16u)DISNEY_BasePort())
-			BIOS_SetLPTPort(i,(Bit16u)DISNEY_BasePort());
+			BIOS_SetLPTPort(i,(uint16_t)parallelPortObjects[i]->base);
+		else if (DISNEY_HasInit() && parallel_baseaddr[i] == (uint16_t)DISNEY_BasePort())
+			BIOS_SetLPTPort(i,(uint16_t)DISNEY_BasePort());
 	}
 }
 	
@@ -333,7 +333,7 @@ public:
 #endif
 
 		// default ports & interrupts
-		Bit8u defaultirq[] = { 7, 5, 12};
+		uint8_t defaultirq[] = { 7, 5, 12};
 		Section_prop *section = static_cast <Section_prop*>(configuration);
 		
 		char pname[]="parallelx";

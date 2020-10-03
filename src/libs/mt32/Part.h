@@ -69,12 +69,12 @@ protected:
 	MemParams::PatchTemp *patchTemp;
 	char name[8]; // "Part 1".."Part 8", "Rhythm"
 	char currentInstr[11];
-	Bit8u modulation;
-	Bit8u expression;
-	Bit32s pitchBend;
+	uint8_t modulation;
+	uint8_t expression;
+	int32_t pitchBend;
 	bool nrpn;
-	Bit16u rpn;
-	Bit16u pitchBenderRange; // (patchTemp->patch.benderRange * 683) at the time of the last MIDI program change or MIDI data entry.
+	uint16_t rpn;
+	uint16_t pitchBenderRange; // (patchTemp->patch.benderRange * 683) at the time of the last MIDI program change or MIDI data entry.
 
 	void backupCacheToPartials(PatchCache cache[4]);
 	void cacheTimbre(PatchCache cache[4], const TimbreParam *timbre);
@@ -95,14 +95,14 @@ public:
 	virtual void noteOff(unsigned int midiKey);
 	void allNotesOff();
 	void allSoundOff();
-	Bit8u getVolume() const; // Internal volume, 0-100, exposed for use by ExternalInterface
+	uint8_t getVolume() const; // Internal volume, 0-100, exposed for use by ExternalInterface
 	void setVolume(unsigned int midiVolume);
-	Bit8u getModulation() const;
+	uint8_t getModulation() const;
 	void setModulation(unsigned int midiModulation);
-	Bit8u getExpression() const;
+	uint8_t getExpression() const;
 	void setExpression(unsigned int midiExpression);
 	virtual void setPan(unsigned int midiPan);
-	Bit32s getPitchBend() const;
+	int32_t getPitchBend() const;
 	void setBend(unsigned int midiBend);
 	virtual void setProgram(unsigned int midiProgram);
 	void setHoldPedal(bool pedalval);

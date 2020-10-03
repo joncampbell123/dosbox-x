@@ -203,7 +203,7 @@ int CDirect3D::Start(void)
 }
 #endif
 
-bool CDirect3D::LockTexture(Bit8u * & pixels,Bitu & pitch)
+bool CDirect3D::LockTexture(uint8_t * & pixels,Bitu & pitch)
 {
 #if D3D_THREAD
     Wait(false);
@@ -231,7 +231,7 @@ bool CDirect3D::LockTexture(Bit8u * & pixels,Bitu & pitch)
     }
 #endif
 
-    pixels=(Bit8u *)d3dlr.pBits;
+    pixels=(uint8_t *)d3dlr.pBits;
     pitch=d3dlr.Pitch;
     return true;
 }
@@ -269,7 +269,7 @@ lock_texture:
     return S_OK;
 }
 
-bool CDirect3D::UnlockTexture(const Bit16u *changed)
+bool CDirect3D::UnlockTexture(const uint16_t *changed)
 {
 	changedLines = changed;
 #if D3D_THREAD
@@ -751,12 +751,12 @@ pass2:
 			LOG_MSG("D3D:Unable to create file!");
 		    } else {
 			for(int i = 0; i < dwTexHeight; i++) {
-			    Bit8u * ptr = (Bit8u*)d3dlr.pBits;
+			    uint8_t * ptr = (uint8_t*)d3dlr.pBits;
 			    for(int j = 0; j < dwTexWidth; j++) {
 				fwrite(ptr, 3, sizeof(char), debug);
 				ptr += 4;
 			    }
-			    d3dlr.pBits = (Bit8u*)d3dlr.pBits + d3dlr.Pitch;
+			    d3dlr.pBits = (uint8_t*)d3dlr.pBits + d3dlr.Pitch;
 			}
 			fclose(debug);
 		    }
@@ -1218,7 +1218,7 @@ HRESULT CDirect3D::CreateDisplayTexture(void)
 
     // Initialize texture to black
     if(LockTexture() == S_OK) {
-	Bit8u * pixels = (Bit8u *)d3dlr.pBits;
+	uint8_t * pixels = (uint8_t *)d3dlr.pBits;
 
 	for(Bitu lines = dwTexHeight; lines; lines--) {
 	    memset(pixels, 0, (dwTexWidth<<2)>>(bpp16?1:0));
@@ -1314,7 +1314,7 @@ HRESULT CDirect3D::CreateDisplayTexture(void)
 	    return E_FAIL;
 	}
 
-	BuildHq2xLookupTexture(dwScaledWidth, dwScaledHeight, dwWidth, dwHeight, (Bit8u *)lockedBox.pBits);
+	BuildHq2xLookupTexture(dwScaledWidth, dwScaledHeight, dwWidth, dwHeight, (uint8_t *)lockedBox.pBits);
 
 #if LOG_D3D
 	// Debug: Write look-up texture to file

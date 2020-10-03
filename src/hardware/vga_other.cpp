@@ -42,7 +42,7 @@ void UpdateCGAFromSaveState(void) {
 static unsigned char mcga_crtc_dat_org = 0x00;
 
 static void write_crtc_index_other(Bitu /*port*/,Bitu val,Bitu /*iolen*/) {
-	vga.other.index=(Bit8u)(val & 0x1f);
+	vga.other.index=(uint8_t)(val & 0x1f);
 
     if (machine == MCH_MCGA) {
         /* odd real hardware behavior.
@@ -59,48 +59,48 @@ static void write_crtc_data_other(Bitu /*port*/,Bitu val,Bitu /*iolen*/) {
 	switch (vga.other.index) {
 	case 0x00:		//Horizontal total
 		if (vga.other.htotal ^ val) VGA_StartResize();
-		vga.other.htotal=(Bit8u)val;
+		vga.other.htotal=(uint8_t)val;
 		break;
 	case 0x01:		//Horizontal displayed chars
 		if (vga.other.hdend ^ val) VGA_StartResize();
-		vga.other.hdend=(Bit8u)val;
+		vga.other.hdend=(uint8_t)val;
 		break;
 	case 0x02:		//Horizontal sync position
-		vga.other.hsyncp=(Bit8u)val;
+		vga.other.hsyncp=(uint8_t)val;
 		break;
 	case 0x03:		//Horizontal sync width
-		if (machine==MCH_TANDY) vga.other.vsyncw=(Bit8u)(val >> 4);
+		if (machine==MCH_TANDY) vga.other.vsyncw=(uint8_t)(val >> 4);
 		else vga.other.vsyncw = 16; // The MC6845 has a fixed v-sync width of 16 lines
-		vga.other.hsyncw=(Bit8u)(val & 0xf);
+		vga.other.hsyncw=(uint8_t)(val & 0xf);
 		break;
 	case 0x04:		//Vertical total
 		if (vga.other.vtotal ^ val) VGA_StartResize();
-		vga.other.vtotal=(Bit8u)(val&0x7f);
+		vga.other.vtotal=(uint8_t)(val&0x7f);
 		break;
 	case 0x05:		//Vertical display adjust
 		if (vga.other.vadjust ^ val) VGA_StartResize();
-		vga.other.vadjust=(Bit8u)val;
+		vga.other.vadjust=(uint8_t)val;
 		break;
 	case 0x06:		//Vertical rows
 		if (vga.other.vdend ^ val) VGA_StartResize();
-		vga.other.vdend=(Bit8u)(val&0x7f);
+		vga.other.vdend=(uint8_t)(val&0x7f);
 		break;
 	case 0x07:		//Vertical sync position
-		vga.other.vsyncp=(Bit8u)val;
+		vga.other.vsyncp=(uint8_t)val;
 		break;
 	case 0x09:		//Max scanline
 		val &= 0x1f; // VGADOC says bit 0-3 but the MC6845 datasheet says bit 0-4
  		if (vga.other.max_scanline ^ val) VGA_StartResize();
-		vga.other.max_scanline=(Bit8u)val;
+		vga.other.max_scanline=(uint8_t)val;
 		break;
 	case 0x0A:	/* Cursor Start Register */
-		vga.other.cursor_start = (Bit8u)(val & 0x3f);
-		vga.draw.cursor.sline = (Bit8u)(val&0x1f);
+		vga.other.cursor_start = (uint8_t)(val & 0x3f);
+		vga.draw.cursor.sline = (uint8_t)(val&0x1f);
 		vga.draw.cursor.enabled = ((val & 0x60) != 0x20);
 		break;
 	case 0x0B:	/* Cursor End Register */
-		vga.other.cursor_end = (Bit8u)(val&0x1f);
-		vga.draw.cursor.eline = (Bit8u)(val&0x1f);
+		vga.other.cursor_end = (uint8_t)(val&0x1f);
+		vga.draw.cursor.eline = (uint8_t)(val&0x1f);
 		break;
 	case 0x0C:	/* Start Address High Register */
 		// Bit 12 (depending on video mode) and 13 are actually masked too,
@@ -115,11 +115,11 @@ static void write_crtc_data_other(Bitu /*port*/,Bitu val,Bitu /*iolen*/) {
 		break;
 	case 0x0E:	/*Cursor Location High Register */
 		vga.config.cursor_start&=0x00ffu;
-		vga.config.cursor_start|=(unsigned int)(((Bit8u)val) << 8u);
+		vga.config.cursor_start|=(unsigned int)(((uint8_t)val) << 8u);
 		break;
 	case 0x0F:	/* Cursor Location Low Register */
 		vga.config.cursor_start&=0xff00u;
-		vga.config.cursor_start|=(Bit8u)val;
+		vga.config.cursor_start|=(uint8_t)val;
 		break;
 	case 0x10:	/* Light Pen High */
 		// MC6845 datasheet says the light pen registers are only readable
@@ -128,7 +128,7 @@ static void write_crtc_data_other(Bitu /*port*/,Bitu val,Bitu /*iolen*/) {
 		break;
 	case 0x11:	/* Light Pen Low */
 		vga.other.lightpen &= 0xff00;
-		vga.other.lightpen |= (Bit8u)val;
+		vga.other.lightpen |= (uint8_t)val;
 		break;
 	default:
 		LOG(LOG_VGAMISC,LOG_NORMAL)("MC6845:Write %X to illegal index %x",(int)val,(int)vga.other.index);
@@ -161,17 +161,17 @@ static Bitu read_crtc_data_other(Bitu /*port*/,Bitu /*iolen*/) {
 	case 0x0B:	/* Cursor End Register */
 		return vga.other.cursor_end;
 	case 0x0C:	/* Start Address High Register */
-		return (Bit8u)(vga.config.display_start >> 8u);
+		return (uint8_t)(vga.config.display_start >> 8u);
 	case 0x0D:	/* Start Address Low Register */
-		return (Bit8u)(vga.config.display_start & 0xffu);
+		return (uint8_t)(vga.config.display_start & 0xffu);
 	case 0x0E:	/*Cursor Location High Register */
-		return (Bit8u)(vga.config.cursor_start >> 8u);
+		return (uint8_t)(vga.config.cursor_start >> 8u);
 	case 0x0F:	/* Cursor Location Low Register */
-		return (Bit8u)(vga.config.cursor_start & 0xffu);
+		return (uint8_t)(vga.config.cursor_start & 0xffu);
 	case 0x10:	/* Light Pen High */
-		return (Bit8u)(vga.other.lightpen >> 8u);
+		return (uint8_t)(vga.other.lightpen >> 8u);
 	case 0x11:	/* Light Pen Low */
-		return (Bit8u)(vga.other.lightpen & 0xffu);
+		return (uint8_t)(vga.other.lightpen & 0xffu);
 	default:
 		LOG(LOG_VGAMISC,LOG_NORMAL)("MC6845:Read from illegal index %x",vga.other.index);
 	}
@@ -190,7 +190,7 @@ static void write_crtc_data_mcga(Bitu port,Bitu val,Bitu iolen) {
         switch (vga.other.index) {
             case 0x10: /* MCGA Mode Control */
                 {
-                    const Bit8u changed = (vga.other.mcga_mode_control ^ (Bit8u)val);
+                    const uint8_t changed = (vga.other.mcga_mode_control ^ (uint8_t)val);
 
                     /* bit 0: 1=select 320x200 256-color mode    0=all else
                      * bit 1: 1=select 640x480 2-color mode      0=all else
@@ -203,7 +203,7 @@ static void write_crtc_data_mcga(Bitu port,Bitu val,Bitu iolen) {
                     /* NTS: According to real hardware, bit 6 is more than just the 8th bit, clearing it automatically enables
                      *      the scanline doubling in hardware apparently. If other parameters are not adjusted, weird results
                      *      happen. */
-                    vga.other.mcga_mode_control = (Bit8u)val;
+                    vga.other.mcga_mode_control = (uint8_t)val;
                     if (val & 0x80)
                         crtc(read_only) = true;
                     else
@@ -275,25 +275,25 @@ static void write_lightpen(Bitu port,Bitu val,Bitu) {
 			double timeInLine = fmod(timeInFrame,vga.draw.delay.htotal);
 			Bitu current_scanline = (Bitu)(timeInFrame / vga.draw.delay.htotal);
 			
-			vga.other.lightpen = (Bit16u)((vga.draw.address_add/2) * (current_scanline/2));
-			vga.other.lightpen += (Bit16u)((timeInLine / vga.draw.delay.hdend) *
+			vga.other.lightpen = (uint16_t)((vga.draw.address_add/2) * (current_scanline/2));
+			vga.other.lightpen += (uint16_t)((timeInLine / vga.draw.delay.hdend) *
 				((float)(vga.draw.address_add/2)));
 		}
 		break;
 	}
 }
 
-Bit8u cga_comp = 0;
+uint8_t cga_comp = 0;
 bool new_cga = 0;
 
 static double hue_offset = 0.0;
 
-static Bit8u cga16_val = 0;
+static uint8_t cga16_val = 0;
 static void update_cga16_color(void);
-static Bit8u herc_pal = 0;
-static Bit8u mono_cga_pal = 0;
-static Bit8u mono_cga_bright = 0;
-static Bit8u const mono_cga_palettes[8][16][3] =
+static uint8_t herc_pal = 0;
+static uint8_t mono_cga_pal = 0;
+static uint8_t mono_cga_bright = 0;
+static uint8_t const mono_cga_palettes[8][16][3] =
 {
 	{ // 0 - green, 4-color-optimized contrast
 		{0x00,0x00,0x00},{0x00,0x0d,0x03},{0x01,0x17,0x05},{0x01,0x1a,0x06},{0x02,0x28,0x09},{0x02,0x2c,0x0a},{0x03,0x39,0x0d},{0x03,0x3c,0x0e},
@@ -329,7 +329,7 @@ static Bit8u const mono_cga_palettes[8][16][3] =
 	},
 };
 
-static void cga16_color_select(Bit8u val) {
+static void cga16_color_select(uint8_t val) {
 	cga16_val = val;
 	update_cga16_color();
 }
@@ -347,7 +347,7 @@ static void update_cga16_color(void) {
 	bool color_sel = (cga16_val&0x20) != 0;
 	bool background_i = (cga16_val&0x10) != 0;	// Really foreground intensity, but this is what the CGA schematic calls it.
 	bool bpp1 = (vga.tandy.mode_control&0x10) != 0;
-	Bit8u overscan = cga16_val&0x0f;  // aka foreground colour in 1bpp mode
+	uint8_t overscan = cga16_val&0x0f;  // aka foreground colour in 1bpp mode
 
 	double chroma_coefficient = new_cga ? 0.29 : 0.72;
 	double b_coefficient = new_cga ? 0.07 : 0;
@@ -391,10 +391,10 @@ static void update_cga16_color(void) {
 
 	double hue_adjust = (-(90-33)-hue_offset+pixel_clock_delay)*tau/360.0;
 	double chroma_signals[8][4];
-	for (Bit8u i=0; i<4; i++) {
+	for (uint8_t i=0; i<4; i++) {
 		chroma_signals[0][i] = 0;
 		chroma_signals[7][i] = 1;
-		for (Bit8u j=0; j<6; j++) {
+		for (uint8_t j=0; j<6; j++) {
 			static const double phases[6] = {
 				270 - 21.5*ns,  // blue
 				135 - 29.5*ns,  // green
@@ -430,21 +430,21 @@ static void update_cga16_color(void) {
 		(Bitu)(4 + (color_sel&&!bw? 1 : 0) + (background_i ? 8 : 0)),
 		(Bitu)(6 + (color_sel||bw ? 1 : 0) + (background_i ? 8 : 0))
 	};
-	for (Bit8u x=0; x<4; x++) {	 // Position of pixel in question
+	for (uint8_t x=0; x<4; x++) {	 // Position of pixel in question
 		bool even = (x & 1) == 0;
-		for (Bit8u bits=0; bits<(even ? 0x10 : 0x40); ++bits) {
+		for (uint8_t bits=0; bits<(even ? 0x10 : 0x40); ++bits) {
 			double Y=0, I=0, Q=0;
-			for (Bit8u p=0; p<4; p++) {  // Position within color carrier cycle
+			for (uint8_t p=0; p<4; p++) {  // Position within color carrier cycle
 				// generate pixel pattern.
-				Bit8u rgbi;
+				uint8_t rgbi;
 				if (bpp1)
 					rgbi = ((bits >> (3-p)) & (even ? 1 : 2)) != 0 ? overscan : 0;
 				else
 					if (even)
-						rgbi = (Bit8u)CGApal[(bits >> (2-(p&2)))&3];
+						rgbi = (uint8_t)CGApal[(bits >> (2-(p&2)))&3];
 					else
-						rgbi = (Bit8u)CGApal[(bits >> (4-((p+1)&6)))&3];
-				Bit8u c = rgbi & 7;
+						rgbi = (uint8_t)CGApal[(bits >> (4-((p+1)&6)))&3];
+				uint8_t c = rgbi & 7;
 				if (bw && c != 0)
 					c = 7;
 
@@ -478,7 +478,7 @@ static void update_cga16_color(void) {
 			int g = static_cast<int>(255*pow(-0.0275*R +0.9350*G +0.0670*B, 1/gamma)); if (g<0) g=0; if (g>255) g=255;
 			int b = static_cast<int>(255*pow(-0.0272*R -0.0401*G +1.1677*B, 1/gamma)); if (b<0) b=0; if (b>255) b=255;
 
-			Bit8u index = bits | ((x & 1) == 0 ? 0x30 : 0x80) | ((x & 2) == 0 ? 0x40 : 0);
+			uint8_t index = bits | ((x & 1) == 0 ? 0x30 : 0x80) | ((x & 2) == 0 ? 0x40 : 0);
 			RENDER_SetPal(index,r,g,b);
 		}
 	}
@@ -501,15 +501,15 @@ static void DecreaseHue(bool pressed) {
 }
 
 static void write_cga_color_select(Bitu val) {
-	vga.tandy.color_select=(Bit8u)val;
+	vga.tandy.color_select=(uint8_t)val;
 
     if (vga.other.mcga_mode_control & 1) /* ignore COMPLETELY in 256-color MCGA mode */
         return;
 
     switch (vga.mode) {
 	case  M_TANDY4: {
-		Bit8u base = (val & 0x10) ? 0x08 : 0;
-		Bit8u bg = val & 0xf;
+		uint8_t base = (val & 0x10) ? 0x08 : 0;
+		uint8_t bg = val & 0xf;
 		if (vga.tandy.mode_control & 0x4)	// cyan red white
 			VGA_SetCGA4Table(bg, 3+base, 4+base, 7+base);
 		else if (val & 0x20)				// cyan magenta white
@@ -525,7 +525,7 @@ static void write_cga_color_select(Bitu val) {
 		vga.attr.overscan_color = 0;
 		break;
 	case M_CGA16:
-		cga16_color_select((Bit8u)val);
+		cga16_color_select((uint8_t)val);
 		break;
 	case M_TEXT:
 		vga.tandy.border_color = val & 0xf;
@@ -558,7 +558,7 @@ static void write_cga(Bitu port,Bitu val,Bitu /*iolen*/) {
 	case 0x3d8:
         changed = vga.tandy.mode_control ^ val;
 
-		vga.tandy.mode_control=(Bit8u)val;
+		vga.tandy.mode_control=(uint8_t)val;
 		vga.attr.disabled = (val&0x8)? 0: 1; 
         if (vga.other.mcga_mode_control & 3) { // MCGA 256-color mode or 2-color 640x480
             // do nothing
@@ -641,8 +641,8 @@ static void tandy_update_palette() {
 					vga.attr.palette[0], vga.attr.palette[1],
 					vga.attr.palette[2], vga.attr.palette[3]);
 			} else {
-				Bit8u color_set = 0;
-				Bit8u r_mask = 0xf;
+				uint8_t color_set = 0;
+				uint8_t r_mask = 0xf;
 				if (vga.tandy.color_select & 0x10) color_set |= 8; // intensity
 				if (vga.tandy.color_select & 0x20) color_set |= 1; // Cyan Mag. White
 				if (vga.tandy.mode_control & 0x04) {			// Cyan Red White
@@ -736,7 +736,7 @@ static void TandyCheckLineMask(void ) {
 	}
 }
 
-static void write_tandy_reg(Bit8u val) {
+static void write_tandy_reg(uint8_t val) {
 	switch (vga.tandy.reg_index) {
 	case 0x0:
 		if (machine==MCH_PCJR) {
@@ -783,7 +783,7 @@ static void write_tandy(Bitu port,Bitu val,Bitu /*iolen*/) {
 	case 0x3d8:
 		val &= 0x3f; // only bits 0-6 are used
 		if (vga.tandy.mode_control ^ val) {
-			vga.tandy.mode_control=(Bit8u)val;
+			vga.tandy.mode_control=(uint8_t)val;
 			if (val&0x8) vga.attr.disabled &= ~1;
 			else vga.attr.disabled |= 1;
 			TandyCheckLineMask();
@@ -793,18 +793,18 @@ static void write_tandy(Bitu port,Bitu val,Bitu /*iolen*/) {
 		}
 		break;
 	case 0x3d9:
-		vga.tandy.color_select=(Bit8u)val;
+		vga.tandy.color_select=(uint8_t)val;
 		tandy_update_palette();
 		break;
 	case 0x3da:
-		vga.tandy.reg_index=(Bit8u)val;
+		vga.tandy.reg_index=(uint8_t)val;
 		//if (val&0x10) vga.attr.disabled |= 2;
 		//else vga.attr.disabled &= ~2;
 		break;
 //	case 0x3dd:	//Extended ram page address register:
 //		break;
 	case 0x3de:
-		write_tandy_reg((Bit8u)val);
+		write_tandy_reg((uint8_t)val);
 		break;
 	case 0x3df:
 		// CRT/processor page register
@@ -816,7 +816,7 @@ static void write_tandy(Bitu port,Bitu val,Bitu /*iolen*/) {
 		// backwards compatibility?), resulting in odd pages being mapped
 		// as 2x16kB. Implemeted in vga_memory.cpp Tandy handler.
 
-		vga.tandy.line_mask = (Bit8u)(val >> 6);
+		vga.tandy.line_mask = (uint8_t)(val >> 6);
 		vga.tandy.draw_bank = val & ((vga.tandy.line_mask&2) ? 0x6 : 0x7);
 		vga.tandy.mem_bank = (val >> 3) & 7;
 		TandyCheckLineMask();
@@ -828,9 +828,9 @@ static void write_tandy(Bitu port,Bitu val,Bitu /*iolen*/) {
 static void write_pcjr(Bitu port,Bitu val,Bitu /*iolen*/) {
 	switch (port) {
 	case 0x3da:
-		if (vga.tandy.pcjr_flipflop) write_tandy_reg((Bit8u)val);
+		if (vga.tandy.pcjr_flipflop) write_tandy_reg((uint8_t)val);
 		else {
-			vga.tandy.reg_index=(Bit8u)val;
+			vga.tandy.reg_index=(uint8_t)val;
 			if (vga.tandy.reg_index & 0x10)
 				vga.attr.disabled |= 2;
 			else vga.attr.disabled &= ~2;
@@ -867,7 +867,7 @@ static void write_pcjr(Bitu port,Bitu val,Bitu /*iolen*/) {
 		//    CRTC RA1. This results in the 4-bank mode.
 		//    PG1-2 in effect. 32k range.
 
-		vga.tandy.line_mask = (Bit8u)(val >> 6);
+		vga.tandy.line_mask = (uint8_t)(val >> 6);
 		vga.tandy.draw_bank = val & ((vga.tandy.line_mask&2) ? 0x6 : 0x7);
 		vga.tandy.mem_bank = (val >> 3) & 7;
 		vga.tandy.draw_base = &MemBase[vga.tandy.draw_bank * 16 * 1024];
@@ -926,7 +926,7 @@ static void HercBlend(bool pressed) {
 }
 
 void Mono_CGA_Palette(void) {	
-	for (Bit8u ct=0;ct<16;ct++) {
+	for (uint8_t ct=0;ct<16;ct++) {
 		VGA_DAC_SetEntry(ct,
 						 mono_cga_palettes[2*mono_cga_pal+mono_cga_bright][ct][0],
 						 mono_cga_palettes[2*mono_cga_pal+mono_cga_bright][ct][1],
@@ -972,7 +972,7 @@ static void write_hercules(Bitu port,Bitu val,Bitu /*iolen*/) {
 		}
 	case 0x3bf:
 		if ( vga.herc.enable_bits ^ val) {
-			vga.herc.enable_bits=(Bit8u)val;
+			vga.herc.enable_bits=(uint8_t)val;
 			// Bit 1 enables the upper 32k of video memory,
 			// so update the handlers
 			VGA_SetupHandlers();
@@ -998,7 +998,7 @@ Bitu read_herc_status(Bitu /*port*/,Bitu /*iolen*/) {
 	//       7  Vertical sync inverted
 
 	double timeInFrame = PIC_FullIndex()-vga.draw.delay.framestart;
-	Bit8u retval=0x72; // Hercules ident; from a working card (Winbond W86855AF)
+	uint8_t retval=0x72; // Hercules ident; from a working card (Winbond W86855AF)
 					// Another known working card has 0x76 ("KeysoGood", full-length)
 
     if (machine == MCH_HERC) {
@@ -1029,15 +1029,15 @@ Bitu read_herc_status(Bitu /*port*/,Bitu /*iolen*/) {
 }
 
 extern int eurAscii;
-extern Bit8u int10_font_08[256 * 8], int10_font_14[256 * 14], int10_font_16[256 * 16];
-Bit8u euro_08[8] = {
+extern uint8_t int10_font_08[256 * 8], int10_font_14[256 * 14], int10_font_16[256 * 16];
+uint8_t euro_08[8] = {
   0x3c, 0x66, 0xfc, 0x60, 0xf8, 0x66, 0x3c, 0x00,
 };
-Bit8u euro_14[14] = {
+uint8_t euro_14[14] = {
   0x00, 0x00, 0x00, 0x3c, 0x66, 0xc0, 0xf8,
   0xc0, 0xf0, 0xc0, 0x66, 0x3c, 0x00, 0x00,
 };
-Bit8u euro_16[16] = {
+uint8_t euro_16[16] = {
   0x00, 0x00, 0x00, 0x3c, 0x66, 0xc0, 0xf8, 0xc0,
   0xf0, 0xc0, 0xc0, 0x66, 0x3c, 0x00, 0x00, 0x00,
 };

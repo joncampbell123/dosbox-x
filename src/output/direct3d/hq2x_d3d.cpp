@@ -156,7 +156,7 @@ static int swap_bits(int num, int bit1, int bit2) {
 
 // width, height == rwidth, rheight
 // outwidth, outheight == width, height
-void BuildHq2xLookupTexture(Bitu outWidth, Bitu outHeight, Bitu rwidth, Bitu rheight, Bit8u* texture)
+void BuildHq2xLookupTexture(Bitu outWidth, Bitu outHeight, Bitu rwidth, Bitu rheight, uint8_t* texture)
 {
     double xsize, ysize;
     unsigned char table[4096] = HQ2X_D3D_TABLE_DATA;

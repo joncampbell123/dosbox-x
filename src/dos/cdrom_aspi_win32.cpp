@@ -725,7 +725,7 @@ bool CDROM_Interface_Aspi::ReadSectors(PhysPt buffer, bool raw, unsigned long se
 	memset(&s,0,sizeof(s));
 
 	Bitu   buflen	= raw?2352*num:2048*num;
-	Bit8u* bufdata	= new Bit8u[buflen];
+	uint8_t* bufdata	= new uint8_t[buflen];
 
 	s.execscsicmd.SRB_Cmd        = SC_EXEC_SCSI_CMD;
 	s.execscsicmd.SRB_HaId       = haId;

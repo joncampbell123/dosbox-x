@@ -76,10 +76,10 @@ private:
 	int veloAmpSubtraction;
 	int keyTimeSubtraction;
 
-	Bit8u target;
+	uint8_t target;
 	int phase;
 
-	void startRamp(Bit8u newTarget, Bit8u newIncrement, int newPhase);
+	void startRamp(uint8_t newTarget, uint8_t newIncrement, int newPhase);
 	void end(int newPhase);
 	void nextPhase();
 

@@ -29,17 +29,17 @@
 namespace MT32Emu {
 
 // FIXME: Add Explanation
-static Bit16u lowerDurationToDivisor[] = {34078, 37162, 40526, 44194, 48194, 52556, 57312, 62499};
+static uint16_t lowerDurationToDivisor[] = {34078, 37162, 40526, 44194, 48194, 52556, 57312, 62499};
 
 // These values represent unique options with no consistent pattern, so we have to use something like a table in any case.
 // The table matches exactly what the manual claims (when divided by 8192):
 // -1, -1/2, -1/4, 0, 1/8, 1/4, 3/8, 1/2, 5/8, 3/4, 7/8, 1, 5/4, 3/2, 2, s1, s2
 // ...except for the last two entries, which are supposed to be "1 cent above 1" and "2 cents above 1", respectively. They can only be roughly approximated with this integer math.
-static Bit16s pitchKeyfollowMult[] = {-8192, -4096, -2048, 0, 1024, 2048, 3072, 4096, 5120, 6144, 7168, 8192, 10240, 12288, 16384, 8198, 8226};
+static int16_t pitchKeyfollowMult[] = {-8192, -4096, -2048, 0, 1024, 2048, 3072, 4096, 5120, 6144, 7168, 8192, 10240, 12288, 16384, 8198, 8226};
 
 // Note: Keys < 60 use keyToPitchTable[60 - key], keys >= 60 use keyToPitchTable[key - 60].
 // FIXME: This table could really be shorter, since we never use e.g. key 127.
-static Bit16u keyToPitchTable[] = {
+static uint16_t keyToPitchTable[] = {
 	    0,   341,   683,  1024,  1365,  1707,  2048,  2389,
 	 2731,  3072,  3413,  3755,  4096,  4437,  4779,  5120,
 	 5461,  5803,  6144,  6485,  6827,  7168,  7509,  7851,
@@ -62,24 +62,24 @@ TVP::TVP(const Partial *usePartial) :
 	partial(usePartial), system(&usePartial->getSynth()->mt32ram.system) {
 }
 
-static Bit16s keyToPitch(unsigned int key) {
+static int16_t keyToPitch(unsigned int key) {
 	// We're using a table to do: return round_to_nearest_or_even((key - 60) * (4096.0 / 12.0))
 	// Banker's rounding is just slightly annoying to do in C++
 	int k = int(key);
-	Bit16s pitch = keyToPitchTable[abs(k - 60)];
+	int16_t pitch = keyToPitchTable[abs(k - 60)];
 	return key < 60 ? -pitch : pitch;
 }
 
-static inline Bit32s coarseToPitch(Bit8u coarse) {
+static inline int32_t coarseToPitch(uint8_t coarse) {
 	return (coarse - 36) * 4096 / 12; // One semitone per coarse offset
 }
 
-static inline Bit32s fineToPitch(Bit8u fine) {
+static inline int32_t fineToPitch(uint8_t fine) {
 	return (fine - 50) * 4096 / 1200; // One cent per fine offset
 }
 
-static Bit32u calcBasePitch(const Partial *partial, const TimbreParam::PartialParam *partialParam, const MemParams::PatchTemp *patchTemp, unsigned int key, const ControlROMFeatureSet *controlROMFeatures) {
-	Bit32s basePitch = keyToPitch(key);
+static uint32_t calcBasePitch(const Partial *partial, const TimbreParam::PartialParam *partialParam, const MemParams::PatchTemp *patchTemp, unsigned int key, const ControlROMFeatureSet *controlROMFeatures) {
+	int32_t basePitch = keyToPitch(key);
 	basePitch = (basePitch * pitchKeyfollowMult[partialParam->wg.pitchKeyfollow]) >> 13; // PORTABILITY NOTE: Assumes arithmetic shift
 	basePitch += coarseToPitch(partialParam->wg.pitchCoarse);
 	basePitch += fineToPitch(partialParam->wg.pitchFine);
@@ -91,7 +91,7 @@ static Bit32u calcBasePitch(const Partial *partial, const TimbreParam::PartialPa
 
 	const ControlROMPCMStruct *controlROMPCMStruct = partial->getControlROMPCMStruct();
 	if (controlROMPCMStruct != NULL) {
-		basePitch += (Bit32s(controlROMPCMStruct->pitchMSB) << 8) | Bit32s(controlROMPCMStruct->pitchLSB);
+		basePitch += (int32_t(controlROMPCMStruct->pitchMSB) << 8) | int32_t(controlROMPCMStruct->pitchLSB);
 	} else {
 		if ((partialParam->wg.waveform & 1) == 0) {
 			basePitch += 37133; // This puts Middle C at around 261.64Hz (assuming no other modifications, masterTune of 64, etc.)
@@ -112,10 +112,10 @@ static Bit32u calcBasePitch(const Partial *partial, const TimbreParam::PartialPa
 	} else if (basePitch > 59392) {
 		basePitch = 59392;
 	}
-	return Bit32u(basePitch);
+	return uint32_t(basePitch);
 }
 
-static Bit32u calcVeloMult(Bit8u veloSensitivity, unsigned int velocity) {
+static uint32_t calcVeloMult(uint8_t veloSensitivity, unsigned int velocity) {
 	if (veloSensitivity == 0) {
 		return 21845; // aka floor(4096 / 12 * 64), aka ~64 semitones
 	}
@@ -134,7 +134,7 @@ static Bit32u calcVeloMult(Bit8u veloSensitivity, unsigned int velocity) {
 	return ((32768 - scaledReversedVelocity) * 21845) >> 15;
 }
 
-static Bit32s calcTargetPitchOffsetWithoutLFO(const TimbreParam::PartialParam *partialParam, int levelIndex, unsigned int velocity) {
+static int32_t calcTargetPitchOffsetWithoutLFO(const TimbreParam::PartialParam *partialParam, int levelIndex, unsigned int velocity) {
 	int veloMult = calcVeloMult(partialParam->pitchEnv.veloSensitivity, velocity);
 	int targetPitchOffsetWithoutLFO = partialParam->pitchEnv.level[levelIndex] - 50;
 	targetPitchOffsetWithoutLFO = (targetPitchOffsetWithoutLFO * veloMult) >> (16 - partialParam->pitchEnv.depth); // PORTABILITY NOTE: Assumes arithmetic shift
@@ -159,7 +159,7 @@ void TVP::reset(const Part *usePart, const TimbreParam::PartialParam *usePartial
 	phase = 0;
 
 	if (partialParam->pitchEnv.timeKeyfollow) {
-		timeKeyfollowSubtraction = Bit32s(key - 60) >> (5 - partialParam->pitchEnv.timeKeyfollow); // PORTABILITY NOTE: Assumes arithmetic shift
+		timeKeyfollowSubtraction = int32_t(key - 60) >> (5 - partialParam->pitchEnv.timeKeyfollow); // PORTABILITY NOTE: Assumes arithmetic shift
 	} else {
 		timeKeyfollowSubtraction = 0;
 	}
@@ -173,12 +173,12 @@ void TVP::reset(const Part *usePart, const TimbreParam::PartialParam *usePartial
 	shifts = 0;
 }
 
-Bit32u TVP::getBasePitch() const {
+uint32_t TVP::getBasePitch() const {
 	return basePitch;
 }
 
 void TVP::updatePitch() {
-	Bit32s newPitch = basePitch + currentPitchOffset;
+	int32_t newPitch = basePitch + currentPitchOffset;
 	if (!partial->isPCM() || (partial->getControlROMPCMStruct()->len & 0x01) == 0) { // FIXME: Use !partial->pcmWaveEntry->unaffectedByMasterTune instead
 		// FIXME: There are various bugs not yet emulated
 		// 171 is ~half a semitone.
@@ -199,7 +199,7 @@ void TVP::updatePitch() {
 	if (newPitch > 59392) {
 		newPitch = 59392;
 	}
-	pitch = Bit16u(newPitch);
+	pitch = uint16_t(newPitch);
 
 	// FIXME: We're doing this here because that's what the CM-32L does - we should probably move this somewhere more appropriate in future.
 	partial->getTVA()->recalcSustain();
@@ -249,8 +249,8 @@ void TVP::nextPhase() {
 }
 
 // Shifts val to the left until bit 31 is 1 and returns the number of shifts
-static Bit8u normalise(Bit32u &val) {
-	Bit8u leftShifts;
+static uint8_t normalise(uint32_t &val) {
+	uint8_t leftShifts;
 	for (leftShifts = 0; leftShifts < 31; leftShifts++) {
 		if ((val & 0x80000000) != 0) {
 			break;
@@ -260,25 +260,25 @@ static Bit8u normalise(Bit32u &val) {
 	return leftShifts;
 }
 
-void TVP::setupPitchChange(int targetPitchOffset, Bit8u changeDuration) {
+void TVP::setupPitchChange(int targetPitchOffset, uint8_t changeDuration) {
 	bool negativeDelta = targetPitchOffset < currentPitchOffset;
-	Bit32s pitchOffsetDelta = targetPitchOffset - currentPitchOffset;
+	int32_t pitchOffsetDelta = targetPitchOffset - currentPitchOffset;
 	if (pitchOffsetDelta > 32767 || pitchOffsetDelta < -32768) {
 		pitchOffsetDelta = 32767;
 	}
 	if (negativeDelta) {
 		pitchOffsetDelta = -pitchOffsetDelta;
 	}
-	// We want to maximise the number of bits of the Bit16s "pitchOffsetChangePerBigTick" we use in order to get the best possible precision later
-	Bit32u absPitchOffsetDelta = pitchOffsetDelta << 16;
-	Bit8u normalisationShifts = normalise(absPitchOffsetDelta); // FIXME: Double-check: normalisationShifts is usually between 0 and 15 here, unless the delta is 0, in which case it's 31
+	// We want to maximise the number of bits of the int16_t "pitchOffsetChangePerBigTick" we use in order to get the best possible precision later
+	uint32_t absPitchOffsetDelta = pitchOffsetDelta << 16;
+	uint8_t normalisationShifts = normalise(absPitchOffsetDelta); // FIXME: Double-check: normalisationShifts is usually between 0 and 15 here, unless the delta is 0, in which case it's 31
 	absPitchOffsetDelta = absPitchOffsetDelta >> 1; // Make room for the sign bit
 
 	changeDuration--; // changeDuration's now between 0 and 111
 	unsigned int upperDuration = changeDuration >> 3; // upperDuration's now between 0 and 13
 	shifts = normalisationShifts + upperDuration + 2;
-	Bit16u divisor = lowerDurationToDivisor[changeDuration & 7];
-	Bit16s newPitchOffsetChangePerBigTick = ((absPitchOffsetDelta & 0xFFFF0000) / divisor) >> 1; // Result now fits within 15 bits. FIXME: Check nothing's getting sign-extended incorrectly
+	uint16_t divisor = lowerDurationToDivisor[changeDuration & 7];
+	int16_t newPitchOffsetChangePerBigTick = ((absPitchOffsetDelta & 0xFFFF0000) / divisor) >> 1; // Result now fits within 15 bits. FIXME: Check nothing's getting sign-extended incorrectly
 	if (negativeDelta) {
 		newPitchOffsetChangePerBigTick = -newPitchOffsetChangePerBigTick;
 	}
@@ -299,7 +299,7 @@ void TVP::startDecay() {
 	targetPitchOffsetReachedBigTick = timeElapsed >> 8; // FIXME: Afaict there's no good reason for this - check
 }
 
-Bit16u TVP::nextPitch() {
+uint16_t TVP::nextPitch() {
 	// We emulate MCU software timer using these counter and processTimerIncrement variables.
 	// The value of nominalProcessTimerPeriod approximates the period in samples
 	// between subsequent firings of the timer that normally occur.
@@ -330,7 +330,7 @@ void TVP::process() {
 		return;
 	}
 
-	Bit16s negativeBigTicksRemaining = (timeElapsed >> 8) - targetPitchOffsetReachedBigTick;
+	int16_t negativeBigTicksRemaining = (timeElapsed >> 8) - targetPitchOffsetReachedBigTick;
 	if (negativeBigTicksRemaining >= 0) {
 		// We've reached the time for a phase change
 		targetPitchOffsetReached();
