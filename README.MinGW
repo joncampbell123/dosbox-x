@@ -17,3 +17,11 @@ export CC="$TRIPLET-gcc"
 export CXX="$TRIPLET-g++"
 
 # autoreconf && ./configure && make
+
+# Alternatively install MSYS2 on Windows,
+# Open the MSYS2 MinGW 64-bit prompt,
+# then run:
+pacman -Syu # Keep up to date!
+pacman -S mingw-w64-x86_64-toolchain mingw-w64-x86_64-SDL2
+cd /path/to/dosbox-code
+./build-mingw-sdl2
