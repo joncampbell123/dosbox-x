@@ -17,6 +17,7 @@
   </screenshots>
   <content_rating type="oars-1.1" />
   <translation/>
+  <developer_name>DOSBox-X team</developer_name>
   <update_contact>noreply@example.com</update_contact>
   <description>
     <p>
@@ -34,11 +35,22 @@
     <li>Various Sound Blaster models, Gravis Ultrasound, Disney Sound source and more audio options</li>
     <li>MT-32 and MIDI support and emulation options</li>
     <li>Printer support and emulation options</li>
-    <li>Network emulation (NE2000)</li>
+    <li>Network emulation (IPX, NE2000)</li>
     <li>Support for running Windows 3.1, Windows 95 and Windows 98</li>
     </ul>
     With the help of DOSBox-X, it can run plenty of the old classics that don't run on your new computer!
   </description>
   <url type="homepage">https://dosbox-x.com</url>
   <url type="bugtracker">https://github.com/joncampbell123/dosbox-x/issues</url>
+  <url type="help">https://github.com/joncampbell123/dosbox-x/wiki</url>
+  <recommends>
+	  <control>keyboard</control>
+	  <control>pointing</control>
+	  <control>gamepad</control>
+  </recommends>
+  <mimetypes>
+	  <mimetype>application/x-cd-image</mimetype>
+	  <mimetype>application/x-cue</mimetype>
+	  <mimetype>application/x-raw-disk-image</mimetype>
+  </mimetypes>
 </component>
