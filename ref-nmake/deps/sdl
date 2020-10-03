@@ -50,6 +50,7 @@ OBJS	=	$(SDLDIR)\src\SDL.obj \
 			$(SDLDIR)\src\stdlib\SDL_stdlib.obj \
 			$(SDLDIR)\src\stdlib\SDL_string.obj \
 			$(SDLDIR)\src\thread\SDL_thread.obj \
+			$(SDLDIR)\src\thread\generic\SDL_syscond.obj \
 			$(SDLDIR)\src\thread\win32\SDL_sysmutex.obj \
 			$(SDLDIR)\src\thread\win32\SDL_syssem.obj \
 			$(SDLDIR)\src\thread\win32\SDL_systhread.obj \
