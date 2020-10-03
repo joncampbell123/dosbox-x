@@ -84,7 +84,7 @@ struct SDL_OpenGL {
     int clear_countdown;
     bool use_shader;
     GLuint program_object;
-    bool shader_def=false;
+    bool shader_def;
     const char *shader_src;
     struct {
         GLint texture_size;
@@ -98,6 +98,7 @@ struct SDL_OpenGL {
     SDL_GLContext context;
 #endif
 };
+static_assert(std::is_pod<SDL_OpenGL>::value, "SDL_OpenGL must be POD, otherwise memset() is undefined");
 
 static char const shader_src_default[] =
 	"varying vec2 v_texCoord;\n"
