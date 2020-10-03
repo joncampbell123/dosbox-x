@@ -168,7 +168,7 @@ bool DOS_WriteFile(uint16_t entry,uint8_t * data,uint16_t * amount,bool fcb = fa
 bool DOS_SeekFile(uint16_t entry,uint32_t * pos,uint32_t type,bool fcb = false);
 /* ert, 20100711: Locking extensions */
 bool DOS_LockFile(uint16_t entry,uint8_t mode,uint32_t pos,uint32_t size);
-bool DOS_CloseFile(uint16_t entry,bool fcb = false);
+bool DOS_CloseFile(uint16_t entry,bool fcb = false,uint8_t * refcnt = NULL);
 bool DOS_FlushFile(uint16_t entry);
 bool DOS_DuplicateEntry(uint16_t entry,uint16_t * newentry);
 bool DOS_ForceDuplicateEntry(uint16_t entry,uint16_t newentry);
