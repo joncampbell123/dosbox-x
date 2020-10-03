@@ -393,7 +393,7 @@ if test x$enable_emscripten != xyes; then
 dnl Some target detection and actions for them
 case "$host" in
     *-*-cygwin* | *-*-mingw32*)
-       LIBS="$LIBS -lwinmm -limm32 -lole32"
+       LIBS="$LIBS -lwinmm -limm32 -lole32 -loleaut32 -lversion -lsetupapi"
        CXXFLAGS="$CXXFLAGS -mno-ms-bitfields"
        if test x$have_sdl_net_h = xyes ; then
          dnl HACK: We have to put SDL_net THEN winsock libraries or else the linker can't resolve things properly
