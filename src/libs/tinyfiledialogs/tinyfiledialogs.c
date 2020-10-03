@@ -1759,7 +1759,7 @@ static int messageBoxWinGui(
 	{
 		if (tinyfd_winUtf8) lTmpWChar = tinyfd_utf8to16(aMessage);
 		else lTmpWChar = tinyfd_mbcsTo16(aMessage);
-		lMessage = malloc((wcslen(lTmpWChar) + 1)* sizeof(wchar_t));
+		lMessage = (wchar_t *)malloc((wcslen(lTmpWChar) + 1)* sizeof(wchar_t));
 		wcscpy(lMessage, lTmpWChar);
 	}
 	if (aDialogType)
@@ -1803,7 +1803,7 @@ static int notifyWinGui(
 	{
 		if (tinyfd_winUtf8) lTmpWChar = tinyfd_utf8to16(aMessage);
 		else lTmpWChar = tinyfd_mbcsTo16(aMessage);
-		lMessage = malloc((wcslen(lTmpWChar) + 1)* sizeof(wchar_t));
+		lMessage = (wchar_t *)malloc((wcslen(lTmpWChar) + 1)* sizeof(wchar_t));
 		wcscpy(lMessage, lTmpWChar);
 	}
 	if (aIconType)
@@ -1843,7 +1843,7 @@ static int inputBoxWinGui(
 	{
 		if (tinyfd_winUtf8) lTmpWChar = tinyfd_utf8to16(aMessage);
 		else lTmpWChar = tinyfd_mbcsTo16(aMessage);
-		lMessage = malloc((wcslen(lTmpWChar) + 1)* sizeof(wchar_t));
+		lMessage = (wchar_t *)malloc((wcslen(lTmpWChar) + 1)* sizeof(wchar_t));
 		wcscpy(lMessage, lTmpWChar);
 	}
 	if (aDefaultInput)
