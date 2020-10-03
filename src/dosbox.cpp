@@ -745,7 +745,7 @@ public:
         ++slot;
         slot %= SaveState::SLOT_COUNT*SaveState::MAX_PAGE;
         if (page!=GetGameState()/SaveState::SLOT_COUNT) {
-            page=GetGameState()/SaveState::SLOT_COUNT;
+            page=(unsigned int)GetGameState()/SaveState::SLOT_COUNT;
             refresh_slots();
         }
     }
@@ -755,7 +755,7 @@ public:
         slot += SaveState::SLOT_COUNT*SaveState::MAX_PAGE - 1;
         slot %= SaveState::SLOT_COUNT*SaveState::MAX_PAGE;
         if (page!=GetGameState()/SaveState::SLOT_COUNT) {
-            page=GetGameState()/SaveState::SLOT_COUNT;
+            page=(unsigned int)GetGameState()/SaveState::SLOT_COUNT;
             refresh_slots();
         }
     }
@@ -797,7 +797,7 @@ void SetGameState(int value) {
 	mainMenu.get_item(name).check(false).refresh_item(mainMenu);
     currentSlot.set(value);
     if (page!=currentSlot/SaveState::SLOT_COUNT) {
-        page=currentSlot/SaveState::SLOT_COUNT;
+        page=(unsigned int)(currentSlot/SaveState::SLOT_COUNT);
         refresh_slots();
     }
     name[4]='0'+(char)(currentSlot%SaveState::SLOT_COUNT);
@@ -814,7 +814,7 @@ void SaveGameState(bool pressed) {
         LOG_MSG("Saving state to slot: %d", (int)currentSlot + 1);
         SaveState::instance().save(currentSlot);
         if (page!=GetGameState()/SaveState::SLOT_COUNT)
-            SetGameState(currentSlot);
+            SetGameState((int)currentSlot);
         else
             refresh_slots();
     }
@@ -5508,7 +5508,7 @@ void SaveState::removeState(size_t slot) const {
         check_slot.open(save.c_str(), std::ifstream::in);
         if (!check_slot.fail()) notifyError("Failed to remove the state in the save slot.");
         if (page!=GetGameState()/SaveState::SLOT_COUNT)
-            SetGameState(slot);
+            SetGameState((int)slot);
         else
             refresh_slots();
     }
