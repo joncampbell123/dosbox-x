@@ -64,7 +64,7 @@ new_fluid_midi_file(const char* buffer, size_t length)
     mf->running_status = -1;
 
     mf->buffer = buffer;
-    mf->buf_len = length;
+    mf->buf_len = (int)length;
     mf->buf_pos = 0;
     mf->eof = FALSE;
 
@@ -1081,7 +1081,7 @@ fluid_track_set_name(fluid_track_t *track, char *name)
         track->name = NULL;
         return FLUID_OK;
     }
-    len = FLUID_STRLEN(name);
+    len = (int)FLUID_STRLEN(name);
     track->name = FLUID_MALLOC(len + 1);
     if (track->name == NULL) {
         FLUID_LOG(FLUID_ERR, "Out of memory");
