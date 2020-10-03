@@ -14,10 +14,12 @@ LPNG = ..\vs2015\libpng
 
 PDCURSES = ..\vs2015\libpdcurses
 
+PCAP = ..\vs2015\pcap
+
 CXXFLAGS =  -utf-8 -nologo -O2 -MT -EHsc -DNDEBUG -DWIN32 -D__WIN32__ -D_FILE_OFFSET_BITS=64 -DC_OPENGL=1 -DC_MT32=1 -I. \
 			-D_WIN32_WINNT=0x0501 \
 			-Dmain=SDL_main -I$(SDLDIR)\include \
-			-I$(LPNG) -I$(ZLIB) -I$(PDCURSES) \
+			-I$(LPNG) -I$(ZLIB) -I$(PDCURSES) -I$(PCAP) \
 			-I$(DBX_PATH) \
 			-I$(DBX_PATH)/include \
 			-I$(DBX_PATH)/src \
