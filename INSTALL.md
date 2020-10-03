@@ -40,7 +40,9 @@ Flatpaks are officially released for the Linux operating system, which are stand
 
 * [com.dosbox_x.DOSBox-X.flatpakref](https://dl.flathub.org/repo/appstream/com.dosbox_x.DOSBox-X.flatpakref)
 
-You may need to install Flatpak support depending on your Linux platform (see the [Quick Setup page](https://flatpak.org/setup/) for more information). Once Flatpak support is enabled you can install the DOSBox-X Flatpak with the following command:
+You may need to install Flatpak support depending on your Linux platform for the first time. Please see the [Quick Setup page](https://flatpak.org/setup/) for more information specific to your Linux platform.
+
+Once Flatpak support is enabled in your Linux system you can install the DOSBox-X Flatpak with the following command:
 
 ``flatpak install flathub com.dosbox_x.DOSBox-X``
 
