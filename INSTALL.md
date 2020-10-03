@@ -3,7 +3,7 @@ DOSBox-X Installation and Released Packages
 
 DOSBox-X is a cross-platform DOS emulator based on DOSBox, with the eventual goal of being a complete DOS emulation package. New versions of DOSBox-X are released periodically, typically on the last day of a month or the first day of the next month. Since DOSBox-X is cross-platform, all major host operating systems are officially supported including Windows (XP or later), Linux (with X11), macOS (10.12 or later) and DOS operating systems.
 
-The current version of DOSBox-X at this time is DOSBox-X 0.83.6, which was released on September 30, 2020. Pre-compiled Windows binaries (both 32-bit and 64-bit), Linux RPM packages (64-bit), macOS packages (64-bit) and the special HX-DOS packages (for real DOS environments) are officially available, as well as the source code packages. You will find DOSBox-X versions that have been released so far (ZIP or RPM packages) and change logs for these versions in the [Releases](https://github.com/joncampbell123/dosbox-x/releases) page. The Windows installers are also available (see the next section for details).
+The current version of DOSBox-X at this time is DOSBox-X 0.83.6, which was released on September 30, 2020. Pre-compiled Windows binaries (both 32-bit and 64-bit), Linux Flatpak or RPM packages (64-bit), macOS packages (64-bit) and the special HX-DOS packages (for real DOS environments) are officially available, as well as the source code packages. You will find DOSBox-X versions that have been released so far (ZIP or RPM packages) and change logs for these versions in the [Releases](https://github.com/joncampbell123/dosbox-x/releases) page. The Windows installers are also available (see the next section for details).
 
 See also: [DOSBox-X 0.83.6 Release Notes](https://dosbox-x.com/release-0.83.6.html)
 
@@ -36,7 +36,7 @@ If you prefer to use one of the portable packages, please select the zip package
 Linux Packages (Flatpak or RPM)
 --------------------
 
-Flatpaks are officially released for the Linux operating system, which are standalone Linux applications. For the current DOSBox-X version 0.83.6 the Linux platpak is available from:
+Flatpaks are officially released for the Linux operating system, which are standalone applications independent of the Linux distributions. For the current DOSBox-X version 0.83.6 the Linux platpak is available from:
 
 * [com.dosbox_x.DOSBox-X.flatpakref](https://dl.flathub.org/repo/appstream/com.dosbox_x.DOSBox-X.flatpakref)
 
