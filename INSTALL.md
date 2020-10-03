@@ -33,19 +33,22 @@ The Visual Studio builds are available as zip packages for most versions; they a
 
 If you prefer to use one of the portable packages, please select the zip package you want to download for your platform and unzip, then you will find various folders or subdirectories, which are some supported targets. For Visual Studio builds, these correspond to Win32, x64, ARM and ARM64 (either SDL1 or SDL2 version), which are the build platforms. For MinGW builds, the targets are plain MinGW SDL1 build (mingw), MinGW build for lower-end systems (mingw-lowend), MinGW SDL2 build (mingw-sdl2) and MinGW build with custom drawn menu (mingw-sdldraw). Go to a target folder for your platform and run dosbox-x.exe inside it, then DOSBox-X will be launched and ready to be used. Unlike the Windows installer version however, there is no documentation included in these packages, and you may not see all such packages for some DOSBox-X versions.
 
-Linux Packages (RPM)
+Linux Packages (Flatpak or RPM)
 --------------------
 
-RPM packages are officially released for the Linux operating system (64-bit, with X11), specifically for CentOS 7 / RHEL 7 ("el7") and CentOS 8 / RHEL 8 ("el8") platforms. There are usually packages for both CentOS 7 and CentOS 8 platforms, but for the current DOSBox-X version 0.83.6 they are not officially available. However, you can try the following unofficial zipped RPM package (version 0.83.5):
+Flatpaks are officially released for the Linux operating system, which are standalone Linux applications. For the current DOSBox-X version 0.83.6 the Linux platpak is available from:
 
-* [dosbox-x-0.83.5-0.fc32.x86_64.zip](https://github.com/joncampbell123/dosbox-x/files/5181532/dosbox-x-0.83.5-0.fc32.x86_64.zip)
+* [com.dosbox_x.DOSBox-X.flatpakref](https://dl.flathub.org/repo/appstream/com.dosbox_x.DOSBox-X.flatpakref)
 
-For the previous version 0.83.4 the following CentOS 7 RPM packages are available (no CentOS 8 RPM packages):
+You may need to install Flatpak support depending on your Linux platform (see the [Quick Setup page](https://flatpak.org/setup/) for more information). Once Flatpak support is enabled you can install the DOSBox-X Flatpak with the following command:
 
-* [dosbox-x-0.83.4-0.el7.x86_64.rpm](https://github.com/joncampbell123/dosbox-x/releases/download/dosbox-x-v0.83.4/dosbox-x-0.83.4-0.el7.x86_64.rpm)
-* [dosbox-x-debuginfo-0.83.4-0.el7.x86_64.rpm](https://github.com/joncampbell123/dosbox-x/releases/download/dosbox-x-v0.83.4/dosbox-x-debuginfo-0.83.4-0.el7.x86_64.rpm)
+``flatpak install flathub com.dosbox_x.DOSBox-X``
 
-The last DOSBox-X version that provided official packages for both CentOS 7 and CentOS 8 platforms was version 0.83.2, which included the following Linux RPM packages:
+After it is installed, it can be run with:
+
+``flatpak run com.dosbox_x.DOSBox-X``
+
+RPM packages were previously available for 64-bit Linux (with X11), specifically CentOS 7 / RHEL 7 ("el7") and CentOS 8 / RHEL 8 ("el8") platforms. There were usually packages for both CentOS 7 and CentOS 8 platforms, and the most recent DOSBox-X version that provided official packages for both CentOS 7 and CentOS 8 platforms was version 0.83.2, which included the following Linux RPM packages:
 
 * [dosbox-x-0.83.2-0.el7.x86_64.rpm](https://github.com/joncampbell123/dosbox-x/releases/download/dosbox-x-v0.83.2/dosbox-x-0.83.2-0.el7.x86_64.rpm)
 * [dosbox-x-0.83.2-0.el8.x86_64.rpm](https://github.com/joncampbell123/dosbox-x/releases/download/dosbox-x-v0.83.2/dosbox-x-0.83.2-0.el8.x86_64.rpm)
@@ -57,9 +60,7 @@ Pick a RPM package of the version you want to use for your Linux platform and in
 
 ``sudo rpm -i <filename>.rpm``
 
-Where ``<filename>`` is the main file name of the RPM package you wish to install. You may want to use the debug builds (the last three packages in the above example) if you desire to do some debugging work when running DOSBox-X. If there are missing dependencies for the rpm command, such as libpng and fluid-soundfont, then you will need to install them first.
-
-If you use a Linux platform that only supports DEB packages, such as Debian, Ubuntu, or Linux Mint, then you can convert the RPM package you want to install to DEB format by using the ```alien``` command-line tool, e.g. ```sudo alien <filename>.rpm```, which will generate the DEB package for use with your Linux platform from the RPM package. You will need to install the ```alien``` tool first if it is not yet installed on your Linux system.
+Where ``<filename>`` is the main file name of the RPM package you wish to install. You may want to use the debug builds (the last three packages in the above example) if you desire to do some debugging work when running DOSBox-X. If there are missing dependencies for the rpm command, such as libpng and fluid-soundfont, then you will need to install them first. If you use a Linux platform that only supports DEB packages, such as Debian, Ubuntu, or Linux Mint, then you can convert the RPM package you want to install to DEB format by using the ```alien``` command-line tool, e.g. ```sudo alien <filename>.rpm```, which will generate the DEB package for use with your Linux platform from the RPM package. You will need to install the ```alien``` tool first if it is not yet installed on your Linux system.
 
 Moreover, you can find DOSBox-X on SnapCraft (https://snapcraft.io/dosbox-x), which maintains universal Linux packages for software including DOSBox-X. Please note the DOSBox-X Linux packages on this website are built and updated by SnapCraft instead of the DOSBox-X Team.
 
