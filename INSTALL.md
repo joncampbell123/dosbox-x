@@ -36,7 +36,7 @@ If you prefer to use one of the portable packages, please select the zip package
 Linux Packages (Flatpak or RPM)
 --------------------
 
-Flatpaks are officially released for the Linux operating system, which are standalone applications independent of the Linux distributions. For the current DOSBox-X version 0.83.6 the Linux platpak is available from:
+Flatpaks are officially released for the Linux operating system, which are standalone applications independent of the Linux distributions. For the current DOSBox-X version 0.83.6 the Linux Flatpak is available from:
 
 * [com.dosbox_x.DOSBox-X.flatpakref](https://dl.flathub.org/repo/appstream/com.dosbox_x.DOSBox-X.flatpakref)
 
@@ -62,7 +62,7 @@ Pick a RPM package of the version you want to use for your Linux platform and in
 
 ``sudo rpm -i <filename>.rpm``
 
-Where ``<filename>`` is the main file name of the RPM package you wish to install. You may want to use the debug builds (the last three packages in the above example) if you desire to do some debugging work when running DOSBox-X. If there are missing dependencies for the rpm command, such as libpng and fluid-soundfont, then you will need to install them first. If you use a Linux platform that only supports DEB packages, such as Debian, Ubuntu, or Linux Mint, then you can convert the RPM package you want to install to DEB format by using the ```alien``` command-line tool, e.g. ```sudo alien <filename>.rpm```, which will generate the DEB package for use with your Linux platform from the RPM package. You will need to install the ```alien``` tool first if it is not yet installed on your Linux system.
+Where ``<filename>`` is the main file name of the RPM package you wish to install. You may want to use the debug builds (the last three packages in the above example) if you desire to do some debugging work when running DOSBox-X. If there are missing dependencies for the rpm command, such as libpng and fluid-soundfont, then you will need to install them first. However, RPM packages are not natively supported by Linux distributions such as Debian, Ubuntu, or Linux Mint. It is recommanded to use Flatpaks, which work independent of your Linux distribution.
 
 Moreover, you can find DOSBox-X on SnapCraft (https://snapcraft.io/dosbox-x), which maintains universal Linux packages for software including DOSBox-X. Please note the DOSBox-X Linux packages on this website are built and updated by SnapCraft instead of the DOSBox-X Team.
 
