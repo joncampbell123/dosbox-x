@@ -115,7 +115,7 @@
 /* #undef C_MT32 */
 
 /* Define to 1 to enable NE2000 ethernet passthrough, requires libpcap */
-/* #undef C_NE2000 */
+#define C_NE2000 1
 
 /* Define to 1 to use opengl display output support */
 /*#define C_OPENGL 1*/

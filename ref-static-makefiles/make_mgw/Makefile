@@ -12,6 +12,7 @@ MT32 = 1
 
 CFLAGS	=	-O3 -DNDEBUG -Wstrict-overflow=0 -Wstrict-aliasing=0 -fomit-frame-pointer  -mno-ms-bitfields  -I. \
 			-I$(DBX_PATH) \
+			-I$(DBX_PATH)/vs2015/pcap \
 			-I$(DBX_PATH)/include \
 			-I$(DBX_PATH)/src \
 			-I$(DBX_PATH)/src/aviwriter \
@@ -27,6 +28,7 @@ CFLAGS	+=	$(shell sdl2-config --cflags)
 
 CXXFLAGS = -O3  -DNDEBUG -std=gnu++11 -Wstrict-overflow=0 -Wstrict-aliasing=0 -fomit-frame-pointer  -mno-ms-bitfields  -I. \
 			-I$(DBX_PATH) \
+			-I$(DBX_PATH)/vs2015/pcap \
 			-I$(DBX_PATH)/include \
 			-I$(DBX_PATH)/src \
 			-I$(DBX_PATH)/src/aviwriter \
