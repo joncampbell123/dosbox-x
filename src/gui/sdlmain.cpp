@@ -3285,7 +3285,7 @@ void GFX_OpenGLRedrawScreen(void) {
     if (OpenGL_using()) {
         if (sdl_opengl.clear_countdown > 0) {
             sdl_opengl.clear_countdown--;
-            glClearColor (0.0, 0.0, 0.0, 1.0);
+            glClearColor (0.0f, 0.0f, 0.0f, 1.0f);
             glClear(GL_COLOR_BUFFER_BIT);
         }
 
@@ -4676,7 +4676,7 @@ static void HandleMouseButton(SDL_MouseButtonEvent * button, SDL_MouseMotionEven
                     mainMenu.get_item(mainMenu.menuUserAttentionAt).setHilight(mainMenu,true);
                     mainMenu.get_item(mainMenu.menuUserAttentionAt).setHover(mainMenu,true);
 
-                    glClearColor (0.0, 0.0, 0.0, 1.0);
+                    glClearColor (0.0f, 0.0f, 0.0f, 1.0f);
                     glClear(GL_COLOR_BUFFER_BIT);
 
                     GFX_OpenGLRedrawScreen();
@@ -4993,7 +4993,7 @@ static void HandleMouseButton(SDL_MouseButtonEvent * button, SDL_MouseMotionEven
 
                         if (OpenGL_using()) {
 #if C_OPENGL
-                            glClearColor (0.0, 0.0, 0.0, 1.0);
+                            glClearColor (0.0f, 0.0f, 0.0f, 1.0f);
                             glClear(GL_COLOR_BUFFER_BIT);
 
                             GFX_OpenGLRedrawScreen();
@@ -5066,7 +5066,7 @@ static void HandleMouseButton(SDL_MouseButtonEvent * button, SDL_MouseMotionEven
 
                 if (OpenGL_using()) {
 #if C_OPENGL
-                    glClearColor (0.0, 0.0, 0.0, 1.0);
+                    glClearColor (0.0f, 0.0f, 0.0f, 1.0f);
                     glClear(GL_COLOR_BUFFER_BIT);
         
                     GFX_OpenGLRedrawScreen();
