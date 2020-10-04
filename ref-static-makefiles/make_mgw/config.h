@@ -28,10 +28,10 @@
 /* #undef BSD */
 
 /* Determines if the compilers supports always_inline attribute. */
-/* #undef C_ATTRIBUTE_ALWAYS_INLINE */
+#define C_ATTRIBUTE_ALWAYS_INLINE 1
 
 /* Determines if the compilers supports fastcall attribute. */
-/* #undef C_ATTRIBUTE_FASTCALL */
+#define C_ATTRIBUTE_FASTCALL 1
 
 /* Define to 1 to use FFMPEG libavcodec for video capture */
 /* #undef C_AVCODEC */
@@ -45,6 +45,9 @@
 /* Define to 1 to enable internal debugger, requires libcurses */
 /* #undef C_DEBUG */
 
+/* Define to 1 to enable Direct3D 9 display output support */
+/* #undef C_DIRECT3D */
+
 /* Define to 1 if you want parallel passthrough support (Win32, Linux). */
 #define C_DIRECTLPT 1
 
@@ -52,8 +55,12 @@
    */
 #define C_DIRECTSERIAL 1
 
-/* Define to 1 to use dynamic cpu core */
+/* Define to 1 to use recompiling cpu core. Can not be used together with the
+   dynamic-x86 core */
 #define C_DYNREC 1
+
+/* Targeting Emscripten */
+/* #undef C_EMSCRIPTEN */
 
 /* Define to 1 to enable fluidsynth MIDI synthesis */
 /* #undef C_FLUIDSYNTH */
@@ -63,6 +70,12 @@
 
 /* Define to 1 to enable floating point emulation */
 #define C_FPU 1
+
+/* Define to 1 to use a x86/x64 assembly fpu core */
+#define C_FPU_X86 1
+
+/* Define to 1 to enable freetype support */
+/* #undef C_FREETYPE */
 
 /* Determines if the compilers supports attributes for structures. */
 #define C_HAS_ATTRIBUTE 1
@@ -80,11 +93,20 @@
 /* Targeting HX DOS extender */
 /* #undef C_HX_DOS */
 
+/* Define to 1 to use GNU libiconv */
+#define C_ICONV 1
+
+/* Define to 1 to use Win32 functions in iconv backend */
+/* #undef C_ICONV_WIN32 */
+
 /* Define to 1 to enable IPX over Internet networking, requires SDL_net */
 /*#define C_IPX 1*/
 
 /* Define to 1 if you have libpng */
 #define C_LIBPNG 1
+
+/* Define to 1 if you have libz */
+#define C_LIBZ 1
 
 /* Define to 1 to enable internal modem support, requires SDL_net */
 /*#define C_MODEM 1*/
@@ -96,10 +118,18 @@
 /* #undef C_NE2000 */
 
 /* Define to 1 to use opengl display output support */
-//#define C_OPENGL 1
+/*#define C_OPENGL 1*/
+
+/* Define to 1 to enable printer emulation */
+/* #undef C_PRINTER */
+
+/* Define to 1 to alter the simpler render scalers to operate only on the full
+   scanline instead of detecting differences. This is a performance adjustment
+   for slow or embedded systems */
+/* #undef C_SCALER_FULL_LINE */
 
 /* Set to 1 to enable SDL 1.x support */
-#define C_SDL1 1
+/* #undef C_SDL1 */
 
 /* Set to 1 to enable SDL 2.x support */
 #define C_SDL2 1
@@ -114,15 +144,37 @@
 #define C_SSHOT 1
 
 /* The type of cpu this target has */
+#ifdef __i386__
 #define C_TARGETCPU X86
+#else
+#define C_TARGETCPU X86_64
+#endif
 
 /* Define to 1 to use a unaligned memory access */
 #define C_UNALIGNED_MEMORY 1
 
+/* define to 1 to enable X11 support */
+/* #undef C_X11 */
+
+/* define to 1 if XKBrules.h is present */
+/* #undef C_X11_EXT_XKBRULES */
+
 /* define to 1 if you have XKBlib.h and X11 lib */
 /* #undef C_X11_XKB */
 
-/* libm doesn't include powf */
+/* define to 1 if XKBfile.h is present */
+/* #undef C_X11_XKBFILE */
+
+/* define to 1 if you have XRandr.h and X11 lib */
+/* #undef C_X11_XRANDR */
+
+/* Define to 1 to enable XBRZ scaler */
+#define C_XBRZ 1
+
+/* Determines if the function clock_gettime is available. */
+#define DB_HAVE_CLOCK_GETTIME 1
+
+/* libm doesn’t include powf */
 /* #undef DB_HAVE_NO_POWF */
 
 /* struct dirent has d_type */
@@ -133,6 +185,9 @@
 
 /* environ can be linked */
 #define ENVIRON_LINKED 1
+
+/* Compiling on Haiku */
+/* #undef HAIKU */
 
 /* Define to 1 to use ALSA for MIDI */
 /* #undef HAVE_ALSA */
@@ -154,6 +209,9 @@
 
 /* Define to 1 if you have the <pwd.h> header file. */
 /* #undef HAVE_PWD_H */
+
+/* Define to 1 if you have the `realpath' function. */
+/* #undef HAVE_REALPATH */
 
 /* Define to 1 if you have the <stdint.h> header file. */
 #define HAVE_STDINT_H 1
@@ -198,7 +256,7 @@
 #define PACKAGE_NAME "dosbox-x"
 
 /* Define to the full name and version of this package. */
-#define PACKAGE_STRING "dosbox-x 0.82.22"
+#define PACKAGE_STRING "dosbox-x 0.83.7"
 
 /* Define to the one symbol short name of this package. */
 #define PACKAGE_TARNAME "dosbox-x"
@@ -207,25 +265,10 @@
 #define PACKAGE_URL "https://dosbox-x.com"
 
 /* Define to the version of this package. */
-#define PACKAGE_VERSION "0.82.22"
+#define PACKAGE_VERSION "0.83.7"
 
-/* The size of `int *', as computed by sizeof. */
-#define SIZEOF_INT_P 4
-
-/* The size of `unsigned char', as computed by sizeof. */
-#define SIZEOF_UNSIGNED_CHAR 1
-
-/* The size of `unsigned int', as computed by sizeof. */
-#define SIZEOF_UNSIGNED_INT 4
-
-/* The size of `unsigned long', as computed by sizeof. */
-#define SIZEOF_UNSIGNED_LONG 4
-
-/* The size of `unsigned long long', as computed by sizeof. */
-#define SIZEOF_UNSIGNED_LONG_LONG 8
-
-/* The size of `unsigned short', as computed by sizeof. */
-#define SIZEOF_UNSIGNED_SHORT 2
+/* Compiling on RISC OS */
+/* #undef RISCOS */
 
 /* Define to 1 if you have the ANSI C header files. */
 #define STDC_HEADERS 1
@@ -234,7 +277,7 @@
 /* #undef TM_IN_SYS_TIME */
 
 /* Version number of package */
-#define VERSION "0.82.22"
+#define VERSION "0.83.7"
 
 /* Define WORDS_BIGENDIAN to 1 if your processor stores words with the most
    significant byte first (like Motorola and SPARC, unlike Intel). */
@@ -246,6 +289,11 @@
 # ifndef WORDS_BIGENDIAN
 /* #  undef WORDS_BIGENDIAN */
 # endif
+#endif
+
+/* Enable large inode numbers on Mac OS X 10.5.  */
+#ifndef _DARWIN_USE_64_BIT_INODE
+# define _DARWIN_USE_64_BIT_INODE 1
 #endif
 
 /* Number of bits in a file offset, on hosts where this is settable. */
@@ -296,48 +344,8 @@
 #endif
 
 
-typedef         double     Real64;
+#include <cstdint>
 
-#if SIZEOF_UNSIGNED_CHAR != 1
-#  error "sizeof (unsigned char) != 1"
-#else
-  typedef unsigned char Bit8u;
-  typedef   signed char Bit8s;
-#endif
-
-#if SIZEOF_UNSIGNED_SHORT != 2
-#  error "sizeof (unsigned short) != 2"
-#else
-  typedef unsigned short Bit16u;
-  typedef   signed short Bit16s;
-#endif
-
-#if SIZEOF_UNSIGNED_INT == 4
-  typedef unsigned int Bit32u;
-  typedef   signed int Bit32s;
-#elif SIZEOF_UNSIGNED_LONG == 4
-  typedef unsigned long Bit32u;
-  typedef   signed long Bit32s;
-#else
-#  error "can't find sizeof(type) of 4 bytes!"
-#endif
-
-#if SIZEOF_UNSIGNED_LONG == 8
-  typedef unsigned long Bit64u;
-  typedef   signed long Bit64s;
-#elif SIZEOF_UNSIGNED_LONG_LONG == 8
-  typedef unsigned long long Bit64u;
-  typedef   signed long long Bit64s;
-#else
-#  error "can't find data type of 8 bytes"
-#endif
-
-#if SIZEOF_INT_P == 4
-  typedef Bit32u Bitu;
-  typedef Bit32s Bits;
-#else
-  typedef Bit64u Bitu;
-  typedef Bit64s Bits;
-#endif
-
+typedef uintptr_t Bitu;
+typedef intptr_t Bits;
 
