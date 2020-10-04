@@ -1,0 +1,432 @@
+ifdef::env-github[:suffixappend:]
+ifndef::env-github[:suffixappend: .html]
+
+Back to the link:Home{suffixappend}[DOSBox-X Wiki Welcome page].
+
+:toc: macro
+
+# Setting up networking in DOSBox-X
+
+toc::[]
+
+# Overview
+DOSBox-X has support for emulating the Novell NE2000 network adapter, but setting it up can be a bit convoluted. This guide hopes to simplify the process.
+
+## NE2000 resource usage
+By default the emulated NE2000 will use IRQ3 and IO range 300-31F. This is typical of a real NE2000 adapter, and some NE2000 drivers will look there by default. DOSBox-X does not support PnP for the NE2000, meaning that Windows 95, 98 and ME may not autodetect it, and even if they do, they may assume the wrong resources.
+
+The problem lies in the fact that, IRQ3 is also used for COM2, and therefore they conflict. Most software will work regardless of the conflict, as long as your not actually using COM2. But some software, notably Windows 95, 98 and ME may complain about a resource conflict.
+
+As such it is recommended to either move the emulated NE2000 to a different IRQ, or to disable COM2. In the below examples the emulated NE2000 is set to IRQ10 using the ``nicirq=`` setting, to resolve the conflict. But you need to ensure that any NE2000 device drivers that are loaded, are also set to the same resources.
+
+Note: Setting the NE2000 to IRQ10 is not possible if your emulating a 8086 (machine=8086), as they only have IRQ0-7 available. In that case it is probably better to disable COM2.
+
+If you want to instead disable COM2, add the following to you DOSBox-X config file.
+....
+[serial]
+serial2=disabled
+....
+
+## realnic usage
+In the below examples you will see the usage or ``realnic=``. Once you have located the host network adapter to use, using ``realnic=list``, you need to set it to that adapter.
+This can be done in one of two ways.
+You can either specify the number of the adapter, or a part of the name of the adapter.
+
+e.g. If you want to use the entry:
+....
+LOG:  9. rpcap://\Device\NPF_{AAAAAAAA-BBBB-CCCC-DDDD-XXXXXXXXXXXX}
+    (Network adapter 'Realtek USB NIC' on local host)
+....
+
+You can either specify it as ``realnic=9`` or ``realnic=Realtek``, or if that is not unique you can also fully specify the name like so: ``realnic="Realtek USB NIC"``
+
+It is recommended to use a name, as the order of the numbers can change due to various events on the host (e.g. adding or removing devices, or even launching other virtual machines)
+
+## Host network adapters
+By default DOSBox-X networking attempts to bridge to your chosen host network adapter. This may not work, depending on the network adapter chosen as it relies on the adapter and its driver supporting true promiscuous mode. In particular WIFI adapters are known to not work.
+Unfortunately there is no clear error message if you run into this problem, and typically all you will experience is that your not able to get a DHCP address.
+
+A possible solution to this would be something similar to libvirt on Linux. This allows the creation of a virtual network switch which is then connected to a host network adapter (which could be a WIFI adapter) using NAT (Network Address Translation). And DOSBox-X could then attach to this virtual switch, which would allow at least outbound traffic. Inbound traffic could also be allowed using port-forwarding.
+
+# Setup guide for Linux hosts
+### Install libpcap
+This depends on your Linux distribution, but you need to have libpcap installed.
+
+#### Debian based (e.g. Ubuntu)
+If your running a recent Debian or Debian based distribution such as Ubuntu, you can install libpcap from the command-line as follows:
+....
+apt-get install libpcap
+....
+#### Red Hat, SUSE or Fedora
+If you used the provided RPM, libpcap is a dependency and will be automatically installed when using a package manager to install DOSBox-X.
+
+Otherwise if your running a recent Red Hat, CentOS, SUSE or Fedora Linux distribution, you can install libpcap from the command-line as follows:
+....
+dnf install libpcap
+....
+
+### Check if your DOSBox-X binary supports networking
+The provided RPMs have networking enabled, but if you compiled it yourself and the libpcap headers where not installed, the resulting DOSBox-X binary will lack libpcap support.
+To check if your binary has networking support, run the following command:
+
+....
+ldd /usr/bin/dosbox-x | grep pcap
+      libpcap.so.1 => /lib64/libpcap.so.1 (0x00007f1e15c80000)
+....
+
+In the above example, the DOSBox-X binary has libpcap support, meaning it has networking. If the command returns nothing you do not have networking.
+If you binary has no networking, your options are to use the pre-compiled RPM package, or compile it yourself with libpcap support enabled.
+
+### Setup permissions
+The provided RPM packages automatically setup the necessary permission.
+
+Otherwise, you need to ensure that the DOSBox-X binary has permission to listen to and generate low level network traffic. You can do this as follows:
+
+....
+$ which dosbox-x
+/usr/bin/dosbox-x
+$ getcap /usr/bin/dosbox-x
+$
+....
+The first command returns the location of the dosbox-x binary (assuming it is in your path), the second command checks its capabilities.
+In this case getcap does not return anything, meaning it has no special capabilities, which you need to rectify if you want to be able to have networking in DOSBox-X.
+Run the following command:
+
+....
+$ sudo setcap cap_net_raw+ep /usr/bin/dosbox-x
+....
+
+This command will allow the dosbox-x binary to access the network interface in raw mode, meaning it can see all the traffic on all the network interfaces.
+
+To validate that now the DOSBox-X binary indeed has the cap_net_raw capability, run:
+
+....
+$ getcap /usr/bin/dosbox-x
+/usr/bin/dosbox-x = cap_net_raw+ep
+....
+
+Warning: If your not using the RPM packages, each time you upgrade DOSBox-X, you will again need to give it the cap_net_raw capability.
+
+### Locate host network interface
+You now need to find which host network interface you want to use for bridging.
+
+For this you need to have a DOSBox-X config file with NE2000 support enabled, and you need to know which host network adapter will be used for bridging. It is highly recommended to only bridge to wired Ethernet adapters, as WIFI adapters are known not to work.
+
+Create a simple ne2000.conf config file as follows:
+
+....
+[ne2000]
+ne2000=true
+nicirq=10
+realnic=list
+....
+
+Now, from a terminal, start DOSBox-X, using the ne2000.conf config file you just created.
+
+....
+dosbox-x -conf ne2000.conf
+....
+
+In the terminal there will be a lot of LOG messages. Look for some output similar to this:
+
+....
+Network Interface List
+-----------------------------------
+LOG:  1. eno1
+    (no description)
+LOG:  2. lo
+    (no description)
+LOG:  3. any
+    (Pseudo-device that captures on all interfaces)
+LOG:  4. virbr0
+    (no description)
+LOG:  5. bluetooth-monitor
+    (Bluetooth Linux Monitor)
+LOG:  6. nflog
+    (Linux netfilter log (NFLOG) interface)
+LOG:  7. nfqueue
+    (Linux netfilter queue (NFQUEUE) interface)
+LOG:  8. wlp3s0
+    (no description)
+LOG:  9. bluetooth0
+    (Bluetooth adapter number 0)
+LOG: 10. usbmon0
+    (Raw USB traffic, all USB buses)
+LOG: 11. usbmon1
+    (Raw USB traffic, bus number 1)
+LOG: 12. usbmon2
+    (Raw USB traffic, bus number 2)
+LOG: 13. usbmon3
+    (Raw USB traffic, bus number 3)
+LOG: 14. usbmon4
+    (Raw USB traffic, bus number 4)
+LOG: 15. virbr0-nic
+    (no description)
+....
+
+That is an example of the network interfaces that were detected for my Linux PC. Now look at your own list, and locate an appropriate adapter to use.
+In the above example, 1, or eno1 is the integrated Ethernet of the PC, which we will use.
+
+Edit the ne2000.conf config file and change realnic= to the value or name of your chosen network interface. e.g.:
+
+....
+[ne2000]
+ne2000=true
+nicirq=10
+realnic=eno1
+....
+
+You can merge your config snippet with your Windows for Workgroups, Windows 95 or 98 config file, or use it to run something like mTCP in DOSBox-X.
+
+# Setup guide for Windows hosts
+## Install PCAP
+First you need to install PCAP support. As WinPcap is no longer maintained, Npcap seems the best candidate these days:
+https://nmap.org/npcap/
+
+## Locate host network interface
+You now need to find which host network interface you want to use for bridging.
+
+For this you need to have a DOSBox-X config file with NE2000 support enabled, and you need to know which host network adapter will be used for bridging. It is highly recommended to only bridge to wired Ethernet adapters, as WIFI adapters are known not to work.
+
+Create a simple ne2000.conf config file as follows:
+
+....
+[ne2000]
+ne2000=true
+nicirq=10
+realnic=list
+....
+
+Now, from a command prompt, start DOSBox-X, using the ne2000.conf config file you just created.
+
+....
+dosbox-x -console -conf ne2000.conf
+....
+
+In addition to the dosbox-x window, you will get a console window with lots of LOG messages. In these LOG messages look for some output similar to this:
+
+....
+LOG:  1. rpcap://\Device\NPF_{AAAAAAAA-BBBB-CCCC-DDDD-XXXXXXXXXXXX}
+    (Network adapter 'NdisWan Adapter' on local host)
+LOG:  2. rpcap://\Device\NPF_{AAAAAAAA-BBBB-CCCC-DDDD-XXXXXXXXXXXX}
+    (Network adapter 'Generic Mobile Broadband Adapter' on local host)
+LOG:  3. rpcap://\Device\NPF_{AAAAAAAA-BBBB-CCCC-DDDD-XXXXXXXXXXXX}
+    (Network adapter 'Microsoft' on local host)
+LOG:  4. rpcap://\Device\NPF_{AAAAAAAA-BBBB-CCCC-DDDD-XXXXXXXXXXXX}
+    (Network adapter 'Microsoft' on local host)
+LOG:  5. rpcap://\Device\NPF_{AAAAAAAA-BBBB-CCCC-DDDD-XXXXXXXXXXXX}
+    (Network adapter 'NdisWan Adapter' on local host)
+LOG:  6. rpcap://\Device\NPF_{AAAAAAAA-BBBB-CCCC-DDDD-XXXXXXXXXXXX}
+    (Network adapter 'Microsoft' on local host)
+LOG:  7. rpcap://\Device\NPF_{AAAAAAAA-BBBB-CCCC-DDDD-XXXXXXXXXXXX}
+    (Network adapter 'NdisWan Adapter' on local host)
+LOG:  8. rpcap://\Device\NPF_{AAAAAAAA-BBBB-CCCC-DDDD-XXXXXXXXXXXX}
+    (Network adapter 'Microsoft' on local host)
+LOG:  9. rpcap://\Device\NPF_{AAAAAAAA-BBBB-CCCC-DDDD-XXXXXXXXXXXX}
+    (Network adapter 'Realtek USB NIC' on local host)
+LOG: 10. rpcap://\Device\NPF_Loopback
+    (Network adapter 'Adapter for loopback traffic capture' on local host)
+LOG: 11. rpcap://\Device\NPF_{AAAAAAAA-BBBB-CCCC-DDDD-XXXXXXXXXXXX}
+    (Network adapter 'Intel(R) Ethernet Connection I219-V' on local host)
+....
+
+That is an example of the network interfaces that were detected for my Windows 10 PC (with the UUIDs masked). Now look at your own list, and locate an appropriate adapter to use.
+In the above example, 9 is the USB Ethernet adapter I want to use. It may take you a few tries to find the correct adapter.
+
+Edit the ne2000.conf config file and change realnic= to the value or name of your chosen network interface. e.g.:
+
+....
+[ne2000]
+ne2000=true
+nicirq=10
+realnic="Realtek USB NIC"
+....
+
+You can merge your config snippet with your Windows for Workgroups, Windows 95 or 98 config file, or use it to run something like mTCP in DOSBox-X.
+
+# mTCP example
+This example uses mTCP to test if networking is working in DOSBox-X.
+
+This first of all requires that you download the latest version of mTCP, and a NE2000 DOS packet driver.
+
+*External links*
+
+* link:https://www.brutman.com/mTCP/mTCP.html[mTCP homepage]
+* link:http://www.georgpotthast.de/sioux/packet.htm[DOS Packet drivers]
+
+unzip both mTCP and the NE2000 DOS Packet driver into a directory. In the below example the directory is named "mtcp", then start DOSBox-X with the ne2000.conf config file that you created:
+
+....
+dosbox-x -conf ne2000.conf
+....
+Now in DOSBox-X run the following commands:
+....
+MOUNT C mtcp
+C:
+SET MTCPCFG=C:\SAMPLES\SAMPLE.CFG
+NE2000 0x60 10 0x300
+DHCP
+....
+If all worked fine, you should have gotten a IP address, and you can now do something like
+....
+PING google.com
+....
+
+### Common problem: Invalid MAC Address
+When loading the NE2000 DOS Packet driver you get an all FF MAC address:
+
+....
+C:\>NE2000 0x60 10 0x300
+Packet driver for NE2000, version 11.4.3
+Packet driver skeleton copyright 1988-93, Crynwr Software.
+This program is freely copyable; source must be available; NO WARRANTY.
+See the file COPYING.DOC for details; send FAX to +1-315-268-9201 for a copy.
+
+System: [345]86 processor, ISA bus, Two 8259s
+Packet driver software interrupt is 0x60 (96)
+Interrupt number 0xA (10)
+I/O port 0x300 (768)
+My Ethernet address is FF:FF:FF:FF:FF:FF
+....
+
+This can actually have several causes.
+
+1. Your DOSBox-X binary lacks networking support
+2. (Linux) Your DOSBox-X binary does not have the right permissions to access networking
+3. You do not have PCAP installed (libpcap on Linux, Npcap on Windows)
+4. When loading the NE2000 driver you gave the wrong IRQ or IO port.
+** This should only effect non-standard setups where you specified a different nicirq= or nicbase= in your ne2000.conf config file.
+
+### Common problem: Cannot get DHCP lease
+When starting DHCP you get only timeouts.
+
+....
+C:\>DHCP
+mTCP DHCP Client by M Brutman (mbbrutman@gmail.com) (C)opyright 2008-2020
+Version: Mar  7 2020
+
+Timeout per request: 10 seconds, Retry attempts: 3
+Sending DHCP requests, Press [ESC] to abort.
+
+DHCP request sent, attempt 1: Timeout
+DHCP request sent, attempt 2: Timeout
+DHCP request sent, attempt 3: Timeout
+
+Error: Your Ethernet card reported an error for every packet we sent.
+Check your cabling and packet driver settings, including the hardware IRQ.
+....
+This can actually have several causes.
+
+1. Check if you got a valid MAC address when loading the NE2000 packet driver.
+2. Try to set REALNIC= in your ne2000.conf config file to a different network interface. In particular WIFI interfaces are unlikely to work, so try wired Ethernet instead. The order in which the interfaces are listed can also change due to plugging or unplugging devices, or launching certain type of programs like Virtual Machines.
+3. Perhaps you don't have a DHCP server on your network, or it is configured to only listen to known MAC addresses. Try to set manual IP settings, suitable for your network, at the bottom of SAMPLES/SAMPLE.CFG and try if you can ping.
+
+### Common problem: Multiple DOSBox-X instances
+By default all DOSBox-X instances use the exact same MAC address (AC:DE:48:88:99:AA).
+If there are multiple DOSBox-X instances running on the same host, or on different hosts on the same network segment, they will conflict with each other.
+
+Unfortunately not all operating systems will warn you about this, but it will cause problems on the network and the DOSBox-X instances will not be able to communicate with each other.
+
+The solution is to define a new MAC address for at least one of the DOSBox-X instances.
+
+In your DOSBox-X config file, in the ``[ne2000]`` section, add a ``macaddr=`` line with a new MAC address.
+The AC:DE:48 range is a reserved range for private use, so just modify the last three number blocks.
+
+e.g.
+
+....
+[ne2000]
+ne2000=true
+realnic=1
+nicirq=10
+macaddr=AC:DE:48:88:99:AB
+....
+
+# IPX example
+There are two ways to enable IPX communication, which was used by some link:https://www.mobygames.com/attribute/sheet/attributeId,82/p,2/[DOS and Windows games] for multi-player support.
+
+## Using DOSBox-X integrated IPX support
+DOSBox-X has integrated support for IPX over IP.
+You do not even have to enable NE2000 emulation for this.
+The advantage of this is that you can communicate with any other system that is directly reachable over TCP/IP.
+To test this, first ``ping`` the remote systems to ensure connectivity.
+
+This process is described on the link:https://www.dosbox.com/wiki/Connectivity[DOSBox wiki].
+
+## Using the NetWare DOS Client
+
+This example uses Novell's IPX. A disadvantage of this approach is that it is not routable over the Internet, meaning it can only communicate with other systems on your local network. An advantage is that it can communicate with a real retro DOS PC on your local network.
+
+This first of all requires that you download the vlm121_2.exe and vlm121_6.exe files from the Novell NetWare DOS Client.
+The rest of the files are not needed for our purpose of running DOS games that require IPX.
+
+*External links*
+
+* link:https://www.novell.com/coolsolutions/tools/13555.html[Novell NetWare DOS/Windows Client v1.21]
+
+Once you have downloaded the files, you need to extract them.
+The VLM121*.EXE files are individual self-extracting DOS ARJ archives.
+The easiest way is probably to extract them in DOSBox-X itself.
+
+*Notes*
+
+* If you want to do a full install of the NetWare Client, you cannot run the INSTALL.EXE in the emulated DOS environment that DOSBox-X provides. It will fail with "An invalid drive was given in path". You can however install it if you boot a real DOS in DOSBox-X.
+* You can extract the self-extracting EXE files on Linux with the command-line ``arj`` utility, but you need to use the ``-he`` switch to disable the Security Envelope check.
+
+### Unpacking the VLM archive in DOSBox-X
+Move the files to a temporary directory for extraction, and from that directory launch DOSBox-X.
+....
+MOUNT C .
+C:
+VLM121_2.EXE -y
+VLM121_6.EXE -y
+....
+
+The files needed are still packed in yet another "Personal Netware Packed File" archive. Extract them as follows:
+....
+MKDIR IPX
+NWUNPACK LSL.CO_ \IPX
+NWUNPACK IPXODI.CO_ \IPX
+NWUNPACK NETBIOS.EX_ \IPX
+NWUNPACK DOS\NE2000.CO_ \IPX
+EXIT
+....
+The IPX directory that was created now contains the following files:
+
+* ``LSL.COM`` (Link Support Layer)
+* ``IPXODI.COM`` (ODI IPX protocol provider)
+* ``NETBIOS.EXE`` (NetBIOS Protocol over IPX)
+* ``NE2000.COM`` (ODI driver for the NE2000 adapter)
+
+### Create NET.CFG
+Now create a text file called NET.CFG, and place it in the same directory as LSL.COM, with the following content:
+....
+Link Driver NE2000
+        PORT 300
+        IRQ 10
+        FRAME Ethernet_802.2
+....
+
+*Notes*
+
+* If you used a different IRQ or IO (port) base address, adjust NET.CFG accordingly.
+* If your running on Linux, be sure the NET.CFG file is saved in DOS format (with CRLF line terminators), otherwise the NE2000 driver will not be loaded at the specified resources. If necessary use ``unix2dos`` to convert it.
+
+### Start IPX
+Now modify your ne2000.conf config file that you created earlier, such that it contains the following lines in the [autoexec] section at the end:
+
+....
+MOUNT C .
+C:
+IPX\LSL.COM
+IPX\NE2000.COM
+IPX\IPXODI.COM
+....
+Adjust paths in the above example as necessary, and you should be able to run it from a command prompt as follows:
+
+....
+dosbox-x -conf ne2000.conf
+....
+
+Note: For link:https://www.mobygames.com/attribute/sheet/attributeId,129/p,2/[games that require NETBIOS], you can also add ``IPX\NETBIOS.EXE`` to the end.
+But note that this is NetBIOS *over* IPX, which cannot communicate with other systems running native NetBIOS (using NBF) or NetBIOS over TCP/IP.

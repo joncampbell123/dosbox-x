@@ -1,0 +1,89 @@
+ifdef::env-github[:suffixappend:]
+ifndef::env-github[:suffixappend: .html]
+
+Back to the link:Home{suffixappend}[DOSBox-X Wiki Welcome page].
+
+:toc: macro
+
+# Windows Clipboard Support in DOSBox-X
+
+toc::[]
+
+### Overview
+
+DOSBox-X has support for copying to and pasting from the Windows clipboard in several ways. For example, you can copy to or paste from to the Windows clipboard inside DOSBox-X using a right mouse button click or keyboard shortcut, and you can also use a DOS device or DOS program to communicate bidirectionally with the Windows clipboard. You will find a menu group "Shared Windows clipboard functions" under the "Main" menu to control the various options for the Windows clipboard feature.
+
+Note that the feature to access to the clipboard is currently only available in the Windows platform, and as a result, this guide will assume you are using a Windows build (32 or 64-bit, either SDL1 or SDL2) of DOSBox-X.
+
+### Copy and paste text using a DOS device
+
+You can use a DOS device (e.g. CLIP$) to easily copy text to and/or paste text from the Windows clipboard in DOSBox-X. To activate this function, please make sure the "Enable DOS clipboard device access: CLIP$" toggle within the "Shared Windows clipboard functions" menu group is checked. Alternatively, you can enable it via the "dos clipboard device enable" setting in the [dos] section of the DOSBox-X config file (e.g. dosbox-x.conf) by setting it to "true" or "full", then a DOS device (default name: CLIP$) will be added to DOSBox-X to allow bidirectional communications with the Windows clipboard.
+
+For example:
+
+....
+DIR >CLIP$
+....
+Will redirect the directory listing to the clipboard;
+
+....
+VER >>CLIP$
+....
+Will append the version information to the clipboard;
+
+....
+TYPE CLIP$
+....
+Will display the content of the clipboard;
+
+....
+EDIT CLIP$
+....
+Will open the editor with the clipboard content;
+
+....
+SORT.EXE <CLIP$
+....
+Will sort the clipboard content (using DOS's SORT.EXE tool).
+
+You may also set the "dos clipboard device enable" config option to either "read" or "write" to allow only read or write access for security reasons. The DOS device name can also be changed with the "dos clipboard device name" config option if you want to use a different device name from CLIP$.
+
+This bidirectional clipboard access will be deactivated if the secure mode for DOSBox-X is enabled, and it will also not work if booting into a guest OS.
+
+### Select, copy and paste text using a mouse button
+
+You can also use a mouse button to easily select, copy or paste text to or from the Windows clipboard in DOSBox-X when the mouse is not locked. The default mouse button is the right mouse button, but it can be set to the middle mouse button as well. With this feature enabled you can right-drag (or middle-drag) on text in the DOSBox-X window and release the mouse to copy to the clipboard; right-click (or middle-click) in the DOSBox-X window to paste from the Windows clipboard. It works even for double-byte Japanese Shift-JS characters (including Kana and Kanji) when DOSBox-X is running in the PC-98 mode.
+
+It is possible to set a keyboard modifier for this feature by editing the "clip_key_modifier" config option in the [sdl] section of the DOSBox-X config file so that you can use Alt+Right-click, Ctrl+Right-click, Shift+Right-click, etc. to select, copy and paste text instead. The default keyboard modifier for this feature in DOSBox-X is Shift, but you can change it to a different one or setting the "clip_key_modifier" config option to "none" if no keyboard modifier is desired. It is also possible to disable this feature on the Windows platform by setting it to "disabled" instead. You can also check the option "Quick edit: copy on select and paste with mouse button" within the "Shared Windows clipboard functions" menu group to bypass any keyboard modifier that may have been set (same effect as "clip_key_modifier=none" when this menu item is checked).
+
+There is no practical limit on the clipboard size when doing the pasting. But the speed of pasting each character does matter in some cases, even though the default speed works fine for many programs (such as WordPerfect 5.1). Depending on the DOS program you are using, pasting too fast for example can cause lost keystrokes for some programs. Thus, there is a setting named "clip_paste_speed" in the [sdl] section of DOSBox-X's config file which can be used to set the speed for pasting each character from the Windows clipboard. The default setting is 20, but if this setting does cause lost keystrokes in your application, you can increase the number to slow down the pasting. Conversely, you may experiment with decreasing the number for applications that accept keystrokes quickly.
+
+### Paste from the clipboard using a keyboard shortcut
+
+You can also use a keyboard shortcut to paste text from the Windows clipboard into DOSBox-X, or just click the option "Pasting from the Windows clipboard" within the "Shared Windows clipboard functions" menu group. In order to achieve this via a keyboard shortcut you need to run DOSBox-X's keyboard mapper editor to assign a key for this function first. One way to run the mapper editor is to start DOSBox-X.exe with the -startmapper command-line option. You can also select it directly from DOSBox-X's drop-down menu (under "Main"). After the mapper editor is launched, click the "Paste Clip" function and assign a keyboard shortcut to it. For example, you can assign the F6 key (or Alt+F6, Shift+F6, etc) to paste text from the Windows clipboard. Once this is done you can save the mapper and exit to DOSBox-X. Then you will be able to use the saved keyboard shortcut to paste text from the Windows clipboard into DOSBox-X just like pasting it using the right mouse button click.
+
+Similar to pasting text using the right mouse button, you can change the speed for pasting each character from the Windows clipboard to DOSBox-X via the "clip_paste_speed" setting in the [sdl] section of DOSBox-X's config file. As mentioned in the previous section the default value (20) works for many programs, but for some programs you may need to change it from the default one. The higher the value of this setting, the slower each character will be pasted from the Windows clipboard. You can also decrease this value if your DOS program accepts keystrokes quickly.
+
+### Copy and paste text using a DOS program
+Copying and pasting text to or from the Windows clipboard is also supported via the DOS APIs in DOSBox-X, so DOS programs that can directly access the Windows 3.x/9x clipboard from a DOS window can also be used to copy and paste text to or from the Windows clipboard when running in DOSBox-X. This function may be enabled by default, but can be disabled either by unchecking the option "Enable DOS clipboard API for applications" within the "Shared Windows clipboard functions" menu group, or by setting the config option "dos clipboard api" to "false" in the [dos] section of the config file.
+
+When DOS clipboard APIs are activated, the https://www.horstmuc.de/div.htm#wclip[WCLIP] tool by Horst Schaeffer for example can be used to access the Windows clipboard inside DOSBox-X. Below are some examples of using this program to communicate with the Windows clipboard:
+
+....
+DIR | WCLIP
+....
+Will redirect the directory listing to the clipboard;
+
+....
+WCLIP /A < TEST.TXT
+....
+Will append the TEST.TXT file content to the clipboard;
+
+....
+WCLIP RECEIVE
+....
+Will display the content of the clipboard.
+
+There are also other similar DOS programs that will work in DOSBox-X, such as http://ansis.lv/dosclip/index.en.php[DOSClip 3.2], a TSR program to select, copy or paste text to or from the Windows clipboard.
+
+Like copying and pasting text using a DOS device, this bidirectional clipboard access will be deactivated if the secure mode for DOSBox-X is enabled, and it will also not work if booting into a guest OS.

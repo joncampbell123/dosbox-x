@@ -1,0 +1,247 @@
+ifdef::env-github[:suffixappend:]
+ifndef::env-github[:suffixappend: .html]
+
+Back to the link:Home{suffixappend}[DOSBox-X Wiki Welcome page].
+
+:toc: macro
+
+# Regional settings in DOSBox-X
+
+toc::[]
+
+### Overview
+
+You can customize the regional settings in DOSBox-X, such as changing the country code for country-specific date/time formats, as well as modifying the international keyboard layouts and codepages. If you are a DOSBox-X user living outside the United States, you probably want to do this in order for DOSBox-X to match the regional settings in your country. Such settings can be configured either from the DOSBox-X config file (dosbox-x.conf by default), or from the DOSBox-X command line.
+
+### Country-specific date/time formats
+
+The country code can be set in the [config] section of the DOSBox-X config file by use of the ``COUNTRY=`` setting. This defaults to 1, which is the US. This setting influences date and time format as used by DOSBox-X, such as the ``DIR`` command. It may also influence regional settings in other applications.
+
+For example, the date is displayed in MM-DD-YYYY format with the default US setting:
+
+``07-30-2020 12:34p``
+
+If you change the ``COUNTRY=`` setting, the date and time will be displayed in the format associated with the specified country code. For example, 44 is the country code for the UK, and setting the following:
+
+``COUNTRY=44``
+
+Will cause DOSBox-X to use the UK date and time format:
+
+``30/07/2020 12:34``
+
+If you set ``COUNTRY=0`` in the [config] section of the DOSBox-X config file, then DOSBox-X will try to auto-detect and set the country code based on the regional setting of the host system. This however only works on Windows systems.
+
+Alternatively, the COUNTRY command can be used from the DOSBox-X command line to change the country code. For example, the following command will switch the country code to 61 for international English:
+
+``COUNTRY 61``
+
+A list of supported country codes and their corresponding date and time formats:
+
+|===
+|Country|Country Code|Date format|Time format
+
+|Arabic countries|785|23/01/2020|17:35
+|Austria|43|23.01.2020|17:35
+|Belgium|32|23/01/2020|17:35
+|Brazil|55|23/01/2020|17:35
+|Canadian-French|2|2020-01-23|17:35
+|Czechoslovakia|42|2020-01-23|17:35
+|Denmark|45|23-01-2020|17.35
+|Finland|358|23.01.2020|17.35
+|France|33|23.01.2020|17:35
+|Germany|49|23.01.2020|17:35
+|Greece|30|23/01/2020|17:35
+|Hungary|36|2020-01-23|17:35
+|Iceland|354|2020-01-23|17:35
+|International English|61|23-01-2020|5:35p
+|Israel|972|23/01/2020|17:35
+|Italy|39|23/01/2020|17.35
+|Japan|81|2020-01-23|17:35
+|Latin America|3|23/01/2020|5:35p
+|Netherlands|31|23-01-2020|17:35
+|Norway|47|23.01.2020|17:35
+|Peoples Republic of China|86|2020.01.23|17:35
+|Poland|48|2020-01-23|17:35
+|Portugal|351|23-01-2020|17:35
+|Romania|40|2020-01-23|17:35
+|Russia|7|23.01.2020|17:35
+|South Korea|82|2020-01-23|17:35
+|Spain|34|23/01/2020|17:35
+|Sweden|46|2020-01-23|17.35
+|Switzerland|41|23.01.2020|17,35
+|Taiwan|886|2020/01/23|17:35
+|Turkey|90|23/01/2020|17:35
+|United Kingdom|44|23/01/2020|17:35
+|United States|1|01-23-2020|5:35p
+|Yugoslavia|38|2020-01-23|17:35
+|===
+
+With a few exceptions, the above codes are based on the international dialing codes of the respective countries. DOSBox-X will accept any other country code not listed above, but in that case will use the date format 23-01-2020 and 24-hour time format 17:35.
+
+Typing ``COUNTRY`` without parameters from the DOSBox-X command line will display the current country code.
+
+### Using language files for customized or translated display messages
+
+DOSBox-X by defaults displays messages in English. It is possible to change the messages displayed by DOSBox-X with the use of language files.
+
+If you already have a DOSBox-X language file available, you can specify its filename in DOSBox-X's config file (dosbox-x.conf by default) in the [dosbox] section in order to activate it. There is a ``language=`` setting which allows you to enter the name of the language file. For example, suppose the language file is located at C:\message.txt, then you can specify the following for use with DOSBox-X.
+
+``language=C:\message.txt``
+
+Alternatively, you can start DOSBox-X with the -lang option to use your language file. For example, to use "C:\message.txt" as the language file:
+
+``dosbox-x -lang C:\message.txt``
+
+If you do not have a DOSBox-X language file yet, and you want to customize or translate the messages as displayed by DOSBox-X, you could do so by generating the language file and then modifying the messages in it. DOSBox-X can generate a language file either from the built-in graphical configuration tool, or with the ``CONFIG`` command.
+
+To do this using the graphical configuration tool:
+
+1. Open the "Configuration tool" from the "Main" menu.
+2. Select the "Configuration" menu, then click "Save Language File...".
+3. Either use the default file name or enter a new file name for the language file, then click "OK". 
+
+Alternatively, you can let DOSBox-X generate the language file with its built-in ``CONFIG`` command, via its "-wl" (or "-writelang") option. Usage:
+
+``CONFIG -wl filename``
+
+This command writes the current language settings to a file in a specified location. "filename" is located on the local drive, not a mounted drive in DOSBox-X. It is located in the DOSBox-X directory by default.
+
+The language file controls all visible output of the internal commands and the internal DOS. Please read the language file that you just created from the above, and you will hopefully understand how to change it.
+
+Once you finished the customization or translation of the language file, you can save it for use with DOSBox-X, using the instructions mentioned above.
+
+### International keyboard layouts and codepages
+
+The US keyboard layout is used by default in DOSBox-X with code page 437. These can be customized to use a different keyboard layout or code page for DOSBox-X.
+
+When starting DOSBox-X on a Windows system with the default ``keyboardlayout=auto`` config setting, it will try to set the keyboard layout automatically, depending on the host OS region, for a wide range of regions. This may not necessarily match your actual keyboard, or your region may not currently be supported. In addition, the ``auto`` setting has no effect on Linux and macOS.
+
+You can set your keyboard layout manually in the [dos] section of the dosbox-x.conf file. For instance to set a German keyboard layout you can specify ``keyboardlayout=de``. It will also automatically set a suitable codepage. 
+
+Alternatively, the KEYB command can be used from the DOSBox-X command line to change the keyboard layout. For example:
+
+``KEYB UK``
+
+This command will switch the current keyboard layout to the UK keyboard layout and set code page 858. Below is a list of keyboard layouts that can be used in DOSBox, and by extension DOSBox-X.
+
+|===
+|Keboard layouts|Country usages
+
+|us103 (us), ux103 (ux)|US, US International
+|dv103 (dv), lh103 (lh), rh103 (rh)|US Dvorak, Left-Hand, Right-Hand
+|sq448, sq452 (sq)|Albania
+|hy|Armenia*
+|az|Azerbaijan*
+|by463 (bl463,by,bl)|Belarus*
+|be120 (be)|Belgium
+|ba234 (ba)|Bosnia & Herzegovina
+|br274, br275 (br)|Brazil
+|bg241, bg442 (bg)|Bulgaria
+|ca58 (cf58,ca,cf), ca445 (cf445), cf501|Canada
+|hr234 (hr)|Croatia
+|cz243, cz|Czech Republic
+|dk159 (dk)|Denmark
+|ee454 (et454,ee,et)|Estonia*
+|fo|Faroe Islands
+|fi153 (su153,fi,su)|Finland
+|fr120, fr189 (fr)|France
+|ka|Georgia*
+|de129 (gr129,de,gr), de453 (gr453)|Germany
+|gk220 (el220), gk319 (el319,gk,el), gk459 (el459)|Greece
+|hu208, hu|Hungary
+|is458 (is), is161 (is197)|Iceland
+|it141 (it), it142|Italy
+|kk|Kazakhstan*
+|ky|Kyrgyzstan*
+|la171 (la)|Latin-American-Spanish
+|lv, lv455|Latvia*
+|lt210, lt211, lt212 (lt), lt221, lt456|Lithuania*
+|mk449 (mk)|Macedonia
+|mt47 (ml47), mt (ml)|Malta
+|mn (mo)|Mongolia*
+|nl143 (nl)|Netherlands
+|no155 (no)|Norway
+|ph|Philippines
+|pl214, pl457 (pl)|Poland
+|po163 (po)|Portugal
+|ro333 (ro), ro446|Romania
+|ru441 (ru), ru443|Russia
+|sr118 (sr), sr450|Serbia & Montenegro
+|sk245 (sk)|Slovakia
+|si234 (si)|Slovenia
+|es172 (sp172,es173,sp173,es,sp)|Spain
+|sv153 (sv)|Sweden
+|sd150 (sg150,sd,sg), sf150 (sf)|Swiss
+|tm|Turkmenistan
+|tr179 (tr), tr440|Turkey
+|ua465 (ur465), ua (ur)|Ukraine*
+|uk166 (uk), uk168|United Kingdom
+|uz|Uzbekistan*
+|yu234 (yu)|Yugoslavia
+|===
+
+NOTE: For using layouts marked with * you must have ten ega.cpx files (from FreeDOS) in the DOSBox-X directory. See also the "Support for external keyboard files" section below for more information about this.
+
+Alternatively you can also specify a different codepage by adding the codepage number to the end.
+
+``KEYB UK 850``
+
+Most western European countries would have used codepage 850 back in the day, but DOSBox-X by default uses codepage 858, which is the same as codepage 850 with the addition of the Euro symbol. See the "Support for the Euro symbol" section below for further details.
+
+Note that software that uses certain box drawing characters may not look 100% accurate unless codepage 437 (default US codepage) is used. But this codepage lacks many diacritic glyphs that may be needed for regional support. As such a choice may have to be made between support for those box drawing characters or diacritic glyphs.
+
+The Japanese keyboard layout is also supported in NEC PC-98 mode. You can start DOSBox-X in PC-98 mode directly by setting ``machine=pc98`` in the [dosbox] section of the dosbox-x.conf file. DOSBox-X will use codepage 932 in this mode and support double-byte Shift-JIS characters as used in the Japanese language such as Kana and Kanji in addition to ASCII characters.
+
+### Support for the Euro symbol
+
+NOTE: The information in this section applies to DOSBox-X 0.83.4 and later only. It may not work in previous versions of DOSBox-X.
+
+The Euro symbol (€) is the currency symbol introduced by the European Monetary and Currency Union, and began its use on January 1, 1999. Because the Euro symbol was introduced after Windows 95 was released to the public, most DOS versions (including all versions of MS-DOS and PC DOS up to 7.0) did not support this symbol. Back in the day codepages such as 850 and 855 were used by most European DOS users, and they did not contain the Euro symbol. DOSBox-X did support these codepages, but it also supports modified codepages with the Euro symbol enabled, such as codepage 858, which have been introduced since 1999. The modifications only apply to the Euro symbol position, so everything else remains the same.
+
+Below is a table listing the original codepages (without the Euro symbol) and their counterparts with the Euro symbol enabled that are supported in DOSBox-X.
+
+|===
+|Original codepage|New codepage|Codepage name|Euro symbol position
+
+|850|858|Latin 1|ASCII 213 (0xD5) 
+|855|872|Cyrillic|ASCII 207 (0xCF)
+|866|808|Cyrillic Russian|ASCII 253 (0xFD)
+|===
+
+DOSBox-X by default uses the new codepage with the Euro symbol enabled for the specified keyboard layout (if available), when you do not specify a codepage for it. The Euro symbol will be supported and displayed in the above-mentioned ASCII position.
+
+It is also possible to display the Euro symbol instead of the specified ASCII character in any codepage in DOSBox-X, including the default codepage 437 and other codepages without the Euro symbol such as 850. DOSBox-X has an ``euro`` config option in the [render] section of the config file (dosbox-x.conf by default), which allows you to specify a ASCII position (between 33 and 255) for the Euro symbol to be rendered in place of the original character if you wish. For example, setting the following will allow DOSBox-X to display the Euro symbol instead of C-cedilla (Ç) in position 128.
+
+``euro=128``
+
+It will work even after you use the ``KEYB`` command to change the current codepage of DOSBox-X from the command line. The Euro symbol will be displayed in the specified position instead of the original character in that codepage as long as the ``euro`` setting remains active.
+
+### Support for external keyboard files
+
+DOSBox-X allows the use of external keyboard files for international keyboard layouts in addition to those that are already built into DOSBox-X. A list of supported keyboard layouts in DOSBox-X can be found in the "International keyboard layouts and codepages" section.
+
+For using external keyboard files in DOSBox-X, the FreeDOS .kl files are supported (FreeDOS keyb2 keyboard layout files) as well as the FreeDOS keyboard.sys/keybrd2.sys/keybrd3.sys libraries which consist of all available .kl files.
+
+Check out the FreeDOS website for precompiled keyboard layouts if the DOSBox-X integrated layouts do not work for some reason, or if updated or new layouts become available.
+
+Both .CPI (MS-DOS and compatible codepage files) and .CPX (FreeDOS UPX-compressed codepage files) can be used as the codepage files in DOSBox-X. Some codepages are compiled into DOSBox-X, so it is mostly not needed to care about external codepage files. If you need a different (or custom) codepage file, copy it into the DOSBox-X directory so it is accessible for DOSBox-X.
+
+If you place all ten ega.cpx files (from FreeDOS) in the DOSBox-X folder, an appropriate codepage file for the requested layout/codepage is chosen automatically.
+
+Additional layouts can be added by copying the corresponding .kl file into the directory of the DOSBox-X config file and using the first part of the filename as the language code. For example, for the file UZ.KL (keyboard layout for Uzbekistan) you can specify the following in the DOSBox-X config file:
+
+``keyboardlayout=uz``
+
+The integration of keyboard layout packages (like keybrd2.sys) works similar.
+
+### Use of scancodes for your keyboard layout
+
+NOTE: The information in this section applies to DOSBox-X 0.83.4 and later only. Previous versions of DOSBox-X did not support the ``usescancodes=auto`` config setting.
+
+DOSBox-X supports both SDL1 and SDL2 versions, using the cross-platform SDL 1.2 and SDL 2.0 libraries respectively. Since SDL is responsible for input handling in DOSBox-X, there are some differences between the SDL1 binary and the SDL2 binary in regard to the keyboard layout support of DOSBox-X.
+
+The SDL1 version of DOSBox-X in particular only supports the US keyboard layout due to the limitations around the SDL1 library. As such when using the SDL1 version, DOSBox-X will automatically decide whether to use scancodes with the default ``usescancodes=auto`` config setting, which should work around most keyboard layout problems with non-US keyboards.
+
+On the other hand, you can override this by changing the setting ``usescancodes`` to either ``true`` or ``false``. The ``false`` setting was the default setting before DOSBox-X 0.83.4, which worked well for US keyboard layout, but the keys could be messed up for non-US keyboards when you are using the SDL1 version. So it is recommended to leave this setting to ``auto`` for the SDL1 binary.
+
+When using the SDL2 binary, scancodes are not needed when using non-US keyboard layouts in DOSBox-X (this setting has no effect in the SDL2 version).

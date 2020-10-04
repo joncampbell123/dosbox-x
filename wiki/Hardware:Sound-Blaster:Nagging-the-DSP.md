@@ -1,0 +1,34 @@
+# Explanation
+
+Apparently the Sound Blaster hardware allows software to send a "Play DMA block" command (0x14) and then later send another "Play DMA block" command without letting the previous one finish. Without missing a sample the DSP resets it's counter and continues playback. If the DSP is always interrupted in this manner, audio can play forever without finishing the block. Nagging the DSP this way has no effect on the stream coming from the DMA controller, so to the end user, there are no glitches or droupouts during playback.
+
+A possible benefit of this technique is that the DSP never fires an IRQ because it never finishes the block. So the program using this technique never has to worry about handling and autodetecting the Sound Blaster IRQ.
+
+# Compatibility
+
+All Creative hardware and most clones support this technique.
+
+# Problems
+## Virtualization/emulation
+
+This technique may cause problems with virtualization or emulation that assumes the program will let the previous one finish before sending another. It may cause audio to skip forward or play fast. This is an unusual use of the DSP that emulation is likely not designed to handle.
+
+## Sound Blaster 16 and DSP 4.xx commands
+
+The technique can be used without problems if programming the card like a Sound Blaster or Sound Blaster Pro. Sound Blaster 16 (DSP 4.xx) commands however are less tolerant of nagging and using them this way can cause the DSP to miss/skip bytes or stop playing entirely.
+
+|Format|Result (Sound Blaster 16 ViBRA)|
+|------|-------------------------------|
+|8-bit mono|No problems|
+|8-bit stereo|Depending on when the command is sent, the DSP may skip a byte then resume stereo playback from the odd byte. When it happens the user hears the left and right channels swap.|
+|16-bit mono|If the command is sent at the right time, the DSP will stop playback entirely|
+|16-bit stereo|If the command is sent at the right time, the DSP will stop playback entirely|
+
+## Pro Audio Spectrum Sound Blaster emulation
+
+On PAS+ and PAS16 hardware, nagging may cause subtle clicks and pops in the audio output.
+
+# Real-world usage of this technique
+
+[[Crystal Dream by Triton (1992)|Demoscene:Crystal-Dream-by-Triton-(1992)]]
+

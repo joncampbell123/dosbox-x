@@ -1,0 +1,111 @@
+ifdef::env-github[:suffixappend:]
+ifndef::env-github[:suffixappend: .html]
+
+Back to the link:Home{suffixappend}[DOSBox-X Wiki Welcome page].
+
+:toc: macro
+
+# Microsoft Windows Installation Guide
+
+toc::[]
+
+This guide explains how to install Microsoft Windows in DOSBox-X.
+
+## External links
+Some external links with useful information:
+
+* link:https://en.wikipedia.org/wiki/Microsoft_Windows[Wikipedia: Microsoft Windows]
+* link:https://en.wikipedia.org/wiki/Microsoft_Windows_version_history[Microsoft Windows version history]
+
+## Where to get Windows?
+These pages assume that you have Windows diskette images or CD-ROM. Getting these image files is outside the scope of this guide.
+
+## Windows version highlights
+### Windows versions 1.0-3.11
+For these versions you have the choice if you run the directly in DOSBox-X itself, using the integrated DOS, or if you install a real DOS first and run Windows underneith that.
+
+There are various limitations that Windows imposes that are dependant on the version. A few milestones:
+
+* *MS Windows 1.01*
+** Initial release
+* *MS Windows 1.02*
+** International release
+* *MS Windows 1.03*
+** Additional screen and printer drivers
+* *MS Windows 1.04*
+** Adds support for the IBM PS/2
+* *MS Windows 2.03*
+** Adds overlapping windows
+** Adds 16 colour VGA support
+* *MS Windows 2.10 286*
+** Adds HIMEM.SYS
+* *MS Windows 2.11 286*
+** Minor changes to memory management
+** Adds AppleTalk support
+** Adds updated printer drivers
+* *MS Windows 2.01 386*
+** Adds support for protected mode
+** Adds EMS emulation
+* *MS Windows 2.03 386*
+* *MS Windows 2.10 386*
+* *MS Windows 2.11 386*
+* *MS Windows 3.0*
+** Can support up to 16MB RAM
+* *MS Windows 3.1*
+** Real (8086) mode support dropped
+** Can support up to 256MB RAM
+** Adds TrueType
+** Includes Multimedia extensions
+** Adds 32-bit disk access
+* *MS Windows for Workgroups 3.1*
+** Adds support for SMB file sharing
+* *MS Windows 3.11*
+** Bug fix release
+* *MS Windows for Workgroups 3.11*
+** Standard (286) mode support dropped
+
+### Microsoft Windows 95+
+These versions must be installed in a virtual HDD image.
+
+* *MS Windows 95*
+** Adds MS-DOS 7.0
+* *MS Windows 95 OSR1* (aka 95A)
+** Adds IE 2.0
+** Adds Infrared support
+* *MS Windows 95 OSR2* (aka 95B)
+** Updates IE to 3.0
+** Adds Firewire, UDMA and IRQ steering support
+** Adds support for FAT32
+** Updates MS-DOS to 7.1
+** Adds support for DirectX 2.0a
+* *MS Windows 95 OSR2.1* (aka 95B)
+** Adds (limited) USB and AGP support
+* *MS Windows 95 OSR2.5* (aka 95C)
+** Updates IE to 4.0
+** Adds Active Desktop
+** Updates DirectX to 5.0
+* *MS Windows 98*
+** Adds Windows Driver Model (WDM) support
+** Adds Disk Cleanup, Windows Update, Multi-monitor and Internet Connection sharing
+** Updates IE to 4.01
+** Adds Outlook Express, Windows Address Book, FrontPage Express, Microsoft Chat, Personal Web Server and NetShow
+** Adds support for DVD (UDF 1.02 read support)
+** Updates DirectX to 5.2
+** Includes a FAT16 to FAT32 migration utility
+** Includes RealPlayer 4.01, Flash Player and Shockwave Player
+** Adds support for the Euro currency symbol
+* *MS Windows 98SE*
+** Updates IE to 5.0
+** Updates DirectX to 6.1
+** Removes RealPlayer and WinG
+* *MS Windows ME*
+** Adds support for USB Mass Storage
+
+## Guides to installing Windows
+
+* link:Guide%3AInstalling-Windows-1.0x[Guide: Installing Windows 1.0x in DOSBox-X]
+* link:Guide%3AInstalling-Windows-2.x[Guide: Installing Windows 2.x in DOSBox-X]
+* link:Guide%3AInstalling-Windows-3.x[Guide: Installing Windows 3.x in DOSBox-X]
+* link:Guide%3AInstalling-Windows-95[Guide: Installing Windows 95 in DOSBox-X]
+* link:Guide%3AInstalling-Windows-98[Guide: Installing Windows 98 in DOSBox-X]
+* link:Guide%3AInstalling-Windows-ME[Guide: Installing Windows ME in DOSBox-X]

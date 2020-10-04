@@ -1,0 +1,117 @@
+ifdef::env-github[:suffixappend:]
+ifndef::env-github[:suffixappend: .html]
+
+Back to the link:Home{suffixappend}[DOSBox-X Wiki Welcome page].
+
+As a cross-platform DOS emulator, DOSBox-X has the eventual goal of being a complete DOS emulation package. Apart from having virtually all existing features of DOSBox, DOSBox-X supports much more. Examples of DOSBox-X's unique features include:
+
+* **GUI drop-down menu for easier usage**
++
+DOSBox-X features a drop-down menu system so that you can do many things from the GUI menu instead of typing commands or so.
+* **Built-in graphical configuration tool**
++
+You can configure DOSBox-X‘s settings directly from its built-in GUI configuration tool instead of having to manually modify its config file.
+* **Save and load state support (with save slots)**
++
+DOSBox-X provides a fully-featured system for saving and loading states with support for up to 100 save slots, selectable from the menu.
+* **Automatic drive mounting (Windows only)**
++
+DOSBox-X will automatically let you mount a drive if you try to enter a drive which is not yet mounted, and you can also let DOSBox-X automatically mount all available Windows drives at start.
+* **Japanese NEC PC-98 mode emulation**
++
+With DOSBox-X you can now run PC-98 and its games. Set ``machine=pc98`` in the config file to start DOSBox-X in PC-98 mode.
+* **More customizable virtual machine**
++
+DOSBox-X provides many more config options that are not found in DOSBox, so that users have more options to customize the virtual machine inside DOSBox-X.
+* **CPU speed optimization and Turbo mode**
++
+DOSBox-X can automatically decide the CPU cycles to use for optimized speed, and it provides a Turbo function to increase the speed of the system inside it.
+* **Improved customization on the title bar**
++
+DOSBox-X allows you to modify or customize the strings and additional contents displayed in its title bar and its appearance.
+* **Better compatibility with DOS applications**
++
+Aimed to be a complete DOS emulation package, DOSBox-X officially supports DOS applications, not just DOS games. All types of DOS programs are officially supported in DOSBox-X.
+* **Improved Windows 3.x and Windows 9x emulation**
++
+One of DOSBox-X’s main goals is to become a great platform to run Windows 3.x and 9x and their software. As a result we have made several improvements to their emulations.
+* **Built-in external tools such as CWSDPMI, DOSIDLE and IMGMAKE**
++
+DOSBox-X has many useful tools already built-in, such as CWSDPMI, DOS4GW, DOSIDLE and IMGMAKE, which will appear on its Z: drive.
+* **Support for more DOS commands (e.g. VOL, LABEL, ATTRIB, PROMPT, MOUSE)**
++
+DOSBox-X includes many DOS commands that are missing in DOSBox, such as FOR, VOL, LABEL, ATTRIB, PROMPT, EDIT, FIND, and MOUSE.
+* **Support for CONFIG.SYS commands (e.g. DOS, DEVICE, FCBS, FILES, LASTDRIVE)**
++
+DOSBox-X supports a [config] section that supports most DOS config.sys commands, such as COUNTRY, DEVICE, DOS, FCBS, FILES, INSTALL, LASTDRIVE, NUMLOCK, SET, and SHELL.
+* **Support for 4DOS as the alternative shell with 4DOS 8.00 features and capabilities**
++
+You can set SHELL=4DOS.COM so that DOSBox-X will run the 4DOS 8.00 shell at start instead of the default shell.
+* **Support for the IDE interface for disk images**
++
+DOSBox-X supports the BIOS IDE interface for hard disk and CD drives, which is especially useful for running guest systems inside DOSBox-X.
+* **Support for more CPU types (e.g. Pentium MMX and Pro)**
++
+DOSBox-X supports virtually all CPU types prior to Pentium II at this time, from 8086 to Pentium Pro, including support for Pentium MMX instructions.
+
+* **Support for more video modes (e.g. MDA and MCGA)**
++
+DOSBox-X supports more video modes in addition to the more common ones, such as MDA, MCGA, Amstrad, and a few others.
+
+* **Support for printer output, either a real or virtual printer**
++
+DOSBox-X supports parallel ports and printers attached to them, whether they are real printers or emulated printers for PostScript or PNG outputs.
+* **Support for long filenames (LFN) in addition to 8.3 filenames**
++
+DOSBox-X fully supports long filenames (LFN) which can be up to 255 characters, not just 8.3 names. Set either ``ver=7.1`` or ``lfn=true`` in the config file to enable this feature.
+* **Support for FAT32 file system and large disk images**
++
+FAT32 file system is supported in DOSBox-X in addition to FAT12 and FAT16, so you can make and mount drives larger than 2GB. Set ``ver=7.1`` to enable this feature.
+* **Support for clipboard copy and paste (Windows only)**
++
+With DOSBox-X there are several ways to copy and paste between DOSBox-X and the Windows clipboard, such as using the right mouse button or using a special device for it.
+* **Support for converting mouse wheel movements to arrow keys**
++
+You can let DOSBox-X automatically convert mouse wheel movements to arrow keys, so that you can use the mouse wheel for scrolling in DOS applications.
+* **Support for starting programs to run on the host (Windows only)**
++
+It is possible to launch a Windows application from inside DOSBox-X to run on the Windows host, either using START command or run it directly from the shell. Set ``startcmd=true`` to enable this feature.
+* **Support for quick-launch programs to run inside DOSBox-X (Windows only)**
++
+DOSBox-X lets you use the Windows file browser to select a DOS program to quickly run inside DOSBox-X, and file associations for DOS programs are supported for the Windows Explorer as well.
+* **Support for setting config options from the DOSBox-X command line**
++
+DOSBox-X allows you to set one or more config options from the DOSBox-X command line, overriding any preset config options that may be specified in the config file. For example, ``dosbox-x -set machine=pc98`` forces DOSBox-X to start in PC-98 mode.
+* **Support for Ctrl+C/Ctrl+Break in the shell and many commands**
++
+You can press the Ctrl+C or Ctrl+Break key to break from the current operation when running in the shell and many internal or external commands.
+* **Support for cue sheets with FLAC, MP3, WAV, and OGG Vorbis CD audio tracks**
++
+With DOSBox-X it is possible to mount .cue files that include FLAC, MP3, WAV, and OGG Vorbis music as CD audio tracks.
+* **Support for 3dfx Voodoo chip and Glide emulation**
++
+DOSBox-X can emulate the 3dfx Voodoo in either the low-level emulation mode (emulating the 3dfx Voodoo 1 hardware) or the high-level emulation mode (where the Glide API calls are passed through to the host OS).
+* **Support for NE2000 Ethernet for network features**
++
+DOSBox-X supports the emulation of the Novell NE2000 network adapter, which allows you to connect to the Internet from inside DOSBox-X, such as a guest Windows 9x system running with DOSBox-X.
+* **Support for phone book mapping for the emulated modem**
++
+With this feature you can map fake phone numbers to Internet addresses which is useful for programs where limitations on phone number input field are too strict.
+* **Support for Roland MT-32 emulation**
++
+DOSBox-X integrates the emulation of Roland MT-32, which pre-dates General MIDI and was used by a broad range of DOS games (starting in 1988 with King’s Quest IV).
+* **Support for FluidSynth MIDI synthesizer with sound fonts**
++
+DOSBox-X supports the FluidSynth MIDI synthesizer, which allows you to use a wide range of sound fonts available online, such as the free FluidR3_GM.sf2.
+* **Support for Innovation SSI-2001 sound card emulation**
++
+The Innovation SSI-2001 sound card is supported in DOSBox-X as well, which gives the emulated system the sound capabilities of a Commodore 64.
+* **Support for OpenglHQ and Direct3D with pixel shaders (Windows only)**
++
+Supporting for OpenglHQ and Direct3D gives DOSBox-X many more output flexibilities on Windows systems.
+* **Support for features such as V-Sync, overscan border and stereo swapping**
+* **Improved debugging features including built-in debugger and logging options**
+* **Including most patches from DOSBox ECE and many community contributions**
+* **Plus many more**
+
+DOSBox-X also includes a lot of gimmicks and usability improvements to make DOSBox-X easier to use and work better for users.

@@ -1,0 +1,218 @@
+ifdef::env-github[:suffixappend:]
+ifndef::env-github[:suffixappend: .html]
+
+Back to the link:Home{suffixappend}[DOSBox-X Wiki Welcome page].
+
+:toc: macro
+
+# DOS games in DOSBox-X
+
+toc::[]
+
+This guide explains how to setup and play DOS games in DOSBox-X.
+
+## Running a game
+
+There are several ways you can run a DOS game inside DOSBox-X.
+
+If you use Windows, you can launch a DOS game on your computer easily using the "quick launch" feature. When DOSBox-X is running, select the "DOS" menu and click "Quick launch program...", then you will be able to select a game to run using the Windows file browser. The game directory will be automatically mounted and the game will be started after you select a game executable on your computer.
+
+If you installed DOSBox-X 0.83.5 or later using the Windows installer, you can also launch a DOS game directly from the Windows Explorer, even if DOSBox-X is not currently running. Right click the executable of your DOS game and select "Open with DOSBox-X". Then DOSBox-X will be started and automatically run the game you just selected.
+
+Otherwise, you can manually run the DOS game from the DOSBox-X command line. Now start DOSBox-X. By default there is no drive mounted other than the internal virtual drive Z:. You need to mount the game directory so that it can be seen from within DOSBox-X. You can either mount a drive from the Drive menu, or by typing a command like the following:
+
+....
+MOUNT C C:\GAME
+....
+
+Change ``C:\GAME`` to your actual game directory. After you type Enter, the following message will be displayed:
+
+....
+Drive C mounted as local directory C:\GAME\
+....
+
+To dissect the above:
+
+MOUNT: Tells the program to mount a directory
+C: Tells the program what you want your new drive to be called (leaving it as C: is fine)
+C:\GAME: This is the directory you want to set as the new drive for DOSBox-X. If your game is located in a different directory, then replace it with that directory.
+(Note: If you want to mount a CD-ROM instead of a folder, type this:
+
+....
+MOUNT D D:\ -T CDROM
+....
+
+The following message will be displayed:
+
+....
+MSCDEX installed.
+Drive D is mounted as CDRom D:\
+....
+
+In this example, ``D:\ -T CDROM`` tells DOSBox-X that my D:\ drive is a CD-ROM drive, and the first D, tells DOSBox-X what my new drive name should be called. If you are running your game off a CD-ROM then make sure to use D: in place of C: in the following examples. You can find instructions on how to mount other devices, such as floppy drives, in the mount section).
+
+After you have done this, you will be prompted with a Z:\>. Now, just write what you wanted to call your new DOSBox-X drive, such as C: mentioned above. To navigate to that newly mounted drive just type in:
+
+....
+C:
+....
+
+The drive will be changed from Z:\ to C:\. And it is now time to run the game. Most games have an EXE file in their directory that you can run. However, some might require a BAT file, or COM file (common in demos and really old games). Most of the time, the file is in the root folder. Please consult the documentation of your game for which file is needed to start the game. Suppose the game executable is called PLAY.EXE, then you can just type this:
+
+....
+PLAY.EXE
+....
+
+That's it! You can now enjoy the game.
+
+## Troubleshooting
+
+**CD-ROM: The game can't find its CD-ROM.**
+
+If your mounting a host folder as CD-ROM, or if (on Windows) your want to
+mount your real CD-ROM or DVD-ROM drive for use in DOSBox-X, be sure to
+mount the CD-ROM with the ``-t cdrom`` switch. This will enable the
+MSCDEX interface required by DOS games to interface with CD-ROMs.
+Also try adding the correct label (``-label LABEL``) to the mount command,
+where LABEL is the CD-label (volume ID) of the CD-ROM.
+
+Alternatively, try creating a CD-ROM image (ISO or CUE/BIN pair) and use
+DOSBox-X's internal IMGMOUNT tool to mount the image. If the CD contains
+multiple tracks, such as redbook audio, you need to use the CUE/BIN format.
+This enables very good low-level CD-ROM support on any operating system.
+
+**MOUSE: The mouse doesn't work.**
+
+By default mouse autolock is disabled in the DOSBox-X config file. You can either
+edit the config file and in the ``[SDL]`` section, set ``autolock=true``.
+Or you can go to the "Main" menu and select "Capture mouse". If DOSBox-X detects
+when a program uses PS/2 mouse control and autolock is enabled, when you click on
+the screen it should get locked (confined to the DOSBox-X window) and work.
+
+Alternatively you can press Left-CTRL F10 to lock and unlock the mouse.
+
+**SOUND: There is no sound.**
+
+Be sure that the sound is correctly configured in the game. This might be
+done during the installation or with a setup/setsound utility that
+accompanies the game. First see if an autodetection option is provided. If
+there is none try selecting SoundBlaster or SoundBlaster 16 with the default
+settings being "address=220 irq=7 dma=1" (sometimes highdma=5). You might
+also want to select Sound Canvas/SCC/MPU-401/General MIDI/Wave Blaster
+at "address=330 IRQ=2" as music device.
+
+The parameters of the emulated sound cards can be changed in the DOSBox-X
+configuration file (dosbox-x.conf by default).
+
+If you still don't get any sound set the core to normal in DOSBox-X
+configuration and use some lower fixed cycles value (like cycles=2000). Also
+assure that your host operating sound does provide sound.
+In certain cases it might be useful to use a different emulated sound device
+like a SoundBlaster Pro (``sbtype=sbpro1`` in the DOSBox-X configuration file) or
+the Gravis Ultrasound (``gus=true``).
+
+**SOUND: What sound hardware does DOSBox-X presently emulate?**
+
+DOSBox-X emulates several legacy sound devices:
+
+- Internal PC speaker/Buzzer
+
+This emulation includes both the tone generator and several forms of
+digital sound output through the internal speaker.
+
+- Creative CMS/Gameblaster
+
+The is the first card released by Creative Labs(R).  The default
+configuration places it on address 220. It is disabled by default.
+
+- Tandy 3 voice
+
+The emulation of this sound hardware is complete with the exception of the
+noise channel. The noise channel is not very well documented and as such
+is only a best guess as to the sound's accuracy. It is disabled as default.
+
+- Tandy DAC
+
+Some games may require turning off SoundBlaster emulation (``sbtype=none``)
+for better Tandy DAC sound support. Don't forget to set the sbtype back to
+sb16 if you don't use Tandy sound.
+
+- Adlib
+
+This emulation is almost perfect and includes the Adlib's ability to
+almost play digitized sound. Placed at address 220 (also on 388).
+
+- SoundBlaster 16 / SoundBlaster Pro I & II / SoundBlaster I & II
+
+By default DOSBox-X provides SoundBlaster 16 level 16-bit stereo sound.
+You can select a different SoundBlaster version in the configuration of
+DOSBox-X. AWE32 music is not emulated as you can use MPU-401 instead (see below).
+
+- Disney Sound Source and Covox Speech Thing
+
+Using the printer port, this sound device outputs digital sound only.
+Placed at LPT1
+
+- Gravis Ultrasound
+
+The emulation of this hardware is nearly complete, though the MIDI
+capabilities have been left out, since an MPU-401 has been emulated
+in other code. For Gravis music you also have to install Gravis drivers
+inside DOSBox. It is disabled by default.
+
+- MPU-401
+
+A MIDI passthrough interface is also emulated. This method of sound
+output will only work when used with external device/emulator.
+Every Windows XP/Vista/7 and macOS (Mac OS X) has got a default emulator
+compatible with: Sound Canvas/SCC/General Standard/General MIDI/Wave Blaster.
+A different device/emulator is needed for Roland LAPC/CM-32L/MT-32 compatibility.
+
+**GENERAL: Running a certain game closes DOSBox-X, crashes with some message or hangs.**
+
+There can be many reasons that a game crashes or misbehaves.
+DOS compatible PC's existed for a long time, from many different manufacturers.
+And during that time many upgrades to components where made.
+As such, even with a legacy DOS PC you can expect to run into compatibility issues.
+
+It can be that the game needs specific DOSBox-X settings, or the game may simply be
+buggy and behave the same on legacy DOS PC configurations.
+
+- see if it works with a default DOSBox-X installation (unmodified configuration file)
+- try it with sound disabled (use the sound configuration program that comes with the game,
+  additionally you can set ``sbtype=none`` and ``gus=false`` in the DOSBox-X configuration file)
+- change some entries of the DOSBox-X configuration file, especially try:
+* ``core=normal``
+* fixed cycles (for example ``cycles=10000``)
+* ``ems=false``
+* ``xms=false``
++
+or combinations of the above settings, similar the machine settings that control the emulated chipset and functionality:
+* ``machine=vesa_nolfb``
+or
+* ``machine=vgaonly``
+- run ``LOADFIX`` before starting the game
+- check if any patches exist for the game
+
+If none of this fixes the problem, try to search for the game on the following
+websites for known issues.
+
+* link:https://www.dosbox.com/comp_list.php[DOSBox compatibility]
+* link:https://www.pcgamingwiki.com/wiki/Home[PC Gaming Wiki]
+* link:https://www.vogons.org/viewforum.php?f=53[Vogons forums]
+
+Do note that sometimes the information you may find is rather dated, and may
+no longer be applicable for DOSBox-X.
+
+**GENERAL: The game exits to the DOSBox-X prompt with some error message.**
+
+- read the error message closely and try to locate the error
+- try the hints at the above sections
+- mount differently as some games are picky about the locations,
+  for example if you used ``mount d d:\oldgames\game`` try
+  ``mount c d:\oldgames\game`` and ``mount c d:\oldgames``
+- if the game requires a CD-ROM be sure you used ``-t cdrom`` when mounting and
+  refer to the above "CD-ROM: The game can't find its CD-ROM." for more help.
+- check the file permissions of the game files (remove read-only attributes,
+  add write permissions etc.)
+- try reinstalling the game within DOSBox-X

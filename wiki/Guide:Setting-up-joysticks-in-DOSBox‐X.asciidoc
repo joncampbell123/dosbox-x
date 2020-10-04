@@ -1,0 +1,600 @@
+ifdef::env-github[:suffixappend:]
+ifndef::env-github[:suffixappend: .html]
+
+Back to the link:Home{suffixappend}[DOSBox-X Wiki Welcome page].
+
+:toc: macro
+:toclevels: 1
+
+# Setting up joysticks in DOSBox-X
+
+toc::[]
+
+# Overview
+While game consoles and most home-computers back in the day had two or more Joystick ports, the IBM PC and its clones typically had none.
+IBM did provide a DA-15 game-port adapter option, but few people had it, or a matching PC compatible Joystick.
+As such most PC games are designed to be played with the keyboard, or for later games with the mouse.
+
+The IBM game port, just the the PC, was cloned and found its way onto multi-IO cards and soundcards of the era.
+But even if PCs had a game port, few owned a matching joystick.
+And even nowadays games on the PC are often played with a keyboard and mouse.
+
+This is also reflected in most DOS games.
+Joystick support is not universal, and even if the game supports a joystick, the game often has to be specifically configured for it.
+
+The game port's DA-15 connector includes inputs for a total of four analogue channels and four buttons.
+These were almost always implemented as two joysticks with two buttons each.
+To connect two joysticks to one port, a separate Y-splitter cable was needed.
+
+DOSBox-X uses SDL for input, which includes gamepads.
+Any SDL supported gamepads will automatically become available within DOSBox-X as a joystick.
+
+For games that do not support Joysticks natively, DOSBox-X provides the possibility to map joystick inputs to keyboard presses.
+
+# General notes
+
+You will want to try and experiment as on what settings works best for software A and software B, and will probably end up with software-specific configurations.
+
+Please note that most DOS software supporting joystick input will not react properly when you adjust CPU cycles while they are being run, i.e. either find the appropriate number of CPU cycles it requires first or restart it for a consistent joystick experience.
+
+DOSBox-X supports 6 buttons joysticks, to enable support, set joystick type to 4axis. You will find that 5th and 6th buttons are in fact the negative sides of the 2nd port joystick axes. To remedy this problem and use buttons instead, in the mapper add bindings to 'Axis 3 X-' and 'Axis 4 Y-' to buttons you which to act as 5th and 6th buttons on your device. Note that you can only have a single 6 buttons joystick at any time, this is due to how they are implemented (such device in fact use both joystick ports).
+
+# Calibration
+
+While most home computers and game consoles back in the day used digital joysticks or controllers, the IBM PC instead used analogue joysticks.
+
+This has both advantages and disadvantages. An advantage is that it allows more accurate steering, a disadvantage is that it requires calibration.
+
+PC joysticks often had calibration sliders, or some games would give you the ability to perform calibration.
+Others will silently perform a centre calibration on startup, or may omit it completely.
+
+Unfortunately DOSBox-X itself at this point does not have any way to calibrate analogue inputs.
+
+Vogons user jfnagel posted a few link:https://www.vogons.org/viewtopic.php?p=187168#p187168[joystick test programs for DOS] that you may want to try in DOSBox-X to see how your controller behaves with various settings and how accurate the calibration is.
+
+# DOSBox-X config settings
+
+This section will list the available configuration options that DOSBox-X provides that are relevant to joysticks.
+
+## [joystick] options
+
+The following settings define deadzone and the response curve for DOS joystick axes.
+They are to be used when your software input method IS a joystick, contrarily to the settings in the [mapper] section below.
+
+**Settings of interest per joystick type:**
+
+* 2axis
+** player 1: joy1deadzone1, joy1response1
+** player 2: joy2deadzone1, joy2response1
+
+* 4axis, 4axis_2, fcs, ch
+** player 1: joy1deadzone1, joy1deadzone2, joy1response1, joy1response2
+** player 2: N/A
+
+### joystick_type
+* Default value: auto
+* Possible values: auto, none, 2axis, 2axis_2, fcs, ch
+
+NOTE: If changing this setting, or if you saved the mapperfile without joystick connected or with a different joystick, remember to reset dosbox's mapperfile. Otherwise the new setting will not work properly (or at all).
+
+#### 2axis
+With this option, you can have two joysticks, but each joystick will only have two axis and two trigger buttons.
+Most PC games with joystick support are compatible with this mode.
+
+With a modern gamepad, the two axis will be mapped to the left analogue stick.
+And the trigger buttons to two of the face buttons.
+
+#### 4axis
+With this option, you can only have a single joystick, but the joystick will have four axis and four trigger buttons.
+Alternatively, depending on the gamepad, you can also have two axis, and six trigger buttons.
+
+Few PC games really support more than 2 axis and 2 trigger buttons. But this mode is, generally, compatible with those games.
+
+With a modern gamepad, the axis will be mapped to both the left and right analogue sticks.
+And the trigger buttons to the four face buttons.
+
+#### 4axis_2
+Same as the 4axis option, but as the second joystick.
+
+#### fcs
+Emulate a legacy Thrustmaster FCS (Flight Control Stick).
+
+Only select this option, if the game specifically supports this joystick.
+
+Only supports one controller, with 3-axes, 4 buttons and 1 hat.
+
+#### ch
+Emulate a legacy CH Flightstick.
+
+Only select this option, if the game specifically supports this joystick.
+
+Only supports one controller, with 4-axes, 6 buttons and 1 hat. But you cannot press more than one button at the same time.
+
+#### none
+Disables joystick emulation.
+
+#### auto
+Chooses emulation depending on real joystick(s).
+
+If only a single gamepad is detected, it will be set to 4axis.
+While if two gamepads are detected, it will be set to 2axis.
+
+TIP: If your having problems with the game when using a joystick, try setting it explicitly to 2axis mode.
+
+### timed
+* Default value: true
+* Possible values: true, false
+
+Enable timed intervals for axis. Experiment with this option, if your joystick drifts (away) or does not calibrate properly inside DOSBox-X, while it works fine outside DOSBox-X.
+
+### autofire
+* Default value: false
+* Possible values: true, false
+
+Continuously fires as long as you keep the button pressed.
+
+### swap34
+* Default value: false
+* Possible values: true, false
+
+Swap the 3rd and the 4th axis. can be useful for certain joysticks.
+
+### buttonwrap
+* Default value: false
+* Possible values: true, false
+
+Enable button wrapping at the number of emulated buttons.
+
+### joy1deadzone1
+* Default value: 0.25
+* Possible values:
+
+Deadzone for joystick 1, thumbstick 1.
+
+Deadzone allows an axis to be at rest below a certain threshold.
+As a result, axis value at rest will stay fairly stable whereas previously lot of jittering could be seen.
+A default value of 0.26 will do fine on contemporary gamepads (e.g. Xbox One Controller).
+A higher value might be needed for older devices as they tend to loosen over time.
+
+### joy1deadzone2
+* Default value: 0.25
+* Possible values:
+
+Deadzone for joystick 1, thumbstick 2.
+Only applicable if emulating a joystick with more than 2 axis.
+
+### joy2deadzone1
+* Default value: 0.25
+* Possible values:
+
+Deadzone for joystick 2, thumbstick 1.
+Only applicable if two joysticks are attached, and set to 2axis mode.
+
+### joy1response1
+* Default value: 1.00
+* Possible values:
+
+Response for joystick 1, thumbstick 1.
+
+This will cause a smoothing of joystick movement.
+Player input is smoothed using a power function, 'response' being the exponent parameter.
+A value of 1.0 produces a linear (unfiltered) input.
+A value of 3.0 produces a cubic interpolation (good for aiming).
+Beware though that as you increase the exponent, the produced input is less uniform overall.
+As the exponent increases, you gain precision at centre but lose precision at edges; also the overall circle shape that a linear input produces 'morphs' to a rhombus shape.
+Recommended range is between 1.0 and 5.0.
+
+TIP: Setting a negative value will generate the opposite behaviour.
+
+TIP: Do not set to 0.0 as this will invariably generate a movement.
+
+### joy1response2
+* Default value: 1.00
+* Possible values:
+
+Response for joystick 1, thumbstick 2.
+Only applicable if emulating a joystick with more than 2 axis.
+
+### joy2response1
+* Default value: 1.00
+* Possible values:
+
+Response for joystick 2, thumbstick 1.
+Only applicable if two joysticks are attached, and set to 2axis mode.
+
+### joy1axis0
+* Default value: 0
+* Possible values: 0-7
+
+Axis for joystick 1, axis 0.
+
+These settings allows you to remap physical axes, this is useful when either your device or software has a fixed layout.
+For instance if you want to use the right analogue stick, instead of the left.
+
+### joy1axis1
+* Default value: 1
+* Possible values: 0-7
+
+Axis for joystick 1, axis 1.
+
+### joy1axis2
+* Default value: 2
+* Possible values: 0-7
+
+Axis for joystick 1, axis 2.
+
+### joy1axis3
+* Default value: 3
+* Possible values: 0-7
+
+Axis for joystick 1, axis 3.
+
+### joy1axis4
+* Default value: 4
+* Possible values: 0-7
+
+Axis for joystick 1, axis 4.
+
+### joy1axis5
+* Default value: 5
+* Possible values: 0-7
+
+Axis for joystick 1, axis 5.
+Only applicable if emulating a joystick with more than 2 axis.
+
+### joy1axis6
+* Default value: 6
+* Possible values: 0-7
+
+Axis for joystick 1, axis 6.
+Only applicable if emulating a joystick with more than 2 axis.
+
+### joy1axis7
+* Default value: 7
+* Possible values: 0-7
+
+Axis for joystick 1, axis 7.
+Only applicable if emulating a joystick with more than 2 axis.
+
+### joy2axis0
+* Default value: 0
+* Possible values: 0-7
+
+Axis for joystick 2, axis 0.
+Or if using 4axix_2 mode.
+
+### joy2axis1
+* Default value: 1
+* Possible values: 0-7
+
+Axis for joystick 2, axis 1.
+Only applicable if two joysticks are attached, and set to 2axis mode.
+Or if using 4axix_2 mode.
+
+### joy2axis2
+* Default value: 2
+* Possible values: 0-7
+
+Axis for joystick 2, axis 2.
+Only applicable if two joysticks are attached, and set to 2axis mode.
+Or if using 4axix_2 mode.
+
+### joy2axis3
+* Default value: 3
+* Possible values: 0-7
+
+Axis for joystick 2, axis 3.
+Only applicable if two joysticks are attached, and set to 2axis mode.
+Or if using 4axix_2 mode.
+
+### joy2axis4
+* Default value: 4
+* Possible values: 0-7
+
+Axis for joystick 2, axis 4.
+Only applicable if using 4axix_2 mode.
+
+### joy2axis5
+* Default value: 5
+* Possible values: 0-7
+
+Axis for joystick 2, axis 5.
+Only applicable if using 4axix_2 mode.
+
+### joy2axis6
+* Default value: 6
+* Possible values: 0-7
+
+Axis for joystick 2, axis 6.
+Only applicable if using 4axix_2 mode.
+
+### joy2axis7
+* Default value: 7
+* Possible values: 0-7
+
+Axis for joystick 2, axis 7.
+Only applicable if using 4axix_2 mode.
+
+## [mapper] options
+The following settings specify deadzone for a mapper binding to be triggered.
+This is useful when you wish to map some physical joystick axes to act as keys,
+i.e. use the left thumbstick to emit WSAD keys.
+
+TIP: To ensure the triggering of bi-directional command like move forward but strafe at the same time, deadzone values shall be less than ~0.7071 (the maximum possible extent when diagonally moving with a joystick with a circular restriction).
+
+TIP: The mapper deadzones are affected by 'axes mapping', this is not likely to be a problem as you are looking to emulate keyboard presses using a joystick.
+However, make sure to set 'axes mapping' to their default value, or simply remove them from your configuration.
+
+### joy1deadzone0-
+* Default value: 0.60
+* Possible values:
+
+Deadzone for joystick 1, axis 0-
+
+### joy1deadzone0+
+* Default value: 0.60
+* Possible values:
+
+Deadzone for joystick 1, axis 0+
+
+### joy1deadzone1-
+* Default value: 0.60
+* Possible values:
+
+Deadzone for joystick 1, axis 1-
+
+### joy1deadzone1+
+* Default value: 0.60
+* Possible values:
+
+Deadzone for joystick 1, axis 1+
+
+### joy1deadzone2-
+* Default value: 0.60
+* Possible values:
+
+Deadzone for joystick 1, axis 2-
+
+### joy1deadzone2+
+* Default value: 0.60
+* Possible values:
+
+Deadzone for joystick 1, axis 2+
+
+### joy1deadzone3-
+* Default value: 0.60
+* Possible values:
+
+Deadzone for joystick 1, axis 3-
+
+### joy1deadzone3+
+* Default value: 0.60
+* Possible values:
+
+Deadzone for joystick 1, axis 3+
+
+### joy1deadzone4-
+* Default value: 0.60
+* Possible values:
+
+Deadzone for joystick 1, axis 4-
+
+### joy1deadzone4+
+* Default value: 0.60
+* Possible values:
+
+Deadzone for joystick 1, axis 4+
+
+### joy1deadzone5-
+* Default value: 0.60
+* Possible values:
+
+Deadzone for joystick 1, axis 5-
+
+### joy1deadzone5+
+* Default value: 0.60
+* Possible values:
+
+Deadzone for joystick 1, axis 5+
+
+### joy1deadzone6-
+* Default value: 0.60
+* Possible values:
+
+Deadzone for joystick 1, axis 6-
+
+### joy1deadzone6+
+* Default value: 0.60
+* Possible values:
+
+Deadzone for joystick 1, axis 6+
+
+### joy1deadzone7-
+* Default value: 0.60
+* Possible values:
+
+Deadzone for joystick 1, axis 7-
+
+### joy1deadzone7+
+* Default value: 0.60
+* Possible values:
+
+Deadzone for joystick 1, axis 7+
+
+### joy2deadzone0-
+* Default value: 0.60
+* Possible values:
+
+Deadzone for joystick 2, axis 0-
+
+### joy2deadzone0+
+* Default value: 0.60
+* Possible values:
+
+Deadzone for joystick 2, axis 0+
+
+### joy2deadzone1-
+* Default value: 0.60
+* Possible values:
+
+Deadzone for joystick 2, axis 1-
+
+### joy2deadzone1+
+* Default value: 0.60
+* Possible values:
+
+Deadzone for joystick 2, axis 1+
+
+### joy2deadzone2-
+* Default value: 0.60
+* Possible values:
+
+Deadzone for joystick 2, axis 2-
+
+### joy2deadzone2+
+* Default value: 0.60
+* Possible values:
+
+Deadzone for joystick 2, axis 2+
+
+### joy2deadzone3-
+* Default value: 0.60
+* Possible values:
+
+Deadzone for joystick 2, axis 3-
+
+### joy2deadzone3+
+* Default value: 0.60
+* Possible values:
+
+Deadzone for joystick 2, axis 3+
+
+### joy2deadzone4-
+* Default value: 0.60
+* Possible values:
+
+Deadzone for joystick 2, axis 4-
+
+### joy2deadzone4+
+* Default value: 0.60
+* Possible values:
+
+Deadzone for joystick 2, axis 4+
+
+### joy2deadzone5-
+* Default value: 0.60
+* Possible values:
+
+Deadzone for joystick 2, axis 5-
+
+### joy2deadzone5+
+* Default value: 0.60
+* Possible values:
+
+Deadzone for joystick 2, axis 5+
+
+### joy2deadzone6-
+* Default value: 0.60
+* Possible values:
+
+Deadzone for joystick 2, axis 6-
+
+### joy2deadzone6+
+* Default value: 0.60
+* Possible values:
+
+Deadzone for joystick 2, axis 6+
+
+### joy2deadzone7-
+* Default value: 0.60
+* Possible values:
+
+Deadzone for joystick 2, axis 7-
+
+### joy2deadzone7+
+* Default value: 0.60
+* Possible values:
+
+Deadzone for joystick 2, axis 7+
+
+# Known issues
+## PS3 DualShock3 controller
+There are two modes of operation:
+
+* Direct USB attached
+** It will appear as an input device.
+* Regular Bluetooth attached
+** It will work as a wireless controller. But setting this up can be tricky.
+
+NOTE: If the controller does not work, be sure you pressed the PS button and only one of the player indicator LEDs is lid.
+
+NOTE: The way the PS3 DS3 controller connects wireless, is different from typical Bluetooth devices.
+It is necessary to first connect the controller via USB, where the device driver must then write the computers Bluetooth MAC address into the controller.
+The controller will afterwards try to connect to the computers MAC address when turned on in wireless mode.
+The first time the controller tries to connect to the PC, you should get a notification, asking you to allow the device to connect.
+This works fairly well (although slow) with authentic Sony PS3 controllers, but 3rd party controllers may fail to connect, or may almost immediately again disconnect.
+
+**On Linux** when plugged in with USB, the controller will immediately work.
+Bluetooth as mentioned can be more tricky, but at least authentic Sony PS3 controllers should work.
+
+**On Windows** you will need to install a 3rd party utility and driver.
+See here for instructions: link:https://www.digitaltrends.com/gaming/how-to-connect-a-ps3-controller-to-a-pc/p[]
+
+## PS4 DualShock4 controller
+There are three modes of operation:
+
+* Direct USB attached
+** It will appear as both an input device, and as an audio device.
+* Regular Bluetooth attached
+** It will work as a wireless controller. The headphone jack will not work.
+* Sony DUALSHOCK 4 USB Wireless Adapter
+** With this optional (and rather expensive) adapter, it will appear to the operating system as being USB attached with support for both input and audio.
+
+NOTE: Since the DualShock4 has an integrated 3.5mm headphone jack, audio may get redirected to this headphone jack when plugged in.
+
+**On Linux** the PS4 controller is handled by the hid_sony kernel module, and will immediately work when plugged in over USB, no special configuration is required.
+This includes the headphone jack, and the touchpad which will control the mouse.
+
+Likewise connecting it over Bluetooth is as simple as putting the controller into pairing mode (hold the 'share' button and then the PS button, until it starts to blink rapidly), and discover it in your Bluetooth settings where it will show up as a "Wireless Controller".
+
+In 2axis mode, the left analogue stick and the X (Button 1) and O (Button 2) buttons will be used.
+
+**On Windows** it is necessary to manually install drivers. See link:https://github.com/Ryochan7/DS4Windows[] for the download and instructions.
+
+NOTE: If the controller does not work, be sure you pressed the PS button and only one of the player indicator LEDs is lid.
+
+## Xbox 360 controller
+The Xbox 360 Wireless controller does not work when plugged in over USB, and cannot be connected over Bluetooth.
+
+This is a limitation of the Xbox 360 Wireless controller.
+Its special USB cable can only be used for charging and identification.
+All controller inputs are transmitted wireless using a proprietary RF protocol. As such, when used with a PC requires the **Xbox 360 Wireless Gaming Receiver** USB dongle.
+
+Due to its proprietary wireless protocol, it will also not work with other Bluetooth wireless dongles like the 8BitDo Wireless USB Adapter.
+
+The Xbox 360 Wired controller is not effected, and works when plugged in over USB.
+
+**On Linux** the Wired controller, and the Wireless controller (with Wireless Gaming Receiver dongle) typically works out of the box.
+In some cases, like on Fedora it is necessary to manually install the *xpad* kernel module (part of the kernel-modules-extra package).
+
+**On Windows** the controllers will automatically work with Windows 8 and later. For older Windows versions (XP, Vista and Windows 7) a driver will need to be installed. See the following links for more details:
+
+* link:https://support.xbox.com/help/xbox-360/xbox-on-windows/accessories/xbox-controller-for-windows-setup[]
+* link:https://www.microsoft.com/accessories/en-ca/d/xbox-360-controller-for-windows[]
+
+## Xbox One controller
+Both the XBox One Wired and Wireless controllers work when connected over USB.
+
+For wireless, it depends on the hardware revision of the controller.
+Original controller models use a proprietary RF protocol and require the **Xbox One Wireless Adapter** USB dongle for use with a PC.
+
+Later hardware revisions (with a 3.5mm headphone jack to the bottom of the controller), can optionally connect over Bluetooth.
+
+NOTE: The USB Wireless dongles for the Xbox 360 and Xbox One controllers are not interchangeable.
+
+## Triggers acting as 3rd axis
+
+When using the 4axis joystick_type, the triggers of a gamepad will be mapped to the 3rd axis.
+To change this, add the following setting: ``joy1axis2=4``
+
+This will cause both directions of your right thumbstick to now work.

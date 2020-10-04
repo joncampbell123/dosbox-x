@@ -1,0 +1,136 @@
+ifdef::env-github[:suffixappend:]
+ifndef::env-github[:suffixappend: .html]
+
+Back to the link:Home{suffixappend}[DOSBox-X Wiki Welcome page].
+
+DOSBox-X supports command-line options. You can start DOSBox-X without any option, or with any of the following options. Options like **-c** and **-set** can be used multiple times in the command line.
+
+* **-?**, **-h** or **-help**
++
+Shows DOSBox-X's help message.
+* **-editconf [program]**
++
+Calls program with as first parameter the configuration file. You can specify this command more than once. In this case it will move to second program if the first one fails to start.
+* **-opencaptures [program]**
++
+Calls program with as first parameter the location of the captures folder.
+* **-opensaves [program]**
++
+Calls program with as first parameter the location of the saves folder.
+* **-eraseconf** or **-resetconf**
++
+Erases DOSBox-X's default config file.
+* **-printconf**
++
+Generates DOSBox-X's config file in the user directory and prints its location.
+* **-erasemapper** or **-resetmapper**
++
+Erases the mapper file used by the default clean configuration file.
+* **-nogui**
++
+Starts DOSBox-X without showing its GUI menu.
+* **-nomenu**
++
+Starts DOSBox-X without showing its GUI menu.
+* **-userconf**
++
+Loads the configuration file from the user's profile or home directory.
+* **-conf [file]**
++
+Uses the specified file as DOSBox-X's config file. For example, ``-conf test.conf`` will let DOSBox-X use test.conf as its config file.
+* **-startui** or **-startgui**
++
+Starts DOSBox-X with its graphical configuration tool, where you can review or change its settings.
+* **-startmapper**
++
+Starts DOSBox-X and enters to the mapper editor directly, where you can change DOSBox-X’s key mappings.
+* **-showcycles**
++
+Shows cycles count (FPS) on the DOSBox-X title bar.
+* **-showrt**
++
+Shows emulation speed relative to realtime on the DOSBox-X title bar.
+* **-fullscreen**
++
+Starts DOSBox-X in full-screen mode.
+* **-savedir [path]**
++
+Uses the specified path as DOSBox-X's save path, including the location for the saved states.
+* **-defaultdir [path]**
++
+Uses the specified path as DOSBox-X's default path (instead of the current directory which is usually the DOSBox-X program directory), the location for files including the dosbox-x.conf config file.
+* **-defaultconf**
++
+Uses the default config settings of DOSBox-X (do not try to load default config files such as dosbox-x.conf).
+* **-winrun**
++
+Enables launching Windows programs to run on the host (such as the use of START command), long filenames support and Windows clipboard communications via the CLIP$ device (Windows version only).
+* **-disable-numlock-check**
++
+Disables check of the NumLock key (Windows version only).
+* **-date-host-forced**
++
+Forces synchronization of date with the host system.
+* **-lang [message file]**
++
+Uses the specified language file instead of language= setting. For example, ``-lang C:\message.txt`` will use the file "C:\message.txt" as the language file.
+* **-nodpiaware**
++
+Ignores (don't signal) Windows DPI awareness. May be useful if DOSBox-X starts in a very small window on some computers.
+* **-securemode**
++
+Enables DOSBox-X's secure mode. The [config] and [autoexec] sections of the loaded configuration file will be skipped, and commands such as MOUNT and IMGMOUNT are disabled.
+* **-noconfig**
++
+Skips the [config] section of the loaded configuration file.
+* **-noautoexec**
++
+Skips the [autoexec] section of the loaded configuration file.
+* **-exit**
++
+Exits after executing the [autoexec] section of the loaded configuration file.
+* **-c [command string]**
++
+Executes the specified command in addition to the [autoexec] section of the loaded configuration file. Make sure to surround the command in quotes to cover spaces. For example, ``-c "MOUNT C C:\\DOS"`` will cause DOSBox-X to execute the command ``MOUNT C C:\DOS`` at start.
+* **-set <section property=value>**
++
+Sets the specified config option, overriding such option (if exists) in the loaded configuration file. Make sure to surround the string in quotes to cover spaces. For example, ``-set machine=pc98`` will force DOSBox-X to start in PC-98 mode.
+* **-time-limit [n]**
++
+Starts and terminates DOSBox-X after 'n' seconds.
+* **-fastlaunch**
++
+Enables fast launch mode by skipping the BIOS pause and welcome banner when DOSBox-X starts. Especially use for launching a specific program or game at start.
+* **-helpdebug**
++
+Shows debug-related command-line options.
+
+**The following are debug-related options:**
+
+* **-debug**
++
+Sets all logging levels to debug.
+* **-early-debug**
++
+Logs early initialization messages in DOSBox-X (this option implies -console).
+* **-keydbg**
++
+Logs all SDL key events (debugging).
+* **-break-start**
++
+Starts DOSBox-X and breaks into its debugger directly.
+* **-console**
++
+Starts DOSBox-X with the console window (Windows builds only).
+* **-noconsole**
++
+Starts DOSBox-X without showing the console window (Windows debug builds only).
+* **-log-con**
++
+Logs CON output to a log file.
+* **-log-int21**
++
+Logs calls to INT 21h (debug level).
+* **-log-fileio**
++
+Logs file I/O through INT 21h (debug level).

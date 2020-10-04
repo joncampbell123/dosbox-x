@@ -1,0 +1,36 @@
+:toc: macro
+
+Back to the link:Guide%3AMicrosoft-Windows-in-DOSBox‐X[Microsoft Windows in DOSBox-X]
+
+# Installing Microsoft Windows Millennium Edition in DOSBox-X
+
+image::images/Windows:Windows_ME_SPLASH.png[Windows ME splash screen]
+
+toc::[]
+
+# Overview
+## CD-ROM editions this applies to
+
+* Windows Millennium Edition (Windows ME)
+
+## General guidance
+There is no specific guide at this point for installing Windows ME in DOSBox-X, as Windows ME is not currently supported. It is possible to install Windows ME in DOSBox-X, but you are likely to quickly encounter problems.
+
+Since generally Windows 98SE is considered more compatible with games of the era, that is what is recommended if you want to play Windows 9x games in DOSBox-X.
+
+If you have the technical skills, and want to assist in improving DOSBox-X, assistance with fixing bugs that happen with Windows ME is welcome.
+
+*Some notes if you want to proceed*
+
+* Follow the Windows 98 installation guide as the process is similar.
+* It is recommended by DOSBox-X developers that at this time, you do not enable int13fakev86io in your config file when using Windows ME.
+* You may want to use the Windows ME *Full OEM* version, if possible, as its CD-ROM is bootable.
+* When booting for the first time from the CD, exit to DOS with CD-ROM support, and start installation using ``SETUP.EXE /NM`` to bypass an error that you must have a 150MHz CPU
+
+*A few known issues after installation:*
+
+* In device manager, a problem with APM support: "The VPOWER.XVD device driver(s) for this device could not load the device driver. (Code 2.)".
+* Under Performance, it complains about "Compatibility-mode paging" and that both drive A and C are "using MS-DOS compatibility mode file system".
+* SB16 _may_ not be automatically detected, due to missing PnP support for the emulated SB16. Running the "Add hardware wizard" should take care of it.
+* NE2000 adapter is not automatically detected, and even if you manually add it, it takes the wrong resources (which needs to be adjusted in device manager).
+* As mentioned, Windows Protection errors. It seems that the likelihood of encountering Windows Protection Errors is significantly decreased by setting ``cycles=60000`` in the ``[cpu]`` section of your DOSBox-X config file.

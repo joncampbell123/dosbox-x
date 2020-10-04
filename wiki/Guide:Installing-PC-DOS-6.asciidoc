@@ -1,0 +1,48 @@
+:toc: macro
+
+Back to the link:Guide%3ADOS-Installation-in-DOSBox‐X[PC DOS and MS-DOS Installation Guide]
+
+# Installing PC DOS 6.x in DOSBox-X
+
+toc::[]
+
+## Overview
+### Editions this applies to:
+
+* PC DOS 6.10
+** Adds F5 and F8 clean boot and selective boot options
+** Adds Startup Menu support
+** Enhanced DOS memory management with RAMBoost
+** E replaces EDIT
+** Includes QCONFIG diagnostic utility
+** Includes Central Point Backup (DOS and Windows)
+** Includes Central Point Data Monitor
+** Includes Central Point Scheduler
+** Includes defrag
+** Includes IBM Antivirus (DOS and Windows)
+** Includes Phoenix PCMCIA support (DOS and Windows)
+** Includes PenDOS
+* PC DOS 6.30
+** Includes Addstor SuperStor disk compression software
+
+### Notes
+* PC DOS 6.1 was delivered on four 3.5" disks
+* PC DOS 6.3 was delivered on five 3.5" disks
+
+## Creating a PC DOS 6.x HDD image
+Note: The below example assumes 4 disks, if you have 5 disks you need to add it to the end of the BOOT command.
+
+Assuming your PC DOS 6.x disk images are in the current working directory, and named as shown below, type the following commands at the DOSBox-X ``Z:\>`` prompt.
+....
+ IMGMAKE hdd.img -t hd -size 2048
+ IMGMOUNT C hdd.img
+ BOOT DISK1.IMG DISK2.IMG DISK3.IMG DISK4.IMG
+....
+
+When prompted to change disk, on the DOSBox-X menu bar select "DOS" followed by "Swap disk". After the installation is finished, from the DOSBox-X menu bar select "Main" followed by "Reset guest system" and you will be back at the DOSBox-X ``Z:\>`` prompt.
+
+You can now boot these DOS versions directly from the HDD image as follows:
+....
+IMGMOUNT C hdd.img
+BOOT C:
+....

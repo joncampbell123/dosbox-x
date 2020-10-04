@@ -1,0 +1,33 @@
+<img src="images/Demoscene:Copper-by-Surprise-Productions-(1992).gif" width="640" height="400"><br>
+[[1992|Guide:MS‐DOS:demoscene:1992]] demoscene entry.
+
+# Demo description
+
+Proof of concept of VGA raster tricks with Adlib FM synthesizer music.
+
+# Recommended DOSBox-X configuration
+
+    [dosbox]
+    memsize=1
+    machine=vgaonly
+    allow hretrace effects=true
+    
+    [cpu]
+    core=normal
+    cputype=386
+    cycles=4000
+    
+    [sblaster]
+    sbtype=sbpro2
+
+# VGA raster tricks used in the demo
+
+This demo employs a lot of VGA raster trickery, in addition to the usual changing the color palette per scanline to make copper bars. The most dangerous trick not likely to work with todays monitors is to make the picture waver by changing the position of the horizontal sync pulse once per scanline. That trick may happen to work with older VGA CRT monitors, but will cause modern flat panels and scan converters to blank the picture.
+
+# Adlib FM synthesizer music
+
+The demo will autodetect and use the Adlib FM synthesizer of your sound card. The detection however is CPU speed sensitive. If the cycle count is 13000 or higher, detection will fail and you will hear no music. Music tempo is tied to the VGA refresh rate. If the refresh rate is anything other than 70Hz music will play too fast or too slow.
+
+# More information
+
+[More information (Pouet)](http://www.pouet.net/prod.php?which=2048)

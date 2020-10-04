@@ -1,0 +1,21 @@
+# Goldplay music & sound library for MS-DOS
+
+Goldplay is a early MOD music player library for MS-DOS. It was often used by early DOS demos in the 1991-1993 timeframe as a way to play music during the demo effects. It supports Sound Blaster, Sound Blaster Pro, LPT DAC, and PC speaker playback.
+
+# Unusual Sound Blaster technique
+
+What makes Goldplay noteworthy in DOSBox-X development is how Goldplay configures Sound Blaster hardware for music playback. Most games allocate a buffer, setup DMA to point to the buffer and it's length, and hook the IRQ to keep the DSP going when the block finishes (usually single-cycle mode for SB1.0 compatibility). Goldplay instead allocates a buffer that is 1 byte long (2 if stereo), configures the DMA controller into auto-init mode (to loop over the byte or bytes), then commands the DSP to play a DSP block that is far larger than that buffer (usually 65536 samples). The Sound Blaster DSP doesn't know how long the DMA buffer is, so it reads and plays that many bytes before signalling the IRQ. The DMA controller quickly hits terminal count, but since it's in auto-init mode, automatically loops back to the same byte. Without further intervention of course, this would mean the DMA controller is sending the same byte from the same memory location repeatedly over the ISA bus. However, Goldplay then hooks IRQ 0 and programs the timer to tick at the sample rate. Once a timer tick, the audio sample is rendered and written to the memory location the DMA controller is reading. PC hardware at the time did not have caching, or used motherboard caches that were designed to keep DMA and CPU memory access coherent, so there were no issues with stale data and the technique happens to work.
+
+Sound Blaster Pro stereo output is a simple extension of the scheme. Instead of one byte, the DMA controller is programmed to loop over two bytes, and the sound card is configured into stereo. The two bytes become the left and right channels that are repeatedly sent to the sound card, and the timer interrupt need only write and render two samples to those memory locations.
+
+One possible reason that Goldplay was written this way is that it allows the same code already written for non-DMA devices like the PC speaker and LPT DAC hardware to work with Sound Blaster. If Goldplay were written to write in blocks for Sound Blaster's DMA it would mean possible duplicate code that would only make the library larger. The PC speaker and LPT parallel ports do not maintain any kind of queue to stream data to them, so to play audio the CPU must periodically write the data by itself at the right timing.
+
+# Obvious problems
+
+For obvious reasons, this technique doesn't work very well with emulation and virtualization scenarios. Most Sound Blaster emulation is written for DOS games that setup DMA and play blocks. If given a goldplay-based DOS program, they will likely either not play anything, or play up to 64KB of garbage past the single byte. Most are programmed to assume (for performance reasons) that the DOS game will always give both DMA and Sound Blaster the same length). In Windows 95, programming a timer that fast is a good way for the DOS VM to halt and Windows to display a warning about rebooting into DOS and compatibility issues. Windows 95's timer virtualization cannot handle high tick rates at all. In Windows XP, NTVDM.EXE's native Sound Blaster emulation makes a lot of assumptions about the DMA verses Sound Blaster DSP block length to the extent that if the DMA buffer length is not a multiple of the DSP block size, the Sound Blaster emulation will play additional audio up to 64KB past the end of the buffer!
+
+# External links
+
+[Goldplay library, compiled OBJ and TPU files](http://www.dcee.net/Files/Programm/Sound/goldplay.arj)  
+[Programming.Source.Sound collection](http://www.dcee.net/Files/Programm/Sound/goldplay.arj)  
+

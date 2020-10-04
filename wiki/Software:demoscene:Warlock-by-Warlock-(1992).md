@@ -1,0 +1,40 @@
+<img src="images/Demoscene:Warlock-by-Warlock-(1992).gif" width="640" height="400"><br>
+[[1992|Guide:MS‐DOS:demoscene:1992]] demoscene entry.
+
+# Demo description
+
+(todo)
+
+# Recommended DOSBox-X configuration
+
+    [dosbox]
+    machine=svga_s3     # svga_et4000 also works
+    memsize=1
+    
+    [dos]
+    minimum mcb segment=400      # Closing credits will crash if starting segment too low
+    
+    [cpu]
+    core=normal
+    cputype=386
+    cycles=12000
+    
+    [sblaster]
+    sbtype=sbpro2
+    sbbase=220
+    irq=7               # demo supports 2/3/5/7 but default is 7 out of the ZIP file
+    dma=1
+
+The demo supports SVGA 640x480x256 graphics mode. It can work with the VESA BIOS, or if a Tseng ET4000 is detected, it can use the BIOS to set the mode then use it's own support code to draw the same.
+
+The demo apparently crashes if you force SVGA when machine=vgaonly.
+
+Start the demo by running START.COM. Use the arrow keys to select Sound Blaster configuration then start the demo. Unless machine=vgaonly, select "YES" for the Force SVGA option.
+
+# VGA vblank oddity
+
+This demo appears to have a programming mistake for some custom tweaked VGA modes. It uses 320x200x256 VGA mode, but sometimes programs an out of range value for vertical blanking end. This can be seen both on real hardware and DOSBox where the first 17 scanlines are blank or missing.
+
+# More information
+
+[More information (Pouet)](http://www.pouet.net/prod.php?which=4260)

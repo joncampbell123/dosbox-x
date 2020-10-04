@@ -1,0 +1,2419 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="generator" content="Asciidoctor 2.0.10">
+<title>Managing images files</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Open+Sans:300,300italic,400,400italic,600,600italic%7CNoto+Serif:400,400italic,700,700italic%7CDroid+Sans+Mono:400,700">
+<style>
+/* Asciidoctor default stylesheet | MIT License | https://asciidoctor.org */
+/* Uncomment @import statement to use as custom stylesheet */
+/*@import "https://fonts.googleapis.com/css?family=Open+Sans:300,300italic,400,400italic,600,600italic%7CNoto+Serif:400,400italic,700,700italic%7CDroid+Sans+Mono:400,700";*/
+article,aside,details,figcaption,figure,footer,header,hgroup,main,nav,section{display:block}
+audio,video{display:inline-block}
+audio:not([controls]){display:none;height:0}
+html{font-family:sans-serif;-ms-text-size-adjust:100%;-webkit-text-size-adjust:100%}
+a{background:none}
+a:focus{outline:thin dotted}
+a:active,a:hover{outline:0}
+h1{font-size:2em;margin:.67em 0}
+abbr[title]{border-bottom:1px dotted}
+b,strong{font-weight:bold}
+dfn{font-style:italic}
+hr{-moz-box-sizing:content-box;box-sizing:content-box;height:0}
+mark{background:#ff0;color:#000}
+code,kbd,pre,samp{font-family:monospace;font-size:1em}
+pre{white-space:pre-wrap}
+q{quotes:"\201C" "\201D" "\2018" "\2019"}
+small{font-size:80%}
+sub,sup{font-size:75%;line-height:0;position:relative;vertical-align:baseline}
+sup{top:-.5em}
+sub{bottom:-.25em}
+img{border:0}
+svg:not(:root){overflow:hidden}
+figure{margin:0}
+fieldset{border:1px solid silver;margin:0 2px;padding:.35em .625em .75em}
+legend{border:0;padding:0}
+button,input,select,textarea{font-family:inherit;font-size:100%;margin:0}
+button,input{line-height:normal}
+button,select{text-transform:none}
+button,html input[type="button"],input[type="reset"],input[type="submit"]{-webkit-appearance:button;cursor:pointer}
+button[disabled],html input[disabled]{cursor:default}
+input[type="checkbox"],input[type="radio"]{box-sizing:border-box;padding:0}
+button::-moz-focus-inner,input::-moz-focus-inner{border:0;padding:0}
+textarea{overflow:auto;vertical-align:top}
+table{border-collapse:collapse;border-spacing:0}
+*,*::before,*::after{-moz-box-sizing:border-box;-webkit-box-sizing:border-box;box-sizing:border-box}
+html,body{font-size:100%}
+body{background:#fff;color:rgba(0,0,0,.8);padding:0;margin:0;font-family:"Noto Serif","DejaVu Serif",serif;font-weight:400;font-style:normal;line-height:1;position:relative;cursor:auto;tab-size:4;-moz-osx-font-smoothing:grayscale;-webkit-font-smoothing:antialiased}
+a:hover{cursor:pointer}
+img,object,embed{max-width:100%;height:auto}
+object,embed{height:100%}
+img{-ms-interpolation-mode:bicubic}
+.left{float:left!important}
+.right{float:right!important}
+.text-left{text-align:left!important}
+.text-right{text-align:right!important}
+.text-center{text-align:center!important}
+.text-justify{text-align:justify!important}
+.hide{display:none}
+img,object,svg{display:inline-block;vertical-align:middle}
+textarea{height:auto;min-height:50px}
+select{width:100%}
+.center{margin-left:auto;margin-right:auto}
+.stretch{width:100%}
+.subheader,.admonitionblock td.content>.title,.audioblock>.title,.exampleblock>.title,.imageblock>.title,.listingblock>.title,.literalblock>.title,.stemblock>.title,.openblock>.title,.paragraph>.title,.quoteblock>.title,table.tableblock>.title,.verseblock>.title,.videoblock>.title,.dlist>.title,.olist>.title,.ulist>.title,.qlist>.title,.hdlist>.title{line-height:1.45;color:#7a2518;font-weight:400;margin-top:0;margin-bottom:.25em}
+div,dl,dt,dd,ul,ol,li,h1,h2,h3,#toctitle,.sidebarblock>.content>.title,h4,h5,h6,pre,form,p,blockquote,th,td{margin:0;padding:0;direction:ltr}
+a{color:#2156a5;text-decoration:underline;line-height:inherit}
+a:hover,a:focus{color:#1d4b8f}
+a img{border:0}
+p{font-family:inherit;font-weight:400;font-size:1em;line-height:1.6;margin-bottom:1.25em;text-rendering:optimizeLegibility}
+p aside{font-size:.875em;line-height:1.35;font-style:italic}
+h1,h2,h3,#toctitle,.sidebarblock>.content>.title,h4,h5,h6{font-family:"Open Sans","DejaVu Sans",sans-serif;font-weight:300;font-style:normal;color:#ba3925;text-rendering:optimizeLegibility;margin-top:1em;margin-bottom:.5em;line-height:1.0125em}
+h1 small,h2 small,h3 small,#toctitle small,.sidebarblock>.content>.title small,h4 small,h5 small,h6 small{font-size:60%;color:#e99b8f;line-height:0}
+h1{font-size:2.125em}
+h2{font-size:1.6875em}
+h3,#toctitle,.sidebarblock>.content>.title{font-size:1.375em}
+h4,h5{font-size:1.125em}
+h6{font-size:1em}
+hr{border:solid #dddddf;border-width:1px 0 0;clear:both;margin:1.25em 0 1.1875em;height:0}
+em,i{font-style:italic;line-height:inherit}
+strong,b{font-weight:bold;line-height:inherit}
+small{font-size:60%;line-height:inherit}
+code{font-family:"Droid Sans Mono","DejaVu Sans Mono",monospace;font-weight:400;color:rgba(0,0,0,.9)}
+ul,ol,dl{font-size:1em;line-height:1.6;margin-bottom:1.25em;list-style-position:outside;font-family:inherit}
+ul,ol{margin-left:1.5em}
+ul li ul,ul li ol{margin-left:1.25em;margin-bottom:0;font-size:1em}
+ul.square li ul,ul.circle li ul,ul.disc li ul{list-style:inherit}
+ul.square{list-style-type:square}
+ul.circle{list-style-type:circle}
+ul.disc{list-style-type:disc}
+ol li ul,ol li ol{margin-left:1.25em;margin-bottom:0}
+dl dt{margin-bottom:.3125em;font-weight:bold}
+dl dd{margin-bottom:1.25em}
+abbr,acronym{text-transform:uppercase;font-size:90%;color:rgba(0,0,0,.8);border-bottom:1px dotted #ddd;cursor:help}
+abbr{text-transform:none}
+blockquote{margin:0 0 1.25em;padding:.5625em 1.25em 0 1.1875em;border-left:1px solid #ddd}
+blockquote cite{display:block;font-size:.9375em;color:rgba(0,0,0,.6)}
+blockquote cite::before{content:"\2014 \0020"}
+blockquote cite a,blockquote cite a:visited{color:rgba(0,0,0,.6)}
+blockquote,blockquote p{line-height:1.6;color:rgba(0,0,0,.85)}
+@media screen and (min-width:768px){h1,h2,h3,#toctitle,.sidebarblock>.content>.title,h4,h5,h6{line-height:1.2}
+h1{font-size:2.75em}
+h2{font-size:2.3125em}
+h3,#toctitle,.sidebarblock>.content>.title{font-size:1.6875em}
+h4{font-size:1.4375em}}
+table{background:#fff;margin-bottom:1.25em;border:solid 1px #dedede}
+table thead,table tfoot{background:#f7f8f7}
+table thead tr th,table thead tr td,table tfoot tr th,table tfoot tr td{padding:.5em .625em .625em;font-size:inherit;color:rgba(0,0,0,.8);text-align:left}
+table tr th,table tr td{padding:.5625em .625em;font-size:inherit;color:rgba(0,0,0,.8)}
+table tr.even,table tr.alt{background:#f8f8f7}
+table thead tr th,table tfoot tr th,table tbody tr td,table tr td,table tfoot tr td{display:table-cell;line-height:1.6}
+h1,h2,h3,#toctitle,.sidebarblock>.content>.title,h4,h5,h6{line-height:1.2;word-spacing:-.05em}
+h1 strong,h2 strong,h3 strong,#toctitle strong,.sidebarblock>.content>.title strong,h4 strong,h5 strong,h6 strong{font-weight:400}
+.clearfix::before,.clearfix::after,.float-group::before,.float-group::after{content:" ";display:table}
+.clearfix::after,.float-group::after{clear:both}
+:not(pre):not([class^=L])>code{font-size:.9375em;font-style:normal!important;letter-spacing:0;padding:.1em .5ex;word-spacing:-.15em;background:#f7f7f8;-webkit-border-radius:4px;border-radius:4px;line-height:1.45;text-rendering:optimizeSpeed;word-wrap:break-word}
+:not(pre)>code.nobreak{word-wrap:normal}
+:not(pre)>code.nowrap{white-space:nowrap}
+pre{color:rgba(0,0,0,.9);font-family:"Droid Sans Mono","DejaVu Sans Mono",monospace;line-height:1.45;text-rendering:optimizeSpeed}
+pre code,pre pre{color:inherit;font-size:inherit;line-height:inherit}
+pre>code{display:block}
+pre.nowrap,pre.nowrap pre{white-space:pre;word-wrap:normal}
+em em{font-style:normal}
+strong strong{font-weight:400}
+.keyseq{color:rgba(51,51,51,.8)}
+kbd{font-family:"Droid Sans Mono","DejaVu Sans Mono",monospace;display:inline-block;color:rgba(0,0,0,.8);font-size:.65em;line-height:1.45;background:#f7f7f7;border:1px solid #ccc;-webkit-border-radius:3px;border-radius:3px;-webkit-box-shadow:0 1px 0 rgba(0,0,0,.2),0 0 0 .1em white inset;box-shadow:0 1px 0 rgba(0,0,0,.2),0 0 0 .1em #fff inset;margin:0 .15em;padding:.2em .5em;vertical-align:middle;position:relative;top:-.1em;white-space:nowrap}
+.keyseq kbd:first-child{margin-left:0}
+.keyseq kbd:last-child{margin-right:0}
+.menuseq,.menuref{color:#000}
+.menuseq b:not(.caret),.menuref{font-weight:inherit}
+.menuseq{word-spacing:-.02em}
+.menuseq b.caret{font-size:1.25em;line-height:.8}
+.menuseq i.caret{font-weight:bold;text-align:center;width:.45em}
+b.button::before,b.button::after{position:relative;top:-1px;font-weight:400}
+b.button::before{content:"[";padding:0 3px 0 2px}
+b.button::after{content:"]";padding:0 2px 0 3px}
+p a>code:hover{color:rgba(0,0,0,.9)}
+#header,#content,#footnotes,#footer{width:100%;margin-left:auto;margin-right:auto;margin-top:0;margin-bottom:0;max-width:62.5em;*zoom:1;position:relative;padding-left:.9375em;padding-right:.9375em}
+#header::before,#header::after,#content::before,#content::after,#footnotes::before,#footnotes::after,#footer::before,#footer::after{content:" ";display:table}
+#header::after,#content::after,#footnotes::after,#footer::after{clear:both}
+#content{margin-top:1.25em}
+#content::before{content:none}
+#header>h1:first-child{color:rgba(0,0,0,.85);margin-top:2.25rem;margin-bottom:0}
+#header>h1:first-child+#toc{margin-top:8px;border-top:1px solid #dddddf}
+#header>h1:only-child,body.toc2 #header>h1:nth-last-child(2){border-bottom:1px solid #dddddf;padding-bottom:8px}
+#header .details{border-bottom:1px solid #dddddf;line-height:1.45;padding-top:.25em;padding-bottom:.25em;padding-left:.25em;color:rgba(0,0,0,.6);display:-ms-flexbox;display:-webkit-flex;display:flex;-ms-flex-flow:row wrap;-webkit-flex-flow:row wrap;flex-flow:row wrap}
+#header .details span:first-child{margin-left:-.125em}
+#header .details span.email a{color:rgba(0,0,0,.85)}
+#header .details br{display:none}
+#header .details br+span::before{content:"\00a0\2013\00a0"}
+#header .details br+span.author::before{content:"\00a0\22c5\00a0";color:rgba(0,0,0,.85)}
+#header .details br+span#revremark::before{content:"\00a0|\00a0"}
+#header #revnumber{text-transform:capitalize}
+#header #revnumber::after{content:"\00a0"}
+#content>h1:first-child:not([class]){color:rgba(0,0,0,.85);border-bottom:1px solid #dddddf;padding-bottom:8px;margin-top:0;padding-top:1rem;margin-bottom:1.25rem}
+#toc{border-bottom:1px solid #e7e7e9;padding-bottom:.5em}
+#toc>ul{margin-left:.125em}
+#toc ul.sectlevel0>li>a{font-style:italic}
+#toc ul.sectlevel0 ul.sectlevel1{margin:.5em 0}
+#toc ul{font-family:"Open Sans","DejaVu Sans",sans-serif;list-style-type:none}
+#toc li{line-height:1.3334;margin-top:.3334em}
+#toc a{text-decoration:none}
+#toc a:active{text-decoration:underline}
+#toctitle{color:#7a2518;font-size:1.2em}
+@media screen and (min-width:768px){#toctitle{font-size:1.375em}
+body.toc2{padding-left:15em;padding-right:0}
+#toc.toc2{margin-top:0!important;background:#f8f8f7;position:fixed;width:15em;left:0;top:0;border-right:1px solid #e7e7e9;border-top-width:0!important;border-bottom-width:0!important;z-index:1000;padding:1.25em 1em;height:100%;overflow:auto}
+#toc.toc2 #toctitle{margin-top:0;margin-bottom:.8rem;font-size:1.2em}
+#toc.toc2>ul{font-size:.9em;margin-bottom:0}
+#toc.toc2 ul ul{margin-left:0;padding-left:1em}
+#toc.toc2 ul.sectlevel0 ul.sectlevel1{padding-left:0;margin-top:.5em;margin-bottom:.5em}
+body.toc2.toc-right{padding-left:0;padding-right:15em}
+body.toc2.toc-right #toc.toc2{border-right-width:0;border-left:1px solid #e7e7e9;left:auto;right:0}}
+@media screen and (min-width:1280px){body.toc2{padding-left:20em;padding-right:0}
+#toc.toc2{width:20em}
+#toc.toc2 #toctitle{font-size:1.375em}
+#toc.toc2>ul{font-size:.95em}
+#toc.toc2 ul ul{padding-left:1.25em}
+body.toc2.toc-right{padding-left:0;padding-right:20em}}
+#content #toc{border-style:solid;border-width:1px;border-color:#e0e0dc;margin-bottom:1.25em;padding:1.25em;background:#f8f8f7;-webkit-border-radius:4px;border-radius:4px}
+#content #toc>:first-child{margin-top:0}
+#content #toc>:last-child{margin-bottom:0}
+#footer{max-width:100%;background:rgba(0,0,0,.8);padding:1.25em}
+#footer-text{color:rgba(255,255,255,.8);line-height:1.44}
+#content{margin-bottom:.625em}
+.sect1{padding-bottom:.625em}
+@media screen and (min-width:768px){#content{margin-bottom:1.25em}
+.sect1{padding-bottom:1.25em}}
+.sect1:last-child{padding-bottom:0}
+.sect1+.sect1{border-top:1px solid #e7e7e9}
+#content h1>a.anchor,h2>a.anchor,h3>a.anchor,#toctitle>a.anchor,.sidebarblock>.content>.title>a.anchor,h4>a.anchor,h5>a.anchor,h6>a.anchor{position:absolute;z-index:1001;width:1.5ex;margin-left:-1.5ex;display:block;text-decoration:none!important;visibility:hidden;text-align:center;font-weight:400}
+#content h1>a.anchor::before,h2>a.anchor::before,h3>a.anchor::before,#toctitle>a.anchor::before,.sidebarblock>.content>.title>a.anchor::before,h4>a.anchor::before,h5>a.anchor::before,h6>a.anchor::before{content:"\00A7";font-size:.85em;display:block;padding-top:.1em}
+#content h1:hover>a.anchor,#content h1>a.anchor:hover,h2:hover>a.anchor,h2>a.anchor:hover,h3:hover>a.anchor,#toctitle:hover>a.anchor,.sidebarblock>.content>.title:hover>a.anchor,h3>a.anchor:hover,#toctitle>a.anchor:hover,.sidebarblock>.content>.title>a.anchor:hover,h4:hover>a.anchor,h4>a.anchor:hover,h5:hover>a.anchor,h5>a.anchor:hover,h6:hover>a.anchor,h6>a.anchor:hover{visibility:visible}
+#content h1>a.link,h2>a.link,h3>a.link,#toctitle>a.link,.sidebarblock>.content>.title>a.link,h4>a.link,h5>a.link,h6>a.link{color:#ba3925;text-decoration:none}
+#content h1>a.link:hover,h2>a.link:hover,h3>a.link:hover,#toctitle>a.link:hover,.sidebarblock>.content>.title>a.link:hover,h4>a.link:hover,h5>a.link:hover,h6>a.link:hover{color:#a53221}
+details,.audioblock,.imageblock,.literalblock,.listingblock,.stemblock,.videoblock{margin-bottom:1.25em}
+details>summary:first-of-type{cursor:pointer;display:list-item;outline:none;margin-bottom:.75em}
+.admonitionblock td.content>.title,.audioblock>.title,.exampleblock>.title,.imageblock>.title,.listingblock>.title,.literalblock>.title,.stemblock>.title,.openblock>.title,.paragraph>.title,.quoteblock>.title,table.tableblock>.title,.verseblock>.title,.videoblock>.title,.dlist>.title,.olist>.title,.ulist>.title,.qlist>.title,.hdlist>.title{text-rendering:optimizeLegibility;text-align:left;font-family:"Noto Serif","DejaVu Serif",serif;font-size:1rem;font-style:italic}
+table.tableblock.fit-content>caption.title{white-space:nowrap;width:0}
+.paragraph.lead>p,#preamble>.sectionbody>[class="paragraph"]:first-of-type p{font-size:1.21875em;line-height:1.6;color:rgba(0,0,0,.85)}
+table.tableblock #preamble>.sectionbody>[class="paragraph"]:first-of-type p{font-size:inherit}
+.admonitionblock>table{border-collapse:separate;border:0;background:none;width:100%}
+.admonitionblock>table td.icon{text-align:center;width:80px}
+.admonitionblock>table td.icon img{max-width:none}
+.admonitionblock>table td.icon .title{font-weight:bold;font-family:"Open Sans","DejaVu Sans",sans-serif;text-transform:uppercase}
+.admonitionblock>table td.content{padding-left:1.125em;padding-right:1.25em;border-left:1px solid #dddddf;color:rgba(0,0,0,.6)}
+.admonitionblock>table td.content>:last-child>:last-child{margin-bottom:0}
+.exampleblock>.content{border-style:solid;border-width:1px;border-color:#e6e6e6;margin-bottom:1.25em;padding:1.25em;background:#fff;-webkit-border-radius:4px;border-radius:4px}
+.exampleblock>.content>:first-child{margin-top:0}
+.exampleblock>.content>:last-child{margin-bottom:0}
+.sidebarblock{border-style:solid;border-width:1px;border-color:#dbdbd6;margin-bottom:1.25em;padding:1.25em;background:#f3f3f2;-webkit-border-radius:4px;border-radius:4px}
+.sidebarblock>:first-child{margin-top:0}
+.sidebarblock>:last-child{margin-bottom:0}
+.sidebarblock>.content>.title{color:#7a2518;margin-top:0;text-align:center}
+.exampleblock>.content>:last-child>:last-child,.exampleblock>.content .olist>ol>li:last-child>:last-child,.exampleblock>.content .ulist>ul>li:last-child>:last-child,.exampleblock>.content .qlist>ol>li:last-child>:last-child,.sidebarblock>.content>:last-child>:last-child,.sidebarblock>.content .olist>ol>li:last-child>:last-child,.sidebarblock>.content .ulist>ul>li:last-child>:last-child,.sidebarblock>.content .qlist>ol>li:last-child>:last-child{margin-bottom:0}
+.literalblock pre,.listingblock>.content>pre{-webkit-border-radius:4px;border-radius:4px;word-wrap:break-word;overflow-x:auto;padding:1em;font-size:.8125em}
+@media screen and (min-width:768px){.literalblock pre,.listingblock>.content>pre{font-size:.90625em}}
+@media screen and (min-width:1280px){.literalblock pre,.listingblock>.content>pre{font-size:1em}}
+.literalblock pre,.listingblock>.content>pre:not(.highlight),.listingblock>.content>pre[class="highlight"],.listingblock>.content>pre[class^="highlight "]{background:#f7f7f8}
+.literalblock.output pre{color:#f7f7f8;background:rgba(0,0,0,.9)}
+.listingblock>.content{position:relative}
+.listingblock code[data-lang]::before{display:none;content:attr(data-lang);position:absolute;font-size:.75em;top:.425rem;right:.5rem;line-height:1;text-transform:uppercase;color:inherit;opacity:.5}
+.listingblock:hover code[data-lang]::before{display:block}
+.listingblock.terminal pre .command::before{content:attr(data-prompt);padding-right:.5em;color:inherit;opacity:.5}
+.listingblock.terminal pre .command:not([data-prompt])::before{content:"$"}
+.listingblock pre.highlightjs{padding:0}
+.listingblock pre.highlightjs>code{padding:1em;-webkit-border-radius:4px;border-radius:4px}
+.listingblock pre.prettyprint{border-width:0}
+.prettyprint{background:#f7f7f8}
+pre.prettyprint .linenums{line-height:1.45;margin-left:2em}
+pre.prettyprint li{background:none;list-style-type:inherit;padding-left:0}
+pre.prettyprint li code[data-lang]::before{opacity:1}
+pre.prettyprint li:not(:first-child) code[data-lang]::before{display:none}
+table.linenotable{border-collapse:separate;border:0;margin-bottom:0;background:none}
+table.linenotable td[class]{color:inherit;vertical-align:top;padding:0;line-height:inherit;white-space:normal}
+table.linenotable td.code{padding-left:.75em}
+table.linenotable td.linenos{border-right:1px solid currentColor;opacity:.35;padding-right:.5em}
+pre.pygments .lineno{border-right:1px solid currentColor;opacity:.35;display:inline-block;margin-right:.75em}
+pre.pygments .lineno::before{content:"";margin-right:-.125em}
+.quoteblock{margin:0 1em 1.25em 1.5em;display:table}
+.quoteblock:not(.excerpt)>.title{margin-left:-1.5em;margin-bottom:.75em}
+.quoteblock blockquote,.quoteblock p{color:rgba(0,0,0,.85);font-size:1.15rem;line-height:1.75;word-spacing:.1em;letter-spacing:0;font-style:italic;text-align:justify}
+.quoteblock blockquote{margin:0;padding:0;border:0}
+.quoteblock blockquote::before{content:"\201c";float:left;font-size:2.75em;font-weight:bold;line-height:.6em;margin-left:-.6em;color:#7a2518;text-shadow:0 1px 2px rgba(0,0,0,.1)}
+.quoteblock blockquote>.paragraph:last-child p{margin-bottom:0}
+.quoteblock .attribution{margin-top:.75em;margin-right:.5ex;text-align:right}
+.verseblock{margin:0 1em 1.25em}
+.verseblock pre{font-family:"Open Sans","DejaVu Sans",sans;font-size:1.15rem;color:rgba(0,0,0,.85);font-weight:300;text-rendering:optimizeLegibility}
+.verseblock pre strong{font-weight:400}
+.verseblock .attribution{margin-top:1.25rem;margin-left:.5ex}
+.quoteblock .attribution,.verseblock .attribution{font-size:.9375em;line-height:1.45;font-style:italic}
+.quoteblock .attribution br,.verseblock .attribution br{display:none}
+.quoteblock .attribution cite,.verseblock .attribution cite{display:block;letter-spacing:-.025em;color:rgba(0,0,0,.6)}
+.quoteblock.abstract blockquote::before,.quoteblock.excerpt blockquote::before,.quoteblock .quoteblock blockquote::before{display:none}
+.quoteblock.abstract blockquote,.quoteblock.abstract p,.quoteblock.excerpt blockquote,.quoteblock.excerpt p,.quoteblock .quoteblock blockquote,.quoteblock .quoteblock p{line-height:1.6;word-spacing:0}
+.quoteblock.abstract{margin:0 1em 1.25em;display:block}
+.quoteblock.abstract>.title{margin:0 0 .375em;font-size:1.15em;text-align:center}
+.quoteblock.excerpt>blockquote,.quoteblock .quoteblock{padding:0 0 .25em 1em;border-left:.25em solid #dddddf}
+.quoteblock.excerpt,.quoteblock .quoteblock{margin-left:0}
+.quoteblock.excerpt blockquote,.quoteblock.excerpt p,.quoteblock .quoteblock blockquote,.quoteblock .quoteblock p{color:inherit;font-size:1.0625rem}
+.quoteblock.excerpt .attribution,.quoteblock .quoteblock .attribution{color:inherit;text-align:left;margin-right:0}
+table.tableblock{max-width:100%;border-collapse:separate}
+p.tableblock:last-child{margin-bottom:0}
+td.tableblock>.content>:last-child{margin-bottom:-1.25em}
+td.tableblock>.content>:last-child.sidebarblock{margin-bottom:0}
+table.tableblock,th.tableblock,td.tableblock{border:0 solid #dedede}
+table.grid-all>thead>tr>.tableblock,table.grid-all>tbody>tr>.tableblock{border-width:0 1px 1px 0}
+table.grid-all>tfoot>tr>.tableblock{border-width:1px 1px 0 0}
+table.grid-cols>*>tr>.tableblock{border-width:0 1px 0 0}
+table.grid-rows>thead>tr>.tableblock,table.grid-rows>tbody>tr>.tableblock{border-width:0 0 1px}
+table.grid-rows>tfoot>tr>.tableblock{border-width:1px 0 0}
+table.grid-all>*>tr>.tableblock:last-child,table.grid-cols>*>tr>.tableblock:last-child{border-right-width:0}
+table.grid-all>tbody>tr:last-child>.tableblock,table.grid-all>thead:last-child>tr>.tableblock,table.grid-rows>tbody>tr:last-child>.tableblock,table.grid-rows>thead:last-child>tr>.tableblock{border-bottom-width:0}
+table.frame-all{border-width:1px}
+table.frame-sides{border-width:0 1px}
+table.frame-topbot,table.frame-ends{border-width:1px 0}
+table.stripes-all tr,table.stripes-odd tr:nth-of-type(odd),table.stripes-even tr:nth-of-type(even),table.stripes-hover tr:hover{background:#f8f8f7}
+th.halign-left,td.halign-left{text-align:left}
+th.halign-right,td.halign-right{text-align:right}
+th.halign-center,td.halign-center{text-align:center}
+th.valign-top,td.valign-top{vertical-align:top}
+th.valign-bottom,td.valign-bottom{vertical-align:bottom}
+th.valign-middle,td.valign-middle{vertical-align:middle}
+table thead th,table tfoot th{font-weight:bold}
+tbody tr th{display:table-cell;line-height:1.6;background:#f7f8f7}
+tbody tr th,tbody tr th p,tfoot tr th,tfoot tr th p{color:rgba(0,0,0,.8);font-weight:bold}
+p.tableblock>code:only-child{background:none;padding:0}
+p.tableblock{font-size:1em}
+ol{margin-left:1.75em}
+ul li ol{margin-left:1.5em}
+dl dd{margin-left:1.125em}
+dl dd:last-child,dl dd:last-child>:last-child{margin-bottom:0}
+ol>li p,ul>li p,ul dd,ol dd,.olist .olist,.ulist .ulist,.ulist .olist,.olist .ulist{margin-bottom:.625em}
+ul.checklist,ul.none,ol.none,ul.no-bullet,ol.no-bullet,ol.unnumbered,ul.unstyled,ol.unstyled{list-style-type:none}
+ul.no-bullet,ol.no-bullet,ol.unnumbered{margin-left:.625em}
+ul.unstyled,ol.unstyled{margin-left:0}
+ul.checklist{margin-left:.625em}
+ul.checklist li>p:first-child>.fa-square-o:first-child,ul.checklist li>p:first-child>.fa-check-square-o:first-child{width:1.25em;font-size:.8em;position:relative;bottom:.125em}
+ul.checklist li>p:first-child>input[type="checkbox"]:first-child{margin-right:.25em}
+ul.inline{display:-ms-flexbox;display:-webkit-box;display:flex;-ms-flex-flow:row wrap;-webkit-flex-flow:row wrap;flex-flow:row wrap;list-style:none;margin:0 0 .625em -1.25em}
+ul.inline>li{margin-left:1.25em}
+.unstyled dl dt{font-weight:400;font-style:normal}
+ol.arabic{list-style-type:decimal}
+ol.decimal{list-style-type:decimal-leading-zero}
+ol.loweralpha{list-style-type:lower-alpha}
+ol.upperalpha{list-style-type:upper-alpha}
+ol.lowerroman{list-style-type:lower-roman}
+ol.upperroman{list-style-type:upper-roman}
+ol.lowergreek{list-style-type:lower-greek}
+.hdlist>table,.colist>table{border:0;background:none}
+.hdlist>table>tbody>tr,.colist>table>tbody>tr{background:none}
+td.hdlist1,td.hdlist2{vertical-align:top;padding:0 .625em}
+td.hdlist1{font-weight:bold;padding-bottom:1.25em}
+.literalblock+.colist,.listingblock+.colist{margin-top:-.5em}
+.colist td:not([class]):first-child{padding:.4em .75em 0;line-height:1;vertical-align:top}
+.colist td:not([class]):first-child img{max-width:none}
+.colist td:not([class]):last-child{padding:.25em 0}
+.thumb,.th{line-height:0;display:inline-block;border:solid 4px #fff;-webkit-box-shadow:0 0 0 1px #ddd;box-shadow:0 0 0 1px #ddd}
+.imageblock.left{margin:.25em .625em 1.25em 0}
+.imageblock.right{margin:.25em 0 1.25em .625em}
+.imageblock>.title{margin-bottom:0}
+.imageblock.thumb,.imageblock.th{border-width:6px}
+.imageblock.thumb>.title,.imageblock.th>.title{padding:0 .125em}
+.image.left,.image.right{margin-top:.25em;margin-bottom:.25em;display:inline-block;line-height:0}
+.image.left{margin-right:.625em}
+.image.right{margin-left:.625em}
+a.image{text-decoration:none;display:inline-block}
+a.image object{pointer-events:none}
+sup.footnote,sup.footnoteref{font-size:.875em;position:static;vertical-align:super}
+sup.footnote a,sup.footnoteref a{text-decoration:none}
+sup.footnote a:active,sup.footnoteref a:active{text-decoration:underline}
+#footnotes{padding-top:.75em;padding-bottom:.75em;margin-bottom:.625em}
+#footnotes hr{width:20%;min-width:6.25em;margin:-.25em 0 .75em;border-width:1px 0 0}
+#footnotes .footnote{padding:0 .375em 0 .225em;line-height:1.3334;font-size:.875em;margin-left:1.2em;margin-bottom:.2em}
+#footnotes .footnote a:first-of-type{font-weight:bold;text-decoration:none;margin-left:-1.05em}
+#footnotes .footnote:last-of-type{margin-bottom:0}
+#content #footnotes{margin-top:-.625em;margin-bottom:0;padding:.75em 0}
+.gist .file-data>table{border:0;background:#fff;width:100%;margin-bottom:0}
+.gist .file-data>table td.line-data{width:99%}
+div.unbreakable{page-break-inside:avoid}
+.big{font-size:larger}
+.small{font-size:smaller}
+.underline{text-decoration:underline}
+.overline{text-decoration:overline}
+.line-through{text-decoration:line-through}
+.aqua{color:#00bfbf}
+.aqua-background{background:#00fafa}
+.black{color:#000}
+.black-background{background:#000}
+.blue{color:#0000bf}
+.blue-background{background:#0000fa}
+.fuchsia{color:#bf00bf}
+.fuchsia-background{background:#fa00fa}
+.gray{color:#606060}
+.gray-background{background:#7d7d7d}
+.green{color:#006000}
+.green-background{background:#007d00}
+.lime{color:#00bf00}
+.lime-background{background:#00fa00}
+.maroon{color:#600000}
+.maroon-background{background:#7d0000}
+.navy{color:#000060}
+.navy-background{background:#00007d}
+.olive{color:#606000}
+.olive-background{background:#7d7d00}
+.purple{color:#600060}
+.purple-background{background:#7d007d}
+.red{color:#bf0000}
+.red-background{background:#fa0000}
+.silver{color:#909090}
+.silver-background{background:#bcbcbc}
+.teal{color:#006060}
+.teal-background{background:#007d7d}
+.white{color:#bfbfbf}
+.white-background{background:#fafafa}
+.yellow{color:#bfbf00}
+.yellow-background{background:#fafa00}
+span.icon>.fa{cursor:default}
+a span.icon>.fa{cursor:inherit}
+.admonitionblock td.icon [class^="fa icon-"]{font-size:2.5em;text-shadow:1px 1px 2px rgba(0,0,0,.5);cursor:default}
+.admonitionblock td.icon .icon-note::before{content:"\f05a";color:#19407c}
+.admonitionblock td.icon .icon-tip::before{content:"\f0eb";text-shadow:1px 1px 2px rgba(155,155,0,.8);color:#111}
+.admonitionblock td.icon .icon-warning::before{content:"\f071";color:#bf6900}
+.admonitionblock td.icon .icon-caution::before{content:"\f06d";color:#bf3400}
+.admonitionblock td.icon .icon-important::before{content:"\f06a";color:#bf0000}
+.conum[data-value]{display:inline-block;color:#fff!important;background:rgba(0,0,0,.8);-webkit-border-radius:100px;border-radius:100px;text-align:center;font-size:.75em;width:1.67em;height:1.67em;line-height:1.67em;font-family:"Open Sans","DejaVu Sans",sans-serif;font-style:normal;font-weight:bold}
+.conum[data-value] *{color:#fff!important}
+.conum[data-value]+b{display:none}
+.conum[data-value]::after{content:attr(data-value)}
+pre .conum[data-value]{position:relative;top:-.125em}
+b.conum *{color:inherit!important}
+.conum:not([data-value]):empty{display:none}
+dt,th.tableblock,td.content,div.footnote{text-rendering:optimizeLegibility}
+h1,h2,p,td.content,span.alt{letter-spacing:-.01em}
+p strong,td.content strong,div.footnote strong{letter-spacing:-.005em}
+p,blockquote,dt,td.content,span.alt{font-size:1.0625rem}
+p{margin-bottom:1.25rem}
+.sidebarblock p,.sidebarblock dt,.sidebarblock td.content,p.tableblock{font-size:1em}
+.exampleblock>.content{background:#fffef7;border-color:#e0e0dc;-webkit-box-shadow:0 1px 4px #e0e0dc;box-shadow:0 1px 4px #e0e0dc}
+.print-only{display:none!important}
+@page{margin:1.25cm .75cm}
+@media print{*{-webkit-box-shadow:none!important;box-shadow:none!important;text-shadow:none!important}
+html{font-size:80%}
+a{color:inherit!important;text-decoration:underline!important}
+a.bare,a[href^="#"],a[href^="mailto:"]{text-decoration:none!important}
+a[href^="http:"]:not(.bare)::after,a[href^="https:"]:not(.bare)::after{content:"(" attr(href) ")";display:inline-block;font-size:.875em;padding-left:.25em}
+abbr[title]::after{content:" (" attr(title) ")"}
+pre,blockquote,tr,img,object,svg{page-break-inside:avoid}
+thead{display:table-header-group}
+svg{max-width:100%}
+p,blockquote,dt,td.content{font-size:1em;orphans:3;widows:3}
+h2,h3,#toctitle,.sidebarblock>.content>.title{page-break-after:avoid}
+#toc,.sidebarblock,.exampleblock>.content{background:none!important}
+#toc{border-bottom:1px solid #dddddf!important;padding-bottom:0!important}
+body.book #header{text-align:center}
+body.book #header>h1:first-child{border:0!important;margin:2.5em 0 1em}
+body.book #header .details{border:0!important;display:block;padding:0!important}
+body.book #header .details span:first-child{margin-left:0!important}
+body.book #header .details br{display:block}
+body.book #header .details br+span::before{content:none!important}
+body.book #toc{border:0!important;text-align:left!important;padding:0!important;margin:0!important}
+body.book #toc,body.book #preamble,body.book h1.sect0,body.book .sect1>h2{page-break-before:always}
+.listingblock code[data-lang]::before{display:block}
+#footer{padding:0 .9375em}
+.hide-on-print{display:none!important}
+.print-only{display:block!important}
+.hide-for-print{display:none!important}
+.show-for-print{display:inherit!important}}
+@media print,amzn-kf8{#header>h1:first-child{margin-top:1.25rem}
+.sect1{padding:0!important}
+.sect1+.sect1{border:0}
+#footer{background:none}
+#footer-text{color:rgba(0,0,0,.6);font-size:.9em}}
+@media amzn-kf8{#header,#content,#footnotes,#footer{padding:0}}
+</style>
+</head>
+<body class="book">
+<div id="header">
+</div>
+<div id="content">
+<div id="preamble">
+<div class="sectionbody">
+<div class="paragraph">
+<p>Back to the <a href="Home.html">DOSBox-X Wiki Welcome page</a>.</p>
+</div>
+</div>
+</div>
+<h1 id="_managing_images_files" class="sect0">Managing images files</h1>
+<div class="openblock partintro">
+<div class="content">
+<!-- toc disabled -->
+</div>
+</div>
+<h1 id="_overview" class="sect0">Overview</h1>
+<div class="openblock partintro">
+<div class="content">
+<div class="paragraph">
+<p>DOSBox-X supports three categories of image files;</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p>Diskette (floppy disk) images</p>
+</li>
+<li>
+<p>Harddisk images</p>
+</li>
+<li>
+<p>CD-ROM or DVD images</p>
+</li>
+</ul>
+</div>
+<div class="admonitionblock tip">
+<table>
+<tr>
+<td class="icon">
+<div class="title">Tip</div>
+</td>
+<td class="content">
+Whenever this guide mentions mounting an image file, such as disk.ima, hdd.img or cdrom.iso, those are files on your host filesystem.
+And they may optionally be prefixed with the host path to the file. e.g. <code>disk.ima</code> may become <code>"C:\John Doe\dosroot\disk.ima"</code>.
+Also note that if there are any spaces in the host path or filename, you need to enclose it with quotes.
+</td>
+</tr>
+</table>
+</div>
+</div>
+</div>
+<h1 id="_listing_current_mounts" class="sect0">Listing current mounts</h1>
+<div class="openblock partintro">
+<div class="content">
+<div class="paragraph">
+<p>The currently active mounts can be viewed by running the <code>IMGMOUNT</code> or <code>MOUNT</code> commands without arguments.
+The output of the two commands differs somewhat.</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p>MOUNT will show all active mounts</p>
+</li>
+<li>
+<p>IMGMOUNT will show mounted images, and the device numbers (drive numbers) in use</p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p>You can also see the currently mounted drive numbers from the DOS menu.</p>
+</div>
+</div>
+</div>
+<h1 id="_diskette_floppy_disk_images" class="sect0">Diskette (floppy disk) images</h1>
+<div class="openblock partintro">
+<div class="content">
+<div class="paragraph">
+<p>DOSBox-X supports mounting diskette images in the following formats:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p>MFM sector image format (typically .ima or .img)</p>
+</li>
+<li>
+<p>NEC PC-98 diskette images (.fdd .fdi .nfd or .d88)</p>
+</li>
+</ul>
+</div>
+<div class="admonitionblock note">
+<table>
+<tr>
+<td class="icon">
+<div class="title">Note</div>
+</td>
+<td class="content">
+The IMG extension is also used for harddisk images, so there can be some confusion.
+Files with the extension IMA are automatically treated as diskette images.
+</td>
+</tr>
+</table>
+</div>
+<div class="admonitionblock note">
+<table>
+<tr>
+<td class="icon">
+<div class="title">Note</div>
+</td>
+<td class="content">
+There is no support for any type of copy-protected diskettes.
+Any programs on copy-protected diskettes need to be "cracked" to remove the copy protection before they can be used by DOSBox-X.
+</td>
+</tr>
+</table>
+</div>
+<div class="paragraph">
+<p>Some examples of diskette image files that DOSBox-X <strong>does not</strong> support:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p>IBM DSKF (.DSK)</p>
+</li>
+<li>
+<p>IBM XDF (.XDF)</p>
+</li>
+<li>
+<p>ImageDisk (.IMD)</p>
+</li>
+<li>
+<p>Interchangeable Preservation Format (.IPF)</p>
+</li>
+<li>
+<p>KryoFlux Stream files (.RAW)</p>
+</li>
+<li>
+<p>Microsoft DMF (.DMF)</p>
+</li>
+<li>
+<p>Teledisk (.TD0)</p>
+</li>
+<li>
+<p>Transcopy (.TC)</p>
+</li>
+</ul>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_creating_diskette_images">Creating diskette images</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>DOSBox-X has a built-in <code>IMGMAKE</code> command with which you can create FAT12 formatted diskette images in MFM sector image format from the DOSBox-X command prompt.</p>
+</div>
+<div class="paragraph">
+<p>Example:</p>
+</div>
+<div class="literalblock">
+<div class="content">
+<pre>IMGMAKE disk.ima -t fd</pre>
+</div>
+</div>
+<div class="paragraph">
+<p>This is equivalent to</p>
+</div>
+<div class="literalblock">
+<div class="content">
+<pre>IMGMAKE disk.ima -t fd_1440</pre>
+</div>
+</div>
+<div class="paragraph">
+<p>The above command will create a 1.44MB formatted disk image named disk.ima.
+The diskette image will appear to have been formatted by MS-DOS 5.0.</p>
+</div>
+<div class="paragraph">
+<p>The image filename for this command is optional, and if you do not specify a filename, then the name IMGMAKE.IMG will be used, such as the following:</p>
+</div>
+<div class="literalblock">
+<div class="content">
+<pre>IMGMAKE -t fd</pre>
+</div>
+</div>
+<div class="admonitionblock note">
+<table>
+<tr>
+<td class="icon">
+<div class="title">Note</div>
+</td>
+<td class="content">
+The filename for the disk image is not limited to the DOS 8.3 filename length, but rather by your host filesystem. In DOSBox-X you can also specify the <code>-force</code> parameter to overwrite the file if it already exists.
+</td>
+</tr>
+</table>
+</div>
+<div class="paragraph">
+<p>You can optionally create a diskette image that is not formatted with:</p>
+</div>
+<div class="literalblock">
+<div class="content">
+<pre>IMGMAKE disk.ima -t fd -nofs</pre>
+</div>
+</div>
+<div class="admonitionblock note">
+<table>
+<tr>
+<td class="icon">
+<div class="title">Note</div>
+</td>
+<td class="content">
+DOSBox-X has no integrated FORMAT command, so creating diskette images that are not formatted is typically not recommended.
+</td>
+</tr>
+</table>
+</div>
+<div class="admonitionblock tip">
+<table>
+<tr>
+<td class="icon">
+<div class="title">Tip</div>
+</td>
+<td class="content">
+DOSBox-X will automatically assume it is a diskette image if the filename extension is .IMA, or if your mounting on the emulated A: or B: drive.
+If this is not the case, you can force a diskette type with the <code>-t floppy</code> parameter.
+</td>
+</tr>
+</table>
+</div>
+<div class="paragraph">
+<p>Supported diskette sizes options:</p>
+</div>
+<table class="tableblock frame-all grid-all stretch">
+<colgroup>
+<col style="width: 33.3333%;">
+<col style="width: 33.3333%;">
+<col style="width: 33.3334%;">
+</colgroup>
+<thead>
+<tr>
+<th class="tableblock halign-left valign-top">Disk type</th>
+<th class="tableblock halign-left valign-top">Capacity</th>
+<th class="tableblock halign-left valign-top">IMGMAKE option</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">5.25" SSDD (8 sector)</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">160KB</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">-t fd_160</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">5.25" SSDD</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">180KB</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">-t fd_180</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">5.25" SSDD (10 sector)</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">200KB</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">-t fd_200</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">5.25" DSDD (8 sector)</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">320KB</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">-t fd_320</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">5.25" DSDD</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">360KB</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">-t fd_360</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">5.25" DSDD (10 sector)</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">400KB</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">-t fd_400</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">5.25" HD</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">1200KB (1.2MB)</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">-t fd_1200</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">3.5" DSDD (2DD)</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">720KB</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">-t fd_720</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">3.5" HD</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">1440KB (1.44MB)</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">-t fd_1440 or -t fd</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">3.5" ED</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">2880KB (2.88MB)</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">-t fd_2880</p></td>
+</tr>
+</tbody>
+</table>
+<div class="admonitionblock note">
+<table>
+<tr>
+<td class="icon">
+<div class="title">Note</div>
+</td>
+<td class="content">
+The 8-sector formats should be avoided unless your need backward compatibility with DOS 1.x.
+The 10-sector disks were used by the DEC Rainbow 100.
+</td>
+</tr>
+</table>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_mounting_diskette_images">Mounting diskette images</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>Mounting a diskette image in DOSBox-X is typically as simple as</p>
+</div>
+<div class="literalblock">
+<div class="content">
+<pre>imgmount a disk.ima</pre>
+</div>
+</div>
+<div class="paragraph">
+<p>This is equivalent to</p>
+</div>
+<div class="literalblock">
+<div class="content">
+<pre>imgmount A: disk.ima
+imgmount A: disk.ima -t floppy</pre>
+</div>
+</div>
+<div class="paragraph">
+<p>If you do not specify an image filename, then the name IMGMAKE.IMG will be used, such as the following:</p>
+</div>
+<div class="literalblock">
+<div class="content">
+<pre>imgmount a</pre>
+</div>
+</div>
+<div class="admonitionblock note">
+<table>
+<tr>
+<td class="icon">
+<div class="title">Note</div>
+</td>
+<td class="content">
+The <code>-t floppy</code> parameter is only needed with DOSBox-X when the extension is not .IMA, and your wanting to mount a diskette image on drives greater than B:.
+</td>
+</tr>
+</table>
+</div>
+<div class="paragraph">
+<p>A diskette image that is not formatted, or has a unsupported filesystem can be mounted as follows:</p>
+</div>
+<div class="literalblock">
+<div class="content">
+<pre>imgmount 0 disk.ima</pre>
+</div>
+</div>
+<div class="paragraph">
+<p>This is equivalent to</p>
+</div>
+<div class="literalblock">
+<div class="content">
+<pre>imgmount 0 disk.ima -fs none</pre>
+</div>
+</div>
+<div class="paragraph">
+<p>0 represents drive A: and 1 represents drive B:, but due to the use of drive numbers they cannot be directly accessed from the DOSBox-X integrated DOS. Note that when using drive numbers like 0 and 1 to mount a diskette image the <code>-fs none</code> flag is automatically assumed in DOSBox-X. For vanilla DOSBox, or other forks, the <code>-fs none</code> flag will be required.</p>
+</div>
+<div class="sect2">
+<h3 id="_mounting_from_the_drive_menu">Mounting from the Drive menu</h3>
+<div class="paragraph">
+<p>This is exclusive to the DOSBox-X Windows version.
+The advantage of this option is, that you don&#8217;t need to mount all the disks before starting your program or game, but you can mount disk images when needed.</p>
+</div>
+<div class="paragraph">
+<p>To access it, DOSBox-X needs to be in windowed mode, there is a menu bar with a "Drive" drop down. Select a drive letter, and you will see various mount options.</p>
+</div>
+<div class="paragraph">
+<p>The only mount option that can be used for image files is the "Mount disk image" option.
+All the other mount options are host folder mounts.</p>
+</div>
+<div class="paragraph">
+<p>Select the Drive menu, and the "A" or "B" drive and "Mount disk image".
+Now a file browser will allow you to select an image file.</p>
+</div>
+<div class="paragraph">
+<p>This option does not support read-only disk images.</p>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_mounting_multiple_diskette_images">Mounting multiple diskette images</h3>
+<div class="paragraph">
+<p>Some DOS programs or games came on multiple diskettes.
+For this purpose it is possible to mount multiple diskette images on one drive letter and swap between them.
+e.g.</p>
+</div>
+<div class="literalblock">
+<div class="content">
+<pre>imgmount a disk1.ima disk2.ima disk3.ima</pre>
+</div>
+</div>
+<div class="paragraph">
+<p>In this example disk1.ima will be immediately usable on A: but disk2.ima will require a disk-swap action.</p>
+</div>
+<div class="paragraph">
+<p>Disk-swap can be done using either a hot-key combination, or using the menu bar.
+The hot-key for Windows is F11+CTRL+D and for other platforms F12+CTRL+D.
+Or from the menu you can select "DOS" followed by "Swap floppy".</p>
+</div>
+<div class="paragraph">
+<p>If you lose track of which disk is currently active, open the 'Drive' menu option, select the drive letter and select 'Drive Information'.</p>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_write_protecting_diskette_images">Write protecting diskette images</h3>
+<div class="paragraph">
+<p>By default diskette images are mounted read-write.
+It is possible to make a diskette image read-only (write protected) either by using the -ro option, or by attaching the <code>:</code> prefix to the filename.
+e.g.</p>
+</div>
+<div class="literalblock">
+<div class="content">
+<pre>imgmount a disk.ima -ro</pre>
+</div>
+</div>
+<div class="paragraph">
+<p>It is equivalent to:</p>
+</div>
+<div class="literalblock">
+<div class="content">
+<pre>imgmount a :disk.ima</pre>
+</div>
+</div>
+<div class="paragraph">
+<p>They can also be used when mounting multiple diskette images. If you use the -ro option, then all images specified in the command will become read-only.
+On the other hand, if you wish to make individual images (instead of all of them) read-only then you can attach the <code>:</code> prefix to these images, like this:</p>
+</div>
+<div class="literalblock">
+<div class="content">
+<pre>imgmount a :disk1.ima :disk2.ima :disk3.ima userdisk.ima</pre>
+</div>
+</div>
+<div class="paragraph">
+<p>In the above example, the first 3 disks are read-only, but the last one is read-write.</p>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_unmounting_diskette_images">Unmounting diskette images</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>Diskette images can be unmounted using the <code>-u</code> flag. e.g.</p>
+</div>
+<div class="literalblock">
+<div class="content">
+<pre>imgmount a -u</pre>
+</div>
+</div>
+<div class="paragraph">
+<p>You can also unmount using the <code>MOUNT</code> command.</p>
+</div>
+<div class="literalblock">
+<div class="content">
+<pre>mount a -u</pre>
+</div>
+</div>
+<div class="paragraph">
+<p>It is also possible to unmount the currently mounted image (if any), and mount a new image in one step.</p>
+</div>
+<div class="literalblock">
+<div class="content">
+<pre>imgmount a disk2.ima -u</pre>
+</div>
+</div>
+<div class="paragraph">
+<p>This will cause the currently mounted disk image (if any) to be unmounted, and disk2.ima to be mounted instead.</p>
+</div>
+<div class="paragraph">
+<p>Alternatively you can unmount a diskette from the DOSBox-X menu bar (when running in Windowed mode) by selecting "Drive", followed by the drive letter and "Unmount".</p>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_boot_from_a_diskette_image">Boot from a diskette image</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>You can either mount a disk image first and then boot from it:</p>
+</div>
+<div class="literalblock">
+<div class="content">
+<pre>imgmount a dos.ima
+boot a:</pre>
+</div>
+</div>
+<div class="admonitionblock note">
+<table>
+<tr>
+<td class="icon">
+<div class="title">Note</div>
+</td>
+<td class="content">
+DOSBox-X supports the <code>-L</code> parameter for the <code>BOOT</code> command for backward compatibility with vanilla DOSBox, or other forks, but the parameter is not required with DOSBox-X to boot from a drive letter.
+</td>
+</tr>
+</table>
+</div>
+<div class="paragraph">
+<p>Or you can boot directly from a disk as such:</p>
+</div>
+<div class="literalblock">
+<div class="content">
+<pre>boot dos.ima</pre>
+</div>
+</div>
+<div class="admonitionblock tip">
+<table>
+<tr>
+<td class="icon">
+<div class="title">Tip</div>
+</td>
+<td class="content">
+Multiple image files can be specified with either the <code>IMGMOUNT</code> or <code>BOOT</code> commands, in case you have a multi-disk install program.
+Image files can be made read-only by prefixing the filename with a column character (<code>:</code>).
+</td>
+</tr>
+</table>
+</div>
+<div class="admonitionblock caution">
+<table>
+<tr>
+<td class="icon">
+<div class="title">Caution</div>
+</td>
+<td class="content">
+DOSBox-X will attempt to boot from a diskette, even if it is not bootable. This is needed to support early PC-Booter games.
+</td>
+</tr>
+</table>
+</div>
+<div class="admonitionblock tip">
+<table>
+<tr>
+<td class="icon">
+<div class="title">Tip</div>
+</td>
+<td class="content">
+Once a disk image is mounted, you can alternatively also boot from a disk image by selecting "Drive" from the menu bar, followed by the drive letter and "Boot from drive". In the DOSBox-X Windows version you can also mount and boot a disk image in one step by selecting "Boot from disk image" from this submenu.
+</td>
+</tr>
+</table>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_using_diskette_images_in_linux">Using diskette images in Linux</h2>
+<div class="sectionbody">
+<div class="admonitionblock warning">
+<table>
+<tr>
+<td class="icon">
+<div class="title">Warning</div>
+</td>
+<td class="content">
+You should never mount a disk image simultaneously in both DOSBox-X and in Linux, as that can cause corruption of files or the filesystem on the diskette image.
+</td>
+</tr>
+</table>
+</div>
+<div class="sect2">
+<h3 id="_gnome_disk_image_mounter">Gnome Disk Image Mounter</h3>
+<div class="paragraph">
+<p>When using the Gnome desktop environment, you can open .IMG disks with the "Disk Image Mounter". Simply right click on the file, and select 'Open with Disk Image Mounter' and the file will be mounted in the Gnome file manager.</p>
+</div>
+<div class="paragraph">
+<p>The first time you want to open .IMA files, you need to right-click and choose "Open With Other Application", and then click on "View All Applications" and choose "Disk Image Mounter" from the list.
+The next time you want to open a .IMA file, the option will be available directly from the right-click menu.</p>
+</div>
+<div class="paragraph">
+<p>Disks can be unmounted from the Gnome file manager by clicking the unmount button next to the volume name.</p>
+</div>
+<div class="paragraph">
+<p>Disk images can also be mounted from the Linux Terminal using:</p>
+</div>
+<div class="literalblock">
+<div class="content">
+<pre>gnome-disk-image-mounter disk.ima</pre>
+</div>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_mounting_a_diskette_image_from_the_shell">Mounting a diskette image from the shell</h3>
+<div class="paragraph">
+<p>The more traditional Linux method of mounting diskette image files from a Linux terminal.
+This method requires sudo access.</p>
+</div>
+<div class="literalblock">
+<div class="content">
+<pre>sudo mount -o loop,uid=$UID disk.ima /mnt</pre>
+</div>
+</div>
+<div class="paragraph">
+<p>The above command will cause disk.ima to be mounted under /mnt.</p>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_gnu_mtools">GNU mtools</h3>
+<div class="paragraph">
+<p>GNU mtools is an optional package you can install to interact with DOS disks or disk images.
+It provides various commands which can be used to interact with DOS diskette images without having to mount them.</p>
+</div>
+<div class="paragraph">
+<p>A subset of commands provided by mtools:</p>
+</div>
+<table class="tableblock frame-all grid-all stretch">
+<colgroup>
+<col style="width: 33.3333%;">
+<col style="width: 33.3333%;">
+<col style="width: 33.3334%;">
+</colgroup>
+<thead>
+<tr>
+<th class="tableblock halign-left valign-top">Command</th>
+<th class="tableblock halign-left valign-top">DOS equivalent</th>
+<th class="tableblock halign-left valign-top">Note</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">mattrib</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">ATTRIB</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">View and change file attributes</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">mcopy</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">COPY / XCOPY</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Copy files</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">mdel</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">DEL / ERASE</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Delete files</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">mdeltree</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">DELTREE</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Delete directory tree</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">mdir</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">DIR</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">List directory contents</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">mdu</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">-</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Disk Usage</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">minfo</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">-</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Info about the disk</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">mlabel</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">LABEL</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Label disk</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">mmd</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">MD / MKDIR</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Make directory</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">mmove</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">MOVE</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Move file or directory</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">mrd</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">RD / RMDIR</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Remove directory</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">mren</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">REN / RENAME</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Rename file or directory</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">mtype</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">TYPE</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Show contents of a file</p></td>
+</tr>
+</tbody>
+</table>
+<div class="sect3">
+<h4 id="_list_contents_of_a_diskette_image">List contents of a diskette image</h4>
+<div class="paragraph">
+<p>This will list the contents of the root directory of the diskette image, similar to the DOS DIR command.</p>
+</div>
+<div class="literalblock">
+<div class="content">
+<pre>mdir -i disk.ima</pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Assuming the diskette image has a directory named GAMES, the contents can be listed as</p>
+</div>
+<div class="literalblock">
+<div class="content">
+<pre>mdir -i disk.ima ::games</pre>
+</div>
+</div>
+</div>
+<div class="sect3">
+<h4 id="_copy_file_into_a_diskette_image">Copy file into a diskette image</h4>
+<div class="paragraph">
+<p>This command will copy the file hello.txt into the root directory of the disk image.</p>
+</div>
+<div class="literalblock">
+<div class="content">
+<pre>mcopy -i disk.ima hello.txt ::</pre>
+</div>
+</div>
+<div class="paragraph">
+<p>This command will copy the file hello.txt into the GAMES directory of the disk image.</p>
+</div>
+<div class="literalblock">
+<div class="content">
+<pre>mcopy -i disk.ima hello.txt ::games</pre>
+</div>
+</div>
+</div>
+<div class="sect3">
+<h4 id="_copy_files_out_of_a_diskette_image">Copy file(s) out of a diskette image</h4>
+<div class="paragraph">
+<p>This command will copy the file hello.txt out of the root of the diskette image, to the current directory (.)</p>
+</div>
+<div class="literalblock">
+<div class="content">
+<pre>mcopy -i disk.ima ::hello.txt .</pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Or if you want to copy all files, including sub-directories, from the diskette image to the directory tmp</p>
+</div>
+<div class="literalblock">
+<div class="content">
+<pre>mkdir tmp
+mcopy -s -i disk.ima :: tmp</pre>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_using_diskette_images_in_windows">Using diskette images in Windows</h2>
+<div class="sectionbody">
+<div class="admonitionblock warning">
+<table>
+<tr>
+<td class="icon">
+<div class="title">Warning</div>
+</td>
+<td class="content">
+You should never mount a disk image simultaneously in both DOSBox-X and in Windows, as that can cause corruption of files or the filesystem on the diskette image.
+</td>
+</tr>
+</table>
+</div>
+<div class="admonitionblock note">
+<table>
+<tr>
+<td class="icon">
+<div class="title">Note</div>
+</td>
+<td class="content">
+Windows 8 and newer has integrated support for mounting image files, and will offer the "Mount" option when you right-click a .IMG file.
+Unfortunately this support is incompatible with the typical MFM image files used by DOSBox-X, and the mount will fail.
+</td>
+</tr>
+</table>
+</div>
+<div class="paragraph">
+<p>Several 3rd party tools are available which can open the diskette image files:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p><a href="https://www.7-zip.org/">7-Zip</a></p>
+</li>
+<li>
+<p><a href="http://www.winimage.com/winimage.htm">WinImage</a></p>
+</li>
+<li>
+<p><a href="https://www.win-rar.com/">WinRAR</a></p>
+</li>
+<li>
+<p><a href="https://www.winzip.com/">WinZIP</a></p>
+</li>
+</ul>
+</div>
+</div>
+</div>
+<h1 id="_harddisk_images" class="sect0">Harddisk images</h1>
+<div class="openblock partintro">
+<div class="content">
+<div class="paragraph">
+<p>DOSBox-X supports mounting harddisk images in the following formats:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p><a href="https://en.wikipedia.org/wiki/IMG_(file_format)">MFM sector image format</a> (typically .img)</p>
+</li>
+<li>
+<p><a href="https://en.wikipedia.org/wiki/Qcow">QCOW2</a> - QEMU copy-on-write v2 (.qcow2)</p>
+<div class="ulist">
+<ul>
+<li>
+<p>No support in DOSBox-X for QCOW2 compression or encryption options</p>
+</li>
+<li>
+<p>Must always be mounted as a drive number as such: <code>imgmount 2 hdd.qcow2</code></p>
+</li>
+</ul>
+</div>
+</li>
+<li>
+<p><a href="https://en.wikipedia.org/wiki/VHD_(file_format)">Virtual Hard Disk</a> Volume (.vhd)</p>
+</li>
+<li>
+<p>Bochs bximage (typically .img)</p>
+<div class="ulist">
+<ul>
+<li>
+<p>No support in DOSBox-X for VHD dynamic or encryption options</p>
+</li>
+</ul>
+</div>
+</li>
+<li>
+<p>NEC PC-98 harddisk images (.nhd or .hdi)</p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p>Creating and accessing harddisk images is very similar to diskette images, with the exception that they also contain partitions and they may contain other filesystems.</p>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_creating_harddisk_images">Creating harddisk images</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>DOSBox-X has a built-in <code>IMGMAKE</code> command with which you can create partitioned and FAT formatted harddisk images in MFM sector image format from the DOSBox-X command prompt.
+<code>IMGMAKE</code> only creates a single primary DOS partition per harddisk image file.</p>
+</div>
+<div class="sect2">
+<h3 id="_fat_version">FAT version</h3>
+<div class="paragraph">
+<p>The <code>IMGMAKE</code> command supports FAT12, FAT16 and FAT32 formatted partitions, and will try to automatically decide which type to use depending on some rules:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p>If the harddisk size is smaller than 12MB, it will use FAT12</p>
+</li>
+<li>
+<p>If the harddisk size is 12MB or larger, up to 2GB, it will use FAT16</p>
+</li>
+<li>
+<p>If the harddisk size is greater than 2GB it will use FAT32</p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p>One exception to the rule is, if your reported DOS version is 7.1 or higher, than harddisks of 512MB or larger will be formatted FAT32.</p>
+</div>
+<div class="paragraph">
+<p>Using the <code>-FAT</code> option it is possible to overrule the decision process.
+But this can cause <code>IMGMAKE</code> to give errors if the partition size is not supported by the filesystem type, or can cause other problems such as performance issues or waisted disk space.</p>
+</div>
+<div class="paragraph">
+<p>e.g.</p>
+</div>
+<div class="literalblock">
+<div class="content">
+<pre>IMGMAKE hdd.img -t hd -size 400 -fat 32</pre>
+</div>
+</div>
+<div class="paragraph">
+<p>FAT12 and FAT16 harddisk images will appear to have been partitioned and formatted by MS-DOS 5.0.
+FAT32 harddisk images will appear to have been formatted by Windows 98.</p>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_using_templates">Using templates</h3>
+<div class="paragraph">
+<p>Example:</p>
+</div>
+<div class="literalblock">
+<div class="content">
+<pre>IMGMAKE hdd.img -t hd_520</pre>
+</div>
+</div>
+<div class="paragraph">
+<p>This will create a 520MB partitioned and formatted harddisk image named hdd.img.</p>
+</div>
+<div class="paragraph">
+<p>The image filename for this command is optional, and if you do not specify a filename, then the name IMGMAKE.IMG will be used, such as the following:</p>
+</div>
+<div class="literalblock">
+<div class="content">
+<pre>IMGMAKE -t hd_520</pre>
+</div>
+</div>
+<div class="admonitionblock note">
+<table>
+<tr>
+<td class="icon">
+<div class="title">Note</div>
+</td>
+<td class="content">
+The filename in this case is not limited to the DOS 8.3 filename length, but rather by your host filesystem. In DOSBox-X you can also specify the <code>-force</code> parameter to overwrite the file if it already exists.
+</td>
+</tr>
+</table>
+</div>
+<div class="paragraph">
+<p>You can optionally attempt to force <code>IMGMAKE</code> to use a certain filesystem type with the <code>-fat</code> parameter.</p>
+</div>
+<div class="paragraph">
+<p>You can optionally create a harddisk image that is not partitioned and formatted with:</p>
+</div>
+<div class="literalblock">
+<div class="content">
+<pre>IMGMAKE hdd.img -t hd_520 -nofs</pre>
+</div>
+</div>
+<div class="admonitionblock note">
+<table>
+<tr>
+<td class="icon">
+<div class="title">Note</div>
+</td>
+<td class="content">
+DOSBox-X has no integrated FDISK and FORMAT commands, so creating harddisk images that are not partitioned and formatted is typically not recommended.
+</td>
+</tr>
+</table>
+</div>
+<div class="paragraph">
+<p>Supported harddisk sizes options using templates:</p>
+</div>
+<table class="tableblock frame-all grid-all stretch">
+<colgroup>
+<col style="width: 20%;">
+<col style="width: 20%;">
+<col style="width: 20%;">
+<col style="width: 20%;">
+<col style="width: 20%;">
+</colgroup>
+<thead>
+<tr>
+<th class="tableblock halign-left valign-top">Disk type</th>
+<th class="tableblock halign-left valign-top">Capacity</th>
+<th class="tableblock halign-left valign-top">CHS</th>
+<th class="tableblock halign-left valign-top">IMGMAKE option</th>
+<th class="tableblock halign-left valign-top">Filesystem</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Seagate ST225</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">21MB (~ 20.23MB usable)</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">615,4,17</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">-t hd_st225</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">FAT16</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Seagate ST251</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">41MB (~ 40.65MB usable)</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">820,6,17</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">-t hd_st251</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">FAT16</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">241MB (~ 240.39MB usable)</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">489,16,63</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">-t hd_250</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">FAT16</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">504MB (~ 503.21MB usable)</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">1023,16,63</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">-t hd_520</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">FAT16</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">2GB (~ 1.96GB usable)</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">1023,64,63</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">-t hd_2gig</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">FAT16</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">4GB</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">1023,130,63</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">-t hd_4gig</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">FAT32</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">8GB</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">1023,255,63</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">-t hd_8gig</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">FAT32</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+<div class="sect2">
+<h3 id="_custom_size">Custom size</h3>
+<div class="paragraph">
+<p>Instead of using one of the templates, you can create a custom size harddisk up to 2TB using the <code>-size</code> option, or up to 8GB using the <code>-chs</code> geometry option.</p>
+</div>
+<div class="paragraph">
+<p>To create a partitioned and FAT16 formatted 31MB HDD image:</p>
+</div>
+<div class="literalblock">
+<div class="content">
+<pre>IMGMAKE hdd.img -t hd -size 31</pre>
+</div>
+</div>
+<div class="paragraph">
+<p>The same can be accomplished with the CHS (Cylinders, Heads, Sectors) geometry:</p>
+</div>
+<div class="literalblock">
+<div class="content">
+<pre>IMGMAKE hdd.img -t hd -chs 992,2,32</pre>
+</div>
+</div>
+<div class="paragraph">
+<p>The maximum allowed CHS value is 1023,255,63 which will create a 8GB HDD image.</p>
+</div>
+<div class="paragraph">
+<p>You can optionally create a harddisk image that is not partitioned and formatted by specifying <code>-nofs</code>:</p>
+</div>
+<div class="literalblock">
+<div class="content">
+<pre>IMGMAKE hdd.img -t hd -size 31 -nofs</pre>
+</div>
+</div>
+<div class="admonitionblock note">
+<table>
+<tr>
+<td class="icon">
+<div class="title">Note</div>
+</td>
+<td class="content">
+DOSBox-X has no integrated FDISK and FORMAT commands, so creating harddisk images that are not partitioned and formatted is typically not recommended.
+</td>
+</tr>
+</table>
+</div>
+<div class="paragraph">
+<p>The <code>IMGMAKE</code> command also has an optional ''-bat'' option for use on Windows systems.</p>
+</div>
+<div class="literalblock">
+<div class="content">
+<pre>IMGMAKE hdd.img -t hd -size 31 -nofs -bat</pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Will cause both a hdd.img and a hdd.bat to be generated.
+The BAT file will contain the imgmount command to mount the harddisk image, including geometry.</p>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_mounting_harddisk_images">Mounting harddisk images</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>Mounting a harddisk image in DOSBox-X is typically as simple as</p>
+</div>
+<div class="literalblock">
+<div class="content">
+<pre>imgmount c hdd.img</pre>
+</div>
+</div>
+<div class="paragraph">
+<p>This is equivalent to</p>
+</div>
+<div class="literalblock">
+<div class="content">
+<pre>imgmount C: hdd.img
+imgmount C: disk.ima -t hdd
+imgmount C: disk.ima -t hdd -fs fat</pre>
+</div>
+</div>
+<div class="paragraph">
+<p>If you do not specify an image filename, then the name IMGMAKE.IMG will be used, such as the following:</p>
+</div>
+<div class="literalblock">
+<div class="content">
+<pre>imgmount c</pre>
+</div>
+</div>
+<div class="admonitionblock note">
+<table>
+<tr>
+<td class="icon">
+<div class="title">Note</div>
+</td>
+<td class="content">
+The <code>-t hdd</code> option is only needed with DOSBox-X when mounting a harddisk image on the emulated A: or B: drive, as those are normally reserved for diskettes.
+Or when mounting a harddisk image that is not partitioned or formatted, or formatted with an unsupported filesystem in combination with the <code>-size</code> parameter.
+The <code>-fs fat</code> option should not be needed as the FAT12, FAT16 or FAT32 filesystem types will be automatically detected.
+</td>
+</tr>
+</table>
+</div>
+<div class="admonitionblock note">
+<table>
+<tr>
+<td class="icon">
+<div class="title">Note</div>
+</td>
+<td class="content">
+If a harddisk image has either a "FAT16 LBA" or "FAT32" partition, the mount will fail unless a higher than default DOS version is set.
+Those partition types are normally restricted to, respectively, MS-DOS 7.0 (Windows 95) or MS-DOS 7.1 (Windows 95 OSR2/Windows 98) or later, and therefore DOSBox-X does not allow them to be mounted with the default DOS 5.0 version that DOSBox-X reports.
+You can change this in your DOSBox-X config file by for instance setting ver=7.1 in the [dos] section. Or alternatively from the DOSBox-X DOS prompt by typing for instance <code>ver set 7.1</code>.
+</td>
+</tr>
+</table>
+</div>
+<div class="admonitionblock note">
+<table>
+<tr>
+<td class="icon">
+<div class="title">Note</div>
+</td>
+<td class="content">
+If a harddisk image has multiple partitions, you can only access the first partition from the DOSBox-X integrated DOS. When booting real DOS in DOSBox-X, all partitions will be accessible.
+</td>
+</tr>
+</table>
+</div>
+<div class="paragraph">
+<p>A harddisk image that is partitioned, but not formatted, or has an unsupported filesystem can be mounted as follows:</p>
+</div>
+<div class="literalblock">
+<div class="content">
+<pre>imgmount 2 hdd.img</pre>
+</div>
+</div>
+<div class="paragraph">
+<p>It is required to use a device number instead of a drive letter in this case. DOSBox-X automatically assumes the -fs none flag when a drive number is used, but this flag is required for vanilla DOSBox or other DOSBox forks.</p>
+</div>
+<table class="tableblock frame-all grid-all stretch">
+<colgroup>
+<col style="width: 25%;">
+<col style="width: 25%;">
+<col style="width: 25%;">
+<col style="width: 25%;">
+</colgroup>
+<thead>
+<tr>
+<th class="tableblock halign-left valign-top">Device number</th>
+<th class="tableblock halign-left valign-top">Controller option</th>
+<th class="tableblock halign-left valign-top">IDE Controller</th>
+<th class="tableblock halign-left valign-top">Master/Slave</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">2</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">-ide 1m</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Primary</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Master</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">3</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">-ide 1s</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Primary</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Slave</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">4</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">-ide 2m</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Secondary</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Master</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">5</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">-ide 2s</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Secondary</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Slave</p></td>
+</tr>
+</tbody>
+</table>
+<div class="paragraph">
+<p>A harddisk image that is not yet partitioned needs additional parameters, such as a template or the size in SHC.</p>
+</div>
+<div class="paragraph">
+<p>Using the original template it was based on:</p>
+</div>
+<div class="literalblock">
+<div class="content">
+<pre>imgmount 2 hdd.img -t hd_4gig</pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Or using the original SHC it was based on:</p>
+</div>
+<div class="literalblock">
+<div class="content">
+<pre>imgmount 2 hdd.img -t hdd -size 512,32,2,992</pre>
+</div>
+</div>
+<div class="admonitionblock important">
+<table>
+<tr>
+<td class="icon">
+<div class="title">Important</div>
+</td>
+<td class="content">
+The order of the geometry values for the IMGMOUNT command are reversed compared to IMGMAKE.
+So instead of specifying the size in CHS order, it needs to be specified in SHC (Sectors, Heads, Cylinders) order.
+In addition it needs to be prefixed with the bytes-per-sector, which should always be 512 for now.
+So a CHS of 992,2,32 becomes <code>-size 512,32,2,992</code>.
+</td>
+</tr>
+</table>
+</div>
+<div class="sect2">
+<h3 id="_mounting_from_the_drive_menu_2">Mounting from the Drive menu</h3>
+<div class="paragraph">
+<p>This is exclusive to the DOSBox-X Windows version.</p>
+</div>
+<div class="paragraph">
+<p>To access it, DOSBox-X needs to be in windowed mode, there is a menu bar with a "Drive" drop down. Select a drive letter, and you will see various mount options.</p>
+</div>
+<div class="paragraph">
+<p>The only mount option that can be used for image files is the "Mount disk image" option.
+All the other mount options are host folder mounts.</p>
+</div>
+<div class="paragraph">
+<p>Select the Drive menu, and for instance the "C" drive and "Mount disk image", now a file browser will allow you to select an image file.</p>
+</div>
+<div class="admonitionblock caution">
+<table>
+<tr>
+<td class="icon">
+<div class="title">Caution</div>
+</td>
+<td class="content">
+It is recommended to only mount harddisk images when at the integrated DOSBox-X DOS prompt.
+Doing so when running a program, real DOS or Win9x is strongly discouraged as it can lead to data corruption and/or crashes.
+</td>
+</tr>
+</table>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_unmounting_harddisk_images">Unmounting harddisk images</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>Harddisk images can be unmounted using the <code>-u</code> flag. e.g.</p>
+</div>
+<div class="literalblock">
+<div class="content">
+<pre>imgmount c -u</pre>
+</div>
+</div>
+<div class="paragraph">
+<p>You can also unmount using the <code>MOUNT</code> command.</p>
+</div>
+<div class="literalblock">
+<div class="content">
+<pre>mount c -u</pre>
+</div>
+</div>
+<div class="paragraph">
+<p>It is also possible to unmount the currently mounted image (if any), and mount a new image in one step.</p>
+</div>
+<div class="literalblock">
+<div class="content">
+<pre>imgmount c hdd2.img -u</pre>
+</div>
+</div>
+<div class="paragraph">
+<p>This will cause the currently mounted harddisk image (if any) to be unmounted, and hdd2.img to be mounted instead.</p>
+</div>
+<div class="admonitionblock tip">
+<table>
+<tr>
+<td class="icon">
+<div class="title">Tip</div>
+</td>
+<td class="content">
+Alternatively you can unmount a harddisk image from the DOSBox-X menu bar by selecting "Drive", followed by the drive letter and "Unmount".
+</td>
+</tr>
+</table>
+</div>
+<div class="admonitionblock caution">
+<table>
+<tr>
+<td class="icon">
+<div class="title">Caution</div>
+</td>
+<td class="content">
+It is recommended to only unmount harddisk images when at the integrated DOSBox-X DOS prompt.
+Doing so when running a program, real DOS or Win9x is strongly discouraged as it can lead to data corruption and/or crashes.
+</td>
+</tr>
+</table>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_booting_from_a_harddisk_image">Booting from a harddisk image</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>First mount the harddisk image, and then boot from it as follows:</p>
+</div>
+<div class="literalblock">
+<div class="content">
+<pre>imgmount c hdd.img
+boot c:</pre>
+</div>
+</div>
+<div class="admonitionblock note">
+<table>
+<tr>
+<td class="icon">
+<div class="title">Note</div>
+</td>
+<td class="content">
+DOSBox-X supports the <code>-L</code> parameter for the <code>BOOT</code> command for backward compatibility with vanilla DOSBox, or other forks, but the parameter is not required with DOSBox-X to boot from a drive letter.
+</td>
+</tr>
+</table>
+</div>
+<div class="admonitionblock tip">
+<table>
+<tr>
+<td class="icon">
+<div class="title">Tip</div>
+</td>
+<td class="content">
+Once a disk image is mounted, you can alternatively also boot from an disk image by selecting "Drive" from the menu bar (when in windowed mode), followed by the drive letter and "Boot from drive". In the DOSBox-X Windows version you can also mount and boot a disk image in one step by selecting "Boot from disk image" from this submenu.
+</td>
+</tr>
+</table>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_using_harddisk_images_in_linux">Using harddisk images in Linux</h2>
+<div class="sectionbody">
+<div class="admonitionblock warning">
+<table>
+<tr>
+<td class="icon">
+<div class="title">Warning</div>
+</td>
+<td class="content">
+You should never mount a harddisk image simultaneously in both DOSBox-X and in Linux, as that can cause corruption of files or the filesystem on the diskette image.
+</td>
+</tr>
+</table>
+</div>
+<div class="sect2">
+<h3 id="_gnome_disk_image_mounter_2">Gnome Disk Image Mounter</h3>
+<div class="paragraph">
+<p>When using the Gnome desktop environment, you can open .IMG disks with the "Disk Image Mounter".
+Simply right click on the file, and select 'Open with Disk Image Mounter' and the file will be mounted in the Gnome file manager.</p>
+</div>
+<div class="admonitionblock note">
+<table>
+<tr>
+<td class="icon">
+<div class="title">Note</div>
+</td>
+<td class="content">
+If the harddisk image contains multiple partitions, they will ALL be mounted.
+</td>
+</tr>
+</table>
+</div>
+<div class="paragraph">
+<p>Disks can be unmounted from the Gnome file manager by clicking the unmount button next to the volume name.</p>
+</div>
+<div class="paragraph">
+<p>Disk images can also be mounted from the Linux Terminal using:</p>
+</div>
+<div class="literalblock">
+<div class="content">
+<pre>gnome-disk-image-mounter hdd.img</pre>
+</div>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_mounting_a_harddisk_image_from_the_shell">Mounting a harddisk image from the shell</h3>
+<div class="paragraph">
+<p>The more traditional Linux method of mounting harddisk image files from a Linux terminal. This method requires sudo access.</p>
+</div>
+<div class="literalblock">
+<div class="content">
+<pre>sudo mount -o loop,offset=32256,uid=$UID hdd.img /mnt</pre>
+</div>
+</div>
+<div class="paragraph">
+<p>The above command will cause hdd.img to be mounted under /mnt</p>
+</div>
+<div class="paragraph">
+<p>The offset is required to skip the Master Boot Record (MBR) and partition data at the beginning of the harddisk image.</p>
+</div>
+<div class="admonitionblock tip">
+<table>
+<tr>
+<td class="icon">
+<div class="title">Tip</div>
+</td>
+<td class="content">
+This command will mount the first partition only.
+If the harddisk image contains multiple partitions, you can find the offset for the other partitions by running <code>fdisk -l hdd.img</code> and looking for the "Start" of the partition, and multiply the value by 512.
+For the first partition this should normally always start at 63*512=32256
+</td>
+</tr>
+</table>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_using_harddisk_images_in_windows">Using harddisk images in Windows</h2>
+<div class="sectionbody">
+<div class="admonitionblock note">
+<table>
+<tr>
+<td class="icon">
+<div class="title">Note</div>
+</td>
+<td class="content">
+Windows 8 and newer has integrated support for mounting image files, and will offer the "Mount" option when you right-click a .IMG file.
+Unfortunately this support is incompatible with the typical MFM image files used by DOSBox-X, and the mount will fail.
+</td>
+</tr>
+</table>
+</div>
+<div class="paragraph">
+<p>One tool which is able to open harddisk images is 7-Zip.</p>
+</div>
+</div>
+</div>
+<h1 id="_cd_rom_or_dvd_images" class="sect0">CD-ROM or DVD images</h1>
+<div class="openblock partintro">
+<div class="content">
+<div class="paragraph">
+<p>DOSbox-X supports CD-ROM or DVD image files in ISO9660, CUE/BIN or MDF image format.</p>
+</div>
+<div class="paragraph">
+<p>ISO9660 (aka ISO) is the easiest format to work with, as long as there is only a single track on the CD or DVD.
+If the CD or DVD contains multiple tracks, the use of CUE/BIN or MDF is required.</p>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_mounting_cd_or_dvd_images">Mounting CD or DVD images</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>Mounting a CD or DVD image in DOSBox-X is typically as simple as</p>
+</div>
+<div class="literalblock">
+<div class="content">
+<pre>imgmount d cdrom.iso</pre>
+</div>
+</div>
+<div class="paragraph">
+<p>This is equivalent to</p>
+</div>
+<div class="literalblock">
+<div class="content">
+<pre>imgmount D: cdrom.iso
+imgmount D: cdrom.iso -t iso
+imgmount D: cdrom.iso -t cdrom</pre>
+</div>
+</div>
+<div class="admonitionblock note">
+<table>
+<tr>
+<td class="icon">
+<div class="title">Note</div>
+</td>
+<td class="content">
+The <code>-t iso</code> or <code>-t cdrom</code> parameter is only needed with DOSBox-X when the extension is not .ISO, .CUE or .MDF.
+</td>
+</tr>
+</table>
+</div>
+<div class="sect2">
+<h3 id="_accessing_a_cd_or_dvd_in_real_dos">Accessing a CD or DVD in real DOS</h3>
+<div class="paragraph">
+<p>With the integrated DOS that DOSBox-X provides, you do not need to worry about loading a CD-ROM driver and MSCDEX.
+If however, you boot real DOS in DOSBox-X, any mounted CD-ROM images will not be accessible until you load both a IDE CD-ROM driver and MSCDEX.</p>
+</div>
+<div class="paragraph">
+<p>For a IDE CD-ROM driver we recommend either OAKCDROM.SYS or UIDE.SYS.</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p>OAK stands for OEM Adaptation Kit, and this is the IDE CD-ROM driver shipped on the Windows 95, 98 and ME boot disks.</p>
+</li>
+<li>
+<p>UIDE.SYS is available from FreeDOS.</p>
+</li>
+<li>
+<p>You can also use the VIDE-CDD.SYS driver which loads faster than OAKCDROM.SYS.</p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p>MSCDEX.EXE is included with MS-DOS 6.x, or you can use the SHSUCDX.EXE redirector available from FreeDOS.</p>
+</div>
+<div class="paragraph">
+<p>Edit the config.sys file and add the following line to it:</p>
+</div>
+<div class="literalblock">
+<div class="content">
+<pre>device=c:\dos\oakcdrom.sys /D:cdrom001</pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Edit the autoexec.bat file and add the following line to it:</p>
+</div>
+<div class="literalblock">
+<div class="content">
+<pre>device=c:\dos\mscdex.exe /D:cdrom001 /L:D</pre>
+</div>
+</div>
+<div class="paragraph">
+<p>The above assumes oakcdrom.sys and mscdex.exe are in the C:\DOS directory in the harddisk image file.
+You can substitute oakcdrom.sys and mscdex.exe with their FreeDOS equivalents with the same parameters.</p>
+</div>
+<div class="paragraph">
+<p>The <code>/L:D</code> will cause MSCDEX to use the D: drive for the CD-ROM, adjust as needed.</p>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_mounting_multiple_cd_or_dvd_images">Mounting multiple CD or DVD images</h3>
+<div class="paragraph">
+<p>Some DOS programs or games came on multiple CD or DVDs, for this purpose it is possible to mount multiple images on one drive letter and swap between them.
+e.g.</p>
+</div>
+<div class="literalblock">
+<div class="content">
+<pre>imgmount d cdrom1.iso cdrom2.iso cdrom3.iso</pre>
+</div>
+</div>
+<div class="paragraph">
+<p>In this example cdrom1.iso will be immediately usable on D: but cdrom2.iso will require a disc-swap action.</p>
+</div>
+<div class="paragraph">
+<p>Disk-swap can be done using either a hot-key combination, or using the menu bar.
+The hot-key for Windows is F11+CTRL+C and for other platforms F12+CTRL+C.
+Or from the menu you can select "DOS" followed by "Swap CD".</p>
+</div>
+<div class="paragraph">
+<p>If you lose track of which disc is currently active, open the 'Drive' menu option, select the drive letter and select 'Drive Information'.</p>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_mounting_from_the_drive_menu_3">Mounting from the Drive menu</h3>
+<div class="paragraph">
+<p>This is exclusive to the DOSBox-X Windows version.
+The advantage of this option is, that you don&#8217;t need to mount all the CD or DVDs before starting your program or game, but you can mount CD or DVD images when needed.</p>
+</div>
+<div class="paragraph">
+<p>To access it, DOSBox-X needs to be in windowed mode, there is a menu bar with a "Drive" drop down. Select a drive letter, and you will see various mount options.</p>
+</div>
+<div class="paragraph">
+<p>The only mount option that can be used for image files is the "Mount disk image" option.
+All the other mount options are host folder mounts.</p>
+</div>
+<div class="paragraph">
+<p>Select the Drive menu, and a suitable drive letter, and "Mount disk image". Now a file browser will allow you to select an image file.</p>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_unmounting_cd_or_dvd_images">Unmounting CD or DVD images</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>CD or DVD images can be unmounted using the <code>-u</code> flag. e.g.</p>
+</div>
+<div class="literalblock">
+<div class="content">
+<pre>imgmount d -u</pre>
+</div>
+</div>
+<div class="paragraph">
+<p>You can also unmount using the <code>MOUNT</code> command.</p>
+</div>
+<div class="literalblock">
+<div class="content">
+<pre>mount d -u</pre>
+</div>
+</div>
+<div class="paragraph">
+<p>It is also possible to unmount the currently mounted image (if any), and mount a new image in one step.</p>
+</div>
+<div class="literalblock">
+<div class="content">
+<pre>imgmount d cdrom2.iso -u</pre>
+</div>
+</div>
+<div class="paragraph">
+<p>This will cause the currently mounted image file (if any) to be unmounted, and cdrom2.iso to be mounted instead.</p>
+</div>
+<div class="admonitionblock tip">
+<table>
+<tr>
+<td class="icon">
+<div class="title">Tip</div>
+</td>
+<td class="content">
+Alternatively you can unmount an image from the DOSBox-X menu bar (when in windowed mode) by selecting "Drive", followed by the drive letter and "Unmount".
+</td>
+</tr>
+</table>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_boot_from_a_cd_or_dvd_image">Boot from a CD or DVD image</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>DOSBox-X has limited support for booting from a CD or DVD.
+Only those that use the El Torito emulated diskette method are supported, such as the Windows 98 or Windows ME full-OEM editions.</p>
+</div>
+<div class="paragraph">
+<p>You first need to mount the CD-ROM, then mount the diskette image, located on the CD-ROM, and finally you can boot from the A: drive:</p>
+</div>
+<div class="literalblock">
+<div class="content">
+<pre>imgmount d Win98.iso
+imgmount a -bootcd d
+boot A:</pre>
+</div>
+</div>
+<div class="admonitionblock note">
+<table>
+<tr>
+<td class="icon">
+<div class="title">Note</div>
+</td>
+<td class="content">
+The second command is equivalent to <code>imgmount a -el-torito d</code> or <code>imgmount a -el-torito d -t floppy</code>. If this command gives the error "<strong>El Torito CD-ROM boot record not found</strong>", the CD-ROM is either not bootable or uses an unsupported boot method.
+</td>
+</tr>
+</table>
+</div>
+<div class="admonitionblock note">
+<table>
+<tr>
+<td class="icon">
+<div class="title">Note</div>
+</td>
+<td class="content">
+DOSBox-X supports the <code>-L</code> parameter for the <code>BOOT</code> command for backward compatibility with vanilla DOSBox, or other forks, but the parameter is not required with DOSBox-X to boot from a drive letter.
+</td>
+</tr>
+</table>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_using_cd_or_dvd_images_in_linux">Using CD or DVD images in Linux</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>ISO images are fully supported by standard Linux tools, but CUE/BIN and MDF are not.</p>
+</div>
+<div class="sect2">
+<h3 id="_gnome_disk_image_mounter_3">Gnome Disk Image Mounter</h3>
+<div class="paragraph">
+<p>If your using the Gnome desktop environment, you can open .ISO disks with the "Disk Image Mounter". Simply right click on the file, and select 'Open with Disk Image Mounter' and the file will be mounted in the Gnome file manager.
+This method will not work for CUE/BIN or MDF files.</p>
+</div>
+<div class="paragraph">
+<p>Disks can be unmounted from the Gnome file manager by clicking the unmount button next to the volume name.</p>
+</div>
+<div class="paragraph">
+<p>ISO images can also be mounted from the Linux Terminal using:</p>
+</div>
+<div class="literalblock">
+<div class="content">
+<pre>gnome-disk-image-mounter cdrom.iso</pre>
+</div>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_cdemu">CDEmu</h3>
+<div class="paragraph">
+<p><a href="https://cdemu.sourceforge.io/">CDEmu</a> is a CD-ROM emulator for Linux. It supports numerous image formats, including ISO and CUE/BIN.</p>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_mounting_a_iso_image_from_the_shell">Mounting a ISO image from the shell</h3>
+<div class="paragraph">
+<p>The more traditional Linux method of mounting diskette image files from a Linux terminal.
+This method will not work for CUE/BIN or MDF files.
+This method requires sudo access.</p>
+</div>
+<div class="literalblock">
+<div class="content">
+<pre>sudo mount -o loop cdrom.iso /mnt</pre>
+</div>
+</div>
+<div class="paragraph">
+<p>The above command will cause cdrom.iso to be mounted under /mnt.</p>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_using_cd_or_dvd_images_in_windows">Using CD or DVD images in Windows</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>Windows 8 and later has integrated support for mounting ISO files. Simply right-click a ISO file and select "Mount".</p>
+</div>
+<div class="paragraph">
+<p>Alternatively there is <a href="https://wincdemu.sysprogs.org/">WinCDEmu</a> which can mount amongst others ISO, CUE/BIN and MDF images.</p>
+</div>
+<div class="paragraph">
+<p>Programs like 7-Zip, WinRAR and WinZIP can also extract the contents of a ISO file</p>
+</div>
+</div>
+</div>
+<h1 id="_copying_files_into_or_out_of_image_files_from_dosbox_x" class="sect0">Copying files into or out of image files from DOSBox-X</h1>
+<div class="openblock partintro">
+<div class="content">
+<div class="paragraph">
+<p>If you need to copy files into, or out of an image file, this can be done from the DOSBox-X integrated DOS.</p>
+</div>
+<div class="paragraph">
+<p>Obviously, copying files to write-protected media is not possible. As such you cannot copy files to a CD or DVD image, or to write-protected diskette images.</p>
+</div>
+<div class="paragraph">
+<p>The general steps are as follows:</p>
+</div>
+<div class="olist arabic">
+<ol class="arabic">
+<li>
+<p>Start DOSBox-X</p>
+</li>
+<li>
+<p><code>imgmount</code> the image file in DOSBox-X that you want to copy files into or out of</p>
+</li>
+<li>
+<p><code>mount</code> a host directory or drive</p>
+</li>
+<li>
+<p>Copy the files using the <code>copy</code> or <code>xcopy</code> commands</p>
+</li>
+</ol>
+</div>
+<div class="paragraph">
+<p>Example of extracting the contents of a CD-ROM image file:</p>
+</div>
+<div class="literalblock">
+<div class="content">
+<pre>IMGMOUNT d cdrom.iso
+MOUNT C .
+MKDIR C:\CDROM
+XCOPY D: C:\CDROM /I /S</pre>
+</div>
+</div>
+<div class="paragraph">
+<p>This will create a new "CDROM" directory on the host system with the contents of the cdrom.iso file.</p>
+</div>
+<div class="paragraph">
+<p>Example of copying a file into a harddisk image file:</p>
+</div>
+<div class="literalblock">
+<div class="content">
+<pre>IMGMOUNT C hdd.img
+MOUNT D .
+COPY D:\UNZIP.EXE C:\DOS</pre>
+</div>
+</div>
+<div class="paragraph">
+<p>This copies the file UNZIP.EXE from the host system to the C:\DOS directory in the harddisk image file.</p>
+</div>
+</div>
+</div>
+<h1 id="_creating_a_ram_drive" class="sect0">Creating a RAM drive</h1>
+<div class="openblock partintro">
+<div class="content">
+<div class="paragraph">
+<p>If you need a temporary drive, creating a RAM drive is as simple as running</p>
+</div>
+<div class="literalblock">
+<div class="content">
+<pre>IMGMOUNT e -t ram -size 20000</pre>
+</div>
+</div>
+<div class="paragraph">
+<p>This will create a temporary RAM drive as drive E: with a size of 20MB.</p>
+</div>
+<div class="admonitionblock caution">
+<table>
+<tr>
+<td class="icon">
+<div class="title">Caution</div>
+</td>
+<td class="content">
+The contents of the RAM drive will be lost if the drive is unmounted, a program or yourself issues a reset in DOSBox-X or DOSBox-X is shut-down. They do however survive booting into real DOS.
+</td>
+</tr>
+</table>
+</div>
+</div>
+</div>
+<h1 id="_qcow2_support" class="sect0">QCOW2 support</h1>
+<div class="openblock partintro">
+<div class="content">
+<div class="paragraph">
+<p>The QCOW2 harddisk image format has support for Copy-On-Write (COW), compression and encryption.
+DOSBox-X provides limited support for these images.</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p>There is no support for creating QCOW2 images in DOSBox-X</p>
+</li>
+<li>
+<p>There is no support for the compression and encryption options</p>
+</li>
+<li>
+<p>Copy-On-Write support needs to be handled manually outside of DOSBox-X</p>
+</li>
+<li>
+<p>Mounting QCOW2 images always requires the use of a drive number</p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p>A QCOW2 image can be created with <a href="https://www.qemu.org/download/">qemu-img</a> as such:</p>
+</div>
+<div class="literalblock">
+<div class="content">
+<pre>qemu-img create -f qcow2 hdd.qcow2 2G</pre>
+</div>
+</div>
+<div class="paragraph">
+<p>The above command will create a 2GB QCOW2 file named hdd.qcow2.</p>
+</div>
+<div class="paragraph">
+<p>Mounting a qcow2 file can be accomplished in DOSBox-X as follows:</p>
+</div>
+<div class="literalblock">
+<div class="content">
+<pre>imgmount 2 hdd.qcow2</pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Due to the need to mount QCOW2 images with a drive number, the content of a qcow2 file cannot be accessed from the DOSBox-X integrated DOS, but only after booting real DOS or Windows 9x.</p>
+</div>
+<div class="paragraph">
+<p>Once a qcow2 file has been partitioned and formatted and made bootable, you can boot from it as such:</p>
+</div>
+<div class="literalblock">
+<div class="content">
+<pre>imgmount 2 hdd.qcow2
+boot C:</pre>
+</div>
+</div>
+<div class="paragraph">
+<p>The advantage of the QCOW2 format, is the Copy-On-Write (COW) functionality which allows you to create a base image of for instance Windows 98, and then have different snapshots on top of that with different drivers or applications.
+This saves disk space compared to maintaining multiple full installations, and can prevent windows bit-rot.</p>
+</div>
+</div>
+</div>
+<h1 id="_archiving_diskettes" class="sect0">Archiving diskettes</h1>
+<div class="openblock partintro">
+<div class="content">
+<div class="paragraph">
+<p>If you have 3.5" or 5.25" diskettes that you want to convert to image files, there are a multitude of ways to accomplished this, and really out of the scope for this Guide.</p>
+</div>
+<div class="paragraph">
+<p>Some potential useful links:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p><a href="https://www.archiveteam.org/index.php?title=Rescuing_Floppy_Disks">Rescuing Floppy Disks</a></p>
+</li>
+<li>
+<p><a href="https://diskpreservation.com/">Floppy Disk Preservation</a></p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p>If you have a relatively modern PC running Windows with a floppy drive, the <code>IMGMAKE</code> command supports converting a diskette to an image file.
+This will even work with USB diskette drives.</p>
+</div>
+<div class="literalblock">
+<div class="content">
+<pre>IMGMAKE disk.ima -source a -r 3</pre>
+</div>
+</div>
+<div class="paragraph">
+<p>The above will try to read the real A: drive on your Windows PC, and convert it to a disk image named disk.ima. The <code>-r</code> option specifies how many retries are allowed while reading the original diskette.</p>
+</div>
+<div class="admonitionblock caution">
+<table>
+<tr>
+<td class="icon">
+<div class="title">Caution</div>
+</td>
+<td class="content">
+Do not buy "modern" USB 3.5" floppy drives available from retailers like Amazon.
+The drive mechanisms are junk and have a high likelihood of damaging your disk.
+Instead look for an older second-hand USB floppy drive from a known brand like Dell, HP, IBM, Lenovo, Teac or Toshiba.
+</td>
+</tr>
+</table>
+</div>
+</div>
+</div>
+<h1 id="_outstanding_issues" class="sect0">Outstanding issues</h1>
+<div class="openblock partintro">
+<div class="content">
+<div class="ulist">
+<ul>
+<li>
+<p>Mention Bochs bximage support in more detail. Does it support flat, sparse, growing formats?</p>
+</li>
+<li>
+<p>It seems from the sourcecode that <code>IMGMAKE</code> can create VHD images if you use the .vhd extension, but this does not work in practice?</p>
+</li>
+<li>
+<p>imgmount of QCOW2 images only works in combination with <code>-nofs</code>, which is rather restrictive. Can this be easily solved?</p>
+</li>
+<li>
+<p>How about IDE teriary through octenary controllers in dosbox-x config. Do the device number and/or -ide options continue counting up to device number 18 and <code>-ide 8s</code>?</p>
+</li>
+<li>
+<p>Accessing image files from MacOS? I have no MacOS system and no experience with them.</p>
+</li>
+<li>
+<p>PC-98 descriptions need checking as I have no experience with them.</p>
+</li>
+</ul>
+</div>
+</div>
+</div>
+</div>
+<div id="footer">
+<div id="footer-text">
+Last updated 2020-10-04 19:07:40 -0400
+</div>
+</div>
+</body>
+</html>

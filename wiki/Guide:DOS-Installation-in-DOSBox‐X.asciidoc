@@ -1,0 +1,160 @@
+ifdef::env-github[:suffixappend:]
+ifndef::env-github[:suffixappend: .html]
+
+Back to the link:Home{suffixappend}[DOSBox-X Wiki Welcome page].
+
+:toc: macro
+
+# PC DOS and MS-DOS Installation Guide
+
+toc::[]
+
+This guide explains how to boot regular IBM PC DOS or Microsoft MS-DOS in DOSBox-X, including creating hard disk images.
+
+## README.1ST
+Before going through this guide, consider if you really need this as the integrated DOS functionality in DOSBox-X is more convenient for typical use-cases. Booting regular DOS is normally not necessary to run DOS applications such as games, or even Windows version up to 3.11 in DOSBox-X. And even if you have a application that requires a specific DOS version, you can change the reported version of the integrated DOS in DOSBox-X. There are three ways to change the reported DOS version:
+
+1. There is a setting "ver" under the [dos] section in DOSBox-X's config file (dosbox-x.conf by default), or from the DOSBox-X Configuration GUI. For example, setting "ver = 7.1" will cause DOSBox-X to set the initial DOS version as 7.1, instead of the default 5.0.
+2. You can also set the reported DOS version with the ``VER`` command in the DOSBox-X command line. For example, ``VER 6.22`` will cause DOSBox-X to claim to be version 6.22, and ``VER 7.1`` will set the reported DOS version to 7.1 (7.10).
+3. Furthermore, you can select a DOS version to report from the “Reported DOS version” menu (under "DOS"), which includes 3.3, 5.0, 6.22, and 7.1, or you can enter another version by selecting "Edit". The new DOS version will take effect immediately after it is selected or entered.
+
+Note that LFN (long filename) support will be enabled when the reported version is set to 7.0 or higher with the default setting, and FAT32 disk image support will be enabled when the reported version is set to 7.1 or higher.
+
+## Disadvantages of booting DOS in DOSBox-X
+Some disadvantages of booting regular DOS in DOSBox-X includes:
+
+* Inability to use the ``MOUNT`` command to access directories on the host filesystem. All storage will have to be in the form of images, and they need to be mounted using ``IMGMOUNT`` *before* using the ``BOOT`` command to boot regular DOS.
+* If you need to access a CD or DVD drive you need to load a IDE/PATA CD/DVD driver and MSCDEX (or equivalent)
+* If you need a mouse, you need to load a mouse driver (e.g. MOUSE.COM or CTMOUSE.EXE)
+* Less free memory in the lower 640KB range, and having to tune available memory by selectively loading drivers high
+* If you need XMS memory you need to load a driver (typically HIMEM.SYS)
+* If you need EMS and/or UMB memory you need to load a driver (typically EMM386.EXE)
+
+## External links
+Some external links with useful information:
+
+* link:https://en.wikipedia.org/wiki/MS-DOS[Wikipedia: MS-DOS]
+* link:https://en.wikipedia.org/wiki/IBM_PC_DOS[Wikipedia: PC DOS]
+* link:https://en.wikipedia.org/wiki/Timeline_of_DOS_operating_systems[Wikipedia: Timeline of DOS operating systems]
+* http://16bitos.com/
+* link:https://pcjs.org/documents/books/mspl13/msdos/encyclopedia/[The MS-DOS Encyclopedia] (DOS 1.0-3.3)
+* link:https://www.vogonswiki.com/index.php/DOS_memory_management[DOS memory management]
+* link:https://www.computerhope.com/cdromd.htm[CD-ROM driver help]
+* link:https://www.computerhope.com/issues/ch000007.htm[How to get a mouse to work in MS-DOS]
+
+## Where to get DOS?
+These pages assume that you have PC DOS or MS-DOS diskette images. Getting these image files is outside the scope of this guide.
+
+## DOS version highlights
+### DOS versions 1.0-5.0x
+Unless noted otherwise, the PC DOS and MS-DOS versions are equivalent for this guide. There are various limitations that DOS imposes that are dependant on the version. A few milestones:
+
+* *PC DOS 1.0*, supports only 5.25" 8-sector 160KB (SSDD) diskettes
+* *PC DOS 1.1*, adds support for 5.25" 8-sector 320KB (DSDD) diskettes
+* *MS-DOS 1.25*
+** First version available to other OEMs
+** Equivalent to PC DOS 1.1 (but missing DISKCOPY, DISKCOMP, COMP and MODE utilities)
+* *DOS 2.0*
+** First to support HDDs up to 16 or 32MB (depending on OEM)
+** First to support 5.25" 9-sector 180KB (SSDD) and 360KB disks (DSDD)
+* *DOS 3.0*
+** First version to support FAT16 partitions up to 32MB
+** First version to support 5.25" 1.2MB disks (HD)
+** First version to support the AT internal clock
+* *DOS 3.2*, adds support for 3.5" 720kB disks (2DD)
+* *DOS 3.3*
+** First version to support extended and logical partitions
+** First version to support HDDs up to 504MB
+** First version to support 3.5" 1.44MB disks (HD)
+* *DOS 4.0*
+** First version to allow HDDs up to 4,095MB and larger partitions
+** First version to included HIMEM.SYS XMS 2.x driver with support for up to 16MB RAM
+* *DOS 5.0*
+** First version to support 3.5" 2.88MB disks (ED)
+** First version to support HDDs up to 7.84GB with 2GB partitions
+
+DOS 5 is the last version for which Microsoft and IBM shared code. From this point, Microsoft MS-DOS and IBM PC DOS are developed independently and start to diverge.
+
+### Microsoft MS-DOS 6+
+* *MS-DOS 6.0* included an updated HIMEM.SYS XMS 3.x driver with support for up to 64MB RAM
+* *MS-DOS 7.0* (included in Windows 95 and 95A)
+** First version to support VFAT
+** First version to allow up to 4GB RAM
+** First version to support HDDs up to 32GB (CHS type only)
+* *MS-DOS 7.1* (included in Windows 95 OSR2, 98 and 98SE)
+** First version to support FAT32
+** First version to support LBA for HDDs up to 2TB, although FDISK requires patch to support HDD size greater than 64GB
+* Considered the best MS-DOS version to be used in modern systems. While unofficial, there is also standalone MS-DOS 7.1 installation package available
+* *MS-DOS 8.0* (included in Windows ME)
+** Removed some features such as real-mode support, although there are patches to re-enable some of these features
+
+### IBM PC DOS 6+
+* *PC DOS 6.1*
+* *PC DOS 6.3*
+* *PC DOS 7.0 / 2000*
+** Introduces XDF diskettes
+* *PC DOS 7.1* (kernel files only)
+** Adds support for LBA and FAT32
+
+## DOS editions
+MS-DOS was licensed by many clone manufacturers and in the early days these OEM editions were _customized_ to the manufacturer, and therefore many of these early OEM specific editions don't work, or only work partially in DOSBox-X. Because of this, up to DOS version 3.2, it is typically easier to use the IBM PC DOS versions in DOSBox-X.
+
+## Booting DOS from diskettes
+Booting DOS from a diskette image is pretty straight forward. Start DOSBox-X and you should find yourself at the DOSBox-X ``Z:\>`` prompt. This is not a real DOS, but a 'simulated' DOS that is compatible with most DOS games and applications. Now type something equivalent to
+....
+BOOT dos.img
+....
+Assuming that dos.img is an uncompressed DOS disk image in IBM-MFM format (typically with a file extension of .IMG or .IMA), in your current working directory, it should start it. This even works for the original IBM PC DOS Version 1.00.
+
+image::images/MS-DOS:PC-DOS_1.0.png[Booting IBM PC DOS 1.00]
+
+## Guides to installing DOS
+
+* link:Guide%3AInstalling-DOS-2.x-3.x[Guide: Installing DOS 2.x-3.x in DOSBox-X]
+* link:Guide%3AInstalling-DOS-4[Guide: Installing DOS 4.0x in DOSBox-X]
+* link:Guide%3AInstalling-DOS-5[Guide: Installing DOS 5.0x in DOSBox-X]
+* link:Guide%3AInstalling-MS‐DOS-6[Guide: Installing MS-DOS 6.x in DOSBox-X]
+* link:Guide%3AInstalling-PC-DOS-6[Guide: Installing PC DOS 6.x in DOSBox-X]
+* link:Guide%3AInstalling-PC-DOS-7[Guide: Installing PC DOS 7/2000 in DOSBox-X]
+
+## Hints and Tips
+### DOS disk caching software
+DOS may put SMARTDRV.EXE in AUTOEXEC.BAT to run on startup. This made sense back in the day, but it provides no speed advantages when run on an emulator on a modern host operating system. In fact it may actually be counter productive. As such it is recommended to disable SmartDrive.
+
+### Shutdown DOS
+Normally when running DOSBox-X, you can simply ``EXIT`` and DOSBox-X will close. But when your running a real DOS Disk image, this no longer works.
+
+The solution to this is a small 3rd party utility called ``ATXOFF.COM``. This can be useful for scripted operations, for instance if your running a program from AUTOEXEC.BAT, and want it to shutdown DOSBox-X when it finishes. ATXOFF relies on the APM support provided by DOSBox-X.
+
+Note: If SMARTDRV is being used, you MUST do a ``SMARTDRV /C`` *before* running ATXOFF as otherwise you risk filesystem corruption.
+
+Example AUTOEXEC.BAT usage of ATXOFF in combination with Windows 3.x:
+....
+PATH C:\DOS;C:\WINDOWS
+SET TEMP=C:\WINDOWS\TEMP
+C:\WINDOWS\SMARTDRV.EXE
+C:\WINDOWS\WIN.COM
+C:\WINDOWS\SMARTDRV.EXE /C
+ATXOFF.COM
+....
+With this example, it will start Windows automatically on startup, and when you exit Windows, it will flush the disk cache and shutdown DOSBox-X.
+
+### Long wait on HIMEM.SYS
+If HIMEM is being loaded on startup, you may get a message "HIMEM is testing extended memory...", which can take a considerable amount of time and is pointless in a emulated environment. You can bypass it by editing CONFIG.SYS and changing ``DEVICE=C:\DOS\HIMEM.SYS`` to ``DEVICE=C:\DOS\HIMEM.SYS /TESTMEM:OFF``.
+
+### Reboot DOS
+You can reboot (restart) DOS by selecting the "Reboot guest system" menu item (under "Main"). If for some reason you want to do a reboot from the command-line, look for a 3rd party utility called ``RESTART.COM``. For rebooting DOS using such a utility you may also want to check the "Enable quick reboot" menu item (under "DOS") for a faster restart of the guest DOS system.
+
+### Boot menu
+When using ``IMGMAKE`` to create a partitioned image, and when booting from the image afterwards you will get the following boot menu with a 4 second timeout.
+
+....
+F1 . . . Dos
+F5 . . . disk2
+
+Default: F1
+....
+
+This is due to a special Master Boot Record (MBR) that IMGMAKE creates.
+
+Pressing Enter or F1 will continue the boot process, without having to wait for the timeout. Alternatively you can remove the boot menu by booting to DOS and running ``FDISK /MBR`` to create a new MBR without the boot menu.

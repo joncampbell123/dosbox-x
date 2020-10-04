@@ -1,0 +1,251 @@
+ifdef::env-github[:suffixappend:]
+ifndef::env-github[:suffixappend: .html]
+
+:toc: macro
+
+**Welcome to the DOSBox-X Wiki!**
+
+### Introduction
+
+DOSBox-X (homepage: link:https://dosbox-x.com[https://dosbox-x.com] or link:http://dosbox-x.software[http://dosbox-x.software]) is a cross-platform DOS emulator based on link:http://www.dosbox.com[DOSBox]. Like DOSBox, it emulates a PC necessary for running many MS-DOS games and applications that simply cannot be run on modern PCs and operating systems. However, while the main focus of DOSBox is for running DOS games, DOSBox-X goes much further than this. Started as a fork of the DOSBox project, it retains compatibility with the wide base of DOS games and DOS gaming DOSBox was designed for. But it is also a platform for running DOS applications, including emulating the environments to run Windows 3.x, 9x and ME and software written for those versions of Windows.
+
+DOSBox-X supports multiple host operating systems including Windows, Linux, macOS and DOS. Windows binaries (both 32-bit and 64-bit), Linux Flatpaks or RPM packages (64-bit), macOS packages (64-bit) and DOS packages (for MS-DOS 5.0+ or compatible) are officially released periodically, typically on the last day of a month or at the start of the next month. Please check out the link:http://dosbox-x.com[DOSBox-X homepage] for common packages of the latest release for the supported platforms. Also see the link:https://github.com/joncampbell123/dosbox-x/blob/master/INSTALL.md[INSTALL] page for DOSBox-X installation instructions and other packages. The portable ZIP and Linux RPM packages for all released DOSBox-X versions and their change logs can be found in the link:https://github.com/joncampbell123/dosbox-x/releases[Releases] page.
+
+The Windows installer for DOSBox-X is available to ease the installation process, and with the installer you will be able to start DOSBox-X as soon as the installation ends. During the installation you can select the default DOSBox-X build to run, and shell context menus can be optionally added for a fast launch of DOSBox-X from the Windows Explorer. The installer can also be used to upgrade from a previous version of DOSBox-X while keeping the previous user settings. The Windows installer for the latest official version of DOSBox-X (0.83.6 at this time) is available from: link:https://github.com/joncampbell123/dosbox-x/releases/download/dosbox-x-v0.83.6/dosbox-x-windows-0.83.6-setup.exe[dosbox-x-windows-0.83.6-setup.exe]
+
+toc::[]
+
+### DOSBox-X's Main Focus
+
+Unlike DOSBox's original focus on DOS games, DOSBox-X gives more focus on general DOS emulation, with the eventual goal of being a complete emulation package that covers all pre-2000 DOS and Windows 9x based hardware scenarios, including peripherals, motherboards, CPUs, and all manner of hardware that was made for PC hardware of that time. We believe that a better way to emulate the legacy PC platform is to give the user all the options they need to emulate everything from original IBM PC hardware with 64KB of RAM all the way up to late 1990's hardware, whatever it takes to get that game or software package to run. We have made effort to maintain and improve the emulation accuracy of the hardware and many more ways to tweak and configure the DOS virtual machine, but we also strike a balance between emulation quality, speed, and usability, including improving the out-of-the-box experience for new users who want to run DOS programs or games.
+
+### What DOSBox-X Can Do
+
+Derived from DOSBox, DOSBox-X emulates a PC complete with keyboard, mouse, joystick, sound, graphics, modem, printer, network, communication and storage devices, etc, in order to have a working DOS environment to run software designed for DOS. The vast majority of DOS (MS-DOS and PC DOS in particular) games and applications should run in DOSBox-X, although some of them may require additional configurations. DOSBox-X not only emulates a IBM PC, but also legacy systems such as the Japanese NEC PC-98. With the help of DOSBox-X, you will be able to run your favorite DOS games and programs on modern operating systems (32-bit and 64-bit) such as Microsoft Windows Vista, 7, 8, 10 and various Linux distributions. DOSBox-X also provides additional features that are useful but generally do not exist in a real DOS system, such as support for keyboard remapping and saving/loading states. With all these features it is usually very simple to make your DOS games or programs run smoothly within DOSBox-X.
+
+For examples of DOSBox-X's unique features, please see link:DOSBox‐X’s-Feature-Highlights{suffixappend}[DOSBox-X's Feature Highlights] page.
+
+### Getting Started to Run DOSBox-X
+
+After you download DOSBox-X and set up the program, the easiest way to run DOSBox-X is to start the DOSBox-X executable (for example, dosbox-x.exe on Windows and ./dosbox-x on Linux). If you install DOSBox-X using the Windows installer, then it can also be launched from the Windows Start menu. You will see an emulated DOS command line inside the DOSBox-X window within a few seconds. Unlike MS-DOS, where you usually see either C:\> or A:\> as the DOS prompt when it finishes booting, at the beginning you will only get a Z:\> drive when DOSBox-X loads. This is because DOSBox-X automatically creates a Virtual Internal Drive called Z: which contains various utilities that make a reasonable approximation of a fully setup DOS compatible environment. These are DOSBox-X's emulated DOS's external commands. You can check the link:DOSBox‐X’s-Supported-Commands{suffixappend}[DOSBox‐X’s Supported Commands] page for more information about them.
+
+If you want to access other drives such as the C: drive, you have to either make your directories available as drives in DOSBox-X, or mount image files. There are a few ways to do this:
+
+1. Mount local drives/directories: This can be usually done using MOUNT command, which allows you to mount your host drives/directories as DOSBox-X's drives. For example, in Windows ``MOUNT C D:\GAMES`` will give you a C drive in DOSBox-X which points to your Windows D:\GAMES directory (that was created before). In Linux, ``MOUNT C /home/username`` will give you a C drive in DOSBox-X which points to the /home/username directory. To change to the drive mounted like above, type ``C:``. If everything went fine, DOSBox-X will display the prompt "C:\>". To mount your CD drives on a Windows system in DOSBox-X you need to specify additional options. For example, you can use the command ``MOUNT D E:\ -T CDROM`` to enable CD support (including MSCDEX). For Windows you can also select a directory to mount via the Windows file browser from the "Drive" menu with some options ("Mount as Hard Disk", "Mount as CD-ROM" and "Mount as Floppy" within a drive).
+
+2. Auto-mount drives: If you are using Windows, DOSBox-X will ask if you want to give it access to your Windows drive when you try to go to a drive (e.g. C:), but that drive has not yet been mounted inside DOSBox-X. This basically makes DOSBox-X access to the same drives as in your Windows system. If you answer Y for Yes, then the whole Windows drive will be mounted and accessible within DOSBox-X. You can also automatically mount drives via the "Drive" menu (select a drive and "Mount Automatically"). Furthermore, it is possible to automatically mount all available Windows drives as DOSBox-X drives at start by setting the "automountall" config option to "true". Note however that it is not recommended to mount your whole Windows Drive C: inside DOSBox-X because DOSBox-X will then be able to access all files and directories in your Windows Drive C:, which may not be very safe.
+
+3. Mount image files: DOSBox-X supports mounting harddisk, floppy diskette and CD-ROM image files using the IMGMOUNT command. In Windows you can type ``IMGMOUNT A D:\GAMES\GAME_DISK.IMA`` to mount the floppy image file D:\GAMES\GAME_DISK.IMA located on your host system as an emulated floppy drive. Likewise on Linux ``IMGMOUNT A /home/username/Games/GAME_DISK.IMA`` will have the same effect. A CD-ROM image (in CUE or ISO format), including MSCDEX emulation and support for CD audio tracks, can be mounted in a similar way. On Windows ``IMGMOUNT D D:\GAMES\GAME_CD.ISO``, or on Linux ``IMGMOUNT D /home/username/Games/GAME_CD.ISO`` will mount the file GAME_CD.ISO on an emulated CD-ROM drive. For Windows you can also select an image file to mount via the Windows file browser from the "Drive" menu (select a drive and "Mount disk image").
+
+DOSBox-X features a graphical configuration tool which allows you to change its settings via its GUI interface. Similar to DOSBox, there is a configuration file (dosbox-x.conf in the current directory or in your user directory) where you can modify the DOSBox-X settings. But instead of editing this configuration file, you can change DOSBox-X settings directly within the DOSBox-X program. If DOSBox-X is not yet running, you can start this configuration tool by using the command-line option -startui (or -startgui) of the DOSBox-X executable. On the other hand, if DOSBox-X is already running, you can do so by clicking on the "Configuration tool" option from the "Main" menu in the DOSBox-X menu bar, or using the SHOWTOOL command from the DOS command line inside DOSBox-X.
+
+For example, if you are using the MOUNT command method to mount your host drives/directories as DOSBox-X's drives, you do not have to always type these commands. Instead, you can put these commands in the "autoexec" section of the DOSBox-X configuration interface, and then save them. These correspond to the [autoexec] section of DOSBox-X's configuration file. The commands present there are run each time when DOSBox-X starts, so you can use this section for the automatic mounting.
+
+Even though DOSBox-X runs in a window by default, you can also change it to full-screen mode. Simply press the shortcut F11+F on Windows, or F12+F on Linux and macOS, and DOSBox-X will become full-screen. Alternatively, you may modify this setting in the [sdl] section of the DOSBox-X configuration interface (or change the option fullscreen=false to fullscreen=true under the [sdl] section of DOSBox-X's configuration file). To get back from full-screen mode, simply press the shortcut F11+F (or F12+F depending on your platform) again.
+
+You can try the various commands and options in order to be more familiar with the DOSBox-X interface. Once you get used to it, you should be able to do various things such as running DOS applications inside DOSBox-X. If you have questions, you can also ask the community for support.
+
+### DOSBox-X's Configuration File
+
+You can set various configuration options for use with DOSBox-X. DOSBox-X will load the configuration file from either the current directory (typically the directory where the DOSBox-X program is located), or from the platform-dependent user directory.
+
+By default, DOSBox-X will first try to load the file **dosbox-x.conf** (or dosbox.conf) from the current directory. You can specify an alternative directory (instead of the current directory) for DOSBox-X to look for the configuration file with the -defaultdir command-line option, such as ``-defaultdir mydir``. If the config file is not found, DOSBox-X will then try to load the the configuration file from the user directory according to the platform:
+
+   (Windows)  C:\Users\<username>\AppData\Local\DOSBox-X\dosbox-x-<version number>.conf
+   (Linux)    ~/.config/dosbox-x/dosbox-x-<version number>.conf
+   (macOS)    ~/Library/Preferences/DOSBox-X <version number> Preferences
+
+The config file is divided into several sections. Each section starts with a [section name] line. The settings are the property=value lines where value can be altered to customize DOSBox-X. Lines starting with # are comment-lines.
+
+Furthermore, you can start DOSBox-X with the -conf parameter to load a specified configuration file and use its settings. If this parameter is used, then DOSBox-X will try to load the specified configuration file before try to load the configuration file from the current directory or the user directory.
+
+You can override one or more config options when DOSBox-X starts by using the -set command-line option. For example, ``-set machine=pc98`` will force DOSBox-X to start in PC-98 mode regardless of the setting in the config file.
+
+DOSBox-X features the graphical configuration tool so that you can use its built-in GUI interface to modify its settings easily. An configuration file can be generated or updated by the configuration tool, or with the built-in CONFIG command (which can be found on the internal Z: drive when you run DOSBox-X).
+
+### DOSBox-X's Special Keys
+
+You can use these special keys to achieve certain functions in DOSBox-X, such as switching between the window and full-screen modes. These shortcuts are different from the ones in DOSBox. Note that these are the special keys in the default setting, and you can customize them in DOSBox-X's mapper editor (see the next section).
+
+You may instead want to do these (and many more) tasks from DOSBox-X’s drop-down menu (see the link:DOSBox%E2%80%90X’s-Drop%E2%80%90Down-Menus{suffixappend}[DOSBox‐X’s Drop-Down Menus] page for more information), so that there is no need to do them using these shortcuts in most cases.
+
+A list of DOSBox-X default special keys:
+
+* **[F11/F12]+F**
+Switch to full-screen mode and back.
+* **[F11/F12]+R**
+Reset the virtual machine inside DOSBox-X.
+* **[F11/F12]+S**
+Reboot the emulated DOS (integrated DOS or guest DOS) inside DOSBox-X.
+* **[F11/F12]+C**
+Start DOSBox-X's graphical configuration tool.
+* **[F11/F12]+M**
+Start DOSBox-X's mapper editor.
+* **[F11/F12]+Esc**
+Show/hide DOSBox-X’s drop-down menu bar.
+* **[F11/F12]+Del**
+Send the Ctrl+Alt+Del key combination to the guest system.
+* **[F11/F12]+{{plus}}**
+Increase the sound volume of DOSBox-X's emulated DOS.
+* **[F11/F12]+{-}**
+Decrease the sound volume of DOSBox-X's emulated DOS.
+* **[F11/F12]+]**
+Increase the emulated DOS's current speed relative to real-time.
+* **[F11/F12]+[**
+Decrease the emulated DOS's current speed relative to real-time.
+* **[F11/F12]+{=}**
+Increase DOSBox-X's emulation CPU cycles.
+* **[F11/F12]+{-}**
+Decrease DOSBox-X's emulation CPU cycles.
+* **[F11/F12]+Left**
+Reset the emulated DOS's current CPU speed to the normal speed.
+* **[F11/F12]+LCtrl+C**
+Swap between mounted CD images.
+* **[F11/F12]+LCtrl+D**
+Swap between mounted floppy images.
+* **[F11/F12]+LShift+S**
+Take a screenshot of the current screen in PNG format.
+* **[F11/F12]+LShift+V**
+Start/Stop capturing an AVI video of the current session.
+* **[F11/F12]+LShift+W**
+Start/Stop recording a WAV audio of the current session.
+* **LAlt+Pause**
+Start DOSBox-X's Debugger.
+* **LCtrl+LAlt+F7**
+Select the previous save slot to save to or load from.
+* **LCtrl+LAlt+F8**
+Select the next save slot to save to or load from.
+* **LCtrl+F7**
+Save current state to the selected save slot.
+* **LCtrl+F8**
+Load the state from the selected save slot.
+* **LCtrl+F9**
+Exit DOSBox-X.
+* **LCtrl+F10**
+Capture the mouse for use with the emulated DOS.
+* **LCtrl+Pause**
+Pause emulation (press again to continue).
+
+Notes:
+
+* **1.** **[F11/F12]** is the host key, meaning either F11 or F12 (depending on the operating system). F11 is the host key in Windows, and F12 is the host key in all other platforms (Linux, macOS, etc). The F12 key is avoided being the host key in Windows because it is used internally by Windows for debugging functions. The host key can be redefined in DOSBox-X's keyboard mapper as needed, if you want to use a different key than F11 or F12.
+
+* **2:** **LCtrl** means the Left Ctrl key, **LShift** means the Left Shift key, and **LAlt** means the Left Alt key.
+
+### DOSBox-X's Mapper Editor
+You can define or change mappings for input devices such as keyboard shortcuts and joysticks buttons in DOSBox-X using the mapper editor. The mapper editor can be started either from the "Main" menu or with the command-line parameter -startmapper. You are presented with an interface including a virtual keyboard, a virtual mouse, as well as virtual joysticks and a table of functions.
+
+The virtual devices correspond to the keys and events DOSBox-X will report to the DOS applications. If you click on a button with your mouse, you can see in the lower left corner with which event it is associated (EVENT) and to what events it is currently bound (BIND).
+
+* **EVENT**
++
+The key or joystick axis/button/hat DOSBox-X will report to DOS applications (the event that will happen during the game, e.g. shooting/jumping/walking).
+
+* **BIND**
++
+The key on your real keyboard or the axis/button/hat on your real joystick(s) (as reported by SDL), which is connected to the EVENT.
+
+* **Mod1,2,3**
++
+Modifiers. These are keys you need to have to be pressed while pressing BIND. Mod1 = Ctrl, Mod2 = Alt, and Mod3 = Shift. These are generally only used when you want to change the special keys of DOSBox-X.
+
+* **Add**
++
+Add a new BIND to this EVENT. Basically add a key from your keyboard or an event from the joystick (button press, axis/hat movement) which will produce the EVENT in DOSBox-X.
+
+* **Del**
++
+Delete the BIND to this EVENT. If an EVENT has no BINDS, then it is not possible to trigger this event in DOSBox-X (that is there's no way to type the key or use the respective action of the joystick).
+
+* **Next**
++
+Go through the list of bindings which map to this EVENT.
+
+For example, if you want to have the X on your keyboard to type a Z in DOSBox-X,
+then please click on the Z on the keyboard mapper. Click "Add". Now you can try
+press the X key on your keyboard.
+
+### DOSBox-X Guides and Tips
+
+DOSBox-X has many features and supports most DOS games and applications. Below are some guides which explain how to use certain software or features within DOSBox-X.
+
+* link:DOSBox%E2%80%90X’s-Drop%E2%80%90Down-Menus{suffixappend}[DOSBox‐X’s Drop-Down Menus]
++
+Gives detailed information about DOSBox-X's drop-down menu system and its menu items.
+* link:DOSBox‐X’s-Supported-Commands{suffixappend}[DOSBox‐X’s Supported Commands]
++
+Lists and explains all the internal and external commands that DOSBox-X provides.
+* link:DOSBox‐X’s-Command%E2%80%90Line-Options{suffixappend}[DOSBox-X's Command-Line Options]
++
+Lists and explains all the command-line options that DOSBox-X supports.
+* link:Guide%3ADOS-Installation-in-DOSBox‐X{suffixappend}[Guide: MS-DOS or PC DOS in DOSBox-X]
++
+Explains how to boot MS-DOS and PC DOS versions in DOSBox-X, including creating hard disk images.
+* link:Guide%3AMicrosoft-Windows-in-DOSBox‐X{suffixappend}[Guide: Microsoft Windows in DOSBox-X]
++
+Explains how to install and run Microsoft Windows 1.x/2.0/3.x and 9x/ME in DOSBox-X.
+* link:Guide%3ADOS-games-in-DOSBox‐X{suffixappend}[Guide: DOS games in DOSBox-X]
++
+Explains how to setup and play DOS games in DOSBox-X.
+* link:Guide%3ADOS-demoscene-software-in-DOSBox‐X{suffixappend}[Guide: DOS demoscene software in DOSBox-X]
++
+Explains how to use DOSBox-X with DOS software from the demoscene.
+* link:Guide%3AManaging-image-files-in-DOSBox‐X{suffixappend}[Guide: Managing image files in DOSBox‐X]
++
+Explains how to make and use floppy, hard disk, and optical disc images in DOSBox-X.
+* link:Guide%3AClipboard-support-in-DOSBox‐X{suffixappend}[Guide: Clipboard support in DOSBox-X]
++
+Explains the different ways to copy to and paste from the Windows clipboard in DOSBox-X.
+* link:Guide%3ARegional-settings-in-DOSBox‐X{suffixappend}[Guide: Regional settings in DOSBox‐X]
++
+Explains how to customize DOSBox-X's regional settings and international support, such as display languages and keyboard layouts.
+* link:Guide%3ASetting-up-joysticks-in-DOSBox‐X{suffixappend}[Guide: Setting up joysticks in DOSBox-X]
++
+Explains the different Joystick configuration options in DOSBox-X.
+* link:Guide%3ASetting-up-3dfx-Voodoo-in-DOSBox‐X{suffixappend}[Guide: Setting up 3dfx Voodoo in DOSBox-X]
++
+Explains the emulation of 3dfx Voodoo, using either the Voodoo hardware emulation or the Glide API passthrough.
+* link:Guide%3ASetting-up-MIDI-in-DOSBox‐X{suffixappend}[Guide: Setting up MIDI in DOSBox-X]
++
+Explains how to set up and use DOSBox-X's MIDI feature, such as General MIDI and Roland MT-32 emulations.
+* link:Guide%3ASetting-up-printing-in-DOSBox‐X{suffixappend}[Guide: Setting up printing in DOSBox-X]
++
+Explains how to use DOSBox-X's printing feature, either to a real or a virtual printer (e.g. print to PNG or PS).
+* link:Guide%3ASetting-up-networking-in-DOSBox‐X{suffixappend}[Guide: Setting up networking in DOSBox-X]
++
+Explains how to set up and use the network with the emulated Novell NE2000 network adapter.
+
+### DOSBox-X’s Compatibility
+
+We are making efforts to ensure that the vast majority of DOS games and applications will run in DOSBox-X, and these include both text-mode and graphical-mode DOS programs. Microsoft Windows versions that are largely DOS-based (such as Windows 3.x and 9x) are officially supported by DOSBox-X as well. Note that certain config settings may need to be changed from the default ones for some of these programs to work smoothly.
+
+Efforts are also made to aid retro DOS developments, which is why DOSBox-X used to focus on the demoscene (especially anything prior to 1996) because that era of the MS-DOS scene tends to have all manner of weird hardware tricks, bugs, and speed-sensitive issues that make them the perfect kind of stuff to test emulation accuracy against, even more so than old DOS games. But without a doubt we also actively test against other DOS games and applications, as well as PC-98 programs (most of them are games).
+
+DOSBox-X vs MS-DOS application test results: link:https://dosbox-x.com/msdos-compat.html[DOSBox-X DOS application compatibility testing chart]
+
+DOSBox-X vs Demoscene test results: link:https://htmlpreview.github.io/?https://github.com/joncampbell123/demotest/blob/master/compat-chart.html[DOSBox-X demoscene compatibility testing chart]
+
+### Frequently Asked Questions (FAQ)
+* **What is DOS?**
++
+DOS is short for "**D**isk **O**perating **S**ystem". It refers to a family of operating systems that dominated the IBM PC compatible market in the 1980s and the 1990s. Early versions of Microsoft Windows (1.0-3.x, as well as 9x/ME) are also largely DOS-based. The relevant systems were usually called "X DOS", "X-DOS" or "XDOS" with the X being the brand name (e.g. PC DOS, DR-DOS, and FreeDOS respectively). Despite common usage, none of them were actually called just DOS. Microsoft's system, MS-DOS, was the most-widely used among these operating systems. Microsoft Windows 3.x and 9x/ME are also based on MS-DOS.
+
+* **What is DOSBox-X's release pattern?**
++
+Currently, new DOSBox-X versions are made public either on the last day of a month, or at the start of the next month, including both binary releases for the supported platforms and the source code of DOSBox-X. Then the DOSBox-X developments will be re-opened for new features, pull requests, etc. There will be no new features added 6 days before the end of the month, but only bug fixes. The last day of the month is DOSBox-X's build day to compile for binary releases the first of the next month, so there will be no source code changes on this day including pull requests or bug fixes. This is DOSBox-X's official release pattern, although it may change later.
+
+* **How can I use the save and load a state in DOSBox-X?**
++
+DOSBox-X supports the save and load state feature including save slot support (10 save slots in each page, for a total of 100 save slots). Under the "Capture" menu you will see menu items including "Save state", "Load state", "Select save slot" and a "Force load state mode" toggle menu. Select a save slot you want to save to, and click "Save state", then the current state will be saved to the computer. When you want to load the state you can just click "Load state" from the menu; but if you want to select a different save slot to load, you need to select that save slot before loading the state. DOSBox-X by default will check for things like program name and memory size to make sure they match, and if they do not DOSBox-X will display a warning. These checks can be bypassed by enabling the "Force load state mode" toggle before you try to load the state.
+
+* **Can I change config options from the command line?**
++
+You can do this either from the DOSBox-X command line (before starting DOSBox-X) or from the DOSBox-X command shell (when DOSBox-X is running). To specify a config option before starting DOSBox-X, just use the -set command-line option (specify it multiple times for multiple config options). For example, the command ``dosbox-x -set machine=pc98`` will start DOSBox-X in PC-98 mode regardless of the setting in the config file. If you want to change a setting from the DOSBox-X command shell when DOSBox-X is already running, you can do so via the config command, e.g. ``config -set cycles=max``, or with the "Config options as commands" option enabled (under "DOS" menu), directly via a command line like ``cycles=max``. Note that you cannot change all config settings from the DOSBox-X command shell when DOSBox-X is already running.
+
+* **Can I launch programs to run on the host from the DOSBox-X command line?**
++
+Yes, you can do this, although currently only available in the Windows version. You can either run Windows applications directly from the DOSBox-X command line, or run it with the START command. This feature is disabled by default for security reasons, but can be enabled in the Windows version with either the "-winrun" command-line option or the "startcmd" config option (in the [dos] section). You can also find the submenu "Windows host applications" (under "DOS" menu) to control some settings. If this feature is enabled there is in fact no difference between how you enter commands to launch DOS applications and to launch Windows applications to run on the host on mounted local drives. The START command additionally allows you to enter any host path to run Windows applications, or open files (instead of executable programs) with their default associated actions on the Windows host.
+
+* **Can I change the default command shell in DOSBox-X?**
++
+Yes, you can! DOSBox-X supports the SHELL= option in [config] section of dosbox-x.conf to specify an alternative command shell, which resembles the counterpart in DOS's config.sys file. With this option you can use the free but powerful 4DOS 8.00 shell as the command shell for DOSBox-X, which is already built into DOSBox-X. By setting "SHELL=4DOS.COM" the 4DOS 8.00 command shell will be launched when DOSBox-X starts, and you will be able to use it as the command processor for DOSBox-X with 4DOS features and capabilities. When you are in this shell you can type "HELP" command to see its help information from its interactive help system. There is also a [4dos] section in the dosbox-x.conf file to act as the 4DOS.INI file if you use this shell. On the other hand, the original command shell will be used for DOSBox-X if SHELL= is not specified, or if you specify "SHELL=COMMAND.COM" in [config] section of dosbox-x.conf.
