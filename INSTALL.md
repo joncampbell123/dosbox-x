@@ -36,17 +36,17 @@ Apart from the Windows installers, you can usually find three zip packages for e
 * [dosbox-x-mingw-win32-20200930224903.zip](https://github.com/joncampbell123/dosbox-x/releases/download/dosbox-x-v0.83.6/dosbox-x-mingw-win32-20200930224903.zip)
 * [dosbox-x-mingw-win64-20200930235023.zip](https://github.com/joncampbell123/dosbox-x/releases/download/dosbox-x-v0.83.6/dosbox-x-mingw-win64-20200930235023.zip)
 
-The Visual Studio builds are available as zip packages for most versions; they are the default Windows builds to use, but they only run on Windows Vista and later (Windows 7, 8, and 10). The MinGW builds will be required if you are running Windows XP. You may also want to use one of the MinGW builds (plain, lowend, etc) if you encounter specific problem(s) with the Visual Studio builds. In addition, while the SDL1 version is the default version, the SDL2 version may be prefered over the SDL1 version for certain features (particularly related to input handling) such as touchscreen input support.
+The Visual Studio builds are the default Windows builds to use, but they only run on Windows Vista and later (Windows 7, 8, and 10). The MinGW builds will be required if you are running Windows XP. You may also want to use one of the MinGW builds (plain, lowend, etc) if you encounter specific problem(s) with the Visual Studio builds. In addition, while the SDL1 version is the default version, the SDL2 version may be prefered over the SDL1 version for certain features (particularly related to input handling) such as touchscreen input support.
 
 If you prefer to use one of the portable packages, please select the zip package you want to download for your platform and unzip, then you will find various folders or subdirectories, which are some supported targets. For Visual Studio builds, these correspond to Win32, x64, ARM and ARM64 (either SDL1 or SDL2 version), which are the build platforms. For MinGW builds, the targets are plain MinGW SDL1 build (mingw), MinGW build for lower-end systems (mingw-lowend), MinGW SDL2 build (mingw-sdl2) and MinGW build with custom drawn menu (mingw-sdldraw). Go to a target folder for your platform and run dosbox-x.exe inside it, then DOSBox-X will be launched and ready to be used. Unlike the Windows installer version however, there is no documentation included in these packages, and you may not see all such packages for some DOSBox-X versions.
 
 ## Linux Packages (Flatpak or RPM)
 
-Flatpaks are officially released for the Linux operating system, which are standalone applications independent of the Linux distributions. For the current DOSBox-X version 0.83.6 the Linux Flatpak is available from:
+Flatpaks are officially released for the Linux operating system (with X11), which are standalone applications independent of Linux distributions. For the current DOSBox-X version 0.83.6 the Linux Flatpak is available from:
 
 * [com.dosbox_x.DOSBox-X.flatpakref](https://dl.flathub.org/repo/appstream/com.dosbox_x.DOSBox-X.flatpakref)
 
-You may need to install Flatpak support depending on your Linux platform for the first time. Please see the [Quick Setup page](https://flatpak.org/setup/) for more information specific to your Linux platform.
+You may need to install Flatpak support depending on your Linux distribution for the first time. Please see the [Quick Setup page](https://flatpak.org/setup/) for more information specific to your Linux platform.
 
 Once Flatpak support is enabled in your Linux system you can install the DOSBox-X Flatpak with the following command:
 
@@ -56,7 +56,7 @@ After it is installed, it can be run with:
 
 ``flatpak run com.dosbox_x.DOSBox-X``
 
-RPM packages were previously available for 64-bit Linux (with X11), specifically CentOS 7 / RHEL 7 ("el7") and CentOS 8 / RHEL 8 ("el8") platforms. There were usually packages for both CentOS 7 and CentOS 8 platforms, and the most recent DOSBox-X version that provided official packages for both CentOS 7 and CentOS 8 platforms was version 0.83.2, which included the following Linux RPM packages:
+RPM packages were previously available for 64-bit Linux, specifically CentOS 7 / RHEL 7 ("el7") and CentOS 8 / RHEL 8 ("el8") platforms. There were usually packages for both CentOS 7 and CentOS 8 platforms, and the most recent DOSBox-X version that provided official packages for both CentOS 7 and CentOS 8 platforms was version 0.83.2, which included the following Linux RPM packages:
 
 * [dosbox-x-0.83.2-0.el7.x86_64.rpm](https://github.com/joncampbell123/dosbox-x/releases/download/dosbox-x-v0.83.2/dosbox-x-0.83.2-0.el7.x86_64.rpm)
 * [dosbox-x-0.83.2-0.el8.x86_64.rpm](https://github.com/joncampbell123/dosbox-x/releases/download/dosbox-x-v0.83.2/dosbox-x-0.83.2-0.el8.x86_64.rpm)
@@ -68,7 +68,7 @@ Pick a RPM package of the version you want to use for your Linux platform and in
 
 ``sudo rpm -i <filename>.rpm``
 
-Where ``<filename>`` is the main file name of the RPM package you wish to install. You may want to use the debug builds (the last three packages in the above example) if you desire to do some debugging work when running DOSBox-X. If there are missing dependencies for the rpm command, such as libpng and fluid-soundfont, then you will need to install them first. However, RPM packages are not natively supported by Linux distributions such as Debian, Ubuntu, or Linux Mint. It is recommanded to use Flatpaks, which work independent of your Linux distribution.
+Where ``<filename>`` is the main file name of the RPM package you wish to install. You may want to use the debug builds (the last three packages in the above example) if you desire to do some debugging work when running DOSBox-X. If there are missing dependencies for the rpm command, such as libpng and fluid-soundfont, then you will need to install them first. However, RPM packages are not natively supported by Linux distributions such as Debian, Ubuntu, or Linux Mint (although the ``alien`` command may sometimes help). It is recommanded to use Flatpaks, which work independent of your Linux distribution.
 
 Moreover, you can find DOSBox-X on SnapCraft (https://snapcraft.io/dosbox-x), which maintains universal Linux packages for software including DOSBox-X. Please note the DOSBox-X Linux packages on this website are built and updated by SnapCraft instead of the DOSBox-X Team.
 
