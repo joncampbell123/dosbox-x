@@ -56,7 +56,7 @@ static void synth_log(int level,
 
 static void synth_CallBack(Bitu len) {
 	if (synth_soft != NULL) {
-		fluid_synth_write_s16(synth_soft, len, MixTemp, 0, 2, MixTemp, 1, 2);
+		fluid_synth_write_s16(synth_soft, (int)len, MixTemp, 0, 2, MixTemp, 1, 2);
 		synthchan->AddSamples_s16(len,(int16_t *)MixTemp);
 	}
 }
@@ -80,7 +80,7 @@ private:
 		case 0xf0:
 		case 0xf7:
 			LOG(LOG_MISC,LOG_DEBUG)("SYNTH: sysex 0x%02x len %lu", (int)event, (long unsigned)len);
-			fluid_synth_sysex(synth_soft, (char *)(msg + 1), len - 1, NULL, NULL, NULL, 0);
+			fluid_synth_sysex(synth_soft, (char *)(msg + 1), (int)(len - 1), NULL, NULL, NULL, 0);
 			return;
 		case 0xf9:
 			LOG(LOG_MISC,LOG_DEBUG)("SYNTH: midi tick");
@@ -225,7 +225,7 @@ public:
 	MidiHandler_fluidsynth() : MidiHandler() {};
 	const char* GetName(void) { return "fluidsynth"; }
 	void PlaySysex(uint8_t * sysex, Bitu len) {
-		fluid_synth_sysex(synth, (char*)sysex, len, NULL, NULL, NULL, 0);
+		fluid_synth_sysex(synth, (char*)sysex, (int)len, NULL, NULL, NULL, 0);
 	}
 
 	void PlayMsg(uint8_t * msg) {

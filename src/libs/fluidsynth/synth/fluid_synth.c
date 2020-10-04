@@ -669,7 +669,7 @@ new_fluid_synth(fluid_settings_t *settings)
   fluid_settings_getint(settings, "synth.parallel-render", &i);
   /* In an overflow situation, a new voice takes about 50 spaces in the queue! */
   synth->eventhandler = new_fluid_rvoice_eventhandler(i, synth->polyphony*64,
-	synth->polyphony, nbuf, synth->effects_channels, synth->sample_rate);
+	synth->polyphony, nbuf, synth->effects_channels, (fluid_real_t)synth->sample_rate);
 
   if (synth->eventhandler == NULL)
     goto error_recovery; 
@@ -709,7 +709,7 @@ new_fluid_synth(fluid_settings_t *settings)
     goto error_recovery;
   }
   for (i = 0; i < synth->nvoice; i++) {
-    synth->voice[i] = new_fluid_voice(synth->sample_rate);
+    synth->voice[i] = new_fluid_voice((fluid_real_t)synth->sample_rate);
     if (synth->voice[i] == NULL) {
       goto error_recovery;
     }
@@ -745,7 +745,7 @@ new_fluid_synth(fluid_settings_t *settings)
     int prio_level = 0;
     fluid_settings_getint (synth->settings, "audio.realtime-prio", &prio_level);
     fluid_synth_update_mixer(synth, fluid_rvoice_mixer_set_threads, 
-			     synth->cores-1, prio_level);
+			     synth->cores-1, (fluid_real_t)prio_level);
   }
 
   synth->bank_select = FLUID_BANK_STYLE_GS;
@@ -2328,7 +2328,7 @@ fluid_synth_update_polyphony_LOCAL(fluid_synth_t* synth, int new_polyphony)
       return FLUID_FAILED;
     synth->voice = new_voices;
     for (i = synth->nvoice; i < new_polyphony; i++) {
-      synth->voice[i] = new_fluid_voice(synth->sample_rate);
+      synth->voice[i] = new_fluid_voice((fluid_real_t)synth->sample_rate);
       if (synth->voice[i] == NULL) 
 	return FLUID_FAILED;
     }
@@ -2762,8 +2762,8 @@ fluid_synth_write_s16(fluid_synth_t* synth, int len,
       //fluid_profile(FLUID_PROF_ONE_BLOCK, prof_ref_on_block);
     }
 
-    left_sample = roundi (left_in[0][cur] * 32766.0f + rand_table[0][di]);
-    right_sample = roundi (right_in[0][cur] * 32766.0f + rand_table[1][di]);
+    left_sample = (fluid_real_t)roundi (left_in[0][cur] * 32766.0f + rand_table[0][di]);
+    right_sample = (fluid_real_t)roundi (right_in[0][cur] * 32766.0f + rand_table[1][di]);
 
     di++;
     if (di >= DITHER_SIZE) di = 0;
@@ -2825,8 +2825,8 @@ fluid_synth_dither_s16(int *dither_index, int len, float* lin, float* rin,
 
   for (i = 0, j = loff, k = roff; i < len; i++, j += lincr, k += rincr) {
 
-    left_sample = roundi (lin[i] * 32766.0f + rand_table[0][di]);
-    right_sample = roundi (rin[i] * 32766.0f + rand_table[1][di]);
+    left_sample = (fluid_real_t)roundi (lin[i] * 32766.0f + rand_table[0][di]);
+    right_sample = (fluid_real_t)roundi (rin[i] * 32766.0f + rand_table[1][di]);
 
     di++;
     if (di >= DITHER_SIZE) di = 0;
@@ -2927,15 +2927,15 @@ static int fluid_synth_update_overflow (fluid_synth_t *synth, char *name,
   fluid_synth_api_enter(synth);
   
   fluid_settings_getnum(synth->settings, "synth.overflow.percussion", &d);
-  synth->overflow.percussion = d;
+  synth->overflow.percussion = (fluid_real_t)d;
   fluid_settings_getnum(synth->settings, "synth.overflow.released", &d);
-  synth->overflow.released = d;
+  synth->overflow.released = (fluid_real_t)d;
   fluid_settings_getnum(synth->settings, "synth.overflow.sustained", &d);
-  synth->overflow.sustained = d;
+  synth->overflow.sustained = (fluid_real_t)d;
   fluid_settings_getnum(synth->settings, "synth.overflow.volume", &d);
-  synth->overflow.volume = d;
+  synth->overflow.volume = (fluid_real_t)d;
   fluid_settings_getnum(synth->settings, "synth.overflow.age", &d);
-  synth->overflow.age = d;
+  synth->overflow.age = (fluid_real_t)d;
   
   FLUID_API_RETURN(0);
 }
@@ -3752,21 +3752,21 @@ fluid_synth_set_reverb_full(fluid_synth_t* synth, int set, double roomsize,
   fluid_synth_api_enter(synth);
 
   if (set & FLUID_REVMODEL_SET_ROOMSIZE)
-    fluid_atomic_float_set (&synth->reverb_roomsize, roomsize);
+    fluid_atomic_float_set (&synth->reverb_roomsize, (float)roomsize);
 
   if (set & FLUID_REVMODEL_SET_DAMPING)
-    fluid_atomic_float_set (&synth->reverb_damping, damping);
+    fluid_atomic_float_set (&synth->reverb_damping, (float)damping);
 
   if (set & FLUID_REVMODEL_SET_WIDTH)
-    fluid_atomic_float_set (&synth->reverb_width, width);
+    fluid_atomic_float_set (&synth->reverb_width, (float)width);
 
   if (set & FLUID_REVMODEL_SET_LEVEL)
-    fluid_atomic_float_set (&synth->reverb_level, level);
+    fluid_atomic_float_set (&synth->reverb_level, (float)level);
 
   fluid_rvoice_eventhandler_push5(synth->eventhandler, 
 				  fluid_rvoice_mixer_set_reverb_params, 
 				  synth->eventhandler->mixer, set, 
-				  roomsize, damping, width, level, 0.0f);
+				  (fluid_real_t)roomsize, (fluid_real_t)damping, (fluid_real_t)width, (fluid_real_t)level, 0.0f);
   
   FLUID_API_RETURN(FLUID_OK);
 }
@@ -3898,13 +3898,13 @@ fluid_synth_set_chorus_full(fluid_synth_t* synth, int set, int nr, double level,
     fluid_atomic_int_set (&synth->chorus_nr, nr);
 
   if (set & FLUID_CHORUS_SET_LEVEL)
-    fluid_atomic_float_set (&synth->chorus_level, level);
+    fluid_atomic_float_set (&synth->chorus_level, (float)level);
 
   if (set & FLUID_CHORUS_SET_SPEED)
-    fluid_atomic_float_set (&synth->chorus_speed, speed);
+    fluid_atomic_float_set (&synth->chorus_speed, (float)speed);
 
   if (set & FLUID_CHORUS_SET_DEPTH)
-    fluid_atomic_float_set (&synth->chorus_depth, depth_ms);
+    fluid_atomic_float_set (&synth->chorus_depth, (float)depth_ms);
 
   if (set & FLUID_CHORUS_SET_TYPE)
     fluid_atomic_int_set (&synth->chorus_type, type);
@@ -3912,7 +3912,7 @@ fluid_synth_set_chorus_full(fluid_synth_t* synth, int set, int nr, double level,
   fluid_rvoice_eventhandler_push5(synth->eventhandler, 
 				  fluid_rvoice_mixer_set_chorus_params,
 				  synth->eventhandler->mixer, set,
-				  nr, level, speed, depth_ms, type);
+				  (fluid_real_t)nr, (fluid_real_t)level, (fluid_real_t)speed, (fluid_real_t)depth_ms, (fluid_real_t)type);
 
   FLUID_API_RETURN(FLUID_OK);
 }

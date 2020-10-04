@@ -113,7 +113,7 @@ static Uint32 MP3_read(Sound_Sample* const sample)
         const drmp3_uint16 num_frames = (remaining_frames > in_buffer_frame_capacity) ? in_buffer_frame_capacity : remaining_frames;
 
         // LOG_MSG("read-while: num_frames: %u", num_frames);
-        const drmp3_uint16 frames_just_read = drmp3_read_pcm_frames_f32(p_mp3->p_dr, num_frames, in_buffer);
+        const drmp3_uint16 frames_just_read = (drmp3_uint16)drmp3_read_pcm_frames_f32(p_mp3->p_dr, num_frames, in_buffer);
 
         // LOG_MSG("read-while: frames_just_read: %u", frames_just_read);
         if (frames_just_read == 0) break; // Reached the end.

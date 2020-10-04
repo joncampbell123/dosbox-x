@@ -211,7 +211,7 @@ fluid_mod_get_value(fluid_mod_t* mod, fluid_channel_t* chan, fluid_voice_t* voic
   /* get the initial value of the first source */
   if (mod->src1 > 0) {
     if (mod->flags1 & FLUID_MOD_CC) {
-      v1 = fluid_channel_get_cc(chan, mod->src1);
+      v1 = (fluid_real_t)fluid_channel_get_cc(chan, mod->src1);
     } else {  /* source 1 is one of the direct controllers */
       switch (mod->src1) {
       case FLUID_MOD_NONE:         /* SF 2.01 8.2.1 item 0: src enum=0 => value is 1 */
@@ -224,17 +224,17 @@ fluid_mod_get_value(fluid_mod_t* mod, fluid_channel_t* chan, fluid_voice_t* voic
 	v1 = voice->key;
 	break;
       case FLUID_MOD_KEYPRESSURE:
-	v1 = fluid_channel_get_key_pressure (chan);
+	v1 = (fluid_real_t)fluid_channel_get_key_pressure (chan);
 	break;
       case FLUID_MOD_CHANNELPRESSURE:
-	v1 = fluid_channel_get_channel_pressure (chan);
+	v1 = (fluid_real_t)fluid_channel_get_channel_pressure (chan);
 	break;
       case FLUID_MOD_PITCHWHEEL:
-	v1 = fluid_channel_get_pitch_bend (chan);
+	v1 = (fluid_real_t)fluid_channel_get_pitch_bend (chan);
 	range1 = 0x4000;
 	break;
       case FLUID_MOD_PITCHWHEELSENS:
-	v1 = fluid_channel_get_pitch_wheel_sensitivity (chan);
+	v1 = (fluid_real_t)fluid_channel_get_pitch_wheel_sensitivity (chan);
 	break;
       default:
 	v1 = 0.0;
@@ -304,7 +304,7 @@ fluid_mod_get_value(fluid_mod_t* mod, fluid_channel_t* chan, fluid_voice_t* voic
   /* get the second input source */
   if (mod->src2 > 0) {
     if (mod->flags2 & FLUID_MOD_CC) {
-      v2 = fluid_channel_get_cc(chan, mod->src2);
+      v2 = (fluid_real_t)fluid_channel_get_cc(chan, mod->src2);
     } else {
       switch (mod->src2) {
       case FLUID_MOD_NONE:         /* SF 2.01 8.2.1 item 0: src enum=0 => value is 1 */
@@ -317,16 +317,16 @@ fluid_mod_get_value(fluid_mod_t* mod, fluid_channel_t* chan, fluid_voice_t* voic
 	v2 = voice->key;
 	break;
       case FLUID_MOD_KEYPRESSURE:
-	v2 = fluid_channel_get_key_pressure (chan);
+	v2 = (fluid_real_t)fluid_channel_get_key_pressure (chan);
 	break;
       case FLUID_MOD_CHANNELPRESSURE:
-	v2 = fluid_channel_get_channel_pressure (chan);
+	v2 = (fluid_real_t)fluid_channel_get_channel_pressure (chan);
 	break;
       case FLUID_MOD_PITCHWHEEL:
-	v2 = fluid_channel_get_pitch_bend (chan);
+	v2 = (fluid_real_t)fluid_channel_get_pitch_bend (chan);
 	break;
       case FLUID_MOD_PITCHWHEELSENS:
-	v2 = fluid_channel_get_pitch_wheel_sensitivity (chan);
+	v2 = (fluid_real_t)fluid_channel_get_pitch_wheel_sensitivity (chan);
 	break;
       default:
 	v1 = 0.0f;

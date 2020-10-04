@@ -162,11 +162,11 @@ new_fluid_dsound_audio_driver(fluid_settings_t* settings, fluid_synth_t* synth)
 
 	dev->buffer_byte_size = period_size * dev->frame_size;
 	dev->queue_byte_size = periods * dev->buffer_byte_size;
-	dev->bytes_per_second = sample_rate * dev->frame_size;
+	dev->bytes_per_second = (int)(sample_rate * dev->frame_size);
 
 	/* Finish to initialize the buffer format */
 	format.nChannels = 2;
-	format.wBitsPerSample = dev->frame_size * 4;
+	format.wBitsPerSample = (WORD)(dev->frame_size * 4);
 	format.nSamplesPerSec = (DWORD)sample_rate;
 	format.nBlockAlign = (WORD)dev->frame_size;
 	format.nAvgBytesPerSec = dev->bytes_per_second;

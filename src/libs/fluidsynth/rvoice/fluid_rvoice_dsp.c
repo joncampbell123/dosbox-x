@@ -103,7 +103,7 @@ void fluid_rvoice_dsp_config (void)
       }
       else v = 1.0;
 
-      sinc_table7[FLUID_INTERP_MAX - i2 - 1][i] = v;
+      sinc_table7[FLUID_INTERP_MAX - i2 - 1][i] = (fluid_real_t)v;
     }
   }
 

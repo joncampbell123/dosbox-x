@@ -369,7 +369,7 @@ fluid_voice_gen_incr(fluid_voice_t* voice, int i, float val)
 float
 fluid_voice_gen_get(fluid_voice_t* voice, int gen)
 {
-  return voice->gen[gen].val;
+  return (float)voice->gen[gen].val;
 }
 
 fluid_real_t fluid_voice_gen_value(fluid_voice_t* voice, int num)
@@ -892,7 +892,7 @@ fluid_voice_update_param(fluid_voice_t* voice, int gen)
      * */
     x = _GEN(voice, GEN_KEYNUM);
     if (x >= 0){
-      voice->key = x;
+      voice->key = (fluid_real_t)x;
     }
     break;
 
@@ -906,7 +906,7 @@ fluid_voice_update_param(fluid_voice_t* voice, int gen)
      * enabled or not. But here we rely on the default value of -1.  */
     x = _GEN(voice, GEN_VELOCITY);
     if (x > 0) {
-      voice->vel = x;
+      voice->vel = (fluid_real_t)x;
     }
     break;
 
@@ -1431,7 +1431,7 @@ fluid_voice_get_lower_boundary_for_attenuation(fluid_voice_t* voice)
 	&& ((mod->flags1 & FLUID_MOD_CC) || (mod->flags2 & FLUID_MOD_CC))) {
 
       fluid_real_t current_val = fluid_mod_get_value(mod, voice->channel, voice);
-      fluid_real_t v = fabs(mod->amount);
+      fluid_real_t v = (fluid_real_t)fabs(mod->amount);
 
       if ((mod->src1 == FLUID_MOD_PITCHWHEEL)
 	  || (mod->flags1 & FLUID_MOD_BIPOLAR)
@@ -1556,7 +1556,7 @@ fluid_voice_optimize_sample(fluid_sample_t* s)
      */
 
     /* 16 bits => 96+4=100 dB dynamic range => 0.00001 */
-    normalized_amplitude_during_loop = ((fluid_real_t)peak)/32768.;
+    normalized_amplitude_during_loop = (fluid_real_t)(((fluid_real_t)peak)/32768.);
     result = FLUID_NOISE_FLOOR / normalized_amplitude_during_loop;
 
     /* Store in sample */
