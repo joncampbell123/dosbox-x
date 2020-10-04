@@ -723,6 +723,43 @@ void MenuBrowseProgramFile() {
 class MOUNT : public Program {
 public:
     std::vector<std::string> options;
+    void Move_Z(char new_z) {
+        char newz_drive = (char)toupper(new_z);
+        int i_newz = (int)newz_drive - (int)'A';
+        if (i_newz >= 0 && i_newz < DOS_DRIVES - 1 && !Drives[i_newz]) {
+            ZDRIVE_NUM = i_newz;
+            /* remap drives */
+            Drives[i_newz] = Drives[25];
+            Drives[25] = 0;
+            DOS_EnableDriveMenu(i_newz + 'A');
+            DOS_EnableDriveMenu(25 + 'A');
+            if (!first_shell) return; //Should not be possible
+            /* Update environment */
+            std::string line = "";
+            char ppp[2] = { newz_drive,0 };
+            std::string tempenv = ppp; tempenv += ":\\";
+            if (first_shell->GetEnvStr("PATH", line)) {
+                std::string::size_type idx = line.find('=');
+                std::string value = line.substr(idx + 1, std::string::npos);
+                while ((idx = value.find("Z:\\")) != std::string::npos ||
+                    (idx = value.find("z:\\")) != std::string::npos)
+                    value.replace(idx, 3, tempenv);
+                line = value;
+            }
+            if (!line.size()) line = tempenv;
+            first_shell->SetEnv("PATH", line.c_str());
+            tempenv += "COMMAND.COM";
+            first_shell->SetEnv("COMSPEC", tempenv.c_str());
+
+            /* Update batch file if running from Z: (very likely: autoexec) */
+            if (first_shell->bf) {
+                std::string& name = first_shell->bf->filename;
+                if (name.length() > 2 && name[0] == 'Z' && name[1] == ':') name[0] = newz_drive;
+            }
+            /* Change the active drive */
+            if (DOS_GetDefaultDrive() == 25) DOS_SetDrive(i_newz);
+        }
+    }
     void ListMounts(void) {
         char name[DOS_NAMELENGTH_ASCII],lname[LFN_NAMELENGTH];
         uint32_t size;uint16_t date;uint16_t time;uint8_t attr;
@@ -816,41 +853,7 @@ public:
         /* Check for moving Z: */
         /* Only allowing moving it once. It is merely a convenience added for the wine team */
         if (ZDRIVE_NUM == 25 && cmd->FindString("-z", newz,false)) {
-            newz[0] = toupper(newz[0]);
-            int i_newz = (int)newz[0] - (int)'A';
-            if (i_newz >= 0 && i_newz < DOS_DRIVES-1 && !Drives[i_newz]) {
-                ZDRIVE_NUM = i_newz;
-                /* remap drives */
-                Drives[i_newz] = Drives[25];
-                Drives[25] = 0;
-                DOS_EnableDriveMenu(i_newz+'A');
-                DOS_EnableDriveMenu(25+'A');
-                if (!first_shell) return; //Should not be possible
-                /* Update environment */
-                std::string line = "";
-                char ppp[2] = {newz[0],0};
-                std::string tempenv = ppp; tempenv += ":\\";
-                if (first_shell->GetEnvStr("PATH",line)){
-                    std::string::size_type idx = line.find('=');
-                    std::string value = line.substr(idx +1 , std::string::npos);
-                    while ( (idx = value.find("Z:\\")) != std::string::npos ||
-                            (idx = value.find("z:\\")) != std::string::npos  )
-                        value.replace(idx,3,tempenv);
-                    line = value;
-                }
-                if (!line.size()) line = tempenv;
-                first_shell->SetEnv("PATH",line.c_str());
-                tempenv += "COMMAND.COM";
-                first_shell->SetEnv("COMSPEC",tempenv.c_str());
-
-                /* Update batch file if running from Z: (very likely: autoexec) */
-                if(first_shell->bf) {
-                    std::string &name = first_shell->bf->filename;
-                    if(name.length() >2 &&  name[0] == 'Z' && name[1] == ':') name[0] = newz[0];
-                }
-                /* Change the active drive */
-                if (DOS_GetDefaultDrive() == 25) DOS_SetDrive(i_newz);
-            }
+            Move_Z(newz[0]);
             return;
         }
         /* Show list of cdroms */
@@ -884,9 +887,9 @@ public:
 		std::transform(type.begin(), type.end(), type.begin(), ::tolower);
         bool iscdrom = (type =="cdrom"); //Used for mscdex bug cdrom label name emulation
         if (type=="floppy" || type=="dir" || type=="cdrom" || type =="overlay") {
-            uint16_t sizes[4];
+            uint16_t sizes[4] = { 0 };
             uint8_t mediaid;
-            std::string str_size;
+            std::string str_size = "";
             if (type=="floppy") {
                 str_size="512,1,2880,2880";
                 mediaid=0xF0;       /* Floppy 1.44 media */
@@ -1748,7 +1751,7 @@ public:
                         newDiskSwap[i] = new imageDiskNFD(usefile, (uint8_t *)fname, floppysize, false, 1);
                     }
                     else {
-                        newDiskSwap[i] = new imageDisk(usefile, (uint8_t *)fname, floppysize, false);
+                        newDiskSwap[i] = new imageDisk(usefile, fname, floppysize, false);
                     }
                     newDiskSwap[i]->Addref();
                     if (newDiskSwap[i]->active && !newDiskSwap[i]->hardDrive) incrementFDD(); //moved from imageDisk constructor
@@ -5400,7 +5403,7 @@ private:
                 sectors = (uint64_t)ftello64(newDisk) / (uint64_t)sizes[0];
                 imagesize = (uint32_t)(sectors / 2); /* orig. code wants it in KBs */
                 setbuf(newDisk, NULL);
-                newImage = new imageDisk(newDisk, (uint8_t *)fname, imagesize, (imagesize > 2880));
+                newImage = new imageDisk(newDisk, fname, imagesize, (imagesize > 2880));
             }
         }
 
