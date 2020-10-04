@@ -2440,7 +2440,8 @@ static void LOADROM_ProgramStart(Program * * make) {
     *make=new LOADROM;
 }
 
-class BIOS : public Program {
+#if C_DEBUG
+class BIOSTEST : public Program {
 public:
     void Run(void) {
         if (!(cmd->FindCommand(1, temp_line))) {
@@ -2491,9 +2492,10 @@ public:
     }
 };
 
-static void BIOS_ProgramStart(Program** make) {
-    *make = new BIOS;
+static void BIOSTEST_ProgramStart(Program** make) {
+    *make = new BIOSTEST;
 }
+#endif
 
 const uint8_t freedos_mbr[] = {
     0x33,0xC0,0x8E,0xC0,0x8E,0xD8,0x8E,0xD0,0xBC,0x00,0x7C,0xFC,0x8B,0xF4,0xBF,0x00, 
@@ -6750,7 +6752,9 @@ void DOS_SetupPrograms(void) {
     PROGRAMS_MakeFile("IMGMOUNT.COM", IMGMOUNT_ProgramStart);
     PROGRAMS_MakeFile("MOUNT.COM",MOUNT_ProgramStart);
     PROGRAMS_MakeFile("BOOT.COM",BOOT_ProgramStart);
-    PROGRAMS_MakeFile("BIOS.COM", BIOS_ProgramStart);
+#if C_DEBUG
+    PROGRAMS_MakeFile("BIOSTEST.COM", BIOSTEST_ProgramStart);
+#endif
 
     if (!IS_PC98_ARCH) {
         PROGRAMS_MakeFile("KEYB.COM", KEYB_ProgramStart);
