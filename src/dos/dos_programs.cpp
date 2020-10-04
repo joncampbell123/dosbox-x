@@ -2440,6 +2440,61 @@ static void LOADROM_ProgramStart(Program * * make) {
     *make=new LOADROM;
 }
 
+class BIOS : public Program {
+public:
+    void Run(void) {
+        if (!(cmd->FindCommand(1, temp_line))) {
+            WriteOut("Must specify BIOS file to load.\n");
+            return;
+        }
+
+        uint8_t drive;
+        char fullname[DOS_PATHLENGTH];
+        localDrive* ldp = 0;
+        if (!DOS_MakeName((char*)temp_line.c_str(), fullname, &drive)) return;
+
+        try {
+            /* try to read ROM file into buffer */
+            ldp = dynamic_cast<localDrive*>(Drives[drive]);
+            if (!ldp) return;
+
+            FILE* tmpfile = ldp->GetSystemFilePtr(fullname, "rb");
+            if (tmpfile == NULL) {
+                WriteOut("Can't open a file");
+                return;
+            }
+            fseek(tmpfile, 0L, SEEK_END);
+            if (ftell(tmpfile) > 64 * 1024) {
+                WriteOut("BIOS File too large");
+                fclose(tmpfile);
+                return;
+            }
+            fseek(tmpfile, 0L, SEEK_SET);
+            uint8_t buffer[64 * 1024];
+            Bitu data_read = fread(buffer, 1, sizeof(buffer), tmpfile);
+            fclose(tmpfile);
+
+            uint32_t rom_base = PhysMake(0xf000, 0); // override regular dosbox bios
+                    /* write buffer into ROM */
+            for (Bitu i = 0; i < data_read; i++) phys_writeb(rom_base + i, buffer[i]);
+
+            //Start executing this bios
+            memset(&cpu_regs, 0, sizeof(cpu_regs));
+            memset(&Segs, 0, sizeof(Segs));
+
+            SegSet16(cs, 0xf000);
+            reg_eip = 0xfff0;
+        }
+        catch (...) {
+            return;
+        }
+    }
+};
+
+static void BIOS_ProgramStart(Program** make) {
+    *make = new BIOS;
+}
+
 const uint8_t freedos_mbr[] = {
     0x33,0xC0,0x8E,0xC0,0x8E,0xD8,0x8E,0xD0,0xBC,0x00,0x7C,0xFC,0x8B,0xF4,0xBF,0x00, 
     0x06,0xB9,0x00,0x01,0xF2,0xA5,0xEA,0x67,0x06,0x00,0x00,0x8B,0xD5,0x58,0xA2,0x4F, // 10h
@@ -6695,6 +6750,7 @@ void DOS_SetupPrograms(void) {
     PROGRAMS_MakeFile("IMGMOUNT.COM", IMGMOUNT_ProgramStart);
     PROGRAMS_MakeFile("MOUNT.COM",MOUNT_ProgramStart);
     PROGRAMS_MakeFile("BOOT.COM",BOOT_ProgramStart);
+    PROGRAMS_MakeFile("BIOS.COM", BIOS_ProgramStart);
 
     if (!IS_PC98_ARCH) {
         PROGRAMS_MakeFile("KEYB.COM", KEYB_ProgramStart);
