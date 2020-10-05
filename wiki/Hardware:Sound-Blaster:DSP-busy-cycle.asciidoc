@@ -1,9 +1,12 @@
+ifdef::env-github[:suffixappend:]
+ifndef::env-github[:suffixappend: .html]
+
 Explanation
 -----------
 
 Creative Sound Blaster cards have an undocumented quirk where the DSP
 busy bit toggles by itself at an unknown clock rate whether or not any
-I/O is occuring with the card. On 486/Pentium hardware this quirk can be
+I/O is occurring with the card. On 486/Pentium hardware this quirk can be
 detected with 16 I/O reads from the DSP status port where 8 will have
 the busy bit set, and 8 will have the busy bit clear.
 
@@ -21,16 +24,16 @@ Sound Blaster clones may emulate the busy cycle by toggling the busy bit
 Side effects of the busy cycle
 ------------------------------
 
-[[Crystal Dream by Triton|Demoscene:Crystal-Dream-by-Triton-(1992)]]
-(1992)
+link:Software%3Ademoscene%3ACrystal-Dream-by-Triton-(1992)[Crystal Dream by Triton] (1992)
+
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-[[Crystal Dream|Demoscene:Crystal-Dream-by-Triton-(1992)]] appears to
+link:Software%3Ademoscene%3ACrystal-Dream-by-Triton-(1992)[Crystal Dream by Triton] appears to
 use the DSP busy cycle to detect when the DSP has finished the block of
 audio. If it sees the busy cycle stop, then it issues DSP command 0x14
 to start another DSP block. If the hardware does not have a busy cycle
 (SB clones), then the demo effectively
-[[nags|Hardware:Sound-Blaster:Nagging-the-DSP]] the DSP to keep playing
+link:Hardware%3ASound-Blaster%3ANagging-the-DSP[nags] the DSP to keep playing
 continuously and audio playback works regardless. This unique method
 allows the demo to keep audio playback going without having to detect or
 worry about which IRQ the Sound Blaster is assigned to.

@@ -1,4 +1,7 @@
- [[1995|Guide:MS‐DOS:demoscene:1995]] demoscene entry.
+ifdef::env-github[:suffixappend:]
+ifndef::env-github[:suffixappend: .html]
+
+link:Guide%3AMS‐DOS%3Ademoscene%3A1995{suffixappend}[1995] demoscene entry.
 
 Demo description
 ----------------

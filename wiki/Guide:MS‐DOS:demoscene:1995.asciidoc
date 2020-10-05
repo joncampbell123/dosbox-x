@@ -1,5 +1,6 @@
-1995 [[MS-DOS demos|Guide:DOS demoscene software in DOSBox‐X]]
---------------------------------------------------------------
+ifdef::env-github[:suffixappend:]
+ifndef::env-github[:suffixappend: .html]
 
-[[TP5 Intro by Cascada (1995)|Software:demoscene:TP5 Intro by Cascada
-(1995)]]
+## 1995 link:Guide%3ADOS-demoscene-software-in-DOSBox‐X{suffixappend}[MS-DOS demos].
+
+link:Software%3Ademoscene%3ATP5-Intro-by-Cascada-(1995)[TP5 Intro by Cascada (1995)]

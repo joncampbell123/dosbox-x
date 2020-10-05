@@ -436,7 +436,7 @@ body.book #toc,body.book #preamble,body.book h1.sect0,body.book .sect1>h2{page-b
 @media amzn-kf8{#header,#content,#footnotes,#footer{padding:0}}
 </style>
 </head>
-<body class="article">
+<body class="book">
 <div id="header">
 </div>
 <div id="content">
@@ -446,7 +446,7 @@ body.book #toc,body.book #preamble,body.book h1.sect0,body.book .sect1>h2{page-b
 <div class="paragraph">
 <p>Creative Sound Blaster cards have an undocumented quirk where the DSP
 busy bit toggles by itself at an unknown clock rate whether or not any
-I/O is occuring with the card. On 486/Pentium hardware this quirk can be
+I/O is occurring with the card. On 486/Pentium hardware this quirk can be
 detected with 16 I/O reads from the DSP status port where 8 will have
 the busy bit set, and 8 will have the busy bit clear.</p>
 </div>
@@ -472,17 +472,18 @@ active when DSP playback or recording is active.</p>
 <h2 id="_side_effects_of_the_busy_cycle">Side effects of the busy cycle</h2>
 <div class="sectionbody">
 <div class="paragraph">
-<p>[[Crystal Dream by Triton|Demoscene:Crystal-Dream-by-Triton-(1992)]]
-(1992)
-<sub>~</sub><sub>~</sub><sub>~</sub><sub>~</sub><sub>~</sub><sub>~</sub><sub>~</sub><sub>~</sub><sub>~</sub><sub>~</sub><sub>~</sub><sub>~</sub><sub>~</sub><sub>~</sub><sub>~</sub><sub>~</sub><sub>~</sub><sub>~</sub><sub>~</sub><sub>~</sub><sub>~</sub><sub>~</sub><sub>~</sub><sub>~</sub><sub>~</sub></p>
+<p><a href="Software%3Ademoscene%3ACrystal-Dream-by-Triton-(1992)">Crystal Dream by Triton</a> (1992)</p>
 </div>
 <div class="paragraph">
-<p>[[Crystal Dream|Demoscene:Crystal-Dream-by-Triton-(1992)]] appears to
+<p><sub>~</sub><sub>~</sub><sub>~</sub><sub>~</sub><sub>~</sub><sub>~</sub><sub>~</sub><sub>~</sub><sub>~</sub><sub>~</sub><sub>~</sub><sub>~</sub><sub>~</sub><sub>~</sub><sub>~</sub><sub>~</sub><sub>~</sub><sub>~</sub><sub>~</sub><sub>~</sub><sub>~</sub><sub>~</sub><sub>~</sub><sub>~</sub><sub>~</sub></p>
+</div>
+<div class="paragraph">
+<p><a href="Software%3Ademoscene%3ACrystal-Dream-by-Triton-(1992)">Crystal Dream by Triton</a> appears to
 use the DSP busy cycle to detect when the DSP has finished the block of
 audio. If it sees the busy cycle stop, then it issues DSP command 0x14
 to start another DSP block. If the hardware does not have a busy cycle
 (SB clones), then the demo effectively
-[[nags|Hardware:Sound-Blaster:Nagging-the-DSP]] the DSP to keep playing
+<a href="Hardware%3ASound-Blaster%3ANagging-the-DSP">nags</a> the DSP to keep playing
 continuously and audio playback works regardless. This unique method
 allows the demo to keep audio playback going without having to detect or
 worry about which IRQ the Sound Blaster is assigned to.</p>
@@ -513,7 +514,7 @@ to 8 times to wait for the busy bit to clear if the card reports DSP
 </div>
 <div id="footer">
 <div id="footer-text">
-Last updated 2020-10-04 21:08:15 -0400
+Last updated 2020-10-04 22:52:41 -0400
 </div>
 </div>
 </body>

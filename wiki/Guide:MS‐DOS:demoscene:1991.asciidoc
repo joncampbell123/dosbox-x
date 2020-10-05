@@ -1,9 +1,9 @@
-1991 [[MS-DOS demos|Guide:DOS demoscene software in DOSBox‐X]]
---------------------------------------------------------------
+ifdef::env-github[:suffixappend:]
+ifndef::env-github[:suffixappend: .html]
 
-[[Ecargxus by The Phoney
-Coders|Software:demoscene:Ecargxus-by-The-Phoney-Coders-(1991)]] +
-[[Party 91 Intro for The Party|Software:demoscene:Party 91 Intro for The
-Party by TRSI (1991)]] +
-[[Scroll Land by TSI|Software:demoscene:Scroll Land by TSI (1991)]] +
-[[Torso by Abaddon|Software:demoscene:Torso by Abaddon (1991)]]
+## 1991 link:Guide%3ADOS-demoscene-software-in-DOSBox‐X{suffixappend}[MS-DOS demos].
+
+link:Software%3Ademoscene%3AEcargxus-by-The-Phoney-Coders-(1991)[Ecargxus by The Phoney Coders] +
+link:Software%3Ademoscene%3AParty-91-Intro-for-The-Party-by-TRSI-(1991)[Party 91 Intro for The Party] +
+link:Software%3Ademoscene%3AScroll-Land-by-TSI-(1991)[Scroll Land by TSI] +
+link:Software%3Ademoscene%3ATorso-by-Abaddon-(1991)[Torso by Abaddon]

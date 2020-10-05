@@ -1,5 +1,6 @@
-1997 [[MS-DOS demos|Guide:DOS demoscene software in DOSBox‐X]]
---------------------------------------------------------------
+ifdef::env-github[:suffixappend:]
+ifndef::env-github[:suffixappend: .html]
 
-[[CNCD vs Orange by CNCD and Orange (1997)|Software:demoscene:CNCD vs
-Orange by CNCD and Orange (1997)]]
+## 1997 link:Guide%3ADOS-demoscene-software-in-DOSBox‐X{suffixappend}[MS-DOS demos].
+
+link:Software%3Ademoscene%3ACNCD-vs-Orange-by-CNCD-and-Orange-(1997)[CNCD vs Orange by CNCD and Orange (1997)]
