@@ -6431,7 +6431,7 @@ void DOS_SetupPrograms(void) {
         "\n"
         "For more information about DOSBox-X, please take a look at its Wiki:\n"
         "\n"
-        "\033[34;1mhttps://github.com/joncampbell123/dosbox-x/wiki\033[0m\n"
+        "\033[34;1mhttps://dosbox-x.com/wiki\033[0m\n"
         );
     MSG_Add("PROGRAM_INTRO_MOUNT_START",
         "\033[32;1mHere are some commands to get you started:\033[0m\n"

@@ -16,7 +16,7 @@ this project to add support for your keyboard layout.
 
 You can also find a list of supported keyboard layouts and further details
 about keyboard layouts and other regional information in the DOSBox-X Wiki:
-https://github.com/joncampbell123/dosbox-x/wiki
+https://dosbox-x.com/wiki
 
 Below is the source code that handles the keyboard layouts.
 

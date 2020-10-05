@@ -51,7 +51,7 @@ Features such as save & load states and Pentium MMX instructions were also porte
 
 The [DOSBox-X website](https://dosbox-x.com) was designed and maintained by Wengier.
 
-The [DOSBox-X Wiki](https://github.com/joncampbell123/dosbox-x/wiki) pages were created and updated by Wengier and rderooy.
+The [DOSBox-X Wiki](https://dosbox-x.com/wiki) pages were created and updated by Wengier and rderooy.
 
 This is an attempt to properly credit the other code and its sources below. It is **not** a complete list yet, and please feel free to revise and correct this list if there are errors.
 

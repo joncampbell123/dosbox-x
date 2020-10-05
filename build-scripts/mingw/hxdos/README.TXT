@@ -16,7 +16,7 @@ Please visit the DOSBox-X homepage for the latest information about DOSBox-X:
 https://dosbox-x.com/ or http://dosbox-x.software/
 
 For a complete DOSBox-X user guide, including common ways to configure DOSBox-X and its usage tips, please visit the DOSBox-X Wiki:
-https://github.com/joncampbell123/dosbox-x/wiki
+https://dosbox-x.com/wiki
 
 If you have any issues or want to request new features, please feel free to post them in the DOSBox-X issue tracker:
 https://github.com/joncampbell123/dosbox-x/issues

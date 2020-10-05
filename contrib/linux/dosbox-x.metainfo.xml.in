@@ -42,7 +42,7 @@
   </description>
   <url type="homepage">https://dosbox-x.com</url>
   <url type="bugtracker">https://github.com/joncampbell123/dosbox-x/issues</url>
-  <url type="help">https://github.com/joncampbell123/dosbox-x/wiki</url>
+  <url type="help">https://dosbox-x.com/wiki</url>
   <recommends>
 	  <control>keyboard</control>
 	  <control>pointing</control>

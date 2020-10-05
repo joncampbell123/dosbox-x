@@ -7,7 +7,7 @@ The current version of DOSBox-X at this time is DOSBox-X 0.83.6, which was relea
 
 See also: [DOSBox-X 0.83.6 Release Notes](https://dosbox-x.com/release-0.83.6.html)
 
-Once you get DOSBox-X installed and running, you probably want to look at the DOSBox-X user guide in the [DOSBox-X Wiki](https://github.com/joncampbell123/dosbox-x/wiki) for usage information.
+Once you get DOSBox-X installed and running, you probably want to look at the DOSBox-X user guide in the [DOSBox-X Wiki](https://dosbox-x.com/wiki) for usage information.
 
 ## Packages for Supported Platforms
 
