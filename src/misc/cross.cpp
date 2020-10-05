@@ -80,13 +80,12 @@ void Cross::GetPlatformResDir(std::string& in) {
 	// Let's check if the above exists, otherwise use RESDIR
 	struct stat info;
 	if ((stat(in.c_str(), &info) != 0) || (!(info.st_mode & S_IFDIR))) {
-		LOG_MSG("XDG_DATA_HOME (%s) does not exist. Using %s", in.c_str(), RESDIR);
+		//LOG_MSG("XDG_DATA_HOME (%s) does not exist. Using %s", in.c_str(), RESDIR);
 	        in = RESDIR;
 	}
 #elif defined(RESDIR)
 	in = RESDIR;
 #endif
-	LOG_MSG("Data dir: %s", in.c_str());
 	if (!in.empty())
 		in += CROSS_FILESPLIT;
 }
