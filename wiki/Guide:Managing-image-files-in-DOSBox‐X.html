@@ -436,26 +436,96 @@ body.book #toc,body.book #preamble,body.book h1.sect0,body.book .sect1>h2{page-b
 @media amzn-kf8{#header,#content,#footnotes,#footer{padding:0}}
 </style>
 </head>
-<body class="book">
+<body class="article">
 <div id="header">
 </div>
 <div id="content">
-<div id="preamble">
-<div class="sectionbody">
 <div class="paragraph">
-<p>Back to the <a href="Home.html">DOSBox-X Wiki Welcome page</a>.</p>
-</div>
-</div>
+<p>Back to the <a href="Home">DOSBox-X Wiki Welcome page</a>.</p>
 </div>
 <h1 id="_managing_images_files" class="sect0">Managing images files</h1>
-<div class="openblock partintro">
-<div class="content">
-<!-- toc disabled -->
-</div>
+<div id="toc" class="toc">
+<div id="toctitle" class="title">Table of Contents</div>
+<ul class="sectlevel0">
+<li><a href="#_managing_images_files">Managing images files</a></li>
+<li><a href="#_overview">Overview</a></li>
+<li><a href="#_listing_current_mounts">Listing current mounts</a></li>
+<li><a href="#_diskette_floppy_disk_images">Diskette (floppy disk) images</a>
+<ul class="sectlevel1">
+<li><a href="#_creating_diskette_images">Creating diskette images</a></li>
+<li><a href="#_mounting_diskette_images">Mounting diskette images</a>
+<ul class="sectlevel2">
+<li><a href="#_mounting_from_the_drive_menu">Mounting from the Drive menu</a></li>
+<li><a href="#_mounting_multiple_diskette_images">Mounting multiple diskette images</a></li>
+<li><a href="#_write_protecting_diskette_images">Write protecting diskette images</a></li>
+</ul>
+</li>
+<li><a href="#_unmounting_diskette_images">Unmounting diskette images</a></li>
+<li><a href="#_boot_from_a_diskette_image">Boot from a diskette image</a></li>
+<li><a href="#_using_diskette_images_in_linux">Using diskette images in Linux</a>
+<ul class="sectlevel2">
+<li><a href="#_gnome_disk_image_mounter">Gnome Disk Image Mounter</a></li>
+<li><a href="#_mounting_a_diskette_image_from_the_shell">Mounting a diskette image from the shell</a></li>
+<li><a href="#_gnu_mtools">GNU mtools</a></li>
+</ul>
+</li>
+<li><a href="#_using_diskette_images_in_windows">Using diskette images in Windows</a></li>
+</ul>
+</li>
+<li><a href="#_harddisk_images">Harddisk images</a>
+<ul class="sectlevel1">
+<li><a href="#_creating_harddisk_images">Creating harddisk images</a>
+<ul class="sectlevel2">
+<li><a href="#_fat_version">FAT version</a></li>
+<li><a href="#_using_templates">Using templates</a></li>
+<li><a href="#_custom_size">Custom size</a></li>
+</ul>
+</li>
+<li><a href="#_mounting_harddisk_images">Mounting harddisk images</a>
+<ul class="sectlevel2">
+<li><a href="#_mounting_from_the_drive_menu_2">Mounting from the Drive menu</a></li>
+</ul>
+</li>
+<li><a href="#_unmounting_harddisk_images">Unmounting harddisk images</a></li>
+<li><a href="#_booting_from_a_harddisk_image">Booting from a harddisk image</a></li>
+<li><a href="#_using_harddisk_images_in_linux">Using harddisk images in Linux</a>
+<ul class="sectlevel2">
+<li><a href="#_gnome_disk_image_mounter_2">Gnome Disk Image Mounter</a></li>
+<li><a href="#_mounting_a_harddisk_image_from_the_shell">Mounting a harddisk image from the shell</a></li>
+</ul>
+</li>
+<li><a href="#_using_harddisk_images_in_windows">Using harddisk images in Windows</a></li>
+</ul>
+</li>
+<li><a href="#_cd_rom_or_dvd_images">CD-ROM or DVD images</a>
+<ul class="sectlevel1">
+<li><a href="#_mounting_cd_or_dvd_images">Mounting CD or DVD images</a>
+<ul class="sectlevel2">
+<li><a href="#_accessing_a_cd_or_dvd_in_real_dos">Accessing a CD or DVD in real DOS</a></li>
+<li><a href="#_mounting_multiple_cd_or_dvd_images">Mounting multiple CD or DVD images</a></li>
+<li><a href="#_mounting_from_the_drive_menu_3">Mounting from the Drive menu</a></li>
+</ul>
+</li>
+<li><a href="#_unmounting_cd_or_dvd_images">Unmounting CD or DVD images</a></li>
+<li><a href="#_boot_from_a_cd_or_dvd_image">Boot from a CD or DVD image</a></li>
+<li><a href="#_using_cd_or_dvd_images_in_linux">Using CD or DVD images in Linux</a>
+<ul class="sectlevel2">
+<li><a href="#_gnome_disk_image_mounter_3">Gnome Disk Image Mounter</a></li>
+<li><a href="#_cdemu">CDEmu</a></li>
+<li><a href="#_mounting_a_iso_image_from_the_shell">Mounting a ISO image from the shell</a></li>
+</ul>
+</li>
+<li><a href="#_using_cd_or_dvd_images_in_windows">Using CD or DVD images in Windows</a></li>
+</ul>
+</li>
+<li><a href="#_copying_files_into_or_out_of_image_files_from_dosbox_x">Copying files into or out of image files from DOSBox-X</a></li>
+<li><a href="#_creating_a_ram_drive">Creating a RAM drive</a></li>
+<li><a href="#_qcow2_support">QCOW2 support</a></li>
+<li><a href="#_archiving_diskettes">Archiving diskettes</a></li>
+<li><a href="#_outstanding_issues">Outstanding issues</a></li>
+</ul>
 </div>
 <h1 id="_overview" class="sect0">Overview</h1>
-<div class="openblock partintro">
-<div class="content">
 <div class="paragraph">
 <p>DOSBox-X supports three categories of image files;</p>
 </div>
@@ -486,11 +556,7 @@ Also note that if there are any spaces in the host path or filename, you need to
 </tr>
 </table>
 </div>
-</div>
-</div>
 <h1 id="_listing_current_mounts" class="sect0">Listing current mounts</h1>
-<div class="openblock partintro">
-<div class="content">
 <div class="paragraph">
 <p>The currently active mounts can be viewed by running the <code>IMGMOUNT</code> or <code>MOUNT</code> commands without arguments.
 The output of the two commands differs somewhat.</p>
@@ -508,11 +574,7 @@ The output of the two commands differs somewhat.</p>
 <div class="paragraph">
 <p>You can also see the currently mounted drive numbers from the DOS menu.</p>
 </div>
-</div>
-</div>
 <h1 id="_diskette_floppy_disk_images" class="sect0">Diskette (floppy disk) images</h1>
-<div class="openblock partintro">
-<div class="content">
 <div class="paragraph">
 <p>DOSBox-X supports mounting diskette images in the following formats:</p>
 </div>
@@ -582,8 +644,6 @@ Any programs on copy-protected diskettes need to be "cracked" to remove the copy
 <p>Transcopy (.TC)</p>
 </li>
 </ul>
-</div>
-</div>
 </div>
 <div class="sect1">
 <h2 id="_creating_diskette_images">Creating diskette images</h2>
@@ -1245,8 +1305,6 @@ Unfortunately this support is incompatible with the typical MFM image files used
 </div>
 </div>
 <h1 id="_harddisk_images" class="sect0">Harddisk images</h1>
-<div class="openblock partintro">
-<div class="content">
 <div class="paragraph">
 <p>DOSBox-X supports mounting harddisk images in the following formats:</p>
 </div>
@@ -1288,8 +1346,6 @@ Unfortunately this support is incompatible with the typical MFM image files used
 </div>
 <div class="paragraph">
 <p>Creating and accessing harddisk images is very similar to diskette images, with the exception that they also contain partitions and they may contain other filesystems.</p>
-</div>
-</div>
 </div>
 <div class="sect1">
 <h2 id="_creating_harddisk_images">Creating harddisk images</h2>
@@ -1906,16 +1962,12 @@ Unfortunately this support is incompatible with the typical MFM image files used
 </div>
 </div>
 <h1 id="_cd_rom_or_dvd_images" class="sect0">CD-ROM or DVD images</h1>
-<div class="openblock partintro">
-<div class="content">
 <div class="paragraph">
 <p>DOSbox-X supports CD-ROM or DVD image files in ISO9660, CUE/BIN or MDF image format.</p>
 </div>
 <div class="paragraph">
 <p>ISO9660 (aka ISO) is the easiest format to work with, as long as there is only a single track on the CD or DVD.
 If the CD or DVD contains multiple tracks, the use of CUE/BIN or MDF is required.</p>
-</div>
-</div>
 </div>
 <div class="sect1">
 <h2 id="_mounting_cd_or_dvd_images">Mounting CD or DVD images</h2>
@@ -2191,8 +2243,6 @@ This method requires sudo access.</p>
 </div>
 </div>
 <h1 id="_copying_files_into_or_out_of_image_files_from_dosbox_x" class="sect0">Copying files into or out of image files from DOSBox-X</h1>
-<div class="openblock partintro">
-<div class="content">
 <div class="paragraph">
 <p>If you need to copy files into, or out of an image file, this can be done from the DOSBox-X integrated DOS.</p>
 </div>
@@ -2245,11 +2295,7 @@ COPY D:\UNZIP.EXE C:\DOS</pre>
 <div class="paragraph">
 <p>This copies the file UNZIP.EXE from the host system to the C:\DOS directory in the harddisk image file.</p>
 </div>
-</div>
-</div>
 <h1 id="_creating_a_ram_drive" class="sect0">Creating a RAM drive</h1>
-<div class="openblock partintro">
-<div class="content">
 <div class="paragraph">
 <p>If you need a temporary drive, creating a RAM drive is as simple as running</p>
 </div>
@@ -2273,11 +2319,7 @@ The contents of the RAM drive will be lost if the drive is unmounted, a program 
 </tr>
 </table>
 </div>
-</div>
-</div>
 <h1 id="_qcow2_support" class="sect0">QCOW2 support</h1>
-<div class="openblock partintro">
-<div class="content">
 <div class="paragraph">
 <p>The QCOW2 harddisk image format has support for Copy-On-Write (COW), compression and encryption.
 DOSBox-X provides limited support for these images.</p>
@@ -2333,11 +2375,7 @@ boot C:</pre>
 <p>The advantage of the QCOW2 format, is the Copy-On-Write (COW) functionality which allows you to create a base image of for instance Windows 98, and then have different snapshots on top of that with different drivers or applications.
 This saves disk space compared to maintaining multiple full installations, and can prevent windows bit-rot.</p>
 </div>
-</div>
-</div>
 <h1 id="_archiving_diskettes" class="sect0">Archiving diskettes</h1>
-<div class="openblock partintro">
-<div class="content">
 <div class="paragraph">
 <p>If you have 3.5" or 5.25" diskettes that you want to convert to image files, there are a multitude of ways to accomplished this, and really out of the scope for this Guide.</p>
 </div>
@@ -2380,11 +2418,7 @@ Instead look for an older second-hand USB floppy drive from a known brand like D
 </tr>
 </table>
 </div>
-</div>
-</div>
 <h1 id="_outstanding_issues" class="sect0">Outstanding issues</h1>
-<div class="openblock partintro">
-<div class="content">
 <div class="ulist">
 <ul>
 <li>
@@ -2408,11 +2442,9 @@ Instead look for an older second-hand USB floppy drive from a known brand like D
 </ul>
 </div>
 </div>
-</div>
-</div>
 <div id="footer">
 <div id="footer-text">
-Last updated 2020-10-04 23:26:49 -0400
+Last updated 2020-10-05 18:21:06 -0400
 </div>
 </div>
 </body>

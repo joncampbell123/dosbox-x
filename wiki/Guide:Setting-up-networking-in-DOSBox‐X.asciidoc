@@ -1,9 +1,9 @@
+:toc: macro
+
 ifdef::env-github[:suffixappend:]
-ifndef::env-github[:suffixappend: .html]
+ifndef::env-github[:suffixappend:]
 
 Back to the link:Home{suffixappend}[DOSBox-X Wiki Welcome page].
-
-:toc: macro
 
 # Setting up networking in DOSBox-X
 

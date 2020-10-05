@@ -436,34 +436,60 @@ body.book #toc,body.book #preamble,body.book h1.sect0,body.book .sect1>h2{page-b
 @media amzn-kf8{#header,#content,#footnotes,#footer{padding:0}}
 </style>
 </head>
-<body class="book">
+<body class="article">
 <div id="header">
 </div>
 <div id="content">
-<div id="preamble">
-<div class="sectionbody">
 <div class="paragraph">
-<p>Back to the <a href="Home.html">DOSBox-X Wiki Welcome page</a>.</p>
-</div>
-</div>
+<p>Back to the <a href="Home">DOSBox-X Wiki Welcome page</a>.</p>
 </div>
 <h1 id="_setting_up_midi_in_dosbox_x" class="sect0">Setting up MIDI in DOSBox-X</h1>
-<div class="openblock partintro">
-<div class="content">
-<!-- toc disabled -->
-</div>
+<div id="toc" class="toc">
+<div id="toctitle" class="title">Table of Contents</div>
+<ul class="sectlevel0">
+<li><a href="#_setting_up_midi_in_dosbox_x">Setting up MIDI in DOSBox-X</a></li>
+<li><a href="#_overview">Overview</a>
+<ul class="sectlevel2">
+<li><a href="#_midi_options">MIDI options</a></li>
+</ul>
+</li>
+<li><a href="#_roland_mt_32_emulation">Roland MT-32 Emulation</a>
+<ul class="sectlevel1">
+<li><a href="#_mt_32">MT-32</a></li>
+<li><a href="#_cm_32l_lapc_i">CM-32L / LAPC-I</a></li>
+<li><a href="#_roms">ROMs</a>
+<ul class="sectlevel2">
+<li><a href="#_mt_32_config_options">MT-32 config options</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li><a href="#_general_midi_emulation">General MIDI Emulation</a>
+<ul class="sectlevel1">
+<li><a href="#_fluidsynth">FluidSynth</a>
+<ul class="sectlevel2">
+<li><a href="#_linux_setup">Linux Setup</a></li>
+<li><a href="#_windows_setup">Windows Setup</a></li>
+<li><a href="#_fluidsynth_config_options">FluidSynth config options</a></li>
+</ul>
+</li>
+<li><a href="#_timidity">TiMidity&#43;&#43;</a></li>
+<li><a href="#_alsa">ALSA</a></li>
+<li><a href="#_oss">OSS</a></li>
+<li><a href="#_microsoft_gs_wavetable_software_synthesizer">Microsoft GS Wavetable software synthesizer</a></li>
+<li><a href="#_coreaudio">CoreAudio</a></li>
+<li><a href="#_coremidi">CoreMIDI</a></li>
+</ul>
+</li>
+</ul>
 </div>
 <h1 id="_overview" class="sect0">Overview</h1>
-<div class="openblock partintro">
-<div class="content">
 <div class="paragraph">
 <p>DOSBox-X has support for emulating either a General MIDI or a Roland MT-32 synthesizer.
 In addition, it is possible to use a real external MIDI synthesizer.</p>
 </div>
 <div class="paragraph">
 <p>As of DOSBox-X version 0.83.6, the DOSMID program is included in DOSBox-X and will appear on the Z drive, and you can use it to play MIDI/RMI/MUS audio files.</p>
-</div>
-</div>
 </div>
 <div class="sect2">
 <h3 id="_midi_options">MIDI options</h3>
@@ -764,8 +790,6 @@ Please use "mididevice=fluidsynth" instead, with the "fluid.samplerate" option i
 </div>
 </div>
 <h1 id="_roland_mt_32_emulation" class="sect0">Roland MT-32 Emulation</h1>
-<div class="openblock partintro">
-<div class="content">
 <div class="paragraph">
 <p>The Roland MT-32 pre-dates General MIDI, and was used by a broad range of DOS games, starting in 1988 with King&#8217;s Quest IV.</p>
 </div>
@@ -786,8 +810,6 @@ If a game offers a "Sound Canvas", Roland SC-55, Roland SCC-I or a Roland RAP-10
 </td>
 </tr>
 </table>
-</div>
-</div>
 </div>
 <div class="sect1">
 <h2 id="_mt_32">MT-32</h2>
@@ -1277,8 +1299,6 @@ Otherwise, the emulation accuracy is preserved.</p>
 </div>
 </div>
 <h1 id="_general_midi_emulation" class="sect0">General MIDI Emulation</h1>
-<div class="openblock partintro">
-<div class="content">
 <div class="paragraph">
 <p>Unlike with the MT-32 emulation, General MIDI emulation is not implemented in DOSBox-X itself, but rather provided by a separate software synthesizer.
 DOSBox-X has support for a variety of such software synthesizers.</p>
@@ -1296,8 +1316,6 @@ Games known to actually support the GS extensions can be found here: <a href="ht
 </td>
 </tr>
 </table>
-</div>
-</div>
 </div>
 <div class="sect1">
 <h2 id="_fluidsynth">FluidSynth</h2>
@@ -1853,7 +1871,7 @@ On a modern Windows system, there are no configuration options either.</p>
 </div>
 <div id="footer">
 <div id="footer-text">
-Last updated 2020-10-04 23:26:50 -0400
+Last updated 2020-10-05 18:21:06 -0400
 </div>
 </div>
 </body>

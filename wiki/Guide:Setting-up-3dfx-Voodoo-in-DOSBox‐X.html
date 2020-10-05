@@ -436,26 +436,47 @@ body.book #toc,body.book #preamble,body.book h1.sect0,body.book .sect1>h2{page-b
 @media amzn-kf8{#header,#content,#footnotes,#footer{padding:0}}
 </style>
 </head>
-<body class="book">
+<body class="article">
 <div id="header">
 </div>
 <div id="content">
-<div id="preamble">
-<div class="sectionbody">
 <div class="paragraph">
-<p>Back to the <a href="Home.html">DOSBox-X Wiki Welcome page</a>.</p>
-</div>
-</div>
+<p>Back to the <a href="Home">DOSBox-X Wiki Welcome page</a>.</p>
 </div>
 <h1 id="_setting_up_3dfx_voodoo_in_dosbox_x" class="sect0">Setting up 3dfx Voodoo in DOSBox-X</h1>
-<div class="openblock partintro">
-<div class="content">
-<!-- toc disabled -->
-</div>
+<div id="toc" class="toc">
+<div id="toctitle" class="title">Table of Contents</div>
+<ul class="sectlevel0">
+<li><a href="#_setting_up_3dfx_voodoo_in_dosbox_x">Setting up 3dfx Voodoo in DOSBox-X</a></li>
+<li><a href="#_overview">Overview</a>
+<ul class="sectlevel1">
+<li><a href="#_voodoo_options">[voodoo] options</a>
+<ul class="sectlevel2">
+<li><a href="#_voodoo_card">voodoo_card</a></li>
+<li><a href="#_voodoo_maxmem">voodoo_maxmem</a></li>
+<li><a href="#_glide">glide</a></li>
+<li><a href="#_lfb">lfb</a></li>
+<li><a href="#_splash">splash</a></li>
+</ul>
+</li>
+<li><a href="#_cpu_option">[cpu] option</a>
+<ul class="sectlevel2">
+<li><a href="#_ignore_undefined_msr">ignore undefined msr</a></li>
+</ul>
+</li>
+<li><a href="#_low_level_emulation">Low Level emulation</a></li>
+<li><a href="#_high_level_emulation">High Level emulation</a>
+<ul class="sectlevel2">
+<li><a href="#_windows_installing_glide2x_dll">Windows: Installing glide2x.dll</a></li>
+<li><a href="#_linux_installing_libglide2x_so">Linux: Installing libglide2x.so</a></li>
+<li><a href="#_macos_installing_libglide2x_dylib">macOS: Installing libglide2x.dylib</a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
 </div>
 <h1 id="_overview" class="sect0">Overview</h1>
-<div class="openblock partintro">
-<div class="content">
 <div class="paragraph">
 <p>The 3dfx Voodoo is a 3D accelerator chipset released in late 1996, and sold by various graphic card manufacturers.
 The original Voodoo 1 adapters need to be used in conjunction with a separate VGA adapter in a pass-through manor.</p>
@@ -475,8 +496,6 @@ The original Voodoo 1 adapters need to be used in conjunction with a separate VG
 <p>High-Level Emulation, where the Glide API calls are passed through to the host OS, where it is then converted to a modern 3D Graphics API.</p>
 </li>
 </ul>
-</div>
-</div>
 </div>
 <div class="sect1">
 <h2 id="_voodoo_options">[voodoo] options</h2>
@@ -776,7 +795,7 @@ sudo ldconfig</pre>
 </div>
 <div id="footer">
 <div id="footer-text">
-Last updated 2020-10-04 23:26:50 -0400
+Last updated 2020-10-05 18:21:06 -0400
 </div>
 </div>
 </body>

@@ -436,20 +436,14 @@ body.book #toc,body.book #preamble,body.book h1.sect0,body.book .sect1>h2{page-b
 @media amzn-kf8{#header,#content,#footnotes,#footer{padding:0}}
 </style>
 </head>
-<body class="book">
+<body class="article">
 <div id="header">
 </div>
 <div id="content">
-<div id="preamble">
-<div class="sectionbody">
 <div class="paragraph">
 <p>Back to the <a href="Guide%3AMicrosoft-Windows-in-DOSBox‐X">Microsoft Windows in DOSBox-X</a></p>
 </div>
-</div>
-</div>
 <h1 id="_installing_microsoft_windows_3_x_in_dosbox_x" class="sect0">Installing Microsoft Windows 3.x in DOSBox-X</h1>
-<div class="openblock partintro">
-<div class="content">
 <div class="imageblock">
 <div class="content">
 <img src="images/Windows:Windows_3.11_SPLASH.png" alt="Windows 1.01 splash screen">
@@ -495,8 +489,6 @@ body.book #toc,body.book #preamble,body.book h1.sect0,body.book .sect1>h2{page-b
 <li><a href="#_starting_a_windows_game_from_dos">Starting a Windows game from DOS</a></li>
 <li><a href="#_outstanding_issues">Outstanding issues</a></li>
 </ul>
-</div>
-</div>
 </div>
 <h1 id="_overview" class="sect0">Overview</h1>
 <div class="sect1">
@@ -812,8 +804,6 @@ body.book #toc,body.book #preamble,body.book h1.sect0,body.book .sect1>h2{page-b
 </div>
 </div>
 <h1 id="_dosbox_x_config_file" class="sect0">DOSBox-X config file</h1>
-<div class="openblock partintro">
-<div class="content">
 <div class="paragraph">
 <p>It is recommended that you create a custom DOSBox-X config file for running Windows 3.x</p>
 </div>
@@ -879,13 +869,9 @@ aspect=false
 </li>
 </ul>
 </div>
-</div>
-</div>
 <h1 id="_preparing_for_installation" class="sect0">Preparing for Installation</h1>
-<div class="openblock partintro">
-<div class="content">
-Most Windows 3.x versions were shipped on diskettes, requiring anywhere between 5 and 15 disks, depending on media-type and windows version. And while it is definitely possible to install Windows 3.x from diskette images in DOSBox, the process for this is rather tedious for large number of disks. As such it is highly recommended to make a directory such as "INSTALL" and copy the contents of ALL the diskettes into this directory. This way there is no need to swap disks during the installation process.
-</div>
+<div class="paragraph">
+<p>Most Windows 3.x versions were shipped on diskettes, requiring anywhere between 5 and 15 disks, depending on media-type and windows version. And while it is definitely possible to install Windows 3.x from diskette images in DOSBox, the process for this is rather tedious for large number of disks. As such it is highly recommended to make a directory such as "INSTALL" and copy the contents of ALL the diskettes into this directory. This way there is no need to swap disks during the installation process.</p>
 </div>
 <div class="sect1">
 <h2 id="_example_of_extracting_files_from_disk_images">Example of extracting files from disk images</h2>
@@ -937,8 +923,6 @@ IMGMOUNT A -U</pre>
 </div>
 </div>
 <h1 id="_installing_in_a_mounted_folder" class="sect0">Installing in a mounted folder</h1>
-<div class="openblock partintro">
-<div class="content">
 <div class="paragraph">
 <p><strong>Notes</strong></p>
 </div>
@@ -1052,11 +1036,7 @@ EXIT</pre>
 <div class="paragraph">
 <p>Adjust the path for mounting the C: drive as needed.</p>
 </div>
-</div>
-</div>
 <h1 id="_install_windows_3_x_into_a_dos_hdd_image" class="sect0">Install Windows 3.x into a DOS HDD image</h1>
-<div class="openblock partintro">
-<div class="content">
 <div class="paragraph">
 <p>This method does not have any of the disadvantages listed above.
 But it brings with it a bit of additional inconvenience.
@@ -1118,11 +1098,7 @@ SETUP</pre>
 <div class="paragraph">
 <p>After the installation is finished, you can install your drivers and add-ons.</p>
 </div>
-</div>
-</div>
 <h1 id="_starting_windows_3_x_after_installation" class="sect0">Starting Windows 3.x after installation</h1>
-<div class="openblock partintro">
-<div class="content">
 <div class="paragraph">
 <p>After the installation is finished, you can start Windows 3.x from the command-prompt with the following command:</p>
 </div>
@@ -1131,11 +1107,7 @@ SETUP</pre>
 <pre>dosbox-x -conf win3x.conf</pre>
 </div>
 </div>
-</div>
-</div>
 <h1 id="_steps_to_take_after_installation" class="sect0">Steps to take after Installation</h1>
-<div class="openblock partintro">
-<div class="content">
 <div class="paragraph">
 <p>Once Windows 3.x is installed, here is some additional software you may want to install or update:</p>
 </div>
@@ -1161,11 +1133,7 @@ SETUP</pre>
 </li>
 </ul>
 </div>
-</div>
-</div>
 <h1 id="_enabling_32_bit_file_and_disk_access" class="sect0">Enabling 32-bit File and Disk access</h1>
-<div class="openblock partintro">
-<div class="content">
 <div class="ulist">
 <ul>
 <li>
@@ -1257,11 +1225,7 @@ If the 32-Bit Disk Access option is greyed out, it probably means your configura
 <p>There are 3rd party 32-Bit Disk Access drivers which <em>may</em> allow it to function on larger disks, but have not been tested in combination with DOSBox-X.
 Most 3rd party drivers only work in combination with specific hardware, but the Ontrack ontrackw.386 driver works in DOSBox-X, but seems to have similar restrictions.</p>
 </div>
-</div>
-</div>
 <h1 id="_enabling_networking" class="sect0">Enabling networking</h1>
-<div class="openblock partintro">
-<div class="content">
 <div class="paragraph">
 <p>This only applies to <strong>Windows for Workgroups</strong> (WfW). To enable networking functionality you will need to create a disk image with real DOS, and install WfW into that. You cannot run the networking components of WfW in the emulated DOS environment that DOSBox-X provides by default. For instance, if you install WfW inside DOSBox-X with networking support, your supposed to run <code>C:\WINDOWS\NET START</code> before starting Windows. This command will however return a <code>Error 73: (null)</code> if run from the DOSbox-X emulated DOS.</p>
 </div>
@@ -1274,11 +1238,7 @@ Most 3rd party drivers only work in combination with specific hardware, but the 
 <div class="paragraph">
 <p>You can however install <strong>Microsoft TCP/IP-32</strong> to add TCP/IP support to WfW.</p>
 </div>
-</div>
-</div>
 <h1 id="_enabling_sound" class="sect0">Enabling sound</h1>
-<div class="openblock partintro">
-<div class="content">
 <div class="paragraph">
 <p>DOSBox-X by default emulates a Creative Labs SoundBlaster 16.
 <a href="http://www.sierrahelp.com/Utilities/Emulators/DOSBox/3x_InstallSB.html">Download and install</a> the SB16 driver package.
@@ -1288,8 +1248,6 @@ This needs to be run from DOS.</p>
 <p>Pay close attention during installation to the IRQ.
 The emulated SB16 in DOSBox-X defaults to IRQ7, while the SB16 driver package assumes IRQ5.
 So unless you changed the SB IRQ in your DOSBox-X config file, change the IRQ during installation to IRQ7.</p>
-</div>
-</div>
 </div>
 <div class="sect1">
 <h2 id="_enabling_external_midi">Enabling external MIDI</h2>
@@ -1320,14 +1278,10 @@ Once finished click ok and confirm the save.</p>
 </div>
 </div>
 <h1 id="_enabling_printing" class="sect0">Enabling printing</h1>
-<div class="openblock partintro">
-<div class="content">
-To enable printing support in Windows 3.x, see <a href="Guide%3ASetting-up-printing-in-DOSBox%E2%80%90X">Guide: Setting up printing in DOSBox-X</a>
-</div>
+<div class="paragraph">
+<p>To enable printing support in Windows 3.x, see <a href="Guide%3ASetting-up-printing-in-DOSBox%E2%80%90X">Guide: Setting up printing in DOSBox-X</a></p>
 </div>
 <h1 id="_installing_win32s" class="sect0">Installing Win32s</h1>
-<div class="openblock partintro">
-<div class="content">
 <div class="paragraph">
 <p>Win32s is a 32-bit application runtime environment for Windows 3.1x. Some games and applications require it.
 Win32s version 1.30c is the latest version.</p>
@@ -1341,11 +1295,7 @@ Win32s requires that SHARE.EXE is loaded, so your options are to either fake it,
 This is not safe and can lead some applications that really need it to experience data corruption.
 Office 4.3, Visual C++ and Visual Basic are examples of programs that should not be run without real SHARE.EXE support.</p>
 </div>
-</div>
-</div>
 <h1 id="_starting_a_windows_game_from_dos" class="sect0">Starting a Windows game from DOS</h1>
-<div class="openblock partintro">
-<div class="content">
 <div class="paragraph">
 <p>If you want to silently start a Windows game, without seeing the Windows 3.x splash screen or program manager, and when you exit the game that it exits Windows, here are the steps to take:</p>
 </div>
@@ -1374,11 +1324,7 @@ Office 4.3, Visual C++ and Visual Basic are examples of programs that should not
 <div class="paragraph">
 <p>Like before it will start the game without the Windows splash screen, but now when you Exit the game it will also Exit Windows. This way you can launch Windows games from a DOS batch file, or from a DOSBox launcher such as <a href="http://members.quicknet.nl/blankendaalr/dbgl/">DBGL</a>.</p>
 </div>
-</div>
-</div>
 <h1 id="_outstanding_issues" class="sect0">Outstanding issues</h1>
-<div class="openblock partintro">
-<div class="content">
 <div class="ulist">
 <ul>
 <li>
@@ -1390,11 +1336,9 @@ Office 4.3, Visual C++ and Visual Basic are examples of programs that should not
 </ul>
 </div>
 </div>
-</div>
-</div>
 <div id="footer">
 <div id="footer-text">
-Last updated 2020-10-04 23:26:49 -0400
+Last updated 2020-10-05 18:21:06 -0400
 </div>
 </div>
 </body>

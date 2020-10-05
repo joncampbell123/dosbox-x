@@ -436,28 +436,63 @@ body.book #toc,body.book #preamble,body.book h1.sect0,body.book .sect1>h2{page-b
 @media amzn-kf8{#header,#content,#footnotes,#footer{padding:0}}
 </style>
 </head>
-<body class="book">
+<body class="article">
 <div id="header">
 </div>
 <div id="content">
-<div id="preamble">
-<div class="sectionbody">
 <div class="paragraph">
-<p>Back to the <a href="Home.html">DOSBox-X Wiki Welcome page</a>.</p>
-</div>
-</div>
+<p>Back to the <a href="Home">DOSBox-X Wiki Welcome page</a>.</p>
 </div>
 <h1 id="_setting_up_networking_in_dosbox_x" class="sect0">Setting up networking in DOSBox-X</h1>
-<div class="openblock partintro">
-<div class="content">
-<!-- toc disabled -->
-</div>
+<div id="toc" class="toc">
+<div id="toctitle" class="title">Table of Contents</div>
+<ul class="sectlevel0">
+<li><a href="#_setting_up_networking_in_dosbox_x">Setting up networking in DOSBox-X</a></li>
+<li><a href="#_overview">Overview</a>
+<ul class="sectlevel1">
+<li><a href="#_ne2000_resource_usage">NE2000 resource usage</a></li>
+<li><a href="#_realnic_usage">realnic usage</a></li>
+<li><a href="#_host_network_adapters">Host network adapters</a></li>
+</ul>
+</li>
+<li><a href="#_setup_guide_for_linux_hosts">Setup guide for Linux hosts</a>
+<ul class="sectlevel2">
+<li><a href="#_install_libpcap">Install libpcap</a></li>
+<li><a href="#_check_if_your_dosbox_x_binary_supports_networking">Check if your DOSBox-X binary supports networking</a></li>
+<li><a href="#_setup_permissions">Setup permissions</a></li>
+<li><a href="#_locate_host_network_interface">Locate host network interface</a></li>
+</ul>
+</li>
+<li><a href="#_setup_guide_for_windows_hosts">Setup guide for Windows hosts</a>
+<ul class="sectlevel1">
+<li><a href="#_install_pcap">Install PCAP</a></li>
+<li><a href="#_locate_host_network_interface_2">Locate host network interface</a></li>
+</ul>
+</li>
+<li><a href="#_mtcp_example">mTCP example</a>
+<ul class="sectlevel2">
+<li><a href="#_common_problem_invalid_mac_address">Common problem: Invalid MAC Address</a></li>
+<li><a href="#_common_problem_cannot_get_dhcp_lease">Common problem: Cannot get DHCP lease</a></li>
+<li><a href="#_common_problem_multiple_dosbox_x_instances">Common problem: Multiple DOSBox-X instances</a></li>
+</ul>
+</li>
+<li><a href="#_ipx_example">IPX example</a>
+<ul class="sectlevel1">
+<li><a href="#_using_dosbox_x_integrated_ipx_support">Using DOSBox-X integrated IPX support</a></li>
+<li><a href="#_using_the_netware_dos_client">Using the NetWare DOS Client</a>
+<ul class="sectlevel2">
+<li><a href="#_unpacking_the_vlm_archive_in_dosbox_x">Unpacking the VLM archive in DOSBox-X</a></li>
+<li><a href="#_create_net_cfg">Create NET.CFG</a></li>
+<li><a href="#_start_ipx">Start IPX</a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
 </div>
 <h1 id="_overview" class="sect0">Overview</h1>
-<div class="openblock partintro">
-<div class="content">
-DOSBox-X has support for emulating the Novell NE2000 network adapter, but setting it up can be a bit convoluted. This guide hopes to simplify the process.
-</div>
+<div class="paragraph">
+<p>DOSBox-X has support for emulating the Novell NE2000 network adapter, but setting it up can be a bit convoluted. This guide hopes to simplify the process.</p>
 </div>
 <div class="sect1">
 <h2 id="_ne2000_resource_usage">NE2000 resource usage</h2>
@@ -786,8 +821,6 @@ realnic="Realtek USB NIC"</pre>
 </div>
 </div>
 <h1 id="_mtcp_example" class="sect0">mTCP example</h1>
-<div class="openblock partintro">
-<div class="content">
 <div class="paragraph">
 <p>This example uses mTCP to test if networking is working in DOSBox-X.</p>
 </div>
@@ -833,8 +866,6 @@ DHCP</pre>
 <div class="literalblock">
 <div class="content">
 <pre>PING google.com</pre>
-</div>
-</div>
 </div>
 </div>
 <div class="sect2">
@@ -953,10 +984,8 @@ macaddr=AC:DE:48:88:99:AB</pre>
 </div>
 </div>
 <h1 id="_ipx_example" class="sect0">IPX example</h1>
-<div class="openblock partintro">
-<div class="content">
-There are two ways to enable IPX communication, which was used by some <a href="https://www.mobygames.com/attribute/sheet/attributeId,82/p,2/">DOS and Windows games</a> for multi-player support.
-</div>
+<div class="paragraph">
+<p>There are two ways to enable IPX communication, which was used by some <a href="https://www.mobygames.com/attribute/sheet/attributeId,82/p,2/">DOS and Windows games</a> for multi-player support.</p>
 </div>
 <div class="sect1">
 <h2 id="_using_dosbox_x_integrated_ipx_support">Using DOSBox-X integrated IPX support</h2>
@@ -1115,7 +1144,7 @@ But note that this is NetBIOS <strong>over</strong> IPX, which cannot communicat
 </div>
 <div id="footer">
 <div id="footer-text">
-Last updated 2020-10-04 23:26:50 -0400
+Last updated 2020-10-05 18:21:06 -0400
 </div>
 </div>
 </body>

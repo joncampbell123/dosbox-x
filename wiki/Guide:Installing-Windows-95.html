@@ -436,20 +436,14 @@ body.book #toc,body.book #preamble,body.book h1.sect0,body.book .sect1>h2{page-b
 @media amzn-kf8{#header,#content,#footnotes,#footer{padding:0}}
 </style>
 </head>
-<body class="book">
+<body class="article">
 <div id="header">
 </div>
 <div id="content">
-<div id="preamble">
-<div class="sectionbody">
 <div class="paragraph">
 <p>Back to the <a href="Guide%3AMicrosoft-Windows-in-DOSBox‐X">Microsoft Windows in DOSBox-X</a></p>
 </div>
-</div>
-</div>
 <h1 id="_installing_microsoft_windows_95_in_dosbox_x" class="sect0">Installing Microsoft Windows 95 in DOSBox-X</h1>
-<div class="openblock partintro">
-<div class="content">
 <div class="imageblock">
 <div class="content">
 <img src="images/Windows:Windows_95_SPLASH.png" alt="Windows 95 splash screen">
@@ -494,13 +488,9 @@ body.book #toc,body.book #preamble,body.book h1.sect0,body.book .sect1>h2{page-b
 <li><a href="#_outstanding_issues">Outstanding issues</a></li>
 </ul>
 </div>
-</div>
-</div>
 <h1 id="_overview" class="sect0">Overview</h1>
-<div class="openblock partintro">
-<div class="content">
-This guide will give a general description of installing Windows 95 in DOSBox-X, in addition to addressing some common issues.
-</div>
+<div class="paragraph">
+<p>This guide will give a general description of installing Windows 95 in DOSBox-X, in addition to addressing some common issues.</p>
 </div>
 <div class="sect1">
 <h2 id="_cd_rom_editions_this_applies_to">CD-ROM editions this applies to</h2>
@@ -581,8 +571,6 @@ If you want to stick with Windows 95, we recommend to use <strong>Windows 95 OSR
 </div>
 </div>
 <h1 id="_dosbox_x_config_file" class="sect0">DOSBox-X config file</h1>
-<div class="openblock partintro">
-<div class="content">
 <div class="paragraph">
 <p>You first need to create a DOSBox-X config file.</p>
 </div>
@@ -672,11 +660,7 @@ scaler=none
 </li>
 </ul>
 </div>
-</div>
-</div>
 <h1 id="_general_installation_notes" class="sect0">General installation Notes</h1>
-<div class="openblock partintro">
-<div class="content">
 <div class="ulist">
 <ul>
 <li>
@@ -695,8 +679,6 @@ scaler=none
 <p>In case you installed Windows 95 OSR2.5 you may have noticed that you did not get IE4 and the Active Desktop features. This is because this is an optional install. On the CD, simply run \WIN95\IE4SETUP.EXE to install it. While there is no real advantage to either feature, installing it does bring some new and updated libraries such as MSVCRT.DLL and COMCTL32.DLL that some programs need.</p>
 </li>
 </ul>
-</div>
-</div>
 </div>
 <div class="sect1">
 <h2 id="_creating_a_harddisk_image">Creating a Harddisk image</h2>
@@ -761,11 +743,9 @@ This is an example of a 16GB (16*1024=16384MB) disk.</p>
 </div>
 </div>
 <h1 id="_installation_method" class="sect0">Installation Method</h1>
-<div class="openblock partintro">
-<div class="content">
-Other installation methods are possible than the one described below.
-It is however considered to be the quickest method with the least amount of steps.
-</div>
+<div class="paragraph">
+<p>Other installation methods are possible than the one described below.
+It is however considered to be the quickest method with the least amount of steps.</p>
 </div>
 <div class="sect1">
 <h2 id="_requirements">Requirements</h2>
@@ -878,8 +858,6 @@ This is also the command you use, after the installation is finished, to start W
 </div>
 </div>
 <h1 id="_booting_windows_95_after_installation" class="sect0">Booting Windows 95 after installation</h1>
-<div class="openblock partintro">
-<div class="content">
 <div class="paragraph">
 <p>After the installation is finished, you can start Windows 95 from the command-prompt with the following command:</p>
 </div>
@@ -888,11 +866,7 @@ This is also the command you use, after the installation is finished, to start W
 <pre>dosbox-x -conf win95.conf</pre>
 </div>
 </div>
-</div>
-</div>
 <h1 id="_steps_to_take_after_installation" class="sect0">Steps to take after Installation</h1>
-<div class="openblock partintro">
-<div class="content">
 <div class="paragraph">
 <p>Once Windows 95 is installed, here is some additional software you may want to install or update:</p>
 </div>
@@ -930,11 +904,7 @@ This is also the command you use, after the installation is finished, to start W
 <div class="paragraph">
 <p><a href="https://msfn.org/board/topic/176623-last-versions-of-software-for-windows-95/">Forum thread about: Last versions of software for Windows 95</a></p>
 </div>
-</div>
-</div>
 <h1 id="_enabling_networking" class="sect0">Enabling networking</h1>
-<div class="openblock partintro">
-<div class="content">
 <div class="paragraph">
 <p>If you enabled NE2000 support in the DOSBox-X config file, you will probably want to enable TCP/IP.
 Go to "Start", "Settings" and "Control Panel" and double-click on "Network".
@@ -961,11 +931,7 @@ After the reboot you should have working TCP/IP networking.</p>
 <div class="paragraph">
 <p>If networking does not work, see <a href="Guide%3ASetting-up-networking-in-DOSBox%E2%80%90X">Guide: Setting up networking in DOSBox-X</a></p>
 </div>
-</div>
-</div>
 <h1 id="_emulated_video_adapter_and_video_mode" class="sect0">Emulated video adapter and video mode</h1>
-<div class="openblock partintro">
-<div class="content">
 <div class="paragraph">
 <p>The default video adapter that DOSBox-X emulates is the S3 Trio64, which is the best emulated video adapter that DOSBox-X offers, with the widest range of resolutions and colour depths.</p>
 </div>
@@ -1020,11 +986,7 @@ Using the VBEMP driver does have a negative graphics performance impact, which w
 </tr>
 </table>
 </div>
-</div>
-</div>
 <h1 id="_emulated_sound_card" class="sect0">Emulated sound card</h1>
-<div class="openblock partintro">
-<div class="content">
 <div class="paragraph">
 <p>The emulated sound card used in this guide is the SB16 Vibra, instead of the default SB16.
 This is simply because the SB16 Vibra is a ISA PnP card, and therefore automatically detected by Windows.
@@ -1040,8 +1002,6 @@ Therefore the CQM sound quality issues with the SB16 Vibra do not apply to DOSBo
 </div>
 <div class="paragraph">
 <p>An optional driver <a href="http://vogonsdrivers.com/getfile.php?fileid=50&amp;menustate=0">update to 4.38.14</a> is available on the VOGONS Vintage Driver Library (ignore that the download claims it is for Windows 98, the update is for both Windows 95 and 98).</p>
-</div>
-</div>
 </div>
 <div class="sect1">
 <h2 id="_enabling_general_midi">Enabling General MIDI</h2>
@@ -1059,14 +1019,10 @@ Open the "Control Panel", and then double-click on "Multimedia Properties".</p>
 </div>
 </div>
 <h1 id="_enabling_printing" class="sect0">Enabling printing</h1>
-<div class="openblock partintro">
-<div class="content">
-To enable printing support in Windows 95, see <a href="Guide%3ASetting-up-printing-in-DOSBox%E2%80%90X">Guide: Setting up printing in DOSBox-X</a>
-</div>
+<div class="paragraph">
+<p>To enable printing support in Windows 95, see <a href="Guide%3ASetting-up-printing-in-DOSBox%E2%80%90X">Guide: Setting up printing in DOSBox-X</a></p>
 </div>
 <h1 id="_3dfx_voodoo" class="sect0">3dfx Voodoo</h1>
-<div class="openblock partintro">
-<div class="content">
 <div class="paragraph">
 <p>The emulated 3dfx Voodoo PCI device is enabled by default in DOSBox-X, but Windows 95 lacks drivers for it by default.
 As such a "PCI Multimedia Video Device" will show in Device Manager with a yellow exclamation mark.</p>
@@ -1095,11 +1051,7 @@ Do not enable glide pass-through (<code>glide=true</code>) support with Windows 
 </tr>
 </table>
 </div>
-</div>
-</div>
 <h1 id="_hard_disk_read_ahead_optimization" class="sect0">Hard Disk Read-ahead optimization</h1>
-<div class="openblock partintro">
-<div class="content">
 <div class="paragraph">
 <p>In "System Properties", select the "Performance" tab, and click the "File System&#8230;&#8203;" button.
 A separate "File System Properties" window will open.
@@ -1109,11 +1061,7 @@ On the "Hard Disk" tab you can specify the Read-ahead optimization.</p>
 <p>Based on benchmark results (WinBench 96), it seems that setting this to "None" gives the best performance in combination with DOSBox-X, although the difference is marginal.
 This is no doubt because the host system is better at caching then the Windows 98 cache function.</p>
 </div>
-</div>
-</div>
 <h1 id="_outstanding_issues" class="sect0">Outstanding issues</h1>
-<div class="openblock partintro">
-<div class="content">
 <div class="ulist">
 <ul>
 <li>
@@ -1122,11 +1070,9 @@ This is no doubt because the host system is better at caching then the Windows 9
 </ul>
 </div>
 </div>
-</div>
-</div>
 <div id="footer">
 <div id="footer-text">
-Last updated 2020-10-04 23:26:49 -0400
+Last updated 2020-10-05 18:21:06 -0400
 </div>
 </div>
 </body>

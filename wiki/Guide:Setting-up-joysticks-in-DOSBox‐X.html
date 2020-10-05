@@ -436,26 +436,39 @@ body.book #toc,body.book #preamble,body.book h1.sect0,body.book .sect1>h2{page-b
 @media amzn-kf8{#header,#content,#footnotes,#footer{padding:0}}
 </style>
 </head>
-<body class="book">
+<body class="article">
 <div id="header">
 </div>
 <div id="content">
-<div id="preamble">
-<div class="sectionbody">
 <div class="paragraph">
-<p>Back to the <a href="Home.html">DOSBox-X Wiki Welcome page</a>.</p>
-</div>
-</div>
+<p>Back to the <a href="Home">DOSBox-X Wiki Welcome page</a>.</p>
 </div>
 <h1 id="_setting_up_joysticks_in_dosbox_x" class="sect0">Setting up joysticks in DOSBox-X</h1>
-<div class="openblock partintro">
-<div class="content">
-<!-- toc disabled -->
-</div>
+<div id="toc" class="toc">
+<div id="toctitle" class="title">Table of Contents</div>
+<ul class="sectlevel0">
+<li><a href="#_setting_up_joysticks_in_dosbox_x">Setting up joysticks in DOSBox-X</a></li>
+<li><a href="#_overview">Overview</a></li>
+<li><a href="#_general_notes">General notes</a></li>
+<li><a href="#_calibration">Calibration</a></li>
+<li><a href="#_dosbox_x_config_settings">DOSBox-X config settings</a>
+<ul class="sectlevel1">
+<li><a href="#_joystick_options">[joystick] options</a></li>
+<li><a href="#_mapper_options">[mapper] options</a></li>
+</ul>
+</li>
+<li><a href="#_known_issues">Known issues</a>
+<ul class="sectlevel1">
+<li><a href="#_ps3_dualshock3_controller">PS3 DualShock3 controller</a></li>
+<li><a href="#_ps4_dualshock4_controller">PS4 DualShock4 controller</a></li>
+<li><a href="#_xbox_360_controller">Xbox 360 controller</a></li>
+<li><a href="#_xbox_one_controller">Xbox One controller</a></li>
+<li><a href="#_triggers_acting_as_3rd_axis">Triggers acting as 3rd axis</a></li>
+</ul>
+</li>
+</ul>
 </div>
 <h1 id="_overview" class="sect0">Overview</h1>
-<div class="openblock partintro">
-<div class="content">
 <div class="paragraph">
 <p>While game consoles and most home-computers back in the day had two or more Joystick ports, the IBM PC and its clones typically had none.
 IBM did provide a DA-15 game-port adapter option, but few people had it, or a matching PC compatible Joystick.
@@ -482,11 +495,7 @@ Any SDL supported gamepads will automatically become available within DOSBox-X a
 <div class="paragraph">
 <p>For games that do not support Joysticks natively, DOSBox-X provides the possibility to map joystick inputs to keyboard presses.</p>
 </div>
-</div>
-</div>
 <h1 id="_general_notes" class="sect0">General notes</h1>
-<div class="openblock partintro">
-<div class="content">
 <div class="paragraph">
 <p>You will want to try and experiment as on what settings works best for software A and software B, and will probably end up with software-specific configurations.</p>
 </div>
@@ -496,11 +505,7 @@ Any SDL supported gamepads will automatically become available within DOSBox-X a
 <div class="paragraph">
 <p>DOSBox-X supports 6 buttons joysticks, to enable support, set joystick type to 4axis. You will find that 5th and 6th buttons are in fact the negative sides of the 2nd port joystick axes. To remedy this problem and use buttons instead, in the mapper add bindings to 'Axis 3 X-' and 'Axis 4 Y-' to buttons you which to act as 5th and 6th buttons on your device. Note that you can only have a single 6 buttons joystick at any time, this is due to how they are implemented (such device in fact use both joystick ports).</p>
 </div>
-</div>
-</div>
 <h1 id="_calibration" class="sect0">Calibration</h1>
-<div class="openblock partintro">
-<div class="content">
 <div class="paragraph">
 <p>While most home computers and game consoles back in the day used digital joysticks or controllers, the IBM PC instead used analogue joysticks.</p>
 </div>
@@ -517,13 +522,9 @@ Others will silently perform a centre calibration on startup, or may omit it com
 <div class="paragraph">
 <p>Vogons user jfnagel posted a few <a href="https://www.vogons.org/viewtopic.php?p=187168#p187168">joystick test programs for DOS</a> that you may want to try in DOSBox-X to see how your controller behaves with various settings and how accurate the calibration is.</p>
 </div>
-</div>
-</div>
 <h1 id="_dosbox_x_config_settings" class="sect0">DOSBox-X config settings</h1>
-<div class="openblock partintro">
-<div class="content">
-This section will list the available configuration options that DOSBox-X provides that are relevant to joysticks.
-</div>
+<div class="paragraph">
+<p>This section will list the available configuration options that DOSBox-X provides that are relevant to joysticks.</p>
 </div>
 <div class="sect1">
 <h2 id="_joystick_options">[joystick] options</h2>
@@ -1925,7 +1926,7 @@ To change this, add the following setting: <code>joy1axis2=4</code></p>
 </div>
 <div id="footer">
 <div id="footer-text">
-Last updated 2020-10-04 23:26:50 -0400
+Last updated 2020-10-05 18:21:06 -0400
 </div>
 </div>
 </body>
