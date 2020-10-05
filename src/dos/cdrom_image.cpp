@@ -135,7 +135,7 @@ bool CDROM_Interface_Image::BinaryFile::seek(uint32_t offset)
 uint16_t CDROM_Interface_Image::BinaryFile::decode(uint8_t *buffer)
 {
 	file->read((char*)buffer, chunkSize);
-	return file->gcount();
+	return (uint16_t)file->gcount();
 }
 
 CDROM_Interface_Image::AudioFile::AudioFile(const char *filename, bool &error)
@@ -232,7 +232,7 @@ int CDROM_Interface_Image::AudioFile::getLength()
 		// ... so convert ms to "Red Book bytes" by multiplying with 176.4f,
 		// which is 44,100 samples/second * 2-channels * 2 bytes/sample
 		// / 1000 milliseconds/second
-		length = round(duration_ms * 176.4f);
+		length = (int)round(duration_ms * 176.4f);
 	}
     #ifdef DEBUG
     LOG_MSG("%s CDROM: AudioFile::getLength is %d bytes", get_time(), length);
@@ -443,7 +443,7 @@ bool CDROM_Interface_Image::PlayAudioSector(unsigned long start, unsigned long l
 				player.addSamples = channels ==  2  ? &MixerChannel::AddSamples_s16_nonnative \
 				                                    : &MixerChannel::AddSamples_m16_nonnative;
 
-			const float bytesPerMs = rate * channels * 2 / 1000.0;
+			const float bytesPerMs = (float)(rate * channels * 2 / 1000.0);
 			player.playbackTotal = lround(len * tracks[track].sectorSize * bytesPerMs / 176.4);
 			player.playbackRemaining = player.playbackTotal;
 
@@ -581,7 +581,7 @@ void CDROM_Interface_Image::CDAudioCallBack(Bitu len)
 	// determine bytes per request (16-bit samples)
 	const uint8_t channels = player.trackFile->getChannels();
 	const uint8_t bytes_per_request = channels * 2;
-	uint16_t total_requested = len * bytes_per_request;
+	uint16_t total_requested = (uint16_t)(len * bytes_per_request);
 
 	while (total_requested > 0) {
 		uint16_t requested = total_requested;
@@ -643,7 +643,7 @@ void CDROM_Interface_Image::CDAudioCallBack(Bitu len)
 				// CDROM Red Book rate, which is more work than simply scaling).
 				//
 				const float playbackPercentSoFar = static_cast<float>(player.playbackTotal - player.playbackRemaining) / player.playbackTotal;
-				player.currFrame = player.startFrame + ceil(player.numFrames * playbackPercentSoFar);
+				player.currFrame = (uint32_t)(player.startFrame + ceil(player.numFrames * playbackPercentSoFar));
 				break;
 				// printProgress( (player.bufferPos - player.bufferConsumed)/(float)AUDIO_DECODE_BUFFER_SIZE, "consume");
 			}

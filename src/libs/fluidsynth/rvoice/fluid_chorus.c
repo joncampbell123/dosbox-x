@@ -157,9 +157,9 @@ new_fluid_chorus(fluid_real_t sample_rate)
 	chorus->sinc_table[i][ii] = (fluid_real_t)1.;
 
       } else {
-	chorus->sinc_table[i][ii] = (fluid_real_t)sin(i_shifted * M_PI) / (M_PI * i_shifted);
+	chorus->sinc_table[i][ii] = (fluid_real_t)((fluid_real_t)sin(i_shifted * M_PI) / (M_PI * i_shifted));
 	/* Hamming window */
-	chorus->sinc_table[i][ii] *= (fluid_real_t)0.5 * (1.0 + cos(2.0 * M_PI * i_shifted / (fluid_real_t)INTERPOLATION_SAMPLES));
+	chorus->sinc_table[i][ii] *= (fluid_real_t)((fluid_real_t)0.5 * (1.0 + cos(2.0 * M_PI * i_shifted / (fluid_real_t)INTERPOLATION_SAMPLES)));
       };
     };
   };
@@ -290,7 +290,7 @@ fluid_chorus_set(fluid_chorus_t* chorus, int set, int nr, float level,
   }
 
   /* The modulating LFO goes through a full period every x samples: */
-  chorus->modulation_period_samples = chorus->sample_rate / chorus->speed_Hz;
+  chorus->modulation_period_samples = (long)(chorus->sample_rate / chorus->speed_Hz);
 
   /* The variation in delay time is x: */
   modulation_depth_samples = (int)

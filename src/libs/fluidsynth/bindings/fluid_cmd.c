@@ -751,7 +751,7 @@ fluid_handle_reverbsetroomsize(fluid_synth_t* synth, int ac, char** av, fluid_os
     fluid_ostream_printf(out, "rev_setroomsize: too few arguments.\n");
     return -1;
   }
-  room_size = atof(av[0]);
+  room_size = (fluid_real_t)atof(av[0]);
   if (room_size < 0){
     fluid_ostream_printf(out, "rev_setroomsize: Room size must be positive!\n");
     return -1;
@@ -776,7 +776,7 @@ fluid_handle_reverbsetdamp(fluid_synth_t* synth, int ac, char** av, fluid_ostrea
     fluid_ostream_printf(out, "rev_setdamp: too few arguments.\n");
     return -1;
   }
-  damp = atof(av[0]);
+  damp = (fluid_real_t)atof(av[0]);
   if ((damp < 0.0f) || (damp > 1)){
     fluid_ostream_printf(out, "rev_setdamp: damp must be between 0 and 1!\n");
     return -1;
@@ -797,7 +797,7 @@ fluid_handle_reverbsetwidth(fluid_synth_t* synth, int ac, char** av, fluid_ostre
     fluid_ostream_printf(out, "rev_setwidth: too few arguments.\n");
     return -1;
   }
-  width = atof(av[0]);
+  width = (fluid_real_t)atof(av[0]);
   if ((width < 0) || (width > 100)){
     fluid_ostream_printf(out, "rev_setroomsize: Too wide! (0..100)\n");
     return 0;
@@ -818,8 +818,8 @@ fluid_handle_reverbsetlevel(fluid_synth_t* synth, int ac, char** av, fluid_ostre
     fluid_ostream_printf(out, "rev_setlevel: too few arguments.\n");
     return -1;
   }
-  level = atof(av[0]);
-  if (abs(level) > 30){
+  level = (fluid_real_t)atof(av[0]);
+  if (abs((int)level) > 30){
     fluid_ostream_printf(out, "rev_setlevel: Value too high! (Value of 10 =+20 dB)\n");
     return 0;
   }
@@ -876,7 +876,7 @@ fluid_handle_choruslevel(fluid_synth_t* synth, int ac, char** av, fluid_ostream_
     fluid_ostream_printf(out, "cho_set_level: too few arguments.\n");
     return -1;
   }
-  level = atof(av[0]);
+  level = (fluid_real_t)atof(av[0]);
   return fluid_synth_set_chorus_full (synth, FLUID_CHORUS_SET_LEVEL, 0, level, 0.0, 0.0, 0);
 }
 
@@ -890,7 +890,7 @@ fluid_handle_chorusspeed(fluid_synth_t* synth, int ac, char** av, fluid_ostream_
     fluid_ostream_printf(out, "cho_set_speed: too few arguments.\n");
     return -1;
   }
-  speed = atof(av[0]);
+  speed = (fluid_real_t)atof(av[0]);
   return fluid_synth_set_chorus_full (synth, FLUID_CHORUS_SET_SPEED, 0, 0.0, speed, 0.0, 0);
 }
 
@@ -904,7 +904,7 @@ fluid_handle_chorusdepth(fluid_synth_t* synth, int ac, char** av, fluid_ostream_
     fluid_ostream_printf(out, "cho_set_depth: too few arguments.\n");
     return -1;
   }
-  depth = atof(av[0]);
+  depth = (fluid_real_t)atof(av[0]);
   return fluid_synth_set_chorus_full (synth, FLUID_CHORUS_SET_DEPTH, 0, 0.0, 0.0, depth, 0);
 }
 
@@ -971,7 +971,7 @@ fluid_handle_gain(fluid_synth_t* synth, int ac, char** av, fluid_ostream_t out)
     return -1;
   }
 
-  gain = atof(av[0]);
+  gain = (float)atof(av[0]);
 
   if ((gain < 0.0f) || (gain > 5.0f)) {
     fluid_ostream_printf(out, "gain: value should be between '0' and '5'.\n");

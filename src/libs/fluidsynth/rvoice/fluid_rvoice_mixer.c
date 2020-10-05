@@ -669,13 +669,13 @@ void fluid_rvoice_mixer_set_chorus_params(fluid_rvoice_mixer_t* mixer, int set,
 				         int nr, double level, double speed, 
 				         double depth_ms, int type)
 {
-  fluid_chorus_set(mixer->fx.chorus, set, nr, level, speed, depth_ms, type);
+  fluid_chorus_set(mixer->fx.chorus, set, nr, (float)level, (float)speed, (float)depth_ms, type);
 }
 void fluid_rvoice_mixer_set_reverb_params(fluid_rvoice_mixer_t* mixer, int set, 
 					 double roomsize, double damping, 
 					 double width, double level)
 {
-  fluid_revmodel_set(mixer->fx.reverb, set, roomsize, damping, width, level); 
+  fluid_revmodel_set(mixer->fx.reverb, set, (float)roomsize, (float)damping, (float)width, (float)level);
 }
 
 void fluid_rvoice_mixer_reset_fx(fluid_rvoice_mixer_t* mixer)

@@ -855,10 +855,10 @@ fluid_defpreset_noteon(fluid_defpreset_t* preset, fluid_synth_t* synth, int chan
 	     * the default generator -> voice_gen_set */
 
 	    if (inst_zone->gen[i].flags){
-	      fluid_voice_gen_set(voice, i, inst_zone->gen[i].val);
+	      fluid_voice_gen_set(voice, i, (float)inst_zone->gen[i].val);
 
 	    } else if ((global_inst_zone != NULL) && (global_inst_zone->gen[i].flags)) {
-	      fluid_voice_gen_set(voice, i, global_inst_zone->gen[i].val);
+	      fluid_voice_gen_set(voice, i, (float)global_inst_zone->gen[i].val);
 
 	    } else {
 	      /* The generator has not been defined in this instrument.
@@ -944,9 +944,9 @@ fluid_defpreset_noteon(fluid_defpreset_t* preset, fluid_synth_t* synth, int chan
 	       * summing node -> voice_gen_incr */
 
 	      if (preset_zone->gen[i].flags) {
-		fluid_voice_gen_incr(voice, i, preset_zone->gen[i].val);
+		fluid_voice_gen_incr(voice, i, (float)preset_zone->gen[i].val);
 	      } else if ((global_preset_zone != NULL) && global_preset_zone->gen[i].flags) {
-		fluid_voice_gen_incr(voice, i, global_preset_zone->gen[i].val);
+		fluid_voice_gen_incr(voice, i, (float)global_preset_zone->gen[i].val);
 	      } else {
 		/* The generator has not been defined in this preset
 		 * Do nothing, leave it unchanged.
@@ -1273,7 +1273,7 @@ fluid_preset_zone_import_sfont(fluid_preset_zone_t* zone, SFZone *sfzone, fluid_
     }
 
     /* *** Dest *** */
-    mod_dest->dest = mod_src->dest; /* index of controlled generator */
+    mod_dest->dest = (unsigned char)mod_src->dest; /* index of controlled generator */
 
     /* *** Amount source *** */
     mod_dest->src2 = mod_src->amtsrc & 127; /* index of source 2, seven-bit value, SF2.01 section 8.2, p.50 */
@@ -1678,7 +1678,7 @@ fluid_inst_zone_import_sfont(fluid_inst_zone_t* zone, SFZone *sfzone, fluid_defs
     }
 
     /* *** Dest *** */
-    mod_dest->dest=mod_src->dest; /* index of controlled generator */
+    mod_dest->dest= (unsigned char)mod_src->dest; /* index of controlled generator */
 
     /* *** Amount source *** */
     mod_dest->src2=mod_src->amtsrc & 127; /* index of source 2, seven-bit value, SF2.01 section 8.2, page 50 */
@@ -3102,7 +3102,7 @@ fixup_pgen (SFData * sf)
       while (p2)
 	{			/* traverse this preset's zones */
 	  z = (SFZone *) (p2->data);
-	  if ((i = POINTER_TO_INT (z->instsamp)))
+	  if ((i = (int)POINTER_TO_INT (z->instsamp)))
 	    {			/* load instrument # */
 	      p3 = fluid_list_nth (sf->inst, i - 1);
 	      if (!p3)
@@ -3137,7 +3137,7 @@ fixup_igen (SFData * sf)
       while (p2)
 	{			/* traverse instrument's zones */
 	  z = (SFZone *) (p2->data);
-	  if ((i = POINTER_TO_INT (z->instsamp)))
+	  if ((i = (int)POINTER_TO_INT (z->instsamp)))
 	    {			/* load sample # */
 	      p3 = fluid_list_nth (sf->sample, i - 1);
 	      if (!p3)

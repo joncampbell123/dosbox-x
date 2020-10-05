@@ -2477,7 +2477,7 @@ public:
 
             uint32_t rom_base = PhysMake(0xf000, 0); // override regular dosbox bios
                     /* write buffer into ROM */
-            for (Bitu i = 0; i < data_read; i++) phys_writeb(rom_base + i, buffer[i]);
+            for (Bitu i = 0; i < data_read; i++) phys_writeb((PhysPt)(rom_base + i), buffer[i]);
 
             //Start executing this bios
             memset(&cpu_regs, 0, sizeof(cpu_regs));

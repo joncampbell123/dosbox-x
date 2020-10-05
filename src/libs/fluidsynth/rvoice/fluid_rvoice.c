@@ -197,7 +197,7 @@ fluid_rvoice_check_sample_sanity(fluid_rvoice_t* voice)
 	  && (int)voice->dsp.loopend <= (int)voice->dsp.sample->loopend){
 	/* Is there a valid peak amplitude available for the loop, and can we use it? */
 	if (voice->dsp.sample->amplitude_that_reaches_noise_floor_is_valid && voice->dsp.samplemode == FLUID_LOOP_DURING_RELEASE){
-	  voice->dsp.amplitude_that_reaches_noise_floor_loop=voice->dsp.sample->amplitude_that_reaches_noise_floor / voice->dsp.synth_gain;
+	  voice->dsp.amplitude_that_reaches_noise_floor_loop=(fluid_real_t)(voice->dsp.sample->amplitude_that_reaches_noise_floor / voice->dsp.synth_gain);
 	} else {
 	  /* Worst case */
 	  voice->dsp.amplitude_that_reaches_noise_floor_loop=voice->dsp.amplitude_that_reaches_noise_floor_nonloop;
@@ -514,9 +514,9 @@ fluid_rvoice_noteoff(fluid_rvoice_t* voice, unsigned int min_ticks)
      */
     if (fluid_adsr_env_get_val(&voice->envlfo.volenv) > 0){
       fluid_real_t lfo = fluid_lfo_get_val(&voice->envlfo.modlfo) * -voice->envlfo.modlfo_to_vol;
-      fluid_real_t amp = fluid_adsr_env_get_val(&voice->envlfo.volenv) * pow (10.0, lfo / -200);
-      fluid_real_t env_value = - ((-200 * log (amp) / log (10.0) - lfo) / 960.0 - 1);
-      fluid_clip (env_value, 0.0, 1.0);
+      fluid_real_t amp = (fluid_real_t)(fluid_adsr_env_get_val(&voice->envlfo.volenv) * pow (10.0, lfo / -200));
+      fluid_real_t env_value = -(fluid_real_t)((-200 * log (amp) / log (10.0) - lfo) / 960.0 - 1);
+      fluid_clip (env_value, (fluid_real_t)0.0, (fluid_real_t)1.0);
       fluid_adsr_env_set_val(&voice->envlfo.volenv, env_value);
     }
   }

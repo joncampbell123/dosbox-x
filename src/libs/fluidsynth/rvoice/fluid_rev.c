@@ -351,30 +351,30 @@ fluid_set_revmodel_buffers(fluid_revmodel_t* rev, fluid_real_t sample_rate) {
 
   float srfactor = sample_rate/44100.0f;
 
-  fluid_comb_setbuffer(&rev->combL[0], combtuningL1*srfactor);
-  fluid_comb_setbuffer(&rev->combR[0], combtuningR1*srfactor);
-  fluid_comb_setbuffer(&rev->combL[1], combtuningL2*srfactor);
-  fluid_comb_setbuffer(&rev->combR[1], combtuningR2*srfactor);
-  fluid_comb_setbuffer(&rev->combL[2], combtuningL3*srfactor);
-  fluid_comb_setbuffer(&rev->combR[2], combtuningR3*srfactor);
-  fluid_comb_setbuffer(&rev->combL[3], combtuningL4*srfactor);
-  fluid_comb_setbuffer(&rev->combR[3], combtuningR4*srfactor);
-  fluid_comb_setbuffer(&rev->combL[4], combtuningL5*srfactor);
-  fluid_comb_setbuffer(&rev->combR[4], combtuningR5*srfactor);
-  fluid_comb_setbuffer(&rev->combL[5], combtuningL6*srfactor);
-  fluid_comb_setbuffer(&rev->combR[5], combtuningR6*srfactor);
-  fluid_comb_setbuffer(&rev->combL[6], combtuningL7*srfactor);
-  fluid_comb_setbuffer(&rev->combR[6], combtuningR7*srfactor);
-  fluid_comb_setbuffer(&rev->combL[7], combtuningL8*srfactor);
-  fluid_comb_setbuffer(&rev->combR[7], combtuningR8*srfactor);
-  fluid_allpass_setbuffer(&rev->allpassL[0], allpasstuningL1*srfactor);
-  fluid_allpass_setbuffer(&rev->allpassR[0], allpasstuningR1*srfactor);
-  fluid_allpass_setbuffer(&rev->allpassL[1], allpasstuningL2*srfactor);
-  fluid_allpass_setbuffer(&rev->allpassR[1], allpasstuningR2*srfactor);
-  fluid_allpass_setbuffer(&rev->allpassL[2], allpasstuningL3*srfactor);
-  fluid_allpass_setbuffer(&rev->allpassR[2], allpasstuningR3*srfactor);
-  fluid_allpass_setbuffer(&rev->allpassL[3], allpasstuningL4*srfactor);
-  fluid_allpass_setbuffer(&rev->allpassR[3], allpasstuningR4*srfactor);
+  fluid_comb_setbuffer(&rev->combL[0], (int)(combtuningL1*srfactor));
+  fluid_comb_setbuffer(&rev->combR[0], (int)(combtuningR1*srfactor));
+  fluid_comb_setbuffer(&rev->combL[1], (int)(combtuningL2*srfactor));
+  fluid_comb_setbuffer(&rev->combR[1], (int)(combtuningR2*srfactor));
+  fluid_comb_setbuffer(&rev->combL[2], (int)(combtuningL3*srfactor));
+  fluid_comb_setbuffer(&rev->combR[2], (int)(combtuningR3*srfactor));
+  fluid_comb_setbuffer(&rev->combL[3], (int)(combtuningL4*srfactor));
+  fluid_comb_setbuffer(&rev->combR[3], (int)(combtuningR4*srfactor));
+  fluid_comb_setbuffer(&rev->combL[4], (int)(combtuningL5*srfactor));
+  fluid_comb_setbuffer(&rev->combR[4], (int)(combtuningR5*srfactor));
+  fluid_comb_setbuffer(&rev->combL[5], (int)(combtuningL6*srfactor));
+  fluid_comb_setbuffer(&rev->combR[5], (int)(combtuningR6*srfactor));
+  fluid_comb_setbuffer(&rev->combL[6], (int)(combtuningL7*srfactor));
+  fluid_comb_setbuffer(&rev->combR[6], (int)(combtuningR7*srfactor));
+  fluid_comb_setbuffer(&rev->combL[7], (int)(combtuningL8*srfactor));
+  fluid_comb_setbuffer(&rev->combR[7], (int)(combtuningR8*srfactor));
+  fluid_allpass_setbuffer(&rev->allpassL[0], (int)(allpasstuningL1*srfactor));
+  fluid_allpass_setbuffer(&rev->allpassR[0], (int)(allpasstuningR1*srfactor));
+  fluid_allpass_setbuffer(&rev->allpassL[1], (int)(allpasstuningL2*srfactor));
+  fluid_allpass_setbuffer(&rev->allpassR[1], (int)(allpasstuningR2*srfactor));
+  fluid_allpass_setbuffer(&rev->allpassL[2], (int)(allpasstuningL3*srfactor));
+  fluid_allpass_setbuffer(&rev->allpassR[2], (int)(allpasstuningR3*srfactor));
+  fluid_allpass_setbuffer(&rev->allpassL[3], (int)(allpasstuningL4*srfactor));
+  fluid_allpass_setbuffer(&rev->allpassR[3], (int)(allpasstuningR4*srfactor));
 
   /* Clear all buffers */
   fluid_revmodel_init(rev);
@@ -416,7 +416,7 @@ fluid_revmodel_processreplace(fluid_revmodel_t* rev, fluid_real_t *in,
      * is set to the sum of the left and right input sample. Since
      * this code works on a mono signal, 'input' is set to twice the
      * input sample. */
-    input = (2.0f * in[k] + DC_OFFSET) * rev->gain;
+    input = (fluid_real_t)((2.0f * in[k] + DC_OFFSET) * rev->gain);
 
     /* Accumulate comb filters in parallel */
     for (i = 0; i < numcombs; i++) {
@@ -454,7 +454,7 @@ fluid_revmodel_processmix(fluid_revmodel_t* rev, fluid_real_t *in,
      * is set to the sum of the left and right input sample. Since
      * this code works on a mono signal, 'input' is set to twice the
      * input sample. */
-    input = (2.0f * in[k] + DC_OFFSET) * rev->gain;
+    input = (fluid_real_t)((2.0f * in[k] + DC_OFFSET) * rev->gain);
 
     /* Accumulate comb filters in parallel */
     for (i = 0; i < numcombs; i++) {

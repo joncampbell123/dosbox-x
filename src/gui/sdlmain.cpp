@@ -7538,7 +7538,7 @@ bool cpu_speed_emulate_menu_callback(DOSBoxMenu * const menu,DOSBoxMenu::item * 
         Section* sec = control->GetSection("cpu");
         if (sec) {
             double perc = static_cast<Section_prop *>(sec)->Get_int("cycle emulation percentage adjust");
-            cyclemu*=(100+perc)/100;
+            cyclemu*=(int)((100+perc)/100);
             std::string tmp("cycles="+std::to_string(cyclemu));
             sec->HandleInputline(tmp);
         }

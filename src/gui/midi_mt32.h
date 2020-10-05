@@ -144,7 +144,7 @@ private:
                 SDL_UnlockMutex(lock);
             }
         } else {
-            service->renderint16_t((int16_t *)MixTemp, len);
+            service->renderint16_t((int16_t *)MixTemp, (MT32Emu::uint32_t)len);
             chan->AddSamples_s16(len, (int16_t *)MixTemp);
         }
     }
@@ -165,7 +165,7 @@ private:
                 SDL_CondWait(framesInBufferChanged, lock);
                 SDL_UnlockMutex(lock);
             } else {
-                service->renderint16_t(audioBuffer + renderPosSnap, framesToRender);
+                service->renderint16_t(audioBuffer + renderPosSnap, (MT32Emu::uint32_t)framesToRender);
                 renderPos = (renderPosSnap + samplesToRender) % audioBufferSize;
                 if (renderPosSnap == playPos) {
                     SDL_LockMutex(lock);
@@ -308,7 +308,7 @@ public:
             framesPerAudioBuffer = (latency * sampleRate) / MILLIS_PER_SECOND;
             audioBufferSize = framesPerAudioBuffer << 1;
             audioBuffer = new int16_t[audioBufferSize];
-            service->renderint16_t(audioBuffer, framesPerAudioBuffer - 1);
+            service->renderint16_t(audioBuffer, (MT32Emu::uint32_t)(framesPerAudioBuffer - 1));
             renderPos = (framesPerAudioBuffer - 1) << 1;
             playedBuffers = 1;
             lock = SDL_CreateMutex();
@@ -360,9 +360,9 @@ public:
 
 	void PlaySysex(uint8_t *sysex, Bitu len) {
         if (renderInThread) {
-            service->playSysexAt(sysex, len, getMidiEventTimestamp());
+            service->playSysexAt(sysex, (MT32Emu::uint32_t)len, getMidiEventTimestamp());
         } else {
-            service->playSysex(sysex, len);
+            service->playSysex(sysex, (MT32Emu::uint32_t)len);
         }
 	}
 };
