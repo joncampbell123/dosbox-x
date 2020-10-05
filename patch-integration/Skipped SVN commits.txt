@@ -27,6 +27,9 @@ Commit#:	Reason for skipping:
 4206		Caused unexpected "DYNREC:Can't run code in this page" error
 4215		Conflict
 4228		Not sure if needed
+4229		Conflict
+4235		Conflict
+4245		Conflict
 
 (Status for commits in this interval needs to be added)
 

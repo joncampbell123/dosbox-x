@@ -9,5 +9,14 @@ Simply run DOSBOX-X.EXE in MS-DOS or compatible to start DOSBox-X, as all requir
 
 If you want to enable long filename support, before running DOSBox-X you also need to load the (freely available) DOSLFN driver and then start DOSBox-X with "DOSBOX-X -SET LFN=1".
 
-For more information about DOSBox-X, including usage tips and common ways to configure DOSBox-X, please read the online user guide in the DOSBox-X Wiki:
+Further Information about DOSBox-X
+==================================
+
+Please visit the DOSBox-X homepage for the latest information about DOSBox-X:
+https://dosbox-x.com/ or http://dosbox-x.software/
+
+For a complete DOSBox-X user guide, including common ways to configure DOSBox-X and its usage tips, please visit the DOSBox-X Wiki:
 https://dosbox-x.com/wiki
+
+If you have any issues or want to request new features, please feel free to post them in the DOSBox-X issue tracker:
+https://github.com/joncampbell123/dosbox-x/issues

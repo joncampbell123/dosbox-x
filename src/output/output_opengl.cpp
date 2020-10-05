@@ -562,7 +562,7 @@ Bitu OUTPUT_OPENGL_SetSize()
     sdl_opengl.menudraw_countdown = 3; // two GL buffers with possible triple buffering behind our back
     sdl_opengl.clear_countdown = 3; // two GL buffers with possible triple buffering behind our back
 
-    glClearColor(0.0, 0.0, 0.0, 1.0);
+    glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
     glClear(GL_COLOR_BUFFER_BIT);
     // SDL_GL_SwapBuffers();
     // glClear(GL_COLOR_BUFFER_BIT);
@@ -733,7 +733,7 @@ void OUTPUT_OPENGL_EndUpdate(const uint16_t *changedLines)
         if (sdl_opengl.clear_countdown > 0)
         {
             sdl_opengl.clear_countdown--;
-            glClearColor(0.0, 0.0, 0.0, 1.0);
+            glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
             glClear(GL_COLOR_BUFFER_BIT);
         }
 

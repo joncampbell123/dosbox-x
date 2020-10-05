@@ -47,12 +47,12 @@ set winzip=
 set m32zip=
 set m64zip=
 
-for %%i in (%vsbinpath%\dosbox-x-windows-vsbin-%datestr%*.zip) do set winzip=%%i
+for %%i in (%vsbinpath%\dosbox-x-vsbuild-win-%datestr%*.zip) do set winzip=%%i
 for %%i in (%mgbinpath%\dosbox-x-mingw-win32-%datestr%*.zip) do set m32zip=%%i
 for %%i in (%mgbinpath%\dosbox-x-mingw-win64-%datestr%*.zip) do set m64zip=%%i
 
 if not exist "%winzip%" (
-	echo Couldn't find dosbox-x-windows-vsbin-%datestr%*.zip at %vsbinpath%
+	echo Couldn't find dosbox-x-vsbuild-win-%datestr%*.zip at %vsbinpath%
 	goto error
 )
 
@@ -111,11 +111,11 @@ echo.
 echo ***************************************
 echo * Building DOSBox-X installers ...    *
 echo ***************************************
-if exist %isspath%\DOSBox-X-setup*.exe del %isspath%\DOSBox-X-setup*.exe
+if exist %isspath%\dosbox-x-windows-*-setup.exe del %isspath%\dosbox-x-windows-*-setup.exe
 %isspath%\ISCC.exe %isspath%\DOSBox-X-setup.iss
-if exist %isspath%\DOSBox-X-setup.exe ( 
-	echo Copying to %vsbinpath%\DOSBox-X-setup-%datestr%.exe ..
-	copy /y %isspath%\DOSBox-X-setup.exe %vsbinpath%\DOSBox-X-setup-%datestr%-windows.exe
+if exist %isspath%\dosbox-x-windows-*-setup.exe (
+	for %%i in (%isspath%\dosbox-x-windows-*-setup.exe) do echo Copying to %vsbinpath%\%%~nxi...
+	copy /y %isspath%\dosbox-x-windows-*-setup.exe %vsbinpath%
 	goto success
 )
 

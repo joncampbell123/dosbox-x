@@ -730,7 +730,7 @@ void DOS_Shell::InputCommand(char * line) {
 
 	// remove current command from history if it's there
 	if (current_hist) {
-		current_hist=false;
+		// current_hist=false;
 		l_history.pop_front();
 	}
 
