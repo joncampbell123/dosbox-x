@@ -288,6 +288,7 @@ bool SERIAL_open(const char* portname, COMPORT* port) {
 
     size_t len = strlen(portname);
 	if(len > 240) {
+		free(cp);
 		///////////////////////////////////SetLastError(ERROR_BUFFER_OVERFLOW);
 		return false;
 	}
