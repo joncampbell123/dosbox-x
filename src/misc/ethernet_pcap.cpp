@@ -47,24 +47,7 @@ int (*PacketFindALlDevsEx)(char *, struct pcap_rmtauth *, pcap_if_t **, char *) 
 
 char pcap_src_if_string[] = PCAP_SRC_IF_STRING;
 
-#endif
-
-PcapEthernetConnection::PcapEthernetConnection()
-      : EthernetConnection()
-{
-}
-
-PcapEthernetConnection::~PcapEthernetConnection()
-{
-	if(adhandle) pcap_close(adhandle);
-}
-
-bool PcapEthernetConnection::Initialize()
-{
-	/* TODO: grab from config */
-	const char* realnicstring = "list";
-
-#ifdef WIN32
+bool LoadPcapLibrary() {
 	// init the library
 	HINSTANCE pcapinst;
 	pcapinst = LoadLibrary("WPCAP.DLL");
@@ -118,6 +101,31 @@ bool PcapEthernetConnection::Initialize()
             niclist = "Incorrect or non-functional WinPcap version.";
 			LOG_MSG(niclist.c_str());
 		pcapinst = NULL;
+		return false;
+	}
+
+	return true;
+}
+
+#endif
+
+PcapEthernetConnection::PcapEthernetConnection()
+      : EthernetConnection()
+{
+}
+
+PcapEthernetConnection::~PcapEthernetConnection()
+{
+	if(adhandle) pcap_close(adhandle);
+}
+
+bool PcapEthernetConnection::Initialize()
+{
+	/* TODO: grab from config */
+	const char* realnicstring = "list";
+
+#ifdef WIN32
+	if(!LoadPcapLibrary()) {
 		return false;
 	}
 #endif
