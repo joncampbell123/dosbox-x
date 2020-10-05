@@ -8536,7 +8536,7 @@ bool help_open_url_callback(DOSBoxMenu * const menu, DOSBoxMenu::item * const me
     if (menuitem->get_name() == "help_homepage")
         url="https://dosbox-x.com/";
     else if (menuitem->get_name() == "help_wiki")
-        url="https://github.com/joncampbell123/dosbox-x/wiki";
+        url="https://dosbox-x.com/wiki";
     else if (menuitem->get_name() == "help_issue")
         url="https://github.com/joncampbell123/dosbox-x/issues";
     if (url.size()) {
