@@ -73,6 +73,16 @@ bool PcapEthernetConnection::Initialize()
 	}
 	FARPROC psp;
 	
+#ifdef __MINGW32__
+	// C++ defines function and data pointers as separate types to reflect
+	// Harvard architecture machines (like the Arduino). As such, casting
+	// between them isn't portable and GCC will helpfully warn us about it.
+	// We're only running this code on Windows which explicitly allows this
+	// behaviour, so silence the warning to avoid confusion.
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wcast-function-type"
+#endif
+
 	psp = GetProcAddress(pcapinst,"pcap_sendpacket");
 	if(!PacketSendPacket) PacketSendPacket =
 		(int (__cdecl *)(pcap_t *,const u_char *,int))psp;
@@ -96,6 +106,10 @@ bool PcapEthernetConnection::Initialize()
 	psp = GetProcAddress(pcapinst,"pcap_findalldevs_ex");
 	if(!PacketFindALlDevsEx) PacketFindALlDevsEx =
 		(int (__cdecl *)(char *, struct pcap_rmtauth *, pcap_if_t **, char *)) psp;
+
+#ifdef __MINGW32__
+#pragma GCC diagnostic pop
+#endif
 
 	if(PacketFindALlDevsEx==0 || PacketNextEx==0 || PacketOpen==0 || 
 		PacketFreealldevs==0 || PacketClose==0 || PacketSendPacket==0) {
