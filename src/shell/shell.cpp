@@ -173,7 +173,10 @@ void AutoexecObject::Uninstall() {
 			if ((strncasecmp(buf2,"set ",4) == 0) && (strlen(buf2) > 4)){
 				char* after_set = buf2 + 4;//move to variable that is being set
 				char* test2 = strpbrk(after_set,"=");
-				if (!test2) continue;
+				if (!test2) {
+					delete [] buf2;
+					continue;
+				}
 				*test2 = 0;
 				stringset = true;
 				//If the shell is running/exists update the environment

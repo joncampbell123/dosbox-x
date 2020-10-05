@@ -342,6 +342,7 @@ bool DOS_Execute(const char* name, PhysPt block_pt, uint8_t flags) {
 		envseg=block.exec.envseg;
 		if (!MakeEnv(name,&envseg)) {
 			DOS_CloseFile(fhandle);
+			delete [] loadbuf;
 			return false;
 		}
 		uint16_t minsize;
