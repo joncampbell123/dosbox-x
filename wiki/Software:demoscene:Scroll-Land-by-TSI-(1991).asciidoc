@@ -33,14 +33,13 @@ dma=1
 Sound Blaster support oddity
 ----------------------------
 
-This demo appears to use undocumented [[Sound Blaster DSP
-commands|Hardware:Sound-Blaster:DSP-commands]] [[0xE2 (DMA
-identification)|Hardware:Sound-Blaster:DSP-commands:0xE2]], [[0xE4
-(write test register)|Hardware:Sound-Blaster:DSP-commands:0xE4]], and
-[[0xE8 (read test register)|Hardware:Sound-Blaster:DSP-commands:0xE8]]
-in addition to [[0xE0 (SB2.0
-identification)|Hardware:Sound-Blaster:DSP-commands:0xE0]] and [[0xE1
-(Get DSP version)|Hardware:Sound-Blaster:DSP-commands:0xE1]].
+This demo appears to use undocumented link:Hardware%3ASound-Blaster%3ADSP-commands[Sound Blaster DSP
+commands] link:Hardware%3ASound-Blaster%3ADSP-commands%3A0xE2[0xE2 (DMA
+identification)], link:Hardware%3ASound-Blaster%3ADSP-commands%3A0xE4[0xE4
+(write test register)], and link:Hardware%3ASound-Blaster%3ADSP-commands%3A0xE8[0xE8 (read test register)]
+in addition to link:Hardware%3ASound-Blaster%3ADSP-commands:0xE0[0xE0 (SB2.0
+identification)] and link:Hardware%3ASound-Blaster%3ADSP-commands%3A0xE1[0xE1
+(Get DSP version)].
 
 For reasons unknown at this time, it also appears to assume the Sound
 Blaster is on IRQ 3.

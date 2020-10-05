@@ -40,18 +40,18 @@ playing or recording.
 
 On clone hardware, where there is no busy cycle, the demo’s Sound
 Blaster routines work regardless because they effectively then
-[[nag|Hardware:Sound-Blaster:Nagging-the-DSP]] the DSP to restart the
+link:Hardware%3ASound-Blaster%3ANagging-the-DSP[nag] the DSP to restart the
 block constantly and audio playback runs properly anyway.
 
 However, this demo is not able to play music on Sound Blaster 16
-hardware. The reason is that the [[Sound Blaster 16 DSP busy cycle is
-always running|Hardware:Sound-Blaster:DSP-busy-cycle]], whether or not
+hardware. The reason is that the link:Hardware%3ASound-Blaster%3ADSP-busy-cycle[Sound Blaster 16 DSP busy cycle is
+always running], whether or not
 any audio playback is occuring, so the demo never senses the end of the
 DSP block and never issues any further commands to keep audio playback
 going.
 
 Sound Blaster playback is rendered
-[[goldplay|Libraries:Goldplay]]-style, using a 1 or 2 byte DMA buffer
+link:Libraries%3AGoldplay[goldplay]-style, using a 1 or 2 byte DMA buffer
 and the timer interrupt.
 
 More information

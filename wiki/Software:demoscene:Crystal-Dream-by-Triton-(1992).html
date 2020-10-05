@@ -492,20 +492,20 @@ playing or recording.</p>
 <div class="paragraph">
 <p>On clone hardware, where there is no busy cycle, the demo’s Sound
 Blaster routines work regardless because they effectively then
-[[nag|Hardware:Sound-Blaster:Nagging-the-DSP]] the DSP to restart the
+<a href="Hardware%3ASound-Blaster%3ANagging-the-DSP">nag</a> the DSP to restart the
 block constantly and audio playback runs properly anyway.</p>
 </div>
 <div class="paragraph">
 <p>However, this demo is not able to play music on Sound Blaster 16
-hardware. The reason is that the [[Sound Blaster 16 DSP busy cycle is
-always running|Hardware:Sound-Blaster:DSP-busy-cycle]], whether or not
+hardware. The reason is that the <a href="Hardware%3ASound-Blaster%3ADSP-busy-cycle">Sound Blaster 16 DSP busy cycle is
+always running</a>, whether or not
 any audio playback is occuring, so the demo never senses the end of the
 DSP block and never issues any further commands to keep audio playback
 going.</p>
 </div>
 <div class="paragraph">
 <p>Sound Blaster playback is rendered
-[[goldplay|Libraries:Goldplay]]-style, using a 1 or 2 byte DMA buffer
+<a href="Libraries%3AGoldplay">goldplay</a>-style, using a 1 or 2 byte DMA buffer
 and the timer interrupt.</p>
 </div>
 </div>
@@ -521,7 +521,7 @@ and the timer interrupt.</p>
 </div>
 <div id="footer">
 <div id="footer-text">
-Last updated 2020-10-04 22:52:41 -0400
+Last updated 2020-10-04 23:26:50 -0400
 </div>
 </div>
 </body>

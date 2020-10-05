@@ -1,3 +1,6 @@
+ifdef::env-github[:suffixappend:]
+ifndef::env-github[:suffixappend: .html]
+
 Explanation
 -----------
 
@@ -64,5 +67,4 @@ the audio output.
 Real-world usage of this technique
 ----------------------------------
 
-[[Crystal Dream by Triton
-(1992)|Demoscene:Crystal-Dream-by-Triton-(1992)]]
+link:Software%3Ademoscene%3ACrystal-Dream-by-Triton-(1992)[Crystal Dream by Triton (1992)]
