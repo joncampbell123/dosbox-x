@@ -1,0 +1,36 @@
+[width="100%",cols=">50%,<50%",]
+|=======================================================================
+|DSP command |0xE0
+
+|Supported on |Creative Sound Blaster 2.0 (and later??)
+
+|Description |Identify as SB2.0 device by returning the data byte with
+all bits inverted
+|=======================================================================
+
+How to use
+----------
+
+....
+unsigned char data_byte,tmp;
+
+/* pick a data byte to use */
+
+DSP_Write(0xE0);
+DSP_Write(data_byte);
+tmp = DSP_Read();
+if ((data_byte ^ 0xFF) == tmp) {
+    /* It's a Sound Blaster 2.0 */
+}
+....
+
+Write command 0xE0, then some data byte. Read from the DSP. The byte
+returned should be the value you wrote, with all bits inverted. This
+command is documented as only supported by the Sound Blaster 2.0
+
+External references
+-------------------
+
+* http://the.earth.li/~tfm/oldpage/sb_dsp.html[TFM’s DSP commands]
+* http://hackipedia.org/Platform/x86/Sound/Creative%20Labs/ISA,%20Sound%20Blaster/pdf/Sound%20Blaster%20Series%20Developer%20Kit%2c%20Second%20Edition.pdf[Developer
+Kit for Sound Blaster Series, Second Edition]

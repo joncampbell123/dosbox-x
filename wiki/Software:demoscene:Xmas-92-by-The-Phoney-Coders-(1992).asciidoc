@@ -1,0 +1,50 @@
+ [[1992|Guide:MS‐DOS:demoscene:1992]] demoscene entry.
+
+Demo description
+----------------
+
+(todo)
+
+Recommended DOSBox-X configuration
+----------------------------------
+
+....
+[dosbox]
+machine=vgaonly
+memsize=1
+
+[cpu]
+cycles=12000
+core=normal
+cputype=pentium
+
+[midi]
+mpu401=intelligent
+
+# By default DOSBox-X should choose your system MIDI configuration.
+# If you just want to use FluidSynth on Linux like I do:
+mididevice=synth
+midiconfig=/usr/share/fluidsynth/soundfont/gengs.sf2
+....
+
+To run the demo type LOADER.EXE.
+
+MIDI playback speed issues with DOSBox-X
+----------------------------------------
+
+At this time the demo seems to have problems maintaining a consistent
+speed when playing back the music. It seems to be related to whether or
+not the demo can maintain a full frame rate when drawing, and whether
+VGA scrolling/panning is involved.
+
+MPU-401 issues
+--------------
+
+As of 2015/12/18 the demo appears to reset the MPU401 interface several
+times, then crash back to DOS. Something broke MIDI output in recent
+commits.
+
+More information
+----------------
+
+http://www.pouet.net/prod.php?which=51603[More information (Pouet)]

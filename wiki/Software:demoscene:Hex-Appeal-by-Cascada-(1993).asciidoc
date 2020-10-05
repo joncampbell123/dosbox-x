@@ -1,0 +1,55 @@
+ [[1993|Guide:MS‐DOS:demoscene:1993]] demoscene entry.
+
+Demo description
+----------------
+
+Cascada production with warping title text, Mode-X 320x400 dot objects,
+and a rotating texture cube. On startup, the demo prompts you to select
+a sound card. If a mouse was detected, you will have to use the mouse to
+select items. You will need to click the ``begin'' button center-bottom
+to start the demo. Gravis Ultrasound is recommended. Sound Blaster
+support works but every so often will have audible ``buzzing'' glitches.
+The ``PC speaker'' playback mode will only give you loud overly
+distorted audio, don’t use it. LPT DAC modes generally work but with
+some audible crackling and some parts, like the warping closing credits,
+will slow to a crawl if LPT DAC playback is used.
+
+Recommended DOSBox-X configuration
+----------------------------------
+
+....
+[dosbox]
+memsize=1
+machine=svga_s3
+
+[cpu]
+core=normal
+cputype=pentium
+cycles=19000
+
+[sblaster]
+sbtype=sbpro2
+irq=5
+dma=1
+
+[gus]
+gus=true
+gusirq=5
+gusdma=1
+
+[speaker]
+disney=true
+....
+
+Known problems
+--------------
+
+If you select Gravis Ultrasound playback, the demo does not exit by
+itself. After the rotating multiple-textured code, the starfield will
+run by itself forever until you hit ESC to exit the demo. In any other
+playback mode, the demo runs to the end by itself.
+
+More information
+----------------
+
+http://www.pouet.net/prod.php?which=1157[More information (Pouet)]

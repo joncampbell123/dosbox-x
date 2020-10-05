@@ -1,0 +1,32 @@
+ [[1995|Guide:MS‐DOS:demoscene:1995]] demoscene entry.
+
+Demo description
+----------------
+
+Intro to TP5 (The Party 1995) with some 3D graphics and a demonstration
+of shadow casting. Supports only Gravis Ultrasound. According to the
+README the intro was finished in a hurry to meet deadlines.
+
+Recommended DOSBox-X configuration
+----------------------------------
+
+....
+[dosbox]
+memsize=16
+machine=svga_s3
+
+[cpu]
+cycles=80000
+core=dynamic
+cputype=pentium
+
+[gus]
+gus=true
+gusirq=5
+gusdma=3
+....
+
+More information
+----------------
+
+http://www.pouet.net/prod.php?which=1156[More information (Pouet)]

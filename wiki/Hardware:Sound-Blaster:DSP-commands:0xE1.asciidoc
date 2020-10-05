@@ -1,0 +1,124 @@
+[cols=">,<",]
+|=======================================
+|DSP command |0xE1
+|Supported on |all versions, most clones
+|Description |Return DSP version
+|=======================================
+
+How to use
+----------
+
+....
+DSP_Write(0xE1);
+major = DSP_Read();
+minor = DSP_Read();
+....
+
+Write command 0xE1. The two bytes returned by the DSP are the major and
+minor version numbers of the DSP.
+
+Known DSP version numbers and copyright strings
+-----------------------------------------------
+
+[width="100%",cols="16%,18%,18%,48%",options="header",]
+|=======================================================================
+|Card |Major |Minor |DSP copyright
+|Sound Blaster 1.0 |1 |? |(none)
+
+|Sound Blaster 1.5 |1 |5 |(none)
+
+|Sound Blaster 2.0 |2 |1 |(none)
+
+|Sound Blaster 2.0 |2 |2 |(none)
+
+|Sound Blaster Pro |3 |0 |(none)
+
+|Sound Blaster Pro 2 |3 |1 |(none)
+
+|Sound Blaster Pro 2 |3 |2 |(none)
+
+|Sound Blaster 16 |4 |4 |COPYRIGHT (C) CREATIVE TECHNOLOGY LTD, 1992.
+
+|Sound Blaster 16 |4 |5 |COPYRIGHT (C) CREATIVE TECHNOLOGY LTD, 1992.
+
+|Sound Blaster 16 SCSI-2 |4 |11 |COPYRIGHT (C) CREATIVE TECHNOLOGY LTD,
+1992.
+
+|Sound Blaster AWE32 |4 |12 |COPYRIGHT (C) CREATIVE TECHNOLOGY LTD,
+1992.
+
+|Sound Blaster ViBRA16C |4 |13 |COPYRIGHT (C) CREATIVE TECHNOLOGY LTD,
+1992.
+
+|Sound Blaster ViBRA16XV |4 |16 |COPYRIGHT (C) CREATIVE TECHNOLOGY LTD,
+1992.
+
+|Sound Blaster AWE64 |4 |16 |COPYRIGHT (C) CREATIVE TECHNOLOGY LTD,
+1992.
+
+|Sound Blaster AWE64 Gold |4 |16 |COPYRIGHT (C) CREATIVE TECHNOLOGY LTD,
+1992.
+
+|Reveal SC400 (Gallant SC-6000) |3 |5 |SC-6000
+
+|VIA EPIA motherboard emulation |3 |2 |(none)
+
+|Yamaha OPL3-SA2 |3 |1 |(none)
+
+|ESS 688 |3 |1 |(none)
+
+|ESS 1869 |3 |1 |(none)
+
+|Gravis Ultrasound (SBOS TSR active) |2 |1 |(none, does not properly
+support command)
+
+|Gravis Ultrasound (MEGA-EM TSR) |1 |3 |(NOT SUPPORTED, DO NOT USE, TSR
+WILL HARD-CRASH SYSTEM)
+
+|Gravis Ultrasound (MEGA-EM TSR, EMUSET -X2) |2 |1 |(NOT SUPPORTED, DO
+NOT USE, TSR WILL HARD-CRASH SYSTEM)
+
+|Windows XP NTVDM.EXE |2 |1 |(none)
+|=======================================================================
+
+Changeable DSP versions
+-----------------------
+
+Some Sound Blaster clone support changing the DSP version at runtime.
+
+Reveal SC400
+~~~~~~~~~~~~
+
+DSP command 0x6E, followed by two bytes (major) and (minor), can be used
+to change the DSP version reported by the card. The SBPRO.EXE utility
+included with their DOS and Windows 3.1 drivers does exactly this.
+
+Yamaha OPL3-SA2
+~~~~~~~~~~~~~~~
+
+The OPL3 control port allows selecting between DSP version 2.x and 3.x.
+
+ESS AudioDrive
+~~~~~~~~~~~~~~
+
+Though not documented by ESS, there exists a register somewhere that can
+switch the reported DSP version between 2.x and 3.x, discovered by freak
+accident once.
+
+wrong or incorrect version numbers
+----------------------------------
+
+[width="100%",cols="21%,23%,23%,33%",options="header",]
+|=======================================================================
+|Card |Major |Minor |Problem
+|Gravis Ultrasound |0xAA |0xAA |SBOS was used to emulate Sound Blaster,
+then unloaded. After unloading, emulation doesn’t work and 0xAA is
+always returned
+|=======================================================================
+
+External references
+-------------------
+
+* http://the.earth.li/~tfm/oldpage/sb_dsp.html[TFM’s DSP commands]
+* http://hackipedia.org/Platform/x86/Sound/Creative%20Labs/ISA,%20Sound%20Blaster/pdf/Sound%20Blaster%20Series%20Developer%20Kit%2c%20Second%20Edition.pdf[Developer
+Kit for Sound Blaster Series, Second Edition]

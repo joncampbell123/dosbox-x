@@ -1,0 +1,56 @@
+ [[1992|Guide:MS‐DOS:demoscene:1992]] demoscene entry.
+
+Demo description
+----------------
+
+(todo)
+
+Recommended DOSBox-X configuration
+----------------------------------
+
+....
+[dosbox]
+machine=vgaonly
+memsize=2
+
+[speaker]
+pcspeaker=false
+
+[sblaster]
+sbtype=sbpro2
+sbbase=220
+irq=5
+dma=1
+
+[cpu]
+core=normal
+cycles=20000
+cputype=pentium
+....
+
+You will be prompted for CPU & Speed, and music performance. The menus
+have a non-intuitive design: Make the selection and then hit ESCAPE to
+continue. You need to set pcspeaker=false because the demo turns it on
+for some reason. Each demo part will run until you hit ESCAPE.
+
+VGA oddities
+------------
+
+The ``Flash'' part of the demo, with copper bars and vertical bars,
+relies on the VGA hardware not buffering the Line Compare register to
+effectively repeat the same scanline down the screen as it does the
+other raster effects before allowing the Flash logo to appear at the
+bottom. If the VGA hardware does not act on the changed Line Compare
+register contents during raster, then the Flash logo stays at the top of
+the screen and none of the vertical bars are visible. The trick is
+similar to one of the VGA raster effects in the DOSLIB VGA test program,
+using the Line Compare register to make the VGA text repeat multiple
+times down the screen.
+
+A capture of the effect on real hardware is available
+(https://youtu.be/RQPSE06Hd1M?t=12m55s[here]).
+
+More information
+----------------
+
+http://www.pouet.net/prod.php?which=4215[More information (Pouet)]

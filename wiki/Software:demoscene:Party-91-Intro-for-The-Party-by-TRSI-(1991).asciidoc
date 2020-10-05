@@ -1,0 +1,24 @@
+ [[1991|Guide:MS‐DOS:demoscene:1991]] demoscene entry.
+
+Demo description
+----------------
+
+TODO
+
+Recommended DOSBox-X configuration
+----------------------------------
+
+....
+[dosbox]
+memsize=1
+
+[cpu]
+core=normal
+cputype=286
+cycles=6000
+....
+
+More information
+----------------
+
+http://www.pouet.net/prod.php?which=8734[More information (Pouet)]
