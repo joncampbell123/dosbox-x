@@ -22,6 +22,6 @@ export CXX="$TRIPLET-g++"
 # Open the MSYS2 MinGW 64-bit prompt,
 # then run:
 pacman -Syu # Keep up to date!
-pacman -S mingw-w64-x86_64-toolchain mingw-w64-x86_64-SDL2
+pacman -S mingw-w64-x86_64-toolchain mingw-w64-x86_64-SDL2 mingw-w64-x86_64-libpng
 cd /path/to/dosbox-code
 ./build-mingw-sdl2
