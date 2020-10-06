@@ -31,6 +31,9 @@ Commit#:	Reason for skipping:
 4235		Conflict
 4245		Conflict
 4267		IMGMOUNT rewrite part skipped due to conflict
+4270		Conflict
+4271		core_dyn_86
+4272		core_dyn_86
 
 (Status for commits in this interval needs to be added)
 
