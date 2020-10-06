@@ -27,7 +27,7 @@ struct DOSBox_Vector2
 	}
 
 	inline float magnitude(void) const {
-		return (float)sqrt(sqrMagnitude());
+		return sqrtf(sqrMagnitude());
 	}
 
 	inline float sqrMagnitude(void) const {
