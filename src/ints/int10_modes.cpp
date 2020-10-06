@@ -1836,23 +1836,18 @@ dac_text16:
 		real_writeb(RealSeg(dsapt),RealOff(dsapt)+0x10,0); // overscan
 	}
 	/* Setup some special stuff for different modes */
-	uint8_t feature=real_readb(BIOSMEM_SEG,BIOSMEM_INITIAL_MODE);
 	switch (CurMode->type) {
 	case M_CGA2:
-		feature=(feature&~0x30)|0x20;
 		real_writeb(BIOSMEM_SEG,BIOSMEM_CURRENT_MSR,0x1e);
 		break;
 	case M_CGA4:
-		feature=(feature&~0x30)|0x20;
 		if (CurMode->mode==4) real_writeb(BIOSMEM_SEG,BIOSMEM_CURRENT_MSR,0x2a);
 		else if (CurMode->mode==5) real_writeb(BIOSMEM_SEG,BIOSMEM_CURRENT_MSR,0x2e);
 		else real_writeb(BIOSMEM_SEG,BIOSMEM_CURRENT_MSR,0x2);
 		break;
 	case M_TANDY16:
-		feature=(feature&~0x30)|0x20;
 		break;
 	case M_TEXT:
-		feature=(feature&~0x30)|0x20;
 		switch (CurMode->mode) {
 		case 0:real_writeb(BIOSMEM_SEG,BIOSMEM_CURRENT_MSR,0x2c);break;
 		case 1:real_writeb(BIOSMEM_SEG,BIOSMEM_CURRENT_MSR,0x28);break;
@@ -1864,13 +1859,10 @@ dac_text16:
 	case M_LIN4:
 	case M_EGA:	
 	case M_VGA:
-		feature=(feature&~0x30);
 		break;
 	default:
 		break;
 	}
-	// disabled, has to be set in bios.cpp exclusively
-//	real_writeb(BIOSMEM_SEG,BIOSMEM_INITIAL_MODE,feature);
 
 	if (svgaCard == SVGA_S3Trio) {
 		/* Setup the CPU Window */
