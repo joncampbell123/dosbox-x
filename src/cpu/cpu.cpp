@@ -76,7 +76,7 @@ bool cpu_triple_fault_reset;
 int cpu_rep_max = 0;
 
 Bitu DEBUG_EnableDebugger(void);
-extern void GFX_SetTitle(int32_t cycles, Bits frameskip, Bits timing, bool paused);
+extern void GFX_SetTitle(int32_t cycles, int frameskip, Bits timing, bool paused);
 
 CPU_Regs cpu_regs;
 CPUBlock cpu;

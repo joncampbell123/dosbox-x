@@ -129,7 +129,7 @@ static void CheckX86ExtensionsSupport()
 #endif
 /*=============================================================================*/
 
-extern void         GFX_SetTitle(int32_t cycles,Bits frameskip,Bits timing,bool paused);
+extern void         GFX_SetTitle(int32_t cycles, int frameskip, Bits timing, bool paused);
 
 extern bool         force_nocachedir;
 extern bool         freesizecap;

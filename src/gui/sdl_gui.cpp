@@ -77,7 +77,7 @@ extern Bitu                 currentWindowWidth, currentWindowHeight;
 
 extern bool                 MSG_Write(const char *);
 extern void                 LoadMessageFile(const char * fname);
-extern void                 GFX_SetTitle(int32_t cycles,Bits frameskip,Bits timing,bool paused);
+extern void                 GFX_SetTitle(int32_t cycles, int frameskip, Bits timing, bool paused);
 
 static int                  cursor;
 static bool                 running;
