@@ -1645,6 +1645,13 @@ void SHELL_Init() {
 
     psp.SetSize(psp_seg + total_sz);
     psp.SetStack(((unsigned int)stack_seg << 16u) + (unsigned int)reg_sp);
+
+	/* Create appearance of handle inheritance by first shell */
+	for (uint16_t i=0;i<5;i++) {
+		uint8_t handle=psp.GetFileHandle(i);
+		if (Files[handle]) Files[handle]->AddRef();
+	}
+
 	psp.SetParent(psp_seg);
 	/* Set the environment */
 	psp.SetEnvironment(env_seg);
