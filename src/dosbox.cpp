@@ -4008,21 +4008,8 @@ void DOSBOX_SetupConfigSections(void) {
     Pbool->SetBasic(true);
 
     secprop=control->AddSection_prop("ne2000",&Null_Init,true);
-    MSG_Add("NE2000_CONFIGFILE_HELP",
-        "macaddr -- The physical address the emulator will use on your network.\n"
-        "           If you have multiple DOSBoxes running on your network,\n"
-        "           this has to be changed. Modify the last three number blocks.\n"
-        "           I.e. AC:DE:48:88:99:AB.\n"
-        "realnic -- Specifies which of your network interfaces is used.\n"
-        "           Write \'list\' here to see the list of devices in the\n"
-        "           Status Window. Then make your choice and put either the\n"
-        "           interface number (2 or something) or a part of your adapters\n"
-        "           name, e.g. VIA here.\n"
-
-    );
-
     Pbool = secprop->Add_bool("ne2000", Property::Changeable::WhenIdle, false);
-    Pbool->Set_help("Enable Ethernet passthrough. Requires [Win]Pcap.");
+    Pbool->Set_help("Enable NE2000 Ethernet emulation.");
     Pbool->SetBasic(true);
 
     Phex = secprop->Add_hex("nicbase", Property::Changeable::WhenIdle, 0x300);
@@ -4034,8 +4021,8 @@ void DOSBOX_SetupConfigSections(void) {
     Pint->SetBasic(true);
 
     Pstring = secprop->Add_string("macaddr", Property::Changeable::WhenIdle,"AC:DE:48:88:99:AA");
-    Pstring->Set_help("The physical address the emulator will use on your network.\n"
-        "If you have multiple DOSBox-Xes running on your network,\n"
+    Pstring->Set_help("The MAC address the emulator will use for its network adapter.\n"
+        "If you have multiple DOSBox-Xes running on the same network,\n"
         "this has to be changed for each. AC:DE:48 is an address range reserved for\n"
         "private use, so modify the last three number blocks.\n"
         "I.e. AC:DE:48:88:99:AB.");
@@ -4045,7 +4032,7 @@ void DOSBOX_SetupConfigSections(void) {
      *       and the OS. Sort of like "NAT" mode in VirtualBox. When that works, we
      *       can then compile NE2000 support with and without libpcap/winpcap support. */
     Pstring = secprop->Add_string("realnic", Property::Changeable::WhenIdle,"list");
-    Pstring->Set_help("Specifies which of your network interfaces is used.\n"
+    Pstring->Set_help("Specifies which of your network interfaces is used for libpcap.\n"
         "Write \'list\' here to see the list of devices in the\n"
         "Status Window. Then make your choice and put either the\n"
         "interface number (2 or something) or a part of your adapters\n"

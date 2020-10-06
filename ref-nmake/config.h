@@ -87,8 +87,8 @@
 /* Define to 1 to enable internal modem support, requires SDL_net */
 #undef C_MODEM
 
-/* Define to 1 to enable NE2000 ethernet passthrough, requires libpcap */
-#define C_NE2000 1
+/* Define to 1 to enable ethernet passthrough, requires libpcap */
+#define C_PCAP 1
 
 /* Define to 1 to use opengl display output support */
 #if !defined(C_SDL2)

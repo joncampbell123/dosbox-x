@@ -2155,7 +2155,7 @@ public:
     }
 };
 
-std::string niclist="NE2000 networking is not enabled. Check [ne2000] section of the configuration.";
+std::string niclist="PCAP networking is not enabled. Check [ne2000] section of the configuration.";
 class ShowHelpNIC : public GUI::ToplevelWindow {
 protected:
     GUI::Input *name;

@@ -1,7 +1,5 @@
 #include "config.h"
 
-#if C_NE2000
-
 #if defined(WIN32)
   #define HAVE_REMOTE
 #endif
@@ -53,10 +51,13 @@
 
 #include "ne2000.h"
 
+static void NE2000_TX_Event(Bitu val);
+
+#ifdef C_PCAP
+
 #include "pcap.h"
 // Handle to WinPCap device
 pcap_t *adhandle = 0;
-static void NE2000_TX_Event(Bitu val);
 
 #ifdef WIN32
 // DLL loading
@@ -73,6 +74,8 @@ void (*PacketFreealldevs)(pcap_if_t *) = 0;
 pcap_t* (*PacketOpen)(char const *,int,int,int,struct pcap_rmtauth *,char *) = 0;
 int (*PacketNextEx)(pcap_t *, struct pcap_pkthdr **, const u_char **) = 0;
 int (*PacketFindALlDevsEx)(char *, struct pcap_rmtauth *, pcap_if_t **, char *) = 0;
+
+#endif
 
 #endif
 
@@ -301,7 +304,9 @@ bx_ne2k_c::write_cr(uint32_t value)
     // Send the packet to the system driver
 	/* TODO: Transmit packet */
     //BX_NE2K_THIS ethdev->sendpkt(& BX_NE2K_THIS s.mem[BX_NE2K_THIS s.tx_page_start*256 - BX_NE2K_MEMSTART], BX_NE2K_THIS s.tx_bytes);
+#ifdef C_PCAP
 	pcap_sendpacket(adhandle,&s.mem[s.tx_page_start*256 - BX_NE2K_MEMSTART], s.tx_bytes);
+#endif
 	// some more debug
 	if (BX_NE2K_THIS s.tx_timer_active) {
       BX_PANIC(("CR write, tx timer still active"));
@@ -1468,6 +1473,7 @@ static void NE2000_TX_Event(Bitu val) {
 }
 
 static void NE2000_Poller(void) {
+#ifdef C_PCAP
 	int res;
 	struct pcap_pkthdr *header;
 	u_char *pkt_data;
@@ -1481,6 +1487,7 @@ static void NE2000_Poller(void) {
 		theNE2kDevice->rx_frame(pkt_data, header->len);
 	}
 //#endif
+#endif
 }
 #ifdef WIN32
 #include <windows.h>
@@ -1509,6 +1516,13 @@ public:
 			return;
 		}
 
+#ifndef C_PCAP
+		LOG_MSG("pcap support not enabled, disabling ne2000");
+		load_success = false;
+		return;
+#endif
+
+#ifdef C_PCAP
 #ifdef WIN32
 /*		
 		int (*PacketSendPacket)(pcap_t *, const u_char *, int);
@@ -1562,6 +1576,7 @@ public:
 		}
 
 #endif
+#endif
 
 		// get irq and base
 		Bitu irq = (Bitu)section->Get_int("nicirq");
@@ -1590,6 +1605,7 @@ public:
 			mac[4]=macint[4]; mac[5]=macint[5];
 		}
 
+#ifdef C_PCAP
 		// find out which pcap device to use
 		const char* realnicstring=section->Get_string("realnic");
 		pcap_if_t *alldevs;
@@ -1691,6 +1707,7 @@ public:
 #ifndef WIN32
 		pcap_setnonblock(adhandle,1,errbuf);
 #endif
+#endif
 		// create the bochs NIC class
 		theNE2kDevice = new bx_ne2k_c ();
 		memcpy(theNE2kDevice->s.physaddr, mac, 6);
@@ -1711,8 +1728,10 @@ public:
 	}	
 	
 	~NE2K() {
+#ifdef C_PCAP
 		if(adhandle) pcap_close(adhandle);
 		adhandle=0;
+#endif
 		if(theNE2kDevice != 0) delete theNE2kDevice;
 		theNE2kDevice=0;
 		TIMER_DelTickHandler(NE2000_Poller);
@@ -1750,5 +1769,3 @@ void NE2K_Init() {
 	AddExitFunction(AddExitFunctionFuncPair(NE2K_ShutDown),true);
 	AddVMEventFunction(VM_EVENT_RESET,AddVMEventFunctionFuncPair(NE2K_OnReset));
 }
-
-#endif // C_NE2000

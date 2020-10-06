@@ -1099,9 +1099,7 @@ extern void *VGA_VertInterrupt_PIC_Event;
 extern void *VGA_VerticalTimer_PIC_Event;
 extern void *PIC_IRQCheckDelayed_PIC_Event;
 
-#if C_NE2000
 //extern void *NE2000_TX_Event_PIC_Event;						// Ne2000.cpp
-#endif
 
 
 // PIC_TimerHandlers
@@ -1114,9 +1112,7 @@ extern void *KEYBOARD_TickHandler_PIC_Timer;			// Keyboard.cpp
 //extern void *MIXER_Mix_NoSound_PIC_Timer;					// Mixer.cpp
 extern void *MIXER_Mix_PIC_Timer;
 
-#if C_NE2000
 //extern void *NE2000_Poller_PIC_Event;							// Ne2000.cpp
-#endif
 
 extern void *fmport_a_pic_event_PIC_Event;
 extern void *fmport_b_pic_event_PIC_Event;
@@ -1153,9 +1149,7 @@ const void *pic_state_event_table[] = {
 	fmport_b_pic_event_PIC_Event,
 	PIC_IRQCheckDelayed_PIC_Event,
 
-#if C_NE2000
 	//NE2000_TX_Event_PIC_Event,
-#endif
 };
 
 
@@ -1170,9 +1164,7 @@ const void *pic_state_timer_table[] = {
 	//MIXER_Mix_NoSound_PIC_Timer,
 	MIXER_Mix_PIC_Timer,
 
-#if C_NE2000
 	//NE2000_Poller_PIC_Event,
-#endif
 };
 
 
