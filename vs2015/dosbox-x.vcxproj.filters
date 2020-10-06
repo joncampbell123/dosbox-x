@@ -609,6 +609,9 @@
     <ClCompile Include="..\src\misc\cross.cpp">
       <Filter>Sources\misc</Filter>
     </ClCompile>
+    <ClCompile Include="..\src\misc\ethernet.cpp">
+      <Filter>Sources\misc</Filter>
+    </ClCompile>
     <ClCompile Include="..\src\misc\messages.cpp">
       <Filter>Sources\misc</Filter>
     </ClCompile>
@@ -1890,6 +1893,9 @@
       <Filter>Includes</Filter>
     </ClInclude>
     <ClInclude Include="..\include\dosbox.h">
+      <Filter>Includes</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\ethernet.h">
       <Filter>Includes</Filter>
     </ClInclude>
     <ClInclude Include="..\include\fpu.h">
