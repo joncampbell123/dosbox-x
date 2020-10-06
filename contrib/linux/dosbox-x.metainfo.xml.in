@@ -13,7 +13,14 @@
           <release version="@PACKAGE_VERSION@" date="2020-9-30"/>
   </releases>
   <screenshots>
-	  <screenshot/>
+	  <screenshot type="default">
+		  <caption>Startup screen</caption>
+		  <image>https://github.com/joncampbell123/dosbox-x/tree/master/contrib/linux/dosbox-x_startup.png</image>
+	  </screenshot>
+	  <screenshot>
+		  <caption>Configuration options</caption>
+		  <image>https://github.com/joncampbell123/dosbox-x/tree/master/contrib/linux/dosbox-x_configuration_tool.png</image>
+	  </screenshot>
   </screenshots>
   <content_rating type="oars-1.1" />
   <translation/>
