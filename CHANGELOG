@@ -8,6 +8,10 @@
     variable for config directory in Linux. (rderooy)
   - Added support for compiling with pcap for Windows
     MinGW builds. (Jookia)
+  - Added config option "raw_mouse_input" (in [sdl]
+    section; SDL2 builds only) to bypass the operating
+    system's mouse acceleration & sensitivity settings.
+    Implemented by NicknineTheEagle.
   - Integrated SVN commits (Allofich)
     - r4370: As an adjunct to r4369, make the reference
       counts of standard device handles equivalent to

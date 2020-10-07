@@ -3788,6 +3788,12 @@ static void GUI_StartUp() {
     Prop_multival* p3 = section->Get_multival("sensitivity");
     sdl.mouse.xsensitivity = p3->GetSection()->Get_int("xsens");
     sdl.mouse.ysensitivity = p3->GetSection()->Get_int("ysens");
+
+#if defined(C_SDL2)
+    // Apply raw mouse input setting
+    SDL_SetHintWithPriority(SDL_HINT_MOUSE_RELATIVE_MODE_WARP, section->Get_bool("raw_mouse_input") ? "0" : "1", SDL_HINT_OVERRIDE);
+#endif
+
     std::string output=section->Get_string("output");
 	if (output == "default") {
 #ifdef __WIN32__
@@ -6485,6 +6491,12 @@ void SDL_SetupConfigSection() {
     Pint->SetMinMax(-1000,1000);
     Pint = Pmulti->GetSection()->Add_int("ysens",Property::Changeable::Always,100);
     Pint->SetMinMax(-1000,1000);
+
+#if defined(C_SDL2)
+    Pbool = sdl_sec->Add_bool("raw_mouse_input", Property::Changeable::OnlyAtStart, false);
+    Pbool->Set_help("Enable this setting to bypass your operating system's mouse acceleration and sensitivity settings.\n"
+        "This works in fullscreen or when the mouse is captured in window mode (SDL2 builds only).");
+#endif
 
     const char * emulation[] = {"integration", "locked", "always", "never", nullptr};
     Pstring  = sdl_sec->Add_string("mouse_emulation", Property::Changeable::Always, emulation[1]);
