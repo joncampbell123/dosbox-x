@@ -1131,7 +1131,7 @@ bool IsDebuggerActive(void);
 
 extern std::string dosbox_title;
 
-void GFX_SetTitle(int32_t cycles,Bits frameskip,Bits timing,bool paused){
+void GFX_SetTitle(int32_t cycles, int frameskip, Bits timing, bool paused) {
     (void)frameskip;//UNUSED
     (void)timing;//UNUSED
 //  static Bits internal_frameskip=0;

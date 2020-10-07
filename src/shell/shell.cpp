@@ -61,7 +61,7 @@ void runMount(const char *str);
 void MSG_Replace(const char * _name, const char* _val);
 void DOS_SetCountry(uint16_t countryNo);
 void CALLBACK_DeAllocate(Bitu in);
-void GFX_SetTitle(int32_t cycles, Bits frameskip, Bits timing, bool paused);
+void GFX_SetTitle(int32_t cycles, int frameskip, Bits timing, bool paused);
 
 Bitu call_shellstop = 0;
 /* Larger scope so shell_del autoexec can use it to
@@ -1645,6 +1645,13 @@ void SHELL_Init() {
 
     psp.SetSize(psp_seg + total_sz);
     psp.SetStack(((unsigned int)stack_seg << 16u) + (unsigned int)reg_sp);
+
+	/* Create appearance of handle inheritance by first shell */
+	for (uint16_t i=0;i<5;i++) {
+		uint8_t handle=psp.GetFileHandle(i);
+		if (Files[handle]) Files[handle]->AddRef();
+	}
+
 	psp.SetParent(psp_seg);
 	/* Set the environment */
 	psp.SetEnvironment(env_seg);

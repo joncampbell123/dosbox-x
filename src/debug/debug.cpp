@@ -70,7 +70,7 @@ const char *egc_fgc_modes[4] = {
 };
 
 bool pc98_pegc_linear_framebuffer_enabled(void);
-void GFX_SetTitle(int32_t cycles,Bits frameskip,Bits timing,bool paused);
+void GFX_SetTitle(int32_t cycles, int frameskip, Bits timing, bool paused);
 
 extern bool                 dos_kernel_disabled;
 extern bool                 is_paused;

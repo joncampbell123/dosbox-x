@@ -113,15 +113,6 @@ These instructions were written in an already set up environment, should some st
 The section about configuring IntelliSense still needs to be written.
 
 
-CMake
------
-
-The CMakeLists.txt is provided as an alternative to the solution in 'vs2015' folder but with a few limitiations compared to it:
-
-- VCPKG from Microsoft is the package manager used to fetch dependencies, consequently, only an SDL2 build is possible
-- statically linking dependencies is not supported
-
-
 Joystick improvements for SDL1 build
 ------------------------------------
 
