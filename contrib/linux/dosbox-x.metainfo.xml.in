@@ -13,32 +13,58 @@
           <release version="@PACKAGE_VERSION@" date="2020-9-30"/>
   </releases>
   <screenshots>
-	  <screenshot/>
+	  <screenshot type="default">
+		  <caption>Startup screen</caption>
+		  <image>https://github.com/joncampbell123/dosbox-x/tree/master/contrib/linux/dosbox-x_startup.png</image>
+	  </screenshot>
+	  <screenshot>
+		  <caption>Configuration options</caption>
+		  <image>https://github.com/joncampbell123/dosbox-x/tree/master/contrib/linux/dosbox-x_configuration_tool.png</image>
+	  </screenshot>
+	  <screenshot>
+		  <caption>Tomb Raider 3dfx in DOSBox-X</caption>
+		  <image>https://github.com/joncampbell123/dosbox-x/tree/master/contrib/linux/dosbox-x_tombraider.png</image>
+	  </screenshot>
+	  <screenshot>
+		  <caption>Windows 98SE as Guest OS</caption>
+		  <image>https://github.com/joncampbell123/dosbox-x/tree/master/contrib/linux/dosbox-x_win98se.png</image>
+	  </screenshot>
   </screenshots>
   <content_rating type="oars-1.1" />
   <translation/>
   <developer_name>DOSBox-X team</developer_name>
-  <update_contact>noreply@example.com</update_contact>
+  <update_contact>noreply@dosbox-x.com</update_contact>
   <description>
-    <p>
-    DOSBox-X is a cross-platform DOS emulator based on DOSBox. It aims to be a complete and accurate DOS
-    emulation package, including the ability to run Windows 95 and 98. It also adds support for the NEC PC-98.
-    </p>
-    <p>
-    DOSBox-X emulates a legacy IBM PC and DOS environment, and has many emulation options and features such as:
-    </p>
-    <ul>
-    <li>8086, 286, 386, 486, Pentium, Pentium MMX and Pentium Pro CPU options</li>
-    <li>Mounting host directory, harddisk images, floppy disk images and CD-ROM images</li>
-    <li>ISO9660, FAT12, FAT16 and FAT32 filesystem support including long filenames</li>
-    <li>MDA, CGA, Hercules, EGA, MCGA, VGA and S3/ET3000/ET4000 SVGA video adapter emulation</li>
-    <li>Various Sound Blaster models, Gravis Ultrasound, Disney Sound source and more audio options</li>
-    <li>MT-32 and MIDI support and emulation options</li>
-    <li>Printer support and emulation options</li>
-    <li>Network emulation (IPX, NE2000)</li>
-    <li>Support for running Windows 3.1, Windows 95 and Windows 98</li>
-    </ul>
-    With the help of DOSBox-X, it can run plenty of the old classics that don't run on your new computer!
+<p> DOSBox-X is an open-source DOS emulator for running DOS games and applications.
+DOS-based Windows such as Windows 3.x and Windows 9x are officially supported.
+Compared to DOSBox, DOSBox-X is much more flexible and provides more features.
+</p>
+<p>DOSBox-X emulates a PC necessary for running many DOS games and applications that simply cannot be run on modern PCs and operating systems, similar to DOSBox. However, while the main focus of DOSBox is for running DOS games, DOSBox-X goes much further than this. Started as a fork of the DOSBox project, it retains compatibility with the wide base of DOS games and DOS gaming DOSBox was designed for. But it is also a platform for running DOS applications, including emulating the environments to run Windows 3.x, 9x and ME and software written for those versions of Windows. By adding official support for Windows 95, 98, and ME emulation and acceleration, we hope that those old Windows games and applications could be enjoyed or used once more. Moreover, DOSBox-X adds support for emulating the NEC PC-98 such that you can also play PC-98 games with it.
+</p>
+<p>
+DOSBox-X emulates a legacy IBM PC and DOS environment, and has many emulation options and features such as:
+</p>
+	<ul>
+		<li>8086, 286, 386, 486, Pentium, Pentium MMX and Pentium Pro CPU options</li>
+		<li>IBM PCjr, Tandy 1000 and NEC PC-98 emulation</li>
+		<li>Mounting a host directory as a harddisk, floppy or CD-ROM</li>
+		<li>Mounting harddisk images, floppy disk images and CD-ROM images</li>
+		<li>ISO9660, FAT12, FAT16 and FAT32 filesystem support, including long filenames</li>
+		<li>MDA, Hercules, CGA, EGA, MCGA, VGA and SVGA video adapter emulation</li>
+		<li>3dfx Voodoo emulation</li>
+		<li>Various Sound Blaster models, Gravis Ultrasound, Disney Sound source and more audio options</li>
+		<li>Roland MT-32 and General MIDI support and emulation options</li>
+		<li>Serial, Parallel and Game port support</li>
+		<li>Printer support and emulation options</li>
+		<li>Network emulation (IPX, NE2000 (not for Flatpak or Snap installs))</li>
+		<li>Support for running real MS-DOS or IBM PC DOS</li>
+		<li>Support for running Windows 1.0 to Windows 3.11, Windows 95 and Windows 98</li>
+		<li>GUI drop-down menu for easier usage</li>
+		<li>Built-in graphical configuration tool</li>
+		<li>Save and load state support</li>
+		<li>More DOS commands, and ability to add your own programs to the virtual Z: drive</li>
+	</ul>
+	With the help of DOSBox-X, you can run plenty of the old classics that don't run on your new computer!
   </description>
   <url type="homepage">https://dosbox-x.com</url>
   <url type="bugtracker">https://github.com/joncampbell123/dosbox-x/issues</url>
