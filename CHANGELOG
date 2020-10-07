@@ -1,5 +1,43 @@
 0.83.7
-  - 
+  - Updated the Windows installer to default to the
+    "typical" installation. For the full installation
+    start menu items will be added for DOSBox-X builds
+    copied to subdirectories. (Wengier)
+  - Improved Flatpak support for Linux. (rderooy)
+  - Added support for the XDG_DATA_HOME environment
+    variable for config directory in Linux. (rderooy)
+  - Added support for compiling with pcap for Windows
+    MinGW builds. (Jookia)
+  - Integrated SVN commits (Allofich)
+    - r4370: As an adjunct to r4369, make the reference
+      counts of standard device handles equivalent to
+      those of real DOS.
+    - r4369: Compatible side-effect behavior of DOS in
+      the file close function.
+    - r4367: Change FPU_FBST to only write 18 decimals
+      instead of the wrongly 19, this makes it possible
+      to switch 64 integers which in turn fixes some
+      rounding issues. (jmarsh)
+    - r4277: Remove cases not needed after r4276
+    - r4276: Remove defunct code related to the initial
+      display mode of the system BIOS during video mode
+      changes.
+    - r4274: fix externals.
+    - r4273: Make frameskip an integer.
+    - r4269: Use fabsf when return value is a float.
+      Small warning fix.
+    - r4265: Some more cleanups and memleak fixes.
+    - r4264: Pick some lowhanging fruit. (some memory
+      leaks and unused variables)
+    - r4262: missed one
+    - r4261: These actually use float as input.
+    - r4258: Rename bios tester to biostest and make it
+      debug only to avoid people trying to load real
+      bioses.
+    - r4257: Add simple program that allows you to boot
+      into a bios image for running cpu tester bios.
+  - The primary DOSBox-X Wiki is now located from the
+    URL https://dosbox-x.com/wiki (Wengier)
 0.83.6
   - Improved internal Voodoo card hardware emulation,
     such as fixing the font issue with the 3dfx version
