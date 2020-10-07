@@ -1,5 +1,5 @@
 dnl Init.
-AC_INIT(dosbox-x,0.83.6,[https://github.com/joncampbell123/dosbox-x/issues],[],[https://dosbox-x.com])
+AC_INIT(dosbox-x,0.83.7,[https://github.com/joncampbell123/dosbox-x/issues],[],[https://dosbox-x.com])
 AC_PREREQ(2.60)
 AC_CONFIG_SRCDIR(README.md)
 
@@ -393,7 +393,7 @@ if test x$enable_emscripten != xyes; then
 dnl Some target detection and actions for them
 case "$host" in
     *-*-cygwin* | *-*-mingw32*)
-       LIBS="$LIBS -lwinmm -limm32 -lole32"
+       LIBS="$LIBS -lwinmm -limm32 -lole32 -loleaut32 -lversion -lsetupapi"
        CXXFLAGS="$CXXFLAGS -mno-ms-bitfields"
        if test x$have_sdl_net_h = xyes ; then
          dnl HACK: We have to put SDL_net THEN winsock libraries or else the linker can't resolve things properly
@@ -909,12 +909,21 @@ fi
 
 dnl FEATURE: Whether to use libpcap, and enable NE2000 emulation
 AH_TEMPLATE(C_NE2000,[Define to 1 to enable NE2000 ethernet passthrough, requires libpcap])
-if test x$have_pcap_lib = xyes -a x$have_pcap_h = xyes ; then
-  LIBS="$LIBS -lpcap";
-  AC_DEFINE(C_NE2000,1)
-else
-  AC_MSG_WARN([Can't find libpcap, NE2000 ethernet passthrough disabled])
-fi
+case "$host" in
+    *-*-cygwin* | *-*-mingw32*)
+       CFLAGS="$CFLAGS -I$pwd/vs2015/pcap"
+       CXXFLAGS="$CXXFLAGS -I$pwd/vs2015/pcap"
+       AC_DEFINE(C_NE2000,1)
+    ;;
+    *)
+       if test x$have_pcap_lib = xyes -a x$have_pcap_h = xyes ; then
+         LIBS="$LIBS -lpcap";
+         AC_DEFINE(C_NE2000,1)
+       else
+         AC_MSG_WARN([Can't find libpcap, NE2000 ethernet passthrough disabled])
+       fi
+    ;;
+esac
 
 if test x$enable_x11 != xno; then
   dnl FEATURE: Whether to use X11 XKBlib
