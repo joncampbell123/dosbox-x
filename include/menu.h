@@ -44,7 +44,7 @@ void MENU_Check_Drive(HMENU handle, int cdrom, int floppy, int local, int image,
 bool MENU_SetBool(std::string secname, std::string value);
 void MENU_swapstereo(bool enabled);
 void* GetSetSDLValue(int isget, std::string& target, void* setval);
-void GFX_SetTitle(int32_t cycles, Bits frameskip, Bits timing, bool paused);
+void GFX_SetTitle(int32_t cycles, int frameskip, Bits timing, bool paused);
 void change_output(int output);
 void res_input(bool type, const char * res);
 void res_init(void);
