@@ -505,7 +505,7 @@ void INT10_SetCursorPos(uint8_t row,uint8_t col,uint8_t page) {
 
 void ReadCharAttr(uint16_t col,uint16_t row,uint8_t page,uint16_t * result) {
     /* Externally used by the mouse routine */
-    PhysPt fontdata;
+    RealPt fontdata;
     uint16_t cols = real_readw(BIOSMEM_SEG,BIOSMEM_NB_COLS);
     uint8_t cheight = real_readb(BIOSMEM_SEG,BIOSMEM_CHAR_HEIGHT);
     bool split_chr = false;
@@ -641,27 +641,27 @@ void WriteChar(uint16_t col,uint16_t row,uint8_t page,uint16_t chr,uint8_t attr,
     case M_TANDY16:
         if (chr>=128) {
             chr-=128;
-            fontdata=Real2Phys(RealGetVec(0x1f));
+            fontdata=RealGetVec(0x1f);
             break;
         }
         switch (machine) {
         case MCH_CGA:
         case MCH_HERC:
-            fontdata=PhysMake(0xf000,0xfa6e);
+            fontdata=RealMake(0xf000,0xfa6e);
             break;
         case TANDY_ARCH_CASE:
-            fontdata=Real2Phys(RealGetVec(0x44));
+            fontdata=RealGetVec(0x44);
             break;
         default:
-            fontdata=Real2Phys(RealGetVec(0x43));
+            fontdata=RealGetVec(0x43);
             break;
         }
         break;
     default:
-        fontdata=Real2Phys(RealGetVec(0x43));
+        fontdata=RealGetVec(0x43);
         break;
     }
-    fontdata+=(unsigned int)chr*(unsigned int)cheight;
+    fontdata=RealMake(RealSeg(fontdata),RealOff(fontdata)+chr*cheight);
 
     if(GCC_UNLIKELY(!useattr)) { //Set attribute(color) to a sensible value
         static bool warned_use = false;
@@ -711,7 +711,8 @@ void WriteChar(uint16_t col,uint16_t row,uint8_t page,uint16_t chr,uint8_t attr,
     uint16_t ty=(uint16_t)y;
     for (uint8_t h=0;h<cheight;h++) {
         uint8_t bitsel=128;
-        uint8_t bitline=mem_readb(fontdata++);
+        uint8_t bitline=mem_readb(Real2Phys(fontdata));
+        fontdata=RealMake(RealSeg(fontdata),RealOff(fontdata)+1);
         uint16_t tx=(uint16_t)x;
         while (bitsel) {
             INT10_PutPixel(tx,ty,page,(bitline&bitsel)?attr:back);
