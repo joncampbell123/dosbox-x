@@ -98,6 +98,9 @@ void GFX_OpenGLRedrawScreen(void);
 #include "shell.h"
 #include "glidedef.h"
 #include "../ints/int10.h"
+#if !defined(HX_DOS)
+#include "../libs/tinyfiledialogs/tinyfiledialogs.h"
+#endif
 
 #if defined(LINUX) && defined(HAVE_ALSA)
 # include <alsa/asoundlib.h>
@@ -1191,60 +1194,27 @@ void GFX_SetTitle(int32_t cycles, int frameskip, Bits timing, bool paused) {
 #endif
 }
 
-bool warn_on_mem_write = false, quit_confirm = false;
+bool warn_on_mem_write = false;
 
 void CPU_Snap_Back_To_Real_Mode();
 bool CheckQuit(void) {
+#if !defined(HX_DOS)
     Section_prop *section = static_cast<Section_prop *>(control->GetSection("dosbox"));
-	std::string warn = section->Get_string("quit warning");
-    if (warn == "true") {
-        quit_confirm=false;
-        MAPPER_ReleaseAllKeys();
-        GFX_LosingFocus();
-        GUI_Shortcut(28);
-        MAPPER_ReleaseAllKeys();
-        GFX_LosingFocus();
-        bool ret=quit_confirm;
-        quit_confirm=false;
-        return ret;
-    } else if (warn == "false" || glide.enabled || (RunningProgram&&!strcmp(RunningProgram, "LOADLIN")))
+    std::string warn = section->Get_string("quit warning");
+    if (warn == "true")
+        return tinyfd_messageBox("Quit DOSBox-X warning","This will quit from DOSBox-X.\nAre you sure?","yesno", "question", 1);
+    else if (warn == "false")
         return true;
-    if (dos_kernel_disabled) {
-        quit_confirm=false;
-        MAPPER_ReleaseAllKeys();
-        GFX_LosingFocus();
-        GUI_Shortcut(29);
-        MAPPER_ReleaseAllKeys();
-        GFX_LosingFocus();
-        bool ret=quit_confirm;
-        quit_confirm=false;
-        return ret;
-    }
+    if (dos_kernel_disabled)
+        return tinyfd_messageBox("Quit DOSBox-X warning","You are currently running a guest system.\nAre you sure to quit anyway now?","yesno", "question", 1);
     if (warn == "autofile")
-        for (uint8_t handle = 0; handle < DOS_FILES; handle++) {
-            if (Files[handle] && (Files[handle]->GetName() == NULL || strcmp(Files[handle]->GetName(), "CON")) && (Files[handle]->GetInformation()&0x8000) == 0) {
-                quit_confirm=false;
-                MAPPER_ReleaseAllKeys();
-                GFX_LosingFocus();
-                GUI_Shortcut(30);
-                MAPPER_ReleaseAllKeys();
-                GFX_LosingFocus();
-                bool ret=quit_confirm;
-                quit_confirm=false;
-                return ret;
-            }
+        for (Bit8u handle = 0; handle < DOS_FILES; handle++) {
+            if (Files[handle] && (Files[handle]->GetName() == NULL || strcmp(Files[handle]->GetName(), "CON")) && (Files[handle]->GetInformation()&0x8000) == 0)
+                return tinyfd_messageBox("Quit DOSBox-X warning","It may be unsafe to quit from DOSBox-X right now\nbecause one or more files are currently open.\nAre you sure to quit anyway now?","yesno", "question", 1);
         }
-    else if (RunningProgram&&strcmp(RunningProgram, "COMMAND")&&strcmp(RunningProgram, "4DOS")) {
-        quit_confirm=false;
-        MAPPER_ReleaseAllKeys();
-        GFX_LosingFocus();
-        GUI_Shortcut(31);
-        MAPPER_ReleaseAllKeys();
-        GFX_LosingFocus();
-        bool ret=quit_confirm;
-        quit_confirm=false;
-        return ret;
-    }
+    else if (RunningProgram&&strcmp(RunningProgram, "COMMAND")&&strcmp(RunningProgram, "4DOS"))
+        return tinyfd_messageBox("Quit DOSBox-X warning","You are currently running a program or game.\nAre you sure to quit anyway now?","yesno", "question", 1);
+#endif
     return true;
 }
 

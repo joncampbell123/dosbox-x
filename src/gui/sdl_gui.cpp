@@ -72,7 +72,7 @@ extern unsigned char        GFX_Bshift;
 
 extern std::string          saveloaderr;
 extern int                  statusdrive, swapInDisksSpecificDrive;
-extern bool                 dos_kernel_disabled, confres, quit_confirm;
+extern bool                 dos_kernel_disabled, confres;
 extern Bitu                 currentWindowWidth, currentWindowHeight;
 
 extern bool                 MSG_Write(const char *);
@@ -1711,31 +1711,6 @@ public:
     }
 };
 
-class ShowQuitWarning : public GUI::ToplevelWindow {
-protected:
-    GUI::Input *name;
-public:
-    ShowQuitWarning(GUI::Screen *parent, int x, int y, const char *title) :
-        ToplevelWindow(parent, x, y, strcmp(title, "quit1")?430:330, !strcmp(title, "quit3")?180:150, "Quit DOSBox-X warning") {
-            bool forcequit=!strcmp(title, "quit3");
-            new GUI::Label(this, forcequit?20:40, 20, !strcmp(title, "quit1")?"This will quit from DOSBox-X.":(!strcmp(title, "quit2")?"You are currently running a guest system.":(!strcmp(title, "quit3")?"It may be unsafe to quit from DOSBox-X right now":"You are currently running a program or game.")));
-            if (forcequit) new GUI::Label(this, forcequit?20:40, 50, "because one or more files are currently open.");
-            new GUI::Label(this, forcequit?20:40, forcequit?80:50, strcmp(title, "quit1")?"Are you sure to quit anyway now?":"Are you sure?");
-            (new GUI::Button(this, strcmp(title, "quit1")?140:90, forcequit?110:80, "Yes", 70))->addActionHandler(this);
-            (new GUI::Button(this, strcmp(title, "quit1")?230:180, forcequit?110:80, "No", 70))->addActionHandler(this);
-    }
-
-    void actionExecuted(GUI::ActionEventSource *b, const GUI::String &arg) {
-        (void)b;//UNUSED
-        if (arg == "Yes")
-            quit_confirm=true;
-        if (arg == "No")
-            quit_confirm=false;
-        close();
-        if (shortcut) running = false;
-    }
-};
-
 class ShowHelpIntro : public GUI::ToplevelWindow {
 protected:
     GUI::Input *name;
@@ -2136,22 +2111,6 @@ static void UI_Select(GUI::ScreenSDL *screen, int select) {
         case 27: {
             auto *np7 = new ShowLoadWarning(screen, 150, 120, "Are you sure to remove the state in this slot?");
             np7->raise();
-            } break;
-        case 28: {
-            auto *np8 = new ShowQuitWarning(screen, 150, 120, "quit1");
-            np8->raise();
-            } break;
-        case 29: {
-            auto *np8 = new ShowQuitWarning(screen, 120, 100, "quit2");
-            np8->raise();
-            } break;
-        case 30: {
-            auto *np8 = new ShowQuitWarning(screen, 120, 100, "quit3");
-            np8->raise();
-            } break;
-        case 31: {
-            auto *np8 = new ShowQuitWarning(screen, 120, 100, "quit4");
-            np8->raise();
             } break;
         case 32: if (statusdrive>-1 && statusdrive<DOS_DRIVES && Drives[statusdrive]) {
             auto *np9 = new ShowDriveInfo(screen, 120, 50, "Drive Information");
