@@ -3986,6 +3986,18 @@ static void GUI_StartUp() {
     SDL_WM_SetCaption("DOSBox-X",VERSION);
 #endif
 
+    const char* windowposition = section->Get_string("windowposition");
+    if (windowposition && *windowposition) {
+        char res[100];
+        safe_strncpy(res, windowposition, sizeof(res));
+        windowposition = lowcase(res);//so x and X are allowed
+        char* height = const_cast<char*>(strchr(windowposition, 'x'));
+        if (height && *height) {
+            *height = 0;
+            SDL_SetWindowPosition(sdl.window, atoi(res), atoi(height + 1));
+        }
+    }
+
     /* Please leave the Splash screen stuff in working order in DOSBox-X. We spend a lot of time making DOSBox-X. */
     //ShowSplashScreen();   /* I will keep the splash screen alive. But now, the BIOS will do it --J.C. */
 
@@ -6407,6 +6419,10 @@ void SDL_SetupConfigSection() {
     Pstring = sdl_sec->Add_string("windowresolution",Property::Changeable::Always,"original");
     Pstring->Set_help("Scale the window to this size IF the output device supports hardware scaling.\n"
                       "  (output=surface does not!)");
+    Pstring->SetBasic(true);
+
+    Pstring = sdl_sec->Add_string("windowposition", Property::Changeable::Always, "");
+    Pstring->Set_help("Set the window position at startup.");
     Pstring->SetBasic(true);
 
     const char* outputs[] = {
