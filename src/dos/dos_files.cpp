@@ -395,6 +395,20 @@ bool DOS_RemoveDir(char const * const dir) {
 	return false;
 }
 
+static bool PathExists(char const * const name) {
+	const char* leading = strrchr(name,'\\');
+	if(!leading) return true;
+	char temp[CROSS_LEN];
+	strcpy(temp,name);
+	char * lead = strrchr(temp,'\\');
+	if (lead == temp) return true;
+	*lead = 0;
+	uint8_t drive;char fulldir[DOS_PATHLENGTH];
+	if (!DOS_MakeName(temp,fulldir,&drive)) return false;
+	if(!Drives[drive]->TestDir(fulldir)) return false;
+	return true;
+}
+
 bool DOS_Rename(char const * const oldname,char const * const newname) {
 	uint8_t driveold;char fullold[DOS_PATHLENGTH];
 	uint8_t drivenew;char fullnew[DOS_PATHLENGTH];
@@ -429,9 +443,10 @@ bool DOS_Rename(char const * const oldname,char const * const newname) {
 		return false;
 	}
 	uint16_t attr;
-	/* Source must exist, check for path ? */
+	/* Source must exist */
 	if (!Drives[driveold]->GetFileAttr( fullold, &attr ) ) {
-		DOS_SetError(DOSERR_FILE_NOT_FOUND);
+		if (!PathExists(oldname)) DOS_SetError(DOSERR_PATH_NOT_FOUND);
+		else DOS_SetError(DOSERR_FILE_NOT_FOUND);
 		return false;
 	}
 	/*Test if target exists => no access */
@@ -454,12 +469,10 @@ bool DOS_Rename(char const * const oldname,char const * const newname) {
 		if (!failed&&Drives[drivenew]->FileUnlink(fullold)) return true;
 	} else
 #endif
-		if (Drives[drivenew]->Rename(fullold,fullnew)) return true;
-	/* If it still fails, which error should we give ? PATH NOT FOUND or EACCESS */
-	if (dos.errorcode!=DOSERR_ACCESS_DENIED&&dos.errorcode!=DOSERR_WRITE_PROTECTED) {
-		LOG(LOG_FILES,LOG_NORMAL)("Rename fails for %s to %s, no proper errorcode returned.",oldname,newname);
-		DOS_SetError(DOSERR_FILE_NOT_FOUND);
-	}
+
+	if (Drives[drivenew]->Rename(fullold,fullnew)) return true;
+	/* Rename failed despite checks => no access */
+	DOS_SetError(DOSERR_ACCESS_DENIED);
 	return false;
 }
 
@@ -671,20 +684,6 @@ bool DOS_FlushFile(uint16_t entry) {
 	LOG(LOG_DOSMISC,LOG_DEBUG)("FFlush used.");
 
     Files[handle]->Flush();
-	return true;
-}
-
-static bool PathExists(char const * const name) {
-	const char* leading = strrchr(name,'\\');
-	if(!leading) return true;
-	char temp[CROSS_LEN];
-	strcpy(temp,name);
-	char * lead = strrchr(temp,'\\');
-	if (lead == temp) return true;
-	*lead = 0;
-	uint8_t drive;char fulldir[DOS_PATHLENGTH];
-	if (!DOS_MakeName(temp,fulldir,&drive)) return false;
-	if(!Drives[drive]->TestDir(fulldir)) return false;
 	return true;
 }
 
