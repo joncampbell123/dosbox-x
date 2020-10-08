@@ -1,6 +1,6 @@
 0.83.7
   - DOSBox-X will now use native dialog box to display
-    quit warnings. (Wengier)
+    quit warnings and save state errors. (Wengier)
   - Updated the Windows installer to default to the
     "typical" installation. For the full installation
     start menu items will be added for DOSBox-X builds

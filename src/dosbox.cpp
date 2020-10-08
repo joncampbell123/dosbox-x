@@ -83,6 +83,9 @@
 #include "vs2015/zlib/contrib/minizip/zip.c"
 #include "vs2015/zlib/contrib/minizip/unzip.c"
 #include "vs2015/zlib/contrib/minizip/ioapi.c"
+#if !defined(HX_DOS)
+#include "libs/tinyfiledialogs/tinyfiledialogs.h"
+#endif
 
 #if C_EMSCRIPTEN
 # include <emscripten.h>
@@ -778,13 +781,9 @@ SlotPos currentSlot;
 void notifyError(const std::string& message, bool log=true)
 {
     if (log) LOG_MSG("%s",message.c_str());
-    MAPPER_ReleaseAllKeys();
-    GFX_LosingFocus();
-    saveloaderr=message;
-    GUI_Shortcut(22);
-    saveloaderr="";
-    MAPPER_ReleaseAllKeys();
-    GFX_LosingFocus();
+#if !defined(HX_DOS)
+    tinyfd_messageBox("Error",message.c_str(),"ok","error", 1);
+#endif
 }
 
 size_t GetGameState(void) {
@@ -5187,11 +5186,9 @@ delete_all:
 
 void savestatecorrupt(const char* part) {
     LOG_MSG("Save state corrupted! Program in inconsistent state! - %s", part);
-    MAPPER_ReleaseAllKeys();
-    GFX_LosingFocus();
-    GUI_Shortcut(21);
-    MAPPER_ReleaseAllKeys();
-    GFX_LosingFocus();
+#if !defined(HX_DOS)
+    tinyfd_messageBox("Error","Save state corrupted! Program may not work.","ok","error", 1);
+#endif
 }
 
 bool confres=false;

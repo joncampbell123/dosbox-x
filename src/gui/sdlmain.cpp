@@ -1208,7 +1208,7 @@ bool CheckQuit(void) {
     if (dos_kernel_disabled)
         return tinyfd_messageBox("Quit DOSBox-X warning","You are currently running a guest system.\nAre you sure to quit anyway now?","yesno", "question", 1);
     if (warn == "autofile")
-        for (Bit8u handle = 0; handle < DOS_FILES; handle++) {
+        for (uint8_t handle = 0; handle < DOS_FILES; handle++) {
             if (Files[handle] && (Files[handle]->GetName() == NULL || strcmp(Files[handle]->GetName(), "CON")) && (Files[handle]->GetInformation()&0x8000) == 0)
                 return tinyfd_messageBox("Quit DOSBox-X warning","It may be unsafe to quit from DOSBox-X right now\nbecause one or more files are currently open.\nAre you sure to quit anyway now?","yesno", "question", 1);
         }
