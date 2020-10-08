@@ -106,9 +106,12 @@ DOSBox-X supports the FluidSynth MIDI synthesizer, which allows you to use a wid
 * **Support for Innovation SSI-2001 sound card emulation**
 +
 The Innovation SSI-2001 sound card is supported in DOSBox-X as well, which gives the emulated system the sound capabilities of a Commodore 64.
-* **Support for OpenglHQ and Direct3D with pixel shaders (Windows only)**
+* **Support for advanced OpenGL features such as OpenGL-HQ and GLSL shaders**
 +
-Supporting for OpenglHQ and Direct3D gives DOSBox-X many more output flexibilities on Windows systems.
+Advanced OpenGL features including OpenGL-HQ and GLSL shaders are supported by DOSBox-X, and you can use for example the pixel-perfect shader for OpenGL outputs.
+* **Support for Direct3D with pixel shaders (Windows only)**
++
+DOSBox-X supports Direct3D along with pixel shaders which provides many more output flexibilities on Windows systems.
 * **Support for features such as V-Sync, overscan border and stereo swapping**
 * **Improved debugging features including built-in debugger and logging options**
 * **Including most patches from DOSBox ECE and many community contributions**

@@ -436,14 +436,20 @@ body.book #toc,body.book #preamble,body.book h1.sect0,body.book .sect1>h2{page-b
 @media amzn-kf8{#header,#content,#footnotes,#footer{padding:0}}
 </style>
 </head>
-<body class="article">
+<body class="book">
 <div id="header">
 </div>
 <div id="content">
+<div id="preamble">
+<div class="sectionbody">
 <div class="paragraph">
 <p>Back to the <a href="Home">DOSBox-X Wiki Welcome page</a>.</p>
 </div>
+</div>
+</div>
 <h1 id="_setting_up_printing_in_dosbox_x" class="sect0">Setting up printing in DOSBox-X</h1>
+<div class="openblock partintro">
+<div class="content">
 <div id="toc" class="toc">
 <div id="toctitle" class="title">Table of Contents</div>
 <ul class="sectlevel0">
@@ -473,6 +479,8 @@ body.book #toc,body.book #preamble,body.book h1.sect0,body.book .sect1>h2{page-b
 <li><a href="#_example_printing_to_a_real_printer">Example: Printing to a real printer</a></li>
 <li><a href="#_example_print_to_png_bmp_or_postscript">Example: Print to PNG, BMP or PostScript</a></li>
 </ul>
+</div>
+</div>
 </div>
 <div class="sect1">
 <h2 id="_overview">Overview</h2>
@@ -958,8 +966,10 @@ Alternatively you can move the Disney Sound Source on a different parallel port,
 </div>
 </div>
 <h1 id="_setting_up_fonts_for_the_emulated_printer" class="sect0">Setting up fonts for the emulated printer</h1>
-<div class="paragraph">
-<p>The emulated printer requires TrueType fonts in order to be able to print text. At a minimum it needs <code>courier.ttf</code>.</p>
+<div class="openblock partintro">
+<div class="content">
+The emulated printer requires TrueType fonts in order to be able to print text. At a minimum it needs <code>courier.ttf</code>.
+</div>
 </div>
 <div class="sect1">
 <h2 id="_windows_host">Windows host</h2>
@@ -1076,6 +1086,8 @@ If you need them you may need to find those online.</p>
 </div>
 </div>
 <h1 id="_example_print_to_file" class="sect0">Example: Print to file</h1>
+<div class="openblock partintro">
+<div class="content">
 <div class="paragraph">
 <p>In this example the output of DOS commands is simply redirected to the virtual LPT port, which in turn will be redirected to a text file.</p>
 </div>
@@ -1115,6 +1127,8 @@ The exact save location is dependent on the <code>captures=</code> setting in th
 <div class="paragraph">
 <p>You may be able to use this with more advanced printer model selected in your DOS application, but the output will then have printer specific control codes in it.
 In addition, this may not work if the application expects to be able to have bi-directional communication with the printer.</p>
+</div>
+</div>
 </div>
 <h1 id="_example_printing_to_a_real_parallel_printer" class="sect0">Example: Printing to a real parallel printer</h1>
 <div class="sect1">
@@ -1187,6 +1201,8 @@ parallel1=file dev:/dev/parport0</pre>
 </div>
 </div>
 <h1 id="_example_printing_to_a_real_printer" class="sect0">Example: Printing to a real printer</h1>
+<div class="openblock partintro">
+<div class="content">
 <div class="paragraph">
 <p>This method only works on Windows hosts.
 It will cause a Windows print dialogue to appear on the host, and you can print to any printer configured on the host, including print to PDF.</p>
@@ -1211,7 +1227,11 @@ timeout=1000</pre>
 <div class="paragraph">
 <p>In DOSBox-X you can now simply redirect output to LPT1, or in DOS applications configure one of the printers listed above.</p>
 </div>
+</div>
+</div>
 <h1 id="_example_print_to_png_bmp_or_postscript" class="sect0">Example: Print to PNG, BMP or PostScript</h1>
+<div class="openblock partintro">
+<div class="content">
 <div class="paragraph">
 <p>This method prints to a PNG, BMP or PostScript (PS) image file.</p>
 </div>
@@ -1247,9 +1267,11 @@ Alternatively you can specify a different directory using the <code>docpath=</co
 <p>When using PostScript output, you can prevent a separate PostScript files from being generated for each page, by setting <code>multipage=true</code>.</p>
 </div>
 </div>
+</div>
+</div>
 <div id="footer">
 <div id="footer-text">
-Last updated 2020-10-05 18:21:06 -0400
+Last updated 2020-10-07 23:17:03 -0400
 </div>
 </div>
 </body>

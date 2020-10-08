@@ -169,7 +169,7 @@ press the X key on your keyboard.
 
 DOSBox-X has many features and supports most DOS games and applications. Below are some guides which explain how to use certain software or features within DOSBox-X.
 
-* link:DOSBox%E2%80%90X’s-Drop%E2%80%90Down-Menus{suffixappend}[DOSBox‐X’s Drop-Down Menus]
+* link:DOSBox‐X’s-Drop%E2%80%90Down-Menus{suffixappend}[DOSBox‐X’s Drop-Down Menus]
 +
 Gives detailed information about DOSBox-X's drop-down menu system and its menu items.
 * link:DOSBox‐X’s-Supported-Commands{suffixappend}[DOSBox‐X’s Supported Commands]
