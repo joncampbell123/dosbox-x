@@ -5043,12 +5043,23 @@ void SaveState::save(size_t slot) { //throw (Error)
 		notifyError("Unsupported memory size for saving states.", false);
 		return;
 	}
-    char *save_remark = "";
+    const char *save_remark = "";
 #if !defined(HX_DOS)
     if (!noremark_save_state) {
-        save_remark = tinyfd_inputBox("Save state", "Please enter remark for the state (optional; 30 characters maximum). Click the 'Cancel' button to cancel the saving.", NULL);
-        if (save_remark==NULL) return;
-        if (strlen(save_remark)>30) save_remark[30]=0;
+        /* NTS: tinyfd_inputBox() returns a string from an internal statically declared char array.
+         *      It is not necessary to free the return string, but it is important to understand that
+         *      the next call to tinyfd_inputBox() will obliterate the previously returned string.
+         *      See src/libs/tinyfiledialogs/tinyfiledialogs.c line 5069 --J.C. */
+        /* NTS: The code was originally written to declare save_remark as char* default assigned to string
+         *      constant "", but GCC (rightfully so) complains you're pointing char* at something that
+         *      is stored const by the compiler. "save_remark" is not modified past this point, so it
+         *      has been changed to const char* and the return value of tinyfd_inputBox() is given to
+         *      a local temporary char* string where the modification can be made, and *then* assigned
+         *      to the const char* string for the rest of this function. */
+        char *new_remark = tinyfd_inputBox("Save state", "Please enter remark for the state (optional; 30 characters maximum). Click the 'Cancel' button to cancel the saving.", NULL);
+        if (new_remark==NULL) return;
+        if (strlen(new_remark)>30) new_remark[30]=0;
+        save_remark = new_remark;
     }
 #endif
 	bool create_version=false;
