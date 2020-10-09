@@ -14,6 +14,9 @@
     variable for config directory in Linux. (rderooy)
   - Added support for compiling with pcap for Windows
     MinGW builds. (Jookia)
+  - Added config option "windowposition" (in [sdl]
+    section) to set the window position at startup in
+    the positionX,positionY format. (tomba4)
   - Added config option "raw_mouse_input" (in [sdl]
     section; SDL2 builds only) to bypass the operating
     system's mouse acceleration & sensitivity settings.
@@ -25,7 +28,7 @@
       those of real DOS.
     - r4369: Compatible side-effect behavior of DOS in
       the file close function.
-	- r4368: Improve error codes for some DOS file functions.
+    - r4368: Improve error codes for some DOS file functions.
     - r4367: Change FPU_FBST to only write 18 decimals
       instead of the wrongly 19, this makes it possible
       to switch 64 integers which in turn fixes some

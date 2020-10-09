@@ -6442,7 +6442,7 @@ void SDL_SetupConfigSection() {
                       "  (output=surface does not!)");
     Pstring->SetBasic(true);
 
-    Pstring = sdl_sec->Add_string("windowposition", Property::Changeable::Always, "");
+    Pstring = sdl_sec->Add_string("windowposition", Property::Changeable::OnlyAtStart, "");
     Pstring->Set_help("Set the window position at startup in the positionX,positionY format (e.g.: 1300,200)");
     Pstring->SetBasic(true);
 
