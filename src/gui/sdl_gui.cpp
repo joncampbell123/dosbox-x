@@ -70,7 +70,6 @@ extern unsigned char        GFX_Gshift;
 extern uint32_t             GFX_Bmask;
 extern unsigned char        GFX_Bshift;
 
-extern std::string          saveloaderr;
 extern int                  statusdrive, swapInDisksSpecificDrive;
 extern bool                 dos_kernel_disabled, confres;
 extern Bitu                 currentWindowWidth, currentWindowHeight;

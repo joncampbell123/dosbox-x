@@ -19,11 +19,13 @@
     system's mouse acceleration & sensitivity settings.
     Implemented by NicknineTheEagle.
   - Integrated SVN commits (Allofich)
+    - r4371: Fix regression in Clue: Master Detective.
     - r4370: As an adjunct to r4369, make the reference
       counts of standard device handles equivalent to
       those of real DOS.
     - r4369: Compatible side-effect behavior of DOS in
       the file close function.
+	- r4368: Improve error codes for some DOS file functions.
     - r4367: Change FPU_FBST to only write 18 decimals
       instead of the wrongly 19, this makes it possible
       to switch 64 integers which in turn fixes some
@@ -46,6 +48,7 @@
       bioses.
     - r4257: Add simple program that allows you to boot
       into a bios image for running cpu tester bios.
+  - Updated MPXPLAY to latest version 1.65. (Wengier)
   - The primary DOSBox-X Wiki is now located from the
     URL https://dosbox-x.com/wiki (Wengier)
 0.83.6
