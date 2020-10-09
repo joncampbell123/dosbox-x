@@ -3875,6 +3875,35 @@ static void GUI_StartUp() {
     sdl.overscan_width=(unsigned int)section->Get_int("overscan");
 //  sdl.overscan_color=section->Get_int("overscancolor");
 
+    // Getting window position (if configured)
+    int posx = -1;
+    int posy = -1;
+    const char* windowposition = section->Get_string("windowposition");
+    LOG_MSG("Configured windowposition: %s", windowposition);
+    if (windowposition && *windowposition) {
+        char result[100];
+        safe_strncpy(result, windowposition, sizeof(result));
+        char* y = strchr(result, ',');
+        if (y && *y) {
+            *y = 0;
+            posx = atoi(result);
+            posy = atoi(y + 1);
+        }
+    }
+
+    // Setting SDL1 window position before a call to SDL_SetVideoMode() is made. If the user provided
+    // SDL_VIDEO_WINDOW_POS environment variable then "windowposition" setting should have no effect.
+    // SDL2 position is set later, using SDL_SetWindowPosition()
+#if !defined(C_SDL2)
+    if (posx >= 0 && posy >= 0 && SDL_getenv("SDL_VIDEO_WINDOW_POS") == NULL) {
+        const char* windowposition = section->Get_string("windowposition");
+        char pos[100];
+        safe_strncpy(pos, "SDL_VIDEO_WINDOW_POS=", sizeof(pos));
+        safe_strcat(pos, windowposition);
+        SDL_putenv(pos);
+    }
+#endif
+
     bool initgl = false;
 #if C_OPENGL
     /*std::string f = (std::string)(static_cast<Section_prop *>(control->GetSection("render"))->Get_path("glshader")->GetValue());
@@ -3980,8 +4009,11 @@ static void GUI_StartUp() {
     GFX_LogSDLState();
     GFX_Stop();
 
+
 #if defined(C_SDL2)
     SDL_SetWindowTitle(sdl.window,"DOSBox-X");
+    if (posx >= 0 && posy >= 0)
+        SDL_SetWindowPosition(sdl.window, posx, posy);
 #else
     SDL_WM_SetCaption("DOSBox-X",VERSION);
 #endif
@@ -6407,6 +6439,10 @@ void SDL_SetupConfigSection() {
     Pstring = sdl_sec->Add_string("windowresolution",Property::Changeable::Always,"original");
     Pstring->Set_help("Scale the window to this size IF the output device supports hardware scaling.\n"
                       "  (output=surface does not!)");
+    Pstring->SetBasic(true);
+
+    Pstring = sdl_sec->Add_string("windowposition", Property::Changeable::Always, "");
+    Pstring->Set_help("Set the window position at startup in the positionX,positionY format (e.g.: 1300,200)");
     Pstring->SetBasic(true);
 
     const char* outputs[] = {
