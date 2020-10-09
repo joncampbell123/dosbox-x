@@ -565,6 +565,7 @@ static const char *def_menu_capture[] =
     "mapper_caprawmidi",
     "--",
 #endif
+    "noremark_savestate",
     "force_loadstate",
     "mapper_savestate",
     "mapper_loadstate",

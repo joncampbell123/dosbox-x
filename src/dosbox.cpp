@@ -157,6 +157,7 @@ uint16_t              guest_msdos_mcb_chain = 0;
 int                 boothax = BOOTHAX_NONE;
 
 bool                want_fm_towns = false;
+bool                noremark_save_state = false;
 bool                force_load_state = false;
 
 bool                dos_con_use_int16_to_detect_input = true;
@@ -5042,11 +5043,20 @@ void SaveState::save(size_t slot) { //throw (Error)
 		notifyError("Unsupported memory size for saving states.", false);
 		return;
 	}
+    char *save_remark = "";
+#if !defined(HX_DOS)
+    if (!noremark_save_state) {
+        save_remark = tinyfd_inputBox("Save state", "Please enter remark for the state (optional; 30 characters maximum). Click the 'Cancel' button to cancel the saving.", NULL);
+        if (save_remark==NULL) return;
+        if (strlen(save_remark)>30) save_remark[30]=0;
+    }
+#endif
 	bool create_version=false;
 	bool create_title=false;
 	bool create_memorysize=false;
 	bool create_machinetype=false;
 	bool create_timestamp=false;
+	bool create_saveremark=false;
 	extern const char* RunningProgram;
 	std::string path;
 	bool Get_Custom_SaveDir(std::string& savedir);
@@ -5123,6 +5133,14 @@ void SaveState::save(size_t slot) { //throw (Error)
 				timestamp.close();
 			}
 
+			if(!create_saveremark) {
+				std::string tempname = temp+"Save_Remark";
+				std::ofstream saveremark (tempname.c_str(), std::ofstream::binary);
+				saveremark << std::string(save_remark);
+				create_saveremark=true;
+				saveremark.close();
+			}
+
 			std::string realtemp;
 			realtemp = temp + i->first;
 			std::ofstream outfile (realtemp.c_str(), std::ofstream::binary);
@@ -5162,6 +5180,8 @@ void SaveState::save(size_t slot) { //throw (Error)
 	my_minizip((char **)save.c_str(), (char **)save2.c_str());
 	save2=temp+"Time_Stamp";
 	my_minizip((char **)save.c_str(), (char **)save2.c_str());
+	save2=temp+"Save_Remark";
+	my_minizip((char **)save.c_str(), (char **)save2.c_str());
 
 delete_all:
 	for (CompEntry::iterator i = components.begin(); i != components.end(); ++i) {
@@ -5177,6 +5197,8 @@ delete_all:
 	save2=temp+"Machine_Type";
 	remove(save2.c_str());
 	save2=temp+"Time_Stamp";
+	remove(save2.c_str());
+	save2=temp+"Save_Remark";
 	remove(save2.c_str());
 	if (save_err)
 		notifyError("Failed to save the current state.");
@@ -5571,6 +5593,23 @@ std::string SaveState::getName(size_t slot) const {
 	check_title.close();
 	remove(tempname.c_str());
 	buffer2[length]='\0';
-    if (strlen(buffer2)) ret+=" ("+std::string(buffer2)+")";
+    if (strlen(buffer2)) ret+=" ("+std::string(buffer2);
+	my_miniunz((char **)save.c_str(),"Save_Remark",temp.c_str());
+    length=30;
+	tempname = temp+"Save_Remark";
+	check_title.open(tempname.c_str(), std::ifstream::in);
+	if (check_title.fail()) {
+		remove(tempname.c_str());
+		return ret+")";
+	}
+	check_title.seekg (0, std::ios::end);
+	length = (int)check_title.tellg();
+	check_title.seekg (0, std::ios::beg);
+	char * const buffer3 = (char*)alloca( (length+1) * sizeof(char));
+	check_title.read (buffer3, length);
+	check_title.close();
+	remove(tempname.c_str());
+	buffer3[length]='\0';
+    if (strlen(buffer3)) ret+=" - "+std::string(buffer3)+")";
 	return ret;
 }

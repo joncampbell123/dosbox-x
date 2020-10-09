@@ -41,6 +41,7 @@ extern int enablelfn;
 extern bool dpi_aware_enable;
 extern bool log_int21;
 extern bool log_fileio;
+extern bool noremark_save_state;
 extern bool force_load_state;
 extern bool use_quick_reboot;
 extern bool enable_config_as_shell_commands;
@@ -8288,6 +8289,14 @@ bool shell_config_commands_menu_callback(DOSBoxMenu * const menu, DOSBoxMenu::it
     return true;
 }
 
+bool noremark_savestate_menu_callback(DOSBoxMenu * const menu, DOSBoxMenu::item * const menuitem) {
+    (void)menu;//UNUSED
+    (void)menuitem;//UNUSED
+    noremark_save_state = !noremark_save_state;
+    mainMenu.get_item("noremark_savestate").check(noremark_save_state).refresh_item(mainMenu);
+    return true;
+}
+
 bool force_loadstate_menu_callback(DOSBoxMenu * const menu, DOSBoxMenu::item * const menuitem) {
     (void)menu;//UNUSED
     (void)menuitem;//UNUSED
@@ -9942,6 +9951,7 @@ int main(int argc, char* argv[]) SDL_MAIN_NOEXCEPT {
         mainMenu.alloc_item(DOSBoxMenu::item_type_id,"shell_config_commands").set_text("Config options as commands").set_callback_function(shell_config_commands_menu_callback).check(enable_config_as_shell_commands);
         mainMenu.alloc_item(DOSBoxMenu::item_type_id,"quick_reboot").set_text("Enable quick reboot").set_callback_function(quick_reboot_menu_callback).check(use_quick_reboot);
         mainMenu.alloc_item(DOSBoxMenu::item_type_id,"list_drivenum").set_text("Show mounted drive numbers").set_callback_function(list_drivenum_menu_callback);
+        mainMenu.alloc_item(DOSBoxMenu::item_type_id,"noremark_savestate").set_text("No remark when saving state").set_callback_function(noremark_savestate_menu_callback).check(noremark_save_state);
         mainMenu.alloc_item(DOSBoxMenu::item_type_id,"force_loadstate").set_text("Force load state mode").set_callback_function(force_loadstate_menu_callback).check(force_load_state);
         mainMenu.alloc_item(DOSBoxMenu::item_type_id,"removestate").set_text("Remove state in slot").set_callback_function(remove_state_menu_callback);
         mainMenu.alloc_item(DOSBoxMenu::item_type_id,"refreshslot").set_text("Refresh display status").set_callback_function(refresh_slots_menu_callback);

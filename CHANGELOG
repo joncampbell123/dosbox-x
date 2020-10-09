@@ -1,4 +1,8 @@
 0.83.7
+  - Save state feature now allows users to optionally
+    enter remarks when saving a state. A toggle menu
+    item "No remark when saving state" (in "Capture")
+    is added to disable input of remarks. (Wengier)
   - DOSBox-X will now use native dialog box to display
     quit warnings and save state errors. (Wengier)
   - Updated the Windows installer to default to the
