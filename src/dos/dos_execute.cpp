@@ -303,8 +303,8 @@ bool DOS_Execute(const char* name, PhysPt block_pt, uint8_t flags) {
 	bool iscom=false;
 	if (!DOS_OpenFile(name,OPEN_READ,&fhandle)) {
         int16_t fLen = (int16_t)strlen(name);
-        bool shellcom = !strcasecmp(name+fLen-8, "4DOS.COM") && (fLen == 8 || *(name+fLen-9)=='\\') || !strcasecmp(name+fLen-11, "COMMAND.COM") && (fLen == 11 || *(name+fLen-12)=='\\'); // Trap 4DOS.COM and COMMAND.COM
-        if (!shellcom || !DOS_OpenFile(!stricmp(name+fLen-8, "4DOS.COM")?"Z:\\4DOS.COM":"Z:\\COMMAND.COM",OPEN_READ,&fhandle)) {
+        bool shellcom =(!strcasecmp(name+fLen-8, "4DOS.COM") && (fLen == 8 || *(name+fLen-9)=='\\')) || (!strcasecmp(name+fLen-11, "COMMAND.COM") && (fLen == 11 || *(name+fLen-12)=='\\')); // Trap 4DOS.COM and COMMAND.COM
+        if (!shellcom || !DOS_OpenFile(!strcasecmp(name+fLen-8, "4DOS.COM")?"Z:\\4DOS.COM":"Z:\\COMMAND.COM",OPEN_READ,&fhandle)) {
             DOS_SetError(DOSERR_FILE_NOT_FOUND);
             return false;
         }
