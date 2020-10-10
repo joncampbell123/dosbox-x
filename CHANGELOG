@@ -10,6 +10,8 @@
     start menu items will be added for DOSBox-X builds
     copied to subdirectories. (Wengier)
   - Improved Flatpak support for Linux. (rderooy)
+  - Fixed shelling from programs may not work when the
+    shell config option is set. (Wengier)
   - Added support for the XDG_DATA_HOME environment
     variable for config directory in Linux. (rderooy)
   - Added support for compiling with pcap for Windows
