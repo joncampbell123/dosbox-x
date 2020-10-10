@@ -302,8 +302,12 @@ bool DOS_Execute(const char* name, PhysPt block_pt, uint8_t flags) {
 	/* Check for EXE or COM File */
 	bool iscom=false;
 	if (!DOS_OpenFile(name,OPEN_READ,&fhandle)) {
-		DOS_SetError(DOSERR_FILE_NOT_FOUND);
-		return false;
+        int32_t fLen = (Bit16u)strlen(name);
+        bool shellcom = !stricmp(name+fLen-8, "4DOS.COM") && (fLen == 8 || *(name+fLen-9)=='\\') || !stricmp(name+fLen-11, "COMMAND.COM") && (fLen == 11 || *(name+fLen-12)=='\\'); // Trap 4DOS.COM and COMMAND.COM
+        if (!shellcom || !DOS_OpenFile(!stricmp(name+fLen-8, "4DOS.COM")?"Z:\\4DOS.COM":"Z:\\COMMAND.COM",OPEN_READ,&fhandle)) {
+            DOS_SetError(DOSERR_FILE_NOT_FOUND);
+            return false;
+        }
 	}
 	len=sizeof(EXE_Header);
 	if (!DOS_ReadFile(fhandle,(uint8_t *)&head,&len)) {
