@@ -326,6 +326,19 @@ static list<string>::iterator histBuffPos = histBuff.end();
 /* Helpers */
 /***********/
 
+/* dest here must be a string with a minimum length of 11. */
+static char* F80ToString(int regIndex, char* dest) {
+#if C_FPU_X86
+	snprintf(dest, 11, "%08.2Lf", reinterpret_cast<long double&>(fpu.p_regs[regIndex]));
+#elif defined(HAS_LONG_DOUBLE)
+	snprintf(dest, 11, "%08.2Lf", fpu.regs_80[regIndex].v);
+#else
+	snprintf(dest, 11, "%08.2f", fpu.regs[regIndex].d);
+#endif
+	
+	return dest;
+}
+
 static const uint64_t mem_no_address = (uint64_t)(~0ULL);
 
 uint64_t LinMakeProt(uint16_t selector, uint32_t offset)
@@ -1046,6 +1059,19 @@ static void DrawRegisters(void) {
 	SetColor(SegValue(gs)!=oldsegs[gs].val);mvwprintw (dbg.win_reg,0,61,"%04X",SegValue(gs));
 	SetColor(SegValue(ss)!=oldsegs[ss].val);mvwprintw (dbg.win_reg,0,71,"%04X",SegValue(ss));
 	SetColor(SegValue(cs)!=oldsegs[cs].val);mvwprintw (dbg.win_reg,1,31,"%04X",SegValue(cs));
+	
+	char x87buf[12] = {};
+	SetColor(false);mvwprintw (dbg.win_reg,4,4,"%s", F80ToString(STV(0), x87buf));
+	SetColor(false);mvwprintw (dbg.win_reg,5,4,"%s", F80ToString(STV(4), x87buf));
+	
+	SetColor(false);mvwprintw (dbg.win_reg,4,18,"%s", F80ToString(STV(1), x87buf));
+	SetColor(false);mvwprintw (dbg.win_reg,5,18,"%s", F80ToString(STV(5), x87buf));
+	
+	SetColor(false);mvwprintw (dbg.win_reg,4,32,"%s", F80ToString(STV(2), x87buf));
+	SetColor(false);mvwprintw (dbg.win_reg,5,32,"%s", F80ToString(STV(6), x87buf));
+	
+	SetColor(false);mvwprintw (dbg.win_reg,4,46,"%s", F80ToString(STV(3), x87buf));
+	SetColor(false);mvwprintw (dbg.win_reg,5,46,"%s", F80ToString(STV(7), x87buf));
 
 	/*Individual flags*/
 	Bitu changed_flags = reg_flags ^ oldflags;
