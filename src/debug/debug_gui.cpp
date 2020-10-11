@@ -350,6 +350,18 @@ static void Draw_RegisterLayout(void) {
 	mvwaddstr(dbg.win_reg,2,75,"CPL");
 	mvwaddstr(dbg.win_reg,2,68,"IOPL");
 
+	mvwaddstr(dbg.win_reg,4,0,"ST0=");
+	mvwaddstr(dbg.win_reg,5,0,"ST4=");
+
+	mvwaddstr(dbg.win_reg,4,14,"ST1=");
+	mvwaddstr(dbg.win_reg,5,14,"ST5=");
+
+	mvwaddstr(dbg.win_reg,4,28,"ST2=");
+	mvwaddstr(dbg.win_reg,5,28,"ST6=");
+
+	mvwaddstr(dbg.win_reg,4,42,"ST3=");
+	mvwaddstr(dbg.win_reg,5,42,"ST7=");
+
 	mvwaddstr(dbg.win_reg,1,52,"C  Z  S  O  A  P  D  I  T ");
 }
 
