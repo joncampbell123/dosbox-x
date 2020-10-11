@@ -77,7 +77,7 @@ std::string DBGBlock::windowlist_by_name(void) {
 }
 
 const unsigned int dbg_def_win_height[DBGBlock::WINI_MAX_INDEX] = {
-    5,          /* WINI_REG */
+    7,          /* WINI_REG */
     9,          /* WINI_DATA */
     12,         /* WINI_CODE */
     5,          /* WINI_VAR */
