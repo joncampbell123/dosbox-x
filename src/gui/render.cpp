@@ -140,6 +140,8 @@ extern bool             avx2_available;
 #endif
 /*END HACK*/
 
+#include <immintrin.h>
+
 #ifdef __GNUC__
 __attribute__((__target__("avx2")))
 #endif
