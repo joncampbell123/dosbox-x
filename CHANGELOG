@@ -40,6 +40,12 @@
       instead of the wrongly 19, this makes it possible
       to switch 64 integers which in turn fixes some
       rounding issues. (jmarsh)
+    - r4282,r4283: Switch to a different way to calculate
+      DBOPL table offsets.
+    - r4280: Prevent GenerateDMASound from running with
+      input of 0.
+    - r4279: Remove DMA_TRANSFEREND and replace with
+      DMA_MASKED.
     - r4277: Remove cases not needed after r4276
     - r4276: Remove defunct code related to the initial
       display mode of the system BIOS during video mode
