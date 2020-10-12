@@ -303,6 +303,17 @@ restart_core:
 run_block:
 	cache.block.running=0;
 	BlockReturn ret=gen_runcode(block->cache.start);
+
+	if (sizeof(CPU_Cycles) > 4) {
+		// HACK: All dynrec cores for each processor assume CPU_Cycles is 32-bit wide.
+		//       The purpose of this hack is to sign-extend the lower 32 bits so that
+		//       when CPU_Cycles goes negative it doesn't suddenly appear as a very
+		//       large integer value.
+		//
+		//       This hack is needed for dynrec to work on x86_64 targets.
+		CPU_Cycles = (Bits)((int32_t)CPU_Cycles);
+	}
+
 #if C_DEBUG
 	cycle_count += 32;
 #endif
