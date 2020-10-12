@@ -167,7 +167,7 @@ Comments are welcome on the experiments, to help improve the code overall.
 
 There are also patches in patch-integration/ for possible feature integations in the future. We have already integrated many community-developed patches into DOSBox-X in the past.
 
-See also [General TODO.txt](PLANS/General%20TODO.txt) for some plans of future DOSBox-X developments.
+See also [General TODO.txt](docs/PLANS/General%20TODO.txt) for some plans of future DOSBox-X developments.
 
 
 ## Software security comments
