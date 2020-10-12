@@ -25,7 +25,7 @@ enum DMAEvent {
 	DMA_REACHED_TC,
 	DMA_MASKED,
 	DMA_UNMASKED,
-	DMA_TRANSFEREND
+//	DMA_TRANSFEREND, this shouldn't really be a signal
 };
 
 enum DMATransfer {

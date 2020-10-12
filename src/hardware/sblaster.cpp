@@ -442,8 +442,6 @@ static void DSP_DMA_CallBack(DmaChannel * chan, DMAEvent event) {
             sb.mode=MODE_DMA_MASKED;
             LOG(LOG_SB,LOG_NORMAL)("DMA masked,stopping output, left %d",chan->currcnt);
         }
-    } else if (event==DMA_TRANSFEREND) {
-        if (sb.mode==MODE_DMA) sb.mode=MODE_DMA_MASKED;
     } else if (event==DMA_UNMASKED) {
         if (sb.mode==MODE_DMA_MASKED && sb.dma.mode!=DSP_DMA_NONE) {
             DSP_ChangeMode(MODE_DMA);
