@@ -787,19 +787,14 @@ AC_ARG_ENABLE(dynamic-core,AC_HELP_STRING([--disable-dynamic-core],[Disable all 
 
 dnl FEATURE: Whether to enable x86 dynamic core
 AH_TEMPLATE(C_DYNAMIC_X86,[Define to 1 to use x86 dynamic cpu core])
-AC_ARG_ENABLE(dynamic-x86,AC_HELP_STRING([--enable-dynamic-x86],[Enable x86 dynamic cpu core (deprecated)]),enable_dynamic_x86=$enableval,enable_dynamic_x86=no)
+AC_ARG_ENABLE(dynamic-x86,AC_HELP_STRING([--enable-dynamic-x86],[Enable x86 dynamic cpu core]),enable_dynamic_x86=$enableval,enable_dynamic_x86=yes)
 AC_MSG_CHECKING(whether x86 dynamic cpu core will be enabled)
 if test x$enable_dynamic_x86 = xno -o x$enable_dynamic_core = xno; then
    AC_MSG_RESULT(no)
 else
-  if test x$c_targetcpu = xx86 ; then
-      AC_DEFINE(C_DYNAMIC_X86,32)
+  if test x$c_targetcpu = xx86 -o x$c_targetcpu = xx86_64; then
+      AC_DEFINE(C_DYNAMIC_X86,1)
       AC_MSG_RESULT(yes)
-  elif test x$c_targetcpu = xx86_64 ; then
-      true
-dnl     TODO
-dnl      AC_DEFINE(C_DYNAMIC_X86,64)
-dnl      AC_MSG_RESULT(yes)
   else
       AC_MSG_RESULT(no)
   fi
@@ -812,21 +807,11 @@ if test x$enable_dynrec = xno -o x$enable_dynamic_core = xno; then
    AC_MSG_RESULT(no)
 else
 dnl x86 only enable it if dynamic-x86 is disabled.
-  if test x$c_targetcpu = xx86 ; then
-    AC_DEFINE(C_DYNREC,1)
-    AC_MSG_RESULT(yes)
+  if test x$enable_dynamic_x86 = xno -o x$c_targetcpu = xarm ; then
+      AC_DEFINE(C_DYNREC,1)
+      AC_MSG_RESULT(yes)
   else 
-    if test x$c_targetcpu = xx86_64 ; then
-        AC_DEFINE(C_DYNREC,1)
-        AC_MSG_RESULT(yes)
-    else
-      if test x$c_targetcpu = xarm ; then
-        AC_DEFINE(C_DYNREC,1)
-	AC_MSG_RESULT(yes)
-      else 
-        AC_MSG_RESULT(no)
-      fi
-    fi
+      AC_MSG_RESULT(no)
   fi
 fi
 

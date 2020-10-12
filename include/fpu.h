@@ -246,7 +246,7 @@ static INLINE void FPU_SET_D(Bitu C){
 }
 
 static INLINE void FPU_LOG_WARN(Bitu tree, bool ea, Bitu group, Bitu sub) {
-	LOG(LOG_FPU,LOG_WARN)("ESC %d%s:Unhandled group %d subfunction %d",tree,ea?" EA":"",group,sub);
+	LOG(LOG_FPU,LOG_WARN)("ESC %lu%s:Unhandled group %lu subfunction %lu",(long unsigned int)tree,ea?" EA":"",(long unsigned int)group,(long unsigned int)sub);
 }
 
 #endif
