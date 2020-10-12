@@ -1041,6 +1041,9 @@
     <ClCompile Include="..\src\libs\mt32\MidiStreamParser.cpp">
       <Filter>Sources\libs\mt32</Filter>
     </ClCompile>
+    <ClCompile Include="..\src\cpu\core_dyn_x86.cpp">
+      <Filter>Sources\cpu</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\src\aviwriter\avi.h">

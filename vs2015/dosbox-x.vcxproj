@@ -899,6 +899,7 @@ copy "$(SolutionDir)\..\contrib\windows\shaders\*.*" "$(OutputPath)\shaders\"</C
     <ClCompile Include="..\src\builtin\xcopy_exe.cpp" />
     <ClCompile Include="..\src\cpu\callback.cpp" />
     <ClCompile Include="..\src\cpu\core_dynrec.cpp" />
+    <ClCompile Include="..\src\cpu\core_dyn_x86.cpp" />
     <ClCompile Include="..\src\cpu\core_full.cpp" />
     <ClCompile Include="..\src\cpu\core_normal.cpp" />
     <ClCompile Include="..\src\cpu\core_normal_286.cpp" />

@@ -3949,12 +3949,6 @@ void CPU_CMPXCHG8B(PhysPt eaa) {
     }
 }
 
-void CPU_Core_Dyn_X86_SaveDHFPUState(void) {
-}
-
-void CPU_Core_Dyn_X86_RestoreDHFPUState(void) {
-}
-
 namespace
 {
 class SerializeCPU : public SerializeGlobalPOD
