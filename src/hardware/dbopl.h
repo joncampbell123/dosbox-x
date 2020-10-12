@@ -156,7 +156,7 @@ public:
 };
 
 struct Channel {
-	Operator op[2];
+	Operator op[2]; //Leave on top of struct for simpler pointer math.
 	inline Operator* Op( Bitu index ) {
 		return &( ( this + (index >> 1) )->op[ index & 1 ]);
 	}
@@ -192,6 +192,9 @@ struct Channel {
 };
 
 struct Chip {
+	//18 channels with 2 operators each. Leave on top of struct for simpler pointer math.
+	Channel chan[18];
+
 	//This is used as the base counter for vibrato and tremolo
 	uint32_t lfoCounter = 0;
 	uint32_t lfoAdd = 0;
@@ -207,9 +210,6 @@ struct Chip {
     uint32_t linearRates[76] = {};
 	//Best match attack rates for the rate of this chip
     uint32_t attackRates[76] = {};
-
-	//18 channels with 2 operators each
-	Channel chan[18];
 
 	uint8_t reg104;
 	uint8_t reg08;
