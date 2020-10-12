@@ -277,6 +277,8 @@ static bool debugging = false;
 static bool debug_running = false;
 static bool check_rescroll = false;
 
+static FPU_rec oldfpu;
+
 bool IsDebuggerActive(void) {
     return debugging;
 }
@@ -337,6 +339,20 @@ static char* F80ToString(int regIndex, char* dest) {
 #endif
 	
 	return dest;
+}
+
+static bool F80TestUpdate(int regIndex) {
+	if(fpu.top != oldfpu.top) { /* If the top changed then all registers rotated places, thus updated. */
+		return true;
+	}
+	
+#if C_FPU_X86
+	return !(fpu.p_regs[regIndex].m1 == oldfpu.p_regs[regIndex].m1 && fpu.p_regs[regIndex].m2 == oldfpu.p_regs[regIndex].m2 && fpu.p_regs[regIndex].m3 == oldfpu.p_regs[regIndex].m3);
+#elif defined(HAS_LONG_DOUBLE)
+	return fpu.regs_80[regIndex].v != oldfpu.regs_80[regIndex].v; /* I'm certain that strict float equality can be used here. */
+#else
+	return fpu.regs[regIndex].d != oldfpu.regs[regIndex].d;
+#endif
 }
 
 static const uint64_t mem_no_address = (uint64_t)(~0ULL);
@@ -1030,6 +1046,8 @@ void DrawRegistersUpdateOld(void) {
 	oldsegs[gs].val=SegValue(gs);
 	oldsegs[ss].val=SegValue(ss);
 	oldsegs[cs].val=SegValue(cs);
+	
+	oldfpu = fpu; /* Slow? */
 
 	/*Individual flags*/
 	oldflags = reg_flags;
@@ -1061,17 +1079,17 @@ static void DrawRegisters(void) {
 	SetColor(SegValue(cs)!=oldsegs[cs].val);mvwprintw (dbg.win_reg,1,31,"%04X",SegValue(cs));
 	
 	char x87buf[12] = {};
-	SetColor(false);mvwprintw (dbg.win_reg,4,4,"%s", F80ToString(STV(0), x87buf));
-	SetColor(false);mvwprintw (dbg.win_reg,5,4,"%s", F80ToString(STV(4), x87buf));
+	SetColor(F80TestUpdate(STV(0)));mvwprintw (dbg.win_reg,4,4,"%s", F80ToString(STV(0), x87buf));
+	SetColor(F80TestUpdate(STV(4)));mvwprintw (dbg.win_reg,5,4,"%s", F80ToString(STV(4), x87buf));
 	
-	SetColor(false);mvwprintw (dbg.win_reg,4,18,"%s", F80ToString(STV(1), x87buf));
-	SetColor(false);mvwprintw (dbg.win_reg,5,18,"%s", F80ToString(STV(5), x87buf));
+	SetColor(F80TestUpdate(STV(1)));mvwprintw (dbg.win_reg,4,18,"%s", F80ToString(STV(1), x87buf));
+	SetColor(F80TestUpdate(STV(5)));mvwprintw (dbg.win_reg,5,18,"%s", F80ToString(STV(5), x87buf));
 	
-	SetColor(false);mvwprintw (dbg.win_reg,4,32,"%s", F80ToString(STV(2), x87buf));
-	SetColor(false);mvwprintw (dbg.win_reg,5,32,"%s", F80ToString(STV(6), x87buf));
+	SetColor(F80TestUpdate(STV(2)));mvwprintw (dbg.win_reg,4,32,"%s", F80ToString(STV(2), x87buf));
+	SetColor(F80TestUpdate(STV(6)));mvwprintw (dbg.win_reg,5,32,"%s", F80ToString(STV(6), x87buf));
 	
-	SetColor(false);mvwprintw (dbg.win_reg,4,46,"%s", F80ToString(STV(3), x87buf));
-	SetColor(false);mvwprintw (dbg.win_reg,5,46,"%s", F80ToString(STV(7), x87buf));
+	SetColor(F80TestUpdate(STV(3)));mvwprintw (dbg.win_reg,4,46,"%s", F80ToString(STV(3), x87buf));
+	SetColor(F80TestUpdate(STV(7)));mvwprintw (dbg.win_reg,5,46,"%s", F80ToString(STV(7), x87buf));
 
 	/*Individual flags*/
 	Bitu changed_flags = reg_flags ^ oldflags;
