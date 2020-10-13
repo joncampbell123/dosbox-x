@@ -173,7 +173,8 @@ void CPU_Core_Dyn_X86_Cache_Close(void);
 void CPU_Core_Dyn_X86_Cache_Reset(void);
 void CPU_Core_Dyn_X86_SetFPUMode(bool dh_fpu);
 void CPU_Core_Dyn_X86_Cache_Reset(void);
-#elif (C_DYNREC)
+#endif
+#if (C_DYNREC)
 void CPU_Core_Dynrec_Init(void);
 void CPU_Core_Dynrec_Cache_Init(bool enable_cache);
 void CPU_Core_Dynrec_Cache_Close(void);
@@ -262,6 +263,32 @@ void menu_update_cputype(void) {
         refresh_item(mainMenu);
 }
 
+int GetDynamicType() {
+    const Section_prop * section=static_cast<Section_prop *>(control->GetSection("cpu"));
+    std::string core(section->Get_string("core"));
+#if (C_DYNAMIC_X86) && (C_TARGETCPU == X86_64 || C_TARGETCPU == X86)
+    if (core == "dynamic_x86" || core == "dynamic_nodhfpu")
+        return 1;
+#endif
+#if (C_DYNREC)
+    if (core == "dynamic_rec")
+        return 2;
+#endif
+#if C_TARGETCPU == X86_64 || C_TARGETCPU == X86
+# if (C_DYNAMIC_X86)
+    return 1;
+# elif (C_DYNREC)
+    return 2;
+# else
+    return 0;
+# endif
+#elif (C_DYNREC)
+    return 2;
+#else
+    return 0;
+#endif
+}
+
 void menu_update_core(void) {
 	const Section_prop * cpu_section = static_cast<Section_prop *>(control->GetSection("cpu"));
 	const std::string cpu_sec_type = cpu_section->Get_string("cputype");
@@ -301,7 +328,9 @@ void menu_update_core(void) {
         refresh_item(mainMenu);
 #endif
 #if (C_DYNAMIC_X86)
+    if (GetDynamicType()==1)
     mainMenu.get_item("mapper_dynamic").
+        set_text("Dynamic core (dynamic_x86)").
         check(cpudecoder == &CPU_Core_Dyn_X86_Run).
         enable(allow_dynamic &&
                (cpudecoder != &CPU_Core_Prefetch_Run) &&
@@ -312,7 +341,9 @@ void menu_update_core(void) {
         refresh_item(mainMenu);
 #endif
 #if (C_DYNREC)
+    if (GetDynamicType()==2)
     mainMenu.get_item("mapper_dynamic").
+        set_text("Dynamic core (dynamic_rec)").
         check(cpudecoder == &CPU_Core_Dynrec_Run).
         enable(allow_dynamic &&
                (cpudecoder != &CPU_Core_Prefetch_Run) &&
@@ -2268,7 +2299,8 @@ bool CPU_IsDynamicCore(void) {
 #if (C_DYNAMIC_X86)
     if (cpudecoder == &CPU_Core_Dyn_X86_Run)
         return true;
-#elif (C_DYNREC)
+#endif
+#if (C_DYNREC)
     if (cpudecoder == &CPU_Core_Dynrec_Run)
         return true;
 #endif
@@ -2310,13 +2342,14 @@ void CPU_SET_CRX(Bitu cr,Bitu value) {
 					GFX_SetTitle(-1,-1,-1,false);
 				}
 #if (C_DYNAMIC_X86)
-				if (CPU_AutoDetermineMode&CPU_AUTODETERMINE_CORE) {
+				if (GetDynamicType()==1 && CPU_AutoDetermineMode&CPU_AUTODETERMINE_CORE) {
 					CPU_Core_Dyn_X86_Cache_Init(true);
 					cpudecoder=&CPU_Core_Dyn_X86_Run;
 					strcpy(core_mode, "dynamic");
 				}
-#elif (C_DYNREC)
-				if (CPU_AutoDetermineMode&CPU_AUTODETERMINE_CORE) {
+#endif
+#if (C_DYNREC)
+				if (GetDynamicType()==2 && CPU_AutoDetermineMode&CPU_AUTODETERMINE_CORE) {
 					CPU_Core_Dynrec_Cache_Init(true);
 					cpudecoder=&CPU_Core_Dynrec_Run;
 				}
@@ -3175,7 +3208,8 @@ public:
 #endif
 #if (C_DYNAMIC_X86)
 		CPU_Core_Dyn_X86_Init();
-#elif (C_DYNREC)
+#endif
+#if (C_DYNREC)
 		CPU_Core_Dynrec_Init();
 #endif
 		MAPPER_AddHandler(CPU_CycleDecrease,MK_minus,MMODHOST,"cycledown","Dec Cycles",&item);
@@ -3192,7 +3226,7 @@ public:
 		item->set_text("Normal core");
 
 #if (C_DYNAMIC_X86) || (C_DYNREC)
-		MAPPER_AddHandler(CPU_ToggleDynamicCore,MK_nothing,0,"dynamic","DynCore",&item);
+		MAPPER_AddHandler(CPU_ToggleDynamicCore,MK_nothing,0,"dynamic","DynaCore",&item);
 		item->set_text("Dynamic core");
 #endif
 #if !defined(C_EMSCRIPTEN)
@@ -3374,14 +3408,15 @@ public:
 			cpudecoder=&CPU_Core_Normal_Run;
 			CPU_AutoDetermineMode|=CPU_AUTODETERMINE_CORE;
 #if (C_DYNAMIC_X86)
-		} else if (core == "dynamic") {
+		} else if ((core == "dynamic" && GetDynamicType()==1) || core == "dynamic_x86") {
 			cpudecoder=&CPU_Core_Dyn_X86_Run;
 			CPU_Core_Dyn_X86_SetFPUMode(true);
 		} else if (core == "dynamic_nodhfpu") {
 			cpudecoder=&CPU_Core_Dyn_X86_Run;
 			CPU_Core_Dyn_X86_SetFPUMode(false);
-#elif (C_DYNREC)
-		} else if (core == "dynamic") {
+#endif
+#if (C_DYNREC)
+		} else if ((core == "dynamic" && GetDynamicType()==2) || core == "dynamic_rec") {
 			cpudecoder=&CPU_Core_Dynrec_Run;
 #endif
 		} else {
@@ -3391,9 +3426,10 @@ public:
 		}
 
 #if (C_DYNAMIC_X86)
-		CPU_Core_Dyn_X86_Cache_Init((core == "dynamic") || (core == "dynamic_nodhfpu"));
-#elif (C_DYNREC)
-		CPU_Core_Dynrec_Cache_Init( core == "dynamic" );
+		CPU_Core_Dyn_X86_Cache_Init((core == "dynamic" && GetDynamicType()==1) || (core == "dynamic_x86") || (core == "dynamic_nodhfpu"));
+#endif
+#if (C_DYNREC)
+		CPU_Core_Dynrec_Cache_Init((core == "dynamic" && GetDynamicType()==2) || (core == "dynamic_rec"));
 #endif
 
 		CPU_ArchitectureType = CPU_ARCHTYPE_MIXED;
@@ -3615,7 +3651,8 @@ void CPU_ShutDown(Section* sec) {
 
 #if (C_DYNAMIC_X86)
 	CPU_Core_Dyn_X86_Cache_Close();
-#elif (C_DYNREC)
+#endif
+#if (C_DYNREC)
 	CPU_Core_Dynrec_Cache_Close();
 #endif
 	delete test;
@@ -4122,7 +4159,8 @@ virtual void setBytes(std::istream& stream)
     }
 #if (C_DYNAMIC_X86)
     CPU_Core_Dyn_X86_Cache_Reset();
-#elif (C_DYNREC)
+#endif
+#if (C_DYNREC)
     CPU_Core_Dynrec_Cache_Reset();
 #endif
 }

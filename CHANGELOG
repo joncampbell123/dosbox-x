@@ -1,9 +1,13 @@
 0.83.7
   - Implemented the dynamic X86 core for both 32-bit
     and 64-bit systems by re-porting the code from SVN.
-    Setting "core=dynamic" will now use the dynamic x86
-    core by default on x86 and x86-64 systems instead
-    of the dynrec core. (Wengier and joncampbell123)
+    Dynamic core now supports either the dynamic_x86
+    or the dynamic_rec core. The dynamic_x86 core will
+    be used by default for x86 and x86 platforms and if
+    "core=dynamic" is set. You can also explict specify
+    "core=dynamic_x86" or "core=dynamic_rec" for either
+    the dynamic_x86 core or the dynamic_rec core. Also
+    thank joncampbell123 for the 64-bit fix. (Wengier)
   - Save state feature now allows users to optionally
     enter remarks when saving a state. A toggle menu
     item "No remark when saving state" (in "Capture")

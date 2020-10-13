@@ -1342,8 +1342,11 @@ void DOSBOX_SetupConfigSections(void) {
         0 };
 
     const char* cores[] = { "auto",
-#if (C_DYNAMIC_X86) || (C_DYNREC)
-        "dynamic",
+#if (C_DYNAMIC_X86)
+        "dynamic", "dynamic_x86", "dynamic_nodhfpu",
+#endif
+#if (C_DYNREC)
+        "dynamic", "dynamic_rec",
 #endif
         "normal", "full", "simple", 0 };
 
@@ -2294,8 +2297,9 @@ void DOSBOX_SetupConfigSections(void) {
     Pstring = secprop->Add_string("core",Property::Changeable::WhenIdle,"auto");
     Pstring->Set_values(cores);
     Pstring->Set_help("CPU Core used in emulation. auto will switch to dynamic if available and appropriate.\n"
-            "WARNING: Do not use dynamic or auto setting core with Windows 95 or other preemptive\n"
-            "multitasking OSes with protected mode paging, you should use the normal core instead.");
+            "For the dynamic core, both dynamic_x86 and dynamic_rec are supported (dynamic_x86 is preferred).\n"
+            "Windows 95 or other preemptive multitasking OSes will not work with the dynamic_rec core.");
+
     Pstring->SetBasic(true);
 
     Pbool = secprop->Add_bool("fpu",Property::Changeable::Always,true);
