@@ -73,7 +73,7 @@ Although based on the DOSBox project, DOSBox-X is now a separate project because
 
 * Plus many more..
 
-While the great majority of features in DOSBox-X are cross-platform, DOSBox-X does also have several notable platform-dependent features, such as support for automatic drive mounting, clipboard copy and paste, and starting programs to run on the host (-winrun) on the Windows platform. These features cannot be easily ported to other platforms. More information about DOSBox-X's features can be found in the [DOSBox-X Wiki](https://dosbox-x.com/wiki).
+While the great majority of features in DOSBox-X are cross-platform, DOSBox-X does also have several notable platform-dependent features, such as support for automatic drive mounting, Direct3D output and starting programs to run on the host (-winrun) on the Windows platform. These features cannot be easily ported to other platforms. More information about DOSBox-X's features can be found in the [DOSBox-X Wiki](https://dosbox-x.com/wiki).
 
 DOSBox-X officially supports both SDL 1.2 and SDL 2.0; both 32-bit and 64-bit builds are also supported.
 
