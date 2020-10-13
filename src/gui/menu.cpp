@@ -129,7 +129,7 @@ static const char *def_menu_main[] =
     "mapper_capmouse",
     "auto_lock_mouse",
     "WheelToArrow",
-#if defined(WIN32)
+#if defined(WIN32) || defined(C_SDL2)
     "SharedClipboard",
 #endif
 #if !defined(C_EMSCRIPTEN)//FIXME: Reset causes problems with Emscripten
@@ -181,9 +181,11 @@ static const char *def_menu_main_clipboard[] =
     "clipboard_quick",
     "clipboard_right",
     "clipboard_middle",
+#if defined(WIN32)
     "--",
     "clipboard_device",
     "clipboard_dosapi",
+#endif
     "--",
     "mapper_paste",
     NULL

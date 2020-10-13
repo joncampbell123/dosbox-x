@@ -1,4 +1,8 @@
 0.83.7
+  - The mouse copy/paste feature is now available for
+    non-Windows systems on SDL2 builds. Also, pasting
+    from the clipboard is available for the Linux/X11
+    systems on SDL1 builds. (Wengier)
   - Implemented the x86 dynamic core for both 32-bit
     and 64-bit systems by re-porting the code from SVN.
     Dynamic core now supports either the dynamic_x86

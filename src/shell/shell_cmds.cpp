@@ -839,7 +839,7 @@ void DOS_Shell::CMD_HELP(char * args){
 		WriteOut("Type \033[33;1mHELP command\033[0m or \033[33;1mcommand /?\033[0m for help information for the specified command.\n");
 }
 
-static void removeChar(char *str, char c) {
+void removeChar(char *str, char c) {
     char *src, *dst;
     for (src = dst = str; *src != '\0'; src++) {
         *dst = *src;

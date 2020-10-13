@@ -46,9 +46,9 @@ extern bool force_load_state;
 extern bool use_quick_reboot;
 extern bool enable_config_as_shell_commands;
 bool winrun=false;
+bool direct_mouse_clipboard=false;
 #if defined(WIN32)
 extern int dos_clipboard_device_access;
-bool direct_mouse_clipboard=false;
 #endif
 
 bool OpenGL_using(void);
@@ -4051,7 +4051,7 @@ static void GUI_StartUp() {
     item->set_text("Toggle fullscreen");
 
     MAPPER_AddHandler(PasteClipboard, MK_nothing, 0, "paste", "Paste Clip", &item); //end emendelson; improved by Wengier
-    item->set_text("Pasting from the Windows clipboard");
+    item->set_text("Pasting from the clipboard");
 #if C_DEBUG
     /* Pause binds with activate-debugger */
     MAPPER_AddHandler(&PauseDOSBox, MK_pause, MMOD1, "pause", "Pause");
@@ -4454,7 +4454,7 @@ static void HandleMouseMotion(SDL_MouseMotionEvent * motion) {
         inputToScreen = true;
     else {
         inputToScreen = GFX_CursorInOrNearScreen(motion->x,motion->y);
-#if defined (WIN32)
+#if defined (WIN32) || defined(C_SDL2)
 		if (mouse_start_x >= 0 && mouse_start_y >= 0) {
 			if (fx>=0 && fy>=0)
 				Restore_Text(mouse_start_x-sdl.clip.x,mouse_start_y-sdl.clip.y,fx-sdl.clip.x,fy-sdl.clip.y,(int)(currentWindowWidth-sdl.clip.x),(int)(currentWindowHeight-sdl.clip.y));
@@ -5132,7 +5132,7 @@ static void HandleMouseButton(SDL_MouseButtonEvent * button, SDL_MouseMotionEven
     switch (button->state) {
     case SDL_PRESSED:
         if (inMenu || !inputToScreen) return;
-#if defined(WIN32)
+#if defined(WIN32) || defined(C_SDL2)
 		if (!sdl.mouse.locked && button->button == SDL_BUTTON_LEFT && !strcmp(modifier,"none") && mouse_start_x >= 0 && mouse_start_y >= 0 && fx >= 0 && fy >= 0) {
 			Restore_Text(mouse_start_x-sdl.clip.x,mouse_start_y-sdl.clip.y,fx-sdl.clip.x,fy-sdl.clip.y,(int)(currentWindowWidth-sdl.clip.x),(int)(currentWindowHeight-sdl.clip.y));
 			mouse_start_x = -1;
@@ -5143,9 +5143,9 @@ static void HandleMouseButton(SDL_MouseButtonEvent * button, SDL_MouseMotionEven
 			fy = -1;
 		}
 		if (!sdl.mouse.locked && ((mbutton==2 && button->button == SDL_BUTTON_MIDDLE) || (mbutton==3 && button->button == SDL_BUTTON_RIGHT)) && (direct_mouse_clipboard || !strcmp(modifier,"none")
-			|| (!strcmp(modifier,"alt") || !strcmp(modifier,"lalt")) && sdl.laltstate==SDL_KEYDOWN || (!strcmp(modifier,"alt") || !strcmp(modifier,"ralt")) && sdl.raltstate==SDL_KEYDOWN
-			|| (!strcmp(modifier,"ctrl") || !strcmp(modifier,"lctrl")) && sdl.lctrlstate==SDL_KEYDOWN || (!strcmp(modifier,"ctrl") || !strcmp(modifier,"rctrl")) && sdl.rctrlstate==SDL_KEYDOWN
-			|| (!strcmp(modifier,"shift") || !strcmp(modifier,"lshift")) && sdl.lshiftstate==SDL_KEYDOWN || (!strcmp(modifier,"shift") || !strcmp(modifier,"rshift")) && sdl.rshiftstate==SDL_KEYDOWN
+			|| ((!strcmp(modifier,"alt") || !strcmp(modifier,"lalt")) && sdl.laltstate==SDL_KEYDOWN) || ((!strcmp(modifier,"alt") || !strcmp(modifier,"ralt")) && sdl.raltstate==SDL_KEYDOWN)
+			|| ((!strcmp(modifier,"ctrl") || !strcmp(modifier,"lctrl")) && sdl.lctrlstate==SDL_KEYDOWN) || ((!strcmp(modifier,"ctrl") || !strcmp(modifier,"rctrl")) && sdl.rctrlstate==SDL_KEYDOWN)
+			|| ((!strcmp(modifier,"shift") || !strcmp(modifier,"lshift")) && sdl.lshiftstate==SDL_KEYDOWN) || ((!strcmp(modifier,"shift") || !strcmp(modifier,"rshift")) && sdl.rshiftstate==SDL_KEYDOWN)
 			)) {
 			mouse_start_x=motion->x;
 			mouse_start_y=motion->y;
@@ -5215,7 +5215,7 @@ static void HandleMouseButton(SDL_MouseButtonEvent * button, SDL_MouseMotionEven
         }
         break;
     case SDL_RELEASED:
-#if defined(WIN32)
+#if defined(WIN32) || defined(C_SDL2)
 		if (!sdl.mouse.locked && ((mbutton==2 && button->button == SDL_BUTTON_MIDDLE) || (mbutton==3 && button->button == SDL_BUTTON_RIGHT)) && mouse_start_x >= 0 && mouse_start_y >= 0) {
 			mouse_end_x=motion->x;
 			mouse_end_y=motion->y;
@@ -5726,7 +5726,7 @@ void GFX_Events() {
 				}
 			}
 			break;
-#if defined (WIN32)
+#if defined (WIN32) || defined(C_SDL2)
         case SDL_KEYDOWN:
         case SDL_KEYUP:
             if (event.key.keysym.sym==SDLK_LALT) sdl.laltstate = event.key.type;
@@ -6320,8 +6320,8 @@ void PasteClipboard(bool bPressed)
 }
 /// TODO: add menu items here 
 #else // end emendelson from dbDOS; improved by Wengier
-#if defined(WIN32) // SDL2, MinGW / Added by Wengier
 static std::string strPasteBuffer;
+#if defined(WIN32) // SDL2, MinGW / Added by Wengier
 extern uint8_t* clipAscii;
 extern uint32_t clipSize;
 extern void Unicode2Ascii(const uint16_t* unicode);
@@ -6350,6 +6350,92 @@ void PasteClipboard(bool bPressed) {
 		clipSize=0;
     }
 	CloseClipboard();
+}
+
+bool PasteClipboardNext() {
+    if (strPasteBuffer.length() == 0) return false;
+	BIOS_AddKeyToBuffer(strPasteBuffer[0]<0?strPasteBuffer[0]&0xff:strPasteBuffer[0]);
+    strPasteBuffer = strPasteBuffer.substr(1, strPasteBuffer.length());
+	return true;
+}
+#elif defined(C_SDL2)
+void removeChar(char *str, char c);
+void PasteClipboard(bool bPressed) {
+	if (!bPressed) return;
+    char* text = SDL_GetClipboardText();
+    removeChar(text, 0x0A);
+    strPasteBuffer.append(text);
+}
+
+bool PasteClipboardNext() {
+    if (strPasteBuffer.length() == 0) return false;
+	BIOS_AddKeyToBuffer(strPasteBuffer[0]<0?strPasteBuffer[0]&0xff:strPasteBuffer[0]);
+    strPasteBuffer = strPasteBuffer.substr(1, strPasteBuffer.length());
+	return true;
+}
+#elif defined(LINUX) && C_X11
+#include <X11/Xlib.h>
+
+void paste_utf8_prop(Display *dpy, Window w, Atom p)
+{
+    Atom da, incr, type;
+    int di;
+    unsigned long size, dul;
+    unsigned char *prop_ret = NULL;
+
+    XGetWindowProperty(dpy, w, p, 0, 0, False, AnyPropertyType, &type, &di, &dul, &size, &prop_ret);
+    XFree(prop_ret);
+
+    incr = XInternAtom(dpy, "INCR", False);
+    if (type == incr) return;
+
+    XGetWindowProperty(dpy, w, p, 0, size, False, AnyPropertyType, &da, &di, &dul, &dul, &prop_ret);
+    char *text=(char *)prop_ret;
+    for (int i=0; i<strlen(text); i++) if (text[i]==0x0A) text[i]=0x0D;
+    strPasteBuffer.append(text);
+    fflush(stdout);
+    XFree(prop_ret);
+    XDeleteProperty(dpy, w, p);
+}
+
+void PasteClipboard(bool bPressed) {
+	if (!bPressed) return;
+    Display *dpy;
+    Window owner, target_window, root;
+    int screen;
+    Atom sel, target_property, utf8;
+    XEvent ev;
+    XSelectionEvent *sev;
+
+    dpy = XOpenDisplay(NULL);
+    if (!dpy) return;
+
+    screen = DefaultScreen(dpy);
+    root = RootWindow(dpy, screen);
+
+    sel = XInternAtom(dpy, "CLIPBOARD", False);
+    utf8 = XInternAtom(dpy, "UTF8_STRING", False);
+
+    owner = XGetSelectionOwner(dpy, sel);
+    if (owner == None) return;
+
+    target_window = XCreateSimpleWindow(dpy, root, -10, -10, 1, 1, 0, 0, 0);
+    target_property = XInternAtom(dpy, "PENGUIN", False);
+    XConvertSelection(dpy, sel, utf8, target_property, target_window,
+                      CurrentTime);
+    for (;;) {
+        XNextEvent(dpy, &ev);
+        switch (ev.type) {
+            case SelectionNotify:
+                sev = (XSelectionEvent*)&ev.xselection;
+                if (sev->property == None) return;
+                else {
+                    paste_utf8_prop(dpy, target_window, target_property);
+                    return;
+                }
+                break;
+        }
+    }
 }
 
 bool PasteClipboardNext() {
@@ -6402,6 +6488,13 @@ static BOOL WINAPI ConsoleEventHandler(DWORD event) {
     default: //pass to the next handler
         return FALSE;
     }
+}
+
+#elif defined(C_SDL2)
+void CopyClipboard(void) {
+	uint16_t len=0;
+	const char* text = Mouse_GetSelected(mouse_start_x-sdl.clip.x,mouse_start_y-sdl.clip.y,mouse_end_x-sdl.clip.x,mouse_end_y-sdl.clip.y,(int)(currentWindowWidth-sdl.clip.x),(int)(currentWindowHeight-sdl.clip.y), &len);
+    SDL_SetClipboardText(text);
 }
 #endif
 
@@ -6483,19 +6576,19 @@ void SDL_SetupConfigSection() {
 	const char* clipboardbutton[] = { "none", "middle", "right", 0};
 	Pstring = sdl_sec->Add_string("clip_mouse_button",Property::Changeable::Always, "right");
 	Pstring->Set_values(clipboardbutton);
-	Pstring->Set_help("Select the mouse button for the Windows clipboard copy/paste function.\n"
+	Pstring->Set_help("Select the mouse button for the shared clipboard copy/paste function.\n"
 		"The default mouse button is \"right\". Set to \"middle\" if the middle mouse button is desired, or \"none\" to disable this feature.");
     Pstring->SetBasic(true);
 
 	const char* clipboardmodifier[] = { "none", "alt", "lalt", "ralt", "ctrl", "lctrl", "rctrl", "shift", "lshift", "rshift", 0};
 	Pstring = sdl_sec->Add_string("clip_key_modifier",Property::Changeable::Always, "shift");
 	Pstring->Set_values(clipboardmodifier);
-	Pstring->Set_help("Change the keyboard modifier for the Windows clipboard copy/paste function using the right mouse button.\n"
+	Pstring->Set_help("Change the keyboard modifier for the shared clipboard copy/paste function using the right mouse button.\n"
 		"The default modifier is \"shift\" (both left and right shift keys). Set to \"none\" if no modifier is desired.");
     Pstring->SetBasic(true);
 
     Pint = sdl_sec->Add_int("clip_paste_speed", Property::Changeable::WhenIdle, 20);
-    Pint->Set_help("Set keyboard speed for pasting from the Windows clipboard.\n"
+    Pint->Set_help("Set keyboard speed for pasting from the shared clipboard.\n"
         "If the default setting of 20 causes lost keystrokes, increase the number.\n"
         "Or experiment with decreasing the number for applications that accept keystrokes quickly.");
     Pint->SetBasic(true);
@@ -8264,7 +8357,7 @@ bool autolock_mouse_menu_callback(DOSBoxMenu * const menu, DOSBoxMenu::item * co
     return true;
 }
 
-#if defined (WIN32)
+#if defined (WIN32) || defined(C_SDL2)
 bool direct_mouse_clipboard_menu_callback(DOSBoxMenu * const menu, DOSBoxMenu::item * const menuitem) {
     (void)menu;//UNUSED
     (void)menuitem;//UNUSED
@@ -8290,7 +8383,9 @@ bool middle_mouse_clipboard_menu_callback(DOSBoxMenu * const menu, DOSBoxMenu::i
     mainMenu.get_item("clipboard_middle").check(true).refresh_item(mainMenu);
     return true;
 }
+#endif
 
+#if defined (WIN32)
 bool dos_clipboard_api_menu_callback(DOSBoxMenu * const menu, DOSBoxMenu::item * const menuitem) {
     (void)menu;//UNUSED
     (void)menuitem;//UNUSED
@@ -9441,7 +9536,7 @@ int main(int argc, char* argv[]) SDL_MAIN_NOEXCEPT {
             }
             {
                 DOSBoxMenu::item &item = mainMenu.alloc_item(DOSBoxMenu::submenu_type_id,"SharedClipboard");
-                item.set_text("Shared Windows clipboard functions");
+                item.set_text("Shared clipboard functions");
             }
         }
         {
@@ -9972,10 +10067,12 @@ int main(int argc, char* argv[]) SDL_MAIN_NOEXCEPT {
 #endif
         mainMenu.alloc_item(DOSBoxMenu::item_type_id,"wait_on_error").set_text("Wait on error").set_callback_function(wait_on_error_menu_callback).check(sdl.wait_on_error);
         mainMenu.alloc_item(DOSBoxMenu::item_type_id,"auto_lock_mouse").set_text("Autolock mouse").set_callback_function(autolock_mouse_menu_callback).check(sdl.mouse.autoenable);
-#if defined (WIN32)
+#if defined (WIN32) || defined(C_SDL2)
         mainMenu.alloc_item(DOSBoxMenu::item_type_id,"clipboard_quick").set_text("Quick edit: copy on select and paste with mouse button").set_callback_function(direct_mouse_clipboard_menu_callback).check(direct_mouse_clipboard);
         mainMenu.alloc_item(DOSBoxMenu::item_type_id,"clipboard_right").set_text("Via right mouse button").set_callback_function(right_mouse_clipboard_menu_callback).check(mbutton==3);
         mainMenu.alloc_item(DOSBoxMenu::item_type_id,"clipboard_middle").set_text("Via middle mouse button").set_callback_function(middle_mouse_clipboard_menu_callback).check(mbutton==2);
+#endif
+#if defined (WIN32)
         if (control->SecureMode()) clipboard_dosapi = false;
         mainMenu.alloc_item(DOSBoxMenu::item_type_id,"clipboard_device").set_text("Enable DOS clipboard device access").set_callback_function(dos_clipboard_device_menu_callback).check(dos_clipboard_device_access==4&&!control->SecureMode());
         mainMenu.alloc_item(DOSBoxMenu::item_type_id,"clipboard_dosapi").set_text("Enable DOS clipboard API for applications").set_callback_function(dos_clipboard_api_menu_callback).check(clipboard_dosapi);
