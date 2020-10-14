@@ -16,15 +16,17 @@
   - You can now use your own save file (in addition to
     save slots! There are now a "Use save file" toggle
     item and "Browse save file..." for browsing save
-    files on your computer. A new menu item "Display
-    state information" is added as well to display the
-    information of the saved state. (Wengier)
+    files on your computer. A config option "savefile"
+    (in [dosbox] section) is added to specify a save
+    file to use at start. (Wengier)
   - Save state feature now allows users to optionally
     enter remarks when saving a state. A submenu group
     "Save/load option" is added (under "Capture") where
     you can toggle menu items "No remark when saving
     state" (for disabling input of remarks when saving)
-    and "force load state mode". (Wengier)
+    and "force load state mode". A menu item "Display
+    state information" is added as well to display the
+    information of the saved state. (Wengier)
   - DOSBox-X will now use native dialog box to display
     quit warnings and save state errors. (Wengier)
   - Updated the Windows installer to default to the

@@ -312,6 +312,8 @@ bool native_zmbv = false;
 bool export_ffmpeg = false;
 
 std::string capturedir;
+extern std::string savefilename;
+extern bool use_save_file;
 extern const char* RunningProgram;
 Bitu CaptureState = 0;
 
@@ -1815,6 +1817,13 @@ void CAPTURE_Init() {
 	assert(proppath != NULL);
 	capturedir = proppath->realpath;
     SetGameState_Run(section->Get_int("saveslot")-1);
+    savefilename = section->Get_string("savefile");
+    trim(savefilename);
+    if (savefilename.size()) {
+        use_save_file=true;
+        mainMenu.get_item("usesavefile").set_text("Use save file ("+savefilename+")").check(use_save_file);
+        mainMenu.get_item("browsesavefile").enable(use_save_file);
+    }
 
     skip_encoding_unchanged_frames = section->Get_bool("skip encoding unchanged frames");
 

@@ -1426,6 +1426,10 @@ void DOSBOX_SetupConfigSections(void) {
     Pint = secprop->Add_int("saveslot", Property::Changeable::WhenIdle,1);
     Pint->SetMinMax(1,100);
     Pint->Set_help("Select the default save slot (1-100) to save/load states.");
+    Pint->SetBasic(true);
+
+    Pstring = secprop->Add_path("savefile", Property::Changeable::WhenIdle,"");
+    Pstring->Set_help("Select the default save file to save/load states. If specified it will be used instead of the save slot.");
     Pstring->SetBasic(true);
 
     /* will change to default true unless this causes compatibility issues with other users or their editing software */
@@ -5626,7 +5630,7 @@ std::string SaveState::getName(size_t slot, bool nl) const {
 	check_title.open(tempname.c_str(), std::ifstream::in);
 	if (check_title.fail()) {
 		remove(tempname.c_str());
-		return ret+")";
+		return ret+(!nl?")":"");
 	}
 	check_title.seekg (0, std::ios::end);
 	length = (int)check_title.tellg();
