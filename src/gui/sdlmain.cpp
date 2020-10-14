@@ -45,7 +45,7 @@ extern bool noremark_save_state;
 extern bool force_load_state;
 extern bool use_quick_reboot;
 extern bool enable_config_as_shell_commands;
-bool winrun=false;
+bool winrun=false, use_save_file=false;
 bool direct_mouse_clipboard=false;
 #if defined(WIN32)
 extern int dos_clipboard_device_access;
@@ -814,7 +814,7 @@ extern bool keep_private_area_on_boot;
 extern bool dos_kernel_disabled;
 bool guest_machine_power_on = false;
 
-std::string custom_savedir;
+std::string custom_savedir, savefilename = "";
 
 void SHELL_Run();
 void DisableINT33();
@@ -8446,6 +8446,53 @@ bool force_loadstate_menu_callback(DOSBoxMenu * const menu, DOSBoxMenu::item * c
     return true;
 }
 
+bool browse_save_file_menu_callback(DOSBoxMenu * const menu, DOSBoxMenu::item * const menuitem) {
+    (void)menu;//UNUSED
+    const char *mname = menuitem->get_name().c_str();
+    if (!strcmp(mname, "browsesavefile")&&!use_save_file) return false;
+
+#if !defined(HX_DOS)
+    char CurrentDir[512];
+    char * Temp_CurrentDir = CurrentDir;
+    getcwd(Temp_CurrentDir, 512);
+    const char *lFilterPatterns[] = {"*.sav","*.SAV"};
+    const char *lFilterDescription = "Save files (*.sav)";
+    char const * lTheSaveFileName = tinyfd_saveFileDialog("Select an save file","",2,lFilterPatterns,lFilterDescription);
+    if (lTheSaveFileName!=NULL) {
+        savefilename = std::string(lTheSaveFileName);
+        mainMenu.get_item("usesavefile").set_text("Use save file"+(savefilename.size()?" ("+savefilename+")":"")).refresh_item(mainMenu);
+    }
+	chdir( Temp_CurrentDir );
+#endif
+    return true;
+}
+
+bool use_save_file_menu_callback(DOSBoxMenu * const menu, DOSBoxMenu::item * const menuitem) {
+    (void)menu;//UNUSED
+    (void)menuitem;//UNUSED
+    if (use_save_file) use_save_file=false;
+    else if (savefilename.size()) use_save_file=true;
+    else {
+        browse_save_file_menu_callback(menu, menuitem);
+        if (savefilename.size()) use_save_file=true;
+    }
+    mainMenu.get_item("usesavefile").check(use_save_file).refresh_item(mainMenu);
+    mainMenu.get_item("browsesavefile").enable(use_save_file).refresh_item(mainMenu);
+    return true;
+}
+
+bool show_save_state_menu_callback(DOSBoxMenu * const menu, DOSBoxMenu::item * const menuitem) {
+    (void)menu;//UNUSED
+    (void)menuitem;//UNUSED
+    MAPPER_ReleaseAllKeys();
+    GFX_LosingFocus();
+    std::string message = "Save to: "+(use_save_file&&savefilename.size()?"File "+savefilename:"Slot "+std::to_string(GetGameState_Run()+1))+"\n"+SaveState::instance().getName(GetGameState_Run(), true);
+    bool ret=tinyfd_messageBox("Saved state information", message.c_str(), "ok","info", 1);
+    MAPPER_ReleaseAllKeys();
+    GFX_LosingFocus();
+    return true;
+}
+
 void refresh_slots() {
     mainMenu.get_item("current_page").set_text("Current page: "+to_string(page+1)+"/10").refresh_item(mainMenu);
 	for (unsigned int i=0; i<SaveState::SLOT_COUNT; i++) {
@@ -9829,9 +9876,17 @@ int main(int argc, char* argv[]) SDL_MAIN_NOEXCEPT {
         }
 # endif
 		{
+            DOSBoxMenu::item &item = mainMenu.alloc_item(DOSBoxMenu::submenu_type_id,"saveoptionmenu");
+            item.set_text("Save/load option");
+        }
+		{
             DOSBoxMenu::item &item = mainMenu.alloc_item(DOSBoxMenu::submenu_type_id,"saveslotmenu");
             item.set_text("Select save slot");
-
+		}
+        {
+            mainMenu.alloc_item(DOSBoxMenu::item_type_id, "usesavefile").set_text("Use save file").set_callback_function(use_save_file_menu_callback).check(use_save_file);
+            mainMenu.alloc_item(DOSBoxMenu::item_type_id, "browsesavefile").set_text("Browse save file...").set_callback_function(browse_save_file_menu_callback).enable(use_save_file);
+            mainMenu.alloc_item(DOSBoxMenu::item_type_id, "showstate").set_text("Display state information").set_callback_function(show_save_state_menu_callback);
             {
 				mainMenu.alloc_item(DOSBoxMenu::item_type_id,"current_page").set_text("Current page: 1/10").enable(false).set_callback_function(refresh_slots_menu_callback);
 				mainMenu.alloc_item(DOSBoxMenu::item_type_id,"prev_page").set_text("Previous page").set_callback_function(prev_page_menu_callback);

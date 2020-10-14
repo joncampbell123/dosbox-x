@@ -567,11 +567,13 @@ static const char *def_menu_capture[] =
     "mapper_caprawmidi",
     "--",
 #endif
-    "noremark_savestate",
-    "force_loadstate",
+    "saveoptionmenu",
     "mapper_savestate",
     "mapper_loadstate",
     "saveslotmenu",
+    "usesavefile",
+    "browsesavefile",
+    "showstate",
     NULL
 };
 
@@ -588,6 +590,14 @@ static const char *def_menu_capture_format[] =
 };
 # endif
 #endif
+
+/* Save/load options */
+static const char *save_load_options[] =
+{
+    "noremark_savestate",
+    "force_loadstate",
+    NULL
+};
 
 /* Save slots */
 static const char *def_save_slots[] =
@@ -1417,6 +1427,7 @@ void ConstructMenu(void) {
     ConstructSubMenu(mainMenu.get_item("CaptureFormatMenu").get_master_id(), def_menu_capture_format);
 # endif
 #endif
+    ConstructSubMenu(mainMenu.get_item("saveoptionmenu").get_master_id(), save_load_options);
     ConstructSubMenu(mainMenu.get_item("saveslotmenu").get_master_id(), def_save_slots);
 
     /* Drive menu */

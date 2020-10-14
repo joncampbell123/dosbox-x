@@ -299,7 +299,7 @@ public:
     void load   (size_t slot) const; //throw (Error)
     bool isEmpty(size_t slot) const;
     void removeState(size_t slot) const;
-    std::string getName(size_t slot) const;
+    std::string getName(size_t slot, bool nl=false) const;
 
     //initialization: register relevant components on program startup
     struct Component
