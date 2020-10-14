@@ -638,7 +638,7 @@ void*
 #endif
 fluid_thread_func (void* data)
 {
-  fluid_thread_info_t *info = data;
+  fluid_thread_info_t *info = (fluid_thread_info_t *)data;
 
   info->func (info->data);
   FLUID_FREE (info);
