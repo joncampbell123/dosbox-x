@@ -18,7 +18,7 @@
  *  Heavy improvements by the DOSBox-X Team, 2011-2020
  *  DXCAPTURE, DEBUGBOX, INT2FDBG commands by joncampbell123
  *  ATTRIB, COUNTRY, DELTREE, FOR, LFNFOR, VERIFY, TRUENAME commands by Wengier
- *  LS command by the dosbox-staging team and Wengier
+ *  LS command by the DOSBox Staging Team and Wengier
  */
 
 

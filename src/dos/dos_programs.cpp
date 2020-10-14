@@ -17,7 +17,7 @@
  *
  *  New commands & heavy improvements to existing commands by the DOSBox-X Team
  *  With major works from joncampbell123, Wengier, and rderooy
- *  AUTOTYPE command Copyright (C) 2020 the dosbox-staging team
+ *  AUTOTYPE command Copyright (C) 2020 the DOSBox Staging Team
  */
 
 #include "dosbox.h"
