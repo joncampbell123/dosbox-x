@@ -324,7 +324,7 @@ project, DOSBox-X, and many experimental patches. Although the
 Daum branch seems to be dead, the features borrowed from it still
 exists in DOSBox-X. Later on, DOSBox-X also incorporated several
 features and improvements from other projects such as [DOSBox ECE](https://dosboxece.yesterplay.net/),
-[dosbox-staging](https://dosbox-staging.github.io/) and [vDosPlus](http://www.vdosplus.org/).
+[DOSBox Staging](https://dosbox-staging.github.io/) and [vDosPlus](http://www.vdosplus.org/).
 
 The DOSBox-X project is also helped by its other developers and
 contributors such as Wengier, aybe, Allofich, and rderooy, who have

@@ -33,7 +33,7 @@ A list of features ported from DOSBox ECE:
 * Improved support for FluidSynth MIDI synthesizer
 * Updated Nuked OPL3 to 1.8
 
-A list of features ported from dosbox-staging:
+A list of features ported from DOSBox Staging:
 
 * AUTOTYPE command for scripted keyboard entry
 * LS command (heavily improved since then by Wengier)
