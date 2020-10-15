@@ -346,7 +346,7 @@ static const char *def_menu_video_compat[] =
 /* video output menu ("VideoPC98Menu") */
 static const char *def_menu_video_pc98[] =
 {
-    "pc98_5mhz_gdc",
+    "pc98_use_uskb",
     "pc98_allow_200scanline",
     "pc98_allow_4partitions",
     "--",
@@ -358,6 +358,10 @@ static const char *def_menu_video_pc98[] =
     "--",
     "pc98_clear_text",
     "pc98_clear_graphics",
+    "pc98_5mhz_gdc",
+    "--",
+    "dos_pc98_pit_4mhz",
+    "dos_pc98_pit_5mhz",
     NULL
 };
 
@@ -431,8 +435,6 @@ static const char *def_menu_dos[] =
     "--",
     "DOSVerMenu",
     "DOSLFNMenu",
-    "--",
-    "DOSPC98Menu",
     "DOSEMSMenu",
     "--",
 #if defined(WIN32) && !defined(HX_DOS)
@@ -491,14 +493,6 @@ static const char *def_menu_dos_lfn[] =
     "--",
     "dos_lfn_enable",
     "dos_lfn_disable",
-    NULL
-};
-
-/* DOS pc-98 menu ("DOSPC98Menu") */
-static const char *def_menu_dos_pc98[] =
-{
-    "dos_pc98_pit_4mhz",
-    "dos_pc98_pit_5mhz",
     NULL
 };
 
@@ -1399,9 +1393,6 @@ void ConstructMenu(void) {
 
     /* DOS LFN menu */
     ConstructSubMenu(mainMenu.get_item("DOSLFNMenu").get_master_id(), def_menu_dos_lfn);
-
-    /* DOS PC-98 menu */
-    ConstructSubMenu(mainMenu.get_item("DOSPC98Menu").get_master_id(), def_menu_dos_pc98);
 
     /* DOS EMS menu */
     ConstructSubMenu(mainMenu.get_item("DOSEMSMenu").get_master_id(), def_menu_dos_ems);

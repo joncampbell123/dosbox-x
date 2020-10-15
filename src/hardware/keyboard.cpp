@@ -23,6 +23,7 @@
 #include "setup.h"
 #include "inout.h"
 #include "mouse.h"
+#include "menu.h"
 #include "pic.h"
 #include "mem.h"
 #include "cpu.h"
@@ -2433,6 +2434,8 @@ void KEYBOARD_OnEnterPC98(Section *sec) {
         pc98_force_ibm_layout = pc98_section->Get_bool("pc-98 force ibm keyboard layout");
         if(pc98_force_ibm_layout)
             LOG_MSG("Forcing PC-98 keyboard to use IBM US-English like default layout");
+        mainMenu.get_item("pc98_use_uskb").check(pc98_force_ibm_layout).refresh_item(mainMenu);
+
     }
 
     if (!IS_PC98_ARCH) {

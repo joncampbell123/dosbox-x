@@ -44,6 +44,7 @@ extern bool log_fileio;
 extern bool noremark_save_state;
 extern bool force_load_state;
 extern bool use_quick_reboot;
+extern bool pc98_force_ibm_layout;
 extern bool enable_config_as_shell_commands;
 bool winrun=false, use_save_file=false;
 bool direct_mouse_clipboard=false;
@@ -8405,6 +8406,14 @@ bool dos_clipboard_device_menu_callback(DOSBoxMenu * const menu, DOSBoxMenu::ite
 }
 #endif
 
+bool pc98_force_uskb_menu_callback(DOSBoxMenu * const menu, DOSBoxMenu::item * const menuitem) {
+    (void)menu;//UNUSED
+    (void)menuitem;//UNUSED
+    pc98_force_ibm_layout = !pc98_force_ibm_layout;
+    mainMenu.get_item("pc98_use_uskb").check(pc98_force_ibm_layout).refresh_item(mainMenu);
+    return true;
+}
+
 bool doublebuf_menu_callback(DOSBoxMenu * const menu, DOSBoxMenu::item * const menuitem) {
     (void)menu;//UNUSED
     (void)menuitem;//UNUSED
@@ -9804,9 +9813,9 @@ int main(int argc, char* argv[]) SDL_MAIN_NOEXCEPT {
                 item.set_text("PC-98 PIT master clock");
 
                 {
-                    mainMenu.alloc_item(DOSBoxMenu::item_type_id,"dos_pc98_pit_4mhz").set_text("4MHz/8MHz").
+                    mainMenu.alloc_item(DOSBoxMenu::item_type_id,"dos_pc98_pit_4mhz").set_text("4MHz/8MHz PIT master clock").
                         set_callback_function(dos_pc98_clock_menu_callback);
-                    mainMenu.alloc_item(DOSBoxMenu::item_type_id,"dos_pc98_pit_5mhz").set_text("5MHz/10MHz").
+                    mainMenu.alloc_item(DOSBoxMenu::item_type_id,"dos_pc98_pit_5mhz").set_text("5MHz/10MHz PIT master clock").
                         set_callback_function(dos_pc98_clock_menu_callback);
                 }
             }
@@ -10154,6 +10163,7 @@ int main(int argc, char* argv[]) SDL_MAIN_NOEXCEPT {
         mainMenu.alloc_item(DOSBoxMenu::item_type_id,"removestate").set_text("Remove state in slot").set_callback_function(remove_state_menu_callback);
         mainMenu.alloc_item(DOSBoxMenu::item_type_id,"refreshslot").set_text("Refresh display status").set_callback_function(refresh_slots_menu_callback);
 
+        mainMenu.alloc_item(DOSBoxMenu::item_type_id,"pc98_use_uskb").set_text("Use US keyboard layout").set_callback_function(pc98_force_uskb_menu_callback).check(pc98_force_ibm_layout);
         mainMenu.get_item("debug_blankrefreshtest").set_text("Refresh test (blank display)").set_callback_function(refreshtest_menu_callback).refresh_item(mainMenu);
 
         mainMenu.get_item("wheel_updown").check(wheel_key==1).refresh_item(mainMenu);
@@ -10186,6 +10196,7 @@ int main(int argc, char* argv[]) SDL_MAIN_NOEXCEPT {
         mainMenu.get_item("pc98_enable_188user").enable(IS_PC98_ARCH);
         mainMenu.get_item("pc98_clear_text").enable(IS_PC98_ARCH);
         mainMenu.get_item("pc98_clear_graphics").enable(IS_PC98_ARCH);
+        mainMenu.get_item("pc98_use_uskb").enable(IS_PC98_ARCH);
         mainMenu.get_item("dos_pc98_pit_4mhz").enable(IS_PC98_ARCH);
         mainMenu.get_item("dos_pc98_pit_5mhz").enable(IS_PC98_ARCH);
 

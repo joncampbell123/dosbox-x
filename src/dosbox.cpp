@@ -2063,11 +2063,9 @@ void DOSBOX_SetupConfigSections(void) {
 
     Pint = secprop->Add_int("pc-98 fm board irq", Property::Changeable::WhenIdle,0);
     Pint->Set_help("If set, helps to determine the IRQ of the FM board. A setting of zero means to auto-determine the IRQ.");
-    Pint->SetBasic(true);
 
     Phex = secprop->Add_hex("pc-98 fm board io port", Property::Changeable::WhenIdle,0);
     Phex->Set_help("If set, helps to determine the base I/O port of the FM board. A setting of zero means to auto-determine the port number.");
-    Phex->SetBasic(true);
 
     Pbool = secprop->Add_bool("pc-98 sound bios",Property::Changeable::WhenIdle,false);
     Pbool->Set_help("Set Sound BIOS enabled bit in MEMSW 4 for some games that require it.\n"
@@ -2158,6 +2156,7 @@ void DOSBOX_SetupConfigSections(void) {
     Pbool = secprop->Add_bool("pc-98 force ibm keyboard layout",Property::Changeable::WhenIdle,false);
     Pbool->Set_help("Force to use a default keyboard layout like IBM US-English for PC-98 emulation.\n"
                     "Will only work with apps and games using BIOS for keyboard.");
+    Pbool->SetBasic(true);
 
     /* Explanation: NEC's mouse driver MOUSE.COM enables the graphics layer on startup and when INT 33h AX=0 is called.
      *              Some games by "Orange House" assume this behavior and do not make any effort on their

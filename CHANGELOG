@@ -3,6 +3,13 @@
     non-Windows systems on SDL2 builds. Also, pasting
     from the clipboard with a mapped shortcut is also
     available for Linux/X11 on SDL1 builds. (Wengier)
+  - Added "Use US keyboard layout" toggle menu item in
+    the "PC-98" menu group under "Video" to select
+    whether to force the default US keyboard layout in
+    PC-98 mode, same as the "pc-98 force ibm keyboard
+    layout" config option in [pc98] section. Also moved
+    the "PC-98 PIT master clock" options from the "DOS"
+    menu to this menu group. (Wengier)
   - Implemented the x86 dynamic core for both 32-bit
     and 64-bit systems by re-porting the code from SVN.
     Dynamic core now supports either the dynamic_x86
