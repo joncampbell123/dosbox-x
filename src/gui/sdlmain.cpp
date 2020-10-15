@@ -6536,12 +6536,18 @@ bool PasteClipboardNext() {
 	return true;
 }
 #elif defined(C_SDL2)
+typedef char host_cnv_char_t;
+char *CodePageHostToGuest(const host_cnv_char_t *s);
 void removeChar(char *str, char c);
 void PasteClipboard(bool bPressed) {
 	if (!bPressed) return;
     char* text = SDL_GetClipboardText();
-    removeChar(text, 0x0A);
-    strPasteBuffer.append(text);
+    removeChar((char *)text, 0x0A);
+    const char* asc = CodePageHostToGuest(text);
+    if (asc != NULL)
+        strPasteBuffer.append(asc);
+    else
+        strPasteBuffer.append(text);
 }
 
 bool PasteClipboardNext() {
@@ -6552,7 +6558,8 @@ bool PasteClipboardNext() {
 }
 #elif defined(LINUX) && C_X11
 #include <X11/Xlib.h>
-
+typedef char host_cnv_char_t;
+char *CodePageHostToGuest(const host_cnv_char_t *s);
 void paste_utf8_prop(Display *dpy, Window w, Atom p)
 {
     Atom da, incr, type;
@@ -6569,7 +6576,11 @@ void paste_utf8_prop(Display *dpy, Window w, Atom p)
     XGetWindowProperty(dpy, w, p, 0, size, False, AnyPropertyType, &da, &di, &dul, &dul, &prop_ret);
     char *text=(char *)prop_ret;
     for (unsigned int i=0; i<strlen(text); i++) if (text[i]==0x0A) text[i]=0x0D;
-    strPasteBuffer.append(text);
+    const char* asc = CodePageHostToGuest(text);
+    if (asc != NULL)
+        strPasteBuffer.append(asc);
+    else
+        strPasteBuffer.append(text);
     fflush(stdout);
     XFree(prop_ret);
     XDeleteProperty(dpy, w, p);
@@ -8496,7 +8507,7 @@ bool show_save_state_menu_callback(DOSBoxMenu * const menu, DOSBoxMenu::item * c
     MAPPER_ReleaseAllKeys();
     GFX_LosingFocus();
     std::string message = "Save to: "+(use_save_file&&savefilename.size()?"File "+savefilename:"Slot "+std::to_string(GetGameState_Run()+1))+"\n"+SaveState::instance().getName(GetGameState_Run(), true);
-    bool ret=tinyfd_messageBox("Saved state information", message.c_str(), "ok","info", 1);
+    tinyfd_messageBox("Saved state information", message.c_str(), "ok","info", 1);
     MAPPER_ReleaseAllKeys();
     GFX_LosingFocus();
     return true;
