@@ -38,7 +38,7 @@ Write-Host("Applying patches") -ForegroundColor Yellow
 $gitdir = $tgtdir.Substring(2).Replace("\","/")
 $gitdir = $gitdir.Trim()
 $dirlen = $gitdir.Split("/").Count
-foreach ($patch in $patchs)
+foreach ($patch in $($patchs -split "`r`n"))
 {
     <# not working
     $diff = & git config diff.noprefix
