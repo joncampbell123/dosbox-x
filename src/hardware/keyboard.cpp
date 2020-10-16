@@ -1336,6 +1336,10 @@ void KEYBOARD_PC98_AddKey(KBD_KEYS keytype,bool pressed) {
             ret=0x1A; //HACK, reuse @ key
         break;
 
+    case KBD_pause:                             // PAUSE: Map to STOP key since CTRL+BREAK on IBM PC has a similar function
+        ret=0x60;
+        break;
+
     case KBD_capslock:                          // CAPS
         if (pressed) {                          // sends only on keypress, does not resend if held down
             pc98_caps_toggle();
