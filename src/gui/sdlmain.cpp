@@ -550,15 +550,15 @@ bool list_drivenum_menu_callback(DOSBoxMenu * const menu,DOSBoxMenu::item * cons
 
 const char *drive_opts[][2] = {
 #if defined(WIN32)
-	{ "mountauto",              "Mount Automatically" },
+	{ "mountauto",              "Auto-mount Windows drive" },
 #endif
-	{ "mounthd",                "Mount as Hard Disk" },
-	{ "mountcd",                "Mount as CD-ROM" },
-	{ "mountfd",                "Mount as Floppy" },
-	{ "mountimg",               "Mount disk image" },
-    { "unmount",                "Unmount" },
-    { "swap",                   "Swap disk" },
+	{ "mounthd",                "Mount folder as hard drive" },
+	{ "mountcd",                "Mount folder as CD drive" },
+	{ "mountfd",                "Mount folder as floppy drive" },
+	{ "mountimg",               "Mount disk or CD image file" },
+    { "unmount",                "Unmount drive" },
     { "rescan",                 "Rescan drive" },
+    { "swap",                   "Swap disk" },
     { "info",                   "Drive information" },
     { "boot",                   "Boot from drive" },
     { "bootimg",                "Boot from disk image" },
@@ -9884,9 +9884,12 @@ int main(int argc, char* argv[]) SDL_MAIN_NOEXCEPT {
             {
                 mainMenu.alloc_item(DOSBoxMenu::item_type_id,"capture_fmt_avi_zmbv").set_text("AVI + ZMBV").
                     set_callback_function(capture_fmt_menu_callback);
-#  if (C_AVCODEC)
                 mainMenu.alloc_item(DOSBoxMenu::item_type_id,"capture_fmt_mpegts_h264").set_text("MPEG-TS + H.264").
-                    set_callback_function(capture_fmt_menu_callback);
+                    set_callback_function(capture_fmt_menu_callback).
+#  if (C_AVCODEC)
+                enable(true);
+#  else
+                enable(false);
 #  endif
             }
         }

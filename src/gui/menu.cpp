@@ -131,6 +131,8 @@ static const char *def_menu_main[] =
     "WheelToArrow",
 #if defined(WIN32) || defined(C_SDL2)
     "SharedClipboard",
+#elif defined(LINUX) && C_X11
+    "mapper_paste",
 #endif
 #if !defined(C_EMSCRIPTEN)//FIXME: Reset causes problems with Emscripten
     "--",
@@ -186,8 +188,10 @@ static const char *def_menu_main_clipboard[] =
     "clipboard_device",
     "clipboard_dosapi",
 #endif
+#if !defined(LINUX) || !C_X11
     "--",
     "mapper_paste",
+#endif
     NULL
 };
 
@@ -577,9 +581,7 @@ static const char *def_menu_capture[] =
 static const char *def_menu_capture_format[] =
 {
     "capture_fmt_avi_zmbv",
-#  if (C_AVCODEC)
     "capture_fmt_mpegts_h264",
-#  endif
     NULL
 };
 # endif
