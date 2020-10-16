@@ -1,4 +1,8 @@
-﻿param (
+﻿# NOTE: for internal use only
+# This script moves a source file to a target file in repository,
+# but ensures its history is preserved, i.e. commits, author date.
+
+param (
     [Parameter(Mandatory=$true)][string]$source,
     [Parameter(Mandatory=$true)][string]$target
 )
