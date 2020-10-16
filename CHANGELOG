@@ -1,4 +1,6 @@
 0.83.7
+  - PC-98 STOP key now functions the same as CTRL+C
+    and CTRL+BREAK does in IBM PC mode.
   - DOSBox "Pause" mapper shortcut moved to HOST+Pause
     instead of CTRL+Pause so that CTRL+BREAK can work
     properly for users.
