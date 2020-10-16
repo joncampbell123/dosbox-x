@@ -1,0 +1,102 @@
+Source is .\BUGS\Magic 12 - Show.txt
+Target is .\docs\BUGS\Magic 12 - Show.txt
+Branch is develop
+Commit count is 6
+Generating patches
+0001-more-bug-commentary.patch
+0002-updated-notes-and-bugs-regarding-demoscene-entry-Maj.patch
+0003-Update-BUG-notes-for-Majic-12-Show.patch
+0004-suggest-workaround-for-Magic-12-demo-issue.patch
+0005-Update-bug-notes-to-refer-to-demo-not-author.-Doh.patch
+0006-update-bug-notes.patch
+Creating target directory .\docs\BUGS
+Applying patches
+[develop 1a886daab] [MIGRATED] [PATCH 1/6] more bug commentary
+ Author: Jonathan Campbell <jonathan@castus.tv>
+ Date: Tue Jan 21 03:00:07 2014 -0800
+ 1 file changed, 14 insertions(+)
+ create mode 100644 docs/BUGS/Magic 12 - Show.txt
+git.exe : error: unknown switch `0'
+At C:\Users\Aybe\source\repos\dosbox-x\move-with-hist.ps1:69 char:5
++     & git commit -m "$text" -m "$data" --date="$date" --author="$mail ...
++     ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : NotSpecified: (error: unknown switch `0':String) [], RemoteException
+    + FullyQualifiedErrorId : NativeCommandError
+ 
+usage: git commit [<options>] [--] <pathspec>...
+    -q, --quiet           suppress summary after successful commit
+    -v, --verbose         show diff in commit message template
+Commit message options
+    -F, --file <file>     read message from file
+    --author <author>     override author for commit
+    --date <date>         override date for commit
+    -m, --message <message>
+                          commit message
+    -c, --reedit-message <commit>
+                          reuse and edit message from specified commit
+    -C, --reuse-message <commit>
+                          reuse message from specified commit
+    --fixup <commit>      use autosquash formatted message to fixup specified commit
+    --squash <commit>     use autosquash formatted message to squash specified commit
+    --reset-author        the commit is authored by me now (used with -C/-c/--amend)
+    -s, --signoff         add Signed-off-by:
+    -t, --template <file>
+                          use specified template file
+    -e, --edit            force edit of commit
+    --cleanup <mode>      how to strip spaces and #comments from message
+    --status              include status in commit message template
+    -S, --gpg-sign[=<key-id>]
+                          GPG sign commit
+Commit contents options
+    -a, --all             commit all changed files
+    -i, --include         add specified files to index for commit
+    --interactive         interactively add files
+    -p, --patch           interactively add changes
+    -o, --only            commit only specified files
+    -n, --no-verify       bypass pre-commit and commit-msg hooks
+    --dry-run             show what would be committed
+    --short               show status concisely
+    --branch              show branch information
+    --ahead-behind        compute full ahead/behind values
+    --porcelain           machine-readable output
+    --long                show status in long format (default)
+    -z, --null            terminate entries with NUL
+    --amend               amend previous commit
+    --no-post-rewrite     bypass post-rewrite hook
+    -u, --untracked-files[=<mode>]
+                          show untracked files, optional modes: all, normal, no. (Default: all)
+    --pathspec-from-file <file>
+                          read pathspec from file
+    --pathspec-file-nul   with --pathspec-from-file, pathspec elements are separated with NUL character
+git.exe : error: pathspec '12' did not match any file(s) known to git
+At C:\Users\Aybe\source\repos\dosbox-x\move-with-hist.ps1:69 char:5
++     & git commit -m "$text" -m "$data" --date="$date" --author="$mail ...
++     ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : NotSpecified: (error: pathspec...s) known to git:String) [], RemoteException
+    + FullyQualifiedErrorId : NativeCommandError
+ 
+error: pathspec '-' did not match any file(s) known to git
+error: pathspec 'Show' did not match any file(s) known to git
+git.exe : error: pathspec '12 demo issue.' did not match any file(s) known to git
+At C:\Users\Aybe\source\repos\dosbox-x\move-with-hist.ps1:69 char:5
++     & git commit -m "$text" -m "$data" --date="$date" --author="$mail ...
++     ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : NotSpecified: (error: pathspec...s) known to git:String) [], RemoteException
+    + FullyQualifiedErrorId : NativeCommandError
+ 
+[develop 10746e500] [MIGRATED] [PATCH 5/6] Update bug notes to refer to demo, not author. Doh!
+ Author: Jonathan Campbell <jonathan@castus.tv>
+ Date: Wed Feb 4 10:35:26 2015 -0800
+ 1 file changed, 21 insertions(+), 5 deletions(-)
+[develop b7f957414] [MIGRATED] [PATCH 6/6] update bug notes
+ Author: Jonathan Campbell <jonathan@castus.tv>
+ Date: Fri Feb 6 11:56:55 2015 -0800
+ 1 file changed, 12 insertions(+), 4 deletions(-)
+Removing original file .\BUGS\Magic 12 - Show.txt
+rm 'BUGS/Magic 12 - Show.txt'
+[develop 2e7b3ec44] [MIGRATED] Delete .\BUGS\Magic 12 - Show.txt
+ 1 file changed, 38 deletions(-)
+ delete mode 100644 BUGS/Magic 12 - Show.txt
+Complete
+
+PS C:\Users\Aybe\source\repos\dosbox-x> 
