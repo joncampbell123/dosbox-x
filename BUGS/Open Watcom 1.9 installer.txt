@@ -1,8 +1,0 @@
-- If the DBCS table is disabled, the Open Watcom 1.9 installer will
-  cause an exception in the CauseWay DOS extender when you run the
-  installer.
-
-- If umb=true or private area in umb=true, the installer will cause
-  memory corruption that can cause other DOS programs to crash or
-  malfunction.
-
