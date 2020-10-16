@@ -723,6 +723,9 @@ bool device_CON::Read(uint8_t * data,uint16_t * size) {
                  * control/escape code */
                 CommonPC98ExtScanConversionToReadBuf(reg_ah);
             }
+            else if (reg_ah == 0) { /* CTRL+BREAK hackery (inserted as 0x0000) */
+    			data[count++]=0x03; // CTRL+C
+            }
             else {
                 /* IBM PC/XT/AT signals extended code by entering AL, AH.
                  * Arrow keys for example become 0x00 0x48, 0x00 0x50, etc. */
