@@ -6970,6 +6970,15 @@ uint32_t BIOS_get_PC98_INT_STUB(void) {
     return callback[18].Get_RealPointer();
 }
 
+Bitu call_pc98_default_stop;
+
+static Bitu pc98_default_stop_handler(void) {
+    // INT 06h, which means someone pressed the STOP key... or the CPU is signalling an invalid opcode.
+    // The overlap makes it extremely unclear.
+    LOG_MSG("Invalid opcode or unhandled PC-98 STOP key interrupt 06h");
+	return CBRET_NONE;
+}
+
 /* NTS: Remember the 8259 is non-sentient, and the term "slave" is used in a computer programming context */
 static Bitu Default_IRQ_Handler_Cooperative_Slave_Pic(void) {
     /* PC-98 style IRQ 8-15 handling.
@@ -7057,6 +7066,11 @@ private:
 
             write_FFFF_PC98_signature();
             BIOS_ZeroExtendedSize(false);
+
+            if (call_pc98_default_stop == 0)
+                call_pc98_default_stop = CALLBACK_Allocate();
+
+            CALLBACK_Setup(call_pc98_default_stop,&pc98_default_stop_handler,CB_IRET,"INT 6h invalid opcode or STOP interrupt");
 
             unsigned char memsize_real_code = 0;
             Bitu mempages = MEM_TotalPages(); /* in 4KB pages */
@@ -7332,6 +7346,9 @@ private:
 
             for (unsigned int i=0x00;i < 0x08;i++)
                 real_writed(0,i*4,CALLBACK_RealPointer(call_default));
+
+            // STOP interrupt or invalid opcode
+            real_writed(0,0x06*4,CALLBACK_RealPointer(call_pc98_default_stop));
         }
         else {
             /* Clear the vector table */
