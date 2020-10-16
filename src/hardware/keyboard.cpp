@@ -1335,7 +1335,7 @@ void KEYBOARD_PC98_AddKey(KBD_KEYS keytype,bool pressed) {
         if(pc98_force_ibm_layout)
             ret=0x1A; //HACK, reuse @ key
         break;
-    
+
     case KBD_capslock:                          // CAPS
         if (pressed) {                          // sends only on keypress, does not resend if held down
             pc98_caps_toggle();
@@ -1344,13 +1344,13 @@ void KEYBOARD_PC98_AddKey(KBD_KEYS keytype,bool pressed) {
         return;
 
     case KBD_numlock:                           // NUM
-        pc98_numlock_toggle();
+        pc98_numlock_toggle();                  // TODO: Scan code? NUM LOCK didn't exist until later PC-9821 systems.
         return;
 
     case KBD_kana:                              // KANA
         if (pressed) {                          // sends only on keypress, does not resend if held down
             pc98_kana_toggle();
-            pc98_keyboard_send(0x72 | (!pc98_kana() ? 0x80 : 0x00)); // make code if caps switched on, break if caps switched off
+            pc98_keyboard_send(0x72 | (!pc98_kana() ? 0x80 : 0x00)); // make code if kana switched on, break if caps switched off
         }
         return;
 
