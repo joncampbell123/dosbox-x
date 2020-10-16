@@ -8699,17 +8699,23 @@ void SendCAD(bool pressed) {
 
 bool sendkey_preset_menu_callback(DOSBoxMenu * const menu, DOSBoxMenu::item * const menuitem) {
     (void)menu;//UNUSED
-    if (menuitem->get_name() == "sendkey_ctrlesc") {
+    if (menuitem->get_name() == "sendkey_alttab") {
+        KEYBOARD_AddKey(KBD_leftalt, true);
+        KEYBOARD_AddKey(KBD_tab, true);
+        KEYBOARD_AddKey(KBD_leftalt, false);
+        KEYBOARD_AddKey(KBD_tab, false);
+    }
+    else if (menuitem->get_name() == "sendkey_ctrlesc") {
         KEYBOARD_AddKey(KBD_leftctrl, true);
         KEYBOARD_AddKey(KBD_esc, true);
         KEYBOARD_AddKey(KBD_leftctrl, false);
         KEYBOARD_AddKey(KBD_esc, false);
     }
-    else if (menuitem->get_name() == "sendkey_alttab") {
-        KEYBOARD_AddKey(KBD_leftalt, true);
-        KEYBOARD_AddKey(KBD_tab, true);
-        KEYBOARD_AddKey(KBD_leftalt, false);
-        KEYBOARD_AddKey(KBD_tab, false);
+    else if (menuitem->get_name() == "sendkey_ctrlbreak") {
+        KEYBOARD_AddKey(KBD_leftctrl, true);
+        KEYBOARD_AddKey(KBD_pause, true);
+        KEYBOARD_AddKey(KBD_leftctrl, false);
+        KEYBOARD_AddKey(KBD_pause, false);
     }
     else if (menuitem->get_name() == "sendkey_winlogo") {
         KEYBOARD_AddKey(KBD_lwindows, true);
@@ -10151,8 +10157,9 @@ int main(int argc, char* argv[]) SDL_MAIN_NOEXCEPT {
         mainMenu.alloc_item(DOSBoxMenu::item_type_id,"clipboard_device").set_text("Enable DOS clipboard device access").set_callback_function(dos_clipboard_device_menu_callback).check(dos_clipboard_device_access==4&&!control->SecureMode());
         mainMenu.alloc_item(DOSBoxMenu::item_type_id,"clipboard_dosapi").set_text("Enable DOS clipboard API for applications").set_callback_function(dos_clipboard_api_menu_callback).check(clipboard_dosapi);
 #endif
-        mainMenu.alloc_item(DOSBoxMenu::item_type_id,"sendkey_ctrlesc").set_text("Ctrl+Esc").set_callback_function(sendkey_preset_menu_callback);
         mainMenu.alloc_item(DOSBoxMenu::item_type_id,"sendkey_alttab").set_text("Alt+Tab").set_callback_function(sendkey_preset_menu_callback);
+        mainMenu.alloc_item(DOSBoxMenu::item_type_id,"sendkey_ctrlesc").set_text("Ctrl+Esc").set_callback_function(sendkey_preset_menu_callback);
+        mainMenu.alloc_item(DOSBoxMenu::item_type_id,"sendkey_ctrlbreak").set_text("Ctrl+Break").set_callback_function(sendkey_preset_menu_callback);
         mainMenu.alloc_item(DOSBoxMenu::item_type_id,"sendkey_winlogo").set_text("Logo key").set_callback_function(sendkey_preset_menu_callback);
         mainMenu.alloc_item(DOSBoxMenu::item_type_id,"sendkey_winmenu").set_text("Menu key").set_callback_function(sendkey_preset_menu_callback);
         mainMenu.alloc_item(DOSBoxMenu::item_type_id,"sendkey_cad").set_text("Ctrl+Alt+Del").set_callback_function(sendkey_preset_menu_callback);

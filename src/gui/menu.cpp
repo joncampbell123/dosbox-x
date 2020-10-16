@@ -156,8 +156,9 @@ static const char *def_menu_main[] =
 /* main -> send key menu ("MenuSendKey") */
 static const char *def_menu_main_sendkey[] =
 {
-    "sendkey_ctrlesc",
     "sendkey_alttab",
+    "sendkey_ctrlesc",
+    "sendkey_ctrlbreak",
     "sendkey_winlogo",
     "sendkey_winmenu",
     "--",
