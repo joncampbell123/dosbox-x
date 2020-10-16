@@ -4053,12 +4053,8 @@ static void GUI_StartUp() {
 
     MAPPER_AddHandler(PasteClipboard, MK_nothing, 0, "paste", "Paste Clip", &item); //end emendelson; improved by Wengier
     item->set_text("Pasting from the clipboard");
-#if C_DEBUG
-    /* Pause binds with activate-debugger */
-    MAPPER_AddHandler(&PauseDOSBox, MK_pause, MMOD1, "pause", "Pause");
-#else
-    MAPPER_AddHandler(&PauseDOSBox, MK_pause, MMOD2, "pause", "Pause");
-#endif
+
+    MAPPER_AddHandler(&PauseDOSBox, MK_pause, MMODHOST, "pause", "Pause");
 
 #if DOSBOXMENU_TYPE == DOSBOXMENU_NSMENU
     pause_menu_item_tag = mainMenu.get_item("mapper_pause").get_master_id() + DOSBoxMenu::nsMenuMinimumID;
