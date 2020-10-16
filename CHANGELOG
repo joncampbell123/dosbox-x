@@ -1,11 +1,11 @@
 0.83.7
-  - PC-98 STOP key now functions the same as CTRL+C
-    and CTRL+BREAK does in IBM PC mode.
-  - DOSBox "Pause" mapper shortcut moved to HOST+Pause
-    instead of CTRL+Pause so that CTRL+BREAK can work
-    properly for users.
-  - Added full CTRL+BREAK emulation at the BIOS and
+  - Added full Ctrl+Break emulation at the BIOS and
     DOS level, updated console emulation to match.
+    The "Pause" mapper shortcut is now moved to
+    HOST[F11/F12]+Pause instead of Ctrl+Pause so that
+    Ctrl+Break can work properly for users. Also, the
+    PC-98 STOP key now functions the same as Ctrl+C
+    and Ctrl+Break does in IBM PC mode.
   - The mouse copy/paste feature is now available for
     non-Windows systems on SDL2 builds. Also, pasting
     from the clipboard with a mapped shortcut is also
