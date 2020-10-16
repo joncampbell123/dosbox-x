@@ -1344,7 +1344,6 @@ static Bitu PCjr_NMI_Keyboard_Handler(void) {
 }
 
 static Bitu IRQ1_CtrlBreakAfterInt1B(void) {
-    BIOS_AddKeyToBuffer(0x0000);
     return CBRET_NONE;
 }
 
