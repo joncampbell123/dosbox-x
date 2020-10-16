@@ -1445,9 +1445,9 @@ extern bool DOS_BreakFlag;
 // IBM PC/AT CTRL+BREAK interrupt, called by IRQ1 handler.
 // Not applicable to PC-98 mode, of course.
 Bitu INT1B_Break_Handler(void) {
-    // FIXME: BIOS DATA AREA 40:71 bit 7 is set when Break key is pressed.
-    //        Is that done within the IRQ1 handler or by the default INT 1Bh handler?
-    //        Ref: [http://hackipedia.org/browse.cgi/Computer/Platform/PC%2c%20IBM%20compatible/Computers/IBM/PS%e2%88%952/IBM%20Personal%20System%e2%88%952%20and%20Personal%20Computer%20BIOS%20Interface%20Technical%20Reference%20%281991%2d09%29%20First%20Edition%2c%20part%203%2epdf]
+    // BIOS DATA AREA 40:71 bit 7 is set when Break key is pressed.
+    // This is already implemented by IRQ1 handler in src/ints/bios_keyboard.cpp.
+    // Ref: [http://hackipedia.org/browse.cgi/Computer/Platform/PC%2c%20IBM%20compatible/Computers/IBM/PS%e2%88%952/IBM%20Personal%20System%e2%88%952%20and%20Personal%20Computer%20BIOS%20Interface%20Technical%20Reference%20%281991%2d09%29%20First%20Edition%2c%20part%203%2epdf]
 
     // MS-DOS installs an INT 1Bh handler that sets the "break" flag and then returns immediately.
     // MS-DOS 6.22's interrupt handler is literally two instructions:
