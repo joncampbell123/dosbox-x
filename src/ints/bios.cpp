@@ -1439,6 +1439,27 @@ void isapnp_write_port(Bitu port,Bitu val,Bitu /*iolen*/) {
     }
 }
 
+extern bool dos_kernel_disabled;
+extern bool DOS_BreakFlag;
+
+// IBM PC/AT CTRL+BREAK interrupt, called by IRQ1 handler.
+// Not applicable to PC-98 mode, of course.
+Bitu INT1B_Break_Handler(void) {
+    // FIXME: BIOS DATA AREA 40:71 bit 7 is set when Break key is pressed.
+    //        Is that done within the IRQ1 handler or by the default INT 1Bh handler?
+    //        Ref: [http://hackipedia.org/browse.cgi/Computer/Platform/PC%2c%20IBM%20compatible/Computers/IBM/PS%e2%88%952/IBM%20Personal%20System%e2%88%952%20and%20Personal%20Computer%20BIOS%20Interface%20Technical%20Reference%20%281991%2d09%29%20First%20Edition%2c%20part%203%2epdf]
+
+    // MS-DOS installs an INT 1Bh handler that sets the "break" flag and then returns immediately.
+    // MS-DOS 6.22's interrupt handler is literally two instructions:
+    //      MOV BYTE PTR CS:[000Ch],03h
+    //      IRET
+    if (!dos_kernel_disabled)
+        DOS_BreakFlag = true;
+
+    // FIXME: What does the stock BIOS INT 1Bh do?
+    return CBRET_NONE;
+}
+
 static Bitu INT15_Handler(void);
 
 // FIXME: This initializes both APM BIOS and ISA PNP emulation!
@@ -7403,6 +7424,7 @@ private:
             callback[11].Uninstall(); /* INT 76h: IDE IRQ 14 */
             callback[12].Uninstall(); /* INT 77h: IDE IRQ 15 */
             callback[15].Uninstall(); /* INT 18h: Enter BASIC */
+            callback[19].Uninstall(); /* INT 1Bh */
 
             /* IRQ 6 is nothing special */
             callback[13].Uninstall(); /* INT 0Eh: IDE IRQ 6 */
@@ -7625,6 +7647,7 @@ private:
             callback[12].Set_RealVec(0x77,/*reinstall*/true);
             callback[13].Set_RealVec(0x0E,/*reinstall*/true);
             callback[15].Set_RealVec(0x18,/*reinstall*/true);
+            callback[19].Set_RealVec(0x1B,/*reinstall*/true);
         }
 
         // FIXME: We're using IBM PC memory size storage even in PC-98 mode.
@@ -8758,6 +8781,9 @@ public:
 
         // INT 19h: Boot function
         callback[10].Install(&INT19_Handler,CB_IRET,"int 19");
+
+        // INT 1Bh: IBM PC CTRL+Break
+        callback[19].Install(&INT1B_Break_Handler,CB_IRET,"INT 1Bh CTRL+BREAK handler");
 
         // INT 76h: IDE IRQ 14
         // This is just a dummy IRQ handler to prevent crashes when
