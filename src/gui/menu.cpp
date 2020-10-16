@@ -577,9 +577,7 @@ static const char *def_menu_capture[] =
 static const char *def_menu_capture_format[] =
 {
     "capture_fmt_avi_zmbv",
-#  if (C_AVCODEC)
     "capture_fmt_mpegts_h264",
-#  endif
     NULL
 };
 # endif
