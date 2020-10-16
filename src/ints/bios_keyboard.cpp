@@ -1291,10 +1291,15 @@ static Bitu IRQ1_Handler_PC98(void) {
                 // interrupt handler in the debugger confirms this.
                 if (pressed) {
                     /* push an IRET frame pointing at INT 06h. */
+
                     /* we can't just CALLBACK_RunRealInt() here because we're in the
                      * middle of an ISR and we need to acknowledge the interrupt to
                      * the PIC before we call INT 06h. Funny things happen otherwise,
                      * including an unresponsive keyboard. */
+
+                    /* I noticed that Neko Project II has the code to emulate this,
+                     * as a direct call to run a CPU interrupt, but it's commented
+                     * out for probably the same issue. */
                     const uint32_t cb = real_readd(0,0x06u * 4u);
 
                     CPU_PUSHF(0);
