@@ -6972,11 +6972,18 @@ uint32_t BIOS_get_PC98_INT_STUB(void) {
 
 Bitu call_pc98_default_stop;
 
+extern bool DOS_BreakFlag;
+
 static Bitu pc98_default_stop_handler(void) {
     // INT 06h, which means someone pressed the STOP key... or the CPU is signalling an invalid opcode.
     // The overlap makes it extremely unclear.
     LOG_MSG("Invalid opcode or unhandled PC-98 STOP key interrupt 06h");
-	return CBRET_NONE;
+
+    // try to make it work as CTRL+BREAK in the built-in DOS environment.
+    if (!dos_kernel_disabled)
+        DOS_BreakFlag = true;
+
+    return CBRET_NONE;
 }
 
 /* NTS: Remember the 8259 is non-sentient, and the term "slave" is used in a computer programming context */

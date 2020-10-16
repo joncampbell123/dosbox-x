@@ -1402,6 +1402,8 @@ static bool IsEnhancedKey(uint16_t &key) {
     return false;
 }
 
+extern bool DOS_BreakFlag;
+
 bool int16_unmask_irq1_on_read = true;
 bool int16_ah_01_cf_undoc = true;
 
@@ -1411,6 +1413,12 @@ Bitu INT16_Handler(void) {
     case 0x00: /* GET KEYSTROKE */
         if (int16_unmask_irq1_on_read)
             PIC_SetIRQMask(1,false); /* unmask keyboard */
+
+        // HACK: Make STOP key work
+        if (IS_PC98_ARCH && DOS_BreakFlag) {
+            reg_ax=0;
+            return CBRET_NONE;
+        }
 
         if ((get_key(temp)) && (!IsEnhancedKey(temp))) {
             /* normal key found, return translated key in ax */
@@ -1423,6 +1431,12 @@ Bitu INT16_Handler(void) {
     case 0x10: /* GET KEYSTROKE (enhanced keyboards only) */
         if (int16_unmask_irq1_on_read)
             PIC_SetIRQMask(1,false); /* unmask keyboard */
+
+        // HACK: Make STOP key work
+        if (IS_PC98_ARCH && DOS_BreakFlag) {
+            reg_ax=0;
+            return CBRET_NONE;
+        }
 
         if (get_key(temp)) {
             if (!IS_PC98_ARCH && ((temp&0xff)==0xf0) && (temp>>8)) {

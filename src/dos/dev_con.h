@@ -672,6 +672,12 @@ bool device_CON::Read(uint8_t * data,uint16_t * size) {
             continue;
         }
 
+        // Make STOP key work
+        if (IS_PC98_ARCH && DOS_BreakFlag) {
+            data[count++]=0x03; // CTRL+C
+            continue;
+        }
+
 		reg_ah=(IS_EGAVGA_ARCH)?0x10:0x0;
 
         /* FIXME: PC-98 emulation should eventually use CONIO emulation that
