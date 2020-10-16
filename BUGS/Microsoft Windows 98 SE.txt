@@ -1,5 +1,0 @@
-
-FIXME: I'm seeing (on fresh install) Windows showing notification of invalid page faults
-       in RUNDLL32.DLL pointing to memory address 0x984. Is this another one of DOSBox's
-       internal calls reading real-mode memory at the wrong time??
-
