@@ -6864,7 +6864,8 @@ static Bitu adapter_scan_start;
 
 /* FIXME: At global scope their destructors are called after the rest of DOSBox has shut down. Move back into BIOS scope. */
 static CALLBACK_HandlerObject int4b_callback;
-static CALLBACK_HandlerObject callback[20]; /* <- fixme: this is stupid. just declare one per interrupt. */
+static const size_t callback_count = 20;
+static CALLBACK_HandlerObject callback[callback_count]; /* <- fixme: this is stupid. just declare one per interrupt. */
 static CALLBACK_HandlerObject cb_bios_post;
 static CALLBACK_HandlerObject callback_pc98_lio;
 
@@ -7040,7 +7041,7 @@ private:
         }
 
         if (IS_PC98_ARCH) {
-            for (unsigned int i=0;i < 20;i++) callback[i].Uninstall();
+            for (unsigned int i=0;i < callback_count;i++) callback[i].Uninstall();
 
             /* clear out 0x50 segment (TODO: 0x40 too?) */
             for (unsigned int i=0;i < 0x100;i++) phys_writeb(0x500+i,0);
@@ -8943,7 +8944,7 @@ public:
 
         /* encourage the callback objects to uninstall HERE while we're in real mode, NOT during the
          * destructor stage where we're back in protected mode */
-        for (unsigned int i=0;i < 20;i++) callback[i].Uninstall();
+        for (unsigned int i=0;i < callback_count;i++) callback[i].Uninstall();
 
         /* assume these were allocated */
         CALLBACK_DeAllocate(call_irq0);
