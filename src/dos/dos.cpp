@@ -2274,14 +2274,17 @@ static Bitu DOS_21Handler(void) {
     return CBRET_NONE;
 }
 
-
 static Bitu BIOS_1BHandler(void) {
     mem_writeb(BIOS_CTRL_BREAK_FLAG,0x00);
+
+    // MS-DOS installs an INT 1Bh handler that sets the "break" flag and then returns immediately.
+    // MS-DOS 6.22's interrupt handler is literally two instructions:
+    //      MOV BYTE PTR CS:[000Ch],03h
+    //      IRET
 
     /* take note (set flag) and return */
     /* FIXME: Don't forget that on "BOOT" this handler should be unassigned, though having it assigned
      *        to the guest OS causes no harm. */
-    LOG_MSG("Note: default 1Bh handler invoked\n");
     DOS_BreakFlag = true;
     return CBRET_NONE;
 }
@@ -2945,7 +2948,7 @@ public:
 
         if (!IS_PC98_ARCH) {
             /* DOS installs a handler for INT 1Bh */
-            callback[7].Install(BIOS_1BHandler,CB_IRET,"BIOS 1Bh");
+            callback[7].Install(BIOS_1BHandler,CB_IRET,"BIOS 1Bh MS-DOS handler");
             callback[7].Set_RealVec(0x1B);
         }
 
