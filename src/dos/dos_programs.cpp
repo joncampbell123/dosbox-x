@@ -2451,6 +2451,10 @@ public:
             WriteOut("Must specify BIOS file to load.\n");
             return;
         }
+        if (cmd->FindExist("-?", false) || cmd->FindExist("/?", false)) {
+            WriteOut(MSG_Get("PROGRAM_BIOSTEST_HELP"));
+            return;
+        }
 
         uint8_t drive;
         char fullname[DOS_PATHLENGTH];
@@ -6574,6 +6578,7 @@ void DOS_SetupPrograms(void) {
     MSG_Add("PROGRAM_LOADROM_INCOMPATIBLE","Video BIOS not supported by machine type.\n");
     MSG_Add("PROGRAM_LOADROM_UNRECOGNIZED","ROM file not recognized.\n");
     MSG_Add("PROGRAM_LOADROM_BASIC_LOADED","BASIC ROM loaded.\n");
+    MSG_Add("PROGRAM_BIOSTEST_HELP","Boots into a BIOS image for running CPU tester BIOS.\n");
 
     MSG_Add("VHD_ERROR_OPENING", "Could not open the specified VHD file.\n");
     MSG_Add("VHD_INVALID_DATA", "The specified VHD file is corrupt and cannot be opened.\n");
