@@ -17,11 +17,6 @@ charset_encoding "UTF-8"; /* default */
    rmw: register/memory operand, byte operand
    mrm: mod/reg/rm (with optional scalar/index/byte if 32-bit addressing with the right combination)
    accum: AX/EAX
-   base: BX/EBX
-   counter: CX/ECX
-   daccum: DX/EDX
-   srcidx: SI/ESI
-   dstidx: DI/EDI
    immb: 8-bit immediate
    immw: word immediate
    sib: scalar/index/byte
