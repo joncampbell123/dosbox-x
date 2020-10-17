@@ -187,19 +187,6 @@ common opcode "Jcc" param(imm,insp,flags,cond) {
     syntax fip;
 }
 
-common opcode "CALL FAR" param(sv,ov) {
-    modifies stackp; /* stackp -= (word size + 16 bits) */
-    modifies CS,insp;
-
-    /* CS = sv, [E]IP = ov */
-    input sv,ov;
-    output CS,insp;
-    output order(stackdataw,stackdata16);
-
-    /* how to show it */
-    syntax farptr(sv,ov); /* seg:off */
-}
-
 opcode sequence(0x00 mrm) name "ADD" { /* ADD r/m, reg */ common opcode "ADD" param(rmb,regb); }
 opcode sequence(0x01 mrm) name "ADD" { /* ADD r/m, reg */ common opcode "ADD" param(rmw,regw); }
 opcode sequence(0x02 mrm) name "ADD" { /* ADD reg, r/m */ common opcode "ADD" param(regb,rmb); }
@@ -411,8 +398,5 @@ opcode sequence(0x99) name "CDQ" if datasize == 32 {
     /* EDX:EAX = sign extended EAX */
     input EAX;
     output EDX,EAX only modifies EDX;
-}
-opcode sequence(0x9A immw imm16) name "CALL" { /* CALL FAR imm16:immw aka seg:off */
-    common opcode "CALL FAR" param(imm16,immw);
 }
 
