@@ -50,7 +50,7 @@ interrupt "MS-DOS INT 20" {
     }
     exists_if dos_version >= version(1.0);
     description "Terminate the process. Return code aka error level is set to 00h.";
-    see_also interrupt "MS-DOS INT 21" select by register AH value 0x00;
+    see_also interrupt "MS-DOS INT 21" select by "AH" value 0x00;
 }
 
 interrupt "MS-DOS INT 21" {
