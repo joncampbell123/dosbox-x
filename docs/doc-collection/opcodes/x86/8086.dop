@@ -25,14 +25,13 @@ charset_encoding "UTF-8"; /* default */
    dstidx: DI/EDI
    immb: 8-bit immediate
    immw: word immediate
-   immsb: 8-bit immediate signed
    sib: scalar/index/byte
    flags: flags register (FLAGS if 16-bit, EFLAGS if 32-bit)
    flags(...): specific flags (bitmask)
    stackp: stack pointer (SP/ESP)
    basep: base pointer (BP/EBP)
    stackdataw: word value on stack [SS:stackp]. 16-bit or 32-bit depending on ?
-   ip: instruction pointer (IP/EIP). For input, the value is the instruction pointer after decode.
+   ip: instruction pointer (IP/EIP)
    cpulevel: 0=8086 1=80186 2=286 3=386 4=486 5=Pentium
 */
 
@@ -138,15 +137,6 @@ common opcode "DEC" param(what) {
 
     /* how to show it */
     syntax what;
-}
-
-common opcode "Jcc" param(imm,insp,flags,cond) {
-    modifies flags,insp;
-
-    input insp,flags,imm;
-
-    /* how to show it (disassemblers show the sum, not the immediate) */
-    syntax (insp+imm);
 }
 
 opcode sequence(0x00 mrm) name "ADD" { /* ADD r/m, reg */ common opcode "ADD" param(rmb,regb); }
@@ -263,9 +253,5 @@ opcode sequence([0x50,0x57]) name "PUSH" {
 opcode sequence([0x58,0x5F]) name "POP" {
     reg index = opbyte(0) & 7;
     common opcode "POP" param(regw);
-}
-
-opcode sequence(0x70 immsb) name "JO" {
-    common opcode "Jcc" param(immsb,ip,flags(JO),function(flags(JO)));
 }
 
