@@ -322,14 +322,14 @@ define register "mrm_dataseg" {
 define expression map "mrm16_eaofs" {
     input "mrm" encoding "mrm";
 
-    index mrm.rm == 0 return eval(register "BX" + register "SI");
-    index mrm.rm == 1 return eval(register "BX" + register "DI");
-    index mrm.rm == 2 return eval(register "BP" + register "SI");
-    index mrm.rm == 3 return eval(register "BP" + register "DI");
-    index mrm.rm == 4 return eval(register "SI");
-    index mrm.rm == 5 return eval(register "DI");
-    index mrm.rm == 6 return eval(register "BP");
-    index mrm.rm == 7 return eval(register "BX");
+    index mrm.rm == 0 eval(register "BX" + register "SI");
+    index mrm.rm == 1 eval(register "BX" + register "DI");
+    index mrm.rm == 2 eval(register "BP" + register "SI");
+    index mrm.rm == 3 eval(register "BP" + register "DI");
+    index mrm.rm == 4 eval(register "SI");
+    index mrm.rm == 5 eval(register "DI");
+    index mrm.rm == 6 eval(register "BP");
+    index mrm.rm == 7 eval(register "BX");
 
     return null;
 }
