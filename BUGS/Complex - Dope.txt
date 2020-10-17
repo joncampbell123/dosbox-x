@@ -1,0 +1,29 @@
+"Dope" demo bugs (DOSBox-X's fault)
+
+BUG: Noticeable pause of music at points where VGA BIOS is called to set video mode during demo
+
+     However, this pause also happens on real hardware if the BIOS does not use the IRQ for hard
+     disk access (tested on a Pentium MMX 133MHz with a CompactFlash card for a hard disk).
+
+BUG: You can only run the demo once. Additional attempts log "illegal instruction" messages and
+     crash back to the DOS prompt. You must close and reopen DOSBox-X to run the demo again.
+
+ - I know for a fact that is not a feature of the demo. Having run it on real hardware, I know
+   the demo can be run again after the first time (though it is not reliable at reinitializing
+   the GUS to a known state).
+
+ - The debug messages from DOSBox-X are:
+
+   Warning: Illegal read from b66b1da, CS:IP 8: b66700a
+   DYNX86:Can't run code in this page!
+   Warning: Illegal read from b66b1da, CS:IP 8: b66700a
+   Warning: Illegal read from b66b1db, CS:IP 8: b66700a
+   141992554: CPU:CPU:66:GRP5:Illegal call  7
+   Warning: Illegal read from b66b1da, CS:IP 8: b66700a
+   Warning: Illegal read from b66b1da, CS:IP 8: b66700a
+   Warning: Illegal read from b66b1db, CS:IP 8: b66700a
+
+ - This apparently only happens if "private area size" is less than 16384, regardless of
+   "mainline compatible mapping" and "private area in umb" settings. Hm... is DOSBox
+   writing things beyond the block of private space it just allocated?
+
