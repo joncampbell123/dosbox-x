@@ -768,9 +768,3 @@ opcode sequence(0xD5 immb) name "AAD" {
     input ah, al;
 }
 
-opcode sequence(0xD6) name "XLAT" {
-    input base, al;
-    input memory reference word farptr(dsreg,base + al);
-    output al;
-}
-
