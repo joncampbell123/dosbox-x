@@ -598,18 +598,6 @@ opcode sequence(0xC2 immw) name "RET" {
 opcode sequence(0xC3) name "RET" {
     common opcode "RET" param(0);
 }
-opcode sequence(0xC4 mrm) name "LES" {
-    common opcode "LSEG" param(es,regw,rmw);
-}
-opcode sequence(0xC5 mrm) name "LDS" {
-    common opcode "LSEG" param(ds,regw,rmw);
-}
-opcode sequence(0xC6 mrm immb) name "MOV" {
-    common opcode "MOV" param(rmb,immb);
-}
-opcode sequence(0xC7 mrm immw) name "MOV" {
-    common opcode "MOV" param(rmw,immw);
-}
 opcode sequence(0xCA immw) name "RETF" {
     common opcode "RETF" param(immw);
 }
