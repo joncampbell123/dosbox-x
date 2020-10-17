@@ -7709,8 +7709,16 @@ bool cpu_speed_emulate_menu_callback(DOSBoxMenu * const menu,DOSBoxMenu::item * 
         cyclemu = 12010;
     else if (!strcmp(mname, "cpu486-66"))
         cyclemu = 23880;
+    else if (!strcmp(mname, "cpu486-100"))
+        cyclemu = 33445;
+    else if (!strcmp(mname, "cpu486-133"))
+        cyclemu = 47810;
     else if (!strcmp(mname, "cpu586-66"))
         cyclemu = 35620;
+    else if (!strcmp(mname, "cpu586-75"))
+        cyclemu = 43500;
+    else if (!strcmp(mname, "cpu586-90"))
+        cyclemu = 52000;
     else if (!strcmp(mname, "cpu586-100"))
         cyclemu = 60000;
     else if (!strcmp(mname, "cpu586-120"))
@@ -9684,7 +9692,11 @@ int main(int argc, char* argv[]) SDL_MAIN_NOEXCEPT {
             mainMenu.alloc_item(DOSBoxMenu::item_type_id,"cpu386-33").set_text("386DX 33MHz (~6075 cycles)").set_callback_function(cpu_speed_emulate_menu_callback);
             mainMenu.alloc_item(DOSBoxMenu::item_type_id,"cpu486-33").set_text("486DX 33MHz (~12010 cycles)").set_callback_function(cpu_speed_emulate_menu_callback);
             mainMenu.alloc_item(DOSBoxMenu::item_type_id,"cpu486-66").set_text("486DX2 66MHz (~23880 cycles)").set_callback_function(cpu_speed_emulate_menu_callback);
+            mainMenu.alloc_item(DOSBoxMenu::item_type_id,"cpu486-100").set_text("486DX4 100MHz (~33445 cycles)").set_callback_function(cpu_speed_emulate_menu_callback);
+            mainMenu.alloc_item(DOSBoxMenu::item_type_id,"cpu486-133").set_text("486DX5 133MHz (~47810 cycles)").set_callback_function(cpu_speed_emulate_menu_callback);
             mainMenu.alloc_item(DOSBoxMenu::item_type_id,"cpu586-66").set_text("Pentium 66MHz (~35620 cycles)").set_callback_function(cpu_speed_emulate_menu_callback);
+            mainMenu.alloc_item(DOSBoxMenu::item_type_id,"cpu586-75").set_text("Pentium 75MHz (~43500 cycles)").set_callback_function(cpu_speed_emulate_menu_callback);
+            mainMenu.alloc_item(DOSBoxMenu::item_type_id,"cpu586-90").set_text("Pentium 90MHz (~52000 cycles)").set_callback_function(cpu_speed_emulate_menu_callback);
             mainMenu.alloc_item(DOSBoxMenu::item_type_id,"cpu586-100").set_text("Pentium 100MHz (~60000 cycles)").set_callback_function(cpu_speed_emulate_menu_callback);
             mainMenu.alloc_item(DOSBoxMenu::item_type_id,"cpu586-120").set_text("Pentium 120MHz (~74000 cycles)").set_callback_function(cpu_speed_emulate_menu_callback);
             mainMenu.alloc_item(DOSBoxMenu::item_type_id,"cpu586-133").set_text("Pentium 133MHz (~80000 cycles)").set_callback_function(cpu_speed_emulate_menu_callback);

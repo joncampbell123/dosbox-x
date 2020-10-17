@@ -1,4 +1,8 @@
 0.83.7
+  - Added new CPU types to the "Emulate CPU speed" menu
+    group, namely 486DX4-100, 486DX5-133, Pentium-75,
+    and Pentium-90. Thanks again for the data provided
+    by the user maximus105. (Wengier)
   - Added full Ctrl+Break emulation at the BIOS and
     DOS level, updated console emulation to match.
     The "Pause" mapper shortcut is now moved to
@@ -166,7 +170,7 @@
     to emulate the speed of a specific CPU class. The
     cycles to emulate are approximations of the actual
     CPU hardware, and they are available thanks to data
-    provided by the user maximum105. Also added config
+    provided by the user maximus105. Also added config
     option "cycle emulation percentage adjust" in [cpu]
     section for users who would like to make relative
     percentage adjustments (between -25% and 25%) in
