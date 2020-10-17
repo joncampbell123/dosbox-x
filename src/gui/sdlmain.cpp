@@ -6534,16 +6534,37 @@ bool PasteClipboardNext() {
 #elif defined(C_SDL2)
 typedef char host_cnv_char_t;
 char *CodePageHostToGuest(const host_cnv_char_t *s);
-void removeChar(char *str, char c);
 void PasteClipboard(bool bPressed) {
 	if (!bPressed) return;
     char* text = SDL_GetClipboardText();
-    removeChar((char *)text, 0x0A);
-    const char* asc = CodePageHostToGuest(text);
-    if (asc != NULL)
-        strPasteBuffer.append(asc);
-    else
-        strPasteBuffer.append(text);
+    std::string result="", pre="";
+    for (unsigned int i=0; i<strlen(text); i++) {
+        if (text[i]==0x0A) continue;
+        else if (text[i]<0) {
+            char c=text[i];
+            int n=1;
+            if ((c & 0xe0) == 0xc0) n=2;
+            else if ((c & 0xf0) == 0xe0) n=3;
+            else if ((c & 0xf8) == 0xf0) n=4;
+            pre="";
+            bool exit=false;
+            for (int k=0; k<n; k++) {
+                if (n>2&&i>=strlen(text)) {exit=true;break;}
+                else if (i>=strlen(text)) {i++;break;}
+                if (text[i]>=0) {exit=true;break;}
+                pre+=std::string(1, text[i]);
+                i++;
+            }
+            if (exit) continue;
+            const char* asc = CodePageHostToGuest(pre.c_str());
+            result+=asc!=NULL?std::string(asc):(n>2?"":pre);
+            i--;
+        } else {
+            const char* asc = CodePageHostToGuest(std::string(1, text[i]).c_str());
+            result+=asc != NULL?std::string(asc):std::string(1, text[i]);
+        }
+    }
+    strPasteBuffer.append(result.c_str());
 }
 
 bool PasteClipboardNext() {
@@ -6571,12 +6592,34 @@ void paste_utf8_prop(Display *dpy, Window w, Atom p)
 
     XGetWindowProperty(dpy, w, p, 0, size, False, AnyPropertyType, &da, &di, &dul, &dul, &prop_ret);
     char *text=(char *)prop_ret;
-    for (unsigned int i=0; i<strlen(text); i++) if (text[i]==0x0A) text[i]=0x0D;
-    const char* asc = CodePageHostToGuest(text);
-    if (asc != NULL)
-        strPasteBuffer.append(asc);
-    else
-        strPasteBuffer.append(text);
+    std::string result="", pre="";
+    for (unsigned int i=0; i<strlen(text); i++) {
+        if (text[i]==0x0A) text[i]=0x0D;
+        else if (text[i]<0) {
+            char c=text[i];
+            int n=1;
+            if ((c & 0xe0) == 0xc0) n=2;
+            else if ((c & 0xf0) == 0xe0) n=3;
+            else if ((c & 0xf8) == 0xf0) n=4;
+            pre="";
+            bool exit=false;
+            for (int k=0; k<n; k++) {
+                if (n>2&&i>=strlen(text)) {exit=true;break;}
+                else if (i>=strlen(text)) {i++;break;}
+                if (text[i]>=0) {exit=true;break;}
+                pre+=std::string(1, text[i]);
+                i++;
+            }
+            if (exit) continue;
+            const char* asc = CodePageHostToGuest(pre.c_str());
+            result+=asc!=NULL?std::string(asc):(n>2?"":pre);
+            i--;
+        } else {
+            const char* asc = CodePageHostToGuest(std::string(1, text[i]).c_str());
+            result+=asc != NULL?std::string(asc):std::string(1, text[i]);
+        }
+    }
+    strPasteBuffer.append(result.c_str());
     fflush(stdout);
     XFree(prop_ret);
     XDeleteProperty(dpy, w, p);
