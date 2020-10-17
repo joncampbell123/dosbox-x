@@ -245,13 +245,3 @@ opcode sequence([0x48,0x4F]) name "DEC" {
     common opcode "DEC" param(regw); }
 }
 
-opcode sequence([0x50,0x57]) name "PUSH" {
-    reg index = opbyte(0) & 7;
-    common opcode "PUSH" param(regw);
-}
-
-opcode sequence([0x58,0x5F]) name "POP" {
-    reg index = opbyte(0) & 7;
-    common opcode "POP" param(regw);
-}
-
