@@ -17,7 +17,6 @@ charset_encoding "UTF-8"; /* default */
    rmw: register/memory operand, byte operand
    rm16: register/memory operand, 16-bit word operand
    mrm: mod/reg/rm (with optional scalar/index/byte if 32-bit addressing with the right combination)
-   AXH, BXH, CXH, DXH, etc: Upper 16 bits of EAX, EBX, ECX, EDX, etc
    opbyte(n): opcode byte n
    accum: AX/EAX
    base: BX/EBX
@@ -382,21 +381,21 @@ opcode sequence([0x91,0x97]) name "XCHG" {
 opcode sequence(0x98) name "CBW" if datasize == 16 {
     /* AX = sign extended AL */
     input AL;
-    output AX only modifies AH;
+    output AX;
 }
 opcode sequence(0x98) name "CWDE" if datasize == 32 {
     /* EAX = sign extended AX */
     input AX;
-    output EAX only modifies AXH;
+    output EAX;
 }
 opcode sequence(0x99) name "CWD" if datasize == 16 {
     /* DX:AX = sign extended AX */
     input AX;
-    output DX,AX only modifies DX;
+    output DX,AX;
 }
 opcode sequence(0x99) name "CDQ" if datasize == 32 {
     /* EDX:EAX = sign extended EAX */
     input EAX;
-    output EDX,EAX only modifies EDX;
+    output EDX,EAX;
 }
 
