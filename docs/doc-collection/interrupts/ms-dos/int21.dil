@@ -48,7 +48,7 @@ interrupt "MS-DOS INT 20" {
         content 0x00;
         description "Return code set to 00h";
     }
-    dos_version (dos_version >= version(1.0));
+    dos_version (dos_version >= 1.0);
     description "Terminate the process. Return code aka error level is set to 00h.";
     see_also interrupt "MS-DOS INT 21" select by "AH" value 0x00;
 }
@@ -68,7 +68,7 @@ interrupt "MS-DOS INT 21" {
                 content 0x00;
                 description "Return code set to 00h";
             }
-            dos_version (dos_version >= version(1.0));
+            dos_version (dos_version >= 1.0);
             description "Terminate the process. Return code aka error level is set to 00h.";
 
             notes "Microsoft recommends using INT 21/AH=4Ch for DOS 2+. This function sets the program's return code (ERRORLEVEL) to 00h. Execution continues at the address stored in INT 22 after DOS performs whatever cleanup it needs to do (restoring the INT 22,INT 23,INT 24 vectors from the PSP assumed to be located at offset 0000h in the segment indicated by the stack copy of CS, etc.). If the PSP is its own parent, the process's memory is not freed; if INT 22 additionally points into the terminating program, the process is effectively NOT terminated. Not supported by MS Windows 3.0 DOSX.EXE DOS extender" citation "rbil";
@@ -82,7 +82,7 @@ interrupt "MS-DOS INT 21" {
                 content "uint8_t";
                 description "Character value read";
             }
-            dos_version (dos_version >= version(1.0));
+            dos_version (dos_version >= 1.0);
             description "Read from STDIN, with CTRL+C/CTRL+BREAK checking and some CTRL combinations handled by the console automatically";
 
             notes "^C/^Break are checked, and INT 23 executed if read. ^P toggles the DOS-internal echo-to-printer flag. ^Z is not interpreted, thus not causing an EOF if input is redirected. Character is echoed to standard output. Standard input is always the keyboard and standard output the screen under DOS 1.x, but they may be redirected under DOS 2+" citation "rbil";
@@ -98,10 +98,10 @@ interrupt "MS-DOS INT 21" {
             }
             output "AL" citation "rbil" {
                 content "uint8_t";
-                dos_version (dos_version >= version(2.1));
+                dos_version (dos_version >= 2.1);
                 description "Last character output, despite official docs which state nothing is returned. MS-DOS 2.1 to 7.0 at least.";
             }
-            dos_version (dos_version >= version(1.0));
+            dos_version (dos_version >= 1.0);
             description "Write to STDOUT, with CTRL+C/CTRL+BREAK checking";
 
             notes "^C/^Break are checked, and INT 23 executed if pressed. Standard output is always the screen under DOS 1.x, but may be redirected under DOS 2+. The last character output will be the character in DL unless DL=09h on entry, in which case AL=20h as tabs are expanded to blanks. If standard output is redirected to a file, no error checks (write- protected, full media, etc.) are performed" citation "rbil";
