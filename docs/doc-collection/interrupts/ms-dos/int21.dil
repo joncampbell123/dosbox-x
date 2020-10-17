@@ -21,11 +21,6 @@ define var "dos_version" {
     name "DOS version, major.minor format";
 }
 
-define var "dos_reported_version" {
-    type "version";
-    name "DOS version, major.minor format reported through the standard INT 21h call";
-}
-
 define var "dos_errorlevel" {
     type "uint8_t";
     name "ERRORLEVEL aka process return code on exit";
