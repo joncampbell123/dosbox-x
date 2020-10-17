@@ -7,6 +7,8 @@ param (
     [Parameter(Mandatory=$true)][string]$target
 )
 
+clear
+
 Write-Host("Source is {0}" -f $source) -ForegroundColor Green
 Write-Host("Target is {0}" -f $target) -ForegroundColor Green
 
