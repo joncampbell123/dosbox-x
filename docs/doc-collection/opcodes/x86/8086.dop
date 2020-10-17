@@ -141,7 +141,7 @@ common opcode "DEC" param(what) {
 }
 
 common opcode "Jcc" param(imm,insp,flags,cond) {
-    modifies insp if cond();
+    modifies flags,insp;
 
     input insp,flags,imm;
 
