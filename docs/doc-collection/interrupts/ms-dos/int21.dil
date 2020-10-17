@@ -2,7 +2,6 @@
 category "MS-DOS";
 arch "x86" mode "16-bit";
 description "Machine-parsable list of MS-DOS interrupt calls";
-charset_encoding "UTF-8"; /* default */
 
 define var "DTA" {
     type "farptr 16:16"; /* 16:16 FAR pointer */
