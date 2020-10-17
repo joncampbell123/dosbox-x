@@ -491,24 +491,4 @@ opcode sequence(0xA7) name "CMPSW" {
 }
 opcode sequence(0xA8 immb) name "TEST" { common opcode "TEST" param(AL,immb); }
 opcode sequence(0xA9 immw) name "TEST" { common opcode "TEST" param(accum,immw); }
-opcode sequence(0xAA) name "STOSB" {
-    /* if DF = 1, dstidx -= 1; */
-    /* if DF = 0, dstidx += 1; */
-    input AL;
-    output memory reference byte farptr(ES,dstidx);
-    modifies dstidx;
-
-    /* how to show it */
-    syntax ;
-}
-opcode sequence(0xAB) name "STOSW" {
-    /* if DF = 1, dstidx -= wordsize; */
-    /* if DF = 0, dstidx += wordsize; */
-    input accum;
-    output memory reference word farptr(ES,dstidx);
-    modifies dstidx;
-
-    /* how to show it */
-    syntax ;
-}
 
