@@ -355,7 +355,7 @@ define effective address "mrm16_eadisp" {
         seg = segment reference "DS";
     }
 
-    ofs = mrm16_eaofs(mrm) + disp;
+    ofs = mrm16_eaofs(x) + disp;
 
     return memory reference segment seg offset ofs;
 }
