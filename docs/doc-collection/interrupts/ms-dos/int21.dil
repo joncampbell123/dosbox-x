@@ -14,14 +14,12 @@ define var "DTA" {
     type "farptr 16:16"; /* 16:16 FAR pointer */
     name "Disk Transfer Address";
     description "Memory location where disk transfers and other API functions may occur";
-    stored in SDA;
 }
 
 define var "PSP" {
     type "segment";
     name "Program Segment Prefix";
     description "A 256-byte region of memory used to carry a program's initial state and command line. Always referred to by 16-bit FAR pointer PSP:0";
-    stored in SDA;
 }
 
 define var "dos_version" {
