@@ -189,7 +189,7 @@ static const char *def_menu_main_clipboard[] =
     "clipboard_device",
     "clipboard_dosapi",
 #endif
-#if !defined(LINUX) || !C_X11
+#if !defined(LINUX) || !C_X11 || defined(C_SDL2)
     "--",
     "mapper_paste",
 #endif

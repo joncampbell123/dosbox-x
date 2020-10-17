@@ -6478,7 +6478,12 @@ void PasteClipboard(bool bPressed)
         char* szFilteredText = reinterpret_cast<char*>(alloca(clipSize + 1));
         char* szFilterNextChar = szFilteredText;
         for (size_t i = 0; i < clipSize; ++i)
-            if (clipAscii[i] != 0x0A) // Skip linefeeds
+            if (clipAscii[i] == 9) // Tab to spaces
+                for (int k=0; k<4; k++) {
+                    *szFilterNextChar = ' ';
+                    ++szFilterNextChar;
+                }
+            else if (clipAscii[i] != 0x0A) // Skip linefeeds
             {
                 *szFilterNextChar = clipAscii[i];
                 ++szFilterNextChar;
@@ -6511,7 +6516,12 @@ void PasteClipboard(bool bPressed) {
         char* szFilteredText = reinterpret_cast<char*>(alloca(clipSize + 1));
         char* szFilterNextChar = szFilteredText;
         for (size_t i = 0; i < clipSize; ++i)
-            if (clipAscii[i] != 0x0A) // Skip linefeeds
+            if (clipAscii[i] == 9) // Tab to spaces
+                for (int k=0; k<4; k++) {
+                    *szFilterNextChar = ' ';
+                    ++szFilterNextChar;
+                }
+            else if (clipAscii[i] != 0x0A) // Skip linefeeds
             {
                 *szFilterNextChar = clipAscii[i];
                 ++szFilterNextChar;
@@ -6540,6 +6550,7 @@ void PasteClipboard(bool bPressed) {
     std::string result="", pre="";
     for (unsigned int i=0; i<strlen(text); i++) {
         if (text[i]==0x0A) continue;
+        else if (text[i]==9) result+="    ";
         else if (text[i]<0) {
             char c=text[i];
             int n=1;
@@ -6595,6 +6606,7 @@ void paste_utf8_prop(Display *dpy, Window w, Atom p)
     std::string result="", pre="";
     for (unsigned int i=0; i<strlen(text); i++) {
         if (text[i]==0x0A) text[i]=0x0D;
+        else if (text[i]==9) result+="    ";
         else if (text[i]<0) {
             char c=text[i];
             int n=1;
