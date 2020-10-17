@@ -31,9 +31,6 @@ define citation "rbil" {
     publication_date "2000/07/16";
     copyright "1989-2000";
     author "Ralph Brown";
-    web_reference "http://www.cs.cmu.edu/~ralf/files.html";
-    web_reference "http://hackipedia.org/browse.cgi/Computer/Platform/PC%2c%20IBM%20compatible/Collections/Ralph%20Brown%20Interrupt%20List%20%282000%2d07%2d16%29%20Release%2061/Original%20files" backup;
-    web_reference "http://ctyme.com/rbrown.htm" alternative;
 }
 
 define citation "msdncd92" {
