@@ -273,8 +273,4 @@ opcode sequence(0x74 immsb) name "JZ" { common opcode "Jcc" param(immsb,ip,flags
 opcode sequence(0x75 immsb) name "JNZ" { common opcode "Jcc" param(immsb,ip,flags(ZF),function(!flags(ZF))); }
 opcode sequence(0x76 immsb) name "JBE" { common opcode "Jcc" param(immsb,ip,flags(CF,ZF),function(flags(CF) | flags(ZF))); }
 opcode sequence(0x77 immsb) name "JNBE" { common opcode "Jcc" param(immsb,ip,flags(CF,ZF),function(!(flags(CF) | flags(ZF)))); }
-opcode sequence(0x78 immsb) name "JS" { common opcode "Jcc" param(immsb,ip,flags(SF),function(flags(SF))); }
-opcode sequence(0x79 immsb) name "JNS" { common opcode "Jcc" param(immsb,ip,flags(SF),function(!flags(SF))); }
-opcode sequence(0x7A immsb) name "JP" { common opcode "Jcc" param(immsb,ip,flags(PF),function(flags(PF))); }
-opcode sequence(0x7B immsb) name "JNP" { common opcode "Jcc" param(immsb,ip,flags(PF),function(!flags(PF))); }
 
