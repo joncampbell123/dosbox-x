@@ -47,8 +47,3 @@ VGA BUG: Failure to save and restore VGA text screen contents
 VGA BUG: Switching to the DOSBox keymapper, then back, results in failure to redraw
          emulated VGA output.
 
-VGA BUG: Active display area cuts off right margin for Do Whacka Do
-
- - Do Whacka Do works perfectly except that the rightmost 8-10 pixels are cut off,
-   which makes it a bit difficult to read the scroller at the bottom of the screen.
-
