@@ -1,4 +1,4 @@
 If the DBCS table is disabled, the Open Watcom 1.9 installer will
 cause an exception in the CauseWay DOS extender when you run the
 installer. DOSBox will also emit a debug message stating that
-one of the MCBs is in an invalid state if umb=true.
+one of the MCBs is in an invalid state.
