@@ -146,11 +146,6 @@ opcode sequence(0x23 mrm) name "AND" { /* AND reg, r/m */ common opcode "AND" pa
 opcode sequence(0x24 immb) name "AND" { /* AND AL, imm */ common opcode "AND" param(AL,immb); }
 opcode sequence(0x25 immw) name "AND" { /* AND AX, imm */ common opcode "AND" param(accum,immw); }
 prefix sequence(0x26) name "ES:" { segment override ES; }
-opcode sequence(0x27) name "DAA" {
-    modifies flags(CF,PF,AF,ZF,SF,OF);
-    input al,flags(CF);
-    output al;
-}
 
 opcode sequence(0x28 mrm) name "SUB" { /* SUB r/m, reg */ common opcode "SUB" param(rmb,regb); }
 opcode sequence(0x29 mrm) name "SUB" { /* SUB r/m, reg */ common opcode "SUB" param(rmw,regw); }
@@ -159,9 +154,4 @@ opcode sequence(0x2B mrm) name "SUB" { /* SUB reg, r/m */ common opcode "SUB" pa
 opcode sequence(0x2C immb) name "SUB" { /* SUB AL, imm */ common opcode "SUB" param(AL,immb); }
 opcode sequence(0x2D immw) name "SUB" { /* SUB AX, imm */ common opcode "SUB" param(accum,immw); }
 prefix sequence(0x2E) name "CS:" { segment override CS; }
-opcode sequence(0x2F) name "DAS" {
-    modifies flags(CF,PF,AF,ZF,SF,OF);
-    input al,flags(CF);
-    output al;
-}
 
