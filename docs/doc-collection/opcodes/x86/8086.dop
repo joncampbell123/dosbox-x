@@ -83,21 +83,6 @@ common opcode "SUB" param(dst,src) {
     output dst; /* writes dst */
 }
 
-common opcode "XOR" param(dst,src) {
-    modifies flags(CF,PF,AF,ZF,SF,OF);
-
-    /* dst ^= src */
-    input dst,src; /* reads dst, src */
-    output dst; /* writes dst */
-}
-
-common opcode "CMP" param(dst,src) {
-    modifies flags(CF,PF,AF,ZF,SF,OF);
-
-    /* tmp = dst - src */
-    input dst,src; /* reads dst, src */
-}
-
 common opcode "PUSH" param(src) {
     modifies stackp; /* stackp -= word size */
     output stackdataw;
@@ -175,32 +160,6 @@ opcode sequence(0x2C immb) name "SUB" { /* SUB AL, imm */ common opcode "SUB" pa
 opcode sequence(0x2D immw) name "SUB" { /* SUB AX, imm */ common opcode "SUB" param(accum,immw); }
 prefix sequence(0x2E) name "CS:" { segment override CS; }
 opcode sequence(0x2F) name "DAS" {
-    modifies flags(CF,PF,AF,ZF,SF,OF);
-    input al,flags(CF);
-    output al;
-}
-
-opcode sequence(0x30 mrm) name "XOR" { /* XOR r/m, reg */ common opcode "XOR" param(rmb,regb); }
-opcode sequence(0x31 mrm) name "XOR" { /* XOR r/m, reg */ common opcode "XOR" param(rmw,regw); }
-opcode sequence(0x32 mrm) name "XOR" { /* XOR reg, r/m */ common opcode "XOR" param(regb,rmb); }
-opcode sequence(0x33 mrm) name "XOR" { /* XOR reg, r/m */ common opcode "XOR" param(regw,rmw); }
-opcode sequence(0x34 immb) name "XOR" { /* XOR AL, imm */ common opcode "XOR" param(AL,immb); }
-opcode sequence(0x35 immw) name "XOR" { /* XOR AX, imm */ common opcode "XOR" param(accum,immw); }
-prefix sequence(0x36) name "ES:" { segment override SS; }
-opcode sequence(0x37) name "AAA" {
-    modifies flags(CF,PF,AF,ZF,SF,OF);
-    input al,flags(CF);
-    output al;
-}
-
-opcode sequence(0x38 mrm) name "CMP" { /* CMP r/m, reg */ common opcode "CMP" param(rmb,regb); }
-opcode sequence(0x39 mrm) name "CMP" { /* CMP r/m, reg */ common opcode "CMP" param(rmw,regw); }
-opcode sequence(0x3A mrm) name "CMP" { /* CMP reg, r/m */ common opcode "CMP" param(regb,rmb); }
-opcode sequence(0x3B mrm) name "CMP" { /* CMP reg, r/m */ common opcode "CMP" param(regw,rmw); }
-opcode sequence(0x3C immb) name "CMP" { /* CMP AL, imm */ common opcode "CMP" param(AL,immb); }
-opcode sequence(0x3D immw) name "CMP" { /* CMP AX, imm */ common opcode "CMP" param(accum,immw); }
-prefix sequence(0x3E) name "CS:" { segment override DS; }
-opcode sequence(0x3F) name "AAS" {
     modifies flags(CF,PF,AF,ZF,SF,OF);
     input al,flags(CF);
     output al;
