@@ -58,7 +58,7 @@ opcode sequence(0x01 mrm) name "ADD" { /* ADD r/m, reg */ common opcode "ADD" pa
 opcode sequence(0x02 mrm) name "ADD" { /* ADD reg, r/m */ common opcode "ADD" param(regb,rmb); }
 opcode sequence(0x03 mrm) name "ADD" { /* ADD reg, r/m */ common opcode "ADD" param(regw,rmw); }
 opcode sequence(0x04 immb) name "ADD" { /* ADD AL, imm */ common opcode "ADD" param(AL,immb); }
-opcode sequence(0x05 immw) name "ADD" { /* ADD AX, imm */ common opcode "ADD" param(accum,immw); }
+opcode sequence(0x05 immw) name "ADD" { /* ADD [E]AX, imm */ common opcode "ADD" param(accum,immw); }
 opcode sequence(0x06) name "PUSH" { /* PUSH ES */ common opcode "PUSH" param(ES); }
 opcode sequence(0x07) name "POP" { /* POP ES */ common opcode "POP" param(ES); }
 
