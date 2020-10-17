@@ -1,9 +1,5 @@
 Impact Studio - Legends
 
-==========================================================
- THESE BUGS ARE FIXED
-==========================================================
-
 * NOTE: There used to be bugs below, but they have been fixed.
         This file is now a list of the oddities found in the demo.
 
