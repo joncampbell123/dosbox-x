@@ -29,7 +29,6 @@ charset_encoding "UTF-8"; /* default */
    flags(...): specific flags (bitmask)
    stackp: stack pointer (SP/ESP)
    basep: base pointer (BP/EBP)
-   stackdataw: word value on stack [SS:stackp]
    ip: instruction pointer (IP/EIP) */
 
 /* avoid copy-pasta */
@@ -39,18 +38,6 @@ common opcode "ADD" param(dst,src) {
     /* dst += src */
     input dst,src; /* reads dst, src */
     output dst; /* writes dst */
-}
-
-common opcode "PUSH" param(src) {
-    modifies stackp; /* stackp -= word size */
-    output stackdataw;
-    input src;
-}
-
-common opcode "POP" param(dst) {
-    modifies stackp; /* stackp += word size */
-    input stackdataw;
-    output src;
 }
 
 opcode sequence(0x00 mrm) name "ADD" { /* ADD r/m, reg */
@@ -75,13 +62,5 @@ opcode sequence(0x04 immb) name "ADD" { /* ADD AL, imm */
 
 opcode sequence(0x05 immw) name "ADD" { /* ADD [E]AX, imm */
     common opcode "ADD" param(accum,immw);
-}
-
-opcode sequence(0x06) name "PUSH" { /* PUSH ES */
-    common opcode "PUSH" param(ES);
-}
-
-opcode sequence(0x06) name "PUSH" { /* POP ES */
-    common opcode "POP" param(ES);
 }
 
