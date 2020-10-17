@@ -572,7 +572,18 @@ static Bitu DOS_21Handler(void) {
         psp.SetStack(RealMake(SegValue(ss),reg_sp-18));
     }
 
-    if (((reg_ah >= 0x01 && reg_ah <= 0x0C) || (reg_ah != 0 && reg_ah != 0x4C && reg_ah != 0x31 && dos.breakcheck)) && !DOS_BreakTest()) return CBRET_NONE;
+    if (reg_ah == 0x06) {
+        /* does not check CTRL+BREAK. Some DOS programs do not expect to be interrupted with INT 23h if they read */
+        /* keyboard input through this and may cause system instability if terminated. This fixes PC-98 text editor
+         * VZ.EXE which will leave it's INT 6h handler in memory if interrupted this way, for example. */
+        /* See also:
+         *   [http://www.ctyme.com/intr/rb-2558.htm] INT 21h AH=6
+         *   [http://www.ctyme.com/intr/rb-2559.htm] INT 21h AH=6 DL=FFh
+         */
+    }
+    else {
+        if (((reg_ah >= 0x01 && reg_ah <= 0x0C) || (reg_ah != 0 && reg_ah != 0x4C && reg_ah != 0x31 && dos.breakcheck)) && !DOS_BreakTest()) return CBRET_NONE;
+    }
 
     char name1[DOSNAMEBUF+2+DOS_NAMELENGTH_ASCII];
     char name2[DOSNAMEBUF+2+DOS_NAMELENGTH_ASCII];
