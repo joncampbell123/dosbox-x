@@ -319,17 +319,34 @@ define register "mrm_dataseg" {
     return register "DS";
 }
 
-define expression map "mrm16_eaofs" {
-    input "mrm" encoding "mrm";
+define function "mrm16_eaofs" {
+    return type uint16_t;
+    input "x" encoding "mrm";
 
-    index mrm.rm == 0 eval(register "BX" + register "SI");
-    index mrm.rm == 1 eval(register "BX" + register "DI");
-    index mrm.rm == 2 eval(register "BP" + register "SI");
-    index mrm.rm == 3 eval(register "BP" + register "DI");
-    index mrm.rm == 4 eval(register "SI");
-    index mrm.rm == 5 eval(register "DI");
-    index mrm.rm == 6 eval(register "BP");
-    index mrm.rm == 7 eval(register "BX);
+    if x.rm == 0 {
+        return (register "BX" + register "SI");
+    }
+    if x.rm == 1 {
+        return (register "BX" + register "DI");
+    }
+    if x.rm == 2 {
+        return (register "BP" + register "SI");
+    }
+    if x.rm == 3 {
+        return (register "BP" + register "DI");
+    }
+    if x.rm == 4 {
+        return register "SI";
+    }
+    if x.rm == 5 {
+        return register "DI";
+    }
+    if x.rm == 6 {
+        return register "BP";
+    }
+    if x.rm == 7 {
+        return register "BX";
+    }
 
     return null;
 }
