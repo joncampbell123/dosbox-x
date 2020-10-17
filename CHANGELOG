@@ -1,6 +1,7 @@
 0.83.7
-  - Changed the DOS error message "Illegal command" to
-    "Bad command or filename" as in real DOS. (Wengier)
+  - Changed some DOS error messages (such as "Illegal
+    command" which now reads "Bad command or filename")
+    similar to real DOS systems. (Wengier)
   - Added new CPU types to the "Emulate CPU speed" menu
     group, namely 486DX4-100, 486DX5-133, Pentium-75,
     and Pentium-90. Thanks again for the data provided

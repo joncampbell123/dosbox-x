@@ -957,12 +957,12 @@ void SHELL_Init() {
 	MSG_Add("SHELL_CMD_VOL_SERIAL"," Volume Serial Number is ");
 	MSG_Add("SHELL_CMD_VOL_SERIAL_NOLABEL","has no label\n");
 	MSG_Add("SHELL_CMD_VOL_SERIAL_LABEL","is %s\n");
-	MSG_Add("SHELL_ILLEGAL_PATH","Illegal Path.\n");
+	MSG_Add("SHELL_ILLEGAL_PATH","Path not found\n");
 	MSG_Add("SHELL_CMD_HELP","If you want a list of all supported internal commands type \033[33;1mHELP /ALL\033[0m.\nYou can also find external commands on the Z: drive as programs.\nA short list of the most often used commands:\n");
 	MSG_Add("SHELL_CMD_ECHO_ON","ECHO is on.\n");
 	MSG_Add("SHELL_CMD_ECHO_OFF","ECHO is off.\n");
 	MSG_Add("SHELL_ILLEGAL_CONTROL_CHARACTER","Unexpected control character: Dec %03u and Hex %#04x.\n");
-	MSG_Add("SHELL_ILLEGAL_SWITCH","Illegal switch: %s.\n");
+	MSG_Add("SHELL_ILLEGAL_SWITCH","Invalid switch - %s\n");
 	MSG_Add("SHELL_MISSING_PARAMETER","Required parameter missing.\n");
 	MSG_Add("SHELL_CMD_CHDIR_ERROR","Unable to change to: %s.\n");
 	MSG_Add("SHELL_CMD_CHDIR_HINT","Hint: To change to different drive type \033[31m%c:\033[0m\n");
@@ -1002,7 +1002,7 @@ void SHELL_Init() {
 	MSG_Add("SHELL_CMD_IF_ERRORLEVEL_INVALID_NUMBER","IF ERRORLEVEL: Invalid number.\n");
 	MSG_Add("SHELL_CMD_GOTO_MISSING_LABEL","No label supplied to GOTO command.\n");
 	MSG_Add("SHELL_CMD_GOTO_LABEL_NOT_FOUND","GOTO: Label %s not found.\n");
-	MSG_Add("SHELL_CMD_FILE_NOT_FOUND","File %s not found.\n");
+	MSG_Add("SHELL_CMD_FILE_NOT_FOUND","File not found - %s\n");
 	MSG_Add("SHELL_CMD_FILE_EXISTS","File %s already exists.\n");
 	MSG_Add("SHELL_CMD_DIR_INTRO"," Directory of %s\n\n");
 	MSG_Add("SHELL_CMD_DIR_BYTES_USED","%5d File(s) %17s Bytes\n");
@@ -1017,7 +1017,7 @@ void SHELL_Init() {
 	MSG_Add("SHELL_EXECUTE_DRIVE_ACCESS_FIXED_LESS","Do you want to give DOSBox-X access to your real hard drive %c [Y/N]?");
 	MSG_Add("SHELL_EXECUTE_DRIVE_ACCESS_WARNING_WIN","Mounting C:\\ is NOT recommended.\n");
 	MSG_Add("SHELL_EXECUTE_ILLEGAL_COMMAND","Bad command or filename - \"%s\"\n");
-	MSG_Add("SHELL_CMD_PAUSE","Press any key to continue.\n");
+	MSG_Add("SHELL_CMD_PAUSE","Press any key to continue . . .\n");
 	MSG_Add("SHELL_CMD_PAUSE_HELP","Waits for one keystroke to continue.\n");
 	MSG_Add("SHELL_CMD_PAUSE_HELP_LONG","PAUSE\n");
 	MSG_Add("SHELL_CMD_COPY_FAILURE","Copy failure : %s.\n");
