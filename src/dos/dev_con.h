@@ -731,6 +731,12 @@ bool device_CON::Read(uint8_t * data,uint16_t * size) {
             }
             else if (reg_ah == 0) { /* CTRL+BREAK hackery (inserted as 0x0000) */
     			data[count++]=0x03; // CTRL+C
+                if (*size > 1) {
+                    dos.errorcode=77;
+                    *size=count;
+                    reg_ax=oldax;
+                    return false;
+                }
             }
             else {
                 /* IBM PC/XT/AT signals extended code by entering AL, AH.
