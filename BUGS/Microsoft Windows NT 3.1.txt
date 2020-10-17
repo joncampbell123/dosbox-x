@@ -1,0 +1,9 @@
+Bugs with DOSBox-X and Windows NT 3.1
+
+- The ET4000 SVGA driver changes the upper-left most text cell purple on
+  the NT boot screen
+
+- In low memory conditions (memsize=12) DOSBox's dynamic core will likely
+  segfault at some point at some unexpected time. This does not happen
+  when larger amounts of memory are given (memsize > 16).
+
