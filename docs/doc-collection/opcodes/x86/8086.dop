@@ -3,59 +3,388 @@ arch "x86";
 description "Machine-parsable list of opcodes";
 charset_encoding "UTF-8"; /* default */
 
-/* predefined variables:
-   codesize == 16 || codesize == 32 || codesize == 64: word code access size (affects code handling)
-   datasize == 16 || datasize == 32 || datasize == 64: word data access size (affects data handling)
-   dsreg: default segment OR segment override
-   CS, DS, ES, FS, GS, SS: segment registers
-   reg: general register, operand (regw if word, regb if byte)
-   regb: general register, byte operand (AH, AL, etc)
-   regw: general register, word operand (AX, BX, CX, etc if 16-bit, EAX, EBX, etc if 32-bit)
-   sreg: segment register, operand
-   rm: register/memory operand, word operand
-   rmb: register/memory operand, byte operand
-   rmw: register/memory operand, byte operand
-   mrm: mod/reg/rm (with optional scalar/index/byte if 32-bit addressing with the right combination)
-   accum: AX/EAX
-   immb: 8-bit immediate
-   immw: word immediate
-   sib: scalar/index/byte
-   flags: flags register (FLAGS if 16-bit, EFLAGS if 32-bit)
-   flags(...): specific flags (bitmask)
-   stackp: stack pointer (SP/ESP)
-   basep: base pointer (BP/EBP)
-   ip: instruction pointer (IP/EIP) */
-
-/* avoid copy-pasta */
-common opcode "ADD" param(dst,src) {
-    modifies flags(CF,PF,AF,ZF,SF,OF);
-
-    /* dst += src */
-    input dst,src; /* reads dst, src */
-    output dst; /* writes dst */
+define segment reference "segref" {
+    description "data segment reference, or segment referenced by override";
+    type segment reference;
+    on start of instruction set to null;
 }
 
-opcode sequence(0x00 mrm) name "ADD" { /* ADD r/m, reg */
-    common opcode "ADD" param(rmb,regb);
+define modeflag "mode64" {
+    description "64-bit long mode";
+    type boolean;
 }
 
-opcode sequence(0x01 mrm) name "ADD" { /* ADD r/m, reg */
-    common opcode "ADD" param(rmw,regw);
+define modeflag "data32" {
+    description "32-bit data encoding";
+    type boolean;
 }
 
-opcode sequence(0x02 mrm) name "ADD" { /* ADD reg, r/m */
-    common opcode "ADD" param(regb,rmb);
+define modeflag "addr32" {
+    description "32-bit address encoding";
+    type boolean;
 }
 
-opcode sequence(0x03 mrm) name "ADD" { /* ADD reg, r/m */
-    common opcode "ADD" param(regw,rmw);
+define tempflag "dec_data32" {
+    description "32-bit data encoding mode";
+    on start of instruction set to modeflag "data32";
+    type boolean;
 }
 
-opcode sequence(0x04 immb) name "ADD" { /* ADD AL, imm */
-    common opcode "ADD" param(AL,immb);
+define tempflag "dec_addr32" {
+    description "32-bit address encoding mode";
+    on start of instruction set to modeflag "addr32";
+    type boolean;
 }
 
-opcode sequence(0x05 immw) name "ADD" { /* ADD [E]AX, imm */
-    common opcode "ADD" param(accum,immw);
+define register type "general" {
+    type uint64_t;
+    subset "qw" bit range(63:0);
+    subset "dw" bit range(31:0);
+    subset "w"  bit range(15:0);
+    subset "bh" bit range(15:8);
+    subset "b"  bit range( 7:0);
+}
+
+define register type "cpu flags" {
+    type register type "general";
+}
+
+define register type "segment" {
+    type uint16_t;
+    subset "selector_index" bit range(15:3);
+    subset "ldt_select"     bit value 2;
+    subset "priv_level"     bit range(1:0);
+}
+
+define register "RAX" {
+    type register type "general";
+}
+
+define register "RBX" {
+    type register type "general";
+}
+
+define register "RCX" {
+    type register type "general";
+}
+
+define register "RDX" {
+    type register type "general";
+}
+
+define register "RSI" {
+    type register type "general";
+}
+
+define register "RDI" {
+    type register type "general";
+}
+
+define register "RBP" {
+    type register type "general";
+}
+
+define register "RSP" {
+    type register type "general";
+}
+
+define register "RIP" {
+    type register type "general";
+}
+
+define register "RFLAGS" {
+    type register type "cpu flags";
+    subset "cf"         bit value 0 description "carry";
+    subset "pf"         bit value 2 description "parity";
+    subset "af"         bit value 4 description "aux";
+    subset "zf"         bit value 6 description "zero";
+    subset "sf"         bit value 7 description "sign";
+    subset "tf"         bit value 8 description "trap";
+    subset "if"         bit value 9 description "interrupt enable";
+    subset "df"         bit value 10 description "direction";
+    subset "of"         bit value 11 description "overflow";
+    subset "iopl"       bit range(13:12) description "I/O privilege level";
+    subset "nt"         bit value 14 description "nested task";
+    subset "rf"         bit value 16 description "resume";
+    subset "vm"         bit value 17 description "virtual 8086 mode";
+    subset "ac"         bit value 18 description "alignment check";
+    subset "vif"        bit value 19 description "virtual interrupt";
+    subset "vip"        bit value 20 description "virtual interrupt pending";
+    subset "id";        bit value 21 description "identification (CPUID)";
+
+    subset "common results" bitmask("cf","pf","af","zf",sf","of");
+    subset "popf" eval(subset("common results") | bitmask("tf","if","df"));
+}
+
+define register "EAX" {
+    subset "dw" of register "RAX";
+}
+
+define register "EBX" {
+    subset "dw" of register "RBX";
+}
+
+define register "ECX" {
+    subset "dw" of register "RCX";
+}
+
+define register "EDX" {
+    subset "dw" of register "RDX";
+}
+
+define register "ESI" {
+    subset "dw" of register "RSI";
+}
+
+define register "EDI" {
+    subset "dw" of register "RDI";
+}
+
+define register "EBP" {
+    subset "dw" of register "RBP";
+}
+
+define register "ESP" {
+    subset "dw" of register "RSP";
+}
+
+define register "EIP" {
+    subset "dw" of register "RIP";
+}
+
+define register "EFLAGS" {
+    subset "dw" of register "RFLAGS";
+}
+
+define register "AX" {
+    subset "w" of register "EAX";
+}
+
+define register "BX" {
+    subset "w" of register "EBX";
+}
+
+define register "CX" {
+    subset "w" of register "ECX";
+}
+
+define register "DX" {
+    subset "w" of register "EDX";
+}
+
+define register "SI" {
+    subset "w" of register "ESI";
+}
+
+define register "DI" {
+    subset "w" of register "EDI";
+}
+
+define register "BP" {
+    subset "w" of register "EBP";
+}
+
+define register "SP" {
+    subset "w" of register "ESP";
+}
+
+define register "IP" {
+    subset "w" of register "EIP";
+}
+
+define register "FLAGS" {
+    subset "w" of register "EFLAGS";
+}
+
+define register "AL" {
+    subset "b" of register "AX";
+}
+
+define register "BL" {
+    subset "b" of register "BX";
+}
+
+define register "CL" {
+    subset "b" of register "CX";
+}
+
+define register "DL" {
+    subset "b" of register "DX";
+}
+
+define register "AH" {
+    subset "bh" of register "AX";
+}
+
+define register "BH" {
+    subset "bh" of register "BX";
+}
+
+define register "CH" {
+    subset "bh" of register "CX";
+}
+
+define register "DH" {
+    subset "bh" of register "DX";
+}
+
+define register "CS" {
+    type register type "segment";
+}
+
+define register "DS" {
+    type register type "segment";
+}
+
+define register "ES" {
+    type register type "segment";
+}
+
+define register "FS" {
+    type register type "segment";
+}
+
+define register "GS" {
+    type register type "segment";
+}
+
+define register "SS" {
+    type register type "segment";
+}
+
+define register map "genregw" {
+    index 0 register "RAX";
+    index 1 register "RCX";
+    index 2 register "RDX";
+    index 3 register "RBX";
+    index 4 register "RSP";
+    index 5 register "RBP";
+    index 6 register "RSI";
+    index 7 register "RDI";
+}
+
+define register map "genregb" {
+    index 0 register "AL";
+    index 1 register "CL";
+    index 2 register "DL";
+    index 3 register "BL";
+    index 4 register "AH";
+    index 5 register "CH";
+    index 6 register "DH";
+    index 7 register "BH";
+}
+
+define register map "genreg" {
+    input param "w" type boolean;
+    if w == true {
+        return register map "genregw";
+    }
+    else {
+        return register map "genregb";
+    }
+}
+
+define register map "sreg" {
+    index 0 register "ES";
+    index 1 register "CS";
+    index 2 register "SS";
+    index 3 register "DS";
+    index 4 register "FS";
+    index 5 register "GS";
+    /* no index 6 */
+    /* no index 7 */
+}
+
+define encoding "mrm" {
+    description "mod/reg/rm field as encoded in instruction";
+    type uint8_t;
+    subset "mod" bit range(7:6);
+    subset "reg" bit range(5:3);
+    subset "rm"  bit range(2:0);
+}
+
+define encoding "sib" {
+    description "scale/index/base field as encoded in instruction";
+    type uint8_t;
+    subset "scale" bit range(7:6);
+    subset "index" bit range(5:3);
+    subset "base"  bit range(2:0);
+}
+
+define register "mrm_dataseg" {
+    if segref != null {
+        return segref;
+    }
+
+    return register "DS";
+}
+
+define expression map "mrm16_eaofs" {
+    input "mrm" encoding "mrm";
+
+    index mrm.rm == 0 return eval(register "BX" + register "SI");
+    index mrm.rm == 1 return eval(register "BX" + register "DI");
+    index mrm.rm == 2 return eval(register "BP" + register "SI");
+    index mrm.rm == 3 return eval(register "BP" + register "DI");
+    index mrm.rm == 4 return eval(register "SI");
+    index mrm.rm == 5 return eval(register "DI");
+    index mrm.rm == 6 return eval(register "BP");
+    index mrm.rm == 7 return eval(register "BX");
+
+    return null;
+}
+
+define effective address "mrm16_eadisp" {
+    return type memory reference;
+    input "mrm" encoding "mrm";
+    input "disp" type int16_t;
+    require !(mrm.mod == 0 && mrm.rm == 6); /* make sure it's not [offset] */
+    require mrm.mod != 3; /* mod == 3 means r/m is register */
+
+    define var "ofs" description "offset" type uint16_t;
+    define var "seg" description "segment" type segment reference;
+
+    if segref != null {
+        seg = segref;
+    }
+    else if mrm.rm == 2 || mrm.rm == 3 || mrm.rm == 6 {
+        /* anything involving BP refers by default to the stack segment */
+        seg = segment reference "SS";
+    }
+    else {
+        seg = segment reference "DS";
+    }
+
+    ofs = eval((expression map "mrm16_eaofs" with param "mrm") + disp);
+
+    return memory reference segment seg offset ofs;
+}
+
+define effective address "mrm16" {
+    input "mrm" encoding "mrm";
+    input "w" type boolean;
+    if x.mod == 3 {
+        return register map "genreg" with param "w" = w;
+    }
+    else if x.mod == 0 && x.rm == 6 {
+        define var "disp" description "offset" type uint16_t;
+        disp = cpu instruction fetch uint16_t;
+        return memory reference offset "mrm_dataseg" offset disp;
+    }
+    else {
+        define var "disp" description "displacement" type int16_t; /* signed two's complement */
+
+        if x.mod == 1 {
+            disp = cpu instruction fetch int8_t;
+        }
+        else if x.mod == 2 {
+            disp = cpu instruction fetch int16_t;
+        }
+        else {
+            disp = 0;
+        }
+
+        return effective address "mem16_eadisp" with param "mrm" = mrm with param "disp" = disp;
+    }
 }
 
