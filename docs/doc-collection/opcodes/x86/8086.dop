@@ -749,22 +749,3 @@ opcode sequence(0xD1 mrm) where reg == 7 name "SAR" { common opcode "SAR" param(
 opcode sequence(0xD2 mrm) where reg == 7 name "SAR" { common opcode "SAR" param(rmb,cl); }
 opcode sequence(0xD3 mrm) where reg == 7 name "SAR" { common opcode "SAR" param(rmw,cl); }
 
-opcode sequence(0xD4 immb) name "AAM" {
-    modifies flags(SF,ZF,PF,OF,AF,CF);
-
-    /* tmp = al */
-    /* ah = tmp / immb */
-    /* al = tmp % immb */
-    output ah, al;
-    input al;
-}
-
-opcode sequence(0xD5 immb) name "AAD" {
-    modifies flags(SF,ZF,PF,OF,AF,CF);
-
-    /* al = (al + (ah * immb)) & 0xFF */
-    /* ah = 0 */
-    output ah, al;
-    input ah, al;
-}
-
