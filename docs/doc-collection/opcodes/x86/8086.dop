@@ -83,46 +83,6 @@ define register "RFLAGS" {
     subset "popf" eval(subset("common results") | bitmask("tf","if","df"));
 }
 
-define register "EAX" {
-    subset "dw" of register "RAX";
-}
-
-define register "EBX" {
-    subset "dw" of register "RBX";
-}
-
-define register "ECX" {
-    subset "dw" of register "RCX";
-}
-
-define register "EDX" {
-    subset "dw" of register "RDX";
-}
-
-define register "ESI" {
-    subset "dw" of register "RSI";
-}
-
-define register "EDI" {
-    subset "dw" of register "RDI";
-}
-
-define register "EBP" {
-    subset "dw" of register "RBP";
-}
-
-define register "ESP" {
-    subset "dw" of register "RSP";
-}
-
-define register "EIP" {
-    subset "dw" of register "RIP";
-}
-
-define register "EFLAGS" {
-    subset "dw" of register "RFLAGS";
-}
-
 define register "CS" {
     type register type "segment";
 }
