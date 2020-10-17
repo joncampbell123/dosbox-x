@@ -158,27 +158,6 @@ If a Ctrl-C is detected at the keyboard after the requested character is output,
     If the standard output has not been redirected, a backspace code (08H) causes the cursor to move left one position. If output has been redirected, the backspace code does not receive any special treatment.
     [2.0+] You can also send strings to the display by performing a write (Int 21H Function 40H) using the predefined handle for the standard output (0001H), if output has not been redirected, or a handle obtained by opening the logical device CON. "_EOF":>> citation msdncd92;
         }
-
-        value 0x03 {
-            name "Read character from STDAUX";
-            output register AL {
-                content "character" type uint8_t;
-                description "Character value read";
-            }
-            exists_if dos_version >= version(1.0);
-
-            notes "Keyboard checked for ^C/^Break, and INT 23 executed if detected. STDAUX is usually the first serial port" citation rbil;
-
-            notes <<:"_EOF" [1] Reads a character from the first serial port.
-[2.0+] Reads a character from the standard auxiliary device. The default is the first serial port (COM1).
-
-	In most MS-DOS systems, the serial device is unbuffered and is not interrupt-driven. If the auxiliary device sends data faster than your program can process it, characters may be lost.
-	At startup on the IBM PC, PC-DOS initializes the first serial port to 2400 baud, no parity, 1 stop bit, and 8 data bits. Other implementations of MS-DOS may initialize the serial device differently.
-	There is no way for a user program to read the status of the auxiliary device or to detect I/O errors (such as lost characters) through this function call. On the IBM PC, more precise control can be obtained by calling ROM BIOS Int 14H or by driving the communications controller directly.
-
-	If a Ctrl-C is detected at the keyboard, an Int 23H is executed.
-	[2.0+] You can also input from the auxiliary device by requesting a read (Int 21H Function 3FH) using the predefined handle for the standard auxiliary device (0003H) or using a handle obtained by opening the logical device AUX. "_EOF":>> citation msdncd92;
-        }
     } /* end select by "AH" */
 } /* end "MS-DOS INT 21" */
 
