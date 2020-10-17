@@ -1403,6 +1403,7 @@ static bool IsEnhancedKey(uint16_t &key) {
 }
 
 extern bool DOS_BreakFlag;
+extern bool DOS_BreakConioFlag;
 
 bool int16_unmask_irq1_on_read = true;
 bool int16_ah_01_cf_undoc = true;
@@ -1415,7 +1416,7 @@ Bitu INT16_Handler(void) {
             PIC_SetIRQMask(1,false); /* unmask keyboard */
 
         // HACK: Make STOP key work
-        if (IS_PC98_ARCH && DOS_BreakFlag) {
+        if (IS_PC98_ARCH && DOS_BreakConioFlag) {
             reg_ax=0;
             return CBRET_NONE;
         }
@@ -1433,7 +1434,7 @@ Bitu INT16_Handler(void) {
             PIC_SetIRQMask(1,false); /* unmask keyboard */
 
         // HACK: Make STOP key work
-        if (IS_PC98_ARCH && DOS_BreakFlag) {
+        if (IS_PC98_ARCH && DOS_BreakConioFlag) {
             reg_ax=0;
             return CBRET_NONE;
         }
@@ -1457,7 +1458,12 @@ Bitu INT16_Handler(void) {
 
         for (;;) {
             if (check_key(temp)) {
-                if (!IsEnhancedKey(temp)) {
+                if (!IS_PC98_ARCH && temp == 0) {
+                    /* CTRL+BREAK hack. Discard, or else the FreeDOS editor included cannot handle keyboard input
+                     * after CTRL+BREAK */
+                    get_key(temp);
+                    CALLBACK_SZF(true);
+                } else if (!IsEnhancedKey(temp)) {
                     /* normal key, return translated key in ax */
                     CALLBACK_SZF(false);
                     if (int16_ah_01_cf_undoc) CALLBACK_SCF(true);
@@ -1483,6 +1489,11 @@ Bitu INT16_Handler(void) {
             PIC_SetIRQMask(1,false); /* unmask keyboard */
 
         if (!check_key(temp)) {
+            CALLBACK_SZF(true);
+        } else if (!IS_PC98_ARCH && temp == 0) {
+            /* CTRL+BREAK hack. Discard, or else the FreeDOS editor included cannot handle keyboard input
+             * after CTRL+BREAK */
+            get_key(temp);
             CALLBACK_SZF(true);
         } else {
             CALLBACK_SZF(false);

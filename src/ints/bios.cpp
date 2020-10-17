@@ -6973,6 +6973,7 @@ uint32_t BIOS_get_PC98_INT_STUB(void) {
 Bitu call_pc98_default_stop;
 
 extern bool DOS_BreakFlag;
+extern bool DOS_BreakConioFlag;
 
 static Bitu pc98_default_stop_handler(void) {
     // INT 06h, which means someone pressed the STOP key... or the CPU is signalling an invalid opcode.
@@ -6981,7 +6982,7 @@ static Bitu pc98_default_stop_handler(void) {
 
     // try to make it work as CTRL+BREAK in the built-in DOS environment.
     if (!dos_kernel_disabled)
-        DOS_BreakFlag = true;
+        DOS_BreakFlag = DOS_BreakConioFlag = true;
 
     return CBRET_NONE;
 }

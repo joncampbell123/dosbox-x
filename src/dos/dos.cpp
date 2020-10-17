@@ -86,6 +86,7 @@ unsigned char cpm_compat_mode = CPM_COMPAT_MSDOS5;
 bool dos_in_hma = true;
 bool dos_umb = true;
 bool DOS_BreakFlag = false;
+bool DOS_BreakConioFlag = false;
 bool enable_dbcs_tables = true;
 bool enable_filenamechar = true;
 bool enable_share_exe_fake = true;
@@ -420,6 +421,7 @@ bool DOS_BreakTest() {
 		DOS_PrintCBreak();
 
 		DOS_BreakFlag = false;
+        DOS_BreakConioFlag = false;
 
 		offv = mem_readw((0x23*4)+0);
 		segv = mem_readw((0x23*4)+2);
@@ -487,6 +489,7 @@ bool DOS_BreakTest() {
 
 void DOS_BreakAction() {
 	DOS_BreakFlag = true;
+    DOS_BreakConioFlag = false;
 }
 
 /* unmask IRQ 0 automatically on disk I/O functions.
@@ -2286,6 +2289,7 @@ static Bitu BIOS_1BHandler(void) {
     /* FIXME: Don't forget that on "BOOT" this handler should be unassigned, though having it assigned
      *        to the guest OS causes no harm. */
     DOS_BreakFlag = true;
+    DOS_BreakConioFlag = true;
     return CBRET_NONE;
 }
 
