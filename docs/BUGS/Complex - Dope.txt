@@ -11,12 +11,12 @@ BUG: You can only run the demo once. Additional attempts log "illegal instructio
 
  - The debug messages from DOSBox-X are:
 
-   Warning: Illegal read from b66b1da, CS:IP 8: b66700a
-   DYNX86:Can't run code in this page!
-   Warning: Illegal read from b66b1da, CS:IP 8: b66700a
-   Warning: Illegal read from b66b1db, CS:IP 8: b66700a
-   141992554: CPU:CPU:66:GRP5:Illegal call  7
-   Warning: Illegal read from b66b1da, CS:IP 8: b66700a
-   Warning: Illegal read from b66b1da, CS:IP 8: b66700a
-   Warning: Illegal read from b66b1db, CS:IP 8: b66700a
+Warning: Illegal read from b66b1da, CS:IP 8: b66700a
+DYNX86:Can't run code in this page!
+Warning: Illegal read from b66b1da, CS:IP 8: b66700a
+Warning: Illegal read from b66b1db, CS:IP 8: b66700a
+141992554: CPU:CPU:66:GRP5:Illegal call  7
+Warning: Illegal read from b66b1da, CS:IP 8: b66700a
+Warning: Illegal read from b66b1da, CS:IP 8: b66700a
+Warning: Illegal read from b66b1db, CS:IP 8: b66700a
 
