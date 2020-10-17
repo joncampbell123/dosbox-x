@@ -3,6 +3,10 @@
     group, namely 486DX4-100, 486DX5-133, Pentium-75,
     and Pentium-90. Thanks again for the data provided
     by the user maximus105. (Wengier)
+  - You can now select a special key (e.g. Alt+Tab,
+    Ctrl+Break, Ctrl+Alt+Del, etc) to be sent from the
+    mapper editor. Select from the "Send special key"
+    menu group under "Main" menu. (Wengier)
   - Added full Ctrl+Break emulation at the BIOS and
     DOS level, updated console emulation to match.
     The "Pause" mapper shortcut is now moved to

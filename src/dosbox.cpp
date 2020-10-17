@@ -1318,6 +1318,9 @@ void DOSBOX_SetupConfigSections(void) {
     const char* aspectmodes[] = { "false", "true", "0", "1", "yes", "no", "nearest", "bilinear", 0};
     const char *vga_ac_mapping_settings[] = { "", "auto", "4x4", "4low", "first16", 0 };
 
+    const char* sendkeys[] = {
+        "winlogo", "winmenu", "alttab", "ctrlesc", "ctrlbreak", "ctrlaltdel", 0 };
+
     const char* irqhandler[] = {
         "", "simple", "cooperative_2nd", 0 };
 
@@ -1404,8 +1407,13 @@ void DOSBOX_SetupConfigSections(void) {
     Pbool = secprop->Add_bool("show advanced options", Property::Changeable::Always, false);
     Pbool->Set_help("If set, the Configuration UI will display all config options (including advanced ones) by default.");
 
+    Pstring = secprop->Add_string("mapper send key", Property::Changeable::Always, "ctrlaltdel");
+    Pstring->Set_help("Select the key the mapper SendKey function will send.");
+    Pstring->Set_values(sendkeys);
+    Pstring->SetBasic(true);
+
     Pbool = secprop->Add_bool("keyboard hook", Property::Changeable::Always, false);
-    Pbool->Set_help("Use keyboard hook (currently only on Windows) to catch special keys and synchronize the keyboard LEDs with the host");
+    Pbool->Set_help("Use keyboard hook (currently only on Windows) to catch special keys and synchronize the keyboard LEDs with the host.");
 
     // STUB OPTION, NOT YET FULLY IMPLEMENTED
     Pbool = secprop->Add_bool("weitek",Property::Changeable::WhenIdle,false);
