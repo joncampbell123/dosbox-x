@@ -1,6 +1,6 @@
 
+arch "x86";
 category "MS-DOS";
-arch "x86" mode "16-bit";
 description "Machine-parsable list of MS-DOS interrupt calls";
 
 define var "DTA" {
