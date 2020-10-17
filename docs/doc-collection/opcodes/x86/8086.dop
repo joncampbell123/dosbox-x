@@ -587,7 +587,3 @@ opcode sequence(0xC4) name "INT" {
 opcode sequence(0xC5 immb) name "INT" {
     common opcode "INT" param(immb);
 }
-opcode sequence(0xC6) name "INTO" {
-    input flags;
-    common opcode "INT" param(4);
-}
