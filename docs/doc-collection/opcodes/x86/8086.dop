@@ -290,19 +290,3 @@ define register map "sreg" {
     /* no index 7 */
 }
 
-define encoding "mrm" {
-    description "mod/reg/rm field as encoded in instruction";
-    type uint8_t;
-    subset "mod" bit range(7:6);
-    subset "reg" bit range(5:3);
-    subset "rm"  bit range(2:0);
-}
-
-define encoding "sib" {
-    description "scale/index/base field as encoded in instruction";
-    type uint8_t;
-    subset "scale" bit range(7:6);
-    subset "index" bit range(5:3);
-    subset "base"  bit range(2:0);
-}
-
