@@ -8,56 +8,16 @@ slowly, then you are seeing the bug in effect and you should consider
 exiting out because the demo will glitch at the lens section and
 never progress past it.
 
+ - It's not a PIT issue, I tried hacking the PIT to halve the interval.
+   All that does is cause the music to play twice as fast but has no
+   effect on the frame rate.
+
+ - So what IS the demo using for a timer source then? The RTC?
+
  - I remember this bug first showing up in DOSBox 0.74, previous
    versions of DOSBox (0.72) ran the demo perfectly fine, which is
    how I was able to do the demoscene capture for the demoscene
    collection DVD on scene.org. So what did previous versions of
    DOSBox do right that DOSBox 0.74 (and therefore DOSBox-X) does
    wrong?
-
-UPDATE: 2014/01/21: It turns out the PIT emulation IS the problem.
-        But it's not PIT 0 that's the issue (that's used by the demo
-        to run the music!). It's PIT 2. Yes... the one normally used
-        to drive the PC speaker. Apparently what the demo coders did
-        is they wrote their code to sync both to VGA retrace AND
-        use the PIT 2 timer in "interrupt on terminal count" mode
-        with a subroutine that sets the counter to 0x0000, then
-        spins in a loop until the counter reaches some interval value
-        it uses to wait the proper amount of time. For whatever
-        reason, when DOSBox emulates the counter latch value with
-        PIT 2 in mode 0, the value counts down too slow (or at least
-        too slow for the demo to keep time).
-
-So to clarify what the demo is doing with your PIT timer chip:
- - PIT 0 is set to 50Hz, and used to drive the music
- - PIT 2 is programmed to mode 0 (interrupt on terminal count)
-   and the demo uses it as a software delay loop to keep time
-   by loading it with 0x0000 then spinning in a loop until the
-   counter reaches a specific value.
-
-To run the demo correctly (more or less), set the cycles count to
-somewhere between 10000 and 20000, and add this line to your
-dosbox.conf:
-
-pit hack=pc_speaker_as_timer
-
-This PIT hack forces the demo to run at a normal speed by speeding
-up the rate that PIT 2 counts down by. The multiplier value is
-carefully chosen: 2x does not help much unless the cycles count
-is at least 60000, while values above 4 overdo it and parts of the
-demo will suddenly and spontaneously run the animations really fast
-at times.
-
-BUG: 3D rotating dots overdraw, failure to clear the screen
-
-The details are already mentioned in the VGA emulation errors file.
-However I want to note what DOSBox's debug messages also reveal
-about this part of the demo:
-
-For whatever reason, the demo is not only rendering dots, but doing
-so with alternate palette colors, and when it draws a new frame,
-it masks off 2 bits of the DAC output corresponding to the "bitplane"
-or whatever that it's going to draw, which is why when DOSBox fails
-to emulate it properly there is not only overdraw but a lot of
-flickering as well.
 
