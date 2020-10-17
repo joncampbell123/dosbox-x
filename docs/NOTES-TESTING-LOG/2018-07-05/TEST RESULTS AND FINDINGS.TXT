@@ -64,9 +64,6 @@ Findings:
       bits 5-4 from Color Select (P54S) is ignored in 256-color mode. 256-color mode will
       not apply any bits from Color Select.
 
-    - It appears the attribute controller palette translation (4-to-6) is done first, then
-      combined with Color Select, before being masked by DAC mask register 3C6h.
-
 
 Other ideas to follow:
 
