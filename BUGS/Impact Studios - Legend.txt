@@ -1,0 +1,35 @@
+Impact Studio - Legends
+
+==========================================================
+ THESE BUGS ARE FIXED
+==========================================================
+
+* NOTE: There used to be bugs below, but they have been fixed.
+        This file is now a list of the oddities found in the demo.
+
+------------
+Problem: Two parts of the demo, a rotating 3D dot object, does not
+         render properly and it becomes a large flickering ball on
+         the screen.
+
+Fix: The demo is using a combination of using the bitmask in the
+     grapics controller (register 8) and "bitplane flipping" using
+     the VGA DAC pel mask (0x3C6) to draw the objects. It hides the
+     "bitplane" using the Pel mask register, then sets the bitmask
+     in the graphics controller so that when it draws the object,
+     only one bit in each 8-bit pixel is changed.
+
+     Prior to the fix, DOSBox's VGA emulation did not support using
+     the graphics controller bitmask or ROP modes in chained VGA
+     320x200x256 mode.
+
+------------
+Problem: Demo runs at half speed, malfunctions at some point and
+         gets stuck at the two reflective moving balls until music
+         loops around again.
+
+Workaround: The PIT hack "pc_speaker_as_timer" is still in the DOSBox-X
+            source code if this problem resurfaces. At this time, the
+            problem seems to have fixed itself and the demo runs
+            perfectly fine.
+
