@@ -381,9 +381,8 @@ define function "mrm16_eadisp" {
 
 define effective address "mrm16" {
     input "x" encoding "mrm";
-    input "w" type boolean;
     if x.mod == 3 {
-        return register map "genreg" with param "w" = w;
+        return register map "genreg" with param "w" = x.rm;
     }
     else if x.mod == 0 && x.rm == 6 {
         define var "disp" description "offset" type uint16_t;
