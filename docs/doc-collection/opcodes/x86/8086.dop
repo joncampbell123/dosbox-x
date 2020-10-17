@@ -531,22 +531,4 @@ opcode sequence(0xAD) name "LODSW" {
     /* how to show it */
     syntax ;
 }
-opcode sequence(0xAE) name "SCASB" {
-    /* if DF = 1, dstidx -= 1; */
-    /* if DF = 0, dstidx += 1; */
-    input AL,memory reference byte farptr(ES,dstidx);
-    modifies flags(CF,PF,AF,ZF,SF,OF);
-
-    /* how to show it */
-    syntax ;
-}
-opcode sequence(0xAF) name "SCASW" {
-    /* if DF = 1, dstidx -= wordsize; */
-    /* if DF = 0, dstidx += wordsize; */
-    input accum,memory reference word farptr(ES,dstidx);
-    modifies flags(CF,PF,AF,ZF,SF,OF);
-
-    /* how to show it */
-    syntax ;
-}
 
