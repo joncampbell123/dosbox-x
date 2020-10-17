@@ -311,12 +311,14 @@ define encoding "sib" {
     subset "base"  bit range(2:0);
 }
 
-define register "mrm_dataseg" {
+define function "mrm_dataseg" {
+    return type segment reference;
+
     if segref != null {
         return segref;
     }
 
-    return register "DS";
+    return segment reference "DS";
 }
 
 define function "mrm16_eaofs" {
@@ -351,12 +353,12 @@ define function "mrm16_eaofs" {
     return null;
 }
 
-define effective address "mrm16_eadisp" {
+define function "mrm16_eadisp" {
     return type memory reference;
-    input "mrm" encoding "mrm";
+    input "x" encoding "mrm";
     input "disp" type int16_t;
-    require !(mrm.mod == 0 && mrm.rm == 6); /* make sure it's not [offset] */
-    require mrm.mod != 3; /* mod == 3 means r/m is register */
+    require !(x.mod == 0 && x.rm == 6); /* make sure it's not [offset] */
+    require x.mod != 3; /* mod == 3 means r/m is register */
 
     define var "ofs" description "offset" type uint16_t;
     define var "seg" description "segment" type segment reference;
@@ -364,7 +366,7 @@ define effective address "mrm16_eadisp" {
     if segref != null {
         seg = segref;
     }
-    else if mrm.rm == 2 || mrm.rm == 3 || mrm.rm == 6 {
+    else if x.rm == 2 || x.rm == 3 || x.rm == 6 {
         /* anything involving BP refers by default to the stack segment */
         seg = segment reference "SS";
     }
@@ -378,7 +380,7 @@ define effective address "mrm16_eadisp" {
 }
 
 define effective address "mrm16" {
-    input "mrm" encoding "mrm";
+    input "x" encoding "mrm";
     input "w" type boolean;
     if x.mod == 3 {
         return register map "genreg" with param "w" = w;
@@ -386,7 +388,7 @@ define effective address "mrm16" {
     else if x.mod == 0 && x.rm == 6 {
         define var "disp" description "offset" type uint16_t;
         disp = cpu instruction fetch uint16_t;
-        return memory reference offset "mrm_dataseg" offset disp;
+        return memory reference segment mrm_dataseg() offset disp;
     }
     else {
         define var "disp" description "displacement" type int16_t; /* signed two's complement */
@@ -401,7 +403,7 @@ define effective address "mrm16" {
             disp = 0;
         }
 
-        return effective address "mem16_eadisp" with param "mrm" = mrm with param "disp" = disp;
+        return mrm16_eadisp(x,disp);
     }
 }
 
