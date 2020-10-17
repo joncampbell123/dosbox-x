@@ -86,6 +86,7 @@ unsigned char cpm_compat_mode = CPM_COMPAT_MSDOS5;
 bool dos_in_hma = true;
 bool dos_umb = true;
 bool DOS_BreakFlag = false;
+bool DOS_BreakConioFlag = false;
 bool enable_dbcs_tables = true;
 bool enable_filenamechar = true;
 bool enable_share_exe_fake = true;
@@ -420,6 +421,7 @@ bool DOS_BreakTest() {
 		DOS_PrintCBreak();
 
 		DOS_BreakFlag = false;
+        DOS_BreakConioFlag = false;
 
 		offv = mem_readw((0x23*4)+0);
 		segv = mem_readw((0x23*4)+2);
@@ -487,6 +489,7 @@ bool DOS_BreakTest() {
 
 void DOS_BreakAction() {
 	DOS_BreakFlag = true;
+    DOS_BreakConioFlag = false;
 }
 
 /* unmask IRQ 0 automatically on disk I/O functions.
@@ -569,7 +572,18 @@ static Bitu DOS_21Handler(void) {
         psp.SetStack(RealMake(SegValue(ss),reg_sp-18));
     }
 
-    if (((reg_ah >= 0x01 && reg_ah <= 0x0C) || (reg_ah != 0 && reg_ah != 0x4C && reg_ah != 0x31 && dos.breakcheck)) && !DOS_BreakTest()) return CBRET_NONE;
+    if (reg_ah == 0x06) {
+        /* does not check CTRL+BREAK. Some DOS programs do not expect to be interrupted with INT 23h if they read */
+        /* keyboard input through this and may cause system instability if terminated. This fixes PC-98 text editor
+         * VZ.EXE which will leave it's INT 6h handler in memory if interrupted this way, for example. */
+        /* See also:
+         *   [http://www.ctyme.com/intr/rb-2558.htm] INT 21h AH=6
+         *   [http://www.ctyme.com/intr/rb-2559.htm] INT 21h AH=6 DL=FFh
+         */
+    }
+    else {
+        if (((reg_ah >= 0x01 && reg_ah <= 0x0C) || (reg_ah != 0 && reg_ah != 0x4C && reg_ah != 0x31 && dos.breakcheck)) && !DOS_BreakTest()) return CBRET_NONE;
+    }
 
     char name1[DOSNAMEBUF+2+DOS_NAMELENGTH_ASCII];
     char name2[DOSNAMEBUF+2+DOS_NAMELENGTH_ASCII];
@@ -2286,6 +2300,7 @@ static Bitu BIOS_1BHandler(void) {
     /* FIXME: Don't forget that on "BOOT" this handler should be unassigned, though having it assigned
      *        to the guest OS causes no harm. */
     DOS_BreakFlag = true;
+    DOS_BreakConioFlag = true;
     return CBRET_NONE;
 }
 

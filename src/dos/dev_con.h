@@ -27,6 +27,7 @@
 #define NUMBER_ANSI_DATA 10
 
 extern bool DOS_BreakFlag;
+extern bool DOS_BreakConioFlag;
 extern unsigned char pc98_function_row_mode;
 
 Bitu INT10_Handler(void);
@@ -673,7 +674,8 @@ bool device_CON::Read(uint8_t * data,uint16_t * size) {
         }
 
         // Make STOP key work
-        if (IS_PC98_ARCH && DOS_BreakFlag) {
+        if (IS_PC98_ARCH && DOS_BreakConioFlag) {
+            DOS_BreakConioFlag=false;
             data[count++]=0x03; // CTRL+C
             continue;
         }

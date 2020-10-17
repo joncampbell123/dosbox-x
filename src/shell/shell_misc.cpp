@@ -50,6 +50,7 @@
 bool clearline=false;
 extern int lfn_filefind_handle;
 extern bool DOS_BreakFlag;
+extern bool DOS_BreakConioFlag;
 
 void DOS_Shell::ShowPrompt(void) {
 	char dir[DOS_PATHLENGTH];
@@ -480,6 +481,7 @@ void DOS_Shell::InputCommand(char * line) {
                 size = 0;       // stop the next loop
                 str_len = 0;    // prevent multiple adds of the same line
                 DOS_BreakFlag = false; // clear break flag so the next program doesn't get hit with it
+                DOS_BreakConioFlag = false;
                 break;
             case 0x0d:				/* Don't care, and return */
                 if(!echo) { outc('\r'); outc('\n'); }
