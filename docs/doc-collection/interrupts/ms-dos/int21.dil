@@ -15,21 +15,21 @@ define var "PSP" {
     description "A 256-byte region of memory used to carry a program's initial state and command line.";
 }
 
-define var "dos_version" {
+define var dos_version {
     type "version";
     name "DOS version, major.minor format";
 }
 
-define var "dos_errorlevel" {
+define var dos_errorlevel {
     type "uint8_t";
     name "ERRORLEVEL aka process return code on exit";
 }
 
-define citation "rbil" {
+define citation rbil {
     name "Ralph Brown Interrupt List";
 }
 
-define citation "msdncd92" {
+define citation msdncd92 {
     name "Microsoft Developer Network CD Fall 1992";
 }
 
