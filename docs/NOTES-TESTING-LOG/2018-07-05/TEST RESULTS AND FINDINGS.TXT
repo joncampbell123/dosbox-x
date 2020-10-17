@@ -31,7 +31,7 @@ Findings:
       It's not certain yet which nibble is loaded first.
 
     - Switching on the 8BIT in the attribute controller for any other video mode seems
-      to halve the video resolution (skip every other pixel) without any other effects.
+      to halve the video resolution without any other effects.
 
     - The "MONO" bit, listed on FreeVGA as apparently doing nothing, appears to influence
       how the blink attribute is applied on it's way to the DAC.
