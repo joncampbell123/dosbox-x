@@ -108,9 +108,6 @@ Questions to answer in further development:
     - What does the Tseng ET3000 do with the attribute controller palette? Is it the same as the
       ET4000 or different?
 
-    - What does Color Select do on the ET3000/ET4000 cards? If you switch on the P54S bit in
-      256-color mode, what happens to the palette?
-
 Ideas for further development:
 
     - DOSLIB VGA test program to demonstrate vertical retrace interrupt, whether it's occurring,
