@@ -152,24 +152,6 @@ common opcode "POP" param(dst) {
     syntax dst;
 }
 
-common opcode "PUSHF" param(src) {
-    modifies stackp; /* stackp -= word size */
-    output stackdataw;
-    input src;
-
-    /* how to show it */
-    syntax ;
-}
-
-common opcode "POPF" param(dst) {
-    modifies stackp; /* stackp += word size */
-    input stackdataw;
-    output dst;
-
-    /* how to show it */
-    syntax ;
-}
-
 common opcode "INC" param(what) {
     modifies flags(PF,AF,ZF,SF,OF); /* not CF */
 
@@ -436,6 +418,4 @@ opcode sequence(0x9A immw imm16) name "CALL" { /* CALL FAR imm16:immw aka seg:of
 opcode sequence(0x9B) name "WAIT" { /* wait for FPU */
     /* check pending unmasked floating point exceptions */
 }
-opcode sequence(0x9C) name "PUSHF" { common opcode "PUSHF" param(flags); }
-opcode sequence(0x9D) name "POPF" { common opcode "POPF" param(flags); }
 
