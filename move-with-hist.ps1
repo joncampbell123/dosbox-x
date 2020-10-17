@@ -45,7 +45,7 @@ foreach ($patch in $($patchs -split "`r`n"))
     & git config diff.noprefix true
     #>
 
-    & git apply --whitespace=nowarn --directory=$gitdir -p $dirlen "$patch"
+    & git apply --directory=$gitdir -p $dirlen "$patch"
     
     <# not working
     if ([string]::IsNullOrWhiteSpace($diff))
