@@ -30,23 +30,13 @@ charset_encoding "UTF-8"; /* default */
    stackp: stack pointer (SP/ESP)
    basep: base pointer (BP/EBP)
    stackdataw: word value on stack [SS:stackp]
-   ip: instruction pointer (IP/EIP)
-   cpulevel: 0=8086 1=80186 2=286 3=386 4=486 5=Pentium
-*/
+   ip: instruction pointer (IP/EIP) */
 
 /* avoid copy-pasta */
 common opcode "ADD" param(dst,src) {
     modifies flags(CF,PF,AF,ZF,SF,OF);
 
     /* dst += src */
-    input dst,src; /* reads dst, src */
-    output dst; /* writes dst */
-}
-
-common opcode "OR" param(dst,src) {
-    modifies flags(CF,PF,AF,ZF,SF,OF);
-
-    /* dst |= src */
     input dst,src; /* reads dst, src */
     output dst; /* writes dst */
 }
@@ -71,21 +61,4 @@ opcode sequence(0x04 immb) name "ADD" { /* ADD AL, imm */ common opcode "ADD" pa
 opcode sequence(0x05 immw) name "ADD" { /* ADD AX, imm */ common opcode "ADD" param(accum,immw); }
 opcode sequence(0x06) name "PUSH" { /* PUSH ES */ common opcode "PUSH" param(ES); }
 opcode sequence(0x07) name "POP" { /* POP ES */ common opcode "POP" param(ES); }
-
-opcode sequence(0x08 mrm) name "OR" { /* OR r/m, reg */ common opcode "OR" param(rmb,regb); }
-opcode sequence(0x09 mrm) name "OR" { /* OR r/m, reg */ common opcode "OR" param(rmw,regw); }
-opcode sequence(0x0A mrm) name "OR" { /* OR reg, r/m */ common opcode "OR" param(regb,rmb); }
-opcode sequence(0x0B mrm) name "OR" { /* OR reg, r/m */ common opcode "OR" param(regw,rmw); }
-opcode sequence(0x0C immb) name "OR" { /* OR AL, imm */ common opcode "OR" param(AL,immb); }
-opcode sequence(0x0D immw) name "OR" { /* OR AX, imm */ common opcode "OR" param(accum,immw); }
-opcode sequence(0x0E) name "PUSH" { /* PUSH CS */ common opcode "PUSH" param(CS); }
-
-opcode sequence(0x0F) name "POP" { /* POP CS */
-    if cpulevel == 0 {
-        common opcode "POP" param(CS);
-    }
-    else {
-        reject; /* prefix, not opcode, this rule does not apply */
-    }
-}
 
