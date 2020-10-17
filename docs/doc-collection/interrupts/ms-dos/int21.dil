@@ -47,7 +47,6 @@ define citation "programmerpcsourcebook2nd" {
     copyright "1991";
     author "Thom Hogan";
     isbn "1-55615-321-X";
-    purchase_url "https://www.amazon.com/Programmers-Sourcebook-Reference-Compatibles-EISA-based/dp/155615321X";
 }
 
 interrupt "MS-DOS INT 20" {
