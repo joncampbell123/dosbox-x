@@ -65,7 +65,7 @@ foreach ($patch in $($patchs -split "`r`n"))
     $data = "NOTE: auto-magically re-imported by HAL 9000`r`nHASH: {0} (original)" -f $hash
     $text = "[MIGRATED] {0}" -f $text
 
-    & git add -f $target
+    & git add $target
     & git commit -m "$text" -m "$data" --date="$date" --author="$mail"
 
     Remove-Item $patch
