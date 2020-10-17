@@ -378,24 +378,4 @@ opcode sequence([0x91,0x97]) name "XCHG" {
     reg index = opbyte(0) & 7;
     common opcode "XCHG" param(regw,accum);
 }
-opcode sequence(0x98) name "CBW" if datasize == 16 {
-    /* AX = sign extended AL */
-    input AL;
-    output AX;
-}
-opcode sequence(0x98) name "CWDE" if datasize == 32 {
-    /* EAX = sign extended AX */
-    input AX;
-    output EAX;
-}
-opcode sequence(0x99) name "CWD" if datasize == 16 {
-    /* DX:AX = sign extended AX */
-    input AX;
-    output DX,AX;
-}
-opcode sequence(0x99) name "CDQ" if datasize == 32 {
-    /* EDX:EAX = sign extended EAX */
-    input EAX;
-    output EDX,EAX;
-}
 
