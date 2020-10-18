@@ -6099,9 +6099,9 @@ void SDL_SetupConfigSection() {
 		"The default modifier is \"shift\" (both left and right shift keys). Set to \"none\" if no modifier is desired.");
     Pstring->SetBasic(true);
 
-    Pint = sdl_sec->Add_int("clip_paste_speed", Property::Changeable::WhenIdle, 20);
+    Pint = sdl_sec->Add_int("clip_paste_speed", Property::Changeable::WhenIdle, 30);
     Pint->Set_help("Set keyboard speed for pasting from the shared clipboard.\n"
-        "If the default setting of 20 causes lost keystrokes, increase the number.\n"
+        "If the default setting of 30 causes lost keystrokes, increase the number.\n"
         "Or experiment with decreasing the number for applications that accept keystrokes quickly.");
     Pint->SetBasic(true);
 
@@ -6550,8 +6550,8 @@ void PasteClipboard(bool bPressed) {
     char* text = SDL_GetClipboardText();
     std::string result="", pre="";
     for (unsigned int i=0; i<strlen(text); i++) {
-        if (text[i]==0x0A) continue;
-        else if (text[i]==9) result+="    ";
+        if (text[i]==0x0A&&(i==0||text[i-1]!=0x0D)) text[i]=0x0D;
+        if (text[i]==9) result+="    ";
         else if (text[i]<0) {
             char c=text[i];
             int n=1;
@@ -6606,8 +6606,9 @@ void paste_utf8_prop(Display *dpy, Window w, Atom p)
     char *text=(char *)prop_ret;
     std::string result="", pre="";
     for (unsigned int i=0; i<strlen(text); i++) {
-        if (text[i]==0x0A) text[i]=0x0D;
-        else if (text[i]==9) result+="    ";
+        if (text[i]==0x0A&&(i==0||text[i-1]!=0x0D)) text[i]=0x0D;
+        if (text[i]==9) result+="    ";
+        else if (text[i]==0x0A) continue;
         else if (text[i]<0) {
             char c=text[i];
             int n=1;
