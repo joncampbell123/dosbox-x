@@ -1595,7 +1595,10 @@ void DOS_Shell::CMD_DIR(char * args) {
 	if (!strrchr(args,'*') && !strrchr(args,'?')) {
 		uint16_t attribute=0;
 		if(!DOS_GetSFNPath(args,sargs,false)) {
-			WriteOut(MSG_Get("SHELL_ILLEGAL_PATH"));
+            if (strlen(args)>1&&toupper(args[0])>='A'&&toupper(args[0])<='Z'&&args[1]==':'&&!Drives[toupper(args[0])-'A'])
+                WriteOut(MSG_Get("SHELL_ILLEGAL_DRIVE"));
+            else
+                WriteOut(MSG_Get("SHELL_ILLEGAL_PATH"));
 			return;
 		}
 		if(DOS_GetFileAttr(sargs,&attribute) && (attribute&DOS_ATTR_DIRECTORY) ) {
@@ -1606,7 +1609,10 @@ void DOS_Shell::CMD_DIR(char * args) {
 		}
 	}
 	if (!DOS_GetSFNPath(args,sargs,false)) {
-		WriteOut(MSG_Get("SHELL_ILLEGAL_PATH"));
+		if (strlen(args)>1&&toupper(args[0])>='A'&&toupper(args[0])<='Z'&&args[1]==':'&&!Drives[toupper(args[0])-'A'])
+            WriteOut(MSG_Get("SHELL_ILLEGAL_DRIVE"));
+		else
+            WriteOut(MSG_Get("SHELL_ILLEGAL_PATH"));
 		return;
 	}
 	if (!(uselfn&&!optZ&&strchr(sargs,'*'))&&!strrchr(sargs,'.'))

@@ -93,6 +93,7 @@ static void RestoreRegisters(void) {
 	reg_sp+=18;
 }
 
+extern uint8_t ZDRIVE_NUM;
 extern void GFX_SetTitle(int32_t cycles, int frameskip, Bits timing, bool paused);
 void DOS_UpdatePSPName(void) {
 	DOS_MCB mcb(dos.psp()-1);
@@ -304,7 +305,12 @@ bool DOS_Execute(const char* name, PhysPt block_pt, uint8_t flags) {
 	if (!DOS_OpenFile(name,OPEN_READ,&fhandle)) {
         int16_t fLen = (int16_t)strlen(name);
         bool shellcom =(!strcasecmp(name+fLen-8, "4DOS.COM") && (fLen == 8 || *(name+fLen-9)=='\\')) || (!strcasecmp(name+fLen-11, "COMMAND.COM") && (fLen == 11 || *(name+fLen-12)=='\\')); // Trap 4DOS.COM and COMMAND.COM
-        if (!shellcom || !DOS_OpenFile(!strcasecmp(name+fLen-8, "4DOS.COM")?"Z:\\4DOS.COM":"Z:\\COMMAND.COM",OPEN_READ,&fhandle)) {
+        char z4dos[]="Z:\\4DOS.COM", zcmd[]="Z:\\COMMAND.COM";
+        if (ZDRIVE_NUM!=25) {
+            z4dos[0]='A'+ZDRIVE_NUM;
+            zcmd[0]='A'+ZDRIVE_NUM;
+        }
+        if (!shellcom || !DOS_OpenFile(!strcasecmp(name+fLen-8, "4DOS.COM")?z4dos:zcmd,OPEN_READ,&fhandle)) {
             DOS_SetError(DOSERR_FILE_NOT_FOUND);
             return false;
         }

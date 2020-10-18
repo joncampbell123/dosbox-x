@@ -71,9 +71,12 @@ CDirectLPT::CDirectLPT (Bitu nr, uint8_t initIrq, CommandLine* cmd)
                               :CParallel (cmd, nr, initIrq) {
      HINSTANCE hLib;
 
-     /* Load the library for win 64 driver */
+     /* Load the library for Windows 32/64-bit driver */
      hLib = LoadLibrary("inpout32.dll");
 
+#if defined (_M_AMD64)
+     if (hLib == NULL) hLib = LoadLibrary("inpoutx64.dll");
+#endif
      if (hLib == NULL) {
           LOG_MSG("LoadLibrary Failed.\n");
           return ;

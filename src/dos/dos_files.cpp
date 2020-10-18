@@ -1995,6 +1995,7 @@ void DOS_File::LoadState( std::istream& stream, bool pop )
 }
 
 extern bool dos_kernel_disabled;
+extern uint8_t ZDRIVE_NUM;
 struct Alloc {
     uint16_t bytes_sector;
     uint8_t sectors_cluster;
@@ -2020,6 +2021,7 @@ void MSCDEX_SetCDInterface(int intNr, int forceCD);
 void POD_Save_DOS_Files( std::ostream& stream )
 {
     char dinfo[256];
+    WRITE_POD( &ZDRIVE_NUM, ZDRIVE_NUM);
 	if (!dos_kernel_disabled) {
 		// 1. Do drives first (directories -> files)
 		// 2. Then files next
@@ -2196,7 +2198,13 @@ void POD_Load_DOS_Files( std::istream& stream )
     char dinfo[256];
     std::vector<int> clist;
     clist.clear();
+    uint8_t ZDRIVE_CUR = ZDRIVE_NUM;
+    READ_POD( &ZDRIVE_NUM, ZDRIVE_NUM);
 	if (!dos_kernel_disabled) {
+        if (ZDRIVE_CUR != ZDRIVE_NUM) {
+            Drives[ZDRIVE_NUM] = Drives[ZDRIVE_CUR];
+            Drives[ZDRIVE_CUR] = 0;
+        }
 		// 1. Do drives first (directories -> files)
 		// 2. Then files next
 

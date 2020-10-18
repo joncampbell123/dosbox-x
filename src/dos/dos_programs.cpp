@@ -726,23 +726,26 @@ public:
     void Move_Z(char new_z) {
         char newz_drive = (char)toupper(new_z);
         int i_newz = (int)newz_drive - (int)'A';
-        if (i_newz >= 0 && i_newz < DOS_DRIVES - 1 && !Drives[i_newz]) {
-            ZDRIVE_NUM = i_newz;
+        if (Drives[i_newz])
+            WriteOut("Drive %c is already in use\n", new_z);
+        else if (i_newz >= 0 && i_newz < DOS_DRIVES) {
             /* remap drives */
-            Drives[i_newz] = Drives[25];
-            Drives[25] = 0;
+            Drives[i_newz] = Drives[ZDRIVE_NUM];
+            Drives[ZDRIVE_NUM] = 0;
             DOS_EnableDriveMenu(i_newz + 'A');
-            DOS_EnableDriveMenu(25 + 'A');
+            DOS_EnableDriveMenu(ZDRIVE_NUM + 'A');
             if (!first_shell) return; //Should not be possible
             /* Update environment */
             std::string line = "";
             char ppp[2] = { newz_drive,0 };
             std::string tempenv = ppp; tempenv += ":\\";
+            std::string tempenvZ = std::string(1, 'A'+ZDRIVE_NUM); tempenvZ += ":\\";
+            std::string tempenvz = std::string(1, 'a'+ZDRIVE_NUM); tempenvz += ":\\";
             if (first_shell->GetEnvStr("PATH", line)) {
                 std::string::size_type idx = line.find('=');
                 std::string value = line.substr(idx + 1, std::string::npos);
-                while ((idx = value.find("Z:\\")) != std::string::npos ||
-                    (idx = value.find("z:\\")) != std::string::npos)
+                while ((idx = value.find(tempenvZ)) != std::string::npos ||
+                    (idx = value.find(tempenvz)) != std::string::npos)
                     value.replace(idx, 3, tempenv);
                 line = value;
             }
@@ -754,10 +757,11 @@ public:
             /* Update batch file if running from Z: (very likely: autoexec) */
             if (first_shell->bf) {
                 std::string& name = first_shell->bf->filename;
-                if (name.length() > 2 && name[0] == 'Z' && name[1] == ':') name[0] = newz_drive;
+                if (name.length() > 2 && name[0] == 'A'+ZDRIVE_NUM && name[1] == ':') name[0] = newz_drive;
             }
             /* Change the active drive */
-            if (DOS_GetDefaultDrive() == 25) DOS_SetDrive(i_newz);
+            if (DOS_GetDefaultDrive() == ZDRIVE_NUM) DOS_SetDrive(i_newz);
+            ZDRIVE_NUM = i_newz;
         }
     }
     void ListMounts(void) {
@@ -852,8 +856,8 @@ public:
 
         /* Check for moving Z: */
         /* Only allowing moving it once. It is merely a convenience added for the wine team */
-        if (ZDRIVE_NUM == 25 && cmd->FindString("-z", newz,false)) {
-            Move_Z(newz[0]);
+        if (cmd->FindString("-z", newz,false)) {
+            if (ZDRIVE_NUM != newz[0]-'A') Move_Z(newz[0]);
             return;
         }
         /* Show list of cdroms */
@@ -6251,7 +6255,7 @@ void DOS_SetupPrograms(void) {
     MSG_Add("PROGRAM_MOUNT_ALREADY_MOUNTED","Drive %c already mounted with %s\n");
     MSG_Add("PROGRAM_MOUNT_USAGE",
         "Mounts directories or drives in the host system as DOSBox-X drives.\n"
-        "Usage: \033[34;1m\033[32;1mMOUNT\033[0m \033[37;1mdrive\033[0m \033[36;1mlocal_directory\033[0m [option]\033[0m\n\n"
+        "Usage: \033[34;1m\033[32;1mMOUNT\033[0m \033[37;1mdrive\033[0m \033[36;1mlocal_directory\033[0m [option]\033[0m\n"
         " \033[37;1mdrive\033[0m            Drive letter where the directory or drive will be mounted.\n"
         " \033[36;1mlocal_directory\033[0m  Local directory or drive in the host system to be mounted.\n"
         " [option]         Option(s) for mounting. The following options are accepted:\n"
@@ -6265,11 +6269,12 @@ void DOS_SetupPrograms(void) {
         " -ioctl           Use lowest level hardware access (following -usecd option).\n"
         " -aspi            Use the installed ASPI layer (following -usecd option).\n"
         " -freesize [size] Specify the free disk space of drive in MB (KB for floppies).\n"
-        " -nocachedir      Do not cache the drive (real-time update).\n"
+        " -nocachedir      Enable real-time update and do not cache the drive.\n"
+        " -z drive         Move virtual drive Z: to a different letter.\n"
         " -o               Report the drive as: local, remote.\n"
         " -q               Quiet mode (no message output).\n"
         " -u               Unmount the drive.\n"
-        " \033[32;1m-examples        Show some usage examples.\033[0m\n\n"
+        " \033[32;1m-examples        Show some usage examples.\033[0m\n"
         "Type MOUNT with no parameters to display a list of mounted drives.\n");
     MSG_Add("PROGRAM_MOUNT_EXAMPLE",
         "A basic example of MOUNT command:\n\n"

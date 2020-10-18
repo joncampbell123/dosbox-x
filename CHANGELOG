@@ -2,6 +2,10 @@
   - Changed some DOS error messages (such as "Illegal
     command" which now reads "Bad command or filename")
     similar to real DOS systems. (Wengier)
+  - Improved the -z (move virtual drive Z:) function of
+    MOUNT command. You can move the virtual drive as
+    many times as you want, and save/load states will
+    work even after you move the Z: drive. (Wengier)
   - Enhanced the config option "freesizecap" to allow
     the setting "fixed" which is the same as "false",
     and a new setting "relative" is added, which will
