@@ -2,6 +2,12 @@
   - Changed some DOS error messages (such as "Illegal
     command" which now reads "Bad command or filename")
     similar to real DOS systems. (Wengier)
+  - Enhanced the config option "freesizecap" to allow
+    the setting "fixed" which is the same as "false",
+    and a new setting "dynamic" is added, which will be
+    similar to the setting "fixed" but the reported
+    free disk size will change if the free disk size
+    increases or decreases ever since. (Wengier)    
   - Added new CPU types to the "Emulate CPU speed" menu
     group, namely 486DX4-100, 486DX5-133, Pentium-75,
     and Pentium-90. Thanks again for the data provided

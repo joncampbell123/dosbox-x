@@ -103,6 +103,7 @@ public:
 		uint16_t total_clusters;
 		uint16_t free_clusters;
 		uint8_t mediaid;
+		unsigned long initfree;
 	} allocation;
 	int remote = -1;
 

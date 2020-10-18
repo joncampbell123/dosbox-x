@@ -93,8 +93,8 @@ static host_cnv_char_t cpcnv_temp[4096];
 static host_cnv_char_t cpcnv_ltemp[4096];
 static uint16_t ldid[256];
 static std::string ldir[256];
-extern bool rsize, freesizecap, force_sfn;
-extern int lfn_filefind_handle;
+extern bool rsize, force_sfn;
+extern int lfn_filefind_handle, freesizecap;
 extern unsigned long totalc, freec;
 
 bool String_ASCII_TO_HOST(host_cnv_char_t *d/*CROSS_LEN*/,const char *s/*CROSS_LEN*/) {
@@ -1178,14 +1178,23 @@ bool localDrive::AllocationInfo(uint16_t * _bytes_sector,uint8_t * _sectors_clus
 				}
 			}
 #endif
-			if (allocation.total_clusters || allocation.free_clusters) {
+			if ((allocation.total_clusters || allocation.free_clusters) && freesizecap<3) {
+                long diff = 0;
+                if (freesizecap==2) diff = (freec?freec:*_free_clusters) - allocation.initfree;
 				bool g1=*_bytes_sector * *_sectors_cluster * *_total_clusters > allocation.bytes_sector * allocation.sectors_cluster * allocation.total_clusters;
 				bool g2=*_bytes_sector * *_sectors_cluster * *_free_clusters > allocation.bytes_sector * allocation.sectors_cluster * allocation.free_clusters;
 				if (g1||g2) {
-					*_bytes_sector = allocation.bytes_sector;
-					*_sectors_cluster = allocation.sectors_cluster;
+                    if (freesizecap==2) diff *= (*_bytes_sector * *_sectors_cluster) / (allocation.bytes_sector * allocation.sectors_cluster);
+                    *_bytes_sector = allocation.bytes_sector;
+                    *_sectors_cluster = allocation.sectors_cluster;
 					if (g1) *_total_clusters = allocation.total_clusters;
 					if (g2) *_free_clusters = allocation.free_clusters;
+					if (freesizecap==2) {
+                        if (diff<0&&(-diff)>*_free_clusters)
+                            *_free_clusters=0;
+                        else
+                            *_free_clusters += diff;
+                    }
 					if (*_total_clusters<*_free_clusters) {
 						if (*_free_clusters>65525)
 							*_total_clusters=65535;
@@ -1199,7 +1208,7 @@ bool localDrive::AllocationInfo(uint16_t * _bytes_sector,uint8_t * _sectors_clus
 				}
 			}
 		} else if (!allocation.total_clusters && !allocation.free_clusters) {
-            if (allocation.mediaid==0xF0) {
+			if (allocation.mediaid==0xF0) {
 				*_bytes_sector = 512;
 				*_sectors_cluster = 1;
 				*_total_clusters = 2880;
@@ -1209,7 +1218,7 @@ bool localDrive::AllocationInfo(uint16_t * _bytes_sector,uint8_t * _sectors_clus
 				*_sectors_cluster = 1;
 				*_total_clusters = 65535;
 				*_free_clusters = 0;
-            } else {
+			} else {
                 // 512*32*32765==~500MB total size
                 // 512*32*16000==~250MB total free size
 				*_bytes_sector = 512;
@@ -1396,6 +1405,18 @@ localDrive::localDrive(const char * startdir,uint16_t _bytes_sector,uint8_t _sec
 	allocation.total_clusters=_total_clusters;
 	allocation.free_clusters=_free_clusters;
 	allocation.mediaid=_mediaid;
+	allocation.initfree=0;
+    if (freesizecap==2) {
+        uint16_t bytes_per_sector,total_clusters,free_clusters;
+        uint8_t sectors_per_cluster;
+        freesizecap=3;
+        rsize=true;
+        freec=0;
+        if (AllocationInfo(&bytes_per_sector,&sectors_per_cluster,&total_clusters,&free_clusters))
+            allocation.initfree = freec?freec:free_clusters;
+        rsize=false;
+        freesizecap=2;
+    }
 
 	for (const auto &opt : options) {
 		size_t equ = opt.find_first_of('=');

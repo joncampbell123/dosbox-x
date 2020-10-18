@@ -36,9 +36,9 @@
 
 Bitu call_program;
 
-extern int enablelfn, paste_speed, wheel_key;
+extern int enablelfn, paste_speed, wheel_key, freesizecap;
 extern const char *modifier;
-extern bool dos_kernel_disabled, force_nocachedir, freesizecap, wpcolon, enable_config_as_shell_commands, load, winrun, winautorun, startwait, mountwarning, wheel_guest, clipboard_dosapi;
+extern bool dos_kernel_disabled, force_nocachedir, wpcolon, enable_config_as_shell_commands, load, winrun, winautorun, startwait, mountwarning, wheel_guest, clipboard_dosapi;
 
 /* This registers a file on the virtual drive and creates the correct structure for it*/
 
@@ -1054,7 +1054,10 @@ void CONFIG::Run(void) {
 					if (section != NULL) {
 						if (!strcasecmp(pvars[0].c_str(), "dosbox")) {
 							force_nocachedir = section->Get_bool("nocachedir");
-							freesizecap = section->Get_bool("freesizecap");
+							std::string freesizestr = section->Get_string("freesizecap");
+                            if (freesizestr == "fixed" || freesizestr == "false" || freesizestr == "0") freesizecap = 0;
+                            else if (freesizestr == "dynamic") freesizecap = 2;
+                            else freesizecap = 0;
 							wpcolon = section->Get_bool("leading colon write protect image");
 							if (!strcasecmp(inputline.substr(0, 9).c_str(), "saveslot=")) SetGameState_Run(section->Get_int("saveslot")-1);
 						} else if (!strcasecmp(pvars[0].c_str(), "sdl")) {

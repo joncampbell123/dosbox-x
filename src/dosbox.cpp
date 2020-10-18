@@ -135,7 +135,6 @@ static void CheckX86ExtensionsSupport()
 extern void         GFX_SetTitle(int32_t cycles, int frameskip, Bits timing, bool paused);
 
 extern bool         force_nocachedir;
-extern bool         freesizecap;
 extern bool         wpcolon;
 extern bool         clearline;
 
@@ -150,6 +149,7 @@ extern bool         VIDEO_BIOS_always_carry_14_high_font;
 extern bool         VIDEO_BIOS_always_carry_16_high_font;
 extern bool         VIDEO_BIOS_enable_CGA_8x8_second_half;
 extern bool         allow_more_than_640kb;
+extern int          freesizecap;
 extern unsigned int page;
 
 uint32_t              guest_msdos_LoL = 0;
@@ -1014,7 +1014,10 @@ void Init_VGABIOS() {
     assert(MemBase != NULL);
 
     force_nocachedir = section->Get_bool("nocachedir");
-	freesizecap = section->Get_bool("freesizecap");
+    std::string freesizestr = section->Get_string("freesizecap");
+    if (freesizestr == "fixed" || freesizestr == "false" || freesizestr == "0") freesizecap = 0;
+    else if (freesizestr == "dynamic") freesizecap = 2;
+    else freesizecap = 0;
     wpcolon = section->Get_bool("leading colon write protect image");
 
     VGA_BIOS_Size_override = (Bitu)video_section->Get_int("vga bios size override");
@@ -1312,6 +1315,7 @@ void DOSBOX_SetupConfigSections(void) {
     const char* tandys[] = { "auto", "on", "off", 0};
     const char* ps1opt[] = { "on", "off", 0};
     const char* numopt[] = { "on", "off", "", 0};
+    const char* freesizeopt[] = {"true", "false", "fixed", "dynamic", "cap", "1", "0", 0};
     const char* truefalseautoopt[] = { "true", "false", "1", "0", "auto", 0};
     const char* pc98fmboards[] = { "auto", "off", "false", "board14", "board26k", "board86", "board86c", 0};
     const char* pc98videomodeopt[] = { "", "24khz", "31khz", "15khz", 0};
@@ -1669,8 +1673,9 @@ void DOSBOX_SetupConfigSections(void) {
     Pbool->Set_help("If set, MOUNT commands will mount with -nocachedir (disable directory caching) by default.");
     Pbool->SetBasic(true);
 
-    Pbool = secprop->Add_bool("freesizecap",Property::Changeable::WhenIdle,true);
-    Pbool->Set_help("If set, the value of MOUNT -freesize will be applied only if the actual free size is greater than the specified value.");
+    Pstring = secprop->Add_string("freesizecap",Property::Changeable::WhenIdle,"cap");
+    Pstring->Set_values(freesizeopt);
+    Pstring->Set_help("If set, the value of MOUNT -freesize will be applied only if the actual free size is greater than the specified value.");
 
     Pbool = secprop->Add_bool("leading colon write protect image",Property::Changeable::WhenIdle,true);
     Pbool->Set_help("If set, BOOT and IMGMOUNT commands will put an image file name with a leading colon (:) in write-protect mode.");

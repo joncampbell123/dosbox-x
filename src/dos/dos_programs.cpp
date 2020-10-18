@@ -65,10 +65,10 @@
 #else
 #include <libgen.h>
 #endif
+int freesizecap = 1;
 bool Mouse_Drv=true;
 bool Mouse_Vertical = false;
 bool force_nocachedir = false;
-bool freesizecap = true;
 bool wpcolon = true;
 bool startcmd = false;
 bool startwait = true;
