@@ -1417,6 +1417,7 @@ Bitu INT16_Handler(void) {
 
         // HACK: Make STOP key work
         if (IS_PC98_ARCH && DOS_BreakConioFlag) {
+            DOS_BreakConioFlag=false;
             reg_ax=0;
             return CBRET_NONE;
         }
@@ -1435,6 +1436,7 @@ Bitu INT16_Handler(void) {
 
         // HACK: Make STOP key work
         if (IS_PC98_ARCH && DOS_BreakConioFlag) {
+            DOS_BreakConioFlag=false;
             reg_ax=0;
             return CBRET_NONE;
         }
