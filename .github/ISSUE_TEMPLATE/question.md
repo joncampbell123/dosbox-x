@@ -1,8 +1,8 @@
 ---
 name: Question
 about: Ask for support or start a discussion about DOSBox-X.
-title: ''
-labels: question
-assignees: ''
+label: question
 
 ---
+
+**Please describe your question.**
