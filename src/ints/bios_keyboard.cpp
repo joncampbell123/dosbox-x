@@ -1460,12 +1460,7 @@ Bitu INT16_Handler(void) {
 
         for (;;) {
             if (check_key(temp)) {
-                if (!IS_PC98_ARCH && temp == 0) {
-                    /* CTRL+BREAK hack. Discard, or else the FreeDOS editor included cannot handle keyboard input
-                     * after CTRL+BREAK */
-                    get_key(temp);
-                    CALLBACK_SZF(true);
-                } else if (!IsEnhancedKey(temp)) {
+                if (!IsEnhancedKey(temp)) {
                     /* normal key, return translated key in ax */
                     CALLBACK_SZF(false);
                     if (int16_ah_01_cf_undoc) CALLBACK_SCF(true);
@@ -1490,12 +1485,17 @@ Bitu INT16_Handler(void) {
         if (int16_unmask_irq1_on_read)
             PIC_SetIRQMask(1,false); /* unmask keyboard */
 
+        /* NOTE: The FreeDOS EDIT.COM editor built into DOSBox-X has a problem where if
+         *       this call return AX=0 and ZF=0, it will treat it the same as if we had
+         *       returned ZF=1 to indicate no scan code. Unfortunately scan code 0x0000
+         *       is added to the buffer for CTRL+BREAK, meaning that if you hit CTRL+BREAK
+         *       while using EDIT.COM, you effectively disable all keyboard input to the
+         *       program until you exit, or trick the program into reading the scan code
+         *       to remove it from the buffer.
+         *
+         * TODO: If you run EDIT.COM on real MS-DOS, does the same problem come up? */
+
         if (!check_key(temp)) {
-            CALLBACK_SZF(true);
-        } else if (!IS_PC98_ARCH && temp == 0) {
-            /* CTRL+BREAK hack. Discard, or else the FreeDOS editor included cannot handle keyboard input
-             * after CTRL+BREAK */
-            get_key(temp);
             CALLBACK_SZF(true);
         } else {
             CALLBACK_SZF(false);
