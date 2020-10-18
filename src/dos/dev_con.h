@@ -673,13 +673,6 @@ bool device_CON::Read(uint8_t * data,uint16_t * size) {
             continue;
         }
 
-        // Make STOP key work
-        if (IS_PC98_ARCH && DOS_BreakConioFlag) {
-            DOS_BreakConioFlag=false;
-            data[count++]=0x03; // CTRL+C
-            continue;
-        }
-
 		reg_ah=(IS_EGAVGA_ARCH)?0x10:0x0;
 
         /* FIXME: PC-98 emulation should eventually use CONIO emulation that
@@ -726,12 +719,7 @@ bool device_CON::Read(uint8_t * data,uint16_t * size) {
 			}
 			break;
 		case 0: /* Extended keys in the int 16 0x0 case */
-            if (IS_PC98_ARCH) {
-                /* PC-98 does NOT return scan code, but instead returns nothing or
-                 * control/escape code */
-                CommonPC98ExtScanConversionToReadBuf(reg_ah);
-            }
-            else if (reg_ah == 0) { /* CTRL+BREAK hackery (inserted as 0x0000) */
+            if (reg_ax == 0) { /* CTRL+BREAK hackery (inserted as 0x0000) */
     			data[count++]=0x03; // CTRL+C
                 if (*size > 1) {
                     dos.errorcode=77;
@@ -739,6 +727,11 @@ bool device_CON::Read(uint8_t * data,uint16_t * size) {
                     reg_ax=oldax;
                     return false;
                 }
+            }
+            else if (IS_PC98_ARCH) {
+                /* PC-98 does NOT return scan code, but instead returns nothing or
+                 * control/escape code */
+                CommonPC98ExtScanConversionToReadBuf(reg_ah);
             }
             else {
                 /* IBM PC/XT/AT signals extended code by entering AL, AH.
@@ -1156,6 +1149,8 @@ uint16_t device_CON::GetInformation(void) {
 		 * this implementation is a good "halfway" compromise in that this call
 		 * will trigger the INT 16h AH=0x11 hook it relies on. */
 		if (readcache || dev_con_pos < dev_con_max) return 0x8093; /* key available */
+
+		if (DOS_BreakConioFlag) return 0x8093; /* key available */
 
 		uint16_t saved_ax = reg_ax;
 
