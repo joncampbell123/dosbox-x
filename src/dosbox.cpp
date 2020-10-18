@@ -1016,8 +1016,8 @@ void Init_VGABIOS() {
     force_nocachedir = section->Get_bool("nocachedir");
     std::string freesizestr = section->Get_string("freesizecap");
     if (freesizestr == "fixed" || freesizestr == "false" || freesizestr == "0") freesizecap = 0;
-    else if (freesizestr == "dynamic") freesizecap = 2;
-    else freesizecap = 0;
+    else if (freesizestr == "relative" || freesizestr == "2") freesizecap = 2;
+    else freesizecap = 1;
     wpcolon = section->Get_bool("leading colon write protect image");
 
     VGA_BIOS_Size_override = (Bitu)video_section->Get_int("vga bios size override");
@@ -1315,7 +1315,7 @@ void DOSBOX_SetupConfigSections(void) {
     const char* tandys[] = { "auto", "on", "off", 0};
     const char* ps1opt[] = { "on", "off", 0};
     const char* numopt[] = { "on", "off", "", 0};
-    const char* freesizeopt[] = {"true", "false", "fixed", "dynamic", "cap", "1", "0", 0};
+    const char* freesizeopt[] = {"true", "false", "fixed", "relative", "cap", "2", "1", "0", 0};
     const char* truefalseautoopt[] = { "true", "false", "1", "0", "auto", 0};
     const char* pc98fmboards[] = { "auto", "off", "false", "board14", "board26k", "board86", "board86c", 0};
     const char* pc98videomodeopt[] = { "", "24khz", "31khz", "15khz", 0};
@@ -1675,7 +1675,9 @@ void DOSBOX_SetupConfigSections(void) {
 
     Pstring = secprop->Add_string("freesizecap",Property::Changeable::WhenIdle,"cap");
     Pstring->Set_values(freesizeopt);
-    Pstring->Set_help("If set, the value of MOUNT -freesize will be applied only if the actual free size is greater than the specified value.");
+    Pstring->Set_help("If set to \"cap\", the value of MOUNT -freesize will apply only if the actual free size is greater than the specified value.\n"
+                    "If set to \"relative\", the value of MOUNT -freesize will change relative to the specified value.\n"
+                    "If set to \"fixed\", the value of MOUNT -freesize will be a fixed one to be reported all the time.");
 
     Pbool = secprop->Add_bool("leading colon write protect image",Property::Changeable::WhenIdle,true);
     Pbool->Set_help("If set, BOOT and IMGMOUNT commands will put an image file name with a leading colon (:) in write-protect mode.");

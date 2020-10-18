@@ -1056,8 +1056,8 @@ void CONFIG::Run(void) {
 							force_nocachedir = section->Get_bool("nocachedir");
 							std::string freesizestr = section->Get_string("freesizecap");
                             if (freesizestr == "fixed" || freesizestr == "false" || freesizestr == "0") freesizecap = 0;
-                            else if (freesizestr == "dynamic") freesizecap = 2;
-                            else freesizecap = 0;
+                            else if (freesizestr == "relative" || freesizestr == "2") freesizecap = 2;
+                            else freesizecap = 1;
 							wpcolon = section->Get_bool("leading colon write protect image");
 							if (!strcasecmp(inputline.substr(0, 9).c_str(), "saveslot=")) SetGameState_Run(section->Get_int("saveslot")-1);
 						} else if (!strcasecmp(pvars[0].c_str(), "sdl")) {
