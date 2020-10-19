@@ -1627,7 +1627,7 @@ static Bitu DOS_21Handler(void) {
             MEM_StrCopy(SegPhys(ds)+reg_dx,name1,DOSNAMEBUF);
 			lfn_filefind_handle=LFN_FILEFIND_NONE;
             if (DOS_FindFirst(name1,reg_cx)) {
-                CALLBACK_SCF(false);    
+                CALLBACK_SCF(false);
                 reg_ax=0;           /* Undocumented */
             } else {
                 reg_ax=dos.errorcode;
@@ -3249,6 +3249,8 @@ void DOS_EnableDriveMenu(char drv) {
 		name = std::string("drive_") + drv + "_mountfd";
 		mainMenu.get_item(name).enable(empty).refresh_item(mainMenu);
 		name = std::string("drive_") + drv + "_mountimg";
+		mainMenu.get_item(name).enable(empty).refresh_item(mainMenu);
+		name = std::string("drive_") + drv + "_mountimgs";
 		mainMenu.get_item(name).enable(empty).refresh_item(mainMenu);
 		name = std::string("drive_") + drv + "_unmount";
 		mainMenu.get_item(name).enable(!dos_kernel_disabled && Drives[drv-'A'] != NULL && (drv-'A') != ZDRIVE_NUM).refresh_item(mainMenu);

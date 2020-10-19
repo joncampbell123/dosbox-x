@@ -243,7 +243,7 @@ extern bool bootguest, bootfast, bootvm;
 extern int bootdrive;
 
 void MenuBrowseFolder(char drive, std::string drive_type);
-void MenuBrowseImageFile(char drive, bool boot);
+void MenuBrowseImageFile(char drive, bool boot, bool multiple);
 void MenuBootDrive(char drive);
 void MenuUnmountDrive(char drive);
 void MenuBrowseProgramFile(void);
@@ -371,11 +371,32 @@ bool drive_mountimg_menu_callback(DOSBoxMenu * const menu,DOSBoxMenu::item * con
 
     if (dos_kernel_disabled) return true;
 
-    MenuBrowseImageFile(drive+'A', false);
+    MenuBrowseImageFile(drive+'A', false, false);
 
     return true;
 }
 
+bool drive_mountimgs_menu_callback(DOSBoxMenu * const menu,DOSBoxMenu::item * const menuitem) {
+    (void)menu;//UNUSED
+    (void)menuitem;//UNUSED
+
+    /* menu item has name "drive_A_" ... */
+    int drive;
+    const char *mname = menuitem->get_name().c_str();
+    if (!strncmp(mname,"drive_",6)) {
+        drive = mname[6] - 'A';
+        if (drive < 0 || drive >= DOS_DRIVES) return false;
+    }
+    else {
+        return false;
+    }
+
+    if (dos_kernel_disabled) return true;
+
+    MenuBrowseImageFile(drive+'A', false, true);
+
+    return true;
+}
 bool drive_bootimg_menu_callback(DOSBoxMenu * const menu,DOSBoxMenu::item * const menuitem) {
     (void)menu;//UNUSED
     (void)menuitem;//UNUSED
@@ -392,7 +413,7 @@ bool drive_bootimg_menu_callback(DOSBoxMenu * const menu,DOSBoxMenu::item * cons
 
     if (dos_kernel_disabled) return true;
 
-    MenuBrowseImageFile(drive+'A', true);
+    MenuBrowseImageFile(drive+'A', true, false);
 
     return true;
 }
@@ -529,6 +550,7 @@ const DOSBoxMenu::callback_t drive_callbacks[] = {
     drive_mountcd_menu_callback,
     drive_mountfd_menu_callback,
     drive_mountimg_menu_callback,
+    drive_mountimgs_menu_callback,
     drive_unmount_menu_callback,
     drive_swap_menu_callback,
     drive_rescan_menu_callback,
@@ -556,7 +578,8 @@ const char *drive_opts[][2] = {
 	{ "mounthd",                "Mount folder as hard drive" },
 	{ "mountcd",                "Mount folder as CD drive" },
 	{ "mountfd",                "Mount folder as floppy drive" },
-	{ "mountimg",               "Mount disk or CD image file" },
+	{ "mountimg",               "Mount a disk or CD image file" },
+	{ "mountimgs",              "Mount multiple disk/CD images" },
     { "unmount",                "Unmount drive" },
     { "rescan",                 "Rescan drive" },
     { "swap",                   "Swap disk" },

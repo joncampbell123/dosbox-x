@@ -12,6 +12,10 @@
     be similar to the setting "fixed" but the reported
     free disk size will also change relative to the
     change of the free disk size ever since. (Wengier)
+  - Added "Mount multiple disk/CD images" option to the
+    mounting options of the Drive menu to allow users
+    to mount more than one disk/CD images to a drive,
+    swappable from the menu. (Wengier)
   - Added new CPU types to the "Emulate CPU speed" menu
     group, namely 486DX4-100, 486DX5-133, Pentium-75,
     and Pentium-90. Thanks again for the data provided
