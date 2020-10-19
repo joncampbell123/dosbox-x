@@ -6041,7 +6041,7 @@ void GFX_Events() {
     // keystrokes get lost in the spew. (Prob b/c of DI usage on Win32, sadly..)
     // while (PasteClipboardNext());
     // Doesn't really matter though, it's fast enough as it is...
-	if (paste_speed < 0) paste_speed = 20;
+	if (paste_speed < 0) paste_speed = 30;
 
     static Bitu iPasteTicker = 0;
     if (paste_speed && (iPasteTicker++ % paste_speed) == 0) // emendelson: was %2, %20 is good for WP51
