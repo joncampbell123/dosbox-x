@@ -451,6 +451,10 @@ static Bitu IRQ1_Handler(void) {
             mem_writeb(BIOS_KEYBOARD_FLAGS3,flags3);
             mem_writeb(BIOS_CTRL_BREAK_FLAG,0x80);
             empty_keyboard_buffer();
+            /* NTS: Real hardware shows that, at least through INT 16h, CTRL+BREAK injects
+             *      scan code word 0x0000 into the keyboard buffer. Upon CTRL+BREAK, 0x0000
+             *      appears in the keyboard buffer, which INT 16h AH=1h/AH=11h will signal as
+             *      an available scan code, and INT 16h AH=0h/10h will return with ZF=0. */
             BIOS_AddKeyToBuffer(0);
             SegSet16(cs, RealSeg(CALLBACK_RealPointer(irq1_ret_ctrlbreak_callback)));
             reg_ip = RealOff(CALLBACK_RealPointer(irq1_ret_ctrlbreak_callback));
