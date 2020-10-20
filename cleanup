@@ -13,4 +13,7 @@ rm -Rfv visualc_net/libpng/projects/visualc71/Win32_LIB_Release
 rm -Rfv vs2008/sdl/VisualC/SDLmain/Release vs2008/sdl/VisualC/SDL/Release vs2008/sdlnet/VisualC/Release
 rm -Rfv vs2008/Debug vs2008/Release
 rm -Rfv autom4te.cache
+rm -Rfv build-flatpak
+rm -Rfv .flatpak-builder
+rm -Rfv myrepo
 

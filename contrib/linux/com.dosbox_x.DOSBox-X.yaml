@@ -68,7 +68,5 @@ modules:
       - ./build-debug
       - make bindir=/app/bin prefix=/app install
     post-install:
-      - install -Dm644 /app/share/applications/dosbox-x.desktop /app/share/applications/${FLATPAK_ID}.desktop
       - install -Dm644 /app/share/icons/hicolor/scalable/apps/dosbox-x.svg /app/share/icons/hicolor/scalable/apps/${FLATPAK_ID}.svg
-      - install -Dm644 /app/share/metainfo/dosbox-x.metainfo.xml /app/share/metainfo/${FLATPAK_ID}.metainfo.xml
       - desktop-file-edit --set-key=Icon --set-value=${FLATPAK_ID} /app/share/applications/${FLATPAK_ID}.desktop
