@@ -6755,10 +6755,19 @@ static BOOL WINAPI ConsoleEventHandler(DWORD event) {
 }
 
 #elif defined(C_SDL2)
+typedef char host_cnv_char_t;
+host_cnv_char_t *CodePageGuestToHost(const char *s);
+char *str_replace(char *orig, char *rep, char *with);
+void removeChar(char *str, char c);
 void CopyClipboard(void) {
 	uint16_t len=0;
-	const char* text = Mouse_GetSelected(mouse_start_x-sdl.clip.x,mouse_start_y-sdl.clip.y,mouse_end_x-sdl.clip.x,mouse_end_y-sdl.clip.y,(int)(currentWindowWidth-sdl.clip.x),(int)(currentWindowHeight-sdl.clip.y), &len);
-    SDL_SetClipboardText(text);
+	char* text = (char *)Mouse_GetSelected(mouse_start_x-sdl.clip.x,mouse_start_y-sdl.clip.y,mouse_end_x-sdl.clip.x,mouse_end_y-sdl.clip.y,(int)(currentWindowWidth-sdl.clip.x),(int)(currentWindowHeight-sdl.clip.y), &len);
+    removeChar(text, 10);
+    char* uname = CodePageGuestToHost(text);
+    char ocr[4] = {-30, -103, -86, 0};
+    char ncr[2] = {13, 0};
+    const char* str = uname==NULL?"":str_replace(uname, ocr, ncr);
+    SDL_SetClipboardText(uname!=NULL?str:text);
 }
 #endif
 
