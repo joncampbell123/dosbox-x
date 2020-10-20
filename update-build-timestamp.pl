@@ -26,7 +26,7 @@ close(X);
 use strict;
 use warnings;
 
-my $file = "contrib/linux/dosbox-x.metainfo.xml.in";
+my $file = "contrib/linux/com.dosbox_x.DOSBox-X.metainfo.xml.in";
 open FILE, $file or die "Can't read from $file!\n";
 
 my @lines;

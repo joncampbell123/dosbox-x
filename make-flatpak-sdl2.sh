@@ -16,12 +16,12 @@ if [ $? -eq 0 ]; then
 	echo
 	echo You can now install the flatpak by running the following commands:
 	echo
-	echo  flatpak --user remote-add --no-gpg-verify myrepo repo
+	echo  flatpak --user remote-add --no-gpg-verify myrepo myrepo
 	echo  flatpak --user install myrepo com.dosbox_x.DOSBox-X-sdl2
 	echo
 	echo You can then run the flatpak as follows:
 	echo  flatpak run com.dosbox_x.DOSBox-X-sdl2
 	echo
 	echo Or you can test it without installing by running:
-	echo  flatpak-builder --run build-flatpak contrib/linux/com.dosbox_x.DOSBox-X-sdl2.yaml dosbox-x-sdl2
+	echo  flatpak-builder --run build-flatpak contrib/linux/com.dosbox_x.DOSBox-X-sdl2.yaml dosbox-x
 fi

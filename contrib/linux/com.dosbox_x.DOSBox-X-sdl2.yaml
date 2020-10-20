@@ -3,7 +3,7 @@ runtime: org.freedesktop.Platform
 runtime-version: '20.08'
 sdk: org.freedesktop.Sdk
 
-command: dosbox-x-sdl2
+command: dosbox-x
 
 finish-args: # flatpak permissions
   - --device=all # needed for gamepads and serial/parallel
@@ -65,12 +65,10 @@ modules:
       - type: dir
         path: ../..
     post-install:
-      - install -Dm755 /app/bin/dosbox-x /app/bin/dosbox-x-sdl2
-      - install -Dm644 /app/share/applications/dosbox-x.desktop /app/share/applications/${FLATPAK_ID}.desktop
+      - install -Dm644 /app/share/applications/com.dosbox_x.DOSBox-X.desktop /app/share/applications/${FLATPAK_ID}.desktop
       - install -Dm644 /app/share/icons/hicolor/scalable/apps/dosbox-x.svg /app/share/icons/hicolor/scalable/apps/${FLATPAK_ID}.svg
-      - install -Dm644 /app/share/metainfo/dosbox-x.metainfo.xml /app/share/metainfo/${FLATPAK_ID}.metainfo.xml
+      - install -Dm644 /app/share/metainfo/com.dosbox_x.DOSBox-X.metainfo.xml /app/share/metainfo/${FLATPAK_ID}.metainfo.xml
       - desktop-file-edit --set-key=Icon --set-value=${FLATPAK_ID} /app/share/applications/${FLATPAK_ID}.desktop
-      - desktop-file-edit --set-key=Exec --set-value=dosbox-x-sdl2 /app/share/applications/${FLATPAK_ID}.desktop
       - desktop-file-edit --set-key=Name --set-value="DOSBox-X SDL2" /app/share/applications/${FLATPAK_ID}.desktop
       - appstream-util modify /app/share/metainfo/${FLATPAK_ID}.metainfo.xml id dosbox-x-sdl2
       - appstream-util modify /app/share/metainfo/${FLATPAK_ID}.metainfo.xml name "DOSBox-X SDL2"

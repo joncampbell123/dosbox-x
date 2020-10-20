@@ -16,7 +16,7 @@ if [ $? -eq 0 ]; then
 	echo
 	echo You can now install the flatpak by running the following commands:
 	echo
-	echo  flatpak --user remote-add --no-gpg-verify myrepo repo
+	echo  flatpak --user remote-add --no-gpg-verify myrepo myrepo
 	echo  flatpak --user install myrepo com.dosbox_x.DOSBox-X
 	echo
 	echo You can then run the flatpak as follows:
