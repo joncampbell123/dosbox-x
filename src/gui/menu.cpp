@@ -580,7 +580,6 @@ static const char *def_menu_capture[] =
     "mapper_savestate",
     "mapper_loadstate",
     "saveslotmenu",
-    "usesavefile",
     "browsesavefile",
     "showstate",
     NULL
@@ -603,6 +602,7 @@ static const char *save_load_options[] =
 {
     "noremark_savestate",
     "force_loadstate",
+    "usesavefile",
     NULL
 };
 
