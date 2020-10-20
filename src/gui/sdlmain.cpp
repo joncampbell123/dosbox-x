@@ -7092,7 +7092,7 @@ bool DOSBOX_parse_argv() {
     while (control->cmdline->GetOpt(optname)) {
         std::transform(optname.begin(), optname.end(), optname.begin(), ::tolower);
 
-        if (optname == "ver" || optname == "version") {
+        if (optname == "v" || optname == "ver" || optname == "version") {
             DOSBox_ShowConsole();
 
             fprintf(stderr,"\nDOSBox-X version %s %s, copyright 2011-%s The DOSBox-X Team.\n",VERSION,SDL_STRING,COPYRIGHT_END_YEAR);
@@ -7115,22 +7115,22 @@ bool DOSBOX_parse_argv() {
             fprintf(stderr,"DOSBox-X project maintainer: joncampbell123 (The Great Codeholio)\n\n");
             fprintf(stderr,"Options can be started with either \"-\" or \"/\" (e.g. \"-help\" or \"/help\"):\n\n");
             fprintf(stderr,"  -?, -h, -help                           Show this help screen\n");
-            fprintf(stderr,"  -ver, -version                          Display DOSBox-X version information\n");
-            fprintf(stderr,"  -editconf <editor>                      Edit the config file with the editor\n");
-            fprintf(stderr,"  -opencaptures <param>                   Launch captures\n");
-            fprintf(stderr,"  -opensaves <param>                      Launch saves\n");
+            fprintf(stderr,"  -v, -ver, -version                      Display DOSBox-X version information\n");
+            fprintf(stderr,"  -fs, -fullscreen                        Start DOSBox-X in fullscreen mode\n");
+            fprintf(stderr,"  -conf <configfile>                      Start DOSBox-X with the specific config file\n");
+            fprintf(stderr,"  -editconf <editor>                      Edit the config file with the specific editor\n");
+            fprintf(stderr,"  -userconf                               Create user level config file\n");
             fprintf(stderr,"  -printconf                              Print config file location\n");
             fprintf(stderr,"  -eraseconf (or -resetconf)              Erase config file\n");
             fprintf(stderr,"  -erasemapper (or -resetmapper)          Erase mapper file\n");
+            fprintf(stderr,"  -opencaptures <param>                   Launch captures\n");
+            fprintf(stderr,"  -opensaves <param>                      Launch saves\n");
+            fprintf(stderr,"  -startui, -startgui, -starttool         Start DOSBox-X with GUI configuration tool\n");
+            fprintf(stderr,"  -startmapper                            Start DOSBox-X with the mapper editor\n");
             fprintf(stderr,"  -nogui                                  Do not show GUI\n");
             fprintf(stderr,"  -nomenu                                 Do not show menu\n");
-            fprintf(stderr,"  -userconf                               Create user level config file\n");
-            fprintf(stderr,"  -conf <param>                           Use config file <param>\n");
-            fprintf(stderr,"  -startui (or -startgui)                 Start DOSBox-X with GUI configuration tool\n");
-            fprintf(stderr,"  -startmapper                            Start DOSBox-X with the mapper editor\n");
             fprintf(stderr,"  -showcycles                             Show cycles count\n");
             fprintf(stderr,"  -showrt                                 Show emulation speed relative to realtime\n");
-            fprintf(stderr,"  -fullscreen                             Start in fullscreen\n");
             fprintf(stderr,"  -savedir <path>                         Set save path\n");
             fprintf(stderr,"  -defaultdir <path>                      Set the default working path\n");
             fprintf(stderr,"  -defaultconf                            Use the default config settings\n");
@@ -7244,10 +7244,10 @@ bool DOSBOX_parse_argv() {
         else if (optname == "startmapper") {
             control->opt_startmapper = true;
         }
-        else if (optname == "fullscreen") {
+        else if (optname == "fs" || optname == "fullscreen") {
             control->opt_fullscreen = true;
         }
-        else if (optname == "startui" || optname == "startgui") {
+        else if (optname == "startui" || optname == "startgui" || optname == "starttool") {
             control->opt_startui = true;
         }
         else if (optname == "disable-numlock-check" || optname == "disable_numlock_check") {
