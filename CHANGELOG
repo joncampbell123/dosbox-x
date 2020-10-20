@@ -45,6 +45,10 @@
     layout" config option in [pc98] section. Also moved
     the "PC-98 PIT master clock" options from the "DOS"
     menu to this menu group. (Wengier)
+  - The Windows installer will now copy the DLL files
+    inpout32.dll (32-bit) and inpoutx64.dll (64-bit) to
+    the DOSBox-X install directory for use with the
+    direct parallel port passthrough feature. (Wengier)
   - Implemented the x86 dynamic core for both 32-bit
     and 64-bit systems by re-porting the code from SVN.
     Dynamic core now supports either the dynamic_x86

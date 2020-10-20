@@ -74,6 +74,8 @@ Source: "..\shaders\*"; DestDir: "{app}\shaders"; Flags: ignoreversion recursesu
 Source: ".\drivez_readme.txt"; DestDir: "{app}\drivez"; DestName: "README.TXT"; Flags: ignoreversion; Components: full typical
 Source: ".\windows_explorer_context_menu_installer.bat"; DestDir: "{app}\scripts"; DestName: "windows_explorer_context_menu_installer.bat"; Flags: ignoreversion; Components: full typical
 Source: ".\windows_explorer_context_menu_uninstaller.bat"; DestDir: "{app}\scripts"; DestName: "windows_explorer_context_menu_uninstaller.bat"; Flags: ignoreversion; Components: full typical
+Source: ".\inpout32.dll"; DestDir: "{app}"; DestName: "inpout32.dll"; Flags: ignoreversion; Components: full typical
+Source: ".\inpoutx64.dll"; DestDir: "{app}"; DestName: "inpoutx64.dll"; Flags: ignoreversion; Check: IsWin64; Components: full typical
 Source: "Win32_builds\x86_Release\dosbox-x.exe"; DestDir: "{app}"; Flags: ignoreversion; Check: CheckDirName('Win32_builds\x86_Release'); Components: full typical compact
 Source: "Win32_builds\x86_Release_SDL2\dosbox-x.exe"; DestDir: "{app}"; Flags: ignoreversion; Check: CheckDirName('Win32_builds\x86_Release_SDL2'); Components: full typical compact
 Source: "Win32_builds\ARM_Release\dosbox-x.exe"; DestDir: "{app}"; Flags: ignoreversion; Check: CheckDirName('Win32_builds\ARM_Release'); Components: full typical compact
