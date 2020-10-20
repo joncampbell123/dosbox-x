@@ -1068,7 +1068,7 @@ public:
 };
 
 std::string CEvent::GetBindMenuText(void) {
-    std::string r, s;
+    std::string r="", s="", t="";
 
     if (bindlist.empty())
         return std::string();
@@ -1082,9 +1082,13 @@ std::string CEvent::GetBindMenuText(void) {
         CKeyBind *kb = reinterpret_cast<CKeyBind*>(b);
         if (kb == NULL) continue;
 
-        if (first) r += kb->GetBindMenuText();
-        s += kb->GetBindMenuText();
-        first=false;
+        t = kb->GetBindMenuText();
+        if (first) {
+            first=false;
+            r += t;
+        }
+        if (t!="Right Ctrl"&&t!="Left Ctrl"&&t!="Right Alt"&&t!="Left Alt"&&t!="Right Shift"&&t!="Left Shift") break;
+        s += t;
     }
     if (s=="Right CtrlLeft Ctrl"||s=="Left CtrlRight Ctrl") r="Ctrl";
     if (s=="Right AltLeft Alt"||s=="Left AltRight Alt") r="Alt";
