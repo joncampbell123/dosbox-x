@@ -77,7 +77,7 @@ std::string DBGBlock::windowlist_by_name(void) {
 }
 
 const unsigned int dbg_def_win_height[DBGBlock::WINI_MAX_INDEX] = {
-    5,          /* WINI_REG */
+    7,          /* WINI_REG */
     9,          /* WINI_DATA */
     12,         /* WINI_CODE */
     5,          /* WINI_VAR */
@@ -349,6 +349,18 @@ static void Draw_RegisterLayout(void) {
 
 	mvwaddstr(dbg.win_reg,2,75,"CPL");
 	mvwaddstr(dbg.win_reg,2,68,"IOPL");
+
+	mvwaddstr(dbg.win_reg,4,0,"ST0=");
+	mvwaddstr(dbg.win_reg,5,0,"ST4=");
+
+	mvwaddstr(dbg.win_reg,4,14,"ST1=");
+	mvwaddstr(dbg.win_reg,5,14,"ST5=");
+
+	mvwaddstr(dbg.win_reg,4,28,"ST2=");
+	mvwaddstr(dbg.win_reg,5,28,"ST6=");
+
+	mvwaddstr(dbg.win_reg,4,42,"ST3=");
+	mvwaddstr(dbg.win_reg,5,42,"ST7=");
 
 	mvwaddstr(dbg.win_reg,1,52,"C  Z  S  O  A  P  D  I  T ");
 }

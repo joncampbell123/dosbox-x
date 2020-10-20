@@ -217,16 +217,16 @@ static bool get_key(uint16_t &code) {
     if (IS_PC98_ARCH) {
         head =mem_readw(0x524/*head*/);
         tail =mem_readw(0x526/*tail*/);
+
+        /* PC-98 BIOSes also manage a key counter, which is required for
+         * some games and even the PC-98 version of MS-DOS to detect keyboard input */
+        unsigned char b = real_readw(0,0x528);
+        if (b != 0) real_writew(0,0x528,b-1);
     }
     else {
         head =mem_readw(BIOS_KEYBOARD_BUFFER_HEAD);
         tail =mem_readw(BIOS_KEYBOARD_BUFFER_TAIL);
     }
-
-    /* PC-98 BIOSes also manage a key counter, which is required for
-     * some games and even the PC-98 version of MS-DOS to detect keyboard input */
-    unsigned char b = real_readw(0,0x528);
-    if (b != 0) real_writew(0,0x528,b-1);
 
     if (head==tail) return false;
     thead=head+2;
@@ -451,6 +451,10 @@ static Bitu IRQ1_Handler(void) {
             mem_writeb(BIOS_KEYBOARD_FLAGS3,flags3);
             mem_writeb(BIOS_CTRL_BREAK_FLAG,0x80);
             empty_keyboard_buffer();
+            /* NTS: Real hardware shows that, at least through INT 16h, CTRL+BREAK injects
+             *      scan code word 0x0000 into the keyboard buffer. Upon CTRL+BREAK, 0x0000
+             *      appears in the keyboard buffer, which INT 16h AH=1h/AH=11h will signal as
+             *      an available scan code, and INT 16h AH=0h/10h will return with ZF=0. */
             BIOS_AddKeyToBuffer(0);
             SegSet16(cs, RealSeg(CALLBACK_RealPointer(irq1_ret_ctrlbreak_callback)));
             reg_ip = RealOff(CALLBACK_RealPointer(irq1_ret_ctrlbreak_callback));
@@ -465,6 +469,7 @@ static Bitu IRQ1_Handler(void) {
         } else {
             flags1 ^=0x10;flags2 &=~0x10;leds ^=0x01;break;     /* Scroll Lock released */
         }
+        break;
     case 0xd2: /* NUMPAD insert, ironically, regular one is handled by 0x52 */
 		if (flags3 & BIOS_KEYBOARD_FLAGS3_HIDDEN_E0 || !(flags1 & BIOS_KEYBOARD_FLAGS1_NUMLOCK_ACTIVE))
 		{
@@ -569,6 +574,7 @@ irq1_end:
     if (leds_orig != leds) KEYBOARD_SetLEDs(leds);
 
     /* update insert cursor */
+    /* FIXME: Wait a second... I doubt the BIOS IRQ1 handler does this! The program (or DOS prompt) decides whether INS changes cursor shape! */
     extern bool dos_program_running;
     if (!dos_program_running)
     {
@@ -590,6 +596,8 @@ irq1_end:
     return CBRET_NONE;
 }
 
+bool CPU_PUSHF(Bitu use32);
+void CPU_Push16(uint16_t value);
 unsigned char AT_read_60(void);
 extern bool pc98_force_ibm_layout;
 
@@ -1279,7 +1287,29 @@ static Bitu IRQ1_Handler_PC98(void) {
                 break;
 
             case 0x60: // STOP
-                // does not pass it on
+                // does not pass it on.
+                // According to Neko Project II source code, STOP invokes INT 6h
+                // which is PC-98's version of the break interrupt IBM maps to INT 1Bh.
+                // Obviously defined before Intel decided that INT 6h is the Invalid
+                // Opcode exception. Booting PC-98 MS-DOS and looking at the INT 6h
+                // interrupt handler in the debugger confirms this.
+                if (pressed) {
+                    /* push an IRET frame pointing at INT 06h. */
+
+                    /* we can't just CALLBACK_RunRealInt() here because we're in the
+                     * middle of an ISR and we need to acknowledge the interrupt to
+                     * the PIC before we call INT 06h. Funny things happen otherwise,
+                     * including an unresponsive keyboard. */
+
+                    /* I noticed that Neko Project II has the code to emulate this,
+                     * as a direct call to run a CPU interrupt, but it's commented
+                     * out for probably the same issue. */
+                    const uint32_t cb = real_readd(0,0x06u * 4u);
+
+                    CPU_PUSHF(0);
+                    CPU_Push16((uint16_t)(cb >> 16u));
+                    CPU_Push16((uint16_t)(cb & 0xFFFFu));
+                }
                 break;
 
             case 0x62: // F1            f･1     ???     ???     ???     ???
@@ -1343,7 +1373,6 @@ static Bitu PCjr_NMI_Keyboard_Handler(void) {
 }
 
 static Bitu IRQ1_CtrlBreakAfterInt1B(void) {
-    BIOS_AddKeyToBuffer(0x0000);
     return CBRET_NONE;
 }
 
@@ -1377,6 +1406,9 @@ static bool IsEnhancedKey(uint16_t &key) {
     return false;
 }
 
+extern bool DOS_BreakFlag;
+extern bool DOS_BreakConioFlag;
+
 bool int16_unmask_irq1_on_read = true;
 bool int16_ah_01_cf_undoc = true;
 
@@ -1386,6 +1418,13 @@ Bitu INT16_Handler(void) {
     case 0x00: /* GET KEYSTROKE */
         if (int16_unmask_irq1_on_read)
             PIC_SetIRQMask(1,false); /* unmask keyboard */
+
+        // HACK: Make STOP key work
+        if (IS_PC98_ARCH && DOS_BreakConioFlag) {
+            DOS_BreakConioFlag=false;
+            reg_ax=0;
+            return CBRET_NONE;
+        }
 
         if ((get_key(temp)) && (!IsEnhancedKey(temp))) {
             /* normal key found, return translated key in ax */
@@ -1398,6 +1437,13 @@ Bitu INT16_Handler(void) {
     case 0x10: /* GET KEYSTROKE (enhanced keyboards only) */
         if (int16_unmask_irq1_on_read)
             PIC_SetIRQMask(1,false); /* unmask keyboard */
+
+        // HACK: Make STOP key work
+        if (IS_PC98_ARCH && DOS_BreakConioFlag) {
+            DOS_BreakConioFlag=false;
+            reg_ax=0;
+            return CBRET_NONE;
+        }
 
         if (get_key(temp)) {
             if (!IS_PC98_ARCH && ((temp&0xff)==0xf0) && (temp>>8)) {
@@ -1442,6 +1488,16 @@ Bitu INT16_Handler(void) {
         CALLBACK_SIF(true);
         if (int16_unmask_irq1_on_read)
             PIC_SetIRQMask(1,false); /* unmask keyboard */
+
+        /* NOTE: The FreeDOS EDIT.COM editor built into DOSBox-X has a problem where if
+         *       this call return AX=0 and ZF=0, it will treat it the same as if we had
+         *       returned ZF=1 to indicate no scan code. Unfortunately scan code 0x0000
+         *       is added to the buffer for CTRL+BREAK, meaning that if you hit CTRL+BREAK
+         *       while using EDIT.COM, you effectively disable all keyboard input to the
+         *       program until you exit, or trick the program into reading the scan code
+         *       to remove it from the buffer.
+         *
+         * TODO: If you run EDIT.COM on real MS-DOS, does the same problem come up? */
 
         if (!check_key(temp)) {
             CALLBACK_SZF(true);

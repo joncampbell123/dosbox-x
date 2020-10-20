@@ -18,7 +18,7 @@
  *  Heavy improvements by the DOSBox-X Team, 2011-2020
  *  DXCAPTURE, DEBUGBOX, INT2FDBG commands by joncampbell123
  *  ATTRIB, COUNTRY, DELTREE, FOR, LFNFOR, VERIFY, TRUENAME commands by Wengier
- *  LS command by the dosbox-staging team and Wengier
+ *  LS command by the DOSBox Staging Team and Wengier
  */
 
 
@@ -839,7 +839,7 @@ void DOS_Shell::CMD_HELP(char * args){
 		WriteOut("Type \033[33;1mHELP command\033[0m or \033[33;1mcommand /?\033[0m for help information for the specified command.\n");
 }
 
-static void removeChar(char *str, char c) {
+void removeChar(char *str, char c) {
     char *src, *dst;
     for (src = dst = str; *src != '\0'; src++) {
         *dst = *src;
@@ -1595,7 +1595,10 @@ void DOS_Shell::CMD_DIR(char * args) {
 	if (!strrchr(args,'*') && !strrchr(args,'?')) {
 		uint16_t attribute=0;
 		if(!DOS_GetSFNPath(args,sargs,false)) {
-			WriteOut(MSG_Get("SHELL_ILLEGAL_PATH"));
+            if (strlen(args)>1&&toupper(args[0])>='A'&&toupper(args[0])<='Z'&&args[1]==':'&&!Drives[toupper(args[0])-'A'])
+                WriteOut(MSG_Get("SHELL_ILLEGAL_DRIVE"));
+            else
+                WriteOut(MSG_Get("SHELL_ILLEGAL_PATH"));
 			return;
 		}
 		if(DOS_GetFileAttr(sargs,&attribute) && (attribute&DOS_ATTR_DIRECTORY) ) {
@@ -1606,7 +1609,10 @@ void DOS_Shell::CMD_DIR(char * args) {
 		}
 	}
 	if (!DOS_GetSFNPath(args,sargs,false)) {
-		WriteOut(MSG_Get("SHELL_ILLEGAL_PATH"));
+		if (strlen(args)>1&&toupper(args[0])>='A'&&toupper(args[0])<='Z'&&args[1]==':'&&!Drives[toupper(args[0])-'A'])
+            WriteOut(MSG_Get("SHELL_ILLEGAL_DRIVE"));
+		else
+            WriteOut(MSG_Get("SHELL_ILLEGAL_PATH"));
 		return;
 	}
 	if (!(uselfn&&!optZ&&strchr(sargs,'*'))&&!strrchr(sargs,'.'))
@@ -1659,18 +1665,14 @@ void DOS_Shell::CMD_DIR(char * args) {
 		WriteOut(MSG_Get("SHELL_CMD_DIR_BYTES_USED"),file_count,numformat);
 		if (!dirPaused(this, w_size, optP, optW)) {dos.dta(save_dta);return;}
 		uint8_t drive=dta.GetSearchDrive();
-		//TODO Free Space
 		Bitu free_space=1024u*1024u*100u;
 		if (Drives[drive]) {
 			uint32_t bytes_sector32;uint32_t sectors_cluster32;uint32_t total_clusters32;uint32_t free_clusters32;
 			if ((dos.version.major > 7 || (dos.version.major == 7 && dos.version.minor >= 10)) &&
 				Drives[drive]->AllocationInfo32(&bytes_sector32,&sectors_cluster32,&total_clusters32,&free_clusters32)) { /* FAT32 aware extended API */
-				rsize=true;
 				freec=0;
 				free_space=(Bitu)bytes_sector32 * (Bitu)sectors_cluster32 * (Bitu)(freec?freec:free_clusters32);
-				rsize=false;
-			}
-			else {
+			} else {
 				uint16_t bytes_sector;uint8_t sectors_cluster;uint16_t total_clusters;uint16_t free_clusters;
 				rsize=true;
 				freec=0;

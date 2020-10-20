@@ -423,7 +423,11 @@ Bitu DmaChannel::Read(Bitu want, uint8_t * buffer) {
     /* You cannot read a DMA channel configured for writing (to memory) */
     if (transfer_mode != DMAT_READ) {
         LOG(LOG_DMACONTROL,LOG_WARN)("BUG: Attempted DMA channel read when DMA channel is configured by guest for writing (to memory)");
-        return 0;
+        char psp_name[9];
+        DOS_MCB psp_mcb(dos.psp()-1);
+        psp_mcb.GetFileName(psp_name);
+        if (strcmp(psp_name, "DIAGNOSE")) // Wengier: Hack for Creative DIAGNOSE.EXE tool for now until the DMA recording function is implemented
+            return 0;
     }
 
     /* WARNING: "want" is expressed in DMA transfer units.
@@ -488,7 +492,7 @@ Bitu DmaChannel::Read(Bitu want, uint8_t * buffer) {
             } else {
                 masked = true;
                 UpdateEMSMapping();
-                DoCallBack(DMA_TRANSFEREND);
+                DoCallBack(DMA_MASKED);
                 break;
             }
         }
@@ -574,7 +578,7 @@ Bitu DmaChannel::Write(Bitu want, uint8_t * buffer) {
             } else {
                 masked = true;
                 UpdateEMSMapping();
-                DoCallBack(DMA_TRANSFEREND);
+                DoCallBack(DMA_MASKED);
                 break;
             }
         }

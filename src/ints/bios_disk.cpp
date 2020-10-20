@@ -428,7 +428,7 @@ typedef struct {
 }NHD_FILE_HEAD,*LP_NHD_FILE_HEAD;
 #pragma pack(pop)
 
-imageDisk::imageDisk(FILE* imgFile, uint8_t* imgName, uint32_t imgSizeK, bool isHardDisk) : diskSizeK(imgSizeK), diskimg(imgFile), image_length((uint64_t)imgSizeK * 1024) {
+imageDisk::imageDisk(FILE* imgFile, const char* imgName, uint32_t imgSizeK, bool isHardDisk) : diskSizeK(imgSizeK), diskimg(imgFile), image_length((uint64_t)imgSizeK * 1024) {
     if (imgName != NULL)
         diskname = (const char*)imgName;
 

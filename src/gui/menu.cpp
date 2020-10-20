@@ -129,8 +129,10 @@ static const char *def_menu_main[] =
     "mapper_capmouse",
     "auto_lock_mouse",
     "WheelToArrow",
-#if defined(WIN32)
+#if defined(WIN32) || defined(C_SDL2)
     "SharedClipboard",
+#elif defined(LINUX) && C_X11
+    "mapper_paste",
 #endif
 #if !defined(C_EMSCRIPTEN)//FIXME: Reset causes problems with Emscripten
     "--",
@@ -154,12 +156,19 @@ static const char *def_menu_main[] =
 /* main -> send key menu ("MenuSendKey") */
 static const char *def_menu_main_sendkey[] =
 {
-    "sendkey_ctrlesc",
-    "sendkey_alttab",
     "sendkey_winlogo",
     "sendkey_winmenu",
-    "--",
+    "sendkey_alttab",
+    "sendkey_ctrlesc",
+    "sendkey_ctrlbreak",
     "sendkey_cad",
+    "--",
+    "sendkey_mapper_winlogo",
+    "sendkey_mapper_winmenu",
+    "sendkey_mapper_alttab",
+    "sendkey_mapper_ctrlesc",
+    "sendkey_mapper_ctrlbreak",
+    "sendkey_mapper_cad",
     NULL
 };
 
@@ -181,11 +190,15 @@ static const char *def_menu_main_clipboard[] =
     "clipboard_quick",
     "clipboard_right",
     "clipboard_middle",
+#if defined(WIN32)
     "--",
     "clipboard_device",
     "clipboard_dosapi",
+#endif
+#if !defined(LINUX) || !C_X11 || defined(C_SDL2)
     "--",
     "mapper_paste",
+#endif
     NULL
 };
 
@@ -198,7 +211,11 @@ static const char *def_menu_cpu_speed[] =
     "cpu386-33",
     "cpu486-33",
     "cpu486-66",
+    "cpu486-100",
+    "cpu486-133",
     "cpu586-66",
+    "cpu586-75",
+    "cpu586-90",
     "cpu586-100",
     "cpu586-120",
     "cpu586-133",
@@ -344,7 +361,7 @@ static const char *def_menu_video_compat[] =
 /* video output menu ("VideoPC98Menu") */
 static const char *def_menu_video_pc98[] =
 {
-    "pc98_5mhz_gdc",
+    "pc98_use_uskb",
     "pc98_allow_200scanline",
     "pc98_allow_4partitions",
     "--",
@@ -356,6 +373,10 @@ static const char *def_menu_video_pc98[] =
     "--",
     "pc98_clear_text",
     "pc98_clear_graphics",
+    "pc98_5mhz_gdc",
+    "--",
+    "dos_pc98_pit_4mhz",
+    "dos_pc98_pit_5mhz",
     NULL
 };
 
@@ -429,8 +450,6 @@ static const char *def_menu_dos[] =
     "--",
     "DOSVerMenu",
     "DOSLFNMenu",
-    "--",
-    "DOSPC98Menu",
     "DOSEMSMenu",
     "--",
 #if defined(WIN32) && !defined(HX_DOS)
@@ -489,14 +508,6 @@ static const char *def_menu_dos_lfn[] =
     "--",
     "dos_lfn_enable",
     "dos_lfn_disable",
-    NULL
-};
-
-/* DOS pc-98 menu ("DOSPC98Menu") */
-static const char *def_menu_dos_pc98[] =
-{
-    "dos_pc98_pit_4mhz",
-    "dos_pc98_pit_5mhz",
     NULL
 };
 
@@ -565,10 +576,13 @@ static const char *def_menu_capture[] =
     "mapper_caprawmidi",
     "--",
 #endif
-    "force_loadstate",
+    "saveoptionmenu",
     "mapper_savestate",
     "mapper_loadstate",
     "saveslotmenu",
+    "usesavefile",
+    "browsesavefile",
+    "showstate",
     NULL
 };
 
@@ -578,13 +592,19 @@ static const char *def_menu_capture[] =
 static const char *def_menu_capture_format[] =
 {
     "capture_fmt_avi_zmbv",
-#  if (C_AVCODEC)
     "capture_fmt_mpegts_h264",
-#  endif
     NULL
 };
 # endif
 #endif
+
+/* Save/load options */
+static const char *save_load_options[] =
+{
+    "noremark_savestate",
+    "force_loadstate",
+    NULL
+};
 
 /* Save slots */
 static const char *def_save_slots[] =
@@ -1387,9 +1407,6 @@ void ConstructMenu(void) {
     /* DOS LFN menu */
     ConstructSubMenu(mainMenu.get_item("DOSLFNMenu").get_master_id(), def_menu_dos_lfn);
 
-    /* DOS PC-98 menu */
-    ConstructSubMenu(mainMenu.get_item("DOSPC98Menu").get_master_id(), def_menu_dos_pc98);
-
     /* DOS EMS menu */
     ConstructSubMenu(mainMenu.get_item("DOSEMSMenu").get_master_id(), def_menu_dos_ems);
 
@@ -1414,6 +1431,7 @@ void ConstructMenu(void) {
     ConstructSubMenu(mainMenu.get_item("CaptureFormatMenu").get_master_id(), def_menu_capture_format);
 # endif
 #endif
+    ConstructSubMenu(mainMenu.get_item("saveoptionmenu").get_master_id(), save_load_options);
     ConstructSubMenu(mainMenu.get_item("saveslotmenu").get_master_id(), def_save_slots);
 
     /* Drive menu */

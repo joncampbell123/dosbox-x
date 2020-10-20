@@ -877,7 +877,7 @@ fluid_midi_router_handle_chan (fluid_synth_t* synth, int ac, char** av,
   }
 
   fluid_midi_router_rule_set_chan (router->cmd_rule, atoi (av[0]), atoi (av[1]),
-                                   atof (av[2]), atoi (av[3]));
+                                   (float)atof (av[2]), atoi (av[3]));
   return FLUID_OK;
 }
 
@@ -901,7 +901,7 @@ fluid_midi_router_handle_par1 (fluid_synth_t* synth, int ac, char** av, fluid_os
   }
 
   fluid_midi_router_rule_set_param1 (router->cmd_rule, atoi (av[0]), atoi (av[1]),
-                                     atof (av[2]), atoi (av[3]));
+                                     (float)atof (av[2]), atoi (av[3]));
   return FLUID_OK;
 }
 
@@ -926,7 +926,7 @@ fluid_midi_router_handle_par2 (fluid_synth_t* synth, int ac, char** av,
   }
 
   fluid_midi_router_rule_set_param2 (router->cmd_rule, atoi (av[0]), atoi (av[1]),
-                                     atof (av[2]), atoi (av[3]));
+                                     (float)atof (av[2]), atoi (av[3]));
   return FLUID_OK;
 }
 

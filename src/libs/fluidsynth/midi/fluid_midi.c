@@ -638,7 +638,7 @@ fluid_midi_file_read_event(fluid_midi_file *mf, fluid_track_t *track)
                     break;
                 }
                 nominator = metadata[0];
-                denominator = pow(2.0, (double) metadata[1]);
+                denominator = (int)pow(2.0, (double) metadata[1]);
                 clocks = metadata[2];
                 notes = metadata[3];
 

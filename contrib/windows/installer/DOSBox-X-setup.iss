@@ -53,43 +53,45 @@ Name: "desktopicon"; Description: "{cm:CreateDesktopIcon}"; GroupDescription: "{
 Name: "quicklaunchicon"; Description: "{cm:CreateQuickLaunchIcon}"; GroupDescription: "{cm:AdditionalIcons}"; Flags: unchecked
 
 [Types]
+Name: "typical"; Description: "Typical installation"
 Name: "full"; Description: "Full installation"
 Name: "compact"; Description: "Compact installation"
 Name: "custom"; Description: "Custom installation"; Flags: iscustom
 
 [Components]
-Name: "compact"; Description: "Install default build";   Types: full compact custom; Flags: fixed
-Name: "full"; Description: "Copy all builds to subdirectories";   Types: full
+Name: "compact"; Description: "Install core files"; Types: full typical compact custom; Flags: fixed
+Name: "typical"; Description: "Include typical components (such as shaders)"; Types: full typical custom
+Name: "full"; Description: "Copy all DOSBox-X builds to sub-directories"; Types: full
 
 [Files]
-Source: ".\readme.txt"; DestDir: "{app}"; DestName: "README.txt"; Flags: ignoreversion; Components: full compact
-Source: ".\dosbox-x.reference.conf"; DestDir: "{app}"; Flags: ignoreversion; Components: full compact
-Source: "..\..\..\CHANGELOG"; DestDir: "{app}"; DestName: "changelog.txt"; Flags: ignoreversion; Components: full compact
-Source: "..\..\..\COPYING"; DestDir: "{app}"; DestName: "COPYING.txt"; Flags: ignoreversion; Components: full compact
-Source: "..\..\fonts\FREECG98.BMP"; DestDir: "{app}"; Flags: ignoreversion; Components: full compact
-Source: "..\..\glshaders\*"; DestDir: "{app}\glshaders"; Flags: ignoreversion recursesubdirs createallsubdirs; Components: full compact
-Source: "..\shaders\*"; DestDir: "{app}\shaders"; Flags: ignoreversion recursesubdirs createallsubdirs; Components: full compact
-Source: ".\drivez_readme.txt"; DestDir: "{app}\drivez"; DestName: "README.TXT"; Flags: ignoreversion; Components: full compact
-Source: "Win32_builds\x86_Release\dosbox-x.exe"; DestDir: "{app}"; Flags: ignoreversion; Check: CheckDirName('Win32_builds\x86_Release'); Components: full compact
-Source: "Win32_builds\x86_Release_SDL2\dosbox-x.exe"; DestDir: "{app}"; Flags: ignoreversion; Check: CheckDirName('Win32_builds\x86_Release_SDL2'); Components: full compact
-Source: "Win32_builds\ARM_Release\dosbox-x.exe"; DestDir: "{app}"; Flags: ignoreversion; Check: CheckDirName('Win32_builds\ARM_Release'); Components: full compact
-Source: "Win32_builds\ARM_Release_SDL2\dosbox-x.exe"; DestDir: "{app}"; Flags: ignoreversion; Check: CheckDirName('Win32_builds\ARM_Release_SDL2'); Components: full compact
-Source: "Win32_builds\mingw\dosbox-x.exe"; DestDir: "{app}"; Flags: ignoreversion; Check: CheckDirName('Win32_builds\mingw'); Components: full compact
-Source: "Win32_builds\mingw-lowend\dosbox-x.exe"; DestDir: "{app}"; Flags: ignoreversion; Check: CheckDirName('Win32_builds\mingw-lowend'); Components: full compact
-Source: "Win32_builds\mingw-sdl2\dosbox-x.exe"; DestDir: "{app}"; Flags: ignoreversion; Check: CheckDirName('Win32_builds\mingw-sdl2'); Components: full compact
-Source: "Win32_builds\mingw-sdldraw\dosbox-x.exe"; DestDir: "{app}"; Flags: ignoreversion; Check: CheckDirName('Win32_builds\mingw-sdldraw'); Components: full compact
-Source: "Win64_builds\x64_Release\dosbox-x.exe"; DestDir: "{app}"; Flags: ignoreversion; Check: CheckDirName('Win64_builds\x64_Release'); Components: full compact
-Source: "Win64_builds\x64_Release_SDL2\dosbox-x.exe"; DestDir: "{app}"; Flags: ignoreversion; Check: CheckDirName('Win64_builds\x64_Release_SDL2'); Components: full compact
-Source: "Win64_builds\ARM64_Release\dosbox-x.exe"; DestDir: "{app}"; Flags: ignoreversion; Check: CheckDirName('Win64_builds\ARM64_Release'); Components: full compact
-Source: "Win64_builds\ARM64_Release_SDL2\dosbox-x.exe"; DestDir: "{app}"; Flags: ignoreversion; Check: CheckDirName('Win64_builds\ARM64_Release_SDL2'); Components: full compact
-Source: "Win64_builds\mingw\dosbox-x.exe"; DestDir: "{app}"; Flags: ignoreversion; Check: CheckDirName('Win64_builds\mingw'); Components: full compact
-Source: "Win64_builds\mingw-lowend\dosbox-x.exe"; DestDir: "{app}"; Flags: ignoreversion; Check: CheckDirName('Win64_builds\mingw-lowend'); Components: full compact
-Source: "Win64_builds\mingw-sdl2\dosbox-x.exe"; DestDir: "{app}"; Flags: ignoreversion; Check: CheckDirName('Win64_builds\mingw-sdl2'); Components: full compact
-Source: "Win64_builds\mingw-sdldraw\dosbox-x.exe"; DestDir: "{app}"; Flags: ignoreversion; Check: CheckDirName('Win64_builds\mingw-sdldraw'); Components: full compact
+Source: ".\readme.txt"; DestDir: "{app}"; DestName: "README.txt"; Flags: ignoreversion; Components: full typical compact
+Source: ".\dosbox-x.reference.conf"; DestDir: "{app}"; Flags: ignoreversion; Components: full typical compact
+Source: "..\..\..\CHANGELOG"; DestDir: "{app}"; DestName: "changelog.txt"; Flags: ignoreversion; Components: full typical compact
+Source: "..\..\..\COPYING"; DestDir: "{app}"; DestName: "COPYING.txt"; Flags: ignoreversion; Components: full typical compact
+Source: "..\..\fonts\FREECG98.BMP"; DestDir: "{app}"; Flags: ignoreversion; Components: full typical
+Source: "..\..\glshaders\*"; DestDir: "{app}\glshaders"; Flags: ignoreversion recursesubdirs createallsubdirs; Components: full typical
+Source: "..\shaders\*"; DestDir: "{app}\shaders"; Flags: ignoreversion recursesubdirs createallsubdirs; Components: full typical
+Source: ".\drivez_readme.txt"; DestDir: "{app}\drivez"; DestName: "README.TXT"; Flags: ignoreversion; Components: full typical
+Source: ".\windows_explorer_context_menu_installer.bat"; DestDir: "{app}\scripts"; DestName: "windows_explorer_context_menu_installer.bat"; Flags: ignoreversion; Components: full typical
+Source: ".\windows_explorer_context_menu_uninstaller.bat"; DestDir: "{app}\scripts"; DestName: "windows_explorer_context_menu_uninstaller.bat"; Flags: ignoreversion; Components: full typical
+Source: "Win32_builds\x86_Release\dosbox-x.exe"; DestDir: "{app}"; Flags: ignoreversion; Check: CheckDirName('Win32_builds\x86_Release'); Components: full typical compact
+Source: "Win32_builds\x86_Release_SDL2\dosbox-x.exe"; DestDir: "{app}"; Flags: ignoreversion; Check: CheckDirName('Win32_builds\x86_Release_SDL2'); Components: full typical compact
+Source: "Win32_builds\ARM_Release\dosbox-x.exe"; DestDir: "{app}"; Flags: ignoreversion; Check: CheckDirName('Win32_builds\ARM_Release'); Components: full typical compact
+Source: "Win32_builds\ARM_Release_SDL2\dosbox-x.exe"; DestDir: "{app}"; Flags: ignoreversion; Check: CheckDirName('Win32_builds\ARM_Release_SDL2'); Components: full typical compact
+Source: "Win32_builds\mingw\dosbox-x.exe"; DestDir: "{app}"; Flags: ignoreversion; Check: CheckDirName('Win32_builds\mingw'); Components: full typical compact
+Source: "Win32_builds\mingw-lowend\dosbox-x.exe"; DestDir: "{app}"; Flags: ignoreversion; Check: CheckDirName('Win32_builds\mingw-lowend'); Components: full typical compact
+Source: "Win32_builds\mingw-sdl2\dosbox-x.exe"; DestDir: "{app}"; Flags: ignoreversion; Check: CheckDirName('Win32_builds\mingw-sdl2'); Components: full typical compact
+Source: "Win32_builds\mingw-sdldraw\dosbox-x.exe"; DestDir: "{app}"; Flags: ignoreversion; Check: CheckDirName('Win32_builds\mingw-sdldraw'); Components: full typical compact
+Source: "Win64_builds\x64_Release\dosbox-x.exe"; DestDir: "{app}"; Flags: ignoreversion; Check: CheckDirName('Win64_builds\x64_Release'); Components: full typical compact
+Source: "Win64_builds\x64_Release_SDL2\dosbox-x.exe"; DestDir: "{app}"; Flags: ignoreversion; Check: CheckDirName('Win64_builds\x64_Release_SDL2'); Components: full typical compact
+Source: "Win64_builds\ARM64_Release\dosbox-x.exe"; DestDir: "{app}"; Flags: ignoreversion; Check: CheckDirName('Win64_builds\ARM64_Release'); Components: full typical compact
+Source: "Win64_builds\ARM64_Release_SDL2\dosbox-x.exe"; DestDir: "{app}"; Flags: ignoreversion; Check: CheckDirName('Win64_builds\ARM64_Release_SDL2'); Components: full typical compact
+Source: "Win64_builds\mingw\dosbox-x.exe"; DestDir: "{app}"; Flags: ignoreversion; Check: CheckDirName('Win64_builds\mingw'); Components: full typical compact
+Source: "Win64_builds\mingw-lowend\dosbox-x.exe"; DestDir: "{app}"; Flags: ignoreversion; Check: CheckDirName('Win64_builds\mingw-lowend'); Components: full typical compact
+Source: "Win64_builds\mingw-sdl2\dosbox-x.exe"; DestDir: "{app}"; Flags: ignoreversion; Check: CheckDirName('Win64_builds\mingw-sdl2'); Components: full typical compact
+Source: "Win64_builds\mingw-sdldraw\dosbox-x.exe"; DestDir: "{app}"; Flags: ignoreversion; Check: CheckDirName('Win64_builds\mingw-sdldraw'); Components: full typical compact
 Source: "Win32_builds\*"; DestDir: "{app}\Win32_builds"; Flags: ignoreversion recursesubdirs createallsubdirs; Components: full
 Source: "Win64_builds\*"; DestDir: "{app}\Win64_builds"; Flags: ignoreversion recursesubdirs createallsubdirs; Check: IsWin64; Components: full
-Source: ".\windows_explorer_context_menu_installer.bat"; DestDir: "{app}\scripts"; DestName: "windows_explorer_context_menu_installer.bat"; Flags: ignoreversion; Components: full compact
-Source: ".\windows_explorer_context_menu_uninstaller.bat"; DestDir: "{app}\scripts"; DestName: "windows_explorer_context_menu_uninstaller.bat"; Flags: ignoreversion; Components: full compact
 ; NOTE: Don't use "Flags: ignoreversion" on any shared system files
 
 [Icons]
@@ -99,8 +101,43 @@ Name: "{group}\View DOSBox-X Wiki guide"; Filename: "https://dosbox-x.com/wiki"
 Name: "{group}\View or edit dosbox-x.conf"; Filename: "notepad.exe"; Parameters: "{app}\dosbox-x.conf"
 Name: "{group}\Run DOSBox-X Configuration Tool"; Filename: "{app}\{#MyAppExeName}"; Parameters: "-startui"
 Name: "{group}\Run DOSBox-X Mapper Editor"; Filename: "{app}\{#MyAppExeName}"; Parameters: "-startmapper"
+Name: "{group}\All DOSBox-X builds\x86 Release SDL1"; Filename: "{app}\Win32_builds\x86_Release\dosbox-x.exe"; WorkingDir: "{app}"; Components: full
+Name: "{group}\All DOSBox-X builds\x86 Release SDL2"; Filename: "{app}\Win32_builds\x86_Release_SDL2\dosbox-x.exe"; WorkingDir: "{app}"; Components: full
+Name: "{group}\All DOSBox-X builds\ARM Release SDL1"; Filename: "{app}\Win32_builds\ARM_Release\dosbox-x.exe"; WorkingDir: "{app}"; Check: not (IsX86 or IsX64); Components: full
+Name: "{group}\All DOSBox-X builds\ARM Release SDL2"; Filename: "{app}\Win32_builds\ARM_Release_SDL2\dosbox-x.exe"; WorkingDir: "{app}"; Check: not (IsX86 or IsX64); Components: full
+Name: "{group}\All DOSBox-X builds\x64 Release SDL1"; Filename: "{app}\Win64_builds\x64_Release\dosbox-x.exe"; WorkingDir: "{app}"; Check: IsWin64; Components: full
+Name: "{group}\All DOSBox-X builds\x64 Release SDL2"; Filename: "{app}\Win64_builds\x64_Release_SDL2\dosbox-x.exe"; WorkingDir: "{app}"; Check: IsWin64; Components: full
+Name: "{group}\All DOSBox-X builds\ARM64 Release SDL1"; Filename: "{app}\Win64_builds\ARM64_Release\dosbox-x.exe"; WorkingDir: "{app}"; Check: IsWin64 and not (IsX86 or IsX64); Components: full
+Name: "{group}\All DOSBox-X builds\ARM64 Release SDL2"; Filename: "{app}\Win64_builds\ARM64_Release_SDL2\dosbox-x.exe"; WorkingDir: "{app}"; Check: IsWin64 and not (IsX86 or IsX64); Components: full
+Name: "{group}\All DOSBox-X builds\32-bit MinGW SDL1"; Filename: "{app}\Win32_builds\mingw\dosbox-x.exe"; WorkingDir: "{app}"; Components: full
+Name: "{group}\All DOSBox-X builds\32-bit MinGW SDL1 lowend"; Filename: "{app}\Win32_builds\mingw-lowend\dosbox-x.exe"; WorkingDir: "{app}"; Components: full
+Name: "{group}\All DOSBox-X builds\32-bit MinGW SDL1 drawn"; Filename: "{app}\Win32_builds\mingw-sdldraw\dosbox-x.exe"; WorkingDir: "{app}"; Components: full
+Name: "{group}\All DOSBox-X builds\32-bit MinGW SDL2"; Filename: "{app}\Win32_builds\mingw-sdl2\dosbox-x.exe"; WorkingDir: "{app}"; Components: full
+Name: "{group}\All DOSBox-X builds\64-bit MinGW SDL1"; Filename: "{app}\Win64_builds\mingw\dosbox-x.exe"; WorkingDir: "{app}"; Check: IsWin64; Components: full
+Name: "{group}\All DOSBox-X builds\64-bit MinGW SDL1 lowend"; Filename: "{app}\Win64_builds\mingw-lowend\dosbox-x.exe"; WorkingDir: "{app}"; Check: IsWin64; Components: full
+Name: "{group}\All DOSBox-X builds\64-bit MinGW SDL1 drawn"; Filename: "{app}\Win64_builds\mingw-sdldraw\dosbox-x.exe"; WorkingDir: "{app}"; Check: IsWin64; Components: full
+Name: "{group}\All DOSBox-X builds\64-bit MinGW SDL2"; Filename: "{app}\Win64_builds\mingw-sdl2\dosbox-x.exe"; WorkingDir: "{app}"; Check: IsWin64; Components: full
 Name: "{commondesktop}\{#MyAppName}"; Filename: "{app}\{#MyAppExeName}"; Tasks: desktopicon
 Name: "{userappdata}\Microsoft\Internet Explorer\Quick Launch\{#MyAppName}"; Filename: "{app}\{#MyAppExeName}"; Tasks: quicklaunchicon
+
+[InstallDelete]
+Type: files; Name: "{group}\Run DOSBox-X Configuration UI.lnk"
+Type: files; Name: "{group}\All DOSBox-X builds\x86 Release SDL1.lnk"; Components: typical compact
+Type: files; Name: "{group}\All DOSBox-X builds\x86 Release SDL2.lnk"; Components: typical compact
+Type: files; Name: "{group}\All DOSBox-X builds\ARM Release SDL1.lnk"; Components: typical compact
+Type: files; Name: "{group}\All DOSBox-X builds\ARM Release SDL2.lnk"; Components: typical compact
+Type: files; Name: "{group}\All DOSBox-X builds\x64 Release SDL1.lnk"; Check: IsWin64; Components: typical compact
+Type: files; Name: "{group}\All DOSBox-X builds\x64 Release SDL2.lnk"; Check: IsWin64; Components: typical compact
+Type: files; Name: "{group}\All DOSBox-X builds\ARM64 Release SDL1.lnk"; Check: IsWin64; Components: typical compact
+Type: files; Name: "{group}\All DOSBox-X builds\ARM64 Release SDL2.lnk"; Check: IsWin64; Components: typical compact
+Type: files; Name: "{group}\All DOSBox-X builds\32-bit MinGW SDL1.lnk"; Components: typical compact
+Type: files; Name: "{group}\All DOSBox-X builds\32-bit MinGW SDL1 lowend.lnk"; Components: typical compact
+Type: files; Name: "{group}\All DOSBox-X builds\32-bit MinGW SDL1 drawn.lnk"; Components: typical compact
+Type: files; Name: "{group}\All DOSBox-X builds\32-bit MinGW SDL2.lnk"; Components: typical compact
+Type: files; Name: "{group}\All DOSBox-X builds\64-bit MinGW SDL1.lnk"; Check: IsWin64; Components: typical compact
+Type: files; Name: "{group}\All DOSBox-X builds\64-bit MinGW SDL1 lowend.lnk"; Check: IsWin64; Components: typical compact
+Type: files; Name: "{group}\All DOSBox-X builds\64-bit MinGW SDL1 drawn.lnk"; Check: IsWin64; Components: typical compact
+Type: files; Name: "{group}\All DOSBox-X builds\64-bit MinGW SDL2.lnk"; Check: IsWin64; Components: typical compact
 
 [Registry]
 Root: HKCU; Subkey: "Software\Classes\Directory\shell\DOSBox-X"; ValueType: string; ValueName: ""; ValueData: "Open with DOSBox-X"; Check: IsTaskSelected('contextmenu'); Flags: uninsdeletevalue
@@ -180,9 +217,9 @@ begin
     PageBuild.Add('Windows ARM SDL1 (ARM platform only)');
     PageBuild.Add('Windows ARM SDL2 (ARM platform only)');
     PageBuild.Add('MinGW build SDL1');
-    PageBuild.Add('MinGW build for lower-end systems');
+    PageBuild.Add('MinGW build SDL1 for lower-end systems');
+    PageBuild.Add('MinGW build SDL1 with custom drawn menu');
     PageBuild.Add('MinGW build SDL2');
-    PageBuild.Add('MinGW build with custom drawn menu');
     if IsX86 or IsX64 then
     begin
       PageBuild.CheckListBox.ItemEnabled[2] := False;
@@ -261,11 +298,11 @@ begin
     if (PageBuild.Values[4]) then
       msg:=msg+'MinGW build SDL1';
     if (PageBuild.Values[5]) then
-      msg:=msg+'MinGW for lower-end systems';
+      msg:=msg+'MinGW build SDL1 for lower-end systems';
     if (PageBuild.Values[6]) then
-      msg:=msg+'MinGW build SDL2';
+      msg:=msg+'MinGW build SDL1 with custom drawn menu';
     if (PageBuild.Values[7]) then
-      msg:=msg+'MinGW build with custom drawn menu';
+      msg:=msg+'MinGW build SDL2';
     Wizardform.ReadyMemo.Lines.Add('      '+msg);
     if PageVer.Values[0] or PageVer.Values[1] or PageVer.Values[2] or PageVer.Values[3] then
     begin
@@ -478,9 +515,9 @@ begin
     if (PageBuild.Values[5]) then
       dir:=dir+'mingw-lowend';
     if (PageBuild.Values[6]) then
-      dir:=dir+'mingw-sdl2';
-    if (PageBuild.Values[7]) then
       dir:=dir+'mingw-sdldraw';
+    if (PageBuild.Values[7]) then
+      dir:=dir+'mingw-sdl2';
     Result := False;
     if (dir=name) then
       Result := True;

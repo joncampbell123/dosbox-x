@@ -325,6 +325,30 @@
     <IncludePath>$(IncludePath);$(DXSDK_DIR)Include</IncludePath>
     <LibraryPath>$(LibraryPath);$(DXSDK_DIR)Lib;$(SolutionDir)..\bin\$(Platform)\$(Configuration)\</LibraryPath>
   </PropertyGroup>
+  <PropertyGroup Label="Vcpkg" Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+    <VcpkgEnabled>false</VcpkgEnabled>
+  </PropertyGroup>
+  <PropertyGroup Label="Vcpkg" Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
+    <VcpkgEnabled>false</VcpkgEnabled>
+  </PropertyGroup>
+  <PropertyGroup Label="Vcpkg" Condition="'$(Configuration)|$(Platform)'=='Release SDL2|Win32'">
+    <VcpkgEnabled>false</VcpkgEnabled>
+  </PropertyGroup>
+  <PropertyGroup Label="Vcpkg" Condition="'$(Configuration)|$(Platform)'=='Release SDL2|x64'">
+    <VcpkgEnabled>false</VcpkgEnabled>
+  </PropertyGroup>
+  <PropertyGroup Label="Vcpkg" Condition="'$(Configuration)|$(Platform)'=='Release SDL2|ARM'">
+    <VcpkgEnabled>false</VcpkgEnabled>
+  </PropertyGroup>
+  <PropertyGroup Label="Vcpkg" Condition="'$(Configuration)|$(Platform)'=='Release|ARM'">
+    <VcpkgEnabled>false</VcpkgEnabled>
+  </PropertyGroup>
+  <PropertyGroup Label="Vcpkg" Condition="'$(Configuration)|$(Platform)'=='Release|ARM64'">
+    <VcpkgEnabled>false</VcpkgEnabled>
+  </PropertyGroup>
+  <PropertyGroup Label="Vcpkg" Condition="'$(Configuration)|$(Platform)'=='Release SDL2|ARM64'">
+    <VcpkgEnabled>false</VcpkgEnabled>
+  </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <ClCompile>
       <AdditionalIncludeDirectories>$(SolutionDir)pcap;$(SolutionDir);$(SolutionDir)..;$(SolutionDir)..\include;$(SolutionDir)..\src;$(SolutionDir)..\src\aviwriter;$(SolutionDir)..\src\libs\mt32;$(SolutionDir)..\src\hardware\snd_pc98\cbus;$(SolutionDir)..\src\hardware\snd_pc98\common;$(SolutionDir)..\src\hardware\snd_pc98\generic;$(SolutionDir)..\src\hardware\snd_pc98\sound;$(SolutionDir)..\src\hardware\snd_pc98\x11;$(SolutionDir)..\src\hardware\snd_pc98\sound\getsnd;$(SolutionDir)libpdcurses;$(SolutionDir)zlib;$(SolutionDir)libpng;$(SolutionDir)freetype\include;$(SolutionDir)sdl\include;$(SolutionDir)sdlnet;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
@@ -875,6 +899,7 @@ copy "$(SolutionDir)\..\contrib\windows\shaders\*.*" "$(OutputPath)\shaders\"</C
     <ClCompile Include="..\src\builtin\xcopy_exe.cpp" />
     <ClCompile Include="..\src\cpu\callback.cpp" />
     <ClCompile Include="..\src\cpu\core_dynrec.cpp" />
+    <ClCompile Include="..\src\cpu\core_dyn_x86.cpp" />
     <ClCompile Include="..\src\cpu\core_full.cpp" />
     <ClCompile Include="..\src\cpu\core_normal.cpp" />
     <ClCompile Include="..\src\cpu\core_normal_286.cpp" />

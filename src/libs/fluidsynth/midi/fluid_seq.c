@@ -504,7 +504,7 @@ fluid_sequencer_get_tick (fluid_sequencer_t* seq)
 	double nowFloat;
 	unsigned int now;
 	nowFloat = ((double)(absMs - seq->startMs))*seq->scale/1000.0f;
-	now = nowFloat;
+	now = (unsigned int)nowFloat;
 	return now;
 }
 
@@ -541,7 +541,7 @@ fluid_sequencer_set_time_scale (fluid_sequencer_t* seq, double scale)
 		seq->scale = scale;
 
 		// change start0 so that cellNb is preserved
-		seq->queue0StartTime =  (seq->queue0StartTime + seq->prevCellNb)*(seq->scale/oldScale) - seq->prevCellNb;
+		seq->queue0StartTime = (int)((seq->queue0StartTime + seq->prevCellNb)*(seq->scale/oldScale) - seq->prevCellNb);
 
 		// change all preQueue events for new scale
 		{
@@ -549,7 +549,7 @@ fluid_sequencer_set_time_scale (fluid_sequencer_t* seq, double scale)
 			tmp = seq->preQueue;
 			while (tmp) {
 				if (tmp->entryType == FLUID_EVT_ENTRY_INSERT)
-					tmp->evt.time = tmp->evt.time*seq->scale/oldScale;
+					tmp->evt.time = (unsigned int)(tmp->evt.time*seq->scale/oldScale);
 
 				tmp = tmp->next;
 			}

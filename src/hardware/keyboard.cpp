@@ -23,6 +23,7 @@
 #include "setup.h"
 #include "inout.h"
 #include "mouse.h"
+#include "menu.h"
 #include "pic.h"
 #include "mem.h"
 #include "cpu.h"
@@ -1334,7 +1335,11 @@ void KEYBOARD_PC98_AddKey(KBD_KEYS keytype,bool pressed) {
         if(pc98_force_ibm_layout)
             ret=0x1A; //HACK, reuse @ key
         break;
-    
+
+    case KBD_pause:                             // PAUSE: Map to STOP key since CTRL+BREAK on IBM PC has a similar function
+        ret=0x60;
+        break;
+
     case KBD_capslock:                          // CAPS
         if (pressed) {                          // sends only on keypress, does not resend if held down
             pc98_caps_toggle();
@@ -1343,13 +1348,13 @@ void KEYBOARD_PC98_AddKey(KBD_KEYS keytype,bool pressed) {
         return;
 
     case KBD_numlock:                           // NUM
-        pc98_numlock_toggle();
+        pc98_numlock_toggle();                  // TODO: Scan code? NUM LOCK didn't exist until later PC-9821 systems.
         return;
 
     case KBD_kana:                              // KANA
         if (pressed) {                          // sends only on keypress, does not resend if held down
             pc98_kana_toggle();
-            pc98_keyboard_send(0x72 | (!pc98_kana() ? 0x80 : 0x00)); // make code if caps switched on, break if caps switched off
+            pc98_keyboard_send(0x72 | (!pc98_kana() ? 0x80 : 0x00)); // make code if kana switched on, break if caps switched off
         }
         return;
 
@@ -2433,6 +2438,8 @@ void KEYBOARD_OnEnterPC98(Section *sec) {
         pc98_force_ibm_layout = pc98_section->Get_bool("pc-98 force ibm keyboard layout");
         if(pc98_force_ibm_layout)
             LOG_MSG("Forcing PC-98 keyboard to use IBM US-English like default layout");
+        mainMenu.get_item("pc98_use_uskb").check(pc98_force_ibm_layout).refresh_item(mainMenu);
+
     }
 
     if (!IS_PC98_ARCH) {

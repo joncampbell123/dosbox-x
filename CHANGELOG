@@ -1,3 +1,139 @@
+0.83.7
+  - Changed some DOS error messages (such as "Illegal
+    command" which now reads "Bad command or filename")
+    similar to real DOS systems. (Wengier)
+  - Improved the -z (move virtual drive Z:) function of
+    MOUNT command. You can move the virtual drive as
+    many times as you want, and save/load states will
+    work even after you move the Z: drive. (Wengier)
+  - Enhanced the config option "freesizecap" to allow
+    the setting "fixed" which is the same as "false",
+    and a new setting "relative" is added, which will
+    be similar to the setting "fixed" but the reported
+    free disk size will also change relative to the
+    change of the free disk size ever since. (Wengier)
+  - Added "Mount multiple disk/CD images" option to the
+    mounting options of the Drive menu to allow users
+    to mount more than one disk/CD images to a drive,
+    swappable from the menu. (Wengier)
+  - Added new CPU types to the "Emulate CPU speed" menu
+    group, namely 486DX4-100, 486DX5-133, Pentium-75,
+    and Pentium-90. Thanks again for the data provided
+    by the user maximus105. (Wengier)
+  - You can now select a special key (e.g. Alt+Tab,
+    Ctrl+Break, Ctrl+Alt+Del, etc) to be sent from the
+    key defined in the mapper editor. The key can be
+    selected (Ctrl+Alt+Del by default) from the "Send
+    special key" menu group in "Main" menu. (Wengier)
+  - Added full Ctrl+Break emulation at the BIOS and
+    DOS level, updated console emulation to match.
+    The "Pause" mapper shortcut is now moved to
+    HOST[F11/F12]+Pause instead of Ctrl+Pause so that
+    Ctrl+Break can work properly for users, and the
+    function to send the Ctrl+Break key from the menu
+    ("Send special key" under "Main") is added. Also,
+    the PC-98 STOP key now functions the same as the
+    Ctrl+C and Ctrl+Break keys in IBM PC mode.
+  - The mouse copy/paste feature is now available for
+    non-Windows systems on SDL2 builds. Also, pasting
+    from the clipboard with a mapped shortcut is also
+    available for Linux/X11 on SDL1 builds. (Wengier)
+  - Added "Use US keyboard layout" toggle menu item in
+    the "PC-98" menu group under "Video" to select
+    whether to force the default US keyboard layout in
+    PC-98 mode, same as the "pc-98 force ibm keyboard
+    layout" config option in [pc98] section. Also moved
+    the "PC-98 PIT master clock" options from the "DOS"
+    menu to this menu group. (Wengier)
+  - Implemented the x86 dynamic core for both 32-bit
+    and 64-bit systems by re-porting the code from SVN.
+    Dynamic core now supports either the dynamic_x86
+    or the dynamic_rec core. The dynamic_x86 core will
+    be used by default for x86 and x86_64 platforms and
+    if "core=dynamic" is set, and Windows 9x can be run
+    in this dynamic core. You can also explicit specify
+    "core=dynamic_x86" or "core=dynamic_rec" for either
+    the dynamic_x86 core or the dynamic_rec core. Also
+    thank joncampbell123 for the 64-bit fix. (Wengier)
+  - You can now use your own save file (in addition to
+    save slots! There are now a "Use save file" toggle
+    item and "Browse save file..." for browsing save
+    files on your computer. A config option "savefile"
+    (in [dosbox] section) is added to specify a save
+    file to use at start. (Wengier)
+  - Save state feature now allows users to optionally
+    enter remarks when saving a state. A submenu group
+    "Save/load option" is added (under "Capture") where
+    you can toggle menu items "No remark when saving
+    state" (for disabling input of remarks when saving)
+    and "force load state mode". A menu item "Display
+    state information" is added as well to display the
+    information of the saved state. (Wengier)
+  - DOSBox-X will now use native dialog box to display
+    quit warnings and save state errors. (Wengier)
+  - Updated the Windows installer to default to the
+    "typical" installation. For the full installation
+    start menu items will be added for DOSBox-X builds
+    copied to subdirectories. (Wengier)
+  - Improved Flatpak support for Linux. (rderooy)
+  - Fixed shelling from programs may not work when the
+    shell config option is set. (Wengier)
+  - Applied hack to allow the low DMA channel detection
+    in the SB16 DIAGNOSE program to work. (Wengier)
+  - The default setting of the clip_paste_speed option
+    has been changed from 20 to 30, which will help
+    prevent lost keystrokes when pasting from the host
+    clipboard for some programs. (Wengier)
+  - Added support for the XDG_DATA_HOME environment
+    variable for config directory in Linux. (rderooy)
+  - Added support for compiling with pcap for Windows
+    MinGW builds. (Jookia)
+  - Added config option "windowposition" (in [sdl]
+    section) to set the window position at startup in
+    the positionX,positionY format. (tomba4)
+  - Added config option "raw_mouse_input" (in [sdl]
+    section; SDL2 builds only) to bypass the operating
+    system's mouse acceleration & sensitivity settings.
+    Implemented by NicknineTheEagle.
+  - Integrated SVN commits (Allofich)
+    - r4371: Fix regression in Clue: Master Detective.
+    - r4370: As an adjunct to r4369, make the reference
+      counts of standard device handles equivalent to
+      those of real DOS.
+    - r4369: Compatible side-effect behavior of DOS in
+      the file close function.
+    - r4368: Improve error codes for some DOS file functions.
+    - r4367: Change FPU_FBST to only write 18 decimals
+      instead of the wrongly 19, this makes it possible
+      to switch 64 integers which in turn fixes some
+      rounding issues. (jmarsh)
+    - r4282,r4283: Switch to a different way to calculate
+      DBOPL table offsets.
+    - r4280: Prevent GenerateDMASound from running with
+      input of 0.
+    - r4279: Remove DMA_TRANSFEREND and replace with
+      DMA_MASKED.
+    - r4277: Remove cases not needed after r4276
+    - r4276: Remove defunct code related to the initial
+      display mode of the system BIOS during video mode
+      changes.
+    - r4274: fix externals.
+    - r4273: Make frameskip an integer.
+    - r4269: Use fabsf when return value is a float.
+      Small warning fix.
+    - r4265: Some more cleanups and memleak fixes.
+    - r4264: Pick some lowhanging fruit. (some memory
+      leaks and unused variables)
+    - r4262: missed one
+    - r4261: These actually use float as input.
+    - r4258: Rename bios tester to biostest and make it
+      debug only to avoid people trying to load real
+      bioses.
+    - r4257: Add simple program that allows you to boot
+      into a bios image for running cpu tester bios.
+  - Updated MPXPLAY to latest version 1.65. (Wengier)
+  - The primary DOSBox-X Wiki is now located from the
+    URL https://dosbox-x.com/wiki (Wengier)
 0.83.6
   - Improved internal Voodoo card hardware emulation,
     such as fixing the font issue with the 3dfx version
@@ -62,7 +198,7 @@
     to emulate the speed of a specific CPU class. The
     cycles to emulate are approximations of the actual
     CPU hardware, and they are available thanks to data
-    provided by the user maximum105. Also added config
+    provided by the user maximus105. Also added config
     option "cycle emulation percentage adjust" in [cpu]
     section for users who would like to make relative
     percentage adjustments (between -25% and 25%) in

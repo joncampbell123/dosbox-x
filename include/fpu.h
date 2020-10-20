@@ -245,5 +245,8 @@ static INLINE void FPU_SET_D(Bitu C){
 	if(C) fpu.sw |= 0x0002U;
 }
 
+static INLINE void FPU_LOG_WARN(Bitu tree, bool ea, Bitu group, Bitu sub) {
+	LOG(LOG_FPU,LOG_WARN)("ESC %lu%s:Unhandled group %lu subfunction %lu",(long unsigned int)tree,ea?" EA":"",(long unsigned int)group,(long unsigned int)sub);
+}
 
 #endif

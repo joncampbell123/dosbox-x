@@ -949,10 +949,10 @@ fluid_rampreset_noteon (fluid_rampreset_t* preset, fluid_synth_t* synth, int cha
 	     * the default generator -> voice_gen_set */
 
 	    if (inst_zone->gen[i].flags){
-	      fluid_voice_gen_set(voice, i, inst_zone->gen[i].val);
+	      fluid_voice_gen_set(voice, i, (float)inst_zone->gen[i].val);
 
 	    } else if (global_inst_zone != NULL && global_inst_zone->gen[i].flags){
-	      fluid_voice_gen_set(voice, i, global_inst_zone->gen[i].val);
+	      fluid_voice_gen_set(voice, i, (float)global_inst_zone->gen[i].val);
 
 	    } else {
 	      /* The generator has not been defined in this instrument.
@@ -1038,7 +1038,7 @@ fluid_rampreset_noteon (fluid_rampreset_t* preset, fluid_synth_t* synth, int cha
 	       * summing node -> voice_gen_incr */
 
 	      if (preset_zone->gen[i].flags){
-		fluid_voice_gen_incr(voice, i, preset_zone->gen[i].val);
+		fluid_voice_gen_incr(voice, i, (float)preset_zone->gen[i].val);
 	      } else {
 		/* The generator has not been defined in this preset
 		 * Do nothing, leave it unchanged.

@@ -68,8 +68,8 @@ typedef struct Render_t {
 		double scrn_ratio;
 	} src;
 	struct {
-		Bitu count;
-		Bitu max;
+		int count;
+		int max;
 		Bitu index;
 		uint8_t hadSkip[RENDER_SKIP_CACHE];
 	} frameskip;

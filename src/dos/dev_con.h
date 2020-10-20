@@ -27,6 +27,7 @@
 #define NUMBER_ANSI_DATA 10
 
 extern bool DOS_BreakFlag;
+extern bool DOS_BreakConioFlag;
 extern unsigned char pc98_function_row_mode;
 
 Bitu INT10_Handler(void);
@@ -718,7 +719,16 @@ bool device_CON::Read(uint8_t * data,uint16_t * size) {
 			}
 			break;
 		case 0: /* Extended keys in the int 16 0x0 case */
-            if (IS_PC98_ARCH) {
+            if (reg_ax == 0) { /* CTRL+BREAK hackery (inserted as 0x0000) */
+    			data[count++]=0x03; // CTRL+C
+                if (*size > 1) {
+                    dos.errorcode=77;
+                    *size=count;
+                    reg_ax=oldax;
+                    return false;
+                }
+            }
+            else if (IS_PC98_ARCH) {
                 /* PC-98 does NOT return scan code, but instead returns nothing or
                  * control/escape code */
                 CommonPC98ExtScanConversionToReadBuf(reg_ah);
@@ -1139,6 +1149,8 @@ uint16_t device_CON::GetInformation(void) {
 		 * this implementation is a good "halfway" compromise in that this call
 		 * will trigger the INT 16h AH=0x11 hook it relies on. */
 		if (readcache || dev_con_pos < dev_con_max) return 0x8093; /* key available */
+
+		if (DOS_BreakConioFlag) return 0x8093; /* key available */
 
 		uint16_t saved_ax = reg_ax;
 

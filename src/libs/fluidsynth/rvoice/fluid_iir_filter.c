@@ -281,7 +281,7 @@ void fluid_iir_filter_calc(fluid_iir_filter_t* iir_filter,
     fres = 5;
 
   /* if filter enabled and there is a significant frequency change.. */
-  if ((abs (fres - iir_filter->last_fres) > 0.01))
+  if ((abs ((int)(fres - iir_filter->last_fres)) > 0.01))
   {
    /* The filter coefficients have to be recalculated (filter
     * parameters have changed). Recalculation for various reasons is

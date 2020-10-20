@@ -61,7 +61,7 @@ void runMount(const char *str);
 void MSG_Replace(const char * _name, const char* _val);
 void DOS_SetCountry(uint16_t countryNo);
 void CALLBACK_DeAllocate(Bitu in);
-void GFX_SetTitle(int32_t cycles, Bits frameskip, Bits timing, bool paused);
+void GFX_SetTitle(int32_t cycles, int frameskip, Bits timing, bool paused);
 
 Bitu call_shellstop = 0;
 /* Larger scope so shell_del autoexec can use it to
@@ -467,7 +467,7 @@ const char *ParseMsg(const char *msg) {
     if (machine == MCH_PC98 || real_readw(BIOSMEM_SEG,BIOSMEM_NB_COLS)<=80)
         return msg;
     else
-        return str_replace(str_replace(str_replace((char *)msg, "\xBA\033[0m", "\xBA\033[0m\n"), "\xBB\033[0m", "\xBB\033[0m\n"), "\xBC\033[0m", "\xBC\033[0m\n");
+        return str_replace(str_replace(str_replace((char *)msg, (char*)"\xBA\033[0m", (char*)"\xBA\033[0m\n"), (char*)"\xBB\033[0m", (char*)"\xBB\033[0m\n"), (char*)"\xBC\033[0m", (char*)"\xBC\033[0m\n");
 }
 
 void DOS_Shell::Run(void) {
@@ -957,12 +957,13 @@ void SHELL_Init() {
 	MSG_Add("SHELL_CMD_VOL_SERIAL"," Volume Serial Number is ");
 	MSG_Add("SHELL_CMD_VOL_SERIAL_NOLABEL","has no label\n");
 	MSG_Add("SHELL_CMD_VOL_SERIAL_LABEL","is %s\n");
-	MSG_Add("SHELL_ILLEGAL_PATH","Illegal Path.\n");
+	MSG_Add("SHELL_ILLEGAL_PATH","Path not found\n");
+	MSG_Add("SHELL_ILLEGAL_DRIVE","Invalid drive specification\n");
 	MSG_Add("SHELL_CMD_HELP","If you want a list of all supported internal commands type \033[33;1mHELP /ALL\033[0m.\nYou can also find external commands on the Z: drive as programs.\nA short list of the most often used commands:\n");
 	MSG_Add("SHELL_CMD_ECHO_ON","ECHO is on.\n");
 	MSG_Add("SHELL_CMD_ECHO_OFF","ECHO is off.\n");
 	MSG_Add("SHELL_ILLEGAL_CONTROL_CHARACTER","Unexpected control character: Dec %03u and Hex %#04x.\n");
-	MSG_Add("SHELL_ILLEGAL_SWITCH","Illegal switch: %s.\n");
+	MSG_Add("SHELL_ILLEGAL_SWITCH","Invalid switch - %s\n");
 	MSG_Add("SHELL_MISSING_PARAMETER","Required parameter missing.\n");
 	MSG_Add("SHELL_CMD_CHDIR_ERROR","Unable to change to: %s.\n");
 	MSG_Add("SHELL_CMD_CHDIR_HINT","Hint: To change to different drive type \033[31m%c:\033[0m\n");
@@ -1002,7 +1003,7 @@ void SHELL_Init() {
 	MSG_Add("SHELL_CMD_IF_ERRORLEVEL_INVALID_NUMBER","IF ERRORLEVEL: Invalid number.\n");
 	MSG_Add("SHELL_CMD_GOTO_MISSING_LABEL","No label supplied to GOTO command.\n");
 	MSG_Add("SHELL_CMD_GOTO_LABEL_NOT_FOUND","GOTO: Label %s not found.\n");
-	MSG_Add("SHELL_CMD_FILE_NOT_FOUND","File %s not found.\n");
+	MSG_Add("SHELL_CMD_FILE_NOT_FOUND","File not found - %s\n");
 	MSG_Add("SHELL_CMD_FILE_EXISTS","File %s already exists.\n");
 	MSG_Add("SHELL_CMD_DIR_INTRO"," Directory of %s\n\n");
 	MSG_Add("SHELL_CMD_DIR_BYTES_USED","%5d File(s) %17s Bytes\n");
@@ -1016,8 +1017,8 @@ void SHELL_Init() {
 	MSG_Add("SHELL_EXECUTE_DRIVE_ACCESS_FIXED","Do you really want to give DOSBox-X access to everything\non your real hard drive %c [Y/N]?");
 	MSG_Add("SHELL_EXECUTE_DRIVE_ACCESS_FIXED_LESS","Do you want to give DOSBox-X access to your real hard drive %c [Y/N]?");
 	MSG_Add("SHELL_EXECUTE_DRIVE_ACCESS_WARNING_WIN","Mounting C:\\ is NOT recommended.\n");
-	MSG_Add("SHELL_EXECUTE_ILLEGAL_COMMAND","Illegal command: %s.\n");
-	MSG_Add("SHELL_CMD_PAUSE","Press any key to continue.\n");
+	MSG_Add("SHELL_EXECUTE_ILLEGAL_COMMAND","Bad command or filename - \"%s\"\n");
+	MSG_Add("SHELL_CMD_PAUSE","Press any key to continue . . .\n");
 	MSG_Add("SHELL_CMD_PAUSE_HELP","Waits for one keystroke to continue.\n");
 	MSG_Add("SHELL_CMD_PAUSE_HELP_LONG","PAUSE\n");
 	MSG_Add("SHELL_CMD_COPY_FAILURE","Copy failure : %s.\n");
@@ -1097,8 +1098,8 @@ void SHELL_Init() {
                );
         MSG_Add("SHELL_STARTUP_EMPTY", "");
         MSG_Add("SHELL_STARTUP_END",
-                "\x86\x46 \033[32mDOSBox-X project \033[33mhttps://dosbox-x.com/  \033[36mComplete DOS Emulation\033[37m     \x86\x46\n"
-                "\x86\x46 \033[32mDOSBox-X guide   \033[33mhttps://dosbox-x.com/wiki\033[37m   \x86\x46\n"
+                "\x86\x46 \033[32mDOSBox-X project \033[33mhttps://dosbox-x.com/     \033[36mComplete DOS emulations\033[37m \x86\x46\n"
+                "\x86\x46 \033[32mDOSBox-X guide   \033[33mhttps://dosbox-x.com/wiki\033[37m \033[36mDOS, Windows 3.x and 9x\033[37m \x86\x46\n"
                 "\x86\x46 \033[32mDOSBox-X support \033[33mhttps://github.com/joncampbell123/dosbox-x/issues\033[37m \x86\x46\n"
                 "\x86\x5A\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44"
                 "\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44"
@@ -1164,8 +1165,8 @@ void SHELL_Init() {
         MSG_Add("SHELL_STARTUP_END",
                 "\033[44;1m\xBA \033[36mDOSBox-X project on the web:                                                \033[37m \xBA\033[0m"
                 "\033[44;1m\xBA                                                                              \xBA\033[0m"
-                "\033[44;1m\xBA \033[32mHomepage of project\033[37m: \033[33mhttps://dosbox-x.com/  \033[36mComplete DOS Emulation\033[37m           \xBA\033[0m"
-                "\033[44;1m\xBA \033[32mUser guides on Wiki\033[37m: \033[33mhttps://dosbox-x.com/wiki\033[32m        \033[37m \xBA\033[0m"
+                "\033[44;1m\xBA \033[32mHomepage of project\033[37m: \033[33mhttps://dosbox-x.com/           \033[36mComplete DOS emulations\033[37m \xBA\033[0m"
+                "\033[44;1m\xBA \033[32mUser guides on Wiki\033[37m: \033[33mhttps://dosbox-x.com/wiki\033[32m       \033[36mDOS, Windows 3.x and 9x\033[37m \xBA\033[0m"
                 "\033[44;1m\xBA \033[32mIssue or suggestion\033[37m: \033[33mhttps://github.com/joncampbell123/dosbox-x/issues      \033[37m \xBA\033[0m"
                 "\033[44;1m\xC8\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD"
                 "\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD"
@@ -1645,6 +1646,13 @@ void SHELL_Init() {
 
     psp.SetSize(psp_seg + total_sz);
     psp.SetStack(((unsigned int)stack_seg << 16u) + (unsigned int)reg_sp);
+
+	/* Create appearance of handle inheritance by first shell */
+	for (uint16_t i=0;i<5;i++) {
+		uint8_t handle=psp.GetFileHandle(i);
+		if (Files[handle]) Files[handle]->AddRef();
+	}
+
 	psp.SetParent(psp_seg);
 	/* Set the environment */
 	psp.SetEnvironment(env_seg);

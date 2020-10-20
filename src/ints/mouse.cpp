@@ -707,7 +707,7 @@ uint8_t Mouse_GetButtonState(void) {
     return mouse.buttons;
 }
 
-#if defined(WIN32)
+#if defined(WIN32) || defined(C_SDL2)
 char text[5000];
 const char* Mouse_GetSelected(int x1, int y1, int x2, int y2, int w, int h, uint16_t *textlen) {
 	uint8_t page = real_readb(BIOSMEM_SEG,BIOSMEM_CURRENT_PAGE);

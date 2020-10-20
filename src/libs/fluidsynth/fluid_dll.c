@@ -84,7 +84,7 @@ static long FAR PASCAL fluid_win32_wndproc(HWND hWnd, UINT message, WPARAM wPara
   case WM_DESTROY:
     break;
   default:
-    return DefWindowProc(hWnd, message, wParam, lParam);
+    return (long)DefWindowProc(hWnd, message, wParam, lParam);
     break;
   }
   return(0L);

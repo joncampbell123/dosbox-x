@@ -41,13 +41,15 @@ extern int enablelfn;
 extern bool dpi_aware_enable;
 extern bool log_int21;
 extern bool log_fileio;
+extern bool noremark_save_state;
 extern bool force_load_state;
 extern bool use_quick_reboot;
+extern bool pc98_force_ibm_layout;
 extern bool enable_config_as_shell_commands;
-bool winrun=false;
+bool winrun=false, use_save_file=false;
+bool direct_mouse_clipboard=false;
 #if defined(WIN32)
 extern int dos_clipboard_device_access;
-bool direct_mouse_clipboard=false;
 #endif
 
 bool OpenGL_using(void);
@@ -98,6 +100,9 @@ void GFX_OpenGLRedrawScreen(void);
 #include "shell.h"
 #include "glidedef.h"
 #include "../ints/int10.h"
+#if !defined(HX_DOS)
+#include "../libs/tinyfiledialogs/tinyfiledialogs.h"
+#endif
 
 #if defined(LINUX) && defined(HAVE_ALSA)
 # include <alsa/asoundlib.h>
@@ -229,6 +234,7 @@ void ShutDownMemHandles(Section * sec);
 SDL_Block sdl;
 Bitu frames = 0;
 unsigned int page=0;
+unsigned int sendkeymap=0;
 
 ScreenSizeInfo          screen_size_info;
 
@@ -237,7 +243,7 @@ extern bool bootguest, bootfast, bootvm;
 extern int bootdrive;
 
 void MenuBrowseFolder(char drive, std::string drive_type);
-void MenuBrowseImageFile(char drive, bool boot);
+void MenuBrowseImageFile(char drive, bool boot, bool multiple);
 void MenuBootDrive(char drive);
 void MenuUnmountDrive(char drive);
 void MenuBrowseProgramFile(void);
@@ -365,11 +371,32 @@ bool drive_mountimg_menu_callback(DOSBoxMenu * const menu,DOSBoxMenu::item * con
 
     if (dos_kernel_disabled) return true;
 
-    MenuBrowseImageFile(drive+'A', false);
+    MenuBrowseImageFile(drive+'A', false, false);
 
     return true;
 }
 
+bool drive_mountimgs_menu_callback(DOSBoxMenu * const menu,DOSBoxMenu::item * const menuitem) {
+    (void)menu;//UNUSED
+    (void)menuitem;//UNUSED
+
+    /* menu item has name "drive_A_" ... */
+    int drive;
+    const char *mname = menuitem->get_name().c_str();
+    if (!strncmp(mname,"drive_",6)) {
+        drive = mname[6] - 'A';
+        if (drive < 0 || drive >= DOS_DRIVES) return false;
+    }
+    else {
+        return false;
+    }
+
+    if (dos_kernel_disabled) return true;
+
+    MenuBrowseImageFile(drive+'A', false, true);
+
+    return true;
+}
 bool drive_bootimg_menu_callback(DOSBoxMenu * const menu,DOSBoxMenu::item * const menuitem) {
     (void)menu;//UNUSED
     (void)menuitem;//UNUSED
@@ -386,7 +413,7 @@ bool drive_bootimg_menu_callback(DOSBoxMenu * const menu,DOSBoxMenu::item * cons
 
     if (dos_kernel_disabled) return true;
 
-    MenuBrowseImageFile(drive+'A', true);
+    MenuBrowseImageFile(drive+'A', true, false);
 
     return true;
 }
@@ -523,6 +550,7 @@ const DOSBoxMenu::callback_t drive_callbacks[] = {
     drive_mountcd_menu_callback,
     drive_mountfd_menu_callback,
     drive_mountimg_menu_callback,
+    drive_mountimgs_menu_callback,
     drive_unmount_menu_callback,
     drive_swap_menu_callback,
     drive_rescan_menu_callback,
@@ -545,15 +573,16 @@ bool list_drivenum_menu_callback(DOSBoxMenu * const menu,DOSBoxMenu::item * cons
 
 const char *drive_opts[][2] = {
 #if defined(WIN32)
-	{ "mountauto",              "Mount Automatically" },
+	{ "mountauto",              "Auto-mount Windows drive" },
 #endif
-	{ "mounthd",                "Mount as Hard Disk" },
-	{ "mountcd",                "Mount as CD-ROM" },
-	{ "mountfd",                "Mount as Floppy" },
-	{ "mountimg",               "Mount disk image" },
-    { "unmount",                "Unmount" },
-    { "swap",                   "Swap disk" },
+	{ "mounthd",                "Mount folder as hard drive" },
+	{ "mountcd",                "Mount folder as CD drive" },
+	{ "mountfd",                "Mount folder as floppy drive" },
+	{ "mountimg",               "Mount a disk or CD image file" },
+	{ "mountimgs",              "Mount multiple disk/CD images" },
+    { "unmount",                "Unmount drive" },
     { "rescan",                 "Rescan drive" },
+    { "swap",                   "Swap disk" },
     { "info",                   "Drive information" },
     { "boot",                   "Boot from drive" },
     { "bootimg",                "Boot from disk image" },
@@ -810,7 +839,7 @@ extern bool keep_private_area_on_boot;
 extern bool dos_kernel_disabled;
 bool guest_machine_power_on = false;
 
-std::string custom_savedir;
+std::string custom_savedir, savefilename = "";
 
 void SHELL_Run();
 void DisableINT33();
@@ -1131,7 +1160,7 @@ bool IsDebuggerActive(void);
 
 extern std::string dosbox_title;
 
-void GFX_SetTitle(int32_t cycles,Bits frameskip,Bits timing,bool paused){
+void GFX_SetTitle(int32_t cycles, int frameskip, Bits timing, bool paused) {
     (void)frameskip;//UNUSED
     (void)timing;//UNUSED
 //  static Bits internal_frameskip=0;
@@ -1191,60 +1220,37 @@ void GFX_SetTitle(int32_t cycles,Bits frameskip,Bits timing,bool paused){
 #endif
 }
 
-bool warn_on_mem_write = false, quit_confirm = false;
+bool warn_on_mem_write = false;
 
 void CPU_Snap_Back_To_Real_Mode();
+#if !defined(HX_DOS)
+bool quitmessagebox(char const * aTitle, char const * aMessage, char const * aDialogType, char const * aIconType, int aDefaultButton) {
+    MAPPER_ReleaseAllKeys();
+    GFX_LosingFocus();
+    bool ret=tinyfd_messageBox(aTitle, aMessage, aDialogType, aIconType, aDefaultButton);
+    MAPPER_ReleaseAllKeys();
+    GFX_LosingFocus();
+    return ret;
+}
+#endif
 bool CheckQuit(void) {
+#if !defined(HX_DOS)
     Section_prop *section = static_cast<Section_prop *>(control->GetSection("dosbox"));
-	std::string warn = section->Get_string("quit warning");
-    if (warn == "true") {
-        quit_confirm=false;
-        MAPPER_ReleaseAllKeys();
-        GFX_LosingFocus();
-        GUI_Shortcut(28);
-        MAPPER_ReleaseAllKeys();
-        GFX_LosingFocus();
-        bool ret=quit_confirm;
-        quit_confirm=false;
-        return ret;
-    } else if (warn == "false" || glide.enabled || (RunningProgram&&!strcmp(RunningProgram, "LOADLIN")))
+    std::string warn = section->Get_string("quit warning");
+    if (warn == "true")
+        return quitmessagebox("Quit DOSBox-X warning","This will quit from DOSBox-X.\nAre you sure?","yesno", "question", 1);
+    else if (warn == "false")
         return true;
-    if (dos_kernel_disabled) {
-        quit_confirm=false;
-        MAPPER_ReleaseAllKeys();
-        GFX_LosingFocus();
-        GUI_Shortcut(29);
-        MAPPER_ReleaseAllKeys();
-        GFX_LosingFocus();
-        bool ret=quit_confirm;
-        quit_confirm=false;
-        return ret;
-    }
+    if (dos_kernel_disabled)
+        return quitmessagebox("Quit DOSBox-X warning","You are currently running a guest system.\nAre you sure to quit anyway now?","yesno", "question", 1);
     if (warn == "autofile")
         for (uint8_t handle = 0; handle < DOS_FILES; handle++) {
-            if (Files[handle] && (Files[handle]->GetName() == NULL || strcmp(Files[handle]->GetName(), "CON")) && (Files[handle]->GetInformation()&0x8000) == 0) {
-                quit_confirm=false;
-                MAPPER_ReleaseAllKeys();
-                GFX_LosingFocus();
-                GUI_Shortcut(30);
-                MAPPER_ReleaseAllKeys();
-                GFX_LosingFocus();
-                bool ret=quit_confirm;
-                quit_confirm=false;
-                return ret;
-            }
+            if (Files[handle] && (Files[handle]->GetName() == NULL || strcmp(Files[handle]->GetName(), "CON")) && (Files[handle]->GetInformation()&0x8000) == 0)
+                return quitmessagebox("Quit DOSBox-X warning","It may be unsafe to quit from DOSBox-X right now\nbecause one or more files are currently open.\nAre you sure to quit anyway now?","yesno", "question", 1);
         }
-    else if (RunningProgram&&strcmp(RunningProgram, "COMMAND")&&strcmp(RunningProgram, "4DOS")) {
-        quit_confirm=false;
-        MAPPER_ReleaseAllKeys();
-        GFX_LosingFocus();
-        GUI_Shortcut(31);
-        MAPPER_ReleaseAllKeys();
-        GFX_LosingFocus();
-        bool ret=quit_confirm;
-        quit_confirm=false;
-        return ret;
-    }
+    else if (RunningProgram&&strcmp(RunningProgram, "COMMAND")&&strcmp(RunningProgram, "4DOS"))
+        return quitmessagebox("Quit DOSBox-X warning","You are currently running a program or game.\nAre you sure to quit anyway now?","yesno", "question", 1);
+#endif
     return true;
 }
 
@@ -3788,6 +3794,12 @@ static void GUI_StartUp() {
     Prop_multival* p3 = section->Get_multival("sensitivity");
     sdl.mouse.xsensitivity = p3->GetSection()->Get_int("xsens");
     sdl.mouse.ysensitivity = p3->GetSection()->Get_int("ysens");
+
+#if defined(C_SDL2)
+    // Apply raw mouse input setting
+    SDL_SetHintWithPriority(SDL_HINT_MOUSE_RELATIVE_MODE_WARP, section->Get_bool("raw_mouse_input") ? "0" : "1", SDL_HINT_OVERRIDE);
+#endif
+
     std::string output=section->Get_string("output");
 	if (output == "default") {
 #ifdef __WIN32__
@@ -3899,6 +3911,35 @@ static void GUI_StartUp() {
     sdl.overscan_width=(unsigned int)section->Get_int("overscan");
 //  sdl.overscan_color=section->Get_int("overscancolor");
 
+    // Getting window position (if configured)
+    int posx = -1;
+    int posy = -1;
+    const char* windowposition = section->Get_string("windowposition");
+    LOG_MSG("Configured windowposition: %s", windowposition);
+    if (windowposition && *windowposition) {
+        char result[100];
+        safe_strncpy(result, windowposition, sizeof(result));
+        char* y = strchr(result, ',');
+        if (y && *y) {
+            *y = 0;
+            posx = atoi(result);
+            posy = atoi(y + 1);
+        }
+    }
+
+    // Setting SDL1 window position before a call to SDL_SetVideoMode() is made. If the user provided
+    // SDL_VIDEO_WINDOW_POS environment variable then "windowposition" setting should have no effect.
+    // SDL2 position is set later, using SDL_SetWindowPosition()
+#if !defined(C_SDL2)
+    if (posx >= 0 && posy >= 0 && SDL_getenv("SDL_VIDEO_WINDOW_POS") == NULL) {
+        const char* windowposition = section->Get_string("windowposition");
+        char pos[100];
+        safe_strncpy(pos, "SDL_VIDEO_WINDOW_POS=", sizeof(pos));
+        safe_strcat(pos, windowposition);
+        SDL_putenv(pos);
+    }
+#endif
+
     bool initgl = false;
 #if C_OPENGL
     /*std::string f = (std::string)(static_cast<Section_prop *>(control->GetSection("render"))->Get_path("glshader")->GetValue());
@@ -4004,8 +4045,11 @@ static void GUI_StartUp() {
     GFX_LogSDLState();
     GFX_Stop();
 
+
 #if defined(C_SDL2)
     SDL_SetWindowTitle(sdl.window,"DOSBox-X");
+    if (posx >= 0 && posy >= 0)
+        SDL_SetWindowPosition(sdl.window, posx, posy);
 #else
     SDL_WM_SetCaption("DOSBox-X",VERSION);
 #endif
@@ -4032,13 +4076,9 @@ static void GUI_StartUp() {
     item->set_text("Toggle fullscreen");
 
     MAPPER_AddHandler(PasteClipboard, MK_nothing, 0, "paste", "Paste Clip", &item); //end emendelson; improved by Wengier
-    item->set_text("Pasting from the Windows clipboard");
-#if C_DEBUG
-    /* Pause binds with activate-debugger */
-    MAPPER_AddHandler(&PauseDOSBox, MK_pause, MMOD1, "pause", "Pause");
-#else
-    MAPPER_AddHandler(&PauseDOSBox, MK_pause, MMOD2, "pause", "Pause");
-#endif
+    item->set_text("Pasting from the clipboard");
+
+    MAPPER_AddHandler(&PauseDOSBox, MK_pause, MMODHOST, "pause", "Pause");
 
 #if DOSBOXMENU_TYPE == DOSBOXMENU_NSMENU
     pause_menu_item_tag = mainMenu.get_item("mapper_pause").get_master_id() + DOSBoxMenu::nsMenuMinimumID;
@@ -4435,7 +4475,7 @@ static void HandleMouseMotion(SDL_MouseMotionEvent * motion) {
         inputToScreen = true;
     else {
         inputToScreen = GFX_CursorInOrNearScreen(motion->x,motion->y);
-#if defined (WIN32)
+#if defined (WIN32) || defined(C_SDL2)
 		if (mouse_start_x >= 0 && mouse_start_y >= 0) {
 			if (fx>=0 && fy>=0)
 				Restore_Text(mouse_start_x-sdl.clip.x,mouse_start_y-sdl.clip.y,fx-sdl.clip.x,fy-sdl.clip.y,(int)(currentWindowWidth-sdl.clip.x),(int)(currentWindowHeight-sdl.clip.y));
@@ -5113,7 +5153,7 @@ static void HandleMouseButton(SDL_MouseButtonEvent * button, SDL_MouseMotionEven
     switch (button->state) {
     case SDL_PRESSED:
         if (inMenu || !inputToScreen) return;
-#if defined(WIN32)
+#if defined(WIN32) || defined(C_SDL2)
 		if (!sdl.mouse.locked && button->button == SDL_BUTTON_LEFT && !strcmp(modifier,"none") && mouse_start_x >= 0 && mouse_start_y >= 0 && fx >= 0 && fy >= 0) {
 			Restore_Text(mouse_start_x-sdl.clip.x,mouse_start_y-sdl.clip.y,fx-sdl.clip.x,fy-sdl.clip.y,(int)(currentWindowWidth-sdl.clip.x),(int)(currentWindowHeight-sdl.clip.y));
 			mouse_start_x = -1;
@@ -5124,9 +5164,9 @@ static void HandleMouseButton(SDL_MouseButtonEvent * button, SDL_MouseMotionEven
 			fy = -1;
 		}
 		if (!sdl.mouse.locked && ((mbutton==2 && button->button == SDL_BUTTON_MIDDLE) || (mbutton==3 && button->button == SDL_BUTTON_RIGHT)) && (direct_mouse_clipboard || !strcmp(modifier,"none")
-			|| (!strcmp(modifier,"alt") || !strcmp(modifier,"lalt")) && sdl.laltstate==SDL_KEYDOWN || (!strcmp(modifier,"alt") || !strcmp(modifier,"ralt")) && sdl.raltstate==SDL_KEYDOWN
-			|| (!strcmp(modifier,"ctrl") || !strcmp(modifier,"lctrl")) && sdl.lctrlstate==SDL_KEYDOWN || (!strcmp(modifier,"ctrl") || !strcmp(modifier,"rctrl")) && sdl.rctrlstate==SDL_KEYDOWN
-			|| (!strcmp(modifier,"shift") || !strcmp(modifier,"lshift")) && sdl.lshiftstate==SDL_KEYDOWN || (!strcmp(modifier,"shift") || !strcmp(modifier,"rshift")) && sdl.rshiftstate==SDL_KEYDOWN
+			|| ((!strcmp(modifier,"alt") || !strcmp(modifier,"lalt")) && sdl.laltstate==SDL_KEYDOWN) || ((!strcmp(modifier,"alt") || !strcmp(modifier,"ralt")) && sdl.raltstate==SDL_KEYDOWN)
+			|| ((!strcmp(modifier,"ctrl") || !strcmp(modifier,"lctrl")) && sdl.lctrlstate==SDL_KEYDOWN) || ((!strcmp(modifier,"ctrl") || !strcmp(modifier,"rctrl")) && sdl.rctrlstate==SDL_KEYDOWN)
+			|| ((!strcmp(modifier,"shift") || !strcmp(modifier,"lshift")) && sdl.lshiftstate==SDL_KEYDOWN) || ((!strcmp(modifier,"shift") || !strcmp(modifier,"rshift")) && sdl.rshiftstate==SDL_KEYDOWN)
 			)) {
 			mouse_start_x=motion->x;
 			mouse_start_y=motion->y;
@@ -5196,7 +5236,7 @@ static void HandleMouseButton(SDL_MouseButtonEvent * button, SDL_MouseMotionEven
         }
         break;
     case SDL_RELEASED:
-#if defined(WIN32)
+#if defined(WIN32) || defined(C_SDL2)
 		if (!sdl.mouse.locked && ((mbutton==2 && button->button == SDL_BUTTON_MIDDLE) || (mbutton==3 && button->button == SDL_BUTTON_RIGHT)) && mouse_start_x >= 0 && mouse_start_y >= 0) {
 			mouse_end_x=motion->x;
 			mouse_end_y=motion->y;
@@ -5707,7 +5747,7 @@ void GFX_Events() {
 				}
 			}
 			break;
-#if defined (WIN32)
+#if defined (WIN32) || defined(C_SDL2)
         case SDL_KEYDOWN:
         case SDL_KEYUP:
             if (event.key.keysym.sym==SDLK_LALT) sdl.laltstate = event.key.type;
@@ -6001,11 +6041,187 @@ void GFX_Events() {
     // keystrokes get lost in the spew. (Prob b/c of DI usage on Win32, sadly..)
     // while (PasteClipboardNext());
     // Doesn't really matter though, it's fast enough as it is...
-	if (paste_speed < 0) paste_speed = 20;
+	if (paste_speed < 0) paste_speed = 30;
 
     static Bitu iPasteTicker = 0;
     if (paste_speed && (iPasteTicker++ % paste_speed) == 0) // emendelson: was %2, %20 is good for WP51
         PasteClipboardNext();   // end added emendelson from dbDOS; improved by Wengier
+}
+
+void Null_Init(Section *sec);
+
+void SDL_SetupConfigSection() {
+    Section_prop * sdl_sec=control->AddSection_prop("sdl",&Null_Init);
+
+    Prop_bool* Pbool;
+    Prop_string* Pstring;
+    Prop_int* Pint;
+    Prop_multival* Pmulti;
+
+    Pbool = sdl_sec->Add_bool("fullscreen",Property::Changeable::Always,false);
+    Pbool->Set_help("Start DOSBox-X directly in fullscreen. (Press [F11/F12]+F to go back)");
+    Pbool->SetBasic(true);
+
+    Pbool = sdl_sec->Add_bool("fulldouble",Property::Changeable::Always,false);
+    Pbool->Set_help("Use double buffering in fullscreen. It can reduce screen flickering, but it can also result in a slow DOSBox-X.");
+    Pbool->SetBasic(true);
+
+    //Pbool = sdl_sec->Add_bool("sdlresize",Property::Changeable::Always,false);
+    //Pbool->Set_help("Makes window resizable (depends on scalers)");
+
+    Pstring = sdl_sec->Add_string("fullresolution",Property::Changeable::Always,"desktop");
+    Pstring->Set_help("What resolution to use for fullscreen: original, desktop or a fixed size (e.g. 1024x768).\n"
+                      "  Using your monitor's native resolution with aspect=true might give the best results.\n"
+              "  If you end up with small window on a large screen, try an output different from surface.");
+    Pstring->SetBasic(true);
+
+    Pstring = sdl_sec->Add_string("windowresolution",Property::Changeable::Always,"original");
+    Pstring->Set_help("Scale the window to this size IF the output device supports hardware scaling.\n"
+                      "  (output=surface does not!)");
+    Pstring->SetBasic(true);
+
+    Pstring = sdl_sec->Add_string("windowposition", Property::Changeable::OnlyAtStart, "");
+    Pstring->Set_help("Set the window position at startup in the positionX,positionY format (e.g.: 1300,200)");
+    Pstring->SetBasic(true);
+
+    const char* outputs[] = {
+        "default", "surface", "overlay",
+#if C_OPENGL
+        "opengl", "openglnb", "openglhq",
+#endif
+        "ddraw",
+#if C_DIRECT3D
+        "direct3d",
+#endif
+        0 };
+	Pstring = sdl_sec->Add_string("output", Property::Changeable::Always, "default");
+    Pstring->Set_help("What video system to use for output.");
+    Pstring->Set_values(outputs);
+    Pstring->SetBasic(true);
+
+    Pbool = sdl_sec->Add_bool("autolock",Property::Changeable::Always, false);
+    Pbool->Set_help("Mouse will automatically lock, if you click on the screen. (Press CTRL-F10 to unlock)");
+    Pbool->SetBasic(true);
+
+    const char* feeds[] = { "none", "beep", "flash", nullptr};
+    Pstring = sdl_sec->Add_string("autolock_feedback", Property::Changeable::Always, feeds[1]);
+    Pstring->Set_help("Autolock status feedback type, i.e. visual, auditive, none.");
+    Pstring->Set_values(feeds);
+
+	const char* clipboardbutton[] = { "none", "middle", "right", 0};
+	Pstring = sdl_sec->Add_string("clip_mouse_button",Property::Changeable::Always, "right");
+	Pstring->Set_values(clipboardbutton);
+	Pstring->Set_help("Select the mouse button for the shared clipboard copy/paste function.\n"
+		"The default mouse button is \"right\". Set to \"middle\" if the middle mouse button is desired, or \"none\" to disable this feature.");
+    Pstring->SetBasic(true);
+
+	const char* clipboardmodifier[] = { "none", "alt", "lalt", "ralt", "ctrl", "lctrl", "rctrl", "shift", "lshift", "rshift", 0};
+	Pstring = sdl_sec->Add_string("clip_key_modifier",Property::Changeable::Always, "shift");
+	Pstring->Set_values(clipboardmodifier);
+	Pstring->Set_help("Change the keyboard modifier for the shared clipboard copy/paste function using the right mouse button.\n"
+		"The default modifier is \"shift\" (both left and right shift keys). Set to \"none\" if no modifier is desired.");
+    Pstring->SetBasic(true);
+
+    Pint = sdl_sec->Add_int("clip_paste_speed", Property::Changeable::WhenIdle, 30);
+    Pint->Set_help("Set keyboard speed for pasting from the shared clipboard.\n"
+        "If the default setting of 30 causes lost keystrokes, increase the number.\n"
+        "Or experiment with decreasing the number for applications that accept keystrokes quickly.");
+    Pint->SetBasic(true);
+
+    Pmulti = sdl_sec->Add_multi("sensitivity",Property::Changeable::Always, ",");
+    Pmulti->Set_help("Mouse sensitivity. The optional second parameter specifies vertical sensitivity (e.g. 100,-50).");
+    Pmulti->SetValue("100");
+    Pmulti->SetBasic(true);
+    Pint = Pmulti->GetSection()->Add_int("xsens",Property::Changeable::Always,100);
+    Pint->SetMinMax(-1000,1000);
+    Pint = Pmulti->GetSection()->Add_int("ysens",Property::Changeable::Always,100);
+    Pint->SetMinMax(-1000,1000);
+
+#if defined(C_SDL2)
+    Pbool = sdl_sec->Add_bool("raw_mouse_input", Property::Changeable::OnlyAtStart, false);
+    Pbool->Set_help("Enable this setting to bypass your operating system's mouse acceleration and sensitivity settings.\n"
+        "This works in fullscreen or when the mouse is captured in window mode (SDL2 builds only).");
+#endif
+
+    const char * emulation[] = {"integration", "locked", "always", "never", nullptr};
+    Pstring  = sdl_sec->Add_string("mouse_emulation", Property::Changeable::Always, emulation[1]);
+    Pstring->Set_help(
+        "When is mouse emulated ?\n"
+        "integration: when not locked\n"
+        "locked:      when locked\n"
+        "always:      every time\n"
+        "never:       at no time\n"
+        "If disabled, the mouse position in DOSBox-X is exactly where the host OS reports it.\n"
+        "When using a high DPI mouse, the emulation of mouse movement can noticeably reduce the\n"
+        "sensitiveness of your device, i.e. the mouse is slower but more precise.");
+    Pstring->Set_values(emulation);
+    Pstring->SetBasic(true);
+
+    Pint = sdl_sec->Add_int("mouse_wheel_key", Property::Changeable::WhenIdle, -1);
+    Pint->SetMinMax(-3,3);
+    Pint->Set_help("Convert mouse wheel movements into keyboard presses such as arrow keys.\n"
+        "0: disabled; 1: up/down arrows; 2: left/right arrows; 3: PgUp/PgDn keys.\n"
+        "Putting a minus sign in front will disable the conversion for guest systems.");
+    Pint->SetBasic(true);
+
+    Pbool = sdl_sec->Add_bool("waitonerror",Property::Changeable::Always, true);
+    Pbool->Set_help("Wait before closing the console if DOSBox-X has an error.");
+    Pbool->SetBasic(true);
+
+    Pmulti = sdl_sec->Add_multi("priority", Property::Changeable::Always, ",");
+    Pmulti->SetValue("higher,normal",/*init*/true);
+    Pmulti->Set_help("Priority levels for DOSBox-X. Second entry behind the comma is for when DOSBox-X is not focused/minimized.\n"
+                     "  pause is only valid for the second entry.");
+    Pmulti->SetBasic(true);
+
+    const char* actt[] = { "lowest", "lower", "normal", "higher", "highest", "pause", 0};
+    Pstring = Pmulti->GetSection()->Add_string("active",Property::Changeable::Always,"higher");
+    Pstring->Set_values(actt);
+
+    const char* inactt[] = { "lowest", "lower", "normal", "higher", "highest", "pause", 0};
+    Pstring = Pmulti->GetSection()->Add_string("inactive",Property::Changeable::Always,"normal");
+    Pstring->Set_values(inactt);
+
+    Pstring = sdl_sec->Add_path("mapperfile",Property::Changeable::Always,MAPPERFILE_SDL1);
+    Pstring->Set_help("File used to load/save the key/event mappings from. Resetmapper only works with the default value.");
+    Pstring->SetBasic(true);
+
+    Pstring = sdl_sec->Add_path("mapperfile_sdl2",Property::Changeable::Always,MAPPERFILE_SDL2);
+    Pstring->Set_help("File used to load/save the key/event mappings from (SDL2 builds). Resetmapper only works with the default value.");
+    Pstring->SetBasic(true);
+
+#if C_DIRECT3D && C_D3DSHADERS
+    Pmulti = sdl_sec->Add_multi("pixelshader",Property::Changeable::Always," ");
+    Pmulti->SetValue("none",/*init*/true);
+    Pmulti->Set_help("Pixelshader program (effect file must be in Shaders subdirectory). If 'forced' is appended,\n"
+        "then the shader will be used even if the result might not be desired.");
+
+    Pstring = Pmulti->GetSection()->Add_string("type",Property::Changeable::Always,"none");
+    Pstring = Pmulti->GetSection()->Add_string("force",Property::Changeable::Always,"");
+#endif
+
+	const char* truefalseautoopt[] = { "true", "false", "auto", 0};
+    Pstring = sdl_sec->Add_string("usescancodes",Property::Changeable::OnlyAtStart,"auto");
+    Pstring->Set_values(truefalseautoopt);
+    Pstring->Set_help("Avoid usage of symkeys, might not work on all operating systems.\n"
+        "If set to \"auto\" (default), it is enabled for SDL1 and non-US keyboards.");
+    Pstring->SetBasic(true);
+
+    Pint = sdl_sec->Add_int("overscan",Property::Changeable::Always, 0);
+    Pint->SetMinMax(0,10);
+    Pint->Set_help("Width of overscan border (0 to 10). (works only if output=surface)");
+
+    Pstring = sdl_sec->Add_string("titlebar", Property::Changeable::Always, "");
+    Pstring->Set_help("Change the string displayed in the DOSBox-X title bar.");
+    Pstring->SetBasic(true);
+
+    Pbool = sdl_sec->Add_bool("showmenu", Property::Changeable::Always, true);
+    Pbool->Set_help("Whether to show the menu bar (if supported). Default true.");
+    Pstring->SetBasic(true);
+
+//  Pint = sdl_sec->Add_int("overscancolor",Property::Changeable::Always, 0);
+//  Pint->SetMinMax(0,1000);
+//  Pint->Set_help("Value of overscan color.");
 }
 
 // added emendelson from dbDos; improved by Wengier
@@ -6286,7 +6502,12 @@ void PasteClipboard(bool bPressed)
         char* szFilteredText = reinterpret_cast<char*>(alloca(clipSize + 1));
         char* szFilterNextChar = szFilteredText;
         for (size_t i = 0; i < clipSize; ++i)
-            if (clipAscii[i] != 0x0A) // Skip linefeeds
+            if (clipAscii[i] == 9) // Tab to spaces
+                for (int k=0; k<4; k++) {
+                    *szFilterNextChar = ' ';
+                    ++szFilterNextChar;
+                }
+            else if (clipAscii[i] != 0x0A) // Skip linefeeds
             {
                 *szFilterNextChar = clipAscii[i];
                 ++szFilterNextChar;
@@ -6301,8 +6522,8 @@ void PasteClipboard(bool bPressed)
 }
 /// TODO: add menu items here 
 #else // end emendelson from dbDOS; improved by Wengier
-#if defined(WIN32) // SDL2, MinGW / Added by Wengier
 static std::string strPasteBuffer;
+#if defined(WIN32) // SDL2, MinGW / Added by Wengier
 extern uint8_t* clipAscii;
 extern uint32_t clipSize;
 extern void Unicode2Ascii(const uint16_t* unicode);
@@ -6319,7 +6540,12 @@ void PasteClipboard(bool bPressed) {
         char* szFilteredText = reinterpret_cast<char*>(alloca(clipSize + 1));
         char* szFilterNextChar = szFilteredText;
         for (size_t i = 0; i < clipSize; ++i)
-            if (clipAscii[i] != 0x0A) // Skip linefeeds
+            if (clipAscii[i] == 9) // Tab to spaces
+                for (int k=0; k<4; k++) {
+                    *szFilterNextChar = ' ';
+                    ++szFilterNextChar;
+                }
+            else if (clipAscii[i] != 0x0A) // Skip linefeeds
             {
                 *szFilterNextChar = clipAscii[i];
                 ++szFilterNextChar;
@@ -6331,6 +6557,149 @@ void PasteClipboard(bool bPressed) {
 		clipSize=0;
     }
 	CloseClipboard();
+}
+
+bool PasteClipboardNext() {
+    if (strPasteBuffer.length() == 0) return false;
+	BIOS_AddKeyToBuffer(strPasteBuffer[0]<0?strPasteBuffer[0]&0xff:strPasteBuffer[0]);
+    strPasteBuffer = strPasteBuffer.substr(1, strPasteBuffer.length());
+	return true;
+}
+#elif defined(C_SDL2)
+typedef char host_cnv_char_t;
+char *CodePageHostToGuest(const host_cnv_char_t *s);
+void PasteClipboard(bool bPressed) {
+	if (!bPressed) return;
+    char* text = SDL_GetClipboardText();
+    std::string result="", pre="";
+    for (unsigned int i=0; i<strlen(text); i++) {
+        if (text[i]==0x0A&&(i==0||text[i-1]!=0x0D)) text[i]=0x0D;
+        if (text[i]==9) result+="    ";
+        else if (text[i]<0) {
+            char c=text[i];
+            int n=1;
+            if ((c & 0xe0) == 0xc0) n=2;
+            else if ((c & 0xf0) == 0xe0) n=3;
+            else if ((c & 0xf8) == 0xf0) n=4;
+            pre="";
+            bool exit=false;
+            for (int k=0; k<n; k++) {
+                if (n>2&&i>=strlen(text)) {exit=true;break;}
+                else if (i>=strlen(text)) {i++;break;}
+                if (text[i]>=0) {exit=true;break;}
+                pre+=std::string(1, text[i]);
+                i++;
+            }
+            if (exit) continue;
+            const char* asc = CodePageHostToGuest(pre.c_str());
+            result+=asc!=NULL?std::string(asc):(n>2?"":pre);
+            i--;
+        } else {
+            const char* asc = CodePageHostToGuest(std::string(1, text[i]).c_str());
+            result+=asc != NULL?std::string(asc):std::string(1, text[i]);
+        }
+    }
+    strPasteBuffer.append(result.c_str());
+}
+
+bool PasteClipboardNext() {
+    if (strPasteBuffer.length() == 0) return false;
+	BIOS_AddKeyToBuffer(strPasteBuffer[0]<0?strPasteBuffer[0]&0xff:strPasteBuffer[0]);
+    strPasteBuffer = strPasteBuffer.substr(1, strPasteBuffer.length());
+	return true;
+}
+#elif defined(LINUX) && C_X11
+#include <X11/Xlib.h>
+typedef char host_cnv_char_t;
+char *CodePageHostToGuest(const host_cnv_char_t *s);
+void paste_utf8_prop(Display *dpy, Window w, Atom p)
+{
+    Atom da, incr, type;
+    int di;
+    unsigned long size, dul;
+    unsigned char *prop_ret = NULL;
+
+    XGetWindowProperty(dpy, w, p, 0, 0, False, AnyPropertyType, &type, &di, &dul, &size, &prop_ret);
+    XFree(prop_ret);
+
+    incr = XInternAtom(dpy, "INCR", False);
+    if (type == incr) return;
+
+    XGetWindowProperty(dpy, w, p, 0, size, False, AnyPropertyType, &da, &di, &dul, &dul, &prop_ret);
+    char *text=(char *)prop_ret;
+    std::string result="", pre="";
+    for (unsigned int i=0; i<strlen(text); i++) {
+        if (text[i]==0x0A&&(i==0||text[i-1]!=0x0D)) text[i]=0x0D;
+        if (text[i]==9) result+="    ";
+        else if (text[i]==0x0A) continue;
+        else if (text[i]<0) {
+            char c=text[i];
+            int n=1;
+            if ((c & 0xe0) == 0xc0) n=2;
+            else if ((c & 0xf0) == 0xe0) n=3;
+            else if ((c & 0xf8) == 0xf0) n=4;
+            pre="";
+            bool exit=false;
+            for (int k=0; k<n; k++) {
+                if (n>2&&i>=strlen(text)) {exit=true;break;}
+                else if (i>=strlen(text)) {i++;break;}
+                if (text[i]>=0) {exit=true;break;}
+                pre+=std::string(1, text[i]);
+                i++;
+            }
+            if (exit) continue;
+            const char* asc = CodePageHostToGuest(pre.c_str());
+            result+=asc!=NULL?std::string(asc):(n>2?"":pre);
+            i--;
+        } else {
+            const char* asc = CodePageHostToGuest(std::string(1, text[i]).c_str());
+            result+=asc != NULL?std::string(asc):std::string(1, text[i]);
+        }
+    }
+    strPasteBuffer.append(result.c_str());
+    fflush(stdout);
+    XFree(prop_ret);
+    XDeleteProperty(dpy, w, p);
+}
+
+void PasteClipboard(bool bPressed) {
+	if (!bPressed) return;
+    Display *dpy;
+    Window owner, target_window, root;
+    int screen;
+    Atom sel, target_property, utf8;
+    XEvent ev;
+    XSelectionEvent *sev;
+
+    dpy = XOpenDisplay(NULL);
+    if (!dpy) return;
+
+    screen = DefaultScreen(dpy);
+    root = RootWindow(dpy, screen);
+
+    sel = XInternAtom(dpy, "CLIPBOARD", False);
+    utf8 = XInternAtom(dpy, "UTF8_STRING", False);
+
+    owner = XGetSelectionOwner(dpy, sel);
+    if (owner == None) return;
+
+    target_window = XCreateSimpleWindow(dpy, root, -10, -10, 1, 1, 0, 0, 0);
+    target_property = XInternAtom(dpy, "PENGUIN", False);
+    XConvertSelection(dpy, sel, utf8, target_property, target_window,
+                      CurrentTime);
+    for (;;) {
+        XNextEvent(dpy, &ev);
+        switch (ev.type) {
+            case SelectionNotify:
+                sev = (XSelectionEvent*)&ev.xselection;
+                if (sev->property == None) return;
+                else {
+                    paste_utf8_prop(dpy, target_window, target_property);
+                    return;
+                }
+                break;
+        }
+    }
 }
 
 bool PasteClipboardNext() {
@@ -6384,9 +6753,14 @@ static BOOL WINAPI ConsoleEventHandler(DWORD event) {
         return FALSE;
     }
 }
-#endif
 
-void Null_Init(Section *sec);
+#elif defined(C_SDL2)
+void CopyClipboard(void) {
+	uint16_t len=0;
+	const char* text = Mouse_GetSelected(mouse_start_x-sdl.clip.x,mouse_start_y-sdl.clip.y,mouse_end_x-sdl.clip.x,mouse_end_y-sdl.clip.y,(int)(currentWindowWidth-sdl.clip.x),(int)(currentWindowHeight-sdl.clip.y), &len);
+    SDL_SetClipboardText(text);
+}
+#endif
 
 void SDL_OnSectionPropChange(Section *x) {
     (void)x;//UNUSED
@@ -6401,170 +6775,6 @@ void SDL_OnSectionPropChange(Section *x) {
         else
             DOSBox_NoMenu();
     }
-}
-
-void SDL_SetupConfigSection() {
-    Section_prop * sdl_sec=control->AddSection_prop("sdl",&Null_Init);
-
-    Prop_bool* Pbool;
-    Prop_string* Pstring;
-    Prop_int* Pint;
-    Prop_multival* Pmulti;
-
-    Pbool = sdl_sec->Add_bool("fullscreen",Property::Changeable::Always,false);
-    Pbool->Set_help("Start DOSBox-X directly in fullscreen. (Press [F11/F12]+F to go back)");
-    Pbool->SetBasic(true);
-     
-    Pbool = sdl_sec->Add_bool("fulldouble",Property::Changeable::Always,false);
-    Pbool->Set_help("Use double buffering in fullscreen. It can reduce screen flickering, but it can also result in a slow DOSBox-X.");
-    Pbool->SetBasic(true);
-
-    //Pbool = sdl_sec->Add_bool("sdlresize",Property::Changeable::Always,false);
-    //Pbool->Set_help("Makes window resizable (depends on scalers)");
-
-    Pstring = sdl_sec->Add_string("fullresolution",Property::Changeable::Always,"desktop");
-    Pstring->Set_help("What resolution to use for fullscreen: original, desktop or a fixed size (e.g. 1024x768).\n"
-                      "  Using your monitor's native resolution with aspect=true might give the best results.\n"
-              "  If you end up with small window on a large screen, try an output different from surface.");
-    Pstring->SetBasic(true);
-
-    Pstring = sdl_sec->Add_string("windowresolution",Property::Changeable::Always,"original");
-    Pstring->Set_help("Scale the window to this size IF the output device supports hardware scaling.\n"
-                      "  (output=surface does not!)");
-    Pstring->SetBasic(true);
-
-    const char* outputs[] = {
-        "default", "surface", "overlay",
-#if C_OPENGL
-        "opengl", "openglnb", "openglhq",
-#endif
-        "ddraw",
-#if C_DIRECT3D
-        "direct3d",
-#endif
-        0 };
-	Pstring = sdl_sec->Add_string("output", Property::Changeable::Always, "default");
-    Pstring->Set_help("What video system to use for output.");
-    Pstring->Set_values(outputs);
-    Pstring->SetBasic(true);
-
-    Pbool = sdl_sec->Add_bool("autolock",Property::Changeable::Always, false);
-    Pbool->Set_help("Mouse will automatically lock, if you click on the screen. (Press CTRL-F10 to unlock)");
-    Pbool->SetBasic(true);
-
-    const char* feeds[] = { "none", "beep", "flash", nullptr};
-    Pstring = sdl_sec->Add_string("autolock_feedback", Property::Changeable::Always, feeds[1]);
-    Pstring->Set_help("Autolock status feedback type, i.e. visual, auditive, none.");
-    Pstring->Set_values(feeds);
-
-	const char* clipboardbutton[] = { "none", "middle", "right", 0};
-	Pstring = sdl_sec->Add_string("clip_mouse_button",Property::Changeable::Always, "right");
-	Pstring->Set_values(clipboardbutton);
-	Pstring->Set_help("Select the mouse button for the Windows clipboard copy/paste function.\n"
-		"The default mouse button is \"right\". Set to \"middle\" if the middle mouse button is desired, or \"none\" to disable this feature.");
-    Pstring->SetBasic(true);
-
-	const char* clipboardmodifier[] = { "none", "alt", "lalt", "ralt", "ctrl", "lctrl", "rctrl", "shift", "lshift", "rshift", 0};
-	Pstring = sdl_sec->Add_string("clip_key_modifier",Property::Changeable::Always, "shift");
-	Pstring->Set_values(clipboardmodifier);
-	Pstring->Set_help("Change the keyboard modifier for the Windows clipboard copy/paste function using the right mouse button.\n"
-		"The default modifier is \"shift\" (both left and right shift keys). Set to \"none\" if no modifier is desired.");
-    Pstring->SetBasic(true);
-
-    Pint = sdl_sec->Add_int("clip_paste_speed", Property::Changeable::WhenIdle, 20);
-    Pint->Set_help("Set keyboard speed for pasting from the Windows clipboard.\n"
-        "If the default setting of 20 causes lost keystrokes, increase the number.\n"
-        "Or experiment with decreasing the number for applications that accept keystrokes quickly.");
-    Pint->SetBasic(true);
-
-    Pmulti = sdl_sec->Add_multi("sensitivity",Property::Changeable::Always, ",");
-    Pmulti->Set_help("Mouse sensitivity. The optional second parameter specifies vertical sensitivity (e.g. 100,-50).");
-    Pmulti->SetValue("100");
-    Pmulti->SetBasic(true);
-    Pint = Pmulti->GetSection()->Add_int("xsens",Property::Changeable::Always,100);
-    Pint->SetMinMax(-1000,1000);
-    Pint = Pmulti->GetSection()->Add_int("ysens",Property::Changeable::Always,100);
-    Pint->SetMinMax(-1000,1000);
-
-    const char * emulation[] = {"integration", "locked", "always", "never", nullptr};
-    Pstring  = sdl_sec->Add_string("mouse_emulation", Property::Changeable::Always, emulation[1]);
-    Pstring->Set_help(
-        "When is mouse emulated ?\n"
-        "integration: when not locked\n"
-        "locked:      when locked\n"
-        "always:      every time\n"
-        "never:       at no time\n"
-        "If disabled, the mouse position in DOSBox-X is exactly where the host OS reports it.\n"
-        "When using a high DPI mouse, the emulation of mouse movement can noticeably reduce the\n"
-        "sensitiveness of your device, i.e. the mouse is slower but more precise.");
-    Pstring->Set_values(emulation);
-    Pstring->SetBasic(true);
-
-    Pint = sdl_sec->Add_int("mouse_wheel_key", Property::Changeable::WhenIdle, -1);
-    Pint->SetMinMax(-3,3);
-    Pint->Set_help("Convert mouse wheel movements into keyboard presses such as arrow keys.\n"
-        "0: disabled; 1: up/down arrows; 2: left/right arrows; 3: PgUp/PgDn keys.\n"
-        "Putting a minus sign in front will disable the conversion for guest systems.");
-    Pint->SetBasic(true);
-
-    Pbool = sdl_sec->Add_bool("waitonerror",Property::Changeable::Always, true);
-    Pbool->Set_help("Wait before closing the console if DOSBox-X has an error.");
-    Pbool->SetBasic(true);
-
-    Pmulti = sdl_sec->Add_multi("priority", Property::Changeable::Always, ",");
-    Pmulti->SetValue("higher,normal",/*init*/true);
-    Pmulti->Set_help("Priority levels for DOSBox-X. Second entry behind the comma is for when DOSBox-X is not focused/minimized.\n"
-                     "  pause is only valid for the second entry.");
-    Pmulti->SetBasic(true);
-
-    const char* actt[] = { "lowest", "lower", "normal", "higher", "highest", "pause", 0};
-    Pstring = Pmulti->GetSection()->Add_string("active",Property::Changeable::Always,"higher");
-    Pstring->Set_values(actt);
-
-    const char* inactt[] = { "lowest", "lower", "normal", "higher", "highest", "pause", 0};
-    Pstring = Pmulti->GetSection()->Add_string("inactive",Property::Changeable::Always,"normal");
-    Pstring->Set_values(inactt);
-
-    Pstring = sdl_sec->Add_path("mapperfile",Property::Changeable::Always,MAPPERFILE_SDL1);
-    Pstring->Set_help("File used to load/save the key/event mappings from. Resetmapper only works with the default value.");
-    Pstring->SetBasic(true);
-
-    Pstring = sdl_sec->Add_path("mapperfile_sdl2",Property::Changeable::Always,MAPPERFILE_SDL2);
-    Pstring->Set_help("File used to load/save the key/event mappings from (SDL2 builds). Resetmapper only works with the default value.");
-    Pstring->SetBasic(true);
-
-#if C_DIRECT3D && C_D3DSHADERS
-    Pmulti = sdl_sec->Add_multi("pixelshader",Property::Changeable::Always," ");
-    Pmulti->SetValue("none",/*init*/true);
-    Pmulti->Set_help("Pixelshader program (effect file must be in Shaders subdirectory). If 'forced' is appended,\n"
-        "then the shader will be used even if the result might not be desired.");
-
-    Pstring = Pmulti->GetSection()->Add_string("type",Property::Changeable::Always,"none");
-    Pstring = Pmulti->GetSection()->Add_string("force",Property::Changeable::Always,"");
-#endif
-
-	const char* truefalseautoopt[] = { "true", "false", "auto", 0};
-    Pstring = sdl_sec->Add_string("usescancodes",Property::Changeable::OnlyAtStart,"auto");
-    Pstring->Set_values(truefalseautoopt);
-    Pstring->Set_help("Avoid usage of symkeys, might not work on all operating systems.\n"
-        "If set to \"auto\" (default), it is enabled for SDL1 and non-US keyboards.");
-    Pstring->SetBasic(true);
-
-    Pint = sdl_sec->Add_int("overscan",Property::Changeable::Always, 0);
-    Pint->SetMinMax(0,10);
-    Pint->Set_help("Width of overscan border (0 to 10). (works only if output=surface)");
-
-    Pstring = sdl_sec->Add_string("titlebar", Property::Changeable::Always, "");
-    Pstring->Set_help("Change the string displayed in the DOSBox-X title bar.");
-    Pstring->SetBasic(true);
-
-    Pbool = sdl_sec->Add_bool("showmenu", Property::Changeable::Always, true);
-    Pbool->Set_help("Whether to show the menu bar (if supported). Default true.");
-    Pstring->SetBasic(true);
-
-//  Pint = sdl_sec->Add_int("overscancolor",Property::Changeable::Always, 0);
-//  Pint->SetMinMax(0,1000);
-//  Pint->Set_help("Value of overscan color.");
 }
 
 static void show_warning(char const * const message) {
@@ -7524,8 +7734,16 @@ bool cpu_speed_emulate_menu_callback(DOSBoxMenu * const menu,DOSBoxMenu::item * 
         cyclemu = 12010;
     else if (!strcmp(mname, "cpu486-66"))
         cyclemu = 23880;
+    else if (!strcmp(mname, "cpu486-100"))
+        cyclemu = 33445;
+    else if (!strcmp(mname, "cpu486-133"))
+        cyclemu = 47810;
     else if (!strcmp(mname, "cpu586-66"))
         cyclemu = 35620;
+    else if (!strcmp(mname, "cpu586-75"))
+        cyclemu = 43500;
+    else if (!strcmp(mname, "cpu586-90"))
+        cyclemu = 52000;
     else if (!strcmp(mname, "cpu586-100"))
         cyclemu = 60000;
     else if (!strcmp(mname, "cpu586-120"))
@@ -7538,7 +7756,7 @@ bool cpu_speed_emulate_menu_callback(DOSBoxMenu * const menu,DOSBoxMenu::item * 
         Section* sec = control->GetSection("cpu");
         if (sec) {
             double perc = static_cast<Section_prop *>(sec)->Get_int("cycle emulation percentage adjust");
-            cyclemu*=(100+perc)/100;
+            cyclemu*=(int)((100+perc)/100);
             std::string tmp("cycles="+std::to_string(cyclemu));
             sec->HandleInputline(tmp);
         }
@@ -8235,7 +8453,7 @@ bool autolock_mouse_menu_callback(DOSBoxMenu * const menu, DOSBoxMenu::item * co
     return true;
 }
 
-#if defined (WIN32)
+#if defined (WIN32) || defined(C_SDL2)
 bool direct_mouse_clipboard_menu_callback(DOSBoxMenu * const menu, DOSBoxMenu::item * const menuitem) {
     (void)menu;//UNUSED
     (void)menuitem;//UNUSED
@@ -8261,7 +8479,9 @@ bool middle_mouse_clipboard_menu_callback(DOSBoxMenu * const menu, DOSBoxMenu::i
     mainMenu.get_item("clipboard_middle").check(true).refresh_item(mainMenu);
     return true;
 }
+#endif
 
+#if defined (WIN32)
 bool dos_clipboard_api_menu_callback(DOSBoxMenu * const menu, DOSBoxMenu::item * const menuitem) {
     (void)menu;//UNUSED
     (void)menuitem;//UNUSED
@@ -8280,6 +8500,14 @@ bool dos_clipboard_device_menu_callback(DOSBoxMenu * const menu, DOSBoxMenu::ite
     return true;
 }
 #endif
+
+bool pc98_force_uskb_menu_callback(DOSBoxMenu * const menu, DOSBoxMenu::item * const menuitem) {
+    (void)menu;//UNUSED
+    (void)menuitem;//UNUSED
+    pc98_force_ibm_layout = !pc98_force_ibm_layout;
+    mainMenu.get_item("pc98_use_uskb").check(pc98_force_ibm_layout).refresh_item(mainMenu);
+    return true;
+}
 
 bool doublebuf_menu_callback(DOSBoxMenu * const menu, DOSBoxMenu::item * const menuitem) {
     (void)menu;//UNUSED
@@ -8306,11 +8534,66 @@ bool shell_config_commands_menu_callback(DOSBoxMenu * const menu, DOSBoxMenu::it
     return true;
 }
 
+bool noremark_savestate_menu_callback(DOSBoxMenu * const menu, DOSBoxMenu::item * const menuitem) {
+    (void)menu;//UNUSED
+    (void)menuitem;//UNUSED
+    noremark_save_state = !noremark_save_state;
+    mainMenu.get_item("noremark_savestate").check(noremark_save_state).refresh_item(mainMenu);
+    return true;
+}
+
 bool force_loadstate_menu_callback(DOSBoxMenu * const menu, DOSBoxMenu::item * const menuitem) {
     (void)menu;//UNUSED
     (void)menuitem;//UNUSED
     force_load_state = !force_load_state;
     mainMenu.get_item("force_loadstate").check(force_load_state).refresh_item(mainMenu);
+    return true;
+}
+
+bool browse_save_file_menu_callback(DOSBoxMenu * const menu, DOSBoxMenu::item * const menuitem) {
+    (void)menu;//UNUSED
+    const char *mname = menuitem->get_name().c_str();
+    if (!strcmp(mname, "browsesavefile")&&!use_save_file) return false;
+
+#if !defined(HX_DOS)
+    char CurrentDir[512];
+    char * Temp_CurrentDir = CurrentDir;
+    getcwd(Temp_CurrentDir, 512);
+    const char *lFilterPatterns[] = {"*.sav","*.SAV"};
+    const char *lFilterDescription = "Save files (*.sav)";
+    char const * lTheSaveFileName = tinyfd_saveFileDialog("Select an save file","",2,lFilterPatterns,lFilterDescription);
+    if (lTheSaveFileName!=NULL) {
+        savefilename = std::string(lTheSaveFileName);
+        mainMenu.get_item("usesavefile").set_text("Use save file"+(savefilename.size()?" ("+savefilename+")":"")).refresh_item(mainMenu);
+    }
+	chdir( Temp_CurrentDir );
+#endif
+    return true;
+}
+
+bool use_save_file_menu_callback(DOSBoxMenu * const menu, DOSBoxMenu::item * const menuitem) {
+    (void)menu;//UNUSED
+    (void)menuitem;//UNUSED
+    if (use_save_file) use_save_file=false;
+    else if (savefilename.size()) use_save_file=true;
+    else {
+        browse_save_file_menu_callback(menu, menuitem);
+        if (savefilename.size()) use_save_file=true;
+    }
+    mainMenu.get_item("usesavefile").check(use_save_file).refresh_item(mainMenu);
+    mainMenu.get_item("browsesavefile").enable(use_save_file).refresh_item(mainMenu);
+    return true;
+}
+
+bool show_save_state_menu_callback(DOSBoxMenu * const menu, DOSBoxMenu::item * const menuitem) {
+    (void)menu;//UNUSED
+    (void)menuitem;//UNUSED
+    MAPPER_ReleaseAllKeys();
+    GFX_LosingFocus();
+    std::string message = "Save to: "+(use_save_file&&savefilename.size()?"File "+savefilename:"Slot "+std::to_string(GetGameState_Run()+1))+"\n"+SaveState::instance().getName(GetGameState_Run(), true);
+    tinyfd_messageBox("Saved state information", message.c_str(), "ok","info", 1);
+    MAPPER_ReleaseAllKeys();
+    GFX_LosingFocus();
     return true;
 }
 
@@ -8491,42 +8774,68 @@ bool highdpienable_menu_callback(DOSBoxMenu * const menu, DOSBoxMenu::item * con
     return true;
 }
 
-void SendCAD(bool pressed) {
-    if (!pressed) return;
-
-	KEYBOARD_AddKey(KBD_leftctrl, true);
-	KEYBOARD_AddKey(KBD_leftalt, true);
-	KEYBOARD_AddKey(KBD_delete, true);
-	KEYBOARD_AddKey(KBD_leftctrl, false);
-	KEYBOARD_AddKey(KBD_leftalt, false);
-	KEYBOARD_AddKey(KBD_delete, false);
-}
-
-bool sendkey_preset_menu_callback(DOSBoxMenu * const menu, DOSBoxMenu::item * const menuitem) {
-    (void)menu;//UNUSED
-    if (menuitem->get_name() == "sendkey_ctrlesc") {
-        KEYBOARD_AddKey(KBD_leftctrl, true);
-        KEYBOARD_AddKey(KBD_esc, true);
-        KEYBOARD_AddKey(KBD_leftctrl, false);
-        KEYBOARD_AddKey(KBD_esc, false);
-    }
-    else if (menuitem->get_name() == "sendkey_alttab") {
+void SendKey(std::string key) {
+    if (key == "sendkey_winlogo") {
+        KEYBOARD_AddKey(KBD_lwindows, true);
+        KEYBOARD_AddKey(KBD_lwindows, false);
+    } else if (key == "sendkey_winmenu") {
+        KEYBOARD_AddKey(KBD_rwinmenu, true);
+        KEYBOARD_AddKey(KBD_rwinmenu, false);
+    } else if (key == "sendkey_alttab") {
         KEYBOARD_AddKey(KBD_leftalt, true);
         KEYBOARD_AddKey(KBD_tab, true);
         KEYBOARD_AddKey(KBD_leftalt, false);
         KEYBOARD_AddKey(KBD_tab, false);
+    } else if (key == "sendkey_ctrlesc") {
+        KEYBOARD_AddKey(KBD_leftctrl, true);
+        KEYBOARD_AddKey(KBD_esc, true);
+        KEYBOARD_AddKey(KBD_leftctrl, false);
+        KEYBOARD_AddKey(KBD_esc, false);
+    } else if (key == "sendkey_ctrlbreak") {
+        KEYBOARD_AddKey(KBD_leftctrl, true);
+        KEYBOARD_AddKey(KBD_pause, true);
+        KEYBOARD_AddKey(KBD_leftctrl, false);
+        KEYBOARD_AddKey(KBD_pause, false);
+    } else if (key == "sendkey_cad") {
+        KEYBOARD_AddKey(KBD_leftctrl, true);
+        KEYBOARD_AddKey(KBD_leftalt, true);
+        KEYBOARD_AddKey(KBD_delete, true);
+        KEYBOARD_AddKey(KBD_leftctrl, false);
+        KEYBOARD_AddKey(KBD_leftalt, false);
+        KEYBOARD_AddKey(KBD_delete, false);
     }
-    else if (menuitem->get_name() == "sendkey_winlogo") {
-        KEYBOARD_AddKey(KBD_lwindows, true);
-        KEYBOARD_AddKey(KBD_lwindows, false);
-    }
-    else if (menuitem->get_name() == "sendkey_winmenu") {
-        KEYBOARD_AddKey(KBD_rwinmenu, true);
-        KEYBOARD_AddKey(KBD_rwinmenu, false);
-    }
-    else if (menuitem->get_name() == "sendkey_cad")
-        SendCAD(true);
+}
 
+void Sendkeymapper(bool pressed) {
+    if (!pressed) return;
+    if (sendkeymap==1) SendKey("sendkey_winlogo");
+    else if (sendkeymap==2) SendKey("sendkey_winmenu");
+    else if (sendkeymap==3) SendKey("sendkey_alttab");
+    else if (sendkeymap==4) SendKey("sendkey_ctrlesc");
+    else if (sendkeymap==5) SendKey("sendkey_ctrlbreak");
+    else SendKey("sendkey_cad");
+}
+
+bool sendkey_mapper_menu_callback(DOSBoxMenu * const menu, DOSBoxMenu::item * const menuitem) {
+    (void)menu;//UNUSED
+    if (menuitem->get_name()=="sendkey_mapper_winlogo") sendkeymap=1;
+    else if (menuitem->get_name()=="sendkey_mapper_winmenu") sendkeymap=2;
+    else if (menuitem->get_name()=="sendkey_mapper_alttab") sendkeymap=3;
+    else if (menuitem->get_name()=="sendkey_mapper_ctrlesc") sendkeymap=4;
+    else if (menuitem->get_name()=="sendkey_mapper_ctrlbreak") sendkeymap=5;
+    else if (menuitem->get_name()=="sendkey_mapper_cad") sendkeymap=0;
+    mainMenu.get_item("sendkey_mapper_winlogo").check(menuitem->get_name()=="sendkey_mapper_winlogo").refresh_item(mainMenu);
+    mainMenu.get_item("sendkey_mapper_winmenu").check(menuitem->get_name()=="sendkey_mapper_winmenu").refresh_item(mainMenu);
+    mainMenu.get_item("sendkey_mapper_alttab").check(menuitem->get_name()=="sendkey_mapper_alttab").refresh_item(mainMenu);
+    mainMenu.get_item("sendkey_mapper_ctrlesc").check(menuitem->get_name()=="sendkey_mapper_ctrlesc").refresh_item(mainMenu);
+    mainMenu.get_item("sendkey_mapper_ctrlbreak").check(menuitem->get_name()=="sendkey_mapper_ctrlbreak").refresh_item(mainMenu);
+    mainMenu.get_item("sendkey_mapper_cad").check(menuitem->get_name()=="sendkey_mapper_cad").refresh_item(mainMenu);
+    return true;
+}
+
+bool sendkey_preset_menu_callback(DOSBoxMenu * const menu, DOSBoxMenu::item * const menuitem) {
+    (void)menu;//UNUSED
+    SendKey(menuitem->get_name());
     return true;
 }
 
@@ -9404,7 +9713,7 @@ int main(int argc, char* argv[]) SDL_MAIN_NOEXCEPT {
             }
             {
                 DOSBoxMenu::item &item = mainMenu.alloc_item(DOSBoxMenu::submenu_type_id,"SharedClipboard");
-                item.set_text("Shared Windows clipboard functions");
+                item.set_text("Shared clipboard functions");
             }
         }
         {
@@ -9428,7 +9737,11 @@ int main(int argc, char* argv[]) SDL_MAIN_NOEXCEPT {
             mainMenu.alloc_item(DOSBoxMenu::item_type_id,"cpu386-33").set_text("386DX 33MHz (~6075 cycles)").set_callback_function(cpu_speed_emulate_menu_callback);
             mainMenu.alloc_item(DOSBoxMenu::item_type_id,"cpu486-33").set_text("486DX 33MHz (~12010 cycles)").set_callback_function(cpu_speed_emulate_menu_callback);
             mainMenu.alloc_item(DOSBoxMenu::item_type_id,"cpu486-66").set_text("486DX2 66MHz (~23880 cycles)").set_callback_function(cpu_speed_emulate_menu_callback);
+            mainMenu.alloc_item(DOSBoxMenu::item_type_id,"cpu486-100").set_text("486DX4 100MHz (~33445 cycles)").set_callback_function(cpu_speed_emulate_menu_callback);
+            mainMenu.alloc_item(DOSBoxMenu::item_type_id,"cpu486-133").set_text("486DX5 133MHz (~47810 cycles)").set_callback_function(cpu_speed_emulate_menu_callback);
             mainMenu.alloc_item(DOSBoxMenu::item_type_id,"cpu586-66").set_text("Pentium 66MHz (~35620 cycles)").set_callback_function(cpu_speed_emulate_menu_callback);
+            mainMenu.alloc_item(DOSBoxMenu::item_type_id,"cpu586-75").set_text("Pentium 75MHz (~43500 cycles)").set_callback_function(cpu_speed_emulate_menu_callback);
+            mainMenu.alloc_item(DOSBoxMenu::item_type_id,"cpu586-90").set_text("Pentium 90MHz (~52000 cycles)").set_callback_function(cpu_speed_emulate_menu_callback);
             mainMenu.alloc_item(DOSBoxMenu::item_type_id,"cpu586-100").set_text("Pentium 100MHz (~60000 cycles)").set_callback_function(cpu_speed_emulate_menu_callback);
             mainMenu.alloc_item(DOSBoxMenu::item_type_id,"cpu586-120").set_text("Pentium 120MHz (~74000 cycles)").set_callback_function(cpu_speed_emulate_menu_callback);
             mainMenu.alloc_item(DOSBoxMenu::item_type_id,"cpu586-133").set_text("Pentium 133MHz (~80000 cycles)").set_callback_function(cpu_speed_emulate_menu_callback);
@@ -9625,9 +9938,9 @@ int main(int argc, char* argv[]) SDL_MAIN_NOEXCEPT {
                 item.set_text("PC-98 PIT master clock");
 
                 {
-                    mainMenu.alloc_item(DOSBoxMenu::item_type_id,"dos_pc98_pit_4mhz").set_text("4MHz/8MHz").
+                    mainMenu.alloc_item(DOSBoxMenu::item_type_id,"dos_pc98_pit_4mhz").set_text("4MHz/8MHz PIT master clock").
                         set_callback_function(dos_pc98_clock_menu_callback);
-                    mainMenu.alloc_item(DOSBoxMenu::item_type_id,"dos_pc98_pit_5mhz").set_text("5MHz/10MHz").
+                    mainMenu.alloc_item(DOSBoxMenu::item_type_id,"dos_pc98_pit_5mhz").set_text("5MHz/10MHz PIT master clock").
                         set_callback_function(dos_pc98_clock_menu_callback);
                 }
             }
@@ -9689,17 +10002,28 @@ int main(int argc, char* argv[]) SDL_MAIN_NOEXCEPT {
             {
                 mainMenu.alloc_item(DOSBoxMenu::item_type_id,"capture_fmt_avi_zmbv").set_text("AVI + ZMBV").
                     set_callback_function(capture_fmt_menu_callback);
-#  if (C_AVCODEC)
                 mainMenu.alloc_item(DOSBoxMenu::item_type_id,"capture_fmt_mpegts_h264").set_text("MPEG-TS + H.264").
-                    set_callback_function(capture_fmt_menu_callback);
+                    set_callback_function(capture_fmt_menu_callback).
+#  if (C_AVCODEC)
+                enable(true);
+#  else
+                enable(false);
 #  endif
             }
         }
 # endif
 		{
+            DOSBoxMenu::item &item = mainMenu.alloc_item(DOSBoxMenu::submenu_type_id,"saveoptionmenu");
+            item.set_text("Save/load option");
+        }
+		{
             DOSBoxMenu::item &item = mainMenu.alloc_item(DOSBoxMenu::submenu_type_id,"saveslotmenu");
             item.set_text("Select save slot");
-
+		}
+        {
+            mainMenu.alloc_item(DOSBoxMenu::item_type_id, "usesavefile").set_text("Use save file").set_callback_function(use_save_file_menu_callback).check(use_save_file);
+            mainMenu.alloc_item(DOSBoxMenu::item_type_id, "browsesavefile").set_text("Browse save file...").set_callback_function(browse_save_file_menu_callback).enable(use_save_file);
+            mainMenu.alloc_item(DOSBoxMenu::item_type_id, "showstate").set_text("Display state information").set_callback_function(show_save_state_menu_callback);
             {
 				mainMenu.alloc_item(DOSBoxMenu::item_type_id,"current_page").set_text("Current page: 1/10").enable(false).set_callback_function(refresh_slots_menu_callback);
 				mainMenu.alloc_item(DOSBoxMenu::item_type_id,"prev_page").set_text("Previous page").set_callback_function(prev_page_menu_callback);
@@ -9857,8 +10181,8 @@ int main(int argc, char* argv[]) SDL_MAIN_NOEXCEPT {
         {
             DOSBoxMenu::item *item;
 
-            MAPPER_AddHandler(SendCAD, MK_delete, MMODHOST, "sendkey_cad", "CtrlAltDel", &item);
-            item->set_text("Ctrl+Alt+Del");
+            MAPPER_AddHandler(Sendkeymapper, MK_delete, MMODHOST, "sendkey_mapper", "SendKey", &item);
+            item->set_text("Send key");
         }
         CPU_Init();
 #if C_FPU
@@ -9935,19 +10259,28 @@ int main(int argc, char* argv[]) SDL_MAIN_NOEXCEPT {
 #endif
         mainMenu.alloc_item(DOSBoxMenu::item_type_id,"wait_on_error").set_text("Wait on error").set_callback_function(wait_on_error_menu_callback).check(sdl.wait_on_error);
         mainMenu.alloc_item(DOSBoxMenu::item_type_id,"auto_lock_mouse").set_text("Autolock mouse").set_callback_function(autolock_mouse_menu_callback).check(sdl.mouse.autoenable);
-#if defined (WIN32)
+#if defined (WIN32) || defined(C_SDL2)
         mainMenu.alloc_item(DOSBoxMenu::item_type_id,"clipboard_quick").set_text("Quick edit: copy on select and paste with mouse button").set_callback_function(direct_mouse_clipboard_menu_callback).check(direct_mouse_clipboard);
         mainMenu.alloc_item(DOSBoxMenu::item_type_id,"clipboard_right").set_text("Via right mouse button").set_callback_function(right_mouse_clipboard_menu_callback).check(mbutton==3);
         mainMenu.alloc_item(DOSBoxMenu::item_type_id,"clipboard_middle").set_text("Via middle mouse button").set_callback_function(middle_mouse_clipboard_menu_callback).check(mbutton==2);
+#endif
+#if defined (WIN32)
         if (control->SecureMode()) clipboard_dosapi = false;
         mainMenu.alloc_item(DOSBoxMenu::item_type_id,"clipboard_device").set_text("Enable DOS clipboard device access").set_callback_function(dos_clipboard_device_menu_callback).check(dos_clipboard_device_access==4&&!control->SecureMode());
         mainMenu.alloc_item(DOSBoxMenu::item_type_id,"clipboard_dosapi").set_text("Enable DOS clipboard API for applications").set_callback_function(dos_clipboard_api_menu_callback).check(clipboard_dosapi);
 #endif
-        mainMenu.alloc_item(DOSBoxMenu::item_type_id,"sendkey_ctrlesc").set_text("Ctrl+Esc").set_callback_function(sendkey_preset_menu_callback);
-        mainMenu.alloc_item(DOSBoxMenu::item_type_id,"sendkey_alttab").set_text("Alt+Tab").set_callback_function(sendkey_preset_menu_callback);
-        mainMenu.alloc_item(DOSBoxMenu::item_type_id,"sendkey_winlogo").set_text("Logo key").set_callback_function(sendkey_preset_menu_callback);
-        mainMenu.alloc_item(DOSBoxMenu::item_type_id,"sendkey_winmenu").set_text("Menu key").set_callback_function(sendkey_preset_menu_callback);
-        mainMenu.alloc_item(DOSBoxMenu::item_type_id,"sendkey_cad").set_text("Ctrl+Alt+Del").set_callback_function(sendkey_preset_menu_callback);
+        mainMenu.alloc_item(DOSBoxMenu::item_type_id,"sendkey_winlogo").set_text("Send logo key").set_callback_function(sendkey_preset_menu_callback);
+        mainMenu.alloc_item(DOSBoxMenu::item_type_id,"sendkey_winmenu").set_text("Send menu key").set_callback_function(sendkey_preset_menu_callback);
+        mainMenu.alloc_item(DOSBoxMenu::item_type_id,"sendkey_alttab").set_text("Send Alt+Tab").set_callback_function(sendkey_preset_menu_callback);
+        mainMenu.alloc_item(DOSBoxMenu::item_type_id,"sendkey_ctrlesc").set_text("Send Ctrl+Esc").set_callback_function(sendkey_preset_menu_callback);
+        mainMenu.alloc_item(DOSBoxMenu::item_type_id,"sendkey_ctrlbreak").set_text("Send Ctrl+Break").set_callback_function(sendkey_preset_menu_callback);
+        mainMenu.alloc_item(DOSBoxMenu::item_type_id,"sendkey_cad").set_text("Send Ctrl+Alt+Del").set_callback_function(sendkey_preset_menu_callback);
+        mainMenu.alloc_item(DOSBoxMenu::item_type_id,"sendkey_mapper_winlogo").set_text("Mapper SendKey: logo key").set_callback_function(sendkey_mapper_menu_callback);
+        mainMenu.alloc_item(DOSBoxMenu::item_type_id,"sendkey_mapper_winmenu").set_text("Mapper SendKey: menu key").set_callback_function(sendkey_mapper_menu_callback);
+        mainMenu.alloc_item(DOSBoxMenu::item_type_id,"sendkey_mapper_alttab").set_text("Mapper SendKey: Alt+Tab").set_callback_function(sendkey_mapper_menu_callback);
+        mainMenu.alloc_item(DOSBoxMenu::item_type_id,"sendkey_mapper_ctrlesc").set_text("Mapper SendKey: Send Ctrl+Esc").set_callback_function(sendkey_mapper_menu_callback);
+        mainMenu.alloc_item(DOSBoxMenu::item_type_id,"sendkey_mapper_ctrlbreak").set_text("Mapper SendKey: Send Ctrl+Break").set_callback_function(sendkey_mapper_menu_callback);
+        mainMenu.alloc_item(DOSBoxMenu::item_type_id,"sendkey_mapper_cad").set_text("Mapper SendKey: Send Ctrl+Alt+Del").set_callback_function(sendkey_mapper_menu_callback);
         mainMenu.alloc_item(DOSBoxMenu::item_type_id,"wheel_updown").set_text("Convert to up/down arrows").set_callback_function(wheel_updown_menu_callback);
         mainMenu.alloc_item(DOSBoxMenu::item_type_id,"wheel_leftright").set_text("Convert to left/right arrows").set_callback_function(wheel_leftright_menu_callback);
         mainMenu.alloc_item(DOSBoxMenu::item_type_id,"wheel_pageupdown").set_text("Convert to PgUp/PgDn keys").set_callback_function(wheel_pageupdown_menu_callback);
@@ -9960,10 +10293,12 @@ int main(int argc, char* argv[]) SDL_MAIN_NOEXCEPT {
         mainMenu.alloc_item(DOSBoxMenu::item_type_id,"shell_config_commands").set_text("Config options as commands").set_callback_function(shell_config_commands_menu_callback).check(enable_config_as_shell_commands);
         mainMenu.alloc_item(DOSBoxMenu::item_type_id,"quick_reboot").set_text("Enable quick reboot").set_callback_function(quick_reboot_menu_callback).check(use_quick_reboot);
         mainMenu.alloc_item(DOSBoxMenu::item_type_id,"list_drivenum").set_text("Show mounted drive numbers").set_callback_function(list_drivenum_menu_callback);
+        mainMenu.alloc_item(DOSBoxMenu::item_type_id,"noremark_savestate").set_text("No remark when saving state").set_callback_function(noremark_savestate_menu_callback).check(noremark_save_state);
         mainMenu.alloc_item(DOSBoxMenu::item_type_id,"force_loadstate").set_text("Force load state mode").set_callback_function(force_loadstate_menu_callback).check(force_load_state);
         mainMenu.alloc_item(DOSBoxMenu::item_type_id,"removestate").set_text("Remove state in slot").set_callback_function(remove_state_menu_callback);
         mainMenu.alloc_item(DOSBoxMenu::item_type_id,"refreshslot").set_text("Refresh display status").set_callback_function(refresh_slots_menu_callback);
 
+        mainMenu.alloc_item(DOSBoxMenu::item_type_id,"pc98_use_uskb").set_text("Use US keyboard layout").set_callback_function(pc98_force_uskb_menu_callback).check(pc98_force_ibm_layout);
         mainMenu.get_item("debug_blankrefreshtest").set_text("Refresh test (blank display)").set_callback_function(refreshtest_menu_callback).refresh_item(mainMenu);
 
         mainMenu.get_item("wheel_updown").check(wheel_key==1).refresh_item(mainMenu);
@@ -9971,6 +10306,12 @@ int main(int argc, char* argv[]) SDL_MAIN_NOEXCEPT {
         mainMenu.get_item("wheel_pageupdown").check(wheel_key==3).refresh_item(mainMenu);
         mainMenu.get_item("wheel_none").check(wheel_key==0).refresh_item(mainMenu);
         mainMenu.get_item("wheel_guest").check(wheel_guest).refresh_item(mainMenu);
+        mainMenu.get_item("sendkey_mapper_winlogo").check(sendkeymap==1).refresh_item(mainMenu);
+        mainMenu.get_item("sendkey_mapper_winmenu").check(sendkeymap==2).refresh_item(mainMenu);
+        mainMenu.get_item("sendkey_mapper_alttab").check(sendkeymap==3).refresh_item(mainMenu);
+        mainMenu.get_item("sendkey_mapper_ctrlesc").check(sendkeymap==4).refresh_item(mainMenu);
+        mainMenu.get_item("sendkey_mapper_ctrlbreak").check(sendkeymap==5).refresh_item(mainMenu);
+        mainMenu.get_item("sendkey_mapper_cad").check(!sendkeymap).refresh_item(mainMenu);
 
         bool MENU_get_swapstereo(void);
         mainMenu.get_item("mixer_swapstereo").check(MENU_get_swapstereo()).refresh_item(mainMenu);
@@ -9996,6 +10337,7 @@ int main(int argc, char* argv[]) SDL_MAIN_NOEXCEPT {
         mainMenu.get_item("pc98_enable_188user").enable(IS_PC98_ARCH);
         mainMenu.get_item("pc98_clear_text").enable(IS_PC98_ARCH);
         mainMenu.get_item("pc98_clear_graphics").enable(IS_PC98_ARCH);
+        mainMenu.get_item("pc98_use_uskb").enable(IS_PC98_ARCH);
         mainMenu.get_item("dos_pc98_pit_4mhz").enable(IS_PC98_ARCH);
         mainMenu.get_item("dos_pc98_pit_5mhz").enable(IS_PC98_ARCH);
 

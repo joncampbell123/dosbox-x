@@ -1439,6 +1439,15 @@ void isapnp_write_port(Bitu port,Bitu val,Bitu /*iolen*/) {
     }
 }
 
+// IBM PC/AT CTRL+BREAK interrupt, called by IRQ1 handler.
+// Not applicable to PC-98 mode, of course.
+Bitu INT1B_Break_Handler(void) {
+    // BIOS DATA AREA 40:71 bit 7 is set when Break key is pressed.
+    // This is already implemented by IRQ1 handler in src/ints/bios_keyboard.cpp.
+    // Ref: [http://hackipedia.org/browse.cgi/Computer/Platform/PC%2c%20IBM%20compatible/Computers/IBM/PS%e2%88%952/IBM%20Personal%20System%e2%88%952%20and%20Personal%20Computer%20BIOS%20Interface%20Technical%20Reference%20%281991%2d09%29%20First%20Edition%2c%20part%203%2epdf]
+    return CBRET_NONE;
+}
+
 static Bitu INT15_Handler(void);
 
 // FIXME: This initializes both APM BIOS and ISA PNP emulation!
@@ -6864,7 +6873,8 @@ static Bitu adapter_scan_start;
 
 /* FIXME: At global scope their destructors are called after the rest of DOSBox has shut down. Move back into BIOS scope. */
 static CALLBACK_HandlerObject int4b_callback;
-static CALLBACK_HandlerObject callback[20]; /* <- fixme: this is stupid. just declare one per interrupt. */
+static const size_t callback_count = 20;
+static CALLBACK_HandlerObject callback[callback_count]; /* <- fixme: this is stupid. just declare one per interrupt. */
 static CALLBACK_HandlerObject cb_bios_post;
 static CALLBACK_HandlerObject callback_pc98_lio;
 
@@ -6960,6 +6970,23 @@ uint32_t BIOS_get_PC98_INT_STUB(void) {
     return callback[18].Get_RealPointer();
 }
 
+Bitu call_pc98_default_stop;
+
+extern bool DOS_BreakFlag;
+extern bool DOS_BreakConioFlag;
+
+static Bitu pc98_default_stop_handler(void) {
+    // INT 06h, which means someone pressed the STOP key... or the CPU is signalling an invalid opcode.
+    // The overlap makes it extremely unclear.
+    LOG_MSG("Invalid opcode or unhandled PC-98 STOP key interrupt 06h");
+
+    // try to make it work as CTRL+BREAK in the built-in DOS environment.
+    if (!dos_kernel_disabled)
+        DOS_BreakFlag = DOS_BreakConioFlag = true;
+
+    return CBRET_NONE;
+}
+
 /* NTS: Remember the 8259 is non-sentient, and the term "slave" is used in a computer programming context */
 static Bitu Default_IRQ_Handler_Cooperative_Slave_Pic(void) {
     /* PC-98 style IRQ 8-15 handling.
@@ -7040,13 +7067,18 @@ private:
         }
 
         if (IS_PC98_ARCH) {
-            for (unsigned int i=0;i < 20;i++) callback[i].Uninstall();
+            for (unsigned int i=0;i < callback_count;i++) callback[i].Uninstall();
 
             /* clear out 0x50 segment (TODO: 0x40 too?) */
             for (unsigned int i=0;i < 0x100;i++) phys_writeb(0x500+i,0);
 
             write_FFFF_PC98_signature();
             BIOS_ZeroExtendedSize(false);
+
+            if (call_pc98_default_stop == 0)
+                call_pc98_default_stop = CALLBACK_Allocate();
+
+            CALLBACK_Setup(call_pc98_default_stop,&pc98_default_stop_handler,CB_IRET,"INT 6h invalid opcode or STOP interrupt");
 
             unsigned char memsize_real_code = 0;
             Bitu mempages = MEM_TotalPages(); /* in 4KB pages */
@@ -7322,6 +7354,9 @@ private:
 
             for (unsigned int i=0x00;i < 0x08;i++)
                 real_writed(0,i*4,CALLBACK_RealPointer(call_default));
+
+            // STOP interrupt or invalid opcode
+            real_writed(0,0x06*4,CALLBACK_RealPointer(call_pc98_default_stop));
         }
         else {
             /* Clear the vector table */
@@ -7402,6 +7437,7 @@ private:
             callback[11].Uninstall(); /* INT 76h: IDE IRQ 14 */
             callback[12].Uninstall(); /* INT 77h: IDE IRQ 15 */
             callback[15].Uninstall(); /* INT 18h: Enter BASIC */
+            callback[19].Uninstall(); /* INT 1Bh */
 
             /* IRQ 6 is nothing special */
             callback[13].Uninstall(); /* INT 0Eh: IDE IRQ 6 */
@@ -7624,6 +7660,7 @@ private:
             callback[12].Set_RealVec(0x77,/*reinstall*/true);
             callback[13].Set_RealVec(0x0E,/*reinstall*/true);
             callback[15].Set_RealVec(0x18,/*reinstall*/true);
+            callback[19].Set_RealVec(0x1B,/*reinstall*/true);
         }
 
         // FIXME: We're using IBM PC memory size storage even in PC-98 mode.
@@ -8758,6 +8795,9 @@ public:
         // INT 19h: Boot function
         callback[10].Install(&INT19_Handler,CB_IRET,"int 19");
 
+        // INT 1Bh: IBM PC CTRL+Break
+        callback[19].Install(&INT1B_Break_Handler,CB_IRET,"BIOS 1Bh stock CTRL+BREAK handler");
+
         // INT 76h: IDE IRQ 14
         // This is just a dummy IRQ handler to prevent crashes when
         // IDE emulation fires the IRQ and OS's like Win95 expect
@@ -8943,7 +8983,7 @@ public:
 
         /* encourage the callback objects to uninstall HERE while we're in real mode, NOT during the
          * destructor stage where we're back in protected mode */
-        for (unsigned int i=0;i < 20;i++) callback[i].Uninstall();
+        for (unsigned int i=0;i < callback_count;i++) callback[i].Uninstall();
 
         /* assume these were allocated */
         CALLBACK_DeAllocate(call_irq0);

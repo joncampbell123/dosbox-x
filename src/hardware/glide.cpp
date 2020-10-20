@@ -561,7 +561,7 @@ static void grSplash(void)
     }
 
     fxSplashInit(0, screenWidth, screenHeight, 2, 1, GR_COLORFORMAT_ABGR);
-    fxSplash(0, 0, screenWidth, screenHeight, 0);
+    fxSplash(0, 0, (float)screenWidth, (float)screenHeight, 0);
 
     // OpenGlide does not restore this state
     FP.grFunction1i = (pfunc1i)fn_pt[_grSstOrigin4];

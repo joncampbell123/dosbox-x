@@ -133,7 +133,7 @@ static Uint32 FLAC_read(Sound_Sample *sample)
     const drflac_uint64 rc = drflac_read_pcm_frames_s16(dr,
                                                         internal->buffer_size / (dr->channels * sizeof(drflac_int16)),
                                                         (drflac_int16 *) internal->buffer);
-    return rc * dr->channels * sizeof (drflac_int16);
+    return (Uint32)(rc * dr->channels * sizeof (drflac_int16));
 } /* FLAC_read */
 
 

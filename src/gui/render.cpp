@@ -140,6 +140,8 @@ extern bool             avx2_available;
 #endif
 /*END HACK*/
 
+#include <immintrin.h>
+
 #ifdef __GNUC__
 __attribute__((__target__("avx2")))
 #endif
@@ -295,7 +297,7 @@ static void RENDER_ClearCacheHandler(const void * src) {
     render.scale.lineHandler( src );
 }
 
-extern void GFX_SetTitle(int32_t cycles,Bits frameskip,Bits timing,bool paused);
+extern void GFX_SetTitle(int32_t cycles, int frameskip, Bits timing, bool paused);
 
 bool RENDER_StartUpdate(void) {
     if (GCC_UNLIKELY(render.updating))
@@ -845,7 +847,7 @@ static void BlankTestRefresh(bool pressed) {
     BlankDisplay();
 }*/
 
-//extern void GFX_SetTitle(int32_t cycles, Bits frameskip, Bits timing, bool paused);
+//extern void GFX_SetTitle(int32_t cycles, int frameskip, Bits timing, bool paused);
 static void IncreaseFrameSkip(bool pressed) {
     if (!pressed)
         return;

@@ -83,6 +83,9 @@
 #include "vs2015/zlib/contrib/minizip/zip.c"
 #include "vs2015/zlib/contrib/minizip/unzip.c"
 #include "vs2015/zlib/contrib/minizip/ioapi.c"
+#if !defined(HX_DOS)
+#include "libs/tinyfiledialogs/tinyfiledialogs.h"
+#endif
 
 #if C_EMSCRIPTEN
 # include <emscripten.h>
@@ -129,10 +132,9 @@ static void CheckX86ExtensionsSupport()
 #endif
 /*=============================================================================*/
 
-extern void         GFX_SetTitle(int32_t cycles,Bits frameskip,Bits timing,bool paused);
+extern void         GFX_SetTitle(int32_t cycles, int frameskip, Bits timing, bool paused);
 
 extern bool         force_nocachedir;
-extern bool         freesizecap;
 extern bool         wpcolon;
 extern bool         clearline;
 
@@ -147,6 +149,7 @@ extern bool         VIDEO_BIOS_always_carry_14_high_font;
 extern bool         VIDEO_BIOS_always_carry_16_high_font;
 extern bool         VIDEO_BIOS_enable_CGA_8x8_second_half;
 extern bool         allow_more_than_640kb;
+extern int          freesizecap;
 extern unsigned int page;
 
 uint32_t              guest_msdos_LoL = 0;
@@ -154,6 +157,7 @@ uint16_t              guest_msdos_mcb_chain = 0;
 int                 boothax = BOOTHAX_NONE;
 
 bool                want_fm_towns = false;
+bool                noremark_save_state = false;
 bool                force_load_state = false;
 
 bool                dos_con_use_int16_to_detect_input = true;
@@ -306,6 +310,8 @@ unsigned long long update_clockdom_from_now(ClockDomain &dst) {
 
 #include "paging.h"
 
+extern std::string savefilename;
+extern bool use_save_file;
 extern bool rom_bios_vptable_enable;
 extern bool rom_bios_8x8_cga_font;
 extern bool allow_port_92_reset;
@@ -778,13 +784,13 @@ SlotPos currentSlot;
 void notifyError(const std::string& message, bool log=true)
 {
     if (log) LOG_MSG("%s",message.c_str());
+#if !defined(HX_DOS)
     MAPPER_ReleaseAllKeys();
     GFX_LosingFocus();
-    saveloaderr=message;
-    GUI_Shortcut(22);
-    saveloaderr="";
+    tinyfd_messageBox("Error",message.c_str(),"ok","error", 1);
     MAPPER_ReleaseAllKeys();
     GFX_LosingFocus();
+#endif
 }
 
 size_t GetGameState(void) {
@@ -1008,7 +1014,10 @@ void Init_VGABIOS() {
     assert(MemBase != NULL);
 
     force_nocachedir = section->Get_bool("nocachedir");
-	freesizecap = section->Get_bool("freesizecap");
+    std::string freesizestr = section->Get_string("freesizecap");
+    if (freesizestr == "fixed" || freesizestr == "false" || freesizestr == "0") freesizecap = 0;
+    else if (freesizestr == "relative" || freesizestr == "2") freesizecap = 2;
+    else freesizecap = 1;
     wpcolon = section->Get_bool("leading colon write protect image");
 
     VGA_BIOS_Size_override = (Bitu)video_section->Get_int("vga bios size override");
@@ -1306,11 +1315,15 @@ void DOSBOX_SetupConfigSections(void) {
     const char* tandys[] = { "auto", "on", "off", 0};
     const char* ps1opt[] = { "on", "off", 0};
     const char* numopt[] = { "on", "off", "", 0};
+    const char* freesizeopt[] = {"true", "false", "fixed", "relative", "cap", "2", "1", "0", 0};
     const char* truefalseautoopt[] = { "true", "false", "1", "0", "auto", 0};
     const char* pc98fmboards[] = { "auto", "off", "false", "board14", "board26k", "board86", "board86c", 0};
     const char* pc98videomodeopt[] = { "", "24khz", "31khz", "15khz", 0};
     const char* aspectmodes[] = { "false", "true", "0", "1", "yes", "no", "nearest", "bilinear", 0};
     const char *vga_ac_mapping_settings[] = { "", "auto", "4x4", "4low", "first16", 0 };
+
+    const char* sendkeys[] = {
+        "winlogo", "winmenu", "alttab", "ctrlesc", "ctrlbreak", "ctrlaltdel", 0 };
 
     const char* irqhandler[] = {
         "", "simple", "cooperative_2nd", 0 };
@@ -1342,8 +1355,11 @@ void DOSBOX_SetupConfigSections(void) {
         0 };
 
     const char* cores[] = { "auto",
-#if (C_DYNAMIC_X86) || (C_DYNREC)
-        "dynamic",
+#if (C_DYNAMIC_X86)
+        "dynamic", "dynamic_x86", "dynamic_nodhfpu",
+#endif
+#if (C_DYNREC)
+        "dynamic", "dynamic_rec",
 #endif
         "normal", "full", "simple", 0 };
 
@@ -1395,8 +1411,13 @@ void DOSBOX_SetupConfigSections(void) {
     Pbool = secprop->Add_bool("show advanced options", Property::Changeable::Always, false);
     Pbool->Set_help("If set, the Configuration UI will display all config options (including advanced ones) by default.");
 
+    Pstring = secprop->Add_string("mapper send key", Property::Changeable::Always, "ctrlaltdel");
+    Pstring->Set_help("Select the key the mapper SendKey function will send.");
+    Pstring->Set_values(sendkeys);
+    Pstring->SetBasic(true);
+
     Pbool = secprop->Add_bool("keyboard hook", Property::Changeable::Always, false);
-    Pbool->Set_help("Use keyboard hook (currently only on Windows) to catch special keys and synchronize the keyboard LEDs with the host");
+    Pbool->Set_help("Use keyboard hook (currently only on Windows) to catch special keys and synchronize the keyboard LEDs with the host.");
 
     // STUB OPTION, NOT YET FULLY IMPLEMENTED
     Pbool = secprop->Add_bool("weitek",Property::Changeable::WhenIdle,false);
@@ -1417,6 +1438,10 @@ void DOSBOX_SetupConfigSections(void) {
     Pint = secprop->Add_int("saveslot", Property::Changeable::WhenIdle,1);
     Pint->SetMinMax(1,100);
     Pint->Set_help("Select the default save slot (1-100) to save/load states.");
+    Pint->SetBasic(true);
+
+    Pstring = secprop->Add_path("savefile", Property::Changeable::WhenIdle,"");
+    Pstring->Set_help("Select the default save file to save/load states. If specified it will be used instead of the save slot.");
     Pstring->SetBasic(true);
 
     /* will change to default true unless this causes compatibility issues with other users or their editing software */
@@ -1648,8 +1673,11 @@ void DOSBOX_SetupConfigSections(void) {
     Pbool->Set_help("If set, MOUNT commands will mount with -nocachedir (disable directory caching) by default.");
     Pbool->SetBasic(true);
 
-    Pbool = secprop->Add_bool("freesizecap",Property::Changeable::WhenIdle,true);
-    Pbool->Set_help("If set, the value of MOUNT -freesize will be applied only if the actual free size is greater than the specified value.");
+    Pstring = secprop->Add_string("freesizecap",Property::Changeable::WhenIdle,"cap");
+    Pstring->Set_values(freesizeopt);
+    Pstring->Set_help("If set to \"cap\", the value of MOUNT -freesize will apply only if the actual free size is greater than the specified value.\n"
+                    "If set to \"relative\", the value of MOUNT -freesize will change relative to the specified value.\n"
+                    "If set to \"fixed\", the value of MOUNT -freesize will be a fixed one to be reported all the time.");
 
     Pbool = secprop->Add_bool("leading colon write protect image",Property::Changeable::WhenIdle,true);
     Pbool->Set_help("If set, BOOT and IMGMOUNT commands will put an image file name with a leading colon (:) in write-protect mode.");
@@ -2050,11 +2078,9 @@ void DOSBOX_SetupConfigSections(void) {
 
     Pint = secprop->Add_int("pc-98 fm board irq", Property::Changeable::WhenIdle,0);
     Pint->Set_help("If set, helps to determine the IRQ of the FM board. A setting of zero means to auto-determine the IRQ.");
-    Pint->SetBasic(true);
 
     Phex = secprop->Add_hex("pc-98 fm board io port", Property::Changeable::WhenIdle,0);
     Phex->Set_help("If set, helps to determine the base I/O port of the FM board. A setting of zero means to auto-determine the port number.");
-    Phex->SetBasic(true);
 
     Pbool = secprop->Add_bool("pc-98 sound bios",Property::Changeable::WhenIdle,false);
     Pbool->Set_help("Set Sound BIOS enabled bit in MEMSW 4 for some games that require it.\n"
@@ -2145,6 +2171,7 @@ void DOSBOX_SetupConfigSections(void) {
     Pbool = secprop->Add_bool("pc-98 force ibm keyboard layout",Property::Changeable::WhenIdle,false);
     Pbool->Set_help("Force to use a default keyboard layout like IBM US-English for PC-98 emulation.\n"
                     "Will only work with apps and games using BIOS for keyboard.");
+    Pbool->SetBasic(true);
 
     /* Explanation: NEC's mouse driver MOUSE.COM enables the graphics layer on startup and when INT 33h AX=0 is called.
      *              Some games by "Orange House" assume this behavior and do not make any effort on their
@@ -2294,8 +2321,9 @@ void DOSBOX_SetupConfigSections(void) {
     Pstring = secprop->Add_string("core",Property::Changeable::WhenIdle,"auto");
     Pstring->Set_values(cores);
     Pstring->Set_help("CPU Core used in emulation. auto will switch to dynamic if available and appropriate.\n"
-            "WARNING: Do not use dynamic or auto setting core with Windows 95 or other preemptive\n"
-            "multitasking OSes with protected mode paging, you should use the normal core instead.");
+            "For the dynamic core, both dynamic_x86 and dynamic_rec are supported (dynamic_x86 is preferred).\n"
+            "Windows 95 or other preemptive multitasking OSes will not work with the dynamic_rec core.");
+
     Pstring->SetBasic(true);
 
     Pbool = secprop->Add_bool("fpu",Property::Changeable::Always,true);
@@ -3432,7 +3460,7 @@ void DOSBOX_SetupConfigSections(void) {
                       "Set this option to true to prevent SCANDISK.EXE from attempting scan and repair drive Z:\n"
                       "which is impossible since Z: is a virtual drive not backed by a disk filesystem.");
 
-    Pstring = secprop->Add_string("drive z hide files",Property::Changeable::OnlyAtStart,"/A20GATE.COM /DSXMENU.EXE /HEXMEM16.EXE /HEXMEM32.EXE /LOADROM.COM /NMITEST.COM /VESAMOED.COM /VFRCRATE.COM");
+    Pstring = secprop->Add_string("drive z hide files",Property::Changeable::OnlyAtStart,"/A20GATE.COM /BIOSTEST.COM /DSXMENU.EXE /HEXMEM16.EXE /HEXMEM32.EXE /LOADROM.COM /NMITEST.COM /VESAMOED.COM /VFRCRATE.COM");
     Pstring->Set_help("The files listed here (separated by space) will be either hidden or removed from the Z drive.\n"
                       "Files with leading forward slashs (e.g. \"/A20GATE.COM\") will be hidden files (DIR /A will list them).");
 
@@ -5043,11 +5071,32 @@ void SaveState::save(size_t slot) { //throw (Error)
 		notifyError("Unsupported memory size for saving states.", false);
 		return;
 	}
+    const char *save_remark = "";
+#if !defined(HX_DOS)
+    if (!noremark_save_state) {
+        /* NTS: tinyfd_inputBox() returns a string from an internal statically declared char array.
+         *      It is not necessary to free the return string, but it is important to understand that
+         *      the next call to tinyfd_inputBox() will obliterate the previously returned string.
+         *      See src/libs/tinyfiledialogs/tinyfiledialogs.c line 5069 --J.C. */
+        /* NTS: The code was originally written to declare save_remark as char* default assigned to string
+         *      constant "", but GCC (rightfully so) complains you're pointing char* at something that
+         *      is stored const by the compiler. "save_remark" is not modified past this point, so it
+         *      has been changed to const char* and the return value of tinyfd_inputBox() is given to
+         *      a local temporary char* string where the modification can be made, and *then* assigned
+         *      to the const char* string for the rest of this function. */
+        char *new_remark = tinyfd_inputBox("Save state", "Please enter remark for the state (optional; 30 characters maximum). Click the 'Cancel' button to cancel the saving.", " ");
+        if (new_remark==NULL) return;
+        new_remark=trim(new_remark);
+        if (strlen(new_remark)>30) new_remark[30]=0;
+        save_remark = new_remark;
+    }
+#endif
 	bool create_version=false;
 	bool create_title=false;
 	bool create_memorysize=false;
 	bool create_machinetype=false;
 	bool create_timestamp=false;
+	bool create_saveremark=false;
 	extern const char* RunningProgram;
 	std::string path;
 	bool Get_Custom_SaveDir(std::string& savedir);
@@ -5071,7 +5120,7 @@ void SaveState::save(size_t slot) { //throw (Error)
 	std::stringstream slotname;
 	slotname << slot+1;
 	temp=path;
-	std::string save=temp+slotname.str()+".sav";
+	std::string save=use_save_file&&savefilename.size()?savefilename:temp+slotname.str()+".sav";
 	remove(save.c_str());
 	std::ofstream file (save.c_str());
 	file << "";
@@ -5124,6 +5173,14 @@ void SaveState::save(size_t slot) { //throw (Error)
 				timestamp.close();
 			}
 
+			if(!create_saveremark) {
+				std::string tempname = temp+"Save_Remark";
+				std::ofstream saveremark (tempname.c_str(), std::ofstream::binary);
+				saveremark << std::string(save_remark);
+				create_saveremark=true;
+				saveremark.close();
+			}
+
 			std::string realtemp;
 			realtemp = temp + i->first;
 			std::ofstream outfile (realtemp.c_str(), std::ofstream::binary);
@@ -5163,6 +5220,8 @@ void SaveState::save(size_t slot) { //throw (Error)
 	my_minizip((char **)save.c_str(), (char **)save2.c_str());
 	save2=temp+"Time_Stamp";
 	my_minizip((char **)save.c_str(), (char **)save2.c_str());
+	save2=temp+"Save_Remark";
+	my_minizip((char **)save.c_str(), (char **)save2.c_str());
 
 delete_all:
 	for (CompEntry::iterator i = components.begin(); i != components.end(); ++i) {
@@ -5179,6 +5238,8 @@ delete_all:
 	remove(save2.c_str());
 	save2=temp+"Time_Stamp";
 	remove(save2.c_str());
+	save2=temp+"Save_Remark";
+	remove(save2.c_str());
 	if (save_err)
 		notifyError("Failed to save the current state.");
 	else
@@ -5187,11 +5248,13 @@ delete_all:
 
 void savestatecorrupt(const char* part) {
     LOG_MSG("Save state corrupted! Program in inconsistent state! - %s", part);
+#if !defined(HX_DOS)
     MAPPER_ReleaseAllKeys();
     GFX_LosingFocus();
-    GUI_Shortcut(21);
+    tinyfd_messageBox("Error","Save state corrupted! Program may not work.","ok","error", 1);
     MAPPER_ReleaseAllKeys();
     GFX_LosingFocus();
+#endif
 }
 
 bool confres=false;
@@ -5242,12 +5305,12 @@ void SaveState::load(size_t slot) const { //throw (Error)
 	temp = path;
 	std::stringstream slotname;
 	slotname << slot+1;
-	std::string save=temp+slotname.str()+".sav";
+	std::string save=use_save_file&&savefilename.size()?savefilename:temp+slotname.str()+".sav";
 	std::ifstream check_slot;
 	check_slot.open(save.c_str(), std::ifstream::in);
 	if(check_slot.fail()) {
 		LOG_MSG("No saved slot - %d (%s)",(int)slot+1,save.c_str());
-		notifyError("The selected save slot is an empty slot.", false);
+		notifyError(use_save_file&&savefilename.size()?"The selected save file is currently empty.":"The selected save slot is an empty slot.", false);
 		load_err=true;
 		return;
 	}
@@ -5514,7 +5577,7 @@ void SaveState::removeState(size_t slot) const {
     }
 }
 
-std::string SaveState::getName(size_t slot) const {
+std::string SaveState::getName(size_t slot, bool nl) const {
 	if (slot >= SLOT_COUNT*MAX_PAGE) return "[Empty slot]";
 	std::string path;
 	bool Get_Custom_SaveDir(std::string& savedir);
@@ -5536,10 +5599,10 @@ std::string SaveState::getName(size_t slot) const {
 	temp = path;
 	std::stringstream slotname;
 	slotname << slot+1;
-	std::string save=temp+slotname.str()+".sav";
+	std::string save=nl&&use_save_file&&savefilename.size()?savefilename:temp+slotname.str()+".sav";
 	std::ifstream check_slot;
 	check_slot.open(save.c_str(), std::ifstream::in);
-	if (check_slot.fail()) return "[Empty slot]";
+	if (check_slot.fail()) return nl?"(Empty state)":"[Empty slot]";
 	my_miniunz((char **)save.c_str(),"Program_Name",temp.c_str());
 	std::ifstream check_title;
 	int length = 8;
@@ -5557,7 +5620,7 @@ std::string SaveState::getName(size_t slot) const {
 	check_title.close();
 	remove(tempname.c_str());
 	buffer1[length]='\0';
-    std::string ret="[Program: "+std::string(buffer1)+"]";
+    std::string ret=nl?"Program: "+(!strlen(buffer1)?"-":std::string(buffer1))+"\n":"[Program: "+std::string(buffer1)+"]";
 	my_miniunz((char **)save.c_str(),"Time_Stamp",temp.c_str());
     length=18;
 	tempname = temp+"Time_Stamp";
@@ -5574,6 +5637,24 @@ std::string SaveState::getName(size_t slot) const {
 	check_title.close();
 	remove(tempname.c_str());
 	buffer2[length]='\0';
-    if (strlen(buffer2)) ret+=" ("+std::string(buffer2)+")";
+    if (strlen(buffer2)) ret+=nl?"Timestamp: "+(!strlen(buffer2)?"-":std::string(buffer2))+"\n":" ("+std::string(buffer2);
+	my_miniunz((char **)save.c_str(),"Save_Remark",temp.c_str());
+    length=30;
+	tempname = temp+"Save_Remark";
+	check_title.open(tempname.c_str(), std::ifstream::in);
+	if (check_title.fail()) {
+		remove(tempname.c_str());
+		return ret+(!nl?")":"");
+	}
+	check_title.seekg (0, std::ios::end);
+	length = (int)check_title.tellg();
+	check_title.seekg (0, std::ios::beg);
+	char * const buffer3 = (char*)alloca( (length+1) * sizeof(char));
+	check_title.read (buffer3, length);
+	check_title.close();
+	remove(tempname.c_str());
+	buffer3[length]='\0';
+    if (strlen(buffer3)) ret+=nl?"Remark: "+(!strlen(buffer3)?"-":std::string(buffer3))+"\n":" - "+std::string(buffer3)+")";
+    else if (!nl) ret+=")";
 	return ret;
 }

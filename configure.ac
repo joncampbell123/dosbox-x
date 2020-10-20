@@ -1,5 +1,5 @@
 dnl Init.
-AC_INIT(dosbox-x,0.83.6,[https://github.com/joncampbell123/dosbox-x/issues],[],[https://dosbox-x.com])
+AC_INIT(dosbox-x,0.83.7,[https://github.com/joncampbell123/dosbox-x/issues],[],[https://dosbox-x.com])
 AC_PREREQ(2.60)
 AC_CONFIG_SRCDIR(README.md)
 
@@ -393,7 +393,7 @@ if test x$enable_emscripten != xyes; then
 dnl Some target detection and actions for them
 case "$host" in
     *-*-cygwin* | *-*-mingw32*)
-       LIBS="$LIBS -lwinmm -limm32 -lole32"
+       LIBS="$LIBS -lwinmm -limm32 -lole32 -loleaut32 -lversion -lsetupapi"
        CXXFLAGS="$CXXFLAGS -mno-ms-bitfields"
        if test x$have_sdl_net_h = xyes ; then
          dnl HACK: We have to put SDL_net THEN winsock libraries or else the linker can't resolve things properly
@@ -785,29 +785,26 @@ esac
 dnl FEATURE: Whether to enable dynamic core
 AC_ARG_ENABLE(dynamic-core,AC_HELP_STRING([--disable-dynamic-core],[Disable all dynamic cores]),,enable_dynamic_core=yes)
 
-AH_TEMPLATE(C_DYNREC,[Define to 1 to use recompiling cpu core. Can not be used together with the dynamic-x86 core])
+dnl FEATURE: Whether to enable x86 dynamic core
+AH_TEMPLATE(C_DYNAMIC_X86,[Define to 1 to use x86 dynamic cpu core])
+AC_ARG_ENABLE(dynamic-x86,AC_HELP_STRING([--disable-dynamic-x86],[Disable x86 dynamic cpu core]),,enable_dynamic_x86=yes)
+AC_MSG_CHECKING(whether x86 dynamic cpu core will be enabled)
+if test x$enable_dynamic_x86 = xno -o x$enable_dynamic_core = xno -o x$c_targetcpu = xarm; then
+   AC_MSG_RESULT(no)
+else
+   AC_DEFINE(C_DYNAMIC_X86,1)
+   AC_MSG_RESULT(yes)
+fi
+
+dnl FEATURE: Whether to enable recompiling dynamic core
+AH_TEMPLATE(C_DYNREC,[Define to 1 to use recompiling cpu core])
 AC_ARG_ENABLE(dynrec,AC_HELP_STRING([--disable-dynrec],[Disable recompiling cpu core]),,enable_dynrec=yes)
 AC_MSG_CHECKING(whether recompiling cpu core will be enabled) 
 if test x$enable_dynrec = xno -o x$enable_dynamic_core = xno; then 
    AC_MSG_RESULT(no)
 else
-dnl x86 only enable it if dynamic-x86 is disabled.
-  if test x$c_targetcpu = xx86 ; then
-    AC_DEFINE(C_DYNREC,1)
-    AC_MSG_RESULT(yes)
-  else 
-    if test x$c_targetcpu = xx86_64 ; then
-        AC_DEFINE(C_DYNREC,1)
-        AC_MSG_RESULT(yes)
-    else
-      if test x$c_targetcpu = xarm ; then
-        AC_DEFINE(C_DYNREC,1)
-	AC_MSG_RESULT(yes)
-      else 
-        AC_MSG_RESULT(no)
-      fi
-    fi
-  fi
+   AC_DEFINE(C_DYNREC,1)
+   AC_MSG_RESULT(yes)
 fi
 
 dnl FEATURE: Whether to emulate the floating point unit
@@ -909,12 +906,21 @@ fi
 
 dnl FEATURE: Whether to use libpcap, and enable NE2000 emulation
 AH_TEMPLATE(C_NE2000,[Define to 1 to enable NE2000 ethernet passthrough, requires libpcap])
-if test x$have_pcap_lib = xyes -a x$have_pcap_h = xyes ; then
-  LIBS="$LIBS -lpcap";
-  AC_DEFINE(C_NE2000,1)
-else
-  AC_MSG_WARN([Can't find libpcap, NE2000 ethernet passthrough disabled])
-fi
+case "$host" in
+    *-*-cygwin* | *-*-mingw32*)
+       CFLAGS="$CFLAGS -I$pwd/vs2015/pcap"
+       CXXFLAGS="$CXXFLAGS -I$pwd/vs2015/pcap"
+       AC_DEFINE(C_NE2000,1)
+    ;;
+    *)
+       if test x$have_pcap_lib = xyes -a x$have_pcap_h = xyes ; then
+         LIBS="$LIBS -lpcap";
+         AC_DEFINE(C_NE2000,1)
+       else
+         AC_MSG_WARN([Can't find libpcap, NE2000 ethernet passthrough disabled])
+       fi
+    ;;
+esac
 
 if test x$enable_x11 != xno; then
   dnl FEATURE: Whether to use X11 XKBlib
