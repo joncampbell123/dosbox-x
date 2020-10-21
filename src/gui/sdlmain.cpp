@@ -6498,8 +6498,10 @@ void PasteClipboard(bool bPressed)
     {
 		clipSize=0;
 		Unicode2Ascii(szClipboard);
+        unsigned long j=0;
+        for (size_t i = 0; i < clipSize; ++i) if (clipAscii[i] == 9) j++;
         // Create a copy of the string, and filter out Linefeed characters (ASCII '10')
-        char* szFilteredText = reinterpret_cast<char*>(alloca(clipSize + 1));
+        char* szFilteredText = reinterpret_cast<char*>(alloca(clipSize + j*3 + 1));
         char* szFilterNextChar = szFilteredText;
         for (size_t i = 0; i < clipSize; ++i)
             if (clipAscii[i] == 9) // Tab to spaces
@@ -6537,7 +6539,9 @@ void PasteClipboard(bool bPressed) {
     {
 		clipSize=0;
 		Unicode2Ascii(szClipboard);
-        char* szFilteredText = reinterpret_cast<char*>(alloca(clipSize + 1));
+        unsigned long j=0;
+        for (size_t i = 0; i < clipSize; ++i) if (clipAscii[i] == 9) j++;
+        char* szFilteredText = reinterpret_cast<char*>(alloca(clipSize + j*3 + 1));
         char* szFilterNextChar = szFilteredText;
         for (size_t i = 0; i < clipSize; ++i)
             if (clipAscii[i] == 9) // Tab to spaces
@@ -6762,12 +6766,15 @@ void removeChar(char *str, char c);
 void CopyClipboard(void) {
 	uint16_t len=0;
 	char* text = (char *)Mouse_GetSelected(mouse_start_x-sdl.clip.x,mouse_start_y-sdl.clip.y,mouse_end_x-sdl.clip.x,mouse_end_y-sdl.clip.y,(int)(currentWindowWidth-sdl.clip.x),(int)(currentWindowHeight-sdl.clip.y), &len);
-    removeChar(text, 10);
-    char* uname = CodePageGuestToHost(text);
-    char ocr[4] = {-30, -103, -86, 0};
-    char ncr[2] = {13, 0};
-    const char* str = uname==NULL?"":str_replace(uname, ocr, ncr);
-    SDL_SetClipboardText(uname!=NULL?str:text);
+    removeChar(text, 13);
+    std::string result="";
+    std::istringstream iss(text);
+    for (std::string token; std::getline(iss, token); ) {
+        char* uname = CodePageGuestToHost(token.c_str());
+        result+=(uname!=NULL?std::string(uname):token)+std::string(1, 10);
+    }
+    if (result.size()&&result.back()==10) result.pop_back();
+    SDL_SetClipboardText(result.c_str());
 }
 #endif
 
@@ -8506,6 +8513,15 @@ bool dos_clipboard_device_menu_callback(DOSBoxMenu * const menu, DOSBoxMenu::ite
     if (dos_clipboard_device_access == 4) dos_clipboard_device_access=1;
     else if (dos_clipboard_device_access) dos_clipboard_device_access=4;
     mainMenu.get_item("clipboard_device").check(dos_clipboard_device_access==4&&!control->SecureMode()).refresh_item(mainMenu);
+    return true;
+}
+#endif
+
+#if defined (WIN32) || defined(C_SDL2) || defined(LINUX) && C_X11
+bool clipboard_paste_stop_menu_callback(DOSBoxMenu * const menu, DOSBoxMenu::item * const menuitem) {
+    (void)menu;//UNUSED
+    (void)menuitem;//UNUSED
+    strPasteBuffer = "";
     return true;
 }
 #endif
@@ -10277,6 +10293,9 @@ int main(int argc, char* argv[]) SDL_MAIN_NOEXCEPT {
         if (control->SecureMode()) clipboard_dosapi = false;
         mainMenu.alloc_item(DOSBoxMenu::item_type_id,"clipboard_device").set_text("Enable DOS clipboard device access").set_callback_function(dos_clipboard_device_menu_callback).check(dos_clipboard_device_access==4&&!control->SecureMode());
         mainMenu.alloc_item(DOSBoxMenu::item_type_id,"clipboard_dosapi").set_text("Enable DOS clipboard API for applications").set_callback_function(dos_clipboard_api_menu_callback).check(clipboard_dosapi);
+#endif
+#if defined (WIN32) || defined(C_SDL2) || defined(LINUX) && C_X11
+        mainMenu.alloc_item(DOSBoxMenu::item_type_id,"clipboard_paste_stop").set_text("Stop clipboard pasting").set_callback_function(clipboard_paste_stop_menu_callback);
 #endif
         mainMenu.alloc_item(DOSBoxMenu::item_type_id,"sendkey_winlogo").set_text("Send logo key").set_callback_function(sendkey_preset_menu_callback);
         mainMenu.alloc_item(DOSBoxMenu::item_type_id,"sendkey_winmenu").set_text("Send menu key").set_callback_function(sendkey_preset_menu_callback);

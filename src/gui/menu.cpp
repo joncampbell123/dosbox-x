@@ -129,10 +129,8 @@ static const char *def_menu_main[] =
     "mapper_capmouse",
     "auto_lock_mouse",
     "WheelToArrow",
-#if defined(WIN32) || defined(C_SDL2)
+#if defined(WIN32) || defined(C_SDL2) || defined(LINUX) && C_X11
     "SharedClipboard",
-#elif defined(LINUX) && C_X11
-    "mapper_paste",
 #endif
 #if !defined(C_EMSCRIPTEN)//FIXME: Reset causes problems with Emscripten
     "--",
@@ -197,8 +195,9 @@ static const char *def_menu_main_clipboard[] =
 #endif
 #if !defined(LINUX) || !C_X11 || defined(C_SDL2)
     "--",
-    "mapper_paste",
 #endif
+    "mapper_paste",
+    "clipboard_paste_stop",
     NULL
 };
 
@@ -1325,7 +1324,7 @@ void ConstructMenu(void) {
     /* main mouse wheel movements menu */
     ConstructSubMenu(mainMenu.get_item("WheelToArrow").get_master_id(), def_menu_main_wheelarrow);
 
-    /* shared Windows clipboard menu */
+    /* shared clipboard menu */
     ConstructSubMenu(mainMenu.get_item("SharedClipboard").get_master_id(), def_menu_main_clipboard);
 
     /* cpu menu */

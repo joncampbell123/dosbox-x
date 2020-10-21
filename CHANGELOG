@@ -1,4 +1,30 @@
 0.83.7
+  - Implemented the x86 dynamic core for both 32-bit
+    and 64-bit systems by re-porting the code from SVN.
+    Dynamic core now supports either the dynamic_x86
+    or the dynamic_rec core. The dynamic_x86 core will
+    be used by default for x86 and x86_64 platforms and
+    if "core=dynamic" is set, and Windows 9x can be run
+    in this dynamic core. You can also explicit specify
+    "core=dynamic_x86" or "core=dynamic_rec" for either
+    the dynamic_x86 core or the dynamic_rec core. Also
+    thank joncampbell123 for the 64-bit fix. (Wengier)
+  - You can now use your own save file (in addition to
+    save slots! There are now a "Use save file" toggle
+    item and "Browse save file..." for browsing save
+    files on your computer. A config option "savefile"
+    (in [dosbox] section) is added to specify a save
+    file to use at start. (Wengier)
+  - Save state feature now allows users to optionally
+    enter remarks when saving a state. A submenu group
+    "Save/load option" is added (under "Capture") where
+    you can toggle menu items "No remark when saving
+    state" (for disabling input of remarks when saving)
+    and "force load state mode". A menu item "Display
+    state information" is added as well to display the
+    information of the saved state. (Wengier)
+  - DOSBox-X will now use native dialog box to display
+    quit warnings and save state errors. (Wengier)
   - Changed some DOS error messages (such as "Illegal
     command" which now reads "Bad command or filename")
     similar to real DOS systems. (Wengier)
@@ -37,7 +63,10 @@
   - The mouse copy/paste feature is now available for
     non-Windows systems on SDL2 builds. Also, pasting
     from the clipboard with a mapped shortcut is also
-    available for Linux/X11 on SDL1 builds. (Wengier)
+    available for Linux/X11 on SDL1 builds. A new menu
+    item "Stop clipboard pasting" is added to allow the
+    user to stop the pasting in the middle while long
+    clipboard content is being pasted. (Wengier)
   - Added "Use US keyboard layout" toggle menu item in
     the "PC-98" menu group under "Video" to select
     whether to force the default US keyboard layout in
@@ -45,40 +74,14 @@
     layout" config option in [pc98] section. Also moved
     the "PC-98 PIT master clock" options from the "DOS"
     menu to this menu group. (Wengier)
-  - The Windows installer will now copy the DLL files
-    inpout32.dll (32-bit) and inpoutx64.dll (64-bit) to
-    the DOSBox-X install directory for use with the
-    direct parallel port passthrough feature. (Wengier)
-  - Implemented the x86 dynamic core for both 32-bit
-    and 64-bit systems by re-porting the code from SVN.
-    Dynamic core now supports either the dynamic_x86
-    or the dynamic_rec core. The dynamic_x86 core will
-    be used by default for x86 and x86_64 platforms and
-    if "core=dynamic" is set, and Windows 9x can be run
-    in this dynamic core. You can also explicit specify
-    "core=dynamic_x86" or "core=dynamic_rec" for either
-    the dynamic_x86 core or the dynamic_rec core. Also
-    thank joncampbell123 for the 64-bit fix. (Wengier)
-  - You can now use your own save file (in addition to
-    save slots! There are now a "Use save file" toggle
-    item and "Browse save file..." for browsing save
-    files on your computer. A config option "savefile"
-    (in [dosbox] section) is added to specify a save
-    file to use at start. (Wengier)
-  - Save state feature now allows users to optionally
-    enter remarks when saving a state. A submenu group
-    "Save/load option" is added (under "Capture") where
-    you can toggle menu items "No remark when saving
-    state" (for disabling input of remarks when saving)
-    and "force load state mode". A menu item "Display
-    state information" is added as well to display the
-    information of the saved state. (Wengier)
-  - DOSBox-X will now use native dialog box to display
-    quit warnings and save state errors. (Wengier)
   - Updated the Windows installer to default to the
     "typical" installation. For the full installation
     start menu items will be added for DOSBox-X builds
-    copied to subdirectories. (Wengier)
+    copied to subdirectories. In both cases the Windows
+    installer now also copy the DLL files inpout32.dll
+    (32-bit) and inpoutx64.dll (64-bit) to the DOSBox-X
+    install directory for use with the direct parallel
+    port passthrough feature. (Wengier)
   - Improved Flatpak support for Linux. (rderooy)
   - Fixed shelling from programs may not work when the
     shell config option is set. (Wengier)

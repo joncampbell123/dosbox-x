@@ -1348,6 +1348,7 @@ public:
 			else phys_page=lin_page;
 			PAGING_LinkPage(lin_page,phys_page);
 		}
+		return false;
 	}
 	Bitu InitPageCheckOnly(PhysPt lin_addr,uint32_t val) {
 		Bitu lin_page=lin_addr >> 12;
