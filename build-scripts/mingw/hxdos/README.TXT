@@ -3,9 +3,9 @@ README for DOSBox-X DOS version
 
 Welcome to DOSBox-X, a cross-platform DOS emulator based on the DOSBox project.
 
-This is a special DOSBox-X version for use in a real DOS system. Not all features supported in other platforms can be supported in this version.
+This is the special DOS version of DOSBox-X for use in a real DOS system. Not all features supported in other platforms can be supported in this version.
 
-Simply run DOSBOX-X.EXE in MS-DOS or compatible to start DOSBox-X, as all required HX DOS Extender files are already included in the package.
+Simply run DOSBOX-X.EXE in MS-DOS 5.0+ or compatible (such as FreeDOS) to start DOSBox-X, as all required HX DOS Extender files are already included in the package.
 
 If you want to enable long filename support, before running DOSBox-X you also need to load the (freely available) DOSLFN driver and then start DOSBox-X with "DOSBOX-X -SET LFN=1".
 
