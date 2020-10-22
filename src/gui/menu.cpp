@@ -1291,12 +1291,18 @@ void ConstructSubMenu(DOSBoxMenu::item_handle_t item_id, const char * const * li
          *      array lookup, this is not very inefficient at all. */
 
         if (!strcmp(ref,"--")) {
+            /* separator is allocated on the fly by separator_get and we cannot
+             * rely that parameters are expanded from right to left
+             * -> we must get separator handle first */
+            DOSBoxMenu::item_handle_t separator_handle = separator_get(DOSBoxMenu::separator_type_id);
             mainMenu.displaylist_append(
-                mainMenu.get_item(item_id).display_list, separator_get(DOSBoxMenu::separator_type_id));
+                mainMenu.get_item(item_id).display_list, separator_handle);
         }
         else if (!strcmp(ref,"||")) {
+            /* dito */
+            DOSBoxMenu::item_handle_t separator_handle = separator_get(DOSBoxMenu::vseparator_type_id);
             mainMenu.displaylist_append(
-                mainMenu.get_item(item_id).display_list, separator_get(DOSBoxMenu::vseparator_type_id));
+                mainMenu.get_item(item_id).display_list, separator_handle);
         }
         else if (mainMenu.item_exists(ref)) {
             mainMenu.displaylist_append(
