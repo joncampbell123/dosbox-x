@@ -795,7 +795,7 @@ again:
 	if (attribs != INVALID_FILE_ATTRIBUTES)
 		find_attr|=attribs&0x3f;
 #else
-	find_attr|=DOS_ATTR_ARCHIVE;
+	if (!(find_attr&DOS_ATTR_DIRECTORY)) find_attr|=DOS_ATTR_ARCHIVE;
 	if(!(stat_block.st_mode & S_IWUSR)) find_attr|=DOS_ATTR_READ_ONLY;
 #endif
  	if (~srch_attr & find_attr & DOS_ATTR_DIRECTORY) goto again;
@@ -903,7 +903,7 @@ bool localDrive::GetFileAttr(const char * name,uint16_t * attr) {
 #else
 	ht_stat_t status;
 	if (ht_stat(host_name,&status)==0) {
-		*attr=DOS_ATTR_ARCHIVE;
+		*attr=status.st_mode & S_IFDIR?0:DOS_ATTR_ARCHIVE;
 		if(status.st_mode & S_IFDIR) *attr|=DOS_ATTR_DIRECTORY;
 		if(!(status.st_mode & S_IWUSR)) *attr|=DOS_ATTR_READ_ONLY;
 		return true;
@@ -2879,7 +2879,7 @@ again:
 	if (attribs != INVALID_FILE_ATTRIBUTES)
 		find_attr|=attribs&0x3f;
 #else
-	find_attr|=DOS_ATTR_ARCHIVE;
+	if (!(find_attr&DOS_ATTR_DIRECTORY)) find_attr|=DOS_ATTR_ARCHIVE;
 	if(!(stat_block.st_mode & S_IWUSR)) find_attr|=DOS_ATTR_READ_ONLY;
 #endif
  	if (~srch_attr & find_attr & DOS_ATTR_DIRECTORY) goto again;
@@ -3188,7 +3188,7 @@ bool Overlay_Drive::GetFileAttr(const char * name,uint16_t * attr) {
 #else
 	ht_stat_t status;
 	if (ht_stat(overtmpname,&status)==0 || ht_stat(overlayname,&status)==0) {
-		*attr=DOS_ATTR_ARCHIVE;
+		*attr=status.st_mode & S_IFDIR?0:DOS_ATTR_ARCHIVE;
 		if(status.st_mode & S_IFDIR) *attr|=DOS_ATTR_DIRECTORY;
 		if(!(status.st_mode & S_IWUSR)) *attr|=DOS_ATTR_READ_ONLY;
 		return true;

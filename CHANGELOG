@@ -85,6 +85,10 @@
   - Improved Flatpak support for Linux. (rderooy)
   - Fixed shelling from programs may not work when the
     shell config option is set. (Wengier)
+  - The archive attribute will no longer automatically
+    be applied to directories on non-Windows systems.
+    This fixed issue with PLAYMIDI.EXE from Gravis
+    Ultrasound when listing directories. (Wengier)
   - Applied hack to allow the low DMA channel detection
     in the SB16 DIAGNOSE program to work. (Wengier)
   - The default setting of the clip_paste_speed option
