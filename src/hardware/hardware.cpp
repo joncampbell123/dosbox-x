@@ -1824,6 +1824,11 @@ void CAPTURE_Init() {
         use_save_file=true;
         mainMenu.get_item("usesavefile").set_text("Use save file ("+savefilename+")").check(use_save_file);
         mainMenu.get_item("browsesavefile").enable(use_save_file);
+        std::string slot="";
+        for (int i=0; i<=9; i++) {
+            slot="slot"+std::to_string(i);
+            mainMenu.get_item(slot).enable(!use_save_file).refresh_item(mainMenu);
+        }
     }
     std::string mapsendkey = section->Get_string("mapper send key");
     if (mapsendkey=="winlogo") sendkeymap=1;

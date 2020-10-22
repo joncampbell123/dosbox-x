@@ -8607,6 +8607,11 @@ bool use_save_file_menu_callback(DOSBoxMenu * const menu, DOSBoxMenu::item * con
     }
     mainMenu.get_item("usesavefile").check(use_save_file).refresh_item(mainMenu);
     mainMenu.get_item("browsesavefile").enable(use_save_file).refresh_item(mainMenu);
+    std::string slot="";
+    for (int i=0; i<=9; i++) {
+        slot="slot"+std::to_string(i);
+        mainMenu.get_item(slot).enable(!use_save_file).refresh_item(mainMenu);
+    }
     return true;
 }
 
