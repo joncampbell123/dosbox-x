@@ -106,7 +106,8 @@ struct GFGus {
 	uint16_t gCurChannel;
 
 	uint8_t gUltraMAXControl;
-	uint8_t DMAControl;
+    uint16_t DMAControl; /* NTS: bit 8 for DMA TC IRQ status. Only bits [7:0] exist on real hardware.
+                            We're taking the DOSBox SVN approach here (https://sourceforge.net/p/dosbox/code-0/4387/#diff-2) */
 	uint16_t dmaAddr;
 	uint8_t dmaAddrOffset; /* bits 0-3 of the addr */
 	uint8_t TimerControl;
@@ -708,7 +709,8 @@ static uint16_t ExecuteReadRegister(void) {
         }
 
 		tmpreg = myGUS.DMAControl & 0xbf;
-		tmpreg |= (myGUS.IRQStatus & 0x80) >> 1;
+		tmpreg |= (myGUS.DMAControl & 0x100) >> 2; /* Bit 6 on read is the DMA terminal count IRQ status */
+		myGUS.DMAControl&=0xff; /* clear TC IRQ status */
 		myGUS.IRQStatus&=0x7f;
 		GUS_CheckIRQ();
 		return (uint16_t)(tmpreg << 8);
@@ -719,7 +721,7 @@ static uint16_t ExecuteReadRegister(void) {
 		break;
 	case 0x49:  // Dma sample register
 		tmpreg = myGUS.DMAControl & 0xbf;
-		tmpreg |= (myGUS.IRQStatus & 0x80) >> 1;
+		tmpreg |= (myGUS.DMAControl & 0x100) >> 2; /* Bit 6 on read is the DMA terminal count IRQ status */
 		return (uint16_t)(tmpreg << 8);
 	case 0x4c:  // GUS reset register
 		tmpreg = (GUS_reset_reg & ~0x4) | (myGUS.irqenabled ? 0x4 : 0x0);
@@ -937,7 +939,8 @@ static void ExecuteGlobRegister(void) {
 	case 0x10:  // Undocumented register used in Fast Tracker 2
 		break;
 	case 0x41:  // Dma control register
-		myGUS.DMAControl = (uint8_t)(myGUS.gRegData>>8);
+		myGUS.DMAControl &= ~0xFFu; // FIXME: Does writing DMA Control clear the DMA TC IRQ?
+		myGUS.DMAControl |= (uint8_t)(myGUS.gRegData>>8);
 		GUS_Update_DMA_Event_transfer();
 		if (myGUS.DMAControl & 1) GUS_StartDMA();
 		else GUS_StopDMA();
@@ -1840,6 +1843,7 @@ void GUS_DMA_Event_Transfer(DmaChannel *chan,Bitu dmawords) {
 		LOG(LOG_MISC,LOG_DEBUG)("GUS DMA transfer hit Terminal Count, setting DMA TC IRQ pending");
 
 		/* Raise the TC irq, and stop DMA */
+		myGUS.DMAControl |= 0x100u; /* NTS: DOSBox SVN approach: Use bit 8 for DMA TC IRQ */
 		myGUS.IRQStatus |= 0x80;
 		saved_tcount = true;
 		GUS_CheckIRQ();
