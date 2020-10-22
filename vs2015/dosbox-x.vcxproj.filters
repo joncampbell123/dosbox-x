@@ -915,112 +915,112 @@
     <ClCompile Include="..\src\hardware\serialport\serialfile.cpp">
       <Filter>Sources\hardware\serialport</Filter>
     </ClCompile>
-    <ClCompile Include="..\src\libs\fluidsynth\drivers\fluid_adriver.c">
+    <ClCompile Include="..\src\libs\fluidsynth\fluid_adriver.c">
       <Filter>Sources\libs\fluidsynth</Filter>
     </ClCompile>
-    <ClCompile Include="..\src\libs\fluidsynth\rvoice\fluid_adsr_env.c">
+    <ClCompile Include="..\src\libs\fluidsynth\fluid_adsr_env.c">
       <Filter>Sources\libs\fluidsynth</Filter>
     </ClCompile>
-    <ClCompile Include="..\src\libs\fluidsynth\drivers\fluid_aufile.c">
+    <ClCompile Include="..\src\libs\fluidsynth\fluid_aufile.c">
       <Filter>Sources\libs\fluidsynth</Filter>
     </ClCompile>
-    <ClCompile Include="..\src\libs\fluidsynth\synth\fluid_chan.c">
+    <ClCompile Include="..\src\libs\fluidsynth\fluid_chan.c">
       <Filter>Sources\libs\fluidsynth</Filter>
     </ClCompile>
-    <ClCompile Include="..\src\libs\fluidsynth\rvoice\fluid_chorus.c">
+    <ClCompile Include="..\src\libs\fluidsynthe\fluid_chorus.c">
       <Filter>Sources\libs\fluidsynth</Filter>
     </ClCompile>
-    <ClCompile Include="..\src\libs\fluidsynth\bindings\fluid_cmd.c">
+    <ClCompile Include="..\src\libs\fluidsynth\fluid_cmd.c">
       <Filter>Sources\libs\fluidsynth</Filter>
     </ClCompile>
-    <ClCompile Include="..\src\libs\fluidsynth\utils\fluid_conv.c">
+    <ClCompile Include="..\src\libs\fluidsynth\fluid_conv.c">
       <Filter>Sources\libs\fluidsynth</Filter>
     </ClCompile>
-    <ClCompile Include="..\src\libs\fluidsynth\sfloader\fluid_defsfont.c">
+    <ClCompile Include="..\src\libs\fluidsynth\fluid_defsfont.c">
       <Filter>Sources\libs\fluidsynth</Filter>
     </ClCompile>
     <ClCompile Include="..\src\libs\fluidsynth\fluid_dll.c">
       <Filter>Sources\libs\fluidsynth</Filter>
     </ClCompile>
-    <ClCompile Include="..\src\libs\fluidsynth\drivers\fluid_dsound.c">
+    <ClCompile Include="..\src\libs\fluidsynth\fluid_dsound.c">
       <Filter>Sources\libs\fluidsynth</Filter>
     </ClCompile>
-    <ClCompile Include="..\src\libs\fluidsynth\synth\fluid_event.c">
+    <ClCompile Include="..\src\libs\fluidsynth\fluid_event.c">
       <Filter>Sources\libs\fluidsynth</Filter>
     </ClCompile>
-    <ClCompile Include="..\src\libs\fluidsynth\bindings\fluid_filerenderer.c">
+    <ClCompile Include="..\src\libs\fluidsynth\fluid_filerenderer.c">
       <Filter>Sources\libs\fluidsynth</Filter>
     </ClCompile>
-    <ClCompile Include="..\src\libs\fluidsynth\synth\fluid_gen.c">
+    <ClCompile Include="..\src\libs\fluidsynth\fluid_gen.c">
       <Filter>Sources\libs\fluidsynth</Filter>
     </ClCompile>
-    <ClCompile Include="..\src\libs\fluidsynth\utils\fluid_hash.c">
+    <ClCompile Include="..\src\libs\fluidsynth\fluid_hash.c">
       <Filter>Sources\libs\fluidsynth</Filter>
     </ClCompile>
-    <ClCompile Include="..\src\libs\fluidsynth\rvoice\fluid_iir_filter.c">
+    <ClCompile Include="..\src\libs\fluidsynth\fluid_iir_filter.c">
       <Filter>Sources\libs\fluidsynth</Filter>
     </ClCompile>
-    <ClCompile Include="..\src\libs\fluidsynth\rvoice\fluid_lfo.c">
+    <ClCompile Include="..\src\libs\fluidsynth\fluid_lfo.c">
       <Filter>Sources\libs\fluidsynth</Filter>
     </ClCompile>
-    <ClCompile Include="..\src\libs\fluidsynth\utils\fluid_list.c">
+    <ClCompile Include="..\src\libs\fluidsynth\fluid_list.c">
       <Filter>Sources\libs\fluidsynth</Filter>
     </ClCompile>
-    <ClCompile Include="..\src\libs\fluidsynth\drivers\fluid_mdriver.c">
+    <ClCompile Include="..\src\libs\fluidsynth\fluid_mdriver.c">
       <Filter>Sources\libs\fluidsynth</Filter>
     </ClCompile>
-    <ClCompile Include="..\src\libs\fluidsynth\midi\fluid_midi.c">
+    <ClCompile Include="..\src\libs\fluidsynth\fluid_midi.c">
       <Filter>Sources\libs\fluidsynth</Filter>
     </ClCompile>
-    <ClCompile Include="..\src\libs\fluidsynth\midi\fluid_midi_router.c">
+    <ClCompile Include="..\src\libs\fluidsynth\fluid_midi_router.c">
       <Filter>Sources\libs\fluidsynth</Filter>
     </ClCompile>
-    <ClCompile Include="..\src\libs\fluidsynth\synth\fluid_mod.c">
+    <ClCompile Include="..\src\libs\fluidsynth\fluid_mod.c">
       <Filter>Sources\libs\fluidsynth</Filter>
     </ClCompile>
-    <ClCompile Include="..\src\libs\fluidsynth\sfloader\fluid_ramsfont.c">
+    <ClCompile Include="..\src\libs\fluidsynth\fluid_ramsfont.c">
       <Filter>Sources\libs\fluidsynth</Filter>
     </ClCompile>
-    <ClCompile Include="..\src\libs\fluidsynth\rvoice\fluid_rev.c">
+    <ClCompile Include="..\src\libs\fluidsynth\fluid_rev.c">
       <Filter>Sources\libs\fluidsynth</Filter>
     </ClCompile>
-    <ClCompile Include="..\src\libs\fluidsynth\utils\fluid_ringbuffer.c">
+    <ClCompile Include="..\src\libs\fluidsynth\fluid_ringbuffer.c">
       <Filter>Sources\libs\fluidsynth</Filter>
     </ClCompile>
-    <ClCompile Include="..\src\libs\fluidsynth\rvoice\fluid_rvoice.c">
+    <ClCompile Include="..\src\libs\fluidsynth\fluid_rvoice.c">
       <Filter>Sources\libs\fluidsynth</Filter>
     </ClCompile>
-    <ClCompile Include="..\src\libs\fluidsynth\rvoice\fluid_rvoice_dsp.c">
+    <ClCompile Include="..\src\libs\fluidsynth\fluid_rvoice_dsp.c">
       <Filter>Sources\libs\fluidsynth</Filter>
     </ClCompile>
-    <ClCompile Include="..\src\libs\fluidsynth\rvoice\fluid_rvoice_event.c">
+    <ClCompile Include="..\src\libs\fluidsynth\fluid_rvoice_event.c">
       <Filter>Sources\libs\fluidsynth</Filter>
     </ClCompile>
-    <ClCompile Include="..\src\libs\fluidsynth\rvoice\fluid_rvoice_mixer.c">
+    <ClCompile Include="..\src\libs\fluidsynth\fluid_rvoice_mixer.c">
       <Filter>Sources\libs\fluidsynth</Filter>
     </ClCompile>
-    <ClCompile Include="..\src\libs\fluidsynth\drivers\fluid_sdl2.c">
+    <ClCompile Include="..\src\libs\fluidsynth\fluid_sdl2.c">
       <Filter>Sources\libs\fluidsynth</Filter>
     </ClCompile>
-    <ClCompile Include="..\src\libs\fluidsynth\midi\fluid_seq.c">
+    <ClCompile Include="..\src\libs\fluidsynth\fluid_seq.c">
       <Filter>Sources\libs\fluidsynth</Filter>
     </ClCompile>
-    <ClCompile Include="..\src\libs\fluidsynth\midi\fluid_seqbind.c">
+    <ClCompile Include="..\src\libs\fluidsynth\fluid_seqbind.c">
       <Filter>Sources\libs\fluidsynth</Filter>
     </ClCompile>
-    <ClCompile Include="..\src\libs\fluidsynth\utils\fluid_settings.c">
+    <ClCompile Include="..\src\libs\fluidsynth\fluid_settings.c">
       <Filter>Sources\libs\fluidsynth</Filter>
     </ClCompile>
-    <ClCompile Include="..\src\libs\fluidsynth\synth\fluid_synth.c">
+    <ClCompile Include="..\src\libs\fluidsynth\fluid_synth.c">
       <Filter>Sources\libs\fluidsynth</Filter>
     </ClCompile>
-    <ClCompile Include="..\src\libs\fluidsynth\utils\fluid_sys.c">
+    <ClCompile Include="..\src\libs\fluidsynth\fluid_sys.c">
       <Filter>Sources\libs\fluidsynth</Filter>
     </ClCompile>
-    <ClCompile Include="..\src\libs\fluidsynth\synth\fluid_tuning.c">
+    <ClCompile Include="..\src\libs\fluidsynth\fluid_tuning.c">
       <Filter>Sources\libs\fluidsynth</Filter>
     </ClCompile>
-    <ClCompile Include="..\src\libs\fluidsynth\synth\fluid_voice.c">
+    <ClCompile Include="..\src\libs\fluidsynth\fluid_voice.c">
       <Filter>Sources\libs\fluidsynth</Filter>
     </ClCompile>
     <ClCompile Include="..\src\hardware\opl2board\opl2board.cpp">

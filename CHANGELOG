@@ -85,6 +85,8 @@
   - Improved Flatpak support for Linux. (rderooy)
   - Fixed shelling from programs may not work when the
     shell config option is set. (Wengier)
+  - Fixed command-line option -socket not working for
+    the nullmodem feature. (Wengier)
   - The archive attribute will no longer automatically
     be applied to directories on non-Windows systems.
     This fixed issue with PLAYMIDI.EXE from Gravis

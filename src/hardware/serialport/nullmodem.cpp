@@ -25,6 +25,8 @@
 #include "serialport.h"
 #include "nullmodem.h"
 
+int socknum=-1;
+
 CNullModem::CNullModem(Bitu id, CommandLine* cmd):CSerial (id, cmd) {
 	Bitu temptcpport=23;
 	memset(&telClient, 0, sizeof(telClient));
@@ -104,12 +106,11 @@ CNullModem::CNullModem(Bitu id, CommandLine* cmd):CSerial (id, cmd) {
 #ifdef NATIVESOCKETS
 		if (Netwrapper_GetCapabilities()&NETWRAPPER_TCP_NATIVESOCKET) {
 			if (bool_temp==1) {
-				int sock;
-				if (control->cmdline->FindInt("-socket",sock,true)) {
+				if (socknum>-1) {
 					dtrrespect=false;
 					transparent=true;
-					LOG_MSG("Inheritance socket handle: %d",sock);
-					if (!ClientConnect(new TCPClientSocket(sock)))
+					LOG_MSG("Inheritance socket handle: %d",socknum);
+					if (!ClientConnect(new TCPClientSocket(socknum)))
 						return;
 				} else {
 					LOG_MSG("Serial%d: -socket parameter missing.",(int)COMNUMBER);

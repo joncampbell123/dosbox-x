@@ -37,7 +37,7 @@
 # define INCL_WIN
 #endif
 
-extern int enablelfn;
+extern int enablelfn, socknum;
 extern bool dpi_aware_enable;
 extern bool log_int21;
 extern bool log_fileio;
@@ -7138,6 +7138,7 @@ bool DOSBOX_parse_argv() {
             fprintf(stderr,"  -nomenu                                 Do not show menu\n");
             fprintf(stderr,"  -showcycles                             Show cycles count\n");
             fprintf(stderr,"  -showrt                                 Show emulation speed relative to realtime\n");
+            fprintf(stderr,"  -socket <socketnum>                     Specify the socket number for the nullmodem emulation\n");
             fprintf(stderr,"  -savedir <path>                         Set save path\n");
             fprintf(stderr,"  -defaultdir <path>                      Set the default working path\n");
             fprintf(stderr,"  -defaultconf                            Use the default config settings\n");
@@ -7342,7 +7343,10 @@ bool DOSBOX_parse_argv() {
             control->opt_earlydebug = true;
             control->opt_console = true;
         }
-        else {
+        else if (optname == "socket") {
+            if (!control->cmdline->NextOptArgv(tmp)) return false;
+            socknum = std::stoi(tmp);
+        } else {
             printf("WARNING: Unknown option %s (first parsing stage)\n",optname.c_str());
         }
     }

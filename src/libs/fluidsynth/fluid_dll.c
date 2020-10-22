@@ -18,9 +18,9 @@
  * 02110-1301, USA
  */
 
-#ifdef WIN32
-#include "utils\fluidsynth_priv.h"
-#include "utils\fluid_sys.h"
+#if !C_FLUIDSYNTH && defined(WIN32)
+#include "fluidsynth_priv.h"
+#include "fluid_sys.h"
 
 static HINSTANCE fluid_hinstance = NULL;
 static HWND fluid_wnd = NULL;
