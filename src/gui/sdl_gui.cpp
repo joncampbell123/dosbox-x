@@ -35,6 +35,7 @@
 #include "control.h"
 #include "shell.h"
 #include "cpu.h"
+#include "midi.h"
 #include "bios_disk.h"
 #include "../dos/drives.h"
 
@@ -1547,6 +1548,38 @@ public:
     }
 };
 
+extern DB_Midi midi;
+extern std::string sffile;
+class ShowMidiDevice : public GUI::ToplevelWindow {
+protected:
+    GUI::Input *name;
+public:
+    ShowMidiDevice(GUI::Screen *parent, int x, int y, const char *title) :
+        ToplevelWindow(parent, x, y, 320, 200, title) {
+            std::string name=!midi.handler||!midi.handler->GetName()?"-":midi.handler->GetName();
+            if (name.size()) {
+                if (name=="mt32") name="MT32";
+                else if (name=="fluidsynth") name="FluidSynth";
+                else name[0]=toupper(name[0]);
+            }
+            std::string midiinfo = "MIDI available: "+std::string(midi.available?"Yes":"No")+"\nMIDI device: "+name+"\nMIDI soundfont file / ROM path:\n"+sffile;
+            std::istringstream in(midiinfo.c_str());
+            int r=0;
+            if (in)	for (std::string line; std::getline(in, line); ) {
+                r+=25;
+                new GUI::Label(this, 40, r, line.c_str());
+            }
+            (new GUI::Button(this, 140, r+30, "Close", 70))->addActionHandler(this);
+    }
+
+    void actionExecuted(GUI::ActionEventSource *b, const GUI::String &arg) {
+        (void)b;//UNUSED
+        if (arg == "Close")
+            close();
+        if (shortcut) running = false;
+    }
+};
+
 class ShowDriveInfo : public GUI::ToplevelWindow {
 protected:
     GUI::Input *name;
@@ -2064,6 +2097,10 @@ static void UI_Select(GUI::ScreenSDL *screen, int select) {
         case 20: {
             auto *np5 = new ShowMixerInfo(screen, 90, 70, "Current sound levels in DOSBox-X");
             np5->raise();
+            } break;
+        case 21: {
+            auto *np6 = new ShowMidiDevice(screen, 150, 100, "Current MIDI device in DOSBox-X");
+            np6->raise();
             } break;
         case 23: {
             auto *np7 = new ShowLoadWarning(screen, 150, 120, "DOSBox-X version mismatch. Load the state anyway?");

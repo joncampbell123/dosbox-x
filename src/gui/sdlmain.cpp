@@ -7738,6 +7738,22 @@ bool mixer_info_menu_callback(DOSBoxMenu * const menu,DOSBoxMenu::item * const m
     return true;
 }
 
+bool midi_device_menu_callback(DOSBoxMenu * const menu,DOSBoxMenu::item * const menuitem) {
+    (void)menu;//UNUSED
+    (void)menuitem;//UNUSED
+    MAPPER_ReleaseAllKeys();
+
+    GFX_LosingFocus();
+
+    GUI_Shortcut(21);
+
+    MAPPER_ReleaseAllKeys();
+
+    GFX_LosingFocus();
+    return true;
+}
+
+
 bool cpu_speed_emulate_menu_callback(DOSBoxMenu * const menu,DOSBoxMenu::item * const menuitem) {
     (void)menu;//UNUSED
     int cyclemu = 0;
@@ -9915,6 +9931,8 @@ int main(int argc, char* argv[]) SDL_MAIN_NOEXCEPT {
                     set_callback_function(mixer_mute_menu_callback);
                 mainMenu.alloc_item(DOSBoxMenu::item_type_id,"mixer_info").set_text("Show sound levels").
                     set_callback_function(mixer_info_menu_callback);
+                mainMenu.alloc_item(DOSBoxMenu::item_type_id,"midi_info").set_text("Show current MIDI device").
+                    set_callback_function(midi_device_menu_callback);
             }
         }
         {

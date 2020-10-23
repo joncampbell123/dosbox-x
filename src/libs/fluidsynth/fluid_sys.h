@@ -345,7 +345,7 @@ void fluid_clear_fpe_i386(void);
 #else
 #define fluid_sleep(ms) usleep((ms) * 1000)
 #endif
-#if defined(WIN32) && !defined(MINGW32)
+#if defined(WIN32) && !defined(__MINGW32__)
 #define FLUID_STRCASECMP         _stricmp
 #else
 #define FLUID_STRCASECMP         strcasecmp

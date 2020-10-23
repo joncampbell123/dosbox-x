@@ -258,6 +258,7 @@ public:
                 return false;
             }
         }
+        sffile=std::string(romDir);
 
         service->setPartialCount(uint32_t(section->Get_int("mt32.partials")));
         service->setAnalogOutputMode((MT32Emu::AnalogOutputMode)section->Get_int("mt32.analog"));

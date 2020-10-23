@@ -27,24 +27,7 @@
 extern "C" {
 #endif
 
-#if defined(WIN32)
-#if defined(FLUIDSYNTH_DLL_EXPORTS)
-#define FLUIDSYNTH_API __declspec(dllexport)
-#elif defined(FLUIDSYNTH_NOT_A_DLL)
 #define FLUIDSYNTH_API
-#else
-#define FLUIDSYNTH_API __declspec(dllimport)
-#endif
-
-#elif defined(MACOS9)
-#define FLUIDSYNTH_API __declspec(export)
-
-#elif defined(__GNUC__)
-#define FLUIDSYNTH_API __attribute__ ((visibility ("default")))
-#else
-#define FLUIDSYNTH_API
-#endif
-
 
 /**
  * @file fluidsynth.h

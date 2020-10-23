@@ -45,6 +45,10 @@ dosbox_x_LDADD += libs/mt32/libmt32.a
 endif
 endif
 
+if !EMSCRIPTEN
+dosbox_x_LDADD += libs/fluidsynth/libfluidsynth.a
+endif
+
 if EMSCRIPTEN
 dosbox_x_js:
 	emcc -s TOTAL_MEMORY=134217728 -s DISABLE_EXCEPTION_CATCHING=0 -s EMTERPRETIFY=1 -s EMTERPRETIFY_ASYNC=1 -s EMTERPRETIFY_FILE=dosbox-x.data $(dosbox_x_OBJECTS) $(dosbox_x_LDADD) $(LIBS) $(dosbox_x_OBJECTS) $(dosbox_x_DEPENDENCIES) $(EXTRA_dosbox_x_DEPENDENCIES) -o dosbox-x.html

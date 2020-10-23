@@ -69,6 +69,7 @@ MidiHandler::MidiHandler(){
 
 MidiHandler Midi_none;
 DB_Midi midi;
+std::string sffile="Not available";
 
 static struct {
 	bool init;
@@ -96,7 +97,7 @@ static struct {
 #include "midi_mt32.h"
 #endif
 
-#if C_FLUIDSYNTH
+#if C_FLUIDSYNTH || defined(WIN32)
 #include "midi_synth.h"
 #endif
 
@@ -583,7 +584,7 @@ public:
 		Section_prop * section = static_cast<Section_prop *>(configuration);
 		const char * dev=section->Get_string("mididevice");
 		std::string fullconf = section->Get_string("midiconfig");
-#if C_FLUIDSYNTH
+#if C_FLUIDSYNTH || defined(WIN32)
 		synthsamplerate = section->Get_int("samplerate");
 		if (synthsamplerate == 0) synthsamplerate = 44100;
 #endif

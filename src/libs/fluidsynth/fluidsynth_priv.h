@@ -32,7 +32,7 @@
 #include "config_maxmsp43.h"
 #endif
 
-#if defined(WIN32) && !defined(MINGW32)
+#if defined(WIN32)
 #include "fluidsynth/config_win32.h"
 #endif
 
@@ -118,21 +118,6 @@
 #include <windows.h>
 #endif
 
-/* MinGW32 special defines */
-#ifdef MINGW32
-
-#include <stdint.h>
-#define snprintf _snprintf
-#define vsnprintf _vsnprintf
-
-#define DSOUND_SUPPORT 1
-#define WINMIDI_SUPPORT 1
-#define STDIN_FILENO 0
-#define STDOUT_FILENO 1
-#define STDERR_FILENO 2
-
-#endif
-
 /* Darwin special defines (taken from config_macosx.h) */
 #ifdef DARWIN
 #define MACINTOSH
@@ -174,7 +159,7 @@ typedef int fluid_socket_t;
 
 /** Integer types  */
 
-#if defined(MINGW32)
+#if defined(__MINGW32__)
 
 /* Windows using MinGW32 */
 typedef int8_t             sint8;

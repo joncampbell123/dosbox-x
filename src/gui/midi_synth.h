@@ -16,7 +16,11 @@
  *  51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
 
+#if C_FLUIDSYNTH
 #include <fluidsynth.h>
+#else
+#include "fluidsynth.h"
+#endif
 #include <math.h>
 #include <string.h>
 #include "control.h"
@@ -181,6 +185,7 @@ public:
 			delete_fluid_settings(settings);
 			return false;
 		}
+        sffile=std::string(conf);
 
 		synthchan = MIXER_AddChannel(synth_CallBack, (unsigned int)synthsamplerate, "SYNTH");
 		synthchan->Enable(false);
@@ -368,6 +373,7 @@ public:
 				soundfont_id = -1;
 			}
 			else {
+				sffile=soundfont;
 				LOG_MSG("MIDI:fluidsynth: Loaded SoundFont: %s", soundfont.c_str());
 			}
 		}

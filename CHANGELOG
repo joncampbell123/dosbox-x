@@ -38,6 +38,13 @@
     be similar to the setting "fixed" but the reported
     free disk size will also change relative to the
     change of the free disk size ever since. (Wengier)
+  - Support for FluidSynth MIDI Synthesizer is now
+    included in the MinGW builds by default just like
+    Visual Studio builds. Set "mididevice=fluidsynth"
+    and a soundfont file to use it. (Wengier)
+  - Add menu item "Show MIDI device" under "Sound" menu
+    to show the current MIDI device and soundfont file
+    (or ROM path for MT32) in use. (Wengier)
   - Added "Mount multiple disk/CD images" option to the
     mounting options of the Drive menu to allow users
     to mount more than one disk/CD images to a drive,

@@ -17,8 +17,18 @@
 #define AUFILE_SUPPORT 0
 #define WITH_FLOAT 1
 
+/* MinGW32 special defines */
+#if defined(__MINGW32__)
+#include <stdint.h>
+//#define snprintf _snprintf
+#define vsnprintf _vsnprintf
+#else
 #if _MSC_VER < 1900
 #define snprintf _snprintf
+#endif
+#if _MSC_VER < 1500
+#define vsnprintf _vsnprintf
+#endif
 #endif
 
 #if _MSC_VER
@@ -27,9 +37,6 @@
 
 #define strcasecmp _stricmp
 
-#if _MSC_VER < 1500
-#define vsnprintf _vsnprintf
-#endif
 
 #define STDIN_FILENO 0
 #define STDOUT_FILENO 1
