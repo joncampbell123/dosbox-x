@@ -7136,12 +7136,12 @@ bool DOSBOX_parse_argv() {
             fprintf(stderr,"  -startmapper                            Start DOSBox-X with the mapper editor\n");
             fprintf(stderr,"  -nogui                                  Do not show GUI\n");
             fprintf(stderr,"  -nomenu                                 Do not show menu\n");
-            fprintf(stderr,"  -showcycles                             Show cycles count\n");
+            fprintf(stderr,"  -showcycles                             Show cycles count in the title bar\n");
             fprintf(stderr,"  -showrt                                 Show emulation speed relative to realtime\n");
-            fprintf(stderr,"  -socket <socketnum>                     Specify the socket number for the nullmodem emulation\n");
-            fprintf(stderr,"  -savedir <path>                         Set save path\n");
-            fprintf(stderr,"  -defaultdir <path>                      Set the default working path\n");
-            fprintf(stderr,"  -defaultconf                            Use the default config settings\n");
+            fprintf(stderr,"  -socket <socketnum>                     Specify the socket number for null-modem emulation\n");
+            fprintf(stderr,"  -savedir <path>                         Set path for the save slots\n");
+            fprintf(stderr,"  -defaultdir <path>                      Set the default working path for DOSBox-X\n");
+            fprintf(stderr,"  -defaultconf                            Use the default config settings for DOSBox-X\n");
 #if defined(WIN32)
             fprintf(stderr,"  -disable-numlock-check                  Disable NumLock check (Windows version only)\n");
 #endif
@@ -10913,10 +10913,10 @@ bool OpenGL_using(void) {
 }
 
 bool Get_Custom_SaveDir(std::string& savedir) {
-    (void)savedir;//UNUSED
-    if (custom_savedir.length() != 0)
+    if (custom_savedir.length() != 0) {
+        savedir=custom_savedir;
         return true;
-
+    }
     return false;
 }
 
