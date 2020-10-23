@@ -22,17 +22,7 @@
 #ifndef _FLUIDSYNTH_PRIV_H
 #define _FLUIDSYNTH_PRIV_H
 
-//#include <glib.h>
-
-#if HAVE_CONFIG_H
-#include "fluidsynth/config_win32.h"
-#endif
-
-#if defined(__POWERPC__) && !(defined(__APPLE__) && defined(__MACH__))
-#include "config_maxmsp43.h"
-#endif
-
-#if defined(WIN32)
+#if HAVE_CONFIG_H || defined(WIN32)
 #include "fluidsynth/config_win32.h"
 #endif
 
