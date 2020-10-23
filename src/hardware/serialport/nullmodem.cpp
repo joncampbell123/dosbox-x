@@ -19,13 +19,14 @@
 
 #include "dosbox.h"
 
+
 #if C_MODEM
 
 #include "control.h"
 #include "serialport.h"
 #include "nullmodem.h"
 
-int socknum=-1;
+extern int socknum;
 
 CNullModem::CNullModem(Bitu id, CommandLine* cmd):CSerial (id, cmd) {
 	Bitu temptcpport=23;

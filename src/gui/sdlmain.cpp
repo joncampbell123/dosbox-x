@@ -37,7 +37,8 @@
 # define INCL_WIN
 #endif
 
-extern int enablelfn, socknum;
+int socknum=-1;
+extern int enablelfn;
 extern bool dpi_aware_enable;
 extern bool log_int21;
 extern bool log_fileio;
