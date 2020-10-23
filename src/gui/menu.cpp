@@ -196,6 +196,7 @@ static const char *def_menu_main_clipboard[] =
 #if !defined(LINUX) || !C_X11 || defined(C_SDL2)
     "--",
 #endif
+    "screen_to_clipboard",
     "mapper_paste",
     "clipboard_paste_stop",
     NULL

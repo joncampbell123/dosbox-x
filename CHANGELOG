@@ -67,13 +67,16 @@
     ("Send special key" under "Main") is added. Also,
     the PC-98 STOP key now functions the same as the
     Ctrl+C and Ctrl+Break keys in IBM PC mode.
+  - Added two new menu item in the "Shared clipboard
+    functions" menu group under "Main": "Copy all text
+    in the screen" which will copy all screen text to
+    the clipboard, and "Stop clipboard pasting" which
+    allow the user to stop the pasting in the middle
+    of pasting long clipboard content. (Wengier)
   - The mouse copy/paste feature is now available for
     non-Windows systems on SDL2 builds. Also, pasting
     from the clipboard with a mapped shortcut is also
-    available for Linux/X11 on SDL1 builds. A new menu
-    item "Stop clipboard pasting" is added to allow the
-    user to stop the pasting in the middle while long
-    clipboard content is being pasted. (Wengier)
+    available for Linux/X11 on SDL1 builds. (Wengier)
   - Added "Use US keyboard layout" toggle menu item in
     the "PC-98" menu group under "Video" to select
     whether to force the default US keyboard layout in
