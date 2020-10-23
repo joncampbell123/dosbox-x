@@ -67,12 +67,12 @@
     ("Send special key" under "Main") is added. Also,
     the PC-98 STOP key now functions the same as the
     Ctrl+C and Ctrl+Break keys in IBM PC mode.
-  - Added two new menu item in the "Shared clipboard
-    functions" menu group under "Main": "Copy all text
-    in the screen" which will copy all screen text to
-    the clipboard, and "Stop clipboard pasting" which
-    allow the user to stop the pasting in the middle
-    of pasting long clipboard content. (Wengier)
+  - Added two new menu items in the "Shared clipboard
+    functions" menu group under "Main", including "Copy
+    all text on the DOS screen" which will copy all
+    screen text to the clipboard, and "Stop clipboard
+    pasting" which allows user to stop pasting in the
+    middle of pasting long clipboard content. (Wengier)
   - The mouse copy/paste feature is now available for
     non-Windows systems on SDL2 builds. Also, pasting
     from the clipboard with a mapped shortcut is also

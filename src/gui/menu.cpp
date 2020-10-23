@@ -185,9 +185,11 @@ static const char *def_menu_main_wheelarrow[] =
 /* main -> shared clipboard menu ("SharedClipboard") */
 static const char *def_menu_main_clipboard[] =
 {
+#if defined(WIN32) || defined(C_SDL2)
     "clipboard_quick",
     "clipboard_right",
     "clipboard_middle",
+#endif
 #if defined(WIN32)
     "--",
     "clipboard_device",

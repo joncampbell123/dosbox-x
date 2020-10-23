@@ -6730,7 +6730,7 @@ bool PasteClipboardNext() {
 extern uint16_t cpMap[256];
 void CopyClipboard(bool all) {
 	uint16_t len=0;
-	const char* text = (char *)(all?Mouse_GetSelected(0-sdl.clip.x,0-sdl.clip.y,currentWindowWidth-sdl.clip.x,currentWindowHeight-sdl.clip.y,(int)(currentWindowWidth-sdl.clip.x),(int)(currentWindowHeight-sdl.clip.y), &len):Mouse_GetSelected(mouse_start_x-sdl.clip.x,mouse_start_y-sdl.clip.y,mouse_end_x-sdl.clip.x,mouse_end_y-sdl.clip.y,(int)(currentWindowWidth-sdl.clip.x),(int)(currentWindowHeight-sdl.clip.y), &len));
+	const char* text = (char *)(all?Mouse_GetSelected(0-sdl.clip.x,0-sdl.clip.y,currentWindowWidth-1-sdl.clip.x,currentWindowHeight-1-sdl.clip.y,(int)(currentWindowWidth-sdl.clip.x),(int)(currentWindowHeight-sdl.clip.y), &len):Mouse_GetSelected(mouse_start_x-sdl.clip.x,mouse_start_y-sdl.clip.y,mouse_end_x-sdl.clip.x,mouse_end_y-sdl.clip.y,(int)(currentWindowWidth-sdl.clip.x),(int)(currentWindowHeight-sdl.clip.y), &len));
 	if (OpenClipboard(NULL)&&EmptyClipboard()) {
 		HGLOBAL clipbuffer = GlobalAlloc(GMEM_DDESHARE, (len+1)*2);
 		LPWSTR buffer = static_cast<LPWSTR>(GlobalLock(clipbuffer));
@@ -6762,12 +6762,14 @@ static BOOL WINAPI ConsoleEventHandler(DWORD event) {
 #elif defined(C_SDL2)
 typedef char host_cnv_char_t;
 host_cnv_char_t *CodePageGuestToHost(const char *s);
-char *str_replace(char *orig, char *rep, char *with);
-void removeChar(char *str, char c);
 void CopyClipboard(bool all) {
 	uint16_t len=0;
-	char* text = (char *)(all?Mouse_GetSelected(0-sdl.clip.x,0-sdl.clip.y,currentWindowWidth-sdl.clip.x,currentWindowHeight-sdl.clip.y,(int)(currentWindowWidth-sdl.clip.x),(int)(currentWindowHeight-sdl.clip.y), &len):Mouse_GetSelected(mouse_start_x-sdl.clip.x,mouse_start_y-sdl.clip.y,mouse_end_x-sdl.clip.x,mouse_end_y-sdl.clip.y,(int)(currentWindowWidth-sdl.clip.x),(int)(currentWindowHeight-sdl.clip.y), &len));
-    removeChar(text, 13);
+	char* text = (char *)(all?Mouse_GetSelected(0-sdl.clip.x,0-sdl.clip.y,currentWindowWidth-1-sdl.clip.x,currentWindowHeight-1-sdl.clip.y,(int)(currentWindowWidth-sdl.clip.x),(int)(currentWindowHeight-sdl.clip.y), &len):Mouse_GetSelected(mouse_start_x-sdl.clip.x,mouse_start_y-sdl.clip.y,mouse_end_x-sdl.clip.x,mouse_end_y-sdl.clip.y,(int)(currentWindowWidth-sdl.clip.x),(int)(currentWindowHeight-sdl.clip.y), &len));
+    unsigned int k=0;
+    for (unsigned int i=0; i<len; i++)
+        if (text[i]&&text[i]!=13)
+            text[k++]=text[i];
+    text[k]=0;
     std::string result="";
     std::istringstream iss(text);
     for (std::string token; std::getline(iss, token); ) {
@@ -10323,7 +10325,7 @@ int main(int argc, char* argv[]) SDL_MAIN_NOEXCEPT {
         mainMenu.alloc_item(DOSBoxMenu::item_type_id,"clipboard_quick").set_text("Quick edit: copy on select and paste with mouse button").set_callback_function(direct_mouse_clipboard_menu_callback).check(direct_mouse_clipboard);
         mainMenu.alloc_item(DOSBoxMenu::item_type_id,"clipboard_right").set_text("Via right mouse button").set_callback_function(right_mouse_clipboard_menu_callback).check(mbutton==3);
         mainMenu.alloc_item(DOSBoxMenu::item_type_id,"clipboard_middle").set_text("Via middle mouse button").set_callback_function(middle_mouse_clipboard_menu_callback).check(mbutton==2);
-        mainMenu.alloc_item(DOSBoxMenu::item_type_id,"screen_to_clipboard").set_text("Copy all text in the screen").set_callback_function(screen_to_clipboard_menu_callback);
+        mainMenu.alloc_item(DOSBoxMenu::item_type_id,"screen_to_clipboard").set_text("Copy all text on the DOS screen").set_callback_function(screen_to_clipboard_menu_callback);
 #endif
 #if defined (WIN32)
         if (control->SecureMode()) clipboard_dosapi = false;
