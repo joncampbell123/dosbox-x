@@ -72,6 +72,7 @@ bool force_nocachedir = false;
 bool wpcolon = true;
 bool startcmd = false;
 bool startwait = true;
+bool startquiet = false;
 bool mountwarning = true;
 bool qmount = false;
 
@@ -6071,7 +6072,7 @@ static void LS_ProgramStart(Program * * make) {
 #if defined (WIN32) && !defined(HX_DOS)
 #include <sstream>
 #include <shellapi.h>
-extern bool ctrlbrk, startwait;
+extern bool ctrlbrk;
 extern std::string startincon;
 SHELLEXECUTEINFO lpExecInfo;
 
@@ -6200,7 +6201,7 @@ public:
             strcat(winDirNew, Drives[DOS_GetDefaultDrive()]->curdir);
             if (SetCurrentDirectory(winDirNew)) setdir=true;
         }
-        WriteOut("Starting %s...\n", cmd);
+        if (!startquiet) WriteOut("Starting %s...\n", cmd);
         ShellExecuteEx(&lpExecInfo);
         int ErrorCode = GetLastError();
         if (setdir) SetCurrentDirectory(winDirCur);
@@ -6220,7 +6221,7 @@ public:
                     exitCode=0;
                     break;
                 }
-                if (++count==20000&&ret&&exitCode==STILL_ACTIVE) WriteOut("(Press Ctrl+C to exit immediately)\n");
+                if (++count==20000&&ret&&exitCode==STILL_ACTIVE&&!startquiet) WriteOut("(Press Ctrl+C to exit immediately)\n");
             } while (ret!=0&&exitCode==STILL_ACTIVE);
             ErrorCode = GetLastError();
             CloseHandle(lpExecInfo.hProcess);

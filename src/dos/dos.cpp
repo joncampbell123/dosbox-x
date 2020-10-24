@@ -104,7 +104,7 @@ int maxdrive=1;
 int enablelfn=-1;
 bool uselfn;
 extern bool int15_wait_force_unmask_irq;
-extern bool infix, winrun, startcmd, startwait;
+extern bool infix, winrun, startcmd, startwait, startquiet, winautorun;
 extern bool startup_state_numlock, mountwarning, clipboard_dosapi;
 std::string startincon;
 
@@ -734,11 +734,16 @@ static Bitu DOS_21Handler(void) {
                 uint8_t c;uint16_t n=1;
                 PhysPt buf=SegPhys(ds)+reg_dx;
                 std::string str="";
-                while ((c=mem_readb(buf++))!='$') {
-                    str+=std::string(1, c);
-                    DOS_WriteFile(STDOUT,&c,&n);
-                }
-                if ((str.length()==42&&!strncmp(str.c_str(),"This program cannot be run in DOS mode.",39))||(!strncmp(str.c_str(),"This program requires Microsoft Windows.",40))||(str.length()==38&&!strncmp(str.c_str(),"This program must be run under Win32",36))) reqwin=true;
+                if (mem_readb(buf)=='T')
+                    while ((c=mem_readb(buf++))!='$') {
+                        str+=std::string(1, c);
+                        if (str.length()>42) break;
+                    }
+                buf=SegPhys(ds)+reg_dx;
+                reqwin=(str.length()==42&&!strncmp(str.c_str(),"This program cannot be run in DOS mode.",39))||(!strncmp(str.c_str(),"This program requires Microsoft Windows.",40))||(str.length()==38&&!strncmp(str.c_str(),"This program must be run under Win32",36));
+                if (!winautorun||!reqwin||control->SecureMode()||!startquiet)
+                    while ((c=mem_readb(buf++))!='$')
+                        DOS_WriteFile(STDOUT,&c,&n);
                 reg_al=c;
             }
             break;

@@ -123,6 +123,10 @@
     section; SDL2 builds only) to bypass the operating
     system's mouse acceleration & sensitivity settings.
     Implemented by NicknineTheEagle.
+  - Added config option "startquiet" (in [dos] section)
+    which when set to true will silence the information
+    messages before launching Windows programs to run
+    on the Windows host. (Wengier)
   - Integrated SVN commits (Allofich)
     - r4371: Fix regression in Clue: Master Detective.
     - r4370: As an adjunct to r4369, make the reference

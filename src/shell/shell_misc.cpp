@@ -886,7 +886,7 @@ overflow:
 std::string full_arguments = "";
 intptr_t hret=0;
 bool infix=false, winautorun=false;
-extern bool packerr, reqwin, startwait, ctrlbrk, mountwarning;
+extern bool packerr, reqwin, startwait, startquiet, ctrlbrk, mountwarning;
 #if defined (WIN32) && !defined(HX_DOS)
 void EndRunProcess() {
     if(hret) {
@@ -1189,7 +1189,7 @@ continue_1:
                     SHELLEXECUTEINFO lpExecInfo;
                     strcpy(comline, args);
                     strcpy(comline, trim(p));
-                    WriteOut("Now run it as a Windows application...\r\n");
+                    if (!startquiet) WriteOut("Now run it as a Windows application...\r\n");
                     char dir[CROSS_LEN+15];
                     DWORD temp = (DWORD)SHGetFileInfo(winName,NULL,NULL,NULL,SHGFI_EXETYPE);
                     if (temp==0) temp = (DWORD)SHGetFileInfo((std::string(winDirNew)+"\\"+std::string(fullname)).c_str(),NULL,NULL,NULL,SHGFI_EXETYPE);
@@ -1231,7 +1231,7 @@ continue_1:
                                 exitCode=0;
                                 break;
                             }
-                            if (++count==20000) WriteOut("(Press Ctrl+C to exit immediately)\n");
+                            if (++count==20000&&!startquiet) WriteOut("(Press Ctrl+C to exit immediately)\n");
                         }
                         dos.return_code = exitCode&255;
                         dos.return_mode = 0;
@@ -1244,8 +1244,10 @@ continue_1:
                     bool ret=hret == 0;
                     hret=0;
                     return ret;
-                }
-            }
+                } else if (startquiet)
+                    WriteOut("This program cannot be run in DOS mode.\n");
+            } else if (startquiet)
+                WriteOut("This program cannot be run in DOS mode.\n");
 #endif
         }
 		packerr=false;

@@ -38,7 +38,7 @@ Bitu call_program;
 
 extern int enablelfn, paste_speed, wheel_key, freesizecap;
 extern const char *modifier;
-extern bool dos_kernel_disabled, force_nocachedir, wpcolon, enable_config_as_shell_commands, load, winrun, winautorun, startwait, mountwarning, wheel_guest, clipboard_dosapi;
+extern bool dos_kernel_disabled, force_nocachedir, wpcolon, enable_config_as_shell_commands, load, winrun, winautorun, startwait, startquiet, mountwarning, wheel_guest, clipboard_dosapi;
 
 /* This registers a file on the virtual drive and creates the correct structure for it*/
 
@@ -1124,6 +1124,8 @@ void CONFIG::Run(void) {
 							} else if (!strcasecmp(inputline.substr(0, 10).c_str(), "startwait=")) {
 								startwait = section->Get_bool("startwait");
 								mainMenu.get_item("dos_win_wait").check(startwait).enable(true).refresh_item(mainMenu);
+							} else if (!strcasecmp(inputline.substr(0, 11).c_str(), "startquiet=")) {
+								startquiet = section->Get_bool("startquiet");
 #endif
                             }
 						}
