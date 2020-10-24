@@ -64,6 +64,7 @@ static decoder_element decoders[] =
 {
     { 0, &__Sound_DecoderFunctions_WAV },
     { 0, &__Sound_DecoderFunctions_VORBIS },
+//    { 0, &__Sound_DecoderFunctions_OPUS },
     { 0, &__Sound_DecoderFunctions_FLAC },
     { 0, &__Sound_DecoderFunctions_MP3 },
     { 0, NULL }

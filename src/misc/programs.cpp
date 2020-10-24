@@ -1126,6 +1126,7 @@ void CONFIG::Run(void) {
 								mainMenu.get_item("dos_win_wait").check(startwait).enable(true).refresh_item(mainMenu);
 							} else if (!strcasecmp(inputline.substr(0, 11).c_str(), "startquiet=")) {
 								startquiet = section->Get_bool("startquiet");
+								mainMenu.get_item("dos_win_quiet").check(startquiet).enable(true).refresh_item(mainMenu);
 #endif
                             }
 						}

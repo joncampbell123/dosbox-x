@@ -134,7 +134,9 @@
   - Added config option "startquiet" (in [dos] section)
     which when set to true will silence the information
     messages before launching Windows programs to run
-    on the Windows host. (Wengier)
+    on the Windows host. A toggle menu item "Quiet mode
+    (no start messages)" is added to the "Windows host
+    applications" menu group in "DOS" menu. (Wengier)
   - Integrated SVN commits (Allofich)
     - r4371: Fix regression in Clue: Master Detective.
     - r4370: As an adjunct to r4369, make the reference

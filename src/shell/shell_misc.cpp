@@ -1162,7 +1162,7 @@ continue_1:
             char comline[256], *p=comline;
             char winDirCur[512], winDirNew[512], winName[256];
             uint8_t drive;
-            if (!DOS_MakeName(name, winDirNew, &drive)) return false;
+            if (!DOS_MakeName(fullname, winDirNew, &drive)) return false;
             if (GetCurrentDirectory(512, winDirCur)&&(!strncmp(Drives[drive]->GetInfo(),"local ",6)||!strncmp(Drives[drive]->GetInfo(),"CDRom ",6))) {
                 bool useoverlay=false;
                 Overlay_Drive *odp = dynamic_cast<Overlay_Drive*>(Drives[drive]);

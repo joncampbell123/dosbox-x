@@ -7932,6 +7932,15 @@ bool dos_win_wait_menu_callback(DOSBoxMenu * const menu,DOSBoxMenu::item * const
     mainMenu.get_item("dos_win_wait").check(startwait).refresh_item(mainMenu);
     return true;
 }
+
+bool dos_win_quiet_menu_callback(DOSBoxMenu * const menu,DOSBoxMenu::item * const menuitem) {
+    (void)menu;//UNUSED
+    (void)menuitem;//UNUSED
+    extern bool startquiet;
+    startquiet = !startquiet;
+    mainMenu.get_item("dos_win_quiet").check(startquiet).refresh_item(mainMenu);
+    return true;
+}
 #endif
 
 bool wheel_updown_menu_callback(DOSBoxMenu * const menu,DOSBoxMenu::item * const menuitem) {
@@ -10051,6 +10060,8 @@ int main(int argc, char* argv[]) SDL_MAIN_NOEXCEPT {
                         set_callback_function(dos_win_autorun_menu_callback);
                     mainMenu.alloc_item(DOSBoxMenu::item_type_id,"dos_win_wait").set_text("Wait for the application if possible").
                         set_callback_function(dos_win_wait_menu_callback);
+                    mainMenu.alloc_item(DOSBoxMenu::item_type_id,"dos_win_quiet").set_text("Quiet mode - no start messages").
+                        set_callback_function(dos_win_quiet_menu_callback);
                 }
             }
 #endif

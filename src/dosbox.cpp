@@ -3677,6 +3677,7 @@ void DOSBOX_SetupConfigSections(void) {
 
     Pbool = secprop->Add_bool("startquiet",Property::Changeable::WhenIdle,false);
     Pbool->Set_help("If set, DOSBox-X will not show information messages before launching Windows programs to run on the host.");
+    Pbool->SetBasic(true);
 
     Pstring = secprop->Add_string("startincon",Property::Changeable::OnlyAtStart,"assoc attrib chcp copy dir echo for ftype help if set type ver vol xcopy");
     Pstring->Set_help("START command will start these commands (separated by space) in a console and wait for a key press before exiting.");
