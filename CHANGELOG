@@ -1,4 +1,6 @@
 0.83.7
+  - The primary DOSBox-X Wiki is now located at the
+    URL: https://dosbox-x.com/wiki (Wengier)
   - Implemented the x86 dynamic core for both 32-bit
     and 64-bit systems by re-porting the code from SVN.
     Dynamic core now supports either the dynamic_x86
@@ -84,6 +86,7 @@
     layout" config option in [pc98] section. Also moved
     the "PC-98 PIT master clock" options from the "DOS"
     menu to this menu group. (Wengier)
+  - Updated MPXPLAY to latest version 1.65. (Wengier)
   - Updated the Windows installer to default to the
     "typical" installation. For the full installation
     start menu items will be added for DOSBox-X builds
@@ -156,9 +159,6 @@
       bioses.
     - r4257: Add simple program that allows you to boot
       into a bios image for running cpu tester bios.
-  - Updated MPXPLAY to latest version 1.65. (Wengier)
-  - The primary DOSBox-X Wiki is now located from the
-    URL https://dosbox-x.com/wiki (Wengier)
 0.83.6
   - Improved internal Voodoo card hardware emulation,
     such as fixing the font issue with the 3dfx version
