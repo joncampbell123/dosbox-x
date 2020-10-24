@@ -2725,6 +2725,9 @@ public:
         case MK_4:
             key=SDL_SCANCODE_4;
             break;
+        case MK_a:
+            key=SDL_SCANCODE_A;
+            break;
         case MK_c:
             key=SDL_SCANCODE_C;
             break;
@@ -2736,6 +2739,9 @@ public:
             break;
         case MK_m:
             key=SDL_SCANCODE_M;
+            break;
+        case MK_q:
+            key=SDL_SCANCODE_Q;
             break;
         case MK_r:
             key=SDL_SCANCODE_R;
@@ -2836,6 +2842,9 @@ public:
         case MK_4:
             key=SDLK_4;
             break;
+        case MK_a:
+            key=SDLK_a;
+            break;
         case MK_c:
             key=SDLK_c;
             break;
@@ -2847,6 +2856,9 @@ public:
             break;
         case MK_m:
             key=SDLK_m;
+            break;
+        case MK_q:
+            key=SDLK_q;
             break;
         case MK_r:
             key=SDLK_r;

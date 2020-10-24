@@ -310,7 +310,7 @@ void menu_update_core(void) {
               cpudecoder == &CPU_Core8086_Prefetch_Run).
         refresh_item(mainMenu);
 #if !defined(C_EMSCRIPTEN)//FIXME: Shutdown causes problems with Emscripten
-    mainMenu.get_item("mapper_simple").
+    mainMenu.get_item("menu_simple").
         check(cpudecoder == &CPU_Core_Simple_Run).
         enable((cpudecoder != &CPU_Core_Prefetch_Run) &&
                (cpudecoder != &CPU_Core286_Prefetch_Run) &&
@@ -318,7 +318,7 @@ void menu_update_core(void) {
                (cpudecoder != &CPU_Core286_Normal_Run) &&
                (cpudecoder != &CPU_Core8086_Normal_Run)).
         refresh_item(mainMenu);
-    mainMenu.get_item("mapper_full").
+    mainMenu.get_item("menu_full").
         check(cpudecoder == &CPU_Core_Full_Run).
         enable((cpudecoder != &CPU_Core_Prefetch_Run) &&
                (cpudecoder != &CPU_Core286_Prefetch_Run) &&
@@ -3002,14 +3002,22 @@ static void CPU_ToggleAutoCycles(bool pressed) {
 }
 
 #if !defined(C_EMSCRIPTEN)
-static void CPU_ToggleFullCore(bool pressed) {
-    if (!pressed)
-	return;
+bool CPU_ToggleFullCore(DOSBoxMenu * const menu, DOSBoxMenu::item * const menuitem) {
     Section* sec=control->GetSection("cpu");
     if(sec) {
 	std::string tmp="core=full";
 	sec->HandleInputline(tmp);
     }
+    return true;
+}
+
+bool CPU_ToggleSimpleCore(DOSBoxMenu * const menu, DOSBoxMenu::item * const menuitem) {
+    Section* sec=control->GetSection("cpu");
+    std::string tmp="core=simple";
+    if(sec) {
+	sec->HandleInputline(tmp);
+    }
+    return true;
 }
 #endif
 
@@ -3030,18 +3038,6 @@ static void CPU_ToggleDynamicCore(bool pressed) {
     Section* sec=control->GetSection("cpu");
     if(sec) {
 	std::string tmp="core=dynamic";
-	sec->HandleInputline(tmp);
-    }
-}
-#endif
-
-#if !defined(C_EMSCRIPTEN)
-static void CPU_ToggleSimpleCore(bool pressed) {
-    if (!pressed)
-	return;
-    Section* sec=control->GetSection("cpu");
-    std::string tmp="core=simple";
-    if(sec) {
 	sec->HandleInputline(tmp);
     }
 }
@@ -3230,10 +3226,10 @@ public:
 		item->set_text("Dynamic core");
 #endif
 #if !defined(C_EMSCRIPTEN)
-		MAPPER_AddHandler(CPU_ToggleSimpleCore,MK_nothing,0,"simple","SimpleCore", &item);
-		item->set_text("Simple core");
-		MAPPER_AddHandler(CPU_ToggleFullCore,MK_nothing,0,"full","Full Core", &item);
-		item->set_text("Full core");
+        mainMenu.alloc_item(DOSBoxMenu::item_type_id,"menu_simple").
+            set_text("Simple core").set_callback_function(CPU_ToggleSimpleCore);
+        mainMenu.alloc_item(DOSBoxMenu::item_type_id,"menu_full").
+            set_text("Full core").set_callback_function(CPU_ToggleFullCore);
 #endif
 
         /* these are not mapper shortcuts, and probably should not be mapper shortcuts */

@@ -198,7 +198,7 @@ static const char *def_menu_main_clipboard[] =
 #if !defined(LINUX) || !C_X11 || defined(C_SDL2)
     "--",
 #endif
-    "screen_to_clipboard",
+    "mapper_copyall",
     "mapper_paste",
     "clipboard_paste_stop",
     NULL
@@ -238,8 +238,8 @@ static const char *def_menu_cpu_core[] =
     "mapper_dynamic",
 #endif
 #if !defined(C_EMSCRIPTEN)//FIXME: Shutdown causes problems with Emscripten
-    "mapper_simple",
-    "mapper_full",
+    "menu_simple",
+    "menu_full",
 #endif
     NULL
 };
@@ -462,7 +462,7 @@ static const char *def_menu_dos[] =
 #endif
     "shell_config_commands",
 #if !defined(HX_DOS)
-    "quick_launch",
+    "mapper_quickrun",
 #endif
     "--",
     "quick_reboot",

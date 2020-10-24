@@ -628,7 +628,7 @@ void MenuBrowseProgramFile() {
         if (!tinyfd_messageBox("Warning",drive_warn.c_str(),"yesno", "question", 1)) {return;}
         drv='C';
     }
-    mainMenu.get_item("quick_launch").enable(false).refresh_item(mainMenu);
+    mainMenu.get_item("mapper_quickrun").enable(false).refresh_item(mainMenu);
 
     char CurrentDir[512];
     char * Temp_CurrentDir = CurrentDir;
@@ -682,7 +682,7 @@ void MenuBrowseProgramFile() {
 		if (!Drives[drv-'A']) {
 			drive_warn="Drive "+std::string(1, drv)+": failed to mount.";
             tinyfd_messageBox("Error",drive_warn.c_str(),"ok","error", 1);
-            if (!dos_kernel_disabled) mainMenu.get_item("quick_launch").enable(true).refresh_item(mainMenu);
+            if (!dos_kernel_disabled) mainMenu.get_item("mapper_quickrun").enable(true).refresh_item(mainMenu);
 			return;
         }
         uint8_t olddrv=DOS_GetDefaultDrive();
@@ -740,7 +740,7 @@ void MenuBrowseProgramFile() {
 	}
 
 	chdir( Temp_CurrentDir );
-    if (!dos_kernel_disabled) mainMenu.get_item("quick_launch").enable(true).refresh_item(mainMenu);
+    if (!dos_kernel_disabled) mainMenu.get_item("mapper_quickrun").enable(true).refresh_item(mainMenu);
 #endif
 }
 

@@ -70,6 +70,13 @@
     ("Send special key" under "Main") is added. Also,
     the PC-98 STOP key now functions the same as the
     Ctrl+C and Ctrl+Break keys in IBM PC mode.
+  - Added functions "CopyToClipboard" and "QuickRun" to
+    the mapper editor so that you can use shortcuts to
+    activate them (default shortcuts: HOST(F11/F12)+A
+    and HOST(F11/F12)+Q respectively), and a default
+    shortcut HOST(F11/F12)+V is added to the clipboard
+    paste function. Meanwhile, FullCore and SimpleCore
+    shortcuts are removed from the mapper. (Wengier)
   - Added two new menu items in the "Shared clipboard
     functions" menu group under "Main", including "Copy
     all text on the DOS screen" which will copy all
