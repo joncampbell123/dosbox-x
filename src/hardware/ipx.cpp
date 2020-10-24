@@ -855,7 +855,7 @@ public:
 		// Help on connect command
 		if(strcasecmp("connect", helpStr) == 0) {
 			WriteOut("IPXNET CONNECT opens a connection to an IPX tunneling server running on another\n");
-			WriteOut("DOSBox session.  The \"address\" parameter specifies the IP address or host name\n");
+			WriteOut("DOSBox-X session.  The \"address\" parameter specifies the IP address or host name\n");
 			WriteOut("of the server computer.  One can also specify the UDP port to use.  By default\n");
 			WriteOut("IPXNET uses port 213, the assigned IANA port for IPX tunneling, for its\nconnection.\n\n");
 			WriteOut("The syntax for IPXNET CONNECT is:\n\n");
@@ -871,17 +871,17 @@ public:
 		}
 		// Help on the startserver command
 		if(strcasecmp("startserver", helpStr) == 0) {
-			WriteOut("IPXNET STARTSERVER starts and IPX tunneling server on this DOSBox session.  By\n");
-			WriteOut("default, the server will accept connections on UDP port 213, though this can be\n");
-			WriteOut("changed.  Once the server is started, DOSBox will automatically start a client\n");
-			WriteOut("connection to the IPX tunneling server.\n\n");
+			WriteOut("IPXNET STARTSERVER starts and IPX tunneling server on this DOSBox-X session.\n");
+			WriteOut("By default, the server will accept connections on UDP port 213, though this\n");
+			WriteOut("can be changed.  Once the server is started, DOSBox-X will automatically\n");
+			WriteOut("start a client connection to the IPX tunneling server.\n\n");
 			WriteOut("The syntax for IPXNET STARTSERVER is:\n\n");
 			WriteOut("IPXNET STARTSERVER <port>\n\n");
 			return;
 		}
 		// Help on the stop server command
 		if(strcasecmp("stopserver", helpStr) == 0) {
-			WriteOut("IPXNET STOPSERVER stops the IPX tunneling server running on this DosBox\nsession.");
+			WriteOut("IPXNET STOPSERVER stops the IPX tunneling server running on this DOSBox-X\nsession.");
 			WriteOut("  Care should be taken to ensure that all other connections have\nterminated ");
 			WriteOut("as well since stopping the server may cause lockups on other\nmachines still using ");
 			WriteOut("the IPX tunneling server.\n\n");
@@ -900,9 +900,9 @@ public:
 		}
 		// Help on the status command
 		if(strcasecmp("status", helpStr) == 0) {
-			WriteOut("IPXNET STATUS reports the current state of this DOSBox's sessions IPX tunneling\n");
-			WriteOut("network.  For a list of the computers connected to the network use the IPXNET \n");
-			WriteOut("PING command.\n\n");
+			WriteOut("IPXNET STATUS reports the current state of this DOSBox-X's sessions IPX\n");
+			WriteOut("tunneling network.  For a list of the computers connected to the network use the\n");
+			WriteOut("IPXNET PING command.\n\n");
 			WriteOut("The syntax for IPXNET STATUS is:\n\n");
 			WriteOut("IPXNET STATUS\n\n");
 			return;
@@ -911,7 +911,7 @@ public:
 
 	void Run(void)
 	{
-		WriteOut("IPX Tunneling utility for DOSBox\n\n");
+		WriteOut("IPX Tunneling utility for DOSBox-X\n\n");
 		if(!cmd->GetCount()) {
 			WriteOut("The syntax of this command is:\n\n");
 			WriteOut("IPXNET [ CONNECT | DISCONNECT | STARTSERVER | STOPSERVER | PING | HELP |\n         STATUS ]\n\n");
@@ -961,7 +961,7 @@ public:
 			}
 			if(strcasecmp("stopserver", temp_line.c_str()) == 0) {
 				if(!isIpxServer) {
-					WriteOut("IPX Tunneling Server not running in this DOSBox session.\n");
+					WriteOut("IPX Tunneling Server not running in this DOSBox-X session.\n");
 				} else {
 					isIpxServer = false;
 					DisconnectFromServer(false);
