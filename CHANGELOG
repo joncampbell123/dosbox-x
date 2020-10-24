@@ -93,10 +93,12 @@
     install directory for use with the direct parallel
     port passthrough feature. (Wengier)
   - Improved Flatpak support for Linux. (rderooy)
-  - Fixed shelling from programs may not work when the
-    shell config option is set. (Wengier)
+  - Improved message for the -help command-line option,
+    adding for example the -socket option. (Wengier)
   - Fixed command-line option -socket not working for
     the nullmodem feature. (Wengier)
+  - Fixed shelling from programs may not work when the
+    shell config option is set. (Wengier)
   - The archive attribute will no longer automatically
     be applied to directories on non-Windows systems.
     This fixed issue with PLAYMIDI.EXE from Gravis
