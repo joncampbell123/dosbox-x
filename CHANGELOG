@@ -52,8 +52,9 @@
     to mount more than one disk/CD images to a drive,
     swappable from the menu. (Wengier)
   - Added new CPU types to the "Emulate CPU speed" menu
-    group, namely 486DX4-100, 486DX5-133, Pentium-75,
-    and Pentium-90. Thanks again for the data provided
+    group namely 286-25MHz, 386DX-25MHz, 486DX4-100MHz,
+    486DX5-133MHz, Pentium-60MHz, Pentium-75MHz, and
+    Pentium-90MHz. Thanks again for the data provided
     by the user maximus105. (Wengier)
   - You can now select a special key (e.g. Alt+Tab,
     Ctrl+Break, Ctrl+Alt+Del, etc) to be sent from the
