@@ -855,9 +855,9 @@ public:
 		// Help on connect command
 		if(strcasecmp("connect", helpStr) == 0) {
 			WriteOut("IPXNET CONNECT opens a connection to an IPX tunneling server running on another\n");
-			WriteOut("DOSBox-X session.  The \"address\" parameter specifies the IP address or host name\n");
-			WriteOut("of the server computer.  One can also specify the UDP port to use.  By default\n");
-			WriteOut("IPXNET uses port 213, the assigned IANA port for IPX tunneling, for its\nconnection.\n\n");
+			WriteOut("DOSBox-X session.  The \"address\" parameter specifies the IP address or the host\n");
+			WriteOut("name of the server computer.  One can also specify the UDP port to use.\n");
+			WriteOut("By default IPXNET uses port 213, the assigned IANA port for IPX tunneling, for\nits connection.\n\n");
 			WriteOut("The syntax for IPXNET CONNECT is:\n\n");
 			WriteOut("IPXNET CONNECT address <port>\n\n");
 			return;
@@ -901,8 +901,8 @@ public:
 		// Help on the status command
 		if(strcasecmp("status", helpStr) == 0) {
 			WriteOut("IPXNET STATUS reports the current state of this DOSBox-X's sessions IPX\n");
-			WriteOut("tunneling network.  For a list of the computers connected to the network use the\n");
-			WriteOut("IPXNET PING command.\n\n");
+			WriteOut("tunneling network.  For a list of the computers connected to the network use\n");
+			WriteOut("the IPXNET PING command.\n\n");
 			WriteOut("The syntax for IPXNET STATUS is:\n\n");
 			WriteOut("IPXNET STATUS\n\n");
 			return;
