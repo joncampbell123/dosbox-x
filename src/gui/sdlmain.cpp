@@ -8549,6 +8549,11 @@ void CopyAllClipboard(bool bPressed) {
     if (!bPressed) return;
     CopyClipboard(true);
 }
+#else
+void CopyAllClipboard(bool bPressed) {
+    if (!bPressed) return;
+    // STUB
+}
 #endif
 
 #if defined (WIN32)
