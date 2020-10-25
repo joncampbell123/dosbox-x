@@ -3976,31 +3976,41 @@ void DOSBOX_SetupConfigSections(void) {
     /* 4DOS.INI options */
     secprop=control->AddSection_prop("4dos",&Null_Init,false);
     Pstring = secprop->Add_string("rem",Property::Changeable::OnlyAtStart,"This section is the 4DOS.INI file, if you use 4DOS as the command shell");
+    Pstring->SetBasic(true);
 
     /* CONFIG.SYS options */
     secprop=control->AddSection_prop("config",&Null_Init,false);
 
     Pstring = secprop->Add_string("rem",Property::Changeable::OnlyAtStart,"This section is DOS's CONFIG.SYS file, not all CONFIG.SYS options supported");
  	Pstring->Set_help("Records comments (remarks).");
+    Pstring->SetBasic(true);
     Pstring = secprop->Add_string("break",Property::Changeable::OnlyAtStart,"off");
 	Pstring->Set_help("Sets or clears extended CTRL+C checking.");
     Pstring->Set_values(ps1opt);
+    Pstring->SetBasic(true);
     Pstring = secprop->Add_string("numlock",Property::Changeable::OnlyAtStart,"");
 	Pstring->Set_help("Sets the initial state of the NumLock key.");
     Pstring->Set_values(numopt);
+    Pstring->SetBasic(true);
     Pstring = secprop->Add_string("shell",Property::Changeable::OnlyAtStart,"");
 	Pstring->Set_help("Specifies the command shell (COMMAND.COM or 4DOS.COM).");
+    Pstring->SetBasic(true);
     Pstring = secprop->Add_string("dos",Property::Changeable::OnlyAtStart,"high, umb");
 	Pstring->Set_help("Reports whether DOS occupies HMA and allocates UMB memory (if available).");
+    Pstring->SetBasic(true);
     Pint = secprop->Add_int("fcbs",Property::Changeable::OnlyAtStart,100);
     Pint->Set_help("Number of FCB handles available to DOS programs (1-255).");
+    Pint->SetBasic(true);
     Pint = secprop->Add_int("files",Property::Changeable::OnlyAtStart,127);
     Pint->Set_help("Number of file handles available to DOS programs (8-255).");
+    Pint->SetBasic(true);
     Pint = secprop->Add_int("country",Property::Changeable::OnlyAtStart,1);
     Pint->Set_help("Sets the country code for country-specific date/time formats.");
+    Pint->SetBasic(true);
     Pstring = secprop->Add_string("lastdrive",Property::Changeable::OnlyAtStart,"a");
 	Pstring->Set_help("The maximum drive letter that can be accessed by programs.");
     Pstring->Set_values(driveletters);
+    Pstring->SetBasic(true);
 
     //TODO ?
     control->AddSection_line("autoexec",&Null_Init);

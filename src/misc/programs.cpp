@@ -519,7 +519,7 @@ public:
 private:
 	void restart(const char* useconfig);
 	
-	void writeconf(std::string name, bool configdir,bool everything) {
+	void writeconf(std::string name, bool configdir,int everything) {
 		// "config -wcd" should write to the config directory
 		if (configdir) {
 			// write file to the default config directory
@@ -557,7 +557,7 @@ void CONFIG::Run(void) {
 	static const char* const params[] = {
 		"-r", "-wcp", "-wcd", "-wc", "-writeconf", "-l", "-rmconf",
 		"-h", "-help", "-?", "-axclear", "-axadd", "-axtype", "-get", "-set",
-		"-writelang", "-wl", "-securemode", "-all", "-errtest", "-gui", NULL };
+		"-writelang", "-wl", "-securemode", "-all", "-mod", "-errtest", "-gui", NULL };
 	enum prs {
 		P_NOMATCH, P_NOPARAMS, // fixed return values for GetParameterFromList
 		P_RESTART,
@@ -567,20 +567,25 @@ void CONFIG::Run(void) {
 		P_AUTOEXEC_CLEAR, P_AUTOEXEC_ADD, P_AUTOEXEC_TYPE,
 		P_GETPROP, P_SETPROP,
 		P_WRITELANG, P_WRITELANG2,
-		P_SECURE, P_ALL, P_ERRTEST, P_GUI
+		P_SECURE, P_ALL, P_MOD, P_ERRTEST, P_GUI
 	} presult = P_NOMATCH;
 
-	bool all = false;
+	int all = -1;
 	bool first = true;
 	std::vector<std::string> pvars;
-	if (cmd->FindExist("-all", true)) all = true;
+	if (cmd->FindExist("-all", true)) all = 1;
+    else if (cmd->FindExist("-mod", true)) all = 0;
 	// Loop through the passed parameters
 	while(presult != P_NOPARAMS) {
 		presult = (enum prs)cmd->GetParameterFromList(params, pvars);
 		switch(presult) {
 	
 		case P_ALL:
-			all = true;
+			all = 1;
+			break;
+
+		case P_MOD:
+			if (all==-1) all = 0;
 			break;
 
 		case P_GUI:
@@ -1203,6 +1208,7 @@ void PROGRAMS_Init() {
 		"-wcp [filename] Writes config file to the program directory (dosbox-x.conf\n or the specified filename).\n"\
 		"-wcd Writes to the default config file in the config directory.\n"\
 		"-all Use this with -wc, -wcp, or -wcd to write ALL options to the config file.\n"\
+		"-mod Use this with -wc, -wcp, or -wcd to write modified config options only.\n"\
 		"-gui Starts DOSBox-X's graphical configuration tool.\n"
 		"-l Lists DOSBox-X configuration parameters.\n"\
 		"-h, -help, -? sections / sectionname / propertyname\n"\

@@ -30,6 +30,12 @@
   - Changed some DOS error messages (such as "Illegal
     command" which now reads "Bad command or filename")
     similar to real DOS systems. (Wengier)
+  - The config command and Configuration Tool will now
+    save basic and modified config optons by default.
+    The -all command-line option (or "Save all options
+    to the configuration file" checkbox) will force to
+    save all config options. A new -mod command-line
+    option saves modified config option only. (Wengier)
   - Improved the -z (move virtual drive Z:) function of
     MOUNT command. You can move the virtual drive as
     many times as you want, and save/load states will

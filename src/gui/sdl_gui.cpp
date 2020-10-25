@@ -789,7 +789,7 @@ std::string RestoreName(std::string name) {
     return dispname;
 }
 
-GUI::Checkbox *advopt;
+GUI::Checkbox *advopt, *saveall;
 static std::map< std::vector<GUI::Char>, GUI::ToplevelWindow* > cfg_windows_active;
 
 class HelpWindow : public GUI::MessageBox2 {
@@ -1308,7 +1308,7 @@ protected:
     GUI::Input *name;
 public:
     SaveDialog(GUI::Screen *parent, int x, int y, const char *title) :
-        ToplevelWindow(parent, x, y, 400, 100 + GUI::titlebar_y_stop, title) {
+        ToplevelWindow(parent, x, y, 400, 130 + GUI::titlebar_y_stop, title) {
         new GUI::Label(this, 5, 10, "Enter filename for configuration file:");
         name = new GUI::Input(this, 5, 30, width - 10 - border_left - border_right);
         extern std::string capturedir;
@@ -1322,15 +1322,18 @@ public:
         } else
             fullpath = "dosbox-x.conf";
         name->setText(fullpath.c_str());
-        (new GUI::Button(this, 120, 60, "Cancel", 70))->addActionHandler(this);
-        (new GUI::Button(this, 210, 60, "OK", 70))->addActionHandler(this);
+        saveall = new GUI::Checkbox(this, 5, 60, "Save all options to the configuration file");
+        Section_prop * section=static_cast<Section_prop *>(control->GetSection("dosbox"));
+        saveall->setChecked(section->Get_bool("show advanced options"));
+        (new GUI::Button(this, 120, 90, "Cancel", 70))->addActionHandler(this);
+        (new GUI::Button(this, 210, 90, "OK", 70))->addActionHandler(this);
     }
 
     void actionExecuted(GUI::ActionEventSource *b, const GUI::String &arg) {
         (void)b;//UNUSED
         // HACK: Attempting to cast a String to void causes "forming reference to void" errors when building with GCC 4.7
         (void)arg.size();//UNUSED
-        if (arg == "OK") control->PrintConfig(name->getText(), true);
+        if (arg == "OK") control->PrintConfig(name->getText(), saveall->isChecked()?1:-1);
         close();
         if(shortcut) running=false;
     }

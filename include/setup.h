@@ -140,7 +140,10 @@ public:
 	Value::Etype Get_type(){return default_value.type;}
 	Changeable::Value getChange() {return change;}
 	bool basic() const { return is_basic; };
-	bool modified() const { return is_modified; };
+	bool modified() const {
+        //return is_modified;
+        return default_value.ToString()!=value.ToString();
+    };
 
 protected:
 	//Set interval value to in or default if in is invalid. force always sets the value.
@@ -276,7 +279,7 @@ public:
 
 	virtual std::string GetPropValue(std::string const& _property) const =0;
 	virtual bool HandleInputline(std::string const& _line)=0;
-	virtual void PrintData(FILE* outfile,bool everything=false) = 0;
+	virtual void PrintData(FILE* outfile,int everything=-1) = 0;
 	virtual ~Section() { /*Children must call executedestroy ! */ }
 
 	std::list<SectionFunction> onpropchange;
@@ -379,7 +382,7 @@ public:
 	Prop_multival* Get_multival(std::string const& _propname) const;
 	Prop_multival_remain* Get_multivalremain(std::string const& _propname) const;
 	virtual bool HandleInputline(std::string const& gegevens);
-	virtual void PrintData(FILE* outfile,bool everything=false);
+	virtual void PrintData(FILE* outfile,int everything=-1);
 	virtual std::string GetPropValue(std::string const& _property) const;
 	virtual ~Section_prop();
 	std::string data;
@@ -416,7 +419,7 @@ public:
 	Section_line(std::string const& _sectionname):Section(_sectionname){}
 	virtual ~Section_line() { };
 	virtual bool HandleInputline(std::string const& line);
-	virtual void PrintData(FILE* outfile,bool everything=false);
+	virtual void PrintData(FILE* outfile,int everything=-1);
 	virtual std::string GetPropValue(std::string const& _property) const;
 	std::string data;
 };
