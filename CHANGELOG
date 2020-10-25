@@ -7,10 +7,12 @@
     or the dynamic_rec core. The dynamic_x86 core will
     be used by default for x86 and x86_64 platforms and
     if "core=dynamic" is set, and Windows 9x can be run
-    in this dynamic core. You can also explicit specify
-    "core=dynamic_x86" or "core=dynamic_rec" for either
-    the dynamic_x86 core or the dynamic_rec core. Also
-    thank joncampbell123 for the 64-bit fix. (Wengier)
+    in this dynamic core (although at this time may
+    encounter some issue with the S3 driver). You can
+    also explicit specify setting "core=dynamic_x86" or
+    "core=dynamic_rec" for either the dynamic_x86 core
+    or the dynamic_rec core. Also thank joncampbell123
+    for the 64-bit fix. (Wengier)
   - You can now use your own save file (in addition to
     save slots! There are now a "Use save file" toggle
     item and "Browse save file..." for browsing save
