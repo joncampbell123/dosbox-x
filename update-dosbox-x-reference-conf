@@ -4,4 +4,4 @@ src/dosbox-x -defaultconf -defaultdir . -exit -fastlaunch -c 'config -wcp dosbox
 # Convert to Unix format if needed
 dos2unix dosbox-x.reference.conf
 dos2unix dosbox-x.reference.full.conf
-
+unix2dos contrib/windows/installer/dosbox-x.reference.setup.conf

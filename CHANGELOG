@@ -30,14 +30,16 @@
   - Changed some DOS error messages (such as "Illegal
     command" which now reads "Bad command or filename")
     similar to real DOS systems. (Wengier)
-  - There is now a dosbox-x.commonref.conf file to act
-    as the common config reference file. (Wengier)
+  - The full dosbox-x.reference.conf file is renamed to
+    dosbox-x.reference.full.conf. The original file
+    dosbox-x.reference.conf now contains common config
+    options instead of all config options. (Wengier)
   - The CONFIG command and Configuration Tool will now
     save common and modified config optons by default.
     The -all command-line option (or "Save all options
     to the configuration file" checkbox) will force to
     save all config options. A new -mod command-line
-    optionis added to CONFIG command to save modified
+    option is added to CONFIG command to save modified
     config options only. (Wengier)
   - Improved the -z (move virtual drive Z:) function of
     MOUNT command. You can move the virtual drive as
@@ -53,9 +55,9 @@
     included in the MinGW builds by default just like
     Visual Studio builds. Set "mididevice=fluidsynth"
     and a soundfont file to use it. (Wengier)
-  - Add menu item "Show MIDI device" under "Sound" menu
-    to show the current MIDI device and soundfont file
-    (or ROM path for MT32) in use. (Wengier)
+  - Added menu item "Show MIDI device" under "Sound"
+    menu to show the current MIDI device and soundfont
+    file (or ROM path for MT32) in use. (Wengier)
   - Added "Mount multiple disk/CD images" option to the
     mounting options of the Drive menu to allow users
     to mount more than one disk/CD images to a drive,

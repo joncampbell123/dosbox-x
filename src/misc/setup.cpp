@@ -900,12 +900,12 @@ bool Config::PrintConfig(char const * const configfilename,int everything) const
 				}
 			}
 			if (!strcmp(temp, "config")) {
-				if (everything>0&&!used1) {
+				if (everything&&!used1) {
 					fprintf(outfile, "%-11s = %s\n", "set path", "Z:\\");
 					fprintf(outfile, "%-11s = %s\n", "set prompt", "$P$G");
 					fprintf(outfile, "%-11s = %s\n", "set temp", "");
 				}
-				if (everything>0&&!used2) {
+				if (everything&&!used2) {
 					fprintf(outfile, "%-11s = %s\n", "install", "");
 					fprintf(outfile, "%-11s = %s\n", "installhigh", "");
 					fprintf(outfile, "%-11s = %s\n", "device", "");
