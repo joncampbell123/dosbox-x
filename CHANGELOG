@@ -35,7 +35,8 @@
     The -all command-line option (or "Save all options
     to the configuration file" checkbox) will force to
     save all config options. A new -mod command-line
-    option saves modified config option only. (Wengier)
+    option of config command is added to save modified
+    config options only. (Wengier)
   - Improved the -z (move virtual drive Z:) function of
     MOUNT command. You can move the virtual drive as
     many times as you want, and save/load states will
