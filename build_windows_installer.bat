@@ -20,6 +20,11 @@ if not exist %rootdir%\dosbox-x.reference.conf (
 	goto error
 )
 
+if not exist %rootdir%\dosbox-x.reference.full.conf (
+	echo Couldn't find %rootdir%\dosbox-x.reference.full.conf
+	goto error
+)
+
 if not exist %isspath%\date.exe (
 	echo Couldn't find %isspath%\date.exe
 	goto error
@@ -90,6 +95,8 @@ if exist %isspath%\Win64_builds\nul rd %isspath%\Win64_builds /s /q
 %isspath%\7za.exe e -y -o%isspath%\Win64_builds\mingw-sdldraw %m64zip% "mingw-build\mingw-sdldraw\dosbox-x.exe"
 copy /y %rootdir%\dosbox-x.reference.conf %isspath%\dosbox-x.reference.conf >nul
 if exist %isspath%\unix2dos.exe %isspath%\unix2dos.exe %isspath%\dosbox-x.reference.conf
+copy /y %rootdir%\dosbox-x.reference.full.conf %isspath%\dosbox-x.reference.full.conf >nul
+if exist %isspath%\unix2dos.exe %isspath%\unix2dos.exe %isspath%\dosbox-x.reference.full.conf
 copy /y %isspath%\dosbox-x.reference.conf %isspath%\Win32_builds\x86_Release
 copy /y %isspath%\dosbox-x.reference.conf %isspath%\Win32_builds\x86_Release_SDL2
 copy /y %isspath%\dosbox-x.reference.conf %isspath%\Win32_builds\ARM_Release
