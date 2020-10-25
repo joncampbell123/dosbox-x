@@ -1,5 +1,5 @@
 #define MyAppName "DOSBox-X"
-#define MyAppVersion "0.83.6"
+#define MyAppVersion "0.83.7"
 #define MyAppPublisher "joncampbell123"
 #define MyAppURL "https://dosbox-x.com/"
 #define MyAppExeName "dosbox-x.exe"
@@ -67,7 +67,7 @@ Name: "full"; Description: "Copy all DOSBox-X builds to sub-directories"; Types:
 [Files]
 Source: ".\readme.txt"; DestDir: "{app}"; DestName: "README.txt"; Flags: ignoreversion; Components: full typical compact
 Source: ".\dosbox-x.reference.conf"; DestDir: "{app}"; Flags: ignoreversion; Components: full typical compact
-Source: ".\dosbox-x.reference.full.conf"; DestDir: "{app}"; Flags: ignoreversion; Components: full typical
+Source: ".\dosbox-x.reference.full.conf"; DestDir: "{app}"; Flags: ignoreversion; Components: full typical compact
 Source: ".\dosbox-x.reference.setup.conf"; DestDir: "{app}"; Flags: ignoreversion; Components: full typical compact
 Source: "..\..\..\CHANGELOG"; DestDir: "{app}"; DestName: "changelog.txt"; Flags: ignoreversion; Components: full typical compact
 Source: "..\..\..\COPYING"; DestDir: "{app}"; DestName: "COPYING.txt"; Flags: ignoreversion; Components: full typical compact
@@ -350,6 +350,9 @@ begin
       DeleteFile(ExpandConstant('{app}\dosbox-x.reference.setup.conf'));
       Exit;
     end
+    refname:='{app}\dosbox-x.reference.full.conf';
+    if IsTaskSelected('commonoption') then
+      refname:='{app}\dosbox-x.reference.conf';
     if not FileExists(ExpandConstant('{app}\dosbox-x.conf')) then
     begin
       FileCopy(ExpandConstant(refname), ExpandConstant('{app}\dosbox-x.conf'), false);
@@ -389,11 +392,6 @@ begin
       res := MsgBox(msg, mbConfirmation, MB_YESNOCANCEL);
       if (res = IDNO) then
       begin
-      refname:='{app}\dosbox-x.reference.full.conf';
-      if IsTaskSelected('commonoption') then
-      begin
-        refname:='{app}\dosbox-x.reference.conf';
-      end
         FileCopy(ExpandConstant('{app}\dosbox-x.conf'), ExpandConstant('{app}\dosbox-x.conf.old'), false);
         FileCopy(ExpandConstant(refname), ExpandConstant('{app}\dosbox-x.conf'), false);
       end
@@ -404,7 +402,7 @@ begin
         FileLinesold := TStringList.Create;
         FileLinesold.LoadFromFile(ExpandConstant('{app}\dosbox-x.conf.old'));
         FileLinesnew := TStringList.Create;
-        FileLinesnew.LoadFromFile(ExpandConstant(refname));
+        FileLinesnew.LoadFromFile(ExpandConstant('{app}\dosbox-x.reference.setup.conf'));
         FileLinesave := TStringList.Create;
         vsection := False;
         for j := 0 to FileLinesold.Count - 1 do

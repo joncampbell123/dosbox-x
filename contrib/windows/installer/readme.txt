@@ -1,7 +1,7 @@
 README for DOSBox-X
 ===================
 
-Welcome to DOSBox-X, a cross-platform DOS emulator based on the DOSBox project.
+Welcome to DOSBox-X, a cross-platform DOS emulator with the goal of being a complete DOS emulation package.
 
 Like DOSBox, it emulates a PC necessary for running many MS-DOS games and applications that simply cannot be run on modern PCs and operating systems. However, while the main focus of DOSBox is for running DOS games, DOSBox-X goes much further than this. Started as a fork of the DOSBox project, it retains compatibility with the wide base of DOS games and DOS gaming DOSBox was designed for. But it is also a platform for running DOS applications, including emulating the environments to run Windows 3.x, 9x and ME and software written for those versions of Windows.
 
@@ -12,7 +12,7 @@ DOSBox-X Quick Start
 
 Type HELP to see a list of DOSBox-X's shell commands, and INTRO for a quick tour to DOSBox-X. It is essential that you get familiar with the idea of mounting, since DOSBox-X does not automatically make any drive (or a part of it) accessible to the emulation, unless you turn on automatic mounting of available Windows drives at start by setting the option "automountall" to "true" (without quotes) in DOSBox-X's configuration.
 
-At the beginning you have got a Z:\> instead of a C:\> at the DOSBox-X prompt. Since no drives are mounted yet, you need to make your directories available as drives in DOSBox-X. DOSBox-X features a drop-down menu where you can do many things without typing commands. Check out the "Drive" menu to mount drives from DOSBox-X's graphical interface. Select a drive, such as "C", and click "Mount as Hard Disk", then the Windows file browser will appear. Select a folder and click "OK", then this folder will be mounted as Drive C: in DOSBox-X. Alternatively, you can mount drives in DOSBox-X with the "mount" command. For example, the command line "mount C D:\GAMES" will give you a C drive in DOSBox-X which points to your Windows D:\GAMES directory (that was created before).
+At the beginning you have got a Z:\> instead of a C:\> at the DOSBox-X prompt. Since no drives are mounted yet, you need to make your directories available as drives in DOSBox-X. DOSBox-X features a drop-down menu where you can do many things without typing commands. Check out the "Drive" menu to mount drives from DOSBox-X's graphical interface. Select a drive, such as "C", and click "Mount folder as Hard Disk", then the Windows file browser will appear. Select a folder and click "OK", then this folder will be mounted as Drive C: in DOSBox-X. Alternatively, you can mount drives in DOSBox-X with the "mount" command. For example, the command line "mount C D:\GAMES" will give you a C drive in DOSBox-X which points to your Windows D:\GAMES directory (that was created before).
 
 To change to the drive mounted like above, type "C:". If everything went fine, DOSBox-X will display the prompt "C:\>". You do not have to manually mount drives after DOSBox-X starts. Click the "Main" menu, and select "Configuration tool". Then select the "AUTOEXEC.BAT" setting group, where you can change its contents. The commands present here are run when DOSBox-X starts, so you can use this section for the mounting and other purposes, such as launching a specific program you want to use, or a game you want to play. You can also quickly launch a DOS program or game in DOSBox-X by clicking "Quick launch program..." under "DOS" menu.
 
