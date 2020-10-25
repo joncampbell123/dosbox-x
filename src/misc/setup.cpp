@@ -738,13 +738,15 @@ void Section_prop::PrintData(FILE* outfile,int everything) {
     size_t len = 0;
     // Determine maximum length of the props in this section
     for(const_it tel = properties.begin();tel != properties.end();++tel) {
+        if (!(everything==1 || everything==-1 && ((*tel)->basic() || (*tel)->modified()) || !everything && ((*tel)->propname == "rem" && (!strcasecmp(GetName(), "4dos") || !strcasecmp(GetName(), "config")) || (*tel)->modified()))) continue;
+
         if ((*tel)->propname.length() > len)
             len = (*tel)->propname.length();
     }
 	if (!strcasecmp(GetName(), "config")&&len<11) len=11;
 
     for(const_it tel = properties.begin();tel != properties.end();++tel) {
-        if (everything!=1 && !(everything==-1 && (*tel)->basic() || !everything && (*tel)->propname == "rem") && !(*tel)->modified()) continue;
+        if (!(everything==1 || everything==-1 && ((*tel)->basic() || (*tel)->modified()) || !everything && ((*tel)->propname == "rem" && (!strcasecmp(GetName(), "4dos") || !strcasecmp(GetName(), "config")) || (*tel)->modified()))) continue;
 
         fprintf(outfile,"%-*s = %s\n", (unsigned int)len, (*tel)->propname.c_str(), (*tel)->GetValue().ToString().c_str());
     }
@@ -798,7 +800,8 @@ bool Config::PrintConfig(char const * const configfilename,int everything) const
             Property *p;
             size_t i = 0, maxwidth = 0;
             while ((p = sec->Get_prop(int(i++)))) {
-                if (everything!=1 && !(everything==-1 && !p->basic() || !everything && p->propname == "rem") && !p->modified()) continue;
+                if (!(everything==1 || everything==-1 && (p->basic() || p->modified()) || !everything && (p->propname == "rem" && (!strcmp(temp, "4dos") || !strcmp(temp, "config")) || p->modified())))
+                    continue;
 
                 size_t w = strlen(p->propname.c_str());
                 if (w > maxwidth) maxwidth = w;
@@ -816,7 +819,8 @@ bool Config::PrintConfig(char const * const configfilename,int everything) const
             char prefix[80];
             snprintf(prefix,80, "\n# %*s    ", (int)maxwidth, "");
             while ((p = sec->Get_prop(int(i++)))) {
-                if (everything!=1 && !(everything==-1 && !p->basic() || !everything && p->propname == "rem") && !p->modified()) continue;
+                if (!(everything==1 || everything==-1 && (p->basic() || p->modified()) || !everything && (p->propname == "rem" && (!strcmp(temp, "4dos") || !strcmp(temp, "config")) || p->modified())))
+                    continue;
 
                 std::string help = p->Get_help();
                 std::string::size_type pos = std::string::npos;
@@ -826,7 +830,7 @@ bool Config::PrintConfig(char const * const configfilename,int everything) const
 
                 std::vector<Value> values = p->GetValues();
 
-                if ((help != "" || !values.empty()) && !(!everything && p->propname == "rem" && (!strcmp(temp, "4dos") || !strcmp(temp, "config")))) {
+                if (help != "" || !values.empty()) {
                     fprintf(outfile, "# %*s: %s", (int)maxwidth, p->propname.c_str(), help.c_str());
 
                     if (!values.empty()) {

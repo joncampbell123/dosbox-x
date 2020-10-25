@@ -30,12 +30,14 @@
   - Changed some DOS error messages (such as "Illegal
     command" which now reads "Bad command or filename")
     similar to real DOS systems. (Wengier)
-  - The config command and Configuration Tool will now
-    save basic and modified config optons by default.
+  - There is now a dosbox-x.commonref.conf file to act
+    as the common config reference file. (Wengier)
+  - The CONFIG command and Configuration Tool will now
+    save common and modified config optons by default.
     The -all command-line option (or "Save all options
     to the configuration file" checkbox) will force to
     save all config options. A new -mod command-line
-    option of config command is added to save modified
+    optionis added to CONFIG command to save modified
     config options only. (Wengier)
   - Improved the -z (move virtual drive Z:) function of
     MOUNT command. You can move the virtual drive as

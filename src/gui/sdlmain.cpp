@@ -6200,6 +6200,7 @@ void SDL_SetupConfigSection() {
     Pmulti->SetValue("none",/*init*/true);
     Pmulti->Set_help("Pixelshader program (effect file must be in Shaders subdirectory). If 'forced' is appended,\n"
         "then the shader will be used even if the result might not be desired.");
+    Pmulti->SetBasic(true);
 
     Pstring = Pmulti->GetSection()->Add_string("type",Property::Changeable::Always,"none");
     Pstring = Pmulti->GetSection()->Add_string("force",Property::Changeable::Always,"");
@@ -6222,7 +6223,7 @@ void SDL_SetupConfigSection() {
 
     Pbool = sdl_sec->Add_bool("showmenu", Property::Changeable::Always, true);
     Pbool->Set_help("Whether to show the menu bar (if supported). Default true.");
-    Pstring->SetBasic(true);
+    Pbool->SetBasic(true);
 
 //  Pint = sdl_sec->Add_int("overscancolor",Property::Changeable::Always, 0);
 //  Pint->SetMinMax(0,1000);
