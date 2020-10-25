@@ -1,7 +1,7 @@
 #!/bin/bash
-src/dosbox-x -defaultconf -defaultdir . -exit -fastlaunch -c 'config -wcp dosbox-x.commonref.conf' -c 'config -all -wcp dosbox-x.reference.conf' || exit 1
+src/dosbox-x -defaultconf -defaultdir . -exit -fastlaunch -c 'config -wcp dosbox-x.reference.conf' -c 'config -all -wcp dosbox-x.reference.full.conf' -c 'config -setup -wcp contrib/windows/installer/dosbox-x.reference.setup.conf' || exit 1
 
 # Convert to Unix format if needed
-dos2unix dosbox-x.commonref.conf
 dos2unix dosbox-x.reference.conf
+dos2unix dosbox-x.reference.full.conf
 

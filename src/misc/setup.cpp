@@ -738,17 +738,19 @@ void Section_prop::PrintData(FILE* outfile,int everything) {
     size_t len = 0;
     // Determine maximum length of the props in this section
     for(const_it tel = properties.begin();tel != properties.end();++tel) {
-        if (!(everything==1 || everything==-1 && ((*tel)->basic() || (*tel)->modified()) || !everything && ((*tel)->propname == "rem" && (!strcasecmp(GetName(), "4dos") || !strcasecmp(GetName(), "config")) || (*tel)->modified()))) continue;
+        if (!(everything>0 || everything==-1 && ((*tel)->basic() || (*tel)->modified()) || !everything && ((*tel)->propname == "rem" && (!strcasecmp(GetName(), "4dos") || !strcasecmp(GetName(), "config")) || (*tel)->modified()))) continue;
 
-        if ((*tel)->propname.length() > len)
-            len = (*tel)->propname.length();
+        int prelen=everything==2&&!(*tel)->basic()?14:0;
+        if (prelen + (*tel)->propname.length() > len)
+            len = prelen + (*tel)->propname.length();
     }
 	if (!strcasecmp(GetName(), "config")&&len<11) len=11;
 
     for(const_it tel = properties.begin();tel != properties.end();++tel) {
-        if (!(everything==1 || everything==-1 && ((*tel)->basic() || (*tel)->modified()) || !everything && ((*tel)->propname == "rem" && (!strcasecmp(GetName(), "4dos") || !strcasecmp(GetName(), "config")) || (*tel)->modified()))) continue;
+        if (!(everything>0 || everything==-1 && ((*tel)->basic() || (*tel)->modified()) || !everything && ((*tel)->propname == "rem" && (!strcasecmp(GetName(), "4dos") || !strcasecmp(GetName(), "config")) || (*tel)->modified()))) continue;
 
-        fprintf(outfile,"%-*s = %s\n", (unsigned int)len, (*tel)->propname.c_str(), (*tel)->GetValue().ToString().c_str());
+        std::string pre=everything==2&&!(*tel)->basic()?"#DOSBOX-X-ADV:":"";
+        fprintf(outfile,"%-*s = %s\n", (unsigned int)len, (pre+(*tel)->propname).c_str(), (*tel)->GetValue().ToString().c_str());
     }
 }
 
@@ -800,11 +802,12 @@ bool Config::PrintConfig(char const * const configfilename,int everything) const
             Property *p;
             size_t i = 0, maxwidth = 0;
             while ((p = sec->Get_prop(int(i++)))) {
-                if (!(everything==1 || everything==-1 && (p->basic() || p->modified()) || !everything && (p->propname == "rem" && (!strcmp(temp, "4dos") || !strcmp(temp, "config")) || p->modified())))
+                if (!(everything>0 || everything==-1 && (p->basic() || p->modified()) || !everything && (p->propname == "rem" && (!strcmp(temp, "4dos") || !strcmp(temp, "config")) || p->modified())))
                     continue;
 
+                int prelen=everything==2&&!p->basic()?14:0;
                 size_t w = strlen(p->propname.c_str());
-                if (w > maxwidth) maxwidth = w;
+                if (prelen + w > maxwidth) maxwidth = prelen + w;
                 mods++;
             }
 
@@ -819,7 +822,7 @@ bool Config::PrintConfig(char const * const configfilename,int everything) const
             char prefix[80];
             snprintf(prefix,80, "\n# %*s    ", (int)maxwidth, "");
             while ((p = sec->Get_prop(int(i++)))) {
-                if (!(everything==1 || everything==-1 && (p->basic() || p->modified()) || !everything && (p->propname == "rem" && (!strcmp(temp, "4dos") || !strcmp(temp, "config")) || p->modified())))
+                if (!(everything>0 || everything==-1 && (p->basic() || p->modified()) || !everything && (p->propname == "rem" && (!strcmp(temp, "4dos") || !strcmp(temp, "config")) || p->modified())))
                     continue;
 
                 std::string help = p->Get_help();
@@ -831,7 +834,8 @@ bool Config::PrintConfig(char const * const configfilename,int everything) const
                 std::vector<Value> values = p->GetValues();
 
                 if (help != "" || !values.empty()) {
-                    fprintf(outfile, "# %*s: %s", (int)maxwidth, p->propname.c_str(), help.c_str());
+                    std::string pre=everything==2&&!p->basic()?"#DOSBOX-X-ADV:":"";
+                    fprintf(outfile, "%s# %*s: %s", pre.c_str(), (int)maxwidth-pre.size(), p->propname.c_str(), help.c_str());
 
                     if (!values.empty()) {
                         fprintf(outfile, "%s%s:", prefix, MSG_Get("CONFIG_SUGGESTED_VALUES"));
@@ -896,12 +900,12 @@ bool Config::PrintConfig(char const * const configfilename,int everything) const
 				}
 			}
 			if (!strcmp(temp, "config")) {
-				if (everything&&!used1) {
+				if (everything>0&&!used1) {
 					fprintf(outfile, "%-11s = %s\n", "set path", "Z:\\");
 					fprintf(outfile, "%-11s = %s\n", "set prompt", "$P$G");
 					fprintf(outfile, "%-11s = %s\n", "set temp", "");
 				}
-				if (everything&&!used2) {
+				if (everything>0&&!used2) {
 					fprintf(outfile, "%-11s = %s\n", "install", "");
 					fprintf(outfile, "%-11s = %s\n", "installhigh", "");
 					fprintf(outfile, "%-11s = %s\n", "device", "");
@@ -1062,6 +1066,8 @@ bool Config::ParseConfigFile(char const * const configfilename) {
     Section* currentsection = NULL;
     Section* testsec = NULL;
     while (getline(in,gegevens)) {
+        if (gegevens.size()>10&&gegevens.substr(0,10)=="#DOSBOX-X:") gegevens=gegevens.substr(10);
+        if (gegevens.size()>13&&gegevens.substr(0,14)=="#DOSBOX-X-ADV:") gegevens=gegevens.substr(14);
 
         /* strip leading/trailing whitespace */
         trim(gegevens);

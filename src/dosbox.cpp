@@ -1409,7 +1409,8 @@ void DOSBOX_SetupConfigSections(void) {
     Pstring->SetBasic(true);
 
     Pbool = secprop->Add_bool("show advanced options", Property::Changeable::Always, false);
-    Pbool->Set_help("If set, the Configuration UI will display all config options (including advanced ones) by default.");
+    Pbool->Set_help("If set, the Configuration Tool will display all config options (including advanced ones) by default.");
+    Pbool->SetBasic(true);
 
     Pstring = secprop->Add_string("mapper send key", Property::Changeable::Always, "ctrlaltdel");
     Pstring->Set_help("Select the key the mapper SendKey function will send.");
@@ -1678,6 +1679,7 @@ void DOSBOX_SetupConfigSections(void) {
     Pstring->Set_help("If set to \"cap\", the value of MOUNT -freesize will apply only if the actual free size is greater than the specified value.\n"
                     "If set to \"relative\", the value of MOUNT -freesize will change relative to the specified value.\n"
                     "If set to \"fixed\", the value of MOUNT -freesize will be a fixed one to be reported all the time.");
+    Pstring->SetBasic(true);
 
     Pbool = secprop->Add_bool("leading colon write protect image",Property::Changeable::WhenIdle,true);
     Pbool->Set_help("If set, BOOT and IMGMOUNT commands will put an image file name with a leading colon (:) in write-protect mode.");
@@ -2139,7 +2141,6 @@ void DOSBOX_SetupConfigSections(void) {
                       "24khz is default and best supported at this time.\n"
                       "15khz is not implemented at this time.\n"
                       "31khz is experimental at this time.");
-    Pstring->SetBasic(true);
 
     Pstring = secprop->Add_string("pc-98 timer always cycles",Property::Changeable::WhenIdle,"auto");
     Pstring->Set_values(truefalseautoopt);
@@ -2798,7 +2799,6 @@ void DOSBOX_SetupConfigSections(void) {
             "There are some DOS games/demos that use single-cycle DSP playback in their music tracker and they micromanage\n"
             "the DMA transfer per block poorly in a way that causes popping and artifacts. Setting this option to 0 for\n"
             "such DOS applications may reduce audible popping and artifacts.");
-    Pint->SetBasic(true);
 
     /* Sound Blaster IRQ hacks.
      *
@@ -3335,11 +3335,11 @@ void DOSBOX_SetupConfigSections(void) {
     Pmulti_remain->SetBasic(true);
     Pmulti_remain->GetSection()->Add_string("parameters",Property::Changeable::WhenIdle,"");
     Pmulti_remain->Set_help("see serial1");
-    Pmulti->SetBasic(true);
     Pmulti_remain->SetBasic(true);
 
     Pstring = secprop->Add_path("phonebookfile", Property::Changeable::OnlyAtStart, "phonebook-" VERSION ".txt");
     Pstring->Set_help("File used to map fake phone numbers to addresses.");
+    Pstring->SetBasic(true);
 
     // parallel ports
     secprop=control->AddSection_prop("parallel",&Null_Init,true);
