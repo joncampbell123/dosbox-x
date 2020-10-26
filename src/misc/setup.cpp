@@ -733,12 +733,12 @@ bool Section_prop::HandleInputline(string const& gegevens) {
     return false;
 }
 
-void Section_prop::PrintData(FILE* outfile,int everything) {
+void Section_prop::PrintData(FILE* outfile,int everything,bool norem) {
     /* Now print out the individual section entries */
     size_t len = 0;
     // Determine maximum length of the props in this section
     for(const_it tel = properties.begin();tel != properties.end();++tel) {
-        if (!(everything>0 || everything==-1 && ((*tel)->basic() || (*tel)->modified()) || !everything && ((*tel)->propname == "rem" && (!strcasecmp(GetName(), "4dos") || !strcasecmp(GetName(), "config")) || (*tel)->modified()))) continue;
+        if (!(everything>0 || everything==-1 && ((*tel)->basic() || (*tel)->modified()) || !everything && !norem && ((*tel)->propname == "rem" && (!strcasecmp(GetName(), "4dos") || !strcasecmp(GetName(), "config")) || (*tel)->modified()))) continue;
 
         if ((*tel)->propname.length() > len)
             len = (*tel)->propname.length();
@@ -746,7 +746,7 @@ void Section_prop::PrintData(FILE* outfile,int everything) {
 	if (!strcasecmp(GetName(), "config")&&len<11) len=11;
 
     for(const_it tel = properties.begin();tel != properties.end();++tel) {
-        if (!(everything>0 || everything==-1 && ((*tel)->basic() || (*tel)->modified()) || !everything && ((*tel)->propname == "rem" && (!strcasecmp(GetName(), "4dos") || !strcasecmp(GetName(), "config")) || (*tel)->modified()))) continue;
+        if (!(everything>0 || everything==-1 && ((*tel)->basic() || (*tel)->modified()) || !everything && !norem && ((*tel)->propname == "rem" && (!strcasecmp(GetName(), "4dos") || !strcasecmp(GetName(), "config")) || (*tel)->modified()))) continue;
 
         std::string pre=everything==2&&!(*tel)->basic()?"#DOSBOX-X-ADV:":"";
         fprintf(outfile,"%s%-*s = %s\n", pre.c_str(), (unsigned int)len, (*tel)->propname.c_str(), (*tel)->GetValue().ToString().c_str());
@@ -773,8 +773,9 @@ bool Section_line::HandleInputline(string const& line) {
     return true;
 }
 
-void Section_line::PrintData(FILE* outfile,int everything) {
+void Section_line::PrintData(FILE* outfile,int everything,bool norem) {
     (void)everything;//UNUSED
+    (void)norem;//UNUSED
     fprintf(outfile,"%s",data.c_str());
 }
 
@@ -873,7 +874,7 @@ bool Config::PrintConfig(char const * const configfilename,int everything,bool n
             }
         }
 
-        (*tel)->PrintData(outfile,everything);
+        (*tel)->PrintData(outfile,everything,norem);
 		if (!strcmp(temp, "config")||!strcmp(temp, "4dos")) {
 			const char * extra = const_cast<char*>(sec->data.c_str());
 			bool used1=false, used2=false;
@@ -897,7 +898,8 @@ bool Config::PrintConfig(char const * const configfilename,int everything,bool n
 						lowcase(cmd);
 						if (!strcmp(temp, "4dos")||!strncmp(cmd, "set ", 4)||!strcmp(cmd, "install")||!strcmp(cmd, "installhigh")||!strcmp(cmd, "device")||!strcmp(cmd, "devicehigh")) {
 							(!strncmp(cmd, "set ", 4)?used1:used2)=true;
-							fprintf(outfile, strcmp(temp, "4dos")?"%-11s = %s\n":"%-14s = %s\n", cmd, val);
+							if (!((!strcmp(cmd, "install")||!strcmp(cmd, "installhigh")||!strcmp(cmd, "device")||!strcmp(cmd, "devicehigh"))&&!strlen(val)&&!everything))
+                                fprintf(outfile, strcmp(temp, "4dos")?"%-11s = %s\n":"%-14s = %s\n", cmd, val);
 						}
 					}
 				}

@@ -142,6 +142,16 @@ public:
 	bool basic() const { return is_basic; };
 	bool modified() const {
         //return is_modified;
+        if (default_value.ToString()=="") {
+            if (propname=="sensitivity" && value.ToString()=="100") return false;
+            if (propname=="pixelshader" && value.ToString()=="none") return false;
+            if (propname=="priority" && value.ToString()=="higher,normal") return false;
+            if (propname=="scaler" && value.ToString()=="normal2x") return false;
+            if (propname=="monochrome_pal" && value.ToString()=="green") return false;
+            if (propname=="cycles" && value.ToString()=="auto") return false;
+            if ((propname=="serial1" || propname=="serial2") && value.ToString()=="dummy") return false;
+            if ((propname=="serial3" || propname=="serial4") && value.ToString()=="disabled") return false;
+        }
         return default_value.ToString()!=value.ToString();
     };
 
@@ -279,7 +289,7 @@ public:
 
 	virtual std::string GetPropValue(std::string const& _property) const =0;
 	virtual bool HandleInputline(std::string const& _line)=0;
-	virtual void PrintData(FILE* outfile,int everything=-1) = 0;
+	virtual void PrintData(FILE* outfile,int everything=-1,bool norem=false) = 0;
 	virtual ~Section() { /*Children must call executedestroy ! */ }
 
 	std::list<SectionFunction> onpropchange;
@@ -382,7 +392,7 @@ public:
 	Prop_multival* Get_multival(std::string const& _propname) const;
 	Prop_multival_remain* Get_multivalremain(std::string const& _propname) const;
 	virtual bool HandleInputline(std::string const& gegevens);
-	virtual void PrintData(FILE* outfile,int everything=-1);
+	virtual void PrintData(FILE* outfile,int everything=-1,bool norem=false);
 	virtual std::string GetPropValue(std::string const& _property) const;
 	virtual ~Section_prop();
 	std::string data;
@@ -419,7 +429,7 @@ public:
 	Section_line(std::string const& _sectionname):Section(_sectionname){}
 	virtual ~Section_line() { };
 	virtual bool HandleInputline(std::string const& line);
-	virtual void PrintData(FILE* outfile,int everything=-1);
+	virtual void PrintData(FILE* outfile,int everything=-1,bool norem=false);
 	virtual std::string GetPropValue(std::string const& _property) const;
 	std::string data;
 };
