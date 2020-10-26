@@ -738,7 +738,7 @@ void Section_prop::PrintData(FILE* outfile,int everything,bool norem) {
     size_t len = 0;
     // Determine maximum length of the props in this section
     for(const_it tel = properties.begin();tel != properties.end();++tel) {
-        if (!(everything>0 || everything==-1 && ((*tel)->basic() || (*tel)->modified()) || !everything && !norem && ((*tel)->propname == "rem" && (!strcasecmp(GetName(), "4dos") || !strcasecmp(GetName(), "config")) || (*tel)->modified()))) continue;
+        if (!(everything>0 || everything==-1 && ((*tel)->basic() || (*tel)->modified()) || !everything && ((!norem && (*tel)->propname == "rem" && (!strcasecmp(GetName(), "4dos") || !strcasecmp(GetName(), "config"))) || (*tel)->modified()))) continue;
 
         if ((*tel)->propname.length() > len)
             len = (*tel)->propname.length();
@@ -746,7 +746,7 @@ void Section_prop::PrintData(FILE* outfile,int everything,bool norem) {
 	if (!strcasecmp(GetName(), "config")&&len<11) len=11;
 
     for(const_it tel = properties.begin();tel != properties.end();++tel) {
-        if (!(everything>0 || everything==-1 && ((*tel)->basic() || (*tel)->modified()) || !everything && !norem && ((*tel)->propname == "rem" && (!strcasecmp(GetName(), "4dos") || !strcasecmp(GetName(), "config")) || (*tel)->modified()))) continue;
+        if (!(everything>0 || everything==-1 && ((*tel)->basic() || (*tel)->modified()) || !everything && ((!norem && (*tel)->propname == "rem" && (!strcasecmp(GetName(), "4dos") || !strcasecmp(GetName(), "config"))) || (*tel)->modified()))) continue;
 
         std::string pre=everything==2&&!(*tel)->basic()?"#DOSBOX-X-ADV:":"";
         fprintf(outfile,"%s%-*s = %s\n", pre.c_str(), (unsigned int)len, (*tel)->propname.c_str(), (*tel)->GetValue().ToString().c_str());
