@@ -519,7 +519,7 @@ public:
 private:
 	void restart(const char* useconfig);
 	
-	void writeconf(std::string name, bool configdir,int everything) {
+	void writeconf(std::string name, bool configdir,int everything, bool norem) {
 		// "config -wcd" should write to the config directory
 		if (configdir) {
 			// write file to the default config directory
@@ -536,7 +536,7 @@ private:
 			name = config_path + name;
 		}
 		WriteOut(MSG_Get("PROGRAM_CONFIG_FILE_WHICH"),name.c_str());
-		if (!control->PrintConfig(name.c_str(),everything)) {
+		if (!control->PrintConfig(name.c_str(),everything,norem)) {
 			WriteOut(MSG_Get("PROGRAM_CONFIG_FILE_ERROR"),name.c_str());
 		}
 		return;
@@ -557,7 +557,7 @@ void CONFIG::Run(void) {
 	static const char* const params[] = {
 		"-r", "-wcp", "-wcd", "-wc", "-writeconf", "-l", "-rmconf",
 		"-h", "-help", "-?", "-axclear", "-axadd", "-axtype", "-get", "-set",
-		"-writelang", "-wl", "-securemode", "-setup", "-all", "-mod", "-errtest", "-gui", NULL };
+		"-writelang", "-wl", "-securemode", "-setup", "-all", "-mod", "-norem", "-errtest", "-gui", NULL };
 	enum prs {
 		P_NOMATCH, P_NOPARAMS, // fixed return values for GetParameterFromList
 		P_RESTART,
@@ -567,15 +567,16 @@ void CONFIG::Run(void) {
 		P_AUTOEXEC_CLEAR, P_AUTOEXEC_ADD, P_AUTOEXEC_TYPE,
 		P_GETPROP, P_SETPROP,
 		P_WRITELANG, P_WRITELANG2,
-		P_SECURE, P_SETUP, P_ALL, P_MOD, P_ERRTEST, P_GUI
+		P_SECURE, P_SETUP, P_ALL, P_MOD, P_NOREM, P_ERRTEST, P_GUI
 	} presult = P_NOMATCH;
 
 	int all = -1;
-	bool first = true;
+	bool first = true, norem = false;
 	std::vector<std::string> pvars;
 	if (cmd->FindExist("-setup", true)) all = 2;
 	else if (cmd->FindExist("-all", true)) all = 1;
     else if (cmd->FindExist("-mod", true)) all = 0;
+    if (cmd->FindExist("-norem", true)) norem = true;
 	// Loop through the passed parameters
 	while(presult != P_NOPARAMS) {
 		presult = (enum prs)cmd->GetParameterFromList(params, pvars);
@@ -591,6 +592,10 @@ void CONFIG::Run(void) {
 
 		case P_MOD:
 			if (all==-1) all = 0;
+			break;
+
+		case P_NOREM:
+			norem = true;
 			break;
 
 		case P_GUI:
@@ -634,10 +639,10 @@ void CONFIG::Run(void) {
 			if (pvars.size() > 1) return;
 			else if (pvars.size() == 1) {
 				// write config to specific file, except if it is an absolute path
-				writeconf(pvars[0], !Cross::IsPathAbsolute(pvars[0]), all);
+				writeconf(pvars[0], !Cross::IsPathAbsolute(pvars[0]), all, norem);
 			} else {
 				// -wc without parameter: write primary config file
-				if (control->configfiles.size()) writeconf(control->configfiles[0], false, all);
+				if (control->configfiles.size()) writeconf(control->configfiles[0], false, all, norem);
 				else WriteOut(MSG_Get("PROGRAM_CONFIG_NOCONFIGFILE"));
 			}
 			break;
@@ -647,7 +652,7 @@ void CONFIG::Run(void) {
 			if (pvars.size() > 0) return;
 			std::string confname;
 			Cross::GetPlatformConfigName(confname);
-			writeconf(confname, true, all);
+			writeconf(confname, true, all, norem);
 			break;
 		}
 		case P_WRITECONF_PORTABLE:
@@ -655,10 +660,10 @@ void CONFIG::Run(void) {
 			if (pvars.size() > 1) return;
 			else if (pvars.size() == 1) {
 				// write config to startup directory
-				writeconf(pvars[0], false, all);
+				writeconf(pvars[0], false, all, norem);
 			} else {
 				// -wcp without parameter: write dosbox-x.conf to startup directory
-				writeconf(std::string("dosbox-x.conf"), false, all);
+				writeconf(std::string("dosbox-x.conf"), false, all, norem);
 			}
 			break;
 
@@ -1214,6 +1219,7 @@ void PROGRAMS_Init() {
 		"-wcd Writes to the default config file in the config directory.\n"\
 		"-all Use this with -wc, -wcp, or -wcd to write ALL options to the config file.\n"\
 		"-mod Use this with -wc, -wcp, or -wcd to write modified config options only.\n"\
+		"-norem Use this with -wc, -wcp, or -wcd to not write config option remarks.\n"\
 		"-gui Starts DOSBox-X's graphical configuration tool.\n"
 		"-l Lists DOSBox-X configuration parameters.\n"\
 		"-h, -help, -? sections / sectionname / propertyname\n"\

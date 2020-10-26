@@ -113,7 +113,7 @@ public:
     Section* GetSection(std::string const&_sectionname) const;
     Section* GetSectionFromProperty(char const * const prop) const;
 
-    bool PrintConfig(char const * const configfilename,int everything=-1) const;
+    bool PrintConfig(char const * const configfilename,int everything=-1,bool norem=false) const;
     bool ParseConfigFile(char const * const configfilename);
     void ParseEnv(char ** envp);
     bool SecureMode() const { return secure_mode; }

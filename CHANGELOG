@@ -106,7 +106,8 @@
     to the configuration file" checkbox) will force to
     save all config options. A new -mod command-line
     option is added to CONFIG command to save modified
-    config options only. (Wengier)
+    config options only, and a new -norem command-line
+    option is added to not write remarks. (Wengier)
   - Updated the Windows installer to default to the
     "typical" installation. For the full installation
     start menu items will be added for DOSBox-X builds

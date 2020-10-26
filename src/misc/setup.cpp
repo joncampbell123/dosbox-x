@@ -782,14 +782,16 @@ string Section_line::GetPropValue(string const& /* _property*/) const {
     return NO_SUCH_PROPERTY;
 }
 
-bool Config::PrintConfig(char const * const configfilename,int everything) const {
+bool Config::PrintConfig(char const * const configfilename,int everything,bool norem) const {
     char temp[50];char helpline[256];
     FILE* outfile=fopen(configfilename,"w+t");
     if (outfile==NULL) return false;
 
     /* Print start of configfile and add a return to improve readibility. */
-    fprintf(outfile,MSG_Get("CONFIGFILE_INTRO"),VERSION);
-    fprintf(outfile,"\n");
+    if (!norem) {
+        fprintf(outfile,MSG_Get("CONFIGFILE_INTRO"),VERSION);
+        fprintf(outfile,"\n");
+    }
     for (const_it tel=sectionlist.begin(); tel!=sectionlist.end(); ++tel) {
         /* Print out the Section header */
         strcpy(temp,(*tel)->GetName());
@@ -818,6 +820,7 @@ bool Config::PrintConfig(char const * const configfilename,int everything) const
 
             i=0;
             char prefix[80];
+            if (!norem)
             while ((p = sec->Get_prop(int(i++)))) {
                 if (!(everything>0 || everything==-1 && (p->basic() || p->modified()) || !everything && (p->propname == "rem" && (!strcmp(temp, "4dos") || !strcmp(temp, "config")) || p->modified())))
                     continue;
@@ -853,18 +856,20 @@ bool Config::PrintConfig(char const * const configfilename,int everything) const
         } else {
             fprintf(outfile,"[%s]\n",temp);
 
-            upcase(temp);
-            strcat(temp,"_CONFIGFILE_HELP");
-            const char * helpstr=MSG_Get(temp);
-            char * helpwrite=helpline;
-            while (*helpstr) {
-                *helpwrite++=*helpstr;
-                if (*helpstr == '\n') {
-                    *helpwrite=0;
-                    fprintf(outfile,"# %s",helpline);
-                    helpwrite=helpline;
+            if (!norem) {
+                upcase(temp);
+                strcat(temp,"_CONFIGFILE_HELP");
+                const char * helpstr=MSG_Get(temp);
+                char * helpwrite=helpline;
+                while (*helpstr) {
+                    *helpwrite++=*helpstr;
+                    if (*helpstr == '\n') {
+                        *helpwrite=0;
+                        fprintf(outfile,"# %s",helpline);
+                        helpwrite=helpline;
+                    }
+                    helpstr++;
                 }
-                helpstr++;
             }
         }
 
@@ -917,7 +922,7 @@ bool Config::PrintConfig(char const * const configfilename,int everything) const
 							linestr[CROSS_LEN]=0;
 						} else
 							strcpy(linestr, line.c_str());
-						if (!strncasecmp(trim(lin), "rem ", 4)&&*trim(trim(lin)+4)!='=')
+						if (!strncasecmp(trim(lin), "rem ", 4)&&*trim(trim(lin)+4)!='='&&!norem)
 							fprintf(outfile, "%s\n", trim(lin));
 					}
 				}
