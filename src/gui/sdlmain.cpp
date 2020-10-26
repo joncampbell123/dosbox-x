@@ -8646,7 +8646,7 @@ bool browse_save_file_menu_callback(DOSBoxMenu * const menu, DOSBoxMenu::item * 
     getcwd(Temp_CurrentDir, 512);
     const char *lFilterPatterns[] = {"*.sav","*.SAV"};
     const char *lFilterDescription = "Save files (*.sav)";
-    char const * lTheSaveFileName = tinyfd_saveFileDialog("Select an save file","",2,lFilterPatterns,lFilterDescription);
+    char const * lTheSaveFileName = tinyfd_saveFileDialog("Select a save file","",2,lFilterPatterns,lFilterDescription);
     if (lTheSaveFileName!=NULL) {
         savefilename = std::string(lTheSaveFileName);
         mainMenu.get_item("usesavefile").set_text("Use save file"+(savefilename.size()?" ("+savefilename+")":"")).refresh_item(mainMenu);

@@ -101,7 +101,7 @@
     dosbox-x.reference.conf now contains common config
     options instead of all config options. (Wengier)
   - The CONFIG command and Configuration Tool will now
-    save common and modified config optons by default.
+    save common and modified config options by default.
     The -all command-line option (or "Save all options
     to the configuration file" checkbox) will force to
     save all config options. A new -mod command-line
@@ -123,8 +123,11 @@
   - Improved Flatpak support for Linux. (rderooy)
   - Improved message for the -help command-line option,
     adding for example the -socket option. (Wengier)
+  - Fixed issue that aspect ratio not being respected
+    in full-screen mode when a GLSL shader is enabled
+    with an OpenGL output. (Wengier)
   - Fixed command-line option -socket not working for
-    the nullmodem feature. (Wengier)
+    the null-modem feature. (Wengier)
   - Fixed shelling from programs may not work when the
     shell config option is set. (Wengier)
   - Improved Gravis Ultrasound (GUS) implementation to
