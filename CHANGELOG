@@ -163,6 +163,17 @@
     applications" menu group in "DOS" menu. (Wengier)
   - Updated MPXPLAY to latest version 1.65. (Wengier)
   - Integrated SVN commits (Allofich)
+    - r4384: ICW1 on the PIC clears the Interrupt Mask
+    Register. Fixes Antagony and quite a few demos that
+    expect IRQs to be unmasked.
+    - r4382: Refine adlib timers a bit more and make
+    reading the Adlib take a bit more time.
+    - r4378: Prevent some possible deadlocks with sti
+    in dynrec core.
+    - r4375: Improve compatibility with older Intel
+    chipsets
+    - r4374: Add a bit of hack so cycles=max/auto 90%
+    keeps on working inside batch files after r3925.
     - r4371: Fix regression in Clue: Master Detective.
     - r4370: As an adjunct to r4369, make the reference
       counts of standard device handles equivalent to
