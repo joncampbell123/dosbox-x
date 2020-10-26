@@ -911,7 +911,7 @@ static bool RENDER_GetShader(std::string& shader_path, char *old_src) {
 	else if (shader_path == "sharp")       buf << sharp_glsl;
 
 	if (!buf.str().empty()) {
-		std::string s = buf.str();
+		std::string s = buf.str() + '\n';
 		if (first_shell) {
 			std::string pre_defs;
 			Bitu count = first_shell->GetEnvCount();
