@@ -928,11 +928,11 @@ static bool RENDER_GetShader(std::string& shader_path, char *old_src) {
 			}
 			if (!pre_defs.empty()) {
 				// if "#version" occurs it must be before anything except comments and whitespace
-				size_t pos = buf.str().find("#version ");
-				if (pos != std::string::npos) pos = buf.str().find('\n', pos+9);
+				size_t pos = s.find("#version ");
+				if (pos != std::string::npos) pos = s.find('\n', pos+9);
 				if (pos == std::string::npos) pos = 0;
 				else ++pos;
-				s = buf.str().insert(pos, pre_defs);
+				s = s.insert(pos, pre_defs);
 			}
 		}
 		// keep the same buffer if contents aren't different
