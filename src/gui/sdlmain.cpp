@@ -7746,7 +7746,7 @@ bool mixer_info_menu_callback(DOSBoxMenu * const menu,DOSBoxMenu::item * const m
     return true;
 }
 
-bool midi_device_menu_callback(DOSBoxMenu * const menu,DOSBoxMenu::item * const menuitem) {
+bool sb_device_menu_callback(DOSBoxMenu * const menu,DOSBoxMenu::item * const menuitem) {
     (void)menu;//UNUSED
     (void)menuitem;//UNUSED
     MAPPER_ReleaseAllKeys();
@@ -7761,6 +7761,20 @@ bool midi_device_menu_callback(DOSBoxMenu * const menu,DOSBoxMenu::item * const 
     return true;
 }
 
+bool midi_device_menu_callback(DOSBoxMenu * const menu,DOSBoxMenu::item * const menuitem) {
+    (void)menu;//UNUSED
+    (void)menuitem;//UNUSED
+    MAPPER_ReleaseAllKeys();
+
+    GFX_LosingFocus();
+
+    GUI_Shortcut(22);
+
+    MAPPER_ReleaseAllKeys();
+
+    GFX_LosingFocus();
+    return true;
+}
 
 bool cpu_speed_emulate_menu_callback(DOSBoxMenu * const menu,DOSBoxMenu::item * const menuitem) {
     (void)menu;//UNUSED
@@ -9972,9 +9986,11 @@ int main(int argc, char* argv[]) SDL_MAIN_NOEXCEPT {
                     set_callback_function(mixer_swapstereo_menu_callback);
                 mainMenu.alloc_item(DOSBoxMenu::item_type_id,"mixer_mute").set_text("Mute").
                     set_callback_function(mixer_mute_menu_callback);
-                mainMenu.alloc_item(DOSBoxMenu::item_type_id,"mixer_info").set_text("Show sound levels").
+                mainMenu.alloc_item(DOSBoxMenu::item_type_id,"mixer_info").set_text("Show current sound levels").
                     set_callback_function(mixer_info_menu_callback);
-                mainMenu.alloc_item(DOSBoxMenu::item_type_id,"midi_info").set_text("Show current MIDI device").
+                mainMenu.alloc_item(DOSBoxMenu::item_type_id,"sb_info").set_text("Show Sound Blaster configuration").
+                    set_callback_function(sb_device_menu_callback);
+                mainMenu.alloc_item(DOSBoxMenu::item_type_id,"midi_info").set_text("Show MIDI device configuration").
                     set_callback_function(midi_device_menu_callback);
             }
         }

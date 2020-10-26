@@ -1551,6 +1551,35 @@ public:
     }
 };
 
+std::string GetSBtype(), GetSBbase();
+Bitu GetSBirq();
+uint8_t GetSBldma(), GetSBhdma();
+
+class ShowSBInfo : public GUI::ToplevelWindow {
+protected:
+    GUI::Input *name;
+public:
+    ShowSBInfo(GUI::Screen *parent, int x, int y, const char *title) :
+        ToplevelWindow(parent, x, y, 320, 230, title) {
+            std::string getoplmode(), getoplemu();
+            std::string midiinfo = "Sound Blaster type: "+GetSBtype()+"\nSound Blaster base: "+GetSBbase()+"\nSound Blaster IRQ: "+std::to_string(GetSBirq())+"\nSound Blaster Low DMA: "+std::to_string(GetSBldma())+"\nSound Blaster High DMA: "+std::to_string(GetSBhdma());
+            std::istringstream in(midiinfo.c_str());
+            int r=0;
+            if (in)	for (std::string line; std::getline(in, line); ) {
+                r+=25;
+                new GUI::Label(this, 40, r, line.c_str());
+            }
+            (new GUI::Button(this, 130, r+30, "Close", 70))->addActionHandler(this);
+    }
+
+    void actionExecuted(GUI::ActionEventSource *b, const GUI::String &arg) {
+        (void)b;//UNUSED
+        if (arg == "Close")
+            close();
+        if (shortcut) running = false;
+    }
+};
+
 extern DB_Midi midi;
 extern std::string sffile;
 class ShowMidiDevice : public GUI::ToplevelWindow {
@@ -1558,21 +1587,22 @@ protected:
     GUI::Input *name;
 public:
     ShowMidiDevice(GUI::Screen *parent, int x, int y, const char *title) :
-        ToplevelWindow(parent, x, y, 320, 200, title) {
+        ToplevelWindow(parent, x, y, 320, 260, title) {
             std::string name=!midi.handler||!midi.handler->GetName()?"-":midi.handler->GetName();
             if (name.size()) {
                 if (name=="mt32") name="MT32";
                 else if (name=="fluidsynth") name="FluidSynth";
                 else name[0]=toupper(name[0]);
             }
-            std::string midiinfo = "MIDI available: "+std::string(midi.available?"Yes":"No")+"\nMIDI device: "+name+"\nMIDI soundfont file / ROM path:\n"+sffile;
+            std::string getoplmode(), getoplemu();
+            std::string midiinfo = "MIDI available: "+std::string(midi.available?"Yes":"No")+"\nMIDI device: "+name+"\nMIDI soundfont file / ROM path:\n"+sffile+"\nOPL mode: "+getoplmode()+"\nOPL emulation: "+getoplemu();
             std::istringstream in(midiinfo.c_str());
             int r=0;
             if (in)	for (std::string line; std::getline(in, line); ) {
                 r+=25;
                 new GUI::Label(this, 40, r, line.c_str());
             }
-            (new GUI::Button(this, 140, r+30, "Close", 70))->addActionHandler(this);
+            (new GUI::Button(this, 130, r+30, "Close", 70))->addActionHandler(this);
     }
 
     void actionExecuted(GUI::ActionEventSource *b, const GUI::String &arg) {
@@ -2102,7 +2132,11 @@ static void UI_Select(GUI::ScreenSDL *screen, int select) {
             np5->raise();
             } break;
         case 21: {
-            auto *np6 = new ShowMidiDevice(screen, 150, 100, "Current MIDI device in DOSBox-X");
+            auto *np6 = new ShowSBInfo(screen, 150, 100, "Sound Blaster configuration");
+            np6->raise();
+            } break;
+        case 22: {
+            auto *np6 = new ShowMidiDevice(screen, 150, 100, "Current MIDI configuration");
             np6->raise();
             } break;
         case 23: {

@@ -3832,6 +3832,45 @@ ASP>
     }   
 }; //End of SBLASTER class
 
+std::string GetSBtype() {
+    switch (sb.type) {
+        case SBT_NONE:
+            return "None";
+        case SBT_1:
+            return "SB1";
+        case SBT_PRO1:
+            return "SBPro";
+        case SBT_2:
+            return "SB2";
+        case SBT_PRO2:
+            return "SBPro 2";
+        case SBT_16:
+            return "SB16";
+        case SBT_GB:
+            return "GB";
+        default:
+            return "Unknown";
+    }
+}
+
+std::string GetSBbase() {
+    std::stringstream ss;
+    ss << std::hex << sb.hw.base;
+    return ss.str();
+}
+
+Bitu GetSBirq() {
+    return sb.hw.irq;
+}
+
+uint8_t GetSBldma() {
+    return sb.hw.dma8;
+}
+
+uint8_t GetSBhdma() {
+    return sb.hw.dma16;
+}
+
 extern void HWOPL_Cleanup();
 
 static SBLASTER* test = NULL;

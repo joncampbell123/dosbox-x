@@ -1033,6 +1033,8 @@ void OPL_SaveRawEvent(bool pressed) {
 
 namespace Adlib {
 
+static std::string usedoplemu = "none";
+
 Module::Module( Section* configuration ) : Module_base(configuration) {
     Bitu sb_addr=0,sb_irq=0,sb_dma=0;
 //	DOSBoxMenu::item *item;
@@ -1101,6 +1103,7 @@ Module::Module( Section* configuration ) : Module_base(configuration) {
 	} else {
 		handler = new DBOPL::Handler();
 	}
+	usedoplemu = oplemu;
 	handler->Init( rate );
 	bool single = false;
 	switch ( oplmode ) {
@@ -1181,6 +1184,25 @@ OPL_Mode Module::oplmode=OPL_none;
 
 }	//Adlib Namespace
 
+std::string getoplmode() {
+	if (Adlib::Module::oplmode == NULL || Adlib::Module::oplmode == OPL_none) return "None";
+    else if (Adlib::Module::oplmode == OPL_cms) return "CMS";
+    else if (Adlib::Module::oplmode == OPL_opl2) return "OPL2";
+    else if (Adlib::Module::oplmode == OPL_dualopl2) return "Dual OPL2";
+    else if (Adlib::Module::oplmode == OPL_opl3) return "OPL3";
+    else if (Adlib::Module::oplmode == OPL_opl3gold) return "OPL3 Gold";
+    else if (Adlib::Module::oplmode == OPL_hardware) return "Hardware";
+    else if (Adlib::Module::oplmode == OPL_hardwareCMS) return "Hardware CMS";
+    else return "Unknown";
+}
+
+std::string getoplemu() {
+    std::string emu=Adlib::usedoplemu;
+    if (emu=="mame") emu="MAME";
+    else if (emu=="opl2board") emu="OPL2 board";
+    else emu[0]=toupper(emu[0]);
+    return emu;
+}
 
 void OPL_Init(Section* sec,OPL_Mode oplmode) {
 	Adlib::Module::oplmode = oplmode;
