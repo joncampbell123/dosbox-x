@@ -438,6 +438,7 @@ Bitu OUTPUT_OPENGL_SetSize()
                     LOG_MSG("SDL:OPENGL:Failed to compile shader, falling back to default");
                     src = NULL;
                 }
+
                 if (src == NULL && !LoadGLShaders(shader_src_default, &vertexShader, &fragmentShader)) {
                     LOG_MSG("SDL:OPENGL:Failed to compile default shader!");
                     return 0;
@@ -540,8 +541,12 @@ Bitu OUTPUT_OPENGL_SetSize()
     }
 #endif
 
-    glViewport(0, 0, sdl.surface->w, sdl.surface->h);
-    glDeleteTextures(1, &sdl_opengl.texture);
+    if (sdl_opengl.use_shader)
+        glViewport((sdl.surface->w-sdl.clip.w)/2,(sdl.surface->h-sdl.clip.h)/2,sdl.clip.w,sdl.clip.h);
+    else
+        glViewport(sdl.clip.x,sdl.clip.y,sdl.clip.w,sdl.clip.h);
+    //glViewport(0, 0, sdl.surface->w, sdl.surface->h);
+    if (sdl_opengl.texture > 0) glDeleteTextures(1, &sdl_opengl.texture);
     glGenTextures(1, &sdl_opengl.texture);
     glBindTexture(GL_TEXTURE_2D, sdl_opengl.texture);
     glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_REPLACE);
