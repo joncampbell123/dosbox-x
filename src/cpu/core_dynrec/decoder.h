@@ -555,7 +555,7 @@ restart_prefix:
 		case 0xfb:		//STI
 			gen_call_function_raw(CPU_STI);
 			dyn_check_exception(FC_RETOP);
-			if (max_opcodes==0) max_opcodes=1;		//Allow 1 extra opcode
+			max_opcodes=1;		//Allow 1 extra opcode
 			break;
 
 		case 0xfc:		//CLD
