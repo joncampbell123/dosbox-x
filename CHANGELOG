@@ -43,7 +43,8 @@
     free disk size will also change relative to the
     change of the free disk size ever since. (Wengier)
   - Added support for OPUS CD tracks by porting and
-    cleaning up the code from other projects. (Wengier)
+    cleaning up the source code from other projects.
+    Many thanks to Marty Shepard and kcgen. (Wengier)
   - Support for FluidSynth MIDI Synthesizer is now
     included in the MinGW builds by default just like
     Visual Studio builds. Set "mididevice=fluidsynth"

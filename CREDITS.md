@@ -27,7 +27,7 @@ A list of features ported from DOSBox SVN Daum:
 
 A list of features ported from DOSBox ECE:
 
-* Support for FLAC, MP3, WAV and Vorbis CD-DA tracks
+* Support for FLAC, MP3, WAV, OGG Vorbis and OPUS CD-DA tracks (with some decoders ported and cleaned up from DOSBox Staging and DOSBox Optionals by Wengier)
 * Support for mapping mouse buttons to keyboard
 * Improved support for 3dfx emulation (Glide wrapper and improved internal card emulation; both improved since then by Wengier)
 * Improved support for FluidSynth MIDI synthesizer

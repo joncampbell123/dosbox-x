@@ -69,7 +69,7 @@ const Sound_DecoderFunctions __Sound_DecoderFunctions_OPUS =
 		extensions_opus,
 		"Ogg Opus audio using libopusfile",
 		"Kevin R Croft <krcroft@gmail.com>",
-		"https://www.opus-codec.org/"
+		"The DOSBox-X project"
 	},
 
 	opus_init,   /*   init() method */

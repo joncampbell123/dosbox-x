@@ -5,7 +5,7 @@
  *   - STB: https://github.com/nothings/stb (source)
  *   - STB: https://twitter.com/nothings (website/author info)
  *
- *  Copyright (C) 2018-2020  The dosbox-staging team
+ *  Copyright (C) 2018-2020  The DOSBox Staging Team
  *  Copyright (C) 2001-2017  Ryan C. Gordon <icculus@icculus.org>
  *
  *  This program is free software; you can redistribute it and/or modify
