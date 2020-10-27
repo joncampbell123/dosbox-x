@@ -1409,12 +1409,14 @@ void CommandLine::FillVector(std::vector<std::string> & vector) {
     for(cmd_it it=cmds.begin(); it != cmds.end(); ++it) {
         vector.push_back((*it));
     }
+#ifdef WIN32
     // add back the \" if the parameter contained a space
     for(Bitu i = 0; i < vector.size(); i++) {
         if (vector[i].find(' ') != std::string::npos) {
             vector[i] = "\""+vector[i]+"\"";
         }
     }
+#endif
 }
 
 int CommandLine::GetParameterFromList(const char* const params[], std::vector<std::string> & output) {

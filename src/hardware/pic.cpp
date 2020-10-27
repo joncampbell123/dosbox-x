@@ -235,6 +235,7 @@ static void write_command(Bitu port,Bitu val,Bitu iolen) {
         if (val&0x04) LOG_MSG("PIC: 4 byte interval not handled");
         if (val&0x08) LOG_MSG("PIC: level triggered mode not handled");
         if (val&0xe0) LOG_MSG("PIC: 8080/8085 mode not handled");
+        pic->set_imr(0);
         pic->single=(val&0x02)==0x02;
         pic->icw_index=1;           // next is ICW2
         pic->icw_words=2 + (val&0x01);  // =3 if ICW4 needed
