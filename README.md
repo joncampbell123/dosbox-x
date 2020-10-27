@@ -63,7 +63,7 @@ Although based on the DOSBox project, DOSBox-X is now a separate project because
 
 * Support for 3dfx Voodoo chip and Glide emulation
 
-* Support for cue sheets with FLAC, MP3, WAV, and OGG Vorbis CD-DA tracks
+* Support for cue sheets with FLAC, MP3, WAV, OGG and OPUS CD-DA tracks
 
 * Support for FluidSynth MIDI synthesizer and Innovation SSI-2001 emulation
 

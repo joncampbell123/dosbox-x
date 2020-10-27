@@ -49,6 +49,7 @@
 #include "src/libs/decoders/SDL_sound.c"
 #include "src/libs/decoders/vorbis.c"
 #include "src/libs/decoders/flac.c"
+#include "src/libs/decoders/opus.c"
 #include "src/libs/decoders/wav.c"
 #include "src/libs/decoders/mp3_seek_table.cpp"
 #include "src/libs/decoders/mp3.cpp"

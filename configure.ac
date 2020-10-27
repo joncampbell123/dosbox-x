@@ -1088,6 +1088,7 @@ src/libs/porttalk/Makefile
 src/libs/mt32/Makefile
 src/libs/xBRZ/Makefile
 src/libs/fluidsynth/Makefile
+src/libs/decoders/internal/Makefile
 src/output/Makefile
 src/output/direct3d/Makefile
 src/builtin/Makefile
