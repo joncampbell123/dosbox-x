@@ -2813,7 +2813,7 @@ bool CPU_CPUID(void) {
 			reg_ecx=0;			/* No features */
 			reg_edx=enable_fpu?1:0;	/* FPU */
 		} else if (CPU_ArchitectureType == CPU_ARCHTYPE_PENTIUM) {
-			reg_eax=0x513;		/* intel pentium */
+			reg_eax=0x517;		/* intel pentium */
 			reg_ebx=0;			/* Not Supported */
 			reg_ecx=0;			/* No features */
 			reg_edx=0x00000010|(enable_fpu?1:0);	/* FPU+TimeStamp/RDTSC */
