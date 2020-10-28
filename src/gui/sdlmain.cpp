@@ -39,6 +39,7 @@
 
 int socknum=-1;
 extern int enablelfn;
+extern bool blinking;
 extern bool dpi_aware_enable;
 extern bool log_int21;
 extern bool log_fileio;
@@ -8412,6 +8413,105 @@ bool output_menu_callback(DOSBoxMenu * const menu,DOSBoxMenu::item * const menui
     return true;
 }
 
+bool clear_menu_callback(DOSBoxMenu * const menu,DOSBoxMenu::item * const menuitem) {
+    (void)menu;//UNUSED
+    const char *mname = menuitem->get_name().c_str();
+    if (CurMode->type==M_TEXT || dos_kernel_disabled) {
+        const auto rows = real_readb(BIOSMEM_SEG, BIOSMEM_NB_ROWS);
+        const auto cols = real_readw(BIOSMEM_SEG, BIOSMEM_NB_COLS);
+        INT10_ScrollWindow(0, 0, rows, static_cast<uint8_t>(cols), -rows, 0x7, 0xff);
+        INT10_SetCursorPos(0, 0, 0);
+    } else if (IS_PC98_ARCH) {
+        char msg[]="[2J";
+        uint16_t s = (uint16_t)strlen(msg);
+        DOS_WriteFile(STDERR,(uint8_t*)msg,&s);
+    } else {
+        uint16_t oldax=reg_ax;
+        reg_ax=(uint16_t)CurMode->mode;
+        CALLBACK_RunRealInt(0x10);
+        reg_ax = oldax;
+    }
+    if (!strcmp(mname, "clear_screen") && !dos_kernel_disabled && !strcmp(RunningProgram, "COMMAND")) {
+        DOS_Shell temp;
+        temp.exit = true;
+        temp.ShowPrompt();
+    }
+    return true;
+}
+
+#include "inout.h"
+bool intensity_menu_callback(DOSBoxMenu * const menu,DOSBoxMenu::item * const menuitem) {
+    (void)menu;//UNUSED
+    const char *mname = menuitem->get_name().c_str();
+    uint16_t oldax=reg_ax, oldbx=reg_bx;
+    if (!strcmp(mname, "text_background"))
+        reg_bl = 0;
+    else
+        reg_bl = 1;
+	reg_ax = 0x1003;
+    reg_bh = 0;
+	CALLBACK_RunRealInt(0x10);
+    reg_ax = oldax;
+    reg_bx = oldbx;
+    mainMenu.get_item("text_background").check(!blinking).refresh_item(mainMenu);
+    mainMenu.get_item("text_blinking").check(blinking).refresh_item(mainMenu);
+    return true;
+}
+
+bool lines_menu_callback(DOSBoxMenu * const menu,DOSBoxMenu::item * const menuitem) {
+    (void)menu;//UNUSED
+    clear_menu_callback(menu, menuitem);
+    const char *mname = menuitem->get_name().c_str();
+    if (IS_PC98_ARCH)
+        return true;
+    uint16_t oldax=reg_ax, oldbx=reg_bx, oldcx=reg_cx;
+    if (!strcmp(mname, "line_80x25")) {
+        reg_ax = 0x0003;
+        CALLBACK_RunRealInt(0x10);
+    } else if (!strcmp(mname, "line_80x50")) {
+        reg_ax = 0x1202;
+        reg_bl = 0x30;
+        CALLBACK_RunRealInt(0x10);
+        reg_ax = 3;
+        CALLBACK_RunRealInt(0x10);
+        reg_ax = 0x1112;
+        CALLBACK_RunRealInt(0x10);
+        reg_ax = 0x100;
+        reg_cx = 0x808;
+        CALLBACK_RunRealInt(0x10);
+    } else if (!strcmp(mname, "line_80x60")) {
+        reg_ax = 0x0043;
+        CALLBACK_RunRealInt(0x10);
+    } else if (!strcmp(mname, "line_132x25")) {
+        reg_ax = 0x0055;
+        CALLBACK_RunRealInt(0x10);
+    } else if (!strcmp(mname, "line_132x43")) {
+        reg_ax = 0x0054;
+        CALLBACK_RunRealInt(0x10);
+    } else if (!strcmp(mname, "line_132x50")) {
+        reg_ax = 0x0055;
+        CALLBACK_RunRealInt(0x10);
+        reg_ax = 0x1112;
+        CALLBACK_RunRealInt(0x10);
+        reg_ax = 0x100;
+        reg_cx = 0x808;
+        CALLBACK_RunRealInt(0x10);
+    } else if (!strcmp(mname, "line_132x60")) {
+        reg_ax = 0x0064;
+        CALLBACK_RunRealInt(0x10);
+    } else
+        return true;
+    reg_ax = oldax;
+    reg_bx = oldbx;
+    reg_cx = oldcx;
+    if (!dos_kernel_disabled && !strcmp(RunningProgram, "COMMAND")) {
+        DOS_Shell temp;
+        temp.exit = true;
+        temp.ShowPrompt();
+    }
+    return true;
+}
+
 bool MENU_SetBool(std::string secname, std::string value);
 
 bool vga_9widetext_menu_callback(DOSBoxMenu * const menu,DOSBoxMenu::item * const menuitem) {
@@ -9942,6 +10042,31 @@ int main(int argc, char* argv[]) SDL_MAIN_NOEXCEPT {
                 }
             }
             {
+                DOSBoxMenu::item &item = mainMenu.alloc_item(DOSBoxMenu::submenu_type_id,"VideoTextmodeMenu");
+                item.set_text("Text-mode");
+
+                mainMenu.alloc_item(DOSBoxMenu::item_type_id,"clear_screen").set_text("Clear the screen").
+                    set_callback_function(clear_menu_callback);
+                mainMenu.alloc_item(DOSBoxMenu::item_type_id,"text_background").set_text("High intensity: background color").
+                    set_callback_function(intensity_menu_callback);
+                mainMenu.alloc_item(DOSBoxMenu::item_type_id,"text_blinking").set_text("High intensity: blinking text").
+                    set_callback_function(intensity_menu_callback);
+                mainMenu.alloc_item(DOSBoxMenu::item_type_id,"line_80x25").set_text("Screen: 80 columns x 25 lines").
+                    set_callback_function(lines_menu_callback);
+                mainMenu.alloc_item(DOSBoxMenu::item_type_id,"line_80x50").set_text("Screen: 80 columns x 50 lines").
+                    set_callback_function(lines_menu_callback);
+                mainMenu.alloc_item(DOSBoxMenu::item_type_id,"line_80x60").set_text("Screen: 80 columns x 60 lines").
+                    set_callback_function(lines_menu_callback);
+                mainMenu.alloc_item(DOSBoxMenu::item_type_id,"line_132x25").set_text("Screen: 132 columns x 25 lines").
+                    set_callback_function(lines_menu_callback);
+                mainMenu.alloc_item(DOSBoxMenu::item_type_id,"line_132x43").set_text("Screen: 132 columns x 43 lines").
+                    set_callback_function(lines_menu_callback);
+                mainMenu.alloc_item(DOSBoxMenu::item_type_id,"line_132x50").set_text("Screen: 132 columns x 50 lines").
+                    set_callback_function(lines_menu_callback);
+                mainMenu.alloc_item(DOSBoxMenu::item_type_id,"line_132x60").set_text("Screen: 132 columns x 60 lines").
+                    set_callback_function(lines_menu_callback);
+            }
+            {
                 DOSBoxMenu::item &item = mainMenu.alloc_item(DOSBoxMenu::submenu_type_id,"VideoPC98Menu");
                 item.set_text("PC-98");
 
@@ -10441,6 +10566,19 @@ int main(int argc, char* argv[]) SDL_MAIN_NOEXCEPT {
 
         mainMenu.get_item("vga_9widetext").enable(!IS_PC98_ARCH);
         mainMenu.get_item("doublescan").enable(!IS_PC98_ARCH);
+
+        blinking=static_cast<Section_prop *>(control->GetSection("video"))->Get_bool("high intensity blinking");
+        LOG_MSG("blinking %d\n", blinking?1:0);
+
+        mainMenu.get_item("text_background").enable(!IS_PC98_ARCH).check(!blinking).refresh_item(mainMenu);
+        mainMenu.get_item("text_blinking").enable(!IS_PC98_ARCH).check(blinking).refresh_item(mainMenu);
+        mainMenu.get_item("line_80x25").enable(!IS_PC98_ARCH);
+        mainMenu.get_item("line_80x50").enable(!IS_PC98_ARCH);
+        mainMenu.get_item("line_80x60").enable(!IS_PC98_ARCH);
+        mainMenu.get_item("line_132x25").enable(!IS_PC98_ARCH);
+        mainMenu.get_item("line_132x43").enable(!IS_PC98_ARCH);
+        mainMenu.get_item("line_132x50").enable(!IS_PC98_ARCH);
+        mainMenu.get_item("line_132x60").enable(!IS_PC98_ARCH);
 
         mainMenu.get_item("pc98_5mhz_gdc").enable(IS_PC98_ARCH);
         mainMenu.get_item("pc98_allow_200scanline").enable(IS_PC98_ARCH);

@@ -1786,6 +1786,11 @@ void DOSBOX_SetupConfigSections(void) {
     Pbool = secprop->Add_bool("enable 8-bit dac",Property::Changeable::OnlyAtStart,true);
     Pbool->Set_help("If set, allow VESA BIOS calls in IBM PC mode to set DAC width. Has no effect in PC-98 mode.");
 
+    Pbool = secprop->Add_bool("high intensity blinking",Property::Changeable::OnlyAtStart,true);
+    Pbool->Set_help("Set to false if you want to see high-intensity background colors instead of blinking foreground text.\n"
+            "This option has no effect in PC-98 and some other video modes.");
+    Pbool->SetBasic(true);
+
     Phex = secprop->Add_hex("svga lfb base", Property::Changeable::OnlyAtStart, 0);
     Phex->Set_help("If nonzero, define the physical memory address of the linear framebuffer.");
 

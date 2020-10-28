@@ -167,10 +167,16 @@
     on the Windows host. A toggle menu item "Quiet mode
     (no start messages)" is added to the "Windows host
     applications" menu group in "DOS" menu. (Wengier)
-  - Added zip package TEXTUTIL.ZIP to the Z drive that
-    contains various utilities (e.g. CGA.COM, EGA.COM,
-    132X25.COM, 132X43.COM, etc) to change the video
-    setting in the text mode. (Wengier)
+  - Add menu group "Text-mode" under "Video" menu to
+    change some text-mode related video settings, such
+    as changing the number of rows and columns. A zip
+    package named TEXTUTIL.ZIP is added to the Z drive
+    that contains various utilities (such as CGA.COM,
+    EGA.COM, 132X25.COM, 132X43.COM) to change current
+    video setting from the command line. Also added a
+    config option "high intensity blinking" which when
+    set will display high intensity background colors
+    instad of blinking foreground text. (Wengier)
   - Updated MPXPLAY to latest version 1.65. (Wengier)
   - Integrated SVN commits (Allofich)
     - r4384: ICW1 on the PIC clears the Interrupt Mask

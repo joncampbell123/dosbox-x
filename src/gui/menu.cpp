@@ -324,6 +324,24 @@ static const char *def_menu_video_output[] =
     NULL
 };
 
+/* video text-mode menu ("VideoTextmodeMenu") */
+static const char *def_menu_video_textmode[] =
+{
+    "clear_screen",
+    "--",
+    "text_background",
+    "text_blinking",
+    "--",
+    "line_80x25",
+    "line_80x50",
+    "line_80x60",
+    "line_132x25",
+    "line_132x43",
+    "line_132x50",
+    "line_132x60",
+    NULL
+};
+
 /* video vsync menu ("VideoVsyncMenu") */
 static const char *def_menu_video_vsync[] =
 {
@@ -435,6 +453,7 @@ static const char *def_menu_video[] =
     "VideoVsyncMenu",
 #endif
     "VideoOverscanMenu",
+    "VideoTextmodeMenu",
     "VideoCompatMenu",
     "VideoPC98Menu",
 #if C_DEBUG
@@ -1388,6 +1407,9 @@ void ConstructMenu(void) {
 
     /* video output menu */
     ConstructSubMenu(mainMenu.get_item("VideoOutputMenu").get_master_id(), def_menu_video_output);
+
+    /* video text-mode menu */
+    ConstructSubMenu(mainMenu.get_item("VideoTextmodeMenu").get_master_id(), def_menu_video_textmode);
 
     /* video vsync menu */
     ConstructSubMenu(mainMenu.get_item("VideoVsyncMenu").get_master_id(), def_menu_video_vsync);

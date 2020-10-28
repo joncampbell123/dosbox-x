@@ -47,6 +47,7 @@ extern bool allow_vesa_8bpp;
 extern bool allow_vesa_4bpp;
 extern bool allow_vesa_tty;
 extern bool vga_8bit_dac;
+extern bool blinking;
 
 /* This list includes non-explicitly 24bpp modes (in the 0x100-0x11F range) that are available
  * when the VBE1.2 setting indicates they should be 24bpp.
@@ -76,8 +77,10 @@ VideoModeBlock ModeList_VGA[]={
 { 0x012  ,M_EGA    ,640 ,480 ,80 ,30 ,8 ,16 ,1 ,0xA0000 ,0xA000 ,100 ,525 ,80 ,480 ,0	},
 { 0x013  ,M_VGA    ,320 ,200 ,40 ,25 ,8 ,8  ,1 ,0xA0000 ,0x2000 ,100 ,449 ,80 ,400 ,_REPEAT1   },
 
+{ 0x043  ,M_TEXT   ,640 ,480,  80,60, 8,  8 ,2 ,0xB8000 ,0x4000, 100 ,525 ,80 ,480 ,0   },
 { 0x054  ,M_TEXT   ,1056,344, 132,43, 8,  8, 1 ,0xB8000 ,0x4000, 160, 449, 132,344, 0   },
 { 0x055  ,M_TEXT   ,1056,400, 132,25, 8, 16, 1 ,0xB8000 ,0x2000, 160, 449, 132,400, 0   },
+{ 0x064  ,M_TEXT   ,1056,480, 132,60, 8,  8, 2 ,0xB8000 ,0x4000, 160, 531, 132,480, 0   },
 
 /* Alias of mode 100 */
 { 0x068  ,M_LIN8   ,640 ,400 ,80 ,25 ,8 ,16 ,1 ,0xA0000 ,0x10000,100 ,449 ,80 ,400 ,0   },
@@ -1085,6 +1088,7 @@ bool INT10_SetVideoMode_OTHER(uint16_t mode,bool clearmem) {
 			IO_WriteW(crtc_base, (uint16_t)(i | (real_readb(RealSeg(vparams), 
 				RealOff(vparams) + i + crtc_block_index*16) << 8)));
 	}
+    INT10_ToggleBlinkingBit(blinking?1:0);
 	FinishSetMode(clearmem);
 
 	if (en_int33) INT10_SetCurMode();
@@ -1968,6 +1972,7 @@ dac_text16:
 		svga.set_video_mode(crtc_base, &modeData);
 	}
 
+    INT10_ToggleBlinkingBit(blinking?1:0);
 	FinishSetMode(clearmem);
 
 	/* Set vga attrib register into defined state */
