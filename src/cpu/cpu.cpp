@@ -65,6 +65,7 @@ bool enable_fpu = true;
 bool enable_msr = true;
 bool enable_cmpxchg8b = true;
 bool ignore_undefined_msr = true;
+bool report_fdiv_bug = false;
 
 extern bool ignore_opcode_63;
 
@@ -2813,7 +2814,7 @@ bool CPU_CPUID(void) {
 			reg_ecx=0;			/* No features */
 			reg_edx=enable_fpu?1:0;	/* FPU */
 		} else if (CPU_ArchitectureType == CPU_ARCHTYPE_PENTIUM) {
-			reg_eax=0x517;		/* intel pentium */
+			reg_eax=report_fdiv_bug?0x513:0x517;	/* intel pentium */
 			reg_ebx=0;			/* Not Supported */
 			reg_ecx=0;			/* No features */
 			reg_edx=0x00000010|(enable_fpu?1:0);	/* FPU+TimeStamp/RDTSC */
@@ -3277,6 +3278,7 @@ public:
 		CPU_Cycles=0;
 		CPU_SkipCycleAutoAdjust=false;
 
+		report_fdiv_bug = section->Get_bool("report fdiv bug");
 		ignore_opcode_63 = section->Get_bool("ignore opcode 63");
 		use_dynamic_core_with_paging = section->Get_bool("use dynamic core with paging on");
 		cpu_double_fault_enable = section->Get_bool("double fault");

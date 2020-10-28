@@ -154,6 +154,10 @@
     has been changed from 20 to 30, which will help
     prevent lost keystrokes when pasting from the host
     clipboard for some programs. (Wengier)
+  - With Pentium CPU setting (cputype=pentium) DOSBox-X
+    no longer reports FDIV bug by default. An advanced
+    config option "report fdiv bug" is added to report
+    such CPU bug when set to true. (rderooy & Wengier)
   - Added support for the XDG_DATA_HOME environment
     variable for config directory in Linux. (rderooy)
   - Added support for compiling with pcap for Windows

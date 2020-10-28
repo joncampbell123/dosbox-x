@@ -2351,6 +2351,9 @@ void DOSBOX_SetupConfigSections(void) {
     Pbool = secprop->Add_bool("always report triple fault",Property::Changeable::Always,false);
     Pbool->Set_help("Always report (to log file) triple faults if set. Else, a triple fault is reported only once. Set this option for debugging purposes.");
 
+    Pbool = secprop->Add_bool("report fdiv bug",Property::Changeable::Always,false);
+    Pbool->Set_help("If set, the FDIV bug will be reported with the cputype=pentium setting.");
+
     Pbool = secprop->Add_bool("enable msr",Property::Changeable::Always,true);
     Pbool->Set_help("Allow RDMSR/WRMSR instructions. This option is only meaningful when cputype=pentium.\n"
             "WARNING: Leaving this option enabled while installing Windows 95/98/ME can cause crashes.");
