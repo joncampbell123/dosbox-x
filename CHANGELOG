@@ -129,12 +129,16 @@
     direct parallel port passthrough feature. (Wengier)
   - Improved Flatpak support for Linux. (rderooy)
   - Improved message for the -help command-line option,
-    adding for example the -socket option. (Wengier)
+    adding for example -silent and -socket command-line
+    options in the help messages. (Wengier)
+  - Added -silent command-line option to run DOSBox-X
+    silently (without showing the DOSBox-X window) and
+    then exit after executing AUTOEXEC.BAT. (Wengier)
+  - Fixed command-line option -socket not working for
+    the null-modem feature. (Wengier)
   - Fixed issue that aspect ratio not being respected
     in full-screen mode when a GLSL shader is enabled
     with an OpenGL output. (Wengier)
-  - Fixed command-line option -socket not working for
-    the null-modem feature. (Wengier)
   - Fixed shelling from programs may not work when the
     shell config option is set. (Wengier)
   - Improved Gravis Ultrasound (GUS) implementation to

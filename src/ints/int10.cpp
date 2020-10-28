@@ -20,6 +20,7 @@
 #include "dosbox.h"
 #include "control.h"
 #include "mem.h"
+#include "menu.h"
 #include "callback.h"
 #include "regs.h"
 #include "inout.h"
@@ -160,6 +161,8 @@ Bitu INT10_Handler(void) {
 			break;
 		case 0x03:							/* TOGGLE INTENSITY/BLINKING BIT */
 			blinking=reg_bl==1;
+			mainMenu.get_item("text_background").check(!blinking).refresh_item(mainMenu);
+			mainMenu.get_item("text_blinking").check(blinking).refresh_item(mainMenu);
 			INT10_ToggleBlinkingBit(reg_bl);
 			break;
 		case 0x07:							/* GET SINGLE PALETTE REGISTER */

@@ -7165,6 +7165,7 @@ bool DOSBOX_parse_argv() {
             fprintf(stderr,"  -noconfig                               Do not execute CONFIG.SYS config section\n");
             fprintf(stderr,"  -noautoexec                             Do not execute AUTOEXEC.BAT config section\n");
             fprintf(stderr,"  -exit                                   Exit after executing AUTOEXEC.BAT\n");
+            fprintf(stderr,"  -silent                                 Run DOSBox-X silently and exit after executing AUTOEXEC.BAT.\n");
             fprintf(stderr,"  -c <command string>                     Execute this command in addition to AUTOEXEC.BAT.\n");
             fprintf(stderr,"                                          Make sure to surround the command in quotes to cover spaces.\n");
             fprintf(stderr,"  -set <section property=value>           Set the config option (overriding the config file).\n");
@@ -7225,6 +7226,11 @@ bool DOSBOX_parse_argv() {
         }
         else if (optname == "break-start") {
             control->opt_break_start = true;
+        }
+        else if (optname == "silent") {
+            putenv("SDL_VIDEODRIVER=dummy");
+            control->opt_exit = true;
+            control->opt_fastlaunch = true;
         }
         else if (optname == "exit") {
             control->opt_exit = true;
@@ -8453,8 +8459,6 @@ bool intensity_menu_callback(DOSBoxMenu * const menu,DOSBoxMenu::item * const me
 	CALLBACK_RunRealInt(0x10);
     reg_ax = oldax;
     reg_bx = oldbx;
-    mainMenu.get_item("text_background").check(!blinking).refresh_item(mainMenu);
-    mainMenu.get_item("text_blinking").check(blinking).refresh_item(mainMenu);
     return true;
 }
 
