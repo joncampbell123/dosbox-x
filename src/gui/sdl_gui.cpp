@@ -1561,7 +1561,6 @@ protected:
 public:
     ShowSBInfo(GUI::Screen *parent, int x, int y, const char *title) :
         ToplevelWindow(parent, x, y, 320, 230, title) {
-            std::string getoplmode(), getoplemu();
             std::string midiinfo = "Sound Blaster type: "+GetSBtype()+"\nSound Blaster base: "+GetSBbase()+"\nSound Blaster IRQ: "+std::to_string(GetSBirq())+"\nSound Blaster Low DMA: "+std::to_string(GetSBldma())+"\nSound Blaster High DMA: "+std::to_string(GetSBhdma());
             std::istringstream in(midiinfo.c_str());
             int r=0;
