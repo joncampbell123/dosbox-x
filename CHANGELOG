@@ -49,6 +49,8 @@
     included in the MinGW builds by default just like
     Visual Studio builds. Set "mididevice=fluidsynth"
     and a soundfont file to use it. (Wengier)
+  - Enabled xBRZ scaler for Visual Studio SDL2 builds
+    just like Visual Studio SDL1 builds. (Wengier)
   - Added menu item "Show Sound Blaster configuration"
     under "Sound" menu to show the current information
     about Sound Blaster, and also menu item "Show MIDI
