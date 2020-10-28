@@ -1042,9 +1042,18 @@ Section* Config::GetSection(string const& _sectionname) const{
 }
 
 Section* Config::GetSectionFromProperty(char const * const prop) const{
+    bool log=false;
+    const_it logsec;
     for (const_it tel=sectionlist.begin(); tel!=sectionlist.end(); ++tel) {
-        if ((*tel)->GetPropValue(prop) != NO_SUCH_PROPERTY) return (*tel);
+        if ((*tel)->GetPropValue(prop) != NO_SUCH_PROPERTY) {
+            if (!strcasecmp((*tel)->GetName(),"log")) {
+                log=true;
+                logsec=tel;
+            } else
+                return (*tel);
+        }
     }
+    if (log) return (*logsec);
     return NULL;
 }
 
