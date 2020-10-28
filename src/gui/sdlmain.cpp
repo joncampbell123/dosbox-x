@@ -8422,6 +8422,8 @@ bool output_menu_callback(DOSBoxMenu * const menu,DOSBoxMenu::item * const menui
 bool clear_menu_callback(DOSBoxMenu * const menu,DOSBoxMenu::item * const menuitem) {
     (void)menu;//UNUSED
     const char *mname = menuitem->get_name().c_str();
+    if (CurMode->mode>7)
+        return true;
     if (CurMode->type==M_TEXT || dos_kernel_disabled) {
         const auto rows = real_readb(BIOSMEM_SEG, BIOSMEM_NB_ROWS);
         const auto cols = real_readw(BIOSMEM_SEG, BIOSMEM_NB_COLS);
@@ -8450,6 +8452,8 @@ bool intensity_menu_callback(DOSBoxMenu * const menu,DOSBoxMenu::item * const me
     (void)menu;//UNUSED
     const char *mname = menuitem->get_name().c_str();
     uint16_t oldax=reg_ax, oldbx=reg_bx;
+    if (CurMode->mode>7)
+        return true;
     if (!strcmp(mname, "text_background"))
         reg_bl = 0;
     else
@@ -8466,7 +8470,7 @@ bool lines_menu_callback(DOSBoxMenu * const menu,DOSBoxMenu::item * const menuit
     (void)menu;//UNUSED
     clear_menu_callback(menu, menuitem);
     const char *mname = menuitem->get_name().c_str();
-    if (IS_PC98_ARCH)
+    if (IS_PC98_ARCH||CurMode->mode>7)
         return true;
     uint16_t oldax=reg_ax, oldbx=reg_bx, oldcx=reg_cx;
     if (!strcmp(mname, "line_80x25")) {
