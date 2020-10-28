@@ -570,7 +570,8 @@ void CONFIG::Run(void) {
 		P_SECURE, P_SETUP, P_ALL, P_MOD, P_NOREM, P_ERRTEST, P_GUI
 	} presult = P_NOMATCH;
 
-	int all = -1;
+	Section_prop * section=static_cast<Section_prop *>(control->GetSection("dosbox"));
+	int all = section->Get_bool("show advanced options")?1:-1;
 	bool first = true, norem = false;
 	std::vector<std::string> pvars;
 	if (cmd->FindExist("-setup", true)) all = 2;
@@ -745,6 +746,7 @@ void CONFIG::Run(void) {
 					// list the properties
 					Property* p = psec->Get_prop((int)(i++));
 					if (p==NULL) break;
+                    if (!(all>0 || all==-1 && (p->basic() || p->modified()) || !all && (p->propname == "rem" && (!strcmp(pvars[0].c_str(), "4dos") || !strcmp(pvars[0].c_str(), "config")) || p->modified()))) continue;
 					WriteOut("%s\n", p->propname.c_str());
 				}
 				if (!strcasecmp(pvars[0].c_str(), "config"))
@@ -862,6 +864,7 @@ void CONFIG::Run(void) {
 						// list the properties
 						Property* p = psec->Get_prop(i++);
 						if (p==NULL) break;
+                        if (!(all>0 || all==-1 && (p->basic() || p->modified()) || !all && (p->propname == "rem" && (!strcmp(pvars[0].c_str(), "4dos") || !strcmp(pvars[0].c_str(), "config")) || p->modified()))) continue;
 						WriteOut("%s=%s\n", p->propname.c_str(),
 							p->GetValue().ToString().c_str());
 					}
@@ -886,7 +889,8 @@ void CONFIG::Run(void) {
 									val=trim(val);
 									lowcase(cmd);
 									if (!strcasecmp(pvars[0].c_str(), "4dos")||!strncmp(cmd, "set ", 4)||!strcmp(cmd, "install")||!strcmp(cmd, "installhigh")||!strcmp(cmd, "device")||!strcmp(cmd, "devicehigh"))
-										WriteOut("%s=%s\n", cmd, val);
+                                        if (!((!strcmp(cmd, "install")||!strcmp(cmd, "installhigh")||!strcmp(cmd, "device")||!strcmp(cmd, "devicehigh"))&&!strlen(val)&&!all))
+                                            WriteOut("%s=%s\n", cmd, val);
 								}
 							}
 						}
