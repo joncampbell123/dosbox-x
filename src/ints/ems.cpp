@@ -1871,10 +1871,14 @@ public:
 };
 		
 static EMS* test = NULL;
-
+extern const char* RunningProgram;
 void CALLBACK_DeAllocate(Bitu in);
 
 void EMS_DoShutDown() {
+    if (!strcmp(RunningProgram, "LOADLIN")) {
+        test = NULL;
+        return;
+    }
 	if (test != NULL) {
 		delete test;
 		test = NULL;

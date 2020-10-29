@@ -4010,7 +4010,7 @@ void DOSBOX_SetupConfigSections(void) {
     Pint = secprop->Add_int("fcbs",Property::Changeable::OnlyAtStart,100);
     Pint->Set_help("Number of FCB handles available to DOS programs (1-255).");
     Pint->SetBasic(true);
-    Pint = secprop->Add_int("files",Property::Changeable::OnlyAtStart,127);
+    Pint = secprop->Add_int("files",Property::Changeable::OnlyAtStart,200);
     Pint->Set_help("Number of file handles available to DOS programs (8-255).");
     Pint->SetBasic(true);
     Pint = secprop->Add_int("country",Property::Changeable::OnlyAtStart,1);

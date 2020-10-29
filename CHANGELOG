@@ -143,6 +143,9 @@
     with an OpenGL output. (Wengier)
   - Fixed shelling from programs may not work when the
     shell config option is set. (Wengier)
+  - Increased the default maximum DOS files (adjustable
+    from [config] section) from 127 to 200. (Wengier)
+  - Improved resetting with LOADLIN program. (Wengier)
   - Improved Gravis Ultrasound (GUS) implementation to
     make it more accurately represent the GUS DMA state
     as expected by the running DOS software.

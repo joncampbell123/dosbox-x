@@ -574,9 +574,11 @@ void DOS_SetupMisc(void) {
 	RealSetVec(0x2A,CALLBACK_RealPointer(call_int2a));
 }
 
+extern const char* RunningProgram;
 void CALLBACK_DeAllocate(Bitu in);
 
 void DOS_UninstallMisc(void) {
+    if (!strcmp(RunningProgram, "LOADLIN")) return;
 	/* these vectors shouldn't exist when booting a guest OS */
 	if (call_int2a) {
 		RealSetVec(0x2a,0);

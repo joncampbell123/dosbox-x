@@ -2709,7 +2709,7 @@ public:
                 ::disk_data_rate = 3500000; /* Probably an average IDE data rate for early 1990s ISA IDE controllers in PIO mode */
         }
 		maxfcb=100;
-		DOS_FILES=127;
+		DOS_FILES=200;
 		Section_prop *config_section = static_cast<Section_prop *>(control->GetSection("config"));
 		if (config_section != NULL && !control->opt_noconfig && !control->opt_securemode && !control->SecureMode()) {
 			DOS_FILES = (unsigned int)config_section->Get_int("files");
@@ -3274,9 +3274,11 @@ void DOS_EnableDriveMenu(char drv) {
     }
 }
 
+extern const char* RunningProgram;
+
 void DOS_DoShutDown() {
 	if (test != NULL) {
-		delete test;
+		if (strcmp(RunningProgram, "LOADLIN")) delete test;
 		test = NULL;
 	}
 

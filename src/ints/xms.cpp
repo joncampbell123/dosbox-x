@@ -854,10 +854,11 @@ public:
 };
 
 static XMS* test = NULL;
+extern const char* RunningProgram;
 
 void XMS_DoShutDown() {
 	if (test != NULL) {
-		delete test;	
+		if (strcmp(RunningProgram, "LOADLIN")) delete test;
 		test = NULL;
 	}
 }
