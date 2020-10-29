@@ -464,15 +464,17 @@ void SVGA_S3_WriteSEQ(Bitu reg,Bitu val,Bitu iolen) {
         vga.s3.pll.lock=(uint8_t)val;
         break;
     case 0x10:      /* Memory PLL Data Low */
-        vga.s3.mclk.n=(uint8_t)val & 0x1f;
-        vga.s3.mclk.r=(uint8_t)val >> 5;
+        // NTS: based on C++14 code as shown in the comment
+        vga.s3.mclk.n=/*(val & 0b000'11111)*/(uint8_t)val & 0x1f;
+        vga.s3.mclk.r=/*(val & 0b111'00000) >> 5*/(uint8_t)val >> 5;
         break;
     case 0x11:      /* Memory PLL Data High */
         vga.s3.mclk.m=(uint8_t)val & 0x7f;
         break;
     case 0x12:      /* Video PLL Data Low */
-        vga.s3.clk[3].n=(uint8_t)val & 0x1f;
-        vga.s3.clk[3].r=(uint8_t)val >> 5;
+        // NTS: based on C++14 code as shown in the comment
+        vga.s3.clk[3].n=/*(val & 0b000'11111)*/(uint8_t)val & 0x1f;
+        vga.s3.clk[3].r=/*(val & 0b111'00000) >> 5*/(uint8_t)val >> 5;
         break;
     case 0x13:      /* Video PLL Data High */
         vga.s3.clk[3].m=(uint8_t)val & 0x7f;
