@@ -2809,7 +2809,7 @@ bool CPU_CPUID(void) {
 	case 1:	/* get processor type/family/model/stepping and feature flags */
 		if ((CPU_ArchitectureType == CPU_ARCHTYPE_486NEW) ||
 			(CPU_ArchitectureType == CPU_ARCHTYPE_MIXED)) {
-			reg_eax=0x402;		/* intel 486dx */
+			reg_eax=enable_fpu?0x402:0x422; /* intel 486dx or 486sx */
 			reg_ebx=0;			/* Not Supported */
 			reg_ecx=0;			/* No features */
 			reg_edx=enable_fpu?1:0;	/* FPU */
