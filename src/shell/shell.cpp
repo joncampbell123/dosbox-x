@@ -518,20 +518,22 @@ void DOS_Shell::Run(void) {
         } else if (CurMode->type==M_TEXT || IS_PC98_ARCH)
             WriteOut("[2J");
 		if (!countryNo) {
-#if defined(WIN32)
 			char buffer[128];
-			if (GetLocaleInfo(LOCALE_USER_DEFAULT, LOCALE_ICOUNTRY, buffer, 128)) {
+            if (IS_PC98_ARCH)
+                countryNo = 81;
+#if defined(WIN32)
+			else if (GetLocaleInfo(LOCALE_USER_DEFAULT, LOCALE_ICOUNTRY, buffer, 128)) {
 				countryNo = uint16_t(atoi(buffer));
 				DOS_SetCountry(countryNo);
 			}
-			else
-				countryNo = 1;												// Defaults to 1 (US) if failed
 #endif
+			else
+				countryNo = 1;
 		}
 		strcpy(config_data, "");
 		section = static_cast<Section_prop *>(control->GetSection("config"));
 		if (section!=NULL&&!control->opt_noconfig&&!control->opt_securemode&&!control->SecureMode()) {
-			int country = section->Get_int("country");
+			int country = atoi(section->Get_string("country"));
 			if (country>0) {
 				countryNo = country;
 				DOS_SetCountry(countryNo);

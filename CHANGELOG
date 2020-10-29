@@ -143,6 +143,9 @@
     with an OpenGL output. (Wengier)
   - Fixed shelling from programs may not work when the
     shell config option is set. (Wengier)
+  - The default country setting ("country" option in
+    [config] section]) now defaults to auto-detection
+    if possible, or 81 (Japan) in PC-98 mode. (Wengier)
   - Increased the default maximum DOS files (adjustable
     from [config] section) from 127 to 200. (Wengier)
   - Improved resetting with LOADLIN program. (Wengier)

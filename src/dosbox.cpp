@@ -4013,9 +4013,9 @@ void DOSBOX_SetupConfigSections(void) {
     Pint = secprop->Add_int("files",Property::Changeable::OnlyAtStart,200);
     Pint->Set_help("Number of file handles available to DOS programs (8-255).");
     Pint->SetBasic(true);
-    Pint = secprop->Add_int("country",Property::Changeable::OnlyAtStart,1);
-    Pint->Set_help("Sets the country code for country-specific date/time formats.");
-    Pint->SetBasic(true);
+    Pstring = secprop->Add_string("country",Property::Changeable::OnlyAtStart,"");
+    Pstring->Set_help("Sets the country code for country-specific date/time formats.");
+    Pstring->SetBasic(true);
     Pstring = secprop->Add_string("lastdrive",Property::Changeable::OnlyAtStart,"a");
 	Pstring->Set_help("The maximum drive letter that can be accessed by programs.");
     Pstring->Set_values(driveletters);

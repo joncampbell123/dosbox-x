@@ -1904,15 +1904,16 @@ static Bitu DOS_21Handler(void) {
                         mem_writeb(data + 0x00,reg_al);
                         mem_writew(data + 0x01,0x26);
 						if (!countryNo) {
-#if defined(WIN32)
 							char buffer[128];
-							if (GetLocaleInfo(LOCALE_USER_DEFAULT, LOCALE_ICOUNTRY, buffer, 128))
-								{
+                            if (IS_PC98_ARCH)
+                                countryNo = 81;
+#if defined(WIN32)
+							else if (GetLocaleInfo(LOCALE_USER_DEFAULT, LOCALE_ICOUNTRY, buffer, 128)) {
 								countryNo = uint16_t(atoi(buffer));
 								DOS_SetCountry(countryNo);
-								}
-							else
+							}
 #endif
+							else
 								countryNo = 1;													// Defaults to 1 (US) if failed
 						}
 						mem_writew(data + 0x03, countryNo);
