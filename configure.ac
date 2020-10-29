@@ -963,17 +963,20 @@ if test x$enable_x11 != xno; then
 fi
 
 dnl FEATURE: Whether to use Fluidsynth
-AH_TEMPLATE(C_FLUIDSYNTH,[Define to 1 to enable fluidsynth MIDI synthesis])
-if test x$have_fluidsynth_lib = xyes -a x$have_fluidsynth_h = xyes ; then
-  LIBS="$LIBS -lfluidsynth"
-  AC_DEFINE(C_FLUIDSYNTH,1)
-else
-  AC_MSG_WARN([fluidsynth MIDI synthesis not available])
+AH_TEMPLATE(C_FLUIDSYNTH,[Define to 1 to enable libfluidsynth MIDI synthesis])
+AC_ARG_ENABLE(libfluidsynth,AC_HELP_STRING([--disable-libfluidsynth],[Disable libfluidsynth support]),,enable_libfluidsynth=yes)
+if test x$enable_libfluidsynth = xyes; then
+    if test x$have_fluidsynth_lib = xyes -a x$have_fluidsynth_h = xyes ; then
+      LIBS="$LIBS -lfluidsynth"
+      AC_DEFINE(C_FLUIDSYNTH,1)
+    else
+      AC_MSG_WARN([libfluidsynth MIDI synthesis not available])
+    fi
 fi
 
 dnl FEATURE: FFMPEG output support
 AH_TEMPLATE(C_AVCODEC,[Define to 1 to use FFMPEG libavcodec for video capture])
-AC_ARG_ENABLE(avcodec,AC_HELP_STRING([--disable-avcodec],[Disable FFMPEG avcodec support]),,enable_ffmpeg=yes)
+AC_ARG_ENABLE(avcodec,AC_HELP_STRING([--enable-avcodec],[Enable FFMPEG avcodec support]),,enable_ffmpeg=no)
 if test x$enable_ffmpeg = xyes; then
     if test x$have_ffmpeg = xyes; then
         if test x$have_avcodec_h = xyes; then

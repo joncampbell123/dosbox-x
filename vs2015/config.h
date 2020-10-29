@@ -89,7 +89,7 @@
 # define C_DYNREC 1
 #endif
 
-/* Define to 1 to enable fluidsynth MIDI synthesis */
+/* Define to 1 to enable libfluidsynth MIDI synthesis */
 #undef C_FLUIDSYNTH
 
 /* Define to 1 to enable floating point emulation */
