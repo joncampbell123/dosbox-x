@@ -502,11 +502,13 @@ Bitu SVGA_S3_ReadSEQ(Bitu reg,Bitu iolen) {
     case 0x08:      /* PLL Unlock */
         return vga.s3.pll.lock;
     case 0x10:      /* Memory PLL Data Low */
-        return vga.s3.mclk.n || ((vga.s3.mclk.r << 5) != 0); /* FIXME: What is this testing exactly? */
+        //return vga.s3.mclk.n || ((vga.s3.mclk.r << 5) != 0); /* FIXME: What is this testing exactly? */
+        return vga.s3.mclk.n | (vga.s3.mclk.r << 5);
     case 0x11:      /* Memory PLL Data High */
         return vga.s3.mclk.m;
     case 0x12:      /* Video PLL Data Low */
-        return vga.s3.clk[3].n || ((vga.s3.clk[3].r << 5) != 0); /* FIXME: What is this testing exactly? */
+        //return vga.s3.clk[3].n || ((vga.s3.clk[3].r << 5) != 0); /* FIXME: What is this testing exactly? */
+        return vga.s3.clk[3].n | (vga.s3.clk[3].r << 5);
     case 0x13:      /* Video Data High */
         return vga.s3.clk[3].m;
     case 0x15:
