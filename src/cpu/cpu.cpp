@@ -3532,6 +3532,8 @@ public:
 		} else if (cputype == "ppro_slow") {
 			CPU_ArchitectureType = CPU_ARCHTYPE_PPROSLOW;
  		}
+        if (!enable_fpu && (cputype == "pentium" || cputype == "pentium_mmx" || cputype == "ppro_slow"))
+            LOG_MSG("WARNING: Disabling FPU support for this CPU type is unusual, may confuse DOS programs");
 
 		/* WARNING */
 		if (CPU_ArchitectureType == CPU_ARCHTYPE_8086) {

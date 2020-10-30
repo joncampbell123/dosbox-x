@@ -161,6 +161,7 @@ bool gui_menu_exit(DOSBoxMenu * const menu,DOSBoxMenu::item * const menuitem) {
     return true;
 }
 
+extern const char* RunningProgram;
 static GUI::ScreenSDL *UI_Startup(GUI::ScreenSDL *screen) {
     in_gui = true;
 
@@ -175,7 +176,7 @@ static GUI::ScreenSDL *UI_Startup(GUI::ScreenSDL *screen) {
     LoadMessageFile(static_cast<Section_prop*>(control->GetSection("dosbox"))->Get_string("language"));
 
     // Comparable to the code of intro.com, but not the same! (the code of intro.com is called from within a com file)
-    shell_idle = !dos_kernel_disabled && first_shell && (DOS_PSP(dos.psp()).GetSegment() == DOS_PSP(dos.psp()).GetParent());
+    shell_idle = !dos_kernel_disabled && strcmp(RunningProgram, "LOADLIN") && first_shell && (DOS_PSP(dos.psp()).GetSegment() == DOS_PSP(dos.psp()).GetParent());
 
     int sx, sy, sw, sh;
     bool fs;
@@ -1561,8 +1562,8 @@ protected:
 public:
     ShowSBInfo(GUI::Screen *parent, int x, int y, const char *title) :
         ToplevelWindow(parent, x, y, 320, 230, title) {
-            std::string midiinfo = "Sound Blaster type: "+GetSBtype()+"\nSound Blaster base: "+GetSBbase()+"\nSound Blaster IRQ: "+std::to_string(GetSBirq())+"\nSound Blaster Low DMA: "+std::to_string(GetSBldma())+"\nSound Blaster High DMA: "+std::to_string(GetSBhdma());
-            std::istringstream in(midiinfo.c_str());
+            std::string sbinfo = "Sound Blaster type: "+GetSBtype()+"\nSound Blaster base: "+GetSBbase()+"\nSound Blaster IRQ: "+std::to_string(GetSBirq())+"\nSound Blaster Low DMA: "+std::to_string(GetSBldma())+"\nSound Blaster High DMA: "+std::to_string(GetSBhdma());
+            std::istringstream in(sbinfo.c_str());
             int r=0;
             if (in)	for (std::string line; std::getline(in, line); ) {
                 r+=25;
