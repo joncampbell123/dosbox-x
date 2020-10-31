@@ -183,6 +183,8 @@
     on the Windows host. A toggle menu item "Quiet mode
     (no start messages)" is added to the "Windows host
     applications" menu group in "DOS" menu. (Wengier)
+  - The menu "Show details" (under "Main") is renamed
+    to "Show FPS and RT speed in title bar". (Wengier)
   - Add menu group "Text-mode" under "Video" menu to
     change some text-mode related video settings, such
     as changing the number of rows and columns. A zip
@@ -193,7 +195,7 @@
     config option "high intensity blinking" which when
     set will display high intensity background colors
     instad of blinking foreground text. (Wengier)
-  - Added "Debug" menu group under "Help" menu, and
+  - Added "Debugging" menu group under "Help" menu, and
     moved items from the "Video" Debug and "DOS" Debug
     menus and the debugger here (debug builds only).
     Also allowed to hide/show the console or debugger
