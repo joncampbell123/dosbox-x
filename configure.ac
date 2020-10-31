@@ -114,17 +114,22 @@ AC_COMPILE_IFELSE([AC_LANG_SOURCE([
 #endif
 ])],[],[AC_DEFINE([socklen_t],[int],[Define to `int` if you don't have socklen_t])])
 
-dnl C++0x is now considered deprecated.
-dnl This warning will stay here for a long enough period of time before making C++11 mandatory.
+dnl C++11 is mandatory in this codebase.
+dnl C++14 is optional at this time, will eventually become mandatory.
 
 dnl AC_CHECK_CXXFLAGS will prepend gnu++11 to CXXFLAGS if supported, for us.
-dnl our code adds -std=gnu++0x if not supported where the function would not do anything.
-dnl This code checks the CXX flags but does not keep the changes because AC_CHECK_CXXFLAGS
-dnl also adds it to CPPFLAGS which then also affects the C compilation (with warnings like
-dnl "-std=gnu++11 is not valid for C")
 OLDCFLAGS="$CFLAGS"
 OLDCPPFLAGS="$CPPFLAGS"
 OLDCXXFLAGS="$CXXFLAGS"
+
+AC_MSG_CHECKING([checking for C++14 support])
+AC_CHECK_CXXFLAGS([ -std=gnu++14 ], [  ], [
+    warn_cpp11=1
+])
+
+CXXFLAGS="$OLDCXXFLAGS"
+CPPFLAGS="$OLDCPPFLAGS"
+CFLAGS="$OLDCFLAGS"
 
 AC_MSG_CHECKING([checking for C++11 support])
 AC_CHECK_CXXFLAGS([ -std=gnu++11 ], [  ], [
@@ -139,8 +144,14 @@ if test x$warn_cpp0x = x1; then
     AC_MSG_ERROR([ Your compiler must support C++11 or better ])
 fi
 
-CFLAGS="$CFLAGS -std=gnu11";
-CXXFLAGS="$CXXFLAGS -std=gnu++11";
+if test x$warn_cpp11 = x1; then
+    AC_MSG_WARN([ Your compiler does not support C++14. Currently it is optional. At some point in the future, it will be required ])
+    CFLAGS="$CFLAGS -std=gnu11";
+    CXXFLAGS="$CXXFLAGS -std=gnu++11";
+else
+    CFLAGS="$CFLAGS -std=gnu11"; # no such "gnu14"
+    CXXFLAGS="$CXXFLAGS -std=gnu++14";
+fi
 
 dnl yksoft1 wants a MinGW build for Windows that doesn't use the Windows menu system.
 AH_TEMPLATE(C_FORCE_MENU_SDLDRAW,[Define to 1 to force SDL-drawn menus])
@@ -410,7 +421,11 @@ case "$host" in
        dnl to do more to distinguish them.
        dnl For now I am lazy and do not add proper detection code.
        macosx=1
-       OBJCXXFLAGS="$OBJCXXFLAGS -std=gnu++11";
+       if test x$warn_cpp11 = x1; then
+           OBJCXXFLAGS="$OBJCXXFLAGS -std=gnu++14";
+       else
+           OBJCXXFLAGS="$OBJCXXFLAGS -std=gnu++11";
+       fi
        AC_DEFINE(MACOSX, 1, [Compiling on Mac OS X])
        LIBS="$LIBS -framework Carbon -framework CoreFoundation -framework CoreMIDI -framework AudioUnit -framework AudioToolbox -framework ApplicationServices -framework AppKit"
        dnl FEATURE: Whether to support direct serial port passthrough
