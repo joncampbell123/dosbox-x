@@ -4078,11 +4078,15 @@ static void GUI_StartUp() {
     MAPPER_AddHandler(SwitchFullScreen,MK_f,MMODHOST,"fullscr","Fullscreen", &item);
     item->set_text("Toggle fullscreen");
 
+#if defined(WIN32) || defined(C_SDL2)
     MAPPER_AddHandler(CopyAllClipboard,MK_a,MMODHOST,"copyall", "CopyToClip", &item);
     item->set_text("Copy all text on the DOS screen");
+#endif
 
+#if defined(WIN32) || defined(C_SDL2) || defined(LINUX) && C_X11
     MAPPER_AddHandler(PasteClipboard,MK_v,MMODHOST,"paste", "Paste Clip", &item); //end emendelson; improved by Wengier
     item->set_text("Pasting from the clipboard");
+#endif
 
     MAPPER_AddHandler(&PauseDOSBox, MK_pause, MMODHOST, "pause", "Pause");
 
