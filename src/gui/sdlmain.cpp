@@ -5305,6 +5305,10 @@ bool GFX_IsFullscreen(void) {
     return sdl.desktop.fullscreen;
 }
 
+bool sdl_wait_on_error() {
+    return sdl.wait_on_error;
+}
+
 void* GetSetSDLValue(int isget, std::string& target, void* setval) {
     if (target == "wait_on_error") {
         if (isget) return (void*) sdl.wait_on_error;

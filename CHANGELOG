@@ -197,7 +197,10 @@
     moved items from the "Video" Debug and "DOS" Debug
     menus and the debugger here (debug builds only).
     Also allowed to hide/show the console or debugger
-    window in Windows debug builds. (Wengier)
+    window in Windows debug builds. With the menu item
+    "Console wait on error" checked the Windows console
+    window will wait for the ENTER key before closing
+    itself after an E_EXIT occurs. (Wengier)
   - Updated MPXPLAY to latest version 1.65. (Wengier)
   - Integrated SVN commits (Allofich)
     - r4384: ICW1 on the PIC clears the Interrupt Mask

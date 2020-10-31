@@ -203,6 +203,10 @@ double ConvDblWord(char * word) {
 #if C_DEBUG
 #include <curses.h>
 #endif
+#if defined(WIN32)
+void DOSBox_ConsolePauseWait();
+#endif
+bool sdl_wait_on_error();
 
 static char buf[1024];           //greater scope as else it doesn't always gets thrown right (linux/gcc2.95)
 void E_Exit(const char * format,...) {
@@ -224,6 +228,11 @@ void E_Exit(const char * format,...) {
 #endif
 	fprintf(stderr, "E_Exit: %s\n", buf);
 	SDL_Quit();
+	if (sdl_wait_on_error()) {
+#if defined(WIN32)
+        DOSBox_ConsolePauseWait();
+#endif
+    }
 	exit(0);
 }
 
