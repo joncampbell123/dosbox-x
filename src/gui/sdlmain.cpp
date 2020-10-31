@@ -8428,7 +8428,7 @@ bool output_menu_callback(DOSBoxMenu * const menu,DOSBoxMenu::item * const menui
 bool clear_menu_callback(DOSBoxMenu * const menu,DOSBoxMenu::item * const menuitem) {
     (void)menu;//UNUSED
     const char *mname = menuitem->get_name().c_str();
-    if (CurMode->mode>7)
+    if (CurMode->mode>7&&CurMode->mode!=0x0043&&CurMode->mode!=0x0054&&CurMode->mode!=0x0055&&CurMode->mode!=0x0064)
         return true;
     if (CurMode->type==M_TEXT || dos_kernel_disabled) {
         const auto rows = real_readb(BIOSMEM_SEG, BIOSMEM_NB_ROWS);
@@ -8458,7 +8458,7 @@ bool intensity_menu_callback(DOSBoxMenu * const menu,DOSBoxMenu::item * const me
     (void)menu;//UNUSED
     const char *mname = menuitem->get_name().c_str();
     uint16_t oldax=reg_ax, oldbx=reg_bx;
-    if (CurMode->mode>7)
+    if (IS_PC98_ARCH||(CurMode->mode>7&&CurMode->mode!=0x0043&&CurMode->mode!=0x0054&&CurMode->mode!=0x0055&&CurMode->mode!=0x0064))
         return true;
     if (!strcmp(mname, "text_background"))
         reg_bl = 0;
@@ -8476,7 +8476,7 @@ bool lines_menu_callback(DOSBoxMenu * const menu,DOSBoxMenu::item * const menuit
     (void)menu;//UNUSED
     clear_menu_callback(menu, menuitem);
     const char *mname = menuitem->get_name().c_str();
-    if (IS_PC98_ARCH||CurMode->mode>7&&CurMode->mode!=0x0043&&CurMode->mode!=0x0054&&CurMode->mode!=0x0055&&CurMode->mode!=0x0064)
+    if (IS_PC98_ARCH||(CurMode->mode>7&&CurMode->mode!=0x0043&&CurMode->mode!=0x0054&&CurMode->mode!=0x0055&&CurMode->mode!=0x0064))
         return true;
     uint16_t oldax=reg_ax, oldbx=reg_bx, oldcx=reg_cx;
     if (!strcmp(mname, "line_80x25")) {
@@ -8613,9 +8613,9 @@ bool video_frameskip_common_menu_callback(DOSBoxMenu * const menu,DOSBoxMenu::it
 }
 
 bool show_console_menu_callback(DOSBoxMenu * const menu,DOSBoxMenu::item * const menuitem) {
-#if !defined(C_EMSCRIPTEN) && defined(WIN32) && !defined(HX_DOS)
     (void)menu;//UNUSED
     (void)menuitem;//UNUSED
+#if !defined(C_EMSCRIPTEN) && defined(WIN32) && !defined(HX_DOS)
 #if C_DEBUG
     if (DEBUG_IsDebuggerConsoleVisible())
         return true;
@@ -10087,7 +10087,7 @@ int main(int argc, char* argv[]) SDL_MAIN_NOEXCEPT {
             }
             {
                 DOSBoxMenu::item &item = mainMenu.alloc_item(DOSBoxMenu::submenu_type_id,"VideoPC98Menu");
-                item.set_text("PC-98 mode");
+                item.set_text("PC-98 options");
 
                 mainMenu.alloc_item(DOSBoxMenu::item_type_id,"pc98_5mhz_gdc").set_text("5MHz GDC clock").
                     set_callback_function(vid_pc98_5mhz_gdc_menu_callback);

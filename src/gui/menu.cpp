@@ -371,6 +371,10 @@ static const char *def_menu_video_pc98[] =
     "pc98_use_uskb",
     "pc98_allow_200scanline",
     "pc98_allow_4partitions",
+    "pc98_5mhz_gdc",
+    "--",
+    "dos_pc98_pit_4mhz",
+    "dos_pc98_pit_5mhz",
     "--",
     "pc98_enable_egc",
     "pc98_enable_grcg",
@@ -380,10 +384,6 @@ static const char *def_menu_video_pc98[] =
     "--",
     "pc98_clear_text",
     "pc98_clear_graphics",
-    "pc98_5mhz_gdc",
-    "--",
-    "dos_pc98_pit_4mhz",
-    "dos_pc98_pit_5mhz",
     NULL
 };
 
