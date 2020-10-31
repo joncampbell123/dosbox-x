@@ -7,7 +7,7 @@ The purpose of this document is to try and build a comprehensive list of source 
 
 The base code is from the [DOSBox](https://www.dosbox.com) project in which some of the SVN commits made since 2011 were incorporated into DOSBox-X. This code had since been heavily modified by the DOSBox-X project.
 
-Some of the source code also came from similar projects such as [DOSBox SVN Daum](http://ykhwong.x-y.net), [DOSBox ECE](https://dosboxece.yesterplay.net/), [dosbox-staging](https://dosbox-staging.github.io/) and [vDosPlus](http://www.vdosplus.org/), with major works from other developers and contributors of DOSBox-X such as Wengier, aybe, Allofich, and rderooy.
+Some of the source code also came from similar projects such as [DOSBox SVN Daum](http://ykhwong.x-y.net), [DOSBox ECE](https://dosboxece.yesterplay.net/), [DOSBox Staging](https://dosbox-staging.github.io/) and [vDosPlus](http://www.vdosplus.org/), with major works from other developers and contributors of DOSBox-X such as Wengier, aybe, Allofich, and rderooy.
 
 A list of features ported from DOSBox SVN Daum:
 
@@ -27,7 +27,7 @@ A list of features ported from DOSBox SVN Daum:
 
 A list of features ported from DOSBox ECE:
 
-* Support for FLAC, MP3, WAV, OGG Vorbis and OPUS CD-DA tracks (with some decoders ported and cleaned up from DOSBox Staging and DOSBox Optionals by Wengier)
+* Support for FLAC, MP3, WAV, OGG Vorbis and Opus CD-DA tracks (with some decoders ported and cleaned up from DOSBox Staging and DOSBox Optionals by Wengier)
 * Support for mapping mouse buttons to keyboard
 * Improved support for 3dfx emulation (Glide wrapper and improved internal card emulation; both improved since then by Wengier)
 * Improved support for FluidSynth MIDI synthesizer
@@ -44,7 +44,7 @@ A list of features ported from vDosPlus by Wengier:
 
 * Long filename support (improved for FAT drives since then by Wengier and joncampbell123)
 * Improved support for automatic drive mounting (Windows)
-* Support for clipboard copy and paste (Windows)
+* Support for clipboard copy and paste (improved since then by Wengier)
 * Several shell improvements
 
 Features such as save & load states and Pentium MMX instructions were also ported from community contributions and have since been improved by the DOSBox-X project.

@@ -42,7 +42,7 @@
     be similar to the setting "fixed" but the reported
     free disk size will also change relative to the
     change of the free disk size ever since. (Wengier)
-  - Added support for OPUS CD tracks by porting and
+  - Added support for Opus CD-DA tracks by porting and
     cleaning up the source code from other projects.
     Many thanks to Marty Shepard and kcgen. (Wengier)
   - Support for FluidSynth MIDI Synthesizer is now
