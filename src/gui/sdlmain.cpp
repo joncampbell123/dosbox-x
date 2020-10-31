@@ -8476,7 +8476,7 @@ bool lines_menu_callback(DOSBoxMenu * const menu,DOSBoxMenu::item * const menuit
     (void)menu;//UNUSED
     clear_menu_callback(menu, menuitem);
     const char *mname = menuitem->get_name().c_str();
-    if (IS_PC98_ARCH||CurMode->mode>7)
+    if (IS_PC98_ARCH||CurMode->mode>7&&CurMode->mode!=0x0043&&CurMode->mode!=0x0054&&CurMode->mode!=0x0055&&CurMode->mode!=0x0064)
         return true;
     uint16_t oldax=reg_ax, oldbx=reg_bx, oldcx=reg_cx;
     if (!strcmp(mname, "line_80x25")) {
@@ -10013,15 +10013,6 @@ int main(int argc, char* argv[]) SDL_MAIN_NOEXCEPT {
                 }
             }
             {
-                DOSBoxMenu::item &item = mainMenu.alloc_item(DOSBoxMenu::submenu_type_id,"VideoCompatMenu");
-                item.set_text("Compatibility");
-
-                mainMenu.alloc_item(DOSBoxMenu::item_type_id,"vga_9widetext").set_text("Allow 9-pixel wide text mode").
-                    set_callback_function(vga_9widetext_menu_callback);
-                mainMenu.alloc_item(DOSBoxMenu::item_type_id,"doublescan").set_text("Doublescan").
-                    set_callback_function(doublescan_menu_callback);
-            }
-            {
                 DOSBoxMenu::item &item = mainMenu.alloc_item(DOSBoxMenu::submenu_type_id,"VideoOutputMenu");
                 item.set_text("Output");
 
@@ -10033,6 +10024,8 @@ int main(int argc, char* argv[]) SDL_MAIN_NOEXCEPT {
                     set_callback_function(output_menu_callback);
                 mainMenu.alloc_item(DOSBoxMenu::item_type_id,"output_openglnb").set_text("OpenGL NB").
                     set_callback_function(output_menu_callback);
+                mainMenu.alloc_item(DOSBoxMenu::item_type_id,"doublescan").set_text("Doublescan").
+                    set_callback_function(doublescan_menu_callback);
             }
             {
                 DOSBoxMenu::item &item = mainMenu.alloc_item(DOSBoxMenu::submenu_type_id,"VideoVsyncMenu");
@@ -10071,6 +10064,8 @@ int main(int argc, char* argv[]) SDL_MAIN_NOEXCEPT {
 
                 mainMenu.alloc_item(DOSBoxMenu::item_type_id,"clear_screen").set_text("Clear the screen").
                     set_callback_function(clear_menu_callback);
+                mainMenu.alloc_item(DOSBoxMenu::item_type_id,"vga_9widetext").set_text("Allow 9-pixel wide fonts").
+                    set_callback_function(vga_9widetext_menu_callback);
                 mainMenu.alloc_item(DOSBoxMenu::item_type_id,"text_background").set_text("High intensity: background color").
                     set_callback_function(intensity_menu_callback);
                 mainMenu.alloc_item(DOSBoxMenu::item_type_id,"text_blinking").set_text("High intensity: blinking text").
@@ -10092,7 +10087,7 @@ int main(int argc, char* argv[]) SDL_MAIN_NOEXCEPT {
             }
             {
                 DOSBoxMenu::item &item = mainMenu.alloc_item(DOSBoxMenu::submenu_type_id,"VideoPC98Menu");
-                item.set_text("PC-98");
+                item.set_text("PC-98 mode");
 
                 mainMenu.alloc_item(DOSBoxMenu::item_type_id,"pc98_5mhz_gdc").set_text("5MHz GDC clock").
                     set_callback_function(vid_pc98_5mhz_gdc_menu_callback);

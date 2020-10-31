@@ -310,6 +310,8 @@ static const char *def_menu_video_output[] =
     "output_opengl",
     "output_openglnb",
 #endif
+    "--",
+    "doublescan",
     NULL
 };
 
@@ -317,6 +319,7 @@ static const char *def_menu_video_output[] =
 static const char *def_menu_video_textmode[] =
 {
     "clear_screen",
+    "vga_9widetext",
     "--",
     "text_background",
     "text_blinking",
@@ -359,14 +362,6 @@ static const char *def_menu_video_overscan[] =
     "overscan_8",
     "overscan_9",
     "overscan_10",
-    NULL
-};
-
-/* video output menu ("VideoCompatMenu") */
-static const char *def_menu_video_compat[] =
-{
-    "vga_9widetext",
-    "doublescan",
     NULL
 };
 
@@ -431,7 +426,6 @@ static const char *def_menu_video[] =
 #endif
     "VideoOverscanMenu",
     "VideoTextmodeMenu",
-    "VideoCompatMenu",
     "VideoPC98Menu",
 #ifdef C_D3DSHADERS
     "--",
@@ -1402,9 +1396,6 @@ void ConstructMenu(void) {
 
     /* video overscan menu */
     ConstructSubMenu(mainMenu.get_item("VideoOverscanMenu").get_master_id(), def_menu_video_overscan);
-
-    /* video compat menu */
-    ConstructSubMenu(mainMenu.get_item("VideoCompatMenu").get_master_id(), def_menu_video_compat);
 
     /* video PC-98 menu */
     ConstructSubMenu(mainMenu.get_item("VideoPC98Menu").get_master_id(), def_menu_video_pc98);

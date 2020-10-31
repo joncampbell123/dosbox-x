@@ -194,7 +194,9 @@
     video setting from the command line. Also added a
     config option "high intensity blinking" which when
     set will display high intensity background colors
-    instad of blinking foreground text. (Wengier)
+    instad of blinking foreground text. The menu item
+    "Allow 9-pixel wide fonts" is moved from the menu
+    group "Compatibility" to here. (Wengier)
   - Added "Debugging" menu group under "Help" menu, and
     moved items from the "Video" Debug and "DOS" Debug
     menus and the debugger here (debug builds only).
