@@ -999,8 +999,8 @@ void UpdateWindowDimensions(void)
     PrintScreenSizeInfo();
 }
 
-#define MAPPERFILE_SDL1         "mapper-" VERSION ".map"
-#define MAPPERFILE_SDL2         "mapper-" VERSION ".sdl2.map"
+#define MAPPERFILE_SDL1         "mapper-dosbox-x.sdl1.map"
+#define MAPPERFILE_SDL2         "mapper-dosbox-x.sdl2.map"
 #if defined(C_SDL2)
 # define MAPPERFILE             MAPPERFILE_SDL2
 #else
