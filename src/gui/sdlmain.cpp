@@ -7151,8 +7151,8 @@ bool DOSBOX_parse_argv() {
             fprintf(stderr,"  -startmapper                            Start DOSBox-X with the mapper editor\n");
             fprintf(stderr,"  -nogui                                  Do not show GUI\n");
             fprintf(stderr,"  -nomenu                                 Do not show menu\n");
-            fprintf(stderr,"  -showcycles                             Show cycles count in the title bar\n");
-            fprintf(stderr,"  -showrt                                 Show emulation speed relative to realtime\n");
+            fprintf(stderr,"  -showcycles                             Show cycles count (FPS) in the title\n");
+            fprintf(stderr,"  -showrt                                 Show emulation speed relative to realtime in the title\n");
             fprintf(stderr,"  -socket <socketnum>                     Specify the socket number for null-modem emulation\n");
             fprintf(stderr,"  -savedir <path>                         Set path for the save slots\n");
             fprintf(stderr,"  -defaultdir <path>                      Set the default working path for DOSBox-X\n");
@@ -10516,7 +10516,7 @@ int main(int argc, char* argv[]) SDL_MAIN_NOEXCEPT {
 
         /* more */
         std::string doubleBufString = std::string("desktop.doublebuf");
-        mainMenu.alloc_item(DOSBoxMenu::item_type_id,"showdetails").set_text("Show FPS and speed on titlebar").set_callback_function(showdetails_menu_callback).check(!menu.hidecycles && !menu.showrt);
+        mainMenu.alloc_item(DOSBoxMenu::item_type_id,"showdetails").set_text("Show FPS and RT speed in the title").set_callback_function(showdetails_menu_callback).check(!menu.hidecycles && !menu.showrt);
         mainMenu.alloc_item(DOSBoxMenu::item_type_id,"auto_lock_mouse").set_text("Autolock mouse").set_callback_function(autolock_mouse_menu_callback).check(sdl.mouse.autoenable);
 #if defined (WIN32) || defined(C_SDL2)
         mainMenu.alloc_item(DOSBoxMenu::item_type_id,"clipboard_quick").set_text("Quick edit: copy on select and paste with mouse button").set_callback_function(direct_mouse_clipboard_menu_callback).check(direct_mouse_clipboard);

@@ -113,13 +113,13 @@ static const char *def_menu_main[] =
     "mapper_mapper",
     "--",
     "MainSendKey",
+#if defined(WIN32) || defined(C_SDL2) || defined(LINUX) && C_X11
+    "SharedClipboard",
+#endif
     "--",
     "mapper_capmouse",
     "auto_lock_mouse",
     "WheelToArrow",
-#if defined(WIN32) || defined(C_SDL2) || defined(LINUX) && C_X11
-    "SharedClipboard",
-#endif
     "--",
 #if !defined(C_EMSCRIPTEN)//FIXME: Reset causes problems with Emscripten
     "mapper_pause",
