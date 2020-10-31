@@ -10339,7 +10339,7 @@ int main(int argc, char* argv[]) SDL_MAIN_NOEXCEPT {
             {
                 DOSBoxMenu::item &item = mainMenu.alloc_item(DOSBoxMenu::submenu_type_id,"HelpDebugMenu");
 
-                item.set_text("Debug");
+                item.set_text("Debugging");
 
                 {
                     mainMenu.alloc_item(DOSBoxMenu::item_type_id,"debug_blankrefreshtest").set_text("Refresh test (blank display)").set_callback_function(refreshtest_menu_callback);
@@ -10516,7 +10516,7 @@ int main(int argc, char* argv[]) SDL_MAIN_NOEXCEPT {
 
         /* more */
         std::string doubleBufString = std::string("desktop.doublebuf");
-        mainMenu.alloc_item(DOSBoxMenu::item_type_id,"showdetails").set_text("Show FPS and RT speed in the title").set_callback_function(showdetails_menu_callback).check(!menu.hidecycles && !menu.showrt);
+        mainMenu.alloc_item(DOSBoxMenu::item_type_id,"showdetails").set_text("Show FPS and RT speed in title bar").set_callback_function(showdetails_menu_callback).check(!menu.hidecycles && !menu.showrt);
         mainMenu.alloc_item(DOSBoxMenu::item_type_id,"auto_lock_mouse").set_text("Autolock mouse").set_callback_function(autolock_mouse_menu_callback).check(sdl.mouse.autoenable);
 #if defined (WIN32) || defined(C_SDL2)
         mainMenu.alloc_item(DOSBoxMenu::item_type_id,"clipboard_quick").set_text("Quick edit: copy on select and paste with mouse button").set_callback_function(direct_mouse_clipboard_menu_callback).check(direct_mouse_clipboard);
