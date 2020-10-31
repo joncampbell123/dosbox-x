@@ -7196,8 +7196,8 @@ bool DOSBOX_parse_argv() {
             fprintf(stderr,"  -early-debug                            Log early initialization messages in DOSBox-X (implies -console)\n");
             fprintf(stderr,"  -keydbg                                 Log all SDL key events\n");
             fprintf(stderr,"  -break-start                            Break into debugger at startup\n");
-            fprintf(stderr,"  -console                                Show console (Windows builds only)\n");
-            fprintf(stderr,"  -noconsole                              Do not show console (Windows debug builds only)\n");
+            fprintf(stderr,"  -console                                Show logging console (Windows builds only)\n");
+            fprintf(stderr,"  -noconsole                              Do not show logging console (Windows debug builds only)\n");
             fprintf(stderr,"  -log-con                                Log CON output to a log file\n");
             fprintf(stderr,"  -log-int21                              Log calls to INT 21h (debug level)\n");
             fprintf(stderr,"  -log-fileio                             Log file I/O through INT 21h (debug level)\n\n");
@@ -8609,11 +8609,21 @@ bool video_frameskip_common_menu_callback(DOSBoxMenu * const menu,DOSBoxMenu::it
 }
 
 bool show_console_menu_callback(DOSBoxMenu * const menu,DOSBoxMenu::item * const menuitem) {
-#if !defined(C_EMSCRIPTEN)
+#if !defined(C_EMSCRIPTEN) && defined(WIN32) && !defined(HX_DOS)
     (void)menu;//UNUSED
     (void)menuitem;//UNUSED
-    DOSBox_ShowConsole();
-    mainMenu.get_item("show_console").check(true).refresh_item(mainMenu);
+#if C_DEBUG
+    if (DEBUG_IsDebuggerConsoleVisible())
+        return true;
+#endif
+    HWND hwnd = GetConsoleWindow();
+    if (hwnd == NULL)
+        DOSBox_ShowConsole();
+    else if (IsWindowVisible(hwnd))
+        ShowWindow(hwnd, SW_HIDE);
+    else
+        ShowWindow(hwnd, SW_SHOW);
+    mainMenu.get_item("show_console").check(IsWindowVisible(hwnd)).refresh_item(mainMenu);
 #endif
     return true;
 }
@@ -10101,10 +10111,6 @@ int main(int argc, char* argv[]) SDL_MAIN_NOEXCEPT {
                 mainMenu.alloc_item(DOSBoxMenu::item_type_id,"pc98_clear_graphics").set_text("Clear graphics layer").
                     set_callback_function(vid_pc98_graphics_menu_callback);
             }
-            {
-                DOSBoxMenu::item &item = mainMenu.alloc_item(DOSBoxMenu::submenu_type_id,"VideoDebugMenu");
-                item.set_text("Debug");
-            }
 #ifdef C_D3DSHADERS
             {
                 mainMenu.alloc_item(DOSBoxMenu::item_type_id, "load_d3d_shader").set_text("Select pixel shader...").
@@ -10222,18 +10228,6 @@ int main(int argc, char* argv[]) SDL_MAIN_NOEXCEPT {
                 }
             }
 #endif
-
-            {
-                DOSBoxMenu::item &item = mainMenu.alloc_item(DOSBoxMenu::submenu_type_id,"DOSDebugMenu");
-                item.set_text("Debug");
-
-                {
-                    mainMenu.alloc_item(DOSBoxMenu::item_type_id,"debug_logint21").set_text("Log INT 21h calls").
-                        set_callback_function(dos_debug_menu_callback);
-                    mainMenu.alloc_item(DOSBoxMenu::item_type_id,"debug_logfileio").set_text("Log file I/O").
-                        set_callback_function(dos_debug_menu_callback);
-                }
-            }
         }
 #if !defined(C_EMSCRIPTEN)
         {
@@ -10332,6 +10326,24 @@ int main(int argc, char* argv[]) SDL_MAIN_NOEXCEPT {
                     set_callback_function(help_open_url_callback);
                 mainMenu.alloc_item(DOSBoxMenu::item_type_id,"help_about").set_text("About DOSBox-X").
                     set_callback_function(help_about_callback);
+#if !defined(C_EMSCRIPTEN)
+                mainMenu.alloc_item(DOSBoxMenu::item_type_id,"show_console").set_text("Show logging console").set_callback_function(show_console_menu_callback);
+#endif
+                mainMenu.alloc_item(DOSBoxMenu::item_type_id,"wait_on_error").set_text("Console wait on error").set_callback_function(wait_on_error_menu_callback).check(sdl.wait_on_error);
+            }
+
+            {
+                DOSBoxMenu::item &item = mainMenu.alloc_item(DOSBoxMenu::submenu_type_id,"HelpDebugMenu");
+
+                item.set_text("Debug");
+
+                {
+                    mainMenu.alloc_item(DOSBoxMenu::item_type_id,"debug_blankrefreshtest").set_text("Refresh test (blank display)").set_callback_function(refreshtest_menu_callback);
+                    mainMenu.alloc_item(DOSBoxMenu::item_type_id,"debug_logint21").set_text("Log INT 21h calls").
+                        set_callback_function(dos_debug_menu_callback);
+                    mainMenu.alloc_item(DOSBoxMenu::item_type_id,"debug_logfileio").set_text("Log file I/O").
+                        set_callback_function(dos_debug_menu_callback);
+                }
             }
         }
 
@@ -10500,10 +10512,7 @@ int main(int argc, char* argv[]) SDL_MAIN_NOEXCEPT {
 
         /* more */
         std::string doubleBufString = std::string("desktop.doublebuf");
-#if !defined(C_EMSCRIPTEN)
-        mainMenu.alloc_item(DOSBoxMenu::item_type_id,"show_console").set_text("Show console").set_callback_function(show_console_menu_callback);
-#endif
-        mainMenu.alloc_item(DOSBoxMenu::item_type_id,"wait_on_error").set_text("Wait on error").set_callback_function(wait_on_error_menu_callback).check(sdl.wait_on_error);
+        mainMenu.alloc_item(DOSBoxMenu::item_type_id,"showdetails").set_text("Show FPS and speed on titlebar").set_callback_function(showdetails_menu_callback).check(!menu.hidecycles && !menu.showrt);
         mainMenu.alloc_item(DOSBoxMenu::item_type_id,"auto_lock_mouse").set_text("Autolock mouse").set_callback_function(autolock_mouse_menu_callback).check(sdl.mouse.autoenable);
 #if defined (WIN32) || defined(C_SDL2)
         mainMenu.alloc_item(DOSBoxMenu::item_type_id,"clipboard_quick").set_text("Quick edit: copy on select and paste with mouse button").set_callback_function(direct_mouse_clipboard_menu_callback).check(direct_mouse_clipboard);
@@ -10538,7 +10547,6 @@ int main(int argc, char* argv[]) SDL_MAIN_NOEXCEPT {
         mainMenu.alloc_item(DOSBoxMenu::item_type_id,"wheel_guest").set_text("Enable for guest systems also").set_callback_function(wheel_guest_menu_callback);
         mainMenu.alloc_item(DOSBoxMenu::item_type_id,"doublebuf").set_text("Double Buffering (Fullscreen)").set_callback_function(doublebuf_menu_callback).check(!!GetSetSDLValue(1, doubleBufString, 0));
         mainMenu.alloc_item(DOSBoxMenu::item_type_id,"alwaysontop").set_text("Always on top").set_callback_function(alwaysontop_menu_callback).check(is_always_on_top());
-        mainMenu.alloc_item(DOSBoxMenu::item_type_id,"showdetails").set_text("Show details").set_callback_function(showdetails_menu_callback).check(!menu.hidecycles && !menu.showrt);
         mainMenu.alloc_item(DOSBoxMenu::item_type_id,"highdpienable").set_text("High DPI enable").set_callback_function(highdpienable_menu_callback).check(dpi_aware_enable);
         mainMenu.alloc_item(DOSBoxMenu::item_type_id,"shell_config_commands").set_text("Config options as commands").set_callback_function(shell_config_commands_menu_callback).check(enable_config_as_shell_commands);
         mainMenu.alloc_item(DOSBoxMenu::item_type_id,"quick_reboot").set_text("Enable quick reboot").set_callback_function(quick_reboot_menu_callback).check(use_quick_reboot);
@@ -10549,7 +10557,6 @@ int main(int argc, char* argv[]) SDL_MAIN_NOEXCEPT {
         mainMenu.alloc_item(DOSBoxMenu::item_type_id,"refreshslot").set_text("Refresh display status").set_callback_function(refresh_slots_menu_callback);
 
         mainMenu.alloc_item(DOSBoxMenu::item_type_id,"pc98_use_uskb").set_text("Use US keyboard layout").set_callback_function(pc98_force_uskb_menu_callback).check(pc98_force_ibm_layout);
-        mainMenu.get_item("debug_blankrefreshtest").set_text("Refresh test (blank display)").set_callback_function(refreshtest_menu_callback).refresh_item(mainMenu);
 
         mainMenu.get_item("wheel_updown").check(wheel_key==1).refresh_item(mainMenu);
         mainMenu.get_item("wheel_leftright").check(wheel_key==2).refresh_item(mainMenu);

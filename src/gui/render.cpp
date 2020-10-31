@@ -1156,9 +1156,6 @@ void RENDER_Init() {
 	MAPPER_AddHandler(&AspectRatio_mapper_shortcut, MK_nothing, 0, "aspratio", "AspRatio", &item);
 	item->set_text("Fit to aspect ratio");
 
-    // DEBUG option
-    mainMenu.alloc_item(DOSBoxMenu::item_type_id,"debug_blankrefreshtest");
-
     mainMenu.get_item("vga_9widetext").check(vga.draw.char9_set).refresh_item(mainMenu);
     mainMenu.get_item("doublescan").check(vga.draw.doublescan_set).refresh_item(mainMenu);
     mainMenu.get_item("mapper_aspratio").check(render.aspect).refresh_item(mainMenu);

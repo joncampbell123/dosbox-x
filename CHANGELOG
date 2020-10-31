@@ -193,6 +193,11 @@
     config option "high intensity blinking" which when
     set will display high intensity background colors
     instad of blinking foreground text. (Wengier)
+  - Added "Debug" menu group under "Help" menu, and
+    moved items from the "Video" Debug and "DOS" Debug
+    menus and the debugger here (debug builds only).
+    Also allowed to hide/show the console or debugger
+    window in Windows debug builds. (Wengier)
   - Updated MPXPLAY to latest version 1.65. (Wengier)
   - Integrated SVN commits (Allofich)
     - r4384: ICW1 on the PIC clears the Interrupt Mask

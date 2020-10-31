@@ -114,29 +114,18 @@ static const char *def_menu_main[] =
     "--",
     "MainSendKey",
     "--",
-#if !defined(C_EMSCRIPTEN)
-    "wait_on_error",
-#endif
-    "showdetails",
-#if C_DEBUG
-    "--",
-    "mapper_debugger",
-#endif
-#if !defined(MACOSX) && !defined(LINUX) && !defined(HX_DOS) && !defined(C_EMSCRIPTEN)
-    "show_console",
-#endif
-    "--",
     "mapper_capmouse",
     "auto_lock_mouse",
     "WheelToArrow",
 #if defined(WIN32) || defined(C_SDL2) || defined(LINUX) && C_X11
     "SharedClipboard",
 #endif
-#if !defined(C_EMSCRIPTEN)//FIXME: Reset causes problems with Emscripten
     "--",
+#if !defined(C_EMSCRIPTEN)//FIXME: Reset causes problems with Emscripten
     "mapper_pause",
     "mapper_pauseints",
 #endif
+    "showdetails",
 #if !defined(C_EMSCRIPTEN)//FIXME: Reset causes problems with Emscripten
     "--",
     "mapper_reset",
@@ -403,18 +392,6 @@ static const char *def_menu_video_pc98[] =
     NULL
 };
 
-#if C_DEBUG
-/* video output debug ("VideoDebugMenu") */
-static const char *def_menu_video_debug[] =
-{
-    "debug_blankrefreshtest",
-    "--",
-    "debug_pageflip",
-    "debug_retracepoll",
-    NULL
-};
-#endif
-
 /* video menu ("VideoMenu") */
 static const char *def_menu_video[] =
 {
@@ -456,10 +433,6 @@ static const char *def_menu_video[] =
     "VideoTextmodeMenu",
     "VideoCompatMenu",
     "VideoPC98Menu",
-#if C_DEBUG
-    "--",
-    "VideoDebugMenu",
-#endif
 #ifdef C_D3DSHADERS
     "--",
     "load_d3d_shader",
@@ -496,9 +469,6 @@ static const char *def_menu_dos[] =
 #endif
 #if C_PRINTER
     "mapper_ejectpage",
-#endif
-#if C_DEBUG
-    "DOSDebugMenu",
 #endif
     NULL
 };
@@ -552,16 +522,6 @@ static const char *def_menu_dos_win[] =
     "dos_win_autorun",
     "dos_win_wait",
     "dos_win_quiet",
-    NULL
-};
-#endif
-
-#if C_DEBUG
-/* DOS debug ("DOSDebugMenu") */
-static const char *def_menu_dos_debug[] =
-{
-    "debug_logint21",
-    "debug_logfileio",
     NULL
 };
 #endif
@@ -701,6 +661,28 @@ static const char *def_menu_drive[] =
     NULL
 };
 
+/* help output debug ("HelpDebugMenu") */
+static const char *def_menu_help_debug[] =
+{
+#if C_DEBUG
+    "mapper_debugger",
+#endif
+#if !defined(MACOSX) && !defined(LINUX) && !defined(HX_DOS) && !defined(C_EMSCRIPTEN)
+    "show_console",
+    "wait_on_error",
+#endif
+#if C_DEBUG
+    "--",
+    "debug_blankrefreshtest",
+    "debug_pageflip",
+    "debug_retracepoll",
+    "--",
+    "debug_logint21",
+    "debug_logfileio",
+#endif
+    NULL
+};
+
 /* help menu ("HelpMenu") */
 static const char *def_menu_help[] =
 {
@@ -710,6 +692,10 @@ static const char *def_menu_help[] =
     "help_homepage",
     "help_wiki",
     "help_issue",
+#endif
+#if C_DEBUG || !defined(MACOSX) && !defined(LINUX) && !defined(HX_DOS) && !defined(C_EMSCRIPTEN)
+    "--",
+    "HelpDebugMenu",
 #endif
     "--",
     "help_about",
@@ -1423,11 +1409,6 @@ void ConstructMenu(void) {
     /* video PC-98 menu */
     ConstructSubMenu(mainMenu.get_item("VideoPC98Menu").get_master_id(), def_menu_video_pc98);
 
-#if C_DEBUG
-    /* video debug menu */
-    ConstructSubMenu(mainMenu.get_item("VideoDebugMenu").get_master_id(), def_menu_video_debug);
-#endif
-
     /* sound menu */
     ConstructSubMenu(mainMenu.get_item("SoundMenu").get_master_id(), def_menu_sound);
 
@@ -1449,11 +1430,6 @@ void ConstructMenu(void) {
 #if defined(WIN32) && !defined(HX_DOS)
     /* DOS WIN menu */
     ConstructSubMenu(mainMenu.get_item("DOSWinMenu").get_master_id(), def_menu_dos_win);
-#endif
-
-#if C_DEBUG
-    /* DOS debug menu */
-    ConstructSubMenu(mainMenu.get_item("DOSDebugMenu").get_master_id(), def_menu_dos_debug);
 #endif
 
 #if !defined(C_EMSCRIPTEN)
@@ -1485,9 +1461,12 @@ void ConstructMenu(void) {
         }
     }
 
-#if !defined(HX_DOS)
     /* help menu */
     ConstructSubMenu(mainMenu.get_item("HelpMenu").get_master_id(), def_menu_help);
+
+#if C_DEBUG || !defined(MACOSX) && !defined(LINUX) && !defined(HX_DOS) && !defined(C_EMSCRIPTEN)
+    /* help debug menu */
+    ConstructSubMenu(mainMenu.get_item("HelpDebugMenu").get_master_id(), def_menu_help_debug);
 #endif
 }
 

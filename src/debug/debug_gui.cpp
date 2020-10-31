@@ -552,7 +552,7 @@ void DEBUG_FlushInput(void) {
 }
 
 void DBGUI_StartUp(void) {
-	mainMenu.get_item("show_console").check(true).refresh_item(mainMenu);
+	mainMenu.get_item("show_console").check(true).enable(false).refresh_item(mainMenu);
 
 	LOG(LOG_MISC,LOG_DEBUG)("DEBUG GUI startup");
 	/* Start the main window */

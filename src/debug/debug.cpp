@@ -3406,9 +3406,17 @@ Bitu DEBUG_Loop(void) {
 
 void DEBUG_FlushInput(void);
 
+static bool hidedebugger=false;
 void DEBUG_Enable_Handler(bool pressed) {
 	if (!pressed)
 		return;
+
+#if defined(WIN32)
+    if (hidedebugger) {
+        ShowWindow(GetConsoleWindow(), SW_SHOW);
+        hidedebugger=false;
+    }
+#endif
 
     /* this command is now a toggle! */
     /* However this should break back into the debugger if RUNWATCH is active */
@@ -3422,6 +3430,10 @@ void DEBUG_Enable_Handler(bool pressed) {
     else if (debugging) {
         DrawRegistersUpdateOld();
         debugging=false;
+#if defined(WIN32)
+        hidedebugger=true;
+        ShowWindow(GetConsoleWindow(), SW_HIDE);
+#endif
 
         logBuffSuppressConsole = false;
         if (logBuffSuppressConsoleNeedUpdate) {
@@ -4189,7 +4201,7 @@ void DEBUG_Init() {
 	#else
 		MAPPER_AddHandler(DEBUG_Enable_Handler,MK_pause,MMOD2,"debugger","Debugger",&item);
 	#endif
-	item->set_text("Debugger");
+	item->set_text("Show debugger");
 	/* Reset code overview and input line */
 	memset((void*)&codeViewData,0,sizeof(codeViewData));
 	/* Setup callback */
