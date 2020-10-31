@@ -2128,7 +2128,7 @@ static void UI_Select(GUI::ScreenSDL *screen, int select) {
             np4->raise();
             } break;
         case 20: {
-            auto *np5 = new ShowMixerInfo(screen, 90, 70, "Current sound levels in DOSBox-X");
+            auto *np5 = new ShowMixerInfo(screen, 90, 70, "Current sound mixer volumes");
             np5->raise();
             } break;
         case 21: {

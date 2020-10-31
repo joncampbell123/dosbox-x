@@ -139,11 +139,44 @@ public:
 	bool Open(const char *conf) {
 		if (isOpen) return false;
 
+		std::string sf = "";
 		/* Sound font file required */
 		if (!conf || (conf[0] == '\0')) {
-			LOG(LOG_MISC,LOG_DEBUG)("SYNTH: Specify .SF2 sound font file with midiconfig=");
-			return false;
-		}
+#if defined (WIN32)
+			// default for windows according to fluidsynth docs
+			if (FILE *file = fopen("C:\\soundfonts\\default.sf2", "r")) {
+				fclose(file);
+				sf = "C:\\soundfonts\\default.sf2";
+			} else if (FILE *file = fopen("C:\\DOSBox-X\\FluidR3_GM.sf2", "r")) {
+				fclose(file);
+				sf = "C:\\DOSBox-X\\FluidR3_GM.sf2";
+			} else if (FILE *file = fopen("C:\\DOSBox-X\\GeneralUser_GS.sf2", "r")) {
+				fclose(file);
+				sf = "C:\\DOSBox-X\\GeneralUser_GS.sf2";
+			} else {
+				LOG_MSG("MIDI:synth: Specify .SF2 sound font file with midiconfig=");
+				return false;
+			}
+#else
+			// Default on "other" platforms according to fluidsynth docs
+			// This works on RH and Fedora, if a soundfont is installed
+			if (FILE *file = fopen("/usr/share/soundfonts/default.sf2", "r")) {
+				fclose(file);
+				sf = "/usr/share/soundfonts/default.sf2";
+			// Ubuntu and Debian don't have a default.sf2...
+			} else if (FILE *file = fopen("/usr/share/sounds/sf2/FluidR3_GM.sf2", "r")) {
+				fclose(file);
+				sf = "/usr/share/sounds/sf2/FluidR3_GM.sf2";
+			} else if (FILE *file = fopen("/usr/share/sounds/sf2/GeneralUser_GS.sf2", "r")) {
+				fclose(file);
+				sf = "/usr/share/sounds/sf2/GeneralUser_GS.sf2";
+			} else {
+				LOG_MSG("MIDI:synth: Specify .SF2 sound font file with midiconfig=");
+				return false;
+			}
+#endif
+		} else
+            sf = std::string(conf);
 
 		fluid_set_log_function(FLUID_PANIC, synth_log, NULL);
 		fluid_set_log_function(FLUID_ERR, synth_log, NULL);
@@ -171,21 +204,20 @@ public:
 		}
 
 		/* Load a SoundFont */
-		sfont_id = fluid_synth_sfload(synth_soft, conf, 0);
+		sfont_id = fluid_synth_sfload(synth_soft, sf.c_str(), 0);
 		if (sfont_id == -1) {
 			extern std::string capturedir;
-			std::string str = capturedir + std::string(PATH_SEP) + std::string(conf);
+			std::string str = capturedir + std::string(PATH_SEP) + sf;
 			sfont_id = fluid_synth_sfload(synth_soft, str.c_str(), 0);
 		}
 
 		if (sfont_id == -1) {
-			LOG(LOG_MISC,LOG_WARN)("SYNTH: Failed to load MIDI sound font file \"%s\"",
-			   conf);
+			LOG(LOG_MISC,LOG_WARN)("SYNTH: Failed to load MIDI sound font file \"%s\"", sf.c_str());
 			delete_fluid_synth(synth_soft);
 			delete_fluid_settings(settings);
 			return false;
 		}
-        sffile=std::string(conf);
+		sffile=sf;
 
 		synthchan = MIXER_AddChannel(synth_CallBack, (unsigned int)synthsamplerate, "SYNTH");
 		synthchan->Enable(false);
@@ -275,13 +307,19 @@ public:
 		(void)conf;
 
 		Section_prop *section = static_cast<Section_prop *>(control->GetSection("midi"));
-		const char *sf = section->Get_string("fluid.soundfont");
-		if (!*sf) { // Let's try to find a soundfont before bailing
+		std::string sf = section->Get_string("fluid.soundfont");
+		if (!sf.size()) { // Let's try to find a soundfont before bailing
 #if defined (WIN32)
 			// default for windows according to fluidsynth docs
 			if (FILE *file = fopen("C:\\soundfonts\\default.sf2", "r")) {
 				fclose(file);
 				sf = "C:\\soundfonts\\default.sf2";
+			} else if (FILE *file = fopen("C:\\DOSBox-X\\FluidR3_GM.sf2", "r")) {
+				fclose(file);
+				sf = "C:\\DOSBox-X\\FluidR3_GM.sf2";
+			} else if (FILE *file = fopen("C:\\DOSBox-X\\GeneralUser_GS.sf2", "r")) {
+				fclose(file);
+				sf = "C:\\DOSBox-X\\GeneralUser_GS.sf2";
 			} else {
 				LOG_MSG("MIDI:fluidsynth: SoundFont not specified");
 				return false;
@@ -296,6 +334,9 @@ public:
 			} else if (FILE *file = fopen("/usr/share/sounds/sf2/FluidR3_GM.sf2", "r")) {
 				fclose(file);
 				sf = "/usr/share/sounds/sf2/FluidR3_GM.sf2";
+			} else if (FILE *file = fopen("/usr/share/sounds/sf2/GeneralUser_GS.sf2", "r")) {
+				fclose(file);
+				sf = "/usr/share/sounds/sf2/GeneralUser_GS.sf2";
 			} else {
 				LOG_MSG("MIDI:fluidsynth: SoundFont not specified, and no system SoundFont found");
 				return false;
