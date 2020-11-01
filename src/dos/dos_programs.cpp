@@ -6068,6 +6068,38 @@ static void LS_ProgramStart(Program * * make) {
     *make=new LS;
 }
 
+class ADDKEY : public Program {
+public:
+    void Run(void);
+private:
+	void PrintUsage() {
+        constexpr const char *msg =
+            "Generates artificial keypresses.\n\nADDKEY [key]\n\n"
+            "For example, the command below will type \"dir\" followed by ENTER.\n\nADDKEY d i r enter\n\n"
+            "Instead of using this command, you can also try AUTOTYPE command.  AUTOTYPE can\nperform scripted keyboard entry into a running DOS program.\n";
+        WriteOut(msg);
+	}
+};
+
+void ADDKEY::Run()
+{
+	// Hack To allow long commandlines
+	ChangeToLongCmd();
+
+	// Usage
+	if (cmd->FindExist("-?", false) || cmd->FindExist("/?", false)) {
+		PrintUsage();
+		return;
+	}
+	char *args=(char *)cmd->GetRawCmdline().c_str();
+	args=trim(args);
+	DOS_Shell temp;
+	temp.CMD_ADDKEY(args);
+}
+
+static void ADDKEY_ProgramStart(Program * * make) {
+    *make=new ADDKEY;
+}
 
 #if defined (WIN32) && !defined(HX_DOS)
 #include <sstream>
@@ -6801,6 +6833,7 @@ void DOS_SetupPrograms(void) {
 
     PROGRAMS_MakeFile("LS.COM",LS_ProgramStart);
     PROGRAMS_MakeFile("LOADFIX.COM",LOADFIX_ProgramStart);
+    PROGRAMS_MakeFile("ADDKEY.COM",ADDKEY_ProgramStart);
     PROGRAMS_MakeFile("A20GATE.COM",A20GATE_ProgramStart);
     PROGRAMS_MakeFile("CFGTOOL.COM",CFGTOOL_ProgramStart);
 #if defined C_DEBUG

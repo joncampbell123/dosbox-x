@@ -97,7 +97,7 @@ static SHELL_Cmd cmd_list[]={
 {	"VOL",			0,		&DOS_Shell::CMD_VOL,		"SHELL_CMD_VOL_HELP"},
 {	"TRUENAME",		1,		&DOS_Shell::CMD_TRUENAME,	"SHELL_CMD_TRUENAME_HELP"},
 // Advanced commands specific to DOSBox-X
-{	"ADDKEY",		1,		&DOS_Shell::CMD_ADDKEY,		"SHELL_CMD_ADDKEY_HELP"},
+//{	"ADDKEY",		1,		&DOS_Shell::CMD_ADDKEY,		"SHELL_CMD_ADDKEY_HELP"}, // ADDKEY as a program (Z:\ADDKEY.COM) instead of shell command
 {	"DX-CAPTURE",	1,		&DOS_Shell::CMD_DXCAPTURE,  "SHELL_CMD_DXCAPTURE_HELP"},
 #if C_DEBUG
 // Additional commands for debugging purposes in DOSBox-X
@@ -3201,7 +3201,7 @@ static void delayed_sdlpress(Bitu core) {
 }
 // ADDKEY patch was created by Moe
 void DOS_Shell::CMD_ADDKEY(char * args){
-	HELP("ADDKEY");
+	//HELP("ADDKEY");
 	StripSpaces(args);
 	if (!*args) {
 		WriteOut(MSG_Get("SHELL_SYNTAXERROR"));

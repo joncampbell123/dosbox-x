@@ -997,7 +997,7 @@ void SHELL_Init() {
 	MSG_Add("SHELL_CMD_ATTRIB_SET_ERROR","Unable to set attributes: %s\n");
 	MSG_Add("SHELL_CMD_DEL_ERROR","Unable to delete: %s.\n");
 	MSG_Add("SHELL_CMD_DEL_SURE","All files in directory will be deleted!\nAre you sure [Y/N]?");
-	MSG_Add("SHELL_SYNTAXERROR","The syntax of the command is incorrect.\n");
+	MSG_Add("SHELL_SYNTAXERROR","Syntax error\n");
 	MSG_Add("SHELL_CMD_SET_NOT_SET","Environment variable %s not defined.\n");
 	MSG_Add("SHELL_CMD_SET_OUT_OF_SPACE","Not enough environment space left.\n");
 	MSG_Add("SHELL_CMD_IF_EXIST_MISSING_FILENAME","IF EXIST: Missing filename.\n");
@@ -1342,8 +1342,6 @@ void SHELL_Init() {
 		   "Type VER without parameters to display DOSBox-X and the reported DOS version.\n");
 	MSG_Add("SHELL_CMD_VER_VER","DOSBox-X version %s (%s). Reported DOS version %d.%02d.\n");
 	MSG_Add("SHELL_CMD_VER_INVALID","The specified DOS version is not correct.\n");
-	MSG_Add("SHELL_CMD_ADDKEY_HELP","Generates artificial keypresses.\n");
-	MSG_Add("SHELL_CMD_ADDKEY_HELP_LONG","ADDKEY [key]\n");
 	MSG_Add("SHELL_CMD_VOL_HELP","Displays the disk volume label and serial number, if they exist.\n");
 	MSG_Add("SHELL_CMD_VOL_HELP_LONG","VOL [drive]\n");
 	MSG_Add("SHELL_CMD_PROMPT_HELP","Changes the command prompt.\n");
