@@ -6101,6 +6101,39 @@ static void ADDKEY_ProgramStart(Program * * make) {
     *make=new ADDKEY;
 }
 
+#if C_DEBUG
+class INT2FDBG : public Program {
+public:
+    void Run(void);
+private:
+	void PrintUsage() {
+        constexpr const char *msg =
+            "Hooks INT 2Fh for debugging purposes.\n\nINT2FDBG [option]\n  /I      Installs hook\n\nIt will hook INT 2Fh at the top of the call chain for debugging information.\n";
+        WriteOut(msg);
+	}
+};
+
+void INT2FDBG::Run()
+{
+	// Hack To allow long commandlines
+	ChangeToLongCmd();
+
+	// Usage
+	if (!cmd->GetCount() || cmd->FindExist("-?", false) || cmd->FindExist("/?", false)) {
+		PrintUsage();
+		return;
+	}
+	char *args=(char *)cmd->GetRawCmdline().c_str();
+	args=trim(args);
+	DOS_Shell temp;
+	temp.CMD_INT2FDBG(args);
+}
+
+static void INT2FDBG_ProgramStart(Program * * make) {
+    *make=new INT2FDBG;
+}
+#endif
+
 #if defined (WIN32) && !defined(HX_DOS)
 #include <sstream>
 #include <shellapi.h>
@@ -6837,6 +6870,7 @@ void DOS_SetupPrograms(void) {
     PROGRAMS_MakeFile("A20GATE.COM",A20GATE_ProgramStart);
     PROGRAMS_MakeFile("CFGTOOL.COM",CFGTOOL_ProgramStart);
 #if defined C_DEBUG
+    PROGRAMS_MakeFile("INT2FDBG.COM",INT2FDBG_ProgramStart);
     PROGRAMS_MakeFile("NMITEST.COM",NMITEST_ProgramStart);
 #endif
     PROGRAMS_MakeFile("RE-DOS.COM",REDOS_ProgramStart);

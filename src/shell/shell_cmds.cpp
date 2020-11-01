@@ -102,7 +102,7 @@ static SHELL_Cmd cmd_list[]={
 #if C_DEBUG
 // Additional commands for debugging purposes in DOSBox-X
 {	"DEBUGBOX",		1,		&DOS_Shell::CMD_DEBUGBOX,	"SHELL_CMD_DEBUGBOX_HELP"},
-{	"INT2FDBG",		1,		&DOS_Shell::CMD_INT2FDBG,	"SHELL_CMD_INT2FDBG_HELP"},
+//{	"INT2FDBG",		1,		&DOS_Shell::CMD_INT2FDBG,	"SHELL_CMD_INT2FDBG_HELP"},
 #endif
 {0,0,0,0}
 }; 
@@ -349,13 +349,8 @@ static Bitu INT2FDBG_Handler(void) {
  *      of the call chain so that we can see the results just before returning INT 2Fh back
  *      to WIN.COM */
 void DOS_Shell::CMD_INT2FDBG(char * args) {
-	HELP("INT2FDBG");
+	//HELP("INT2FDBG");
     while (*args == ' ') args++;
-    if (!strcmp(args,"-?")) {
-		args[0]='/';
-		HELP("INT2FDBG");
-		return;
-	}
 
 	/* TODO: Allow /U to remove INT 2Fh hook */
 	if (ScanCMDBool(args,"I")) {
@@ -396,8 +391,6 @@ void DOS_Shell::CMD_INT2FDBG(char * args) {
 	}
 	else if (*args)
 		WriteOut("Invalid parameter - %s\n", args);
-	else
-		WriteOut("%s\n%s", MSG_Get("SHELL_CMD_INT2FDBG_HELP"), MSG_Get("SHELL_CMD_INT2FDBG_HELP_LONG"));
 }
 #endif
 

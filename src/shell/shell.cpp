@@ -1380,8 +1380,6 @@ void SHELL_Init() {
 #if C_DEBUG
 	MSG_Add("SHELL_CMD_DEBUGBOX_HELP","Runs program and breaks into debugger at entry point.\n");
 	MSG_Add("SHELL_CMD_DEBUGBOX_HELP_LONG","DEBUGBOX [command] [options]\n");
-	MSG_Add("SHELL_CMD_INT2FDBG_HELP","Hooks INT 2Fh for debugging purposes.\n");
-	MSG_Add("SHELL_CMD_INT2FDBG_HELP_LONG","INT2FDBG [option]\n  /I      Installs hook\n\nIt will hook INT 2Fh at the top of the call chain for debugging information.\n");
 #endif
 	MSG_Add("SHELL_CMD_COMMAND_HELP","Starts the DOSBox-X command shell.\n\nThe following options are accepted:\n\n  /C\tExecutes the specified command and returns.\n  /K\tExecutes the specified command and continues running.\n  /P\tLoads a permanent copy of the command shell.\n  /INIT\tInitializes the command shell.\n");
 
