@@ -1,0 +1,461 @@
+
+<!DOCTYPE html>
+<html>
+
+  <head>
+    <meta charset='utf-8'>
+    <meta http-equiv="X-UA-Compatible" content="chrome=1">
+    <meta name="description" content="DOSBox-X: Complete and accurate DOS emulation package">
+
+    <link rel="stylesheet" type="text/css" media="screen" href="css/style.css">
+
+    <script type="text/javascript" src="js/script.js"></script>
+    <title>DOSBox-X - Complete, accurate DOS emulation and more</title>
+  </head>
+
+  <body>
+
+    <!-- HEADER -->
+    <div id="header_wrap" class="outer">
+        <table width="100%" style="border: hidden">
+        <tr>
+        <td width="25%" style="border: hidden; min-width: 300px; text-align: center">
+          &nbsp;<p />&nbsp;<br/>
+          <img id="dosbox-x-logo" src="images/dosbox-x-logo.svg" title="DOSBox-X" alt="DOSBox-X logo" style="width:90px" />
+        </td><td>&nbsp;<p />
+          <h1 id="project_title">DOSBox-X</h1>
+          <h2 id="project_tagline">Cross-platform DOS emulation package<br />Complete, accurate emulation and more</h2>
+        </td>
+        </tr>
+        </table>
+    </div>
+
+    <!-- MAIN CONTENT -->
+    <div id="main_content_wrap" class="outer"; style="background-color: #fafacf">
+        <div style="text-align: center">
+            <h3 style="padding-top: 10px">DOSBox-X 0.83.7 Release Notes</h3>
+            <h4 style="padding-bottom: 15px; font-weight: normal">Release Date: <span style="color: green">Octoboer 31, 2020</span></h4>
+            Please report any issues in our <a href="https://github.com/joncampbell123/dosbox-x/issues">issue tracker</a>.</p>
+            <p>Also, make sure to check out our <a href="wiki">Wiki guide</a>.</p>
+            <h4>New in This Version</h4>
+
+            <table width="100%" style="border: hidden">
+            <tr>
+            <td width="20%" style="border: hidden"></td>
+            <td width="60%" style="border: hidden; text-align: left">
+            <div style="font-size: 20px; font-weight: 800">1. Notable New Features</div>
+<ul>
+<li><div style="font-weight: 600">32-bit and 64-bit x86 dynamic core</div>With the new x86 dynamic CPU core for both 32-bit and 64-bit systems, the overall emuation speed for DOS programs is noticeably improved. Set either "core=dynamic" or "core=dynamic_x86" to enable this core.</li>
+
+<li><div style="font-weight: 600">New CPU types to emulate CPU speed</div>You can now emulate the speed in terms of CPU cycles for 286-25MHz, 386DX-25MHz, 486DX4-100MHz, 486DX5-133MHz, Pentium-60MHz, Pentium-75MHz, and Pentium-90MHz CPUs.</li>
+
+<li><div style="font-weight: 600">Opus CD audio tracks</div>Support for cuesheets with Opus CD-DA tracks is now available, in addition to FLAC, MP3, WAV, OGG Vorbis CD-DA tracks already supported. Use either the menu or IMGMOUNT command to mount them.</li>
+
+<li><div style="font-weight: 600">Full Ctrl+Break handler</div>DOSBox-X now supports full Ctrl+C/Ctrl+Break emulation in the DOS shell and DOS applications. You can also send Ctrl+Break as a special key from the "Main" menu.</li>
+
+<li><div style="font-weight: 600">Support for save files and save remarks</div>For the save and load state feature, you can now save to your own save files instead of pre-defined save slots. Save remarks can be entered too for both pre-defined save slots and your own save files.</li>
+
+<li><div style="font-weight: 600">Setting the window position at startup</div>A new config option "windowposition" (in [sdl] section) is supported to set the window position at startup in the positionX,positionY format</li>
+
+<li><div style="font-weight: 600">New clipboard copy and paste features</div>There are new clipboard functions such as "copy all text on the DOS screen" and "Stop clipboard pasting" in the menu. Moroever, the mouse copy and paste feature is now supported in Linux and macOS SDL2 builds as well.</li>
+
+<li><div style="font-weight: 600">FluidSynth in Windows MinGW builds</div>Support for FluidSynth MIDI Synthesizer is now included in the MinGW builds by default just like Visual Studio builds. Set "mididevice=fluidsynth" and a soundfont file (e.g. GeneralUser_GS.sf2) to use it.</li>
+
+<li><div style="font-weight: 600">xBRZ scaler in Visual Studio SDL2 builds</div>The xBRZ scaler is now enabled for Visual Studio SDL2 builds just like Visual Studio SDL1 builds. You can enble it either with the setting "scaler=xbrz" or from the menu (from "Video" -> "Scaler").</li>
+
+<li><div style="font-weight: 600">Raw mouse input option for SDL2 builds</div>You can enable this option to bypass the operating system's mouse acceleration and sensitivity settings. This works in fullscreen or when the mouse is captured in window mode.</li>
+
+<li><div style="font-weight: 600">Mount multiple disk or CD images from menu</div>You can now mount multiple floppy, hard disk or CD images from the "Drive" menu, swappable with "Swap floppy" or "Swap CD". Command-line usage for this is no longer required.</li>
+
+<li><div style="font-weight: 600">Changing text-mode video settings from menu</div>It is now possible to change some text-mode related video settings such as the number of rows and columns directly from the menu (from "Video" -> "Text-mode").</li>
+
+<li><div style="font-weight: 600">Display Sound Blaster and MIDI device configurations from menu</div>The menu items "Show Sound Blaster configuration" and "Show MIDI device configuration" are added to the "Sound" menu to show the current configurations of the Sound Blaster and MIDI devices.</li>
+</ul>
+
+            <div style="font-size: 20px; font-weight: 800">2. Notable Usability Improvements</div>
+<ul>
+<li><div style="font-weight: 600">New website for DOSBox-X Wiki system</div>The primary DOSBox-X Wiki (where you find the DOSBox-X user guide) is now located at the following URL, which is hopefully easier to remember: <a href="https://dosbox-x.com/wiki">https://dosbox-x.com/wiki</a></li>
+
+<li><div style="font-weight: 600">Easier to navigate DOSBox-X default configuration file</div>The primary DOSBox-X sample configuration file now contains common config options only, which should make it easier to nagivate than before. The full configuration file is also separately available for users who want to use it.</li>
+
+<li><div style="font-weight: 600">Improved Linux Flatpak support</div>Initial Linux Flatpak support was added in the previous version. This verion improves it to make it work better.</li>
+
+<li><div style="font-weight: 600">New default "Typical" installation for Windows installer</div>The "Typical" installation type is added in the Windows installer as the default installation. Unlike the full installation it will not copy all builds to subdirectories in order to make the installation faster.</li>
+
+<li><div style="font-weight: 600">Built-in real parallel port passthough features in Windows</div>The Windows DLL files inpout32.dll (32-bit) and inpoutx64.dll (64-bit) required for the direct parallel port passthrough feature are now included with Windows installer by default.</li>
+
+<li><div style="font-weight: 600">Native dialog box to display messages</div>DOSBox-X will now use native Windows/Linux/macOS dialog box to display quit warnings and save state errors.</li>
+
+<li><div style="font-weight: 600">Reorganized some menu items</div>Some menu items in the drop-down menus have been renamed or reorganized to make them look better or more clear than before.</li>
+
+<li><div style="font-weight: 600">Improved command-line help messages</div>The help messages for the DOSBox-X command-line options are improved, such as adding the new -silent and -socket command-line options.</li>
+
+<li><div style="font-weight: 600">Improved debuging options from Help menu</div>The debugging-related functions are now availble from the "Help" menu, including the debugger and more debugging functions which were previously under other menus.</li>
+
+<li><div style="font-weight: 600">Select a special key to send to DOS with the customized shortcut</div>You can now select a special key (Alt+Tab, Ctrl+Break, Ctrl+Alt+Del, etc) to be sent from the key defined in the mapper editor. The key can be selected from the "Send special key" menu group in "Main" menu.</li>
+
+<li><div style="font-weight: 600">Shortcuts for copying all screen text and quick launch functions</div>The functions "CopyToClipboard" and "QuickRun" are added to the mapper editor so that you can use shortcuts to activate them (default shortcuts: HOST(F11/F12)+A and HOST(F11/F12)+Q respectively).</li>
+
+<li><div style="font-weight: 600">Enable or disable US keyboard layout for PC-98 mode from menu</div>You can now force the default US keyboard layout in
+    PC-98 mode from the menu (from "Video" -> "PC-98" -> "Use US keyboard layout") for those who want to use PC-98 mode without a Japanese keyboard.</li>
+</ul>
+
+            <div style="font-size: 20px; font-weight: 800">3. Bugfixes and Other Improvements</div>
+There are also many bugfixes and other improvements, including ported recent DOSBox SVN commits. Please see the full changelogs below for more information.
+<p />
+
+            <div style="font-size: 20px; font-weight: 800">4. Full Changelog In This Version</div>
+<ul>
+<li>
+The primary DOSBox-X Wiki is now located at the
+URL: <a href="https://dosbox-x.com/wiki">https://dosbox-x.com/wiki</a> (Wengier)
+</li><li>
+Implemented the x86 dynamic core for both 32-bit
+and 64-bit systems by re-porting the code from SVN.
+Dynamic core now supports either the dynamic_x86
+or the dynamic_rec core. The dynamic_x86 core will
+be used by default for x86 and x86_64 platforms and
+if "core=dynamic" is set, and Windows 9x can be run
+in this dynamic core (although at this time may
+encounter some issue with the S3 driver). You can
+also explicit specify setting "core=dynamic_x86" or
+"core=dynamic_rec" for either the dynamic_x86 core
+or the dynamic_rec core. Also thank joncampbell123
+for the 64-bit fix. (Wengier)
+</li><li>
+You can now use your own save file (in addition to
+save slots! There are now a "Use save file" toggle
+item and "Browse save file..." for browsing save
+files on your computer. A config option "savefile"
+(in [dosbox] section) is added to specify a save
+file to use at start. (Wengier)
+</li><li>
+Save state feature now allows users to optionally
+enter remarks when saving a state. A submenu group
+"Save/load option" is added (under "Capture") where
+you can toggle menu items "No remark when saving
+state" (for disabling input of remarks when saving)
+and "force load state mode". A menu item "Display
+state information" is added as well to display the
+information of the saved state. (Wengier)
+</li><li>
+DOSBox-X will now use native dialog box to display
+quit warnings and save state errors. (Wengier)
+</li><li>
+Changed some DOS error messages (such as "Illegal
+command" which now reads "Bad command or filename")
+similar to real DOS systems. (Wengier)
+</li><li>
+ADDKEY and INT2FDBG commands now appear as programs
+on Z: drive instead of shell commands. (Wengier)
+</li><li>
+Improved the -z (move virtual drive Z:) function of
+MOUNT command. You can move the virtual drive as
+many times as you want, and save/load states will
+work even after you move the Z: drive. (Wengier)
+</li><li>
+Enhanced the config option "freesizecap" to allow
+the setting "fixed" which is the same as "false",
+and a new setting "relative" is added, which will
+be similar to the setting "fixed" but the reported
+free disk size will also change relative to the
+change of the free disk size ever since. (Wengier)
+</li><li>
+Added support for Opus CD-DA tracks by porting and
+cleaning up the source code from other projects.
+Many thanks to Marty Shepard and kcgen. (Wengier)
+</li><li>
+Support for FluidSynth MIDI Synthesizer is now
+included in the MinGW builds by default just like
+Visual Studio builds. Set "mididevice=fluidsynth"
+and a soundfont file to use it. (Wengier)
+</li><li>
+Enabled xBRZ scaler for Visual Studio SDL2 builds
+just like Visual Studio SDL1 builds. (Wengier)
+</li><li>
+Added menu item "Show Sound Blaster configuration"
+under "Sound" menu to show the current information
+about Sound Blaster, and also menu item "Show MIDI
+device configuration" (also under "Sound" menu)
+to show information about the current MIDI device
+such as the soundfont file in use. (Wengier)
+</li><li>
+Added "Mount multiple disk/CD images" option to the
+mounting options of the Drive menu to allow users
+to mount more than one disk/CD images to a drive,
+swappable from the menu. Also added separators to
+the Drive submenu to make it look better. (Wengier)
+</li><li>
+Added new CPU types to the "Emulate CPU speed" menu
+group namely 286-25MHz, 386DX-25MHz, 486DX4-100MHz,
+486DX5-133MHz, Pentium-60MHz, Pentium-75MHz, and
+Pentium-90MHz. Thanks again for the data provided
+by the user maximus105. (Wengier)
+</li><li>
+You can now select a special key (e.g. Alt+Tab,
+Ctrl+Break, Ctrl+Alt+Del, etc) to be sent from the
+key defined in the mapper editor. The key can be
+selected (Ctrl+Alt+Del by default) from the "Send
+special key" menu group in "Main" menu. (Wengier)
+</li><li>
+Added full Ctrl+Break emulation at the BIOS and
+DOS level, updated console emulation to match.
+The "Pause" mapper shortcut is now moved to
+HOST[F11/F12]+Pause instead of Ctrl+Pause so that
+Ctrl+Break can work properly for users, and the
+function to send the Ctrl+Break key from the menu
+("Send special key" under "Main") is added. Also,
+the PC-98 STOP key now functions the same as the
+Ctrl+C and Ctrl+Break keys in IBM PC mode.
+</li><li>
+Added functions "CopyToClipboard" and "QuickRun" to
+the mapper editor so that you can use shortcuts to
+activate them (default shortcuts: HOST(F11/F12)+A
+and HOST(F11/F12)+Q respectively), and a default
+shortcut HOST(F11/F12)+V is added to the clipboard
+paste function. Meanwhile, FullCore and SimpleCore
+shortcuts are removed from the mapper. (Wengier)
+</li><li>
+Added two new menu items in the "Shared clipboard
+functions" menu group under "Main", including "Copy
+all text on the DOS screen" which will copy all
+screen text to the clipboard, and "Stop clipboard
+pasting" which allows user to stop pasting in the
+middle of pasting long clipboard content. (Wengier)
+</li><li>
+The mouse copy/paste feature is now available for
+non-Windows systems on SDL2 builds. Also, pasting
+from the clipboard with a mapped shortcut is also
+available for Linux/X11 on SDL1 builds. (Wengier)
+</li><li>
+Added "Use US keyboard layout" toggle menu item in
+the "PC-98" menu group under "Video" to select
+whether to force the default US keyboard layout in
+PC-98 mode, same as the "pc-98 force ibm keyboard
+layout" config option in [pc98] section. Also moved
+the "PC-98 PIT master clock" options from the "DOS"
+menu to this menu group. (Wengier)
+</li><li>
+The full dosbox-x.reference.conf file is renamed to
+dosbox-x.reference.full.conf. The original file
+dosbox-x.reference.conf now contains common config
+options instead of all config options. (Wengier)
+</li><li>
+The CONFIG command and Configuration Tool will now
+save common and modified config options by default.
+The -all command-line option (or "Save all options
+to the configuration file" checkbox) will force to
+save all config options. A new -mod command-line
+option is added to CONFIG command to save modified
+config options only, and a new -norem command-line
+option is added to not write remarks. (Wengier)
+</li><li>
+Updated the Windows installer to default to the
+"typical" installation. For the full installation
+start menu items will be added for DOSBox-X builds
+copied to subdirectories. A new checkbox "Write
+common config options (instead of all) to the
+configuration file" is added which when checked
+will only write common and modified advanced config
+options to the config file. Furthermore, for both
+"typical" and "full" installations the Windows
+installer will now also copies the DLL files
+inpout32.dll (32-bit) and inpoutx64.dll (64-bit) to
+the DOSBox-X install directory for use with the
+direct parallel port passthrough feature. (Wengier)
+</li><li>
+Improved Flatpak support for Linux. (rderooy)
+</li><li>
+Improved message for the -help command-line option,
+adding for example -silent and -socket command-line
+options in the help messages. (Wengier)
+</li><li>
+Added -silent command-line option to run DOSBox-X
+silently (without showing the DOSBox-X window) and
+then exit after executing AUTOEXEC.BAT. (Wengier)
+</li><li>
+Fixed command-line option -socket not working for
+the null-modem feature. (Wengier)
+</li><li>
+Fixed issue that aspect ratio not being respected
+in full-screen mode when a GLSL shader is enabled
+with an OpenGL output. (Wengier)
+</li><li>
+Fixed toggle in the "Frameskip" menu group did not
+change when selecting a different option. (Wengier)
+</li><li>
+Fixed shelling from programs may not work when the
+shell config option is set. (Wengier)
+</li><li>
+The default country setting ("country" option in
+[config] section]) now defaults to auto-detection
+if possible, or 81 (Japan) in PC-98 mode. (Wengier)
+</li><li>
+Increased the default maximum DOS files (adjustable
+from [config] section) from 127 to 200. (Wengier)
+</li><li>
+Improved resetting with LOADLIN program. (Wengier)
+</li><li>
+Improved Gravis Ultrasound (GUS) implementation to
+make it more accurately represent the GUS DMA state
+as expected by the running DOS software.
+</li><li>
+The archive attribute will no longer automatically
+be applied to directories on non-Windows systems.
+This fixed issue with PLAYMIDI.EXE from Gravis
+Ultrasound when listing directories. (Wengier)
+</li><li>
+Applied hack to allow the low DMA channel detection
+in the SB16 DIAGNOSE program to work. (Wengier)
+</li><li>
+The default setting of the clip_paste_speed option
+has been changed from 20 to 30, which will help
+prevent lost keystrokes when pasting from the host
+clipboard for some programs. (Wengier)
+</li><li>
+With Pentium CPU setting (cputype=pentium) DOSBox-X
+no longer reports FDIV bug by default. An advanced
+config option "report fdiv bug" is added to report
+such CPU bug when set to true. (rderooy & Wengier)
+</li><li>
+Added support for the XDG_DATA_HOME environment
+variable for config directory in Linux. (rderooy)
+</li><li>
+Added support for compiling with pcap for Windows
+MinGW builds. (Jookia)
+</li><li>
+Added config option "windowposition" (in [sdl]
+section) to set the window position at startup in
+the positionX,positionY format. (tomba4)
+</li><li>
+Added config option "raw_mouse_input" (in [sdl]
+section; SDL2 builds only) to bypass the operating
+system's mouse acceleration & sensitivity settings.
+Implemented by NicknineTheEagle.
+</li><li>
+Added config option "startquiet" (in [dos] section)
+which when set to true will silence the information
+messages before launching Windows programs to run
+on the Windows host. A toggle menu item "Quiet mode
+(no start messages)" is added to the "Windows host
+applications" menu group in "DOS" menu. (Wengier)
+</li><li>
+The menu "Show details" (under "Main") is renamed
+to "Show FPS and RT speed in title bar". (Wengier)
+</li><li>
+Add menu group "Text-mode" under "Video" menu to
+change some text-mode related video settings, such
+as changing the number of rows and columns. A zip
+package named TEXTUTIL.ZIP is added to the Z drive
+that contains various utilities (such as CGA.COM,
+EGA.COM, 132X25.COM, 132X43.COM) to change current
+video setting from the command line. Also added a
+config option "high intensity blinking" which when
+set will display high intensity background colors
+instad of blinking foreground text. The menu item
+"Allow 9-pixel wide fonts" is moved from the menu
+group "Compatibility" to here. (Wengier)
+</li><li>
+Added "Debugging" menu group under "Help" menu, and
+moved items from the "Video" Debug and "DOS" Debug
+menus and the debugger here (debug builds only).
+Also allowed to hide/show the console or debugger
+window in Windows debug builds. With the menu item
+"Console wait on error" checked the Windows console
+window will wait for the ENTER key before closing
+itself after an E_EXIT occurs. (Wengier)
+</li><li>
+Updated MPXPLAY to latest version 1.65. (Wengier)
+</li><li>
+Integrated SVN commits (Allofich)
+<br />
+    - r4386: Correct MPU-401 clock-to-host function to
+    operate independently of playing. Fixes hang at
+    exit when playing Roland music in demos by The
+    Phoney Coders. Clamp tempo to valid range.
+<br />
+    - r4384: ICW1 on the PIC clears the Interrupt Mask
+    Register. Fixes Antagony and quite a few demos that
+    expect IRQs to be unmasked.
+<br />
+    - r4382: Refine adlib timers a bit more and make
+    reading the Adlib take a bit more time.
+<br />
+    - r4378: Prevent some possible deadlocks with sti
+    in dynrec core.
+<br />
+    - r4375: Improve compatibility with older Intel
+    chipsets
+<br />
+    - r4374: Add a bit of hack so cycles=max/auto 90%
+    keeps on working inside batch files after r3925.
+<br />
+    - r4371: Fix regression in Clue: Master Detective.
+<br />
+    - r4370: As an adjunct to r4369, make the reference
+      counts of standard device handles equivalent to
+      those of real DOS.
+<br />
+    - r4369: Compatible side-effect behavior of DOS in
+      the file close function.
+<br />
+    - r4368: Improve error codes for some DOS file functions.
+<br />
+    - r4367: Change FPU_FBST to only write 18 decimals
+      instead of the wrongly 19, this makes it possible
+      to switch 64 integers which in turn fixes some
+      rounding issues. (jmarsh)
+<br />
+    - r4282,r4283: Switch to a different way to calculate
+      DBOPL table offsets.
+<br />
+    - r4280: Prevent GenerateDMASound from running with
+      input of 0.
+<br />
+    - r4279: Remove DMA_TRANSFEREND and replace with
+      DMA_MASKED.
+<br />
+    - r4277: Remove cases not needed after r4276
+<br />
+    - r4276: Remove defunct code related to the initial
+      display mode of the system BIOS during video mode
+      changes.
+<br />
+    - r4274: fix externals.
+<br />
+    - r4273: Make frameskip an integer.
+<br />
+    - r4269: Use fabsf when return value is a float.
+      Small warning fix.
+<br />
+    - r4265: Some more cleanups and memleak fixes.
+<br />
+    - r4264: Pick some lowhanging fruit. (some memory
+      leaks and unused variables)
+<br />
+    - r4262: missed one
+<br />
+    - r4261: These actually use float as input.
+<br />
+    - r4258: Rename bios tester to biostest and make it
+      debug only to avoid people trying to load real
+      bioses.
+<br />
+    - r4257: Add simple program that allows you to boot
+      into a bios image for running cpu tester bios.
+</li>
+</ul>
+            </td>
+            <td></td>
+            </tr>
+            </table>
+            Return to <a href="index.html">main page</a><p />
+            See also: <a href="release-0.83.6.html">Release notes for the previous version (0.83.6)</a><p />
+        </div>
+    </div>
+
+    <!-- FOOTER  -->
+    <iframe src="footer.html" onload="this.before((this.contentDocument.body||this.contentDocument).children[0]);this.remove()"></iframe>
+
+  </body>
+</html>
