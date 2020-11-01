@@ -142,6 +142,8 @@
   - Fixed issue that aspect ratio not being respected
     in full-screen mode when a GLSL shader is enabled
     with an OpenGL output. (Wengier)
+  - Fixed toggle in the "Frameskip" menu group did not
+    change when selecting a different option. (Wengier)
   - Fixed shelling from programs may not work when the
     shell config option is set. (Wengier)
   - The default country setting ("country" option in

@@ -8615,10 +8615,14 @@ bool video_frameskip_common_menu_callback(DOSBoxMenu * const menu,DOSBoxMenu::it
     (void)menu;//UNUSED
 
     int f = atoi(menuitem->get_text().c_str()); /* Off becomes 0 */
-    char tmp[64];
+    char tmp1[64], tmp2[64];
 
-    sprintf(tmp,"%d",f);
-    SetVal("render", "frameskip", tmp);
+    sprintf(tmp1,"%d",f);
+    SetVal("render", "frameskip", tmp1);
+    for (unsigned int i=0;i<=10;i++) {
+        sprintf(tmp2,"frameskip_%u",i);
+        mainMenu.get_item(tmp2).check(f==i).refresh_item(mainMenu);
+    }
     return true;
 }
 
