@@ -48,7 +48,7 @@ Flatpaks are officially released for the Linux operating system (with X11), whic
 
 * [com.dosbox_x.DOSBox-X.flatpakref](https://dl.flathub.org/repo/appstream/com.dosbox_x.DOSBox-X.flatpakref)
 
-You may need to install Flatpak support depending on your Linux distribution for the first time. Please see the [Quick Setup page](https://flatpak.org/setup/) for more information specific to your Linux platform.
+You may need to install Flatpak support depending on your Linux distribution for the first time. Please see the [Quick Setup page](https://flatpak.org/setup/) for more information specific to your Linux platform. The DOSBox-X Flathub page is also available from [here](https://flathub.org/apps/details/com.dosbox_x.DOSBox-X).
 
 Once Flatpak support is enabled in your Linux system you can install the DOSBox-X Flatpak with the following command:
 
@@ -57,6 +57,10 @@ Once Flatpak support is enabled in your Linux system you can install the DOSBox-
 After it is installed, it can be run with:
 
 ``flatpak run com.dosbox_x.DOSBox-X``
+
+In addition, if an earlier DOSBox-X Flatpak is already installed in the system you can update it to the current version with the command:
+
+``flatpak update com.dosbox_x.DOSBox-X``
 
 RPM packages were previously available for 64-bit Linux, specifically CentOS 7 / RHEL 7 ("el7") and CentOS 8 / RHEL 8 ("el8") platforms. There were usually packages for both CentOS 7 and CentOS 8 platforms, and the most recent DOSBox-X version that provided official packages for both CentOS 7 and CentOS 8 platforms was version 0.83.2, which included the following Linux RPM packages:
 
