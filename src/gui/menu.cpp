@@ -391,7 +391,6 @@ static const char *def_menu_video_pc98[] =
 static const char *def_menu_video[] =
 {
     "mapper_aspratio",
-    "--",
 #if !defined(HX_DOS)
     "mapper_fullscr",
     "--",
@@ -408,15 +407,10 @@ static const char *def_menu_video[] =
 #endif
 #ifndef MACOSX
     "mapper_togmenu",
-# if !defined(HX_DOS)
-    "--",
-# endif
 #endif
 #if !defined(HX_DOS)
     "mapper_resetsize",
 #endif
-    "--",
-    "VideoFrameskipMenu",
     "--",
     "scaler_forced",
     "VideoScalerMenu",
@@ -424,7 +418,9 @@ static const char *def_menu_video[] =
 #if !defined(C_SDL2)
     "VideoVsyncMenu",
 #endif
+    "--",
     "VideoOverscanMenu",
+    "VideoFrameskipMenu",
     "VideoTextmodeMenu",
     "VideoPC98Menu",
 #ifdef C_D3DSHADERS

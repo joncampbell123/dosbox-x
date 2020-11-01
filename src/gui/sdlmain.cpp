@@ -551,12 +551,15 @@ const DOSBoxMenu::callback_t drive_callbacks[] = {
     drive_mounthd_menu_callback,
     drive_mountcd_menu_callback,
     drive_mountfd_menu_callback,
+    NULL,
     drive_mountimg_menu_callback,
     drive_mountimgs_menu_callback,
+    NULL,
     drive_unmount_menu_callback,
     drive_swap_menu_callback,
     drive_rescan_menu_callback,
     drive_info_menu_callback,
+    NULL,
     drive_boot_menu_callback,
     drive_bootimg_menu_callback,
     NULL
@@ -580,12 +583,15 @@ const char *drive_opts[][2] = {
 	{ "mounthd",                "Mount folder as hard drive" },
 	{ "mountcd",                "Mount folder as CD drive" },
 	{ "mountfd",                "Mount folder as floppy drive" },
+	{ "div1",                   "--" },
 	{ "mountimg",               "Mount a disk or CD image file" },
 	{ "mountimgs",              "Mount multiple disk/CD images" },
+    { "div2",                   "--" },
     { "unmount",                "Unmount drive" },
     { "rescan",                 "Rescan drive" },
     { "swap",                   "Swap disk" },
     { "info",                   "Drive information" },
+    { "div3",                   "--" },
     { "boot",                   "Boot from drive" },
     { "bootimg",                "Boot from disk image" },
     { NULL, NULL }
@@ -10305,11 +10311,12 @@ int main(int argc, char* argv[]) SDL_MAIN_NOEXCEPT {
                 ditem.set_text(dmenut.c_str());
 
                 for (size_t i=0;drive_opts[i][0] != NULL;i++) {
-					if ((!strcmp(drive_opts[i][0], "boot")||!strcmp(drive_opts[i][0], "bootimg"))&&(c!='A'&&c!='C'&&c!='D')) continue;
                     const std::string name = std::string("drive_") + c + "_" + drive_opts[i][0];
-
-                    mainMenu.alloc_item(DOSBoxMenu::item_type_id,name).set_text(drive_opts[i][1]).
-                        set_callback_function(drive_callbacks[i]);
+                    if ((!strcmp(drive_opts[i][0], "boot")||!strcmp(drive_opts[i][0], "bootimg")||!strcmp(drive_opts[i][0], "div3"))&&(c!='A'&&c!='C'&&c!='D')) continue;
+                    if (!strcmp(drive_opts[i][1], "--"))
+                        mainMenu.alloc_item(DOSBoxMenu::separator_type_id,name);
+                    else
+                        mainMenu.alloc_item(DOSBoxMenu::item_type_id,name).set_text(drive_opts[i][1]).set_callback_function(drive_callbacks[i]);
                 }
             }
         }
