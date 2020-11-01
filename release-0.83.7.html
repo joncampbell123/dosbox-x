@@ -34,7 +34,7 @@
     <div id="main_content_wrap" class="outer"; style="background-color: #fafacf">
         <div style="text-align: center">
             <h3 style="padding-top: 10px">DOSBox-X 0.83.7 Release Notes</h3>
-            <h4 style="padding-bottom: 15px; font-weight: normal">Release Date: <span style="color: green">Octoboer 31, 2020</span></h4>
+            <h4 style="padding-bottom: 15px; font-weight: normal">Release Date: <span style="color: green">November 1, 2020</span></h4>
             Please report any issues in our <a href="https://github.com/joncampbell123/dosbox-x/issues">issue tracker</a>.</p>
             <p>Also, make sure to check out our <a href="wiki">Wiki guide</a>.</p>
             <h4>New in This Version</h4>
@@ -45,11 +45,11 @@
             <td width="60%" style="border: hidden; text-align: left">
             <div style="font-size: 20px; font-weight: 800">1. Notable New Features</div>
 <ul>
-<li><div style="font-weight: 600">32-bit and 64-bit x86 dynamic core</div>With the new x86 dynamic CPU core for both 32-bit and 64-bit systems, the overall emuation speed for DOS programs is noticeably improved. Set either "core=dynamic" or "core=dynamic_x86" to enable this core.</li>
+<li><div style="font-weight: 600">32-bit and 64-bit x86 dynamic core</div>With the new x86 dynamic CPU core for both 32-bit and 64-bit systems, the overall emulation speed for DOS programs is noticeably improved. Set either "core=dynamic" or "core=dynamic_x86" to enable this core.</li>
 
 <li><div style="font-weight: 600">New CPU types to emulate CPU speed</div>You can now emulate the speed in terms of CPU cycles for 286-25MHz, 386DX-25MHz, 486DX4-100MHz, 486DX5-133MHz, Pentium-60MHz, Pentium-75MHz, and Pentium-90MHz CPUs.</li>
 
-<li><div style="font-weight: 600">Opus CD audio tracks</div>Support for cuesheets with Opus CD-DA tracks is now available, in addition to FLAC, MP3, WAV, OGG Vorbis CD-DA tracks already supported. Use either the menu or IMGMOUNT command to mount them.</li>
+<li><div style="font-weight: 600">Opus CD audio tracks</div>Support for cue sheets with Opus CD-DA tracks is now available, in addition to FLAC, MP3, WAV, OGG Vorbis CD-DA tracks already supported. Use either the menu or IMGMOUNT command to mount them.</li>
 
 <li><div style="font-weight: 600">Full Ctrl+Break handler</div>DOSBox-X now supports full Ctrl+C/Ctrl+Break emulation in the DOS shell and DOS applications. You can also send Ctrl+Break as a special key from the "Main" menu.</li>
 
@@ -57,11 +57,11 @@
 
 <li><div style="font-weight: 600">Setting the window position at startup</div>A new config option "windowposition" (in [sdl] section) is supported to set the window position at startup in the positionX,positionY format</li>
 
-<li><div style="font-weight: 600">New clipboard copy and paste features</div>There are new clipboard functions such as "copy all text on the DOS screen" and "Stop clipboard pasting" in the menu. Moroever, the mouse copy and paste feature is now supported in Linux and macOS SDL2 builds as well.</li>
+<li><div style="font-weight: 600">New clipboard copy and paste features</div>There are new clipboard functions such as "copy all text on the DOS screen" and "Stop clipboard pasting" in the menu. Moreover, the mouse copy and paste feature is now supported in Linux and macOS SDL2 builds as well.</li>
 
 <li><div style="font-weight: 600">FluidSynth in Windows MinGW builds</div>Support for FluidSynth MIDI Synthesizer is now included in the MinGW builds by default just like Visual Studio builds. Set "mididevice=fluidsynth" and a soundfont file (e.g. GeneralUser_GS.sf2) to use it.</li>
 
-<li><div style="font-weight: 600">xBRZ scaler in Visual Studio SDL2 builds</div>The xBRZ scaler is now enabled for Visual Studio SDL2 builds just like Visual Studio SDL1 builds. You can enble it either with the setting "scaler=xbrz" or from the menu (from "Video" -> "Scaler").</li>
+<li><div style="font-weight: 600">xBRZ scaler in Visual Studio SDL2 builds</div>The xBRZ scaler is now enabled for Visual Studio SDL2 builds just like Visual Studio SDL1 builds. You can enable it either with the setting "scaler=xbrz" or from the menu (from "Video" -> "Scaler").</li>
 
 <li><div style="font-weight: 600">Raw mouse input option for SDL2 builds</div>You can enable this option to bypass the operating system's mouse acceleration and sensitivity settings. This works in fullscreen or when the mouse is captured in window mode.</li>
 
@@ -76,9 +76,9 @@
 <ul>
 <li><div style="font-weight: 600">New website for DOSBox-X Wiki system</div>The primary DOSBox-X Wiki (where you find the DOSBox-X user guide) is now located at the following URL, which is hopefully easier to remember: <a href="https://dosbox-x.com/wiki">https://dosbox-x.com/wiki</a></li>
 
-<li><div style="font-weight: 600">Easier to navigate DOSBox-X default configuration file</div>The primary DOSBox-X sample configuration file now contains common config options only, which should make it easier to nagivate than before. The full configuration file is also separately available for users who want to use it.</li>
+<li><div style="font-weight: 600">Easier to navigate DOSBox-X default configuration file</div>The primary DOSBox-X sample configuration file now contains common config options only, which should make it easier to navigate than before. The full configuration file is also separately available for users who want to use it.</li>
 
-<li><div style="font-weight: 600">Improved Linux Flatpak support</div>Initial Linux Flatpak support was added in the previous version. This verion improves it to make it work better.</li>
+<li><div style="font-weight: 600">Improved Linux Flatpak support</div>Initial Linux Flatpak support was added in the previous version. This version improves it to make it work better.</li>
 
 <li><div style="font-weight: 600">New default "Typical" installation for Windows installer</div>The "Typical" installation type is added in the Windows installer as the default installation. Unlike the full installation it will not copy all builds to subdirectories in order to make the installation faster.</li>
 
