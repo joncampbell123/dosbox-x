@@ -210,6 +210,10 @@
     itself after an E_EXIT occurs. (Wengier)
   - Updated MPXPLAY to latest version 1.65. (Wengier)
   - Integrated SVN commits (Allofich)
+    - r4386: Correct MPU-401 clock-to-host function to
+    operate independently of playing. Fixes hang at
+    exit when playing Roland music in demos by The
+    Phoney Coders. Clamp tempo to valid range.
     - r4384: ICW1 on the PIC clears the Interrupt Mask
     Register. Fixes Antagony and quite a few demos that
     expect IRQs to be unmasked.
