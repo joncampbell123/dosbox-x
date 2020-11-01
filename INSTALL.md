@@ -3,9 +3,9 @@ DOSBox-X Installation and Released Packages
 
 DOSBox-X is a cross-platform DOS emulator based on DOSBox, with the eventual goal of being a complete DOS emulation package. New versions of DOSBox-X are released periodically, typically on the last day of a month or the first day of the next month. Since DOSBox-X is cross-platform, all major host operating systems are officially supported including Windows (XP or later), Linux (with X11), macOS (10.12 or later) and DOS operating systems.
 
-The current version of DOSBox-X at this time is DOSBox-X 0.83.6, which was released on September 30, 2020. Pre-compiled Windows binaries (both 32-bit and 64-bit), Linux Flatpak or RPM packages (64-bit), macOS packages (64-bit) and the special HX-DOS packages (for real DOS environments) are officially available, as well as the Windows installers and source code packages. You will find DOSBox-X versions that have been released so far (ZIP or RPM packages) and change logs for these versions in the [Releases](https://github.com/joncampbell123/dosbox-x/releases) page.
+The current version of DOSBox-X at this time is DOSBox-X 0.83.7, which was released on November 1, 2020. Pre-compiled Windows binaries (both 32-bit and 64-bit), Linux Flatpak or RPM packages (64-bit), macOS packages (64-bit) and the special HX-DOS packages (for real DOS environments) are officially available, as well as the Windows installers and source code packages. You will find DOSBox-X versions that have been released so far (ZIP or RPM packages) and change logs for these versions in the [Releases](https://github.com/joncampbell123/dosbox-x/releases) page.
 
-See also: [DOSBox-X 0.83.6 Release Notes](https://dosbox-x.com/release-0.83.6.html)
+See also: [DOSBox-X 0.83.7 Release Notes](https://dosbox-x.com/release-0.83.7.html)
 
 Once you get DOSBox-X installed and running, you probably want to look at the DOSBox-X user guide in the [DOSBox-X Wiki](https://dosbox-x.com/wiki) for usage information.
 
@@ -18,6 +18,8 @@ Once you get DOSBox-X installed and running, you probably want to look at the DO
 - [Source Code Packages (zip or tar.gz)](#source-code-packages-zip-or-targz)
 
 ## Windows Packages (Installer or Portable)
+
+To be updated for DOSBox-X 0.83.7.
 
 You probably want to use the all-in-one Windows installation packages for the ease of installation, which are especially recommended for new and non-expert users. With the installer the installation process will be automated while allowing you to change the install folder and the default build to run if you prefer (and the option to install all builds to subdirectories), so that you will be able to start DOSBox-X as soon as the installation ends. A quick start guide is also included in the package, and shell context menus can be automatically added for a fast launch of DOSBox-X from the Windows Explorer. The Windows installer for the current DOSBox-X version 0.83.6 is available from:
 
@@ -42,7 +44,7 @@ If you prefer to use one of the portable packages, please select the zip package
 
 ## Linux Packages (Flatpak or RPM)
 
-Flatpaks are officially released for the Linux operating system (with X11), which are standalone applications independent of Linux distributions. For the current DOSBox-X version 0.83.6 the Linux Flatpak is available from:
+Flatpaks are officially released for the Linux operating system (with X11), which are standalone applications independent of Linux distributions. For the current DOSBox-X version 0.83.7 the Linux Flatpak is available from:
 
 * [com.dosbox_x.DOSBox-X.flatpakref](https://dl.flathub.org/repo/appstream/com.dosbox_x.DOSBox-X.flatpakref)
 
@@ -74,9 +76,9 @@ Moreover, you can find DOSBox-X on SnapCraft (https://snapcraft.io/dosbox-x), wh
 
 ## macOS Packages (Portable)
 
-If you use macOS as your operating system, we also release portable packages for the macOS (64-bit) platform. For the current DOSBox-X version 0.83.6, the official macOS package is available as a zip package:
+If you use macOS as your operating system, we also release portable packages for the macOS (64-bit) platform. For the current DOSBox-X version 0.83.7, the official macOS package is available as a zip package:
 
-* [dosbox-x-macosx-x64-20200930235614.zip](https://github.com/joncampbell123/dosbox-x/releases/download/dosbox-x-v0.83.6/dosbox-x-macosx-x64-20200930235614.zip)
+* [dosbox-x-macosx-x64-20201101004123.zip](https://github.com/joncampbell123/dosbox-x/releases/download/dosbox-x-v0.83.7/dosbox-x-macosx-x64-20201101004123.zip)
 
 The macOS package requires 64-bit macOS operating system. It should run natively on the recent versions of macOS such as macOS Catalina (10.15). Both SDL1 and SDL2 binaries (in .app format) are provided in the macOS package, in the directories named "dosbox-x" and "dosbox-x-sdl2" inside the zip file. You can select either SDL1 or SDL2 version according to your preference.
 
@@ -88,6 +90,8 @@ If your system version is macOS Sierra (10.12), macOS High Sierra (10.13), or ma
 macOS versions earlier than 10.12 (Sierra) are not officially supported. If you use an old version such as OS X Lion (10.7) or OS X Yosemite (10.10), then you may try to build and run DOSBox-X yourself with the help of [MacPorts](https://www.macports.org/). Furthermore, you may not see official macOS packages for some DOSBox-X versions. For example, no official macOS package is available for DOSBox-X version 0.83.1.
 
 ## DOS Packages (Portable)
+
+To be updated for DOSBox-X 0.83.7.
 
 Besides Windows, Linux and macOS packages, there are also packages released for the DOS operating system. Yes, DOSBox-X can officially run on DOS systems as well, as some DOS users seem to prefer to run DOS applications and games through a DOS emulator. With DOSBox-X running in DOS you are able to emulate another DOS system with a different PC configuration (such as different machine types, video and sound cards etc) that works better for the purpose of the users. But please note that due to the limitations of this environment not all features of DOSBox-X that are available in other platforms can be supported in the DOS version.
 
@@ -101,10 +105,10 @@ Note: You may not see DOS packages for some DOSBox-X versions. For example, the 
 
 ## Source Code Packages (zip or tar.gz)
 
-Full source code packages of DOSBox-X are also available in both zip and tar.gz formats. Both contain the full source code, but you probably want to download the source code in zip format if you are using Windows, and the source code in tar.gz format if you are using Linux. For the current DOSBox-X version 0.83.6, the source code packages are:
+Full source code packages of DOSBox-X are also available in both zip and tar.gz formats. Both contain the full source code, but you probably want to download the source code in zip format if you are using Windows, and the source code in tar.gz format if you are using Linux. For the current DOSBox-X version 0.83.7, the source code packages are:
 
-* [dosbox-x-v0.83.6.zip](https://github.com/joncampbell123/dosbox-x/archive/dosbox-x-v0.83.6.zip)
-* [dosbox-x-v0.83.6.tar.gz](https://github.com/joncampbell123/dosbox-x/archive/dosbox-x-v0.83.6.tar.gz)
+* [dosbox-x-v0.83.7.zip](https://github.com/joncampbell123/dosbox-x/archive/dosbox-x-v0.83.7.zip)
+* [dosbox-x-v0.83.7.tar.gz](https://github.com/joncampbell123/dosbox-x/archive/dosbox-x-v0.83.7.tar.gz)
 
 If you prefer you can compile DOSBox-X from the source code by yourself. The source code packages as listed in the Releases page contain the source code for that released version, and in this example the current DOSBox-X 0.83.6 version. On the other hand, if you are looking for the latest source code of DOSBox-X (including the most recent development changes in the source code), you may want to use the source code in the repository instead, or you can browse the latest source code using [Doxygen](https://dosbox-x.com/doxygen/html/index.html).
 
