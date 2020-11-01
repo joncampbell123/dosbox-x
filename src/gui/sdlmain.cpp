@@ -8826,6 +8826,7 @@ bool use_save_file_menu_callback(DOSBoxMenu * const menu, DOSBoxMenu::item * con
 }
 
 bool show_save_state_menu_callback(DOSBoxMenu * const menu, DOSBoxMenu::item * const menuitem) {
+#if !defined(HX_DOS)
     (void)menu;//UNUSED
     (void)menuitem;//UNUSED
     MAPPER_ReleaseAllKeys();
@@ -8834,6 +8835,7 @@ bool show_save_state_menu_callback(DOSBoxMenu * const menu, DOSBoxMenu::item * c
     tinyfd_messageBox("Saved state information", message.c_str(), "ok","info", 1);
     MAPPER_ReleaseAllKeys();
     GFX_LosingFocus();
+#endif
     return true;
 }
 
