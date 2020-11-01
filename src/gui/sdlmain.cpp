@@ -5767,9 +5767,9 @@ void GFX_Events() {
 				}
 			}
 			break;
-#if defined (WIN32) || defined(C_SDL2)
         case SDL_KEYDOWN:
         case SDL_KEYUP:
+#if defined (WIN32) || defined(C_SDL2)
             if (event.key.keysym.sym==SDLK_LALT) sdl.laltstate = event.key.type;
             if (event.key.keysym.sym==SDLK_RALT) sdl.raltstate = event.key.type;
             if (event.key.keysym.sym==SDLK_LCTRL) sdl.lctrlstate = event.key.type;
@@ -5778,8 +5778,6 @@ void GFX_Events() {
             if (event.key.keysym.sym==SDLK_RSHIFT) sdl.rshiftstate = event.key.type;
 #endif
 #if defined (MACOSX)
-        case SDL_KEYDOWN:
-        case SDL_KEYUP:
             /* On macs CMD-Q is the default key to close an application */
             if (event.key.keysym.sym == SDLK_q &&
                     (event.key.keysym.mod == KMOD_RGUI ||
@@ -8828,6 +8826,7 @@ bool use_save_file_menu_callback(DOSBoxMenu * const menu, DOSBoxMenu::item * con
 }
 
 bool show_save_state_menu_callback(DOSBoxMenu * const menu, DOSBoxMenu::item * const menuitem) {
+#if !defined(HX_DOS)
     (void)menu;//UNUSED
     (void)menuitem;//UNUSED
     MAPPER_ReleaseAllKeys();
@@ -8836,6 +8835,7 @@ bool show_save_state_menu_callback(DOSBoxMenu * const menu, DOSBoxMenu::item * c
     tinyfd_messageBox("Saved state information", message.c_str(), "ok","info", 1);
     MAPPER_ReleaseAllKeys();
     GFX_LosingFocus();
+#endif
     return true;
 }
 

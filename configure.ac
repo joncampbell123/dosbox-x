@@ -391,6 +391,7 @@ fi
 
 # FIXME: Arrggh we need the WHOLE PATH
 pwd=`realpath $srcdir`
+if [[ -z "$pwd" ]]; then pwd=`pwd`; fi
 
 CFLAGS="$CFLAGS -I$pwd -I$pwd/vs2015/sdlnet/linux-host/include -I$pwd/vs2015/sdlnet/linux-host/include/SDL"
 LDFLAGS="$LDFLAGS -L$pwd/vs2015/sdlnet/linux-host/lib"
