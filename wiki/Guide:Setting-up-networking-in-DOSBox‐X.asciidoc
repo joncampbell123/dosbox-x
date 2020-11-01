@@ -49,6 +49,10 @@ Unfortunately there is no clear error message if you run into this problem, and 
 A possible solution to this would be something similar to libvirt on Linux. This allows the creation of a virtual network switch which is then connected to a host network adapter (which could be a WIFI adapter) using NAT (Network Address Translation). And DOSBox-X could then attach to this virtual switch, which would allow at least outbound traffic. Inbound traffic could also be allowed using port-forwarding.
 
 # Setup guide for Linux hosts
+
+NOTE: There is **NO** support for NE2000 networking in the Flatpak and Snap distributed versions of DOSBox-X.
+This is because both Flatpak and Snap run in a sandbox environment which do not support the low-level access required by the libpcap library needed for NE2000 support.
+
 ### Install libpcap
 This depends on your Linux distribution, but you need to have libpcap installed.
 

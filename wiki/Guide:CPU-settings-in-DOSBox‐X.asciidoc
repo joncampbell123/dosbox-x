@@ -1,0 +1,119 @@
+:toc: macro
+
+ifdef::env-github[:suffixappend:]
+ifndef::env-github[:suffixappend:]
+
+Back to the link:Home{suffixappend}[DOSBox-X Wiki Welcome page].
+
+# CPU settings in DOSBox-X
+
+toc::[]
+
+## Overview
+
+You can change the emulated CPU type in DOSBox-X either from the DOSBox-X config file (dosbox-x.conf by default), or from the DOSBox-X command line or the menu bar.
+
+## Differences in emulated CPU types
+
+This is based on: https://www.vogons.org/viewtopic.php?p=905713#p905713 and extended/modified for DOSBox-X.
+
+### 8086 to 386
+.cputype options
+[cols=",^,^,^,^,^,^,^,^"]
+|===
+| | 8086 | 8086 prefetch | 80186 | 80186 prefetch | 286 | 286 prefetch | 386 | 386 prefetch
+
+|Protected mode                             | | | | |x|x|x|x
+|Virtual 8086 mode                          | | | | | | |x|x
+|386 CPUID                                  | | | | | | |x|x
+|386 specific page access level calculation | | | | | | |x|x
+|loose (fast) page privilege check          | | | | | | |x|x
+|tight (slow) page privilege check          | | | | | | | |
+|Prefetch queue emulation                   | |x| |x| |x| |x
+|===
+
+### 486 to Pentium Pro
+.cputype options
+[cols=",^,^,^,^,^,^,^,^"]
+|===
+| | 486old | 486old prefetch | 486 | 486 prefetch | auto | pentium | pentium mmx | ppro slow
+
+|Protected mode                                       |x|x|x|x|x|x|x|x
+|Virtual 8086 mode                                    |x|x|x|x|x|x|x|x
+|486 CPUID                                            |x|x|x|x|x| | |
+|Pentium CPUID                                        | | | | | |x|x|
+|Pentium Pro CPUID                                    | | | | | | | |x
+|486 specific page access level calculation           |x|x|x|x| | | |
+|loose (fast) page privilege check                    | | | | | | | |
+|tight (slow) page privilege check                    | | | | | | | |x
+|BSWAP, CMPXCHG, XADD, INVD, WBINVD                   |x|x|x|x|x|x|x|x
+|RDTSC                                                | | | | |x|x|x|x
+|CPUID, CMPXCHG8B,RDMSR, WRMSR, RSM                   | | | | | |x|x|x
+|CMOV, FCMOV, FCOMI/FCOMIP, FUCOMI/FUCOMIP, RDPMC, UD2 | | | | | | | |x
+|486 specific CR register behaviour                   |x|x|x|x|x| | |
+|Pentium specific CR register behaviour               | | | | | |x|x|x
+|Prefetch queue emulation                             | |x| |x| | | |
+|MMX instruction set                                  | | | | | | |x|
+|===
+
+### Vanilla DOSBox CPU types
+Vanilla DOSBox has a few other cputype options not available in DOSBox-X
+
+* 386_slow
+* 486_slow
+* pentium_slow
+
+The ``slow`` part of the name refers to the page privilege check.
+These cputype options are ignored in DOSBox-X, and ``auto`` will be used instead.
+
+### Floating Point Unit (FPU)
+Also referred to as the x87, or Math co-processor.
+
+An emulated FPU is enabled by default.
+The following config options are available to change the behaviour.
+
+Under the ``[cpu]`` heading you can set ``fpu=false`` to disable the FPU.
+``[dosbox]`` ``weitek=``
+
+### FAQ
+#### Why is there no 8088 CPU option?
+Q: The 8088 is what IBM used in the original IBM PC's. So why is there no 8088 option?
+
+A: Because there is no difference in terms of emulation between a 8086 and 8088.
+
+Intel released the 8086 first as a 16-bit CPU, and later released the 8088 to reduce cost for manufacturers.
+
+The difference is that the 8086 uses both 16-bit internal and external to the CPU, while the 8088 is 16-bit internal but only 8-bit external to reduce cost.
+The only practical difference with regards to emulation, is that a 8088 is a little slower because of this, but that can be compensated for using the ``cycles=`` setting.
+
+NOTE: Some software may claim the CPU to be a 8088 when ``cputype=8086``, this is simply because there is no way for the software to know which one you really have, and the 8088 was more common.
+
+#### Why does DOSBox-X support the 80186?
+Q: The 80186 was never used for the IBM PC, so why include it?
+
+A: Indeed, the 80186 was mainly meant for embedded use.
+The 80186 was never used by IBM, but there where a few rare PC clones that used it.
+Although they typically had various compatibility problems.
+
+NOTE: Similar to the 8086/8088, there was also a 80188 with 8-bit external data path to the CPU to reduce cost for manufacturers.
+And just like with the 8086, software may identify the 80186 as a 80188.
+
+#### Is DOSBox-X cycle accurate?
+Q: Does DOSBox-X emulate the CPUs cycle accurate?
+
+A: No. This would just slow down the emulation, and is practical never needed for emulating PCs.
+
+On a legacy PC the amount of cycles it takes to complete an instruction can vary depending on the type of instruction and the CPU generation and vendor.
+DOSBox and by extension DOSBox-X instead completes one instruction per emulated-cycle.
+As such the ``cycles=`` value has no direct relation to the clock frequency or the amount of flops of the emulated system.
+
+For many legacy systems, cycle accurate emulation is desirable.
+But this does not apply to emulating PCs. Due to the vast amount of clone systems and CPU options produced, software developers could not rely on the amount of time it takes to complete a given instruction.
+And therefore used other timing methods, and therefore cycle accurate emulation is simply not needed.
+
+If for some reason cycle accurate emulation is required, we suggest you use the link:https://pcem-emulator.co.uk/[PCem emulator].
+
+## TODO
+
+* Why are there the 486old* options? They are presumably the 486 options from vanilla DOSBox, but why retain them?
+* How does DOSBox-X handle page privilege check differently? And why is there still a ppro_slow, if the others where removed?

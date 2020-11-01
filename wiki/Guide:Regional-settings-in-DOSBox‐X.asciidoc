@@ -15,7 +15,7 @@ You can customize the regional settings in DOSBox-X, such as changing the countr
 
 ### Country-specific date/time formats
 
-The country code can be set in the [config] section of the DOSBox-X config file by use of the ``COUNTRY=`` setting. This defaults to 1, which is the US. This setting influences date and time format as used by DOSBox-X, such as the ``DIR`` command. It may also influence regional settings in other applications.
+The country code can be set in the [config] section of the DOSBox-X config file by use of the ``COUNTRY=`` setting. This defaults to an empty string which means auto-detection (or 81 for PC-98 mode); if auto-detection cannot be done then it will fallback to 1 which is the US. This setting influences date and time format as used by DOSBox-X, such as the ``DIR`` command. It may also influence regional settings in other applications.
 
 For example, the date is displayed in MM-DD-YYYY format with the default US setting:
 

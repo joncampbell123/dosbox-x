@@ -25,7 +25,7 @@ Note: You can set 4DOS.COM as the default shell to start (instead of COMMAND.COM
 Turns on/off or changes the A20 gate mode.
 +
 Usage: A20GATE SET [off | off_fake | on | on_fake | mask | fast] or A20GATE [ON | OFF]
-* **ADDKEY** (internal command)
+* **ADDKEY** (external command)
 +
 Generates artificial keypresses.
 +
@@ -65,6 +65,7 @@ Starts disk or BIOS images independent of the operating system emulation offered
 Usage: BOOT [diskimg1.img diskimg2.img] [-l driveletter] or BOOT [driveletter:]
 +
 Note: You can boot a disk image in write-protected mode by putting a lead colon (:).
++
 * **BREAK** (internal command)
 +
 Sets or clears extended CTRL+C checking.
@@ -343,11 +344,11 @@ Usage: MEM [options]
 Note: It uses the MEM command from FreeDOS.
 * **MIXER** (external command)
 +
-Displays or changes the current sound levels.
+Displays or changes the current sound mixer volumes.
 +
 Usage: MIXER [options]
 +
-Note: Simply enter MIXER without any parameters to display the current sound levels. You can also see the sound levels from the menu (under "Sound").
+Note: Simply enter MIXER without any parameters to display the current sound mixer volumes. You can also see the sound mixer volumes from the menu (under "Sound").
 * **MODE** (external command)
 +
 Configures DOS system devices.
@@ -423,7 +424,7 @@ Refreshes mounted drives by clearing their caches.
 +
 Usage: RESCAN [/A] or RESCAN [drive:]
 +
-Note: Simply enter RESCAN without any parameters to refresh the current drive.
+Note: Simply enter RESCAN without any parameters to refresh the current drive. You can also refresh drives from the menu (under "DOS" for all drives or "Drive" for individual drives).
 * **SET** (internal command)
 +
 Displays and sets environment variables.
@@ -516,13 +517,19 @@ Note: It uses the XCOPY command from FreeDOS.
 
 The following commands are for debugging purposes (only available on builds that have the debugging feature enabled):
 
+* **BIOSTEST** (external command)
++
+Boots into a BIOS image for running CPU tester BIOS.
++
+Usage: BIOSTEST image_file
++
 * **DEBUGBOX** (internal command)
 +
 Runs program and breaks into debugger at entry point.
 +
 Usage: DEBUGBOX [command] [options]
 +
-* **INT2FDBG** (internal command)
+* **INT2FDBG** (external command)
 +
 Hooks INT 2Fh for debugging purposes.
 +

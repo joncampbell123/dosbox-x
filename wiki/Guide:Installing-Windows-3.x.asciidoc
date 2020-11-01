@@ -239,7 +239,7 @@ But it brings with it a bit of additional inconvenience.
 For instance you will need to do your own DOS memory management and load DOS drivers for CD-ROM access.
 You can also not mount a host directory in DOSBox-X when you boot a disk image.
 Even host directories that you mounted prior to booting the disk image will become unavailable.
-Everything needs to be done using IMAGE files.
+Everything needs to be done using IMAGE files. And you cannot change image files once you boot a guest OS, not even from the menu bar.
 
 The first step is to create a DOS HDD image, for which you can follow the link:Guide%3ADOS-Installation-in-DOSBox‐X[PC DOS and MS-DOS Installation Guide].
 You need at least DOS 3.1 for Windows 3.0 and 3.1x, and DOS 3.3 for WfW.

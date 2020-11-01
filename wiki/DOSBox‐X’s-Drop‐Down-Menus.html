@@ -460,19 +460,10 @@ body.book #toc,body.book #preamble,body.book h1.sect0,body.book .sect1>h2{page-b
 <p><strong>Mapper editor</strong>: Enters DOSBox-X&#8217;s keyboard mapper editor, where you can map different keys for use with the emulated DOS. Press the Esc key three times to exit the editor.</p>
 </li>
 <li>
-<p><strong>Send Key</strong>: Sends special keys such as Ctrl+Esc, Alt+Tab, and Ctrl+Alt+Del to the emulated DOS system.</p>
+<p><strong>Send Key</strong>: Sends special keys such as the logo key, Ctrl+Esc, Alt+Tab, and Ctrl+Alt+Del to the emulated DOS system.</p>
 </li>
 <li>
-<p><strong>Wait on error</strong>: Select this if you want DOSBox-X to wait when an error occurs.</p>
-</li>
-<li>
-<p><strong>Show details</strong>: Select this if you want to show information such as cycles count (FPS) and emulation speed on the DOSBox-X title bar.</p>
-</li>
-<li>
-<p><strong>Debugger</strong>: Starts the DOSBox-X Debugger (heavy-debug builds only).</p>
-</li>
-<li>
-<p><strong>Show console</strong>: Shows the DOSBox-X console window. You will see debugging information in the console.</p>
+<p><strong>Shared clipboard functions</strong>: Enables or disables the various ways for DOSBox-X to communicate with the host clipboard, such as using the right mouse button to copy to and paste from the clipboard in quick edit mode. Some options are only available for the Windows platform.</p>
 </li>
 <li>
 <p><strong>Capture mouse</strong>: DOSBox-X will capture the mouse immediately for use with the emulated DOS.</p>
@@ -484,13 +475,13 @@ body.book #toc,body.book #preamble,body.book h1.sect0,body.book .sect1>h2{page-b
 <p><strong>Mouse wheel movements</strong>: Select whether to auto-convert mouse wheel movements to arrow keys (Up &amp; Down arrows etc).</p>
 </li>
 <li>
-<p><strong>Shared Windows clipboard functions</strong>: Enables or disables the various ways for DOSBox-X to communicate with the Windows clipboard, such as using the right mouse button to copy to and paste from the Windows clipboard in quick edit mode.</p>
-</li>
-<li>
 <p><strong>Pause</strong>: Check to pause the emulated DOS inside DOSBox-X completely. The emulated DOS will resume when it is unchecked.</p>
 </li>
 <li>
 <p><strong>Pause with interrupts enabled</strong>: Pauses the emulated DOS inside DOSBox-X without disabling the DOS interrupts. This allows certain DOS functions to continue to work, such as pausing some Demoscene games while allowing the game music to continue to play, or hearing the entire music when the demo exits long before the music has time to loop.</p>
+</li>
+<li>
+<p><strong>Show FPS and RT speed in title bar</strong>: Select this if you want to show cycles count (FPS) and emulation speed on the DOSBox-X title bar. Equivalent to -showcycles and -showrt command-line options combined.</p>
 </li>
 <li>
 <p><strong>Reset virtual machine</strong>: Restarts the virtual machine inside DOSBox-X.</p>
@@ -558,7 +549,7 @@ body.book #toc,body.book #preamble,body.book h1.sect0,body.book .sect1>h2{page-b
 <p><strong>Double Buffering (Fullscreen)</strong>: Toggles the double-buffering feature in the fullscreen mode. It can reduce screen flickering, but it can also result in a slower speed.</p>
 </li>
 <li>
-<p><strong>Hide/show menu bar</strong>: Select whether to show DOSBox-X&#8217;s GUI menu bar where supported.</p>
+<p><strong>Hide/show menu bar</strong>: Select whether to show DOSBox-X&#8217;s drop-down menu bar where supported.</p>
 </li>
 <li>
 <p><strong>Reset window size</strong>: Resets the DOSBox-X window to the default size.</p>
@@ -573,22 +564,20 @@ body.book #toc,body.book #preamble,body.book h1.sect0,body.book .sect1>h2{page-b
 <p><strong>Scaler</strong>: Selects a scaler used to enlarge/enhance low resolution modes.</p>
 </li>
 <li>
-<p><strong>Output</strong>: Selects the video system to use for output, such as Surface, Direct3D or OpenGL.</p>
+<p><strong>Output</strong>: Selects the video system to use for output, such as Surface, Direct3D or OpenGL, and to enable double-scan mode (double-scanned output emits two scanlines for each source line).</p>
 </li>
 <li>
 <p><strong>V-Sync</strong>: Synchronizes V-Sync timing to the host display. This requires calibration within DOSBox-X.</p>
 </li>
 <li>
-<p><strong>Overscan</strong>: Selects the width of the overscan border, from 0 to 10. This works only if the video output is set to surface.</p>
+<p><strong>Overscan</strong>: Selects the width of the overscan border, from 0 to 10. This works only if the video output is set to surface.
+rscan border, from 0 to 10. This works only if the video output is set to surface.</p>
 </li>
 <li>
-<p><strong>Compatibility</strong>: Selects whether to allow 9-pixel wide text mode fonts and to enable double-scan mode (double-scanned output emits two scanlines for each source line).</p>
+<p><strong>Text-mode</strong>: Changes some text-mode settings, such as allowing 9-pixel wide text mode fonts, switching between high intensity background color and blinking foreground text, and setting the video modes to for example 80 columns x 50 lines and 132 columns and 60 lines.</p>
 </li>
 <li>
-<p><strong>PC-98</strong>: Changes the PC-98 related settings, such as whether to allow EGC and GRCG graphics functions.</p>
-</li>
-<li>
-<p><strong>Debug</strong>: Enables video debugging functions, such as blank screen refresh tests.</p>
+<p><strong>PC-98 options</strong>: Changes the PC-98 related settings, such as whether to allow EGC and GRCG graphics functions and whether to use the default U.S. keyboard layout for PC-98 mode.</p>
 </li>
 <li>
 <p><strong>Select pixel shader&#8230;&#8203;</strong>: Selects a Direct3D pixel shader file for use with DOSBox-X in Windows. In case the shader fails to load, there is no visual indication but it will be written to the log file. If you want more immediate feedback on success or failure, use the menu to show the DOSBox-X console which will also show the reason for the shader failure.</p>
@@ -613,7 +602,13 @@ body.book #toc,body.book #preamble,body.book h1.sect0,body.book .sect1>h2{page-b
 <p><strong>Decrease recording volume</strong>: Decreases the sound volume for the current recording.</p>
 </li>
 <li>
-<p><strong>Show sound levels</strong>: Displays the current sound levels in DOSBox-X.</p>
+<p><strong>Show sound mixer volumes</strong>: Displays the current sound mixer volumes in DOSBox-X.</p>
+</li>
+<li>
+<p><strong>Show Sound Blaster configuration</strong>: Displays the current Sound Blaster configuration of in DOSBox-X.</p>
+</li>
+<li>
+<p><strong>Show MIDI device configuration</strong>: Displays the current MIDI device configuration in DOSBox-X.</p>
 </li>
 <li>
 <p><strong>Mute</strong>: Mutes or unmutes the sound volume of the current DOS session.</p>
@@ -638,16 +633,13 @@ body.book #toc,body.book #preamble,body.book h1.sect0,body.book .sect1>h2{page-b
 <p><strong>Long filename support</strong>: Changes the long filename (LFN) setting, either enable, disable, or auto per reported DOS version (i.e. enable LFN if the reported DOS version is at least 7).</p>
 </li>
 <li>
-<p><strong>PC-98 PIT master clock</strong>: Selects the PIT master clock for the PC-98 system (4MHz/8MHz or 5MHz/10MHz).</p>
-</li>
-<li>
 <p><strong>Windows host applications</strong>: Enable this if you want to launch Windows applications from mounted directories to run on the host, and whether to wait for the applications.</p>
 </li>
 <li>
-<p><strong>Config options as commands</strong>: Selects whether to allow entering config file options as shell commands to get and set settings. This is disabled by default to avoid name clashes, but can be enabled to improve backward compatibilty with DOSBox.</p>
+<p><strong>Config options as commands</strong>: Selects whether to allow entering config file options as shell commands to get and set settings. This is disabled by default to avoid name clashes, but can be enabled to improve backward compatibility with DOSBox.</p>
 </li>
 <li>
-<p><strong>Quick launch program&#8230;&#8203;</strong> Launches a program selected from the Windows file browser to run inside DOSBox-X directly. The program folder will be automatically mounted and unmounted, with the option to stay in the program folder after the program finishes.</p>
+<p><strong>Quick launch program&#8230;&#8203;</strong> Launches a program selected from the file browser to run inside DOSBox-X directly. The program folder will be automatically mounted and unmounted, with the option to stay in the program folder after the program finishes.</p>
 </li>
 <li>
 <p><strong>Enable quick reboot</strong>: Selects whether to use quick reboot mode so that the kernel of the emulated DOS (integrated DOS or guest DOS) will be restarted instead of the whole virtual machine when DOS programs (or Windows 9x guest systems) make calls to restart the system.</p>
@@ -696,7 +688,7 @@ body.book #toc,body.book #preamble,body.book h1.sect0,body.book .sect1>h2{page-b
 <p><strong>Record MIDI output</strong>: Starts/stops the recording of raw MIDI commands.</p>
 </li>
 <li>
-<p><strong>Force load state mode</strong>: Selects whether to load the saved state even if there is a mismatch in the DOSBox-X version, program name and/or the memory size.</p>
+<p><strong>Save/load state options</strong>: Allows you to check some save and load state related options, such as using a save file instead of save slots.</p>
 </li>
 <li>
 <p><strong>Save state</strong>: Saves the current state to the selected save slot.</p>
@@ -707,6 +699,9 @@ body.book #toc,body.book #preamble,body.book h1.sect0,body.book .sect1>h2{page-b
 <li>
 <p><strong>Select save slot</strong>: Select a save slot (1 to 100) to save to or load from. There are 10 pages for save slots, with 10 save slots in each page.</p>
 </li>
+<li>
+<p><strong>Browse save file</strong>: Select a save file to use via the file browser. Only activated when the option to use save files is enabled.</p>
+</li>
 </ul>
 </div>
 <div class="paragraph">
@@ -715,7 +710,7 @@ body.book #toc,body.book #preamble,body.book h1.sect0,body.book .sect1>h2{page-b
 <div class="ulist">
 <ul>
 <li>
-<p><strong>A</strong>-<strong>Z</strong>: For each DOS drive, mounts, un-mounts, re-scans (refreshes the cache), or show the information for this drive. For Drive A:, C: and D: there is also an option to boot from the drive. Mounting drives (with various options) in the "Drive" menu is currently only supported for the Windows platform.</p>
+<p><strong>A</strong>-<strong>Z</strong>: For each DOS drive, mounts, un-mounts, re-scans (refreshes the cache), or show the information for this drive. For Drive A:, C: and D: there is also an option to boot from the drive. Various mounting options (either host drives/directories or disk/CD image files) are available for each drive.</p>
 </li>
 </ul>
 </div>
@@ -735,6 +730,9 @@ body.book #toc,body.book #preamble,body.book h1.sect0,body.book .sect1>h2{page-b
 </li>
 <li>
 <p><strong>DOSBox-X support</strong>: Links to the DOSBox-X Issue Tracker where you will can report issues or make suggestions.</p>
+</li>
+<li>
+<p><strong>Debugging</strong>: Select debugging-related functions, such as showing the debugger and the logging console as well as other debugging-related functions like the blank screen refresh tests.</p>
 </li>
 <li>
 <p><strong>About DOSBox-X</strong>: Shows the about information for DOSBox-X.</p>
@@ -765,7 +763,7 @@ body.book #toc,body.book #preamble,body.book h1.sect0,body.book .sect1>h2{page-b
 </div>
 <div id="footer">
 <div id="footer-text">
-Last updated 2020-10-07 23:17:03 -0400
+Last updated 2020-11-01 15:48:11 -0500
 </div>
 </div>
 </body>

@@ -15,6 +15,8 @@ In addition, it is possible to use a real external MIDI synthesizer.
 
 As of DOSBox-X version 0.83.6, the DOSMID program is included in DOSBox-X and will appear on the Z drive, and you can use it to play MIDI/RMI/MUS audio files.
 
+NOTE: You can check your currently active MIDI setup in DOSBox-X by going to the Sound option on the menu bar (when in windowed mode), and selecting "Show MIDI device configuration".
+
 ### MIDI options
 This section will list the available MIDI configuration options that DOSBox-X provides, with exception of the MT-32 and FluidSynth options which are listed in their respective sections.
 
@@ -371,7 +373,7 @@ mididevice=fluidsynth
 In some cases, you may also need to specify a soundfont file with ``fluid.soundfont=``, and the sound server with ``fluid.driver=``
 
 ### Windows Setup
-FluidSynth support is included in the Visual Studio builds by default in DOSBox-X version 0.83.6 and later. You can add the following lines to your DOSBox-X config file.
+FluidSynth support is included in both Visual Studio and MinGW builds by default in DOSBox-X version 0.83.7 and later. You can add the following lines to your DOSBox-X config file.
 
 ....
 [midi]

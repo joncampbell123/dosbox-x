@@ -9,7 +9,13 @@ Back to the link:Home{suffixappend}[DOSBox-X Wiki Welcome page].
 
 toc::[]
 
-This guide explains how to install Microsoft Windows in DOSBox-X.
+While DOSBox-X, as the name implies primarily targets DOS applications and games, early Windows versions where in fact little more than glorified DOS applications, and as such can also be run.
+
+From Windows 1.0 up to Windows 3.11, you can typically run Windows directly from the integrated DOS provided by DOSBox-X.
+instructions can be found below for the different major versions.
+
+Later Windows 95, 98 and ME however require that you run the underlying DOS they came with, and as such instead of using the integrated DOS, you will need to boot them inside DOSBox-X.
+Again, instructions are provided below.
 
 ## External links
 Some external links with useful information:

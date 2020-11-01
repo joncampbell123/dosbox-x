@@ -484,7 +484,7 @@ body.book #toc,body.book #preamble,body.book h1.sect0,body.book .sect1>h2{page-b
 </div>
 </li>
 <li>
-<p><strong>ADDKEY</strong> (internal command)</p>
+<p><strong>ADDKEY</strong> (external command)</p>
 <div class="paragraph">
 <p>Generates artificial keypresses.</p>
 </div>
@@ -1041,13 +1041,13 @@ body.book #toc,body.book #preamble,body.book h1.sect0,body.book .sect1>h2{page-b
 <li>
 <p><strong>MIXER</strong> (external command)</p>
 <div class="paragraph">
-<p>Displays or changes the current sound levels.</p>
+<p>Displays or changes the current sound mixer volumes.</p>
 </div>
 <div class="paragraph">
 <p>Usage: MIXER [options]</p>
 </div>
 <div class="paragraph">
-<p>Note: Simply enter MIXER without any parameters to display the current sound levels. You can also see the sound levels from the menu (under "Sound").</p>
+<p>Note: Simply enter MIXER without any parameters to display the current sound mixer volumes. You can also see the sound mixer volumes from the menu (under "Sound").</p>
 </div>
 </li>
 <li>
@@ -1182,7 +1182,7 @@ body.book #toc,body.book #preamble,body.book h1.sect0,body.book .sect1>h2{page-b
 <p>Usage: RESCAN [/A] or RESCAN [drive:]</p>
 </div>
 <div class="paragraph">
-<p>Note: Simply enter RESCAN without any parameters to refresh the current drive.</p>
+<p>Note: Simply enter RESCAN without any parameters to refresh the current drive. You can also refresh drives from the menu (under "DOS" for all drives or "Drive" for individual drives).</p>
 </div>
 </li>
 <li>
@@ -1349,6 +1349,15 @@ body.book #toc,body.book #preamble,body.book h1.sect0,body.book .sect1>h2{page-b
 <div class="ulist">
 <ul>
 <li>
+<p><strong>BIOSTEST</strong> (external command)</p>
+<div class="paragraph">
+<p>Boots into a BIOS image for running CPU tester BIOS.</p>
+</div>
+<div class="paragraph">
+<p>Usage: BIOSTEST image_file</p>
+</div>
+</li>
+<li>
 <p><strong>DEBUGBOX</strong> (internal command)</p>
 <div class="paragraph">
 <p>Runs program and breaks into debugger at entry point.</p>
@@ -1358,7 +1367,7 @@ body.book #toc,body.book #preamble,body.book h1.sect0,body.book .sect1>h2{page-b
 </div>
 </li>
 <li>
-<p><strong>INT2FDBG</strong> (internal command)</p>
+<p><strong>INT2FDBG</strong> (external command)</p>
 <div class="paragraph">
 <p>Hooks INT 2Fh for debugging purposes.</p>
 </div>
@@ -1391,7 +1400,7 @@ body.book #toc,body.book #preamble,body.book h1.sect0,body.book .sect1>h2{page-b
 </div>
 <div id="footer">
 <div id="footer-text">
-Last updated 2020-10-07 23:17:03 -0400
+Last updated 2020-11-01 15:48:11 -0500
 </div>
 </div>
 </body>

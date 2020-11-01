@@ -528,6 +528,7 @@ body.book #toc,body.book #preamble,body.book h1.sect0,body.book .sect1>h2{page-b
 <li><a href="#_creating_a_ram_drive">Creating a RAM drive</a></li>
 <li><a href="#_qcow2_support">QCOW2 support</a></li>
 <li><a href="#_archiving_diskettes">Archiving diskettes</a></li>
+<li><a href="#_known_limitations">Known limitations</a></li>
 <li><a href="#_outstanding_issues">Outstanding issues</a></li>
 </ul>
 </div>
@@ -2462,6 +2463,18 @@ Instead look for an older second-hand USB floppy drive from a known brand like D
 </div>
 </div>
 </div>
+<h1 id="_known_limitations" class="sect0">Known limitations</h1>
+<div class="openblock partintro">
+<div class="content">
+<div class="paragraph">
+<p>When booting a Guest OS (DOS or Win9x) in DOSBox-X most of the Drive options will become unavailable (greyed out).
+This is because, once you boot a guest OS, the drive letter mapping loses its meaning as the guest OS is responsible for drive letter assignment.</p>
+</div>
+<div class="paragraph">
+<p>The only mapping that DOSBox-X still has at that point, is that of drive numbers to the image file. This is however not currently exposed in the menu.</p>
+</div>
+</div>
+</div>
 <h1 id="_outstanding_issues" class="sect0">Outstanding issues</h1>
 <div class="openblock partintro">
 <div class="content">
@@ -2492,7 +2505,7 @@ Instead look for an older second-hand USB floppy drive from a known brand like D
 </div>
 <div id="footer">
 <div id="footer-text">
-Last updated 2020-10-07 23:17:03 -0400
+Last updated 2020-11-01 15:48:11 -0500
 </div>
 </div>
 </body>

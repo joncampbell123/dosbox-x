@@ -11,13 +11,13 @@ DOSBox-X (homepage: link:https://dosbox-x.com[https://dosbox-x.com] or link:http
 
 DOSBox-X supports multiple host operating systems including Windows, Linux, macOS and DOS. Windows binaries (both 32-bit and 64-bit), Linux Flatpaks or RPM packages (64-bit), macOS packages (64-bit) and DOS packages (for MS-DOS 5.0+ or compatible) are officially released periodically, typically on the last day of a month or at the start of the next month. Please check out the link:http://dosbox-x.com[DOSBox-X homepage] for common packages of the latest release for the supported platforms. Also see the link:https://github.com/joncampbell123/dosbox-x/blob/master/INSTALL.md[INSTALL] page for DOSBox-X installation instructions and other packages. The portable ZIP and Linux RPM packages for all released DOSBox-X versions and their change logs can be found in the link:https://github.com/joncampbell123/dosbox-x/releases[Releases] page.
 
-The Windows installer for DOSBox-X is available to ease the installation process, and with the installer you will be able to start DOSBox-X as soon as the installation ends. During the installation you can select the default DOSBox-X build to run, and shell context menus can be optionally added for a fast launch of DOSBox-X from the Windows Explorer. The installer can also be used to upgrade from a previous version of DOSBox-X while keeping the previous user settings. The Windows installer for the latest official version of DOSBox-X (0.83.6 at this time) is available from: link:https://github.com/joncampbell123/dosbox-x/releases/download/dosbox-x-v0.83.6/dosbox-x-windows-0.83.6-setup.exe[dosbox-x-windows-0.83.6-setup.exe]
+For Windows users the Windows installer for DOSBox-X is available to ease the installation process (in addition to portable packages), and with the installer you will be able to start DOSBox-X as soon as the installation ends. The installer can also be used to upgrade from a previous version of DOSBox-X while keeping the previous user settings. For Linux users the Linux Flatpaks are available, which are standalone applications independent of Linux distributions, and as a result you should be able to run it on any Linux platforms. For macOS and DOS users the self-contained portable packages are the default packages.
 
 toc::[]
 
 ### DOSBox-X's Main Focus
 
-Unlike DOSBox's original focus on DOS games, DOSBox-X gives more focus on general DOS emulation, with the eventual goal of being a complete emulation package that covers all pre-2000 DOS and Windows 9x based hardware scenarios, including peripherals, motherboards, CPUs, and all manner of hardware that was made for PC hardware of that time. We believe that a better way to emulate the legacy PC platform is to give the user all the options they need to emulate everything from original IBM PC hardware with 64KB of RAM all the way up to late 1990's hardware, whatever it takes to get that game or software package to run. We have made effort to maintain and improve the emulation accuracy of the hardware and many more ways to tweak and configure the DOS virtual machine, but we also strike a balance between emulation quality, speed, and usability, including improving the out-of-the-box experience for new users who want to run DOS programs or games.
+Unlike DOSBox's original focus on DOS games, DOSBox-X gives more focus on general DOS emulation, with the eventual goal of being a complete DOS emulation package that covers all pre-2000 DOS and Windows 9x based system scenarios, including all types and manners of hardware that were made for DOS PCs of that time. We believe that a better way to emulate the legacy PC platform is to give the user all the options they need to emulate everything from original IBM PC system all the way up to late 1990's configuration, whatever it takes to get that game or software package to run. We have made effort to maintain and improve the emulation accuracy of the hardware and many more ways to tweak and configure the DOS virtual machine, but we also strike a balance between emulation quality, speed, and usability, including improving the out-of-the-box experience for new users who want to run DOS programs or games, as well as implementing emulation that is accurate enough to make retro-programming possible with confidence the program will run properly on actual hardware.
 
 ### What DOSBox-X Can Do
 
@@ -73,6 +73,8 @@ A list of DOSBox-X default special keys:
 
 * **[F11/F12]+F**
 Switch to full-screen mode and back.
+* **[F11/F12]+Q**
+Quick launch an executable file to run inside DOSBox-X.
 * **[F11/F12]+R**
 Reset the virtual machine inside DOSBox-X.
 * **[F11/F12]+S**
@@ -81,10 +83,14 @@ Reboot the emulated DOS (integrated DOS or guest DOS) inside DOSBox-X.
 Start DOSBox-X's graphical configuration tool.
 * **[F11/F12]+M**
 Start DOSBox-X's mapper editor.
+* **[F11/F12]+A**
+Copy all text on the DOS screen to the host clipboard.
+* **[F11/F12]+V**
+Paste the text in the host clipboard to the DOS screen.
 * **[F11/F12]+Esc**
 Show/hide DOSBox-X’s drop-down menu bar.
 * **[F11/F12]+Del**
-Send the Ctrl+Alt+Del key combination to the guest system.
+Send the selected special key combination (Ctrl+Alt+Del by default) to the guest system.
 * **[F11/F12]+{{plus}}**
 Increase the sound volume of DOSBox-X's emulated DOS.
 * **[F11/F12]+{-}**
@@ -195,7 +201,7 @@ Explains how to use DOSBox-X with DOS software from the demoscene.
 Explains how to make and use floppy, hard disk, and optical disc images in DOSBox-X.
 * link:Guide%3AClipboard-support-in-DOSBox‐X{suffixappend}[Guide: Clipboard support in DOSBox-X]
 +
-Explains the different ways to copy to and paste from the Windows clipboard in DOSBox-X.
+Explains the different ways to copy to and paste from the host clipboard in DOSBox-X.
 * link:Guide%3ARegional-settings-in-DOSBox‐X{suffixappend}[Guide: Regional settings in DOSBox‐X]
 +
 Explains how to customize DOSBox-X's regional settings and international support, such as display languages and keyboard layouts.

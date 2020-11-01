@@ -456,7 +456,7 @@ body.book #toc,body.book #preamble,body.book h1.sect0,body.book .sect1>h2{page-b
 <p>DOSBox-X supports multiple host operating systems including Windows, Linux, macOS and DOS. Windows binaries (both 32-bit and 64-bit), Linux Flatpaks or RPM packages (64-bit), macOS packages (64-bit) and DOS packages (for MS-DOS 5.0+ or compatible) are officially released periodically, typically on the last day of a month or at the start of the next month. Please check out the <a target="_top" href="http://dosbox-x.com">DOSBox-X homepage</a> for common packages of the latest release for the supported platforms. Also see the <a target="_top" href="https://github.com/joncampbell123/dosbox-x/blob/master/INSTALL.md">INSTALL</a> page for DOSBox-X installation instructions and other packages. The portable ZIP and Linux RPM packages for all released DOSBox-X versions and their change logs can be found in the <a target="_top" href="https://github.com/joncampbell123/dosbox-x/releases">Releases</a> page.</p>
 </div>
 <div class="paragraph">
-<p>The Windows installer for DOSBox-X is available to ease the installation process, and with the installer you will be able to start DOSBox-X as soon as the installation ends. During the installation you can select the default DOSBox-X build to run, and shell context menus can be optionally added for a fast launch of DOSBox-X from the Windows Explorer. The installer can also be used to upgrade from a previous version of DOSBox-X while keeping the previous user settings. The Windows installer for the latest official version of DOSBox-X (0.83.6 at this time) is available from: <a target="_top" href="https://github.com/joncampbell123/dosbox-x/releases/download/dosbox-x-v0.83.6/dosbox-x-windows-0.83.6-setup.exe">dosbox-x-windows-0.83.6-setup.exe</a></p>
+<p>For Windows users the Windows installer for DOSBox-X is available to ease the installation process (in addition to portable packages), and with the installer you will be able to start DOSBox-X as soon as the installation ends. The installer can also be used to upgrade from a previous version of DOSBox-X while keeping the previous user settings. For Linux users the Linux Flatpaks are available, which are standalone applications independent of Linux distributions, and as a result you should be able to run it on any Linux platforms. For macOS and DOS users the self-contained portable packages are the default packages.</p>
 </div>
 <div id="toc" class="toc">
 <div id="toctitle" class="title">Table of Contents</div>
@@ -477,7 +477,7 @@ body.book #toc,body.book #preamble,body.book h1.sect0,body.book .sect1>h2{page-b
 <div class="sect2">
 <h3 id="_dosbox_xs_main_focus">DOSBox-X&#8217;s Main Focus</h3>
 <div class="paragraph">
-<p>Unlike DOSBox&#8217;s original focus on DOS games, DOSBox-X gives more focus on general DOS emulation, with the eventual goal of being a complete emulation package that covers all pre-2000 DOS and Windows 9x based hardware scenarios, including peripherals, motherboards, CPUs, and all manner of hardware that was made for PC hardware of that time. We believe that a better way to emulate the legacy PC platform is to give the user all the options they need to emulate everything from original IBM PC hardware with 64KB of RAM all the way up to late 1990&#8217;s hardware, whatever it takes to get that game or software package to run. We have made effort to maintain and improve the emulation accuracy of the hardware and many more ways to tweak and configure the DOS virtual machine, but we also strike a balance between emulation quality, speed, and usability, including improving the out-of-the-box experience for new users who want to run DOS programs or games.</p>
+<p>Unlike DOSBox&#8217;s original focus on DOS games, DOSBox-X gives more focus on general DOS emulation, with the eventual goal of being a complete DOS emulation package that covers all pre-2000 DOS and Windows 9x based system scenarios, including all types and manners of hardware that were made for DOS PCs of that time. We believe that a better way to emulate the legacy PC platform is to give the user all the options they need to emulate everything from original IBM PC system all the way up to late 1990&#8217;s configuration, whatever it takes to get that game or software package to run. We have made effort to maintain and improve the emulation accuracy of the hardware and many more ways to tweak and configure the DOS virtual machine, but we also strike a balance between emulation quality, speed, and usability, including improving the out-of-the-box experience for new users who want to run DOS programs or games, as well as implementing emulation that is accurate enough to make retro-programming possible with confidence the program will run properly on actual hardware.</p>
 </div>
 </div>
 <div class="sect2">
@@ -569,6 +569,10 @@ body.book #toc,body.book #preamble,body.book h1.sect0,body.book .sect1>h2{page-b
 Switch to full-screen mode and back.</p>
 </li>
 <li>
+<p><strong>[F11/F12]+Q</strong>
+Quick launch an executable file to run inside DOSBox-X.</p>
+</li>
+<li>
 <p><strong>[F11/F12]+R</strong>
 Reset the virtual machine inside DOSBox-X.</p>
 </li>
@@ -585,12 +589,20 @@ Start DOSBox-X&#8217;s graphical configuration tool.</p>
 Start DOSBox-X&#8217;s mapper editor.</p>
 </li>
 <li>
+<p><strong>[F11/F12]+A</strong>
+Copy all text on the DOS screen to the host clipboard.</p>
+</li>
+<li>
+<p><strong>[F11/F12]+V</strong>
+Paste the text in the host clipboard to the DOS screen.</p>
+</li>
+<li>
 <p><strong>[F11/F12]+Esc</strong>
 Show/hide DOSBox-X’s drop-down menu bar.</p>
 </li>
 <li>
 <p><strong>[F11/F12]+Del</strong>
-Send the Ctrl+Alt+Del key combination to the guest system.</p>
+Send the selected special key combination (Ctrl+Alt+Del by default) to the guest system.</p>
 </li>
 <li>
 <p><strong>[F11/F12]+{&#43;}</strong>
@@ -800,7 +812,7 @@ press the X key on your keyboard.</p>
 <li>
 <p><a href="Guide%3AClipboard-support-in-DOSBox‐X">Guide: Clipboard support in DOSBox-X</a></p>
 <div class="paragraph">
-<p>Explains the different ways to copy to and paste from the Windows clipboard in DOSBox-X.</p>
+<p>Explains the different ways to copy to and paste from the host clipboard in DOSBox-X.</p>
 </div>
 </li>
 <li>
@@ -903,7 +915,7 @@ press the X key on your keyboard.</p>
 </div>
 <div id="footer">
 <div id="footer-text">
-Last updated 2020-10-07 23:17:03 -0400
+Last updated 2020-11-01 15:48:11 -0500
 </div>
 </div>
 </body>

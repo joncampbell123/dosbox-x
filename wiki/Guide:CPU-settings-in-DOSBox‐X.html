@@ -5,7 +5,7 @@
 <meta http-equiv="X-UA-Compatible" content="IE=edge">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <meta name="generator" content="Asciidoctor 2.0.10">
-<title>Demo description</title>
+<title>CPU settings in DOSBox-X</title>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Open+Sans:300,300italic,400,400italic,600,600italic%7CNoto+Serif:400,400italic,700,700italic%7CDroid+Sans+Mono:400,700">
 <style>
 /* Asciidoctor default stylesheet | MIT License | https://asciidoctor.org */
@@ -443,57 +443,494 @@ body.book #toc,body.book #preamble,body.book h1.sect0,body.book .sect1>h2{page-b
 <div id="preamble">
 <div class="sectionbody">
 <div class="paragraph">
-<p><a href="Guide%3AMS‐DOS%3Ademoscene%3A1997.html">1997</a> demoscene entry.</p>
+<p>Back to the <a href="Home">DOSBox-X Wiki Welcome page</a>.</p>
 </div>
 </div>
 </div>
-<div class="sect1">
-<h2 id="_demo_description">Demo description</h2>
-<div class="sectionbody">
-<div class="paragraph">
-<p>(todo)</p>
-</div>
-</div>
-</div>
-<div class="sect1">
-<h2 id="_recommended_dosbox_x_configuration">Recommended DOSBox-X configuration</h2>
-<div class="sectionbody">
-<div class="literalblock">
+<h1 id="_cpu_settings_in_dosbox_x" class="sect0">CPU settings in DOSBox-X</h1>
+<div class="openblock partintro">
 <div class="content">
-<pre>[dosbox]
-memsize=16
-machine=svga_s3
-
-[cpu]
-cycles=max    # set to 250000 if you want to capture instead
-core=dynamic
-cputype=pentium
-
-[sblaster]
-sbtype=sb16
-
-[gus]
-gus=true</pre>
-</div>
-</div>
-<div class="paragraph">
-<p>GUS emulation should be enabled so the demo can automatically choose it
-for best music audio quality. The high cycles count is needed for the 3D
-objects and effects used in the demo. If you only want to watch the demo
-instead, you should consider cycles=max instead.</p>
-</div>
-<div class="paragraph">
-<p>The demo will not start immediately. It needs to load some data first
-and process it, which can take 30-60 seconds in DOSBox-X on a quad core
-Intel i5 laptop.</p>
+<div id="toc" class="toc">
+<div id="toctitle" class="title">Table of Contents</div>
+<ul class="sectlevel0">
+<li><a href="#_cpu_settings_in_dosbox_x">CPU settings in DOSBox-X</a>
+<ul class="sectlevel1">
+<li><a href="#_overview">Overview</a></li>
+<li><a href="#_differences_in_emulated_cpu_types">Differences in emulated CPU types</a>
+<ul class="sectlevel2">
+<li><a href="#_8086_to_386">8086 to 386</a></li>
+<li><a href="#_486_to_pentium_pro">486 to Pentium Pro</a></li>
+<li><a href="#_vanilla_dosbox_cpu_types">Vanilla DOSBox CPU types</a></li>
+<li><a href="#_floating_point_unit_fpu">Floating Point Unit (FPU)</a></li>
+<li><a href="#_faq">FAQ</a></li>
+</ul>
+</li>
+<li><a href="#_todo">TODO</a></li>
+</ul>
+</li>
+</ul>
 </div>
 </div>
 </div>
 <div class="sect1">
-<h2 id="_more_information">More information</h2>
+<h2 id="_overview">Overview</h2>
 <div class="sectionbody">
 <div class="paragraph">
-<p><a href="http://www.pouet.net/prod.php?which=1326">More information (Pouet)</a></p>
+<p>You can change the emulated CPU type in DOSBox-X either from the DOSBox-X config file (dosbox-x.conf by default), or from the DOSBox-X command line or the menu bar.</p>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_differences_in_emulated_cpu_types">Differences in emulated CPU types</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>This is based on: <a href="https://www.vogons.org/viewtopic.php?p=905713#p905713" class="bare">https://www.vogons.org/viewtopic.php?p=905713#p905713</a> and extended/modified for DOSBox-X.</p>
+</div>
+<div class="sect2">
+<h3 id="_8086_to_386">8086 to 386</h3>
+<table class="tableblock frame-all grid-all stretch">
+<caption class="title">Table 1. cputype options</caption>
+<colgroup>
+<col style="width: 11.1111%;">
+<col style="width: 11.1111%;">
+<col style="width: 11.1111%;">
+<col style="width: 11.1111%;">
+<col style="width: 11.1111%;">
+<col style="width: 11.1111%;">
+<col style="width: 11.1111%;">
+<col style="width: 11.1111%;">
+<col style="width: 11.1112%;">
+</colgroup>
+<thead>
+<tr>
+<th class="tableblock halign-left valign-top"></th>
+<th class="tableblock halign-center valign-top">8086</th>
+<th class="tableblock halign-center valign-top">8086 prefetch</th>
+<th class="tableblock halign-center valign-top">80186</th>
+<th class="tableblock halign-center valign-top">80186 prefetch</th>
+<th class="tableblock halign-center valign-top">286</th>
+<th class="tableblock halign-center valign-top">286 prefetch</th>
+<th class="tableblock halign-center valign-top">386</th>
+<th class="tableblock halign-center valign-top">386 prefetch</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Protected mode</p></td>
+<td class="tableblock halign-center valign-top"></td>
+<td class="tableblock halign-center valign-top"></td>
+<td class="tableblock halign-center valign-top"></td>
+<td class="tableblock halign-center valign-top"></td>
+<td class="tableblock halign-center valign-top"><p class="tableblock">x</p></td>
+<td class="tableblock halign-center valign-top"><p class="tableblock">x</p></td>
+<td class="tableblock halign-center valign-top"><p class="tableblock">x</p></td>
+<td class="tableblock halign-center valign-top"><p class="tableblock">x</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Virtual 8086 mode</p></td>
+<td class="tableblock halign-center valign-top"></td>
+<td class="tableblock halign-center valign-top"></td>
+<td class="tableblock halign-center valign-top"></td>
+<td class="tableblock halign-center valign-top"></td>
+<td class="tableblock halign-center valign-top"></td>
+<td class="tableblock halign-center valign-top"></td>
+<td class="tableblock halign-center valign-top"><p class="tableblock">x</p></td>
+<td class="tableblock halign-center valign-top"><p class="tableblock">x</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">386 CPUID</p></td>
+<td class="tableblock halign-center valign-top"></td>
+<td class="tableblock halign-center valign-top"></td>
+<td class="tableblock halign-center valign-top"></td>
+<td class="tableblock halign-center valign-top"></td>
+<td class="tableblock halign-center valign-top"></td>
+<td class="tableblock halign-center valign-top"></td>
+<td class="tableblock halign-center valign-top"><p class="tableblock">x</p></td>
+<td class="tableblock halign-center valign-top"><p class="tableblock">x</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">386 specific page access level calculation</p></td>
+<td class="tableblock halign-center valign-top"></td>
+<td class="tableblock halign-center valign-top"></td>
+<td class="tableblock halign-center valign-top"></td>
+<td class="tableblock halign-center valign-top"></td>
+<td class="tableblock halign-center valign-top"></td>
+<td class="tableblock halign-center valign-top"></td>
+<td class="tableblock halign-center valign-top"><p class="tableblock">x</p></td>
+<td class="tableblock halign-center valign-top"><p class="tableblock">x</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">loose (fast) page privilege check</p></td>
+<td class="tableblock halign-center valign-top"></td>
+<td class="tableblock halign-center valign-top"></td>
+<td class="tableblock halign-center valign-top"></td>
+<td class="tableblock halign-center valign-top"></td>
+<td class="tableblock halign-center valign-top"></td>
+<td class="tableblock halign-center valign-top"></td>
+<td class="tableblock halign-center valign-top"><p class="tableblock">x</p></td>
+<td class="tableblock halign-center valign-top"><p class="tableblock">x</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">tight (slow) page privilege check</p></td>
+<td class="tableblock halign-center valign-top"></td>
+<td class="tableblock halign-center valign-top"></td>
+<td class="tableblock halign-center valign-top"></td>
+<td class="tableblock halign-center valign-top"></td>
+<td class="tableblock halign-center valign-top"></td>
+<td class="tableblock halign-center valign-top"></td>
+<td class="tableblock halign-center valign-top"></td>
+<td class="tableblock halign-center valign-top"></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Prefetch queue emulation</p></td>
+<td class="tableblock halign-center valign-top"></td>
+<td class="tableblock halign-center valign-top"><p class="tableblock">x</p></td>
+<td class="tableblock halign-center valign-top"></td>
+<td class="tableblock halign-center valign-top"><p class="tableblock">x</p></td>
+<td class="tableblock halign-center valign-top"></td>
+<td class="tableblock halign-center valign-top"><p class="tableblock">x</p></td>
+<td class="tableblock halign-center valign-top"></td>
+<td class="tableblock halign-center valign-top"><p class="tableblock">x</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+<div class="sect2">
+<h3 id="_486_to_pentium_pro">486 to Pentium Pro</h3>
+<table class="tableblock frame-all grid-all stretch">
+<caption class="title">Table 2. cputype options</caption>
+<colgroup>
+<col style="width: 11.1111%;">
+<col style="width: 11.1111%;">
+<col style="width: 11.1111%;">
+<col style="width: 11.1111%;">
+<col style="width: 11.1111%;">
+<col style="width: 11.1111%;">
+<col style="width: 11.1111%;">
+<col style="width: 11.1111%;">
+<col style="width: 11.1112%;">
+</colgroup>
+<thead>
+<tr>
+<th class="tableblock halign-left valign-top"></th>
+<th class="tableblock halign-center valign-top">486old</th>
+<th class="tableblock halign-center valign-top">486old prefetch</th>
+<th class="tableblock halign-center valign-top">486</th>
+<th class="tableblock halign-center valign-top">486 prefetch</th>
+<th class="tableblock halign-center valign-top">auto</th>
+<th class="tableblock halign-center valign-top">pentium</th>
+<th class="tableblock halign-center valign-top">pentium mmx</th>
+<th class="tableblock halign-center valign-top">ppro slow</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Protected mode</p></td>
+<td class="tableblock halign-center valign-top"><p class="tableblock">x</p></td>
+<td class="tableblock halign-center valign-top"><p class="tableblock">x</p></td>
+<td class="tableblock halign-center valign-top"><p class="tableblock">x</p></td>
+<td class="tableblock halign-center valign-top"><p class="tableblock">x</p></td>
+<td class="tableblock halign-center valign-top"><p class="tableblock">x</p></td>
+<td class="tableblock halign-center valign-top"><p class="tableblock">x</p></td>
+<td class="tableblock halign-center valign-top"><p class="tableblock">x</p></td>
+<td class="tableblock halign-center valign-top"><p class="tableblock">x</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Virtual 8086 mode</p></td>
+<td class="tableblock halign-center valign-top"><p class="tableblock">x</p></td>
+<td class="tableblock halign-center valign-top"><p class="tableblock">x</p></td>
+<td class="tableblock halign-center valign-top"><p class="tableblock">x</p></td>
+<td class="tableblock halign-center valign-top"><p class="tableblock">x</p></td>
+<td class="tableblock halign-center valign-top"><p class="tableblock">x</p></td>
+<td class="tableblock halign-center valign-top"><p class="tableblock">x</p></td>
+<td class="tableblock halign-center valign-top"><p class="tableblock">x</p></td>
+<td class="tableblock halign-center valign-top"><p class="tableblock">x</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">486 CPUID</p></td>
+<td class="tableblock halign-center valign-top"><p class="tableblock">x</p></td>
+<td class="tableblock halign-center valign-top"><p class="tableblock">x</p></td>
+<td class="tableblock halign-center valign-top"><p class="tableblock">x</p></td>
+<td class="tableblock halign-center valign-top"><p class="tableblock">x</p></td>
+<td class="tableblock halign-center valign-top"><p class="tableblock">x</p></td>
+<td class="tableblock halign-center valign-top"></td>
+<td class="tableblock halign-center valign-top"></td>
+<td class="tableblock halign-center valign-top"></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Pentium CPUID</p></td>
+<td class="tableblock halign-center valign-top"></td>
+<td class="tableblock halign-center valign-top"></td>
+<td class="tableblock halign-center valign-top"></td>
+<td class="tableblock halign-center valign-top"></td>
+<td class="tableblock halign-center valign-top"></td>
+<td class="tableblock halign-center valign-top"><p class="tableblock">x</p></td>
+<td class="tableblock halign-center valign-top"><p class="tableblock">x</p></td>
+<td class="tableblock halign-center valign-top"></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Pentium Pro CPUID</p></td>
+<td class="tableblock halign-center valign-top"></td>
+<td class="tableblock halign-center valign-top"></td>
+<td class="tableblock halign-center valign-top"></td>
+<td class="tableblock halign-center valign-top"></td>
+<td class="tableblock halign-center valign-top"></td>
+<td class="tableblock halign-center valign-top"></td>
+<td class="tableblock halign-center valign-top"></td>
+<td class="tableblock halign-center valign-top"><p class="tableblock">x</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">486 specific page access level calculation</p></td>
+<td class="tableblock halign-center valign-top"><p class="tableblock">x</p></td>
+<td class="tableblock halign-center valign-top"><p class="tableblock">x</p></td>
+<td class="tableblock halign-center valign-top"><p class="tableblock">x</p></td>
+<td class="tableblock halign-center valign-top"><p class="tableblock">x</p></td>
+<td class="tableblock halign-center valign-top"></td>
+<td class="tableblock halign-center valign-top"></td>
+<td class="tableblock halign-center valign-top"></td>
+<td class="tableblock halign-center valign-top"></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">loose (fast) page privilege check</p></td>
+<td class="tableblock halign-center valign-top"></td>
+<td class="tableblock halign-center valign-top"></td>
+<td class="tableblock halign-center valign-top"></td>
+<td class="tableblock halign-center valign-top"></td>
+<td class="tableblock halign-center valign-top"></td>
+<td class="tableblock halign-center valign-top"></td>
+<td class="tableblock halign-center valign-top"></td>
+<td class="tableblock halign-center valign-top"></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">tight (slow) page privilege check</p></td>
+<td class="tableblock halign-center valign-top"></td>
+<td class="tableblock halign-center valign-top"></td>
+<td class="tableblock halign-center valign-top"></td>
+<td class="tableblock halign-center valign-top"></td>
+<td class="tableblock halign-center valign-top"></td>
+<td class="tableblock halign-center valign-top"></td>
+<td class="tableblock halign-center valign-top"></td>
+<td class="tableblock halign-center valign-top"><p class="tableblock">x</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">BSWAP, CMPXCHG, XADD, INVD, WBINVD</p></td>
+<td class="tableblock halign-center valign-top"><p class="tableblock">x</p></td>
+<td class="tableblock halign-center valign-top"><p class="tableblock">x</p></td>
+<td class="tableblock halign-center valign-top"><p class="tableblock">x</p></td>
+<td class="tableblock halign-center valign-top"><p class="tableblock">x</p></td>
+<td class="tableblock halign-center valign-top"><p class="tableblock">x</p></td>
+<td class="tableblock halign-center valign-top"><p class="tableblock">x</p></td>
+<td class="tableblock halign-center valign-top"><p class="tableblock">x</p></td>
+<td class="tableblock halign-center valign-top"><p class="tableblock">x</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">RDTSC</p></td>
+<td class="tableblock halign-center valign-top"></td>
+<td class="tableblock halign-center valign-top"></td>
+<td class="tableblock halign-center valign-top"></td>
+<td class="tableblock halign-center valign-top"></td>
+<td class="tableblock halign-center valign-top"><p class="tableblock">x</p></td>
+<td class="tableblock halign-center valign-top"><p class="tableblock">x</p></td>
+<td class="tableblock halign-center valign-top"><p class="tableblock">x</p></td>
+<td class="tableblock halign-center valign-top"><p class="tableblock">x</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">CPUID, CMPXCHG8B,RDMSR, WRMSR, RSM</p></td>
+<td class="tableblock halign-center valign-top"></td>
+<td class="tableblock halign-center valign-top"></td>
+<td class="tableblock halign-center valign-top"></td>
+<td class="tableblock halign-center valign-top"></td>
+<td class="tableblock halign-center valign-top"></td>
+<td class="tableblock halign-center valign-top"><p class="tableblock">x</p></td>
+<td class="tableblock halign-center valign-top"><p class="tableblock">x</p></td>
+<td class="tableblock halign-center valign-top"><p class="tableblock">x</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">CMOV, FCMOV, FCOMI/FCOMIP, FUCOMI/FUCOMIP, RDPMC, UD2</p></td>
+<td class="tableblock halign-center valign-top"></td>
+<td class="tableblock halign-center valign-top"></td>
+<td class="tableblock halign-center valign-top"></td>
+<td class="tableblock halign-center valign-top"></td>
+<td class="tableblock halign-center valign-top"></td>
+<td class="tableblock halign-center valign-top"></td>
+<td class="tableblock halign-center valign-top"></td>
+<td class="tableblock halign-center valign-top"><p class="tableblock">x</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">486 specific CR register behaviour</p></td>
+<td class="tableblock halign-center valign-top"><p class="tableblock">x</p></td>
+<td class="tableblock halign-center valign-top"><p class="tableblock">x</p></td>
+<td class="tableblock halign-center valign-top"><p class="tableblock">x</p></td>
+<td class="tableblock halign-center valign-top"><p class="tableblock">x</p></td>
+<td class="tableblock halign-center valign-top"><p class="tableblock">x</p></td>
+<td class="tableblock halign-center valign-top"></td>
+<td class="tableblock halign-center valign-top"></td>
+<td class="tableblock halign-center valign-top"></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Pentium specific CR register behaviour</p></td>
+<td class="tableblock halign-center valign-top"></td>
+<td class="tableblock halign-center valign-top"></td>
+<td class="tableblock halign-center valign-top"></td>
+<td class="tableblock halign-center valign-top"></td>
+<td class="tableblock halign-center valign-top"></td>
+<td class="tableblock halign-center valign-top"><p class="tableblock">x</p></td>
+<td class="tableblock halign-center valign-top"><p class="tableblock">x</p></td>
+<td class="tableblock halign-center valign-top"><p class="tableblock">x</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Prefetch queue emulation</p></td>
+<td class="tableblock halign-center valign-top"></td>
+<td class="tableblock halign-center valign-top"><p class="tableblock">x</p></td>
+<td class="tableblock halign-center valign-top"></td>
+<td class="tableblock halign-center valign-top"><p class="tableblock">x</p></td>
+<td class="tableblock halign-center valign-top"></td>
+<td class="tableblock halign-center valign-top"></td>
+<td class="tableblock halign-center valign-top"></td>
+<td class="tableblock halign-center valign-top"></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">MMX instruction set</p></td>
+<td class="tableblock halign-center valign-top"></td>
+<td class="tableblock halign-center valign-top"></td>
+<td class="tableblock halign-center valign-top"></td>
+<td class="tableblock halign-center valign-top"></td>
+<td class="tableblock halign-center valign-top"></td>
+<td class="tableblock halign-center valign-top"></td>
+<td class="tableblock halign-center valign-top"><p class="tableblock">x</p></td>
+<td class="tableblock halign-center valign-top"></td>
+</tr>
+</tbody>
+</table>
+</div>
+<div class="sect2">
+<h3 id="_vanilla_dosbox_cpu_types">Vanilla DOSBox CPU types</h3>
+<div class="paragraph">
+<p>Vanilla DOSBox has a few other cputype options not available in DOSBox-X</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p>386_slow</p>
+</li>
+<li>
+<p>486_slow</p>
+</li>
+<li>
+<p>pentium_slow</p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p>The <code>slow</code> part of the name refers to the page privilege check.
+These cputype options are ignored in DOSBox-X, and <code>auto</code> will be used instead.</p>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_floating_point_unit_fpu">Floating Point Unit (FPU)</h3>
+<div class="paragraph">
+<p>Also referred to as the x87, or Math co-processor.</p>
+</div>
+<div class="paragraph">
+<p>An emulated FPU is enabled by default.
+The following config options are available to change the behaviour.</p>
+</div>
+<div class="paragraph">
+<p>Under the <code>[cpu]</code> heading you can set <code>fpu=false</code> to disable the FPU.
+<code>[dosbox]</code> <code>weitek=</code></p>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_faq">FAQ</h3>
+<div class="sect3">
+<h4 id="_why_is_there_no_8088_cpu_option">Why is there no 8088 CPU option?</h4>
+<div class="paragraph">
+<p>Q: The 8088 is what IBM used in the original IBM PC&#8217;s. So why is there no 8088 option?</p>
+</div>
+<div class="paragraph">
+<p>A: Because there is no difference in terms of emulation between a 8086 and 8088.</p>
+</div>
+<div class="paragraph">
+<p>Intel released the 8086 first as a 16-bit CPU, and later released the 8088 to reduce cost for manufacturers.</p>
+</div>
+<div class="paragraph">
+<p>The difference is that the 8086 uses both 16-bit internal and external to the CPU, while the 8088 is 16-bit internal but only 8-bit external to reduce cost.
+The only practical difference with regards to emulation, is that a 8088 is a little slower because of this, but that can be compensated for using the <code>cycles=</code> setting.</p>
+</div>
+<div class="admonitionblock note">
+<table>
+<tr>
+<td class="icon">
+<div class="title">Note</div>
+</td>
+<td class="content">
+Some software may claim the CPU to be a 8088 when <code>cputype=8086</code>, this is simply because there is no way for the software to know which one you really have, and the 8088 was more common.
+</td>
+</tr>
+</table>
+</div>
+</div>
+<div class="sect3">
+<h4 id="_why_does_dosbox_x_support_the_80186">Why does DOSBox-X support the 80186?</h4>
+<div class="paragraph">
+<p>Q: The 80186 was never used for the IBM PC, so why include it?</p>
+</div>
+<div class="paragraph">
+<p>A: Indeed, the 80186 was mainly meant for embedded use.
+The 80186 was never used by IBM, but there where a few rare PC clones that used it.
+Although they typically had various compatibility problems.</p>
+</div>
+<div class="admonitionblock note">
+<table>
+<tr>
+<td class="icon">
+<div class="title">Note</div>
+</td>
+<td class="content">
+Similar to the 8086/8088, there was also a 80188 with 8-bit external data path to the CPU to reduce cost for manufacturers.
+And just like with the 8086, software may identify the 80186 as a 80188.
+</td>
+</tr>
+</table>
+</div>
+</div>
+<div class="sect3">
+<h4 id="_is_dosbox_x_cycle_accurate">Is DOSBox-X cycle accurate?</h4>
+<div class="paragraph">
+<p>Q: Does DOSBox-X emulate the CPUs cycle accurate?</p>
+</div>
+<div class="paragraph">
+<p>A: No. This would just slow down the emulation, and is practical never needed for emulating PCs.</p>
+</div>
+<div class="paragraph">
+<p>On a legacy PC the amount of cycles it takes to complete an instruction can vary depending on the type of instruction and the CPU generation and vendor.
+DOSBox and by extension DOSBox-X instead completes one instruction per emulated-cycle.
+As such the <code>cycles=</code> value has no direct relation to the clock frequency or the amount of flops of the emulated system.</p>
+</div>
+<div class="paragraph">
+<p>For many legacy systems, cycle accurate emulation is desirable.
+But this does not apply to emulating PCs. Due to the vast amount of clone systems and CPU options produced, software developers could not rely on the amount of time it takes to complete a given instruction.
+And therefore used other timing methods, and therefore cycle accurate emulation is simply not needed.</p>
+</div>
+<div class="paragraph">
+<p>If for some reason cycle accurate emulation is required, we suggest you use the <a href="https://pcem-emulator.co.uk/">PCem emulator</a>.</p>
+</div>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_todo">TODO</h2>
+<div class="sectionbody">
+<div class="ulist">
+<ul>
+<li>
+<p>Why are there the 486old* options? They are presumably the 486 options from vanilla DOSBox, but why retain them?</p>
+</li>
+<li>
+<p>How does DOSBox-X handle page privilege check differently? And why is there still a ppro_slow, if the others where removed?</p>
+</li>
+</ul>
 </div>
 </div>
 </div>

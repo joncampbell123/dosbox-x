@@ -477,7 +477,7 @@ body.book #toc,body.book #preamble,body.book h1.sect0,body.book .sect1>h2{page-b
 <div class="sect2">
 <h3 id="_country_specific_datetime_formats">Country-specific date/time formats</h3>
 <div class="paragraph">
-<p>The country code can be set in the [config] section of the DOSBox-X config file by use of the <code>COUNTRY=</code> setting. This defaults to 1, which is the US. This setting influences date and time format as used by DOSBox-X, such as the <code>DIR</code> command. It may also influence regional settings in other applications.</p>
+<p>The country code can be set in the [config] section of the DOSBox-X config file by use of the <code>COUNTRY=</code> setting. This defaults to an empty string which means auto-detection (or 81 for PC-98 mode); if auto-detection cannot be done then it will fallback to 1 which is the US. This setting influences date and time format as used by DOSBox-X, such as the <code>DIR</code> command. It may also influence regional settings in other applications.</p>
 </div>
 <div class="paragraph">
 <p>For example, the date is displayed in MM-DD-YYYY format with the default US setting:</p>
@@ -1182,7 +1182,7 @@ The information in this section applies to DOSBox-X 0.83.4 and later only. Previ
 </div>
 <div id="footer">
 <div id="footer-text">
-Last updated 2020-10-07 23:17:03 -0400
+Last updated 2020-11-01 15:48:11 -0500
 </div>
 </div>
 </body>

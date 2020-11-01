@@ -67,9 +67,9 @@ DOSBox-X fully supports long filenames (LFN) which can be up to 255 characters, 
 * **Support for FAT32 file system and large disk images**
 +
 FAT32 file system is supported in DOSBox-X in addition to FAT12 and FAT16, so you can make and mount drives larger than 2GB. Set ``ver=7.1`` to enable this feature.
-* **Support for clipboard copy and paste (Windows only)**
+* **Support for clipboard text selection, copy and paste**
 +
-With DOSBox-X there are several ways to copy and paste between DOSBox-X and the Windows clipboard, such as using the right mouse button or using a special device for it.
+With DOSBox-X there are several ways to copy and paste between DOSBox-X and the host clipboard, such as using the right mouse button or using a special device for it. Some clipboard functions are only supported for Windows systems.
 * **Support for converting mouse wheel movements to arrow keys**
 +
 You can let DOSBox-X automatically convert mouse wheel movements to arrow keys, so that you can use the mouse wheel for scrolling in DOS applications.
@@ -85,9 +85,9 @@ DOSBox-X allows you to set one or more config options from the DOSBox-X command 
 * **Support for Ctrl+C/Ctrl+Break in the shell and many commands**
 +
 You can press the Ctrl+C or Ctrl+Break key to break from the current operation when running in the shell and many internal or external commands.
-* **Support for cue sheets with FLAC, MP3, WAV, and OGG Vorbis CD audio tracks**
+* **Support for cue sheets with FLAC, MP3, WAV, OGG Vorbis and Opus CD audio tracks**
 +
-With DOSBox-X it is possible to mount .cue files that include FLAC, MP3, WAV, and OGG Vorbis music as CD audio tracks.
+With DOSBox-X it is possible to mount .cue files (either from the menu or with IMGMOUNT command) that include FLAC, MP3, WAV, OGG Vorbis and Opus music as CD audio tracks.
 * **Support for 3dfx Voodoo chip and Glide emulation**
 +
 DOSBox-X can emulate the 3dfx Voodoo in either the low-level emulation mode (emulating the 3dfx Voodoo 1 hardware) or the high-level emulation mode (where the Glide API calls are passed through to the host OS).
