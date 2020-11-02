@@ -27,7 +27,7 @@
  Oct4.2002 : AS : corrected bug in heap allocation, that caused a crash during sequencer free.
 */
 
-#if !C_FLUIDSYNTH && defined(WIN32)
+#if !C_FLUIDSYNTH && defined(WIN32) && !defined(HX_DOS)
 #include "fluid_event_priv.h"
 #include "fluidsynth_priv.h"
 

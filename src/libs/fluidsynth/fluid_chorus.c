@@ -65,7 +65,7 @@
  *
  */
 
-#if !C_FLUIDSYNTH && defined(WIN32)
+#if !C_FLUIDSYNTH && defined(WIN32) && !defined(HX_DOS)
 #include "fluid_chorus.h"
 #include "fluid_sys.h"
 

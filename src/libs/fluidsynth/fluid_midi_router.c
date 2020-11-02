@@ -24,7 +24,7 @@
  * cleaned it up a bit.
  */
 
-#if !C_FLUIDSYNTH && defined(WIN32)
+#if !C_FLUIDSYNTH && defined(WIN32) && !defined(HX_DOS)
 #include "fluid_midi_router.h"
 #include "fluid_midi.h"
 #include "fluid_synth.h"

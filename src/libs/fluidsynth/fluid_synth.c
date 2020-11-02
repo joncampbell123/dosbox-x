@@ -18,7 +18,7 @@
  * 02110-1301, USA
  */
 
-#if !C_FLUIDSYNTH && defined(WIN32)
+#if !C_FLUIDSYNTH && defined(WIN32) && !defined(HX_DOS)
 #include <math.h>
 
 #include "fluid_synth.h"

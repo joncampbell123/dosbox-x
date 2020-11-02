@@ -9,7 +9,7 @@
   Translated to C by Peter Hanappe, Mai 2001
 */
 
-#if !C_FLUIDSYNTH && defined(WIN32)
+#if !C_FLUIDSYNTH && defined(WIN32) && !defined(HX_DOS)
 #include "fluid_rev.h"
 
 /***************************************************************

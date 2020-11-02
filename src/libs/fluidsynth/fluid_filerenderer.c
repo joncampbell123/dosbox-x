@@ -22,7 +22,7 @@
   * Low-level routines for file output.
   */
 
-#if !C_FLUIDSYNTH && defined(WIN32)
+#if !C_FLUIDSYNTH && defined(WIN32) && !defined(HX_DOS)
 #include <stdio.h>
 #include "fluidsynth_priv.h"
 #include "fluid_synth.h"

@@ -27,7 +27,7 @@
   http://www.infiniteCD.org/
 */
 
-#if !C_FLUIDSYNTH && defined(WIN32)
+#if !C_FLUIDSYNTH && defined(WIN32) && !defined(HX_DOS)
 #include "fluid_event_priv.h"
 #include "fluidsynth_priv.h"	// FLUID_NEW, etc
 #include "fluid_sys.h"	// timer, threads, etc...

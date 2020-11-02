@@ -31,7 +31,7 @@
  * MT safe
  */
 
-#if !C_FLUIDSYNTH && defined(WIN32)
+#if !C_FLUIDSYNTH && defined(WIN32) && !defined(HX_DOS)
 #include "fluidsynth_priv.h"
 #include "fluid_hash.h"
 #include "fluid_list.h"
