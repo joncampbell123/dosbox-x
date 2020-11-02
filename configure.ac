@@ -155,6 +155,7 @@ elif test x$force_cxx11 = xyes; then
     CFLAGS="$CFLAGS -std=gnu11";
     CXXFLAGS="$CXXFLAGS -std=gnu++11";
 else
+    AC_MSG_WARN([ DOSBox-X is still intended to support compilation as C++11. If you add new code please make sure it works as C++11 by running ./configure with --enable-force-cxx11 ])
     CFLAGS="$CFLAGS -std=gnu11"; # no such "gnu14"
     CXXFLAGS="$CXXFLAGS -std=gnu++14";
 fi
