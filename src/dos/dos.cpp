@@ -3187,7 +3187,9 @@ public:
 		mainMenu.get_item("dos_ems_board").enable(false).refresh_item(mainMenu);
 		mainMenu.get_item("dos_ems_emm386").enable(false).refresh_item(mainMenu);
 		mainMenu.get_item("dos_ems_false").enable(false).refresh_item(mainMenu);
+#if !defined(HX_DOS)
 		mainMenu.get_item("mapper_quickrun").enable(false).refresh_item(mainMenu);
+#endif
 		mainMenu.get_item("shell_config_commands").enable(false).refresh_item(mainMenu);
 #if defined(WIN32)
 		mainMenu.get_item("clipboard_device").enable(false).refresh_item(mainMenu);
