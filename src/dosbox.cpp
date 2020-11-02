@@ -3346,7 +3346,7 @@ void DOSBOX_SetupConfigSections(void) {
     Pmulti_remain->Set_help("see serial1");
     Pmulti_remain->SetBasic(true);
 
-    Pstring = secprop->Add_path("phonebookfile", Property::Changeable::OnlyAtStart, "phonebook-" VERSION ".txt");
+    Pstring = secprop->Add_path("phonebookfile", Property::Changeable::OnlyAtStart, "phonebook-dosbox-x.txt");
     Pstring->Set_help("File used to map fake phone numbers to addresses.");
     Pstring->SetBasic(true);
 
