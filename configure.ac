@@ -144,8 +144,14 @@ if test x$warn_cpp0x = x1; then
     AC_MSG_ERROR([ Your compiler must support C++11 or better ])
 fi
 
+dnl Allow devs to force compile as C++11 as long as this code supports C++11 as a baseline
+AC_ARG_ENABLE(force-cxx11,AC_HELP_STRING([--enable-force-cxx11],[Force compile as C++11]),force_cxx11=yes)
+
 if test x$warn_cpp11 = x1; then
     AC_MSG_WARN([ Your compiler does not support C++14. Currently it is optional. At some point in the future, it will be required ])
+    CFLAGS="$CFLAGS -std=gnu11";
+    CXXFLAGS="$CXXFLAGS -std=gnu++11";
+elif test x$force_cxx11 = xyes; then
     CFLAGS="$CFLAGS -std=gnu11";
     CXXFLAGS="$CXXFLAGS -std=gnu++11";
 else
