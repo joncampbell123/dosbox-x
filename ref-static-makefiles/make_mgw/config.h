@@ -344,8 +344,10 @@
 #endif
 
 
+#if !defined(FLUIDINC)
 #include <cstdint>
 
 typedef uintptr_t Bitu;
 typedef intptr_t Bits;
+#endif
 

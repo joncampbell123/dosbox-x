@@ -24,7 +24,9 @@
  * GLib at ftp://ftp.gtk.org/pub/gtk/.
  */
 
-#if !C_FLUIDSYNTH && defined(WIN32) && !defined(HX_DOS)
+#define FLUIDINC
+#include "config.h"
+#if !C_FLUIDSYNTH && defined(WIN32) && !defined(C_HX_DOS)
 #include "fluid_list.h"
 
 fluid_list_t*

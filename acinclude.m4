@@ -297,8 +297,10 @@ AH_BOTTOM([#if C_HAS_BUILTIN_EXPECT
 dnl These custom typedefs are unnecessary and should be deprecated.
 dnl Linux systems for ages now have had stdint.h to define uint8_t, etc.
 AH_BOTTOM([
+#if !defined(FLUIDINC)
 #include <cstdint>
 
 typedef uintptr_t Bitu;
 typedef intptr_t Bits;
+#endif
 ])

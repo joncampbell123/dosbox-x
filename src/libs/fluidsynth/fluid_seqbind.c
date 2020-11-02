@@ -27,7 +27,9 @@
                http://www.infiniteCD.org/
 */
 
-#if !C_FLUIDSYNTH && defined(WIN32) && !defined(HX_DOS)
+#define FLUIDINC
+#include "config.h"
+#if !C_FLUIDSYNTH && defined(WIN32) && !defined(C_HX_DOS)
 #include "fluidsynth_priv.h"
 #include "fluid_synth.h"
 #include "fluid_midi.h"
