@@ -21,9 +21,13 @@
 #define FLUIDINC
 #include "config.h"
 #if !C_FLUIDSYNTH && defined(WIN32) && !defined(C_HX_DOS)
+#define __WIN32_WINNT _WIN32_WINNT
+#undef _WIN32_WINNT
 #include "fluid_sys.h"
+#define _WIN32_WINNT __WIN32_WINNT
+#undef __WIN32_WINNT
 
-#if (WIN32)
+#if defined(WIN32)
 #include <Winsock2.h>
 #endif
 
