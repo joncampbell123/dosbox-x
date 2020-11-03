@@ -21,11 +21,7 @@
 #define FLUIDINC
 #include "config.h"
 #if !C_FLUIDSYNTH && defined(WIN32) && !defined(C_HX_DOS)
-#define __WIN32_WINNT _WIN32_WINNT
-#undef _WIN32_WINNT
 #include "fluid_sys.h"
-#define _WIN32_WINNT __WIN32_WINNT
-#undef __WIN32_WINNT
 
 #if defined(WIN32)
 #include <Winsock2.h>
@@ -1305,11 +1301,12 @@ static void fluid_server_socket_run (void *data)
     }
     else
     {
-#ifdef IPV6
+      getnameinfo((struct sockaddr *)&addr, sizeof(addr), straddr, sizeof(straddr), NULL, 0, NI_NUMERICHOST);
+/*#ifdef IPV6
       inet_ntop(AF_INET6, &addr.sin6_addr, straddr, sizeof(straddr));
 #else
       inet_ntop(AF_INET, &addr.sin_addr, straddr, sizeof(straddr));
-#endif
+#endif*/
       r = server_socket->func (server_socket->data, client_socket,
                                straddr);
       if (r != 0)
