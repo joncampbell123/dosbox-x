@@ -1301,12 +1301,12 @@ static void fluid_server_socket_run (void *data)
     }
     else
     {
-      getnameinfo((struct sockaddr *)&addr, sizeof(addr), straddr, sizeof(straddr), NULL, 0, NI_NUMERICHOST);
-/*#ifdef IPV6
+#if defined(IPV6) && !defined(__MINGW32__)
       inet_ntop(AF_INET6, &addr.sin6_addr, straddr, sizeof(straddr));
 #else
-      inet_ntop(AF_INET, &addr.sin_addr, straddr, sizeof(straddr));
-#endif*/
+      strcpy(straddr, inet_ntoa(addr.sin_addr));
+      //inet_ntop(AF_INET, &addr.sin_addr, straddr, sizeof(straddr));
+#endif
       r = server_socket->func (server_socket->data, client_socket,
                                straddr);
       if (r != 0)
