@@ -42,8 +42,6 @@ static Bitu call_int2f,call_int2a;
 static std::list<MultiplexHandler*> Multiplex;
 typedef std::list<MultiplexHandler*>::iterator Multiplex_it;
 
-extern RealPt ipx_callback;
-
 const char *Win_NameThatVXD(uint16_t devid) {
 	switch (devid) {
 		case 0x0006:	return "V86MMGR";
@@ -553,10 +551,6 @@ static bool DOS_MultiplexFunctions(void) {
 			reg_ax=0;
 			return true;
 		}
-    case 0x7a00:
-        LOG_MSG("call 2f 7a\n");
-        reg_al=0xff;
-        return true;
     }
 
 	return false;
