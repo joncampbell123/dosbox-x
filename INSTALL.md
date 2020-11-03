@@ -30,11 +30,12 @@ Windows installers for the previous DOSBox-X versions are also available from:
 
 You can easily upgrade from a previous version of DOSBox-X to the new version with the Windows installer. The Windows installer in fact offers an option to automatically upgrade the config file (dosbox-x.conf) to the new version format while keeping all the user-customized settings already made. When you select this (recommended), the config file will include all options of the latest DOSBox-X version and also will keep all the changes already done previously by the user.
 
-Apart from the Windows installers, you can usually find three zip packages for each DOSBox-X version for the Windows platform in the Releases page as an alternative way to install DOSBox-X. These zip files are portable packages containing binaries built with Visual Studio 2019, MinGW 32-bit and MinGW 64-bit (or mingw-w64). For the current DOSBox-X version 0.83.7, the portable zip package for the Visual Studio 2019 builds is available from:
+Apart from the Windows installers, you can usually find three zip packages for each DOSBox-X version for the Windows platform in the Releases page as an alternative way to install DOSBox-X. These zip files are portable packages containing binaries built with Visual Studio 2019, MinGW 32-bit and MinGW 64-bit (or mingw-w64). For the current DOSBox-X version 0.83.7, the portable zip packages for the Visual Studio 2019 builds and the MinGW 32-bit builds are separately available from:
 
 * [dosbox-x-vsbuild-win-20201101082314.zip](https://github.com/joncampbell123/dosbox-x/releases/download/dosbox-x-v0.83.7/dosbox-x-vsbuild-win-20201101082314.zip)
+* [dosbox-x-mingw-win32-20201103082126.zip](https://github.com/joncampbell123/dosbox-x/releases/download/dosbox-x-v0.83.7/dosbox-x-mingw-win32-20201103082126.zip)
 
-For the previous DOSBox-X version 0.83.6 all there portable zip packages are separately available from:
+For the previous DOSBox-X version 0.83.6 all there portable zip packages are available from:
 
 * [dosbox-x-vsbuild-win-20200930224615.zip](https://github.com/joncampbell123/dosbox-x/releases/download/dosbox-x-v0.83.6/dosbox-x-vsbuild-win-20200930224615.zip)
 * [dosbox-x-mingw-win32-20200930224903.zip](https://github.com/joncampbell123/dosbox-x/releases/download/dosbox-x-v0.83.6/dosbox-x-mingw-win32-20200930224903.zip)
@@ -99,9 +100,9 @@ macOS versions earlier than 10.12 (Sierra) are not officially supported. If you 
 
 Besides Windows, Linux and macOS packages, there are also packages released for the DOS operating system. Yes, DOSBox-X can officially run on DOS systems as well, as some DOS users seem to prefer to run DOS applications and games through a DOS emulator. With DOSBox-X running in DOS you are able to emulate another DOS system with a different PC configuration (such as different machine types, video and sound cards etc) that works better for the purpose of the users. But please note that due to the limitations of this environment not all features of DOSBox-X that are available in other platforms can be supported in the DOS version.
 
-The official DOS package is not available for the current DOSBox-X version 0.83.7. For the previous version 0.83.6, the official DOS version is available in the following zip package:
+For the current DOSBox-X version 0.83.7, the official DOS version is available in the following zip package:
 
-* [dosbox-x-mingw-hx-dos-20201001084529.zip](https://github.com/joncampbell123/dosbox-x/releases/download/dosbox-x-v0.83.6/dosbox-x-mingw-hx-dos-20201001084529.zip)
+* [dosbox-x-mingw-hx-dos-20201103155348.zip](https://github.com/joncampbell123/dosbox-x/releases/download/dosbox-x-v0.83.7/dosbox-x-mingw-hx-dos-20201103155348.zip)
 
 The DOS package allows you to run DOSBox-X in a real DOS system (MS-DOS or compatible) with the help of the freely-available [HX DOS Extender](https://github.com/Baron-von-Riedesel/HX), which is already included in the recent DOS release packages. Once you unzip the package you can directly type "DOSBOX-X" to run in DOS. See the README.TXT file inside the DOS package for more information.
 
