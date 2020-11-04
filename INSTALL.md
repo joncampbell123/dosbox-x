@@ -101,7 +101,13 @@ For the current DOSBox-X version 0.83.7, the official DOS version is available i
 
 The DOS package allows you to run DOSBox-X in a real DOS system (MS-DOS or compatible) with the help of the freely-available [HX DOS Extender](https://github.com/Baron-von-Riedesel/HX), which is already included in the recent DOS release packages. Once you unzip the package you can directly type "DOSBOX-X" to run in DOS. See the README.TXT file inside the DOS package for more information.
 
-Note: You may not see DOS packages for some DOSBox-X versions. For example, the DOS package is not available for DOSBox-X version 0.83.1.
+Alternatively, you can run DOSBox-X from a DOS environment using the LOADLIN approach. The alternative DOS package for DOSBox-X 0.83.7 using this approach (made by grapeli) is available from:
+
+https://github.com/joncampbell123/dosbox-x/files/5490534/dosbox-x-dos-0.83.7-loadlin.zip
+
+With this alternative DOS package you can even run DOSBox-X right from DOSBox-X's DOS shell. Start the outside DOSBox-X with the setting ```memsize=127``` (and perhaps also ```fullscreen=true```). Go to the directory where the files are extracted and type ```DOSBOX-X```. Then just wait for DOSBox-X to be automatically loaded within DOSBox-X.
+
+Note: You may not see DOS packages for some DOSBox-X versions. For example, the official DOS package is not available for DOSBox-X version 0.83.1.
 
 ## Source Code Packages (zip or tar.gz)
 
