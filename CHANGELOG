@@ -1,5 +1,7 @@
 0.83.8
-  - 
+  - Fixed Monkey Island CD audio issue with the game
+    The Secret of Monkey Island when talking to pirate
+    in the Scumm Bar. Fix logic per kcgen. (Wengier)
 0.83.7
   - The primary DOSBox-X Wiki is now located at the
     URL: https://dosbox-x.com/wiki (Wengier)

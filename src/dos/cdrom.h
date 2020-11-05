@@ -227,7 +227,9 @@ private:
 		virtual uint32_t   getRate() = 0;
 		virtual uint8_t    getChannels() = 0;
 		virtual int      getLength() = 0;
+		virtual void setAudioPosition(uint32_t pos) = 0;
 		const uint16_t chunkSize = 0;
+		uint32_t audio_pos = UINT32_MAX; // last position when playing audio
 	};
 
     //! \brief Binary file reader for the image
@@ -247,6 +249,7 @@ private:
 		uint32_t          getRate() { return 44100; }
 		uint8_t           getChannels() { return 2; }
 		int             getLength();
+		void setAudioPosition(uint32_t pos) { audio_pos = pos; }
 	private:
 		std::ifstream   *file;
 	};
@@ -267,10 +270,9 @@ private:
 		uint32_t          getRate();
 		uint8_t           getChannels();
 		int             getLength();
+        void setAudioPosition(uint32_t pos) {}
 	private:
 		Sound_Sample    *sample = nullptr;
-		// ensure the first seek isn't cached by starting with an impossibly-large position
-		uint32_t        track_pos = (std::numeric_limits<uint32_t>::max)();
 	};
 
 public:

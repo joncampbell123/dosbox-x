@@ -102,9 +102,10 @@ CDROM_Interface_Image::BinaryFile::~BinaryFile()
 	file = nullptr;
 }
 
-bool CDROM_Interface_Image::BinaryFile::read(uint8_t *buffer, int seek, int count)
+bool CDROM_Interface_Image::BinaryFile::read(uint8_t *buffer, int offset, int count)
 {
-	file->seekg(seek, ios::beg);
+    if (!seek(offset)) return false;
+	file->seekg(offset, ios::beg);
 	file->read((char*)buffer, count);
 	return !(file->fail());
 }
@@ -129,14 +130,21 @@ uint16_t CDROM_Interface_Image::BinaryFile::getEndian()
 
 bool CDROM_Interface_Image::BinaryFile::seek(uint32_t offset)
 {
+	if (static_cast<uint32_t>(file->tellg()) == offset)
+		return true;
 	file->seekg(offset, ios::beg);
 	return !file->fail();
 }
 
 uint16_t CDROM_Interface_Image::BinaryFile::decode(uint8_t *buffer)
 {
+    if (static_cast<uint32_t>(file->tellg()) != audio_pos)
+		if (!seek(audio_pos)) return 0;
+
 	file->read((char*)buffer, chunkSize);
-	return (uint16_t)file->gcount();
+    const uint16_t bytes_read = (uint16_t)file->gcount();
+    audio_pos += bytes_read;
+	return bytes_read;
 }
 
 CDROM_Interface_Image::AudioFile::AudioFile(const char *filename, bool &error)
@@ -182,8 +190,16 @@ bool CDROM_Interface_Image::AudioFile::seek(uint32_t offset)
 	const auto begin = std::chrono::steady_clock::now();
 	#endif
 
+	if (audio_pos == offset) {
+#ifdef DEBUG
+		LOG_MSG("CDROM: seek to %u avoided with position-tracking", offset);
+#endif
+		return true;
+    }
+
 	// Convert the byte-offset to a time offset (milliseconds)
 	const bool result = Sound_Seek(sample, lround(offset/176.4f));
+	audio_pos = result ? offset : UINT32_MAX;
 
 	#ifdef DEBUG
 	const auto end = std::chrono::steady_clock::now();
@@ -196,6 +212,7 @@ bool CDROM_Interface_Image::AudioFile::seek(uint32_t offset)
 uint16_t CDROM_Interface_Image::AudioFile::decode(uint8_t *buffer)
 {
 	const uint16_t bytes = Sound_Decode(sample);
+    audio_pos += bytes;
 	memcpy(buffer, sample->buffer, bytes);
 	return bytes;
 }
@@ -423,6 +440,7 @@ bool CDROM_Interface_Image::PlayAudioSector(unsigned long start, unsigned long l
 
 		// only initialize the player elements if our track is playable
 		if (is_playable) {
+            trackFile->setAudioPosition(offset);
 			const uint8_t channels = trackFile->getChannels();
 			const uint32_t rate = trackFile->getRate();
 
