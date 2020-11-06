@@ -1159,15 +1159,20 @@ continue_1:
 		}
 		else if (packerr&&infix<1&&sec->Get_bool("autoloadfix")) {
 			uint16_t segment;
-			uint16_t blocks = (uint16_t)(64*1024/16);
-			LOG(LOG_DOSMISC,LOG_DEBUG)("Attempting autoloadfix workaround for EXEPACK error");
+			uint16_t blocks = (uint16_t)(1); /* start with one paragraph, resize up later. see if it comes up below the 64KB mark */
 			if (DOS_AllocateMemory(&segment,&blocks)) {
 				DOS_MCB mcb((uint16_t)(segment-1));
-				mcb.SetPSPSeg(0x40); /* FIXME: Wouldn't 0x08, a magic value used to show ownership by MS-DOS, be more appropriate here? */
-				WriteOut("\r\n\033[41;1m\033[1;37;1mDOSBox-X\033[0m Failed to load the executable\r\n\033[41;1m\033[37;1mDOSBox-X\033[0m Now try again with LOADFIX...\r\n");
-				infix=1;
-				Execute(name, args);
-				infix=-1;
+				if (segment < 0x1000) {
+					uint16_t needed = 0x1000 - segment;
+					if (DOS_ResizeMemory(segment,&needed)) {
+						mcb.SetPSPSeg(0x40); /* FIXME: Wouldn't 0x08, a magic value used to show ownership by MS-DOS, be more appropriate here? */
+						LOG(LOG_DOSMISC,LOG_DEBUG)("Attempting autoloadfix workaround for EXEPACK error");
+						WriteOut("\r\n\033[41;1m\033[1;37;1mDOSBox-X\033[0m Failed to load the executable\r\n\033[41;1m\033[37;1mDOSBox-X\033[0m Now try again with LOADFIX...\r\n");
+						infix=1;
+						Execute(name, args);
+						infix=-1;
+					}
+				}
 				DOS_FreeMemory(segment);
 			}
 #if defined (WIN32) && !defined(HX_DOS)
