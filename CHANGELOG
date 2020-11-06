@@ -1,14 +1,19 @@
 0.83.8
-  - autoloadfix changed to allocate only enough memory
-    to keep the executable above the 64KB boundary,
-    instead of blindly allocating 64KB.
-  - Try autoa20fix first, then try autoloadfix next.
+  - Enhanced MODE command so that you can change the
+    number of columns and lines in the screen with the
+    syntax "MODE CON COLS=c LINES=n" (c=80 or 132, and
+    n=25, 43, 50, or 60). The command "MODE CON" will
+    show the current number of columns and lines in the
+    screen as in a real DOS system. (Wengier)
+  - Enhanced A20GATE command to show the current status
+    of the A20 gate when no parameter is given, along
+    with other small improvements. (Wengier)
   - INT 21h DOS=HMA emulation, to enable the A20 gate,
     and autoa20fix, to disable the A20 gate, now checks
     whether the CPU is running in virtual 8086 mode.
     If vm86 detected, the code will control the A20
-    gate by calling the XMS interface instead of
-    directly reading/writing port 92h. This consideration
+    gate by calling the XMS interface instead of direct
+    reading/writing via port 92h. This consideration
     is required for autoa20fix to cooperate with
     Microsoft Windows 3.1. Note that Windows 3.1 does
     not virtualize port 92h. If it did, this workaround
@@ -18,7 +23,13 @@
     "Packed file is corrupt" errors by temporarily
     disabling the A20 gate and running the program
     again. This may provide better support for affected
-    DOS applications than the LOADFIX option.
+    DOS applications than the LOADFIX option. If both
+    autoa20fix and autoloadfix are set, then autoa20fix
+    will be tried first, and if it did not work then
+    autoloadfix will be tried next.
+  - The autoloadfix config option changed to allocate
+    only enough memory to keep the executable above the
+    64KB boundary, instead of blindly allocating 64KB.
   - Fixed menu items "Rescan drive" and "Swap disk" in
     "Drive" menu being reversed. (Wengier)
   - Fixed Monkey Island CD audio issue with the game

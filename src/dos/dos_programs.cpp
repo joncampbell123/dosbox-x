@@ -5590,18 +5590,40 @@ public:
     void Run(void);
 };
 
+bool setlines(const char *mname);
 void MODE::Run(void) {
-    uint16_t rate=0,delay=0,mode;
+    uint16_t rate=0,delay=0,cols=0,lines=0,mode;
     if (!cmd->FindCommand(1,temp_line) || temp_line=="/?") {
         WriteOut(MSG_Get("PROGRAM_MODE_USAGE"));
         return;
     }
     else if (strcasecmp(temp_line.c_str(),"con")==0 || strcasecmp(temp_line.c_str(),"con:")==0) {
-        if (cmd->GetCount()!=3) goto modeparam;
-        if (cmd->FindStringBegin("rate=", temp_line,false)) rate= atoi(temp_line.c_str());
-        if (cmd->FindStringBegin("delay=",temp_line,false)) delay=atoi(temp_line.c_str());
-        if (rate<1 || rate>32 || delay<1 || delay>4) goto modeparam;
-        IO_Write(0x60,0xf3); IO_Write(0x60,(uint8_t)(((delay-1)<<5)|(32-rate)));
+        if (IS_PC98_ARCH) return;
+        int LINES = 25, COLS = 80;
+        LINES=real_readb(BIOSMEM_SEG,BIOSMEM_NB_ROWS)+1;
+        COLS=real_readw(BIOSMEM_SEG,BIOSMEM_NB_COLS);
+        if (cmd->GetCount()<2) {
+            WriteOut("Status for device CON:\n----------------------\nColumns=%d\nLines=%d\n\nCode page operation not supported on this device\n", COLS, LINES);
+            return;
+        }
+        if (cmd->FindStringBegin("rate=", temp_line,false)) rate=atoi(temp_line.c_str());
+        if (cmd->FindStringBegin("delay=", temp_line,false)) delay=atoi(temp_line.c_str());
+        if (cmd->FindStringBegin("cols=", temp_line,false)) cols=atoi(temp_line.c_str()); else cols=COLS;
+        if (cmd->FindStringBegin("lines=",temp_line,false)) lines=atoi(temp_line.c_str()); else lines=LINES;
+        bool optr=cmd->FindStringBegin("rate=", temp_line,true), optd=cmd->FindStringBegin("delay=",temp_line,true), optc=cmd->FindStringBegin("cols=", temp_line,true), optl=cmd->FindStringBegin("lines=",temp_line,true);
+        if (optr&&!optd||optd&&!optr) {
+            WriteOut("Rate and delay must be specified together\n");
+            return;
+        }
+        if (cmd->GetCount()>1) goto modeparam;
+        if (optr&&optd) {
+            if (rate<1 || rate>32 || delay<1 || delay>4) goto modeparam;
+            IO_Write(0x60,0xf3); IO_Write(0x60,(uint8_t)(((delay-1)<<5)|(32-rate)));
+        }
+        if ((optc||optl)&&(cols!=COLS||lines!=LINES)) {
+            std::string cmd="line_"+std::to_string(cols)+"x"+std::to_string(lines);
+            if (!setlines(cmd.c_str())) goto modeparam;
+        }
         return;
     }
     else if (cmd->GetCount()>1) goto modeparam;
@@ -6841,6 +6863,7 @@ void DOS_SetupPrograms(void) {
     MSG_Add("PROGRAM_MODE_USAGE","Configures system devices.\n\n"
             "\033[34;1mMODE\033[0m display-type       :display-type codes are "
             "\033[1mCO80\033[0m, \033[1mBW80\033[0m, \033[1mCO40\033[0m, \033[1mBW40\033[0m, or \033[1mMONO\033[0m\n"
+            "\033[34;1mMODE CON COLS=\033[0mc \033[34;1mLINES=\033[0mn :columns and lines, c=80 or 132, n=25, 43, 50, or 60\n"
             "\033[34;1mMODE CON RATE=\033[0mr \033[34;1mDELAY=\033[0md :typematic rates, r=1-32 (32=fastest), d=1-4 (1=lowest)\n");
     MSG_Add("PROGRAM_MODE_INVALID_PARAMETERS","Invalid parameter(s).\n");
 

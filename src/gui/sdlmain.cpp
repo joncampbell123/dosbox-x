@@ -8484,12 +8484,7 @@ bool intensity_menu_callback(DOSBoxMenu * const menu,DOSBoxMenu::item * const me
     return true;
 }
 
-bool lines_menu_callback(DOSBoxMenu * const menu,DOSBoxMenu::item * const menuitem) {
-    (void)menu;//UNUSED
-    clear_menu_callback(menu, menuitem);
-    const char *mname = menuitem->get_name().c_str();
-    if (IS_PC98_ARCH||(CurMode->mode>7&&CurMode->mode!=0x0043&&CurMode->mode!=0x0054&&CurMode->mode!=0x0055&&CurMode->mode!=0x0064))
-        return true;
+bool setlines(const char *mname) {
     uint16_t oldax=reg_ax, oldbx=reg_bx, oldcx=reg_cx;
     if (!strcmp(mname, "line_80x25")) {
         reg_ax = 0x0003;
@@ -8526,10 +8521,20 @@ bool lines_menu_callback(DOSBoxMenu * const menu,DOSBoxMenu::item * const menuit
         reg_ax = 0x0064;
         CALLBACK_RunRealInt(0x10);
     } else
-        return true;
+        return false;
     reg_ax = oldax;
     reg_bx = oldbx;
     reg_cx = oldcx;
+    return true;
+}
+
+bool lines_menu_callback(DOSBoxMenu * const menu,DOSBoxMenu::item * const menuitem) {
+    (void)menu;//UNUSED
+    clear_menu_callback(menu, menuitem);
+    const char *mname = menuitem->get_name().c_str();
+    if (IS_PC98_ARCH||(CurMode->mode>7&&CurMode->mode!=0x0043&&CurMode->mode!=0x0054&&CurMode->mode!=0x0055&&CurMode->mode!=0x0064))
+        return true;
+    if (!setlines(mname)) return true;
     if (!dos_kernel_disabled && !strcmp(RunningProgram, "COMMAND")) {
         DOS_Shell temp;
         temp.exit = true;

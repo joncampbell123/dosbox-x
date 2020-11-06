@@ -3662,7 +3662,7 @@ void DOSBOX_SetupConfigSections(void) {
 
     Pbool = secprop->Add_bool("autoa20fix",Property::Changeable::WhenIdle,true);
     Pbool->Set_help("If set (default), DOSBox-X will automatically re-run the executable with the A20 gate disabled if it failed with the \"Packed file is corrupt\" error.\n"
-                    "If both autoa20fix and autoloadfix are set, the former will be tried first, and then the latter.");
+                    "If both autoa20fix and autoloadfix are set, then the former will be tried first, and the latter will be tried if the former did not work.");
 
     Pbool = secprop->Add_bool("autoloadfix",Property::Changeable::WhenIdle,true);
     Pbool->Set_help("If set (default), DOSBox-X will automatically re-run the executable with LOADFIX if it failed with the \"Packed file is corrupt\" error.");

@@ -50,7 +50,7 @@
 #include "SDL_syswm.h"
 
 #ifdef DOSBOXMENU_EXTERNALLY_MANAGED
-static DOSBoxMenu guiMenu;
+static DOSBoxMenu guiMenu, nullMenu;
 #endif
 
 /* helper class for command execution */
@@ -92,7 +92,7 @@ static bool                 shortcut=false;
 static SDL_Surface*         screenshot = NULL;
 static SDL_Surface*         background = NULL;
 #ifdef DOSBOXMENU_EXTERNALLY_MANAGED
-static bool                 gui_menu_init = true;
+static bool                 gui_menu_init = true, null_menu_init = true;
 #endif
 int                         shortcutid = -1;
 void                        GFX_GetSizeAndPos(int &x,int &y,int &width, int &height, bool &fullscreen);
@@ -342,13 +342,13 @@ static GUI::ScreenSDL *UI_Startup(GUI::ScreenSDL *screen) {
 
         {
             DOSBoxMenu::item &item = guiMenu.alloc_item(DOSBoxMenu::submenu_type_id,"ConfigGuiMenu");
-            item.set_text("Configuration GUI");
+            item.set_text("Configuration Tool");
         }
 
         {
             DOSBoxMenu::item &item = guiMenu.alloc_item(DOSBoxMenu::item_type_id,"ExitGUI");
             item.set_callback_function(gui_menu_exit);
-            item.set_text("Exit configuration GUI");
+            item.set_text("Exit configuration Tool");
         }
 
         guiMenu.displaylist_clear(guiMenu.display_list);
@@ -363,7 +363,21 @@ static GUI::ScreenSDL *UI_Startup(GUI::ScreenSDL *screen) {
         }
     }
 
-    static DOSBoxMenu nullMenu;
+    if (null_menu_init) {
+        null_menu_init = false;
+
+        {
+            DOSBoxMenu::item &item = nullMenu.alloc_item(DOSBoxMenu::submenu_type_id,"ConfigGuiMenu");
+            item.set_text("");
+        }
+
+        nullMenu.displaylist_clear(nullMenu.display_list);
+
+        nullMenu.displaylist_append(
+                nullMenu.display_list,
+                nullMenu.get_item_id_by_name("ConfigGuiMenu"));
+    }
+
     if (!shortcut || shortcutid<16) {
         guiMenu.rebuild();
         DOSBox_SetMenu(guiMenu);
