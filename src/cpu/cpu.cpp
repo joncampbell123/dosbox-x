@@ -3004,6 +3004,8 @@ static void CPU_ToggleAutoCycles(bool pressed) {
 
 #if !defined(C_EMSCRIPTEN)
 bool CPU_ToggleFullCore(DOSBoxMenu * const menu, DOSBoxMenu::item * const menuitem) {
+    (void)menuitem;
+    (void)menu;
     Section* sec=control->GetSection("cpu");
     if(sec) {
 	std::string tmp="core=full";
@@ -3013,6 +3015,8 @@ bool CPU_ToggleFullCore(DOSBoxMenu * const menu, DOSBoxMenu::item * const menuit
 }
 
 bool CPU_ToggleSimpleCore(DOSBoxMenu * const menu, DOSBoxMenu::item * const menuitem) {
+    (void)menuitem;
+    (void)menu;
     Section* sec=control->GetSection("cpu");
     std::string tmp="core=simple";
     if(sec) {
