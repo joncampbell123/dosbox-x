@@ -1226,6 +1226,7 @@ void GFX_SetTitle(int32_t cycles, int frameskip, Bits timing, bool paused) {
 
 bool warn_on_mem_write = false;
 
+void GFX_ReleaseMouse();
 void CPU_Snap_Back_To_Real_Mode();
 #if !defined(HX_DOS)
 bool quitmessagebox(char const * aTitle, char const * aMessage, char const * aDialogType, char const * aIconType, int aDefaultButton) {
@@ -1241,6 +1242,9 @@ bool CheckQuit(void) {
 #if !defined(HX_DOS)
     Section_prop *section = static_cast<Section_prop *>(control->GetSection("dosbox"));
     std::string warn = section->Get_string("quit warning");
+    if (sdl.desktop.fullscreen) GFX_SwitchFullScreen();
+    MAPPER_ReleaseAllKeys();
+    GFX_ReleaseMouse();
     if (warn == "true")
         return quitmessagebox("Quit DOSBox-X warning","This will quit from DOSBox-X.\nAre you sure?","yesno", "question", 1);
     else if (warn == "false")
