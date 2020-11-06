@@ -1242,6 +1242,7 @@ bool CheckQuit(void) {
 #if !defined(HX_DOS)
     Section_prop *section = static_cast<Section_prop *>(control->GetSection("dosbox"));
     std::string warn = section->Get_string("quit warning");
+    if (sdl.desktop.fullscreen) GFX_SwitchFullScreen();
     MAPPER_ReleaseAllKeys();
     GFX_ReleaseMouse();
     if (warn == "true")
