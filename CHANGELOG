@@ -1,4 +1,7 @@
 0.83.8
+  - autoloadfix changed to allocate only enough memory
+    to keep the executable above the 64KB boundary,
+    instead of blindly allocating 64KB.
   - Try autoa20fix first, then try autoloadfix next.
   - INT 21h DOS=HMA emulation, to enable the A20 gate,
     and autoa20fix, to disable the A20 gate, now checks
