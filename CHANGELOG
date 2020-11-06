@@ -1,4 +1,5 @@
 0.83.8
+  - Try autoa20fix first, then try autoloadfix next.
   - INT 21h DOS=HMA emulation, to enable the A20 gate,
     and autoa20fix, to disable the A20 gate, now checks
     whether the CPU is running in virtual 8086 mode.
