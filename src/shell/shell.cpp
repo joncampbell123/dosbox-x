@@ -518,7 +518,9 @@ void DOS_Shell::Run(void) {
         } else if (CurMode->type==M_TEXT || IS_PC98_ARCH)
             WriteOut("[2J");
 		if (!countryNo) {
+#if defined(WIN32)
 			char buffer[128];
+#endif
             if (IS_PC98_ARCH)
                 countryNo = 81;
 #if defined(WIN32)

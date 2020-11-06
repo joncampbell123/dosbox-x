@@ -270,7 +270,7 @@ private:
 		uint32_t          getRate();
 		uint8_t           getChannels();
 		int             getLength();
-        void setAudioPosition(uint32_t pos) {}
+        void setAudioPosition(uint32_t pos) { (void)pos;/*unused*/ }
 	private:
 		Sound_Sample    *sample = nullptr;
 	};
