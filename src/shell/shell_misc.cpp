@@ -884,10 +884,11 @@ overflow:
 	WriteOut("Command input error: string expansion overflow\n");
 }
 
+int infix=-1;
 std::string full_arguments = "";
 intptr_t hret=0;
 bool dos_a20_disable_on_exec=false;
-bool infix=false, winautorun=false;
+bool winautorun=false;
 extern bool packerr, reqwin, startwait, startquiet, ctrlbrk, mountwarning;
 #if defined (WIN32) && !defined(HX_DOS)
 void EndRunProcess() {
@@ -1147,24 +1148,26 @@ continue_1:
 		reg_eip=oldeip;
 		SegSet16(cs,oldcs);
 #endif
-		if (packerr&&!infix&&sec->Get_bool("autoa20fix")) {
+		if (packerr&&infix<0&&sec->Get_bool("autoa20fix")) {
+			LOG(LOG_DOSMISC,LOG_DEBUG)("Attempting autoa20fix workaround for EXEPACK error");
 			WriteOut("\r\n\033[41;1m\033[1;37;1mDOSBox-X\033[0m Failed to load the executable\r\n\033[41;1m\033[37;1mDOSBox-X\033[0m Now try again with A20 disable...\r\n");
-			infix=true;
+			infix=0;
 			dos_a20_disable_on_exec=true;
 			Execute(name, args);
 			dos_a20_disable_on_exec=false;
-			infix=false;
+			infix=-1;
 		}
-		else if (packerr&&!infix&&sec->Get_bool("autoloadfix")) {
+		else if (packerr&&infix<1&&sec->Get_bool("autoloadfix")) {
 			uint16_t segment;
 			uint16_t blocks = (uint16_t)(64*1024/16);
+			LOG(LOG_DOSMISC,LOG_DEBUG)("Attempting autoloadfix workaround for EXEPACK error");
 			if (DOS_AllocateMemory(&segment,&blocks)) {
 				DOS_MCB mcb((uint16_t)(segment-1));
 				mcb.SetPSPSeg(0x40);
 				WriteOut("\r\n\033[41;1m\033[1;37;1mDOSBox-X\033[0m Failed to load the executable\r\n\033[41;1m\033[37;1mDOSBox-X\033[0m Now try again with LOADFIX...\r\n");
-				infix=true;
+				infix=1;
 				Execute(name, args);
-				infix=false;
+				infix=-1;
 				DOS_FreeMemory(segment);
 			}
 #if defined (WIN32) && !defined(HX_DOS)
