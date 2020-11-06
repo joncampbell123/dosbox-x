@@ -540,12 +540,10 @@ Bitu OUTPUT_OPENGL_SetSize()
     }
 #endif
 
-    if (!sdl.desktop.fullscreen)
-        glViewport(0, 0, sdl.surface->w, sdl.surface->h);
-    else if (sdl_opengl.use_shader)
+    if (sdl.desktop.fullscreen&&sdl_opengl.use_shader)
         glViewport((sdl.surface->w-sdl.clip.w)/2,(sdl.surface->h-sdl.clip.h)/2,sdl.clip.w,sdl.clip.h);
     else
-        glViewport(sdl.clip.x,sdl.clip.y,sdl.clip.w,sdl.clip.h);
+        glViewport(0, 0, sdl.surface->w, sdl.surface->h);
     if (sdl_opengl.texture > 0) glDeleteTextures(1, &sdl_opengl.texture);
     glGenTextures(1, &sdl_opengl.texture);
     glBindTexture(GL_TEXTURE_2D, sdl_opengl.texture);
