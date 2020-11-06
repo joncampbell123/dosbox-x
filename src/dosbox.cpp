@@ -3661,12 +3661,11 @@ void DOSBOX_SetupConfigSections(void) {
     Pstring->SetBasic(true);
 
     Pbool = secprop->Add_bool("autoa20fix",Property::Changeable::WhenIdle,true);
-    Pbool->Set_help("If set (default), DOSBox-X will automatically re-run the executable with the A20 gate disabled if it failed with the \"Packed file is corrupt\" error.");
-    Pbool->SetBasic(true);
+    Pbool->Set_help("If set (default), DOSBox-X will automatically re-run the executable with the A20 gate disabled if it failed with the \"Packed file is corrupt\" error.\n"
+                    "If both autoa20fix and autoloadfix are set, the former will be tried first, and then the latter.");
 
     Pbool = secprop->Add_bool("autoloadfix",Property::Changeable::WhenIdle,true);
     Pbool->Set_help("If set (default), DOSBox-X will automatically re-run the executable with LOADFIX if it failed with the \"Packed file is corrupt\" error.");
-    Pbool->SetBasic(true);
 
     Pbool = secprop->Add_bool("automount",Property::Changeable::WhenIdle,true);
     Pbool->Set_help("Enable automatic drive mounting in Windows.");
@@ -3696,7 +3695,7 @@ void DOSBOX_SetupConfigSections(void) {
     Pstring->Set_help("START command will start these commands (separated by space) in a console and wait for a key press before exiting.");
 
     Pbool = secprop->Add_bool("int33",Property::Changeable::WhenIdle,true);
-    Pbool->Set_help("Enable INT 33H (mouse) support.");
+    Pbool->Set_help("Enable INT 33H for mouse support.");
     Pbool->SetBasic(true);
 
     Pbool = secprop->Add_bool("int33 hide host cursor if interrupt subroutine",Property::Changeable::WhenIdle,true);
