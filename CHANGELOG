@@ -1,4 +1,6 @@
 0.83.8
+  - Fixed menu items "Rescan drive" and "Swap disk" in
+    "Drive" menu being reversed. (Wengier)
   - Fixed Monkey Island CD audio issue with the game
     The Secret of Monkey Island when talking to pirate
     in the Scumm Bar. Fix logic per kcgen. (Wengier)
