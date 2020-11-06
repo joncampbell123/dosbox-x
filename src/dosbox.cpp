@@ -3660,6 +3660,10 @@ void DOSBOX_SetupConfigSections(void) {
                       "If set to autostart, the builtin VER command won't activate/disactivate LFN support according to the reported DOS version.");
     Pstring->SetBasic(true);
 
+    Pbool = secprop->Add_bool("autoa20fix",Property::Changeable::WhenIdle,true);
+    Pbool->Set_help("If set (default), DOSBox-X will automatically re-run the executable with the A20 gate disabled if it failed with the \"Packed file is corrupt\" error.");
+    Pbool->SetBasic(true);
+
     Pbool = secprop->Add_bool("autoloadfix",Property::Changeable::WhenIdle,true);
     Pbool->Set_help("If set (default), DOSBox-X will automatically re-run the executable with LOADFIX if it failed with the \"Packed file is corrupt\" error.");
     Pbool->SetBasic(true);
