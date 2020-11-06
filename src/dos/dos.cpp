@@ -536,6 +536,7 @@ bool disk_io_unmask_irq0 = true;
 bool dos_program_running = false;
 
 void XMS_DOS_LocalA20EnableIfNotEnabled(void);
+void XMS_DOS_LocalA20EnableIfNotEnabled_XMSCALL(void);
 
 typedef struct {
 	UINT16 size_of_structure;
@@ -567,8 +568,12 @@ static Bitu DOS_21Handler(void) {
      *   If HIMEM.SYS is loaded and CONFIG.SYS says DOS=HIGH, DOS will load itself into the HMA area.
      *   To prevent crashes, the INT 21h handler down below will enable the A20 gate before executing
      *   the DOS kernel. */
-    if (DOS_IS_IN_HMA())
-        XMS_DOS_LocalA20EnableIfNotEnabled();
+    if (DOS_IS_IN_HMA()) {
+        if (cpu.pmode && ((GETFLAG_IOPL<cpu.cpl) || GETFLAG(VM))) /* virtual 8086 mode */
+            XMS_DOS_LocalA20EnableIfNotEnabled_XMSCALL();
+        else
+            XMS_DOS_LocalA20EnableIfNotEnabled();
+    }
 
     if (((reg_ah != 0x50) && (reg_ah != 0x51) && (reg_ah != 0x62) && (reg_ah != 0x64)) && (reg_ah<0x6c)) {
         DOS_PSP psp(dos.psp());
