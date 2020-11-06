@@ -379,8 +379,10 @@ static inline void overhead() {
 #define BCD2BIN(x)	((((unsigned int)(x) >> 4u) * 10u) + ((x) & 0x0fu))
 #define BIN2BCD(x)	((((x) / 10u) << 4u) + (x) % 10u)
 extern bool date_host_forced;
+extern bool dos_a20_disable_on_exec;
 
 static Bitu DOS_21Handler(void);
+void XMS_DOS_LocalA20DisableIfNotEnabled(void);
 void DOS_Int21_7139(char *name1, const char *name2);
 void DOS_Int21_713a(char *name1, const char *name2);
 void DOS_Int21_713b(char *name1, const char *name2);
@@ -1610,6 +1612,13 @@ static Bitu DOS_21Handler(void) {
         case 0x4b:                  /* EXEC Load and/or execute program */
             {
                 MEM_StrCopy(SegPhys(ds)+reg_dx,name1,DOSNAMEBUF);
+
+                /* A20 hack for EXEPACK'd executables */
+                if (dos_a20_disable_on_exec) {
+                    XMS_DOS_LocalA20DisableIfNotEnabled();
+                    dos_a20_disable_on_exec=false;
+                }
+
                 LOG(LOG_EXEC,LOG_NORMAL)("Execute %s %d",name1,reg_al);
                 if (!DOS_Execute(name1,SegPhys(es)+reg_bx,reg_al)) {
                     reg_ax=dos.errorcode;

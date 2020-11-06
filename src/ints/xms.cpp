@@ -398,6 +398,15 @@ Bitu XMS_LocalDisableA20(void) {
     return 0;
 }
 
+void XMS_DOS_LocalA20DisableIfNotEnabled(void) {
+    /* This is one of two hacks to deal with EXEPACK'd executables loaded too low */
+    if (XMS_GetEnabledA20()) {
+        LOG(LOG_DOSMISC,LOG_DEBUG)("Temporarily disabling A20 gate. As a hack this will FORCE local A20 enable to zero (from count=%d)",xms_local_enable_count);
+        xms_local_enable_count = 1;
+        XMS_LocalDisableA20();
+    }
+}
+
 void XMS_DOS_LocalA20EnableIfNotEnabled(void) {
     /* Confirmed MS-DOS behavior if DOS=HIGH */
     if (!XMS_GetEnabledA20()) {

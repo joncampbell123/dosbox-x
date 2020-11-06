@@ -747,6 +747,7 @@ void DOS_Shell::InputCommand(char * line) {
 	ProcessCmdLineEnvVarStitution(line);
 }
 
+void XMS_DOS_LocalA20DisableIfNotEnabled(void);
 
 /* WARNING: Substitution is carried out in-place!
  * Buffer pointed to by "line" must be at least CMD_MAXLINE+1 bytes long! */
@@ -885,6 +886,7 @@ overflow:
 
 std::string full_arguments = "";
 intptr_t hret=0;
+bool dos_a20_disable_on_exec=false;
 bool infix=false, winautorun=false;
 extern bool packerr, reqwin, startwait, startquiet, ctrlbrk, mountwarning;
 #if defined (WIN32) && !defined(HX_DOS)
@@ -1145,7 +1147,15 @@ continue_1:
 		reg_eip=oldeip;
 		SegSet16(cs,oldcs);
 #endif
-		if (packerr&&!infix&&sec->Get_bool("autoloadfix")) {
+		if (packerr&&!infix&&sec->Get_bool("autoa20fix")) {
+			WriteOut("\r\n\033[41;1m\033[1;37;1mDOSBox-X\033[0m Failed to load the executable\r\n\033[41;1m\033[37;1mDOSBox-X\033[0m Now try again with A20 disable...\r\n");
+			infix=true;
+			dos_a20_disable_on_exec=true;
+			Execute(name, args);
+			dos_a20_disable_on_exec=false;
+			infix=false;
+		}
+		else if (packerr&&!infix&&sec->Get_bool("autoloadfix")) {
 			uint16_t segment;
 			uint16_t blocks = (uint16_t)(64*1024/16);
 			if (DOS_AllocateMemory(&segment,&blocks)) {
