@@ -103,8 +103,9 @@ int maxfcb=100;
 int maxdrive=1;
 int enablelfn=-1;
 bool uselfn;
+extern int infix;
 extern bool int15_wait_force_unmask_irq;
-extern bool infix, winrun, startcmd, startwait, startquiet, winautorun;
+extern bool winrun, startcmd, startwait, startquiet, winautorun;
 extern bool startup_state_numlock, mountwarning, clipboard_dosapi;
 std::string startincon;
 
@@ -3191,7 +3192,7 @@ public:
         }
 	}
 	~DOS(){
-		infix=false;
+		infix=-1;
 #if defined(WIN32) && !defined(HX_DOS)
 		if (startwait) {
 			void EndStartProcess(), EndRunProcess();

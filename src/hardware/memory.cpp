@@ -1609,7 +1609,13 @@ class A20GATE : public Program {
 public:
     /*! \brief      Program entry point, when the command is run */
     void Run(void) {
-        if (cmd->FindString("SET",temp_line,false)) {
+        if (cmd->FindExist("-?", false) || cmd->FindExist("/?", false)) {
+            WriteOut("Turns on/off or changes the A20 gate mode.\n\n");
+            WriteOut("A20GATE [ON | OFF | SET [off | off_fake | on | on_fake | mask | fast]]\n\n"
+                    "  [ON | OFF | SET] Turns the A20 gate ON/OFF, or sets the A20 gate mode.\n\n"
+                    "Type A20GATE with no parameters to display the current A20 gate status.\n");
+        }
+        else if (cmd->FindString("SET",temp_line,false)) {
             char *x = (char*)temp_line.c_str();
 
             a20_fast_changeable = false;
@@ -1621,56 +1627,54 @@ public:
                 MEM_A20_Enable(false);
                 a20_guest_changeable = false;
                 a20_fake_changeable = true;
-                WriteOut("A20 gate now off_fake mode\n");
+                WriteOut("A20 gate is now in off_fake mode.\n");
             }
             else if (!strncasecmp(x,"off",3)) {
                 MEM_A20_Enable(false);
                 a20_guest_changeable = false;
                 a20_fake_changeable = false;
-                WriteOut("A20 gate now off mode\n");
+                WriteOut("A20 gate is now in off mode.\n");
             }
             else if (!strncasecmp(x,"on_fake",7)) {
                 MEM_A20_Enable(true);
                 a20_guest_changeable = false;
                 a20_fake_changeable = true;
-                WriteOut("A20 gate now on_fake mode\n");
+                WriteOut("A20 gate is now in on_fake mode.\n");
             }
             else if (!strncasecmp(x,"on",2)) {
                 MEM_A20_Enable(true);
                 a20_guest_changeable = false;
                 a20_fake_changeable = false;
-                WriteOut("A20 gate now on mode\n");
+                WriteOut("A20 gate is now in on mode.\n");
             }
             else if (!strncasecmp(x,"mask",4)) {
                 MEM_A20_Enable(false);
                 a20_guest_changeable = true;
                 a20_fake_changeable = false;
                 memory.a20.enabled = 0;
-                WriteOut("A20 gate now mask mode\n");
+                WriteOut("A20 gate is now in mask mode.\n");
             }
             else if (!strncasecmp(x,"fast",4)) {
                 MEM_A20_Enable(false);
                 a20_guest_changeable = true;
                 a20_fake_changeable = false;
                 a20_fast_changeable = true;
-                WriteOut("A20 gate now fast mode\n");
+                WriteOut("A20 gate is now in fast mode\n");
             }
             else {
-                WriteOut("Unknown setting\n");
+                WriteOut("Unknown setting - %s\n", x);
             }
         }
         else if (cmd->FindExist("ON")) {
+            WriteOut("Enabling A20 gate...\n");
             MEM_A20_Enable(true);
-            WriteOut("Enabling A20 gate\n");
         }
         else if (cmd->FindExist("OFF")) {
+            WriteOut("Disabling A20 gate...\n");
             MEM_A20_Enable(false);
-            WriteOut("Disabling A20 gate\n");
         }
         else {
-			WriteOut("Turns on/off or changes the A20 gate mode.\n\n");
-            WriteOut("A20GATE SET [off | off_fake | on | on_fake | mask | fast]\n");
-            WriteOut("A20GATE [ON | OFF]\n");
+            WriteOut("A20 gate is currently %s.\n", MEM_A20_Enabled()?"ON":"OFF");
         }
     }
 };

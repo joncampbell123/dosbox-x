@@ -1150,7 +1150,7 @@ continue_1:
 #endif
 		if (packerr&&infix<0&&sec->Get_bool("autoa20fix")) {
 			LOG(LOG_DOSMISC,LOG_DEBUG)("Attempting autoa20fix workaround for EXEPACK error");
-			WriteOut("\r\n\033[41;1m\033[1;37;1mDOSBox-X\033[0m Failed to load the executable\r\n\033[41;1m\033[37;1mDOSBox-X\033[0m Now try again with A20 disable...\r\n");
+			WriteOut("\r\n\033[41;1m\033[1;37;1mDOSBox-X\033[0m Failed to load the executable\r\n\033[41;1m\033[37;1mDOSBox-X\033[0m Now try again with A20 fix...\r\n");
 			infix=0;
 			dos_a20_disable_on_exec=true;
 			Execute(name, args);
