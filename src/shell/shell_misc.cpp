@@ -1163,7 +1163,7 @@ continue_1:
 			LOG(LOG_DOSMISC,LOG_DEBUG)("Attempting autoloadfix workaround for EXEPACK error");
 			if (DOS_AllocateMemory(&segment,&blocks)) {
 				DOS_MCB mcb((uint16_t)(segment-1));
-				mcb.SetPSPSeg(0x40);
+				mcb.SetPSPSeg(0x40); /* FIXME: Wouldn't 0x08, a magic value used to show ownership by MS-DOS, be more appropriate here? */
 				WriteOut("\r\n\033[41;1m\033[1;37;1mDOSBox-X\033[0m Failed to load the executable\r\n\033[41;1m\033[37;1mDOSBox-X\033[0m Now try again with LOADFIX...\r\n");
 				infix=1;
 				Execute(name, args);
