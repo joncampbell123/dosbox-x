@@ -1407,8 +1407,7 @@ void On_Software_CPU_Reset() {
 #if C_DYNAMIC_X86
     /* this technique is NOT reliable when running the dynamic core! */
     if (cpudecoder == &CPU_Core_Dyn_X86_Run) {
-        E_Exit("C++ exception method is not compatible with dynamic core when emulating reset, aborting");
-        return;
+        LOG_MSG("Warning: C++ exception method is not compatible with dynamic core when emulating reset");
     }
 #endif
 
