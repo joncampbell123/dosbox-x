@@ -1,7 +1,11 @@
 0.83.8
+  - Configuration Tool now provides the option to save
+    to the primary or user config files. (Wengier)
   - Added menu item "Show IDE disk or CD status" under
     "DOS" menu to show the current assignments (disk or
     CD image) of the IDE controllers. (Wengier)
+  - Fixed IDE CD assignment may not be reset when soft
+    reboots are activated from guest systems. (Wengier)
   - Enhanced MODE command so that you can change the
     number of columns and lines in the screen with the
     syntax "MODE CON COLS=c LINES=n" (c=80 or 132, and
@@ -11,8 +15,6 @@
   - Enhanced A20GATE command to show the current status
     of the A20 gate when no parameter is given, along
     with other small improvements. (Wengier)
-  - Fixed IDE CD assignment may not be reset when soft
-    reboots are activated from guest systems. (Wengier)
   - INT 21h DOS=HMA emulation, to enable the A20 gate,
     and autoa20fix, to disable the A20 gate, now checks
     whether the CPU is running in virtual 8086 mode.
