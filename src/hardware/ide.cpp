@@ -2321,6 +2321,24 @@ char * GetIDEPosition(unsigned char bios_disk_index) {
     return (char*)("");
 }
 
+std::string info="";
+std::string GetIDEInfo() {
+    info="";
+    for (int index = 0; index < MAX_IDE_CONTROLLERS; index++) {
+        IDEController *c = GetIDEController(index);
+        if (c)
+        for (int slave = 0; slave < 2; slave++) {
+            IDEATADevice *dev = dynamic_cast<IDEATADevice*>(c->device[slave]);
+            info+="IDE position "+std::to_string(index+1)+(slave?'s':'m')+": ";
+            if (dynamic_cast<IDEATADevice*>(c->device[slave])) info+="disk image";
+            else if (dynamic_cast<IDEATAPICDROMDevice*>(c->device[slave])) info+="CD image";
+            else info+="none";
+            info+="\n";
+        }
+    }
+    return info;
+}
+
 static IDEController* GetIDEController(Bitu idx) {
     if (idx >= MAX_IDE_CONTROLLERS) return NULL;
     return idecontroller[idx];

@@ -1,4 +1,7 @@
 0.83.8
+  - Added menu item "Show IDE disk or CD status" under
+    "DOS" menu to show the current assignments (disk or
+    CD image) of the IDE controllers. (Wengier)
   - Enhanced MODE command so that you can change the
     number of columns and lines in the screen with the
     syntax "MODE CON COLS=c LINES=n" (c=80 or 132, and

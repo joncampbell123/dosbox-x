@@ -454,6 +454,7 @@ static const char *def_menu_dos[] =
     "--",
     "mapper_rescanall",
     "list_drivenum",
+    "list_ideinfo",
 #if C_PRINTER || C_DEBUG
     "--",
 #endif

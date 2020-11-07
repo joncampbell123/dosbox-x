@@ -1556,6 +1556,7 @@ public:
                 new GUI::Label(this, 40, r, line.c_str());
             }
             (new GUI::Button(this, 140, r+30, "Close", 70))->addActionHandler(this);
+            resize(350, r+110);
     }
 
     void actionExecuted(GUI::ActionEventSource *b, const GUI::String &arg) {
@@ -1740,6 +1741,31 @@ public:
             new GUI::Label(this, 40, 25*(index+1), std::to_string(index) + " - " + str);
         }
         (new GUI::Button(this, 190, 25*(MAX_DISK_IMAGES+1)+5, "Close", 70))->addActionHandler(this);
+    }
+
+    void actionExecuted(GUI::ActionEventSource *b, const GUI::String &arg) {
+        (void)b;//UNUSED
+        if (arg == "Close")
+            close();
+        if (shortcut) running = false;
+    }
+};
+
+class ShowIDEInfo : public GUI::ToplevelWindow {
+protected:
+    GUI::Input *name;
+public:
+    ShowIDEInfo(GUI::Screen *parent, int x, int y, const char *title) :
+        ToplevelWindow(parent, x, y, 300, 210, title) {
+            std::string GetIDEInfo();
+            std::istringstream in(GetIDEInfo().c_str());
+            int r=0;
+            if (in)	for (std::string line; std::getline(in, line); ) {
+                r+=25;
+                new GUI::Label(this, 40, r, line.c_str());
+            }
+            (new GUI::Button(this, 110, r+30, "Close", 70))->addActionHandler(this);
+            resize(300, r+110);
     }
 
     void actionExecuted(GUI::ActionEventSource *b, const GUI::String &arg) {
@@ -2173,12 +2199,16 @@ static void UI_Select(GUI::ScreenSDL *screen, int select) {
             auto *np7 = new ShowLoadWarning(screen, 150, 120, "Are you sure to remove the state in this slot?");
             np7->raise();
             } break;
-        case 32: if (statusdrive>-1 && statusdrive<DOS_DRIVES && Drives[statusdrive]) {
-            auto *np9 = new ShowDriveInfo(screen, 120, 50, "Drive Information");
+        case 31: if (statusdrive>-1 && statusdrive<DOS_DRIVES && Drives[statusdrive]) {
+            auto *np8 = new ShowDriveInfo(screen, 120, 50, "Drive information");
+            np8->raise();
+            } break;
+        case 32: {
+            auto *np9 = new ShowDriveNumber(screen, 110, 70, "Mounted drive numbers");
             np9->raise();
             } break;
         case 33: {
-            auto *np10 = new ShowDriveNumber(screen, 110, 70, "Mounted Drive Numbers");
+            auto *np10 = new ShowIDEInfo(screen, 150, 70, "IDE controller assignment");
             np10->raise();
             } break;
         case 34: {
@@ -2186,8 +2216,8 @@ static void UI_Select(GUI::ScreenSDL *screen, int select) {
             np11->raise();
             } break;
         case 35: {
-            auto *np11 = new ShowHelpAbout(screen, 110, 70, "About");
-            np11->raise();
+            auto *np12 = new ShowHelpAbout(screen, 110, 70, "About");
+            np12->raise();
             } break;
         default:
             break;
