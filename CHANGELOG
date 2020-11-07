@@ -11,6 +11,8 @@
   - Enhanced A20GATE command to show the current status
     of the A20 gate when no parameter is given, along
     with other small improvements. (Wengier)
+  - Fixed IDE CD assignment may not be reset when soft
+    reboots are activated from guest systems. (Wengier)
   - INT 21h DOS=HMA emulation, to enable the A20 gate,
     and autoa20fix, to disable the A20 gate, now checks
     whether the CPU is running in virtual 8086 mode.

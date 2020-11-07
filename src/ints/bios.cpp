@@ -8612,6 +8612,10 @@ private:
 			drive[4]='A'+bootdrive;
 			runBoot(drive);
 		}
+        if (!bootguest&&!bootvm&&!bootfast&&bootdrive>=0) {
+            void IDE_CDROM_DetachAll();
+            IDE_CDROM_DetachAll();
+        }
 		if (use_quick_reboot&&!bootvm&&!bootfast&&bootdrive<0&&first_shell != NULL) throw int(6);
 		bootvm=false;
 		bootfast=false;
