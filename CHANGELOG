@@ -5,7 +5,8 @@
     section [gui] to [render] so that it will be in the
     same section as the option "glshader". (Wengier)
   - Added menu item "Select OpenGL (GLSL) shader..." to
-    allow OpenGL shader switch from the menu. (Wengier)
+    allow OpenGL shader switch from the menu, just like
+    the function for Direct3D pixel shaders. (Wengier)
   - Added menu item "Show IDE disk or CD status" under
     "DOS" menu to show the current assignments (disk or
     CD image) of the IDE controllers. (Wengier)

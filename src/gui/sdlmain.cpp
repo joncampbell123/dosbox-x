@@ -8302,7 +8302,7 @@ bool vid_select_pixel_shader_menu_callback(DOSBoxMenu* const menu, DOSBoxMenu::i
         const char* name = ofn.lpstrFile;
 
         /* filenames in Windows are case insensitive so do the comparison the same */
-        if (!strnicmp(name, cwd, strlen(cwd))) {
+        if (!strncasecmp(name, cwd, strlen(cwd))) {
             name += strlen(cwd);
             while (*name == '\\') name++;
         }
@@ -8356,7 +8356,7 @@ bool vid_select_glsl_shader_menu_callback(DOSBoxMenu* const menu, DOSBoxMenu::it
     char CurrentDir[512];
     char * Temp_CurrentDir = CurrentDir;
     getcwd(Temp_CurrentDir, 512);
-    std::string cwd = std::string(Temp_CurrentDir)+"\\glshaders\\";
+    std::string cwd = std::string(Temp_CurrentDir)+CROSS_FILESPLIT+"glshaders"+CROSS_FILESPLIT;
     const char *lFilterPatterns[] = {"*.glsl","*.GLSL"};
     const char *lFilterDescription = "OpenGL shader files (*.glsl)";
     char const * lTheOpenFileName = tinyfd_openFileDialog("Select OpenGL shader",cwd.c_str(),2,lFilterPatterns,lFilterDescription,0);
@@ -8370,24 +8370,27 @@ bool vid_select_glsl_shader_menu_callback(DOSBoxMenu* const menu, DOSBoxMenu::it
         std::string tmp = "";
 
         /* filenames in Windows are case insensitive so do the comparison the same */
-        if (!strnicmp(name, cwd.c_str(), cwd.size())) {
+        if (!strncasecmp(name, cwd.c_str(), cwd.size())) {
             name += cwd.size();
-            while (*name == '\\') name++;
+            while (*name == CROSS_FILESPLIT) name++;
         }
 
         /* the shader set included with the source code includes none.glsl which is empty.
            if that was chosen then just change it to "none" so the GLSL shader code does
            not waste it's time. */
         {
-            const char* n = strrchr(name, '\\');
+            const char* n = strrchr(name, CROSS_FILESPLIT);
             if (n == NULL) n = name;
             else n++;
 
-            if (!strcasecmp(n, "advinterp2x.glsl") || !strcasecmp(n, "advinterp3x.glsl") ||
+            if (!strcasecmp(n, "none.glsl"))
+                tmp = "default";
+            else if (!strcasecmp(n, "advinterp2x.glsl") || !strcasecmp(n, "advinterp3x.glsl") ||
                 !strcasecmp(n, "advmame2x.glsl") || !strcasecmp(n, "advmame3x.glsl") ||
                 !strcasecmp(n, "rgb2x.glsl") || !strcasecmp(n, "rgb3x.glsl") ||
                 !strcasecmp(n, "scan2x.glsl") || !strcasecmp(n, "scan3x.glsl") ||
-                !strcasecmp(n, "tv2x.glsl") || !strcasecmp(n, "tv3x.glsl") || !strcasecmp(n, "sharp.glsl")) {
+                !strcasecmp(n, "tv2x.glsl") || !strcasecmp(n, "tv3x.glsl") ||
+                !strcasecmp(n, "sharp.glsl") || !strcasecmp(n, "default.glsl")) {
                     tmp = n;
                     tmp.erase(tmp.size()-5, string::npos);
             } else

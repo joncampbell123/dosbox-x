@@ -3668,19 +3668,6 @@ void DOSBOX_SetupConfigSections(void) {
                       "If set to autostart, the builtin VER command won't activate/disactivate LFN support according to the reported DOS version.");
     Pstring->SetBasic(true);
 
-    Pstring = secprop->Add_string("autofixwarning",Property::Changeable::WhenIdle,"auto");
-    Pstring->Set_values(autofix_settings);
-    Pstring->Set_help("If set to true or both, DOSBox-X will show messages when trying to automatically fix the \"Packed file is corrupt\" error.\n"
-                      "If set to false or none, DOSBox-X will not show such messages on the screen when the error occurred.\n"
-                      "If set to \"a20fix\" or \"loadfix\", DOSBox-X will show the message for the a20fix or the loadfix only.");
-
-    Pbool = secprop->Add_bool("autoa20fix",Property::Changeable::WhenIdle,true);
-    Pbool->Set_help("If set (default), DOSBox-X will automatically re-run the executable with the A20 gate disabled if it failed with the \"Packed file is corrupt\" error.\n"
-                    "If both autoa20fix and autoloadfix are set, then the former will be tried first, and the latter will be tried if the former did not work.");
-
-    Pbool = secprop->Add_bool("autoloadfix",Property::Changeable::WhenIdle,true);
-    Pbool->Set_help("If set (default), DOSBox-X will automatically re-run the executable with LOADFIX if it failed with the \"Packed file is corrupt\" error.");
-
     Pbool = secprop->Add_bool("automount",Property::Changeable::WhenIdle,true);
     Pbool->Set_help("Enable automatic drive mounting in Windows.");
     Pbool->SetBasic(true);
@@ -3692,6 +3679,20 @@ void DOSBOX_SetupConfigSections(void) {
     Pbool = secprop->Add_bool("mountwarning",Property::Changeable::OnlyAtStart,true);
     Pbool->Set_help("If set, a warning will be displayed if you try to mount C:\\ in Windows or / in other platforms.");
     Pbool->SetBasic(true);
+
+    Pbool = secprop->Add_bool("autoa20fix",Property::Changeable::WhenIdle,true);
+    Pbool->Set_help("If set (default), DOSBox-X will automatically re-run the executable with the A20 gate disabled if it failed with the \"Packed file is corrupt\" error.\n"
+                    "If both autoa20fix and autoloadfix are set, then the former will be tried first, and the latter will be tried if the former did not work.");
+
+    Pbool = secprop->Add_bool("autoloadfix",Property::Changeable::WhenIdle,true);
+    Pbool->Set_help("If set (default), DOSBox-X will automatically re-run the executable with LOADFIX if it failed with the \"Packed file is corrupt\" error.");
+
+    Pstring = secprop->Add_string("autofixwarning",Property::Changeable::WhenIdle,"true");
+    Pstring->Set_values(autofix_settings);
+    Pstring->Set_help("If set to true or both, DOSBox-X will show messages when trying to automatically fix the \"Packed file is corrupt\" error.\n"
+                      "If set to false or none, DOSBox-X will not show such messages on the screen when the error occurred.\n"
+                      "If set to \"a20fix\" or \"loadfix\", DOSBox-X will show the message for the a20fix or the loadfix only.");
+    Pstring->SetBasic(true);
 
     Pbool = secprop->Add_bool("startcmd",Property::Changeable::OnlyAtStart,false);
     Pbool->Set_help("Allow starting commands to run on the Windows host including the use of START command.");
