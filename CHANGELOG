@@ -1,6 +1,11 @@
 0.83.8
   - Configuration Tool now provides the option to save
     to the primary or user config files. (Wengier)
+  - The config option "pixelshader" is moved from the
+    section [gui] to [render] so that it will be in the
+    same section as the option "glshader". (Wengier)
+  - Added menu item "Select OpenGL (GLSL) shader..." to
+    allow OpenGL shader switch from the menu. (Wengier)
   - Added menu item "Show IDE disk or CD status" under
     "DOS" menu to show the current assignments (disk or
     CD image) of the IDE controllers. (Wengier)

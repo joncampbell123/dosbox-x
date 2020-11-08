@@ -3600,6 +3600,7 @@ void RebootGuest(bool pressed) {
 	throw int(3);
 }
 
+int initgl = 0;
 bool has_GUI_StartUp = false;
 
 static void GUI_StartUp() {
@@ -3960,12 +3961,9 @@ static void GUI_StartUp() {
     }
 #endif
 
-    bool initgl = false;
 #if C_OPENGL
-    /*std::string f = (std::string)(static_cast<Section_prop *>(control->GetSection("render"))->Get_path("glshader")->GetValue());
-    if (f.empty() || f=="none")
-        sdl_opengl.use_shader = false;
-	else*/ if (sdl.desktop.want_type == SCREEN_OPENGL) { /* OPENGL is requested */
+    sdl_opengl.use_shader = false;
+	if (sdl.desktop.want_type == SCREEN_OPENGL) { /* OPENGL is requested */
 #if defined(C_SDL2)
 		GFX_SetResizeable(true);
         sdl.window = GFX_SetSDLWindowMode(640,400, SCREEN_OPENGL);
@@ -3981,7 +3979,7 @@ static void GUI_StartUp() {
 			LOG_MSG("Could not initialize OpenGL, switching back to surface");
 			sdl.desktop.want_type = SCREEN_SURFACE;
 		} else {
-			initgl = true;
+			initgl = 1;
 			sdl_opengl.program_object = 0;
 			glAttachShader = (PFNGLATTACHSHADERPROC)SDL_GL_GetProcAddress("glAttachShader");
 			glCompileShader = (PFNGLCOMPILESHADERPROC)SDL_GL_GetProcAddress("glCompileShader");
@@ -4006,6 +4004,7 @@ static void GUI_StartUp() {
 				glEnableVertexAttribArray && glGetAttribLocation && glGetProgramiv && glGetProgramInfoLog && \
 				glGetShaderiv && glGetShaderInfoLog && glGetUniformLocation && glLinkProgram && glShaderSource && \
 				glUniform2f && glUniform1i && glUseProgram && glVertexAttribPointer);
+			if (sdl_opengl.use_shader) initgl = 2;
 			sdl_opengl.buffer=0;
 			sdl_opengl.framebuf=0;
 			sdl_opengl.texture=0;
@@ -6226,17 +6225,6 @@ void SDL_SetupConfigSection() {
     Pstring->Set_help("File used to load/save the key/event mappings from (SDL2 builds). Resetmapper only works with the default value.");
     Pstring->SetBasic(true);
 
-#if C_DIRECT3D && C_D3DSHADERS
-    Pmulti = sdl_sec->Add_multi("pixelshader",Property::Changeable::Always," ");
-    Pmulti->SetValue("none",/*init*/true);
-    Pmulti->Set_help("Pixelshader program (effect file must be in Shaders subdirectory). If 'forced' is appended,\n"
-        "then the shader will be used even if the result might not be desired.");
-    Pmulti->SetBasic(true);
-
-    Pstring = Pmulti->GetSection()->Add_string("type",Property::Changeable::Always,"none");
-    Pstring = Pmulti->GetSection()->Add_string("force",Property::Changeable::Always,"");
-#endif
-
 	const char* truefalseautoopt[] = { "true", "false", "auto", 0};
     Pstring = sdl_sec->Add_string("usescancodes",Property::Changeable::OnlyAtStart,"auto");
     Pstring->Set_values(truefalseautoopt);
@@ -8280,10 +8268,9 @@ bool vid_select_pixel_shader_menu_callback(DOSBoxMenu* const menu, DOSBoxMenu::i
 
     strcat(cwd, "\\shaders"); /* DOSBox "D3D patch" compat: File names are assumed to exist relative to <cwd>\shaders */
 
-    Section_prop* section = static_cast<Section_prop*>(control->GetSection("sdl"));
+    Section_prop* section = static_cast<Section_prop*>(control->GetSection("render"));
     assert(section != NULL);
     {
-        Section_prop* section = static_cast<Section_prop*>(control->GetSection("sdl"));
         Prop_multival* prop = section->Get_multival("pixelshader");
         const char *path = prop->GetSection()->Get_string("type");
         forced_setting = prop->GetSection()->Get_string("force");
@@ -8335,7 +8322,7 @@ bool vid_select_pixel_shader_menu_callback(DOSBoxMenu* const menu, DOSBoxMenu::i
         std::string tmp = name;
         tmp += " ";
         tmp += forced_setting;
-        SetVal("sdl", "pixelshader", tmp);
+        SetVal("render", "pixelshader", tmp);
 
         /* GetOpenFileName() probably changed the current directory.
            This must be done before reinit of GFX because pixelshader might be relative path. */
@@ -8348,6 +8335,75 @@ bool vid_select_pixel_shader_menu_callback(DOSBoxMenu* const menu, DOSBoxMenu::i
         /* GetOpenFileName() probably changed the current directory */
         SetCurrentDirectory(o_cwd.c_str());
     }
+
+    return true;
+}
+#endif
+
+#ifdef C_OPENGL
+extern bool reloadshader;
+extern std::string shader_src;
+std::string LoadGLShader(Section_prop * section);
+bool vid_select_glsl_shader_menu_callback(DOSBoxMenu* const menu, DOSBoxMenu::item* const menuitem) {
+    (void)menu;//UNUSED
+    (void)menuitem;//UNUSED
+
+    Section_prop* section = static_cast<Section_prop*>(control->GetSection("render"));
+    assert(section != NULL);
+    //Prop_path *sh = section->Get_path("glshader");
+
+#if !defined(HX_DOS)
+    char CurrentDir[512];
+    char * Temp_CurrentDir = CurrentDir;
+    getcwd(Temp_CurrentDir, 512);
+    std::string cwd = std::string(Temp_CurrentDir)+"\\glshaders\\";
+    const char *lFilterPatterns[] = {"*.glsl","*.GLSL"};
+    const char *lFilterDescription = "OpenGL shader files (*.glsl)";
+    char const * lTheOpenFileName = tinyfd_openFileDialog("Select OpenGL shader",cwd.c_str(),2,lFilterPatterns,lFilterDescription,0);
+
+    if (lTheOpenFileName) {
+        /* Windows will fill lpstrFile with the FULL PATH.
+           The full path should be given to the pixelshader setting unless it's just
+           the same base path it was given: <cwd>\shaders in which case just cut it
+           down to the filename. */
+        const char* name = lTheOpenFileName;
+        std::string tmp = "";
+
+        /* filenames in Windows are case insensitive so do the comparison the same */
+        if (!strnicmp(name, cwd.c_str(), cwd.size())) {
+            name += cwd.size();
+            while (*name == '\\') name++;
+        }
+
+        /* the shader set included with the source code includes none.glsl which is empty.
+           if that was chosen then just change it to "none" so the GLSL shader code does
+           not waste it's time. */
+        {
+            const char* n = strrchr(name, '\\');
+            if (n == NULL) n = name;
+            else n++;
+
+            if (!strcasecmp(n, "advinterp2x.glsl") || !strcasecmp(n, "advinterp3x.glsl") ||
+                !strcasecmp(n, "advmame2x.glsl") || !strcasecmp(n, "advmame3x.glsl") ||
+                !strcasecmp(n, "rgb2x.glsl") || !strcasecmp(n, "rgb3x.glsl") ||
+                !strcasecmp(n, "scan2x.glsl") || !strcasecmp(n, "scan3x.glsl") ||
+                !strcasecmp(n, "tv2x.glsl") || !strcasecmp(n, "tv3x.glsl") || !strcasecmp(n, "sharp.glsl")) {
+                    tmp = n;
+                    tmp.erase(tmp.size()-5, string::npos);
+            } else
+                tmp = name;
+        }
+
+        if (tmp.size()) {
+            SetVal("render", "glshader", tmp);
+            LoadGLShader(section);
+
+            /* force reinit */
+            GFX_ForceRedrawScreen();
+        }
+    }
+    chdir( Temp_CurrentDir );
+#endif
 
     return true;
 }
@@ -10147,8 +10203,14 @@ int main(int argc, char* argv[]) SDL_MAIN_NOEXCEPT {
             }
 #ifdef C_D3DSHADERS
             {
-                mainMenu.alloc_item(DOSBoxMenu::item_type_id, "load_d3d_shader").set_text("Select pixel shader...").
+                mainMenu.alloc_item(DOSBoxMenu::item_type_id, "load_d3d_shader").set_text("Select Direct3D pixel shader...").
                     set_callback_function(vid_select_pixel_shader_menu_callback);
+            }
+#endif
+#ifdef C_OPENGL
+            {
+                mainMenu.alloc_item(DOSBoxMenu::item_type_id, "load_glsl_shader").set_text("Select OpenGL (GLSL) shader...").
+                    set_callback_function(vid_select_glsl_shader_menu_callback);
             }
 #endif
         }
@@ -10650,6 +10712,10 @@ int main(int argc, char* argv[]) SDL_MAIN_NOEXCEPT {
 
         mainMenu.get_item("dos_mouse_enable_int33").check(Mouse_Drv).refresh_item(mainMenu);	
         mainMenu.get_item("dos_mouse_y_axis_reverse").check(Mouse_Vertical).refresh_item(mainMenu);
+
+#ifdef C_OPENGL
+        mainMenu.get_item("load_glsl_shader").enable(initgl==2);
+#endif
 
 #if !defined(C_EMSCRIPTEN)
         mainMenu.get_item("show_console").check(showconsole_init).refresh_item(mainMenu);

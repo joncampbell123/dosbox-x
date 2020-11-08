@@ -2268,14 +2268,21 @@ void DOSBOX_SetupConfigSections(void) {
     Pstring = Pmulti->GetSection()->Add_string("force",Property::Changeable::Always,"");
     Pstring->Set_values(force);
 
-#if C_OPENGL
     Pstring = secprop->Add_path("glshader",Property::Changeable::Always,"none");
     Pstring->Set_help("Path to GLSL shader source to use with OpenGL output (\"none\" to disable, or \"default\" for default shader).\n"
                     "Can be either an absolute path, a file in the \"glshaders\" subdirectory of the DOSBox-X configuration directory,\n"
                     "or one of the built-in shaders (e.g. \"sharp\" for the pixel-perfect scaling mode):\n"
                     "advinterp2x, advinterp3x, advmame2x, advmame3x, rgb2x, rgb3x, scan2x, scan3x, tv2x, tv3x, sharp.");
     Pstring->SetBasic(true);
-#endif
+
+    Pmulti = secprop->Add_multi("pixelshader",Property::Changeable::Always," ");
+    Pmulti->SetValue("none",/*init*/true);
+    Pmulti->Set_help("Set Direct3D pixel shader program (effect file must be in Shaders subdirectory). If 'forced' is appended,\n"
+        "then the pixel shader will be used even if the result might not be desired.");
+    Pmulti->SetBasic(true);
+
+    Pstring = Pmulti->GetSection()->Add_string("type",Property::Changeable::Always,"none");
+    Pstring = Pmulti->GetSection()->Add_string("force",Property::Changeable::Always,"");
 
 #if C_XBRZ
     Pint = secprop->Add_int("xbrz slice",Property::Changeable::OnlyAtStart,16);

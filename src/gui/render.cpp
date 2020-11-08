@@ -891,13 +891,17 @@ void RENDER_SetForceUpdate(bool f) {
 #if C_OPENGL
 static bool RENDER_GetShader(std::string& shader_path, char *old_src) {
 	char* src;
-	std::stringstream buf;
+	std::stringstream buf, tmp;
 	std::ifstream fshader(shader_path.c_str(), std::ios_base::binary);
 	if (!fshader.is_open()) fshader.open((shader_path + ".glsl").c_str(), std::ios_base::binary);
-	if (fshader.is_open()) {
-		buf << fshader.rdbuf();
-		fshader.close();
-	}
+    bool empty=true;
+    if (fshader.is_open()) {
+        buf << fshader.rdbuf();
+        empty=buf.str().empty();
+        fshader.close();
+        if (empty) buf.swap(tmp);
+    }
+	if (!empty) ;
 	else if (shader_path == "advinterp2x") buf << advinterp2x_glsl;
 	else if (shader_path == "advinterp3x") buf << advinterp3x_glsl;
 	else if (shader_path == "advmame2x")   buf << advmame2x_glsl;
@@ -1090,6 +1094,36 @@ void RENDER_UpdateFromScalerSetting(void) {
     if (reset) RENDER_CallBack(GFX_CallBackReset);
 }
 
+extern int initgl;
+std::string shader_src="";
+std::string LoadGLShader(Section_prop * section) {
+	shader_src = render.shader_src!=NULL?std::string(render.shader_src):"";
+    render.shader_def = false;
+	Prop_path *sh = section->Get_path("glshader");
+	std::string f = (std::string)sh->GetValue();
+    const char *ssrc=shader_src.c_str();
+	if (f.empty() || f=="none" || f=="default") {
+        render.shader_src = NULL;
+        render.shader_def = f=="default";
+        if (initgl==2) sdl_opengl.use_shader=true;
+	} else if (!RENDER_GetShader(sh->realpath,(char *)shader_src.c_str())) {
+		std::string path = std::string("glshaders") + CROSS_FILESPLIT + f;
+		if (!RENDER_GetShader(path,(char *)shader_src.c_str())) {
+            Cross::GetPlatformConfigDir(path);
+            path = path + "glshaders" + CROSS_FILESPLIT + f;
+            if (!RENDER_GetShader(path,(char *)shader_src.c_str()) && (sh->realpath==f || !RENDER_GetShader(f,(char *)shader_src.c_str()))) {
+                sh->SetValue("none");
+                LOG_MSG("Shader file \"%s\" not found", f.c_str());
+            }
+        }
+	} else {
+        if (initgl==2) sdl_opengl.use_shader=true;
+        LOG_MSG("Loaded GLSL shader: %s\n", f.c_str());
+    }
+	if (shader_src.size()&&shader_src.c_str()!=render.shader_src) shader_src="";
+    return shader_src;
+}
+
 void RENDER_Init() {
     Section_prop * section=static_cast<Section_prop *>(control->GetSection("render"));
 
@@ -1185,26 +1219,7 @@ void RENDER_Init() {
     render.autofit=section->Get_bool("autofit");
 
 #if C_OPENGL
-	char* shader_src = render.shader_src;
-    render.shader_def = false;
-	Prop_path *sh = section->Get_path("glshader");
-	std::string f = (std::string)sh->GetValue();
-	if (f.empty() || f=="none" || f=="default") {
-        render.shader_src = NULL;
-        render.shader_def = f=="default";
-	} else if (!RENDER_GetShader(sh->realpath,shader_src)) {
-		std::string path = std::string("glshaders") + CROSS_FILESPLIT + f;
-		if (!RENDER_GetShader(path,shader_src)) {
-            Cross::GetPlatformConfigDir(path);
-            path = path + "glshaders" + CROSS_FILESPLIT + f;
-            if (!RENDER_GetShader(path,shader_src) && (sh->realpath==f || !RENDER_GetShader(f,shader_src))) {
-                sh->SetValue("none");
-                LOG_MSG("Shader file \"%s\" not found", f.c_str());
-            }
-        }
-	} else
-        LOG_MSG("Loaded GLSL shader: %s\n", f.c_str());
-	if (shader_src!=render.shader_src) free(shader_src);
+    std::string ssrc=LoadGLShader(section);
 #endif
 
     //If something changed that needs a ReInit
@@ -1212,7 +1227,7 @@ void RENDER_Init() {
     if(running && render.src.bpp && ((render.aspect != aspect) || (render.scale.op != scaleOp) || 
                   (render.scale.size != scalersize) || (render.scale.forced != scalerforced) ||
 #if C_OPENGL
-				  (render.shader_src != shader_src) ||
+				  (render.shader_src != ssrc.c_str()) ||
 #endif
                    render.scale.forced))
         RENDER_CallBack( GFX_CallBackReset );
