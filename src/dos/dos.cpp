@@ -105,7 +105,7 @@ int maxdrive=1;
 int enablelfn=-1;
 bool uselfn;
 extern int infix;
-extern bool int15_wait_force_unmask_irq;
+extern bool int15_wait_force_unmask_irq, shellrun, i4dos;
 extern bool winrun, startcmd, startwait, startquiet, winautorun;
 extern bool startup_state_numlock, mountwarning, clipboard_dosapi;
 std::string startincon;
@@ -1477,7 +1477,7 @@ static Bitu DOS_21Handler(void) {
 
                 MEM_BlockRead(SegPhys(ds)+reg_dx,dos_copybuf,towrite);
                 packerr=reg_bx==2&&towrite==22&&!strncmp((char *)dos_copybuf,"Packed file is corrupt",towrite);
-                if ((packerr && (!autofixwarn || autofixwarn==2 && infix==0 || autofixwarn==1 && infix==1)) || DOS_WriteFile(reg_bx,dos_copybuf,&towrite)) {
+                if ((packerr && !(i4dos && !shellrun) && (!autofixwarn || autofixwarn==2 && infix==0 || autofixwarn==1 && infix==1)) || DOS_WriteFile(reg_bx,dos_copybuf,&towrite)) {
                     reg_ax=towrite;
                     CALLBACK_SCF(false);
                 } else {

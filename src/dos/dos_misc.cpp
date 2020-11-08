@@ -90,7 +90,7 @@ static Bitu INT2A_Handler(void) {
 	return CBRET_NONE;
 }
 
-extern bool i4dos, clipboard_dosapi;
+extern bool i4dos, shellrun, clipboard_dosapi;
 extern RealPt DOS_DriveDataListHead;       // INT 2Fh AX=0803h DRIVER.SYS drive data table list
 
 // INT 2F
@@ -223,7 +223,7 @@ static bool DOS_MultiplexFunctions(void) {
 				/* Hack for Windows 98 SETUP.EXE (Wengier) */
 				return false;
 			}
-			strcpy(name,i4dos?"4DOS.COM":"COMMAND.COM");
+			strcpy(name,i4dos&&!shellrun?"4DOS.COM":"COMMAND.COM");
 			MEM_BlockWrite(SegPhys(ds)+reg_dx,name,(Bitu)(strlen(name)+1));
 			strcpy(name+1,"/P /D /K AUTOEXEC");
 			name[0]=(char)strlen(name+1);
