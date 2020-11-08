@@ -30,6 +30,13 @@
     Microsoft Windows 3.1. Note that Windows 3.1 does
     not virtualize port 92h. If it did, this workaround
     would not be necessary.
+  - Added -a option to LOADFIX command which will auto
+    allocate enough memory to fill lowest 64KB memory
+    instead of using exactly 64KB memory. (Wengier)
+  - Added autofixwarning option (true by default) which
+    allows user to silence the messages when DOSBox-X
+    tries to auto-fix "Packed file is corrupt" error
+    when running a program with this issue. (Wengier)
   - Added autoa20fix option (enabled by default). This
     option when enabled attempts to resolve EXEPACK
     "Packed file is corrupt" errors by temporarily

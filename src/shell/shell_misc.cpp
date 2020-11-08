@@ -48,6 +48,7 @@
 #endif
 
 bool clearline=false;
+int autofixwarn=3;
 extern int lfn_filefind_handle;
 extern bool DOS_BreakFlag;
 extern bool DOS_BreakConioFlag;
@@ -1150,7 +1151,7 @@ continue_1:
 #endif
 		if (packerr&&infix<0&&sec->Get_bool("autoa20fix")) {
 			LOG(LOG_DOSMISC,LOG_DEBUG)("Attempting autoa20fix workaround for EXEPACK error");
-			WriteOut("\r\n\033[41;1m\033[1;37;1mDOSBox-X\033[0m Failed to load the executable\r\n\033[41;1m\033[37;1mDOSBox-X\033[0m Now try again with A20 fix...\r\n");
+			if (autofixwarn==1||autofixwarn==3) WriteOut("\r\n\033[41;1m\033[1;37;1mDOSBox-X\033[0m Failed to load the executable\r\n\033[41;1m\033[37;1mDOSBox-X\033[0m Now try again with A20 fix...\r\n");
 			infix=0;
 			dos_a20_disable_on_exec=true;
 			Execute(name, args);
@@ -1164,17 +1165,18 @@ continue_1:
 				DOS_MCB mcb((uint16_t)(segment-1));
 				if (segment < 0x1000) {
 					uint16_t needed = 0x1000 - segment;
-					if (DOS_ResizeMemory(segment,&needed)) {
-						mcb.SetPSPSeg(0x40); /* FIXME: Wouldn't 0x08, a magic value used to show ownership by MS-DOS, be more appropriate here? */
-						LOG(LOG_DOSMISC,LOG_DEBUG)("Attempting autoloadfix workaround for EXEPACK error");
-						WriteOut("\r\n\033[41;1m\033[1;37;1mDOSBox-X\033[0m Failed to load the executable\r\n\033[41;1m\033[37;1mDOSBox-X\033[0m Now try again with LOADFIX...\r\n");
-						infix=1;
-						Execute(name, args);
-						infix=-1;
-					}
-				}
+					DOS_ResizeMemory(segment,&needed);
+                }
+                mcb.SetPSPSeg(0x40); /* FIXME: Wouldn't 0x08, a magic value used to show ownership by MS-DOS, be more appropriate here? */
+                LOG(LOG_DOSMISC,LOG_DEBUG)("Attempting autoloadfix workaround for EXEPACK error");
+                if (autofixwarn==2||autofixwarn==3) WriteOut("\r\n\033[41;1m\033[1;37;1mDOSBox-X\033[0m Failed to load the executable\r\n\033[41;1m\033[37;1mDOSBox-X\033[0m Now try again with LOADFIX...\r\n");
+                infix=1;
+                Execute(name, args);
+                infix=-1;
 				DOS_FreeMemory(segment);
 			}
+		} else if (packerr&&infix<2&&!autofixwarn) {
+            WriteOut("Packed file is corrupt");
 #if defined (WIN32) && !defined(HX_DOS)
 		} else if (winautorun&&reqwin&&!control->SecureMode()) {
             char comline[256], *p=comline;

@@ -3497,14 +3497,18 @@ Bitu XMS_AllocateMemory(Bitu size, uint16_t& handle);
 
 void LOADFIX::Run(void) 
 {
-    uint16_t commandNr    = 1;
+    uint16_t commandNr  = 1;
     Bitu kb             = 64;
     bool xms            = false;
+    bool opta           = false;
 
-    if (cmd->FindExist("-xms",true)) {
+    if (cmd->FindExist("-xms",true) || cmd->FindExist("/xms",true)) {
         xms = true;
         kb = 1024;
     }
+
+    if (cmd->FindExist("-a",true) || cmd->FindExist("/a",true))
+        opta = true;
 
     if (cmd->GetCount()==1 && (cmd->FindExist("-?", false) || cmd->FindExist("/?", false))) {
         WriteOut(MSG_Get("PROGRAM_LOADFIX_HELP"));
@@ -3512,7 +3516,7 @@ void LOADFIX::Run(void)
     }
 
     if (cmd->FindCommand(commandNr,temp_line)) {
-        if (temp_line[0]=='-') {
+        if (temp_line[0]=='-' || (temp_line[0]=='/')) {
             char ch = temp_line[1];
             if ((*upcase(&ch)=='D') || (*upcase(&ch)=='F')) {
                 // Deallocate all
@@ -3556,6 +3560,11 @@ void LOADFIX::Run(void)
         uint16_t blocks = (uint16_t)(kb*1024/16);
         if (DOS_AllocateMemory(&segment,&blocks)) {
             DOS_MCB mcb((uint16_t)(segment-1));
+            if (opta && segment < 0x1000) {
+                uint16_t needed = 0x1000 - segment;
+                if (DOS_ResizeMemory(segment,&needed))
+                    kb=needed*16/1024;
+            }
             mcb.SetPSPSeg(0x40);            // use fake segment
             WriteOut(MSG_Get("PROGRAM_LOADFIX_ALLOC"),kb);
             // Prepare commandline...
@@ -6437,11 +6446,13 @@ void DOS_SetupPrograms(void) {
         "  -xms        Allocates memory from XMS rather than conventional memory\n"
         "  -{ram}      Specifies the amount of memory to allocate in KB\n"
         "                 Defaults to 64kb for conventional memory; 1MB for XMS memory\n"
+        "  -a          Auto allocates enough memory to fill the lowest 64KB memory\n"
         "  -f          Frees previously allocated memory\n"
         "  {program}   Runs the specified program\n"
         "  {options}   Program options (if any)\n\n"
         "Examples:\n"
         "  \033[32;1mLOADFIX game.exe\033[0m     Allocates 64KB of conventional memory and runs game.exe\n"
+        "  \033[32;1mLOADFIX -a\033[0m           Auto-allocates enough memory conventional memory\n"
         "  \033[32;1mLOADFIX -128\033[0m         Allocates 128KB of conventional memory\n"
         "  \033[32;1mLOADFIX -xms\033[0m         Allocates 1MB of XMS memory\n"
         "  \033[32;1mLOADFIX -f\033[0m           Frees allocated conventional memory\n");

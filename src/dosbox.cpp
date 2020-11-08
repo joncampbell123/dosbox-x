@@ -1306,6 +1306,7 @@ void DOSBOX_SetupConfigSections(void) {
     const char* ems_settings[] = { "true", "emsboard", "emm386", "false", "1", "0", 0};
     const char* lfn_settings[] = { "true", "false", "1", "0", "auto", "autostart", 0};
     const char* quit_settings[] = { "true", "false", "1", "0", "auto", "autofile", 0};
+    const char* autofix_settings[] = { "true", "false", "1", "0", "both", "a20fix", "loadfix", "none", 0};
     const char* irqsgus[] = { "5", "3", "7", "9", "10", "11", "12", 0 };
     const char* irqssb[] = { "7", "5", "3", "9", "10", "11", "12", 0 };
     const char* dmasgus[] = { "3", "0", "1", "5", "6", "7", 0 };
@@ -3666,6 +3667,12 @@ void DOSBOX_SetupConfigSections(void) {
     Pstring->Set_help("Enable long filename support. If set to auto (default), it is enabled if the reported DOS version is at least 7.0.\n"
                       "If set to autostart, the builtin VER command won't activate/disactivate LFN support according to the reported DOS version.");
     Pstring->SetBasic(true);
+
+    Pstring = secprop->Add_string("autofixwarning",Property::Changeable::WhenIdle,"auto");
+    Pstring->Set_values(autofix_settings);
+    Pstring->Set_help("If set to true or both, DOSBox-X will show messages when trying to automatically fix the \"Packed file is corrupt\" error.\n"
+                      "If set to false or none, DOSBox-X will not show such messages on the screen when the error occurred.\n"
+                      "If set to \"a20fix\" or \"loadfix\", DOSBox-X will show the message for the a20fix or the loadfix only.");
 
     Pbool = secprop->Add_bool("autoa20fix",Property::Changeable::WhenIdle,true);
     Pbool->Set_help("If set (default), DOSBox-X will automatically re-run the executable with the A20 gate disabled if it failed with the \"Packed file is corrupt\" error.\n"
