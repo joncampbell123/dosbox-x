@@ -1446,6 +1446,14 @@ void DOSBOX_SetupConfigSections(void) {
     Pstring->Set_help("Select the default save file to save/load states. If specified it will be used instead of the save slot.");
     Pstring->SetBasic(true);
 
+    Pbool = secprop->Add_bool("saveremark", Property::Changeable::WhenIdle,true);
+    Pbool->Set_help("If set, the save state feature will ask users to enter remarks when saving a state.");
+    Pbool->SetBasic(true);
+
+    Pbool = secprop->Add_bool("forceloadstate", Property::Changeable::WhenIdle,false);
+    Pbool->Set_help("If set, DOSBox-X will load a saved state even if it finds there is a mismatch in the DOSBox-X version, machine type, program name and/or the memory size.");
+    Pbool->SetBasic(true);
+
     /* will change to default true unless this causes compatibility issues with other users or their editing software */
     Pbool = secprop->Add_bool("skip encoding unchanged frames",Property::Changeable::WhenIdle,false);
     Pbool->Set_help("Unchanged frames will not be sent to the video codec as a possible performance and bandwidth optimization.");

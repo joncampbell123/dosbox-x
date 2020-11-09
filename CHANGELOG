@@ -1,6 +1,12 @@
 0.83.8
   - Configuration Tool now provides the option to save
     to the primary or user config files. (Wengier)
+  - Added config options "saveremark" (default: true)
+    and "forceloadstate" (default: false) in [dosbox]
+    section which can be used to control if DOSBox-X
+    should ask users to enter remarks when saving a
+    state or show warnings when loading a saved state
+    if there is a mismatch found. (Wengier)
   - The config option "pixelshader" is moved from the
     section [gui] to [render] so that it will be in the
     same section as the option "glshader". (Wengier)

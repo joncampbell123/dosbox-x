@@ -38,7 +38,7 @@ Bitu call_program;
 
 extern int enablelfn, paste_speed, wheel_key, freesizecap;
 extern const char *modifier;
-extern bool dos_kernel_disabled, force_nocachedir, wpcolon, enable_config_as_shell_commands, load, winrun, winautorun, startwait, startquiet, mountwarning, wheel_guest, clipboard_dosapi;
+extern bool dos_kernel_disabled, force_nocachedir, wpcolon, enable_config_as_shell_commands, load, winrun, winautorun, startwait, startquiet, mountwarning, wheel_guest, clipboard_dosapi, noremark_save_state, force_load_state;
 
 /* This registers a file on the virtual drive and creates the correct structure for it*/
 
@@ -1079,6 +1079,14 @@ void CONFIG::Run(void) {
                             else freesizecap = 1;
 							wpcolon = section->Get_bool("leading colon write protect image");
 							if (!strcasecmp(inputline.substr(0, 9).c_str(), "saveslot=")) SetGameState_Run(section->Get_int("saveslot")-1);
+                            if (!strcasecmp(inputline.substr(0, 11).c_str(), "saveremark=")) {
+                                noremark_save_state = !section->Get_bool("saveremark");
+                                mainMenu.get_item("noremark_savestate").check(noremark_save_state).refresh_item(mainMenu);
+                            }
+                            if (!strcasecmp(inputline.substr(0, 15).c_str(), "forceloadstate=")) {
+                                force_load_state = section->Get_bool("forceloadstate");
+                                mainMenu.get_item("force_loadstate").check(force_load_state).refresh_item(mainMenu);
+                            }
 						} else if (!strcasecmp(pvars[0].c_str(), "sdl")) {
 							modifier = section->Get_string("clip_key_modifier");
 							paste_speed = section->Get_int("clip_paste_speed");
