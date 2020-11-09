@@ -18,6 +18,7 @@
  *  New commands & heavy improvements to existing commands by the DOSBox-X Team
  *  With major works from joncampbell123, Wengier, and rderooy
  *  AUTOTYPE command Copyright (C) 2020 the DOSBox Staging Team
+ *  FLAGSAVE command Copyright PogoMan361 and Wengier
  */
 
 #include "dosbox.h"
@@ -6347,6 +6348,224 @@ void START_ProgramStart(Program **make)
 }
 #endif
 
+#define MAX_FLAGS 512
+char *g_flagged_files[MAX_FLAGS]; //global array to hold flagged files
+int my_minizip(char ** savefile, char ** savefile2, char* savename);
+int my_miniunz(char ** savefile, const char * savefile2, const char * savedir, char* savename);
+int flagged_backup(char *zip)
+{
+    char zipfile[CROSS_LEN], ziptmp[CROSS_LEN+4];
+    int i;
+    int ret = 0;
+
+    strcpy(zipfile, zip);
+    strcpy(ziptmp, zip);
+    if (strstr(zipfile, ".sav")) {
+        strcpy(strstr(zipfile, ".sav"), ".dat");
+        strcpy(strstr(ziptmp, ".sav"), ".tmp");
+    } else
+        strcat(ziptmp, ".tmp");
+    bool first=true;
+    for (i = 0; i < MAX_FLAGS; i++)
+    {
+        if (g_flagged_files[i])
+        {
+            if (first) {
+                first=false;
+                std::ofstream file (zipfile);
+                file << "";
+                file.close();
+            }
+            uint16_t handle;
+            if (DOS_FindDevice(("\""+std::string(g_flagged_files[i])+"\"").c_str()) != DOS_DEVICES || !DOS_OpenFile(("\""+std::string(g_flagged_files[i])+"\"").c_str(),0,&handle)) {
+                LOG_MSG(MSG_Get("SHELL_CMD_FILE_NOT_FOUND"),g_flagged_files[i]);
+                continue;
+            }
+            uint8_t c;uint16_t n=1;
+            std::string out="";
+            while (n) {
+                DOS_ReadFile(handle,&c,&n);
+                if (n==0 || c==0x1a) break; // stop at EOF
+                out+=std::string(1, c);
+            }
+            DOS_CloseFile(handle);
+            std::ofstream outfile (ziptmp, std::ofstream::binary);
+            outfile << out;
+            outfile.close();
+            my_minizip((char**)zipfile, (char**)ziptmp, g_flagged_files[i]);
+            ret++;
+        }
+    }
+    remove(ziptmp);
+    return ret;
+}
+
+int flagged_restore(char* zip)
+{
+    char zipfile[MAX_FLAGS], ziptmp[CROSS_LEN+4];
+    int i;
+    int ret = 0;
+
+    strcpy(zipfile, zip);
+    strcpy(ziptmp, zip);
+    if (strstr(zipfile, ".sav")) {
+        strcpy(strstr(zipfile, ".sav"), ".dat");
+        strcpy(strstr(ziptmp, ".sav"), ".tmp");
+    } else
+        strcat(ziptmp, ".tmp");
+    for (i = 0; i < MAX_FLAGS; i++)
+    {
+        if (g_flagged_files[i])
+        {
+            if (DOS_FindDevice(("\""+std::string(g_flagged_files[i])+"\"").c_str()) != DOS_DEVICES) {
+                LOG_MSG(MSG_Get("SHELL_CMD_FILE_NOT_FOUND"),g_flagged_files[i]);
+                continue;
+            }
+            char savedir[CROSS_LEN], savename[CROSS_LEN];
+            char *p=strrchr(ziptmp, CROSS_FILESPLIT);
+            if (p==NULL) {
+                strcpy(savedir, ".");
+                strcpy(savename, ziptmp);
+            } else {
+                strcpy(savename, p+1);
+                *p=0;
+                strcpy(savedir, ziptmp);
+                *p=CROSS_FILESPLIT;
+            }
+            my_miniunz((char**)zipfile, g_flagged_files[i], savedir, savename);
+            std::ifstream ifs(ziptmp, std::ios::in | std::ios::binary | std::ios::ate);
+            std::ifstream::pos_type fileSize = ifs.tellg();
+            ifs.seekg(0, std::ios::beg);
+            std::vector<char> bytes(fileSize);
+            ifs.read(bytes.data(), fileSize);
+            std::string str(bytes.data(), fileSize);
+            uint16_t handle, size=fileSize;
+            if (DOS_CreateFile(("\""+std::string(g_flagged_files[i])+"\"").c_str(),0,&handle)) {
+                DOS_WriteFile(handle,(uint8_t *)str.c_str(),&size);
+                DOS_CloseFile(handle);
+            }
+            ret++;
+        }
+    }
+    remove(ziptmp);
+    return ret;
+}
+
+class FLAGSAVE : public Program
+{
+public:
+
+    void Run(void)
+    {
+        std::string file_to_flag;
+        int i, lf;
+        bool force=false, remove=false;
+
+        if (cmd->FindExist("-?", false) || cmd->FindExist("/?", false)) {
+            printHelp();
+            return;
+        }
+        if (cmd->FindExist("/f", true))
+            force=true;
+        if (cmd->FindExist("/r", true))
+            remove=true;
+        if (cmd->FindExist("/u", true))
+        {
+            for (i = 0; i < MAX_FLAGS; i++)
+            {
+                if (g_flagged_files[i] != NULL)
+                    g_flagged_files[i] = NULL;
+            }
+            WriteOut("All files unflagged for saving.\n");
+            return;
+        }
+        else if (cmd->GetCount())
+        {
+            for (int i=1; i<=cmd->GetCount(); i++) {
+                cmd->FindCommand(i,temp_line);
+                uint8_t drive;
+                char fullname[DOS_PATHLENGTH], flagfile[CROSS_LEN];
+
+                strcpy(flagfile, temp_line.c_str());
+                if (*flagfile&&DOS_MakeName(((flagfile[0]!='\"'?"\"":"")+std::string(flagfile)+(flagfile[strlen(flagfile)-1]!='\"'?"\"":"")).c_str(), fullname, &drive))
+                {
+                    sprintf(flagfile, "%c:\\%s", drive+'A', fullname);
+                    if (remove) {
+                        for (lf = 0; lf < MAX_FLAGS; lf++)
+                        {
+                            if (g_flagged_files[lf] != NULL && !strcasecmp(g_flagged_files[lf], flagfile))
+                            {
+                                WriteOut("File %s unflagged for saving.\n", g_flagged_files[lf]);
+                                free(g_flagged_files[lf]);
+                                g_flagged_files[lf] = NULL;
+                                break;
+                            }
+                        }
+                        continue;
+                    }
+                    if (!force && !DOS_FileExists(("\""+std::string(flagfile)+"\"").c_str())) {
+                        WriteOut(MSG_Get("SHELL_CMD_FILE_NOT_FOUND"), flagfile);
+                        continue;
+                    }
+                    bool found=false;
+                    for (lf = 0; lf < MAX_FLAGS; lf++)
+                    {
+                        if (g_flagged_files[lf] == NULL)
+                            continue;
+                        if (!strcasecmp(g_flagged_files[lf], flagfile))
+                        {
+                            WriteOut("File already flagged for saving - %s\n", flagfile);
+                            found=true;
+                        }
+                    }
+                    if (found) continue;
+                    for (lf = 0; lf < MAX_FLAGS; lf++)
+                    {
+                        if (g_flagged_files[lf] == NULL)
+                            break;
+                    }
+                    if (lf == MAX_FLAGS)
+                    {
+                        WriteOut("Too many files to flag for saving.\n");
+                        return;
+                    }
+                    g_flagged_files[lf] = (char*)malloc(strlen(flagfile) + 1);
+                    strcpy(g_flagged_files[lf], flagfile);
+                    WriteOut("File %s flagged for saving\n", g_flagged_files[lf]);
+                } else
+                    WriteOut(MSG_Get("SHELL_CMD_FILE_NOT_FOUND"), flagfile);
+            }
+            return;
+        }
+        else
+        {
+            WriteOut("Files flagged for saving:\n");
+            for (i = 0; i < MAX_FLAGS; i++)
+            {
+                if (g_flagged_files[i])
+                    WriteOut("%s\n", g_flagged_files[i]);
+            }
+            return;
+        }
+        return;
+    }
+    void printHelp()
+    {
+        WriteOut( "Marks or flags files to be saved for the save state feature.\n\n"
+                "FLAGSAVE [file(s) [/F] [/R]] [/U]\n\n"
+                "  file(s)     Specifies one or more files to be flagged for saving.\n"
+                "  /F          Forces to flag the file(s) even if they are not found.\n"
+                "  /R          Removes flags from the specified file(s).\n"
+                "  /U          Removes flags from all flagged files.\n\n"
+                "Type FLAGSAVE without a parameter to list flagged files.\n");
+    }
+};
+
+static void FLAGSAVE_ProgramStart(Program** make)
+{
+    *make = new FLAGSAVE;
+}
+
 void DOS_SetupPrograms(void) {
     /*Add Messages */
 
@@ -6903,6 +7122,7 @@ void DOS_SetupPrograms(void) {
     PROGRAMS_MakeFile("ADDKEY.COM",ADDKEY_ProgramStart);
     PROGRAMS_MakeFile("A20GATE.COM",A20GATE_ProgramStart);
     PROGRAMS_MakeFile("CFGTOOL.COM",CFGTOOL_ProgramStart);
+    PROGRAMS_MakeFile("FLAGSAVE.COM", FLAGSAVE_ProgramStart);
 #if defined C_DEBUG
     PROGRAMS_MakeFile("INT2FDBG.COM",INT2FDBG_ProgramStart);
     PROGRAMS_MakeFile("NMITEST.COM",NMITEST_ProgramStart);

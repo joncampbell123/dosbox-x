@@ -4521,7 +4521,7 @@ void change_file_date(const char *filename, uLong dosdate, tm_unz tmu_date)
 #endif
 }
 
-int do_extract_currentfile(unzFile uf, const int* popt_extract_without_path, int* popt_overwrite, const char* password)
+int do_extract_currentfile(unzFile uf, const int* popt_extract_without_path, int* popt_overwrite, const char* password, const char *savename=NULL)
 {
     char filename_inzip[256];
     char* filename_withoutpath;
@@ -4572,7 +4572,9 @@ int do_extract_currentfile(unzFile uf, const int* popt_extract_without_path, int
         const char* write_filename;
         int skip=0;
 
-        if ((*popt_extract_without_path)==0)
+        if (savename!=NULL)
+            write_filename = savename;
+        else if ((*popt_extract_without_path)==0)
             write_filename = filename_inzip;
         else
             write_filename = filename_withoutpath;
@@ -4717,7 +4719,7 @@ int do_extract(unzFile uf, int opt_extract_without_path, int opt_overwrite, cons
     return 0;
 }
 
-int do_extract_onefile(unzFile uf, const char* filename, int opt_extract_without_path, int opt_overwrite, const char* password)
+int do_extract_onefile(unzFile uf, const char* filename, int opt_extract_without_path, int opt_overwrite, const char* password, const char *savename=NULL)
 {
     int err = UNZ_OK;
     (void)err;
@@ -4729,13 +4731,13 @@ int do_extract_onefile(unzFile uf, const char* filename, int opt_extract_without
 
     if (do_extract_currentfile(uf,&opt_extract_without_path,
                                       &opt_overwrite,
-                                      password) == UNZ_OK)
+                                      password, savename) == UNZ_OK)
         return 0;
     else
         return 1;
 }
 
-int my_miniunz(char ** savefile, const char * savefile2, const char * savedir) {
+int my_miniunz(char ** savefile, const char * savefile2, const char * savedir, char* savename = NULL) {
     const char *zipfilename=NULL;
     const char *filename_to_extract=NULL;
     const char *password=NULL;
@@ -4794,7 +4796,7 @@ int my_miniunz(char ** savefile, const char * savefile2, const char * savedir) {
         if (filename_to_extract == NULL)
             ret_value = do_extract(uf, opt_do_extract_withoutpath, opt_overwrite, password);
         else
-            ret_value = do_extract_onefile(uf, filename_to_extract, opt_do_extract_withoutpath, opt_overwrite, password);
+            ret_value = do_extract_onefile(uf, filename_to_extract, opt_do_extract_withoutpath, opt_overwrite, password, savename);
 		if (ret!=NULL) chdir(cCurrentPath);
     }
 
@@ -4943,10 +4945,10 @@ int isLargeFile(const char* filename)
  return largeFile;
 }
 
-int my_minizip(char ** savefile, char ** savefile2) {
+int my_minizip(char ** savefile, char ** savefile2, char* savename=NULL) {
     int opt_overwrite=0;
     int opt_compress_level=Z_DEFAULT_COMPRESSION;
-    int opt_exclude_path=0;
+    int opt_exclude_path=savename==NULL?1:0;
     int zipfilenamearg = 0;
     (void)zipfilenamearg;
     //char filename_try[MAXFILENAME16];
@@ -4957,7 +4959,6 @@ int my_minizip(char ** savefile, char ** savefile2) {
 
 	opt_overwrite = 2;
 	opt_compress_level = 9;
-	opt_exclude_path = 1;
 
     size_buf = 16384;
     buf = (void*)malloc(size_buf);
@@ -5009,7 +5010,7 @@ int my_minizip(char ** savefile, char ** savefile2) {
 
                                                          /* The path name saved, should not include a leading slash. */
                /*if it did, windows/xp and dynazip couldn't read the zip file. */
-                 savefilenameinzip = filenameinzip;
+                 savefilenameinzip = savename == NULL ? filenameinzip : savename;
                  while( savefilenameinzip[0] == '\\' || savefilenameinzip[0] == '/' )
                  {
                      savefilenameinzip++;
@@ -5102,6 +5103,9 @@ int my_minizip(char ** savefile, char ** savefile2) {
     free(buf);
     return 0;
 }
+
+int flagged_backup(char *zip);
+int flagged_restore(char* zip);
 
 void SaveState::save(size_t slot) { //throw (Error)
 	if (slot >= SLOT_COUNT*MAX_PAGE)  return;
@@ -5263,6 +5267,7 @@ void SaveState::save(size_t slot) { //throw (Error)
 	my_minizip((char **)save.c_str(), (char **)save2.c_str());
 	save2=temp+"Save_Remark";
 	my_minizip((char **)save.c_str(), (char **)save2.c_str());
+    flagged_backup((char *)save.c_str());
 
 delete_all:
 	for (CompEntry::iterator i = components.begin(); i != components.end(); ++i) {
@@ -5530,6 +5535,7 @@ void SaveState::load(size_t slot) const { //throw (Error)
 		//std::for_each(rb.begin() + slot + 1, rb.end(), std::mem_fun_ref(&RawBytes::compress));
 		fb->close();
 		mystream.clear();
+        flagged_restore((char *)save.c_str());
 	}
 delete_all:
 	std::string save2;

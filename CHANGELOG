@@ -18,6 +18,10 @@
     n=25, 43, 50, or 60). The command "MODE CON" will
     show the current number of columns and lines in the
     screen as in a real DOS system. (Wengier)
+  - Added FLAGSAVE command for the save state feature
+    to flag (mark) one or more files to be saved and
+    loaded. Type "FLAGSAVE /?" for more information on
+    this command. (PogoMan361 and Wengier)
   - Enhanced A20GATE command to show the current status
     of the A20 gate when no parameter is given, along
     with other small improvements. (Wengier)
