@@ -62,9 +62,11 @@
     64KB boundary, instead of blindly allocating 64KB.
   - Fixed menu items "Rescan drive" and "Swap disk" in
     "Drive" menu being reversed. (Wengier)
-  - Fixed Monkey Island CD audio issue with the game
-    The Secret of Monkey Island when talking to pirate
-    in the Scumm Bar. Fix logic per kcgen. (Wengier)
+  - Fixed CD audio issue with the game "The Secret of
+    Monkey Island" when talking to the pirate in Scumm
+    Bar by adapting the patch that fixes it. (Wengier)
+  - Updated FLAC/MP3/WAV CD-DA decoder libraries to the
+    latest versions. (Wengier)
 0.83.7
   - The primary DOSBox-X Wiki is now located at the
     URL: https://dosbox-x.com/wiki (Wengier)
