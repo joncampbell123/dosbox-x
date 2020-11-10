@@ -6385,7 +6385,7 @@ int flagged_backup(char *zip)
             std::string out="";
             while (n) {
                 DOS_ReadFile(handle,&c,&n);
-                if (n==0 || c==0x1a) break; // stop at EOF
+                if (n==0) break;
                 out+=std::string(1, c);
             }
             DOS_CloseFile(handle);
@@ -6439,9 +6439,12 @@ int flagged_restore(char* zip)
             std::vector<char> bytes(fileSize);
             ifs.read(bytes.data(), fileSize);
             std::string str(bytes.data(), fileSize);
-            uint16_t handle, size=fileSize;
+            uint16_t handle, size;
             if (DOS_CreateFile(("\""+std::string(g_flagged_files[i])+"\"").c_str(),0,&handle)) {
-                DOS_WriteFile(handle,(uint8_t *)str.c_str(),&size);
+                for (uint64_t i=0; i<=ceil(fileSize/UINT16_MAX); i++) {
+                    size=(uint64_t)fileSize-UINT16_MAX*i>UINT16_MAX?UINT16_MAX:((uint64_t)fileSize-UINT16_MAX*i);
+                    DOS_WriteFile(handle,(uint8_t *)str.substr(i*UINT16_MAX, size).c_str(),&size);
+                }
                 DOS_CloseFile(handle);
             }
             ret++;
