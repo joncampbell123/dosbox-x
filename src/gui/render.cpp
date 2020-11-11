@@ -1094,6 +1094,7 @@ void RENDER_UpdateFromScalerSetting(void) {
     if (reset) RENDER_CallBack(GFX_CallBackReset);
 }
 
+#if C_OPENGL
 extern int initgl;
 std::string shader_src="";
 std::string LoadGLShader(Section_prop * section) {
@@ -1123,6 +1124,7 @@ std::string LoadGLShader(Section_prop * section) {
 	if (shader_src.size()&&shader_src.c_str()!=render.shader_src) shader_src="";
     return shader_src;
 }
+#endif
 
 void RENDER_Init() {
     Section_prop * section=static_cast<Section_prop *>(control->GetSection("render"));

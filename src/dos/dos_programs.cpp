@@ -464,8 +464,8 @@ void MenuBrowseImageFile(char drive, bool boot, bool multiple) {
     char CurrentDir[512];
     char * Temp_CurrentDir = CurrentDir;
     getcwd(Temp_CurrentDir, 512);
-    const char *lFilterPatterns[] = {"*.ima","*.img","*.vhd","*.hdi","*.iso","*.cue","*.bin","*.mdf","*.zip","*.7z","*.IMA","*.IMG","*.VHD","*.HDI","*.ISO","*.CUE","*.BIN","*.MDF","*.ZIP","*.7Z"};
-    const char *lFilterDescription = "Image/Zip files (*.ima, *.img, *.vhd, *.hdi, *.iso, *.cue, *.bin, *.mdf, *.zip, *.7z)";
+    const char *lFilterPatterns[] = {"*.ima","*.img","*.vhd","*.hdi","*.iso","*.cue","*.bin","*.chd","*.mdf","*.zip","*.7z","*.IMA","*.IMG","*.VHD","*.HDI","*.ISO","*.CUE","*.BIN","*.CHD","*.MDF","*.ZIP","*.7Z"};
+    const char *lFilterDescription = "Image/Zip files (*.ima, *.img, *.vhd, *.hdi, *.iso, *.cue, *.bin, *.chd, *.mdf, *.zip, *.7z)";
     char const * lTheOpenFileName = tinyfd_openFileDialog(((multiple?"Select image file(s) for Drive ":"Select an image file for Drive ")+str+":").c_str(),"",20,lFilterPatterns,lFilterDescription,multiple?1:0);
     std::string files="";
     if (multiple&&lTheOpenFileName) {
@@ -492,7 +492,7 @@ void MenuBrowseImageFile(char drive, bool boot, bool multiple) {
                 strcpy(ext, lTheOpenFileName+strlen(lTheOpenFileName)-4);
             if(!strcasecmp(ext,".ima"))
                 strcpy(type,"-t floppy ");
-            else if((!strcasecmp(ext,".iso")) || (!strcasecmp(ext,".cue")) || (!strcasecmp(ext,".bin")) || (!strcasecmp(ext,".mdf")))
+            else if((!strcasecmp(ext,".iso")) || (!strcasecmp(ext,".cue")) || (!strcasecmp(ext,".bin")) || (!strcasecmp(ext,".chd")) || (!strcasecmp(ext,".mdf")))
                 strcpy(type,"-t iso ");
             else
                 strcpy(type,"");
@@ -1087,7 +1087,7 @@ public:
                             char ext[5];
                             strncpy(ext, temp_line.substr(temp_line.length()-4).c_str(), 4);
                             ext[4]=0;
-                            if (!strcasecmp(ext, ".iso")||!strcasecmp(ext, ".cue")||!strcasecmp(ext, ".bin")||!strcasecmp(ext, ".mdf")||!strcasecmp(ext, ".ima")||!strcasecmp(ext, ".img")||!strcasecmp(ext, ".vhd")||!strcasecmp(ext, ".hdi"))
+                            if (!strcasecmp(ext, ".iso")||!strcasecmp(ext, ".cue")||!strcasecmp(ext, ".bin")||!strcasecmp(ext, ".chd")||!strcasecmp(ext, ".mdf")||!strcasecmp(ext, ".ima")||!strcasecmp(ext, ".img")||!strcasecmp(ext, ".vhd")||!strcasecmp(ext, ".hdi"))
                                 WriteOut(MSG_Get("PROGRAM_MOUNT_IMGMOUNT"),temp_line.c_str());
                         }
                     }
@@ -1100,7 +1100,7 @@ public:
                         char ext[5];
                         strncpy(ext, temp_line.substr(temp_line.length()-4).c_str(), 4);
                         ext[4]=0;
-                        if (!strcasecmp(ext, ".iso")||!strcasecmp(ext, ".cue")||!strcasecmp(ext, ".bin")||!strcasecmp(ext, ".mdf")||!strcasecmp(ext, ".ima")||!strcasecmp(ext, ".img")||!strcasecmp(ext, ".vhd")||!strcasecmp(ext, ".hdi"))
+                        if (!strcasecmp(ext, ".iso")||!strcasecmp(ext, ".cue")||!strcasecmp(ext, ".bin")||!strcasecmp(ext, ".chd")||!strcasecmp(ext, ".mdf")||!strcasecmp(ext, ".ima")||!strcasecmp(ext, ".img")||!strcasecmp(ext, ".vhd")||!strcasecmp(ext, ".hdi"))
                             WriteOut(MSG_Get("PROGRAM_MOUNT_IMGMOUNT"),temp_line.c_str());
                     }
                 }
@@ -4292,7 +4292,7 @@ public:
 				char ext[5];
 				strncpy(ext, paths[0].substr(paths[0].length()-4).c_str(), 4);
 				ext[4]=0;
-				if (!strcasecmp(ext, ".iso")||!strcasecmp(ext, ".cue")||!strcasecmp(ext, ".bin")||!strcasecmp(ext, ".mdf")) {
+				if (!strcasecmp(ext, ".iso")||!strcasecmp(ext, ".cue")||!strcasecmp(ext, ".bin")||!strcasecmp(ext, ".chd")||!strcasecmp(ext, ".mdf")) {
 					type="iso";
 					fstype="iso";
 				} else if (!strcasecmp(ext, ".ima")) {

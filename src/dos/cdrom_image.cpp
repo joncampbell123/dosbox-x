@@ -53,6 +53,27 @@
 #include "src/libs/decoders/wav.c"
 #include "src/libs/decoders/mp3_seek_table.cpp"
 #include "src/libs/decoders/mp3.cpp"
+#include "src/libs/libchdr/chd.h"
+#include "src/libs/libchdr/libchdr_chd.c"
+#include "src/libs/libchdr/libchdr_cdrom.c"
+#include "src/libs/libchdr/libchdr_flac.c"
+#include "src/libs/libchdr/libchdr_huffman.c"
+#include "src/libs/libchdr/libchdr_bitstream.c"
+#include "src/libs/libchdr/flac/stream_decoder.c"
+#include "src/libs/libchdr/flac/bitreader.c"
+#include "src/libs/libchdr/flac/format.c"
+#include "src/libs/libchdr/flac/cpu.c"
+#include "src/libs/libchdr/flac/crc.c"
+#include "src/libs/libchdr/flac/fixed.c"
+#include "src/libs/libchdr/flac/lpc.c"
+#include "src/libs/libchdr/flac/md5.c"
+#include "src/libs/libchdr/flac/memory.c"
+#if defined(WIN32)
+#include "src/libs/libchdr/flac/windows_unicode_filenames.c"
+#endif
+#include "src/libs/libchdr/lzma/LzmaDec.c"
+#include "src/libs/libchdr/lzma/LzmaEnc.c"
+#include "src/libs/libchdr/lzma/LzFind.c"
 
 using namespace std;
 
@@ -259,6 +280,120 @@ int CDROM_Interface_Image::AudioFile::getLength()
 	return length;
 }
 
+CDROM_Interface_Image::CHDFile::CHDFile(const char* filename, bool& error)
+    :TrackFile(RAW_SECTOR_SIZE) // CDAudioCallBack needs 2352
+{
+    error = chd_open(filename, CHD_OPEN_READ, NULL, &this->chd) != CHDERR_NONE;
+    if (!error) {
+        this->header      = chd_get_header(this->chd);
+        this->hunk_buffer = new uint8_t[this->header->hunkbytes];
+    }
+}
+
+CDROM_Interface_Image::CHDFile::~CHDFile()
+{
+    // Guard: only cleanup if needed
+    if (this->chd) {
+        chd_close(this->chd);
+        this->chd = nullptr;
+    }
+
+    if (this->hunk_buffer) {
+        delete[] this->hunk_buffer;
+        this->hunk_buffer = nullptr;
+    }
+}
+
+bool CDROM_Interface_Image::CHDFile::read(uint8_t* buffer, int offset, int count)
+{
+    // we can not read more than a single sector currently
+    if (count > RAW_SECTOR_SIZE) {
+        return false;
+    }
+
+    int needed_hunk = offset / this->header->hunkbytes;
+
+    // EOF
+    if (needed_hunk > this->header->totalhunks) {
+        return false;
+    }
+
+    // read new hunk if needed
+    if (needed_hunk != this->hunk_buffer_index) {
+        if (chd_read(this->chd, needed_hunk, this->hunk_buffer) != CHDERR_NONE) {
+            return false;
+        }
+
+        this->hunk_buffer_index = needed_hunk;
+    }
+
+    // copy data
+    uint8_t* source = this->hunk_buffer + ((uint64_t)offset - (uint64_t)needed_hunk * this->header->hunkbytes);
+    memcpy(buffer, source, min(count, RAW_SECTOR_SIZE));
+
+    return true;
+}
+
+int CDROM_Interface_Image::CHDFile::getLength()
+{
+    return this->header->logicalbytes;
+}
+
+uint16_t CDROM_Interface_Image::CHDFile::getEndian()
+{
+    // CHD: no idea about this, chaning this did not fix the cd audio noise
+    // Image files are read into native-endian byte-order
+#if defined(WORDS_BIGENDIAN)
+    return AUDIO_S16MSB;
+#else
+    return AUDIO_S16LSB;
+#endif
+}
+
+bool CDROM_Interface_Image::CHDFile::seek(uint32_t offset)
+{
+    // only checks if seek range is valid ? only used for audio ?
+    // only used by PlayAudioSector ?
+    if ((offset / this->header->hunkbytes) < this->header->hunkcount) {
+        return true;
+    } else {
+        return false;
+    }
+}
+
+static void Endian_A16_Swap(void* src, uint32_t nelements)
+{
+    uint32_t i;
+    uint8_t* nsrc = (uint8_t*)src;
+
+    for (i = 0; i < nelements; i++)
+    {
+        uint8_t tmp = nsrc[i * 2];
+
+        nsrc[i * 2] = nsrc[i * 2 + 1];
+        nsrc[i * 2 + 1] = tmp;
+    }
+}
+
+uint16_t CDROM_Interface_Image::CHDFile::decode(uint8_t* buffer)
+{
+    // reads one sector of CD audio ?
+
+    assert(this->audio_pos % 2448 == 0);
+
+    if (this->read(buffer, this->audio_pos, RAW_SECTOR_SIZE)) {
+        // chd uses 2448
+        this->audio_pos += 2448;
+
+        // no idea if other platforms need this but on windows this is needed or there is only noise
+        Endian_A16_Swap(buffer, 588 * 2);
+
+        // we only read the raw audio nothing else
+        return RAW_SECTOR_SIZE;
+    }
+    return 0;
+}
+
 // initialize static members
 int CDROM_Interface_Image::refCount = 0;
 CDROM_Interface_Image* CDROM_Interface_Image::images[26] = {};
@@ -296,7 +431,7 @@ CDROM_Interface_Image::~CDROM_Interface_Image()
 bool CDROM_Interface_Image::SetDevice(char* path, int forceCD)
 {
 	(void)forceCD;//UNUSED
-	const bool result = LoadCueSheet(path) || LoadIsoFile(path);
+	const bool result = LoadCueSheet(path) || LoadIsoFile(path) || LoadChdFile(path);
 	if (!result) {
 		// print error message on dosbox console
 		char buf[MAX_LINE_LENGTH];
@@ -415,20 +550,20 @@ bool CDROM_Interface_Image::PlayAudioSector(unsigned long start, unsigned long l
 
 	// The CDROM Red Book standard allows up to 99 tracks, which includes the data track
 	if ( track < 0 || track > 99 )
-		LOG(LOG_MISC, LOG_WARN)("Game tried to load track #%d, which is invalid", track);
+		LOG_MSG("Game tried to load track #%d, which is invalid", track);
 
 	// Attempting to play zero sectors is a no-op
 	else if (len == 0)
-		LOG(LOG_MISC, LOG_WARN)("Game tried to play zero sectors, skipping");
+		LOG_MSG("Game tried to play zero sectors, skipping");
 
 	// The maximum storage achieved on a CDROM was ~900MB or just under 100 minutes
 	// with overburning, so use this threshold to sanity-check the start sector.
 	else if (start > 450000)
-		LOG(LOG_MISC, LOG_WARN)("Game tried to read sector %lu, which is beyond the 100-minute maximum of a CDROM", start);
+		LOG_MSG("Game tried to read sector %lu, which is beyond the 100-minute maximum of a CDROM", start);
 
 	// We can't play audio from a data track (as it would result in garbage/static)
 	else if(track >= 0 && tracks[track].attr == 0x40)
-		LOG(LOG_MISC,LOG_WARN)("Game tries to play the data track. Not doing this");
+		LOG_MSG("Game tries to play the data track. Not doing this");
 
 	// Checks passed, setup the audio stream
 	else {
@@ -924,7 +1059,146 @@ bool CDROM_Interface_Image::LoadCueSheet(char *cuefile)
 	return true;
 }
 
+std::vector<string> split_string_to_list(const std::string& str, const std::string& delim)
+{
+    std::vector<string> tokens;
+    size_t prev = 0, pos = 0;
+    do
+    {
+        pos = str.find(delim, prev);
+        if (pos == string::npos) pos = str.length();
+        string token = str.substr(prev, pos - prev);
+        if (!token.empty()) tokens.push_back(token);
+        prev = pos + delim.length();
+    } while (pos < str.length() && prev < str.length());
+    return tokens;
+}
 
+bool CDROM_Interface_Image::LoadChdFile(char* chdfile)
+{
+    /*
+        ToDo:
+            - check if this is a CD and not an HDD CHD
+            - check for CDROM_TRACK_METADATA_TAG or CDROM_OLD_METADATA_TAG (?)
+    */
+    tracks.clear();
+    bool     error       = true;
+    CHDFile* file        = new CHDFile(chdfile, error);
+    Track    track       = { 0, 0, 0, 0, 0, 0, false, file };
+    int      shift       = 0;
+    int      currPregap  = 0;
+    int      totalPregap = 0;
+    int      prestart    = -1;
+    if (!error) {
+        // iterate over all track entries
+        char   metadata[256];
+        int    index        = 0;
+        UINT32 count        = 0;
+        UINT32 tag          = 0;
+        UINT8  flags        = 0;
+        int    total_frames = 0;
+        while (chd_get_metadata(file->getChd(), CDROM_TRACK_METADATA2_TAG, index, &metadata, 256, &count, &tag, &flags) == CHDERR_NONE) {
+            // parse track
+            // TRACK:1 TYPE:MODE1_RAW SUBTYPE:NONE FRAMES:206931 PREGAP:0 P
+            std::vector<string> tokens = split_string_to_list(metadata, " ");
+            track.start                = 0;
+            track.skip                 = 0;
+            currPregap                 = 0;
+            prestart                   = -1;
+            for (int i = 0; i < tokens.size(); i++) {
+                // "TRACK:1" > "TRACK" "1"
+                std::vector<string> track_meta = split_string_to_list(tokens[i], ":");
+                std::string         key        = track_meta[0];
+                std::string         value      = track_meta[1];
+
+                if (key == "TRACK") {
+                    // track index
+                    track.number = std::stoi(value);
+                } else if (key == "TYPE") {
+                    // track type
+                    if (value == "AUDIO") {
+                        track.sectorSize = RAW_SECTOR_SIZE;
+                        track.attr       = 0;
+                        track.mode2      = false;
+                    } else if (value == "MODE1") {
+                        track.sectorSize = COOKED_SECTOR_SIZE;
+                        track.attr       = 0x40;
+                        track.mode2      = false;
+                    } else if (value == "MODE1_RAW") {
+                        track.sectorSize = RAW_SECTOR_SIZE;
+                        track.attr       = 0x40;
+                        track.mode2      = false;
+                    } else if (value == "MODE2") {
+                        track.sectorSize = 2336;
+                        track.attr       = 0x40;
+                        track.mode2      = true;
+                    } else if (value == "MODE2_FORM1") {
+                        track.sectorSize = COOKED_SECTOR_SIZE;
+                        track.attr       = 0x40;
+                        track.mode2      = true;
+                    } else if (value == "MODE2_FORM2") {
+                        track.sectorSize = 2336;
+                        track.attr       = 0x40;
+                        track.mode2      = true;
+                    } else if (value == "MODE2_RAW") {
+                        track.sectorSize = RAW_SECTOR_SIZE;
+                        track.attr       = 0x40;
+                        track.mode2      = true;
+                    } else {
+                        // unknown track mode
+                        return false;
+                    };
+                } else if (key == "SUBTYPE") {
+                    if (value == "RAW") {
+                        //track.sectorSize += 96;
+                        // is subchannel data even supported?
+                    }
+                } else if (key == "FRAMES") {
+                    int frames    = std::stoi(value);
+                    track.start   = total_frames;
+                    total_frames += frames;
+                    track.length  = frames;
+
+                } else if (key == "PREGAP") {
+                    currPregap = std::stoi(value);
+                }
+
+            }
+
+            // chd has the pregap added to FRAMES
+            // this is needed or track.start and track.length do not match with LoadCueSheet for the same image
+            // creates the same track list as LoadCueSheet
+            if (currPregap) {
+                prestart      = track.start;
+                track.start  += currPregap;
+                track.length -= currPregap;
+            }
+
+            track.sectorSize = 2448; // chd always uses 2448
+            if (!AddTrack(track, shift, prestart, totalPregap, 0)) {
+                return false;
+            }
+
+            index += 1;
+        }
+
+        // no tracks found
+        if (tracks.empty()) return false;
+
+        // add leadout track
+        track.number++;
+        track.attr   = 0; // sync with load iso
+        track.start  = 0;
+        track.length = 0;
+        track.file   = NULL;
+        if (!AddTrack(track, shift, -1, totalPregap, 0)) return false;
+
+        return true;
+
+    } else {
+        return false;
+    }
+}
 
 bool CDROM_Interface_Image::AddTrack(Track &curr, int &shift, int prestart, int &totalPregap, int currPregap)
 {

@@ -64,9 +64,15 @@
     "Drive" menu being reversed. (Wengier)
   - Fixed CD audio issue with the game "The Secret of
     Monkey Island" when talking to the pirate in Scumm
-    Bar by adapting the patch that fixes it. (Wengier)
+    Bar by adapting the patch that fixes it. Thanks
+    kcgen for the fix logic. (Wengier)
+  - Added support for MAME CHD CD images. You can now
+    mount CHD images with IMGMOUNT command, or from the
+    Drive menu. Based on libchdr library and the work
+    of the user whocares010. (Wengier)
   - Updated FLAC/MP3/WAV CD-DA decoder libraries to the
-    latest versions. (Wengier)
+    latest versions (versions 0.12.22, 0.6.18, 0.12.13
+    respectively). Thanks to mackron & kcgen. (Wengier)
 0.83.7
   - The primary DOSBox-X Wiki is now located at the
     URL: https://dosbox-x.com/wiki (Wengier)
