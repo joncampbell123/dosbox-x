@@ -2328,6 +2328,20 @@ void DOSBOX_SetupConfigSections(void) {
     const char* bright[] = { "", "bright", 0 };
     Pstring->Set_values(bright);
 
+	Pstring = secprop->Add_string("ttf.font", Property::Changeable::Always, "");
+    Pstring->Set_help("Specifies a TrueType font to use for the TTF output.");
+    Pstring->SetBasic(true);
+
+	Pint = secprop->Add_int("ttf.winperc", Property::Changeable::Always, 75);
+    Pint->Set_help("Specifies the window percentage for the TTF output.");
+    Pint->SetBasic(true);
+
+	Pint = secprop->Add_int("ttf.lins", Property::Changeable::Always, 24);
+    Pint->Set_help("Specifies the number of rows on the screen for the TTF output.");
+
+	Pint = secprop->Add_int("ttf.cols", Property::Changeable::Always, 80);
+    Pint->Set_help("Specifies the number of columns on the screen for the TTF output.");
+
     secprop=control->AddSection_prop("vsync",&Null_Init,true);//done
 
     Pstring = secprop->Add_string("vsyncmode",Property::Changeable::WhenIdle,"off");

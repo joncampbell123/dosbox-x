@@ -48,6 +48,7 @@
 #include <assert.h>
 
 #include "SDL_syswm.h"
+#include "sdlmain.h"
 
 #ifdef DOSBOXMENU_EXTERNALLY_MANAGED
 static DOSBoxMenu guiMenu, nullMenu;

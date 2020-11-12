@@ -23,6 +23,7 @@ enum SCREEN_TYPES {
 #if C_DIRECT3D
     ,SCREEN_DIRECT3D
 #endif
+    ,SCREEN_TTF
 };
 
 enum AUTOLOCK_FEEDBACK
@@ -90,6 +91,7 @@ struct SDL_Block {
     bool inited = false;
     bool active = false; // if this isn't set don't draw
     bool updating = false;
+    short scale = 0;
 #if defined(C_SDL2)
     bool update_window = false;
     bool update_display_contents = false;

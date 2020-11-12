@@ -24,6 +24,7 @@
 #if defined (WIN32)
 #include <d3d9.h>
 #endif
+#include "time.h"
 #include "timer.h"
 #include "setup.h"
 #include "support.h"
@@ -2989,6 +2990,33 @@ static void VGA_VerticalTimer(Bitu /*val*/) {
 
     //Check if we can actually render, else skip the rest
     if (vga.draw.vga_override || !RENDER_StartUpdate()) return;
+
+#if defined(WIN32)
+	if (ttf.inUse) {
+		GFX_StartUpdate(render.scale.outWrite, render.scale.outPitch);
+		vga.draw.blink = ((vga.draw.blinking & time(NULL)) || !vga.draw.blinking) ? true : false;	// eventually blink once per second
+		vga.draw.cursor.address = vga.config.cursor_start*2;
+		Bitu vidstart = vga.config.real_start + vga.draw.bytes_skip;
+		vidstart *= 2;
+		const uint32_t* vidmem = (uint32_t*)&vga.draw.linear_base[vidstart];		// pointer to chars+attribs
+		uint16_t* draw = (uint16_t*)newAttrChar;
+		for (Bitu blocks = ttf.cols * ttf.lins; blocks; blocks--) {
+			*draw++ = *vidmem;
+			Bitu attr = *(((uint8_t*)vidmem)+1);
+            vidmem+=2;
+			Bitu background = attr >> 4;
+			if (vga.draw.blinking)									// if blinking is enabled bit7 is not mapped to attributes
+				background &= 7;
+			// choose foreground color if blinking not set for this cell or blink on
+			Bitu foreground = (vga.draw.blink || (!(attr&0x80))) ? (attr&0xf) : background;
+			// How about underline?
+			*draw++ = (background<<4) + foreground;
+		}
+		render.cache.past_y = 1;
+		RENDER_EndUpdate(false);
+		return;
+	}
+#endif
 
     vga.draw.address_line = vga.config.hlines_skip;
     if (IS_EGAVGA_ARCH) VGA_Update_SplitLineCompare();

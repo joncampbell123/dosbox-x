@@ -52,6 +52,9 @@ uint32_t                                GFX_palette32bpp[256] = {0};
 unsigned int                            GFX_GetBShift();
 void                                    RENDER_CallBack( GFX_CallBackFunctions_t function );
 
+uint32_t curAttrChar[txtMaxLins*txtMaxCols];					// currently displayed textpage
+uint32_t newAttrChar[txtMaxLins*txtMaxCols];					// to be replaced by
+
 static void Check_Palette(void) {
     /* Clean up any previous changed palette data */
     if (render.pal.changed) {
@@ -297,8 +300,10 @@ static void RENDER_ClearCacheHandler(const void * src) {
     render.scale.lineHandler( src );
 }
 
+#define RENDER_MAXWIDTH 800
+#define RENDER_MAXHEIGHT 600
 extern void GFX_SetTitle(int32_t cycles, int frameskip, Bits timing, bool paused);
-
+uint8_t rendererCache[RENDER_MAXHEIGHT * RENDER_MAXWIDTH];
 bool RENDER_StartUpdate(void) {
     if (GCC_UNLIKELY(render.updating))
         return false;
@@ -309,7 +314,7 @@ bool RENDER_StartUpdate(void) {
         return false;
     }
     render.frameskip.count=0;
-    if (render.scale.inMode == scalerMode8) {
+    if (render.scale.inMode == scalerMode8 && sdl.desktop.want_type != SCREEN_TTF) {
         Check_Palette();
     }
     render.scale.inLine = 0;
@@ -431,6 +436,17 @@ static Bitu MakeAspectTable(Bitu skip,Bitu height,double scaley,Bitu miny) {
 }
 
 void RENDER_Reset( void ) {
+    if (sdl.desktop.want_type == SCREEN_TTF) {
+        // Setup the scaler variables
+        GFX_SetSize(render.cache.width, render.cache.height, 0, 0, 0, &RENDER_CallBack);
+
+        // Finish this frame using a copy only handler
+        RENDER_DrawLine = RENDER_FinishLineHandler;
+        // Signal the next frame to first reinit the cache
+        render.cache.nextInvalid = true;
+        render.active = true;
+    }
+
     Bitu width=render.src.width;
     Bitu height=render.src.height;
     bool dblw=render.src.dblw;
@@ -807,6 +823,13 @@ void RENDER_SetSize(Bitu width,Bitu height,Bitu bpp,float fps,double scrn_ratio)
     if (!width || !height || width > SCALER_MAXWIDTH || height > SCALER_MAXHEIGHT) {
         LOG(LOG_MISC,LOG_WARN)("RENDER_SetSize() rejected video mode %u x %u",(unsigned int)width,(unsigned int)height);
         return; 
+    }
+
+    if (sdl.desktop.want_type == SCREEN_TTF) {
+        render.cache.width	= width;
+        render.cache.height	= height;
+        RENDER_Reset();
+        return;
     }
 
     // figure out doublewidth/height values
