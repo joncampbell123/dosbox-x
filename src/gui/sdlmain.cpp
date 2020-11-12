@@ -7246,7 +7246,7 @@ bool DOSBOX_parse_argv() {
             control->opt_break_start = true;
         }
         else if (optname == "silent") {
-            putenv("SDL_VIDEODRIVER=dummy");
+            putenv(const_cast<char*>("SDL_VIDEODRIVER=dummy"));
             control->opt_exit = true;
             control->opt_fastlaunch = true;
         }
