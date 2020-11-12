@@ -403,7 +403,7 @@ void INT10_SetCursorShape(uint8_t first,uint8_t last) {
     if (!(real_readb(BIOSMEM_SEG,BIOSMEM_VIDEO_CTL) & 0x8)) { /* if video subsystem is ACTIVE (bit is cleared) [https://www.stanislavs.org/helppc/bios_data_area.html] */
         /* Check for CGA type 01, invisible */
         if ((first & 0x60) == 0x20) {
-            first=0x1e;
+            first=0x1e | 0x20; /* keep the cursor invisible! */
             last=0x00;
             goto dowrite;
         }
