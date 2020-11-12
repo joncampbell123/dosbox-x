@@ -28,6 +28,7 @@
 #include <vector>
 #include <fstream>
 #include <sstream>
+#include <thread>
 
 #include "dosbox.h"
 #include "mem.h"
@@ -301,9 +302,14 @@ private:
                     TODO: cache more than one hunk
                     or wait for https://github.com/rtissera/libchdr/issues/36
                 */
-              uint8_t*    hunk_buffer       = nullptr; // buffer to hold one hunk // size of hunks in CHD up to 1 MiB
-              int         hunk_buffer_index = -1;      // hunk index for buffer
-    };
+              uint8_t*     hunk_buffer       = nullptr; // buffer to hold one hunk // size of hunks in CHD up to 1 MiB
+              uint8_t*     hunk_buffer_next  = nullptr; // index + 1 prefetch
+              int          hunk_buffer_index = -1;      // hunk index for buffer
+              std::thread* hunk_thread       = nullptr; // used for prefetch
+              bool         hunk_thread_error = true;
+    public:
+              bool         skip_sync         = false;   // this will fail if a CHD contains 2048 and 2352 sector tracks
+     };
 
 public:
 	// Nested struct definition

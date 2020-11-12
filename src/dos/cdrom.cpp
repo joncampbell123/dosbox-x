@@ -241,8 +241,8 @@ int CDROM_GetMountType(const char* path, int forceCD) {
 #endif
 	
 	// Detect ISO
-	struct stat file_stat;
-	if ((stat(path, &file_stat) == 0) && (file_stat.st_mode & S_IFREG)) return 1; 
+	struct pref_stat file_stat;
+	if ((pref_stat(path, &file_stat) == 0) && (file_stat.st_mode & S_IFREG)) return 1;
 	return 2;
 }
 

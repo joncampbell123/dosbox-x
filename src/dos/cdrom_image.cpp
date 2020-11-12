@@ -285,8 +285,9 @@ CDROM_Interface_Image::CHDFile::CHDFile(const char* filename, bool& error)
 {
     error = chd_open(filename, CHD_OPEN_READ, NULL, &this->chd) != CHDERR_NONE;
     if (!error) {
-        this->header      = chd_get_header(this->chd);
-        this->hunk_buffer = new uint8_t[this->header->hunkbytes];
+        this->header           = chd_get_header(this->chd);
+        this->hunk_buffer      = new uint8_t[this->header->hunkbytes];
+        this->hunk_buffer_next = new uint8_t[this->header->hunkbytes];
     }
 }
 
@@ -302,6 +303,18 @@ CDROM_Interface_Image::CHDFile::~CHDFile()
         delete[] this->hunk_buffer;
         this->hunk_buffer = nullptr;
     }
+
+    if (this->hunk_thread) {
+        this->hunk_thread->join();
+        delete hunk_thread;
+        this->hunk_thread = nullptr;
+    }
+}
+
+void hunk_thread_func(chd_file* chd, int hunk_index, uint8_t* buffer, bool* error)
+{
+    // loads one hunk into buffer
+    *error = chd_read(chd, hunk_index, buffer) != CHDERR_NONE;
 }
 
 bool CDROM_Interface_Image::CHDFile::read(uint8_t* buffer, int offset, int count)
@@ -320,15 +333,38 @@ bool CDROM_Interface_Image::CHDFile::read(uint8_t* buffer, int offset, int count
 
     // read new hunk if needed
     if (needed_hunk != this->hunk_buffer_index) {
-        if (chd_read(this->chd, needed_hunk, this->hunk_buffer) != CHDERR_NONE) {
-            return false;
+        // make sure our thread is done
+        if (this->hunk_thread) this->hunk_thread->join();
+
+        // can we use our prefetched hunk
+        if ((needed_hunk == (this->hunk_buffer_index + 1)) && (!this->hunk_thread_error)) {
+            // swap pointers and we're good :)
+            std::swap(this->hunk_buffer, this->hunk_buffer_next);
+
+        } else {
+            // read new hunk
+            bool error = true;
+            hunk_thread_func(this->chd, needed_hunk, this->hunk_buffer, &error);
+            if (error) {
+                return false;
+            }
         }
 
         this->hunk_buffer_index = needed_hunk;
+
+        // prefetch: let our thread decode the next hunk
+        if (hunk_thread) delete this->hunk_thread;
+        this->hunk_thread = new std::thread(
+            [this, needed_hunk]() {
+                hunk_thread_func(this->chd, needed_hunk + 1, this->hunk_buffer_next, &this->hunk_thread_error);
+            }
+        );
     }
 
     // copy data
-    uint8_t* source = this->hunk_buffer + ((uint64_t)offset - (uint64_t)needed_hunk * this->header->hunkbytes);
+    // the overlying read code thinks there is a sync header
+    // so for 2048 sector size images we need to subtract 16 from the offset to account for the missing sync header
+    uint8_t* source = this->hunk_buffer + ((uint64_t)offset - (uint64_t)needed_hunk * this->header->hunkbytes) - ((uint64_t)16 * this->skip_sync);
     memcpy(buffer, source, min(count, RAW_SECTOR_SIZE));
 
     return true;
@@ -1124,6 +1160,7 @@ bool CDROM_Interface_Image::LoadChdFile(char* chdfile)
                         track.sectorSize = COOKED_SECTOR_SIZE;
                         track.attr       = 0x40;
                         track.mode2      = false;
+                        file->skip_sync  = true;
                     } else if (value == "MODE1_RAW") {
                         track.sectorSize = RAW_SECTOR_SIZE;
                         track.attr       = 0x40;
@@ -1136,6 +1173,7 @@ bool CDROM_Interface_Image::LoadChdFile(char* chdfile)
                         track.sectorSize = COOKED_SECTOR_SIZE;
                         track.attr       = 0x40;
                         track.mode2      = true;
+                        file->skip_sync  = true;
                     } else if (value == "MODE2_FORM2") {
                         track.sectorSize = 2336;
                         track.attr       = 0x40;
