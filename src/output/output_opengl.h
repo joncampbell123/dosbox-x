@@ -93,7 +93,7 @@ struct SDL_OpenGL {
         GLint frame_count;
     } ruby;
     GLuint actual_frame_count;
-    GLfloat vertex_data[2*3];
+    GLfloat vertex_data[2*4];
 #if defined(C_SDL2)
     SDL_GLContext context;
 #endif

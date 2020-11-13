@@ -489,15 +489,19 @@ Bitu OUTPUT_OPENGL_SetSize()
                 glUseProgram(sdl_opengl.program_object);
 
                 GLint u = glGetAttribLocation(sdl_opengl.program_object, "a_position");
+                // NTS: This is now a triangle strip (GL_TRIANGLE_STRIP)
                 // upper left
                 sdl_opengl.vertex_data[0] = -1.0f;
-                sdl_opengl.vertex_data[1] = 1.0f;
+                sdl_opengl.vertex_data[1] =  1.0f;
                 // lower left
                 sdl_opengl.vertex_data[2] = -1.0f;
-                sdl_opengl.vertex_data[3] = -3.0f;
+                sdl_opengl.vertex_data[3] = -1.0f;
                 // upper right
-                sdl_opengl.vertex_data[4] = 3.0f;
-                sdl_opengl.vertex_data[5] = 1.0f;
+                sdl_opengl.vertex_data[4] =  1.0f;
+                sdl_opengl.vertex_data[5] =  1.0f;
+                // lower right
+                sdl_opengl.vertex_data[6] =  1.0f;
+                sdl_opengl.vertex_data[7] = -1.0f;
                 // Load the vertex positions
                 glVertexAttribPointer(u, 2, GL_FLOAT, GL_FALSE, 0, sdl_opengl.vertex_data);
                 glEnableVertexAttribArray(u);
@@ -866,7 +870,7 @@ void OUTPUT_OPENGL_EndUpdate(const uint16_t *changedLines)
             return;
         if (sdl_opengl.program_object) {
             glUniform1i(sdl_opengl.ruby.frame_count, sdl_opengl.actual_frame_count++);
-            glDrawArrays(GL_TRIANGLES, 0, 3);
+            glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
         } else
             glCallList(sdl_opengl.displaylist);
 
