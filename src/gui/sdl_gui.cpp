@@ -48,9 +48,10 @@
 #include <assert.h>
 
 #include "SDL_syswm.h"
+#include "sdlmain.h"
 
 #ifdef DOSBOXMENU_EXTERNALLY_MANAGED
-static DOSBoxMenu guiMenu;
+static DOSBoxMenu guiMenu, nullMenu;
 #endif
 
 /* helper class for command execution */
@@ -92,7 +93,7 @@ static bool                 shortcut=false;
 static SDL_Surface*         screenshot = NULL;
 static SDL_Surface*         background = NULL;
 #ifdef DOSBOXMENU_EXTERNALLY_MANAGED
-static bool                 gui_menu_init = true;
+static bool                 gui_menu_init = true, null_menu_init = true;
 #endif
 int                         shortcutid = -1;
 void                        GFX_GetSizeAndPos(int &x,int &y,int &width, int &height, bool &fullscreen);
@@ -342,13 +343,13 @@ static GUI::ScreenSDL *UI_Startup(GUI::ScreenSDL *screen) {
 
         {
             DOSBoxMenu::item &item = guiMenu.alloc_item(DOSBoxMenu::submenu_type_id,"ConfigGuiMenu");
-            item.set_text("Configuration GUI");
+            item.set_text("Configuration Tool");
         }
 
         {
             DOSBoxMenu::item &item = guiMenu.alloc_item(DOSBoxMenu::item_type_id,"ExitGUI");
             item.set_callback_function(gui_menu_exit);
-            item.set_text("Exit configuration GUI");
+            item.set_text("Exit configuration Tool");
         }
 
         guiMenu.displaylist_clear(guiMenu.display_list);
@@ -363,7 +364,21 @@ static GUI::ScreenSDL *UI_Startup(GUI::ScreenSDL *screen) {
         }
     }
 
-    static DOSBoxMenu nullMenu;
+    if (null_menu_init) {
+        null_menu_init = false;
+
+        {
+            DOSBoxMenu::item &item = nullMenu.alloc_item(DOSBoxMenu::submenu_type_id,"ConfigGuiMenu");
+            item.set_text("");
+        }
+
+        nullMenu.displaylist_clear(nullMenu.display_list);
+
+        nullMenu.displaylist_append(
+                nullMenu.display_list,
+                nullMenu.get_item_id_by_name("ConfigGuiMenu"));
+    }
+
     if (!shortcut || shortcutid<16) {
         guiMenu.rebuild();
         DOSBox_SetMenu(guiMenu);
@@ -1309,31 +1324,51 @@ protected:
     GUI::Input *name;
 public:
     SaveDialog(GUI::Screen *parent, int x, int y, const char *title) :
-        ToplevelWindow(parent, x, y, 400, 130 + GUI::titlebar_y_stop, title) {
-        new GUI::Label(this, 5, 10, "Enter filename for configuration file:");
+        ToplevelWindow(parent, x, y, 620, 160 + GUI::titlebar_y_stop, title) {
+        new GUI::Label(this, 5, 10, "Enter filename for the configuration file to save to:");
         name = new GUI::Input(this, 5, 30, width - 10 - border_left - border_right);
-        extern std::string capturedir;
-        std::string fullpath,file;
-        Cross::GetPlatformConfigName(file);
-        const size_t last_slash_idx = capturedir.find_last_of("\\/");
-        if (std::string::npos != last_slash_idx) {
-            fullpath = capturedir.substr(0, last_slash_idx);
-            fullpath += CROSS_FILESPLIT;
-            fullpath += file;
-        } else
+        std::string fullpath;
+        if (control->configfiles.size())
+            fullpath = control->configfiles[0];
+        else
             fullpath = "dosbox-x.conf";
         name->setText(fullpath.c_str());
-        saveall = new GUI::Checkbox(this, 5, 60, "Save all options to the configuration file");
+        (new GUI::Button(this, 5, 60, "Use primary config file", 200))->addActionHandler(this);
+        (new GUI::Button(this, 210, 60, "Use portable config file", 210))->addActionHandler(this);
+        (new GUI::Button(this, 425, 60, "Use user config file", 180))->addActionHandler(this);
         Section_prop * section=static_cast<Section_prop *>(control->GetSection("dosbox"));
+        saveall = new GUI::Checkbox(this, 5, 95, "Save all config options to the configuration file");
         saveall->setChecked(section->Get_bool("show advanced options"));
-        (new GUI::Button(this, 120, 90, "Cancel", 70))->addActionHandler(this);
-        (new GUI::Button(this, 210, 90, "OK", 70))->addActionHandler(this);
+        (new GUI::Button(this, 220, 120, "OK", 70))->addActionHandler(this);
+        (new GUI::Button(this, 310, 120, "Cancel", 70))->addActionHandler(this);
     }
 
     void actionExecuted(GUI::ActionEventSource *b, const GUI::String &arg) {
         (void)b;//UNUSED
-        // HACK: Attempting to cast a String to void causes "forming reference to void" errors when building with GCC 4.7
-        (void)arg.size();//UNUSED
+        if (arg == "Use portable config file") {
+            name->setText("dosbox-x.conf");
+            return;
+        }
+        if (arg == "Use primary config file") {
+            if (control->configfiles.size())
+                name->setText(control->configfiles[0]);
+            return;
+        }
+        if (arg == "Use user config file") {
+            std::string config_path;
+            Cross::GetPlatformConfigDir(config_path);
+            std::string fullpath,file;
+            Cross::GetPlatformConfigName(file);
+            const size_t last_slash_idx = config_path.find_last_of("\\/");
+            if (std::string::npos != last_slash_idx) {
+                fullpath = config_path.substr(0, last_slash_idx);
+                fullpath += CROSS_FILESPLIT;
+                fullpath += file;
+            } else
+                fullpath = file;
+            name->setText(fullpath);
+            return;
+        }
         if (arg == "OK") control->PrintConfig(name->getText(), saveall->isChecked()?1:-1);
         close();
         if(shortcut) running=false;
@@ -1349,8 +1384,8 @@ public:
         new GUI::Label(this, 5, 10, "Enter filename for language file:");
         name = new GUI::Input(this, 5, 30, width - 10 - border_left - border_right);
         name->setText("messages.txt");
-        (new GUI::Button(this, 120, 60, "Cancel", 70))->addActionHandler(this);
-        (new GUI::Button(this, 210, 60, "OK", 70))->addActionHandler(this);
+        (new GUI::Button(this, 120, 60, "OK", 70))->addActionHandler(this);
+        (new GUI::Button(this, 210, 60, "Cancel", 70))->addActionHandler(this);
     }
 
     void actionExecuted(GUI::ActionEventSource *b, const GUI::String &arg) {
@@ -1542,6 +1577,7 @@ public:
                 new GUI::Label(this, 40, r, line.c_str());
             }
             (new GUI::Button(this, 140, r+30, "Close", 70))->addActionHandler(this);
+            resize(350, r+110);
     }
 
     void actionExecuted(GUI::ActionEventSource *b, const GUI::String &arg) {
@@ -1726,6 +1762,31 @@ public:
             new GUI::Label(this, 40, 25*(index+1), std::to_string(index) + " - " + str);
         }
         (new GUI::Button(this, 190, 25*(MAX_DISK_IMAGES+1)+5, "Close", 70))->addActionHandler(this);
+    }
+
+    void actionExecuted(GUI::ActionEventSource *b, const GUI::String &arg) {
+        (void)b;//UNUSED
+        if (arg == "Close")
+            close();
+        if (shortcut) running = false;
+    }
+};
+
+class ShowIDEInfo : public GUI::ToplevelWindow {
+protected:
+    GUI::Input *name;
+public:
+    ShowIDEInfo(GUI::Screen *parent, int x, int y, const char *title) :
+        ToplevelWindow(parent, x, y, 300, 210, title) {
+            std::string GetIDEInfo();
+            std::istringstream in(GetIDEInfo().c_str());
+            int r=0;
+            if (in)	for (std::string line; std::getline(in, line); ) {
+                r+=25;
+                new GUI::Label(this, 40, r, line.c_str());
+            }
+            (new GUI::Button(this, 110, r+30, "Close", 70))->addActionHandler(this);
+            resize(300, r+110);
     }
 
     void actionExecuted(GUI::ActionEventSource *b, const GUI::String &arg) {
@@ -1958,7 +2019,7 @@ public:
         } else if (arg == "CD-ROM Support") {
             new GUI::MessageBox2(getScreen(), 20, 50, 640, "CD-ROM Support", MSG_Get("PROGRAM_INTRO_CDROM"));
         } else if (arg == "Save...") {
-            new SaveDialog(getScreen(), 90, 100, "Save Configuration...");
+            new SaveDialog(getScreen(), 50, 100, "Save Configuration...");
         } else if (arg == "Save Language File...") {
             new SaveLangDialog(getScreen(), 90, 100, "Save Language File...");
         } else {
@@ -2159,12 +2220,16 @@ static void UI_Select(GUI::ScreenSDL *screen, int select) {
             auto *np7 = new ShowLoadWarning(screen, 150, 120, "Are you sure to remove the state in this slot?");
             np7->raise();
             } break;
-        case 32: if (statusdrive>-1 && statusdrive<DOS_DRIVES && Drives[statusdrive]) {
-            auto *np9 = new ShowDriveInfo(screen, 120, 50, "Drive Information");
+        case 31: if (statusdrive>-1 && statusdrive<DOS_DRIVES && Drives[statusdrive]) {
+            auto *np8 = new ShowDriveInfo(screen, 120, 50, "Drive information");
+            np8->raise();
+            } break;
+        case 32: {
+            auto *np9 = new ShowDriveNumber(screen, 110, 70, "Mounted drive numbers");
             np9->raise();
             } break;
         case 33: {
-            auto *np10 = new ShowDriveNumber(screen, 110, 70, "Mounted Drive Numbers");
+            auto *np10 = new ShowIDEInfo(screen, 150, 70, "IDE controller assignment");
             np10->raise();
             } break;
         case 34: {
@@ -2172,8 +2237,8 @@ static void UI_Select(GUI::ScreenSDL *screen, int select) {
             np11->raise();
             } break;
         case 35: {
-            auto *np11 = new ShowHelpAbout(screen, 110, 70, "About");
-            np11->raise();
+            auto *np12 = new ShowHelpAbout(screen, 110, 70, "About");
+            np12->raise();
             } break;
         default:
             break;

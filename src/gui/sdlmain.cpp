@@ -38,6 +38,8 @@
 #endif
 
 int socknum=-1;
+int posx = -1;
+int posy = -1;
 extern int enablelfn;
 extern bool blinking;
 extern bool dpi_aware_enable;
@@ -104,6 +106,14 @@ void GFX_OpenGLRedrawScreen(void);
 #include "../ints/int10.h"
 #if !defined(HX_DOS)
 #include "../libs/tinyfiledialogs/tinyfiledialogs.h"
+#endif
+#if defined(WIN32)
+#if defined(C_SDL2)
+#include "sdl2_ttf.c"
+#else
+#include "sdl_ttf.c"
+#endif
+#include "DOSBoxTTF.h"
 #endif
 
 #if defined(LINUX) && defined(HAVE_ALSA)
@@ -235,11 +245,34 @@ void ShutDownMemHandles(Section * sec);
 
 SDL_Block sdl;
 Bitu frames = 0;
+int wpVersion = 0;
 unsigned int page=0;
 unsigned int sendkeymap=0;
 
 ScreenSizeInfo          screen_size_info;
 
+#if defined(WIN32)
+Render_ttf ttf;
+static DWORD ttfSize= sizeof(DOSBoxTTFbi);
+static void * ttfFont = DOSBoxTTFbi;
+extern uint16_t cpMap[256];
+static SDL_Color ttf_fgColor = {0, 0, 0, 0};
+static SDL_Color ttf_bgColor = {0, 0, 0, 0};
+static SDL_Rect ttf_textRect = {0, 0, 0, 0};
+static SDL_Rect ttf_textClip = {0, 0, 0, 0};
+
+typedef struct {
+	uint8_t blue;
+	uint8_t green;
+	uint8_t red;
+	uint8_t alpha;		// unused
+} alt_rgb;
+alt_rgb altBGR0[16], altBGR1[16];
+static bool colorsLocked = false;
+static bool hasFocus = true;
+static int prev_sline = -1;
+static alt_rgb *rgbColors = (alt_rgb*)render.pal.rgb;
+#endif
 extern bool dos_kernel_disabled;
 extern bool bootguest, bootfast, bootvm;
 extern int bootdrive;
@@ -514,7 +547,7 @@ bool drive_info_menu_callback(DOSBoxMenu * const menu,DOSBoxMenu::item * const m
     MAPPER_ReleaseAllKeys();
     GFX_LosingFocus();
     statusdrive=drive;
-    GUI_Shortcut(32);
+    GUI_Shortcut(31);
     statusdrive=-1;
     MAPPER_ReleaseAllKeys();
     GFX_LosingFocus();
@@ -566,6 +599,18 @@ const DOSBoxMenu::callback_t drive_callbacks[] = {
 };
 
 bool list_drivenum_menu_callback(DOSBoxMenu * const menu,DOSBoxMenu::item * const menuitem) {
+    (void)menu;//UNUSED
+    (void)menuitem;//UNUSED
+    MAPPER_ReleaseAllKeys();
+    GFX_LosingFocus();
+    GUI_Shortcut(32);
+    MAPPER_ReleaseAllKeys();
+    GFX_LosingFocus();
+    return true;
+}
+
+std::string GetIDEInfo();
+bool list_ideinfo_menu_callback(DOSBoxMenu * const menu,DOSBoxMenu::item * const menuitem) {
     (void)menu;//UNUSED
     (void)menuitem;//UNUSED
     MAPPER_ReleaseAllKeys();
@@ -1771,6 +1816,12 @@ void GFX_ForceRedrawScreen(void) {
     if (sdl.draw.callback)
         (sdl.draw.callback)( GFX_CallBackReset );
     GFX_Start();
+#if defined(WIN32)
+    if (ttf.inUse) {
+       void GFX_EndTextLines(bool force);
+       GFX_EndTextLines(true);
+    }
+#endif
 }
 
 void GFX_ResetScreen(void) {
@@ -1779,6 +1830,13 @@ void GFX_ResetScreen(void) {
 		GLIDE_ResetScreen(true);
 		return;
 	}
+            SDL_Rect *rect = &sdl.updateRects[0];
+            rect->x = 0; rect->y = 0; rect->w = 0; rect->h = 0;
+#if defined(C_SDL2)
+            SDL_UpdateWindowSurfaceRects(sdl.window, sdl.updateRects, 4);
+#else
+            SDL_UpdateRects(sdl.surface, 4, sdl.updateRects);
+#endif
     GFX_Stop();
     if (sdl.draw.callback)
         (sdl.draw.callback)( GFX_CallBackReset );
@@ -2325,9 +2383,40 @@ void GFX_DrawSDLMenu(DOSBoxMenu &menu, DOSBoxMenu::displaylist &dl) {
 
 void RENDER_Reset(void);
 
+#if defined(WIN32)
+bool firstsize = true;
+static void TimedSetSize(Bitu width, Bitu height) {
+    if (ttf.inUse && ttf.fullScrn) {
+#if defined(C_SDL2)
+        GFX_SetResizeable(false);
+        sdl.window = GFX_SetSDLSurfaceWindow(GetSystemMetrics(SM_CXSCREEN), GetSystemMetrics(SM_CYSCREEN));
+        sdl.surface = sdl.window?SDL_GetWindowSurface(sdl.window):NULL;
+#else
+        sdl.surface = SDL_SetVideoMode(GetSystemMetrics(SM_CXSCREEN), GetSystemMetrics(SM_CYSCREEN), 32, SDL_SWSURFACE|SDL_NOFRAME);
+#endif
+    } else {
+#if defined(C_SDL2)
+        GFX_SetResizeable(false);
+        sdl.window = GFX_SetSDLSurfaceWindow(sdl.draw.width, sdl.draw.height);
+        sdl.surface = sdl.window?SDL_GetWindowSurface(sdl.window):NULL;
+        if (firstsize && (posx < 0 || posy < 0) && width == 720+sdl.clip.x && height == 400+sdl.clip.y) {
+            firstsize=false;
+            SDL_SetWindowPosition(sdl.window, SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED);
+        }
+#else
+        sdl.surface = SDL_SetVideoMode(sdl.draw.width, sdl.draw.height, 32, SDL_SWSURFACE);
+#endif
+    }
+	if (!sdl.surface)
+		E_Exit("SDL: Failed to create surface");
+	SDL_ShowCursor(!ttf.fullScrn);
+	sdl.active = true;
+}
+#endif
+
 Bitu GFX_SetSize(Bitu width, Bitu height, Bitu flags, double scalex, double scaley, GFX_CallBack_t callback) 
 {
-    if (width == 0 || height == 0) {
+    if ((width == 0 || height == 0) && sdl.desktop.want_type != SCREEN_TTF) {
         E_Exit("GFX_SetSize with width=%d height=%d zero dimensions not allowed",(int)width,(int)height);
         return 0;
     }
@@ -2337,6 +2426,21 @@ Bitu GFX_SetSize(Bitu width, Bitu height, Bitu flags, double scalex, double scal
 
     sdl.must_redraw_all = true;
 
+#if defined(WIN32)
+    if (sdl.desktop.want_type == SCREEN_TTF) {
+        if (width == 720+sdl.clip.x && height == 400+sdl.clip.y) { // 720*400 should be text
+            sdl.draw.width = ttf.cols*ttf.width;
+            sdl.draw.height = ttf.lins*ttf.height;
+            ttf.inUse = true;
+        } else {
+            sdl.draw.width = (uint32_t)width;
+            sdl.draw.height = (uint32_t)height;
+            ttf.inUse = false;
+        }
+        TimedSetSize(width, height);
+        return GFX_CAN_32 | GFX_SCALING;
+    }
+#endif
     sdl.draw.width = (uint32_t)width;
     sdl.draw.height = (uint32_t)height;
     sdl.draw.flags = flags;
@@ -3287,6 +3391,11 @@ bool GFX_StartUpdate(uint8_t* &pixels,Bitu &pitch)
             return OUTPUT_DIRECT3D_StartUpdate(pixels, pitch);
 #endif
 
+#if defined(WIN32)
+        case SCREEN_TTF:
+            sdl.updating = true;
+#endif
+
         default:
             break;
     }
@@ -3316,6 +3425,236 @@ void GFX_OpenGLRedrawScreen(void) {
 #endif
 }
 
+#if defined(WIN32)
+void GFX_EndTextLines(bool force=false) {
+	Uint16 unimap[txtMaxCols+1];							// max+1 charaters in a line
+	int xmin = ttf.cols;									// keep track of changed area
+	int ymin = ttf.lins;
+	int xmax = -1;
+	int ymax = -1;
+	uint32_t *curAC = curAttrChar;							// pointer to old/current buffer
+	uint32_t *newAC = newAttrChar;							// pointer to new/changed buffer
+
+	if (ttf.cursor >= 0 && ttf.cursor < ttf.cols*ttf.lins)	// hide/restore (previous) cursor-character if we had one
+
+//		if (cursor_enabled && (vga.draw.cursor.sline > vga.draw.cursor.eline || vga.draw.cursor.sline > 15))
+//		if (ttf.cursor != vga.draw.cursor.address>>1 || (vga.draw.cursor.enabled !=  cursor_enabled) || vga.draw.cursor.sline > vga.draw.cursor.eline || vga.draw.cursor.sline > 15)
+		if (ttf.cursor != vga.draw.cursor.address>>1 || vga.draw.cursor.sline > vga.draw.cursor.eline || vga.draw.cursor.sline > 15)
+			curAC[ttf.cursor] = newAC[ttf.cursor]^0xf0f0;	// force redraw (differs)
+
+	ttf_textClip.h = ttf.height;
+	ttf_textClip.y = 0;
+	for (int y = 0; y < ttf.lins; y++)
+		{
+		if (!hasFocus)
+			if (y == 0)																// Dim topmost line
+				{
+				if (!colorsLocked)
+					for (int i = 0; i < 16; i++)
+						{
+						altBGR0[i].blue = (render.pal.rgb[i].blue*2 + 128)/4;
+						altBGR0[i].green = (render.pal.rgb[i].green*2 + 128)/4;
+						altBGR0[i].red = (render.pal.rgb[i].red*2+ 128)/4;
+						}
+				rgbColors = altBGR0;
+				}
+			else if (y == 1)
+				rgbColors = colorsLocked? altBGR1 : (alt_rgb*)render.pal.rgb;		// undim the rest
+
+
+		ttf_textRect.y = ttf.offY+y*ttf.height;
+		for (int x = 0; x < ttf.cols; x++)
+			{
+			if (newAC[x] != curAC[x] || force)
+				{
+				xmin = min(x, xmin);
+				ymin = min(y, ymin);
+				ymax = y;
+				ttf_textRect.x = ttf.offX+x*ttf.width;
+
+				uint8_t colorBG = newAC[x]>>12;
+				uint8_t colorFG = (newAC[x]>>8)&15;
+
+				if (wpVersion > 0)																// If WP and not negative (color value to text attribute excluded)
+					{
+					if (colorFG == 0xe && colorBG == 1)
+						{
+						TTF_SetFontStyle(ttf.SDL_font, TTF_STYLE_ITALIC);
+						colorFG = 7;
+						}
+					else if ((colorFG == 1 || colorFG == 0xf) && colorBG == 7)
+						{
+						TTF_SetFontStyle(ttf.SDL_font, TTF_STYLE_UNDERLINE);
+						colorBG = 1;
+						colorFG = colorFG == 1 ? 7 : 0xf;
+						}
+					else
+						TTF_SetFontStyle(ttf.SDL_font, TTF_STYLE_NORMAL);
+					}
+
+				ttf_bgColor.r = rgbColors[colorBG].blue;
+				ttf_bgColor.g = rgbColors[colorBG].green;
+				ttf_bgColor.b = rgbColors[colorBG].red;
+				ttf_fgColor.r = rgbColors[colorFG].blue;
+				ttf_fgColor.g = rgbColors[colorFG].green;
+				ttf_fgColor.b = rgbColors[colorFG].red;
+
+				int x1 = x;
+				uint8_t ascii = newAC[x]&255;
+				if (ascii > 175 && ascii < 179)						// special: shade characters 176-178
+					{
+					ttf_bgColor.b = (ttf_bgColor.b*(179-ascii) + ttf_fgColor.b*(ascii-175))>>2;
+					ttf_bgColor.g = (ttf_bgColor.g*(179-ascii) + ttf_fgColor.g*(ascii-175))>>2;
+					ttf_bgColor.r = (ttf_bgColor.r*(179-ascii) + ttf_fgColor.r*(ascii-175))>>2;
+					do												// as long char and foreground/background color equal
+						{
+						curAC[x] = newAC[x];
+						unimap[x-x1] = ' ';							// shaded space
+						x++;
+						}
+					while (x < ttf.cols && newAC[x] == newAC[x1] && newAC[x] != curAC[x]);
+					}
+				else
+					{
+					uint8_t color = newAC[x]>>8;
+					do												// as long foreground/background color equal
+						{
+						curAC[x] = newAC[x];
+						unimap[x-x1] = cpMap[ascii];
+						x++;
+						ascii = newAC[x]&255;
+						}
+					while (x < ttf.cols && newAC[x] != curAC[x] && newAC[x]>>8 == color && (ascii < 176 || ascii > 178));
+					}
+				unimap[x-x1] = 0;
+				xmax = max(x-1, xmax);
+
+				SDL_Surface* textSurface = TTF_RenderUNICODE_Shaded(ttf.SDL_font, unimap, ttf_fgColor, ttf_bgColor);
+				ttf_textClip.w = (x-x1)*ttf.width;
+				SDL_BlitSurface(textSurface, &ttf_textClip, sdl.surface, &ttf_textRect);
+				SDL_FreeSurface(textSurface);
+				x--;
+				}
+			}
+		curAC += ttf.cols;
+		newAC += ttf.cols;
+		}
+
+	if (hasFocus && vga.draw.cursor.enabled && vga.draw.cursor.sline <= vga.draw.cursor.eline && vga.draw.cursor.sline < 16)		// Draw cursor?
+		{
+		int newPos = vga.draw.cursor.address>>1;
+		if (newPos >= 0 && newPos < ttf.cols*ttf.lins)										// If on screen
+			{
+			int y = newPos/ttf.cols;
+			int x = newPos%ttf.cols;
+/*			I hate a blinking text cursor that much I don't even consider using a "blink=" option in config.txt!
+			Left the code, so it can be enbaled if users ask for it.
+			DWORD testBlink = GetTickCount();
+			if ((!cursorDraw && testBlink >= cursorDrawnAt+500) || (cursorDraw && testBlink >= cursorDrawnAt+1000))
+				{
+				xmin = min(x, xmin);
+				xmax = max(x, xmax);
+				ymin = min(y, ymin);
+				ymax = max(y, ymax);
+				cursorDraw = !cursorDraw;
+				cursorDrawnAt = testBlink;
+				}
+*/
+			if (ttf.cursor != newPos || vga.draw.cursor.sline != prev_sline)				// If new position or shape changed, forse draw
+				{
+//				cursorDraw = true;
+//				cursorDrawnAt = testBlink;
+				prev_sline = vga.draw.cursor.sline;
+				xmin = min(x, xmin);
+				xmax = max(x, xmax);
+				ymin = min(y, ymin);
+				ymax = max(y, ymax);
+				}
+			ttf.cursor = newPos;
+//			if (x >= xmin && x <= xmax && y >= ymin && y <= ymax  && (GetTickCount()&0x400))	// If overdrawn previuosly (or new shape)
+			if (x >= xmin && x <= xmax && y >= ymin && y <= ymax)							// If overdrawn previuosly (or new shape)
+				{
+				uint8_t colorBG = newAttrChar[ttf.cursor]>>12;
+				uint8_t colorFG = (newAttrChar[ttf.cursor]>>8)&15;
+				if (wpVersion > 0)																// If WP and not negative (color value to text attribute excluded)
+					{
+					if (colorFG == 0xe && colorBG == 1)
+						{
+						TTF_SetFontStyle(ttf.SDL_font, TTF_STYLE_ITALIC);
+						colorFG = 7;
+						}
+					else if ((colorFG == 1 || colorFG == 0xf) && colorBG == 7)
+						{
+						TTF_SetFontStyle(ttf.SDL_font, TTF_STYLE_UNDERLINE);
+						colorBG = 1;
+						colorFG = colorFG == 1 ? 7 : 0xf;
+						}
+					else
+						TTF_SetFontStyle(ttf.SDL_font, TTF_STYLE_NORMAL);
+					}
+				ttf_bgColor.b = rgbColors[colorBG].blue;
+				ttf_bgColor.g = rgbColors[colorBG].green;
+				ttf_bgColor.r = rgbColors[colorBG].red;
+				ttf_fgColor.b = rgbColors[colorFG].blue;
+				ttf_fgColor.g = rgbColors[colorFG].green;
+				ttf_fgColor.r = rgbColors[colorFG].red;
+				unimap[0] = cpMap[newAttrChar[ttf.cursor]&255];
+				unimap[1] = 0;
+			// first redraw character
+				SDL_Surface* textSurface = TTF_RenderUNICODE_Shaded(ttf.SDL_font, unimap, ttf_fgColor, ttf_bgColor);
+				ttf_textClip.w = ttf.width;
+				ttf_textRect.x = ttf.offX+x*ttf.width;
+				ttf_textRect.y = ttf.offY+y*ttf.height;
+				SDL_BlitSurface(textSurface, &ttf_textClip, sdl.surface, &ttf_textRect);
+				SDL_FreeSurface(textSurface);
+//				if (cursorDraw)
+					{
+				// seccond reverse lower lines
+				textSurface = TTF_RenderUNICODE_Shaded(ttf.SDL_font, unimap, ttf_bgColor, ttf_fgColor);
+				ttf_textClip.y = (ttf.height*vga.draw.cursor.sline)>>4;
+				ttf_textClip.h = ttf.height - ttf_textClip.y;								// for now, cursor to bottom
+				ttf_textRect.y = ttf.offY+y*ttf.height + ttf_textClip.y;
+				SDL_BlitSurface(textSurface, &ttf_textClip, sdl.surface, &ttf_textRect);
+				SDL_FreeSurface(textSurface);
+					}
+				}
+			}
+		}
+
+	if (!hasFocus && !ttf.fullScrn && xmax == ttf.cols-1 && ymin == 0)	// (Re)draw Minimize button?
+		{
+		uint8_t color = newAttrChar[xmax]>>12;
+		ttf_fgColor.b = rgbColors[color].blue;
+		ttf_fgColor.g = rgbColors[color].green;
+		ttf_fgColor.r = rgbColors[color].red;
+		color = (newAttrChar[xmax]>>8)&15;
+		ttf_bgColor.b = rgbColors[color].blue;
+		ttf_bgColor.g = rgbColors[color].green;
+		ttf_bgColor.r = rgbColors[color].red;
+		unimap[0] = cpMap[45];										// '-'
+		unimap[1] = 0;
+		SDL_Surface* textSurface = TTF_RenderUNICODE_Shaded(ttf.SDL_font, unimap, ttf_fgColor, ttf_bgColor);
+		ttf_textClip.w = ttf.width;
+		ttf_textClip.y = ttf.height>>2;
+		ttf_textClip.h = ttf.height>>1;
+		ttf_textRect.x = ttf.offX+xmax*ttf.width;
+		ttf_textRect.y = ttf.offY;
+		SDL_BlitSurface(textSurface, &ttf_textClip, sdl.surface, &ttf_textRect);
+		SDL_FreeSurface(textSurface);
+		}
+	if (xmin <= xmax) {												// if any changes
+        SDL_Rect *rect = &sdl.updateRects[0];
+        rect->x = ttf.offX+xmin*ttf.width; rect->y = ttf.offY+ymin*ttf.height; rect->w = (xmax-xmin+1)*ttf.width; rect->h = (ymax-ymin+1)*ttf.height;
+#if defined(C_SDL2)
+        SDL_UpdateWindowSurfaceRects(sdl.window, sdl.updateRects, 4);
+#else
+        SDL_UpdateRects(sdl.surface, 4, sdl.updateRects);
+#endif
+    }
+}
+#endif
+
+extern uint8_t rendererCache[];
 void GFX_EndUpdate(const uint16_t *changedLines) {
 #if C_EMSCRIPTEN
     emscripten_sleep_with_yield(0);
@@ -3324,6 +3663,48 @@ void GFX_EndUpdate(const uint16_t *changedLines) {
     /* don't present our output if 3Dfx is in OpenGL mode */
     if (sdl.desktop.prevent_fullscreen)
         return;
+
+#if defined(WIN32)
+    if (sdl.desktop.want_type == SCREEN_TTF) {
+        if (!sdl.updating)
+            return;
+        sdl.updating = false;
+        if (ttf.inUse)
+            GFX_EndTextLines();
+        else {
+            int pixs = sdl.surface->w/render.cache.width;								// parachute/more safe than sdl.scale???
+            uint32_t *pointer = (uint32_t *)sdl.surface->pixels + (render.cache.start_y*sdl.surface->w + render.cache.start_x)*pixs;
+            uint8_t *cache = rendererCache + render.cache.start_y*render.cache.width + render.cache.start_x;
+
+            for (int i = render.cache.past_y - render.cache.start_y; i; i--)			// build all changed lines
+                {
+                uint32_t *cPointer = pointer;
+                uint8_t *cCache = cache;
+                for (int j = render.cache.width-render.cache.start_x; j; j--)			// build one line
+                    {
+                    for (int k = pixs; k; k--)
+                        *cPointer++ = ((uint32_t *)render.pal.rgb)[*cCache];
+                    cCache++;
+                    }
+                pointer += sdl.surface->w;
+                for (int j = pixs-1; j; j--)											// duplicate line pixs
+                    {
+                    wmemcpy((wchar_t*)pointer, (wchar_t*)(pointer-sdl.surface->w), (render.cache.width-render.cache.start_x)*pixs*2);
+                    pointer += sdl.surface->w;
+                    }
+                cache += render.cache.width;
+                }
+            SDL_Rect *rect = &sdl.updateRects[0];
+            rect->x = render.cache.start_x*pixs; rect->y = render.cache.start_y*pixs; rect->w = (render.cache.past_x-render.cache.start_x)*pixs; rect->h = (render.cache.past_y - render.cache.start_y)*pixs;
+#if defined(C_SDL2)
+            SDL_UpdateWindowSurfaceRects(sdl.window, sdl.updateRects, 4);
+#else
+            SDL_UpdateRects(sdl.surface, 4, sdl.updateRects);
+#endif
+        }
+        return;
+    }
+#endif
 
 #if C_DIRECT3D
     // we may have to do forced update in D3D case
@@ -3334,6 +3715,12 @@ void GFX_EndUpdate(const uint16_t *changedLines) {
         return;
     bool actually_updating = sdl.updating;
     sdl.updating = false;
+#if defined(WIN32)
+	if (ttf.inUse) {
+		GFX_EndTextLines();
+        return;
+    }
+#endif
     switch (sdl.desktop.type) 
     {
         case SCREEN_SURFACE:
@@ -3588,6 +3975,133 @@ void RebootGuest(bool pressed) {
 	throw int(3);
 }
 
+#if defined(WIN32)
+void readTTF(const char *fName) {
+	FILE * ttf_fh;
+	char ttfPath[1024];
+
+	strcpy(ttfPath, fName);													// Try to load it from working directory
+	strcat(ttfPath, ".ttf");
+	if (!(ttf_fh  = fopen(ttfPath, "rb")))
+		{
+		strcpy(strrchr(strcpy(ttfPath, _pgmptr), '\\')+1, fName);			// Try to load it from where DOSBox-X was started
+		strcat(ttfPath, ".ttf");
+		ttf_fh  = fopen(ttfPath, "rb");
+		}
+	if (ttf_fh)
+		{
+		if (!fseek(ttf_fh, 0, SEEK_END))
+			if ((ttfSize = ftell(ttf_fh)) != -1L)
+				if (ttfFont = malloc((size_t)ttfSize))
+					if (!fseek(ttf_fh, 0, SEEK_SET))
+						if (fread(ttfFont, 1, (size_t)ttfSize, ttf_fh) == (size_t)ttfSize)
+							{
+							fclose(ttf_fh);
+							return;
+							}
+		fclose(ttf_fh);
+		}
+	E_Exit("Could not load font file: %s.ttf", fName);
+}
+
+void GFX_SelectFontByPoints(int ptsize) {
+	bool initCP = true;
+	if (ttf.SDL_font != 0)
+		{
+		TTF_CloseFont(ttf.SDL_font);
+		initCP = false;
+		}
+	SDL_RWops *rwfont = SDL_RWFromConstMem(ttfFont, (int)ttfSize);
+	ttf.SDL_font = TTF_OpenFontRW(rwfont, 1, ptsize);
+
+	ttf.pointsize = ptsize;
+	TTF_GlyphMetrics(ttf.SDL_font, 65, NULL, NULL, NULL, NULL, &ttf.width);
+	ttf.height = TTF_FontAscent(ttf.SDL_font)-TTF_FontDescent(ttf.SDL_font);
+	if (ttf.fullScrn)
+		{
+		ttf.offX = (GetSystemMetrics(SM_CXSCREEN)-ttf.width*ttf.cols)/2;
+		ttf.offY = (GetSystemMetrics(SM_CYSCREEN)-ttf.height*ttf.lins)/2;
+		}
+	else
+		ttf.offX = ttf.offY = 0;
+	if (initCP) {
+		int cp = GetOEMCP();
+		LOG_MSG("System OEM codepage: %d\n", cp);
+		unsigned char cTest[256];					// ASCII format
+		for (int i = 0; i < 256; i++)
+			cTest[i] = i;
+		uint16_t wcTest[256];
+		int size = MultiByteToWideChar(cp, 0, (char*)cTest, 256, NULL, 0);
+		if (size == 256)
+			{
+			MultiByteToWideChar(cp, 0, (char*)cTest, 256, (LPWSTR)wcTest, size);
+			uint16_t unimap;
+			bool notMapped = false;
+			for (int y = 8; y < 16; y++)
+				for (int x = 0; x < 16; x++)
+					{
+					unimap = wcTest[y*16+x];
+					if (!TTF_GlyphIsProvided(ttf.SDL_font, unimap))
+						{
+						if (!notMapped)
+							{
+							LOG_MSG("ASCII Unicode Fixed");
+							notMapped = true;
+							}
+						LOG_MSG("  %3d    %4x  %4x", y*16+x, unimap, cpMap[y*16+x]);
+						}
+					else
+						cpMap[y*16+x] = unimap;
+					}
+			}
+	}
+}
+
+static void decreaseFontSize() {
+	if (ttf.inUse && ttf.pointsize > 12)
+		{
+		GFX_SelectFontByPoints(ttf.pointsize - (ttf.DOSBox ? 2 : 1));
+		GFX_SetSize(720+sdl.clip.x, 400+sdl.clip.y, sdl.draw.flags,sdl.draw.scalex,sdl.draw.scaley,sdl.draw.callback);
+		wmemset((wchar_t*)curAttrChar, -1, ttf.cols*ttf.lins);
+		if (ttf.fullScrn)																// smaller content area leaves old one behind
+			{
+			SDL_FillRect(sdl.surface, NULL, 0);
+            SDL_Rect *rect = &sdl.updateRects[0];
+            rect->x = 0; rect->y = 0; rect->w = 0; rect->h = 0;
+#if defined(C_SDL2)
+            SDL_UpdateWindowSurfaceRects(sdl.window, sdl.updateRects, 4);
+#else
+            SDL_UpdateRects(sdl.surface, 4, sdl.updateRects);
+#endif
+			}
+		GFX_EndTextLines(true);
+		}
+}
+
+static void increaseFontSize() {
+	if (ttf.inUse)																		// increase fontsize
+		{
+		int maxWidth = GetSystemMetrics(SM_CXSCREEN);
+		int maxHeight = GetSystemMetrics(SM_CYSCREEN);
+		if (!ttf.fullScrn)																// 3D borders
+			{
+			maxWidth -= GetSystemMetrics(SM_CXBORDER)*2;
+			maxHeight -= GetSystemMetrics(SM_CYCAPTION) + GetSystemMetrics(SM_CYBORDER)*2;
+			}
+		GFX_SelectFontByPoints(ttf.pointsize + (ttf.DOSBox ? 2 : 1));
+		if (ttf.cols*ttf.width <= maxWidth && ttf.lins*ttf.height <= maxHeight)			// if it fits on screen
+			{
+			GFX_SetSize(720+sdl.clip.x, 400+sdl.clip.y, sdl.draw.flags,sdl.draw.scalex,sdl.draw.scaley,sdl.draw.callback);
+			wmemset((wchar_t*)curAttrChar, -1, ttf.cols*ttf.lins);						// force redraw of complete window
+			GFX_EndTextLines(true);
+			}
+		else
+			GFX_SelectFontByPoints(ttf.pointsize - (ttf.DOSBox ? 2 : 1));
+		}
+}
+#endif
+
+int initgl = 0;
 bool has_GUI_StartUp = false;
 
 static void GUI_StartUp() {
@@ -3809,6 +4323,9 @@ static void GUI_StartUp() {
 #endif
 
     std::string output=section->Get_string("output");
+    std::string mtype(static_cast<Section_prop *>(control->GetSection("dosbox"))->Get_string("machine"));
+    if (output == "ttf" && mtype != "svga_s3" && mtype != "vesa_nolfb" && mtype != "vesa_oldvbe" && mtype != "svga_et4000" && mtype != "svga_et3000" && mtype != "svga_paradise" && mtype != "vgaonly")
+        output = "default";
 	if (output == "default") {
 #ifdef __WIN32__
 # if defined(HX_DOS)
@@ -3909,7 +4426,76 @@ static void GUI_StartUp() {
         LOG_MSG("SDL:Direct3D activated");
 #endif
 #endif
-    } 
+    }
+#if defined(WIN32)
+    else if (output == "ttf")
+    {
+        Section_prop * render_section=static_cast<Section_prop *>(control->GetSection("render"));
+        const char * fName = render_section->Get_string("ttf.font");
+        LOG_MSG("SDL:TTF activated %s", fName);
+        if (*fName)
+            readTTF(fName);
+        else
+            ttf.DOSBox = true;
+        int winPerc = render_section->Get_int("ttf.winperc");
+        if (winPerc>100) winPerc=100;
+        else if (winPerc<25) winPerc=25;
+        ttf.lins = render_section->Get_int("ttf.lins");
+        ttf.lins = MAX(24, MIN(txtMaxLins, ttf.lins));
+        ttf.cols = render_section->Get_int("ttf.cols");
+        ttf.cols = MAX(80, MIN(txtMaxCols, ttf.cols));
+        for (Bitu i = 0; ModeList_VGA[i].mode != 0xffff; i++)										// set the cols and lins in video mode 3
+            if (ModeList_VGA[i].mode == 3)
+                {
+                ModeList_VGA[i].twidth = ttf.cols;
+                ModeList_VGA[i].theight = ttf.lins;
+                break;
+                }
+
+        int maxWidth = GetSystemMetrics(SM_CXSCREEN);
+        int maxHeight = GetSystemMetrics(SM_CYSCREEN);
+        if (!ttf.fullScrn)																// 3D borders
+            {
+            maxWidth -= GetSystemMetrics(SM_CXBORDER)*2;
+            maxHeight -= GetSystemMetrics(SM_CYCAPTION) + GetSystemMetrics(SM_CYBORDER)*2;
+            }
+
+        if (sdl.scale < 1 || sdl.scale > 9)						// 0 = probably not in config.txt, max = 9
+            {
+            sdl.scale = 1;										// parachute to 1
+            sdl.scale = MIN(maxWidth/640, maxHeight/480);		// based on max resolution supported VGA modes
+            if (sdl.scale < 1)									// probably overkill
+                sdl.scale = 1;
+            if (sdl.scale > 9)
+                sdl.scale = 9;
+            }
+
+        int	curSize = 30;																			// no clear idea what would be a good starting value
+        int lastGood = -1;
+        int trapLoop = 0;
+
+        while (curSize != lastGood)
+            {
+            GFX_SelectFontByPoints(curSize);
+            if (ttf.cols*ttf.width <= maxWidth && ttf.lins*ttf.height <= maxHeight)					// if it fits on screen
+                {
+                lastGood = curSize;
+                float coveredPerc = float(100*ttf.cols*ttf.width/maxWidth*ttf.lins*ttf.height/maxHeight);
+                if (trapLoop++ > 4 && coveredPerc <= winPerc)										// we can get into a +/-/+/-... loop!
+                    break;
+                curSize = (int)(curSize*sqrt((float)winPerc/coveredPerc));							// rounding down is ok
+                if (curSize < 12)																	// minimum size = 12
+                    curSize = 12;
+                }
+            else if (--curSize < 12)																// silly, but OK, one never can tell..
+                E_Exit("Cannot accommodate a window for %dx%d", ttf.lins, ttf.cols);
+            }
+        if (ttf.DOSBox)																				// make it even for DOSBox-X internal font (a bit nicer)
+            curSize &= ~1;
+        GFX_SelectFontByPoints(curSize);
+        sdl.desktop.want_type = SCREEN_TTF;
+    }
+#endif
     else 
     {
         LOG_MSG("SDL:Unsupported output device %s, switching back to surface",output.c_str());
@@ -3920,8 +4506,8 @@ static void GUI_StartUp() {
 //  sdl.overscan_color=section->Get_int("overscancolor");
 
     // Getting window position (if configured)
-    int posx = -1;
-    int posy = -1;
+    posx = -1;
+    posy = -1;
     const char* windowposition = section->Get_string("windowposition");
     LOG_MSG("Configured windowposition: %s", windowposition);
     if (windowposition && *windowposition) {
@@ -3945,15 +4531,13 @@ static void GUI_StartUp() {
         safe_strncpy(pos, "SDL_VIDEO_WINDOW_POS=", sizeof(pos));
         safe_strcat(pos, windowposition);
         SDL_putenv(pos);
-    }
+    } else if (sdl.desktop.want_type == SCREEN_TTF)
+        putenv("SDL_VIDEO_CENTERED=center");
 #endif
 
-    bool initgl = false;
 #if C_OPENGL
-    /*std::string f = (std::string)(static_cast<Section_prop *>(control->GetSection("render"))->Get_path("glshader")->GetValue());
-    if (f.empty() || f=="none")
-        sdl_opengl.use_shader = false;
-	else*/ if (sdl.desktop.want_type == SCREEN_OPENGL) { /* OPENGL is requested */
+    sdl_opengl.use_shader = false;
+	if (sdl.desktop.want_type == SCREEN_OPENGL) { /* OPENGL is requested */
 #if defined(C_SDL2)
 		GFX_SetResizeable(true);
         sdl.window = GFX_SetSDLWindowMode(640,400, SCREEN_OPENGL);
@@ -3969,7 +4553,7 @@ static void GUI_StartUp() {
 			LOG_MSG("Could not initialize OpenGL, switching back to surface");
 			sdl.desktop.want_type = SCREEN_SURFACE;
 		} else {
-			initgl = true;
+			initgl = 1;
 			sdl_opengl.program_object = 0;
 			glAttachShader = (PFNGLATTACHSHADERPROC)SDL_GL_GetProcAddress("glAttachShader");
 			glCompileShader = (PFNGLCOMPILESHADERPROC)SDL_GL_GetProcAddress("glCompileShader");
@@ -3994,6 +4578,7 @@ static void GUI_StartUp() {
 				glEnableVertexAttribArray && glGetAttribLocation && glGetProgramiv && glGetProgramInfoLog && \
 				glGetShaderiv && glGetShaderInfoLog && glGetUniformLocation && glLinkProgram && glShaderSource && \
 				glUniform2f && glUniform1i && glUseProgram && glVertexAttribPointer);
+			if (sdl_opengl.use_shader) initgl = 2;
 			sdl_opengl.buffer=0;
 			sdl_opengl.framebuf=0;
 			sdl_opengl.texture=0;
@@ -5597,6 +6182,12 @@ void GFX_Events() {
         switch (event.type) {
         case SDL_WINDOWEVENT:
             switch (event.window.event) {
+            case SDL_WINDOWEVENT_MOVED:
+#if defined(WIN32)
+                if (ttf.inUse)
+                   GFX_EndTextLines(true);
+#endif
+                continue;
             case SDL_WINDOWEVENT_RESTORED:
                 GFX_ResetScreen();
                 continue;
@@ -5780,6 +6371,20 @@ void GFX_Events() {
             if (event.key.keysym.sym==SDLK_RCTRL) sdl.rctrlstate = event.key.type;
             if (event.key.keysym.sym==SDLK_LSHIFT) sdl.lshiftstate = event.key.type;
             if (event.key.keysym.sym==SDLK_RSHIFT) sdl.rshiftstate = event.key.type;
+#endif
+#ifdef WIN32
+			if (((GetKeyState(VK_LWIN)&0x80) || (GetKeyState(VK_RWIN)&0x80)) && event.key.keysym.sym == SDLK_F12)	// intercept <Win><Ctrl>F12
+			{
+				if (event.type == SDL_KEYDOWN && !ttf.fullScrn)							// increase fontsize
+					increaseFontSize();
+				return;
+			}
+			if (((GetKeyState(VK_LWIN)&0x80) || (GetKeyState(VK_RWIN)&0x80)) && event.key.keysym.sym == SDLK_F11)	// intercept <Win><Ctrl>F11
+			{
+				if (event.type == SDL_KEYDOWN && !ttf.fullScrn)							// Decrease fontsize
+					decreaseFontSize();
+				return;
+			}
 #endif
 #if defined (MACOSX)
             /* On macs CMD-Q is the default key to close an application */
@@ -6044,6 +6649,18 @@ void GFX_Events() {
             if (((event.key.keysym.sym == SDLK_TAB )) && (event.key.keysym.mod & KMOD_ALT)) break;
             // ignore tab events that arrive just after regaining focus. (likely the result of alt-tab)
             if ((event.key.keysym.sym == SDLK_TAB) && (GetTicks() - sdl.focus_ticks < 2)) break;
+			if (event.key.keysym.scancode == 88 && ((GetKeyState(VK_LWIN)&0x80) || (GetKeyState(VK_RWIN)&0x80)))	// intercept <Win><Ctrl>F12
+			{
+				if (event.type == SDL_KEYDOWN && !ttf.fullScrn)							// increase fontsize
+					increaseFontSize();
+				return;
+			}
+			if (event.key.keysym.scancode == 87 && ((GetKeyState(VK_LWIN)&0x80) || (GetKeyState(VK_RWIN)&0x80)))	// intercept <Win><Ctrl>F11
+			{
+				if (event.type == SDL_KEYDOWN && !ttf.fullScrn)							// Decrease fontsize
+					decreaseFontSize();
+				return;
+			}
 #endif
 #if defined (MACOSX)            
         case SDL_KEYDOWN:
@@ -6117,7 +6734,11 @@ void SDL_SetupConfigSection() {
 #if C_DIRECT3D
         "direct3d",
 #endif
+#if defined(WIN32)
+        "ttf",
+#endif
         0 };
+
 	Pstring = sdl_sec->Add_string("output", Property::Changeable::Always, "default");
     Pstring->Set_help("What video system to use for output.");
     Pstring->Set_values(outputs);
@@ -6213,17 +6834,6 @@ void SDL_SetupConfigSection() {
     Pstring = sdl_sec->Add_path("mapperfile_sdl2",Property::Changeable::Always,MAPPERFILE_SDL2);
     Pstring->Set_help("File used to load/save the key/event mappings from (SDL2 builds). Resetmapper only works with the default value.");
     Pstring->SetBasic(true);
-
-#if C_DIRECT3D && C_D3DSHADERS
-    Pmulti = sdl_sec->Add_multi("pixelshader",Property::Changeable::Always," ");
-    Pmulti->SetValue("none",/*init*/true);
-    Pmulti->Set_help("Pixelshader program (effect file must be in Shaders subdirectory). If 'forced' is appended,\n"
-        "then the shader will be used even if the result might not be desired.");
-    Pmulti->SetBasic(true);
-
-    Pstring = Pmulti->GetSection()->Add_string("type",Property::Changeable::Always,"none");
-    Pstring = Pmulti->GetSection()->Add_string("force",Property::Changeable::Always,"");
-#endif
 
 	const char* truefalseautoopt[] = { "true", "false", "auto", 0};
     Pstring = sdl_sec->Add_string("usescancodes",Property::Changeable::OnlyAtStart,"auto");
@@ -6751,7 +7361,6 @@ bool PasteClipboardNext() {
 #endif
 
 #if defined (WIN32)
-extern uint16_t cpMap[256];
 void CopyClipboard(bool all) {
 	uint16_t len=0;
 	const char* text = (char *)(all?Mouse_GetSelected(0-sdl.clip.x,0-sdl.clip.y,currentWindowWidth-1-sdl.clip.x,currentWindowHeight-1-sdl.clip.y,(int)(currentWindowWidth-sdl.clip.x),(int)(currentWindowHeight-sdl.clip.y), &len):Mouse_GetSelected(mouse_start_x-sdl.clip.x,mouse_start_y-sdl.clip.y,mouse_end_x-sdl.clip.x,mouse_end_y-sdl.clip.y,(int)(currentWindowWidth-sdl.clip.x),(int)(currentWindowHeight-sdl.clip.y), &len));
@@ -8268,10 +8877,9 @@ bool vid_select_pixel_shader_menu_callback(DOSBoxMenu* const menu, DOSBoxMenu::i
 
     strcat(cwd, "\\shaders"); /* DOSBox "D3D patch" compat: File names are assumed to exist relative to <cwd>\shaders */
 
-    Section_prop* section = static_cast<Section_prop*>(control->GetSection("sdl"));
+    Section_prop* section = static_cast<Section_prop*>(control->GetSection("render"));
     assert(section != NULL);
     {
-        Section_prop* section = static_cast<Section_prop*>(control->GetSection("sdl"));
         Prop_multival* prop = section->Get_multival("pixelshader");
         const char *path = prop->GetSection()->Get_string("type");
         forced_setting = prop->GetSection()->Get_string("force");
@@ -8303,7 +8911,7 @@ bool vid_select_pixel_shader_menu_callback(DOSBoxMenu* const menu, DOSBoxMenu::i
         const char* name = ofn.lpstrFile;
 
         /* filenames in Windows are case insensitive so do the comparison the same */
-        if (!strnicmp(name, cwd, strlen(cwd))) {
+        if (!strncasecmp(name, cwd, strlen(cwd))) {
             name += strlen(cwd);
             while (*name == '\\') name++;
         }
@@ -8323,7 +8931,7 @@ bool vid_select_pixel_shader_menu_callback(DOSBoxMenu* const menu, DOSBoxMenu::i
         std::string tmp = name;
         tmp += " ";
         tmp += forced_setting;
-        SetVal("sdl", "pixelshader", tmp);
+        SetVal("render", "pixelshader", tmp);
 
         /* GetOpenFileName() probably changed the current directory.
            This must be done before reinit of GFX because pixelshader might be relative path. */
@@ -8336,6 +8944,78 @@ bool vid_select_pixel_shader_menu_callback(DOSBoxMenu* const menu, DOSBoxMenu::i
         /* GetOpenFileName() probably changed the current directory */
         SetCurrentDirectory(o_cwd.c_str());
     }
+
+    return true;
+}
+#endif
+
+#ifdef C_OPENGL
+extern bool reloadshader;
+extern std::string shader_src;
+std::string LoadGLShader(Section_prop * section);
+bool vid_select_glsl_shader_menu_callback(DOSBoxMenu* const menu, DOSBoxMenu::item* const menuitem) {
+    (void)menu;//UNUSED
+    (void)menuitem;//UNUSED
+
+    Section_prop* section = static_cast<Section_prop*>(control->GetSection("render"));
+    assert(section != NULL);
+    //Prop_path *sh = section->Get_path("glshader");
+
+#if !defined(HX_DOS)
+    char CurrentDir[512];
+    char * Temp_CurrentDir = CurrentDir;
+    getcwd(Temp_CurrentDir, 512);
+    std::string cwd = std::string(Temp_CurrentDir)+CROSS_FILESPLIT+"glshaders"+CROSS_FILESPLIT;
+    const char *lFilterPatterns[] = {"*.glsl","*.GLSL"};
+    const char *lFilterDescription = "OpenGL shader files (*.glsl)";
+    char const * lTheOpenFileName = tinyfd_openFileDialog("Select OpenGL shader",cwd.c_str(),2,lFilterPatterns,lFilterDescription,0);
+
+    if (lTheOpenFileName) {
+        /* Windows will fill lpstrFile with the FULL PATH.
+           The full path should be given to the pixelshader setting unless it's just
+           the same base path it was given: <cwd>\shaders in which case just cut it
+           down to the filename. */
+        const char* name = lTheOpenFileName;
+        std::string tmp = "";
+
+        /* filenames in Windows are case insensitive so do the comparison the same */
+        if (!strncasecmp(name, cwd.c_str(), cwd.size())) {
+            name += cwd.size();
+            while (*name == CROSS_FILESPLIT) name++;
+        }
+
+        /* the shader set included with the source code includes none.glsl which is empty.
+           if that was chosen then just change it to "none" so the GLSL shader code does
+           not waste it's time. */
+        {
+            const char* n = strrchr(name, CROSS_FILESPLIT);
+            if (n == NULL) n = name;
+            else n++;
+
+            if (!strcasecmp(n, "none.glsl"))
+                tmp = "default";
+            else if (!strcasecmp(n, "advinterp2x.glsl") || !strcasecmp(n, "advinterp3x.glsl") ||
+                !strcasecmp(n, "advmame2x.glsl") || !strcasecmp(n, "advmame3x.glsl") ||
+                !strcasecmp(n, "rgb2x.glsl") || !strcasecmp(n, "rgb3x.glsl") ||
+                !strcasecmp(n, "scan2x.glsl") || !strcasecmp(n, "scan3x.glsl") ||
+                !strcasecmp(n, "tv2x.glsl") || !strcasecmp(n, "tv3x.glsl") ||
+                !strcasecmp(n, "sharp.glsl") || !strcasecmp(n, "default.glsl")) {
+                    tmp = n;
+                    tmp.erase(tmp.size()-5, string::npos);
+            } else
+                tmp = name;
+        }
+
+        if (tmp.size()) {
+            SetVal("render", "glshader", tmp);
+            LoadGLShader(section);
+
+            /* force reinit */
+            GFX_ForceRedrawScreen();
+        }
+    }
+    chdir( Temp_CurrentDir );
+#endif
 
     return true;
 }
@@ -8484,12 +9164,7 @@ bool intensity_menu_callback(DOSBoxMenu * const menu,DOSBoxMenu::item * const me
     return true;
 }
 
-bool lines_menu_callback(DOSBoxMenu * const menu,DOSBoxMenu::item * const menuitem) {
-    (void)menu;//UNUSED
-    clear_menu_callback(menu, menuitem);
-    const char *mname = menuitem->get_name().c_str();
-    if (IS_PC98_ARCH||(CurMode->mode>7&&CurMode->mode!=0x0043&&CurMode->mode!=0x0054&&CurMode->mode!=0x0055&&CurMode->mode!=0x0064))
-        return true;
+bool setlines(const char *mname) {
     uint16_t oldax=reg_ax, oldbx=reg_bx, oldcx=reg_cx;
     if (!strcmp(mname, "line_80x25")) {
         reg_ax = 0x0003;
@@ -8526,10 +9201,20 @@ bool lines_menu_callback(DOSBoxMenu * const menu,DOSBoxMenu::item * const menuit
         reg_ax = 0x0064;
         CALLBACK_RunRealInt(0x10);
     } else
-        return true;
+        return false;
     reg_ax = oldax;
     reg_bx = oldbx;
     reg_cx = oldcx;
+    return true;
+}
+
+bool lines_menu_callback(DOSBoxMenu * const menu,DOSBoxMenu::item * const menuitem) {
+    (void)menu;//UNUSED
+    clear_menu_callback(menu, menuitem);
+    const char *mname = menuitem->get_name().c_str();
+    if (IS_PC98_ARCH||(CurMode->mode>7&&CurMode->mode!=0x0043&&CurMode->mode!=0x0054&&CurMode->mode!=0x0055&&CurMode->mode!=0x0064))
+        return true;
+    if (!setlines(mname)) return true;
     if (!dos_kernel_disabled && !strcmp(RunningProgram, "COMMAND")) {
         DOS_Shell temp;
         temp.exit = true;
@@ -9842,6 +10527,10 @@ int main(int argc, char* argv[]) SDL_MAIN_NOEXCEPT {
             sdl.inited = true;
         else
             E_Exit("Can't init SDL %s",SDL_GetError());
+#if defined(WIN32)
+		if (TTF_Init())												// Init SDL-TTF
+			E_Exit("Could't init SDL-TTF, %s", SDL_GetError());
+#endif
 
         /* -- -- decide whether to show menu in GUI */
         if (control->opt_nogui || menu.compatible)
@@ -10130,8 +10819,14 @@ int main(int argc, char* argv[]) SDL_MAIN_NOEXCEPT {
             }
 #ifdef C_D3DSHADERS
             {
-                mainMenu.alloc_item(DOSBoxMenu::item_type_id, "load_d3d_shader").set_text("Select pixel shader...").
+                mainMenu.alloc_item(DOSBoxMenu::item_type_id, "load_d3d_shader").set_text("Select Direct3D pixel shader...").
                     set_callback_function(vid_select_pixel_shader_menu_callback);
+            }
+#endif
+#ifdef C_OPENGL
+            {
+                mainMenu.alloc_item(DOSBoxMenu::item_type_id, "load_glsl_shader").set_text("Select OpenGL (GLSL) shader...").
+                    set_callback_function(vid_select_glsl_shader_menu_callback);
             }
 #endif
         }
@@ -10278,6 +10973,10 @@ int main(int argc, char* argv[]) SDL_MAIN_NOEXCEPT {
             item.set_text("Select save slot");
 		}
         {
+            mainMenu.alloc_item(DOSBoxMenu::item_type_id,"noremark_savestate").set_text("No remark when saving state").set_callback_function(noremark_savestate_menu_callback).check(noremark_save_state);
+            mainMenu.alloc_item(DOSBoxMenu::item_type_id,"force_loadstate").set_text("No warning when loading state").set_callback_function(force_loadstate_menu_callback).check(force_load_state);
+            mainMenu.alloc_item(DOSBoxMenu::item_type_id,"removestate").set_text("Remove state in slot").set_callback_function(remove_state_menu_callback);
+            mainMenu.alloc_item(DOSBoxMenu::item_type_id,"refreshslot").set_text("Refresh display status").set_callback_function(refresh_slots_menu_callback);
             mainMenu.alloc_item(DOSBoxMenu::item_type_id, "usesavefile").set_text("Use save file instead of save slot").set_callback_function(use_save_file_menu_callback).check(use_save_file);
             mainMenu.alloc_item(DOSBoxMenu::item_type_id, "browsesavefile").set_text("Browse save file...").set_callback_function(browse_save_file_menu_callback).enable(use_save_file);
             mainMenu.alloc_item(DOSBoxMenu::item_type_id, "showstate").set_text("Display state information").set_callback_function(show_save_state_menu_callback);
@@ -10569,10 +11268,7 @@ int main(int argc, char* argv[]) SDL_MAIN_NOEXCEPT {
         mainMenu.alloc_item(DOSBoxMenu::item_type_id,"shell_config_commands").set_text("Config options as commands").set_callback_function(shell_config_commands_menu_callback).check(enable_config_as_shell_commands);
         mainMenu.alloc_item(DOSBoxMenu::item_type_id,"quick_reboot").set_text("Enable quick reboot").set_callback_function(quick_reboot_menu_callback).check(use_quick_reboot);
         mainMenu.alloc_item(DOSBoxMenu::item_type_id,"list_drivenum").set_text("Show mounted drive numbers").set_callback_function(list_drivenum_menu_callback);
-        mainMenu.alloc_item(DOSBoxMenu::item_type_id,"noremark_savestate").set_text("No remark when saving state").set_callback_function(noremark_savestate_menu_callback).check(noremark_save_state);
-        mainMenu.alloc_item(DOSBoxMenu::item_type_id,"force_loadstate").set_text("No warning when loading state").set_callback_function(force_loadstate_menu_callback).check(force_load_state);
-        mainMenu.alloc_item(DOSBoxMenu::item_type_id,"removestate").set_text("Remove state in slot").set_callback_function(remove_state_menu_callback);
-        mainMenu.alloc_item(DOSBoxMenu::item_type_id,"refreshslot").set_text("Refresh display status").set_callback_function(refresh_slots_menu_callback);
+        mainMenu.alloc_item(DOSBoxMenu::item_type_id,"list_ideinfo").set_text("Show IDE disk or CD status").set_callback_function(list_ideinfo_menu_callback);
 
         mainMenu.alloc_item(DOSBoxMenu::item_type_id,"pc98_use_uskb").set_text("Use US keyboard layout").set_callback_function(pc98_force_uskb_menu_callback).check(pc98_force_ibm_layout);
 
@@ -10632,6 +11328,10 @@ int main(int argc, char* argv[]) SDL_MAIN_NOEXCEPT {
 
         mainMenu.get_item("dos_mouse_enable_int33").check(Mouse_Drv).refresh_item(mainMenu);	
         mainMenu.get_item("dos_mouse_y_axis_reverse").check(Mouse_Vertical).refresh_item(mainMenu);
+
+#ifdef C_OPENGL
+        mainMenu.get_item("load_glsl_shader").enable(initgl==2);
+#endif
 
 #if !defined(C_EMSCRIPTEN)
         mainMenu.get_item("show_console").check(showconsole_init).refresh_item(mainMenu);

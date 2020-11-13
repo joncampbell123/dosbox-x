@@ -52,6 +52,9 @@ uint32_t                                GFX_palette32bpp[256] = {0};
 unsigned int                            GFX_GetBShift();
 void                                    RENDER_CallBack( GFX_CallBackFunctions_t function );
 
+uint32_t curAttrChar[txtMaxLins*txtMaxCols];					// currently displayed textpage
+uint32_t newAttrChar[txtMaxLins*txtMaxCols];					// to be replaced by
+
 static void Check_Palette(void) {
     /* Clean up any previous changed palette data */
     if (render.pal.changed) {
@@ -297,8 +300,10 @@ static void RENDER_ClearCacheHandler(const void * src) {
     render.scale.lineHandler( src );
 }
 
+#define RENDER_MAXWIDTH 800
+#define RENDER_MAXHEIGHT 600
 extern void GFX_SetTitle(int32_t cycles, int frameskip, Bits timing, bool paused);
-
+uint8_t rendererCache[RENDER_MAXHEIGHT * RENDER_MAXWIDTH];
 bool RENDER_StartUpdate(void) {
     if (GCC_UNLIKELY(render.updating))
         return false;
@@ -309,7 +314,7 @@ bool RENDER_StartUpdate(void) {
         return false;
     }
     render.frameskip.count=0;
-    if (render.scale.inMode == scalerMode8) {
+    if (render.scale.inMode == scalerMode8 && sdl.desktop.want_type != SCREEN_TTF) {
         Check_Palette();
     }
     render.scale.inLine = 0;
@@ -431,6 +436,17 @@ static Bitu MakeAspectTable(Bitu skip,Bitu height,double scaley,Bitu miny) {
 }
 
 void RENDER_Reset( void ) {
+    if (sdl.desktop.want_type == SCREEN_TTF) {
+        // Setup the scaler variables
+        GFX_SetSize(render.cache.width, render.cache.height, 0, 0, 0, &RENDER_CallBack);
+
+        // Finish this frame using a copy only handler
+        RENDER_DrawLine = RENDER_FinishLineHandler;
+        // Signal the next frame to first reinit the cache
+        render.cache.nextInvalid = true;
+        render.active = true;
+    }
+
     Bitu width=render.src.width;
     Bitu height=render.src.height;
     bool dblw=render.src.dblw;
@@ -809,6 +825,13 @@ void RENDER_SetSize(Bitu width,Bitu height,Bitu bpp,float fps,double scrn_ratio)
         return; 
     }
 
+    if (sdl.desktop.want_type == SCREEN_TTF) {
+        render.cache.width	= width;
+        render.cache.height	= height;
+        RENDER_Reset();
+        return;
+    }
+
     // figure out doublewidth/height values
     bool dblw = false;
     bool dblh = false;
@@ -891,13 +914,17 @@ void RENDER_SetForceUpdate(bool f) {
 #if C_OPENGL
 static bool RENDER_GetShader(std::string& shader_path, char *old_src) {
 	char* src;
-	std::stringstream buf;
+	std::stringstream buf, tmp;
 	std::ifstream fshader(shader_path.c_str(), std::ios_base::binary);
 	if (!fshader.is_open()) fshader.open((shader_path + ".glsl").c_str(), std::ios_base::binary);
-	if (fshader.is_open()) {
-		buf << fshader.rdbuf();
-		fshader.close();
-	}
+    bool empty=true;
+    if (fshader.is_open()) {
+        buf << fshader.rdbuf();
+        empty=buf.str().empty();
+        fshader.close();
+        if (empty) buf.swap(tmp);
+    }
+	if (!empty) ;
 	else if (shader_path == "advinterp2x") buf << advinterp2x_glsl;
 	else if (shader_path == "advinterp3x") buf << advinterp3x_glsl;
 	else if (shader_path == "advmame2x")   buf << advmame2x_glsl;
@@ -1090,6 +1117,38 @@ void RENDER_UpdateFromScalerSetting(void) {
     if (reset) RENDER_CallBack(GFX_CallBackReset);
 }
 
+#if C_OPENGL
+extern int initgl;
+std::string shader_src="";
+std::string LoadGLShader(Section_prop * section) {
+	shader_src = render.shader_src!=NULL?std::string(render.shader_src):"";
+    render.shader_def = false;
+	Prop_path *sh = section->Get_path("glshader");
+	std::string f = (std::string)sh->GetValue();
+    const char *ssrc=shader_src.c_str();
+	if (f.empty() || f=="none" || f=="default") {
+        render.shader_src = NULL;
+        render.shader_def = f=="default";
+        if (initgl==2) sdl_opengl.use_shader=true;
+	} else if (!RENDER_GetShader(sh->realpath,(char *)shader_src.c_str())) {
+		std::string path = std::string("glshaders") + CROSS_FILESPLIT + f;
+		if (!RENDER_GetShader(path,(char *)shader_src.c_str())) {
+            Cross::GetPlatformConfigDir(path);
+            path = path + "glshaders" + CROSS_FILESPLIT + f;
+            if (!RENDER_GetShader(path,(char *)shader_src.c_str()) && (sh->realpath==f || !RENDER_GetShader(f,(char *)shader_src.c_str()))) {
+                sh->SetValue("none");
+                LOG_MSG("Shader file \"%s\" not found", f.c_str());
+            }
+        }
+	} else {
+        if (initgl==2) sdl_opengl.use_shader=true;
+        LOG_MSG("Loaded GLSL shader: %s\n", f.c_str());
+    }
+	if (shader_src.size()&&shader_src.c_str()!=render.shader_src) shader_src="";
+    return shader_src;
+}
+#endif
+
 void RENDER_Init() {
     Section_prop * section=static_cast<Section_prop *>(control->GetSection("render"));
 
@@ -1185,26 +1244,7 @@ void RENDER_Init() {
     render.autofit=section->Get_bool("autofit");
 
 #if C_OPENGL
-	char* shader_src = render.shader_src;
-    render.shader_def = false;
-	Prop_path *sh = section->Get_path("glshader");
-	std::string f = (std::string)sh->GetValue();
-	if (f.empty() || f=="none" || f=="default") {
-        render.shader_src = NULL;
-        render.shader_def = f=="default";
-	} else if (!RENDER_GetShader(sh->realpath,shader_src)) {
-		std::string path = std::string("glshaders") + CROSS_FILESPLIT + f;
-		if (!RENDER_GetShader(path,shader_src)) {
-            Cross::GetPlatformConfigDir(path);
-            path = path + "glshaders" + CROSS_FILESPLIT + f;
-            if (!RENDER_GetShader(path,shader_src) && (sh->realpath==f || !RENDER_GetShader(f,shader_src))) {
-                sh->SetValue("none");
-                LOG_MSG("Shader file \"%s\" not found", f.c_str());
-            }
-        }
-	} else
-        LOG_MSG("Loaded GLSL shader: %s\n", f.c_str());
-	if (shader_src!=render.shader_src) free(shader_src);
+    std::string ssrc=LoadGLShader(section);
 #endif
 
     //If something changed that needs a ReInit
@@ -1212,7 +1252,7 @@ void RENDER_Init() {
     if(running && render.src.bpp && ((render.aspect != aspect) || (render.scale.op != scaleOp) || 
                   (render.scale.size != scalersize) || (render.scale.forced != scalerforced) ||
 #if C_OPENGL
-				  (render.shader_src != shader_src) ||
+				  (render.shader_src != ssrc.c_str()) ||
 #endif
                    render.scale.forced))
         RENDER_CallBack( GFX_CallBackReset );

@@ -60,7 +60,7 @@ static void d3d_init(void)
 
 # if (C_D3DSHADERS)
     if (d3d) {
-        Section_prop *section = static_cast<Section_prop *>(control->GetSection("sdl"));
+        Section_prop *section = static_cast<Section_prop *>(control->GetSection("render"));
         Prop_multival* prop = section->Get_multival("pixelshader");
         if (SUCCEEDED(d3d->LoadPixelShader(prop->GetSection()->Get_string("type"), 0, 0)))
             if (menu.startup)
@@ -209,7 +209,7 @@ Bitu OUTPUT_DIRECT3D_SetSize()
 #endif
 
 #if (C_D3DSHADERS)
-    Section_prop *section = static_cast<Section_prop *>(control->GetSection("sdl"));
+    Section_prop *section = static_cast<Section_prop *>(control->GetSection("render"));
     if (section) 
     {
         Prop_multival* prop = section->Get_multival("pixelshader");

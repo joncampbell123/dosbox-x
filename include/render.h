@@ -91,6 +91,13 @@ typedef struct Render_t {
 		uint8_t *cacheRead;
 		Bitu inHeight, inLine, outLine;
 	} scale;
+	struct {
+		bool invalid;
+		bool nextInvalid;
+		uint8_t *pointer;
+		Bitu width, height;
+		int start_x, past_x, start_y, past_y, curr_y;
+	} cache;
 #if C_OPENGL
 	char* shader_src;
     bool shader_def=false;
@@ -105,7 +112,29 @@ typedef struct Render_t {
 	bool autofit;
 } Render_t;
 
+#include "SDL_ttf.h"
+#define txtMaxCols 160
+#define txtMaxLins 60
+typedef struct {
+	bool	inUse;
+	char	fontName[32];
+	TTF_Font *SDL_font;
+	bool	DOSBox;								// is DOSBox-X internal TTF loaded, pointsizes should be even to look really nice
+	int		pointsize;
+	int		height;								// height of character cell
+	int		width;								// width
+	int		cursor;
+	int		lins;								// number of lines 24-60
+	int		cols;								// number of columns 80-160
+	bool	fullScrn;							// in fake fullscreen
+	int		offX;								// horizontal offset to center content
+	int		offY;								// vertical ,,
+} Render_ttf;
+
 extern Render_t render;
+extern Render_ttf ttf;
+extern uint32_t curAttrChar[];					// currently displayed textpage
+extern uint32_t newAttrChar[];					// to be replaced by
 extern Bitu last_gfx_flags;
 extern ScalerLineHandler_t RENDER_DrawLine;
 void RENDER_SetSize(Bitu width,Bitu height,Bitu bpp,float fps,double scrn_ratio);

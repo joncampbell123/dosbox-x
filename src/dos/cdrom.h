@@ -28,6 +28,7 @@
 #include <vector>
 #include <fstream>
 #include <sstream>
+#include <thread>
 
 #include "dosbox.h"
 #include "mem.h"
@@ -35,6 +36,7 @@
 #include "SDL.h"
 #include "SDL_thread.h"
 #include "../libs/decoders/SDL_sound.h"
+#include "../libs/libchdr/chd.h"
 
 #if defined(C_SDL2) /* SDL 1.x defines this, SDL 2.x does not */
 /** @name Frames / MSF Conversion Functions
@@ -275,6 +277,40 @@ private:
 		Sound_Sample    *sample = nullptr;
 	};
 
+    class CHDFile : public TrackFile {
+    public:
+        CHDFile(const char* filename, bool& error);
+        ~CHDFile();
+
+        CHDFile() = delete;
+        CHDFile(const CHDFile&) = delete;
+        CHDFile& operator= (const CHDFile&) = delete;
+
+        bool            read(uint8_t* buffer, int seek, int count);
+        bool            seek(uint32_t offset);
+        uint16_t        decode(uint8_t* buffer);
+        uint16_t        getEndian();
+        uint32_t        getRate() { return 44100; }
+        uint8_t         getChannels() { return 2; }
+        int             getLength();
+        void setAudioPosition(uint32_t pos) { audio_pos = pos; }
+        chd_file*       getChd() { return this->chd; }
+    private:
+              chd_file*   chd               = nullptr;
+        const chd_header* header            = nullptr; // chd header
+                /*
+                    TODO: cache more than one hunk
+                    or wait for https://github.com/rtissera/libchdr/issues/36
+                */
+              uint8_t*     hunk_buffer       = nullptr; // buffer to hold one hunk // size of hunks in CHD up to 1 MiB
+              uint8_t*     hunk_buffer_next  = nullptr; // index + 1 prefetch
+              int          hunk_buffer_index = -1;      // hunk index for buffer
+              std::thread* hunk_thread       = nullptr; // used for prefetch
+              bool         hunk_thread_error = true;
+    public:
+              bool         skip_sync         = false;   // this will fail if a CHD contains 2048 and 2352 sector tracks
+     };
+
 public:
 	// Nested struct definition
 	struct Track {
@@ -356,6 +392,7 @@ private:
 
 	// Private functions for cue sheet processing
 	bool  LoadCueSheet(char *cuefile);
+	bool  LoadChdFile(char* chdfile);
 	bool  GetRealFileName(std::string& filename, std::string& pathname);
 	bool  GetCueKeyword(std::string &keyword, std::istream &in);
 	bool  GetCueFrame(int &frames, std::istream &in);

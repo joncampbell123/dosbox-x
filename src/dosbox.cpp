@@ -1306,6 +1306,7 @@ void DOSBOX_SetupConfigSections(void) {
     const char* ems_settings[] = { "true", "emsboard", "emm386", "false", "1", "0", 0};
     const char* lfn_settings[] = { "true", "false", "1", "0", "auto", "autostart", 0};
     const char* quit_settings[] = { "true", "false", "1", "0", "auto", "autofile", 0};
+    const char* autofix_settings[] = { "true", "false", "1", "0", "both", "a20fix", "loadfix", "none", 0};
     const char* irqsgus[] = { "5", "3", "7", "9", "10", "11", "12", 0 };
     const char* irqssb[] = { "7", "5", "3", "9", "10", "11", "12", 0 };
     const char* dmasgus[] = { "3", "0", "1", "5", "6", "7", 0 };
@@ -1444,6 +1445,14 @@ void DOSBOX_SetupConfigSections(void) {
     Pstring = secprop->Add_path("savefile", Property::Changeable::WhenIdle,"");
     Pstring->Set_help("Select the default save file to save/load states. If specified it will be used instead of the save slot.");
     Pstring->SetBasic(true);
+
+    Pbool = secprop->Add_bool("saveremark", Property::Changeable::WhenIdle,true);
+    Pbool->Set_help("If set, the save state feature will ask users to enter remarks when saving a state.");
+    Pbool->SetBasic(true);
+
+    Pbool = secprop->Add_bool("forceloadstate", Property::Changeable::WhenIdle,false);
+    Pbool->Set_help("If set, DOSBox-X will load a saved state even if it finds there is a mismatch in the DOSBox-X version, machine type, program name and/or the memory size.");
+    Pbool->SetBasic(true);
 
     /* will change to default true unless this causes compatibility issues with other users or their editing software */
     Pbool = secprop->Add_bool("skip encoding unchanged frames",Property::Changeable::WhenIdle,false);
@@ -2268,14 +2277,21 @@ void DOSBOX_SetupConfigSections(void) {
     Pstring = Pmulti->GetSection()->Add_string("force",Property::Changeable::Always,"");
     Pstring->Set_values(force);
 
-#if C_OPENGL
     Pstring = secprop->Add_path("glshader",Property::Changeable::Always,"none");
     Pstring->Set_help("Path to GLSL shader source to use with OpenGL output (\"none\" to disable, or \"default\" for default shader).\n"
                     "Can be either an absolute path, a file in the \"glshaders\" subdirectory of the DOSBox-X configuration directory,\n"
                     "or one of the built-in shaders (e.g. \"sharp\" for the pixel-perfect scaling mode):\n"
                     "advinterp2x, advinterp3x, advmame2x, advmame3x, rgb2x, rgb3x, scan2x, scan3x, tv2x, tv3x, sharp.");
     Pstring->SetBasic(true);
-#endif
+
+    Pmulti = secprop->Add_multi("pixelshader",Property::Changeable::Always," ");
+    Pmulti->SetValue("none",/*init*/true);
+    Pmulti->Set_help("Set Direct3D pixel shader program (effect file must be in Shaders subdirectory). If 'forced' is appended,\n"
+        "then the pixel shader will be used even if the result might not be desired.");
+    Pmulti->SetBasic(true);
+
+    Pstring = Pmulti->GetSection()->Add_string("type",Property::Changeable::Always,"none");
+    Pstring = Pmulti->GetSection()->Add_string("force",Property::Changeable::Always,"");
 
 #if C_XBRZ
     Pint = secprop->Add_int("xbrz slice",Property::Changeable::OnlyAtStart,16);
@@ -2311,6 +2327,20 @@ void DOSBOX_SetupConfigSections(void) {
     Pstring = Pmulti->GetSection()->Add_string("bright",Property::Changeable::Always,"");
     const char* bright[] = { "", "bright", 0 };
     Pstring->Set_values(bright);
+
+	Pstring = secprop->Add_string("ttf.font", Property::Changeable::Always, "");
+    Pstring->Set_help("Specifies a TrueType font to use for the TTF output.");
+    Pstring->SetBasic(true);
+
+	Pint = secprop->Add_int("ttf.winperc", Property::Changeable::Always, 75);
+    Pint->Set_help("Specifies the window percentage for the TTF output.");
+    Pint->SetBasic(true);
+
+	Pint = secprop->Add_int("ttf.lins", Property::Changeable::Always, 24);
+    Pint->Set_help("Specifies the number of rows on the screen for the TTF output.");
+
+	Pint = secprop->Add_int("ttf.cols", Property::Changeable::Always, 80);
+    Pint->Set_help("Specifies the number of columns on the screen for the TTF output.");
 
     secprop=control->AddSection_prop("vsync",&Null_Init,true);//done
 
@@ -3660,13 +3690,6 @@ void DOSBOX_SetupConfigSections(void) {
                       "If set to autostart, the builtin VER command won't activate/disactivate LFN support according to the reported DOS version.");
     Pstring->SetBasic(true);
 
-    Pbool = secprop->Add_bool("autoa20fix",Property::Changeable::WhenIdle,true);
-    Pbool->Set_help("If set (default), DOSBox-X will automatically re-run the executable with the A20 gate disabled if it failed with the \"Packed file is corrupt\" error.\n"
-                    "If both autoa20fix and autoloadfix are set, the former will be tried first, and then the latter.");
-
-    Pbool = secprop->Add_bool("autoloadfix",Property::Changeable::WhenIdle,true);
-    Pbool->Set_help("If set (default), DOSBox-X will automatically re-run the executable with LOADFIX if it failed with the \"Packed file is corrupt\" error.");
-
     Pbool = secprop->Add_bool("automount",Property::Changeable::WhenIdle,true);
     Pbool->Set_help("Enable automatic drive mounting in Windows.");
     Pbool->SetBasic(true);
@@ -3678,6 +3701,20 @@ void DOSBOX_SetupConfigSections(void) {
     Pbool = secprop->Add_bool("mountwarning",Property::Changeable::OnlyAtStart,true);
     Pbool->Set_help("If set, a warning will be displayed if you try to mount C:\\ in Windows or / in other platforms.");
     Pbool->SetBasic(true);
+
+    Pbool = secprop->Add_bool("autoa20fix",Property::Changeable::WhenIdle,true);
+    Pbool->Set_help("If set (default), DOSBox-X will automatically re-run the executable with the A20 gate disabled if it failed with the \"Packed file is corrupt\" error.\n"
+                    "If both autoa20fix and autoloadfix are set, then the former will be tried first, and the latter will be tried if the former did not work.");
+
+    Pbool = secprop->Add_bool("autoloadfix",Property::Changeable::WhenIdle,true);
+    Pbool->Set_help("If set (default), DOSBox-X will automatically re-run the executable with LOADFIX if it failed with the \"Packed file is corrupt\" error.");
+
+    Pstring = secprop->Add_string("autofixwarning",Property::Changeable::WhenIdle,"true");
+    Pstring->Set_values(autofix_settings);
+    Pstring->Set_help("If set to true or both, DOSBox-X will show messages when trying to automatically fix the \"Packed file is corrupt\" error.\n"
+                      "If set to false or none, DOSBox-X will not show such messages on the screen when the error occurred.\n"
+                      "If set to \"a20fix\" or \"loadfix\", DOSBox-X will show the message for the a20fix or the loadfix only.");
+    Pstring->SetBasic(true);
 
     Pbool = secprop->Add_bool("startcmd",Property::Changeable::OnlyAtStart,false);
     Pbool->Set_help("Allow starting commands to run on the Windows host including the use of START command.");
@@ -4506,7 +4543,7 @@ void change_file_date(const char *filename, uLong dosdate, tm_unz tmu_date)
 #endif
 }
 
-int do_extract_currentfile(unzFile uf, const int* popt_extract_without_path, int* popt_overwrite, const char* password)
+int do_extract_currentfile(unzFile uf, const int* popt_extract_without_path, int* popt_overwrite, const char* password, const char *savename=NULL)
 {
     char filename_inzip[256];
     char* filename_withoutpath;
@@ -4557,7 +4594,9 @@ int do_extract_currentfile(unzFile uf, const int* popt_extract_without_path, int
         const char* write_filename;
         int skip=0;
 
-        if ((*popt_extract_without_path)==0)
+        if (savename!=NULL)
+            write_filename = savename;
+        else if ((*popt_extract_without_path)==0)
             write_filename = filename_inzip;
         else
             write_filename = filename_withoutpath;
@@ -4702,7 +4741,7 @@ int do_extract(unzFile uf, int opt_extract_without_path, int opt_overwrite, cons
     return 0;
 }
 
-int do_extract_onefile(unzFile uf, const char* filename, int opt_extract_without_path, int opt_overwrite, const char* password)
+int do_extract_onefile(unzFile uf, const char* filename, int opt_extract_without_path, int opt_overwrite, const char* password, const char *savename=NULL)
 {
     int err = UNZ_OK;
     (void)err;
@@ -4714,13 +4753,13 @@ int do_extract_onefile(unzFile uf, const char* filename, int opt_extract_without
 
     if (do_extract_currentfile(uf,&opt_extract_without_path,
                                       &opt_overwrite,
-                                      password) == UNZ_OK)
+                                      password, savename) == UNZ_OK)
         return 0;
     else
         return 1;
 }
 
-int my_miniunz(char ** savefile, const char * savefile2, const char * savedir) {
+int my_miniunz(char ** savefile, const char * savefile2, const char * savedir, char* savename = NULL) {
     const char *zipfilename=NULL;
     const char *filename_to_extract=NULL;
     const char *password=NULL;
@@ -4779,7 +4818,7 @@ int my_miniunz(char ** savefile, const char * savefile2, const char * savedir) {
         if (filename_to_extract == NULL)
             ret_value = do_extract(uf, opt_do_extract_withoutpath, opt_overwrite, password);
         else
-            ret_value = do_extract_onefile(uf, filename_to_extract, opt_do_extract_withoutpath, opt_overwrite, password);
+            ret_value = do_extract_onefile(uf, filename_to_extract, opt_do_extract_withoutpath, opt_overwrite, password, savename);
 		if (ret!=NULL) chdir(cCurrentPath);
     }
 
@@ -4928,10 +4967,10 @@ int isLargeFile(const char* filename)
  return largeFile;
 }
 
-int my_minizip(char ** savefile, char ** savefile2) {
+int my_minizip(char ** savefile, char ** savefile2, char* savename=NULL) {
     int opt_overwrite=0;
     int opt_compress_level=Z_DEFAULT_COMPRESSION;
-    int opt_exclude_path=0;
+    int opt_exclude_path=savename==NULL?1:0;
     int zipfilenamearg = 0;
     (void)zipfilenamearg;
     //char filename_try[MAXFILENAME16];
@@ -4942,7 +4981,6 @@ int my_minizip(char ** savefile, char ** savefile2) {
 
 	opt_overwrite = 2;
 	opt_compress_level = 9;
-	opt_exclude_path = 1;
 
     size_buf = 16384;
     buf = (void*)malloc(size_buf);
@@ -4994,7 +5032,7 @@ int my_minizip(char ** savefile, char ** savefile2) {
 
                                                          /* The path name saved, should not include a leading slash. */
                /*if it did, windows/xp and dynazip couldn't read the zip file. */
-                 savefilenameinzip = filenameinzip;
+                 savefilenameinzip = savename == NULL ? filenameinzip : savename;
                  while( savefilenameinzip[0] == '\\' || savefilenameinzip[0] == '/' )
                  {
                      savefilenameinzip++;
@@ -5087,6 +5125,9 @@ int my_minizip(char ** savefile, char ** savefile2) {
     free(buf);
     return 0;
 }
+
+int flagged_backup(char *zip);
+int flagged_restore(char* zip);
 
 void SaveState::save(size_t slot) { //throw (Error)
 	if (slot >= SLOT_COUNT*MAX_PAGE)  return;
@@ -5248,6 +5289,7 @@ void SaveState::save(size_t slot) { //throw (Error)
 	my_minizip((char **)save.c_str(), (char **)save2.c_str());
 	save2=temp+"Save_Remark";
 	my_minizip((char **)save.c_str(), (char **)save2.c_str());
+    flagged_backup((char *)save.c_str());
 
 delete_all:
 	for (CompEntry::iterator i = components.begin(); i != components.end(); ++i) {
@@ -5515,6 +5557,7 @@ void SaveState::load(size_t slot) const { //throw (Error)
 		//std::for_each(rb.begin() + slot + 1, rb.end(), std::mem_fun_ref(&RawBytes::compress));
 		fb->close();
 		mystream.clear();
+        flagged_restore((char *)save.c_str());
 	}
 delete_all:
 	std::string save2;

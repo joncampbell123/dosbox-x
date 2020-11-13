@@ -423,9 +423,14 @@ static const char *def_menu_video[] =
     "VideoFrameskipMenu",
     "VideoTextmodeMenu",
     "VideoPC98Menu",
-#ifdef C_D3DSHADERS
+#if defined(C_D3DSHADERS) || defined(C_OPENGL)
     "--",
+#endif
+#ifdef C_D3DSHADERS
     "load_d3d_shader",
+#endif
+#ifdef C_OPENGL
+    "load_glsl_shader",
 #endif
     NULL
 };
@@ -454,6 +459,7 @@ static const char *def_menu_dos[] =
     "--",
     "mapper_rescanall",
     "list_drivenum",
+    "list_ideinfo",
 #if C_PRINTER || C_DEBUG
     "--",
 #endif

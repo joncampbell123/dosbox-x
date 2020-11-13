@@ -313,7 +313,7 @@ bool export_ffmpeg = false;
 
 std::string capturedir;
 extern std::string savefilename;
-extern bool use_save_file;
+extern bool use_save_file, noremark_save_state, force_load_state;
 extern unsigned int sendkeymap;
 extern const char* RunningProgram;
 Bitu CaptureState = 0;
@@ -1818,6 +1818,10 @@ void CAPTURE_Init() {
 	assert(proppath != NULL);
 	capturedir = proppath->realpath;
     SetGameState_Run(section->Get_int("saveslot")-1);
+    noremark_save_state = !section->Get_bool("saveremark");
+    mainMenu.get_item("noremark_savestate").check(noremark_save_state).refresh_item(mainMenu);
+    force_load_state = section->Get_bool("forceloadstate");
+    mainMenu.get_item("force_loadstate").check(force_load_state).refresh_item(mainMenu);
     savefilename = section->Get_string("savefile");
     trim(savefilename);
     if (savefilename.size()) {

@@ -18,6 +18,7 @@
  *  New commands & heavy improvements to existing commands by the DOSBox-X Team
  *  With major works from joncampbell123, Wengier, and rderooy
  *  AUTOTYPE command Copyright (C) 2020 the DOSBox Staging Team
+ *  FLAGSAVE command Copyright PogoMan361 and Wengier
  */
 
 #include "dosbox.h"
@@ -463,8 +464,8 @@ void MenuBrowseImageFile(char drive, bool boot, bool multiple) {
     char CurrentDir[512];
     char * Temp_CurrentDir = CurrentDir;
     getcwd(Temp_CurrentDir, 512);
-    const char *lFilterPatterns[] = {"*.ima","*.img","*.vhd","*.hdi","*.iso","*.cue","*.bin","*.mdf","*.zip","*.7z","*.IMA","*.IMG","*.VHD","*.HDI","*.ISO","*.CUE","*.BIN","*.MDF","*.ZIP","*.7Z"};
-    const char *lFilterDescription = "Image/Zip files (*.ima, *.img, *.vhd, *.hdi, *.iso, *.cue, *.bin, *.mdf, *.zip, *.7z)";
+    const char *lFilterPatterns[] = {"*.ima","*.img","*.vhd","*.hdi","*.iso","*.cue","*.bin","*.chd","*.mdf","*.zip","*.7z","*.IMA","*.IMG","*.VHD","*.HDI","*.ISO","*.CUE","*.BIN","*.CHD","*.MDF","*.ZIP","*.7Z"};
+    const char *lFilterDescription = "Image/Zip files (*.ima, *.img, *.vhd, *.hdi, *.iso, *.cue, *.bin, *.chd, *.mdf, *.zip, *.7z)";
     char const * lTheOpenFileName = tinyfd_openFileDialog(((multiple?"Select image file(s) for Drive ":"Select an image file for Drive ")+str+":").c_str(),"",20,lFilterPatterns,lFilterDescription,multiple?1:0);
     std::string files="";
     if (multiple&&lTheOpenFileName) {
@@ -491,7 +492,7 @@ void MenuBrowseImageFile(char drive, bool boot, bool multiple) {
                 strcpy(ext, lTheOpenFileName+strlen(lTheOpenFileName)-4);
             if(!strcasecmp(ext,".ima"))
                 strcpy(type,"-t floppy ");
-            else if((!strcasecmp(ext,".iso")) || (!strcasecmp(ext,".cue")) || (!strcasecmp(ext,".bin")) || (!strcasecmp(ext,".mdf")))
+            else if((!strcasecmp(ext,".iso")) || (!strcasecmp(ext,".cue")) || (!strcasecmp(ext,".bin")) || (!strcasecmp(ext,".chd")) || (!strcasecmp(ext,".mdf")))
                 strcpy(type,"-t iso ");
             else
                 strcpy(type,"");
@@ -1086,7 +1087,7 @@ public:
                             char ext[5];
                             strncpy(ext, temp_line.substr(temp_line.length()-4).c_str(), 4);
                             ext[4]=0;
-                            if (!strcasecmp(ext, ".iso")||!strcasecmp(ext, ".cue")||!strcasecmp(ext, ".bin")||!strcasecmp(ext, ".mdf")||!strcasecmp(ext, ".ima")||!strcasecmp(ext, ".img")||!strcasecmp(ext, ".vhd")||!strcasecmp(ext, ".hdi"))
+                            if (!strcasecmp(ext, ".iso")||!strcasecmp(ext, ".cue")||!strcasecmp(ext, ".bin")||!strcasecmp(ext, ".chd")||!strcasecmp(ext, ".mdf")||!strcasecmp(ext, ".ima")||!strcasecmp(ext, ".img")||!strcasecmp(ext, ".vhd")||!strcasecmp(ext, ".hdi"))
                                 WriteOut(MSG_Get("PROGRAM_MOUNT_IMGMOUNT"),temp_line.c_str());
                         }
                     }
@@ -1099,7 +1100,7 @@ public:
                         char ext[5];
                         strncpy(ext, temp_line.substr(temp_line.length()-4).c_str(), 4);
                         ext[4]=0;
-                        if (!strcasecmp(ext, ".iso")||!strcasecmp(ext, ".cue")||!strcasecmp(ext, ".bin")||!strcasecmp(ext, ".mdf")||!strcasecmp(ext, ".ima")||!strcasecmp(ext, ".img")||!strcasecmp(ext, ".vhd")||!strcasecmp(ext, ".hdi"))
+                        if (!strcasecmp(ext, ".iso")||!strcasecmp(ext, ".cue")||!strcasecmp(ext, ".bin")||!strcasecmp(ext, ".chd")||!strcasecmp(ext, ".mdf")||!strcasecmp(ext, ".ima")||!strcasecmp(ext, ".img")||!strcasecmp(ext, ".vhd")||!strcasecmp(ext, ".hdi"))
                             WriteOut(MSG_Get("PROGRAM_MOUNT_IMGMOUNT"),temp_line.c_str());
                     }
                 }
@@ -3497,14 +3498,18 @@ Bitu XMS_AllocateMemory(Bitu size, uint16_t& handle);
 
 void LOADFIX::Run(void) 
 {
-    uint16_t commandNr    = 1;
+    uint16_t commandNr  = 1;
     Bitu kb             = 64;
     bool xms            = false;
+    bool opta           = false;
 
-    if (cmd->FindExist("-xms",true)) {
+    if (cmd->FindExist("-xms",true) || cmd->FindExist("/xms",true)) {
         xms = true;
         kb = 1024;
     }
+
+    if (cmd->FindExist("-a",true) || cmd->FindExist("/a",true))
+        opta = true;
 
     if (cmd->GetCount()==1 && (cmd->FindExist("-?", false) || cmd->FindExist("/?", false))) {
         WriteOut(MSG_Get("PROGRAM_LOADFIX_HELP"));
@@ -3512,7 +3517,7 @@ void LOADFIX::Run(void)
     }
 
     if (cmd->FindCommand(commandNr,temp_line)) {
-        if (temp_line[0]=='-') {
+        if (temp_line[0]=='-' || (temp_line[0]=='/')) {
             char ch = temp_line[1];
             if ((*upcase(&ch)=='D') || (*upcase(&ch)=='F')) {
                 // Deallocate all
@@ -3556,6 +3561,11 @@ void LOADFIX::Run(void)
         uint16_t blocks = (uint16_t)(kb*1024/16);
         if (DOS_AllocateMemory(&segment,&blocks)) {
             DOS_MCB mcb((uint16_t)(segment-1));
+            if (opta && segment < 0x1000) {
+                uint16_t needed = 0x1000 - segment;
+                if (DOS_ResizeMemory(segment,&needed))
+                    kb=needed*16/1024;
+            }
             mcb.SetPSPSeg(0x40);            // use fake segment
             WriteOut(MSG_Get("PROGRAM_LOADFIX_ALLOC"),kb);
             // Prepare commandline...
@@ -4282,7 +4292,7 @@ public:
 				char ext[5];
 				strncpy(ext, paths[0].substr(paths[0].length()-4).c_str(), 4);
 				ext[4]=0;
-				if (!strcasecmp(ext, ".iso")||!strcasecmp(ext, ".cue")||!strcasecmp(ext, ".bin")||!strcasecmp(ext, ".mdf")) {
+				if (!strcasecmp(ext, ".iso")||!strcasecmp(ext, ".cue")||!strcasecmp(ext, ".bin")||!strcasecmp(ext, ".chd")||!strcasecmp(ext, ".mdf")) {
 					type="iso";
 					fstype="iso";
 				} else if (!strcasecmp(ext, ".ima")) {
@@ -5590,18 +5600,40 @@ public:
     void Run(void);
 };
 
+bool setlines(const char *mname);
 void MODE::Run(void) {
-    uint16_t rate=0,delay=0,mode;
+    uint16_t rate=0,delay=0,cols=0,lines=0,mode;
     if (!cmd->FindCommand(1,temp_line) || temp_line=="/?") {
         WriteOut(MSG_Get("PROGRAM_MODE_USAGE"));
         return;
     }
     else if (strcasecmp(temp_line.c_str(),"con")==0 || strcasecmp(temp_line.c_str(),"con:")==0) {
-        if (cmd->GetCount()!=3) goto modeparam;
-        if (cmd->FindStringBegin("rate=", temp_line,false)) rate= atoi(temp_line.c_str());
-        if (cmd->FindStringBegin("delay=",temp_line,false)) delay=atoi(temp_line.c_str());
-        if (rate<1 || rate>32 || delay<1 || delay>4) goto modeparam;
-        IO_Write(0x60,0xf3); IO_Write(0x60,(uint8_t)(((delay-1)<<5)|(32-rate)));
+        if (IS_PC98_ARCH) return;
+        int LINES = 25, COLS = 80;
+        LINES=real_readb(BIOSMEM_SEG,BIOSMEM_NB_ROWS)+1;
+        COLS=real_readw(BIOSMEM_SEG,BIOSMEM_NB_COLS);
+        if (cmd->GetCount()<2) {
+            WriteOut("Status for device CON:\n----------------------\nColumns=%d\nLines=%d\n\nCode page operation not supported on this device\n", COLS, LINES);
+            return;
+        }
+        if (cmd->FindStringBegin("rate=", temp_line,false)) rate=atoi(temp_line.c_str());
+        if (cmd->FindStringBegin("delay=", temp_line,false)) delay=atoi(temp_line.c_str());
+        if (cmd->FindStringBegin("cols=", temp_line,false)) cols=atoi(temp_line.c_str()); else cols=COLS;
+        if (cmd->FindStringBegin("lines=",temp_line,false)) lines=atoi(temp_line.c_str()); else lines=LINES;
+        bool optr=cmd->FindStringBegin("rate=", temp_line,true), optd=cmd->FindStringBegin("delay=",temp_line,true), optc=cmd->FindStringBegin("cols=", temp_line,true), optl=cmd->FindStringBegin("lines=",temp_line,true);
+        if (optr&&!optd||optd&&!optr) {
+            WriteOut("Rate and delay must be specified together\n");
+            return;
+        }
+        if (cmd->GetCount()>1) goto modeparam;
+        if (optr&&optd) {
+            if (rate<1 || rate>32 || delay<1 || delay>4) goto modeparam;
+            IO_Write(0x60,0xf3); IO_Write(0x60,(uint8_t)(((delay-1)<<5)|(32-rate)));
+        }
+        if ((optc||optl)&&(cols!=COLS||lines!=LINES)) {
+            std::string cmd="line_"+std::to_string(cols)+"x"+std::to_string(lines);
+            if (!setlines(cmd.c_str())) goto modeparam;
+        }
         return;
     }
     else if (cmd->GetCount()>1) goto modeparam;
@@ -6316,6 +6348,227 @@ void START_ProgramStart(Program **make)
 }
 #endif
 
+#define MAX_FLAGS 512
+char *g_flagged_files[MAX_FLAGS]; //global array to hold flagged files
+int my_minizip(char ** savefile, char ** savefile2, char* savename);
+int my_miniunz(char ** savefile, const char * savefile2, const char * savedir, char* savename);
+int flagged_backup(char *zip)
+{
+    char zipfile[CROSS_LEN], ziptmp[CROSS_LEN+4];
+    int i;
+    int ret = 0;
+
+    strcpy(zipfile, zip);
+    strcpy(ziptmp, zip);
+    if (strstr(zipfile, ".sav")) {
+        strcpy(strstr(zipfile, ".sav"), ".dat");
+        strcpy(strstr(ziptmp, ".sav"), ".tmp");
+    } else
+        strcat(ziptmp, ".tmp");
+    bool first=true;
+    for (i = 0; i < MAX_FLAGS; i++)
+    {
+        if (g_flagged_files[i])
+        {
+            if (first) {
+                first=false;
+                std::ofstream file (zipfile);
+                file << "";
+                file.close();
+            }
+            uint16_t handle;
+            if (DOS_FindDevice(("\""+std::string(g_flagged_files[i])+"\"").c_str()) != DOS_DEVICES || !DOS_OpenFile(("\""+std::string(g_flagged_files[i])+"\"").c_str(),0,&handle)) {
+                LOG_MSG(MSG_Get("SHELL_CMD_FILE_NOT_FOUND"),g_flagged_files[i]);
+                continue;
+            }
+            uint8_t c;uint16_t n=1;
+            std::string out="";
+            while (n) {
+                DOS_ReadFile(handle,&c,&n);
+                if (n==0) break;
+                out+=std::string(1, c);
+            }
+            DOS_CloseFile(handle);
+            std::ofstream outfile (ziptmp, std::ofstream::binary);
+            outfile << out;
+            outfile.close();
+            my_minizip((char**)zipfile, (char**)ziptmp, g_flagged_files[i]);
+            ret++;
+        }
+    }
+    remove(ziptmp);
+    return ret;
+}
+
+int flagged_restore(char* zip)
+{
+    char zipfile[MAX_FLAGS], ziptmp[CROSS_LEN+4];
+    int i;
+    int ret = 0;
+
+    strcpy(zipfile, zip);
+    strcpy(ziptmp, zip);
+    if (strstr(zipfile, ".sav")) {
+        strcpy(strstr(zipfile, ".sav"), ".dat");
+        strcpy(strstr(ziptmp, ".sav"), ".tmp");
+    } else
+        strcat(ziptmp, ".tmp");
+    for (i = 0; i < MAX_FLAGS; i++)
+    {
+        if (g_flagged_files[i])
+        {
+            if (DOS_FindDevice(("\""+std::string(g_flagged_files[i])+"\"").c_str()) != DOS_DEVICES) {
+                LOG_MSG(MSG_Get("SHELL_CMD_FILE_NOT_FOUND"),g_flagged_files[i]);
+                continue;
+            }
+            char savedir[CROSS_LEN], savename[CROSS_LEN];
+            char *p=strrchr(ziptmp, CROSS_FILESPLIT);
+            if (p==NULL) {
+                strcpy(savedir, ".");
+                strcpy(savename, ziptmp);
+            } else {
+                strcpy(savename, p+1);
+                *p=0;
+                strcpy(savedir, ziptmp);
+                *p=CROSS_FILESPLIT;
+            }
+            my_miniunz((char**)zipfile, g_flagged_files[i], savedir, savename);
+            std::ifstream ifs(ziptmp, std::ios::in | std::ios::binary | std::ios::ate);
+            std::ifstream::pos_type fileSize = ifs.tellg();
+            ifs.seekg(0, std::ios::beg);
+            std::vector<char> bytes(fileSize);
+            ifs.read(bytes.data(), fileSize);
+            std::string str(bytes.data(), fileSize);
+            uint16_t handle, size;
+            if (DOS_CreateFile(("\""+std::string(g_flagged_files[i])+"\"").c_str(),0,&handle)) {
+                for (uint64_t i=0; i<=ceil(fileSize/UINT16_MAX); i++) {
+                    size=(uint64_t)fileSize-UINT16_MAX*i>UINT16_MAX?UINT16_MAX:((uint64_t)fileSize-UINT16_MAX*i);
+                    DOS_WriteFile(handle,(uint8_t *)str.substr(i*UINT16_MAX, size).c_str(),&size);
+                }
+                DOS_CloseFile(handle);
+            }
+            ret++;
+        }
+    }
+    remove(ziptmp);
+    return ret;
+}
+
+class FLAGSAVE : public Program
+{
+public:
+
+    void Run(void)
+    {
+        std::string file_to_flag;
+        int i, lf;
+        bool force=false, remove=false;
+
+        if (cmd->FindExist("-?", false) || cmd->FindExist("/?", false)) {
+            printHelp();
+            return;
+        }
+        if (cmd->FindExist("/f", true))
+            force=true;
+        if (cmd->FindExist("/r", true))
+            remove=true;
+        if (cmd->FindExist("/u", true))
+        {
+            for (i = 0; i < MAX_FLAGS; i++)
+            {
+                if (g_flagged_files[i] != NULL)
+                    g_flagged_files[i] = NULL;
+            }
+            WriteOut("All files unflagged for saving.\n");
+            return;
+        }
+        else if (cmd->GetCount())
+        {
+            for (int i=1; i<=cmd->GetCount(); i++) {
+                cmd->FindCommand(i,temp_line);
+                uint8_t drive;
+                char fullname[DOS_PATHLENGTH], flagfile[CROSS_LEN];
+
+                strcpy(flagfile, temp_line.c_str());
+                if (*flagfile&&DOS_MakeName(((flagfile[0]!='\"'?"\"":"")+std::string(flagfile)+(flagfile[strlen(flagfile)-1]!='\"'?"\"":"")).c_str(), fullname, &drive))
+                {
+                    sprintf(flagfile, "%c:\\%s", drive+'A', fullname);
+                    if (remove) {
+                        for (lf = 0; lf < MAX_FLAGS; lf++)
+                        {
+                            if (g_flagged_files[lf] != NULL && !strcasecmp(g_flagged_files[lf], flagfile))
+                            {
+                                WriteOut("File %s unflagged for saving.\n", g_flagged_files[lf]);
+                                free(g_flagged_files[lf]);
+                                g_flagged_files[lf] = NULL;
+                                break;
+                            }
+                        }
+                        continue;
+                    }
+                    if (!force && !DOS_FileExists(("\""+std::string(flagfile)+"\"").c_str())) {
+                        WriteOut(MSG_Get("SHELL_CMD_FILE_NOT_FOUND"), flagfile);
+                        continue;
+                    }
+                    bool found=false;
+                    for (lf = 0; lf < MAX_FLAGS; lf++)
+                    {
+                        if (g_flagged_files[lf] == NULL)
+                            continue;
+                        if (!strcasecmp(g_flagged_files[lf], flagfile))
+                        {
+                            WriteOut("File already flagged for saving - %s\n", flagfile);
+                            found=true;
+                        }
+                    }
+                    if (found) continue;
+                    for (lf = 0; lf < MAX_FLAGS; lf++)
+                    {
+                        if (g_flagged_files[lf] == NULL)
+                            break;
+                    }
+                    if (lf == MAX_FLAGS)
+                    {
+                        WriteOut("Too many files to flag for saving.\n");
+                        return;
+                    }
+                    g_flagged_files[lf] = (char*)malloc(strlen(flagfile) + 1);
+                    strcpy(g_flagged_files[lf], flagfile);
+                    WriteOut("File %s flagged for saving\n", g_flagged_files[lf]);
+                } else
+                    WriteOut(MSG_Get("SHELL_CMD_FILE_NOT_FOUND"), flagfile);
+            }
+            return;
+        }
+        else
+        {
+            WriteOut("Files flagged for saving:\n");
+            for (i = 0; i < MAX_FLAGS; i++)
+            {
+                if (g_flagged_files[i])
+                    WriteOut("%s\n", g_flagged_files[i]);
+            }
+            return;
+        }
+        return;
+    }
+    void printHelp()
+    {
+        WriteOut( "Marks or flags files to be saved for the save state feature.\n\n"
+                "FLAGSAVE [file(s) [/F] [/R]] [/U]\n\n"
+                "  file(s)     Specifies one or more files to be flagged for saving.\n"
+                "  /F          Forces to flag the file(s) even if they are not found.\n"
+                "  /R          Removes flags from the specified file(s).\n"
+                "  /U          Removes flags from all flagged files.\n\n"
+                "Type FLAGSAVE without a parameter to list flagged files.\n");
+    }
+};
+
+static void FLAGSAVE_ProgramStart(Program** make)
+{
+    *make = new FLAGSAVE;
+}
+
 void DOS_SetupPrograms(void) {
     /*Add Messages */
 
@@ -6415,11 +6668,13 @@ void DOS_SetupPrograms(void) {
         "  -xms        Allocates memory from XMS rather than conventional memory\n"
         "  -{ram}      Specifies the amount of memory to allocate in KB\n"
         "                 Defaults to 64kb for conventional memory; 1MB for XMS memory\n"
+        "  -a          Auto allocates enough memory to fill the lowest 64KB memory\n"
         "  -f          Frees previously allocated memory\n"
         "  {program}   Runs the specified program\n"
         "  {options}   Program options (if any)\n\n"
         "Examples:\n"
         "  \033[32;1mLOADFIX game.exe\033[0m     Allocates 64KB of conventional memory and runs game.exe\n"
+        "  \033[32;1mLOADFIX -a\033[0m           Auto-allocates enough memory conventional memory\n"
         "  \033[32;1mLOADFIX -128\033[0m         Allocates 128KB of conventional memory\n"
         "  \033[32;1mLOADFIX -xms\033[0m         Allocates 1MB of XMS memory\n"
         "  \033[32;1mLOADFIX -f\033[0m           Frees allocated conventional memory\n");
@@ -6841,6 +7096,7 @@ void DOS_SetupPrograms(void) {
     MSG_Add("PROGRAM_MODE_USAGE","Configures system devices.\n\n"
             "\033[34;1mMODE\033[0m display-type       :display-type codes are "
             "\033[1mCO80\033[0m, \033[1mBW80\033[0m, \033[1mCO40\033[0m, \033[1mBW40\033[0m, or \033[1mMONO\033[0m\n"
+            "\033[34;1mMODE CON COLS=\033[0mc \033[34;1mLINES=\033[0mn :columns and lines, c=80 or 132, n=25, 43, 50, or 60\n"
             "\033[34;1mMODE CON RATE=\033[0mr \033[34;1mDELAY=\033[0md :typematic rates, r=1-32 (32=fastest), d=1-4 (1=lowest)\n");
     MSG_Add("PROGRAM_MODE_INVALID_PARAMETERS","Invalid parameter(s).\n");
 
@@ -6869,6 +7125,7 @@ void DOS_SetupPrograms(void) {
     PROGRAMS_MakeFile("ADDKEY.COM",ADDKEY_ProgramStart);
     PROGRAMS_MakeFile("A20GATE.COM",A20GATE_ProgramStart);
     PROGRAMS_MakeFile("CFGTOOL.COM",CFGTOOL_ProgramStart);
+    PROGRAMS_MakeFile("FLAGSAVE.COM", FLAGSAVE_ProgramStart);
 #if defined C_DEBUG
     PROGRAMS_MakeFile("INT2FDBG.COM",INT2FDBG_ProgramStart);
     PROGRAMS_MakeFile("NMITEST.COM",NMITEST_ProgramStart);

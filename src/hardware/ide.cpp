@@ -2264,6 +2264,21 @@ void IDE_CDROM_Detach(unsigned char drive_index) {
     }
 }
 
+void IDE_CDROM_DetachAll() {
+    for (int index = 0; index < MAX_IDE_CONTROLLERS; index++) {
+        IDEController *c = idecontroller[index];
+        if (c)
+        for (int slave = 0; slave < 2; slave++) {
+            IDEATAPICDROMDevice *dev;
+            dev = dynamic_cast<IDEATAPICDROMDevice*>(c->device[slave]);
+            if (dev) {
+                delete dev;
+                c->device[slave] = NULL;
+            }
+        }
+    }
+}
+
 /* bios_disk_index = index into BIOS INT 13h disk array: imageDisk *imageDiskList[MAX_DISK_IMAGES]; */
 void IDE_Hard_Disk_Attach(signed char index,bool slave,unsigned char bios_disk_index/*not INT13h, the index into DOSBox's BIOS drive emulation*/) {
     IDEController *c;
@@ -2319,6 +2334,24 @@ char * GetIDEPosition(unsigned char bios_disk_index) {
         }
     }
     return (char*)("");
+}
+
+std::string info="";
+std::string GetIDEInfo() {
+    info="";
+    for (int index = 0; index < MAX_IDE_CONTROLLERS; index++) {
+        IDEController *c = GetIDEController(index);
+        if (c)
+        for (int slave = 0; slave < 2; slave++) {
+            IDEATADevice *dev = dynamic_cast<IDEATADevice*>(c->device[slave]);
+            info+="IDE position "+std::to_string(index+1)+(slave?'s':'m')+": ";
+            if (dynamic_cast<IDEATADevice*>(c->device[slave])) info+="disk image";
+            else if (dynamic_cast<IDEATAPICDROMDevice*>(c->device[slave])) info+="CD image";
+            else info+="none";
+            info+="\n";
+        }
+    }
+    return info;
 }
 
 static IDEController* GetIDEController(Bitu idx) {

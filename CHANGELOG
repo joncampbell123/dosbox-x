@@ -1,29 +1,84 @@
 0.83.8
-  - autoloadfix changed to allocate only enough memory
-    to keep the executable above the 64KB boundary,
-    instead of blindly allocating 64KB.
-  - Try autoa20fix first, then try autoloadfix next.
+  - Added support for scalable TrueType font (TTF)
+    output for the Windows platform. Set "output=ttf"
+    and optionally a monospaced TTF font (such as
+    consola) with config option "ttf.font" to use it.
+    Lines and columns can be specified with config
+    options "ttf.lins" and "ttf.cols". (Wengier)
+  - Configuration Tool now provides the option to save
+    to the primary or user config files. (Wengier)
+  - Added config options "saveremark" (default: true)
+    and "forceloadstate" (default: false) in [dosbox]
+    section which can be used to control if DOSBox-X
+    should ask users to enter remarks when saving a
+    state or show warnings when loading a saved state
+    if there is a mismatch found. (Wengier)
+  - The config option "pixelshader" is moved from the
+    section [gui] to [render] so that it will be in the
+    same section as the option "glshader". (Wengier)
+  - Added menu item "Select OpenGL (GLSL) shader..." to
+    allow OpenGL shader switch from the menu, just like
+    the function for Direct3D pixel shaders. (Wengier)
+  - Added menu item "Show IDE disk or CD status" under
+    "DOS" menu to show the current assignments (disk or
+    CD image) of the IDE controllers. (Wengier)
+  - Fixed IDE CD assignment may not be reset when soft
+    reboots are activated from guest systems. (Wengier)
+  - Enhanced MODE command so that you can change the
+    number of columns and lines in the screen with the
+    syntax "MODE CON COLS=c LINES=n" (c=80 or 132, and
+    n=25, 43, 50, or 60). The command "MODE CON" will
+    show the current number of columns and lines in the
+    screen as in a real DOS system. (Wengier)
+  - Added FLAGSAVE command for the save state feature
+    to flag (mark) one or more files to be saved and
+    loaded. Type "FLAGSAVE /?" for more information on
+    this command. (PogoMan361 and Wengier)
+  - Enhanced A20GATE command to show the current status
+    of the A20 gate when no parameter is given, along
+    with other small improvements. (Wengier)
   - INT 21h DOS=HMA emulation, to enable the A20 gate,
     and autoa20fix, to disable the A20 gate, now checks
     whether the CPU is running in virtual 8086 mode.
     If vm86 detected, the code will control the A20
-    gate by calling the XMS interface instead of
-    directly reading/writing port 92h. This consideration
+    gate by calling the XMS interface instead of direct
+    reading/writing via port 92h. This consideration
     is required for autoa20fix to cooperate with
     Microsoft Windows 3.1. Note that Windows 3.1 does
     not virtualize port 92h. If it did, this workaround
     would not be necessary.
+  - Added -a option to LOADFIX command which will auto
+    allocate enough memory to fill lowest 64KB memory
+    instead of using exactly 64KB memory. (Wengier)
+  - Added autofixwarning option (true by default) which
+    allows user to silence the messages when DOSBox-X
+    tries to auto-fix "Packed file is corrupt" error
+    when running a program with this issue. (Wengier)
   - Added autoa20fix option (enabled by default). This
     option when enabled attempts to resolve EXEPACK
     "Packed file is corrupt" errors by temporarily
     disabling the A20 gate and running the program
     again. This may provide better support for affected
-    DOS applications than the LOADFIX option.
+    DOS applications than the LOADFIX option. If both
+    autoa20fix and autoloadfix are set, then autoa20fix
+    will be tried first, and if it did not work then
+    autoloadfix will be tried next.
+  - The autoloadfix config option changed to allocate
+    only enough memory to keep the executable above the
+    64KB boundary, instead of blindly allocating 64KB.
   - Fixed menu items "Rescan drive" and "Swap disk" in
     "Drive" menu being reversed. (Wengier)
-  - Fixed Monkey Island CD audio issue with the game
-    The Secret of Monkey Island when talking to pirate
-    in the Scumm Bar. Fix logic per kcgen. (Wengier)
+  - Fixed CD audio issue with the game "The Secret of
+    Monkey Island" when talking to the pirate in Scumm
+    Bar by adapting the patch that fixes it. Thanks
+    kcgen for the fix logic. (Wengier)
+  - Added support for MAME CHD CD images. You can now
+    mount CHD images with IMGMOUNT command, or from the
+    Drive menu. Based on libchdr library and the work
+    of the user whocares010. (Wengier)
+  - Updated FLAC/MP3/WAV CD-DA decoder libraries to the
+    latest versions (versions 0.12.22, 0.6.18, 0.12.13
+    respectively). Thanks to mackron & kcgen. (Wengier)
 0.83.7
   - The primary DOSBox-X Wiki is now located at the
     URL: https://dosbox-x.com/wiki (Wengier)

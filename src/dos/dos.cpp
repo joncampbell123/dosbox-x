@@ -41,6 +41,7 @@
 
 extern bool log_int21, log_fileio;
 extern int lfn_filefind_handle;
+extern int autofixwarn;
 unsigned long totalc, freec;
 uint16_t countryNo = 0;
 Bitu INT29_HANDLER(void);
@@ -104,7 +105,7 @@ int maxdrive=1;
 int enablelfn=-1;
 bool uselfn;
 extern int infix;
-extern bool int15_wait_force_unmask_irq;
+extern bool int15_wait_force_unmask_irq, shellrun, i4dos;
 extern bool winrun, startcmd, startwait, startquiet, winautorun;
 extern bool startup_state_numlock, mountwarning, clipboard_dosapi;
 std::string startincon;
@@ -1475,8 +1476,8 @@ static Bitu DOS_21Handler(void) {
                 }
 
                 MEM_BlockRead(SegPhys(ds)+reg_dx,dos_copybuf,towrite);
-                if (reg_bx==2&&towrite==22&&!strncmp((char *)dos_copybuf,"Packed file is corrupt",towrite)) packerr=true;
-                if (DOS_WriteFile(reg_bx,dos_copybuf,&towrite)) {
+                packerr=reg_bx==2&&towrite==22&&!strncmp((char *)dos_copybuf,"Packed file is corrupt",towrite);
+                if ((packerr && !(i4dos && !shellrun) && (!autofixwarn || autofixwarn==2 && infix==0 || autofixwarn==1 && infix==1)) || DOS_WriteFile(reg_bx,dos_copybuf,&towrite)) {
                     reg_ax=towrite;
                     CALLBACK_SCF(false);
                 } else {
@@ -2829,6 +2830,8 @@ public:
         dos_clipboard_device_access = 0;
 		dos_clipboard_device_name=(char *)dos_clipboard_device_default;
 #endif
+        std::string autofixwarning=section->Get_string("autofixwarning");
+        autofixwarn=autofixwarning=="false"||autofixwarning=="0"||autofixwarning=="none"?0:(autofixwarning=="a20fix"?1:(autofixwarning=="loadfix"?2:3));
 
         if (dos_initial_hma_free > 0x10000)
             dos_initial_hma_free = 0x10000;

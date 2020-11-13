@@ -8606,13 +8606,16 @@ private:
         CPU_SetSegGeneral(ss, 0x60);
 
         for (Bitu i=0;i < 0x400;i++) mem_writeb(0x7C00+i,0);
-
 		if ((bootguest||(!bootvm&&use_quick_reboot))&&!bootfast&&bootdrive>=0&&imageDiskList[bootdrive]) {
-			MOUSE_Startup(NULL);
+			if (bootguest) MOUSE_Startup(NULL);
 			char drive[] = "-QQ A:";
 			drive[4]='A'+bootdrive;
 			runBoot(drive);
 		}
+        if (!bootguest&&!bootvm&&!bootfast&&bootdrive>=0) {
+            void IDE_CDROM_DetachAll();
+            IDE_CDROM_DetachAll();
+        }
 		if (use_quick_reboot&&!bootvm&&!bootfast&&bootdrive<0&&first_shell != NULL) throw int(6);
 		bootvm=false;
 		bootfast=false;

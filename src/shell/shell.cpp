@@ -470,7 +470,9 @@ const char *ParseMsg(const char *msg) {
         return str_replace(str_replace(str_replace((char *)msg, (char*)"\xBA\033[0m", (char*)"\xBA\033[0m\n"), (char*)"\xBB\033[0m", (char*)"\xBB\033[0m\n"), (char*)"\xBC\033[0m", (char*)"\xBC\033[0m\n");
 }
 
+bool shellrun=false;
 void DOS_Shell::Run(void) {
+	shellrun=true;
 	char input_line[CMD_MAXLINE] = {0};
 	std::string line;
 	bool optP=cmd->FindStringRemain("/P",line), optC=cmd->FindStringRemainBegin("/C",line), optK=false;
@@ -487,10 +489,13 @@ void DOS_Shell::Run(void) {
 		temp.ParseLine(input_line);		//for *.exe *.com  |*.bat creates the bf needed by runinternal;
 		temp.RunInternal();				// exits when no bf is found.
 		temp.exec=false;
-		if (!optK||(!perm&&temp.exit))
-			return;
+		if (!optK||(!perm&&temp.exit)) {
+            shellrun=false;
+            return;
+        }
 	} else if (cmd->FindStringRemain("/?",line)) {
 		WriteOut(MSG_Get("SHELL_CMD_COMMAND_HELP"));
+		shellrun=false;
 		return;
 	}
 
@@ -684,6 +689,7 @@ void DOS_Shell::Run(void) {
 			if (echo && !bf) WriteOut_NoParsing("\n");
 		}
 	} while (perm||!exit);
+	shellrun=false;
 }
 
 void DOS_Shell::SyntaxError(void) {
