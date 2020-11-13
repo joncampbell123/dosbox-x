@@ -7855,7 +7855,7 @@ bool DOSBOX_parse_argv() {
             control->opt_break_start = true;
         }
         else if (optname == "silent") {
-            putenv("SDL_VIDEODRIVER=dummy");
+            putenv(const_cast<char*>("SDL_VIDEODRIVER=dummy"));
             control->opt_exit = true;
             control->opt_fastlaunch = true;
         }
@@ -9308,7 +9308,7 @@ bool video_frameskip_common_menu_callback(DOSBoxMenu * const menu,DOSBoxMenu::it
     SetVal("render", "frameskip", tmp1);
     for (unsigned int i=0;i<=10;i++) {
         sprintf(tmp2,"frameskip_%u",i);
-        mainMenu.get_item(tmp2).check(f==i).refresh_item(mainMenu);
+        mainMenu.get_item(tmp2).check((unsigned int)f==i).refresh_item(mainMenu);
     }
     return true;
 }

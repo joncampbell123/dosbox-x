@@ -400,14 +400,17 @@ void INT10_SetCursorShape(uint8_t first,uint8_t last) {
     if (machine==MCH_CGA || machine==MCH_MCGA || machine==MCH_AMSTRAD) goto dowrite;
     if (IS_TANDY_ARCH) goto dowrite;
     /* Skip CGA cursor emulation if EGA/VGA system is active */
-    if (!(real_readb(BIOSMEM_SEG,BIOSMEM_VIDEO_CTL) & 0x8)) {
+    if (!(real_readb(BIOSMEM_SEG,BIOSMEM_VIDEO_CTL) & 0x8)) { /* if video subsystem is ACTIVE (bit is cleared) [https://www.stanislavs.org/helppc/bios_data_area.html] */
         /* Check for CGA type 01, invisible */
         if ((first & 0x60) == 0x20) {
-            first=0x1e;
+            first=0x1e | 0x20; /* keep the cursor invisible! */
             last=0x00;
             goto dowrite;
         }
         /* Check if we need to convert CGA Bios cursor values */
+        /* FIXME: Some sources including [https://www.stanislavs.org/helppc/bios_data_area.html] [https://www.matrix-bios.nl/system/bda.html]
+         *        suggest CGA alphanumeric cursor emulation occurs when bit 0 is SET. This code checks whether the bit is CLEARED.
+         *        This test and emulation may have the bit backwards. VERIFY ON REAL HARDWARE -- J.C */
         if (!(real_readb(BIOSMEM_SEG,BIOSMEM_VIDEO_CTL) & 0x1)) { // set by int10 fun12 sub34
 //          if (CurMode->mode>0x3) goto dowrite;    //Only mode 0-3 are text modes on cga
             if ((first & 0xe0) || (last & 0xe0)) goto dowrite;
