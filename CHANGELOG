@@ -1,4 +1,10 @@
 0.83.8
+  - SDL1 builds updated to use newer audio APIs on
+    Mac OS X so that audio works once again when
+    compiled and run on Mac OS X Big Sur. Prior to
+    the change, ancient versions of the API dating
+    back to the mid 2000s were used which no longer
+    work on Big Sur.
   - Added support for scalable TrueType font (TTF)
     output for the Windows platform. Set "output=ttf"
     and optionally a monospaced TTF font (such as
