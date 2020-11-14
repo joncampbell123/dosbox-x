@@ -204,6 +204,7 @@ void Core_CloseAudio(_THIS)
 
 #define CHECK_RESULT(msg) \
     if (result != noErr) { \
+        fprintf(stderr,"Failed to start CoreAudio err=%ld(0x%lx) '%s'\n",(signed long)result,(unsigned long)result,msg); \
         SDL_SetError("Failed to start CoreAudio: " msg); \
         return -1; \
     }
