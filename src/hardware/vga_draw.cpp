@@ -2991,7 +2991,7 @@ static void VGA_VerticalTimer(Bitu /*val*/) {
     //Check if we can actually render, else skip the rest
     if (vga.draw.vga_override || !RENDER_StartUpdate()) return;
 
-#if defined(WIN32)
+#if defined(USE_TTF)
 	if (ttf.inUse) {
 		GFX_StartUpdate(render.scale.outWrite, render.scale.outPitch);
 		vga.draw.blink = ((vga.draw.blinking & time(NULL)) || !vga.draw.blinking) ? true : false;	// eventually blink once per second

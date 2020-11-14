@@ -1,13 +1,17 @@
 0.83.8
   - Added support for scalable TrueType font (TTF)
-    output for the Windows platform. Set "output=ttf"
+    output for text-mode programs. Set "output=ttf"
     and optionally a monospaced TTF font (such as
     consola) with config option "ttf.font" to use it.
     Lines and columns can be specified with config
     options "ttf.lins" and "ttf.cols", and the cursor
     can be made blinking with the option "ttf.blinkc".
     The MODE command can be used to change the number
-    of lines and/or columns dynamically. (Wengier)
+    of lines and/or columns dynamically, as with the
+    menu options in the "Text-mode" menu group under
+    "Video" menu. When using the TTF output DOSBox-X
+    will temporarily switch to the surface output when
+    a graphical mode is requested. (Wengier)
   - Configuration Tool now provides the option to save
     to the primary or user config files. (Wengier)
   - Added config options "saveremark" (default: true)
@@ -80,7 +84,7 @@
     Drive menu. Based on libchdr library and the work
     of the user whocares010. (Wengier)
   - Updated FLAC/MP3/WAV CD-DA decoder libraries to the
-    latest versions (versions 0.12.22, 0.6.18, 0.12.13
+    latest versions (versions 0.12.22, 0.6.19, 0.12.14
     respectively). Thanks to mackron & kcgen. (Wengier)
 0.83.7
   - The primary DOSBox-X Wiki is now located at the

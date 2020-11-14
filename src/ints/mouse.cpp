@@ -710,11 +710,10 @@ uint8_t Mouse_GetButtonState(void) {
 #if defined(WIN32) || defined(C_SDL2)
 #include "render.h"
 char text[5000];
-extern HWND GetHWND();
 const char* Mouse_GetSelected(int x1, int y1, int x2, int y2, int w, int h, uint16_t *textlen) {
 	uint16_t result=0, len=0;
 	text[0]=0;
-#if defined(WIN32)
+#if defined(USE_TTF)
     if (ttf.inUse) {
         int selPosX1=(x1-ttf.offX)/ttf.width;
         int selPosX2=(x2-ttf.offX)/ttf.width;

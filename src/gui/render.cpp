@@ -52,8 +52,10 @@ uint32_t                                GFX_palette32bpp[256] = {0};
 unsigned int                            GFX_GetBShift();
 void                                    RENDER_CallBack( GFX_CallBackFunctions_t function );
 
+#if defined(USE_TTF)
 uint32_t curAttrChar[txtMaxLins*txtMaxCols];					// currently displayed textpage
 uint32_t newAttrChar[txtMaxLins*txtMaxCols];					// to be replaced by
+#endif
 
 static void Check_Palette(void) {
     /* Clean up any previous changed palette data */
@@ -349,6 +351,7 @@ bool RENDER_StartUpdate(void) {
     render.scale.outPitch = 0;
     Scaler_ChangedLines[0] = 0;
     Scaler_ChangedLineIndex = 0;
+#if defined(USE_TTF)
     if (ttf.inUse) {
         if (render.cache.nextInvalid)		// Always do a full screen update
             {
@@ -361,7 +364,9 @@ bool RENDER_StartUpdate(void) {
         else
             RENDER_DrawLine = RENDER_StartLineHandler;
     /* Clearing the cache will first process the line to make sure it's never the same */
-    } else if (GCC_UNLIKELY( render.scale.clearCache) ) {
+    } else
+#endif
+        if (GCC_UNLIKELY( render.scale.clearCache) ) {
 //      LOG_MSG("Clearing cache");
         //Will always have to update the screen with this one anyway, so let's update already
         if (GCC_UNLIKELY(!GFX_StartUpdate( render.scale.outWrite, render.scale.outPitch )))
@@ -472,6 +477,7 @@ static Bitu MakeAspectTable(Bitu skip,Bitu height,double scaley,Bitu miny) {
 }
 
 void RENDER_Reset( void ) {
+#if defined(USE_TTF)
     if (sdl.desktop.want_type == SCREEN_TTF) {
         // Setup the scaler variables
         GFX_SetSize(render.cache.width, render.cache.height, 0, 0, 0, &RENDER_CallBack);
@@ -483,6 +489,7 @@ void RENDER_Reset( void ) {
         render.active = true;
         return;
     }
+#endif
 
     Bitu width=render.src.width;
     Bitu height=render.src.height;
@@ -862,10 +869,12 @@ void RENDER_SetSize(Bitu width,Bitu height,Bitu bpp,float fps,double scrn_ratio)
         return; 
     }
 
+#if defined(USE_TTF)
     if (sdl.desktop.want_type == SCREEN_TTF) {
         render.cache.width	= width;
         render.cache.height	= height;
     }
+#endif
 
     // figure out doublewidth/height values
     bool dblw = false;

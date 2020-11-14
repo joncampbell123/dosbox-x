@@ -1984,7 +1984,7 @@ dac_text16:
 	/* Load text mode font */
 	if (CurMode->type==M_TEXT) {
 		INT10_ReloadFont();
-#if defined(WIN32)
+#if defined(USE_TTF)
         if (!ttf.inUse && change_from_ttf_to_surface) {
             change_output(10);
             SetVal("sdl", "output", "surface");

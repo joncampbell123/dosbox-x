@@ -930,6 +930,9 @@
     <ClCompile Include="..\src\libs\fluidsynth\fluid_chan.c">
       <Filter>Sources\libs\fluidsynth</Filter>
     </ClCompile>
+    <ClCompile Include="..\src\libs\fluidsynth\fluid_chorus.c">
+      <Filter>Sources\libs\fluidsynth</Filter>
+    </ClCompile>
     <ClCompile Include="..\src\libs\fluidsynth\fluid_cmd.c">
       <Filter>Sources\libs\fluidsynth</Filter>
     </ClCompile>
@@ -1044,7 +1047,6 @@
     <ClCompile Include="..\src\cpu\core_dyn_x86.cpp">
       <Filter>Sources\cpu</Filter>
     </ClCompile>
-    <ClCompile Include="..\src\libs\fluidsynth\fluid_chorus.c" />
     <ClCompile Include="..\src\libs\decoders\internal\ogg\bitwise.c">
       <Filter>Sources\libs\decoder</Filter>
     </ClCompile>
