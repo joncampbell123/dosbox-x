@@ -726,7 +726,7 @@ static FT_Error Load_Glyph( TTF_Font* font, Uint16 ch, c_glyph* cached, int want
 			}
 			memset( dst->buffer, 0, dst->pitch * dst->rows );
 
-			for( i = 0; i < src->rows; i++ ) {
+			for( i = 0; i < (int)src->rows; i++ ) {
 				int soffset = i * src->pitch;
 				int doffset = i * dst->pitch;
 				if ( mono ) {
@@ -734,7 +734,7 @@ static FT_Error Load_Glyph( TTF_Font* font, Uint16 ch, c_glyph* cached, int want
 					unsigned char *dstp = dst->buffer + doffset;
 					int j;
 					if ( src->pixel_mode == FT_PIXEL_MODE_MONO ) {
-						for ( j = 0; j < src->width; j += 8 ) {
+						for ( j = 0; j < (int)src->width; j += 8 ) {
 							unsigned char c = *srcp++;
 							*dstp++ = (c&0x80) >> 7;
 							c <<= 1;
@@ -753,7 +753,7 @@ static FT_Error Load_Glyph( TTF_Font* font, Uint16 ch, c_glyph* cached, int want
 							*dstp++ = (c&0x80) >> 7;
 						}
 					}  else if ( src->pixel_mode == FT_PIXEL_MODE_GRAY2 ) {
-						for ( j = 0; j < src->width; j += 4 ) {
+						for ( j = 0; j < (int)src->width; j += 4 ) {
 							unsigned char c = *srcp++;
 							*dstp++ = (((c&0xA0) >> 6) >= 0x2) ? 1 : 0;
 							c <<= 2;
@@ -764,14 +764,14 @@ static FT_Error Load_Glyph( TTF_Font* font, Uint16 ch, c_glyph* cached, int want
 							*dstp++ = (((c&0xA0) >> 6) >= 0x2) ? 1 : 0;
 						}
 					} else if ( src->pixel_mode == FT_PIXEL_MODE_GRAY4 ) {
-						for ( j = 0; j < src->width; j += 2 ) {
+						for ( j = 0; j < (int)src->width; j += 2 ) {
 							unsigned char c = *srcp++;
 							*dstp++ = (((c&0xF0) >> 4) >= 0x8) ? 1 : 0;
 							c <<= 4;
 							*dstp++ = (((c&0xF0) >> 4) >= 0x8) ? 1 : 0;
 						}
 					} else {
-						for ( j = 0; j < src->width; j++ ) {
+						for ( j = 0; j < (int)src->width; j++ ) {
 							unsigned char c = *srcp++;
 							*dstp++ = (c >= 0x80) ? 1 : 0;
 						}
@@ -790,7 +790,7 @@ static FT_Error Load_Glyph( TTF_Font* font, Uint16 ch, c_glyph* cached, int want
 					unsigned char *dstp = dst->buffer + doffset;
 					unsigned char c;
 					int j, k;
-					for ( j = 0; j < src->width; j += 8) {
+					for ( j = 0; j < (int)src->width; j += 8) {
 						c = *srcp++;
 						for (k = 0; k < 8; ++k) {
 							if ((c&0x80) >> 7) {
@@ -806,7 +806,7 @@ static FT_Error Load_Glyph( TTF_Font* font, Uint16 ch, c_glyph* cached, int want
 					unsigned char *dstp = dst->buffer + doffset;
 					unsigned char c;
 					int j, k;
-					for ( j = 0; j < src->width; j += 4 ) {
+					for ( j = 0; j < (int)src->width; j += 4 ) {
 						c = *srcp++;
 						for ( k = 0; k < 4; ++k ) {
 							if ((c&0xA0) >> 6) {
@@ -822,7 +822,7 @@ static FT_Error Load_Glyph( TTF_Font* font, Uint16 ch, c_glyph* cached, int want
 					unsigned char *dstp = dst->buffer + doffset;
 					unsigned char c;
 					int j, k;
-					for ( j = 0; j < src->width; j += 2 ) {
+					for ( j = 0; j < (int)src->width; j += 2 ) {
 						c = *srcp++;
 						for ( k = 0; k < 2; ++k ) {
 							if ((c&0xF0) >> 4) {
@@ -1386,7 +1386,7 @@ SDL_Surface *TTF_RenderUNICODE_Solid(TTF_Font *font,
 			xstart -= glyph->minx;
 		}
 		
-		for( row = 0; row < current->rows; ++row ) {
+		for( row = 0; row < (int)current->rows; ++row ) {
 			/* Make sure we don't go either over, or under the
 			 * limit */
 			if ( row+glyph->yoffset < 0 ) {
@@ -1473,7 +1473,7 @@ SDL_Surface *TTF_RenderGlyph_Solid(TTF_Font *font, Uint16 ch, SDL_Color fg)
 	/* Copy the character from the pixmap */
 	src = glyph->bitmap.buffer;
 	dst = (Uint8*) textbuf->pixels;
-	for ( row = 0; row < glyph->bitmap.rows; ++row ) {
+	for ( row = 0; row < (int)glyph->bitmap.rows; ++row ) {
 		memcpy( dst, src, glyph->bitmap.width );
 		src += glyph->bitmap.pitch;
 		dst += textbuf->pitch;
@@ -1652,7 +1652,7 @@ SDL_Surface* TTF_RenderUNICODE_Shaded( TTF_Font* font,
 		}
 		
 		current = &glyph->pixmap;
-		for( row = 0; row < current->rows; ++row ) {
+		for( row = 0; row < (int)current->rows; ++row ) {
 			/* Make sure we don't go either over, or under the
 			 * limit */
 			if ( row+glyph->yoffset < 0 ) {
@@ -1747,7 +1747,7 @@ SDL_Surface* TTF_RenderGlyph_Shaded( TTF_Font* font,
 	/* Copy the character from the pixmap */
 	src = glyph->pixmap.buffer;
 	dst = (Uint8*) textbuf->pixels;
-	for ( row = 0; row < glyph->bitmap.rows; ++row ) {
+	for ( row = 0; row < (int)glyph->bitmap.rows; ++row ) {
 		memcpy( dst, src, glyph->pixmap.width );
 		src += glyph->pixmap.pitch;
 		dst += textbuf->pitch;
@@ -1909,7 +1909,7 @@ SDL_Surface *TTF_RenderUNICODE_Blended(TTF_Font *font,
 			xstart -= glyph->minx;
 		}
 
-		for ( row = 0; row < glyph->pixmap.rows; ++row ) {
+		for ( row = 0; row < (int)glyph->pixmap.rows; ++row ) {
 			/* Make sure we don't go either over, or under the
 			 * limit */
 			if ( row+glyph->yoffset < 0 ) {
@@ -1992,11 +1992,11 @@ SDL_Surface *TTF_RenderGlyph_Blended(TTF_Font *font, Uint16 ch, SDL_Color fg)
 	pixel = (fg.r<<16)|(fg.g<<8)|fg.b;
 	SDL_FillRect(textbuf, NULL, pixel);	/* Initialize with fg and 0 alpha */
 
-	for ( row=0; row<glyph->pixmap.rows; ++row ) {
+	for ( row=0; row<(int)glyph->pixmap.rows; ++row ) {
 		/* Changed src to take pitch into account, not just width */
 		src = glyph->pixmap.buffer + row * glyph->pixmap.pitch;
 		dst = (Uint32 *)textbuf->pixels + row * textbuf->pitch/4;
-		for ( col=0; col<glyph->pixmap.width; ++col ) {
+		for ( col=0; col<(int)glyph->pixmap.width; ++col ) {
 			alpha = *src++;
 			*dst++ = pixel | (alpha << 24);
 		}

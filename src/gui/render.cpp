@@ -304,6 +304,31 @@ static void RENDER_ClearCacheHandler(const void * src) {
 #define RENDER_MAXHEIGHT 600
 extern void GFX_SetTitle(int32_t cycles, int frameskip, Bits timing, bool paused);
 uint8_t rendererCache[RENDER_MAXHEIGHT * RENDER_MAXWIDTH];
+void SimpleRenderer(const void *s) {
+	render.cache.curr_y++;
+	if (render.cache.invalid) {
+		wmemcpy((wchar_t*)render.cache.pointer, (wchar_t*)s, render.cache.width>>1);
+		render.cache.past_y = render.cache.curr_y;
+		render.cache.start_x = 0;
+	} else {
+		uint32_t *cache = (uint32_t *)render.cache.pointer;
+		uint32_t *source = (uint32_t *)s;
+		for (Bitu index = render.cache.width/4; index; index--) {
+			if (*source != *cache) {
+				index *= 4;
+				if ((Bitu)render.cache.start_x > render.cache.width - index)
+					render.cache.start_x = render.cache.width - index;
+				wmemcpy((wchar_t*)cache, (wchar_t*)source, index>>1);
+				render.cache.past_y = render.cache.curr_y;
+				break;
+			}
+			source++;
+			cache++;
+		}
+	}
+	render.cache.pointer += render.cache.width;
+}
+
 bool RENDER_StartUpdate(void) {
     if (GCC_UNLIKELY(render.updating))
         return false;
@@ -324,8 +349,19 @@ bool RENDER_StartUpdate(void) {
     render.scale.outPitch = 0;
     Scaler_ChangedLines[0] = 0;
     Scaler_ChangedLineIndex = 0;
+    if (ttf.inUse) {
+        if (render.cache.nextInvalid)		// Always do a full screen update
+            {
+            render.cache.nextInvalid = false;
+            render.cache.invalid = true;
+            if (!GFX_StartUpdate( render.scale.outWrite, render.scale.outPitch ))
+                return false;
+            RENDER_DrawLine = SimpleRenderer;
+            }
+        else
+            RENDER_DrawLine = RENDER_StartLineHandler;
     /* Clearing the cache will first process the line to make sure it's never the same */
-    if (GCC_UNLIKELY( render.scale.clearCache) ) {
+    } else if (GCC_UNLIKELY( render.scale.clearCache) ) {
 //      LOG_MSG("Clearing cache");
         //Will always have to update the screen with this one anyway, so let's update already
         if (GCC_UNLIKELY(!GFX_StartUpdate( render.scale.outWrite, render.scale.outPitch )))
@@ -445,6 +481,7 @@ void RENDER_Reset( void ) {
         // Signal the next frame to first reinit the cache
         render.cache.nextInvalid = true;
         render.active = true;
+        return;
     }
 
     Bitu width=render.src.width;
@@ -828,8 +865,6 @@ void RENDER_SetSize(Bitu width,Bitu height,Bitu bpp,float fps,double scrn_ratio)
     if (sdl.desktop.want_type == SCREEN_TTF) {
         render.cache.width	= width;
         render.cache.height	= height;
-        RENDER_Reset();
-        return;
     }
 
     // figure out doublewidth/height values

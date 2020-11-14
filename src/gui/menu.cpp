@@ -310,6 +310,9 @@ static const char *def_menu_video_output[] =
     "output_opengl",
     "output_openglnb",
 #endif
+#if defined(WIN32)
+    "output_ttf",
+#endif
     "--",
     "doublescan",
     NULL

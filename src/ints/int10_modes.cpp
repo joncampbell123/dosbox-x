@@ -804,7 +804,8 @@ static void FinishSetMode(bool clearmem) {
 }
 
 extern bool en_int33;
-
+void change_output(int output);
+void SetVal(const std::string& secname, const std::string& preval, const std::string& val);
 bool INT10_SetVideoMode_OTHER(uint16_t mode,bool clearmem) {
 	switch (machine) {
 	case MCH_CGA:
@@ -1097,7 +1098,7 @@ bool INT10_SetVideoMode_OTHER(uint16_t mode,bool clearmem) {
 }
 
 bool unmask_irq0_on_int10_setmode = true;
-
+bool change_from_ttf_to_surface = false;
 bool INT10_SetVideoMode(uint16_t mode) {
 	//LOG_MSG("set mode %x",mode);
 	bool clearmem=true;Bitu i;
@@ -1983,7 +1984,22 @@ dac_text16:
 	/* Load text mode font */
 	if (CurMode->type==M_TEXT) {
 		INT10_ReloadFont();
-	}
+#if defined(WIN32)
+        if (!ttf.inUse && change_from_ttf_to_surface) {
+            change_output(10);
+            SetVal("sdl", "output", "surface");
+            void OutputSettingMenuUpdate(void);
+            OutputSettingMenuUpdate();
+            change_from_ttf_to_surface = false;
+        }
+	} else if (ttf.inUse) {
+        change_output(0);
+        SetVal("sdl", "output", "surface");
+        void OutputSettingMenuUpdate(void);
+        OutputSettingMenuUpdate();
+        change_from_ttf_to_surface = true;
+#endif
+    }
 	// Enable screen memory access
 	IO_Write(0x3c4,1); IO_Write(0x3c5,seq_data[1] & ~0x20);
 	//LOG_MSG("setmode end");
