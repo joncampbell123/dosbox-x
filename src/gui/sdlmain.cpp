@@ -2396,6 +2396,15 @@ static Bitu OUTPUT_TTF_SetSize() {
         sdl.draw.width = sdl.clip.w = ttf.cols*ttf.width;
         sdl.draw.height = sdl.clip.h = ttf.lins*ttf.height;
         ttf.inUse = true;
+
+#if DOSBOXMENU_TYPE == DOSBOXMENU_SDLDRAW /* SDL drawn menus */
+        if (mainMenu.isVisible() && !ttf.fullScrn) {
+            sdl.clip.y += mainMenu.menuBox.h;
+            // hack
+            ttf.offX = sdl.clip.x;
+            ttf.offY = sdl.clip.y;
+        }
+#endif
     } else
         ttf.inUse = false;
     if (ttf.inUse && ttf.fullScrn) {
@@ -2409,14 +2418,14 @@ static Bitu OUTPUT_TTF_SetSize() {
     } else {
 #if defined(C_SDL2)
         GFX_SetResizeable(false);
-        sdl.window = GFX_SetSDLSurfaceWindow(sdl.draw.width, sdl.draw.height);
+        sdl.window = GFX_SetSDLSurfaceWindow(sdl.draw.width + sdl.clip.x, sdl.draw.height + sdl.clip.y);
         sdl.surface = sdl.window?SDL_GetWindowSurface(sdl.window):NULL;
         if (firstsize && (posx < 0 || posy < 0) && text) {
             firstsize=false;
             SDL_SetWindowPosition(sdl.window, SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED);
         }
 #else
-        sdl.surface = SDL_SetVideoMode(sdl.draw.width, sdl.draw.height, 32, SDL_SWSURFACE);
+        sdl.surface = SDL_SetVideoMode(sdl.draw.width + sdl.clip.x, sdl.draw.height + sdl.clip.y, 32, SDL_SWSURFACE);
 #endif
     }
 	if (!sdl.surface)
@@ -4203,6 +4212,11 @@ void OUTPUT_TTF_Select() {
 
     int maxWidth = sdl.desktop.full.width;
     int maxHeight = sdl.desktop.full.height;
+
+#if DOSBOXMENU_TYPE == DOSBOXMENU_SDLDRAW /* SDL drawn menus */
+    maxHeight -= mainMenu.menuBarHeightBase * 2;
+#endif
+
 #if defined(WIN32)
     maxWidth = GetSystemMetrics(SM_CXSCREEN);
     maxHeight = GetSystemMetrics(SM_CYSCREEN);
