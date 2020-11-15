@@ -1276,36 +1276,37 @@ bool warn_on_mem_write = false;
 
 void GFX_ReleaseMouse();
 void CPU_Snap_Back_To_Real_Mode();
+bool systemmessagebox(char const * aTitle, char const * aMessage, char const * aDialogType, char const * aIconType, int aDefaultButton) {
 #if !defined(HX_DOS)
-bool quitmessagebox(char const * aTitle, char const * aMessage, char const * aDialogType, char const * aIconType, int aDefaultButton) {
     MAPPER_ReleaseAllKeys();
     GFX_LosingFocus();
+    GFX_ReleaseMouse();
     bool ret=tinyfd_messageBox(aTitle, aMessage, aDialogType, aIconType, aDefaultButton);
     MAPPER_ReleaseAllKeys();
     GFX_LosingFocus();
     return ret;
-}
+#else
+    return true;
 #endif
+}
 bool CheckQuit(void) {
 #if !defined(HX_DOS)
     Section_prop *section = static_cast<Section_prop *>(control->GetSection("dosbox"));
     std::string warn = section->Get_string("quit warning");
     if (sdl.desktop.fullscreen) GFX_SwitchFullScreen();
-    MAPPER_ReleaseAllKeys();
-    GFX_ReleaseMouse();
     if (warn == "true")
-        return quitmessagebox("Quit DOSBox-X warning","This will quit from DOSBox-X.\nAre you sure?","yesno", "question", 1);
+        return systemmessagebox("Quit DOSBox-X warning","This will quit from DOSBox-X.\nAre you sure?","yesno", "question", 1);
     else if (warn == "false")
         return true;
     if (dos_kernel_disabled)
-        return quitmessagebox("Quit DOSBox-X warning","You are currently running a guest system.\nAre you sure to quit anyway now?","yesno", "question", 1);
+        return systemmessagebox("Quit DOSBox-X warning","You are currently running a guest system.\nAre you sure to quit anyway now?","yesno", "question", 1);
     if (warn == "autofile")
         for (uint8_t handle = 0; handle < DOS_FILES; handle++) {
             if (Files[handle] && (Files[handle]->GetName() == NULL || strcmp(Files[handle]->GetName(), "CON")) && (Files[handle]->GetInformation()&0x8000) == 0)
-                return quitmessagebox("Quit DOSBox-X warning","It may be unsafe to quit from DOSBox-X right now\nbecause one or more files are currently open.\nAre you sure to quit anyway now?","yesno", "question", 1);
+                return systemmessagebox("Quit DOSBox-X warning","It may be unsafe to quit from DOSBox-X right now\nbecause one or more files are currently open.\nAre you sure to quit anyway now?","yesno", "question", 1);
         }
     else if (RunningProgram&&strcmp(RunningProgram, "COMMAND")&&strcmp(RunningProgram, "4DOS"))
-        return quitmessagebox("Quit DOSBox-X warning","You are currently running a program or game.\nAre you sure to quit anyway now?","yesno", "question", 1);
+        return systemmessagebox("Quit DOSBox-X warning","You are currently running a program or game.\nAre you sure to quit anyway now?","yesno", "question", 1);
 #endif
     return true;
 }
@@ -3986,7 +3987,7 @@ void RebootGuest(bool pressed) {
 }
 
 #if defined(USE_TTF)
-void readTTF(const char *fName) {
+bool readTTF(const char *fName) {
 	FILE * ttf_fh = NULL;
 	char ttfPath[1024];
 
@@ -4054,11 +4055,13 @@ void readTTF(const char *fName) {
 					if (!fseek(ttf_fh, 0, SEEK_SET))
 						if (fread(ttfFont, 1, (size_t)ttfSize, ttf_fh) == (size_t)ttfSize) {
 							fclose(ttf_fh);
-							return;
+							return true;
 						}
 		fclose(ttf_fh);
 	}
-	E_Exit("Could not load font file: %s.ttf", fName);
+	std::string message="Could not load font file: "+std::string(fName)+(strlen(fName)<5||strcasecmp(fName+strlen(fName)-4, ".ttf")?".ttf":"");
+	systemmessagebox("Warning", message.c_str(), "ok","warning", 1);
+	return false;
 }
 
 void setTTFCodePage() {
@@ -4181,9 +4184,7 @@ void OUTPUT_TTF_Select() {
     Section_prop * render_section=static_cast<Section_prop *>(control->GetSection("render"));
     const char * fName = render_section->Get_string("ttf.font");
     LOG_MSG("SDL:TTF activated %s", fName);
-    if (*fName)
-        readTTF(fName);
-    else
+    if (!*fName||!readTTF(fName))
         ttf.DOSBox = true;
     int winPerc = render_section->Get_int("ttf.winperc");
     if (winPerc>100) winPerc=100;
@@ -9602,16 +9603,10 @@ bool use_save_file_menu_callback(DOSBoxMenu * const menu, DOSBoxMenu::item * con
 }
 
 bool show_save_state_menu_callback(DOSBoxMenu * const menu, DOSBoxMenu::item * const menuitem) {
-#if !defined(HX_DOS)
     (void)menu;//UNUSED
     (void)menuitem;//UNUSED
-    MAPPER_ReleaseAllKeys();
-    GFX_LosingFocus();
     std::string message = "Save to: "+(use_save_file&&savefilename.size()?"File "+savefilename:"Slot "+std::to_string(GetGameState_Run()+1))+"\n"+SaveState::instance().getName(GetGameState_Run(), true);
-    tinyfd_messageBox("Saved state information", message.c_str(), "ok","info", 1);
-    MAPPER_ReleaseAllKeys();
-    GFX_LosingFocus();
-#endif
+    systemmessagebox("Saved state information", message.c_str(), "ok","info", 1);
     return true;
 }
 
