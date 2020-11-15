@@ -45,15 +45,15 @@ static void synth_log(int level,
 	switch (level) {
 	case FLUID_PANIC:
 	case FLUID_ERR:
-		LOG(LOG_ALL,LOG_ERROR)(message);
+		LOG(LOG_ALL,LOG_ERROR)("%s", message);
 		break;
 
 	case FLUID_WARN:
-		LOG(LOG_ALL,LOG_WARN)(message);
+		LOG(LOG_ALL,LOG_WARN)("%s", message);
 		break;
 
 	default:
-		LOG(LOG_ALL,LOG_NORMAL)(message);
+		LOG(LOG_ALL,LOG_NORMAL)("%s", message);
 		break;
 	}
 }

@@ -578,11 +578,15 @@ irq1_end:
     extern bool dos_program_running;
     if (!dos_program_running)
     {
+        /* As long as this hack exists... maintain the cursor's invisible state if invisible so it
+         * does not reappear unexpectedly when the user presses Insert. Though long term, this should
+         * be handled by the shell, not the keyboard ISR */
+        const auto invisible = static_cast<bool>(real_readw(BIOSMEM_SEG,BIOSMEM_CURSOR_TYPE) & 0x2000); /* NTS: Written (last|(first<<8)) and (first & 0x20) means invisible */
         const auto flg = mem_readb(BIOS_KEYBOARD_FLAGS1);
         const auto ins = static_cast<bool>(flg & BIOS_KEYBOARD_FLAGS1_INSERT_ACTIVE);
         const auto ssl = static_cast<uint8_t>(ins ? CURSOR_SCAN_LINE_INSERT : CURSOR_SCAN_LINE_NORMAL);
         if (CurMode->type == M_TEXT)
-            INT10_SetCursorShape(ssl, CURSOR_SCAN_LINE_END);
+            INT10_SetCursorShape(ssl | (invisible?0x20:0x00), CURSOR_SCAN_LINE_END);
     }
 					
 /*  IO_Write(0x20,0x20); moved out of handler to be virtualizable */
