@@ -2392,8 +2392,9 @@ bool firstsize = true;
 static Bitu OUTPUT_TTF_SetSize() {
     bool text=CurMode&&(CurMode->type==0||CurMode->type==2||CurMode->type==M_TEXT||IS_PC98_ARCH);
     if (text) {
-        sdl.draw.width = ttf.cols*ttf.width;
-        sdl.draw.height = ttf.lins*ttf.height;
+        sdl.clip.x = sdl.clip.y = 0;
+        sdl.draw.width = sdl.clip.w = ttf.cols*ttf.width;
+        sdl.draw.height = sdl.clip.h = ttf.lins*ttf.height;
         ttf.inUse = true;
     } else
         ttf.inUse = false;
