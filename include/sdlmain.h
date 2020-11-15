@@ -91,7 +91,6 @@ struct SDL_Block {
     bool inited = false;
     bool active = false; // if this isn't set don't draw
     bool updating = false;
-    short scale = 0;
 #if defined(C_SDL2)
     bool update_window = false;
     bool update_display_contents = false;

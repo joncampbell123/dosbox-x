@@ -5601,6 +5601,7 @@ public:
 };
 
 bool setlines(const char *mname);
+void OUTPUT_TTF_Select(), resetFontSize(), ttf_setlines(int cols, int lines);
 void MODE::Run(void) {
     uint16_t rate=0,delay=0,cols=0,lines=0,mode;
     if (!cmd->FindCommand(1,temp_line) || temp_line=="/?") {
@@ -5631,8 +5632,15 @@ void MODE::Run(void) {
             IO_Write(0x60,0xf3); IO_Write(0x60,(uint8_t)(((delay-1)<<5)|(32-rate)));
         }
         if ((optc||optl)&&(cols!=COLS||lines!=LINES)) {
-            std::string cmd="line_"+std::to_string(cols)+"x"+std::to_string(lines);
-            if (!setlines(cmd.c_str())) goto modeparam;
+#if defined(USE_TTF)
+            if (ttf.inUse)
+                ttf_setlines(cols, lines);
+            else
+#endif
+            {
+                std::string cmd="line_"+std::to_string(cols)+"x"+std::to_string(lines);
+                if (!setlines(cmd.c_str())) goto modeparam;
+            }
         }
         return;
     }

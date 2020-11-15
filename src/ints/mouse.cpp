@@ -708,8 +708,38 @@ uint8_t Mouse_GetButtonState(void) {
 }
 
 #if defined(WIN32) || defined(C_SDL2)
+#include "render.h"
 char text[5000];
 const char* Mouse_GetSelected(int x1, int y1, int x2, int y2, int w, int h, uint16_t *textlen) {
+	uint16_t result=0, len=0;
+	text[0]=0;
+#if defined(USE_TTF)
+    if (ttf.inUse) {
+        int selPosX1=(x1-ttf.offX)/ttf.width;
+        int selPosX2=(x2-ttf.offX)/ttf.width;
+        int selPosY1=(y1-ttf.offY)/ttf.height;
+        int selPosY2=(y2-ttf.offY)/ttf.height;
+        for (int line = selPosY1; line <= selPosY2; line++) {
+            uint32_t *curAC = curAttrChar + line*ttf.cols + selPosX1;
+            int lastNotSpace = len;
+            for (int col = selPosX1; col <= selPosX2; col++) {
+                uint8_t textChar =  *(curAC++)&255;
+                text[len++] = textChar;
+                if (textChar != 32)
+                    lastNotSpace = len;
+            }
+            len = lastNotSpace;
+            if (line != selPosY2) {
+                text[len++]='\r';
+                text[len++]='\n';
+            }
+            curAC += ttf.cols;
+        }
+        text[len]=0;
+        *textlen=len;
+        return text;
+    }
+#endif
 	uint8_t page = real_readb(BIOSMEM_SEG,BIOSMEM_CURRENT_PAGE);
 	uint16_t c=0, r=0;
 	if (IS_PC98_ARCH) {
@@ -730,8 +760,6 @@ const char* Mouse_GetSelected(int x1, int y1, int x2, int y2, int w, int h, uint
 		r1=r2;
 		r2=t;
 	}
-	uint16_t result=0, len=0;
-	text[0]=0;
 	for (int i=r1; i<=r2; i++) {
 		for (int j=c1; j<=c2; j++) {
 			if (IS_PC98_ARCH) {
@@ -796,35 +824,7 @@ void Mouse_Select(int x1, int y1, int x2, int y2, int w, int h) {
 }
 
 void Restore_Text(int x1, int y1, int x2, int y2, int w, int h) {
-	uint8_t page = real_readb(BIOSMEM_SEG,BIOSMEM_CURRENT_PAGE);
-	uint16_t c=0, r=0;
-	if (IS_PC98_ARCH) {
-		c=80;
-		r=real_readb(0x60,0x113) & 0x01 ? 25 : 20;
-	} else {
-		c=real_readw(BIOSMEM_SEG,BIOSMEM_NB_COLS);
-		r=(uint16_t)real_readb(BIOSMEM_SEG,BIOSMEM_NB_ROWS)+1;
-	}
-	int c1=c*x1/w, r1=r*y1/h, c2=c*x2/w, r2=r*y2/h, t;
-	if (c1>c2) {
-		t=c1;
-		c1=c2;
-		c2=t;
-	}
-	if (r1>r2) {
-		t=r1;
-		r1=r2;
-		r2=t;
-	}
-	for (int i=r1; i<=r2; i++)
-		for (int j=c1; j<=c2; j++) {
-			if (IS_PC98_ARCH) {
-				uint16_t address=((i*80)+j)*2;
-				PhysPt where = CurMode->pstart+address;
-                mem_writeb(where+0x2000,mem_readb(where+0x2000)^16);
-			} else
-				real_writeb(0xb800,(i*c+j)*2+1,real_readb(0xb800,(i*c+j)*2+1)^119);
-		}
+    Mouse_Select(x1, y1, x2, y2, w, h);
 }
 #endif
 

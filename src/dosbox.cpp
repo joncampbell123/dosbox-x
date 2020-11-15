@@ -2336,11 +2336,14 @@ void DOSBOX_SetupConfigSections(void) {
     Pint->Set_help("Specifies the window percentage for the TTF output.");
     Pint->SetBasic(true);
 
-	Pint = secprop->Add_int("ttf.lins", Property::Changeable::Always, 24);
+	Pint = secprop->Add_int("ttf.lins", Property::Changeable::Always, 25);
     Pint->Set_help("Specifies the number of rows on the screen for the TTF output.");
 
 	Pint = secprop->Add_int("ttf.cols", Property::Changeable::Always, 80);
     Pint->Set_help("Specifies the number of columns on the screen for the TTF output.");
+
+	Pbool = secprop->Add_bool("ttf.blinkc", Property::Changeable::Always, false);
+    Pbool->Set_help("If set, the cursor will blink for the TTF output.");
 
     secprop=control->AddSection_prop("vsync",&Null_Init,true);//done
 

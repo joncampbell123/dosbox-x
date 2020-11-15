@@ -26,6 +26,7 @@
 #include "int10.h"
 #include "shiftjis.h"
 #include "callback.h"
+#include <string.h>
 
 uint8_t DefaultANSIAttr();
 
@@ -395,6 +396,7 @@ void INT10_SetActivePage(uint8_t page) {
     INT10_SetCursorPos(cur_row,cur_col,page);
 }
 
+extern const char* RunningProgram;
 void INT10_SetCursorShape(uint8_t first,uint8_t last) {
     real_writew(BIOSMEM_SEG,BIOSMEM_CURSOR_TYPE,last|(first<<8u));
     if (machine==MCH_CGA || machine==MCH_MCGA || machine==MCH_AMSTRAD) goto dowrite;
@@ -402,6 +404,7 @@ void INT10_SetCursorShape(uint8_t first,uint8_t last) {
     /* Skip CGA cursor emulation if EGA/VGA system is active */
     if (!(real_readb(BIOSMEM_SEG,BIOSMEM_VIDEO_CTL) & 0x8)) { /* if video subsystem is ACTIVE (bit is cleared) [https://www.stanislavs.org/helppc/bios_data_area.html] */
         /* Check for CGA type 01, invisible */
+        if (!strcmp(RunningProgram, "CRUN")&&first==6&&last==7) first |= 0x20;
         if ((first & 0x60) == 0x20) {
             first=0x1e | 0x20; /* keep the cursor invisible! */
             last=0x00;

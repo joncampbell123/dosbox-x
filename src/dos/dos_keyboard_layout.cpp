@@ -29,7 +29,7 @@
 #include "drives.h"
 #include "dos_inc.h"
 #include "control.h"
-
+#include "render.h"
 #include "dos_codepages.h"
 #include "dos_keyboard_layout_data.h"
 
@@ -37,7 +37,10 @@
 #include <windows.h>
 #endif
 
-
+#if defined(USE_TTF)
+void setTTFCodePage(void);
+bool TTF_using(void);
+#endif
 static FILE* OpenDosboxFile(const char* name) {
 	uint8_t drive;
 	char fullname[DOS_PATHLENGTH];
@@ -984,6 +987,9 @@ Bitu keyboard_layout::read_codepage_file(const char* codepage_file_name, int32_t
 
 			// set codepage entries
 			dos.loaded_codepage=(uint16_t)(codepage_id&0xffff);
+#if defined(USE_TTF)
+            if (TTF_using()) setTTFCodePage();
+#endif
 
 			// update font if necessary (EGA/VGA/SVGA only)
 			if (font_changed && (CurMode->type==M_TEXT) && (IS_EGAVGA_ARCH)) {
@@ -1133,12 +1139,14 @@ const char* DOS_GetLoadedLayout(void) {
 	return NULL;
 }
 
-
 class DOS_KeyboardLayout: public Module_base {
 public:
 	DOS_KeyboardLayout(Section* configuration):Module_base(configuration){
         const Section_prop* section = static_cast<Section_prop*>(configuration);
 		dos.loaded_codepage=(IS_PC98_ARCH ? 932 : 437);	// US codepage already initialized
+#if defined(USE_TTF)
+        if (TTF_using()) setTTFCodePage();
+#endif
 		loaded_layout=new keyboard_layout();
 
 		const char * layoutname=section->Get_string("keyboardlayout");

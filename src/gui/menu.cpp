@@ -310,6 +310,9 @@ static const char *def_menu_video_output[] =
     "output_opengl",
     "output_openglnb",
 #endif
+#if defined(USE_TTF)
+    "output_ttf",
+#endif
     "--",
     "doublescan",
     NULL
@@ -331,6 +334,11 @@ static const char *def_menu_video_textmode[] =
     "line_132x43",
     "line_132x50",
     "line_132x60",
+#if defined(USE_TTF)
+    "--",
+    "ttf_window_inc",
+    "ttf_window_dec",
+#endif
     NULL
 };
 

@@ -40,6 +40,10 @@ enum ASPECT_MODES {
 #endif
 };
 
+#if !defined(USE_TTF)
+#define USE_TTF
+#endif
+
 typedef struct {
 	struct { 
 		uint8_t red;
@@ -112,6 +116,7 @@ typedef struct Render_t {
 	bool autofit;
 } Render_t;
 
+#if defined(USE_TTF)
 #include "SDL_ttf.h"
 #define txtMaxCols 160
 #define txtMaxLins 60
@@ -131,10 +136,11 @@ typedef struct {
 	int		offY;								// vertical ,,
 } Render_ttf;
 
-extern Render_t render;
-extern Render_ttf ttf;
 extern uint32_t curAttrChar[];					// currently displayed textpage
 extern uint32_t newAttrChar[];					// to be replaced by
+extern Render_ttf ttf;
+#endif
+extern Render_t render;
 extern Bitu last_gfx_flags;
 extern ScalerLineHandler_t RENDER_DrawLine;
 void RENDER_SetSize(Bitu width,Bitu height,Bitu bpp,float fps,double scrn_ratio);

@@ -52,8 +52,10 @@ uint32_t                                GFX_palette32bpp[256] = {0};
 unsigned int                            GFX_GetBShift();
 void                                    RENDER_CallBack( GFX_CallBackFunctions_t function );
 
+#if defined(USE_TTF)
 uint32_t curAttrChar[txtMaxLins*txtMaxCols];					// currently displayed textpage
 uint32_t newAttrChar[txtMaxLins*txtMaxCols];					// to be replaced by
+#endif
 
 static void Check_Palette(void) {
     /* Clean up any previous changed palette data */
@@ -304,6 +306,31 @@ static void RENDER_ClearCacheHandler(const void * src) {
 #define RENDER_MAXHEIGHT 600
 extern void GFX_SetTitle(int32_t cycles, int frameskip, Bits timing, bool paused);
 uint8_t rendererCache[RENDER_MAXHEIGHT * RENDER_MAXWIDTH];
+void SimpleRenderer(const void *s) {
+	render.cache.curr_y++;
+	if (render.cache.invalid) {
+		wmemcpy((wchar_t*)render.cache.pointer, (wchar_t*)s, render.cache.width>>1);
+		render.cache.past_y = render.cache.curr_y;
+		render.cache.start_x = 0;
+	} else {
+		uint32_t *cache = (uint32_t *)render.cache.pointer;
+		uint32_t *source = (uint32_t *)s;
+		for (Bitu index = render.cache.width/4; index; index--) {
+			if (*source != *cache) {
+				index *= 4;
+				if ((Bitu)render.cache.start_x > render.cache.width - index)
+					render.cache.start_x = render.cache.width - index;
+				wmemcpy((wchar_t*)cache, (wchar_t*)source, index>>1);
+				render.cache.past_y = render.cache.curr_y;
+				break;
+			}
+			source++;
+			cache++;
+		}
+	}
+	render.cache.pointer += render.cache.width;
+}
+
 bool RENDER_StartUpdate(void) {
     if (GCC_UNLIKELY(render.updating))
         return false;
@@ -324,8 +351,22 @@ bool RENDER_StartUpdate(void) {
     render.scale.outPitch = 0;
     Scaler_ChangedLines[0] = 0;
     Scaler_ChangedLineIndex = 0;
+#if defined(USE_TTF)
+    if (ttf.inUse) {
+        if (render.cache.nextInvalid)		// Always do a full screen update
+            {
+            render.cache.nextInvalid = false;
+            render.cache.invalid = true;
+            if (!GFX_StartUpdate( render.scale.outWrite, render.scale.outPitch ))
+                return false;
+            RENDER_DrawLine = SimpleRenderer;
+            }
+        else
+            RENDER_DrawLine = RENDER_StartLineHandler;
     /* Clearing the cache will first process the line to make sure it's never the same */
-    if (GCC_UNLIKELY( render.scale.clearCache) ) {
+    } else
+#endif
+        if (GCC_UNLIKELY( render.scale.clearCache) ) {
 //      LOG_MSG("Clearing cache");
         //Will always have to update the screen with this one anyway, so let's update already
         if (GCC_UNLIKELY(!GFX_StartUpdate( render.scale.outWrite, render.scale.outPitch )))
@@ -436,6 +477,7 @@ static Bitu MakeAspectTable(Bitu skip,Bitu height,double scaley,Bitu miny) {
 }
 
 void RENDER_Reset( void ) {
+#if defined(USE_TTF)
     if (sdl.desktop.want_type == SCREEN_TTF) {
         // Setup the scaler variables
         GFX_SetSize(render.cache.width, render.cache.height, 0, 0, 0, &RENDER_CallBack);
@@ -445,7 +487,9 @@ void RENDER_Reset( void ) {
         // Signal the next frame to first reinit the cache
         render.cache.nextInvalid = true;
         render.active = true;
+        return;
     }
+#endif
 
     Bitu width=render.src.width;
     Bitu height=render.src.height;
@@ -825,12 +869,12 @@ void RENDER_SetSize(Bitu width,Bitu height,Bitu bpp,float fps,double scrn_ratio)
         return; 
     }
 
+#if defined(USE_TTF)
     if (sdl.desktop.want_type == SCREEN_TTF) {
         render.cache.width	= width;
         render.cache.height	= height;
-        RENDER_Reset();
-        return;
     }
+#endif
 
     // figure out doublewidth/height values
     bool dblw = false;

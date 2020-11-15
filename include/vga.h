@@ -189,6 +189,7 @@ typedef struct {
 		Bitu address;
 		uint8_t sline,eline;
 		uint8_t count,delay;
+		bool blinkon;
 		uint8_t enabled;
 	} cursor;
 	Drawmode mode;
