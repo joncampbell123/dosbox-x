@@ -10472,7 +10472,7 @@ int main(int argc, char* argv[]) SDL_MAIN_NOEXCEPT {
                 ""
 #endif
         " %s)",VERSION,SDL_STRING);
-        LOG(LOG_MISC,LOG_NORMAL)(("Copyright 2011-"+std::string(COPYRIGHT_END_YEAR)+" The DOSBox-X Team. Project maintainer: joncampbell123 (The Great Codeholio). DOSBox-X published under GNU GPL.").c_str());
+        LOG(LOG_MISC,LOG_NORMAL)(("Copyright 2011-%s The DOSBox-X Team. Project maintainer: joncampbell123 (The Great Codeholio). DOSBox-X published under GNU GPL."),std::string(COPYRIGHT_END_YEAR).c_str());
 
 #if defined(MACOSX)
         LOG_MSG("macOS EXE path: %s",MacOSXEXEPath.c_str());
