@@ -86,6 +86,7 @@ extern unsigned int SDLDrawGenFontTextureHeight;
 extern GLuint SDLDrawGenFontTexture;
 extern bool SDLDrawGenFontTextureInit;
 #endif
+extern int initgl;
 
 SDL_OpenGL sdl_opengl;
 
@@ -262,6 +263,77 @@ void OUTPUT_OPENGL_Select()
 #if defined(WIN32) && !defined(C_SDL2)
     SDL1_hax_inhibit_WM_PAINT = 0;
 #endif
+
+    sdl_opengl.use_shader = false;
+    initgl=0;
+#if defined(C_SDL2)
+    void GFX_SetResizeable(bool enable);
+    GFX_SetResizeable(true);
+    sdl.window = GFX_SetSDLWindowMode(640,400, SCREEN_OPENGL);
+    if (sdl.window) {
+        sdl_opengl.context = SDL_GL_CreateContext(sdl.window);
+        sdl.surface = SDL_GetWindowSurface(sdl.window);
+    }
+    if (!sdl.window || !sdl_opengl.context || sdl.surface == NULL) {
+#else
+    sdl.surface = SDL_SetVideoMode(640,400,0,SDL_OPENGL);
+    if (sdl.surface == NULL) {
+#endif
+        LOG_MSG("Could not initialize OpenGL, switching back to surface");
+        sdl.desktop.want_type = SCREEN_SURFACE;
+    } else if (initgl!=2) {
+        initgl = 1;
+        sdl_opengl.program_object = 0;
+        glAttachShader = (PFNGLATTACHSHADERPROC)SDL_GL_GetProcAddress("glAttachShader");
+        glCompileShader = (PFNGLCOMPILESHADERPROC)SDL_GL_GetProcAddress("glCompileShader");
+        glCreateProgram = (PFNGLCREATEPROGRAMPROC)SDL_GL_GetProcAddress("glCreateProgram");
+        glCreateShader = (PFNGLCREATESHADERPROC)SDL_GL_GetProcAddress("glCreateShader");
+        glDeleteProgram = (PFNGLDELETEPROGRAMPROC)SDL_GL_GetProcAddress("glDeleteProgram");
+        glDeleteShader = (PFNGLDELETESHADERPROC)SDL_GL_GetProcAddress("glDeleteShader");
+        glEnableVertexAttribArray = (PFNGLENABLEVERTEXATTRIBARRAYPROC)SDL_GL_GetProcAddress("glEnableVertexAttribArray");
+        glGetAttribLocation = (PFNGLGETATTRIBLOCATIONPROC)SDL_GL_GetProcAddress("glGetAttribLocation");
+        glGetProgramiv = (PFNGLGETPROGRAMIVPROC)SDL_GL_GetProcAddress("glGetProgramiv");
+        glGetProgramInfoLog = (PFNGLGETPROGRAMINFOLOGPROC)SDL_GL_GetProcAddress("glGetProgramInfoLog");
+        glGetShaderiv = (PFNGLGETSHADERIVPROC)SDL_GL_GetProcAddress("glGetShaderiv");
+        glGetShaderInfoLog = (PFNGLGETSHADERINFOLOGPROC)SDL_GL_GetProcAddress("glGetShaderInfoLog");
+        glGetUniformLocation = (PFNGLGETUNIFORMLOCATIONPROC)SDL_GL_GetProcAddress("glGetUniformLocation");
+        glLinkProgram = (PFNGLLINKPROGRAMPROC)SDL_GL_GetProcAddress("glLinkProgram");
+        glShaderSource = (PFNGLSHADERSOURCEPROC_NP)SDL_GL_GetProcAddress("glShaderSource");
+        glUniform2f = (PFNGLUNIFORM2FPROC)SDL_GL_GetProcAddress("glUniform2f");
+        glUniform1i = (PFNGLUNIFORM1IPROC)SDL_GL_GetProcAddress("glUniform1i");
+        glUseProgram = (PFNGLUSEPROGRAMPROC)SDL_GL_GetProcAddress("glUseProgram");
+        glVertexAttribPointer = (PFNGLVERTEXATTRIBPOINTERPROC)SDL_GL_GetProcAddress("glVertexAttribPointer");
+        sdl_opengl.use_shader = (glAttachShader && glCompileShader && glCreateProgram && glDeleteProgram && glDeleteShader && \
+            glEnableVertexAttribArray && glGetAttribLocation && glGetProgramiv && glGetProgramInfoLog && \
+            glGetShaderiv && glGetShaderInfoLog && glGetUniformLocation && glLinkProgram && glShaderSource && \
+            glUniform2f && glUniform1i && glUseProgram && glVertexAttribPointer);
+        if (sdl_opengl.use_shader) initgl = 2;
+        sdl_opengl.buffer=0;
+        sdl_opengl.framebuf=0;
+        sdl_opengl.texture=0;
+        sdl_opengl.displaylist=0;
+        glGetIntegerv (GL_MAX_TEXTURE_SIZE, &sdl_opengl.max_texsize);
+        glGenBuffersARB = (PFNGLGENBUFFERSARBPROC)SDL_GL_GetProcAddress("glGenBuffersARB");
+        glBindBufferARB = (PFNGLBINDBUFFERARBPROC)SDL_GL_GetProcAddress("glBindBufferARB");
+        glDeleteBuffersARB = (PFNGLDELETEBUFFERSARBPROC)SDL_GL_GetProcAddress("glDeleteBuffersARB");
+        glBufferDataARB = (PFNGLBUFFERDATAARBPROC)SDL_GL_GetProcAddress("glBufferDataARB");
+        glMapBufferARB = (PFNGLMAPBUFFERARBPROC)SDL_GL_GetProcAddress("glMapBufferARB");
+        glUnmapBufferARB = (PFNGLUNMAPBUFFERARBPROC)SDL_GL_GetProcAddress("glUnmapBufferARB");
+        const char * gl_ext = (const char *)glGetString (GL_EXTENSIONS);
+        if(gl_ext && *gl_ext){
+            sdl_opengl.packed_pixel=(strstr(gl_ext,"EXT_packed_pixels") != NULL);
+            sdl_opengl.paletted_texture=(strstr(gl_ext,"EXT_paletted_texture") != NULL);
+            //sdl_opengl.pixel_buffer_object=(strstr(gl_ext,"GL_ARB_pixel_buffer_object") != NULL ) && glGenBuffersARB && glBindBufferARB && glDeleteBuffersARB && glBufferDataARB && glMapBufferARB && glUnmapBufferARB;
+        } else {
+            sdl_opengl.packed_pixel = false;
+            sdl_opengl.paletted_texture = false;
+            //sdl_opengl.pixel_buffer_object = false;
+        }
+#ifdef DB_DISABLE_DBO
+        sdl_opengl.pixel_buffer_object = false;
+#endif
+        //LOG_MSG("OpenGL extension: pixel_buffer_object %d",sdl_opengl.pixel_buffer_object);
+	} /* OPENGL is requested end */
 }
 
 Bitu OUTPUT_OPENGL_GetBestMode(Bitu flags)

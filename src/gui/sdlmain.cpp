@@ -40,6 +40,7 @@
 int socknum=-1;
 int posx = -1;
 int posy = -1;
+int initgl = 0;
 extern int enablelfn;
 extern bool blinking;
 extern bool dpi_aware_enable;
@@ -2389,7 +2390,7 @@ void RENDER_Reset(void);
 #if defined(USE_TTF)
 bool firstsize = true;
 static Bitu OUTPUT_TTF_SetSize() {
-    bool text=sdl.draw.width == 720 && sdl.draw.height == 400; // 720*400 should be text
+    bool text=CurMode&&(CurMode->type==0||CurMode->type==2||CurMode->type==M_TEXT||IS_PC98_ARCH);
     if (text) {
         sdl.draw.width = ttf.cols*ttf.width;
         sdl.draw.height = ttf.lins*ttf.height;
@@ -3115,6 +3116,12 @@ void change_output(int output) {
         break;
     }
 
+#if C_OPENGL
+    if (sdl.desktop.want_type != SCREEN_OPENGL) mainMenu.get_item("load_glsl_shader").enable(false).refresh_item(mainMenu);
+#endif
+#if C_DIRECT3D
+    if (sdl.desktop.want_type != SCREEN_DIRECT3D) mainMenu.get_item("load_d3d_shader").enable(false).refresh_item(mainMenu);
+#endif
 #if defined(USE_TTF)
     if (sdl.desktop.want_type != SCREEN_TTF) ttf.inUse = false;
 #endif
@@ -3138,6 +3145,12 @@ void change_output(int output) {
 
     if (sdl.draw.callback)
         (sdl.draw.callback)( GFX_CallBackReset );
+#ifdef C_OPENGL
+        mainMenu.get_item("load_glsl_shader").enable(sdl.desktop.want_type==SCREEN_OPENGL&&initgl==2).refresh_item(mainMenu);
+#endif
+#ifdef C_DIRECT3D
+        mainMenu.get_item("load_d3d_shader").enable(sdl.desktop.want_type==SCREEN_DIRECT3D).refresh_item(mainMenu);
+#endif
 #if defined(USE_TTF)
     if ((output==9||output==10)&&ttf.inUse) {
        void GFX_EndTextLines(bool force);
@@ -3473,6 +3486,7 @@ void processWP(uint8_t *pcolorBG, uint8_t *pcolorFG) {
 }
 
 void GFX_EndTextLines(bool force=false) {
+    if (!force&&!IS_PC98_ARCH&&(!CurMode||CurMode->type!=M_TEXT)) return;
     static uint8_t bcount = 0;
 	Uint16 unimap[txtMaxCols+1];							// max+1 charaters in a line
 	int xmin = ttf.cols;									// keep track of changed area
@@ -3521,6 +3535,7 @@ void GFX_EndTextLines(bool force=false) {
 
 				uint8_t colorBG = newAC[x]>>12;
 				uint8_t colorFG = (newAC[x]>>8)&15;
+                if (!colorFG&&machine==MCH_PC98) colorFG=7;
 				processWP(&colorBG, &colorFG);
 
 				ttf_bgColor.r = rgbColors[colorBG].blue;
@@ -4222,7 +4237,6 @@ void OUTPUT_TTF_Select() {
 }
 #endif
 
-int initgl = 0;
 bool has_GUI_StartUp = false;
 
 static void GUI_StartUp() {
@@ -4445,7 +4459,8 @@ static void GUI_StartUp() {
 
     std::string output=section->Get_string("output");
     std::string mtype(static_cast<Section_prop *>(control->GetSection("dosbox"))->Get_string("machine"));
-    if (output == "ttf" && mtype != "svga_s3" && mtype != "vesa_nolfb" && mtype != "vesa_oldvbe" && mtype != "svga_et4000" && mtype != "svga_et3000" && mtype != "svga_paradise" && mtype != "vgaonly")
+
+    if (output == "ttf" && (mtype == "mcga" || mtype == "tandy" || mtype == "pcjr"))
         output = "default";
 	if (output == "default") {
 #ifdef __WIN32__
@@ -4594,80 +4609,6 @@ static void GUI_StartUp() {
     } else if (sdl.desktop.want_type == SCREEN_TTF)
         putenv("SDL_VIDEO_CENTERED=center");
 #endif
-
-#if C_OPENGL
-    sdl_opengl.use_shader = false;
-	if (sdl.desktop.want_type == SCREEN_OPENGL) { /* OPENGL is requested */
-#if defined(C_SDL2)
-		GFX_SetResizeable(true);
-        sdl.window = GFX_SetSDLWindowMode(640,400, SCREEN_OPENGL);
-        if (sdl.window) {
-            sdl_opengl.context = SDL_GL_CreateContext(sdl.window);
-            sdl.surface = SDL_GetWindowSurface(sdl.window);
-        }
-		if (!sdl.window || !sdl_opengl.context || sdl.surface == NULL) {
-#else
-		sdl.surface = SDL_SetVideoMode(640,400,0,SDL_OPENGL);
-		if (sdl.surface == NULL) {
-#endif
-			LOG_MSG("Could not initialize OpenGL, switching back to surface");
-			sdl.desktop.want_type = SCREEN_SURFACE;
-		} else {
-			initgl = 1;
-			sdl_opengl.program_object = 0;
-			glAttachShader = (PFNGLATTACHSHADERPROC)SDL_GL_GetProcAddress("glAttachShader");
-			glCompileShader = (PFNGLCOMPILESHADERPROC)SDL_GL_GetProcAddress("glCompileShader");
-			glCreateProgram = (PFNGLCREATEPROGRAMPROC)SDL_GL_GetProcAddress("glCreateProgram");
-			glCreateShader = (PFNGLCREATESHADERPROC)SDL_GL_GetProcAddress("glCreateShader");
-			glDeleteProgram = (PFNGLDELETEPROGRAMPROC)SDL_GL_GetProcAddress("glDeleteProgram");
-			glDeleteShader = (PFNGLDELETESHADERPROC)SDL_GL_GetProcAddress("glDeleteShader");
-			glEnableVertexAttribArray = (PFNGLENABLEVERTEXATTRIBARRAYPROC)SDL_GL_GetProcAddress("glEnableVertexAttribArray");
-			glGetAttribLocation = (PFNGLGETATTRIBLOCATIONPROC)SDL_GL_GetProcAddress("glGetAttribLocation");
-			glGetProgramiv = (PFNGLGETPROGRAMIVPROC)SDL_GL_GetProcAddress("glGetProgramiv");
-			glGetProgramInfoLog = (PFNGLGETPROGRAMINFOLOGPROC)SDL_GL_GetProcAddress("glGetProgramInfoLog");
-			glGetShaderiv = (PFNGLGETSHADERIVPROC)SDL_GL_GetProcAddress("glGetShaderiv");
-			glGetShaderInfoLog = (PFNGLGETSHADERINFOLOGPROC)SDL_GL_GetProcAddress("glGetShaderInfoLog");
-			glGetUniformLocation = (PFNGLGETUNIFORMLOCATIONPROC)SDL_GL_GetProcAddress("glGetUniformLocation");
-			glLinkProgram = (PFNGLLINKPROGRAMPROC)SDL_GL_GetProcAddress("glLinkProgram");
-			glShaderSource = (PFNGLSHADERSOURCEPROC_NP)SDL_GL_GetProcAddress("glShaderSource");
-			glUniform2f = (PFNGLUNIFORM2FPROC)SDL_GL_GetProcAddress("glUniform2f");
-			glUniform1i = (PFNGLUNIFORM1IPROC)SDL_GL_GetProcAddress("glUniform1i");
-			glUseProgram = (PFNGLUSEPROGRAMPROC)SDL_GL_GetProcAddress("glUseProgram");
-			glVertexAttribPointer = (PFNGLVERTEXATTRIBPOINTERPROC)SDL_GL_GetProcAddress("glVertexAttribPointer");
-			sdl_opengl.use_shader = (glAttachShader && glCompileShader && glCreateProgram && glDeleteProgram && glDeleteShader && \
-				glEnableVertexAttribArray && glGetAttribLocation && glGetProgramiv && glGetProgramInfoLog && \
-				glGetShaderiv && glGetShaderInfoLog && glGetUniformLocation && glLinkProgram && glShaderSource && \
-				glUniform2f && glUniform1i && glUseProgram && glVertexAttribPointer);
-			if (sdl_opengl.use_shader) initgl = 2;
-			sdl_opengl.buffer=0;
-			sdl_opengl.framebuf=0;
-			sdl_opengl.texture=0;
-			sdl_opengl.displaylist=0;
-			glGetIntegerv (GL_MAX_TEXTURE_SIZE, &sdl_opengl.max_texsize);
-			glGenBuffersARB = (PFNGLGENBUFFERSARBPROC)SDL_GL_GetProcAddress("glGenBuffersARB");
-			glBindBufferARB = (PFNGLBINDBUFFERARBPROC)SDL_GL_GetProcAddress("glBindBufferARB");
-			glDeleteBuffersARB = (PFNGLDELETEBUFFERSARBPROC)SDL_GL_GetProcAddress("glDeleteBuffersARB");
-			glBufferDataARB = (PFNGLBUFFERDATAARBPROC)SDL_GL_GetProcAddress("glBufferDataARB");
-			glMapBufferARB = (PFNGLMAPBUFFERARBPROC)SDL_GL_GetProcAddress("glMapBufferARB");
-			glUnmapBufferARB = (PFNGLUNMAPBUFFERARBPROC)SDL_GL_GetProcAddress("glUnmapBufferARB");
-			const char * gl_ext = (const char *)glGetString (GL_EXTENSIONS);
-			if(gl_ext && *gl_ext){
-				sdl_opengl.packed_pixel=(strstr(gl_ext,"EXT_packed_pixels") != NULL);
-				sdl_opengl.paletted_texture=(strstr(gl_ext,"EXT_paletted_texture") != NULL);
-				//sdl_opengl.pixel_buffer_object=(strstr(gl_ext,"GL_ARB_pixel_buffer_object") != NULL ) && glGenBuffersARB && glBindBufferARB && glDeleteBuffersARB && glBufferDataARB && glMapBufferARB && glUnmapBufferARB;
-			} else {
-				sdl_opengl.packed_pixel = false;
-				sdl_opengl.paletted_texture = false;
-				//sdl_opengl.pixel_buffer_object = false;
-			}
-#ifdef DB_DISABLE_DBO
-			sdl_opengl.pixel_buffer_object = false;
-#endif
-			//LOG_MSG("OpenGL extension: pixel_buffer_object %d",sdl_opengl.pixel_buffer_object);
-		}
-	} /* OPENGL is requested end */
-
-#endif	//OPENGL
 
 /* Initialize screen for first time */
 #if defined(C_SDL2)
@@ -11489,7 +11430,10 @@ int main(int argc, char* argv[]) SDL_MAIN_NOEXCEPT {
         mainMenu.get_item("dos_mouse_y_axis_reverse").check(Mouse_Vertical).refresh_item(mainMenu);
 
 #ifdef C_OPENGL
-        mainMenu.get_item("load_glsl_shader").enable(initgl==2);
+        mainMenu.get_item("load_glsl_shader").enable(OpenGL_using()&&initgl==2);
+#endif
+#ifdef C_DIRECT3D
+        mainMenu.get_item("load_d3d_shader").enable(sdl.desktop.want_type==SCREEN_DIRECT3D);
 #endif
 #if defined(USE_TTF)
         mainMenu.get_item("output_ttf").enable(TTF_using());

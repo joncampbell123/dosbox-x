@@ -2999,10 +2999,15 @@ static void VGA_VerticalTimer(Bitu /*val*/) {
 		Bitu vidstart = vga.config.real_start + vga.draw.bytes_skip;
 		vidstart *= 2;
 		const uint32_t* vidmem = (uint32_t*)&vga.draw.linear_base[vidstart];		// pointer to chars+attribs
+		const uint16_t* vidmem8 = (uint16_t*)&vga.draw.linear_base[vidstart];		// pointer to chars+attribs
 		uint16_t* draw = (uint16_t*)newAttrChar;
+		bool cga=machine==MCH_AMSTRAD||machine==MCH_CGA||machine==MCH_MDA||machine==MCH_HERC||machine==MCH_PC98;
+        int i=0;
 		for (Bitu blocks = ttf.cols * ttf.lins; blocks; blocks--) {
-			*draw++ = *vidmem;
-			Bitu attr = *(((uint8_t*)vidmem)+1);
+			*draw++ = cga?*vidmem8:*vidmem;
+			Bitu attr = cga?*((uint8_t*)vidmem8+1):*((uint8_t*)vidmem+1);
+            i++;
+            vidmem8++;
             vidmem+=2;
 			Bitu background = attr >> 4;
 			if (vga.draw.blinking)									// if blinking is enabled bit7 is not mapped to attributes
