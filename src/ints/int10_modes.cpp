@@ -1985,7 +1985,10 @@ dac_text16:
 	if (CurMode->type==M_TEXT) {
 		INT10_ReloadFont();
 #if defined(USE_TTF)
-        if (!ttf.inUse && change_from_ttf_to_surface) {
+        if (ttf.inUse) {
+            void ttf_setlines(int cols, int lins);
+            ttf_setlines(real_readw(BIOSMEM_SEG,BIOSMEM_NB_COLS), real_readb(BIOSMEM_SEG,BIOSMEM_NB_ROWS)+1);
+        } else if (change_from_ttf_to_surface) {
             change_output(10);
             SetVal("sdl", "output", "surface");
             void OutputSettingMenuUpdate(void);

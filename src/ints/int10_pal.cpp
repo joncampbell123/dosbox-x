@@ -20,9 +20,15 @@
 #include "mem.h"
 #include "inout.h"
 #include "int10.h"
+#include "render.h"
+#include <map>
 
 #define ACTL_MAX_REG   0x14
 
+#if defined(USE_TTF)
+void GFX_EndTextLines(bool force);
+bool setColors(const char *colorArray, int n);
+#endif
 static INLINE void ResetACTL(void) {
 	IO_Read(real_readw(BIOSMEM_SEG,BIOSMEM_CRTC_ADDRESS) + 6u);
 }
@@ -224,6 +230,18 @@ void INT10_SetSingleDACRegister(uint8_t index,uint8_t red,uint8_t green,uint8_t 
 		IO_Write(VGAREG_DAC_DATA,ic);
 		IO_Write(VGAREG_DAC_DATA,ic);
 	}
+#if defined(USE_TTF)
+	char value[30] = "";
+	sprintf(value,"(%d,%d,%d)",red*255/63, green*255/63, blue*255/63);
+	std::map<uint8_t,int> imap;
+	for (uint8_t i = 0; i < 0x10; i++) {
+		ResetACTL();
+		IO_WriteB(VGAREG_ACTL_ADDRESS, i+32);
+		imap[IO_ReadB(VGAREG_ACTL_READ_DATA)]=i;
+	}
+	setColors(value,imap[index]);
+    GFX_EndTextLines(true);
+#endif
 }
 
 void INT10_GetSingleDACRegister(uint8_t index,uint8_t * red,uint8_t * green,uint8_t * blue) {
@@ -234,18 +252,30 @@ void INT10_GetSingleDACRegister(uint8_t index,uint8_t * red,uint8_t * green,uint
 }
 
 void INT10_SetDACBlock(uint16_t index,uint16_t count,PhysPt data) {
+#if defined(USE_TTF)
+    std::map<uint8_t,int> imap;
+	char value[30];
+#endif
+	uint8_t red, green, blue;
  	IO_Write(VGAREG_DAC_WRITE_ADDRESS,(uint8_t)index);
 	if ((real_readb(BIOSMEM_SEG,BIOSMEM_MODESET_CTL)&0x06)==0) {
 		for (;count>0;count--) {
-			IO_Write(VGAREG_DAC_DATA,mem_readb(data++));
-			IO_Write(VGAREG_DAC_DATA,mem_readb(data++));
-			IO_Write(VGAREG_DAC_DATA,mem_readb(data++));
+			red=mem_readb(data++);
+			green=mem_readb(data++);
+			blue=mem_readb(data++);
+			IO_Write(VGAREG_DAC_DATA,red);
+			IO_Write(VGAREG_DAC_DATA,green);
+			IO_Write(VGAREG_DAC_DATA,blue);
+#if defined(USE_TTF)
+			sprintf(value,"(%d,%d,%d)",red*255/63, green*255/63, blue*255/63);
+			setColors(value,imap[(uint8_t)index]);
+#endif
 		}
 	} else {
 		for (;count>0;count--) {
-			uint8_t red=mem_readb(data++);
-			uint8_t green=mem_readb(data++);
-			uint8_t blue=mem_readb(data++);
+			red=mem_readb(data++);
+			green=mem_readb(data++);
+			blue=mem_readb(data++);
 
 			/* calculate clamped intensity, taken from VGABIOS */
 			uint32_t i=(( 77u*red + 151u*green + 28u*blue ) + 0x80u) >> 8u;
@@ -253,8 +283,15 @@ void INT10_SetDACBlock(uint16_t index,uint16_t count,PhysPt data) {
 			IO_Write(VGAREG_DAC_DATA,ic);
 			IO_Write(VGAREG_DAC_DATA,ic);
 			IO_Write(VGAREG_DAC_DATA,ic);
+#if defined(USE_TTF)
+			sprintf(value,"(%d,%d,%d)",red*255/63, green*255/63, blue*255/63);
+			setColors(value,imap[(uint8_t)index]);
+#endif
 		}
 	}
+#if defined(USE_TTF)
+    GFX_EndTextLines(true);
+#endif
 }
 
 void INT10_GetDACBlock(uint16_t index,uint16_t count,PhysPt data) {

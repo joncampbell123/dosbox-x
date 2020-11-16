@@ -268,7 +268,6 @@ typedef struct {
 } alt_rgb;
 alt_rgb altBGR0[16], altBGR1[16];
 static bool colorsLocked = false;
-static bool hasFocus = true;
 static int prev_sline = -1;
 static alt_rgb *rgbColors = (alt_rgb*)render.pal.rgb;
 static bool blinkCursor = false, blinkstate = false;
@@ -1276,36 +1275,37 @@ bool warn_on_mem_write = false;
 
 void GFX_ReleaseMouse();
 void CPU_Snap_Back_To_Real_Mode();
+bool systemmessagebox(char const * aTitle, char const * aMessage, char const * aDialogType, char const * aIconType, int aDefaultButton) {
 #if !defined(HX_DOS)
-bool quitmessagebox(char const * aTitle, char const * aMessage, char const * aDialogType, char const * aIconType, int aDefaultButton) {
     MAPPER_ReleaseAllKeys();
     GFX_LosingFocus();
+    GFX_ReleaseMouse();
     bool ret=tinyfd_messageBox(aTitle, aMessage, aDialogType, aIconType, aDefaultButton);
     MAPPER_ReleaseAllKeys();
     GFX_LosingFocus();
     return ret;
-}
+#else
+    return true;
 #endif
+}
 bool CheckQuit(void) {
 #if !defined(HX_DOS)
     Section_prop *section = static_cast<Section_prop *>(control->GetSection("dosbox"));
     std::string warn = section->Get_string("quit warning");
     if (sdl.desktop.fullscreen) GFX_SwitchFullScreen();
-    MAPPER_ReleaseAllKeys();
-    GFX_ReleaseMouse();
     if (warn == "true")
-        return quitmessagebox("Quit DOSBox-X warning","This will quit from DOSBox-X.\nAre you sure?","yesno", "question", 1);
+        return systemmessagebox("Quit DOSBox-X warning","This will quit from DOSBox-X.\nAre you sure?","yesno", "question", 1);
     else if (warn == "false")
         return true;
     if (dos_kernel_disabled)
-        return quitmessagebox("Quit DOSBox-X warning","You are currently running a guest system.\nAre you sure to quit anyway now?","yesno", "question", 1);
+        return systemmessagebox("Quit DOSBox-X warning","You are currently running a guest system.\nAre you sure to quit anyway now?","yesno", "question", 1);
     if (warn == "autofile")
         for (uint8_t handle = 0; handle < DOS_FILES; handle++) {
             if (Files[handle] && (Files[handle]->GetName() == NULL || strcmp(Files[handle]->GetName(), "CON")) && (Files[handle]->GetInformation()&0x8000) == 0)
-                return quitmessagebox("Quit DOSBox-X warning","It may be unsafe to quit from DOSBox-X right now\nbecause one or more files are currently open.\nAre you sure to quit anyway now?","yesno", "question", 1);
+                return systemmessagebox("Quit DOSBox-X warning","It may be unsafe to quit from DOSBox-X right now\nbecause one or more files are currently open.\nAre you sure to quit anyway now?","yesno", "question", 1);
         }
     else if (RunningProgram&&strcmp(RunningProgram, "COMMAND")&&strcmp(RunningProgram, "4DOS"))
-        return quitmessagebox("Quit DOSBox-X warning","You are currently running a program or game.\nAre you sure to quit anyway now?","yesno", "question", 1);
+        return systemmessagebox("Quit DOSBox-X warning","You are currently running a program or game.\nAre you sure to quit anyway now?","yesno", "question", 1);
 #endif
     return true;
 }
@@ -2408,12 +2408,19 @@ static Bitu OUTPUT_TTF_SetSize() {
     } else
         ttf.inUse = false;
     if (ttf.inUse && ttf.fullScrn) {
+		int maxWidth = sdl.desktop.full.width;
+		int maxHeight = sdl.desktop.full.height;
+#if defined(WIN32)
+		maxWidth = GetSystemMetrics(SM_CXSCREEN);
+		maxHeight = GetSystemMetrics(SM_CYSCREEN);
+#endif
 #if defined(C_SDL2)
         GFX_SetResizeable(false);
-        sdl.window = GFX_SetSDLSurfaceWindow(screen_size_info.screen_dimensions_pixels.width, screen_size_info.screen_dimensions_pixels.height);
+        sdl.window = GFX_SetSDLSurfaceWindow(maxWidth, maxHeight);
         sdl.surface = sdl.window?SDL_GetWindowSurface(sdl.window):NULL;
+        SDL_SetWindowPosition(sdl.window, SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED);
 #else
-        sdl.surface = SDL_SetVideoMode(screen_size_info.screen_dimensions_pixels.width, screen_size_info.screen_dimensions_pixels.height, 32, SDL_SWSURFACE|SDL_NOFRAME);
+        sdl.surface = SDL_SetVideoMode(maxWidth, maxHeight, 32, SDL_SWSURFACE|SDL_NOFRAME);
 #endif
     } else {
 #if defined(C_SDL2)
@@ -3180,8 +3187,74 @@ void change_output(int output) {
 extern "C" void SDL_hax_SetFSWindowPosition(int x,int y,int w,int h);
 #endif
 
+#if defined(USE_TTF)
+static void resetFontSize(), decreaseFontSize();
+void GFX_SelectFontByPoints(int ptsize);
+int lastfontsize = 0;
+bool lastmenu = true;
+#endif
 void GFX_SwitchFullScreen(void)
 {
+#if defined(USE_TTF)
+    if (ttf.inUse) {
+        if (ttf.fullScrn) {
+            if (lastfontsize>0) {
+                ttf.fullScrn = false;
+                ttf.pointsize=lastfontsize;
+                resetFontSize();
+                if (lastmenu) DOSBox_SetMenu();
+            } else
+                decreaseFontSize();
+#if defined(C_SDL2)
+            SDL_SetWindowPosition(sdl.window, SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED);
+#endif
+            //sdl.desktop.fullscreen = false;
+        } else {
+            int maxWidth = sdl.desktop.full.width;
+            int maxHeight = sdl.desktop.full.height;
+#if defined(WIN32)
+            maxWidth = GetSystemMetrics(SM_CXSCREEN);
+            maxHeight = GetSystemMetrics(SM_CYSCREEN);
+            if (!ttf.fullScrn) {																			// 3D borders
+                maxWidth -= GetSystemMetrics(SM_CXBORDER)*2;
+                maxHeight -= GetSystemMetrics(SM_CYCAPTION) + GetSystemMetrics(SM_CYBORDER)*2;
+            }
+#endif
+            int	curSize = 30;
+            int lastGood = -1;
+            int trapLoop = 0;
+            lastfontsize=ttf.pointsize;
+            while (curSize != lastGood) {
+                GFX_SelectFontByPoints(curSize);
+                if (ttf.cols*ttf.width <= maxWidth && ttf.lins*ttf.height <= maxHeight) {				// if it fits on screen
+                    lastGood = curSize;
+                    float coveredPerc = float(100*ttf.cols*ttf.width/maxWidth*ttf.lins*ttf.height/maxHeight);
+                    if (trapLoop++ > 4 && coveredPerc <= 100)											// we can get into a +/-/+/-... loop!
+                        break;
+                    curSize = (int)(curSize*sqrt((float)100/coveredPerc));								// rounding down is ok
+                    if (curSize < 10) {
+                        ttf.pointsize=lastfontsize;
+                        lastfontsize=0;
+                        return;
+                    }
+                } else if (--curSize < 10) {
+                    ttf.pointsize=lastfontsize;
+                    lastfontsize=0;
+                    return;
+                }
+            }
+            if (ttf.DOSBox)																				// make it even for DOSBox-X internal font (a bit nicer)
+                curSize &= ~1;
+            lastmenu=menu.toggle;
+            DOSBox_NoMenu();
+            ttf.fullScrn=true;
+            GFX_SelectFontByPoints(curSize);
+            resetFontSize();
+            //sdl.desktop.fullscreen = true;
+        }
+        return;
+    }
+#endif
 #if !defined(HX_DOS)
     if (sdl.desktop.prevent_fullscreen)
         return;
@@ -3497,6 +3570,12 @@ void processWP(uint8_t *pcolorBG, uint8_t *pcolorFG) {
 
 void GFX_EndTextLines(bool force=false) {
     if (!force&&!IS_PC98_ARCH&&(!CurMode||CurMode->type!=M_TEXT)) return;
+#if DOSBOXMENU_TYPE == DOSBOXMENU_SDLDRAW
+    if (!ttf.fullScrn) {
+        mainMenu.setRedraw();
+        GFX_DrawSDLMenu(mainMenu,mainMenu.display_list);
+    }
+#endif
     static uint8_t bcount = 0;
 	Uint16 unimap[txtMaxCols+1];							// max+1 charaters in a line
 	int xmin = ttf.cols;									// keep track of changed area
@@ -3515,29 +3594,10 @@ void GFX_EndTextLines(bool force=false) {
 
 	ttf_textClip.h = ttf.height;
 	ttf_textClip.y = 0;
-	for (int y = 0; y < ttf.lins; y++)
-		{
-		if (!hasFocus)
-			if (y == 0)																// Dim topmost line
-				{
-				if (!colorsLocked)
-					for (int i = 0; i < 16; i++)
-						{
-						altBGR0[i].blue = (render.pal.rgb[i].blue*2 + 128)/4;
-						altBGR0[i].green = (render.pal.rgb[i].green*2 + 128)/4;
-						altBGR0[i].red = (render.pal.rgb[i].red*2+ 128)/4;
-						}
-				rgbColors = altBGR0;
-				}
-			else if (y == 1)
-				rgbColors = colorsLocked? altBGR1 : (alt_rgb*)render.pal.rgb;		// undim the rest
-
-
+	for (int y = 0; y < ttf.lins; y++) {
 		ttf_textRect.y = ttf.offY+y*ttf.height;
-		for (int x = 0; x < ttf.cols; x++)
-			{
-			if (newAC[x] != curAC[x] || force)
-				{
+		for (int x = 0; x < ttf.cols; x++) {
+			if (newAC[x] != curAC[x] || force) {
 				xmin = min(x, xmin);
 				ymin = min(y, ymin);
 				ymax = y;
@@ -3548,40 +3608,35 @@ void GFX_EndTextLines(bool force=false) {
                 if (!colorFG&&machine==MCH_PC98) colorFG=7;
 				processWP(&colorBG, &colorFG);
 
-				ttf_bgColor.r = rgbColors[colorBG].blue;
-				ttf_bgColor.g = rgbColors[colorBG].green;
-				ttf_bgColor.b = rgbColors[colorBG].red;
-				ttf_fgColor.r = rgbColors[colorFG].blue;
-				ttf_fgColor.g = rgbColors[colorFG].green;
-				ttf_fgColor.b = rgbColors[colorFG].red;
+				ttf_bgColor.r = colorsLocked?altBGR1[colorBG&15].red:rgbColors[colorBG].blue;
+				ttf_bgColor.g = colorsLocked?altBGR1[colorBG&15].green:rgbColors[colorBG].green;
+				ttf_bgColor.b = colorsLocked?altBGR1[colorBG&15].blue:rgbColors[colorBG].red;
+				ttf_fgColor.r = colorsLocked?altBGR1[colorFG&15].red:rgbColors[colorFG].blue;
+				ttf_fgColor.g = colorsLocked?altBGR1[colorFG&15].green:rgbColors[colorFG].green;
+				ttf_fgColor.b = colorsLocked?altBGR1[colorFG&15].blue:rgbColors[colorFG].red;
 
 				int x1 = x;
 				uint8_t ascii = newAC[x]&255;
-				if (ascii > 175 && ascii < 179)						// special: shade characters 176-178
-					{
+				if (ascii > 175 && ascii < 179) {					// special: shade characters 176-178
 					ttf_bgColor.b = (ttf_bgColor.b*(179-ascii) + ttf_fgColor.b*(ascii-175))>>2;
 					ttf_bgColor.g = (ttf_bgColor.g*(179-ascii) + ttf_fgColor.g*(ascii-175))>>2;
 					ttf_bgColor.r = (ttf_bgColor.r*(179-ascii) + ttf_fgColor.r*(ascii-175))>>2;
-					do												// as long char and foreground/background color equal
-						{
+					do {											// as long char and foreground/background color equal
 						curAC[x] = newAC[x];
 						unimap[x-x1] = ' ';							// shaded space
 						x++;
-						}
-					while (x < ttf.cols && newAC[x] == newAC[x1] && newAC[x] != curAC[x]);
 					}
-				else
-					{
+					while (x < ttf.cols && newAC[x] == newAC[x1] && newAC[x] != curAC[x]);
+				} else {
 					uint8_t color = newAC[x]>>8;
-					do												// as long foreground/background color equal
-						{
+					do {											// as long foreground/background color equal
 						curAC[x] = newAC[x];
 						unimap[x-x1] = cpMap[ascii];
 						x++;
 						ascii = newAC[x]&255;
-						}
-					while (x < ttf.cols && newAC[x] != curAC[x] && newAC[x]>>8 == color && (ascii < 176 || ascii > 178));
 					}
+					while (x < ttf.cols && newAC[x] != curAC[x] && newAC[x]>>8 == color && (ascii < 176 || ascii > 178));
+				}
 				unimap[x-x1] = 0;
 				xmax = max(x-1, xmax);
 
@@ -3590,25 +3645,21 @@ void GFX_EndTextLines(bool force=false) {
 				SDL_BlitSurface(textSurface, &ttf_textClip, sdl.surface, &ttf_textRect);
 				SDL_FreeSurface(textSurface);
 				x--;
-				}
 			}
+		}
 		curAC += ttf.cols;
 		newAC += ttf.cols;
-		}
+	}
 	bcount++;
-	if (hasFocus && vga.draw.cursor.enabled && vga.draw.cursor.sline <= vga.draw.cursor.eline && vga.draw.cursor.sline < 16)		// Draw cursor?
-		{
+	if (vga.draw.cursor.enabled && vga.draw.cursor.sline <= vga.draw.cursor.eline && vga.draw.cursor.sline < 16) {		// Draw cursor?
 		int newPos = vga.draw.cursor.address>>1;
-		if (newPos >= 0 && newPos < ttf.cols*ttf.lins)										// If on screen
-			{
+		if (newPos >= 0 && newPos < ttf.cols*ttf.lins) {									// If on screen
 			int y = newPos/ttf.cols;
 			int x = newPos%ttf.cols;
 			vga.draw.cursor.count++;
 			vga.draw.cursor.blinkon = (vga.draw.cursor.count & 4) ? true : false;
-			if (ttf.cursor != newPos || vga.draw.cursor.sline != prev_sline || ((blinkstate != vga.draw.cursor.blinkon) && blinkCursor))				// If new position or shape changed, forse draw
-				{
-				if (blinkCursor && blinkstate == vga.draw.cursor.blinkon)
-				{
+			if (ttf.cursor != newPos || vga.draw.cursor.sline != prev_sline || ((blinkstate != vga.draw.cursor.blinkon) && blinkCursor)) {				// If new position or shape changed, forse draw
+				if (blinkCursor && blinkstate == vga.draw.cursor.blinkon) {
 					vga.draw.cursor.count = 4;
 					vga.draw.cursor.blinkon = true;
 				}
@@ -3617,28 +3668,26 @@ void GFX_EndTextLines(bool force=false) {
 				xmax = max(x, xmax);
 				ymin = min(y, ymin);
 				ymax = max(y, ymax);
-				}
+			}
 			blinkstate = vga.draw.cursor.blinkon;
 			ttf.cursor = newPos;
 //			if (x >= xmin && x <= xmax && y >= ymin && y <= ymax  && (GetTickCount()&0x400))	// If overdrawn previuosly (or new shape)
-			if (x >= xmin && x <= xmax && y >= ymin && y <= ymax)							// If overdrawn previuosly (or new shape)
-				{
+			if (x >= xmin && x <= xmax && y >= ymin && y <= ymax) {							// If overdrawn previuosly (or new shape)
 				uint8_t colorBG = newAttrChar[ttf.cursor]>>12;
 				uint8_t colorFG = (newAttrChar[ttf.cursor]>>8)&15;
 				processWP(&colorBG, &colorFG);
 
-				if (blinking && colorBG&8)
-					{
+				if (blinking && colorBG&8) {
 					colorBG-=8;
-					if ((bcount/8)%2 && hasFocus)
+					if ((bcount/8)%2)
 						colorFG=colorBG;
-					}
-				ttf_bgColor.b = rgbColors[colorBG].blue;
-				ttf_bgColor.g = rgbColors[colorBG].green;
-				ttf_bgColor.r = rgbColors[colorBG].red;
-				ttf_fgColor.b = rgbColors[colorFG].blue;
-				ttf_fgColor.g = rgbColors[colorFG].green;
-				ttf_fgColor.r = rgbColors[colorFG].red;
+				}
+				ttf_bgColor.r = colorsLocked?altBGR1[colorBG&15].red:rgbColors[colorBG].blue;
+				ttf_bgColor.g = colorsLocked?altBGR1[colorBG&15].green:rgbColors[colorBG].green;
+				ttf_bgColor.b = colorsLocked?altBGR1[colorBG&15].blue:rgbColors[colorBG].red;
+				ttf_fgColor.r = colorsLocked?altBGR1[colorFG&15].red:rgbColors[colorFG].blue;
+				ttf_fgColor.g = colorsLocked?altBGR1[colorFG&15].green:rgbColors[colorFG].green;
+				ttf_fgColor.b = colorsLocked?altBGR1[colorFG&15].blue:rgbColors[colorFG].red;
 				unimap[0] = cpMap[newAttrChar[ttf.cursor]&255];
 				unimap[1] = 0;
 				// first redraw character
@@ -3648,8 +3697,7 @@ void GFX_EndTextLines(bool force=false) {
 				ttf_textRect.y = ttf.offY+y*ttf.height;
 				SDL_BlitSurface(textSurface, &ttf_textClip, sdl.surface, &ttf_textRect);
 				SDL_FreeSurface(textSurface);
-				if ((vga.draw.cursor.blinkon || !blinkCursor) && hasFocus)
-					{
+				if ((vga.draw.cursor.blinkon || !blinkCursor)) {
                     // second reverse lower lines
                     textSurface = TTF_RenderUNICODE_Shaded(ttf.SDL_font, unimap, ttf_bgColor, ttf_fgColor);
                     ttf_textClip.y = (ttf.height*vga.draw.cursor.sline)>>4;
@@ -3657,10 +3705,10 @@ void GFX_EndTextLines(bool force=false) {
                     ttf_textRect.y = ttf.offY+y*ttf.height + ttf_textClip.y;
                     SDL_BlitSurface(textSurface, &ttf_textClip, sdl.surface, &ttf_textRect);
                     SDL_FreeSurface(textSurface);
-					}
 				}
 			}
 		}
+	}
 
 	if (xmin <= xmax) {												// if any changes
         SDL_Rect *rect = &sdl.updateRects[0];
@@ -3996,7 +4044,8 @@ void RebootGuest(bool pressed) {
 }
 
 #if defined(USE_TTF)
-void readTTF(const char *fName) {
+std::string failName="";
+bool readTTF(const char *fName) {
 	FILE * ttf_fh = NULL;
 	char ttfPath[1024];
 
@@ -4064,11 +4113,16 @@ void readTTF(const char *fName) {
 					if (!fseek(ttf_fh, 0, SEEK_SET))
 						if (fread(ttfFont, 1, (size_t)ttfSize, ttf_fh) == (size_t)ttfSize) {
 							fclose(ttf_fh);
-							return;
+							return true;
 						}
 		fclose(ttf_fh);
 	}
-	E_Exit("Could not load font file: %s.ttf", fName);
+    if (!failName.size()||failName.compare(fName)) {
+        failName=std::string(fName);
+        std::string message="Could not load font file: "+std::string(fName)+(strlen(fName)<5||strcasecmp(fName+strlen(fName)-4, ".ttf")?".ttf":"");
+        systemmessagebox("Warning", message.c_str(), "ok","warning", 1);
+    }
+	return false;
 }
 
 void setTTFCodePage() {
@@ -4147,21 +4201,15 @@ void resetFontSize() {
 }
 
 static void decreaseFontSize() {
-	if (ttf.inUse && ttf.pointsize > 12) {
+	if (ttf.inUse && ttf.pointsize > 10) {
 		GFX_SelectFontByPoints(ttf.pointsize - (ttf.DOSBox ? 2 : 1));
 		GFX_SetSize(720+sdl.clip.x, 400+sdl.clip.y, sdl.draw.flags,sdl.draw.scalex,sdl.draw.scaley,sdl.draw.callback);
 		wmemset((wchar_t*)curAttrChar, -1, ttf.cols*ttf.lins);
 		if (ttf.fullScrn) {																// smaller content area leaves old one behind
-			SDL_FillRect(sdl.surface, NULL, 0);
-            SDL_Rect *rect = &sdl.updateRects[0];
-            rect->x = 0; rect->y = 0; rect->w = 0; rect->h = 0;
-#if defined(C_SDL2)
-            SDL_UpdateWindowSurfaceRects(sdl.window, sdl.updateRects, 4);
-#else
-            SDL_UpdateRects(sdl.surface, 4, sdl.updateRects);
-#endif
-		}
-		GFX_EndTextLines(true);
+            ttf.fullScrn = false;
+            resetFontSize();
+        } else
+            GFX_EndTextLines(true);
 	}
 }
 
@@ -4187,21 +4235,101 @@ static void increaseFontSize() {
 	}
 }
 
+bool setColors(const char *colorArray, int n) {
+	const char * nextRGB = colorArray;
+	uint8_t * altPtr = (uint8_t *)altBGR1;
+	int rgbVal[3];
+	for (int colNo = 0; colNo < (n>-1?1:16); colNo++) {
+		if (n>-1) altPtr+=4*n;
+		if (sscanf(nextRGB, " ( %d , %d , %d)", &rgbVal[0], &rgbVal[1], &rgbVal[2]) == 3) {	// Decimal: (red,green,blue)
+			for (int i = 0; i< 3; i++) {
+				if (rgbVal[i] < 0 || rgbVal[i] >255)
+					return false;
+				altPtr[2-i] = rgbVal[i];
+			}
+			while (*nextRGB != ')')
+				nextRGB++;
+			nextRGB++;
+		} else if (sscanf(nextRGB, " #%6x", &rgbVal[0]) == 1) {							// Hexadecimal
+			if (rgbVal < 0)
+				return false;
+			for (int i = 0; i < 3; i++) {
+				altPtr[i] = rgbVal[0]&255;
+				rgbVal[0] >>= 8;
+			}
+			nextRGB = strchr(nextRGB, '#') + 7;
+		} else
+			return false;
+		altPtr += 4;
+	}
+	for (int i = n>-1?n:0; i < (n>-1?n+1:16); i++) {
+		altBGR0[i].blue = (altBGR1[i].blue*2 + 128)/4;
+		altBGR0[i].green = (altBGR1[i].green*2 + 128)/4;
+		altBGR0[i].red = (altBGR1[i].red*2 + 128)/4;
+	}
+	return true;
+}
+
+bool initttf = false;
 void OUTPUT_TTF_Select() {
+    if (!initttf&&TTF_Init()) {											// Init SDL-TTF
+        std::string message = "Could not init SDL-TTF: " + std::string(SDL_GetError());
+        systemmessagebox("Error", message.c_str(), "ok","error", 1);
+        sdl.desktop.want_type = SCREEN_SURFACE;
+        return;
+    }
     Section_prop * render_section=static_cast<Section_prop *>(control->GetSection("render"));
     const char * fName = render_section->Get_string("ttf.font");
     LOG_MSG("SDL:TTF activated %s", fName);
-    if (*fName)
-        readTTF(fName);
-    else
+    if (!*fName||!readTTF(fName))
         ttf.DOSBox = true;
+	const char * colors = render_section->Get_string("ttf.colors");
+	if (*colors) {
+		if (setColors(colors,-1)) {
+            for (int i = 0; i < 16; i++) {
+                rgbColors[i].red = altBGR1[i].blue;
+                rgbColors[i].green = altBGR1[i].green;
+                rgbColors[i].blue = altBGR1[i].red;
+            }
+			rgbColors = altBGR1;
+			colorsLocked = true;
+		} else {
+			LOG_MSG("Incorrect color scheme: %s", colors);
+            setColors("#000000 #0000aa #00aa00 #00aaaa #aa0000 #aa00aa #aa5500 #aaaaaa #555555 #5555ff #55ff55 #55ffff #ff5555 #ff55ff #ffff55 #ffffff",-1);
+        }
+	}
+    wpVersion = render_section->Get_int("ttf.wp");
     int winPerc = render_section->Get_int("ttf.winperc");
     if (winPerc>100) winPerc=100;
     else if (winPerc<25) winPerc=25;
+    if (winPerc == 100) ttf.fullScrn = true;
+    int fontSize = render_section->Get_int("ttf.ptsize");
     ttf.lins = render_section->Get_int("ttf.lins");
-    ttf.lins = MAX(24, MIN(txtMaxLins, ttf.lins));
     ttf.cols = render_section->Get_int("ttf.cols");
-    ttf.cols = MAX(80, MIN(txtMaxCols, ttf.cols));
+    if (ttf.lins<1||ttf.cols<1)	{
+        uint16_t c=0, r=0;
+        if (IS_PC98_ARCH) {
+            c=80;
+            r=real_readb(0x60,0x113) & 0x01 ? 25 : 20;
+        } else if (CurMode&&CurMode->type==M_TEXT) {
+            c=real_readw(BIOSMEM_SEG,BIOSMEM_NB_COLS);
+            r=(uint16_t)real_readb(BIOSMEM_SEG,BIOSMEM_NB_ROWS)+1;
+        } else {
+            c=80;
+            r=25;
+        }
+        if (ttf.cols<1)
+            ttf.cols = c;
+        else
+            ttf.lins = MAX(24, MIN(txtMaxLins, ttf.lins));
+        if (ttf.lins<1)
+            ttf.lins = r;
+        else
+            ttf.cols = MAX(40, MIN(txtMaxCols, ttf.cols));
+    } else {
+        ttf.lins = MAX(24, MIN(txtMaxLins, ttf.lins));
+        ttf.cols = MAX(40, MIN(txtMaxCols, ttf.cols));
+    }
     blinkCursor = render_section->Get_bool("ttf.blinkc");
     for (Bitu i = 0; ModeList_VGA[i].mode != 0xffff; i++)										// set the cols and lins in video mode 3
         if (ModeList_VGA[i].mode == 3) {
@@ -4220,34 +4348,38 @@ void OUTPUT_TTF_Select() {
 #if defined(WIN32)
     maxWidth = GetSystemMetrics(SM_CXSCREEN);
     maxHeight = GetSystemMetrics(SM_CYSCREEN);
-    if (!ttf.fullScrn) {																		// 3D borders
+    if (!ttf.fullScrn) {																			// 3D borders
         maxWidth -= GetSystemMetrics(SM_CXBORDER)*2;
         maxHeight -= GetSystemMetrics(SM_CYCAPTION) + GetSystemMetrics(SM_CYBORDER)*2;
     }
 #endif
-    int	curSize = 30;																			// no clear idea what would be a good starting value
+    int	curSize = fontSize>9?fontSize:30;															// no clear idea what would be a good starting value
     int lastGood = -1;
     int trapLoop = 0;
 
-    while (curSize != lastGood)
-        {
-        GFX_SelectFontByPoints(curSize);
-        if (ttf.cols*ttf.width <= maxWidth && ttf.lins*ttf.height <= maxHeight)					// if it fits on screen
+    if (fontSize<10) {
+        while (curSize != lastGood)
             {
-            lastGood = curSize;
-            float coveredPerc = float(100*ttf.cols*ttf.width/maxWidth*ttf.lins*ttf.height/maxHeight);
-            if (trapLoop++ > 4 && coveredPerc <= winPerc)										// we can get into a +/-/+/-... loop!
-                break;
-            curSize = (int)(curSize*sqrt((float)winPerc/coveredPerc));							// rounding down is ok
-            if (curSize < 12)																	// minimum size = 12
-                curSize = 12;
+            GFX_SelectFontByPoints(curSize);
+            if (ttf.cols*ttf.width <= maxWidth && ttf.lins*ttf.height <= maxHeight)					// if it fits on screen
+                {
+                lastGood = curSize;
+                float coveredPerc = float(100*ttf.cols*ttf.width/maxWidth*ttf.lins*ttf.height/maxHeight);
+                if (trapLoop++ > 4 && coveredPerc <= winPerc)										// we can get into a +/-/+/-... loop!
+                    break;
+                curSize = (int)(curSize*sqrt((float)winPerc/coveredPerc));							// rounding down is ok
+                if (curSize < 10)																	// minimum size = 12
+                    curSize = 10;
+                }
+            else if (--curSize < 10)																// silly, but OK, one never can tell..
+                E_Exit("Cannot accommodate a window for %dx%d", ttf.lins, ttf.cols);
             }
-        else if (--curSize < 12)																// silly, but OK, one never can tell..
-            E_Exit("Cannot accommodate a window for %dx%d", ttf.lins, ttf.cols);
-        }
-    if (ttf.DOSBox)																				// make it even for DOSBox-X internal font (a bit nicer)
-        curSize &= ~1;
+        if (ttf.DOSBox)																				// make it even for DOSBox-X internal font (a bit nicer)
+            curSize &= ~1;
+    }
     GFX_SelectFontByPoints(curSize);
+    if (fontSize>9 && 100*ttf.cols*ttf.width/maxWidth*ttf.lins*ttf.height/maxHeight > 100)
+        E_Exit("Cannot accommodate a window for %dx%d", ttf.lins, ttf.cols);
     sdl.desktop.want_type = SCREEN_TTF;
 }
 #endif
@@ -4581,8 +4713,6 @@ static void GUI_StartUp() {
 #if defined(USE_TTF)
     else if (output == "ttf")
     {
-		if (TTF_Init())												// Init SDL-TTF
-			E_Exit("Could't init SDL-TTF, %s", SDL_GetError());
         OUTPUT_TTF_Select();
     }
 #endif
@@ -9111,7 +9241,7 @@ bool output_menu_callback(DOSBoxMenu * const menu,DOSBoxMenu::item * const menui
         return true;
 
     bool reset=false;
-#if defined(USE_TTF) && defined(C_SDL2)
+#if defined(USE_TTF)
     if (TTF_using()) reset=true;
 #endif
 
@@ -9200,7 +9330,8 @@ bool intensity_menu_callback(DOSBoxMenu * const menu,DOSBoxMenu::item * const me
 
 #if defined(USE_TTF)
 void ttf_setlines(int cols, int lins) {
-    (void)cols, lins;
+    (void)cols;
+    (void)lins;
     SetVal("render", "ttf.cols", std::to_string(cols));
     SetVal("render", "ttf.lins", std::to_string(lins));
     OUTPUT_TTF_Select();
@@ -9617,16 +9748,10 @@ bool use_save_file_menu_callback(DOSBoxMenu * const menu, DOSBoxMenu::item * con
 }
 
 bool show_save_state_menu_callback(DOSBoxMenu * const menu, DOSBoxMenu::item * const menuitem) {
-#if !defined(HX_DOS)
     (void)menu;//UNUSED
     (void)menuitem;//UNUSED
-    MAPPER_ReleaseAllKeys();
-    GFX_LosingFocus();
     std::string message = "Save to: "+(use_save_file&&savefilename.size()?"File "+savefilename:"Slot "+std::to_string(GetGameState_Run()+1))+"\n"+SaveState::instance().getName(GetGameState_Run(), true);
-    tinyfd_messageBox("Saved state information", message.c_str(), "ok","info", 1);
-    MAPPER_ReleaseAllKeys();
-    GFX_LosingFocus();
-#endif
+    systemmessagebox("Saved state information", message.c_str(), "ok","info", 1);
     return true;
 }
 
@@ -10897,9 +11022,9 @@ int main(int argc, char* argv[]) SDL_MAIN_NOEXCEPT {
                 mainMenu.alloc_item(DOSBoxMenu::item_type_id,"line_132x60").set_text("Screen: 132 columns x 60 lines").
                     set_callback_function(lines_menu_callback);
 #if defined(USE_TTF)
-                mainMenu.alloc_item(DOSBoxMenu::item_type_id,"ttf_window_inc").set_text("Increase TTF window size").
+                mainMenu.alloc_item(DOSBoxMenu::item_type_id,"ttf_window_inc").set_text("Increase TTF font size").
                     set_callback_function(ttf_window_change_callback);
-                mainMenu.alloc_item(DOSBoxMenu::item_type_id,"ttf_window_dec").set_text("Decrease TTF window size").
+                mainMenu.alloc_item(DOSBoxMenu::item_type_id,"ttf_window_dec").set_text("Decrease TTF font size").
                     set_callback_function(ttf_window_change_callback);
 #endif
             }
@@ -11449,9 +11574,6 @@ int main(int argc, char* argv[]) SDL_MAIN_NOEXCEPT {
 #endif
 #ifdef C_DIRECT3D
         mainMenu.get_item("load_d3d_shader").enable(sdl.desktop.want_type==SCREEN_DIRECT3D);
-#endif
-#if defined(USE_TTF)
-        mainMenu.get_item("output_ttf").enable(TTF_using());
 #endif
 
 #if !defined(C_EMSCRIPTEN)

@@ -2329,18 +2329,30 @@ void DOSBOX_SetupConfigSections(void) {
     Pstring->Set_values(bright);
 
 	Pstring = secprop->Add_string("ttf.font", Property::Changeable::Always, "");
-    Pstring->Set_help("Specifies a TrueType font to use for the TTF output.");
+    Pstring->Set_help("Specifies a TrueType font to use for the TTF output. If not specified, the built-in TrueType font will be used.");
     Pstring->SetBasic(true);
 
+	Pstring = secprop->Add_string("ttf.colors", Property::Changeable::Always, "");
+    Pstring->Set_help("Specifies a color scheme to use for the TTF output by supply all 16 color values in RGB: (r,g,b) or hexadecimal as in HTML: #RRGGBB\n"
+                    "The original DOS colors (0-15): #000000 #0000aa #00aa00 #00aaaa #aa0000 #aa00aa #aa5500 #aaaaaa #555555 #5555ff #55ff55 #55ffff #ff5555 #ff55ff #ffff55 #ffffff\n"
+                    "gray scaled color scheme: (0,0,0)  #0e0e0e  (75,75,75) (89,89,89) (38,38,38) (52,52,52) #717171 #c0c0c0 #808080 (28,28,28) (150,150,150) (178,178,178) (76,76,76) (104,104,104) (226,226,226) (255,255,255)");
+
 	Pint = secprop->Add_int("ttf.winperc", Property::Changeable::Always, 75);
-    Pint->Set_help("Specifies the window percentage for the TTF output.");
+    Pint->Set_help("Specifies the window percentage for the TTF output (100 = full screen). Ignored if the ttf.ptsize setting is specified.");
     Pint->SetBasic(true);
 
-	Pint = secprop->Add_int("ttf.lins", Property::Changeable::Always, 25);
-    Pint->Set_help("Specifies the number of rows on the screen for the TTF output.");
+	Pint = secprop->Add_int("ttf.ptsize", Property::Changeable::Always, 0);
+    Pint->Set_help("Specifies the font point size for the TTF output. If specified (minimum: 10), it will override the ttf.winperc setting.");
+    Pint->SetBasic(true);
 
-	Pint = secprop->Add_int("ttf.cols", Property::Changeable::Always, 80);
-    Pint->Set_help("Specifies the number of columns on the screen for the TTF output.");
+	Pint = secprop->Add_int("ttf.lins", Property::Changeable::Always, 0);
+    Pint->Set_help("Specifies the number of rows on the screen for the TTF output (0 = default).");
+
+	Pint = secprop->Add_int("ttf.cols", Property::Changeable::Always, 0);
+    Pint->Set_help("Specifies the number of columns on the screen for the TTF output (0 = default).");
+
+	Pint = secprop->Add_int("ttf.wp", Property::Changeable::Always, 0);
+    Pint->Set_help("You can optionally specify a word processor version for the TTF output.");
 
 	Pbool = secprop->Add_bool("ttf.blinkc", Property::Changeable::Always, false);
     Pbool->Set_help("If set, the cursor will blink for the TTF output.");
@@ -3512,6 +3524,7 @@ void DOSBOX_SetupConfigSections(void) {
     Pbool = secprop->Add_bool("ansi.sys",Property::Changeable::WhenIdle,true);
     Pbool->Set_help("If set (by default), ANSI.SYS emulation is on. If clear, ANSI.SYS is not emulated and will not appear to be installed.\n"
                     "NOTE: This option has no effect in PC-98 mode where MS-DOS systems integrate ANSI.SYS into the DOS kernel.");
+    Pbool->SetBasic(true);
 
     Pbool = secprop->Add_bool("log console",Property::Changeable::WhenIdle,false);
     Pbool->Set_help("If set, log DOS CON output to the log file.");
@@ -3539,6 +3552,7 @@ void DOSBOX_SetupConfigSections(void) {
 
     Pbool = secprop->Add_bool("share",Property::Changeable::WhenIdle,true);
     Pbool->Set_help("Report SHARE.EXE as resident. Does not actually emulate SHARE functions.");
+    Pbool->SetBasic(true);
 
     Phex = secprop->Add_hex("minimum dos initial private segment", Property::Changeable::WhenIdle,0);
     Phex->Set_help("In non-mainline mapping mode, where DOS structures are allocated from base memory, this sets the\n"
@@ -3550,13 +3564,15 @@ void DOSBOX_SetupConfigSections(void) {
             "You can increase available DOS memory by reducing this value down to as low as 0x51, however\n"
             "setting it to low can cause some DOS programs to crash or run erratically, and some DOS games\n"
             "and demos to cause intermittent static noises when using Sound Blaster output. DOS programs\n"
-            "compressed with Microsoft EXEPACK will not run if the minimum MCB segment is below 64KB.");
+            "compressed with Microsoft EXEPACK will not run if the minimum MCB segment is below 64KB. This differs\n"
+            "from 'minimum mcb free' in that this affects the starting point of the mcb chain instead of the lowest free block.");
 
     Phex = secprop->Add_hex("minimum mcb free", Property::Changeable::WhenIdle,0);
     Phex->Set_help("Minimum free segment value to leave free. At startup, the DOS kernel will allocate memory\n"
                    "up to this point. This can be used to deal with EXEPACK issues or DOS programs that cannot\n"
-                   "be loaded too low in memory. This differs from 'minimum mcb segment' in that this affects\n"
-                   "the lowest free block instead of the starting point of the mcb chain.");
+                   "be loaded too low in memory. If you want more free conventional memory to be reported,\n"
+                   "you can for example set its value to 1.");
+    Phex->SetBasic(true);
 
     // TODO: Enable by default WHEN the 'SD' signature becomes valid, and a valid device list within
     //       is emulated properly.
