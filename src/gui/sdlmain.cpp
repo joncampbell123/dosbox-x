@@ -2439,6 +2439,14 @@ static Bitu OUTPUT_TTF_SetSize() {
 		E_Exit("SDL: Failed to create surface");
 	SDL_ShowCursor(!ttf.fullScrn);
 	sdl.active = true;
+
+#if DOSBOXMENU_TYPE == DOSBOXMENU_SDLDRAW
+    mainMenu.screenWidth = (size_t)sdl.surface->w;
+    mainMenu.screenHeight = (size_t)sdl.surface->h;
+    mainMenu.updateRect();
+    mainMenu.setRedraw();
+#endif
+
     return GFX_CAN_32 | GFX_SCALING;
 }
 #endif
