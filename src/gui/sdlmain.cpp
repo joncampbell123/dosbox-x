@@ -4280,6 +4280,7 @@ bool setColors(const char *colorArray, int n) {
 
 bool initttf = false;
 void OUTPUT_TTF_Select() {
+    bool alter_vmode=false;
     if (!initttf&&TTF_Init()) {											// Init SDL-TTF
         std::string message = "Could not init SDL-TTF: " + std::string(SDL_GetError());
         systemmessagebox("Error", message.c_str(), "ok","error", 1);
@@ -4337,14 +4338,18 @@ void OUTPUT_TTF_Select() {
     } else {
         ttf.lins = MAX(24, MIN(txtMaxLins, ttf.lins));
         ttf.cols = MAX(40, MIN(txtMaxCols, ttf.cols));
+        alter_vmode = true;
     }
     blinkCursor = render_section->Get_bool("ttf.blinkc");
-    for (Bitu i = 0; ModeList_VGA[i].mode != 0xffff; i++)										// set the cols and lins in video mode 3
-        if (ModeList_VGA[i].mode == 3) {
-            ModeList_VGA[i].twidth = ttf.cols;
-            ModeList_VGA[i].theight = ttf.lins;
-            break;
+    if (alter_vmode) {
+        for (Bitu i = 0; ModeList_VGA[i].mode != 0xffff; i++) {										// set the cols and lins in video mode 3
+            if (ModeList_VGA[i].mode == 3) {
+                ModeList_VGA[i].twidth = ttf.cols;
+                ModeList_VGA[i].theight = ttf.lins;
+                break;
+            }
         }
+    }
 
     int maxWidth = sdl.desktop.full.width;
     int maxHeight = sdl.desktop.full.height;
@@ -9337,6 +9342,11 @@ bool intensity_menu_callback(DOSBoxMenu * const menu,DOSBoxMenu::item * const me
 }
 
 #if defined(USE_TTF)
+void ttf_reset(void) {
+    OUTPUT_TTF_Select();
+    resetFontSize();
+}
+
 void ttf_setlines(int cols, int lins) {
     (void)cols;
     (void)lins;

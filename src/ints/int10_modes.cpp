@@ -1097,6 +1097,10 @@ bool INT10_SetVideoMode_OTHER(uint16_t mode,bool clearmem) {
 	return true;
 }
 
+#if defined(USE_TTF)
+void ttf_reset(void);
+#endif
+
 bool unmask_irq0_on_int10_setmode = true;
 bool change_from_ttf_to_surface = false;
 bool INT10_SetVideoMode(uint16_t mode) {
@@ -1986,8 +1990,7 @@ dac_text16:
 		INT10_ReloadFont();
 #if defined(USE_TTF)
         if (ttf.inUse) {
-            void ttf_setlines(int cols, int lins);
-            ttf_setlines(real_readw(BIOSMEM_SEG,BIOSMEM_NB_COLS), real_readb(BIOSMEM_SEG,BIOSMEM_NB_ROWS)+1);
+            ttf_reset();
         } else if (change_from_ttf_to_surface) {
             change_output(10);
             SetVal("sdl", "output", "surface");
