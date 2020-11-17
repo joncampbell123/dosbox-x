@@ -3211,9 +3211,8 @@ bool readTTF(const char *fName) {
 	return false;
 }
 
-bool firstset=false;
+bool firstset=true;
 void OUTPUT_TTF_Select(int fsize=-1) {
-    bool alter_vmode=false;
     if (!initttf&&TTF_Init()) {											// Init SDL-TTF
         std::string message = "Could not init SDL-TTF: " + std::string(SDL_GetError());
         systemmessagebox("Error", message.c_str(), "ok","error", 1);
@@ -3222,7 +3221,7 @@ void OUTPUT_TTF_Select(int fsize=-1) {
     }
     int fontSize = 0;
     int winPerc = 0;
-    if (fsize==0)
+    if (fsize==2)
         winPerc = 100;
     else if (fsize>9)
         fontSize = fsize;
@@ -3256,43 +3255,62 @@ void OUTPUT_TTF_Select(int fsize=-1) {
         fontSize = render_section->Get_int("ttf.ptsize");
         ttf.lins = render_section->Get_int("ttf.lins");
         ttf.cols = render_section->Get_int("ttf.cols");
-        if (ttf.lins<1||ttf.cols<1)	{
+        if ((!CurMode||CurMode->type!=M_TEXT)&&!IS_PC98_ARCH) {
+            ttf.cols=80;
+            ttf.lins=25;
+        } else if (firstset) {
+            bool alter_vmode=false;
             uint16_t c=0, r=0;
             if (IS_PC98_ARCH) {
                 c=80;
                 r=real_readb(0x60,0x113) & 0x01 ? 25 : 20;
-            } else if (CurMode&&CurMode->type==M_TEXT) {
+            } else {
                 c=real_readw(BIOSMEM_SEG,BIOSMEM_NB_COLS);
                 r=(uint16_t)real_readb(BIOSMEM_SEG,BIOSMEM_NB_ROWS)+1;
+            }
+            if (ttf.lins<1||ttf.cols<1)	{
+                if (ttf.cols<1)
+                    ttf.cols = c;
+                else {
+                    ttf.cols = MAX(40, MIN(txtMaxCols, ttf.cols));
+                    if (ttf.cols != c) alter_vmode = true;
+                }
+                if (ttf.lins<1)
+                    ttf.lins = r;
+                else {
+                    ttf.lins = MAX(24, MIN(txtMaxLins, ttf.lins));
+                    if (ttf.lins != r) alter_vmode = true;
+                }
             } else {
-                c=80;
-                r=25;
-            }
-            if (ttf.cols<1)
-                ttf.cols = c;
-            else {
                 ttf.lins = MAX(24, MIN(txtMaxLins, ttf.lins));
-                alter_vmode = true;
-            }
-            if (ttf.lins<1)
-                ttf.lins = r;
-            else {
                 ttf.cols = MAX(40, MIN(txtMaxCols, ttf.cols));
-                alter_vmode = true;
+                if (ttf.cols != c || ttf.lins != r) alter_vmode = true;
             }
-        } else {
-            ttf.lins = MAX(24, MIN(txtMaxLins, ttf.lins));
-            ttf.cols = MAX(40, MIN(txtMaxCols, ttf.cols));
-            alter_vmode = true;
-        }
-        if (alter_vmode) {
-            for (Bitu i = 0; ModeList_VGA[i].mode != 0xffff; i++) {										// set the cols and lins in video mode 3
-                if (ModeList_VGA[i].mode == 3) {
-                    ModeList_VGA[i].twidth = ttf.cols;
-                    ModeList_VGA[i].theight = ttf.lins;
-                    break;
+            if (alter_vmode) {
+                for (Bitu i = 0; ModeList_VGA[i].mode != 0xffff; i++) {										// set the cols and lins in video mode 3
+                    if (ModeList_VGA[i].mode == 3) {
+                        ModeList_VGA[i].twidth = ttf.cols;
+                        ModeList_VGA[i].theight = ttf.lins;
+                        break;
+                    }
+                }
+                if (!IS_PC98_ARCH) {
+                    real_writeb(BIOSMEM_SEG,BIOSMEM_NB_COLS,ttf.cols);
+                    real_writeb(BIOSMEM_SEG,BIOSMEM_NB_ROWS,ttf.lins-1);
                 }
             }
+            firstset=false;
+        } else {
+            uint16_t c=0, r=0;
+            if (IS_PC98_ARCH) {
+                c=80;
+                r=real_readb(0x60,0x113) & 0x01 ? 25 : 20;
+            } else {
+                c=real_readw(BIOSMEM_SEG,BIOSMEM_NB_COLS);
+                r=(uint16_t)real_readb(BIOSMEM_SEG,BIOSMEM_NB_ROWS)+1;
+            }
+            ttf.cols=c;
+            ttf.lins=r;
         }
     }
 
@@ -3500,7 +3518,7 @@ void GFX_SwitchFullScreen(void)
         } else {
             lastfontsize = ttf.pointsize;
             sdl.desktop.fullscreen = true;
-            OUTPUT_TTF_Select(0);
+            OUTPUT_TTF_Select(2);
             resetFontSize();
         }
         return;
@@ -4752,7 +4770,7 @@ static void GUI_StartUp() {
 #if defined(USE_TTF)
     else if (output == "ttf")
     {
-        OUTPUT_TTF_Select();
+        OUTPUT_TTF_Select(0);
     }
 #endif
     else 
@@ -9378,6 +9396,7 @@ void ttf_setlines(int cols, int lins) {
     (void)lins;
     SetVal("render", "ttf.cols", std::to_string(cols));
     SetVal("render", "ttf.lins", std::to_string(lins));
+    firstset=true;
     ttf_reset();
     real_writeb(BIOSMEM_SEG,BIOSMEM_NB_COLS,ttf.cols);
     real_writeb(BIOSMEM_SEG,BIOSMEM_NB_ROWS,ttf.lins-1);
