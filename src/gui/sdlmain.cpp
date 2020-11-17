@@ -3613,7 +3613,6 @@ void GFX_EndTextLines(bool force=false) {
 
 				uint8_t colorBG = newAC[x]>>12;
 				uint8_t colorFG = (newAC[x]>>8)&15;
-                if (!colorFG&&machine==MCH_PC98) colorFG=7;
 				processWP(&colorBG, &colorFG);
 
 				ttf_bgColor.r = colorsLocked?altBGR1[colorBG&15].red:rgbColors[colorBG].blue;
