@@ -53,8 +53,10 @@ unsigned int                            GFX_GetBShift();
 void                                    RENDER_CallBack( GFX_CallBackFunctions_t function );
 
 #if defined(USE_TTF)
+bool resetreq=false;
 uint32_t curAttrChar[txtMaxLins*txtMaxCols];					// currently displayed textpage
 uint32_t newAttrChar[txtMaxLins*txtMaxCols];					// to be replaced by
+void resetFontSize();
 #endif
 
 static void Check_Palette(void) {
@@ -487,6 +489,7 @@ void RENDER_Reset( void ) {
         // Signal the next frame to first reinit the cache
         render.cache.nextInvalid = true;
         render.active = true;
+        if (resetreq) resetFontSize();
         return;
     }
 #endif
