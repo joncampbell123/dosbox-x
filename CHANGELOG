@@ -12,12 +12,17 @@
     Lines and columns can be specified with config
     options "ttf.lins" and "ttf.cols", and the cursor
     can be made blinking with the option "ttf.blinkc".
-    The MODE command can be used to change the number
-    of lines and/or columns dynamically, as with the
-    menu options in the "Text-mode" menu group under
-    "Video" menu. When using the TTF output DOSBox-X
-    will temporarily switch to the surface output when
-    a graphical mode is requested. (Wengier)
+    The config options "ttf.ptsize" and "ttf.winperc"
+    can be used to set the TTF font size and window
+    percentage respectively. If you specify a TTF font
+    size with "ttf.ptsize" then "ttf.winperc" will be
+    ignored. You can also use MODE command to change
+    the number of lines and/or columns on the screen
+    dynamically, as with the menu options in the
+    "Text-mode" menu group under "Video" menu. When
+    using the TTF output DOSBox-X will temporarily
+    switch to the surface output when a graphical mode
+    is requested (will switch back later). (Wengier)
   - Configuration Tool now provides the option to save
     to the primary or user config files. (Wengier)
   - Added config options "saveremark" (default: true)

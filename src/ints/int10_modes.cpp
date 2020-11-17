@@ -1098,7 +1098,8 @@ bool INT10_SetVideoMode_OTHER(uint16_t mode,bool clearmem) {
 }
 
 #if defined(USE_TTF)
-void ttf_reset(void);
+extern bool resetreq;
+void ttf_reset(void), resetFontSize(), OUTPUT_TTF_Select(int fsize);
 #endif
 
 bool unmask_irq0_on_int10_setmode = true;
@@ -1985,18 +1986,26 @@ dac_text16:
 	IO_Write(0x3c0,0x20);
 	IO_Read(mono_mode ? 0x3ba : 0x3da);
 
-	/* Load text mode font */
+    /* Load text mode font */
 	if (CurMode->type==M_TEXT) {
 		INT10_ReloadFont();
 #if defined(USE_TTF)
-        if (ttf.inUse) {
+        if (ttf.inUse)
             ttf_reset();
-        } else if (change_from_ttf_to_surface) {
+        else if (change_from_ttf_to_surface) {
             change_output(10);
             SetVal("sdl", "output", "surface");
             void OutputSettingMenuUpdate(void);
             OutputSettingMenuUpdate();
             change_from_ttf_to_surface = false;
+            if (ttf.fullScrn) {
+                bool GFX_IsFullscreen(void);
+                void GFX_SwitchFullscreenNoReset(void);
+                if (!GFX_IsFullscreen()) GFX_SwitchFullscreenNoReset();
+                OUTPUT_TTF_Select(0);
+                resetreq = true;
+            }
+            resetFontSize();
         }
 	} else if (ttf.inUse) {
         change_output(0);

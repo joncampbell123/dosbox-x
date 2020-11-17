@@ -239,8 +239,11 @@ bool osx_detect_nstouchbar(void);
 void osx_init_touchbar(void);
 #endif
 
+
 bool TTF_using(void);
 void ShutDownMemHandles(Section * sec);
+void resetFontSize();
+static void decreaseFontSize();
 
 SDL_Block sdl;
 Bitu frames = 0;
@@ -252,8 +255,10 @@ ScreenSizeInfo          screen_size_info;
 
 #if defined(USE_TTF)
 Render_ttf ttf;
+
 static unsigned long ttfSize= sizeof(DOSBoxTTFbi);
 static void * ttfFont = DOSBoxTTFbi;
+extern bool resetreq;
 extern uint16_t cpMap[256];
 static SDL_Color ttf_fgColor = {0, 0, 0, 0};
 static SDL_Color ttf_bgColor = {0, 0, 0, 0};
@@ -2420,7 +2425,13 @@ static Bitu OUTPUT_TTF_SetSize() {
         sdl.surface = sdl.window?SDL_GetWindowSurface(sdl.window):NULL;
         SDL_SetWindowPosition(sdl.window, SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED);
 #else
-        sdl.surface = SDL_SetVideoMode(maxWidth, maxHeight, 32, SDL_SWSURFACE|SDL_NOFRAME);
+        sdl.surface = SDL_SetVideoMode(maxWidth, maxHeight, 32, SDL_SWSURFACE|
+#if defined(WIN32)
+        SDL_NOFRAME
+#else
+        SDL_FULLSCREEN
+#endif
+        );
 #endif
     } else {
 #if defined(C_SDL2)
@@ -3079,6 +3090,274 @@ void res_input(bool type, const char * res) {
     }
 }
 
+#if defined(USE_TTF)
+void GFX_SelectFontByPoints(int ptsize);
+bool lastmenu = true, initttf = false;
+int lastfontsize = 0;
+bool setColors(const char *colorArray, int n) {
+    if (IS_PC98_ARCH) return false;
+	const char * nextRGB = colorArray;
+	uint8_t * altPtr = (uint8_t *)altBGR1;
+	int rgbVal[3];
+	for (int colNo = 0; colNo < (n>-1?1:16); colNo++) {
+		if (n>-1) altPtr+=4*n;
+		if (sscanf(nextRGB, " ( %d , %d , %d)", &rgbVal[0], &rgbVal[1], &rgbVal[2]) == 3) {	// Decimal: (red,green,blue)
+			for (int i = 0; i< 3; i++) {
+				if (rgbVal[i] < 0 || rgbVal[i] >255)
+					return false;
+				altPtr[2-i] = rgbVal[i];
+			}
+			while (*nextRGB != ')')
+				nextRGB++;
+			nextRGB++;
+		} else if (sscanf(nextRGB, " #%6x", &rgbVal[0]) == 1) {							// Hexadecimal
+			if (rgbVal < 0)
+				return false;
+			for (int i = 0; i < 3; i++) {
+				altPtr[i] = rgbVal[0]&255;
+				rgbVal[0] >>= 8;
+			}
+			nextRGB = strchr(nextRGB, '#') + 7;
+		} else
+			return false;
+		altPtr += 4;
+	}
+	for (int i = n>-1?n:0; i < (n>-1?n+1:16); i++) {
+		altBGR0[i].blue = (altBGR1[i].blue*2 + 128)/4;
+		altBGR0[i].green = (altBGR1[i].green*2 + 128)/4;
+		altBGR0[i].red = (altBGR1[i].red*2 + 128)/4;
+	}
+	return true;
+}
+
+std::string failName="";
+bool readTTF(const char *fName) {
+	FILE * ttf_fh = NULL;
+	char ttfPath[1024];
+
+	strcpy(ttfPath, fName);													// Try to load it from working directory
+	strcat(ttfPath, ".ttf");
+    ttf_fh  = fopen(ttfPath, "rb");
+#if defined(WIN32)
+	if (!ttf_fh) {
+		strcpy(strrchr(strcpy(ttfPath, _pgmptr), '\\')+1, fName);			// Try to load it from where DOSBox-X was started
+		strcat(ttfPath, ".ttf");
+		ttf_fh  = fopen(ttfPath, "rb");
+	}
+#endif
+	if (!ttf_fh) {
+		strcpy(ttfPath, fName);
+		ttf_fh  = fopen(ttfPath, "rb");
+	}
+	if (!ttf_fh) {
+		std::string config_path;
+		Cross::GetPlatformConfigDir(config_path);
+		struct stat info;
+		if (!stat(config_path.c_str(), &info) && (info.st_mode & S_IFDIR)) {
+            strcpy(ttfPath, config_path.c_str());
+            strcat(ttfPath, fName);
+            strcat(ttfPath, ".ttf");
+            ttf_fh  = fopen(ttfPath, "rb");
+            if (!ttf_fh) {
+                strcpy(ttfPath, config_path.c_str());
+                strcat(ttfPath, fName);
+                ttf_fh  = fopen(ttfPath, "rb");
+            }
+        }
+    }
+#if defined(WIN32)
+	if (!ttf_fh) {
+		strcpy(strrchr(strcpy(ttfPath, _pgmptr), '\\')+1, fName);
+		ttf_fh  = fopen(ttfPath, "rb");
+	}
+    if (!ttf_fh) {
+        char winfontdir[MAX_PATH];
+        strcpy(winfontdir, "C:\\WINDOWS\\fonts\\");
+        struct stat wstat;
+        if(stat(winfontdir,&wstat) || !(wstat.st_mode & S_IFDIR)) {
+            char dir[MAX_PATH];
+            if (GetWindowsDirectory(dir, MAX_PATH)) {
+                strcpy(winfontdir, dir);
+                strcat(winfontdir, "\\fonts\\");
+            }
+        }
+        strcpy(ttfPath, winfontdir);
+        strcat(ttfPath, fName);
+        strcat(ttfPath, ".ttf");
+        ttf_fh = fopen(ttfPath, "rb");
+        if (!ttf_fh) {
+            strcpy(ttfPath, winfontdir);
+            strcat(ttfPath, fName);
+            ttf_fh  = fopen(ttfPath, "rb");
+        }
+    }
+#endif
+	if (ttf_fh) {
+		if (!fseek(ttf_fh, 0, SEEK_END))
+			if ((ttfSize = ftell(ttf_fh)) != -1L)
+				if (ttfFont = malloc((size_t)ttfSize))
+					if (!fseek(ttf_fh, 0, SEEK_SET))
+						if (fread(ttfFont, 1, (size_t)ttfSize, ttf_fh) == (size_t)ttfSize) {
+							fclose(ttf_fh);
+							return true;
+						}
+		fclose(ttf_fh);
+	}
+    if (!failName.size()||failName.compare(fName)) {
+        failName=std::string(fName);
+        std::string message="Could not load font file: "+std::string(fName)+(strlen(fName)<5||strcasecmp(fName+strlen(fName)-4, ".ttf")?".ttf":"");
+        systemmessagebox("Warning", message.c_str(), "ok","warning", 1);
+    }
+	return false;
+}
+
+bool firstset=false;
+void OUTPUT_TTF_Select(int fsize=-1) {
+    bool alter_vmode=false;
+    if (!initttf&&TTF_Init()) {											// Init SDL-TTF
+        std::string message = "Could not init SDL-TTF: " + std::string(SDL_GetError());
+        systemmessagebox("Error", message.c_str(), "ok","error", 1);
+        sdl.desktop.want_type = SCREEN_SURFACE;
+        return;
+    }
+    int fontSize = 0;
+    int winPerc = 0;
+    if (fsize==0)
+        winPerc = 100;
+    else if (fsize>9)
+        fontSize = fsize;
+    else {
+        Section_prop * render_section=static_cast<Section_prop *>(control->GetSection("render"));
+        const char * fName = render_section->Get_string("ttf.font");
+        LOG_MSG("SDL:TTF activated %s", fName);
+        if (!*fName||!readTTF(fName))
+            ttf.DOSBox = true;
+        const char * colors = render_section->Get_string("ttf.colors");
+        if (*colors) {
+            if (setColors(colors,-1)) {
+                //rgbColors = altBGR1;
+                colorsLocked = true;
+                for (int i = 0; i < 16; i++) {
+                    rgbColors[i].red = altBGR1[i].red;
+                    rgbColors[i].green = altBGR1[i].green;
+                    rgbColors[i].blue = altBGR1[i].blue;
+                }
+            } else {
+                LOG_MSG("Incorrect color scheme: %s", colors);
+                setColors("#000000 #0000aa #00aa00 #00aaaa #aa0000 #aa00aa #aa5500 #aaaaaa #555555 #5555ff #55ff55 #55ffff #ff5555 #ff55ff #ffff55 #ffffff",-1);
+            }
+        }
+        blinkCursor = render_section->Get_bool("ttf.blinkc");
+        wpVersion = render_section->Get_int("ttf.wp");
+        winPerc = render_section->Get_int("ttf.winperc");
+        if (winPerc>100||fsize!=1&&(control->opt_fullscreen||static_cast<Section_prop *>(control->GetSection("sdl"))->Get_bool("fullscreen"))) winPerc=100;
+        else if (winPerc<25) winPerc=25;
+        if (fsize==1&&winPerc==100) winPerc=75;
+        fontSize = render_section->Get_int("ttf.ptsize");
+        ttf.lins = render_section->Get_int("ttf.lins");
+        ttf.cols = render_section->Get_int("ttf.cols");
+        if (ttf.lins<1||ttf.cols<1)	{
+            uint16_t c=0, r=0;
+            if (IS_PC98_ARCH) {
+                c=80;
+                r=real_readb(0x60,0x113) & 0x01 ? 25 : 20;
+            } else if (CurMode&&CurMode->type==M_TEXT) {
+                c=real_readw(BIOSMEM_SEG,BIOSMEM_NB_COLS);
+                r=(uint16_t)real_readb(BIOSMEM_SEG,BIOSMEM_NB_ROWS)+1;
+            } else {
+                c=80;
+                r=25;
+            }
+            if (ttf.cols<1)
+                ttf.cols = c;
+            else {
+                ttf.lins = MAX(24, MIN(txtMaxLins, ttf.lins));
+                alter_vmode = true;
+            }
+            if (ttf.lins<1)
+                ttf.lins = r;
+            else {
+                ttf.cols = MAX(40, MIN(txtMaxCols, ttf.cols));
+                alter_vmode = true;
+            }
+        } else {
+            ttf.lins = MAX(24, MIN(txtMaxLins, ttf.lins));
+            ttf.cols = MAX(40, MIN(txtMaxCols, ttf.cols));
+            alter_vmode = true;
+        }
+        if (alter_vmode) {
+            for (Bitu i = 0; ModeList_VGA[i].mode != 0xffff; i++) {										// set the cols and lins in video mode 3
+                if (ModeList_VGA[i].mode == 3) {
+                    ModeList_VGA[i].twidth = ttf.cols;
+                    ModeList_VGA[i].theight = ttf.lins;
+                    break;
+                }
+            }
+        }
+    }
+
+    if (winPerc == 100) {
+#if DOSBOXMENU_TYPE == DOSBOXMENU_HMENU
+        lastmenu = menu.toggle;
+        menu.toggle=false;
+        NonUserResizeCounter=1;
+        SDL1_hax_SetMenu(NULL);
+        void RENDER_CallBack( GFX_CallBackFunctions_t function );
+        RENDER_CallBack( GFX_CallBackReset );
+        void DOSBox_SetSysMenu(void);
+        DOSBox_SetSysMenu();
+#endif
+        ttf.fullScrn = true;
+    } else
+        ttf.fullScrn = false;
+
+    int maxWidth = sdl.desktop.full.width;
+    int maxHeight = sdl.desktop.full.height;
+
+#if DOSBOXMENU_TYPE == DOSBOXMENU_SDLDRAW /* SDL drawn menus */
+    maxHeight -= mainMenu.menuBarHeightBase * 2;
+#endif
+
+#if defined(WIN32)
+    maxWidth = GetSystemMetrics(SM_CXSCREEN);
+    maxHeight = GetSystemMetrics(SM_CYSCREEN);
+    if (!ttf.fullScrn) {																			// 3D borders
+        maxWidth -= GetSystemMetrics(SM_CXBORDER)*2;
+        maxHeight -= GetSystemMetrics(SM_CYCAPTION) + GetSystemMetrics(SM_CYBORDER)*2;
+    }
+#endif
+    int	curSize = fontSize>9?fontSize:30;															// no clear idea what would be a good starting value
+    int lastGood = -1;
+    int trapLoop = 0;
+
+    if (fontSize<10) {
+        while (curSize != lastGood)
+            {
+            GFX_SelectFontByPoints(curSize);
+            if (ttf.cols*ttf.width <= maxWidth && ttf.lins*ttf.height <= maxHeight)					// if it fits on screen
+                {
+                lastGood = curSize;
+                float coveredPerc = float(100*ttf.cols*ttf.width/maxWidth*ttf.lins*ttf.height/maxHeight);
+                if (trapLoop++ > 4 && coveredPerc <= winPerc)										// we can get into a +/-/+/-... loop!
+                    break;
+                curSize = (int)(curSize*sqrt((float)winPerc/coveredPerc));							// rounding down is ok
+                if (curSize < 10)																	// minimum size = 12
+                    curSize = 10;
+                }
+            else if (--curSize < 10)																// silly, but OK, one never can tell..
+                E_Exit("Cannot accommodate a window for %dx%d", ttf.lins, ttf.cols);
+            }
+        if (ttf.DOSBox)																				// make it even for DOSBox-X internal font (a bit nicer)
+            curSize &= ~1;
+    }
+    GFX_SelectFontByPoints(curSize);
+    if (fontSize>9 && 100*ttf.cols*ttf.width/maxWidth*ttf.lins*ttf.height/maxHeight > 100)
+        E_Exit("Cannot accommodate a window for %dx%d", ttf.lins, ttf.cols);
+    resetreq=false;
+    sdl.desktop.want_type = SCREEN_TTF;
+}
+#endif
+
 void change_output(int output) {
     GFX_Stop();
     Section * sec = control->GetSection("sdl");
@@ -3127,7 +3406,6 @@ void change_output(int output) {
         break;
 #if defined(USE_TTF)
     case 9:
-        void OUTPUT_TTF_Select();
         OUTPUT_TTF_Select();
     case 10:
         sdl.desktop.want_type = SCREEN_TTF;
@@ -3148,7 +3426,10 @@ void change_output(int output) {
     if (sdl.desktop.want_type != SCREEN_DIRECT3D) mainMenu.get_item("load_d3d_shader").enable(false).refresh_item(mainMenu);
 #endif
 #if defined(USE_TTF)
-    if (sdl.desktop.want_type != SCREEN_TTF) ttf.inUse = false;
+    if (sdl.desktop.want_type != SCREEN_TTF) {
+        resetreq = false;
+        ttf.inUse = false;
+    }
 #endif
 
     const char* windowresolution=section->Get_string("windowresolution");
@@ -3178,8 +3459,8 @@ void change_output(int output) {
 #endif
 #if defined(USE_TTF)
     if ((output==9||output==10)&&ttf.inUse) {
-       void GFX_EndTextLines(bool force);
-       GFX_EndTextLines(true);
+        resetFontSize();
+        resetreq = true;
     }
     mainMenu.get_item("ttf_window_inc").enable(sdl.desktop.want_type == SCREEN_TTF).refresh_item(mainMenu);
     mainMenu.get_item("ttf_window_dec").enable(sdl.desktop.want_type == SCREEN_TTF).refresh_item(mainMenu);
@@ -3195,70 +3476,32 @@ void change_output(int output) {
 extern "C" void SDL_hax_SetFSWindowPosition(int x,int y,int w,int h);
 #endif
 
-#if defined(USE_TTF)
-static void resetFontSize(), decreaseFontSize();
-void GFX_SelectFontByPoints(int ptsize);
-int lastfontsize = 0;
-bool lastmenu = true;
-#endif
 void GFX_SwitchFullScreen(void)
 {
 #if defined(USE_TTF)
     if (ttf.inUse) {
         if (ttf.fullScrn) {
-            if (lastfontsize>0) {
-                ttf.fullScrn = false;
-                ttf.pointsize=lastfontsize;
-                resetFontSize();
-                if (lastmenu) DOSBox_SetMenu();
-            } else
-                decreaseFontSize();
+            sdl.desktop.fullscreen = false;
+            if (lastfontsize>0)
+                OUTPUT_TTF_Select(lastfontsize);
+            else
+                OUTPUT_TTF_Select(1);
+            resetFontSize();
+            lastfontsize = 0;
+#if DOSBOXMENU_TYPE == DOSBOXMENU_HMENU
+            if (lastmenu) DOSBox_SetMenu();
+#endif
 #if defined(C_SDL2)
+        if (posx >= 0 && posy >= 0)
+            SDL_SetWindowPosition(sdl.window, posx, posy);
+        else
             SDL_SetWindowPosition(sdl.window, SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED);
 #endif
-            //sdl.desktop.fullscreen = false;
         } else {
-            int maxWidth = sdl.desktop.full.width;
-            int maxHeight = sdl.desktop.full.height;
-#if defined(WIN32)
-            maxWidth = GetSystemMetrics(SM_CXSCREEN);
-            maxHeight = GetSystemMetrics(SM_CYSCREEN);
-            if (!ttf.fullScrn) {																			// 3D borders
-                maxWidth -= GetSystemMetrics(SM_CXBORDER)*2;
-                maxHeight -= GetSystemMetrics(SM_CYCAPTION) + GetSystemMetrics(SM_CYBORDER)*2;
-            }
-#endif
-            int	curSize = 30;
-            int lastGood = -1;
-            int trapLoop = 0;
-            lastfontsize=ttf.pointsize;
-            while (curSize != lastGood) {
-                GFX_SelectFontByPoints(curSize);
-                if (ttf.cols*ttf.width <= maxWidth && ttf.lins*ttf.height <= maxHeight) {				// if it fits on screen
-                    lastGood = curSize;
-                    float coveredPerc = float(100*ttf.cols*ttf.width/maxWidth*ttf.lins*ttf.height/maxHeight);
-                    if (trapLoop++ > 4 && coveredPerc <= 100)											// we can get into a +/-/+/-... loop!
-                        break;
-                    curSize = (int)(curSize*sqrt((float)100/coveredPerc));								// rounding down is ok
-                    if (curSize < 10) {
-                        ttf.pointsize=lastfontsize;
-                        lastfontsize=0;
-                        return;
-                    }
-                } else if (--curSize < 10) {
-                    ttf.pointsize=lastfontsize;
-                    lastfontsize=0;
-                    return;
-                }
-            }
-            if (ttf.DOSBox)																				// make it even for DOSBox-X internal font (a bit nicer)
-                curSize &= ~1;
-            lastmenu=menu.toggle;
-            DOSBox_NoMenu();
-            ttf.fullScrn=true;
-            GFX_SelectFontByPoints(curSize);
+            lastfontsize = ttf.pointsize;
+            sdl.desktop.fullscreen = true;
+            OUTPUT_TTF_Select(0);
             resetFontSize();
-            //sdl.desktop.fullscreen = true;
         }
         return;
     }
@@ -3577,7 +3820,7 @@ void processWP(uint8_t *pcolorBG, uint8_t *pcolorFG) {
 }
 
 void GFX_EndTextLines(bool force=false) {
-    if (!force&&!IS_PC98_ARCH&&(!CurMode||CurMode->type!=M_TEXT)) return;
+    if (!force&&!IS_PC98_ARCH&&((!CurMode||CurMode->type!=M_TEXT))) return;
 #if DOSBOXMENU_TYPE == DOSBOXMENU_SDLDRAW
     if (!ttf.fullScrn) {
         mainMenu.setRedraw();
@@ -3592,6 +3835,22 @@ void GFX_EndTextLines(bool force=false) {
 	int ymax = -1;
 	uint32_t *curAC = curAttrChar;							// pointer to old/current buffer
 	uint32_t *newAC = newAttrChar;							// pointer to new/changed buffer
+
+	if (ttf.fullScrn && (ttf.offX || ttf.offY)) {
+        SDL_Rect *rect = &sdl.updateRects[0];
+        rect->x = 0; rect->y = 0; rect->w = sdl.draw.width; rect->h = ttf.offY;
+#if defined(C_SDL2)
+        SDL_UpdateWindowSurfaceRects(sdl.window, sdl.updateRects, 4);
+#else
+        SDL_UpdateRects(sdl.surface, 4, sdl.updateRects);
+#endif
+        rect->w = ttf.offX; rect->h = sdl.draw.height;
+#if defined(C_SDL2)
+        SDL_UpdateWindowSurfaceRects(sdl.window, sdl.updateRects, 4);
+#else
+        SDL_UpdateRects(sdl.surface, 4, sdl.updateRects);
+#endif
+    }
 
 	if (ttf.cursor >= 0 && ttf.cursor < ttf.cols*ttf.lins)	// hide/restore (previous) cursor-character if we had one
 
@@ -3613,7 +3872,7 @@ void GFX_EndTextLines(bool force=false) {
 
 				uint8_t colorBG = newAC[x]>>12;
 				uint8_t colorFG = (newAC[x]>>8)&15;
-                if (!colorFG&&machine==MCH_PC98) colorFG=7;
+				if (!IS_VGA_ARCH) colorBG &= 15;
 				processWP(&colorBG, &colorFG);
 
 				ttf_bgColor.r = colorsLocked?altBGR1[colorBG&15].red:rgbColors[colorBG].blue;
@@ -3683,6 +3942,7 @@ void GFX_EndTextLines(bool force=false) {
 			if (x >= xmin && x <= xmax && y >= ymin && y <= ymax) {							// If overdrawn previuosly (or new shape)
 				uint8_t colorBG = newAttrChar[ttf.cursor]>>12;
 				uint8_t colorFG = (newAttrChar[ttf.cursor]>>8)&15;
+				if (!IS_VGA_ARCH) colorBG &= 15;
 				processWP(&colorBG, &colorFG);
 
 				if (blinking && colorBG&8) {
@@ -4052,87 +4312,6 @@ void RebootGuest(bool pressed) {
 }
 
 #if defined(USE_TTF)
-std::string failName="";
-bool readTTF(const char *fName) {
-	FILE * ttf_fh = NULL;
-	char ttfPath[1024];
-
-	strcpy(ttfPath, fName);													// Try to load it from working directory
-	strcat(ttfPath, ".ttf");
-    ttf_fh  = fopen(ttfPath, "rb");
-#if defined(WIN32)
-	if (!ttf_fh) {
-		strcpy(strrchr(strcpy(ttfPath, _pgmptr), '\\')+1, fName);			// Try to load it from where DOSBox-X was started
-		strcat(ttfPath, ".ttf");
-		ttf_fh  = fopen(ttfPath, "rb");
-	}
-#endif
-	if (!ttf_fh) {
-		strcpy(ttfPath, fName);
-		ttf_fh  = fopen(ttfPath, "rb");
-	}
-	if (!ttf_fh) {
-		std::string config_path;
-		Cross::GetPlatformConfigDir(config_path);
-		struct stat info;
-		if (!stat(config_path.c_str(), &info) && (info.st_mode & S_IFDIR)) {
-            strcpy(ttfPath, config_path.c_str());
-            strcat(ttfPath, fName);
-            strcat(ttfPath, ".ttf");
-            ttf_fh  = fopen(ttfPath, "rb");
-            if (!ttf_fh) {
-                strcpy(ttfPath, config_path.c_str());
-                strcat(ttfPath, fName);
-                ttf_fh  = fopen(ttfPath, "rb");
-            }
-        }
-    }
-#if defined(WIN32)
-	if (!ttf_fh) {
-		strcpy(strrchr(strcpy(ttfPath, _pgmptr), '\\')+1, fName);
-		ttf_fh  = fopen(ttfPath, "rb");
-	}
-    if (!ttf_fh) {
-        char winfontdir[MAX_PATH];
-        strcpy(winfontdir, "C:\\WINDOWS\\fonts\\");
-        struct stat wstat;
-        if(stat(winfontdir,&wstat) || !(wstat.st_mode & S_IFDIR)) {
-            char dir[MAX_PATH];
-            if (GetWindowsDirectory(dir, MAX_PATH)) {
-                strcpy(winfontdir, dir);
-                strcat(winfontdir, "\\fonts\\");
-            }
-        }
-        strcpy(ttfPath, winfontdir);
-        strcat(ttfPath, fName);
-        strcat(ttfPath, ".ttf");
-        ttf_fh = fopen(ttfPath, "rb");
-        if (!ttf_fh) {
-            strcpy(ttfPath, winfontdir);
-            strcat(ttfPath, fName);
-            ttf_fh  = fopen(ttfPath, "rb");
-        }
-    }
-#endif
-	if (ttf_fh) {
-		if (!fseek(ttf_fh, 0, SEEK_END))
-			if ((ttfSize = ftell(ttf_fh)) != -1L)
-				if (ttfFont = malloc((size_t)ttfSize))
-					if (!fseek(ttf_fh, 0, SEEK_SET))
-						if (fread(ttfFont, 1, (size_t)ttfSize, ttf_fh) == (size_t)ttfSize) {
-							fclose(ttf_fh);
-							return true;
-						}
-		fclose(ttf_fh);
-	}
-    if (!failName.size()||failName.compare(fName)) {
-        failName=std::string(fName);
-        std::string message="Could not load font file: "+std::string(fName)+(strlen(fName)<5||strcasecmp(fName+strlen(fName)-4, ".ttf")?".ttf":"");
-        systemmessagebox("Warning", message.c_str(), "ok","warning", 1);
-    }
-	return false;
-}
-
 void setTTFCodePage() {
 #if defined(WIN32)
     int cp = dos.loaded_codepage;
@@ -4241,159 +4420,6 @@ static void increaseFontSize() {
 		} else
 			GFX_SelectFontByPoints(ttf.pointsize - (ttf.DOSBox ? 2 : 1));
 	}
-}
-
-bool setColors(const char *colorArray, int n) {
-	const char * nextRGB = colorArray;
-	uint8_t * altPtr = (uint8_t *)altBGR1;
-	int rgbVal[3];
-	for (int colNo = 0; colNo < (n>-1?1:16); colNo++) {
-		if (n>-1) altPtr+=4*n;
-		if (sscanf(nextRGB, " ( %d , %d , %d)", &rgbVal[0], &rgbVal[1], &rgbVal[2]) == 3) {	// Decimal: (red,green,blue)
-			for (int i = 0; i< 3; i++) {
-				if (rgbVal[i] < 0 || rgbVal[i] >255)
-					return false;
-				altPtr[2-i] = rgbVal[i];
-			}
-			while (*nextRGB != ')')
-				nextRGB++;
-			nextRGB++;
-		} else if (sscanf(nextRGB, " #%6x", &rgbVal[0]) == 1) {							// Hexadecimal
-			if (rgbVal < 0)
-				return false;
-			for (int i = 0; i < 3; i++) {
-				altPtr[i] = rgbVal[0]&255;
-				rgbVal[0] >>= 8;
-			}
-			nextRGB = strchr(nextRGB, '#') + 7;
-		} else
-			return false;
-		altPtr += 4;
-	}
-	for (int i = n>-1?n:0; i < (n>-1?n+1:16); i++) {
-		altBGR0[i].blue = (altBGR1[i].blue*2 + 128)/4;
-		altBGR0[i].green = (altBGR1[i].green*2 + 128)/4;
-		altBGR0[i].red = (altBGR1[i].red*2 + 128)/4;
-	}
-	return true;
-}
-
-bool initttf = false;
-void OUTPUT_TTF_Select() {
-    bool alter_vmode=false;
-    if (!initttf&&TTF_Init()) {											// Init SDL-TTF
-        std::string message = "Could not init SDL-TTF: " + std::string(SDL_GetError());
-        systemmessagebox("Error", message.c_str(), "ok","error", 1);
-        sdl.desktop.want_type = SCREEN_SURFACE;
-        return;
-    }
-    Section_prop * render_section=static_cast<Section_prop *>(control->GetSection("render"));
-    const char * fName = render_section->Get_string("ttf.font");
-    LOG_MSG("SDL:TTF activated %s", fName);
-    if (!*fName||!readTTF(fName))
-        ttf.DOSBox = true;
-	const char * colors = render_section->Get_string("ttf.colors");
-	if (*colors) {
-		if (setColors(colors,-1)) {
-            for (int i = 0; i < 16; i++) {
-                rgbColors[i].red = altBGR1[i].blue;
-                rgbColors[i].green = altBGR1[i].green;
-                rgbColors[i].blue = altBGR1[i].red;
-            }
-			rgbColors = altBGR1;
-			colorsLocked = true;
-		} else {
-			LOG_MSG("Incorrect color scheme: %s", colors);
-            setColors("#000000 #0000aa #00aa00 #00aaaa #aa0000 #aa00aa #aa5500 #aaaaaa #555555 #5555ff #55ff55 #55ffff #ff5555 #ff55ff #ffff55 #ffffff",-1);
-        }
-	}
-    wpVersion = render_section->Get_int("ttf.wp");
-    int winPerc = render_section->Get_int("ttf.winperc");
-    if (winPerc>100) winPerc=100;
-    else if (winPerc<25) winPerc=25;
-    if (winPerc == 100) ttf.fullScrn = true;
-    int fontSize = render_section->Get_int("ttf.ptsize");
-    ttf.lins = render_section->Get_int("ttf.lins");
-    ttf.cols = render_section->Get_int("ttf.cols");
-    if (ttf.lins<1||ttf.cols<1)	{
-        uint16_t c=0, r=0;
-        if (IS_PC98_ARCH) {
-            c=80;
-            r=real_readb(0x60,0x113) & 0x01 ? 25 : 20;
-        } else if (CurMode&&CurMode->type==M_TEXT) {
-            c=real_readw(BIOSMEM_SEG,BIOSMEM_NB_COLS);
-            r=(uint16_t)real_readb(BIOSMEM_SEG,BIOSMEM_NB_ROWS)+1;
-        } else {
-            c=80;
-            r=25;
-        }
-        if (ttf.cols<1)
-            ttf.cols = c;
-        else
-            ttf.lins = MAX(24, MIN(txtMaxLins, ttf.lins));
-        if (ttf.lins<1)
-            ttf.lins = r;
-        else
-            ttf.cols = MAX(40, MIN(txtMaxCols, ttf.cols));
-    } else {
-        ttf.lins = MAX(24, MIN(txtMaxLins, ttf.lins));
-        ttf.cols = MAX(40, MIN(txtMaxCols, ttf.cols));
-        alter_vmode = true;
-    }
-    blinkCursor = render_section->Get_bool("ttf.blinkc");
-    if (alter_vmode) {
-        for (Bitu i = 0; ModeList_VGA[i].mode != 0xffff; i++) {										// set the cols and lins in video mode 3
-            if (ModeList_VGA[i].mode == 3) {
-                ModeList_VGA[i].twidth = ttf.cols;
-                ModeList_VGA[i].theight = ttf.lins;
-                break;
-            }
-        }
-    }
-
-    int maxWidth = sdl.desktop.full.width;
-    int maxHeight = sdl.desktop.full.height;
-
-#if DOSBOXMENU_TYPE == DOSBOXMENU_SDLDRAW /* SDL drawn menus */
-    maxHeight -= mainMenu.menuBarHeightBase * 2;
-#endif
-
-#if defined(WIN32)
-    maxWidth = GetSystemMetrics(SM_CXSCREEN);
-    maxHeight = GetSystemMetrics(SM_CYSCREEN);
-    if (!ttf.fullScrn) {																			// 3D borders
-        maxWidth -= GetSystemMetrics(SM_CXBORDER)*2;
-        maxHeight -= GetSystemMetrics(SM_CYCAPTION) + GetSystemMetrics(SM_CYBORDER)*2;
-    }
-#endif
-    int	curSize = fontSize>9?fontSize:30;															// no clear idea what would be a good starting value
-    int lastGood = -1;
-    int trapLoop = 0;
-
-    if (fontSize<10) {
-        while (curSize != lastGood)
-            {
-            GFX_SelectFontByPoints(curSize);
-            if (ttf.cols*ttf.width <= maxWidth && ttf.lins*ttf.height <= maxHeight)					// if it fits on screen
-                {
-                lastGood = curSize;
-                float coveredPerc = float(100*ttf.cols*ttf.width/maxWidth*ttf.lins*ttf.height/maxHeight);
-                if (trapLoop++ > 4 && coveredPerc <= winPerc)										// we can get into a +/-/+/-... loop!
-                    break;
-                curSize = (int)(curSize*sqrt((float)winPerc/coveredPerc));							// rounding down is ok
-                if (curSize < 10)																	// minimum size = 12
-                    curSize = 10;
-                }
-            else if (--curSize < 10)																// silly, but OK, one never can tell..
-                E_Exit("Cannot accommodate a window for %dx%d", ttf.lins, ttf.cols);
-            }
-        if (ttf.DOSBox)																				// make it even for DOSBox-X internal font (a bit nicer)
-            curSize &= ~1;
-    }
-    GFX_SelectFontByPoints(curSize);
-    if (fontSize>9 && 100*ttf.cols*ttf.width/maxWidth*ttf.lins*ttf.height/maxHeight > 100)
-        E_Exit("Cannot accommodate a window for %dx%d", ttf.lins, ttf.cols);
-    sdl.desktop.want_type = SCREEN_TTF;
 }
 #endif
 
@@ -4620,8 +4646,8 @@ static void GUI_StartUp() {
     std::string output=section->Get_string("output");
     std::string mtype(static_cast<Section_prop *>(control->GetSection("dosbox"))->Get_string("machine"));
 
-    if (output == "ttf" && (mtype == "mcga" || mtype == "tandy" || mtype == "pcjr"))
-        output = "default";
+    //if (output == "ttf" && (mtype == "tandy" || mtype == "pcjr"))
+        //output = "default";
 	if (output == "default") {
 #ifdef __WIN32__
 # if defined(HX_DOS)
@@ -9352,8 +9378,7 @@ void ttf_setlines(int cols, int lins) {
     (void)lins;
     SetVal("render", "ttf.cols", std::to_string(cols));
     SetVal("render", "ttf.lins", std::to_string(lins));
-    OUTPUT_TTF_Select();
-    resetFontSize();
+    ttf_reset();
     real_writeb(BIOSMEM_SEG,BIOSMEM_NB_COLS,ttf.cols);
     real_writeb(BIOSMEM_SEG,BIOSMEM_NB_ROWS,ttf.lins-1);
 }
