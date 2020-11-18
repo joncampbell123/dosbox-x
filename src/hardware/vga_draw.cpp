@@ -3030,31 +3030,8 @@ static void VGA_VerticalTimer(Bitu /*val*/) {
                         assert(uname[1]==0);
                         if (uname[0]!=0)
                             *draw++=uname[0];
-                        else {
-                            *draw++=(j1+1)/2+(j1<95?112:176);
-                            Bitu attr = *attrram;
-                            attrram++;
-                            // for simplicity at this time, just map PC-98 attributes to VGA colors. Wengier and I can clean this up later --J.C.
-                            Bitu background = 0;
-                            Bitu foreground = (attr>>5)&7;
-                            if (attr & 8) {//underline
-                                // TODO
-                            }
-                            if (attr & 4) {//reverse
-                                background = foreground;
-                                foreground = 0;
-                            }
-                            if (attr & 2) {//blink
-                                // TODO
-                            }
-                            if (!(attr & 1)) {//invisible
-                                *draw = 0x20;
-                            }
-                            *draw++ = (background<<4) + foreground;
-                            charram++;
-                            attrram++;
-                            *draw++=j2+(j1%2?31+(j2/96):126);
-                        }
+                        else
+                            *draw++=' ';
                     } else
                         *draw++ = *draw & 0xFF;
                 } else if (*charram & 0xFF80u)
