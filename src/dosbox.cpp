@@ -2351,8 +2351,11 @@ void DOSBOX_SetupConfigSections(void) {
 	Pint = secprop->Add_int("ttf.cols", Property::Changeable::Always, 0);
     Pint->Set_help("Specifies the number of columns on the screen for the TTF output (0 = default).");
 
-	Pint = secprop->Add_int("ttf.wp", Property::Changeable::Always, 0);
+	Pint = secprop->Add_int("ttf.wpver", Property::Changeable::Always, 0);
     Pint->Set_help("You can optionally specify a word processor version for the TTF output.");
+
+	Pint = secprop->Add_int("ttf.wpbg", Property::Changeable::Always, -1);
+    Pint->Set_help("You can optionally specify a color to match the background color of the word processor for the TTF output.");
 
 	Pbool = secprop->Add_bool("ttf.blinkc", Property::Changeable::Always, false);
     Pbool->Set_help("If set, the cursor will blink for the TTF output.");
