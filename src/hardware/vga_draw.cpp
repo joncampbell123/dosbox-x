@@ -2784,6 +2784,8 @@ void VGA_CaptureWriteScanline(const uint8_t *raw) {
     }
 }
 
+bool CodePageGuestToHostUint16(uint16_t *d/*CROSS_LEN*/,const char *s/*CROSS_LEN*/);
+
 static void VGA_VerticalTimer(Bitu /*val*/) {
     double current_time = PIC_GetCurrentEventTime();
 
@@ -3011,6 +3013,7 @@ static void VGA_VerticalTimer(Bitu /*val*/) {
         if (IS_PC98_ARCH) {
             const uint16_t* charram = (uint16_t*)&vga.draw.linear_base[0x0000];         // character data
             const uint16_t* attrram = (uint16_t*)&vga.draw.linear_base[0x2000];         // attribute data
+            uint16_t uname[4];
 
             for (Bitu blocks = ttf.cols * ttf.lins; blocks; blocks--) {
                 if ((*charram & 0xFF00u) && (*charram & 0xFCu) != 0x08u && *charram == *(charram+1)) {
@@ -3021,8 +3024,11 @@ static void VGA_VerticalTimer(Bitu /*val*/) {
                         text[0]=(j1+1)/2+(j1<95?112:176);
                         text[1]=j2+(j1%2?31+(j2/96):126);
                         text[2]=0;
-                        host_cnv_char_t *uname = CodePageGuestToHost(text);  // NTS: Unfortunately, this only works for Windows at this time
-                        if (uname!=NULL)                                     // because UTF-16 is desired instead of UTF-8.
+                        uname[0]=0;
+                        uname[1]=0;
+                        CodePageGuestToHostUint16(uname,text);
+                        assert(uname[1]==0);
+                        if (uname[0]!=0)
                             *draw++=uname[0];
                         else {
                             *draw++=(j1+1)/2+(j1<95?112:176);
