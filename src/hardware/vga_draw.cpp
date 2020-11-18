@@ -3022,7 +3022,7 @@ static void VGA_VerticalTimer(Bitu /*val*/) {
                  *      in fact if the hardware sees a double-wide in the first cell it will just render the double-wide
                  *      for two cells and ignore the second cell. There are some exceptions though, including the custom
                  *      modificable cells in RAM (responsible for such bugs as the Touhou Project ~idnight level name display bug). */
-                if ((*charram & 0xFF00u) && (*charram & 0xFCu) != 0x08u/* && (*charram&0x7F7F) == (*(charram+1)&0x7F7F)*/) {
+                if ((*charram & 0xFF00u) && (*charram & 0x7Cu) != 0x08u/* && (*charram&0x7F7F) == (*(charram+1)&0x7F7F)*/) {
 					*draw=*charram&0x7F7F;
                     uint8_t j1=(*draw%0x100)+0x20, j2=*draw/0x100;
 					if (j1>32&&j1<127&&j2>32&&j2<127) {
