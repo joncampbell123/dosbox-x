@@ -3016,7 +3016,7 @@ static void VGA_VerticalTimer(Bitu /*val*/) {
             uint16_t uname[4];
 
             for (Bitu blocks = ttf.cols * ttf.lins; blocks; blocks--) {
-                if ((*charram & 0xFF00u) && (*charram & 0xFCu) != 0x08u && *charram == *(charram+1)) {
+                if ((*charram & 0xFF00u) && (*charram & 0xFCu) != 0x08u && (*charram&0x7F7F) == (*(charram+1)&0x7F7F)) {
 					*draw=*charram&0x7F7F;
                     uint8_t j1=(*draw%0x100)+0x20, j2=*draw/0x100;
 					if (j1>32&&j1<127&&j2>32&&j2<127) {
