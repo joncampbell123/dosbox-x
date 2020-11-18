@@ -28,6 +28,7 @@
 #include "bios.h"
 #include "programs.h"
 #include "render.h"
+#include "menu.h"
 
 #define SEQ_REGS 0x05
 #define GFX_REGS 0x09
@@ -714,6 +715,10 @@ bool INT10_SetCurMode(void) {
 	return mode_changed;
 }
 
+#if defined(USE_TTF)
+extern bool firstset;
+bool TTF_using(void);
+#endif
 static void FinishSetMode(bool clearmem) {
 	/* Clear video memory if needs be */
 	if (clearmem) {
@@ -770,6 +775,18 @@ static void FinishSetMode(bool clearmem) {
 	/* Setup the BIOS */
 	if (CurMode->mode<128) real_writeb(BIOSMEM_SEG,BIOSMEM_CURRENT_MODE,(uint8_t)CurMode->mode);
 	else real_writeb(BIOSMEM_SEG,BIOSMEM_CURRENT_MODE,(uint8_t)(CurMode->mode-0x98));	//Looks like the s3 bios
+#if defined(USE_TTF)
+    if (TTF_using() && CurMode->type==M_TEXT) {
+        if (ttf.inUse) {
+            ttf.cols = CurMode->twidth;
+            ttf.lins = CurMode->theight;
+        } else if (firstset && ttf.lins && ttf.cols) {
+            CurMode->twidth = ttf.cols;
+            CurMode->theight = ttf.lins;
+            firstset = false;
+        }
+    }
+#endif
 	real_writew(BIOSMEM_SEG,BIOSMEM_NB_COLS,(uint16_t)CurMode->twidth);
 	real_writew(BIOSMEM_SEG,BIOSMEM_PAGE_SIZE,(uint16_t)CurMode->plength);
 	real_writew(BIOSMEM_SEG,BIOSMEM_CRTC_ADDRESS,((CurMode->mode==7 )|| (CurMode->mode==0x0f)) ? 0x3b4 : 0x3d4);
@@ -1099,7 +1116,8 @@ bool INT10_SetVideoMode_OTHER(uint16_t mode,bool clearmem) {
 
 #if defined(USE_TTF)
 extern bool resetreq;
-void ttf_reset(void), resetFontSize(), OUTPUT_TTF_Select(int fsize);
+bool GFX_IsFullscreen(void);
+void ttf_reset(void), resetFontSize(), OUTPUT_TTF_Select(int fsize), GFX_SwitchFullscreenNoReset(void);
 #endif
 
 bool unmask_irq0_on_int10_setmode = true;
@@ -1998,11 +2016,10 @@ dac_text16:
             void OutputSettingMenuUpdate(void);
             OutputSettingMenuUpdate();
             change_from_ttf_to_surface = false;
+            mainMenu.get_item("output_ttf").enable(true).refresh_item(mainMenu);
             if (ttf.fullScrn) {
-                bool GFX_IsFullscreen(void);
-                void GFX_SwitchFullscreenNoReset(void);
                 if (!GFX_IsFullscreen()) GFX_SwitchFullscreenNoReset();
-                OUTPUT_TTF_Select(0);
+                OUTPUT_TTF_Select(2);
                 resetreq = true;
             }
             resetFontSize();
@@ -2013,6 +2030,8 @@ dac_text16:
         void OutputSettingMenuUpdate(void);
         OutputSettingMenuUpdate();
         change_from_ttf_to_surface = true;
+        //if (GFX_IsFullscreen()) GFX_SwitchFullscreenNoReset();
+        mainMenu.get_item("output_ttf").enable(false).refresh_item(mainMenu);
 #endif
     }
 	// Enable screen memory access

@@ -248,6 +248,7 @@ static void decreaseFontSize();
 SDL_Block sdl;
 Bitu frames = 0;
 int wpVersion = 0;
+int wpBG = -1;
 unsigned int page=0;
 unsigned int sendkeymap=0;
 
@@ -3247,7 +3248,8 @@ void OUTPUT_TTF_Select(int fsize=-1) {
             }
         }
         blinkCursor = render_section->Get_bool("ttf.blinkc");
-        wpVersion = render_section->Get_int("ttf.wp");
+        wpVersion = render_section->Get_int("ttf.wpver");
+        wpBG = render_section->Get_int("ttf.wpbg");
         winPerc = render_section->Get_int("ttf.winperc");
         if (winPerc>100||fsize!=1&&(control->opt_fullscreen||static_cast<Section_prop *>(control->GetSection("sdl"))->Get_bool("fullscreen"))) winPerc=100;
         else if (winPerc<25) winPerc=25;
@@ -3256,8 +3258,10 @@ void OUTPUT_TTF_Select(int fsize=-1) {
         ttf.lins = render_section->Get_int("ttf.lins");
         ttf.cols = render_section->Get_int("ttf.cols");
         if ((!CurMode||CurMode->type!=M_TEXT)&&!IS_PC98_ARCH) {
-            ttf.cols=80;
-            ttf.lins=25;
+            if (ttf.cols<1) ttf.cols=80;
+            if (ttf.lins<1) ttf.lins=25;
+            ttf.lins = MAX(24, MIN(txtMaxLins, ttf.lins));
+            ttf.cols = MAX(40, MIN(txtMaxCols, ttf.cols));
         } else if (firstset) {
             bool alter_vmode=false;
             uint16_t c=0, r=0;
@@ -3288,7 +3292,7 @@ void OUTPUT_TTF_Select(int fsize=-1) {
             }
             if (alter_vmode) {
                 for (Bitu i = 0; ModeList_VGA[i].mode != 0xffff; i++) {										// set the cols and lins in video mode 3
-                    if (ModeList_VGA[i].mode == 3) {
+                    if (ModeList_VGA[i].mode <= 7) {
                         ModeList_VGA[i].twidth = ttf.cols;
                         ModeList_VGA[i].theight = ttf.lins;
                         break;
@@ -3359,7 +3363,7 @@ void OUTPUT_TTF_Select(int fsize=-1) {
                 if (trapLoop++ > 4 && coveredPerc <= winPerc)										// we can get into a +/-/+/-... loop!
                     break;
                 curSize = (int)(curSize*sqrt((float)winPerc/coveredPerc));							// rounding down is ok
-                if (curSize < 10)																	// minimum size = 12
+                if (curSize < 10)																	// minimum size = 10
                     curSize = 10;
                 }
             else if (--curSize < 10)																// silly, but OK, one never can tell..
@@ -3818,23 +3822,77 @@ void GFX_OpenGLRedrawScreen(void) {
 
 #if defined(USE_TTF)
 void processWP(uint8_t *pcolorBG, uint8_t *pcolorFG) {
+    if (!wpVersion) return;
     uint8_t colorBG = *pcolorBG, colorFG = *pcolorFG;
-    if (wpVersion > 0)																// If WP and not negative (color value to text attribute excluded)
+    int style = 0;
+    if (CurMode->mode == 7)															// Mono (Hercules)
     {
-        if (colorFG == 0xe && colorBG == 1)
+        TTF_SetFontStyle(ttf.SDL_font, (colorFG&7) == 1 ? TTF_STYLE_UNDERLINE : TTF_STYLE_NORMAL);
+        if ((colorFG&0xa) == colorFG && (colorBG&15) == 0)
+            colorFG = 8;
+        else if (colorFG&7)
+            colorFG |= 7;
+    }
+    else if (wpVersion > 0)															// If WP and not negative (color value to text attribute excluded)
+    {
+        if (colorFG == 0xe && (colorBG&15) == 1)
         {
-            TTF_SetFontStyle(ttf.SDL_font, TTF_STYLE_ITALIC);
+            style = TTF_STYLE_ITALIC;
             colorFG = 7;
         }
-        else if ((colorFG == 1 || colorFG == 0xf) && colorBG == 7)
+        else if ((colorFG == 1 || colorFG == 0xf) && (colorBG&15) == 7)
         {
-            TTF_SetFontStyle(ttf.SDL_font, TTF_STYLE_UNDERLINE);
+            style = TTF_STYLE_UNDERLINE;
             colorBG = 1;
             colorFG = colorFG == 1 ? 7 : 0xf;
         }
-        else
-            TTF_SetFontStyle(ttf.SDL_font, TTF_STYLE_NORMAL);
+        else if (colorFG == 0 && (colorBG&15) == 3)
+        {
+            style = TTF_STYLE_STRIKETHROUGH;
+            colorBG = 1;
+            colorFG = 7;
+        }
+    } else if (wpVersion == -1) {
+        if ((colorFG == 10 || colorFG == 14) && colorBG != 12)
+            {
+            style = TTF_STYLE_ITALIC;
+            if (colorBG == 3)
+                {
+                style |= TTF_STYLE_UNDERLINE;
+                colorBG = wpBG > -1 ? wpBG : 1;
+                }
+            colorFG = colorFG == 10 ? 7:15;
+            }
+        else if (colorFG == 3 || colorFG == 0xb)
+            {
+            style = TTF_STYLE_UNDERLINE;
+            colorFG = colorFG == 3 ? 7:15;
+            }
+    } else if (wpVersion == -2) {
+        if (colorBG&8)
+        {
+            if (colorBG&1)
+                style |= TTF_STYLE_UNDERLINE;
+            if (colorBG&2)
+                style |= TTF_STYLE_ITALIC;
+            if (colorBG&4)
+                style |= TTF_STYLE_STRIKETHROUGH;
+            if (style) {
+                TTF_SetFontStyle(ttf.SDL_font, style);
+                colorBG = wpBG > -1 ? wpBG : 0;
+            }
+        }
     }
+    if (colorFG == 15) {
+        if (!(style&TTF_STYLE_ITALIC)) style |= TTF_STYLE_BOLD;
+        if ((style&TTF_STYLE_ITALIC)||!(style&TTF_STYLE_ITALIC)) colorFG = 7;
+    }
+    if (style)
+        TTF_SetFontStyle(ttf.SDL_font, style);
+    else
+        TTF_SetFontStyle(ttf.SDL_font, TTF_STYLE_NORMAL);
+    *pcolorBG = colorBG;
+    *pcolorFG = colorFG;
 }
 
 void GFX_EndTextLines(bool force=false) {
@@ -3880,16 +3938,18 @@ void GFX_EndTextLines(bool force=false) {
 	ttf_textClip.h = ttf.height;
 	ttf_textClip.y = 0;
 	for (int y = 0; y < ttf.lins; y++) {
+        bool dbchar = false, updatenext = false;
 		ttf_textRect.y = ttf.offY+y*ttf.height;
 		for (int x = 0; x < ttf.cols; x++) {
-			if (newAC[x] != curAC[x] || force) {
+			if (newAC[x] != curAC[x] || force || updatenext) {
+                updatenext=IS_PC98_ARCH&&(curAC[x]&0xFF00);
 				xmin = min(x, xmin);
 				ymin = min(y, ymin);
 				ymax = y;
 				ttf_textRect.x = ttf.offX+x*ttf.width;
 
-				uint8_t colorBG = newAC[x]>>12;
-				uint8_t colorFG = (newAC[x]>>8)&15;
+				uint8_t colorBG = newAC[x]>>20;
+				uint8_t colorFG = (newAC[x]>>16)&15;
 				if (!IS_VGA_ARCH) colorBG &= 15;
 				processWP(&colorBG, &colorFG);
 
@@ -3901,6 +3961,7 @@ void GFX_EndTextLines(bool force=false) {
 				ttf_fgColor.b = colorsLocked?altBGR1[colorFG&15].blue:rgbColors[colorFG].red;
 
 				int x1 = x;
+
 				uint8_t ascii = newAC[x]&255;
 				if (ascii > 175 && ascii < 179) {					// special: shade characters 176-178
 					ttf_bgColor.b = (ttf_bgColor.b*(179-ascii) + ttf_fgColor.b*(ascii-175))>>2;
@@ -3913,22 +3974,28 @@ void GFX_EndTextLines(bool force=false) {
 					}
 					while (x < ttf.cols && newAC[x] == newAC[x1] && newAC[x] != curAC[x]);
 				} else {
-					uint8_t color = newAC[x]>>8;
+					uint8_t color = newAC[x]>>16;
 					do {											// as long foreground/background color equal
 						curAC[x] = newAC[x];
-						unimap[x-x1] = cpMap[ascii];
-						x++;
-						ascii = newAC[x]&255;
+                        if ((newAC[x]&0xFFFF) != 32) dbchar = false;
+                        if (dbchar) {
+                            dbchar = false;
+                        } else {
+                            dbchar = IS_PC98_ARCH&&(newAC[x]&0xFF00);
+                            unimap[x-x1] = dbchar?newAC[x]&0xFFFF:cpMap[ascii];
+                            x++;
+                            ascii = newAC[x]&255;
+                        }
 					}
 					while (x < ttf.cols && newAC[x] != curAC[x] && newAC[x]>>8 == color && (ascii < 176 || ascii > 178));
 				}
 				unimap[x-x1] = 0;
 				xmax = max(x-1, xmax);
 
-				SDL_Surface* textSurface = TTF_RenderUNICODE_Shaded(ttf.SDL_font, unimap, ttf_fgColor, ttf_bgColor);
-				ttf_textClip.w = (x-x1)*ttf.width;
-				SDL_BlitSurface(textSurface, &ttf_textClip, sdl.surface, &ttf_textRect);
-				SDL_FreeSurface(textSurface);
+                SDL_Surface* textSurface = TTF_RenderUNICODE_Shaded(ttf.SDL_font, unimap, ttf_fgColor, ttf_bgColor);
+                ttf_textClip.w = (x-x1)*ttf.width*(dbchar?2:1);
+                SDL_BlitSurface(textSurface, &ttf_textClip, sdl.surface, &ttf_textRect);
+                SDL_FreeSurface(textSurface);
 				x--;
 			}
 		}
@@ -3958,8 +4025,8 @@ void GFX_EndTextLines(bool force=false) {
 			ttf.cursor = newPos;
 //			if (x >= xmin && x <= xmax && y >= ymin && y <= ymax  && (GetTickCount()&0x400))	// If overdrawn previuosly (or new shape)
 			if (x >= xmin && x <= xmax && y >= ymin && y <= ymax) {							// If overdrawn previuosly (or new shape)
-				uint8_t colorBG = newAttrChar[ttf.cursor]>>12;
-				uint8_t colorFG = (newAttrChar[ttf.cursor]>>8)&15;
+				uint8_t colorBG = newAttrChar[ttf.cursor]>>20;
+				uint8_t colorFG = (newAttrChar[ttf.cursor]>>16)&15;
 				if (!IS_VGA_ARCH) colorBG &= 15;
 				processWP(&colorBG, &colorFG);
 

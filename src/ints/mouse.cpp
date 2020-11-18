@@ -712,34 +712,6 @@ uint8_t Mouse_GetButtonState(void) {
 char text[5000];
 const char* Mouse_GetSelected(int x1, int y1, int x2, int y2, int w, int h, uint16_t *textlen) {
 	uint16_t result=0, len=0;
-	text[0]=0;
-#if defined(USE_TTF)
-    if (ttf.inUse) {
-        int selPosX1=(x1-ttf.offX)/ttf.width;
-        int selPosX2=(x2-ttf.offX)/ttf.width;
-        int selPosY1=(y1-ttf.offY)/ttf.height;
-        int selPosY2=(y2-ttf.offY)/ttf.height;
-        for (int line = selPosY1; line <= selPosY2; line++) {
-            uint32_t *curAC = curAttrChar + line*ttf.cols + selPosX1;
-            int lastNotSpace = len;
-            for (int col = selPosX1; col <= selPosX2; col++) {
-                uint8_t textChar =  *(curAC++)&255;
-                text[len++] = textChar;
-                if (textChar != 32)
-                    lastNotSpace = len;
-            }
-            len = lastNotSpace;
-            if (line != selPosY2) {
-                text[len++]='\r';
-                text[len++]='\n';
-            }
-            curAC += ttf.cols;
-        }
-        text[len]=0;
-        *textlen=len;
-        return text;
-    }
-#endif
 	uint8_t page = real_readb(BIOSMEM_SEG,BIOSMEM_CURRENT_PAGE);
 	uint16_t c=0, r=0;
 	if (IS_PC98_ARCH) {
@@ -760,6 +732,7 @@ const char* Mouse_GetSelected(int x1, int y1, int x2, int y2, int w, int h, uint
 		r1=r2;
 		r2=t;
 	}
+	text[0]=0;
 	for (int i=r1; i<=r2; i++) {
 		for (int j=c1; j<=c2; j++) {
 			if (IS_PC98_ARCH) {
@@ -812,12 +785,27 @@ void Mouse_Select(int x1, int y1, int x2, int y2, int w, int h) {
 		r1=r2;
 		r2=t;
 	}
+#if defined(USE_TTF)
+    if (ttf.inUse&&!IS_EGAVGA_ARCH) {
+        uint32_t *newAC = newAttrChar;
+        for (int y = 0; y < ttf.lins; y++) {
+            if (y>=r1&&y<=r2)
+                for (int x = 0; x < ttf.cols; x++)
+                    if (x>=c1&&x<=c2)
+                        newAC[x]&=((newAC[x]>>16)<<20)+((newAC[x]>>20)<<16)+(newAC[x]&0xFFFF);
+            newAC += ttf.cols;
+        }
+        void GFX_EndTextLines(bool force=false);
+        GFX_EndTextLines();
+        return;
+    }
+#endif
 	for (int i=r1; i<=r2; i++)
 		for (int j=c1; j<=c2; j++) {
 			if (IS_PC98_ARCH) {
 				uint16_t address=((i*80)+j)*2;
 				PhysPt where = CurMode->pstart+address;
-                mem_writeb(where+0x2000,mem_readb(where+0x2000)^16);
+				mem_writeb(where+0x2000,mem_readb(where+0x2000)^16);
 			} else
 				real_writeb(0xb800,(i*c+j)*2+1,real_readb(0xb800,(i*c+j)*2+1)^119);
 		}
