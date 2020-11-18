@@ -142,6 +142,37 @@ template <class MT> bool String_SBCS_TO_HOST(host_cnv_char_t *d/*CROSS_LEN*/,con
     return true;
 }
 
+/* needed for Wengier's TTF output and PC-98 mode */
+template <class MT> bool String_DBCS_TO_HOST_SHIFTJIS_uint16(uint16_t *d/*CROSS_LEN*/,const char *s/*CROSS_LEN*/,const MT *hitbl,const MT *rawtbl,const size_t rawtbl_max) {
+    const uint16_t* df = d + CROSS_LEN - 1;
+	const char *sf = s + CROSS_LEN - 1;
+
+    while (*s != 0 && s < sf) {
+        uint16_t ic = (unsigned char)(*s++);
+        if ((ic & 0xE0) == 0x80 || (ic & 0xE0) == 0xE0) {
+            if (*s == 0) return false;
+            ic <<= 8U;
+            ic += (unsigned char)(*s++);
+        }
+
+        MT rawofs = hitbl[ic >> 6];
+        if (rawofs == 0xFFFF)
+            return false;
+
+        assert((size_t)(rawofs+ (Bitu)0x40) <= rawtbl_max);
+        MT wc = rawtbl[rawofs + (ic & 0x3F)];
+        if (wc == 0x0000)
+            return false;
+
+        *d++ = (uint16_t)wc;
+    }
+
+    assert(d <= df);
+    *d = 0;
+
+    return true;
+}
+
 template <class MT> bool String_DBCS_TO_HOST_SHIFTJIS(host_cnv_char_t *d/*CROSS_LEN*/,const char *s/*CROSS_LEN*/,const MT *hitbl,const MT *rawtbl,const size_t rawtbl_max) {
     const host_cnv_char_t* df = d + CROSS_LEN - 1;
 	const char *sf = s + CROSS_LEN - 1;
@@ -327,6 +358,17 @@ bool CodePageHostToGuest(char *d/*CROSS_LEN*/,const host_cnv_char_t *s/*CROSS_LE
                 LOG_MSG("WARNING: No translation support (to guest) for code page %u",dos.loaded_codepage);
             }
             return String_HOST_TO_ASCII(d,s);
+    }
+
+    return false;
+}
+
+bool CodePageGuestToHostUint16(uint16_t *d/*CROSS_LEN*/,const char *s/*CROSS_LEN*/) {
+    switch (dos.loaded_codepage) {
+        case 932:
+            return String_DBCS_TO_HOST_SHIFTJIS_uint16<uint16_t>(d,s,cp932_to_unicode_hitbl,cp932_to_unicode_raw,sizeof(cp932_to_unicode_raw)/sizeof(cp932_to_unicode_raw[0]));
+        default:
+            break;
     }
 
     return false;
