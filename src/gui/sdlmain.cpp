@@ -3963,7 +3963,7 @@ void GFX_EndTextLines(bool force=false) {
 				int x1 = x;
 
 				uint8_t ascii = newAC[x]&255;
-				if (ascii > 175 && ascii < 179) {					// special: shade characters 176-178
+				if (ascii > 175 && ascii < 179 && !IS_PC98_ARCH) {					// special: shade characters 176-178
 					ttf_bgColor.b = (ttf_bgColor.b*(179-ascii) + ttf_fgColor.b*(ascii-175))>>2;
 					ttf_bgColor.g = (ttf_bgColor.g*(179-ascii) + ttf_fgColor.g*(ascii-175))>>2;
 					ttf_bgColor.r = (ttf_bgColor.r*(179-ascii) + ttf_fgColor.r*(ascii-175))>>2;
