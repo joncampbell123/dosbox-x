@@ -3033,8 +3033,7 @@ static void VGA_VerticalTimer(Bitu /*val*/) {
                         uname[0]=0;
                         uname[1]=0;
                         CodePageGuestToHostUint16(uname,text);
-                        assert(uname[1]==0);
-                        if (uname[0]!=0) {
+                        if (uname[0]!=0&&uname[1]==0) {
                             *draw++=uname[0];
                             dbw=true;
                         }
@@ -3079,7 +3078,6 @@ static void VGA_VerticalTimer(Bitu /*val*/) {
                 }
             }
         } else if (CurMode&&CurMode->type==M_TEXT) {
-            vga.draw.address_add = ttf.cols * 2;
             if (IS_EGAVGA_ARCH) {
                 for (Bitu row=0;row < ttf.lins;row++) {
                     const uint32_t* vidmem = ((uint32_t*)vga.draw.linear_base)+vidstart;	// pointer to chars+attribs (EGA/VGA planar memory)
@@ -4418,6 +4416,9 @@ void VGA_SetupDrawing(Bitu /*val*/) {
     }
     width *= pix_per_char;
     VGA_CheckScanLength();
+#if defined(USE_TTF)
+    if (ttf.inUse) vga.draw.address_add = ttf.cols * 2;
+#endif
 
     /* for MCGA, need to "double scan" the screen in some cases */
     if (vga.other.mcga_mode_control & 2) { // 640x480 2-color
