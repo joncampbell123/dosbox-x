@@ -6814,6 +6814,7 @@ void DrawDOSBoxLogoVGA(unsigned int x,unsigned int y) {
 static int bios_pc98_posx = 0;
 
 static void BIOS_Int10RightJustifiedPrint(const int x,int &y,const char *msg) {
+    if (control->opt_fastlaunch) return;
     const char *s = msg;
 
     if (machine != MCH_PC98) {

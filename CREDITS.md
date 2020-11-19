@@ -43,6 +43,7 @@ A list of features ported from DOSBox Staging:
 A list of features ported from vDosPlus by Wengier:
 
 * Long filename support (improved for FAT drives since then by Wengier and joncampbell123)
+* TrueType font (TTF) output support (originally by Jos Schaars and heavily improved since then by Wengier)
 * Improved support for automatic drive mounting (Windows)
 * Support for clipboard copy and paste (improved since then by Wengier)
 * Several shell improvements

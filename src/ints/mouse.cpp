@@ -746,7 +746,11 @@ const char* Mouse_GetSelected(int x1, int y1, int x2, int y2, int w, int h, uint
 						text[len++]=(j1+1)/2+(j1<95?112:176);
 						text[len++]=j2+(j1%2?31+(j2/96):126);
 					}
-				} else
+				} else if (j==c1&&c1>0) {
+                    uint16_t prevres=mem_readw(where-2);
+                    if (!((prevres & 0xFF00u) != 0u && (prevres & 0xFCu) != 0x08u && prevres==result))
+                        text[len++]=result;
+                } else
 					text[len++]=result;
 			} else {
 				ReadCharAttr(j,i,page,&result);
@@ -791,14 +795,13 @@ void Mouse_Select(int x1, int y1, int x2, int y2, int w, int h) {
         for (int y = 0; y < ttf.lins; y++) {
             if (y>=r1&&y<=r2)
                 for (int x = 0; x < ttf.cols; x++)
-                    if (x>=c1&&x<=c2)
+                    if ((x>=c1||(IS_PC98_ARCH&&c1>0&&x==c1-1&&(newAC[x]&0xFF00)&&(newAC[x+1]&0xFF)==32))&&x<=c2)
                         newAC[x]&=((newAC[x]>>16)<<20)+((newAC[x]>>20)<<16)+(newAC[x]&0xFFFF);
             newAC += ttf.cols;
         }
         void GFX_EndTextLines(bool force=false);
         GFX_EndTextLines();
-        return;
-    }
+    } else
 #endif
 	for (int i=r1; i<=r2; i++)
 		for (int j=c1; j<=c2; j++) {

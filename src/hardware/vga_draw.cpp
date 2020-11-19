@@ -3033,8 +3033,7 @@ static void VGA_VerticalTimer(Bitu /*val*/) {
                         uname[0]=0;
                         uname[1]=0;
                         CodePageGuestToHostUint16(uname,text);
-                        assert(uname[1]==0);
-                        if (uname[0]!=0) {
+                        if (uname[0]!=0&&uname[1]==0) {
                             *draw++=uname[0];
                             dbw=true;
                         }
@@ -3078,27 +3077,10 @@ static void VGA_VerticalTimer(Bitu /*val*/) {
                     if (blocks != 0) blocks--; /* careful! The for loop is written to stop when blocks == 0 */
                 }
             }
-        } else if (IS_EGAVGA_ARCH&&CurMode&&CurMode->type==M_TEXT) {
-            if (1) {                                                                   // NTS: Use this code for now for different ttf.lins & cols support
-                const uint32_t* vidmem = (uint32_t*)&vga.draw.linear_base[vidstart];   // pointer to chars+attribs (EGA/VGA planar memory)
-                for (Bitu blocks = ttf.cols * ttf.lins; blocks; blocks--) {
-                    // NTS: Note this assumes EGA/VGA text mode that uses the "Odd/Even" mode memory mapping scheme to present video memory
-                    //      to the CPU as if CGA compatible text mode. Character data on plane 0, attributes on plane 1.
-                    *draw++ = *vidmem;
-                    Bitu attr = *((uint8_t*)vidmem+1);
-                    vidmem+=2;
-                    Bitu background = attr >> 4;
-                    if (vga.draw.blinking)                                             // if blinking is enabled bit7 is not mapped to attributes
-                        background &= 7;
-                    // choose foreground color if blinking not set for this cell or blink on
-                    Bitu foreground = (vga.draw.blink || (!(attr&0x80))) ? (attr&0xf) : background;
-                    // How about underline?
-                    *draw++ = (background<<4) + foreground;
-                }
-            } else {
+        } else if (CurMode&&CurMode->type==M_TEXT) {
+            if (IS_EGAVGA_ARCH) {
                 for (Bitu row=0;row < ttf.lins;row++) {
                     const uint32_t* vidmem = ((uint32_t*)vga.draw.linear_base)+vidstart;	// pointer to chars+attribs (EGA/VGA planar memory)
-
                     for (Bitu col=0;col < ttf.cols;col++) {
                         // NTS: Note this assumes EGA/VGA text mode that uses the "Odd/Even" mode memory mapping scheme to present video memory
                         //      to the CPU as if CGA compatible text mode. Character data on plane 0, attributes on plane 1.
@@ -3113,31 +3095,11 @@ static void VGA_VerticalTimer(Bitu /*val*/) {
                         // How about underline?
                         *draw++ = (background<<4) + foreground;
                     }
-
                     vidstart += vga.draw.address_add;
-                }
-            }
-        } else if (CurMode&&CurMode->type==M_TEXT) {
-            if (1) {                                                                   // NTS: Use this code for now for different ttf.lins & cols support
-                const uint16_t* vidmem = (uint16_t*)VGA_Text_Memwrap(vidstart);        // pointer to chars+attribs (EGA/VGA planar memory)
-                for (Bitu blocks = ttf.cols * ttf.lins; blocks; blocks--) {
-                    // NTS: Note this assumes EGA/VGA text mode that uses the "Odd/Even" mode memory mapping scheme to present video memory
-                    //      to the CPU as if CGA compatible text mode. Character data on plane 0, attributes on plane 1.
-                    *draw++ = *vidmem;
-                    Bitu attr = *((uint8_t*)vidmem+1);
-                    vidmem++;
-                    Bitu background = attr >> 4;
-                    if (vga.draw.blinking)                                             // if blinking is enabled bit7 is not mapped to attributes
-                        background &= 7;
-                    // choose foreground color if blinking not set for this cell or blink on
-                    Bitu foreground = (vga.draw.blink || (!(attr&0x80))) ? (attr&0xf) : background;
-                    // How about underline?
-                    *draw++ = (background<<4) + foreground;
                 }
             } else {
                 for (Bitu row=0;row < ttf.lins;row++) {
                     const uint16_t* vidmem = (uint16_t*)VGA_Text_Memwrap(vidstart);	// pointer to chars+attribs (EGA/VGA planar memory)
-
                     for (Bitu col=0;col < ttf.cols;col++) {
                         *draw++ = *vidmem;
                         Bitu attr = *((uint8_t*)vidmem+1);
@@ -3150,7 +3112,6 @@ static void VGA_VerticalTimer(Bitu /*val*/) {
                         // How about underline?
                         *draw++ = (background<<4) + foreground;
                     }
-
                     vidstart += vga.draw.address_add;
                 }
             }
@@ -4455,6 +4416,9 @@ void VGA_SetupDrawing(Bitu /*val*/) {
     }
     width *= pix_per_char;
     VGA_CheckScanLength();
+#if defined(USE_TTF)
+    if (ttf.inUse) vga.draw.address_add = ttf.cols * 2;
+#endif
 
     /* for MCGA, need to "double scan" the screen in some cases */
     if (vga.other.mcga_mode_control & 2) { // 640x480 2-color

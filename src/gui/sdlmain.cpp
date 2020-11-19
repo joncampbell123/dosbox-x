@@ -3827,7 +3827,7 @@ void processWP(uint8_t *pcolorBG, uint8_t *pcolorFG) {
     int style = 0;
     if (CurMode->mode == 7)															// Mono (Hercules)
     {
-        TTF_SetFontStyle(ttf.SDL_font, (colorFG&7) == 1 ? TTF_STYLE_UNDERLINE : TTF_STYLE_NORMAL);
+        style = (colorFG&7) == 1 ? TTF_STYLE_UNDERLINE : TTF_STYLE_NORMAL;
         if ((colorFG&0xa) == colorFG && (colorBG&15) == 0)
             colorFG = 8;
         else if (colorFG&7)
@@ -3963,7 +3963,8 @@ void GFX_EndTextLines(bool force=false) {
 				int x1 = x;
 
 				uint8_t ascii = newAC[x]&255;
-				if (ascii > 175 && ascii < 179 && !IS_PC98_ARCH) {					// special: shade characters 176-178
+				bool next=false;
+				if (ascii > 175 && ascii < 179 && !IS_PC98_ARCH) {	// special: shade characters 176-178 unless PC-98
 					ttf_bgColor.b = (ttf_bgColor.b*(179-ascii) + ttf_fgColor.b*(ascii-175))>>2;
 					ttf_bgColor.g = (ttf_bgColor.g*(179-ascii) + ttf_fgColor.g*(ascii-175))>>2;
 					ttf_bgColor.r = (ttf_bgColor.r*(179-ascii) + ttf_fgColor.r*(ascii-175))>>2;
@@ -3980,6 +3981,8 @@ void GFX_EndTextLines(bool force=false) {
                         if ((newAC[x]&0xFFFF) != 32) dbchar = false;
                         if (dbchar) {
                             dbchar = false;
+                            next=true;
+                            break;
                         } else {
                             dbchar = IS_PC98_ARCH&&(newAC[x]&0xFF00);
                             unimap[x-x1] = dbchar?newAC[x]&0xFFFF:cpMap[ascii];
@@ -3989,14 +3992,16 @@ void GFX_EndTextLines(bool force=false) {
 					}
 					while (x < ttf.cols && newAC[x] != curAC[x] && newAC[x]>>8 == color && (ascii < 176 || ascii > 178));
 				}
-				unimap[x-x1] = 0;
-				xmax = max(x-1, xmax);
+                if (!next) {
+                    unimap[x-x1] = 0;
+                    xmax = max(x-1, xmax);
 
-                SDL_Surface* textSurface = TTF_RenderUNICODE_Shaded(ttf.SDL_font, unimap, ttf_fgColor, ttf_bgColor);
-                ttf_textClip.w = (x-x1)*ttf.width*(dbchar?2:1);
-                SDL_BlitSurface(textSurface, &ttf_textClip, sdl.surface, &ttf_textRect);
-                SDL_FreeSurface(textSurface);
-				x--;
+                    SDL_Surface* textSurface = TTF_RenderUNICODE_Shaded(ttf.SDL_font, unimap, ttf_fgColor, ttf_bgColor);
+                    ttf_textClip.w = (x-x1)*ttf.width*(dbchar?2:1);
+                    SDL_BlitSurface(textSurface, &ttf_textClip, sdl.surface, &ttf_textRect);
+                    SDL_FreeSurface(textSurface);
+                    x--;
+                }
 			}
 		}
 		curAC += ttf.cols;
@@ -4397,35 +4402,36 @@ void RebootGuest(bool pressed) {
 }
 
 #if defined(USE_TTF)
+bool CodePageGuestToHostUint16(uint16_t *d/*CROSS_LEN*/,const char *s/*CROSS_LEN*/);
 void setTTFCodePage() {
-#if defined(WIN32)
     int cp = dos.loaded_codepage;
     if (cp) {
         LOG_MSG("Loaded system codepage: %d\n", cp);
-        unsigned char cTest[256];					// ASCII format
-        for (int i = 0; i < 256; i++)
-            cTest[i] = i;
-        uint16_t wcTest[256];
-        int size = MultiByteToWideChar(cp, 0, (char*)cTest, 256, NULL, 0);
-        if (size == 256) {
-            MultiByteToWideChar(cp, 0, (char*)cTest, 256, (LPWSTR)wcTest, size);
-            uint16_t unimap;
-            bool notMapped = false;
-            for (int y = 8; y < 16; y++)
-                for (int x = 0; x < 16; x++) {
-                    unimap = wcTest[y*16+x];
-                    if (!TTF_GlyphIsProvided(ttf.SDL_font, unimap)) {
-                        if (!notMapped) {
-                            LOG_MSG("ASCII Unicode Fixed");
-                            notMapped = true;
-                        }
-                        LOG_MSG("  %3d    %4x  %4x", y*16+x, unimap, cpMap[y*16+x]);
-                    } else
-                        cpMap[y*16+x] = unimap;
-                }
+        char text[2];
+        uint16_t uname[4], wcTest[256];
+        for (int i = 0; i < 256; i++) {
+            text[0]=i;
+            text[1]=0;
+            uname[0]=0;
+            uname[1]=0;
+            CodePageGuestToHostUint16(uname,text);
+            wcTest[i] = uname[1]==0?uname[0]:i;
         }
+        uint16_t unimap;
+        bool notMapped = false;
+        for (int y = 8; y < 16; y++)
+            for (int x = 0; x < 16; x++) {
+                unimap = wcTest[y*16+x];
+                if (!TTF_GlyphIsProvided(ttf.SDL_font, unimap)) {
+                    if (!notMapped) {
+                        LOG_MSG("ASCII Unicode Fixed");
+                        notMapped = true;
+                    }
+                    LOG_MSG("  %3d    %4x  %4x", y*16+x, unimap, cpMap[y*16+x]);
+                } else
+                    cpMap[y*16+x] = unimap;
+            }
     }
-#endif
 }
 
 void GFX_SelectFontByPoints(int ptsize) {
@@ -9395,6 +9401,13 @@ bool output_menu_callback(DOSBoxMenu * const menu,DOSBoxMenu::item * const menui
     else if (!strcmp(what,"ttf")) {
 #if defined(USE_TTF)
         if (sdl.desktop.want_type == SCREEN_TTF || CurMode->type!=M_TEXT) return true;
+#if C_DIRECT3D
+        if (sdl.desktop.want_type == SCREEN_DIRECT3D) change_output(0);
+#endif
+#if !defined(C_SDL2)
+        putenv("SDL_VIDEO_CENTERED=center");
+#endif
+        firstset=false;
         change_output(9);
 #endif
     }
