@@ -9401,6 +9401,13 @@ bool output_menu_callback(DOSBoxMenu * const menu,DOSBoxMenu::item * const menui
     else if (!strcmp(what,"ttf")) {
 #if defined(USE_TTF)
         if (sdl.desktop.want_type == SCREEN_TTF || CurMode->type!=M_TEXT) return true;
+#if C_DIRECT3D
+        if (sdl.desktop.want_type == SCREEN_DIRECT3D) change_output(0);
+#endif
+#if !defined(C_SDL2)
+        putenv("SDL_VIDEO_CENTERED=center");
+#endif
+        firstset=false;
         change_output(9);
 #endif
     }

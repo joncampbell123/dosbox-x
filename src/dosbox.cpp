@@ -2351,12 +2351,14 @@ void DOSBOX_SetupConfigSections(void) {
 
 	Pint = secprop->Add_int("ttf.lins", Property::Changeable::Always, 0);
     Pint->Set_help("Specifies the number of rows on the screen for the TTF output (0 = default).");
+    Pint->SetBasic(true);
 
 	Pint = secprop->Add_int("ttf.cols", Property::Changeable::Always, 0);
     Pint->Set_help("Specifies the number of columns on the screen for the TTF output (0 = default).");
+    Pint->SetBasic(true);
 
 	Pint = secprop->Add_int("ttf.wpver", Property::Changeable::Always, 0);
-    Pint->Set_help("You can optionally specify a word processor version for the TTF output.");
+    Pint->Set_help("You can optionally specify a word processor version for the TTF output (WordPerfect>0, XyWrite=-1, WordStar=-2).");
 
 	Pint = secprop->Add_int("ttf.wpbg", Property::Changeable::Always, -1);
     Pint->Set_help("You can optionally specify a color to match the background color of the word processor for the TTF output.");
