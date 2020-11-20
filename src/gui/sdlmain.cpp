@@ -4016,6 +4016,7 @@ void GFX_EndTextLines(bool force=false) {
 		curAC += ttf.cols;
 		newAC += ttf.cols;
 	}
+#if 0
 	bcount++;
 	if (vga.draw.cursor.enabled && vga.draw.cursor.sline <= vga.draw.cursor.eline && vga.draw.cursor.sline < 16) {		// Draw cursor?
 		int newPos = vga.draw.cursor.address>>1;
@@ -4075,7 +4076,7 @@ void GFX_EndTextLines(bool force=false) {
 			}
 		}
 	}
-
+#endif
 	if (xmin <= xmax) {												// if any changes
         SDL_Rect *rect = &sdl.updateRects[0];
         rect->x = ttf.offX+xmin*ttf.width; rect->y = ttf.offY+ymin*ttf.height; rect->w = (xmax-xmin+1)*ttf.width; rect->h = (ymax-ymin+1)*ttf.height;
