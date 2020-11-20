@@ -136,8 +136,45 @@ typedef struct {
 	int		offY;								// vertical ,,
 } Render_ttf;
 
-extern uint32_t curAttrChar[];					// currently displayed textpage
-extern uint32_t newAttrChar[];					// to be replaced by
+struct ttf_cell {
+    uint16_t        chr;                        // unicode code point OR just the raw code point. set to ' ' (0x20) for empty space.
+    unsigned int    fg:4;                       // foreground color (one of 16)
+    unsigned int    bg:4;                       // background color (one of 16)
+    unsigned int    doublewide:1;               // double-wide (e.g. PC-98 JIS), therefore skip next character cell.
+    unsigned int    blink:1;                    // blink attribute
+    unsigned int    underline:1;                // underline attribute
+    unsigned int    unicode:1;                  // chr is unicode code point
+    unsigned int    skipped:1;                  // adjacent (ignored) cell to a doublewide
+
+    ttf_cell() {
+        chr = 0x20;
+        fg = 7;
+        bg = 0;
+        doublewide = 0;
+        underline = 0;
+        unicode = 0;
+        skipped = 0;
+        blink = 0;
+    }
+
+    bool operator==(const ttf_cell &lhs) const {
+        return  chr         == lhs.chr &&
+                fg          == lhs.fg &&
+                bg          == lhs.bg &&
+                doublewide  == lhs.doublewide &&
+                blink       == lhs.blink &&
+                skipped     == lhs.skipped &&
+                underline   == lhs.underline &&
+                unicode     == lhs.unicode;
+    }
+    bool operator!=(const ttf_cell &lhs) const {
+        return !(*this == lhs);
+    }
+};
+// FIXME: Perhaps the TTF output code should just render unicode code points and vga_draw should do the code page conversion
+
+extern ttf_cell curAttrChar[];					// currently displayed textpage
+extern ttf_cell newAttrChar[];					// to be replaced by
 extern Render_ttf ttf;
 #endif
 extern Render_t render;

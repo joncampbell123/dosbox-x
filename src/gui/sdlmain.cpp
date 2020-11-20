@@ -3917,8 +3917,8 @@ void GFX_EndTextLines(bool force=false) {
 	int ymin = ttf.lins;
 	int xmax = -1;
 	int ymax = -1;
-	uint32_t *curAC = curAttrChar;							// pointer to old/current buffer
-	uint32_t *newAC = newAttrChar;							// pointer to new/changed buffer
+	ttf_cell *curAC = curAttrChar;							// pointer to old/current buffer
+	ttf_cell *newAC = newAttrChar;							// pointer to new/changed buffer
 
 	if (ttf.fullScrn && (ttf.offX || ttf.offY)) {
         SDL_Rect *rect = &sdl.updateRects[0];
@@ -3940,8 +3940,10 @@ void GFX_EndTextLines(bool force=false) {
 
 //		if (cursor_enabled && (vga.draw.cursor.sline > vga.draw.cursor.eline || vga.draw.cursor.sline > 15))
 //		if (ttf.cursor != vga.draw.cursor.address>>1 || (vga.draw.cursor.enabled !=  cursor_enabled) || vga.draw.cursor.sline > vga.draw.cursor.eline || vga.draw.cursor.sline > 15)
-		if (ttf.cursor != vga.draw.cursor.address>>1 || vga.draw.cursor.sline > vga.draw.cursor.eline || vga.draw.cursor.sline > 15)
-			curAC[ttf.cursor] = newAC[ttf.cursor]^0xf0f0;	// force redraw (differs)
+		if (ttf.cursor != vga.draw.cursor.address>>1 || vga.draw.cursor.sline > vga.draw.cursor.eline || vga.draw.cursor.sline > 15) {
+			curAC[ttf.cursor] = newAC[ttf.cursor];
+            curAC[ttf.cursor].chr ^= 0xf0f0;	// force redraw (differs)
+        }
 
 	ttf_textClip.h = ttf.height;
 	ttf_textClip.y = 0;
@@ -3950,15 +3952,14 @@ void GFX_EndTextLines(bool force=false) {
 		ttf_textRect.y = ttf.offY+y*ttf.height;
 		for (int x = 0; x < ttf.cols; x++) {
 			if (newAC[x] != curAC[x] || force || updatenext) {
-                updatenext=IS_PC98_ARCH&&(curAC[x]&0xFF00);
+                updatenext=curAC[x].doublewide;
 				xmin = min(x, xmin);
 				ymin = min(y, ymin);
 				ymax = y;
 				ttf_textRect.x = ttf.offX+x*ttf.width;
 
-				uint8_t colorBG = newAC[x]>>20;
-				uint8_t colorFG = (newAC[x]>>16)&15;
-				if (!IS_VGA_ARCH) colorBG &= 15;
+				uint8_t colorBG = newAC[x].bg;
+				uint8_t colorFG = newAC[x].fg;
 				processWP(&colorBG, &colorFG);
 
 				ttf_bgColor.r = colorsLocked?altBGR1[colorBG&15].red:rgbColors[colorBG].blue;
@@ -3970,7 +3971,7 @@ void GFX_EndTextLines(bool force=false) {
 
 				int x1 = x;
 
-				uint8_t ascii = newAC[x]&255;
+				uint8_t ascii = newAC[x].chr&255;
 				bool next=false;
 				if (ascii > 175 && ascii < 179 && !IS_PC98_ARCH) {	// special: shade characters 176-178 unless PC-98
 					ttf_bgColor.b = (ttf_bgColor.b*(179-ascii) + ttf_fgColor.b*(ascii-175))>>2;
@@ -3983,22 +3984,22 @@ void GFX_EndTextLines(bool force=false) {
 					}
 					while (x < ttf.cols && newAC[x] == newAC[x1] && newAC[x] != curAC[x]);
 				} else {
-					uint8_t color = newAC[x]>>16;
+					uint8_t color_fg = newAC[x].fg;
+                    uint8_t color_bg = newAC[x].bg;
 					do {											// as long foreground/background color equal
 						curAC[x] = newAC[x];
-                        if ((newAC[x]&0xFFFF) != 32) dbchar = false;
                         if (dbchar) {
                             dbchar = false;
                             next=true;
                             break;
                         } else {
-                            dbchar = IS_PC98_ARCH&&(newAC[x]&0xFF00);
-                            unimap[x-x1] = dbchar?newAC[x]&0xFFFF:cpMap[ascii+charSet*256];
+                            dbchar = newAC[x].doublewide;
+                            unimap[x-x1] = dbchar?newAC[x].chr:cpMap[ascii+charSet*256];
                             x++;
-                            ascii = newAC[x]&255;
+                            ascii = newAC[x].chr&255;
                         }
 					}
-					while (x < ttf.cols && newAC[x] != curAC[x] && newAC[x]>>8 == color && (ascii < 176 || ascii > 178));
+					while (x < ttf.cols && newAC[x] != curAC[x] && newAC[x].fg == color_fg && newAC[x].bg == color_bg && (ascii < 176 || ascii > 178));
 				}
                 if (!next) {
                     unimap[x-x1] = 0;
@@ -4038,9 +4039,8 @@ void GFX_EndTextLines(bool force=false) {
 			ttf.cursor = newPos;
 //			if (x >= xmin && x <= xmax && y >= ymin && y <= ymax  && (GetTickCount()&0x400))	// If overdrawn previuosly (or new shape)
 			if (x >= xmin && x <= xmax && y >= ymin && y <= ymax) {							// If overdrawn previuosly (or new shape)
-				uint8_t colorBG = newAttrChar[ttf.cursor]>>20;
-				uint8_t colorFG = (newAttrChar[ttf.cursor]>>16)&15;
-				if (!IS_VGA_ARCH) colorBG &= 15;
+				uint8_t colorBG = newAttrChar[ttf.cursor].bg;
+				uint8_t colorFG = newAttrChar[ttf.cursor].fg;
 				processWP(&colorBG, &colorFG);
 
 				if (blinking && colorBG&8) {
@@ -4054,7 +4054,7 @@ void GFX_EndTextLines(bool force=false) {
 				ttf_fgColor.r = colorsLocked?altBGR1[colorFG&15].red:rgbColors[colorFG].blue;
 				ttf_fgColor.g = colorsLocked?altBGR1[colorFG&15].green:rgbColors[colorFG].green;
 				ttf_fgColor.b = colorsLocked?altBGR1[colorFG&15].blue:rgbColors[colorFG].red;
-				unimap[0] = cpMap[newAttrChar[ttf.cursor]&255];
+				unimap[0] = cpMap[newAttrChar[ttf.cursor].chr&255];
 				unimap[1] = 0;
 				// first redraw character
 				SDL_Surface* textSurface = TTF_RenderUNICODE_Shaded(ttf.SDL_font, unimap, ttf_fgColor, ttf_bgColor);
