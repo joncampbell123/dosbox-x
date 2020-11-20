@@ -17,11 +17,14 @@
     percentage respectively. If you specify a TTF font
     size with "ttf.ptsize" then "ttf.winperc" will be
     ignored. You can also specify a word processor
-    (WP=WordPerfect, XY=XyWrite, WS=WordStar) for the
-    on-screen text-style feature. When using the TTF
-    output DOSBox-X will temporarily switch to the
-    surface output when a graphical mode is requested
-    (and will auto-switch back later). (Wengier)
+    (WP=WordPerfect, WS=WordStar, XY=XyWrite) for the
+    on-screen text-style and 512-character font (WP)
+    features. When using the TTF output DOSBox-X will
+    temporarily switch to the surface output when a
+    graphical mode is requested (and will auto-switch
+    back later). Menu items in the "Text-mode" menu
+    group (under "Video" menu) have been expanded to
+    support TTF options. (Wengier)
   - Configuration Tool now provides the option to save
     to the primary or user config files. (Wengier)
   - Added config options "saveremark" (default: true)
