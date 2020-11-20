@@ -38,6 +38,7 @@
 #include "parport.h"
 #include "serialport.h"
 #include "dos_network.h"
+#include "render.h"
 
 extern bool log_int21, log_fileio;
 extern int lfn_filefind_handle;
@@ -184,6 +185,14 @@ bool enable_dummy_device_mcb = true;
 
 extern unsigned int MAXENV;// = 32768u;
 extern unsigned int ENV_KEEPFREE;// = 83;
+
+#if defined(USE_TTF)
+#include "char512.h"
+extern int wpType;
+static uint16_t WP5chars = 0;
+static uint16_t WPvga512CHMhandle = -1;
+static bool WPvga512CHMcheck = false;
+#endif
 
 DOS_Block dos;
 DOS_InfoBlock dos_infoblock;
@@ -1383,6 +1392,13 @@ static Bitu DOS_21Handler(void) {
 			uint8_t oldal=reg_al;
 			force_sfn = true;
             if (DOS_OpenFile(name1,reg_al,&reg_ax)) {
+#if defined(USE_TTF)
+                if (ttf.inUse&&wpType==1) {
+                    int len = strlen(name1);
+                    if (len > 10 && !strcmp(name1+len-11, "\\VGA512.CHM"))  // Test for VGA512.CHM
+                        WPvga512CHMhandle = reg_ax;							// Save handle
+                }
+#endif
 				force_sfn = false;
                 CALLBACK_SCF(false);
             } else {
@@ -1401,6 +1417,10 @@ static Bitu DOS_21Handler(void) {
         case 0x3e:      /* CLOSE Close file */
             unmask_irq0 |= disk_io_unmask_irq0;
             if (DOS_CloseFile(reg_bx, false, &reg_al)) {
+#if defined(USE_TTF)
+                if (ttf.inUse&&reg_bx == WPvga512CHMhandle)
+                    WPvga512CHMhandle = -1;
+#endif
                 /* al destroyed with pre-close refcount from sft */
                 CALLBACK_SCF(false);
             } else {
@@ -1437,6 +1457,24 @@ static Bitu DOS_21Handler(void) {
                 if (DOS_ReadFile(reg_bx,dos_copybuf,&toread)) {
                     MEM_BlockWrite(SegPhys(ds)+reg_dx,dos_copybuf,toread);
                     reg_ax=toread;
+#if defined(USE_TTF)
+                    if (ttf.inUse && reg_bx == WPvga512CHMhandle)
+                        if (toread == 26 || toread == 2) {
+                            if (toread == 2)
+                                WP5chars = *(uint16_t*)dos_copybuf;
+                            WPvga512CHMcheck = true;
+                        } else if (WPvga512CHMcheck) {
+                            if (WP5chars) {
+                                memmove(dos_copybuf+2, dos_copybuf, toread);
+                                *(uint16_t*)dos_copybuf = WP5chars;
+                                WP5chars = 0;
+                                WPset512(dos_copybuf, toread+2);
+                            } else
+                                WPset512(dos_copybuf, toread);
+                            WPvga512CHMhandle = -1;
+                            WPvga512CHMcheck = false;
+                        }
+#endif
                     CALLBACK_SCF(false);
                 } else if (dos.errorcode==77) {
 					DOS_BreakAction();

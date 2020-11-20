@@ -239,7 +239,6 @@ bool osx_detect_nstouchbar(void);
 void osx_init_touchbar(void);
 #endif
 
-
 bool TTF_using(void);
 void ShutDownMemHandles(Section * sec);
 void resetFontSize();
@@ -247,8 +246,6 @@ static void decreaseFontSize();
 
 SDL_Block sdl;
 Bitu frames = 0;
-int wpVersion = 0;
-int wpBG = -1;
 unsigned int page=0;
 unsigned int sendkeymap=0;
 
@@ -256,11 +253,16 @@ ScreenSizeInfo          screen_size_info;
 
 #if defined(USE_TTF)
 Render_ttf ttf;
+bool char512 = true;
+int wpType = 0;
+int wpVersion = 0;
+int wpBG = -1;
+bool wpExtChar = false;
 
 static unsigned long ttfSize= sizeof(DOSBoxTTFbi);
 static void * ttfFont = DOSBoxTTFbi;
 extern bool resetreq;
-extern uint16_t cpMap[256];
+extern uint16_t cpMap[512];
 static SDL_Color ttf_fgColor = {0, 0, 0, 0};
 static SDL_Color ttf_bgColor = {0, 0, 0, 0};
 static SDL_Rect ttf_textRect = {0, 0, 0, 0};
@@ -3248,13 +3250,22 @@ void OUTPUT_TTF_Select(int fsize=-1) {
             }
         }
         blinkCursor = render_section->Get_bool("ttf.blinkc");
-        wpVersion = render_section->Get_int("ttf.wpver");
+        const char *wpstr=render_section->Get_string("ttf.wp");
+        wpType=0;
+        wpVersion=0;
+        if (strlen(wpstr)>1) {
+            if (!strncasecmp(wpstr, "WP", 2)) wpType=1;
+            else if (!strncasecmp(wpstr, "XY", 2)) wpType=2;
+            else if (!strncasecmp(wpstr, "WS", 2)) wpType=3;
+            if (strlen(wpstr)>2&&wpstr[2]>='1'&&wpstr[2]<='9') wpVersion=wpstr[2]-'0';
+        }
         wpBG = render_section->Get_int("ttf.wpbg");
         winPerc = render_section->Get_int("ttf.winperc");
         if (winPerc>100||fsize!=1&&(control->opt_fullscreen||static_cast<Section_prop *>(control->GetSection("sdl"))->Get_bool("fullscreen"))) winPerc=100;
         else if (winPerc<25) winPerc=25;
         if (fsize==1&&winPerc==100) winPerc=75;
         fontSize = render_section->Get_int("ttf.ptsize");
+        char512 = render_section->Get_bool("ttf.char512");
         ttf.lins = render_section->Get_int("ttf.lins");
         ttf.cols = render_section->Get_int("ttf.cols");
         if ((!CurMode||CurMode->type!=M_TEXT)&&!IS_PC98_ARCH) {
@@ -3821,66 +3832,63 @@ void GFX_OpenGLRedrawScreen(void) {
 }
 
 #if defined(USE_TTF)
+static int charSet;
 void processWP(uint8_t *pcolorBG, uint8_t *pcolorFG) {
-    if (!wpVersion) return;
+    charSet = 0;
+    if (!wpType) return;
     uint8_t colorBG = *pcolorBG, colorFG = *pcolorFG;
     int style = 0;
-    if (CurMode->mode == 7)															// Mono (Hercules)
-    {
+    if (CurMode->mode == 7) {														// Mono (Hercules)
         style = (colorFG&7) == 1 ? TTF_STYLE_UNDERLINE : TTF_STYLE_NORMAL;
         if ((colorFG&0xa) == colorFG && (colorBG&15) == 0)
             colorFG = 8;
         else if (colorFG&7)
             colorFG |= 7;
     }
-    else if (wpVersion > 0)															// If WP and not negative (color value to text attribute excluded)
-    {
-        if (colorFG == 0xe && (colorBG&15) == 1)
-        {
+    else if (wpType == 1) {															// WordPerfect
+        if (colorFG == 0xe && (colorBG&15) == 1) {
             style = TTF_STYLE_ITALIC;
             colorFG = 7;
         }
-        else if ((colorFG == 1 || colorFG == 0xf) && (colorBG&15) == 7)
-        {
+        else if ((colorFG == 1 || colorFG == 0xf) && (colorBG&15) == 7) {
             style = TTF_STYLE_UNDERLINE;
             colorBG = 1;
             colorFG = colorFG == 1 ? 7 : 0xf;
         }
-        else if (colorFG == 0 && (colorBG&15) == 3)
-        {
+        else if (colorFG == 0 && (colorBG&15) == 3) {
             style = TTF_STYLE_STRIKETHROUGH;
             colorBG = 1;
             colorFG = 7;
         }
-    } else if (wpVersion == -1) {
-        if ((colorFG == 10 || colorFG == 14) && colorBG != 12)
-            {
+    } else if (wpType == 2) {														// XyWrite
+        if ((colorFG == 10 || colorFG == 14) && colorBG != 12) {
             style = TTF_STYLE_ITALIC;
-            if (colorBG == 3)
-                {
+            if (colorBG == 3) {
                 style |= TTF_STYLE_UNDERLINE;
                 colorBG = wpBG > -1 ? wpBG : 1;
-                }
-            colorFG = colorFG == 10 ? 7:15;
             }
-        else if (colorFG == 3 || colorFG == 0xb)
-            {
+            colorFG = colorFG == 10 ? 7:15;
+        }
+        else if (colorFG == 3 || colorFG == 0xb) {
             style = TTF_STYLE_UNDERLINE;
             colorFG = colorFG == 3 ? 7:15;
-            }
-    } else if (wpVersion == -2) {
-        if (colorBG&8)
-        {
+        }
+    } else if (wpType == 3) {														// WordStar
+        if (colorBG&8) {
             if (colorBG&1)
                 style |= TTF_STYLE_UNDERLINE;
             if (colorBG&2)
                 style |= TTF_STYLE_ITALIC;
             if (colorBG&4)
                 style |= TTF_STYLE_STRIKETHROUGH;
-            if (style) {
-                TTF_SetFontStyle(ttf.SDL_font, style);
+            if (style)
                 colorBG = wpBG > -1 ? wpBG : 0;
-            }
+        }
+    }
+    if (char512 && wpType == 1) {
+        if (wpExtChar && (colorFG&8)) {	// WordPerfect high bit = second character set (if 512char active)
+            charSet = 1;
+            colorFG &= 7;
         }
     }
     if (colorFG == 15) {
@@ -3985,7 +3993,7 @@ void GFX_EndTextLines(bool force=false) {
                             break;
                         } else {
                             dbchar = IS_PC98_ARCH&&(newAC[x]&0xFF00);
-                            unimap[x-x1] = dbchar?newAC[x]&0xFFFF:cpMap[ascii];
+                            unimap[x-x1] = dbchar?newAC[x]&0xFFFF:cpMap[ascii+charSet*256];
                             x++;
                             ascii = newAC[x]&255;
                         }
@@ -4402,6 +4410,7 @@ void RebootGuest(bool pressed) {
 }
 
 #if defined(USE_TTF)
+extern int eurAscii;
 bool CodePageGuestToHostUint16(uint16_t *d/*CROSS_LEN*/,const char *s/*CROSS_LEN*/);
 void setTTFCodePage() {
     int cp = dos.loaded_codepage;
@@ -4431,6 +4440,8 @@ void setTTFCodePage() {
                 } else
                     cpMap[y*16+x] = unimap;
             }
+        if (eurAscii != -1 && TTF_GlyphIsProvided(ttf.SDL_font, 0x20ac))
+            cpMap[eurAscii] = 0x20ac;
     }
 }
 
@@ -9480,27 +9491,19 @@ void ttf_setlines(int cols, int lins) {
     ttf_reset();
     real_writeb(BIOSMEM_SEG,BIOSMEM_NB_COLS,ttf.cols);
     real_writeb(BIOSMEM_SEG,BIOSMEM_NB_ROWS,ttf.lins-1);
+    vga.draw.address_add = ttf.cols * 2;
 }
 #endif
 
 bool setlines(const char *mname) {
     uint16_t oldax=reg_ax, oldbx=reg_bx, oldcx=reg_cx;
     if (!strcmp(mname, "line_80x25")) {
-#if defined(USE_TTF)
-        if (ttf.inUse) {
-            ttf_setlines(80, 25);
-            return true;
-        }
-#endif
         reg_ax = 0x0003;
         CALLBACK_RunRealInt(0x10);
-    } else if (!strcmp(mname, "line_80x50")) {
 #if defined(USE_TTF)
-        if (ttf.inUse) {
-            ttf_setlines(80, 50);
-            return true;
-        }
+        if (ttf.inUse) ttf_setlines(80, 25);
 #endif
+    } else if (!strcmp(mname, "line_80x50")) {
         reg_ax = 0x1202;
         reg_bl = 0x30;
         CALLBACK_RunRealInt(0x10);
@@ -9511,40 +9514,28 @@ bool setlines(const char *mname) {
         reg_ax = 0x100;
         reg_cx = 0x808;
         CALLBACK_RunRealInt(0x10);
-    } else if (!strcmp(mname, "line_80x60")) {
 #if defined(USE_TTF)
-        if (ttf.inUse) {
-            ttf_setlines(80, 60);
-            return true;
-        }
+        if (ttf.inUse) ttf_setlines(80, 50);
 #endif
+    } else if (!strcmp(mname, "line_80x60")) {
         reg_ax = 0x0043;
         CALLBACK_RunRealInt(0x10);
-    } else if (!strcmp(mname, "line_132x25")) {
 #if defined(USE_TTF)
-        if (ttf.inUse) {
-            ttf_setlines(132, 25);
-            return true;
-        }
+        if (ttf.inUse) ttf_setlines(80, 60);
 #endif
+    } else if (!strcmp(mname, "line_132x25")) {
         reg_ax = 0x0055;
         CALLBACK_RunRealInt(0x10);
-    } else if (!strcmp(mname, "line_132x43")) {
 #if defined(USE_TTF)
-        if (ttf.inUse) {
-            ttf_setlines(132, 43);
-            return true;
-        }
+        if (ttf.inUse) ttf_setlines(132, 25);
 #endif
+    } else if (!strcmp(mname, "line_132x43")) {
         reg_ax = 0x0054;
         CALLBACK_RunRealInt(0x10);
-    } else if (!strcmp(mname, "line_132x50")) {
 #if defined(USE_TTF)
-        if (ttf.inUse) {
-            ttf_setlines(132, 50);
-            return true;
-        }
+        if (ttf.inUse) ttf_setlines(132, 43);
 #endif
+    } else if (!strcmp(mname, "line_132x50")) {
         reg_ax = 0x0055;
         CALLBACK_RunRealInt(0x10);
         reg_ax = 0x1112;
@@ -9552,15 +9543,15 @@ bool setlines(const char *mname) {
         reg_ax = 0x100;
         reg_cx = 0x808;
         CALLBACK_RunRealInt(0x10);
-    } else if (!strcmp(mname, "line_132x60")) {
 #if defined(USE_TTF)
-        if (ttf.inUse) {
-            ttf_setlines(132, 60);
-            return true;
-        }
+        if (ttf.inUse) ttf_setlines(132, 50);
 #endif
+    } else if (!strcmp(mname, "line_132x60")) {
         reg_ax = 0x0064;
         CALLBACK_RunRealInt(0x10);
+#if defined(USE_TTF)
+        if (ttf.inUse) ttf_setlines(132, 60);
+#endif
     } else
         return false;
     reg_ax = oldax;
