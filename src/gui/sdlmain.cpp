@@ -3999,7 +3999,7 @@ void GFX_EndTextLines(bool force=false) {
                             ascii = newAC[x].chr&255;
                         }
 					}
-					while (x < ttf.cols && newAC[x] != curAC[x] && newAC[x].fg == color_fg && newAC[x].bg == color_bg && (ascii < 176 || ascii > 178));
+					while (x < ttf.cols && newAC[x] != curAC[x] && newAC[x].fg == color_fg && newAC[x].bg == color_bg && (ascii < 176 || ascii > 178 || IS_PC98_ARCH));
 				}
                 if (!next) {
                     unimap[x-x1] = 0;
