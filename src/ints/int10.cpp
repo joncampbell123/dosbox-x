@@ -27,6 +27,7 @@
 #include "int10.h"
 #include "mouse.h"
 #include "setup.h"
+#include "render.h"
 
 Int10Data int10;
 bool blinking=true;
@@ -34,6 +35,8 @@ static Bitu call_10 = 0;
 static bool warned_ff=false;
 extern bool enable_vga_8bit_dac;
 extern bool vga_8bit_dac;
+extern bool wpExtChar;
+extern int wpType;
 
 Bitu INT10_Handler(void) {
 	// NTS: We do have to check the "current video mode" from the BIOS data area every call.
@@ -238,6 +241,13 @@ Bitu INT10_Handler(void) {
 			INT10_LoadFont(Real2Phys(int10.rom.font_8_first),reg_al==0x12,256,0,reg_bl&0x7f,8);
 			break;
 		case 0x03:			/* Set Block Specifier */
+#if defined(USE_TTF)
+            if (ttf.inUse&&wpType==1) {
+                DOS_Block dos;
+                if (mem_readd(((dos.psp()-1)<<4)+8) == 0x5057)							// Name of MCB PSP should be WP
+                    wpExtChar = reg_bl != 0;
+            }
+#endif
 			IO_Write(0x3c4,0x3);IO_Write(0x3c5,reg_bl);
 			break;
 		case 0x04:			/* Load 8x16 font */

@@ -142,6 +142,7 @@ extern Bitu         frames;
 extern Bitu         cycle_count;
 extern bool         sse2_available;
 extern bool         avx2_available;
+extern bool         dos_kernel_disabled;
 extern bool         dynamic_dos_kernel_alloc;
 extern Bitu         DOS_PRIVATE_SEGMENT_Size;
 extern bool         VGA_BIOS_dont_duplicate_CGA_first_half;
@@ -2357,11 +2358,15 @@ void DOSBOX_SetupConfigSections(void) {
     Pint->Set_help("Specifies the number of columns on the screen for the TTF output (0 = default).");
     Pint->SetBasic(true);
 
-	Pint = secprop->Add_int("ttf.wpver", Property::Changeable::Always, 0);
-    Pint->Set_help("You can optionally specify a word processor version for the TTF output (WordPerfect>0, XyWrite=-1, WordStar=-2).");
+	Pstring = secprop->Add_string("ttf.wp", Property::Changeable::Always, "");
+    Pstring->Set_help("You can specify a word processor for the TTF output (WP=WordPerfect, XY=XyWrite, WS=WordStar) and optionally also a version number.\n"
+                    "For example, WP6 will set the word processor as WordPerfect 6, and XY4 will set the word processor as XyWrite 4.");
 
 	Pint = secprop->Add_int("ttf.wpbg", Property::Changeable::Always, -1);
-    Pint->Set_help("You can optionally specify a color to match the background color of the word processor for the TTF output.");
+    Pint->Set_help("You can optionally specify a color to match the background color of the specified word processor for the TTF output.");
+
+	Pbool = secprop->Add_bool("ttf.char512", Property::Changeable::Always, true);
+    Pbool->Set_help("If set, DOSBox-X will display the 512-character font if possible (requires a word processor be set) for the TTF output.");
 
 	Pbool = secprop->Add_bool("ttf.blinkc", Property::Changeable::Always, false);
     Pbool->Set_help("If set, the cursor will blink for the TTF output.");
@@ -5317,7 +5322,7 @@ void SaveState::save(size_t slot) { //throw (Error)
 	my_minizip((char **)save.c_str(), (char **)save2.c_str());
 	save2=temp+"Save_Remark";
 	my_minizip((char **)save.c_str(), (char **)save2.c_str());
-    flagged_backup((char *)save.c_str());
+    if (!dos_kernel_disabled) flagged_backup((char *)save.c_str());
 
 delete_all:
 	for (CompEntry::iterator i = components.begin(); i != components.end(); ++i) {
@@ -5585,7 +5590,7 @@ void SaveState::load(size_t slot) const { //throw (Error)
 		//std::for_each(rb.begin() + slot + 1, rb.end(), std::mem_fun_ref(&RawBytes::compress));
 		fb->close();
 		mystream.clear();
-        flagged_restore((char *)save.c_str());
+        if (!dos_kernel_disabled) flagged_restore((char *)save.c_str());
 	}
 delete_all:
 	std::string save2;
