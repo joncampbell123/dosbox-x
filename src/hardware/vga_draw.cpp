@@ -3024,35 +3024,55 @@ static void VGA_VerticalTimer(Bitu /*val*/) {
                  *      in fact if the hardware sees a double-wide in the first cell it will just render the double-wide
                  *      for two cells and ignore the second cell. There are some exceptions though, including the custom
                  *      modificable cells in RAM (responsible for such bugs as the Touhou Project ~idnight level name display bug). */
-                if ((*charram & 0xFF00u) && (*charram & 0x7Cu) != 0x08u/* && (*charram&0x7F7F) == (*(charram+1)&0x7F7F)*/) {
-                    uint16_t ch = *charram&0x7F7Fu;
-                    uint8_t j1=(ch%0x100)+0x20, j2=ch/0x100;
-					if (j1>32&&j1<127&&j2>32&&j2<127) {
-                        char text[3];
-                        text[0]=(j1+1)/2+(j1<95?112:176);
-                        text[1]=j2+(j1%2?31+(j2/96):126);
-                        text[2]=0;
-                        uname[0]=0;
-                        uname[1]=0;
-                        CodePageGuestToHostUint16(uname,text);
-                        if (uname[0]!=0&&uname[1]==0) {
-                            (*draw).chr=uname[0];
-                            (*draw).doublewide=1;
-                            (*draw).unicode=1;
-                            dbw=true;
-                        }
-                        else {
+                if (*charram & 0xFF00u) {
+                    if ((*charram & 0x7Cu) == 0x08u) {
+                        /* Single wide, yet DBCS encoding.
+                         * This includes proprietary box characters specific to PC-98 */
+                        // Manually convert box characters to Unicode for now
+                        if (*charram==0x330B) // ASCII 201
+                            (*draw).chr=0x2554;
+                        else if (*charram==0x250B) // ASCII 205
+                            (*draw).chr=0x2550;
+                        else if (*charram==0x370B) // ASCII 187
+                            (*draw).chr=0x2557;
+                        else if (*charram==0x270B) // ASCII 186
+                            (*draw).chr=0x2551;
+                        else if (*charram==0x3B0B) // ASCII 200
+                            (*draw).chr=0x255A;
+                        else if (*charram==0x3F0B) // ASCII 188
+                            (*draw).chr=0x255D;
+                        else if (*charram==0x3F0B) // ASCII 188
+                            (*draw).chr = *charram & 0xFF;
+                        else
+                            (*draw).chr=' ';
+                        (*draw).unicode=1;
+                    }
+                    else {
+                        uint16_t ch = *charram&0x7F7Fu;
+                        uint8_t j1=(ch%0x100)+0x20, j2=ch/0x100;
+                        if (j1>32&&j1<127&&j2>32&&j2<127) {
+                            char text[3];
+                            text[0]=(j1+1)/2+(j1<95?112:176);
+                            text[1]=j2+(j1%2?31+(j2/96):126);
+                            text[2]=0;
+                            uname[0]=0;
+                            uname[1]=0;
+                            CodePageGuestToHostUint16(uname,text);
+                            if (uname[0]!=0&&uname[1]==0) {
+                                (*draw).chr=uname[0];
+                                (*draw).doublewide=1;
+                                (*draw).unicode=1;
+                                dbw=true;
+                            }
+                            else {
+                                (*draw).chr=' ';
+                            }
+                        } else {
                             (*draw).chr=' ';
                         }
-                    } else {
-                        (*draw).chr=' ';
                     }
-                } else if (*charram & 0xFF80u) {
-                    (*draw).chr = 0x20; // not properly handled YET
-                }
-                else {
+                } else
                     (*draw).chr = *charram & 0xFF;
-                }
                 charram++;
 
                 Bitu attr = *attrram;

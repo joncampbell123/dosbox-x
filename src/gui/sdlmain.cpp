@@ -106,11 +106,7 @@ void GFX_OpenGLRedrawScreen(void);
 #include "../libs/tinyfiledialogs/tinyfiledialogs.h"
 #endif
 #if defined(USE_TTF)
-#if defined(C_SDL2)
-#include "sdl2_ttf.c"
-#else
 #include "sdl_ttf.c"
-#endif
 #include "DOSBoxTTF.h"
 #endif
 
@@ -3105,7 +3101,7 @@ bool setColors(const char *colorArray, int n) {
     if (IS_PC98_ARCH) return false;
 	const char * nextRGB = colorArray;
 	uint8_t * altPtr = (uint8_t *)altBGR1;
-	int rgbVal[3];
+	int rgbVal[3] = {-1,-1,-1};
 	for (int colNo = 0; colNo < (n>-1?1:16); colNo++) {
 		if (n>-1) altPtr+=4*n;
 		if (sscanf(nextRGB, " ( %d , %d , %d)", &rgbVal[0], &rgbVal[1], &rgbVal[2]) == 3) {	// Decimal: (red,green,blue)
@@ -3118,7 +3114,7 @@ bool setColors(const char *colorArray, int n) {
 				nextRGB++;
 			nextRGB++;
 		} else if (sscanf(nextRGB, " #%6x", &rgbVal[0]) == 1) {							// Hexadecimal
-			if (rgbVal < 0)
+			if (rgbVal[0] < 0)
 				return false;
 			for (int i = 0; i < 3; i++) {
 				altPtr[i] = rgbVal[0]&255;
@@ -4034,11 +4030,11 @@ void GFX_EndTextLines(bool force=false) {
 		curAC += ttf.cols;
 		newAC += ttf.cols;
 	}
-#if 0
+#if 1 // NTS: Additional fix is needed for PC-98 mode; also expect further cleanup
 	bcount++;
 	if (vga.draw.cursor.enabled && vga.draw.cursor.sline <= vga.draw.cursor.eline && vga.draw.cursor.sline < 16) {		// Draw cursor?
 		int newPos = vga.draw.cursor.address>>1;
-		if (newPos >= 0 && newPos < ttf.cols*ttf.lins) {									// If on screen
+		if (newPos >= 0 && newPos < ttf.cols*ttf.lins) {								// If on screen
 			int y = newPos/ttf.cols;
 			int x = newPos%ttf.cols;
 			vga.draw.cursor.count++;
@@ -4057,7 +4053,7 @@ void GFX_EndTextLines(bool force=false) {
 			blinkstate = vga.draw.cursor.blinkon;
 			ttf.cursor = newPos;
 //			if (x >= xmin && x <= xmax && y >= ymin && y <= ymax  && (GetTickCount()&0x400))	// If overdrawn previuosly (or new shape)
-			if (x >= xmin && x <= xmax && y >= ymin && y <= ymax) {							// If overdrawn previuosly (or new shape)
+			if (x >= xmin && x <= xmax && y >= ymin && y <= ymax && !newAttrChar[ttf.cursor].skipped) {							// If overdrawn previuosly (or new shape)
 				uint8_t colorBG = newAttrChar[ttf.cursor].bg;
 				uint8_t colorFG = newAttrChar[ttf.cursor].fg;
 				processWP(&colorBG, &colorFG);
@@ -4067,24 +4063,29 @@ void GFX_EndTextLines(bool force=false) {
 					if ((bcount/8)%2)
 						colorFG=colorBG;
 				}
+				bool dw = newAttrChar[ttf.cursor].unicode && newAttrChar[ttf.cursor].doublewide;
 				ttf_bgColor.r = colorsLocked?altBGR1[colorBG&15].red:rgbColors[colorBG].blue;
 				ttf_bgColor.g = colorsLocked?altBGR1[colorBG&15].green:rgbColors[colorBG].green;
 				ttf_bgColor.b = colorsLocked?altBGR1[colorBG&15].blue:rgbColors[colorBG].red;
 				ttf_fgColor.r = colorsLocked?altBGR1[colorFG&15].red:rgbColors[colorFG].blue;
 				ttf_fgColor.g = colorsLocked?altBGR1[colorFG&15].green:rgbColors[colorFG].green;
 				ttf_fgColor.b = colorsLocked?altBGR1[colorFG&15].blue:rgbColors[colorFG].red;
-				unimap[0] = cpMap[newAttrChar[ttf.cursor].chr&255];
-				unimap[1] = 0;
+				unimap[0] = newAttrChar[ttf.cursor].unicode?newAttrChar[ttf.cursor].chr:cpMap[newAttrChar[ttf.cursor].chr&255];
+                if (dw) {
+                    unimap[1] = newAttrChar[ttf.cursor].chr;
+                    unimap[2] = 0;
+                } else
+                    unimap[1] = 0;
 				// first redraw character
-				SDL_Surface* textSurface = TTF_RenderUNICODE_Shaded(ttf.SDL_font, unimap, ttf_fgColor, ttf_bgColor);
-				ttf_textClip.w = ttf.width;
+				SDL_Surface* textSurface = TTF_RenderUNICODE_Shaded(ttf.SDL_font, unimap, ttf_fgColor, ttf_bgColor, ttf.width*(dw?2:1));
+				ttf_textClip.w = ttf.width*(dw?2:1);
 				ttf_textRect.x = ttf.offX+x*ttf.width;
 				ttf_textRect.y = ttf.offY+y*ttf.height;
 				SDL_BlitSurface(textSurface, &ttf_textClip, sdl.surface, &ttf_textRect);
 				SDL_FreeSurface(textSurface);
 				if ((vga.draw.cursor.blinkon || !blinkCursor)) {
                     // second reverse lower lines
-                    textSurface = TTF_RenderUNICODE_Shaded(ttf.SDL_font, unimap, ttf_bgColor, ttf_fgColor);
+                    textSurface = TTF_RenderUNICODE_Shaded(ttf.SDL_font, unimap, ttf_bgColor, ttf_fgColor, ttf.width*(dw?2:1));
                     ttf_textClip.y = (ttf.height*vga.draw.cursor.sline)>>4;
                     ttf_textClip.h = ttf.height - ttf_textClip.y;								// for now, cursor to bottom
                     ttf_textRect.y = ttf.offY+y*ttf.height + ttf_textClip.y;
@@ -4097,7 +4098,7 @@ void GFX_EndTextLines(bool force=false) {
 #endif
 	if (xmin <= xmax) {												// if any changes
         SDL_Rect *rect = &sdl.updateRects[0];
-        rect->x = ttf.offX+xmin*ttf.width; rect->y = ttf.offY+ymin*ttf.height; rect->w = (xmax-xmin+1)*ttf.width; rect->h = (ymax-ymin+1)*ttf.height;
+        rect->x = ttf.offX+xmin*ttf.width; rect->y = ttf.offY+ymin*ttf.height; rect->w = (xmax-xmin+1)*ttf.width*(IS_PC98_ARCH&&xmin<=xmax-1?2:1); rect->h = (ymax-ymin+1)*ttf.height;
 #if defined(C_SDL2)
         SDL_UpdateWindowSurfaceRects(sdl.window, sdl.updateRects, 4);
 #else
@@ -4429,9 +4430,53 @@ void RebootGuest(bool pressed) {
 }
 
 #if defined(USE_TTF)
+
+static const uint16_t cpMap_PC98[256] = {
+//  0       1       2       3       4       5       6       7
+    0x0020, 0x2401, 0x2402, 0x2403, 0x2404, 0x2405, 0x2406, 0x2407,                 // 0x00-0x07   Except NUL, control chars have small letters spelling out the ASCII control code
+    0x2408, 0x2409, 0x240A, 0x240B, 0x240C, 0x240D, 0x240E, 0x240F,                 // 0x08-0x0F   i.e. CR is ␍. The mapping here does not EXACTLY render as it does on real hardware.
+    0x2410, 0x2411, 0x2412, 0x2413, 0x2414, 0x2415, 0x2416, 0x2417,                 // 0x10-0x17
+    0x2418, 0x2419, 0x241A, 0x241B, 0x2192, 0x2190, 0x2191, 0x2193,                 // 0x18-0x1F   The last 4 are single-wide arrows
+    0x0020, 0x0021, 0x0022, 0x0023, 0x0024, 0x0025, 0x0026, 0x0027,                 // 0x20-0x27
+    0x0028, 0x0029, 0x002A, 0x002B, 0x002C, 0x002D, 0x002E, 0x002F,                 // 0x28-0x2F
+    0x0030, 0x0031, 0x0032, 0x0033, 0x0034, 0x0035, 0x0036, 0x0037,                 // 0x30-0x37
+    0x0038, 0x0039, 0x003A, 0x003B, 0x003C, 0x003D, 0x003E, 0x003F,                 // 0x38-0x3F
+    0x0040, 0x0041, 0x0042, 0x0043, 0x0044, 0x0045, 0x0046, 0x0047,                 // 0x40-0x47
+    0x0048, 0x0049, 0x004A, 0x004B, 0x004C, 0x004D, 0x004E, 0x004F,                 // 0x48-0x4F
+    0x0050, 0x0051, 0x0052, 0x0053, 0x0054, 0x0055, 0x0056, 0x0057,                 // 0x50-0x57
+    0x0058, 0x0059, 0x005A, 0x005B, 0x00A5, 0x005D, 0x005E, 0x005F,                 // 0x58-0x5F   0x5C = Yen
+    0x0060, 0x0061, 0x0062, 0x0063, 0x0064, 0x0065, 0x0066, 0x0067,                 // 0x60-0x67
+    0x0068, 0x0069, 0x006A, 0x006B, 0x006C, 0x006D, 0x006E, 0x006F,                 // 0x68-0x6F
+    0x0070, 0x0071, 0x0072, 0x0073, 0x0074, 0x0075, 0x0076, 0x0077,                 // 0x70-0x77
+    0x0078, 0x0079, 0x007A, 0x007B, 0x007C, 0x007D, 0x007E, 0x0020,                 // 0x78-0x7F   0x7F = Does not display as anything
+    0x2581, 0x2582, 0x2583, 0x2584, 0x2585, 0x2586, 0x2587, 0x2588,                 // 0x80-0x87   Block characters, vertical 1/8 to 8/8
+    0x258F, 0x258E, 0x258D, 0x258C, 0x258B, 0x258A, 0x2589, 0x253C,                 // 0x88-0x8F   Block characters, horizontal 1/8 to 7/8
+    0x2534, 0x252C, 0x2524, 0x251C, 0x0020, 0x2500, 0x2502, 0x2595,                 // 0x90-0x97
+    0x250C, 0x2510, 0x2514, 0x2518, 0x256D, 0x256E, 0x2570, 0x256F,                 // 0x98-0x9F
+    0x0020, 0xFF61, 0xFF62, 0xFF63, 0xFF64, 0xFF65, 0xFF66, 0xFF67,                 // 0xA0-0xA7   0xA0 = Nothing. 0xA1-0xDF = Single-wide Katakana
+    0xFF68, 0xFF69, 0xFF6A, 0xFF6B, 0xFF6C, 0xFF6D, 0xFF6E, 0xFF6F,                 // 0xA8-0xAF
+    0xFF70, 0xFF71, 0xFF72, 0xFF73, 0xFF74, 0xFF75, 0xFF76, 0xFF77,                 // 0xB0-0xB7
+    0xFF78, 0xFF79, 0xFF7A, 0xFF7B, 0xFF7C, 0xFF7D, 0xFF7E, 0xFF7F,                 // 0xB8-0xBF
+    0xFF80, 0xFF81, 0xFF82, 0xFF83, 0xFF84, 0xFF85, 0xFF86, 0xFF87,                 // 0xC0-0xC7
+    0xFF88, 0xFF89, 0xFF8A, 0xFF8B, 0xFF8C, 0xFF8D, 0xFF8E, 0xFF8F,                 // 0xC8-0xCF
+    0xFF90, 0xFF91, 0xFF92, 0xFF93, 0xFF94, 0xFF95, 0xFF96, 0xFF97,                 // 0xD0-0xD7
+    0xFF98, 0xFF99, 0xFF9A, 0xFF9B, 0xFF9C, 0xFF9D, 0xFF9E, 0xFF9F,                 // 0xD8-0xDF
+    0x2550, 0x255E, 0x256A, 0x2561, 0x0020, 0x0020, 0x0020, 0x0020,                 // 0xE0-0xE7   FIXME: E0h-E3h is an approximation. Find Unicode approx. for E4h-E7h
+    0x2660, 0x2665, 0x2666, 0x2663, 0x25CF, 0x25CB, 0x2571, 0x2572,                 // 0xE8-0xEF
+    0x2573, 0x0020, 0x5E74, 0x6708, 0x65E5, 0x0020, 0x5206, 0x0020,                 // 0xF0-0xF7   FIXME: What is F1h, F5h, F7h?
+    0x0020, 0x0020, 0x0020, 0x0020, 0x005C, 0x0020, 0x0020, 0x0020                  // 0xF8-0xFF   0xFC = Backslash
+};
+
 extern int eurAscii;
 bool CodePageGuestToHostUint16(uint16_t *d/*CROSS_LEN*/,const char *s/*CROSS_LEN*/);
 void setTTFCodePage() {
+    if (IS_PC98_ARCH) {
+        static_assert(sizeof(cpMap[0])*256 >= sizeof(cpMap_PC98), "sizeof err 1");
+        static_assert(sizeof(cpMap[0]) == sizeof(cpMap_PC98[0]), "sizeof err 2");
+        memcpy(cpMap,cpMap_PC98,sizeof(cpMap[0])*256);
+        return;
+    }
+
     int cp = dos.loaded_codepage;
     if (cp) {
         LOG_MSG("Loaded system codepage: %d\n", cp);
