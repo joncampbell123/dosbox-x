@@ -3034,19 +3034,17 @@ static void VGA_VerticalTimer(Bitu /*val*/) {
                          * This includes proprietary box characters specific to PC-98 */
                         // Manually convert box characters to Unicode for now
                         if (*charram==0x330B) // ASCII 201
-                            (*draw).chr=0x2554;
+                            (*draw).chr=0x250C;
                         else if (*charram==0x250B) // ASCII 205
-                            (*draw).chr=0x2550;
+                            (*draw).chr=0x2500;
                         else if (*charram==0x370B) // ASCII 187
-                            (*draw).chr=0x2557;
+                            (*draw).chr=0x2510;
                         else if (*charram==0x270B) // ASCII 186
-                            (*draw).chr=0x2551;
+                            (*draw).chr=0x2502;
                         else if (*charram==0x3B0B) // ASCII 200
-                            (*draw).chr=0x255A;
+                            (*draw).chr=0x2514;
                         else if (*charram==0x3F0B) // ASCII 188
-                            (*draw).chr=0x255D;
-                        else if (*charram==0x3F0B) // ASCII 188
-                            (*draw).chr = *charram & 0xFF;
+                            (*draw).chr=0x2518;
                         else
                             (*draw).chr=' ';
                         (*draw).unicode=1;
