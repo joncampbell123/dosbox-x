@@ -3955,6 +3955,7 @@ void GFX_EndTextLines(bool force=false) {
 				ymin = min(y, ymin);
 				ymax = y;
 
+				bool dw = false;
 				const int x1 = x;
 				uint8_t colorBG = newAC[x].bg;
 				uint8_t colorFG = newAC[x].fg;
@@ -3969,7 +3970,7 @@ void GFX_EndTextLines(bool force=false) {
 				ttf_fgColor.b = colorsLocked?altBGR1[colorFG&15].blue:rgbColors[colorFG].red;
 
                 if (newAC[x].unicode) {
-                    const bool dw = newAC[x].doublewide;
+                    dw = newAC[x].doublewide;
                     unimap[x-x1] = newAC[x].chr;
                     curAC[x] = newAC[x];
                     x++;
@@ -3999,7 +4000,7 @@ void GFX_EndTextLines(bool force=false) {
                     unimap[x-x1] = 0;
                     xmax = max(x-1, xmax);
 
-                    SDL_Surface* textSurface = TTF_RenderUNICODE_Shaded(ttf.SDL_font, unimap, ttf_fgColor, ttf_bgColor);
+                    SDL_Surface* textSurface = TTF_RenderUNICODE_Shaded(ttf.SDL_font, unimap, ttf_fgColor, ttf_bgColor, ttf.width*(dw?2:1));
                     ttf_textClip.w = (x-x1)*ttf.width;
                     SDL_BlitSurface(textSurface, &ttf_textClip, sdl.surface, &ttf_textRect);
                     SDL_FreeSurface(textSurface);
