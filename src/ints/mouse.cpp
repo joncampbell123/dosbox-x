@@ -791,7 +791,7 @@ void Mouse_Select(int x1, int y1, int x2, int y2, int w, int h) {
 	}
 #if defined(USE_TTF)
     if (ttf.inUse&&!IS_EGAVGA_ARCH) {
-        uint32_t *newAC = newAttrChar;
+        ttf_cell *newAC = newAttrChar;
         for (int y = 0; y < ttf.lins; y++) {
             if (y>=r1&&y<=r2)
                 for (int x = 0; x < ttf.cols; x++)

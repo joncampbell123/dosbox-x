@@ -3008,7 +3008,7 @@ static void VGA_VerticalTimer(Bitu /*val*/) {
 		Bitu vidstart = vga.config.real_start + vga.draw.bytes_skip;
 		vidstart *= 2;
 
-		uint16_t* draw = (uint16_t*)newAttrChar;
+		ttf_cell* draw = newAttrChar;
 
         if (IS_PC98_ARCH) {
             const uint16_t* charram = (uint16_t*)&vga.draw.linear_base[0x0000];         // character data
@@ -3018,13 +3018,15 @@ static void VGA_VerticalTimer(Bitu /*val*/) {
             for (Bitu blocks = ttf.cols * ttf.lins; blocks; blocks--) {
                 bool dbw=false;
 
+                *draw = ttf_cell();
+
                 /* NTS: PC-98 hardware does not require both cells of a double-wide to match,
                  *      in fact if the hardware sees a double-wide in the first cell it will just render the double-wide
                  *      for two cells and ignore the second cell. There are some exceptions though, including the custom
                  *      modificable cells in RAM (responsible for such bugs as the Touhou Project ~idnight level name display bug). */
                 if ((*charram & 0xFF00u) && (*charram & 0x7Cu) != 0x08u/* && (*charram&0x7F7F) == (*(charram+1)&0x7F7F)*/) {
-					*draw=*charram&0x7F7F;
-                    uint8_t j1=(*draw%0x100)+0x20, j2=*draw/0x100;
+                    uint16_t ch = *charram&0x7F7Fu;
+                    uint8_t j1=(ch%0x100)+0x20, j2=ch/0x100;
 					if (j1>32&&j1<127&&j2>32&&j2<127) {
                         char text[3];
                         text[0]=(j1+1)/2+(j1<95?112:176);
@@ -3034,26 +3036,36 @@ static void VGA_VerticalTimer(Bitu /*val*/) {
                         uname[1]=0;
                         CodePageGuestToHostUint16(uname,text);
                         if (uname[0]!=0&&uname[1]==0) {
-                            *draw++=uname[0];
+                            (*draw).chr=uname[0];
+                            (*draw).doublewide=1;
+                            (*draw).unicode=1;
                             dbw=true;
                         }
                         else {
-                            *draw++=' ';
+                            (*draw).chr=' ';
                         }
                     } else {
-                        *draw++=' ';
+                        (*draw).chr=' ';
                     }
-                } else if (*charram & 0xFF80u)
-                    *draw++ = 0x20; // not properly handled YET
-                else
-                    *draw++ = *charram & 0xFF;
+                } else if (*charram & 0xFF80u) {
+                    (*draw).chr = 0x20; // not properly handled YET
+                }
+                else {
+                    (*draw).chr = *charram & 0xFF;
+                }
+                charram++;
 
                 Bitu attr = *attrram;
-                charram++;
                 attrram++;
                 // for simplicity at this time, just map PC-98 attributes to VGA colors. Wengier and I can clean this up later --J.C.
                 Bitu background = 0;
-                Bitu foreground = (attr>>5)&7;
+                Bitu foreground = 0;
+                // PC-98 does not use RGB, it uses GRB. Remap accordingly.
+                if (attr & 0x80) foreground += 2;
+                if (attr & 0x40) foreground += 4;
+                if (attr & 0x20) foreground += 1;
+                if (foreground) foreground += 8; // everything is fullbright on PC-98
+
                 if (attr & 8) {//underline
                     // TODO
                 }
@@ -3065,13 +3077,20 @@ static void VGA_VerticalTimer(Bitu /*val*/) {
                     // TODO
                 }
                 if (!(attr & 1)) {//invisible
-                    *draw = 0x20;
+                    (*draw).chr = 0x20;
                 }
-                *draw++ = (background<<4) + foreground;
+                (*draw).fg = foreground;
+                (*draw).bg = background;
+                draw++;
 
                 if (dbw) {
-                    *draw++ = 0x20;
-                    *draw++ = (background<<4) + foreground;
+                    /* extra cell. Should not draw */
+                    *draw = ttf_cell();
+                    (*draw).skipped = 1;
+                    (*draw).chr = 'x'; // should not see this
+                    (*draw).fg = 4|8; // bright red, in case this is visible
+                    (*draw).bg = 4; // dark red, in case this is visible
+                    draw++;
                     charram++;
                     attrram++;
                     if (blocks != 0) blocks--; /* careful! The for loop is written to stop when blocks == 0 */
@@ -3084,16 +3103,19 @@ static void VGA_VerticalTimer(Bitu /*val*/) {
                     for (Bitu col=0;col < ttf.cols;col++) {
                         // NTS: Note this assumes EGA/VGA text mode that uses the "Odd/Even" mode memory mapping scheme to present video memory
                         //      to the CPU as if CGA compatible text mode. Character data on plane 0, attributes on plane 1.
-                        *draw++ = *vidmem;
-                        Bitu attr = *((uint8_t*)vidmem+1);
-                        vidmem+=2;
+                        *draw = ttf_cell();
+                        (*draw).chr = *vidmem & 0xFF;
+                        Bitu attr = (*vidmem >> 8u) & 0xFFu;
+                        vidmem+=2; // because planar EGA/VGA, and odd/even mode as real hardware arranges alphanumeric mode in VRAM
                         Bitu background = attr >> 4;
                         if (vga.draw.blinking)									// if blinking is enabled bit7 is not mapped to attributes
                             background &= 7;
                         // choose foreground color if blinking not set for this cell or blink on
                         Bitu foreground = (vga.draw.blink || (!(attr&0x80))) ? (attr&0xf) : background;
                         // How about underline?
-                        *draw++ = (background<<4) + foreground;
+                        (*draw).fg = foreground;
+                        (*draw).bg = background;
+                        draw++;
                     }
                     vidstart += vga.draw.address_add;
                 }
@@ -3101,8 +3123,9 @@ static void VGA_VerticalTimer(Bitu /*val*/) {
                 for (Bitu row=0;row < ttf.lins;row++) {
                     const uint16_t* vidmem = (uint16_t*)VGA_Text_Memwrap(vidstart);	// pointer to chars+attribs (EGA/VGA planar memory)
                     for (Bitu col=0;col < ttf.cols;col++) {
-                        *draw++ = *vidmem;
-                        Bitu attr = *((uint8_t*)vidmem+1);
+                        *draw = ttf_cell();
+                        (*draw).chr = *vidmem;
+                        Bitu attr = (*vidmem >> 8u) & 0xFFu;
                         vidmem++;
                         Bitu background = attr >> 4;
                         if (vga.draw.blinking)									// if blinking is enabled bit7 is not mapped to attributes
@@ -3110,7 +3133,9 @@ static void VGA_VerticalTimer(Bitu /*val*/) {
                         // choose foreground color if blinking not set for this cell or blink on
                         Bitu foreground = (vga.draw.blink || (!(attr&0x80))) ? (attr&0xf) : background;
                         // How about underline?
-                        *draw++ = (background<<4) + foreground;
+                        (*draw).fg = foreground;
+                        (*draw).bg = background;
+                        draw++;
                     }
                     vidstart += vga.draw.address_add;
                 }
