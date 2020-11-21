@@ -3948,20 +3948,19 @@ void GFX_EndTextLines(bool force=false) {
 	ttf_textClip.h = ttf.height;
 	ttf_textClip.y = 0;
 	for (int y = 0; y < ttf.lins; y++) {
-        bool dbchar = false, updatenext = false;
 		ttf_textRect.y = ttf.offY+y*ttf.height;
 		for (int x = 0; x < ttf.cols; x++) {
-			if (newAC[x] != curAC[x] || force || updatenext) {
-                updatenext=curAC[x].doublewide;
+			if (newAC[x] != curAC[x] || force) {
 				xmin = min(x, xmin);
 				ymin = min(y, ymin);
 				ymax = y;
-				ttf_textRect.x = ttf.offX+x*ttf.width;
 
+				const int x1 = x;
 				uint8_t colorBG = newAC[x].bg;
 				uint8_t colorFG = newAC[x].fg;
 				processWP(&colorBG, &colorFG);
 
+				ttf_textRect.x = ttf.offX+x*ttf.width;
 				ttf_bgColor.r = colorsLocked?altBGR1[colorBG&15].red:rgbColors[colorBG].blue;
 				ttf_bgColor.g = colorsLocked?altBGR1[colorBG&15].green:rgbColors[colorBG].green;
 				ttf_bgColor.b = colorsLocked?altBGR1[colorBG&15].blue:rgbColors[colorBG].red;
@@ -3969,44 +3968,39 @@ void GFX_EndTextLines(bool force=false) {
 				ttf_fgColor.g = colorsLocked?altBGR1[colorFG&15].green:rgbColors[colorFG].green;
 				ttf_fgColor.b = colorsLocked?altBGR1[colorFG&15].blue:rgbColors[colorFG].red;
 
-				int x1 = x;
+                if (newAC[x].unicode) {
+                    const bool dw = newAC[x].doublewide;
+                    unimap[x-x1] = newAC[x].chr;
+                    curAC[x] = newAC[x];
+                    x++;
 
-				uint8_t ascii = newAC[x].chr&255;
-				bool next=false;
-				if (ascii > 175 && ascii < 179 && !IS_PC98_ARCH) {	// special: shade characters 176-178 unless PC-98
-					ttf_bgColor.b = (ttf_bgColor.b*(179-ascii) + ttf_fgColor.b*(ascii-175))>>2;
-					ttf_bgColor.g = (ttf_bgColor.g*(179-ascii) + ttf_fgColor.g*(ascii-175))>>2;
-					ttf_bgColor.r = (ttf_bgColor.r*(179-ascii) + ttf_fgColor.r*(ascii-175))>>2;
-					do {											// as long char and foreground/background color equal
-						curAC[x] = newAC[x];
-						unimap[x-x1] = ' ';							// shaded space
-						x++;
-					}
-					while (x < ttf.cols && newAC[x] == newAC[x1] && newAC[x] != curAC[x]);
-				} else {
-					uint8_t color_fg = newAC[x].fg;
-                    uint8_t color_bg = newAC[x].bg;
-					do {											// as long foreground/background color equal
-						curAC[x] = newAC[x];
-                        if (dbchar) {
-                            dbchar = false;
-                            next=true;
-                            break;
-                        } else {
-                            dbchar = newAC[x].doublewide;
-                            unimap[x-x1] = dbchar?newAC[x].chr:cpMap[ascii+charSet*256];
-                            x++;
-                            ascii = newAC[x].chr&255;
-                        }
-					}
-					while (x < ttf.cols && newAC[x] != curAC[x] && newAC[x].fg == color_fg && newAC[x].bg == color_bg && (ascii < 176 || ascii > 178 || IS_PC98_ARCH));
-				}
-                if (!next) {
+                    if (dw) {
+                        curAC[x] = newAC[x];
+                        x++;
+                    }
+                }
+                else {
+                    uint8_t ascii = newAC[x].chr&255;
+
+                    curAC[x] = newAC[x];
+                    if (ascii > 175 && ascii < 179 && !IS_PC98_ARCH) {	// special: shade characters 176-178 unless PC-98
+                        ttf_bgColor.b = (ttf_bgColor.b*(179-ascii) + ttf_fgColor.b*(ascii-175))>>2;
+                        ttf_bgColor.g = (ttf_bgColor.g*(179-ascii) + ttf_fgColor.g*(ascii-175))>>2;
+                        ttf_bgColor.r = (ttf_bgColor.r*(179-ascii) + ttf_fgColor.r*(ascii-175))>>2;
+                        unimap[x-x1] = ' ';							// shaded space
+                    } else {
+                        unimap[x-x1] = cpMap[ascii+charSet*256];
+                    }
+
+                    x++;
+                }
+
+                {
                     unimap[x-x1] = 0;
                     xmax = max(x-1, xmax);
 
                     SDL_Surface* textSurface = TTF_RenderUNICODE_Shaded(ttf.SDL_font, unimap, ttf_fgColor, ttf_bgColor);
-                    ttf_textClip.w = (x-x1)*ttf.width*(dbchar?2:1);
+                    ttf_textClip.w = (x-x1)*ttf.width;
                     SDL_BlitSurface(textSurface, &ttf_textClip, sdl.surface, &ttf_textRect);
                     SDL_FreeSurface(textSurface);
                     x--;
