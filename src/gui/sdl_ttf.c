@@ -1497,7 +1497,7 @@ SDL_Surface *TTF_RenderGlyph_Solid(TTF_Font *font, Uint16 ch, SDL_Color fg)
 /* Convert the Latin-1 text to UNICODE and render it
 */
 SDL_Surface *TTF_RenderText_Shaded(TTF_Font *font,
-				const char *text, SDL_Color fg, SDL_Color bg)
+				const char *text, SDL_Color fg, SDL_Color bg, unsigned int expect_width)
 {
 	SDL_Surface *textbuf;
 	Uint16 *unicode_text;
@@ -1514,7 +1514,7 @@ SDL_Surface *TTF_RenderText_Shaded(TTF_Font *font,
 	LATIN1_to_UNICODE(unicode_text+1, text, unicode_len);
 
 	/* Render the new text */
-	textbuf = TTF_RenderUNICODE_Shaded(font, unicode_text, fg, bg);
+	textbuf = TTF_RenderUNICODE_Shaded(font, unicode_text, fg, bg, expect_width);
 
 	/* Free the text buffer and return */
 	FREEA(unicode_text);
@@ -1524,7 +1524,7 @@ SDL_Surface *TTF_RenderText_Shaded(TTF_Font *font,
 /* Convert the UTF-8 text to UNICODE and render it
 */
 SDL_Surface *TTF_RenderUTF8_Shaded(TTF_Font *font,
-				const char *text, SDL_Color fg, SDL_Color bg)
+				const char *text, SDL_Color fg, SDL_Color bg, unsigned int expect_width)
 {
 	SDL_Surface *textbuf;
 	Uint16 *unicode_text;
@@ -1541,7 +1541,7 @@ SDL_Surface *TTF_RenderUTF8_Shaded(TTF_Font *font,
 	UTF8_to_UNICODE(unicode_text+1, text, unicode_len);
 
 	/* Render the new text */
-	textbuf = TTF_RenderUNICODE_Shaded(font, unicode_text, fg, bg);
+	textbuf = TTF_RenderUNICODE_Shaded(font, unicode_text, fg, bg, expect_width);
 
 	/* Free the text buffer and return */
 	FREEA(unicode_text);
@@ -1551,7 +1551,8 @@ SDL_Surface *TTF_RenderUTF8_Shaded(TTF_Font *font,
 SDL_Surface* TTF_RenderUNICODE_Shaded( TTF_Font* font,
 				       const Uint16* text,
 				       SDL_Color fg,
-				       SDL_Color bg )
+				       SDL_Color bg,
+				       unsigned int expect_width)
 {
 	int xstart;
 	int width;
@@ -1579,6 +1580,9 @@ SDL_Surface* TTF_RenderUNICODE_Shaded( TTF_Font* font,
 		TTF_SetError("Text has zero width");
 		return NULL;
 	}
+
+    if (width < expect_width)
+        width = expect_width;
 
 	/* Create the target surface */
 	textbuf = SDL_AllocSurface(SDL_SWSURFACE, width, height, 8, 0, 0, 0, 0);

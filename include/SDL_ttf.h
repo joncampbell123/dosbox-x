@@ -201,11 +201,11 @@ extern DECLSPEC SDL_Surface * SDLCALL TTF_RenderGlyph_Solid(TTF_Font *font,
    This function returns the new surface, or NULL if there was an error.
 */
 extern DECLSPEC SDL_Surface * SDLCALL TTF_RenderText_Shaded(TTF_Font *font,
-                const char *text, SDL_Color fg, SDL_Color bg);
+                const char *text, SDL_Color fg, SDL_Color bg, unsigned int expect_width);
 extern DECLSPEC SDL_Surface * SDLCALL TTF_RenderUTF8_Shaded(TTF_Font *font,
-                const char *text, SDL_Color fg, SDL_Color bg);
+                const char *text, SDL_Color fg, SDL_Color bg, unsigned int expect_width);
 extern DECLSPEC SDL_Surface * SDLCALL TTF_RenderUNICODE_Shaded(TTF_Font *font,
-                const Uint16 *text, SDL_Color fg, SDL_Color bg);
+                const Uint16 *text, SDL_Color fg, SDL_Color bg, unsigned int expect_width);
 
 /* Create an 8-bit palettized surface and render the given glyph at
    high quality with the given font and colors.  The 0 pixel is background,
