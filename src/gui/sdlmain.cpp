@@ -3101,7 +3101,7 @@ bool setColors(const char *colorArray, int n) {
     if (IS_PC98_ARCH) return false;
 	const char * nextRGB = colorArray;
 	uint8_t * altPtr = (uint8_t *)altBGR1;
-	int rgbVal[3];
+	int rgbVal[3] = {-1,-1,-1};
 	for (int colNo = 0; colNo < (n>-1?1:16); colNo++) {
 		if (n>-1) altPtr+=4*n;
 		if (sscanf(nextRGB, " ( %d , %d , %d)", &rgbVal[0], &rgbVal[1], &rgbVal[2]) == 3) {	// Decimal: (red,green,blue)
@@ -3114,7 +3114,7 @@ bool setColors(const char *colorArray, int n) {
 				nextRGB++;
 			nextRGB++;
 		} else if (sscanf(nextRGB, " #%6x", &rgbVal[0]) == 1) {							// Hexadecimal
-			if (rgbVal < 0)
+			if (rgbVal[0] < 0)
 				return false;
 			for (int i = 0; i < 3; i++) {
 				altPtr[i] = rgbVal[0]&255;
