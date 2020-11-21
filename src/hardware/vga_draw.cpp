@@ -3047,8 +3047,6 @@ static void VGA_VerticalTimer(Bitu /*val*/) {
                     } else {
                         (*draw).chr=' ';
                     }
-                } else if (*charram & 0xFF80u) {
-                    (*draw).chr = 0x20; // not properly handled YET
                 }
                 else {
                     (*draw).chr = *charram & 0xFF;
