@@ -4098,7 +4098,7 @@ void GFX_EndTextLines(bool force=false) {
 #endif
 	if (xmin <= xmax) {												// if any changes
         SDL_Rect *rect = &sdl.updateRects[0];
-        rect->x = ttf.offX+xmin*ttf.width; rect->y = ttf.offY+ymin*ttf.height; rect->w = (xmax-xmin+1)*ttf.width*(IS_PC98_ARCH&&xmin<=xmax-1?2:1); rect->h = (ymax-ymin+1)*ttf.height;
+        rect->x = ttf.offX+xmin*ttf.width; rect->y = ttf.offY+ymin*ttf.height; rect->w = (xmax-xmin+1)*ttf.width; rect->h = (ymax-ymin+1)*ttf.height;
 #if defined(C_SDL2)
         SDL_UpdateWindowSurfaceRects(sdl.window, sdl.updateRects, 4);
 #else
