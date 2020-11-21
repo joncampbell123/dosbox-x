@@ -3015,6 +3015,10 @@ static void VGA_VerticalTimer(Bitu /*val*/) {
             const uint16_t* attrram = (uint16_t*)&vga.draw.linear_base[0x2000];         // attribute data
             uint16_t uname[4];
 
+            // TTF output only looks at VGA emulation state for cursor status,
+            // which PC-98 mode does not update.
+            vga.draw.cursor.enabled = pc98_gdc[GDC_MASTER].cursor_enable;
+
             for (Bitu blocks = ttf.cols * ttf.lins; blocks; blocks--) {
                 bool dbw=false;
 
