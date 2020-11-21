@@ -4058,7 +4058,8 @@ void GFX_EndTextLines(bool force=false) {
 				uint8_t colorFG = newAttrChar[ttf.cursor].fg;
 				processWP(&colorBG, &colorFG);
 
-				if (blinking && colorBG&8) {
+				/* Don't do this in PC-98 mode, the bright pink cursor in EDIT.COM looks awful and not at all how the cursor is supposed to look --J.C. */
+				if (!IS_PC98_ARCH && blinking && colorBG&8) {
 					colorBG-=8;
 					if ((bcount/8)%2)
 						colorFG=colorBG;
