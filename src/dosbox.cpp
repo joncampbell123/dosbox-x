@@ -2359,11 +2359,25 @@ void DOSBOX_SetupConfigSections(void) {
     Pint->SetBasic(true);
 
 	Pstring = secprop->Add_string("ttf.wp", Property::Changeable::Always, "");
-    Pstring->Set_help("You can specify a word processor for the TTF output (WP=WordPerfect, XY=XyWrite, WS=WordStar) and optionally also a version number.\n"
-                    "For example, WP6 will set the word processor as WordPerfect 6, and XY4 will set the word processor as XyWrite 4.");
+    Pstring->Set_help("You can specify a word processor for the TTF output (WP=WordPerfect, WS=WordStar, XY=XyWrite) and optionally also a version number.\n"
+                    "For example, WP6 will set the word processor as WordPerfect 6, and XY4 will set the word processor as XyWrite 4.\n"
+                    "Word processor-specific features like on-screen text styles and 512-character font will be enabled based on this.");
+    Pstring->SetBasic(true);
 
 	Pint = secprop->Add_int("ttf.wpbg", Property::Changeable::Always, -1);
     Pint->Set_help("You can optionally specify a color to match the background color of the specified word processor for the TTF output.");
+
+	Pbool = secprop->Add_bool("ttf.bold", Property::Changeable::Always, true);
+    Pbool->Set_help("If set, DOSBox-X will display bold text in visually (requires a word processor be set) for the TTF output.");
+
+	Pbool = secprop->Add_bool("ttf.italic", Property::Changeable::Always, true);
+    Pbool->Set_help("If set, DOSBox-X will display italicized text visually (requires a word processor be set) for the TTF output.");
+
+	Pbool = secprop->Add_bool("ttf.underline", Property::Changeable::Always, true);
+    Pbool->Set_help("If set, DOSBox-X will display underlined text visually (requires a word processor be set) for the TTF output.");
+
+	Pbool = secprop->Add_bool("ttf.strikeout", Property::Changeable::Always, false);
+    Pbool->Set_help("If set, DOSBox-X will display strikeout text visually (requires a word processor be set) for the TTF output.");
 
 	Pbool = secprop->Add_bool("ttf.char512", Property::Changeable::Always, true);
     Pbool->Set_help("If set, DOSBox-X will display the 512-character font if possible (requires a word processor be set) for the TTF output.");

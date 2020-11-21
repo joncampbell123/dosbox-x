@@ -3028,7 +3028,23 @@ static void VGA_VerticalTimer(Bitu /*val*/) {
                     if ((*charram & 0x7Cu) == 0x08u) {
                         /* Single wide, yet DBCS encoding.
                          * This includes proprietary box characters specific to PC-98 */
-                        (*draw).chr=' ';
+                        // Manually convert box characters to Unicode for now
+                        if (*charram==0x330B) // ASCII 201
+                            (*draw).chr=0x2554;
+                        else if (*charram==0x250B) // ASCII 205
+                            (*draw).chr=0x2550;
+                        else if (*charram==0x370B) // ASCII 187
+                            (*draw).chr=0x2557;
+                        else if (*charram==0x270B) // ASCII 186
+                            (*draw).chr=0x2551;
+                        else if (*charram==0x3B0B) // ASCII 200
+                            (*draw).chr=0x255A;
+                        else if (*charram==0x3F0B) // ASCII 188
+                            (*draw).chr=0x255D;
+                        else if (*charram==0x3F0B) // ASCII 188
+                            (*draw).chr = *charram & 0xFF;
+                        else
+                            (*draw).chr=' ';
                         (*draw).unicode=1;
                     }
                     else {
@@ -3055,10 +3071,8 @@ static void VGA_VerticalTimer(Bitu /*val*/) {
                             (*draw).chr=' ';
                         }
                     }
-                }
-                else {
+                } else
                     (*draw).chr = *charram & 0xFF;
-                }
                 charram++;
 
                 Bitu attr = *attrram;

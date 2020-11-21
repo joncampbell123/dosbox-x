@@ -106,11 +106,7 @@ void GFX_OpenGLRedrawScreen(void);
 #include "../libs/tinyfiledialogs/tinyfiledialogs.h"
 #endif
 #if defined(USE_TTF)
-#if defined(C_SDL2)
-#include "sdl2_ttf.c"
-#else
 #include "sdl_ttf.c"
-#endif
 #include "DOSBoxTTF.h"
 #endif
 
@@ -254,6 +250,10 @@ ScreenSizeInfo          screen_size_info;
 #if defined(USE_TTF)
 Render_ttf ttf;
 bool char512 = true;
+bool showbold = true;
+bool showital = true;
+bool showline = true;
+bool showsout = false;
 int wpType = 0;
 int wpVersion = 0;
 int wpBG = -1;
@@ -3255,8 +3255,8 @@ void OUTPUT_TTF_Select(int fsize=-1) {
         wpVersion=0;
         if (strlen(wpstr)>1) {
             if (!strncasecmp(wpstr, "WP", 2)) wpType=1;
-            else if (!strncasecmp(wpstr, "XY", 2)) wpType=2;
-            else if (!strncasecmp(wpstr, "WS", 2)) wpType=3;
+            else if (!strncasecmp(wpstr, "WS", 2)) wpType=2;
+            else if (!strncasecmp(wpstr, "XY", 3)) wpType=3;
             if (strlen(wpstr)>2&&wpstr[2]>='1'&&wpstr[2]<='9') wpVersion=wpstr[2]-'0';
         }
         wpBG = render_section->Get_int("ttf.wpbg");
@@ -3266,6 +3266,10 @@ void OUTPUT_TTF_Select(int fsize=-1) {
         if (fsize==1&&winPerc==100) winPerc=75;
         fontSize = render_section->Get_int("ttf.ptsize");
         char512 = render_section->Get_bool("ttf.char512");
+        showbold = render_section->Get_bool("ttf.bold");
+        showital = render_section->Get_bool("ttf.italic");
+        showline = render_section->Get_bool("ttf.underline");
+        showsout = render_section->Get_bool("ttf.strikeout");
         ttf.lins = render_section->Get_int("ttf.lins");
         ttf.cols = render_section->Get_int("ttf.cols");
         if ((!CurMode||CurMode->type!=M_TEXT)&&!IS_PC98_ARCH) {
@@ -3495,8 +3499,16 @@ void change_output(int output) {
         resetFontSize();
         resetreq = true;
     }
-    mainMenu.get_item("ttf_window_inc").enable(sdl.desktop.want_type == SCREEN_TTF).refresh_item(mainMenu);
-    mainMenu.get_item("ttf_window_dec").enable(sdl.desktop.want_type == SCREEN_TTF).refresh_item(mainMenu);
+    mainMenu.get_item("ttf_window_inc").enable(TTF_using()).refresh_item(mainMenu);
+    mainMenu.get_item("ttf_window_dec").enable(TTF_using()).refresh_item(mainMenu);
+    mainMenu.get_item("ttf_showbold").enable(TTF_using()).check(showbold).refresh_item(mainMenu);
+    mainMenu.get_item("ttf_showital").enable(TTF_using()).check(showital).refresh_item(mainMenu);
+    mainMenu.get_item("ttf_showline").enable(TTF_using()).check(showline).refresh_item(mainMenu);
+    mainMenu.get_item("ttf_showsout").enable(TTF_using()).check(showsout).refresh_item(mainMenu);
+    mainMenu.get_item("ttf_wpno").enable(TTF_using()).check(!wpType).refresh_item(mainMenu);
+    mainMenu.get_item("ttf_wpwp").enable(TTF_using()).check(wpType==1).refresh_item(mainMenu);
+    mainMenu.get_item("ttf_wpws").enable(TTF_using()).check(wpType==2).refresh_item(mainMenu);
+    mainMenu.get_item("ttf_wpxy").enable(TTF_using()).check(wpType==3).refresh_item(mainMenu);
 #endif
 
     if (output != 7) GFX_SetTitle((int32_t)(CPU_CycleAutoAdjust?CPU_CyclePercUsed:CPU_CycleMax),-1,-1,false);
@@ -3839,29 +3851,40 @@ void processWP(uint8_t *pcolorBG, uint8_t *pcolorFG) {
     uint8_t colorBG = *pcolorBG, colorFG = *pcolorFG;
     int style = 0;
     if (CurMode->mode == 7) {														// Mono (Hercules)
-        style = (colorFG&7) == 1 ? TTF_STYLE_UNDERLINE : TTF_STYLE_NORMAL;
+        style = showline && (colorFG&7) == 1 ? TTF_STYLE_UNDERLINE : TTF_STYLE_NORMAL;
         if ((colorFG&0xa) == colorFG && (colorBG&15) == 0)
             colorFG = 8;
         else if (colorFG&7)
             colorFG |= 7;
     }
     else if (wpType == 1) {															// WordPerfect
-        if (colorFG == 0xe && (colorBG&15) == 1) {
+        if (showital && colorFG == (wpVersion > 0 && wpVersion < 6 ? 0xe : 2) && (colorBG&15) == (wpBG > -1 ? wpBG : 1)) {
             style = TTF_STYLE_ITALIC;
             colorFG = 7;
         }
-        else if ((colorFG == 1 || colorFG == 0xf) && (colorBG&15) == 7) {
+        else if (showline && (colorFG == 1 || colorFG == 0xf) && (colorBG&15) == 7) {
             style = TTF_STYLE_UNDERLINE;
             colorBG = 1;
             colorFG = colorFG == 1 ? 7 : 0xf;
         }
-        else if (colorFG == 0 && (colorBG&15) == 3) {
+        else if (showsout && colorFG == 0 && (colorBG&15) == 3) {
             style = TTF_STYLE_STRIKETHROUGH;
-            colorBG = 1;
+            colorBG = wpBG > -1 ? wpBG : 1;
             colorFG = 7;
         }
-    } else if (wpType == 2) {														// XyWrite
-        if ((colorFG == 10 || colorFG == 14) && colorBG != 12) {
+    } else if (wpType == 2) {														// WordStar
+        if (colorBG&8) {
+            if (showline && colorBG&1)
+                style |= TTF_STYLE_UNDERLINE;
+            if (showital && colorBG&2)
+                style |= TTF_STYLE_ITALIC;
+            if (showsout && colorBG&4)
+                style |= TTF_STYLE_STRIKETHROUGH;
+            if (style)
+                colorBG = wpBG > -1 ? wpBG : 0;
+        }
+    } else if (wpType == 3) {														// XyWrite
+        if (showital && (colorFG == 10 || colorFG == 14) && colorBG != 12 && !(!showline && colorBG == 3)) {
             style = TTF_STYLE_ITALIC;
             if (colorBG == 3) {
                 style |= TTF_STYLE_UNDERLINE;
@@ -3869,20 +3892,16 @@ void processWP(uint8_t *pcolorBG, uint8_t *pcolorFG) {
             }
             colorFG = colorFG == 10 ? 7:15;
         }
-        else if (colorFG == 3 || colorFG == 0xb) {
+        else if (showline && (colorFG == 3 || colorFG == 0xb)) {
             style = TTF_STYLE_UNDERLINE;
             colorFG = colorFG == 3 ? 7:15;
         }
-    } else if (wpType == 3) {														// WordStar
-        if (colorBG&8) {
-            if (colorBG&1)
-                style |= TTF_STYLE_UNDERLINE;
-            if (colorBG&2)
-                style |= TTF_STYLE_ITALIC;
-            if (colorBG&4)
-                style |= TTF_STYLE_STRIKETHROUGH;
-            if (style)
-                colorBG = wpBG > -1 ? wpBG : 0;
+        else if (!showsout || colorBG != 4)
+            style = TTF_STYLE_NORMAL;
+        if (showsout && colorBG == 4 && colorFG != 12 && colorFG != 13) {
+            style |= TTF_STYLE_STRIKETHROUGH;
+            colorBG = wpBG > -1 ? wpBG : (wpVersion < 4 ? 0 : 1);
+            if (colorFG != 15) colorFG = 7;
         }
     }
     if (char512 && wpType == 1) {
@@ -3891,9 +3910,9 @@ void processWP(uint8_t *pcolorBG, uint8_t *pcolorFG) {
             colorFG &= 7;
         }
     }
-    if (colorFG == 15) {
+    if (showbold && (colorFG == 15 || (wpType == 1 && (wpVersion < 1 || wpVersion > 5 ) && colorFG == 3 && (colorBG&15) == (wpBG > -1 ? wpBG : 1)))) {
         if (!(style&TTF_STYLE_ITALIC)) style |= TTF_STYLE_BOLD;
-        if ((style&TTF_STYLE_ITALIC)||!(style&TTF_STYLE_ITALIC)) colorFG = 7;
+        colorFG = 7;
     }
     if (style)
         TTF_SetFontStyle(ttf.SDL_font, style);
@@ -4011,11 +4030,11 @@ void GFX_EndTextLines(bool force=false) {
 		curAC += ttf.cols;
 		newAC += ttf.cols;
 	}
-#if 0
+#if 1 // NTS: Additional fix is needed for PC-98 mode; also expect further cleanup
 	bcount++;
 	if (vga.draw.cursor.enabled && vga.draw.cursor.sline <= vga.draw.cursor.eline && vga.draw.cursor.sline < 16) {		// Draw cursor?
 		int newPos = vga.draw.cursor.address>>1;
-		if (newPos >= 0 && newPos < ttf.cols*ttf.lins) {									// If on screen
+		if (newPos >= 0 && newPos < ttf.cols*ttf.lins) {								// If on screen
 			int y = newPos/ttf.cols;
 			int x = newPos%ttf.cols;
 			vga.draw.cursor.count++;
@@ -4034,7 +4053,7 @@ void GFX_EndTextLines(bool force=false) {
 			blinkstate = vga.draw.cursor.blinkon;
 			ttf.cursor = newPos;
 //			if (x >= xmin && x <= xmax && y >= ymin && y <= ymax  && (GetTickCount()&0x400))	// If overdrawn previuosly (or new shape)
-			if (x >= xmin && x <= xmax && y >= ymin && y <= ymax) {							// If overdrawn previuosly (or new shape)
+			if (x >= xmin && x <= xmax && y >= ymin && y <= ymax && !newAttrChar[ttf.cursor].skipped) {							// If overdrawn previuosly (or new shape)
 				uint8_t colorBG = newAttrChar[ttf.cursor].bg;
 				uint8_t colorFG = newAttrChar[ttf.cursor].fg;
 				processWP(&colorBG, &colorFG);
@@ -4044,24 +4063,29 @@ void GFX_EndTextLines(bool force=false) {
 					if ((bcount/8)%2)
 						colorFG=colorBG;
 				}
+				bool dw = newAttrChar[ttf.cursor].unicode && newAttrChar[ttf.cursor].doublewide;
 				ttf_bgColor.r = colorsLocked?altBGR1[colorBG&15].red:rgbColors[colorBG].blue;
 				ttf_bgColor.g = colorsLocked?altBGR1[colorBG&15].green:rgbColors[colorBG].green;
 				ttf_bgColor.b = colorsLocked?altBGR1[colorBG&15].blue:rgbColors[colorBG].red;
 				ttf_fgColor.r = colorsLocked?altBGR1[colorFG&15].red:rgbColors[colorFG].blue;
 				ttf_fgColor.g = colorsLocked?altBGR1[colorFG&15].green:rgbColors[colorFG].green;
 				ttf_fgColor.b = colorsLocked?altBGR1[colorFG&15].blue:rgbColors[colorFG].red;
-				unimap[0] = cpMap[newAttrChar[ttf.cursor].chr&255];
-				unimap[1] = 0;
+				unimap[0] = newAttrChar[ttf.cursor].unicode?newAttrChar[ttf.cursor].chr:cpMap[newAttrChar[ttf.cursor].chr&255];
+                if (dw) {
+                    unimap[1] = newAttrChar[ttf.cursor].chr;
+                    unimap[2] = 0;
+                } else
+                    unimap[1] = 0;
 				// first redraw character
-				SDL_Surface* textSurface = TTF_RenderUNICODE_Shaded(ttf.SDL_font, unimap, ttf_fgColor, ttf_bgColor);
-				ttf_textClip.w = ttf.width;
+				SDL_Surface* textSurface = TTF_RenderUNICODE_Shaded(ttf.SDL_font, unimap, ttf_fgColor, ttf_bgColor, ttf.width*(dw?2:1));
+				ttf_textClip.w = ttf.width*(dw?2:1);
 				ttf_textRect.x = ttf.offX+x*ttf.width;
 				ttf_textRect.y = ttf.offY+y*ttf.height;
 				SDL_BlitSurface(textSurface, &ttf_textClip, sdl.surface, &ttf_textRect);
 				SDL_FreeSurface(textSurface);
 				if ((vga.draw.cursor.blinkon || !blinkCursor)) {
                     // second reverse lower lines
-                    textSurface = TTF_RenderUNICODE_Shaded(ttf.SDL_font, unimap, ttf_bgColor, ttf_fgColor);
+                    textSurface = TTF_RenderUNICODE_Shaded(ttf.SDL_font, unimap, ttf_bgColor, ttf_fgColor, ttf.width*(dw?2:1));
                     ttf_textClip.y = (ttf.height*vga.draw.cursor.sline)>>4;
                     ttf_textClip.h = ttf.height - ttf_textClip.y;								// for now, cursor to bottom
                     ttf_textRect.y = ttf.offY+y*ttf.height + ttf_textClip.y;
@@ -4074,7 +4098,7 @@ void GFX_EndTextLines(bool force=false) {
 #endif
 	if (xmin <= xmax) {												// if any changes
         SDL_Rect *rect = &sdl.updateRects[0];
-        rect->x = ttf.offX+xmin*ttf.width; rect->y = ttf.offY+ymin*ttf.height; rect->w = (xmax-xmin+1)*ttf.width; rect->h = (ymax-ymin+1)*ttf.height;
+        rect->x = ttf.offX+xmin*ttf.width; rect->y = ttf.offY+ymin*ttf.height; rect->w = (xmax-xmin+1)*ttf.width*(IS_PC98_ARCH&&xmin<=xmax-1?2:1); rect->h = (ymax-ymin+1)*ttf.height;
 #if defined(C_SDL2)
         SDL_UpdateWindowSurfaceRects(sdl.window, sdl.updateRects, 4);
 #else
@@ -9472,7 +9496,7 @@ bool output_menu_callback(DOSBoxMenu * const menu,DOSBoxMenu::item * const menui
 bool clear_menu_callback(DOSBoxMenu * const menu,DOSBoxMenu::item * const menuitem) {
     (void)menu;//UNUSED
     const char *mname = menuitem->get_name().c_str();
-    if (CurMode->mode>7&&CurMode->mode!=0x0043&&CurMode->mode!=0x0054&&CurMode->mode!=0x0055&&CurMode->mode!=0x0064)
+    if (CurMode->mode>7&&CurMode->mode!=0x0019&&CurMode->mode!=0x0043&&CurMode->mode!=0x0054&&CurMode->mode!=0x0055&&CurMode->mode!=0x0064)
         return true;
     if (CurMode->type==M_TEXT || dos_kernel_disabled) {
         const auto rows = real_readb(BIOSMEM_SEG, BIOSMEM_NB_ROWS);
@@ -9502,7 +9526,7 @@ bool intensity_menu_callback(DOSBoxMenu * const menu,DOSBoxMenu::item * const me
     (void)menu;//UNUSED
     const char *mname = menuitem->get_name().c_str();
     uint16_t oldax=reg_ax, oldbx=reg_bx;
-    if (IS_PC98_ARCH||(CurMode->mode>7&&CurMode->mode!=0x0043&&CurMode->mode!=0x0054&&CurMode->mode!=0x0055&&CurMode->mode!=0x0064))
+    if (IS_PC98_ARCH||(CurMode->mode>7&&CurMode->mode!=0x0019&&CurMode->mode!=0x0043&&CurMode->mode!=0x0054&&CurMode->mode!=0x0055&&CurMode->mode!=0x0064))
         return true;
     if (!strcmp(mname, "text_background"))
         reg_bl = 0;
@@ -9542,6 +9566,12 @@ bool setlines(const char *mname) {
         CALLBACK_RunRealInt(0x10);
 #if defined(USE_TTF)
         if (ttf.inUse) ttf_setlines(80, 25);
+#endif
+    } else if (!strcmp(mname, "line_80x43")) {
+        reg_ax = 0x0019;
+        CALLBACK_RunRealInt(0x10);
+#if defined(USE_TTF)
+        if (ttf.inUse) ttf_setlines(80, 43);
 #endif
     } else if (!strcmp(mname, "line_80x50")) {
         reg_ax = 0x1202;
@@ -9612,13 +9642,55 @@ bool ttf_window_change_callback(DOSBoxMenu * const menu,DOSBoxMenu::item * const
         resetFontSize();
     return true;
 }
+
+bool ttf_style_change_callback(DOSBoxMenu * const menu,DOSBoxMenu::item * const menuitem) {
+    (void)menu;//UNUSED
+    const char *mname = menuitem->get_name().c_str();
+    if (!strcmp(mname, "ttf_showbold")) {
+        showbold=!showbold;
+        mainMenu.get_item(mname).check(showbold).refresh_item(mainMenu);
+    } else if (!strcmp(mname, "ttf_showital")) {
+        showital=!showital;
+        mainMenu.get_item(mname).check(showital).refresh_item(mainMenu);
+    } else if (!strcmp(mname, "ttf_showline")) {
+        showline=!showline;
+        mainMenu.get_item(mname).check(showline).refresh_item(mainMenu);
+    } else if (!strcmp(mname, "ttf_showsout")) {
+        showsout=!showsout;
+        mainMenu.get_item(mname).check(showsout).refresh_item(mainMenu);
+    } else
+        return true;
+    resetFontSize();
+    return true;
+}
+
+bool ttf_wp_change_callback(DOSBoxMenu * const menu,DOSBoxMenu::item * const menuitem) {
+    (void)menu;//UNUSED
+    const char *mname = menuitem->get_name().c_str();
+    if (!strcmp(mname, "ttf_wpno")) {
+        wpType=0;
+    } else if (!strcmp(mname, "ttf_wpwp")) {
+        wpType=1;
+    } else if (!strcmp(mname, "ttf_wpws")) {
+        wpType=2;
+    } else if (!strcmp(mname, "ttf_wpxy")) {
+        wpType=3;
+    } else
+        return true;
+    mainMenu.get_item("ttf_wpno").check(!wpType).refresh_item(mainMenu);
+    mainMenu.get_item("ttf_wpwp").check(wpType==1).refresh_item(mainMenu);
+    mainMenu.get_item("ttf_wpws").check(wpType==2).refresh_item(mainMenu);
+    mainMenu.get_item("ttf_wpxy").check(wpType==3).refresh_item(mainMenu);
+    resetFontSize();
+    return true;
+}
 #endif
 
 bool lines_menu_callback(DOSBoxMenu * const menu,DOSBoxMenu::item * const menuitem) {
     (void)menu;//UNUSED
     clear_menu_callback(menu, menuitem);
     const char *mname = menuitem->get_name().c_str();
-    if (IS_PC98_ARCH||(CurMode->mode>7&&CurMode->mode!=0x0043&&CurMode->mode!=0x0054&&CurMode->mode!=0x0055&&CurMode->mode!=0x0064))
+    if (IS_PC98_ARCH||(CurMode->mode>7&&CurMode->mode!=0x0019&&CurMode->mode!=0x0043&&CurMode->mode!=0x0054&&CurMode->mode!=0x0055&&CurMode->mode!=0x0064))
         return true;
     if (!setlines(mname)) return true;
     if (!dos_kernel_disabled && !strcmp(RunningProgram, "COMMAND")) {
@@ -11182,6 +11254,8 @@ int main(int argc, char* argv[]) SDL_MAIN_NOEXCEPT {
                     set_callback_function(intensity_menu_callback);
                 mainMenu.alloc_item(DOSBoxMenu::item_type_id,"line_80x25").set_text("Screen: 80 columns x 25 lines").
                     set_callback_function(lines_menu_callback);
+                mainMenu.alloc_item(DOSBoxMenu::item_type_id,"line_80x43").set_text("Screen: 80 columns x 43 lines").
+                    set_callback_function(lines_menu_callback);
                 mainMenu.alloc_item(DOSBoxMenu::item_type_id,"line_80x50").set_text("Screen: 80 columns x 50 lines").
                     set_callback_function(lines_menu_callback);
                 mainMenu.alloc_item(DOSBoxMenu::item_type_id,"line_80x60").set_text("Screen: 80 columns x 60 lines").
@@ -11199,6 +11273,22 @@ int main(int argc, char* argv[]) SDL_MAIN_NOEXCEPT {
                     set_callback_function(ttf_window_change_callback);
                 mainMenu.alloc_item(DOSBoxMenu::item_type_id,"ttf_window_dec").set_text("Decrease TTF font size").
                     set_callback_function(ttf_window_change_callback);
+                mainMenu.alloc_item(DOSBoxMenu::item_type_id,"ttf_showbold").set_text("Display bold text in TTF").
+                    set_callback_function(ttf_style_change_callback);
+                mainMenu.alloc_item(DOSBoxMenu::item_type_id,"ttf_showital").set_text("Display italic text in TTF").
+                    set_callback_function(ttf_style_change_callback);
+                mainMenu.alloc_item(DOSBoxMenu::item_type_id,"ttf_showline").set_text("Display underlined text in TTF").
+                    set_callback_function(ttf_style_change_callback);
+                mainMenu.alloc_item(DOSBoxMenu::item_type_id,"ttf_showsout").set_text("Display strikeout text in TTF").
+                    set_callback_function(ttf_style_change_callback);
+                mainMenu.alloc_item(DOSBoxMenu::item_type_id,"ttf_wpno").set_text("TTF word processor: None").
+                    set_callback_function(ttf_wp_change_callback);
+                mainMenu.alloc_item(DOSBoxMenu::item_type_id,"ttf_wpwp").set_text("TTF word processor: WordPerfect").
+                    set_callback_function(ttf_wp_change_callback);
+                mainMenu.alloc_item(DOSBoxMenu::item_type_id,"ttf_wpws").set_text("TTF word processor: WordStar").
+                    set_callback_function(ttf_wp_change_callback);
+                mainMenu.alloc_item(DOSBoxMenu::item_type_id,"ttf_wpxy").set_text("TTF word processor: XyWrite").
+                    set_callback_function(ttf_wp_change_callback);
 #endif
             }
             {
@@ -11711,6 +11801,7 @@ int main(int argc, char* argv[]) SDL_MAIN_NOEXCEPT {
         mainMenu.get_item("text_background").enable(!IS_PC98_ARCH).check(!blinking).refresh_item(mainMenu);
         mainMenu.get_item("text_blinking").enable(!IS_PC98_ARCH).check(blinking).refresh_item(mainMenu);
         mainMenu.get_item("line_80x25").enable(!IS_PC98_ARCH);
+        mainMenu.get_item("line_80x43").enable(!IS_PC98_ARCH);
         mainMenu.get_item("line_80x50").enable(!IS_PC98_ARCH);
         mainMenu.get_item("line_80x60").enable(!IS_PC98_ARCH);
         mainMenu.get_item("line_132x25").enable(!IS_PC98_ARCH);
@@ -11720,6 +11811,14 @@ int main(int argc, char* argv[]) SDL_MAIN_NOEXCEPT {
 #if defined(USE_TTF)
         mainMenu.get_item("ttf_window_inc").enable(TTF_using());
         mainMenu.get_item("ttf_window_dec").enable(TTF_using());
+        mainMenu.get_item("ttf_showbold").enable(TTF_using()).check(showbold);
+        mainMenu.get_item("ttf_showital").enable(TTF_using()).check(showital);
+        mainMenu.get_item("ttf_showline").enable(TTF_using()).check(showline);
+        mainMenu.get_item("ttf_showsout").enable(TTF_using()).check(showsout);
+        mainMenu.get_item("ttf_wpno").enable(TTF_using()).check(!wpType);
+        mainMenu.get_item("ttf_wpwp").enable(TTF_using()).check(wpType==1);
+        mainMenu.get_item("ttf_wpws").enable(TTF_using()).check(wpType==2);
+        mainMenu.get_item("ttf_wpxy").enable(TTF_using()).check(wpType==3);
 #endif
 
         mainMenu.get_item("pc98_5mhz_gdc").enable(IS_PC98_ARCH);

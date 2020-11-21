@@ -328,6 +328,7 @@ static const char *def_menu_video_textmode[] =
     "text_blinking",
     "--",
     "line_80x25",
+    "line_80x43",
     "line_80x50",
     "line_80x60",
     "line_132x25",
@@ -338,6 +339,15 @@ static const char *def_menu_video_textmode[] =
     "--",
     "ttf_window_inc",
     "ttf_window_dec",
+    "ttf_showbold",
+    "ttf_showital",
+    "ttf_showline",
+    "ttf_showsout",
+    "--",
+    "ttf_wpno",
+    "ttf_wpwp",
+    "ttf_wpws",
+    "ttf_wpxy",
 #endif
     NULL
 };
