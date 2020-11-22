@@ -400,10 +400,10 @@ fi
 pwd=`realpath $srcdir`
 if [[ -z "$pwd" ]]; then pwd=`pwd`; fi
 
-CFLAGS="$CFLAGS -I$pwd -I$pwd/vs2015/sdlnet/linux-host/include -I$pwd/vs2015/sdlnet/linux-host/include/SDL -I$pwd/vs2015/freetype/include"
+CFLAGS="$CFLAGS -I$pwd -I$pwd/vs2015/sdlnet/linux-host/include -I$pwd/vs2015/sdlnet/linux-host/include/SDL"
 LDFLAGS="$LDFLAGS -L$pwd/vs2015/sdlnet/linux-host/lib"
-CPPFLAGS="$CPPFLAGS -I$pwd -I$pwd/vs2015/sdlnet/linux-host/include -I$pwd/vs2015/sdlnet/linux-host/include/SDL -I$pwd/vs2015/freetype/include"
-CXXFLAGS="$CXXFLAGS -I$pwd -I$pwd/vs2015/sdlnet/linux-host/include -I$pwd/vs2015/sdlnet/linux-host/include/SDL -I$pwd/vs2015/freetype/include"
+CPPFLAGS="$CPPFLAGS -I$pwd -I$pwd/vs2015/sdlnet/linux-host/include -I$pwd/vs2015/sdlnet/linux-host/include/SDL"
+CXXFLAGS="$CXXFLAGS -I$pwd -I$pwd/vs2015/sdlnet/linux-host/include -I$pwd/vs2015/sdlnet/linux-host/include/SDL"
 
 dnl LIBRARY TEST: SDLnet initial test
 AC_CHECK_HEADER(SDL_net.h,have_sdl_net_h=yes,)
