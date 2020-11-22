@@ -33,16 +33,6 @@
 #include <winbase.h>
 #endif
 
-/* Some platforms do not permit pages to be writeable and executable at the same time (the W^X policy).
- * ARM-based Microsoft Surface tablets do not enforce W^X.
- * Mac OS X and Raspberry Pi 4 (ARMv8) appear to enforce W^X.
- * For this dynamic core to work on W^X targets some additional management is needed. */
-#if defined(WIN32)
-/* no W^X needed */
-#elif defined(MACOSX) || (defined(LINUX) && defined(_M_ARM64))/*ARMv8 based such as RPi 4*/
-# define W_XOR_X 1
-#endif
-
 #if (C_HAVE_MPROTECT)
 #include <sys/mman.h>
 
