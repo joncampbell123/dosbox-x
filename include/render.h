@@ -147,16 +147,18 @@ struct ttf_cell {
     unsigned int    underline:1;                // underline attribute
     unsigned int    unicode:1;                  // chr is unicode code point
     unsigned int    skipped:1;                  // adjacent (ignored) cell to a doublewide
+    unsigned int    selected:1;
 
     ttf_cell() {
         chr = 0x20;
         fg = 7;
         bg = 0;
         doublewide = 0;
+        blink = 0;
         underline = 0;
         unicode = 0;
         skipped = 0;
-        blink = 0;
+        selected = 0;
     }
 
     bool operator==(const ttf_cell &lhs) const {

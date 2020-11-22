@@ -768,7 +768,7 @@ const char* Mouse_GetSelected(int x1, int y1, int x2, int y2, int w, int h, uint
 	return text;
 }
 
-void Mouse_Select(int x1, int y1, int x2, int y2, int w, int h) {
+void Mouse_Select(int x1, int y1, int x2, int y2, int w, int h, bool select) {
 	uint8_t page = real_readb(BIOSMEM_SEG,BIOSMEM_CURRENT_PAGE);
 	uint16_t c=0, r=0;
 	if (IS_PC98_ARCH) {
@@ -795,16 +795,12 @@ void Mouse_Select(int x1, int y1, int x2, int y2, int w, int h) {
         for (int y = 0; y < ttf.lins; y++) {
             if (y>=r1&&y<=r2)
                 for (int x = 0; x < ttf.cols; x++)
-                    if ((x>=c1||(IS_PC98_ARCH&&c1>0&&x==c1-1&&(newAC[x].chr&0xFF00)&&(newAC[x+1].chr&0xFF)==32))&&x<=c2) {
-                        uint8_t color = newAC[x].fg;
-                        newAC[x].fg=newAC[x].bg;
-                        newAC[x].bg=color;
-                    }
+                    if ((x>=c1||(IS_PC98_ARCH&&c1>0&&x==c1-1&&(newAC[x].chr&0xFF00)&&(newAC[x+1].chr&0xFF)==32))&&x<=c2)
+                        newAC[x].selected = select?1:0;
             newAC += ttf.cols;
         }
         void GFX_EndTextLines(bool force=false);
         GFX_EndTextLines();
-        for (int i=0; i<5000; i++) {}
     } else
 #endif
 	for (int i=r1; i<=r2; i++)
@@ -816,10 +812,6 @@ void Mouse_Select(int x1, int y1, int x2, int y2, int w, int h) {
 			} else
 				real_writeb(0xb800,(i*c+j)*2+1,real_readb(0xb800,(i*c+j)*2+1)^119);
 		}
-}
-
-void Restore_Text(int x1, int y1, int x2, int y2, int w, int h) {
-    Mouse_Select(x1, y1, x2, y2, w, h);
 }
 #endif
 

@@ -41,6 +41,7 @@ int socknum=-1;
 int posx = -1;
 int posy = -1;
 int initgl = 0;
+int switchoutput=-1;
 extern int enablelfn;
 extern bool blinking;
 extern bool dpi_aware_enable;
@@ -54,7 +55,7 @@ extern bool enable_config_as_shell_commands;
 bool winrun=false, use_save_file=false;
 bool direct_mouse_clipboard=false;
 
-bool OpenGL_using(void);
+bool OpenGL_using(void), Direct3D_using(void);
 void GFX_OpenGLRedrawScreen(void);
 
 #ifndef _GNU_SOURCE
@@ -254,6 +255,7 @@ bool showbold = true;
 bool showital = true;
 bool showline = true;
 bool showsout = false;
+int outputswitch = -1;
 int wpType = 0;
 int wpVersion = 0;
 int wpBG = -1;
@@ -3263,13 +3265,31 @@ void OUTPUT_TTF_Select(int fsize=-1) {
         winPerc = render_section->Get_int("ttf.winperc");
         if (winPerc>100||fsize!=1&&(control->opt_fullscreen||static_cast<Section_prop *>(control->GetSection("sdl"))->Get_bool("fullscreen"))) winPerc=100;
         else if (winPerc<25) winPerc=25;
-        if (fsize==1&&winPerc==100) winPerc=75;
+        if (fsize==1&&winPerc==100) winPerc=60;
         fontSize = render_section->Get_int("ttf.ptsize");
         char512 = render_section->Get_bool("ttf.char512");
         showbold = render_section->Get_bool("ttf.bold");
         showital = render_section->Get_bool("ttf.italic");
         showline = render_section->Get_bool("ttf.underline");
         showsout = render_section->Get_bool("ttf.strikeout");
+        const char *outputstr=render_section->Get_string("ttf.outputswitch");
+#if C_DIRECT3D
+        if (!strcasecmp(outputstr, "direct3d"))
+            switchoutput = 5;
+        else
+#endif
+#if C_OPENGL
+        if (!strcasecmp(outputstr, "openglnb"))
+            switchoutput = 4;
+        else if (!strcasecmp(outputstr, "opengl")||!strcasecmp(outputstr, "openglnq"))
+            switchoutput = 3;
+        else
+#endif
+        if (!strcasecmp(outputstr, "surface"))
+            switchoutput = 0;
+        else
+            switchoutput = -1;
+
         ttf.lins = render_section->Get_int("ttf.lins");
         ttf.cols = render_section->Get_int("ttf.cols");
         if ((!CurMode||CurMode->type!=M_TEXT)&&!IS_PC98_ARCH) {
@@ -3537,11 +3557,13 @@ void GFX_SwitchFullScreen(void)
             if (lastmenu) DOSBox_SetMenu();
 #endif
 #if defined(C_SDL2)
-        if (posx >= 0 && posy >= 0)
-            SDL_SetWindowPosition(sdl.window, posx, posy);
-        else
-            SDL_SetWindowPosition(sdl.window, SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED);
+            if (posx >= 0 && posy >= 0)
+                SDL_SetWindowPosition(sdl.window, posx, posy);
+            else
+                SDL_SetWindowPosition(sdl.window, SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED);
 #endif
+            resetreq = true;
+            GFX_ResetScreen();
         } else {
             lastfontsize = ttf.pointsize;
             sdl.desktop.fullscreen = true;
@@ -3969,7 +3991,7 @@ void GFX_EndTextLines(bool force=false) {
 	for (int y = 0; y < ttf.lins; y++) {
 		ttf_textRect.y = ttf.offY+y*ttf.height;
 		for (int x = 0; x < ttf.cols; x++) {
-			if ((newAC[x] != curAC[x] || force) && !(newAC[x].skipped)) {
+			if ((newAC[x] != curAC[x] || newAC[x].selected != curAC[x].selected || force) && !(newAC[x].skipped)) {
 				xmin = min(x, xmin);
 				ymin = min(y, ymin);
 				ymax = y;
@@ -3979,7 +4001,11 @@ void GFX_EndTextLines(bool force=false) {
 				uint8_t colorBG = newAC[x].bg;
 				uint8_t colorFG = newAC[x].fg;
 				processWP(&colorBG, &colorFG);
-
+                if (newAC[x].selected) {
+                    uint8_t color = colorBG;
+                    colorBG = colorFG;
+                    colorFG = color;
+                }
 				ttf_textRect.x = ttf.offX+x*ttf.width;
 				ttf_bgColor.r = colorsLocked?altBGR1[colorBG&15].red:rgbColors[colorBG].blue;
 				ttf_bgColor.g = colorsLocked?altBGR1[colorBG&15].green:rgbColors[colorBG].green;
@@ -4038,7 +4064,7 @@ void GFX_EndTextLines(bool force=false) {
 			int y = newPos/ttf.cols;
 			int x = newPos%ttf.cols;
 			vga.draw.cursor.count++;
-			vga.draw.cursor.blinkon = (vga.draw.cursor.count & 4) ? true : false;
+			vga.draw.cursor.blinkon = (vga.draw.cursor.count & 16) ? true : false;
 			if (ttf.cursor != newPos || vga.draw.cursor.sline != prev_sline || ((blinkstate != vga.draw.cursor.blinkon) && blinkCursor)) {				// If new position or shape changed, forse draw
 				if (blinkCursor && blinkstate == vga.draw.cursor.blinkon) {
 					vga.draw.cursor.count = 4;
@@ -4075,6 +4101,7 @@ void GFX_EndTextLines(bool force=false) {
                 if (dw) {
                     unimap[1] = newAttrChar[ttf.cursor].chr;
                     unimap[2] = 0;
+                    xmax = max(x+1, xmax);
                 } else
                     unimap[1] = 0;
 				// first redraw character
@@ -5438,8 +5465,8 @@ static void HandleMouseMotion(SDL_MouseMotionEvent * motion) {
 #if defined (WIN32) || defined(C_SDL2)
 		if (mouse_start_x >= 0 && mouse_start_y >= 0) {
 			if (fx>=0 && fy>=0)
-				Restore_Text(mouse_start_x-sdl.clip.x,mouse_start_y-sdl.clip.y,fx-sdl.clip.x,fy-sdl.clip.y,(int)(currentWindowWidth-sdl.clip.x),(int)(currentWindowHeight-sdl.clip.y));
-			Mouse_Select(mouse_start_x-sdl.clip.x,mouse_start_y-sdl.clip.y,motion->x-sdl.clip.x,motion->y-sdl.clip.y,(int)(currentWindowWidth-sdl.clip.x),(int)(currentWindowHeight-sdl.clip.y));
+				Mouse_Select(mouse_start_x-sdl.clip.x,mouse_start_y-sdl.clip.y,fx-sdl.clip.x,fy-sdl.clip.y,(int)(currentWindowWidth-sdl.clip.x),(int)(currentWindowHeight-sdl.clip.y), false);
+			Mouse_Select(mouse_start_x-sdl.clip.x,mouse_start_y-sdl.clip.y,motion->x-sdl.clip.x,motion->y-sdl.clip.y,(int)(currentWindowWidth-sdl.clip.x),(int)(currentWindowHeight-sdl.clip.y), true);
 			fx=motion->x;
 			fy=motion->y;
 		}
@@ -6115,7 +6142,7 @@ static void HandleMouseButton(SDL_MouseButtonEvent * button, SDL_MouseMotionEven
         if (inMenu || !inputToScreen) return;
 #if defined(WIN32) || defined(C_SDL2)
 		if (!sdl.mouse.locked && button->button == SDL_BUTTON_LEFT && !strcmp(modifier,"none") && mouse_start_x >= 0 && mouse_start_y >= 0 && fx >= 0 && fy >= 0) {
-			Restore_Text(mouse_start_x-sdl.clip.x,mouse_start_y-sdl.clip.y,fx-sdl.clip.x,fy-sdl.clip.y,(int)(currentWindowWidth-sdl.clip.x),(int)(currentWindowHeight-sdl.clip.y));
+			Mouse_Select(mouse_start_x-sdl.clip.x,mouse_start_y-sdl.clip.y,fx-sdl.clip.x,fy-sdl.clip.y,(int)(currentWindowWidth-sdl.clip.x),(int)(currentWindowHeight-sdl.clip.y), false);
 			mouse_start_x = -1;
 			mouse_start_y = -1;
 			mouse_end_x = -1;
@@ -6204,7 +6231,7 @@ static void HandleMouseButton(SDL_MouseButtonEvent * button, SDL_MouseMotionEven
 				PasteClipboard(true);
 			else {
 				if (fx >= 0 && fy >= 0)
-					Restore_Text(mouse_start_x-sdl.clip.x,mouse_start_y-sdl.clip.y,fx-sdl.clip.x,fy-sdl.clip.y,(int)(currentWindowWidth-sdl.clip.x),(int)(currentWindowHeight-sdl.clip.y));
+					Mouse_Select(mouse_start_x-sdl.clip.x,mouse_start_y-sdl.clip.y,fx-sdl.clip.x,fy-sdl.clip.y,(int)(currentWindowWidth-sdl.clip.x),(int)(currentWindowHeight-sdl.clip.y), false);
 				if (abs(mouse_end_x - mouse_start_x) + abs(mouse_end_y - mouse_start_y)<5) {
 					PasteClipboard(true);
 				} else
@@ -11846,7 +11873,7 @@ int main(int argc, char* argv[]) SDL_MAIN_NOEXCEPT {
         mainMenu.get_item("load_glsl_shader").enable(OpenGL_using()&&initgl==2);
 #endif
 #ifdef C_DIRECT3D
-        mainMenu.get_item("load_d3d_shader").enable(sdl.desktop.want_type==SCREEN_DIRECT3D);
+        mainMenu.get_item("load_d3d_shader").enable(Direct3D_using());
 #endif
 
 #if !defined(C_EMSCRIPTEN)
@@ -12353,6 +12380,14 @@ void GFX_ShutDown(void) {
     if (sdl.draw.callback) (sdl.draw.callback)( GFX_CallBackStop );
     if (sdl.mouse.locked) GFX_CaptureMouse();
     if (sdl.desktop.fullscreen) GFX_SwitchFullScreen();
+}
+
+bool Direct3D_using(void) {
+#if C_DIRECT3D
+    return (sdl.desktop.want_type==SCREEN_DIRECT3D?true:false);
+#else
+    return false;
+#endif
 }
 
 bool OpenGL_using(void) {

@@ -20,11 +20,14 @@
     (WP=WordPerfect, WS=WordStar, XY=XyWrite) for the
     on-screen text-style and 512-character font (WP)
     features. When using the TTF output DOSBox-X will
-    temporarily switch to the surface output when a
+    temporarily switch to a different output when a
     graphical mode is requested (and will auto-switch
-    back later). Menu items in the "Text-mode" menu
-    group (under "Video" menu) have been expanded to
-    support TTF options. (Wengier)
+    back later), which can be customized via config
+    option "ttf.outputswitch" (which defaults to auto).
+    Menu items in the "Text-mode" menu group (under
+    "Video" menu) have been expanded to support TTF
+    options such as increasing/decreasing the TTF font
+    sizes and on-screen text style toggling. (Wengier)
   - Configuration Tool now provides the option to save
     to the primary or user config files. (Wengier)
   - Added config options "saveremark" (default: true)
