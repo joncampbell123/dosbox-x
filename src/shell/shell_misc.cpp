@@ -275,6 +275,11 @@ void DOS_Shell::InputCommand(char * line) {
                 break;
 
             case 0x4B00:	/* LEFT */
+                if (IS_PC98_ARCH&&str_index>1&&(line[str_index-1]<0||line[str_index-1]>32)&&line[str_index-2]<0) {
+                    backone();
+                    str_index --;
+                    MoveCaretBackwards();
+                }
                 if (str_index) {
                     backone();
                     str_index --;
@@ -328,6 +333,9 @@ void DOS_Shell::InputCommand(char * line) {
 				}	
         		break;
             case 0x4D00:	/* RIGHT */
+                if (IS_PC98_ARCH&&str_index<str_len-1&&line[str_index]<0&&(line[str_index+1]<0||line[str_index+1]>32)) {
+                    outc((uint8_t)line[str_index++]);
+                }
                 if (str_index < str_len) {
                     outc((uint8_t)line[str_index++]);
                 }
@@ -418,16 +426,21 @@ void DOS_Shell::InputCommand(char * line) {
             case 0x5300:/* DELETE */
                 {
                     if(str_index>=str_len) break;
-                    uint16_t a=str_len-str_index-1;
-                    uint8_t* text=reinterpret_cast<uint8_t*>(&line[str_index+1]);
-                    DOS_WriteFile(STDOUT,text,&a);//write buffer to screen
-                    outc(' ');backone();
-                    for(Bitu i=str_index;i<(str_len-1u);i++) {
-                        line[i]=line[i+1u];
-                        backone();
+                    int k=1;
+                    if (IS_PC98_ARCH&&str_index<str_len-1&&line[str_index]<0&&(line[str_index+1]<0||line[str_index+1]>32))
+                        k=2;
+                    for (int i=0; i<k; i++) {
+                        uint16_t a=str_len-str_index-1;
+                        uint8_t* text=reinterpret_cast<uint8_t*>(&line[str_index+1]);
+                        DOS_WriteFile(STDOUT,text,&a);//write buffer to screen
+                        outc(' ');backone();
+                        for(Bitu i=str_index;i<(str_len-1u);i++) {
+                            line[i]=line[i+1u];
+                            backone();
+                        }
+                        line[--str_len]=0;
+                        size++;
                     }
-                    line[--str_len]=0;
-                    size++;
                 }
                 break;
             case 0x0F00:	/* Shift-Tab */
@@ -450,24 +463,30 @@ void DOS_Shell::InputCommand(char * line) {
                 }
                 break;
             case 0x08:				/* BackSpace */
-                if (str_index) {
-                    backone();
-                    uint32_t str_remain=(uint32_t)(str_len - str_index);
-                    size++;
-                    if (str_remain) {
-                        memmove(&line[str_index-1],&line[str_index],str_remain);
-                        line[--str_len]=0;
-                        str_index --;
-                        /* Go back to redraw */
-                        for (uint16_t i=str_index; i < str_len; i++)
-                            outc((uint8_t)line[i]);
-                    } else {
-                        line[--str_index] = '\0';
-                        str_len--;
-                    }
-                    outc(' ');	backone();
-                    // moves the cursor left
-                    while (str_remain--) backone();
+                {
+                    int k=1;
+                    if (IS_PC98_ARCH&&str_index>1&&(line[str_index-1]<0||line[str_index-1]>32)&&line[str_index-2]<0)
+                        k=2;
+                    for (int i=0; i<k; i++)
+                        if (str_index) {
+                            backone();
+                            uint32_t str_remain=(uint32_t)(str_len - str_index);
+                            size++;
+                            if (str_remain) {
+                                memmove(&line[str_index-1],&line[str_index],str_remain);
+                                line[--str_len]=0;
+                                str_index --;
+                                /* Go back to redraw */
+                                for (uint16_t i=str_index; i < str_len; i++)
+                                    outc((uint8_t)line[i]);
+                            } else {
+                                line[--str_index] = '\0';
+                                str_len--;
+                            }
+                            outc(' ');	backone();
+                            // moves the cursor left
+                            while (str_remain--) backone();
+                        }
                 }
                 if (l_completion.size()) l_completion.clear();
                 break;

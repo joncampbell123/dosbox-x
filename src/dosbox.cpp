@@ -1346,6 +1346,16 @@ void DOSBOX_SetupConfigSections(void) {
 
         0 };
 
+    const char* switchoutputs[] = {
+        "auto", "surface",
+#if C_OPENGL
+        "opengl", "openglnb", "openglhq",
+#endif
+#if C_DIRECT3D
+        "direct3d",
+#endif
+        0 };
+
     const char* scalers[] = { 
         "none", "normal2x", "normal3x", "normal4x", "normal5x",
 #if RENDER_USE_ADVANCED_SCALERS>2
@@ -2267,7 +2277,8 @@ void DOSBOX_SetupConfigSections(void) {
     Pbool->Set_help("If set, doublescanned output emits two scanlines for each source line, in the\n"
             "same manner as the actual VGA output (320x200 is rendered as 640x400 for example).\n"
             "If clear, doublescanned output is rendered at the native source resolution (320x200 as 320x200).\n"
-            "This affects the raster PRIOR to the software or hardware scalers. Choose wisely.\n");
+            "This affects the raster PRIOR to the software or hardware scalers. Choose wisely.");
+    Pbool->SetBasic(true);
 
     Pmulti = secprop->Add_multi("scaler",Property::Changeable::Always," ");
     Pmulti->SetValue("normal2x",/*init*/true);
@@ -2342,7 +2353,12 @@ void DOSBOX_SetupConfigSections(void) {
                     "The original DOS colors (0-15): #000000 #0000aa #00aa00 #00aaaa #aa0000 #aa00aa #aa5500 #aaaaaa #555555 #5555ff #55ff55 #55ffff #ff5555 #ff55ff #ffff55 #ffffff\n"
                     "gray scaled color scheme: (0,0,0)  #0e0e0e  (75,75,75) (89,89,89) (38,38,38) (52,52,52) #717171 #c0c0c0 #808080 (28,28,28) (150,150,150) (178,178,178) (76,76,76) (104,104,104) (226,226,226) (255,255,255)");
 
-	Pint = secprop->Add_int("ttf.winperc", Property::Changeable::Always, 75);
+	Pstring = secprop->Add_string("ttf.outputswitch", Property::Changeable::Always, "auto");
+    Pstring->Set_help("Specifies the output that DOSBox-X should switch to from the TTF output when a graphical mode is requiested, or auto for automatic selection.");
+    Pstring->Set_values(switchoutputs);
+    Pstring->SetBasic(true);
+
+	Pint = secprop->Add_int("ttf.winperc", Property::Changeable::Always, 60);
     Pint->Set_help("Specifies the window percentage for the TTF output (100 = full screen). Ignored if the ttf.ptsize setting is specified.");
     Pint->SetBasic(true);
 
@@ -2382,8 +2398,9 @@ void DOSBOX_SetupConfigSections(void) {
 	Pbool = secprop->Add_bool("ttf.char512", Property::Changeable::Always, true);
     Pbool->Set_help("If set, DOSBox-X will display the 512-character font if possible (requires a word processor be set) for the TTF output.");
 
-	Pbool = secprop->Add_bool("ttf.blinkc", Property::Changeable::Always, false);
+	Pbool = secprop->Add_bool("ttf.blinkc", Property::Changeable::Always, true);
     Pbool->Set_help("If set, the cursor will blink for the TTF output.");
+    Pbool->SetBasic(true);
 
     secprop=control->AddSection_prop("vsync",&Null_Init,true);//done
 
@@ -2402,7 +2419,6 @@ void DOSBOX_SetupConfigSections(void) {
     Pstring->Set_help("CPU Core used in emulation. auto will switch to dynamic if available and appropriate.\n"
             "For the dynamic core, both dynamic_x86 and dynamic_rec are supported (dynamic_x86 is preferred).\n"
             "Windows 95 or other preemptive multitasking OSes will not work with the dynamic_rec core.");
-
     Pstring->SetBasic(true);
 
     Pbool = secprop->Add_bool("fpu",Property::Changeable::Always,true);

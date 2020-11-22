@@ -717,6 +717,7 @@ bool INT10_SetCurMode(void) {
 }
 
 #if defined(USE_TTF)
+extern int switchoutput;
 extern bool firstset;
 bool TTF_using(void);
 #endif
@@ -1117,12 +1118,12 @@ bool INT10_SetVideoMode_OTHER(uint16_t mode,bool clearmem) {
 
 #if defined(USE_TTF)
 extern bool resetreq;
-bool GFX_IsFullscreen(void);
+bool GFX_IsFullscreen(void), Direct3D_using(void);
 void ttf_reset(void), resetFontSize(), OUTPUT_TTF_Select(int fsize), GFX_SwitchFullscreenNoReset(void);
 #endif
 
 bool unmask_irq0_on_int10_setmode = true;
-bool change_from_ttf_to_surface = false;
+bool switch_output_from_ttf = false;
 bool INT10_SetVideoMode(uint16_t mode) {
 	//LOG_MSG("set mode %x",mode);
 	bool clearmem=true;Bitu i;
@@ -2011,12 +2012,15 @@ dac_text16:
 #if defined(USE_TTF)
         if (ttf.inUse)
             ttf_reset();
-        else if (change_from_ttf_to_surface) {
+        else if (switch_output_from_ttf) {
+#if C_DIRECT3D
+            if (Direct3D_using()) change_output(0);
+#endif
             change_output(10);
-            SetVal("sdl", "output", "surface");
+            SetVal("sdl", "output", "ttf");
             void OutputSettingMenuUpdate(void);
             OutputSettingMenuUpdate();
-            change_from_ttf_to_surface = false;
+            switch_output_from_ttf = false;
             mainMenu.get_item("output_ttf").enable(true).refresh_item(mainMenu);
             if (ttf.fullScrn) {
                 if (!GFX_IsFullscreen()) GFX_SwitchFullscreenNoReset();
@@ -2026,11 +2030,37 @@ dac_text16:
             resetFontSize();
         }
 	} else if (ttf.inUse) {
-        change_output(0);
-        SetVal("sdl", "output", "surface");
+        std::string output="surface";
+        int out=switchoutput;
+        if (switchoutput==0)
+            output = "surface";
+#if C_OPENGL
+        else if (switchoutput==3)
+            output = "opengl";
+        else if (switchoutput==4)
+            output = "openglnb";
+#endif
+#if C_DIRECT3D
+        else if (switchoutput==5)
+            output = "direct3d";
+#endif
+        else {
+#if C_DIRECT3D
+            out = 5;
+            output = "direct3d";
+#elif C_OPENGL
+            out = 3;
+            output = "opengl";
+#else
+            out = 0;
+            output = "surface";
+#endif
+        }
+        change_output(out);
+        SetVal("sdl", "output", output);
         void OutputSettingMenuUpdate(void);
         OutputSettingMenuUpdate();
-        change_from_ttf_to_surface = true;
+        switch_output_from_ttf = true;
         //if (GFX_IsFullscreen()) GFX_SwitchFullscreenNoReset();
         mainMenu.get_item("output_ttf").enable(false).refresh_item(mainMenu);
 #endif
