@@ -633,9 +633,14 @@ static void cache_reset(void) {
 			if (mprotect(cache_code_link_blocks,CACHE_TOTAL+CACHE_MAXSIZE+PAGESIZE_TEMP,PROT_WRITE|PROT_READ|PROT_EXEC)) {
 				if (errno == EPERM || errno == EACCES) { /* Hm... might be a W^X policy */
 					errno = 0;
-					if (mprotect(cache_code_link_blocks,CACHE_TOTAL+CACHE_MAXSIZE+PAGESIZE_TEMP,PROT_WRITE|PROT_READ) == 0) {
-						LOG_MSG("dynrec: Your system appears to have a W^X (write-xor-execute) policy");
-						w_xor_x = true;
+					/* Apparently we cannot map read/write/execute.
+					   If we can mprotect as read/execute, and read/write, then it's probably a W^X policy.
+					   This is to differentiate from SELinux which will probably not allow ANY PROT_EXEC mapping at all. */
+					if (mprotect(cache_code_link_blocks,CACHE_TOTAL+CACHE_MAXSIZE+PAGESIZE_TEMP,PROT_READ|PROT_EXEC) == 0) {
+						if (mprotect(cache_code_link_blocks,CACHE_TOTAL+CACHE_MAXSIZE+PAGESIZE_TEMP,PROT_WRITE|PROT_READ) == 0) {
+							LOG_MSG("dynrec: Your system appears to have a W^X (write-xor-execute) policy");
+							w_xor_x = true;
+						}
 					}
 				}
 
@@ -717,9 +722,14 @@ static void cache_init(bool enable) {
 			if (mprotect(cache_code_link_blocks,CACHE_TOTAL+CACHE_MAXSIZE+PAGESIZE_TEMP,PROT_WRITE|PROT_READ|PROT_EXEC)) {
 				if (errno == EPERM || errno == EACCES) { /* Hm... might be a W^X policy */
 					errno = 0;
-					if (mprotect(cache_code_link_blocks,CACHE_TOTAL+CACHE_MAXSIZE+PAGESIZE_TEMP,PROT_WRITE|PROT_READ) == 0) {
-						LOG_MSG("dynrec: Your system appears to have a W^X (write-xor-execute) policy");
-						w_xor_x = true;
+					/* Apparently we cannot map read/write/execute.
+					   If we can mprotect as read/execute, and read/write, then it's probably a W^X policy.
+					   This is to differentiate from SELinux which will probably not allow ANY PROT_EXEC mapping at all. */
+					if (mprotect(cache_code_link_blocks,CACHE_TOTAL+CACHE_MAXSIZE+PAGESIZE_TEMP,PROT_READ|PROT_EXEC) == 0) {
+						if (mprotect(cache_code_link_blocks,CACHE_TOTAL+CACHE_MAXSIZE+PAGESIZE_TEMP,PROT_WRITE|PROT_READ) == 0) {
+							LOG_MSG("dynrec: Your system appears to have a W^X (write-xor-execute) policy");
+							w_xor_x = true;
+						}
 					}
 				}
 
