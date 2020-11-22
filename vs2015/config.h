@@ -105,6 +105,9 @@
 # define C_FPU_X86 1
 #endif
 
+/* Define to 1 to enable freetype support */
+#define C_FREETYPE 1
+
 /* Determines if the compilers supports attributes for structures. */
 #undef C_HAS_ATTRIBUTE
 
