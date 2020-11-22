@@ -673,6 +673,13 @@ static void cache_reset(void) {
 			newpage->next=cache.free_pages;
 			cache.free_pages=newpage;
 		}
+
+#if (C_HAVE_MPROTECT)
+		if (w_xor_x) {
+			if (mprotect(cache_code_link_blocks,CACHE_TOTAL+CACHE_MAXSIZE+PAGESIZE_TEMP,PROT_READ|PROT_EXEC))
+				LOG_MSG("Setting execute permission on the code cache has failed! err=%s",strerror(errno));
+		}
+#endif
 	}
 }
 
@@ -768,6 +775,13 @@ static void cache_init(bool enable) {
 			newpage->next=cache.free_pages;
 			cache.free_pages=newpage;
 		}
+
+#if (C_HAVE_MPROTECT)
+		if (w_xor_x) {
+			if (mprotect(cache_code_link_blocks,CACHE_TOTAL+CACHE_MAXSIZE+PAGESIZE_TEMP,PROT_READ|PROT_EXEC))
+				LOG_MSG("Setting execute permission on the code cache has failed! err=%s",strerror(errno));
+		}
+#endif
 	}
 }
 
