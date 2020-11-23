@@ -759,7 +759,7 @@ void CAPTURE_AddImage(Bitu width, Bitu height, Bitu bpp, Bitu pitch, Bitu flags,
 #ifdef PNG_TEXT_SUPPORTED
 		int fields = 1;
 		png_text text[1] = {};
-		const char* text_s = "DOSBox " VERSION;
+		const char* text_s = "DOSBox-X " VERSION;
 		size_t strl = strlen(text_s);
 		char* ptext_s = new char[strl + 1];
 		strcpy(ptext_s, text_s);

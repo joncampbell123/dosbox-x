@@ -165,7 +165,7 @@ char *LinuxX11_KeySymName(Uint32 x) {
 }
 
 void Linux_JPXKBFix(void) {
-#if !defined(C_SDL2)
+#if !defined(C_SDL2) && defined(SDL_DOSBOX_X_SPECIAL)
     SDL_SysWMinfo wminfo;
     memset(&wminfo,0,sizeof(wminfo));
     SDL_VERSION(&wminfo.version);

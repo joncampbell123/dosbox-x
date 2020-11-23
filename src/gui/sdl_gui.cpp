@@ -1865,6 +1865,39 @@ public:
     }
 };
 
+extern std::string helpcmd;
+char *str_replace(char *orig, char *rep, char *with);
+class ShowHelpCommand : public GUI::ToplevelWindow {
+protected:
+    GUI::Input *name;
+public:
+    ShowHelpCommand(GUI::Screen *parent, int x, int y, const char *title) :
+        ToplevelWindow(parent, x, y, 750, 270, title) {
+            if (helpcmd=="CD") helpcmd="CHDIR";
+            else if (helpcmd=="DEL") helpcmd="DELETE";
+            else if (helpcmd=="LH") helpcmd="LOADHIGH";
+            else if (helpcmd=="MD") helpcmd="MKDIR";
+            else if (helpcmd=="RD") helpcmd="RMDIR";
+            else if (helpcmd=="REN") helpcmd="RENAME";
+            std::string helpinfo=std::string(MSG_Get(("SHELL_CMD_"+helpcmd+"_HELP").c_str()))+"\n"+std::string(MSG_Get(("SHELL_CMD_"+helpcmd+"_HELP_LONG").c_str()));
+            std::istringstream in(str_replace(str_replace(str_replace(str_replace((char *)helpinfo.c_str(), "\t", "        "), "\033[0m", ""), "\033[33;1m", ""), "\033[37;1m", ""));
+            int r=0;
+            if (in)	for (std::string line; std::getline(in, line); ) {
+                r+=25;
+                new GUI::Label(this, 40, r, line.c_str());
+            }
+            (new GUI::Button(this, 365, r+40, "Close", 70))->addActionHandler(this);
+            resize(750, r+120);
+    }
+
+    void actionExecuted(GUI::ActionEventSource *b, const GUI::String &arg) {
+        (void)b;//UNUSED
+        if (arg == "Close")
+            close();
+        if (shortcut) running = false;
+    }
+};
+
 class ConfigurationWindow : public GUI::ToplevelWindow {
 public:
     GUI::Button *saveButton, *closeButton;
@@ -2237,7 +2270,11 @@ static void UI_Select(GUI::ScreenSDL *screen, int select) {
             np11->raise();
             } break;
         case 35: {
-            auto *np12 = new ShowHelpAbout(screen, 110, 70, "About");
+            auto *np11 = new ShowHelpAbout(screen, 110, 70, "About");
+            np11->raise();
+            } break;
+        case 36: {
+            auto *np12 = new ShowHelpCommand(screen, 50, 5, ("Help on DOS command: "+helpcmd).c_str());
             np12->raise();
             } break;
         default:

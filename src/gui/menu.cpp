@@ -29,6 +29,7 @@
 #include "keyboard.h"
 #include "timer.h"
 #include "inout.h"
+#include "shell.h"
 
 #if DOSBOXMENU_TYPE == DOSBOXMENU_SDLDRAW
 unsigned int min_sdldraw_menu_width = 500;
@@ -77,6 +78,7 @@ extern int                                          NonUserResizeCounter;
 
 extern bool                                         dos_kernel_disabled;
 extern bool                                         dos_shell_running_program;
+extern SHELL_Cmd                                    cmd_list[];
 
 bool                                                GFX_GetPreventFullscreen(void);
 void                                                DOSBox_ShowConsole();
@@ -671,9 +673,12 @@ static const char *def_menu_drive[] =
     "DriveX",
     "DriveY",
     "DriveZ",
-
     NULL
 };
+
+/* help DOS commands ("HelpCommandMenu") */
+static const char *def_menu_help_command[512];
+char help_command_temp[30][512];
 
 /* help output debug ("HelpDebugMenu") */
 static const char *def_menu_help_debug[] =
@@ -701,6 +706,7 @@ static const char *def_menu_help_debug[] =
 static const char *def_menu_help[] =
 {
     "help_intro",
+    "HelpCommandMenu",
 #if !defined(HX_DOS)
     "--",
     "help_homepage",
@@ -1474,6 +1480,29 @@ void ConstructMenu(void) {
 
     /* help menu */
     ConstructSubMenu(mainMenu.get_item("HelpMenu").get_master_id(), def_menu_help);
+
+    uint32_t i=0, cmd_index=0;
+    while (cmd_list[cmd_index].name) {
+        if (!cmd_list[cmd_index].flags) {
+            strcpy(help_command_temp[i], ("command_"+std::string(cmd_list[cmd_index].name)).c_str());
+            def_menu_help_command[i++] = help_command_temp[i];
+        }
+        cmd_index++;
+    }
+    strcpy(help_command_temp[i], "--");
+    def_menu_help_command[i++]=help_command_temp[i];
+    cmd_index=0;
+    while (cmd_list[cmd_index].name) {
+        if (cmd_list[cmd_index].flags && strcmp(cmd_list[cmd_index].name, "CHDIR") && strcmp(cmd_list[cmd_index].name, "ERASE") && strcmp(cmd_list[cmd_index].name, "LOADHIGH") && strcmp(cmd_list[cmd_index].name, "MKDIR") && strcmp(cmd_list[cmd_index].name, "RMDIR") && strcmp(cmd_list[cmd_index].name, "RENAME") && strcmp(cmd_list[cmd_index].name, "DX-CAPTURE") && strcmp(cmd_list[cmd_index].name, "DEBUGBOX")) {
+            strcpy(help_command_temp[i], ("command_"+std::string(cmd_list[cmd_index].name)).c_str());
+            def_menu_help_command[i++] = help_command_temp[i];
+        }
+        cmd_index++;
+    }
+    def_menu_help_command[i++]=NULL;
+
+    /* help DOS command menu */
+    ConstructSubMenu(mainMenu.get_item("HelpCommandMenu").get_master_id(), def_menu_help_command);
 
 #if C_DEBUG || !defined(MACOSX) && !defined(LINUX) && !defined(HX_DOS) && !defined(C_EMSCRIPTEN)
     /* help debug menu */
