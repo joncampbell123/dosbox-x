@@ -1880,13 +1880,13 @@ public:
             else if (helpcmd=="RD") helpcmd="RMDIR";
             else if (helpcmd=="REN") helpcmd="RENAME";
             std::string helpinfo=std::string(MSG_Get(("SHELL_CMD_"+helpcmd+"_HELP").c_str()))+"\n"+std::string(MSG_Get(("SHELL_CMD_"+helpcmd+"_HELP_LONG").c_str()));
-            std::istringstream in(str_replace(str_replace(str_replace(str_replace((char *)helpinfo.c_str(), "\t", "        "), "\033[0m", ""), "\033[33;1m", ""), "\033[37;1m", ""));
+            std::istringstream in(str_replace(str_replace(str_replace(str_replace((char *)helpinfo.c_str(), "%%", "%"), "\033[0m", ""), "\033[33;1m", ""), "\033[37;1m", ""));
             int r=0;
             if (in)	for (std::string line; std::getline(in, line); ) {
                 r+=25;
                 new GUI::Label(this, 40, r, line.c_str());
             }
-            (new GUI::Button(this, 365, r+40, "Close", 70))->addActionHandler(this);
+            (new GUI::Button(this, 350, r+40, "Close", 70))->addActionHandler(this);
             resize(750, r+120);
     }
 
@@ -2274,7 +2274,7 @@ static void UI_Select(GUI::ScreenSDL *screen, int select) {
             np11->raise();
             } break;
         case 36: {
-            auto *np12 = new ShowHelpCommand(screen, 50, 5, ("Help on DOS command: "+helpcmd).c_str());
+            auto *np12 = new ShowHelpCommand(screen, 150, 120, ("Help on DOS command: "+helpcmd).c_str());
             np12->raise();
             } break;
         default:

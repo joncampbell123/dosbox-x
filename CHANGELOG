@@ -27,7 +27,8 @@
     Menu items in the "Text-mode" menu group (under
     "Video" menu) have been expanded to support TTF
     options such as increasing/decreasing the TTF font
-    sizes and on-screen text style toggling. (Wengier)
+    sizes and on-screen text style toggling (including
+    bold, italics, underline and strikeout). (Wengier)
   - Added menu group "DOS commands" under "Help" menu
     to display the help content for the selected DOS
     shell command (DIR, CD, etc). (Wengier)

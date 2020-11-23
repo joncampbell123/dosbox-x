@@ -9503,7 +9503,7 @@ bool output_menu_callback(DOSBoxMenu * const menu,DOSBoxMenu::item * const menui
     }
     else if (!strcmp(what,"ttf")) {
 #if defined(USE_TTF)
-        if (sdl.desktop.want_type == SCREEN_TTF || CurMode->type!=M_TEXT && !IS_PC98_ARCH) return true;
+        if (sdl.desktop.want_type == SCREEN_TTF || (CurMode->type!=M_TEXT && !IS_PC98_ARCH)) return true;
 #if C_DIRECT3D
         if (sdl.desktop.want_type == SCREEN_DIRECT3D) change_output(0);
 #endif
@@ -10328,9 +10328,26 @@ bool help_command_callback(DOSBoxMenu * const /*menu*/, DOSBoxMenu::item * const
 
     GFX_LosingFocus();
 
+    bool switchfs=false;
+#if defined(C_SDL2)
+    int x=-1, y=-1;
+#endif
+    if (!GFX_IsFullscreen()) {
+        switchfs=true;
+#if defined(C_SDL2)
+        SDL_GetWindowPosition(sdl.window, &x, &y);
+#endif
+        GFX_SwitchFullScreen();
+    }
     helpcmd = menuitem->get_name().substr(8);
     GUI_Shortcut(36);
     helpcmd = "";
+    if (switchfs) {
+        GFX_SwitchFullScreen();
+#if defined(C_SDL2)
+        if (x>-1&&y>-1) SDL_SetWindowPosition(sdl.window, x, y);
+#endif
+    }
 
     MAPPER_ReleaseAllKeys();
 

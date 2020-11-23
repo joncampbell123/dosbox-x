@@ -678,7 +678,7 @@ static const char *def_menu_drive[] =
 
 /* help DOS commands ("HelpCommandMenu") */
 static const char *def_menu_help_command[512];
-char help_command_temp[30][512];
+char help_command_temp[512][30];
 
 /* help output debug ("HelpDebugMenu") */
 static const char *def_menu_help_debug[] =
@@ -1485,17 +1485,20 @@ void ConstructMenu(void) {
     while (cmd_list[cmd_index].name) {
         if (!cmd_list[cmd_index].flags) {
             strcpy(help_command_temp[i], ("command_"+std::string(cmd_list[cmd_index].name)).c_str());
-            def_menu_help_command[i++] = help_command_temp[i];
+            def_menu_help_command[i] = help_command_temp[i];
+            i++;
         }
         cmd_index++;
     }
     strcpy(help_command_temp[i], "--");
-    def_menu_help_command[i++]=help_command_temp[i];
+    def_menu_help_command[i]=help_command_temp[i];
+    i++;
     cmd_index=0;
     while (cmd_list[cmd_index].name) {
         if (cmd_list[cmd_index].flags && strcmp(cmd_list[cmd_index].name, "CHDIR") && strcmp(cmd_list[cmd_index].name, "ERASE") && strcmp(cmd_list[cmd_index].name, "LOADHIGH") && strcmp(cmd_list[cmd_index].name, "MKDIR") && strcmp(cmd_list[cmd_index].name, "RMDIR") && strcmp(cmd_list[cmd_index].name, "RENAME") && strcmp(cmd_list[cmd_index].name, "DX-CAPTURE") && strcmp(cmd_list[cmd_index].name, "DEBUGBOX")) {
             strcpy(help_command_temp[i], ("command_"+std::string(cmd_list[cmd_index].name)).c_str());
-            def_menu_help_command[i++] = help_command_temp[i];
+            def_menu_help_command[i] = help_command_temp[i];
+            i++;
         }
         cmd_index++;
     }

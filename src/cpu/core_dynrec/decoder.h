@@ -32,6 +32,13 @@
 */
 
 static CacheBlockDynRec * CreateCacheBlock(CodePageHandlerDynRec * codepage,PhysPt start,Bitu max_opcodes) {
+#if (C_HAVE_MPROTECT)
+	if (w_xor_x) {
+		if (mprotect(cache_code_link_blocks,CACHE_TOTAL+CACHE_MAXSIZE+PAGESIZE_TEMP,PROT_READ|PROT_WRITE))
+			LOG_MSG("Setting execute permission on the code cache has failed! err=%s",strerror(errno));
+	}
+#endif
+
 	// initialize a load of variables
 	decode.code_start=start;
 	decode.code=start;
@@ -612,6 +619,13 @@ finish_block:
 	decode.page.index--;
 	decode.active_block->page.end=(uint16_t)decode.page.index;
 //	LOG_MSG("Created block size %d start %d end %d",decode.block->cache.size,decode.block->page.start,decode.block->page.end);
+
+#if (C_HAVE_MPROTECT)
+	if (w_xor_x) {
+		if (mprotect(cache_code_link_blocks,CACHE_TOTAL+CACHE_MAXSIZE+PAGESIZE_TEMP,PROT_READ|PROT_EXEC))
+			LOG_MSG("Setting execute permission on the code cache has failed! err=%s",strerror(errno));
+	}
+#endif
 
 	return decode.block;
 }
