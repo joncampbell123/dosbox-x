@@ -1222,8 +1222,8 @@ void SHELL_Init() {
 	MSG_Add("SHELL_CMD_EXIT_HELP_LONG","EXIT\n");
 	MSG_Add("SHELL_CMD_HELP_HELP","Shows DOSBox-X command help.\n");
 	MSG_Add("SHELL_CMD_HELP_HELP_LONG","HELP [/A or /ALL]\nHELP [command]\n\n"
-		    "   /A or /ALL\tLists all supported internal commands.\n"
-		    "   [command]\tShows help for the specified command.\n\n"
+		    "   /A or /ALL   Lists all supported internal commands.\n"
+		    "   [command]    Shows help for the specified command.\n\n"
             "E.g., \033[37;1mHELP COPY\033[0m or \033[37;1mCOPY /?\033[0m shows help infomration for COPY command.\n\n"
 			"Note: External commands like \033[33;1mMOUNT\033[0m and \033[33;1mIMGMOUNT\033[0m are not listed by HELP [/A].\n"
 			"      These commands can be found on the Z: drive as programs (e.g. MOUNT.COM).\n"
@@ -1236,8 +1236,8 @@ void SHELL_Init() {
 	        "RD [drive:][path]\n");
 	MSG_Add("SHELL_CMD_SET_HELP","Displays or changes environment variables.\n");
 	MSG_Add("SHELL_CMD_SET_HELP_LONG","SET [variable=[string]]\n\n"
-		   "   variable\tSpecifies the environment-variable name.\n"
-		   "   string\tSpecifies a series of characters to assign to the variable.\n\n"
+		   "   variable     Specifies the environment-variable name.\n"
+		   "   string       Specifies a series of characters to assign to the variable.\n\n"
 		   "* If no string is specified, the variable is removed from the environment.\n\n"
 		   "Type SET without parameters to display the current environment variables.\n");
 	MSG_Add("SHELL_CMD_IF_HELP","Performs conditional processing in batch programs.\n");
@@ -1279,13 +1279,13 @@ void SHELL_Init() {
 	MSG_Add("SHELL_CMD_DELETE_HELP","Removes one or more files.\n");
 	MSG_Add("SHELL_CMD_DELETE_HELP_LONG","DEL [/P] [/F] [/Q] names\n"
 		   "ERASE [/P] [/F] [/Q] names\n\n"
-		   "  names\t\tSpecifies a list of one or more files or directories.\n"
-		   "\t\tWildcards may be used to delete multiple files. If a\n"
-		   "\t\tdirectory is specified, all files within the directory\n"
-		   "\t\twill be deleted.\n"
-		   "  /P\t\tPrompts for confirmation before deleting one or more files.\n"
-		   "  /F\t\tForce deleting of read-only files.\n"
-		   "  /Q\t\tQuiet mode, do not ask if ok to delete on global wildcard.\n");
+		   "  names         Specifies a list of one or more files or directories.\n"
+		   "                Wildcards may be used to delete multiple files. If a\n"
+		   "                directory is specified, all files within the directory\n"
+		   "                will be deleted.\n"
+		   "  /P            Prompts for confirmation before deleting one or more files.\n"
+		   "  /F            Force deleting of read-only files.\n"
+		   "  /Q            Quiet mode, do not ask if ok to delete on global wildcard.\n");
 	MSG_Add("SHELL_CMD_DELTREE_HELP","Deletes a directory and all the subdirectories and files in it.\n");
 	MSG_Add("SHELL_CMD_DELTREE_HELP_LONG","To delete one or more files and directories:\n"
            "DELTREE [/Y] [drive:]path [[drive:]path[...]]\n\n"
@@ -1296,10 +1296,12 @@ void SHELL_Init() {
            "specified directory will be deleted.\n");
 	MSG_Add("SHELL_CMD_COPY_HELP","Copies one or more files.\n");
 	MSG_Add("SHELL_CMD_COPY_HELP_LONG","COPY [/Y | /-Y] source [+source [+ ...]] [destination]\n\n"
-		   "  source\tSpecifies the file or files to be copied.\n"
-		   "  destination\tSpecifies the directory and/or filename for the new file(s).\n"
-		   "  /Y\t\tSuppresses prompting to confirm you want to overwrite an\n\t\texisting destination file.\n"
-		   "  /-Y\t\tCauses prompting to confirm you want to overwrite an\n\t\texisting destination file.\n\n"
+		   "  source        Specifies the file or files to be copied.\n"
+		   "  destination   Specifies the directory and/or filename for the new file(s).\n"
+		   "  /Y            Suppresses prompting to confirm you want to overwrite an\n"
+		   "                existing destination file.\n"
+		   "  /-Y           Causes prompting to confirm you want to overwrite an\n"
+           "                existing destination file.\n\n"
 		   "The switch /Y may be preset in the COPYCMD environment variable.\n"
 		   "This may be overridden with /-Y on the command line.\n\n"
 		   "To append files, specify a single file for destination, but multiple files\n"
@@ -1310,12 +1312,13 @@ void SHELL_Init() {
 		   "                   the batch program.\n");
 	MSG_Add("SHELL_CMD_SUBST_HELP","Assigns an internal directory to a drive.\n");
 	MSG_Add("SHELL_CMD_SUBST_HELP_LONG","SUBST [drive1: [drive2:]path]\nSUBST drive1: /D\n\n"
-		   "  drive1:\tSpecifies a drive to which you want to assign a path.\n"
-		   "  [drive2:]path\tSpecifies a mounted local drive and path you want to assign to.\n"
-		   "  /D\t\tDeletes a mounted or substituted drive.\n\n"
+		   "  drive1:       Specifies a drive to which you want to assign a path.\n"
+		   "  [drive2:]path Specifies a mounted local drive and path you want to assign to.\n"
+		   "  /D            Deletes a mounted or substituted drive.\n\n"
 		   "Type SUBST with no parameters to display a list of mounted local drives.\n");
 	MSG_Add("SHELL_CMD_LOADHIGH_HELP","Loads a program into upper memory (requires XMS and UMB memory).\n");
-	MSG_Add("SHELL_CMD_LOADHIGH_HELP_LONG","LH\t\t[drive1:][path]filename [parameters]\nLOADHIGH\t[drive1:][path]filename [parameters]\n");
+	MSG_Add("SHELL_CMD_LOADHIGH_HELP_LONG","LH              [drive1:][path]filename [parameters]\n"
+		   "LOADHIGH        [drive1:][path]filename [parameters]\n");
 	MSG_Add("SHELL_CMD_CHOICE_HELP","Waits for a keypress and sets ERRORLEVEL.\n");
 	MSG_Add("SHELL_CMD_CHOICE_HELP_LONG","CHOICE [/C:choices] [/N] [/S] text\n"
 	        "  /C[:]choices  -  Specifies allowable keys.  Default is: yn.\n"
@@ -1376,9 +1379,9 @@ void SHELL_Init() {
     MSG_Add("SHELL_CMD_ALIAS_HELP", "Defines or displays aliases.\n");
     MSG_Add("SHELL_CMD_ALIAS_HELP_LONG", "ALIAS [name[=value] ... ]\n\nType ALIAS without parameters to display the list of aliases in the form:\n`ALIAS NAME = VALUE'\n");
 	MSG_Add("SHELL_CMD_COUNTRY_HELP", "Displays or changes the current country.\n");
-	MSG_Add("SHELL_CMD_COUNTRY_HELP_LONG", "COUNTRY [nnn] \n\n  nnn\tSpecifies a country code.\n\nDate and time formats will be affacted by the specified country code.\n");
+	MSG_Add("SHELL_CMD_COUNTRY_HELP_LONG", "COUNTRY [nnn] \n\n  nnn   Specifies a country code.\n\nDate and time formats will be affacted by the specified country code.\n");
     MSG_Add("SHELL_CMD_CTTY_HELP","Changes the terminal device used to control the system.\n");
-	MSG_Add("SHELL_CMD_CTTY_HELP_LONG","CTTY device\n  device\tThe terminal device to use, such as CON.\n");
+	MSG_Add("SHELL_CMD_CTTY_HELP_LONG","CTTY device\n  device        The terminal device to use, such as CON.\n");
 	MSG_Add("SHELL_CMD_MORE_HELP","Displays output one screen at a time.\n");
 	MSG_Add("SHELL_CMD_MORE_HELP_LONG","MORE [drive:][path][filename]\nMORE < [drive:][path]filename\ncommand-name | MORE [drive:][path][filename]\n");
 	MSG_Add("SHELL_CMD_TRUENAME_HELP","Finds the fully-expanded name for a file.\n");
@@ -1389,7 +1392,7 @@ void SHELL_Init() {
 	MSG_Add("SHELL_CMD_DEBUGBOX_HELP","Runs program and breaks into debugger at entry point.\n");
 	MSG_Add("SHELL_CMD_DEBUGBOX_HELP_LONG","DEBUGBOX [command] [options]\n");
 #endif
-	MSG_Add("SHELL_CMD_COMMAND_HELP","Starts the DOSBox-X command shell.\n\nThe following options are accepted:\n\n  /C\tExecutes the specified command and returns.\n  /K\tExecutes the specified command and continues running.\n  /P\tLoads a permanent copy of the command shell.\n  /INIT\tInitializes the command shell.\n");
+	MSG_Add("SHELL_CMD_COMMAND_HELP","Starts the DOSBox-X command shell.\n\nThe following options are accepted:\n\n  /C    Executes the specified command and returns.\n  /K    Executes the specified command and continues running.\n  /P    Loads a permanent copy of the command shell.\n  /INIT Initializes the command shell.\n");
 
 	/* Regular startup */
 	call_shellstop=CALLBACK_Allocate();

@@ -179,7 +179,7 @@ typedef enum PROCESS_DPI_AWARENESS {
 #if !defined(C_SDL2) && !defined(RISCOS)
 # include "SDL_version.h"
 # ifndef SDL_DOSBOX_X_SPECIAL
-#  error This code must be compiled using the SDL 1.x library provided in this source repository
+#  warning It is recommended to compile this code using the SDL 1.x library provided in this source repository
 # endif
 #endif
 
@@ -240,12 +240,12 @@ bool TTF_using(void);
 void ShutDownMemHandles(Section * sec);
 void resetFontSize();
 static void decreaseFontSize();
+extern SHELL_Cmd cmd_list[];
 
 SDL_Block sdl;
 Bitu frames = 0;
 unsigned int page=0;
 unsigned int sendkeymap=0;
-
 ScreenSizeInfo          screen_size_info;
 
 #if defined(USE_TTF)
@@ -9503,7 +9503,7 @@ bool output_menu_callback(DOSBoxMenu * const menu,DOSBoxMenu::item * const menui
     }
     else if (!strcmp(what,"ttf")) {
 #if defined(USE_TTF)
-        if (sdl.desktop.want_type == SCREEN_TTF || CurMode->type!=M_TEXT) return true;
+        if (sdl.desktop.want_type == SCREEN_TTF || (CurMode->type!=M_TEXT && !IS_PC98_ARCH)) return true;
 #if C_DIRECT3D
         if (sdl.desktop.want_type == SCREEN_DIRECT3D) change_output(0);
 #endif
@@ -10314,6 +10314,40 @@ bool help_about_callback(DOSBoxMenu * const /*menu*/, DOSBoxMenu::item * const /
     GFX_LosingFocus();
 
     GUI_Shortcut(35);
+
+    MAPPER_ReleaseAllKeys();
+
+    GFX_LosingFocus();
+
+    return true;
+}
+
+std::string helpcmd="";
+bool help_command_callback(DOSBoxMenu * const /*menu*/, DOSBoxMenu::item * const menuitem) {
+    MAPPER_ReleaseAllKeys();
+
+    GFX_LosingFocus();
+
+    bool switchfs=false;
+#if defined(C_SDL2)
+    int x=-1, y=-1;
+#endif
+    if (!GFX_IsFullscreen()) {
+        switchfs=true;
+#if defined(C_SDL2)
+        SDL_GetWindowPosition(sdl.window, &x, &y);
+#endif
+        GFX_SwitchFullScreen();
+    }
+    helpcmd = menuitem->get_name().substr(8);
+    GUI_Shortcut(36);
+    helpcmd = "";
+    if (switchfs) {
+        GFX_SwitchFullScreen();
+#if defined(C_SDL2)
+        if (x>-1&&y>-1) SDL_SetWindowPosition(sdl.window, x, y);
+#endif
+    }
 
     MAPPER_ReleaseAllKeys();
 
@@ -11574,6 +11608,27 @@ int main(int argc, char* argv[]) SDL_MAIN_NOEXCEPT {
                 mainMenu.alloc_item(DOSBoxMenu::item_type_id,"show_console").set_text("Show logging console").set_callback_function(show_console_menu_callback);
 #endif
                 mainMenu.alloc_item(DOSBoxMenu::item_type_id,"wait_on_error").set_text("Console wait on error").set_callback_function(wait_on_error_menu_callback).check(sdl.wait_on_error);
+            }
+
+            {
+                DOSBoxMenu::item &item = mainMenu.alloc_item(DOSBoxMenu::submenu_type_id,"HelpCommandMenu");
+
+                item.set_text("DOS commands");
+
+                {
+                    uint32_t cmd_index=0;
+                    while (cmd_list[cmd_index].name) {
+                        if (!cmd_list[cmd_index].flags)
+                            mainMenu.alloc_item(DOSBoxMenu::item_type_id,("command_"+std::string(cmd_list[cmd_index].name)).c_str()).set_text(cmd_list[cmd_index].name).set_callback_function(help_command_callback);
+                        cmd_index++;
+                    }
+                    cmd_index=0;
+                    while (cmd_list[cmd_index].name) {
+                        if (cmd_list[cmd_index].flags && strcmp(cmd_list[cmd_index].name, "CHDIR") && strcmp(cmd_list[cmd_index].name, "ERASE") && strcmp(cmd_list[cmd_index].name, "LOADHIGH") && strcmp(cmd_list[cmd_index].name, "MKDIR") && strcmp(cmd_list[cmd_index].name, "RMDIR") && strcmp(cmd_list[cmd_index].name, "RENAME") && strcmp(cmd_list[cmd_index].name, "DX-CAPTURE") && strcmp(cmd_list[cmd_index].name, "DEBUGBOX"))
+                            mainMenu.alloc_item(DOSBoxMenu::item_type_id,("command_"+std::string(cmd_list[cmd_index].name)).c_str()).set_text(cmd_list[cmd_index].name).set_callback_function(help_command_callback);
+                        cmd_index++;
+                    }
+                }
             }
 
             {

@@ -355,15 +355,13 @@ bool RENDER_StartUpdate(void) {
     Scaler_ChangedLineIndex = 0;
 #if defined(USE_TTF)
     if (ttf.inUse) {
-        if (render.cache.nextInvalid)		// Always do a full screen update
-            {
+        if (render.cache.nextInvalid) {		// Always do a full screen update
             render.cache.nextInvalid = false;
             render.cache.invalid = true;
             if (!GFX_StartUpdate( render.scale.outWrite, render.scale.outPitch ))
                 return false;
             RENDER_DrawLine = SimpleRenderer;
-            }
-        else
+        } else
             RENDER_DrawLine = RENDER_StartLineHandler;
     /* Clearing the cache will first process the line to make sure it's never the same */
     } else
