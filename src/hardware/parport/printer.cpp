@@ -2200,7 +2200,7 @@ void PRINTER_Init()
 	//IO_RegisterReadHandler(LPTPORT+2,PRINTER_readcontrol,IO_MB);
 
     DOSBoxMenu::item *item;
-	MAPPER_AddHandler(FormFeed, MK_f2 , MMOD1, "ejectpage", "FormFeed", &item);
+	MAPPER_AddHandler(FormFeed, MK_f2 , MMOD1, "ejectpage", "Send form-feed", &item);
     item->set_text("Send form-feed");
 }
 

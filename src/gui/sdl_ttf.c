@@ -1581,7 +1581,7 @@ SDL_Surface* TTF_RenderUNICODE_Shaded( TTF_Font* font,
 		return NULL;
 	}
 
-    if (width < expect_width)
+    if (width < (int)expect_width)
         width = expect_width;
 
 	/* Create the target surface */

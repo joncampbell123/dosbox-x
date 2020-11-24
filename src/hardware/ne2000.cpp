@@ -1486,6 +1486,8 @@ static void NE2000_Poller(void) {
 #include <windows.h>
 #endif
 
+extern std::string niclist;
+
 class NE2K: public Module_base {
 private:
 	// Data
@@ -1520,7 +1522,8 @@ public:
 		HINSTANCE pcapinst;
 		pcapinst = LoadLibrary("WPCAP.DLL");
 		if(pcapinst==NULL) {
-			LOG_MSG("WinPcap has to be installed for the NE2000 to work.");
+            niclist = "WinPcap has to be installed for the NE2000 to work.";
+			LOG_MSG(niclist.c_str());
 			load_success = false;
 			return;
 		}
@@ -1552,7 +1555,8 @@ public:
 
 		if(PacketFindALlDevsEx==0 || PacketNextEx==0 || PacketOpen==0 || 
 			PacketFreealldevs==0 || PacketClose==0 || PacketSendPacket==0) {
-			LOG_MSG("Wrong WinPcap version or something");
+            niclist = "Incorrect or non-functional WinPcap version.";
+			LOG_MSG(niclist.c_str());
 			load_success = false;
 			return;
 		}
@@ -1598,20 +1602,24 @@ public:
 		if (pcap_findalldevs(&alldevs, errbuf) == -1)
 #endif
  		{
-			LOG_MSG("Cannot enumerate network interfaces: %s\n", errbuf);
+            niclist = "Cannot enumerate network interfaces: "+std::string(errbuf);
+			LOG_MSG(niclist.c_str());
 			load_success = false;
 			return;
 		}
+        {
+            Bitu i = 0;
+            niclist = "Network Interface List\n-------------------------------------------------------------\n";
+            for(currentdev=alldevs; currentdev!=NULL; currentdev=currentdev->next) {
+                const char* desc = "no description";
+                if(currentdev->description) desc=currentdev->description;
+                i++;
+                niclist+=(i<10?"0":"")+std::to_string(i)+" "+currentdev->name+"\n    ("+desc+")\n";
+            }
+        }
 		if (!strcasecmp(realnicstring,"list")) {
 			// print list and quit
-			Bitu i = 0;
-			LOG_MSG("\nNetwork Interface List \n-----------------------------------");
-			for(currentdev=alldevs; currentdev!=NULL; currentdev=currentdev->next) {
-				const char* desc = "no description"; 
-				if(currentdev->description) desc=currentdev->description;
-				i++;
-				LOG_MSG("%2d. %s\n    (%s)\n",(int)i,currentdev->name,desc);
-			}
+			LOG_MSG(("\n"+niclist).c_str());
 			pcap_freealldevs(alldevs);
 			load_success = false;
 			return;

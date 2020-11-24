@@ -1070,40 +1070,40 @@ void SetCyclesCount_mapper_shortcut(bool pressed);
 void DOSBOX_RealInit() {
     DOSBoxMenu::item *item;
 
-    LOG(LOG_MISC,LOG_DEBUG)("DOSBOX_RealInit: loading settings and initializing");
+    LOG(LOG_MISC,LOG_DEBUG)("DOSBOX-X RealInit: loading settings and initializing");
 
-    MAPPER_AddHandler(DOSBOX_UnlockSpeed, MK_rightarrow, MMODHOST,"speedlock","Speedlock");
+    MAPPER_AddHandler(DOSBOX_UnlockSpeed, MK_rightarrow, MMODHOST,"speedlock","Toggle Speedlock");
     {
-        MAPPER_AddHandler(DOSBOX_UnlockSpeed2, MK_nothing, 0, "speedlock2", "Speedlock2", &item);
+        MAPPER_AddHandler(DOSBOX_UnlockSpeed2, MK_nothing, 0, "speedlock2", "Turbo (Fast Forward)", &item);
         item->set_description("Toggle emulation speed, to allow running faster than realtime (fast forward)");
         item->set_text("Turbo (Fast Forward)");
     }
     {
-        MAPPER_AddHandler(DOSBOX_NormalSpeed, MK_leftarrow, MMODHOST, "speednorm","SpeedNrm", &item);
+        MAPPER_AddHandler(DOSBOX_NormalSpeed, MK_leftarrow, MMODHOST, "speednorm","Normal speed", &item);
         item->set_description("Restore normal emulation speed");
         item->set_text("Normal speed");
     }
     {
-        MAPPER_AddHandler(DOSBOX_SpeedUp, MK_rbracket, MMODHOST, "speedup","SpeedUp", &item);
+        MAPPER_AddHandler(DOSBOX_SpeedUp, MK_rbracket, MMODHOST, "speedup","Speed up", &item);
         item->set_text("Speed up");
     }
     {
-        MAPPER_AddHandler(DOSBOX_SlowDown, MK_lbracket, MMODHOST,"slowdown","SlowDown", &item);
+        MAPPER_AddHandler(DOSBOX_SlowDown, MK_lbracket, MMODHOST,"slowdown","Slow down", &item);
         item->set_text("Slow down");
     }
 	{
-		MAPPER_AddHandler(&SetCyclesCount_mapper_shortcut, MK_nothing, 0, "editcycles", "EditCycles", &item);
+		MAPPER_AddHandler(&SetCyclesCount_mapper_shortcut, MK_nothing, 0, "editcycles", "Edit cycles", &item);
 		item->set_text("Edit cycles");
 	}
 
 	//add support for loading/saving game states
-	MAPPER_AddHandler(SaveGameState, MK_f7, MMOD1,"savestate","SaveState", &item);
+	MAPPER_AddHandler(SaveGameState, MK_f7, MMOD1,"savestate","Save state", &item);
         item->set_text("Save state");
-	MAPPER_AddHandler(LoadGameState, MK_f8, MMOD1,"loadstate","LoadState", &item);
+	MAPPER_AddHandler(LoadGameState, MK_f8, MMOD1,"loadstate","Load state", &item);
         item->set_text("Load state");
-	MAPPER_AddHandler(PreviousSaveSlot, MK_f7, MMOD1|MMOD2,"prevslot","PrevSlot", &item);
+	MAPPER_AddHandler(PreviousSaveSlot, MK_f7, MMOD1|MMOD2,"prevslot","Previous save slot", &item);
         item->set_text("Select previous slot");
-	MAPPER_AddHandler(NextSaveSlot, MK_f8, MMOD1|MMOD2,"nextslot","NextSlot", &item);
+	MAPPER_AddHandler(NextSaveSlot, MK_f8, MMOD1|MMOD2,"nextslot","Next save slot", &item);
         item->set_text("Select next slot");
 
     Section_prop *section = static_cast<Section_prop *>(control->GetSection("dosbox"));

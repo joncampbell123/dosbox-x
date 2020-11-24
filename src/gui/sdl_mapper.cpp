@@ -107,7 +107,9 @@ enum BB_Types {
     BB_Del,
     BB_Save,
     BB_Exit,
-    BB_Capture
+    BB_Capture,
+    BB_Prevpage,
+    BB_Nextpage
 };
 
 enum BC_Types {
@@ -145,6 +147,8 @@ static struct {
     CBindButton*                                add;
     CBindButton*                                del;
     CBindButton*                                next;
+    CBindButton*                                prevpage;
+    CBindButton*                                nextpage;
     CCheckButton                                *mod1, *mod2, *mod3, *host, *hold;
 } bind_but;
 
@@ -269,6 +273,8 @@ static KeyBlock combo_4[11] =
 };
 
 static bool initjoy=true;
+static int cpage=1, maxpage=1;
+
 
 static void                                     SetActiveEvent(CEvent * event);
 static void                                     SetActiveBind(CBind * _bind);
@@ -2085,6 +2091,7 @@ public:
         enabled=true;
         invert=false;
         press=false;
+        page=1;
     }
     virtual void Draw(void) {
         uint8_t bg;
@@ -2120,7 +2127,11 @@ public:
     }
     virtual void BindColor(void) {}
     virtual void Click(void) {}
-    void Enable(bool yes) { 
+    uint8_t Page(uint8_t p) {
+        if (p>0) page=p;
+        return page;
+    }
+    void Enable(bool yes) {
         enabled=yes; 
         mapper.redraw=true;
     }
@@ -2136,6 +2147,7 @@ public:
     void SetColor(uint8_t _col) { color=_col; }
 protected:
     Bitu x,y,dx,dy;
+    uint8_t page;
     uint8_t color;
     uint8_t bkcolor;
     bool press;
@@ -2204,6 +2216,7 @@ protected:
 
 class CEventButton;
 static CEventButton * last_clicked = NULL;
+static std::vector<CEventButton *> ceventbuttons;
 
 class CEventButton : public CTextButton {
 public:
@@ -2252,8 +2265,7 @@ void CCaptionButton::Change(const char * format,...) {
     mapper.redraw=true;
 }       
 
-void RedrawMapperBindButton(CEvent *ev);
-
+void RedrawMapperBindButton(CEvent *ev), RedrawMapperEventButtons();
 class CBindButton : public CTextButton {
 public: 
     CBindButton(Bitu _x,Bitu _y,Bitu _dx,Bitu _dy,const char * _text,BB_Types _type) 
@@ -2287,6 +2299,16 @@ public:
             if (mapper.abindit==mapper.aevent->bindlist.end()) 
                 mapper.abindit=mapper.aevent->bindlist.begin();
             SetActiveBind(*(mapper.abindit));
+            break;
+        case BB_Prevpage:
+            if (cpage<2) break;
+            cpage--;
+            RedrawMapperEventButtons();
+            break;
+        case BB_Nextpage:
+            if (cpage>=maxpage) break;
+            cpage++;
+            RedrawMapperEventButtons();
             break;
         case BB_Save:
             MAPPER_SaveBinds();
@@ -2686,6 +2708,12 @@ public:
         case MK_leftarrow:
             key=SDL_SCANCODE_LEFT;
             break;
+        case MK_uparrow:
+            key=SDL_SCANCODE_UP;
+            break;
+        case MK_downarrow:
+            key=SDL_SCANCODE_DOWN;
+            break;
         case MK_return:
             key=SDL_SCANCODE_RETURN;
             break;
@@ -2794,6 +2822,12 @@ public:
             break;
         case MK_leftarrow:
             key=SDLK_LEFT;
+            break;
+        case MK_uparrow:
+            key=SDLK_UP;
+            break;
+        case MK_downarrow:
+            key=SDLK_DOWN;
             break;
         case MK_return:
             key=SDLK_RETURN;
@@ -2964,6 +2998,14 @@ static void DrawText(Bitu x,Bitu y,const char * text,uint8_t color,uint8_t bkcol
     }
 }
 
+void RedrawMapperEventButtons() {
+    bind_but.prevpage->SetColor(cpage==1?CLR_GREY:CLR_WHITE);
+    bind_but.nextpage->SetColor(cpage==maxpage?CLR_GREY:CLR_WHITE);
+    for (std::vector<CEventButton *>::iterator it = ceventbuttons.begin(); it != ceventbuttons.end(); ++it) {
+        CEventButton *button = (CEventButton *)*it;
+        button->Enable(button->Page(0)==cpage);
+    }
+}
 
 void MAPPER_TriggerEventByName(const std::string& name) {
     CEvent *event = get_mapper_event_by_name(name);
@@ -3389,18 +3431,32 @@ static void CreateLayout(void) {
     AddModButton(PX(6),PY(17),50,BH,"Host",4);
     /* Create Handler buttons */
     Bitu xpos=3;Bitu ypos=11;
+    uint8_t page=cpage;
+    ceventbuttons.clear();
     for (CHandlerEventVector_it hit=handlergroup.begin();hit!=handlergroup.end();++hit) {
+        maxpage=page;
         unsigned int columns = ((unsigned int)strlen((*hit)->ButtonName()) + 9U) / 10U;
         if ((xpos+columns-1)>6) {
             xpos=3;ypos++;
         }
         CEventButton *button=new CEventButton(PX(xpos*3),PY(ypos),BW*3*columns,BH,(*hit)->ButtonName(),(*hit));
+        ceventbuttons.push_back(button);
         (*hit)->notifybutton(button);
+        button->Enable(page==cpage);
+        button->Page(page);
         xpos += columns;
         if (xpos>6) {
             xpos=3;ypos++;
         }
+        if (ypos==20) {
+            ypos=11;
+            page++;
+        }
     }
+    bind_but.prevpage=new CBindButton(300,388,130,BH,"< Previous Page",BB_Prevpage);
+    bind_but.nextpage=new CBindButton(450,388,100,BH," Next Page >",BB_Nextpage);
+    if (cpage==1) bind_but.prevpage->SetColor(CLR_GREY);
+    if (cpage==maxpage) bind_but.nextpage->SetColor(CLR_GREY);
     next_handler_xpos = xpos;
     next_handler_ypos = ypos;
     /* Create some text buttons */
@@ -4685,7 +4741,7 @@ void MAPPER_StartUp() {
     {
         DOSBoxMenu::item *itemp = NULL;
 
-        MAPPER_AddHandler(&MAPPER_Run,MK_m,MMODHOST,"mapper","Mapper",&itemp);
+        MAPPER_AddHandler(&MAPPER_Run,MK_m,MMODHOST,"mapper","Mapper editor",&itemp);
         itemp->set_accelerator(DOSBoxMenu::accelerator('m'));
         itemp->set_description("Bring up the mapper UI");
         itemp->set_text("Mapper editor");

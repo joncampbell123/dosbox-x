@@ -1578,6 +1578,7 @@ public:
             }
             (new GUI::Button(this, 140, r+30, "Close", 70))->addActionHandler(this);
             resize(350, r+110);
+            move(parent->getWidth()>this->getWidth()?(parent->getWidth()-this->getWidth())/2:0,parent->getHeight()>this->getHeight()?(parent->getHeight()-this->getHeight())/2:0);
     }
 
     void actionExecuted(GUI::ActionEventSource *b, const GUI::String &arg) {
@@ -1606,6 +1607,7 @@ public:
                 new GUI::Label(this, 40, r, line.c_str());
             }
             (new GUI::Button(this, 130, r+30, "Close", 70))->addActionHandler(this);
+            move(parent->getWidth()>this->getWidth()?(parent->getWidth()-this->getWidth())/2:0,parent->getHeight()>this->getHeight()?(parent->getHeight()-this->getHeight())/2:0);
     }
 
     void actionExecuted(GUI::ActionEventSource *b, const GUI::String &arg) {
@@ -1639,6 +1641,7 @@ public:
                 new GUI::Label(this, 40, r, line.c_str());
             }
             (new GUI::Button(this, 130, r+30, "Close", 70))->addActionHandler(this);
+            move(parent->getWidth()>this->getWidth()?(parent->getWidth()-this->getWidth())/2:0,parent->getHeight()>this->getHeight()?(parent->getHeight()-this->getHeight())/2:0);
     }
 
     void actionExecuted(GUI::ActionEventSource *b, const GUI::String &arg) {
@@ -1724,6 +1727,7 @@ public:
             }
             dos.dta(save_dta);
             (new GUI::Button(this, 165, 205, "Close", 70))->addActionHandler(this);
+            move(parent->getWidth()>this->getWidth()?(parent->getWidth()-this->getWidth())/2:0,parent->getHeight()>this->getHeight()?(parent->getHeight()-this->getHeight())/2:0);
     }
 
     void actionExecuted(GUI::ActionEventSource *b, const GUI::String &arg) {
@@ -1762,6 +1766,7 @@ public:
             new GUI::Label(this, 40, 25*(index+1), std::to_string(index) + " - " + str);
         }
         (new GUI::Button(this, 190, 25*(MAX_DISK_IMAGES+1)+5, "Close", 70))->addActionHandler(this);
+        move(parent->getWidth()>this->getWidth()?(parent->getWidth()-this->getWidth())/2:0,parent->getHeight()>this->getHeight()?(parent->getHeight()-this->getHeight())/2:0);
     }
 
     void actionExecuted(GUI::ActionEventSource *b, const GUI::String &arg) {
@@ -1787,6 +1792,7 @@ public:
             }
             (new GUI::Button(this, 110, r+30, "Close", 70))->addActionHandler(this);
             resize(300, r+110);
+            move(parent->getWidth()>this->getWidth()?(parent->getWidth()-this->getWidth())/2:0,parent->getHeight()>this->getHeight()?(parent->getHeight()-this->getHeight())/2:0);
     }
 
     void actionExecuted(GUI::ActionEventSource *b, const GUI::String &arg) {
@@ -1806,6 +1812,7 @@ public:
             new GUI::Label(this, strncmp(title, "DOSBox-X ", 9)?30:10, 20, title);
             (new GUI::Button(this, 140, 50, "Yes", 70))->addActionHandler(this);
             (new GUI::Button(this, 230, 50, "No", 70))->addActionHandler(this);
+            move(parent->getWidth()>this->getWidth()?(parent->getWidth()-this->getWidth())/2:0,parent->getHeight()>this->getHeight()?(parent->getHeight()-this->getHeight())/2:0);
     }
 
     void actionExecuted(GUI::ActionEventSource *b, const GUI::String &arg) {
@@ -1832,6 +1839,33 @@ public:
                 new GUI::Label(this, 40, r, line.c_str());
             }
             (new GUI::Button(this, 260, 110, "Close", 70))->addActionHandler(this);
+            move(parent->getWidth()>this->getWidth()?(parent->getWidth()-this->getWidth())/2:0,parent->getHeight()>this->getHeight()?(parent->getHeight()-this->getHeight())/2:0);
+    }
+
+    void actionExecuted(GUI::ActionEventSource *b, const GUI::String &arg) {
+        (void)b;//UNUSED
+        if (arg == "Close")
+            close();
+        if (shortcut) running = false;
+    }
+};
+
+std::string niclist="NE2000 networking is not enabled.";
+class ShowHelpNIC : public GUI::ToplevelWindow {
+protected:
+    GUI::Input *name;
+public:
+    ShowHelpNIC(GUI::Screen *parent, int x, int y, const char *title) :
+        ToplevelWindow(parent, x, y, 700, 230, title) {
+            std::istringstream in(niclist.c_str());
+            int r=0;
+            if (in)	for (std::string line; std::getline(in, line); ) {
+                r+=25;
+                new GUI::Label(this, 40, r, line.c_str());
+            }
+            (new GUI::Button(this, 330, r+40, "Close", 70))->addActionHandler(this);
+            resize(700, r+120);
+            move(parent->getWidth()>this->getWidth()?(parent->getWidth()-this->getWidth())/2:0,parent->getHeight()>this->getHeight()?(parent->getHeight()-this->getHeight())/2:0);
     }
 
     void actionExecuted(GUI::ActionEventSource *b, const GUI::String &arg) {
@@ -1855,6 +1889,7 @@ public:
                 new GUI::Label(this, 40, r, line.c_str());
             }
             (new GUI::Button(this, 180, 155, "Close", 70))->addActionHandler(this);
+            move(parent->getWidth()>this->getWidth()?(parent->getWidth()-this->getWidth())/2:0,parent->getHeight()>this->getHeight()?(parent->getHeight()-this->getHeight())/2:0);
     }
 
     void actionExecuted(GUI::ActionEventSource *b, const GUI::String &arg) {
@@ -1888,6 +1923,7 @@ public:
             }
             (new GUI::Button(this, 350, r+40, "Close", 70))->addActionHandler(this);
             resize(750, r+120);
+            move(parent->getWidth()>this->getWidth()?(parent->getWidth()-this->getWidth())/2:0,parent->getHeight()>this->getHeight()?(parent->getHeight()-this->getHeight())/2:0);
     }
 
     void actionExecuted(GUI::ActionEventSource *b, const GUI::String &arg) {
@@ -2270,12 +2306,16 @@ static void UI_Select(GUI::ScreenSDL *screen, int select) {
             np11->raise();
             } break;
         case 35: {
-            auto *np11 = new ShowHelpAbout(screen, 110, 70, "About");
-            np11->raise();
+            auto *np12 = new ShowHelpAbout(screen, 110, 70, "About");
+            np12->raise();
             } break;
         case 36: {
-            auto *np12 = new ShowHelpCommand(screen, 150, 120, ("Help on DOS command: "+helpcmd).c_str());
-            np12->raise();
+            auto *np13 = new ShowHelpCommand(screen, 150, 120, ("Help on DOS command: "+helpcmd).c_str());
+            np13->raise();
+            } break;
+        case 37: {
+            auto *np14 = new ShowHelpNIC(screen, 70, 70, "Network interface list");
+            np14->raise();
             } break;
         default:
             break;

@@ -29,6 +29,13 @@
     options such as increasing/decreasing the TTF font
     sizes and on-screen text style toggling (including
     bold, italics, underline and strikeout). (Wengier)
+  - Cleaned up the mapper editor interface to allow
+    more keyboard shortcuts to be added, shown in
+    multiple pages in the mapper, navigable with the
+    "Previous Page" and "Next Page" buttons. (Wengier)
+  - Added menu item "List network interfaces" under
+    "Help" menu to list network interfaces in the host
+    system for the NE2000 feature. (Wengier)
   - Added menu group "DOS commands" under "Help" menu
     to display the help content for the selected DOS
     shell command (DIR, CD, etc). (Wengier)

@@ -4197,9 +4197,9 @@ void DEBUG_Init() {
 	#if defined(MACOSX)
 		// OSX NOTE: ALT-F12 to launch debugger. pause maps to F16 on macOS,
 		// which is not easy to input on a modern mac laptop
-		MAPPER_AddHandler(DEBUG_Enable_Handler,MK_f12,MMOD2,"debugger","Debugger", &item);
+		MAPPER_AddHandler(DEBUG_Enable_Handler,MK_f12,MMOD2,"debugger","Show debugger", &item);
 	#else
-		MAPPER_AddHandler(DEBUG_Enable_Handler,MK_pause,MMOD2,"debugger","Debugger",&item);
+		MAPPER_AddHandler(DEBUG_Enable_Handler,MK_pause,MMOD2,"debugger","Show debugger",&item);
 	#endif
 	item->set_text("Show debugger");
 	/* Reset code overview and input line */

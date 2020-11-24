@@ -9164,11 +9164,11 @@ void BIOS_Init() {
     for (int i=0;i < MAX_ISA_PNP_SYSDEVNODES;i++) ISAPNP_SysDevNodes[i] = NULL;
 
     /* make sure CD swap and floppy swap mapper events are available */
-    MAPPER_AddHandler(swapInNextDisk,MK_d,MMODHOST|MMOD1,"swapimg","SwapFloppy",&item); /* Originally "Swap Image" but this version does not swap CDs */
-    item->set_text("Swap floppy");
+    MAPPER_AddHandler(swapInNextDisk,MK_d,MMODHOST|MMOD1,"swapimg","Swap floppy drive",&item); /* Originally "Swap Image" but this version does not swap CDs */
+    item->set_text("Swap floppy drive");
 
-    MAPPER_AddHandler(swapInNextCD,MK_c,MMODHOST|MMOD1,"swapcd","SwapCD",&item); /* Variant of "Swap Image" for CDs */
-    item->set_text("Swap CD");
+    MAPPER_AddHandler(swapInNextCD,MK_c,MMODHOST|MMOD1,"swapcd","Swap CD drive",&item); /* Variant of "Swap Image" for CDs */
+    item->set_text("Swap CD drive");
 
     /* NTS: VM_EVENT_BIOS_INIT this callback must be first. */
     AddExitFunction(AddExitFunctionFuncPair(BIOS_Destroy),false);
