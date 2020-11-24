@@ -27,7 +27,7 @@ enum MapKeys {
 	MK_return,MK_kpminus,MK_kpplus,MK_minus,MK_equals,MK_scrolllock,MK_printscreen,MK_pause,MK_home,MK_rightarrow,
 	MK_1, MK_2, MK_3, MK_4,
     MK_a, MK_c, MK_d, MK_f, MK_m, MK_q, MK_r, MK_s, MK_v, MK_w,
-    MK_escape,MK_delete,
+    MK_escape,MK_delete,MK_uparrow,MK_downarrow,
     MK_lbracket,MK_rbracket,MK_leftarrow,
 
     MK_MAX

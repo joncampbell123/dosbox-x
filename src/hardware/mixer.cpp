@@ -1128,16 +1128,16 @@ void MAPPER_RecVolumeDown(bool pressed) {
 void MIXER_Controls_Init() {
     DOSBoxMenu::item *item;
 
-    MAPPER_AddHandler(MAPPER_VolumeUp  ,MK_kpplus, MMODHOST,"volup","VolUp",&item);
+    MAPPER_AddHandler(MAPPER_VolumeUp  ,MK_kpplus, MMODHOST,"volup","Increase volume",&item);
     item->set_text("Increase volume");
     
-    MAPPER_AddHandler(MAPPER_VolumeDown,MK_kpminus,MMODHOST,"voldown","VolDown",&item);
+    MAPPER_AddHandler(MAPPER_VolumeDown,MK_kpminus,MMODHOST,"voldown","Decrease volume",&item);
     item->set_text("Decrease volume");
 
-    MAPPER_AddHandler(MAPPER_RecVolumeUp  ,MK_nothing, 0,"recvolup","RecVolUp",&item);
+    MAPPER_AddHandler(MAPPER_RecVolumeUp  ,MK_nothing, 0,"recvolup","Increase rec. volume",&item);
     item->set_text("Increase recording volume");
 
-    MAPPER_AddHandler(MAPPER_RecVolumeDown,MK_nothing, 0,"recvoldown","RecVolDn",&item);
+    MAPPER_AddHandler(MAPPER_RecVolumeDown,MK_nothing, 0,"recvoldown","Decrease rec. volume",&item);
     item->set_text("Decrease recording volume");
 }
 

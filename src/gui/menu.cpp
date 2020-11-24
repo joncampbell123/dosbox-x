@@ -229,8 +229,8 @@ static const char *def_menu_cpu_core[] =
     "mapper_dynamic",
 #endif
 #if !defined(C_EMSCRIPTEN)//FIXME: Shutdown causes problems with Emscripten
-    "menu_simple",
-    "menu_full",
+    "mapper_simple",
+    "mapper_full",
 #endif
     NULL
 };
@@ -339,8 +339,8 @@ static const char *def_menu_video_textmode[] =
     "line_132x60",
 #if defined(USE_TTF)
     "--",
-    "ttf_window_inc",
-    "ttf_window_dec",
+    "mapper_ttf_incsize",
+    "mapper_ttf_decsize",
     "ttf_showbold",
     "ttf_showital",
     "ttf_showline",
@@ -713,8 +713,9 @@ static const char *def_menu_help[] =
     "help_wiki",
     "help_issue",
 #endif
-#if C_DEBUG || !defined(MACOSX) && !defined(LINUX) && !defined(HX_DOS) && !defined(C_EMSCRIPTEN)
     "--",
+    "help_nic",
+#if C_DEBUG || !defined(MACOSX) && !defined(LINUX) && !defined(HX_DOS) && !defined(C_EMSCRIPTEN)
     "HelpDebugMenu",
 #endif
     "--",

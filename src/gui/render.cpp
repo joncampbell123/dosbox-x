@@ -1252,12 +1252,12 @@ void RENDER_Init() {
 
     render.frameskip.max=(Bitu)section->Get_int("frameskip");
 
-    MAPPER_AddHandler(DecreaseFrameSkip,MK_nothing,0,"decfskip","Dec Fskip");
-    MAPPER_AddHandler(IncreaseFrameSkip,MK_nothing,0,"incfskip","Inc Fskip");
+    MAPPER_AddHandler(DecreaseFrameSkip,MK_nothing,0,"decfskip","Decrease frameskip");
+    MAPPER_AddHandler(IncreaseFrameSkip,MK_nothing,0,"incfskip","Increase frameskip");
 
 	DOSBoxMenu::item *item;
 
-	MAPPER_AddHandler(&AspectRatio_mapper_shortcut, MK_nothing, 0, "aspratio", "AspRatio", &item);
+	MAPPER_AddHandler(&AspectRatio_mapper_shortcut, MK_nothing, 0, "aspratio", "Aspect ratio", &item);
 	item->set_text("Fit to aspect ratio");
 
     mainMenu.get_item("vga_9widetext").check(vga.draw.char9_set).refresh_item(mainMenu);

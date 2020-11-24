@@ -3519,8 +3519,8 @@ void change_output(int output) {
         resetFontSize();
         resetreq = true;
     }
-    mainMenu.get_item("ttf_window_inc").enable(TTF_using()).refresh_item(mainMenu);
-    mainMenu.get_item("ttf_window_dec").enable(TTF_using()).refresh_item(mainMenu);
+    mainMenu.get_item("mapper_ttf_incsize").enable(TTF_using()).refresh_item(mainMenu);
+    mainMenu.get_item("mapper_ttf_decsize").enable(TTF_using()).refresh_item(mainMenu);
     mainMenu.get_item("ttf_showbold").enable(TTF_using()).check(showbold).refresh_item(mainMenu);
     mainMenu.get_item("ttf_showital").enable(TTF_using()).check(showital).refresh_item(mainMenu);
     mainMenu.get_item("ttf_showline").enable(TTF_using()).check(showline).refresh_item(mainMenu);
@@ -4615,6 +4615,18 @@ static void increaseFontSize() {
 			GFX_SelectFontByPoints(ttf.pointsize - (ttf.DOSBox ? 2 : 1));
 	}
 }
+
+void TTF_IncreaseSize(bool pressed) {
+    if (!pressed||ttf.fullScrn) return;
+    increaseFontSize();
+    return;
+}
+
+void TTF_DecreaseSize(bool pressed) {
+    if (!pressed||ttf.fullScrn) return;
+    decreaseFontSize();
+    return;
+}
 #endif
 
 bool has_GUI_StartUp = false;
@@ -5030,48 +5042,54 @@ static void GUI_StartUp() {
     //ShowSplashScreen();   /* I will keep the splash screen alive. But now, the BIOS will do it --J.C. */
 
     /* Get some Event handlers */
-    MAPPER_AddHandler(ResetSystem, MK_r, MMODHOST, "reset", "Reset VM", &item); /* Host+R (Host+CTRL+R acts funny on my Linux system) */
+    MAPPER_AddHandler(ResetSystem, MK_r, MMODHOST, "reset", "Reset DOSBox-X", &item); /* Host+R (Host+CTRL+R acts funny on my Linux system) */
     item->set_text("Reset virtual machine");
 
-    MAPPER_AddHandler(RebootGuest, MK_s, MMODHOST, "reboot", "Reboot DOS", &item); /* Reboot guest system or integrated DOS */
+    MAPPER_AddHandler(RebootGuest, MK_s, MMODHOST, "reboot", "Reboot guest system", &item); /* Reboot guest system or integrated DOS */
     item->set_text("Reboot guest system");
 
 #if !defined(HX_DOS)
-    MAPPER_AddHandler(QuickLaunch, MK_q, MMODHOST, "quickrun", "QuickRun", &item);
+    MAPPER_AddHandler(QuickLaunch, MK_q, MMODHOST, "quickrun", "Quick launch program", &item);
     item->set_text("Quick launch program...");
 #endif
 
 #if !defined(C_EMSCRIPTEN)//FIXME: Shutdown causes problems with Emscripten
-    MAPPER_AddHandler(KillSwitch,MK_f9,MMOD1,"shutdown","ShutDown", &item); /* KEEP: Most DOSBox-X users may have muscle memory for this */
+    MAPPER_AddHandler(KillSwitch,MK_f9,MMOD1,"shutdown","Quit from DOSBox-X", &item); /* KEEP: Most DOSBox-X users may have muscle memory for this */
     item->set_text("Quit");
 #endif
 
-    MAPPER_AddHandler(CaptureMouse,MK_f10,MMOD1,"capmouse","Cap Mouse", &item); /* KEEP: Most DOSBox-X users may have muscle memory for this */
+    MAPPER_AddHandler(CaptureMouse,MK_f10,MMOD1,"capmouse","Capture mouse", &item); /* KEEP: Most DOSBox-X users may have muscle memory for this */
     item->set_text("Capture mouse");
 
-    MAPPER_AddHandler(SwitchFullScreen,MK_f,MMODHOST,"fullscr","Fullscreen", &item);
+    MAPPER_AddHandler(SwitchFullScreen,MK_f,MMODHOST,"fullscr","Toggle fullscreen", &item);
     item->set_text("Toggle fullscreen");
 
 #if defined(WIN32) || defined(C_SDL2)
-    MAPPER_AddHandler(CopyAllClipboard,MK_a,MMODHOST,"copyall", "CopyToClip", &item);
+    MAPPER_AddHandler(CopyAllClipboard,MK_a,MMODHOST,"copyall", "Copy to clipboard", &item);
     item->set_text("Copy all text on the DOS screen");
 #endif
 
 #if defined(WIN32) || defined(C_SDL2) || defined(LINUX) && C_X11
-    MAPPER_AddHandler(PasteClipboard,MK_v,MMODHOST,"paste", "Paste Clip", &item); //end emendelson; improved by Wengier
+    MAPPER_AddHandler(PasteClipboard,MK_v,MMODHOST,"paste", "Paste from clipboard", &item); //end emendelson; improved by Wengier
     item->set_text("Pasting from the clipboard");
 #endif
 
-    MAPPER_AddHandler(&PauseDOSBox, MK_pause, MMODHOST, "pause", "Pause");
+    MAPPER_AddHandler(&PauseDOSBox, MK_pause, MMODHOST, "pause", "Pause emulation");
 
 #if DOSBOXMENU_TYPE == DOSBOXMENU_NSMENU
     pause_menu_item_tag = mainMenu.get_item("mapper_pause").get_master_id() + DOSBoxMenu::nsMenuMinimumID;
 #endif
 
-    MAPPER_AddHandler(&GUI_Run, MK_c,MMODHOST, "gui", "ConfigTool", &item);
+    MAPPER_AddHandler(&GUI_Run, MK_c,MMODHOST, "gui", "Configuration tool", &item);
     item->set_text("Configuration tool");
 
-    MAPPER_AddHandler(&GUI_ResetResize, MK_nothing, 0, "resetsize", "ResetSize", &item);
+    MAPPER_AddHandler(&TTF_IncreaseSize, MK_uparrow, MMODHOST, "ttf_incsize", "Increase TTF size", &item);
+    item->set_text("Increase TTF font size");
+
+    MAPPER_AddHandler(&TTF_DecreaseSize, MK_downarrow, MMODHOST, "ttf_decsize", "Decrease TTF size", &item);
+    item->set_text("Decrease TTF font size");
+
+    MAPPER_AddHandler(&GUI_ResetResize, MK_nothing, 0, "resetsize", "Reset window size", &item);
     item->set_text("Reset window size");
 
     UpdateWindowDimensions();
@@ -6754,20 +6772,6 @@ void GFX_Events() {
             if (event.key.keysym.sym==SDLK_LSHIFT) sdl.lshiftstate = event.key.type;
             if (event.key.keysym.sym==SDLK_RSHIFT) sdl.rshiftstate = event.key.type;
 #endif
-#if defined(USE_TTF) && defined(WIN32)
-			if (((GetKeyState(VK_LWIN)&0x80) || (GetKeyState(VK_RWIN)&0x80)) && event.key.keysym.sym == SDLK_F12)	// intercept <Win><Ctrl>F12
-			{
-				if (event.type == SDL_KEYDOWN && !ttf.fullScrn)							// increase fontsize
-					increaseFontSize();
-				return;
-			}
-			if (((GetKeyState(VK_LWIN)&0x80) || (GetKeyState(VK_RWIN)&0x80)) && event.key.keysym.sym == SDLK_F11)	// intercept <Win><Ctrl>F11
-			{
-				if (event.type == SDL_KEYDOWN && !ttf.fullScrn)							// Decrease fontsize
-					decreaseFontSize();
-				return;
-			}
-#endif
 #if defined (MACOSX)
             /* On macs CMD-Q is the default key to close an application */
             if (event.key.keysym.sym == SDLK_q &&
@@ -7031,20 +7035,6 @@ void GFX_Events() {
             if (((event.key.keysym.sym == SDLK_TAB )) && (event.key.keysym.mod & KMOD_ALT)) break;
             // ignore tab events that arrive just after regaining focus. (likely the result of alt-tab)
             if ((event.key.keysym.sym == SDLK_TAB) && (GetTicks() - sdl.focus_ticks < 2)) break;
-#if defined(USE_TTF)
-			if (event.key.keysym.scancode == 88 && ((GetKeyState(VK_LWIN)&0x80) || (GetKeyState(VK_RWIN)&0x80)))	// intercept <Win><Ctrl>F12
-			{
-				if (event.type == SDL_KEYDOWN && !ttf.fullScrn)							// increase fontsize
-					increaseFontSize();
-				return;
-			}
-			if (event.key.keysym.scancode == 87 && ((GetKeyState(VK_LWIN)&0x80) || (GetKeyState(VK_RWIN)&0x80)))	// intercept <Win><Ctrl>F11
-			{
-				if (event.type == SDL_KEYDOWN && !ttf.fullScrn)							// Decrease fontsize
-					decreaseFontSize();
-				return;
-			}
-#endif
 #endif
 #if defined (MACOSX)            
         case SDL_KEYDOWN:
@@ -9659,18 +9649,6 @@ bool setlines(const char *mname) {
 }
 
 #if defined(USE_TTF)
-bool ttf_window_change_callback(DOSBoxMenu * const menu,DOSBoxMenu::item * const menuitem) {
-    (void)menu;//UNUSED
-    const char *mname = menuitem->get_name().c_str();
-    if (!strcmp(mname, "ttf_window_inc"))
-        increaseFontSize();
-    else if (!strcmp(mname, "ttf_window_dec"))
-        decreaseFontSize();
-    else
-        resetFontSize();
-    return true;
-}
-
 bool ttf_style_change_callback(DOSBoxMenu * const menu,DOSBoxMenu::item * const menuitem) {
     (void)menu;//UNUSED
     const char *mname = menuitem->get_name().c_str();
@@ -10342,6 +10320,38 @@ bool help_command_callback(DOSBoxMenu * const /*menu*/, DOSBoxMenu::item * const
     helpcmd = menuitem->get_name().substr(8);
     GUI_Shortcut(36);
     helpcmd = "";
+    if (switchfs) {
+        GFX_SwitchFullScreen();
+#if defined(C_SDL2)
+        if (x>-1&&y>-1) SDL_SetWindowPosition(sdl.window, x, y);
+#endif
+    }
+
+    MAPPER_ReleaseAllKeys();
+
+    GFX_LosingFocus();
+
+    return true;
+}
+
+extern std::string niclist;
+bool help_nic_callback(DOSBoxMenu * const /*menu*/, DOSBoxMenu::item * const /*menuitem*/) {
+    MAPPER_ReleaseAllKeys();
+
+    GFX_LosingFocus();
+
+    bool switchfs=false;
+#if defined(C_SDL2)
+    int x=-1, y=-1;
+#endif
+    if (niclist.find("-------------")!=std::string::npos&&!GFX_IsFullscreen()) {
+        switchfs=true;
+#if defined(C_SDL2)
+        SDL_GetWindowPosition(sdl.window, &x, &y);
+#endif
+        GFX_SwitchFullScreen();
+    }
+    GUI_Shortcut(37);
     if (switchfs) {
         GFX_SwitchFullScreen();
 #if defined(C_SDL2)
@@ -11331,10 +11341,6 @@ int main(int argc, char* argv[]) SDL_MAIN_NOEXCEPT {
                 mainMenu.alloc_item(DOSBoxMenu::item_type_id,"line_132x60").set_text("Screen: 132 columns x 60 lines").
                     set_callback_function(lines_menu_callback);
 #if defined(USE_TTF)
-                mainMenu.alloc_item(DOSBoxMenu::item_type_id,"ttf_window_inc").set_text("Increase TTF font size").
-                    set_callback_function(ttf_window_change_callback);
-                mainMenu.alloc_item(DOSBoxMenu::item_type_id,"ttf_window_dec").set_text("Decrease TTF font size").
-                    set_callback_function(ttf_window_change_callback);
                 mainMenu.alloc_item(DOSBoxMenu::item_type_id,"ttf_showbold").set_text("Display bold text in TTF").
                     set_callback_function(ttf_style_change_callback);
                 mainMenu.alloc_item(DOSBoxMenu::item_type_id,"ttf_showital").set_text("Display italic text in TTF").
@@ -11602,6 +11608,8 @@ int main(int argc, char* argv[]) SDL_MAIN_NOEXCEPT {
                     set_callback_function(help_open_url_callback);
                 mainMenu.alloc_item(DOSBoxMenu::item_type_id,"help_issue").set_text("DOSBox-X support").
                     set_callback_function(help_open_url_callback);
+                mainMenu.alloc_item(DOSBoxMenu::item_type_id,"help_nic").set_text("List network interfaces").
+                    set_callback_function(help_nic_callback);
                 mainMenu.alloc_item(DOSBoxMenu::item_type_id,"help_about").set_text("About DOSBox-X").
                     set_callback_function(help_about_callback);
 #if !defined(C_EMSCRIPTEN)
@@ -11634,7 +11642,7 @@ int main(int argc, char* argv[]) SDL_MAIN_NOEXCEPT {
             {
                 DOSBoxMenu::item &item = mainMenu.alloc_item(DOSBoxMenu::submenu_type_id,"HelpDebugMenu");
 
-                item.set_text("Debugging");
+                item.set_text("Debugging options");
 
                 {
                     mainMenu.alloc_item(DOSBoxMenu::item_type_id,"debug_blankrefreshtest").set_text("Refresh test (blank display)").set_callback_function(refreshtest_menu_callback);
@@ -11699,10 +11707,10 @@ int main(int argc, char* argv[]) SDL_MAIN_NOEXCEPT {
         {
             DOSBoxMenu::item *item;
 
-            MAPPER_AddHandler(&HideMenu_mapper_shortcut, MK_escape, MMODHOST, "togmenu", "ToggleMenu", &item);
+            MAPPER_AddHandler(&HideMenu_mapper_shortcut, MK_escape, MMODHOST, "togmenu", "Toggle menu bar", &item);
             item->set_text("Hide/show menu bar");
 
-            MAPPER_AddHandler(&PauseWithInterrupts_mapper_shortcut, MK_nothing, 0, "pauseints", "PauseInts", &item);
+            MAPPER_AddHandler(&PauseWithInterrupts_mapper_shortcut, MK_nothing, 0, "pauseints", "Pause with interrupt", &item);
             item->set_text("Pause with interrupts enabled");
         }
 
@@ -11738,8 +11746,8 @@ int main(int argc, char* argv[]) SDL_MAIN_NOEXCEPT {
         {
             DOSBoxMenu::item *item;
 
-            MAPPER_AddHandler(Sendkeymapper, MK_delete, MMODHOST, "sendkey_mapper", "SendKey", &item);
-            item->set_text("Send key");
+            MAPPER_AddHandler(Sendkeymapper, MK_delete, MMODHOST, "sendkey_mapper", "Send special key", &item);
+            item->set_text("Send special key");
         }
         CPU_Init();
 #if C_FPU
@@ -11833,12 +11841,12 @@ int main(int argc, char* argv[]) SDL_MAIN_NOEXCEPT {
         mainMenu.alloc_item(DOSBoxMenu::item_type_id,"sendkey_ctrlesc").set_text("Send Ctrl+Esc").set_callback_function(sendkey_preset_menu_callback);
         mainMenu.alloc_item(DOSBoxMenu::item_type_id,"sendkey_ctrlbreak").set_text("Send Ctrl+Break").set_callback_function(sendkey_preset_menu_callback);
         mainMenu.alloc_item(DOSBoxMenu::item_type_id,"sendkey_cad").set_text("Send Ctrl+Alt+Del").set_callback_function(sendkey_preset_menu_callback);
-        mainMenu.alloc_item(DOSBoxMenu::item_type_id,"sendkey_mapper_winlogo").set_text("Mapper SendKey: logo key").set_callback_function(sendkey_mapper_menu_callback);
-        mainMenu.alloc_item(DOSBoxMenu::item_type_id,"sendkey_mapper_winmenu").set_text("Mapper SendKey: menu key").set_callback_function(sendkey_mapper_menu_callback);
-        mainMenu.alloc_item(DOSBoxMenu::item_type_id,"sendkey_mapper_alttab").set_text("Mapper SendKey: Alt+Tab").set_callback_function(sendkey_mapper_menu_callback);
-        mainMenu.alloc_item(DOSBoxMenu::item_type_id,"sendkey_mapper_ctrlesc").set_text("Mapper SendKey: Send Ctrl+Esc").set_callback_function(sendkey_mapper_menu_callback);
-        mainMenu.alloc_item(DOSBoxMenu::item_type_id,"sendkey_mapper_ctrlbreak").set_text("Mapper SendKey: Send Ctrl+Break").set_callback_function(sendkey_mapper_menu_callback);
-        mainMenu.alloc_item(DOSBoxMenu::item_type_id,"sendkey_mapper_cad").set_text("Mapper SendKey: Send Ctrl+Alt+Del").set_callback_function(sendkey_mapper_menu_callback);
+        mainMenu.alloc_item(DOSBoxMenu::item_type_id,"sendkey_mapper_winlogo").set_text("Mapper \"Send special key\": logo key").set_callback_function(sendkey_mapper_menu_callback);
+        mainMenu.alloc_item(DOSBoxMenu::item_type_id,"sendkey_mapper_winmenu").set_text("Mapper \"Send special key\": menu key").set_callback_function(sendkey_mapper_menu_callback);
+        mainMenu.alloc_item(DOSBoxMenu::item_type_id,"sendkey_mapper_alttab").set_text("Mapper \"Send special key\": Alt+Tab").set_callback_function(sendkey_mapper_menu_callback);
+        mainMenu.alloc_item(DOSBoxMenu::item_type_id,"sendkey_mapper_ctrlesc").set_text("Mapper \"Send special key\": Ctrl+Esc").set_callback_function(sendkey_mapper_menu_callback);
+        mainMenu.alloc_item(DOSBoxMenu::item_type_id,"sendkey_mapper_ctrlbreak").set_text("Mapper \"Send special key\": Ctrl+Break").set_callback_function(sendkey_mapper_menu_callback);
+        mainMenu.alloc_item(DOSBoxMenu::item_type_id,"sendkey_mapper_cad").set_text("Mapper \"Send special key\": Ctrl+Alt+Del").set_callback_function(sendkey_mapper_menu_callback);
         mainMenu.alloc_item(DOSBoxMenu::item_type_id,"wheel_updown").set_text("Convert to up/down arrows").set_callback_function(wheel_updown_menu_callback);
         mainMenu.alloc_item(DOSBoxMenu::item_type_id,"wheel_leftright").set_text("Convert to left/right arrows").set_callback_function(wheel_leftright_menu_callback);
         mainMenu.alloc_item(DOSBoxMenu::item_type_id,"wheel_pageupdown").set_text("Convert to PgUp/PgDn keys").set_callback_function(wheel_pageupdown_menu_callback);
@@ -11892,8 +11900,8 @@ int main(int argc, char* argv[]) SDL_MAIN_NOEXCEPT {
         mainMenu.get_item("line_132x50").enable(!IS_PC98_ARCH);
         mainMenu.get_item("line_132x60").enable(!IS_PC98_ARCH);
 #if defined(USE_TTF)
-        mainMenu.get_item("ttf_window_inc").enable(TTF_using());
-        mainMenu.get_item("ttf_window_dec").enable(TTF_using());
+        mainMenu.get_item("mapper_ttf_incsize").enable(TTF_using());
+        mainMenu.get_item("mapper_ttf_decsize").enable(TTF_using());
         mainMenu.get_item("ttf_showbold").enable(TTF_using()).check(showbold);
         mainMenu.get_item("ttf_showital").enable(TTF_using()).check(showital);
         mainMenu.get_item("ttf_showline").enable(TTF_using()).check(showline);

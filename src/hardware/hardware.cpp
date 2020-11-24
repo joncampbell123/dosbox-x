@@ -1884,22 +1884,22 @@ void CAPTURE_Init() {
 
 #if !defined(C_EMSCRIPTEN)
 	// mapper shortcuts for capture
-	MAPPER_AddHandler(CAPTURE_WaveEvent,MK_w,MMOD3|MMODHOST,"recwave","Rec Wave", &item);
+	MAPPER_AddHandler(CAPTURE_WaveEvent,MK_w,MMOD3|MMODHOST,"recwave","Record audio to WAV", &item);
 	item->set_text("Record audio to WAV");
 
-	MAPPER_AddHandler(CAPTURE_MTWaveEvent,MK_nothing,0,"recmtwave","Rec MTWav", &item);
+	MAPPER_AddHandler(CAPTURE_MTWaveEvent,MK_nothing,0,"recmtwave","Record to M.T. AVI", &item);
 	item->set_text("Record audio to multi-track AVI");
 
-	MAPPER_AddHandler(CAPTURE_MidiEvent,MK_nothing,0,"caprawmidi","Cap MIDI", &item);
+	MAPPER_AddHandler(CAPTURE_MidiEvent,MK_nothing,0,"caprawmidi","Record MIDI output", &item);
 	item->set_text("Record MIDI output");
 
-	MAPPER_AddHandler(OPL_SaveRawEvent,MK_nothing,0,"caprawopl","Cap OPL",&item);
+	MAPPER_AddHandler(OPL_SaveRawEvent,MK_nothing,0,"caprawopl","Record FM/OPL output",&item);
 	item->set_text("Record FM (OPL) output");
 #if (C_SSHOT)
-	MAPPER_AddHandler(CAPTURE_ScreenShotEvent,MK_s,MMOD3|MMODHOST,"scrshot","Screenshot", &item);
+	MAPPER_AddHandler(CAPTURE_ScreenShotEvent,MK_s,MMOD3|MMODHOST,"scrshot","Take screenshot", &item);
 	item->set_text("Take screenshot");
 
-	MAPPER_AddHandler(CAPTURE_VideoEvent,MK_v,MMOD3|MMODHOST,"video","Video", &item);
+	MAPPER_AddHandler(CAPTURE_VideoEvent,MK_v,MMOD3|MMODHOST,"video","Record video to AVI", &item);
 	item->set_text("Record video to AVI");
 #endif
 #endif

@@ -311,7 +311,7 @@ void menu_update_core(void) {
               cpudecoder == &CPU_Core8086_Prefetch_Run).
         refresh_item(mainMenu);
 #if !defined(C_EMSCRIPTEN)//FIXME: Shutdown causes problems with Emscripten
-    mainMenu.get_item("menu_simple").
+    mainMenu.get_item("mapper_simple").
         check(cpudecoder == &CPU_Core_Simple_Run).
         enable((cpudecoder != &CPU_Core_Prefetch_Run) &&
                (cpudecoder != &CPU_Core286_Prefetch_Run) &&
@@ -319,7 +319,7 @@ void menu_update_core(void) {
                (cpudecoder != &CPU_Core286_Normal_Run) &&
                (cpudecoder != &CPU_Core8086_Normal_Run)).
         refresh_item(mainMenu);
-    mainMenu.get_item("menu_full").
+    mainMenu.get_item("mapper_full").
         check(cpudecoder == &CPU_Core_Full_Run).
         enable((cpudecoder != &CPU_Core_Prefetch_Run) &&
                (cpudecoder != &CPU_Core286_Prefetch_Run) &&
@@ -3003,32 +3003,27 @@ static void CPU_ToggleAutoCycles(bool pressed) {
 }
 
 #if !defined(C_EMSCRIPTEN)
-bool CPU_ToggleFullCore(DOSBoxMenu * const menu, DOSBoxMenu::item * const menuitem) {
-    (void)menuitem;
-    (void)menu;
+static void CPU_ToggleFullCore(bool pressed) {
+    if (!pressed) return;
     Section* sec=control->GetSection("cpu");
     if(sec) {
 	std::string tmp="core=full";
 	sec->HandleInputline(tmp);
     }
-    return true;
 }
 
-bool CPU_ToggleSimpleCore(DOSBoxMenu * const menu, DOSBoxMenu::item * const menuitem) {
-    (void)menuitem;
-    (void)menu;
+static void CPU_ToggleSimpleCore(bool pressed) {
+    if (!pressed) return;
     Section* sec=control->GetSection("cpu");
-    std::string tmp="core=simple";
     if(sec) {
+	std::string tmp="core=simple";
 	sec->HandleInputline(tmp);
     }
-    return true;
 }
 #endif
 
 static void CPU_ToggleNormalCore(bool pressed) {
-    if (!pressed)
-	return;
+    if (!pressed) return;
     Section* sec=control->GetSection("cpu");
     if(sec) {
 	std::string tmp="core=normal";
@@ -3038,8 +3033,7 @@ static void CPU_ToggleNormalCore(bool pressed) {
 
 #if (C_DYNAMIC_X86) || (C_DYNREC)
 static void CPU_ToggleDynamicCore(bool pressed) {
-    if (!pressed)
-	return;
+    if (!pressed) return;
     Section* sec=control->GetSection("cpu");
     if(sec) {
 	std::string tmp="core=dynamic";
@@ -3213,28 +3207,28 @@ public:
 #if (C_DYNREC)
 		CPU_Core_Dynrec_Init();
 #endif
-		MAPPER_AddHandler(CPU_CycleDecrease,MK_minus,MMODHOST,"cycledown","Dec Cycles",&item);
-		item->set_text("Decrement cycles");
-
-		MAPPER_AddHandler(CPU_CycleIncrease,MK_equals,MMODHOST,"cycleup"  ,"Inc Cycles",&item);
-		item->set_text("Increment cycles");
-
-		MAPPER_AddHandler(CPU_ToggleAutoCycles,MK_nothing,0,"cycauto","AutoCycles",&item);
+		MAPPER_AddHandler(CPU_ToggleAutoCycles,MK_nothing,0,"cycauto","Toggle auto cycles",&item);
 		item->set_text("Auto cycles");
 		item->set_description("Enable automatic cycle count");
 
-		MAPPER_AddHandler(CPU_ToggleNormalCore,MK_nothing,0,"normal"  ,"NormalCore", &item);
+		MAPPER_AddHandler(CPU_CycleDecrease,MK_minus,MMODHOST,"cycledown","Decrement cycles",&item);
+		item->set_text("Decrement cycles");
+
+		MAPPER_AddHandler(CPU_CycleIncrease,MK_equals,MMODHOST,"cycleup","Increment cycles",&item);
+		item->set_text("Increment cycles");
+
+		MAPPER_AddHandler(CPU_ToggleNormalCore,MK_nothing,0,"normal"  ,"CPU: normal core", &item);
 		item->set_text("Normal core");
 
 #if (C_DYNAMIC_X86) || (C_DYNREC)
-		MAPPER_AddHandler(CPU_ToggleDynamicCore,MK_nothing,0,"dynamic","DynaCore",&item);
+		MAPPER_AddHandler(CPU_ToggleDynamicCore,MK_nothing,0,"dynamic","CPU: dynamic core",&item);
 		item->set_text("Dynamic core");
 #endif
 #if !defined(C_EMSCRIPTEN)
-        mainMenu.alloc_item(DOSBoxMenu::item_type_id,"menu_simple").
-            set_text("Simple core").set_callback_function(CPU_ToggleSimpleCore);
-        mainMenu.alloc_item(DOSBoxMenu::item_type_id,"menu_full").
-            set_text("Full core").set_callback_function(CPU_ToggleFullCore);
+		MAPPER_AddHandler(CPU_ToggleSimpleCore,MK_nothing,0,"simple","CPU: imple core",&item);
+		item->set_text("Simple core");
+		MAPPER_AddHandler(CPU_ToggleFullCore,MK_nothing,0,"full","CPU: full core",&item);
+		item->set_text("Full core");
 #endif
 
         /* these are not mapper shortcuts, and probably should not be mapper shortcuts */
