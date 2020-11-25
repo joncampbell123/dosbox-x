@@ -465,6 +465,9 @@ static const char *def_menu_video[] =
 #ifdef C_OPENGL
     "load_glsl_shader",
 #endif
+#ifdef USE_TTF
+    "load_ttf_font",
+#endif
     NULL
 };
 

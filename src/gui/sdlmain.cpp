@@ -3497,6 +3497,7 @@ void change_output(int output) {
 #endif
 #if defined(USE_TTF)
     if (sdl.desktop.want_type != SCREEN_TTF) {
+        mainMenu.get_item("load_ttf_font").enable(false).refresh_item(mainMenu);
         resetreq = false;
         ttf.inUse = false;
     }
@@ -3526,6 +3527,9 @@ void change_output(int output) {
 #endif
 #ifdef C_DIRECT3D
         mainMenu.get_item("load_d3d_shader").enable(sdl.desktop.want_type==SCREEN_DIRECT3D).refresh_item(mainMenu);
+#endif
+#ifdef USE_TTF
+        mainMenu.get_item("load_ttf_font").enable(sdl.desktop.want_type==SCREEN_TTF).refresh_item(mainMenu);
 #endif
 #if defined(USE_TTF)
     if ((output==9||output==10)&&ttf.inUse) {
@@ -9462,6 +9466,55 @@ bool vid_select_glsl_shader_menu_callback(DOSBoxMenu* const menu, DOSBoxMenu::it
 }
 #endif
 
+#ifdef USE_TTF
+void ttf_reset(void) {
+    OUTPUT_TTF_Select();
+    resetFontSize();
+}
+
+bool vid_select_ttf_font_menu_callback(DOSBoxMenu* const menu, DOSBoxMenu::item* const menuitem) {
+    (void)menu;//UNUSED
+    (void)menuitem;//UNUSED
+
+    Section_prop* section = static_cast<Section_prop*>(control->GetSection("render"));
+    assert(section != NULL);
+
+#if !defined(HX_DOS)
+    char CurrentDir[512];
+    char * Temp_CurrentDir = CurrentDir;
+    getcwd(Temp_CurrentDir, 512);
+    std::string cwd = std::string(Temp_CurrentDir)+CROSS_FILESPLIT;
+    const char *lFilterPatterns[] = {"*.ttf","*.TTF"};
+    const char *lFilterDescription = "TrueType font files (*.ttf)";
+    char const * lTheOpenFileName = tinyfd_openFileDialog("Select TrueType font",cwd.c_str(),2,lFilterPatterns,lFilterDescription,0);
+
+    if (lTheOpenFileName) {
+        /* Windows will fill lpstrFile with the FULL PATH.
+           The full path should be given to the pixelshader setting unless it's just
+           the same base path it was given: <cwd>\shaders in which case just cut it
+           down to the filename. */
+        const char* name = lTheOpenFileName;
+        std::string tmp = "";
+
+        /* filenames in Windows are case insensitive so do the comparison the same */
+        if (!strncasecmp(name, cwd.c_str(), cwd.size())) {
+            name += cwd.size();
+            while (*name == CROSS_FILESPLIT) name++;
+        }
+
+        if (*name) {
+            SetVal("render", "ttf.font", name);
+            void ttf_reset(void);
+            ttf_reset();
+        }
+    }
+    chdir( Temp_CurrentDir );
+#endif
+
+    return true;
+}
+#endif
+
 bool vid_pc98_graphics_menu_callback(DOSBoxMenu * const menu,DOSBoxMenu::item * const menuitem) {
     (void)menu;//UNUSED
     (void)menuitem;//UNUSED
@@ -9626,11 +9679,6 @@ bool intensity_menu_callback(DOSBoxMenu * const menu,DOSBoxMenu::item * const me
 }
 
 #if defined(USE_TTF)
-void ttf_reset(void) {
-    OUTPUT_TTF_Select();
-    resetFontSize();
-}
-
 void ttf_setlines(int cols, int lins) {
     (void)cols;
     (void)lins;
@@ -11485,6 +11533,12 @@ int main(int argc, char* argv[]) SDL_MAIN_NOEXCEPT {
                     set_callback_function(vid_select_glsl_shader_menu_callback);
             }
 #endif
+#ifdef USE_TTF
+            {
+                mainMenu.alloc_item(DOSBoxMenu::item_type_id, "load_ttf_font").set_text("Select TrueType font (TTF)...").
+                    set_callback_function(vid_select_ttf_font_menu_callback);
+            }
+#endif
         }
         {
             DOSBoxMenu::item &item = mainMenu.alloc_item(DOSBoxMenu::submenu_type_id,"SoundMenu");
@@ -12036,6 +12090,9 @@ int main(int argc, char* argv[]) SDL_MAIN_NOEXCEPT {
 #endif
 #ifdef C_DIRECT3D
         mainMenu.get_item("load_d3d_shader").enable(Direct3D_using());
+#endif
+#ifdef USE_TTF
+        mainMenu.get_item("load_ttf_font").enable(TTF_using());
 #endif
 
 #if !defined(C_EMSCRIPTEN)
