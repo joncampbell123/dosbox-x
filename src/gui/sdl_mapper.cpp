@@ -150,6 +150,7 @@ static struct {
     CBindButton*                                next;
     CBindButton*                                prevpage;
     CBindButton*                                nextpage;
+    CCaptionButton*                             pagestat;
     CCheckButton                                *mod1, *mod2, *mod3, *host, *hold;
 } bind_but;
 
@@ -3051,6 +3052,7 @@ static void DrawText(Bitu x,Bitu y,const char * text,uint8_t color,uint8_t bkcol
 void RedrawMapperEventButtons() {
     bind_but.prevpage->SetColor(cpage==1?CLR_GREY:CLR_WHITE);
     bind_but.nextpage->SetColor(cpage==maxpage?CLR_GREY:CLR_WHITE);
+    bind_but.pagestat->Change("%2u/%-2u",cpage,maxpage);
     for (std::vector<CEventButton *>::iterator it = ceventbuttons.begin(); it != ceventbuttons.end(); ++it) {
         CEventButton *button = (CEventButton *)*it;
         button->Enable(button->Page(0)==cpage);
@@ -3503,8 +3505,10 @@ static void CreateLayout(void) {
             page++;
         }
     }
-    bind_but.prevpage=new CBindButton(300,388,130,BH,"< Previous Page",BB_Prevpage);
-    bind_but.nextpage=new CBindButton(450,388,100,BH," Next Page >",BB_Nextpage);
+    bind_but.prevpage=new CBindButton(280,388,130,BH,"< Previous Page",BB_Prevpage);
+    bind_but.nextpage=new CBindButton(470,388,100,BH," Next Page >",BB_Nextpage);
+    bind_but.pagestat=new CCaptionButton(418,388,462-418,BH);
+    bind_but.pagestat->Change("%2u/%-2u",cpage,maxpage);
     if (cpage==1) bind_but.prevpage->SetColor(CLR_GREY);
     if (cpage==maxpage) bind_but.nextpage->SetColor(CLR_GREY);
     next_handler_xpos = xpos;
