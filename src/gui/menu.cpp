@@ -87,6 +87,7 @@ void                                                GUI_ResetResize(bool pressed
 
 MENU_Block                                          menu;
 
+int                                                 ttfpos=-1;
 unsigned int                                        hdd_defsize=16000;
 char                                                hdd_size[20]="";
 
@@ -115,6 +116,7 @@ static const char *def_menu_main[] =
     "mapper_mapper",
     "--",
     "MainSendKey",
+    "MainHostKey",
 #if defined(WIN32) || defined(C_SDL2) || defined(LINUX) && C_X11
     "SharedClipboard",
 #endif
@@ -158,6 +160,17 @@ static const char *def_menu_main_sendkey[] =
     "sendkey_mapper_ctrlesc",
     "sendkey_mapper_ctrlbreak",
     "sendkey_mapper_cad",
+    NULL
+};
+
+/* main -> host key menu ("MenuHostKey") */
+static const char *def_menu_main_hostkey[] =
+{
+    "hostkey_ctrlalt",
+    "hostkey_ctrlshift",
+    "hostkey_altshift",
+    "--",
+    "hostkey_mapper",
     NULL
 };
 
@@ -452,6 +465,9 @@ static const char *def_menu_video[] =
 #ifdef C_OPENGL
     "load_glsl_shader",
 #endif
+#ifdef USE_TTF
+    "load_ttf_font",
+#endif
     NULL
 };
 
@@ -723,6 +739,7 @@ static const char *def_menu_help[] =
     NULL
 };
 
+void DOSBox_SetSysMenu(void);
 bool DOSBox_isMenuVisible(void) {
     return menu.toggle;
 }
@@ -1362,6 +1379,9 @@ void ConstructMenu(void) {
     /* main sendkey menu */
     ConstructSubMenu(mainMenu.get_item("MainSendKey").get_master_id(), def_menu_main_sendkey);
 
+    /* main hostkey menu */
+    ConstructSubMenu(mainMenu.get_item("MainHostKey").get_master_id(), def_menu_main_hostkey);
+
     /* main mouse wheel movements menu */
     ConstructSubMenu(mainMenu.get_item("WheelToArrow").get_master_id(), def_menu_main_wheelarrow);
 
@@ -1628,10 +1648,8 @@ void DOSBox_SetMenu(void) {
     if(menu.startup) {
         RENDER_CallBack( GFX_CallBackReset );
     }
-
-    void DOSBox_SetSysMenu(void);
-    DOSBox_SetSysMenu();
 #endif
+    DOSBox_SetSysMenu();
 }
 
 void DOSBox_NoMenu(void) {
@@ -1654,10 +1672,8 @@ void DOSBox_NoMenu(void) {
     SDL1_hax_SetMenu(NULL);
     mainMenu.get_item("mapper_togmenu").check(!menu.toggle).refresh_item(mainMenu);
     RENDER_CallBack( GFX_CallBackReset );
-
-    void DOSBox_SetSysMenu(void);
-    DOSBox_SetSysMenu();
 #endif
+    DOSBox_SetSysMenu();
 }
 
 void ToggleMenu(bool pressed) {
@@ -1680,7 +1696,6 @@ void ToggleMenu(bool pressed) {
         DOSBox_NoMenu();
     }
 
-    void DOSBox_SetSysMenu(void);
     DOSBox_SetSysMenu();
 }
 
@@ -1721,6 +1736,181 @@ HWND GetSurfaceHWND(void) {
 # endif
 #endif
 
+void MSG_WM_COMMAND_handle(SDL_SysWMmsg &Message) {
+#if defined(WIN32) && !defined(HX_DOS)
+    bool GFX_GetPreventFullscreen(void);
+    bool MAPPER_IsRunning(void);
+    bool GUI_IsRunning(void);
+
+#if defined(C_SDL2)
+    if (Message.msg.win.msg != WM_COMMAND) return;
+#else
+    if (Message.msg != WM_COMMAND) return;
+#endif
+
+    WPARAM wParam;
+#if defined(C_SDL2)
+    wParam=Message.msg.win.wParam;
+#else
+    wParam=Message.wParam;
+#endif
+    if (!MAPPER_IsRunning() && !GUI_IsRunning()) {
+        if (LOWORD(wParam) == ID_WIN_SYSMENU_MAPPER) {
+            extern void MAPPER_Run(bool pressed);
+            MAPPER_Run(false);
+        }
+        if (LOWORD(wParam) == ID_WIN_SYSMENU_CFG_GUI) {
+            extern void GUI_Run(bool pressed);
+            GUI_Run(false);
+        }
+        if (LOWORD(wParam) == ID_WIN_SYSMENU_PAUSE) {
+            extern void PauseDOSBox(bool pressed);
+            PauseDOSBox(true);
+        }
+        if (LOWORD(wParam) == ID_WIN_SYSMENU_RESETSIZE) {
+            extern void resetFontSize();
+            resetFontSize();
+        }
+#if defined(USE_TTF)
+        if (LOWORD(wParam) == ID_WIN_SYSMENU_TTFINCSIZE) {
+            extern void increaseFontSize();
+            increaseFontSize();
+        }
+        if (LOWORD(wParam) == ID_WIN_SYSMENU_TTFDECSIZE) {
+            extern void decreaseFontSize();
+            decreaseFontSize();
+        }
+#endif
+    }
+    std::string fullScreenString = std::string("desktop.fullscreen");
+    if (!menu.gui || GetSetSDLValue(1, fullScreenString, 0)) return;
+    if (!GetMenu(GetHWND())) return;
+#if DOSBOXMENU_TYPE == DOSBOXMENU_HMENU
+    if (mainMenu.mainMenuWM_COMMAND((unsigned int)LOWORD(wParam))) return;
+#endif
+#endif
+}
+
+void DOSBox_SetSysMenu(void) {
+#if defined(WIN32) && !defined(HX_DOS)
+    MENUITEMINFO mii;
+    HMENU sysmenu;
+
+    sysmenu = GetSystemMenu(GetHWND(), TRUE); // revert, so we can reapply menu items
+    sysmenu = GetSystemMenu(GetHWND(), FALSE);
+    if (sysmenu == NULL) return;
+
+    AppendMenu(sysmenu, MF_SEPARATOR, -1, "");
+
+#if DOSBOXMENU_TYPE == DOSBOXMENU_HMENU
+    {
+        const char *msg = "Show &menu bar";
+
+        memset(&mii, 0, sizeof(mii));
+        mii.cbSize = sizeof(mii);
+        mii.fMask = MIIM_ID | MIIM_STRING | MIIM_STATE;
+        mii.fState = (menu.toggle ? MFS_CHECKED : 0) | (GFX_GetPreventFullscreen() ? MFS_DISABLED : MFS_ENABLED);
+        mii.wID = ID_WIN_SYSMENU_TOGGLEMENU;
+        mii.dwTypeData = (LPTSTR)(msg);
+        mii.cch = (UINT)(strlen(msg)+1);
+
+        InsertMenuItem(sysmenu, GetMenuItemCount(sysmenu), TRUE, &mii);
+    }
+#endif
+
+    {
+        const char *msg = "&Pause";
+
+        memset(&mii, 0, sizeof(mii));
+        mii.cbSize = sizeof(mii);
+        mii.fMask = MIIM_ID | MIIM_STRING | MIIM_STATE;
+        mii.fState = MFS_ENABLED;
+        mii.wID = ID_WIN_SYSMENU_PAUSE;
+        mii.dwTypeData = (LPTSTR)(msg);
+        mii.cch = (UINT)(strlen(msg) + 1);
+
+        InsertMenuItem(sysmenu, GetMenuItemCount(sysmenu), TRUE, &mii);
+    }
+
+    AppendMenu(sysmenu, MF_SEPARATOR, -1, "");
+
+    {
+        const char *msg = "Reset window size";
+
+        memset(&mii, 0, sizeof(mii));
+        mii.cbSize = sizeof(mii);
+        mii.fMask = MIIM_ID | MIIM_STRING | MIIM_STATE;
+        mii.fState = MFS_ENABLED;
+        mii.wID = ID_WIN_SYSMENU_RESETSIZE;
+        mii.dwTypeData = (LPTSTR)(msg);
+        mii.cch = (UINT)(strlen(msg)+1);
+
+        InsertMenuItem(sysmenu, GetMenuItemCount(sysmenu), TRUE, &mii);
+    }
+
+#if defined(USE_TTF)
+    bool TTF_using(void);
+    ttfpos = GetMenuItemCount(sysmenu);
+    {
+        const char *msg = "Increase TTF font size";
+
+        memset(&mii, 0, sizeof(mii));
+        mii.cbSize = sizeof(mii);
+        mii.fMask = MIIM_ID | MIIM_STRING | MIIM_STATE;
+        mii.fState = TTF_using() ? MFS_ENABLED : MFS_DISABLED;
+        mii.wID = ID_WIN_SYSMENU_TTFINCSIZE;
+        mii.dwTypeData = (LPTSTR)(msg);
+        mii.cch = (UINT)(strlen(msg)+1);
+
+        InsertMenuItem(sysmenu, GetMenuItemCount(sysmenu), TRUE, &mii);
+    }
+
+    {
+        const char *msg = "Decrease TTF font size";
+
+        memset(&mii, 0, sizeof(mii));
+        mii.cbSize = sizeof(mii);
+        mii.fMask = MIIM_ID | MIIM_STRING | MIIM_STATE;
+        mii.fState = TTF_using() ? MFS_ENABLED : MFS_DISABLED;
+        mii.wID = ID_WIN_SYSMENU_TTFDECSIZE;
+        mii.dwTypeData = (LPTSTR)(msg);
+        mii.cch = (UINT)(strlen(msg)+1);
+
+        InsertMenuItem(sysmenu, GetMenuItemCount(sysmenu), TRUE, &mii);
+    }
+#endif
+
+    AppendMenu(sysmenu, MF_SEPARATOR, -1, "");
+
+    {
+        const char *msg = "Configuration &Tool";
+
+        memset(&mii, 0, sizeof(mii));
+        mii.cbSize = sizeof(mii);
+        mii.fMask = MIIM_ID | MIIM_STRING | MIIM_STATE;
+        mii.fState = MFS_ENABLED;
+        mii.wID = ID_WIN_SYSMENU_CFG_GUI;
+        mii.dwTypeData = (LPTSTR)(msg);
+        mii.cch = (UINT)(strlen(msg) + 1);
+
+        InsertMenuItem(sysmenu, GetMenuItemCount(sysmenu), TRUE, &mii);
+    }
+
+    {
+        const char *msg = "Mapper &Editor";
+
+        memset(&mii, 0, sizeof(mii));
+        mii.cbSize = sizeof(mii);
+        mii.fMask = MIIM_ID | MIIM_STRING | MIIM_STATE;
+        mii.fState = MFS_ENABLED;
+        mii.wID = ID_WIN_SYSMENU_MAPPER;
+        mii.dwTypeData = (LPTSTR)(msg);
+        mii.cch = (UINT)(strlen(msg) + 1);
+
+        InsertMenuItem(sysmenu, GetMenuItemCount(sysmenu), TRUE, &mii);
+    }
+#endif
+}
 #if defined(WIN32) && !defined(C_SDL2) && !defined(HX_DOS)
 #include <shlobj.h>
 
@@ -1850,79 +2040,6 @@ void Mount_Img(char drive, std::string realpath) {
     (void)drive;
 }
 
-void DOSBox_SetSysMenu(void) {
-#if !defined(HX_DOS)
-    MENUITEMINFO mii;
-    HMENU sysmenu;
-
-    sysmenu = GetSystemMenu(GetHWND(), TRUE); // revert, so we can reapply menu items
-    sysmenu = GetSystemMenu(GetHWND(), FALSE);
-    if (sysmenu == NULL) return;
-
-    AppendMenu(sysmenu, MF_SEPARATOR, -1, "");
-
-    {
-        const char *msg = "Show menu &bar";
-
-        memset(&mii, 0, sizeof(mii));
-        mii.cbSize = sizeof(mii);
-        mii.fMask = MIIM_ID | MIIM_STRING | MIIM_STATE;
-        mii.fState = (menu.toggle ? MFS_CHECKED : 0) | (GFX_GetPreventFullscreen() ? MFS_DISABLED : MFS_ENABLED);
-        mii.wID = ID_WIN_SYSMENU_TOGGLEMENU;
-        mii.dwTypeData = (LPTSTR)(msg);
-        mii.cch = (UINT)(strlen(msg)+1);
-
-        InsertMenuItem(sysmenu, GetMenuItemCount(sysmenu), TRUE, &mii);
-    }
-
-    AppendMenu(sysmenu, MF_SEPARATOR, -1, "");
-
-    {
-        const char *msg = "&Pause";
-
-        memset(&mii, 0, sizeof(mii));
-        mii.cbSize = sizeof(mii);
-        mii.fMask = MIIM_ID | MIIM_STRING | MIIM_STATE;
-        mii.fState = MFS_ENABLED;
-        mii.wID = ID_WIN_SYSMENU_PAUSE;
-        mii.dwTypeData = (LPTSTR)(msg);
-        mii.cch = (UINT)(strlen(msg) + 1);
-
-        InsertMenuItem(sysmenu, GetMenuItemCount(sysmenu), TRUE, &mii);
-    }
-
-    AppendMenu(sysmenu, MF_SEPARATOR, -1, "");
-
-    {
-        const char *msg = "Show &mapper interface";
-
-        memset(&mii, 0, sizeof(mii));
-        mii.cbSize = sizeof(mii);
-        mii.fMask = MIIM_ID | MIIM_STRING | MIIM_STATE;
-        mii.fState = MFS_ENABLED;
-        mii.wID = ID_WIN_SYSMENU_MAPPER;
-        mii.dwTypeData = (LPTSTR)(msg);
-        mii.cch = (UINT)(strlen(msg) + 1);
-
-        InsertMenuItem(sysmenu, GetMenuItemCount(sysmenu), TRUE, &mii);
-    }
-
-    {
-        const char *msg = "Show configuration &GUI";
-
-        memset(&mii, 0, sizeof(mii));
-        mii.cbSize = sizeof(mii);
-        mii.fMask = MIIM_ID | MIIM_STRING | MIIM_STATE;
-        mii.fState = MFS_ENABLED;
-        mii.wID = ID_WIN_SYSMENU_CFG_GUI;
-        mii.dwTypeData = (LPTSTR)(msg);
-        mii.cch = (UINT)(strlen(msg) + 1);
-
-        InsertMenuItem(sysmenu, GetMenuItemCount(sysmenu), TRUE, &mii);
-    }
-#endif
-}
-
 void DOSBox_CheckOS(int &id, int &major, int &minor) {
     OSVERSIONINFO osi;
     ZeroMemory(&osi, sizeof(OSVERSIONINFO));
@@ -1962,12 +2079,12 @@ void DOSBox_RefreshMenu(void) {
         DrawMenuBar(GetHWND());
         return;
     }
-    DOSBox_SetSysMenu();
     if(menu.toggle)
         DOSBox_SetMenu();
     else
         DOSBox_NoMenu();
 #endif
+    DOSBox_SetSysMenu();
 }
 
 void DOSBox_RefreshMenu2(void) {
@@ -1993,10 +2110,8 @@ void DOSBox_RefreshMenu2(void) {
         NonUserResizeCounter=1;
         SDL1_hax_SetMenu(NULL);
     }
-
-    void DOSBox_SetSysMenu(void);
-    DOSBox_SetSysMenu();
 #endif
+    DOSBox_SetSysMenu();
 }
 
 void MENU_Check_Drive(HMENU handle, int cdrom, int floppy, int local, int image, int automount, int umount, char drive) {
@@ -2032,40 +2147,6 @@ void reflectmenu_INITMENU_cb() {
                 sure to keep Windows waiting while we take our time to reset the checkmarks in
                 the menus before the menu is displayed. */
     Reflect_Menu();
-}
-
-void MSG_WM_COMMAND_handle(SDL_SysWMmsg &Message) {
-    bool GFX_GetPreventFullscreen(void);
-
-    if (Message.msg != WM_COMMAND) return;
-#if defined(WIN32) && !defined(HX_DOS)
-    bool MAPPER_IsRunning(void);
-    bool GUI_IsRunning(void);
-
-    if (!MAPPER_IsRunning() && !GUI_IsRunning()) {
-        if (LOWORD(Message.wParam) == ID_WIN_SYSMENU_MAPPER) {
-            extern void MAPPER_Run(bool pressed);
-            MAPPER_Run(false);
-        }
-        if (LOWORD(Message.wParam) == ID_WIN_SYSMENU_CFG_GUI) {
-            extern void GUI_Run(bool pressed);
-            GUI_Run(false);
-        }
-        if (LOWORD(Message.wParam) == ID_WIN_SYSMENU_PAUSE) {
-            extern void PauseDOSBox(bool pressed);
-            PauseDOSBox(true);
-        }
-    }
-#endif
-    std::string fullScreenString = std::string("desktop.fullscreen");
-    if (!menu.gui || GetSetSDLValue(1, fullScreenString, 0)) return;
-    if (!GetMenu(GetHWND())) return;
-#if DOSBOXMENU_TYPE == DOSBOXMENU_HMENU
-    if (mainMenu.mainMenuWM_COMMAND((unsigned int)LOWORD(Message.wParam))) return;
-#endif
-}
-#else
-void DOSBox_SetSysMenu(void) {
 }
 #endif
 

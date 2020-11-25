@@ -238,17 +238,18 @@ void osx_init_touchbar(void);
 
 bool TTF_using(void);
 void ShutDownMemHandles(Section * sec);
-void resetFontSize();
-static void decreaseFontSize();
+void resetFontSize(), decreaseFontSize();
 extern SHELL_Cmd cmd_list[];
 
 SDL_Block sdl;
 Bitu frames = 0;
 unsigned int page=0;
+unsigned int hostkeyalt=0;
 unsigned int sendkeymap=0;
 ScreenSizeInfo          screen_size_info;
 
 #if defined(USE_TTF)
+extern int ttfpos;
 Render_ttf ttf;
 bool char512 = true;
 bool showbold = true;
@@ -1490,19 +1491,28 @@ void PauseDOSBoxLoop(Bitu /*unused*/) {
         SDL_WaitEvent(&event);    // since we're not polling, cpu usage drops to 0.
 #endif
 
-#ifdef __WIN32__
-  #if DOSBOXMENU_TYPE == DOSBOXMENU_HMENU
-        if (event.type==SDL_SYSWMEVENT && event.syswm.msg->msg == WM_COMMAND && (LOWORD(event.syswm.msg->wParam) == ID_WIN_SYSMENU_PAUSE || LOWORD(event.syswm.msg->wParam) == (mainMenu.get_item("mapper_pause").get_master_id()+DOSBoxMenu::winMenuMinimumID))) {
+#if defined(WIN32) && !defined(HX_DOS)
+        UINT msg=0;
+        WPARAM wparam;
+        if (event.type==SDL_SYSWMEVENT) {
+#if defined(C_SDL2)
+            msg=event.syswm.msg->msg.win.msg;
+            wparam=event.syswm.msg->msg.win.wParam;
+#else
+            msg=event.syswm.msg->msg;
+            wparam=event.syswm.msg->wParam;
+#endif
+        }
+        if (event.type==SDL_SYSWMEVENT && msg == WM_COMMAND && (LOWORD(wparam) == ID_WIN_SYSMENU_PAUSE || LOWORD(wparam) == (mainMenu.get_item("mapper_pause").get_master_id()+DOSBoxMenu::winMenuMinimumID))) {
             paused=false;
             GFX_SetTitle(-1,-1,-1,false);   
             break;
         }
-        if (event.type == SDL_SYSWMEVENT && event.syswm.msg->msg == WM_SYSCOMMAND && LOWORD(event.syswm.msg->wParam) == ID_WIN_SYSMENU_PAUSE) {
+        if (event.type == SDL_SYSWMEVENT && msg == WM_SYSCOMMAND && LOWORD(wparam) == ID_WIN_SYSMENU_PAUSE) {
             paused = false;
             GFX_SetTitle(-1, -1, -1, false);
             break;
         }
-  #endif
 #endif
         switch (event.type) {
 
@@ -1816,11 +1826,14 @@ Bitu GFX_GetBestMode(Bitu flags)
 void SDL_Prepare(void) {
     if (menu_compatible) return;
 
-#if defined(WIN32) && !defined(C_SDL2) && !defined(HX_DOS) // Microsoft Windows specific
+#if defined(WIN32) && !defined(HX_DOS) // Microsoft Windows specific
+    SDL_EventState(SDL_SYSWMEVENT, SDL_ENABLE);
+#if !defined(C_SDL2)
     LOG(LOG_MISC,LOG_DEBUG)("Win32: Preparing main window to accept files dragged in from the Windows shell");
 
-    SDL_PumpEvents(); SDL_EventState(SDL_SYSWMEVENT, SDL_ENABLE);
+    SDL_PumpEvents();
     DragAcceptFiles(GetHWND(), TRUE);
+#endif
 #endif
 }
 
@@ -3484,6 +3497,7 @@ void change_output(int output) {
 #endif
 #if defined(USE_TTF)
     if (sdl.desktop.want_type != SCREEN_TTF) {
+        mainMenu.get_item("load_ttf_font").enable(false).refresh_item(mainMenu);
         resetreq = false;
         ttf.inUse = false;
     }
@@ -3514,11 +3528,21 @@ void change_output(int output) {
 #ifdef C_DIRECT3D
         mainMenu.get_item("load_d3d_shader").enable(sdl.desktop.want_type==SCREEN_DIRECT3D).refresh_item(mainMenu);
 #endif
+#ifdef USE_TTF
+        mainMenu.get_item("load_ttf_font").enable(sdl.desktop.want_type==SCREEN_TTF).refresh_item(mainMenu);
+#endif
 #if defined(USE_TTF)
     if ((output==9||output==10)&&ttf.inUse) {
         resetFontSize();
         resetreq = true;
     }
+#if defined(WIN32) && !defined(HX_DOS)
+    HMENU sysmenu = GetSystemMenu(GetHWND(), TRUE);
+    if (ttfpos>-1 && sysmenu != NULL) {
+        EnableMenuItem(sysmenu, ttfpos, MF_BYPOSITION|(TTF_using()?MF_ENABLED:MF_DISABLED));
+        EnableMenuItem(sysmenu, ttfpos+1, MF_BYPOSITION|(TTF_using()?MF_ENABLED:MF_DISABLED));
+    }
+#endif
     mainMenu.get_item("mapper_ttf_incsize").enable(TTF_using()).refresh_item(mainMenu);
     mainMenu.get_item("mapper_ttf_decsize").enable(TTF_using()).refresh_item(mainMenu);
     mainMenu.get_item("ttf_showbold").enable(TTF_using()).check(showbold).refresh_item(mainMenu);
@@ -4581,7 +4605,7 @@ void resetFontSize() {
 	}
 }
 
-static void decreaseFontSize() {
+void decreaseFontSize() {
 	if (ttf.inUse && ttf.pointsize > 10) {
 		GFX_SelectFontByPoints(ttf.pointsize - (ttf.DOSBox ? 2 : 1));
 		GFX_SetSize(720+sdl.clip.x, 400+sdl.clip.y, sdl.draw.flags,sdl.draw.scalex,sdl.draw.scaley,sdl.draw.callback);
@@ -4594,7 +4618,7 @@ static void decreaseFontSize() {
 	}
 }
 
-static void increaseFontSize() {
+void increaseFontSize() {
 	if (ttf.inUse) {																	// increase fontsize
 		int maxWidth = sdl.desktop.full.width;
 		int maxHeight = sdl.desktop.full.height;
@@ -5045,7 +5069,7 @@ static void GUI_StartUp() {
     MAPPER_AddHandler(ResetSystem, MK_r, MMODHOST, "reset", "Reset DOSBox-X", &item); /* Host+R (Host+CTRL+R acts funny on my Linux system) */
     item->set_text("Reset virtual machine");
 
-    MAPPER_AddHandler(RebootGuest, MK_s, MMODHOST, "reboot", "Reboot guest system", &item); /* Reboot guest system or integrated DOS */
+    MAPPER_AddHandler(RebootGuest, MK_b, MMODHOST, "reboot", "Reboot guest system", &item); /* Reboot guest system or integrated DOS */
     item->set_text("Reboot guest system");
 
 #if !defined(HX_DOS)
@@ -6440,7 +6464,7 @@ static void HandleTouchscreenFinger(SDL_TouchFingerEvent * finger) {
 }
 #endif
 
-#if defined(WIN32) && !defined(C_SDL2) && !defined(HX_DOS)
+#if defined(WIN32) && !defined(HX_DOS)
 void MSG_WM_COMMAND_handle(SDL_SysWMmsg &Message);
 #endif
 
@@ -6580,6 +6604,44 @@ void GFX_Events() {
 
     while (SDL_PollEvent(&event)) {
         switch (event.type) {
+#if defined(WIN32) && !defined(HX_DOS)
+        case SDL_SYSWMEVENT:
+            switch( event.syswm.msg->msg.win.msg ) {
+                case WM_COMMAND:
+                    MSG_WM_COMMAND_handle(/*&*/(*event.syswm.msg));
+                    break;
+                case WM_SYSCOMMAND:
+                    switch (event.syswm.msg->msg.win.wParam) {
+                        case ID_WIN_SYSMENU_MAPPER:
+                            extern void MAPPER_Run(bool pressed);
+                            MAPPER_Run(false);
+                            break;
+                        case ID_WIN_SYSMENU_CFG_GUI:
+                            extern void GUI_Run(bool pressed);
+                            GUI_Run(false);
+                            break;
+                        case ID_WIN_SYSMENU_PAUSE:
+                            extern void PauseDOSBox(bool pressed);
+                            PauseDOSBox(true);
+                            break;
+                        case ID_WIN_SYSMENU_RESETSIZE:
+                            resetFontSize();
+                            break;
+#if defined(USE_TTF)
+                        case ID_WIN_SYSMENU_TTFINCSIZE:
+                            increaseFontSize();
+                            break;
+                        case ID_WIN_SYSMENU_TTFDECSIZE:
+                            decreaseFontSize();
+                            break;
+#endif
+                        default:
+                            break;
+                    }
+                default:
+                    break;
+            }
+#endif
         case SDL_WINDOWEVENT:
             switch (event.window.event) {
             case SDL_WINDOWEVENT_MOVED:
@@ -6886,6 +6948,17 @@ void GFX_Events() {
                             extern void PauseDOSBox(bool pressed);
                             PauseDOSBox(true);
                             break;
+                        case ID_WIN_SYSMENU_RESETSIZE:
+                            resetFontSize();
+                            break;
+#if defined(USE_TTF)
+                        case ID_WIN_SYSMENU_TTFINCSIZE:
+                            increaseFontSize();
+                            break;
+                        case ID_WIN_SYSMENU_TTFDECSIZE:
+                            decreaseFontSize();
+                            break;
+#endif
 #endif
                     }
                 default:
@@ -7019,7 +7092,6 @@ void GFX_Events() {
         case SDL_VIDEOEXPOSE:
             if (sdl.draw.callback && !glide.enabled) sdl.draw.callback( GFX_CallBackRedraw );
             break;
-#ifdef WIN32
         case SDL_KEYDOWN:
         case SDL_KEYUP:
             // ignore event alt+tab
@@ -7029,6 +7101,7 @@ void GFX_Events() {
             if (event.key.keysym.sym==SDLK_RCTRL) sdl.rctrlstate = event.key.type;
             if (event.key.keysym.sym==SDLK_LSHIFT) sdl.lshiftstate = event.key.type;
             if (event.key.keysym.sym==SDLK_RSHIFT) sdl.rshiftstate = event.key.type;
+#if defined(WIN32)
             if (((event.key.keysym.sym==SDLK_TAB)) &&
                 ((sdl.laltstate==SDL_KEYDOWN) || (sdl.raltstate==SDL_KEYDOWN))) { MAPPER_LosingFocus(); break; }
             // This can happen as well.
@@ -7037,8 +7110,6 @@ void GFX_Events() {
             if ((event.key.keysym.sym == SDLK_TAB) && (GetTicks() - sdl.focus_ticks < 2)) break;
 #endif
 #if defined (MACOSX)            
-        case SDL_KEYDOWN:
-        case SDL_KEYUP:
             /* On macs CMD-Q is the default key to close an application */
             if (event.key.keysym.sym == SDLK_q && (event.key.keysym.mod == KMOD_RMETA || event.key.keysym.mod == KMOD_LMETA) ) {
                 KillSwitch(true);
@@ -9395,6 +9466,55 @@ bool vid_select_glsl_shader_menu_callback(DOSBoxMenu* const menu, DOSBoxMenu::it
 }
 #endif
 
+#ifdef USE_TTF
+void ttf_reset(void) {
+    OUTPUT_TTF_Select();
+    resetFontSize();
+}
+
+bool vid_select_ttf_font_menu_callback(DOSBoxMenu* const menu, DOSBoxMenu::item* const menuitem) {
+    (void)menu;//UNUSED
+    (void)menuitem;//UNUSED
+
+    Section_prop* section = static_cast<Section_prop*>(control->GetSection("render"));
+    assert(section != NULL);
+
+#if !defined(HX_DOS)
+    char CurrentDir[512];
+    char * Temp_CurrentDir = CurrentDir;
+    getcwd(Temp_CurrentDir, 512);
+    std::string cwd = std::string(Temp_CurrentDir)+CROSS_FILESPLIT;
+    const char *lFilterPatterns[] = {"*.ttf","*.TTF"};
+    const char *lFilterDescription = "TrueType font files (*.ttf)";
+    char const * lTheOpenFileName = tinyfd_openFileDialog("Select TrueType font",cwd.c_str(),2,lFilterPatterns,lFilterDescription,0);
+
+    if (lTheOpenFileName) {
+        /* Windows will fill lpstrFile with the FULL PATH.
+           The full path should be given to the pixelshader setting unless it's just
+           the same base path it was given: <cwd>\shaders in which case just cut it
+           down to the filename. */
+        const char* name = lTheOpenFileName;
+        std::string tmp = "";
+
+        /* filenames in Windows are case insensitive so do the comparison the same */
+        if (!strncasecmp(name, cwd.c_str(), cwd.size())) {
+            name += cwd.size();
+            while (*name == CROSS_FILESPLIT) name++;
+        }
+
+        if (*name) {
+            SetVal("render", "ttf.font", name);
+            void ttf_reset(void);
+            ttf_reset();
+        }
+    }
+    chdir( Temp_CurrentDir );
+#endif
+
+    return true;
+}
+#endif
+
 bool vid_pc98_graphics_menu_callback(DOSBoxMenu * const menu,DOSBoxMenu::item * const menuitem) {
     (void)menu;//UNUSED
     (void)menuitem;//UNUSED
@@ -9559,11 +9679,6 @@ bool intensity_menu_callback(DOSBoxMenu * const menu,DOSBoxMenu::item * const me
 }
 
 #if defined(USE_TTF)
-void ttf_reset(void) {
-    OUTPUT_TTF_Select();
-    resetFontSize();
-}
-
 void ttf_setlines(int cols, int lins) {
     (void)cols;
     (void)lins;
@@ -10245,6 +10360,24 @@ bool sendkey_mapper_menu_callback(DOSBoxMenu * const menu, DOSBoxMenu::item * co
 bool sendkey_preset_menu_callback(DOSBoxMenu * const menu, DOSBoxMenu::item * const menuitem) {
     (void)menu;//UNUSED
     SendKey(menuitem->get_name());
+    return true;
+}
+
+void update_all_shortcuts();
+bool hostkey_preset_menu_callback(DOSBoxMenu * const menu, DOSBoxMenu::item * const menuitem) {
+    (void)menu;//UNUSED
+    if (menuitem->get_name()=="hostkey_ctrlalt") hostkeyalt=1;
+    else if (menuitem->get_name()=="hostkey_ctrlshift") hostkeyalt=2;
+    else if (menuitem->get_name()=="hostkey_altshift") hostkeyalt=3;
+    else hostkeyalt=0;
+    mainMenu.get_item("hostkey_ctrlalt").check(hostkeyalt==1).refresh_item(mainMenu);
+    mainMenu.get_item("hostkey_ctrlshift").check(hostkeyalt==2).refresh_item(mainMenu);
+    mainMenu.get_item("hostkey_altshift").check(hostkeyalt==3).refresh_item(mainMenu);
+    mainMenu.get_item("hostkey_mapper").check(hostkeyalt==0).refresh_item(mainMenu);
+    update_all_shortcuts();
+#if DOSBOXMENU_TYPE == DOSBOXMENU_SDLDRAW
+    mainMenu.rebuild();
+#endif
     return true;
 }
 
@@ -11186,6 +11319,10 @@ int main(int argc, char* argv[]) SDL_MAIN_NOEXCEPT {
                 item.set_text("Send special key");
             }
             {
+                DOSBoxMenu::item &item = mainMenu.alloc_item(DOSBoxMenu::submenu_type_id,"MainHostKey");
+                item.set_text("Select host key");
+            }
+            {
                 DOSBoxMenu::item &item = mainMenu.alloc_item(DOSBoxMenu::submenu_type_id,"WheelToArrow");
                 item.set_text("Mouse wheel movements");
             }
@@ -11394,6 +11531,12 @@ int main(int argc, char* argv[]) SDL_MAIN_NOEXCEPT {
             {
                 mainMenu.alloc_item(DOSBoxMenu::item_type_id, "load_glsl_shader").set_text("Select OpenGL (GLSL) shader...").
                     set_callback_function(vid_select_glsl_shader_menu_callback);
+            }
+#endif
+#ifdef USE_TTF
+            {
+                mainMenu.alloc_item(DOSBoxMenu::item_type_id, "load_ttf_font").set_text("Select TrueType font (TTF)...").
+                    set_callback_function(vid_select_ttf_font_menu_callback);
             }
 #endif
         }
@@ -11841,6 +11984,10 @@ int main(int argc, char* argv[]) SDL_MAIN_NOEXCEPT {
         mainMenu.alloc_item(DOSBoxMenu::item_type_id,"sendkey_ctrlesc").set_text("Send Ctrl+Esc").set_callback_function(sendkey_preset_menu_callback);
         mainMenu.alloc_item(DOSBoxMenu::item_type_id,"sendkey_ctrlbreak").set_text("Send Ctrl+Break").set_callback_function(sendkey_preset_menu_callback);
         mainMenu.alloc_item(DOSBoxMenu::item_type_id,"sendkey_cad").set_text("Send Ctrl+Alt+Del").set_callback_function(sendkey_preset_menu_callback);
+        mainMenu.alloc_item(DOSBoxMenu::item_type_id,"hostkey_ctrlalt").set_text("Ctrl+Alt").set_callback_function(hostkey_preset_menu_callback);
+        mainMenu.alloc_item(DOSBoxMenu::item_type_id,"hostkey_ctrlshift").set_text("Ctrl+Shift").set_callback_function(hostkey_preset_menu_callback);
+        mainMenu.alloc_item(DOSBoxMenu::item_type_id,"hostkey_altshift").set_text("Alt+Shift").set_callback_function(hostkey_preset_menu_callback);
+        mainMenu.alloc_item(DOSBoxMenu::item_type_id,"hostkey_mapper").set_text("Mapper-defined").set_callback_function(hostkey_preset_menu_callback);
         mainMenu.alloc_item(DOSBoxMenu::item_type_id,"sendkey_mapper_winlogo").set_text("Mapper \"Send special key\": logo key").set_callback_function(sendkey_mapper_menu_callback);
         mainMenu.alloc_item(DOSBoxMenu::item_type_id,"sendkey_mapper_winmenu").set_text("Mapper \"Send special key\": menu key").set_callback_function(sendkey_mapper_menu_callback);
         mainMenu.alloc_item(DOSBoxMenu::item_type_id,"sendkey_mapper_alttab").set_text("Mapper \"Send special key\": Alt+Tab").set_callback_function(sendkey_mapper_menu_callback);
@@ -11873,6 +12020,12 @@ int main(int argc, char* argv[]) SDL_MAIN_NOEXCEPT {
         mainMenu.get_item("sendkey_mapper_ctrlesc").check(sendkeymap==4).refresh_item(mainMenu);
         mainMenu.get_item("sendkey_mapper_ctrlbreak").check(sendkeymap==5).refresh_item(mainMenu);
         mainMenu.get_item("sendkey_mapper_cad").check(!sendkeymap).refresh_item(mainMenu);
+        mainMenu.get_item("hostkey_ctrlalt").check(hostkeyalt==1).refresh_item(mainMenu);
+        mainMenu.get_item("hostkey_ctrlshift").check(hostkeyalt==2).refresh_item(mainMenu);
+        mainMenu.get_item("hostkey_altshift").check(hostkeyalt==3).refresh_item(mainMenu);
+        std::string mapper_keybind = mapper_event_keybind_string("host");
+        if (mapper_keybind.empty()) mapper_keybind = "unbound";
+        mainMenu.get_item("hostkey_mapper").check(hostkeyalt==0).set_text("Mapper-defined: "+mapper_keybind).refresh_item(mainMenu);
 
         bool MENU_get_swapstereo(void);
         mainMenu.get_item("mixer_swapstereo").check(MENU_get_swapstereo()).refresh_item(mainMenu);
@@ -11937,6 +12090,9 @@ int main(int argc, char* argv[]) SDL_MAIN_NOEXCEPT {
 #endif
 #ifdef C_DIRECT3D
         mainMenu.get_item("load_d3d_shader").enable(Direct3D_using());
+#endif
+#ifdef USE_TTF
+        mainMenu.get_item("load_ttf_font").enable(TTF_using());
 #endif
 
 #if !defined(C_EMSCRIPTEN)

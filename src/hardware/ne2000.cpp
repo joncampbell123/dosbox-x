@@ -1619,7 +1619,9 @@ public:
         }
 		if (!strcasecmp(realnicstring,"list")) {
 			// print list and quit
-			LOG_MSG(("\n"+niclist).c_str());
+            std::istringstream in(("\n"+niclist+"\n").c_str());
+            if (in)	for (std::string line; std::getline(in, line); )
+                LOG_MSG(line.c_str());
 			pcap_freealldevs(alldevs);
 			load_success = false;
 			return;

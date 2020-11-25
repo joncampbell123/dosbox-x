@@ -1,10 +1,4 @@
 0.83.8
-  - SDL1 builds updated to use newer audio APIs on
-    Mac OS X so that audio works once again when
-    compiled and run on Mac OS X Big Sur. Prior to
-    the change, ancient versions of the API dating
-    back to the mid 2000s were used which no longer
-    work on Big Sur.
   - Added support for scalable TrueType font (TTF)
     output for text-mode programs. Set "output=ttf"
     and optionally a monospaced TTF font (such as
@@ -28,11 +22,33 @@
     "Video" menu) have been expanded to support TTF
     options such as increasing/decreasing the TTF font
     sizes and on-screen text style toggling (including
-    bold, italics, underline and strikeout). (Wengier)
-  - Cleaned up the mapper editor interface to allow
-    more keyboard shortcuts to be added, shown in
-    multiple pages in the mapper, navigable with the
-    "Previous Page" and "Next Page" buttons. (Wengier)
+    bold, italics, underline and strikeout). You can
+    also select a TTF font to use at run-time with the
+    "Select TrueType font (TTF)" menu option. (Wengier)
+  - You can now select a host key from the menu (under
+    "Main") including Ctrl+Alt, Ctrl+Shift, Alt+Shift,
+    or use the mapper-defined host key as in previous
+    versions (which default to F11 on Windows and F12
+    otherwise). A config option "hostkey" is added so
+    that you can specify it from config file. (Wengier)
+  - SDL1 builds updated to use newer audio APIs on
+    macOS (Mac OS X) so that audio works once again
+    when compiled and run on Mac OS X Big Sur. Prior
+    to the change, ancient versions of the API dating
+    back to the mid 2000s were used which no longer
+    work on Big Sur.
+  - The system menu in Windows SDL1 builds is now also
+    available for Windows SDL2 builds, and menu items
+    "Reset font size", "Increase TTF font size" and
+    "Decrease TTF font size" are added. (Wengier)
+  - Enhanced the mapper editor interface to allow more
+    keyboard shortcuts to be added, shown in multiple
+    pages in the mapper, navigable with the "Previous
+    Page" and "Next Page" buttons. The text in the
+    grids are now longer and clearer too. The default
+    shortcuts for a few items are changed to use the
+    Host key style (e.g. Host+S and Host+L for saving
+    and loading states respectively). (Wengier)
   - Added menu item "List network interfaces" under
     "Help" menu to list network interfaces in the host
     system for the NE2000 feature. (Wengier)
