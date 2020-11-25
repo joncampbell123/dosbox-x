@@ -45,6 +45,7 @@
 #include "menu.h"
 
 #include "SDL_syswm.h"
+#include "sdlmain.h"
 
 #if C_EMSCRIPTEN
 # include <emscripten.h>
@@ -162,7 +163,8 @@ struct KeyBlock {
 static DOSBoxMenu                               mapperMenu;
 #endif
 
-extern uint8_t                                    int10_font_14[256 * 14];
+extern unsigned int                             hostkeyalt;
+extern uint8_t                                  int10_font_14[256 * 14];
 
 std::map<std::string,std::string>               pending_string_binds;
 
@@ -2068,7 +2070,13 @@ void CBindGroup::ActivateBindList(CBindList * list,Bits value,bool ev_trigger) {
         }
     }
     for (it=list->begin();it!=list->end();++it) {
-        if (validmod==(*it)->mods) (*it)->ActivateBind(value,ev_trigger);
+        if ((*it)->mods==MMODHOST) {
+            if ((!hostkeyalt&&validmod==(*it)->mods)||(hostkeyalt==1&&(sdl.lctrlstate==SDL_KEYDOWN||sdl.rctrlstate==SDL_KEYDOWN)&&(sdl.laltstate==SDL_KEYDOWN||sdl.raltstate==SDL_KEYDOWN))||(hostkeyalt==2&&(sdl.lctrlstate==SDL_KEYDOWN||sdl.rctrlstate==SDL_KEYDOWN)&&(sdl.lshiftstate==SDL_KEYDOWN||sdl.rshiftstate==SDL_KEYDOWN))||(hostkeyalt==3&&(sdl.laltstate==SDL_KEYDOWN||sdl.raltstate==SDL_KEYDOWN)&&(sdl.lshiftstate==SDL_KEYDOWN||sdl.rshiftstate==SDL_KEYDOWN))) {
+                (*it)->flags|=BFLG_Hold;
+                (*it)->ActivateBind(value,ev_trigger);
+            }
+        } else if (validmod==(*it)->mods)
+            (*it)->ActivateBind(value,ev_trigger);
     }
 }
 
@@ -2647,7 +2655,7 @@ std::string CBind::GetModifierText(void) {
         if ((mods & ((Bitu)1u << (m - 1u))) && mod_event[m] != NULL) {
             t = mod_event[m]->GetBindMenuText();
             if (!r.empty()) r += "+";
-            r += t;
+            r += m==4?(hostkeyalt==1?"Ctrl+Alt":(hostkeyalt==2?"Ctrl+Shift":(hostkeyalt==3?"Alt+Shift":t))):t;
         }
     }
 
@@ -2741,6 +2749,12 @@ public:
         case MK_home: 
             key=SDL_SCANCODE_HOME;
             break;
+        case MK_comma:
+            key=SDL_SCANCODE_COMMA;
+            break;
+        case MK_period:
+            key=SDL_SCANCODE_PERIOD;
+            break;
         case MK_1:
             key=SDL_SCANCODE_1;
             break;
@@ -2756,6 +2770,9 @@ public:
         case MK_a:
             key=SDL_SCANCODE_A;
             break;
+        case MK_b:
+            key=SDL_SCANCODE_B;
+            break;
         case MK_c:
             key=SDL_SCANCODE_C;
             break;
@@ -2765,8 +2782,20 @@ public:
         case MK_f:
             key=SDL_SCANCODE_F;
             break;
+        case MK_i:
+            key=SDL_SCANCODE_I;
+            break;
+        case MK_l:
+            key=SDL_SCANCODE_L;
+            break;
         case MK_m:
             key=SDL_SCANCODE_M;
+            break;
+        case MK_o:
+            key=SDL_SCANCODE_O;
+            break;
+        case MK_p:
+            key=SDL_SCANCODE_P;
             break;
         case MK_q:
             key=SDL_SCANCODE_Q;
@@ -2861,8 +2890,14 @@ public:
             key=SDLK_PRINT;
 #endif
             break;
-        case MK_home: 
+        case MK_home:
             key=SDLK_HOME; 
+            break;
+        case MK_comma:
+            key=SDLK_COMMA;
+            break;
+        case MK_period:
+            key=SDLK_PERIOD;
             break;
         case MK_1:
             key=SDLK_1;
@@ -2879,6 +2914,9 @@ public:
         case MK_a:
             key=SDLK_a;
             break;
+        case MK_b:
+            key=SDLK_b;
+            break;
         case MK_c:
             key=SDLK_c;
             break;
@@ -2888,8 +2926,20 @@ public:
         case MK_f:
             key=SDLK_f;
             break;
+        case MK_i:
+            key=SDLK_i;
+            break;
+        case MK_l:
+            key=SDLK_l;
+            break;
         case MK_m:
             key=SDLK_m;
+            break;
+        case MK_o:
+            key=SDLK_o;
+            break;
+        case MK_p:
+            key=SDLK_p;
             break;
         case MK_q:
             key=SDLK_q;
@@ -4274,6 +4324,12 @@ void MAPPER_Run(bool pressed) {
     PIC_AddEvent(MAPPER_RunEvent,0.0001f);  //In case mapper deletes the key object that ran it
 }
 
+void update_all_shortcuts() {
+    for (auto &ev : events) {
+        if (ev != NULL) ev->update_menu_shortcut();
+    }
+}
+
 void MAPPER_RunInternal() {
     MAPPER_ReleaseAllKeys();
 
@@ -4377,6 +4433,10 @@ void MAPPER_RunInternal() {
     SDL_FreePalette(sdl2_map_pal_ptr);
     GFX_SetResizeable(true);
 #endif
+#if defined(USE_TTF)
+    void resetFontSize();
+    if (ttf.inUse) resetFontSize();
+#endif
 #if defined (REDUCE_JOYSTICK_POLLING)
     SDL_JoystickEventState(SDL_DISABLE);
 #endif
@@ -4414,9 +4474,7 @@ void MAPPER_RunInternal() {
     GFX_LosingFocus();
 
     /* and then the menu items need to be updated */
-    for (auto &ev : events) {
-        if (ev != NULL) ev->update_menu_shortcut();
-    }
+    update_all_shortcuts();
 
 #if DOSBOXMENU_TYPE == DOSBOXMENU_SDLDRAW
     mainMenu.rebuild();
@@ -4523,9 +4581,7 @@ void MAPPER_Init(void) {
     }
 
     /* and then the menu items need to be updated */
-    for (auto &ev : events) {
-        if (ev != NULL) ev->update_menu_shortcut();
-    }
+    update_all_shortcuts();
 }
 
 void ReloadMapper(Section_prop *section, bool init) {

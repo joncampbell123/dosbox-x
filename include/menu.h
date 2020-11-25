@@ -448,9 +448,9 @@ class DOSBoxMenu {
     public:
         HMENU                           getWinMenu(void) const;
         bool                            mainMenuWM_COMMAND(unsigned int id);
+#endif
     public:
         static constexpr unsigned int   winMenuMinimumID = 0x1000;
-#endif
 #if DOSBOXMENU_TYPE == DOSBOXMENU_NSMENU /* Mac OS X NSMenu / NSMenuItem handle */
     protected:
         void*                           nsMenu = NULL;

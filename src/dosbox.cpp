@@ -1097,13 +1097,13 @@ void DOSBOX_RealInit() {
 	}
 
 	//add support for loading/saving game states
-	MAPPER_AddHandler(SaveGameState, MK_f7, MMOD1,"savestate","Save state", &item);
+	MAPPER_AddHandler(SaveGameState, MK_s, MMODHOST,"savestate","Save state", &item);
         item->set_text("Save state");
-	MAPPER_AddHandler(LoadGameState, MK_f8, MMOD1,"loadstate","Load state", &item);
+	MAPPER_AddHandler(LoadGameState, MK_l, MMODHOST,"loadstate","Load state", &item);
         item->set_text("Load state");
-	MAPPER_AddHandler(PreviousSaveSlot, MK_f7, MMOD1|MMOD2,"prevslot","Previous save slot", &item);
+	MAPPER_AddHandler(PreviousSaveSlot, MK_comma, MMODHOST,"prevslot","Previous save slot", &item);
         item->set_text("Select previous slot");
-	MAPPER_AddHandler(NextSaveSlot, MK_f8, MMOD1|MMOD2,"nextslot","Next save slot", &item);
+	MAPPER_AddHandler(NextSaveSlot, MK_period, MMODHOST,"nextslot","Next save slot", &item);
         item->set_text("Select next slot");
 
     Section_prop *section = static_cast<Section_prop *>(control->GetSection("dosbox"));
@@ -1328,6 +1328,9 @@ void DOSBOX_SetupConfigSections(void) {
     const char* aspectmodes[] = { "false", "true", "0", "1", "yes", "no", "nearest", "bilinear", 0};
     const char *vga_ac_mapping_settings[] = { "", "auto", "4x4", "4low", "first16", 0 };
 
+    const char* hostkeys[] = {
+        "ctrlalt", "ctrlshift", "altshift", "mapper", 0 };
+
     const char* sendkeys[] = {
         "winlogo", "winmenu", "alttab", "ctrlesc", "ctrlbreak", "ctrlaltdel", 0 };
 
@@ -1427,6 +1430,11 @@ void DOSBOX_SetupConfigSections(void) {
     Pbool = secprop->Add_bool("show advanced options", Property::Changeable::Always, false);
     Pbool->Set_help("If set, the Configuration Tool will display all config options (including advanced ones) by default.");
     Pbool->SetBasic(true);
+
+    Pstring = secprop->Add_string("hostkey", Property::Changeable::Always, "mapper");
+    Pstring->Set_help("Select a DOSBox-X host key, or use the mapper-defined host key (default: F11 on Windows and F12 otherwise).");
+    Pstring->Set_values(hostkeys);
+    Pstring->SetBasic(true);
 
     Pstring = secprop->Add_string("mapper send key", Property::Changeable::Always, "ctrlaltdel");
     Pstring->Set_help("Select the key the mapper SendKey function will send.");

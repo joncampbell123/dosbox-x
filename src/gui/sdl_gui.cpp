@@ -99,6 +99,7 @@ int                         shortcutid = -1;
 void                        GFX_GetSizeAndPos(int &x,int &y,int &width, int &height, bool &fullscreen);
 
 #if defined(WIN32) && !defined(HX_DOS)
+void                        DOSBox_SetSysMenu(void);
 void                        WindowsTaskbarUpdatePreviewRegion(void);
 void                        WindowsTaskbarResetPreviewRegion(void);
 #endif
@@ -480,6 +481,7 @@ static void UI_Shutdown(GUI::ScreenSDL *screen) {
 #endif
 
 #if defined(WIN32) && !defined(HX_DOS)
+    DOSBox_SetSysMenu();
     WindowsTaskbarUpdatePreviewRegion();
 #endif
 

@@ -26,9 +26,9 @@ enum MapKeys {
 	MK_f1,MK_f2,MK_f3,MK_f4,MK_f5,MK_f6,MK_f7,MK_f8,MK_f9,MK_f10,MK_f11,MK_f12,
 	MK_return,MK_kpminus,MK_kpplus,MK_minus,MK_equals,MK_scrolllock,MK_printscreen,MK_pause,MK_home,MK_rightarrow,
 	MK_1, MK_2, MK_3, MK_4,
-    MK_a, MK_c, MK_d, MK_f, MK_m, MK_q, MK_r, MK_s, MK_v, MK_w,
-    MK_escape,MK_delete,MK_uparrow,MK_downarrow,
-    MK_lbracket,MK_rbracket,MK_leftarrow,
+    MK_a, MK_b, MK_c, MK_d, MK_f, MK_i, MK_l, MK_m, MK_o, MK_p, MK_q, MK_r, MK_s, MK_v, MK_w,
+    MK_escape,MK_delete,MK_uparrow,MK_downarrow,MK_leftarrow,
+    MK_lbracket,MK_rbracket,MK_comma,MK_period,
 
     MK_MAX
 };

@@ -314,7 +314,7 @@ bool export_ffmpeg = false;
 std::string capturedir;
 extern std::string savefilename;
 extern bool use_save_file, noremark_save_state, force_load_state;
-extern unsigned int sendkeymap;
+extern unsigned int hostkeyalt, sendkeymap;
 extern const char* RunningProgram;
 Bitu CaptureState = 0;
 
@@ -1834,6 +1834,11 @@ void CAPTURE_Init() {
             mainMenu.get_item(slot).enable(!use_save_file).refresh_item(mainMenu);
         }
     }
+    std::string hostkey = section->Get_string("hostkey");
+    if (hostkey=="ctrlalt") hostkeyalt=1;
+    else if (hostkey=="ctrlshift") hostkeyalt=2;
+    else if (hostkey=="altshift") hostkeyalt=3;
+    else hostkeyalt=0;
     std::string mapsendkey = section->Get_string("mapper send key");
     if (mapsendkey=="winlogo") sendkeymap=1;
     else if (mapsendkey=="winmenu") sendkeymap=2;
@@ -1884,7 +1889,7 @@ void CAPTURE_Init() {
 
 #if !defined(C_EMSCRIPTEN)
 	// mapper shortcuts for capture
-	MAPPER_AddHandler(CAPTURE_WaveEvent,MK_w,MMOD3|MMODHOST,"recwave","Record audio to WAV", &item);
+	MAPPER_AddHandler(CAPTURE_WaveEvent,MK_w,MMODHOST,"recwave","Record audio to WAV", &item);
 	item->set_text("Record audio to WAV");
 
 	MAPPER_AddHandler(CAPTURE_MTWaveEvent,MK_nothing,0,"recmtwave","Record to M.T. AVI", &item);
@@ -1896,10 +1901,10 @@ void CAPTURE_Init() {
 	MAPPER_AddHandler(OPL_SaveRawEvent,MK_nothing,0,"caprawopl","Record FM/OPL output",&item);
 	item->set_text("Record FM (OPL) output");
 #if (C_SSHOT)
-	MAPPER_AddHandler(CAPTURE_ScreenShotEvent,MK_s,MMOD3|MMODHOST,"scrshot","Take screenshot", &item);
+	MAPPER_AddHandler(CAPTURE_ScreenShotEvent,MK_p,MMODHOST,"scrshot","Take screenshot", &item);
 	item->set_text("Take screenshot");
 
-	MAPPER_AddHandler(CAPTURE_VideoEvent,MK_v,MMOD3|MMODHOST,"video","Record video to AVI", &item);
+	MAPPER_AddHandler(CAPTURE_VideoEvent,MK_i,MMODHOST,"video","Record video to AVI", &item);
 	item->set_text("Record video to AVI");
 #endif
 #endif
