@@ -5107,11 +5107,13 @@ static void GUI_StartUp() {
     MAPPER_AddHandler(&GUI_Run, MK_c,MMODHOST, "gui", "Configuration tool", &item);
     item->set_text("Configuration tool");
 
+#if defined(USE_TTF)
     MAPPER_AddHandler(&TTF_IncreaseSize, MK_uparrow, MMODHOST, "ttf_incsize", "Increase TTF size", &item);
     item->set_text("Increase TTF font size");
 
     MAPPER_AddHandler(&TTF_DecreaseSize, MK_downarrow, MMODHOST, "ttf_decsize", "Decrease TTF size", &item);
     item->set_text("Decrease TTF font size");
+#endif
 
     MAPPER_AddHandler(&GUI_ResetResize, MK_nothing, 0, "resetsize", "Reset window size", &item);
     item->set_text("Reset window size");
