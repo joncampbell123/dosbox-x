@@ -4094,7 +4094,12 @@ void GFX_EndTextLines(bool force=false) {
 			int y = newPos/ttf.cols;
 			int x = newPos%ttf.cols;
 			vga.draw.cursor.count++;
-			vga.draw.cursor.blinkon = (vga.draw.cursor.count & 16) ? true : false;
+
+			if (IS_PC98_ARCH) /* default cursor blinking is slower on PC-98 systems */
+				vga.draw.cursor.blinkon = (vga.draw.cursor.count & 64) ? true : false;
+			else
+				vga.draw.cursor.blinkon = (vga.draw.cursor.count & 16) ? true : false;
+
 			if (ttf.cursor != newPos || vga.draw.cursor.sline != prev_sline || ((blinkstate != vga.draw.cursor.blinkon) && blinkCursor)) {				// If new position or shape changed, forse draw
 				if (blinkCursor && blinkstate == vga.draw.cursor.blinkon) {
 					vga.draw.cursor.count = 4;
