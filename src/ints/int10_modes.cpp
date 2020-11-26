@@ -1119,7 +1119,7 @@ bool INT10_SetVideoMode_OTHER(uint16_t mode,bool clearmem) {
 #if defined(USE_TTF)
 extern bool resetreq;
 bool GFX_IsFullscreen(void), Direct3D_using(void);
-void ttf_reset(void), resetFontSize(), OUTPUT_TTF_Select(int fsize), GFX_SwitchFullscreenNoReset(void);
+void ttf_reset(void), resetFontSize(), OUTPUT_TTF_Select(int fsize), KEYBOARD_Clear(), GFX_SwitchFullscreenNoReset(void);
 #endif
 
 bool unmask_irq0_on_int10_setmode = true;
@@ -2056,6 +2056,7 @@ dac_text16:
             output = "surface";
 #endif
         }
+        KEYBOARD_Clear();
         change_output(out);
         SetVal("sdl", "output", output);
         void OutputSettingMenuUpdate(void);

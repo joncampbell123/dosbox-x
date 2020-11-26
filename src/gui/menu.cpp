@@ -87,7 +87,6 @@ void                                                GUI_ResetResize(bool pressed
 
 MENU_Block                                          menu;
 
-int                                                 ttfpos=-1;
 unsigned int                                        hdd_defsize=16000;
 char                                                hdd_size[20]="";
 
@@ -114,6 +113,7 @@ static const char *def_menu_main[] =
 {
     "mapper_gui",
     "mapper_mapper",
+    "load_mapper_file",
     "--",
     "MainSendKey",
     "MainHostKey",
@@ -1768,8 +1768,8 @@ void MSG_WM_COMMAND_handle(SDL_SysWMmsg &Message) {
             PauseDOSBox(true);
         }
         if (LOWORD(wParam) == ID_WIN_SYSMENU_RESETSIZE) {
-            extern void resetFontSize();
-            resetFontSize();
+            void GUI_ResetResize(bool pressed);
+            GUI_ResetResize(true);
         }
 #if defined(USE_TTF)
         if (LOWORD(wParam) == ID_WIN_SYSMENU_TTFINCSIZE) {
@@ -1802,10 +1802,17 @@ void DOSBox_SetSysMenu(void) {
 
     AppendMenu(sysmenu, MF_SEPARATOR, -1, "");
 
+    std::string get_mapper_shortcut(const char *name), key="";
+    char msg[512];
+
 #if DOSBOXMENU_TYPE == DOSBOXMENU_HMENU
     {
-        const char *msg = "Show &menu bar";
-
+        strcpy(msg, "Show &menu bar");
+        key=get_mapper_shortcut("togmenu");
+        if (key.size()) {
+            strcat(msg, "\t");
+            strcat(msg, key.c_str());
+        }
         memset(&mii, 0, sizeof(mii));
         mii.cbSize = sizeof(mii);
         mii.fMask = MIIM_ID | MIIM_STRING | MIIM_STATE;
@@ -1819,8 +1826,12 @@ void DOSBox_SetSysMenu(void) {
 #endif
 
     {
-        const char *msg = "&Pause";
-
+        strcpy(msg, "&Pause emulation");
+        key=get_mapper_shortcut("pause");
+        if (key.size()) {
+            strcat(msg, "\t");
+            strcat(msg, key.c_str());
+        }
         memset(&mii, 0, sizeof(mii));
         mii.cbSize = sizeof(mii);
         mii.fMask = MIIM_ID | MIIM_STRING | MIIM_STATE;
@@ -1835,8 +1846,7 @@ void DOSBox_SetSysMenu(void) {
     AppendMenu(sysmenu, MF_SEPARATOR, -1, "");
 
     {
-        const char *msg = "Reset window size";
-
+        strcpy(msg, "Reset window size");
         memset(&mii, 0, sizeof(mii));
         mii.cbSize = sizeof(mii);
         mii.fMask = MIIM_ID | MIIM_STRING | MIIM_STATE;
@@ -1850,10 +1860,13 @@ void DOSBox_SetSysMenu(void) {
 
 #if defined(USE_TTF)
     bool TTF_using(void);
-    ttfpos = GetMenuItemCount(sysmenu);
     {
-        const char *msg = "Increase TTF font size";
-
+        strcpy(msg, "Increase TTF font size");
+        key=get_mapper_shortcut("ttf_incsize");
+        if (key.size()) {
+            strcat(msg, "\t");
+            strcat(msg, key.c_str());
+        }
         memset(&mii, 0, sizeof(mii));
         mii.cbSize = sizeof(mii);
         mii.fMask = MIIM_ID | MIIM_STRING | MIIM_STATE;
@@ -1866,8 +1879,12 @@ void DOSBox_SetSysMenu(void) {
     }
 
     {
-        const char *msg = "Decrease TTF font size";
-
+        strcpy(msg, "Decrease TTF font size");
+        key=get_mapper_shortcut("ttf_decsize");
+        if (key.size()) {
+            strcat(msg, "\t");
+            strcat(msg, key.c_str());
+        }
         memset(&mii, 0, sizeof(mii));
         mii.cbSize = sizeof(mii);
         mii.fMask = MIIM_ID | MIIM_STRING | MIIM_STATE;
@@ -1883,8 +1900,12 @@ void DOSBox_SetSysMenu(void) {
     AppendMenu(sysmenu, MF_SEPARATOR, -1, "");
 
     {
-        const char *msg = "Configuration &Tool";
-
+        strcpy(msg, "Configuration &tool");
+        key=get_mapper_shortcut("gui");
+        if (key.size()) {
+            strcat(msg, "\t");
+            strcat(msg, key.c_str());
+        }
         memset(&mii, 0, sizeof(mii));
         mii.cbSize = sizeof(mii);
         mii.fMask = MIIM_ID | MIIM_STRING | MIIM_STATE;
@@ -1897,8 +1918,12 @@ void DOSBox_SetSysMenu(void) {
     }
 
     {
-        const char *msg = "Mapper &Editor";
-
+        strcpy(msg, "Mapper &editor");
+        key=get_mapper_shortcut("mapper");
+        if (key.size()) {
+            strcat(msg, "\t");
+            strcat(msg, key.c_str());
+        }
         memset(&mii, 0, sizeof(mii));
         mii.cbSize = sizeof(mii);
         mii.fMask = MIIM_ID | MIIM_STRING | MIIM_STATE;
