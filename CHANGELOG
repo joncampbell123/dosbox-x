@@ -15,7 +15,8 @@
     on-screen text-style and 512-character font (WP)
     features. When using the TTF output DOSBox-X will
     temporarily switch to a different output when a
-    graphical mode is requested (and will auto-switch
+    graphical mode is requested (or when trying to take
+    a screenshot); the TTF output will be auto-switched
     back later), which can be customized via config
     option "ttf.outputswitch" (which defaults to auto).
     Menu items in the "Text-mode" menu group (under
@@ -25,6 +26,10 @@
     bold, italics, underline and strikeout). You can
     also select a TTF font to use at run-time with the
     "Select TrueType font (TTF)" menu option. (Wengier)
+  - Added the "Load mapper file..." menu option (under
+    "Main") to select and load a DOSBox-X mapper file
+    at run-time. Be sure to select a SDL1 mapper file
+    for SDL1 builds, and similar for SDL2. (Wengier)
   - You can now select a host key from the menu (under
     "Main") including Ctrl+Alt, Ctrl+Shift, Alt+Shift,
     or use the mapper-defined host key as in previous
@@ -57,6 +62,10 @@
     shell command (DIR, CD, etc). (Wengier)
   - Configuration Tool now provides the option to save
     to the primary or user config files. (Wengier)
+  - Certain config options (e.g. doublescan) that were
+    marked as advanced options are now general config
+    options and will appear in dosbox-x.reference.conf
+    apart from dosbox-x.reference.full.conf. (Wengier)
   - Added config options "saveremark" (default: true)
     and "forceloadstate" (default: false) in [dosbox]
     section which can be used to control if DOSBox-X

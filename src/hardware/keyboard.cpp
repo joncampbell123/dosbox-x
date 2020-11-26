@@ -2633,6 +2633,11 @@ void AUX_INT33_Takeover() {
     keyb.ps2mouse.int33_taken = 1;
 }
 
+void KEYBOARD_Clear() {
+    keyb.repeat.key=KBD_NONE;
+    KEYBOARD_ClrBuffer();
+}
+
 void KEYBOARD_Reset() {
     /* Init the keyb struct */
     keyb.active=true;

@@ -477,21 +477,6 @@ static Bitu MakeAspectTable(Bitu skip,Bitu height,double scaley,Bitu miny) {
 }
 
 void RENDER_Reset( void ) {
-#if defined(USE_TTF)
-    if (sdl.desktop.want_type == SCREEN_TTF) {
-        // Setup the scaler variables
-        GFX_SetSize(render.cache.width, render.cache.height, 0, 0, 0, &RENDER_CallBack);
-
-        // Finish this frame using a copy only handler
-        RENDER_DrawLine = RENDER_FinishLineHandler;
-        // Signal the next frame to first reinit the cache
-        render.cache.nextInvalid = true;
-        render.active = true;
-        if (resetreq) resetFontSize();
-        return;
-    }
-#endif
-
     Bitu width=render.src.width;
     Bitu height=render.src.height;
     bool dblw=render.src.dblw;
@@ -693,8 +678,12 @@ forcenormal:
 #if !defined(C_SDL2)
     gfx_flags=GFX_GetBestMode(gfx_flags);
 #else
-    gfx_flags &= ~GFX_SCALING;
-    gfx_flags |= GFX_RGBONLY | GFX_CAN_RANDOM;
+    if (sdl.desktop.want_type == SCREEN_TTF)
+        gfx_flags = GFX_CAN_32 | GFX_SCALING;
+    else {
+        gfx_flags &= ~GFX_SCALING;
+        gfx_flags |= GFX_RGBONLY | GFX_CAN_RANDOM;
+    }
 #endif
     if (!gfx_flags) {
         if (!complexBlock && simpleBlock == &ScaleNormal1x) 
@@ -846,6 +835,12 @@ forcenormal:
     render.active=true;
 
     last_gfx_flags = gfx_flags;
+#if defined(USE_TTF)
+    if (sdl.desktop.want_type == SCREEN_TTF) {
+        render.cache.nextInvalid = true;
+        if (resetreq) resetFontSize();
+    }
+#endif
 }
 
 void RENDER_CallBack( GFX_CallBackFunctions_t function ) {

@@ -179,7 +179,8 @@ typedef enum PROCESS_DPI_AWARENESS {
 #if !defined(C_SDL2) && !defined(RISCOS)
 # include "SDL_version.h"
 # ifndef SDL_DOSBOX_X_SPECIAL
-#  warning It is recommended to compile this code using the SDL 1.x library provided in this source repository
+#  warning It is STRONGLY RECOMMENDED to compile the DOSBox-X code using the SDL 1.x library provided in this source repository.
+#  error You can ignore this by commenting out this error, but you will encounter problems if you use the unmodified SDL 1.x library.
 # endif
 #endif
 
@@ -249,7 +250,6 @@ unsigned int sendkeymap=0;
 ScreenSizeInfo          screen_size_info;
 
 #if defined(USE_TTF)
-extern int ttfpos;
 Render_ttf ttf;
 bool char512 = true;
 bool showbold = true;
@@ -1796,6 +1796,12 @@ Bitu GFX_GetBestMode(Bitu flags)
 #if C_DIRECT3D
         case SCREEN_DIRECT3D:
             retFlags = OUTPUT_DIRECT3D_GetBestMode(flags);
+            break;
+#endif
+
+#if defined(USE_TTF)
+        case SCREEN_TTF:
+            retFlags = GFX_CAN_32 | GFX_SCALING;
             break;
 #endif
 
@@ -3374,9 +3380,9 @@ void OUTPUT_TTF_Select(int fsize=-1) {
         SDL1_hax_SetMenu(NULL);
         void RENDER_CallBack( GFX_CallBackFunctions_t function );
         RENDER_CallBack( GFX_CallBackReset );
+#endif
         void DOSBox_SetSysMenu(void);
         DOSBox_SetSysMenu();
-#endif
         ttf.fullScrn = true;
     } else
         ttf.fullScrn = false;
@@ -3538,9 +3544,9 @@ void change_output(int output) {
     }
 #if defined(WIN32) && !defined(HX_DOS)
     HMENU sysmenu = GetSystemMenu(GetHWND(), TRUE);
-    if (ttfpos>-1 && sysmenu != NULL) {
-        EnableMenuItem(sysmenu, ttfpos, MF_BYPOSITION|(TTF_using()?MF_ENABLED:MF_DISABLED));
-        EnableMenuItem(sysmenu, ttfpos+1, MF_BYPOSITION|(TTF_using()?MF_ENABLED:MF_DISABLED));
+    if (sysmenu != NULL) {
+        EnableMenuItem(sysmenu, ID_WIN_SYSMENU_TTFINCSIZE, MF_BYCOMMAND|(TTF_using()?MF_ENABLED:MF_DISABLED));
+        EnableMenuItem(sysmenu, ID_WIN_SYSMENU_TTFDECSIZE, MF_BYCOMMAND|(TTF_using()?MF_ENABLED:MF_DISABLED));
     }
 #endif
     mainMenu.get_item("mapper_ttf_incsize").enable(TTF_using()).refresh_item(mainMenu);
@@ -3707,7 +3713,7 @@ void GFX_SwitchFullScreen(void)
 
     LOG_MSG("INFO: switched to %s mode", full ? "full screen" : "window");
 
-#if !defined(C_SDL2)
+#if defined (WIN32)
     // (re-)assign menu to window
     void DOSBox_SetSysMenu(void);
     DOSBox_SetSysMenu();
@@ -3780,14 +3786,14 @@ extern "C" unsigned char SDL1_hax_RemoveMinimize;
 void GFX_PreventFullscreen(bool lockout) {
     if (sdl.desktop.prevent_fullscreen != lockout) {
         sdl.desktop.prevent_fullscreen = lockout;
-#if defined(WIN32) && !defined(C_SDL2)
+#if defined(WIN32)
         void DOSBox_SetSysMenu(void);
-        int Reflect_Menu(void);
-
-        SDL1_hax_RemoveMinimize = lockout ? 1 : 0;
-
         DOSBox_SetSysMenu();
+#if !defined(C_SDL2)
+        SDL1_hax_RemoveMinimize = lockout ? 1 : 0;
+        int Reflect_Menu(void);
         Reflect_Menu();
+#endif
 #endif
     }
 }
@@ -6621,11 +6627,12 @@ void GFX_Events() {
                             GUI_Run(false);
                             break;
                         case ID_WIN_SYSMENU_PAUSE:
-                            extern void PauseDOSBox(bool pressed);
+                            void PauseDOSBox(bool pressed);
                             PauseDOSBox(true);
                             break;
                         case ID_WIN_SYSMENU_RESETSIZE:
-                            resetFontSize();
+                            void GUI_ResetResize(bool pressed);
+                            GUI_ResetResize(true);
                             break;
 #if defined(USE_TTF)
                         case ID_WIN_SYSMENU_TTFINCSIZE:
@@ -6945,11 +6952,12 @@ void GFX_Events() {
                             GUI_Run(false);
                             break;
                         case ID_WIN_SYSMENU_PAUSE:
-                            extern void PauseDOSBox(bool pressed);
+                            void PauseDOSBox(bool pressed);
                             PauseDOSBox(true);
                             break;
                         case ID_WIN_SYSMENU_RESETSIZE:
-                            resetFontSize();
+                            void GUI_ResetResize(bool pressed);
+                            GUI_ResetResize(true);
                             break;
 #if defined(USE_TTF)
                         case ID_WIN_SYSMENU_TTFINCSIZE:
@@ -9515,6 +9523,52 @@ bool vid_select_ttf_font_menu_callback(DOSBoxMenu* const menu, DOSBoxMenu::item*
 }
 #endif
 
+bool vid_select_mapper_file_menu_callback(DOSBoxMenu* const menu, DOSBoxMenu::item* const menuitem) {
+    (void)menu;//UNUSED
+    (void)menuitem;//UNUSED
+
+    Section_prop* section = static_cast<Section_prop*>(control->GetSection("sdl"));
+    assert(section != NULL);
+
+#if !defined(HX_DOS)
+    char CurrentDir[512];
+    char * Temp_CurrentDir = CurrentDir;
+    getcwd(Temp_CurrentDir, 512);
+    std::string cwd = std::string(Temp_CurrentDir)+CROSS_FILESPLIT;
+    const char *lFilterPatterns[] = {"*.map","*.MAP"};
+    const char *lFilterDescription = "Mapper files (*.map)";
+    char const * lTheOpenFileName = tinyfd_openFileDialog("Select mapper file",cwd.c_str(),2,lFilterPatterns,lFilterDescription,0);
+
+    if (lTheOpenFileName) {
+        /* Windows will fill lpstrFile with the FULL PATH.
+           The full path should be given to the pixelshader setting unless it's just
+           the same base path it was given: <cwd>\shaders in which case just cut it
+           down to the filename. */
+        const char* name = lTheOpenFileName;
+        std::string tmp = "";
+
+        /* filenames in Windows are case insensitive so do the comparison the same */
+        if (!strncasecmp(name, cwd.c_str(), cwd.size())) {
+            name += cwd.size();
+            while (*name == CROSS_FILESPLIT) name++;
+        }
+
+        if (*name) {
+#if defined(C_SDL2)
+			SetVal("sdl", "mapperfile_sdl2", name);
+#else
+            SetVal("sdl", "mapperfile", name);
+#endif
+            void ReloadMapper(Section_prop *sec, bool init);
+            ReloadMapper(section,true);
+        }
+    }
+    chdir( Temp_CurrentDir );
+#endif
+
+    return true;
+}
+
 bool vid_pc98_graphics_menu_callback(DOSBoxMenu * const menu,DOSBoxMenu::item * const menuitem) {
     (void)menu;//UNUSED
     (void)menuitem;//UNUSED
@@ -11813,7 +11867,7 @@ int main(int argc, char* argv[]) SDL_MAIN_NOEXCEPT {
             if (control->opt_fullscreen || sdl_sec->Get_bool("fullscreen")) {
                 LOG(LOG_MISC, LOG_DEBUG)("Going fullscreen immediately, during startup");
 
-#if !defined(C_SDL2)
+#if defined(WIN32)
                 void DOSBox_SetSysMenu(void);
                 DOSBox_SetSysMenu();
 #endif
@@ -11963,6 +12017,7 @@ int main(int argc, char* argv[]) SDL_MAIN_NOEXCEPT {
         /* more */
         std::string doubleBufString = std::string("desktop.doublebuf");
         mainMenu.alloc_item(DOSBoxMenu::item_type_id,"showdetails").set_text("Show FPS and RT speed in title bar").set_callback_function(showdetails_menu_callback).check(!menu.hidecycles && !menu.showrt);
+        mainMenu.alloc_item(DOSBoxMenu::item_type_id,"load_mapper_file").set_text("Load mapper file...").set_callback_function(vid_select_mapper_file_menu_callback);
         mainMenu.alloc_item(DOSBoxMenu::item_type_id,"auto_lock_mouse").set_text("Autolock mouse").set_callback_function(autolock_mouse_menu_callback).check(sdl.mouse.autoenable);
 #if defined (WIN32) || defined(C_SDL2)
         mainMenu.alloc_item(DOSBoxMenu::item_type_id,"clipboard_quick").set_text("Quick edit: copy on select and paste with mouse button").set_callback_function(direct_mouse_clipboard_menu_callback).check(direct_mouse_clipboard);
@@ -12152,7 +12207,7 @@ int main(int argc, char* argv[]) SDL_MAIN_NOEXCEPT {
                     b.hIcon = LoadIcon(GetModuleHandle(NULL), MAKEINTRESOURCE(IDI_MAPPER));
                     b.dwMask = THB_TOOLTIP | THB_FLAGS | THB_ICON;
                     b.dwFlags = THBF_ENABLED | THBF_DISMISSONCLICK;
-                    wcscpy(b.szTip, L"Mapper Editor");
+                    wcscpy(b.szTip, L"Mapper editor");
                 }
 
                 {
@@ -12162,7 +12217,7 @@ int main(int argc, char* argv[]) SDL_MAIN_NOEXCEPT {
                     b.hIcon = LoadIcon(GetModuleHandle(NULL), MAKEINTRESOURCE(IDI_CFG_GUI));
                     b.dwMask = THB_TOOLTIP | THB_FLAGS | THB_ICON;
                     b.dwFlags = THBF_ENABLED | THBF_DISMISSONCLICK;
-                    wcscpy(b.szTip, L"Configuration Tool");
+                    wcscpy(b.szTip, L"Configuration tool");
                 }
 
                 {
@@ -12180,7 +12235,7 @@ int main(int argc, char* argv[]) SDL_MAIN_NOEXCEPT {
                     b.hIcon = LoadIcon(GetModuleHandle(NULL), MAKEINTRESOURCE(IDI_PAUSE));
                     b.dwMask = THB_TOOLTIP | THB_FLAGS | THB_ICON;
                     b.dwFlags = THBF_ENABLED;
-                    wcscpy(b.szTip, L"Pause");
+                    wcscpy(b.szTip, L"Pause emulation");
                 }
 
                 winTaskbarList->ThumbBarAddButtons(GetHWND(), buttoni, buttons);

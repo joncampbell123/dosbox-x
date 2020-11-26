@@ -4329,9 +4329,12 @@ void MAPPER_Run(bool pressed) {
 }
 
 void update_all_shortcuts() {
-    for (auto &ev : events) {
+    for (auto &ev : events)
         if (ev != NULL) ev->update_menu_shortcut();
-    }
+#if defined(WIN32)
+    void DOSBox_SetSysMenu(void);
+    DOSBox_SetSysMenu();
+#endif
 }
 
 void MAPPER_RunInternal() {
@@ -4483,6 +4486,9 @@ void MAPPER_RunInternal() {
 #if DOSBOXMENU_TYPE == DOSBOXMENU_SDLDRAW
     mainMenu.rebuild();
 #endif
+    std::string mapper_keybind = mapper_event_keybind_string("host");
+    if (mapper_keybind.empty()) mapper_keybind = "unbound";
+    mainMenu.get_item("hostkey_mapper").check(hostkeyalt==0).set_text("Mapper-defined: "+mapper_keybind).refresh_item(mainMenu);
 
     GFX_ForceRedrawScreen();
 
@@ -4586,6 +4592,9 @@ void MAPPER_Init(void) {
 
     /* and then the menu items need to be updated */
     update_all_shortcuts();
+#if DOSBOXMENU_TYPE == DOSBOXMENU_SDLDRAW
+    mainMenu.rebuild();
+#endif
 }
 
 void ReloadMapper(Section_prop *section, bool init) {
@@ -4877,3 +4886,9 @@ std::string mapper_event_keybind_string(const std::string &x) {
     return std::string();
 }
 
+std::string get_mapper_shortcut(const char *name) {
+    for (CHandlerEventVector_it it=handlergroup.begin();it!=handlergroup.end();++it)
+        if ((*it)!=NULL&&!strcmp(name, (*it)->eventname.c_str()))
+            return (*it)->GetBindMenuText();
+    return "";
+}
