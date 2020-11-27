@@ -39,6 +39,17 @@ export LDFLAGS="$nld$LDFLAGS"
 export CPPFLAGS="$new$CPPFLAGS"
 export CXXFLAGS="$new$CXXFLAGS"
 
+# perfer to compile against our own freetype
+echo Compiling our internal freetype
+(cd vs2015/freetype && ./build-dosbox.sh) || exit 1
+new="-I$top/vs2015/freetype/linux-host/include/freetype2 "
+nld="-L$top/vs2015/freetype/linux-host/lib -lfreetype "
+export CFLAGS="$new$CFLAGS"
+export LDFLAGS="$nld$LDFLAGS"
+export CPPFLAGS="$new$CPPFLAGS"
+export CXXFLAGS="$new$CXXFLAGS"
+export INTERNAL_FREETYPE=1
+
 # now compile ourself
 echo Compiling DOSBox-X
 chmod +x configure
