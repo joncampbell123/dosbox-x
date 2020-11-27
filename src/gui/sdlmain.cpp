@@ -232,6 +232,7 @@ extern PFNGLVERTEXATTRIBPOINTERPROC glVertexAttribPointer;
 #endif
 
 #ifdef MACOSX
+#include <CoreGraphics/CoreGraphics.h>
 extern bool has_touch_bar_support;
 bool osx_detect_nstouchbar(void);
 void osx_init_touchbar(void);
@@ -256,6 +257,7 @@ bool showbold = true;
 bool showital = true;
 bool showline = true;
 bool showsout = false;
+int tottf = 0;
 int outputswitch = -1;
 int wpType = 0;
 int wpVersion = 0;
@@ -2442,7 +2444,12 @@ static Bitu OUTPUT_TTF_SetSize() {
 #if defined(WIN32)
 		maxWidth = GetSystemMetrics(SM_CXSCREEN);
 		maxHeight = GetSystemMetrics(SM_CYSCREEN);
+#elif defined(MACOSX)
+		auto mainDisplayId = CGMainDisplayID();
+		maxWidth = CGDisplayPixelsWide(mainDisplayId);
+		maxHeight = CGDisplayPixelsHigh(mainDisplayId);
 #endif
+
 #if defined(C_SDL2)
         GFX_SetResizeable(false);
         sdl.window = GFX_SetSDLSurfaceWindow(maxWidth, maxHeight);
@@ -3282,7 +3289,7 @@ void OUTPUT_TTF_Select(int fsize=-1) {
         }
         wpBG = render_section->Get_int("ttf.wpbg");
         winPerc = render_section->Get_int("ttf.winperc");
-        if (winPerc>100||fsize!=1&&(control->opt_fullscreen||static_cast<Section_prop *>(control->GetSection("sdl"))->Get_bool("fullscreen"))) winPerc=100;
+        if (winPerc>100||(fsize!=1&&(control->opt_fullscreen||static_cast<Section_prop *>(control->GetSection("sdl"))->Get_bool("fullscreen")))) winPerc=100;
         else if (winPerc<25) winPerc=25;
         if (fsize==1&&winPerc==100) winPerc=60;
         fontSize = render_section->Get_int("ttf.ptsize");
@@ -3394,9 +3401,21 @@ void OUTPUT_TTF_Select(int fsize=-1) {
     maxHeight -= mainMenu.menuBarHeightBase * 2;
 #endif
 
-#if defined(WIN32)
+#if defined(C_SDL2)
+    SDL_DisplayMode dm;
+    if (SDL_GetDesktopDisplayMode(0/*FIXME display index*/,&dm) == 0) {
+        maxWidth = dm.w;
+        maxHeight = dm.h;
+    }
+#elif defined(WIN32)
     maxWidth = GetSystemMetrics(SM_CXSCREEN);
     maxHeight = GetSystemMetrics(SM_CYSCREEN);
+#elif defined(MACOSX)
+    auto mainDisplayId = CGMainDisplayID();
+    maxWidth = CGDisplayPixelsWide(mainDisplayId);
+    maxHeight = CGDisplayPixelsHigh(mainDisplayId);
+#endif
+#if defined(WIN32)
     if (!ttf.fullScrn) {																			// 3D borders
         maxWidth -= GetSystemMetrics(SM_CXBORDER)*2;
         maxHeight -= GetSystemMetrics(SM_CYCAPTION) + GetSystemMetrics(SM_CYBORDER)*2;
@@ -4585,12 +4604,18 @@ void GFX_SelectFontByPoints(int ptsize) {
 	TTF_GlyphMetrics(ttf.SDL_font, 65, NULL, NULL, NULL, NULL, &ttf.width);
 	ttf.height = TTF_FontAscent(ttf.SDL_font)-TTF_FontDescent(ttf.SDL_font);
 	if (ttf.fullScrn) {
-		ttf.offX = (sdl.desktop.full.width-ttf.width*ttf.cols)/2;
-		ttf.offY = (sdl.desktop.full.height-ttf.height*ttf.lins)/2;
+		int maxWidth = sdl.desktop.full.width;
+		int maxHeight = sdl.desktop.full.height;
 #if defined(WIN32)
-		ttf.offX = (GetSystemMetrics(SM_CXSCREEN)-ttf.width*ttf.cols)/2;
-		ttf.offY = (GetSystemMetrics(SM_CYSCREEN)-ttf.height*ttf.lins)/2;
+		maxWidth = GetSystemMetrics(SM_CXSCREEN);
+		maxHeight = GetSystemMetrics(SM_CYSCREEN);
+#elif defined(MACOSX)
+		auto mainDisplayId = CGMainDisplayID();
+		maxWidth = CGDisplayPixelsWide(mainDisplayId);
+		maxHeight = CGDisplayPixelsHigh(mainDisplayId);
 #endif
+		ttf.offX = (maxWidth-ttf.width*ttf.cols)/2;
+		ttf.offY = (maxHeight-ttf.height*ttf.lins)/2;
 	}
 	else
 		ttf.offX = ttf.offY = 0;
@@ -4640,6 +4665,10 @@ void increaseFontSize() {
 			maxWidth -= GetSystemMetrics(SM_CXBORDER)*2;
 			maxHeight -= GetSystemMetrics(SM_CYCAPTION) + GetSystemMetrics(SM_CYBORDER)*2;
 		}
+#elif defined(MACOSX)
+		auto mainDisplayId = CGMainDisplayID();
+		maxWidth = CGDisplayPixelsWide(mainDisplayId);
+		maxHeight = CGDisplayPixelsHigh(mainDisplayId);
 #endif
 		GFX_SelectFontByPoints(ttf.pointsize + (ttf.DOSBox ? 2 : 1));
 		if (ttf.cols*ttf.width <= maxWidth && ttf.lins*ttf.height <= maxHeight) {		// if it fits on screen
@@ -4993,7 +5022,15 @@ static void GUI_StartUp() {
 #if defined(USE_TTF)
     else if (output == "ttf")
     {
+#if C_OPENGL && defined(MACOSX) && !defined(C_SDL2)
+        if (tottf==0) {
+            tottf=1;
+            OUTPUT_OPENGL_Select();
+        } else
+            OUTPUT_TTF_Select(0);
+#else
         OUTPUT_TTF_Select(0);
+#endif
     }
 #endif
     else 
@@ -9675,7 +9712,9 @@ bool output_menu_callback(DOSBoxMenu * const menu,DOSBoxMenu::item * const menui
     else if (!strcmp(what,"ttf")) {
 #if defined(USE_TTF)
         if (sdl.desktop.want_type == SCREEN_TTF || (CurMode->type!=M_TEXT && !IS_PC98_ARCH)) return true;
-#if C_DIRECT3D
+#if defined(MACOSX) && defined(C_OPENGL)
+        if (sdl.desktop.want_type == SCREEN_SURFACE) change_output(3);
+#elif C_DIRECT3D
         if (sdl.desktop.want_type == SCREEN_DIRECT3D) change_output(0);
 #endif
 #if !defined(C_SDL2)
