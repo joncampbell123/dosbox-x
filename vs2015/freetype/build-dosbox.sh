@@ -6,6 +6,7 @@ rm -Rfv linux-build || exit 1
 mkdir -p linux-build || exit 1
 
 chmod +x configure || exit 1
+chmod +x builds/unix/install-sh || exit 1
 
 srcdir="`pwd`"
 instdir="`pwd`/linux-host"
