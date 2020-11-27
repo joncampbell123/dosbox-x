@@ -1509,6 +1509,14 @@ void ConstructMenu(void) {
             strcpy(help_command_temp[i], ("command_"+std::string(cmd_list[cmd_index].name)).c_str());
             def_menu_help_command[i] = help_command_temp[i];
             i++;
+
+#if DOSBOXMENU_TYPE == DOSBOXMENU_SDLDRAW
+            if ((i % 15) == 14) {
+                strcpy(help_command_temp[i], "||");
+                def_menu_help_command[i]=help_command_temp[i];
+                i++;
+            }
+#endif
         }
         cmd_index++;
     }
@@ -1521,6 +1529,14 @@ void ConstructMenu(void) {
             strcpy(help_command_temp[i], ("command_"+std::string(cmd_list[cmd_index].name)).c_str());
             def_menu_help_command[i] = help_command_temp[i];
             i++;
+
+#if DOSBOXMENU_TYPE == DOSBOXMENU_SDLDRAW
+            if ((i % 15) == 14) {
+                strcpy(help_command_temp[i], "||");
+                def_menu_help_command[i]=help_command_temp[i];
+                i++;
+            }
+#endif
         }
         cmd_index++;
     }
