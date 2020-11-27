@@ -693,7 +693,8 @@ static const char *def_menu_drive[] =
 };
 
 /* help DOS commands ("HelpCommandMenu") */
-static const char *def_menu_help_command[512];
+#define MENU_HELP_COMMAND_MAX 512
+static const char *def_menu_help_command[MENU_HELP_COMMAND_MAX];
 char help_command_temp[512][30];
 
 /* help output debug ("HelpDebugMenu") */
@@ -1524,6 +1525,7 @@ void ConstructMenu(void) {
         cmd_index++;
     }
     def_menu_help_command[i++]=NULL;
+    assert(i <= MENU_HELP_COMMAND_MAX);
 
     /* help DOS command menu */
     ConstructSubMenu(mainMenu.get_item("HelpCommandMenu").get_master_id(), def_menu_help_command);
