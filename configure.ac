@@ -625,16 +625,22 @@ AC_ARG_ENABLE(freetype,AC_HELP_STRING([--disable-freetype],[Disable freetype sup
 AM_CONDITIONAL(C_FREETYPE, test "x$enable_freetype" = "xyes")
 if test x$enable_freetype = xyes; then
   AC_MSG_CHECKING(for freetype)
-  pkg-config --exists freetype2; RES=$?
-  if test x$RES = x0; then
-	CFLAGS="$CFLAGS "`pkg-config freetype2 --cflags`
-	CPPFLAGS="$CPPFLAGS "`pkg-config freetype2 --cflags`
-	LIBS="$LIBS "`pkg-config freetype2 --libs`
+  if test x$INTERNAL_FREETYPE = x1; then
+    # CFLAGS and LDFLAGS were already updated by build-macosx
     AC_DEFINE(C_FREETYPE,1)
     AC_MSG_RESULT(yes)
   else
-    enable_freetype=no
-    AC_MSG_RESULT(no)
+    pkg-config --exists freetype2; RES=$?
+    if test x$RES = x0; then
+      CFLAGS="$CFLAGS "`pkg-config freetype2 --cflags`
+      CPPFLAGS="$CPPFLAGS "`pkg-config freetype2 --cflags`
+      LIBS="$LIBS "`pkg-config freetype2 --libs`
+      AC_DEFINE(C_FREETYPE,1)
+      AC_MSG_RESULT(yes)
+    else
+      enable_freetype=no
+      AC_MSG_RESULT(no)
+    fi
   fi
 fi
 

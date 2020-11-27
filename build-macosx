@@ -22,16 +22,6 @@ echo Compiling our internal SDL 1.x
 #echo Compiling our internal SDLnet 1.x
 #(cd vs2015/sdlnet && ./build-dosbox.sh) || exit 1
 
-# perfer to compile against our own freetype
-echo Compiling our internal freetype
-(cd vs2015/freetype && ./build-dosbox.sh) || exit 1
-new="-I$top/vs2015/freetype/linux-host/include "
-nld="-L$top/vs2015/freetype/linux-host/lib "
-export CFLAGS="$new$CFLAGS"
-export LDFLAGS="$nld$LDFLAGS"
-export CPPFLAGS="$new$CPPFLAGS"
-export CXXFLAGS="$new$CXXFLAGS"
-
 # perfer to compile against our own zlib
 echo Compiling our internal zlib
 (cd vs2015/zlib && ./build-dosbox.sh) || exit 1
@@ -51,6 +41,17 @@ export CFLAGS="$new$CFLAGS"
 export LDFLAGS="$nld$LDFLAGS"
 export CPPFLAGS="$new$CPPFLAGS"
 export CXXFLAGS="$new$CXXFLAGS"
+
+# perfer to compile against our own freetype
+echo Compiling our internal freetype
+(cd vs2015/freetype && ./build-dosbox.sh) || exit 1
+new="-I$top/vs2015/freetype/linux-host/include/freetype2 "
+nld="-L$top/vs2015/freetype/linux-host/lib -lfreetype "
+export CFLAGS="$new$CFLAGS"
+export LDFLAGS="$nld$LDFLAGS"
+export CPPFLAGS="$new$CPPFLAGS"
+export CXXFLAGS="$new$CXXFLAGS"
+export INTERNAL_FREETYPE=1
 
 # now compile ourself
 echo Compiling DOSBox-X
