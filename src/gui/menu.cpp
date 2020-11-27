@@ -693,7 +693,8 @@ static const char *def_menu_drive[] =
 };
 
 /* help DOS commands ("HelpCommandMenu") */
-static const char *def_menu_help_command[512];
+#define MENU_HELP_COMMAND_MAX 512
+static const char *def_menu_help_command[MENU_HELP_COMMAND_MAX];
 char help_command_temp[512][30];
 
 /* help output debug ("HelpDebugMenu") */
@@ -1508,6 +1509,14 @@ void ConstructMenu(void) {
             strcpy(help_command_temp[i], ("command_"+std::string(cmd_list[cmd_index].name)).c_str());
             def_menu_help_command[i] = help_command_temp[i];
             i++;
+
+#if DOSBOXMENU_TYPE == DOSBOXMENU_SDLDRAW
+            if ((i % 15) == 14) {
+                strcpy(help_command_temp[i], "||");
+                def_menu_help_command[i]=help_command_temp[i];
+                i++;
+            }
+#endif
         }
         cmd_index++;
     }
@@ -1520,10 +1529,19 @@ void ConstructMenu(void) {
             strcpy(help_command_temp[i], ("command_"+std::string(cmd_list[cmd_index].name)).c_str());
             def_menu_help_command[i] = help_command_temp[i];
             i++;
+
+#if DOSBOXMENU_TYPE == DOSBOXMENU_SDLDRAW
+            if ((i % 15) == 14) {
+                strcpy(help_command_temp[i], "||");
+                def_menu_help_command[i]=help_command_temp[i];
+                i++;
+            }
+#endif
         }
         cmd_index++;
     }
     def_menu_help_command[i++]=NULL;
+    assert(i <= MENU_HELP_COMMAND_MAX);
 
     /* help DOS command menu */
     ConstructSubMenu(mainMenu.get_item("HelpCommandMenu").get_master_id(), def_menu_help_command);
