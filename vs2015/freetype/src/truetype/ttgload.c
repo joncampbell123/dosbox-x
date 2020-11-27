@@ -37,6 +37,9 @@
 #include "tterrors.h"
 #include "ttsubpix.h"
 
+#ifndef _MSC_VER
+# include <stdint.h>
+#endif
 
   /*************************************************************************/
   /*                                                                       */
