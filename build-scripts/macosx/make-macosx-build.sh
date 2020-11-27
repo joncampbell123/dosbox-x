@@ -5,8 +5,9 @@
 #   git clone https://github.com/joncampbell123/dosbox-x dosbox-x-sdl2
 #
 # Then run this script
+arch=`uname -m`
 name=`date +%F-%T | sed -e 's/:/-/g' | sed -e 's/-//g'`
-name="dosbox-x-macosx-x64-$name.zip"
+name="dosbox-x-macosx-$arch-$name.zip"
 
 echo "Will pack to $name"
 sleep 1
