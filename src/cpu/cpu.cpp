@@ -267,7 +267,7 @@ void menu_update_cputype(void) {
 int GetDynamicType() {
     const Section_prop * section=static_cast<Section_prop *>(control->GetSection("cpu"));
     std::string core(section->Get_string("core"));
-#if (C_DYNAMIC_X86) && (C_TARGETCPU == X86_64 || C_TARGETCPU == X86)
+#if (C_DYNAMIC_X86) && (C_TARGETCPU == X86 || C_TARGETCPU == X86_64)
     if (core == "dynamic_x86" || core == "dynamic_nodhfpu")
         return 1;
 #endif
@@ -275,7 +275,7 @@ int GetDynamicType() {
     if (core == "dynamic_rec")
         return 2;
 #endif
-#if C_TARGETCPU == X86_64 || C_TARGETCPU == X86
+#if C_TARGETCPU == X86 || C_TARGETCPU == X86_64 && !defined(_MSC_VER) // Wengier: It works fine with my VS2019 (both 32-bit and 64-bit builds)
 # if (C_DYNAMIC_X86)
     return 1;
 # elif (C_DYNREC)

@@ -3764,7 +3764,9 @@ AC_HELP_STRING([--enable-render-d3d], [enable the Direct3D render driver [[defau
         #  other spins, like x86-64, use a more standard "libstdc++.so.*"
         AC_CHECK_FILE("/boot/system/lib/libstdc++.r4.so", EXTRA_LDFLAGS="$EXTRA_LDFLAGS -lstdc++.r4", EXTRA_LDFLAGS="$EXTRA_LDFLAGS -lstdc++")
         ;;
-    arm*-apple-darwin*|*-ios-*)
+    *-ios-*)
+        # NTS: DOSBox-X specific modification: This used to match ANY ARM-based Darwin, but the new ARM-based Macbooks are not iOS
+        #      so the Darwin match here was deleted.
         ARCH=ios
 
         CheckVisibilityHidden

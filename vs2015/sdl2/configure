@@ -18283,7 +18283,7 @@ if ac_fn_c_try_link "$LINENO"; then :
           echo "*** you may also be able to get things to work by modifying LD_LIBRARY_PATH"
 else
    echo "*** The test program failed to compile or link. See the file config.log for the"
-          echo "*** exact error that occured. This usually means ESD was incorrectly installed"
+          echo "*** exact error that occurred. This usually means ESD was incorrectly installed"
           echo "*** or that you have moved ESD since it was installed. In the latter case, you"
           echo "*** may want to edit the esd-config script: $ESD_CONFIG"
 fi
@@ -24520,7 +24520,9 @@ else
 fi
 
         ;;
-    arm*-apple-darwin*|*-ios-*)
+    *-ios-*)
+        # NTS: DOSBox-X specific modification: This used to match ANY ARM-based Darwin, but the new ARM-based Macbooks are not iOS
+        #      so the Darwin match here was deleted.
         ARCH=ios
 
         CheckVisibilityHidden
@@ -24809,7 +24811,7 @@ $as_echo "#define SDL_TIMER_UNIX 1" >>confdefs.h
         ;;
     *)
         as_fn_error $? "
-*** Unsupported host:  Please add to configure.in
+*** Unsupported host:  Please add to configure.ac
         " "$LINENO" 5
         ;;
 esac
