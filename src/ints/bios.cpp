@@ -8231,7 +8231,8 @@ private:
         if (cpu.pmode) E_Exit("BIOS error: STARTUP function called while in protected/vm86 mode");
 
         // TODO: For those who would rather not use the VGA graphical modes, add a configuration option to "disable graphical splash".
-        //       We would then revert to a plain text copyright and status message here (and maybe an ASCII art version of the DOSBox logo).
+        //       We would then revert to a plain text copyright and status message here (and maybe an ASCII art version of the DOSBox-X logo).
+        //       This option is especially useful for TrueType font (TTF) output which supports text-mode only
         if (IS_VGA_ARCH) {
             rowheight = 16;
             reg_eax = 18;       // 640x480 16-color

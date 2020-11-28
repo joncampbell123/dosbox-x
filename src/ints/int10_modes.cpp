@@ -53,12 +53,6 @@ extern bool allow_vesa_tty;
 extern bool vga_8bit_dac;
 extern bool blinking;
 
-#if defined(USE_TTF)
-extern bool firstset;
-extern int tottf;
-void change_output(int output);
-#endif
-
 /* This list includes non-explicitly 24bpp modes (in the 0x100-0x11F range) that are available
  * when the VBE1.2 setting indicates they should be 24bpp.
  *
@@ -726,9 +720,10 @@ bool INT10_SetCurMode(void) {
 }
 
 #if defined(USE_TTF)
-extern int switchoutput;
+extern int switchoutput, tottf;
 extern bool firstset;
 bool TTF_using(void);
+void change_output(int output);
 #endif
 static void FinishSetMode(bool clearmem) {
 	/* Clear video memory if needs be */
