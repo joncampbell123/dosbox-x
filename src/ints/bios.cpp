@@ -45,7 +45,6 @@ extern bool PS1AudioCard;
 #include "parport.h"
 #include "dma.h"
 #include "shell.h"
-#include "render.h"
 #include <time.h>
 
 #if defined(DB_HAVE_CLOCK_GETTIME) && ! defined(WIN32)
@@ -84,11 +83,6 @@ extern bool pc98_40col_text;
 extern bool en_bios_ps2mouse;
 extern bool rom_bios_8x8_cga_font;
 extern bool pcibus_enable;
-#if defined(USE_TTF)
-extern bool firstset;
-extern int tottf;
-void change_output(int output);
-#endif
 
 uint32_t Keyb_ig_status();
 bool VM_Boot_DOSBox_Kernel();
@@ -8225,6 +8219,7 @@ private:
     }
     CALLBACK_HandlerObject cb_bios_startup_screen;
     static Bitu cb_bios_startup_screen__func(void) {
+        if (control->opt_fastlaunch && machine != MCH_PC98) return CBRET_NONE;
         const char *msg = "DOSBox-X (C) 2011-" COPYRIGHT_END_YEAR " The DOSBox-X Team\nDOSBox-X project maintainer: joncampbell123\nDOSBox-X project homepage: https://dosbox-x.com\n\n";
         int logo_x,logo_y,x,y,rowheight=8;
 
@@ -8612,14 +8607,6 @@ private:
         CPU_SetSegGeneral(cs, 0x60);
         CPU_SetSegGeneral(ss, 0x60);
 
-#if defined(USE_TTF) && defined(C_OPENGL)
-        // Hack for macOS SDL1 for now
-        if (tottf==1) {
-            tottf=2;
-            firstset=false;
-            change_output(9);
-        }
-#endif
         for (Bitu i=0;i < 0x400;i++) mem_writeb(0x7C00+i,0);
 		if ((bootguest||(!bootvm&&use_quick_reboot))&&!bootfast&&bootdrive>=0&&imageDiskList[bootdrive]) {
 			if (bootguest) MOUSE_Startup(NULL);

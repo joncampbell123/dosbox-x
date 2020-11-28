@@ -5027,10 +5027,8 @@ static void GUI_StartUp() {
             tottf=1;
             OUTPUT_OPENGL_Select();
         } else
-            OUTPUT_TTF_Select(0);
-#else
-        OUTPUT_TTF_Select(0);
 #endif
+        OUTPUT_TTF_Select(0);
     }
 #endif
     else 

@@ -29,6 +29,9 @@
 #include "programs.h"
 #include "render.h"
 #include "menu.h"
+#include "timer.h"
+#include "regs.h"
+#include "callback.h"
 
 #define SEQ_REGS 0x05
 #define GFX_REGS 0x09
@@ -49,6 +52,12 @@ extern bool allow_vesa_4bpp;
 extern bool allow_vesa_tty;
 extern bool vga_8bit_dac;
 extern bool blinking;
+
+#if defined(USE_TTF)
+extern bool firstset;
+extern int tottf;
+void change_output(int output);
+#endif
 
 /* This list includes non-explicitly 24bpp modes (in the 0x100-0x11F range) that are available
  * when the VBE1.2 setting indicates they should be 24bpp.
@@ -778,6 +787,19 @@ static void FinishSetMode(bool clearmem) {
 	if (CurMode->mode<128) real_writeb(BIOSMEM_SEG,BIOSMEM_CURRENT_MODE,(uint8_t)CurMode->mode);
 	else real_writeb(BIOSMEM_SEG,BIOSMEM_CURRENT_MODE,(uint8_t)(CurMode->mode-0x98));	//Looks like the s3 bios
 #if defined(USE_TTF)
+#if C_OPENGL
+        // Hack for macOS SDL1 for now
+        if (tottf==1) {
+            uint32_t lasttick=GetTicks();
+            while ((GetTicks()-lasttick)<1000) {
+                reg_eax = 0x5500;
+                CALLBACK_RunRealInt(0x16);
+            }
+            firstset=true;
+            change_output(9);
+            tottf=2;
+        }
+#endif
     if (TTF_using() && CurMode->type==M_TEXT) {
         if (ttf.inUse) {
             ttf.cols = CurMode->twidth;
