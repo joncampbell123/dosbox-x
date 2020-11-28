@@ -281,7 +281,9 @@ static BlockReturn gen_runcodeInit(uint8_t *code) {
 	opcode(15).Emit8Reg(0x50); // push r15
 	opcode(14).Emit8Reg(0x50); // push r14
 	// mov rbp, &cpu_regs
-	if ((uint32_t)(Bitu)&cpu_regs == (Bitu)&cpu_regs) opcode(5).setimm((Bitu)&cpu_regs,4).Emit8Reg(0xB8);
+    /* NTS: For VS2019, mere typecasting won't correctly detect whether the pointer is small enough to fit in 32 bits.
+            We have to mask and compare. If the pointer is above 4GB and the wrong choice is made, dynamic core will crash. --J.C. */
+	if ((((Bitu)&cpu_regs) && (Bitu)0xFFFFFFFFul) == (Bitu)&cpu_regs) opcode(5).setimm((Bitu)&cpu_regs,4).Emit8Reg(0xB8);
 	else opcode(5).set64().setimm((Bitu)&cpu_regs,8).Emit8Reg(0xB8);
 	opcode(13).Emit8Reg(0x50); // push r13
 	opcode(12).Emit8Reg(0x50); // push r12
