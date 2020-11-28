@@ -275,7 +275,7 @@ int GetDynamicType() {
     if (core == "dynamic_rec")
         return 2;
 #endif
-#if C_TARGETCPU == X86 || C_TARGETCPU == X86_64 && !defined(_MSC_VER) // Wengier: It works fine with my VS2019 (both 32-bit and 64-bit builds)
+#if C_TARGETCPU == X86 || C_TARGETCPU == X86_64
 # if (C_DYNAMIC_X86)
     return 1;
 # elif (C_DYNREC)
