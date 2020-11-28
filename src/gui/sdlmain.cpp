@@ -2508,8 +2508,10 @@ Bitu GFX_SetSize(Bitu width, Bitu height, Bitu flags, double scalex, double scal
     sdl.draw.width = (uint32_t)width;
     sdl.draw.height = (uint32_t)height;
 #if defined(USE_TTF)
-    if (TTF_using())
+    if (TTF_using()) {
+        sdl.desktop.type = SCREEN_SURFACE;
         return OUTPUT_TTF_SetSize();
+    }
 #endif
     sdl.draw.flags = flags;
     sdl.draw.callback = callback;
@@ -3878,11 +3880,6 @@ bool GFX_StartUpdate(uint8_t* &pixels,Bitu &pitch)
 #if C_DIRECT3D
         case SCREEN_DIRECT3D:
             return OUTPUT_DIRECT3D_StartUpdate(pixels, pitch);
-#endif
-
-#if defined(USE_TTF)
-        case SCREEN_TTF:
-            sdl.updating = true;
 #endif
 
         default:
@@ -9711,9 +9708,10 @@ bool output_menu_callback(DOSBoxMenu * const menu,DOSBoxMenu::item * const menui
 #if defined(USE_TTF)
         if (sdl.desktop.want_type == SCREEN_TTF || (CurMode->type!=M_TEXT && !IS_PC98_ARCH)) return true;
 #if defined(MACOSX) && defined(C_OPENGL)
-        if (sdl.desktop.want_type == SCREEN_SURFACE) change_output(3);
-#elif C_DIRECT3D
-        if (sdl.desktop.want_type == SCREEN_DIRECT3D) change_output(0);
+        if (sdl.desktop.want_type == SCREEN_SURFACE) {
+            sdl_opengl.framebuf = calloc(sdl.draw.width*sdl.draw.height, 4);
+            sdl.desktop.type = SCREEN_OPENGL;
+        }
 #endif
 #if !defined(C_SDL2)
         putenv("SDL_VIDEO_CENTERED=center");
