@@ -257,7 +257,6 @@ bool showbold = true;
 bool showital = true;
 bool showline = true;
 bool showsout = false;
-int tottf = 0;
 int outputswitch = -1;
 int wpType = 0;
 int wpVersion = 0;
@@ -2508,8 +2507,15 @@ Bitu GFX_SetSize(Bitu width, Bitu height, Bitu flags, double scalex, double scal
     sdl.draw.width = (uint32_t)width;
     sdl.draw.height = (uint32_t)height;
 #if defined(USE_TTF)
-    if (TTF_using())
+    if (TTF_using()) {
+#if C_OPENGL && defined(MACOSX) && !defined(C_SDL2)
+        sdl_opengl.framebuf = calloc(sdl.draw.width*sdl.draw.height, 4);
+        sdl.desktop.type = SCREEN_OPENGL;
+#else
+        sdl.desktop.type = SCREEN_SURFACE;
+#endif
         return OUTPUT_TTF_SetSize();
+    }
 #endif
     sdl.draw.flags = flags;
     sdl.draw.callback = callback;
@@ -3880,11 +3886,6 @@ bool GFX_StartUpdate(uint8_t* &pixels,Bitu &pitch)
             return OUTPUT_DIRECT3D_StartUpdate(pixels, pitch);
 #endif
 
-#if defined(USE_TTF)
-        case SCREEN_TTF:
-            sdl.updating = true;
-#endif
-
         default:
             break;
     }
@@ -5022,15 +5023,7 @@ static void GUI_StartUp() {
 #if defined(USE_TTF)
     else if (output == "ttf")
     {
-#if C_OPENGL && defined(MACOSX) && !defined(C_SDL2)
-        if (tottf==0) {
-            tottf=1;
-            OUTPUT_OPENGL_Select();
-        } else
-            OUTPUT_TTF_Select(0);
-#else
         OUTPUT_TTF_Select(0);
-#endif
     }
 #endif
     else 
@@ -9712,10 +9705,11 @@ bool output_menu_callback(DOSBoxMenu * const menu,DOSBoxMenu::item * const menui
     else if (!strcmp(what,"ttf")) {
 #if defined(USE_TTF)
         if (sdl.desktop.want_type == SCREEN_TTF || (CurMode->type!=M_TEXT && !IS_PC98_ARCH)) return true;
-#if defined(MACOSX) && defined(C_OPENGL)
-        if (sdl.desktop.want_type == SCREEN_SURFACE) change_output(3);
-#elif C_DIRECT3D
-        if (sdl.desktop.want_type == SCREEN_DIRECT3D) change_output(0);
+#if C_OPENGL && defined(MACOSX) && !defined(C_SDL2)
+        if (sdl.desktop.want_type == SCREEN_SURFACE) {
+            sdl_opengl.framebuf = calloc(sdl.draw.width*sdl.draw.height, 4);
+            sdl.desktop.type = SCREEN_OPENGL;
+        }
 #endif
 #if !defined(C_SDL2)
         putenv("SDL_VIDEO_CENTERED=center");
