@@ -8225,6 +8225,14 @@ private:
     }
     CALLBACK_HandlerObject cb_bios_startup_screen;
     static Bitu cb_bios_startup_screen__func(void) {
+#if defined(USE_TTF) && defined(C_OPENGL) && defined(MACOSX) && !defined(C_SDL2)
+        // Hack for macOS SDL1 for now
+        if (tottf==1) {
+            firstset=true;
+            change_output(9);
+            tottf=2;
+        }
+#endif
         const char *msg = "DOSBox-X (C) 2011-" COPYRIGHT_END_YEAR " The DOSBox-X Team\nDOSBox-X project maintainer: joncampbell123\nDOSBox-X project homepage: https://dosbox-x.com\n\n";
         int logo_x,logo_y,x,y,rowheight=8;
 

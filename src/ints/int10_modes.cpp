@@ -720,10 +720,9 @@ bool INT10_SetCurMode(void) {
 }
 
 #if defined(USE_TTF)
-extern int switchoutput, tottf;
+extern int switchoutput;
 extern bool firstset;
 bool TTF_using(void);
-void change_output(int output);
 #endif
 static void FinishSetMode(bool clearmem) {
 	/* Clear video memory if needs be */
@@ -782,19 +781,6 @@ static void FinishSetMode(bool clearmem) {
 	if (CurMode->mode<128) real_writeb(BIOSMEM_SEG,BIOSMEM_CURRENT_MODE,(uint8_t)CurMode->mode);
 	else real_writeb(BIOSMEM_SEG,BIOSMEM_CURRENT_MODE,(uint8_t)(CurMode->mode-0x98));	//Looks like the s3 bios
 #if defined(USE_TTF)
-#if C_OPENGL && defined(MACOSX) && !defined(C_SDL2)
-        // Hack for macOS SDL1 for now
-        if (tottf==1) {
-            uint32_t lasttick=GetTicks();
-            while ((GetTicks()-lasttick)<1000) {
-                reg_eax = 0x5500;
-                CALLBACK_RunRealInt(0x16);
-            }
-            firstset=true;
-            change_output(9);
-            tottf=2;
-        }
-#endif
     if (TTF_using() && CurMode->type==M_TEXT) {
         if (ttf.inUse) {
             ttf.cols = CurMode->twidth;
