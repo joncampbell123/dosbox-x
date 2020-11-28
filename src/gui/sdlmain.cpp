@@ -257,7 +257,6 @@ bool showbold = true;
 bool showital = true;
 bool showline = true;
 bool showsout = false;
-int tottf = 0;
 int outputswitch = -1;
 int wpType = 0;
 int wpVersion = 0;
@@ -2510,6 +2509,7 @@ Bitu GFX_SetSize(Bitu width, Bitu height, Bitu flags, double scalex, double scal
 #if defined(USE_TTF)
     if (TTF_using()) {
 #if C_OPENGL && defined(MACOSX) && !defined(C_SDL2)
+        sdl_opengl.framebuf = calloc(sdl.draw.width*sdl.draw.height, 4);
         sdl.desktop.type = SCREEN_OPENGL;
 #else
         sdl.desktop.type = SCREEN_SURFACE;
@@ -5023,10 +5023,6 @@ static void GUI_StartUp() {
 #if defined(USE_TTF)
     else if (output == "ttf")
     {
-#if C_OPENGL && defined(MACOSX) && !defined(C_SDL2)
-        if (tottf==0)
-            tottf=1;
-#endif
         OUTPUT_TTF_Select(0);
     }
 #endif

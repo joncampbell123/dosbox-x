@@ -29,9 +29,6 @@
 #include "programs.h"
 #include "render.h"
 #include "menu.h"
-#include "timer.h"
-#include "regs.h"
-#include "callback.h"
 
 #define SEQ_REGS 0x05
 #define GFX_REGS 0x09
