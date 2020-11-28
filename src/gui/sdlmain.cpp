@@ -2509,7 +2509,11 @@ Bitu GFX_SetSize(Bitu width, Bitu height, Bitu flags, double scalex, double scal
     sdl.draw.height = (uint32_t)height;
 #if defined(USE_TTF)
     if (TTF_using()) {
+#if C_OPENGL && defined(MACOSX) && !defined(C_SDL2)
+        sdl.desktop.type = SCREEN_OPENGL;
+#else
         sdl.desktop.type = SCREEN_SURFACE;
+#endif
         return OUTPUT_TTF_SetSize();
     }
 #endif
@@ -5020,10 +5024,8 @@ static void GUI_StartUp() {
     else if (output == "ttf")
     {
 #if C_OPENGL && defined(MACOSX) && !defined(C_SDL2)
-        if (tottf==0) {
+        if (tottf==0)
             tottf=1;
-            OUTPUT_OPENGL_Select();
-        } else
 #endif
         OUTPUT_TTF_Select(0);
     }
@@ -9707,7 +9709,7 @@ bool output_menu_callback(DOSBoxMenu * const menu,DOSBoxMenu::item * const menui
     else if (!strcmp(what,"ttf")) {
 #if defined(USE_TTF)
         if (sdl.desktop.want_type == SCREEN_TTF || (CurMode->type!=M_TEXT && !IS_PC98_ARCH)) return true;
-#if defined(MACOSX) && defined(C_OPENGL)
+#if C_OPENGL && defined(MACOSX) && !defined(C_SDL2)
         if (sdl.desktop.want_type == SCREEN_SURFACE) {
             sdl_opengl.framebuf = calloc(sdl.draw.width*sdl.draw.height, 4);
             sdl.desktop.type = SCREEN_OPENGL;

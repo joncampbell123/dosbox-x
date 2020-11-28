@@ -45,6 +45,7 @@ extern bool PS1AudioCard;
 #include "parport.h"
 #include "dma.h"
 #include "shell.h"
+#include "render.h"
 #include <time.h>
 
 #if defined(DB_HAVE_CLOCK_GETTIME) && ! defined(WIN32)
@@ -141,6 +142,11 @@ Bitu                        rombios_minimum_size = 0x10000;
 
 bool MEM_map_ROM_physmem(Bitu start,Bitu end);
 bool MEM_unmap_physmem(Bitu start,Bitu end);
+#if defined(USE_TTF)
+extern bool firstset;
+extern int tottf;
+void change_output(int output);
+#endif
 
 static std::string bochs_port_e9_line;
 
@@ -8219,7 +8225,14 @@ private:
     }
     CALLBACK_HandlerObject cb_bios_startup_screen;
     static Bitu cb_bios_startup_screen__func(void) {
-        if (control->opt_fastlaunch && machine != MCH_PC98) return CBRET_NONE;
+#if defined(USE_TTF) && defined(C_OPENGL) && defined(MACOSX) && !defined(C_SDL2)
+        // Hack for macOS SDL1 for now
+        if (tottf==1) {
+            firstset=true;
+            change_output(9);
+            tottf=2;
+        }
+#endif
         const char *msg = "DOSBox-X (C) 2011-" COPYRIGHT_END_YEAR " The DOSBox-X Team\nDOSBox-X project maintainer: joncampbell123\nDOSBox-X project homepage: https://dosbox-x.com\n\n";
         int logo_x,logo_y,x,y,rowheight=8;
 
@@ -8237,7 +8250,7 @@ private:
             rowheight = 16;
             reg_eax = 18;       // 640x480 16-color
             CALLBACK_RunRealInt(0x10);
-            DrawDOSBoxLogoVGA((unsigned int)logo_x*8u,(unsigned int)logo_y*(unsigned int)rowheight);
+            if (!control->opt_fastlaunch) DrawDOSBoxLogoVGA((unsigned int)logo_x*8u,(unsigned int)logo_y*(unsigned int)rowheight);
         }
         else if (machine == MCH_EGA) {
             rowheight = 14;
@@ -8251,14 +8264,14 @@ private:
             IO_Read(0x3DA); IO_Read(0x3BA);
             IO_Write(0x3C0,0x20);
 
-            DrawDOSBoxLogoVGA((unsigned int)logo_x*8u,(unsigned int)logo_y*(unsigned int)rowheight);
+            if (!control->opt_fastlaunch) DrawDOSBoxLogoVGA((unsigned int)logo_x*8u,(unsigned int)logo_y*(unsigned int)rowheight);
         }
         else if (machine == MCH_CGA || machine == MCH_MCGA || machine == MCH_PCJR || machine == MCH_AMSTRAD || machine == MCH_TANDY) {
             rowheight = 8;
             reg_eax = 6;        // 640x200 2-color
             CALLBACK_RunRealInt(0x10);
 
-            DrawDOSBoxLogoCGA6((unsigned int)logo_x*8u,(unsigned int)logo_y*(unsigned int)rowheight);
+            if (!control->opt_fastlaunch) DrawDOSBoxLogoCGA6((unsigned int)logo_x*8u,(unsigned int)logo_y*(unsigned int)rowheight);
         }
         else if (machine == MCH_PC98) {
             // clear the graphics layer
@@ -8311,7 +8324,7 @@ private:
                 }
             }
 
-            DrawDOSBoxLogoPC98((unsigned int)logo_x*8u,(unsigned int)logo_y*(unsigned int)rowheight);
+            if (!control->opt_fastlaunch) DrawDOSBoxLogoPC98((unsigned int)logo_x*8u,(unsigned int)logo_y*(unsigned int)rowheight);
 
             reg_eax = 0x4000;   // show the graphics layer (PC-98) so we can render the DOSBox logo
             CALLBACK_RunRealInt(0x18);
@@ -8324,6 +8337,7 @@ private:
             //       And for MDA/Hercules, we could render a monochromatic ASCII art version.
         }
 
+        if (!control->opt_fastlaunch) {
         if (machine != MCH_PC98) {
             reg_eax = 0x0200;   // set cursor pos
             reg_ebx = 0;        // page zero
@@ -8472,6 +8486,7 @@ private:
             CALLBACK_RunRealInt(0x18);
         }
 #endif
+        }
 
         // TODO: Then at this screen, we can print messages demonstrating the detection of
         //       IDE devices, floppy, ISA PnP initialization, anything of importance.
@@ -8534,6 +8549,23 @@ private:
                     break;
             }
         }
+#if defined(USE_TTF) && defined(C_OPENGL) && defined(MACOSX) && !defined(C_SDL2)
+        else if (tottf==2) {
+            uint32_t lasttick=GetTicks();
+            while ((GetTicks()-lasttick)<1000) {
+                if (machine == MCH_PC98) {
+                    reg_eax = 0x0100;   // sense key
+                    CALLBACK_RunRealInt(0x18);
+                    SETFLAGBIT(ZF,reg_bh == 0);
+                }
+                else {
+                    reg_eax = 0x0100;
+                    CALLBACK_RunRealInt(0x16);
+                }
+                tottf=3;
+            }
+        }
+#endif
 #endif
 
         if (machine == MCH_PC98) {
