@@ -643,9 +643,6 @@ void ttf_switch_off() {
 
 void ttf_switch_on() {
     if (ttfswitch && !(CaptureState & CAPTURE_IMAGE) && !(CaptureState & CAPTURE_VIDEO)) {
-#if C_DIRECT3D
-        if (Direct3D_using()) change_output(0);
-#endif
         change_output(10);
         SetVal("sdl", "output", "ttf");
         void OutputSettingMenuUpdate(void);

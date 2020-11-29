@@ -1119,7 +1119,7 @@ bool INT10_SetVideoMode_OTHER(uint16_t mode,bool clearmem) {
 #if defined(USE_TTF)
 extern bool resetreq;
 bool GFX_IsFullscreen(void), Direct3D_using(void);
-void ttf_reset(void), resetFontSize(), OUTPUT_TTF_Select(int fsize), KEYBOARD_Clear(), GFX_SwitchFullscreenNoReset(void);
+void ttf_reset(void), resetFontSize(), OUTPUT_TTF_Select(int fsize), RENDER_Reset(void), KEYBOARD_Clear(), GFX_SwitchFullscreenNoReset(void);
 #endif
 
 bool unmask_irq0_on_int10_setmode = true;
@@ -2013,9 +2013,6 @@ dac_text16:
         if (ttf.inUse)
             ttf_reset();
         else if (switch_output_from_ttf) {
-#if C_DIRECT3D
-            if (Direct3D_using()) change_output(0);
-#endif
             change_output(10);
             SetVal("sdl", "output", "ttf");
             void OutputSettingMenuUpdate(void);
@@ -2064,6 +2061,7 @@ dac_text16:
         switch_output_from_ttf = true;
         //if (GFX_IsFullscreen()) GFX_SwitchFullscreenNoReset();
         mainMenu.get_item("output_ttf").enable(false).refresh_item(mainMenu);
+        RENDER_Reset();
 #endif
     }
 	// Enable screen memory access
