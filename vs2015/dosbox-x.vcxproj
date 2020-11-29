@@ -1215,6 +1215,7 @@ copy "$(SolutionDir)\..\contrib\windows\shaders\*.*" "$(OutputPath)\shaders\"</C
     <ClCompile Include="..\src\hardware\mixer.cpp" />
     <ClCompile Include="..\src\hardware\mpu401.cpp" />
     <ClCompile Include="..\src\hardware\opl2board\opl2board.cpp" />
+    <ClCompile Include="..\src\hardware\opl3duoboard\opl3duoboard.cpp" />
     <ClCompile Include="..\src\hardware\ne2000.cpp" />
     <ClCompile Include="..\src\hardware\nukedopl.cpp" />
     <ClCompile Include="..\src\hardware\opl.cpp" />

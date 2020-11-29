@@ -1028,6 +1028,8 @@
     </ClCompile>
     <ClCompile Include="..\src\hardware\opl2board\opl2board.cpp">
       <Filter>Sources\hardware</Filter>
+    <ClCompile Include="..\src\hardware\opl3duoboard\opl3duoboard.cpp">
+      <Filter>Sources\hardware</Filter>
     </ClCompile>
     <ClCompile Include="..\src\libs\mt32\LA32FloatWaveGenerator.cpp">
       <Filter>Sources\libs\mt32</Filter>
@@ -2316,6 +2318,8 @@
       <Filter>Sources\hardware\serialport</Filter>
     </ClInclude>
     <ClInclude Include="..\src\hardware\opl2board\opl2board.h">
+      <Filter>Sources\hardware</Filter>
+    <ClInclude Include="..\src\hardware\opl3duoboard\opl3duoboard.h">
       <Filter>Sources\hardware</Filter>
     </ClInclude>
     <ClInclude Include="..\src\libs\mt32\LA32FloatWaveGenerator.h">
