@@ -1865,6 +1865,11 @@ void DOSBox_SetSysMenu(void) {
 
     {
         strcpy(msg, "Reset window size");
+        key=get_mapper_shortcut("resetsize");
+        if (key.size()) {
+            strcat(msg, "\t");
+            strcat(msg, key.c_str());
+        }
         memset(&mii, 0, sizeof(mii));
         mii.cbSize = sizeof(mii);
         mii.fMask = MIIM_ID | MIIM_STRING | MIIM_STATE;

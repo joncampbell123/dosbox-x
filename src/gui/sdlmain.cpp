@@ -934,6 +934,22 @@ void CopyClipboard(bool all);
 void CPU_Core_Dyn_X86_Shutdown(void);
 #endif
 
+std::string dosboxpath="";
+std::string GetDOSBoxXPath() {
+    int length = wai_getExecutablePath(NULL, 0, NULL);
+    char *exepath = (char*)malloc(length + 1);
+    wai_getExecutablePath(exepath, length, NULL);
+    exepath[length] = 0;
+    std::string full=std::string(exepath);
+    size_t found=full.find_last_of("/\\");
+    if (found!=string::npos)
+        dosboxpath=full.substr(0, found+1);
+    else
+        dosboxpath="";
+    free(exepath);
+    return dosboxpath;
+}
+
 void UpdateWindowMaximized(bool flag) {
     menu.maxwindow = flag;
 }
@@ -3171,23 +3187,20 @@ bool setColors(const char *colorArray, int n) {
 std::string failName="";
 bool readTTF(const char *fName) {
 	FILE * ttf_fh = NULL;
+	std::string exepath = "";
 	char ttfPath[1024];
-	char *exepath;
-	int length;
 
 	strcpy(ttfPath, fName);													// Try to load it from working directory
 	strcat(ttfPath, ".ttf");
     ttf_fh = fopen(ttfPath, "rb");
 
     if (!ttf_fh) {
-        length = wai_getExecutablePath(NULL, 0, NULL);
-        exepath = (char*)malloc(length + 1);
-        wai_getExecutablePath(exepath, length, NULL);
-        exepath[length] = 0;
-		strcpy(strrchr(strcpy(ttfPath, exepath), CROSS_FILESPLIT)+1, fName);	// Try to load it from where DOSBox-X was started
-		strcat(ttfPath, ".ttf");
-		ttf_fh = fopen(ttfPath, "rb");
-        free(exepath);
+        exepath=GetDOSBoxXPath();
+        if (exepath.size()) {
+            strcpy(strrchr(strcpy(ttfPath, exepath.c_str()), CROSS_FILESPLIT)+1, fName);	// Try to load it from where DOSBox-X was started
+            strcat(ttfPath, ".ttf");
+            ttf_fh = fopen(ttfPath, "rb");
+        }
 	}
 	if (!ttf_fh) {
 		strcpy(ttfPath, fName);
@@ -3210,13 +3223,11 @@ bool readTTF(const char *fName) {
         }
     }
     if (!ttf_fh) {
-        length = wai_getExecutablePath(NULL, 0, NULL);
-        exepath = (char*)malloc(length + 1);
-        wai_getExecutablePath(exepath, length, NULL);
-        exepath[length] = 0;
-		strcpy(strrchr(strcpy(ttfPath, exepath), CROSS_FILESPLIT)+1, fName);
-		ttf_fh = fopen(ttfPath, "rb");
-        free(exepath);
+        exepath=GetDOSBoxXPath();
+        if (exepath.size()) {
+            strcpy(strrchr(strcpy(ttfPath, exepath.c_str()), CROSS_FILESPLIT)+1, fName);
+            ttf_fh = fopen(ttfPath, "rb");
+        }
 	}
     if (!ttf_fh) {
         char fontdir[300];
@@ -10944,16 +10955,10 @@ int main(int argc, char* argv[]) SDL_MAIN_NOEXCEPT {
         if (!control->configfiles.size()) control->ParseConfigFile("dosbox-x.conf");
         if (!control->configfiles.size()) control->ParseConfigFile("dosbox.conf");
         if (!control->configfiles.size()) {
-            int length = wai_getExecutablePath(NULL, 0, NULL);
-            char *exepath = (char*)malloc(length + 1);
-            wai_getExecutablePath(exepath, length, NULL);
-            exepath[length] = 0;
-            std::string full=std::string(exepath);
-            size_t found=full.find_last_of("/\\");
-            if (found!=string::npos) {
-                std::string path=full.substr(0, found+1);
-                control->ParseConfigFile((path + "dosbox-x.conf").c_str());
-                if (!control->configfiles.size()) control->ParseConfigFile((path + "dosbox.conf").c_str());
+            std::string exepath=GetDOSBoxXPath();
+            if (exepath.size()) {
+                control->ParseConfigFile((exepath + "dosbox-x.conf").c_str());
+                if (!control->configfiles.size()) control->ParseConfigFile((exepath + "dosbox.conf").c_str());
             }
         }
 

@@ -36,16 +36,19 @@
     versions (which default to F11 on Windows and F12
     otherwise). A config option "hostkey" is added so
     that you can specify it from config file. (Wengier)
+  - You can now paste text from the clipboard on macOS
+    SDL1 build similar to Linux SDL1 build. (Wengier)
   - SDL1 builds updated to use newer audio APIs on
     macOS (Mac OS X) so that audio works once again
     when compiled and run on Mac OS X Big Sur. Prior
     to the change, ancient versions of the API dating
     back to the mid 2000s were used which no longer
     work on Big Sur.
-  - DOSBox-X will now look for the dosbox-x.conf (and
-    dosbox.conf) file in the directory containing the
-    DOSBox-X executable too if the config file cannot
-    be found in DOSBox-X working directory. (Wengier)
+  - DOSBox-X will now look for the config file (i.e.
+    dosbox-x.conf/dosbox.conf) and the mapper file in
+    the directory containing the DOSBox-X executable
+    too if the config or mapper file cannot be found
+    in the DOSBox-X working directory. (Wengier)
   - The system menu in Windows SDL1 builds is now also
     available for Windows SDL2 builds, and menu items
     "Reset font size", "Increase TTF font size" and

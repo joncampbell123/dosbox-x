@@ -57,6 +57,7 @@ bool usecon = true;
 uint16_t shell_psp = 0;
 Bitu call_int2e = 0;
 
+std::string GetDOSBoxXPath();
 void runMount(const char *str);
 void MSG_Replace(const char * _name, const char* _val);
 void DOS_SetCountry(uint16_t countryNo);
@@ -1515,12 +1516,19 @@ void SHELL_Init() {
     struct stat cstat;
     stat(path.c_str(),&cstat);
     if(!(cstat.st_mode & S_IFDIR)) {
-        path = "";
-        Cross::CreatePlatformConfigDir(path);
-        path += dirname;
-        stat(path.c_str(),&cstat);
-        if((cstat.st_mode & S_IFDIR) == 0)
+        path = GetDOSBoxXPath();
+        if (path.size()) {
+            path += dirname;
+            stat(path.c_str(),&cstat);
+        }
+        if(!path.size() || (cstat.st_mode & S_IFDIR) == 0) {
             path = "";
+            Cross::CreatePlatformConfigDir(path);
+            path += dirname;
+            stat(path.c_str(),&cstat);
+            if((cstat.st_mode & S_IFDIR) == 0)
+                path = "";
+        }
     }
     if (path.size()) {
 #if defined(WIN32)

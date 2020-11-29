@@ -4597,6 +4597,7 @@ void MAPPER_Init(void) {
 #endif
 }
 
+std::string GetDOSBoxXPath();
 void ReloadMapper(Section_prop *section, bool init) {
     Prop_path* pp;
 #if defined(C_SDL2)
@@ -4607,6 +4608,18 @@ void ReloadMapper(Section_prop *section, bool init) {
     pp = section->Get_path("mapperfile");
 #endif
     mapper.filename = pp->realpath;
+    FILE * loadfile=fopen(mapper.filename.c_str(),"rt");
+    if (!loadfile) {
+        std::string exepath=GetDOSBoxXPath();
+        if (exepath.size()) {
+            loadfile=fopen((exepath+mapper.filename).c_str(),"rt");
+            if (loadfile) {
+                mapper.filename = exepath+mapper.filename;
+                fclose(loadfile);
+            }
+        }
+    } else
+        fclose(loadfile);
 	if (init) {
 		GFX_LosingFocus(); //Release any keys pressed, or else they'll get stuck.
 		MAPPER_Init();
