@@ -42,6 +42,10 @@
     to the change, ancient versions of the API dating
     back to the mid 2000s were used which no longer
     work on Big Sur.
+  - DOSBox-X will now look for the dosbox-x.conf (and
+    dosbox.conf) file in the directory containing the
+    DOSBox-X executable too if the config file cannot
+    be found in DOSBox-X working directory. (Wengier)
   - The system menu in Windows SDL1 builds is now also
     available for Windows SDL2 builds, and menu items
     "Reset font size", "Increase TTF font size" and

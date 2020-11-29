@@ -103,13 +103,13 @@ void GFX_OpenGLRedrawScreen(void);
 #include "shell.h"
 #include "glidedef.h"
 #include "../ints/int10.h"
+#include "whereami.c"
 #if !defined(HX_DOS)
 #include "../libs/tinyfiledialogs/tinyfiledialogs.h"
 #endif
 #if defined(USE_TTF)
 #include "sdl_ttf.c"
 #include "DOSBoxTTF.h"
-#include "whereami.c"
 #endif
 
 #if defined(LINUX) && defined(HAVE_ALSA)
@@ -3218,29 +3218,35 @@ bool readTTF(const char *fName) {
 		ttf_fh = fopen(ttfPath, "rb");
         free(exepath);
 	}
-#if defined(WIN32)
     if (!ttf_fh) {
-        char winfontdir[MAX_PATH];
-        strcpy(winfontdir, "C:\\WINDOWS\\fonts\\");
+        char fontdir[300];
+#if defined(WIN32)
+        strcpy(fontdir, "C:\\WINDOWS\\fonts\\");
         struct stat wstat;
-        if(stat(winfontdir,&wstat) || !(wstat.st_mode & S_IFDIR)) {
+        if(stat(fontdir,&wstat) || !(wstat.st_mode & S_IFDIR)) {
             char dir[MAX_PATH];
             if (GetWindowsDirectory(dir, MAX_PATH)) {
-                strcpy(winfontdir, dir);
-                strcat(winfontdir, "\\fonts\\");
+                strcpy(fontdir, dir);
+                strcat(fontdir, "\\fonts\\");
             }
         }
-        strcpy(ttfPath, winfontdir);
+#elif defined(LINUX)
+        strcpy(fontdir, "/usr/share/fonts/truetype/");
+#elif defined(MACOSX)
+        strcpy(fontdir, "/Library/Fonts/");
+#else
+        strcpy(fontdir, "/fonts/");
+#endif
+        strcpy(ttfPath, fontdir);
         strcat(ttfPath, fName);
         strcat(ttfPath, ".ttf");
         ttf_fh = fopen(ttfPath, "rb");
         if (!ttf_fh) {
-            strcpy(ttfPath, winfontdir);
+            strcpy(ttfPath, fontdir);
             strcat(ttfPath, fName);
             ttf_fh = fopen(ttfPath, "rb");
         }
     }
-#endif
 	if (ttf_fh) {
 		if (!fseek(ttf_fh, 0, SEEK_END))
 			if ((ttfSize = ftell(ttf_fh)) != -1L)
@@ -9724,6 +9730,13 @@ bool output_menu_callback(DOSBoxMenu * const menu,DOSBoxMenu::item * const menui
             sdl.desktop.type = SCREEN_OPENGL;
         }
 #endif
+        if (window_was_maximized&&!GFX_IsFullscreen()) {
+#if defined(WIN32)
+            ShowWindow(GetHWND(), SW_RESTORE);
+#else
+            // Todo: How about Linux and macOS
+#endif
+        }
 #if !defined(C_SDL2)
         putenv("SDL_VIDEO_CENTERED=center");
 #endif
@@ -10921,6 +10934,19 @@ int main(int argc, char* argv[]) SDL_MAIN_NOEXCEPT {
         /* -- -- if none found, use dosbox-x.conf or dosbox.conf */
         if (!control->configfiles.size()) control->ParseConfigFile("dosbox-x.conf");
         if (!control->configfiles.size()) control->ParseConfigFile("dosbox.conf");
+        if (!control->configfiles.size()) {
+            int length = wai_getExecutablePath(NULL, 0, NULL);
+            char *exepath = (char*)malloc(length + 1);
+            wai_getExecutablePath(exepath, length, NULL);
+            exepath[length] = 0;
+            std::string full=std::string(exepath);
+            size_t found=full.find_last_of("/\\");
+            if (found!=string::npos) {
+                std::string path=full.substr(0, found+1);
+                control->ParseConfigFile((path + "dosbox-x.conf").c_str());
+                if (!control->configfiles.size()) control->ParseConfigFile((path + "dosbox.conf").c_str());
+            }
+        }
 
         /* -- -- if none found, use userlevel conf */
         if (!control->configfiles.size()) {
