@@ -1,5 +1,5 @@
 /*
- *  Copyright (C) 2002-2019  The DOSBox Team
+ *  Copyright (C) 2002-2020  The DOSBox Team
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -11,9 +11,9 @@
  *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  *  GNU General Public License for more details.
  *
- *  You should have received a copy of the GNU General Public License
- *  along with this program; if not, write to the Free Software
- *  Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1335, USA.
+ *  You should have received a copy of the GNU General Public License along
+ *  with this program; if not, write to the Free Software Foundation, Inc.,
+ *  51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
 
 
@@ -40,33 +40,33 @@ enum { CB_RETN,CB_RETF,CB_RETF8,CB_IRET,CB_IRETD,CB_IRET_STI,CB_IRET_EOI_PIC1,
 /* we can make THESE configurable though! */
 //#define CB_SEG	0xF000
 //#define CB_SOFFSET	0x1000
-extern Bit16u CB_SEG,CB_SOFFSET;
+extern uint16_t CB_SEG,CB_SOFFSET;
 
 enum {	
 	CBRET_NONE=0,CBRET_STOP=1
 };
 
-extern Bit8u lastint;
+extern uint8_t lastint;
 
 static INLINE RealPt CALLBACK_RealPointer(Bitu callback) {
-	return RealMake(CB_SEG,(Bit16u)(CB_SOFFSET+callback*CB_SIZE));
+	return RealMake(CB_SEG,(uint16_t)(CB_SOFFSET+callback*CB_SIZE));
 }
 static INLINE PhysPt CALLBACK_PhysPointer(Bitu callback) {
-	return PhysMake(CB_SEG,(Bit16u)(CB_SOFFSET+callback*CB_SIZE));
+	return PhysMake(CB_SEG,(uint16_t)(CB_SOFFSET+callback*CB_SIZE));
 }
 
 static inline PhysPt CALLBACK_GetBase(void) {
 	return (PhysPt)(((PhysPt)CB_SEG << (PhysPt)4U) + (PhysPt)CB_SOFFSET);
 }
 
-Bit8u CALLBACK_Allocate();
+uint8_t CALLBACK_Allocate();
 
 void CALLBACK_Idle(void);
 
 
-void CALLBACK_RunRealInt(Bit8u intnum);
-void CALLBACK_RunRealFar(Bit16u seg,Bit16u off);
-void CALLBACK_RunRealFarInt(Bit16u seg,Bit16u off);
+void CALLBACK_RunRealInt(uint8_t intnum);
+void CALLBACK_RunRealFar(uint16_t seg,uint16_t off);
+void CALLBACK_RunRealFarInt(uint16_t seg,uint16_t off);
 
 bool CALLBACK_Setup(Bitu callback,CallBack_Handler handler,Bitu type,const char* descr);
 Bitu CALLBACK_Setup(Bitu callback,CallBack_Handler handler,Bitu type,PhysPt addr,const char* descr);
@@ -88,7 +88,7 @@ private:
 	enum {NONE,SETUP,SETUPAT} m_type;
     struct {	
 		RealPt old_vector;
-		Bit8u interrupt;
+		uint8_t interrupt;
 		bool installed;
 	} vectorhandler;
 public:
@@ -105,12 +105,12 @@ public:
 
 	//Only allocate a callback number
 	void Allocate(CallBack_Handler handler,const char* description=0);
-	Bit16u Get_callback() {
-		return (Bit16u)m_callback;
+	uint16_t Get_callback() {
+		return (uint16_t)m_callback;
 	}
 	RealPt Get_RealPointer() {
 		return CALLBACK_RealPointer(m_callback);
 	}
-	void Set_RealVec(Bit8u vec,bool reinstall=false);
+	void Set_RealVec(uint8_t vec,bool reinstall=false);
 };
 #endif

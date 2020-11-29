@@ -1,5 +1,5 @@
 /*
- *  Copyright (C) 2002-2019  The DOSBox Team
+ *  Copyright (C) 2002-2020  The DOSBox Team
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -11,9 +11,9 @@
  *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  *  GNU General Public License for more details.
  *
- *  You should have received a copy of the GNU General Public License
- *  along with this program; if not, write to the Free Software
- *  Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1335, USA.
+ *  You should have received a copy of the GNU General Public License along
+ *  with this program; if not, write to the Free Software Foundation, Inc.,
+ *  51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
 
 
@@ -52,7 +52,7 @@ static void bank_setup_pvga1a() {
 		// TODO: Requirements are not compatible with vga_memory implementation.
 	} else {
 		// Single bank config is straightforward
-		vga.svga.bank_read = vga.svga.bank_write = (Bit8u)pvga1a.PR0A;
+		vga.svga.bank_read = vga.svga.bank_write = (uint8_t)pvga1a.PR0A;
 		vga.svga.bank_size = 4*1024;
 		VGA_SetupHandlers();
 	}
@@ -149,7 +149,7 @@ void FinishSetMode_PVGA1A(Bitu /*crtc_base*/, VGA_ModeExtraData* modeData) {
 	IO_Write(0x3ce, 0x0a);
 	IO_Write(0x3cf, 0x00);
 	IO_Write(0x3ce, 0x0b);
-	Bit8u val = IO_Read(0x3cf);
+	uint8_t val = IO_Read(0x3cf);
 	IO_Write(0x3cf, val & ~0x08);
 	IO_Write(0x3ce, 0x0c);
 	IO_Write(0x3cf, 0x00);
@@ -158,7 +158,7 @@ void FinishSetMode_PVGA1A(Bitu /*crtc_base*/, VGA_ModeExtraData* modeData) {
 	IO_Write(0x3ce, 0x0e);
 	IO_Write(0x3cf, 0x00);
 	IO_Write(0x3ce, 0x0f);
-	IO_Write(0x3cf, (Bit8u)oldlock);
+	IO_Write(0x3cf, (uint8_t)oldlock);
 
 	if (svga.determine_mode)
 		svga.determine_mode();

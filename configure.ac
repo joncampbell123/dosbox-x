@@ -1,5 +1,5 @@
 dnl Init.
-AC_INIT(dosbox-x,0.83.3,[https://github.com/joncampbell123/dosbox-x/issues],[],[http://dosbox-x.software])
+AC_INIT(dosbox-x,0.83.8,[https://github.com/joncampbell123/dosbox-x/issues],[],[https://dosbox-x.com])
 AC_PREREQ(2.60)
 AC_CONFIG_SRCDIR(README.md)
 
@@ -77,12 +77,6 @@ AC_C_CONST
 AC_C_INLINE
 AC_TYPE_SIZE_T
 AC_STRUCT_TM
-AC_CHECK_SIZEOF(unsigned char)
-AC_CHECK_SIZEOF(unsigned short)
-AC_CHECK_SIZEOF(unsigned int)
-AC_CHECK_SIZEOF(unsigned long)
-AC_CHECK_SIZEOF(unsigned long long)
-AC_CHECK_SIZEOF(int *)
 
 dnl some semi complex check for sys/socket so it works on darwin as well
 AC_CHECK_HEADERS([stdlib.h sys/types.h])
@@ -120,17 +114,22 @@ AC_COMPILE_IFELSE([AC_LANG_SOURCE([
 #endif
 ])],[],[AC_DEFINE([socklen_t],[int],[Define to `int` if you don't have socklen_t])])
 
-dnl C++0x is now considered deprecated.
-dnl This warning will stay here for a long enough period of time before making C++11 mandatory.
+dnl C++11 is mandatory in this codebase.
+dnl C++14 is optional at this time, will eventually become mandatory.
 
 dnl AC_CHECK_CXXFLAGS will prepend gnu++11 to CXXFLAGS if supported, for us.
-dnl our code adds -std=gnu++0x if not supported where the function would not do anything.
-dnl This code checks the CXX flags but does not keep the changes because AC_CHECK_CXXFLAGS
-dnl also adds it to CPPFLAGS which then also affects the C compilation (with warnings like
-dnl "-std=gnu++11 is not valid for C")
 OLDCFLAGS="$CFLAGS"
 OLDCPPFLAGS="$CPPFLAGS"
 OLDCXXFLAGS="$CXXFLAGS"
+
+AC_MSG_CHECKING([checking for C++14 support])
+AC_CHECK_CXXFLAGS([ -std=gnu++14 ], [  ], [
+    warn_cpp11=1
+])
+
+CXXFLAGS="$OLDCXXFLAGS"
+CPPFLAGS="$OLDCPPFLAGS"
+CFLAGS="$OLDCFLAGS"
 
 AC_MSG_CHECKING([checking for C++11 support])
 AC_CHECK_CXXFLAGS([ -std=gnu++11 ], [  ], [
@@ -145,8 +144,21 @@ if test x$warn_cpp0x = x1; then
     AC_MSG_ERROR([ Your compiler must support C++11 or better ])
 fi
 
-CFLAGS="$CFLAGS -std=gnu11";
-CXXFLAGS="$CXXFLAGS -std=gnu++11";
+dnl Allow devs to force compile as C++11 as long as this code supports C++11 as a baseline
+AC_ARG_ENABLE(force-cxx11,AC_HELP_STRING([--enable-force-cxx11],[Force compile as C++11]),force_cxx11=yes)
+
+if test x$warn_cpp11 = x1; then
+    AC_MSG_WARN([ Your compiler does not support C++14. Currently it is optional. At some point in the future, it will be required ])
+    CFLAGS="$CFLAGS -std=gnu11";
+    CXXFLAGS="$CXXFLAGS -std=gnu++11";
+elif test x$force_cxx11 = xyes; then
+    CFLAGS="$CFLAGS -std=gnu11";
+    CXXFLAGS="$CXXFLAGS -std=gnu++11";
+else
+    AC_MSG_WARN([ DOSBox-X is still intended to support compilation as C++11. If you add new code please make sure it works as C++11 by running ./configure with --enable-force-cxx11 ])
+    CFLAGS="$CFLAGS -std=gnu11"; # no such "gnu14"
+    CXXFLAGS="$CXXFLAGS -std=gnu++14";
+fi
 
 dnl yksoft1 wants a MinGW build for Windows that doesn't use the Windows menu system.
 AH_TEMPLATE(C_FORCE_MENU_SDLDRAW,[Define to 1 to force SDL-drawn menus])
@@ -227,7 +239,7 @@ LIBS_BACKUP=$LIBS;
 LIBS="$LIBS -lm";
 AC_LINK_IFELSE([AC_LANG_PROGRAM([[#include <math.h>]],[[
         powf(1.0f, 1.0f);
-]])], [AC_MSG_RESULT(yes)], [AC_DEFINE([DB_HAVE_NO_POWF],[1],[libm doesn't include powf])])
+]])], [AC_MSG_RESULT(yes)], [AC_DEFINE([DB_HAVE_NO_POWF],[1],[libm doesn’t include powf])])
 LIBS=$LIBS_BACKUP
 
 dnl Look for clock_gettime, a DB_HAVE_CLOCK_GETTIME is set when present
@@ -363,14 +375,48 @@ esac
        AM_CONDITIONAL(HAVE_WINDRES, test "x$WINDRES" != "x:")
        AC_SUBST(WINDRES)
 
+dnl LIBRARY TEST: SDL 2.x
+SDL2_VERSION=2.0.5
+AM_PATH_SDL2($SDL2_VERSION)
+
+dnl LIBRARY TEST: SDL 1.x
+SDL_VERSION=1.2.0
+AM_PATH_SDL($SDL_VERSION)
+
+dnl LIBRARY USE: SDL selection
+if test -n "$SDL2_LIBS"; then
+    LIBS="$LIBS $SDL2_LIBS"
+    CPPFLAGS="$CPPFLAGS $SDL2_CFLAGS"
+else
+  if test -n "$SDL_LIBS"; then
+    LIBS="$LIBS $SDL_LIBS"
+    CPPFLAGS="$CPPFLAGS $SDL_CFLAGS"
+  else
+    AC_MSG_ERROR([SDL 1.x or SDL 2.x is required to compile this program])
+  fi
+fi
+
+# FIXME: Arrggh we need the WHOLE PATH
+pwd=`realpath $srcdir`
+if [[ -z "$pwd" ]]; then pwd=`pwd`; fi
+
+CFLAGS="$CFLAGS -I$pwd -I$pwd/vs2015/sdlnet/linux-host/include -I$pwd/vs2015/sdlnet/linux-host/include/SDL"
+LDFLAGS="$LDFLAGS -L$pwd/vs2015/sdlnet/linux-host/lib"
+CPPFLAGS="$CPPFLAGS -I$pwd -I$pwd/vs2015/sdlnet/linux-host/include -I$pwd/vs2015/sdlnet/linux-host/include/SDL"
+CXXFLAGS="$CXXFLAGS -I$pwd -I$pwd/vs2015/sdlnet/linux-host/include -I$pwd/vs2015/sdlnet/linux-host/include/SDL"
+
+dnl LIBRARY TEST: SDLnet initial test
+AC_CHECK_HEADER(SDL_net.h,have_sdl_net_h=yes,)
+
 if test x$enable_emscripten != xyes; then
 dnl Some target detection and actions for them
 case "$host" in
     *-*-cygwin* | *-*-mingw32*)
-       LIBS="$LIBS -lwinmm -limm32 -lole32"
+       LIBS="$LIBS -lwinmm -ldsound -limm32 -lole32 -loleaut32 -lversion -lsetupapi"
        CXXFLAGS="$CXXFLAGS -mno-ms-bitfields"
-       if test x$have_sdl_net_lib = xyes -a x$have_sdl_net_h = xyes ; then
-         LIBS="$LIBS -lws2_32"
+       if test x$have_sdl_net_h = xyes ; then
+         dnl HACK: We have to put SDL_net THEN winsock libraries or else the linker can't resolve things properly
+         LIBS="$LIBS -lSDL_net -lwsock32 -lws2_32 -liphlpapi"
        fi
        dnl FEATURE: Whether to support direct parallel port passthrough
        AC_DEFINE(C_DIRECTLPT, 1, [ Define to 1 if you want parallel passthrough support (Win32, Linux).])
@@ -383,7 +429,11 @@ case "$host" in
        dnl to do more to distinguish them.
        dnl For now I am lazy and do not add proper detection code.
        macosx=1
-       OBJCXXFLAGS="$OBJCXXFLAGS -std=gnu++11";
+       if test x$warn_cpp11 = x1; then
+           OBJCXXFLAGS="$OBJCXXFLAGS -std=gnu++14";
+       else
+           OBJCXXFLAGS="$OBJCXXFLAGS -std=gnu++11";
+       fi
        AC_DEFINE(MACOSX, 1, [Compiling on Mac OS X])
        LIBS="$LIBS -framework Carbon -framework CoreFoundation -framework CoreMIDI -framework AudioUnit -framework AudioToolbox -framework ApplicationServices -framework AppKit"
        dnl FEATURE: Whether to support direct serial port passthrough
@@ -474,6 +524,12 @@ case "$host_cpu" in
     c_targetcpu="arm"
     c_unalignedmemory=yes
     ;;
+   arm) # Mac OS X uname -m says "arm64", for some reason it becomes "arm" ?
+    AC_DEFINE(C_TARGETCPU,ARMV8LE)
+    AC_MSG_RESULT(ARMv8 Little Endian 64-bit)
+    c_targetcpu="arm"
+    c_unalignedmemory=yes
+    ;;
    *)
     AC_DEFINE(C_TARGETCPU,UNKNOWN)
     AC_MSG_RESULT(unknown)
@@ -485,27 +541,6 @@ dnl TODO: Need GCC to know this code is using C++ lamda functions
 
 dnl LIBRARY TEST: ALSA
 AM_PATH_ALSA(0.9.0, AC_DEFINE(HAVE_ALSA,1,[Define to 1 to use ALSA for MIDI]) , : )
-
-dnl LIBRARY TEST: SDL 2.x
-SDL2_VERSION=2.0.5
-AM_PATH_SDL2($SDL2_VERSION)
-
-dnl LIBRARY TEST: SDL 1.x
-SDL_VERSION=1.2.0
-AM_PATH_SDL($SDL_VERSION)
-
-dnl LIBRARY USE: SDL selection
-if test -n "$SDL2_LIBS"; then
-    LIBS="$LIBS $SDL2_LIBS"
-    CPPFLAGS="$CPPFLAGS $SDL2_CFLAGS"
-else
-  if test -n "$SDL_LIBS"; then
-    LIBS="$LIBS $SDL_LIBS"
-    CPPFLAGS="$CPPFLAGS $SDL_CFLAGS"
-  else
-    AC_MSG_ERROR([SDL 1.x or SDL 2.x is required to compile this program])
-  fi
-fi
 
 dnl Some stuff for the icon.
 case "$host" in
@@ -549,16 +584,9 @@ dnl This may be provided by glibc itself, -liconv may not be needed.
 AC_CHECK_HEADER(iconv.h,have_iconv_h=yes,)
 AC_CHECK_LIB(iconv, libiconv_open, have_iconv_lib=yes, ,-liconv)
 
-# FIXME: Arrggh we need the WHOLE PATH
-pwd=`pwd`
-
-CFLAGS="$CFLAGS -I$pwd/vs2015/sdlnet/linux-host/include -I$pwd/vs2015/sdlnet/linux-host/include/SDL"
-LDFLAGS="$LDFLAGS -L$pwd/vs2015/sdlnet/linux-host/lib"
-CPPFLAGS="$CPPFLAGS -I$pwd/vs2015/sdlnet/linux-host/include -I$pwd/vs2015/sdlnet/linux-host/include/SDL"
-CXXFLAGS="$CXXFLAGS -I$pwd/vs2015/sdlnet/linux-host/include -I$pwd/vs2015/sdlnet/linux-host/include/SDL"
-
-dnl LIBRARY TEST: SDLnet 1.x
+dnl LIBRARY TEST: SDLnet
 AC_CHECK_HEADER(SDL_net.h,have_sdl_net_h=yes,)
+AC_CHECK_LIB(SDL2_net, SDLNet_Init, have_sdl2_net_lib=yes, , )
 AC_CHECK_LIB(SDL_net, SDLNet_Init, have_sdl_net_lib=yes, , )
 
 AC_COMPILE_IFELSE([AC_LANG_SOURCE([
@@ -597,22 +625,34 @@ AC_ARG_ENABLE(freetype,AC_HELP_STRING([--disable-freetype],[Disable freetype sup
 AM_CONDITIONAL(C_FREETYPE, test "x$enable_freetype" = "xyes")
 if test x$enable_freetype = xyes; then
   AC_MSG_CHECKING(for freetype)
-  pkg-config --exists freetype2; RES=$?
-  if test x$RES = x0; then
-	CFLAGS="$CFLAGS "`pkg-config freetype2 --cflags`
-	CPPFLAGS="$CPPFLAGS "`pkg-config freetype2 --cflags`
-	LIBS="$LIBS "`pkg-config freetype2 --libs`
+  if test x$INTERNAL_FREETYPE = x1; then
+    # CFLAGS and LDFLAGS were already updated by build-macosx
     AC_DEFINE(C_FREETYPE,1)
     AC_MSG_RESULT(yes)
   else
-    enable_freetype=no
-    AC_MSG_RESULT(no)
+    pkg-config --exists freetype2; RES=$?
+    if test x$RES = x0; then
+      CFLAGS="$CFLAGS "`pkg-config freetype2 --cflags`
+      CPPFLAGS="$CPPFLAGS "`pkg-config freetype2 --cflags`
+      LIBS="$LIBS "`pkg-config freetype2 --libs`
+      AC_DEFINE(C_FREETYPE,1)
+      AC_MSG_RESULT(yes)
+    else
+      enable_freetype=no
+      AC_MSG_RESULT(no)
+    fi
   fi
 fi
 
 dnl LIBRARY TEST: FFMPEG support
-AC_CHECK_LIB(avcodec,avcodec_open2,have_ffmpeg=yes,have_ffmpeg=no,)
-AC_CHECK_HEADER(libavcodec/avcodec.h,have_avcodec_h=yes,have_avcodec_h=no,)
+pkg-config --exists libavcodec; RES=$?
+if test x$RES = x0; then
+  have_avcodec_h=yes
+  have_ffmpeg=yes
+else
+  have_avcodec_h=no
+  have_ffmpeg=no
+fi
 
 dnl LIBRARY TEST: OpenGL support
 AC_CHECK_LIB(GL, main, have_gl_lib=yes, have_gl_lib=no , )
@@ -780,29 +820,26 @@ esac
 dnl FEATURE: Whether to enable dynamic core
 AC_ARG_ENABLE(dynamic-core,AC_HELP_STRING([--disable-dynamic-core],[Disable all dynamic cores]),,enable_dynamic_core=yes)
 
-AH_TEMPLATE(C_DYNREC,[Define to 1 to use recompiling cpu core. Can not be used together with the dynamic-x86 core])
+dnl FEATURE: Whether to enable x86 dynamic core
+AH_TEMPLATE(C_DYNAMIC_X86,[Define to 1 to use x86 dynamic cpu core])
+AC_ARG_ENABLE(dynamic-x86,AC_HELP_STRING([--disable-dynamic-x86],[Disable x86 dynamic cpu core]),,enable_dynamic_x86=yes)
+AC_MSG_CHECKING(whether x86 dynamic cpu core will be enabled)
+if test x$enable_dynamic_x86 = xno -o x$enable_dynamic_core = xno -o x$c_targetcpu = xarm; then
+   AC_MSG_RESULT(no)
+else
+   AC_DEFINE(C_DYNAMIC_X86,1)
+   AC_MSG_RESULT(yes)
+fi
+
+dnl FEATURE: Whether to enable recompiling dynamic core
+AH_TEMPLATE(C_DYNREC,[Define to 1 to use recompiling cpu core])
 AC_ARG_ENABLE(dynrec,AC_HELP_STRING([--disable-dynrec],[Disable recompiling cpu core]),,enable_dynrec=yes)
 AC_MSG_CHECKING(whether recompiling cpu core will be enabled) 
 if test x$enable_dynrec = xno -o x$enable_dynamic_core = xno; then 
    AC_MSG_RESULT(no)
 else
-dnl x86 only enable it if dynamic-x86 is disabled.
-  if test x$c_targetcpu = xx86 ; then
-    AC_DEFINE(C_DYNREC,1)
-    AC_MSG_RESULT(yes)
-  else 
-    if test x$c_targetcpu = xx86_64 ; then
-        AC_DEFINE(C_DYNREC,1)
-        AC_MSG_RESULT(yes)
-    else
-      if test x$c_targetcpu = xarm ; then
-        AC_DEFINE(C_DYNREC,1)
-	AC_MSG_RESULT(yes)
-      else 
-        AC_MSG_RESULT(no)
-      fi
-    fi
-  fi
+   AC_DEFINE(C_DYNREC,1)
+   AC_MSG_RESULT(yes)
 fi
 
 dnl FEATURE: Whether to emulate the floating point unit
@@ -851,14 +888,30 @@ AH_TEMPLATE(C_SDL_NET,[Indicate whether SDL_net is present])
 AH_TEMPLATE(C_MODEM,[Define to 1 to enable internal modem support, requires SDL_net])
 AH_TEMPLATE(C_IPX,[Define to 1 to enable IPX over Internet networking, requires SDL_net])
 
-# HACK: Don't enable SDL2 net if SDL2
-if test x$have_sdl_net_lib = xyes -a x$have_sdl_net_h = xyes ; then
- LIBS="$LIBS -lSDL_net"
- AC_DEFINE(C_SDL_NET,1)
- AC_DEFINE(C_MODEM,1)
- AC_DEFINE(C_IPX,1)
-else 
- AC_MSG_WARN([Can't find SDL_net, internal modem and ipx disabled])
+dnl enable SDL2 net if SDL2
+if test -n "$SDL2_LIBS"; then
+ if test x$have_sdl2_net_lib = xyes -a x$have_sdl_net_h = xyes ; then
+  LIBS="$LIBS -lSDL2_net"
+  AC_DEFINE(C_SDL_NET,1)
+  AC_DEFINE(C_MODEM,1)
+  AC_DEFINE(C_IPX,1)
+ elif test x$have_sdl_net_lib = xyes -a x$have_sdl_net_h = xyes ; then
+  LIBS="$LIBS -lSDL_net"
+  AC_DEFINE(C_SDL_NET,1)
+  AC_DEFINE(C_MODEM,1)
+  AC_DEFINE(C_IPX,1)
+ else
+  AC_MSG_WARN([Can't find SDL_net, internal modem and ipx disabled])
+ fi
+else
+ if test x$have_sdl_net_lib = xyes -a x$have_sdl_net_h = xyes ; then
+  LIBS="$LIBS -lSDL_net"
+  AC_DEFINE(C_SDL_NET,1)
+  AC_DEFINE(C_MODEM,1)
+  AC_DEFINE(C_IPX,1)
+ else 
+  AC_MSG_WARN([Can't find SDL_net, internal modem and ipx disabled])
+ fi
 fi
 
 dnl FEATURE: Whether to support libz, and enable snapshots
@@ -888,12 +941,21 @@ fi
 
 dnl FEATURE: Whether to use libpcap, and enable NE2000 emulation
 AH_TEMPLATE(C_NE2000,[Define to 1 to enable NE2000 ethernet passthrough, requires libpcap])
-if test x$have_pcap_lib = xyes -a x$have_pcap_h = xyes ; then
-  LIBS="$LIBS -lpcap";
-  AC_DEFINE(C_NE2000,1)
-else
-  AC_MSG_WARN([Can't find libpcap, NE2000 ethernet passthrough disabled])
-fi
+case "$host" in
+    *-*-cygwin* | *-*-mingw32*)
+       CFLAGS="$CFLAGS -I$pwd/vs2015/pcap"
+       CXXFLAGS="$CXXFLAGS -I$pwd/vs2015/pcap"
+       AC_DEFINE(C_NE2000,1)
+    ;;
+    *)
+       if test x$have_pcap_lib = xyes -a x$have_pcap_h = xyes ; then
+         LIBS="$LIBS -lpcap";
+         AC_DEFINE(C_NE2000,1)
+       else
+         AC_MSG_WARN([Can't find libpcap, NE2000 ethernet passthrough disabled])
+       fi
+    ;;
+esac
 
 if test x$enable_x11 != xno; then
   dnl FEATURE: Whether to use X11 XKBlib
@@ -936,17 +998,20 @@ if test x$enable_x11 != xno; then
 fi
 
 dnl FEATURE: Whether to use Fluidsynth
-AH_TEMPLATE(C_FLUIDSYNTH,[Define to 1 to enable fluidsynth MIDI synthesis])
-if test x$have_fluidsynth_lib = xyes -a x$have_fluidsynth_h = xyes ; then
-  LIBS="$LIBS -lfluidsynth"
-  AC_DEFINE(C_FLUIDSYNTH,1)
-else
-  AC_MSG_WARN([fluidsynth MIDI synthesis not available])
+AH_TEMPLATE(C_FLUIDSYNTH,[Define to 1 to enable libfluidsynth MIDI synthesis])
+AC_ARG_ENABLE(libfluidsynth,AC_HELP_STRING([--disable-libfluidsynth],[Disable libfluidsynth support]),,enable_libfluidsynth=yes)
+if test x$enable_libfluidsynth = xyes; then
+    if test x$have_fluidsynth_lib = xyes -a x$have_fluidsynth_h = xyes ; then
+      LIBS="$LIBS -lfluidsynth"
+      AC_DEFINE(C_FLUIDSYNTH,1)
+    else
+      AC_MSG_WARN([libfluidsynth MIDI synthesis not available])
+    fi
 fi
 
 dnl FEATURE: FFMPEG output support
 AH_TEMPLATE(C_AVCODEC,[Define to 1 to use FFMPEG libavcodec for video capture])
-AC_ARG_ENABLE(avcodec,AC_HELP_STRING([--disable-avcodec],[Disable FFMPEG avcodec support]),,enable_ffmpeg=yes)
+AC_ARG_ENABLE(avcodec,AC_HELP_STRING([--enable-avcodec],[Enable FFMPEG avcodec support]),enable_ffmpeg=yes,enable_ffmpeg=no)
 if test x$enable_ffmpeg = xyes; then
     if test x$have_ffmpeg = xyes; then
         if test x$have_avcodec_h = xyes; then
@@ -1040,7 +1105,6 @@ AH_TEMPLATE(C_ICONV_WIN32,[Define to 1 to use Win32 functions in iconv backend])
 AC_CONFIG_FILES([ 
 Makefile
 src/Makefile
-src/dosbox.plist
 src/cpu/Makefile
 src/cpu/core_full/Makefile
 src/cpu/core_normal/Makefile
@@ -1048,7 +1112,6 @@ src/debug/Makefile
 src/dos/Makefile
 src/fpu/Makefile
 src/gui/Makefile
-src/mt32/Makefile
 src/hardware/Makefile
 src/hardware/mame/Makefile
 src/hardware/serialport/Makefile
@@ -1060,15 +1123,20 @@ src/libs/Makefile
 src/libs/zmbv/Makefile
 src/libs/gui_tk/Makefile
 src/libs/porttalk/Makefile
+src/libs/mt32/Makefile
+src/libs/xBRZ/Makefile
+src/libs/fluidsynth/Makefile
+src/libs/decoders/internal/Makefile
 src/output/Makefile
 src/output/direct3d/Makefile
 src/builtin/Makefile
 src/misc/Makefile
 src/shell/Makefile
 src/platform/Makefile
-src/xBRZ/Makefile
 include/Makefile
-dosbox-x.spec
+contrib/macos/dosbox-x.plist
+contrib/linux/dosbox-x.spec
+contrib/linux/com.dosbox_x.DOSBox-X.metainfo.xml
 make-rpm.sh
 ])
 AC_OUTPUT
@@ -1077,5 +1145,5 @@ AC_OUTPUT
 chmod +x make-rpm.sh
 
 # HACK: Write all PACKAGE defines to vs2015/config_package.h so Windows builds are kept in sync
-grep -E 'PACKAGE|VERSION' config.h >vs2015/config_package.h
+grep -E 'PACKAGE|VERSION' config.h > $srcdir/vs2015/config_package.h
 

@@ -1,6 +1,6 @@
 /*
- *  DOSBox MP3 Seek Table Handler
- *  -----------------------------
+ *  DOSBox-X MP3 Seek Table Handler
+ *  -------------------------------
  *
  * Problem:
  *          Seeking within an MP3 file to an exact time-offset, such as is expected
@@ -55,7 +55,7 @@
  *   - archive:  https://github.com/voidah/archive, by Arthur Ouellet
  *   - xxHash:   http://cyan4973.github.io/xxHash, by Yann Collet
  *
- *  Copyright (C) 2020       The DOSBox Team
+ *  Copyright (C) 2020       The DOSBox Staging Team
  *  Copyright (C) 2018-2019  Kevin R. Croft <krcroft@gmail.com>
  *
  *  This program is free software; you can redistribute it and/or modify
@@ -88,7 +88,6 @@
 
 #define XXH_INLINE_ALL
 #include "xxhash.h"
-// #include "../../../include/logging.h"
 #include "mp3_seek_table.h"
 
 // C++ scope modifiers
@@ -100,7 +99,7 @@ using std::ifstream;
 using std::ofstream;
 
 // Identifies a valid versioned seek-table
-#define SEEK_TABLE_IDENTIFIER "st-v4"
+#define SEEK_TABLE_IDENTIFIER "st-v5"
 
 // How many compressed MP3 frames should we skip between each recorded
 // time point.  The trade-off is as follows:
@@ -142,7 +141,7 @@ Uint64 calculate_stream_hash(struct SDL_RWops* const context) {
     // Seek to the middle of the file while taking into account version small files.
     const Sint64 tail_size = (stream_size > 32768) ? 32768 : stream_size;
     const Sint64 mid_pos = static_cast<Sint64>(stream_size/2.0) - tail_size;
-    SDL_RWseek(context, mid_pos >= 0 ? mid_pos : 0, RW_SEEK_SET);
+    SDL_RWseek(context, mid_pos >= 0 ? (int)mid_pos : 0, RW_SEEK_SET);
 
     // Prepare our read buffer and counter:
     vector<char> buffer(1024, 0);
@@ -163,7 +162,7 @@ Uint64 calculate_stream_hash(struct SDL_RWops* const context) {
 
     while (total_bytes_read < static_cast<size_t>(tail_size)) {
         // Read a chunk of data.
-        const size_t bytes_read = SDL_RWread(context, buffer.data(), 1, buffer.size());
+        const size_t bytes_read = SDL_RWread(context, buffer.data(), 1, (int)buffer.size());
 
         if (bytes_read != 0) {
             // Update our hash if we read data.
@@ -175,7 +174,7 @@ Uint64 calculate_stream_hash(struct SDL_RWops* const context) {
     }
 
     // restore the stream position
-    SDL_RWseek(context, original_pos, RW_SEEK_SET);
+    SDL_RWseek(context, (int)original_pos, RW_SEEK_SET);
 
     const Uint64 hash = XXH64_digest(state);
     XXH64_freeState(state);

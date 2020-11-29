@@ -1,5 +1,5 @@
 /*
- *  Copyright (C) 2002-2019  The DOSBox Team
+ *  Copyright (C) 2002-2020  The DOSBox Team
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -11,9 +11,9 @@
  *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  *  GNU General Public License for more details.
  *
- *  You should have received a copy of the GNU General Public License
- *  along with this program; if not, write to the Free Software
- *  Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1335, USA.
+ *  You should have received a copy of the GNU General Public License along
+ *  with this program; if not, write to the Free Software Foundation, Inc.,
+ *  51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
 
 
@@ -62,15 +62,15 @@
 
 
 
-Bit32u Netwrapper_GetCapabilities();
+uint32_t Netwrapper_GetCapabilities();
 
 
 class TCPClientSocket {
 	public:
 	TCPClientSocket(TCPsocket source);
-	TCPClientSocket(const char* destination, Bit16u port);
+	TCPClientSocket(const char* destination, uint16_t port);
 #ifdef NATIVESOCKETS
-	Bit8u* nativetcpstruct;
+	uint8_t* nativetcpstruct;
 	TCPClientSocket(int platformsocket);
 #endif
 	~TCPClientSocket();
@@ -82,19 +82,19 @@ class TCPClientSocket {
 	Bits GetcharNonBlock();
 	
 	
-	bool Putchar(Bit8u data);
-	bool SendArray(Bit8u* data, Bitu bufsize);
-	bool ReceiveArray(Bit8u* data, Bitu* size);
+	bool Putchar(uint8_t data);
+	bool SendArray(uint8_t* data, Bitu bufsize);
+	bool ReceiveArray(uint8_t* data, Bitu* size);
 	bool isopen;
 
-	bool GetRemoteAddressString(Bit8u* buffer);
+	bool GetRemoteAddressString(uint8_t* buffer);
 
 	void FlushBuffer();
 	void SetSendBufferSize(Bitu bufsize);
 	
 	// buffered send functions
-	bool SendByteBuffered(Bit8u data);
-	bool SendArrayBuffered(Bit8u* data, Bitu bufsize);
+	bool SendByteBuffered(uint8_t data);
+	bool SendArrayBuffered(uint8_t* data, Bitu bufsize);
 
 	private:
 	TCPsocket mysock = NULL;
@@ -104,14 +104,14 @@ class TCPClientSocket {
 	Bitu sendbuffersize = 0;
 	Bitu sendbufferindex = 0;
 	
-	Bit8u* sendbuffer;
+	uint8_t* sendbuffer;
 };
 
 class TCPServerSocket {
 	public:
 	bool isopen;
 	TCPsocket mysock;
-	TCPServerSocket(Bit16u port);
+	TCPServerSocket(uint16_t port);
 	~TCPServerSocket();
 	TCPClientSocket* Accept();
 };

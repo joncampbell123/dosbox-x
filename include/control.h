@@ -1,5 +1,5 @@
 /*
- *  Copyright (C) 2002-2019  The DOSBox Team
+ *  Copyright (C) 2002-2020  The DOSBox Team
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -11,9 +11,9 @@
  *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  *  GNU General Public License for more details.
  *
- *  You should have received a copy of the GNU General Public License
- *  along with this program; if not, write to the Free Software
- *  Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1335, USA.
+ *  You should have received a copy of the GNU General Public License along
+ *  with this program; if not, write to the Free Software Foundation, Inc.,
+ *  51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
 
 
@@ -87,10 +87,12 @@ public:
         opt_printconf = false;
         opt_noautoexec = false;
         opt_securemode = false;
+        opt_fastlaunch = false;
         opt_fullscreen = false;
         opt_showcycles = false;
         opt_earlydebug = false;
         opt_break_start = false;
+        opt_defaultconf = false;
         opt_erasemapper = false;
         opt_resetmapper = false;
         opt_startmapper = false;
@@ -111,7 +113,7 @@ public:
     Section* GetSection(std::string const&_sectionname) const;
     Section* GetSectionFromProperty(char const * const prop) const;
 
-    bool PrintConfig(char const * const configfilename,bool everything=false) const;
+    bool PrintConfig(char const * const configfilename,int everything=-1,bool norem=false) const;
     bool ParseConfigFile(char const * const configfilename);
     void ParseEnv(char ** envp);
     bool SecureMode() const { return secure_mode; }
@@ -133,9 +135,11 @@ public:
     bool opt_erasemapper;
     bool opt_resetmapper;
     bool opt_startmapper;
+    bool opt_defaultconf;
     bool opt_noautoexec;
     bool opt_securemode;
     bool opt_fullscreen;
+    bool opt_fastlaunch;
     bool opt_showcycles;
     bool opt_earlydebug;
     bool opt_logfileio;

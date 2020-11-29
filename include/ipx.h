@@ -1,5 +1,5 @@
 /*
- *  Copyright (C) 2002-2019  The DOSBox Team
+ *  Copyright (C) 2002-2020  The DOSBox Team
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -11,9 +11,9 @@
  *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  *  GNU General Public License for more details.
  *
- *  You should have received a copy of the GNU General Public License
- *  along with this program; if not, write to the Free Software
- *  Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1335, USA.
+ *  You should have received a copy of the GNU General Public License along
+ *  with this program; if not, write to the Free Software Foundation, Inc.,
+ *  51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
 
 
@@ -98,9 +98,9 @@ struct IPXHeader {
 } GCC_ATTRIBUTE(packed);
 
 struct fragmentDescriptor {
-	Bit16u offset;
-	Bit16u segment;
-	Bit16u size;
+	uint16_t offset;
+	uint16_t segment;
+	uint16_t size;
 };
 
 #define IPXBUFFERSIZE 1424
@@ -112,37 +112,37 @@ public:
    	ECBClass *prevECB;	// Linked List
 	ECBClass *nextECB;
 	
-	Bit8u iuflag;		// Need to save data since we are not always in
-	Bit16u mysocket;	// real mode
+	uint8_t iuflag;		// Need to save data since we are not always in
+	uint16_t mysocket;	// real mode
 
-	Bit8u* databuffer;	// received data is stored here until we get called
+	uint8_t* databuffer;	// received data is stored here until we get called
 	Bitu buflen;		// by Interrupt
 
 #ifdef IPX_DEBUGMSG 
 	Bitu SerialNumber;
 #endif
 
-	ECBClass(Bit16u segment, Bit16u offset);
-	Bit16u getSocket(void);
+	ECBClass(uint16_t segment, uint16_t offset);
+	uint16_t getSocket(void);
 
-	Bit8u getInUseFlag(void);
+	uint8_t getInUseFlag(void);
 
-	void setInUseFlag(Bit8u flagval);
+	void setInUseFlag(uint8_t flagval);
 
-	void setCompletionFlag(Bit8u flagval);
+	void setCompletionFlag(uint8_t flagval);
 
-	Bit16u getFragCount(void);
+	uint16_t getFragCount(void);
 
 	bool writeData();
-	void writeDataBuffer(Bit8u* buffer, Bit16u length);
+	void writeDataBuffer(uint8_t* buffer, uint16_t length);
 
-	void getFragDesc(Bit16u descNum, fragmentDescriptor *fragDesc);
+	void getFragDesc(uint16_t descNum, fragmentDescriptor *fragDesc);
 	RealPt getESRAddr(void);
 
 	void NotifyESR(void);
 
-	void setImmAddress(Bit8u *immAddr);
-	void getImmAddress(Bit8u* immAddr);
+	void setImmAddress(uint8_t *immAddr);
+	void getImmAddress(uint8_t* immAddr);
 
 	~ECBClass();
 };

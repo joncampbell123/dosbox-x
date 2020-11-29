@@ -1,5 +1,5 @@
 /*
- *  Copyright (C) 2002-2019  The DOSBox Team
+ *  Copyright (C) 2002-2020  The DOSBox Team
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -11,9 +11,9 @@
  *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  *  GNU General Public License for more details.
  *
- *  You should have received a copy of the GNU General Public License
- *  along with this program; if not, write to the Free Software
- *  Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1335, USA.
+ *  You should have received a copy of the GNU General Public License along
+ *  with this program; if not, write to the Free Software Foundation, Inc.,
+ *  51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
 
 
@@ -25,14 +25,14 @@
 #include "render.h"
 #include <string.h>
 
-Bit8u Scaler_Aspect[SCALER_MAXHEIGHT];
-Bit16u Scaler_ChangedLines[SCALER_MAXHEIGHT];
+uint8_t Scaler_Aspect[SCALER_MAXHEIGHT];
+uint16_t Scaler_ChangedLines[SCALER_MAXHEIGHT];
 Bitu Scaler_ChangedLineIndex;
 
 static union {
-	Bit32u b32 [4][SCALER_MAXWIDTH*3];
-	Bit16u b16 [4][SCALER_MAXWIDTH*3];
-	Bit8u b8 [4][SCALER_MAXWIDTH*3];
+	uint32_t b32 [4][SCALER_MAXWIDTH*3];
+	uint16_t b16 [4][SCALER_MAXWIDTH*3];
+	uint8_t b8 [4][SCALER_MAXWIDTH*3];
 } scalerWriteCache;
 //scalerFrameCache_t scalerFrameCache;
 scalerSourceCache_t scalerSourceCache;
@@ -63,9 +63,9 @@ static INLINE void BituMove( void *_dst, const void * _src, Bitu size) {
 
 static INLINE void ScalerAddLines( Bitu changed, Bitu count ) {
 	if ((Scaler_ChangedLineIndex & 1) == changed ) {
-		Scaler_ChangedLines[Scaler_ChangedLineIndex] += (Bit16u)count;
+		Scaler_ChangedLines[Scaler_ChangedLineIndex] += (uint16_t)count;
 	} else {
-		Scaler_ChangedLines[++Scaler_ChangedLineIndex] = (Bit16u)count;
+		Scaler_ChangedLines[++Scaler_ChangedLineIndex] = (uint16_t)count;
 	}
 	render.scale.outWrite += render.scale.outPitch * count;
 }

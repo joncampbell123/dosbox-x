@@ -1,5 +1,5 @@
- /*
- *  Copyright (C) 2002-2019  The DOSBox Team
+/*
+ *  Copyright (C) 2002-2020  The DOSBox Team
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -11,9 +11,9 @@
  *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  *  GNU General Public License for more details.
  *
- *  You should have received a copy of the GNU General Public License
- *  along with this program; if not, write to the Free Software
- *  Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1335, USA.
+ *  You should have received a copy of the GNU General Public License along
+ *  with this program; if not, write to the Free Software Foundation, Inc.,
+ *  51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
 
 
@@ -119,28 +119,28 @@ typedef struct {
 	bool compatible_chain4;
 
 	/* Pixel Scrolling */
-	Bit8u pel_panning;				/* Amount of pixels to skip when starting horizontal line */
-	Bit8u hlines_skip;
-	Bit8u bytes_skip;
-	Bit8u addr_shift;
+	uint8_t pel_panning;				/* Amount of pixels to skip when starting horizontal line */
+	uint8_t hlines_skip;
+	uint8_t bytes_skip;
+	uint8_t addr_shift;
 
 /* Specific stuff memory write/read handling */
 	
-	Bit8u read_mode;
-	Bit8u write_mode;
-	Bit8u read_map_select;
-	Bit8u color_dont_care;
-	Bit8u color_compare;
-	Bit8u data_rotate;
-	Bit8u raster_op;
+	uint8_t read_mode;
+	uint8_t write_mode;
+	uint8_t read_map_select;
+	uint8_t color_dont_care;
+	uint8_t color_compare;
+	uint8_t data_rotate;
+	uint8_t raster_op;
 
-	Bit32u full_bit_mask;
-	Bit32u full_map_mask;
-	Bit32u full_not_map_mask;
-	Bit32u full_set_reset;
-	Bit32u full_not_enable_set_reset;
-	Bit32u full_enable_set_reset;
-	Bit32u full_enable_and_set_reset;
+	uint32_t full_bit_mask;
+	uint32_t full_map_mask;
+	uint32_t full_not_map_mask;
+	uint32_t full_set_reset;
+	uint32_t full_not_enable_set_reset;
+	uint32_t full_enable_set_reset;
+	uint32_t full_enable_and_set_reset;
 } VGA_Config;
 
 typedef enum {
@@ -156,7 +156,7 @@ typedef struct {
 	Bitu address;
 	Bitu panning;
 	Bitu bytes_skip;
-	Bit8u *linear_base;
+	uint8_t *linear_base;
 	Bitu linear_mask;
     Bitu planar_mask;
 	Bitu address_add;
@@ -180,16 +180,17 @@ typedef struct {
 		float singleline_delay;
 	} delay;
 	double screen_ratio;
-	Bit8u font[516*1024]; /* enlarged to 516KB for PC-98 character font data (256*16) + (128*2*128*16) */
-	Bit8u * font_tables[2];
+	uint8_t font[516*1024]; /* enlarged to 516KB for PC-98 character font data (256*16) + (128*2*128*16) */
+	uint8_t * font_tables[2];
 	Bitu blinking;
 	bool blink;
 	bool char9dot;
 	struct {
 		Bitu address;
-		Bit8u sline,eline;
-		Bit8u count,delay;
-		Bit8u enabled;
+		uint8_t sline,eline;
+		uint8_t count,delay;
+		bool blinkon;
+		uint8_t enabled;
 	} cursor;
 	Drawmode mode;
 	bool has_split;
@@ -201,11 +202,11 @@ typedef struct {
 	Bitu bpp;
 	double clock;
 	double oscclock;
-	Bit8u cga_snow[80];			// one bit per horizontal column where snow should occur
+	uint8_t cga_snow[80];			// one bit per horizontal column where snow should occur
 
 	/*Color and brightness for monochrome display*/
-	Bit8u monochrome_pal;
-	Bit8u monochrome_bright;
+	uint8_t monochrome_pal;
+	uint8_t monochrome_bright;
 } VGA_Draw;
 
 /* enable switch for the "alternative video system" */
@@ -507,7 +508,7 @@ typedef struct VGA_Experimental_Model_1_t {
     // finally, a debug mode will be offered to show the ENTIRE frame (htotal/vtotal) with markings for retrace if wanted by the user.
 
     // Pointers to draw from. This represents CRTC character clock 0.
-    Bit8u*                      draw_base = NULL;
+    uint8_t*                      draw_base = NULL;
 
     template <typename T> inline const T* drawptr(const size_t offset) const {
         return (const T*)draw_base + offset; /* equiv T* ptr = (T*)draw_base; return &ptr[offset]; */
@@ -519,119 +520,119 @@ typedef struct VGA_Experimental_Model_1_t {
 } VGA_Draw_2;
 
 typedef struct {
-	Bit8u curmode;
-	Bit16u originx, originy;
-	Bit8u fstackpos, bstackpos;
-	Bit8u forestack[4];
-	Bit8u backstack[4];
-	Bit16u startaddr;
-	Bit8u posx, posy;
-	Bit8u mc[64][64];
+	uint8_t curmode;
+	uint16_t originx, originy;
+	uint8_t fstackpos, bstackpos;
+	uint8_t forestack[4];
+	uint8_t backstack[4];
+	uint16_t startaddr;
+	uint8_t posx, posy;
+	uint8_t mc[64][64];
 } VGA_HWCURSOR;
 
 typedef struct {
-	Bit8u reg_lock1;
-	Bit8u reg_lock2;
-	Bit8u reg_31;
-	Bit8u reg_35;
-	Bit8u reg_36; // RAM size
-	Bit8u reg_3a; // 4/8/doublepixel bit in there
-	Bit8u reg_40; // 8415/A functionality register
-	Bit8u reg_41; // BIOS flags 
-	Bit8u reg_42; // CR42 Mode Control
-	Bit8u reg_43;
-	Bit8u reg_45; // Hardware graphics cursor
-	Bit8u reg_50;
-	Bit8u reg_51;
-	Bit8u reg_52;
-	Bit8u reg_55;
-	Bit8u reg_58;
-	Bit8u reg_6b; // LFB BIOS scratchpad
-	Bit8u ex_hor_overflow;
-	Bit8u ex_ver_overflow;
-	Bit16u la_window;
-	Bit8u misc_control_2;
-	Bit8u ext_mem_ctrl;
+	uint8_t reg_lock1;
+	uint8_t reg_lock2;
+	uint8_t reg_31;
+	uint8_t reg_35;
+	uint8_t reg_36; // RAM size
+	uint8_t reg_3a; // 4/8/doublepixel bit in there
+	uint8_t reg_40; // 8415/A functionality register
+	uint8_t reg_41; // BIOS flags 
+	uint8_t reg_42; // CR42 Mode Control
+	uint8_t reg_43;
+	uint8_t reg_45; // Hardware graphics cursor
+	uint8_t reg_50;
+	uint8_t reg_51;
+	uint8_t reg_52;
+	uint8_t reg_55;
+	uint8_t reg_58;
+	uint8_t reg_6b; // LFB BIOS scratchpad
+	uint8_t ex_hor_overflow;
+	uint8_t ex_ver_overflow;
+	uint16_t la_window;
+	uint8_t misc_control_2;
+	uint8_t ext_mem_ctrl;
 	Bitu xga_screen_width;
 	VGAModes xga_color_mode;
 	struct {
-		Bit8u r;
-		Bit8u n;
-		Bit8u m;
+		uint8_t r;
+		uint8_t n;
+		uint8_t m;
 	} clk[4],mclk;
 	struct {
-		Bit8u lock;
-		Bit8u cmd;
+		uint8_t lock;
+		uint8_t cmd;
 	} pll;
 	VGA_HWCURSOR hgc;
 } VGA_S3;
 
 typedef struct {
-	Bit8u mode_control;
-	Bit8u enable_bits;
+	uint8_t mode_control;
+	uint8_t enable_bits;
 	bool blend;
 } VGA_HERC;
 
 typedef struct {
-	Bit32u mask_plane;
-	Bit8u write_plane;
-	Bit8u read_plane;
-	Bit8u border_color;
+	uint32_t mask_plane;
+	uint8_t write_plane;
+	uint8_t read_plane;
+	uint8_t border_color;
 } VGA_AMSTRAD;
 
 typedef struct {
-	Bit8u index;
-	Bit8u htotal;
-	Bit8u hdend;
-	Bit8u hsyncp;
-	Bit8u hsyncw;
-	Bit8u vtotal;
-	Bit8u vdend;
-	Bit8u vadjust;
-	Bit8u vsyncp;
-	Bit8u vsyncw;
-	Bit8u max_scanline;
-	Bit16u lightpen;
+	uint8_t index;
+	uint8_t htotal;
+	uint8_t hdend;
+	uint8_t hsyncp;
+	uint8_t hsyncw;
+	uint8_t vtotal;
+	uint8_t vdend;
+	uint8_t vadjust;
+	uint8_t vsyncp;
+	uint8_t vsyncw;
+	uint8_t max_scanline;
+	uint16_t lightpen;
 	bool lightpen_triggered;
-	Bit8u cursor_start;
-	Bit8u cursor_end;
-    Bit8u mcga_mode_control;
+	uint8_t cursor_start;
+	uint8_t cursor_end;
+    uint8_t mcga_mode_control;
 } VGA_OTHER;
 
 typedef struct {
-	Bit8u pcjr_flipflop;
-	Bit8u mode_control;
-	Bit8u color_select;
-	Bit8u disp_bank;
-	Bit8u reg_index;
-	Bit8u gfx_control;
-	Bit8u palette_mask;
-	Bit8u extended_ram;
-	Bit8u border_color;
-	Bit8u line_mask, line_shift;
-	Bit8u draw_bank, mem_bank;
-	Bit8u *draw_base, *mem_base;
+	uint8_t pcjr_flipflop;
+	uint8_t mode_control;
+	uint8_t color_select;
+	uint8_t disp_bank;
+	uint8_t reg_index;
+	uint8_t gfx_control;
+	uint8_t palette_mask;
+	uint8_t extended_ram;
+	uint8_t border_color;
+	uint8_t line_mask, line_shift;
+	uint8_t draw_bank, mem_bank;
+	uint8_t *draw_base, *mem_base;
 	Bitu addr_mask;
 } VGA_TANDY;
 
 typedef struct {
-	Bit8u index;
-	Bit8u reset;
-	Bit8u clocking_mode;
-	Bit8u map_mask;
-	Bit8u character_map_select;
-	Bit8u memory_mode;
+	uint8_t index;
+	uint8_t reset;
+	uint8_t clocking_mode;
+	uint8_t map_mask;
+	uint8_t character_map_select;
+	uint8_t memory_mode;
 } VGA_Seq;
 
 typedef struct {
-	Bit8u palette[16];
-	Bit8u mode_control;
-	Bit8u horizontal_pel_panning;
-	Bit8u overscan_color;
-	Bit8u color_plane_enable;
-	Bit8u color_select;
-	Bit8u index;
-	Bit8u disabled; // Used for disabling the screen.
+	uint8_t palette[16];
+	uint8_t mode_control;
+	uint8_t horizontal_pel_panning;
+	uint8_t overscan_color;
+	uint8_t color_plane_enable;
+	uint8_t color_select;
+	uint8_t index;
+	uint8_t disabled; // Used for disabling the screen.
 					// Bit0: screen disabled by attribute controller index
 					// Bit1: screen disabled by sequencer index 1 bit 5
 					// These are put together in one variable for performance reasons:
@@ -640,69 +641,69 @@ typedef struct {
 } VGA_Attr;
 
 typedef struct {
-	Bit8u horizontal_total;
-	Bit8u horizontal_display_end;
-	Bit8u start_horizontal_blanking;
-	Bit8u end_horizontal_blanking;
-	Bit8u start_horizontal_retrace;
-	Bit8u end_horizontal_retrace;
-	Bit8u vertical_total;
-	Bit8u overflow;
-	Bit8u preset_row_scan;
-	Bit8u maximum_scan_line;
-	Bit8u cursor_start;
-	Bit8u cursor_end;
-	Bit8u start_address_high;
-	Bit8u start_address_low;
-	Bit8u cursor_location_high;
-	Bit8u cursor_location_low;
-	Bit8u vertical_retrace_start;
-	Bit8u vertical_retrace_end;
-	Bit8u vertical_display_end;
-	Bit8u offset;
-	Bit8u underline_location;
-	Bit8u start_vertical_blanking;
-	Bit8u end_vertical_blanking;
-	Bit8u mode_control;
-	Bit8u line_compare;
+	uint8_t horizontal_total;
+	uint8_t horizontal_display_end;
+	uint8_t start_horizontal_blanking;
+	uint8_t end_horizontal_blanking;
+	uint8_t start_horizontal_retrace;
+	uint8_t end_horizontal_retrace;
+	uint8_t vertical_total;
+	uint8_t overflow;
+	uint8_t preset_row_scan;
+	uint8_t maximum_scan_line;
+	uint8_t cursor_start;
+	uint8_t cursor_end;
+	uint8_t start_address_high;
+	uint8_t start_address_low;
+	uint8_t cursor_location_high;
+	uint8_t cursor_location_low;
+	uint8_t vertical_retrace_start;
+	uint8_t vertical_retrace_end;
+	uint8_t vertical_display_end;
+	uint8_t offset;
+	uint8_t underline_location;
+	uint8_t start_vertical_blanking;
+	uint8_t end_vertical_blanking;
+	uint8_t mode_control;
+	uint8_t line_compare;
 
-	Bit8u index;
+	uint8_t index;
 	bool read_only;
 } VGA_Crtc;
 
 typedef struct {
-	Bit8u index;
-	Bit8u set_reset;
-	Bit8u enable_set_reset;
-	Bit8u color_compare;
-	Bit8u data_rotate;
-	Bit8u read_map_select;
-	Bit8u mode;
-	Bit8u miscellaneous;
-	Bit8u color_dont_care;
-	Bit8u bit_mask;
+	uint8_t index;
+	uint8_t set_reset;
+	uint8_t enable_set_reset;
+	uint8_t color_compare;
+	uint8_t data_rotate;
+	uint8_t read_map_select;
+	uint8_t mode;
+	uint8_t miscellaneous;
+	uint8_t color_dont_care;
+	uint8_t bit_mask;
 } VGA_Gfx;
 
 typedef struct  {
-	Bit8u red;
-	Bit8u green;
-	Bit8u blue;
+	uint8_t red;
+	uint8_t green;
+	uint8_t blue;
 } RGBEntry;
 
 typedef struct {
-	Bit8u bits;						/* DAC bits, usually 6 or 8 */
-	Bit8u pel_mask;
-	Bit8u pel_index;	
-	Bit8u state;
-	Bit8u write_index;
-	Bit8u read_index;
+	uint8_t bits;						/* DAC bits, usually 6 or 8 */
+	uint8_t pel_mask;
+	uint8_t pel_index;	
+	uint8_t state;
+	uint8_t write_index;
+	uint8_t read_index;
 	Bitu first_changed;
-	Bit8u combine[16];
+	uint8_t combine[16];
 	RGBEntry rgb[0x100];
-	Bit16u xlat16[256];
-	Bit32u xlat32[256];
-	Bit8u hidac_counter;
-	Bit8u reg02;
+	uint16_t xlat16[256];
+	uint32_t xlat32[256];
+	uint8_t hidac_counter;
+	uint8_t reg02;
 } VGA_Dac;
 
 typedef struct {
@@ -710,30 +711,30 @@ typedef struct {
 	Bitu	bankMask;
 	Bitu	bank_read_full;
 	Bitu	bank_write_full;
-	Bit8u	bank_read;
-	Bit8u	bank_write;
+	uint8_t	bank_read;
+	uint8_t	bank_write;
 	Bitu	bank_size;
 } VGA_SVGA;
 
 typedef union CGA_Latch {
-	Bit16u d;
-    Bit8u b[2] = {};
+	uint16_t d;
+    uint8_t b[2] = {};
 
     CGA_Latch() { }
-    CGA_Latch(const Bit16u raw) : d(raw) { }
+    CGA_Latch(const uint16_t raw) : d(raw) { }
 } CGA_Latch;
 
 typedef union VGA_Latch {
-	Bit32u d;
-    Bit8u b[4] = {};
+	uint32_t d;
+    uint8_t b[4] = {};
 
     VGA_Latch() { }
-    VGA_Latch(const Bit32u raw) : d(raw) { }
+    VGA_Latch(const uint32_t raw) : d(raw) { }
 } VGA_Latch;
 
 typedef struct VGA_Memory_t {
-	Bit8u*      linear = NULL;
-	Bit8u*      linear_orgptr = NULL;
+	uint8_t*      linear = NULL;
+	uint8_t*      linear_orgptr = NULL;
 
     uint32_t    memsize = 0;
     uint32_t    memmask = 0;
@@ -741,9 +742,9 @@ typedef struct VGA_Memory_t {
 } VGA_Memory;
 
 typedef struct {
-	Bit32u page;
-	Bit32u addr;
-	Bit32u mask;
+	uint32_t page;
+	uint32_t addr;
+	uint32_t mask;
 	PageHandler *handler;
 } VGA_LFB;
 
@@ -752,7 +753,7 @@ static const size_t VGA_Draw_2_elem = 2;
 typedef struct VGA_Type_t {
     VGAModes mode = {};                              /* The mode the vga system is in */
     VGAModes lastmode = {};
-    Bit8u misc_output = 0;
+    uint8_t misc_output = 0;
     VGA_Draw_2 draw_2[VGA_Draw_2_elem];         /* new parallel video emulation. PC-98 mode will use both, all others only the first. */
     VGA_Draw draw = {};
     VGA_Config config = {};
@@ -791,9 +792,9 @@ void VGA_CheckScanLength(void);
 void VGA_ChangedBank(void);
 
 /* Some DAC/Attribute functions */
-void VGA_DAC_CombineColor(Bit8u attr,Bit8u pal);
-void VGA_DAC_SetEntry(Bitu entry,Bit8u red,Bit8u green,Bit8u blue);
-void VGA_ATTR_SetPalette(Bit8u index,Bit8u val);
+void VGA_DAC_CombineColor(uint8_t attr,uint8_t pal);
+void VGA_DAC_SetEntry(Bitu entry,uint8_t red,uint8_t green,uint8_t blue);
+void VGA_ATTR_SetPalette(uint8_t index,uint8_t val);
 
 typedef enum {CGA, EGA, MONO} EGAMonitorMode;
 
@@ -817,8 +818,8 @@ void VGA_SetupXGA(void);
 void VGA_SetClock(Bitu which,Bitu target);
 void VGA_StartUpdateLFB(void);
 void VGA_SetBlinking(Bitu enabled);
-void VGA_SetCGA2Table(Bit8u val0,Bit8u val1);
-void VGA_SetCGA4Table(Bit8u val0,Bit8u val1,Bit8u val2,Bit8u val3);
+void VGA_SetCGA2Table(uint8_t val0,uint8_t val1);
+void VGA_SetCGA4Table(uint8_t val0,uint8_t val1,uint8_t val2,uint8_t val3);
 void VGA_ActivateHardwareCursor(void);
 void VGA_KillDrawing(void);
 
@@ -838,8 +839,8 @@ extern VGA_Type vga;
    It also contains basic int10 mode data - number, vtotal, htotal
    */
 typedef struct {
-	Bit8u ver_overflow;
-	Bit8u hor_overflow;
+	uint8_t ver_overflow;
+	uint8_t hor_overflow;
 	Bitu offset;
 	Bitu modeNo;
 	Bitu htotal;
@@ -890,17 +891,17 @@ void SVGA_Setup_Driver(void);
 // Amount of video memory required for a mode, implemented in int10_modes.cpp
 Bitu VideoModeMemSize(Bitu mode);
 
-extern Bit32u ExpandTable[256];
-extern Bit32u FillTable[16];
-extern Bit32u CGA_2_Table[16];
-extern Bit32u CGA_4_Table[256];
-extern Bit32u CGA_4_HiRes_Table[256];
-extern Bit32u CGA_16_Table[256];
-extern Bit32u TXT_Font_Table[16];
-extern Bit32u TXT_FG_Table[16];
-extern Bit32u TXT_BG_Table[16];
-extern Bit32u Expand16Table[4][16];
-extern Bit32u Expand16BigTable[0x10000];
+extern uint32_t ExpandTable[256];
+extern uint32_t FillTable[16];
+extern uint32_t CGA_2_Table[16];
+extern uint32_t CGA_4_Table[256];
+extern uint32_t CGA_4_HiRes_Table[256];
+extern uint32_t CGA_16_Table[256];
+extern uint32_t TXT_Font_Table[16];
+extern uint32_t TXT_FG_Table[16];
+extern uint32_t TXT_BG_Table[16];
+extern uint32_t Expand16Table[4][16];
+extern uint32_t Expand16BigTable[0x10000];
 
 void VGA_DAC_UpdateColorPalette();
 

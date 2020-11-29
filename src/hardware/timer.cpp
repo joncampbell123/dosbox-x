@@ -1,5 +1,5 @@
 /*
- *  Copyright (C) 2002-2019  The DOSBox Team
+ *  Copyright (C) 2002-2020  The DOSBox Team
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -11,9 +11,9 @@
  *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  *  GNU General Public License for more details.
  *
- *  You should have received a copy of the GNU General Public License
- *  along with this program; if not, write to the Free Software
- *  Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1335, USA.
+ *  You should have received a copy of the GNU General Public License along
+ *  with this program; if not, write to the Free Software Foundation, Inc.,
+ *  51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
 
 
@@ -35,20 +35,20 @@
 // it only forces the clock gate on and PIT 1 to cycle.
 bool speaker_clock_lock_on = false;
 
-static INLINE void BIN2BCD(Bit16u& val) {
-	Bit16u temp=val%10 + (((val/10)%10)<<4)+ (((val/100)%10)<<8) + (((val/1000)%10)<<12);
+static INLINE void BIN2BCD(uint16_t& val) {
+	uint16_t temp=val%10 + (((val/10)%10)<<4)+ (((val/100)%10)<<8) + (((val/1000)%10)<<12);
 	val=temp;
 }
 
-static INLINE void BCD2BIN(Bit16u& val) {
-	Bit16u temp= (val&0x0f) +((val>>4)&0x0f) *10 +((val>>8)&0x0f) *100 +((val>>12)&0x0f) *1000;
+static INLINE void BCD2BIN(uint16_t& val) {
+	uint16_t temp= (val&0x0f) +((val>>4)&0x0f) *10 +((val>>8)&0x0f) *100 +((val>>12)&0x0f) *1000;
 	val=temp;
 }
 
 struct PIT_Block {
     struct read_counter_result {
-        Bit16u          counter = 0xFFFFu;
-        Bit16u          cycle = 0;          // cycle (Mode 3: 0 or 1)
+        uint16_t          counter = 0xFFFFu;
+        uint16_t          cycle = 0;          // cycle (Mode 3: 0 or 1)
     };
 
     Bitu cntr = 0;          /* counter value written to 40h-42h as the interval. may take effect immediately (after port 43h) or after count expires */
@@ -57,13 +57,13 @@ struct PIT_Block {
     double start = 0;       /* time base (in ms) that cycle started at */
     double now = 0;         /* current time (in ms) */
 
-    Bit16u read_latch = 0;  /* counter value, latched for read back */
-    Bit16u write_latch = 0; /* counter value, written by host */
+    uint16_t read_latch = 0;  /* counter value, latched for read back */
+    uint16_t write_latch = 0; /* counter value, written by host */
 
-    Bit8u mode = 0;         /* 8254 mode (mode 0 through 5 inclusive) */
-    Bit8u read_state = 0;   /* 0=read MSB, switch to LSB, 1=LSB only, 2=MSB only, 3=read LSB, switch to MSB, latch next value */
-    Bit8u write_state = 0;  /* 0=write MSB, switch to LSB, 1=LSB only, 2=MSB only, 3=write MSB, switch to LSB, accept value */
-    Bit8u cycle_base = 0;
+    uint8_t mode = 0;         /* 8254 mode (mode 0 through 5 inclusive) */
+    uint8_t read_state = 0;   /* 0=read MSB, switch to LSB, 1=LSB only, 2=MSB only, 3=read LSB, switch to MSB, latch next value */
+    uint8_t write_state = 0;  /* 0=write MSB, switch to LSB, 1=LSB only, 2=MSB only, 3=write MSB, switch to LSB, accept value */
+    uint8_t cycle_base = 0;
 
     bool bcd = false;               /* BCD mode */
     bool go_read_latch = false;     /* reading should latch another value */
@@ -99,7 +99,7 @@ struct PIT_Block {
         start = now = t;
         cycle_base = 0;
     }
-    void restart_counter_at(pic_tickindex_t t,Bit16u counter) {
+    void restart_counter_at(pic_tickindex_t t,uint16_t counter) {
         double c_delay;
 
         if (counter == 0)
@@ -251,10 +251,10 @@ struct PIT_Block {
                     /* Counter keeps on counting after passing terminal count */
                     if (bcd) {
                         tmp = fmod(index,((double)(1000ul *   10000ul)) / PIT_TICK_RATE);
-                        ret.counter = (Bit16u)(((unsigned long)(cntr_cur - ((tmp * PIT_TICK_RATE) / 1000.0))) %   10000ul);
+                        ret.counter = (uint16_t)(((unsigned long)(cntr_cur - ((tmp * PIT_TICK_RATE) / 1000.0))) %   10000ul);
                     } else {
                         tmp = fmod(index,((double)(1000ul * 0x10000ul)) / PIT_TICK_RATE);
-                        ret.counter = (Bit16u)(((unsigned long)(cntr_cur - ((tmp * PIT_TICK_RATE) / 1000.0))) % 0x10000ul);
+                        ret.counter = (uint16_t)(((unsigned long)(cntr_cur - ((tmp * PIT_TICK_RATE) / 1000.0))) % 0x10000ul);
                     }
 
                     if (mode == 0) {
@@ -268,10 +268,10 @@ struct PIT_Block {
                 if (index > delay) // has timed out
                     ret.counter = 0xFFFF;
                 else
-                    ret.counter = (Bit16u)(cntr_cur - (index * (PIT_TICK_RATE / 1000.0)));
+                    ret.counter = (uint16_t)(cntr_cur - (index * (PIT_TICK_RATE / 1000.0)));
                 break;
             case 2:		/* Rate Generator */
-                ret.counter = (Bit16u)(cntr_cur - ((fmod(index,delay) / delay) * cntr_cur));
+                ret.counter = (uint16_t)(cntr_cur - ((fmod(index,delay) / delay) * cntr_cur));
                 break;
             case 3:		/* Square Wave Rate Generator */
                 {
@@ -288,7 +288,7 @@ struct PIT_Block {
                         ret.cycle = (ret.cycle + 1u) & 1u;
                     }
 
-                    ret.counter = ((Bit16u)(cntr_cur - ((tmp * cntr_cur) / delay))) & 0xFFFEu; /* always even value */
+                    ret.counter = ((uint16_t)(cntr_cur - ((tmp * cntr_cur) / delay))) & 0xFFFEu; /* always even value */
                 }
                 break;
             default:
@@ -301,7 +301,7 @@ struct PIT_Block {
 
 static PIT_Block pit[3];
 
-static Bit8u latched_timerstatus;
+static uint8_t latched_timerstatus;
 // the timer status can not be overwritten until it is read or the timer was 
 // reprogrammed.
 static bool latched_timerstatus_locked;
@@ -563,8 +563,8 @@ static Bitu read_latch(Bitu port,Bitu /*iolen*/) {
         }
     }
 
-	Bit32u counter=(Bit32u)(port-0x40);
-	Bit8u ret=0;
+	uint32_t counter=(uint32_t)(port-0x40);
+	uint8_t ret=0;
 	if(GCC_UNLIKELY(pit[counter].counterstatus_set)){
 		pit[counter].counterstatus_set = false;
 		latched_timerstatus_locked = false;
@@ -633,7 +633,7 @@ static void write_p43(Bitu /*port*/,Bitu val,Bitu /*iolen*/) {
 			pit[latch].counting = false;
 			pit[latch].read_state  = (val >> 4) & 0x03;
 			pit[latch].write_state = (val >> 4) & 0x03;
-			Bit8u mode             = (val >> 1) & 0x07;
+			uint8_t mode             = (val >> 1) & 0x07;
 			if (mode > 5)
 				mode -= 4; //6,7 become 2 and 3
 

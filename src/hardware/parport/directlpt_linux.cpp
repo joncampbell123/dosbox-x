@@ -1,5 +1,5 @@
 /*
- *  Copyright (C) 2002-2019  The DOSBox Team
+ *  Copyright (C) 2002-2020  The DOSBox Team
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -11,9 +11,9 @@
  *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  *  GNU General Public License for more details.
  *
- *  You should have received a copy of the GNU General Public License
- *  along with this program; if not, write to the Free Software
- *  Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1335, USA.
+ *  You should have received a copy of the GNU General Public License along
+ *  with this program; if not, write to the Free Software Foundation, Inc.,
+ *  51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
 
 
@@ -36,7 +36,7 @@
 #include <fcntl.h>
 #include <SDL.h>
 
-CDirectLPT::CDirectLPT (Bitu nr, Bit8u initIrq, CommandLine* cmd)
+CDirectLPT::CDirectLPT (Bitu nr, uint8_t initIrq, CommandLine* cmd)
                               :CParallel (cmd, nr, initIrq) {
 	InstallationSuccessful = false;
 	interruptflag=true; // interrupt disabled
@@ -74,13 +74,13 @@ CDirectLPT::~CDirectLPT () {
 	if(porthandle > 0) close(porthandle);
 }
 
-bool CDirectLPT::Putchar(Bit8u val)
+bool CDirectLPT::Putchar(uint8_t val)
 {	
 	//LOG_MSG("putchar: %x",val);
 
 	// check if printer online and not busy
 	// PE and Selected: no printer attached
-	Bit8u sr=Read_SR();
+	uint8_t sr=Read_SR();
 	//LOG_MSG("SR: %x",sr);
 	if((sr&0x30)==0x30)
 	{
@@ -158,6 +158,6 @@ void CDirectLPT::Write_IOSEL(Bitu val) {
 	// switches direction old-style TODO
 	if((val==0xAA)||(val==0x55)) LOG_MSG("TODO implement IBM-style direction switch");
 }
-void CDirectLPT::handleUpperEvent(Bit16u type) { (void)type; }
+void CDirectLPT::handleUpperEvent(uint16_t type) { (void)type; }
 #endif
 #endif

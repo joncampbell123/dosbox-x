@@ -1,7 +1,31 @@
+/** \file SDL_sound.h */
+
 /*
- *  Modified SDL Sound API
- *  ----------------------
- *  The basic gist of SDL_sound is that you use an SDL_RWops to get sound data
+ * SDL_sound -- An abstract sound format decoding API.
+ * Copyright (C) 2001  Ryan C. Gordon.
+ *
+ * This library is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU Lesser General Public
+ * License as published by the Free Software Foundation; either
+ * version 2.1 of the License, or (at your option) any later version.
+ *
+ * This library is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+ * Lesser General Public License for more details.
+ *
+ * You should have received a copy of the GNU Lesser General Public
+ * License along with this library; if not, write to the Free Software
+ * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+ */
+
+/**
+ * \mainpage SDL_sound
+ *
+ * The latest version of SDL_sound can be found at:
+ *     http://icculus.org/SDL_sound/
+ *
+ * The basic gist of SDL_sound is that you use an SDL_RWops to get sound data
  *  into this library, and SDL_sound will take that data, in one of several
  *  popular formats, and decode it into raw waveform data in the format of
  *  your choice. This gives you a nice abstraction for getting sound into your
@@ -11,34 +35,31 @@
  *  the initial sound data from any number of sources: file, memory buffer,
  *  network connection, etc.
  *
- *  As the name implies, this library depends on SDL2: Simple Directmedia Layer,
+ * As the name implies, this library depends on SDL: Simple Directmedia Layer,
  *  which is a powerful, free, and cross-platform multimedia library. It can
  *  be found at http://www.libsdl.org/
  *
- * Support is in place for the following sound formats:
- *   - .WAV/.W64 (Microsoft WAVfile RIFF and Sony Wave64 data, via the dr_wav single-header codec)
- *   - .MP3  (MPEG-1 Layer 3 support via the dr_mp3 single-header decoder)
- *   - .OGG  (Ogg Vorbis support via the std_vorbis single-header decoder)
- *   - .OPUS (Ogg Opus support via the Opusfile and SpeexDSP libraries)
- *   - .FLAC (Free Lossless Audio Codec support via the dr_flac single-header decoder)
+ * Support is in place or planned for the following sound formats:
+ *   - .WAV  (Microsoft WAVfile RIFF data, internal.)
+ *   - .VOC  (Creative Labs' Voice format, internal.)
+ *   - .MP3  (MPEG-1 Layer 3 support, via libmpg123.)
+ *   - .MID  (MIDI music converted to Waveform data, internal.)
+ *   - .MOD  (MOD files, via MikMod and ModPlug.)
+ *   - .OGG  (Ogg Vorbis files, via the Vorbis libraries.)
+ *   - .OPUS (Ogg Opus files, via the Opus libraries.)
+ *   - .SPX  (Speex files, via libspeex.)
+ *   - .SHN  (Shorten files, internal.)
+ *   - .RAW  (Raw sound data in any format, internal.)
+ *   - .AU   (Sun's Audio format, internal.)
+ *   - .AIFF (Audio Interchange format, internal.)
+ *   - .FLAC (Lossless audio compression, via libFLAC.)
  *
- *  Copyright (C) 2020       The DOSBox Team
- *  Copyright (C) 2018-2019  Kevin R. Croft <krcroft@gmail.com>
- *  Copyright (C) 2001-2017  Ryan C. Gordon <icculus@icculus.org>
+ *   (...and more to come...)
  *
- *  This program is free software; you can redistribute it and/or modify
- *  it under the terms of the GNU General Public License as published by
- *  the Free Software Foundation; either version 2 of the License, or
- *  (at your option) any later version.
+ * Please see the file LICENSE.txt in the source's root directory.
  *
- *  This program is distributed in the hope that it will be useful,
- *  but WITHOUT ANY WARRANTY; without even the implied warranty of
- *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- *  GNU General Public License for more details.
- *
- *  You should have received a copy of the GNU General Public License along
- *  with this program; if not, write to the Free Software Foundation, Inc.,
- *  51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
+ * \author Ryan C. Gordon (icculus@icculus.org)
+ * \author many others, please see CREDITS in the source's root directory.
  */
 
 #ifndef _INCLUDE_SDL_SOUND_H_
@@ -83,6 +104,7 @@ extern "C" {
  * \sa Sound_SampleNew
  * \sa Sound_SampleNewFromFile
  * \sa Sound_SampleDecode
+ * \sa Sound_SampleDecodeAll
  * \sa Sound_SampleSeek
  */
 typedef enum
@@ -162,7 +184,9 @@ typedef struct
     const Sound_DecoderInfo *decoder;  /**< Decoder used for this sample. */
     Sound_AudioInfo desired;  /**< Desired audio format for conversion. */
     Sound_AudioInfo actual;  /**< Actual audio format of sample. */
-    Uint32 flags;  /**< Flags relating to this sample. */
+    Uint8 *buffer;  /**< Decoded sound data lands in here. */
+    Uint32 buffer_size;  /**< Current size of (buffer), in bytes (Uint8). */
+    Sound_SampleFlags flags;  /**< Flags relating to this sample. */
 } Sound_Sample;
 
 
@@ -426,7 +450,41 @@ SNDDECLSPEC void SDLCALL Sound_ClearError(void);
  */
 SNDDECLSPEC Sound_Sample * SDLCALL Sound_NewSample(SDL_RWops *rw,
                                                    const char *ext,
-                                                   Sound_AudioInfo *desired);
+                                                   Sound_AudioInfo *desired,
+                                                   Uint32 bufferSize);
+
+/**
+ * \fn Sound_Sample *Sound_NewSampleFromMem(const Uint8 *data, Sound_AudioInfo *desired, Uint32 bufferSize)
+ * \brief Start decoding a new sound sample from a file on disk.
+ *
+ * This is identical to Sound_NewSample(), but it creates an SDL_RWops for you
+ *  from the (size) bytes of memory referenced by (data).
+ *
+ * This can pool RWops structures, so it may fragment the heap less over time
+ *  than using SDL_RWFromMem().
+ *
+ *    \param filename file containing sound data.
+ *    \param desired Format to convert sound data into. Can usually be NULL,
+ *                   if you don't need conversion.
+ *    \param bufferSize size, in bytes, of initial read buffer.
+ *   \return Sound_Sample pointer, which is used as a handle to several other
+ *           SDL_sound APIs. NULL on error. If error, use
+ *           Sound_GetError() to see what went wrong.
+ *
+ * \sa Sound_NewSample
+ * \sa Sound_SetBufferSize
+ * \sa Sound_Decode
+ * \sa Sound_DecodeAll
+ * \sa Sound_Seek
+ * \sa Sound_Rewind
+ * \sa Sound_FreeSample
+ */
+SNDDECLSPEC Sound_Sample * SDLCALL Sound_NewSampleFromMem(const Uint8 *data,
+                                                      Uint32 size,
+                                                      const char *ext,
+                                                      Sound_AudioInfo *desired,
+                                                      Uint32 bufferSize);
+
 
 /**
  * \fn Sound_Sample *Sound_NewSampleFromFile(const char *filename, Sound_AudioInfo *desired, Uint32 bufferSize)
@@ -459,7 +517,8 @@ SNDDECLSPEC Sound_Sample * SDLCALL Sound_NewSample(SDL_RWops *rw,
  * \sa Sound_FreeSample
  */
 SNDDECLSPEC Sound_Sample * SDLCALL Sound_NewSampleFromFile(const char *fname,
-                                                      Sound_AudioInfo *desired);
+                                                      Sound_AudioInfo *desired,
+                                                      Uint32 bufferSize);
 
 /**
  * \fn void Sound_FreeSample(Sound_Sample *sample)
@@ -502,27 +561,93 @@ SNDDECLSPEC void SDLCALL Sound_FreeSample(Sound_Sample *sample);
  */
 SNDDECLSPEC Sint32 SDLCALL Sound_GetDuration(Sound_Sample *sample);
 
+
 /**
- * \fn Uint32 Sound_Decode_Direct(Sound_Sample *sample)
- * \brief Decode more of the sound data in a Sound_Sample directly into
- * the supplied buffer.
+ * \fn int Sound_SetBufferSize(Sound_Sample *sample, Uint32 new_size)
+ * \brief Change the current buffer size for a sample.
  *
- * It will decode at most desired_frames into buffer, and return the number
- * frames decoded.
- * If the number of desired_frames could not be decoded, then please refer to
+ * If the buffer size could be changed, then the sample->buffer and
+ *  sample->buffer_size fields will reflect that. If they could not be
+ *  changed, then your original sample state is preserved. If the buffer is
+ *  shrinking, the data at the end of buffer is truncated. If the buffer is
+ *  growing, the contents of the new space at the end is undefined until you
+ *  decode more into it or initialize it yourself.
+ *
+ * The buffer size specified must be a multiple of the size of a single
+ *  sample point. So, if you want 16-bit, stereo samples, then your sample
+ *  point size is (2 channels * 16 bits), or 32 bits per sample, which is four
+ *  bytes. In such a case, you could specify 128 or 132 bytes for a buffer,
+ *  but not 129, 130, or 131 (although in reality, you'll want to specify a
+ *  MUCH larger buffer).
+ *
+ *    \param sample The Sound_Sample whose buffer to modify.
+ *    \param new_size The desired size, in bytes, of the new buffer.
+ *   \return non-zero if buffer size changed, zero on failure.
+ *
+ * \sa Sound_Decode
+ * \sa Sound_DecodeAll
+ */
+SNDDECLSPEC int SDLCALL Sound_SetBufferSize(Sound_Sample *sample,
+                                            Uint32 new_size);
+
+
+/**
+ * \fn Uint32 Sound_Decode(Sound_Sample *sample)
+ * \brief Decode more of the sound data in a Sound_Sample.
+ *
+ * It will decode at most sample->buffer_size bytes into sample->buffer in the
+ *  desired format, and return the number of decoded bytes.
+ * If sample->buffer_size bytes could not be decoded, then please refer to
  *  sample->flags to determine if this was an end-of-stream or error condition.
  *
  *    \param sample Do more decoding to this Sound_Sample.
- *    \param buffer PCM frames into this buffer.
- *    \param desired_frames indicates how many PCM should be decoded.
- *   \return number of frames decoded into buffer. If it is less than
- *           desired_frames, then you should check sample->flags to see
+ *   \return number of bytes decoded into sample->buffer. If it is less than
+ *           sample->buffer_size, then you should check sample->flags to see
  *           what the current state of the sample is (EOF, error, read again).
  *
+ * \sa Sound_DecodeAll
+ * \sa Sound_SetBufferSize
  * \sa Sound_Seek
  * \sa Sound_Rewind
  */
-SNDDECLSPEC Uint32 SDLCALL Sound_Decode_Direct(Sound_Sample *sample, void* buffer, Uint32 desired_frames);
+SNDDECLSPEC Uint32 SDLCALL Sound_Decode(Sound_Sample *sample);
+
+
+/**
+ * \fn Uint32 Sound_DecodeAll(Sound_Sample *sample)
+ * \brief Decode the remainder of the sound data in a Sound_Sample.
+ *
+ * This will dynamically allocate memory for the ENTIRE remaining sample.
+ *  sample->buffer_size and sample->buffer will be updated to reflect the
+ *  new buffer. Please refer to sample->flags to determine if the decoding
+ *  finished due to an End-of-stream or error condition.
+ *
+ * Be aware that sound data can take a large amount of memory, and that
+ *  this function may block for quite awhile while processing. Also note
+ *  that a streaming source (for example, from a SDL_RWops that is getting
+ *  fed from an Internet radio feed that doesn't end) may fill all available
+ *  memory before giving up...be sure to use this on finite sound sources
+ *  only!
+ *
+ * When decoding the sample in its entirety, the work is done one buffer at a
+ *  time. That is, sound is decoded in sample->buffer_size blocks, and
+ *  appended to a continually-growing buffer until the decoding completes.
+ *  That means that this function will need enough RAM to hold approximately
+ *  sample->buffer_size bytes plus the complete decoded sample at most. The
+ *  larger your buffer size, the less overhead this function needs, but beware
+ *  the possibility of paging to disk. Best to make this user-configurable if
+ *  the sample isn't specific and small.
+ *
+ *    \param sample Do all decoding for this Sound_Sample.
+ *   \return number of bytes decoded into sample->buffer. You should check
+ *           sample->flags to see what the current state of the sample is
+ *           (EOF, error, read again).
+ *
+ * \sa Sound_Decode
+ * \sa Sound_SetBufferSize
+ */
+SNDDECLSPEC Uint32 SDLCALL Sound_DecodeAll(Sound_Sample *sample);
+
 
 /**
  * \fn int Sound_Rewind(Sound_Sample *sample)
@@ -602,12 +727,25 @@ SNDDECLSPEC int SDLCALL Sound_Rewind(Sound_Sample *sample);
  */
 SNDDECLSPEC int SDLCALL Sound_Seek(Sound_Sample *sample, Uint32 ms);
 
-
 #ifdef __cplusplus
 }
+
+inline Sound_SampleFlags operator|(Sound_SampleFlags a, Sound_SampleFlags b)
+{return static_cast<Sound_SampleFlags>(static_cast<int>(a) | static_cast<int>(b));}
+
+inline Sound_SampleFlags& operator|= (Sound_SampleFlags& a, Sound_SampleFlags b)
+{ return (Sound_SampleFlags&)((int&)a |= static_cast<int>(b)); }
+
+inline Sound_SampleFlags operator& (Sound_SampleFlags a, Sound_SampleFlags b)
+{ return (Sound_SampleFlags)((int)a & (int)b); }
+
+inline Sound_SampleFlags& operator&= (Sound_SampleFlags& a, Sound_SampleFlags b)
+{ return (Sound_SampleFlags&)((int&)a &= (int)b); }
+
+inline Sound_SampleFlags& operator&= (Sound_SampleFlags& a, int b)
+{ return (Sound_SampleFlags&)((int&)a &= b); }
 #endif
 
 #endif  /* !defined _INCLUDE_SDL_SOUND_H_ */
 
 /* end of SDL_sound.h ... */
-

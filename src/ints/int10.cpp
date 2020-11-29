@@ -1,5 +1,5 @@
 /*
- *  Copyright (C) 2002-2019  The DOSBox Team
+ *  Copyright (C) 2002-2020  The DOSBox Team
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -11,28 +11,32 @@
  *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  *  GNU General Public License for more details.
  *
- *  You should have received a copy of the GNU General Public License
- *  along with this program; if not, write to the Free Software
- *  Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1335, USA.
+ *  You should have received a copy of the GNU General Public License along
+ *  with this program; if not, write to the Free Software Foundation, Inc.,
+ *  51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
 
 
 #include "dosbox.h"
 #include "control.h"
 #include "mem.h"
+#include "menu.h"
 #include "callback.h"
 #include "regs.h"
 #include "inout.h"
 #include "int10.h"
 #include "mouse.h"
 #include "setup.h"
+#include "render.h"
 
 Int10Data int10;
+bool blinking=true;
 static Bitu call_10 = 0;
 static bool warned_ff=false;
-
 extern bool enable_vga_8bit_dac;
 extern bool vga_8bit_dac;
+extern bool wpExtChar;
+extern int wpType;
 
 Bitu INT10_Handler(void) {
 	// NTS: We do have to check the "current video mode" from the BIOS data area every call.
@@ -66,7 +70,7 @@ Bitu INT10_Handler(void) {
 		break;
 	case 0x05:								/* Set Active Page */
 		if ((reg_al & 0x80) && IS_TANDY_ARCH) {
-			Bit8u crtcpu=real_readb(BIOSMEM_SEG, BIOSMEM_CRTCPU_PAGE);		
+			uint8_t crtcpu=real_readb(BIOSMEM_SEG, BIOSMEM_CRTCPU_PAGE);		
 			switch (reg_al) {
 			case 0x80:
 				reg_bh=crtcpu & 7;
@@ -93,10 +97,10 @@ Bitu INT10_Handler(void) {
 		else INT10_SetActivePage(reg_al);
 		break;	
 	case 0x06:								/* Scroll Up */
-		INT10_ScrollWindow(reg_ch,reg_cl,reg_dh,reg_dl,-(Bit8s)reg_al,reg_bh,0xFF);
+		INT10_ScrollWindow(reg_ch,reg_cl,reg_dh,reg_dl,-(int8_t)reg_al,reg_bh,0xFF);
 		break;
 	case 0x07:								/* Scroll Down */
-		INT10_ScrollWindow(reg_ch,reg_cl,reg_dh,reg_dl,(Bit8s)reg_al,reg_bh,0xFF);
+		INT10_ScrollWindow(reg_ch,reg_cl,reg_dh,reg_dl,(int8_t)reg_al,reg_bh,0xFF);
 		break;
 	case 0x08:								/* Read character & attribute at cursor */
 		INT10_ReadCharAttr(&reg_ax,reg_bh);
@@ -132,7 +136,7 @@ Bitu INT10_Handler(void) {
 	case 0x0F:								/* Get videomode */
 		reg_bh=real_readb(BIOSMEM_SEG,BIOSMEM_CURRENT_PAGE);
 		reg_al=real_readb(BIOSMEM_SEG,BIOSMEM_CURRENT_MODE)|(real_readb(BIOSMEM_SEG,BIOSMEM_VIDEO_CTL)&0x80);
-		reg_ah=(Bit8u)real_readw(BIOSMEM_SEG,BIOSMEM_NB_COLS);
+		reg_ah=(uint8_t)real_readw(BIOSMEM_SEG,BIOSMEM_NB_COLS);
 		break;					
 	case 0x10:								/* Palette functions */
         if (machine==MCH_MCGA) {
@@ -159,6 +163,9 @@ Bitu INT10_Handler(void) {
 			INT10_SetAllPaletteRegisters(SegPhys(es)+reg_dx);
 			break;
 		case 0x03:							/* TOGGLE INTENSITY/BLINKING BIT */
+			blinking=reg_bl==1;
+			mainMenu.get_item("text_background").check(!blinking).refresh_item(mainMenu);
+			mainMenu.get_item("text_blinking").check(blinking).refresh_item(mainMenu);
 			INT10_ToggleBlinkingBit(reg_bl);
 			break;
 		case 0x07:							/* GET SINGLE PALETTE REGISTER */
@@ -234,6 +241,13 @@ Bitu INT10_Handler(void) {
 			INT10_LoadFont(Real2Phys(int10.rom.font_8_first),reg_al==0x12,256,0,reg_bl&0x7f,8);
 			break;
 		case 0x03:			/* Set Block Specifier */
+#if defined(USE_TTF)
+            if (ttf.inUse&&wpType==1) {
+                DOS_Block dos;
+                if (mem_readd(((dos.psp()-1)<<4)+8) == 0x5057)							// Name of MCB PSP should be WP
+                    wpExtChar = reg_bl != 0;
+            }
+#endif
 			IO_Write(0x3c4,0x3);IO_Write(0x3c5,reg_bl);
 			break;
 		case 0x04:			/* Load 8x16 font */
@@ -393,8 +407,8 @@ graphics_chars:
 						break;
 					}
 				}
-				Bit8u modeset_ctl = real_readb(BIOSMEM_SEG,BIOSMEM_MODESET_CTL);
-				Bit8u video_switches = real_readb(BIOSMEM_SEG,BIOSMEM_SWITCHES)&0xf0;
+				uint8_t modeset_ctl = real_readb(BIOSMEM_SEG,BIOSMEM_MODESET_CTL);
+				uint8_t video_switches = real_readb(BIOSMEM_SEG,BIOSMEM_SWITCHES)&0xf0;
 				switch(reg_al) {
 				case 0: // 200
 					modeset_ctl &= 0xef;
@@ -428,7 +442,7 @@ graphics_chars:
 					reg_al=0;		//invalid subfunction
 					break;
 				}
-				Bit8u temp = real_readb(BIOSMEM_SEG,BIOSMEM_MODESET_CTL) & 0xf7;
+				uint8_t temp = real_readb(BIOSMEM_SEG,BIOSMEM_MODESET_CTL) & 0xf7;
 				if (reg_al&1) temp|=8;		// enable if al=0
 				real_writeb(BIOSMEM_SEG,BIOSMEM_MODESET_CTL,temp);
 				reg_al=0x12;
@@ -449,7 +463,7 @@ graphics_chars:
 					reg_al=0;
 					break;
 				}
-				Bit8u temp = real_readb(BIOSMEM_SEG,BIOSMEM_MODESET_CTL) & 0xfd;
+				uint8_t temp = real_readb(BIOSMEM_SEG,BIOSMEM_MODESET_CTL) & 0xfd;
 				if (!(reg_al&1)) temp|=2;		// enable if al=0
 				real_writeb(BIOSMEM_SEG,BIOSMEM_MODESET_CTL,temp);
 				reg_al=0x12;
@@ -464,7 +478,7 @@ graphics_chars:
 					reg_al=0;
 					break;
 				}
-				Bit8u temp = real_readb(BIOSMEM_SEG,BIOSMEM_VIDEO_CTL) & 0xfe;
+				uint8_t temp = real_readb(BIOSMEM_SEG,BIOSMEM_VIDEO_CTL) & 0xfe;
 				real_writeb(BIOSMEM_SEG,BIOSMEM_VIDEO_CTL,temp|reg_al);
 				reg_al=0x12;
 				break;	
@@ -481,7 +495,7 @@ graphics_chars:
 				break;
 			}
 			IO_Write(0x3c4,0x1);
-			Bit8u clocking = IO_Read(0x3c5);
+			uint8_t clocking = IO_Read(0x3c5);
 			
 			if (reg_al==0) clocking &= ~0x20;
 			else clocking |= 0x20;
@@ -557,7 +571,7 @@ CX	640x480	800x600	  1024x768/1280x1024
 				Bitu ret=INT10_VideoState_GetSize(reg_cx);
 				if (ret) {
 					reg_al=0x1c;
-					reg_bx=(Bit16u)ret;
+					reg_bx=(uint16_t)ret;
 				} else reg_al=0;
 				}
 				break;
@@ -604,7 +618,7 @@ CX	640x480	800x600	  1024x768/1280x1024
 					Bitu ret=INT10_VideoState_GetSize(reg_cx);
 					if (ret) {
 						reg_ah=0;
-						reg_bx=(Bit16u)ret;
+						reg_bx=(uint16_t)ret;
 					} else reg_ah=1;
 					}
 					break;
@@ -726,19 +740,19 @@ CX	640x480	800x600	  1024x768/1280x1024
 				break;
 			case 0x01:						/* Get code for "set window" */
 				SegSet16(es,RealSeg(int10.rom.pmode_interface));
-				reg_di=RealOff(int10.rom.pmode_interface)+(Bit32u)int10.rom.pmode_interface_window;
+				reg_di=RealOff(int10.rom.pmode_interface)+(uint32_t)int10.rom.pmode_interface_window;
 				reg_cx=int10.rom.pmode_interface_start-int10.rom.pmode_interface_window;
 				reg_ax=0x004f;
 				break;
 			case 0x02:						/* Get code for "set display start" */
 				SegSet16(es,RealSeg(int10.rom.pmode_interface));
-				reg_di=RealOff(int10.rom.pmode_interface)+(Bit32u)int10.rom.pmode_interface_start;
+				reg_di=RealOff(int10.rom.pmode_interface)+(uint32_t)int10.rom.pmode_interface_start;
 				reg_cx=int10.rom.pmode_interface_palette-int10.rom.pmode_interface_start;
 				reg_ax=0x004f;
 				break;
 			case 0x03:						/* Get code for "set palette" */
 				SegSet16(es,RealSeg(int10.rom.pmode_interface));
-				reg_di=RealOff(int10.rom.pmode_interface)+(Bit32u)int10.rom.pmode_interface_palette;
+				reg_di=RealOff(int10.rom.pmode_interface)+(uint32_t)int10.rom.pmode_interface_palette;
 				reg_cx=int10.rom.pmode_interface_size-int10.rom.pmode_interface_palette;
 				reg_ax=0x004f;
 				break;
@@ -825,7 +839,7 @@ static void INT10_InitVGA(void) {
 static void SetupTandyBios(void) {
 	if (machine==MCH_TANDY) {
 		unsigned int i;
-		static Bit8u TandyConfig[130]= {
+		static uint8_t TandyConfig[130]= {
 		0x21, 0x42, 0x49, 0x4f, 0x53, 0x20, 0x52, 0x4f, 0x4d, 0x20, 0x76, 0x65, 0x72,
 		0x73, 0x69, 0x6f, 0x6e, 0x20, 0x30, 0x32, 0x2e, 0x30, 0x30, 0x2e, 0x30, 0x30,
 		0x0d, 0x0a, 0x43, 0x6f, 0x6d, 0x70, 0x61, 0x74, 0x69, 0x62, 0x69, 0x6c, 0x69,
@@ -886,6 +900,9 @@ void INT10_OnResetComplete() {
     BIOS_UnsetupKeyboard();
 }
 
+extern int vesa_set_display_vsync_wait;
+extern bool vesa_bank_switch_window_range_check;
+extern bool vesa_bank_switch_window_mirror;
 extern bool vesa_zero_on_get_information;
 extern bool unmask_irq0_on_int10_setmode;
 extern bool int16_unmask_irq1_on_read;
@@ -1087,7 +1104,7 @@ fail:
     return false;
 }
 
-extern Bit8u int10_font_16[256 * 16];
+extern uint8_t int10_font_16[256 * 16];
 
 extern VideoModeBlock PC98_Mode;
 
@@ -1116,11 +1133,16 @@ void INT10_Startup(Section *sec) {
     (void)sec;//UNUSED
 	LOG(LOG_MISC,LOG_DEBUG)("INT 10h reinitializing");
 
-    vesa_zero_on_get_information = static_cast<Section_prop *>(control->GetSection("dosbox"))->Get_bool("vesa zero buffer on get information");
-    unmask_irq0_on_int10_setmode = static_cast<Section_prop *>(control->GetSection("dosbox"))->Get_bool("unmask timer on int 10 setmode");
+    Section_prop * video_section = static_cast<Section_prop *>(control->GetSection("video"));
+
+	vesa_set_display_vsync_wait = video_section->Get_int("vesa set display vsync");
+	vesa_bank_switch_window_range_check = video_section->Get_bool("vesa bank switching window range check");
+	vesa_bank_switch_window_mirror = video_section->Get_bool("vesa bank switching window mirroring");
+	vesa_zero_on_get_information = video_section->Get_bool("vesa zero buffer on get information");
+	unmask_irq0_on_int10_setmode = video_section->Get_bool("unmask timer on int 10 setmode");
 	int16_unmask_irq1_on_read = static_cast<Section_prop *>(control->GetSection("dosbox"))->Get_bool("unmask keyboard on int 16 read");
-    int16_ah_01_cf_undoc = static_cast<Section_prop *>(control->GetSection("dosbox"))->Get_bool("int16 keyboard polling undocumented cf behavior");
-    int10_vga_bios_vector = static_cast<Section_prop *>(control->GetSection("dosbox"))->Get_bool("int 10h points at vga bios");
+	int16_ah_01_cf_undoc = static_cast<Section_prop *>(control->GetSection("dosbox"))->Get_bool("int16 keyboard polling undocumented cf behavior");
+	int10_vga_bios_vector = video_section->Get_bool("int 10h points at vga bios");
 
     if (!IS_PC98_ARCH) {
         INT10_InitVGA();

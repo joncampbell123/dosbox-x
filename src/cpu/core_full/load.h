@@ -1,5 +1,5 @@
 /*
- *  Copyright (C) 2002-2019  The DOSBox Team
+ *  Copyright (C) 2002-2020  The DOSBox Team
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -11,9 +11,9 @@
  *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  *  GNU General Public License for more details.
  *
- *  You should have received a copy of the GNU General Public License
- *  along with this program; if not, write to the Free Software
- *  Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1335, USA.
+ *  You should have received a copy of the GNU General Public License along
+ *  with this program; if not, write to the Free Software Foundation, Inc.,
+ *  51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
 
 switch (inst.code.load) {
@@ -45,8 +45,8 @@ l_MODRMswitch:
 			inst_op1_d=Fetchb();
 			break;
 		case M_Ebx:
-			if (inst.rm<0xc0) inst_op1_ds=(Bit8s)LoadMb(inst.rm_eaa);
-			else inst_op1_ds=(Bit8s)reg_8(inst.rm_eai);
+			if (inst.rm<0xc0) inst_op1_ds=(int8_t)LoadMb(inst.rm_eaa);
+			else inst_op1_ds=(int8_t)reg_8(inst.rm_eai);
 			break;
 		case M_EbIb:
 			inst_op2_d=Fetchb();
@@ -70,7 +70,7 @@ l_MODRMswitch:
 			inst_op1_d=Fetchw();
 			break;
 		case M_EwxGwx:
-			inst_op2_ds=(Bit16s)reg_16(inst.rm_index);
+			inst_op2_ds=(int16_t)reg_16(inst.rm_index);
 			goto l_M_Ewx;
 		case M_EwxIbx:
 			inst_op2_ds=Fetchbs();
@@ -79,8 +79,8 @@ l_MODRMswitch:
 			inst_op2_ds=Fetchws();
 l_M_Ewx:		
 		case M_Ewx:
-			if (inst.rm<0xc0) inst_op1_ds=(Bit16s)LoadMw(inst.rm_eaa);
-			else inst_op1_ds=(Bit16s)reg_16(inst.rm_eai);
+			if (inst.rm<0xc0) inst_op1_ds=(int16_t)LoadMw(inst.rm_eaa);
+			else inst_op1_ds=(int16_t)reg_16(inst.rm_eai);
 			break;
 		case M_EwIb:
 			inst_op2_d=Fetchb();
@@ -99,7 +99,7 @@ l_M_Ewx:
 			goto l_M_EwGw;
 		case M_EwGwt:
 			inst_op2_d=reg_16(inst.rm_index);
-			inst.rm_eaa+=(Bitu)(((Bit16s)inst_op2_d >> 4) * 2);
+			inst.rm_eaa+=(Bitu)(((int16_t)inst_op2_d >> 4) * 2);
 			goto l_M_Ew;
 l_M_EwGw:			
 		case M_EwGw:
@@ -120,10 +120,10 @@ l_M_Ew:
 			inst_op1_d=Fetchd();
 			break;
 		case M_EdxGdx:
-			inst_op2_ds=(Bit32s)reg_32(inst.rm_index);
+			inst_op2_ds=(int32_t)reg_32(inst.rm_index);
 		case M_Edx:
-			if (inst.rm<0xc0) inst_op1_d=(Bit32u)((Bit32s)LoadMd(inst.rm_eaa));
-			else inst_op1_d=(Bit32u)((Bit32s)reg_32(inst.rm_eai));
+			if (inst.rm<0xc0) inst_op1_d=(uint32_t)((int32_t)LoadMd(inst.rm_eaa));
+			else inst_op1_d=(uint32_t)((int32_t)reg_32(inst.rm_eai));
 			break;
 		case M_EdIb:
 			inst_op2_d=Fetchb();
@@ -139,7 +139,7 @@ l_M_Ew:
 			goto l_M_EdGd;
 		case M_EdGdt:
 			inst_op2_d=reg_32(inst.rm_index);
-			inst.rm_eaa+=(Bit32u)(((Bit32s)inst_op2_d >> 5) * 4);
+			inst.rm_eaa+=(uint32_t)(((int32_t)inst_op2_d >> 5) * 4);
 			goto l_M_Ed;
 		case M_EdGdIb:
 			inst_imm_d=Fetchb();
@@ -349,7 +349,7 @@ l_M_Ed:
 		if (CPU_ArchitectureType<CPU_ARCHTYPE_80186) goto illegalopcode;
 		{
 			try {
-				Bit16u old_sp = (CPU_ArchitectureType >= CPU_ARCHTYPE_286 ? reg_sp : (reg_sp-10));
+				uint16_t old_sp = (CPU_ArchitectureType >= CPU_ARCHTYPE_286 ? reg_sp : (reg_sp-10));
 				Push_16(reg_ax);Push_16(reg_cx);Push_16(reg_dx);Push_16(reg_bx);
 				Push_16(old_sp);Push_16(reg_bp);Push_16(reg_si);Push_16(reg_di);
 			}
@@ -363,7 +363,7 @@ l_M_Ed:
 	case D_PUSHAd:
 		{
 			try {
-				Bit32u tmpesp = reg_esp;
+				uint32_t tmpesp = reg_esp;
 				Push_32(reg_eax);Push_32(reg_ecx);Push_32(reg_edx);Push_32(reg_ebx);
 				Push_32(tmpesp);Push_32(reg_ebp);Push_32(reg_esi);Push_32(reg_edi);
 			}
@@ -413,23 +413,23 @@ l_M_Ed:
 	case D_XLAT:
 		if (inst.prefix & PREFIX_SEG) {
 			if (inst.prefix & PREFIX_ADDR) {
-				reg_al=LoadMb(inst.seg.base+(Bit32u)(reg_ebx+reg_al));
+				reg_al=LoadMb(inst.seg.base+(uint32_t)(reg_ebx+reg_al));
 			} else {
-				reg_al=LoadMb(inst.seg.base+(Bit16u)(reg_bx+reg_al));
+				reg_al=LoadMb(inst.seg.base+(uint16_t)(reg_bx+reg_al));
 			}
 		} else {
 			if (inst.prefix & PREFIX_ADDR) {
-				reg_al=LoadMb(SegBase(ds)+(Bit32u)(reg_ebx+reg_al));
+				reg_al=LoadMb(SegBase(ds)+(uint32_t)(reg_ebx+reg_al));
 			} else {
-				reg_al=LoadMb(SegBase(ds)+(Bit16u)(reg_bx+reg_al));
+				reg_al=LoadMb(SegBase(ds)+(uint16_t)(reg_bx+reg_al));
 			}
 		}
 		goto nextopcode;
 	case D_CBW:
-		reg_ax=(Bit16u)((Bit8s)reg_al);
+		reg_ax=(uint16_t)((int8_t)reg_al);
 		goto nextopcode;
 	case D_CWDE:
-		reg_eax=(Bit32u)((Bit16s)reg_ax);
+		reg_eax=(uint32_t)((int16_t)reg_ax);
 		goto nextopcode;
 	case D_CWD:
 		if (reg_ax & 0x8000) reg_dx=0xffff;
@@ -557,9 +557,9 @@ l_M_Ed:
 		continue;
 	case D_RDTSC: {
 		if (CPU_ArchitectureType<CPU_ARCHTYPE_PENTIUM) goto illegalopcode;
-		Bit64s tsc=(Bit64s)(PIC_FullIndex()*(double)(CPU_CycleAutoAdjust?70000:CPU_CycleMax));
-		reg_edx=(Bit32u)(tsc>>32);
-		reg_eax=(Bit32u)(tsc&0xffffffff);
+		int64_t tsc=(int64_t)(PIC_FullIndex()*(double)(CPU_CycleAutoAdjust?70000:CPU_CycleMax));
+		reg_edx=(uint32_t)(tsc>>32);
+		reg_eax=(uint32_t)(tsc&0xffffffff);
 		break;
 		}
 	default:

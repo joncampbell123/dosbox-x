@@ -1,5 +1,5 @@
 /*
- *  Copyright (C) 2002-2019  The DOSBox Team
+ *  Copyright (C) 2002-2020  The DOSBox Team
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -11,31 +11,31 @@
  *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  *  GNU General Public License for more details.
  *
- *  You should have received a copy of the GNU General Public License
- *  along with this program; if not, write to the Free Software
- *  Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1335, USA.
+ *  You should have received a copy of the GNU General Public License along
+ *  with this program; if not, write to the Free Software Foundation, Inc.,
+ *  51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
 
-extern Bit8u  * lookupRMregb[];
-extern Bit16u * lookupRMregw[];
-extern Bit32u * lookupRMregd[];
-extern Bit8u  * lookupRMEAregb[256];
-extern Bit16u * lookupRMEAregw[256];
-extern Bit32u * lookupRMEAregd[256];
+extern uint8_t  * lookupRMregb[];
+extern uint16_t * lookupRMregw[];
+extern uint32_t * lookupRMregd[];
+extern uint8_t  * lookupRMEAregb[256];
+extern uint16_t * lookupRMEAregw[256];
+extern uint32_t * lookupRMEAregd[256];
 
 #define GetRM												\
-	Bit8u rm=Fetchb();
+	uint8_t rm=Fetchb();
 
 #define Getrb												\
-	Bit8u * rmrb;											\
+	uint8_t * rmrb;											\
 	rmrb=lookupRMregb[rm];			
 	
 #define Getrw												\
-	Bit16u * rmrw;											\
+	uint16_t * rmrw;											\
 	rmrw=lookupRMregw[rm];			
 
 #define Getrd												\
-	Bit32u * rmrd;											\
+	uint32_t * rmrd;											\
 	rmrd=lookupRMregd[rm];			
 
 
@@ -53,12 +53,12 @@ extern Bit32u * lookupRMEAregd[256];
 
 
 #define GetEArb												\
-	Bit8u * earb=lookupRMEAregb[rm];
+	uint8_t * earb=lookupRMEAregb[rm];
 
 #define GetEArw												\
-	Bit16u * earw=lookupRMEAregw[rm];
+	uint16_t * earw=lookupRMEAregw[rm];
 
 #define GetEArd												\
-	Bit32u * eard=lookupRMEAregd[rm];
+	uint32_t * eard=lookupRMEAregd[rm];
 
 

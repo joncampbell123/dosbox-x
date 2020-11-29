@@ -5,7 +5,7 @@
  *   - STB: https://github.com/nothings/stb (source)
  *   - STB: https://twitter.com/nothings (website/author info)
  *
- *  Copyright (C) 2018-2020  The DOSBox Team
+ *  Copyright (C) 2018-2020  The DOSBox Staging Team
  *  Copyright (C) 2001-2017  Ryan C. Gordon <icculus@icculus.org>
  *
  *  This program is free software; you can redistribute it and/or modify
@@ -146,28 +146,35 @@ static void VORBIS_close(Sound_Sample *sample)
 } /* VORBIS_close */
 
 
-static Uint32 VORBIS_read(Sound_Sample *sample, void* buffer, Uint32 desired_frames)
+static Uint32 VORBIS_read(Sound_Sample *sample)
 {
+    Uint32 retval;
+    int rc;
+    int err;
     Sound_SampleInternal *internal = (Sound_SampleInternal *) sample->opaque;
     stb_vorbis *stb = (stb_vorbis *) internal->decoder_private;
     const int channels = (int) sample->actual.channels;
-    const int desired_samples = desired_frames * channels;
-
-    // Note that for interleaved data, you pass in the number of shorts (the
-    // size of your array), but the return value is the number of samples per
-    // channel, not the total number of samples.
+    const int want_samples = (int) (internal->buffer_size / sizeof (int16_t));
 
     stb_vorbis_get_error(stb);  /* clear any error state */
-    const int decoded_frames = stb_vorbis_get_samples_short_interleaved(stb, channels, (int16_t *) buffer, desired_samples);
-    const int err = stb_vorbis_get_error(stb);
+    rc = stb_vorbis_get_samples_short_interleaved(stb, channels, (int16_t *) internal->buffer, want_samples);
+    retval = (Uint32) (rc * channels * sizeof (int16_t));  /* rc == number of sample frames read */
+    err = stb_vorbis_get_error(stb);
 
-    if (decoded_frames == 0) {
-        sample->flags |= (err ? SOUND_SAMPLEFLAG_ERROR : SOUND_SAMPLEFLAG_EOF);
-    }
-    else if (decoded_frames < (int) desired_frames) {
+    if (retval == 0)
+    {
+        if (!err)
+            sample->flags |= SOUND_SAMPLEFLAG_EOF;
+        else
+        {
+            sample->flags |= SOUND_SAMPLEFLAG_ERROR;
+        } /* else */
+    } /* if */
+
+    else if (retval < internal->buffer_size)
         sample->flags |= SOUND_SAMPLEFLAG_EAGAIN;
-    }
-    return decoded_frames;
+
+    return retval;
 } /* VORBIS_read */
 
 
@@ -207,7 +214,7 @@ const Sound_DecoderFunctions __Sound_DecoderFunctions_VORBIS =
     {
         extensions_vorbis,
         "Ogg Vorbis audio",
-        "The DOSBox Team"
+        "The DOSBox-X project"
     },
 
     VORBIS_init,       /*   init() method */

@@ -23,6 +23,7 @@ enum SCREEN_TYPES {
 #if C_DIRECT3D
     ,SCREEN_DIRECT3D
 #endif
+    ,SCREEN_TTF
 };
 
 enum AUTOLOCK_FEEDBACK
@@ -96,9 +97,9 @@ struct SDL_Block {
     int window_desired_width = 0, window_desired_height = 0;
 #endif
     struct {
-        Bit32u width = 0;
-        Bit32u height = 0;
-        Bit32u bpp = 0;
+        uint32_t width = 0;
+        uint32_t height = 0;
+        uint32_t bpp = 0;
         Bitu flags = 0;
         double scalex = 0, scaley = 0;
         GFX_CallBack_t callback = 0;
@@ -106,17 +107,17 @@ struct SDL_Block {
     bool wait_on_error = false;
     struct {
         struct {
-            Bit16u width = 0, height = 0;
+            uint16_t width = 0, height = 0;
             bool fixed = false;
             bool display_res = false;
             bool width_auto = false, height_auto = false;
         } full;
         struct {
-            Bit16u width = 0, height = 0;
+            uint16_t width = 0, height = 0;
         } window;
-        Bit8u bpp = 0;
+        uint8_t bpp = 0;
 #if defined(C_SDL2)
-        Bit32u pixelFormat = 0;
+        uint32_t pixelFormat = 0;
 #endif
         bool fullscreen = false;
         bool lazy_fullscreen = false;
@@ -166,12 +167,12 @@ struct SDL_Block {
 #if defined (WIN32)
     bool using_windib = false;
     // Time when sdl regains focus (alt-tab) in windowed mode
-    Bit32u focus_ticks = 0;
+    uint32_t focus_ticks = 0;
 #endif
     // state of alt-keys for certain special handlings
-    Bit16u laltstate = 0, raltstate = 0;
-    Bit16u lctrlstate = 0, rctrlstate = 0;
-    Bit16u lshiftstate = 0, rshiftstate = 0;
+    uint16_t laltstate = 0, raltstate = 0;
+    uint16_t lctrlstate = 0, rctrlstate = 0;
+    uint16_t lshiftstate = 0, rshiftstate = 0;
     bool must_redraw_all = false;
     bool deferred_resize = false;
     bool init_ignore = false;
@@ -216,7 +217,7 @@ void UpdateWindowDimensions(void);
 void UpdateWindowDimensions(Bitu width, Bitu height);
 
 #if defined(C_SDL2)
-SDL_Window* GFX_SetSDLWindowMode(Bit16u width, Bit16u height, SCREEN_TYPES screenType);
+SDL_Window* GFX_SetSDLWindowMode(uint16_t width, uint16_t height, SCREEN_TYPES screenType);
 #endif
 
 #if defined(C_SDL2) && defined(C_OPENGL)/*HACK*/

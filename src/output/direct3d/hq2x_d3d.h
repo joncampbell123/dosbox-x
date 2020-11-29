@@ -13,9 +13,9 @@
  *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  *  GNU General Public License for more details.
  *
- *  You should have received a copy of the GNU General Public License
- *  along with this program; if not, write to the Free Software
- *  Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1335, USA.
+ *  You should have received a copy of the GNU General Public License along
+ *  with this program; if not, write to the Free Software Foundation, Inc.,
+ *  51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
 
 #ifndef __HQ2X_DIRECT3D_H_
@@ -23,12 +23,13 @@
 
 #include "config.h"
 #include <math.h>
+#include <stdint.h>
 
 #if C_D3DSHADERS
 
 #define HQ2X_RESOLUTION 16
 
-void BuildHq2xLookupTexture(Bitu width, Bitu height, Bitu rwidth, Bitu rheight, Bit8u* texture);
+void BuildHq2xLookupTexture(Bitu width, Bitu height, Bitu rwidth, Bitu rheight, uint8_t* texture);
 
 #define HQ2X_D3D_TABLE_DATA { \
 0x90,0x91,0x92,0x93,0x94,0x91,0x92,0x4c,0x90,0x91,0x92,0x93,0x94,0x91,0x92,0x97,\

@@ -1,5 +1,5 @@
 /*
- *  Copyright (C) 2002-2019  The DOSBox Team
+ *  Copyright (C) 2002-2020  The DOSBox Team
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -11,9 +11,9 @@
  *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  *  GNU General Public License for more details.
  *
- *  You should have received a copy of the GNU General Public License
- *  along with this program; if not, write to the Free Software
- *  Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1335, USA.
+ *  You should have received a copy of the GNU General Public License along
+ *  with this program; if not, write to the Free Software Foundation, Inc.,
+ *  51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
 
 #include "dosbox.h"
@@ -54,10 +54,10 @@ Note:  Each read or write of this register will cycle through first the
 enum {DAC_READ,DAC_WRITE};
 
 static void VGA_DAC_SendColor( Bitu index, Bitu src ) {
-    const Bit8u dacshift = vga_8bit_dac ? 0u : 2u;
-    const Bit8u red = vga.dac.rgb[src].red << dacshift;
-    const Bit8u green = vga.dac.rgb[src].green << dacshift;
-    const Bit8u blue = vga.dac.rgb[src].blue << dacshift;
+    const uint8_t dacshift = vga_8bit_dac ? 0u : 2u;
+    const uint8_t red = vga.dac.rgb[src].red << dacshift;
+    const uint8_t green = vga.dac.rgb[src].green << dacshift;
+    const uint8_t blue = vga.dac.rgb[src].blue << dacshift;
 
     /* FIXME: CGA composite mode calls RENDER_SetPal itself, which conflicts with this code */
     if (vga.mode == M_CGA16)
@@ -86,7 +86,7 @@ static void VGA_DAC_SendColor( Bitu index, Bitu src ) {
             vga.dac.xlat32[index] = (uint32_t)(blue << 16U) | (uint32_t)(green << 8U) | (uint32_t)(red << 0U);
     }
 
-    RENDER_SetPal( (Bit8u)index, red, green, blue );
+    RENDER_SetPal( (uint8_t)index, red, green, blue );
 }
 
 void VGA_DAC_UpdateColor( Bitu index ) {
@@ -144,14 +144,14 @@ void write_p3c6(Bitu port,Bitu val,Bitu iolen) {
     (void)iolen;//UNUSED
     (void)port;//UNUSED
     if((IS_VGA_ARCH) && (vga.dac.hidac_counter>3)) {
-        vga.dac.reg02=(Bit8u)val;
+        vga.dac.reg02=(uint8_t)val;
         vga.dac.hidac_counter=0;
         VGA_StartResize();
         return;
     }
     if ( vga.dac.pel_mask != val ) {
         LOG(LOG_VGAMISC,LOG_NORMAL)("VGA:DCA:Pel Mask set to %X", (int)val);
-        vga.dac.pel_mask = (Bit8u)val;
+        vga.dac.pel_mask = (uint8_t)val;
 
         // TODO: MCGA 640x480 2-color mode appears to latch the DAC at retrace
         //       for background/foreground. Does that apply to the PEL mask too?
@@ -177,8 +177,8 @@ void write_p3c7(Bitu port,Bitu val,Bitu iolen) {
     vga.dac.hidac_counter=0;
     vga.dac.pel_index=0;
     vga.dac.state=DAC_READ;
-    vga.dac.read_index=(Bit8u)val;         /* NTS: Paradise SVGA behavior, read index = x, write index = x + 1 */
-    vga.dac.write_index=(Bit8u)(val + 1);
+    vga.dac.read_index=(uint8_t)val;         /* NTS: Paradise SVGA behavior, read index = x, write index = x + 1 */
+    vga.dac.write_index=(uint8_t)(val + 1);
 }
 
 Bitu read_p3c7(Bitu port,Bitu iolen) {
@@ -195,9 +195,9 @@ void write_p3c8(Bitu port,Bitu val,Bitu iolen) {
     vga.dac.hidac_counter=0;
     vga.dac.pel_index=0;
     vga.dac.state=DAC_WRITE;
-    vga.dac.write_index=(Bit8u)val;        /* NTS: Paradise SVGA behavior, this affects write index, but not read index */
+    vga.dac.write_index=(uint8_t)val;        /* NTS: Paradise SVGA behavior, this affects write index, but not read index */
     if (svgaCard != SVGA_ParadisePVGA1A)
-        vga.dac.read_index = (Bit8u)(val - 1);
+        vga.dac.read_index = (uint8_t)(val - 1);
 }
 
 Bitu read_p3c8(Bitu port, Bitu iolen){
@@ -281,7 +281,7 @@ Bitu read_p3c9(Bitu port,Bitu iolen) {
     (void)iolen;//UNUSED
     (void)port;//UNUSED
     vga.dac.hidac_counter=0;
-    Bit8u ret;
+    uint8_t ret;
     switch (vga.dac.pel_index) {
     case 0:
         ret=vga.dac.rgb[vga.dac.read_index].red;
@@ -304,7 +304,7 @@ Bitu read_p3c9(Bitu port,Bitu iolen) {
     return ret;
 }
 
-void VGA_DAC_CombineColor(Bit8u attr,Bit8u pal) {
+void VGA_DAC_CombineColor(uint8_t attr,uint8_t pal) {
     vga.dac.combine[attr] = pal;
 
     if (IS_VGA_ARCH) {
@@ -338,7 +338,7 @@ void VGA_DAC_CombineColor(Bit8u attr,Bit8u pal) {
     }
 }
 
-void VGA_DAC_SetEntry(Bitu entry,Bit8u red,Bit8u green,Bit8u blue) {
+void VGA_DAC_SetEntry(Bitu entry,uint8_t red,uint8_t green,uint8_t blue) {
     //Should only be called in machine != vga
     vga.dac.rgb[entry].red=red;
     vga.dac.rgb[entry].green=green;

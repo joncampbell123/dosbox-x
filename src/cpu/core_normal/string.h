@@ -1,5 +1,5 @@
 /*
- *  Copyright (C) 2002-2019  The DOSBox Team
+ *  Copyright (C) 2002-2020  The DOSBox Team
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -11,9 +11,9 @@
  *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  *  GNU General Public License for more details.
  *
- *  You should have received a copy of the GNU General Public License
- *  along with this program; if not, write to the Free Software
- *  Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1335, USA.
+ *  You should have received a copy of the GNU General Public License along
+ *  with this program; if not, write to the Free Software Foundation, Inc.,
+ *  51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
 
 enum STRING_OP {
@@ -34,8 +34,8 @@ extern int cpu_rep_max;
 
 void DoString(STRING_OP type) {
 	static PhysPt  si_base,di_base;
-	static Bit32u	si_index,di_index;
-	static Bit32u	add_mask;
+	static uint32_t	si_index,di_index;
+	static uint32_t	add_mask;
 	static Bitu	count,count_left;
 	static Bits	add_index;
 
@@ -198,6 +198,36 @@ void DoString(STRING_OP type) {
 				case R_MOVSD:
 					add_index<<=2;
 					do {
+						/* NTS: Some demoscene productions use VESA BIOS modes in bank switched mode, and then write
+						 *      to it like a linear framebuffer through a segment with a limit the size of the bank
+						 *      switching window. In a way it's similar to the page fault based way Windows 95 treats
+						 *      bank switched ISA cards like a linear framebuffer.
+						 *
+						 *      In order for these demos to correctly use VESA BIOS modes, this code MUST check segment
+						 *      limits and throw a GP fault if exceeded, so that the demo code changes the active bank
+						 *      to resolve the fault. Without this check, the demo will only draw on the top 64KB of
+						 *      the screen and (depending on the implementation) may go as far as scribbling on the
+						 *      VGA BIOS at C0000h and into the UMB and DOSBox private data area! */
+						if (do_seg_limits) {
+							if (Segs.expanddown[es]) {
+								if (di_index <= SegLimit(es)) {
+									LOG_MSG("Limit check %x <= %x (E)",(unsigned int)di_index,(unsigned int)SegLimit(es));
+									LOG_MSG("Segment limit violation");
+									CPU_Exception(EXCEPTION_GP,0);
+									break;
+								}
+							}
+							else {
+								if ((di_index+4U-1UL) > SegLimit(es)) {
+									LOG_MSG("Limit check %x+%x-1 = %x > %x",(unsigned int)di_index,(unsigned int)4U,
+											(unsigned int)(di_index+4U-1U),(unsigned int)SegLimit(es));
+									LOG_MSG("Segment limit violation");
+									CPU_Exception(EXCEPTION_GP,0);
+									break;
+								}
+							}
+						}
+
 						SaveMd(di_base+di_index,LoadMd(si_base+si_index));
 						di_index=(di_index+(Bitu)add_index) & add_mask;
 						si_index=(si_index+(Bitu)add_index) & add_mask;
@@ -235,7 +265,7 @@ void DoString(STRING_OP type) {
 
 				case R_SCASB:
 					{
-						Bit8u val2;
+						uint8_t val2;
 						do {
 							val2=LoadMb(di_base+di_index);
 							di_index=(di_index+(Bitu)add_index) & add_mask;
@@ -250,7 +280,7 @@ void DoString(STRING_OP type) {
 				case R_SCASW:
 					add_index<<=1;
 					{
-						Bit16u val2;
+						uint16_t val2;
 						do {
 							val2=LoadMw(di_base+di_index);
 							di_index=(di_index+(Bitu)add_index) & add_mask;
@@ -265,7 +295,7 @@ void DoString(STRING_OP type) {
 				case R_SCASD:
 					add_index<<=2;
 					{
-						Bit32u val2;
+						uint32_t val2;
 						do {
 							val2=LoadMd(di_base+di_index);
 							di_index=(di_index+(Bitu)add_index) & add_mask;
@@ -280,7 +310,7 @@ void DoString(STRING_OP type) {
 
 				case R_CMPSB:
 					{
-						Bit8u val1,val2;
+						uint8_t val1,val2;
 						do {
 							val1=LoadMb(si_base+si_index);
 							val2=LoadMb(di_base+di_index);
@@ -297,7 +327,7 @@ void DoString(STRING_OP type) {
 				case R_CMPSW:
 					add_index<<=1;
 					{
-						Bit16u val1,val2;
+						uint16_t val1,val2;
 						do {
 							val1=LoadMw(si_base+si_index);
 							val2=LoadMw(di_base+di_index);
@@ -314,7 +344,7 @@ void DoString(STRING_OP type) {
 				case R_CMPSD:
 					add_index<<=2;
 					{
-						Bit32u val1,val2;
+						uint32_t val1,val2;
 						do {
 							val1=LoadMd(si_base+si_index);
 							val2=LoadMd(di_base+di_index);

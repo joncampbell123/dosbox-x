@@ -1,5 +1,5 @@
 /*
- *  Copyright (C) 2002-2019  The DOSBox Team
+ *  Copyright (C) 2002-2020  The DOSBox Team
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -11,9 +11,9 @@
  *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  *  GNU General Public License for more details.
  *
- *  You should have received a copy of the GNU General Public License
- *  along with this program; if not, write to the Free Software
- *  Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1335, USA.
+ *  You should have received a copy of the GNU General Public License along
+ *  with this program; if not, write to the Free Software Foundation, Inc.,
+ *  51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
 
 #ifndef DOSBOX_FPU_H
@@ -22,6 +22,8 @@
 #ifndef DOSBOX_MEM_H
 #include "mem.h"
 #endif
+
+#include "mmx.h"
 
 void FPU_ESC0_Normal(Bitu rm);
 void FPU_ESC0_EA(Bitu rm,PhysPt addr);
@@ -51,26 +53,27 @@ typedef union {
     double d;
 #ifndef WORDS_BIGENDIAN
     struct {
-        Bit32u lower;
-        Bit32s upper;
+        uint32_t lower;
+        int32_t upper;
     } l;
 #else
     struct {
-        Bit32s upper;
-        Bit32u lower;
+        int32_t upper;
+        uint32_t lower;
     } l;
 #endif
-    Bit64s ll;
+    int64_t ll;
+	MMX_reg reg_mmx;
 } FPU_Reg;
 
 // dynamic x86 core needs this
 typedef struct {
-    Bit32u m1;
-    Bit32u m2;
-    Bit16u m3;
+    uint32_t m1;
+    uint32_t m2;
+    uint16_t m3;
 
-    Bit16u d1;
-    Bit32u d2;
+    uint16_t d1;
+    uint32_t d2;
 } FPU_P_Reg;
 
 // memory barrier macro. to ensure that reads/stores to one half of the FPU reg struct
@@ -166,9 +169,9 @@ typedef struct {
 	bool		use80[9];		// if set, use the 80-bit precision version
 #endif
 	FPU_Tag		tags[9];
-	Bit16u		cw,cw_mask_all;
-	Bit16u		sw;
-	Bit32u		top;
+	uint16_t		cw,cw_mask_all;
+	uint16_t		sw;
+	uint32_t		top;
 	FPU_Round	round;
 } FPU_rec;
 
@@ -187,10 +190,10 @@ extern FPU_rec fpu;
 #define STV(i)  ( (fpu.top+ (i) ) & 7 )
 
 
-Bit16u FPU_GetTag(void);
+uint16_t FPU_GetTag(void);
 void FPU_FLDCW(PhysPt addr);
 
-static INLINE void FPU_SetTag(Bit16u tag){
+static INLINE void FPU_SetTag(uint16_t tag){
 	for(Bitu i=0;i<8;i++)
 		fpu.tags[i] = static_cast<FPU_Tag>((tag >>(2*i))&3);
 }
@@ -201,13 +204,13 @@ static INLINE void FPU_SetCW(Bitu word){
 	//       us as an Intel 287 when cputype == 286.
 	word &= 0x7FFF;
 
-	fpu.cw = (Bit16u)word;
-	fpu.cw_mask_all = (Bit16u)(word | 0x3f);
+	fpu.cw = (uint16_t)word;
+	fpu.cw_mask_all = (uint16_t)(word | 0x3f);
 	fpu.round = (FPU_Round)((word >> 10) & 3);
 }
 
 
-static INLINE Bit8u FPU_GET_TOP(void) {
+static INLINE uint8_t FPU_GET_TOP(void) {
 	return (fpu.sw & 0x3800U) >> 11U;
 }
 
@@ -242,5 +245,8 @@ static INLINE void FPU_SET_D(Bitu C){
 	if(C) fpu.sw |= 0x0002U;
 }
 
+static INLINE void FPU_LOG_WARN(Bitu tree, bool ea, Bitu group, Bitu sub) {
+	LOG(LOG_FPU,LOG_WARN)("ESC %lu%s:Unhandled group %lu subfunction %lu",(long unsigned int)tree,ea?" EA":"",(long unsigned int)group,(long unsigned int)sub);
+}
 
 #endif

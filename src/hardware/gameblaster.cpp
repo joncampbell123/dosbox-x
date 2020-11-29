@@ -1,5 +1,5 @@
 /*
- *  Copyright (C) 2002-2019  The DOSBox Team
+ *  Copyright (C) 2002-2020  The DOSBox Team
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -11,9 +11,9 @@
  *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  *  GNU General Public License for more details.
  *
- *  You should have received a copy of the GNU General Public License
- *  along with this program; if not, write to the Free Software
- *  Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
+ *  You should have received a copy of the GNU General Public License along
+ *  with this program; if not, write to the Free Software Foundation, Inc.,
+ *  51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
 
 #include "dosbox.h"
@@ -35,13 +35,13 @@
 //My mixer channel
 static MixerChannel * cms_chan;
 //Timer to disable the channel after a while
-static Bit32u lastWriteTicks;
-static Bit32u cmsBase;
+static uint32_t lastWriteTicks;
+static uint32_t cmsBase;
 static saa1099_device* device[2];
 
 static void write_cms(Bitu port, Bitu val, Bitu /* iolen */) {
 	if(cms_chan && (!cms_chan->enabled)) cms_chan->Enable(true);
-	lastWriteTicks = (Bit32u)PIC_Ticks;
+	lastWriteTicks = (uint32_t)PIC_Ticks;
 	switch ( port - cmsBase ) {
 	case 1:
 		device[0]->control_w(0, 0, (u8)val);
@@ -73,9 +73,9 @@ static void CMS_CallBack(Bitu len) {
 			cms_chan->Enable( false );
 			return;
 		}
-		Bit32s result[BUFFER_SIZE][2];
-		Bit16s work[2][BUFFER_SIZE];
-		Bit16s* buffers[2] = { work[0], work[1] };
+		int32_t result[BUFFER_SIZE][2];
+		int16_t work[2][BUFFER_SIZE];
+		int16_t* buffers[2] = { work[0], work[1] };
 		device_sound_interface::sound_stream stream;
 		device[0]->sound_stream_update(stream, 0, buffers, (int)len);
 		for (Bitu i = 0; i < len; i++) {
@@ -92,19 +92,19 @@ static void CMS_CallBack(Bitu len) {
 }
 
 // The Gameblaster detection
-static Bit8u cms_detect_register = 0xff;
+static uint8_t cms_detect_register = 0xff;
 
 static void write_cms_detect(Bitu port, Bitu val, Bitu /* iolen */) {
 	switch ( port - cmsBase ) {
 	case 0x6:
 	case 0x7:
-		cms_detect_register = (Bit8u)val;
+		cms_detect_register = (uint8_t)val;
 		break;
 	}
 }
 
 static Bitu read_cms_detect(Bitu port, Bitu /* iolen */) {
-	Bit8u retval = 0xff;
+	uint8_t retval = 0xff;
 	switch ( port - cmsBase ) {
 	case 0x4:
 		retval = 0x7f;
@@ -129,7 +129,7 @@ public:
 	CMS(Section* configuration):Module_base(configuration) {
 		Section_prop * section = static_cast<Section_prop *>(configuration);
 		Bitu sampleRate = (Bitu)section->Get_int( "oplrate" );
-		cmsBase = (Bit32u)section->Get_hex("sbbase");
+		cmsBase = (uint32_t)section->Get_hex("sbbase");
 		WriteHandler.Install( cmsBase, write_cms, IO_MB, 4 );
 
 		// A standalone Gameblaster has a magic chip on it which is
@@ -143,10 +143,10 @@ public:
 		/* Register the Mixer CallBack */
 		cms_chan = MixerChan.Install(CMS_CallBack,sampleRate,"CMS");
 	
-		lastWriteTicks = (Bit32u)PIC_Ticks;
+		lastWriteTicks = (uint32_t)PIC_Ticks;
 
 #if 0 // unused?
-		Bit32u freq = 7159000;		//14318180 isa clock / 2
+		uint32_t freq = 7159000;		//14318180 isa clock / 2
 #endif
 
 		machine_config config;

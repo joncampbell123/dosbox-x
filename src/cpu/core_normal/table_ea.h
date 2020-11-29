@@ -1,5 +1,5 @@
 /*
- *  Copyright (C) 2002-2019  The DOSBox Team
+ *  Copyright (C) 2002-2020  The DOSBox Team
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -11,46 +11,46 @@
  *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  *  GNU General Public License for more details.
  *
- *  You should have received a copy of the GNU General Public License
- *  along with this program; if not, write to the Free Software
- *  Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1335, USA.
+ *  You should have received a copy of the GNU General Public License along
+ *  with this program; if not, write to the Free Software Foundation, Inc.,
+ *  51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
 
 typedef PhysPt (*EA_LookupHandler)(void);
 
 /* The MOD/RM Decoder for EA for this decoder's addressing modes */
-static PhysPt EA_16_00_n(void) { return BaseDS+(Bit16u)(reg_bx+reg_si); }
-static PhysPt EA_16_01_n(void) { return BaseDS+(Bit16u)(reg_bx+reg_di); }
-static PhysPt EA_16_02_n(void) { return BaseSS+(Bit16u)(reg_bp+reg_si); }
-static PhysPt EA_16_03_n(void) { return BaseSS+(Bit16u)(reg_bp+reg_di); }
-static PhysPt EA_16_04_n(void) { return BaseDS+(Bit16u)(reg_si); }
-static PhysPt EA_16_05_n(void) { return BaseDS+(Bit16u)(reg_di); }
-static PhysPt EA_16_06_n(void) { return BaseDS+(Bit16u)(Fetchw());}
-static PhysPt EA_16_07_n(void) { return BaseDS+(Bit16u)(reg_bx); }
+static PhysPt EA_16_00_n(void) { return BaseDS+(uint16_t)(reg_bx+reg_si); }
+static PhysPt EA_16_01_n(void) { return BaseDS+(uint16_t)(reg_bx+reg_di); }
+static PhysPt EA_16_02_n(void) { return BaseSS+(uint16_t)(reg_bp+reg_si); }
+static PhysPt EA_16_03_n(void) { return BaseSS+(uint16_t)(reg_bp+reg_di); }
+static PhysPt EA_16_04_n(void) { return BaseDS+(uint16_t)(reg_si); }
+static PhysPt EA_16_05_n(void) { return BaseDS+(uint16_t)(reg_di); }
+static PhysPt EA_16_06_n(void) { return BaseDS+(uint16_t)(Fetchw());}
+static PhysPt EA_16_07_n(void) { return BaseDS+(uint16_t)(reg_bx); }
 
-static PhysPt EA_16_40_n(void) { return BaseDS+(Bit16u)(reg_bx+reg_si+(Bit16u)Fetchbs()); }
-static PhysPt EA_16_41_n(void) { return BaseDS+(Bit16u)(reg_bx+reg_di+(Bit16u)Fetchbs()); }
-static PhysPt EA_16_42_n(void) { return BaseSS+(Bit16u)(reg_bp+reg_si+(Bit16u)Fetchbs()); }
-static PhysPt EA_16_43_n(void) { return BaseSS+(Bit16u)(reg_bp+reg_di+(Bit16u)Fetchbs()); }
-static PhysPt EA_16_44_n(void) { return BaseDS+(Bit16u)(reg_si+(Bit16u)Fetchbs()); }
-static PhysPt EA_16_45_n(void) { return BaseDS+(Bit16u)(reg_di+(Bit16u)Fetchbs()); }
-static PhysPt EA_16_46_n(void) { return BaseSS+(Bit16u)(reg_bp+(Bit16u)Fetchbs()); }
-static PhysPt EA_16_47_n(void) { return BaseDS+(Bit16u)(reg_bx+(Bit16u)Fetchbs()); }
+static PhysPt EA_16_40_n(void) { return BaseDS+(uint16_t)(reg_bx+reg_si+(uint16_t)Fetchbs()); }
+static PhysPt EA_16_41_n(void) { return BaseDS+(uint16_t)(reg_bx+reg_di+(uint16_t)Fetchbs()); }
+static PhysPt EA_16_42_n(void) { return BaseSS+(uint16_t)(reg_bp+reg_si+(uint16_t)Fetchbs()); }
+static PhysPt EA_16_43_n(void) { return BaseSS+(uint16_t)(reg_bp+reg_di+(uint16_t)Fetchbs()); }
+static PhysPt EA_16_44_n(void) { return BaseDS+(uint16_t)(reg_si+(uint16_t)Fetchbs()); }
+static PhysPt EA_16_45_n(void) { return BaseDS+(uint16_t)(reg_di+(uint16_t)Fetchbs()); }
+static PhysPt EA_16_46_n(void) { return BaseSS+(uint16_t)(reg_bp+(uint16_t)Fetchbs()); }
+static PhysPt EA_16_47_n(void) { return BaseDS+(uint16_t)(reg_bx+(uint16_t)Fetchbs()); }
 
-static PhysPt EA_16_80_n(void) { return BaseDS+(Bit16u)(reg_bx+reg_si+(Bit16u)Fetchws()); }
-static PhysPt EA_16_81_n(void) { return BaseDS+(Bit16u)(reg_bx+reg_di+(Bit16u)Fetchws()); }
-static PhysPt EA_16_82_n(void) { return BaseSS+(Bit16u)(reg_bp+reg_si+(Bit16u)Fetchws()); }
-static PhysPt EA_16_83_n(void) { return BaseSS+(Bit16u)(reg_bp+reg_di+(Bit16u)Fetchws()); }
-static PhysPt EA_16_84_n(void) { return BaseDS+(Bit16u)(reg_si+(Bit16u)Fetchws()); }
-static PhysPt EA_16_85_n(void) { return BaseDS+(Bit16u)(reg_di+(Bit16u)Fetchws()); }
-static PhysPt EA_16_86_n(void) { return BaseSS+(Bit16u)(reg_bp+(Bit16u)Fetchws()); }
-static PhysPt EA_16_87_n(void) { return BaseDS+(Bit16u)(reg_bx+(Bit16u)Fetchws()); }
+static PhysPt EA_16_80_n(void) { return BaseDS+(uint16_t)(reg_bx+reg_si+(uint16_t)Fetchws()); }
+static PhysPt EA_16_81_n(void) { return BaseDS+(uint16_t)(reg_bx+reg_di+(uint16_t)Fetchws()); }
+static PhysPt EA_16_82_n(void) { return BaseSS+(uint16_t)(reg_bp+reg_si+(uint16_t)Fetchws()); }
+static PhysPt EA_16_83_n(void) { return BaseSS+(uint16_t)(reg_bp+reg_di+(uint16_t)Fetchws()); }
+static PhysPt EA_16_84_n(void) { return BaseDS+(uint16_t)(reg_si+(uint16_t)Fetchws()); }
+static PhysPt EA_16_85_n(void) { return BaseDS+(uint16_t)(reg_di+(uint16_t)Fetchws()); }
+static PhysPt EA_16_86_n(void) { return BaseSS+(uint16_t)(reg_bp+(uint16_t)Fetchws()); }
+static PhysPt EA_16_87_n(void) { return BaseDS+(uint16_t)(reg_bx+(uint16_t)Fetchws()); }
 
-static Bit32u SIBZero=0;
-static Bit32u * SIBIndex[8]= { &reg_eax,&reg_ecx,&reg_edx,&reg_ebx,&SIBZero,&reg_ebp,&reg_esi,&reg_edi };
+static uint32_t SIBZero=0;
+static uint32_t * SIBIndex[8]= { &reg_eax,&reg_ecx,&reg_edx,&reg_ebx,&SIBZero,&reg_ebp,&reg_esi,&reg_edi };
 
 static INLINE PhysPt Sib(Bitu mode) {
-	Bit8u sib=Fetchb();
+	uint8_t sib=Fetchb();
 	PhysPt base;
 	switch (sib&7) {
 	case 0:	/* EAX Base */

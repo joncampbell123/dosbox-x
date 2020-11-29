@@ -1,5 +1,5 @@
 /*
- *  Copyright (C) 2002-2019  The DOSBox Team
+ *  Copyright (C) 2002-2020  The DOSBox Team
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -11,9 +11,9 @@
  *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  *  GNU General Public License for more details.
  *
- *  You should have received a copy of the GNU General Public License
- *  along with this program; if not, write to the Free Software
- *  Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1335, USA.
+ *  You should have received a copy of the GNU General Public License along
+ *  with this program; if not, write to the Free Software Foundation, Inc.,
+ *  51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
 
 
@@ -127,6 +127,7 @@ public:
 	void Set_values(const char * const * in);
 	void Set_help(std::string const& in);
 	char const* Get_help();
+	void SetBasic(bool basic);
 	virtual	bool SetValue(std::string const& str)=0;
 	Value const& GetValue() const { return value;}
 	Value const& Get_Default_Value() const { return default_value; }
@@ -138,7 +139,21 @@ public:
 	virtual const std::vector<Value>& GetValues() const;
 	Value::Etype Get_type(){return default_value.type;}
 	Changeable::Value getChange() {return change;}
-	bool modified() const { return is_modified; };
+	bool basic() const { return is_basic; };
+	bool modified() const {
+        //return is_modified;
+        if (default_value.ToString()=="") {
+            if (propname=="sensitivity" && value.ToString()=="100") return false;
+            if (propname=="pixelshader" && value.ToString()=="none") return false;
+            if (propname=="priority" && value.ToString()=="higher,normal") return false;
+            if (propname=="scaler" && value.ToString()=="normal2x") return false;
+            if (propname=="monochrome_pal" && value.ToString()=="green") return false;
+            if (propname=="cycles" && value.ToString()=="auto") return false;
+            if ((propname=="serial1" || propname=="serial2") && value.ToString()=="dummy") return false;
+            if ((propname=="serial3" || propname=="serial4") && value.ToString()=="disabled") return false;
+        }
+        return default_value.ToString()!=value.ToString();
+    };
 
 protected:
 	//Set interval value to in or default if in is invalid. force always sets the value.
@@ -151,6 +166,7 @@ protected:
 		}
 	}
 	Value value;
+	bool is_basic=false;
 	bool is_modified;
 	std::vector<Value> suggested_values;
 	typedef std::vector<Value>::iterator iter;
@@ -273,7 +289,7 @@ public:
 
 	virtual std::string GetPropValue(std::string const& _property) const =0;
 	virtual bool HandleInputline(std::string const& _line)=0;
-	virtual void PrintData(FILE* outfile,bool everything=false) = 0;
+	virtual void PrintData(FILE* outfile,int everything=-1,bool norem=false) = 0;
 	virtual ~Section() { /*Children must call executedestroy ! */ }
 
 	std::list<SectionFunction> onpropchange;
@@ -376,7 +392,7 @@ public:
 	Prop_multival* Get_multival(std::string const& _propname) const;
 	Prop_multival_remain* Get_multivalremain(std::string const& _propname) const;
 	virtual bool HandleInputline(std::string const& gegevens);
-	virtual void PrintData(FILE* outfile,bool everything=false);
+	virtual void PrintData(FILE* outfile,int everything=-1,bool norem=false);
 	virtual std::string GetPropValue(std::string const& _property) const;
 	virtual ~Section_prop();
 	std::string data;
@@ -413,7 +429,7 @@ public:
 	Section_line(std::string const& _sectionname):Section(_sectionname){}
 	virtual ~Section_line() { };
 	virtual bool HandleInputline(std::string const& line);
-	virtual void PrintData(FILE* outfile,bool everything=false);
+	virtual void PrintData(FILE* outfile,int everything=-1,bool norem=false);
 	virtual std::string GetPropValue(std::string const& _property) const;
 	std::string data;
 };

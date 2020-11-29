@@ -2,7 +2,7 @@
 /* Hand-edited by Jonathan Campbell for Visual Studio 2008 */
 
 /*
- *  Copyright (C) 2002-2019  The DOSBox Team
+ *  Copyright (C) 2002-2020  The DOSBox Team
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -14,9 +14,9 @@
  *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  *  GNU Library General Public License for more details.
  *
- *  You should have received a copy of the GNU General Public License
- *  along with this program; if not, write to the Free Software
- *  Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1335, USA.
+ *  You should have received a copy of the GNU General Public License along
+ *  with this program; if not, write to the Free Software Foundation, Inc.,
+ *  51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
 
 /* DOSBox-X currently targets Windows XP or higher. */
@@ -73,19 +73,23 @@
    */
 #define C_DIRECTSERIAL 1
 
-#if defined (_M_AMD64) || defined (_M_ARM64) || defined (_M_ARM) /* Microsoft C++ amd64, arm32 and arm64 */
-# undef C_DYNAMIC_X86
+#if defined (_M_AMD64)
+/* The type of cpu this target has */
+# define C_TARGETCPU X86_64
+/* Define to 1 to use x86 dynamic cpu core */
+# define C_DYNAMIC_X86 1
+# define C_DYNREC 1
+#elif defined (_M_ARM64) || defined (_M_ARM) /* Microsoft C++ amd64, arm32 and arm64 */
 # undef C_TARGETCPU
+# undef C_DYNAMIC_X86
 # define C_DYNREC 1
 #else
-/* The type of cpu this target has */
 # define C_TARGETCPU X86
-/* Define to 1 to use x86 dynamic cpu core */
-# undef C_DYNAMIC_X86
+# define C_DYNAMIC_X86 1
 # define C_DYNREC 1
 #endif
 
-/* Define to 1 to enable fluidsynth MIDI synthesis */
+/* Define to 1 to enable libfluidsynth MIDI synthesis */
 #undef C_FLUIDSYNTH
 
 /* Define to 1 to enable floating point emulation */
@@ -100,6 +104,9 @@
 #else
 # define C_FPU_X86 1
 #endif
+
+/* Define to 1 to enable freetype support */
+#define C_FREETYPE 1
 
 /* Determines if the compilers supports attributes for structures. */
 #undef C_HAS_ATTRIBUTE
@@ -140,7 +147,6 @@
 # define C_OPENGL 1
 #endif
 
-#if !defined(C_SDL2)
 /* Set to 1 to enable XBRZ support */
 #define C_XBRZ 1
 
@@ -148,7 +154,6 @@
 /* Please note that this option includes small part of xBRZ code and uses task group parallelism like xBRZ (batch size is hardcoded here) */
 #define C_SURFACE_POSTRENDER_ASPECT 1
 #define C_SURFACE_POSTRENDER_ASPECT_BATCH_SIZE 16
-#endif /*!defined(C_SDL2)*/
 
 /* Define to 1 if you have setpriority support */
 #undef C_SET_PRIORITY

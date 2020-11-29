@@ -1,5 +1,5 @@
 /*
- *  Copyright (C) 2002-2019  The DOSBox Team
+ *  Copyright (C) 2002-2020  The DOSBox Team
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -11,9 +11,9 @@
  *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  *  GNU General Public License for more details.
  *
- *  You should have received a copy of the GNU General Public License
- *  along with this program; if not, write to the Free Software
- *  Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1335, USA.
+ *  You should have received a copy of the GNU General Public License along
+ *  with this program; if not, write to the Free Software Foundation, Inc.,
+ *  51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
 
 
@@ -38,25 +38,25 @@ public:
 	CNullModem(Bitu id, CommandLine* cmd);
 	~CNullModem();
 
-	void updatePortConfig(Bit16u divider, Bit8u lcr);
+	void updatePortConfig(uint16_t divider, uint8_t lcr);
 	void updateMSR();
-	void transmitByte(Bit8u val, bool first);
+	void transmitByte(uint8_t val, bool first);
 	void setBreak(bool value);
 	
 	void setRTSDTR(bool rts, bool dtr);
 	void setRTS(bool val);
 	void setDTR(bool val);
-	void handleUpperEvent(Bit16u type);
+	void handleUpperEvent(uint16_t type);
 
 private:
 	TCPServerSocket* serversocket;
 	TCPClientSocket* clientsocket;
 
 	bool receiveblock;		// It's not a block of data it rather blocks
-	Bit16u serverport;		// we are a server if this is nonzero
-	Bit16u clientport;
+	uint16_t serverport;		// we are a server if this is nonzero
+	uint16_t clientport;
 
-	Bit8u hostnamebuffer[128]; // the name passed to us by the user
+	uint8_t hostnamebuffer[128]; // the name passed to us by the user
 
 	Bitu rx_state;
 #define N_RX_IDLE		0
@@ -71,7 +71,7 @@ private:
 	bool ServerConnect();
     void Disconnect();
 	Bits readChar();
-	void WriteChar(Bit8u data);
+	void WriteChar(uint8_t data);
 
 	bool DTR_delta;		// with dtrrespect, we try to establish a connection
 						// whenever DTR switches to 1. This variable is
@@ -103,7 +103,7 @@ private:
 #define TEL_CLIENT 0
 #define TEL_SERVER 1
 
-	Bits TelnetEmulation(Bit8u data);
+	Bits TelnetEmulation(uint8_t data);
 
 	// Telnet's memory
 	struct {
@@ -114,7 +114,7 @@ private:
 					
 		bool inIAC;
 		bool recCommand;
-		Bit8u command;
+		uint8_t command;
 	} telClient;
 };
 

@@ -1,5 +1,5 @@
 /*
- *  Copyright (C) 2002-2019  The DOSBox Team
+ *  Copyright (C) 2002-2020  The DOSBox Team
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -11,9 +11,9 @@
  *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  *  GNU General Public License for more details.
  *
- *  You should have received a copy of the GNU General Public License
- *  along with this program; if not, write to the Free Software
- *  Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1335, USA.
+ *  You should have received a copy of the GNU General Public License along
+ *  with this program; if not, write to the Free Software Foundation, Inc.,
+ *  51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
 
 enum {
@@ -174,14 +174,14 @@ enum {
 };
 
 struct OpCode {
-	Bit8u load,op,save,extra;
+	uint8_t load,op,save,extra;
 };
 
 struct FullData {
 	Bitu entry;
 	Bitu rm;
 	EAPoint rm_eaa;
-	Bit32u rm_off;
+	uint32_t rm_off;
 	Bitu rm_eai;
 	Bitu rm_index;
 	Bitu rm_mod;
@@ -189,18 +189,18 @@ struct FullData {
 	EAPoint cseip;
 #ifdef WORDS_BIGENDIAN
 	union {
-		Bit32u dword[1];
-		Bit32s dwords[1];
-		Bit16u word[2];
-		Bit16s words[2];
-		Bit8u byte[4];
-		Bit8s bytes[4];
+		uint32_t dword[1];
+		int32_t dwords[1];
+		uint16_t word[2];
+		int16_t words[2];
+		uint8_t byte[4];
+		int8_t bytes[4];
 		} blah1,blah2,blah_imm;
 #else
 	union {	
-		Bit8u b;Bit8s bs;
-		Bit16u w;Bit16s ws;
-		Bit32u d;Bit32s ds;
+		uint8_t b;int8_t bs;
+		uint16_t w;int16_t ws;
+		uint32_t d;int32_t ds;
 	} op1,op2,imm;
 #endif
 	Bitu new_flags;

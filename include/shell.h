@@ -1,5 +1,5 @@
 /*
- *  Copyright (C) 2002-2019  The DOSBox Team
+ *  Copyright (C) 2002-2020  The DOSBox Team
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -11,9 +11,9 @@
  *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  *  GNU General Public License for more details.
  *
- *  You should have received a copy of the GNU General Public License
- *  along with this program; if not, write to the Free Software
- *  Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1335, USA.
+ *  You should have received a copy of the GNU General Public License along
+ *  with this program; if not, write to the Free Software Foundation, Inc.,
+ *  51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
 
 
@@ -57,8 +57,8 @@ public:
 	virtual bool ReadLine(char * line);
 	bool Goto(const char * where);
 	void Shift(void);
-	Bit16u file_handle;
-	Bit32u location;
+	uint16_t file_handle;
+	uint32_t location;
 	bool echo;
 	DOS_Shell * shell;
 	BatchFile * prev;
@@ -89,7 +89,7 @@ private:
     typedef std::map<std::string, std::string, less_ignore_case<std::string> > cmd_alias_map_t;
     cmd_alias_map_t cmd_alias;
 
-	Bit16u completion_index;
+	uint16_t completion_index;
 	
 private:
 	void ProcessCmdLineEnvVarStitution(char * line);
@@ -171,6 +171,10 @@ public:
     /*! \brief      Deletion command (DEL)
      */
 	void CMD_DELETE(char * args);
+
+    /*! \brief      Delete directory tree (DELTREE)
+     */
+	void CMD_DELTREE(char * args);
 
     /*! \brief      Echo command (ECHO)
      */
@@ -313,11 +317,13 @@ public:
 #endif
 
 	/* The shell's variables */
-	Bit16u input_handle;
+	uint16_t input_handle;
 	BatchFile * bf;                     //! Batch file to execute
 	bool echo;
 	bool exit;
 	bool call;
+    bool exec;
+    bool perm;
 	bool lfnfor;
     /* Status */
     bool input_eof;                     //! STDIN has hit EOF
@@ -325,7 +331,7 @@ public:
 
 struct SHELL_Cmd {
 	const char * name;								/* Command name*/
-	Bit32u flags;									/* Flags about the command */
+	uint32_t flags;									/* Flags about the command */
 	void (DOS_Shell::*handler)(char * args);		/* Handler for this command */
 	const char * help;								/* String with command help */
 };

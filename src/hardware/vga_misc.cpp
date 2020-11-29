@@ -1,5 +1,5 @@
 /*
- *  Copyright (C) 2002-2019  The DOSBox Team
+ *  Copyright (C) 2002-2020  The DOSBox Team
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -11,9 +11,9 @@
  *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  *  GNU General Public License for more details.
  *
- *  You should have received a copy of the GNU General Public License
- *  along with this program; if not, write to the Free Software
- *  Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1335, USA.
+ *  You should have received a copy of the GNU General Public License along
+ *  with this program; if not, write to the Free Software Foundation, Inc.,
+ *  51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
 
 
@@ -44,7 +44,7 @@ unsigned char vga_p3da_undefined_bits = 0;
 Bitu vga_read_p3da(Bitu port,Bitu iolen) {
     (void)port;//UNUSED
     (void)iolen;//UNUSED
-	Bit8u retval = vga_p3da_undefined_bits;
+	uint8_t retval = vga_p3da_undefined_bits;
 	double timeInFrame = PIC_FullIndex()-vga.draw.delay.framestart;
 
 	vga.internal.attrindex=false;
@@ -77,7 +77,7 @@ static void write_p3c2(Bitu port,Bitu val,Bitu iolen) {
     (void)port;//UNUSED
     (void)iolen;//UNUSED
 	if((machine==MCH_EGA) && ((vga.misc_output^val)&0xc)) VGA_StartResize();
-	vga.misc_output=(Bit8u)val;
+	vga.misc_output=(uint8_t)val;
 	Bitu base=(val & 0x1) ? 0x3d0 : 0x3b0;
 	Bitu free=(val & 0x1) ? 0x3b0 : 0x3d0;
 	Bitu first=2, last=2;
@@ -133,7 +133,7 @@ static Bitu read_p3c8(Bitu port,Bitu iolen) {
 static Bitu read_p3c2(Bitu port,Bitu iolen) {
     (void)port;//UNUSED
     (void)iolen;//UNUSED
-	Bit8u retval=0;
+	uint8_t retval=0;
 
 	if (machine==MCH_EGA) retval = 0x0F;
 	else if (IS_VGA_ARCH) retval = 0x60;

@@ -1,5 +1,5 @@
 /*
- *  Copyright (C) 2002-2019  The DOSBox Team
+ *  Copyright (C) 2002-2020  The DOSBox Team
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -11,9 +11,9 @@
  *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  *  GNU General Public License for more details.
  *
- *  You should have received a copy of the GNU General Public License
- *  along with this program; if not, write to the Free Software
- *  Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1335, USA.
+ *  You should have received a copy of the GNU General Public License along
+ *  with this program; if not, write to the Free Software Foundation, Inc.,
+ *  51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
 
 	CASE_0F_W(0x00)												/* GRP 6 Exxx */
@@ -28,8 +28,8 @@
 					Bitu saveval;
 					if (!which) saveval=CPU_SLDT();
 					else saveval=CPU_STR();
-					if (rm >= 0xc0) {GetEArw;*earw=(Bit16u)saveval;}
-					else {GetEAa;SaveMw(eaa,(Bit16u)saveval);}
+					if (rm >= 0xc0) {GetEArw;*earw=(uint16_t)saveval;}
+					else {GetEAa;SaveMw(eaa,(uint16_t)saveval);}
 				}
 				break;
 			case 0x02:case 0x03:case 0x04:case 0x05:
@@ -72,13 +72,13 @@
 					 *      Some programs, including Microsoft Windows 3.0, execute SGDT and then compare the most
 					 *      significant byte against 0xFF. It does NOT use the standard Intel detection process. */
 				case 0x00:										/* SGDT */
-					SaveMw(eaa,(Bit16u)CPU_SGDT_limit());
-					SaveMd(eaa+2,(Bit32u)(CPU_SGDT_base()|(CPU_ArchitectureType<CPU_ARCHTYPE_386?0xFF000000UL:0)));
+					SaveMw(eaa,(uint16_t)CPU_SGDT_limit());
+					SaveMd(eaa+2,(uint32_t)(CPU_SGDT_base()|(CPU_ArchitectureType<CPU_ARCHTYPE_386?0xFF000000UL:0)));
 					break;
 					/* NTS: Same comments for SIDT as SGDT */
 				case 0x01:										/* SIDT */
-					SaveMw(eaa,(Bit16u)CPU_SIDT_limit());
-					SaveMd(eaa+2,(Bit32u)(CPU_SIDT_base()|(CPU_ArchitectureType<CPU_ARCHTYPE_386?0xFF000000UL:0)));
+					SaveMw(eaa,(uint16_t)CPU_SIDT_limit());
+					SaveMd(eaa+2,(uint32_t)(CPU_SIDT_base()|(CPU_ArchitectureType<CPU_ARCHTYPE_386?0xFF000000UL:0)));
 					break;
 				case 0x02:										/* LGDT */
 					if (cpu.pmode && cpu.cpl) EXCEPTION(EXCEPTION_GP);
@@ -89,7 +89,7 @@
 					CPU_LIDT(LoadMw(eaa),LoadMd(eaa+2) & 0xFFFFFF);
 					break;
 				case 0x04:										/* SMSW */
-					SaveMw(eaa,(Bit16u)CPU_SMSW());
+					SaveMw(eaa,(uint16_t)CPU_SMSW());
 					break;
 				case 0x06:										/* LMSW */
 					limit=LoadMw(eaa);
@@ -111,7 +111,7 @@
 					if (cpu.pmode && cpu.cpl) EXCEPTION(EXCEPTION_GP);
 					goto illegal_opcode;
 				case 0x04:										/* SMSW */
-					*earw=(Bit16u)CPU_SMSW();
+					*earw=(uint16_t)CPU_SMSW();
 					break;
 				case 0x06:										/* LMSW */
 					if (CPU_LMSW(*earw)) RUNEXCEPTION();
@@ -132,7 +132,7 @@
 			} else {
 				GetEAa;CPU_LAR(LoadMw(eaa),ar);
 			}
-			*rmrw=(Bit16u)ar;
+			*rmrw=(uint16_t)ar;
 		}
 		break;
 	CASE_0F_W(0x03)												/* LSL Gw,Ew */
@@ -145,7 +145,7 @@
 			} else {
 				GetEAa;CPU_LSL(LoadMw(eaa),limit);
 			}
-			*rmrw=(Bit16u)limit;
+			*rmrw=(uint16_t)limit;
 		}
 		break;
 	CASE_0F_B(0x06)												/* CLTS */
@@ -168,7 +168,7 @@
 				LOG(LOG_CPU,LOG_ERROR)("MOV XXX,CR%u with non-register",(int)which);
 			}
 			GetEArd;
-			Bit32u crx_value;
+			uint32_t crx_value;
 			if (CPU_READ_CRX(which,crx_value)) RUNEXCEPTION();
 			*eard=crx_value;
 		}
@@ -183,7 +183,7 @@
 				LOG(LOG_CPU,LOG_ERROR)("MOV XXX,DR%u with non-register",(int)which);
 			}
 			GetEArd;
-			Bit32u drx_value;
+			uint32_t drx_value;
 			if (CPU_READ_DRX(which,drx_value)) RUNEXCEPTION();
 			*eard=drx_value;
 		}
@@ -224,7 +224,7 @@
 				LOG(LOG_CPU,LOG_ERROR)("MOV XXX,TR%u with non-register",(int)which);
 			}
 			GetEArd;
-			Bit32u trx_value;
+			uint32_t trx_value;
 			if (CPU_READ_TRX(which,trx_value)) RUNEXCEPTION();
 			*eard=trx_value;
 		}
@@ -252,9 +252,9 @@
 		{
 			if (CPU_ArchitectureType<CPU_ARCHTYPE_PENTIUM) goto illegal_opcode;
 			/* Use a fixed number when in auto cycles mode as else the reported value changes constantly */
-			Bit64s tsc=(Bit64s)(PIC_FullIndex()*(double) (CPU_CycleAutoAdjust?70000:CPU_CycleMax));
-			reg_edx=(Bit32u)(tsc>>32);
-			reg_eax=(Bit32u)(tsc&0xffffffff);
+			int64_t tsc=(int64_t)(PIC_FullIndex()*(double) (CPU_CycleAutoAdjust?70000:CPU_CycleMax));
+			reg_edx=(uint32_t)(tsc>>32);
+			reg_eax=(uint32_t)(tsc&0xffffffff);
 		}
 		break;
 
@@ -394,13 +394,13 @@
 		if (CPU_ArchitectureType<CPU_ARCHTYPE_386) goto illegal_opcode;
 		{
 			FillFlags();GetRMrw;
-			Bit16u mask=1u << (*rmrw & 15u);
+			uint16_t mask=1u << (*rmrw & 15u);
 			if (rm >= 0xc0 ) {
 				GetEArw;
 				SETFLAGBIT(CF,(*earw & mask));
 			} else {
-				GetEAa;eaa+=(PhysPt)((((Bit16s)*rmrw)>>4)*2);
-				Bit16u old=LoadMw(eaa);
+				GetEAa;eaa+=(PhysPt)((((int16_t)*rmrw)>>4)*2);
+				uint16_t old=LoadMw(eaa);
 				SETFLAGBIT(CF,(old & mask));
 			}
 			break;
@@ -424,14 +424,14 @@
 		if (CPU_ArchitectureType<CPU_ARCHTYPE_386) goto illegal_opcode;
 		{
 			FillFlags();GetRMrw;
-			Bit16u mask=1u << (*rmrw & 15u);
+			uint16_t mask=1u << (*rmrw & 15u);
 			if (rm >= 0xc0 ) {
 				GetEArw;
 				SETFLAGBIT(CF,(*earw & mask));
 				*earw|=mask;
 			} else {
-				GetEAa;eaa+=(PhysPt)((((Bit16s)*rmrw)>>4)*2);
-				Bit16u old=LoadMw(eaa);
+				GetEAa;eaa+=(PhysPt)((((int16_t)*rmrw)>>4)*2);
+				uint16_t old=LoadMw(eaa);
 				SETFLAGBIT(CF,(old & mask));
 				SaveMw(eaa,old | mask);
 			}
@@ -464,7 +464,7 @@
 				}
 			} else {
    				GetEAa;
-				Bit8u val = LoadMb(eaa);
+				uint8_t val = LoadMb(eaa);
 				if (reg_al == val) { 
 					SaveMb(eaa,*rmrb);
 					SETFLAGBIT(ZF,1);
@@ -492,7 +492,7 @@
 				}
 			} else {
    				GetEAa;
-				Bit16u val = LoadMw(eaa);
+				uint16_t val = LoadMw(eaa);
 				if(reg_ax == val) { 
 					SaveMw(eaa,*rmrw);
 					SETFLAGBIT(ZF,1);
@@ -519,14 +519,14 @@
 		if (CPU_ArchitectureType<CPU_ARCHTYPE_386) goto illegal_opcode;
 		{
 			FillFlags();GetRMrw;
-			Bit16u mask=1u << (*rmrw & 15u);
+			uint16_t mask=1u << (*rmrw & 15u);
 			if (rm >= 0xc0 ) {
 				GetEArw;
 				SETFLAGBIT(CF,(*earw & mask));
 				*earw&= ~mask;
 			} else {
-				GetEAa;eaa+=(PhysPt)((((Bit16s)*rmrw)>>4)*2);
-				Bit16u old=LoadMw(eaa);
+				GetEAa;eaa+=(PhysPt)((((int16_t)*rmrw)>>4)*2);
+				uint16_t old=LoadMw(eaa);
 				SETFLAGBIT(CF,(old & mask));
 				SaveMw(eaa,old & ~mask);
 			}
@@ -575,7 +575,7 @@
 			FillFlags();GetRM;
 			if (rm >= 0xc0 ) {
 				GetEArw;
-				Bit16u mask=1 << (Fetchb() & 15);
+				uint16_t mask=1 << (Fetchb() & 15);
 				SETFLAGBIT(CF,(*earw & mask));
 				switch (rm & 0x38) {
 				case 0x20:										/* BT */
@@ -593,8 +593,8 @@
 					E_Exit("CPU:0F:BA:Illegal subfunction %X",rm & 0x38);
 				}
 			} else {
-				GetEAa;Bit16u old=LoadMw(eaa);
-				Bit16u mask=1 << (Fetchb() & 15);
+				GetEAa;uint16_t old=LoadMw(eaa);
+				uint16_t mask=1 << (Fetchb() & 15);
 				SETFLAGBIT(CF,(old & mask));
 				switch (rm & 0x38) {
 				case 0x20:										/* BT */
@@ -618,14 +618,14 @@
 		if (CPU_ArchitectureType<CPU_ARCHTYPE_386) goto illegal_opcode;
 		{
 			FillFlags();GetRMrw;
-			Bit16u mask=1u << (*rmrw & 15u);
+			uint16_t mask=1u << (*rmrw & 15u);
 			if (rm >= 0xc0 ) {
 				GetEArw;
 				SETFLAGBIT(CF,(*earw & mask));
 				*earw^=mask;
 			} else {
-				GetEAa;eaa+=(PhysPt)((((Bit16s)*rmrw)>>4)*2);
-				Bit16u old=LoadMw(eaa);
+				GetEAa;eaa+=(PhysPt)((((int16_t)*rmrw)>>4)*2);
+				uint16_t old=LoadMw(eaa);
 				SETFLAGBIT(CF,(old & mask));
 				SaveMw(eaa,old ^ mask);
 			}
@@ -635,13 +635,13 @@
 		if (CPU_ArchitectureType<CPU_ARCHTYPE_386) goto illegal_opcode;
 		{
 			GetRMrw;
-			Bit16u value;
+			uint16_t value;
 			if (rm >= 0xc0) { GetEArw; value=*earw; } 
 			else			{ GetEAa; value=LoadMw(eaa); }
 			if (value==0) {
 				SETFLAGBIT(ZF,true);
 			} else {
-				Bit16u result = 0;
+				uint16_t result = 0;
 				while ((value & 0x01)==0) { result++; value>>=1; }
 				SETFLAGBIT(ZF,false);
 				*rmrw = result;
@@ -653,13 +653,13 @@
 		if (CPU_ArchitectureType<CPU_ARCHTYPE_386) goto illegal_opcode;
 		{
 			GetRMrw;
-			Bit16u value;
+			uint16_t value;
 			if (rm >= 0xc0) { GetEArw; value=*earw; } 
 			else			{ GetEAa; value=LoadMw(eaa); }
 			if (value==0) {
 				SETFLAGBIT(ZF,true);
 			} else {
-				Bit16u result = 15;	// Operandsize-1
+				uint16_t result = 15;	// Operandsize-1
 				while ((value & 0x8000)==0) { result--; value<<=1; }
 				SETFLAGBIT(ZF,false);
 				*rmrw = result;
@@ -671,14 +671,14 @@
 		if (CPU_ArchitectureType<CPU_ARCHTYPE_386) goto illegal_opcode;
 		{
 			GetRMrw;															
-			if (rm >= 0xc0 ) {GetEArb;*rmrw=(Bit16u)(*(Bit8s *)earb);}
-			else {GetEAa;*rmrw=(Bit16u)LoadMbs(eaa);}
+			if (rm >= 0xc0 ) {GetEArb;*rmrw=(uint16_t)(*(int8_t *)earb);}
+			else {GetEAa;*rmrw=(uint16_t)LoadMbs(eaa);}
 			break;
 		}
 	CASE_0F_B(0xc0)												/* XADD Gb,Eb */
 		{
 			if (CPU_ArchitectureType<CPU_ARCHTYPE_486OLD) goto illegal_opcode;
-			GetRMrb;Bit8u oldrmrb=*rmrb;
+			GetRMrb;uint8_t oldrmrb=*rmrb;
 			if (rm >= 0xc0 ) {GetEArb;*rmrb=*earb;*earb+=oldrmrb;}
 			else {GetEAa;*rmrb=LoadMb(eaa);SaveMb(eaa,LoadMb(eaa)+oldrmrb);}
 			break;
@@ -686,7 +686,7 @@
 	CASE_0F_W(0xc1)												/* XADD Gw,Ew */
 		{
 			if (CPU_ArchitectureType<CPU_ARCHTYPE_486OLD) goto illegal_opcode;
-			GetRMrw;Bit16u oldrmrw=*rmrw;
+			GetRMrw;uint16_t oldrmrw=*rmrw;
 			if (rm >= 0xc0 ) {GetEArw;*rmrw=*earw;*earw+=oldrmrw;}
 			else {GetEAa;*rmrw=LoadMw(eaa);SaveMw(eaa,LoadMw(eaa)+oldrmrw);}
 			break;
@@ -732,4 +732,8 @@
 	CASE_0F_W(0xcf)												/* BSWAP DI */
 		if (CPU_ArchitectureType<CPU_ARCHTYPE_486OLD) goto illegal_opcode;
 		BSWAPW(reg_di);break;
-		
+#if C_FPU
+#define CASE_0F_MMX(x) CASE_0F_W(x)
+#include "prefix_0f_mmx.h"
+#undef CASE_0F_MMX
+#endif

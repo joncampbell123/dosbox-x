@@ -1,5 +1,5 @@
 /*
- *  Copyright (C) 2002-2019  The DOSBox Team
+ *  Copyright (C) 2002-2020  The DOSBox Team
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -11,9 +11,9 @@
  *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  *  GNU General Public License for more details.
  *
- *  You should have received a copy of the GNU General Public License
- *  along with this program; if not, write to the Free Software
- *  Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1335, USA.
+ *  You should have received a copy of the GNU General Public License along
+ *  with this program; if not, write to the Free Software Foundation, Inc.,
+ *  51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
 
 
@@ -72,12 +72,12 @@ private:
 public:
 	MidiHandler_alsa() : MidiHandler() {};
 	const char* GetName(void) { return "alsa"; }
-	void PlaySysex(Bit8u * sysex,Bitu len) {
+	void PlaySysex(uint8_t * sysex,Bitu len) {
 		snd_seq_ev_set_sysex(&ev, len, sysex);
 		send_event(1);
 	}
 
-	void PlayMsg(Bit8u * msg) {
+	void PlayMsg(uint8_t * msg) {
 		ev.type = SND_SEQ_EVENT_OSS;
 
 		ev.data.raw32.d[0] = msg[0];

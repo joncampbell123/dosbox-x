@@ -1,5 +1,5 @@
 /*
- *  Copyright (C) 2002-2019  The DOSBox Team
+ *  Copyright (C) 2002-2020  The DOSBox Team
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -11,9 +11,9 @@
  *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  *  GNU General Public License for more details.
  *
- *  You should have received a copy of the GNU General Public License
- *  along with this program; if not, write to the Free Software
- *  Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1335, USA.
+ *  You should have received a copy of the GNU General Public License along
+ *  with this program; if not, write to the Free Software Foundation, Inc.,
+ *  51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
 
 
@@ -90,7 +90,7 @@ CDirectSerial::~CDirectSerial () {
 
 // to be continued...
 
-void CDirectSerial::handleUpperEvent(Bit16u type) {
+void CDirectSerial::handleUpperEvent(uint16_t type) {
 /*
 #if SERIAL_DEBUG
 		const char* s;
@@ -268,7 +268,7 @@ void CDirectSerial::handleUpperEvent(Bit16u type) {
 bool CDirectSerial::doReceive() {
 	int value = SERIAL_getextchar(comport);
 	if(value) {
-		receiveByteEx((Bit8u)(value&0xff),(Bit8u)((value&0xff00)>>8));
+		receiveByteEx((uint8_t)(value&0xff),(uint8_t)((value&0xff00)>>8));
 		return true;
 	}
 	return false;
@@ -276,8 +276,8 @@ bool CDirectSerial::doReceive() {
 
 // updatePortConfig is called when emulated app changes the serial port
 // parameters baudrate, stopbits, number of databits, parity.
-void CDirectSerial::updatePortConfig (Bit16u divider, Bit8u lcr) {
-	Bit8u parity = 0;
+void CDirectSerial::updatePortConfig (uint16_t divider, uint8_t lcr) {
+	uint8_t parity = 0;
 
 	switch ((lcr & 0x38)>>3) {
 	case 0x1: parity='o'; break;
@@ -287,7 +287,7 @@ void CDirectSerial::updatePortConfig (Bit16u divider, Bit8u lcr) {
 	default: parity='n'; break;
 	}
 
-	Bit8u bytelength = (lcr & 0x3)+5;
+	uint8_t bytelength = (lcr & 0x3)+5;
 
 	// baudrate
 	Bitu baudrate;
@@ -295,7 +295,7 @@ void CDirectSerial::updatePortConfig (Bit16u divider, Bit8u lcr) {
 	else baudrate = 115200u / divider;
 
 	// stopbits
-	Bit8u stopbits;
+	uint8_t stopbits;
 	if (lcr & 0x4) {
 		if (bytelength == 5) stopbits = SERIAL_15STOP;
 		else stopbits = SERIAL_2STOP;
@@ -320,7 +320,7 @@ void CDirectSerial::updateMSR () {
 	setCD((new_status&SERIAL_CD)? true:false);
 }
 
-void CDirectSerial::transmitByte (Bit8u val, bool first) {
+void CDirectSerial::transmitByte (uint8_t val, bool first) {
 	if(!SERIAL_sendchar(comport, (char)val))
 		LOG_MSG("Serial%d: COM port error: write failed!", (int)COMNUMBER);
 	if(first) setEvent(SERIAL_THR_EVENT, bytetime/8);

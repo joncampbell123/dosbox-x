@@ -1,5 +1,5 @@
 /*
- *  Copyright (C) 2002-2019  The DOSBox Team
+ *  Copyright (C) 2002-2020  The DOSBox Team
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -11,9 +11,9 @@
  *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  *  GNU General Public License for more details.
  *
- *  You should have received a copy of the GNU General Public License
- *  along with this program; if not, write to the Free Software
- *  Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1335, USA.
+ *  You should have received a copy of the GNU General Public License along
+ *  with this program; if not, write to the Free Software Foundation, Inc.,
+ *  51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
 
 #ifndef _RENDER_SCALERS_H
@@ -63,23 +63,23 @@ typedef enum scalerOperation {
 typedef void (*ScalerLineHandler_t)(const void *src);
 typedef void (*ScalerComplexHandler_t)(void);
 
-extern Bit8u Scaler_Aspect[];
-extern Bit8u diff_table[];
+extern uint8_t Scaler_Aspect[];
+extern uint8_t diff_table[];
 extern Bitu Scaler_ChangedLineIndex;
-extern Bit16u Scaler_ChangedLines[];
+extern uint16_t Scaler_ChangedLines[];
 #if RENDER_USE_ADVANCED_SCALERS>1
 /* Not entirely happy about those +2's since they make a non power of 2, with muls instead of shift */
-typedef Bit8u scalerChangeCache_t [SCALER_COMPLEXHEIGHT][SCALER_COMPLEXWIDTH / SCALER_BLOCKSIZE] ;
+typedef uint8_t scalerChangeCache_t [SCALER_COMPLEXHEIGHT][SCALER_COMPLEXWIDTH / SCALER_BLOCKSIZE] ;
 typedef union {
-	Bit32u b32	[SCALER_COMPLEXHEIGHT] [SCALER_COMPLEXWIDTH];
-	Bit16u b16	[SCALER_COMPLEXHEIGHT] [SCALER_COMPLEXWIDTH];
-	Bit8u b8	[SCALER_COMPLEXHEIGHT] [SCALER_COMPLEXWIDTH];
+	uint32_t b32	[SCALER_COMPLEXHEIGHT] [SCALER_COMPLEXWIDTH];
+	uint16_t b16	[SCALER_COMPLEXHEIGHT] [SCALER_COMPLEXWIDTH];
+	uint8_t b8	[SCALER_COMPLEXHEIGHT] [SCALER_COMPLEXWIDTH];
 } scalerFrameCache_t;
 #endif
 typedef union {
-	Bit32u b32	[SCALER_MAXHEIGHT] [SCALER_MAXWIDTH];
-	Bit16u b16	[SCALER_MAXHEIGHT] [SCALER_MAXWIDTH];
-	Bit8u b8	[SCALER_MAXHEIGHT] [SCALER_MAXWIDTH];
+	uint32_t b32	[SCALER_MAXHEIGHT] [SCALER_MAXWIDTH];
+	uint16_t b16	[SCALER_MAXHEIGHT] [SCALER_MAXWIDTH];
+	uint8_t b8	[SCALER_MAXHEIGHT] [SCALER_MAXWIDTH];
 } scalerSourceCache_t;
 extern scalerSourceCache_t scalerSourceCache;
 #if RENDER_USE_ADVANCED_SCALERS>1

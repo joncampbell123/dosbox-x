@@ -1,5 +1,5 @@
 /*
- *  Copyright (C) 2002-2019  The DOSBox Team
+ *  Copyright (C) 2002-2020  The DOSBox Team
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -11,9 +11,9 @@
  *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  *  GNU General Public License for more details.
  *
- *  You should have received a copy of the GNU General Public License
- *  along with this program; if not, write to the Free Software
- *  Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1335, USA.
+ *  You should have received a copy of the GNU General Public License along
+ *  with this program; if not, write to the Free Software Foundation, Inc.,
+ *  51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
 
 #include <assert.h>
@@ -37,7 +37,7 @@
 
 #define RAWBUF	1024
 
-Bit8u MIDI_evt_len[256] = {
+uint8_t MIDI_evt_len[256] = {
   0,0,0,0, 0,0,0,0, 0,0,0,0, 0,0,0,0,  // 0x00
   0,0,0,0, 0,0,0,0, 0,0,0,0, 0,0,0,0,  // 0x10
   0,0,0,0, 0,0,0,0, 0,0,0,0, 0,0,0,0,  // 0x20
@@ -69,23 +69,24 @@ MidiHandler::MidiHandler(){
 
 MidiHandler Midi_none;
 DB_Midi midi;
+std::string sffile="Not available";
 
 static struct {
 	bool init;
 	bool ignore;
 
 	// NOTE: 16-bit ($ffff = not used, $00-ff = data value)
-	Bit16u code_80[0x80];			// note off (w/ velocity)
-	Bit16u code_90[0x80];			// note on (w/ velocity)
-	Bit16u code_a0[0x80];			// aftertouch (polyphonic key pressure)
-	Bit16u code_b0[0x80];			// Continuous controller (GM 1.0 + GS)
-	Bit16u code_c0[1];				// patch change
-	Bit16u code_d0[1];				// channel pressure (after-touch)
-	Bit16u code_e0[2];				// pitch bend
-	//Bit16u code_f0-ff				// system messages
+	uint16_t code_80[0x80];			// note off (w/ velocity)
+	uint16_t code_90[0x80];			// note on (w/ velocity)
+	uint16_t code_a0[0x80];			// aftertouch (polyphonic key pressure)
+	uint16_t code_b0[0x80];			// Continuous controller (GM 1.0 + GS)
+	uint16_t code_c0[1];				// patch change
+	uint16_t code_d0[1];				// channel pressure (after-touch)
+	uint16_t code_e0[2];				// pitch bend
+	//uint16_t code_f0-ff				// system messages
 
-	Bit16u code_rpn_coarse[3];		// registered parameter numbers (GM 1.0)
-	Bit16u code_rpn_fine[3];			// registered parameter numbers (GM 1.0)
+	uint16_t code_rpn_coarse[3];		// registered parameter numbers (GM 1.0)
+	uint16_t code_rpn_fine[3];			// registered parameter numbers (GM 1.0)
 } midi_state[16];
 
 
@@ -96,7 +97,7 @@ static struct {
 #include "midi_mt32.h"
 #endif
 
-#if C_FLUIDSYNTH
+#if C_FLUIDSYNTH || defined(WIN32) && !defined(HX_DOS)
 #include "midi_synth.h"
 #endif
 
@@ -139,7 +140,7 @@ void MIDI_State_Reset()
 
 void MIDI_State_SaveMessage()
 {
-	Bit8u channel, command, arg1, arg2;
+	uint8_t channel, command, arg1, arg2;
 
 	if( midi_state[0].init == false ) {
 		MIDI_State_Reset();
@@ -372,7 +373,7 @@ void MIDI_State_SaveMessage()
 }
 
 
-void MIDI_RawOutByte(Bit8u);
+void MIDI_RawOutByte(uint8_t);
 void MIDI_State_LoadMessage()
 {
 	if( midi_state[0].init == false ) {
@@ -506,9 +507,9 @@ void MIDI_State_LoadMessage()
 }
 
 
-void MIDI_RawOutByte(Bit8u data) {
+void MIDI_RawOutByte(uint8_t data) {
 	if (midi.sysex.start) {
-		Bit32u passed_ticks = GetTicks() - midi.sysex.start;
+		uint32_t passed_ticks = GetTicks() - midi.sysex.start;
 		if (passed_ticks < midi.sysex.delay) SDL_Delay((Uint32)(midi.sysex.delay - passed_ticks));
 	}
 
@@ -583,7 +584,7 @@ public:
 		Section_prop * section = static_cast<Section_prop *>(configuration);
 		const char * dev=section->Get_string("mididevice");
 		std::string fullconf = section->Get_string("midiconfig");
-#if C_FLUIDSYNTH
+#if C_FLUIDSYNTH || defined(WIN32) && !defined(HX_DOS)
 		synthsamplerate = section->Get_int("samplerate");
 		if (synthsamplerate == 0) synthsamplerate = 44100;
 #endif

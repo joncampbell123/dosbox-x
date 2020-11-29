@@ -1,5 +1,5 @@
 /*
- *  Copyright (C) 2002-2019  The DOSBox Team
+ *  Copyright (C) 2002-2020  The DOSBox Team
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -11,9 +11,9 @@
  *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  *  GNU General Public License for more details.
  *
- *  You should have received a copy of the GNU General Public License
- *  along with this program; if not, write to the Free Software
- *  Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1335, USA.
+ *  You should have received a copy of the GNU General Public License along
+ *  with this program; if not, write to the Free Software Foundation, Inc.,
+ *  51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
 
 
@@ -36,13 +36,13 @@
 
 Bitu call_program;
 
-extern int enablelfn, paste_speed;
+extern int enablelfn, paste_speed, wheel_key, freesizecap;
 extern const char *modifier;
-extern bool dos_kernel_disabled, force_nocachedir, freesizecap, wpcolon;
+extern bool dos_kernel_disabled, force_nocachedir, wpcolon, enable_config_as_shell_commands, load, winrun, winautorun, startwait, startquiet, mountwarning, wheel_guest, clipboard_dosapi, noremark_save_state, force_load_state;
 
 /* This registers a file on the virtual drive and creates the correct structure for it*/
 
-static Bit8u exe_block[]={
+static uint8_t exe_block[]={
 	0xbc,0x00,0x04,					//0x100 MOV SP,0x400  decrease stack size
 	0xbb,0x40,0x00,					//0x103 MOV BX,0x0040 for memory resize
 	0xb4,0x4a,					//0x106 MOV AH,0x4A   Resize memory block
@@ -71,12 +71,13 @@ public:
 	}
 public:
 	std::string	name;
-	Bit8u*		comdata;
-	Bit32u		comsize;
+	uint8_t*		comdata;
+	uint32_t		comsize;
 	PROGRAMS_Main*	main;
 };
 
 static std::vector<InternalProgramEntry*> internal_progs;
+void EMS_Startup(Section* sec), EMS_DoShutDown();
 
 void PROGRAMS_Shutdown(void) {
 	LOG(LOG_MISC,LOG_DEBUG)("Shutting down internal programs list");
@@ -91,20 +92,20 @@ void PROGRAMS_Shutdown(void) {
 }
 
 void PROGRAMS_MakeFile(char const * const name,PROGRAMS_Main * main) {
-	Bit32u size=sizeof(exe_block)+sizeof(Bit8u);
+	uint32_t size=sizeof(exe_block)+sizeof(uint8_t);
 	InternalProgramEntry *ipe;
-	Bit8u *comdata;
-	Bit8u index;
+	uint8_t *comdata;
+	uint8_t index;
 
 	/* Copy save the pointer in the vector and save it's index */
 	if (internal_progs.size()>255) E_Exit("PROGRAMS_MakeFile program size too large (%d)",static_cast<int>(internal_progs.size()));
 
-	index = (Bit8u)internal_progs.size();
-	comdata = (Bit8u *)malloc(32); //MEM LEAK
+	index = (uint8_t)internal_progs.size();
+	comdata = (uint8_t *)malloc(32); //MEM LEAK
 	memcpy(comdata,&exe_block,sizeof(exe_block));
 	memcpy(&comdata[sizeof(exe_block)],&index,sizeof(index));
-	comdata[CB_POS]=(Bit8u)(call_program&0xff);
-	comdata[CB_POS+1]=(Bit8u)((call_program>>8)&0xff);
+	comdata[CB_POS]=(uint8_t)(call_program&0xff);
+	comdata[CB_POS+1]=(uint8_t)((call_program>>8)&0xff);
 
 	ipe = new InternalProgramEntry();
 	ipe->main = main;
@@ -117,8 +118,8 @@ void PROGRAMS_MakeFile(char const * const name,PROGRAMS_Main * main) {
 
 static Bitu PROGRAMS_Handler(void) {
 	/* This sets up everything for a program start up call */
-	Bitu size=sizeof(Bit8u);
-	Bit8u index;
+	Bitu size=sizeof(uint8_t);
+	uint8_t index;
 	/* Read the index from program code in memory */
 	PhysPt reader=PhysMake(dos.psp(),256+sizeof(exe_block));
 	HostPt writer=(HostPt)&index;
@@ -199,36 +200,36 @@ void Program::WriteOut(const char * format,...) {
 	vsnprintf(buf,2047,format,msg);
 	va_end(msg);
 
-	Bit16u size = (Bit16u)strlen(buf);
+	uint16_t size = (uint16_t)strlen(buf);
 	dos.internal_output=true;
-	for(Bit16u i = 0; i < size;i++) {
-		Bit8u out;Bit16u s=1;
+	for(uint16_t i = 0; i < size;i++) {
+		uint8_t out;uint16_t s=1;
 		if (buf[i] == 0xA && last_written_character != 0xD) {
 			out = 0xD;DOS_WriteFile(STDOUT,&out,&s);
 		}
-		last_written_character = (char)(out = (Bit8u)buf[i]);
+		last_written_character = (char)(out = (uint8_t)buf[i]);
 		DOS_WriteFile(STDOUT,&out,&s);
 	}
 	dos.internal_output=false;
 	
-//	DOS_WriteFile(STDOUT,(Bit8u *)buf,&size);
+//	DOS_WriteFile(STDOUT,(uint8_t *)buf,&size);
 }
 
 void Program::WriteOut_NoParsing(const char * format) {
-	Bit16u size = (Bit16u)strlen(format);
+	uint16_t size = (uint16_t)strlen(format);
 	char const* buf = format;
 	dos.internal_output=true;
-	for(Bit16u i = 0; i < size;i++) {
-		Bit8u out;Bit16u s=1;
+	for(uint16_t i = 0; i < size;i++) {
+		uint8_t out;uint16_t s=1;
 		if (buf[i] == 0xA && last_written_character != 0xD) {
 			out = 0xD;DOS_WriteFile(STDOUT,&out,&s);
 		}
-		last_written_character = (char)(out = (Bit8u)buf[i]);
+		last_written_character = (char)(out = (uint8_t)buf[i]);
 		DOS_WriteFile(STDOUT,&out,&s);
 	}
 	dos.internal_output=false;
 
-//	DOS_WriteFile(STDOUT,(Bit8u *)format,&size);
+//	DOS_WriteFile(STDOUT,(uint8_t *)format,&size);
 }
 
 static bool LocateEnvironmentBlock(PhysPt &env_base,PhysPt &env_fence,Bitu env_seg) {
@@ -237,8 +238,8 @@ static bool LocateEnvironmentBlock(PhysPt &env_base,PhysPt &env_fence,Bitu env_s
 		return false;
 	}
 
-	DOS_MCB env_mcb((Bit16u)(env_seg-1)); /* read the environment block's MCB to determine how large it is */
-	env_base = PhysMake((Bit16u)env_seg,0);
+	DOS_MCB env_mcb((uint16_t)(env_seg-1)); /* read the environment block's MCB to determine how large it is */
+	env_base = PhysMake((uint16_t)env_seg,0);
 	env_fence = env_base + (PhysPt)(env_mcb.GetSize() << 4u);
 	return true;
 }
@@ -489,11 +490,11 @@ bool Program::SetEnv(const char * entry,const char * new_string) {
 		}
 
 		assert(env_scan < env_fence);
-		for (const char *s=bigentry.c_str();*s != 0;) mem_writeb(env_scan++,(Bit8u)(*s++));
+		for (const char *s=bigentry.c_str();*s != 0;) mem_writeb(env_scan++,(uint8_t)(*s++));
 		mem_writeb(env_scan++,'=');
 
 		assert(env_scan < env_fence);
-		for (const char *s=new_string;*s != 0;) mem_writeb(env_scan++,(Bit8u)(*s++));
+		for (const char *s=new_string;*s != 0;) mem_writeb(env_scan++,(uint8_t)(*s++));
 		mem_writeb(env_scan++,0);
 		mem_writeb(env_scan++,0);
 
@@ -518,7 +519,7 @@ public:
 private:
 	void restart(const char* useconfig);
 	
-	void writeconf(std::string name, bool configdir,bool everything) {
+	void writeconf(std::string name, bool configdir,int everything, bool norem) {
 		// "config -wcd" should write to the config directory
 		if (configdir) {
 			// write file to the default config directory
@@ -535,7 +536,7 @@ private:
 			name = config_path + name;
 		}
 		WriteOut(MSG_Get("PROGRAM_CONFIG_FILE_WHICH"),name.c_str());
-		if (!control->PrintConfig(name.c_str(),everything)) {
+		if (!control->PrintConfig(name.c_str(),everything,norem)) {
 			WriteOut(MSG_Get("PROGRAM_CONFIG_FILE_ERROR"),name.c_str());
 		}
 		return;
@@ -550,11 +551,13 @@ private:
 	}
 };
 
+void dos_ver_menu(bool start), ReloadMapper(Section_prop *sec, bool init), SetGameState_Run(int value), update_dos_ems_menu(void);
+bool set_ver(char *s);
 void CONFIG::Run(void) {
 	static const char* const params[] = {
 		"-r", "-wcp", "-wcd", "-wc", "-writeconf", "-l", "-rmconf",
 		"-h", "-help", "-?", "-axclear", "-axadd", "-axtype", "-get", "-set",
-		"-writelang", "-wl", "-securemode", "-all", "-errtest", NULL };
+		"-writelang", "-wl", "-securemode", "-setup", "-all", "-mod", "-norem", "-errtest", "-gui", NULL };
 	enum prs {
 		P_NOMATCH, P_NOPARAMS, // fixed return values for GetParameterFromList
 		P_RESTART,
@@ -564,20 +567,41 @@ void CONFIG::Run(void) {
 		P_AUTOEXEC_CLEAR, P_AUTOEXEC_ADD, P_AUTOEXEC_TYPE,
 		P_GETPROP, P_SETPROP,
 		P_WRITELANG, P_WRITELANG2,
-		P_SECURE, P_ALL, P_ERRTEST
+		P_SECURE, P_SETUP, P_ALL, P_MOD, P_NOREM, P_ERRTEST, P_GUI
 	} presult = P_NOMATCH;
 
-	bool all = false;
-	bool first = true;
+	Section_prop * section=static_cast<Section_prop *>(control->GetSection("dosbox"));
+	int all = section->Get_bool("show advanced options")?1:-1;
+	bool first = true, norem = false;
 	std::vector<std::string> pvars;
-	if (cmd->FindExist("-all", true)) all = true;
+	if (cmd->FindExist("-setup", true)) all = 2;
+	else if (cmd->FindExist("-all", true)) all = 1;
+    else if (cmd->FindExist("-mod", true)) all = 0;
+    if (cmd->FindExist("-norem", true)) norem = true;
 	// Loop through the passed parameters
 	while(presult != P_NOPARAMS) {
 		presult = (enum prs)cmd->GetParameterFromList(params, pvars);
 		switch(presult) {
 	
+		case P_SETUP:
+			all = 2;
+			break;
+
 		case P_ALL:
-			all = true;
+			if (all<1) all = 1;
+			break;
+
+		case P_MOD:
+			if (all==-1) all = 0;
+			break;
+
+		case P_NOREM:
+			norem = true;
+			break;
+
+		case P_GUI:
+			void GUI_Run(bool pressed);
+			GUI_Run(false);
 			break;
 
 		case P_ERRTEST:
@@ -616,10 +640,10 @@ void CONFIG::Run(void) {
 			if (pvars.size() > 1) return;
 			else if (pvars.size() == 1) {
 				// write config to specific file, except if it is an absolute path
-				writeconf(pvars[0], !Cross::IsPathAbsolute(pvars[0]), all);
+				writeconf(pvars[0], !Cross::IsPathAbsolute(pvars[0]), all, norem);
 			} else {
 				// -wc without parameter: write primary config file
-				if (control->configfiles.size()) writeconf(control->configfiles[0], false, all);
+				if (control->configfiles.size()) writeconf(control->configfiles[0], false, all, norem);
 				else WriteOut(MSG_Get("PROGRAM_CONFIG_NOCONFIGFILE"));
 			}
 			break;
@@ -629,7 +653,7 @@ void CONFIG::Run(void) {
 			if (pvars.size() > 0) return;
 			std::string confname;
 			Cross::GetPlatformConfigName(confname);
-			writeconf(confname, true, all);
+			writeconf(confname, true, all, norem);
 			break;
 		}
 		case P_WRITECONF_PORTABLE:
@@ -637,10 +661,10 @@ void CONFIG::Run(void) {
 			if (pvars.size() > 1) return;
 			else if (pvars.size() == 1) {
 				// write config to startup directory
-				writeconf(pvars[0], false, all);
+				writeconf(pvars[0], false, all, norem);
 			} else {
 				// -wcp without parameter: write dosbox-x.conf to startup directory
-				writeconf(std::string("dosbox-x.conf"), false, all);
+				writeconf(std::string("dosbox-x.conf"), false, all, norem);
 			}
 			break;
 
@@ -722,6 +746,7 @@ void CONFIG::Run(void) {
 					// list the properties
 					Property* p = psec->Get_prop((int)(i++));
 					if (p==NULL) break;
+                    if (!(all>0 || all==-1 && (p->basic() || p->modified()) || !all && (p->propname == "rem" && (!strcmp(pvars[0].c_str(), "4dos") || !strcmp(pvars[0].c_str(), "config")) || p->modified()))) continue;
 					WriteOut("%s\n", p->propname.c_str());
 				}
 				if (!strcasecmp(pvars[0].c_str(), "config"))
@@ -839,10 +864,11 @@ void CONFIG::Run(void) {
 						// list the properties
 						Property* p = psec->Get_prop(i++);
 						if (p==NULL) break;
+                        if (!(all>0 || all==-1 && (p->basic() || p->modified()) || !all && (p->propname == "rem" && (!strcmp(pvars[0].c_str(), "4dos") || !strcmp(pvars[0].c_str(), "config")) || p->modified()))) continue;
 						WriteOut("%s=%s\n", p->propname.c_str(),
 							p->GetValue().ToString().c_str());
 					}
-					if (!strcasecmp(pvars[0].c_str(), "config")) {
+					if (!strcasecmp(pvars[0].c_str(), "config")||!strcasecmp(pvars[0].c_str(), "4dos")) {
 						const char * extra = const_cast<char*>(psec->data.c_str());
 						if (extra&&strlen(extra)) {
 							std::istringstream in(extra);
@@ -862,8 +888,9 @@ void CONFIG::Run(void) {
 									strcpy(val, p+1);
 									val=trim(val);
 									lowcase(cmd);
-									if (!strncmp(cmd, "set ", 4)||!strcmp(cmd, "install")||!strcmp(cmd, "installhigh")||!strcmp(cmd, "device")||!strcmp(cmd, "devicehigh"))
-										WriteOut("%s=%s\n", cmd, val);
+									if (!strcasecmp(pvars[0].c_str(), "4dos")||!strncmp(cmd, "set ", 4)||!strcmp(cmd, "install")||!strcmp(cmd, "installhigh")||!strcmp(cmd, "device")||!strcmp(cmd, "devicehigh"))
+                                        if (!((!strcmp(cmd, "install")||!strcmp(cmd, "installhigh")||!strcmp(cmd, "device")||!strcmp(cmd, "devicehigh"))&&!strlen(val)&&!all))
+                                            WriteOut("%s=%s\n", cmd, val);
 								}
 							}
 						}
@@ -1037,10 +1064,6 @@ void CONFIG::Run(void) {
 			//Due to parsing there can be a = at the start of value.
 			while (value.size() && (value.at(0) ==' ' ||value.at(0) =='=') ) value.erase(0,1);
 			for(Bitu i = 3; i < pvars.size(); i++) value += (std::string(" ") + pvars[i]);
-			if (value.empty() ) {
-				WriteOut(MSG_Get("PROGRAM_CONFIG_SET_SYNTAX"));
-				return;
-			}
 			std::string inputline = pvars[1] + "=" + value;
 			
 			bool change_success = tsec->HandleInputline(inputline.c_str());
@@ -1050,37 +1073,89 @@ void CONFIG::Run(void) {
 					if (section != NULL) {
 						if (!strcasecmp(pvars[0].c_str(), "dosbox")) {
 							force_nocachedir = section->Get_bool("nocachedir");
-							freesizecap = section->Get_bool("freesizecap");
+							std::string freesizestr = section->Get_string("freesizecap");
+                            if (freesizestr == "fixed" || freesizestr == "false" || freesizestr == "0") freesizecap = 0;
+                            else if (freesizestr == "relative" || freesizestr == "2") freesizecap = 2;
+                            else freesizecap = 1;
 							wpcolon = section->Get_bool("leading colon write protect image");
+							if (!strcasecmp(inputline.substr(0, 9).c_str(), "saveslot=")) SetGameState_Run(section->Get_int("saveslot")-1);
+                            if (!strcasecmp(inputline.substr(0, 11).c_str(), "saveremark=")) {
+                                noremark_save_state = !section->Get_bool("saveremark");
+                                mainMenu.get_item("noremark_savestate").check(noremark_save_state).refresh_item(mainMenu);
+                            }
+                            if (!strcasecmp(inputline.substr(0, 15).c_str(), "forceloadstate=")) {
+                                force_load_state = section->Get_bool("forceloadstate");
+                                mainMenu.get_item("force_loadstate").check(force_load_state).refresh_item(mainMenu);
+                            }
 						} else if (!strcasecmp(pvars[0].c_str(), "sdl")) {
 							modifier = section->Get_string("clip_key_modifier");
 							paste_speed = section->Get_int("clip_paste_speed");
+							if (!strcasecmp(inputline.substr(0, 16).c_str(), "mouse_wheel_key=")) {
+								wheel_key = section->Get_int("mouse_wheel_key");
+								wheel_guest=wheel_key>0;
+								if (wheel_key<0) wheel_key=-wheel_key;
+								mainMenu.get_item("wheel_updown").check(wheel_key==1).refresh_item(mainMenu);
+								mainMenu.get_item("wheel_leftright").check(wheel_key==2).refresh_item(mainMenu);
+								mainMenu.get_item("wheel_pageupdown").check(wheel_key==3).refresh_item(mainMenu);
+								mainMenu.get_item("wheel_none").check(wheel_key==0).refresh_item(mainMenu);
+								mainMenu.get_item("wheel_guest").check(wheel_guest).refresh_item(mainMenu);
+							}
+#if defined(C_SDL2)
+							if (!strcasecmp(inputline.substr(0, 16).c_str(), "mapperfile_sdl2=")) ReloadMapper(section,true);
+#else
+							if (!strcasecmp(inputline.substr(0, 11).c_str(), "mapperfile=")) ReloadMapper(section,true);
+#if !defined(HAIKU) && !defined(RISCOS)
+							if (!strcasecmp(inputline.substr(0, 13).c_str(), "usescancodes=")) {
+								void setScanCode(Section_prop * section), loadScanCode(), GFX_LosingFocus(), MAPPER_Init();
+								setScanCode(section);
+								loadScanCode();
+								GFX_LosingFocus();
+								MAPPER_Init();
+								load=true;
+							}
+#endif
+#endif
 						} else if (!strcasecmp(pvars[0].c_str(), "dos")) {
+							mountwarning = section->Get_bool("mountwarning");
 							if (!strcasecmp(inputline.substr(0, 4).c_str(), "lfn=")) {
-								if (!strcmp(section->Get_string("lfn"), "true")) enablelfn=1;
-								else if (!strcmp(section->Get_string("lfn"), "false")) enablelfn=0;
-								else if (!strcmp(section->Get_string("lfn"), "autostart")) enablelfn=-2;
+								std::string lfn = section->Get_string("lfn");
+								if (lfn=="true"||lfn=="1") enablelfn=1;
+								else if (lfn=="false"||lfn=="0") enablelfn=0;
+								else if (lfn=="autostart") enablelfn=-2;
 								else enablelfn=-1;
 								mainMenu.get_item("dos_lfn_auto").check(enablelfn==-1).refresh_item(mainMenu);
 								mainMenu.get_item("dos_lfn_enable").check(enablelfn==1).refresh_item(mainMenu);
 								mainMenu.get_item("dos_lfn_disable").check(enablelfn==0).refresh_item(mainMenu);
-								uselfn = enablelfn==1 || ((enablelfn == -1 || enablelfn == -2) && dos.version.major>6);
+								uselfn = enablelfn==1 || ((enablelfn == -1 || enablelfn == -2) && (dos.version.major>6 || winrun));
 							} else if (!strcasecmp(inputline.substr(0, 4).c_str(), "ver=")) {
-								std::string ver = section->Get_string("ver");
-								if (!ver.empty()) {
-									const char *s = ver.c_str();
-									if (isdigit(*s)) {
-										dos.version.minor=0;
-										dos.version.major=(int)strtoul(s,(char**)(&s),10);
-										if (*s == '.' || *s == ' ') {
-											s++;
-											if (isdigit(*s))
-												dos.version.minor=(*(s-1)=='.'&&strlen(s)==1?10:1)*(int)strtoul(s,(char**)(&s),10);
-										}
-										uselfn = enablelfn==1 || ((enablelfn == -1 || enablelfn == -2) && dos.version.major>6);
-									}
-								}
-							}
+								char *ver = (char *)section->Get_string("ver");
+								if (!*ver) {
+									dos.version.minor=0;
+									dos.version.major=5;
+									dos_ver_menu(false);
+								} else if (set_ver(ver))
+									dos_ver_menu(false);
+							} else if (!strcasecmp(inputline.substr(0, 4).c_str(), "ems=")) {
+								EMS_DoShutDown();
+								EMS_Startup(NULL);
+                                update_dos_ems_menu();
+							} else if (!strcasecmp(inputline.substr(0, 32).c_str(), "shell configuration as commands=")) {
+								enable_config_as_shell_commands = section->Get_bool("shell configuration as commands");
+								mainMenu.get_item("shell_config_commands").check(enable_config_as_shell_commands).enable(true).refresh_item(mainMenu);
+#if defined(WIN32) && !defined(HX_DOS)
+                            } else if (!strcasecmp(inputline.substr(0, 9).c_str(), "dos clipboard api=")) {
+                                clipboard_dosapi = section->Get_bool("dos clipboard api");          
+							} else if (!strcasecmp(inputline.substr(0, 9).c_str(), "startcmd=")) {
+								winautorun = section->Get_bool("startcmd");
+								mainMenu.get_item("dos_win_autorun").check(winautorun).enable(true).refresh_item(mainMenu);
+							} else if (!strcasecmp(inputline.substr(0, 10).c_str(), "startwait=")) {
+								startwait = section->Get_bool("startwait");
+								mainMenu.get_item("dos_win_wait").check(startwait).enable(true).refresh_item(mainMenu);
+							} else if (!strcasecmp(inputline.substr(0, 11).c_str(), "startquiet=")) {
+								startquiet = section->Get_bool("startquiet");
+								mainMenu.get_item("dos_win_quiet").check(startquiet).enable(true).refresh_item(mainMenu);
+#endif
+                            }
 						}
 					}
 				}
@@ -1148,13 +1223,16 @@ void PROGRAMS_Init() {
 	MSG_Add("PROGRAM_CONFIG_FILE_WHICH","Writing config file %s\n");
 	
 	// help
-	MSG_Add("PROGRAM_CONFIG_USAGE","The DOSBox-X configuration tool. Supported options:\n\n"\
+	MSG_Add("PROGRAM_CONFIG_USAGE","The DOSBox-X command-line configuration utility. Supported options:\n\n"\
 		"-wc (or -writeconf) without parameter: Writes to primary loaded config file.\n"\
 		"-wc (or -writeconf) with filename: Writes file to the config directory.\n"\
 		"-wl (or -writelang) with filename: Writes the current language strings.\n"\
 		"-wcp [filename] Writes config file to the program directory (dosbox-x.conf\n or the specified filename).\n"\
 		"-wcd Writes to the default config file in the config directory.\n"\
 		"-all Use this with -wc, -wcp, or -wcd to write ALL options to the config file.\n"\
+		"-mod Use this with -wc, -wcp, or -wcd to write modified config options only.\n"\
+		"-norem Use this with -wc, -wcp, or -wcd to not write config option remarks.\n"\
+		"-gui Starts DOSBox-X's graphical configuration tool.\n"
 		"-l Lists DOSBox-X configuration parameters.\n"\
 		"-h, -help, -? sections / sectionname / propertyname\n"\
 		" Without parameters, displays this help screen. Add \"sections\" for a list of\n sections."\
@@ -1163,9 +1241,9 @@ void PROGRAMS_Init() {
 		"-axadd [line] Adds a line to the [autoexec] section.\n"\
 		"-axtype Prints the content of the [autoexec] section.\n"\
 		"-securemode Switches to secure mode where MOUNT, IMGMOUNT and BOOT will be\n"\
-        " disabled as well as the ability to create config and language files.\n"\
+		" disabled as well as the ability to create config and language files.\n"\
 		"-get \"section property\" returns the value of the property.\n"\
-		"-set \"section property=value\" sets the value of the property.\n" );
+		"-set \"section property=value\" sets the value of the property.\n");
 	MSG_Add("PROGRAM_CONFIG_HLP_PROPHLP","Purpose of property \"%s\" (contained in section \"%s\"):\n%s\n\nPossible Values: %s\nDefault value: %s\nCurrent value: %s\n");
 	MSG_Add("PROGRAM_CONFIG_HLP_LINEHLP","Purpose of section \"%s\":\n%s\nCurrent value:\n%s\n");
 	MSG_Add("PROGRAM_CONFIG_HLP_NOCHANGE","This property cannot be changed at runtime.\n");

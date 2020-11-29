@@ -9,9 +9,9 @@
  *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  *  GNU General Public License for more details.
  *
- *  You should have received a copy of the GNU General Public License
- *  along with this program; if not, write to the Free Software
- *  Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1335, USA.
+ *  You should have received a copy of the GNU General Public License along
+ *  with this program; if not, write to the Free Software Foundation, Inc.,
+ *  51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
 
 #include <CoreMIDI/MIDIServices.h>
@@ -97,7 +97,7 @@ public:
 //		MIDIEndpointDispose(m_endpoint);
 	}
 	
-	void PlayMsg(Bit8u * msg) {
+	void PlayMsg(uint8_t * msg) {
 		// Acquire a MIDIPacketList
 		Byte packetBuf[128];
 		MIDIPacketList *packetList = (MIDIPacketList *)packetBuf;
@@ -113,7 +113,7 @@ public:
 		MIDISend(m_port,m_endpoint,packetList);
 	}
 	
-	void PlaySysex(Bit8u * sysex, Bitu len) {
+	void PlaySysex(uint8_t * sysex, Bitu len) {
 		// Acquire a MIDIPacketList
 		Byte packetBuf[SYSEX_SIZE*4];
 //		Bitu pos=0;

@@ -1,5 +1,5 @@
 /*
- *  Copyright (C) 2002-2019  The DOSBox Team
+ *  Copyright (C) 2002-2020  The DOSBox Team
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -11,9 +11,9 @@
  *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  *  GNU General Public License for more details.
  *
- *  You should have received a copy of the GNU General Public License
- *  along with this program; if not, write to the Free Software
- *  Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1335, USA.
+ *  You should have received a copy of the GNU General Public License along
+ *  with this program; if not, write to the Free Software Foundation, Inc.,
+ *  51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
 
 
@@ -22,10 +22,10 @@
 #include "inout.h"
 #include "int10.h"
 
-static Bit8u cga_masks[4]={0x3f,0xcf,0xf3,0xfc};
-static Bit8u cga_masks2[8]={0x7f,0xbf,0xdf,0xef,0xf7,0xfb,0xfd,0xfe};
+static uint8_t cga_masks[4]={0x3f,0xcf,0xf3,0xfc};
+static uint8_t cga_masks2[8]={0x7f,0xbf,0xdf,0xef,0xf7,0xfb,0xfd,0xfe};
 
-void INT10_PutPixel(Bit16u x,Bit16u y,Bit8u page,Bit8u color) {
+void INT10_PutPixel(uint16_t x,uint16_t y,uint8_t page,uint8_t color) {
 	static bool putpixelwarned = false;
 
     if (IS_PC98_ARCH) {
@@ -38,10 +38,10 @@ void INT10_PutPixel(Bit16u x,Bit16u y,Bit8u page,Bit8u color) {
 	{
 		if (real_readb(BIOSMEM_SEG,BIOSMEM_CURRENT_MODE)<=5) {
 			// this is a 16k mode
-			Bit16u off=(y>>1)*80+(x>>2);
+			uint16_t off=(y>>1)*80+(x>>2);
 			if (y&1) off+=8*1024;
 
-			Bit8u old=real_readb(0xb800,off);
+			uint8_t old=real_readb(0xb800,off);
 			if (color & 0x80) {
 				color&=3;
 				old^=color << (2*(3-(x&3)));
@@ -51,18 +51,18 @@ void INT10_PutPixel(Bit16u x,Bit16u y,Bit8u page,Bit8u color) {
 			real_writeb(0xb800,off,old);
 		} else {
 			// a 32k mode: PCJr special case (see M_TANDY16)
-			Bit16u seg;
+			uint16_t seg;
 			if (machine==MCH_PCJR) {
-				Bit8u cpupage =
+				uint8_t cpupage =
 					(real_readb(BIOSMEM_SEG, BIOSMEM_CRTCPU_PAGE) >> 3) & 0x7;
 				seg = cpupage << 10; // A14-16 to addr bits 14-16
 			} else
 				seg = 0xb800;
 
-			Bit16u off=(y>>2)*160+((x>>2)&(~1));
+			uint16_t off=(y>>2)*160+((x>>2)&(~1));
 			off+=(8*1024) * (y & 3);
 
-			Bit16u old=real_readw(seg,off);
+			uint16_t old=real_readw(seg,off);
 			if (color & 0x80) {
 				old^=(color&1) << (7-(x&7));
 				old^=((color&2)>>1) << ((7-(x&7))+8);
@@ -75,8 +75,8 @@ void INT10_PutPixel(Bit16u x,Bit16u y,Bit8u page,Bit8u color) {
 	break;
 	case M_CGA2:
         if (machine == MCH_MCGA && real_readb(BIOSMEM_SEG, BIOSMEM_CURRENT_MODE) == 0x11) {
-            Bit16u off=y*80+(x>>3);
-            Bit8u old=real_readb(0xa000,off);
+            uint16_t off=y*80+(x>>3);
+            uint8_t old=real_readb(0xa000,off);
 
             if (color & 0x80) {
                 color&=1;
@@ -87,9 +87,9 @@ void INT10_PutPixel(Bit16u x,Bit16u y,Bit8u page,Bit8u color) {
             real_writeb(0xa000,off,old);
         }
         else {
-				Bit16u off=(y>>1)*80+(x>>3);
+				uint16_t off=(y>>1)*80+(x>>3);
 				if (y&1) off+=8*1024;
-				Bit8u old=real_readb(0xb800,off);
+				uint8_t old=real_readb(0xb800,off);
 				if (color & 0x80) {
 					color&=1;
 					old^=color << (7-(x&7));
@@ -107,10 +107,10 @@ void INT10_PutPixel(Bit16u x,Bit16u y,Bit8u page,Bit8u color) {
 		bool is_32k = (real_readb(BIOSMEM_SEG, BIOSMEM_CURRENT_MODE) >= 9)?
 			true:false;
 
-		Bit16u segment, offset;
+		uint16_t segment, offset;
 		if (is_32k) {
 			if (machine==MCH_PCJR) {
-				Bit8u cpupage =
+				uint8_t cpupage =
 					(real_readb(BIOSMEM_SEG, BIOSMEM_CRTCPU_PAGE) >> 3) & 0x7;
 				segment = cpupage << 10; // A14-16 to addr bits 14-16
 			} else
@@ -128,8 +128,8 @@ void INT10_PutPixel(Bit16u x,Bit16u y,Bit8u page,Bit8u color) {
 		}
 
 		// update the pixel
-		Bit8u old=real_readb(segment, offset);
-		Bit8u p[2];
+		uint8_t old=real_readb(segment, offset);
+		uint8_t p[2];
 		p[1] = (old >> 4u) & 0xf;
 		p[0] = old & 0xf;
 		Bitu ind = 1-(x & 0x1);
@@ -154,7 +154,7 @@ void INT10_PutPixel(Bit16u x,Bit16u y,Bit8u page,Bit8u color) {
 	case M_EGA:
 		{
 			/* Set the correct bitmask for the pixel position */
-			IO_Write(0x3ce,0x8);Bit8u mask=128u>>(x&7u);IO_Write(0x3cf,mask);
+			IO_Write(0x3ce,0x8);uint8_t mask=128u>>(x&7u);IO_Write(0x3cf,mask);
 			/* Set the color to set/reset register */
 			IO_Write(0x3ce,0x0);IO_Write(0x3cf,color);
 			/* Enable all the set/resets */
@@ -199,7 +199,7 @@ void INT10_PutPixel(Bit16u x,Bit16u y,Bit8u page,Bit8u color) {
 	}	
 }
 
-void INT10_GetPixel(Bit16u x,Bit16u y,Bit8u page,Bit8u * color) {
+void INT10_GetPixel(uint16_t x,uint16_t y,uint8_t page,uint8_t * color) {
     if (IS_PC98_ARCH) {
         // TODO: Not supported yet
         return;
@@ -208,27 +208,27 @@ void INT10_GetPixel(Bit16u x,Bit16u y,Bit8u page,Bit8u * color) {
 	switch (CurMode->type) {
 	case M_CGA4:
 		{
-			Bit16u off=(y>>1)*80+(x>>2);
+			uint16_t off=(y>>1)*80+(x>>2);
 			if (y&1) off+=8*1024;
-			Bit8u val=real_readb(0xb800,off);
+			uint8_t val=real_readb(0xb800,off);
 			*color=(val>>((3-(x&3))*2)) & 3 ;
 		}
 		break;
 	case M_CGA2:
 		{
-			Bit16u off=(y>>1)*80+(x>>3);
+			uint16_t off=(y>>1)*80+(x>>3);
 			if (y&1) off+=8*1024;
-			Bit8u val=real_readb(0xb800,off);
+			uint8_t val=real_readb(0xb800,off);
 			*color=(val>>(7-(x&7))) & 1 ;
 		}
 		break;
 	case M_TANDY16:
 		{
 			bool is_32k = (real_readb(BIOSMEM_SEG, BIOSMEM_CURRENT_MODE) >= 9)?true:false;
-			Bit16u segment, offset;
+			uint16_t segment, offset;
 			if (is_32k) {
 				if (machine==MCH_PCJR) {
-					Bit8u cpupage = (real_readb(BIOSMEM_SEG, BIOSMEM_CRTCPU_PAGE) >> 3) & 0x7;
+					uint8_t cpupage = (real_readb(BIOSMEM_SEG, BIOSMEM_CRTCPU_PAGE) >> 3) & 0x7;
 					segment = cpupage << 10;
 				} else segment = 0xb800;
 				offset = ((unsigned int)y >> 2u) * ((unsigned int)CurMode->swidth >> 1u) + ((unsigned int)x>>1u);
@@ -238,7 +238,7 @@ void INT10_GetPixel(Bit16u x,Bit16u y,Bit8u page,Bit8u * color) {
 				offset = ((unsigned int)y >> 1u) * ((unsigned int)CurMode->swidth >> 1u) + ((unsigned int)x>>1u);
 				offset += (8u*1024u) * (y & 1u);
 			}
-			Bit8u val=real_readb(segment,offset);
+			uint8_t val=real_readb(segment,offset);
 			*color=(val>>((x&1)?0:4)) & 0xf;
 		}
 		break;

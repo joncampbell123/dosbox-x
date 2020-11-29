@@ -1,5 +1,5 @@
 /*
- *  Copyright (C) 2002-2019  The DOSBox Team
+ *  Copyright (C) 2002-2020  The DOSBox Team
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -11,12 +11,16 @@
  *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  *  GNU Library General Public License for more details.
  *
- *  You should have received a copy of the GNU General Public License
- *  along with this program; if not, write to the Free Software
- *  Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1335, USA.
+ *  You should have received a copy of the GNU General Public License along
+ *  with this program; if not, write to the Free Software Foundation, Inc.,
+ *  51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
 
+#if C_FLUIDSYNTH
 #include <fluidsynth.h>
+#else
+#include "fluidsynth.h"
+#endif
 #include <math.h>
 #include <string.h>
 #include "control.h"
@@ -41,23 +45,23 @@ static void synth_log(int level,
 	switch (level) {
 	case FLUID_PANIC:
 	case FLUID_ERR:
-		LOG(LOG_ALL,LOG_ERROR)(message);
+		LOG(LOG_ALL,LOG_ERROR)("%s", message);
 		break;
 
 	case FLUID_WARN:
-		LOG(LOG_ALL,LOG_WARN)(message);
+		LOG(LOG_ALL,LOG_WARN)("%s", message);
 		break;
 
 	default:
-		LOG(LOG_ALL,LOG_NORMAL)(message);
+		LOG(LOG_ALL,LOG_NORMAL)("%s", message);
 		break;
 	}
 }
 
 static void synth_CallBack(Bitu len) {
 	if (synth_soft != NULL) {
-		fluid_synth_write_s16(synth_soft, len, MixTemp, 0, 2, MixTemp, 1, 2);
-		synthchan->AddSamples_s16(len,(Bit16s *)MixTemp);
+		fluid_synth_write_s16(synth_soft, (int)len, MixTemp, 0, 2, MixTemp, 1, 2);
+		synthchan->AddSamples_s16(len,(int16_t *)MixTemp);
 	}
 }
 
@@ -73,14 +77,14 @@ private:
 	int sfont_id;
 	bool isOpen;
 
-	void PlayEvent(Bit8u *msg, Bitu len) {
-		Bit8u event = msg[0], channel, p1, p2;
+	void PlayEvent(uint8_t *msg, Bitu len) {
+		uint8_t event = msg[0], channel, p1, p2;
 
 		switch (event) {
 		case 0xf0:
 		case 0xf7:
 			LOG(LOG_MISC,LOG_DEBUG)("SYNTH: sysex 0x%02x len %lu", (int)event, (long unsigned)len);
-			fluid_synth_sysex(synth_soft, (char *)(msg + 1), len - 1, NULL, NULL, NULL, 0);
+			fluid_synth_sysex(synth_soft, (char *)(msg + 1), (int)(len - 1), NULL, NULL, NULL, 0);
 			return;
 		case 0xf9:
 			LOG(LOG_MISC,LOG_DEBUG)("SYNTH: midi tick");
@@ -135,11 +139,44 @@ public:
 	bool Open(const char *conf) {
 		if (isOpen) return false;
 
+		std::string sf = "";
 		/* Sound font file required */
 		if (!conf || (conf[0] == '\0')) {
-			LOG(LOG_MISC,LOG_DEBUG)("SYNTH: Specify .SF2 sound font file with midiconfig=");
-			return false;
-		}
+#if defined (WIN32)
+			// default for windows according to fluidsynth docs
+			if (FILE *file = fopen("C:\\soundfonts\\default.sf2", "r")) {
+				fclose(file);
+				sf = "C:\\soundfonts\\default.sf2";
+			} else if (FILE *file = fopen("C:\\DOSBox-X\\FluidR3_GM.sf2", "r")) {
+				fclose(file);
+				sf = "C:\\DOSBox-X\\FluidR3_GM.sf2";
+			} else if (FILE *file = fopen("C:\\DOSBox-X\\GeneralUser_GS.sf2", "r")) {
+				fclose(file);
+				sf = "C:\\DOSBox-X\\GeneralUser_GS.sf2";
+			} else {
+				LOG_MSG("MIDI:synth: Specify .SF2 sound font file with midiconfig=");
+				return false;
+			}
+#else
+			// Default on "other" platforms according to fluidsynth docs
+			// This works on RH and Fedora, if a soundfont is installed
+			if (FILE *file = fopen("/usr/share/soundfonts/default.sf2", "r")) {
+				fclose(file);
+				sf = "/usr/share/soundfonts/default.sf2";
+			// Ubuntu and Debian don't have a default.sf2...
+			} else if (FILE *file = fopen("/usr/share/sounds/sf2/FluidR3_GM.sf2", "r")) {
+				fclose(file);
+				sf = "/usr/share/sounds/sf2/FluidR3_GM.sf2";
+			} else if (FILE *file = fopen("/usr/share/sounds/sf2/GeneralUser_GS.sf2", "r")) {
+				fclose(file);
+				sf = "/usr/share/sounds/sf2/GeneralUser_GS.sf2";
+			} else {
+				LOG_MSG("MIDI:synth: Specify .SF2 sound font file with midiconfig=");
+				return false;
+			}
+#endif
+		} else
+            sf = std::string(conf);
 
 		fluid_set_log_function(FLUID_PANIC, synth_log, NULL);
 		fluid_set_log_function(FLUID_ERR, synth_log, NULL);
@@ -167,20 +204,20 @@ public:
 		}
 
 		/* Load a SoundFont */
-		sfont_id = fluid_synth_sfload(synth_soft, conf, 0);
+		sfont_id = fluid_synth_sfload(synth_soft, sf.c_str(), 0);
 		if (sfont_id == -1) {
 			extern std::string capturedir;
-			std::string str = capturedir + std::string(PATH_SEP) + std::string(conf);
+			std::string str = capturedir + std::string(PATH_SEP) + sf;
 			sfont_id = fluid_synth_sfload(synth_soft, str.c_str(), 0);
 		}
 
 		if (sfont_id == -1) {
-			LOG(LOG_MISC,LOG_WARN)("SYNTH: Failed to load MIDI sound font file \"%s\"",
-			   conf);
+			LOG(LOG_MISC,LOG_WARN)("SYNTH: Failed to load MIDI sound font file \"%s\"", sf.c_str());
 			delete_fluid_synth(synth_soft);
 			delete_fluid_settings(settings);
 			return false;
 		}
+		sffile=sf;
 
 		synthchan = MIXER_AddChannel(synth_CallBack, (unsigned int)synthsamplerate, "SYNTH");
 		synthchan->Enable(false);
@@ -202,12 +239,12 @@ public:
 		isOpen = false;
 	};
 
-	void PlayMsg(Bit8u *msg) {
+	void PlayMsg(uint8_t *msg) {
 		synthchan->Enable(true);
 		PlayEvent(msg, MIDI_evt_len[*msg]);
 	};
 
-	void PlaySysex(Bit8u *sysex, Bitu len) {
+	void PlaySysex(uint8_t *sysex, Bitu len) {
 		PlayEvent(sysex, len);
 	};
 };
@@ -224,11 +261,11 @@ private:
 public:
 	MidiHandler_fluidsynth() : MidiHandler() {};
 	const char* GetName(void) { return "fluidsynth"; }
-	void PlaySysex(Bit8u * sysex, Bitu len) {
-		fluid_synth_sysex(synth, (char*)sysex, len, NULL, NULL, NULL, 0);
+	void PlaySysex(uint8_t * sysex, Bitu len) {
+		fluid_synth_sysex(synth, (char*)sysex, (int)len, NULL, NULL, NULL, 0);
 	}
 
-	void PlayMsg(Bit8u * msg) {
+	void PlayMsg(uint8_t * msg) {
 		unsigned char chanID = msg[0] & 0x0F;
 		switch (msg[0] & 0xF0) {
 		case 0x80:
@@ -270,13 +307,19 @@ public:
 		(void)conf;
 
 		Section_prop *section = static_cast<Section_prop *>(control->GetSection("midi"));
-		const char *sf = section->Get_string("fluid.soundfont");
-		if (!*sf) { // Let's try to find a soundfont before bailing
+		std::string sf = section->Get_string("fluid.soundfont");
+		if (!sf.size()) { // Let's try to find a soundfont before bailing
 #if defined (WIN32)
 			// default for windows according to fluidsynth docs
 			if (FILE *file = fopen("C:\\soundfonts\\default.sf2", "r")) {
 				fclose(file);
 				sf = "C:\\soundfonts\\default.sf2";
+			} else if (FILE *file = fopen("C:\\DOSBox-X\\FluidR3_GM.sf2", "r")) {
+				fclose(file);
+				sf = "C:\\DOSBox-X\\FluidR3_GM.sf2";
+			} else if (FILE *file = fopen("C:\\DOSBox-X\\GeneralUser_GS.sf2", "r")) {
+				fclose(file);
+				sf = "C:\\DOSBox-X\\GeneralUser_GS.sf2";
 			} else {
 				LOG_MSG("MIDI:fluidsynth: SoundFont not specified");
 				return false;
@@ -291,6 +334,9 @@ public:
 			} else if (FILE *file = fopen("/usr/share/sounds/sf2/FluidR3_GM.sf2", "r")) {
 				fclose(file);
 				sf = "/usr/share/sounds/sf2/FluidR3_GM.sf2";
+			} else if (FILE *file = fopen("/usr/share/sounds/sf2/GeneralUser_GS.sf2", "r")) {
+				fclose(file);
+				sf = "/usr/share/sounds/sf2/GeneralUser_GS.sf2";
 			} else {
 				LOG_MSG("MIDI:fluidsynth: SoundFont not specified, and no system SoundFont found");
 				return false;
@@ -368,6 +414,7 @@ public:
 				soundfont_id = -1;
 			}
 			else {
+				sffile=soundfont;
 				LOG_MSG("MIDI:fluidsynth: Loaded SoundFont: %s", soundfont.c_str());
 			}
 		}

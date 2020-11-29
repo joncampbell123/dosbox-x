@@ -1,5 +1,5 @@
  /*
- *  Copyright (C) 2002-2019  The DOSBox Team
+ *  Copyright (C) 2002-2020  The DOSBox Team
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -11,9 +11,9 @@
  *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  *  GNU General Public License for more details.
  *
- *  You should have received a copy of the GNU General Public License
- *  along with this program; if not, write to the Free Software
- *  Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1335, USA.
+ *  You should have received a copy of the GNU General Public License along
+ *  with this program; if not, write to the Free Software Foundation, Inc.,
+ *  51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
 
 
@@ -45,12 +45,12 @@ public:
 	~Voodoo_PageHandler() {
 	}
 
-	Bit8u readb(PhysPt addr);
-	void writeb(PhysPt addr,Bit8u val);
-	Bit16u readw(PhysPt addr);
-	void writew(PhysPt addr,Bit16u val);
-	Bit32u readd(PhysPt addr);
-	void writed(PhysPt addr,Bit32u val);
+	uint8_t readb(PhysPt addr);
+	void writeb(PhysPt addr,uint8_t val);
+	uint16_t readw(PhysPt addr);
+	void writew(PhysPt addr,uint16_t val);
+	uint32_t readd(PhysPt addr);
+	void writed(PhysPt addr,uint32_t val);
 };
 
 

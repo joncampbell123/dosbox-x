@@ -1,0 +1,72 @@
+app-id: com.dosbox_x.DOSBox-X
+runtime: org.freedesktop.Platform
+runtime-version: '20.08'
+sdk: org.freedesktop.Sdk
+
+command: dosbox-x
+
+finish-args: # flatpak permissions
+  - --device=all # needed for gamepads and serial/parallel
+  - --share=ipc  # needed for X11
+  - --share=network # needed for networking (NE2000, IPX)
+  - --socket=x11
+  - --socket=pulseaudio
+  - --filesystem=home
+
+cleanup:
+  - '/include'
+  - '/lib/pkgconfig'
+  - '/share/aclocal'
+  - '/share/man'
+  - '*.la'
+  - '*.a'
+  - '/share/doc'
+
+modules:
+
+# Build Mesa GLU
+  - name: GLU
+    config-opts:
+      - --disable-static
+    sources:
+      - type: archive
+        url:  https://mesa.freedesktop.org/archive/glu/glu-9.0.1.tar.xz
+        sha256: fb5a4c2dd6ba6d1c21ab7c05129b0769544e1d68e1e3b0ffecb18e73c93055bc
+    cleanup:
+      - /include
+      - /lib/*.a
+      - /lib/*.la
+      - /lib/pkgconfig
+  
+# Build FluidSynth
+  - name: FluidSynth
+    buildsystem: cmake-ninja
+    config-opts:
+      - -DLIB_SUFFIX=
+    cleanup:
+      - /bin
+      - /include
+      - /lib/pkgconfig
+      - /share/man
+      - "*.so"
+    sources:
+      - type: archive
+        url: https://github.com/FluidSynth/fluidsynth/archive/v2.1.5.tar.gz
+        sha256: b539b7c65a650b56f01cd60a4e83c6125c217c5a63c0c214ef6274894a677d00
+
+# Build DOSBox-X SDL1
+  - name: dosbox-x
+    rm-configure: true
+    sources:
+      - type: dir
+        path: ../..
+    buildsystem: simple
+    build-commands:
+      # We need to first build the included (modified) SDL1, otherwise the build will fail
+      - cd vs2015/sdl ; ./build-dosbox.sh
+      # Build the SDL1 debugger enabled version of DOSBox-X
+      - ./build-debug
+      - make bindir=/app/bin prefix=/app install
+    post-install:
+      - install -Dm644 /app/share/icons/hicolor/scalable/apps/dosbox-x.svg /app/share/icons/hicolor/scalable/apps/${FLATPAK_ID}.svg
+      - desktop-file-edit --set-key=Icon --set-value=${FLATPAK_ID} /app/share/applications/${FLATPAK_ID}.desktop

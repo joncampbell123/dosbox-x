@@ -1,5 +1,5 @@
  /*
- *  Copyright (C) 2002-2019  The DOSBox Team
+ *  Copyright (C) 2002-2020  The DOSBox Team
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -11,9 +11,9 @@
  *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  *  GNU General Public License for more details.
  *
- *  You should have received a copy of the GNU General Public License
- *  along with this program; if not, write to the Free Software
- *  Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1335, USA.
+ *  You should have received a copy of the GNU General Public License along
+ *  with this program; if not, write to the Free Software Foundation, Inc.,
+ *  51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
 
 
@@ -107,14 +107,14 @@ void VOGL_Reset(void);
 
 bool VOGL_Initialize(void);
 
-bool VOGL_CheckFeature(Bit32u feat);
-void VOGL_FlagFeature(Bit32u feat);
+bool VOGL_CheckFeature(uint32_t feat);
+void VOGL_FlagFeature(uint32_t feat);
 
 void VOGL_BeginMode(INT32 new_mode);
 void VOGL_ClearBeginMode(void);
 
-void VOGL_SetDepthMode(Bit32s mode, Bit32s func);
-void VOGL_SetAlphaMode(Bit32s enabled_mode,GLuint src_rgb_fac,GLuint dst_rgb_fac,
+void VOGL_SetDepthMode(int32_t mode, int32_t func);
+void VOGL_SetAlphaMode(int32_t enabled_mode,GLuint src_rgb_fac,GLuint dst_rgb_fac,
 											GLuint src_alpha_fac,GLuint dst_alpha_fac);
 
 void VOGL_SetDepthMaskMode(bool masked);

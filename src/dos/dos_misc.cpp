@@ -1,5 +1,5 @@
 /*
- *  Copyright (C) 2002-2019  The DOSBox Team
+ *  Copyright (C) 2002-2020  The DOSBox Team
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -11,9 +11,9 @@
  *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  *  GNU General Public License for more details.
  *
- *  You should have received a copy of the GNU General Public License
- *  along with this program; if not, write to the Free Software
- *  Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1335, USA.
+ *  You should have received a copy of the GNU General Public License along
+ *  with this program; if not, write to the Free Software Foundation, Inc.,
+ *  51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
 
 
@@ -25,10 +25,10 @@
 #include "control.h"
 #include <list>
 
-Bit32u DOS_HMA_LIMIT();
-Bit32u DOS_HMA_FREE_START();
-Bit32u DOS_HMA_GET_FREE_SPACE();
-void DOS_HMA_CLAIMED(Bit16u bytes);
+uint32_t DOS_HMA_LIMIT();
+uint32_t DOS_HMA_FREE_START();
+uint32_t DOS_HMA_GET_FREE_SPACE();
+void DOS_HMA_CLAIMED(uint16_t bytes);
 bool ANSI_SYS_installed();
 
 extern bool enable_share_exe_fake;
@@ -42,7 +42,7 @@ static Bitu call_int2f,call_int2a;
 static std::list<MultiplexHandler*> Multiplex;
 typedef std::list<MultiplexHandler*>::iterator Multiplex_it;
 
-const char *Win_NameThatVXD(Bit16u devid) {
+const char *Win_NameThatVXD(uint16_t devid) {
 	switch (devid) {
 		case 0x0006:	return "V86MMGR";
 		case 0x000C:	return "VMD";
@@ -81,7 +81,7 @@ static Bitu INT2F_Handler(void) {
 	for(Multiplex_it it = Multiplex.begin();it != Multiplex.end();++it)
 		if( (*it)() ) return CBRET_NONE;
    
-	LOG(LOG_DOSMISC,LOG_ERROR)("DOS:INT 2F Unhandled call AX=%4X",reg_ax);
+	LOG(LOG_DOSMISC,LOG_DEBUG)("DOS:INT 2F Unhandled call AX=%4X",reg_ax);
 	return CBRET_NONE;
 }
 
@@ -90,6 +90,7 @@ static Bitu INT2A_Handler(void) {
 	return CBRET_NONE;
 }
 
+extern bool i4dos, shellrun, clipboard_dosapi;
 extern RealPt DOS_DriveDataListHead;       // INT 2Fh AX=0803h DRIVER.SYS drive data table list
 
 // INT 2F
@@ -100,10 +101,10 @@ static bool DOS_MultiplexFunctions(void) {
     case 0x0800:    /* DRIVER.SYS function */
     case 0x0801:    /* DRIVER.SYS function */
     case 0x0802:    /* DRIVER.SYS function */
-        LOG(LOG_MISC,LOG_DEBUG)("Unhandled DRIVER.SYS call AX=%04x BX=%04x CX=%04x DX=%04x BP=%04x",reg_ax,reg_bx,reg_cx,reg_dx,reg_bp);
+        LOG(LOG_DOSMISC,LOG_DEBUG)("Unhandled DRIVER.SYS call AX=%04x BX=%04x CX=%04x DX=%04x BP=%04x",reg_ax,reg_bx,reg_cx,reg_dx,reg_bp);
         break;
     case 0x0803:    /* DRIVER.SYS function */
-        LOG(LOG_MISC,LOG_DEBUG)("Unhandled DRIVER.SYS call AX=%04x BX=%04x CX=%04x DX=%04x BP=%04x",reg_ax,reg_bx,reg_cx,reg_dx,reg_bp);
+        LOG(LOG_DOSMISC,LOG_DEBUG)("Unhandled DRIVER.SYS call AX=%04x BX=%04x CX=%04x DX=%04x BP=%04x",reg_ax,reg_bx,reg_cx,reg_dx,reg_bp);
         // FIXME: Windows 95 SCANDISK.EXE relies on the drive data table list pointer provided by this call.
         //        Returning DS:DI unmodified or set to 0:0 will only send it off into the weeds chasing random data
         //        as a linked list. However looking at the code DI=0xFFFF is sufficient to prevent that until
@@ -129,14 +130,14 @@ static bool DOS_MultiplexFunctions(void) {
 		if (reg_bx<16) {
 			RealPt sftrealpt=mem_readd(Real2Phys(dos_infoblock.GetPointer())+4);
 			PhysPt sftptr=Real2Phys(sftrealpt);
-			Bit32u sftofs=0x06u+reg_bx*0x3bu;
+			uint32_t sftofs=0x06u+reg_bx*0x3bu;
 
-			if (Files[reg_bx]) mem_writeb(sftptr+sftofs, (Bit8u)(Files[reg_bx]->refCtr));
+			if (Files[reg_bx]) mem_writeb(sftptr+sftofs, (uint8_t)(Files[reg_bx]->refCtr));
 			else mem_writeb(sftptr+sftofs,0);
 
 			if (!Files[reg_bx]) return true;
 
-			Bit32u handle=RealHandle(reg_bx);
+			uint32_t handle=RealHandle(reg_bx);
 			if (handle>=DOS_FILES) {
 				mem_writew(sftptr+sftofs+0x02,0x02);	// file open mode
 				mem_writeb(sftptr+sftofs+0x04,0x00);	// file attribute
@@ -147,17 +148,17 @@ static bool DOS_MultiplexFunctions(void) {
 				mem_writew(sftptr+sftofs+0x11,0);		// size
 				mem_writew(sftptr+sftofs+0x15,0);		// current position
 			} else {
-				Bit8u drive=Files[reg_bx]->GetDrive();
+				uint8_t drive=Files[reg_bx]->GetDrive();
 
-				mem_writew(sftptr+sftofs+0x02,(Bit16u)(Files[reg_bx]->flags&3));	// file open mode
-				mem_writeb(sftptr+sftofs+0x04,(Bit8u)(Files[reg_bx]->attr));		// file attribute
+				mem_writew(sftptr+sftofs+0x02,(uint16_t)(Files[reg_bx]->flags&3));	// file open mode
+				mem_writeb(sftptr+sftofs+0x04,(uint8_t)(Files[reg_bx]->attr));		// file attribute
 				mem_writew(sftptr+sftofs+0x05,0x40|drive);							// device info word
 				mem_writed(sftptr+sftofs+0x07,RealMake(dos.tables.dpb,drive*dos.tables.dpb_size));	// dpb of the drive
 				mem_writew(sftptr+sftofs+0x0d,Files[reg_bx]->time);					// packed file time
 				mem_writew(sftptr+sftofs+0x0f,Files[reg_bx]->date);					// packed file date
-				Bit32u curpos=0;
+				uint32_t curpos=0;
 				Files[reg_bx]->Seek(&curpos,DOS_SEEK_CUR);
-				Bit32u endpos=0;
+				uint32_t endpos=0;
 				Files[reg_bx]->Seek(&endpos,DOS_SEEK_END);
 				mem_writed(sftptr+sftofs+0x11,endpos);		// size
 				mem_writed(sftptr+sftofs+0x15,curpos);		// current position
@@ -218,11 +219,11 @@ static bool DOS_MultiplexFunctions(void) {
 			char psp_name[9];
 			DOS_MCB psp_mcb(dos.psp()-1);
 			psp_mcb.GetFileName(psp_name);
-			if (strcmp(psp_name, "DOSSETUP") == 0) {
+			if (!strcmp(psp_name, "DOSSETUP") || !strcmp(psp_name, "KRNL386")) {
 				/* Hack for Windows 98 SETUP.EXE (Wengier) */
 				return false;
 			}
-			strcpy(name,"COMMAND.COM");
+			strcpy(name,i4dos&&!shellrun?"4DOS.COM":"COMMAND.COM");
 			MEM_BlockWrite(SegPhys(ds)+reg_dx,name,(Bitu)(strlen(name)+1));
 			strcpy(name+1,"/P /D /K AUTOEXEC");
 			name[0]=(char)strlen(name+1);
@@ -243,7 +244,7 @@ static bool DOS_MultiplexFunctions(void) {
         strcpy(name,regpath);
         MEM_BlockWrite(SegPhys(es)+reg_di,name,(Bitu)(strlen(name)+1));
         reg_ax=0;
-        reg_cx=(Bit16u)strlen(name);
+        reg_cx=(uint16_t)strlen(name);
         return true;
     case 0x1614:    /* Set SYSTEM.DAT path */
 		if (dos.version.major < 7) return false;
@@ -358,14 +359,19 @@ static bool DOS_MultiplexFunctions(void) {
 		}
 		else return false;
 	case 0x160A:
+	{
+		char psp_name[9];
+		DOS_MCB psp_mcb(dos.psp()-1);
+		psp_mcb.GetFileName(psp_name);
 		// Report Windows version 4.0 (95) to NESTICLE x.xx so that it uses LFN when available
-		if (uselfn && reg_sp == 0x220A && mem_readw(SegPhys(ss)+reg_sp) == 0x1FBB) {
+		if (uselfn && (!strcmp(psp_name, "NESTICLE") || (reg_sp == 0x220A && mem_readw(SegPhys(ss)+reg_sp)/0x100 == 0x1F))) {
 			reg_ax = 0;
 			reg_bx = 0x400;
 			reg_cx = 2;
 			return true;
 		}
 		return false;
+	}
 	case 0x1680:	/*  RELEASE CURRENT VIRTUAL MACHINE TIME-SLICE */
 		//TODO Maybe do some idling but could screw up other systems :)
 		return true; //So no warning in the debugger anymore
@@ -375,12 +381,12 @@ static bool DOS_MultiplexFunctions(void) {
 		return true;
 #ifdef WIN32
 	case 0x1700:
-		if(control->SecureMode()) return false;
+		if(control->SecureMode()||!clipboard_dosapi) return false;
 		reg_al = 1;
 		reg_ah = 1;
 		return true;
 	case 0x1701:
-		if(control->SecureMode()) return false;
+		if(control->SecureMode()||!clipboard_dosapi) return false;
 		reg_ax=0;
 		if (OpenClipboard(NULL)) {
 			reg_ax=1;
@@ -388,7 +394,7 @@ static bool DOS_MultiplexFunctions(void) {
 		}
 		return true;
 	case 0x1702:
-		if(control->SecureMode()) return false;
+		if(control->SecureMode()||!clipboard_dosapi) return false;
 		reg_ax=0;
 		if (OpenClipboard(NULL))
 			{
@@ -397,7 +403,7 @@ static bool DOS_MultiplexFunctions(void) {
 			}
 		return true;
 	case 0x1703:
-		if(control->SecureMode()) return false;
+		if(control->SecureMode()||!clipboard_dosapi) return false;
 		reg_ax=0;
 		if ((reg_dx==1||reg_dx==7)&&OpenClipboard(NULL))
 			{
@@ -418,14 +424,14 @@ static bool DOS_MultiplexFunctions(void) {
 			}
 		return true;
 	case 0x1704:
-		if(control->SecureMode()) return false;
+		if(control->SecureMode()||!clipboard_dosapi) return false;
 		reg_ax=0;
 		if ((reg_dx==1||reg_dx==7)&&OpenClipboard(NULL))
 			{
 			if (HANDLE text = GetClipboardData(reg_dx==1?CF_TEXT:CF_OEMTEXT))
 				{
-				reg_ax=(Bit16u)strlen((char *)text)+1;
-				reg_dx=(Bit16u)((strlen((char *)text)+1)/65536);
+				reg_ax=(uint16_t)strlen((char *)text)+1;
+				reg_dx=(uint16_t)((strlen((char *)text)+1)/65536);
 				}
 			else
 				reg_dx=0;
@@ -433,7 +439,7 @@ static bool DOS_MultiplexFunctions(void) {
 			}
 		return true;
 	case 0x1705:
-		if(control->SecureMode()) return false;
+		if(control->SecureMode()||!clipboard_dosapi) return false;
 		reg_ax=0;
 		if ((reg_dx==1||reg_dx==7)&&OpenClipboard(NULL))
 			{
@@ -446,7 +452,7 @@ static bool DOS_MultiplexFunctions(void) {
 			}
 		return true;
 	case 0x1708:
-		if(control->SecureMode()) return false;
+		if(control->SecureMode()||!clipboard_dosapi) return false;
 		reg_ax=1;
 		CloseClipboard();
 		return true;
@@ -472,33 +478,33 @@ static bool DOS_MultiplexFunctions(void) {
         // nor is DOS 5 DOSSHELL active
         return true;
 	case 0x4a01: {	/* Query free hma space */
-		Bit32u limit = DOS_HMA_LIMIT();
+		uint32_t limit = DOS_HMA_LIMIT();
 
 		if (limit == 0) {
 			/* TODO: What does MS-DOS prior to v5.0? */
 			reg_bx = 0;
 			reg_di = 0xFFFF;
 			SegSet16(es,0xFFFF);
-			LOG(LOG_MISC,LOG_DEBUG)("HMA query: rejected");
+			LOG(LOG_DOSMISC,LOG_DEBUG)("HMA query: rejected");
 			return true;
 		}
 
-		Bit32u start = DOS_HMA_FREE_START();
+		uint32_t start = DOS_HMA_FREE_START();
 		reg_bx = limit - start; /* free space in bytes */
 		SegSet16(es,0xffff);
 		reg_di = (start + 0x10) & 0xFFFF;
-		LOG(LOG_MISC,LOG_DEBUG)("HMA query: start=0x%06x limit=0x%06x free=0x%06x -> bx=%u %04x:%04x",
+		LOG(LOG_DOSMISC,LOG_DEBUG)("HMA query: start=0x%06x limit=0x%06x free=0x%06x -> bx=%u %04x:%04x",
 			start,limit,DOS_HMA_GET_FREE_SPACE(),(int)reg_bx,(int)SegValue(es),(int)reg_di);
 		} return true;
 	case 0x4a02: {	/* ALLOCATE HMA SPACE */
-		Bit32u limit = DOS_HMA_LIMIT();
+		uint32_t limit = DOS_HMA_LIMIT();
 
 		if (limit == 0) {
 			/* TODO: What does MS-DOS prior to v5.0? */
 			reg_bx = 0;
 			reg_di = 0xFFFF;
 			SegSet16(es,0xFFFF);
-			LOG(LOG_MISC,LOG_DEBUG)("HMA allocation: rejected");
+			LOG(LOG_DOSMISC,LOG_DEBUG)("HMA allocation: rejected");
 			return true;
 		}
 
@@ -508,9 +514,9 @@ static bool DOS_MultiplexFunctions(void) {
 		if (dos.version.major < 7 && (reg_bx & 0xF) != 0)
 			reg_bx = (reg_bx + 0xF) & (~0xF);
 
-		Bit32u start = DOS_HMA_FREE_START();
+		uint32_t start = DOS_HMA_FREE_START();
 		if ((start+reg_bx) > limit) {
-			LOG(LOG_MISC,LOG_DEBUG)("HMA allocation: rejected (not enough room) for %u bytes (0x%x + 0x%x > 0x%x)",reg_bx,
+			LOG(LOG_DOSMISC,LOG_DEBUG)("HMA allocation: rejected (not enough room) for %u bytes (0x%x + 0x%x > 0x%x)",reg_bx,
                 (unsigned int)start,(unsigned int)reg_bx,(unsigned int)limit);
 			reg_bx = 0;
 			reg_di = 0xFFFF;
@@ -523,14 +529,14 @@ static bool DOS_MultiplexFunctions(void) {
 		SegSet16(es,0xFFFF);
 
 		/* let HMA emulation know what was claimed */
-		LOG(LOG_MISC,LOG_DEBUG)("HMA allocation: %u bytes at FFFF:%04x",reg_bx,reg_di);
+		LOG(LOG_DOSMISC,LOG_DEBUG)("HMA allocation: %u bytes at FFFF:%04x",reg_bx,reg_di);
 		DOS_HMA_CLAIMED(reg_bx);
 		} return true;
     case 0x4a10: { /* Microsoft SmartDrive (SMARTDRV) API */
-        LOG(LOG_MISC,LOG_DEBUG)("Unhandled SMARTDRV call AX=%04x BX=%04x CX=%04x DX=%04x BP=%04x",reg_ax,reg_bx,reg_cx,reg_dx,reg_bp);
+        LOG(LOG_DOSMISC,LOG_DEBUG)("Unhandled SMARTDRV call AX=%04x BX=%04x CX=%04x DX=%04x BP=%04x",reg_ax,reg_bx,reg_cx,reg_dx,reg_bp);
 	    } return true;
     case 0x4a11: { /* Microsoft DoubleSpace (DBLSPACE.BIN) API */
-        LOG(LOG_MISC,LOG_DEBUG)("Unhandled DBLSPACE call AX=%04x BX=%04x CX=%04x DX=%04x BP=%04x",reg_ax,reg_bx,reg_cx,reg_dx,reg_bp);
+        LOG(LOG_DOSMISC,LOG_DEBUG)("Unhandled DBLSPACE call AX=%04x BX=%04x CX=%04x DX=%04x BP=%04x",reg_ax,reg_bx,reg_cx,reg_dx,reg_bp);
 	    } return true;
     case 0x4a16:    /* Open bootlog */
         return true;
@@ -562,9 +568,11 @@ void DOS_SetupMisc(void) {
 	RealSetVec(0x2A,CALLBACK_RealPointer(call_int2a));
 }
 
+extern const char* RunningProgram;
 void CALLBACK_DeAllocate(Bitu in);
 
 void DOS_UninstallMisc(void) {
+    if (!strcmp(RunningProgram, "LOADLIN")) return;
 	/* these vectors shouldn't exist when booting a guest OS */
 	if (call_int2a) {
 		RealSetVec(0x2a,0);

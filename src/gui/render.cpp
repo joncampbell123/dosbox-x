@@ -1,5 +1,5 @@
 /*
- *  Copyright (C) 2002-2019  The DOSBox Team
+ *  Copyright (C) 2002-2020  The DOSBox Team
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -11,15 +11,17 @@
  *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  *  GNU General Public License for more details.
  *
- *  You should have received a copy of the GNU General Public License
- *  along with this program; if not, write to the Free Software
- *  Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1335, USA.
+ *  You should have received a copy of the GNU General Public License along
+ *  with this program; if not, write to the Free Software Foundation, Inc.,
+ *  51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
 
 
 #include <sys/types.h>
 #include <assert.h>
 #include <math.h>
+#include <fstream>
+#include <sstream>
 
 #include "dosbox.h"
 #include "video.h"
@@ -31,14 +33,17 @@
 #include "hardware.h"
 #include "support.h"
 #include "sdlmain.h"
+#include "shell.h"
 
 #include "render_scalers.h"
+#include "render_glsl.h"
 #if defined(__SSE__)
 #include <xmmintrin.h>
 #include <emmintrin.h>
 #endif
 
 Render_t                                render;
+int                                     eurAscii = -1;
 Bitu                                    last_gfx_flags = 0;
 ScalerLineHandler_t                     RENDER_DrawLine;
 
@@ -46,6 +51,13 @@ uint32_t                                GFX_palette32bpp[256] = {0};
 
 unsigned int                            GFX_GetBShift();
 void                                    RENDER_CallBack( GFX_CallBackFunctions_t function );
+
+#if defined(USE_TTF)
+bool resetreq=false;
+ttf_cell curAttrChar[txtMaxLins*txtMaxCols];					// currently displayed textpage
+ttf_cell newAttrChar[txtMaxLins*txtMaxCols];					// to be replaced by
+void resetFontSize();
+#endif
 
 static void Check_Palette(void) {
     /* Clean up any previous changed palette data */
@@ -63,10 +75,10 @@ static void Check_Palette(void) {
         case scalerMode15:
         case scalerMode16:
             for (i=render.pal.first;i<=render.pal.last;i++) {
-                Bit8u r=render.pal.rgb[i].red;
-                Bit8u g=render.pal.rgb[i].green;
-                Bit8u b=render.pal.rgb[i].blue;
-                Bit16u newPal = (Bit16u)GFX_GetRGB(r,g,b);
+                uint8_t r=render.pal.rgb[i].red;
+                uint8_t g=render.pal.rgb[i].green;
+                uint8_t b=render.pal.rgb[i].blue;
+                uint16_t newPal = (uint16_t)GFX_GetRGB(r,g,b);
                 if (newPal != render.pal.lut.b16[i]) {
                     render.pal.changed = true;
                     render.pal.modified[i] = 1;
@@ -77,10 +89,10 @@ static void Check_Palette(void) {
         case scalerMode32:
         default:
             for (i=render.pal.first;i<=render.pal.last;i++) {
-                Bit8u r=render.pal.rgb[i].red;
-                Bit8u g=render.pal.rgb[i].green;
-                Bit8u b=render.pal.rgb[i].blue;
-                Bit32u newPal = (Bit32u)GFX_GetRGB(r,g,b);
+                uint8_t r=render.pal.rgb[i].red;
+                uint8_t g=render.pal.rgb[i].green;
+                uint8_t b=render.pal.rgb[i].blue;
+                uint32_t newPal = (uint32_t)GFX_GetRGB(r,g,b);
                 if (newPal != render.pal.lut.b32[i]) {
                     render.pal.changed = true;
                     render.pal.modified[i] = 1;
@@ -94,7 +106,7 @@ static void Check_Palette(void) {
     render.pal.last=0;
 }
 
-void RENDER_SetPal(Bit8u entry,Bit8u red,Bit8u green,Bit8u blue) {
+void RENDER_SetPal(uint8_t entry,uint8_t red,uint8_t green,uint8_t blue) {
     if (GFX_GetBShift() == 0) {
         GFX_palette32bpp[entry] =
             ((uint32_t)red << (uint32_t)16) +
@@ -120,15 +132,39 @@ static void RENDER_EmptyLineHandler(const void * src) {
 }
 
 /*HACK*/
-#if defined(__SSE__) && (defined(_M_AMD64) || defined(__e2k__))
-# define sse2_available (1) /* SSE2 is always available on x86_64 and Elbrus */
+#if defined(_M_AMD64) || defined(__amd64__) || defined(__e2k__)
+/* SSE2 is always available on x86_64 and Elbrus */
+# define sse2_available (1)
+extern bool             avx2_available;
+#elif defined(__SSE__)
+#ifdef __AVX2__
+/* We are building with -mavx2 */
+# define sse2_available (1)
+# define avx2_available (1)
 #else
-# ifdef __SSE__
-extern bool             sse1_available;
 extern bool             sse2_available;
-# endif
+extern bool             avx2_available;
 #endif
 /*END HACK*/
+
+#include <immintrin.h>
+
+#ifdef __GNUC__
+__attribute__((__target__("avx2")))
+#endif
+static inline bool cacheHit_AVX2(const Bitu *src, Bitu *cache, Bits count) {
+    static const Bitu simd_inc = 32 / sizeof(*src);
+    while (count >= (Bits)simd_inc) {
+        __m256i v = _mm256_loadu_si256((const __m256i*)src);
+        __m256i c = _mm256_loadu_si256((const __m256i*)cache);
+        __m256i cmp = _mm256_cmpeq_epi32(v, c);
+        if (GCC_UNLIKELY((unsigned int)_mm256_movemask_epi8(cmp) != 0xFFFFFFFF))
+            return false;
+        count-=(Bits)simd_inc; src+=simd_inc; cache+=simd_inc;
+    }
+    return true;
+}
+#endif // __SSE__
 
 /* NTS: In normal conditions, the renderer at the start of the frame
  *      does not call the scaler but instead compares line by line
@@ -153,9 +189,12 @@ static inline bool RENDER_DrawLine_scanline_cacheHit(const void *s) {
         const Bitu *src = (Bitu*)s;
         Bitu *cache = (Bitu*)(render.scale.cacheRead);
         Bits count = (Bits)render.src.start;
-#if defined(__SSE__)
-        if (sse2_available) {
+#if defined(__SSE__) && !(defined(_M_AMD64) || defined(__amd64__) || defined(__e2k__))
 #define MY_SIZEOF_INT_P sizeof(*src)
+        if (GCC_LIKELY(avx2_available)) {
+            if (!cacheHit_AVX2(src, cache, count))
+                goto cacheMiss;
+        } else if (sse2_available) {
             static const Bitu simd_inc = 16/MY_SIZEOF_INT_P;
             while (count >= (Bits)simd_inc) {
                 __m128i v = _mm_loadu_si128((const __m128i*)src);
@@ -165,10 +204,10 @@ static inline bool RENDER_DrawLine_scanline_cacheHit(const void *s) {
                     goto cacheMiss;
                 count-=(Bits)simd_inc; src+=simd_inc; cache+=simd_inc;
             }
-#undef MY_SIZEOF_INT_P
         }
+#undef MY_SIZEOF_INT_P
         else
-#endif
+#endif // __SSE__
         {
             while (count) {
                 if (GCC_UNLIKELY(src[0] != cache[0]))
@@ -256,16 +295,43 @@ static void RENDER_FinishLineHandler(const void * s) {
 
 static void RENDER_ClearCacheHandler(const void * src) {
     Bitu x, width;
-    Bit32u *srcLine, *cacheLine;
-    srcLine = (Bit32u *)src;
-    cacheLine = (Bit32u *)render.scale.cacheRead;
+    uint32_t *srcLine, *cacheLine;
+    srcLine = (uint32_t *)src;
+    cacheLine = (uint32_t *)render.scale.cacheRead;
     width = render.scale.cachePitch / 4;
     for (x=0;x<width;x++)
         cacheLine[x] = ~srcLine[x];
     render.scale.lineHandler( src );
 }
 
-extern void GFX_SetTitle(Bit32s cycles,Bits frameskip,Bits timing,bool paused);
+#define RENDER_MAXWIDTH 800
+#define RENDER_MAXHEIGHT 600
+extern void GFX_SetTitle(int32_t cycles, int frameskip, Bits timing, bool paused);
+uint8_t rendererCache[RENDER_MAXHEIGHT * RENDER_MAXWIDTH];
+void SimpleRenderer(const void *s) {
+	render.cache.curr_y++;
+	if (render.cache.invalid) {
+		wmemcpy((wchar_t*)render.cache.pointer, (wchar_t*)s, render.cache.width>>1);
+		render.cache.past_y = render.cache.curr_y;
+		render.cache.start_x = 0;
+	} else {
+		uint32_t *cache = (uint32_t *)render.cache.pointer;
+		uint32_t *source = (uint32_t *)s;
+		for (Bitu index = render.cache.width/4; index; index--) {
+			if (*source != *cache) {
+				index *= 4;
+				if ((Bitu)render.cache.start_x > render.cache.width - index)
+					render.cache.start_x = render.cache.width - index;
+				wmemcpy((wchar_t*)cache, (wchar_t*)source, index>>1);
+				render.cache.past_y = render.cache.curr_y;
+				break;
+			}
+			source++;
+			cache++;
+		}
+	}
+	render.cache.pointer += render.cache.width;
+}
 
 bool RENDER_StartUpdate(void) {
     if (GCC_UNLIKELY(render.updating))
@@ -277,18 +343,30 @@ bool RENDER_StartUpdate(void) {
         return false;
     }
     render.frameskip.count=0;
-    if (render.scale.inMode == scalerMode8) {
+    if (render.scale.inMode == scalerMode8 && sdl.desktop.want_type != SCREEN_TTF) {
         Check_Palette();
     }
     render.scale.inLine = 0;
     render.scale.outLine = 0;
-    render.scale.cacheRead = (Bit8u*)&scalerSourceCache;
+    render.scale.cacheRead = (uint8_t*)&scalerSourceCache;
     render.scale.outWrite = 0;
     render.scale.outPitch = 0;
     Scaler_ChangedLines[0] = 0;
     Scaler_ChangedLineIndex = 0;
+#if defined(USE_TTF)
+    if (ttf.inUse) {
+        if (render.cache.nextInvalid) {		// Always do a full screen update
+            render.cache.nextInvalid = false;
+            render.cache.invalid = true;
+            if (!GFX_StartUpdate( render.scale.outWrite, render.scale.outPitch ))
+                return false;
+            RENDER_DrawLine = SimpleRenderer;
+        } else
+            RENDER_DrawLine = RENDER_StartLineHandler;
     /* Clearing the cache will first process the line to make sure it's never the same */
-    if (GCC_UNLIKELY( render.scale.clearCache) ) {
+    } else
+#endif
+        if (GCC_UNLIKELY( render.scale.clearCache) ) {
 //      LOG_MSG("Clearing cache");
         //Will always have to update the screen with this one anyway, so let's update already
         if (GCC_UNLIKELY(!GFX_StartUpdate( render.scale.outWrite, render.scale.outPitch )))
@@ -350,7 +428,7 @@ void RENDER_EndUpdate( bool abort ) {
             flags |= CAPTURE_FLAG_NOCHANGE;
 
         CAPTURE_AddImage( render.src.width, render.src.height, render.src.bpp, pitch,
-            flags, fps, (Bit8u *)&scalerSourceCache, (Bit8u*)&render.pal.rgb );
+            flags, fps, (uint8_t *)&scalerSourceCache, (uint8_t*)&render.pal.rgb );
     }
     if ( render.scale.outWrite ) {
         GFX_EndUpdate( abort? NULL : Scaler_ChangedLines );
@@ -365,7 +443,7 @@ void RENDER_EndUpdate( bool abort ) {
 #endif
         // Force output to update the screen even if nothing changed...
         // works only with Direct3D output (GFX_StartUpdate() was probably not even called)
-        if (render.forceUpdate) GFX_EndUpdate( 0 );
+        if (RENDER_GetForceUpdate()) GFX_EndUpdate( 0 );
     }
     render.frameskip.index = (render.frameskip.index + 1) & (RENDER_SKIP_CACHE - 1);
     render.updating=false;
@@ -390,7 +468,7 @@ static Bitu MakeAspectTable(Bitu skip,Bitu height,double scaley,Bitu miny) {
             Bitu templines = (Bitu)lines;
             lines -= templines;
             linesadded += templines;
-            Scaler_Aspect[i] = (Bit8u)templines;
+            Scaler_Aspect[i] = (uint8_t)templines;
         } else {
             Scaler_Aspect[i] = 0;
         }
@@ -600,8 +678,12 @@ forcenormal:
 #if !defined(C_SDL2)
     gfx_flags=GFX_GetBestMode(gfx_flags);
 #else
-    gfx_flags &= ~GFX_SCALING;
-    gfx_flags |= GFX_RGBONLY | GFX_CAN_RANDOM;
+    if (sdl.desktop.want_type == SCREEN_TTF)
+        gfx_flags = GFX_CAN_32 | GFX_SCALING;
+    else {
+        gfx_flags &= ~GFX_SCALING;
+        gfx_flags |= GFX_RGBONLY | GFX_CAN_RANDOM;
+    }
 #endif
     if (!gfx_flags) {
         if (!complexBlock && simpleBlock == &ScaleNormal1x) 
@@ -665,6 +747,9 @@ forcenormal:
     sdl.srcAspect.yToX = (double)sdl.srcAspect.y / sdl.srcAspect.x;
     LOG_MSG("Aspect ratio: %u x %u  xToY=%.3f yToX=%.3f",sdl.srcAspect.x,sdl.srcAspect.y,sdl.srcAspect.xToY,sdl.srcAspect.yToX);
 /* Setup the scaler variables */
+#if C_OPENGL
+    GFX_SetShader(render.shader_src);
+#endif
     gfx_flags=GFX_SetSize(width,height,gfx_flags,gfx_scalew,gfx_scaleh,&RENDER_CallBack);
     if (gfx_flags & GFX_CAN_8)
         render.scale.outMode = scalerMode8;
@@ -750,6 +835,12 @@ forcenormal:
     render.active=true;
 
     last_gfx_flags = gfx_flags;
+#if defined(USE_TTF)
+    if (sdl.desktop.want_type == SCREEN_TTF) {
+        render.cache.nextInvalid = true;
+        if (resetreq) resetFontSize();
+    }
+#endif
 }
 
 void RENDER_CallBack( GFX_CallBackFunctions_t function ) {
@@ -773,6 +864,13 @@ void RENDER_SetSize(Bitu width,Bitu height,Bitu bpp,float fps,double scrn_ratio)
         LOG(LOG_MISC,LOG_WARN)("RENDER_SetSize() rejected video mode %u x %u",(unsigned int)width,(unsigned int)height);
         return; 
     }
+
+#if defined(USE_TTF)
+    if (sdl.desktop.want_type == SCREEN_TTF) {
+        render.cache.width	= width;
+        render.cache.height	= height;
+    }
+#endif
 
     // figure out doublewidth/height values
     bool dblw = false;
@@ -806,13 +904,13 @@ void RENDER_SetSize(Bitu width,Bitu height,Bitu bpp,float fps,double scrn_ratio)
     RENDER_Reset( );
 }
 
-void BlankDisplay(void);
+/*void BlankDisplay(void);
 static void BlankTestRefresh(bool pressed) {
     (void)pressed;
     BlankDisplay();
-}
+}*/
 
-//extern void GFX_SetTitle(Bit32s cycles, Bits frameskip, Bits timing, bool paused);
+//extern void GFX_SetTitle(int32_t cycles, int frameskip, Bits timing, bool paused);
 static void IncreaseFrameSkip(bool pressed) {
     if (!pressed)
         return;
@@ -845,9 +943,75 @@ static void ChangeScaler(bool pressed) {
 
 void RENDER_UpdateFromScalerSetting(void);
 
+bool RENDER_GetForceUpdate(void) {
+	return render.forceUpdate;
+}
+
 void RENDER_SetForceUpdate(bool f) {
     render.forceUpdate = f;
 }
+
+#if C_OPENGL
+static bool RENDER_GetShader(std::string& shader_path, char *old_src) {
+	char* src;
+	std::stringstream buf, tmp;
+	std::ifstream fshader(shader_path.c_str(), std::ios_base::binary);
+	if (!fshader.is_open()) fshader.open((shader_path + ".glsl").c_str(), std::ios_base::binary);
+    bool empty=true;
+    if (fshader.is_open()) {
+        buf << fshader.rdbuf();
+        empty=buf.str().empty();
+        fshader.close();
+        if (empty) buf.swap(tmp);
+    }
+	if (!empty) ;
+	else if (shader_path == "advinterp2x") buf << advinterp2x_glsl;
+	else if (shader_path == "advinterp3x") buf << advinterp3x_glsl;
+	else if (shader_path == "advmame2x")   buf << advmame2x_glsl;
+	else if (shader_path == "advmame3x")   buf << advmame3x_glsl;
+	else if (shader_path == "rgb2x")       buf << rgb2x_glsl;
+	else if (shader_path == "rgb3x")       buf << rgb3x_glsl;
+	else if (shader_path == "scan2x")      buf << scan2x_glsl;
+	else if (shader_path == "scan3x")      buf << scan3x_glsl;
+	else if (shader_path == "tv2x")        buf << tv2x_glsl;
+	else if (shader_path == "tv3x")        buf << tv3x_glsl;
+	else if (shader_path == "sharp")       buf << sharp_glsl;
+
+	if (!buf.str().empty()) {
+		std::string s = buf.str() + '\n';
+		if (first_shell) {
+			std::string pre_defs;
+			Bitu count = first_shell->GetEnvCount();
+			for (Bitu i=0; i < count; i++) {
+				std::string env;
+				if (!first_shell->GetEnvNum(i, env))
+					continue;
+				if (env.compare(0, 9, "GLSHADER_")==0) {
+					size_t brk = env.find('=');
+					if (brk == std::string::npos) continue;
+					env[brk] = ' ';
+					pre_defs += "#define " + env.substr(9) + '\n';
+				}
+			}
+			if (!pre_defs.empty()) {
+				// if "#version" occurs it must be before anything except comments and whitespace
+				size_t pos = s.find("#version ");
+				if (pos != std::string::npos) pos = s.find('\n', pos+9);
+				if (pos == std::string::npos) pos = 0;
+				else ++pos;
+				s = s.insert(pos, pre_defs);
+			}
+		}
+		// keep the same buffer if contents aren't different
+		if (old_src==NULL || s != old_src) {
+			src = strdup(s.c_str());
+			if (src==NULL) LOG_MSG("WARNING: Couldn't copy shader source");
+		} else src = old_src;
+	} else src = NULL;
+	render.shader_src = src;
+	return src != NULL;
+}
+#endif
 
 void RENDER_UpdateFrameskipMenu(void) {
     char tmp[64];
@@ -993,6 +1157,38 @@ void RENDER_UpdateFromScalerSetting(void) {
     if (reset) RENDER_CallBack(GFX_CallBackReset);
 }
 
+#if C_OPENGL
+extern int initgl;
+std::string shader_src="";
+std::string LoadGLShader(Section_prop * section) {
+	shader_src = render.shader_src!=NULL?std::string(render.shader_src):"";
+    render.shader_def = false;
+	Prop_path *sh = section->Get_path("glshader");
+	std::string f = (std::string)sh->GetValue();
+    const char *ssrc=shader_src.c_str();
+	if (f.empty() || f=="none" || f=="default") {
+        render.shader_src = NULL;
+        render.shader_def = f=="default";
+        if (initgl==2) sdl_opengl.use_shader=true;
+	} else if (!RENDER_GetShader(sh->realpath,(char *)shader_src.c_str())) {
+		std::string path = std::string("glshaders") + CROSS_FILESPLIT + f;
+		if (!RENDER_GetShader(path,(char *)shader_src.c_str())) {
+            Cross::GetPlatformConfigDir(path);
+            path = path + "glshaders" + CROSS_FILESPLIT + f;
+            if (!RENDER_GetShader(path,(char *)shader_src.c_str()) && (sh->realpath==f || !RENDER_GetShader(f,(char *)shader_src.c_str()))) {
+                sh->SetValue("none");
+                LOG_MSG("Shader file \"%s\" not found", f.c_str());
+            }
+        }
+	} else {
+        if (initgl==2) sdl_opengl.use_shader=true;
+        LOG_MSG("Loaded GLSL shader: %s\n", f.c_str());
+    }
+	if (shader_src.size()&&shader_src.c_str()!=render.shader_src) shader_src="";
+    return shader_src;
+}
+#endif
+
 void RENDER_Init() {
     Section_prop * section=static_cast<Section_prop *>(control->GetSection("render"));
 
@@ -1002,6 +1198,11 @@ void RENDER_Init() {
 
     vga.draw.doublescan_set=section->Get_bool("doublescan");
     vga.draw.char9_set=section->Get_bool("char9");
+	eurAscii = section->Get_int("euro");
+	if (eurAscii != -1 && (eurAscii < 33 || eurAscii > 255)) {
+		LOG_MSG("Euro ASCII value has to be between 33 and 255\n");
+		eurAscii = -1;
+	}
 
 	//Set monochrome mode color and brightness
 	vga.draw.monochrome_pal=0;
@@ -1046,16 +1247,13 @@ void RENDER_Init() {
 
     render.frameskip.max=(Bitu)section->Get_int("frameskip");
 
-    MAPPER_AddHandler(DecreaseFrameSkip,MK_nothing,0,"decfskip","Dec Fskip");
-    MAPPER_AddHandler(IncreaseFrameSkip,MK_nothing,0,"incfskip","Inc Fskip");
+    MAPPER_AddHandler(DecreaseFrameSkip,MK_nothing,0,"decfskip","Decrease frameskip");
+    MAPPER_AddHandler(IncreaseFrameSkip,MK_nothing,0,"incfskip","Increase frameskip");
 
 	DOSBoxMenu::item *item;
 
-	MAPPER_AddHandler(&AspectRatio_mapper_shortcut, MK_nothing, 0, "aspratio", "AspRatio", &item);
+	MAPPER_AddHandler(&AspectRatio_mapper_shortcut, MK_nothing, 0, "aspratio", "Aspect ratio", &item);
 	item->set_text("Fit to aspect ratio");
-
-    // DEBUG option
-    MAPPER_AddHandler(BlankTestRefresh,MK_nothing,0,"blankrefreshtest","RefrshTest");
 
     mainMenu.get_item("vga_9widetext").check(vga.draw.char9_set).refresh_item(mainMenu);
     mainMenu.get_item("doublescan").check(vga.draw.doublescan_set).refresh_item(mainMenu);
@@ -1085,10 +1283,17 @@ void RENDER_Init() {
 
     render.autofit=section->Get_bool("autofit");
 
+#if C_OPENGL
+    std::string ssrc=LoadGLShader(section);
+#endif
+
     //If something changed that needs a ReInit
     // Only ReInit when there is a src.bpp (fixes crashes on startup and directly changing the scaler without a screen specified yet)
     if(running && render.src.bpp && ((render.aspect != aspect) || (render.scale.op != scaleOp) || 
                   (render.scale.size != scalersize) || (render.scale.forced != scalerforced) ||
+#if C_OPENGL
+				  (render.shader_src != ssrc.c_str()) ||
+#endif
                    render.scale.forced))
         RENDER_CallBack( GFX_CallBackReset );
 
@@ -1117,12 +1322,13 @@ private:
 
 		// - pure data
 		WRITE_POD( &render.src, render.src );
-
 		WRITE_POD( &render.pal, render.pal );
 		WRITE_POD( &render.updating, render.updating );
 		WRITE_POD( &render.active, render.active );
 		WRITE_POD( &render.fullFrame, render.fullFrame );
 		WRITE_POD( &render.frameskip, render.frameskip );
+		WRITE_POD( &render.aspect, render.aspect );
+		WRITE_POD( &render.scale, render.scale );
 	}
 
 	virtual void setBytes(std::istream& stream)
@@ -1132,12 +1338,13 @@ private:
 
 		// - pure data
 		READ_POD( &render.src, render.src );
-
 		READ_POD( &render.pal, render.pal );
 		READ_POD( &render.updating, render.updating );
 		READ_POD( &render.active, render.active );
 		READ_POD( &render.fullFrame, render.fullFrame );
 		READ_POD( &render.frameskip, render.frameskip );
+		READ_POD( &render.aspect, render.aspect );
+		READ_POD( &render.scale, render.scale );
 
 		//***************************************
 		//***************************************
@@ -1145,11 +1352,12 @@ private:
 		// reset screen
 		//memset( &render.frameskip, 0, sizeof(render.frameskip) );
 
-		render.scale.clearCache = true;
-		if( render.scale.outWrite ) { GFX_EndUpdate(NULL); }
-
-		RENDER_SetSize( render.src.width, render.src.height, render.src.bpp, render.src.fps, render.src.ratio );
-
+		if (render.aspect==ASPECT_FALSE) {
+			render.scale.clearCache = true;
+			if( render.scale.outWrite ) { GFX_EndUpdate(NULL); }
+			RENDER_SetSize( render.src.width, render.src.height, render.src.bpp, render.src.fps, render.src.ratio );
+		} else
+			GFX_ResetScreen();
 	}
 } dummy;
 }

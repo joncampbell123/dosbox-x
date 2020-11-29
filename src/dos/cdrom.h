@@ -1,5 +1,5 @@
 /*
- *  Copyright (C) 2002-2019  The DOSBox Team
+ *  Copyright (C) 2002-2020  The DOSBox Team
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -11,9 +11,9 @@
  *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  *  GNU General Public License for more details.
  *
- *  You should have received a copy of the GNU General Public License
- *  along with this program; if not, write to the Free Software
- *  Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1335, USA.
+ *  You should have received a copy of the GNU General Public License along
+ *  with this program; if not, write to the Free Software Foundation, Inc.,
+ *  51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
 
 
@@ -21,24 +21,22 @@
 #define __CDROM_INTERFACE__
 
 #define MAX_ASPI_CDROM	5
-#define assertm(exp, msg) assert(((void)msg, exp))
 
 #include <string.h>
 #include <string>
 #include <iostream>
-#include <memory>
 #include <vector>
 #include <fstream>
 #include <sstream>
-#include <algorithm>
-
-#include "SDL.h"
-#include "SDL_thread.h"
+#include <thread>
 
 #include "dosbox.h"
 #include "mem.h"
 #include "mixer.h"
+#include "SDL.h"
+#include "SDL_thread.h"
 #include "../libs/decoders/SDL_sound.h"
+#include "../libs/libchdr/chd.h"
 
 #if defined(C_SDL2) /* SDL 1.x defines this, SDL 2.x does not */
 /** @name Frames / MSF Conversion Functions
@@ -59,26 +57,7 @@
 
 #define RAW_SECTOR_SIZE		2352
 #define COOKED_SECTOR_SIZE	2048
-
-// CDROM data and audio format constants
-#define BYTES_PER_RAW_REDBOOK_FRAME    2352u
-#define BYTES_PER_COOKED_REDBOOK_FRAME 2048u
-#define REDBOOK_FRAMES_PER_SECOND        75u
-#define REDBOOK_CHANNELS                  2u
-#define REDBOOK_BPS                       2u // bytes per sample
-#define REDBOOK_PCM_FRAMES_PER_SECOND 44100u // also CD Audio sampling rate
-#define REDBOOK_FRAME_PADDING           150u // The relationship between High Sierra sectors and Redbook
-                                             // frames is described by the equation:
-                                             // Sector = Minute * 60 * 75 + Second * 75 + Frame - 150
-#define MAX_REDBOOK_FRAMES           400000u // frames are Redbook's data unit
-#define MAX_REDBOOK_SECTOR           399999u // a sector is the index to a frame
-#define MAX_REDBOOK_TRACKS               99u // a CD can contain 99 playable tracks plus the remaining leadout
-#define MIN_REDBOOK_TRACKS                2u // One track plus the lead-out track
-#define REDBOOK_PCM_BYTES_PER_MS      176.4f // 44.1 frames/ms * 4 bytes/frame
-#define REDBOOK_PCM_BYTES_PER_MIN  10584000u // 44.1 frames/ms * 4 bytes/frame * 1000 ms/s * 60 s/min
-#define BYTES_PER_REDBOOK_PCM_FRAME       4u // 2 bytes/sample * 2 samples/frame
-#define MAX_REDBOOK_BYTES (MAX_REDBOOK_FRAMES * BYTES_PER_RAW_REDBOOK_FRAME) // length of a CDROM in bytes
-#define MAX_REDBOOK_DURATION_MS (99 * 60 * 1000) // 99 minute CDROM in milliseconds
+#define AUDIO_DECODE_BUFFER_SIZE 16512
 
 enum { CDROM_USE_SDL, CDROM_USE_ASPI, CDROM_USE_IOCTL_DIO, CDROM_USE_IOCTL_DX, CDROM_USE_IOCTL_MCI };
 
@@ -97,9 +76,9 @@ typedef struct SMSF {
 //! \brief Output and channel control state
 typedef struct SCtrl {
     //! \brief output channel
-    Bit8u           out[4];
+    uint8_t           out[4];
     //! \brief channel volume
-    Bit8u           vol[4];
+    uint8_t           vol[4];
 } TCtrl;
 
 template<typename T1, typename T2>
@@ -107,17 +86,6 @@ inline constexpr T1 ceil_udivide(const T1 x, const T2 y) noexcept {
 	static_assert(std::is_unsigned<T1>::value, "First parameter should be unsigned");
 	static_assert(std::is_unsigned<T2>::value, "Second parameter should be unsigned");
 	return (x != 0) ? 1 + ((x - 1) / y) : 0;
-}
-
-inline TMSF frames_to_msf(uint32_t frames)
-{
-	TMSF msf = {0, 0, 0};
-	msf.fr = frames % REDBOOK_FRAMES_PER_SECOND;
-	frames /= REDBOOK_FRAMES_PER_SECOND;
-	msf.sec = frames % 60;
-	frames /= 60;
-	msf.min = static_cast<uint8_t>(frames);
-	return msf;
 }
 
 extern int CDROM_GetMountType(const char* path, int forceCD);
@@ -251,24 +219,19 @@ private:
 	// Nested Class Definitions
 	class TrackFile {
 	protected:
-		TrackFile(Bit16u _chunkSize) : chunkSize(_chunkSize) {}
-		bool offsetInsideTrack(const uint32_t offset);
-		uint32_t adjustOverRead(const uint32_t offset,
-		                        const uint32_t requested_bytes);
-		int length_redbook_bytes = -1;
-
+		TrackFile(uint16_t _chunkSize) : chunkSize(_chunkSize) {}
 	public:
 		virtual          ~TrackFile() = default;
-		virtual bool     read(uint8_t *buffer,
-		                      const uint32_t offset,
-		                      const uint32_t requested_bytes) = 0;
-		virtual bool     seek(const uint32_t offset) = 0;
-		virtual uint32_t decode(int16_t *buffer, const uint32_t desired_track_frames) = 0;
-		virtual Bit16u   getEndian() = 0;
-		virtual Bit32u   getRate() = 0;
-		virtual Bit8u    getChannels() = 0;
+		virtual bool     read(uint8_t *buffer, int seek, int count) = 0;
+		virtual bool     seek(uint32_t offset) = 0;
+		virtual uint16_t   decode(uint8_t *buffer) = 0;
+		virtual uint16_t   getEndian() = 0;
+		virtual uint32_t   getRate() = 0;
+		virtual uint8_t    getChannels() = 0;
 		virtual int      getLength() = 0;
-		const Bit16u chunkSize = 0;
+		virtual void setAudioPosition(uint32_t pos) = 0;
+		const uint16_t chunkSize = 0;
+		uint32_t audio_pos = UINT32_MAX; // last position when playing audio
 	};
 
     //! \brief Binary file reader for the image
@@ -281,15 +244,14 @@ private:
 		BinaryFile      (const BinaryFile&) = delete; // prevent copying
 		BinaryFile&     operator= (const BinaryFile&) = delete; // prevent assignment
 
-		bool            read(uint8_t *buffer,
-		                     const uint32_t offset,
-		                     const uint32_t requested_bytes);
-		bool            seek(const uint32_t offset);
-		uint32_t        decode(int16_t *buffer, const uint32_t desired_track_frames);
-		Bit16u          getEndian();
-		Bit32u          getRate() { return 44100; }
-		Bit8u           getChannels() { return 2; }
+		bool            read(uint8_t *buffer, int seek, int count);
+		bool            seek(uint32_t offset);
+		uint16_t          decode(uint8_t *buffer);
+		uint16_t          getEndian();
+		uint32_t          getRate() { return 44100; }
+		uint8_t           getChannels() { return 2; }
 		int             getLength();
+		void setAudioPosition(uint32_t pos) { audio_pos = pos; }
 	private:
 		std::ifstream   *file;
 	};
@@ -303,35 +265,66 @@ private:
 		AudioFile       (const AudioFile&) = delete; // prevent copying
 		AudioFile&      operator= (const AudioFile&) = delete; // prevent assignment
 
-		bool            read(uint8_t *buffer,
-		                     const uint32_t offset,
-		                     const uint32_t requested_bytes);
-		bool            seek(const uint32_t offset);
-		uint32_t        decode(int16_t *buffer, const uint32_t desired_track_frames);
-		Bit16u          getEndian();
-		Bit32u          getRate();
-		Bit8u           getChannels();
+		bool            read(uint8_t *buffer, int seek, int count) { (void)buffer; (void)seek; (void)count; return false; }
+		bool            seek(uint32_t offset);
+		uint16_t          decode(uint8_t *buffer);
+		uint16_t          getEndian();
+		uint32_t          getRate();
+		uint8_t           getChannels();
 		int             getLength();
+        void setAudioPosition(uint32_t pos) { (void)pos;/*unused*/ }
 	private:
 		Sound_Sample    *sample = nullptr;
-		// ensure the first seek isn't cached by starting with an impossibly-large position
-		uint32_t        track_pos = (std::numeric_limits<uint32_t>::max)();
 	};
+
+    class CHDFile : public TrackFile {
+    public:
+        CHDFile(const char* filename, bool& error);
+        ~CHDFile();
+
+        CHDFile() = delete;
+        CHDFile(const CHDFile&) = delete;
+        CHDFile& operator= (const CHDFile&) = delete;
+
+        bool            read(uint8_t* buffer, int seek, int count);
+        bool            seek(uint32_t offset);
+        uint16_t        decode(uint8_t* buffer);
+        uint16_t        getEndian();
+        uint32_t        getRate() { return 44100; }
+        uint8_t         getChannels() { return 2; }
+        int             getLength();
+        void setAudioPosition(uint32_t pos) { audio_pos = pos; }
+        chd_file*       getChd() { return this->chd; }
+    private:
+              chd_file*   chd               = nullptr;
+        const chd_header* header            = nullptr; // chd header
+                /*
+                    TODO: cache more than one hunk
+                    or wait for https://github.com/rtissera/libchdr/issues/36
+                */
+              uint8_t*     hunk_buffer       = nullptr; // buffer to hold one hunk // size of hunks in CHD up to 1 MiB
+              uint8_t*     hunk_buffer_next  = nullptr; // index + 1 prefetch
+              int          hunk_buffer_index = -1;      // hunk index for buffer
+              std::thread* hunk_thread       = nullptr; // used for prefetch
+              bool         hunk_thread_error = true;
+    public:
+              bool         skip_sync         = false;   // this will fail if a CHD contains 2048 and 2352 sector tracks
+     };
 
 public:
 	// Nested struct definition
 	struct Track {
-		std::shared_ptr<TrackFile> file       = nullptr;
-		uint32_t                   start      = 0;
-		uint32_t                   length     = 0;
-		uint32_t                   skip       = 0;
-		uint16_t                   sectorSize = 0;
-		uint8_t                    number     = 0;
-		uint8_t                    attr       = 0;
-		bool                       mode2      = false;
+		int number;
+		int attr;
+		int start;
+		int length;
+		int skip;
+		int sectorSize;
+		bool mode2;
+		TrackFile *file;
 	};
     //! \brief Constructor, with parameter for subunit
-	CDROM_Interface_Image           (Bit8u subUnit);
+	CDROM_Interface_Image           (uint8_t subUnit);
 	virtual ~CDROM_Interface_Image  (void);
 	void	InitNewMedia            (void) {};
 	bool	SetDevice               (char *path, int forceCD);
@@ -350,7 +343,7 @@ public:
 	bool	ReadSectorsHost			(void* buffer, bool raw, unsigned long sector, unsigned long num);
 	bool	LoadUnloadMedia         (bool unload);
 	//! \brief Indicate whether the image has a data track
-	bool	ReadSector              (uint8_t *buffer, const bool raw, const uint32_t sector);
+	bool	ReadSector              (uint8_t *buffer, bool raw, unsigned long sector);
 	//! \brief Indicate whether the image has a data track
 	bool	HasDataTrack            (void);
     //! \brief Flag to track if images have been initialized
@@ -366,48 +359,51 @@ public:
 
 private:
 	static struct imagePlayer {
-		// Objects, pointers, and then scalars; in descending size-order.
-		MixerObject              mixerChannel       = {};
-		std::weak_ptr<TrackFile> trackFile          = {};
+		CDROM_Interface_Image *cd;
+		MixerChannel   *channel;
 		SDL_mutex                *mutex             = nullptr;
-		MixerChannel             *channel           = nullptr;
-		CDROM_Interface_Image    *cd                = nullptr;
-		void (MixerChannel::*addFrames) (Bitu, const Bit16s*) = nullptr;
+		void (MixerChannel::*addFrames) (Bitu, const int16_t*) = nullptr;
 		uint32_t                 playedTrackFrames  = 0;
 		uint32_t                 totalTrackFrames   = 0;
 		uint32_t                 startSector        = 0;
 		uint32_t                 totalRedbookFrames = 0;
-		int16_t                  buffer[MIXER_BUFSIZE * REDBOOK_CHANNELS] = {0};
-		bool                     isPlaying          = false;
-		bool                     isPaused           = false;
-		bool                     ctrlUsed;
-		TCtrl                    ctrlData;
+		uint8_t   buffer[AUDIO_DECODE_BUFFER_SIZE];
+		uint32_t  startFrame;
+		uint32_t  currFrame;
+		uint32_t  numFrames;
+		bool    isPlaying;
+		bool    isPaused;
+		bool    ctrlUsed;
+		TCtrl   ctrlData;
+		TrackFile* trackFile;
+		void     (MixerChannel::*addSamples) (Bitu, const int16_t*);
+		uint32_t   playbackTotal;
+		int      playbackRemaining;
+		uint16_t   bufferPos;
+		uint16_t   bufferConsumed;
 	} player;
 
 	// Private utility functions
+	void  ClearTracks();
 	bool  LoadIsoFile(char *filename);
-	bool  CanReadPVD(TrackFile *file,
-	                 const uint16_t sectorSize,
-	                 const bool mode2);
-	std::vector<Track>::iterator GetTrack(const uint32_t sector);
-	static void CDAudioCallBack (Bitu desired_frames);
+	bool  CanReadPVD(TrackFile *file, int sectorSize, bool mode2);
+	int	GetTrack(int sector);
+	static void CDAudioCallBack (Bitu len);
 
 	// Private functions for cue sheet processing
 	bool  LoadCueSheet(char *cuefile);
+	bool  LoadChdFile(char* chdfile);
 	bool  GetRealFileName(std::string& filename, std::string& pathname);
 	bool  GetCueKeyword(std::string &keyword, std::istream &in);
-	bool  GetCueFrame(uint32_t &frames, std::istream &in);
+	bool  GetCueFrame(int &frames, std::istream &in);
 	bool  GetCueString(std::string &str, std::istream &in);
-	bool  AddTrack(Track         &curr,
-	               uint32_t      &shift,
-	               const int32_t prestart,
-	               uint32_t      &totalPregap,
-	               uint32_t      currPregap);
+	bool  AddTrack(Track &curr, int &shift, int prestart, int &totalPregap, int currPregap);
 	// member variables
 	std::vector<Track>   tracks;
 	std::vector<uint8_t> readBuffer;
 	std::string          mcn;
 	static int           refCount;
+    uint8_t                subUnit;
 };
 
 #if defined (WIN32)	/* Win 32 */
@@ -491,7 +487,7 @@ public:
 	bool	StopAudio			(void);
 	void	ChannelControl		(TCtrl ctrl);
 	
-	bool	ReadSector			(Bit8u *buffer, bool raw, unsigned long sector);
+	bool	ReadSector			(uint8_t *buffer, bool raw, unsigned long sector);
 	bool	ReadSectors			(PhysPt buffer, bool raw, unsigned long sector, unsigned long num);
 	/* This is needed for IDE hack, who's buffer does not exist in DOS physical memory */
 	bool	ReadSectorsHost			(void* buffer, bool raw, unsigned long sector, unsigned long num);
@@ -540,7 +536,7 @@ private:
 		CDROM_Interface_Ioctl *cd;
 		MixerChannel	*channel;
 		SDL_mutex		*mutex;
-		Bit8u   buffer[8192];
+		uint8_t   buffer[8192];
 		int     bufLen;
 		int     currFrame;	
 		int     targetFrame;

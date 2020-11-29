@@ -1,5 +1,5 @@
 /*
- *  Copyright (C) 2002-2019  The DOSBox Team
+ *  Copyright (C) 2002-2020  The DOSBox Team
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -11,9 +11,9 @@
  *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  *  GNU General Public License for more details.
  *
- *  You should have received a copy of the GNU General Public License
- *  along with this program; if not, write to the Free Software
- *  Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1335, USA.
+ *  You should have received a copy of the GNU General Public License along
+ *  with this program; if not, write to the Free Software Foundation, Inc.,
+ *  51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
 
 #ifndef DOSBOX_REGS_H
@@ -54,7 +54,7 @@
 #define GETFLAG_IOPL ((reg_flags & FLAG_IOPL) >> 12)
 
 struct Segment {
-	Bit16u val;
+	uint16_t val;
 	PhysPt phys;							/* The phyiscal address start in emulated machine */
 	PhysPt limit;
 };
@@ -69,9 +69,9 @@ struct Segments {
 };
 
 union GenReg32 {
-	Bit32u dword[1];
-	Bit16u word[2];
-	Bit8u byte[4];
+	uint32_t dword[1];
+	uint16_t word[2];
+	uint8_t byte[4];
 };
 
 #ifdef WORDS_BIGENDIAN
@@ -106,16 +106,16 @@ static INLINE PhysPt SegPhys(SegNames index) {
 	return Segs.phys[index];
 }
 
-static INLINE Bit16u SegValue(SegNames index) {
-	return (Bit16u)Segs.val[index];
+static INLINE uint16_t SegValue(SegNames index) {
+	return (uint16_t)Segs.val[index];
 }
 	
-static INLINE RealPt RealMakeSeg(SegNames index,Bit16u off) {
+static INLINE RealPt RealMakeSeg(SegNames index,uint16_t off) {
 	return RealMake(SegValue(index),off);	
 }
 
 
-static INLINE void SegSet16(Bitu index,Bit16u val) {
+static INLINE void SegSet16(Bitu index,uint16_t val) {
 	Segs.val[index]=(Bitu)val;
 	Segs.phys[index]=(PhysPt)((unsigned int)val << 4U);
 	/* real mode does not update limit */

@@ -1,5 +1,5 @@
 /*
- *  Copyright (C) 2002-2019  The DOSBox Team
+ *  Copyright (C) 2002-2020  The DOSBox Team
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -11,9 +11,9 @@
  *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  *  GNU General Public License for more details.
  *
- *  You should have received a copy of the GNU General Public License
- *  along with this program; if not, write to the Free Software
- *  Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1335, USA.
+ *  You should have received a copy of the GNU General Public License along
+ *  with this program; if not, write to the Free Software Foundation, Inc.,
+ *  51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
 
 /*
@@ -31,7 +31,7 @@ LazyFlags lflags;
 /* CF     Carry Flag -- Set on high-order bit carry or borrow; cleared
           otherwise.
 */
-Bit32u get_CF(void) {
+uint32_t get_CF(void) {
 
 	switch (lflags.type) {
 	case t_UNKNOWN:
@@ -92,11 +92,11 @@ Bit32u get_CF(void) {
 	case t_DSHRd:
 		return (lf_var1d >> (lf_var2b - 1)) & 1;
 	case t_SARb:
-		return (((Bit8s) lf_var1b) >> (lf_var2b - 1)) & 1;
+		return (((int8_t) lf_var1b) >> (lf_var2b - 1)) & 1;
 	case t_SARw:
-		return (((Bit16s) lf_var1w) >> (lf_var2b - 1)) & 1;
+		return (((int16_t) lf_var1w) >> (lf_var2b - 1)) & 1;
 	case t_SARd:
-		return (((Bit32s) lf_var1d) >> (lf_var2b - 1)) & 1;
+		return (((int32_t) lf_var1d) >> (lf_var2b - 1)) & 1;
 	case t_NEGb:
 		return lf_var1b;
 	case t_NEGw:
@@ -128,7 +128,7 @@ Bit32u get_CF(void) {
             four bits of   AL; cleared otherwise. Used for decimal
             arithmetic.
 */
-Bit32u get_AF(void) {
+uint32_t get_AF(void) {
 	Bitu type=lflags.type;
 	switch (type) {
 	case t_UNKNOWN:
@@ -209,7 +209,7 @@ Bit32u get_AF(void) {
 /* ZF     Zero Flag -- Set if result is zero; cleared otherwise.
 */
 
-Bit32u get_ZF(void) {
+uint32_t get_ZF(void) {
 	Bitu type=lflags.type;
 	switch (type) {
 	case t_UNKNOWN:
@@ -277,7 +277,7 @@ Bit32u get_ZF(void) {
 /* SF     Sign Flag -- Set equal to high-order bit of result (0 is
             positive, 1 if negative).
 */
-Bit32u get_SF(void) {
+uint32_t get_SF(void) {
 	Bitu type=lflags.type;
 	switch (type) {
 	case t_UNKNOWN:
@@ -343,7 +343,7 @@ Bit32u get_SF(void) {
 	return false;
 
 }
-Bit32u get_OF(void) {
+uint32_t get_OF(void) {
 	Bitu type=lflags.type;
 	switch (type) {
 	case t_UNKNOWN:
@@ -434,7 +434,7 @@ Bit32u get_OF(void) {
 #define PARITY16(x)  (parity_lookup[((x)>>8)&0xff]^parity_lookup[(x)&0xff]^FLAG_PF)
 #define PARITY32(x)  (PARITY16((x)&0xffff)^PARITY16(((x)>>16)&0xffff)^FLAG_PF)
 
-Bit16u parity_lookup[256] = {
+uint16_t parity_lookup[256] = {
   FLAG_PF, 0, 0, FLAG_PF, 0, FLAG_PF, FLAG_PF, 0, 0, FLAG_PF, FLAG_PF, 0, FLAG_PF, 0, 0, FLAG_PF,
   0, FLAG_PF, FLAG_PF, 0, FLAG_PF, 0, 0, FLAG_PF, FLAG_PF, 0, 0, FLAG_PF, 0, FLAG_PF, FLAG_PF, 0,
   0, FLAG_PF, FLAG_PF, 0, FLAG_PF, 0, 0, FLAG_PF, FLAG_PF, 0, 0, FLAG_PF, 0, FLAG_PF, FLAG_PF, 0,
@@ -453,7 +453,7 @@ Bit16u parity_lookup[256] = {
   FLAG_PF, 0, 0, FLAG_PF, 0, FLAG_PF, FLAG_PF, 0, 0, FLAG_PF, FLAG_PF, 0, FLAG_PF, 0, 0, FLAG_PF
   };
 
-Bit32u get_PF(void) {
+uint32_t get_PF(void) {
 	switch (lflags.type) {
 	case t_UNKNOWN:
 		return GETFLAG(PF);
@@ -798,7 +798,7 @@ Bitu FillFlags(void) {
 
 
 	case t_SARb:
-		SET_FLAG(CF,(((Bit8s) lf_var1b) >> (lf_var2b - 1)) & 1);
+		SET_FLAG(CF,(((int8_t) lf_var1b) >> (lf_var2b - 1)) & 1);
 		DOFLAG_ZFb;
 		DOFLAG_SFb;
 		SET_FLAG(OF,false);
@@ -806,7 +806,7 @@ Bitu FillFlags(void) {
 		SET_FLAG(AF,(lf_var2b&0x1f));
 		break;
 	case t_SARw:
-		SET_FLAG(CF,(((Bit16s) lf_var1w) >> (lf_var2b - 1)) & 1);
+		SET_FLAG(CF,(((int16_t) lf_var1w) >> (lf_var2b - 1)) & 1);
 		DOFLAG_ZFw;
 		DOFLAG_SFw;
 		SET_FLAG(OF,false);
@@ -814,7 +814,7 @@ Bitu FillFlags(void) {
 		SET_FLAG(AF,(lf_var2w&0x1f));
 		break;
 	case t_SARd:
-		SET_FLAG(CF,(((Bit32s) lf_var1d) >> (lf_var2b - 1)) & 1);
+		SET_FLAG(CF,(((int32_t) lf_var1d) >> (lf_var2b - 1)) & 1);
 		DOFLAG_ZFd;
 		DOFLAG_SFd;
 		SET_FLAG(OF,false);

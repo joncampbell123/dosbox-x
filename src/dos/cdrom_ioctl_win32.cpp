@@ -1,5 +1,5 @@
 /*
- *  Copyright (C) 2002-2019  The DOSBox Team
+ *  Copyright (C) 2002-2020  The DOSBox Team
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -11,9 +11,9 @@
  *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  *  GNU General Public License for more details.
  *
- *  You should have received a copy of the GNU General Public License
- *  along with this program; if not, write to the Free Software
- *  Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1335, USA.
+ *  You should have received a copy of the GNU General Public License along
+ *  with this program; if not, write to the Free Software Foundation, Inc.,
+ *  51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
 
 
@@ -477,7 +477,7 @@ bool CDROM_Interface_Ioctl::LoadUnloadMedia(bool unload) {
 	return bStat>0;
 }
 
-bool CDROM_Interface_Ioctl::ReadSector(Bit8u *buffer, bool raw, unsigned long sector) {
+bool CDROM_Interface_Ioctl::ReadSector(uint8_t *buffer, bool raw, unsigned long sector) {
 	BOOL  bStat;
 	DWORD byteCount = 0;
 
@@ -508,7 +508,7 @@ bool CDROM_Interface_Ioctl::ReadSectors(PhysPt buffer, bool raw, unsigned long s
 	DWORD byteCount = 0;
 
 	Bitu	buflen	= raw ? num*RAW_SECTOR_SIZE : num*COOKED_SECTOR_SIZE;
-	Bit8u*	bufdata = new Bit8u[buflen];
+	uint8_t*	bufdata = new uint8_t[buflen];
 
 	if (!raw) {
 		// Cooked
@@ -558,16 +558,16 @@ void CDROM_Interface_Ioctl::dx_CDAudioCallBack(Bitu len) {
 	}
 	SDL_mutexV(player.mutex);
 	if (player.ctrlUsed) {
-		Bit16s sample0,sample1;
-		Bit16s * samples=(Bit16s *)&player.buffer;
+		int16_t sample0,sample1;
+		int16_t * samples=(int16_t *)&player.buffer;
 		for (Bitu pos=0;pos<len/4;pos++) {
 			sample0=samples[pos*2+player.ctrlData.out[0]];
 			sample1=samples[pos*2+player.ctrlData.out[1]];
-			samples[pos*2+0]=(Bit16s)(sample0*player.ctrlData.vol[0]/255.0);
-			samples[pos*2+1]=(Bit16s)(sample1*player.ctrlData.vol[1]/255.0);
+			samples[pos*2+0]=(int16_t)(sample0*player.ctrlData.vol[0]/255.0);
+			samples[pos*2+1]=(int16_t)(sample1*player.ctrlData.vol[1]/255.0);
 		}
 	}
-	player.channel->AddSamples_s16(len/4,(Bit16s *)player.buffer);
+	player.channel->AddSamples_s16(len/4,(int16_t *)player.buffer);
 	memmove(player.buffer, &player.buffer[len], player.bufLen - len);
 	player.bufLen -= len;
 }

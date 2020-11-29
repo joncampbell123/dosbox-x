@@ -1,5 +1,5 @@
 /*
- *  Copyright (C) 2002-2019  The DOSBox Team
+ *  Copyright (C) 2002-2020  The DOSBox Team
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -11,9 +11,9 @@
  *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  *  GNU General Public License for more details.
  *
- *  You should have received a copy of the GNU General Public License
- *  along with this program; if not, write to the Free Software
- *  Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1335, USA.
+ *  You should have received a copy of the GNU General Public License along
+ *  with this program; if not, write to the Free Software Foundation, Inc.,
+ *  51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
 
 
@@ -23,6 +23,8 @@
 #include <string>
 #include <limits.h>
 #include <stdlib.h>
+#include <sys/types.h>
+#include <sys/stat.h>
 
 #if defined(MACOSX)
 std::string MacOSXEXEPath;
@@ -69,11 +71,23 @@ void Cross::GetPlatformResDir(std::string& in) {
 	in = MacOSXResPath;
 #elif defined(RISCOS)
 	in = "/<DosBox-X$Dir>/resources";
+#elif defined(LINUX)
+	const char *xdg_data_home = getenv("XDG_DATA_HOME");
+	const std::string data_home = xdg_data_home && xdg_data_home[0] == '/' ? xdg_data_home: "~/.local/share";
+	in = data_home + "/dosbox-x";
+	ResolveHomedir(in);
+
+	// Let's check if the above exists, otherwise use RESDIR
+	struct stat info;
+	if ((stat(in.c_str(), &info) != 0) || (!(info.st_mode & S_IFDIR))) {
+		//LOG_MSG("XDG_DATA_HOME (%s) does not exist. Using %s", in.c_str(), RESDIR);
+	        in = RESDIR;
+	}
 #elif defined(RESDIR)
 	in = RESDIR;
 #endif
-    if (!in.empty())
-	    in += CROSS_FILESPLIT;
+	if (!in.empty())
+		in += CROSS_FILESPLIT;
 }
 
 void Cross::GetPlatformConfigDir(std::string& in) {
@@ -89,9 +103,12 @@ void Cross::GetPlatformConfigDir(std::string& in) {
 #elif defined(RISCOS)
 	in = "/<Choices$Write>/DosBox-X";
 #elif !defined(HX_DOS)
-	in = "~/.config/dosbox-x";
+	const char *xdg_conf_home = getenv("XDG_CONFIG_HOME");
+	const std::string conf_home = xdg_conf_home && xdg_conf_home[0] == '/' ? xdg_conf_home: "~/.config";
+	in = conf_home + "/dosbox-x";
 	ResolveHomedir(in);
 #endif
+	//LOG_MSG("Config dir: %s", in.c_str());
 	in += CROSS_FILESPLIT;
 }
 
@@ -123,7 +140,9 @@ void Cross::CreatePlatformConfigDir(std::string& in) {
 	in = "/<Choices$Write>/DosBox-X";
 	mkdir(in.c_str(),0700);
 #elif !defined(HX_DOS)
-	in = "~/.config/dosbox-x";
+	const char *xdg_conf_home = getenv("XDG_CONFIG_HOME");
+	const std::string conf_home = xdg_conf_home && xdg_conf_home[0] == '/' ? xdg_conf_home: "~/.config";
+	in = conf_home + "/dosbox-x";
 	ResolveHomedir(in);
 	mkdir(in.c_str(),0700);
 #endif

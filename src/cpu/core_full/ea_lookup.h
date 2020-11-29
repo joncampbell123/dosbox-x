@@ -1,5 +1,5 @@
 /*
- *  Copyright (C) 2002-2019  The DOSBox Team
+ *  Copyright (C) 2002-2020  The DOSBox Team
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -11,14 +11,14 @@
  *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  *  GNU General Public License for more details.
  *
- *  You should have received a copy of the GNU General Public License
- *  along with this program; if not, write to the Free Software
- *  Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1335, USA.
+ *  You should have received a copy of the GNU General Public License along
+ *  with this program; if not, write to the Free Software Foundation, Inc.,
+ *  51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
 
 {
 	EAPoint seg_base;
-	Bit16u off;
+	uint16_t off;
 	switch ((inst.rm_mod<<3)|inst.rm_eai) {
 	case 0x00:
 		off=reg_bx+reg_si;
@@ -146,10 +146,10 @@
 	}																\
 	off+=*SIBIndex[(sib >> 3) &7] << (sib >> 6);					\
 };																	
-	static Bit32u SIBZero=0;
-	static Bit32u * SIBIndex[8]= { &reg_eax,&reg_ecx,&reg_edx,&reg_ebx,&SIBZero,&reg_ebp,&reg_esi,&reg_edi };
+	static uint32_t SIBZero=0;
+	static uint32_t * SIBIndex[8]= { &reg_eax,&reg_ecx,&reg_edx,&reg_ebx,&SIBZero,&reg_ebp,&reg_esi,&reg_edi };
 	EAPoint seg_base;
-	Bit32u off;
+	uint32_t off;
 
 	switch ((inst.rm_mod<<3)|inst.rm_eai) {
 	case 0x00:
@@ -185,68 +185,68 @@
 		break;
 	
 	case 0x08:
-		off=reg_eax+(Bit32u)Fetchbs();
+		off=reg_eax+(uint32_t)Fetchbs();
 		seg_base=SegBase(ds);
 		break;
 	case 0x09:
-		off=reg_ecx+(Bit32u)Fetchbs();
+		off=reg_ecx+(uint32_t)Fetchbs();
 		seg_base=SegBase(ds);
 		break;
 	case 0x0a:
-		off=reg_edx+(Bit32u)Fetchbs();
+		off=reg_edx+(uint32_t)Fetchbs();
 		seg_base=SegBase(ds);
 		break;
 	case 0x0b:
-		off=reg_ebx+(Bit32u)Fetchbs();
+		off=reg_ebx+(uint32_t)Fetchbs();
 		seg_base=SegBase(ds);
 		break;
 	case 0x0c:
 		SIB(1);
-		off+=(Bit32u)Fetchbs();
+		off+=(uint32_t)Fetchbs();
 		break;
 	case 0x0d:
-		off=reg_ebp+(Bit32u)Fetchbs();
+		off=reg_ebp+(uint32_t)Fetchbs();
 		seg_base=SegBase(ss);
 		break;
 	case 0x0e:
-		off=reg_esi+(Bit32u)Fetchbs();
+		off=reg_esi+(uint32_t)Fetchbs();
 		seg_base=SegBase(ds);
 		break;
 	case 0x0f:
-		off=reg_edi+(Bit32u)Fetchbs();
+		off=reg_edi+(uint32_t)Fetchbs();
 		seg_base=SegBase(ds);
 		break;
 
 	case 0x10:
-		off=reg_eax+(Bit32u)Fetchds();
+		off=reg_eax+(uint32_t)Fetchds();
 		seg_base=SegBase(ds);
 		break;
 	case 0x11:
-		off=reg_ecx+(Bit32u)Fetchds();
+		off=reg_ecx+(uint32_t)Fetchds();
 		seg_base=SegBase(ds);
 		break;
 	case 0x12:
-		off=reg_edx+(Bit32u)Fetchds();
+		off=reg_edx+(uint32_t)Fetchds();
 		seg_base=SegBase(ds);
 		break;
 	case 0x13:
-		off=reg_ebx+(Bit32u)Fetchds();
+		off=reg_ebx+(uint32_t)Fetchds();
 		seg_base=SegBase(ds);
 		break;
 	case 0x14:
 		SIB(1);
-		off+=(Bit32u)Fetchds();
+		off+=(uint32_t)Fetchds();
 		break;
 	case 0x15:
-		off=reg_ebp+(Bit32u)Fetchds();
+		off=reg_ebp+(uint32_t)Fetchds();
 		seg_base=SegBase(ss);
 		break;
 	case 0x16:
-		off=reg_esi+(Bit32u)Fetchds();
+		off=reg_esi+(uint32_t)Fetchds();
 		seg_base=SegBase(ds);
 		break;
 	case 0x17:
-		off=reg_edi+(Bit32u)Fetchds();
+		off=reg_edi+(uint32_t)Fetchds();
 		seg_base=SegBase(ds);
 		break;
 	default:

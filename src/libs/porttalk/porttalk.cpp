@@ -9,14 +9,14 @@
 
 #if defined (_MSC_VER)
 # if defined (_M_IX86)/*x86 only*/
-void outportb(Bit32u portid, Bit8u value) {
+void outportb(uint32_t portid, uint8_t value) {
   __asm mov edx,portid
   __asm mov al,value
   __asm out dx,al
 }
 
-Bit8u inportb(Bit32u portid) {
-  Bit8u value;
+uint8_t inportb(uint32_t portid) {
+  uint8_t value;
   
   __asm mov edx,portid
   __asm in al,dx
@@ -24,14 +24,14 @@ Bit8u inportb(Bit32u portid) {
   return value;
 }
 
-void outportw(Bit32u portid, Bit16u value) {
+void outportw(uint32_t portid, uint16_t value) {
   __asm mov edx,portid
   __asm mov ax,value
   __asm out dx,ax
 }
 
-Bit16u inportw(Bit32u portid) {
-  Bit16u value;
+uint16_t inportw(uint32_t portid) {
+  uint16_t value;
   
   __asm mov edx,portid
   __asm in ax,dx
@@ -39,14 +39,14 @@ Bit16u inportw(Bit32u portid) {
   return value;
 }
 
-void outportd(Bit32u portid, Bit32u value) {
+void outportd(uint32_t portid, uint32_t value) {
   __asm mov edx,portid
   __asm mov eax,value
   __asm out dx,eax
 }
 
-Bit32u inportd(Bit32u portid) {
-  Bit32u value;
+uint32_t inportd(uint32_t portid) {
+  uint32_t value;
   
   __asm mov edx,portid
   __asm in eax,dx
@@ -56,7 +56,7 @@ Bit32u inportd(Bit32u portid) {
 # endif
 #else
 # if defined(__i386__) || defined(__amd64__) || defined(__x86_64__)
-void outportb(Bit32u portid, Bit8u value) {
+void outportb(uint32_t portid, uint8_t value) {
    __asm__ volatile (
       "movl   %0,%%edx   \n"
       "movb   %1,%%al      \n"
@@ -66,8 +66,8 @@ void outportb(Bit32u portid, Bit8u value) {
       :   "edx", "al"
    );
 }
-Bit8u inportb(Bit32u portid) {
-   Bit8u value;
+uint8_t inportb(uint32_t portid) {
+   uint8_t value;
    __asm__ volatile (
       "movl   %1,%%edx   \n"
       "inb   %%dx,%%al   \n"
@@ -95,12 +95,12 @@ Bit8u inportb(Bit32u portid) {
 #include "PortTalk_IOCTL.h"
 
 typedef struct driverpermstruct {
-    Bit16u offset;
-    Bit8u value;
+    uint16_t offset;
+    uint8_t value;
 } permblock;
 
 static HANDLE porttalkhandle=INVALID_HANDLE_VALUE;
-static Bit8u ioperm[8192];
+static uint8_t ioperm[8192];
 static bool isNT = false;
 
 bool initPorttalk() {
@@ -196,7 +196,7 @@ error:
     if(ServiceManager) CloseServiceHandle(ServiceManager);
     return false;
 }
-void addIOPermission(Bit16u port) {
+void addIOPermission(uint16_t port) {
     if(isNT)
         ioperm[(port>>3)]&=(~(1<<(port&0x7)));
 }
@@ -207,7 +207,7 @@ bool setPermissionList() {
         permblock b;
         int pid = _getpid();
         int reetval=0;
-        Bit32u retval=0;
+        uint32_t retval=0;
         //output permission list to driver
         for(size_t i = 0; i < sizeof(ioperm);i++) {
             b.offset=i;
@@ -246,7 +246,7 @@ bool initPorttalk() {
     return true;
 }
 
-void addIOPermission(Bit16u port) {
+void addIOPermission(uint16_t port) {
     ioperm(port,1,1);
 }
 

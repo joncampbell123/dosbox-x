@@ -1,5 +1,5 @@
 /*
- *  Copyright (C) 2002-2019  The DOSBox Team
+ *  Copyright (C) 2002-2020  The DOSBox Team
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -11,9 +11,9 @@
  *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  *  GNU General Public License for more details.
  *
- *  You should have received a copy of the GNU General Public License
- *  along with this program; if not, write to the Free Software
- *  Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1335, USA.
+ *  You should have received a copy of the GNU General Public License along
+ *  with this program; if not, write to the Free Software Foundation, Inc.,
+ *  51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
 
 
@@ -44,7 +44,7 @@ struct JoyStick {
 JoystickType joytype;
 static JoyStick stick[2];
 
-static Bit32u last_write = 0;
+static uint32_t last_write = 0;
 static bool write_active = false;
 static bool swap34 = false;
 bool button_wrapping_enabled = true;
@@ -75,7 +75,7 @@ static Bitu read_p201(Bitu port,Bitu iolen) {
 	**  Joystick A, Button 2 -----------+   |   |   +----------- Joystick B, X Axis
 	**  Joystick A, Button 1 ---------------+   +--------------- Joystick B, Y Axis
 	**/
-	Bit8u ret=0xff;
+	uint8_t ret=0xff;
 	if (stick[0].enabled) {
 		if (stick[0].xcount) stick[0].xcount--; else ret&=~1;
 		if (stick[0].ycount) stick[0].ycount--; else ret&=~2;
@@ -94,7 +94,7 @@ static Bitu read_p201(Bitu port,Bitu iolen) {
 static Bitu read_p201_timed(Bitu port,Bitu iolen) {
     (void)port;//UNUSED
     (void)iolen;//UNUSED
-	Bit8u ret=0xff;
+	uint8_t ret=0xff;
 	double currentTick = PIC_FullIndex();
 	if( stick[0].enabled ){
 		if( stick[0].xtick < currentTick ) ret &=~1;
@@ -122,7 +122,7 @@ static void write_p201(Bitu port,Bitu val,Bitu iolen) {
     (void)iolen;//UNUSED
 	/* Store writetime index */
 	write_active = true;
-	last_write = (Bit32u)PIC_Ticks;
+	last_write = (uint32_t)PIC_Ticks;
 	if (stick[0].enabled) {
 		stick[0].xcount=(Bitu)((stick[0].xpos*RANGE)+RANGE);
 		stick[0].ycount=(Bitu)((stick[0].ypos*RANGE)+RANGE);

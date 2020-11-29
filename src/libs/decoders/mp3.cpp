@@ -3,7 +3,7 @@
  *
  *  Copyright (C) 2001-2017  Ryan C. Gordon <icculus@icculus.org>
  *  Copyright (C) 2018-2019  Kevin R. Croft <krcroft@gmail.com>
- *  Copyright (C) 2020-2020  The DOSBox-X project
+ *  Copyright (C) 2020-2020  The DOSBox Staging Team
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -49,7 +49,7 @@ static size_t mp3_read(void* const pUserData, void* const pBufferOut, const size
 
     while (bytes_read < bytesToRead)
     {
-        const size_t rc = SDL_RWread(rwops, ptr, 1, bytesToRead - bytes_read);
+        const size_t rc = SDL_RWread(rwops, ptr, 1, (int)(bytesToRead - bytes_read));
         if (rc == 0) {
             sample->flags |= SOUND_SAMPLEFLAG_EOF;
             break;
@@ -86,61 +86,90 @@ static void MP3_close(Sound_Sample* const sample)
     Sound_SampleInternal* const internal = static_cast<Sound_SampleInternal*>(sample->opaque);
     mp3_t* p_mp3 = static_cast<mp3_t*>(internal->decoder_private);
     if (p_mp3) {
-        SDL_free(p_mp3->p_dr);
-        SDL_free(p_mp3);
+        delete p_mp3->p_dr;
+        p_mp3->p_dr = nullptr;
+        delete p_mp3;
+        internal->decoder_private = nullptr;
     }
-    internal->decoder_private = nullptr;
 } /* MP3_close */
 
-static Uint32 MP3_read(Sound_Sample* const sample, void* buffer, Uint32 desired_frames)
+static Uint32 MP3_read(Sound_Sample* const sample)
 {
-    Sound_SampleInternal* const internal = static_cast<Sound_SampleInternal*>(sample->opaque);
+    Sound_SampleInternal* const internal = static_cast<Sound_SampleInternal* const>(sample->opaque);
+    const Sint32 channels = (int) sample->actual.channels;
     mp3_t* p_mp3 = static_cast<mp3_t*>(internal->decoder_private);
 
-    // LOG_MSG("read-while: num_frames: %u", num_frames);
-    return static_cast<Uint32>(drmp3_read_pcm_frames_s16(p_mp3->p_dr,
-                                                         static_cast<drmp3_uint64>(desired_frames),
-                                                         static_cast<drmp3_int16*>(buffer)));
+    // setup our 32-bit input buffer
+    float in_buffer[4096];
+    const drmp3_uint16 in_buffer_frame_capacity = 4096 / channels;
+
+    // setup our 16-bit output buffer
+    drmp3_int16* out_buffer = (drmp3_int16 *)(internal->buffer);
+    drmp3_uint16 remaining_frames = (drmp3_uint16)((internal->buffer_size  / sizeof(drmp3_int16)) / channels);
+
+    // LOG_MSG("read: remaining_frames: %u", remaining_frames);
+    drmp3_uint16 total_samples_read = 0;
+    while (remaining_frames > 0) {
+        const drmp3_uint16 num_frames = (remaining_frames > in_buffer_frame_capacity) ? in_buffer_frame_capacity : remaining_frames;
+
+        // LOG_MSG("read-while: num_frames: %u", num_frames);
+        const drmp3_uint16 frames_just_read = (drmp3_uint16)drmp3_read_pcm_frames_f32(p_mp3->p_dr, num_frames, in_buffer);
+
+        // LOG_MSG("read-while: frames_just_read: %u", frames_just_read);
+        if (frames_just_read == 0) break; // Reached the end.
+
+        const drmp3_uint16 samples_just_read = frames_just_read * channels;
+
+        // f32 -> s16
+        drmp3dec_f32_to_s16(in_buffer, out_buffer, samples_just_read);
+
+        remaining_frames   -= frames_just_read;
+        out_buffer         += samples_just_read;
+        total_samples_read += samples_just_read;
+    }
+    // SNDDBG(("encoded stream offset: %d", SDL_RWtell(internal->rw) ));
+
+    return total_samples_read * sizeof(drmp3_int16);
 } /* MP3_read */
 
 static int32_t MP3_open(Sound_Sample* const sample, const char* const ext)
 {
     (void) ext; // deliberately unused
     Sound_SampleInternal* const internal = static_cast<Sound_SampleInternal*>(sample->opaque);
-    bool result = false; // assume failure until proven otherwise
-    mp3_t* p_mp3 = (mp3_t*) SDL_calloc(1, sizeof (mp3_t));
-    if (p_mp3) {
-        p_mp3->p_dr = (drmp3*) SDL_calloc(1, sizeof (drmp3));
-        if (p_mp3->p_dr) {
-            if (drmp3_init(p_mp3->p_dr, mp3_read, mp3_seek, sample, nullptr) == DRMP3_TRUE) {
-                SNDDBG(("MP3: Accepting data stream.\n"));
-                sample->flags = SOUND_SAMPLEFLAG_CANSEEK;
-                sample->actual.channels = static_cast<uint8_t>(p_mp3->p_dr->channels);
-                sample->actual.rate = p_mp3->p_dr->sampleRate;
-                sample->actual.format = AUDIO_S16SYS;  // native byte-order based on architecture
 
-                // frame count is agnostic of sample size and number of channels
-                const uint64_t num_frames =
-                    populate_seek_points(internal->rw, p_mp3, fast_seek_filename, result);
+    // Allocate our structures to be held by sample
+    mp3_t* p_mp3 = new mp3_t;
+    p_mp3->p_dr = new drmp3;
 
-                // total_time needs milliseconds
-                internal->total_time = (num_frames != 0) ? 
-                    static_cast<int32_t>(ceil_udivide(num_frames * 1000u, sample->actual.rate))
-                    : -1;
-            }
-        }
+    // Open the MP3
+    if (drmp3_init(p_mp3->p_dr, mp3_read, mp3_seek, sample, nullptr) != DRMP3_TRUE) {
+        SNDDBG(("MP3: Failed to open the data stream.\n"));
+        delete p_mp3->p_dr;
+        delete p_mp3;
+        return 0; // failure
     }
 
-    // Assign our internal decoder to the mp3 object we've just populated
+    // Assign our internal decoder to the mp3 object we've just opened
     internal->decoder_private = p_mp3;
 
-    // if anything went wrong then tear down our private structure
+    bool result;
+    // Count the MP3's frames
+    const uint64_t num_frames = populate_seek_points(internal->rw, p_mp3, fast_seek_filename, result);
     if (!result) {
-        SNDDBG(("MP3: Failed to open the data stream.\n"));
+        SNDDBG(("MP3: Unable to count the number of PCM frames.\n"));
         MP3_close(sample);
+        return 0; // failure
     }
 
-    return static_cast<int32_t>(result);
+    // Populate the sample's properties from the MP3
+    SNDDBG(("MP3: Accepting data stream.\n"));
+    sample->flags = SOUND_SAMPLEFLAG_CANSEEK;
+    sample->actual.channels = static_cast<uint8_t>(p_mp3->p_dr->channels);
+    sample->actual.rate = p_mp3->p_dr->sampleRate;
+    sample->actual.format = AUDIO_S16SYS;  // native byte-order based on architecture
+    // total_time needs milliseconds
+    internal->total_time = static_cast<int32_t>(ceil_udivide(num_frames * 1000u, sample->actual.rate));
+    return 1; // success
 } /* MP3_open */
 
 static Sint32 MP3_rewind(Sound_Sample* const sample)

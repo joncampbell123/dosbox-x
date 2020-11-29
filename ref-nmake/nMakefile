@@ -14,10 +14,12 @@ LPNG = ..\vs2015\libpng
 
 PDCURSES = ..\vs2015\libpdcurses
 
+PCAP = ..\vs2015\pcap
+
 CXXFLAGS =  -utf-8 -nologo -O2 -MT -EHsc -DNDEBUG -DWIN32 -D__WIN32__ -D_FILE_OFFSET_BITS=64 -DC_OPENGL=1 -DC_MT32=1 -I. \
 			-D_WIN32_WINNT=0x0501 \
 			-Dmain=SDL_main -I$(SDLDIR)\include \
-			-I$(LPNG) -I$(ZLIB) -I$(PDCURSES) \
+			-I$(LPNG) -I$(ZLIB) -I$(PDCURSES) -I$(PCAP) \
 			-I$(DBX_PATH) \
 			-I$(DBX_PATH)/include \
 			-I$(DBX_PATH)/src \
@@ -28,7 +30,7 @@ CXXFLAGS =  -utf-8 -nologo -O2 -MT -EHsc -DNDEBUG -DWIN32 -D__WIN32__ -D_FILE_OF
 			-I$(DBX_PATH)/src/hardware/snd_pc98/sound/getsnd \
 			-I$(DBX_PATH)/src/hardware/snd_pc98/x11 \
 			-I$(DBX_PATH)/src/hardware/snd_pc98/cbus \
-			-I$(DBX_PATH)/src/xBRZ 
+			-I$(DBX_PATH)/src/libs/xBRZ 
 
 CFLAGS	=	-nologo -O2 -MT -DNDEBUG -DWIN32 -D_WIN32_WINNT=0x0501 -I. \
 			-Dmain=SDL_main -I$(SDLDIR)\include \
@@ -77,6 +79,7 @@ OBJS	=	$(DBX_PATH)\src\dosbox.obj \
 			$(DBX_PATH)\src\builtin\lastdriv_com.obj \
 			$(DBX_PATH)\src\builtin\mem_com.obj \
 			$(DBX_PATH)\src\builtin\move_exe.obj \
+			$(DBX_PATH)\src\builtin\sort_exe.obj \
 			$(DBX_PATH)\src\builtin\tree_exe.obj \
 			$(DBX_PATH)\src\builtin\xcopy_exe.obj \
 			$(DBX_PATH)\src\cpu\callback.obj \
@@ -135,7 +138,7 @@ OBJS	=	$(DBX_PATH)\src\dosbox.obj \
 			$(DBX_PATH)\src\gui\ptrop.obj \
 			$(DBX_PATH)\src\gui\zipfile.obj \
 			$(DBX_PATH)\src\gui\zipcrc.obj \
-			$(DBX_PATH)\src\xBRZ\xbrz.obj \
+			$(DBX_PATH)\src\libs\xBRZ\xbrz.obj \
 			$(DBX_PATH)\src\output\output_direct3d.obj \
 			$(DBX_PATH)\src\output\output_opengl.obj \
 			$(DBX_PATH)\src\output\output_surface.obj \
@@ -154,6 +157,7 @@ OBJS2	= 	$(DBX_PATH)\src\hardware\8255.obj \
 			$(DBX_PATH)\src\hardware\floppy.obj \
 			$(DBX_PATH)\src\hardware\gameblaster.obj \
 			$(DBX_PATH)\src\hardware\gus.obj \
+			$(DBX_PATH)\src\hardware\glide.obj \
 			$(DBX_PATH)\src\hardware\hardopl.obj \
 			$(DBX_PATH)\src\hardware\hardware.obj \
 			$(DBX_PATH)\src\hardware\ide.obj \
@@ -169,6 +173,7 @@ OBJS2	= 	$(DBX_PATH)\src\hardware\8255.obj \
 			$(DBX_PATH)\src\hardware\ne2000.obj \
 			$(DBX_PATH)\src\hardware\nukedopl.obj \
 			$(DBX_PATH)\src\hardware\opl.obj \
+			$(DBX_PATH)\src\hardware\opl2board\opl2board.obj \
 			$(DBX_PATH)\src\hardware\pc98.obj \
 			$(DBX_PATH)\src\hardware\pc98_fm.obj \
 			$(DBX_PATH)\src\hardware\pci_bus.obj \
@@ -235,6 +240,7 @@ OBJS3	=	$(DBX_PATH)\src\hardware\mame\fmopl.obj \
 			$(DBX_PATH)\src\hardware\serialport\misc_util.obj \
 			$(DBX_PATH)\src\hardware\serialport\nullmodem.obj \
 			$(DBX_PATH)\src\hardware\serialport\serialdummy.obj \
+			$(DBX_PATH)\src\hardware\serialport\serialfile.obj \
 			$(DBX_PATH)\src\hardware\serialport\seriallog.obj \
 			$(DBX_PATH)\src\hardware\serialport\serialmouse.obj \
 			$(DBX_PATH)\src\hardware\serialport\serialport.obj \
@@ -297,36 +303,34 @@ OBJS4	=	$(DBX_PATH)\src\ints\bios.obj \
 			$(DBX_PATH)\src\shell\shell_misc.obj \
 			$(DBX_PATH)\src\winres.res
 
-OBJS_MT32 =	$(DBX_PATH)\src\mt32\AReverbModel.obj \
-			$(DBX_PATH)\src\mt32\BReverbModel.obj \
-			$(DBX_PATH)\src\mt32\DelayReverb.obj \
-			$(DBX_PATH)\src\mt32\File.obj \
-			$(DBX_PATH)\src\mt32\FileStream.obj \
-			$(DBX_PATH)\src\mt32\FreeverbModel.obj \
-			$(DBX_PATH)\src\mt32\LA32Ramp.obj \
-			$(DBX_PATH)\src\mt32\LA32WaveGenerator.obj \
-			$(DBX_PATH)\src\mt32\LegacyWaveGenerator.obj \
-			$(DBX_PATH)\src\mt32\Part.obj \
-			$(DBX_PATH)\src\mt32\Partial.obj \
-			$(DBX_PATH)\src\mt32\PartialManager.obj \
-			$(DBX_PATH)\src\mt32\Poly.obj \
-			$(DBX_PATH)\src\mt32\ROMInfo.obj \
-			$(DBX_PATH)\src\mt32\Synth.obj \
-			$(DBX_PATH)\src\mt32\Tables.obj \
-			$(DBX_PATH)\src\mt32\TVA.obj \
-			$(DBX_PATH)\src\mt32\TVF.obj \
-			$(DBX_PATH)\src\mt32\TVP.obj \
-			$(DBX_PATH)\src\mt32\freeverb\allpass.obj \
-			$(DBX_PATH)\src\mt32\freeverb\comb.obj \
-			$(DBX_PATH)\src\mt32\freeverb\revmodel.obj \
-			$(DBX_PATH)\src\mt32\sha1\sha1.obj 
+OBJS_MT32 =	$(DBX_PATH)\src\libs\mt32\Analog.obj \
+			$(DBX_PATH)\src\libs\mt32\BReverbModel.obj \
+			$(DBX_PATH)\src\libs\mt32\c_interface\c_interface.obj \
+			$(DBX_PATH)\src\libs\mt32\File.obj \
+			$(DBX_PATH)\src\libs\mt32\FileStream.obj \
+			$(DBX_PATH)\src\libs\mt32\LA32Ramp.obj \
+			$(DBX_PATH)\src\libs\mt32\LA32FloatWaveGenerator.obj \
+			$(DBX_PATH)\src\libs\mt32\LA32WaveGenerator.obj \
+			$(DBX_PATH)\src\libs\mt32\MidiStreamParser.obj \
+			$(DBX_PATH)\src\libs\mt32\Part.obj \
+			$(DBX_PATH)\src\libs\mt32\Partial.obj \
+			$(DBX_PATH)\src\libs\mt32\PartialManager.obj \
+			$(DBX_PATH)\src\libs\mt32\Poly.obj \
+			$(DBX_PATH)\src\libs\mt32\ROMInfo.obj \
+			$(DBX_PATH)\src\libs\mt32\SampleRateConverter.obj \
+			$(DBX_PATH)\src\libs\mt32\Synth.obj \
+			$(DBX_PATH)\src\libs\mt32\Tables.obj \
+			$(DBX_PATH)\src\libs\mt32\TVA.obj \
+			$(DBX_PATH)\src\libs\mt32\TVF.obj \
+			$(DBX_PATH)\src\libs\mt32\TVP.obj \
+			$(DBX_PATH)\src\libs\mt32\sha1\sha1.obj 
 
 OBJS_D3D =	$(DBX_PATH)\src\output\direct3d\direct3d.obj \
 			$(DBX_PATH)\src\output\direct3d\hq2x_d3d.obj \
 			$(DBX_PATH)\src\output\direct3d\ScalingEffect.obj
 
 OBJS4 = $(OBJS4) $(OBJS_MT32)
-CXXFLAGS = $(CXXFLAGS) -I$(DBX_PATH)/src/mt32
+CXXFLAGS = $(CXXFLAGS) -I$(DBX_PATH)/src/libs/mt32
 
 LIBS = kernel32.lib user32.lib gdi32.lib imm32.lib winmm.lib dxguid.lib shell32.lib ole32.lib comdlg32.lib opengl32.lib advapi32.lib ws2_32.lib deps\sdl.lib deps\sdlmain.lib deps\z.lib deps\png.lib deps\pdcurses.lib
 

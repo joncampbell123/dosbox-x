@@ -1,15 +1,15 @@
 #!/bin/sh
 #
-# MinGW Dosbox Build Notes
+# MinGW DOSBox-X Build Notes
 #
 # * MinGW redistributable files must be in the PATH while compiling and while
-# running a MinGW Dosbox. (SDL.dll, libpng.dll, zlib1.dll, etc.)
+# running a MinGW DOSBox-X. (SDL.dll, libpng.dll, zlib1.dll, etc.)
 #
 # * The MinGW PNG package does not currently bundle the libpng.dll.a static
-# library, which means that a MinGW Dosbox cannot be statically compiled using
+# library, which means that a MinGW DOSBox-X cannot be statically compiled using
 # distro packages.
 #
-# Use this environment for building a 64-bit MinGW Dosbox on Cygwin:
+# Use this environment for building a 64-bit MinGW DOSBox-X on Cygwin:
 
 TRIPLET=x86_64-w64-mingw32
 export PATH="/usr/$TRIPLET/sys-root/mingw/bin:$PATH"
@@ -17,3 +17,11 @@ export CC="$TRIPLET-gcc"
 export CXX="$TRIPLET-g++"
 
 # autoreconf && ./configure && make
+
+# Alternatively install MSYS2 on Windows,
+# Open the MSYS2 MinGW 64-bit prompt,
+# then run:
+pacman -Syu # Keep up to date!
+pacman -S mingw-w64-x86_64-toolchain mingw-w64-x86_64-SDL2 mingw-w64-x86_64-libpng
+cd /path/to/dosbox-code
+./build-mingw-sdl2

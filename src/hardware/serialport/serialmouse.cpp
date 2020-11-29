@@ -1,5 +1,5 @@
 /*
- *  Copyright (C) 2002-2019  The DOSBox Team
+ *  Copyright (C) 2002-2020  The DOSBox Team
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -11,9 +11,9 @@
  *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  *  GNU General Public License for more details.
  *
- *  You should have received a copy of the GNU General Public License
- *  along with this program; if not, write to the Free Software
- *  Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1335, USA.
+ *  You should have received a copy of the GNU General Public License along
+ *  with this program; if not, write to the Free Software Foundation, Inc.,
+ *  51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
 
 /* Microsoft Serial Mouse compatible emulation.
@@ -31,7 +31,7 @@ static CSerialMouse *serial_mice[4] = {NULL};
 
 /* this function is the method the GUI and mouse emulation notifies us of movement/button events.
  * if the serial mouse is not installed, it is ignored */
-void on_mouse_event_for_serial(int delta_x,int delta_y,Bit8u buttonstate) {
+void on_mouse_event_for_serial(int delta_x,int delta_y,uint8_t buttonstate) {
 	int i;
 
 	for (i=0;i < 4;i++) {
@@ -73,7 +73,7 @@ void CSerialMouse::start_packet() {
 	setEvent(SERIAL_RX_EVENT, bytetime);
 }
 
-void CSerialMouse::on_mouse_event(int delta_x,int delta_y,Bit8u buttonstate) {
+void CSerialMouse::on_mouse_event(int delta_x,int delta_y,uint8_t buttonstate) {
 	mouse_buttons = ((buttonstate & 1) ? 2 : 0) | ((buttonstate & 2) ? 1 : 0);
 	mouse_delta_x += delta_x;
 	mouse_delta_y += delta_y;
@@ -105,7 +105,7 @@ CSerialMouse::~CSerialMouse() {
 	removeEvent(SERIAL_TX_EVENT);
 }
 
-void CSerialMouse::handleUpperEvent(Bit16u type) {
+void CSerialMouse::handleUpperEvent(uint16_t type) {
 	if(type==SERIAL_TX_EVENT) {
 	//LOG_MSG("SERIAL_TX_EVENT");
 		ByteTransmitted(); // tx timeout
@@ -141,7 +141,7 @@ void CSerialMouse::handleUpperEvent(Bit16u type) {
 /* updatePortConfig is called when emulated app changes the serial port     **/
 /* parameters baudrate, stopbits, number of databits, parity.               **/
 /*****************************************************************************/
-void CSerialMouse::updatePortConfig(Bit16u divider, Bit8u lcr) {
+void CSerialMouse::updatePortConfig(uint16_t divider, uint8_t lcr) {
     (void)divider;//UNUSED
     (void)lcr;//UNUSED
 	//LOG_MSG("Serial port at 0x%x: Port params changed: %d Baud", base,dcb.BaudRate);
@@ -149,7 +149,7 @@ void CSerialMouse::updatePortConfig(Bit16u divider, Bit8u lcr) {
 
 void CSerialMouse::updateMSR() {
 }
-void CSerialMouse::transmitByte(Bit8u val, bool first) {
+void CSerialMouse::transmitByte(uint8_t val, bool first) {
     (void)val;//UNUSED
 	if(first) setEvent(SERIAL_THR_EVENT, bytetime/10); 
 	else setEvent(SERIAL_TX_EVENT, bytetime);

@@ -1,5 +1,5 @@
 /*
- *  Copyright (C) 2002-2019  The DOSBox Team
+ *  Copyright (C) 2002-2020  The DOSBox Team
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -11,9 +11,9 @@
  *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  *  GNU General Public License for more details.
  *
- *  You should have received a copy of the GNU General Public License
- *  along with this program; if not, write to the Free Software
- *  Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1335, USA.
+ *  You should have received a copy of the GNU General Public License along
+ *  with this program; if not, write to the Free Software Foundation, Inc.,
+ *  51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
 
 
@@ -46,7 +46,7 @@ void CSerialLog::log_emit() {
 	}
 }
 
-void CSerialLog::handleUpperEvent(Bit16u type) {
+void CSerialLog::handleUpperEvent(uint16_t type) {
 	if(type==SERIAL_TX_EVENT) {
 	//LOG_MSG("SERIAL_TX_EVENT");
 		ByteTransmitted(); // tx timeout
@@ -63,7 +63,7 @@ void CSerialLog::handleUpperEvent(Bit16u type) {
 /* updatePortConfig is called when emulated app changes the serial port     **/
 /* parameters baudrate, stopbits, number of databits, parity.               **/
 /*****************************************************************************/
-void CSerialLog::updatePortConfig(Bit16u divider, Bit8u lcr) {
+void CSerialLog::updatePortConfig(uint16_t divider, uint8_t lcr) {
     (void)divider;//UNUSED
     (void)lcr;//UNUSED
 	//LOG_MSG("Serial port at 0x%x: Port params changed: %d Baud", base,dcb.BaudRate);
@@ -72,7 +72,7 @@ void CSerialLog::updatePortConfig(Bit16u divider, Bit8u lcr) {
 void CSerialLog::updateMSR() {
 }
 
-void CSerialLog::transmitByte(Bit8u val, bool first) {
+void CSerialLog::transmitByte(uint8_t val, bool first) {
 	if(first) setEvent(SERIAL_THR_EVENT, bytetime/10); 
 	else setEvent(SERIAL_TX_EVENT, bytetime);
 

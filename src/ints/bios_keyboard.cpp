@@ -1,5 +1,5 @@
 /*
- *  Copyright (C) 2002-2019  The DOSBox Team
+ *  Copyright (C) 2002-2020  The DOSBox Team
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -11,9 +11,9 @@
  *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  *  GNU General Public License for more details.
  *
- *  You should have received a copy of the GNU General Public License
- *  along with this program; if not, write to the Free Software
- *  Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1335, USA.
+ *  You should have received a copy of the GNU General Public License along
+ *  with this program; if not, write to the Free Software Foundation, Inc.,
+ *  51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
 
 
@@ -46,10 +46,10 @@ static Bitu call_int16 = 0,call_irq1 = 0,irq1_ret_ctrlbreak_callback = 0,call_ir
 /* Nice table from BOCHS i should feel bad for ripping this */
 #define none 0
 static struct {
-  Bit16u normal;
-  Bit16u shift;
-  Bit16u control;
-  Bit16u alt;
+  uint16_t normal;
+  uint16_t shift;
+  uint16_t control;
+  uint16_t alt;
   } scan_to_scanascii[MAX_SCAN_CODE + 1] = {
       {   none,   none,   none,   none },
       { 0x011b, 0x011b, 0x011b, 0x01f0 }, /* escape */
@@ -142,12 +142,12 @@ static struct {
       { 0x8600, 0x8800, 0x8a00, 0x8c00 }  /* F12 */
       };
 
-bool BIOS_AddKeyToBuffer(Bit16u code) {
+bool BIOS_AddKeyToBuffer(uint16_t code) {
     if (!IS_PC98_ARCH) {
         if (mem_readb(BIOS_KEYBOARD_FLAGS2)&8) return true;
     }
 
-    Bit16u start,end,head,tail,ttail;
+    uint16_t start,end,head,tail,ttail;
     if (IS_PC98_ARCH) {
         start=0x502;
         end=0x522;
@@ -195,12 +195,12 @@ bool BIOS_AddKeyToBuffer(Bit16u code) {
     return true;
 }
 
-static void add_key(Bit16u code) {
+static void add_key(uint16_t code) {
     if (code!=0 || IS_PC98_ARCH) BIOS_AddKeyToBuffer(code);
 }
 
-static bool get_key(Bit16u &code) {
-    Bit16u start,end,head,tail,thead;
+static bool get_key(uint16_t &code) {
+    uint16_t start,end,head,tail,thead;
     if (IS_PC98_ARCH) {
         start=0x502;
         end=0x522;
@@ -217,16 +217,16 @@ static bool get_key(Bit16u &code) {
     if (IS_PC98_ARCH) {
         head =mem_readw(0x524/*head*/);
         tail =mem_readw(0x526/*tail*/);
+
+        /* PC-98 BIOSes also manage a key counter, which is required for
+         * some games and even the PC-98 version of MS-DOS to detect keyboard input */
+        unsigned char b = real_readw(0,0x528);
+        if (b != 0) real_writew(0,0x528,b-1);
     }
     else {
         head =mem_readw(BIOS_KEYBOARD_BUFFER_HEAD);
         tail =mem_readw(BIOS_KEYBOARD_BUFFER_TAIL);
     }
-
-    /* PC-98 BIOSes also manage a key counter, which is required for
-     * some games and even the PC-98 version of MS-DOS to detect keyboard input */
-    unsigned char b = real_readw(0,0x528);
-    if (b != 0) real_writew(0,0x528,b-1);
 
     if (head==tail) return false;
     thead=head+2;
@@ -244,12 +244,12 @@ static bool get_key(Bit16u &code) {
     return true;
 }
 
-bool INT16_get_key(Bit16u &code) {
+bool INT16_get_key(uint16_t &code) {
     return get_key(code);
 }
 
-static bool check_key(Bit16u &code) {
-    Bit16u head,tail;
+static bool check_key(uint16_t &code) {
+    uint16_t head,tail;
 
     if (IS_PC98_ARCH) {
         head =mem_readw(0x524/*head*/);
@@ -270,7 +270,7 @@ static bool check_key(Bit16u &code) {
     return true;
 }
 
-bool INT16_peek_key(Bit16u &code) {
+bool INT16_peek_key(uint16_t &code) {
     return check_key(code);
 }
 
@@ -311,7 +311,8 @@ static void empty_keyboard_buffer() {
     */
 
 
-void KEYBOARD_SetLEDs(Bit8u bits);
+void KEYBOARD_SetLEDs(uint8_t bits);
+bool ctrlbrk=false;
 
 /* the scancode is in reg_al */
 static Bitu IRQ1_Handler(void) {
@@ -319,7 +320,7 @@ static Bitu IRQ1_Handler(void) {
  * states for numlock capslock. 
  */
     Bitu scancode=reg_al;
-    Bit8u flags1,flags2,flags3,leds,leds_orig;
+    uint8_t flags1,flags2,flags3,leds,leds_orig;
     flags1=mem_readb(BIOS_KEYBOARD_FLAGS1);
     flags2=mem_readb(BIOS_KEYBOARD_FLAGS2);
     flags3=mem_readb(BIOS_KEYBOARD_FLAGS3);
@@ -385,7 +386,7 @@ static Bitu IRQ1_Handler(void) {
         else flags2 &= ~0x02;
         if( !( (flags3 &0x08) || (flags2 &0x02) ) ) { /* Both alt released */
             flags1 &= ~0x08;
-            Bit16u token =mem_readb(BIOS_KEYBOARD_TOKEN);
+            uint16_t token =mem_readb(BIOS_KEYBOARD_TOKEN);
             if(token != 0){
                 add_key(token);
                 mem_writeb(BIOS_KEYBOARD_TOKEN,0);
@@ -444,11 +445,16 @@ static Bitu IRQ1_Handler(void) {
     case 0x46:                      /* Scroll Lock or Ctrl-Break */
         /* if it has E0 prefix, or is Ctrl-NumLock on non-enhanced keyboard => Break */
         if((flags3&0x02) || (!(flags3&0x10) && (flags1&0x04))) {                /* Ctrl-Break? */
+            ctrlbrk=true;
             /* remove 0xe0-prefix */
             flags3 &=~0x02;
             mem_writeb(BIOS_KEYBOARD_FLAGS3,flags3);
             mem_writeb(BIOS_CTRL_BREAK_FLAG,0x80);
             empty_keyboard_buffer();
+            /* NTS: Real hardware shows that, at least through INT 16h, CTRL+BREAK injects
+             *      scan code word 0x0000 into the keyboard buffer. Upon CTRL+BREAK, 0x0000
+             *      appears in the keyboard buffer, which INT 16h AH=1h/AH=11h will signal as
+             *      an available scan code, and INT 16h AH=0h/10h will return with ZF=0. */
             BIOS_AddKeyToBuffer(0);
             SegSet16(cs, RealSeg(CALLBACK_RealPointer(irq1_ret_ctrlbreak_callback)));
             reg_ip = RealOff(CALLBACK_RealPointer(irq1_ret_ctrlbreak_callback));
@@ -463,6 +469,7 @@ static Bitu IRQ1_Handler(void) {
         } else {
             flags1 ^=0x10;flags2 &=~0x10;leds ^=0x01;break;     /* Scroll Lock released */
         }
+        break;
     case 0xd2: /* NUMPAD insert, ironically, regular one is handled by 0x52 */
 		if (flags3 & BIOS_KEYBOARD_FLAGS3_HIDDEN_E0 || !(flags1 & BIOS_KEYBOARD_FLAGS1_NUMLOCK_ACTIVE))
 		{
@@ -481,7 +488,7 @@ static Bitu IRQ1_Handler(void) {
     case 0x51:
     case 0x52:
     case 0x53: /* del . Not entirely correct, but works fine */
-        if (!(flags3 & 0x01) && !(flags1 & 0x03) && (flags1 & 0x0c) == 0x0c && ((!(flags3 & 0x10) && (flags3 & 0x0c) == 0x0c) || ((flags3 & 0x10) && (flags2 & 0x03) == 0x03))) { /* Ctrl-Alt-Del? */
+        if (scancode == 0x53 && !(flags3 & 0x01) && !(flags1 & 0x03) && (flags1 & 0x0c) == 0x0c && ((!(flags3 & 0x10) && (flags3 & 0x0c) == 0x0c) || ((flags3 & 0x10) && (flags2 & 0x03) == 0x03))) { /* Ctrl-Alt-Del? */
 			throw int(3);
             break;
 		}
@@ -497,8 +504,8 @@ static Bitu IRQ1_Handler(void) {
             break;
         }
         if(flags1 &0x08) {
-            Bit8u token = mem_readb(BIOS_KEYBOARD_TOKEN);
-            token = token*10 + (Bit8u)(scan_to_scanascii[scancode].alt&0xff);
+            uint8_t token = mem_readb(BIOS_KEYBOARD_TOKEN);
+            token = token*10 + (uint8_t)(scan_to_scanascii[scancode].alt&0xff);
             mem_writeb(BIOS_KEYBOARD_TOKEN,token);
         } else if (flags1 &0x04) {
             add_key(scan_to_scanascii[scancode].control);
@@ -508,8 +515,10 @@ static Bitu IRQ1_Handler(void) {
         break;
 
     default: /* Normal Key */
+        if (scancode==0x2e && !(flags3 & 0x01) && (flags1&0x04))
+            ctrlbrk=true;
     normal_key:
-        Bit16u asciiscan;
+        uint16_t asciiscan;
         /* Now Handle the releasing of keys and see if they match up for a code */
         /* Handle the actual scancode */
         if (scancode & 0x80) goto irq1_end;
@@ -565,27 +574,34 @@ irq1_end:
     if (leds_orig != leds) KEYBOARD_SetLEDs(leds);
 
     /* update insert cursor */
+    /* FIXME: Wait a second... I doubt the BIOS IRQ1 handler does this! The program (or DOS prompt) decides whether INS changes cursor shape! */
     extern bool dos_program_running;
     if (!dos_program_running)
     {
+        /* As long as this hack exists... maintain the cursor's invisible state if invisible so it
+         * does not reappear unexpectedly when the user presses Insert. Though long term, this should
+         * be handled by the shell, not the keyboard ISR */
+        const auto invisible = static_cast<bool>(real_readw(BIOSMEM_SEG,BIOSMEM_CURSOR_TYPE) & 0x2000); /* NTS: Written (last|(first<<8)) and (first & 0x20) means invisible */
         const auto flg = mem_readb(BIOS_KEYBOARD_FLAGS1);
         const auto ins = static_cast<bool>(flg & BIOS_KEYBOARD_FLAGS1_INSERT_ACTIVE);
-        const auto ssl = static_cast<Bit8u>(ins ? CURSOR_SCAN_LINE_INSERT : CURSOR_SCAN_LINE_NORMAL);
+        const auto ssl = static_cast<uint8_t>(ins ? CURSOR_SCAN_LINE_INSERT : CURSOR_SCAN_LINE_NORMAL);
         if (CurMode->type == M_TEXT)
-            INT10_SetCursorShape(ssl, CURSOR_SCAN_LINE_END);
+            INT10_SetCursorShape(ssl | (invisible?0x20:0x00), CURSOR_SCAN_LINE_END);
     }
 					
 /*  IO_Write(0x20,0x20); moved out of handler to be virtualizable */
 #if 0
 /* Signal the keyboard for next code */
 /* In dosbox port 60 reads do this as well */
-    Bit8u old61=IO_Read(0x61);
+    uint8_t old61=IO_Read(0x61);
     IO_Write(0x61,old61 | 128);
     IO_Write(0x64,0xae);
 #endif
     return CBRET_NONE;
 }
 
+bool CPU_PUSHF(Bitu use32);
+void CPU_Push16(uint16_t value);
 unsigned char AT_read_60(void);
 extern bool pc98_force_ibm_layout;
 
@@ -621,7 +637,7 @@ static Bitu IRQ1_Handler_PC98(void) {
 
         /* Testing on real hardware shows INT 18h AH=0 returns raw scancode in upper half, ASCII in lower half.
          * Just like INT 16h on IBM PC hardware */
-        Bit16u scan_add = sc_8251 << 8U;
+        uint16_t scan_add = sc_8251 << 8U;
 
         /* NOTES:
          *  - The bitmap also tracks CAPS, and KANA state. It does NOT track NUM state.
@@ -639,7 +655,7 @@ static Bitu IRQ1_Handler_PC98(void) {
          *    bit[1] = CAPS engaged
          *    bit[0] = SHIFT is down
          */
-        Bit8u modflags = mem_readb(0x52A + 0xE);
+        uint8_t modflags = mem_readb(0x52A + 0xE);
 
         bool caps_capitals = (modflags & 1) ^ ((modflags >> 1) & 1); /* CAPS XOR SHIFT */
 
@@ -1275,7 +1291,29 @@ static Bitu IRQ1_Handler_PC98(void) {
                 break;
 
             case 0x60: // STOP
-                // does not pass it on
+                // does not pass it on.
+                // According to Neko Project II source code, STOP invokes INT 6h
+                // which is PC-98's version of the break interrupt IBM maps to INT 1Bh.
+                // Obviously defined before Intel decided that INT 6h is the Invalid
+                // Opcode exception. Booting PC-98 MS-DOS and looking at the INT 6h
+                // interrupt handler in the debugger confirms this.
+                if (pressed) {
+                    /* push an IRET frame pointing at INT 06h. */
+
+                    /* we can't just CALLBACK_RunRealInt() here because we're in the
+                     * middle of an ISR and we need to acknowledge the interrupt to
+                     * the PIC before we call INT 06h. Funny things happen otherwise,
+                     * including an unresponsive keyboard. */
+
+                    /* I noticed that Neko Project II has the code to emulate this,
+                     * as a direct call to run a CPU interrupt, but it's commented
+                     * out for probably the same issue. */
+                    const uint32_t cb = real_readd(0,0x06u * 4u);
+
+                    CPU_PUSHF(0);
+                    CPU_Push16((uint16_t)(cb >> 16u));
+                    CPU_Push16((uint16_t)(cb & 0xFFFFu));
+                }
                 break;
 
             case 0x62: // F1            f･1     ???     ???     ???     ???
@@ -1339,14 +1377,13 @@ static Bitu PCjr_NMI_Keyboard_Handler(void) {
 }
 
 static Bitu IRQ1_CtrlBreakAfterInt1B(void) {
-    BIOS_AddKeyToBuffer(0x0000);
     return CBRET_NONE;
 }
 
 
 /* check whether key combination is enhanced or not,
    translate key if necessary */
-static bool IsEnhancedKey(Bit16u &key) {
+static bool IsEnhancedKey(uint16_t &key) {
     if (IS_PC98_ARCH)
         return false;
 
@@ -1373,15 +1410,25 @@ static bool IsEnhancedKey(Bit16u &key) {
     return false;
 }
 
+extern bool DOS_BreakFlag;
+extern bool DOS_BreakConioFlag;
+
 bool int16_unmask_irq1_on_read = true;
 bool int16_ah_01_cf_undoc = true;
 
 Bitu INT16_Handler(void) {
-    Bit16u temp=0;
+    uint16_t temp=0;
     switch (reg_ah) {
     case 0x00: /* GET KEYSTROKE */
         if (int16_unmask_irq1_on_read)
             PIC_SetIRQMask(1,false); /* unmask keyboard */
+
+        // HACK: Make STOP key work
+        if (IS_PC98_ARCH && DOS_BreakConioFlag) {
+            DOS_BreakConioFlag=false;
+            reg_ax=0;
+            return CBRET_NONE;
+        }
 
         if ((get_key(temp)) && (!IsEnhancedKey(temp))) {
             /* normal key found, return translated key in ax */
@@ -1394,6 +1441,13 @@ Bitu INT16_Handler(void) {
     case 0x10: /* GET KEYSTROKE (enhanced keyboards only) */
         if (int16_unmask_irq1_on_read)
             PIC_SetIRQMask(1,false); /* unmask keyboard */
+
+        // HACK: Make STOP key work
+        if (IS_PC98_ARCH && DOS_BreakConioFlag) {
+            DOS_BreakConioFlag=false;
+            reg_ax=0;
+            return CBRET_NONE;
+        }
 
         if (get_key(temp)) {
             if (!IS_PC98_ARCH && ((temp&0xff)==0xf0) && (temp>>8)) {
@@ -1438,6 +1492,16 @@ Bitu INT16_Handler(void) {
         CALLBACK_SIF(true);
         if (int16_unmask_irq1_on_read)
             PIC_SetIRQMask(1,false); /* unmask keyboard */
+
+        /* NOTE: The FreeDOS EDIT.COM editor built into DOSBox-X has a problem where if
+         *       this call return AX=0 and ZF=0, it will treat it the same as if we had
+         *       returned ZF=1 to indicate no scan code. Unfortunately scan code 0x0000
+         *       is added to the buffer for CTRL+BREAK, meaning that if you hit CTRL+BREAK
+         *       while using EDIT.COM, you effectively disable all keyboard input to the
+         *       program until you exit, or trick the program into reading the scan code
+         *       to remove it from the buffer.
+         *
+         * TODO: If you run EDIT.COM on real MS-DOS, does the same problem come up? */
 
         if (!check_key(temp)) {
             CALLBACK_SZF(true);
@@ -1515,8 +1579,8 @@ static void InitBiosSegment(void) {
         mem_writew(BIOS_KEYBOARD_BUFFER_END,0x3e);
         mem_writew(BIOS_KEYBOARD_BUFFER_HEAD,0x1e);
         mem_writew(BIOS_KEYBOARD_BUFFER_TAIL,0x1e);
-        Bit8u flag1 = 0;
-        Bit8u leds = 16; /* Ack received */
+        uint8_t flag1 = 0;
+        uint8_t leds = 16; /* Ack received */
 
 #if 0 /*SDL_VERSION_ATLEAST(1, 2, 14)*/
         //Nothing, mapper handles all.
@@ -1584,7 +1648,7 @@ void BIOS_SetupKeyboard(void) {
 
         CALLBACK_Setup(call_irq_pcjr_nmi,&PCjr_NMI_Keyboard_Handler,CB_IRET,"PCjr NMI Keyboard");
 
-        Bit32u a = CALLBACK_RealPointer(call_irq_pcjr_nmi);
+        uint32_t a = CALLBACK_RealPointer(call_irq_pcjr_nmi);
 
         RealSetVec(0x02/*NMI*/,a);
 

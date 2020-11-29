@@ -1,5 +1,5 @@
 /*
- *  Copyright (C) 2002-2019  The DOSBox Team
+ *  Copyright (C) 2002-2020  The DOSBox Team
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -11,9 +11,9 @@
  *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  *  GNU General Public License for more details.
  *
- *  You should have received a copy of the GNU General Public License
- *  along with this program; if not, write to the Free Software
- *  Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1335, USA.
+ *  You should have received a copy of the GNU General Public License along
+ *  with this program; if not, write to the Free Software Foundation, Inc.,
+ *  51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
 
 // Tell Mac OS X to shut up about deprecated OpenGL calls
@@ -1472,7 +1472,7 @@ void voodoo_ogl_fastfill(void) {
 	}
 
 
-	Bit32u clear_mask=0;
+	uint32_t clear_mask=0;
 	if (FBZMODE_RGB_BUFFER_MASK(v->reg[fbzMode].u)) {
 		clear_mask|=GL_COLOR_BUFFER_BIT;
 
@@ -1616,9 +1616,6 @@ void voodoo_ogl_reset_videomode(void) {
     DOSBox_SetMenu();
 #endif
 
-#if defined(C_SDL2)
-    E_Exit("SDL2 3Dfx OpenGL emulation not implemented yet");
-#else
     GFX_PreventFullscreen(true);
 
 	last_clear_color=0;
@@ -1631,7 +1628,9 @@ void voodoo_ogl_reset_videomode(void) {
 
 	GFX_TearDown();
 
+#if !defined(C_SDL2)
 	bool full_sdl_restart = true;	// make dependent on surface=opengl
+#endif
 
 	SDL_GL_SetAttribute(SDL_GL_RED_SIZE, 8);
 	SDL_GL_SetAttribute(SDL_GL_GREEN_SIZE, 8);
@@ -1654,7 +1653,7 @@ void voodoo_ogl_reset_videomode(void) {
 	glLoadIdentity();*/
 	// END OF FIX
 
-#if defined (WIN32) && SDL_VERSION_ATLEAST(1, 2, 11)
+#if defined (WIN32) && SDL_VERSION_ATLEAST(1, 2, 11) && !defined(C_SDL2)
 	SDL_GL_SetAttribute( SDL_GL_SWAP_CONTROL, 0 );
 #endif
 
@@ -1671,6 +1670,11 @@ void voodoo_ogl_reset_videomode(void) {
     GFX_ReleaseMouse();
     GFX_ForceFullscreenExit();
 
+#if defined(C_SDL2)
+    if (sdl.window != NULL) ogl_surface = SDL_GetWindowSurface(sdl.window);
+	if (ogl_surface == NULL)
+		E_Exit("VOODOO: opengl init error");
+#else
 	Uint32 sdl_flags = SDL_OPENGL;
 
     ogl_surface = SDL_SetVideoMode((int)v->fbi.width, (int)v->fbi.height, 32, sdl_flags);
@@ -1703,6 +1707,7 @@ void voodoo_ogl_reset_videomode(void) {
 			}
 		}
 	}
+#endif
 
     v->ogl_dimchange = true;
 
@@ -1762,8 +1767,7 @@ void voodoo_ogl_reset_videomode(void) {
 	/* Something in Windows keeps changing the shade model on us from the last glShadeModel() call. Change it back. */
 	glShadeModel(GL_SMOOTH);
 
-	LOG_MSG("VOODOO: OpenGL: mode set, resolution %d:%d %s", v->fbi.width, v->fbi.height, (sdl_flags & SDL_FULLSCREEN) ? "(fullscreen)" : "");
-#endif
+	LOG_MSG("VOODOO: OpenGL: mode set, resolution %d:%d", v->fbi.width, v->fbi.height);
 }
 
 void voodoo_ogl_update_dimensions(void) {

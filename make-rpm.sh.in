@@ -25,10 +25,10 @@ tar="../@PACKAGE_NAME@-@PACKAGE_VERSION@.tar.xz"
 
 tar -cvJf "$tar" --exclude=\*.git --exclude=\*.tar.xz --exclude=\*.a --exclude=\*.la --exclude=\*.Po --exclude=\*.o -C .. dosbox-x || exit 1
 cp -vf "$tar" ~/rpmbuild/SOURCES/ || exit 1
-cp -vf dosbox-x.desktop ~/rpmbuild/SOURCES/ || exit 1
-cp -vf dosbox-x.appdata.xml ~/rpmbuild/SOURCES/ || exit 1
-cp -vf src/dosbox.png ~/rpmbuild/SOURCES/dosbox-x.png || exit 1
-rpmbuild -bb dosbox-x.spec || exit 1
+cp -vf contrib/linux/com.dosbox_x.DOSBox-X.desktop ~/rpmbuild/SOURCES/ || exit 1
+cp -vf contrib/linux/com.dosbox_x.DOSBox-X.metainfo.xml ~/rpmbuild/SOURCES/ || exit 1
+cp -vf contrib/icons/dosbox-x.svg ~/rpmbuild/SOURCES/ || exit 1
+rpmbuild -bb contrib/linux/dosbox-x.spec || exit 1
 rm -v "$tar" || exit 1
 mv -v ~/rpmbuild/RPMS/$arch/@PACKAGE_NAME@-*@PACKAGE_VERSION@*.rpm "$dir/" || exit 1
 

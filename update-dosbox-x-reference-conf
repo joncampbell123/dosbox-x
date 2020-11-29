@@ -1,6 +1,7 @@
 #!/bin/bash
-src/dosbox-x -c 'config -all -wc dosbox-x.reference.conf' -c 'exit' || exit 1
+src/dosbox-x -defaultconf -defaultdir . -silent -c 'config -wcp dosbox-x.reference.conf' -c 'config -all -wcp dosbox-x.reference.full.conf' -c 'config -setup -wcp contrib/windows/installer/dosbox-x.reference.setup.conf' || exit 1
 
-# FIXME: Adding ./ to the beginning of the path should revert to storing the config in the current working directory again.
-mv -v ~/.config/dosbox-x/dosbox-x.reference.conf dosbox-x.reference.conf || exit 1
-
+# Convert to Unix format if needed
+dos2unix dosbox-x.reference.conf
+dos2unix dosbox-x.reference.full.conf
+unix2dos contrib/windows/installer/dosbox-x.reference.setup.conf

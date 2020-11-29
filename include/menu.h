@@ -1,5 +1,5 @@
 /*
- *  Copyright (C) 2002-2019  The DOSBox Team
+ *  Copyright (C) 2002-2020  The DOSBox Team
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -11,9 +11,9 @@
  *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  *  GNU General Public License for more details.
  *
- *  You should have received a copy of the GNU General Public License
- *  along with this program; if not, write to the Free Software
- *  Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1335, USA.
+ *  You should have received a copy of the GNU General Public License along
+ *  with this program; if not, write to the Free Software Foundation, Inc.,
+ *  51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
 
 #include <string>
@@ -44,7 +44,7 @@ void MENU_Check_Drive(HMENU handle, int cdrom, int floppy, int local, int image,
 bool MENU_SetBool(std::string secname, std::string value);
 void MENU_swapstereo(bool enabled);
 void* GetSetSDLValue(int isget, std::string& target, void* setval);
-void GFX_SetTitle(Bit32s cycles, Bits frameskip, Bits timing, bool paused);
+void GFX_SetTitle(int32_t cycles, int frameskip, Bits timing, bool paused);
 void change_output(int output);
 void res_input(bool type, const char * res);
 void res_init(void);
@@ -448,9 +448,9 @@ class DOSBoxMenu {
     public:
         HMENU                           getWinMenu(void) const;
         bool                            mainMenuWM_COMMAND(unsigned int id);
+#endif
     public:
         static constexpr unsigned int   winMenuMinimumID = 0x1000;
-#endif
 #if DOSBOXMENU_TYPE == DOSBOXMENU_NSMENU /* Mac OS X NSMenu / NSMenuItem handle */
     protected:
         void*                           nsMenu = NULL;

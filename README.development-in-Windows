@@ -1,0 +1,124 @@
+Getting started with DOSBox-X development under Windows 10
+==========================================================
+
+This page contains some Windows-specific DOSBox-X development information.
+
+Additional notes
+----------------
+
+11/13/2019
+
+The entire solution uses Windows SDK 10.
+
+Preferred IDE is Visual Studio 2019.
+
+You will need to install the following in Visual Studio Installer:
+- Windows SDK 10.0.17763.0
+- C++ Windows XP Support for VS 2017 (v141) tools [Deprecated]
+
+Every projects settings have been fixed and should work as intended.
+
+All platforms build successfully.
+
+
+11/12/2019
+
+Debugging experience is broken in some projects (i.e. The breakpoint will not currently be hit), these should be addressed in the future but as there is a total of 146 builds it will take some time.
+
+The following projects have been fixed and work as intended:
+- dosbox-x: Debug Win32, Debug x64, Debug SDL2 Win32, Debug SDL2 x64
+
+
+11/7/2019
+
+Windows 8.1 SDK option is gone from the installer but can be found here:
+https://developer.microsoft.com/en-us/windows/downloads/sdk-archive
+
+
+Visual Studio
+-------------
+
+Setting up the environment from scratch
+---------------------------------------
+
+- download Visual Studio installer from https://www.visualstudio.com/downloads
+- launch the installer
+- in 'Workloads' tab, tick 'Desktop development with C++'
+- in 'Individual components' tab, 'SDKs, libraries, and frameworks' section, tick 'Windows 8.1 SDK'
+- in 'Individual components' tab, 'Compilers, build tools, and runtimes' section, tick 'Windows Universal CRT SDK'
+- download the DirectX SDK (June 2010) from https://www.microsoft.com/en-us/download/details.aspx?id=6812
+- launch the installer and follow the instructions
+- if you encounter error S1023 during installation, follow the instructions at https://support.microsoft.com/en-us/help/2728613/s1023-error-when-you-install-the-directx-sdk-june-2010
+- open the DOSBox-X Visual Studio solution located in 'vs2015' folder of the repository
+- for debugging, you might want to change 'Working Directory' default value of $(ProjectDir) to $(TargetDir)
+
+Note that Visual Studio must be closed prior installing the DirectX SDK, else it won't pick up environment variables set by the DirectX SDK and this will result in building errors.
+
+Pass additional options to the custom-build of SDL1
+---------------------------------------------------
+
+You can do that through the SDL1AdditionalOptions environment variable:
+
+REM adding a preprocessor define
+SET SDL1AdditionalOptions=/DMY_DEFINE
+MSBUILD ...
+
+
+Visual Studio Code
+------------------
+
+1. Install the building environment
+
+If you have a side install of regular Visual Studio and already set up the development environment for DOSBox-X, you can skip this step.
+
+Get and install Build Tools for Visual Studio 2017 from https://www.visualstudio.com/downloads/#other and install the following options:
+
+	Workloads
+		Visual C++ build tools
+	Individual components
+		Compilers, build tools, and runtimes
+			Windows Universal CRT SDK
+		SDKs, libraries, and frameworks
+			Windows 8.1 SDK
+
+2. Add msbuild to path environment variable
+
+ - open Developer Command Prompt for VS 2017
+ - type 'where msbuild' and take note of first occurrence found
+ - open environment variables editor by running '%windir%\System32\rundll32.exe sysdm.cpl,EditEnvironmentVariables'
+ - add the found path to the environment variable
+
+3. Setup VSCode build task
+
+The default build task is 'build Windows SDL1 Debug Win32', you can switch to another in Tasks menu, Configure Default Build Task.
+
+3. Setup C/C++ extension from Microsoft
+
+Switch to the extensions pane and install it, its identifier is ms-vscode.cpptools. When done, open the Command Palette and search for 'C/Cpp: Select a Configuration' to select the appropriate configuration for your build task.
+
+4. Setup the debugging
+
+To change configuration, switch to the Debug pane and choose desired one in the combo box.
+
+You can also do that from the bottom blue bar, but for some reason, VSCode does not always show it on startup; to remedy this problem execute the former procedure.
+
+You can now build and debug DOSBox-X.
+
+5. Notes and TODO
+
+Even though it leverages existing Visual Studio solution, you do not need Visual Studio to be installed on your system, build tools are sufficient.
+
+These instructions were written in an already set up environment, should some step be not reproducible, open an issue with the exact details so this guide can be improved.
+
+The section about configuring IntelliSense still needs to be written.
+
+
+Joystick improvements for SDL1 build
+------------------------------------
+
+XInput is now supported through the SDL_JOYSTICK_XINPUT define, this fixes the long plaguing issue where triggers were seen as the third axis on Xbox controllers. The resulting experience was an unsable input since both triggers shared the same the axis in the default DirectInput driver provided by Microsoft, for compatibility reasons. Some might have noticed that an earlier version of the device driver did not exhibit such behavior, at the cost of breaking legacy compatibility. By enabling this flag, XInput will be used in place of DirectInput. Consequently, the third axis will be the horizontal axis of the right thumbstick and triggers will act as the fifth and sixth axes when using the 'ch' joystick type.
+
+To enable it:
+
+set SDL1AdditionalOptions=/DSDL_JOYSTICK_XINPUT
+msbuild dosbox-x.sln /p:Configuration=Debug /p:Platform=Win32

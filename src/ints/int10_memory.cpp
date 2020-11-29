@@ -1,5 +1,5 @@
 /*
- *  Copyright (C) 2002-2019  The DOSBox Team
+ *  Copyright (C) 2002-2020  The DOSBox Team
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -11,9 +11,9 @@
  *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  *  GNU General Public License for more details.
  *
- *  You should have received a copy of the GNU General Public License
- *  along with this program; if not, write to the Free Software
- *  Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1335, USA.
+ *  You should have received a copy of the GNU General Public License along
+ *  with this program; if not, write to the Free Software Foundation, Inc.,
+ *  51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
 
 
@@ -32,7 +32,7 @@ bool VIDEO_BIOS_always_carry_16_high_font = true;
 bool VIDEO_BIOS_enable_CGA_8x8_second_half = false;
 bool VIDEO_BIOS_disable = false;
 
-static Bit8u static_functionality[0x10]=
+static uint8_t static_functionality[0x10]=
 {
  /* 0 */ 0xff,  // All modes supported #1
  /* 1 */ 0xff,  // All modes supported #2
@@ -49,12 +49,12 @@ static Bit8u static_functionality[0x10]=
  /* f */ 0x00   // reserved
 };
 
-static Bit16u map_offset[8]={
+static uint16_t map_offset[8]={
 	0x0000,0x4000,0x8000,0xc000,
 	0x2000,0x6000,0xa000,0xe000
 };
 
-void INT10_LoadFont(PhysPt font,bool reload,Bit16u count,Bitu offset,Bitu map,Bit8u height) {
+void INT10_LoadFont(PhysPt font,bool reload,uint16_t count,Bitu offset,Bitu map,uint8_t height) {
     unsigned char m64k;
 
 	if (IS_VGA_ARCH || (IS_EGA_ARCH && vga.mem.memsize >= 0x20000))
@@ -62,8 +62,8 @@ void INT10_LoadFont(PhysPt font,bool reload,Bit16u count,Bitu offset,Bitu map,Bi
     else
         m64k = 0x00;
 
-    PhysPt ftwhere = PhysMake(0xa000, map_offset[map & 0x7] + (Bit16u)(offset * 32));
-	Bit16u base=real_readw(BIOSMEM_SEG,BIOSMEM_CRTC_ADDRESS);
+    PhysPt ftwhere = PhysMake(0xa000, map_offset[map & 0x7] + (uint16_t)(offset * 32));
+	uint16_t base=real_readw(BIOSMEM_SEG,BIOSMEM_CRTC_ADDRESS);
 	bool mono=(base==VGAREG_MDA_CRTC_ADDRESS);
 	
 	//Put video adapter in planar mode
@@ -74,7 +74,7 @@ void INT10_LoadFont(PhysPt font,bool reload,Bit16u count,Bitu offset,Bitu map,Bi
 	IO_Write(0x3ce,0x06);IO_Write(0x3cf,0x04); // CPU memory window A0000-AFFFF
 	
 	//Load character patterns
-	for (Bit16u i=0;i<count;i++) {
+	for (uint16_t i=0;i<count;i++) {
 		MEM_BlockCopy(ftwhere+i*32u,font,height);
 		font+=height;
 	}
@@ -102,19 +102,19 @@ void INT10_LoadFont(PhysPt font,bool reload,Bit16u count,Bitu offset,Bitu map,Bi
 		Bitu rows=CurMode->sheight/height;
 		Bitu vdend=rows*height*((CurMode->sheight==200)?2:1)-1;
 		IO_Write(base,0x12);
-		IO_Write(base+1u,(Bit8u)vdend);
+		IO_Write(base+1u,(uint8_t)vdend);
 		//Underline location
 		if (CurMode->mode==7) {
 			IO_Write(base,0x14);
 			IO_Write(base+1u,(IO_Read(base+1u) & ~0x1fu)|(height-1u));
 		}
 		//Rows setting in bios segment
-		real_writeb(BIOSMEM_SEG,BIOSMEM_NB_ROWS,(Bit8u)(rows-1));
-		real_writeb(BIOSMEM_SEG,BIOSMEM_CHAR_HEIGHT,(Bit8u)height);
+		real_writeb(BIOSMEM_SEG,BIOSMEM_NB_ROWS,(uint8_t)(rows-1));
+		real_writeb(BIOSMEM_SEG,BIOSMEM_CHAR_HEIGHT,(uint8_t)height);
 		//Page size
 		Bitu pagesize=rows*real_readb(BIOSMEM_SEG,BIOSMEM_NB_COLS)*2;
 		pagesize+=0x100; // bios adds extra on reload
-		real_writew(BIOSMEM_SEG,BIOSMEM_PAGE_SIZE,(Bit16u)pagesize);
+		real_writew(BIOSMEM_SEG,BIOSMEM_PAGE_SIZE,(uint16_t)pagesize);
 		//Cursor shape
 		if (height>=14) height--; // move up one line on 14+ line fonts
 		INT10_SetCursorShape(height-2,height-1);
@@ -124,16 +124,21 @@ void INT10_LoadFont(PhysPt font,bool reload,Bit16u count,Bitu offset,Bitu map,Bi
         //       At the very least, if the IBM PS/2 VGA BIOS does not, then this code should be coded NOT to clip the cursor
         //       when machine=vgaonly.
         {
-            Bit8u page=real_readb(BIOSMEM_SEG,BIOSMEM_CURRENT_PAGE);
-            Bit8u cur_row=CURSOR_POS_ROW(page);
-            Bit8u cur_col=CURSOR_POS_COL(page);
+            uint8_t page=real_readb(BIOSMEM_SEG,BIOSMEM_CURRENT_PAGE);
+            uint8_t cur_row=CURSOR_POS_ROW(page);
+            uint8_t cur_col=CURSOR_POS_COL(page);
 
             if (cur_row >= rows)
-                INT10_SetCursorPos((Bit8u)(rows-1),cur_col,page);
+                INT10_SetCursorPos((uint8_t)(rows-1),cur_col,page);
         }
 	}
 }
 
+// FIXME: ripsaw8080 noted that while the svgaCard==SVGA_None conditions are appropriate for DOSBox SVN
+// because the vgaonly machine type is alone in displaying 9-dot character cells, but in DOSBox-X (as in
+// DOSBox SVN Daum) the char9= setting should be respected. As it is now, users will not get the wider
+// symbols when char9= is true and machine= is an SVGA machine type.
+// SVN commit reference: https://sourceforge.net/p/dosbox/code-0/3932/
 void INT10_ReloadFont(void) {
 	Bitu map=0;
 	switch(CurMode->cheight) {
@@ -205,7 +210,7 @@ void INT10_SetupRomMemory(void) {
             for (unsigned int i=0;i<256*16;i++)
                 phys_writeb((PhysPt)base+i,int10_font_16[i]);
 
-            int10.rom.font_16 = RealMake((Bit16u)(base >> 4u),(Bit16u)(base & 0xF));
+            int10.rom.font_16 = RealMake((uint16_t)(base >> 4u),(uint16_t)(base & 0xF));
 
             // MCGA has the pointer at 40:A8 (BIOSMEM_VS_POINTER), confirmed on real hardware.
             // It points into the BIOS, because MCGA systems do not have a BIOS at C000:0000
@@ -215,13 +220,13 @@ void INT10_SetupRomMemory(void) {
             vptr -= vptroff;
             Bitu vptroff_limit = vptroff + 0x600;
 
-            int10.rom.video_parameter_table=RealMake((Bit16u)vptrseg, (Bit16u)vptroff);
+            int10.rom.video_parameter_table=RealMake((uint16_t)vptrseg, (uint16_t)vptroff);
             vptroff+=INT10_SetupVideoParameterTable((PhysPt)(vptr+vptroff));
 
             // The dynamic save area should be in RAM, it cannot exist in ROM
             int10.rom.video_dynamic_save_area=0;
 
-            int10.rom.video_save_pointers=RealMake((Bit16u)vptrseg, (Bit16u)vptroff);
+            int10.rom.video_save_pointers=RealMake((uint16_t)vptrseg, (uint16_t)vptroff);
             phys_writed((PhysPt)(vptr+vptroff),int10.rom.video_parameter_table);
             vptroff+=4;
             phys_writed((PhysPt)(vptr+vptroff),int10.rom.video_dynamic_save_area);		// dynamic save area pointer
@@ -256,11 +261,11 @@ void INT10_SetupRomMemory(void) {
 
         // ROM signature
 		phys_writew(rom_base+0,0xaa55);
-		phys_writeb(rom_base+2,(Bit8u)(VGA_BIOS_Size >> 9u));
+		phys_writeb(rom_base+2,(uint8_t)(VGA_BIOS_Size >> 9u));
         // entry point
         phys_writeb(rom_base+3,0xFE); // Callback instruction
         phys_writeb(rom_base+4,0x38);
-        phys_writew(rom_base+5,(Bit16u)VGA_ROM_BIOS_ENTRY_cb);
+        phys_writew(rom_base+5,(uint16_t)VGA_ROM_BIOS_ENTRY_cb);
         phys_writeb(rom_base+7,0xCB); // RETF
 
         // VGA BIOS copyright
@@ -284,8 +289,8 @@ void INT10_SetupRomMemory(void) {
 				LOG(LOG_MISC,LOG_DEBUG)("Redirecting INT 10h to point at the VGA BIOS");
 
 				phys_writeb(rom_base+0xEE,0xEA); // JMP FAR
-				phys_writew(rom_base+0xEF,(Bit16u)(biosint10 & 0xFFFFu));
-				phys_writew(rom_base+0xF1,(Bit16u)((biosint10 >> 16u) & 0xFFFFu));
+				phys_writew(rom_base+0xEF,(uint16_t)(biosint10 & 0xFFFFu));
+				phys_writew(rom_base+0xF1,(uint16_t)((biosint10 >> 16u) & 0xFFFFu));
 
 				/* WARNING: This overwrites the INT 10 startup code's vector successfully only because this
 				 *          code is called AFTER it has initialized the INT 10h vector. If initialization
@@ -457,18 +462,18 @@ void INT10_ReloadRomFonts(void) {
 void INT10_SetupRomMemoryChecksum(void) {
 	if (IS_EGAVGA_ARCH) { //EGA/VGA. Just to be safe
 		/* Sum of all bytes in rom module 256 should be 0 */
-		Bit8u sum = 0;
+		uint8_t sum = 0;
 		PhysPt rom_base = PhysMake(0xc000,0);
 		unsigned int last_rombyte = (unsigned int)VGA_BIOS_Size - 1;		//32 KB romsize
 		for (unsigned int i = 0;i < last_rombyte;i++)
 			sum += phys_readb(rom_base + i);	//OVERFLOW IS OKAY
-		sum = (Bit8u)((256 - (Bitu)sum)&0xff);
+		sum = (uint8_t)((256 - (Bitu)sum)&0xff);
 		phys_writeb(rom_base + last_rombyte,sum);
 	}
 }
 
 
-Bit8u int10_font_08[256 * 8] = {
+uint8_t int10_font_08[256 * 8] = {
   0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
   0x7e, 0x81, 0xa5, 0x81, 0xbd, 0x99, 0x81, 0x7e,
   0x7e, 0xff, 0xdb, 0xff, 0xc3, 0xe7, 0xff, 0x7e,
@@ -727,7 +732,7 @@ Bit8u int10_font_08[256 * 8] = {
   0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00
 };
 
-Bit8u int10_font_14[256 * 14] = {
+uint8_t int10_font_14[256 * 14] = {
   0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
   0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
   0x7e, 0x81, 0xa5, 0x81, 0x81, 0xbd, 0x99, 0x81,
@@ -1178,7 +1183,7 @@ Bit8u int10_font_14[256 * 14] = {
   0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00
 };
 
-Bit8u int10_font_16[256 * 16] = {
+uint8_t int10_font_16[256 * 16] = {
   0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
   0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
   0x00, 0x00, 0x7e, 0x81, 0xa5, 0x81, 0x81, 0xbd,
@@ -1693,7 +1698,7 @@ Bit8u int10_font_16[256 * 16] = {
   0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00
 };
 
-Bit8u int10_font_14_alternate[20 * 15 + 1] = {
+uint8_t int10_font_14_alternate[20 * 15 + 1] = {
   0x1d,
   0x00, 0x00, 0x00, 0x00, 0x24, 0x66, 0xff,
   0x66, 0x24, 0x00, 0x00, 0x00, 0x00, 0x00,
@@ -1757,7 +1762,7 @@ Bit8u int10_font_14_alternate[20 * 15 + 1] = {
   0x00
 };
 
-Bit8u int10_font_16_alternate[19 * 17 + 1] = {
+uint8_t int10_font_16_alternate[19 * 17 + 1] = {
   0x1d,
   0x00, 0x00, 0x00, 0x00, 0x00, 0x24, 0x66, 0xff,
   0x66, 0x24, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,

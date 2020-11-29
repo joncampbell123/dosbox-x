@@ -3,7 +3,7 @@
  *
  *  Copyright (C) 2001-2017  Ryan C. Gordon <icculus@icculus.org>
  *  Copyright (C) 2018-2019  Kevin R. Croft <krcroft@gmail.com>
- *  Copyright (C) 2020-2020  The DOSBox-X project
+ *  Copyright (C) 2020-2020  The DOSBox Staging Team
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -51,7 +51,7 @@ static size_t flac_read(void* pUserData, void* pBufferOut, size_t bytesToRead)
 
     while (bytes_read < bytesToRead)
     {
-        const size_t rc = SDL_RWread(rwops, ptr, 1, bytesToRead - bytes_read);
+        const size_t rc = SDL_RWread(rwops, ptr, 1, (int)(bytesToRead - bytes_read));
         if (rc == 0) {
             sample->flags |= SOUND_SAMPLEFLAG_EOF;
             break;
@@ -126,14 +126,14 @@ static void FLAC_close(Sound_Sample *sample)
 } /* FLAC_close */
 
 
-static Uint32 FLAC_read(Sound_Sample *sample, void* buffer, Uint32 desired_frames)
+static Uint32 FLAC_read(Sound_Sample *sample)
 {
     Sound_SampleInternal *internal = (Sound_SampleInternal *) sample->opaque;
     drflac *dr = (drflac *) internal->decoder_private;
-    const drflac_uint64 decoded_frames = drflac_read_pcm_frames_s16(dr,
-                                                                    desired_frames,
-                                                                    (drflac_int16 *) buffer);
-    return (Uint32) decoded_frames;
+    const drflac_uint64 rc = drflac_read_pcm_frames_s16(dr,
+                                                        internal->buffer_size / (dr->channels * sizeof(drflac_int16)),
+                                                        (drflac_int16 *) internal->buffer);
+    return (Uint32)(rc * dr->channels * sizeof (drflac_int16));
 } /* FLAC_read */
 
 

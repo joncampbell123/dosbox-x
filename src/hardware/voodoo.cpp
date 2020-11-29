@@ -1,5 +1,5 @@
 /*
- *  Copyright (C) 2002-2019  The DOSBox Team
+ *  Copyright (C) 2002-2020  The DOSBox Team
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -11,9 +11,9 @@
  *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  *  GNU General Public License for more details.
  *
- *  You should have received a copy of the GNU General Public License
- *  along with this program; if not, write to the Free Software
- *  Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1335, USA.
+ *  You should have received a copy of the GNU General Public License along
+ *  with this program; if not, write to the Free Software Foundation, Inc.,
+ *  51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
 
 
@@ -36,7 +36,7 @@
 class VOODOO;
 static VOODOO* voodoo_dev;
 
-static Bit32u voodoo_current_lfb=(VOODOO_INITIAL_LFB&0xffff0000);
+static uint32_t voodoo_current_lfb=(VOODOO_INITIAL_LFB&0xffff0000);
 
 static bool voodoo_pci_enabled = false;
 static MEM_Callout_t voodoo_lfb_cb = MEM_Callout_t_none;
@@ -91,7 +91,7 @@ public:
         emulation_type=-1;
 
         Section_prop * section=static_cast<Section_prop *>(configuration);
-        std::string voodoo_type_str(section->Get_string("voodoo"));
+        std::string voodoo_type_str(section->Get_string("voodoo_card"));
         if (voodoo_type_str=="false") {
             emulation_type=0;
         } else if (voodoo_type_str=="software") {
@@ -109,6 +109,10 @@ public:
 
         Bits card_type = 1;
         bool max_voodoomem = true;
+		if (section->Get_bool("voodoo_maxmem"))
+			max_voodoomem = true;
+		else
+			max_voodoomem = false;
 
         bool needs_pci_device = false;
 
@@ -191,7 +195,7 @@ void VOODOO_PCI_Enable(bool enable) {
 }
 
 
-void VOODOO_PCI_SetLFB(Bit32u lfbaddr) {
+void VOODOO_PCI_SetLFB(uint32_t lfbaddr) {
     lfbaddr &= 0xFFFF0000UL;
 
     if (lfbaddr == voodoo_current_lfb)
@@ -226,7 +230,7 @@ void VOODOO_OnPowerOn(Section* /*sec*/) {
     if (voodoo_dev == NULL) {
         voodoo_pci_enabled = true;
         voodoo_current_lfb=(VOODOO_INITIAL_LFB&0xffff0000);
-        voodoo_dev = new VOODOO(control->GetSection("pci"));
+        voodoo_dev = new VOODOO(control->GetSection("voodoo"));
 
         voodoo_lfb_cb_init();
     }

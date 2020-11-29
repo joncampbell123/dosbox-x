@@ -1,0 +1,228 @@
+Some plans for future DOSBox-X developments
+===========================================
+
+* Clock domains
+
+  - Current DOSBox-X emulation is CPU-centric, which is OK, I guess,
+    but not ideal for much of the emulation.
+  - Many delays and timing are based on floating point values in milliseconds.
+    If clock domains were implemented, devices could count very accurately
+    in clocks at a rate of their choosing and better maintain timing that way.
+  - Clock domains could be coded to cascade as well. The obvious example is
+    original PC hardware where the ISA 14.31818MHz clock is divided by 12 to
+    produce the 1.193182MHz clock used to drive the 8253 PIT and other system
+    components.
+  - One part of the emulation that would definitely benefit from clock domain
+    based timing would be the VGA emulation. Pixel and scanline counting would
+    become very accurate if counted with integers according to pixel clocks
+    instead of using the floating math it does now.
+  - Another part of the emulation that would benefit would be the I/O delay
+    emulation. Instead of bumping a fixed number of CPU cycles, the code could
+    more accurately delay CPU timing according to, say, an ISA bus clock
+    domain set to 8.3333MHz and knowledge of a typical ISA bus cycle. Or, if
+    the I/O cycle is directed at the PCI bus (clock domain set to 33.3333Mhz)
+    delays emulated according to PCI bus cycle or PCI burst I/O cycle counting.
+
+* Runtime hooks for patching
+
+  - If told to do so, DOSBox-X can look for an IPS file (or DOSBox-X equivalent)
+    and when a particular EXE is loaded into memory, patch the executable image
+    before executing it. The idea being that DOS gamers can use this mechanism
+    to fix bugs in a game or demo without modifying the original EXE. It can also
+    be a fun way to cheat :)
+  - We could assist this mechanism with the ability for the user to force an EXE
+    file to be loaded at a specific segment, in case the patch is sensitive to
+    segment values. Loading must fail of course if we cannot put the EXE at that
+    location.
+  - We could also add the ability for DOSBox-X to patch data files when the game
+    reads them from disk, to hack textures, sounds, etc. Again the data file
+    remains unmodified on disk.
+  - On a related note, it would be cool if we could implement something like
+    Bochs volatile mode where data is read from the file, but writes to the file
+    are directed to a temporary file which is thrown away on exit, keeping your
+    files unmodified.
+  - If executable unpacking is involved, some additional tools could be provided
+    where the patch does not modify the loaded EXE, but can be instructed to
+    patch an area of memory when the instruction pointer hits a specific location
+    in the EXE (usually when the EXE has finished unpacking and checking it's
+    integrity).
+
+* Port to SDL 2.0
+
+  - Doing that would open up some useful 2D blitting functions and support for
+    multiple windows, which would be very useful for multi-monitor emulation
+    or implementing a debugger, or emulating a multi-head DOS setup with both
+    VGA and MDA/Hercules monitors.
+
+* Support for loading BIOS images and mapping them into adapter ROM
+
+  - We could test various VGA BIOSes in DOSBox-X that way
+  - We could also run old motherboard BIOSes in DOSBox-X that way
+
+* Convert I/O and memory handler callback system to on-demand bus mapping and
+  tracing design
+
+  - Instead of statically assigning I/O and memory handlers, all handlers are
+    initialized to a lookup function.
+  - The DOSBox motherboard emulator at this point would also maintain it's own
+    setup of a system bus hierarchy (system resources and RAM vs forwarding to
+    the ISA bus, or a PCI-based system that forwards to PCI which can forward
+    via PCI-ISA bridge to ISA, etc.).
+  - When the lookup function is called, the function goes through the "slow"
+    path where it asks the motherboard what function to call, and the
+    motherboard returns a function pointer according to it's designation of
+    routing, which is then written into the I/O handler. In other words, once
+    an I/O port has been accessed, further access is a direct call to the
+    I/O callback.
+  - If resources or mappings change on the bus, then all I/O ports affected
+    have the I/O handler changed back to the slow path lookup function, so
+    that changes take effect when the lookup function returns the new
+    result according to changed routing.
+  - If the memory access involves resources that don't overlap but are too
+    small for DOSBox's 4KB granularity, then the "slow path" function will
+    always be invoked for that memory I/O because it is impossible to write
+    both callbacks to that memory page callback.
+  - Once all I/O and memory resources are routed this way, it becomes easy
+    for DOSBox to emulate devices that can change I/O ports such as ISA PnP
+    type devices that allow you to change the base I/O port of a resource.
+    Sound Blaster ISA PnP emulation will no longer emit a warning when
+    Windows or any DOS program attempts to reprogram the base address.
+    It would also allow DOS or Windows to change, relocate, enable/disable
+    PCI resources. The only performance penalty is that everytime a mapping
+    changes, the emulator has to invalidate all I/O and memory callbacks
+    to allow the "slow" path to do it's work again.
+  - The reason we don't do bus lookup every time is one of performance.
+    DOSBox-X already has an array of IO handlers and memory page handlers,
+    so why not make use of it as a cache for callbacks once the slow path
+    has been taken? Doing it this way should have almost no impact on
+    emulator performance.
+
+* Motherboard & BIOS oriented system construction
+  - Rather than the one way the DOSBox kernel does it, the user could instead
+    specify that DOSBox-X emulate a particular motherboard with a particular
+    BIOS. The code could then construct I/O and memory mangement to emulate
+    the known chipsets on that board.
+
+    Example: If instructed to, it would emulate the system board on an old
+    laptop of mine with a Chips & Tech 386 AT ASIC, or it could emulate an
+    old AST motherboard and instruct PIC emulation to act like a Unicorn
+    Microelectronics UM8259A-2. The default of course would carefully
+    mimic for backwards compatability the DOSBox mainline "motherboard" and
+    "bios" configuration.
+
+  - Such construction may include (if on original hardware), VGA emulation
+    tuned to mimic the onboard VGA of the original hardware if user says it
+    should be enabled.
+
+* CD audio
+
+  - Refactor the code to ensure we feed out CD audio in a way the guest
+    can track it's time accurately.
+  - IDE/ATAPI emulation needs to support the mode select or whatever commands
+    used by DOS programs to change CD audio volume.
+
+* Full Intellimouse scrollwheel emulation
+
+  - Apparently it's possible to respond to scrollwheel events via SDL, so
+    add code to receive them.
+  - Add code to store scroll wheel deltas in mouse event queue.
+  - Add code to take overall scrollwheel delta and transmit as 4th byte
+    in Intellimouse mouse on AUX.
+  - And toughest of them all: Figure out how the hell Windows 98 is able
+    to use scrollwheel data when it is still reliant on the INT 15h
+    device callback that's documented only to carry the X, Y, and button
+    state data. If VirtualBox can do it, so can I! The ONLY documentation
+    I have on this are snippets of code from CuteMouse that is apparently
+    able to turn on PS/2 BIOS scroll wheel capture for DOS. In any case
+    perhaps the best course of action is to write a program in DOSLIB that
+    hooks the device callback and records the values on the stack during
+    the call, with and without the Intellimouse knock sequence in effect.
+
+* Multiple DOS kernel emulation
+
+  - Instead of only emulating a general mishmash of MS-DOS 5.0 to 6.x syscalls,
+    allow dosbox-x.conf setting (and command line at runtime) to choose that
+    a particular brand and version is emulated. For example, if you say that
+    you want DOSBox-X to emulate MS-DOS 3.3, then it will return values and act
+    like MS-DOS 3.3 (including the shorter form of the disk parameter table
+    prior to MS-DOS 4.0). With the current code, if you say that you want
+    DOSBox-X to emulate MS-DOS 7.1, then it tries to return values and act
+    like MS-DOS 7.1 (including support for FAT32 drives and long filenames).
+
+* Misc
+
+  - If PCI emulation is enabled, then byte-sized writes to port 0xCF9
+    should follow Intel PIIX chipset documentation: if bit 1 changes from
+    0 to 1 the system undergoes a "soft reset", and if bit 2 changes from
+    0 to 1 the system undergoes a "hard reset". Reset method confirmed
+    working on an old Pentium system of mine, and it complements the
+    keyboard and port 0x92 methods well.
+  - So what exotic method are older demos using the clear the screen anyway?
+    Can you figure it out? Their failure to clear the screen properly is
+    causing graphic anomolies during certain parts.
+  - Memory and I/O resource management code. Rather than just pick regions
+    of memory and I/O space, the emulation code should have a way to mark
+    that such and such region has been taken for e.g. "VGA BIOS" and
+    "ROM BIOS". It would make it possible for adapter emulation to know
+    if the region it is trying to take is already occupied, and provide
+    a way for said adapter (unless instructed by user) to automatically
+    pick a location that it can claim. It would also make for good
+    debugging information.
+  - Peripherals should assign themselves to a bus if possible. Sound Blaster
+    emulation for example would register itself to the I/O ports on the
+    ISA bus. Voodoo 3dfx emulation would register itself to the PCI bus.
+  - Support not just for declaring an ISA bus and it's frequency, but also
+    for ISA devices that you would declare "attached" to the bus (same with
+    PCI). Instead of DOSBox's design where peripherals are static and only
+    one at a time is possible, we would allow you to declare peripherals
+    and declare them attached to the ISA bus slots. If you want to emulate
+    a DOS machine with three Sound Blaster cards, you could declare three
+    of them (with different resources of course) and have them attached to
+    the ISA bus.
+  - If I wanted DOSBox-X to emulate a VESA local bus peripheral, would I
+    have to do anything extra to do it?
+  - CMOS emulation. The current code sucks. Why exactly are all values
+    hard-coded? That's not how the RTC/CMOS works! The real deal has
+    clock registers in the first 14 bytes and the rest is non-volatile
+    RAM! Fix!
+  - RTC/CMOS emulation: support non-realtime mode (where the clock does
+    NOT follow host time but follows time accurately according to emulation).
+    But of course the option to follow realtime would also be available.
+  - IDE/ATA emulation: What exactly is triggering the debugger when
+    you boot MS-DOS 6.22 using the OAK CD-ROM driver? It needs to be removed,
+    it makes using MS-DOS 6.22 with debugger builds annoying.
+  - VGA Linewise rendering is currently hardcoded for 16bpp RGB. Why?
+    Add option to allow the user to choose 32bpp RGBA linewise rendering.
+  - VGA output: add optional scalar or post-processing that can auto-detect
+    fake high-color VGA modes in demos, and process the scanlines such that
+    the RGB spreads vertically to mask the raster scanline effect (so that
+    the picture is presentable even if rescaled later)
+  - VGA output: Add support for VESA 24bpp modes (DOSBox's scalers are
+    currently hard-coded for 8/16/32bpp). There are some demos (a 1997
+    Coma demo comes to mind) where if a 24/32bpp mode is chosen the demo
+    assumes 24bpp RGB arrangement.
+  - VGA debugging function: Add code that, if triggered, allows DOSBox to
+    pause emulation and allow you to examine/play with the VGA palette, DAC, 
+    registers, screen bytes, etc. The reason I want to do this is that there
+    are some demos (listed elsewhere in the BUGS section) where for whatever
+    reason there are VGA palette errors, some entries remain black despite
+    palette animation. The "debugger" would overlay the VGA screen, of course.
+  - VGA "fixed output" mode. A scalar would be invoked if enabled that
+    upscales all VGA raster output to a specific resolution and frame rate
+    (the frame rate would be 250Hz, 300Hz, or 1000Hz so that refresh rate
+    changes are better represented accurately). This would be one way to
+    capture demos that change VGA modes once per section in one AVI file.
+    Scalar would include common VGA resolutions like 640x400, 640x480,
+    800x600, and 1024x768. The scalar could also distort the picture if
+    the CRT timing is known to cause older VGA monitors to squeeze the
+    picture (such as some older DOS demos that speed up vertical retrace
+    knowing it would cause older VGA monitors to focus the raster beam
+    in the center for a "widescreen" effect).
+  - VGA overscan border rendering. Update/rewrite the raster linewise
+    renderers to include overscan border in output if asked to.
+  - ODML AVI capture. The current code works great until you hit 2GB, then
+    falls apart. I would be willing to throw in code I've written for other
+    professional projects to write AVI files that are ODML compliant to
+    enable longer captures >= 2GB (contain both the AVIOLDINDEX and ODML
+    AVI index).
+

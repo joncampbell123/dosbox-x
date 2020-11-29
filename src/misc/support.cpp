@@ -1,5 +1,5 @@
 /*
- *  Copyright (C) 2002-2019  The DOSBox Team
+ *  Copyright (C) 2002-2020  The DOSBox Team
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -11,9 +11,9 @@
  *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  *  GNU General Public License for more details.
  *
- *  You should have received a copy of the GNU General Public License
- *  along with this program; if not, write to the Free Software
- *  Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1335, USA.
+ *  You should have received a copy of the GNU General Public License along
+ *  with this program; if not, write to the Free Software Foundation, Inc.,
+ *  51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
 
 
@@ -203,6 +203,10 @@ double ConvDblWord(char * word) {
 #if C_DEBUG
 #include <curses.h>
 #endif
+#if defined(WIN32)
+void DOSBox_ConsolePauseWait();
+#endif
+bool sdl_wait_on_error();
 
 static char buf[1024];           //greater scope as else it doesn't always gets thrown right (linux/gcc2.95)
 void E_Exit(const char * format,...) {
@@ -224,6 +228,11 @@ void E_Exit(const char * format,...) {
 #endif
 	fprintf(stderr, "E_Exit: %s\n", buf);
 	SDL_Quit();
+	if (sdl_wait_on_error()) {
+#if defined(WIN32)
+        DOSBox_ConsolePauseWait();
+#endif
+    }
 	exit(0);
 }
 

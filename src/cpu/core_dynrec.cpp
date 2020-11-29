@@ -1,5 +1,5 @@
 /*
- *  Copyright (C) 2002-2019  The DOSBox Team
+ *  Copyright (C) 2002-2020  The DOSBox Team
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -11,9 +11,9 @@
  *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  *  GNU General Public License for more details.
  *
- *  You should have received a copy of the GNU General Public License
- *  along with this program; if not, write to the Free Software
- *  Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1335, USA.
+ *  You should have received a copy of the GNU General Public License along
+ *  with this program; if not, write to the Free Software Foundation, Inc.,
+ *  51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
 
 
@@ -51,6 +51,11 @@
 #include "inout.h"
 #include "lazyflags.h"
 #include "pic.h"
+
+/* Some platforms need workarounds for this dynamic core to work.
+   They may have a security policy known as W^X (write-xor-execute),
+   in which pages can be writeable, or executable, but not both. */
+bool w_xor_x = false;
 
 #define CACHE_MAXSIZE	(4096*2)
 #define CACHE_TOTAL		(1024*1024*8)
@@ -124,10 +129,10 @@ static void IllegalOptionDynrec(const char* msg) {
 }
 
 static struct {
-	BlockReturn (*runcode)(Bit8u*);		// points to code that can start a block
+	BlockReturn (*runcode)(uint8_t*);		// points to code that can start a block
 	Bitu callback;				// the occurred callback
 	Bitu readdata;				// spare space used when reading from memory
-	Bit32u protected_regs[8];	// space to save/restore register values
+	uint32_t protected_regs[8];	// space to save/restore register values
 } core_dynrec;
 
 
@@ -199,7 +204,7 @@ static bool winrt_warning = true;
 CacheBlockDynRec * LinkBlocks(BlockReturn ret) {
 	CacheBlockDynRec * block=NULL;
 	// the last instruction was a control flow modifying instruction
-	Bit32u temp_ip=SegPhys(cs)+reg_eip;
+	uint32_t temp_ip=SegPhys(cs)+reg_eip;
 	CodePageHandlerDynRec * temp_handler=(CodePageHandlerDynRec *)get_tlb_readhandler(temp_ip);
 	if (temp_handler->flags & PFLAG_HASCODE) {
 		// see if the target is an already translated block
@@ -365,19 +370,15 @@ run_block:
 			cpu.exception.which=0;
 			// fallthrough, let the normal core handle the block-modifying instruction
 		case BR_Opcode:
+#if (C_DEBUG)
+		case BR_OpcodeFull:
+#endif
 			// some instruction has been encountered that could not be translated
 			// (thus it is not part of the code block), the normal core will
 			// handle this instruction
 			CPU_CycleLeft+=CPU_Cycles;
 			CPU_Cycles=1;
 			return CPU_Core_Normal_Run();
-
-#if (C_DEBUG)
-		case BR_OpcodeFull:
-			CPU_CycleLeft+=CPU_Cycles;
-			CPU_Cycles=1;
-			return CPU_Core_Full_Run();
-#endif
 
 		case BR_Link1:
 		case BR_Link2:

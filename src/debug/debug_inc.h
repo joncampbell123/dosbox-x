@@ -1,5 +1,5 @@
 /*
- *  Copyright (C) 2002-2019  The DOSBox Team
+ *  Copyright (C) 2002-2020  The DOSBox Team
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -11,9 +11,9 @@
  *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  *  GNU General Public License for more details.
  *
- *  You should have received a copy of the GNU General Public License
- *  along with this program; if not, write to the Free Software
- *  Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1335, USA.
+ *  You should have received a copy of the GNU General Public License along
+ *  with this program; if not, write to the Free Software Foundation, Inc.,
+ *  51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
 
 /* Local Debug Function */
@@ -82,9 +82,9 @@ public:
 
     WINDOW * win_inp;                   /* Input window (not counted in tab enumeration) */
 
-    Bit32u active_win;					/* Current active window */
-	Bit32u input_y;
-	Bit32u global_mask;					/* Current msgmask */
+    uint32_t active_win;					/* Current active window */
+	uint32_t input_y;
+	uint32_t global_mask;					/* Current msgmask */
 
     unsigned char data_view;
 
@@ -106,17 +106,17 @@ public:
 
 
 struct DASMLine {
-	Bit32u pc;
+	uint32_t pc;
 	char dasm[80];
 	PhysPt ea;
-	Bit16u easeg;
-	Bit32u eaoff;
+	uint16_t easeg;
+	uint32_t eaoff;
 };
 
 extern DBGBlock dbg;
 
 /* Local Debug Stuff */
-Bitu DasmI386(char* buffer, PhysPt pc, Bit32u cur_ip, bool bit32);
+Bitu DasmI386(char* buffer, PhysPt pc, uint32_t cur_ip, bool bit32);
 int  DasmLastOperandSize(void);
 #endif
 

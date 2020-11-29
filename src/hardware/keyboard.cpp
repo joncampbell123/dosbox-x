@@ -1,5 +1,5 @@
 /*
- *  Copyright (C) 2002-2019  The DOSBox Team
+ *  Copyright (C) 2002-2020  The DOSBox Team
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -11,9 +11,9 @@
  *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  *  GNU General Public License for more details.
  *
- *  You should have received a copy of the GNU General Public License
- *  along with this program; if not, write to the Free Software
- *  Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1335, USA.
+ *  You should have received a copy of the GNU General Public License along
+ *  with this program; if not, write to the Free Software Foundation, Inc.,
+ *  51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
 
 
@@ -23,6 +23,7 @@
 #include "setup.h"
 #include "inout.h"
 #include "mouse.h"
+#include "menu.h"
 #include "pic.h"
 #include "mem.h"
 #include "cpu.h"
@@ -43,10 +44,10 @@
 
 void AUX_Reset();
 void KEYBOARD_Reset();
-static void KEYBOARD_SetPort60(Bit16u val);
-void KEYBOARD_AddBuffer(Bit16u data);
-static void KEYBOARD_Add8042Response(Bit8u data);
-void KEYBOARD_SetLEDs(Bit8u bits);
+static void KEYBOARD_SetPort60(uint16_t val);
+void KEYBOARD_AddBuffer(uint16_t data);
+static void KEYBOARD_Add8042Response(uint8_t data);
+void KEYBOARD_SetLEDs(uint8_t bits);
 
 bool enable_pc98_bus_mouse = true;
 
@@ -88,9 +89,9 @@ struct ps2mouse {
     MouseType   type;           /* what kind of mouse we are emulating */
     MouseMode   mode;           /* current mode */
     MouseMode   reset_mode;     /* mode to change to on reset */
-    Bit8u       samplerate;     /* current sample rate */
-    Bit8u       resolution;     /* current resolution */
-    Bit8u       last_srate[3];      /* last 3 "set sample rate" values */
+    uint8_t       samplerate;     /* current sample rate */
+    uint8_t       resolution;     /* current resolution */
+    uint8_t       last_srate[3];      /* last 3 "set sample rate" values */
     float       acx,acy;        /* accumulator */
     bool        reporting;      /* reporting */
     bool        scale21;        /* 2:1 scaling */
@@ -101,12 +102,12 @@ struct ps2mouse {
 };
 
 static struct {
-    Bit8u buf8042[8];       /* for 8042 responses, taking priority over keyboard responses */
+    uint8_t buf8042[8];       /* for 8042 responses, taking priority over keyboard responses */
     Bitu buf8042_len;
     Bitu buf8042_pos;
     int pending_key;
 
-    Bit16u buffer[KEYBUFSIZE];
+    uint16_t buffer[KEYBUFSIZE];
     Bitu used;
     Bitu pos;
 
@@ -119,8 +120,8 @@ static struct {
     KeyCommands command;
     AuxCommands aux_command;
     Bitu led_state;
-    Bit8u p60data;
-    Bit8u scanset;
+    uint8_t p60data;
+    uint8_t scanset;
     bool enable_aux;
     bool reset;
     bool active;
@@ -236,10 +237,10 @@ int KEYBOARD_AUX_Active() {
     return keyb.auxactive && !keyb.ps2mouse.int33_taken;
 }
 
-static void KEYBOARD_SetPort60(Bit16u val) {
+static void KEYBOARD_SetPort60(uint16_t val) {
     keyb.auxchanged=(val&AUX)>0;
     keyb.p60changed=true;
-    keyb.p60data=(Bit8u)val;
+    keyb.p60data=(uint8_t)val;
     if (keyb.auxchanged) {
         if (keyb.cb_irq12) {
             PIC_ActivateIRQ(12);
@@ -294,7 +295,7 @@ size_t KEYBOARD_BufferSpaceAvail()   // emendelson from dbDOS
     return (KEYBUFSIZE - keyb.used);
 }                                   // end emendelson from dbDOS
 
-static void KEYBOARD_Add8042Response(Bit8u data) {
+static void KEYBOARD_Add8042Response(uint8_t data) {
     if (keyb.buf8042_pos >= keyb.buf8042_len)
         keyb.buf8042_pos = keyb.buf8042_len = 0;
     else if (keyb.buf8042_len == 0)
@@ -309,7 +310,7 @@ static void KEYBOARD_Add8042Response(Bit8u data) {
     PIC_AddEvent(KEYBOARD_TransferBuffer,KEYDELAY);
 }
 
-void KEYBOARD_AddBuffer(Bit16u data) {
+void KEYBOARD_AddBuffer(uint16_t data) {
     if (keyb.used>=KEYBUFSIZE) {
         LOG(LOG_KEYBOARD,LOG_NORMAL)("Buffer full, dropping code");
         KEYBOARD_ClrBuffer(); return;
@@ -331,7 +332,7 @@ Bitu Keyboard_Guest_LED_State() {
 
 void UpdateKeyboardLEDState(Bitu led_state/* in the same bitfield arrangement as using command 0xED on PS/2 keyboards */);
 
-void KEYBOARD_SetLEDs(Bit8u bits) {
+void KEYBOARD_SetLEDs(uint8_t bits) {
     /* Some OSes we have control of the LEDs if keyboard+mouse capture */
     keyb.led_state = bits;
     UpdateKeyboardLEDState(bits);
@@ -664,7 +665,7 @@ static void write_p60(Bitu port,Bitu val,Bitu iolen) {
     }
 }
 
-static Bit8u port_61_data = 0;
+static uint8_t port_61_data = 0;
 
 static Bitu read_p61(Bitu, Bitu) {
     unsigned char dbg;
@@ -675,7 +676,7 @@ static Bitu read_p61(Bitu, Bitu) {
 }
 
 static void write_p61(Bitu, Bitu val, Bitu) {
-    Bit8u diff = port_61_data ^ (Bit8u)val;
+    uint8_t diff = port_61_data ^ (uint8_t)val;
     if (diff & 0x1) TIMER_SetGate2(val & 0x1);
     if ((diff & 0x3) && !IS_PC98_ARCH) {
         bool pit_clock_gate_enabled = !!(val & 0x1);
@@ -686,7 +687,7 @@ static void write_p61(Bitu, Bitu val, Bitu) {
 }
 
 static Bitu read_p62(Bitu /*port*/,Bitu /*iolen*/) {
-    Bit8u ret = Bit8u(~0x20u);
+    uint8_t ret = uint8_t(~0x20u);
     if (TIMER_GetOutput2()) ret|=0x20u;
     return ret;
 }
@@ -803,12 +804,12 @@ static void write_p64(Bitu port,Bitu val,Bitu iolen) {
 static Bitu read_p64(Bitu port,Bitu iolen) {
     (void)port;//UNUSED
     (void)iolen;//UNUSED
-    Bit8u status= 0x1c | (keyb.p60changed?0x1:0x0) | (keyb.auxchanged?0x20:0x00);
+    uint8_t status= 0x1c | (keyb.p60changed?0x1:0x0) | (keyb.auxchanged?0x20:0x00);
     return status;
 }
 
 void KEYBOARD_AddKey3(KBD_KEYS keytype,bool pressed) {
-    Bit8u ret=0,ret2=0;
+    uint8_t ret=0,ret2=0;
 
     if (keyb.reset)
         return;
@@ -1002,7 +1003,7 @@ void KEYBOARD_AddKey3(KBD_KEYS keytype,bool pressed) {
 }
 
 void KEYBOARD_AddKey2(KBD_KEYS keytype,bool pressed) {
-    Bit8u ret=0,ret2=0;bool extend=false;
+    uint8_t ret=0,ret2=0;bool extend=false;
 
     if (keyb.reset)
         return;
@@ -1217,7 +1218,7 @@ bool pc98_force_ibm_layout = false;
 
 /* this version sends to the PC-98 8251 emulation NOT the AT 8042 emulation */
 void KEYBOARD_PC98_AddKey(KBD_KEYS keytype,bool pressed) {
-    Bit8u ret=0;
+    uint8_t ret=0;
 
     switch (keytype) {                          // NAME or
                                                 // NM SH KA KA+SH       NM=no-mod SH=shift KA=kana KA+SH=kana+shift
@@ -1334,7 +1335,11 @@ void KEYBOARD_PC98_AddKey(KBD_KEYS keytype,bool pressed) {
         if(pc98_force_ibm_layout)
             ret=0x1A; //HACK, reuse @ key
         break;
-    
+
+    case KBD_pause:                             // PAUSE: Map to STOP key since CTRL+BREAK on IBM PC has a similar function
+        ret=0x60;
+        break;
+
     case KBD_capslock:                          // CAPS
         if (pressed) {                          // sends only on keypress, does not resend if held down
             pc98_caps_toggle();
@@ -1343,13 +1348,13 @@ void KEYBOARD_PC98_AddKey(KBD_KEYS keytype,bool pressed) {
         return;
 
     case KBD_numlock:                           // NUM
-        pc98_numlock_toggle();
+        pc98_numlock_toggle();                  // TODO: Scan code? NUM LOCK didn't exist until later PC-9821 systems.
         return;
 
     case KBD_kana:                              // KANA
         if (pressed) {                          // sends only on keypress, does not resend if held down
             pc98_kana_toggle();
-            pc98_keyboard_send(0x72 | (!pc98_kana() ? 0x80 : 0x00)); // make code if caps switched on, break if caps switched off
+            pc98_keyboard_send(0x72 | (!pc98_kana() ? 0x80 : 0x00)); // make code if kana switched on, break if caps switched off
         }
         return;
 
@@ -1379,7 +1384,7 @@ void KEYBOARD_PC98_AddKey(KBD_KEYS keytype,bool pressed) {
 }
 
 void KEYBOARD_AddKey1(KBD_KEYS keytype,bool pressed) {
-    Bit8u ret=0,ret2=0;bool extend=false;
+    uint8_t ret=0,ret2=0;bool extend=false;
 
     if (keyb.reset)
         return;
@@ -2433,6 +2438,8 @@ void KEYBOARD_OnEnterPC98(Section *sec) {
         pc98_force_ibm_layout = pc98_section->Get_bool("pc-98 force ibm keyboard layout");
         if(pc98_force_ibm_layout)
             LOG_MSG("Forcing PC-98 keyboard to use IBM US-English like default layout");
+        mainMenu.get_item("pc98_use_uskb").check(pc98_force_ibm_layout).refresh_item(mainMenu);
+
     }
 
     if (!IS_PC98_ARCH) {
@@ -2624,6 +2631,11 @@ void AUX_INT33_Takeover() {
     if (keyb.ps2mouse.type != MOUSE_NONE && keyb.ps2mouse.int33_taken)
         LOG(LOG_KEYBOARD,LOG_NORMAL)("PS/2 mouse emulation: Program is using INT 33h, disabling direct AUX emulation");
     keyb.ps2mouse.int33_taken = 1;
+}
+
+void KEYBOARD_Clear() {
+    keyb.repeat.key=KBD_NONE;
+    KEYBOARD_ClrBuffer();
 }
 
 void KEYBOARD_Reset() {

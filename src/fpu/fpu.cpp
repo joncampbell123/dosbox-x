@@ -1,5 +1,5 @@
 /*
- *  Copyright (C) 2002-2019  The DOSBox Team
+ *  Copyright (C) 2002-2020  The DOSBox Team
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -11,9 +11,9 @@
  *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  *  GNU General Public License for more details.
  *
- *  You should have received a copy of the GNU General Public License
- *  along with this program; if not, write to the Free Software
- *  Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1335, USA.
+ *  You should have received a copy of the GNU General Public License along
+ *  with this program; if not, write to the Free Software Foundation, Inc.,
+ *  51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
 
 
@@ -32,12 +32,12 @@
 FPU_rec fpu;
 
 void FPU_FLDCW(PhysPt addr){
-	Bit16u temp = mem_readw(addr);
+	uint16_t temp = mem_readw(addr);
 	FPU_SetCW(temp);
 }
 
-Bit16u FPU_GetTag(void){
-	Bit16u tag=0;
+uint16_t FPU_GetTag(void){
+	uint16_t tag=0;
 
 	for (Bitu i=0;i<8;i++)
 		tag |= (fpu.tags[i]&3) << (2*i);
@@ -634,7 +634,7 @@ void FPU_ESC7_EA(Bitu rm,PhysPt addr) {
 	Bitu group=(rm >> 3) & 7;
 	Bitu sub=(rm & 7);
 	switch(group){
-	case 0x00:  /* FILD Bit16s */
+	case 0x00:  /* FILD int16_t */
 		{
 			unsigned char old_TOP = TOP;
 
@@ -652,10 +652,10 @@ void FPU_ESC7_EA(Bitu rm,PhysPt addr) {
 	case 0x01:
 		LOG(LOG_FPU,LOG_WARN)("ESC 7 EA:Unhandled group %d subfunction %d",(int)group,(int)sub);
 		break;
-	case 0x02:   /* FIST Bit16s */
+	case 0x02:   /* FIST int16_t */
 		FPU_FST_I16(addr);
 		break;
-	case 0x03:	/* FISTP Bit16s */
+	case 0x03:	/* FISTP int16_t */
 		FPU_FST_I16(addr);
 		FPU_FPOP();
 		break;
@@ -674,7 +674,7 @@ void FPU_ESC7_EA(Bitu rm,PhysPt addr) {
 			}
 		}
 		break;
-	case 0x05:  /* FILD Bit64s */
+	case 0x05:  /* FILD int64_t */
 		{
 			unsigned char old_TOP = TOP;
 
@@ -693,7 +693,7 @@ void FPU_ESC7_EA(Bitu rm,PhysPt addr) {
 		FPU_FBST(addr);
 		FPU_FPOP();
 		break;
-	case 0x07:  /* FISTP Bit64s */
+	case 0x07:  /* FISTP int64_t */
 		FPU_FST_I64(addr);
 		FPU_FPOP();
 		break;

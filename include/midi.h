@@ -1,5 +1,5 @@
 /*
- *  Copyright (C) 2002-2019  The DOSBox Team
+ *  Copyright (C) 2002-2020  The DOSBox Team
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -11,9 +11,9 @@
  *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  *  GNU General Public License for more details.
  *
- *  You should have received a copy of the GNU General Public License
- *  along with this program; if not, write to the Free Software
- *  Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1335, USA.
+ *  You should have received a copy of the GNU General Public License along
+ *  with this program; if not, write to the Free Software Foundation, Inc.,
+ *  51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
 
 
@@ -29,8 +29,8 @@ public:
 	MidiHandler();
 	virtual bool Open(const char * /*conf*/) { return true; };
 	virtual void Close(void) {};
-	virtual void PlayMsg(Bit8u * /*msg*/) {};
-	virtual void PlaySysex(Bit8u * /*sysex*/,Bitu /*len*/) {};
+	virtual void PlayMsg(uint8_t * /*msg*/) {};
+	virtual void PlaySysex(uint8_t * /*sysex*/,Bitu /*len*/) {};
 	virtual const char * GetName(void) { return "none"; };
 	virtual void ListAll(Program * /*base*/) {};
 	virtual ~MidiHandler() { };
@@ -43,13 +43,13 @@ struct DB_Midi {
 	Bitu status;
 	Bitu cmd_len;
 	Bitu cmd_pos;
-    Bit8u cmd_buf[8] = {};
-    Bit8u rt_buf[8] = {};
+    uint8_t cmd_buf[8] = {};
+    uint8_t rt_buf[8] = {};
 	struct midi_state_sysex_t {
-        Bit8u buf[SYSEX_SIZE] = {};
+        uint8_t buf[SYSEX_SIZE] = {};
 		Bitu used;
 		Bitu delay;
-		Bit32u start;
+		uint32_t start;
 
 		midi_state_sysex_t() : used(0), delay(0), start(0) { }
 	} sysex;

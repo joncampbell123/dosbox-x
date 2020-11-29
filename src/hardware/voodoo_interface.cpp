@@ -1,5 +1,5 @@
 /*
- *  Copyright (C) 2002-2019  The DOSBox Team
+ *  Copyright (C) 2002-2020  The DOSBox Team
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -11,9 +11,9 @@
  *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  *  GNU General Public License for more details.
  *
- *  You should have received a copy of the GNU General Public License
- *  along with this program; if not, write to the Free Software
- *  Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1335, USA.
+ *  You should have received a copy of the GNU General Public License along
+ *  with this program; if not, write to the Free Software Foundation, Inc.,
+ *  51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
 
 
@@ -38,34 +38,34 @@ static voodoo_draw vdraw;
 Voodoo_PageHandler * voodoo_pagehandler;
 
 
-Bit8u Voodoo_PageHandler::readb(PhysPt addr) {
+uint8_t Voodoo_PageHandler::readb(PhysPt addr) {
     (void)addr;//UNUSED
 //	LOG_MSG("voodoo readb at %x",addr);
-	return (Bit8u)-1;
+	return (uint8_t)-1;
 }
-void Voodoo_PageHandler::writeb(PhysPt addr,Bit8u val) {
+void Voodoo_PageHandler::writeb(PhysPt addr,uint8_t val) {
     (void)addr;//UNUSED
     (void)val;//UNUSED
 //	LOG_MSG("voodoo writeb at %x",addr);
 }
 
-Bit16u Voodoo_PageHandler::readw(PhysPt addr) {
+uint16_t Voodoo_PageHandler::readw(PhysPt addr) {
 	addr = PAGING_GetPhysicalAddress(addr);
     if (addr&1) {
         LOG_MSG("voodoo readw unaligned");
-        return (Bit16u)-1;
+        return (uint16_t)-1;
     }
 
-	Bit32u retval = voodoo_r((addr>>2)&0x3FFFFF);
+	uint32_t retval = voodoo_r((addr>>2)&0x3FFFFF);
 	if (addr&3)
 		retval >>= 16;
 	else
 		retval &= 0xffff;
 
-	return (Bit16u)retval;
+	return (uint16_t)retval;
 }
 
-void Voodoo_PageHandler::writew(PhysPt addr,Bit16u val) {
+void Voodoo_PageHandler::writew(PhysPt addr,uint16_t val) {
 	addr = PAGING_GetPhysicalAddress(addr);
 	if (addr&1u) {
         LOG_MSG("voodoo writew unaligned");
@@ -78,14 +78,14 @@ void Voodoo_PageHandler::writew(PhysPt addr,Bit16u val) {
 		voodoo_w((addr>>2u)&0x3FFFFFu,val,0x0000ffffu);
 }
 
-Bit32u Voodoo_PageHandler::readd(PhysPt addr) {
+uint32_t Voodoo_PageHandler::readd(PhysPt addr) {
 	addr = PAGING_GetPhysicalAddress(addr);
 	if (!(addr&3)) {
 		return voodoo_r((addr>>2)&0x3FFFFF);
 	} else {
 		if (!(addr&1)) {
-			Bit32u low = voodoo_r((addr>>2)&0x3FFFFF);
-			Bit32u high = voodoo_r(((addr>>2)+1)&0x3FFFFF);
+			uint32_t low = voodoo_r((addr>>2)&0x3FFFFF);
+			uint32_t high = voodoo_r(((addr>>2)+1)&0x3FFFFF);
 			return (low>>16) | (high<<16);
 		} else {
 			LOG_MSG("voodoo readd unaligned");
@@ -94,7 +94,7 @@ Bit32u Voodoo_PageHandler::readd(PhysPt addr) {
 	return 0xffffffff;
 }
 
-void Voodoo_PageHandler::writed(PhysPt addr,Bit32u val) {
+void Voodoo_PageHandler::writed(PhysPt addr,uint32_t val) {
 	addr = PAGING_GetPhysicalAddress(addr);
 	if (!(addr&3)) {
 		voodoo_w((addr>>2)&0x3FFFFF,val,0xffffffff);
@@ -103,8 +103,8 @@ void Voodoo_PageHandler::writed(PhysPt addr,Bit32u val) {
 			voodoo_w((addr>>2)&0x3FFFFF,val<<16,0xffff0000);
 			voodoo_w(((addr>>2)+1)&0x3FFFFF,val>>16,0x0000ffff);
 		} else {
-			Bit32u val1 = voodoo_r((addr>>2)&0x3FFFFF);
-			Bit32u val2 = voodoo_r(((addr>>2)+1)&0x3FFFFF);
+			uint32_t val1 = voodoo_r((addr>>2)&0x3FFFFF);
+			uint32_t val2 = voodoo_r(((addr>>2)+1)&0x3FFFFF);
 			if ((addr&3)==1) {
 				val1 = (val1&0xffffff) | ((val&0xff)<<24);
 				val2 = (val2&0xff000000) | (val>>8);
@@ -139,9 +139,9 @@ static void Voodoo_VerticalTimer(Bitu /*val*/) {
 		r.max_y = (int)v->fbi.height;
 
 		// draw all lines at once
-		Bit16u *viewbuf = (Bit16u *)(v->fbi.ram + v->fbi.rgboffs[v->fbi.frontbuf]);
+		uint16_t *viewbuf = (uint16_t *)(v->fbi.ram + v->fbi.rgboffs[v->fbi.frontbuf]);
 		for(Bitu i = 0; i < v->fbi.height; i++) {
-			RENDER_DrawLine((Bit8u*) viewbuf);
+			RENDER_DrawLine((uint8_t*) viewbuf);
 			viewbuf += v->fbi.rowpixels;
 		}
 		RENDER_EndUpdate(false);
@@ -225,7 +225,7 @@ static void Voodoo_UpdateScreen(void) {
 		if (v->ogl) {
 			v->ogl_dimchange = false;
 		} else {
-			RENDER_SetSize(v->fbi.width, v->fbi.height, 16, vdraw.vfreq, 4.0/3.0);
+			RENDER_SetSize(v->fbi.width, v->fbi.height, 16, 1000.0f / vdraw.vfreq, 4.0/3.0);
 		}
 
 		Voodoo_VerticalTimer(0);

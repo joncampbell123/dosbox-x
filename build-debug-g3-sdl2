@@ -20,6 +20,21 @@ chmod +x configure
 export CFLAGS="$CFLAGS -g3 -O0 -fno-inline -fno-omit-frame-pointer"
 export CXXFLAGS="$CXXFLAGS -g3 -O0 -fno-inline -fno-omit-frame-pointer"
 
+# prefer to compile against our own copy of SDL 2.x IF the system does not provide one
+if [[ "$no_host_sdl2" ]]; then
+    x= # doesn't work well cross-compiling
+else
+    x=`which sdl2-config`
+fi
+if test -z "$x" ; then
+    echo Compiling our internal SDL 2.x
+    (cd vs2015/sdl2 && ./build-dosbox.sh) || exit 1
+fi
+
+# prefer to compile against our own copy of SDLnet 1.x
+echo Compiling our internal SDLnet 1.x
+(cd vs2015/sdlnet && ./build-dosbox.sh) || exit 1
+
 # NTS: --disable-dynamic-core is needed. the dynamic core doesn't work properly with the CFLAGS given above
 ./configure --enable-core-inline --enable-debug=heavy --prefix=/usr --disable-dynamic-core --enable-sdl2 "$@" || exit 1
 make -j3 || exit 1

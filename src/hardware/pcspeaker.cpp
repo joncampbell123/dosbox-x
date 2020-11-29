@@ -1,5 +1,5 @@
 /*
- *  Copyright (C) 2002-2019  The DOSBox Team
+ *  Copyright (C) 2002-2020  The DOSBox Team
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -11,9 +11,9 @@
  *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  *  GNU General Public License for more details.
  *
- *  You should have received a copy of the GNU General Public License
- *  along with this program; if not, write to the Free Software
- *  Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1335, USA.
+ *  You should have received a copy of the GNU General Public License along
+ *  with this program; if not, write to the Free Software Foundation, Inc.,
+ *  51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
 /* FIXME: This code... well... it could be done better.
  *        It was written back when all mixer callbacks were potentially done from
@@ -51,7 +51,7 @@ typedef struct {
 
 typedef union {
 	unsigned char pit_mode;
-	Bit32u counter;
+	uint32_t counter;
 	output_state_t output_state;
 } state_specific_data_u;
 
@@ -572,7 +572,7 @@ void PCSPEAKER_SetType(bool pit_clock_gate_enabled, bool pit_output_enabled) {
  *      the tick. */
 static void PCSPEAKER_CallBack(Bitu len) {
 	bool ultrasonic = false;
-	Bit16s * stream=(Bit16s*)MixTemp;
+	int16_t * stream=(int16_t*)MixTemp;
 	ForwardPIT(1.0 + PIC_TickIndex());
     CheckPITSynchronization();
 	spkr.last_index = PIC_TickIndex();
@@ -648,9 +648,9 @@ static void PCSPEAKER_CallBack(Bitu len) {
 				}
 			}
 		}
-		*stream++=(Bit16s)(value/sample_add);
+		*stream++=(int16_t)(value/sample_add);
 	}
-	if(spkr.chan) spkr.chan->AddSamples_m16(len,(Bit16s*)MixTemp);
+	if(spkr.chan) spkr.chan->AddSamples_m16(len,(int16_t*)MixTemp);
 
 	//Turn off speaker after 10 seconds of idle or one second idle when in off mode
 	bool turnoff = false;

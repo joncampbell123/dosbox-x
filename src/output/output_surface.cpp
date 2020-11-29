@@ -25,13 +25,13 @@ void OUTPUT_SURFACE_Select()
 #endif
 }
 
-bool OUTPUT_SURFACE_StartUpdate(Bit8u* &pixels, Bitu &pitch)
+bool OUTPUT_SURFACE_StartUpdate(uint8_t* &pixels, Bitu &pitch)
 {
 #if C_XBRZ
     if (sdl_xbrz.enable && sdl_xbrz.scale_on)
     {
         sdl_xbrz.renderbuf.resize(sdl.draw.width * sdl.draw.height);
-        pixels = sdl_xbrz.renderbuf.empty() ? nullptr : reinterpret_cast<Bit8u*>(&sdl_xbrz.renderbuf[0]);
+        pixels = sdl_xbrz.renderbuf.empty() ? nullptr : reinterpret_cast<uint8_t*>(&sdl_xbrz.renderbuf[0]);
         pitch = sdl.draw.width * sizeof(uint32_t);
     }
     else
@@ -40,7 +40,7 @@ bool OUTPUT_SURFACE_StartUpdate(Bit8u* &pixels, Bitu &pitch)
         if (render.aspect == ASPECT_NEAREST || render.aspect == ASPECT_BILINEAR)
         {
             sdl.aspectbuf.resize(sdl.draw.width * sdl.draw.height);
-            pixels = sdl.aspectbuf.empty() ? nullptr : reinterpret_cast<Bit8u*>(&sdl.aspectbuf[0]);
+            pixels = sdl.aspectbuf.empty() ? nullptr : reinterpret_cast<uint8_t*>(&sdl.aspectbuf[0]);
             pitch = sdl.draw.width * sizeof(uint32_t);
         }
         else
@@ -50,14 +50,14 @@ bool OUTPUT_SURFACE_StartUpdate(Bit8u* &pixels, Bitu &pitch)
             {
                 if (SDL_MUSTLOCK(sdl.blit.surface) && SDL_LockSurface(sdl.blit.surface))
                     return false;
-                pixels = (Bit8u *)sdl.blit.surface->pixels;
+                pixels = (uint8_t *)sdl.blit.surface->pixels;
                 pitch = sdl.blit.surface->pitch;
             }
             else
             {
                 if (SDL_MUSTLOCK(sdl.surface) && SDL_LockSurface(sdl.surface))
                     return false;
-                pixels = (Bit8u *)sdl.surface->pixels;
+                pixels = (uint8_t *)sdl.surface->pixels;
                 pixels += sdl.clip.y * sdl.surface->pitch;
                 pixels += sdl.clip.x * sdl.surface->format->BytesPerPixel;
                 pitch = sdl.surface->pitch;
@@ -69,7 +69,7 @@ bool OUTPUT_SURFACE_StartUpdate(Bit8u* &pixels, Bitu &pitch)
     return true;
 }
 
-void OUTPUT_SURFACE_EndUpdate(const Bit16u *changedLines)
+void OUTPUT_SURFACE_EndUpdate(const uint16_t *changedLines)
 {
 #if DOSBOXMENU_TYPE == DOSBOXMENU_SDLDRAW
     GFX_DrawSDLMenu(mainMenu, mainMenu.display_list);
@@ -77,8 +77,8 @@ void OUTPUT_SURFACE_EndUpdate(const Bit16u *changedLines)
 #if C_XBRZ
     if (sdl_xbrz.enable && sdl_xbrz.scale_on)
     {
-        const Bit32u srcWidth = sdl.draw.width;
-        const Bit32u srcHeight = sdl.draw.height;
+        const uint32_t srcWidth = sdl.draw.width;
+        const uint32_t srcHeight = sdl.draw.height;
         if (sdl_xbrz.renderbuf.size() == (unsigned int)srcWidth * (unsigned int)srcHeight && srcWidth > 0 && srcHeight > 0)
         {
             // please use sdl.clip to keep screen positioning consistent with the rest of the emulator
@@ -188,7 +188,7 @@ void OUTPUT_SURFACE_EndUpdate(const Bit16u *changedLines)
                     SDL_Rect *rect = &sdl.updateRects[rectCount++];
                     rect->x = sdl.clip.x;
                     rect->y = sdl.clip.y + (int)y;
-                    rect->w = (Bit16u)sdl.draw.width;
+                    rect->w = (uint16_t)sdl.draw.width;
                     rect->h = changedLines[index];
                     y += changedLines[index];
                     SDL_rect_cliptoscreen(*rect);

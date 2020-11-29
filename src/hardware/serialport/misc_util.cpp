@@ -1,5 +1,5 @@
 /*
- *  Copyright (C) 2002-2019  The DOSBox Team
+ *  Copyright (C) 2002-2020  The DOSBox Team
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -11,9 +11,9 @@
  *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  *  GNU General Public License for more details.
  *
- *  You should have received a copy of the GNU General Public License
- *  along with this program; if not, write to the Free Software
- *  Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1335, USA.
+ *  You should have received a copy of the GNU General Public License along
+ *  with this program; if not, write to the Free Software Foundation, Inc.,
+ *  51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
 
 /* $Id $ */
@@ -38,9 +38,9 @@ struct _TCPsocketX {
 	int sflag;
 };
 
-Bit32u Netwrapper_GetCapabilities()
+uint32_t Netwrapper_GetCapabilities()
 {
-	Bit32u retval=0;
+	uint32_t retval=0;
 	retval = CAPWORD;
 	return retval;
 }
@@ -48,7 +48,7 @@ Bit32u Netwrapper_GetCapabilities()
 #ifdef NATIVESOCKETS
 TCPClientSocket::TCPClientSocket(int platformsocket) {
 	sendbuffer=0;
-	nativetcpstruct = new Bit8u[sizeof(struct _TCPsocketX)];
+	nativetcpstruct = new uint8_t[sizeof(struct _TCPsocketX)];
 	
 	mysock = (TCPsocket)nativetcpstruct;
 	isopen = false;
@@ -128,7 +128,7 @@ TCPClientSocket::TCPClientSocket(TCPsocket source) {
 		isopen=true;
 	}
 }
-TCPClientSocket::TCPClientSocket(const char* destination, Bit16u port) {
+TCPClientSocket::TCPClientSocket(const char* destination, uint16_t port) {
 #ifdef NATIVESOCKETS
 	nativetcpstruct=0;
 #endif
@@ -170,9 +170,9 @@ TCPClientSocket::~TCPClientSocket() {
 
 	if(listensocketset) SDLNet_FreeSocketSet(listensocketset);
 }
-bool TCPClientSocket::GetRemoteAddressString(Bit8u* buffer) {
+bool TCPClientSocket::GetRemoteAddressString(uint8_t* buffer) {
 	IPaddress* remote_ip;
-	Bit8u b1, b2, b3, b4;
+	uint8_t b1, b2, b3, b4;
 	remote_ip=SDLNet_TCP_GetPeerAddress(mysock);
 	if(!remote_ip) return false;
 	b4=remote_ip->host>>24;
@@ -183,7 +183,7 @@ bool TCPClientSocket::GetRemoteAddressString(Bit8u* buffer) {
 	return true;
 }
 
-bool TCPClientSocket::ReceiveArray(Bit8u* data, Bitu* size) {
+bool TCPClientSocket::ReceiveArray(uint8_t* data, Bitu* size) {
 	if(SDLNet_CheckSockets(listensocketset,0))
 	{
 		Bits retval = SDLNet_TCP_Recv(mysock, data, (int)(*size));
@@ -218,7 +218,7 @@ Bits TCPClientSocket::GetcharNonBlock() {
 	}
 	else return -1;
 }
-bool TCPClientSocket::Putchar(Bit8u data) {
+bool TCPClientSocket::Putchar(uint8_t data) {
 	if(SDLNet_TCP_Send(mysock, &data, 1)!=1) {
 		isopen=false;
 		return false;
@@ -226,7 +226,7 @@ bool TCPClientSocket::Putchar(Bit8u data) {
 	return true;
 }
 
-bool TCPClientSocket::SendArray(Bit8u* data, Bitu bufsize) {
+bool TCPClientSocket::SendArray(uint8_t* data, Bitu bufsize) {
 	if((Bitu)SDLNet_TCP_Send(mysock, data, (int)bufsize) != bufsize) {
 		isopen=false;
 		return false;
@@ -234,7 +234,7 @@ bool TCPClientSocket::SendArray(Bit8u* data, Bitu bufsize) {
 	return true;
 }
 
-bool TCPClientSocket::SendByteBuffered(Bit8u data) {
+bool TCPClientSocket::SendByteBuffered(uint8_t data) {
 	
 	if(sendbufferindex==(sendbuffersize-1)) {
 		// buffer is full, get rid of it
@@ -252,7 +252,7 @@ bool TCPClientSocket::SendByteBuffered(Bit8u data) {
 	return true;
 }
 /*
-bool TCPClientSocket::SendArrayBuffered(Bit8u* data, Bitu bufsize) {
+bool TCPClientSocket::SendArrayBuffered(uint8_t* data, Bitu bufsize) {
 	
 	Bitu bytes
 	while(
@@ -283,13 +283,13 @@ void TCPClientSocket::FlushBuffer() {
 
 void TCPClientSocket::SetSendBufferSize(Bitu bufsize) {
 	if(sendbuffer) delete [] sendbuffer;
-	sendbuffer = new Bit8u[bufsize];
+	sendbuffer = new uint8_t[bufsize];
 	sendbuffersize=bufsize;
 	sendbufferindex=0;
 }
 
 
-TCPServerSocket::TCPServerSocket(Bit16u port)
+TCPServerSocket::TCPServerSocket(uint16_t port)
 {
 	isopen = false;
 	mysock = 0;

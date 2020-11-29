@@ -9,11 +9,21 @@ rem %rootdir% is the root directory of the respository. "." assumes the current 
 rem Make sure to surround the directory in quotes (") in case it includes spaces.
 set rootdir=.
 
-set isspath=%rootdir%\windows-installer
+set isspath=%rootdir%\contrib\windows\installer
 set vsbinpath=%rootdir%\release\windows
 set mgbinpath=%rootdir%\..
 
 cls
+
+if not exist %rootdir%\dosbox-x.reference.conf (
+	echo Couldn't find %rootdir%\dosbox-x.reference.conf
+	goto error
+)
+
+if not exist %rootdir%\dosbox-x.reference.full.conf (
+	echo Couldn't find %rootdir%\dosbox-x.reference.full.conf
+	goto error
+)
 
 if not exist %isspath%\date.exe (
 	echo Couldn't find %isspath%\date.exe
@@ -42,12 +52,12 @@ set winzip=
 set m32zip=
 set m64zip=
 
-for %%i in (%vsbinpath%\dosbox-x-windows-%datestr%-*-windows.zip) do set winzip=%%i
+for %%i in (%vsbinpath%\dosbox-x-vsbuild-win-%datestr%*.zip) do set winzip=%%i
 for %%i in (%mgbinpath%\dosbox-x-mingw-win32-%datestr%*.zip) do set m32zip=%%i
 for %%i in (%mgbinpath%\dosbox-x-mingw-win64-%datestr%*.zip) do set m64zip=%%i
 
 if not exist "%winzip%" (
-	echo Couldn't find dosbox-x-windows-%datestr%-*-windows.zip at %vsbinpath%
+	echo Couldn't find dosbox-x-vsbuild-win-%datestr%*.zip at %vsbinpath%
 	goto error
 )
 
@@ -83,34 +93,36 @@ if exist %isspath%\Win64_builds\nul rd %isspath%\Win64_builds /s /q
 %isspath%\7za.exe e -y -o%isspath%\Win64_builds\mingw-lowend %m64zip% "mingw-build\mingw-lowend\dosbox-x.exe"
 %isspath%\7za.exe e -y -o%isspath%\Win64_builds\mingw-sdl2 %m64zip% "mingw-build\mingw-sdl2\dosbox-x.exe"
 %isspath%\7za.exe e -y -o%isspath%\Win64_builds\mingw-sdldraw %m64zip% "mingw-build\mingw-sdldraw\dosbox-x.exe"
-if exist %rootdir%\dosbox-x.reference.conf (
-	copy /y %rootdir%\dosbox-x.reference.conf %isspath%\Win32_builds\x86_Release
-	copy /y %rootdir%\dosbox-x.reference.conf %isspath%\Win32_builds\x86_Release_SDL2
-	copy /y %rootdir%\dosbox-x.reference.conf %isspath%\Win32_builds\ARM_Release
-	copy /y %rootdir%\dosbox-x.reference.conf %isspath%\Win32_builds\ARM_Release_SDL2
-	copy /y %rootdir%\dosbox-x.reference.conf %isspath%\Win64_builds\x64_Release
-	copy /y %rootdir%\dosbox-x.reference.conf %isspath%\Win64_builds\x64_Release_SDL2
-	copy /y %rootdir%\dosbox-x.reference.conf %isspath%\Win64_builds\ARM64_Release
-	copy /y %rootdir%\dosbox-x.reference.conf %isspath%\Win64_builds\ARM64_Release_SDL2
-	copy /y %rootdir%\dosbox-x.reference.conf %isspath%\Win32_builds\mingw
-	copy /y %rootdir%\dosbox-x.reference.conf %isspath%\Win32_builds\mingw-lowend
-	copy /y %rootdir%\dosbox-x.reference.conf %isspath%\Win32_builds\mingw-sdl2
-	copy /y %rootdir%\dosbox-x.reference.conf %isspath%\Win32_builds\mingw-sdldraw
-	copy /y %rootdir%\dosbox-x.reference.conf %isspath%\Win64_builds\mingw
-	copy /y %rootdir%\dosbox-x.reference.conf %isspath%\Win64_builds\mingw-lowend
-	copy /y %rootdir%\dosbox-x.reference.conf %isspath%\Win64_builds\mingw-sdl2
-	copy /y %rootdir%\dosbox-x.reference.conf %isspath%\Win64_builds\mingw-sdldraw
+for %%i in (dosbox-x.reference.conf dosbox-x.reference.full.conf) do (
+	copy /y %rootdir%\%%i %isspath%\%%i >nul
+	if exist %isspath%\unix2dos.exe %isspath%\unix2dos.exe %isspath%\%%i
+	copy /y %isspath%\%%i %isspath%\Win32_builds\x86_Release
+	copy /y %isspath%\%%i %isspath%\Win32_builds\x86_Release_SDL2
+	copy /y %isspath%\%%i %isspath%\Win32_builds\ARM_Release
+	copy /y %isspath%\%%i %isspath%\Win32_builds\ARM_Release_SDL2
+	copy /y %isspath%\%%i %isspath%\Win64_builds\x64_Release
+	copy /y %isspath%\%%i %isspath%\Win64_builds\x64_Release_SDL2
+	copy /y %isspath%\%%i %isspath%\Win64_builds\ARM64_Release
+	copy /y %isspath%\%%i %isspath%\Win64_builds\ARM64_Release_SDL2
+	copy /y %isspath%\%%i %isspath%\Win32_builds\mingw
+	copy /y %isspath%\%%i %isspath%\Win32_builds\mingw-lowend
+	copy /y %isspath%\%%i %isspath%\Win32_builds\mingw-sdl2
+	copy /y %isspath%\%%i %isspath%\Win32_builds\mingw-sdldraw
+	copy /y %isspath%\%%i %isspath%\Win64_builds\mingw
+	copy /y %isspath%\%%i %isspath%\Win64_builds\mingw-lowend
+	copy /y %isspath%\%%i %isspath%\Win64_builds\mingw-sdl2
+	copy /y %isspath%\%%i %isspath%\Win64_builds\mingw-sdldraw
 )
 
 echo.
 echo ***************************************
 echo * Building DOSBox-X installers ...    *
 echo ***************************************
-del %isspath%\DOSBox-X-setup*.exe
+if exist %isspath%\dosbox-x-windows-*-setup.exe del %isspath%\dosbox-x-windows-*-setup.exe
 %isspath%\ISCC.exe %isspath%\DOSBox-X-setup.iss
-if exist %isspath%\DOSBox-X-setup.exe ( 
-	echo Copying to %vsbinpath%\DOSBox-X-setup-%datestr%.exe ..
-	copy /y %isspath%\DOSBox-X-setup.exe %vsbinpath%\DOSBox-X-setup-%datestr%-windows.exe
+if exist %isspath%\dosbox-x-windows-*-setup.exe (
+	for %%i in (%isspath%\dosbox-x-windows-*-setup.exe) do echo Copying to %vsbinpath%\%%~nxi...
+	copy /y %isspath%\dosbox-x-windows-*-setup.exe %vsbinpath%
 	goto success
 )
 

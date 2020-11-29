@@ -1,6 +1,6 @@
 AM_CPPFLAGS = -I$(top_srcdir)/include "-DRESDIR=\"$(resdir)\""
 
-SUBDIRS = cpu debug dos fpu gui hardware libs ints misc shell builtin platform mt32 aviwriter output
+SUBDIRS = cpu debug dos fpu gui hardware libs ints misc shell builtin platform aviwriter output
 
 bin_PROGRAMS = dosbox-x
 
@@ -8,15 +8,11 @@ resdir = $(datarootdir)/dosbox-x
 
 res_DATA = \
 	../dosbox-x.reference.conf \
-	../font/FREECG98.BMP \
+	../contrib/fonts/FREECG98.BMP \
 	../CHANGELOG
 
 if HAVE_WINDRES
 ico_stuff = winres.rc
-endif
-
-if C_XBRZ
-SUBDIRS += xBRZ
 endif
 
 .rc.o:
@@ -27,7 +23,7 @@ dosbox_x_LDADD = debug/libdebug.a dos/libdos.a shell/libshell.a builtin/libbuilt
                ints/libints.a misc/libmisc.a hardware/serialport/libserial.a hardware/parport/libparallel.a \
                libs/porttalk/libporttalk.a gui/libgui.a libs/gui_tk/libgui_tk.a hardware/libhardware.a \
 	       cpu/libcpu.a hardware/reSID/libresid.a fpu/libfpu.a gui/libgui.a \
-		   output/liboutput.a hardware/mame/libmame.a libs/zmbv/libzmbv.a
+		   output/liboutput.a hardware/mame/libmame.a libs/zmbv/libzmbv.a libs/decoders/internal/libopusint.a
 
 if !EMSCRIPTEN
 dosbox_x_LDADD += aviwriter/libaviwriter.a
@@ -39,14 +35,18 @@ endif
 
 if C_XBRZ
 if !EMSCRIPTEN
-dosbox_x_LDADD += xBRZ/libxbrz.a
+dosbox_x_LDADD += libs/xBRZ/libxbrz.a
 endif
 endif
 
 if C_MT32
 if !EMSCRIPTEN
-dosbox_x_LDADD += mt32/libmt32.a
+dosbox_x_LDADD += libs/mt32/libmt32.a
 endif
+endif
+
+if !EMSCRIPTEN
+dosbox_x_LDADD += libs/fluidsynth/libfluidsynth.a
 endif
 
 if EMSCRIPTEN
@@ -57,6 +57,6 @@ dosbox_x_js_install:
 	sudo cp -v dosbox-x.data dosbox-x.html dosbox-x.js dosbox-x.wasm /var/www/html/em/
 endif
 
-EXTRA_DIST = winres.rc dosbox.ico
+EXTRA_DIST = winres.rc ../contrib/icons/dosbox-x.ico
 
 

@@ -1,5 +1,5 @@
 /*
- *  Copyright (C) 2002-2019  The DOSBox Team
+ *  Copyright (C) 2002-2020  The DOSBox Team
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -11,9 +11,9 @@
  *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  *  GNU General Public License for more details.
  *
- *  You should have received a copy of the GNU General Public License
- *  along with this program; if not, write to the Free Software
- *  Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1335, USA.
+ *  You should have received a copy of the GNU General Public License along
+ *  with this program; if not, write to the Free Software Foundation, Inc.,
+ *  51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
 
 
@@ -53,7 +53,7 @@ extern bool ignore_opcode_63;
 #define LoadMb(off) mem_readb(off)
 #define LoadMw(off) mem_readw(off)
 #define LoadMd(off) mem_readd(off)
-#define LoadMq(off) ((Bit64u)((Bit64u)mem_readd(off+4)<<32 | (Bit64u)mem_readd(off)))
+#define LoadMq(off) ((uint64_t)((uint64_t)mem_readd(off+4)<<32 | (uint64_t)mem_readd(off)))
 #define SaveMb(off,val)	mem_writeb(off,val)
 #define SaveMw(off,val)	mem_writew(off,val)
 #define SaveMd(off,val)	mem_writed(off,val)
@@ -63,7 +63,7 @@ extern bool ignore_opcode_63;
 #define LoadMb(off) mem_readb_inline(off)
 #define LoadMw(off) mem_readw_inline(off)
 #define LoadMd(off) mem_readd_inline(off)
-#define LoadMq(off) ((Bit64u)((Bit64u)mem_readd_inline(off+4)<<32 | (Bit64u)mem_readd_inline(off)))
+#define LoadMq(off) ((uint64_t)((uint64_t)mem_readd_inline(off+4)<<32 | (uint64_t)mem_readd_inline(off)))
 #define SaveMb(off,val)	mem_writeb_inline(off,val)
 #define SaveMw(off,val)	mem_writew_inline(off,val)
 #define SaveMd(off,val)	mem_writed_inline(off,val)
@@ -78,6 +78,9 @@ extern Bitu cycle_count;
 
 #define CPU_PIC_CHECK 1u
 #define CPU_TRAP_CHECK 1u
+
+Bits CPU_Core_Prefetch_Trap_Run(void);
+#define CPU_TRAP_DECODER	CPU_Core_Prefetch_Trap_Run
 
 #define OPCODE_NONE			0x000u
 #define OPCODE_0F			0x100u
@@ -110,7 +113,7 @@ extern Bitu cycle_count;
 
 typedef PhysPt (*GetEAHandler)(void);
 
-static const Bit32u AddrMaskTable[2]={0x0000ffffu,0x0000ffffu};
+static const uint32_t AddrMaskTable[2]={0x0000ffffu,0x0000ffffu};
 
 static struct {
 	Bitu opcode_index;
@@ -135,7 +138,7 @@ static struct {
 //#define PREFETCH_DEBUG
 
 #define MAX_PQ_SIZE 32
-static Bit8u prefetch_buffer[MAX_PQ_SIZE];
+static uint8_t prefetch_buffer[MAX_PQ_SIZE];
 static bool pq_valid=false;
 static Bitu pq_start;
 static Bitu pq_fill;
@@ -155,19 +158,19 @@ static INLINE void FetchDiscardb() {
 	FetchDiscard<uint8_t>();
 }
 
-static INLINE Bit8u FetchPeekb() {
+static INLINE uint8_t FetchPeekb() {
 	return FetchPeek<uint8_t>();
 }
 
-static Bit8u Fetchb() {
+static uint8_t Fetchb() {
 	return Fetch<uint8_t>();
 }
 
-static Bit16u Fetchw() {
+static uint16_t Fetchw() {
 	return Fetch<uint16_t>();
 }
 
-static Bit32u Fetchd() {
+static uint32_t Fetchd() {
 	return Fetch<uint32_t>();
 }
 
@@ -220,7 +223,7 @@ Bits CPU_Core286_Prefetch_Run(void) {
 		cycle_count++;
 #endif
 restart_opcode:
-		Bit8u next_opcode=Fetchb();
+		uint8_t next_opcode=Fetchb();
 		invalidate_pq=false;
 		if (core.opcode_index&OPCODE_0F) invalidate_pq=true;
 		else switch (next_opcode) {

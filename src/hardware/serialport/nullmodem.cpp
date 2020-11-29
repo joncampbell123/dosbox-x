@@ -1,5 +1,5 @@
 /*
- *  Copyright (C) 2002-2019  The DOSBox Team
+ *  Copyright (C) 2002-2020  The DOSBox Team
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -11,19 +11,22 @@
  *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  *  GNU General Public License for more details.
  *
- *  You should have received a copy of the GNU General Public License
- *  along with this program; if not, write to the Free Software
- *  Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1335, USA.
+ *  You should have received a copy of the GNU General Public License along
+ *  with this program; if not, write to the Free Software Foundation, Inc.,
+ *  51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
 
 
 #include "dosbox.h"
+
 
 #if C_MODEM
 
 #include "control.h"
 #include "serialport.h"
 #include "nullmodem.h"
+
+extern int socknum;
 
 CNullModem::CNullModem(Bitu id, CommandLine* cmd):CSerial (id, cmd) {
 	Bitu temptcpport=23;
@@ -104,12 +107,11 @@ CNullModem::CNullModem(Bitu id, CommandLine* cmd):CSerial (id, cmd) {
 #ifdef NATIVESOCKETS
 		if (Netwrapper_GetCapabilities()&NETWRAPPER_TCP_NATIVESOCKET) {
 			if (bool_temp==1) {
-				int sock;
-				if (control->cmdline->FindInt("-socket",sock,true)) {
+				if (socknum>-1) {
 					dtrrespect=false;
 					transparent=true;
-					LOG_MSG("Inheritance socket handle: %d",sock);
-					if (!ClientConnect(new TCPClientSocket(sock)))
+					LOG_MSG("Inheritance socket handle: %d",socknum);
+					if (!ClientConnect(new TCPClientSocket(socknum)))
 						return;
 				} else {
 					LOG_MSG("Serial%d: -socket parameter missing.",(int)COMNUMBER);
@@ -135,17 +137,17 @@ CNullModem::CNullModem(Bitu id, CommandLine* cmd):CSerial (id, cmd) {
 				hostnamebuffer[sizeof(hostnamebuffer)-1]=0;
 			}
 			memcpy(hostnamebuffer,hostnamechar,hostlen);
-			clientport=(Bit16u)temptcpport;
+			clientport=(uint16_t)temptcpport;
 			if (dtrrespect) {
 				// we connect as soon as DTR is switched on
 				setEvent(SERIAL_NULLMODEM_DTR_EVENT, 50);
 				LOG_MSG("Serial%d: Waiting for DTR...",(int)COMNUMBER);
 			} else if (!ClientConnect(
-				new TCPClientSocket((char*)hostnamebuffer,(Bit16u)clientport)))
+				new TCPClientSocket((char*)hostnamebuffer,(uint16_t)clientport)))
 				return;
 		} else {
 			// we are a server
-			serverport = (Bit16u)temptcpport;
+			serverport = (uint16_t)temptcpport;
 			if (!ServerListen()) return;
 		}
 	}
@@ -162,13 +164,13 @@ CNullModem::~CNullModem() {
 	if (serversocket) delete serversocket;
 	if (clientsocket) delete clientsocket;
 	// remove events
-	for(Bit16u i = SERIAL_BASE_EVENT_COUNT+1;
+	for(uint16_t i = SERIAL_BASE_EVENT_COUNT+1;
 			i <= SERIAL_NULLMODEM_EVENT_COUNT; i++) {
 		removeEvent(i);
 	}
 }
 
-void CNullModem::WriteChar(Bit8u data) {
+void CNullModem::WriteChar(uint8_t data) {
 	if (clientsocket)clientsocket->SendByteBuffered(data);
 	if (!tx_block) {
 		//LOG_MSG("setevreduct");
@@ -179,7 +181,7 @@ void CNullModem::WriteChar(Bit8u data) {
 
 Bits CNullModem::readChar() {
 	Bits rxchar = clientsocket->GetcharNonBlock();
-	if (telnet && rxchar>=0) return TelnetEmulation((Bit8u)rxchar);
+	if (telnet && rxchar>=0) return TelnetEmulation((uint8_t)rxchar);
 	else if (rxchar==0xff && !transparent) {// escape char
 		// get the next char
 		Bits rxchar = clientsocket->GetcharNonBlock();
@@ -192,7 +194,7 @@ Bits CNullModem::readChar() {
 }
 
 bool CNullModem::ClientConnect(TCPClientSocket* newsocket) {
-	Bit8u peernamebuf[16];
+	uint8_t peernamebuf[16];
 	clientsocket = newsocket;
  
 	if (!clientsocket->isopen) {
@@ -229,7 +231,7 @@ bool CNullModem::ServerConnect() {
 	clientsocket=serversocket->Accept();
 	if (!clientsocket) return false;
 	
-	Bit8u peeripbuf[16];
+	uint8_t peeripbuf[16];
 	clientsocket->GetRemoteAddressString(peeripbuf);
 	LOG_MSG("Serial%d: A client (%s) has connected.",(int)COMNUMBER,peeripbuf);
 #if SERIAL_DEBUG
@@ -281,7 +283,7 @@ void CNullModem::Disconnect() {
 	}
 }
 
-void CNullModem::handleUpperEvent(Bit16u type) {
+void CNullModem::handleUpperEvent(uint16_t type) {
 	
 	switch(type) {
 		case SERIAL_POLLING_EVENT: {
@@ -424,7 +426,7 @@ void CNullModem::handleUpperEvent(Bit16u type) {
 			if ((!DTR_delta) && getDTR()) {
 				// DTR went positive. Try to connect.
 				if (ClientConnect(new TCPClientSocket((char*)hostnamebuffer,
-								(Bit16u)clientport)))
+								(uint16_t)clientport)))
 					break; // no more DTR wait event when connected
 			}
 			DTR_delta = getDTR();
@@ -438,7 +440,7 @@ void CNullModem::handleUpperEvent(Bit16u type) {
 /* updatePortConfig is called when emulated app changes the serial port     **/
 /* parameters baudrate, stopbits, number of databits, parity.               **/
 /*****************************************************************************/
-void CNullModem::updatePortConfig (Bit16u /*divider*/, Bit8u /*lcr*/) {
+void CNullModem::updatePortConfig (uint16_t /*divider*/, uint8_t /*lcr*/) {
 	
 }
 
@@ -449,7 +451,7 @@ void CNullModem::updateMSR () {
 bool CNullModem::doReceive () {
 		Bits rxchar = readChar();
 		if (rxchar>=0) {
-			receiveByteEx((Bit8u)rxchar,0);
+			receiveByteEx((uint8_t)rxchar,0);
 			return true;
 		}
 		else if (rxchar==-2) {
@@ -458,7 +460,7 @@ bool CNullModem::doReceive () {
 		return false;
 }
  
-void CNullModem::transmitByte (Bit8u val, bool first) {
+void CNullModem::transmitByte (uint8_t val, bool first) {
  	// transmit it later in THR_Event
 	if (first) setEvent(SERIAL_THR_EVENT, bytetime/8);
 	else setEvent(SERIAL_TX_EVENT, bytetime);
@@ -469,8 +471,8 @@ void CNullModem::transmitByte (Bit8u val, bool first) {
 	WriteChar(val);
 }
 
-Bits CNullModem::TelnetEmulation(Bit8u data) {
-	Bit8u response[3];
+Bits CNullModem::TelnetEmulation(uint8_t data) {
+	uint8_t response[3];
 	if (telClient.inIAC) {
 		if (telClient.recCommand) {
 			if ((data != 0) && (data != 1) && (data != 3)) {
@@ -587,7 +589,7 @@ void CNullModem::setBreak (bool /*value*/) {
 /*****************************************************************************/
 void CNullModem::setRTSDTR(bool xrts, bool xdtr) {
 	if (!transparent) {
-		Bit8u control[2];
+		uint8_t control[2];
 		control[0]=0xff;
 		control[1]=0x0;
 		if (xrts) control[1]|=1;

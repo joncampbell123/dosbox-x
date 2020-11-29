@@ -54,7 +54,7 @@ private:
 	std::string address;
 };
 
-static std::vector<PhonebookEntry *> phones;
+static std::vector<PhonebookEntry> phones;
 static const char phoneValidChars[] = "01234567890*=,;#+>";
 
 static bool MODEM_IsPhoneValid(const std::string &input) {
@@ -90,17 +90,21 @@ bool MODEM_ReadPhonebook(const std::string &filename) {
 			continue;
 
 		LOG_MSG("SERIAL: Mapped phone %s to address %s", phone.c_str(), address.c_str());
-		PhonebookEntry *pbEntry = new PhonebookEntry(phone, address);
-		phones.push_back(pbEntry);
+		phones.emplace_back(phone, address);
 	}
 
 	return true;
 }
 
+void MODEM_ClearPhonebook()
+{
+	phones.clear();
+}
+
 static const char *MODEM_GetAddressFromPhone(const char *input) {
-	for (const auto entry : phones) {
-		if (entry->IsMatchingPhone(input))
-			return entry->GetAddress().c_str();
+	for (const auto &entry : phones) {
+		if (entry.IsMatchingPhone(input))
+			return entry.GetAddress().c_str();
 	}
 
 	return nullptr;
@@ -144,17 +148,17 @@ CSerialModem::~CSerialModem() {
 	delete tqueue;
 
 	// remove events
-	for(Bit8u i = SERIAL_BASE_EVENT_COUNT+1;	i <= SERIAL_MODEM_EVENT_COUNT; i++)
+	for(uint8_t i = SERIAL_BASE_EVENT_COUNT+1;	i <= SERIAL_MODEM_EVENT_COUNT; i++)
 		removeEvent(i);
 }
 
-void CSerialModem::handleUpperEvent(Bit16u type) {
+void CSerialModem::handleUpperEvent(uint16_t type) {
 	switch (type) {
 	case SERIAL_RX_EVENT: {
 		// check for bytes to be sent to port
 		if(CSerial::CanReceiveByte())
 			if(rqueue->inuse() && (CSerial::getRTS()||(flowcontrol!=3))) {
-				Bit8u rbyte = rqueue->getb();
+				uint8_t rbyte = rqueue->getb();
 				//LOG_MSG("Modem: sending byte %2x back to UART3",rbyte);
 				CSerial::receiveByte(rbyte);
 			}
@@ -196,7 +200,7 @@ void CSerialModem::handleUpperEvent(Bit16u type) {
 void CSerialModem::SendLine(const char *line) {
 	rqueue->addb(0xd);
 	rqueue->addb(0xa);
-	rqueue->adds((Bit8u *)line,(Bitu)strlen(line));
+	rqueue->adds((uint8_t *)line,(Bitu)strlen(line));
 	rqueue->addb(0xd);
 	rqueue->addb(0xa);
 }
@@ -206,11 +210,11 @@ void CSerialModem::SendNumber(Bitu val) {
 	rqueue->addb(0xd);
 	rqueue->addb(0xa);
 	
-	rqueue->addb((Bit8u)(val / 100+'0'));
+	rqueue->addb((uint8_t)(val / 100+'0'));
 	val = val%100;
-	rqueue->addb((Bit8u)(val / 10+'0'));
+	rqueue->addb((uint8_t)(val / 10+'0'));
 	val = val%10;
-	rqueue->addb((Bit8u)(val + '0'));
+	rqueue->addb((uint8_t)(val + '0'));
 
 	rqueue->addb(0xd);
 	rqueue->addb(0xa);
@@ -240,7 +244,7 @@ void CSerialModem::SendRes(ResTypes response) {
 
 		//if(CSerial::CanReceiveByte())	// very fast response
 		//	if(rqueue->inuse() && CSerial::getRTS())
-		//	{ Bit8u rbyte =rqueue->getb();
+		//	{ uint8_t rbyte =rqueue->getb();
 		//		CSerial::receiveByte(rbyte);
 		//	LOG_MSG("Modem: sending byte %2x back to UART2",rbyte);
 		//	}
@@ -256,11 +260,11 @@ bool CSerialModem::Dial(const char *host) {
 	const char *destination = buf;
 
 	// Scan host for port
-	Bit16u port;
+	uint16_t port;
 	char *hasport=strrchr(buf, ':');
 	if (hasport) {
 		*hasport++ = 0;
-		port = (Bit16u)atoi(hasport);
+		port = (uint16_t)atoi(hasport);
 	}
 	else port=MODEM_DEFAULT_PORT;
 	
@@ -359,7 +363,7 @@ void CSerialModem::EnterIdleState(void){
 			delete waitingclientsocket;
 	} else if (listenport) {
 
-		serversocket=new TCPServerSocket((Bit16u)listenport);
+		serversocket=new TCPServerSocket((uint16_t)listenport);
 		if(!serversocket->isopen) {
 			LOG_MSG("Serial%d: Modem could not open TCP port %u.",
                                 static_cast<uint32_t>(COMNUMBER),
@@ -438,22 +442,17 @@ void CSerialModem::DoCommand() {
 		case 'D': { // Dial
 			char *foundstr = &scanbuf[0];
 			if (*foundstr=='T' || *foundstr=='P') foundstr++;
-			
-                        // Small protection against empty line and long string
+
+			// Small protection against empty line and long string
 			if ((!foundstr[0]) || (strlen(foundstr) > 100)) {
 				SendRes(ResERROR);
 				return;
 			}
-			// scan for and remove spaces; weird bug: with leading spaces in the string,
+			// scan for and remove whitespaces; weird bug: with leading spaces in the string,
 			// SDLNet_ResolveHost will return no error but not work anyway (win)
-			while(foundstr[0] == ' ') foundstr++;
-			char* helper = foundstr;
-			helper+=strlen(foundstr);
-			while(helper[0] == ' ') {
-				helper[0] = 0;
-				helper--;
-			}
-                        const char *mappedaddr = MODEM_GetAddressFromPhone(foundstr);
+			foundstr = trim(foundstr);
+
+			const char *mappedaddr = MODEM_GetAddressFromPhone(foundstr);
 			if (mappedaddr) {
 				Dial(mappedaddr);
 				return;
@@ -594,7 +593,7 @@ void CSerialModem::DoCommand() {
 				scanbuf++;
 				while(scanbuf[0]==' ') scanbuf++;	// skip spaces
 				Bitu val = ScanNumber(scanbuf);
-				reg[index]=(Bit8u)val;
+				reg[index]=(uint8_t)val;
 				break;
 			}
 			else if(scanbuf[0]=='?') {	// get register
@@ -672,9 +671,9 @@ void CSerialModem::DoCommand() {
 	}
 }
 
-void CSerialModem::TelnetEmulation(Bit8u * data, Bitu size) {
+void CSerialModem::TelnetEmulation(uint8_t * data, Bitu size) {
 	Bitu i;
-	Bit8u c;
+	uint8_t c;
 	for(i=0;i<size;i++) {
 		c = data[i];
 		if(telClient.inIAC) {
@@ -777,7 +776,7 @@ void CSerialModem::Timer2(void) {
 
 	bool sendbyte = true;
 	Bitu usesize;
-	Bit8u txval;
+	uint8_t txval;
 	Bitu txbuffersize =0;
 
 	(void)sendbyte;// UNUSED
@@ -929,20 +928,20 @@ void CSerialModem::Timer2(void) {
 void CSerialModem::RXBufferEmpty() {
 	// see if rqueue has some more bytes
 	if(rqueue->inuse() && (CSerial::getRTS()||(flowcontrol!=3))){
-		Bit8u rbyte = rqueue->getb();
+		uint8_t rbyte = rqueue->getb();
 		//LOG_MSG("Modem: sending byte %2x back to UART1",rbyte);
 		CSerial::receiveByte(rbyte);
 	}
 }
 
-void CSerialModem::transmitByte(Bit8u val, bool first) {
+void CSerialModem::transmitByte(uint8_t val, bool first) {
 	waiting_tx_character=val;
 	setEvent(MODEM_TX_EVENT, bytetime); // TX event
 	if(first) ByteTransmitting();
 	//LOG_MSG("MODEM: Byte %x to be transmitted",val);
 }
 
-void CSerialModem::updatePortConfig(Bit16u, Bit8u lcr) {
+void CSerialModem::updatePortConfig(uint16_t, uint8_t lcr) {
     (void) lcr; // deliberately unused by needed to meet the API
 }
 

@@ -1,5 +1,5 @@
 /*
- *  Copyright (C) 2002-2019  The DOSBox Team
+ *  Copyright (C) 2002-2020  The DOSBox Team
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -11,9 +11,9 @@
  *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  *  GNU General Public License for more details.
  *
- *  You should have received a copy of the GNU General Public License
- *  along with this program; if not, write to the Free Software
- *  Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1335, USA.
+ *  You should have received a copy of the GNU General Public License along
+ *  with this program; if not, write to the Free Software Foundation, Inc.,
+ *  51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
 
 
@@ -32,6 +32,13 @@
 */
 
 static CacheBlockDynRec * CreateCacheBlock(CodePageHandlerDynRec * codepage,PhysPt start,Bitu max_opcodes) {
+#if (C_HAVE_MPROTECT)
+	if (w_xor_x) {
+		if (mprotect(cache_code_link_blocks,CACHE_TOTAL+CACHE_MAXSIZE+PAGESIZE_TEMP,PROT_READ|PROT_WRITE))
+			LOG_MSG("Setting execute permission on the code cache has failed! err=%s",strerror(errno));
+	}
+#endif
+
 	// initialize a load of variables
 	decode.code_start=start;
 	decode.code=start;
@@ -41,7 +48,7 @@ static CacheBlockDynRec * CreateCacheBlock(CodePageHandlerDynRec * codepage,Phys
 	decode.page.invmap=codepage->invalidation_map;
 	decode.page.first=start >> 12;
 	decode.active_block=decode.block=cache_openblock();
-	decode.block->page.start=(Bit16u)decode.page.index;
+	decode.block->page.start=(uint16_t)decode.page.index;
 	codepage->AddCacheBlock(decode.block);
 
 	InitFlagsOptimization();
@@ -195,7 +202,7 @@ restart_prefix:
 				case 0x80:case 0x81:case 0x82:case 0x83:case 0x84:case 0x85:case 0x86:case 0x87:	
 				case 0x88:case 0x89:case 0x8a:case 0x8b:case 0x8c:case 0x8d:case 0x8e:case 0x8f:	
 					dyn_branched_exit((BranchTypes)(dual_code&0xf),
-						decode.big_op ? (Bit32s)decode_fetchd() : (Bit16s)decode_fetchw());
+						decode.big_op ? (int32_t)decode_fetchd() : (int16_t)decode_fetchw());
 					goto finish_block;
 
 				// conditional byte set instructions
@@ -285,7 +292,7 @@ restart_prefix:
 			dyn_push_word_imm(decode.big_op ? decode_fetchd() :  decode_fetchw());
 			break;
 		case 0x6a:
-			dyn_push_byte_imm((Bit8s)decode_fetchb());
+			dyn_push_byte_imm((int8_t)decode_fetchb());
 			break;
 
 		// signed multiplication
@@ -297,7 +304,7 @@ restart_prefix:
 		// short conditional jumps
 		case 0x70:case 0x71:case 0x72:case 0x73:case 0x74:case 0x75:case 0x76:case 0x77:	
 		case 0x78:case 0x79:case 0x7a:case 0x7b:case 0x7c:case 0x7d:case 0x7e:case 0x7f:	
-			dyn_branched_exit((BranchTypes)(opcode&0xf),(Bit8s)decode_fetchb());	
+			dyn_branched_exit((BranchTypes)(opcode&0xf),(int8_t)decode_fetchb());	
 			goto finish_block;
 
 		// 'op []/reg8,imm8'
@@ -515,7 +522,7 @@ restart_prefix:
 			goto finish_block;
 		// 'jmp near imm16/32'
 		case 0xe9:
-			dyn_exit_link(decode.big_op ? (Bit32s)decode_fetchd() : (Bit16s)decode_fetchw());
+			dyn_exit_link(decode.big_op ? (int32_t)decode_fetchd() : (int16_t)decode_fetchw());
 			goto finish_block;
 		// 'jmp far'
 		case 0xea:
@@ -523,7 +530,7 @@ restart_prefix:
 			goto finish_block;
 		// 'jmp short imm8'
 		case 0xeb:
-			dyn_exit_link((Bit8s)decode_fetchb());
+			dyn_exit_link((int8_t)decode_fetchb());
 			goto finish_block;
 
 
@@ -555,7 +562,7 @@ restart_prefix:
 		case 0xfb:		//STI
 			gen_call_function_raw(CPU_STI);
 			dyn_check_exception(FC_RETOP);
-			if (max_opcodes==0) max_opcodes=1;		//Allow 1 extra opcode
+			max_opcodes=1;		//Allow 1 extra opcode
 			break;
 
 		case 0xfc:		//CLD
@@ -610,8 +617,15 @@ finish_block:
 
 	// setup the correct end-address
 	decode.page.index--;
-	decode.active_block->page.end=(Bit16u)decode.page.index;
+	decode.active_block->page.end=(uint16_t)decode.page.index;
 //	LOG_MSG("Created block size %d start %d end %d",decode.block->cache.size,decode.block->page.start,decode.block->page.end);
+
+#if (C_HAVE_MPROTECT)
+	if (w_xor_x) {
+		if (mprotect(cache_code_link_blocks,CACHE_TOTAL+CACHE_MAXSIZE+PAGESIZE_TEMP,PROT_READ|PROT_EXEC))
+			LOG_MSG("Setting execute permission on the code cache has failed! err=%s",strerror(errno));
+	}
+#endif
 
 	return decode.block;
 }

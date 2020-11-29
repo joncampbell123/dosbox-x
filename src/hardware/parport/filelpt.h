@@ -1,5 +1,5 @@
 /*
- *  Copyright (C) 2002-2019  The DOSBox Team
+ *  Copyright (C) 2002-2020  The DOSBox Team
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -11,9 +11,9 @@
  *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  *  GNU General Public License for more details.
  *
- *  You should have received a copy of the GNU General Public License
- *  along with this program; if not, write to the Free Software
- *  Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1335, USA.
+ *  You should have received a copy of the GNU General Public License along
+ *  with this program; if not, write to the Free Software Foundation, Inc.,
+ *  51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
 
 // include guard
@@ -27,7 +27,7 @@ typedef enum { FILE_DEV, FILE_CAPTURE, FILE_APPEND } DFTYPE;
 
 class CFileLPT : public CParallel {
 public:
-	CFileLPT (Bitu nr, Bit8u initIrq, CommandLine* cmd);
+	CFileLPT (Bitu nr, uint8_t initIrq, CommandLine* cmd);
 
 	~CFileLPT();
 	
@@ -41,8 +41,8 @@ public:
 	bool addFF;					// add a formfeed character before closing the file/device
 	bool addLF;					// if set, add line feed after carriage return if not used by app
 
-	Bit8u lastChar = 0;				// used to save the previous character to decide wether to add LF
-	const Bit16u* codepage_ptr; // pointer to the translation codepage if not null
+	uint8_t lastChar = 0;				// used to save the previous character to decide wether to add LF
+	const uint16_t* codepage_ptr; // pointer to the translation codepage if not null
 
 	bool OpenFile();
 	
@@ -52,19 +52,19 @@ public:
 	Bitu Read_COM();
 	Bitu Read_SR();
 
-	Bit8u datareg = 0;
-	Bit8u controlreg;
+	uint8_t datareg = 0;
+	uint8_t controlreg;
 
 	void Write_PR(Bitu);
 	void Write_CON(Bitu);
 	void Write_IOSEL(Bitu);
-	bool Putchar(Bit8u);
+	bool Putchar(uint8_t);
 
 	bool autofeed = false;
 	bool ack;
 	unsigned int timeout = 0;
 	Bitu lastUsedTick = 0;
-	virtual void handleUpperEvent(Bit16u type);
+	virtual void handleUpperEvent(uint16_t type);
 };
 
 #endif	// include guard

@@ -30,7 +30,7 @@
 #define _THIS	SDL_AudioDevice *this
 
 struct SDL_PrivateAudioData {
-	AudioUnit outputAudioUnit;
+	AudioComponentInstance outputAudioUnit;
 	void *buffer;
 	UInt32 bufferOffset;
 	UInt32 bufferSize;

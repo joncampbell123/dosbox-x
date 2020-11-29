@@ -22,12 +22,25 @@ Commit#:	Reason for skipping:
 4165		Not sure if needed
 4174		Conflict
 4178		Conflict
-4196		New overlay drive, skipping for now
 4199		Conflict
 4200		Conflict
 4206		Caused unexpected "DYNREC:Can't run code in this page" error
 4215		Conflict
-4216		Overlay
-4217		Overlay
-4225		Overlay
 4228		Not sure if needed
+4229		Conflict
+4235		Conflict
+4245		Conflict
+4267		IMGMOUNT rewrite part skipped due to conflict
+4270		Conflict
+4278		Conflict
+4281		Conflict
+4285		Website
+4376		The change to P_RESTART, which is removed in DOSBox-X, was skipped.
+4381		Conflict
+4385		Conflict
+
+(Status for commits in this interval needs to be added)
+
+4357		Conflict
+4360		Conflict
+4367		Conflict

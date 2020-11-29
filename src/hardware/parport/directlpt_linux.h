@@ -1,5 +1,5 @@
 /*
- *  Copyright (C) 2002-2019  The DOSBox Team
+ *  Copyright (C) 2002-2020  The DOSBox Team
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -11,9 +11,9 @@
  *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  *  GNU General Public License for more details.
  *
- *  You should have received a copy of the GNU General Public License
- *  along with this program; if not, write to the Free Software
- *  Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1335, USA.
+ *  You should have received a copy of the GNU General Public License along
+ *  with this program; if not, write to the Free Software Foundation, Inc.,
+ *  51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
 
 // include guard
@@ -31,7 +31,7 @@
 
 class CDirectLPT : public CParallel {
 public:
-	CDirectLPT(Bitu nr, Bit8u initIrq, CommandLine* cmd);
+	CDirectLPT(Bitu nr, uint8_t initIrq, CommandLine* cmd);
 	
 
 	~CDirectLPT();
@@ -50,9 +50,9 @@ public:
 	void Write_PR(Bitu);
 	void Write_CON(Bitu);
 	void Write_IOSEL(Bitu);
-	bool Putchar(Bit8u);
+	bool Putchar(uint8_t);
 
-	void handleUpperEvent(Bit16u type);
+	void handleUpperEvent(uint16_t type);
 };
 
 #endif	// WIN32

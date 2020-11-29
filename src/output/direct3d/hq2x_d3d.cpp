@@ -14,9 +14,9 @@
  *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  *  GNU General Public License for more details.
  *
- *  You should have received a copy of the GNU General Public License
- *  along with this program; if not, write to the Free Software
- *  Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1335, USA.
+ *  You should have received a copy of the GNU General Public License along
+ *  with this program; if not, write to the Free Software Foundation, Inc.,
+ *  51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
 
 #include "hq2x_d3d.h"
@@ -156,7 +156,7 @@ static int swap_bits(int num, int bit1, int bit2) {
 
 // width, height == rwidth, rheight
 // outwidth, outheight == width, height
-void BuildHq2xLookupTexture(Bitu outWidth, Bitu outHeight, Bitu rwidth, Bitu rheight, Bit8u* texture)
+void BuildHq2xLookupTexture(Bitu outWidth, Bitu outHeight, Bitu rwidth, Bitu rheight, uint8_t* texture)
 {
     double xsize, ysize;
     unsigned char table[4096] = HQ2X_D3D_TABLE_DATA;

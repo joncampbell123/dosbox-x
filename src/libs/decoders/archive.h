@@ -262,7 +262,7 @@ class Archive
         template <class T> \
         const Archive& operator&(const type<T>& v) const \
         { \
-            uint32_t len = v.size(); \
+            uint32_t len = (uint32_t)v.size(); \
             *this & len; \
             for(typename type<T>::const_iterator it = v.begin(); it != v.end(); ++it) \
             *this & *it; \
@@ -286,7 +286,7 @@ class Archive
         template <class T1, class T2> \
         const Archive& operator&(const type<T1, T2>& v) const \
         { \
-            uint32_t len = v.size(); \
+            uint32_t len = (uint32_t)v.size(); \
             *this & len; \
             for(typename type<T1, T2>::const_iterator it = v.begin(); it != v.end(); ++it) \
             *this & *it; \

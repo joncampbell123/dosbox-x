@@ -1,5 +1,5 @@
 /*
- *  Copyright (C) 2002-2019  The DOSBox Team
+ *  Copyright (C) 2002-2020  The DOSBox Team
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -11,9 +11,9 @@
  *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  *  GNU General Public License for more details.
  *
- *  You should have received a copy of the GNU General Public License
- *  along with this program; if not, write to the Free Software
- *  Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1335, USA.
+ *  You should have received a copy of the GNU General Public License along
+ *  with this program; if not, write to the Free Software Foundation, Inc.,
+ *  51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
 
 #include "dosbox.h"
@@ -31,7 +31,8 @@
 # pragma warning(disable:4244) /* const fmath::local::uint64_t to double possible loss of data */
 #endif
 
-extern bool int13_extensions_enable;
+extern int bootdrive;
+extern bool int13_extensions_enable, bootguest, bootvm, use_quick_reboot;
 
 diskGeo DiskGeometryList[] = {
     { 160,  8, 1, 40, 0, 512,  64, 1, 0xFE},      // IBM PC double density 5.25" single-sided 160KB
@@ -53,21 +54,21 @@ diskGeo DiskGeometryList[] = {
 
 Bitu call_int13 = 0;
 Bitu diskparm0 = 0, diskparm1 = 0;
-static Bit8u last_status;
-static Bit8u last_drive;
-Bit16u imgDTASeg;
+static uint8_t last_status;
+static uint8_t last_drive;
+uint16_t imgDTASeg;
 RealPt imgDTAPtr;
 DOS_DTA *imgDTA;
 bool killRead;
 static bool swapping_requested;
 
-void CMOS_SetRegister(Bitu regNr, Bit8u val); //For setting equipment word
+void CMOS_SetRegister(Bitu regNr, uint8_t val); //For setting equipment word
 
 /* 2 floppys and 2 harddrives, max */
 bool imageDiskChange[MAX_DISK_IMAGES]={false};
 imageDisk *imageDiskList[MAX_DISK_IMAGES]={NULL};
 imageDisk *diskSwap[MAX_SWAPPABLE_DISKS]={NULL};
-Bit32s swapPosition;
+int32_t swapPosition;
 
 imageDisk *GetINT13FloppyDrive(unsigned char drv) {
     if (drv >= 2)
@@ -101,29 +102,29 @@ void FreeBIOSDiskList() {
 
 //update BIOS disk parameter tables for first two hard drives
 void updateDPT(void) {
-    Bit32u tmpheads, tmpcyl, tmpsect, tmpsize;
+    uint32_t tmpheads, tmpcyl, tmpsect, tmpsize;
     PhysPt dpphysaddr[2] = { CALLBACK_PhysPointer(diskparm0), CALLBACK_PhysPointer(diskparm1) };
     for (int i = 0; i < 2; i++) {
         tmpheads = 0; tmpcyl = 0; tmpsect = 0; tmpsize = 0;
         if (imageDiskList[i + 2] != NULL) {
             imageDiskList[i + 2]->Get_Geometry(&tmpheads, &tmpcyl, &tmpsect, &tmpsize);
         }
-        phys_writew(dpphysaddr[i], (Bit16u)tmpcyl);
-        phys_writeb(dpphysaddr[i] + 0x2, (Bit8u)tmpheads);
+        phys_writew(dpphysaddr[i], (uint16_t)tmpcyl);
+        phys_writeb(dpphysaddr[i] + 0x2, (uint8_t)tmpheads);
         phys_writew(dpphysaddr[i] + 0x3, 0);
-        phys_writew(dpphysaddr[i] + 0x5, tmpcyl == 0 ? 0 : (Bit16u)-1);
+        phys_writew(dpphysaddr[i] + 0x5, tmpcyl == 0 ? 0 : (uint16_t)-1);
         phys_writeb(dpphysaddr[i] + 0x7, 0);
         phys_writeb(dpphysaddr[i] + 0x8, tmpcyl == 0 ? 0 : (0xc0 | (((tmpheads) > 8) << 3)));
         phys_writeb(dpphysaddr[i] + 0x9, 0);
         phys_writeb(dpphysaddr[i] + 0xa, 0);
         phys_writeb(dpphysaddr[i] + 0xb, 0);
-        phys_writew(dpphysaddr[i] + 0xc, (Bit16u)tmpcyl);
-        phys_writeb(dpphysaddr[i] + 0xe, (Bit8u)tmpsect);
+        phys_writew(dpphysaddr[i] + 0xc, (uint16_t)tmpcyl);
+        phys_writeb(dpphysaddr[i] + 0xe, (uint8_t)tmpsect);
     }
 }
 
 void incrementFDD(void) {
-    Bit16u equipment=mem_readw(BIOS_CONFIGURATION);
+    uint16_t equipment=mem_readw(BIOS_CONFIGURATION);
     if(equipment&1) {
         Bitu numofdisks = (equipment>>6)&3;
         numofdisks++;
@@ -132,7 +133,7 @@ void incrementFDD(void) {
         equipment|=(numofdisks<<6);
     } else equipment|=1;
     mem_writew(BIOS_CONFIGURATION,equipment);
-    CMOS_SetRegister(0x14, (Bit8u)(equipment&0xff));
+    CMOS_SetRegister(0x14, (uint8_t)(equipment&0xff));
 }
 
 int swapInDisksSpecificDrive = -1;
@@ -140,13 +141,13 @@ int swapInDisksSpecificDrive = -1;
 //  0 = swap across A: only
 //  1 = swap across B: only
 
-void swapInDisks(void) {
+void swapInDisks(int drive) {
     bool allNull = true;
-    Bit32s diskcount = 0;
+    int32_t diskcount = 0;
     Bits diskswapcount = 2;
     Bits diskswapdrive = 0;
-    Bit32s swapPos = swapPosition;
-    Bit32s i;
+    int32_t swapPos = swapPosition;
+    int32_t i;
 
     /* Check to make sure that  there is at least one setup image */
     for(i=0;i<MAX_SWAPPABLE_DISKS;i++) {
@@ -160,10 +161,11 @@ void swapInDisks(void) {
     if (allNull) return;
 
     /* if a specific drive is to be swapped, then adjust to focus on it */
-    if (swapInDisksSpecificDrive >= 0 && swapInDisksSpecificDrive <= 1) {
+    if (swapInDisksSpecificDrive >= 0 && swapInDisksSpecificDrive <= 1 && (drive == -1 || drive == swapInDisksSpecificDrive)) {
         diskswapdrive = swapInDisksSpecificDrive;
         diskswapcount = 1;
-    }
+    } else if (swapInDisksSpecificDrive != -1 || drive != -1) /* Swap A: and B: drives */
+        return;
 
     /* If only one disk is loaded, this loop will load the same disk in dive A and drive B */
     while(diskcount < diskswapcount) {
@@ -193,6 +195,21 @@ bool getSwapRequest(void) {
     return sreq;
 }
 
+void swapInDrive(int drive) {
+    DriveManager::CycleDisks(drive, true);
+    /* Hack/feature: rescan all disks as well */
+    LOG_MSG("Diskcaching reset for drive %c.", drive+'A');
+    if (Drives[drive] != NULL) {
+        Drives[drive]->EmptyCache();
+        Drives[drive]->MediaChange();
+    }
+    if (drive>1||swapInDisksSpecificDrive!=drive) return;
+    swapPosition++;
+    if(diskSwap[swapPosition] == NULL) swapPosition = 0;
+    swapInDisks(drive);
+    swapping_requested = true;
+}
+
 void swapInNextDisk(bool pressed) {
     if (!pressed)
         return;
@@ -205,9 +222,10 @@ void swapInNextDisk(bool pressed) {
             Drives[i]->MediaChange();
         }
     }
+    if (swapInDisksSpecificDrive>1) return;
     swapPosition++;
     if(diskSwap[swapPosition] == NULL) swapPosition = 0;
-    swapInDisks();
+    swapInDisks(-1);
     swapping_requested = true;
 }
 
@@ -217,8 +235,8 @@ void swapInNextCD(bool pressed) {
     DriveManager::CycleAllCDs();
     /* Hack/feature: rescan all disks as well */
     LOG_MSG("Diskcaching reset for normal mounted drives.");
-    for(Bitu i=2;i<DOS_DRIVES;i++) { /* Swap C: D: .... Z: TODO: Need to swap ONLY if a CD-ROM drive! */
-        if (Drives[i] != NULL) {
+    for(Bitu i=2;i<DOS_DRIVES;i++) { /* Swap C: D: .... Z: if it is a CD/DVD drive */
+        if (Drives[i] != NULL && dynamic_cast<isoDrive*>(Drives[i]) != NULL) {
             Drives[i]->EmptyCache();
             Drives[i]->MediaChange();
         }
@@ -226,8 +244,8 @@ void swapInNextCD(bool pressed) {
 }
 
 
-Bit8u imageDisk::Read_Sector(Bit32u head,Bit32u cylinder,Bit32u sector,void * data,unsigned int req_sector_size) {
-    Bit32u sectnum;
+uint8_t imageDisk::Read_Sector(uint32_t head,uint32_t cylinder,uint32_t sector,void * data,unsigned int req_sector_size) {
+    uint32_t sectnum;
 
     if (req_sector_size == 0)
         req_sector_size = sector_size;
@@ -239,11 +257,11 @@ Bit8u imageDisk::Read_Sector(Bit32u head,Bit32u cylinder,Bit32u sector,void * da
     return Read_AbsoluteSector(sectnum, data);
 }
 
-Bit8u imageDisk::Read_AbsoluteSector(Bit32u sectnum, void * data) {
-    Bit64u bytenum,res;
+uint8_t imageDisk::Read_AbsoluteSector(uint32_t sectnum, void * data) {
+    uint64_t bytenum,res;
     int got;
 
-    bytenum = (Bit64u)sectnum * (Bit64u)sector_size;
+    bytenum = (uint64_t)sectnum * (uint64_t)sector_size;
     if ((bytenum + sector_size) > this->image_length) {
         LOG_MSG("Attempt to read invalid sector in Read_AbsoluteSector for sector %lu.\n", (unsigned long)sectnum);
         return 0x05;
@@ -253,7 +271,7 @@ Bit8u imageDisk::Read_AbsoluteSector(Bit32u sectnum, void * data) {
     //LOG_MSG("Reading sectors %ld at bytenum %I64d", sectnum, bytenum);
 
     fseeko64(diskimg,(fseek_ofs_t)bytenum,SEEK_SET);
-    res = (Bit64u)ftello64(diskimg);
+    res = (uint64_t)ftello64(diskimg);
     if (res != bytenum) {
         LOG_MSG("fseek() failed in Read_AbsoluteSector for sector %lu. Want=%llu Got=%llu\n",
             (unsigned long)sectnum,(unsigned long long)bytenum,(unsigned long long)res);
@@ -270,8 +288,8 @@ Bit8u imageDisk::Read_AbsoluteSector(Bit32u sectnum, void * data) {
     return 0x00;
 }
 
-Bit8u imageDisk::Write_Sector(Bit32u head,Bit32u cylinder,Bit32u sector,const void * data,unsigned int req_sector_size) {
-    Bit32u sectnum;
+uint8_t imageDisk::Write_Sector(uint32_t head,uint32_t cylinder,uint32_t sector,const void * data,unsigned int req_sector_size) {
+    uint32_t sectnum;
 
     if (req_sector_size == 0)
         req_sector_size = sector_size;
@@ -284,10 +302,10 @@ Bit8u imageDisk::Write_Sector(Bit32u head,Bit32u cylinder,Bit32u sector,const vo
 }
 
 
-Bit8u imageDisk::Write_AbsoluteSector(Bit32u sectnum, const void *data) {
-    Bit64u bytenum;
+uint8_t imageDisk::Write_AbsoluteSector(uint32_t sectnum, const void *data) {
+    uint64_t bytenum;
 
-    bytenum = (Bit64u)sectnum * sector_size;
+    bytenum = (uint64_t)sectnum * sector_size;
     if ((bytenum + sector_size) > this->image_length) {
         LOG_MSG("Attempt to read invalid sector in Write_AbsoluteSector for sector %lu.\n", (unsigned long)sectnum);
         return 0x05;
@@ -297,7 +315,7 @@ Bit8u imageDisk::Write_AbsoluteSector(Bit32u sectnum, const void *data) {
     //LOG_MSG("Writing sectors to %ld at bytenum %d", sectnum, bytenum);
 
     fseeko64(diskimg,(fseek_ofs_t)bytenum,SEEK_SET);
-    if ((Bit64u)ftello64(diskimg) != bytenum)
+    if ((uint64_t)ftello64(diskimg) != bytenum)
         LOG_MSG("WARNING: fseek() failed in Write_AbsoluteSector for sector %lu\n",(unsigned long)sectnum);
 
     size_t ret=fwrite(data, sector_size, 1, diskimg);
@@ -310,20 +328,20 @@ void imageDisk::Set_Reserved_Cylinders(Bitu resCyl) {
     reserved_cylinders = resCyl;
 }
 
-Bit32u imageDisk::Get_Reserved_Cylinders() {
+uint32_t imageDisk::Get_Reserved_Cylinders() {
     return reserved_cylinders;
 }
 
 imageDisk::imageDisk(IMAGE_TYPE class_id) : class_id(class_id) {
 }
 
-imageDisk::imageDisk(FILE* diskimg, const char* diskName, Bit32u cylinders, Bit32u heads, Bit32u sectors, Bit32u sector_size, bool hardDrive) {
+imageDisk::imageDisk(FILE* diskimg, const char* diskName, uint32_t cylinders, uint32_t heads, uint32_t sectors, uint32_t sector_size, bool hardDrive) {
     if (diskName) this->diskname = diskName;
     this->cylinders = cylinders;
     this->heads = heads;
     this->sectors = sectors;
     image_base = 0;
-    this->image_length = (Bit64u)cylinders * heads * sectors * sector_size;
+    this->image_length = (uint64_t)cylinders * heads * sectors * sector_size;
     refcount = 0;
     this->sector_size = sector_size;
     this->diskSizeK = this->image_length / 1024;
@@ -410,7 +428,7 @@ typedef struct {
 }NHD_FILE_HEAD,*LP_NHD_FILE_HEAD;
 #pragma pack(pop)
 
-imageDisk::imageDisk(FILE* imgFile, Bit8u* imgName, Bit32u imgSizeK, bool isHardDisk) : diskSizeK(imgSizeK), diskimg(imgFile), image_length((Bit64u)imgSizeK * 1024) {
+imageDisk::imageDisk(FILE* imgFile, const char* imgName, uint32_t imgSizeK, bool isHardDisk) : diskSizeK(imgSizeK), diskimg(imgFile), image_length((uint64_t)imgSizeK * 1024) {
     if (imgName != NULL)
         diskname = (const char*)imgName;
 
@@ -473,7 +491,7 @@ imageDisk::imageDisk(FILE* imgFile, Bit8u* imgName, Bit32u imgSizeK, bool isHard
         }
 
         if (sectors == 0 && heads == 0 && cylinders == 0) {
-            Bit8u i=0;
+            uint8_t i=0;
             while (DiskGeometryList[i].ksize!=0x0) {
                 if ((DiskGeometryList[i].ksize==imgSizeK) ||
                         (DiskGeometryList[i].ksize+1==imgSizeK)) {
@@ -598,7 +616,7 @@ imageDisk::imageDisk(FILE* imgFile, Bit8u* imgName, Bit32u imgSizeK, bool isHard
     }
 }
 
-void imageDisk::Set_Geometry(Bit32u setHeads, Bit32u setCyl, Bit32u setSect, Bit32u setSectSize) {
+void imageDisk::Set_Geometry(uint32_t setHeads, uint32_t setCyl, uint32_t setSect, uint32_t setSectSize) {
     Bitu bigdisk_shift = 0;
 
     if (IS_PC98_ARCH) {
@@ -619,24 +637,24 @@ void imageDisk::Set_Geometry(Bit32u setHeads, Bit32u setCyl, Bit32u setSect, Bit
     active = true;
 }
 
-void imageDisk::Get_Geometry(Bit32u * getHeads, Bit32u *getCyl, Bit32u *getSect, Bit32u *getSectSize) {
+void imageDisk::Get_Geometry(uint32_t * getHeads, uint32_t *getCyl, uint32_t *getSect, uint32_t *getSectSize) {
     *getHeads = heads;
     *getCyl = cylinders;
     *getSect = sectors;
     *getSectSize = sector_size;
 }
 
-Bit8u imageDisk::GetBiosType(void) {
+uint8_t imageDisk::GetBiosType(void) {
     if(!hardDrive) {
-        return (Bit8u)DiskGeometryList[floppytype].biosval;
+        return (uint8_t)DiskGeometryList[floppytype].biosval;
     } else return 0;
 }
 
-Bit32u imageDisk::getSectSize(void) {
+uint32_t imageDisk::getSectSize(void) {
     return sector_size;
 }
 
-static Bit8u GetDosDriveNumber(Bit8u biosNum) {
+static uint8_t GetDosDriveNumber(uint8_t biosNum) {
     switch(biosNum) {
         case 0x0:
             return 0x0;
@@ -655,7 +673,7 @@ static Bit8u GetDosDriveNumber(Bit8u biosNum) {
     }
 }
 
-static bool driveInactive(Bit8u driveNum) {
+static bool driveInactive(uint8_t driveNum) {
     if(driveNum>=(2 + MAX_HDD_IMAGES)) {
         LOG(LOG_BIOS,LOG_ERROR)("Disk %d non-existant", (int)driveNum);
         last_status = 0x01;
@@ -678,15 +696,15 @@ static bool driveInactive(Bit8u driveNum) {
 }
 
 static struct {
-    Bit8u sz;
-    Bit8u res;
-    Bit16u num;
-    Bit16u off;
-    Bit16u seg;
-    Bit32u sector;
+    uint8_t sz;
+    uint8_t res;
+    uint16_t num;
+    uint16_t off;
+    uint16_t seg;
+    uint32_t sector;
 } dap;
 
-static void readDAP(Bit16u seg, Bit16u off) {
+static void readDAP(uint16_t seg, uint16_t off) {
     dap.sz = real_readb(seg,off++);
     dap.res = real_readb(seg,off++);
     dap.num = real_readw(seg,off); off += 2;
@@ -706,9 +724,9 @@ void IDE_EmuINT13DiskReadByBIOS(unsigned char disk,unsigned int cyl,unsigned int
 void IDE_EmuINT13DiskReadByBIOS_LBA(unsigned char disk,uint64_t lba);
 
 static Bitu INT13_DiskHandler(void) {
-    Bit16u segat, bufptr;
-    Bit8u sectbuf[512];
-    Bit8u  drivenum;
+    uint16_t segat, bufptr;
+    uint8_t sectbuf[512];
+    uint8_t  drivenum;
     Bitu  i,t;
     last_drive = reg_dl;
     drivenum = GetDosDriveNumber(reg_dl);
@@ -826,10 +844,10 @@ static Bitu INT13_DiskHandler(void) {
         segat = SegValue(es);
         bufptr = reg_bx;
         for(i=0;i<reg_al;i++) {
-            last_status = imageDiskList[drivenum]->Read_Sector((Bit32u)reg_dh, (Bit32u)(reg_ch | ((reg_cl & 0xc0)<< 2)), (Bit32u)((reg_cl & 63)+i), sectbuf);
+            last_status = imageDiskList[drivenum]->Read_Sector((uint32_t)reg_dh, (uint32_t)(reg_ch | ((reg_cl & 0xc0)<< 2)), (uint32_t)((reg_cl & 63)+i), sectbuf);
 
             /* IDE emulation: simulate change of IDE state that would occur on a real machine after INT 13h */
-            IDE_EmuINT13DiskReadByBIOS(reg_dl, (Bit32u)(reg_ch | ((reg_cl & 0xc0)<< 2)), (Bit32u)reg_dh, (Bit32u)((reg_cl & 63)+i));
+            IDE_EmuINT13DiskReadByBIOS(reg_dl, (uint32_t)(reg_ch | ((reg_cl & 0xc0)<< 2)), (uint32_t)reg_dh, (uint32_t)((reg_cl & 63)+i));
 
             if((last_status != 0x00) || (killRead)) {
                 LOG_MSG("Error in disk read");
@@ -875,7 +893,7 @@ static Bitu INT13_DiskHandler(void) {
                 bufptr++;
             }
 
-            last_status = imageDiskList[drivenum]->Write_Sector((Bit32u)reg_dh, (Bit32u)(reg_ch | ((reg_cl & 0xc0) << 2)), (Bit32u)((reg_cl & 63) + i), &sectbuf[0]);
+            last_status = imageDiskList[drivenum]->Write_Sector((uint32_t)reg_dh, (uint32_t)(reg_ch | ((reg_cl & 0xc0) << 2)), (uint32_t)((reg_cl & 63) + i), &sectbuf[0]);
             if(last_status != 0x00) {
             CALLBACK_SCF(true);
                 return CBRET_NONE;
@@ -900,7 +918,7 @@ static Bitu INT13_DiskHandler(void) {
         segat = SegValue(es);
         bufptr = reg_bx;
         for(i=0;i<reg_al;i++) {
-            last_status = imageDiskList[drivenum]->Read_Sector((Bit32u)reg_dh, (Bit32u)(reg_ch | ((reg_cl & 0xc0)<< 2)), (Bit32u)((reg_cl & 63)+i), sectbuf);
+            last_status = imageDiskList[drivenum]->Read_Sector((uint32_t)reg_dh, (uint32_t)(reg_ch | ((reg_cl & 0xc0)<< 2)), (uint32_t)((reg_cl & 63)+i), sectbuf);
             if(last_status != 0x00) {
                 LOG_MSG("Error in disk read");
                 CALLBACK_SCF(true);
@@ -960,7 +978,7 @@ static Bitu INT13_DiskHandler(void) {
         }
         reg_ax = 0x00;
         reg_bl = imageDiskList[drivenum]->GetBiosType();
-        Bit32u tmpheads, tmpcyl, tmpsect, tmpsize;
+        uint32_t tmpheads, tmpcyl, tmpsect, tmpsize;
         imageDiskList[drivenum]->Get_Geometry(&tmpheads, &tmpcyl, &tmpsect, &tmpsize);
         if (tmpcyl==0) LOG(LOG_BIOS,LOG_ERROR)("INT13 DrivParm: cylinder count zero!");
         else tmpcyl--;      // cylinder count -> max cylinder
@@ -970,14 +988,14 @@ static Bitu INT13_DiskHandler(void) {
         /* older BIOSes were known to subtract 1 or 2 additional "reserved" cylinders.
          * some code, such as Windows 3.1 WDCTRL, might assume that fact. emulate that here */
         {
-            Bit32u reserv = imageDiskList[drivenum]->Get_Reserved_Cylinders();
+            uint32_t reserv = imageDiskList[drivenum]->Get_Reserved_Cylinders();
             if (tmpcyl > reserv) tmpcyl -= reserv;
             else tmpcyl = 0;
         }
 
-        reg_ch = (Bit8u)(tmpcyl & 0xff);
-        reg_cl = (Bit8u)(((tmpcyl >> 2) & 0xc0) | (tmpsect & 0x3f)); 
-        reg_dh = (Bit8u)tmpheads;
+        reg_ch = (uint8_t)(tmpcyl & 0xff);
+        reg_cl = (uint8_t)(((tmpcyl >> 2) & 0xc0) | (tmpsect & 0x3f)); 
+        reg_dh = (uint8_t)tmpheads;
         last_status = 0x00;
         if (reg_dl&0x80) {  // harddisks
             reg_dl = 0;
@@ -1006,13 +1024,13 @@ static Bitu INT13_DiskHandler(void) {
                 return CBRET_NONE;
             }
             imageDiskList[drivenum]->Get_Geometry(&tmpheads, &tmpcyl, &tmpsect, &tmpsize);
-            Bit64u largesize = tmpheads*tmpcyl*tmpsect*tmpsize;
+            uint64_t largesize = tmpheads*tmpcyl*tmpsect*tmpsize;
             largesize/=512;
-            Bit32u ts = static_cast<Bit32u>(largesize);
+            uint32_t ts = static_cast<uint32_t>(largesize);
             reg_ah = (drivenum <2)?1:3; //With 2 for floppy MSDOS starts calling int 13 ah 16
             if(reg_ah == 3) {
-                reg_cx = static_cast<Bit16u>(ts >>16);
-                reg_dx = static_cast<Bit16u>(ts & 0xffff);
+                reg_cx = static_cast<uint16_t>(ts >>16);
+                reg_dx = static_cast<uint16_t>(ts & 0xffff);
             }
             CALLBACK_SCF(false);
         } else {
@@ -1200,7 +1218,7 @@ void BIOS_SetupDisks(void) {
     RealSetVec(0x13,CALLBACK_RealPointer(call_int13));
 
     //release the drives after a soft reset
-    FreeBIOSDiskList();
+    if ((!bootguest&&(bootvm||!use_quick_reboot))||bootdrive<0) FreeBIOSDiskList();
 
     /* FIXME: Um... these aren't callbacks. Why are they allocated as callbacks? We have ROM general allocation now. */
     diskparm0 = CALLBACK_Allocate();
@@ -1230,7 +1248,7 @@ void BIOS_SetupDisks(void) {
 
 // VFD *.FDD floppy disk format support
 
-Bit8u imageDiskVFD::Read_Sector(Bit32u head,Bit32u cylinder,Bit32u sector,void * data,unsigned int req_sector_size) {
+uint8_t imageDiskVFD::Read_Sector(uint32_t head,uint32_t cylinder,uint32_t sector,void * data,unsigned int req_sector_size) {
     const vfdentry *ent;
 
     if (req_sector_size == 0)
@@ -1256,7 +1274,7 @@ Bit8u imageDiskVFD::Read_Sector(Bit32u head,Bit32u cylinder,Bit32u sector,void *
     return 0x05;
 }
 
-Bit8u imageDiskVFD::Read_AbsoluteSector(Bit32u sectnum, void * data) {
+uint8_t imageDiskVFD::Read_AbsoluteSector(uint32_t sectnum, void * data) {
     unsigned int c,h,s;
 
     if (sectors == 0 || heads == 0)
@@ -1268,7 +1286,7 @@ Bit8u imageDiskVFD::Read_AbsoluteSector(Bit32u sectnum, void * data) {
     return Read_Sector(h,c,s,data);
 }
 
-imageDiskVFD::vfdentry *imageDiskVFD::findSector(Bit8u head,Bit8u track,Bit8u sector/*TODO: physical head?*/,unsigned int req_sector_size) {
+imageDiskVFD::vfdentry *imageDiskVFD::findSector(uint8_t head,uint8_t track,uint8_t sector/*TODO: physical head?*/,unsigned int req_sector_size) {
     std::vector<imageDiskVFD::vfdentry>::iterator i = dents.begin();
     unsigned char szb=0xFF;
 
@@ -1303,7 +1321,7 @@ imageDiskVFD::vfdentry *imageDiskVFD::findSector(Bit8u head,Bit8u track,Bit8u se
     return NULL;
 }
 
-Bit8u imageDiskVFD::Write_Sector(Bit32u head,Bit32u cylinder,Bit32u sector,const void * data,unsigned int req_sector_size) {
+uint8_t imageDiskVFD::Write_Sector(uint32_t head,uint32_t cylinder,uint32_t sector,const void * data,unsigned int req_sector_size) {
     unsigned long new_offset;
     unsigned char tmp[12];
     vfdentry *ent;
@@ -1395,7 +1413,7 @@ Bit8u imageDiskVFD::Write_Sector(Bit32u head,Bit32u cylinder,Bit32u sector,const
     return 0x05;
 }
 
-Bit8u imageDiskVFD::Write_AbsoluteSector(Bit32u sectnum,const void *data) {
+uint8_t imageDiskVFD::Write_AbsoluteSector(uint32_t sectnum,const void *data) {
     unsigned int c,h,s;
 
     if (sectors == 0 || heads == 0)
@@ -1407,7 +1425,7 @@ Bit8u imageDiskVFD::Write_AbsoluteSector(Bit32u sectnum,const void *data) {
     return Write_Sector(h,c,s,data);
 }
 
-imageDiskVFD::imageDiskVFD(FILE *imgFile, Bit8u *imgName, Bit32u imgSizeK, bool isHardDisk) : imageDisk(ID_VFD) {
+imageDiskVFD::imageDiskVFD(FILE *imgFile, uint8_t *imgName, uint32_t imgSizeK, bool isHardDisk) : imageDisk(ID_VFD) {
     (void)isHardDisk;//UNUSED
     unsigned char tmp[16];
 
@@ -1539,7 +1557,7 @@ imageDiskVFD::imageDiskVFD(FILE *imgFile, Bit8u *imgName, Bit32u imgSizeK, bool 
                 }
             }
 
-            Bit8u i;
+            uint8_t i;
             if (sector_size != 0) {
                 i=0;
                 while (DiskGeometryList[i].ksize != 0) {
@@ -1646,7 +1664,7 @@ typedef struct D88SEC {
 } D88SEC;                                       // =0x10 total
 #pragma pack(pop)
 
-Bit8u imageDiskD88::Read_Sector(Bit32u head,Bit32u cylinder,Bit32u sector,void * data,unsigned int req_sector_size) {
+uint8_t imageDiskD88::Read_Sector(uint32_t head,uint32_t cylinder,uint32_t sector,void * data,unsigned int req_sector_size) {
     const vfdentry *ent;
 
     if (req_sector_size == 0)
@@ -1664,7 +1682,7 @@ Bit8u imageDiskD88::Read_Sector(Bit32u head,Bit32u cylinder,Bit32u sector,void *
     return 0;
 }
 
-Bit8u imageDiskD88::Read_AbsoluteSector(Bit32u sectnum, void * data) {
+uint8_t imageDiskD88::Read_AbsoluteSector(uint32_t sectnum, void * data) {
     unsigned int c,h,s;
 
     if (sectors == 0 || heads == 0)
@@ -1676,7 +1694,7 @@ Bit8u imageDiskD88::Read_AbsoluteSector(Bit32u sectnum, void * data) {
     return Read_Sector(h,c,s,data);
 }
 
-imageDiskD88::vfdentry *imageDiskD88::findSector(Bit8u head,Bit8u track,Bit8u sector/*TODO: physical head?*/,unsigned int req_sector_size) {
+imageDiskD88::vfdentry *imageDiskD88::findSector(uint8_t head,uint8_t track,uint8_t sector/*TODO: physical head?*/,unsigned int req_sector_size) {
     if ((size_t)track >= dents.size())
         return NULL;
 
@@ -1700,7 +1718,7 @@ imageDiskD88::vfdentry *imageDiskD88::findSector(Bit8u head,Bit8u track,Bit8u se
     return NULL;
 }
 
-Bit8u imageDiskD88::Write_Sector(Bit32u head,Bit32u cylinder,Bit32u sector,const void * data,unsigned int req_sector_size) {
+uint8_t imageDiskD88::Write_Sector(uint32_t head,uint32_t cylinder,uint32_t sector,const void * data,unsigned int req_sector_size) {
     const vfdentry *ent;
 
     if (req_sector_size == 0)
@@ -1718,7 +1736,7 @@ Bit8u imageDiskD88::Write_Sector(Bit32u head,Bit32u cylinder,Bit32u sector,const
     return 0;
 }
 
-Bit8u imageDiskD88::Write_AbsoluteSector(Bit32u sectnum,const void *data) {
+uint8_t imageDiskD88::Write_AbsoluteSector(uint32_t sectnum,const void *data) {
     unsigned int c,h,s;
 
     if (sectors == 0 || heads == 0)
@@ -1730,7 +1748,7 @@ Bit8u imageDiskD88::Write_AbsoluteSector(Bit32u sectnum,const void *data) {
     return Write_Sector(h,c,s,data);
 }
 
-imageDiskD88::imageDiskD88(FILE *imgFile, Bit8u *imgName, Bit32u imgSizeK, bool isHardDisk) : imageDisk(ID_D88) {
+imageDiskD88::imageDiskD88(FILE *imgFile, uint8_t *imgName, uint32_t imgSizeK, bool isHardDisk) : imageDisk(ID_D88) {
     (void)isHardDisk;//UNUSED
     D88HEAD head;
 
@@ -1942,7 +1960,7 @@ imageDiskD88::~imageDiskD88() {
 
 /*--------------------------------*/
 
-Bit8u imageDiskNFD::Read_Sector(Bit32u head,Bit32u cylinder,Bit32u sector,void * data,unsigned int req_sector_size) {
+uint8_t imageDiskNFD::Read_Sector(uint32_t head,uint32_t cylinder,uint32_t sector,void * data,unsigned int req_sector_size) {
     const vfdentry *ent;
 
     if (req_sector_size == 0)
@@ -1960,7 +1978,7 @@ Bit8u imageDiskNFD::Read_Sector(Bit32u head,Bit32u cylinder,Bit32u sector,void *
     return 0;
 }
 
-Bit8u imageDiskNFD::Read_AbsoluteSector(Bit32u sectnum, void * data) {
+uint8_t imageDiskNFD::Read_AbsoluteSector(uint32_t sectnum, void * data) {
     unsigned int c,h,s;
 
     if (sectors == 0 || heads == 0)
@@ -1972,7 +1990,7 @@ Bit8u imageDiskNFD::Read_AbsoluteSector(Bit32u sectnum, void * data) {
     return Read_Sector(h,c,s,data);
 }
 
-imageDiskNFD::vfdentry *imageDiskNFD::findSector(Bit8u head,Bit8u track,Bit8u sector/*TODO: physical head?*/,unsigned int req_sector_size) {
+imageDiskNFD::vfdentry *imageDiskNFD::findSector(uint8_t head,uint8_t track,uint8_t sector/*TODO: physical head?*/,unsigned int req_sector_size) {
     if ((size_t)track >= dents.size())
         return NULL;
 
@@ -1996,7 +2014,7 @@ imageDiskNFD::vfdentry *imageDiskNFD::findSector(Bit8u head,Bit8u track,Bit8u se
     return NULL;
 }
 
-Bit8u imageDiskNFD::Write_Sector(Bit32u head,Bit32u cylinder,Bit32u sector,const void * data,unsigned int req_sector_size) {
+uint8_t imageDiskNFD::Write_Sector(uint32_t head,uint32_t cylinder,uint32_t sector,const void * data,unsigned int req_sector_size) {
     const vfdentry *ent;
 
     if (req_sector_size == 0)
@@ -2014,7 +2032,7 @@ Bit8u imageDiskNFD::Write_Sector(Bit32u head,Bit32u cylinder,Bit32u sector,const
     return 0;
 }
 
-Bit8u imageDiskNFD::Write_AbsoluteSector(Bit32u sectnum,const void *data) {
+uint8_t imageDiskNFD::Write_AbsoluteSector(uint32_t sectnum,const void *data) {
     unsigned int c,h,s;
 
     if (sectors == 0 || heads == 0)
@@ -2026,7 +2044,7 @@ Bit8u imageDiskNFD::Write_AbsoluteSector(Bit32u sectnum,const void *data) {
     return Write_Sector(h,c,s,data);
 }
 
-imageDiskNFD::imageDiskNFD(FILE *imgFile, Bit8u *imgName, Bit32u imgSizeK, bool isHardDisk, unsigned int revision) : imageDisk(ID_NFD) {
+imageDiskNFD::imageDiskNFD(FILE *imgFile, uint8_t *imgName, uint32_t imgSizeK, bool isHardDisk, unsigned int revision) : imageDisk(ID_NFD) {
     (void)isHardDisk;//UNUSED
     union {
         NFDHDR head;

@@ -1,5 +1,5 @@
 /*
- *  Copyright (C) 2002-2019  The DOSBox Team
+ *  Copyright (C) 2002-2020  The DOSBox Team
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -11,9 +11,9 @@
  *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  *  GNU General Public License for more details.
  *
- *  You should have received a copy of the GNU General Public License
- *  along with this program; if not, write to the Free Software
- *  Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1335, USA.
+ *  You should have received a copy of the GNU General Public License along
+ *  with this program; if not, write to the Free Software Foundation, Inc.,
+ *  51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
 
 
@@ -346,6 +346,7 @@ void DriveManager::CycleAllCDs(void) {
 			// cycle disk
 			unsigned int currentDisk = driveInfos[idrive].currentDisk;
             const DOS_Drive* oldDisk = driveInfos[idrive].disks[currentDisk];
+            if (dynamic_cast<const isoDrive*>(oldDisk) == NULL) continue;
 			currentDisk = ((unsigned int)currentDisk + 1u) % (unsigned int)numDisks;		
 			DOS_Drive* newDisk = driveInfos[idrive].disks[currentDisk];
 			driveInfos[idrive].currentDisk = currentDisk;
@@ -382,6 +383,12 @@ int DriveManager::UnmountDrive(int drive) {
 	return result;
 }
 
+char swappos[10];
+char * DriveManager::GetDrivePosition(int drive) {
+    sprintf(swappos, "%d / %d", driveInfos[drive].currentDisk+1, (int)driveInfos[drive].disks.size());
+    return swappos;
+}
+
 bool drivemanager_init = false;
 bool int13_extensions_enable = true;
 
@@ -405,13 +412,13 @@ void DriveManager::Init(Section* s) {
 void DRIVES_Startup(Section *s) {
     (void)s;//UNUSED
 	if (!drivemanager_init) {
-		LOG(LOG_MISC,LOG_DEBUG)("Initializing drive system");
+		LOG(LOG_DOSMISC,LOG_DEBUG)("Initializing drive system");
 		DriveManager::Init(control->GetSection("dos"));
 	}
 }
 
 void DRIVES_Init() {
-	LOG(LOG_MISC,LOG_DEBUG)("Initializing OOS drives");
+	LOG(LOG_DOSMISC,LOG_DEBUG)("Initializing DOS drives");
 
 	// TODO: DOS kernel exit, reset, guest booting handler
 }
@@ -424,6 +431,8 @@ char * DOS_Drive::GetBaseDir(void) {
 void DOS_Drive::SaveState( std::ostream& stream )
 {
 	// - pure data
+	WRITE_POD( &nocachedir, nocachedir );
+	WRITE_POD( &readonly, readonly );
 	WRITE_POD( &curdir, curdir );
 	WRITE_POD( &info, info );
 }
@@ -431,6 +440,8 @@ void DOS_Drive::SaveState( std::ostream& stream )
 void DOS_Drive::LoadState( std::istream& stream )
 {
 	// - pure data
+	READ_POD( &nocachedir, nocachedir );
+	READ_POD( &readonly, readonly );
 	READ_POD( &curdir, curdir );
 	READ_POD( &info, info );
 }

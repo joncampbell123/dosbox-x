@@ -1,5 +1,5 @@
 /*
- *  Copyright (C) 2002-2019  The DOSBox Team
+ *  Copyright (C) 2002-2020  The DOSBox Team
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -11,9 +11,9 @@
  *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  *  GNU General Public License for more details.
  *
- *  You should have received a copy of the GNU General Public License
- *  along with this program; if not, write to the Free Software
- *  Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1335, USA.
+ *  You should have received a copy of the GNU General Public License along
+ *  with this program; if not, write to the Free Software Foundation, Inc.,
+ *  51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
 
 
@@ -56,8 +56,9 @@ bool BatchFile::ReadLine(char * line) {
 	}
 	DOS_SeekFile(file_handle,&(this->location),DOS_SEEK_SET);
 
-	Bit8u c=0;Bit16u n=1;
+	uint8_t c=0;uint16_t n=1;
 	char temp[CMD_MAXLINE];
+	char temp_cycles_hack[CMD_MAXLINE];
 emptyline:
 	char * cmd_write=temp;
 	do {
@@ -73,7 +74,10 @@ emptyline:
 				//So we continue reading till EOL/EOF
 				if (((cmd_write - temp) + 1) < (CMD_MAXLINE - 1))
 					*cmd_write++ = (char)c;
-			}
+			} else if (c!=0x1a) {
+                            if (c != '\n' && c != '\r')
+					shell->WriteOut(MSG_Get("SHELL_ILLEGAL_CONTROL_CHARACTER"), c, c);
+                        }
 		}
 	} while (c!='\n' && n);
 	*cmd_write=0;
@@ -125,8 +129,29 @@ emptyline:
 			} else {
 				/* Not a command line number has to be an environment */
 				char * first = strchr(cmd_read,'%');
+
 				/* No env afterall. Ignore a single % */
-				if (!first) {/* *cmd_write++ = '%';*/continue;}
+				if (!first) {
+					/* *cmd_write++ = '%';*/
+					//check if input contains cycles + max/auto  and that next character is space or empty
+					//If so, don't ignore it. This way cycles can still be set from within batch files
+					char peak = *(cmd_read);
+					if (peak == 0 || peak == ' ' || peak == '\r' || peak == '\n') {
+						strncpy(temp_cycles_hack,temp,cmd_read-temp);
+						temp_cycles_hack[cmd_read-temp] = 0;
+						upcase(temp_cycles_hack);
+						const char* cycles_test_cycles = strstr(temp_cycles_hack,"CYCLES");
+						if (cycles_test_cycles) {
+							const char* cycles_test_max = strstr(cycles_test_cycles,"MAX");
+							const char* cycles_test_auto = strstr(cycles_test_cycles,"AUTO");
+							if ( cycles_test_max  || cycles_test_auto )	{
+								   if (((cmd_write - line) + 1) < (CMD_MAXLINE - 1))
+									   *cmd_write++ = '%';
+							}
+						}
+					}
+					continue;
+				}
 				*first++ = 0;
 				std::string env;
 				if (shell->GetEnvStr(cmd_read,env)) {
@@ -166,7 +191,7 @@ bool BatchFile::Goto(const char * where) {
 	char * cmd_write;
 
 	/* Scan till we have a match or return false */
-	Bit8u c;Bit16u n;
+	uint8_t c;uint16_t n;
 again:
 	cmd_write=cmd_buffer;
 	do {
@@ -176,7 +201,10 @@ again:
 			if (c>31) {
 				if (((cmd_write - cmd_buffer) + 1) < (CMD_MAXLINE - 1))
 					*cmd_write++ = (char)c;
-			}
+			} else if (c!=0x1a && c!=0x1b && c!='\t' && c!=8) {
+                                if (c != '\n' && c != '\r')
+					shell->WriteOut(MSG_Get("SHELL_ILLEGAL_CONTROL_CHARACTER"), c, c);
+                        }
 		}
 	} while (c!='\n' && n);
 	*cmd_write++ = 0;

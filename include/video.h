@@ -1,5 +1,5 @@
 /*
- *  Copyright (C) 2002-2019  The DOSBox Team
+ *  Copyright (C) 2002-2020  The DOSBox Team
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -11,9 +11,9 @@
  *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  *  GNU General Public License for more details.
  *
- *  You should have received a copy of the GNU General Public License
- *  along with this program; if not, write to the Free Software
- *  Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1335, USA.
+ *  You should have received a copy of the GNU General Public License along
+ *  with this program; if not, write to the Free Software Foundation, Inc.,
+ *  51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
 
 
@@ -31,10 +31,10 @@ typedef enum {
 typedef void (*GFX_CallBack_t)( GFX_CallBackFunctions_t function );
 
 struct GFX_PalEntry {
-	Bit8u r;
-	Bit8u g;
-	Bit8u b;
-	Bit8u unused;
+	uint8_t r;
+	uint8_t g;
+	uint8_t b;
+	uint8_t unused;
 };
 
 #define GFX_CAN_8		0x0001u
@@ -57,17 +57,17 @@ struct GFX_PalEntry {
 void GFX_Events(void);
 void GFX_SetPalette(Bitu start,Bitu count,GFX_PalEntry * entries);
 Bitu GFX_GetBestMode(Bitu flags);
-Bitu GFX_GetRGB(Bit8u red,Bit8u green,Bit8u blue);
+Bitu GFX_GetRGB(uint8_t red,uint8_t green,uint8_t blue);
 Bitu GFX_SetSize(Bitu width,Bitu height,Bitu flags,double scalex,double scaley,GFX_CallBack_t callback);
 void GFX_TearDown(void);
-
+void GFX_SetShader(const char* src);
 void GFX_ResetScreen(void);
 void GFX_RestoreMode(void);
 void GFX_Start(void);
 void GFX_Stop(void);
 void GFX_SwitchFullScreen(void);
-bool GFX_StartUpdate(Bit8u * & pixels,Bitu & pitch);
-void GFX_EndUpdate( const Bit16u *changedLines );
+bool GFX_StartUpdate(uint8_t * & pixels,Bitu & pitch);
+void GFX_EndUpdate( const uint16_t *changedLines );
 void GFX_GetSize(int &width, int &height, bool &fullscreen);
 void GFX_LosingFocus(void);
 

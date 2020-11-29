@@ -31,11 +31,11 @@ August 8 2005		cyberwalker
 #include <fcntl.h>
 #include <share.h>
 
-extern Bit16u	NetworkHandleList[127];	/*in dos_files.cpp*/
+extern uint16_t	NetworkHandleList[127];	/*in dos_files.cpp*/
 
-inline Bit16u	Network_ToDosError(DWORD dwLastError)
+inline uint16_t	Network_ToDosError(DWORD dwLastError)
 {
-	Bit16u	retCode;
+	uint16_t	retCode;
 
 	switch(dwLastError)
 	{
@@ -44,7 +44,7 @@ inline Bit16u	Network_ToDosError(DWORD dwLastError)
 	case	ERROR_NO_DATA:
 	case	ERROR_PIPE_NOT_CONNECTED:
 	case	ERROR_MORE_DATA:
-		retCode=(Bit16u)dwLastError;
+		retCode=(uint16_t)dwLastError;
 		break;
 	default:
 		retCode=0x1;
@@ -52,11 +52,11 @@ inline Bit16u	Network_ToDosError(DWORD dwLastError)
 	}
 
 	return	retCode;
-}//Bit16u	Network_ToDosError(DWORD dwLastError)
+}//uint16_t	Network_ToDosError(DWORD dwLastError)
 
- bool	Network_SetNamedPipeState(Bit16u entry,
-								  Bit16u mask,
-								  Bit16u& errorcode)
+ bool	Network_SetNamedPipeState(uint16_t entry,
+								  uint16_t mask,
+								  uint16_t& errorcode)
 {
 	int		ifd=NetworkHandleList[entry];
 	HANDLE	hNamedPipe=(HANDLE)_get_osfhandle(ifd);
@@ -78,14 +78,14 @@ inline Bit16u	Network_ToDosError(DWORD dwLastError)
 	else	errorcode=Network_ToDosError(GetLastError());
 
 	return	(errorcode==0);
-}//bool	Network_SetNamedPipeState(Bit16u entry,Bit16u mask,Bit16u& errorcode)
+}//bool	Network_SetNamedPipeState(uint16_t entry,uint16_t mask,uint16_t& errorcode)
 
 
- bool	Network_PeekNamedPipe(Bit16u entry,
-							  unsigned char* lpBuffer,Bit16u nBufferSize,
-							  Bit16u& cxRead,Bit16u& siLeft,Bit16u& dxLeftCurrent,
-							  Bit16u& diStatus,
-							  Bit16u& errorcode)
+ bool	Network_PeekNamedPipe(uint16_t entry,
+							  unsigned char* lpBuffer,uint16_t nBufferSize,
+							  uint16_t& cxRead,uint16_t& siLeft,uint16_t& dxLeftCurrent,
+							  uint16_t& diStatus,
+							  uint16_t& errorcode)
 {
 	int		ifd=NetworkHandleList[entry];
 	HANDLE	hNamedPipe=(HANDLE)_get_osfhandle(ifd);
@@ -94,9 +94,9 @@ inline Bit16u	Network_ToDosError(DWORD dwLastError)
 	if(PeekNamedPipe(hNamedPipe,lpBuffer,nBufferSize,
 						&BytesRead,&TotalBytesAvail,&BytesLeftThisMessage))
 	{
-		cxRead=(Bit16u)BytesRead;
-		siLeft=(Bit16u)TotalBytesAvail;
-		dxLeftCurrent=(Bit16u)BytesLeftThisMessage;
+		cxRead=(uint16_t)BytesRead;
+		siLeft=(uint16_t)TotalBytesAvail;
+		dxLeftCurrent=(uint16_t)BytesLeftThisMessage;
 		diStatus=0x3;	//Connected
 		errorcode=0;
 	}
@@ -106,10 +106,10 @@ inline Bit16u	Network_ToDosError(DWORD dwLastError)
 }//bool	Network_PeekNamedPipe
 
 
- bool	Network_TranscateNamedPipe(Bit16u entry,
-								   unsigned char* lpInBuffer,Bit16u nInBufferSize,
-								   unsigned char* lpOutBuffer,Bit16u nOutBufferSize,
-								   Bit16u& cxRead,Bit16u& errorcode)
+ bool	Network_TranscateNamedPipe(uint16_t entry,
+								   unsigned char* lpInBuffer,uint16_t nInBufferSize,
+								   unsigned char* lpOutBuffer,uint16_t nOutBufferSize,
+								   uint16_t& cxRead,uint16_t& errorcode)
 {
 	int		ifd=NetworkHandleList[entry];
 	HANDLE	hNamedPipe=(HANDLE)_get_osfhandle(ifd);
@@ -121,7 +121,7 @@ inline Bit16u	Network_ToDosError(DWORD dwLastError)
 					lpOutBuffer,nOutBufferSize,
 					&BytesRead,NULL))
 	{
-		cxRead=(Bit16u)BytesRead;
+		cxRead=(uint16_t)BytesRead;
 		errorcode=0;
 	}
 	else	errorcode=Network_ToDosError(GetLastError());

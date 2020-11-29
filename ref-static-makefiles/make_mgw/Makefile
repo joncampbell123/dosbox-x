@@ -12,10 +12,11 @@ MT32 = 1
 
 CFLAGS	=	-O3 -DNDEBUG -Wstrict-overflow=0 -Wstrict-aliasing=0 -fomit-frame-pointer  -mno-ms-bitfields  -I. \
 			-I$(DBX_PATH) \
+			-I$(DBX_PATH)/vs2015/pcap \
 			-I$(DBX_PATH)/include \
 			-I$(DBX_PATH)/src \
 			-I$(DBX_PATH)/src/aviwriter \
-			-I$(DBX_PATH)/src/xBRZ \
+			-I$(DBX_PATH)/src/libs/xBRZ \
 			-I$(DBX_PATH)/src/hardware/snd_pc98/sound \
 			-I$(DBX_PATH)/src/hardware/snd_pc98/common \
 			-I$(DBX_PATH)/src/hardware/snd_pc98/generic \
@@ -27,10 +28,11 @@ CFLAGS	+=	$(shell sdl2-config --cflags)
 
 CXXFLAGS = -O3  -DNDEBUG -std=gnu++11 -Wstrict-overflow=0 -Wstrict-aliasing=0 -fomit-frame-pointer  -mno-ms-bitfields  -I. \
 			-I$(DBX_PATH) \
+			-I$(DBX_PATH)/vs2015/pcap \
 			-I$(DBX_PATH)/include \
 			-I$(DBX_PATH)/src \
 			-I$(DBX_PATH)/src/aviwriter \
-			-I$(DBX_PATH)/src/xBRZ \
+			-I$(DBX_PATH)/src/libs/xBRZ \
 			-I$(DBX_PATH)/src/hardware/snd_pc98/sound \
 			-I$(DBX_PATH)/src/hardware/snd_pc98/common \
 			-I$(DBX_PATH)/src/hardware/snd_pc98/generic \
@@ -54,6 +56,7 @@ CPPSRCS	=	$(DBX_PATH)/src/dosbox.cpp \
 			$(wildcard $(DBX_PATH)/src/gui/*.cpp) \
 			$(wildcard $(DBX_PATH)/src/gui/*.c) \
 			$(wildcard $(DBX_PATH)/src/hardware/*.cpp) \
+			$(wildcard $(DBX_PATH)/src/hardware/opl2board/*.cpp) \
 			$(wildcard $(DBX_PATH)/src/hardware/mame/*.cpp) \
 			$(wildcard $(DBX_PATH)/src/hardware/parport/*.cpp) \
 			$(wildcard $(DBX_PATH)/src/hardware/reSID/*.cpp) \
@@ -86,18 +89,18 @@ CPPSRCS	=	$(DBX_PATH)/src/dosbox.cpp \
 			$(wildcard $(DBX_PATH)/src/output/*.cpp) \
 			$(wildcard $(DBX_PATH)/src/output/direct3d/*.cpp) \
 			$(wildcard $(DBX_PATH)/src/shell/*.cpp) \
-			$(wildcard $(DBX_PATH)/src/xBRZ/*.cpp)
+			$(wildcard $(DBX_PATH)/src/libs/xBRZ/*.cpp)
 
-CPPSRCS_MT32 = $(wildcard $(DBX_PATH)/src/mt32/*.cpp) \
-			$(wildcard $(DBX_PATH)/src/mt32/freeverb/*.cpp) \
-			$(wildcard $(DBX_PATH)/src/mt32/sha1/*.cpp)
+CPPSRCS_MT32 = $(wildcard $(DBX_PATH)/src/libs/mt32/*.cpp) \
+			$(wildcard $(DBX_PATH)/src/libs/mt32/c_interface/*.cpp) \
+			$(wildcard $(DBX_PATH)/src/libs/mt32/sha1/*.cpp)
 
 OBJS_MT32 = $(addsuffix .o,$(basename $(CPPSRCS_MT32)))
 
-CXXFLAGS_MT32 = -DC_MT32=1 -I$(DBX_PATH)/src/mt32 -I$(DBX_PATH)/src/mt32/freeverb -I$(DBX_PATH)/src/mt32/sha1
+CXXFLAGS_MT32 = -DC_MT32=1 -I$(DBX_PATH)/src/libs/mt32 -I$(DBX_PATH)/src/libs/mt32/freeverb -I$(DBX_PATH)/src/libs/mt32/sha1
 
 OBJS = $(addsuffix .o,$(basename $(CPPSRCS)))
-LIBS = -static -lpng -lz -lm -lstdc++ $(shell sdl2-config --libs)
+LIBS = -static -lpng -lz -lm -lstdc++ $(shell sdl2-config --static-libs)
 
 ifeq ($(OPENGL), 1)
 	CXXFLAGS += -DC_OPENGL=1
