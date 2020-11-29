@@ -117,7 +117,7 @@ static const char *def_menu_main[] =
     "--",
     "MainSendKey",
     "MainHostKey",
-#if defined(WIN32) || defined(C_SDL2) || defined(LINUX) && C_X11
+#if defined(C_SDL2) || defined(WIN32) || defined(MACOSX) || defined(LINUX) && C_X11
     "SharedClipboard",
 #endif
     "--",

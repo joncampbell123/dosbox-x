@@ -5148,12 +5148,12 @@ static void GUI_StartUp() {
     MAPPER_AddHandler(SwitchFullScreen,MK_f,MMODHOST,"fullscr","Toggle fullscreen", &item);
     item->set_text("Toggle fullscreen");
 
-#if defined(WIN32) || defined(C_SDL2)
+#if defined(C_SDL2) || defined(WIN32)
     MAPPER_AddHandler(CopyAllClipboard,MK_a,MMODHOST,"copyall", "Copy to clipboard", &item);
     item->set_text("Copy all text on the DOS screen");
 #endif
 
-#if defined(WIN32) || defined(C_SDL2) || defined(LINUX) && C_X11
+#if defined(C_SDL2) || defined(WIN32) || defined(MACOSX) || defined(LINUX) && C_X11
     MAPPER_AddHandler(PasteClipboard,MK_v,MMODHOST,"paste", "Paste from clipboard", &item); //end emendelson; improved by Wengier
     item->set_text("Pasting from the clipboard");
 #endif
@@ -5566,7 +5566,7 @@ static void HandleMouseMotion(SDL_MouseMotionEvent * motion) {
         inputToScreen = true;
     else {
         inputToScreen = GFX_CursorInOrNearScreen(motion->x,motion->y);
-#if defined (WIN32) || defined(C_SDL2)
+#if defined(WIN32) || defined(C_SDL2)
 		if (mouse_start_x >= 0 && mouse_start_y >= 0) {
 			if (fx>=0 && fy>=0)
 				Mouse_Select(mouse_start_x-sdl.clip.x,mouse_start_y-sdl.clip.y,fx-sdl.clip.x,fy-sdl.clip.y,(int)(currentWindowWidth-sdl.clip.x),(int)(currentWindowHeight-sdl.clip.y), false);
@@ -7713,12 +7713,21 @@ bool PasteClipboardNext() {
     strPasteBuffer = strPasteBuffer.substr(1, strPasteBuffer.length());
 	return true;
 }
-#elif defined(C_SDL2)
+#elif defined(C_SDL2) || defined(MACOSX)
 typedef char host_cnv_char_t;
 char *CodePageHostToGuest(const host_cnv_char_t *s);
+void GetClipboard(std::string* result);
 void PasteClipboard(bool bPressed) {
 	if (!bPressed) return;
-    char* text = SDL_GetClipboardText();
+    char *text;
+#if defined(C_SDL2)
+    text = SDL_GetClipboardText();
+#else
+    std::string clip="";
+    GetClipboard(&clip);
+    text = new char[clip.size()+1];
+    strcpy(text, clip.c_str());
+#endif
     std::string result="", pre="";
     for (unsigned int i=0; i<strlen(text); i++) {
         if (text[i]==0x0A&&(i==0||text[i-1]!=0x0D)) text[i]=0x0D;
@@ -10135,7 +10144,7 @@ bool dos_clipboard_device_menu_callback(DOSBoxMenu * const menu, DOSBoxMenu::ite
 }
 #endif
 
-#if defined (WIN32) || defined(C_SDL2) || defined(LINUX) && C_X11
+#if defined(C_SDL2) || defined (WIN32) || defined(MACOSX) || defined(LINUX) && C_X11
 bool clipboard_paste_stop_menu_callback(DOSBoxMenu * const menu, DOSBoxMenu::item * const menuitem) {
     (void)menu;//UNUSED
     (void)menuitem;//UNUSED
@@ -12109,7 +12118,7 @@ int main(int argc, char* argv[]) SDL_MAIN_NOEXCEPT {
         mainMenu.alloc_item(DOSBoxMenu::item_type_id,"clipboard_device").set_text("Enable DOS clipboard device access").set_callback_function(dos_clipboard_device_menu_callback).check(dos_clipboard_device_access==4&&!control->SecureMode());
         mainMenu.alloc_item(DOSBoxMenu::item_type_id,"clipboard_dosapi").set_text("Enable DOS clipboard API for applications").set_callback_function(dos_clipboard_api_menu_callback).check(clipboard_dosapi);
 #endif
-#if defined (WIN32) || defined(C_SDL2) || defined(LINUX) && C_X11
+#if defined (WIN32) || defined(C_SDL2) || defined(MACOSX) || defined(LINUX) && C_X11
         mainMenu.alloc_item(DOSBoxMenu::item_type_id,"clipboard_paste_stop").set_text("Stop clipboard pasting").set_callback_function(clipboard_paste_stop_menu_callback);
 #endif
         mainMenu.alloc_item(DOSBoxMenu::item_type_id,"sendkey_winlogo").set_text("Send logo key").set_callback_function(sendkey_preset_menu_callback);
