@@ -853,13 +853,13 @@ void SetMapperKeyboardLayout(const unsigned int dkm) {
         DKM_to_descriptive_string(mapper_keyboard_layout));
 }
 
-#if defined(WIN32) && !defined(C_SDL2)
+#if defined(WIN32) && !defined(C_SDL2) && defined(SDL_DOSBOX_X_SPECIAL)
 extern "C" unsigned char SDL1_hax_hasLayoutChanged(void);
 extern "C" void SDL1_hax_ackLayoutChanged(void);
 #endif
 
 void CheckMapperKeyboardLayout(void) {
-#if defined(WIN32) && !defined(C_SDL2)
+#if defined(WIN32) && !defined(C_SDL2) && defined(SDL_DOSBOX_X_SPECIAL)
     if (SDL1_hax_hasLayoutChanged()) {
         SDL1_hax_ackLayoutChanged();
         LOG_MSG("Keyboard layout changed");
@@ -3834,7 +3834,7 @@ bool GFX_GetPreventFullscreen(void) {
     return sdl.desktop.prevent_fullscreen;
 }
 
-#if defined(WIN32) && !defined(C_SDL2)
+#if defined(WIN32) && !defined(C_SDL2) && defined(SDL_DOSBOX_X_SPECIAL)
 extern "C" unsigned char SDL1_hax_RemoveMinimize;
 #endif
 
@@ -3844,7 +3844,7 @@ void GFX_PreventFullscreen(bool lockout) {
 #if defined(WIN32)
         void DOSBox_SetSysMenu(void);
         DOSBox_SetSysMenu();
-#if !defined(C_SDL2)
+#if !defined(C_SDL2) && defined(SDL_DOSBOX_X_SPECIAL)
         SDL1_hax_RemoveMinimize = lockout ? 1 : 0;
         int Reflect_Menu(void);
         Reflect_Menu();
@@ -10363,21 +10363,21 @@ bool is_always_on_top(void) {
 #endif
 }
 
-#if defined(_WIN32) && !defined(C_SDL2)
+#if defined(_WIN32) && !defined(C_SDL2) && defined(SDL_DOSBOX_X_SPECIAL)
 extern "C" void sdl1_hax_set_topmost(unsigned char topmost);
 #endif
-#if defined(MACOSX) && !defined(C_SDL2)
+#if defined(MACOSX) && !defined(C_SDL2) && defined(SDL_DOSBOX_X_SPECIAL)
 extern "C" void sdl1_hax_set_topmost(unsigned char topmost);
 #endif
-#if defined(MACOSX) && !defined(C_SDL2)
+#if defined(MACOSX) && !defined(C_SDL2) && defined(SDL_DOSBOX_X_SPECIAL)
 extern "C" void sdl1_hax_macosx_highdpi_set_enable(const bool enable);
 #endif
 
 void toggle_always_on_top(void) {
     bool cur = is_always_on_top();
-#if defined(_WIN32) && !defined(C_SDL2)
+#if defined(_WIN32) && !defined(C_SDL2) && defined(SDL_DOSBOX_X_SPECIAL)
     sdl1_hax_set_topmost(!cur);
-#elif defined(MACOSX) && !defined(C_SDL2)
+#elif defined(MACOSX) && !defined(C_SDL2) && defined(SDL_DOSBOX_X_SPECIAL)
     sdl1_hax_set_topmost(macosx_on_top = (!cur));
 #elif defined(LINUX)
     void LinuxX11_OnTop(bool f);
@@ -10426,7 +10426,7 @@ bool highdpienable_menu_callback(DOSBoxMenu * const menu, DOSBoxMenu::item * con
     (void)menu;//UNUSED
     (void)menuitem;//UNUSED
 
-#if defined(MACOSX) && !defined(C_SDL2)
+#if defined(MACOSX) && !defined(C_SDL2) && defined(SDL_DOSBOX_X_SPECIAL)
     dpi_aware_enable = !dpi_aware_enable;
     if (!control->opt_disable_dpi_awareness) {
         sdl1_hax_macosx_highdpi_set_enable(dpi_aware_enable);
@@ -11329,7 +11329,7 @@ int main(int argc, char* argv[]) SDL_MAIN_NOEXCEPT {
          * But we obey the user if they don't want us to do that. */
         Windows_DPI_Awareness_Init();
 #endif
-#if defined(MACOSX) && !defined(C_SDL2)
+#if defined(MACOSX) && !defined(C_SDL2) && defined(SDL_DOSBOX_X_SPECIAL)
     /* Our SDL1 in-tree library has a High DPI awareness function for macOS now */
         if (!control->opt_disable_dpi_awareness)
             sdl1_hax_macosx_highdpi_set_enable(dpi_aware_enable);
@@ -12696,7 +12696,7 @@ fresh_boot:
 
     LOG::Exit();
 
-#if defined(WIN32) && !defined(C_SDL2)
+#if defined(WIN32) && !defined(C_SDL2) && defined(SDL_DOSBOX_X_SPECIAL)
 # if !defined(HX_DOS)
     ShowWindow(GetHWND(), SW_HIDE);
     SDL1_hax_SetMenu(NULL);/* detach menu from window, or else Windows will destroy the menu out from under the C++ class */

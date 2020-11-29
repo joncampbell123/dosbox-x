@@ -1505,28 +1505,26 @@ void SHELL_Init() {
 	extern bool Mouse_Drv;
 	Mouse_Drv = true;
 
-#if defined(WIN32)
     char exePath[CROSS_LEN];
-#endif
     std::vector<std::string> names;
     std::string dirname="drivez";
     std::string path = ".";
     path += CROSS_FILESPLIT;
     path += dirname;
     struct stat cstat;
-    stat(path.c_str(),&cstat);
-    if(!(cstat.st_mode & S_IFDIR)) {
+    int res=stat(path.c_str(),&cstat);
+    if(res==-1 || !(cstat.st_mode & S_IFDIR)) {
         path = GetDOSBoxXPath();
         if (path.size()) {
             path += dirname;
-            stat(path.c_str(),&cstat);
+            res=stat(path.c_str(),&cstat);
         }
-        if(!path.size() || (cstat.st_mode & S_IFDIR) == 0) {
+        if(!path.size() || res==-1 || (cstat.st_mode & S_IFDIR) == 0) {
             path = "";
             Cross::CreatePlatformConfigDir(path);
             path += dirname;
-            stat(path.c_str(),&cstat);
-            if((cstat.st_mode & S_IFDIR) == 0)
+            res=stat(path.c_str(),&cstat);
+            if(res==-1 || (cstat.st_mode & S_IFDIR) == 0)
                 path = "";
         }
     }
@@ -1556,19 +1554,12 @@ void SHELL_Init() {
     long f_size;
     uint8_t *f_data;
     for (std::string name: names) {
-#if defined(WIN32)
-        FILE * f = fopen((path+"\\"+name).c_str(), "rb");
+        FILE * f = fopen((path+CROSS_FILESPLIT+name).c_str(), "rb");
         if (f == NULL) {
-            GetModuleFileName(NULL, exePath, sizeof(exePath));
-            char *p=strrchr(exePath, '\\');
-            if (p!=NULL) *(p+1)=0;
-            else *exePath=0;
-            strcat(exePath, (path+"\\"+name).c_str());
+            strcpy(exePath, GetDOSBoxXPath().c_str());
+            strcat(exePath, (path+CROSS_FILESPLIT+name).c_str());
             f = fopen(exePath, "rb");
         }
-#else
-        FILE * f = fopen((path+"/"+name).c_str(), "rb");
-#endif
         f_size = 0;
         f_data = NULL;
 
