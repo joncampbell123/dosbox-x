@@ -211,7 +211,7 @@ retry:
 #elif defined(SDL_DOSBOX_X_SPECIAL)
     sdl.surface = SDL_SetVideoMode(windowWidth, windowHeight, (int)bpp, (unsigned int)sdl_flags | (unsigned int)(setSizeButNotResize() ? SDL_HAX_NORESIZEWINDOW : 0));
 #else
-    sdl.surface = SDL_SetVideoMode(windowWidth, windowHeight, (int)bpp, (unsigned int)sdl_flags | (unsigned int)(setSizeButNotResize()));
+    sdl.surface = SDL_SetVideoMode(windowWidth, windowHeight, (int)bpp, (unsigned int)sdl_flags);
 #endif
     if (sdl.surface == NULL && sdl.desktop.fullscreen) {
         LOG_MSG("Fullscreen not supported: %s", SDL_GetError());

@@ -109,6 +109,7 @@ void GFX_OpenGLRedrawScreen(void);
 #if defined(USE_TTF)
 #include "sdl_ttf.c"
 #include "DOSBoxTTF.h"
+#include "whereami.c"
 #endif
 
 #if defined(LINUX) && defined(HAVE_ALSA)
@@ -3171,20 +3172,26 @@ std::string failName="";
 bool readTTF(const char *fName) {
 	FILE * ttf_fh = NULL;
 	char ttfPath[1024];
+	char *exepath;
+	int length;
 
 	strcpy(ttfPath, fName);													// Try to load it from working directory
 	strcat(ttfPath, ".ttf");
-    ttf_fh  = fopen(ttfPath, "rb");
-#if defined(WIN32)
-	if (!ttf_fh) {
-		strcpy(strrchr(strcpy(ttfPath, _pgmptr), '\\')+1, fName);			// Try to load it from where DOSBox-X was started
+    ttf_fh = fopen(ttfPath, "rb");
+
+    if (!ttf_fh) {
+        length = wai_getExecutablePath(NULL, 0, NULL);
+        exepath = (char*)malloc(length + 1);
+        wai_getExecutablePath(exepath, length, NULL);
+        exepath[length] = 0;
+		strcpy(strrchr(strcpy(ttfPath, exepath), CROSS_FILESPLIT)+1, fName);	// Try to load it from where DOSBox-X was started
 		strcat(ttfPath, ".ttf");
-		ttf_fh  = fopen(ttfPath, "rb");
+		ttf_fh = fopen(ttfPath, "rb");
+        free(exepath);
 	}
-#endif
 	if (!ttf_fh) {
 		strcpy(ttfPath, fName);
-		ttf_fh  = fopen(ttfPath, "rb");
+		ttf_fh = fopen(ttfPath, "rb");
 	}
 	if (!ttf_fh) {
 		std::string config_path;
@@ -3194,19 +3201,24 @@ bool readTTF(const char *fName) {
             strcpy(ttfPath, config_path.c_str());
             strcat(ttfPath, fName);
             strcat(ttfPath, ".ttf");
-            ttf_fh  = fopen(ttfPath, "rb");
+            ttf_fh = fopen(ttfPath, "rb");
             if (!ttf_fh) {
                 strcpy(ttfPath, config_path.c_str());
                 strcat(ttfPath, fName);
-                ttf_fh  = fopen(ttfPath, "rb");
+                ttf_fh = fopen(ttfPath, "rb");
             }
         }
     }
-#if defined(WIN32)
-	if (!ttf_fh) {
-		strcpy(strrchr(strcpy(ttfPath, _pgmptr), '\\')+1, fName);
-		ttf_fh  = fopen(ttfPath, "rb");
+    if (!ttf_fh) {
+        length = wai_getExecutablePath(NULL, 0, NULL);
+        exepath = (char*)malloc(length + 1);
+        wai_getExecutablePath(exepath, length, NULL);
+        exepath[length] = 0;
+		strcpy(strrchr(strcpy(ttfPath, exepath), CROSS_FILESPLIT)+1, fName);
+		ttf_fh = fopen(ttfPath, "rb");
+        free(exepath);
 	}
+#if defined(WIN32)
     if (!ttf_fh) {
         char winfontdir[MAX_PATH];
         strcpy(winfontdir, "C:\\WINDOWS\\fonts\\");
@@ -3225,7 +3237,7 @@ bool readTTF(const char *fName) {
         if (!ttf_fh) {
             strcpy(ttfPath, winfontdir);
             strcat(ttfPath, fName);
-            ttf_fh  = fopen(ttfPath, "rb");
+            ttf_fh = fopen(ttfPath, "rb");
         }
     }
 #endif
@@ -3403,10 +3415,6 @@ void OUTPUT_TTF_Select(int fsize=-1) {
     int maxWidth = sdl.desktop.full.width;
     int maxHeight = sdl.desktop.full.height;
 
-#if DOSBOXMENU_TYPE == DOSBOXMENU_SDLDRAW /* SDL drawn menus */
-    maxHeight -= mainMenu.menuBarHeightBase * 2;
-#endif
-
 #if defined(C_SDL2)
     SDL_DisplayMode dm;
     if (SDL_GetDesktopDisplayMode(0/*FIXME display index*/,&dm) == 0) {
@@ -3421,6 +3429,11 @@ void OUTPUT_TTF_Select(int fsize=-1) {
     maxWidth = CGDisplayPixelsWide(mainDisplayId);
     maxHeight = CGDisplayPixelsHigh(mainDisplayId);
 #endif
+
+#if DOSBOXMENU_TYPE == DOSBOXMENU_SDLDRAW /* SDL drawn menus */
+    maxHeight -= mainMenu.menuBarHeightBase * 2;
+#endif
+
 #if defined(WIN32)
     if (!ttf.fullScrn) {																			// 3D borders
         maxWidth -= GetSystemMetrics(SM_CXBORDER)*2;
