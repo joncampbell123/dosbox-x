@@ -304,18 +304,22 @@ CDROM_Interface_Image::CHDFile::~CHDFile()
         this->hunk_buffer = nullptr;
     }
 
+#if !defined(HX_DOS)
     if (this->hunk_thread) {
         this->hunk_thread->join();
         delete hunk_thread;
         this->hunk_thread = nullptr;
     }
+#endif
 }
 
+#if !defined(HX_DOS)
 void hunk_thread_func(chd_file* chd, int hunk_index, uint8_t* buffer, bool* error)
 {
     // loads one hunk into buffer
     *error = chd_read(chd, hunk_index, buffer) != CHDERR_NONE;
 }
+#endif
 
 bool CDROM_Interface_Image::CHDFile::read(uint8_t* buffer, int offset, int count)
 {
@@ -333,6 +337,10 @@ bool CDROM_Interface_Image::CHDFile::read(uint8_t* buffer, int offset, int count
 
     // read new hunk if needed
     if (needed_hunk != this->hunk_buffer_index) {
+#if defined(HX_DOS)
+        if (chd_read(this->chd, needed_hunk, this->hunk_buffer) != CHDERR_NONE) {
+            return false;
+#else
         // make sure our thread is done
         if (this->hunk_thread) this->hunk_thread->join();
 
@@ -349,9 +357,11 @@ bool CDROM_Interface_Image::CHDFile::read(uint8_t* buffer, int offset, int count
                 return false;
             }
         }
+#endif
 
         this->hunk_buffer_index = needed_hunk;
 
+#if defined(HX_DOS)
         // prefetch: let our thread decode the next hunk
         if (hunk_thread) delete this->hunk_thread;
         this->hunk_thread = new std::thread(
@@ -359,6 +369,7 @@ bool CDROM_Interface_Image::CHDFile::read(uint8_t* buffer, int offset, int count
                 hunk_thread_func(this->chd, needed_hunk + 1, this->hunk_buffer_next, &this->hunk_thread_error);
             }
         );
+#endif
     }
 
     // copy data
