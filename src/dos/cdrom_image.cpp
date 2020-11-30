@@ -338,7 +338,7 @@ bool CDROM_Interface_Image::CHDFile::read(uint8_t* buffer, int offset, int count
     // read new hunk if needed
     if (needed_hunk != this->hunk_buffer_index) {
 #if defined(HX_DOS)
-        if (chd_read(this->chd, needed_hunk, this->hunk_buffer) != CHDERR_NONE) {
+        if (chd_read(this->chd, needed_hunk, this->hunk_buffer) != CHDERR_NONE)
             return false;
 #else
         // make sure our thread is done
