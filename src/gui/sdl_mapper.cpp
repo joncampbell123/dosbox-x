@@ -2088,6 +2088,7 @@ void CBindGroup::DeactivateBindList(CBindList * list,bool ev_trigger) {
 	assert(list);
     CBindList_it it;
     for (it=list->begin();it!=list->end();++it) {
+        (*it)->flags&=~BFLG_Hold_Temporary;
         (*it)->DeActivateBind(ev_trigger);
     }
 }
