@@ -361,7 +361,7 @@ bool CDROM_Interface_Image::CHDFile::read(uint8_t* buffer, int offset, int count
 
         this->hunk_buffer_index = needed_hunk;
 
-#if defined(HX_DOS)
+#if !defined(HX_DOS)
         // prefetch: let our thread decode the next hunk
         if (hunk_thread) delete this->hunk_thread;
         this->hunk_thread = new std::thread(
