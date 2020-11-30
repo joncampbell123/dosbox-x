@@ -103,8 +103,8 @@ void GFX_OpenGLRedrawScreen(void);
 #include "shell.h"
 #include "glidedef.h"
 #include "../ints/int10.h"
-#include "whereami.c"
 #if !defined(HX_DOS)
+#include "whereami.c"
 #include "../libs/tinyfiledialogs/tinyfiledialogs.h"
 #endif
 #if defined(USE_TTF)
@@ -936,17 +936,24 @@ void CPU_Core_Dyn_X86_Shutdown(void);
 
 std::string dosboxpath="";
 std::string GetDOSBoxXPath() {
+    std::string full;
+#if defined(HX_DOS)
+    char exepath[MAX_PATH];
+    GetModuleFileName(NULL, exepath, sizeof(exepath));
+    full=std::string(exepath);
+#else
     int length = wai_getExecutablePath(NULL, 0, NULL);
     char *exepath = (char*)malloc(length + 1);
     wai_getExecutablePath(exepath, length, NULL);
     exepath[length] = 0;
-    std::string full=std::string(exepath);
+    full=std::string(exepath);
+    free(exepath);
+#endif
     size_t found=full.find_last_of("/\\");
     if (found!=string::npos)
         dosboxpath=full.substr(0, found+1);
     else
         dosboxpath="";
-    free(exepath);
     return dosboxpath;
 }
 
