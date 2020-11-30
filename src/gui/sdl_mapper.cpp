@@ -59,7 +59,7 @@
 #define BMOD_Host               0x0008
 
 #define BFLG_Hold               0x0001
-#define BFLG_Hold_Temporary     0x0002 /* Emendelson alternate ctrl+alt host key combinations. Keep it SEPARATE so it can be removed on key release someday. */
+#define BFLG_Hold_Temporary     0x0002 /* Emendelson alternate ctrl+alt host key combinations. Keep it SEPARATE so it does not disturb user changes to the mapper */
 #define BFLG_Repeat             0x0004
 
 
