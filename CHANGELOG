@@ -37,10 +37,10 @@
     otherwise). A config option "hostkey" is added so
     that you can specify it from config file. (Wengier)
   - Pasting text from the clipboard on macOS SDL1 build
-    is now suppported like Linux SDL1 build. (Wengier)
+    is now supported like Linux SDL1 build. (Wengier)
   - SDL1 builds updated to use newer audio APIs on
     macOS (Mac OS X) so that audio works once again
-    when compiled and run on Mac OS X Big Sur. Prior
+    when compiled and run on macOS 11 (Big Sur). Prior
     to the change, ancient versions of the API dating
     back to the mid 2000s were used which no longer
     work on Big Sur.

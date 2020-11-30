@@ -274,9 +274,9 @@ static SDL_Rect ttf_textRect = {0, 0, 0, 0};
 static SDL_Rect ttf_textClip = {0, 0, 0, 0};
 
 typedef struct {
-	uint8_t blue;
-	uint8_t green;
 	uint8_t red;
+	uint8_t green;
+	uint8_t blue;
 	uint8_t alpha;		// unused
 } alt_rgb;
 alt_rgb altBGR0[16], altBGR1[16];
@@ -3157,9 +3157,9 @@ bool setColors(const char *colorArray, int n) {
 		if (n>-1) altPtr+=4*n;
 		if (sscanf(nextRGB, " ( %d , %d , %d)", &rgbVal[0], &rgbVal[1], &rgbVal[2]) == 3) {	// Decimal: (red,green,blue)
 			for (int i = 0; i< 3; i++) {
-				if (rgbVal[i] < 0 || rgbVal[i] >255)
+				if (rgbVal[i] < 0 || rgbVal[i] > 255)
 					return false;
-				altPtr[2-i] = rgbVal[i];
+				altPtr[i] = rgbVal[i];
 			}
 			while (*nextRGB != ')')
 				nextRGB++;
@@ -3168,7 +3168,7 @@ bool setColors(const char *colorArray, int n) {
 			if (rgbVal[0] < 0)
 				return false;
 			for (int i = 0; i < 3; i++) {
-				altPtr[i] = rgbVal[0]&255;
+				altPtr[2-i] = rgbVal[0]&255;
 				rgbVal[0] >>= 8;
 			}
 			nextRGB = strchr(nextRGB, '#') + 7;
@@ -3960,7 +3960,7 @@ void processWP(uint8_t *pcolorBG, uint8_t *pcolorFG) {
             colorFG |= 7;
     }
     else if (wpType == 1) {															// WordPerfect
-        if (showital && colorFG == (wpVersion > 0 && wpVersion < 6 ? 0xe : 2) && (colorBG&15) == (wpBG > -1 ? wpBG : 1)) {
+        if (showital && colorFG == 0xe && (colorBG&15) == (wpBG > -1 ? wpBG : 1)) {
             style = TTF_STYLE_ITALIC;
             colorFG = 7;
         }
@@ -4068,10 +4068,12 @@ void GFX_EndTextLines(bool force=false) {
 
 	ttf_textClip.h = ttf.height;
 	ttf_textClip.y = 0;
+	bool draw = false;
 	for (int y = 0; y < ttf.lins; y++) {
 		ttf_textRect.y = ttf.offY+y*ttf.height;
 		for (int x = 0; x < ttf.cols; x++) {
-			if ((newAC[x] != curAC[x] || newAC[x].selected != curAC[x].selected || force) && !(newAC[x].skipped)) {
+			if ((newAC[x] != curAC[x] || newAC[x].selected != curAC[x].selected || (colorsLocked && draw) || force) && !(newAC[x].skipped)) {
+				draw = true;
 				xmin = min(x, xmin);
 				ymin = min(y, ymin);
 				ymax = y;
@@ -4087,12 +4089,12 @@ void GFX_EndTextLines(bool force=false) {
                     colorFG = color;
                 }
 				ttf_textRect.x = ttf.offX+x*ttf.width;
-				ttf_bgColor.r = colorsLocked?altBGR1[colorBG&15].red:rgbColors[colorBG].blue;
+				ttf_bgColor.r = colorsLocked?altBGR1[colorBG&15].red:rgbColors[colorBG].red;
 				ttf_bgColor.g = colorsLocked?altBGR1[colorBG&15].green:rgbColors[colorBG].green;
-				ttf_bgColor.b = colorsLocked?altBGR1[colorBG&15].blue:rgbColors[colorBG].red;
-				ttf_fgColor.r = colorsLocked?altBGR1[colorFG&15].red:rgbColors[colorFG].blue;
+				ttf_bgColor.b = colorsLocked?altBGR1[colorBG&15].blue:rgbColors[colorBG].blue;
+				ttf_fgColor.r = colorsLocked?altBGR1[colorFG&15].red:rgbColors[colorFG].red;
 				ttf_fgColor.g = colorsLocked?altBGR1[colorFG&15].green:rgbColors[colorFG].green;
-				ttf_fgColor.b = colorsLocked?altBGR1[colorFG&15].blue:rgbColors[colorFG].red;
+				ttf_fgColor.b = colorsLocked?altBGR1[colorFG&15].blue:rgbColors[colorFG].blue;
 
                 if (newAC[x].unicode) {
                     dw = newAC[x].doublewide;
@@ -4176,12 +4178,12 @@ void GFX_EndTextLines(bool force=false) {
 						colorFG=colorBG;
 				}
 				bool dw = newAttrChar[ttf.cursor].unicode && newAttrChar[ttf.cursor].doublewide;
-				ttf_bgColor.r = colorsLocked?altBGR1[colorBG&15].red:rgbColors[colorBG].blue;
+				ttf_bgColor.r = colorsLocked?altBGR1[colorBG&15].red:rgbColors[colorBG].red;
 				ttf_bgColor.g = colorsLocked?altBGR1[colorBG&15].green:rgbColors[colorBG].green;
-				ttf_bgColor.b = colorsLocked?altBGR1[colorBG&15].blue:rgbColors[colorBG].red;
-				ttf_fgColor.r = colorsLocked?altBGR1[colorFG&15].red:rgbColors[colorFG].blue;
+				ttf_bgColor.b = colorsLocked?altBGR1[colorBG&15].blue:rgbColors[colorBG].blue;
+				ttf_fgColor.r = colorsLocked?altBGR1[colorFG&15].red:rgbColors[colorFG].red;
 				ttf_fgColor.g = colorsLocked?altBGR1[colorFG&15].green:rgbColors[colorFG].green;
-				ttf_fgColor.b = colorsLocked?altBGR1[colorFG&15].blue:rgbColors[colorFG].red;
+				ttf_fgColor.b = colorsLocked?altBGR1[colorFG&15].blue:rgbColors[colorFG].blue;
 				unimap[0] = newAttrChar[ttf.cursor].unicode?newAttrChar[ttf.cursor].chr:cpMap[newAttrChar[ttf.cursor].chr&255];
                 if (dw) {
                     unimap[1] = newAttrChar[ttf.cursor].chr;
