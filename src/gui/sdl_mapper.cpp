@@ -2074,7 +2074,9 @@ void CBindGroup::ActivateBindList(CBindList * list,Bits value,bool ev_trigger) {
     for (it=list->begin();it!=list->end();++it) {
         if ((*it)->mods==MMODHOST) {
             if ((!hostkeyalt&&validmod==(*it)->mods)||(hostkeyalt==1&&(sdl.lctrlstate==SDL_KEYDOWN||sdl.rctrlstate==SDL_KEYDOWN)&&(sdl.laltstate==SDL_KEYDOWN||sdl.raltstate==SDL_KEYDOWN))||(hostkeyalt==2&&(sdl.lctrlstate==SDL_KEYDOWN||sdl.rctrlstate==SDL_KEYDOWN)&&(sdl.lshiftstate==SDL_KEYDOWN||sdl.rshiftstate==SDL_KEYDOWN))||(hostkeyalt==3&&(sdl.laltstate==SDL_KEYDOWN||sdl.raltstate==SDL_KEYDOWN)&&(sdl.lshiftstate==SDL_KEYDOWN||sdl.rshiftstate==SDL_KEYDOWN))) {
-                (*it)->flags|=BFLG_Hold_Temporary;
+                if (hostkeyalt != 0) /* only IF using an alternate host key */
+                    (*it)->flags|=BFLG_Hold_Temporary;
+
                 (*it)->ActivateBind(value,ev_trigger);
             }
         } else if (validmod==(*it)->mods)
