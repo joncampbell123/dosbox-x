@@ -25,6 +25,12 @@ extern "C" void sdl1_hax_stock_osx_menu_additem(NSMenu *modme);
 extern "C" NSWindow *sdl1_hax_get_window(void);
 #endif
 
+void GetClipboard(std::string* result) {
+	NSPasteboard* pb = [NSPasteboard generalPasteboard];
+	NSString* text = [pb stringForType:NSPasteboardTypeString];
+	*result = std::string([text UTF8String]);
+}
+
 void *sdl_hax_nsMenuItemFromTag(void *nsMenu, unsigned int tag) {
 	NSMenuItem *ns_item = [((NSMenu*)nsMenu) itemWithTag: tag];
 	return (ns_item != nil) ? ns_item : NULL;

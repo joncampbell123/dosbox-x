@@ -1159,7 +1159,7 @@ void RENDER_UpdateFromScalerSetting(void) {
 
 #if C_OPENGL
 extern int initgl;
-std::string shader_src="";
+std::string shader_src="", GetDOSBoxXPath();
 std::string LoadGLShader(Section_prop * section) {
 	shader_src = render.shader_src!=NULL?std::string(render.shader_src):"";
     render.shader_def = false;
@@ -1170,9 +1170,14 @@ std::string LoadGLShader(Section_prop * section) {
         render.shader_src = NULL;
         render.shader_def = f=="default";
         if (initgl==2) sdl_opengl.use_shader=true;
-	} else if (!RENDER_GetShader(sh->realpath,(char *)shader_src.c_str())) {
-		std::string path = std::string("glshaders") + CROSS_FILESPLIT + f;
-		if (!RENDER_GetShader(path,(char *)shader_src.c_str())) {
+    } else if (!RENDER_GetShader(sh->realpath,(char *)shader_src.c_str())) {
+        std::string path = std::string("glshaders") + CROSS_FILESPLIT + f;
+        if (!RENDER_GetShader(path,(char *)shader_src.c_str())) {
+            std::string exePath = GetDOSBoxXPath();
+            if (exePath.size()) path = exePath + std::string("glshaders") + CROSS_FILESPLIT + f;
+            else path = "";
+        } else path = "";
+        if (path.size() && !RENDER_GetShader(path,(char *)shader_src.c_str())) {
             Cross::GetPlatformConfigDir(path);
             path = path + "glshaders" + CROSS_FILESPLIT + f;
             if (!RENDER_GetShader(path,(char *)shader_src.c_str()) && (sh->realpath==f || !RENDER_GetShader(f,(char *)shader_src.c_str()))) {

@@ -853,13 +853,13 @@ void SetMapperKeyboardLayout(const unsigned int dkm) {
         DKM_to_descriptive_string(mapper_keyboard_layout));
 }
 
-#if defined(WIN32) && !defined(C_SDL2)
+#if defined(WIN32) && !defined(C_SDL2) && defined(SDL_DOSBOX_X_SPECIAL)
 extern "C" unsigned char SDL1_hax_hasLayoutChanged(void);
 extern "C" void SDL1_hax_ackLayoutChanged(void);
 #endif
 
 void CheckMapperKeyboardLayout(void) {
-#if defined(WIN32) && !defined(C_SDL2)
+#if defined(WIN32) && !defined(C_SDL2) && defined(SDL_DOSBOX_X_SPECIAL)
     if (SDL1_hax_hasLayoutChanged()) {
         SDL1_hax_ackLayoutChanged();
         LOG_MSG("Keyboard layout changed");
@@ -933,6 +933,22 @@ void CopyClipboard(bool all);
 #if C_DYNAMIC_X86
 void CPU_Core_Dyn_X86_Shutdown(void);
 #endif
+
+std::string dosboxpath="";
+std::string GetDOSBoxXPath() {
+    int length = wai_getExecutablePath(NULL, 0, NULL);
+    char *exepath = (char*)malloc(length + 1);
+    wai_getExecutablePath(exepath, length, NULL);
+    exepath[length] = 0;
+    std::string full=std::string(exepath);
+    size_t found=full.find_last_of("/\\");
+    if (found!=string::npos)
+        dosboxpath=full.substr(0, found+1);
+    else
+        dosboxpath="";
+    free(exepath);
+    return dosboxpath;
+}
 
 void UpdateWindowMaximized(bool flag) {
     menu.maxwindow = flag;
@@ -3171,23 +3187,20 @@ bool setColors(const char *colorArray, int n) {
 std::string failName="";
 bool readTTF(const char *fName) {
 	FILE * ttf_fh = NULL;
+	std::string exepath = "";
 	char ttfPath[1024];
-	char *exepath;
-	int length;
 
 	strcpy(ttfPath, fName);													// Try to load it from working directory
 	strcat(ttfPath, ".ttf");
     ttf_fh = fopen(ttfPath, "rb");
 
     if (!ttf_fh) {
-        length = wai_getExecutablePath(NULL, 0, NULL);
-        exepath = (char*)malloc(length + 1);
-        wai_getExecutablePath(exepath, length, NULL);
-        exepath[length] = 0;
-		strcpy(strrchr(strcpy(ttfPath, exepath), CROSS_FILESPLIT)+1, fName);	// Try to load it from where DOSBox-X was started
-		strcat(ttfPath, ".ttf");
-		ttf_fh = fopen(ttfPath, "rb");
-        free(exepath);
+        exepath=GetDOSBoxXPath();
+        if (exepath.size()) {
+            strcpy(strrchr(strcpy(ttfPath, exepath.c_str()), CROSS_FILESPLIT)+1, fName);	// Try to load it from where DOSBox-X was started
+            strcat(ttfPath, ".ttf");
+            ttf_fh = fopen(ttfPath, "rb");
+        }
 	}
 	if (!ttf_fh) {
 		strcpy(ttfPath, fName);
@@ -3210,13 +3223,11 @@ bool readTTF(const char *fName) {
         }
     }
     if (!ttf_fh) {
-        length = wai_getExecutablePath(NULL, 0, NULL);
-        exepath = (char*)malloc(length + 1);
-        wai_getExecutablePath(exepath, length, NULL);
-        exepath[length] = 0;
-		strcpy(strrchr(strcpy(ttfPath, exepath), CROSS_FILESPLIT)+1, fName);
-		ttf_fh = fopen(ttfPath, "rb");
-        free(exepath);
+        exepath=GetDOSBoxXPath();
+        if (exepath.size()) {
+            strcpy(strrchr(strcpy(ttfPath, exepath.c_str()), CROSS_FILESPLIT)+1, fName);
+            ttf_fh = fopen(ttfPath, "rb");
+        }
 	}
     if (!ttf_fh) {
         char fontdir[300];
@@ -3823,7 +3834,7 @@ bool GFX_GetPreventFullscreen(void) {
     return sdl.desktop.prevent_fullscreen;
 }
 
-#if defined(WIN32) && !defined(C_SDL2)
+#if defined(WIN32) && !defined(C_SDL2) && defined(SDL_DOSBOX_X_SPECIAL)
 extern "C" unsigned char SDL1_hax_RemoveMinimize;
 #endif
 
@@ -3833,7 +3844,7 @@ void GFX_PreventFullscreen(bool lockout) {
 #if defined(WIN32)
         void DOSBox_SetSysMenu(void);
         DOSBox_SetSysMenu();
-#if !defined(C_SDL2)
+#if !defined(C_SDL2) && defined(SDL_DOSBOX_X_SPECIAL)
         SDL1_hax_RemoveMinimize = lockout ? 1 : 0;
         int Reflect_Menu(void);
         Reflect_Menu();
@@ -5148,12 +5159,12 @@ static void GUI_StartUp() {
     MAPPER_AddHandler(SwitchFullScreen,MK_f,MMODHOST,"fullscr","Toggle fullscreen", &item);
     item->set_text("Toggle fullscreen");
 
-#if defined(WIN32) || defined(C_SDL2)
+#if defined(C_SDL2) || defined(WIN32)
     MAPPER_AddHandler(CopyAllClipboard,MK_a,MMODHOST,"copyall", "Copy to clipboard", &item);
     item->set_text("Copy all text on the DOS screen");
 #endif
 
-#if defined(WIN32) || defined(C_SDL2) || defined(LINUX) && C_X11
+#if defined(C_SDL2) || defined(WIN32) || defined(MACOSX) || defined(LINUX) && C_X11
     MAPPER_AddHandler(PasteClipboard,MK_v,MMODHOST,"paste", "Paste from clipboard", &item); //end emendelson; improved by Wengier
     item->set_text("Pasting from the clipboard");
 #endif
@@ -5566,7 +5577,7 @@ static void HandleMouseMotion(SDL_MouseMotionEvent * motion) {
         inputToScreen = true;
     else {
         inputToScreen = GFX_CursorInOrNearScreen(motion->x,motion->y);
-#if defined (WIN32) || defined(C_SDL2)
+#if defined(WIN32) || defined(C_SDL2)
 		if (mouse_start_x >= 0 && mouse_start_y >= 0) {
 			if (fx>=0 && fy>=0)
 				Mouse_Select(mouse_start_x-sdl.clip.x,mouse_start_y-sdl.clip.y,fx-sdl.clip.x,fy-sdl.clip.y,(int)(currentWindowWidth-sdl.clip.x),(int)(currentWindowHeight-sdl.clip.y), false);
@@ -7713,12 +7724,21 @@ bool PasteClipboardNext() {
     strPasteBuffer = strPasteBuffer.substr(1, strPasteBuffer.length());
 	return true;
 }
-#elif defined(C_SDL2)
+#elif defined(C_SDL2) || defined(MACOSX)
 typedef char host_cnv_char_t;
 char *CodePageHostToGuest(const host_cnv_char_t *s);
+void GetClipboard(std::string* result);
 void PasteClipboard(bool bPressed) {
 	if (!bPressed) return;
-    char* text = SDL_GetClipboardText();
+    char *text;
+#if defined(C_SDL2)
+    text = SDL_GetClipboardText();
+#else
+    std::string clip="";
+    GetClipboard(&clip);
+    text = new char[clip.size()+1];
+    strcpy(text, clip.c_str());
+#endif
     std::string result="", pre="";
     for (unsigned int i=0; i<strlen(text); i++) {
         if (text[i]==0x0A&&(i==0||text[i-1]!=0x0D)) text[i]=0x0D;
@@ -10135,7 +10155,7 @@ bool dos_clipboard_device_menu_callback(DOSBoxMenu * const menu, DOSBoxMenu::ite
 }
 #endif
 
-#if defined (WIN32) || defined(C_SDL2) || defined(LINUX) && C_X11
+#if defined(C_SDL2) || defined (WIN32) || defined(MACOSX) || defined(LINUX) && C_X11
 bool clipboard_paste_stop_menu_callback(DOSBoxMenu * const menu, DOSBoxMenu::item * const menuitem) {
     (void)menu;//UNUSED
     (void)menuitem;//UNUSED
@@ -10343,21 +10363,21 @@ bool is_always_on_top(void) {
 #endif
 }
 
-#if defined(_WIN32) && !defined(C_SDL2)
+#if defined(_WIN32) && !defined(C_SDL2) && defined(SDL_DOSBOX_X_SPECIAL)
 extern "C" void sdl1_hax_set_topmost(unsigned char topmost);
 #endif
-#if defined(MACOSX) && !defined(C_SDL2)
+#if defined(MACOSX) && !defined(C_SDL2) && defined(SDL_DOSBOX_X_SPECIAL)
 extern "C" void sdl1_hax_set_topmost(unsigned char topmost);
 #endif
-#if defined(MACOSX) && !defined(C_SDL2)
+#if defined(MACOSX) && !defined(C_SDL2) && defined(SDL_DOSBOX_X_SPECIAL)
 extern "C" void sdl1_hax_macosx_highdpi_set_enable(const bool enable);
 #endif
 
 void toggle_always_on_top(void) {
     bool cur = is_always_on_top();
-#if defined(_WIN32) && !defined(C_SDL2)
+#if defined(_WIN32) && !defined(C_SDL2) && defined(SDL_DOSBOX_X_SPECIAL)
     sdl1_hax_set_topmost(!cur);
-#elif defined(MACOSX) && !defined(C_SDL2)
+#elif defined(MACOSX) && !defined(C_SDL2) && defined(SDL_DOSBOX_X_SPECIAL)
     sdl1_hax_set_topmost(macosx_on_top = (!cur));
 #elif defined(LINUX)
     void LinuxX11_OnTop(bool f);
@@ -10406,7 +10426,7 @@ bool highdpienable_menu_callback(DOSBoxMenu * const menu, DOSBoxMenu::item * con
     (void)menu;//UNUSED
     (void)menuitem;//UNUSED
 
-#if defined(MACOSX) && !defined(C_SDL2)
+#if defined(MACOSX) && !defined(C_SDL2) && defined(SDL_DOSBOX_X_SPECIAL)
     dpi_aware_enable = !dpi_aware_enable;
     if (!control->opt_disable_dpi_awareness) {
         sdl1_hax_macosx_highdpi_set_enable(dpi_aware_enable);
@@ -10935,16 +10955,10 @@ int main(int argc, char* argv[]) SDL_MAIN_NOEXCEPT {
         if (!control->configfiles.size()) control->ParseConfigFile("dosbox-x.conf");
         if (!control->configfiles.size()) control->ParseConfigFile("dosbox.conf");
         if (!control->configfiles.size()) {
-            int length = wai_getExecutablePath(NULL, 0, NULL);
-            char *exepath = (char*)malloc(length + 1);
-            wai_getExecutablePath(exepath, length, NULL);
-            exepath[length] = 0;
-            std::string full=std::string(exepath);
-            size_t found=full.find_last_of("/\\");
-            if (found!=string::npos) {
-                std::string path=full.substr(0, found+1);
-                control->ParseConfigFile((path + "dosbox-x.conf").c_str());
-                if (!control->configfiles.size()) control->ParseConfigFile((path + "dosbox.conf").c_str());
+            std::string exepath=GetDOSBoxXPath();
+            if (exepath.size()) {
+                control->ParseConfigFile((exepath + "dosbox-x.conf").c_str());
+                if (!control->configfiles.size()) control->ParseConfigFile((exepath + "dosbox.conf").c_str());
             }
         }
 
@@ -11315,7 +11329,7 @@ int main(int argc, char* argv[]) SDL_MAIN_NOEXCEPT {
          * But we obey the user if they don't want us to do that. */
         Windows_DPI_Awareness_Init();
 #endif
-#if defined(MACOSX) && !defined(C_SDL2)
+#if defined(MACOSX) && !defined(C_SDL2) && defined(SDL_DOSBOX_X_SPECIAL)
     /* Our SDL1 in-tree library has a High DPI awareness function for macOS now */
         if (!control->opt_disable_dpi_awareness)
             sdl1_hax_macosx_highdpi_set_enable(dpi_aware_enable);
@@ -12109,7 +12123,7 @@ int main(int argc, char* argv[]) SDL_MAIN_NOEXCEPT {
         mainMenu.alloc_item(DOSBoxMenu::item_type_id,"clipboard_device").set_text("Enable DOS clipboard device access").set_callback_function(dos_clipboard_device_menu_callback).check(dos_clipboard_device_access==4&&!control->SecureMode());
         mainMenu.alloc_item(DOSBoxMenu::item_type_id,"clipboard_dosapi").set_text("Enable DOS clipboard API for applications").set_callback_function(dos_clipboard_api_menu_callback).check(clipboard_dosapi);
 #endif
-#if defined (WIN32) || defined(C_SDL2) || defined(LINUX) && C_X11
+#if defined (WIN32) || defined(C_SDL2) || defined(MACOSX) || defined(LINUX) && C_X11
         mainMenu.alloc_item(DOSBoxMenu::item_type_id,"clipboard_paste_stop").set_text("Stop clipboard pasting").set_callback_function(clipboard_paste_stop_menu_callback);
 #endif
         mainMenu.alloc_item(DOSBoxMenu::item_type_id,"sendkey_winlogo").set_text("Send logo key").set_callback_function(sendkey_preset_menu_callback);
@@ -12682,7 +12696,7 @@ fresh_boot:
 
     LOG::Exit();
 
-#if defined(WIN32) && !defined(C_SDL2)
+#if defined(WIN32) && !defined(C_SDL2) && defined(SDL_DOSBOX_X_SPECIAL)
 # if !defined(HX_DOS)
     ShowWindow(GetHWND(), SW_HIDE);
     SDL1_hax_SetMenu(NULL);/* detach menu from window, or else Windows will destroy the menu out from under the C++ class */

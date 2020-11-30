@@ -117,7 +117,7 @@ static const char *def_menu_main[] =
     "--",
     "MainSendKey",
     "MainHostKey",
-#if defined(WIN32) || defined(C_SDL2) || defined(LINUX) && C_X11
+#if defined(C_SDL2) || defined(WIN32) || defined(MACOSX) || defined(LINUX) && C_X11
     "SharedClipboard",
 #endif
     "--",
@@ -1865,6 +1865,11 @@ void DOSBox_SetSysMenu(void) {
 
     {
         strcpy(msg, "Reset window size");
+        key=get_mapper_shortcut("resetsize");
+        if (key.size()) {
+            strcat(msg, "\t");
+            strcat(msg, key.c_str());
+        }
         memset(&mii, 0, sizeof(mii));
         mii.cbSize = sizeof(mii);
         mii.fMask = MIIM_ID | MIIM_STRING | MIIM_STATE;
