@@ -10,6 +10,7 @@
 
 static int cache_fd = -1;
 static uint8_t *cache_write_ptr = NULL;
+static Bitu cache_map_size = 0;
 
 static void cache_dynamic_common_alloc(Bitu allocsz) {
     Bitu actualsz = allocsz+PAGESIZE_TEMP;
@@ -127,6 +128,7 @@ static void cache_dynamic_common_alloc(Bitu allocsz) {
         default:                            LOG(LOG_MISC,LOG_DEBUG)("dyncore method: ?"); break;
     };
 
+    cache_map_size = actualsz;
     assert((cache_code+allocsz) <= (cache_code_start_ptr+actualsz));
 }
 
