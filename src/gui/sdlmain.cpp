@@ -938,7 +938,9 @@ std::string dosboxpath="";
 std::string GetDOSBoxXPath() {
     std::string full;
 #if defined(HX_DOS)
-    full=std::string(_pgmptr);
+    char exepath[MAX_PATH];
+    GetModuleFileName(NULL, exepath, sizeof(exepath));
+    full=std::string(exepath);
 #else
     int length = wai_getExecutablePath(NULL, 0, NULL);
     char *exepath = (char*)malloc(length + 1);
