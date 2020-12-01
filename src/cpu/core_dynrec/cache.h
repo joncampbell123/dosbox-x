@@ -589,12 +589,6 @@ static void cache_ensure_allocation(void) {
  
 		cache_code_link_blocks=cache_code;
 		cache_code+=PAGESIZE_TEMP;
-
-#if (C_HAVE_MPROTECT)
-		if (mprotect(cache_code_link_blocks,CACHE_TOTAL+CACHE_MAXSIZE+PAGESIZE_TEMP,PROT_WRITE|PROT_READ|PROT_EXEC)) {
-			E_Exit("Setting execute permission on the code cache has failed! err=%s",strerror(errno));
-		}
-#endif
 	}
 }
 
