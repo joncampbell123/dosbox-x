@@ -1,5 +1,7 @@
 0.83.9
-  - 
+  - Added OPL3Duo support, which passes OPL3 output
+    to an OPL3Duo Arduino board with a specific
+    configuration if desired. (josephillips85)
 0.83.8
   - Added support for scalable TrueType font (TTF)
     output for text-mode programs. Set "output=ttf"
