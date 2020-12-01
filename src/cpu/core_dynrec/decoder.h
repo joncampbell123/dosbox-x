@@ -32,6 +32,8 @@
 */
 
 static CacheBlockDynRec * CreateCacheBlock(CodePageHandlerDynRec * codepage,PhysPt start,Bitu max_opcodes) {
+	cache_remap_rw();
+
 	// initialize a load of variables
 	decode.code_start=start;
 	decode.code=start;
@@ -612,6 +614,8 @@ finish_block:
 	decode.page.index--;
 	decode.active_block->page.end=(uint16_t)decode.page.index;
 //	LOG_MSG("Created block size %d start %d end %d",decode.block->cache.size,decode.block->page.start,decode.block->page.end);
+
+	cache_remap_rx();
 
 	return decode.block;
 }

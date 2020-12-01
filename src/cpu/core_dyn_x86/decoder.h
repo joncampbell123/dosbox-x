@@ -2120,6 +2120,9 @@ static void dyn_larlsl(bool islar) {
 
 static CacheBlock * CreateCacheBlock(CodePageHandler * codepage,PhysPt start,Bitu max_opcodes) {
 	Bits i;
+
+	cache_remap_rw();
+
 /* Init a load of variables */
 	decode.code_start=start;
 	decode.code=start;
@@ -2885,5 +2888,6 @@ finish_block:
 	/* Setup the correct end-address */
 	decode.active_block->page.end=--decode.page.index;
 //	LOG_MSG("Created block size %d start %d end %d",decode.block->cache.size,decode.block->page.start,decode.block->page.end);
+	cache_remap_rx();
 	return decode.block;
 }

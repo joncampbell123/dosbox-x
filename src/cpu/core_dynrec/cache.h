@@ -616,6 +616,8 @@ static void cache_reset(void) {
 			cache_blocks[i].cache.next=&cache_blocks[i+1];
 		}
 
+		cache_remap_rw();
+
 		cache_ensure_allocation();
 
 		CacheBlockDynRec * block=cache_getblock();
@@ -641,6 +643,8 @@ static void cache_reset(void) {
 			newpage->next=cache.free_pages;
 			cache.free_pages=newpage;
 		}
+
+		cache_remap_rx();
 	}
 }
 

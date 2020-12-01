@@ -12,6 +12,24 @@ static int cache_fd = -1;
 static uint8_t *cache_write_ptr = NULL;
 static Bitu cache_map_size = 0;
 
+static void cache_remap_rx() {
+    if (cache_code_start_ptr != NULL && cache_map_size != 0) {
+        if (dyncore_method == DYNCOREM_MPROTECT_RW_RX) {
+            if (mprotect(cache_code_start_ptr,cache_map_size,PROT_READ|PROT_EXEC) < 0)
+                E_Exit("dyn cache remap rx failed");
+        }
+    }
+}
+
+static void cache_remap_rw() {
+    if (cache_code_start_ptr != NULL && cache_map_size != 0) {
+        if (dyncore_method == DYNCOREM_MPROTECT_RW_RX) {
+            if (mprotect(cache_code_start_ptr,cache_map_size,PROT_READ|PROT_WRITE) < 0)
+                E_Exit("dyn cache remap rw failed");
+        }
+    }
+}
+
 static void cache_dynamic_common_alloc(Bitu allocsz) {
     Bitu actualsz = allocsz+PAGESIZE_TEMP;
 
@@ -73,7 +91,7 @@ static void cache_dynamic_common_alloc(Bitu allocsz) {
         }
     }
 #endif
-#if defined(C_HAVE_MMAP) /* try again, this time detect if read/write and read/execute are allowed (W^X), and if so, call mprotect() each time it is necessary to modify */
+#if defined(C_HAVE_MMAP) && defined(C_HAVE_MPROTECT) /* try again, this time detect if read/write and read/execute are allowed (W^X), and if so, call mprotect() each time it is necessary to modify */
     if (cache_code_start_ptr == NULL) {
         cache_code_start_ptr=(uint8_t*)mmap(NULL,actualsz,PROT_READ|PROT_EXEC,MAP_PRIVATE|MAP_ANONYMOUS,-1,0);
         if (cache_code_start_ptr != MAP_FAILED) {
