@@ -31,13 +31,6 @@ static void cache_remap_rx() {
             if (mprotect(cache_code_start_ptr,cache_map_size,PROT_READ|PROT_EXEC) < 0)
                 E_Exit("dyn cache remap rx failed");
         }
-        else {
-#if defined(__GNUC__)
-            if (cache_exec_ptr != cache_code) {
-                __builtin___clear_cache((char*)cache_code,(char*)(cache_code+cache_map_size-1));
-            }
-#endif
-        }
     }
 }
 

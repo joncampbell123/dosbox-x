@@ -306,7 +306,7 @@ run_block:
 		cache.block.running=0;
 		// now we're ready to run the dynamic code block
 //		BlockReturn ret=((BlockReturn (*)(void))(block->cache.start))();
-		BlockReturn ret=core_dynrec.runcode(block->cache.start);
+		BlockReturn ret=core_dynrec.runcode(block->cache.xstart);
 
         if (sizeof(CPU_Cycles) > 4) {
             // HACK: All dynrec cores for each processor assume CPU_Cycles is 32-bit wide.

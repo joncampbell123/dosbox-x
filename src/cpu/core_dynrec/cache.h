@@ -36,6 +36,7 @@ public:
 	} page;
 	struct {
 		uint8_t * start;			// where in the cache are we
+		uint8_t * xstart;			// where in the cache are we, executable mapping (because so much of the risc generation points at this pointer!)
 		Bitu size;
 		CacheBlockDynRec * next;
 		// writemap masking maskpointer/start/length
@@ -484,6 +485,7 @@ void CacheBlockDynRec::Clear(void) {
 	}
 }
 
+static INLINE void *cache_rwtox(void *x);
 
 static CacheBlockDynRec * cache_openblock(void) {
 	CacheBlockDynRec * block=cache.block.active;
@@ -538,6 +540,7 @@ static void cache_closeblock(void) {
 			newblock->cache.start=block->cache.start+new_size;
 			newblock->cache.size=block->cache.size-new_size;
 			newblock->cache.next=block->cache.next;
+			newblock->cache.xstart=(uint8_t*)cache_rwtox(newblock->cache.start);
 			block->cache.next=newblock;
 			block->cache.size=new_size;
 		}
@@ -624,15 +627,18 @@ static void cache_reset(void) {
 		cache.block.first=block;
 		cache.block.active=block;
 		block->cache.start=&cache_code[0];
+		block->cache.xstart=(uint8_t*)cache_rwtox(block->cache.start);
 		block->cache.size=CACHE_TOTAL;
 		block->cache.next=0;								//Last block in the list
 
 		/* Setup the default blocks for block linkage returns */
 		cache.pos=&cache_code_link_blocks[0];
 		link_blocks[0].cache.start=cache.pos;
+		link_blocks[0].cache.xstart=(uint8_t*)cache_rwtox(link_blocks[0].cache.start);
 		dyn_return(BR_Link1,false);
 		cache.pos=&cache_code_link_blocks[32];
 		link_blocks[1].cache.start=cache.pos;
+		link_blocks[1].cache.xstart=(uint8_t*)cache_rwtox(link_blocks[1].cache.start);
 		dyn_return(BR_Link2,false);
 		cache.free_pages=0;
 		cache.last_page=0;
@@ -680,21 +686,24 @@ static void cache_init(bool enable) {
 			cache.block.first=block;
 			cache.block.active=block;
 			block->cache.start=&cache_code[0];
+			block->cache.xstart=(uint8_t*)cache_rwtox(block->cache.start);
 			block->cache.size=CACHE_TOTAL;
 			block->cache.next=0;						// last block in the list
 		}
 		// setup the default blocks for block linkage returns
 		cache.pos=&cache_code_link_blocks[0];
 		link_blocks[0].cache.start=cache.pos;
+		link_blocks[0].cache.xstart=(uint8_t*)cache_rwtox(link_blocks[0].cache.start);
 		// link code that returns with a special return code
 		dyn_return(BR_Link1,false);
 		cache.pos=&cache_code_link_blocks[32];
 		link_blocks[1].cache.start=cache.pos;
+		link_blocks[1].cache.xstart=(uint8_t*)cache_rwtox(link_blocks[1].cache.start);
 		// link code that returns with a special return code
 		dyn_return(BR_Link2,false);
 
 		cache.pos=&cache_code_link_blocks[64];
-		*(void**)(&core_dynrec.runcode) = (void*)cache.pos;
+		*(void**)(&core_dynrec.runcode) = (void*)cache_rwtox(cache.pos);
 //		link_blocks[1].cache.start=cache.pos;
 		dyn_run_code();
 

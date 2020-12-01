@@ -593,7 +593,7 @@ restart_prefix:
 	// link to next block because the maximum number of opcodes has been reached
 	dyn_set_eip_end();
 	dyn_reduce_cycles();
-	gen_jmp_ptr(&decode.block->link[0].to,offsetof(CacheBlockDynRec,cache.start));
+	gen_jmp_ptr(&decode.block->link[0].to,offsetof(CacheBlockDynRec,cache.xstart));
 	dyn_closeblock();
     goto finish_block;
 core_close_block:
