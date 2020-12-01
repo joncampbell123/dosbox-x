@@ -169,7 +169,7 @@
 
 #endif
 
-#ifdef _WIN32
+#ifdef _WIN32 && !defined(C_HX_DOS)
 #define flac_stat_s __stat64 /* stat struct */
 #define flac_fstat _fstat64
 #else
