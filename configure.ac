@@ -295,6 +295,18 @@ AC_CHECK_HEADER([sys/mman.h], [
 AC_CHECK_FUNC([memfd_create],[AC_DEFINE(C_HAVE_MEMFD_CREATE,1)])
 ])
 
+dnl Check for posix_memalign
+AH_TEMPLATE(C_HAVE_POSIX_MEMALIGN,[Define to 1 if you have the posix_memalign function])
+AC_CHECK_HEADER([stdlib.h], [
+AC_CHECK_FUNC([posix_memalign],[AC_DEFINE(C_HAVE_POSIX_MEMALIGN,1)])
+])
+
+dnl Check for mmap
+AH_TEMPLATE(C_HAVE_MMAP,[Define to 1 if you have the mmap function])
+AC_CHECK_HEADER([sys/mman.h], [
+AC_CHECK_FUNC([mmap],[AC_DEFINE(C_HAVE_MMAP,1)])
+])
+
 dnl Check for realpath. Used on Linux
 AC_CHECK_FUNCS([realpath])
 
