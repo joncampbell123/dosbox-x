@@ -17,14 +17,26 @@
 //#define DEBUG_LINUX_FORCE_MEMFD_DUAL_RW_X
 
 static int cache_fd = -1;
+static uint8_t *cache_code_init = NULL; // NTS: Because dynamic code modifies cache_code as needed
 static uint8_t *cache_exec_ptr = NULL;
 static Bitu cache_map_size = 0;
+
+static INLINE void *cache_rwtox(void *x) {
+    return (void*)((uintptr_t)((char*)x) + (uintptr_t)((char*)cache_exec_ptr) - (uintptr_t)((char*)cache_code_init));
+}
 
 static void cache_remap_rx() {
     if (cache_code_start_ptr != NULL && cache_map_size != 0) {
         if (dyncore_method == DYNCOREM_MPROTECT_RW_RX) {
             if (mprotect(cache_code_start_ptr,cache_map_size,PROT_READ|PROT_EXEC) < 0)
                 E_Exit("dyn cache remap rx failed");
+        }
+        else {
+#if defined(__GNUC__)
+            if (cache_exec_ptr != cache_code) {
+                __builtin___clear_cache((char*)cache_code,(char*)(cache_code+cache_map_size-1));
+            }
+#endif
         }
     }
 }
@@ -198,7 +210,22 @@ static void cache_dynamic_common_alloc(Bitu allocsz) {
     if (cache_exec_ptr == NULL)
         cache_exec_ptr = cache_code;
 
+#if defined(__GNUC__)
+    /* make sure dual mapping works */
+    if (cache_exec_ptr != cache_code) {
+        *cache_code = 0xAA;
+        __builtin___clear_cache((char*)cache_code,(char*)(cache_code+128));
+        if (*cache_exec_ptr == 0xAA) {
+            LOG(LOG_MISC,LOG_DEBUG)("dyncore: dual map test passed. adj=0x%lx",(unsigned long)((uintptr_t)((char*)cache_exec_ptr) - (uintptr_t)((char*)cache_code)));
+        }
+        else {
+            E_Exit("dyncore: dual map test failed");
+        }
+    }
+#endif
+
     cache_map_size = actualsz;
+    cache_code_init = cache_code;
     assert((cache_code+allocsz) <= (cache_code_start_ptr+actualsz));
 
     LOG(LOG_MISC,LOG_DEBUG)("dyncore: allocated cache size=%lu rw=%p rx=%p",
