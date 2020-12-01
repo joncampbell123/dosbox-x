@@ -8,6 +8,11 @@
 
 #include <unistd.h>
 
+#if (C_HAVE_MPROTECT) && (C_HAVE_MACH_VM_REMAP)
+#include <mach/mach.h>
+#include <mach/mach_vm.h>
+#endif
+
 static int cache_fd = -1;
 static uint8_t *cache_write_ptr = NULL;
 static Bitu cache_map_size = 0;
@@ -130,6 +135,31 @@ static void cache_dynamic_common_alloc(Bitu allocsz) {
 
     cache_code=(uint8_t*)(((Bitu)cache_code_start_ptr+(PAGESIZE_TEMP-1)) & ~(PAGESIZE_TEMP-1)); //Bitu is same size as a pointer.
 
+#if (C_HAVE_MPROTECT) && (C_HAVE_MACH_VM_REMAP)
+    if (dyncore_method == DYNCOREM_MPROTECT_RW_RX && (dyncore_flags&DYNCOREF_W_XOR_X)) {
+        /* Darwin has a kernel call to remap our own process space twice. Try it. */
+        mach_vm_address_t rw = (mach_vm_address_t)cache_code;
+        mach_vm_address_t rx = (mach_vm_address_t)0;
+        vm_prot_t cur_prot, max_prot;
+        kern_return_t ret;
+
+        ret = mach_vm_remap(
+            mach_task_self(),&rx,actualsz,              /* to */
+            PAGESIZE_TEMP - 1,                          /* align to PAGESIZE_TEMP */
+            VM_FLAGS_ANYWHERE,                          /* don't care where */
+            mach_task_self(), rw,                       /* from */
+            false,                                      /* don't copy */
+            &cur_prot,&max_prot,                        /* protections */
+            VM_INHERIT_NONE);
+
+        if (ret == KERN_SUCCESS) {
+            if (mprotect((void*)rx,actualsz,PROT_READ|PROT_EXEC) == 0) {
+                cache_write_ptr = (uint8_t*)rx;
+                LOG(LOG_MISC,LOG_DEBUG)("Darwin approves, dual mapping method (r/x=%p r/w=%p)",(void*)rw,(void*)rx);
+            }
+        }
+    }
+#endif
     if (dyncore_alloc == DYNCOREALLOC_MALLOC && dyncore_method == DYNCOREM_RWX && !(dyncore_flags&DYNCOREF_W_XOR_X)) {
 #if (C_HAVE_MPROTECT)
 		if (mprotect(cache_code,actualsz,PROT_WRITE|PROT_READ|PROT_EXEC)) {
