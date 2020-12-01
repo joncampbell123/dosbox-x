@@ -1,3 +1,5 @@
+0.83.9
+  - 
 0.83.8
   - Added support for scalable TrueType font (TTF)
     output for text-mode programs. Set "output=ttf"
