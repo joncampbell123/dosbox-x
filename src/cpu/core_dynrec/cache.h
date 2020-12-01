@@ -579,30 +579,14 @@ static INLINE void cache_addq(uint64_t val) {
 static void dyn_return(BlockReturn retcode,bool ret_exception);
 static void dyn_run_code(void);
 
-
-/* Define temporary pagesize so the MPROTECT case and the regular case share as much code as possible */
-#if (C_HAVE_MPROTECT)
-#define PAGESIZE_TEMP PAGESIZE
-#else 
-#define PAGESIZE_TEMP 4096
-#endif
-
 static bool cache_initialized = false;
 
-void cache_ensure_allocation(void) {
+#include "cpu/dynamic_alloc_common.h"
+
+static void cache_ensure_allocation(void) {
 	if (cache_code_start_ptr==NULL) {
-#if defined (WIN32)
-		cache_code_start_ptr=(uint8_t*)VirtualAlloc(0,CACHE_TOTAL+CACHE_MAXSIZE+PAGESIZE_TEMP-1+PAGESIZE_TEMP,
-				MEM_COMMIT,PAGE_EXECUTE_READWRITE);
-		if (!cache_code_start_ptr)
-			cache_code_start_ptr=(uint8_t*)malloc(CACHE_TOTAL+CACHE_MAXSIZE+PAGESIZE_TEMP-1+PAGESIZE_TEMP);
-#else
-		cache_code_start_ptr=(uint8_t*)malloc(CACHE_TOTAL+CACHE_MAXSIZE+PAGESIZE_TEMP-1+PAGESIZE_TEMP);
-#endif
-		if (!cache_code_start_ptr) E_Exit("Allocating dynamic cache failed");
-
-		cache_code=(uint8_t*)(((Bitu)cache_code_start_ptr + PAGESIZE_TEMP-1) & ~(PAGESIZE_TEMP-1)); //Bitu is same size as a pointer.
-
+        cache_dynamic_common_alloc(CACHE_TOTAL+CACHE_MAXSIZE); /* sets cache_code_start_ptr/cache_code */
+ 
 		cache_code_link_blocks=cache_code;
 		cache_code+=PAGESIZE_TEMP;
 

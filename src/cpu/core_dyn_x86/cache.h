@@ -478,14 +478,24 @@ static uint8_t * cache_code=NULL;
 static uint8_t * cache_code_link_blocks=NULL;
 static CacheBlock * cache_blocks=NULL;
 
-/* Define temporary pagesize so the MPROTECT case and the regular case share as much code as possible */
-#if (C_HAVE_MPROTECT)
-#define PAGESIZE_TEMP PAGESIZE
-#else 
-#define PAGESIZE_TEMP 4096
-#endif
-
 static bool cache_initialized = false;
+
+#include "cpu/dynamic_alloc_common.h"
+
+static void cache_ensure_allocation(void) {
+	if (cache_code_start_ptr==NULL) {
+        cache_dynamic_common_alloc(CACHE_TOTAL+CACHE_MAXSIZE); /* sets cache_code_start_ptr/cache_code */
+ 
+		cache_code_link_blocks=cache_code;
+		cache_code+=PAGESIZE_TEMP;
+
+#if (C_HAVE_MPROTECT)
+		if (mprotect(cache_code_link_blocks,CACHE_TOTAL+CACHE_MAXSIZE+PAGESIZE_TEMP,PROT_WRITE|PROT_READ|PROT_EXEC)) {
+			E_Exit("Setting execute permission on the code cache has failed! err=%s",strerror(errno));
+		}
+#endif
+	}
+}
 
 static void cache_init(bool enable) {
 	Bits i;
@@ -504,26 +514,7 @@ static void cache_init(bool enable) {
 			}
 		}
 		if (cache_code_start_ptr==NULL) {
-#if defined (WIN32)
-			cache_code_start_ptr=(uint8_t*)VirtualAlloc(0,CACHE_TOTAL+CACHE_MAXSIZE+PAGESIZE_TEMP-1+PAGESIZE_TEMP,
-				MEM_COMMIT,PAGE_EXECUTE_READWRITE);
-			if (!cache_code_start_ptr)
-				cache_code_start_ptr=(uint8_t*)malloc(CACHE_TOTAL+CACHE_MAXSIZE+PAGESIZE_TEMP-1+PAGESIZE_TEMP);
-#else
-			cache_code_start_ptr=(uint8_t*)malloc(CACHE_TOTAL+CACHE_MAXSIZE+PAGESIZE_TEMP-1+PAGESIZE_TEMP);
-#endif
-			if(!cache_code_start_ptr) E_Exit("Allocating dynamic core cache memory failed");
-
-			cache_code=(uint8_t*)(((Bitu)cache_code_start_ptr + PAGESIZE_TEMP-1) & ~(PAGESIZE_TEMP-1)); //Bitu is same size as a pointer.
-
-			cache_code_link_blocks=cache_code;
-			cache_code+=PAGESIZE_TEMP;
-
-#if (C_HAVE_MPROTECT)
-			if (mprotect(cache_code_link_blocks,CACHE_TOTAL+CACHE_MAXSIZE+PAGESIZE_TEMP,PROT_WRITE|PROT_READ|PROT_EXEC)) {
-				E_Exit("Setting execute permission on the code cache has failed! err=%s",strerror(errno));
-			}
-#endif
+			cache_ensure_allocation();
 
 			CacheBlock * block=cache_getblock();
 			cache.block.first=block;
@@ -600,28 +591,7 @@ static void cache_reset(void) {
 			cache_blocks[i].cache.next=&cache_blocks[i+1];
 		}
 
-		if (cache_code_start_ptr==NULL) {
-#if defined (WIN32)
-			cache_code_start_ptr=(uint8_t*)VirtualAlloc(0,CACHE_TOTAL+CACHE_MAXSIZE+PAGESIZE_TEMP-1+PAGESIZE_TEMP,
-				MEM_COMMIT,PAGE_EXECUTE_READWRITE);
-			if (!cache_code_start_ptr)
-				cache_code_start_ptr=(uint8_t*)malloc(CACHE_TOTAL+CACHE_MAXSIZE+PAGESIZE_TEMP-1+PAGESIZE_TEMP);
-#else
-			cache_code_start_ptr=(uint8_t*)malloc(CACHE_TOTAL+CACHE_MAXSIZE+PAGESIZE_TEMP-1+PAGESIZE_TEMP);
-#endif
-			if (!cache_code_start_ptr) E_Exit("Allocating dynamic core cache memory failed");
-
-			cache_code=(uint8_t*)(((Bitu)cache_code_start_ptr + PAGESIZE_TEMP-1) & ~(PAGESIZE_TEMP-1)); //Bitu is same size as a pointer.
-
-			cache_code_link_blocks=cache_code;
-			cache_code+=PAGESIZE_TEMP;
-
-#if (C_HAVE_MPROTECT)
-			if (mprotect(cache_code_link_blocks,CACHE_TOTAL+CACHE_MAXSIZE+PAGESIZE_TEMP,PROT_WRITE|PROT_READ|PROT_EXEC)) {
-				E_Exit("Setting execute permission on the code cache has failed! err=%s",strerror(errno));
-			}
-#endif
-		}
+		cache_ensure_allocation();
 
 		CacheBlock * block=cache_getblock();
 		cache.block.first=block;
