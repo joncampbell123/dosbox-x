@@ -112,7 +112,7 @@ static void cache_dynamic_common_alloc(Bitu allocsz) {
     }
 #endif
 #if defined(C_HAVE_POSIX_MEMALIGN)
-    if (cache_code_start_ptr == NULL) { /* try again, just use mmap, align ptr, mprotect */
+    if (cache_code_start_ptr == NULL) { /* try again, use posix_memalign for an aligned pointer, mprotect */
         void *p = NULL;
         if (posix_memalign(&p,PAGESIZE_TEMP,actualsz) == 0) {
             cache_code_start_ptr=(uint8_t*)p;
@@ -120,7 +120,7 @@ static void cache_dynamic_common_alloc(Bitu allocsz) {
         }
     }
 #endif
-    if (cache_code_start_ptr == NULL) { /* try again, just use mmap, align ptr, mprotect */
+    if (cache_code_start_ptr == NULL) { /* try again, just use malloc, align ptr, mprotect */
         cache_code_start_ptr=(uint8_t*)malloc(actualsz);
         if (cache_code_start_ptr != NULL) dyncore_alloc = DYNCOREALLOC_MALLOC;
     }
