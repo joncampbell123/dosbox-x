@@ -14,7 +14,7 @@
 #endif
 
 static int cache_fd = -1;
-static uint8_t *cache_write_ptr = NULL;
+static uint8_t *cache_exec_ptr = NULL;
 static Bitu cache_map_size = 0;
 
 static void cache_remap_rx() {
@@ -39,7 +39,7 @@ static void cache_dynamic_common_alloc(Bitu allocsz) {
     Bitu actualsz = allocsz+PAGESIZE_TEMP;
 
     assert(cache_code_start_ptr == NULL);
-    assert(cache_write_ptr == NULL);
+    assert(cache_exec_ptr == NULL);
     assert(cache_code == NULL);
     assert(actualsz >= allocsz);
 
@@ -70,8 +70,9 @@ static void cache_dynamic_common_alloc(Bitu allocsz) {
                 if (cache_code_start_ptr == MAP_FAILED) {
                     cache_code_start_ptr=(uint8_t*)mmap(NULL,actualsz,PROT_READ|PROT_EXEC,MAP_SHARED,cache_fd,0);
                     if (cache_code_start_ptr != MAP_FAILED) {
-                        cache_write_ptr=(uint8_t*)mmap(cache_code_start_ptr/*place after this!*/,actualsz,PROT_READ|PROT_WRITE,MAP_SHARED,cache_fd,0);
-                        if (cache_write_ptr != MAP_FAILED) {
+                        cache_exec_ptr=(uint8_t*)mmap(cache_code_start_ptr/*place after this!*/,actualsz,PROT_READ|PROT_WRITE,MAP_SHARED,cache_fd,0);
+                        if (cache_exec_ptr != MAP_FAILED) {
+                            std::swap(cache_exec_ptr,cache_code_start_ptr);
                             dyncore_method = DYNCOREM_DUAL_RW_X;
                             dyncore_flags |= DYNCOREF_W_XOR_X;
                         }
@@ -154,8 +155,9 @@ static void cache_dynamic_common_alloc(Bitu allocsz) {
 
         if (ret == KERN_SUCCESS) {
             if (mprotect((void*)rx,actualsz,PROT_READ|PROT_EXEC) == 0) {
-                cache_write_ptr = (uint8_t*)rx;
                 LOG(LOG_MISC,LOG_DEBUG)("Darwin approves, dual mapping method (r/x=%p r/w=%p)",(void*)rw,(void*)rx);
+                dyncore_method = DYNCOREM_DUAL_RW_X;
+                cache_exec_ptr = (uint8_t*)rx;
             }
         }
     }
