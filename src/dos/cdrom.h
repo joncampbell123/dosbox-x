@@ -28,7 +28,9 @@
 #include <vector>
 #include <fstream>
 #include <sstream>
+#if !defined(HX_DOS)
 #include <thread>
+#endif
 
 #include "dosbox.h"
 #include "mem.h"
@@ -305,8 +307,10 @@ private:
               uint8_t*     hunk_buffer       = nullptr; // buffer to hold one hunk // size of hunks in CHD up to 1 MiB
               uint8_t*     hunk_buffer_next  = nullptr; // index + 1 prefetch
               int          hunk_buffer_index = -1;      // hunk index for buffer
+#if !defined(HX_DOS)
               std::thread* hunk_thread       = nullptr; // used for prefetch
               bool         hunk_thread_error = true;
+#endif
     public:
               bool         skip_sync         = false;   // this will fail if a CHD contains 2048 and 2352 sector tracks
      };
