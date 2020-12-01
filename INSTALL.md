@@ -60,19 +60,13 @@ In addition, if an earlier DOSBox-X Flatpak is already installed in the system y
 
 ``flatpak update com.dosbox_x.DOSBox-X``
 
-RPM packages were previously available for 64-bit Linux, specifically CentOS 7 / RHEL 7 ("el7") and CentOS 8 / RHEL 8 ("el8") platforms. There were usually packages for both CentOS 7 and CentOS 8 platforms, and the most recent DOSBox-X version that provided official packages for both CentOS 7 and CentOS 8 platforms was version 0.83.2, which included the following Linux RPM packages:
+RPM packages were previously available for 64-bit Linux, specifically CentOS 7 / RHEL 7 ("el7") and CentOS 8 / RHEL 8 ("el8") platforms. There were usually packages for both CentOS 7 / RHEL 7 and CentOS 8 / RHEL 8 platforms, although some versions only provided packages for the CentOS 7 / RHEL 7 platform.
 
-* [dosbox-x-0.83.2-0.el7.x86_64.rpm](https://github.com/joncampbell123/dosbox-x/releases/download/dosbox-x-v0.83.2/dosbox-x-0.83.2-0.el7.x86_64.rpm)
-* [dosbox-x-0.83.2-0.el8.x86_64.rpm](https://github.com/joncampbell123/dosbox-x/releases/download/dosbox-x-v0.83.2/dosbox-x-0.83.2-0.el8.x86_64.rpm)
-* [dosbox-x-debuginfo-0.83.2-0.el7.x86_64.rpm](https://github.com/joncampbell123/dosbox-x/releases/download/dosbox-x-v0.83.2/dosbox-x-debuginfo-0.83.2-0.el7.x86_64.rpm)
-* [dosbox-x-debuginfo-0.83.2-0.el8.x86_64.rpm](https://github.com/joncampbell123/dosbox-x/releases/download/dosbox-x-v0.83.2/dosbox-x-debuginfo-0.83.2-0.el8.x86_64.rpm)
-* [dosbox-x-debugsource-0.83.2-0.el8.x86_64.rpm](https://github.com/joncampbell123/dosbox-x/releases/download/dosbox-x-v0.83.2/dosbox-x-debugsource-0.83.2-0.el8.x86_64.rpm)
-
-Pick a RPM package of the version you want to use for your Linux platform and install. On CentOS, RHEL or Fedora platforms, you can install a RPM package with a command line like this:
+If you want to install an earlier DOSBox-X version (such as 0.83.2) via RPM packages, please pick a RPM package of the DOSBox-X version you want to use for your Linux platform and install. On CentOS, RHEL or Fedora platforms, you can install a RPM package with a command line like this:
 
 ``sudo rpm -i <filename>.rpm``
 
-Where ``<filename>`` is the main file name of the RPM package you wish to install. You may want to use the debug builds (the last three packages in the above example) if you desire to do some debugging work when running DOSBox-X. If there are missing dependencies for the rpm command, such as libpng and fluid-soundfont, then you will need to install them first. However, RPM packages are not natively supported by Linux distributions such as Debian, Ubuntu, or Linux Mint (although the ``alien`` command may sometimes help). It is recommanded to use Flatpaks, which work independent of your Linux distribution.
+Where ``<filename>`` is the main file name of the RPM package you wish to install. You may want to use the debug builds (whose file names contain the word "debug") if you desire to do some debugging work when running DOSBox-X. If there are missing dependencies for the rpm command, such as libpng and fluid-soundfont, then you will need to install them first. However, RPM packages are not natively supported by Linux distributions such as Debian, Ubuntu, or Linux Mint (although the ``alien`` command may sometimes help). It is recommanded to use Flatpaks, which work independent of your Linux distribution.
 
 Moreover, you can find DOSBox-X on SnapCraft (https://snapcraft.io/dosbox-x), which maintains universal Linux packages for software including DOSBox-X. Please note the DOSBox-X Linux packages on this website are built and updated by SnapCraft instead of the DOSBox-X Team.
 
@@ -105,9 +99,9 @@ For the current DOSBox-X version 0.83.8, the official DOS version is available i
 
 The DOS package allows you to run DOSBox-X in a real DOS system (MS-DOS or compatible) with the help of the freely-available [HX DOS Extender](https://github.com/Baron-von-Riedesel/HX), which is already included in the recent DOS release packages. Once you unzip the package you can directly type ```DOSBOX-X``` to run in DOS. See the README.TXT file inside the DOS package for more information.
 
-Alternatively, you can run DOSBox-X from a DOS environment with the help of the free [LOADLIN](https://docstore.mik.ua/orelly/linux/lnut/ch04_03.htm) program. The alternative DOS package for DOSBox-X 0.83.7 using this approach is available from:
+Alternatively, you can run DOSBox-X from a DOS environment with the help of the free [LOADLIN](https://docstore.mik.ua/orelly/linux/lnut/ch04_03.htm) program. The alternative DOS package for DOSBox-X 0.83.8 using this approach is available from:
 
-* [dosbox-x-dos-0.83.7-loadlin.zip](https://github.com/joncampbell123/dosbox-x/files/5491386/dosbox-x-dos-0.83.7-loadlin.zip)
+* [dosbox-x-dos-0.83.8-loadlin.zip](https://github.com/joncampbell123/dosbox-x/files/5625195/dosbox-x-dos-0.83.8-loadlin.zip)
 
 With this alternative DOS package you can even run DOSBox-X right from DOSBox-X's DOS shell. Start the outside DOSBox-X with the setting ```memsize=127``` (and perhaps also ```fullscreen=true```). Go to the directory where the files are extracted and type ```DOSBOX-X```. Then just wait for DOSBox-X to be automatically loaded within DOSBox-X.
 
@@ -120,6 +114,6 @@ Full source code packages of DOSBox-X are also available in both zip and tar.gz 
 * [dosbox-x-v0.83.8.zip](https://github.com/joncampbell123/dosbox-x/archive/dosbox-x-v0.83.8.zip)
 * [dosbox-x-v0.83.8.tar.gz](https://github.com/joncampbell123/dosbox-x/archive/dosbox-x-v0.83.8.tar.gz)
 
-If you prefer you can compile DOSBox-X from the source code by yourself. The source code packages as listed in the Releases page contain the source code for that released version, and in this example the current DOSBox-X 0.83.6 version. On the other hand, if you are looking for the latest source code of DOSBox-X (including the most recent development changes in the source code), you may want to use the source code in the repository instead, or you can browse the latest source code using [Doxygen](https://dosbox-x.com/doxygen/html/index.html).
+If you prefer you can compile DOSBox-X from the source code by yourself. The source code packages as listed in the Releases page contain the source code for that released version, and in this example the current DOSBox-X 0.83.8 version. On the other hand, if you are looking for the latest source code of DOSBox-X (including the most recent development changes in the source code), you may want to use the source code in the repository instead, or you can browse the latest source code using [Doxygen](https://dosbox-x.com/doxygen/html/index.html).
 
 You could use either the released source code package or the latest source code according to your needs, and the source code may be compiled to run on the above-mentioned platforms (Windows, Linux, macOS and DOS) and possibly other operating systems too. Please see the [DOSBox-X source code description](README.source-code-description) file for detailed instructions on building the DOSBox-X source code and further information of the source code.
