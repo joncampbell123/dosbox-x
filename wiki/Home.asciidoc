@@ -77,7 +77,7 @@ Switch to full-screen mode and back.
 Quick launch an executable file to run inside DOSBox-X.
 * **[F11/F12]+R**
 Reset the virtual machine inside DOSBox-X.
-* **[F11/F12]+S**
+* **[F11/F12]+B**
 Reboot the emulated DOS (integrated DOS or guest DOS) inside DOSBox-X.
 * **[F11/F12]+C**
 Start DOSBox-X's graphical configuration tool.
@@ -103,27 +103,31 @@ Decrease the emulated DOS's current speed relative to real-time.
 Increase DOSBox-X's emulation CPU cycles.
 * **[F11/F12]+{-}**
 Decrease DOSBox-X's emulation CPU cycles.
+* **[F11/F12]+Up**
+Increase the font size for the TrueType font (TTF) output.
+* **[F11/F12]+Down**
+Decrease the font size for the TrueType font (TTF) output.
 * **[F11/F12]+Left**
 Reset the emulated DOS's current CPU speed to the normal speed.
-* **[F11/F12]+LCtrl+C**
+* **[F11/F12]+D**
 Swap between mounted CD images.
-* **[F11/F12]+LCtrl+D**
+* **[F11/F12]+O**
 Swap between mounted floppy images.
-* **[F11/F12]+LShift+S**
+* **[F11/F12]+P**
 Take a screenshot of the current screen in PNG format.
-* **[F11/F12]+LShift+V**
+* **[F11/F12]+I**
 Start/Stop capturing an AVI video of the current session.
-* **[F11/F12]+LShift+W**
+* **[F11/F12]+W**
 Start/Stop recording a WAV audio of the current session.
 * **LAlt+Pause**
 Start DOSBox-X's Debugger.
-* **LCtrl+LAlt+F7**
+* **[F11/F12]+[,]**
 Select the previous save slot to save to or load from.
-* **LCtrl+LAlt+F8**
+* **[F11/F12]+[.]**
 Select the next save slot to save to or load from.
-* **LCtrl+F7**
+* **[F11/F12]+S**
 Save current state to the selected save slot.
-* **LCtrl+F8**
+* **[F11/F12]+L**
 Load the state from the selected save slot.
 * **LCtrl+F9**
 Exit DOSBox-X.

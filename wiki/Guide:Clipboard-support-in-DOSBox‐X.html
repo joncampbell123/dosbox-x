@@ -469,7 +469,7 @@ body.book #toc,body.book #preamble,body.book h1.sect0,body.book .sect1>h2{page-b
 <div class="sect2">
 <h3 id="_overview">Overview</h3>
 <div class="paragraph">
-<p>DOSBox-X has support for copying to and pasting from the host clipboard in several ways. For example, you can copy to or paste from to the clipboard inside DOSBox-X using a right/middle mouse button click or keyboard shortcut, and you can also use a DOS device or DOS program to communicate bidirectionally with the Windows clipboard. You will find a menu group "Shared Windows clipboard functions" under the "Main" menu to control the various options for the Windows clipboard feature.</p>
+<p>DOSBox-X has support for copying to and pasting from the host system clipboard in several ways. For example, you can copy to or paste from to the clipboard inside DOSBox-X using a right/middle mouse button click or keyboard shortcut, and you can also use a DOS device or DOS program to communicate bidirectionally with the host clipboard. You will find a menu group "Shared clipboard functions" under the "Main" menu to control the various options for the clipboard feature.</p>
 </div>
 <div class="paragraph">
 <p>Note that the functions to use a DOS device or DOS program to communicate bidirectionally with the clipboard is currently only available for the Windows platform. Also, clipboard copying and pasting using a mouse button click is not available for the Linux/macOS SDL1 builds.</p>
@@ -493,7 +493,7 @@ body.book #toc,body.book #preamble,body.book h1.sect0,body.book .sect1>h2{page-b
 <div class="sect2">
 <h3 id="_paste_from_the_clipboard_using_a_keyboard_shortcut">Paste from the clipboard using a keyboard shortcut</h3>
 <div class="paragraph">
-<p>Note: This function was only available for the Windows platform in DOSBox-X version 0.83.6 and earlier. In version 0.83.7 and later it is available for Linux SDL1 build and Linux/macOS SDL2 builds also.</p>
+<p>Note: This function was only available for the Windows platform in DOSBox-X version 0.83.6 and earlier. In version 0.83.7 and later it is available for Linux and macOS systems also.</p>
 </div>
 <div class="paragraph">
 <p>You can also use a keyboard shortcut to paste text from the clipboard into DOSBox-X, or just click the option "Pasting from the clipboard" within the "Shared clipboard functions" menu group. In order to achieve this via a keyboard shortcut you need to run DOSBox-X&#8217;s keyboard mapper editor to assign a key for this function first. One way to run the mapper editor is to start DOSBox-X.exe with the -startmapper command-line option. You can also select it directly from DOSBox-X&#8217;s drop-down menu (under "Main"). After the mapper editor is launched, click the "Paste Clip" function and assign a keyboard shortcut to it. For example, you can assign the F6 key (or Alt+F6, Shift+F6, etc) to paste text from the clipboard. Once this is done you can save the mapper and exit to DOSBox-X. Then you will be able to use the saved keyboard shortcut to paste text from the clipboard into DOSBox-X just like pasting it using the right mouse button click.</p>
@@ -605,7 +605,7 @@ body.book #toc,body.book #preamble,body.book h1.sect0,body.book .sect1>h2{page-b
 </div>
 <div id="footer">
 <div id="footer-text">
-Last updated 2020-11-01 15:48:11 -0500
+Last updated 2020-12-01 03:27:33 -0500
 </div>
 </div>
 </body>

@@ -11,15 +11,15 @@ DOSBox-X features a drop-down menu system so that you can do many things from th
 * **Built-in graphical configuration tool**
 +
 You can configure DOSBox-X‘s settings directly from its built-in GUI configuration tool instead of having to manually modify its config file.
-* **Save and load state support (with save slots)**
+* **Save and load state support (with save slots and save files)**
 +
-DOSBox-X provides a fully-featured system for saving and loading states with support for up to 100 save slots, selectable from the menu.
+DOSBox-X provides a fully-featured system for saving and loading states with support for up to 100 save slots, selectable from the menu, as well as the option to use your own save files.
 * **Automatic drive mounting (Windows only)**
 +
 DOSBox-X will automatically let you mount a drive if you try to enter a drive which is not yet mounted, and you can also let DOSBox-X automatically mount all available Windows drives at start.
 * **Japanese NEC PC-98 mode emulation**
 +
-With DOSBox-X you can now run PC-98 and its games. Set ``machine=pc98`` in the config file to start DOSBox-X in PC-98 mode.
+With DOSBox-X you can now run PC-98 and its games. Set ``machine=pc98`` in the config file to start DOSBox-X in NEC PC-98 mode.
 * **More customizable virtual machine**
 +
 DOSBox-X provides many more config options that are not found in DOSBox, so that users have more options to customize the virtual machine inside DOSBox-X.
@@ -40,7 +40,7 @@ One of DOSBox-X’s main goals is to become a great platform to run Windows 3.x 
 DOSBox-X has many useful tools already built-in, such as CWSDPMI, DOS4GW, DOSIDLE and IMGMAKE, which will appear on its Z: drive.
 * **Support for more DOS commands (e.g. VOL, LABEL, ATTRIB, PROMPT, MOUSE)**
 +
-DOSBox-X includes many DOS commands that are missing in DOSBox, such as FOR, VOL, LABEL, ATTRIB, PROMPT, EDIT, FIND, and MOUSE.
+DOSBox-X includes many DOS commands that are missing in DOSBox, such as FOR, VOL, LABEL, ATTRIB, DELTREE, PROMPT, EDIT, FIND, and MOUSE.
 * **Support for CONFIG.SYS commands (e.g. DOS, DEVICE, FCBS, FILES, LASTDRIVE)**
 +
 DOSBox-X supports a [config] section that supports most DOS config.sys commands, such as COUNTRY, DEVICE, DOS, FCBS, FILES, INSTALL, LASTDRIVE, NUMLOCK, SET, and SHELL.
@@ -76,15 +76,15 @@ You can let DOSBox-X automatically convert mouse wheel movements to arrow keys, 
 * **Support for starting programs to run on the host (Windows only)**
 +
 It is possible to launch a Windows application from inside DOSBox-X to run on the Windows host, either using START command or run it directly from the shell. Set ``startcmd=true`` to enable this feature.
-* **Support for quick-launch programs to run inside DOSBox-X (Windows only)**
+* **Support for quick-launch programs to run inside DOSBox-X**
 +
-DOSBox-X lets you use the Windows file browser to select a DOS program to quickly run inside DOSBox-X, and file associations for DOS programs are supported for the Windows Explorer as well.
+DOSBox-X lets you use the system file browser to select a DOS program to quickly run inside DOSBox-X, and file associations for DOS programs are supported for the Windows Explorer as well.
 * **Support for setting config options from the DOSBox-X command line**
 +
 DOSBox-X allows you to set one or more config options from the DOSBox-X command line, overriding any preset config options that may be specified in the config file. For example, ``dosbox-x -set machine=pc98`` forces DOSBox-X to start in PC-98 mode.
-* **Support for Ctrl+C/Ctrl+Break in the shell and many commands**
+* **Support for Ctrl+C/Ctrl+Break in the shell and DOS programs**
 +
-You can press the Ctrl+C or Ctrl+Break key to break from the current operation when running in the shell and many internal or external commands.
+You can press the Ctrl+C or Ctrl+Break key to break from the current operation when running in the shell, many DOS commands as well as DOS applications.
 * **Support for cue sheets with FLAC, MP3, WAV, OGG Vorbis and Opus CD audio tracks**
 +
 With DOSBox-X it is possible to mount .cue files (either from the menu or with IMGMOUNT command) that include FLAC, MP3, WAV, OGG Vorbis and Opus music as CD audio tracks.
@@ -112,6 +112,9 @@ Advanced OpenGL features including OpenGL-HQ and GLSL shaders are supported by D
 * **Support for Direct3D with pixel shaders (Windows only)**
 +
 DOSBox-X supports Direct3D along with pixel shaders which provides many more output flexibilities on Windows systems.
+* **Support for TrueType fonts (TTF) for text-mode DOS applications**
++
+DOSBox-X supports TrueType fonts (TTF) which provides high-resolution display for DOS shell and program running in text-mode. Features such as on-screen text styles are supported in this output mode too.
 * **Support for features such as V-Sync, overscan border and stereo swapping**
 * **Improved debugging features including built-in debugger and logging options**
 * **Including most patches from DOSBox ECE and many community contributions**

@@ -703,50 +703,28 @@ realnic=list</pre>
 </div>
 </div>
 <div class="paragraph">
-<p>In the terminal there will be a lot of LOG messages. Look for some output similar to this:</p>
+<p>Now from the DOSBox-X menu bar, select <strong>Help</strong> followed by <strong>List network interfaces</strong></p>
 </div>
-<div class="literalblock">
+<div class="imageblock">
 <div class="content">
-<pre>Network Interface List
------------------------------------
-LOG:  1. eno1
-    (no description)
-LOG:  2. lo
-    (no description)
-LOG:  3. any
-    (Pseudo-device that captures on all interfaces)
-LOG:  4. virbr0
-    (no description)
-LOG:  5. bluetooth-monitor
-    (Bluetooth Linux Monitor)
-LOG:  6. nflog
-    (Linux netfilter log (NFLOG) interface)
-LOG:  7. nfqueue
-    (Linux netfilter queue (NFQUEUE) interface)
-LOG:  8. wlp3s0
-    (no description)
-LOG:  9. bluetooth0
-    (Bluetooth adapter number 0)
-LOG: 10. usbmon0
-    (Raw USB traffic, all USB buses)
-LOG: 11. usbmon1
-    (Raw USB traffic, bus number 1)
-LOG: 12. usbmon2
-    (Raw USB traffic, bus number 2)
-LOG: 13. usbmon3
-    (Raw USB traffic, bus number 3)
-LOG: 14. usbmon4
-    (Raw USB traffic, bus number 4)
-LOG: 15. virbr0-nic
-    (no description)</pre>
+<img src="images/DOSBox-X:Menu:Network_Interface_Option.png" alt="Menu: List network interfaces">
 </div>
 </div>
 <div class="paragraph">
-<p>That is an example of the network interfaces that were detected for my Linux PC. Now look at your own list, and locate an appropriate adapter to use.
-In the above example, 1, or eno1 is the integrated Ethernet of the PC, which we will use.</p>
+<p>You will now get a list of available network interfaces, similar to the screenshot shown below.</p>
+</div>
+<div class="imageblock">
+<div class="content">
+<img src="images/DOSBox-X:Network_Interface_List.png" alt="Network Interface List">
+</div>
 </div>
 <div class="paragraph">
-<p>Edit the ne2000.conf config file and change realnic= to the value or name of your chosen network interface. e.g.:</p>
+<p>That is an example of the network interfaces that were detected for my Linux PC.
+Now look at your own list, and locate an appropriate adapter to use.
+In the above example, 1, or eno1 is the integrated Ethernet of my PC, which we will use in the below example.</p>
+</div>
+<div class="paragraph">
+<p>Edit the ne2000.conf config file and change realnic= to the number or name of your chosen network interface. e.g.:</p>
 </div>
 <div class="literalblock">
 <div class="content">
@@ -795,11 +773,14 @@ realnic=list</pre>
 </div>
 <div class="literalblock">
 <div class="content">
-<pre>dosbox-x -console -conf ne2000.conf</pre>
+<pre>dosbox-x -conf ne2000.conf</pre>
 </div>
 </div>
 <div class="paragraph">
-<p>In addition to the dosbox-x window, you will get a console window with lots of LOG messages. In these LOG messages look for some output similar to this:</p>
+<p>Now from the DOSBox-X menu bar, select <strong>Help</strong> followed by <strong>List network interfaces</strong></p>
+</div>
+<div class="paragraph">
+<p>You will now get a list of available network interfaces, similar to the list shown below.</p>
 </div>
 <div class="literalblock">
 <div class="content">
@@ -1177,7 +1158,7 @@ But note that this is NetBIOS <strong>over</strong> IPX, which cannot communicat
 </div>
 <div id="footer">
 <div id="footer-text">
-Last updated 2020-11-01 15:48:11 -0500
+Last updated 2020-12-01 03:27:33 -0500
 </div>
 </div>
 </body>

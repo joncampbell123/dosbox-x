@@ -460,10 +460,16 @@ body.book #toc,body.book #preamble,body.book h1.sect0,body.book .sect1>h2{page-b
 <p><strong>Mapper editor</strong>: Enters DOSBox-X&#8217;s keyboard mapper editor, where you can map different keys for use with the emulated DOS. Press the Esc key three times to exit the editor.</p>
 </li>
 <li>
-<p><strong>Send Key</strong>: Sends special keys such as the logo key, Ctrl+Esc, Alt+Tab, and Ctrl+Alt+Del to the emulated DOS system.</p>
+<p><strong>Load mapper file</strong>: Selects a mapper file for use with DOSBox-X. Make sure to select a SDL1 mapper file for SDL1 builds, and SDL2 mapper file for SDL2 builds.</p>
 </li>
 <li>
-<p><strong>Shared clipboard functions</strong>: Enables or disables the various ways for DOSBox-X to communicate with the host clipboard, such as using the right mouse button to copy to and paste from the clipboard in quick edit mode. Some options are only available for the Windows platform.</p>
+<p><strong>Send special key</strong>: Sends special keys such as the logo key, Ctrl+Esc, Alt+Tab, and Ctrl+Alt+Del to the emulated DOS system.</p>
+</li>
+<li>
+<p><strong>Select host key</strong>: Select a key combination including Ctrl+Alt, Ctrl+Shift or Alt+Shift, or use the mapper-defined host key (F11/F12 by default).</p>
+</li>
+<li>
+<p><strong>Shared clipboard functions</strong>: Enables or disables the various ways for DOSBox-X to communicate with the host clipboard, such as using the right (or middle) mouse button to copy to and paste from the clipboard in quick edit mode. Some options are only available for the Windows platform.</p>
 </li>
 <li>
 <p><strong>Capture mouse</strong>: DOSBox-X will capture the mouse immediately for use with the emulated DOS.</p>
@@ -475,7 +481,7 @@ body.book #toc,body.book #preamble,body.book h1.sect0,body.book .sect1>h2{page-b
 <p><strong>Mouse wheel movements</strong>: Select whether to auto-convert mouse wheel movements to arrow keys (Up &amp; Down arrows etc).</p>
 </li>
 <li>
-<p><strong>Pause</strong>: Check to pause the emulated DOS inside DOSBox-X completely. The emulated DOS will resume when it is unchecked.</p>
+<p><strong>Pause emulation</strong>: Check to pause the emulated DOS inside DOSBox-X completely. The emulated DOS will resume when it is unchecked.</p>
 </li>
 <li>
 <p><strong>Pause with interrupts enabled</strong>: Pauses the emulated DOS inside DOSBox-X without disabling the DOS interrupts. This allows certain DOS functions to continue to work, such as pausing some Demoscene games while allowing the game music to continue to play, or hearing the entire music when the demo exits long before the music has time to loop.</p>
@@ -564,7 +570,7 @@ body.book #toc,body.book #preamble,body.book h1.sect0,body.book .sect1>h2{page-b
 <p><strong>Scaler</strong>: Selects a scaler used to enlarge/enhance low resolution modes.</p>
 </li>
 <li>
-<p><strong>Output</strong>: Selects the video system to use for output, such as Surface, Direct3D or OpenGL, and to enable double-scan mode (double-scanned output emits two scanlines for each source line).</p>
+<p><strong>Output</strong>: Selects the video system to use for output, such as Surface, OpenGL, Direct3D and TrueType font, and to enable double-scan mode (double-scanned output emits two scanlines for each source line).</p>
 </li>
 <li>
 <p><strong>V-Sync</strong>: Synchronizes V-Sync timing to the host display. This requires calibration within DOSBox-X.</p>
@@ -574,13 +580,19 @@ body.book #toc,body.book #preamble,body.book h1.sect0,body.book .sect1>h2{page-b
 rscan border, from 0 to 10. This works only if the video output is set to surface.</p>
 </li>
 <li>
-<p><strong>Text-mode</strong>: Changes some text-mode settings, such as allowing 9-pixel wide text mode fonts, switching between high intensity background color and blinking foreground text, and setting the video modes to for example 80 columns x 50 lines and 132 columns and 60 lines.</p>
+<p><strong>Text-mode</strong>: Changes some text-mode settings, such as allowing 9-pixel wide text mode fonts, switching between high intensity background color and blinking foreground text, and setting the video modes to for example 80 columns x 50 lines and 132 columns and 60 lines. You will also find options for TrueType font (TTF) output here.</p>
 </li>
 <li>
 <p><strong>PC-98 options</strong>: Changes the PC-98 related settings, such as whether to allow EGC and GRCG graphics functions and whether to use the default U.S. keyboard layout for PC-98 mode.</p>
 </li>
 <li>
-<p><strong>Select pixel shader&#8230;&#8203;</strong>: Selects a Direct3D pixel shader file for use with DOSBox-X in Windows. In case the shader fails to load, there is no visual indication but it will be written to the log file. If you want more immediate feedback on success or failure, use the menu to show the DOSBox-X console which will also show the reason for the shader failure.</p>
+<p><strong>Select pixel shader&#8230;&#8203;</strong>: Selects a Direct3D pixel shader file for use with the Direct3D output in Windows. In case the shader fails to load, there is no visual indication but it will be written to the log file (so if you want more immediate feedback on success or failure, use the menu to show the DOSBox-X console which will also show the reason for the shader failure).</p>
+</li>
+<li>
+<p><strong>Select OpenGL (GLSL) shader&#8230;&#8203;</strong>: Selects a OpenGL (GLSL) shader file for use with the OpenGL outputs (opengl/openglnb/openglhq).</p>
+</li>
+<li>
+<p><strong>Select TrueType font (TTF)&#8230;&#8203;</strong>: Selects a TrueType font (TTF) file for use with the TTF output.</p>
 </li>
 </ul>
 </div>
@@ -633,6 +645,9 @@ rscan border, from 0 to 10. This works only if the video output is set to surfac
 <p><strong>Long filename support</strong>: Changes the long filename (LFN) setting, either enable, disable, or auto per reported DOS version (i.e. enable LFN if the reported DOS version is at least 7).</p>
 </li>
 <li>
+<p><strong>Expanded Memory (EMS)</strong>: Select a mode for the Expanded Memory (EMS), or disables the EMS for some DOS programs or games.</p>
+</li>
+<li>
 <p><strong>Windows host applications</strong>: Enable this if you want to launch Windows applications from mounted directories to run on the host, and whether to wait for the applications.</p>
 </li>
 <li>
@@ -655,6 +670,9 @@ rscan border, from 0 to 10. This works only if the video output is set to surfac
 </li>
 <li>
 <p><strong>Show mounted drive numbers</strong>: Shows details such as the disk name for all mounted drive numbers (0-5).</p>
+</li>
+<li>
+<p><strong>Show IDE disk or CD status</strong>: Displays the status for each IDE position (1m, 1s, 2m, 2s, etc).</p>
 </li>
 <li>
 <p><strong>Send form-feed</strong>: Manually sends a form-feed to the printer for ejecting a new page.</p>
@@ -700,7 +718,10 @@ rscan border, from 0 to 10. This works only if the video output is set to surfac
 <p><strong>Select save slot</strong>: Select a save slot (1 to 100) to save to or load from. There are 10 pages for save slots, with 10 save slots in each page.</p>
 </li>
 <li>
-<p><strong>Browse save file</strong>: Select a save file to use via the file browser. Only activated when the option to use save files is enabled.</p>
+<p><strong>Browse save file&#8230;&#8203;</strong>: Select a save file to use via the file browser. Only activated when the option to use save files is enabled.</p>
+</li>
+<li>
+<p><strong>Display state information</strong>: Displays the status of the selected save slot or save file.</p>
 </li>
 </ul>
 </div>
@@ -723,6 +744,9 @@ rscan border, from 0 to 10. This works only if the video output is set to surfac
 <p><strong>Introduction</strong>: Shows a dialog box with a short introduction to DOSBox-X.</p>
 </li>
 <li>
+<p><strong>DOS commands</strong>: Displays the help information for the selected DOS shell command.</p>
+</li>
+<li>
 <p><strong>DOSBox-X homepage</strong>: Links to the homepage of the DOSBox-X project.</p>
 </li>
 <li>
@@ -732,7 +756,10 @@ rscan border, from 0 to 10. This works only if the video output is set to surfac
 <p><strong>DOSBox-X support</strong>: Links to the DOSBox-X Issue Tracker where you will can report issues or make suggestions.</p>
 </li>
 <li>
-<p><strong>Debugging</strong>: Select debugging-related functions, such as showing the debugger and the logging console as well as other debugging-related functions like the blank screen refresh tests.</p>
+<p><strong>List network interfaces</strong>: Displays the list of network interfaces for the NE2000 networking feature.</p>
+</li>
+<li>
+<p><strong>Debugging options</strong>: Select debugging-related functions, such as showing the debugger and the logging console as well as other debugging-related functions like the blank screen refresh tests.</p>
 </li>
 <li>
 <p><strong>About DOSBox-X</strong>: Shows the about information for DOSBox-X.</p>
@@ -763,7 +790,7 @@ rscan border, from 0 to 10. This works only if the video output is set to surfac
 </div>
 <div id="footer">
 <div id="footer-text">
-Last updated 2020-11-01 15:48:11 -0500
+Last updated 2020-12-01 03:27:33 -0500
 </div>
 </div>
 </body>

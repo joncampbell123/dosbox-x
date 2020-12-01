@@ -725,6 +725,9 @@ This will create a temporary RAM drive as drive E: with a size of 20MB.
 
 CAUTION: The contents of the RAM drive will be lost if the drive is unmounted, a program or yourself issues a reset in DOSBox-X or DOSBox-X is shut-down. They do however survive booting into real DOS.
 
+NOTE: Unlike traditional DOS RAM disk programs (e.g. VDISK, RAMDRIVE) this RAM drive will not use any memory allocated for use inside DOSBox-X itself.
+In other words, it will no effect on available memory for DOS programs.
+
 # QCOW2 support
 The QCOW2 harddisk image format has support for Copy-On-Write (COW), compression and encryption.
 DOSBox-X provides limited support for these images.

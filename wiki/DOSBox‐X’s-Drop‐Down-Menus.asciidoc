@@ -11,9 +11,13 @@ DOSBox-X features a GUI menu bar that does not exist in DOSBox, so you can achie
 
 * **Mapper editor**: Enters DOSBox-X's keyboard mapper editor, where you can map different keys for use with the emulated DOS. Press the Esc key three times to exit the editor.
 
-* **Send Key**: Sends special keys such as the logo key, Ctrl+Esc, Alt+Tab, and Ctrl+Alt+Del to the emulated DOS system.
+* **Load mapper file**: Selects a mapper file for use with DOSBox-X. Make sure to select a SDL1 mapper file for SDL1 builds, and SDL2 mapper file for SDL2 builds.
 
-* **Shared clipboard functions**: Enables or disables the various ways for DOSBox-X to communicate with the host clipboard, such as using the right mouse button to copy to and paste from the clipboard in quick edit mode. Some options are only available for the Windows platform.
+* **Send special key**: Sends special keys such as the logo key, Ctrl+Esc, Alt+Tab, and Ctrl+Alt+Del to the emulated DOS system.
+
+* **Select host key**: Select a key combination including Ctrl+Alt, Ctrl+Shift or Alt+Shift, or use the mapper-defined host key (F11/F12 by default).
+
+* **Shared clipboard functions**: Enables or disables the various ways for DOSBox-X to communicate with the host clipboard, such as using the right (or middle) mouse button to copy to and paste from the clipboard in quick edit mode. Some options are only available for the Windows platform.
 
 * **Capture mouse**: DOSBox-X will capture the mouse immediately for use with the emulated DOS.
 
@@ -21,7 +25,7 @@ DOSBox-X features a GUI menu bar that does not exist in DOSBox, so you can achie
 
 * **Mouse wheel movements**: Select whether to auto-convert mouse wheel movements to arrow keys (Up & Down arrows etc).
 
-* **Pause**: Check to pause the emulated DOS inside DOSBox-X completely. The emulated DOS will resume when it is unchecked.
+* **Pause emulation**: Check to pause the emulated DOS inside DOSBox-X completely. The emulated DOS will resume when it is unchecked.
 
 * **Pause with interrupts enabled**: Pauses the emulated DOS inside DOSBox-X without disabling the DOS interrupts. This allows certain DOS functions to continue to work, such as pausing some Demoscene games while allowing the game music to continue to play, or hearing the entire music when the demo exits long before the music has time to loop.
 
@@ -75,18 +79,22 @@ DOSBox-X features a GUI menu bar that does not exist in DOSBox, so you can achie
 
 * **Scaler**: Selects a scaler used to enlarge/enhance low resolution modes.
 
-* **Output**: Selects the video system to use for output, such as Surface, Direct3D or OpenGL, and to enable double-scan mode (double-scanned output emits two scanlines for each source line).
+* **Output**: Selects the video system to use for output, such as Surface, OpenGL, Direct3D and TrueType font, and to enable double-scan mode (double-scanned output emits two scanlines for each source line).
 
 * **V-Sync**: Synchronizes V-Sync timing to the host display. This requires calibration within DOSBox-X.
 
 * **Overscan**: Selects the width of the overscan border, from 0 to 10. This works only if the video output is set to surface.
 rscan border, from 0 to 10. This works only if the video output is set to surface.
 
-* **Text-mode**: Changes some text-mode settings, such as allowing 9-pixel wide text mode fonts, switching between high intensity background color and blinking foreground text, and setting the video modes to for example 80 columns x 50 lines and 132 columns and 60 lines.
+* **Text-mode**: Changes some text-mode settings, such as allowing 9-pixel wide text mode fonts, switching between high intensity background color and blinking foreground text, and setting the video modes to for example 80 columns x 50 lines and 132 columns and 60 lines. You will also find options for TrueType font (TTF) output here.
 
 * **PC-98 options**: Changes the PC-98 related settings, such as whether to allow EGC and GRCG graphics functions and whether to use the default U.S. keyboard layout for PC-98 mode.
 
-* **Select pixel shader...**: Selects a Direct3D pixel shader file for use with DOSBox-X in Windows. In case the shader fails to load, there is no visual indication but it will be written to the log file. If you want more immediate feedback on success or failure, use the menu to show the DOSBox-X console which will also show the reason for the shader failure.
+* **Select pixel shader...**: Selects a Direct3D pixel shader file for use with the Direct3D output in Windows. In case the shader fails to load, there is no visual indication but it will be written to the log file (so if you want more immediate feedback on success or failure, use the menu to show the DOSBox-X console which will also show the reason for the shader failure).
+
+* **Select OpenGL (GLSL) shader...**: Selects a OpenGL (GLSL) shader file for use with the OpenGL outputs (opengl/openglnb/openglhq).
+
+* **Select TrueType font (TTF)...**: Selects a TrueType font (TTF) file for use with the TTF output.
 
 **4. The "Sound" menu**
 
@@ -116,6 +124,8 @@ rscan border, from 0 to 10. This works only if the video output is set to surfac
 
 * **Long filename support**: Changes the long filename (LFN) setting, either enable, disable, or auto per reported DOS version (i.e. enable LFN if the reported DOS version is at least 7).
 
+* **Expanded Memory (EMS)**: Select a mode for the Expanded Memory (EMS), or disables the EMS for some DOS programs or games.
+
 * **Windows host applications**: Enable this if you want to launch Windows applications from mounted directories to run on the host, and whether to wait for the applications.
 
 * **Config options as commands**: Selects whether to allow entering config file options as shell commands to get and set settings. This is disabled by default to avoid name clashes, but can be enabled to improve backward compatibility with DOSBox.
@@ -131,6 +141,8 @@ rscan border, from 0 to 10. This works only if the video output is set to surfac
 * **Rescan all drives**: Refreshes the cache for all DOS drives inside DOSBox-X.
 
 * **Show mounted drive numbers**: Shows details such as the disk name for all mounted drive numbers (0-5).
+
+* **Show IDE disk or CD status**: Displays the status for each IDE position (1m, 1s, 2m, 2s, etc).
 
 * **Send form-feed**: Manually sends a form-feed to the printer for ejecting a new page.
 
@@ -158,7 +170,9 @@ rscan border, from 0 to 10. This works only if the video output is set to surfac
 
 * **Select save slot**: Select a save slot (1 to 100) to save to or load from. There are 10 pages for save slots, with 10 save slots in each page.
 
-* **Browse save file**: Select a save file to use via the file browser. Only activated when the option to use save files is enabled.
+* **Browse save file...**: Select a save file to use via the file browser. Only activated when the option to use save files is enabled.
+
+* **Display state information**: Displays the status of the selected save slot or save file.
 
 **7. The "Drive" menu**
 
@@ -168,13 +182,17 @@ rscan border, from 0 to 10. This works only if the video output is set to surfac
 
 * **Introduction**: Shows a dialog box with a short introduction to DOSBox-X.
 
+* **DOS commands**: Displays the help information for the selected DOS shell command.
+
 * **DOSBox-X homepage**: Links to the homepage of the DOSBox-X project.
 
 * **DOSBox-X Wiki guide**: Links to the DOSBox-X Wiki where you will find the DOSBox-X user guide.
 
 * **DOSBox-X support**: Links to the DOSBox-X Issue Tracker where you will can report issues or make suggestions.
 
-* **Debugging**: Select debugging-related functions, such as showing the debugger and the logging console as well as other debugging-related functions like the blank screen refresh tests.
+* **List network interfaces**: Displays the list of network interfaces for the NE2000 networking feature.
+
+* **Debugging options**: Select debugging-related functions, such as showing the debugger and the logging console as well as other debugging-related functions like the blank screen refresh tests.
 
 * **About DOSBox-X**: Shows the about information for DOSBox-X.
 

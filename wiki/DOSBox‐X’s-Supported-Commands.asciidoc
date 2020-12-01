@@ -242,6 +242,11 @@ Usage: FCBS [fcbnum]
 Prints lines of a file that contains the specified string.
 +
 Usage: FIND [/C] [/I] [/N] [/V] "string" [file(s)]
+* **FLAGSAVE** (external command)
++
+Marks or flags files to be saved for the save state feature.
++
+Usage: FLAGSAVE [file(s) [/F] [/R]] [/U]
 * **FOR** (internal command)
 +
 Runs a specified command for each file in a set of files.

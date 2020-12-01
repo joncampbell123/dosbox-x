@@ -75,7 +75,7 @@ The following config options are available to change the behaviour.
 Under the ``[cpu]`` heading you can set ``fpu=false`` to disable the FPU.
 ``[dosbox]`` ``weitek=``
 
-### FAQ
+## FAQ
 #### Why is there no 8088 CPU option?
 Q: The 8088 is what IBM used in the original IBM PC's. So why is there no 8088 option?
 

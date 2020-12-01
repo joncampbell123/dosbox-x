@@ -11,7 +11,7 @@ toc::[]
 
 ### Overview
 
-DOSBox-X has support for copying to and pasting from the host clipboard in several ways. For example, you can copy to or paste from to the clipboard inside DOSBox-X using a right/middle mouse button click or keyboard shortcut, and you can also use a DOS device or DOS program to communicate bidirectionally with the Windows clipboard. You will find a menu group "Shared Windows clipboard functions" under the "Main" menu to control the various options for the Windows clipboard feature.
+DOSBox-X has support for copying to and pasting from the host system clipboard in several ways. For example, you can copy to or paste from to the clipboard inside DOSBox-X using a right/middle mouse button click or keyboard shortcut, and you can also use a DOS device or DOS program to communicate bidirectionally with the host clipboard. You will find a menu group "Shared clipboard functions" under the "Main" menu to control the various options for the clipboard feature.
 
 Note that the functions to use a DOS device or DOS program to communicate bidirectionally with the clipboard is currently only available for the Windows platform. Also, clipboard copying and pasting using a mouse button click is not available for the Linux/macOS SDL1 builds.
 
@@ -25,7 +25,7 @@ It is possible to set a keyboard modifier for this feature by editing the "clip_
 There is no practical limit on the clipboard size when doing the pasting. But the speed of pasting each character does matter in some cases, even though the default speed works fine for many programs (such as WordPerfect 5.1). Depending on the DOS program you are using, pasting too fast for example can cause lost keystrokes for some programs. Thus, there is a setting named "clip_paste_speed" in the [sdl] section of DOSBox-X's config file which can be used to set the speed for pasting each character from the Windows clipboard. The default setting is 30, but if this setting does cause lost keystrokes in your application, you can increase the number to slow down the pasting. Conversely, you may experiment with decreasing the number for applications that accept keystrokes quickly.
 
 ### Paste from the clipboard using a keyboard shortcut
-Note: This function was only available for the Windows platform in DOSBox-X version 0.83.6 and earlier. In version 0.83.7 and later it is available for Linux SDL1 build and Linux/macOS SDL2 builds also.
+Note: This function was only available for the Windows platform in DOSBox-X version 0.83.6 and earlier. In version 0.83.7 and later it is available for Linux and macOS systems also.
 
 You can also use a keyboard shortcut to paste text from the clipboard into DOSBox-X, or just click the option "Pasting from the clipboard" within the "Shared clipboard functions" menu group. In order to achieve this via a keyboard shortcut you need to run DOSBox-X's keyboard mapper editor to assign a key for this function first. One way to run the mapper editor is to start DOSBox-X.exe with the -startmapper command-line option. You can also select it directly from DOSBox-X's drop-down menu (under "Main"). After the mapper editor is launched, click the "Paste Clip" function and assign a keyboard shortcut to it. For example, you can assign the F6 key (or Alt+F6, Shift+F6, etc) to paste text from the clipboard. Once this is done you can save the mapper and exit to DOSBox-X. Then you will be able to use the saved keyboard shortcut to paste text from the clipboard into DOSBox-X just like pasting it using the right mouse button click.
 

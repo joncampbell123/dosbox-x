@@ -450,10 +450,10 @@ body.book #toc,body.book #preamble,body.book h1.sect0,body.book .sect1>h2{page-b
 <div class="sect2">
 <h3 id="_introduction">Introduction</h3>
 <div class="paragraph">
-<p>DOSBox-X (homepage: <a target="_top" href="https://dosbox-x.com">https://dosbox-x.com</a> or <a target="_top" href="http://dosbox-x.software">http://dosbox-x.software</a>) is a cross-platform DOS emulator based on <a target="_top" href="http://www.dosbox.com">DOSBox</a>. Like DOSBox, it emulates a PC necessary for running many MS-DOS games and applications that simply cannot be run on modern PCs and operating systems. However, while the main focus of DOSBox is for running DOS games, DOSBox-X goes much further than this. Started as a fork of the DOSBox project, it retains compatibility with the wide base of DOS games and DOS gaming DOSBox was designed for. But it is also a platform for running DOS applications, including emulating the environments to run Windows 3.x, 9x and ME and software written for those versions of Windows.</p>
+<p>DOSBox-X (homepage: <a href="https://dosbox-x.com">https://dosbox-x.com</a> or <a href="http://dosbox-x.software">http://dosbox-x.software</a>) is a cross-platform DOS emulator based on <a href="http://www.dosbox.com">DOSBox</a>. Like DOSBox, it emulates a PC necessary for running many MS-DOS games and applications that simply cannot be run on modern PCs and operating systems. However, while the main focus of DOSBox is for running DOS games, DOSBox-X goes much further than this. Started as a fork of the DOSBox project, it retains compatibility with the wide base of DOS games and DOS gaming DOSBox was designed for. But it is also a platform for running DOS applications, including emulating the environments to run Windows 3.x, 9x and ME and software written for those versions of Windows.</p>
 </div>
 <div class="paragraph">
-<p>DOSBox-X supports multiple host operating systems including Windows, Linux, macOS and DOS. Windows binaries (both 32-bit and 64-bit), Linux Flatpaks or RPM packages (64-bit), macOS packages (64-bit) and DOS packages (for MS-DOS 5.0+ or compatible) are officially released periodically, typically on the last day of a month or at the start of the next month. Please check out the <a target="_top" href="http://dosbox-x.com">DOSBox-X homepage</a> for common packages of the latest release for the supported platforms. Also see the <a target="_top" href="https://github.com/joncampbell123/dosbox-x/blob/master/INSTALL.md">INSTALL</a> page for DOSBox-X installation instructions and other packages. The portable ZIP and Linux RPM packages for all released DOSBox-X versions and their change logs can be found in the <a target="_top" href="https://github.com/joncampbell123/dosbox-x/releases">Releases</a> page.</p>
+<p>DOSBox-X supports multiple host operating systems including Windows, Linux, macOS and DOS. Windows binaries (both 32-bit and 64-bit), Linux Flatpaks or RPM packages (64-bit), macOS packages (64-bit) and DOS packages (for MS-DOS 5.0+ or compatible) are officially released periodically, typically on the last day of a month or at the start of the next month. Please check out the <a href="http://dosbox-x.com">DOSBox-X homepage</a> for common packages of the latest release for the supported platforms. Also see the <a href="https://github.com/joncampbell123/dosbox-x/blob/master/INSTALL.md">INSTALL</a> page for DOSBox-X installation instructions and other packages. The portable ZIP and Linux RPM packages for all released DOSBox-X versions and their change logs can be found in the <a href="https://github.com/joncampbell123/dosbox-x/releases">Releases</a> page.</p>
 </div>
 <div class="paragraph">
 <p>For Windows users the Windows installer for DOSBox-X is available to ease the installation process (in addition to portable packages), and with the installer you will be able to start DOSBox-X as soon as the installation ends. The installer can also be used to upgrade from a previous version of DOSBox-X while keeping the previous user settings. For Linux users the Linux Flatpaks are available, which are standalone applications independent of Linux distributions, and as a result you should be able to run it on any Linux platforms. For macOS and DOS users the self-contained portable packages are the default packages.</p>
@@ -577,7 +577,7 @@ Quick launch an executable file to run inside DOSBox-X.</p>
 Reset the virtual machine inside DOSBox-X.</p>
 </li>
 <li>
-<p><strong>[F11/F12]+S</strong>
+<p><strong>[F11/F12]+B</strong>
 Reboot the emulated DOS (integrated DOS or guest DOS) inside DOSBox-X.</p>
 </li>
 <li>
@@ -629,27 +629,35 @@ Increase DOSBox-X&#8217;s emulation CPU cycles.</p>
 Decrease DOSBox-X&#8217;s emulation CPU cycles.</p>
 </li>
 <li>
+<p><strong>[F11/F12]+Up</strong>
+Increase the font size for the TrueType font (TTF) output.</p>
+</li>
+<li>
+<p><strong>[F11/F12]+Down</strong>
+Decrease the font size for the TrueType font (TTF) output.</p>
+</li>
+<li>
 <p><strong>[F11/F12]+Left</strong>
 Reset the emulated DOS&#8217;s current CPU speed to the normal speed.</p>
 </li>
 <li>
-<p><strong>[F11/F12]+LCtrl+C</strong>
+<p><strong>[F11/F12]+D</strong>
 Swap between mounted CD images.</p>
 </li>
 <li>
-<p><strong>[F11/F12]+LCtrl+D</strong>
+<p><strong>[F11/F12]+O</strong>
 Swap between mounted floppy images.</p>
 </li>
 <li>
-<p><strong>[F11/F12]+LShift+S</strong>
+<p><strong>[F11/F12]+P</strong>
 Take a screenshot of the current screen in PNG format.</p>
 </li>
 <li>
-<p><strong>[F11/F12]+LShift+V</strong>
+<p><strong>[F11/F12]+I</strong>
 Start/Stop capturing an AVI video of the current session.</p>
 </li>
 <li>
-<p><strong>[F11/F12]+LShift+W</strong>
+<p><strong>[F11/F12]+W</strong>
 Start/Stop recording a WAV audio of the current session.</p>
 </li>
 <li>
@@ -657,19 +665,19 @@ Start/Stop recording a WAV audio of the current session.</p>
 Start DOSBox-X&#8217;s Debugger.</p>
 </li>
 <li>
-<p><strong>LCtrl+LAlt+F7</strong>
+<p><strong>[F11/F12]+[,]</strong>
 Select the previous save slot to save to or load from.</p>
 </li>
 <li>
-<p><strong>LCtrl+LAlt+F8</strong>
+<p><strong>[F11/F12]+[.]</strong>
 Select the next save slot to save to or load from.</p>
 </li>
 <li>
-<p><strong>LCtrl+F7</strong>
+<p><strong>[F11/F12]+S</strong>
 Save current state to the selected save slot.</p>
 </li>
 <li>
-<p><strong>LCtrl+F8</strong>
+<p><strong>[F11/F12]+L</strong>
 Load the state from the selected save slot.</p>
 </li>
 <li>
@@ -863,10 +871,10 @@ press the X key on your keyboard.</p>
 <p>Efforts are also made to aid retro DOS developments, which is why DOSBox-X used to focus on the demoscene (especially anything prior to 1996) because that era of the MS-DOS scene tends to have all manner of weird hardware tricks, bugs, and speed-sensitive issues that make them the perfect kind of stuff to test emulation accuracy against, even more so than old DOS games. But without a doubt we also actively test against other DOS games and applications, as well as PC-98 programs (most of them are games).</p>
 </div>
 <div class="paragraph">
-<p>DOSBox-X vs MS-DOS application test results: <a target="_top" href="https://dosbox-x.com/msdos-compat.html">DOSBox-X DOS application compatibility testing chart</a></p>
+<p>DOSBox-X vs MS-DOS application test results: <a href="https://dosbox-x.com/msdos-compat.html">DOSBox-X DOS application compatibility testing chart</a></p>
 </div>
 <div class="paragraph">
-<p>DOSBox-X vs Demoscene test results: <a target="_top" href="http://dosbox-x.com/demoscene-compat.html">DOSBox-X demoscene compatibility testing chart</a></p>
+<p>DOSBox-X vs Demoscene test results: <a href="http://dosbox-x.com/demoscene-compat.html">DOSBox-X demoscene compatibility testing chart</a></p>
 </div>
 </div>
 <div class="sect2">
@@ -915,7 +923,7 @@ press the X key on your keyboard.</p>
 </div>
 <div id="footer">
 <div id="footer-text">
-Last updated 2020-11-01 15:48:11 -0500
+Last updated 2020-12-01 03:27:33 -0500
 </div>
 </div>
 </body>
