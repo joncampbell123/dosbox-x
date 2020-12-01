@@ -52,11 +52,6 @@
 #include "lazyflags.h"
 #include "pic.h"
 
-/* Some platforms need workarounds for this dynamic core to work.
-   They may have a security policy known as W^X (write-xor-execute),
-   in which pages can be writeable, or executable, but not both. */
-bool w_xor_x = false;
-
 #define CACHE_MAXSIZE	(4096*2)
 #define CACHE_TOTAL		(1024*1024*8)
 #define CACHE_PAGES		(512)

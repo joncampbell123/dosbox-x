@@ -631,21 +631,7 @@ static void cache_reset(void) {
 
 #if (C_HAVE_MPROTECT)
 			if (mprotect(cache_code_link_blocks,CACHE_TOTAL+CACHE_MAXSIZE+PAGESIZE_TEMP,PROT_WRITE|PROT_READ|PROT_EXEC)) {
-				if (errno == EPERM || errno == EACCES) { /* Hm... might be a W^X policy */
-					errno = 0;
-					/* Apparently we cannot map read/write/execute.
-					   If we can mprotect as read/execute, and read/write, then it's probably a W^X policy.
-					   This is to differentiate from SELinux which will probably not allow ANY PROT_EXEC mapping at all. */
-					if (mprotect(cache_code_link_blocks,CACHE_TOTAL+CACHE_MAXSIZE+PAGESIZE_TEMP,PROT_READ|PROT_EXEC) == 0) {
-						if (mprotect(cache_code_link_blocks,CACHE_TOTAL+CACHE_MAXSIZE+PAGESIZE_TEMP,PROT_WRITE|PROT_READ) == 0) {
-							LOG_MSG("dynrec: Your system appears to have a W^X (write-xor-execute) policy");
-							w_xor_x = true;
-						}
-					}
-				}
-
-				if (errno != 0)
-					LOG_MSG("Setting execute permission on the code cache has failed! err=%s",strerror(errno));
+				E_Exit("Setting execute permission on the code cache has failed! err=%s",strerror(errno));
 			}
 #endif
 		}
@@ -673,13 +659,6 @@ static void cache_reset(void) {
 			newpage->next=cache.free_pages;
 			cache.free_pages=newpage;
 		}
-
-#if (C_HAVE_MPROTECT)
-		if (w_xor_x) {
-			if (mprotect(cache_code_link_blocks,CACHE_TOTAL+CACHE_MAXSIZE+PAGESIZE_TEMP,PROT_READ|PROT_EXEC))
-				LOG_MSG("Setting execute permission on the code cache has failed! err=%s",strerror(errno));
-		}
-#endif
 	}
 }
 
@@ -727,23 +706,10 @@ static void cache_init(bool enable) {
 
 #if (C_HAVE_MPROTECT)
 			if (mprotect(cache_code_link_blocks,CACHE_TOTAL+CACHE_MAXSIZE+PAGESIZE_TEMP,PROT_WRITE|PROT_READ|PROT_EXEC)) {
-				if (errno == EPERM || errno == EACCES) { /* Hm... might be a W^X policy */
-					errno = 0;
-					/* Apparently we cannot map read/write/execute.
-					   If we can mprotect as read/execute, and read/write, then it's probably a W^X policy.
-					   This is to differentiate from SELinux which will probably not allow ANY PROT_EXEC mapping at all. */
-					if (mprotect(cache_code_link_blocks,CACHE_TOTAL+CACHE_MAXSIZE+PAGESIZE_TEMP,PROT_READ|PROT_EXEC) == 0) {
-						if (mprotect(cache_code_link_blocks,CACHE_TOTAL+CACHE_MAXSIZE+PAGESIZE_TEMP,PROT_WRITE|PROT_READ) == 0) {
-							LOG_MSG("dynrec: Your system appears to have a W^X (write-xor-execute) policy");
-							w_xor_x = true;
-						}
-					}
-				}
-
-				if (errno != 0)
-					LOG_MSG("Setting execute permission on the code cache has failed! err=%s",strerror(errno));
+				E_Exit("Setting execute permission on the code cache has failed! err=%s",strerror(errno));
 			}
 #endif
+
 			CacheBlockDynRec * block=cache_getblock();
 			cache.block.first=block;
 			cache.block.active=block;
@@ -775,13 +741,6 @@ static void cache_init(bool enable) {
 			newpage->next=cache.free_pages;
 			cache.free_pages=newpage;
 		}
-
-#if (C_HAVE_MPROTECT)
-		if (w_xor_x) {
-			if (mprotect(cache_code_link_blocks,CACHE_TOTAL+CACHE_MAXSIZE+PAGESIZE_TEMP,PROT_READ|PROT_EXEC))
-				LOG_MSG("Setting execute permission on the code cache has failed! err=%s",strerror(errno));
-		}
-#endif
 	}
 }
 
