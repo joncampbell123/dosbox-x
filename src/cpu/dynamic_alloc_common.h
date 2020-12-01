@@ -6,6 +6,10 @@
 #define PAGESIZE_TEMP 4096
 #endif
 
+#include <unistd.h>
+
+static int cache_fd = -1;
+
 static void cache_dynamic_common_alloc(Bitu allocsz) {
     Bitu actualsz = allocsz+PAGESIZE_TEMP;
 
@@ -28,6 +32,28 @@ static void cache_dynamic_common_alloc(Bitu allocsz) {
         cache_code_start_ptr=(uint8_t*)mmap(NULL,actualsz,PROT_READ|PROT_WRITE|PROT_EXEC,MAP_PRIVATE|MAP_ANONYMOUS,-1,0);
         if (cache_code_start_ptr != MAP_FAILED) dyncore_alloc = DYNCOREALLOC_MMAP_ANON;
         else cache_code_start_ptr = NULL; /* MAP_FAILED is NOT NULL (or at least we cannot assume that) */
+    }
+#endif
+#if defined(C_HAVE_MEMFD_CREATE)
+    if (cache_code_start_ptr == NULL) {
+        assert(cache_fd < 0);
+        cache_fd = memfd_create("dosbox-dynamic-core-cache",MFD_CLOEXEC);
+        if (cache_fd >= 0) {
+            if (ftruncate(cache_fd,actualsz) == 0) {
+                cache_code_start_ptr=(uint8_t*)mmap(NULL,actualsz,PROT_READ|PROT_WRITE|PROT_EXEC,MAP_SHARED,cache_fd,0);
+                if (cache_code_start_ptr != MAP_FAILED) {
+                    dyncore_alloc = DYNCOREALLOC_MEMFD;
+                }
+            }
+
+            if (cache_code_start_ptr == MAP_FAILED)
+                cache_code_start_ptr = NULL;
+
+            if (cache_code_start_ptr == NULL) {
+                close(cache_fd);
+                cache_fd = -1;
+            }
+        }
     }
 #endif
 #if defined(C_HAVE_MMAP) /* try again, this time detect if read/write and read/execute are allowed (W^X) */
@@ -65,6 +91,7 @@ static void cache_dynamic_common_alloc(Bitu allocsz) {
         case DYNCOREALLOC_VIRTUALALLOC:     LOG(LOG_MISC,LOG_DEBUG)("dyncore alloc: VirtualAlloc"); break;
         case DYNCOREALLOC_MMAP_ANON:        LOG(LOG_MISC,LOG_DEBUG)("dyncore alloc: mmap using MAP_PRIVATE|MAP_ANONYMOUS"); break;
         case DYNCOREALLOC_MALLOC:           LOG(LOG_MISC,LOG_DEBUG)("dyncore alloc: malloc"); break;
+        case DYNCOREALLOC_MEMFD:            LOG(LOG_MISC,LOG_DEBUG)("dyncore alloc: memfd"); break;
         default:                            LOG(LOG_MISC,LOG_DEBUG)("dyncore alloc: ?"); break;
     };
 
