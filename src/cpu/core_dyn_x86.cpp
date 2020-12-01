@@ -302,7 +302,7 @@ restart_core:
 	}
 run_block:
 	cache.block.running=0;
-	BlockReturn ret=gen_runcode(block->cache.start);
+	BlockReturn ret=gen_runcode((uint8_t*)cache_rwtox(block->cache.start));
 
 	if (sizeof(CPU_Cycles) > 4) {
 		// HACK: All dynrec cores for each processor assume CPU_Cycles is 32-bit wide.
