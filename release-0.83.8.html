@@ -1,0 +1,303 @@
+
+<!DOCTYPE html>
+<html>
+
+  <head>
+    <meta charset='utf-8'>
+    <meta http-equiv="X-UA-Compatible" content="chrome=1">
+    <meta name="description" content="DOSBox-X: Complete and accurate DOS emulation package">
+
+    <link rel="stylesheet" type="text/css" media="screen" href="css/style.css">
+
+    <script type="text/javascript" src="js/script.js"></script>
+    <title>DOSBox-X - Complete, accurate DOS emulation and more</title>
+  </head>
+
+  <body>
+
+    <!-- HEADER -->
+    <div id="header_wrap" class="outer">
+        <table width="100%" style="border: hidden">
+        <tr>
+        <td width="25%" style="border: hidden; min-width: 300px; text-align: center">
+          &nbsp;<p />&nbsp;<br/>
+          <img id="dosbox-x-logo" src="images/dosbox-x-logo.svg" title="DOSBox-X" alt="DOSBox-X logo" style="width:90px" />
+        </td><td>&nbsp;<p />
+          <h1 id="project_title">DOSBox-X</h1>
+          <h2 id="project_tagline">Cross-platform DOS emulation package<br />Complete, accurate emulation and more</h2>
+        </td>
+        </tr>
+        </table>
+    </div>
+
+    <!-- MAIN CONTENT -->
+    <div id="main_content_wrap" class="outer"; style="background-color: #fafacf">
+        <div style="text-align: center">
+            <h3 style="padding-top: 10px">DOSBox-X 0.83.8 Release Notes</h3>
+            <h4 style="padding-bottom: 15px; font-weight: normal">Release Date: <span style="color: green">November 30, 2020</span></h4>
+            Please report any issues in our <a href="https://github.com/joncampbell123/dosbox-x/issues">issue tracker</a>.</p>
+            <p>Also, make sure to check out our <a href="wiki">Wiki guide</a>.</p>
+            <h4>New in This Version</h4>
+
+            <table width="100%" style="border: hidden">
+            <tr>
+            <td width="20%" style="border: hidden"></td>
+            <td width="60%" style="border: hidden; text-align: left">
+            <div style="font-size: 20px; font-weight: 800">1. Notable New Features</div>
+<ul>
+<li><div style="font-weight: 600">Scalable TrueType font (TTF) output for DOS applications</div>With the new TrueType font (TTF) output, you will get nice high resolution DOS screen rendered using a TrueType font (either the built-in one or a TTf font of your choice), and the window can be set to almost any usable number of lines and columns. This feature greatly improved DOSBox-X's support for DOS applications. Set "output=ttf" (or from the "Video" menu) to enable this output.</li>
+
+<li><div style="font-weight: 600">On-screen text styles for DOS applications</div>With the TrueType font output, DOSBox-X now supports on-screen text styles for DOS applications including WordPerfect, WordStar, and XyWrite. With this feature you will visually see fonts in bold for bold text, and fonts in italics for italicized text, and so on. Set a DOS word processor (WP/WS/XY) to enable this feature.</li>
+
+<li><div style="font-weight: 600">Support for Apple M1 Mac and macOS Big Sur</div>DOSBox-X now supports the new Apple ARM-based M1 MacBooks! The dynamic core now works on the new ARM-based macOS systems. The audio also works once again when compiled and run on macOS 11 Big Sur.</li>
+
+<li><div style="font-weight: 600">Pasting clipboard text in macOS SDL1 builds</div>Pasting text from the host system clipboard is now supported in the macOS SDL1 build, similar to the Linux SDL1 build. On all other platforms (Windows SDL1/SDL2, Linux SDL2, and macOS SDL2) both copying to and pasting from the clipboard are supported.</li>
+
+<li><div style="font-weight: 600">System menu in Windows SDL2 builds</div>The system menu that was available in Windows SDL1 builds is now also
+available for Windows SDL2 builds, which includes a few common menu options such as the configuration tool and the mapper editor.</li>
+
+<li><div style="font-weight: 600">Select common host keys from the menu</div>You can now select a host key from the "Main" menu, which now includes common key combinations such as Ctrl+Alt, Ctrl+Shift, and Alt+Shift, or you may just use the mapper-defined host key (which default to F11 on Windows and F12
+otherwise). The default shortcuts for a few items are changed to use the host key style.</li>
+
+<li><div style="font-weight: 600">Switch OpenGL (GLSL) shaders at run-time</div>With the OpenGL outputs (opengl/opengnb/openghq), you can now select and switch to a different GLSL shader at the run-time by selecting the menu item "Select OpenGL (GLSL) shader..." from the "Video" menu, similar to the function for Direct3D pixel shaders for the Direct3D output.</li>
+
+<li><div style="font-weight: 600">Display IDE disk or CD status</div>There is now a menu option under "DOS" menu which allows you to see the current assignments (disk or CD image) of the IDE controllers.</li>
+
+<li><div style="font-weight: 600">Supports for mounting MAME CHD CD images</div>Mounting the MAME CHD images is now supported in DOSBox-X! You can mount CHD files as CD images with IMGMOUNT command, or from the "Drive" menu.</li>
+
+<li><div style="font-weight: 600">Support for saving your files for the save-state feature</div>There is a now a FLAGSAVE command which allows you to mark files to be saved and loaded by the save-state feature. Type "FLAGSAVE /?" at the DOSBox-X shell for more usage information.</li>
+
+<li><div style="font-weight: 600">Enhanced MODE command to change screen dimensions</div>You can now change the number of columns and lines on the screen with the
+MODE command, similar to real DOS systems. Alternatively, this can be done from the "Video" menu (within "Text-mode" menu group).</li>
+
+<li><div style="font-weight: 600">Improved LOADFIX command to auto-allocate memory</div>The LOADFIX command now has an -a option which will automatically allocate enough memory to fill lowest 64KB memory instead of using exactly 64KB memory. This will let some memory-demanding DOS programs or games to run with this command.</li>
+
+<li><div style="font-weight: 600">Improved automatic fix for the "Packed file corrupt" error</div>The handler for the "Packed file corrupt" error has been greatly improved so that it will likely automatically handle the error more efficiently. There is now also an option to silence the messages during the automatic fix.</li>
+
+</ul>
+
+            <div style="font-size: 20px; font-weight: 800">2. Notable Usability Improvements</div>
+<ul>
+<li><div style="font-weight: 600">Improved mapper editor interface</div>The mapper editor interface has been enhanced! The texts for the shortcut functions are now longer and clearer, and there are now multiple pages in the mapper, navigable with the "Previous Page" and "Next Page" buttons.</li>
+
+<li><div style="font-weight: 600">Load DOSBox-X mapper files from menu</div>You can now select and load DOSBox-X mapper files at run-time from the "Main" menu. Previously it was possible to load a mapper file dynmically from the command line, but now you can do so from the menu too.</li>
+
+<li><div style="font-weight: 600">List network interfaces from menu</div>There is now a "List network interfaces" menu option under the "Help" menu that will list the current network interfaces for the NE2000 networking feature. Previously you can only see the network interface list from the log file.</li>
+
+<li><div style="font-weight: 600">Display DOS command help from menu</div>You can now find a "DOS commands" menu group under the "Help" menu, which allows you to select a DOS shell command (DIR, CD, etc) to see its help messages. Alternatively you can type "[COMMAND] /?" (e.g. "DIR /?") for help information for the command.</li>
+
+<li><div style="font-weight: 600">Searching for config file and mapper file in DOSBox-X executable path</div>DOSBox-X will now look for the config file (e.g.
+dosbox-x.conf) and the mapper file in the directory containing the DOSBox-X executable too if they cannot be found in the DOSBox-X working directory. This makes DOSBox-X even more portable.</li>
+
+<li><div style="font-weight: 600">More saving options for the built-in configuration tool</div>The graphical configuration tool now provides the option to save
+to the primary or user config files, not just the dosbox-x.conf file.</li>
+
+<li><div style="font-weight: 600">New config options for save state options</div>The config options "saveremark" and "forceloadstate" are added to [dosbox]
+section which can be used to control the save state-related options from the config file. In the previous section these can only be done from the "Capture" menu.</li>
+
+</ul>
+
+            <div style="font-size: 20px; font-weight: 800">3. Bugfixes and Other Improvements</div>
+There are also many bugfixes and other improvements, such as fixing the CD audio issue with the game "The Secret of Monkey Island" when talking to the pirate in Scumm Bar. Please see the full changelogs below for more information.
+<p />
+
+            <div style="font-size: 20px; font-weight: 800">4. Full Changelog In This Version</div>
+<ul>
+<li>
+Added support for scalable TrueType font (TTF)
+output for text-mode programs. Set "output=ttf"
+and optionally a monospaced TTF font (such as
+consola) with config option "ttf.font" to use it.
+Lines and columns can be specified with config
+options "ttf.lins" and "ttf.cols", and the cursor
+can be made blinking with the option "ttf.blinkc".
+The config options "ttf.ptsize" and "ttf.winperc"
+can be used to set the TTF font size and window
+percentage respectively. If you specify a TTF font
+size with "ttf.ptsize" then "ttf.winperc" will be
+ignored. You can also specify a word processor
+(WP=WordPerfect, WS=WordStar, XY=XyWrite) for the
+on-screen text-style and 512-character font (WP)
+features. When using the TTF output DOSBox-X will
+temporarily switch to a different output when a
+graphical mode is requested (or when trying to take
+a screenshot); the TTF output will be auto-switched
+back later), which can be customized via config
+option "ttf.outputswitch" (which defaults to auto).
+Menu items in the "Text-mode" menu group (under
+"Video" menu) have been expanded to support TTF
+options such as increasing/decreasing the TTF font
+sizes and on-screen text style toggling (including
+bold, italics, underline and strikeout). You can
+also select a TTF font to use at run-time with the
+"Select TrueType font (TTF)" menu option. (Wengier)
+</li><li>
+Added the "Load mapper file..." menu option (under
+"Main") to select and load a DOSBox-X mapper file
+at run-time. Be sure to select a SDL1 mapper file
+for SDL1 builds, and similar for SDL2. (Wengier)
+</li><li>
+You can now select a host key from the menu (under
+"Main") including Ctrl+Alt, Ctrl+Shift, Alt+Shift,
+or use the mapper-defined host key as in previous
+versions (which default to F11 on Windows and F12
+otherwise). A config option "hostkey" is added so
+that you can specify it from config file. (Wengier)
+</li><li>
+Pasting text from the clipboard on macOS SDL1 build
+is now supported like Linux SDL1 build. (Wengier)
+</li><li>
+Added support for ARM-based Apple M1 MacBook. The
+dynamic core now works on ARM-based macOS systems.
+SDL1 builds updated to use newer audio APIs on the
+macOS platform so that the audio works once again
+when compiled and run on macOS 11 (Big Sur). Prior
+to the change, ancient versions of the API dating
+back to the mid 2000s were used which no longer
+work on Big Sur.
+</li><li>
+DOSBox-X will now look for the config file (i.e.
+dosbox-x.conf/dosbox.conf) and the mapper file in
+the directory containing the DOSBox-X executable
+too if the config or mapper file cannot be found
+in the DOSBox-X working directory. (Wengier)
+</li><li>
+The system menu in Windows SDL1 builds is now also
+available for Windows SDL2 builds, and menu items
+"Reset font size", "Increase TTF font size" and
+"Decrease TTF font size" are added. (Wengier)
+</li><li>
+Enhanced the mapper editor interface to allow more
+keyboard shortcuts to be added, shown in multiple
+pages in the mapper, navigable with the "Previous
+Page" and "Next Page" buttons. The text in the
+grids are now longer and clearer too. The default
+shortcuts for a few items are changed to use the
+Host key style (e.g. Host+S and Host+L for saving
+and loading states respectively). (Wengier)
+</li><li>
+Added menu item "List network interfaces" under
+"Help" menu to list network interfaces in the host
+system for the NE2000 feature. (Wengier)
+</li><li>
+Added menu group "DOS commands" under "Help" menu
+to display the help content for the selected DOS
+shell command (DIR, CD, etc). (Wengier)
+</li><li>
+Configuration Tool now provides the option to save
+to the primary or user config files. (Wengier)
+</li><li>
+Certain config options (e.g. doublescan) that were
+marked as advanced options are now general config
+options and will appear in dosbox-x.reference.conf
+apart from dosbox-x.reference.full.conf. (Wengier)
+</li><li>
+Added config options "saveremark" (default: true)
+and "forceloadstate" (default: false) in [dosbox]
+section which can be used to control if DOSBox-X
+should ask users to enter remarks when saving a
+state or show warnings when loading a saved state
+if there is a mismatch found. (Wengier)
+</li><li>
+The config option "pixelshader" is moved from the
+section [gui] to [render] so that it will be in the
+same section as the option "glshader". (Wengier)
+</li><li>
+Added menu item "Select OpenGL (GLSL) shader..." to
+allow OpenGL shader switch from the menu, just like
+the function for Direct3D pixel shaders. (Wengier)
+</li><li>
+Added menu item "Show IDE disk or CD status" under
+"DOS" menu to show the current assignments (disk or
+CD image) of the IDE controllers. (Wengier)
+</li><li>
+Fixed IDE CD assignment may not be reset when soft
+reboots are activated from guest systems. (Wengier)
+</li><li>
+The program 80x43.COM is added into the ZIP package
+TEXTUTIL.ZIP on the Z drive. You can also change
+current text screen to the 80x43 mode from the menu
+group "Text-mode" under "Video" menu. (Wengier)
+</li><li>
+Enhanced MODE command so that you can change the
+number of columns and lines in the screen with the
+syntax "MODE CON COLS=c LINES=n" (c=80 or 132, and
+n=25, 43, 50, or 60). The command "MODE CON" will
+show the current number of columns and lines in the
+screen as in a real DOS system. (Wengier)
+</li><li>
+Added FLAGSAVE command for the save state feature
+to flag (mark) one or more files to be saved and
+loaded. Type "FLAGSAVE /?" for more information on
+this command. (PogoMan361 and Wengier)
+</li><li>
+Enhanced A20GATE command to show the current status
+of the A20 gate when no parameter is given, along
+with other small improvements. (Wengier)
+</li><li>
+INT 21h DOS=HMA emulation, to enable the A20 gate,
+and autoa20fix, to disable the A20 gate, now checks
+whether the CPU is running in virtual 8086 mode.
+If vm86 detected, the code will control the A20
+gate by calling the XMS interface instead of direct
+reading/writing via port 92h. This consideration
+is required for autoa20fix to cooperate with
+Microsoft Windows 3.1. Note that Windows 3.1 does
+not virtualize port 92h. If it did, this workaround
+would not be necessary.
+</li><li>
+Added -a option to LOADFIX command which will auto
+allocate enough memory to fill lowest 64KB memory
+instead of using exactly 64KB memory. (Wengier)
+</li><li>
+Added autofixwarning option (true by default) which
+allows user to silence the messages when DOSBox-X
+tries to auto-fix "Packed file is corrupt" error
+when running a program with this issue. (Wengier)
+</li><li>
+Added autoa20fix option (enabled by default). This
+option when enabled attempts to resolve EXEPACK
+"Packed file is corrupt" errors by temporarily
+disabling the A20 gate and running the program
+again. This may provide better support for affected
+DOS applications than the LOADFIX option. If both
+autoa20fix and autoloadfix are set, then autoa20fix
+will be tried first, and if it did not work then
+autoloadfix will be tried next.
+</li><li>
+The autoloadfix config option changed to allocate
+only enough memory to keep the executable above the
+64KB boundary, instead of blindly allocating 64KB.
+</li><li>
+Fixed menu items "Rescan drive" and "Swap disk" in
+"Drive" menu being reversed. (Wengier)
+</li><li>
+Fixed CD audio issue with the game "The Secret of
+Monkey Island" when talking to the pirate in Scumm
+Bar by adapting the patch that fixes it. Thanks
+kcgen for the fix logic. (Wengier)
+</li><li>
+Added support for MAME CHD CD images. You can now
+mount CHD images with IMGMOUNT command, or from the
+Drive menu. Based on libchdr library and the work
+of the user whocares010. (Wengier)
+</li><li>
+Updated FLAC/MP3/WAV CD-DA decoder libraries to the
+latest versions (versions 0.12.22, 0.6.19, 0.12.14
+respectively). Thanks to mackron & kcgen. (Wengier)
+</li>
+</ul>
+            </td>
+            <td></td>
+            </tr>
+            </table>
+            Return to <a href="index.html">main page</a><p />
+            See also: <a href="release-0.83.7.html">Release notes for the previous version (0.83.7)</a><p />
+        </div>
+    </div>
+
+    <!-- FOOTER  -->
+    <iframe src="footer.html" onload="this.before((this.contentDocument.body||this.contentDocument).children[0]);this.remove()"></iframe>
+
+  </body>
+</html>
