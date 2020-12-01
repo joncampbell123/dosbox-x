@@ -194,7 +194,14 @@ static void cache_dynamic_common_alloc(Bitu allocsz) {
         default:                            LOG(LOG_MISC,LOG_DEBUG)("dyncore method: ?"); break;
     };
 
+    /* if no separate exec pointer, then exec == cache_code (rw ptr) */
+    if (cache_exec_ptr == NULL)
+        cache_exec_ptr = cache_code;
+
     cache_map_size = actualsz;
     assert((cache_code+allocsz) <= (cache_code_start_ptr+actualsz));
+
+    LOG(LOG_MISC,LOG_DEBUG)("dyncore: allocated cache size=%lu rw=%p rx=%p",
+        (unsigned long)cache_map_size,(void*)cache_code,(void*)cache_exec_ptr);
 }
 
