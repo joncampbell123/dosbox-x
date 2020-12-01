@@ -34,6 +34,14 @@
 #include "control.h"
 #include "zipfile.h"
 
+/* dynamic core, policy, method, and flags.
+ * We're going to make dynamic core more flexible, AND make sure
+ * that both dynx86 and dynrec are using common memory mapping
+ * code to reduce copy-pasta */
+dyncore_alloc_t         dyncore_alloc = DYNCOREALLOC_NONE;
+dyncore_method_t        dyncore_method = DYNCOREM_NONE;
+dyncore_flags_t         dyncore_flags = 0;
+
 #if defined(_MSC_VER)
 /* we don't care about switch statements with no case labels */
 #pragma warning(disable:4065)
