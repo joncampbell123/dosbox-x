@@ -130,7 +130,7 @@ static void cache_dynamic_common_alloc(Bitu allocsz) {
 
     cache_code=(uint8_t*)(((Bitu)cache_code_start_ptr+(PAGESIZE_TEMP-1)) & ~(PAGESIZE_TEMP-1)); //Bitu is same size as a pointer.
 
-    if (dyncore_alloc == DYNCOREALLOC_MALLOC) {
+    if (dyncore_alloc == DYNCOREALLOC_MALLOC && dyncore_method == DYNCOREM_RWX && !(dyncore_flags&DYNCOREF_W_XOR_X)) {
 #if (C_HAVE_MPROTECT)
 		if (mprotect(cache_code,actualsz,PROT_WRITE|PROT_READ|PROT_EXEC)) {
 			E_Exit("Setting execute permission on the code cache has failed (malloc)! err=%s",strerror(errno));
