@@ -38,8 +38,10 @@
     that you can specify it from config file. (Wengier)
   - Pasting text from the clipboard on macOS SDL1 build
     is now supported like Linux SDL1 build. (Wengier)
-  - SDL1 builds updated to use newer audio APIs on
-    macOS (Mac OS X) so that audio works once again
+  - Added support for ARM-based Apple M1 MacBook. The
+    dynamic core now works on ARM-based macOS systems.
+    SDL1 builds updated to use newer audio APIs on the
+    macOS platform so that the audio works once again
     when compiled and run on macOS 11 (Big Sur). Prior
     to the change, ancient versions of the API dating
     back to the mid 2000s were used which no longer
