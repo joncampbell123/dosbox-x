@@ -9,11 +9,13 @@
 #include <unistd.h>
 
 static int cache_fd = -1;
+static uint8_t *cache_write_ptr = NULL;
 
 static void cache_dynamic_common_alloc(Bitu allocsz) {
     Bitu actualsz = allocsz+PAGESIZE_TEMP;
 
     assert(cache_code_start_ptr == NULL);
+    assert(cache_write_ptr == NULL);
     assert(cache_code == NULL);
     assert(actualsz >= allocsz);
 
@@ -41,6 +43,20 @@ static void cache_dynamic_common_alloc(Bitu allocsz) {
         if (cache_fd >= 0) {
             if (ftruncate(cache_fd,actualsz) == 0) {
                 cache_code_start_ptr=(uint8_t*)mmap(NULL,actualsz,PROT_READ|PROT_WRITE|PROT_EXEC,MAP_SHARED,cache_fd,0);
+                if (cache_code_start_ptr == MAP_FAILED) {
+                    cache_code_start_ptr=(uint8_t*)mmap(NULL,actualsz,PROT_READ|PROT_EXEC,MAP_SHARED,cache_fd,0);
+                    if (cache_code_start_ptr != MAP_FAILED) {
+                        cache_write_ptr=(uint8_t*)mmap(cache_code_start_ptr/*place after this!*/,actualsz,PROT_READ|PROT_WRITE,MAP_SHARED,cache_fd,0);
+                        if (cache_write_ptr != MAP_FAILED) {
+                            dyncore_method = DYNCOREM_DUAL_RW_X;
+                            dyncore_flags |= DYNCOREF_W_XOR_X;
+                        }
+                        else {
+                            assert(munmap(cache_code_start_ptr,actualsz) == 0);
+                            cache_code_start_ptr = NULL;
+                        }
+                    }
+                }
                 if (cache_code_start_ptr != MAP_FAILED) {
                     dyncore_alloc = DYNCOREALLOC_MEMFD;
                 }
@@ -99,6 +115,7 @@ static void cache_dynamic_common_alloc(Bitu allocsz) {
         case DYNCOREM_NONE:                 LOG(LOG_MISC,LOG_DEBUG)("dyncore method: none"); break;
         case DYNCOREM_RWX:                  LOG(LOG_MISC,LOG_DEBUG)("dyncore method: rwx"); break;
         case DYNCOREM_MPROTECT_RW_RX:       LOG(LOG_MISC,LOG_DEBUG)("dyncore method: mprotect rw/rx"); break;
+        case DYNCOREM_DUAL_RW_X:            LOG(LOG_MISC,LOG_DEBUG)("dyncore method: dual rw/rx"); break;
         default:                            LOG(LOG_MISC,LOG_DEBUG)("dyncore method: ?"); break;
     };
 
