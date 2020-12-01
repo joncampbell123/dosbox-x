@@ -32,6 +32,7 @@ public:
 	} page;
 	struct {
 		uint8_t * start;					//Where in the cache are we
+		uint8_t * xstart;					//Where in the cache are we
 		Bitu size;
 		CacheBlock * next;
 		uint8_t * wmapmask;
@@ -390,6 +391,7 @@ void CacheBlock::Clear(void) {
 	}
 }
 
+static INLINE void *cache_rwtox(void *x);
 
 static CacheBlock * cache_openblock(void) {
 	CacheBlock * block=cache.block.active;
@@ -439,6 +441,7 @@ static void cache_closeblock(void) {
 			newblock->cache.start=block->cache.start+new_size;
 			newblock->cache.size=block->cache.size-new_size;
 			newblock->cache.next=block->cache.next;
+			newblock->cache.xstart=(uint8_t*)cache_rwtox(newblock->cache.start);
 			block->cache.next=newblock;
 			block->cache.size=new_size;
 		}
@@ -514,15 +517,18 @@ static void cache_init(bool enable) {
 			cache.block.first=block;
 			cache.block.active=block;
 			block->cache.start=&cache_code[0];
+			block->cache.xstart=(uint8_t*)cache_rwtox(block->cache.start);
 			block->cache.size=CACHE_TOTAL;
 			block->cache.next=0;								//Last block in the list
 		}
 		/* Setup the default blocks for block linkage returns */
 		cache.pos=&cache_code_link_blocks[0];
 		link_blocks[0].cache.start=cache.pos;
+		link_blocks[0].cache.xstart=(uint8_t*)cache_rwtox(link_blocks[0].cache.start);
 		gen_return(BR_Link1);
 		cache.pos=&cache_code_link_blocks[32];
 		link_blocks[1].cache.start=cache.pos;
+		link_blocks[1].cache.xstart=(uint8_t*)cache_rwtox(link_blocks[1].cache.start);
 		gen_return(BR_Link2);
 		cache.free_pages=0;
 		cache.last_page=0;
@@ -591,15 +597,18 @@ static void cache_reset(void) {
 		cache.block.first=block;
 		cache.block.active=block;
 		block->cache.start=&cache_code[0];
+		block->cache.xstart=(uint8_t*)cache_rwtox(block->cache.start);
 		block->cache.size=CACHE_TOTAL;
 		block->cache.next=0;								//Last block in the list
 
 		/* Setup the default blocks for block linkage returns */
 		cache.pos=&cache_code_link_blocks[0];
 		link_blocks[0].cache.start=cache.pos;
+		link_blocks[0].cache.xstart=(uint8_t*)cache_rwtox(link_blocks[0].cache.start);
 		gen_return(BR_Link1);
 		cache.pos=&cache_code_link_blocks[32];
 		link_blocks[1].cache.start=cache.pos;
+		link_blocks[1].cache.xstart=(uint8_t*)cache_rwtox(link_blocks[1].cache.start);
 		gen_return(BR_Link2);
 		cache.free_pages=0;
 		cache.last_page=0;

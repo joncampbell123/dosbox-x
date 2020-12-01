@@ -275,7 +275,7 @@ static BlockReturn (*gen_runcode)(uint8_t *code) = gen_runcodeInit;
 static BlockReturn gen_runcodeInit(uint8_t *code) {
 	uint8_t* oldpos = cache.pos;
 	cache.pos = &cache_code_link_blocks[128];
-	gen_runcode = (BlockReturn(*)(uint8_t*))cache.pos;
+	gen_runcode = (BlockReturn(*)(uint8_t*))cache_rwtox(cache.pos);
 
 	opcode(5).Emit8Reg(0x50);  // push rbp
 	opcode(15).Emit8Reg(0x50); // push r15
