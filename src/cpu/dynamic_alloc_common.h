@@ -111,6 +111,15 @@ static void cache_dynamic_common_alloc(Bitu allocsz) {
             cache_code_start_ptr = NULL;
     }
 #endif
+#if defined(C_HAVE_POSIX_MEMALIGN)
+    if (cache_code_start_ptr == NULL) { /* try again, just use mmap, align ptr, mprotect */
+        void *p = NULL;
+        if (posix_memalign(&p,PAGESIZE_TEMP,actualsz) == 0) {
+            cache_code_start_ptr=(uint8_t*)p;
+            if (cache_code_start_ptr != NULL) dyncore_alloc = DYNCOREALLOC_MALLOC; /* return value of posix_memalign() can be passed to free() */
+        }
+    }
+#endif
     if (cache_code_start_ptr == NULL) { /* try again, just use mmap, align ptr, mprotect */
         cache_code_start_ptr=(uint8_t*)malloc(actualsz);
         if (cache_code_start_ptr != NULL) dyncore_alloc = DYNCOREALLOC_MALLOC;
