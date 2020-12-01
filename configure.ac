@@ -289,6 +289,12 @@ AC_CHECK_HEADER([sys/mman.h], [
 AC_CHECK_FUNC([mprotect],[AC_DEFINE(C_HAVE_MPROTECT,1)])
 ])
 
+dnl Check for memfd_create, for dynamic core. You need the glibc version, not just the syscall.
+AH_TEMPLATE(C_HAVE_MEMFD_CREATE,[Define to 1 if you have the memfd_create function])
+AC_CHECK_HEADER([sys/mman.h], [
+AC_CHECK_FUNC([memfd_create],[AC_DEFINE(C_HAVE_MEMFD_CREATE,1)])
+])
+
 dnl Check for realpath. Used on Linux
 AC_CHECK_FUNCS([realpath])
 

@@ -565,4 +565,36 @@ static INLINE void CPU_SetFlagsw(const Bitu word) {
 Bitu CPU_ForceV86FakeIO_In(Bitu port,Bitu len);
 void CPU_ForceV86FakeIO_Out(Bitu port,Bitu val,Bitu len);
 
+/* dynamic core allocation in effect */
+enum dyncore_alloc_t {
+    DYNCOREALLOC_NONE=0,
+    DYNCOREALLOC_MALLOC,            /* allocated with malloc(), base pointer and size rounded up to page size */
+    DYNCOREALLOC_MMAP_ANON,         /* allocated with mmap() and MAP_ANONYMOUS|MAP_PRIVATE */
+    DYNCOREALLOC_SHM_MMAP,          /* allocated as a file in shared memory (i.e. /dev/shm) using shmget */
+    DYNCOREALLOC_MEMFD,             /* allocated with a Linux memfd handle */
+    DYNCOREALLOC_VIRTUALALLOC,      /* allocated with VirtualAlloc() (in Windows) */
+
+    DYNCOREALLOC_MAX
+};
+
+/* dynamic core method in effect */
+enum dyncore_method_t {
+    DYNCOREM_NONE=0,
+    DYNCOREM_RWX,                   /* map with all read/write/execute permissions at once */
+    DYNCOREM_MPROTECT_RW_RX,        /* map with read/execute, mprotect to read/write when changes needed, then mprotect back */
+    DYNCOREM_DUAL_RW_X,             /* map twice in process space: once with read/write permissions, once with execute permissions */
+
+    DYNCOREM_MAX
+};
+
+/* dynamic core considerations */
+#define DYNCOREF_W_XOR_X            (1u << 0u)          /* write-xor-execute policy in effect */
+#define DYNCOREF_IMPOSSIBLE         (1u << 1u)          /* system policy makes dynamic core generation impossible (for example, SELinux) */
+
+typedef unsigned int        dyncore_flags_t;
+
+extern dyncore_alloc_t      dyncore_alloc;
+extern dyncore_flags_t      dyncore_flags;
+extern dyncore_method_t     dyncore_method;
+
 #endif
