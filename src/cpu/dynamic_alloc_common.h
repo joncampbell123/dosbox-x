@@ -13,6 +13,9 @@
 #include <mach/mach_vm.h>
 #endif
 
+/* DEBUG: Force dual rw/rx on a Linux system that otherwise allows rwx */
+//#define DEBUG_LINUX_FORCE_MEMFD_DUAL_RW_X
+
 static int cache_fd = -1;
 static uint8_t *cache_exec_ptr = NULL;
 static Bitu cache_map_size = 0;
@@ -53,7 +56,7 @@ static void cache_dynamic_common_alloc(Bitu allocsz) {
         if (cache_code_start_ptr != NULL) dyncore_alloc = DYNCOREALLOC_VIRTUALALLOC;
     }
 #endif
-#if defined(C_HAVE_MMAP) /* Try straightforward read/write/execute mmap first. */
+#if defined(C_HAVE_MMAP) && !defined(DEBUG_LINUX_FORCE_MEMFD_DUAL_RW_X) /* Try straightforward read/write/execute mmap first. */
     if (cache_code_start_ptr == NULL) {
         cache_code_start_ptr=(uint8_t*)mmap(NULL,actualsz,PROT_READ|PROT_WRITE|PROT_EXEC,MAP_PRIVATE|MAP_ANONYMOUS,-1,0);
         if (cache_code_start_ptr != MAP_FAILED) dyncore_alloc = DYNCOREALLOC_MMAP_ANON;
@@ -66,7 +69,11 @@ static void cache_dynamic_common_alloc(Bitu allocsz) {
         cache_fd = memfd_create("dosbox-dynamic-core-cache",MFD_CLOEXEC);
         if (cache_fd >= 0) {
             if (ftruncate(cache_fd,actualsz) == 0) {
+#if defined(DEBUG_LINUX_FORCE_MEMFD_DUAL_RW_X)
+                cache_code_start_ptr=(uint8_t*)MAP_FAILED; // fail on purpose, trigger dual map mode
+#else
                 cache_code_start_ptr=(uint8_t*)mmap(NULL,actualsz,PROT_READ|PROT_WRITE|PROT_EXEC,MAP_SHARED,cache_fd,0);
+#endif
                 if (cache_code_start_ptr == MAP_FAILED) {
                     cache_code_start_ptr=(uint8_t*)mmap(NULL,actualsz,PROT_READ|PROT_EXEC,MAP_SHARED,cache_fd,0);
                     if (cache_code_start_ptr != MAP_FAILED) {
