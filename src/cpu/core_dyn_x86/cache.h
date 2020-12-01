@@ -520,9 +520,11 @@ static void cache_init(bool enable) {
 			cache_code+=PAGESIZE_TEMP;
 
 #if (C_HAVE_MPROTECT)
-			if(mprotect(cache_code_link_blocks,CACHE_TOTAL+CACHE_MAXSIZE+PAGESIZE_TEMP,PROT_WRITE|PROT_READ|PROT_EXEC))
-				LOG_MSG("Setting execute permission on the code cache has failed!");
+			if (mprotect(cache_code_link_blocks,CACHE_TOTAL+CACHE_MAXSIZE+PAGESIZE_TEMP,PROT_WRITE|PROT_READ|PROT_EXEC)) {
+				E_Exit("Setting execute permission on the code cache has failed! err=%s",strerror(errno));
+			}
 #endif
+
 			CacheBlock * block=cache_getblock();
 			cache.block.first=block;
 			cache.block.active=block;
@@ -615,8 +617,9 @@ static void cache_reset(void) {
 			cache_code+=PAGESIZE_TEMP;
 
 #if (C_HAVE_MPROTECT)
-			if(mprotect(cache_code_link_blocks,CACHE_TOTAL+CACHE_MAXSIZE+PAGESIZE_TEMP,PROT_WRITE|PROT_READ|PROT_EXEC))
-				LOG_MSG("Setting excute permission on the code cache has failed!");
+			if (mprotect(cache_code_link_blocks,CACHE_TOTAL+CACHE_MAXSIZE+PAGESIZE_TEMP,PROT_WRITE|PROT_READ|PROT_EXEC)) {
+				E_Exit("Setting execute permission on the code cache has failed! err=%s",strerror(errno));
+			}
 #endif
 		}
 
