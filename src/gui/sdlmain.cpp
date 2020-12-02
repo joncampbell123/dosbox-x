@@ -242,6 +242,7 @@ void osx_init_touchbar(void);
 bool TTF_using(void);
 void ShutDownMemHandles(Section * sec);
 void resetFontSize(), decreaseFontSize();
+void GetMaxWidthHeight(int *pmaxWidth, int *pmaxHeight);
 extern SHELL_Cmd cmd_list[];
 
 SDL_Block sdl;
@@ -2442,28 +2443,6 @@ void GFX_DrawSDLMenu(DOSBoxMenu &menu, DOSBoxMenu::displaylist &dl) {
 void RENDER_Reset(void);
 
 #if defined(USE_TTF)
-void GetMaxWidthHeight(int *pmaxWidth, int *pmaxHeight) {
-    int maxWidth = sdl.desktop.full.width;
-    int maxHeight = sdl.desktop.full.height;
-
-#if defined(C_SDL2)
-    SDL_DisplayMode dm;
-    if (SDL_GetDesktopDisplayMode(0/*FIXME display index*/,&dm) == 0) {
-        maxWidth = dm.w;
-        maxHeight = dm.h;
-    }
-#elif defined(WIN32)
-    maxWidth = GetSystemMetrics(SM_CXSCREEN);
-    maxHeight = GetSystemMetrics(SM_CYSCREEN);
-#elif defined(MACOSX)
-    auto mainDisplayId = CGMainDisplayID();
-    maxWidth = CGDisplayPixelsWide(mainDisplayId);
-    maxHeight = CGDisplayPixelsHigh(mainDisplayId);
-#endif
-    *pmaxWidth = maxWidth;
-    *pmaxHeight = maxHeight;
-}
-
 bool firstsize = true;
 static Bitu OUTPUT_TTF_SetSize() {
     bool text=CurMode&&(CurMode->type==0||CurMode->type==2||CurMode->type==M_TEXT||IS_PC98_ARCH);
@@ -4702,6 +4681,12 @@ void increaseFontSize() {
 	if (ttf.inUse) {																	// increase fontsize
         int maxWidth, maxHeight;
         GetMaxWidthHeight(&maxWidth, &maxHeight);
+#if defined(WIN32)
+		if (!ttf.fullScrn) {															// 3D borders
+			maxWidth -= GetSystemMetrics(SM_CXBORDER)*2;
+			maxHeight -= GetSystemMetrics(SM_CYCAPTION) + GetSystemMetrics(SM_CYBORDER)*2;
+		}
+#endif
 		GFX_SelectFontByPoints(ttf.pointsize + (ttf.DOSBox ? 2 : 1));
 		if (ttf.cols*ttf.width <= maxWidth && ttf.lins*ttf.height <= maxHeight) {		// if it fits on screen
 			GFX_SetSize(720+sdl.clip.x, 400+sdl.clip.y, sdl.draw.flags,sdl.draw.scalex,sdl.draw.scaley,sdl.draw.callback);
@@ -9820,6 +9805,35 @@ bool intensity_menu_callback(DOSBoxMenu * const menu,DOSBoxMenu::item * const me
 }
 
 #if defined(USE_TTF)
+void GetMaxWidthHeight(int *pmaxWidth, int *pmaxHeight) {
+    int maxWidth = sdl.desktop.full.width;
+    int maxHeight = sdl.desktop.full.height;
+
+#if defined(C_SDL2)
+    SDL_DisplayMode dm;
+    if (SDL_GetDesktopDisplayMode(0/*FIXME display index*/,&dm) == 0) {
+        maxWidth = dm.w;
+        maxHeight = dm.h;
+    }
+#elif defined(WIN32)
+    maxWidth = GetSystemMetrics(SM_CXSCREEN);
+    maxHeight = GetSystemMetrics(SM_CYSCREEN);
+#elif defined(MACOSX)
+    auto mainDisplayId = CGMainDisplayID();
+    maxWidth = CGDisplayPixelsWide(mainDisplayId);
+    maxHeight = CGDisplayPixelsHigh(mainDisplayId);
+#elif defined(LINUX) && C_X11
+    Display *dpy = XOpenDisplay(0);
+    if (dpy) {
+        int snum = DefaultScreen(dpy);
+        maxWidth = DisplayWidth(dpy, snum);
+        maxHeight = DisplayHeight(dpy, snum);
+    }
+#endif
+    *pmaxWidth = maxWidth;
+    *pmaxHeight = maxHeight;
+}
+
 void ttf_setlines(int cols, int lins) {
     (void)cols;
     (void)lins;
