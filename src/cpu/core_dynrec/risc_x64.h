@@ -92,7 +92,7 @@ static void gen_mov_reg_qword(HostReg dest_reg,uint64_t imm);
 
 // This function generates an instruction with register addressing and a memory location
 static INLINE void gen_reg_memaddr(HostReg reg,void* data,uint8_t op,uint8_t prefix=0) {
-	int64_t diff = (int64_t)data-((int64_t)cache.pos+(prefix?7:6));
+	int64_t diff = (int64_t)data-((int64_t)cache_rwtox(cache.pos+(prefix?7:6)));
 //	if ((diff<0x80000000LL) && (diff>-0x80000000LL)) { //clang messes itself up on this...
 	if ( (diff>>63) == (diff>>31) ) { //signed bit extend, test to see if value fits in a int32_t
 		// mov reg,[rip+diff] (or similar, depending on the op) to fetch *data
