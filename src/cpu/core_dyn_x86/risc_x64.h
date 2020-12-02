@@ -119,7 +119,7 @@ private:
 			case 0:
 				if ((modrm&7)==5) {
 					// update offset to be RIP relative
-					Bits diff = offset - (Bits)cache.pos - 4 - imm_size;
+					Bits diff = offset - (Bits)cache_rwtox(cache.pos) - 4 - imm_size;
 					if ((int32_t)diff == diff) offset = diff;
 					else { // try 32-bit absolute address
 						if ((int32_t)offset != offset) IllegalOption("opcode::Emit: bad RIP address");
@@ -1028,7 +1028,7 @@ static void gen_call_ptr(void *func=NULL, uint8_t ptr=0) {
 
 	/* Do the actual call to the procedure */
 	if (func!=NULL) {
-		Bits diff = (Bits)func - (Bits)cache.pos - 5;
+		Bits diff = (Bits)func - (Bits)cache_rwtox(cache.pos) - 5;
 		if ((int32_t)diff == diff) {
 			opcode(0).setimm(diff,4).Emit8Reg(0xE8); // call rel32
 			return;
