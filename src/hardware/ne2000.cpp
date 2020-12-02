@@ -1603,7 +1603,7 @@ public:
 #endif
  		{
             niclist = "Cannot enumerate network interfaces: "+std::string(errbuf);
-			LOG_MSG(niclist.c_str());
+			LOG_MSG("%s", niclist.c_str());
 			load_success = false;
 			return;
 		}
@@ -1621,7 +1621,7 @@ public:
 			// print list and quit
             std::istringstream in(("\n"+niclist+"\n").c_str());
             if (in)	for (std::string line; std::getline(in, line); )
-                LOG_MSG(line.c_str());
+                LOG_MSG("%s", line.c_str());
 			pcap_freealldevs(alldevs);
 			load_success = false;
 			return;
