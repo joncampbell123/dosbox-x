@@ -242,6 +242,7 @@ void osx_init_touchbar(void);
 bool TTF_using(void);
 void ShutDownMemHandles(Section * sec);
 void resetFontSize(), decreaseFontSize();
+void GetMaxWidthHeight(int *pmaxWidth, int *pmaxHeight);
 extern SHELL_Cmd cmd_list[];
 
 SDL_Block sdl;
@@ -2462,17 +2463,8 @@ static Bitu OUTPUT_TTF_SetSize() {
     } else
         ttf.inUse = false;
     if (ttf.inUse && ttf.fullScrn) {
-		int maxWidth = sdl.desktop.full.width;
-		int maxHeight = sdl.desktop.full.height;
-#if defined(WIN32)
-		maxWidth = GetSystemMetrics(SM_CXSCREEN);
-		maxHeight = GetSystemMetrics(SM_CYSCREEN);
-#elif defined(MACOSX)
-		auto mainDisplayId = CGMainDisplayID();
-		maxWidth = CGDisplayPixelsWide(mainDisplayId);
-		maxHeight = CGDisplayPixelsHigh(mainDisplayId);
-#endif
-
+        int maxWidth, maxHeight;
+        GetMaxWidthHeight(&maxWidth, &maxHeight);
 #if defined(C_SDL2)
         GFX_SetResizeable(false);
         sdl.window = GFX_SetSDLSurfaceWindow(maxWidth, maxHeight);
@@ -3436,23 +3428,8 @@ void OUTPUT_TTF_Select(int fsize=-1) {
     } else
         ttf.fullScrn = false;
 
-    int maxWidth = sdl.desktop.full.width;
-    int maxHeight = sdl.desktop.full.height;
-
-#if defined(C_SDL2)
-    SDL_DisplayMode dm;
-    if (SDL_GetDesktopDisplayMode(0/*FIXME display index*/,&dm) == 0) {
-        maxWidth = dm.w;
-        maxHeight = dm.h;
-    }
-#elif defined(WIN32)
-    maxWidth = GetSystemMetrics(SM_CXSCREEN);
-    maxHeight = GetSystemMetrics(SM_CYSCREEN);
-#elif defined(MACOSX)
-    auto mainDisplayId = CGMainDisplayID();
-    maxWidth = CGDisplayPixelsWide(mainDisplayId);
-    maxHeight = CGDisplayPixelsHigh(mainDisplayId);
-#endif
+    int maxWidth, maxHeight;
+    GetMaxWidthHeight(&maxWidth, &maxHeight);
 
 #if DOSBOXMENU_TYPE == DOSBOXMENU_SDLDRAW /* SDL drawn menus */
     maxHeight -= mainMenu.menuBarHeightBase * 2;
@@ -4049,14 +4026,28 @@ void GFX_EndTextLines(bool force=false) {
 	ttf_cell *newAC = newAttrChar;							// pointer to new/changed buffer
 
 	if (ttf.fullScrn && (ttf.offX || ttf.offY)) {
+        int maxWidth, maxHeight;
+        GetMaxWidthHeight(&maxWidth, &maxHeight);
         SDL_Rect *rect = &sdl.updateRects[0];
-        rect->x = 0; rect->y = 0; rect->w = sdl.draw.width; rect->h = ttf.offY;
+        rect->x = 0; rect->y = 0; rect->w = maxWidth; rect->h = ttf.offY;
 #if defined(C_SDL2)
         SDL_UpdateWindowSurfaceRects(sdl.window, sdl.updateRects, 4);
 #else
         SDL_UpdateRects(sdl.surface, 4, sdl.updateRects);
 #endif
-        rect->w = ttf.offX; rect->h = sdl.draw.height;
+        rect->w = ttf.offX; rect->h = maxHeight;
+#if defined(C_SDL2)
+        SDL_UpdateWindowSurfaceRects(sdl.window, sdl.updateRects, 4);
+#else
+        SDL_UpdateRects(sdl.surface, 4, sdl.updateRects);
+#endif
+        rect->x = 0; rect->y = sdl.draw.height + ttf.offY; rect->w = maxWidth; rect->h = maxHeight - sdl.draw.height - ttf.offY;
+#if defined(C_SDL2)
+        SDL_UpdateWindowSurfaceRects(sdl.window, sdl.updateRects, 4);
+#else
+        SDL_UpdateRects(sdl.surface, 4, sdl.updateRects);
+#endif
+        rect->x = sdl.draw.width + ttf.offX; rect->y = 0; rect->w = maxWidth - sdl.draw.width - ttf.offX; rect->h = maxHeight;
 #if defined(C_SDL2)
         SDL_UpdateWindowSurfaceRects(sdl.window, sdl.updateRects, 4);
 #else
@@ -4644,16 +4635,8 @@ void GFX_SelectFontByPoints(int ptsize) {
 	TTF_GlyphMetrics(ttf.SDL_font, 65, NULL, NULL, NULL, NULL, &ttf.width);
 	ttf.height = TTF_FontAscent(ttf.SDL_font)-TTF_FontDescent(ttf.SDL_font);
 	if (ttf.fullScrn) {
-		int maxWidth = sdl.desktop.full.width;
-		int maxHeight = sdl.desktop.full.height;
-#if defined(WIN32)
-		maxWidth = GetSystemMetrics(SM_CXSCREEN);
-		maxHeight = GetSystemMetrics(SM_CYSCREEN);
-#elif defined(MACOSX)
-		auto mainDisplayId = CGMainDisplayID();
-		maxWidth = CGDisplayPixelsWide(mainDisplayId);
-		maxHeight = CGDisplayPixelsHigh(mainDisplayId);
-#endif
+        int maxWidth, maxHeight;
+        GetMaxWidthHeight(&maxWidth, &maxHeight);
 		ttf.offX = (maxWidth-ttf.width*ttf.cols)/2;
 		ttf.offY = (maxHeight-ttf.height*ttf.lins)/2;
 	}
@@ -4696,19 +4679,13 @@ void decreaseFontSize() {
 
 void increaseFontSize() {
 	if (ttf.inUse) {																	// increase fontsize
-		int maxWidth = sdl.desktop.full.width;
-		int maxHeight = sdl.desktop.full.height;
+        int maxWidth, maxHeight;
+        GetMaxWidthHeight(&maxWidth, &maxHeight);
 #if defined(WIN32)
-		maxWidth = GetSystemMetrics(SM_CXSCREEN);
-		maxHeight = GetSystemMetrics(SM_CYSCREEN);
 		if (!ttf.fullScrn) {															// 3D borders
 			maxWidth -= GetSystemMetrics(SM_CXBORDER)*2;
 			maxHeight -= GetSystemMetrics(SM_CYCAPTION) + GetSystemMetrics(SM_CYBORDER)*2;
 		}
-#elif defined(MACOSX)
-		auto mainDisplayId = CGMainDisplayID();
-		maxWidth = CGDisplayPixelsWide(mainDisplayId);
-		maxHeight = CGDisplayPixelsHigh(mainDisplayId);
 #endif
 		GFX_SelectFontByPoints(ttf.pointsize + (ttf.DOSBox ? 2 : 1));
 		if (ttf.cols*ttf.width <= maxWidth && ttf.lins*ttf.height <= maxHeight) {		// if it fits on screen
@@ -9828,6 +9805,35 @@ bool intensity_menu_callback(DOSBoxMenu * const menu,DOSBoxMenu::item * const me
 }
 
 #if defined(USE_TTF)
+void GetMaxWidthHeight(int *pmaxWidth, int *pmaxHeight) {
+    int maxWidth = sdl.desktop.full.width;
+    int maxHeight = sdl.desktop.full.height;
+
+#if defined(C_SDL2)
+    SDL_DisplayMode dm;
+    if (SDL_GetDesktopDisplayMode(0/*FIXME display index*/,&dm) == 0) {
+        maxWidth = dm.w;
+        maxHeight = dm.h;
+    }
+#elif defined(WIN32)
+    maxWidth = GetSystemMetrics(SM_CXSCREEN);
+    maxHeight = GetSystemMetrics(SM_CYSCREEN);
+#elif defined(MACOSX)
+    auto mainDisplayId = CGMainDisplayID();
+    maxWidth = CGDisplayPixelsWide(mainDisplayId);
+    maxHeight = CGDisplayPixelsHigh(mainDisplayId);
+#elif defined(LINUX) && C_X11
+    Display *dpy = XOpenDisplay(0);
+    if (dpy) {
+        int snum = DefaultScreen(dpy);
+        maxWidth = DisplayWidth(dpy, snum);
+        maxHeight = DisplayHeight(dpy, snum);
+    }
+#endif
+    *pmaxWidth = maxWidth;
+    *pmaxHeight = maxHeight;
+}
+
 void ttf_setlines(int cols, int lins) {
     (void)cols;
     (void)lins;
