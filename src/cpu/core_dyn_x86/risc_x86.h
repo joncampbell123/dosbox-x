@@ -873,7 +873,7 @@ static void gen_call_function(void * func,char const* ops,...) {
 		DynRegs[G_ESP].genreg->Save();
 	/* Do the actual call to the procedure */
 	cache_addb(0xe8);
-	cache_addd((uint32_t)func - (uint32_t)cache.pos-4);
+	cache_addd((uint32_t)func - (uint32_t)cache_rwtox(cache.pos)-4);
 	/* Restore the params of the stack */
 	if (paramcount) {
 		cache_addw(0xc483);				//add ESP,imm byte
@@ -948,9 +948,9 @@ static void gen_call_write(DynReg * dr,uint32_t val,Bitu write_size) {
 	/* Do the actual call to the procedure */
 	cache_addb(0xe8);
 	switch (write_size) {
-		case 1: cache_addd((uint32_t)mem_writeb_checked - (uint32_t)cache.pos-4); break;
-		case 2: cache_addd((uint32_t)mem_writew_checked - (uint32_t)cache.pos-4); break;
-		case 4: cache_addd((uint32_t)mem_writed_checked - (uint32_t)cache.pos-4); break;
+		case 1: cache_addd((uint32_t)mem_writeb_checked - (uint32_t)cache_rwtox(cache.pos)-4); break;
+		case 2: cache_addd((uint32_t)mem_writew_checked - (uint32_t)cache_rwtox(cache.pos)-4); break;
+		case 4: cache_addd((uint32_t)mem_writed_checked - (uint32_t)cache_rwtox(cache.pos)-4); break;
 		default: IllegalOption("gen_call_write");
 	}
 
