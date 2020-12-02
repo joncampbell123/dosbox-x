@@ -1319,7 +1319,7 @@ static void (*gen_dh_fpu_save)(void)  = gen_dh_fpu_saveInit;
 static void gen_dh_fpu_saveInit(void) {
 	uint8_t* oldpos = cache.pos;
 	cache.pos = &cache_code_link_blocks[64];
-	gen_dh_fpu_save = (void(*)(void))cache.pos;
+	gen_dh_fpu_save = (void(*)(void))cache_rwtox(cache.pos);
 
 	Bitu addr = (Bitu)&dyn_dh_fpu;
 	// mov RAX, &dyn_dh_fpu
