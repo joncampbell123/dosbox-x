@@ -27,19 +27,23 @@ static INLINE void *cache_rwtox(void *x) {
 
 static void cache_remap_rx() {
     if (cache_code_start_ptr != NULL && cache_map_size != 0) {
+#if defined(C_HAVE_MMAP) && defined(C_HAVE_MPROTECT) /* try again, this time detect if read/write and read/execute are allowed (W^X), and if so, call mprotect() each time it is necessary to modify */
         if (dyncore_method == DYNCOREM_MPROTECT_RW_RX) {
             if (mprotect(cache_code_start_ptr,cache_map_size,PROT_READ|PROT_EXEC) < 0)
                 E_Exit("dyn cache remap rx failed");
         }
+#endif
     }
 }
 
 static void cache_remap_rw() {
     if (cache_code_start_ptr != NULL && cache_map_size != 0) {
+#if defined(C_HAVE_MMAP) && defined(C_HAVE_MPROTECT) /* try again, this time detect if read/write and read/execute are allowed (W^X), and if so, call mprotect() each time it is necessary to modify */
         if (dyncore_method == DYNCOREM_MPROTECT_RW_RX) {
             if (mprotect(cache_code_start_ptr,cache_map_size,PROT_READ|PROT_WRITE) < 0)
                 E_Exit("dyn cache remap rw failed");
         }
+#endif
     }
 }
 
