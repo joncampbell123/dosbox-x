@@ -299,7 +299,7 @@ static INLINE void gen_lea(HostReg dest_reg,Bitu scale,Bits imm) {
 // generate a call to a parameterless function
 template <typename T> static void INLINE gen_call_function_raw(const T func) {
     cache_addb(0xe8);
-	cache_addd((uint32_t)func - (uint32_t)cache.pos-4);
+	cache_addd((uint32_t)func - (uint32_t)cache_rwtox(cache.pos)-4);
 }
 
 // generate a call to a function with paramcount parameters
@@ -309,7 +309,7 @@ template <typename T> static uint32_t INLINE gen_call_function_setup(const T fun
     uint32_t proc_addr=(uint32_t)cache.pos;
 	// Do the actual call to the procedure
 	cache_addb(0xe8);
-	cache_addd((uint32_t)func - (uint32_t)cache.pos-4);
+	cache_addd((uint32_t)func - (uint32_t)cache_rwtox(cache.pos)-4);
 
 	// Restore the params of the stack
 	if (paramcount) {
@@ -506,11 +506,11 @@ static void gen_fill_function_ptr(uint8_t * pos,void* fct_ptr,Bitu flags_type) {
 			*(pos+4)=0x90;
 			break;
 		default:
-			*(uint32_t*)(pos+1)=(uint32_t)((uint8_t*)fct_ptr - (pos+1+4));	// fill function pointer
+			*(uint32_t*)(pos+1)=(uint32_t)((uint8_t*)fct_ptr - ((uint8_t*)cache_rwtox(pos)+1+4));	// fill function pointer
 			break;
 	}
 #else
-	*(uint32_t*)(pos+1)=(uint32_t)((uint8_t*)fct_ptr - (pos+1+4));	// fill function pointer
+	*(uint32_t*)(pos+1)=(uint32_t)((uint8_t*)fct_ptr - ((uint8_t*)cache_rwtox(pos)+1+4));	// fill function pointer
 #endif
 }
 #endif
