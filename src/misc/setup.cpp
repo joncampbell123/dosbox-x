@@ -1088,7 +1088,6 @@ bool Config::ParseConfigFile(char const * const configfilename) {
         if (!gegevens.size()) continue;
 
         switch(gegevens[0]) {
-        case '%':
         case '\0':
         case '#':
         case ' ':
@@ -1105,6 +1104,8 @@ bool Config::ParseConfigFile(char const * const configfilename) {
             testsec = NULL;
         }
             break;
+        case '%':
+            if (strcasecmp(currentsection->GetName(), "autoexec")) continue;
         default:
             try {
                 if (currentsection) {
