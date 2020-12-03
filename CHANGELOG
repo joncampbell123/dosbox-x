@@ -1,4 +1,10 @@
 0.83.9
+  - Fixed full-screen TTF output may not fully cover
+    the background screen in Linux. (Wengier)
+  - Fixed that lines starting with "%" in [autoexec]
+    section are being ignored. (Wengier)
+  - Improved the dynamic core including the way its
+    cache is allocated and to support dual mapping.
   - Added OPL3Duo support, which passes OPL3 output
     to an OPL3Duo Arduino board with a specific
     configuration if desired. (josephillips85)
