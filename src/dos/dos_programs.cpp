@@ -6065,6 +6065,39 @@ void AUTOTYPE_ProgramStart(Program **make)
 	*make = new AUTOTYPE;
 }
 
+class ADDKEY : public Program {
+public:
+    void Run(void);
+private:
+	void PrintUsage() {
+        constexpr const char *msg =
+            "Generates artificial keypresses.\n\nADDKEY [key]\n\n"
+            "For example, the command below will type \"dir\" followed by ENTER.\n\nADDKEY d i r enter\n\n"
+            "Instead of using this command, you can also try AUTOTYPE command.  AUTOTYPE can\nperform scripted keyboard entry into a running DOS program.\n";
+        WriteOut(msg);
+	}
+};
+
+void ADDKEY::Run()
+{
+	// Hack To allow long commandlines
+	ChangeToLongCmd();
+
+	// Usage
+	if (cmd->FindExist("-?", false) || cmd->FindExist("/?", false)) {
+		PrintUsage();
+		return;
+	}
+	char *args=(char *)cmd->GetRawCmdline().c_str();
+	args=trim(args);
+	DOS_Shell temp;
+	temp.CMD_ADDKEY(args);
+}
+
+static void ADDKEY_ProgramStart(Program * * make) {
+    *make=new ADDKEY;
+}
+
 class LS : public Program {
 public:
     void Run(void);
@@ -6100,20 +6133,25 @@ static void LS_ProgramStart(Program * * make) {
     *make=new LS;
 }
 
-class ADDKEY : public Program {
+#if defined(USE_TTF)
+typedef struct {uint8_t red; uint8_t green; uint8_t blue; uint8_t alpha;} alt_rgb;
+alt_rgb altBGR[16], *rgbcolors = (alt_rgb*)render.pal.rgb;
+extern alt_rgb altBGR1[16];
+extern bool colorChanged;
+bool setColors(const char *colorArray, int n);
+void resetFontSize();
+class SETCOLOR : public Program {
 public:
     void Run(void);
 private:
 	void PrintUsage() {
         constexpr const char *msg =
-            "Generates artificial keypresses.\n\nADDKEY [key]\n\n"
-            "For example, the command below will type \"dir\" followed by ENTER.\n\nADDKEY d i r enter\n\n"
-            "Instead of using this command, you can also try AUTOTYPE command.  AUTOTYPE can\nperform scripted keyboard entry into a running DOS program.\n";
+            "Views or changes the text-mode color scheme settings.\n\nSETCOLOR [color# [value]]\n\nFor example:\n\n  SETCOLOR 1 (50,50,50)\n\nChange Color #1 to the specified color value\n\n  SETCOLOR 7 -\n\nReturn Color #7 to the default color value\n\n  SETCOLOR MONO\n\nDisplay current MONO mode status\n";
         WriteOut(msg);
 	}
 };
 
-void ADDKEY::Run()
+void SETCOLOR::Run()
 {
 	// Hack To allow long commandlines
 	ChangeToLongCmd();
@@ -6124,14 +6162,62 @@ void ADDKEY::Run()
 		return;
 	}
 	char *args=(char *)cmd->GetRawCmdline().c_str();
-	args=trim(args);
-	DOS_Shell temp;
-	temp.CMD_ADDKEY(args);
+	if (*args) {
+		args=trim(args);
+		char *p = strchr(args, ' ');
+		if (p!=NULL)
+			*p=0;
+		int i=atoi(args);
+		if (!strcasecmp(args,"MONO")) {
+			if (p==NULL)
+				WriteOut("MONO mode status: %s (video mode %d)\n",CurMode->mode==7?"active":CurMode->mode==3?"inactive":"unavailable",CurMode->mode);
+			else if (!strcmp(trim(p+1),"+")) {
+				if (CurMode->mode!=7) INT10_SetVideoMode(7);
+				WriteOut(CurMode->mode==7?"MONO mode status => active (video mode 7)\n":"Failed to change MONO mode\n");
+			} else if (!strcmp(trim(p+1),"-")) {
+				if (CurMode->mode!=3) INT10_SetVideoMode(3);
+				WriteOut(CurMode->mode==3?"MONO mode status => inactive (video mode 3)\n":"Failed to change MONO mode\n");
+			} else
+				WriteOut("Must be + or - for MONO: %s\n",trim(p+1));
+		} else if (!strcmp(args,"0")||!strcmp(args,"00")||!strcmp(args,"+0")||!strcmp(args,"-0")||i>0&&i<16) {
+			if (p==NULL) WriteOut("Color %d: (%d,%d,%d) or #%02x%02x%02x\n",i,altBGR1[i].red,altBGR1[i].green,altBGR1[i].blue,altBGR1[i].red,altBGR1[i].green,altBGR1[i].blue);
+		} else {
+			WriteOut("Invalid color number - %s\n", trim(args));
+			DOS_SetError(DOSERR_DATA_INVALID);
+			return;
+		} if (p!=NULL&&strcasecmp(args,"MONO")) {
+			char value[128];
+			if (strcmp(trim(p+1),"-")) {
+				strncpy(value,trim(p+1),127);
+				value[127]=0;
+			} else
+				strcpy(value,i==0?"#000000":i==1?"#0000aa":i==2?"#00aa00":i==3?"#00aaaa":i==4?"#aa0000":i==5?"#aa00aa":i==6?"#aa5500":i==7?"#aaaaaa":i==8?"#555555":i==9?"#5555ff":i==10?"#55ff55":i==11?"#55ffff":i==12?"#ff5555":i==13?"#ff55ff":i==14?"#ffff55":"#ffffff");
+            if (!ttf.inUse)
+				WriteOut("Changing color scheme is only supported for the TrueType font output.\n");
+			else if (setColors(value,i)) {
+                altBGR[i].red = colorChanged&&!IS_VGA_ARCH?altBGR1[i].red:rgbcolors[i].red;
+                altBGR[i].green = colorChanged&&!IS_VGA_ARCH?altBGR1[i].green:rgbcolors[i].green;
+                altBGR[i].blue = colorChanged&&!IS_VGA_ARCH?altBGR1[i].blue:rgbcolors[i].blue;
+				WriteOut("Color %d => (%d,%d,%d) or #%02x%02x%02x\n",i,altBGR[i].red,altBGR[i].green,altBGR[i].blue,altBGR[i].red,altBGR[i].green,altBGR[i].blue);
+				resetFontSize();
+			} else
+				WriteOut("Invalid color value - %s\n",value);
+			}
+	} else {
+		WriteOut("MONO mode status: %s (video mode %d)\n",CurMode->mode==7?"active":CurMode->mode==3?"inactive":"unavailable",CurMode->mode);
+		for (int i = 0; i < 16; i++) {
+            altBGR[i].red = colorChanged&&!IS_VGA_ARCH?altBGR1[i].red:rgbcolors[i].red;
+            altBGR[i].green = colorChanged&&!IS_VGA_ARCH?altBGR1[i].green:rgbcolors[i].green;
+            altBGR[i].blue = colorChanged&&!IS_VGA_ARCH?altBGR1[i].blue:rgbcolors[i].blue;
+			WriteOut("Color %d: (%d,%d,%d) or #%02x%02x%02x\n",i,altBGR[i].red,altBGR[i].green,altBGR[i].blue,altBGR[i].red,altBGR[i].green,altBGR[i].blue);
+        }
+	}
 }
 
-static void ADDKEY_ProgramStart(Program * * make) {
-    *make=new ADDKEY;
+static void SETCOLOR_ProgramStart(Program * * make) {
+    *make=new SETCOLOR;
 }
+#endif
 
 #if C_DEBUG
 class INT2FDBG : public Program {
@@ -7118,6 +7204,9 @@ void DOS_SetupPrograms(void) {
         PROGRAMS_MakeFile("KEYB.COM", KEYB_ProgramStart);
         PROGRAMS_MakeFile("MODE.COM", MODE_ProgramStart);
         PROGRAMS_MakeFile("MOUSE.COM", MOUSE_ProgramStart);
+#if defined(USE_TTF)
+        PROGRAMS_MakeFile("SETCOLOR.COM", SETCOLOR_ProgramStart);
+#endif
 	}
 
     PROGRAMS_MakeFile("LS.COM",LS_ProgramStart);

@@ -102,6 +102,7 @@ void GFX_OpenGLRedrawScreen(void);
 #include "zipfile.h"
 #include "shell.h"
 #include "glidedef.h"
+#include "inout.h"
 #include "../ints/int10.h"
 #if !defined(HX_DOS)
 #include "whereami.c"
@@ -281,7 +282,7 @@ typedef struct {
 	uint8_t alpha;		// unused
 } alt_rgb;
 alt_rgb altBGR0[16], altBGR1[16];
-static bool colorsLocked = false;
+bool colorChanged = false;
 static int prev_sline = -1;
 static alt_rgb *rgbColors = (alt_rgb*)render.pal.rgb;
 static bool blinkCursor = false, blinkstate = false;
@@ -3180,6 +3181,19 @@ bool setColors(const char *colorArray, int n) {
 		altBGR0[i].green = (altBGR1[i].green*2 + 128)/4;
 		altBGR0[i].red = (altBGR1[i].red*2 + 128)/4;
 	}
+    if (ttf.inUse&&CurMode&&IS_VGA_ARCH) {
+        std::map<uint8_t,int> imap;
+        for (uint8_t i = 0; i < 0x10; i++) {
+            IO_ReadB(mem_readw(BIOS_VIDEO_PORT)+6);
+            IO_WriteB(VGAREG_ACTL_ADDRESS, i+32);
+            imap[i]=IO_ReadB(VGAREG_ACTL_READ_DATA);
+            IO_WriteB(VGAREG_DAC_WRITE_ADDRESS, imap[i]);
+            IO_WriteB(VGAREG_DAC_DATA, altBGR1[i].red*63/255);
+            IO_WriteB(VGAREG_DAC_DATA, altBGR1[i].green*63/255);
+            IO_WriteB(VGAREG_DAC_DATA, altBGR1[i].blue*63/255);
+        }
+    }
+    colorChanged=true;
 	return true;
 }
 
@@ -3298,17 +3312,9 @@ void OUTPUT_TTF_Select(int fsize=-1) {
             ttf.DOSBox = true;
         const char * colors = render_section->Get_string("ttf.colors");
         if (*colors) {
-            if (setColors(colors,-1)) {
-                //rgbColors = altBGR1;
-                colorsLocked = true;
-                for (int i = 0; i < 16; i++) {
-                    rgbColors[i].red = altBGR1[i].red;
-                    rgbColors[i].green = altBGR1[i].green;
-                    rgbColors[i].blue = altBGR1[i].blue;
-                }
-            } else {
+            if (!setColors(colors,-1)) {
                 LOG_MSG("Incorrect color scheme: %s", colors);
-                setColors("#000000 #0000aa #00aa00 #00aaaa #aa0000 #aa00aa #aa5500 #aaaaaa #555555 #5555ff #55ff55 #55ffff #ff5555 #ff55ff #ffff55 #ffffff",-1);
+                //setColors("#000000 #0000aa #00aa00 #00aaaa #aa0000 #aa00aa #aa5500 #aaaaaa #555555 #5555ff #55ff55 #55ffff #ff5555 #ff55ff #ffff55 #ffffff",-1);
             }
         }
         blinkCursor = render_section->Get_bool("ttf.blinkc");
@@ -4070,7 +4076,7 @@ void GFX_EndTextLines(bool force=false) {
 	for (int y = 0; y < ttf.lins; y++) {
 		ttf_textRect.y = ttf.offY+y*ttf.height;
 		for (int x = 0; x < ttf.cols; x++) {
-			if ((newAC[x] != curAC[x] || newAC[x].selected != curAC[x].selected || (colorsLocked && draw) || force) && !(newAC[x].skipped)) {
+			if ((newAC[x] != curAC[x] || newAC[x].selected != curAC[x].selected || (colorChanged && draw) || force) && !(newAC[x].skipped)) {
 				draw = true;
 				xmin = min(x, xmin);
 				ymin = min(y, ymin);
@@ -4087,12 +4093,12 @@ void GFX_EndTextLines(bool force=false) {
                     colorFG = color;
                 }
 				ttf_textRect.x = ttf.offX+x*ttf.width;
-				ttf_bgColor.r = colorsLocked?altBGR1[colorBG&15].red:rgbColors[colorBG].red;
-				ttf_bgColor.g = colorsLocked?altBGR1[colorBG&15].green:rgbColors[colorBG].green;
-				ttf_bgColor.b = colorsLocked?altBGR1[colorBG&15].blue:rgbColors[colorBG].blue;
-				ttf_fgColor.r = colorsLocked?altBGR1[colorFG&15].red:rgbColors[colorFG].red;
-				ttf_fgColor.g = colorsLocked?altBGR1[colorFG&15].green:rgbColors[colorFG].green;
-				ttf_fgColor.b = colorsLocked?altBGR1[colorFG&15].blue:rgbColors[colorFG].blue;
+				ttf_bgColor.r = colorChanged&&!IS_VGA_ARCH?altBGR1[colorBG&15].red:rgbColors[colorBG].red;
+				ttf_bgColor.g = colorChanged&&!IS_VGA_ARCH?altBGR1[colorBG&15].green:rgbColors[colorBG].green;
+				ttf_bgColor.b = colorChanged&&!IS_VGA_ARCH?altBGR1[colorBG&15].blue:rgbColors[colorBG].blue;
+				ttf_fgColor.r = colorChanged&&!IS_VGA_ARCH?altBGR1[colorFG&15].red:rgbColors[colorFG].red;
+				ttf_fgColor.g = colorChanged&&!IS_VGA_ARCH?altBGR1[colorFG&15].green:rgbColors[colorFG].green;
+				ttf_fgColor.b = colorChanged&&!IS_VGA_ARCH?altBGR1[colorFG&15].blue:rgbColors[colorFG].blue;
 
                 if (newAC[x].unicode) {
                     dw = newAC[x].doublewide;
@@ -4176,12 +4182,12 @@ void GFX_EndTextLines(bool force=false) {
 						colorFG=colorBG;
 				}
 				bool dw = newAttrChar[ttf.cursor].unicode && newAttrChar[ttf.cursor].doublewide;
-				ttf_bgColor.r = colorsLocked?altBGR1[colorBG&15].red:rgbColors[colorBG].red;
-				ttf_bgColor.g = colorsLocked?altBGR1[colorBG&15].green:rgbColors[colorBG].green;
-				ttf_bgColor.b = colorsLocked?altBGR1[colorBG&15].blue:rgbColors[colorBG].blue;
-				ttf_fgColor.r = colorsLocked?altBGR1[colorFG&15].red:rgbColors[colorFG].red;
-				ttf_fgColor.g = colorsLocked?altBGR1[colorFG&15].green:rgbColors[colorFG].green;
-				ttf_fgColor.b = colorsLocked?altBGR1[colorFG&15].blue:rgbColors[colorFG].blue;
+				ttf_bgColor.r = colorChanged&&!IS_VGA_ARCH?altBGR1[colorBG&15].red:rgbColors[colorBG].red;
+				ttf_bgColor.g = colorChanged&&!IS_VGA_ARCH?altBGR1[colorBG&15].green:rgbColors[colorBG].green;
+				ttf_bgColor.b = colorChanged&&!IS_VGA_ARCH?altBGR1[colorBG&15].blue:rgbColors[colorBG].blue;
+				ttf_fgColor.r = colorChanged&&!IS_VGA_ARCH?altBGR1[colorFG&15].red:rgbColors[colorFG].red;
+				ttf_fgColor.g = colorChanged&&!IS_VGA_ARCH?altBGR1[colorFG&15].green:rgbColors[colorFG].green;
+				ttf_fgColor.b = colorChanged&&!IS_VGA_ARCH?altBGR1[colorFG&15].blue:rgbColors[colorFG].blue;
 				unimap[0] = newAttrChar[ttf.cursor].unicode?newAttrChar[ttf.cursor].chr:cpMap[newAttrChar[ttf.cursor].chr&255];
                 if (dw) {
                     unimap[1] = newAttrChar[ttf.cursor].chr;

@@ -1432,7 +1432,9 @@ void DOSBOX_SetupConfigSections(void) {
     Pbool->SetBasic(true);
 
     Pstring = secprop->Add_string("hostkey", Property::Changeable::Always, "mapper");
-    Pstring->Set_help("Select a DOSBox-X host key, or use the mapper-defined host key (default: F11 on Windows and F12 otherwise).");
+    Pstring->Set_help("By default, DOSBox-X uses the mapper-defined host key, which defaults to F11 on Windows and F12 on other platforms.\n"
+                      "You may alternatively specify a host key with this setting and bypass the host key as defined in the mapper.\n"
+                      "This can also be done from the menu (\"Main\" => \"Select host key\").");
     Pstring->Set_values(hostkeys);
     Pstring->SetBasic(true);
 
