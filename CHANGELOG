@@ -2,6 +2,8 @@
   - Added SETCOLOR command to view or change the text-
     mode color scheme settings. Also fixed the color
     palette for the TTF output. (Wengier)
+  - The "Show menu bar" option now appears in system
+    menu of the Windows SDL2 build too. (Wengier)
   - Fixed full-screen TTF output may not fully cover
     the background screen in Linux. (Wengier)
   - Fixed that lines starting with "%" in [autoexec]

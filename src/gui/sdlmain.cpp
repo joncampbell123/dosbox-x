@@ -6677,6 +6677,15 @@ void GFX_Events() {
                     break;
                 case WM_SYSCOMMAND:
                     switch (event.syswm.msg->msg.win.wParam) {
+                        case ID_WIN_SYSMENU_TOGGLEMENU:
+                            /* prevent removing the menu in 3Dfx mode */
+                            if (!GFX_GetPreventFullscreen())
+                            {
+                                void ToggleMenu(bool pressed);
+                                ToggleMenu(true);
+                                mainMenu.get_item("mapper_togmenu").check(!menu.toggle).refresh_item(mainMenu);
+                            }
+                            break;
                         case ID_WIN_SYSMENU_MAPPER:
                             extern void MAPPER_Run(bool pressed);
                             MAPPER_Run(false);
