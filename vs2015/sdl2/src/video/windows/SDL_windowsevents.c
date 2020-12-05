@@ -354,7 +354,7 @@ WIN_ConvertUTF32toUTF8(UINT32 codepoint, char * text)
 static SDL_bool
 ShouldGenerateWindowCloseOnAltF4(void)
 {
-    return !SDL_GetHintBoolean(SDL_HINT_WINDOWS_NO_CLOSE_ON_ALT_F4, SDL_FALSE);
+    return !SDL_GetHintBoolean(SDL_HINT_WINDOWS_NO_CLOSE_ON_ALT_F4, SDL_TRUE);
 }
 
 /* Win10 "Fall Creators Update" introduced the bug that SetCursorPos() (as used by SDL_WarpMouseInWindow())

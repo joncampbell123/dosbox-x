@@ -1713,6 +1713,12 @@ void ToggleMenu(bool pressed) {
         menu.toggle=false;
         DOSBox_NoMenu();
     }
+#if defined(USE_TTF) && DOSBOXMENU_TYPE == DOSBOXMENU_SDLDRAW
+    if (ttf.inUse) {
+       void resetFontSize();
+       resetFontSize();
+    }
+#endif
 
     DOSBox_SetSysMenu();
 }
@@ -1823,7 +1829,6 @@ void DOSBox_SetSysMenu(void) {
     std::string get_mapper_shortcut(const char *name), key="";
     char msg[512];
 
-#if DOSBOXMENU_TYPE == DOSBOXMENU_HMENU
     {
         strcpy(msg, "Show &menu bar");
         key=get_mapper_shortcut("togmenu");
@@ -1841,7 +1846,6 @@ void DOSBox_SetSysMenu(void) {
 
         InsertMenuItem(sysmenu, GetMenuItemCount(sysmenu), TRUE, &mii);
     }
-#endif
 
     {
         strcpy(msg, "&Pause emulation");

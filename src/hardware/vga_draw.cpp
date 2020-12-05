@@ -2996,12 +2996,6 @@ static void VGA_VerticalTimer(Bitu /*val*/) {
 
 #if defined(USE_TTF)
     if (ttf.inUse) {
-#if defined(WIN32)
-        typedef wchar_t host_cnv_char_t;
-#else
-        typedef char host_cnv_char_t;
-#endif
-        host_cnv_char_t *CodePageGuestToHost(const char *s);
 		GFX_StartUpdate(render.scale.outWrite, render.scale.outPitch);
 		vga.draw.blink = ((vga.draw.blinking & time(NULL)) || !vga.draw.blinking) ? true : false;	// eventually blink once per second
 		vga.draw.cursor.address = vga.config.cursor_start*2;
