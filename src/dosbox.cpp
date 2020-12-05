@@ -2355,7 +2355,8 @@ void DOSBOX_SetupConfigSections(void) {
     Pstring->Set_values(bright);
 
 	Pstring = secprop->Add_string("ttf.font", Property::Changeable::Always, "");
-    Pstring->Set_help("Specifies a TrueType font to use for the TTF output. If not specified, the built-in TrueType font will be used.");
+    Pstring->Set_help("Specifies a TrueType font to use for the TTF output. If not specified, the built-in TrueType font will be used.\n"
+                    "For example, setting it to \"consola\" or \"consola.ttf\" will use the Consola font; simiiar for other TTF fonts.");
     Pstring->SetBasic(true);
 
 	Pstring = secprop->Add_string("ttf.colors", Property::Changeable::Always, "");
