@@ -6140,6 +6140,7 @@ extern alt_rgb altBGR1[16];
 extern bool colorChanged;
 bool setColors(const char *colorArray, int n);
 void resetFontSize();
+
 class SETCOLOR : public Program {
 public:
     void Run(void);

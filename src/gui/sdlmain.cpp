@@ -3148,6 +3148,21 @@ void res_input(bool type, const char * res) {
 void GFX_SelectFontByPoints(int ptsize);
 bool lastmenu = true, initttf = false;
 int lastfontsize = 0;
+void setVGADAC() {
+    if (ttf.inUse&&CurMode&&IS_VGA_ARCH) {
+        std::map<uint8_t,int> imap;
+        for (uint8_t i = 0; i < 0x10; i++) {
+            IO_ReadB(mem_readw(BIOS_VIDEO_PORT)+6);
+            IO_WriteB(VGAREG_ACTL_ADDRESS, i+32);
+            imap[i]=IO_ReadB(VGAREG_ACTL_READ_DATA);
+            IO_WriteB(VGAREG_DAC_WRITE_ADDRESS, imap[i]);
+            IO_WriteB(VGAREG_DAC_DATA, altBGR1[i].red*63/255);
+            IO_WriteB(VGAREG_DAC_DATA, altBGR1[i].green*63/255);
+            IO_WriteB(VGAREG_DAC_DATA, altBGR1[i].blue*63/255);
+        }
+    }
+}
+
 bool setColors(const char *colorArray, int n) {
     if (IS_PC98_ARCH) return false;
 	const char * nextRGB = colorArray;
@@ -3181,18 +3196,7 @@ bool setColors(const char *colorArray, int n) {
 		altBGR0[i].green = (altBGR1[i].green*2 + 128)/4;
 		altBGR0[i].red = (altBGR1[i].red*2 + 128)/4;
 	}
-    if (ttf.inUse&&CurMode&&IS_VGA_ARCH) {
-        std::map<uint8_t,int> imap;
-        for (uint8_t i = 0; i < 0x10; i++) {
-            IO_ReadB(mem_readw(BIOS_VIDEO_PORT)+6);
-            IO_WriteB(VGAREG_ACTL_ADDRESS, i+32);
-            imap[i]=IO_ReadB(VGAREG_ACTL_READ_DATA);
-            IO_WriteB(VGAREG_DAC_WRITE_ADDRESS, imap[i]);
-            IO_WriteB(VGAREG_DAC_DATA, altBGR1[i].red*63/255);
-            IO_WriteB(VGAREG_DAC_DATA, altBGR1[i].green*63/255);
-            IO_WriteB(VGAREG_DAC_DATA, altBGR1[i].blue*63/255);
-        }
-    }
+    setVGADAC();
     colorChanged=true;
 	return true;
 }
