@@ -1,9 +1,18 @@
 0.83.9
+  - You can now use a single mapper file for both SDL1
+    and SDL2 versions of DOSBox-X! The new mapper file
+    will be divided to sections [SDL1] and [SDL2] for
+    both versions. The mapper file can be specified
+    with the mapperfile config option, or you can set
+    the mapperfile_sdl1 and mapperfile_sdl2 config
+    options to override mapperfile option. (Wengier)
   - Added SETCOLOR command to view or change the text-
     mode color scheme settings. Also fixed the color
     palette for the TTF output. (Wengier)
   - The "Show menu bar" option now appears in system
     menu of the Windows SDL2 build too. (Wengier)
+  - Fixed the color palette problem when switching to
+    graphic mode from mono mode. (Wengier)
   - Fixed full-screen TTF output may not fully cover
     the background screen in Linux. (Wengier)
   - Fixed that lines starting with "%" in [autoexec]
