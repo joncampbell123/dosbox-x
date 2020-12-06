@@ -1103,8 +1103,17 @@ void CONFIG::Run(void) {
 #if defined(C_SDL2)
 							if (!strcasecmp(inputline.substr(0, 16).c_str(), "mapperfile_sdl2=")) ReloadMapper(section,true);
 #else
-							if (!strcasecmp(inputline.substr(0, 11).c_str(), "mapperfile=")) ReloadMapper(section,true);
+							if (!strcasecmp(inputline.substr(0, 16).c_str(), "mapperfile_sdl1=")) ReloadMapper(section,true);
 #if !defined(HAIKU) && !defined(RISCOS)
+							if (!strcasecmp(inputline.substr(0, 11).c_str(), "mapperfile=")) {
+                                Prop_path* pp;
+#if defined(C_SDL2)
+                                pp = section->Get_path("mapperfile_sdl2");
+#else
+                                pp = section->Get_path("mapperfile_sdl1");
+#endif
+                                if (pp->realpath=="") ReloadMapper(section,true);
+                            }
 							if (!strcasecmp(inputline.substr(0, 13).c_str(), "usescancodes=")) {
 								void setScanCode(Section_prop * section), loadScanCode(), GFX_LosingFocus(), MAPPER_Init();
 								setScanCode(section);

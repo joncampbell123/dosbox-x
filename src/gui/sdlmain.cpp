@@ -1090,13 +1090,9 @@ void UpdateWindowDimensions(void)
     PrintScreenSizeInfo();
 }
 
+#define MAPPERFILE              "mapper-dosbox-x.map"
 #define MAPPERFILE_SDL1         "mapper-dosbox-x.sdl1.map"
 #define MAPPERFILE_SDL2         "mapper-dosbox-x.sdl2.map"
-#if defined(C_SDL2)
-# define MAPPERFILE             MAPPERFILE_SDL2
-#else
-# define MAPPERFILE             MAPPERFILE_SDL1
-#endif
 
 void                        GUI_ResetResize(bool);
 void                        GUI_LoadFonts();
@@ -3148,6 +3144,21 @@ void res_input(bool type, const char * res) {
 void GFX_SelectFontByPoints(int ptsize);
 bool lastmenu = true, initttf = false;
 int lastfontsize = 0;
+void setVGADAC() {
+    if (ttf.inUse&&CurMode&&IS_VGA_ARCH) {
+        std::map<uint8_t,int> imap;
+        for (uint8_t i = 0; i < 0x10; i++) {
+            IO_ReadB(mem_readw(BIOS_VIDEO_PORT)+6);
+            IO_WriteB(VGAREG_ACTL_ADDRESS, i+32);
+            imap[i]=IO_ReadB(VGAREG_ACTL_READ_DATA);
+            IO_WriteB(VGAREG_DAC_WRITE_ADDRESS, imap[i]);
+            IO_WriteB(VGAREG_DAC_DATA, altBGR1[i].red*63/255);
+            IO_WriteB(VGAREG_DAC_DATA, altBGR1[i].green*63/255);
+            IO_WriteB(VGAREG_DAC_DATA, altBGR1[i].blue*63/255);
+        }
+    }
+}
+
 bool setColors(const char *colorArray, int n) {
     if (IS_PC98_ARCH) return false;
 	const char * nextRGB = colorArray;
@@ -3181,18 +3192,7 @@ bool setColors(const char *colorArray, int n) {
 		altBGR0[i].green = (altBGR1[i].green*2 + 128)/4;
 		altBGR0[i].red = (altBGR1[i].red*2 + 128)/4;
 	}
-    if (ttf.inUse&&CurMode&&IS_VGA_ARCH) {
-        std::map<uint8_t,int> imap;
-        for (uint8_t i = 0; i < 0x10; i++) {
-            IO_ReadB(mem_readw(BIOS_VIDEO_PORT)+6);
-            IO_WriteB(VGAREG_ACTL_ADDRESS, i+32);
-            imap[i]=IO_ReadB(VGAREG_ACTL_READ_DATA);
-            IO_WriteB(VGAREG_DAC_WRITE_ADDRESS, imap[i]);
-            IO_WriteB(VGAREG_DAC_DATA, altBGR1[i].red*63/255);
-            IO_WriteB(VGAREG_DAC_DATA, altBGR1[i].green*63/255);
-            IO_WriteB(VGAREG_DAC_DATA, altBGR1[i].blue*63/255);
-        }
-    }
+    setVGADAC();
     colorChanged=true;
 	return true;
 }
@@ -7348,13 +7348,15 @@ void SDL_SetupConfigSection() {
     Pstring = Pmulti->GetSection()->Add_string("inactive",Property::Changeable::Always,"normal");
     Pstring->Set_values(inactt);
 
-    Pstring = sdl_sec->Add_path("mapperfile",Property::Changeable::Always,MAPPERFILE_SDL1);
+    Pstring = sdl_sec->Add_path("mapperfile",Property::Changeable::Always,MAPPERFILE);
     Pstring->Set_help("File used to load/save the key/event mappings from. Resetmapper only works with the default value.");
     Pstring->SetBasic(true);
 
-    Pstring = sdl_sec->Add_path("mapperfile_sdl2",Property::Changeable::Always,MAPPERFILE_SDL2);
-    Pstring->Set_help("File used to load/save the key/event mappings from (SDL2 builds). Resetmapper only works with the default value.");
-    Pstring->SetBasic(true);
+    Pstring = sdl_sec->Add_path("mapperfile_sdl1",Property::Changeable::Always,"");
+    Pstring->Set_help("File used to load/save the key/event mappings from DOSBox-X SDL1 builds. If set it will override \"mapperfile\" for SDL1 builds.");
+
+    Pstring = sdl_sec->Add_path("mapperfile_sdl2",Property::Changeable::Always,"");
+    Pstring->Set_help("File used to load/save the key/event mappings from DOSBox-X SDL2 builds. If set it will override \"mapperfile\" for SDL2 builds.");
 
 	const char* truefalseautoopt[] = { "true", "false", "auto", 0};
     Pstring = sdl_sec->Add_string("usescancodes",Property::Changeable::OnlyAtStart,"auto");
@@ -9631,11 +9633,21 @@ bool vid_select_mapper_file_menu_callback(DOSBoxMenu* const menu, DOSBoxMenu::it
         }
 
         if (*name) {
+            Prop_path* pp;
 #if defined(C_SDL2)
-			SetVal("sdl", "mapperfile_sdl2", name);
+            pp = section->Get_path("mapperfile_sdl2");
 #else
-            SetVal("sdl", "mapperfile", name);
+            pp = section->Get_path("mapperfile_sdl1");
 #endif
+            if (pp->realpath=="")
+                SetVal("sdl", "mapperfile", name);
+            else {
+#if defined(C_SDL2)
+                SetVal("sdl", "mapperfile_sdl2", name);
+#else
+                SetVal("sdl", "mapperfile_sdl1", name);
+#endif
+            }
             void ReloadMapper(Section_prop *sec, bool init);
             ReloadMapper(section,true);
         }
@@ -10533,7 +10545,7 @@ bool sendkey_preset_menu_callback(DOSBoxMenu * const menu, DOSBoxMenu::item * co
     return true;
 }
 
-void update_all_shortcuts();
+void update_all_shortcuts(), DOSBox_SetSysMenu();
 bool hostkey_preset_menu_callback(DOSBoxMenu * const menu, DOSBoxMenu::item * const menuitem) {
     (void)menu;//UNUSED
     if (menuitem->get_name()=="hostkey_ctrlalt") hostkeyalt=1;
@@ -10547,6 +10559,9 @@ bool hostkey_preset_menu_callback(DOSBoxMenu * const menu, DOSBoxMenu::item * co
     update_all_shortcuts();
 #if DOSBOXMENU_TYPE == DOSBOXMENU_SDLDRAW
     mainMenu.rebuild();
+#endif
+#if defined(WIN32) && !defined(HX_DOS)
+    DOSBox_SetSysMenu();
 #endif
     return true;
 }

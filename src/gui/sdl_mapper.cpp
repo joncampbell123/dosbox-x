@@ -46,6 +46,7 @@
 
 #include "SDL_syswm.h"
 #include "sdlmain.h"
+#include "shell.h"
 
 #if C_EMSCRIPTEN
 # include <emscripten.h>
@@ -293,6 +294,7 @@ Bitu                                            GUI_JoystickCount(void);        
 bool                                            GFX_GetPreventFullscreen(void);         // external
 void                                            GFX_ForceRedrawScreen(void);            // external
 #if defined(WIN32) && !defined(HX_DOS)
+void                                            DOSBox_SetSysMenu(void);
 void                                            WindowsTaskbarUpdatePreviewRegion(void);// external
 void                                            WindowsTaskbarResetPreviewRegion(void); // external
 #endif
@@ -3899,11 +3901,29 @@ void MAPPER_AddHandler(MAPPER_Handler * handler,MapKeys key,Bitu mods,char const
 }
 
 static void MAPPER_SaveBinds(void) {
+    std::string content="";
+    FILE * loadfile=fopen(mapper.filename.c_str(),"rt");
+    if (loadfile) {
+        char secname[512], linein[512], *line=linein;
+        strcpy(secname, "");
+        while (fgets(linein,512,loadfile)) {
+            line=trim(line);
+            if (strlen(line)>2 && line[0]=='[' && line[strlen(line)-1]==']') {
+                linein[strlen(line)-1] = 0;
+                strcpy(secname, line+1);
+                if (strcasecmp(secname, SDL_STRING)) content+=std::string(line)+"]\n";
+            } else if (strlen(secname)&&strcasecmp(secname, SDL_STRING))
+                content+=std::string(linein)+"\n";
+        }
+        fclose(loadfile);
+    }
+
     FILE * savefile=fopen(mapper.filename.c_str(),"wt+");
     if (!savefile) {
         LOG_MSG("Can't open %s for saving the mappings",mapper.filename.c_str());
         return;
     }
+    fprintf(savefile,"[%s]\n",SDL_STRING);
     char buf[128];
     for (CEventVector_it event_it=events.begin();event_it!=events.end();++event_it) {
         CEvent * event=*(event_it);
@@ -3916,6 +3936,13 @@ static void MAPPER_SaveBinds(void) {
         }
         fprintf(savefile,"\n");
     }
+    if (content.size()) {
+        fprintf(savefile,"\n");
+        std::istringstream f(content);
+        std::string line;
+        while (std::getline(f, line))
+            fprintf(savefile,"%s \n",line.c_str());
+    }
     fclose(savefile);
     change_action_text("Mapper file saved.",CLR_WHITE);
 }
@@ -3924,11 +3951,22 @@ static bool MAPPER_LoadBinds(void) {
     FILE * loadfile=fopen(mapper.filename.c_str(),"rt");
     if (!loadfile) return false;
 	ClearAllBinds();
-    char linein[512];
+    bool othersec=false, hasbind=false;
+    char secname[512], linein[512], *line=linein;
+    strcpy(secname, "");
     while (fgets(linein,512,loadfile)) {
-        CreateStringBind(linein,/*loading*/true);
+        line=trim(line);
+        if (strlen(line)>2 && line[0]=='[' && line[strlen(line)-1]==']') {
+            linein[strlen(line)-1] = 0;
+            strcpy(secname, line+1);
+            if (strcasecmp(secname, SDL_STRING)) othersec=true;
+        } else if (!strlen(secname)||!strcasecmp(secname, SDL_STRING)) {
+            hasbind=true;
+            CreateStringBind(linein,/*loading*/true);
+        }
     }
     fclose(loadfile);
+    if (othersec&&!hasbind) return false;
     LOG(LOG_MISC,LOG_NORMAL)("MAPPER: Loading mapper settings from %s", mapper.filename.c_str());
     return true;
 }
@@ -4335,10 +4373,6 @@ void MAPPER_Run(bool pressed) {
 void update_all_shortcuts() {
     for (auto &ev : events)
         if (ev != NULL) ev->update_menu_shortcut();
-#if defined(WIN32)
-    void DOSBox_SetSysMenu(void);
-    DOSBox_SetSysMenu();
-#endif
 }
 
 void MAPPER_RunInternal() {
@@ -4506,6 +4540,9 @@ void MAPPER_RunInternal() {
 #ifdef DOSBOXMENU_EXTERNALLY_MANAGED
     DOSBox_SetMenu(mainMenu);
 #endif
+#if defined(WIN32) && !defined(HX_DOS)
+    DOSBox_SetSysMenu();
+#endif
 }
 
 bool MAPPER_IsRunning(void) {
@@ -4599,6 +4636,9 @@ void MAPPER_Init(void) {
 #if DOSBOXMENU_TYPE == DOSBOXMENU_SDLDRAW
     mainMenu.rebuild();
 #endif
+#if defined(WIN32) && !defined(HX_DOS)
+    DOSBox_SetSysMenu();
+#endif
 }
 
 std::string GetDOSBoxXPath();
@@ -4606,11 +4646,11 @@ void ReloadMapper(Section_prop *section, bool init) {
     Prop_path* pp;
 #if defined(C_SDL2)
 	pp = section->Get_path("mapperfile_sdl2");
+#else
+	pp = section->Get_path("mapperfile_sdl1");
+#endif
     mapper.filename = pp->realpath;
 	if (mapper.filename=="") pp = section->Get_path("mapperfile");
-#else
-    pp = section->Get_path("mapperfile");
-#endif
     mapper.filename = pp->realpath;
     FILE * loadfile=fopen(mapper.filename.c_str(),"rt");
     if (!loadfile) {

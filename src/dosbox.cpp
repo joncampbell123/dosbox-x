@@ -3303,7 +3303,7 @@ void DOSBOX_SetupConfigSections(void) {
         "fcs (Thrustmaster), ch (CH Flightstick).\n"
         "none disables joystick emulation.\n"
         "auto chooses emulation depending on real joystick(s).\n"
-        "(Remember to reset dosbox's mapperfile if you saved it earlier)");
+        "(Remember to reset DOSBox-X's mapperfile if you saved it earlier)");
     Pstring->SetBasic(true);
 
     Pbool = secprop->Add_bool("timed",Property::Changeable::WhenIdle,true);

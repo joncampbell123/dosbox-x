@@ -1117,14 +1117,26 @@ bool INT10_SetVideoMode_OTHER(uint16_t mode,bool clearmem) {
 }
 
 #if defined(USE_TTF)
-extern bool resetreq;
+extern bool resetreq, colorChanged;
 bool GFX_IsFullscreen(void), Direct3D_using(void);
-void ttf_reset(void), resetFontSize(), OUTPUT_TTF_Select(int fsize), RENDER_Reset(void), KEYBOARD_Clear(), GFX_SwitchFullscreenNoReset(void);
+void ttf_reset(void), resetFontSize(), setVGADAC(), OUTPUT_TTF_Select(int fsize), RENDER_Reset(void), KEYBOARD_Clear(), GFX_SwitchFullscreenNoReset(void);
 #endif
 
 bool unmask_irq0_on_int10_setmode = true;
 bool switch_output_from_ttf = false;
 bool INT10_SetVideoMode(uint16_t mode) {
+    if (CurMode&&CurMode->mode==7&&!IS_PC98_ARCH) {
+        VideoModeBlock *modelist=svgaCard==SVGA_TsengET4K||svgaCard==SVGA_TsengET3K?ModeList_VGA:(svgaCard==SVGA_ParadisePVGA1A?ModeList_VGA_Paradise:(IS_VGA_ARCH?ModeList_VGA:ModeList_EGA));
+        for (Bitu i = 0; modelist[i].mode != 0xffff; i++) {
+            if (modelist[i].mode == mode) {
+                if (modelist[i].type != M_TEXT) {
+                    SetCurMode(modelist,3);
+                    FinishSetMode(true);
+                }
+                break;
+            }
+        }
+    }
 	//LOG_MSG("set mode %x",mode);
 	bool clearmem=true;Bitu i;
 	if (mode>=0x100) {
@@ -2014,6 +2026,7 @@ dac_text16:
             ttf_reset();
         else if (switch_output_from_ttf) {
             change_output(10);
+            if (colorChanged) setVGADAC();
             SetVal("sdl", "output", "ttf");
             void OutputSettingMenuUpdate(void);
             OutputSettingMenuUpdate();
