@@ -659,6 +659,12 @@ const char *drive_opts[][2] = {
     { NULL, NULL }
 };
 
+void LoadMapFile(bool bPressed) {
+    if (!bPressed) return;
+    void Load_mapper_file();
+    Load_mapper_file();
+}
+
 void QuickLaunch(bool bPressed) {
     if (!bPressed) return;
     if (dos_kernel_disabled) return;
@@ -928,9 +934,10 @@ void FreeBIOSDiskList();
 void GFX_ShutDown(void);
 void MAPPER_Shutdown();
 void SHELL_Init(void);
+void CopyClipboard(bool all);
 void CopyAllClipboard(bool bPressed);
 void PasteClipboard(bool bPressed);
-void CopyClipboard(bool all);
+void PasteClipStop(bool bPressed);
 
 #if C_DYNAMIC_X86
 void CPU_Core_Dyn_X86_Shutdown(void);
@@ -3392,12 +3399,9 @@ void OUTPUT_TTF_Select(int fsize=-1) {
                 if (ttf.cols != c || ttf.lins != r) alter_vmode = true;
             }
             if (alter_vmode) {
-                for (Bitu i = 0; ModeList_VGA[i].mode != 0xffff; i++) {										// set the cols and lins in video mode 3
-                    if (ModeList_VGA[i].mode <= 7) {
-                        ModeList_VGA[i].twidth = ttf.cols;
-                        ModeList_VGA[i].theight = ttf.lins;
-                        break;
-                    }
+                for (Bitu i = 0; ModeList_VGA[i].mode <= 7; i++) {								// Set the cols and lins in video mode 2,3,7
+                    ModeList_VGA[i].twidth = ttf.cols;
+                    ModeList_VGA[i].theight = ttf.lins;
                 }
                 if (!IS_PC98_ARCH) {
                     real_writeb(BIOSMEM_SEG,BIOSMEM_NB_COLS,ttf.cols);
@@ -5136,6 +5140,9 @@ static void GUI_StartUp() {
     item->set_text("Reboot guest system");
 
 #if !defined(HX_DOS)
+    MAPPER_AddHandler(LoadMapFile, MK_nothing, 0, "loadmap", "Load mapper file", &item);
+    item->set_text("Load mapper file...");
+
     MAPPER_AddHandler(QuickLaunch, MK_q, MMODHOST, "quickrun", "Quick launch program", &item);
     item->set_text("Quick launch program...");
 #endif
@@ -5159,6 +5166,9 @@ static void GUI_StartUp() {
 #if defined(C_SDL2) || defined(WIN32) || defined(MACOSX) || defined(LINUX) && C_X11
     MAPPER_AddHandler(PasteClipboard,MK_v,MMODHOST,"paste", "Paste from clipboard", &item); //end emendelson; improved by Wengier
     item->set_text("Pasting from the clipboard");
+
+    MAPPER_AddHandler(PasteClipStop,MK_nothing, 0,"pasteend", "Stop clipboard paste", &item);
+    item->set_text("Stop clipboard pasting");
 #endif
 
     MAPPER_AddHandler(&PauseDOSBox, MK_pause, MMODHOST, "pause", "Pause emulation");
@@ -7946,6 +7956,13 @@ void CopyClipboard(bool all) {
 }
 #endif
 
+#if defined(C_SDL2) || defined (WIN32) || defined(MACOSX) || defined(LINUX) && C_X11
+void PasteClipStop(bool bPressed) {
+    if (!bPressed) return;
+    strPasteBuffer = "";
+}
+#endif
+
 void SDL_OnSectionPropChange(Section *x) {
     (void)x;//UNUSED
     Section_prop * section = static_cast<Section_prop *>(control->GetSection("sdl"));
@@ -9602,10 +9619,7 @@ bool vid_select_ttf_font_menu_callback(DOSBoxMenu* const menu, DOSBoxMenu::item*
 }
 #endif
 
-bool vid_select_mapper_file_menu_callback(DOSBoxMenu* const menu, DOSBoxMenu::item* const menuitem) {
-    (void)menu;//UNUSED
-    (void)menuitem;//UNUSED
-
+void Load_mapper_file() {
     Section_prop* section = static_cast<Section_prop*>(control->GetSection("sdl"));
     assert(section != NULL);
 
@@ -9654,8 +9668,6 @@ bool vid_select_mapper_file_menu_callback(DOSBoxMenu* const menu, DOSBoxMenu::it
     }
     chdir( Temp_CurrentDir );
 #endif
-
-    return true;
 }
 
 bool vid_pc98_graphics_menu_callback(DOSBoxMenu * const menu,DOSBoxMenu::item * const menuitem) {
@@ -9862,8 +9874,6 @@ void GetMaxWidthHeight(int *pmaxWidth, int *pmaxHeight) {
 }
 
 void ttf_setlines(int cols, int lins) {
-    (void)cols;
-    (void)lins;
     SetVal("render", "ttf.cols", std::to_string(cols));
     SetVal("render", "ttf.lins", std::to_string(lins));
     firstset=true;
@@ -10193,15 +10203,6 @@ bool dos_clipboard_device_menu_callback(DOSBoxMenu * const menu, DOSBoxMenu::ite
     if (dos_clipboard_device_access == 4) dos_clipboard_device_access=1;
     else if (dos_clipboard_device_access) dos_clipboard_device_access=4;
     mainMenu.get_item("clipboard_device").check(dos_clipboard_device_access==4&&!control->SecureMode()).refresh_item(mainMenu);
-    return true;
-}
-#endif
-
-#if defined(C_SDL2) || defined (WIN32) || defined(MACOSX) || defined(LINUX) && C_X11
-bool clipboard_paste_stop_menu_callback(DOSBoxMenu * const menu, DOSBoxMenu::item * const menuitem) {
-    (void)menu;//UNUSED
-    (void)menuitem;//UNUSED
-    strPasteBuffer = "";
     return true;
 }
 #endif
@@ -12155,7 +12156,6 @@ int main(int argc, char* argv[]) SDL_MAIN_NOEXCEPT {
         /* more */
         std::string doubleBufString = std::string("desktop.doublebuf");
         mainMenu.alloc_item(DOSBoxMenu::item_type_id,"showdetails").set_text("Show FPS and RT speed in title bar").set_callback_function(showdetails_menu_callback).check(!menu.hidecycles && !menu.showrt);
-        mainMenu.alloc_item(DOSBoxMenu::item_type_id,"load_mapper_file").set_text("Load mapper file...").set_callback_function(vid_select_mapper_file_menu_callback);
         mainMenu.alloc_item(DOSBoxMenu::item_type_id,"auto_lock_mouse").set_text("Autolock mouse").set_callback_function(autolock_mouse_menu_callback).check(sdl.mouse.autoenable);
 #if defined (WIN32) || defined(C_SDL2)
         mainMenu.alloc_item(DOSBoxMenu::item_type_id,"clipboard_quick").set_text("Quick edit: copy on select and paste with mouse button").set_callback_function(direct_mouse_clipboard_menu_callback).check(direct_mouse_clipboard);
@@ -12167,9 +12167,6 @@ int main(int argc, char* argv[]) SDL_MAIN_NOEXCEPT {
         if (control->SecureMode()) clipboard_dosapi = false;
         mainMenu.alloc_item(DOSBoxMenu::item_type_id,"clipboard_device").set_text("Enable DOS clipboard device access").set_callback_function(dos_clipboard_device_menu_callback).check(dos_clipboard_device_access==4&&!control->SecureMode());
         mainMenu.alloc_item(DOSBoxMenu::item_type_id,"clipboard_dosapi").set_text("Enable DOS clipboard API for applications").set_callback_function(dos_clipboard_api_menu_callback).check(clipboard_dosapi);
-#endif
-#if defined (WIN32) || defined(C_SDL2) || defined(MACOSX) || defined(LINUX) && C_X11
-        mainMenu.alloc_item(DOSBoxMenu::item_type_id,"clipboard_paste_stop").set_text("Stop clipboard pasting").set_callback_function(clipboard_paste_stop_menu_callback);
 #endif
         mainMenu.alloc_item(DOSBoxMenu::item_type_id,"sendkey_winlogo").set_text("Send logo key").set_callback_function(sendkey_preset_menu_callback);
         mainMenu.alloc_item(DOSBoxMenu::item_type_id,"sendkey_winmenu").set_text("Send menu key").set_callback_function(sendkey_preset_menu_callback);

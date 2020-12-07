@@ -93,6 +93,32 @@ typedef std::list<std::string>::iterator auto_it;
 
 void VFILE_Remove(const char *name);
 
+#if defined(WIN32)
+void MountAllDrives(Program * program) {
+    uint32_t drives = GetLogicalDrives();
+    char name[4]="A:\\";
+    for (int i=0; i<25; i++) {
+        if ((drives & (1<<i)) && !Drives[i])
+        {
+            name[0]='A'+i;
+            int type=GetDriveType(name);
+            if (type!=DRIVE_NO_ROOT_DIR) {
+                program->WriteOut("Mounting %c: => %s..\n", name[0], name);
+                char mountstring[DOS_PATHLENGTH+CROSS_LEN+20];
+                name[2]=' ';
+                strcpy(mountstring,name);
+                name[2]='\\';
+                strcat(mountstring,name);
+                strcat(mountstring," -Q");
+                runMount(mountstring);
+                if (!Drives[i]) program->WriteOut("Drive %c: failed to mount.\n",name[0]);
+                else if(mountwarning && type==DRIVE_FIXED && (strcasecmp(name,"C:\\")==0)) program->WriteOut("Warning: %s", MSG_Get("SHELL_EXECUTE_DRIVE_ACCESS_WARNING_WIN"));
+            }
+        }
+    }
+}
+#endif
+
 void AutoexecObject::Install(const std::string &in) {
 	if(GCC_UNLIKELY(installed)) E_Exit("autoexec: already created %s",buf.c_str());
 	installed = true;
@@ -606,29 +632,7 @@ void DOS_Shell::Run(void) {
 		if (!control->opt_securemode&&!control->SecureMode())
 		{
 			const Section_prop* sec = 0; sec = static_cast<Section_prop*>(control->GetSection("dos"));
-			if(sec->Get_bool("automountall")) {
-				uint32_t drives = GetLogicalDrives();
-				char name[4]="A:\\";
-				for (int i=0; i<25; i++) {
-					if ((drives & (1<<i)) && !Drives[i])
-					{
-						name[0]='A'+i;
-						int type=GetDriveType(name);
-						if (type!=DRIVE_NO_ROOT_DIR) {
-							WriteOut("Mounting %c: => %s..\n", name[0], name);
-							char mountstring[DOS_PATHLENGTH+CROSS_LEN+20];
-							name[2]=' ';
-							strcpy(mountstring,name);
-							name[2]='\\';
-							strcat(mountstring,name);
-							strcat(mountstring," -Q");
-							runMount(mountstring);
-							if (!Drives[i]) WriteOut("Drive %c: failed to mount.\n",name[0]);
-							else if(mountwarning && type==DRIVE_FIXED && (strcasecmp(name,"C:\\")==0)) WriteOut("Warning: %s", MSG_Get("SHELL_EXECUTE_DRIVE_ACCESS_WARNING_WIN"));
-						}
-					}
-				}
-			}
+			if (sec->Get_bool("automountall")) MountAllDrives(this);
 		}
 #endif
 		strcpy(i4dos_data, "");

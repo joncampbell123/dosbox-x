@@ -6,6 +6,9 @@
     with the mapperfile config option, or you can set
     the mapperfile_sdl1 and mapperfile_sdl2 config
     options to override mapperfile option. (Wengier)
+  - The functions "Load mapper file" & "Stop clipboard
+    pasting" are added to the mapper so that you can
+    defined shortcut keys for them. (Wengier)
   - Added SETCOLOR command to view or change the text-
     mode color scheme settings. Also fixed the color
     palette for the TTF output. (Wengier)

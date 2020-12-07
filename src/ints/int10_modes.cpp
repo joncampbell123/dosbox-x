@@ -782,10 +782,9 @@ static void FinishSetMode(bool clearmem) {
         if (ttf.inUse) {
             ttf.cols = CurMode->twidth;
             ttf.lins = CurMode->theight;
-        } else if (firstset && ttf.lins && ttf.cols) {
+        } else if (ttf.lins && ttf.cols && !IS_PC98_ARCH && !IS_VGA_ARCH && CurMode->mode == 3) {
             CurMode->twidth = ttf.cols;
             CurMode->theight = ttf.lins;
-            firstset = false;
         }
     }
 #endif
