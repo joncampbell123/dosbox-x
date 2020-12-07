@@ -113,7 +113,7 @@ static const char *def_menu_main[] =
 {
     "mapper_gui",
     "mapper_mapper",
-    "load_mapper_file",
+    "mapper_loadmap",
     "--",
     "MainSendKey",
     "MainHostKey",
@@ -204,7 +204,7 @@ static const char *def_menu_main_clipboard[] =
     "mapper_copyall",
 #endif
     "mapper_paste",
-    "clipboard_paste_stop",
+    "mapper_pasteend",
     NULL
 };
 
