@@ -70,6 +70,7 @@ int freesizecap = 1;
 bool Mouse_Drv=true;
 bool Mouse_Vertical = false;
 bool force_nocachedir = false;
+bool lockmount = true;
 bool wpcolon = true;
 bool startcmd = false;
 bool startwait = true;
@@ -1398,6 +1399,35 @@ void pc98_43d_write(Bitu port,Bitu val,Bitu iolen) {
     }
 }
 
+#if defined(WIN32)
+#include <fcntl.h>
+#else
+#if defined(MACOSX)
+#define _DARWIN_C_SOURCE
+#endif
+#include <sys/file.h>
+#endif
+FILE *retfile = NULL;
+FILE * fopen_lock(const char * fname, const char * mode) {
+    if (lockmount && strlen(mode)>1&&mode[strlen(mode)-1]=='+') {
+#if defined(WIN32)
+        HANDLE hFile = CreateFile(fname, GENERIC_READ | GENERIC_WRITE, 0, NULL, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, NULL);
+        if (hFile == INVALID_HANDLE_VALUE) return NULL;
+        int nHandle = _open_osfhandle((intptr_t)hFile, _O_RDONLY);
+        if (nHandle == -1) {CloseHandle(hFile);return NULL;}
+        retfile = _fdopen(nHandle, mode);
+        if(!retfile) {CloseHandle(hFile);return NULL;}
+        LockFile(hFile, 0, 0, 0xFFFFFFFF, 0xFFFFFFFF);
+#else
+        retfile = fopen64(fname, mode);
+        int lock = flock(fileno(retfile), LOCK_EX | LOCK_NB);
+        if (lock==-1) return NULL;
+#endif
+    } else
+        retfile = fopen64(fname, mode);
+    return retfile;
+}
+
 /*! \brief          BOOT.COM utility to boot a floppy or hard disk device.
  *
  *  \description    Users will use this command to boot a guest operating system from
@@ -1484,7 +1514,7 @@ private:
         Cross::ResolveHomedir(filename_s);
 		bool readonly=wpcolon&&filename_s.length()>1&&filename_s[0]==':';
 		if (!readonly)
-			tmpfile = fopen(filename_s.c_str(),"rb+");
+			tmpfile = fopen_lock(filename_s.c_str(),"rb+");
         if(readonly || !tmpfile) {
             if( (tmpfile = fopen(readonly?filename_s.c_str()+1:filename_s.c_str(),"rb")) ) {
                 //File exists; So can't be opened in correct mode => error 2
@@ -4919,7 +4949,7 @@ private:
                         }
                     }
                 }
-                if (!skipDetectGeometry && !DetectGeometry(paths[i].c_str(), sizes, roflag)) {
+                if (!skipDetectGeometry && !DetectGeometry(NULL, paths[i].c_str(), sizes)) {
                     errorMessage = (char*)("Unable to detect geometry\n");
                 }
             }
@@ -5076,9 +5106,9 @@ private:
 
     }
 
-    bool DetectGeometry(const char* fileName, Bitu sizes[], bool roflag) {
+    bool DetectGeometry(FILE * file, const char* fileName, Bitu sizes[]) {
         bool yet_detected = false, readonly = wpcolon&&strlen(fileName)>1&&fileName[0]==':';
-        FILE * diskfile = fopen64(readonly?fileName+1:fileName, readonly||roflag?"rb":"rb+");
+        FILE * diskfile = file==NULL?fopen64(readonly?fileName+1:fileName, "rb"):file;
         if (!diskfile) {
             if (!qmount) WriteOut(MSG_Get("PROGRAM_IMGMOUNT_INVALID_IMAGE"));
             return false;
@@ -5124,7 +5154,7 @@ private:
             if (!qmount) WriteOut(MSG_Get("PROGRAM_IMGMOUNT_INVALID_IMAGE"));
             return false;
         }
-        fclose(diskfile);
+        if (file==NULL) fclose(diskfile);
         // check it is not dynamic VHD image
         if (!strcmp((const char*)buf, "conectix")) {
             if (!qmount) WriteOut(MSG_Get("PROGRAM_IMGMOUNT_DYNAMIC_VHD_UNSUPPORTED"));
@@ -5380,7 +5410,7 @@ private:
 
 		bool readonly = wpcolon&&strlen(fileName)>1&&fileName[0]==':';
 		const char* fname=readonly?fileName+1:fileName;
-        FILE *newDisk = fopen64(fname, readonly||roflag?"rb":"rb+");
+        FILE *newDisk = fopen_lock(fname, readonly||roflag?"rb":"rb+");
         if (!newDisk) {
             WriteOut("Unable to open '%s'\n", fname);
             return NULL;
@@ -5462,7 +5492,7 @@ private:
 
         /* try auto-detect */
         if (sizes[3] == 0 && sizes[2] == 0) {
-            DetectGeometry(fname, sizes, roflag); /* NTS: Opens the file again, even though WE have the file open already! */
+            DetectGeometry(newDisk, fname, sizes);
         }
 
         /* auto-fill: sector/track count */

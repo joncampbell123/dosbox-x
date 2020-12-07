@@ -51,6 +51,7 @@ imageDiskVHD::ErrorCodes imageDiskVHD::Open(const char* fileName, const bool rea
 	return Open(fileName, readOnly, disk, 0);
 }
 
+FILE * fopen_lock(const char * fname, const char * mode);
 imageDiskVHD::ErrorCodes imageDiskVHD::Open(const char* fileName, const bool readOnly, imageDisk** disk, const uint8_t* matchUniqueId) {
 	//validate input parameters
 	if (fileName == NULL) return ERROR_OPENING;
@@ -59,7 +60,7 @@ imageDiskVHD::ErrorCodes imageDiskVHD::Open(const char* fileName, const bool rea
 	assert(sizeof(VHDFooter) == 512);
 	assert(sizeof(DynamicHeader) == 1024);
 	//open file and clear C++ buffering
-	FILE* file = fopen64(fileName, readOnly ? "rb" : "rb+");
+	FILE* file = fopen_lock(fileName, readOnly ? "rb" : "rb+");
 	if (!file) return ERROR_OPENING;
 	setbuf(file, NULL);
 	//check that length of file is > 512 bytes

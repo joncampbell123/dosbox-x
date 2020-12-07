@@ -38,7 +38,7 @@ Bitu call_program;
 
 extern int enablelfn, paste_speed, wheel_key, freesizecap;
 extern const char *modifier;
-extern bool dos_kernel_disabled, force_nocachedir, wpcolon, enable_config_as_shell_commands, load, winrun, winautorun, startwait, startquiet, mountwarning, wheel_guest, clipboard_dosapi, noremark_save_state, force_load_state;
+extern bool dos_kernel_disabled, force_nocachedir, wpcolon, lockmount, enable_config_as_shell_commands, load, winrun, winautorun, startwait, startquiet, mountwarning, wheel_guest, clipboard_dosapi, noremark_save_state, force_load_state;
 
 /* This registers a file on the virtual drive and creates the correct structure for it*/
 
@@ -1078,6 +1078,7 @@ void CONFIG::Run(void) {
                             else if (freesizestr == "relative" || freesizestr == "2") freesizecap = 2;
                             else freesizecap = 1;
 							wpcolon = section->Get_bool("leading colon write protect image");
+							lockmount = section->Get_bool("locking disk image mount");
 							if (!strcasecmp(inputline.substr(0, 9).c_str(), "saveslot=")) SetGameState_Run(section->Get_int("saveslot")-1);
                             if (!strcasecmp(inputline.substr(0, 11).c_str(), "saveremark=")) {
                                 noremark_save_state = !section->Get_bool("saveremark");

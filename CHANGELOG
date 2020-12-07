@@ -1,4 +1,8 @@
 0.83.9
+  - Implemented file locking support for mounting disk
+    image files so that you cannot mount the same disk
+    image files in read/write mode at the same time as
+    this can cause possible disk corruptions. (Wengier)
   - You can now use a single mapper file for both SDL1
     and SDL2 versions of DOSBox-X! The new mapper file
     will be divided to sections [SDL1] and [SDL2] for
