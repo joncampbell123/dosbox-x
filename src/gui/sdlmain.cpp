@@ -3392,12 +3392,9 @@ void OUTPUT_TTF_Select(int fsize=-1) {
                 if (ttf.cols != c || ttf.lins != r) alter_vmode = true;
             }
             if (alter_vmode) {
-                for (Bitu i = 0; ModeList_VGA[i].mode != 0xffff; i++) {										// set the cols and lins in video mode 3
-                    if (ModeList_VGA[i].mode <= 7) {
-                        ModeList_VGA[i].twidth = ttf.cols;
-                        ModeList_VGA[i].theight = ttf.lins;
-                        break;
-                    }
+                for (Bitu i = 0; ModeList_VGA[i].mode <= 7; i++) {								// Set the cols and lins in video mode 2,3,7
+                    ModeList_VGA[i].twidth = ttf.cols;
+                    ModeList_VGA[i].theight = ttf.lins;
                 }
                 if (!IS_PC98_ARCH) {
                     real_writeb(BIOSMEM_SEG,BIOSMEM_NB_COLS,ttf.cols);
@@ -9862,8 +9859,6 @@ void GetMaxWidthHeight(int *pmaxWidth, int *pmaxHeight) {
 }
 
 void ttf_setlines(int cols, int lins) {
-    (void)cols;
-    (void)lins;
     SetVal("render", "ttf.cols", std::to_string(cols));
     SetVal("render", "ttf.lins", std::to_string(lins));
     firstset=true;

@@ -551,7 +551,7 @@ private:
 	}
 };
 
-void dos_ver_menu(bool start), ReloadMapper(Section_prop *sec, bool init), SetGameState_Run(int value), update_dos_ems_menu(void);
+void dos_ver_menu(bool start), ReloadMapper(Section_prop *sec, bool init), SetGameState_Run(int value), update_dos_ems_menu(void), MountAllDrives(Program * program);
 bool set_ver(char *s);
 void CONFIG::Run(void) {
 	static const char* const params[] = {
@@ -1152,6 +1152,8 @@ void CONFIG::Run(void) {
 								enable_config_as_shell_commands = section->Get_bool("shell configuration as commands");
 								mainMenu.get_item("shell_config_commands").check(enable_config_as_shell_commands).enable(true).refresh_item(mainMenu);
 #if defined(WIN32) && !defined(HX_DOS)
+                            } else if (!strcasecmp(inputline.substr(0, 13).c_str(), "automountall=")) {
+                                if (section->Get_bool("automountall")) MountAllDrives(this);
                             } else if (!strcasecmp(inputline.substr(0, 9).c_str(), "dos clipboard api=")) {
                                 clipboard_dosapi = section->Get_bool("dos clipboard api");          
 							} else if (!strcasecmp(inputline.substr(0, 9).c_str(), "startcmd=")) {
