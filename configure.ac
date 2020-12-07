@@ -194,6 +194,7 @@ fi
 
 if test x$enable_emscripten = xyes; then
 	AC_DEFINE(C_EMSCRIPTEN,1,[Targeting Emscripten])
+  AC_DEFINE(C_DIRECTSERIAL, 0, [ Define to 1 if you want serial passthrough support (Win32, Posix and OS/2).])
 fi
 
 dnl Some stuff for the icon.
