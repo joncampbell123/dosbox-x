@@ -93,6 +93,7 @@ typedef std::list<std::string>::iterator auto_it;
 
 void VFILE_Remove(const char *name);
 
+#if defined(WIN32)
 void MountAllDrives(Program * program) {
     uint32_t drives = GetLogicalDrives();
     char name[4]="A:\\";
@@ -116,6 +117,7 @@ void MountAllDrives(Program * program) {
         }
     }
 }
+#endif
 
 void AutoexecObject::Install(const std::string &in) {
 	if(GCC_UNLIKELY(installed)) E_Exit("autoexec: already created %s",buf.c_str());
