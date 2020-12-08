@@ -11812,6 +11812,7 @@ int main(int argc, char* argv[]) SDL_MAIN_NOEXCEPT {
             DOSBoxMenu::item &item = mainMenu.alloc_item(DOSBoxMenu::submenu_type_id,"CaptureMenu");
             item.set_text("Capture");
         }
+#endif
 # if (C_SSHOT)
         {
             DOSBoxMenu::item &item = mainMenu.alloc_item(DOSBoxMenu::submenu_type_id,"CaptureFormatMenu");
@@ -11868,7 +11869,7 @@ int main(int argc, char* argv[]) SDL_MAIN_NOEXCEPT {
 			name[4]='0'+(char)(GetGameState_Run()%SaveState::SLOT_COUNT);
 			mainMenu.get_item(name).check(true).refresh_item(mainMenu);
 		}
-#endif
+
         {
             DOSBoxMenu::item &item = mainMenu.alloc_item(DOSBoxMenu::submenu_type_id,"DriveMenu");
             item.set_text("Drive");
